@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.3  2003/01/06 15:37:40  mast
+new functions for setting spin box and button group
+
 Revision 1.1.2.2  2003/01/01 05:44:56  mast
 adding message functions
 
@@ -46,6 +49,9 @@ extern "C" {
 #endif
   int dia_err(char *message);
   int dia_puts(char *message);
+  int dia_ask(char *question);
+  int dia_choice(char *question, char *lab1, char *lab2, char *lab3);
+  int diaQInput(int *value, int low, int high, int decimal, char *prompt);
   void dia_vasmsg(char *msg, ...);
   void dia_smsg(char **msg);
 #ifdef __cplusplus
