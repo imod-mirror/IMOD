@@ -43,6 +43,9 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.18  2004/11/17 02:18:27  sueh
+* <p> bug# 520 Fixed a comment.
+* <p>
 * <p> Revision 1.1.2.17  2004/11/15 22:04:42  sueh
 * <p> bug# 520 Removed the function isFileValid() because it is only called once.
 * <p> Placed the code from isFileValid() into loadTestParamFile().
@@ -211,6 +214,10 @@ public abstract class BaseManager {
     }
   }
   
+  public boolean canChangeParamFileName() {
+    return true;
+  }
+  
   /**
    * A message asking the ApplicationManager to save the test parameter
    * information to a file.
@@ -234,6 +241,29 @@ public abstract class BaseManager {
       String[] errorMessage = new String[3];
       errorMessage[0] = "Test parameter file save error";
       errorMessage[1] = "Could not save test parameter data to file:";
+      errorMessage[2] = except.getMessage();
+      getMainPanel().openMessageDialog(errorMessage, "Test parameter file save error");
+    }
+    isDataParamDirty = false;
+  }
+  
+  /**
+   * save the meta data parameter
+   * information to a file.
+   */
+  public void saveMetaData() {
+    try {
+      backupFile(paramFile);
+      ParameterStore paramStore = new ParameterStore(paramFile);
+      Storable[] storable = new Storable[1];
+      storable[0] = getBaseMetaData();
+      paramStore.save(storable);
+    }
+    catch (IOException except) {
+      except.printStackTrace();
+      String[] errorMessage = new String[3];
+      errorMessage[0] = "Test parameter file save error";
+      errorMessage[1] = "Could not save meta data to file:";
       errorMessage[2] = except.getMessage();
       getMainPanel().openMessageDialog(errorMessage, "Test parameter file save error");
     }
