@@ -9,6 +9,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.5.2.1  2002/12/05 18:10:04  mast
+#  *** empty log message ***
+#
 #  Revision 3.5  2002/11/05 23:28:44  mast
 #  Added variables for the lab name
 #
@@ -498,6 +501,8 @@ mkdir -p $inst_dir/man/cat5
 #
 echo INCLUDEPATH += $inc_dir >> $midas_qconf
 echo INCLUDEPATH += $inc_dir >> $imod_qconf
+echo DEFINES += QT_CLEAN_NAMESPACE >> $midas_qconf
+echo DEFINES += QT_CLEAN_NAMESPACE >> $imod_qconf
 if ($debug == true) then
     echo CONFIG += debug warn_on >> $midas_qconf
     echo CONFIG += debug warn_off >> $imod_qconf
@@ -507,7 +512,7 @@ else
 endif
 
 (cd $midas_dir ; qmake midas.pro)
-(cd $imod_dir ; qmake imod.pro)
+(cd $imod_dir ; touch imodhelp.h ; qmake imod.pro ; \rm imodhelp.h)
 
 exit
 
