@@ -36,6 +36,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.10  2003/01/27 00:30:07  mast
+Pure Qt version and general cleanup
+
 Revision 1.1.2.9  2003/01/23 20:07:02  mast
 add include for imod_cont_copy
 
@@ -937,11 +940,13 @@ void InfoWindow::editImageSlot(int item)
       Rampbase = App->cvi->rampbase = App->base = 
 	(cmap - 1) * RAMP_INTERVAL + RAMPBASE;
       App->objbase  = App->base + 257;
+
+      // Delete old map, get new one, fill map and tell widgets
+      delete App->qColormap;
+      App->qColormap = new QGLColormap();
       imod_cmap(App->cvi->imod);
-      imodDraw(App->cvi, IMOD_DRAW_IMAGE | IMOD_DRAW_MOD);
-	       
-      xcrampNewBase(App->cvi->cramp, Rampbase);
       xcramp_setlevels(App->cvi->cramp, App->cvi->black,App->cvi->white);
+      imodDraw(App->cvi, IMOD_DRAW_COLORMAP);
       break;
     }
     break;
