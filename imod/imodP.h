@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.8.2.8  2002/12/19 04:37:13  mast
+    Cleanup of unused global variables and defines
+
     Revision 3.8.2.7  2002/12/17 18:40:24  mast
     Changes and new includes with Qt version of imodv
 
@@ -97,11 +100,9 @@
 #include "imod_io.h"
 #include "sslice.h"
 
+/* DNM 12/22/02: eliminated multiple view structures */
 typedef struct imod_application
 {
-     int nv;               /* Number of view data structures. */
-     int cv;               /* current view number.            */
-     struct ViewInfo *vi;  /* Array of views, size n.         */
      struct ViewInfo *cvi; /* current view                    */     
 
      Display     *display; /* Display charactoristics.        */
@@ -133,12 +134,6 @@ typedef struct imod_application
      unsigned int curpoint;
      unsigned int ghost;
      unsigned int imodvbgcolor;
-
-     /* gl window storage */
-     int current_window;
-     int imod_window;
-     int tilt_window;
-     int zap_window;
 
      Cursor cursor_cross;
      short wzoom;
@@ -461,6 +456,7 @@ void imodImageScaleUpdate(ImodView *iv);
 /* imod_model_edit.c */
 int openModelEdit(ImodView *vw);
 int openModelOffset(ImodView *vw);
+void setPixsizeAndUnits(Imod *imod, char *string);
 
 /* imod_cachefill.c */
 int icfGetAutofill(void);
