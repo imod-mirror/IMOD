@@ -1,5 +1,16 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/11/05: Added nad_eed_3d, Frangakis and Hegerl's edge-enhancing anisotropic 
+diffusion program.
+
+3/10/05: Fixed an eTomo bug in which a process finishing on one axis could
+start the next process on the other axis.
+
+3/7/05: In 3dmod, centered FFT of subarea in the subarea so it could be
+visualized better; fixed problem with subarea not being updated upon resize.
+
+3/6/05: Fixed synchronization of rubberband state and toolbar.
+
 3/1/05: IMOD_3-5-1
 3/1/05: Fixed synchronization of parameters between eTomo panels when Done is
 pressed (e.g., Z offset between fine alignment and positioning).
