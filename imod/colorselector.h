@@ -12,14 +12,17 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.1  2002/12/27 01:19:47  mast
+Initial creation
+
 */
 
-#include <qwidget.h>
+#include "dialog_frame.h"
 
 class MultiSlider;
 class QFrame;
 
-class ColorSelector : public QWidget
+class ColorSelector : public DialogFrame
 {
   Q_OBJECT
 
@@ -37,9 +40,8 @@ class ColorSelector : public QWidget
   void keyRelease( QKeyEvent * e );
 
   public slots:
-    void donePressed();
-    void restorePressed();
-    void qtSelectorPressed();
+    void buttonPressed(int which);
+    void buttonReleased(int which);
     void sliderChanged(int which, int value, bool dragging);
 
  protected:
@@ -48,6 +50,9 @@ class ColorSelector : public QWidget
     void keyReleaseEvent ( QKeyEvent * e );
 
  private:
+    void donePressed();
+    void restorePressed();
+    void qtSelectorPressed();
     void imposeColor(bool setSliders, bool emitSignal);
     bool mCtrlPressed;
     int mOriginalRGB[3];
