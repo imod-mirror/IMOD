@@ -19,6 +19,9 @@ import etomo.EtomoDirector;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.11  2004/11/15 22:24:04  sueh
+* <p> bug# 520 Added setSampleProduced().
+* <p>
 * <p> Revision 1.1.2.10  2004/11/13 02:38:28  sueh
 * <p> bug# 520 Added sampleProduced state boolean.
 * <p>
@@ -195,7 +198,7 @@ public class JoinMetaData extends ConstJoinMetaData {
     sectionTableData.add(row);
   }
   
-  public EtomoSimpleType setSigmaLowFrequency(String sigmaLowFrequency) {
+  public ConstEtomoNumber setSigmaLowFrequency(String sigmaLowFrequency) {
     return this.sigmaLowFrequency.set(sigmaLowFrequency);
   }
   public void setCutoffHighFrequency(String cutoffHighFrequency) {
@@ -224,7 +227,7 @@ public class JoinMetaData extends ConstJoinMetaData {
   public void setAlignmentRefSection(Object alignmentRefSection) {
     this.alignmentRefSection.set((Integer) alignmentRefSection);
   }
-  public EtomoSimpleType setSizeInX(String sizeInX) {
+  public ConstEtomoNumber setSizeInX(String sizeInX) {
     return this.sizeInX.set(sizeInX);
   }
   public void setSizeInY(String sizeInY) {

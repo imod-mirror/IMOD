@@ -17,6 +17,9 @@ import java.util.Properties;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.8  2004/10/30 02:36:12  sueh
+* <p> bug# 520 Converted rotation angles to EtomoSimpleType.
+* <p>
 * <p> Revision 1.1.2.7  2004/10/25 23:09:45  sueh
 * <p> bug# 520 Added xMax and yMax.
 * <p>
@@ -163,19 +166,19 @@ public class SectionTableRowData extends ConstSectionTableRowData {
     return doubleValue;
   }
 
-  public EtomoSimpleType setSampleBottomStart(String sampleBottomStart) {
+  public ConstEtomoNumber setSampleBottomStart(String sampleBottomStart) {
     return this.sampleBottomStart.set(sampleBottomStart);
   }
 
-  public EtomoSimpleType setSampleBottomEnd(String sampleBottomEnd) {
+  public ConstEtomoNumber setSampleBottomEnd(String sampleBottomEnd) {
     return this.sampleBottomEnd.set(sampleBottomEnd);
   }
   
-  public EtomoSimpleType setSampleTopStart(String sampleTopStart) {
+  public ConstEtomoNumber setSampleTopStart(String sampleTopStart) {
     return this.sampleTopStart.set(sampleTopStart);
   }
   
-  public EtomoSimpleType setSampleTopEnd(String sampleTopEnd) {
+  public ConstEtomoNumber setSampleTopEnd(String sampleTopEnd) {
     return this.sampleTopEnd.set(sampleTopEnd);
   }
   

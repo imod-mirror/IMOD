@@ -17,10 +17,9 @@ import etomo.comscript.FinishjoinParam;
 import etomo.process.ImodManager;
 import etomo.process.ImodProcess;
 import etomo.type.AxisID;
-import etomo.type.ConstEtomoInteger;
+import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstJoinMetaData;
-import etomo.type.EtomoInteger;
-import etomo.type.EtomoSimpleType;
+import etomo.type.EtomoNumber;
 import etomo.type.JoinMetaData;
 
 /**
@@ -36,6 +35,10 @@ import etomo.type.JoinMetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.1.2.30  2004/11/15 22:25:32  sueh
+ * <p> bug# 520 Added setMode().  Moved enabling and disabling to setMode().
+ * <p> Implemented ChangeSetup.
+ * <p>
  * <p> Revision 1.1.2.29  2004/11/13 02:39:10  sueh
  * <p> bug# 520 Added new buttons Change Setup and Revert to Last Setup.
  * <p>
@@ -306,10 +309,10 @@ public class JoinDialog implements ContextMenu {
       return;
     }
     int index = 0;
-    EtomoInteger estXMin = new EtomoInteger();
-    EtomoInteger estYMin = new EtomoInteger();
-    EtomoInteger estXMax = new EtomoInteger();
-    EtomoInteger estYMax = new EtomoInteger();
+    EtomoNumber estXMin = new EtomoNumber(EtomoNumber.INTEGER_TYPE);
+    EtomoNumber estYMin = new EtomoNumber(EtomoNumber.INTEGER_TYPE);
+    EtomoNumber estXMax = new EtomoNumber(EtomoNumber.INTEGER_TYPE);
+    EtomoNumber estYMax = new EtomoNumber(EtomoNumber.INTEGER_TYPE);
     while (index < size) {
       if (ImodProcess
         .RUBBERBAND_RESULTS_STRING
@@ -332,13 +335,13 @@ public class JoinDialog implements ContextMenu {
     int min;
     int max;
     ConstJoinMetaData metaData = joinManager.getMetaData();
-    if (estXMin.isSet() && estXMax.isSet()) {
+    if (!estXMin.isNull() && !estXMax.isNull()) {
       min = metaData.getCoordinate(estXMin);
       max = metaData.getCoordinate(estXMax);
       ltfSizeInX.setText(JoinMetaData.getSize(min, max));
       ltfShiftInX.setText(metaData.getNewShiftInX(min, max));
     }
-    if (estYMin.isSet() && estYMax.isSet()) {
+    if (!estYMin.isNull() && !estYMax.isNull()) {
       min = metaData.getCoordinate(estYMin);
       max = metaData.getCoordinate(estYMax);
       ltfSizeInY.setText(JoinMetaData.getSize(min, max));
@@ -663,16 +666,16 @@ public class JoinDialog implements ContextMenu {
   void setNumSections(int numSections) {
     this.numSections = numSections;
     //setup
-    EtomoInteger spinnerValue = new EtomoInteger();
-    spinnerValue.set((Integer) spinDensityRefSection.getValue());
+    EtomoNumber spinnerValue = new EtomoNumber(EtomoNumber.INTEGER_TYPE);
+    spinnerValue.set(spinDensityRefSection.getValue());
     spinnerValue.setDefault(1);
-    SpinnerModel spinnerModel = new SpinnerNumberModel(spinnerValue.get(true),
+    SpinnerModel spinnerModel = new SpinnerNumberModel(spinnerValue.getInteger(true),
         1, numSections < 1 ? 1 : numSections, 1);
     spinDensityRefSection.setModel(spinnerModel);
     //align
     spinnerValue.set((Integer) spinAlignmentRefSection.getValue());
     spinnerModel = new SpinnerNumberModel(spinnerValue
-        .get(true), 1,
+        .getInteger(true), 1,
         numSections < 1 ? 1 : numSections, 1);
     spinAlignmentRefSection.setModel(spinnerModel);
     //every n sections
@@ -685,57 +688,57 @@ public class JoinDialog implements ContextMenu {
       spinnerValue.set((Integer) spinUseEveryNSlices.getValue());
     }
     spinnerValue.setDefault(zMax < 1 ? 1 : zMax < 10 ? zMax : 10);
-    spinnerModel = new SpinnerNumberModel(spinnerValue.get(true), 1,
+    spinnerModel = new SpinnerNumberModel(spinnerValue.getInteger(true), 1,
         zMax < 1 ? 1 : zMax, 1);
     spinUseEveryNSlices.setModel(spinnerModel);
     //update size in X and Y defaults
     ConstJoinMetaData metaData = joinManager.getMetaData();
-    ConstEtomoInteger size = metaData.getSizeInX();
+    ConstEtomoNumber size = metaData.getSizeInX();
     size.setDefault(pnlSectionTable.getXMax());
-    ltfSizeInX.setText(size.get(true));
+    ltfSizeInX.setText(size.getInteger(true));
     size = metaData.getSizeInY();
     size.setDefault(pnlSectionTable.getYMax());
-    ltfSizeInY.setText(size.get(true));
+    ltfSizeInY.setText(size.getInteger(true));
   }
   
-  public ConstEtomoInteger getSizeInX() {
-    EtomoInteger sizeInX = new EtomoInteger();
+  public ConstEtomoNumber getSizeInX() {
+    EtomoNumber sizeInX = new EtomoNumber(EtomoNumber.INTEGER_TYPE);
     sizeInX.set(ltfSizeInX.getText());
     return sizeInX;
   }
   
-  public ConstEtomoInteger getSizeInY() {
-    EtomoInteger sizeInY = new EtomoInteger();
+  public ConstEtomoNumber getSizeInY() {
+    EtomoNumber sizeInY = new EtomoNumber(EtomoNumber.INTEGER_TYPE);
     sizeInY.set(ltfSizeInY.getText());
     return sizeInY;
   }
   
-  public ConstEtomoInteger getShiftInX() {
-    EtomoInteger shiftInX = new EtomoInteger();
+  public ConstEtomoNumber getShiftInX() {
+    EtomoNumber shiftInX = new EtomoNumber(EtomoNumber.INTEGER_TYPE);
     shiftInX.set(ltfShiftInX.getText());
     return shiftInX;
   }
   
-  public ConstEtomoInteger getShiftInY() {
-    EtomoInteger shiftInY = new EtomoInteger();
+  public ConstEtomoNumber getShiftInY() {
+    EtomoNumber shiftInY = new EtomoNumber(EtomoNumber.INTEGER_TYPE);
     shiftInY.set(ltfShiftInY.getText());
     return shiftInY;
   }
 
-  public void setSizeInX(EtomoSimpleType sizeInX) {
-    ltfSizeInX.setText(sizeInX.getString(true));
+  public void setSizeInX(ConstEtomoNumber sizeInX) {
+    ltfSizeInX.setText(sizeInX.toString(true));
   }
   
-  public void setSizeInY(EtomoSimpleType sizeInY) {
-    ltfSizeInY.setText(sizeInY.getString(true));
+  public void setSizeInY(ConstEtomoNumber sizeInY) {
+    ltfSizeInY.setText(sizeInY.toString(true));
   }
   
-  public void setShiftInX(EtomoSimpleType shiftInX) {
-    ltfShiftInX.setText(shiftInX.getString(true));
+  public void setShiftInX(ConstEtomoNumber shiftInX) {
+    ltfShiftInX.setText(shiftInX.toString(true));
   }
   
-  public void setShiftInY(EtomoSimpleType shiftInY) {
-    ltfShiftInY.setText(shiftInY.getString(true));
+  public void setShiftInY(ConstEtomoNumber shiftInY) {
+    ltfShiftInY.setText(shiftInY.toString(true));
   }
   
   public String getInvalidReason() {
@@ -767,20 +770,21 @@ public class JoinDialog implements ContextMenu {
   
   public void setMetaData(ConstJoinMetaData metaData) {
     ltfRootName.setText(metaData.getRootName());
-    spinDensityRefSection.setValue(metaData.getDensityRefSection().get(true));
-    ltfSigmaLowFrequency.setText(metaData.getSigmaLowFrequency().getString(true));
-    ltfCutoffHighFrequency.setText(metaData.getCutoffHighFrequency().getString(true));
-    ltfSigmaHighFrequency.setText(metaData.getSigmaHighFrequency().getString(true));
+    spinDensityRefSection.setValue(metaData.getDensityRefSection().getInteger(true));
+    ltfSigmaLowFrequency.setText(metaData.getSigmaLowFrequency().toString(true));
+    ltfCutoffHighFrequency.setText(metaData.getCutoffHighFrequency().toString(true));
+    ltfSigmaHighFrequency.setText(metaData.getSigmaHighFrequency().toString(true));
     rbFullLinearTransformation.setSelected(metaData.isFullLinearTransformation());
     rbRotationTranslationMagnification.setSelected(metaData.isRotationTranslationMagnification());
     rbRotationTranslation.setSelected(metaData.isRotationTranslation());
     cbUseAlignmentRefSection.setSelected(metaData.isUseAlignmentRefSection());
     useAlignmentRefSectionAction();
+    System.out.println("getNumber="+metaData.getAlignmentRefSection().getNumber());
     spinAlignmentRefSection.setValue(metaData.getAlignmentRefSection().getNumber());
-    ltfSizeInX.setText(metaData.getSizeInX().getString(true));
-    ltfSizeInY.setText(metaData.getSizeInY().getString(true));
-    ltfShiftInX.setText(metaData.getShiftInX().getString(true));
-    ltfShiftInY.setText(metaData.getShiftInY().getString(true));
+    ltfSizeInX.setText(metaData.getSizeInX().toString(true));
+    ltfSizeInY.setText(metaData.getSizeInY().toString(true));
+    ltfShiftInX.setText(metaData.getShiftInX().toString(true));
+    ltfShiftInY.setText(metaData.getShiftInY().toString(true));
     spinUseEveryNSlices.setValue(metaData.getUseEveryNSlices());
     spinTrialBinning.setValue(metaData.getTrialBinning().getNumber(true));
     pnlSectionTable.setMetaData(metaData);
