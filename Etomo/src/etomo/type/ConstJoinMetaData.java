@@ -18,6 +18,10 @@ import java.util.Properties;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.10  2004/10/22 21:02:12  sueh
+* <p> bug# 520 Simplifying by passing EtomoSimpleType instead of String and
+* <p> int in get functions.
+* <p>
 * <p> Revision 1.1.2.9  2004/10/22 03:22:52  sueh
 * <p> bug# 520 Reducing the number of ConstJoinMetaData functions by
 * <p> passing EtomoInteger, EtomoFloat, etc and using their get() and
@@ -96,13 +100,13 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
 
   public ConstJoinMetaData() {
     fileExtension = "ejf";
-    densityRefSection.setDefaultValue(1);
-    sigmaLowFrequency.setDefaultValue(0);
-    cutoffHighFrequency.setDefaultValue(0);
-    sigmaHighFrequency.setDefaultValue(0);
-    alignmentRefSection.setDefaultValue(1);
-    shiftInX.setDefaultValue(0);
-    shiftInY.setDefaultValue(0);
+    densityRefSection.setDefault(1);
+    sigmaLowFrequency.setDefault(0);
+    cutoffHighFrequency.setDefault(0);
+    sigmaHighFrequency.setDefault(0);
+    alignmentRefSection.setDefault(1);
+    shiftInX.setDefault(0);
+    shiftInY.setDefault(0);
     cutoffHighFrequency.setRecommendedValue(0.25);
     sigmaHighFrequency.setRecommendedValue(0.05);
   }
@@ -128,7 +132,7 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
         + "=" + rotationTranslation + ",\n" + useAlignmentRefSectionString
         + "=" + useAlignmentRefSection + ",\n"
         + alignmentRefSection.getDescription() + "=" + alignmentRefSection.getString()
-        + ",\n" + sizeInX.getDescription() + "=" + sizeInX + ",\n"
+        + ",\n" + sizeInX.getDescription() + "=" + sizeInX.getString() + ",\n"
         + sizeInY.getDescription() + "=" + sizeInY.getString() + ",\n"
         + shiftInX.getDescription() + "=" + shiftInX.getString() + ",\n"
         + shiftInY.getDescription() + "=" + shiftInY.getString());
@@ -321,11 +325,11 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
     return alignmentRefSection;
   }
   
-  public EtomoSimpleType getSizeInX() {
+  public ConstEtomoInteger getSizeInX() {
     return sizeInX;
   }
   
-  public EtomoSimpleType getSizeInY() {
+  public ConstEtomoInteger getSizeInY() {
     return sizeInY;
   }
   
