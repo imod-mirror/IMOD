@@ -17,6 +17,9 @@ import java.util.Properties;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.7  2004/10/25 23:09:45  sueh
+* <p> bug# 520 Added xMax and yMax.
+* <p>
 * <p> Revision 1.1.2.6  2004/10/22 21:07:27  sueh
 * <p> bug# 520 Converting ints to EtomoInteger as necessary.
 * <p>
@@ -60,9 +63,9 @@ public class SectionTableRowData extends ConstSectionTableRowData {
     sampleTopEnd.reset();
     finalStart = 1;
     finalEnd = zMax;
-    rotationAngleX = Double.NaN;
-    rotationAngleY = Double.NaN;
-    rotationAngleZ = Double.NaN;
+    rotationAngleX.reset();
+    rotationAngleY.reset();
+    rotationAngleZ.reset();
   }
   
   /**
@@ -94,12 +97,9 @@ public class SectionTableRowData extends ConstSectionTableRowData {
         Integer.toString(Integer.MIN_VALUE)));
     finalEnd = Integer.parseInt(props.getProperty(group + finalEndString,
         Integer.toString(zMax)));
-    rotationAngleX = Double.parseDouble(props.getProperty(group
-        + rotationAngleXString, Double.toString(Double.NaN)));
-    rotationAngleY = Double.parseDouble(props.getProperty(group
-        + rotationAngleYString, Double.toString(Double.NaN)));
-    rotationAngleZ = Double.parseDouble(props.getProperty(group
-        + rotationAngleZString, Double.toString(Double.NaN)));
+    rotationAngleX.load(props, prepend);
+    rotationAngleY.load(props, prepend);
+    rotationAngleZ.load(props, prepend);
   }
   
   
@@ -196,26 +196,14 @@ public class SectionTableRowData extends ConstSectionTableRowData {
   }
   
   public boolean setRotationAngleX(String rotationAngleX) {
-    this.rotationAngleX = parseDouble(rotationAngleX, rotationAngleXName);
-    if (invalidReason != null) {
-      return false;
-    }
-    return true;
+    return this.rotationAngleX.set(rotationAngleX).isValid();
   }
   
   public boolean setRotationAngleY(String rotationAngleY) {
-    this.rotationAngleY = parseDouble(rotationAngleY, rotationAngleYName);
-    if (invalidReason != null) {
-      return false;
-    }
-    return true;
+    return this.rotationAngleY.set(rotationAngleY).isValid();
   }
   
   public boolean setRotationAngleZ(String rotationAngleZ) {
-    this.rotationAngleZ = parseDouble(rotationAngleZ, rotationAngleZName);
-    if (invalidReason != null) {
-      return false;
-    }
-    return true;
+    return this.rotationAngleZ.set(rotationAngleZ).isValid();
   }
 }
