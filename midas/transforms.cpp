@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.1  2002/12/05 03:13:02  mast
+New Qt version
+
 Revision 3.3  2002/08/19 04:54:47  mast
 Added declaration for solve_for_shifts
 
@@ -516,6 +519,17 @@ int translate_slice(struct Midas_view *vw, int xt, int yt)
 
   midasGetSize(vw, &xsize, &ysize);
   xysize = xsize * ysize;
+
+  /* protect against big shifts */
+  if (xt >= xsize)
+    xt = xsize - 1;
+  if (xt <= -xsize)
+    xt = 1 - xsize;
+
+  if (yt >= ysize)
+    yt = ysize - 1;
+  if (yt <= -ysize)
+    yt = 1 - ysize;
 
   mean = (unsigned char)curSlice->mean;
   cptr = curSlice->data.b;
