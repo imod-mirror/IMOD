@@ -33,12 +33,6 @@
     $Revision$
 
     $Log$
-    Revision 3.4  2002/11/25 19:12:02  mast
-    Changes to get clean compile under g++
-
-    Revision 3.3  2002/08/19 04:54:47  mast
-    Added declaration for solve_for_shifts
-
     Revision 3.2  2002/08/19 04:50:03  mast
     Made it do a series of local solutions for displacement errors in
     montage fixing mode when there are many pieces.
@@ -149,7 +143,7 @@ int load_view(struct Midas_view *vw, char *fname)
      vw->ycenter = 0.5 * vw->ysize;
 
      if (vw->boxsize < 0) {
-	  vw->boxsize = (int)((sqrt((double)vw->xysize) - 1.) / 128. + 1.);
+	  vw->boxsize = (sqrt((double)vw->xysize) - 1.) / 128. + 1.;
 	  if (vw->boxsize > 8)
 	       vw->boxsize = 8;
      }
@@ -414,24 +408,21 @@ static Islice *getXformSlice(struct Midas_view *vw, int zval, int *xformed)
      float *mat = vw->tr[zval].mat;
      *xformed = 1;
 
-     /* search cache for transformed slice.  Do this first so that the
-	transformed slice will always get shifted by fast translations */
-     for (k = 0; k < vw->cachesize; k++) {
-       /* If it's a match, mark as not transformed and return */
-       if (vw->cache[k].zval == zval && vw->cache[k].xformed) {
-	 vw->cache[k].used = vw->usecount++;
-	 *xformed = 0;
-	 return (vw->cache[k].sec);
-       }
-     }
-     
      /* If it's a unit transformation, just return the raw slice and mark
 	as already transformed */
      if (mat[0] == 1.0 && mat[4] == 1.0 && mat[1] == 0.0 && mat[3] == 0.0 &&
 	 mat[6] < 0.0001 && mat[6] > -0.0001 && mat[7] < 0.0001 && 
-	 mat[7] > -0.0001) {
-       *xformed = -1;
-       return (getRawSlice(vw, zval));
+	 mat[7] > -0.0001)
+	  return (getRawSlice(vw, zval));
+
+     /* search cache for transformed slice */
+     for (k = 0; k < vw->cachesize; k++) {
+	  /* If it's a match, mark as not transformed and return */
+	  if (vw->cache[k].zval == zval && vw->cache[k].xformed) {
+	       vw->cache[k].used = vw->usecount++;
+	       *xformed = 0;
+	       return (vw->cache[k].sec);
+	  }
      }
 
      /* Make sure the original slice is in cache before looking for oldest */
@@ -514,15 +505,10 @@ int translate_slice(struct Midas_view *vw, int xt, int yt)
      Islice *curSlice = midasGetSlice(vw, MIDAS_SLICE_CURRENT, &xfd);
 
      if (!curSlice) return(-1);
-
-     /* If slice is already transformed, return now */
-     if (xfd)
-       return 0;
-
      midasGetSize(vw, &xsize, &ysize);
      xysize = xsize * ysize;
 
-     mean = (unsigned char)curSlice->mean;
+     mean = curSlice->mean;
      cptr = curSlice->data.b;
      tptr = cptr;
      
@@ -575,173 +561,173 @@ int midas_transform(struct MRCslice *slin,
 		    struct MRCslice *sout,
 		    struct Midas_transform *tr)
 {
-  int i, j, k, l, index;
-  int ix, iy;
-  int xsize, ysize;
-  float *mat;
-  float ox = 0, oy = 0;
-  float xdx = 1, xdy = 0, ydx = 0, ydy = 1;
-  float x, y;
-  unsigned char umean;
-  int nxa, nya, box;
-  int ixst, ixnd;
-  float xrt, xlft, xst, xnd;
-  float fx, fy;
-  unsigned char *buf;
+     int i, j, k, l, index;
+     int ix, iy;
+     int xsize, ysize;
+     float *mat;
+     float ox = 0, oy = 0;
+     float xdx = 1, xdy = 0, ydx = 0, ydy = 1;
+     float x, y;
+     unsigned char umean;
+     int nxa, nya, box;
+     int ixst, ixnd;
+     float xrt, xlft, xst, xnd;
+     float fx, fy;
+     unsigned char *buf;
 
-  mat = tramat_inverse(tr->mat);
-  if (!mat)
-    return(-1);
-  tramat_getxy(mat, &ox, &oy);
-  tramat_getxy(mat, &xdx, &xdy);
-  tramat_getxy(mat, &ydx, &ydy);
-  xdx -= ox;
-  xdy -= oy;
-  ydx -= ox;
-  ydy -= oy;
+     mat = tramat_inverse(tr->mat);
+     if (!mat)
+	  return(-1);
+     tramat_getxy(mat, &ox, &oy);
+     tramat_getxy(mat, &xdx, &xdy);
+     tramat_getxy(mat, &ydx, &ydy);
+     xdx -= ox;
+     xdy -= oy;
+     ydx -= ox;
+     ydy -= oy;
 
-  xsize = slin->xsize;
-  ysize = slin->ysize;
-  umean = (unsigned char)slin->mean;
+     xsize = slin->xsize;
+     ysize = slin->ysize;
+     umean = slin->mean;
 
-  box = VW->boxsize;
-  nxa = xsize - box;
-  nya = ysize - box;
-  if (!VW->fastip) {
-    box = 1;
-    nxa = xsize - 2;
-    nya = ysize - 2;
-  }
+     box = VW->boxsize;
+     nxa = xsize - box;
+     nya = ysize - box;
+     if (!VW->fastip) {
+	  box = 1;
+	  nxa = xsize - 2;
+	  nya = ysize - 2;
+     }
 
-  for(j = 0, y = oy, x = ox; j < ysize + 1 - box; 
-      j += box, y += ydy * box, x += ydx * box){
-    oy = y; ox = x;
+     for(j = 0, y = oy, x = ox; j < ysize + 1 - box; 
+	 j += box, y += ydy * box, x += ydx * box){
+	  oy = y; ox = x;
 
-    /* compute constrained, safe coordinates to use */
-    xst = 0;
-    xnd = xsize - 1;
+	  /* compute constrained, safe coordinates to use */
+	  xst = 0;
+	  xnd = xsize - 1;
 
-    /* get intersection with left and right sides unless vertical */
-    if (xdx > 1.e-10 || xdx < -1.e-10) {
-      xlft = -x / xdx;
-      xrt = (nxa - 0.5 - x) / xdx;
-      if (xlft < xrt) {
-	if (xst < xlft)
-	  xst = xlft;
-	if (xnd > xrt)
-	  xnd = xrt;
-      } else {
-	if (xst < xrt)
-	  xst = xrt;
-	if (xnd > xlft)
-	  xnd = xlft;
-      }
-    } else if (x < 0 || x >= nxa - 0.5) {
-      /* if vertical and outside limits, set up for fill */
-      xst = nxa;
-      xnd = 1;
-    }
+	  /* get intersection with left and right sides unless vertical */
+	  if (xdx > 1.e-10 || xdx < -1.e-10) {
+	       xlft = -x / xdx;
+	       xrt = (nxa - 0.5 - x) / xdx;
+	       if (xlft < xrt) {
+		    if (xst < xlft)
+			 xst = xlft;
+		    if (xnd > xrt)
+			 xnd = xrt;
+	       } else {
+		    if (xst < xrt)
+			 xst = xrt;
+		    if (xnd > xlft)
+			 xnd = xlft;
+	       }
+	  } else if (x < 0 || x >= nxa - 0.5) {
+	       /* if vertical and outside limits, set up for fill */
+	       xst = nxa;
+	       xnd = 1;
+	  }
 
-    /* get intersection with bottom and top unless horizontal */
-    if (xdy > 1.e-10 || xdy < -1.e-10) {
-      xlft = -y / xdy;
-      xrt = (nya - 0.5 - y) / xdy;
-      if (xlft < xrt) {
-	if (xst < xlft)
-	  xst = xlft;
-	if (xnd > xrt)
-	  xnd = xrt;
-      } else {
-	if (xst < xrt)
-	  xst = xrt;
-	if (xnd > xlft)
-	  xnd = xlft;
-      }
-    } else if (y < 0 || y >= nya - 0.5) {
-      xst = nxa;
-      xnd = 1;
-    }
+	  /* get intersection with bottom and top unless horizontal */
+	  if (xdy > 1.e-10 || xdy < -1.e-10) {
+	       xlft = -y / xdy;
+	       xrt = (nya - 0.5 - y) / xdy;
+	       if (xlft < xrt) {
+		    if (xst < xlft)
+			 xst = xlft;
+		    if (xnd > xrt)
+			 xnd = xrt;
+	       } else {
+		    if (xst < xrt)
+			 xst = xrt;
+		    if (xnd > xlft)
+			 xnd = xlft;
+	       }
+	  } else if (y < 0 || y >= nya - 0.5) {
+	       xst = nxa;
+	       xnd = 1;
+	  }
 
-    /* truncate ending down, starting up */
-    ixnd = (int)xnd;
-    ixst = nxa + 1 - (int)(nxa + 1. - xst);
+	  /* truncate ending down, starting up */
+	  ixnd = xnd;
+	  ixst = nxa + 1 - (int)(nxa + 1. - xst);
 
-    /* If they are crossed, set up so fill does whole extent */
-    if (ixst > ixnd) {
-      ixst = nxa / 2;
-      ixnd = ixst - 1;
-    } else
-      /* otherwise, make sure it's an even box multiple */
-      ixnd = ixst + box * ((ixnd - ixst) / box);
+	  /* If they are crossed, set up so fill does whole extent */
+	  if (ixst > ixnd) {
+	       ixst = nxa / 2;
+	       ixnd = ixst - 1;
+	  } else
+	       /* otherwise, make sure it's an even box multiple */
+	       ixnd = ixst + box * ((ixnd - ixst) / box);
 
-    /* Do the left and right fills */
-    for (k = j; k < j + box; k++) {
-      buf = &sout->data.b[k * xsize];
-      for (i = 0; i < ixst; i++)
-	*buf++ = umean;
-      buf = &sout->data.b[ixnd + 1 + k * xsize];
-      for (i = ixnd + 1; i < xsize; i++)
-	*buf++ = umean;
-    }
+	  /* Do the left and right fills */
+	  for (k = j; k < j + box; k++) {
+	       buf = &sout->data.b[k * xsize];
+	       for (i = 0; i < ixst; i++)
+		    *buf++ = umean;
+	       buf = &sout->data.b[ixnd + 1 + k * xsize];
+	       for (i = ixnd + 1; i < xsize; i++)
+		    *buf++ = umean;
+	  }
 
-    /* displace to starting point */
-    x += ixst * xdx;
-    y += ixst * xdy;
+	  /* displace to starting point */
+	  x += ixst * xdx;
+	  y += ixst * xdy;
 
-    if (VW->fastip && box < 2) {
+	  if (VW->fastip && box < 2) {
 
-      /* nearest neighbor, no box copies, add 0.5 for nearest int */
-      x += 0.5;
-      y += 0.5;
-      buf = &sout->data.b[ixst + j * xsize];
-      for(i = ixst; i <= ixnd; i++, y += xdy, x += xdx){
-	ix = (int)x; iy = (int)y;
-	index = ix + (iy * xsize);
-	*buf++ = slin->data.b[index];
-      }
+	       /* nearest neighbor, no box copies, add 0.5 for nearest int */
+	       x += 0.5;
+	       y += 0.5;
+	       buf = &sout->data.b[ixst + j * xsize];
+	       for(i = ixst; i <= ixnd; i++, y += xdy, x += xdx){
+		    ix = x; iy = y;
+		    index = ix + (iy * xsize);
+		    *buf++ = slin->data.b[index];
+	       }
 
-    } else if (VW->fastip) {
+	  } else if (VW->fastip) {
 
-      /* Box copies */
-      x += 0.5;
-      y += 0.5;
-      for(i = ixst; i <= ixnd; i += box, y += xdy * box, 
-	    x += xdx * box){
-	ix = (int)x; iy = (int)y;
-	for (k = j; k < j + box; k++) {
-	  index = ix + ((iy + k - j) * xsize);
-	  buf = &sout->data.b[i + k * xsize];
-	  for (l = 0; l < box; l++)
-	    *buf++ = slin->data.b[index++];
-	}
-      }
-    } else {
-      /* bilinear interpolation */
-      buf = &sout->data.b[ixst + j * xsize];
-      for(i = ixst; i <= ixnd; i++, y += xdy, x += xdx){
-	ix = (int)x; iy = (int)y;
-	fx = x - ix;
-	fy = y - iy;
-	index = ix + (iy * xsize);
-	*buf++ = (unsigned char)((1. - fy) * ((1. - fx) *slin->data.b[index] +
-					      fx * slin->data.b[index + 1]) +
-				 fy * ((1. - fx) *slin->data.b[index + xsize] +
-				       fx * slin->data.b[index + xsize + 1]));
-      }
-    }
+	       /* Box copies */
+	       x += 0.5;
+	       y += 0.5;
+	       for(i = ixst; i <= ixnd; i += box, y += xdy * box, 
+			x += xdx * box){
+		    ix = x; iy = y;
+		    for (k = j; k < j + box; k++) {
+			 index = ix + ((iy + k - j) * xsize);
+			 buf = &sout->data.b[i + k * xsize];
+			 for (l = 0; l < box; l++)
+			      *buf++ = slin->data.b[index++];
+		    }
+	       }
+	  } else {
+	       /* bilinear interpolation */
+	       buf = &sout->data.b[ixst + j * xsize];
+	       for(i = ixst; i <= ixnd; i++, y += xdy, x += xdx){
+		    ix = x; iy = y;
+		    fx = x - ix;
+		    fy = y - iy;
+		    index = ix + (iy * xsize);
+		    *buf++ = (1. - fy) * ((1. - fx) *slin->data.b[index] +
+					  fx * slin->data.b[index + 1]) +
+			 fy * ((1. - fx) *slin->data.b[index + xsize] +
+			       fx * slin->data.b[index + xsize + 1]);
+	       }
+	  }
 
-    y = oy; x = ox;
-  }
+	  y = oy; x = ox;
+     }
 
-  /* fill any top lines left undone */
-  for (j = ysize + 1 - box; j < ysize; j++) {
-    buf = &sout->data.b[j * xsize];
-    for (i = 0; i < xsize; i++)
-      *buf++ = umean;
-  }
+     /* fill any top lines left undone */
+     for (j = ysize + 1 - box; j < ysize; j++) {
+	  buf = &sout->data.b[j * xsize];
+	  for (i = 0; i < xsize; i++)
+	       *buf++ = umean;
+     }
 
-  tramat_free(mat);
-  return(0);
+     tramat_free(mat);
+     return(0);
 }
 
 /*
