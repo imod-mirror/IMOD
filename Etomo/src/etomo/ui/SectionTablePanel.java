@@ -49,6 +49,10 @@ import etomo.util.MRCHeader;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.14  2004/10/15 00:52:03  sueh
+* <p> bug# 520 Initialized rows to null so that it matches the output of
+* <p> ConstJoinMetaData.getSectionTableData().  Added setMetaData().
+* <p>
 * <p> Revision 1.1.2.13  2004/10/14 03:32:56  sueh
 * <p> bug# 520 Renamed JoinManager.imodOpen() to imodOpenFile.
 * <p>
@@ -859,7 +863,6 @@ public class SectionTablePanel implements ContextMenu, Expandable {
   }
   
   public void setMetaData(ConstJoinMetaData metaData) {
-    //System.out.println("setMetaData:metaData=" + metaData);
     ArrayList rowData = metaData.getSectionTableData();
     if (rowData == null) {
       return;
