@@ -48,6 +48,7 @@ MidasGL::MidasGL(QGLFormat inFormat, QWidget * parent, const char * name)
     fprintf(stderr, "Midas warning: Single buffering is being used even "
 	    "though\n  double buffering was requested\n");
   mSkipClearOnDraw = false;
+  mMousePressed = false;
 }
 
 MidasGL::~MidasGL()
@@ -536,12 +537,14 @@ void MidasGL::mousePressEvent(QMouseEvent * e )
     VW->ycenter = (VW->lastmy - VW->yoffset) / VW->truezoom;
     draw();
   }
+  mMousePressed = true;
 }
 
 // Release: update parameters now
 void MidasGL::mouseReleaseEvent ( QMouseEvent * e )
 {
   VW->midasSlots->update_parameters();
+  mMousePressed = false;
 }
 
 
@@ -552,6 +555,11 @@ void MidasGL::mouseMoveEvent ( QMouseEvent * e )
   bool button1 = (state & Qt::LeftButton);
   bool button2 = (state & Qt::MidButton);
   bool button3 = (state & Qt::RightButton);
+
+  // Under windows, there is a spontaneous mouse move event when file dialog is
+  // dismissed, so make sure we got the press beforehand
+  if (!mMousePressed)
+    return;
 
   // Get current position, invert Y
   VW->mousemoving = 1;
