@@ -5,7 +5,6 @@ import java.awt.Container;
 import java.awt.Dimension;
 
 import javax.swing.AbstractButton;
-import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JComponent;
 import javax.swing.border.Border;
@@ -29,6 +28,9 @@ import javax.swing.border.Border;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.4  2004/11/08 22:24:13  sueh
+* <p> bug# 520 Added addStrut() to add a strut in either direction.
+* <p>
 * <p> Revision 1.1.2.3  2004/10/13 23:01:48  sueh
 * <p> bug# 520 Added a way to set and reset component alignments.  Added
 * <p> specialized add() functions for generic etomo ui objects.  Added a way to
@@ -98,10 +100,6 @@ public class DoubleSpacedPanel {
     return "\n,innerPanel=" + innerPanel + ",\nouterPanel=" + outerPanel;
   }
   
-  public Component add(Component comp) {
-    return innerPanel.add(comp);
-  }
-  
   public Component add(JComponent comp) {
     return innerPanel.add(comp);
   }
@@ -128,19 +126,6 @@ public class DoubleSpacedPanel {
   
   public Component addMultiLineButton(AbstractButton button) {
     return innerPanel.addMultiLineButton(button);
-  }
-  
-  public Component addStrut(int size, boolean layoutDirection) {
-    if (layoutDirection) {
-      if (xAxisLayout) {
-        return innerPanel.add(Box.createHorizontalStrut(size));
-      }
-      return innerPanel.add(Box.createVerticalStrut(size));
-    }
-    else if (xAxisLayout) {
-      return outerPanel.add(Box.createVerticalStrut(size));
-    }
-    return outerPanel.add(Box.createHorizontalStrut(size));
   }
   
   public void removeAll() {
