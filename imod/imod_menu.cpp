@@ -1,13 +1,15 @@
-/*  IMOD VERSION 2.50
+/*  IMOD VERSION 2.7.9
  *
- *  imod_menu.c -- Menu callbacks for the imod information window.
+ *  imod_menu.cpp -- Menu slots for the imod information window; part
+ *                       of the InfoWindow class declared in imod_info.h
+ *                       and constructed in imod_info.cpp
  *
  *  Original author: James Kremer
  *  Revised by: David Mastronarde   email: mast@colorado.edu
  */
 
 /*****************************************************************************
- *   Copyright (C) 1995-2001 by Boulder Laboratory for 3-Dimensional Fine    *
+ *   Copyright (C) 1995-2003 by Boulder Laboratory for 3-Dimensional Fine    *
  *   Structure ("BL3DFS") and the Regents of the University of Colorado.     *
  *                                                                           *
  *   BL3DFS reserves the exclusive rights of preparing derivative works,     *
@@ -34,6 +36,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.5  2003/01/10 23:52:17  mast
+Changes for Qt version of tumbler and elimination of tilt window
+
 Revision 1.1.2.4  2003/01/06 15:52:39  mast
 changes for Qt version of slicer and new object color routines
 
@@ -95,20 +100,18 @@ Added calls for cache filling
 */
 #include <stdio.h>
 #include <math.h>
+#include <qfiledialog.h>
 #include "xxyz.h"
 #include "imod_object_edit.h"
 #include "pixelview.h"
 #include "xgraph.h"
-#include <Xm/Xm.h>
-#include <Xm/RowColumn.h>
-#include <Xm/AtomMgr.h>
-#include <dia.h>
+#include "dia_qtutils.h"
 #include "imod.h"
 #include "xzap.h"
 #include "imod_info.h"
+#include "imod_info_cb.h"
 #include "imod_io.h"
 #include "imodel.h"
-#include "mrcfiles.h"
 #include "iproc.h"
 #include "imodv.h"
 #include "sslice.h"
@@ -120,18 +123,17 @@ Added calls for cache filling
 #include "hotkey.h"
 
 
-void ioew_sgicolor_cb(Widget w, XtPointer client, XtPointer call);
-void imod_file_cb(Widget w, XtPointer client, XtPointer call);
-
 static int obj_moveto = 0;
 
-void imod_file_cb(Widget w, XtPointer client, XtPointer call)
+/*
+ * THE FILE MENU
+ */
+void InfoWindow::fileSlot(int item)
 {
-  int item = (int)client;
   int returnValue;
-  char *filestr = NULL;
   int limits[4];
   unsigned char *data;
+  QString qname;
 
   if (ImodForbidLevel){
     if (item == 6)
@@ -141,16 +143,17 @@ void imod_file_cb(Widget w, XtPointer client, XtPointer call)
 
   switch(item){
 
-  case 0: /* New */
+  case FILE_MENU_NEW: /* New */
     createNewModel(NULL);
     break;
 	  
-  case 1: /* open */
+  case FILE_MENU_OPEN: /* open */
     //  forbid input during file dialog; swallow any pending events
     imod_info_forbid();
     imod_info_input();
 
-    returnValue = openModel(filestr);
+    releaseKeyboard();
+    returnValue = openModel(NULL);
     imod_info_enable();
 
     if(returnValue == IMOD_IO_SUCCESS) {
@@ -169,30 +172,28 @@ void imod_file_cb(Widget w, XtPointer client, XtPointer call)
     }
     break;
       
-  case 2: /* save */
+  case FILE_MENU_SAVE: /* save */
     imod_info_forbid();
     imod_info_input();
     App->cvi->imod->blacklevel = App->cvi->black;
     App->cvi->imod->whitelevel = App->cvi->white;
+    releaseKeyboard();
     if (SaveModel(App->cvi->imod));
     /*	       wprint("Error Saving Model."); DNM: it already has message*/
     imod_info_enable();
     break;
 
-  case 3: /* save as */
+  case FILE_MENU_SAVEAS: /* save as */
     imod_info_forbid();
     imod_info_input();
     App->cvi->imod->blacklevel = App->cvi->black;
     App->cvi->imod->whitelevel = App->cvi->white;
+    releaseKeyboard();
     SaveasModel(App->cvi->imod);
     imod_info_enable();
     break;
 	  
-  case 4:
-    /* File format requester */
-    break;
-
-  case 5:  /* Save raw image to tiff file */
+  case FILE_MENU_TIFF:  /* Save raw image to tiff file */
     if (!App->cvi->rawImageStore)
       wprint("This option works only with color images.\n");
     else {
@@ -200,40 +201,25 @@ void imod_file_cb(Widget w, XtPointer client, XtPointer call)
          be used, and move saving functionality into this case */
       imod_info_forbid();
       imod_info_input();
-      filestr = dia_filename("TIFF File to save section from memory");
+      releaseKeyboard();
+      qname = QFileDialog::getSaveFileName
+	(QString::null, QString::null, 0, 0, 
+	 "TIFF File to save section from memory:");
       imod_info_enable();
-      if (!filestr)
-        break;
+      if (qname.isEmpty())
+	break;
+
       data = ivwGetCurrentZSection(App->cvi);
       limits[0] = limits[1] = 0;
       limits[2] = App->cvi->xsize;
       limits[3] = App->cvi->ysize;
-      b3dSnapshot_TIF(filestr, 0, limits, data);
-      XtFree(filestr);
+      b3dSnapshot_TIF((char *)qname.latin1(), 0, limits, data);
     }
     break;
 
 
-  case 6:
-    imod_info_forbid();
-    imod_info_input();
-    imod_info_enable();
-    dia_vasmsg
-      ("Imod Version ",
-       VERSION_NAME, "[", __DATE__, __TIME__, "]",
-       "originally written by James Kremer and revised by",
-       "David Mastronarde\n",
-       "Copyright (C)",COPYRIGHT_YEARS,"by",LAB_NAME1,"\n",LAB_NAME2,
-       "& Regents of the University of Colorado\n\n",
-       NULL);
-    break;
-
-  case 7:
+  case FILE_MENU_QUIT:
     imod_quit();
-    break;
-       
-  case 99:
-    dia_print("never");
     break;
        
   default:
@@ -242,11 +228,13 @@ void imod_file_cb(Widget w, XtPointer client, XtPointer call)
 
 }
 
-void imod_file_write_cb(Widget w, XtPointer client, XtPointer call)
+/*
+ * THE FILE WRITE AS MENU
+ */
+void InfoWindow::fileWriteSlot(int item)
 {
-  int item = (int)client;
   FILE *fout;
-  char *filename;
+  QString qname;
 
   if (ImodForbidLevel)
     return;
@@ -257,49 +245,46 @@ void imod_file_write_cb(Widget w, XtPointer client, XtPointer call)
 
   switch (item){
 
-  case 0: /* write imod */
-    filename = dia_filename("Write file as Imod");
-    if (!filename)
+  case FWRITE_MENU_IMOD: /* write imod */
+    releaseKeyboard();
+    qname = QFileDialog::getSaveFileName(QString::null, QString::null, 0, 0, 
+                                       "File to save as Imod:");
+    if (qname.isEmpty())
       break;
-    fout =  fopen(filename, "w");
-    if (!fout){
-      free(filename);
+    fout =  fopen(qname.latin1(), "wb");
+    if (!fout)
       break;
-    }
     imodWrite(App->cvi->imod, fout);
-    free(filename);
     fclose(fout);
     break;
 
-  case 1: /* write wimp */
-    filename = dia_filename("Write file as wimp");
-    if (!filename)
+  case FWRITE_MENU_WIMP: /* write wimp */
+    releaseKeyboard();
+    qname = QFileDialog::getSaveFileName(QString::null, QString::null, 0, 0, 
+                                       "File to save as Wimp:");
+    if (qname.isEmpty())
       break;
-    fout =  fopen(filename, "w");
-    if (!fout){
-      free(filename);
+    fout =  fopen(qname.latin1(), "w");
+    if (!fout)
       break;
-    }
-    imod_to_wmod(App->cvi->imod, fout, filename);
-    free(filename);
+    imod_to_wmod(App->cvi->imod, fout, (char *)qname.latin1());
     fclose(fout);
     break;
 
-  case 2: /* write NFF */
-    filename = dia_filename("Write file as NFF");
-    if (!filename)
+  case FWRITE_MENU_NFF: /* write NFF */
+    releaseKeyboard();
+    qname = QFileDialog::getSaveFileName(QString::null, QString::null, 0, 0, 
+                                       "File to save as Wimp:");
+    if (qname.isEmpty())
       break;
-    fout =  fopen(filename, "w");
-    if (!fout){
-      free(filename);
+    fout =  fopen(qname.latin1(), "w");
+    if (!fout)
       break;
-    }
     imod_to_nff(App->cvi->imod, fout);
-    free(filename);
     fclose(fout);
     break;
 
-  case 3: /* write synu */
+  case FWRITE_MENU_SYNU: /* write synu */
     imod_to_synu(App->cvi->imod);
     break;
 
@@ -307,17 +292,21 @@ void imod_file_write_cb(Widget w, XtPointer client, XtPointer call)
   imod_info_enable();
 }
 
-
-void imod_edit_cb(Widget w, XtPointer client, XtPointer call)
+/*
+ * THE EDIT MENU: Just movies
+ */
+void InfoWindow::editSlot(int item)
 {
-  int item = (int)client;
-  if (item == 6)
+  if (item == EDIT_MENU_MOVIES)
     imodMovieConDialog(App->cvi);
 }
 
-void imod_edit_model_cb(Widget w, XtPointer client, XtPointer call)
+
+/*
+ * THE EDIT MODEL MENU
+ */
+void InfoWindow::editModelSlot(int item)
 {
-  int item = (int)client;
   Imod *imod = App->cvi->imod;
   int ob, co, detach, hasdata, obsave;
   int cosave, ptsave;
@@ -327,13 +316,13 @@ void imod_edit_model_cb(Widget w, XtPointer client, XtPointer call)
     return;
 
   switch(item){
-  case 0: 
+    case EMODEL_MENU_HEADER: 
     openModelEdit(App->cvi);
     break;
-  case 1:
+    case EMODEL_MENU_OFFSETS:
     openModelOffset(App->cvi);
     break;
-  case 2:
+    case EMODEL_MENU_CLEAN:
     /* Clean model means delete empty objects */
     if (dia_ask("Delete all empty objects?")) {
       obsave = imod->cindex.object;
@@ -345,7 +334,7 @@ void imod_edit_model_cb(Widget w, XtPointer client, XtPointer call)
            delete the last object */
         hasdata = (imod->objsize == 1);
         obj = &imod->obj[ob];
-        for (co = 0; co < obj->contsize; co++){
+        for (co = 0; co < (int)obj->contsize; co++){
           if (obj->cont[co].psize) {
             hasdata = 1;
             break;
@@ -369,7 +358,7 @@ void imod_edit_model_cb(Widget w, XtPointer client, XtPointer call)
 
       /* Restore current point if possible */
       if (detach) {
-        if (obsave >= imod->objsize)
+        if (obsave >= (int)imod->objsize)
           obsave = imod->objsize - 1;
         cosave = -1;
         ptsave = -1;
@@ -388,13 +377,13 @@ void imod_edit_model_cb(Widget w, XtPointer client, XtPointer call)
   }
 }
 
-void imod_edit_object_cb(Widget w, XtPointer client, XtPointer call)
+/*
+ * THE EDIT OBJECT MENU
+ */
+void InfoWindow::editObjectSlot(int item)
 {
-  int item = (int)client;
-  short red, green, blue;
   struct Mod_Object *obj;
-  int ob, co;
-  long cob;
+  int co;
   float vol;
   int cosave, ptsave;
 
@@ -407,13 +396,13 @@ void imod_edit_object_cb(Widget w, XtPointer client, XtPointer call)
       return;
      
   switch(item){
-  case 0: /* New */
+  case EOBJECT_MENU_NEW: /* New */
     inputNewObject(App->cvi);
     imod_object_edit();
     imod_info_setobjcolor();
     break;
 	  
-  case 1: /* Delete */
+  case EOBJECT_MENU_DELETE: /* Delete */
     if (obj)
       if (dia_ask("Delete Object?")) {
         if (App->rgba)
@@ -428,7 +417,7 @@ void imod_edit_object_cb(Widget w, XtPointer client, XtPointer call)
     imod_info_setobjcolor();
     break;
 	  
-  case 2: /* Color */
+  case EOBJECT_MENU_COLOR: /* Color */
     imod_info_forbid();
     imod_info_input();
     imod_info_enable();
@@ -436,33 +425,13 @@ void imod_edit_object_cb(Widget w, XtPointer client, XtPointer call)
     imod_object_color(App->cvi->imod->cindex.object);
     break;
 
-  case 3: /* type*/
+  case EOBJECT_MENU_TYPE: /* type*/
     imod_object_edit();
     imod_draw_window();
     imod_info_setobjcolor();
     break;
 	  
-  case 4: /* goto */
-    if (App->cvi->imod->objsize < 2){
-      wprint("Must have more than one object to go "
-             "to a different object\n");
-      break;
-    }
-    ob = App->cvi->imod->cindex.object + 1;
-    if (ob < 1)
-      ob = 1;
-    imod_info_forbid();
-    imod_info_input();
-    App->cvi->imod->cindex.object = dia_int(1, App->cvi->imod->objsize, ob, 0,
-                                            "Select Object Number") - 1;
-    App->cvi->imod->cindex.contour = -1;
-    App->cvi->imod->cindex.point = -1;
-    imod_info_enable();	  
-    imod_setxyzmouse();
-    imod_object_edit_draw();
-    break;
-	
-  case 5: /* move */
+  case EOBJECT_MENU_MOVE: /* move */
     imod_info_forbid();
     imod_info_input();
     imod_info_enable();
@@ -471,20 +440,20 @@ void imod_edit_object_cb(Widget w, XtPointer client, XtPointer call)
              "to a new object\n");
       break;
     }
-    if (obj_moveto > App->cvi->imod->objsize)
+    if (obj_moveto > (int)App->cvi->imod->objsize)
       obj_moveto = App->cvi->imod->objsize;
     if (obj_moveto < 1)
       obj_moveto = 1;
 
     if (App->cvi->imod->cindex.object > -1){
-      obj_moveto = dia_int
-        (1, App->cvi->imod->objsize, obj_moveto, 0,
-         "Move all contours to selected object.");
+      if (!diaQInput(&obj_moveto, 1, App->cvi->imod->objsize, 0,
+		   "Move all contours to selected object."))
+	break;
       /* DNM: need to set contour inside loop because each deletion
          sets it to -1; and need to not increment counter! 
          And need to not do it if it's the same object! */
       if (obj_moveto - 1 != App->cvi->imod->cindex.object) {
-        for(co = 0; co < obj->contsize; ) {
+        for(co = 0; co < (int)obj->contsize; ) {
           App->cvi->imod->cindex.contour = 0;
           imod_contour_move(obj_moveto - 1);
         }
@@ -499,7 +468,7 @@ void imod_edit_object_cb(Widget w, XtPointer client, XtPointer call)
     imodDraw(App->cvi, IMOD_DRAW_MOD);
     break;
 
-  case 6: /* stats */
+  case EOBJECT_MENU_INFO: /* stats */
     {
       float sa = 0.0f;
       int co,pt;
@@ -519,14 +488,14 @@ void imod_edit_object_cb(Widget w, XtPointer client, XtPointer call)
 
       if (!iobjClose(obj->flags)) break;
 
-      for(co = 0; co < obj->contsize; co++){
+      for(co = 0; co < (int)obj->contsize; co++){
         cont = &obj->cont[co];
         /* DNM 2/12/01: added test, because the for loop will
            execute indefinitely on SGI or PC when psize is 0
            because it is an unsigned int */
         if (cont->psize < 2) 
           continue;
-        for(pt = 0; pt < cont->psize - 1; pt++){
+        for(pt = 0; pt < (int)cont->psize - 1; pt++){
           sa += imodel_point_dist
             (&(cont->pts[pt]), &(cont->pts[pt+1]));
         }
@@ -545,7 +514,7 @@ void imod_edit_object_cb(Widget w, XtPointer client, XtPointer call)
     }
     break;
 
-  case 7: /* Clean: delete empty contours */
+  case EOBJECT_MENU_CLEAN: /* Clean: delete empty contours */
     obj = imodObjectGet(App->cvi->imod);
     if (!obj)
       break;
@@ -582,32 +551,35 @@ void imod_edit_object_cb(Widget w, XtPointer client, XtPointer call)
      
 }
 
-void imod_edit_surface_cb(Widget w, XtPointer client, XtPointer call)
+/*
+ * THE EDIT SURFACE MENU
+ */
+void InfoWindow::editSurfaceSlot(int item)
 {
-  int item = (int)client;
 
   if (ImodForbidLevel)
     return;
 
   switch(item){
-  case 0: /* new */
+  case ESURFACE_MENU_NEW: /* new */
     inputNewSurface(App->cvi);
     break;
 	  
-  case 1: /* go to */
+  case ESURFACE_MENU_GOTO: /* go to */
     inputContourSurf(App->cvi);
     break;
 	  
-  case 2: /* move */
+  case ESURFACE_MENU_MOVE: /* move */
     inputContourMoveDialog(App->cvi);
     break;
   }
 }
 	  
-void imod_edit_contour_cb(Widget w, XtPointer client, XtPointer call)
+/*
+ * THE EDIT CONTOUR MENU
+ */
+void InfoWindow::editContourSlot(int item)
 {
-  int item = (int)client;
-     
   struct Mod_Object *obj;
   struct Mod_Contour *cont, *cont2;
   int ob,co,pt, ptb;
@@ -619,16 +591,16 @@ void imod_edit_contour_cb(Widget w, XtPointer client, XtPointer call)
   cont = (struct Mod_Contour *)imodContourGet(App->cvi->imod);
      
   switch(item){
-  case 0: /* new */
+  case ECONTOUR_MENU_NEW: /* new */
     NewContour(App->cvi->imod);
     imod_info_setocp();
     break;
 	  
-  case 1: /* del */
+  case ECONTOUR_MENU_DELETE: /* del */
     inputDeleteContour(App->cvi);
     break;
 	  
-  case 2: /* move */
+  case ECONTOUR_MENU_MOVE: /* move */
     if (App->cvi->imod->objsize < 2){
       wprint("Must have more than one object to move contours "
              "to a new object\n");
@@ -637,7 +609,7 @@ void imod_edit_contour_cb(Widget w, XtPointer client, XtPointer call)
     inputContourMoveDialog(App->cvi);
     break;
 	  
-  case 3: /* sort */
+  case ECONTOUR_MENU_SORT: /* sort */
     if (App->cvi->imod->mousemode == IMOD_MMODEL){
       imodObjectSort(imodel_object_get(App->cvi->imod));
       App->cvi->imod->cindex.contour = -1;
@@ -648,36 +620,17 @@ void imod_edit_contour_cb(Widget w, XtPointer client, XtPointer call)
     }
     break;
 
-  case 4: /* auto */
+  case ECONTOUR_MENU_AUTO: /* auto */
     autox_open(App->cvi);
     imod_info_setocp();
     break;
 
-  case 5: /* surface */
+  case ECONTOUR_MENU_TYPE: /* surface */
     inputContourSurf(App->cvi);
     break;
 
-  case 6: /* Goto */
-    obj = imodel_object_get(App->cvi->imod);
-    if (!obj)
-      break;
-    if (obj->contsize < 2)
-      break;
-    co = App->cvi->imod->cindex.contour + 1;
-    if (co < 1)
-      co = 1;
-	  
-    imod_info_forbid();
-    imod_info_input();
-    App->cvi->imod->cindex.contour = dia_int(1, obj->contsize, co, 0,
-                                             "Select Contour Number") - 1;
-    App->cvi->imod->cindex.point = -1;
-    imod_info_enable();
-    imod_setxyzmouse();
-    break;
 
-
-  case 7: /* Print Stats */
+  case ECONTOUR_MENU_INFO: /* Print Stats */
     if (!cont)
       return;
     if (!cont->psize)
@@ -698,7 +651,7 @@ void imod_edit_contour_cb(Widget w, XtPointer client, XtPointer call)
                dist, imodUnits(App->cvi->imod));
       }
 
-      for(dist = 0.0, pt = 0; pt < cont->psize-1; pt++){
+      for(dist = 0.0, pt = 0; pt < (int)cont->psize-1; pt++){
         dist += imodel_point_dist(&(cont->pts[pt]),
                                   &(cont->pts[pt+1]));
       }
@@ -717,7 +670,7 @@ void imod_edit_contour_cb(Widget w, XtPointer client, XtPointer call)
       scale.x = App->cvi->imod->xscale;
       scale.y = App->cvi->imod->yscale;
       scale.z = App->cvi->imod->zscale;
-      for(dist = 0.0, pt = 0; pt < cont->psize-1; pt++){
+      for(dist = 0.0, pt = 0; pt < (int)cont->psize-1; pt++){
         dist += imodPoint3DScaleDistance
           (&(cont->pts[pt]), &(cont->pts[pt+1]), &scale);
       }
@@ -736,11 +689,11 @@ void imod_edit_contour_cb(Widget w, XtPointer client, XtPointer call)
     }
     break;
 
-  case 8: /* break a contour into two */
+  case ECONTOUR_MENU_BREAK: /* break a contour into two */
     inputContourBreak(App->cvi);
     break;
 
-  case 9: /* break a contour at z transitions */
+  case ECONTOUR_MENU_FIXZ: /* break a contour at z transitions */
     obj = imodel_object_get(App->cvi->imod);
     if (!obj)
       break;	  
@@ -760,7 +713,7 @@ void imod_edit_contour_cb(Widget w, XtPointer client, XtPointer call)
       if (zcur != zprev) {
         cont2 = imodContourDup(cont);
         ni = 0;
-        for (oi = ptb; oi < cont->psize; oi++, ni++) {
+        for (oi = ptb; oi < (int)cont->psize; oi++, ni++) {
           cont2->pts[ni] = cont->pts[oi];
           if (cont->sizes)
             cont2->sizes[ni] = cont->sizes[oi];
@@ -773,17 +726,17 @@ void imod_edit_contour_cb(Widget w, XtPointer client, XtPointer call)
       }
     }
     imodel_contour_check_wild(cont);
-    if (pt >= cont->psize)
+    if (pt >= (int)cont->psize)
       pt = cont->psize - 1;
     imodSetIndex(App->cvi->imod, ob, co, pt);
     imodDraw(App->cvi, IMOD_DRAW_MOD);
     break;
 
-  case 10: /* join two contour together. */
+  case ECONTOUR_MENU_JOIN: /* join two contour together. */
     inputContourJoin(App->cvi, 0, 0);
     break;
 
-  case 11: /* invert a contour */
+  case ECONTOUR_MENU_INVERT: /* invert a contour */
     if (!imodel_contour_invert(cont)) {
       imodGetIndex(App->cvi->imod, &ob, &co, &pt);
       pt = (cont->psize - 1) - pt;
@@ -792,16 +745,16 @@ void imod_edit_contour_cb(Widget w, XtPointer client, XtPointer call)
     }
     break;
 
-  case 12: /* duplicate current contour. */
+  case ECONTOUR_MENU_COPY: /* duplicate current contour. */
     openContourCopyDialog(App->cvi);
     break;
 
-  case 13: /* Loop back to start to make complex cap */
+  case ECONTOUR_MENU_LOOPBACK: /* Loop back to start to make complex cap */
     for (ptb = cont->psize - 2; ptb > 0; ptb--)
       imodPointAppend(cont, &cont->pts[ptb]);
     break;
 
-  case 14: /* fill in a contour at every z level: Open contours only */
+  case ECONTOUR_MENU_FILLIN: /* fill in a contour at every z level: Open contours only */
     obj = imodel_object_get(App->cvi->imod);
     if (!obj)
       break;	  
@@ -814,7 +767,7 @@ void imod_edit_contour_cb(Widget w, XtPointer client, XtPointer call)
       break;
     }
     imodGetIndex(App->cvi->imod, &ob, &co, &pt);
-    for (ptb = 0; ptb < cont->psize - 1; ptb++) {
+    for (ptb = 0; ptb < (int)cont->psize - 1; ptb++) {
       int zcur, znext, zfill;
       Ipoint newPt;
       Ipoint *cur, *next;
@@ -855,28 +808,28 @@ void imod_edit_contour_cb(Widget w, XtPointer client, XtPointer call)
      
 }
 
-void imod_edit_point_cb(Widget w, XtPointer client, XtPointer call)
+/*
+ * THE EDIT POINT MENU
+ */
+void InfoWindow::editPointSlot(int item)
 {
-  int item = (int)client;
-  struct Mod_Contour *cont;
-  int pt;
 
   if (ImodForbidLevel)
     return;
 
   switch(item){
-  case 0: /* Delete */
+  case EPOINT_MENU_DELETE: /* Delete */
     inputDeletePoint(App->cvi);
     break;
 	  
-  case 1: /* Sort by distance */
+  case EPOINT_MENU_SORTDIST: /* Sort by distance */
     if (App->cvi->imod->mousemode == IMOD_MMODEL){
       imodel_contour_sort(imodContourGet(App->cvi->imod));
       imodDraw(App->cvi, IMOD_DRAW_MOD);
     }
     break;
 
-  case 2: /* Sort by Z */
+  case EPOINT_MENU_SORTZ: /* Sort by Z */
     if (App->cvi->imod->mousemode == IMOD_MMODEL){
       Icont *cont = imodContourGet(App->cvi->imod);
       if (cont)
@@ -887,7 +840,7 @@ void imod_edit_point_cb(Widget w, XtPointer client, XtPointer call)
     }
     break;
 	  
-  case 3: /* dist */{
+  case EPOINT_MENU_DIST: /* dist */{
 	     
     Icont *cont = imodContourGet(App->cvi->imod);
     int    pt   = App->cvi->imod->cindex.point;
@@ -897,7 +850,6 @@ void imod_edit_point_cb(Widget w, XtPointer client, XtPointer call)
 
     /* DNM: psize must be at least 2, not 0 or 1 */
     if ((!cont) || (cont->psize < 2) || (pt < 0)){
-      XBell(App->display, 100);
       wprint("\aError: No points selected.\n");
       break;
     }
@@ -921,29 +873,14 @@ void imod_edit_point_cb(Widget w, XtPointer client, XtPointer call)
            imodUnits(App->cvi->imod));
     break;
   }
-  case 4: /* value */
+  case EPOINT_MENU_VALUE: /* value */
     wprint("Pixel value from file:\n (%g, %g, %g) = %g",
            App->cvi->xmouse, App->cvi->ymouse, App->cvi->zmouse,
            ivwGetFileValue(App->cvi, (int)App->cvi->xmouse,
                            (int)App->cvi->ymouse, (int)App->cvi->zmouse));
     break;
 
-  case 5: /* Go to */
-    cont = imodContourGet(App->cvi->imod);
-    if (!cont)
-      break;
-    if (cont->psize < 2)
-      break;
-    pt = App->cvi->imod->cindex.point + 1;
-    if (pt < 0)
-      pt = 1;
-
-    App->cvi->imod->cindex.point = dia_int(1, cont->psize, pt, 0,
-                                           "Select Point Number") - 1;
-    imod_setxyzmouse();
-    break;
-	  
-  case 6: /* size */
+  case EPOINT_MENU_SIZE: /* size */
     inputContourSurf(App->cvi);
     break;
 
@@ -954,47 +891,49 @@ void imod_edit_point_cb(Widget w, XtPointer client, XtPointer call)
      
 }
 
-void imod_edit_image_cb(Widget w, XtPointer client, XtPointer call)
+/*
+ * THE EDIT IMAGE MENU
+ */
+void InfoWindow::editImageSlot(int item)
 {
-  int item = (int)client;
+  int cmap, cmapold;
 
   if (ImodForbidLevel)
     return;
 
   switch(item){
-  case 0:
+    case EIMAGE_MENU_PROCESS:
     inputIProcOpen(App->cvi);
     break;
 
-  case 1: /* rampbase */
+  case EIMAGE_MENU_COLORMAP: /* rampbase */
     if (App->rgba)
       wprint("Not needed for TrueColor graphics.\n");
     else if (App->depth <= 8){
       wprint("Not available for 8-bit graphics.\n");
     }else{
-      Rampbase = App->cvi->rampbase = App->base =
-        ((dia_int(1, 12, ((App->cvi->rampbase-256)/330) + 1, 0,
-                  "New Colormap #")-1) * 330) + 256;
+      cmap = ((App->cvi->rampbase-RAMPBASE)/RAMP_INTERVAL) + 1;
+      cmapold = cmap;
+      diaQInput(&cmap, 1, MAXIMUM_RAMPS, 0, "New Colormap #");
+      if (cmap == cmapold)
+	break;
+      Rampbase = App->cvi->rampbase = App->base = 
+	(cmap - 1) * RAMP_INTERVAL + RAMPBASE;
       App->objbase  = App->base + 257;
       imod_cmap(App->cvi->imod);
       imodDraw(App->cvi, IMOD_DRAW_IMAGE | IMOD_DRAW_MOD);
 	       
-#ifdef DRAW_GL
-      cmap_setrampbase(Rampbase);
-      adjustcmap_pf(&App->cvi->black, &App->cvi->white, Rampbase);
-#else
       xcrampNewBase(App->cvi->cramp, Rampbase);
       xcramp_setlevels(App->cvi->cramp, App->cvi->black,App->cvi->white);
-#endif
       break;
     }
     break;
 
-  case 2:
+    case EIMAGE_MENU_RELOAD:
     imodImageScaleDialog(App->cvi);
     break;
 
-  case 3:
+    case EIMAGE_MENU_FLIP:
     /* DNM 12/10/02: if busy loading, this will defer it */
     if (ivwFlip(App->cvi))
 	break;
@@ -1003,14 +942,14 @@ void imod_edit_image_cb(Widget w, XtPointer client, XtPointer call)
     imodDraw(App->cvi, IMOD_DRAW_IMAGE | IMOD_DRAW_XYZ);
     break;
 
-  case 4:
+    case EIMAGE_MENU_FILLCACHE:
     if (App->cvi->vmSize)
       imodCacheFill(App->cvi);
     else
       wprint("Cache is not active.\n");
     break;
 
-  case 5:
+    case EIMAGE_MENU_FILLER:
     if (App->cvi->vmSize)
       imodCacheFillDialog(App->cvi);
     else
@@ -1023,9 +962,11 @@ void imod_edit_image_cb(Widget w, XtPointer client, XtPointer call)
 
 }
 
-void imod_win_cb(Widget w, XtPointer client, XtPointer call)
+/*
+ * THE IMAGE MENU
+ */
+void InfoWindow::imageSlot(int item)
 {
-  int item = (int)client;
 
   if (ImodForbidLevel)
     return;
@@ -1036,39 +977,35 @@ void imod_win_cb(Widget w, XtPointer client, XtPointer call)
      
   switch(item){
 
-  case 0: /* graph */
+  case IMAGE_MENU_GRAPH: /* graph */
     /* DMN 2/25/01: do not open with fake image */
     if (!App->cvi->fakeImage)
       xgraphOpen(App->cvi);
     break;
 
-  case 1: /* slice */
+  case IMAGE_MENU_SLICER: /* slice */
     sslice_open(App->cvi);
     /*	  cut_open(); */
     break;
 	  
-  case 2: /* tumble */
+  case IMAGE_MENU_TUMBLER: /* tumble */
     xtumOpen(App->cvi);
     break;
 
-  case 3: /* tilt */
-    //   tltopen(App->cvi, Tilt_vi);
-    break;
-
-  case 4: /* model view */
+  case IMAGE_MENU_MODV: /* model view */
     imod_autosave(App->cvi->imod);
     imodv_open();
     break;
 
-  case 5:
+    case IMAGE_MENU_ZAP:
     imod_zap_open(App->cvi);
     break;
 
-  case 6:
+    case IMAGE_MENU_XYZ:
     xxyz_open(App->cvi);
     break;
 
-  case 7:
+    case IMAGE_MENU_PIXEL:
     open_pixelview(App->cvi);
     break;
 
@@ -1082,20 +1019,37 @@ void imod_win_cb(Widget w, XtPointer client, XtPointer call)
 }
 
 
-void imod_help_cb(Widget w, XtPointer client, XtPointer call)
+/*
+ * THE HELP MENU
+ */
+void InfoWindow::helpSlot(int item)
 {
-  int item = (int)client;
 
   switch (item){
-  case 0:
+    case HELP_MENU_MAN:
     dia_smsg(Imod_help_text);
     break;
-  case 1:
+    case HELP_MENU_MENUS:
     dia_smsg(Imod_menus_help);
     break;
-  case 2:
+    case HELP_MENU_HOTKEY:
     dia_smsg(Imod_hotkey_help);
     break;
+
+  case HELP_MENU_ABOUT:
+    imod_info_forbid();
+    imod_info_input();
+    imod_info_enable();
+    dia_vasmsg
+      ("Imod Version ",
+       VERSION_NAME, "[", __DATE__, __TIME__, "]",
+       "originally written by James Kremer and revised by",
+       "David Mastronarde\n",
+       "Copyright (C)",COPYRIGHT_YEARS,"by",LAB_NAME1,"\n",LAB_NAME2,
+       "& Regents of the University of Colorado\n\n",
+       NULL);
+    break;
+
   }
   return;
 }
