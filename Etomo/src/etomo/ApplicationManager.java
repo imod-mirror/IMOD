@@ -59,6 +59,7 @@ import etomo.type.ProcessTrack;
 import etomo.type.TiltAngleSpec;
 import etomo.type.TomogramState;
 import etomo.ui.AlignmentEstimationDialog;
+import etomo.ui.CleanUpDialog;
 import etomo.ui.CoarseAlignDialog;
 import etomo.ui.FiducialModelDialog;
 import etomo.ui.FiducialessParams;
@@ -81,7 +82,7 @@ import etomo.util.Utilities;
  * <p>Description: Provides the main entry point, handles high level message 
  *  processing, management of other high-level objects and signal routing.</p>
  *
- * <p>Copyright: Copyright (c) 2002-2004</p>
+ * <p>Copyright: Copyright (c) 2002-2005</p>
  *
  * <p>Organization: Boulder Laboratory for 3D Fine Structure,
  * University of Colorado</p>
@@ -91,6 +92,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.127.2.2  2005/03/11 18:20:17  sueh
+ * <p> bug# 612 Change nextProcess to support axis A and B.
+ * <p>
  * <p> Revision 3.127.2.1  2005/03/01 22:16:28  sueh
  * <p> bug# 607 Catching Throwable in exitProgram and returning true to make
  * <p> sure that Etomo can always exit.  Bug# 610 Keeping track of current
@@ -1195,6 +1199,8 @@ public class ApplicationManager extends BaseManager {
   protected TomogramCombinationDialog tomogramCombinationDialog = null;
 
   private PostProcessingDialog postProcessingDialog = null;
+  
+  private CleanUpDialog cleanUpDialog = null;
   
   private MetaData metaData = null;
   private MainTomogramPanel mainPanel;
@@ -2548,6 +2554,9 @@ public class ApplicationManager extends BaseManager {
     else if (currentDialogType == DialogType.POST_PROCESSING) {
       donePostProcessing();
     }
+    else if (currentDialogType == DialogType.CLEAN_UP) {
+      doneCleanUp();
+    }
   }
   
   public void setCurrentDialogType(DialogType dialogType, AxisID axisID) {
@@ -2627,6 +2636,9 @@ public class ApplicationManager extends BaseManager {
     }
     if (postProcessingDialog != null) {
       donePostProcessing();
+    }
+    if (cleanUpDialog != null) {
+      doneCleanUp();
     }
   }
   
@@ -5237,7 +5249,7 @@ public class ApplicationManager extends BaseManager {
     //  Open the dialog in the appropriate mode for the current state of
     //  processing
     setCurrentDialogType(DialogType.POST_PROCESSING, AxisID.ONLY);
-    mainPanel.selectButton(AxisID.ONLY, "Post Processing");
+    mainPanel.selectButton(AxisID.ONLY, DialogType.POST_PROCESSING.toString());
     if (postProcessingDialog == null) {
       postProcessingDialog = new PostProcessingDialog(this);
       //  Set the appropriate input and output files
@@ -5275,6 +5287,26 @@ public class ApplicationManager extends BaseManager {
   }
 
   /**
+   * Open the clean up dialog
+   */
+  public void openCleanUpDialog() {
+    //  Check to see if the com files are present otherwise pop up a dialog
+    //  box informing the user to run the setup process
+    if (!metaData.getComScriptCreated()) {
+      setupRequestDialog();
+      return;
+    }
+    //  Open the dialog in the appropriate mode for the current state of
+    //  processing
+    setCurrentDialogType(DialogType.CLEAN_UP, AxisID.ONLY);
+    mainPanel.selectButton(AxisID.ONLY, "Clean Up");
+    if (cleanUpDialog == null) {
+      cleanUpDialog = new CleanUpDialog(this);
+    }
+    mainPanel.showProcess(cleanUpDialog.getContainer(), AxisID.ONLY);
+  }
+
+  /**
    * Close the post processing dialog panel
    */
   public void donePostProcessing() {
@@ -5287,6 +5319,7 @@ public class ApplicationManager extends BaseManager {
     DialogExitState exitState = postProcessingDialog.getExitState();
     if (exitState == DialogExitState.CANCEL) {
       postProcessingDialog = null;
+      mainPanel.showBlankProcess(AxisID.ONLY);
     }
     else {
       updateTrimvolParam();
@@ -5294,11 +5327,41 @@ public class ApplicationManager extends BaseManager {
       if (exitState == DialogExitState.POSTPONE) {
         processTrack.setPostProcessingState(ProcessState.INPROGRESS);
         mainPanel.setPostProcessingState(ProcessState.INPROGRESS);
+        mainPanel.showBlankProcess(AxisID.ONLY);
       }
       else if (exitState != DialogExitState.SAVE) {
         processTrack.setPostProcessingState(ProcessState.COMPLETE);
         mainPanel.setPostProcessingState(ProcessState.COMPLETE);
         postProcessingDialog = null;
+        openCleanUpDialog();
+      }
+      saveTestParamFile();
+    }
+  }
+  
+  /**
+   * Close the clean up dialog panel
+   */
+  public void doneCleanUp() {
+    if (cleanUpDialog == null) {
+      mainPanel.openMessageDialog("Clean Up dialog not open",
+          "Program logic error");
+      return;
+    }
+    setAdvanced(cleanUpDialog.getDialogType(), cleanUpDialog.isAdvanced());
+    DialogExitState exitState = cleanUpDialog.getExitState();
+    if (exitState == DialogExitState.CANCEL) {
+      cleanUpDialog = null;
+    }
+    else {
+      if (exitState == DialogExitState.POSTPONE) {
+        processTrack.setCleanUpState(ProcessState.INPROGRESS);
+        mainPanel.setCleanUpState(ProcessState.INPROGRESS);
+      }
+      else if (exitState != DialogExitState.SAVE) {
+        processTrack.setCleanUpState(ProcessState.COMPLETE);
+        mainPanel.setCleanUpState(ProcessState.COMPLETE);
+        cleanUpDialog = null;
       }
       saveTestParamFile();
     }
