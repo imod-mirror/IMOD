@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.1  2003/01/18 01:17:33  mast
+Initial creation
+
 */
 #ifndef MODELOFFSETWINDOW_H
 #define MODELOFFSETWINDOW_H
@@ -19,6 +22,37 @@ $Log$
 #include "dialog_frame.h"
 class QLabel;
 class QLineEdit;
+class ToolEdit;
+class QCheckBox;
+
+#ifndef IMODP_H
+typedef struct ViewInfo ImodView;
+typedef struct Mod_Model Imod;
+#endif
+
+class ModelHeaderWindow : public DialogFrame
+{
+  Q_OBJECT
+
+ public:
+  ModelHeaderWindow(QWidget *parent, const char *name = NULL);
+  ~ModelHeaderWindow() {};
+  void update();
+
+  public slots:
+  void buttonPressed(int which);
+  void valueEntered();
+  void drawToggled(bool state);
+
+ protected:
+  void closeEvent ( QCloseEvent * e );
+  void keyPressEvent ( QKeyEvent * e );
+  void keyReleaseEvent ( QKeyEvent * e );
+
+ private:
+  QCheckBox *mDrawBox;
+  ToolEdit *mEditBox[3];
+};
 
 class ModelOffsetWindow : public DialogFrame
 {
@@ -43,4 +77,11 @@ class ModelOffsetWindow : public DialogFrame
   QLabel *mAppliedLabel;
   void updateLabels();
 };
+
+// Global functions
+int openModelOffset(ImodView *vw);
+void imodModelEditUpdate();
+int openModelEdit(ImodView *vw);
+void setPixsizeAndUnits(Imod *imod, char *string);
+
 #endif
