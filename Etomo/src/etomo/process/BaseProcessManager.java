@@ -24,6 +24,14 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.4  2004/10/11 02:02:37  sueh
+* <p> bug# 520 Using a variable called propertyUserDir instead of the "user.dir"
+* <p> property.  This property would need a different value for each manager.
+* <p> This variable can be retrieved from the manager if the object knows its
+* <p> manager.  Otherwise it can retrieve it from the current manager using the
+* <p> EtomoDirector singleton.  If there is no current manager, EtomoDirector
+* <p> gets the value from the "user.dir" property.
+* <p>
 * <p> Revision 1.1.2.3  2004/10/08 15:55:17  sueh
 * <p> bug# 520 Handled command array in BackgroundProcess.  Since
 * <p> EtomoDirector is a singleton, made all functions and member variables
@@ -43,7 +51,6 @@ import etomo.util.Utilities;
 public abstract class BaseProcessManager {
   public static  final String  rcsid =  "$Id$";
   
-  protected BaseManager manager = null;
   SystemProcessInterface threadAxisA = null;
   SystemProcessInterface threadAxisB = null;
   Thread processMonitorA = null;
@@ -53,9 +60,9 @@ public abstract class BaseProcessManager {
   
   protected abstract void comScriptPostProcess(ComScriptProcess script, int exitValue);
   protected abstract void backgroundPostProcess(BackgroundProcess process);
+  protected abstract BaseManager getManager();
   
-  public BaseProcessManager(BaseManager manager) {
-    this.manager = manager;
+  public BaseProcessManager() {
   }
   
   /**
@@ -96,7 +103,7 @@ public abstract class BaseProcessManager {
     isAxisBusy(axisID);
 
     // Run the script as a thread in the background
-    comScriptProcess.setWorkingDirectory(new File(manager.getPropertyUserDir()));
+    comScriptProcess.setWorkingDirectory(new File(getManager().getPropertyUserDir()));
     comScriptProcess.setDebug(EtomoDirector.getInstance().isDebug());
     comScriptProcess.setDemoMode(EtomoDirector.getInstance().isDemo());
     comScriptProcess.start();
@@ -112,7 +119,7 @@ public abstract class BaseProcessManager {
     Thread processMonitorThread = null;
     // Replace the process monitor with a DemoProcessMonitor if demo mode is on
     if (EtomoDirector.getInstance().isDemo()) {
-      processMonitor = new DemoProcessMonitor(manager, axisID, command,
+      processMonitor = new DemoProcessMonitor(getManager(), axisID, command,
         comScriptProcess.getDemoTime());
     }
 
@@ -483,7 +490,7 @@ public abstract class BaseProcessManager {
           combined[j] = stdError[i];
         }
       }
-      manager.getMainPanel().openMessageDialog(combined,
+      getManager().getMainPanel().openMessageDialog(combined,
           script.getScriptName() + " terminated");
     }
     else {
@@ -499,7 +506,7 @@ public abstract class BaseProcessManager {
         for (int i = 0; i < warningMessages.length; i++) {
           dialogMessage[j++] = warningMessages[i];
         }
-        manager.getMainPanel().openMessageDialog(dialogMessage,
+        getManager().getMainPanel().openMessageDialog(dialogMessage,
             script.getScriptName()
           + " warnings");
       }
@@ -524,7 +531,7 @@ public abstract class BaseProcessManager {
     }
 
     //  Inform the app manager that this process is complete
-    manager.processDone(script.getName(), exitValue,
+    getManager().processDone(script.getName(), exitValue,
       script.getProcessName(), script.getAxisID());
   }
   
@@ -566,7 +573,7 @@ public abstract class BaseProcessManager {
   private BackgroundProcess startBackgroundProcess(
       BackgroundProcess backgroundProcess, String commandLine, AxisID axisID)
       throws SystemProcessException {
-    backgroundProcess.setWorkingDirectory(new File(manager.getPropertyUserDir()));
+    backgroundProcess.setWorkingDirectory(new File(getManager().getPropertyUserDir()));
     backgroundProcess.setDemoMode(EtomoDirector.getInstance().isDemo());
     backgroundProcess.setDebug(EtomoDirector.getInstance().isDebug());
     backgroundProcess.start();
@@ -576,6 +583,35 @@ public abstract class BaseProcessManager {
     }
     mapAxisThread(backgroundProcess, axisID);
     return backgroundProcess;
+  }
+  
+  /**
+   * Start an arbitrary command as an unmanaged background thread
+   */
+  protected void startSystemProgramThread(String[] command) {
+    // Initialize the SystemProgram object
+    SystemProgram sysProgram = new SystemProgram(command);
+    startSystemProgramThread(sysProgram);
+  }
+  
+  protected void startSystemProgramThread(String command) {
+    // Initialize the SystemProgram object
+    SystemProgram sysProgram = new SystemProgram(command);
+    startSystemProgramThread(sysProgram);
+  }
+  
+  private void startSystemProgramThread(SystemProgram sysProgram) { 
+    sysProgram.setWorkingDirectory(new File(getManager().getPropertyUserDir()));
+    sysProgram.setDebug(EtomoDirector.getInstance().isDebug());
+
+    //  Start the system program thread
+    Thread sysProgThread = new Thread(sysProgram);
+    sysProgThread.start();
+    if (EtomoDirector.getInstance().isDebug()) {
+      System.err.println("Started " + sysProgram.getCommandLine());
+      System.err.println("  working directory: "
+        + getManager().getPropertyUserDir());
+    }
   }
 
   /**
@@ -608,7 +644,7 @@ public abstract class BaseProcessManager {
           message[j] = stdError[i];
         }
       }
-      manager.getMainPanel().openMessageDialog(message,
+      getManager().getMainPanel().openMessageDialog(message,
           process.getCommand() + " terminated");
     }
 
@@ -632,7 +668,7 @@ public abstract class BaseProcessManager {
       .toArray(new String[errors.size()]);
 
     if (errorMessage.length > 0) {
-      manager.getMainPanel().openMessageDialog(errorMessage,
+      getManager().getMainPanel().openMessageDialog(errorMessage,
           "Background Process Error");
     }
 
@@ -651,7 +687,7 @@ public abstract class BaseProcessManager {
     }
 
     //  Inform the app manager that this process is complete
-    manager.processDone(process.getName(), exitValue, null, null);
+    getManager().processDone(process.getName(), exitValue, null, null);
   }
 
 }
