@@ -34,6 +34,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.6  2003/01/03 16:46:18  mast
+Simplified closing logic
+
 Revision 1.1.2.5  2003/01/02 15:43:37  mast
 accept key input from controlled; use a cache sum to detect if xz and yz
 data need redrawing
@@ -109,8 +112,6 @@ int xxyz_open(ImodView *vi)
   int i,msize;
   float newzoom;
   struct xxyzwin *xx;
-  char *window_name;
-  QString str;
   int deskWidth = QApplication::desktop()->width();
   int deskHeight = QApplication::desktop()->height();
   int needWinx, needWiny;
@@ -165,14 +166,7 @@ int xxyz_open(ImodView *vi)
   }
   
   xx->glw = xx->dialog->mGLw;
-  window_name = imodwfname("Imod XYZ Window: ");
-  if (window_name) {
-    str = window_name;
-    free(window_name);
-  }
-  if (str.isEmpty())
-    str = "Imod XYZ Window";
-  xx->dialog->setCaption(str);
+  xx->dialog->setCaption(imodCaption("Imod XYZ Window"));
 
   xx->lx = xx->ly = xx->lz = xx->lastCacheSum -1;
   XYZ  = xx;
@@ -1654,14 +1648,7 @@ void XyzGL::resizeGL( int winx, int winy )
   xx->winy = winy;
   b3dSetCurSize(winx, winy);
 
-    //  b3dResizeViewport();
-  glViewport((GLint)0, (GLint)0, (GLsizei)winx, (GLsizei)winy);
-  glMatrixMode(GL_PROJECTION);
-  glLoadIdentity();
-
-  glOrtho(0.0 , (GLdouble)winx, 0.0, (GLdouble)winy, 0.5, -0.5);
-  glMatrixMode(GL_MODELVIEW);
-  glLoadIdentity();
+  b3dResizeViewportXY(winx, winy);
   
   mWin->GetCIImages();
   xx->exposed = 1;
