@@ -16,6 +16,10 @@ import java.util.Properties;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.4  2004/10/22 21:04:59  sueh
+* <p> bug# 520 Allowing value initialization in constructor.  Returning this in
+* <p> set().  Added plus().
+* <p>
 * <p> Revision 1.1.2.3  2004/10/22 03:24:58  sueh
 * <p> bug# 520 Added parameterless constructor and construstor which sets the
 * <p> default value.
@@ -50,13 +54,9 @@ public class EtomoInteger extends ConstEtomoInteger {
     value = initialValue;
   }
   
-  public void setDefaultValue(int value) {
-    defaultValue = value;
-    setResetValue();
-  }
-  
-  public void setRecommendedValue(int value) {
-    recommendedValue = value;
+  public void setRecommendedValue(int recommendedValue) {
+    this.recommendedValue = recommendedValue;
+    value = recommendedValue;
     setResetValue();
   }
   
@@ -78,7 +78,7 @@ public class EtomoInteger extends ConstEtomoInteger {
         .toString(resetValue)));
   }
   
-  public EtomoInteger set(String value) {
+  public EtomoSimpleType set(String value) {
     invalidReason = null;
     if (value == null || !value.matches("\\S+")) {
       this.value = unsetValue;
@@ -97,25 +97,16 @@ public class EtomoInteger extends ConstEtomoInteger {
     return this;
   }
   
-  public EtomoInteger set(Integer value) {
+  public EtomoSimpleType set(Integer value) {
     invalidReason = null;
     this.value = value.intValue();
     return this;
   }
   
-  public EtomoInteger set(int value) {
+  public EtomoSimpleType set(int value) {
     invalidReason = null;
     this.value = value;
     return this;
-  }
-  
-  public void plus(int value) {
-    if (!isSet()) {
-      set(value);
-    }
-    else {
-      this.value += value;
-    }
   }
   
   public void reset() {
@@ -129,9 +120,6 @@ public class EtomoInteger extends ConstEtomoInteger {
   private void setResetValue() {
     if (recommendedValue != unsetValue) {
       resetValue = recommendedValue;
-    }
-    else if (defaultValue != unsetValue) {
-      resetValue = defaultValue;
     }
     else {
       resetValue = unsetValue;
