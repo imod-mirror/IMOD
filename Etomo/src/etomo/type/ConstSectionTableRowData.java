@@ -19,6 +19,10 @@ import etomo.storage.Storable;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.13  2004/11/16 02:26:35  sueh
+* <p> bug# 520 Replacing EtomoInteger, EtomoDouble, EtomoFloat, and
+* <p> EtomoLong with EtomoNumber.
+* <p>
 * <p> Revision 1.1.2.12  2004/11/15 22:23:45  sueh
 * <p> bug# 520 Moving state variables from ConstSectionTableRow to this class
 * <p> so they can be saved in meta data.
@@ -117,6 +121,26 @@ public abstract class ConstSectionTableRowData implements Storable {
     rotationAngleX.setDefault(0);
     rotationAngleY.setDefault(0);
     rotationAngleZ.setDefault(0);
+  }
+  
+  protected ConstSectionTableRowData(ConstSectionTableRowData that) {
+    imodIndex = that.imodIndex;
+    imodRotIndex = that.imodRotIndex;
+    sectionExpanded = that.sectionExpanded;
+    rowNumber = new EtomoNumber(that.rowNumber);
+    section = that.section; //Section can't be changed so it can be shared
+    sampleBottomStart = new EtomoNumber(that.sampleBottomStart);
+    sampleBottomEnd = new EtomoNumber(that.sampleBottomEnd);
+    sampleTopStart = new EtomoNumber(that.sampleTopStart);
+    sampleTopEnd = new EtomoNumber(that.sampleTopEnd);
+    finalStart = that.finalStart;
+    finalEnd = that.finalEnd;
+    rotationAngleX = new EtomoNumber(that.rotationAngleX);
+    rotationAngleY = new EtomoNumber(that.rotationAngleY);
+    rotationAngleZ = new EtomoNumber(that.rotationAngleZ);
+    xMax = new EtomoNumber(that.xMax);
+    yMax = new EtomoNumber(that.yMax);
+    zMax = that.zMax;
   }
   
   public String toString() {
