@@ -32,6 +32,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.7  2002/12/17 17:30:22  mast
+Adding timer for redraws
+
 Revision 1.1.2.6  2002/12/14 05:23:42  mast
 backing out the fancy subclass, adjusting for new visual detection
 
@@ -85,6 +88,11 @@ class ZapWindow : public QMainWindow
             const char * name = 0, 
 	    WFlags f = WType_TopLevel | WDestructiveClose) ;
   ~ZapWindow();
+  void setToggleState(int index, int state);
+  void setZoomText(float zoom);
+  void setSectionText(int section);
+  void setTimeLabel(QString label);
+
   ZapGL *mGLw;
   QToolBar *mToolBar;
   QTimer *mTimer;
@@ -100,10 +108,6 @@ class ZapWindow : public QMainWindow
     void timeBack();
     void timeForward();
     void toggleClicked(int index);
-    void setToggleState(int index, int state);
-    void setZoomText(float zoom);
-    void setSectionText(int section);
-    void setTimeLabel(QString label);
     void timeoutSlot();
 
  protected:
