@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.1.2.2  2003/01/13 01:15:42  mast
+    changes for Qt version of info window
+
     Revision 3.1.2.1  2002/12/09 17:51:38  mast
     add declartion of defaultKeyInput
 
@@ -81,15 +84,7 @@ void inputNextTime(ImodView *vw);
 void inputPrevTime(ImodView *vw);
 void inputRestorePointIndex(ImodView *vw);
 void inputKeepContourAtSameTime(ImodView *vw);
-
-void inputContourBreak(ImodView *vw);
-void inputContourJoin(ImodView *vw, int x, int y);
-void inputContourSurf(ImodView *vw);
 void inputContourDup(ImodView *vw);
-void contSurfShow(void);
-void inputContourMove(void);
-void inputContourMoveDialog(ImodView *vw);
-void inputContourMoveDialogUpdate(void);
 
 void inputSetModelTime(ImodView *vw, int time);
 
