@@ -17,7 +17,14 @@ import etomo.storage.Storable;
 * 
 * @version $Revision$
 * 
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1.2.1  2004/11/16 02:26:06  sueh
+* <p> bug# 520 Replacing EtomoInteger, EtomoDouble, EtomoFloat, and
+* <p> EtomoLong with EtomoNumber.  EtomoNumber acts a simple numeric
+* <p> type which handles null values, defaults, and recommended values.
+* <p> EtomoNumber stores its values in Number variables and is created with a
+* <p> required type parameter to keep track of its numeric type.
+* <p> </p>
 */
 public abstract class ConstEtomoNumber implements Storable {
   public static  final String  rcsid =  "$Id$";
@@ -91,7 +98,7 @@ public abstract class ConstEtomoNumber implements Storable {
   }
   
   protected String paramString() {
-    return ",\nname=" + name + ",\ndescription=" + description
+    return ",\ntype=" + type + ",\nname=" + name + ",\ndescription=" + description
         + ",\ninvalidReason=" + invalidReason + ",\nvalue="
         + value + ",\ndefaultValue=" + defaultValue + ",\nrecommendedValue="
         + recommendedValue + ",\nresetValue=" + resetValue;
@@ -205,7 +212,7 @@ public abstract class ConstEtomoNumber implements Storable {
     }
     return newNumber();
   }
-  
+
   public ConstEtomoNumber getNegation() {
     EtomoNumber that = new EtomoNumber(this);
     that.value = newNumberMultiplied(value, -1);
@@ -213,23 +220,83 @@ public abstract class ConstEtomoNumber implements Storable {
     that.defaultValue = newNumberMultiplied(defaultValue, -1);
     return that;
   }
-  
+
   public boolean isSetAndNotDefault() {
     return !isNull() && (isNull(defaultValue) || !value.equals(defaultValue));
   }
-  
+
   public boolean isNull() {
     return isNull(value);
   }
-  
+
+  /**
+   * compare two EtomoNumbers, comparing resetValue if value is null.
+   * @param that
+   * @return
+   */
   public boolean equals(ConstEtomoNumber that) {
-    return equals(value, that.value);
+    if (equals(value, that.value)) {
+      if (isNull()) {
+        return equals(resetValue, that.resetValue);
+      }
+      return true;
+    }
+    if (isNull()) {
+      return equals(resetValue, that.value);
+    }
+    if (that.isNull()) {
+      return equals(value, that.resetValue);
+    }
+    return false;
   }
-  
+
   public boolean equals(int value) {
-    return equals(this.value, value);
+    if (!isNull()) {
+      return equals(this.value, value);
+    }
+    return equals(resetValue, value);
+  }
+
+  public boolean equals(Number value) {
+    if (!isNull()) {
+      return equals(this.value, value);
+    }
+    return equals(resetValue, value);
+  }
+
+  public boolean equals(Number value, boolean useDefault) {
+    if (!useDefault) {
+      return equals(value);
+    }
+    if (!isNull()) {
+      return equals(this.value, value);
+    }
+    if (!isNull(resetValue)) {
+      return equals(resetValue, value);
+    }
+    return equals(defaultValue, value);
+  }
+
+  public boolean equals(String value) {
+    if (!isNull()) {
+      return equals(this.value, newNumber(value, new StringBuffer()));
+    }
+    return equals(resetValue, newNumber(value, new StringBuffer()));
   }
   
+  public boolean equals(String value, boolean useDefault) {
+    if (!useDefault) {
+      return equals(value);
+    }
+    if (!isNull()) {
+      return equals(this.value, newNumber(value, new StringBuffer()));
+    }
+    if (!isNull(resetValue)) {
+      return equals(resetValue, newNumber(value, new StringBuffer()));
+    }
+    return equals(defaultValue, newNumber(value, new StringBuffer()));
+  }
+
   private void initialize() {
     value = newNumber();
     defaultValue = newNumber();
@@ -286,6 +353,9 @@ public abstract class ConstEtomoNumber implements Storable {
   }
   
   protected Number newNumber(String value, StringBuffer invalidBuffer) {
+    if (!value.matches("\\S+")) {
+      return newNumber();
+    }
     try {
       switch (type) {
       case DOUBLE_TYPE:
@@ -370,7 +440,25 @@ public abstract class ConstEtomoNumber implements Storable {
     }
   }
   
+  protected boolean isNull(int value) {
+    switch (type) {
+      case DOUBLE_TYPE:
+        return Double.isNaN(value);
+      case FLOAT_TYPE:
+        return Float.isNaN(value);
+      case INTEGER_TYPE:
+        return value == integerNullValue;
+      case LONG_TYPE:
+        return value == longNullValue;
+      default:
+        throw new IllegalStateException("type=" + type);
+    }
+  }
+  
   protected boolean gt(Number number, Number compValue) {
+    if (isNull(number) || isNull(compValue)) {
+      return false;
+    }
     switch (type) {
       case DOUBLE_TYPE:
         return number.doubleValue() > compValue.doubleValue();
@@ -386,6 +474,12 @@ public abstract class ConstEtomoNumber implements Storable {
   }
   
   protected boolean equals(Number number, Number compValue) {
+    if (isNull(number) && isNull(compValue)) {
+      return true;
+    }
+    if (isNull(number) || isNull(compValue)) {
+      return false;
+    }
     switch (type) {
       case DOUBLE_TYPE:
         return number.doubleValue() == compValue.doubleValue();
@@ -401,6 +495,12 @@ public abstract class ConstEtomoNumber implements Storable {
   }
   
   protected boolean equals(Number number, int compValue) {
+    if (isNull(number) && isNull(compValue)) {
+      return true;
+    }
+    if (isNull(number) || isNull(compValue)) {
+      return false;
+    }
     switch (type) {
       case DOUBLE_TYPE:
         return number.doubleValue() == compValue;
