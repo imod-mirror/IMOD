@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.2  2002/12/07 01:22:02  mast
+Taking care of window title
+
 Revision 1.1.2.1  2002/12/05 16:30:58  mast
 Qt version
 
@@ -207,11 +210,11 @@ void ioew_open(int value)
     return;
 
   switch (value){
-  case 1:
+  case 0:
     obj->flags = obj->flags & (~IMOD_OBJFLAG_OPEN);
     obj->flags = obj->flags & (~IMOD_OBJFLAG_SCAT);
     break;
-  case 0:
+  case 1:
     obj->flags = obj->flags | IMOD_OBJFLAG_OPEN;
     obj->flags = obj->flags & (~IMOD_OBJFLAG_SCAT);
     break;
