@@ -8,7 +8,6 @@ import java.awt.event.MouseEvent;
 import javax.swing.*;
 import java.awt.Rectangle;
 
-import etomo.BaseManager;
 import etomo.type.AxisID;
 
 /**
@@ -24,6 +23,11 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.7.2.3  2004/09/15 22:39:00  sueh
+ * <p> bug# 520 This class must be abstract because the base constructor
+ * <p> cannot call the overridden version of createProcessControlPanel.  This
+ * <p> function may refer to member variables initialized in the child class.
+ * <p>
  * <p> Revision 3.7.2.2  2004/09/08 20:04:43  sueh
  * <p> butg# 520 class doesn't have to be abstract.  manager should be saved in
  * <p> this base class because it is used here
@@ -121,7 +125,6 @@ public abstract class AxisProcessPanel implements ContextMenu {
   private JPanel panelProcessInfo = new JPanel();
   private JPanel panelStatus = new JPanel();
   private JPanel panelDialog = new JPanel();
-  protected BaseManager manager = null;
 
   //  Progress panel
   ProgressPanel progressPanel = new ProgressPanel("No process");
@@ -129,14 +132,15 @@ public abstract class AxisProcessPanel implements ContextMenu {
 
   //  Process select panel
   protected JPanel panelProcessSelect = new JPanel();
+  
+  protected abstract void buttonKillAction(ActionEvent event);
 
   /**
    * Constructor
    * @param appManager
    * @param axis
    */
-  public AxisProcessPanel(BaseManager manager, AxisID axis) {
-    this.manager = manager;
+  public AxisProcessPanel(AxisID axis) {
     axisID = axis;
 
     //  Create the status panel
@@ -270,14 +274,6 @@ public abstract class AxisProcessPanel implements ContextMenu {
   public void stopProgressBar() {
     progressPanel.stop();
     buttonKillProcess.setEnabled(false);
-  }
-
-  /**
-   * 
-   * @param event
-   */
-  private void buttonKillAction(ActionEvent event) {
-    manager.kill(axisID);
   }
 
   /**
