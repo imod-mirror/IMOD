@@ -46,6 +46,10 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.5  2004/09/13 16:26:46  sueh
+* <p> bug# 520 Adding abstract isNewManager.  Each manager would have a
+* <p> different way to tell whether they had a file open.
+* <p>
 * <p> Revision 1.1.2.4  2004/09/09 17:28:38  sueh
 * <p> bug# 520 MRU file labels already being set from EtomoDirector
 * <p>
@@ -185,7 +189,7 @@ public abstract class BaseManager {
       errorMessage[0] = "Test parameter file save error";
       errorMessage[1] = "Could not save test parameter data to file:";
       errorMessage[2] = except.getMessage();
-      mainFrame.openMessageDialog(errorMessage,
+      mainPanel.openMessageDialog(errorMessage,
         "Test parameter file save error");
     }
     isDataParamDirty = false;
@@ -240,7 +244,7 @@ public abstract class BaseManager {
       Storable storable[] = new Storable[1];
       storable[0] = userConfig;
       if (!userConfigFile.canWrite()) {
-        mainFrame.openMessageDialog(
+        mainPanel.openMessageDialog(
           "Change permissions of $HOME/.etomo to allow writing",
           "Unable to save user configuration file");
       }
@@ -250,7 +254,7 @@ public abstract class BaseManager {
         }
         catch (IOException excep) {
           excep.printStackTrace();
-          mainFrame.openMessageDialog(
+          mainPanel.openMessageDialog(
             "IOException: unable to save user parameters\n"
               + excep.getMessage(), "Unable to save user parameters");
         }
@@ -267,11 +271,11 @@ public abstract class BaseManager {
       }
       catch (AxisTypeException except) {
         except.printStackTrace();
-        mainFrame.openMessageDialog(except.getMessage(), "AxisType problem");
+        mainPanel.openMessageDialog(except.getMessage(), "AxisType problem");
       }
       catch (SystemProcessException except) {
         except.printStackTrace();
-        mainFrame.openMessageDialog(except.getMessage(),
+        mainPanel.openMessageDialog(except.getMessage(),
           "Problem closing 3dmod");
       }
       return true;
@@ -289,6 +293,18 @@ public abstract class BaseManager {
     }
     else {
       return true;
+    }
+  }
+
+  protected void setPanel() {
+    mainFrame.pack();
+    //  Resize to the users preferrred window dimensions
+    mainPanel.setSize(new Dimension(userConfig.getMainWindowWidth(),
+      userConfig.getMainWindowHeight()));
+    mainFrame.doLayout();
+    mainFrame.validate();
+    if (isDualAxis()) {
+      mainPanel.setDividerLocation(0.51);
     }
   }
 
@@ -363,6 +379,13 @@ public abstract class BaseManager {
     return metaData;
   }
   
+  /**
+   *  
+   */
+  public void packMainWindow() {
+    mainFrame.repaint();
+    mainPanel.fitWindow();
+  }
   /**
    * Get the current advanced state
    */
@@ -448,7 +471,7 @@ public abstract class BaseManager {
       errorMessage[0] = "Test parameter file read error";
       errorMessage[1] = "Could not find the test parameter data file:";
       errorMessage[2] = except.getMessage();
-      mainFrame.openMessageDialog(errorMessage, "File not found error");
+      mainPanel.openMessageDialog(errorMessage, "File not found error");
       return false;
     }
     catch (IOException except) {
@@ -457,12 +480,12 @@ public abstract class BaseManager {
       errorMessage[0] = "Test parameter file read error";
       errorMessage[1] = "Could not read the test parameter data from file:";
       errorMessage[2] = except.getMessage();
-      mainFrame.openMessageDialog(errorMessage,
+      mainPanel.openMessageDialog(errorMessage,
         "Test parameter file read error");
       return false;
     }
     if (!metaData.isValid(false)) {
-      mainFrame.openMessageDialog(metaData.getInvalidReason(),
+      mainPanel.openMessageDialog(metaData.getInvalidReason(),
         ".edf file error");
       return false;
     }
@@ -520,7 +543,7 @@ public abstract class BaseManager {
       String[] message = new String[2];
       message[0] = "Can not find home directory! Unable to load user preferences";
       message[1] = "Set HOME environment variable and restart program to fix this problem";
-      mainFrame.openMessageDialog(message, "Program Initialization Error");
+      mainPanel.openMessageDialog(message, "Program Initialization Error");
       System.exit(1);
     }
     // Get the IMOD directory so we know where to find documentation
@@ -533,7 +556,7 @@ public abstract class BaseManager {
         String[] message = new String[3];
         message[0] = "Can not find IMOD directory!";
         message[1] = "Set IMOD_DIR environment variable and restart program to fix this problem";
-        mainFrame.openMessageDialog(message, "Program Initialization Error");
+        mainPanel.openMessageDialog(message, "Program Initialization Error");
         System.exit(1);
       }
       else {
@@ -586,7 +609,7 @@ public abstract class BaseManager {
       userParams.load(storable);
     }
     catch (IOException except) {
-      mainFrame.openMessageDialog(except.getMessage(),
+      mainPanel.openMessageDialog(except.getMessage(),
         "IO Exception: Can't load user configuration"
           + userConfigFile.getAbsolutePath());
     }
@@ -677,7 +700,7 @@ public abstract class BaseManager {
       catch (IOException except) {
         System.err.println("Unable to backup file: " + file.getAbsolutePath()
           + " to " + backupFile.getAbsolutePath());
-        mainFrame.openMessageDialog(except.getMessage(), "File Rename Error");
+        mainPanel.openMessageDialog(except.getMessage(), "File Rename Error");
       }
     }
   }
@@ -749,5 +772,4 @@ public abstract class BaseManager {
   public MainPanel getMainPanel() {
     return mainPanel;
   }
-  
 }
