@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.3  2003/01/06 15:39:08  mast
+add another orphan declaration
+
 Revision 1.1.2.2  2003/01/04 03:44:16  mast
 Add declaration for removeControl; stick inputQDefaultKeys declaration here
 
@@ -22,12 +25,17 @@ Initial creation
 #ifndef CONTROL_H
 #define CONTROL_H
 
+/* Classes of windows for the dialog manager */
+#define IMODV_DIALOG 0
+#define IMOD_DIALOG  1
+#define IMOD_IMAGE   2
+
 // Leave this in until plugins are dealt with
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-  // Include rather than forward decalre - Ilist has no structure name
+  // Include rather than forward declare - Ilist has no structure name
 #include "ilist.h"
 
   // Forward declarations (XtWorkProcId from X11/Intrinsic.h)
@@ -35,6 +43,7 @@ extern "C" {
   class QKeyEvent;
   typedef unsigned long      XtWorkProcId;
   class QString;
+  class QWidget;
 
 /* Each window that shows the view below uses this control 
  * stucture to have the view update the window.
@@ -119,6 +128,27 @@ void inputQDefaultKeys(QKeyEvent *event, ImodView *vw);
 #ifdef __cplusplus
 }
 #endif
+
+// A dialog manager class for hiding, showing, and closing windows in concert
+class DialogManager
+{
+ public:
+  DialogManager();
+  ~DialogManager() {};
+  void add(QWidget *widget, int dlgClass = IMODV_DIALOG);
+  void remove(QWidget *widget);
+  void close();
+  void hide();
+  void show();
+
+ private:
+  Ilist *mDialogList;
+};
+
+/* Global instances */
+extern DialogManager imodvDialogManager;
+extern DialogManager imodDialogHider;
+
 
 /* Another orphan until title stuff is moved somewhere or imodP.h is readable
    with c++ in it */
