@@ -23,6 +23,9 @@ import etomo.type.SectionTableRowData;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.2  2004/10/22 20:58:58  sueh
+* <p> bug# 520 Getting chunk size from ConstSectionTableRowData.
+* <p>
 * <p> Revision 1.1.2.1  2004/10/21 02:35:21  sueh
 * <p> bug# 520 Param for running Midas.
 * <p> </p>
@@ -81,7 +84,7 @@ public class MidasParam implements Command {
     options.add("-c");
     for (int i = 0; i < sectionDataSize; i++) {
       ConstSectionTableRowData data = (SectionTableRowData) sectionData.get(i);
-      chunkSize.append(data.getChunkSize().getString());
+      chunkSize.append(data.getChunkSize(sectionDataSize).getString());
       if (i < sectionDataSize - 1) {
         chunkSize.append(",");
       }
