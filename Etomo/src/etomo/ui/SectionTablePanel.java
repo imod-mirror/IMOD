@@ -49,6 +49,10 @@ import etomo.util.MRCHeader;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.16  2004/10/22 03:28:05  sueh
+* <p> bug# 520 Added Open 3dmod button to Join tab.  Added Chunk,
+* <p> reference section, and current section to Align tab.
+* <p>
 * <p> Revision 1.1.2.15  2004/10/18 18:11:44  sueh
 * <p> bug# 520 Removed print statement.
 * <p>
@@ -918,12 +922,10 @@ public class SectionTablePanel implements ContextMenu, Expandable {
       return;
     }
     int prevSlice = 0;
-    int prevSampleBottom = 0;
     int prevSampleTop = 0;
     for (int i = 0; i < rows.size(); i++) {
       SectionTableRow row = (SectionTableRow) rows.get(i);
-      prevSlice = row.displayCurTab(pnlTable, prevSlice, prevSampleBottom, prevSampleTop);
-      prevSampleBottom = row.getSampleBottom();
+      prevSlice = row.displayCurTab(pnlTable, prevSlice, prevSampleTop);
       prevSampleTop = row.getSampleTop();
     }
   }
