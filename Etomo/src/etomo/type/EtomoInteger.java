@@ -16,6 +16,10 @@ import java.util.Properties;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.3  2004/10/22 03:24:58  sueh
+* <p> bug# 520 Added parameterless constructor and construstor which sets the
+* <p> default value.
+* <p>
 * <p> Revision 1.1.2.2  2004/10/21 02:56:11  sueh
 * <p> bug# 520 Made constructor public.
 * <p>
@@ -29,19 +33,21 @@ public class EtomoInteger extends ConstEtomoInteger {
   public static  final String  rcsid =  "$Id$";
   
   public EtomoInteger() {
-    name = super.toString();
-    description = name;
+    super();
   }
   
-  public EtomoInteger(int defaultValue) {
-    name = super.toString();
-    description = name;
-    setDefaultValue(defaultValue);
+  public EtomoInteger(int initialValue) {
+    super();
+    value = initialValue;
   }
   
   public EtomoInteger(String name) {
-    this.name = name;
-    description = name;
+    super(name);
+  }
+  
+  public EtomoInteger(String name, int initialValue) {
+    super(name);
+    value = initialValue;
   }
   
   public void setDefaultValue(int value) {
@@ -72,7 +78,7 @@ public class EtomoInteger extends ConstEtomoInteger {
         .toString(resetValue)));
   }
   
-  public String set(String value) {
+  public EtomoInteger set(String value) {
     invalidReason = null;
     if (value == null || !value.matches("\\S+")) {
       this.value = unsetValue;
@@ -88,17 +94,28 @@ public class EtomoInteger extends ConstEtomoInteger {
         this.value = unsetValue;
       }
     }
-    return invalidReason;
+    return this;
   }
   
-  public String set(Integer value) {
+  public EtomoInteger set(Integer value) {
+    invalidReason = null;
     this.value = value.intValue();
-    return null;
+    return this;
   }
   
-  public String set(int value) {
+  public EtomoInteger set(int value) {
+    invalidReason = null;
     this.value = value;
-    return null;
+    return this;
+  }
+  
+  public void plus(int value) {
+    if (!isSet()) {
+      set(value);
+    }
+    else {
+      this.value += value;
+    }
   }
   
   public void reset() {
