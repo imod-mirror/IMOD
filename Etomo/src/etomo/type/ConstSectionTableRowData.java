@@ -19,6 +19,10 @@ import etomo.storage.Storable;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.4  2004/10/15 00:18:24  sueh
+* <p> bug# 520 Fix createPrepend().  Fix store().  Prevent underflow in
+* <p> getRowIndex().
+* <p>
 * <p> Revision 1.1.2.3  2004/10/08 16:11:24  sueh
 * <p> bug# 520 Added toString() and moved initialization of invalidReason to
 * <p> SectionTableRowData.reset().
@@ -258,16 +262,32 @@ public abstract class ConstSectionTableRowData implements Storable {
     return section.getName();
   }
   
+  public int getSampleBottomStart() {
+    return sampleBottomStart;
+  }
+  
   public String getSampleBottomStartString() {
     return convertToString(sampleBottomStart);
+  }
+  
+  public int getSampleBottomEnd() {
+    return sampleBottomEnd;
   }
   
   public String getSampleBottomEndString() {
     return convertToString(sampleBottomEnd);
   }
   
+  public int getSampleTopStart() {
+    return sampleTopStart;
+  }
+  
   public String getSampleTopStartString() {
     return convertToString(sampleTopStart);
+  }
+  
+  public int getSampleTopEnd() {
+    return sampleTopEnd;
   }
   
   public String getSampleTopEndString() {

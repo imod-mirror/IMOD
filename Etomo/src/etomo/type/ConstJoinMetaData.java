@@ -18,6 +18,10 @@ import java.util.Properties;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.7  2004/10/18 18:01:46  sueh
+* <p> bug# 520 Added fields from JoinDialog.  Converted densityRefSection to
+* <p> an EtomoInteger.  Added validation checks for rootName and workingDir.
+* <p>
 * <p> Revision 1.1.2.6  2004/10/15 00:17:15  sueh
 * <p> bug# 520 Added toString().  Fixed createPrepend().
 * <p>
@@ -276,7 +280,7 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
   }
   
   public String getSigmaLowFrequencyString() {
-    return sigmaLowFrequency.toString();
+    return sigmaLowFrequency.getString();
   }
   
   public ConstEtomoDouble getSigmaLowFrequencyField() {
@@ -284,7 +288,7 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
   }
   
   public String getCutoffHighFrequencyString() {
-    return cutoffHighFrequency.toString();
+    return cutoffHighFrequency.getString();
   }
   
   public ConstEtomoDouble getCutoffHighFrequencyField() {
@@ -292,7 +296,7 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
   }
   
   public String getSigmaHighFrequencyString() {
-    return sigmaHighFrequency.toString();
+    return sigmaHighFrequency.getString();
   }
   
   public ConstEtomoDouble getSigmaHighFrequencyField() {
@@ -323,19 +327,43 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
     return alignmentRefSection.get();
   }
   
+  public String getAlignmentRefSectionString() {
+    return alignmentRefSection.getString();
+  }
+  
+  public ConstEtomoInteger getSizeInXField() {
+    return sizeInX;
+  }
+  
   public String getSizeInXString() {
-    return sizeInX.toString();
+    return sizeInX.getString();
+  }
+  
+  public ConstEtomoInteger getSizeInYField() {
+    return sizeInY;
   }
   
   public String getSizeInYString() {
-    return sizeInY.toString();
+    return sizeInY.getString();
+  }
+  
+  public boolean getUseAlignmentRefSection() {
+    return useAlignmentRefSection;
+  }
+  
+  public ConstEtomoFloat getOffsetInXField() {
+    return offsetInX;
   }
   
   public String getOffsetInXString() {
-    return offsetInX.toString();
+    return offsetInX.getString();
+  }
+  
+  public ConstEtomoFloat getOffsetInYField() {
+    return offsetInY;
   }
   
   public String getOffsetInYString() {
-    return offsetInY.toString();
+    return offsetInY.getString();
   }
 }
