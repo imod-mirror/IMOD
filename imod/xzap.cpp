@@ -35,6 +35,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.18  2003/01/30 00:46:27  mast
+New timer logic and cleanup
+
 Revision 1.1.2.17  2003/01/29 01:49:33  mast
 changes for colormap mode, fix closing calls to ivwControl
 
@@ -769,6 +772,7 @@ int imod_zap_open(struct ViewInfo *vi)
   zap->showslice = 0;
   zap->timeLock = 0;
   zap->toolSection = -1;
+  zap->toolMaxZ = vi->zsize;
   zap->toolZoom = 0.0f;
   zap->toolTime = 0;
   zap->twod = (!(vi->dim&4));
@@ -2588,6 +2592,11 @@ static int zapDrawAuto(ZapStruct *zap)
 static void zapDrawTools(ZapStruct *zap)
 {
   QString qstr;
+
+  if (zap->toolMaxZ != zap->vi->zsize) {
+    zap->toolMaxZ = zap->vi->zsize;
+    zap->qtWindow->setMaxZ(zap->toolMaxZ);
+  }
 
   if (zap->toolSection != zap->section){
     zap->toolSection = zap->section;

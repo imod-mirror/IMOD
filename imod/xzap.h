@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.2.2.7  2003/01/30 00:47:35  mast
+Cleanup with new timer logic
+
 Revision 3.2.2.6  2003/01/27 00:30:07  mast
 Pure Qt version and general cleanup
 
@@ -124,6 +127,7 @@ typedef struct zapwin
   int mousemode;
   int popup;
   int   toolSection;
+  int   toolMaxZ;
   float toolZoom;
   int   toolTime;
 
