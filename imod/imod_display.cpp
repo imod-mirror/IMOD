@@ -34,6 +34,9 @@
     $Revision$
 
     $Log$
+    Revision 1.1.2.5  2003/01/01 05:41:31  mast
+    add stereo testing to qt visual selection
+
     Revision 1.1.2.4  2002/12/30 06:38:49  mast
     draw model view if image view is on
 
@@ -65,9 +68,7 @@
 #include "imod_input.h"
 #include "imod_display.h"
 #include "imodv.h"
-
-extern int Imodv_window;
-extern int Imod_debug;
+#include "control.h"
 
 #define cursor_width 15
 #define cursor_height 15
@@ -114,9 +115,9 @@ static unsigned char cursor_mask_bits[] = {
 
 static int imod_init_cursors(ImodApp *ap);
 
-extern "C" {
+//extern "C" {
   void sliceKeyInput(Widget w, XEvent *event, String par, Cardinal num);
-}
+//}
 
 int imod_get_colormap(ImodApp *ap);
 
