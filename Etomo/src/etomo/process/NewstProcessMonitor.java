@@ -11,6 +11,10 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.6  2004/06/17 23:55:51  rickg
+ * <p> Bug #460 moved getting of current time into FileSizeProcessMonitor on
+ * <p> instantiation
+ * <p>
  * <p> Revision 3.5  2004/06/17 23:34:17  rickg
  * <p> Bug #460 added script starting time to differentiate old data files
  * <p>
@@ -111,7 +115,7 @@ public class NewstProcessMonitor extends FileSizeProcessMonitor {
     // the input file 
     long fileSize = 1024 + nX * nY * nZ * modeBytes;
     nKBytes = (int) (fileSize / 1024);
-    applicationManager
+    applicationManager.getMainPanel()
       .setProgressBar("Creating aligned stack", nKBytes, axisID);
 
     // Create a file object describing the file to be monitored
