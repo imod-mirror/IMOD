@@ -7,6 +7,9 @@
     $Revision$
 
     $Log$
+    Revision 3.5  2005/03/31 23:45:57  mast
+    Fixed declaration of updateMatrix
+
     Revision 3.4  2005/03/09 21:17:25  mast
     Converted diffusion to float, removed processor argument
 
@@ -56,7 +59,7 @@ extern "C" {
   int sliceByteGraham(Islice *sin);
   int sliceMinMax(Islice *s);
   int sliceMedianFilter(Islice *sout, struct MRCvolume *v, int size);
-  void updateMatrix(double **image, double **imageOld, int m, int n,
+  void updateMatrix(float **image, float **imageOld, int m, int n,
                     int CC, double k, double lambda);
   int sliceAnisoDiff(Islice *sl,  int outMode, int CC, double k, double lambda,
                      int iterations, int clearFlag);
