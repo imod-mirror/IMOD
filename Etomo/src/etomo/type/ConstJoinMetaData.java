@@ -21,6 +21,9 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.16  2004/11/12 22:58:00  sueh
+* <p> bug# 520 Added finishjoinTrial values:  binning, size, and shift.
+* <p>
 * <p> Revision 1.1.2.15  2004/11/11 01:37:13  sueh
 * <p> bug# 520 Added useEveryNSlices and trialBinning.
 * <p>
@@ -95,8 +98,10 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
   protected static final String rotationTranslationMagnificationString = "RotationTranslationMagnification";
   protected static final String rotationTranslationString = "RotationTranslation";
   protected static final String useAlignmentRefSectionString = "UseAlignmentRefSection";
+  protected static final String sampleProducedString = "SampleProduced";
 
   protected static final boolean defaultFullLinearTransformation = true;
+  protected static final boolean defaultSampleProduced = false;
 
   protected ArrayList sectionTableData;
   protected String rootName;
@@ -121,6 +126,9 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
   protected EtomoInteger finishjoinTrialSizeInY = new EtomoInteger("FinishjoinTrialSizeInY");
   protected EtomoInteger finishjoinTrialShiftInX = new EtomoInteger("FinishjoinTrialShiftInX");
   protected EtomoInteger finishjoinTrialShiftInY = new EtomoInteger("FinishjoinTrialShiftInY");
+  //state variable for join setup tab
+  protected boolean sampleProduced;
+  
 
   public abstract void load(Properties props);
   public abstract void load(Properties props, String prepend);
@@ -213,6 +221,8 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
     finishjoinTrialSizeInY.store(props, prepend);
     finishjoinTrialShiftInX.store(props, prepend);
     finishjoinTrialShiftInY.store(props, prepend);
+    props.setProperty(group + sampleProducedString, Boolean.toString(sampleProduced));
+    
     if (sectionTableData != null) {
       for (int i = 0; i < sectionTableData.size(); i++) {
         ((SectionTableRowData) sectionTableData.get(i)).store(props, prepend);
