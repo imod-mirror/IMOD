@@ -15,7 +15,12 @@ import java.util.Properties;
 * 
 * @version $Revision$
 * 
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1.2.1  2004/10/18 18:04:35  sueh
+* <p> bug# 520 A class representing a double which handles all issues
+* <p> concerning defaults, null values, assigning strings that are blank, and
+* <p> handling errors in numeric parsing.  It also implements Storable.
+* <p> </p>
 */
 public class EtomoDouble extends ConstEtomoDouble {
   public static  final String  rcsid =  "$Id$";
@@ -66,7 +71,7 @@ public class EtomoDouble extends ConstEtomoDouble {
       }
       catch (NumberFormatException e) {
         e.printStackTrace();
-        invalidReason = "Invalid value:  " + value + ".  " + description + " is an double.";
+        invalidReason = "Invalid value:  " + value + ".  " + description + " is a double.";
       }
     }
     return invalidReason;
