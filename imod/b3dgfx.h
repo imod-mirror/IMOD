@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.3.2.3  2003/01/27 00:30:07  mast
+    Pure Qt version and general cleanup
+
     Revision 3.3.2.2  2003/01/06 15:40:33  mast
     add b3dviewportXY
 
@@ -95,7 +98,7 @@ typedef struct b3d_ci_image
 
   void b3dSetCurSize(int width, int height);
 void b3dResizeViewportXY(int winx, int winy);
-void b3dColorIndex(unsigned int pix);
+void b3dColorIndex(int pix);
 
 void b3dDrawPoint(int x, int y);
 void b3dDrawPlus(int x, int y, int size);

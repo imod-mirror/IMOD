@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.3  2003/01/31 01:01:22  mast
+Fixed spin box focus policy and combo box initial setting
+
 Revision 1.1.2.2  2003/01/27 00:30:07  mast
 Pure Qt version and general cleanup
 
@@ -124,7 +127,7 @@ ThisDialog =
 static int contCompare(Icont *c1, Icont *c2)
 {
   int dif = 0;
-  int pt;
+  unsigned int pt;
 
   if ((!c1) || (!c2)) return -1;
   if (c1->type != c2->type) dif++;
@@ -144,7 +147,7 @@ static int contCompare(Icont *c1, Icont *c2)
 static int contRmDup(Icont *c1, Icont *c2)
 {
   int delpts = 0;
-  int pt1,pt2;
+  unsigned  int pt1,pt2;
   if ((!c1)||(!c2)||(!c1->psize)||(!c2->psize)) return delpts;
   for(pt1 = 0; pt1 < c1->psize; pt1++)
 	for(pt2 = 0; pt2 < c2->psize; pt2++){
@@ -166,7 +169,8 @@ static int contRmDup(Icont *c1, Icont *c2)
 static int copyContour(Icont *cont)
 {
   Iobj *toObj;
-  int co,pt, section;
+  unsigned  int co,pt;
+  int section;
 
   if (!cont) return(-1);
   if (!cont->psize) return(-1);
@@ -440,7 +444,7 @@ void ContourCopy::apply()
   switch(ThisDialog.copyOperation){
   case COPY_TO_OBJECT:
     if ((ThisDialog.objectNumber < 1) ||
-        (ThisDialog.objectNumber > imod->objsize) ||
+        (ThisDialog.objectNumber > (int)imod->objsize) ||
         (ThisDialog.objectNumber == imod->cindex.object + 1)){
       wprint("\a%sBad destination object.\n", badCopy);
       return;
@@ -502,7 +506,7 @@ void ContourCopy::apply()
   }else{
 
     /* Loop on all objects, skip if not doing all or it is not current one */
-    for (ob = 0; ob < imod->objsize; ob++) {
+    for (ob = 0; ob < (int)imod->objsize; ob++) {
       if (!(ThisDialog.doAllObj || ob == imod->cindex.object))
         continue;
 
