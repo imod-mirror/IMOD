@@ -16,6 +16,13 @@ import java.util.Properties;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.5  2004/10/25 23:07:02  sueh
+* <p> bug# 520 Fixed default:  Default doesn't affect the value or the
+* <p> resetValue.  Default can returned if value and recommended value are
+* <p> not set and the parameter useDefault is true.  When recommended value
+* <p> is set, value is changed to recommend value.  Added getNegation().
+* <p> Return EtomoSimpleType where possible.
+* <p>
 * <p> Revision 1.1.2.4  2004/10/22 21:04:32  sueh
 * <p> bug# 520 Allowing value initialization in constructor.  Returning this in
 * <p> set().
@@ -55,7 +62,6 @@ public class EtomoFloat extends ConstEtomoFloat {
   
   public void setRecommendedValue(float recommendedValue) {
     this.recommendedValue = recommendedValue;
-    value = recommendedValue;
     setResetValue();
   }
   
@@ -95,6 +101,15 @@ public class EtomoFloat extends ConstEtomoFloat {
         this.value = unsetValue;
       }
     }
+    return this;
+  }
+  
+  protected EtomoSimpleType set(ConstEtomoFloat that) {
+    super.set(that);
+    value = that.value;
+    defaultValue = that.defaultValue;
+    recommendedValue = that.recommendedValue;
+    resetValue = that.resetValue;
     return this;
   }
   
