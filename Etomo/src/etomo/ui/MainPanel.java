@@ -36,6 +36,10 @@ import etomo.type.AxisType;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.1.2.11  2004/10/15 00:50:18  sueh
+ * <p> bug# 520 Made getTestParamFilename() generic.  Removed
+ * <p> openEtomoDataFileDialog().
+ * <p>
  * <p> Revision 1.1.2.10  2004/10/11 02:15:57  sueh
  * <p> bug# 520 Moved responsibility for axisPanelA and axisPanelB member
  * <p> variables to the child classes.  Used abstract functions to use these
@@ -250,7 +254,7 @@ public abstract class MainPanel extends JPanel {
     File dataFile = chooser.getSelectedFile();
     String fileName = chooser.getSelectedFile().getName();
     if (fileName.indexOf(".") == -1) {
-      dataFile = new File(chooser.getSelectedFile().getAbsolutePath() + "." + manager.getBaseMetaData().getFileExtension());
+      dataFile = new File(chooser.getSelectedFile().getAbsolutePath() + manager.getBaseMetaData().getFileExtension());
 
     }
     manager.setTestParamFile(dataFile);
