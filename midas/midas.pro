@@ -7,8 +7,6 @@ MOC_DIR = tmp
 OBJECTS_DIR = tmp
 
 TEMPLATE = app
-CONFIG += qt open_gl debug warn_on
+CONFIG += qt open_gl
 
-INCLUDEPATH += ../include
-LIBS = -L../buildlib -limod -liimod -ltiff -lGL
-DEFINES += _FILE_OFFSET_BITS=64
+include (qconfigure)

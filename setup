@@ -9,6 +9,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.5  2002/11/05 23:28:44  mast
+#  Added variables for the lab name
+#
 #  Revision 3.4  2002/09/10 03:29:13  mast
 #  Eliminate links in include for nimp_source:model.inc and
 #  stat_source:statsize.inc, since these are gone from programs
@@ -72,6 +75,11 @@ set imsubsobj       = '*.o'
 set tiltalilib      =
 set tilt_dir        = flib/tilt
 set fbpswitch       = fbpswitch-def.inc
+set midas_dir       = midas
+set imod_dir        = imod
+set midas_qconf     = midas/qconfigure
+set imod_qconf      = imod/qconfigure
+
 
 #
 # Input options
@@ -484,6 +492,22 @@ mkdir -p $inst_dir/com
 mkdir -p $inst_dir/html/man
 mkdir -p $inst_dir/man/cat1
 mkdir -p $inst_dir/man/cat5
+
+#
+# manage qconfigure files
+#
+echo INCLUDEPATH += $inc_dir >> $midas_qconf
+echo INCLUDEPATH += $inc_dir >> $imod_qconf
+if ($debug == true) then
+    echo CONFIG += debug warn_on >> $midas_qconf
+    echo CONFIG += debug warn_off >> $imod_qconf
+else
+    echo CONFIG += release warn_off >> $midas_qconf
+    echo CONFIG += release warn_off >> $imod_qconf
+endif
+
+(cd $midas_dir ; qmake midas.pro)
+(cd $imod_dir ; qmake imod.pro)
 
 exit
 
