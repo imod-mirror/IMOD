@@ -32,6 +32,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.1  2003/01/06 15:48:30  mast
+initial creation
+
 */
 #include <stdlib.h>
 #include <stdio.h>
@@ -151,7 +154,6 @@ SlicerWindow::SlicerWindow(SlicerStruct *slicer, float maxAngles[],
   connect(pbutton, SIGNAL(pressed()), this, SLOT(help()));
 
   // SECOND TOOLBAR
-  // Make a frame, put a layout in it, and then put multisliders in the layout
   mToolBar2 = new HotToolBar(this);
   mToolBar2->boxLayout()->setSpacing(4);
   connect(mToolBar2, SIGNAL(keyPress(QKeyEvent *)), this,
@@ -160,6 +162,7 @@ SlicerWindow::SlicerWindow(SlicerStruct *slicer, float maxAngles[],
 	  SLOT(toolKeyRelease(QKeyEvent *)));
 
 
+  // Make a frame, put a layout in it, and then put multisliders in the layout
   QFrame *sliderFrame = new QFrame(mToolBar2);
   QVBoxLayout *sliderLayout = new QVBoxLayout(sliderFrame);
   mSliders = new MultiSlider(sliderFrame, 3, sliderLabels, -1800,
@@ -260,17 +263,20 @@ void SlicerWindow::newZoom()
 {
   QString str = mZoomEdit->text();
   slicerEnteredZoom(mSlicer, atof(str.latin1()));
+  setFocus();
 }
 
 // Respomd to spin box changes for image and model thickness
 void SlicerWindow::imageThicknessChanged(int depth)
 {
   slicerImageThickness(mSlicer, depth);
+  setFocus();
 }
 
 void SlicerWindow::modelThicknessChanged(int depth)
 {
   slicerModelThickness(mSlicer, (float)(depth / 10.));
+  setFocus();
 }
 
 void SlicerWindow::help()
@@ -302,7 +308,7 @@ void SlicerWindow::zScaleSelected(int item)
   slicerZscale(mSlicer, item);
 }
 
-
+// Functions for setting state of the controls
 void SlicerWindow::setAngles(float *angles)
 {
   int axis, value;
@@ -314,16 +320,13 @@ void SlicerWindow::setAngles(float *angles)
 
 void SlicerWindow::setModelThickness(float depth)
 {
-  mModelBox->blockSignals(true);
-  mModelBox->setValue((int)(10 * depth));
-  mModelBox->blockSignals(false);
+  // Downcast seems not to be needed, but play it safe
+  diaSetSpinBox((QSpinBox *)mModelBox, (int)(10. * depth + 0.5));
 }
 
 void SlicerWindow::setImageThickness(int depth)
 {
-  mImageBox->blockSignals(true);
-  mImageBox->setValue(depth);
-  mImageBox->blockSignals(false);
+  diaSetSpinBox(mImageBox, depth);
 }
 
 // This allows slicer to set one of the buttons
@@ -356,6 +359,9 @@ void SlicerWindow::closeEvent (QCloseEvent * e )
   e->accept();
 }
 
+///////////////////////////////////////////////
+// The GL widget
+
 SlicerGL::SlicerGL(SlicerStruct *slicer, QGLFormat inFormat, QWidget * parent,
              const char * name)
   : QGLWidget(inFormat, parent, name)
@@ -385,7 +391,9 @@ void SlicerGL::mouseReleaseEvent ( QMouseEvent * e )
   mMousePressed = false;
 }
 
+///////////////////////////////////////////////
 // The cube class
+
 SlicerCube::SlicerCube(SlicerStruct *slicer, QGLFormat inFormat, 
 		       QWidget * parent, const char * name)
   : QGLWidget(inFormat, parent, name)
@@ -402,6 +410,9 @@ void SlicerCube::resizeGL( int wdth, int hght )
 {
   slicerCubeResize(mSlicer, wdth, hght);
 }
+
+///////////////////////////////////////////////
+// A one-decimal place float spin box class
 
 FloatSpinBox::FloatSpinBox( int minValue, int maxValue, int step, 
 		QWidget * parent, const char * name)
@@ -420,7 +431,8 @@ QString FloatSpinBox::mapValueToText( int value )
 
 int FloatSpinBox::mapTextToValue( bool *ok )
 {
-  return (int) ( 10 * text().toFloat() );
+  *ok = true;
+  return (int) ( 10 * text().toFloat() + 0.5);
 }
 
  
