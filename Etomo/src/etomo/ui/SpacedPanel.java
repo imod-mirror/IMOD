@@ -5,8 +5,9 @@ import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.LayoutManager;
 
+import javax.swing.AbstractButton;
 import javax.swing.Box;
-import javax.swing.JPanel;
+import javax.swing.JComponent;
 import javax.swing.border.Border;
 /**
 * <p>Description: A JPanel-like object that places rigid areas between 
@@ -26,6 +27,9 @@ import javax.swing.border.Border;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.2  2004/09/23 23:52:23  sueh
+* <p> bug# 520 Added a class description.
+* <p>
 * <p> Revision 1.1.2.1  2004/09/23 23:41:40  sueh
 * <p> bug# 520 Panel which automatically places rigid areas between
 * <p> components.  Can choose whether to place rigid areas before and after
@@ -37,55 +41,126 @@ public class SpacedPanel {
   
   Dimension spacing;
   boolean outerSpacing = false;
-  JPanel panel;
+  FormattedPanel panel;
   int numComponents = 0;
   
-  public SpacedPanel(Dimension spacing) {
+  public String toString() {
+    return getClass().getName() + "[" + paramString() + "]";
+  }
+
+  protected String paramString() {
+    return "\n,spacing=" + spacing + ",\nouterSpacing="
+        + outerSpacing + ",\npanel=" + panel
+        + ",\nnumComponents=" + numComponents;
+  } 
+  
+  SpacedPanel(Dimension spacing) {
     this(spacing, false);
   }
   
-  public SpacedPanel(Dimension spacing, boolean outerSpacing) {
+  SpacedPanel(Dimension spacing, boolean outerSpacing) {
+    this(spacing, outerSpacing, true);
+  }
+  
+  SpacedPanel(Dimension spacing, boolean outerSpacing, boolean spaceBefore) {
     this.spacing = spacing;
     this.outerSpacing = outerSpacing;
-    panel = new JPanel();
-    if (outerSpacing) {
+    panel = new FormattedPanel();
+    if (outerSpacing && spaceBefore) {
       panel.add(Box.createRigidArea(spacing));
     }
   }
-
-  public Component add(Component comp) {
+  
+  Component add(JComponent comp) {
+    return add(comp, true);
+  }
+  
+  Component add(JComponent comp, boolean spaceAfter) {
     numComponents++;
-    if (!outerSpacing && numComponents > 1) {
-      panel.add(Box.createRigidArea(spacing));
-    }
+    addSpacingBefore();
     Component component = panel.add(comp);
-    if (outerSpacing) {
-      panel.add(Box.createRigidArea(spacing));
-    }
+    addSpacingAfter(spaceAfter);
     return component;
   }
   
-  public Component add(SpacedPanel spacedPanel) {
-    return add(spacedPanel.getContainer());
+  Component add(SpacedPanel spacedPanel) {
+    numComponents++;
+    addSpacingBefore();
+    Component component = panel.add(spacedPanel);
+    addSpacingAfter(true);
+    return component;
   }
   
-  public Component add(DoubleSpacedPanel doubleSpacedPanel) {
-    return add(doubleSpacedPanel.getContainer());
+  Component add(DoubleSpacedPanel doubleSpacedPanel) {
+    numComponents++;
+    addSpacingBefore();
+    Component component = panel.add(doubleSpacedPanel);
+    addSpacingAfter(true);
+    return component;
   }
   
-  public void addRigidArea() {
+  Component add(LabeledTextField field) {
+    numComponents++;
+    addSpacingBefore();
+    Component component = panel.add(field);
+    addSpacingAfter(true);
+    return component;
+  }
+  
+  Component add(LabeledSpinner spinner) {
+    numComponents++;
+    addSpacingBefore();
+    Component component = panel.add(spinner);
+    addSpacingAfter(true);
+    return component;
+  }
+  
+  Component addMultiLineButton(AbstractButton button) {
+    numComponents++;
+    addSpacingBefore();
+    Component component = panel.addMultiLineButton(button);
+    addSpacingAfter(true);
+    return component;
+  }
+  
+  void addRigidArea() {
     panel.add(Box.createRigidArea(spacing));
   }
   
-  public void setLayout(LayoutManager mgr) {
+  private void addSpacingBefore() {
+    if ((outerSpacing && numComponents == 1) || (!outerSpacing && numComponents > 1)) {
+      panel.add(Box.createRigidArea(spacing));
+    }
+  }
+  
+  private void addSpacingAfter(boolean spaceAfter) {
+    if (spaceAfter && outerSpacing) {
+      panel.add(Box.createRigidArea(spacing));
+    }
+  }
+  
+  void removeAll() {
+    numComponents = 0;
+    panel.removeAll();
+  }
+  
+  void setLayout(LayoutManager mgr) {
     panel.setLayout(mgr);
   }
   
-  public void setBorder(Border border) {
+  void setBorder(Border border) {
     panel.setBorder(border);
   }
   
+  void setComponentAlignmentX(float alignmentX) {
+    panel.setComponentAlignmentX(alignmentX);
+  }
+  
+  public void resetComponentAlignmentX() {
+    panel.resetComponentAlignmentX();
+  }
+  
   public Container getContainer() {
-    return panel;
+    return panel.getContainer();
   }
 }
