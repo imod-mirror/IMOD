@@ -46,6 +46,10 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.24  2004/11/08 22:08:04  sueh
+* <p> bug# 520 consolidate functionality that calls finishjoin into runFinishjoin().
+* <p> Add functions to set shift and size.
+* <p>
 * <p> Revision 1.1.2.23  2004/10/29 22:07:25  sueh
 * <p> bug# 520 Don't run createEmptyXfFile when the .ejf file isn't loaded.  When
 * <p> makejoincom is run, run createEmptyXfFile.
@@ -227,8 +231,9 @@ public class JoinManager extends BaseManager {
   /**
    * Open 3dmod to view final join 
    */
-  public void imodOpenJoin() {
+  public void imodOpenJoin(int binning) {
     try {
+      imodManager.setBinning(ImodManager.JOIN_KEY, binning);
       imodManager.open(ImodManager.JOIN_KEY);
     }
     catch (AxisTypeException except) {
@@ -281,12 +286,13 @@ public class JoinManager extends BaseManager {
   /**
    * Open 3dmod to view a file
    */
-  public int imodOpenFile(String imodKey, File file, int imodIndex) {
+  public int imodOpenFile(String imodKey, int imodIndex, File file, int binning) {
     try {
       if (imodIndex == -1) {
         imodIndex = imodManager.newImod(imodKey, file);
       }
-      imodManager.open(imodKey, file, imodIndex);
+      imodManager.setBinning(imodKey, imodIndex, binning);
+      imodManager.open(imodKey, imodIndex, file);
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
