@@ -9,6 +9,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.5.2.4  2002/12/06 17:36:51  mast
+#  *** empty log message ***
+#
 #  Revision 3.5.2.3  2002/12/06 17:20:04  mast
 #  *** empty log message ***
 #
@@ -507,7 +510,6 @@ mkdir -p $inst_dir/man/cat5
 #
 echo INCLUDEPATH += $inc_dir >> $midas_qconf
 echo INCLUDEPATH += $inc_dir >> $imod_qconf
-echo DEFINES += QT_CLEAN_NAMESPACE >> $midas_qconf
 echo DEFINES += QT_CLEAN_NAMESPACE >> $imod_qconf
 if ($debug == true) then
     echo CONFIG += debug warn_on >> $midas_qconf

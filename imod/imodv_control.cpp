@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 1.1.2.1  2002/12/05 16:31:25  mast
+    Qt version
+
     Revision 3.1  2002/12/01 15:34:41  mast
     Changes to get clean compilation with g++
 
@@ -331,15 +334,15 @@ void imodvControlUpdate(ImodvApp *a)
   /* Only update the text boxes if they change */
   if (lastX != a->imod->view->rot.x) {
     lastX = a->imod->view->rot.x;
-    dialog->setAxisText(1, lastX);
+    dialog->setAxisText(IMODV_CONTROL_XAXIS, lastX);
   }
   if (lastY != a->imod->view->rot.y) {
     lastY = a->imod->view->rot.y;
-    dialog->setAxisText(2, lastY);
+    dialog->setAxisText(IMODV_CONTROL_YAXIS, lastY);
   }
   if (lastZ != a->imod->view->rot.z) {
     lastZ = a->imod->view->rot.z;
-    dialog->setAxisText(3, lastZ);
+    dialog->setAxisText(IMODV_CONTROL_ZAXIS, lastZ);
   }
 
   scale = 0.5 * (a->winx > a->winy ? a->winy : a->winx) / 
