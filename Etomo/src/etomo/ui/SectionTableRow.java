@@ -10,7 +10,6 @@ import javax.swing.JPanel;
 
 import etomo.type.ConstEtomoInteger;
 import etomo.type.ConstSectionTableRowData;
-import etomo.type.EtomoInteger;
 import etomo.type.SectionTableRowData;
 import etomo.type.SlicerAngles;
 
@@ -29,6 +28,10 @@ import etomo.type.SlicerAngles;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.11  2004/10/22 16:42:41  sueh
+* <p> bug# 520 Fixed displayCurTab: getting sample bottom size from current
+* <p> row.  Changed Chunk to a header.
+* <p>
 * <p> Revision 1.1.2.10  2004/10/22 03:28:33  sueh
 * <p> bug# 520 Added Chunk, Reference section, and Current section to Align
 * <p> tab.
@@ -257,7 +260,7 @@ public class SectionTableRow {
     this.curTab = curTab;
   }
   
-  int displayCurTab(JPanel panel, int prevSlice, int prevSampleTop) {
+  int displayCurTab(JPanel panel, int prevSlice, int prevSampleTopNumberSlices) {
     remove();
     add(panel);
     configureFields();
@@ -273,19 +276,19 @@ public class SectionTableRow {
       }
       else {
         chunk.setText(rowNumber.getString());
-        if (prevSampleTop > 0) {
+        if (prevSampleTopNumberSlices > 0) {
           referenceSectionStart.setText(Integer.toString(prevSlice + 1));
-          prevSlice += prevSampleTop;
+          prevSlice += prevSampleTopNumberSlices;
           referenceSectionEnd.setText(Integer.toString(prevSlice));
         }
         else {
           referenceSectionStart.setText("");
           referenceSectionEnd.setText("");
         }
-        int sampleBottom = getSampleBottom();
-        if (sampleBottom > 0) {
+        int sampleBottomNumberSlices = data.getSampleBottomNumberSlices();
+        if (sampleBottomNumberSlices > 0) {
           currentSectionStart.setText(Integer.toString(prevSlice + 1));
-          prevSlice += sampleBottom;
+          prevSlice += sampleBottomNumberSlices;
           currentSectionEnd.setText(Integer.toString(prevSlice));
         }
         else {
@@ -373,10 +376,10 @@ public class SectionTableRow {
   private void displayData() {
     rowNumber.setText(data.getRowNumber().getString());
     setSectionText();
-    sampleBottomStart.setText(data.getSampleBottomStartString());
-    sampleBottomEnd.setText(data.getSampleBottomEndString());
-    sampleTopStart.setText(data.getSampleTopStartString());
-    sampleTopEnd.setText(data.getSampleTopEndString());
+    sampleBottomStart.setText(data.getSampleBottomStart().getString());
+    sampleBottomEnd.setText(data.getSampleBottomEnd().getString());
+    sampleTopStart.setText(data.getSampleTopStart().getString());
+    sampleTopEnd.setText(data.getSampleTopEnd().getString());
     finalStart.setText(data.getFinalStartString());
     finalEnd.setText(data.getFinalEndString());
     rotationAngleX.setText(data.getRotationAngleXString());
@@ -385,10 +388,10 @@ public class SectionTableRow {
   }
   
   private boolean retrieveData() {
-    if (!data.setSampleBottomStart(sampleBottomStart.getText())
-        || !data.setSampleBottomEnd(sampleBottomEnd.getText())
-        || !data.setSampleTopStart(sampleTopStart.getText())
-        || !data.setSampleTopEnd(sampleTopEnd.getText())
+    if (!data.setSampleBottomStart(sampleBottomStart.getText()).isValid()
+        || !data.setSampleBottomEnd(sampleBottomEnd.getText()).isValid()
+        || !data.setSampleTopStart(sampleTopStart.getText()).isValid()
+        || !data.setSampleTopEnd(sampleTopEnd.getText()).isValid()
         || !data.setFinalStart(finalStart.getText())
         || !data.setFinalEnd(finalEnd.getText())
         || !data.setRotationAngleX(rotationAngleX.getText())
@@ -491,30 +494,8 @@ public class SectionTableRow {
     return imodIndex;
   }
   
-  int getSampleBottom() {
-    EtomoInteger startInteger = new EtomoInteger();
-    EtomoInteger endInteger = new EtomoInteger();
-    startInteger.set(sampleBottomStart.getText());
-    endInteger.set(sampleBottomEnd.getText());
-    if (startInteger.isSet() && endInteger.isSet()) {
-      int start = startInteger.get();
-      int end = endInteger.get();
-      return end - start + 1;
-    }
-    return 0;
-  }
-  
-  int getSampleTop() {
-    EtomoInteger startInteger = new EtomoInteger();
-    EtomoInteger endInteger = new EtomoInteger();
-    startInteger.set(sampleTopStart.getText());
-    endInteger.set(sampleTopEnd.getText());
-    if (startInteger.isSet() && endInteger.isSet()) {
-      int start = startInteger.get();
-      int end = endInteger.get();
-      return end - start + 1;
-    }
-    return 0;
+  int getSampleTopNumberSlices() {
+    return data.getSampleTopNumberSlices();
   }
   
   ConstSectionTableRowData getData() {
