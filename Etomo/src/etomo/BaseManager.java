@@ -38,6 +38,12 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.11  2004/10/11 01:55:43  sueh
+* <p> bug# 520 moved responsibility for mainPanel, metaData, processTrack,
+* <p> and progressManager to child classes.  Used abstract functions to use
+* <p> these variables in the base classes.  This is more reliable and doesn't
+* <p> require casting.
+* <p>
 * <p> Revision 1.1.2.10  2004/10/08 21:12:27  sueh
 * <p> bug# 520 Backed out conversion from properties user.dir to workingDir
 * <p>
@@ -411,7 +417,7 @@ public abstract class BaseManager {
       }
       // If the selects Yes then try to save the current EDF file
       if (paramFile == null) {
-        if (!mainFrame.getTestParamFilename()) {
+        if (!getMainPanel().getTestParamFilename()) {
           return false;
         }
       }
