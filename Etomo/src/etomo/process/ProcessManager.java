@@ -20,6 +20,14 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.39.2.7  2004/10/11 02:04:22  sueh
+ * bug# 520 Using a variable called propertyUserDir instead of the "user.dir"
+ * property.  This property would need a different value for each manager.
+ * This variable can be retrieved from the manager if the object knows its
+ * manager.  Otherwise it can retrieve it from the current manager using the
+ * EtomoDirector singleton.  If there is no current manager, EtomoDirector
+ * gets the value from the "user.dir" property.
+ *
  * Revision 3.39.2.6  2004/10/08 16:07:17  sueh
  * bug# 520 Since EtomoDirector is a singleton, made all functions and
  * member variables non-static.
@@ -518,6 +526,7 @@ package etomo.process;
 import etomo.type.AxisID;
 import etomo.type.ProcessName;
 import etomo.ApplicationManager;
+import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.type.ConstMetaData;
 import etomo.ui.TextPageWindow;
@@ -548,8 +557,8 @@ public class ProcessManager extends BaseProcessManager {
   String transferfidCommandLine;
 
   public ProcessManager(ApplicationManager appMgr) {
-    super(appMgr);
-    appManager = (ApplicationManager) manager;
+    super();
+    appManager = appMgr;
   }
 
   /**
@@ -1162,28 +1171,6 @@ public class ProcessManager extends BaseProcessManager {
     }
     return command.getName();
   }
-
-  /**
-   * Start an arbitrary command as an unmanaged background thread
-   */
-  private void startSystemProgramThread(String command) {
-
-    // Initialize the SystemProgram object
-    SystemProgram sysProgram = new SystemProgram(command);
-    sysProgram.setWorkingDirectory(new File(appManager.getPropertyUserDir()));
-    sysProgram.setDebug(EtomoDirector.getInstance().isDebug());
-
-    //  Start the system program thread
-    Thread sysProgThread = new Thread(sysProgram);
-    sysProgThread.start();
-    if (EtomoDirector.getInstance().isDebug()) {
-      System.err.println("Started " + command);
-      System.err.println("  working directory: "
-        + appManager.getPropertyUserDir());
-    }
-  }
-
-
   
   /**
    * Start a managed background command script for the specified axis
@@ -1324,5 +1311,9 @@ public class ProcessManager extends BaseProcessManager {
     if (process.getCommandLine().equals(transferfidCommandLine)) {
       handleTransferfidMessage(process);
     }
+  }
+  
+  protected BaseManager getManager() {
+    return appManager;
   }
 }
