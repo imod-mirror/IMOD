@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 1.1.2.6  2002/12/17 22:28:20  mast
+    cleanup of unused variables and SGI errors
+
     Revision 1.1.2.5  2002/12/17 18:33:19  mast
     using new includes for imodv compoennts
 
@@ -371,6 +374,7 @@ void imodvControlUpdate(ImodvApp *a)
 int imodv_control(ImodvApp *a, int state)
 {
   QString qstr;
+  char *window_name;
 
   if (!state){
     if (dialog)
@@ -383,12 +387,16 @@ int imodv_control(ImodvApp *a, int state)
     return -1;
   }
   
-  qstr = imodwEithername("Imodv Controls: ", a->imod->fileName, 1);
-  dialog = new imodvControlForm(NULL, NULL, false, Qt::WDestructiveClose);
+  dialog = new imodvControlForm((QWidget *)a->mainWin, NULL, false,
+                                Qt::WDestructiveClose);
   if (!dialog){
     dia_err("Failed to create imodv controls window!");
     return(-1);
   }
+  window_name = imodwEithername("Imodv Controls: ", a->imod->fileName, 1);
+  qstr = window_name;
+  if (window_name)
+    free(window_name);
   if (!qstr.isEmpty())
     dialog->setCaption(qstr);
 
