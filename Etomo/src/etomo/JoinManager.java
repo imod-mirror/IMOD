@@ -2,10 +2,13 @@ package etomo;
 
 import java.awt.Dimension;
 import java.io.File;
+import java.io.IOException;
 import java.util.Vector;
 
+import etomo.comscript.FinishjoinParam;
 import etomo.comscript.FlipyzParam;
 import etomo.comscript.MakejoincomParam;
+import etomo.comscript.MidasParam;
 import etomo.comscript.XfalignParam;
 import etomo.process.ImodManager;
 import etomo.process.ImodProcess;
@@ -24,6 +27,7 @@ import etomo.type.SlicerAngles;
 import etomo.ui.JoinDialog;
 import etomo.ui.MainJoinPanel;
 import etomo.ui.MainPanel;
+import etomo.util.Utilities;
 
 /**
 * <p>Description: </p>
@@ -39,6 +43,9 @@ import etomo.ui.MainPanel;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.18  2004/10/18 19:05:09  sueh
+* <p> bug# 520 Added midasSample().  Added validation to startjoin.
+* <p>
 * <p> Revision 1.1.2.17  2004/10/18 17:28:59  sueh
 * <p> bug# 520 Added setSetupMode(), which tests for a valid meta data object
 * <p> and then enables the other tabs and disables rootName.  This is done
@@ -185,6 +192,24 @@ public class JoinManager extends BaseManager {
   }
   
   /**
+   * Open 3dmod to view final join 
+   */
+  public void imodOpenJoin() {
+    try {
+      imodManager.open(ImodManager.JOIN_KEY);
+    }
+    catch (AxisTypeException except) {
+      except.printStackTrace();
+      mainPanel.openMessageDialog(except.getMessage(), "AxisType problem");
+    }
+    catch (SystemProcessException except) {
+      except.printStackTrace();
+      mainPanel.openMessageDialog(except.getMessage(),
+        "Can't open " + ImodManager.JOIN_KEY + " in 3dmod ");
+    }
+  }
+  
+  /**
    * Open 3dmod to view join samples
    */
   public void imodOpenJoinSamples() {
@@ -198,7 +223,7 @@ public class JoinManager extends BaseManager {
     catch (SystemProcessException except) {
       except.printStackTrace();
       mainPanel.openMessageDialog(except.getMessage(),
-        "Can't open " + ImodManager.JOIN_SAMPLES_KEY + " 3dmod ");
+        "Can't open " + ImodManager.JOIN_SAMPLES_KEY + " in 3dmod ");
     }
   }
   
@@ -216,7 +241,7 @@ public class JoinManager extends BaseManager {
     catch (SystemProcessException except) {
       except.printStackTrace();
       mainPanel.openMessageDialog(except.getMessage(),
-        "Can't open " + ImodManager.JOIN_SAMPLE_AVERAGES_KEY + " 3dmod ");
+        "Can't open " + ImodManager.JOIN_SAMPLE_AVERAGES_KEY + " in 3dmod ");
     }
   }
 
@@ -348,7 +373,6 @@ public class JoinManager extends BaseManager {
       threadNameA = processMgr.makejoincom(makejoincomParam);
     }
     catch (SystemProcessException except) {
-      joinDialog.abortAddSection();
       except.printStackTrace();
       mainPanel.openMessageDialog("Can't run makejoincom\n"
         + except.getMessage(), "SystemProcessException");
@@ -365,28 +389,61 @@ public class JoinManager extends BaseManager {
     joinDialog.getMetaData(metaData);
     if (!metaData.isValid(true)) {
       mainPanel.openMessageDialog(metaData.getInvalidReason(), "Invalid Data");
-      mainPanel.stopProgressBar(AxisID.ONLY);
       return;
     }
-    processMgr.midasSample();
+    MidasParam midasParam = new MidasParam(metaData);
+    try {
+      processMgr.midasSample(midasParam);
+    }
+    catch (SystemProcessException except) {
+      except.printStackTrace();
+      mainPanel.openMessageDialog("Can't run midas\n"
+        + except.getMessage(), "SystemProcessException");
+      return; 
+    }
     mainPanel.stopProgressBar(AxisID.ONLY);
   }
   
-  public void xfalign() {
-    mainPanel.startProgressBar("Xfalign", AxisID.ONLY);
+  public void xfalignInitial() {
+    mainPanel.startProgressBar("Initial xfalign", AxisID.ONLY);
     isDataParamDirty = true;
     joinDialog.getMetaData(metaData);
-    
-    XfalignParam xfalignParam = new XfalignParam(metaData);
+    if (!metaData.isValid(true)) {
+      mainPanel.openMessageDialog(metaData.getInvalidReason(), "Invalid Data");
+      return;
+    }
+    XfalignParam xfalignParam = new XfalignParam(metaData, XfalignParam.INITIAL_MODE);
     try {
       threadNameA = processMgr.xfalign(xfalignParam);
     }
     catch (SystemProcessException except) {
-      joinDialog.abortAddSection();
       except.printStackTrace();
-      mainPanel.openMessageDialog("Can't run xfalign\n"
+      mainPanel.openMessageDialog("Can't run initial xfalign\n"
         + except.getMessage(), "SystemProcessException");
       mainPanel.stopProgressBar(AxisID.ONLY);
+      joinDialog.enableMidas();
+      return; 
+    }
+  }
+  
+  public void xfalignRefine() {
+    mainPanel.startProgressBar("Refine xfalign", AxisID.ONLY);
+    isDataParamDirty = true;
+    joinDialog.getMetaData(metaData);
+    if (!metaData.isValid(true)) {
+      mainPanel.openMessageDialog(metaData.getInvalidReason(), "Invalid Data");
+      return;
+    }
+    XfalignParam xfalignParam = new XfalignParam(metaData, XfalignParam.REFINE_MODE);
+    try {
+      threadNameA = processMgr.xfalign(xfalignParam);
+    }
+    catch (SystemProcessException except) {
+      except.printStackTrace();
+      mainPanel.openMessageDialog("Can't run refine xfalign\n"
+        + except.getMessage(), "SystemProcessException");
+      mainPanel.stopProgressBar(AxisID.ONLY);
+      joinDialog.enableMidas();
       return; 
     }
   }
@@ -414,9 +471,58 @@ public class JoinManager extends BaseManager {
       threadNameA = processMgr.startjoin();
     }
     catch (SystemProcessException except) {
-      joinDialog.abortAddSection();
       except.printStackTrace();
       mainPanel.openMessageDialog("Can't run startjoin.com\n"
+        + except.getMessage(), "SystemProcessException");
+      mainPanel.stopProgressBar(AxisID.ONLY);
+      return; 
+    }
+  }
+  
+  public void revertXfalign() {
+    String rootName = metaData.getRootName();
+    String workingDir = metaData.getWorkingDir();
+    File xfalignBackupFile = new File(workingDir, rootName + ".xf.bak");
+    File xfalignFile = new File(workingDir, rootName + ".xf");
+    if (!xfalignBackupFile.exists()) {
+      String[] message = {
+          "Unable to move " + xfalignBackupFile.getAbsolutePath() + " to "
+              + xfalignFile.getName() + ".",
+          xfalignBackupFile.getName() + " does not exist." };
+      mainPanel.openMessageDialog(message, "Revert Failed");
+    }
+    try {
+      Utilities.renameFile(xfalignBackupFile, xfalignFile);
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+      String[] message = {
+          "Unable to move " + xfalignBackupFile.getAbsolutePath() + " to "
+              + xfalignFile.getName() + ".",
+          "IOException: " + e.getMessage() };
+      mainPanel.openMessageDialog(message, "Revert Failed");
+    }
+  }
+  
+  public void enableMidas() {
+    joinDialog.enableMidas();
+  }
+  
+  public void finishjoin() {
+    mainPanel.startProgressBar("Finishjoin", AxisID.ONLY);
+    isDataParamDirty = true;
+    joinDialog.getMetaData(metaData);
+    if (!metaData.isValid(true)) {
+      mainPanel.openMessageDialog(metaData.getInvalidReason(), "Invalid Data");
+      return;
+    }
+    FinishjoinParam finishjoinParam = new FinishjoinParam(metaData);
+    try {
+      threadNameA = processMgr.finishjoin(finishjoinParam);
+    }
+    catch (SystemProcessException except) {
+      except.printStackTrace();
+      mainPanel.openMessageDialog("Can't run refine finishjoin\n"
         + except.getMessage(), "SystemProcessException");
       mainPanel.stopProgressBar(AxisID.ONLY);
       return; 
