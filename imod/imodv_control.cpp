@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 1.1.2.7  2002/12/23 05:00:25  mast
+    Make imodv mainwindow be parent
+
     Revision 1.1.2.6  2002/12/17 22:28:20  mast
     cleanup of unused variables and SGI errors
 
@@ -222,16 +225,16 @@ void imodvControlAxisButton(int axisDir)
   ImodvApp *a = Imodv;
   switch(axisDir){
   case IMODV_CONTROL_XAXIS:
-    imodv_rotate_model(a, 0, a->md->arot, 0);
-    break;
-  case -IMODV_CONTROL_XAXIS:
-    imodv_rotate_model(a, 0, -a->md->arot, 0);
-    break;
-  case IMODV_CONTROL_YAXIS:
     imodv_rotate_model(a, a->md->arot, 0, 0);
     break;
-  case -IMODV_CONTROL_YAXIS:
+  case -IMODV_CONTROL_XAXIS:
     imodv_rotate_model(a, -a->md->arot, 0, 0);
+    break;
+  case IMODV_CONTROL_YAXIS:
+    imodv_rotate_model(a, 0, a->md->arot, 0);
+    break;
+  case -IMODV_CONTROL_YAXIS:
+    imodv_rotate_model(a, 0, -a->md->arot, 0);
     break;
   case IMODV_CONTROL_ZAXIS:
     imodv_rotate_model(a, 0, 0, a->md->arot);
@@ -288,6 +291,7 @@ void imodvControlRate(int value)
 /* receive the signal that the dialog is really closing, and set to NULL */
 void imodvControlClosing(void)
 {
+  imodvRemoveDialog((QWidget *)dialog);
   dialog = NULL;
 }
 
@@ -387,8 +391,8 @@ int imodv_control(ImodvApp *a, int state)
     return -1;
   }
   
-  dialog = new imodvControlForm((QWidget *)a->mainWin, NULL, false,
-                                Qt::WDestructiveClose);
+  dialog = new imodvControlForm(NULL, NULL, //false,
+                                Qt::WDestructiveClose | Qt::WType_TopLevel);
   if (!dialog){
     dia_err("Failed to create imodv controls window!");
     return(-1);
@@ -400,6 +404,7 @@ int imodv_control(ImodvApp *a, int state)
   if (!qstr.isEmpty())
     dialog->setCaption(qstr);
 
+  imodvAddDialog((QWidget *)dialog);
   dialog->show();
 
   lastX = lastY = lastZ = lastScale = -999.;

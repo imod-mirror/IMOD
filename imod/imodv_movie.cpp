@@ -32,6 +32,7 @@
 #include "imod.h"
 #include "b3dgfx.h"
 #include "imodv_gfx.h"
+#include "imodv_input.h"
 #include "imodv_movie.h"
 
 /* The movie control structure  */
@@ -174,6 +175,7 @@ void imodvMovieClosing()
                               format, movie->saved);
   movie->file_format = format ? SnapShot_TIF : SnapShot_RGB; 
   movie->dia->getFrameBoxes(movie->frames, movie->montFrames, movie->overlap);
+  imodvRemoveDialog((QWidget *)movie->dia);
   movie->dia = NULL;
   movie->abort = 1;
 }
@@ -235,8 +237,8 @@ void imodvMovieDialog(ImodvApp *a, int state)
   movie->saved   = 0;
   movie->abort = 1;   /* DNM: make this a flag that not making movie */
 
-  movie->dia = new imodvMovieForm((QWidget *)a->mainWin, NULL, false, 
-                                  Qt::WDestructiveClose);
+  movie->dia = new imodvMovieForm(NULL, NULL, //false, 
+                                  Qt::WDestructiveClose | Qt::WType_TopLevel);
   if (!movie->dia){
     dia_err("Failed to create imodv movie window!");
     return;
@@ -257,6 +259,7 @@ void imodvMovieDialog(ImodvApp *a, int state)
                               movie->file_format == SnapShot_TIF ? 1 : 0, 
                               movie->saved);
   movie->dia->setFrameBoxes(movie->frames, movie->montFrames, movie->overlap);
+  imodvAddDialog((QWidget *)movie->dia);
   movie->dia->show();
 }
 
