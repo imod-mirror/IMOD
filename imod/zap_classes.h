@@ -32,6 +32,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.8  2003/01/10 23:56:56  mast
+move some declarations out of slots
+
 Revision 1.1.2.7  2002/12/17 17:30:22  mast
 Adding timer for redraws
 
@@ -73,7 +76,6 @@ class QLabel;
 class QToolBar;
 class QSignalMapper;
 class QSlider;
-class QTimer;
 
 struct zapwin;
 class ZapGL;
@@ -95,7 +97,6 @@ class ZapWindow : public QMainWindow
 
   ZapGL *mGLw;
   QToolBar *mToolBar;
-  QTimer *mTimer;
 
   public slots:
     void zoomUp();
@@ -108,7 +109,6 @@ class ZapWindow : public QMainWindow
     void timeBack();
     void timeForward();
     void toggleClicked(int index);
-    void timeoutSlot();
 
  protected:
     void keyPressEvent ( QKeyEvent * e );
@@ -135,18 +135,20 @@ class ZapGL : public QGLWidget
  public:
   ZapGL(struct zapwin *zap, QGLFormat format, QWidget * parent = 0,
         const char * name = 0);
-  ~ZapGL();
+  ~ZapGL() {};
  
 protected:
-  void initializeGL();
   void paintGL();
   void resizeGL( int wdth, int hght );
   void mousePressEvent(QMouseEvent * e );
   void mouseReleaseEvent ( QMouseEvent * e );
   void mouseMoveEvent ( QMouseEvent * e );
+  void timerEvent(QTimerEvent *e);
 
  private:
   struct zapwin *mZap;
   bool mMousePressed;
+  bool mFirstDraw;
+  int mTimerID;
 };
 #endif     // ZAP_CLASSES_H
