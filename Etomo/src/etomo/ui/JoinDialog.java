@@ -28,6 +28,10 @@ import etomo.type.JoinMetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.1.2.15  2004/10/18 18:11:10  sueh
+ * <p> bug# 520 Passing fields to and from meta data.  Added call to xfalign().
+ * <p> Moved validation of workingDir and rootName to ConstJoinMetaData.
+ * <p>
  * <p> Revision 1.1.2.14  2004/10/15 00:46:31  sueh
  * <p> bug# 520 Added setMetaData()
  * <p>
@@ -537,7 +541,7 @@ public class JoinDialog implements ContextMenu {
       joinManager.xfalign();
     }
     else if (command.equals(btnMidas.getActionCommand())) {
-      //TODO
+      joinManager.midasSample();
     }
     else if (command.equals(btnRefineAutoAlignment.getActionCommand())) {
       //TODO
