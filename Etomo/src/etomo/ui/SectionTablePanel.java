@@ -12,7 +12,6 @@ import java.io.File;
 import java.util.ArrayList;
 
 import javax.swing.BorderFactory;
-import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -45,6 +44,11 @@ import etomo.type.SlicerAngles;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.5  2004/09/22 22:14:43  sueh
+* <p> bug# 520 Enabling and disabling buttons (enableRowButtons() and
+* <p> enableTableButtons()).  Modified calls to work with the more genral
+* <p> JoinManager.imod... functions.  Added get rotation angle functionality.
+* <p>
 * <p> Revision 1.1.2.4  2004/09/21 18:08:40  sueh
 * <p> bug# 520 Moved buttons that affect the section table from JoinDialog to
 * <p> this class.  Added move up, move down, add section, and delete section
@@ -78,11 +82,11 @@ public class SectionTablePanel implements ContextMenu, Expandable {
   private static final Dimension buttonDimension = UIParameters
   .getButtonDimension();
   
-  private JPanel rootPanel;
-  private JPanel pnlMain;
+  private DoubleSpacedPanel rootPanel;
   private JPanel pnlTable;
-  private JPanel pnlButtons;
-  private JPanel pnlImod;
+  private SpacedPanel pnlButtons;
+  private SpacedPanel pnlImod;
+  
   private ExpandButton btnExpandSections;
   private MultiLineButton btnMoveSectionUp;
   private MultiLineButton btnMoveSectionDown;
@@ -91,18 +95,21 @@ public class SectionTablePanel implements ContextMenu, Expandable {
   private LabeledSpinner spinBinning;
   private MultiLineButton btnOpen3dmod;
   private MultiLineButton btnGetAngles;
+  
   private ArrayList rows = new ArrayList();
   private GridBagLayout layout = new GridBagLayout();
   private GridBagConstraints constraints = new GridBagConstraints();
   private SectionTableActionListener sectionTableActionListener = new SectionTableActionListener(this);
   
   private final JoinManager joinManager;
+  private final JoinDialog joinDialog;
   
   /**
    * Creates the panel and table.
    *
    */
-  SectionTablePanel(JoinManager joinManager) {
+  SectionTablePanel(JoinDialog joinDialog, JoinManager joinManager) {
+    this.joinDialog = joinDialog;
     this.joinManager = joinManager;
     createRootPanel();
     enableTableButtons(false);
@@ -111,28 +118,12 @@ public class SectionTablePanel implements ContextMenu, Expandable {
   
   private void createRootPanel() {
     //create rootPanel in X axis to make room at the border
-    rootPanel = new JPanel();
-    rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.X_AXIS));
-    rootPanel.setBorder(BorderFactory.createEtchedBorder());
-    rootPanel.add(Box.createRigidArea(FixedDim.x5_y0));
-    createMainPanel();
-    rootPanel.add(pnlMain);
-    rootPanel.add(Box.createRigidArea(FixedDim.x5_y0));
-  }
-  
-  private void createMainPanel() {
-    pnlMain = new JPanel();
-    pnlMain.setLayout(new BoxLayout(pnlMain, BoxLayout.Y_AXIS));
-    pnlMain.add(Box.createRigidArea(FixedDim.x0_y5));
+    rootPanel = new DoubleSpacedPanel(false, FixedDim.x5_y0, FixedDim.x0_y5,
+        BorderFactory.createEtchedBorder());
     createTablePanel();
-    pnlMain.add(pnlTable);
-    pnlMain.add(Box.createRigidArea(FixedDim.x0_y5));
+    rootPanel.add(pnlTable);
     createButtonsPanel();
-    pnlMain.add(pnlButtons);
-    pnlMain.add(Box.createRigidArea(FixedDim.x0_y5));
-    //finish rootPanel
-    rootPanel.add(pnlMain);
-    rootPanel.add(Box.createRigidArea(FixedDim.x5_y0));
+    rootPanel.add(pnlButtons);
   }
   
   /**
@@ -194,67 +185,61 @@ public class SectionTablePanel implements ContextMenu, Expandable {
   }
   
   private void createButtonsPanel() {
-    pnlButtons = new JPanel();
-    pnlButtons.setLayout(new BoxLayout(pnlButtons, BoxLayout.X_AXIS));
-    //create first section
-    JPanel pnlFirst = new JPanel();
-    pnlFirst.setLayout(new BoxLayout(pnlFirst, BoxLayout.Y_AXIS));
+    pnlButtons = new SpacedPanel(FixedDim.x5_y0);
+    pnlButtons.setLayout(new BoxLayout(pnlButtons.getContainer(),
+        BoxLayout.X_AXIS));
+    //first component
+    SpacedPanel pnlFirst = new SpacedPanel(FixedDim.x0_y5);
+    pnlFirst
+        .setLayout(new BoxLayout(pnlFirst.getContainer(), BoxLayout.Y_AXIS));
     btnMoveSectionUp = new MultiLineButton("Move Section Up");
     UIUtilities.setButtonSize(btnMoveSectionUp, buttonDimension, true);
     btnMoveSectionUp.addActionListener(sectionTableActionListener);
     pnlFirst.add(btnMoveSectionUp);
-    pnlFirst.add(Box.createRigidArea(FixedDim.x0_y5));
     btnAddSection = new MultiLineButton("Add Section");
     UIUtilities.setButtonSize(btnAddSection, buttonDimension, true);
     btnAddSection.addActionListener(sectionTableActionListener);
     pnlFirst.add(btnAddSection);
-    UIUtilities.setButtonSizeAll(pnlFirst, buttonDimension);
+    UIUtilities.setButtonSizeAll(pnlFirst.getContainer(), buttonDimension);
     pnlButtons.add(pnlFirst);
-    pnlButtons.add(Box.createRigidArea(FixedDim.x5_y0));
-    //create second section
-    JPanel pnlSecond = new JPanel();
-    pnlSecond.setLayout(new BoxLayout(pnlSecond, BoxLayout.Y_AXIS));
+    //second component
+    SpacedPanel pnlSecond = new SpacedPanel(FixedDim.x0_y5);
+    pnlSecond.setLayout(new BoxLayout(pnlSecond.getContainer(),
+        BoxLayout.Y_AXIS));
     btnMoveSectionDown = new MultiLineButton("Move Section Down");
     UIUtilities.setButtonSize(btnMoveSectionDown, buttonDimension, true);
     btnMoveSectionDown.addActionListener(sectionTableActionListener);
     pnlSecond.add(btnMoveSectionDown);
-    pnlSecond.add(Box.createRigidArea(FixedDim.x0_y5));
     btnDeleteSection = new MultiLineButton("Delete Section");
     UIUtilities.setButtonSize(btnDeleteSection, buttonDimension, true);
     btnDeleteSection.addActionListener(sectionTableActionListener);
     pnlSecond.add(btnDeleteSection);
     pnlButtons.add(pnlSecond);
-    pnlButtons.add(Box.createRigidArea(FixedDim.x5_y0));
-    //create third section
+    //third component
     createImodPanel();
     pnlButtons.add(pnlImod);
-    pnlButtons.add(Box.createRigidArea(FixedDim.x5_y0));
-    //create fourth section
+    //fourth component
     btnGetAngles = new MultiLineButton("Get Angles from Slicer");
     UIUtilities.setButtonSize(btnGetAngles, buttonDimension, true);
     btnGetAngles.addActionListener(sectionTableActionListener);
     pnlButtons.add(btnGetAngles);
-    pnlButtons.add(Box.createRigidArea(FixedDim.x5_y0));
   }
   
   private void createImodPanel() {
-    pnlImod = new JPanel();
-    pnlImod.setLayout(new BoxLayout(pnlImod, BoxLayout.Y_AXIS));
+    pnlImod = new SpacedPanel(FixedDim.x0_y5, true);
+    pnlImod.setLayout(new BoxLayout(pnlImod.getContainer(), BoxLayout.Y_AXIS));
     pnlImod.setBorder(BorderFactory.createEtchedBorder());
-    pnlImod.add(Box.createRigidArea(FixedDim.x0_y5));
     //binning panel
-    JPanel pnlBinning = new JPanel();
-    pnlBinning.setLayout(new BoxLayout(pnlBinning, BoxLayout.X_AXIS));
-    pnlBinning.add(Box.createRigidArea(FixedDim.x5_y0));
+    SpacedPanel pnlBinning = new SpacedPanel(FixedDim.x5_y0, true);
+    pnlBinning.setLayout(new BoxLayout(pnlBinning.getContainer(), BoxLayout.X_AXIS));
     SpinnerModel spinnerModel = new SpinnerNumberModel(1, 1, 50, 1);
     spinBinning = new LabeledSpinner("Open binned by ", spinnerModel);
+    spinBinning.setTextMaxmimumSize(UIParameters.dimSpinner);
     pnlBinning.add(spinBinning.getContainer());
-    JLabel lblIn = new JLabel(" in X and Y");
+    JLabel lblIn = new JLabel("in X and Y");
     pnlBinning.add(lblIn);
-    pnlBinning.add(Box.createRigidArea(FixedDim.x5_y0));
     pnlImod.add(pnlBinning);
     //3dmod button
-    pnlImod.add(Box.createRigidArea(FixedDim.x0_y5));
     btnOpen3dmod = new MultiLineButton("Open in/Raise 3dmod");
     UIUtilities.setButtonSize(btnOpen3dmod, buttonDimension, true);
     btnOpen3dmod.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -262,8 +247,8 @@ public class SectionTablePanel implements ContextMenu, Expandable {
     btnOpen3dmod.setMaximumSize(buttonDimension);
     btnOpen3dmod.addActionListener(sectionTableActionListener);
     pnlImod.add(btnOpen3dmod);
-    pnlImod.add(Box.createRigidArea(FixedDim.x0_y5));
   }
+  
   /**
    * Informs this panel that a row is highlighting.  Only one row may be
    * highlighted at once, so it turns off highlighting on all the other rows.
@@ -371,7 +356,7 @@ public class SectionTablePanel implements ContextMenu, Expandable {
     chooser.setFileFilter(tomogramFilter);
     chooser.setPreferredSize(new Dimension(400, 400));
     chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-    int returnVal = chooser.showOpenDialog(rootPanel);
+    int returnVal = chooser.showOpenDialog(rootPanel.getContainer());
     if (returnVal == JFileChooser.APPROVE_OPTION) {
       File tomogram = chooser.getSelectedFile();
       addSection(tomogram);
@@ -392,9 +377,11 @@ public class SectionTablePanel implements ContextMenu, Expandable {
     }
     rows.add(new SectionTableRow(this, rows.size() + 1, tomogram, btnExpandSections
         .isExpanded()));
-    if (rows.size() == 1) {
+    int newTableSize = rows.size();
+    if (newTableSize == 1) {
       enableTableButtons(true);
     }
+    joinDialog.setNumSections(newTableSize);
     repaint();
   }
   
@@ -420,6 +407,7 @@ public class SectionTablePanel implements ContextMenu, Expandable {
         .imodRemove(ImodManager.TOMOGRAM_KEY, row.getImodIndex());
     row.remove();
     renumberTable(rowIndex);
+    joinDialog.setNumSections(rows.size());
     repaint();
   }
   
@@ -656,7 +644,7 @@ public class SectionTablePanel implements ContextMenu, Expandable {
   }
 
   Container getContainer() {
-    return rootPanel;
+    return rootPanel.getContainer();
   }
 
   /**
