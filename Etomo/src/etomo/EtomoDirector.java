@@ -30,6 +30,10 @@ import etomo.util.UniqueKey;
  * 
  * <p>
  * $Log$
+ * Revision 1.1.2.7  2004/10/06 01:24:03  sueh
+ * bug# 520 Prevented having more then one Setup screen or more then one
+ * New Join screen.
+ *
  * Revision 1.1.2.6  2004/10/01 21:00:21  sueh
  * bug# 520 moving newJoinName and newTomogramName to the meta
  * data classes.  Adding openManager() to do some open manager functionality
@@ -85,7 +89,8 @@ public class EtomoDirector {
 
   public synchronized static EtomoDirector createInstance(String[] args) {
     if (theEtomoDirector == null) {
-      theEtomoDirector = new EtomoDirector(args);
+      theEtomoDirector = new EtomoDirector();
+      theEtomoDirector.initialize(args);
     }
     return theEtomoDirector;
   }
@@ -97,13 +102,15 @@ public class EtomoDirector {
     return theEtomoDirector;
   }
 
-  private EtomoDirector(String[] args) {
-    theEtomoDirector = this;
+  private EtomoDirector() {
+  }
+  
+  private void initialize(String[] args) {
     createUserConfiguration();
+    ArrayList paramFileNameList = parseCommandLine(args);
     if (!test) {
       createMainFrame();
     }
-    ArrayList paramFileNameList = parseCommandLine(args);
     int paramFileNameListSize = paramFileNameList.size();
     String paramFileName = null;
     managerList = new HashedArray();
