@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.1  2002/12/17 18:46:08  mast
+Initial creation
+
 */
 
 #include <stdio.h>
@@ -51,7 +54,6 @@ ImodvWindow::ImodvWindow(bool standAlone, int enableDepthDB,
                          int enableDepthSB, bool lighting, bool lowRes,
                          QWidget * parent, const char * name, WFlags f)
 {
-  int id;
   mDBw = mSBw = NULL;
 
   // construct file menu
