@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.2  2002/12/30 06:37:46  mast
+set the size small so it will show up at minimum size
+
 Revision 1.1.2.1  2002/12/29 04:20:38  mast
 Initial creation
 
@@ -49,11 +52,13 @@ Initial creation
 
 #include <qlayout.h>
 #include <qframe.h>
+#include <qtooltip.h>
 #include <qpushbutton.h>
 #include <qsignalmapper.h>
 #include "dialog_frame.h"
 
 DialogFrame::DialogFrame(QWidget *parent, int numButtons, char *labels[], 
+			 char *tips[],
 			 bool equalSized, char *caption, char *fallback,
 			 const char *name, WFlags fl)
   : QWidget(parent, name, fl)
@@ -106,6 +111,8 @@ DialogFrame::DialogFrame(QWidget *parent, int numButtons, char *labels[],
     releaseMapper->setMapping(button, i);
     connect(button, SIGNAL(pressed()), pressMapper, SLOT(map()));
     connect(button, SIGNAL(released()), releaseMapper, SLOT(map()));
+    if (tips != NULL)
+      QToolTip::add(button, tips[i]);
   }
 
   setFocusPolicy(StrongFocus);
