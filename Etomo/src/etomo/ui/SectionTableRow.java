@@ -8,7 +8,9 @@ import java.io.File;
 
 import javax.swing.JPanel;
 
+import etomo.type.ConstEtomoInteger;
 import etomo.type.ConstSectionTableRowData;
+import etomo.type.EtomoInteger;
 import etomo.type.SectionTableRowData;
 import etomo.type.SlicerAngles;
 
@@ -27,6 +29,9 @@ import etomo.type.SlicerAngles;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.9  2004/10/15 00:52:26  sueh
+* <p> bug# 520 Added toString().
+* <p>
 * <p> Revision 1.1.2.8  2004/10/13 23:15:36  sueh
 * <p> bug# 520 Allowed the ui components of the row to be removed and re-
 * <p> added.  This way the table can look different on different tabs.  Set the
@@ -87,6 +92,11 @@ public class SectionTableRow {
   private FieldCell sampleBottomEnd = null;
   private FieldCell sampleTopStart = null;
   private FieldCell sampleTopEnd = null;
+  private FieldCell chunk = null;
+  private FieldCell referenceSectionStart = null;
+  private FieldCell referenceSectionEnd = null;
+  private FieldCell currentSectionStart = null;
+  private FieldCell currentSectionEnd = null;
   private FieldCell finalStart = null;
   private FieldCell finalEnd = null;
   private FieldCell rotationAngleX = null;
@@ -123,22 +133,23 @@ public class SectionTableRow {
   }
 
   protected String paramString() {
-    return ",\ntable=" + table + ",\nrowNumberHeader=" + rowNumberHeader + ",\nhighlighterButton="
-        + highlighterButton + ",\nsection="
-        + section + ",\nsampleBottomStart=" + sampleBottomStart
-        + ",\nsampleBottomEnd=" + sampleBottomEnd + ",\nsampleTopStart=" + sampleTopStart + ",\nsampleTopEnd="
-        + sampleTopEnd + ",\nfinalStart=" + finalStart
-        + ",\nfinalEnd=" + finalEnd + ",\nrotationAngleX=" + rotationAngleX + ",\nrotationAngleY="
-        + rotationAngleY + ",\nrotationAngleZ="
-        + rotationAngleZ + ",\nimodIndex="
-        + imodIndex + ",\nsectionExpanded="
-        + sectionExpanded + ",\ncurTab="
-        + curTab + ",\ndata="
-        + data;
+    return ",\ntable=" + table + ",\nrowNumberHeader=" + rowNumberHeader
+        + ",\nhighlighterButton=" + highlighterButton + ",\nsection=" + section
+        + ",\nsampleBottomStart=" + sampleBottomStart + ",\nsampleBottomEnd="
+        + sampleBottomEnd + ",\nsampleTopStart=" + sampleTopStart
+        + ",\nsampleTopEnd=" + sampleTopEnd + ",\nfinalStart=" + finalStart
+        + ",\nfinalEnd=" + finalEnd + ",\nrotationAngleX=" + rotationAngleX
+        + ",\nrotationAngleY=" + rotationAngleY + ",\nrotationAngleZ="
+        + rotationAngleZ + ",\nimodIndex=" + imodIndex + ",\nsectionExpanded="
+        + sectionExpanded + ",\ncurTab=" + curTab + ",\nchunk=" + chunk
+        + ",\nreferenceSectionStart=" + referenceSectionStart
+        + ",\nreferenceSectionEnd=" + referenceSectionEnd
+        + ",\ncurrentSectionStart=" + currentSectionStart
+        + ",\ncurrentSectionEnd=" + currentSectionEnd + ",\ndata=" + data;
   } 
   
   void create() {
-    rowNumberHeader = new HeaderCell(data.getRowNumberString(),
+    rowNumberHeader = new HeaderCell(data.getRowNumber().getString(),
         FixedDim.rowNumberWidth);
     highlighterButton = table.createToggleButton("=>", FixedDim.highlighterWidth);
     highlighterButton.addActionListener(actionListener);
@@ -149,6 +160,16 @@ public class SectionTableRow {
     sampleBottomEnd = new FieldCell();
     sampleTopStart = new FieldCell();
     sampleTopEnd = new FieldCell();
+    chunk = new FieldCell();
+    chunk.setEnabled(false);
+    referenceSectionStart = new FieldCell();
+    referenceSectionStart.setEnabled(false);
+    referenceSectionEnd = new FieldCell();
+    referenceSectionEnd.setEnabled(false);
+    currentSectionStart = new FieldCell();
+    currentSectionStart.setEnabled(false);
+    currentSectionEnd = new FieldCell();
+    currentSectionEnd.setEnabled(false);
     finalStart = new FieldCell();
     finalEnd = new FieldCell();
     rotationAngleX = new FieldCell();
@@ -159,46 +180,109 @@ public class SectionTableRow {
   }
   
   void configureFields() {
-    sampleBottomStart.setInUse(data.getRowNumber() > 1);
-    sampleBottomEnd.setInUse(data.getRowNumber() > 1);
-    sampleTopStart.setInUse(data.getRowNumber() < table.getTableSize());
-    sampleTopEnd.setInUse(data.getRowNumber() < table.getTableSize());
-    finalStart.setInUse(curTab == JoinDialog.JOIN_TAB);
-    finalEnd.setInUse(curTab == JoinDialog.JOIN_TAB);
+    int rowNumber = data.getRowNumber().get();
+    boolean bottomInUse = rowNumber > 1;
+    boolean topInUse = rowNumber < table.getTableSize();
+    boolean finalInuse = curTab == JoinDialog.JOIN_TAB;
+    boolean enableSamples = curTab == JoinDialog.SETUP_TAB;
+    
+    sampleBottomStart.setInUse(bottomInUse);
+    sampleBottomEnd.setInUse(bottomInUse);
+    
+    sampleTopStart.setInUse(topInUse);
+    sampleTopEnd.setInUse(topInUse);
+    
+    finalStart.setInUse(finalInuse);
+    finalEnd.setInUse(finalInuse);
+
+    sampleBottomStart.setEnabled(enableSamples);
+    sampleBottomEnd.setEnabled(enableSamples);
+    sampleTopStart.setEnabled(enableSamples);
+    sampleTopEnd.setEnabled(enableSamples);
   }
   
   void remove() {
+    if (curTab == JoinDialog.SETUP_TAB) {
+      removeSetup();
+    }
+    else if (curTab == JoinDialog.ALIGN_TAB) {
+      removeAlign();
+    }
+    else if (curTab == JoinDialog.JOIN_TAB) {
+      removeJoin();
+    }
+  }
+  
+  private void removeSetup() {
     rowNumberHeader.remove();
-    if (curTab == JoinDialog.SETUP_TAB) {
-      table.removeCell(highlighterButton);
-    }
+    table.removeCell(highlighterButton);
     section.remove();
-    if (curTab == JoinDialog.SETUP_TAB) {
-      sampleBottomStart.remove();
-      sampleBottomEnd.remove();
-      sampleBottomEnd.remove();
-      sampleTopStart.remove();
-      sampleTopEnd.remove();
-    }
-    if (curTab != JoinDialog.ALIGN_TAB) {
-      finalStart.remove();
-      finalEnd.remove();
-    }
-    if (curTab == JoinDialog.SETUP_TAB) {
-      rotationAngleX.remove();
-      rotationAngleY.remove();
-      rotationAngleZ.remove();
-    }
+    sampleBottomStart.remove();
+    sampleBottomEnd.remove();
+    sampleTopStart.remove();
+    sampleTopEnd.remove();
+    finalStart.remove();
+    finalEnd.remove();
+    rotationAngleX.remove();
+    rotationAngleY.remove();
+    rotationAngleZ.remove();
+  }
+  
+  private void removeAlign() {
+    rowNumberHeader.remove();
+    section.remove();
+    sampleBottomStart.remove();
+    sampleBottomEnd.remove();
+    sampleTopStart.remove();
+    sampleTopEnd.remove();
+    chunk.remove();
+    referenceSectionStart.remove();
+    referenceSectionEnd.remove();
+    currentSectionStart.remove();
+    currentSectionEnd.remove();
+  }
+  
+  private void removeJoin() {
+    rowNumberHeader.remove();
+    table.removeCell(highlighterButton);
+    section.remove();
+    finalStart.remove();
+    finalEnd.remove();
   }
   
   void setCurTab(int curTab) {
     this.curTab = curTab;
   }
   
-  void displayCurTab(JPanel panel) {
+  int displayCurTab(JPanel panel, int prevSlice, int prevSampleBottom, int prevSampleTop) {
     remove();
     add(panel);
     configureFields();
+    //Set align display only fields
+    if (curTab == JoinDialog.ALIGN_TAB) {
+      ConstEtomoInteger rowNumber = data.getRowNumber();
+      if (rowNumber.equals(1)) {
+        chunk.setText("");
+        referenceSectionStart.setText("");
+        referenceSectionEnd.setText("");
+        currentSectionStart.setText("");
+        currentSectionEnd.setText("");
+      }
+      else {
+        chunk.setText(rowNumber.getString());
+        if (prevSampleTop > 0) {
+          referenceSectionStart.setText(Integer.toString(prevSlice + 1));
+          prevSlice += prevSampleTop;
+          referenceSectionEnd.setText(Integer.toString(prevSlice));
+        }
+        if (prevSampleBottom > 0) {
+          currentSectionStart.setText(Integer.toString(prevSlice + 1));
+          prevSlice += prevSampleBottom;
+          currentSectionEnd.setText(Integer.toString(prevSlice));
+        }
+      }
+    }
+    return prevSlice;
   }
   
   void add(JPanel panel) {
@@ -213,7 +297,7 @@ public class SectionTableRow {
     }
   }
   
-  void addSetup(JPanel panel) {
+  private void addSetup(JPanel panel) {
     GridBagLayout layout = table.getTableLayout();
     GridBagConstraints constraints = table.getTableConstraints();
     constraints.weighty = 1.0;
@@ -236,18 +320,7 @@ public class SectionTableRow {
     rotationAngleZ.add(panel, layout, constraints);
   }
   
-  void addAlign(JPanel panel) {
-    GridBagLayout layout = table.getTableLayout();
-    GridBagConstraints constraints = table.getTableConstraints();
-    constraints.weighty = 1.0;
-    constraints.gridwidth = 1;
-    rowNumberHeader.add(panel, layout, constraints);
-    constraints.weightx = 0.0;
-    constraints.gridwidth = GridBagConstraints.REMAINDER;
-    section.add(panel, layout, constraints);
-  }
-  
-  void addJoin(JPanel panel) {
+  private void addAlign(JPanel panel) {
     GridBagLayout layout = table.getTableLayout();
     GridBagConstraints constraints = table.getTableConstraints();
     constraints.weighty = 1.0;
@@ -257,13 +330,36 @@ public class SectionTableRow {
     constraints.gridwidth = 2;
     section.add(panel, layout, constraints);
     constraints.gridwidth = 1;
+    sampleBottomStart.add(panel, layout, constraints);
+    sampleBottomEnd.add(panel, layout, constraints);
+    sampleTopStart.add(panel, layout, constraints);
+    sampleTopEnd.add(panel, layout, constraints);
+    chunk.add(panel, layout, constraints);
+    referenceSectionStart.add(panel, layout, constraints);
+    referenceSectionEnd.add(panel, layout, constraints);
+    currentSectionStart.add(panel, layout, constraints);
+    constraints.gridwidth = GridBagConstraints.REMAINDER;
+    currentSectionEnd.add(panel, layout, constraints);
+  }
+  
+  private void addJoin(JPanel panel) {
+    GridBagLayout layout = table.getTableLayout();
+    GridBagConstraints constraints = table.getTableConstraints();
+    constraints.weighty = 1.0;
+    constraints.gridwidth = 1;
+    rowNumberHeader.add(panel, layout, constraints);
+    constraints.weightx = 0.0;
+    table.addCell(highlighterButton);
+    constraints.gridwidth = 2;
+    section.add(panel, layout, constraints);
+    constraints.gridwidth = 1;
     finalStart.add(panel, layout, constraints);
     constraints.gridwidth = GridBagConstraints.REMAINDER;
     finalEnd.add(panel, layout, constraints);
   }
   
   private void displayData() {
-    rowNumberHeader.setText(data.getRowNumberString());
+    rowNumberHeader.setText(data.getRowNumber().getString());
     setSectionText();
     sampleBottomStart.setText(data.getSampleBottomStartString());
     sampleBottomEnd.setText(data.getSampleBottomEndString());
@@ -363,7 +459,7 @@ public class SectionTableRow {
   }
   
   private void highlighterButtonAction() {
-    table.msgHighlighting(data.getRowNumber(), highlighterButton.isSelected());
+    table.msgHighlighting(data.getRowIndex(), highlighterButton.isSelected());
     highlight();
   }
   
@@ -381,6 +477,34 @@ public class SectionTableRow {
   
   int getImodIndex() {
     return imodIndex;
+  }
+  
+  int getSampleBottom() {
+    EtomoInteger startInteger = new EtomoInteger();
+    EtomoInteger endInteger = new EtomoInteger();
+    startInteger.set(sampleBottomStart.getText());
+    endInteger.set(sampleBottomEnd.getText());
+    if (startInteger.isSet() && endInteger.isSet()) {
+      int start = startInteger.get();
+      int end = endInteger.get();
+      System.out.println("getSampleBottom:start="+start+",end="+end);
+      return end - start + 1;
+    }
+    return 0;
+  }
+  
+  int getSampleTop() {
+    EtomoInteger startInteger = new EtomoInteger();
+    EtomoInteger endInteger = new EtomoInteger();
+    startInteger.set(sampleTopStart.getText());
+    endInteger.set(sampleTopEnd.getText());
+    if (startInteger.isSet() && endInteger.isSet()) {
+      int start = startInteger.get();
+      int end = endInteger.get();
+      System.out.println("getSampleTop:start="+start+",end="+end);
+      return end - start + 1;
+    }
+    return 0;
   }
   
   ConstSectionTableRowData getData() {
