@@ -10,7 +10,6 @@ import etomo.type.ConstEtomoInteger;
 import etomo.type.ConstJoinMetaData;
 import etomo.type.ConstSectionTableRowData;
 import etomo.type.EtomoInteger;
-import etomo.type.EtomoSimpleType;
 import etomo.type.SectionTableRowData;
 
 /**
@@ -27,6 +26,9 @@ import etomo.type.SectionTableRowData;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.8  2004/11/11 01:35:32  sueh
+* <p> bug# 520 Adding trial mode:  using -t with sampling rate in Z and binning.
+* <p>
 * <p> Revision 1.1.2.7  2004/11/08 22:10:50  sueh
 * <p> bug# 520 Add modes, implement MAX_SIZE_MODE.  Implement
 * <p> Command.  Add function to query current mode.  This way the information
@@ -61,13 +63,16 @@ public class FinishjoinParam implements Command {
   public static final int FINISH_JOIN_MODE = -1;
   public static final int MAX_SIZE_MODE = -2;
   public static final int TRIAL_MODE = -3;
-  
   public static final String SIZE_TAG = "Maximum size required:";
   public static final String OFFSET_TAG = "Offset needed to center:";
   public static final int SIZE_IN_X_INDEX = 3;
   public static final int SIZE_IN_Y_INDEX = 4;
   public static final int OFFSET_IN_X_INDEX = 4;
   public static final int OFFSET_IN_Y_INDEX = 5;
+  public static final int SIZE_IN_X_VALUE_NAME = -1;
+  public static final int SIZE_IN_Y_VALUE_NAME = -2;
+  public static final int SHIFT_IN_X_VALUE_NAME = -3;
+  public static final int SHIFT_IN_Y_VALUE_NAME = -4;
   
   private static final String commandName = "finishjoin";
   private ConstJoinMetaData metaData;
@@ -76,6 +81,11 @@ public class FinishjoinParam implements Command {
   private String rootName;
   private File outputFile;
   private int mode;
+  private int binning = 1;
+  private int sizeInX = Integer.MIN_VALUE;
+  private int sizeInY = Integer.MIN_VALUE;
+  private int shiftInX = Integer.MIN_VALUE;
+  private int shiftInY = Integer.MIN_VALUE;
   
   public FinishjoinParam(ConstJoinMetaData metaData, int mode) {
     this.metaData = metaData;
@@ -92,6 +102,25 @@ public class FinishjoinParam implements Command {
     }
     program = new SystemProgram(commandArray);
     program.setWorkingDirectory(new File(EtomoDirector.getInstance().getCurrentPropertyUserDir()));
+  }
+  
+  public int getIntegerValue(int name) {
+    switch (name) {
+    case SIZE_IN_X_VALUE_NAME:
+      return sizeInX;
+    case SIZE_IN_Y_VALUE_NAME:
+      return sizeInY;
+    case SHIFT_IN_X_VALUE_NAME:
+      return shiftInX;
+    case SHIFT_IN_Y_VALUE_NAME:
+      return shiftInY;
+    default:
+      return Integer.MIN_VALUE;
+    }
+  }
+  
+  public int getBinning() {
+    return binning;
   }
   
   public String[] getCommandArray() {
@@ -133,8 +162,10 @@ public class FinishjoinParam implements Command {
       options.add(metaData.getAlignmentRefSection().getString());
     }
     //Add optional size
-    EtomoSimpleType sizeInX = metaData.getSizeInX();
-    EtomoSimpleType sizeInY = metaData.getSizeInY();
+    ConstEtomoInteger sizeInX = metaData.getSizeInX();
+    ConstEtomoInteger sizeInY = metaData.getSizeInY();
+    this.sizeInX = sizeInX.get(true);
+    this.sizeInY = sizeInY.get(true);
     if (sizeInX.isSetAndNotDefault() || sizeInY.isSetAndNotDefault()) {
       options.add("-s");
       //both numbers must exist
@@ -143,6 +174,8 @@ public class FinishjoinParam implements Command {
     //Add optional offset
     ConstEtomoInteger shiftInX = metaData.getShiftInX();
     ConstEtomoInteger shiftInY = metaData.getShiftInY();
+    this.shiftInX = shiftInX.get(true);
+    this.shiftInY = shiftInY.get(true);
     if (shiftInX.isSetAndNotDefault() || shiftInY.isSetAndNotDefault()) {
       options.add("-o");
       //both numbers must exist
@@ -155,7 +188,8 @@ public class FinishjoinParam implements Command {
     if (mode == TRIAL_MODE) {
       options.add("-t");
       options.add(metaData.getUseEveryNSlices().getString());
-      EtomoSimpleType binning = metaData.getTrialBinning();
+      ConstEtomoInteger binning = metaData.getTrialBinning();
+      this.binning = binning.get(true);
       if (binning.isSetAndNotDefault()) {
         options.add("-b");
         options.add(binning.getString());
