@@ -29,6 +29,10 @@ import etomo.type.JoinMetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.1.2.21  2004/10/28 17:09:12  sueh
+ * <p> bug# 520 Adding revert to empty.  Putting revert buttons in a box to the
+ * <p> right.  Making button text available for message boxes.
+ * <p>
  * <p> Revision 1.1.2.20  2004/10/25 23:14:03  sueh
  * <p> bug# 520 Set default size in X, Y when changing to the join tab.  Fixed
  * <p> spinners not initializing in setMetaData by setting numSections before
@@ -174,7 +178,7 @@ public class JoinDialog implements ContextMenu {
   private JRadioButton rbRotationTranslationMagnification;
   private JRadioButton rbRotationTranslation;
   private JCheckBox cbUseAlignmentRefSection;
-  private LabeledSpinner spinAlignmentRefSection;
+  private JSpinner spinAlignmentRefSection;
   private LabeledTextField ltfSizeInX;
   private ConstEtomoInteger sizeInX;
   private LabeledTextField ltfSizeInY;
@@ -430,16 +434,16 @@ public class JoinDialog implements ContextMenu {
     //first component
     pnlFinishJoinComponent1 = new JPanel();
     pnlFinishJoinComponent1.setLayout(new BoxLayout(pnlFinishJoinComponent1, BoxLayout.X_AXIS));
-    cbUseAlignmentRefSection = new JCheckBox();
+    cbUseAlignmentRefSection = new JCheckBox("Reference section for alignment: ");
     cbUseAlignmentRefSection.addActionListener(useAlignmentRefSectionActionListener);
     pnlFinishJoinComponent1.add(cbUseAlignmentRefSection);
     SpinnerModel spinnerModel = new SpinnerNumberModel(1, 1,
         numSections < 1 ? 1 : numSections, 1);
-    spinAlignmentRefSection = new LabeledSpinner(
-        "Reference section for alignment: ", spinnerModel);
-    spinAlignmentRefSection.setTextMaxmimumSize(dimSpinner);
+    spinAlignmentRefSection = new JSpinner();
+    spinAlignmentRefSection.setModel(spinnerModel);
+    spinAlignmentRefSection.setMaximumSize(dimSpinner);
     spinAlignmentRefSection.setEnabled(false);
-    pnlFinishJoinComponent1.add(spinAlignmentRefSection.getContainer());
+    pnlFinishJoinComponent1.add(spinAlignmentRefSection);
     //second component
     pnlFinishJoinComponent2 = new SpacedPanel(FixedDim.x5_y0);
     pnlFinishJoinComponent2.setLayout(new BoxLayout(pnlFinishJoinComponent2.getContainer(), BoxLayout.X_AXIS));
@@ -525,7 +529,7 @@ public class JoinDialog implements ContextMenu {
     rbRotationTranslation.setSelected(metaData.isRotationTranslation());
     cbUseAlignmentRefSection.setSelected(metaData.isUseAlignmentRefSection());
     useAlignmentRefSectionAction();
-    spinAlignmentRefSection.setValue(metaData.getAlignmentRefSection());
+    spinAlignmentRefSection.setValue(metaData.getAlignmentRefSection().getNumber());
     sizeInX = metaData.getSizeInX();
     ltfSizeInX.setText(sizeInX.getString(true));
     sizeInY = metaData.getSizeInY();
