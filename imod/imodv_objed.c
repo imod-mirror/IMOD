@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.1  2002/12/01 15:34:41  mast
+    Changes to get clean compilation with g++
+
 */
 
 #include <sys/types.h>
@@ -2594,7 +2597,7 @@ void objed(ImodvApp *a)
      if (DefaultDepthOfScreen(XtScreen(Dia_toplevel)) < 2)
 	  return;
 
-     window_name = imodwEithername("IMODV Objects: ", a->imod->fileName);
+     window_name = imodwEithername("IMODV Objects: ", a->imod->fileName, 1);
      dialog = XtVaCreatePopupShell
 	  (Dia_title,  
 	   xmDialogShellWidgetClass,   
