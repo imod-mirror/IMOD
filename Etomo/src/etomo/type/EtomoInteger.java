@@ -15,12 +15,17 @@ import java.util.Properties;
 * 
 * @version $Revision$
 * 
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1.2.1  2004/10/18 18:05:16  sueh
+* <p> bug# 520 A class representing an integer which handles all issues
+* <p> concerning defaults, null values, assigning strings that are blank, and
+* <p> handling errors in numeric parsing.  It also implements Storable.
+* <p> </p>
 */
 public class EtomoInteger extends ConstEtomoInteger {
   public static  final String  rcsid =  "$Id$";
   
-  EtomoInteger(String name) {
+  public EtomoInteger(String name) {
     this.name = name;
     description = name;
   }
