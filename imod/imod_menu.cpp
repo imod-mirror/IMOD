@@ -36,6 +36,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.8  2003/01/18 01:15:56  mast
+add include for cache filler
+
 Revision 1.1.2.7  2003/01/14 21:52:38  mast
 include new movie controller include file
 
@@ -118,12 +121,16 @@ Added calls for cache filling
 #include "imod_info.h"
 #include "imod_info_cb.h"
 #include "imod_io.h"
-#include "imodel.h"
+#include "imod_input.h"
+#include "imod_cont_edit.h"
+#include "imod_cont_copy.h"
 #include "iproc.h"
 #include "imodv.h"
 #include "sslice.h"
 #include "xtum.h"
 #include "imod_moviecon.h"
+#include "imod_model_edit.h"
+#include "imod_iscale.h"
 
 /****help text data include files*****/
 #include "imodhelp.h" 
@@ -574,11 +581,11 @@ void InfoWindow::editSurfaceSlot(int item)
     break;
 	  
   case ESURFACE_MENU_GOTO: /* go to */
-    inputContourSurf(App->cvi);
+    imodContEditSurf(App->cvi);
     break;
 	  
   case ESURFACE_MENU_MOVE: /* move */
-    inputContourMoveDialog(App->cvi);
+    imodContEditMoveDialog(App->cvi);
     break;
   }
 }
@@ -614,7 +621,7 @@ void InfoWindow::editContourSlot(int item)
              "to a new object\n");
       break;
     }
-    inputContourMoveDialog(App->cvi);
+    imodContEditMoveDialog(App->cvi);
     break;
 	  
   case ECONTOUR_MENU_SORT: /* sort */
@@ -634,7 +641,7 @@ void InfoWindow::editContourSlot(int item)
     break;
 
   case ECONTOUR_MENU_TYPE: /* surface */
-    inputContourSurf(App->cvi);
+    imodContEditSurf(App->cvi);
     break;
 
 
@@ -698,7 +705,7 @@ void InfoWindow::editContourSlot(int item)
     break;
 
   case ECONTOUR_MENU_BREAK: /* break a contour into two */
-    inputContourBreak(App->cvi);
+    imodContEditBreak(App->cvi);
     break;
 
   case ECONTOUR_MENU_FIXZ: /* break a contour at z transitions */
@@ -741,7 +748,7 @@ void InfoWindow::editContourSlot(int item)
     break;
 
   case ECONTOUR_MENU_JOIN: /* join two contour together. */
-    inputContourJoin(App->cvi, 0, 0);
+    imodContEditJoin(App->cvi, 0, 0);
     break;
 
   case ECONTOUR_MENU_INVERT: /* invert a contour */
@@ -889,7 +896,7 @@ void InfoWindow::editPointSlot(int item)
     break;
 
   case EPOINT_MENU_SIZE: /* size */
-    inputContourSurf(App->cvi);
+    imodContEditSurf(App->cvi);
     break;
 
   default:
