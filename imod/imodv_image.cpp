@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.6  2002/12/30 17:32:42  mast
+eliminate unused variables
+
 Revision 1.1.2.5  2002/12/30 06:40:53  mast
 Qt version
 
@@ -336,10 +339,12 @@ void imodvDrawImage(ImodvApp *a)
 static char *buttonLabels[] = {"Done", "Help"};
 static char *sliderLabels[] = {"Transparency", "Black Level", "White Level"};
 
-ImodvImage::ImodvImage(QWidget *parent, const char *name, WFlags fl)
+ImodvImage::ImodvImage(QWidget *parent, const char *name)
   : DialogFrame(parent, 2, buttonLabels, true, "Imodv Image View", "",
-                name, fl)
+                name)
 {
+  mCtrlPressed = false;
+
   // Make view checkbox
   mViewBox = diaCheckBox("View Z image", this, mLayout);
   mViewBox->setChecked(imodvImageData.flags & DRAW_CZ);

@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.2  2002/12/27 01:21:16  mast
+Qt version
+
 Revision 1.1.2.1  2002/12/18 04:10:30  mast
 initial creation
 
@@ -105,7 +108,7 @@ class ImodvOlist : public QWidget
 
  public:
   ImodvOlist(QWidget *parent, const char *name = NULL, 
-                WFlags fl =  Qt::WDestructiveClose | Qt::WType_Dialog);
+                WFlags fl =  Qt::WDestructiveClose | Qt::WType_TopLevel);
   ~ImodvOlist() {};
 
   QGridLayout *mGrid;

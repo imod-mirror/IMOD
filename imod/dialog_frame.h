@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.1  2002/12/29 04:15:04  mast
+Initial creation
+
 */
 
 #ifndef DIALOG_FRAME_H
@@ -28,7 +31,7 @@ class DialogFrame : public QWidget
   DialogFrame(QWidget *parent, int numButtons, char *labels[], 
 	      bool equalSized, char *caption, char *fallback,
 	      const char *name = 0, 
-	      WFlags fl = Qt::WDestructiveClose | Qt::WType_Dialog);
+	      WFlags fl = Qt::WDestructiveClose | Qt::WType_TopLevel);
   ~DialogFrame() {};
 
  signals:

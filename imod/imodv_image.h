@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.2  2002/12/30 06:41:06  mast
+qt version
+
 Revision 1.1.2.1  2002/12/18 04:10:30  mast
 initial creation
 
@@ -38,9 +41,7 @@ class ImodvImage : public DialogFrame
   Q_OBJECT
 
  public:
-  ImodvImage(QWidget *parent,
-                const char *name = NULL, 
-                WFlags fl =  Qt::WDestructiveClose | Qt::WType_Dialog);
+  ImodvImage(QWidget *parent, const char *name = NULL) ;
   ~ImodvImage() {};
 
   QCheckBox *mViewBox;
