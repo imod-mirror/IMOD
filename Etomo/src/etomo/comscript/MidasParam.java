@@ -24,6 +24,9 @@ import etomo.type.SectionTableRowData;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.7  2004/11/12 22:48:45  sueh
+* <p> bug# 520 Added empty getIntegerValue and getBinning.
+* <p>
 * <p> Revision 1.1.2.6  2004/11/08 22:12:00  sueh
 * <p> bug# 520 Add getMode to conform to Command.  Returns 0, since there
 * <p> is no more for this Param.
@@ -101,7 +104,7 @@ public class MidasParam implements Command {
     options.add("-c");
     for (int i = 0; i < sectionDataSize; i++) {
       ConstSectionTableRowData data = (SectionTableRowData) sectionData.get(i);
-      chunkSize.append(data.getChunkSize(sectionDataSize).getString());
+      chunkSize.append(data.getChunkSize(sectionDataSize).toString());
       if (i < sectionDataSize - 1) {
         chunkSize.append(",");
       }
