@@ -24,6 +24,10 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.7  2004/10/25 23:10:39  sueh
+* <p> bug# 520 Added a call to backgroundErrorProcess() for post processing
+* <p> when BackgroundProcess fails.
+* <p>
 * <p> Revision 1.1.2.6  2004/10/21 02:39:49  sueh
 * <p> bug# 520 Created functions to manager InteractiveSystemProgram:
 * <p> startInteractiveSystemProgram, msgInteractivesystemProgramDone,
@@ -69,11 +73,11 @@ public abstract class BaseProcessManager {
   Thread processMonitorB = null;
   private HashMap killedList = new HashMap();
   
-  protected abstract void comScriptPostProcess(ComScriptProcess script, int exitValue);
-  protected abstract void backgroundPostProcess(BackgroundProcess process);
-  protected abstract void backgroundErrorProcess(BackgroundProcess process);
+  protected abstract void postProcess(ComScriptProcess script);
+  protected abstract void postProcess(BackgroundProcess process);
+  protected abstract void errorProcess(BackgroundProcess process);
   protected abstract BaseManager getManager();
-  protected abstract void interactiveSystemProgramPostProcess(InteractiveSystemProgram program);
+  protected abstract void postProcess(InteractiveSystemProgram program);
   
   public BaseProcessManager() {
   }
@@ -507,7 +511,7 @@ public abstract class BaseProcessManager {
           script.getScriptName() + " terminated");
     }
     else {
-      comScriptPostProcess(script, exitValue);
+      postProcess(script);
 
       String[] warningMessages = script.getWarningMessage();
       String[] dialogMessage;
@@ -672,7 +676,7 @@ public abstract class BaseProcessManager {
         }
       }
       getManager().getMainPanel().openMessageDialog(message,
-          process.getCommand() + " terminated");
+          process.getCommandName() + " terminated");
     }
 
     // Another possible error message source is ERROR: in the stdout stream
@@ -697,13 +701,13 @@ public abstract class BaseProcessManager {
     if (errorMessage.length > 0) {
       getManager().getMainPanel().openMessageDialog(errorMessage,
           "Background Process Error");
-      backgroundErrorProcess(process);
+      errorProcess(process);
     }
 
     // Command succeeded, check to see if we need to show any application
     // specific info
     else {
-      backgroundPostProcess(process);
+      postProcess(process);
     }
 
     // Null the reference to the appropriate thread
@@ -719,7 +723,7 @@ public abstract class BaseProcessManager {
   }
   
   public void msgInteractiveSystemProgramDone(InteractiveSystemProgram program, int exitValue) {
-    interactiveSystemProgramPostProcess(program);
+    postProcess(program);
   }
 
 }
