@@ -34,6 +34,9 @@
     $Revision$
 
     $Log$
+    Revision 1.1.2.10  2003/01/27 02:30:06  mast
+    Eliminate X includes
+
     Revision 1.1.2.9  2003/01/26 23:22:16  mast
     Qt version
 
@@ -109,7 +112,7 @@ static ImodGLRequest qtTrue12DB = {1, 1, 12, 0, 0};
 static ImodGLRequest qtTrue12SB = {0, 1, 12, 0, 0};
 
 static ImodGLRequest *qtGLRequestList[] = {
-     &qtPseudo12DB, &qtPseudo12SB, &qtTrue24DB, &qtTrue24SB,
+     &qtTrue24DB, &qtTrue24SB, &qtPseudo12DB, &qtPseudo12SB,
      &qtPseudo8DB, &qtPseudo8SB, &qtTrue12DB, &qtTrue12SB,
      NULL
 };
@@ -121,8 +124,6 @@ int imod_display_init(ImodApp *ap, char **argv)
   ap->wzoom   = 1;
 
   ap->depth = imodFindQGLFormat(ap, argv);
-  ap->rgba = ap->qtRgba;
-  ap->doublebuffer = ap->qtDoubleBuffer;
 
   diaSetTitle("Imod");
   return(0);
@@ -192,25 +193,31 @@ int imod_color_init(ImodApp *ap)
     ap->qColormap = NULL;
     ap->cvi->rampsize = 256;
     ap->cvi->rampbase = 0;
-    ap->cvi->cramp = xcramp_allinit(ap->depth, &ap->qColormap, 0, 255);
+    ap->cvi->cramp = xcramp_allinit(ap->depth, ap->qColormap, 0, 255);
     /*  imod_info_setbw(ap->cvi->black, ap->cvi->white);  NOT YET */
     xcramp_setlevels(ap->cvi->cramp, ap->cvi->black, ap->cvi->white);
 
     return 0;
   }
 
-  /* Initialize the color map for color index mode */
+  /* Initialize the color map for color index mode, set one entry for
+     it to show its true size */
   ap->qColormap = new QGLColormap();
+  ap->qColormap->setEntry(0, qRgb(0, 0, 0));
+  /* fprintf(stderr, "colormap size %d\n", ap->qColormap->size()); */
+  if (ap->qColormap->size() <= 256)
+    ap->depth = 8;
+
   if (ap->depth == 8){
     ap->cvi->rampbase = RAMPMIN;
     ap->cvi->rampsize = RAMPMAX + 1 - RAMPMIN;
-    ap->cvi->cramp = xcramp_allinit(ap->depth, &ap->qColormap,
+    ap->cvi->cramp = xcramp_allinit(ap->depth, ap->qColormap,
                                     RAMPMIN, RAMPMAX);
   }else{
     ap->objbase    = ap->base + 257;
     ap->cvi->rampsize = 256;
     ap->cvi->rampbase = ap->base;
-    ap->cvi->cramp = xcramp_allinit(ap->depth, &ap->qColormap,
+    ap->cvi->cramp = xcramp_allinit(ap->depth, ap->qColormap,
                                     ap->base, ap->base + 255);
   }
 
@@ -264,6 +271,7 @@ void imod_cmap(Imod *m)
      mapcolor(App->curpoint,   255,   0,   0);
      mapcolor(App->foreground, 255, 255, 128);
      mapcolor(App->background,  64,  64,  96);
+     imodDraw(App->cvi, IMOD_DRAW_COLORMAP);
      return;
 }
 
@@ -523,14 +531,19 @@ int imodFindQGLFormat(ImodApp *ap, char **argv)
   for (i = 0; qtGLRequestList[i] != NULL; i++) {
 
     /* If want an rgb visual and this is not one, skip */
-    if (ap->qtRgba && !qtGLRequestList[i]->rgba)
+    if (ap->rgba > 0 && !qtGLRequestList[i]->rgba)
       continue;
+
+    /* If want an ci visual and this is not one, skip */
+    if (ap->rgba < 0 && qtGLRequestList[i]->rgba)
+      continue;
+
     visual = imodFindGLVisual(*qtGLRequestList[i]);
 
     /* If it returns one, and it is rgb, make sure depth is at least 16 */
     if (visual && (!visual->rgba || visual->colorBits >= 16)) {
-      ap->qtDoubleBuffer = visual->dbRequested;
-      ap->qtRgba = visual->rgbaRequested;
+      ap->doublebuffer = visual->dbRequested;
+      ap->rgba = visual->rgbaRequested;
       ap->qtEnableDepth = visual->depthEnabled;
       break;
     }
