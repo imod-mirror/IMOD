@@ -1,13 +1,13 @@
 package etomo.comscript;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 
 import etomo.BaseManager;
 import etomo.process.SystemProgram;
 import etomo.type.ConstEtomoInteger;
 import etomo.type.ConstJoinMetaData;
+import etomo.type.ConstSectionTableRowData;
 import etomo.type.SectionTableRowData;
 
 /**
@@ -30,6 +30,9 @@ import etomo.type.SectionTableRowData;
 * <p> </p>
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.3  2004/10/18 17:42:02  sueh
+* <p> bug# 520 Added -reference to the command string.
+* <p>
 * <p> Revision 1.1.2.2  2004/10/14 02:27:53  sueh
 * <p> bug# 520 Setting working directory in SystemProgram.
 * <p>
@@ -42,9 +45,11 @@ import etomo.type.SectionTableRowData;
 public class MakejoincomParam {
   public static  final String  rcsid =  "$Id$";
   
+  private static final int commandSize = 3;
+  
   private ConstJoinMetaData metaData;
   private String[] commandArray;
-  private SystemProgram makejoincom;
+  private SystemProgram program;
   
   public MakejoincomParam(ConstJoinMetaData metaData) {
     this.metaData = metaData;
@@ -55,15 +60,15 @@ public class MakejoincomParam {
     // of commands and then report appropriately.  The exception to this is the
     // com scripts which require the -e flag.  RJG: 2003-11-06  
     ArrayList options = genOptions();
-    commandArray = new String[options.size() + 3];
+    commandArray = new String[options.size() + commandSize];
     commandArray[0] = "tcsh";
     commandArray[1] = "-f";
     commandArray[2] = BaseManager.getIMODBinPath() + "makejoincom";          
     for (int i = 0; i < options.size(); i++) {
-      commandArray[i + 3] = (String) options.get(i);
+      commandArray[i + commandSize] = (String) options.get(i);
     }
-    makejoincom = new SystemProgram(commandArray);
-    makejoincom.setWorkingDirectory(new File(metaData.getWorkingDir()));
+    program = new SystemProgram(commandArray);
+    program.setWorkingDirectory(new File(metaData.getWorkingDir()));
   }
   
   public String[] getCommandArray() {
@@ -75,7 +80,7 @@ public class MakejoincomParam {
     ArrayList sectionData = metaData.getSectionTableData();
     int sectionDataSize = sectionData.size();
     for (int i = 0; i < sectionDataSize; i++) {
-      SectionTableRowData data = (SectionTableRowData) sectionData.get(i);
+      ConstSectionTableRowData data = (SectionTableRowData) sectionData.get(i);
       if (i < sectionDataSize - 1) {
         options.add("-top");
         options.add(data.getSampleTopStartString() + ","
@@ -95,30 +100,11 @@ public class MakejoincomParam {
       options.add(data.getSectionAbsolutePath());
     }
     ConstEtomoInteger densityRefSection = metaData.getDensityRefSectionField();
-    if (densityRefSection.isSet() && !densityRefSection.isDefault()) {
-      options.add("-reference");
-      options.add(densityRefSection.toString());
+    if (densityRefSection.isSetAndNotDefault()) {
+      options.add("-ref");
+      options.add(densityRefSection.getString());
     }
     options.add(metaData.getRootName());
     return options;
-  }
-  
-  public int run() throws IOException {
-    int exitValue;
-
-    //  Execute the script
-    makejoincom.setDebug(true);
-    makejoincom.run();
-    exitValue = makejoincom.getExitValue();
-
-    //  TODO we really need to find out what the exception/error condition was
-    if (exitValue != 0) {
-      throw (new IOException(makejoincom.getExceptionMessage()));
-    }
-    return exitValue;
-  }
-  
-  public String[] getStdError() {
-    return makejoincom.getStdError();
   }
 }
