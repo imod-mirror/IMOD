@@ -19,6 +19,11 @@ import etomo.EtomoDirector;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.4  2004/10/15 00:30:02  sueh
+* <p> bug# 520 Fixed load().  Added the rowNumber to the
+* <p> SectionTableRowData constructor because rowNumber is used to store
+* <p> values.
+* <p>
 * <p> Revision 1.1.2.3  2004/10/08 16:23:40  sueh
 * <p> bug# 520 Make sure  sectionTableData exists before it is used.
 * <p>
@@ -42,9 +47,21 @@ public class JoinMetaData extends ConstJoinMetaData {
   private void reset() {
     revisionNumber = "";
     sectionTableData = null;
-    densityRefSection = defaultDensityRefSection;
+    densityRefSection.reset();
     workingDir = "";
     rootName = "";
+    sigmaLowFrequency.reset();
+    cutoffHighFrequency.reset();
+    sigmaHighFrequency.reset();
+    fullLinearTransformation = defaultFullLinearTransformation;
+    rotationTranslationMagnification = false;
+    rotationTranslation = false;
+    useAlignmentRefSection = false;
+    alignmentRefSection.reset();
+    sizeInX.reset();
+    sizeInY.reset();
+    offsetInX.reset();
+    offsetInY.reset();
   }
 
   /**
@@ -62,10 +79,26 @@ public class JoinMetaData extends ConstJoinMetaData {
     revisionNumber = props.getProperty(group + revisionNumberString, latestRevisionNumber);
     workingDir = props.getProperty(group + workingDirString, "");
     rootName = props.getProperty(group + rootNameString, "");
+    densityRefSection.load(props, prepend);
+    sigmaLowFrequency.load(props, prepend);
+    cutoffHighFrequency.load(props, prepend);
+    sigmaHighFrequency.load(props, prepend);
+    fullLinearTransformation = Boolean.valueOf(props.getProperty(group
+        + fullLinearTransformationString, Boolean.toString(defaultFullLinearTransformation))).booleanValue();
+    rotationTranslationMagnification = Boolean.valueOf(props.getProperty(group
+        + rotationTranslationMagnificationString, "false")).booleanValue();
+    rotationTranslation = Boolean.valueOf(props.getProperty(group
+        + rotationTranslationString, "false")).booleanValue();
+    useAlignmentRefSection = Boolean.valueOf(props.getProperty(group
+        + useAlignmentRefSectionString, "false")).booleanValue();
+    alignmentRefSection.load(props, prepend);
+    sizeInX.load(props, prepend);
+    sizeInY.load(props, prepend);
+    offsetInX.load(props, prepend);
+    offsetInY.load(props, prepend);
+    
     int sectionTableRowsSize = Integer.parseInt(props.getProperty(group
         + sectionTableDataSizeString, "-1"));
-    densityRefSection = Integer.parseInt(props.getProperty(group
-        + densityRefSectionString, Integer.toString(defaultDensityRefSection)));
     if (sectionTableRowsSize < 1) {
       return;
     }
@@ -83,7 +116,7 @@ public class JoinMetaData extends ConstJoinMetaData {
   }
 
   public void setDensityRefSection(Object densityRefSection) {
-    this.densityRefSection = ((Integer) densityRefSection).intValue();
+    this.densityRefSection.set((Integer) densityRefSection);
   }
 
   public void setWorkingDir(String workingDir) {
@@ -103,5 +136,42 @@ public class JoinMetaData extends ConstJoinMetaData {
       sectionTableData = new ArrayList();
     }
     sectionTableData.add(row);
+  }
+  
+  public String setSigmaLowFrequency(String sigmaLowFrequency) {
+    return this.sigmaLowFrequency.set(sigmaLowFrequency);
+  }
+  public void setCutoffHighFrequency(String cutoffHighFrequency) {
+    this.cutoffHighFrequency.set(cutoffHighFrequency);
+  }
+  public void setSigmaHighFrequency(String sigmaHighFrequency) {
+    this.sigmaHighFrequency.set(sigmaHighFrequency);
+  }
+  public void setFullLinearTransformation(boolean fullLinearTransformation) {
+    this.fullLinearTransformation = fullLinearTransformation;
+  }
+  public void setRotationTranslationMagnification(boolean rotationTranslationMagnification) {
+    this.rotationTranslationMagnification = rotationTranslationMagnification;
+  }
+  public void setRotationTranslation(boolean rotationTranslation) {
+    this.rotationTranslation = rotationTranslation;
+  }
+  public void setUseAlignmentRefSection(boolean useAlignmentRefSection) {
+    this.useAlignmentRefSection = useAlignmentRefSection;
+  }
+  public void setAlignmentRefSection(Object alignmentRefSection) {
+    this.alignmentRefSection.set((Integer) alignmentRefSection);
+  }
+  public String setSizeInX(String sizeInX) {
+    return this.sizeInX.set(sizeInX);
+  }
+  public void setSizeInY(String sizeInY) {
+    this.sizeInY.set(sizeInY);
+  }
+  public void setOffsetInX(String offsetInX) {
+    this.offsetInX.set(offsetInX);
+  }
+  public void setOffsetInY(String offsetInY) {
+    this.offsetInY.set(offsetInY);
   }
 }
