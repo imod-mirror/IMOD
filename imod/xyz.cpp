@@ -34,6 +34,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.1  2002/12/12 02:41:10  mast
+Qt version
+
 Revision 3.6  2002/12/01 15:34:41  mast
 Changes to get clean compilation with g++
 
@@ -73,33 +76,13 @@ Removed call to autox_build
 #define NO_X_INCLUDES
 #include "xxyz.h"
 #include "imod.h"
+#include "xzap.h"
 
 void inputQDefaultKeys(QKeyEvent *event, ImodView *vw);
 
 /*************************** internal functions ***************************/
-static void xyzQuit(struct xxyzwin *xx);
-static void xyzClosing(struct xxyzwin *xx);
 static void xyzClose_cb(ImodView *vi, void *client, int junk);
 static void xyzDraw_cb(ImodView *vi, void *client, int drawflag);
-
-static int xxyz_getxyz(struct xxyzwin *xx, int x, int y, int *mx, int *my, int *mz);
-static void xxyzButton1(struct xxyzwin *xx, int x, int y);
-static void xxyzButton2(struct xxyzwin *xx, int x, int y);
-static void xxyzButton3(struct xxyzwin *xx, int x, int y);
-static void xxyzB1Drag(struct xxyzwin *xx, int x, int y);
-static void xxyzB2Drag(struct xxyzwin *xx, int x, int y);
-static void xxyzB3Drag(struct xxyzwin *xx, int x, int y);
-static int xyz_draw_image(struct ViewInfo *vi);
-
-/*static int xxyz_fillborder(struct xxyzwin *xx); */
-static void xyzDrawAuto(struct xxyzwin *xx);
-static void xyzDrawModel(struct xxyzwin *xx);
-static void xyzDrawShowSlice(struct xxyzwin *xx);
-static void xxyz_draw(struct xxyzwin *xx);
-static void xyzDrawImage(struct xxyzwin *xx);
-
-void zapDrawSymbol(int mx, int my, unsigned char sym, unsigned char size,
-                   unsigned char flags);
 
 /* The resident pointer to the structure */
 static struct xxyzwin *XYZ = NULL;
@@ -107,6 +90,7 @@ static struct xxyzwin *XYZ = NULL;
 static QTime but1downt;
 static int xyzShowSlice = 0;
 
+/* routine for opening or raising the window */
 int xxyz_open(ImodView *vi)
 {
   int i,msize;
@@ -154,7 +138,7 @@ int xxyz_open(ImodView *vi)
   }
      
   xx->dialog = new XyzWindow(xx, App->rgba, App->doublebuffer, NULL,
-			     "xyz window", Qt::WDestructiveClose);
+			     "xyz window");
   if ((!xx->dialog)||
       (!xx->fdataxz) || (!xx->fdatayz)){
     wprint("Error:\n\tXYZ window can't open due to low memory\n");
@@ -166,7 +150,7 @@ int xxyz_open(ImodView *vi)
     return(-1);
   }
   
-  xx->glw = xx->dialog->mGLgfx;
+  xx->glw = xx->dialog->mGLw;
   str = imodwfname("Imod XYZ Window: ");
   if (str.isEmpty())
     str = "Imod XYZ Window";
@@ -191,19 +175,77 @@ int xxyz_open(ImodView *vi)
   return(0);
 }
 
-/* This initiates the quit sequence by telling Control to delete this window */
-static void xyzQuit(struct xxyzwin *xx)
+/* The controller calls here to draw the window */
+static void xyzDraw_cb(ImodView *vi, void *client, int drawflag)
 {
-  ivwDeleteControl(xx->vi, xx->ctrl);
+  struct xxyzwin *xx = (struct xxyzwin *)client;
+
+  if ((!vi) || (!xx) || (!drawflag)) return;
+     
+  if (drawflag){
+    if (drawflag & IMOD_DRAW_IMAGE){
+
+      /* This happens whens a flip occurs: get new image spaces */
+      xx->lx = xx->ly = xx->lz = -1;
+      b3dFlushImage(xx->xydata);
+      b3dFlushImage(xx->xzdata);
+      b3dFlushImage(xx->yzdata);
+      if(xx->fdataxz)
+        free(xx->fdataxz);
+      if(xx->fdatayz)
+        free(xx->fdatayz);
+      xx->fdataxz  = (unsigned char *)malloc(vi->xsize * vi->zsize);
+      xx->fdatayz  = (unsigned char *)malloc(vi->ysize * vi->zsize);
+    }
+    if (drawflag & IMOD_DRAW_SLICE)
+      xyzShowSlice = 1;
+    xx->dialog->Draw();
+  }
+  return;
+}
+
+
+// This receives the close signal back from the controller, tells the
+// window to close, and sets the closing flag
+static void xyzClose_cb(ImodView *vi, void *client, int junk)
+{
+  struct xxyzwin *xx = (struct xxyzwin *)client;
+  if (xx->closing)
+    return;
+  xx->closing = 1;
+  xx->dialog->close();
+}
+
+// Implementation of the window class
+XyzWindow::XyzWindow(struct xxyzwin *xyz, bool rgba, 
+                     bool doubleBuffer, QWidget * parent,
+                     const char * name, WFlags f) 
+  : GLMainWindow(rgba, doubleBuffer, parent, name, f)
+{
+  mXyz = xyz;
+}
+
+XyzWindow::~XyzWindow()
+{
+
+}
+
+/* This initiates the quit sequence by telling Control to delete this window */
+void XyzWindow::Quit()
+{
+  ivwDeleteControl(mXyz->vi, mXyz->ctrl);
 }
 
 /* This receives a closing request/signal from the window */
-static void xyzClosing(struct xxyzwin *xx)
+// Whan a close event comes in, tell control to delete window, clean up
+//  and accept
+void XyzWindow::closeEvent (QCloseEvent * e )
 {
+  struct xxyzwin *xx = mXyz;
   // If we are not closing it already, start the quit 
   if (!xx->closing) {
     xx->closing = 1;
-    xyzQuit(xx);
+    Quit();
   }
 
   /* DNM 11/17/01: stop x and y movies when close window */
@@ -220,23 +262,15 @@ static void xyzClosing(struct xxyzwin *xx)
 
   free(xx);
   XYZ = NULL;
-}
 
-// This receives the close signal back from the controller, tells the
-// window to close, and sets the closing flag
-static void xyzClose_cb(ImodView *vi, void *client, int junk)
-{
-  struct xxyzwin *xx = (struct xxyzwin *)client;
-  if (xx->closing)
-    return;
-  xx->closing = 1;
-  xx->dialog->close();
+  e->accept();
 }
 
 /* DNM 1/19/02: Add this function to get the CI Images whenever size has
    changed - now that we can do HQ graphics, they need to be the window size */
-static void xxyz_getCIImages(struct xxyzwin *xx)
+void XyzWindow::GetCIImages()
 {
+  struct xxyzwin *xx = mXyz;
   int xdim, ydim1, ydim2;
 
   xdim = xx->winx;
@@ -253,9 +287,9 @@ static void xxyz_getCIImages(struct xxyzwin *xx)
 }
 
 
-static int xxyz_getxyz(struct xxyzwin *xx, 
-                       int x, int y, int *mx, int *my, int *mz)
+int XyzWindow::Getxyz(int x, int y, int *mx, int *my, int *mz)
 {
+  struct xxyzwin *xx = mXyz;
   int nx, ny, nz;
   /* DNM 1/23/02: turn this from float to int to keep calling expressions
      as ints */
@@ -332,8 +366,9 @@ static int xxyz_getxyz(struct xxyzwin *xx,
 }
 
 
-static void xxyzButton1(struct xxyzwin *xx, int x, int y)
+void XyzWindow::B1Press(int x, int y)
 {
+  struct xxyzwin *xx = mXyz;
   int mx, my, mz;
   ImodView *vi   = xx->vi;
   Imod     *imod = vi->imod;
@@ -342,7 +377,7 @@ static void xxyzButton1(struct xxyzwin *xx, int x, int y)
   int i, temp_distance;
   int distance = -1;
   float selsize = IMOD_SELSIZE / xx->zoom;
-  int box = xxyz_getxyz(xx, x, y, &mx, &my, &mz);
+  int box = Getxyz(x, y, &mx, &my, &mz);
 
   if (!box)
     return;
@@ -399,8 +434,9 @@ static void xxyzButton1(struct xxyzwin *xx, int x, int y)
   return;
 }
 
-static void xxyzButton2(struct xxyzwin *xx, int x, int y)
+void XyzWindow::B2Press(int x, int y)
 {
+  struct xxyzwin *xx = mXyz;
   int mx, my, mz;
   int movie;
   struct Mod_Object  *obj;
@@ -408,7 +444,7 @@ static void xxyzButton2(struct xxyzwin *xx, int x, int y)
   struct Mod_Point   point;
   int pt;
 
-  movie = xxyz_getxyz(xx, x, y, &mx, &my, &mz);
+  movie = Getxyz(x, y, &mx, &my, &mz);
   if (!movie)
     return;
 
@@ -485,14 +521,15 @@ static void xxyzButton2(struct xxyzwin *xx, int x, int y)
   return;
 }
 
-static void xxyzButton3(struct xxyzwin *xx, int x, int y)
+void XyzWindow::B3Press(int x, int y)
 {
+  struct xxyzwin *xx = mXyz;
   int mx, my, mz;
   int movie;
   struct Mod_Contour *cont;
   int pt;
 
-  movie = xxyz_getxyz(xx, x, y, &mx, &my, &mz);
+  movie = Getxyz(x, y, &mx, &my, &mz);
   if (!movie)
     return;
 
@@ -548,8 +585,9 @@ static void xxyzButton3(struct xxyzwin *xx, int x, int y)
 }
 
 /* DNM 1/20/02: add statements to implement pan */
-static void xxyzB1Drag(struct xxyzwin *xx, int x, int y)
+void XyzWindow::B1Drag(int x, int y)
 {
+  struct xxyzwin *xx = mXyz;
   int sx, sy;
   int nx, ny;
   int b2 = XYZ_BSIZE;
@@ -573,7 +611,7 @@ static void xxyzB1Drag(struct xxyzwin *xx, int x, int y)
   case 3:
     xx->xtrans += (x - xx->lmx);
     xx->ytrans -= (y - xx->lmy);
-    xxyz_draw(xx);
+    Draw();
     return;
 
   case 6:
@@ -603,8 +641,9 @@ static void xxyzB1Drag(struct xxyzwin *xx, int x, int y)
   return;
 }
 
-static void xxyzB2Drag(struct xxyzwin *xx, int x, int y)
+void XyzWindow::B2Drag(int x, int y)
 {
+  struct xxyzwin *xx = mXyz;
   int mx, my, mz, box;
   struct Mod_Object  *obj;
   struct Mod_Contour *cont;
@@ -614,7 +653,7 @@ static void xxyzB2Drag(struct xxyzwin *xx, int x, int y)
 
   if (xx->vi->ax){
     if (xx->vi->ax->altmouse == AUTOX_ALTMOUSE_PAINT){
-      box = xxyz_getxyz(xx, x, y, &mx, &my, &mz);
+      box = Getxyz(x, y, &mx, &my, &mz);
       if (box != 3)
         return;
       autox_sethigh(xx->vi, mx, my);
@@ -625,7 +664,7 @@ static void xxyzB2Drag(struct xxyzwin *xx, int x, int y)
   if (xx->vi->imod->mousemode != IMOD_MMODEL)
     return;
 
-  box = xxyz_getxyz(xx, x, y, &mx, &my, &mz);
+  box = Getxyz(x, y, &mx, &my, &mz);
   if (box != 3)
     return;
 
@@ -671,8 +710,9 @@ static void xxyzB2Drag(struct xxyzwin *xx, int x, int y)
   return;
 }
 
-static void xxyzB3Drag(struct xxyzwin *xx, int x, int y)
+void XyzWindow::B3Drag(int x, int y)
 {
+  struct xxyzwin *xx = mXyz;
   int mx, my, mz, box;
   struct Mod_Object  *obj;
   struct Mod_Contour *cont;
@@ -682,7 +722,7 @@ static void xxyzB3Drag(struct xxyzwin *xx, int x, int y)
 
   if (xx->vi->ax){
     if (xx->vi->ax->altmouse == AUTOX_ALTMOUSE_PAINT){
-      box = xxyz_getxyz(xx, x, y, &mx, &my, &mz);
+      box = Getxyz(x, y, &mx, &my, &mz);
       if (box != 3)
         return;
       autox_setlow(xx->vi, mx, my);
@@ -693,7 +733,7 @@ static void xxyzB3Drag(struct xxyzwin *xx, int x, int y)
   if (xx->vi->imod->mousemode != IMOD_MMODEL)
     return;
 
-  box = xxyz_getxyz(xx, x, y, &mx, &my, &mz);
+  box = Getxyz(x, y, &mx, &my, &mz);
   if (box != 3)
     return;
 
@@ -733,8 +773,9 @@ static void xxyzB3Drag(struct xxyzwin *xx, int x, int y)
 }
 
 
-static void xyzSetSubimage(int absStart, int winSize, int imSize, float zoom,
-                           int *drawsize, int *woffset, int *dataStart)
+void XyzWindow::SetSubimage(int absStart, int winSize, int imSize, 
+			       float zoom, int *drawsize, int *woffset,
+			       int *dataStart)
 {
   *dataStart = 0;
   *woffset = absStart;
@@ -758,9 +799,9 @@ static void xyzSetSubimage(int absStart, int winSize, int imSize, float zoom,
     *drawsize = (int)((winSize - *woffset) / zoom);
 }     
 
-static void xyzDrawImage(struct xxyzwin *win)
+void XyzWindow::DrawImage()
 {
-
+  struct xxyzwin *win = mXyz;
   unsigned int x, y, z, i;
   int nx = win->vi->xsize;
   int ny = win->vi->ysize;
@@ -849,14 +890,14 @@ static void xyzDrawImage(struct xxyzwin *win)
 
 
   /* Now compute drawing parameters for each of the subareas */
-  xyzSetSubimage(win->xwoffset + XYZ_BSIZE, win->winx, nx, win->zoom,
-                 &width1, &wx1, &xoffset1);
-  xyzSetSubimage(win->xwoffset + sx + 2 * XYZ_BSIZE, win->winx, nz, 
-                 win->zoom, &width2, &wx2, &xoffset2);
-  xyzSetSubimage(win->ywoffset + XYZ_BSIZE, win->winy, ny, win->zoom,
-                 &height1, &wy1, &yoffset1);
-  xyzSetSubimage(win->ywoffset + sy + 2 * XYZ_BSIZE, win->winy, nz, 
-                 win->zoom, &height2, &wy2, &yoffset2);
+  SetSubimage(win->xwoffset + XYZ_BSIZE, win->winx, nx, win->zoom,
+	      &width1, &wx1, &xoffset1);
+  SetSubimage(win->xwoffset + sx + 2 * XYZ_BSIZE, win->winx, nz, 
+	      win->zoom, &width2, &wx2, &xoffset2);
+  SetSubimage(win->ywoffset + XYZ_BSIZE, win->winy, ny, win->zoom,
+	      &height1, &wy1, &yoffset1);
+  SetSubimage(win->ywoffset + sy + 2 * XYZ_BSIZE, win->winy, nz, 
+	      win->zoom, &height2, &wy2, &yoffset2);
 
   /* printf ("width1 %d  height1 %d  width2 %d  height2 %d\n", width1,
      height1, width2, height2);
@@ -916,8 +957,9 @@ static void xyzDrawImage(struct xxyzwin *win)
   return;
 }
 
-static void xyzDrawCurrentLines(struct xxyzwin *xx)
+void XyzWindow::DrawCurrentLines()
 {
+  struct xxyzwin *xx = mXyz;
   int cx, cy, cz;
   float z = xx->zoom;
   int bx = XYZ_BSIZE + xx->xwoffset;
@@ -960,14 +1002,15 @@ static void xyzDrawCurrentLines(struct xxyzwin *xx)
   return;
 }
 
-static void xyzDrawGhost(struct xxyzwin *xx)
+void XyzWindow::DrawGhost()
 {
   return;
 }
 
 /* DNM 1/20/02: add argument ob to be able to reset color properly */
-static void xyzDrawContour(struct xxyzwin *xx, Iobj *obj, int ob, Icont *cont)
+void XyzWindow::DrawContour(Iobj *obj, int ob, Icont *cont)
 {
+  struct xxyzwin *xx = mXyz;
   ImodView *vi = xx->vi;
   Ipoint *point;
   int pt, npt = 0, ptsonsec;
@@ -1106,9 +1149,9 @@ static void xyzDrawContour(struct xxyzwin *xx, Iobj *obj, int ob, Icont *cont)
   return;
 }
 
-static void xyzDrawCurrentContour(struct xxyzwin *xx, Iobj *obj, int ob,
-                                  Icont *cont)
+void XyzWindow::DrawCurrentContour(Iobj *obj, int ob, Icont *cont)
 {
+  struct xxyzwin *xx = mXyz;
   ImodView *vi = xx->vi;
   Ipoint *point;
   int pt;
@@ -1254,7 +1297,7 @@ static void xyzDrawCurrentContour(struct xxyzwin *xx, Iobj *obj, int ob,
   /* scatterd object */
   if (iobjScat(obj->flags)){
     /* Just draw the contour with other routines */
-    xyzDrawContour(xx, obj, ob, cont);
+    DrawContour(obj, ob, cont);
           
     /* Draw points in other windows if that is where they are */
     for (pt = 0; pt < cont->psize; pt++){
@@ -1301,8 +1344,9 @@ static void xyzDrawCurrentContour(struct xxyzwin *xx, Iobj *obj, int ob,
   return;
 }
 
-static void xyzDrawModel(struct xxyzwin *xx)
+void XyzWindow::DrawModel()
 {
+  struct xxyzwin *xx = mXyz;
   Imod *imod = xx->vi->imod;
   Iobj *obj;
   Icont *cont;
@@ -1311,7 +1355,7 @@ static void xyzDrawModel(struct xxyzwin *xx)
   if (imod->drawmode <= 0)
     return;
   if (xx->vi->ghostmode)
-    xyzDrawGhost(xx);
+    DrawGhost();
      
   for(ob = 0; ob < imod->objsize; ob++){
     imodSetObjectColor(ob);
@@ -1321,17 +1365,18 @@ static void xyzDrawModel(struct xxyzwin *xx)
       cont = &(obj->cont[co]);
       if ((co == imod->cindex.contour) &&
           (ob == imod->cindex.object))
-        xyzDrawCurrentContour(xx, obj, ob, cont);
+        DrawCurrentContour(obj, ob, cont);
       else
-        xyzDrawContour(xx, obj, ob, cont);
+        DrawContour(obj, ob, cont);
     }
   }
 
   return;
 }
 
-static void xyzDrawCurrentPoint(struct xxyzwin *xx)
+void XyzWindow::DrawCurrentPoint()
 {
+  struct xxyzwin *xx = mXyz;
   Icont *cont = imodContourGet(xx->vi->imod);
   Ipoint *pnt = imodPointGet(xx->vi->imod);
   int psize = 3;
@@ -1387,8 +1432,9 @@ static void xyzDrawCurrentPoint(struct xxyzwin *xx)
   return;
 }
 
-static void xyzDrawAuto(struct xxyzwin *xx)
+void XyzWindow::DrawAuto()
 {
+  struct xxyzwin *xx = mXyz;
   ImodView *vi = xx->vi;
   int i, j;
   float vert[2];
@@ -1438,87 +1484,13 @@ static void xyzDrawAuto(struct xxyzwin *xx)
 }
 
 
-/* DNM 1/21/02: eliminate OpenGL scaling of native coordinates, make all
-   model drawing routines multiply coordinates by zoom */
-/* DNM 1/28/02: moved uses of the elements of xx to after the test for zz */
-static void xxyz_draw(struct xxyzwin *xx)
+void XyzWindow::Draw()
 {
-  xx->glw->updateGL();
+  mGLw->updateGL();
 }
 
 
-
-static void xyzDraw_cb(ImodView *vi, void *client, int drawflag)
-{
-  struct xxyzwin *xx = (struct xxyzwin *)client;
-
-  if ((!vi) || (!xx) || (!drawflag)) return;
-     
-  if (drawflag){
-    if (drawflag & IMOD_DRAW_IMAGE){
-
-      /* This happens whens a flip occurs: get new image spaces */
-      xx->lx = xx->ly = xx->lz = -1;
-      b3dFlushImage(xx->xydata);
-      b3dFlushImage(xx->xzdata);
-      b3dFlushImage(xx->yzdata);
-      if(xx->fdataxz)
-        free(xx->fdataxz);
-      if(xx->fdatayz)
-        free(xx->fdatayz);
-      xx->fdataxz  = (unsigned char *)malloc(vi->xsize * vi->zsize);
-      xx->fdatayz  = (unsigned char *)malloc(vi->ysize * vi->zsize);
-    }
-    if (drawflag & IMOD_DRAW_SLICE)
-      xyzShowSlice = 1;
-    xxyz_draw(XYZ);
-  }
-  return;
-}
-
-static void xyzDrawShowSlice(struct xxyzwin *xx)
-{
-  return;
-}
-
-int xyz_draw_showslice(struct ViewInfo *vi)
-{
-  if (!XYZ)
-    return(-1);
-  xyzShowSlice = 1;
-  xxyz_draw(XYZ);
-  return(0);
-}
-
-
-// Implementation of the window class
-XyzWindow::XyzWindow(struct xxyzwin *xyz, bool rgba, 
-                     bool doubleBuffer, QWidget * parent,
-                     const char * name, WFlags f) 
-  : QMainWindow(parent, name, f)
-{
-  int i, j;
-  mXyz = xyz;
-
-
-  // Need GLwidget next
-  QGLFormat glFormat;
-  glFormat.setRgba(rgba);
-  glFormat.setDoubleBuffer(doubleBuffer);
-  mGLgfx = new XyzGL(xyz, glFormat, this);
-  
-  // Set it as main widget, set focus
-  setCentralWidget(mGLgfx);
-  setFocusPolicy(QWidget::StrongFocus);
-}
-
-
-XyzWindow::~XyzWindow()
-{
-
-}
-
-// Key handler for window class
+// Key handler
 void XyzWindow::keyPressEvent ( QKeyEvent * event )
 {
   struct xxyzwin *xx = mXyz;
@@ -1536,19 +1508,19 @@ void XyzWindow::keyPressEvent ( QKeyEvent * event )
 
   case Qt::Key_Minus:
     xx->zoom = b3dStepPixelZoom(xx->zoom, -1);
-    xxyz_draw(xx);
+    Draw();
     break;
              
   case Qt::Key_Equal:
     xx->zoom = b3dStepPixelZoom(xx->zoom, 1);
-    xxyz_draw(xx);
+    Draw();
     break;
 
   case Qt::Key_S:
     if ((state & Qt::ShiftButton) || (state & Qt::ControlButton)){
 
       // Need to draw the window now (didn't have to in X version)
-      xxyz_draw(xx);
+      Draw();
       if (state & Qt::ShiftButton)
 	b3dAutoSnapshot("xyz", SnapShot_RGB, NULL);
       else 
@@ -1563,11 +1535,11 @@ void XyzWindow::keyPressEvent ( QKeyEvent * event )
       wprint("\aHigh-resolution mode ON\n");
     else
       wprint("\aHigh-resolution mode OFF\n");
-    xxyz_draw(xx);
+    Draw();
     break;
 
   case Qt::Key_Escape:
-    xyzQuit(xx);
+    Quit();
     break;
 
   default:
@@ -1579,43 +1551,11 @@ void XyzWindow::keyPressEvent ( QKeyEvent * event )
     inputQDefaultKeys(event, vi);
 }
 
-// Whan a close event comes in, inform xyz, and accept
-void XyzWindow::closeEvent (QCloseEvent * e )
-{
-  xyzClosing(mXyz);
-  e->accept();
-}
-
-// Implementation of the GL class
-XyzGL::XyzGL(struct xxyzwin *xyz, QGLFormat inFormat, QWidget * parent,
-             const char * name)
-  : QGLWidget(inFormat, parent, name)
-{
-  if (!format().rgba() && inFormat.rgba())
-    fprintf(stderr, "Xyz warning: window is color index mode even though rgb "
-                "was requested\n");
-  if (format().rgba() && !inFormat.rgba())
-    fprintf(stderr, "Xyz warning: window is rgb mode even though color index "
-                "was requested\n");
-
-  if (format().doubleBuffer() && !inFormat.doubleBuffer())
-    fprintf(stderr, "Xyz warning: Double buffering is being used even "
-	    "though\n  single buffering was requested\n");
-  if (!format().doubleBuffer() && inFormat.doubleBuffer())
-    fprintf(stderr, "Xyz warning: Single buffering is being used even "
-	    "though\n  double buffering was requested\n");
-
-  mMousePressed = false;
-  mXyz = xyz;
-}
-
-XyzGL::~XyzGL()
-{
-
-}
- 
 // The main drawing routine
-void XyzGL::paintGL()
+/* DNM 1/21/02: eliminate OpenGL scaling of native coordinates, make all
+   model drawing routines multiply coordinates by zoom */
+/* DNM 1/28/02: moved uses of the elements of xx to after the test for zz */
+void XyzWindow::paintGL()
 {
   struct xxyzwin *xx = mXyz;
   float z;
@@ -1633,12 +1573,12 @@ void XyzGL::paintGL()
   by2 = (int)(by + XYZ_BSIZE + floor((double)(xx->vi->ysize * z + 0.5)));
 
 
-  xyzDrawImage(xx);
+  DrawImage();
 
-  xyzDrawModel(xx);
-  xyzDrawCurrentLines(xx);
-  xyzDrawCurrentPoint(xx);
-  xyzDrawAuto(xx);
+  DrawModel();
+  DrawCurrentLines();
+  DrawCurrentPoint();
+  DrawAuto();
 
   if (xyzShowSlice){
     b3dColorIndex(App->foreground);
@@ -1665,7 +1605,7 @@ void XyzGL::paintGL()
 }
 
 // The routine that initializes or reinitializes upon resize
-void XyzGL::resizeGL( int winx, int winy )
+void XyzWindow::resizeGL( int winx, int winy )
 {
   struct xxyzwin *xx = mXyz;
 
@@ -1684,17 +1624,16 @@ void XyzGL::resizeGL( int winx, int winy )
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
   
-  xxyz_getCIImages(xx);
+  GetCIImages();
   xx->exposed = 1;
 }
 
 // Handlers for mouse events
-void XyzGL::mousePressEvent(QMouseEvent * event )
+void XyzWindow::mousePressEvent(QMouseEvent * event )
 {
   int button1, button2, button3;
   int mx, my, mz;
 
-  mMousePressed = true;
   ivwControlPriority(mXyz->vi, mXyz->ctrl);
   
   button1 = event->state() & Qt::LeftButton ? 1 : 0;
@@ -1706,19 +1645,19 @@ void XyzGL::mousePressEvent(QMouseEvent * event )
     if ((button2) || (button3))
         break;
     but1downt.start();
-    mXyz->whichbox = xxyz_getxyz(mXyz,  event->x(), event->y(), &mx, &my, &mz);
+    mXyz->whichbox = Getxyz(event->x(), event->y(), &mx, &my, &mz);
     break;
 
   case Qt::MidButton:
     if ((button1) || (button3))
       break;
-    xxyzButton2(mXyz, event->x(), event->y());
+    B2Press(event->x(), event->y());
     break;
 
   case Qt::RightButton:
     if ((button1) || (button2))
       break;
-    xxyzButton3(mXyz, event->x(), event->y());
+    B3Press(event->x(), event->y());
     break;
 
   default:
@@ -1729,21 +1668,18 @@ void XyzGL::mousePressEvent(QMouseEvent * event )
   mXyz->lmy = event->y();
 }
 
-void XyzGL::mouseReleaseEvent ( QMouseEvent * event )
+void XyzWindow::mouseReleaseEvent ( QMouseEvent * event )
 {
-  mMousePressed = false;
   if (event->button() == Qt::LeftButton){
       if (but1downt.elapsed() > 250)
         return;
-      xxyzButton1(mXyz, event->x(), event->y());
+      B1Press(event->x(), event->y());
   }
 }
 
-void XyzGL::mouseMoveEvent ( QMouseEvent * event )
+void XyzWindow::mouseMoveEvent ( QMouseEvent * event )
 {
   int button1, button2, button3;
-  if (!mMousePressed)
-    return;
   ivwControlPriority(mXyz->vi, mXyz->ctrl);
   
   button1 = event->state() & Qt::LeftButton ? 1 : 0;
@@ -1751,11 +1687,11 @@ void XyzGL::mouseMoveEvent ( QMouseEvent * event )
   button3 = event->state() & Qt::RightButton ? 1 : 0;
 
   if ( (button1) && (!button2) && (!button3) && but1downt.elapsed() > 250)
-    xxyzB1Drag(mXyz, event->x(), event->y());
+    B1Drag(event->x(), event->y());
   if ( (!button1) && (button2) && (!button3))
-    xxyzB2Drag(mXyz, event->x(), event->y());
+    B2Drag(event->x(), event->y());
   if ( (!button1) && (!button2) && (button3))
-    xxyzB3Drag(mXyz, event->x(), event->y());
+    B3Drag(event->x(), event->y());
   
   mXyz->lmx = event->x();
   mXyz->lmy = event->y();

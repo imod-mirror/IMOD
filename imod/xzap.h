@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.2.2.2  2002/12/10 16:57:34  mast
+preventing multiple draws, implementing current contour draw while dragging
+
 Revision 3.2.2.1  2002/12/09 17:50:17  mast
 Initial changes to get Qt version
 
@@ -46,12 +49,13 @@ Added resizeSkipDraw to prevent redraws during resize
 
 #ifndef XZAP_H
 #define XZAP_H
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-class ZapWindow;
-class ZapGL;
+  class ZapWindow;
+  class MainGLWidget;
 
   void zapClosing(struct zapwin *zap);
   void zapPaint(struct zapwin *zap);
@@ -68,11 +72,14 @@ class ZapGL;
   void zapStateToggled(struct zapwin *zap, int index, int state);
   void zapPrintInfo(struct zapwin *zap);
   void zapStepTime(struct zapwin *zap, int step);
+  void zapDrawSymbol(int mx, int my, unsigned char sym, unsigned char size,
+		     unsigned char flags);
+  int  imod_zap_open(struct ViewInfo *vi);
 
   typedef struct zapwin
   {
     ZapWindow *qtWindow;               /* Zap window widget. */
-    ZapGL *gfx;                  /* Image sub window.  */
+    MainGLWidget *gfx;                  /* Image sub window.  */
     int    winx,      winy;      /* Image window size. */
     int    xborder,   yborder;   /* border around image window. */
     int    xstart,    ystart;
