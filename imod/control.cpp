@@ -34,6 +34,10 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.2  2003/01/04 03:45:12  mast
+Add a function to remove a control without calling its close function
+to deconvolute the closing logic
+
 Revision 1.1.2.1  2003/01/02 15:37:07  mast
 Added key callback so that keys can be passed from dialog boxes to active
 window
@@ -56,6 +60,8 @@ Eliminated conditional on USE_IMOD_CONTROL
 #include "control.h"
 
 static int removeControl(ImodView *iv, int inCtrlId, int callClose);
+
+static int controlDebug = 0;
 
 /****************************************************************************/
 
@@ -99,7 +105,8 @@ int ivwNewControl(ImodView *iv,
   iv->ctrlist->top    = ctrlId;
   iv->ctrlist->active = ctrlId;
   ilistPush(iv->ctrlist->list, &ctrl);
-  //  fprintf(stderr, "Control id %d\n", ctrlId);
+  if (controlDebug)
+    fprintf(stderr, "Control id %d\n", ctrlId);
   return(ctrlId);
 }
 
@@ -153,7 +160,8 @@ int ivwControlPriority(ImodView *iv, int inCtrlId)
   ImodControl *ctrlPtr;
   int element = 0;
 
-  //fprintf(stderr, "ivwControlPriority: %d\n", inCtrlId);
+  if (controlDebug)
+    fprintf(stderr, "ivwControlPriority: %d\n", inCtrlId);
 
   if (!iv->ctrlist) return(0);
 
@@ -214,7 +222,8 @@ Boolean ivwWorkProc(XtPointer client_data)
     iv->ctrlist->workID = 0;
     return(True);
   }
-  //       fprintf(stderr, "Drawing %d\n", ctrlPtr->id); 
+  if (controlDebug)
+    fprintf(stderr, "Drawing %d\n", ctrlPtr->id); 
   (*ctrlPtr->draw_cb)(iv, ctrlPtr->userData, iv->ctrlist->reason);
   return(False);
 }
@@ -234,7 +243,8 @@ void ivwControlListDraw(ImodView *iv, int reason)
      
   ctrlPtr = (ImodControl *)ilistFirst(iv->ctrlist->list);
   if (ctrlPtr) {
-    //    fprintf(stderr, "Drawing priority %d\n", ctrlPtr->id);
+    if (controlDebug)
+      fprintf(stderr, "Drawing priority %d\n", ctrlPtr->id);
     if (ctrlPtr->id == iv->ctrlist->active){
       iv->ctrlist->active = 0;
       (*ctrlPtr->draw_cb)(iv, ctrlPtr->userData,
@@ -283,9 +293,11 @@ void ivwControlKey(/*ImodView *iv, */int released, QKeyEvent *e)
      
   ctrlPtr = (ImodControl *)ilistFirst(iv->ctrlist->list);
   while (ctrlPtr) {
-    //    fprintf(stderr, "checking %d\n", ctrlPtr->id);
+    if (controlDebug)
+      fprintf(stderr, "checking %d\n", ctrlPtr->id);
     if (ctrlPtr->key_cb) {
-      //  fprintf(stderr, "sending to %d\n", ctrlPtr->id);
+      if (controlDebug)
+	fprintf(stderr, "sending to %d\n", ctrlPtr->id);
       (*ctrlPtr->key_cb)(iv, ctrlPtr->userData, released, e);
       return;
     }
