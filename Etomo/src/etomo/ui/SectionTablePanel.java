@@ -1,5 +1,6 @@
 package etomo.ui;
 
+import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
@@ -25,7 +26,9 @@ import javax.swing.border.BevelBorder;
 import javax.swing.border.LineBorder;
 
 import etomo.JoinManager;
+import etomo.process.ImodManager;
 import etomo.storage.TomogramFileFilter;
+import etomo.type.SlicerAngles;
 
 /**
 * <p>Description: A panel containing the section table.  Implements Expandable
@@ -42,6 +45,15 @@ import etomo.storage.TomogramFileFilter;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.4  2004/09/21 18:08:40  sueh
+* <p> bug# 520 Moved buttons that affect the section table from JoinDialog to
+* <p> this class.  Added move up, move down, add section, and delete section
+* <p> buttons.  Added a binning spinnner and an open 3dmod button.  Added
+* <p> functions to add existing fields to the table (such as
+* <p> addHeader(JButton, text, width)).  Added removeFromTable and repaint.
+* <p> To add, delete or move rows the grid bag layout, all effected rows and all
+* <p> those below them must be removed and readded.
+* <p>
 * <p> Revision 1.1.2.3  2004/09/17 21:47:20  sueh
 * <p> bug# 520 Added an array of rows.  Encapsulated each row into
 * <p> SectionTableRow.  Encapsulated the expand button into ExpandButton.
@@ -78,6 +90,7 @@ public class SectionTablePanel implements ContextMenu, Expandable {
   private MultiLineButton btnDeleteSection;
   private LabeledSpinner spinBinning;
   private MultiLineButton btnOpen3dmod;
+  private MultiLineButton btnGetAngles;
   private ArrayList rows = new ArrayList();
   private GridBagLayout layout = new GridBagLayout();
   private GridBagConstraints constraints = new GridBagConstraints();
@@ -92,6 +105,8 @@ public class SectionTablePanel implements ContextMenu, Expandable {
   SectionTablePanel(JoinManager joinManager) {
     this.joinManager = joinManager;
     createRootPanel();
+    enableTableButtons(false);
+    enableRowButtons(false);
   }
   
   private void createRootPanel() {
@@ -181,35 +196,45 @@ public class SectionTablePanel implements ContextMenu, Expandable {
   private void createButtonsPanel() {
     pnlButtons = new JPanel();
     pnlButtons.setLayout(new BoxLayout(pnlButtons, BoxLayout.X_AXIS));
-    //create first panel
+    //create first section
     JPanel pnlFirst = new JPanel();
     pnlFirst.setLayout(new BoxLayout(pnlFirst, BoxLayout.Y_AXIS));
     btnMoveSectionUp = new MultiLineButton("Move Section Up");
+    UIUtilities.setButtonSize(btnMoveSectionUp, buttonDimension, true);
     btnMoveSectionUp.addActionListener(sectionTableActionListener);
     pnlFirst.add(btnMoveSectionUp);
     pnlFirst.add(Box.createRigidArea(FixedDim.x0_y5));
     btnAddSection = new MultiLineButton("Add Section");
+    UIUtilities.setButtonSize(btnAddSection, buttonDimension, true);
     btnAddSection.addActionListener(sectionTableActionListener);
     pnlFirst.add(btnAddSection);
     UIUtilities.setButtonSizeAll(pnlFirst, buttonDimension);
     pnlButtons.add(pnlFirst);
     pnlButtons.add(Box.createRigidArea(FixedDim.x5_y0));
-    //create second panel
+    //create second section
     JPanel pnlSecond = new JPanel();
     pnlSecond.setLayout(new BoxLayout(pnlSecond, BoxLayout.Y_AXIS));
     btnMoveSectionDown = new MultiLineButton("Move Section Down");
+    UIUtilities.setButtonSize(btnMoveSectionDown, buttonDimension, true);
     btnMoveSectionDown.addActionListener(sectionTableActionListener);
     pnlSecond.add(btnMoveSectionDown);
     pnlSecond.add(Box.createRigidArea(FixedDim.x0_y5));
     btnDeleteSection = new MultiLineButton("Delete Section");
+    UIUtilities.setButtonSize(btnDeleteSection, buttonDimension, true);
     btnDeleteSection.addActionListener(sectionTableActionListener);
     pnlSecond.add(btnDeleteSection);
-    UIUtilities.setButtonSizeAll(pnlSecond, buttonDimension);
     pnlButtons.add(pnlSecond);
     pnlButtons.add(Box.createRigidArea(FixedDim.x5_y0));
-    //create third panel
+    //create third section
     createImodPanel();
     pnlButtons.add(pnlImod);
+    pnlButtons.add(Box.createRigidArea(FixedDim.x5_y0));
+    //create fourth section
+    btnGetAngles = new MultiLineButton("Get Angles from Slicer");
+    UIUtilities.setButtonSize(btnGetAngles, buttonDimension, true);
+    btnGetAngles.addActionListener(sectionTableActionListener);
+    pnlButtons.add(btnGetAngles);
+    pnlButtons.add(Box.createRigidArea(FixedDim.x5_y0));
   }
   
   private void createImodPanel() {
@@ -228,8 +253,13 @@ public class SectionTablePanel implements ContextMenu, Expandable {
     pnlBinning.add(lblIn);
     pnlBinning.add(Box.createRigidArea(FixedDim.x5_y0));
     pnlImod.add(pnlBinning);
-    pnlBinning.add(Box.createRigidArea(FixedDim.x0_y5));
+    //3dmod button
+    pnlImod.add(Box.createRigidArea(FixedDim.x0_y5));
     btnOpen3dmod = new MultiLineButton("Open in/Raise 3dmod");
+    UIUtilities.setButtonSize(btnOpen3dmod, buttonDimension, true);
+    btnOpen3dmod.setAlignmentX(Component.CENTER_ALIGNMENT);
+    btnOpen3dmod.setPreferredSize(buttonDimension);
+    btnOpen3dmod.setMaximumSize(buttonDimension);
     btnOpen3dmod.addActionListener(sectionTableActionListener);
     pnlImod.add(btnOpen3dmod);
     pnlImod.add(Box.createRigidArea(FixedDim.x0_y5));
@@ -239,12 +269,30 @@ public class SectionTablePanel implements ContextMenu, Expandable {
    * highlighted at once, so it turns off highlighting on all the other rows.
    * @param rowNumber
    */
-  void highlighting(int rowNumber) {
+  void highlighting(int rowNumber, boolean highlightTurnedOn) {
+    if (btnMoveSectionUp.isEnabled() != highlightTurnedOn) {
+      enableRowButtons(highlightTurnedOn);
+    }
+    if (!highlightTurnedOn) {
+      return;
+    }
     for (int i = 0; i < rows.size(); i++) {
       if (i != rowNumber - 1) {
         ((SectionTableRow)rows.get(i)).setHighlight(false);
       }
     }
+  }
+  
+  private void enableRowButtons(boolean enable) {
+    btnMoveSectionUp.setEnabled(enable);
+    btnMoveSectionDown.setEnabled(enable);
+    btnDeleteSection.setEnabled(enable);
+    btnOpen3dmod.setEnabled(enable);
+    btnGetAngles.setEnabled(enable);
+  }
+  
+  private void enableTableButtons(boolean enable) {
+    btnExpandSections.setEnabled(enable);
   }
   
   /**
@@ -327,6 +375,7 @@ public class SectionTablePanel implements ContextMenu, Expandable {
     if (returnVal == JFileChooser.APPROVE_OPTION) {
       File tomogram = chooser.getSelectedFile();
       addSection(tomogram);
+      joinManager.packMainWindow();
     }
   }
   
@@ -343,6 +392,9 @@ public class SectionTablePanel implements ContextMenu, Expandable {
     }
     rows.add(new SectionTableRow(this, rows.size() + 1, tomogram, btnExpandSections
         .isExpanded()));
+    if (rows.size() == 1) {
+      enableTableButtons(true);
+    }
     repaint();
   }
   
@@ -360,7 +412,12 @@ public class SectionTablePanel implements ContextMenu, Expandable {
       return;
     }
     rows.remove(rowIndex);
-    joinManager.imodRemoveTomogram(row.getImodIndex());
+    if (rows.size() == 0) {
+      enableTableButtons(false);
+      enableRowButtons(false);
+    }
+    joinManager
+        .imodRemove(ImodManager.TOMOGRAM_KEY, row.getImodIndex());
     row.remove();
     renumberTable(rowIndex);
     repaint();
@@ -372,7 +429,30 @@ public class SectionTablePanel implements ContextMenu, Expandable {
       return;
     }
     SectionTableRow row = (SectionTableRow) rows.get(rowIndex);
-    row.setImodIndex(joinManager.imodTomogram(row.getSectionFile(), row.getImodIndex()));
+    row.setImodIndex(joinManager.imodOpen(ImodManager.TOMOGRAM_KEY, row
+        .getSectionFile(), row.getImodIndex()));
+  }
+  
+  private void imodGetAngles() {
+    int rowIndex = getHighlightedRowIndex();
+    if (rowIndex == -1) {
+      return;
+    }
+    SectionTableRow row = (SectionTableRow) rows.get(rowIndex);
+    int imodIndex = row.getImodIndex();
+    if (imodIndex == -1) {
+      joinManager.getMainPanel().openMessageDialog(
+          "Open in 3dmod and use the Slicer to change the angles.",
+          "Open 3dmod");
+      return;
+    }
+    SlicerAngles slicerAngles = joinManager.imodGetSlicerAngles(
+        ImodManager.TOMOGRAM_KEY, imodIndex);
+    if (slicerAngles == null || !slicerAngles.isComplete()) {
+      return;
+    }
+    row.setRotationAngles(slicerAngles);
+    repaint();
   }
 
   /**
@@ -600,6 +680,9 @@ public class SectionTablePanel implements ContextMenu, Expandable {
     }
     else if (command.equals(btnOpen3dmod.getActionCommand())) {
       imodSection();
+    }
+    else if (command.equals(btnGetAngles.getActionCommand())) {
+      imodGetAngles();
     }
   }
 
