@@ -38,6 +38,10 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.13  2004/10/21 17:49:56  sueh
+* <p> bug# 520 In loadTestParamFile() converted paramFile to a file created with
+* <p> an absolute path, so metaData validation would not fail.
+* <p>
 * <p> Revision 1.1.2.12  2004/10/15 00:00:02  sueh
 * <p> bug# 520 Moving getTestParamFilename() to mainPanel.  It is used for
 * <p> saving existing data files, so knows which type (.edf or .ejf) it is saving.
@@ -338,7 +342,6 @@ public abstract class BaseManager {
    * @param paramFile the File object specifiying the data parameter file.
    */
   protected boolean loadTestParamFile(File paramFile) {
-    //FIXME this function may not have to be visible
     FileInputStream processDataStream;
     try {
       // Read in the test parameter data file
