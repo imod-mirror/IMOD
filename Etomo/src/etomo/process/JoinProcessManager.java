@@ -1,5 +1,6 @@
 package etomo.process;
 
+import etomo.BaseManager;
 import etomo.JoinManager;
 import etomo.comscript.FlipyzParam;
 import etomo.comscript.MakejoincomParam;
@@ -20,6 +21,9 @@ import etomo.type.AxisID;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.4  2004/10/18 17:58:26  sueh
+* <p> bug# 520 Added xfalign.
+* <p>
 * <p> Revision 1.1.2.3  2004/10/08 15:59:59  sueh
 * <p> bug# 520 Fixed makejoincom() to that it used BackgroundProcess.
 * <p> Added startjoin.
@@ -35,8 +39,11 @@ import etomo.type.AxisID;
 public class JoinProcessManager extends BaseProcessManager {
   public static final String rcsid = "$Id$";
 
+  JoinManager joinManager;
+  
   public JoinProcessManager(JoinManager joinMgr) {
-    super(joinMgr);
+    super();
+    joinManager = joinMgr;
   }
   
   /**
@@ -78,13 +85,30 @@ public class JoinProcessManager extends BaseProcessManager {
     return comScriptProcess.getName();
   }
   
+  /**
+   * Run midas on the sample file.
+   */
+  public void midasSample() {
+    String rootName = joinManager.getMetaData().getRootName();
+    //  Construct the command line strings
+    String[] commandArray = { BaseManager.getIMODBinPath() + "midas", "-b",
+        "0", rootName + ".sample", rootName + ".xf" };
+    //  Start the system program thread
+    startSystemProgramThread(commandArray);
+  }
+
+  
   protected void comScriptPostProcess(ComScriptProcess script, int exitValue) {
   }
   
   protected void backgroundPostProcess(BackgroundProcess process) {
     String commandName = process.getCommandName();
     if (commandName != null && commandName.equals(FlipyzParam.getName())) {
-      ((JoinManager) manager).addSection(process.getOutputFile());
+      ((JoinManager) joinManager).addSection(process.getOutputFile());
     }
+  }
+  
+  protected BaseManager getManager() {
+    return joinManager;
   }
 }
