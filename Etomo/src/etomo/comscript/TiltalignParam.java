@@ -19,6 +19,9 @@ import etomo.type.TiltAngleType;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 2.2  2003/03/20 17:24:45  rickg
+ * <p> Comment update
+ * <p>
  * <p> Revision 2.1  2003/03/02 23:30:41  rickg
  * <p> Combine layout in progress
  * <p>
@@ -112,11 +115,28 @@ public class TiltalignParam
         additionalViewGroups.set(i, inputArgs[inputLine++].getArgument());
       }
     }
-
+		
+		//  Tilt angle specification
     int typeSpec = Integer.parseInt(inputArgs[inputLine++].getArgument());
     tiltAngleSpec.setType(TiltAngleType.parseInt(typeSpec));
-    // TODO what if the next argument is not a filename!
-    tiltAngleSpec.setTiltAngleFilename(inputArgs[inputLine++].getArgument());
+		if (tiltAngleSpec.getType() == TiltAngleType.FILE) {
+			tiltAngleSpec.setTiltAngleFilename(inputArgs[inputLine++].getArgument());
+		}
+		else if (tiltAngleSpec.getType() == TiltAngleType.RANGE) {
+			String pair = inputArgs[inputLine++].getArgument();
+			String values[] = pair.split(",");
+			if (values.length != 2) {
+				throw new BadComScriptException("Incorrect tilt angle specification type");
+			}
+			tiltAngleSpec.setRangeMin(Double.parseDouble(values[0]));
+			tiltAngleSpec.setRangeStep(Double.parseDouble(values[1]));
+		}
+		else if (tiltAngleSpec.getType() == TiltAngleType.LIST) {
+			throw new BadComScriptException("Unimplemented tilt angle specification type");
+		}
+		else {
+			throw new BadComScriptException("Incorrect tilt angle specification type");
+		}
 
     tiltAngleOffset = Double.parseDouble(inputArgs[inputLine++].getArgument());
 
