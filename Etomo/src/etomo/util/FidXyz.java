@@ -5,6 +5,8 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 
+import etomo.EtomoDirector;
+
 /**
  * <p>Description: An interface to the fid.xyz file.</p>
  *
@@ -19,6 +21,10 @@ import java.io.IOException;
 * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.3  2004/08/31 21:53:16  sueh
+ * <p> $bug# 545 Read(): Handle the case where fix.xyz exists but is empty by
+ * <p> $setting a member variable.
+ * <p> $
  * <p> $Revision 1.2  2004/07/02 00:41:45  sueh
  * <p> $bug# 487 adding a function that checks whether pixel size was
  * <p> $set successfully
@@ -45,7 +51,7 @@ public class FidXyz {
       throw new IOException("No filename specified");
     }
     
-    File fidXyzFile = new File(System.getProperty("user.dir"), filename);
+    File fidXyzFile = new File(EtomoDirector.getInstance().getCurrentPropertyUserDir(), filename);
     if (!fidXyzFile.exists() || fidXyzFile.isDirectory()) {
       return;
     }
