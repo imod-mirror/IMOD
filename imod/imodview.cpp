@@ -34,6 +34,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.1  2003/01/18 01:12:48  mast
+convert to cpp
+
 Revision 3.4.2.5  2003/01/14 21:52:38  mast
 include new movie controller include file
 
@@ -75,7 +78,10 @@ logic for cache filling
 #include "mrcfiles.h"
 #include "imod.h"
 #include "imod_info_cb.h"
+#include "imod_io.h"
 #include "imod_moviecon.h"
+#include "imod_iscale.h"
+#include "iproc.h"
 
 static int ivwSetCacheFromList(ImodView *iv, Ilist *ilist);
 char Ivw_string[64];
@@ -290,15 +296,7 @@ int fake_ivwGetValue(ImodView *iv, int x, int y, int z)
 /****************************************************************************/
 
 
-/* print a message to the information window during disk loading. */
-char ivwStatstring[64];
-
-void ivwShowStatus(char *string)
-{
-  wprint("%s\n%s\r", ivwStatstring, string);
-  imod_info_input();
-  return;
-}
+/* DNM 1/19/03: eliminated ivwShowstatus in favor of imod_imgcnt */
 
 /* default settings for the view info structure. */
 void ivwInit(ImodView *vi)
@@ -337,6 +335,7 @@ void ivwInit(ImodView *vi)
   vi->movieProc     = NULL;
   vi->ghostmode = 0;
   vi->ghostlast = IMOD_GHOST_SECTION;
+  vi->ghostdist = 1;
   vi->obj_moveto = 1;
   vi->drawcursor = TRUE;
   vi->insertmode = 0;
@@ -498,9 +497,6 @@ int ivwLoadMrc(ImodView *vi)
   vi->zsize  = zsize;
   vi->xysize = xsize * ysize;
 
-  sprintf(ivwStatstring, "Image size %d x %d, %d sections.\n",
-          xsize, ysize, zsize);
-
   /* Get a cache size set properly if piece list or -C entry was made */
   if (vi->li->plist || vi->vmSize)
     ivwSetCacheSize(vi);
@@ -553,7 +549,7 @@ int ivwLoadMrc(ImodView *vi)
 
     best_ivwGetValue = idata_ivwGetValue;
     vi->idata = (unsigned char **)imod_io_image_load
-      (vi->image, vi->li, ivwShowStatus);
+      (vi->image, vi->li, imod_imgcnt);
     if (!vi->idata){
       printf("Imod: Error reading image data.\n");
       return(-1);
