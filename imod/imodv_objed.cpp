@@ -34,6 +34,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.4  2002/12/27 01:21:04  mast
+Qt version
+
 Revision 1.1.2.3  2002/12/18 04:15:14  mast
 new includes for imodv modules
 
@@ -739,7 +742,6 @@ static void setLineColor_cb(void)
 static void mkLineColor_cb(int index)
 {
   ObjectEditField *oef = &objectEditFieldData[index];
-  ImodvApp *a = Imodv;
 
   QVBoxLayout *layout1 = new QVBoxLayout(oef->control, FIELD_MARGIN, 
                                          FIELD_SPACING, "line color layout");
@@ -805,7 +807,6 @@ static void setFillColor_cb(void)
 static void mkFillColor_cb(int index)
 {
   ObjectEditField *oef = &objectEditFieldData[index];
-  ImodvApp *a = Imodv;
 
   QVBoxLayout *layout1 = new QVBoxLayout(oef->control, FIELD_MARGIN, 
                                          FIELD_SPACING, "fill color layout");
@@ -908,7 +909,6 @@ static void setMaterial_cb(void)
 static void mkMaterial_cb (int index)
 {
   ObjectEditField *oef = &objectEditFieldData[index];
-  ImodvApp *a = Imodv;
 
   QVBoxLayout *layout1 = new QVBoxLayout(oef->control, FIELD_MARGIN, 
                                          FIELD_SPACING, "material layout");
@@ -982,7 +982,6 @@ static void setPoints_cb(void)
 static void mkPoints_cb(int index)
 {
   ObjectEditField *oef = &objectEditFieldData[index];
-  ImodvApp *a = Imodv;
 
   QVBoxLayout *layout1 = new QVBoxLayout(oef->control, FIELD_MARGIN, 
                                          FIELD_SPACING, "points layout");
@@ -1051,7 +1050,6 @@ void ImodvObjed::lineAliasSlot(bool state)
 
 static void setLines_cb(void)
 {
-  int alias;
   Iobj *obj = objedObject();
   if (!obj) 
     return;
@@ -1062,7 +1060,6 @@ static void setLines_cb(void)
 static void mkLines_cb(int index)
 {
   ObjectEditField *oef = &objectEditFieldData[index];
-  ImodvApp *a = Imodv;
 
   QVBoxLayout *layout1 = new QVBoxLayout(oef->control, FIELD_MARGIN, 
                                          FIELD_SPACING, "lines layout");
@@ -1128,7 +1125,6 @@ static void setScalar_cb(void)
 static void mkScalar_cb(int index)
 {
   ObjectEditField *oef = &objectEditFieldData[index];
-  ImodvApp *a = Imodv;
 
   QVBoxLayout *layout1 = new QVBoxLayout(oef->control, FIELD_MARGIN, 
                                          FIELD_SPACING, "mesh layout");
@@ -1214,7 +1210,6 @@ static void mkClip_cb(int index)
 {
   QPushButton *button;
   ObjectEditField *oef = &objectEditFieldData[index];
-  ImodvApp *a = Imodv;
 
   QVBoxLayout *layout1 = new QVBoxLayout(oef->control, FIELD_MARGIN, 
                                          FIELD_SPACING, "clip layout");
@@ -1304,7 +1299,6 @@ static void mkMove_cb(int index)
   QPushButton *button;
   QLabel *label;
   ObjectEditField *oef = &objectEditFieldData[index];
-  ImodvApp *a = Imodv;
 
   QVBoxLayout *layout1 = new QVBoxLayout(oef->control, FIELD_MARGIN, 
                                          FIELD_SPACING, "move layout");
@@ -1364,9 +1358,7 @@ void ImodvObjed::subsetSlot(int which)
 
 static void mkSubsets_cb(int index)
 {
-  int width;
   ObjectEditField *oef = &objectEditFieldData[index];
-  ImodvApp *a = Imodv;
 
   QVBoxLayout *layout1 = new QVBoxLayout(oef->control, FIELD_MARGIN, 
                                          FIELD_SPACING, "move layout");
@@ -1400,8 +1392,6 @@ void imodvObjectListDialog(ImodvApp *a, int state)
 {
   int ob, m;
   QString qstr;
-  char obname[MAX_LIST_NAME];
-  int len;
   int nPerCol;
   char *window_name;
 
