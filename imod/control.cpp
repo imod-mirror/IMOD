@@ -34,6 +34,10 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.1  2003/01/02 15:37:07  mast
+Added key callback so that keys can be passed from dialog boxes to active
+window
+
 Revision 3.2  2002/12/01 15:34:41  mast
 Changes to get clean compilation with g++
 
@@ -50,6 +54,8 @@ Eliminated conditional on USE_IMOD_CONTROL
 #include "mrcfiles.h"
 #include "imod.h"
 #include "control.h"
+
+static int removeControl(ImodView *iv, int inCtrlId, int callClose);
 
 /****************************************************************************/
 
@@ -97,10 +103,24 @@ int ivwNewControl(ImodView *iv,
   return(ctrlId);
 }
 
+/* remove the control associated with the inCtrlId value.
+ * do not call the close method of the control
+ * This avoids convoluted close logic in the controls!
+ */
+int ivwRemoveControl(ImodView *iv, int inCtrlId)
+{
+  return removeControl(iv, inCtrlId, 0);
+}
+
 /* delete the control associated with the inCtrlId value.
  * this will also call the close or quit method of the contorl.
  */
 int ivwDeleteControl(ImodView *iv, int inCtrlId)
+{
+  return removeControl(iv, inCtrlId, 1);
+}
+
+static int removeControl(ImodView *iv, int inCtrlId, int callClose)
 {
   ImodControl *ctrlPtr;
   int element = 0;
