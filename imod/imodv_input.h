@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.2  2002/12/17 21:38:18  mast
+include time.h so clock_t is defined
+
 Revision 1.1.2.1  2002/12/17 17:41:01  mast
 initial creation
 
@@ -34,6 +37,11 @@ extern "C" {
 #ifndef USE_IMODV_WORKPROC
   void imodvMovieTimeout();
 #endif
+  void imodvCloseDialogs();
+  void imodvRemoveDialog(QWidget * widget);
+  void imodvAddDialog(QWidget *widget);
+  void imodvHideDialogs();
+  void imodvShowDialogs();
   void imodvKeyPress(QKeyEvent *event);
   void imodvKeyRelease(QKeyEvent *event);
   void imodvMousePress(QMouseEvent *event);
