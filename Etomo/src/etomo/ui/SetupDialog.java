@@ -11,6 +11,10 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.14.2.2  2004/08/11 15:46:03  sueh
+ * <p> bug# 515 catching number format exception and displaying error
+ * <p> message
+ * <p>
  * <p> Revision 3.14.2.1  2004/07/12 21:09:44  sueh
  * <p> bug# 492 merge from head:
  * <p> add getDataset() to return a MetaData with the
@@ -564,8 +568,10 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
       if (getAxisType() == AxisType.DUAL_AXIS) {
         metaData.setImageRotation(Float.parseFloat(ltfImageRotation.getText()),
           AxisID.SECOND);
-      }
+      } 
+      currentField = "Axis A starting and step angles";
       tiltAnglesA.getFields(metaData.getTiltAngleSpecA());
+      currentField = "Axis B starting and step angles";
       tiltAnglesB.getFields(metaData.getTiltAngleSpecB());
     }
     catch (NumberFormatException e) {
