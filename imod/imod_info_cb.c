@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.5  2002/12/01 15:34:41  mast
+Changes to get clean compilation with g++
+
 Revision 3.4  2002/11/25 19:21:40  mast
 In imod_info_setxyz, elimiated call to redraw pixelview; this is now
 in the control list for redrawing
@@ -63,6 +66,7 @@ Call imodDraw instead of xyz_draw after changing model/movie mode
 #include "mrcfiles.h"
 #include "options.h"
 #include "xzap.h"
+#include "imod_object_edit.h"
 
 int sampleMeanSD(unsigned char *image, int type, int nx, int ny, float sample, 
                  float matt, float *mean, float *sd);
