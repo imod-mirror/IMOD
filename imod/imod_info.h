@@ -13,6 +13,9 @@
     $Revision$
 
     $Log$
+    Revision 3.1.2.4  2003/01/14 21:49:54  mast
+    add dialog hiding/showing control
+
     Revision 3.1.2.3  2003/01/13 01:05:05  mast
     Qt version
 
@@ -116,16 +119,8 @@ class InfoWindow : public QMainWindow
   bool mMinimized;
 };
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-  void MaintainModelName(Imod *mod);
-  int imod_info_open();
-
-#ifdef __cplusplus
-}
-#endif
-
+/* GLOBAL FUNCTIONS */
+void MaintainModelName(Imod *mod);
+int imod_info_open();
 
 #endif    /* IMOD_INFO_H */

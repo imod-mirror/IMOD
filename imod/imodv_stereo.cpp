@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.8  2003/01/18 00:58:37  mast
+add tooltips to dialogframe call
+
 Revision 1.1.2.7  2003/01/13 07:21:38  mast
 Changes to use new dialog manager class
 
@@ -84,6 +87,7 @@ Changes to get clean compilation with g++
 #include "imodv_window.h"
 #include "imodv.h"
 #include "imod.h"
+#include "imod_display.h"
 #include "imodv_gfx.h"
 #include "imodv_input.h"
 #include "imodv_stereo.h"
@@ -119,7 +123,7 @@ static struct{
   int    x, y;
   float       rad;
 
-  Bool        useSGIStereo;
+  int         useSGIStereo;
   GLenum      currentDrawBuffer;
   //  int         currentStereoBuffer;
   bool        enabled;
@@ -267,7 +271,7 @@ static void stereoInit(int usingStereoVisual, char *stereoCmd, char
   imodvStereoData.useSGIStereo = !usingStereoVisual;
   imodvStereoData.currentDrawBuffer = GL_NONE;
   //  imodvStereoData.currentStereoBuffer = STEREO_BUFFER_NONE;
-  imodvStereoData.enabled = False;
+  imodvStereoData.enabled = 0;
   if (imodvStereoData.stereoCommand) {
     free(imodvStereoData.stereoCommand);
   }
@@ -283,7 +287,7 @@ void
 stereoDone(void)
 {
   stereoDisable();
-  stereoInit(True, NULL, NULL);
+  stereoInit(1, NULL, NULL);
 }
 
 
@@ -322,7 +326,7 @@ static void stereoSetUp(void)
   char *stcmd = "true";
   char *mocmd = "true";
 #endif
-  //diaBusyCursor(True);
+  //diaBusyCursor(1);
   // DNM 12/16/02 deleted Stereo_FULL_SCREEN_HACK
 
       /* keep window in upper half of screen. */
@@ -380,7 +384,7 @@ static void stereoSetUp(void)
     imodvStereoData.hw = 0;
   }
 
-  //  diaBusyCursor(False);
+  //  diaBusyCursor(0);
   if (!configured) {
     imodvDraw(Imodv);
   }
@@ -410,7 +414,7 @@ static void stereoInitl(void)
     imodvStereoData.omode = IMODV_STEREO_HW;
 #endif
     imodvStereoData.a = Imodv;
-    imodvStereoData.init = True;
+    imodvStereoData.init = 1;
   }
 }
 

@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.1  2003/01/23 23:05:57  mast
+conversion to cpp
+
 Revision 3.3.2.4  2003/01/23 19:54:09  mast
 add include of imod_io
 
@@ -66,16 +69,12 @@ Initital version of code moved from imod_menu_cb.c
 
 #include <stdio.h>
 #include <math.h>
-#include <Xm/Xm.h>
-#include <Xm/RowColumn.h>
-#include <Xm/AtomMgr.h>
-#include <dia.h>
+#include <X11/Xlib.h>
 #include "imod.h"
+#include "imodv.h"
 #include "imod_io.h"
 #include "imod_info_cb.h"
 #include "imod_client_message.h"
-
-extern int Imod_debug;
 
 //  Module variables
 static int message_action = MESSAGE_NO_ACTION;
@@ -83,47 +82,44 @@ static int packets_left = 0;
 static int message_index;
 static char *message_string = NULL;
 
+static int debugMode = 0;
+
 //  Module methods
 static void executeMessage(void);
 
 
-void imodHandleClientMessage(Widget w, XtPointer client_data, XEvent *event)
+bool imodHandleClientMessage(XEvent *event)
 {
   XClientMessageEvent *cmEvent = (XClientMessageEvent *)event;
 
-  /* Since there could easily be other events around, only put out the
-     first four error message in debug mode */
-  if (event->type != ClientMessage) {
-    if (Imod_debug)
-      fprintf(stderr, "imodHandleClientMessage: received non client"
-              " message\n");
-    return;
-  }
-     
-  /* fprintf(stderr, "got client message\n"); */
+  /* There are lots of other events around in Qt, only put out the
+     first three error message in debug mode */
 
   if (cmEvent->format == 16) {
-    if (Imod_debug)
+    if (debugMode)
       fprintf(stderr, "imodHandleClientMessage: received message in "
               "16-bit format\n");
-    return;
+    return FALSE;
   }
 
   /* If it is a string packet, and we are not expecting one, forget it */
   if (cmEvent->format == 8 && !packets_left) {
-    if (Imod_debug)
+    if (debugMode)
       fprintf(stderr, "imodHandleClientMessage: received byte packet"
               " when not expecting one\n");
-    return;
+    return FALSE;
   }
 
   /* If it is an action packet without the signature, skip it */
   if (cmEvent->format == 32 && cmEvent->data.l[0] != ID_IMOD) {
-    if (Imod_debug)
+    if (debugMode)
       fprintf(stderr, "imodHandleClientMessage: received client "
-              "message without IMOD signature\n");
-    return;
+      "message without IMOD signature\n");
+    return FALSE;
   }
+
+  if (debugMode)
+    fprintf(stderr, "imodHandleClientMessage: got IMOD client message\n");
 
   /* If it is an action packet and we are still expecting some string
      packets, clear out the last action */
@@ -153,7 +149,7 @@ void imodHandleClientMessage(Widget w, XtPointer client_data, XEvent *event)
         packets_left = 0;
         message_action = MESSAGE_NO_ACTION;
       }
-      return;
+      return TRUE;
     }
   }
   else {
@@ -162,7 +158,7 @@ void imodHandleClientMessage(Widget w, XtPointer client_data, XEvent *event)
     memcpy(&message_string[message_index], cmEvent->data.b, 20);
     message_index += 20;
     if (--packets_left)
-      return;
+      return TRUE;
   }
 
   //  Execute the compiled message

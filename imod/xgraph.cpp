@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 1.1.2.2  2003/01/10 23:41:28  mast
+    clean up warnings
+
     Revision 1.1.2.1  2003/01/02 15:45:09  mast
     changes for new controller key callback
 
@@ -62,6 +65,9 @@
 #include "xgraph.h"
 
 #include "imod.h"
+#include "imod_input.h"
+#include "imod_display.h"
+#include "b3dgfx.h"
 #include "control.h"
 
 
@@ -105,7 +111,7 @@ int xgraphOpen(struct ViewInfo *vi)
   xg->zoom    = 1.0;
   xg->data    = NULL;
   xg->dsize   = 0;
-  xg->locked  = False;
+  xg->locked  = 0;
   xg->highres = 0;
 
   xg->dialog = new GraphWindow(xg, App->qtRgba, App->qtDoubleBuffer,
@@ -751,7 +757,7 @@ void GraphGL::paintGL()
   if (!xg->data)
     return;
   b3dColorIndex(App->background);
-  b3dClear();
+  glClear(GL_COLOR_BUFFER_BIT);
   xg->dialog->xgraphDrawPlot(xg);
   xg->dialog->xgraphDrawAxis(xg);
 }

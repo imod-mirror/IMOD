@@ -34,6 +34,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.13  2003/01/23 20:14:09  mast
+Add include of imod_io
+
 Revision 1.1.2.12  2003/01/13 01:15:42  mast
 changes for Qt version of info window
 
@@ -110,7 +113,6 @@ Added -S option to open slicer first; made it set a new model so that time
 index modeling is the default if multiple files are opened.
 
 */
-#define NO_X_INCLUDES
 
 #include <stdio.h>
 #include <unistd.h>
@@ -120,10 +122,11 @@ index modeling is the default if multiple files are opened.
 #include <errno.h>
 #include <sys/wait.h>
 #include <qfiledialog.h>
+#include <qapplication.h>
 #include "xxyz.h"
-#include <qxt.h>
 
 #include "imod.h" 
+#include "imod_workprocs.h"
 #include "imodv.h"
 #include "imod_client_message.h"
 #include "xzap.h"
@@ -134,12 +137,14 @@ index modeling is the default if multiple files are opened.
 #include "sslice.h"
 #include "control.h"
 #include "imodplug.h"
+#include "b3dgfx.h"
+#include "xcramp.h"
+#include "dia_qtutils.h"
+#include <X11/Xlib.h>
 
 /******************************* Globals *************************************/
 ImodApp *App;
 Imod	*Model;
-
-struct ViewInfo *Tilt_vi = NULL;
 
 char   *Imod_imagefile;
 char   *Imod_IFDpath;
@@ -149,9 +154,29 @@ int    Imod_debug = FALSE;
 int    ImodTrans  = TRUE;
 int    Rampbase = RAMPBASE;
 
-extern Widget Imod_widget_float;
-
 /*****************************************************************************/
+
+class ImodApplication : public QApplication
+{
+public:
+  ImodApplication( int argc, char *argv[]);
+  ~ImodApplication() {};
+
+private:
+  bool x11EventFilter (XEvent *e);
+};
+
+ImodApplication::ImodApplication(int argc, char *argv[])
+  : QApplication(argc, argv)
+{
+}
+
+bool ImodApplication::x11EventFilter (XEvent *e)
+{
+  if (e->type != ClientMessage)
+    return FALSE;
+  return imodHandleClientMessage(e);
+}
 
 void imod_usage(char *name)
 {
@@ -214,6 +239,7 @@ int main( int argc, char *argv[])
   int overx = 0;
   int overy = 0;
   float font_scale = 0.;
+  int styleSet = 0;
   Iobj *obj;
   char *tmpCwd;
   QString qname;
@@ -232,12 +258,15 @@ int main( int argc, char *argv[])
       App->rgba = 1;
       App->qtRgba = 1;
     }
+    if (argv[i][0] == '-' && argv[i][1] == 's' && argv[i][2] == 't'
+	&& argv[i][3] == 'y' && argv[i][4] == 'l' && argv[i][5] == 'e')
+      styleSet = 1;
   }
 
   /* Run the program as imodv? */
   i = strlen(argv[0]);
   if (argv[0][i-1] == 'v'){
-    imodv_main(argc, argv);
+    imodv_main(argc, argv, styleSet);
     exit(0);
   }
 
@@ -246,7 +275,7 @@ int main( int argc, char *argv[])
     if (i) i = strcmp("-view", argv[1]);
     if (!i){
       argc--; argv++; argv[0]++;
-      imodv_main(argc, argv);
+      imodv_main(argc, argv, styleSet);
       exit(0);
     }
   }
@@ -257,20 +286,35 @@ int main( int argc, char *argv[])
     exit(1);
   }
 
-  imod_display_init(App, argv, &argc);
+  /* Open the Qt application */
+  /*
+  fprintf(stderr, "Before starting app: argc %d\n", argc);
+  for (i = 0; i < argc; i++)
+    fprintf(stderr, "%s\n", argv[i]);
+  */
+  ImodApplication qapp(argc, argv);
+  /*
+  fprintf(stderr, "After starting app: argc %d  qapp.argc %d\n",
+          argc, qapp.argc());
+  for (i = 0; i < qapp.argc(); i++)
+    fprintf(stderr, "%s - %s\n", qapp.argv()[i], argv[i]);
+  */
+  /* Adjust the argc if has not been adjusted */
+  if (argc > qapp.argc())
+    argc = qapp.argc();
+
+  imod_display_init(App, argv);
   mrc_init_li(&li, NULL);
   vi.li = &li;
 
-  /* initialize the qxt application */
-  QXtApplication qapp(XtDisplay(App->toplevel));
-  QApplication::setStyle("windows");
-  //imodAssessVisuals();
-  imodFindQGLFormat(App, argv);
+#ifdef __linux
+  if (!styleSet)
+    QApplication::setStyle("windows");
+#endif
 
   /*******************/
   /* Initialize Data */
   App->cvi = &vi;
-  Tilt_vi = &tiltvi;
   ivwInit(&vi);
   vi.fp = fin;
   vi.vmSize = cacheSize;
@@ -616,7 +660,7 @@ int main( int argc, char *argv[])
 
   /* report window before forking and loading data */
   if (print_wid)
-    fprintf(stderr, "Window id = %u\n", XtWindow(App->toplevel));
+    fprintf(stderr, "Window id = %u\n", ImodInfoWin->winId());
 
 #ifndef NO_IMOD_FORK
   /* put imod in background if not debug. */
@@ -628,10 +672,6 @@ int main( int argc, char *argv[])
       exit(0);
     }
 #endif
-
-  XtAddEventHandler(App->toplevel, 0, True, 
-		    (XtEventHandler)imodHandleClientMessage,
-		    (XtPointer)App);
 
   /********************************************/
   /* Load in image data, set up image buffer. */
@@ -718,7 +758,7 @@ int main( int argc, char *argv[])
   if (Imod_debug) puts("Read image data OK.");
   if (Imod_imagefile)
     wprint("\nImage %s\n", Imod_imagefile);
-  else
+  else if (vi.fakeImage)
     wprint("\nNo image loaded.\n");
 
 
@@ -727,11 +767,11 @@ int main( int argc, char *argv[])
   /* add all work procs and time outs. (DNM: no more for imodv) */
 
   /* imodv_add_anim(); */
-  imod_start_autosave();
+  imod_start_autosave(App->cvi);
 
   /* Satisfy the lawyers. */
   wprint("Imod %s Copyright %s\n"
-	 "BL3DFS & Regents of the Univ. of Colo.\n", 
+	 "BL3DEMC & Regents of the Univ. of Colo.\n", 
 	 VERSION_NAME, COPYRIGHT_YEARS);
   imod_draw_window();
   xcramp_setlevels(App->cvi->cramp,App->cvi->black,App->cvi->white);
@@ -751,35 +791,28 @@ int main( int argc, char *argv[])
   if (Imod_debug) puts("mainloop");
   imodPlugCall(&vi, 0, IMOD_REASON_STARTUP);
 
-  dia_mainloop();
-  return 0;
+  return qapp.exec();
 }
 
 
 void imod_exit(int retcode)
 {
-  XtDestroyWidget(App->toplevel);
-  exit(retcode);
+  QApplication::exit(retcode);
 }
 
 /* DNM 2/7/02: keep it from sending up another window if one is already up */
 void imod_quit(void)
 {
-  static int quitting = 0;
   int done, err;
-
-  if (quitting)
-    return;
 
   if (!imod_model_changed(Model)){
     imod_cleanup_autosave();
     imod_exit(0);
+    return;
   }
 
-  quitting = 1;
   done = dia_choice("Save model before quitting?",
 		    "Yes", "No", "Cancel");
-  quitting = 0;
 
   switch(done){
   case 1:
@@ -793,6 +826,7 @@ void imod_quit(void)
     }else{
       imod_cleanup_autosave();
       imod_exit(0);
+      return;
     }
     break;
 
@@ -801,6 +835,7 @@ void imod_quit(void)
     /* DNM: It used to make one last autosave and quit, but if the user
        says NO, then just clean up and quit! */
     imod_exit(0);
+    return;
     break;
 
   case 3:
@@ -892,13 +927,6 @@ QString imodCaption(char *intro)
  *
  */
 
-Display	     *imodDisplay(void){ return(App->display); }
-XtAppContext  imodAppContext(void){ return(App->context); }
-
-Widget	      imodTopLevel(void){ return(App->toplevel); }
-Visual	     *imodVisual(void){ return(App->visual); }
-XVisualInfo  *imodVisualInfo(void){ return(App->visualinfo); }
-Colormap      imodColormap(void){ return(App->cmap); }
 int	      imodDepth(void){ return(App->depth); }
 
      

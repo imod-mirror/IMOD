@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.1.2.3  2003/01/23 20:06:07  mast
+    remove declarations for imod_cont_edit
+
     Revision 3.1.2.2  2003/01/13 01:15:42  mast
     changes for Qt version of info window
 
@@ -46,9 +49,8 @@
 
 #ifndef IMOD_INPUT_H
 #define IMOD_INPUT_H
-#ifdef __cplusplus
-extern "C" {
-#endif
+
+void inputQDefaultKeys(QKeyEvent *event, ImodView *vw);
 
 void inputDeletePoint(ImodView *vw);
 void inputInsertPoint(ImodView *vw);
@@ -89,8 +91,5 @@ void inputContourDup(ImodView *vw);
 void inputSetModelTime(ImodView *vw, int time);
 
 int mouse_in_box(int llx, int lly, int urx, int  ury, int mousex, int mousey);
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* imod_input.h */

@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.3  2002/12/30 06:45:28  mast
+changes to control multiple draws
+
 Revision 1.1.2.2  2002/12/23 04:51:01  mast
 Qt version
 
@@ -25,9 +28,7 @@ initial creation
 
 #define VIEW_LABEL_LENGTH  32
 
-#ifndef IMODV_H
 typedef struct __imodv_struct ImodvApp;
-#endif
 
 /* view editing functions */
 void imodvUpdateModel(ImodvApp *a);

@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.2.2.1  2003/01/14 21:42:44  mast
+    Qt version
+
     Revision 3.2  2002/12/01 15:34:41  mast
     Changes to get clean compilation with g++
 
@@ -40,10 +43,6 @@
 
 #ifndef AUTOX_H
 #define AUTOX_H
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
   /* Resolution times 100 */
 #define AUTOX_MAX_RESOLUTION  200
@@ -111,9 +110,5 @@ typedef struct imod_autox_struct
   void autoxExpand();
   void autoxSmooth();
   void autoxNext();
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* AUTOX_H */

@@ -34,6 +34,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.8  2003/01/23 20:12:10  mast
+switch from button pressed to clicked
+
 Revision 1.1.2.7  2003/01/13 07:21:38  mast
 Changes to use new dialog manager class
 
@@ -204,7 +207,7 @@ void imodvObjedDrawData(int option)
      
   switch(option){
   case 0:
-    setObjFlag(IMOD_OBJFLAG_OFF, True);
+    setObjFlag(IMOD_OBJFLAG_OFF, 1);
     break;
 
   case 1:

@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.1  2003/01/10 23:47:49  mast
+Qt version and many general fixes and enhancements
+
 Revision 3.2  2002/12/01 15:34:41  mast
 Changes to get clean compilation with g++
 
@@ -62,9 +65,10 @@ Added slice argument to calls to b3dDrawGreyScalePixelsSubArea
 #include "sslice.h"
 #include "xtum.h"
 
-#include <mrcslice.h>
-#include <imat.h>
 #include "imod.h"
+#include "imod_input.h"
+#include <imat.h>
+#include "b3dgfx.h"
 
 #include "lowres.bits"
 #include "highres.bits"

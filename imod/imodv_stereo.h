@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.2  2003/01/01 05:45:50  mast
+Qt version
+
 Revision 1.1.2.1  2002/12/18 04:10:30  mast
 initial creation
 
@@ -22,9 +25,7 @@ initial creation
 
 #include <GL/gl.h>
 
-#ifndef IMODV_H
 typedef struct __imodv_struct ImodvApp;
-#endif
 
 #define IMODV_STEREO_OFF 0
 #define IMODV_STEREO_RL  1

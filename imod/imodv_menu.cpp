@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.9  2003/01/18 01:13:44  mast
+add include of dia_qtutils
+
 Revision 1.1.2.8  2003/01/13 07:21:38  mast
 Changes to use new dialog manager class
 
@@ -265,14 +268,15 @@ int imodvLoadModel()
   ImodvApp *a = Imodv;
   int i, ob, co;
   QString qname;
+  char *filter[] = {"Model files (*.*mod)"};
   
   if (ImodvClosed || !a->standalone)
     return -1;
 
   // Need to release the keyboard because window grabs it on ctrl
   a->mainWin->releaseKeyboard();
-  qname = QFileDialog::getOpenFileName(QString::null, QString::null, 0, 0, 
-                                       "Select Model file to load:");
+  qname = diaOpenFileName(NULL, "Select Model file to load", 1, filter);
+
   if (qname.isEmpty())
     return 1;
 
@@ -518,89 +522,9 @@ void imodvViewMenu(int item)
 }
 
 
-/*
+/* DNM 1/24/03: REMOVED addImodvViewPlugins
  * imodv plugin menu additions.
  */
-#ifdef __linux
-#define NOPLUGS
-#endif
-#ifdef __vms
-#define NOPLUGS
-#endif
-#ifdef SVR3
-#define NOPLUGS
-#endif
-
-
-#ifndef NOPLUGS
-#include <dlfcn.h>
-#include <dirent.h>
-#include <string.h>
-#endif
-
-static void addImodvViewPlugins(Widget w, ImodvApp *a)
-{
-#ifndef NOPLUGS
-  void *handle;
-  void (*fptr)(Widget,ImodvApp *);
-  char soname[256];
-  char *plugdir = getenv("IMOD_PLUGIN_DIR");
-  if (!plugdir) return;
-
-  //  XtVaCreateManagedWidget("", xmSeparatorWidgetClass, w, NULL);
-
-#ifdef IMODV_PLUGIN_GENERAL
-  {
-    DIR *dirp;
-    struct direct *dp;
-
-    dirp = opendir(plugdir);
-    if (!dirp) return;
-    while ((dp = readdir(dirp)) != NULL) {
-      char *ext = dp->d_name + dp->d_namlen - 3;
-      if (strcmp(ext, ".so") == 0){
-        /* try and load plug */
-        sprintf(soname, "%s/%s", plugdir, dp->d_name);
-                    
-        handle = dlopen(soname, RTLD_LAZY);
-        if (!handle)
-          continue;
-                    
-        /* find address of function and data objects */
-        fptr = (void (*)(Widget, ImodvApp *))dlsym
-          (handle, "imodvPlugInAttach");
-        if (!fptr){
-          dlclose(handle);
-          contunue;
-        }
-        /* invoke function */
-        (*fptr)(w, a);
-        printf("loaded plugin : %s", dp->d_name);
-      }
-    }
-    closedir(dirp);
-  }
-#else
-  sprintf(soname, "%s/lineage.so", plugdir);
-  /* open the needed object */
-  handle = dlopen(soname, RTLD_LAZY);
-  if (handle){
-    /* find address of function and data objects */
-    fptr = (void (*)(Widget, ImodvApp *))dlsym
-      (handle, "lineageAttach");
-
-    /* invoke function, passing value of integer as a parameter */
-    if (fptr){
-      (*fptr)(w, a);
-      printf("loaded lineage plugin.\n");
-    }
-  }
-
-#endif
-
-#endif
-  return;
-}
 
 // Calls to set the menu items as checked/unchecked
 void imodvMenuLight(int value)

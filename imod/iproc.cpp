@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 1.1.2.1  2003/01/23 19:57:06  mast
+    Qt version
+
     Revision 3.2.2.1  2003/01/13 01:15:43  mast
     changes for Qt version of info window
 
@@ -51,6 +54,7 @@
 #include "dia_qtutils.h"
 #include "multislider.h"
 #include "imod.h"
+#include "imod_display.h"
 #include "iproc.h"
 #include "sliceproc.h"
 #include "imod_info_cb.h"

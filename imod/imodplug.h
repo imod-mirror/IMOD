@@ -12,16 +12,17 @@
     $Revision$
 
     $Log$
+    Revision 1.1.2.1  2003/01/13 01:06:53  mast
+    Initial creation
+
 */
 #ifndef IMODPLUG_H
 #define IMODPLUG_H
 
 class QPopupMenu;
 class QKeyEvent;
+#ifndef IMODP_H
 typedef struct ViewInfo ImodView;
-
-#ifdef __cplusplus
-extern "C" {
 #endif
 
 // Formerly in imod.h
@@ -68,10 +69,6 @@ int imodPlugCall(ImodView *vw, int type, int reason);
 void imodPlugMenu(QPopupMenu *parent); /* build plugin menu. */
 int imodPlugHandleKey(ImodView *vw, QKeyEvent *event);
 void imodPlugOpen(int item);
-
-#ifdef __cplusplus
-}
-#endif
 
 
 #endif

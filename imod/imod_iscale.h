@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.1  2003/01/23 19:58:52  mast
+initial creation
+
 */
 
 #ifndef IMOD_ISCALE_H
@@ -21,9 +24,7 @@ $Log$
 class QLabel;
 class QLineEdit;
 
-#ifndef IMODP_H
 typedef struct ViewInfo ImodView;
-#endif
 
 class ImageScaleWindow : public DialogFrame
 {

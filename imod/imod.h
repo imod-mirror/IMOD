@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.1.2.2  2003/01/13 01:15:42  mast
+    changes for Qt version of info window
+
     Revision 3.1.2.1  2003/01/02 15:38:16  mast
     remove declarations for control.c functions
 
@@ -61,10 +64,6 @@
 #define IMOD_REASON_CLEANUP 2  /* Imod is exiting. Clean up your mess.   */
 #define IMOD_REASON_STARTUP 3  /* Imod has started. Initalize your plug. */
 
-
-#ifdef __cplusplus
-     extern "C" {
-#endif
 
        // 1/12/03: Moved plugin stuff to imodplug.h
 
@@ -156,17 +155,19 @@ void imodDrawModel(Imod *inModel);
 
 
 /**************************** Application Data *******************************/
-
+/*
 Display      *imodDisplay(void);
 XtAppContext  imodAppContext(void);
 Widget        imodTopLevel(void);
-
+*/
 /* These values are the based on the imod global graphics rendering
  * colormap.
- */ 
+ */
+/* 
 Visual       *imodVisual(void);
 XVisualInfo  *imodVisualInfo(void);
 Colormap      imodColormap(void);
+*/
 int           imodDepth(void);
 
 
@@ -203,9 +204,5 @@ void wprint(char *fmt, ...);
 
 
 /*****************************************************************************/
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* IMOD_H */

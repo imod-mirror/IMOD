@@ -1,11 +1,25 @@
+/*   imod_cachefill.h  -  declarations for imod_cachefill.cpp
+ *
+ *   Copyright (C) 1995-2002 by Boulder Laboratory for 3-Dimensional Electron
+ *   Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
+ *   Colorado.  See implementation file for full copyright notice.
+ */                                                                           
+
+/*  $Author$
+
+$Date$
+
+$Revision$
+
+$Log$
+*/
+
 #ifndef IMOD_CACHEFILL_H
 #define IMOD_CACHEFILL_H
 
 #include "dialog_frame.h"
 
-#ifndef IMODP_H
 typedef struct ViewInfo ImodView;
-#endif
 
 class QHButtonGroup;
 class QVButtonGroup;

@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.1  2003/01/23 19:59:28  mast
+Initial creation
+
 */
 
 #ifndef IMOD_CONT_COPY_H
@@ -23,9 +26,7 @@ class QSpinBox;
 class QComboBox;
 class QRadioButton;
 
-#ifndef IMODP_H
 typedef struct ViewInfo ImodView;
-#endif
 
 class ContourCopy : public DialogFrame
 {

@@ -32,6 +32,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.11  2003/01/13 01:15:43  mast
+changes for Qt version of info window
+
 Revision 1.1.2.10  2003/01/02 15:40:27  mast
 use dia call to block signals when setting toolbar slider
 
@@ -94,16 +97,8 @@ Initial addition to source
 #include "lock.bits"
 #include "time_unlock.bits"
 #include "time_lock.bits"
-
-static unsigned char lowRes_bits[] = {
-  0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0x0f, 0x0f, 0x0f, 0x0f,
-  0x0f, 0x0f, 0x0f, 0x0f, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0,
-  0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f};
-
-static unsigned char highRes_bits[] = {
-  0xcc, 0xcc, 0xcc, 0xcc, 0x33, 0x33, 0x33, 0x33, 0xcc, 0xcc, 0xcc, 0xcc,
-  0x33, 0x33, 0x33, 0x33, 0xcc, 0xcc, 0xcc, 0xcc, 0x33, 0x33, 0x33, 0x33,
-  0xcc, 0xcc, 0xcc, 0xcc, 0x33, 0x33, 0x33, 0x33};
+#include "lowres.bits"
+#include "highres.bits"
 
 static unsigned char insert_after_bits[] = {
   0x00, 0x00, 0xc0, 0x03, 0xc0, 0x03, 0xc0, 0x03, 0xc0, 0x03, 0x80, 0x01,
@@ -126,7 +121,7 @@ static unsigned char smartCenter_bits[] = {
   0xf9, 0x9f, 0x01, 0x80, 0x01, 0x80, 0xff, 0xff};
 
 static unsigned char *bitList[5][2] =
-  { {lowRes_bits, highRes_bits},
+  { {lowres_bits, highres_bits},
     {unlock_bits, lock_bits},
     {smartCenter_bits, keepCenter_bits},
     {insert_after_bits, insert_before_bits},
@@ -177,10 +172,13 @@ ZapWindow::ZapWindow(struct zapwin *zap, QString timeLabel, bool rgba,
   label->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
   mSecSlider = new QSlider(1, zap->vi->zsize, 1, 1, Qt::Horizontal, mToolBar,
 			  "section slider");
+  QSize hint = mSecSlider->minimumSizeHint();
+  /* fprintf(stderr, "minimum slider size %d minimum hint size %d\n", 
+     mSecSlider->minimumWidth(), hint.width()); */
   int swidth = zap->vi->zsize < MAX_SLIDER_WIDTH ? 
     zap->vi->zsize : MAX_SLIDER_WIDTH;
   swidth = swidth > MIN_SLIDER_WIDTH ? swidth : MIN_SLIDER_WIDTH;
-  mSecSlider->setFixedWidth(swidth + 15);    // 10 was needed
+  mSecSlider->setFixedWidth(swidth + hint.width() + 5);
   connect(mSecSlider, SIGNAL(valueChanged(int)), this, 
 	  SLOT(sliderChanged(int)));
 

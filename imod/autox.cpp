@@ -34,6 +34,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.1  2003/01/14 21:39:49  mast
+qt version
+
 Revision 3.2.2.1  2003/01/13 01:15:42  mast
 changes for Qt version of info window
 
@@ -46,6 +49,10 @@ Add calls for smooth and next section to be done from hotkeys
 */
 #include "form_autox.h"
 #include "imod.h"
+#include "imod_display.h"
+#include "dia_qtutils.h"
+#include "xcramp.h"
+#include "autox.h"
 #include "imod_info_cb.h"
 #include "control.h"
 
@@ -235,8 +242,8 @@ void autoxBuild()
 
   /* add each contour to the model */
   for (i = 0; i < ncont; i++) {
-    NewContour( Model );
-    cont = imodContourGet(Model);
+    NewContour( vw->imod );
+    cont = imodContourGet(vw->imod);
     imodContourCopy(&newconts[i], cont);
 
     /* DNM: switch to ContourReduce method, but keep the Strip call as a

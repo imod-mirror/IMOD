@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.4  2003/01/13 07:21:38  mast
+Changes to use new dialog manager class
+
 Revision 1.1.2.3  2002/12/30 06:48:32  mast
 Add widget list capability
 
@@ -29,28 +32,18 @@ initial creation
 #include <qevent.h>
 #include <time.h>
 
-#ifndef IMODV_H
 typedef struct __imodv_struct ImodvApp;
-#endif
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-  void imodvMovieTimeout();
-  void imodvKeyPress(QKeyEvent *event);
-  void imodvKeyRelease(QKeyEvent *event);
-  void imodvMousePress(QMouseEvent *event);
-  void imodvMouseRelease(QMouseEvent *event);
-  void imodvMouseMove(QMouseEvent *event);
-  void imodv_rotate_model(ImodvApp *a, int x, int y, int z);
-  void imodv_zoomd(ImodvApp *a, double zoom);
-  void imodvQuit();
-  void imodv_exit(ImodvApp *a);
-  clock_t imodv_sys_time(void);
+void imodvMovieTimeout();
+void imodvKeyPress(QKeyEvent *event);
+void imodvKeyRelease(QKeyEvent *event);
+void imodvMousePress(QMouseEvent *event);
+void imodvMouseRelease(QMouseEvent *event);
+void imodvMouseMove(QMouseEvent *event);
+void imodv_rotate_model(ImodvApp *a, int x, int y, int z);
+void imodv_zoomd(ImodvApp *a, double zoom);
+void imodvQuit();
+void imodv_exit(ImodvApp *a);
+clock_t imodv_sys_time(void);
   
-#ifdef __cplusplus
-}
-#endif
-
 #endif

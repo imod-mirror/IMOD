@@ -12,14 +12,15 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.1  2002/12/17 17:40:23  mast
+initial creation
+
 */
 
 #ifndef IMODV_OGL_H
 #define IMODV_OGL_H
 
-#ifndef IMODV_H
 typedef struct __imodv_struct ImodvApp;
-#endif
 
 void imodvDraw_models(ImodvApp *a);
 void imodvDraw_model(ImodvApp *a, Imod *imod);

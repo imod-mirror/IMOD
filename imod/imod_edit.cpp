@@ -28,55 +28,36 @@
  *****************************************************************************/
 /*  $Author$
 
-    $Date$
+$Date$
 
-    $Revision$
+$Revision$
 
-    $Log$
-    Revision 3.2.2.1  2002/12/09 17:42:32  mast
-    remove include of zap
+$Log$
+Revision 1.1.2.1  2003/01/23 23:06:00  mast
+conversion to cpp
 
-    Revision 3.2  2002/12/01 15:34:41  mast
-    Changes to get clean compilation with g++
+Revision 3.2.2.1  2002/12/09 17:42:32  mast
+remove include of zap
 
-    Revision 3.1  2002/01/28 16:45:25  mast
-    Removed imod_nearest function, which was used only by xyz window and did
-    not work
+Revision 3.2  2002/12/01 15:34:41  mast
+Changes to get clean compilation with g++
+
+Revision 3.1  2002/01/28 16:45:25  mast
+Removed imod_nearest function, which was used only by xyz window and did
+not work
 
 */
 
 #include <math.h>
 #include "imod.h"
+#include "imod_display.h"
+#include "imod_edit.h"
 
-int imod_distance( float *x, float *y, struct Mod_Point *pnt);
+static int imod_distance( float *x, float *y, struct Mod_Point *pnt);
 
-/* moves point by adding x,y, and z to current model point. */
-/* used by information window.                              */
-/* returns the index of the current point.                  */
-int imod_movepoint(int x, int y, int z)
-{
-     struct Mod_Object *obj = NULL;
-     struct Mod_Contour *cont = NULL;
-     int index = Model->cindex.point;
+/* DNM 1/23/03: eliminate imod_movepoint */
+/* moved point by adding x,y, and z to current model point. */
 
-     obj = imodel_object_get(Model);
-     if (obj == NULL)
-	  return(0);
-     cont = imodContourGet(Model);
-     if (cont == NULL)
-	  return(0);
-     
-     if (  (obj->flags & IMOD_OBJFLAG_OPEN)
-	 ||(obj->flags & IMOD_OBJFLAG_WILD)
-	 ||(obj->flags & IMOD_OBJFLAG_SCAT)){
-
-       cont->pts[index].x += x;
-       cont->pts[index].y += y;
-       cont->pts[index].z += z;
-     }
-     
-     return(Model->cindex.point);
-}
 
 /* sets the current graphics position to the same as the current model
  * position. 
@@ -91,33 +72,33 @@ int imod_setxyzmouse()
 
 int ivwRedraw(ImodView *vw)
 {
-     Imod *imod = ivwGetModel(vw);
-     Iobj  *obj = NULL;
-     Icont *cont = NULL;
-     int   index;
+  Imod *imod = ivwGetModel(vw);
+  Iobj  *obj = NULL;
+  Icont *cont = NULL;
+  int   index;
 
-     if ( (index = imod->cindex.point) < 0){
-	  imodDraw(vw, IMOD_DRAW_MOD);
-	  return(1);
-     }
+  if ( (index = imod->cindex.point) < 0){
+    imodDraw(vw, IMOD_DRAW_MOD);
+    return(1);
+  }
 
-     cont = imodContourGet(imod);
-     if (cont == NULL){
-	  imodDraw(vw, IMOD_DRAW_MOD);
-	  return(1);
-     }
-     if ((cont->pts == NULL) || (cont->psize <= index)){
-	  imodDraw(vw, IMOD_DRAW_MOD);
-	  return(1);
-     }
+  cont = imodContourGet(imod);
+  if (cont == NULL){
+    imodDraw(vw, IMOD_DRAW_MOD);
+    return(1);
+  }
+  if ((cont->pts == NULL) || (cont->psize <= index)){
+    imodDraw(vw, IMOD_DRAW_MOD);
+    return(1);
+  }
 
-     obj = imodObjectGet(imod);
-     if (iobjFlagTime(obj))
-	  ivwSetTime(vw, cont->type);
+  obj = imodObjectGet(imod);
+  if (iobjFlagTime(obj))
+    ivwSetTime(vw, cont->type);
 
-     ivwSetLocationPoint(vw, &(cont->pts[index]));
+  ivwSetLocationPoint(vw, &(cont->pts[index]));
 
-     return(0);
+  return(0);
 }
 
 
@@ -127,119 +108,119 @@ int ivwRedraw(ImodView *vw)
 /* DNM 6/17/01: pass the selection size as a parameter so that windows can
    make it zoom-dependent */
 int imod_obj_nearest(struct Mod_Object *obj, 
-		     struct Mod_Index *index,
-		     struct Mod_Point *pnt,
-		     float selsize)
+                     struct Mod_Index *index,
+                     struct Mod_Point *pnt,
+                     float selsize)
 {
     
-    struct Mod_Contour *cont;
-    int i, pindex;
-    int distance = -1;
-    int temp_distance;
-    int ctime;
-    int cz = (int)(pnt->z + 0.5f);
-    int twod = 0;
+  struct Mod_Contour *cont;
+  int i, pindex;
+  int distance = -1;
+  int temp_distance;
+  int ctime;
+  int cz = (int)(pnt->z + 0.5f);
+  int twod = 0;
     
-    /* Don't report points not in our time. DNM - unless time is 0*/
-    ivwGetTime(App->cvi, &ctime);
+  /* Don't report points not in our time. DNM - unless time is 0*/
+  ivwGetTime(App->cvi, &ctime);
     
-    /* Ignore Z value if 2d image. */
-    twod = (!(App->cvi->dim & 4));
+  /* Ignore Z value if 2d image. */
+  twod = (!(App->cvi->dim & 4));
     
-    for (i = 0; i < obj->contsize; i++){
-	
-	cont = &(obj->cont[i]);
-	if ((ctime) && (obj->flags & IMOD_OBJFLAG_TIME) && (cont->type) &&
-	    (cont->type != ctime)) continue;
-	
-	for(pindex = 0; pindex < cont->psize; pindex++){
-	    
-	    if ((twod) || ( cz == ((int)(cont->pts[pindex].z + 0.5f))))
-		
-		if ((  (pnt->x - cont->pts[pindex].x) < selsize)
-		    && (  (cont->pts[pindex].x - pnt->x) < selsize)
-		    && (  (pnt->y - cont->pts[pindex].y) < selsize) 
-		    && (  (cont->pts[pindex].y - pnt->y) < selsize))
-		    {
-			
-			temp_distance = imod_distance( &(cont->pts[pindex].x),
-						      &(cont->pts[pindex].y),
-						      pnt);
-			
-			if (distance == -1){
-			    distance = temp_distance;
-			    index->contour = i;
-			    index->point   = pindex;
-			}
-			
-			if (distance > temp_distance){
-			    distance = temp_distance;
-			    index->contour = i;
-			    index->point   = pindex;
-			}
-		    }
-	}
+  for (i = 0; i < obj->contsize; i++){
+        
+    cont = &(obj->cont[i]);
+    if ((ctime) && (obj->flags & IMOD_OBJFLAG_TIME) && (cont->type) &&
+        (cont->type != ctime)) continue;
+        
+    for(pindex = 0; pindex < cont->psize; pindex++){
+            
+      if ((twod) || ( cz == ((int)(cont->pts[pindex].z + 0.5f))))
+                
+        if ((  (pnt->x - cont->pts[pindex].x) < selsize)
+            && (  (cont->pts[pindex].x - pnt->x) < selsize)
+            && (  (pnt->y - cont->pts[pindex].y) < selsize) 
+            && (  (cont->pts[pindex].y - pnt->y) < selsize))
+          {
+                        
+            temp_distance = imod_distance( &(cont->pts[pindex].x),
+                                           &(cont->pts[pindex].y),
+                                           pnt);
+                        
+            if (distance == -1){
+              distance = temp_distance;
+              index->contour = i;
+              index->point   = pindex;
+            }
+                        
+            if (distance > temp_distance){
+              distance = temp_distance;
+              index->contour = i;
+              index->point   = pindex;
+            }
+          }
     }
-    return(distance);
+  }
+  return(distance);
 }
 
 
-int imod_distance( float *x, float *y, struct Mod_Point *pnt)
+static int imod_distance( float *x, float *y, struct Mod_Point *pnt)
 {
 
-     double distance;
-     int retval;
+  double distance;
+  int retval;
 
-     distance = ((*x - pnt->x) * (*x - pnt->x)) + 
-	  ((*y - pnt->y) * (*y - pnt->y));
+  distance = ((*x - pnt->x) * (*x - pnt->x)) + 
+    ((*y - pnt->y) * (*y - pnt->y));
      
-     distance = sqrt(distance);
+  distance = sqrt(distance);
 
-     retval = (int)(distance + 0.5);
+  retval = (int)(distance + 0.5);
      
-     return(retval);
+  return(retval);
 }
 
 /* This is called when moving all contours in an object */
 void imod_contour_move(int ob)
 {
 
-     int oldob;
-     int oldco;
-     int oldpt;
-     int co;
-     struct Mod_Object *obj;  
-     struct Mod_Contour *cont;
-     struct Mod_Contour *ocont;
+  int oldob;
+  int oldco;
+  int oldpt;
+  int co;
+  Iobj *obj;  
+  Icont *cont, *ocont;
+  Imod *imod = App->cvi->imod;
      
-     oldob =  Model->cindex.object;
-     oldco =  Model->cindex.contour;
-     oldpt =  Model->cindex.point;
+  oldob =  imod->cindex.object;
+  oldco =  imod->cindex.contour;
+  oldpt =  imod->cindex.point;
 
 
-     ocont = imodContourGet(Model);
-     if (!ocont)
-	  return;
+  ocont = imodContourGet(imod);
+  if (!ocont)
+    return;
      
-     if (ob == oldob)
-	  return;
+  if (ob == oldob)
+    return;
      
-     if (ob > Model->objsize)
-	  return;
+  if (ob > imod->objsize)
+    return;
      
-     if (ob < 0)
-	  return;
+  if (ob < 0)
+    return;
      
-     obj = &(Model->obj[ob]);
+  obj = &(imod->obj[ob]);
 
-     /* DNM: switch to this Add and Remove method to avoid problems with
-	labels */
-     imodObjectAddContour(obj, ocont);
+  /* DNM: switch to this Add and Remove method to avoid problems with
+     labels */
+  imodObjectAddContour(obj, ocont);
 
-     obj = &(Model->obj[oldob]);
-     imodObjectRemoveContour(obj, oldco);
-     /* DNM 3/29/01: delete old code. */
-     return;
+  obj = &(imod->obj[oldob]);
+  imodObjectRemoveContour(obj, oldco);
+  /* DNM 3/29/01: delete old code. */
+  return;
 }
 
 

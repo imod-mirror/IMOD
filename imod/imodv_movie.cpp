@@ -116,18 +116,8 @@ void imodvMovieHelp()
 
 static void xinput(void)
 {
-  if (Imodv->standalone) {
-    qApp->processEvents();
-  } else {
-    XFlush(XtDisplay(Imodv->topLevel));
-    /* DNM: need to either mask for X events in the while, or process ALL
-       types of events; so just call XtAppProcessEvent with XtIMAll */
-    while(XtAppPending(Imodv->context)){
-      /*         XtAppNextEvent(Imodv->context, &event_return);
-		 XtDispatchEvent(&event_return); */
-      XtAppProcessEvent(Imodv->context, XtIMAll);
-    }
-  }
+  QApplication::flush();
+  qApp->processEvents();
 }
 
 // Set the starting values to the current display values

@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.2  2003/01/23 20:02:57  mast
+switch from button pressed to clicked
+
 Revision 1.1.2.1  2003/01/18 01:12:20  mast
 qt version
 
@@ -131,9 +134,7 @@ static int fill_cache(ImodView *vw, int cz, int ovbefore, int ovafter)
   int minused, slmin, maxdtime, dtime, tdirlim, tdir; 
   int maxdz, dz, zdirlim, zdir;
   int *loadtbl;
-  ivwSlice tmpSlice;
   unsigned char *buf;
-  char statstr[64];
 
   if (!zstart || !zend || !zstall || !zndall)
     return 1;

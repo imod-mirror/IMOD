@@ -34,6 +34,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.9  2003/01/23 20:13:33  mast
+add include of imod_input
+
 Revision 1.1.2.8  2003/01/13 01:15:43  mast
 changes for Qt version of info window
 
@@ -95,13 +98,17 @@ Removed call to autox_build
 #include <qapplication.h>
 
 // Couldn't include imod first here, and this flag didn't help
-#define NO_X_INCLUDES
 #include "xxyz.h"
 #include "imod.h"
+#include "imod_display.h"
+#include "b3dgfx.h"
 #include "xzap.h"
 #include "control.h"
 #include "imod_info_cb.h"
 #include "imod_input.h"
+#include "autox.h"
+#include "imod_edit.h"
+#include "imod_workprocs.h"
 
 /*************************** internal functions ***************************/
 static void xyzKey_cb(ImodView *vi, void *client, int released, QKeyEvent *e);
@@ -142,7 +149,7 @@ int xxyz_open(ImodView *vi)
   xx->winx = vi->xsize + vi->zsize + (3 * XYZ_BSIZE);
   xx->winy = vi->ysize + vi->zsize + (3 * XYZ_BSIZE);
   xx->vi   = vi;
-  xx->exposed = False;
+  xx->exposed = 0;
 
   xx->zoom = 1.0;
   xx->xtrans = 0;
@@ -180,7 +187,7 @@ int xxyz_open(ImodView *vi)
   XYZ  = xx;
 
   xx->ctrl = ivwNewControl(vi, xyzDraw_cb, xyzClose_cb, xyzKey_cb, 
-			   (XtPointer)xx);
+			   (void *)xx);
   
   // This one we can resize before showing, since there is no toolbar size
   // that needs to get corrected
@@ -1641,7 +1648,7 @@ void XyzGL::paintGL()
 
     xyzShowSlice = 0;
   }
-  b3dFlush();
+  glFlush();
 
 }
 

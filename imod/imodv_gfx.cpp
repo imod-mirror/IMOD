@@ -35,6 +35,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.7  2003/01/01 19:12:31  mast
+changes to start Qt application in standalone mode
+
 Revision 1.1.2.6  2003/01/01 05:46:29  mast
 changes for qt version of stereo
 
@@ -73,9 +76,9 @@ Force GLw to use the already chosen visual when getting a drawing area
 #include <limits.h>
 #include "imodv_window.h"
 
-#define NO_X_INCLUDES
-#include <mrcc.h>
 #include "imod.h"
+#include "b3dgfx.h"
+#include "b3dfile.h"
 #include "imodv.h"
 #include "imodv_control.h"
 #include "imodv_gfx.h"
@@ -83,7 +86,6 @@ Force GLw to use the already chosen visual when getting a drawing area
 #include "imodv_input.h"
 #include "imodv_light.h"
 #include "imodv_stereo.h"
-#include "b3dgfx.h"
 
 /* local functions */
 static int imodv_snapshot(ImodvApp *a, char *fname);
@@ -217,7 +219,7 @@ void imodvPaintGL()
     glNewList(1, GL_COMPILE);
     imodvDraw_model(a, a->imod);
     glEndList();
-    a->update_dlist = False;
+    a->update_dlist = 0;
   }
 
   imodv_clear(a);

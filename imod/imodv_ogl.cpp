@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.6  2002/12/30 06:44:21  mast
+change position of imodv_image include
+
 Revision 1.1.2.5  2002/12/18 04:15:14  mast
 new includes for imodv modules
 
@@ -67,7 +70,6 @@ Fixed problem with transparency when lighting both sides
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include "imodv_image.h"
-#include <imodel.h>
 #include "imod.h"
 #include "imodv.h"
 #include "imodv_gfx.h"
@@ -449,9 +451,9 @@ void imodvDraw_model(ImodvApp *a, Imod *imod)
     glLoadName(ob);
     curTessObj = ob;
     if (obj->trans == 0){
-      clip_obj(obj, True, imod->zscale, Imodv->md->zoom);
+      clip_obj(obj, 1, imod->zscale, Imodv->md->zoom);
       imodvDraw_object( obj , imod);
-      clip_obj(obj, False, imod->zscale, Imodv->md->zoom);
+      clip_obj(obj, 0, imod->zscale, Imodv->md->zoom);
       glFinish();
     }
   }
@@ -463,9 +465,9 @@ void imodvDraw_model(ImodvApp *a, Imod *imod)
     obj = &(imod->obj[ob]);
     if (obj->trans > 0){
       glDepthMask(GL_FALSE); 
-      clip_obj(obj, True, imod->zscale, Imodv->md->zoom);
+      clip_obj(obj, 1, imod->zscale, Imodv->md->zoom);
       imodvDraw_object( obj , imod);
-      clip_obj(obj, False, imod->zscale, Imodv->md->zoom);
+      clip_obj(obj, 0, imod->zscale, Imodv->md->zoom);
       glDepthMask(GL_TRUE); 
       glFinish();
     }
@@ -782,7 +784,7 @@ static void imodvPick_Contours(Iobj *obj)
   int co, pt, npt;
   Icont *cont;
   int pmode = GL_POINTS;
-  int doLines = False;
+  int doLines = 0;
   int checkTime = (int)iobjTime(obj->flags);
   if (!CTime)
     checkTime = 0;
@@ -817,7 +819,7 @@ static void imodvPick_Contours(Iobj *obj)
 
   if (iobjLine(obj->flags)){
     pmode = GL_LINES;
-    doLines = True;
+    doLines = 1;
   }
 
   glPushName(NO_NAME);
@@ -1502,7 +1504,7 @@ static void imodvDrawScalarMesh(Imesh *mesh, double zscale,
   float slope, point;
 
   static unsigned char cmap[3][256];
-  int falsecolor = False;
+  int falsecolor = 0;
   int r,g,b;
 
   int useLight = Imodv->lighting;
@@ -1530,7 +1532,7 @@ static void imodvDrawScalarMesh(Imesh *mesh, double zscale,
    * calculate the color ramp to use.
    */
   if (obj->flags & IMOD_OBJFLAG_MCOLOR)
-    falsecolor = True;
+    falsecolor = 1;
 
   /* DNM 9/3/02: This was an endian problem after all */
   /* DNM: this initialization was needed on the PC.  There are models

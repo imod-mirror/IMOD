@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.3  2003/01/23 20:11:35  mast
+Add function to handle pixel size change from model-header dialog
+
 Revision 1.1.2.2  2002/12/23 04:51:01  mast
 Qt version
 
@@ -23,9 +26,7 @@ initial creation
 #ifndef IMODV_MODELED_H
 #define IMODV_MODELED_H
 
-#ifndef IMODV_H
 typedef struct __imodv_struct ImodvApp;
-#endif
 class QString;
 
 void imodvPixelChanged();

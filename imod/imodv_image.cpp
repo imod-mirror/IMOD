@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.9  2003/01/18 00:58:37  mast
+add tooltips to dialogframe call
+
 Revision 1.1.2.8  2003/01/13 07:21:38  mast
 Changes to use new dialog manager class
 
@@ -64,6 +67,8 @@ Changes to get clean compilation with g++
 
 #include <qcheckbox.h>
 #include <qlayout.h>
+#include <GL/gl.h>
+#include <GL/glu.h>
 #include "hotslider.h"
 #include "multislider.h"
 #include "dia_qtutils.h"
@@ -73,6 +78,7 @@ Changes to get clean compilation with g++
 #include "imodv_image.h"
 #include "imodv_input.h"
 #include "control.h"
+#include "xcramp.h"
 
 
 #define DRAW_CZ 1

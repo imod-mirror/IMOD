@@ -7,6 +7,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.1  2003/01/23 23:06:04  mast
+conversion to cpp
+
 Revision 3.1.2.1  2003/01/06 15:38:42  mast
 Add sphere drawing
 
@@ -15,6 +18,7 @@ Changes to get clean compilation with g++
 
 */
 #include "imod.h"
+#include "imod_display.h"
 
 #include <GL/gl.h>
 #include <GL/glu.h>
