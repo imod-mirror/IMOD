@@ -27,6 +27,10 @@ import etomo.type.JoinMetaData;
 * @version $Revision$
 *
 * <p> $Log$
+* <p> Revision 1.1.2.11  2004/11/15 22:18:58  sueh
+* <p> bug# 520 Changing postProcess(BackgoundProcess):  setting meta data
+* <p> sample produced = true when makejoincom finishes successfully.
+* <p>
 * <p> Revision 1.1.2.10  2004/11/12 22:54:57  sueh
 * <p> bug# 520 Added code to save binning, size, and shift after finishjoin in
 * <p> trial mode ends.
@@ -224,7 +228,7 @@ public class JoinProcessManager extends BaseProcessManager {
       if (outputFile != null
           && outputFile.exists()
           && outputFile.lastModified() > program.getOutputFileLastModified()
-              .get()) {
+              .getLong()) {
         joinManager.copyXfFile(outputFile);
       }
     }
