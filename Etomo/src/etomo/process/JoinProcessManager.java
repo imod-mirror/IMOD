@@ -3,6 +3,7 @@ package etomo.process;
 import etomo.JoinManager;
 import etomo.comscript.FlipyzParam;
 import etomo.comscript.MakejoincomParam;
+import etomo.comscript.XfalignParam;
 import etomo.type.AxisID;
 
 /**
@@ -19,6 +20,10 @@ import etomo.type.AxisID;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.3  2004/10/08 15:59:59  sueh
+* <p> bug# 520 Fixed makejoincom() to that it used BackgroundProcess.
+* <p> Added startjoin.
+* <p>
 * <p> Revision 1.1.2.2  2004/10/06 01:40:27  sueh
 * <p> bug# 520 Added flipyz().  Added backgroundPostProcess() to handle non-
 * <p> generic processing after BackgroundProcess is done.
@@ -41,6 +46,16 @@ public class JoinProcessManager extends BaseProcessManager {
       throws SystemProcessException {
     BackgroundProcess backgroundProcess = startBackgroundProcess(
         makejoincomParam.getCommandArray(), AxisID.ONLY);
+    return backgroundProcess.getName();
+  }
+  
+  /**
+   * Run xfalign
+   */
+  public String xfalign(XfalignParam xfalignParam)
+      throws SystemProcessException {
+    BackgroundProcess backgroundProcess = startBackgroundProcess(
+        xfalignParam.getCommandArray(), AxisID.ONLY);
     return backgroundProcess.getName();
   }
   
