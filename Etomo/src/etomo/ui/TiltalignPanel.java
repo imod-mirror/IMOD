@@ -37,6 +37,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.1.2.1  2004/07/02 22:24:20  sueh
+ * <p> bug# 361 merging from 3.4
+ * <p>
  * <p> Revision 3.1  2004/06/21 17:16:37  rickg
  * <p> Bug #461 z shift is scaled by the prealigned binning
  * <p>
@@ -377,6 +380,7 @@ public class TiltalignPanel {
     try {
       fidXyz.read();
       rawstackHeader.read();
+      prealiHeader.read();
     }
     catch (IOException except) {
       except.printStackTrace();
@@ -415,9 +419,16 @@ public class TiltalignPanel {
     ltfSeparateViewGroups.setText(params.getSeparateViewGroups());
     ltfTiltAngleOffset.setText(params.getTiltAngleOffset());
     
-    //if fidXyz.pixelSize could not be read from fid.xyz, then binning must
-    //have been 1 the last time align.com was run.
-    if (!fidXyz.exists() || !fidXyz.isPixelSizeSet()) {
+    if (fidXyz.exists() && fidXyz.isEmpty()) {
+      //if file exists but is empty, assume that tilt align failed and use
+      //pre align instead
+      //multiply by the binning previously used by pre align
+      ltfTiltAxisZShift.setText(params.getTiltAxisZShift()
+        * Math.round(prealiHeader.getXPixelSpacing() / rawstackHeader.getXPixelSpacing()));
+    }
+    else if (!fidXyz.exists() || !fidXyz.isPixelSizeSet()) {
+      //if fidXyz.pixelSize could not be read from fid.xyz, then binning must
+      //have been 1 the last time align.com was run.
       ltfTiltAxisZShift.setText(params.getTiltAxisZShift());
     }
     else {
