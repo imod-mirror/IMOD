@@ -12,6 +12,9 @@
  * @version $$Revision$
  *
  * <p> $$Log$
+ * <p> $Revision 3.10.2.5  2004/10/29 01:23:27  sueh
+ * <p> $bug# 520 Added isValidFile().
+ * <p> $
  * <p> $Revision 3.10.2.4  2004/10/28 17:09:38  sueh
  * <p> $bug# 520 Adding mostRecentFile.
  * <p> $
@@ -405,27 +408,53 @@ public class Utilities {
     }
   }
   
-  public static boolean isValidFile(File file, boolean exists,
-      boolean writable, StringBuffer invalidReason) {
+  /**
+   * validates a file and appends failure reason to invalidReason
+   * @param file
+   * @param invalidReason - must not be null
+   * @param exists
+   * @param canRead
+   * @param canWrite
+   * @param isDirectory
+   * @return
+   */
+  public static boolean isValidFile(File file, String fileDescription,
+      StringBuffer invalidReason, boolean exists, boolean canRead,
+      boolean canWrite, boolean isDirectory) {
+    boolean isValid = true;
+    if (file == null) {
+      if (fileDescription != null && !fileDescription.matches("\\s+")) {
+        invalidReason.append(fileDescription + " was not entered.\n");
+      } 
+      else if (isDirectory) {
+        invalidReason.append("No directory name was entered.\n");
+      }
+      else {
+        invalidReason.append("No file name was entered.\n");
+      }
+      return false;
+    }
     if (exists && !file.exists()) {
-      if (invalidReason != null) {
-        invalidReason.append(file.getAbsolutePath() + ", does not exist.");
-      }
-      return false;
+      invalidReason.append(file.getAbsolutePath() + " must exist.\n");
+      isValid = false;
     }
-    if (!file.canRead()) {
-      if (invalidReason != null) {
-        invalidReason.append(file.getAbsolutePath() + ", must be readable.");
-      }
-      return false;
+    if (canRead && !file.canRead()) {
+      invalidReason.append(file.getAbsolutePath() + " must be readable.\n");
+      isValid = false;
     }
-    if (writable && !file.canWrite()) {
-      if (invalidReason != null) {
-        invalidReason.append(file.getAbsolutePath() + ", must be writable.");
-      }
-      return false;
+    if (canWrite && !file.canWrite()) {
+      invalidReason.append(file.getAbsolutePath() + " must be writable.\n");
+      isValid = false;
     }
-    return true;
+    if (isDirectory && !file.isDirectory()) {
+      invalidReason.append(file.getAbsolutePath() + " must be a directory.\n");
+      isValid = false;
+    }
+    if (!isDirectory && file.isDirectory()) {
+      invalidReason.append(file.getAbsolutePath() + " must be a file.\n");
+      isValid = false;
+    }
+    return isValid;
   }
   
 }
