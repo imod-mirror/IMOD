@@ -21,6 +21,10 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.12  2004/10/29 01:19:29  sueh
+* <p> bug# 520 Removing workingDir.  Calling isValid with workingDir.  Moving
+* <p> file validations to Utilities.
+* <p>
 * <p> Revision 1.1.2.11  2004/10/25 23:09:16  sueh
 * <p> bug# 520 Added get functions.
 * <p>
@@ -159,6 +163,7 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
   }
 
   public void store(Properties props, String prepend) {
+    removeSectionTableData(props, prepend);
     prepend = createPrepend(prepend);
     String group = prepend + ".";
     props.setProperty(group + revisionNumberString, latestRevisionNumber);
@@ -181,6 +186,16 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
     if (sectionTableData != null) {
       for (int i = 0; i < sectionTableData.size(); i++) {
         ((SectionTableRowData) sectionTableData.get(i)).store(props, prepend);
+      }
+    }
+  }
+  
+  public void removeSectionTableData(Properties props, String prepend) {
+    prepend = createPrepend(prepend);
+    String group = prepend + ".";
+    if (sectionTableData != null) {
+      for (int i = 0; i < sectionTableData.size(); i++) {
+        ((SectionTableRowData) sectionTableData.get(i)).remove(props, prepend);
       }
     }
   }
