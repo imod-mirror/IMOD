@@ -6,6 +6,7 @@ import java.util.HashMap;
 
 import etomo.BaseManager;
 import etomo.EtomoDirector;
+import etomo.comscript.Command;
 import etomo.type.AxisID;
 import etomo.util.Utilities;
 
@@ -22,7 +23,11 @@ import etomo.util.Utilities;
 * 
 * @version $Revision$
 * 
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1.2.1  2004/09/29 17:48:18  sueh
+* <p> bug# 520 Contains functionality that is command for ProcessManager and
+* <p> JoinProcessManager.
+* <p> </p>
 */
 public abstract class BaseProcessManager {
   public static  final String  rcsid =  "$Id$";
@@ -36,6 +41,7 @@ public abstract class BaseProcessManager {
   private HashMap killedList = new HashMap();
   
   protected abstract void comScriptPostProcess(ComScriptProcess script, int exitValue);
+  protected abstract void backgroundPostProcess(BackgroundProcess process);
   
   public BaseProcessManager(BaseManager manager) {
     this.manager = manager;
@@ -185,7 +191,6 @@ public abstract class BaseProcessManager {
     }
     else {
       thread = threadAxisA;
-
     }
     if (thread != null) {
       processID = thread.getShellProcessID();
@@ -512,4 +517,122 @@ public abstract class BaseProcessManager {
     manager.processDone(script.getName(), exitValue,
       script.getProcessName(), script.getAxisID());
   }
+  
+  /**
+   * Start a managed background process
+   * 
+   * @param command
+   * @param axisID
+   * @throws SystemProcessException
+   */
+  protected BackgroundProcess startBackgroundProcess(String commandLine,
+      AxisID axisID) throws SystemProcessException {
+
+    isAxisBusy(axisID);
+
+    BackgroundProcess backgroundProcess = new BackgroundProcess(commandLine,
+        this);
+    return startBackgroundProcess(backgroundProcess, commandLine, axisID);
+  }
+
+  protected BackgroundProcess startBackgroundProcess(Command command,
+      AxisID axisID) throws SystemProcessException {
+    isAxisBusy(axisID);
+    BackgroundProcess backgroundProcess = new BackgroundProcess(command, this);
+    return startBackgroundProcess(backgroundProcess, command.getCommandLine(),
+        axisID);
+  }
+
+  private BackgroundProcess startBackgroundProcess(
+      BackgroundProcess backgroundProcess, String commandLine, AxisID axisID)
+      throws SystemProcessException {
+    backgroundProcess.setWorkingDirectory(new File(System
+        .getProperty("user.dir")));
+    backgroundProcess.setDemoMode(EtomoDirector.isDemo());
+    backgroundProcess.setDebug(EtomoDirector.isDebug());
+    backgroundProcess.start();
+    if (EtomoDirector.isDebug()) {
+      System.err.println("Started " + commandLine);
+      System.err.println("  Name: " + backgroundProcess.getName());
+    }
+    mapAxisThread(backgroundProcess, axisID);
+    return backgroundProcess;
+  }
+
+  /**
+   * A message specifying that a background process has finished execution
+   * 
+   * @param script
+   *          the BackgroundProcess execution object that finished
+   * @param exitValue
+   *          the exit value for the process
+   */
+  public void msgBackgroundProcessDone(BackgroundProcess process, int exitValue) {
+    //  Check to see if the exit value is non-zero
+    if (exitValue != 0) {
+      String[] stdError = process.getStdError();
+      String[] message;
+
+      // Is the last string "Killed"
+      if ((stdError.length > 0)
+        && (stdError[stdError.length - 1].trim().equals("Killed"))) {
+        message = new String[1];
+        message[0] = "<html>Terminated: " + process.getCommandLine();
+      }
+      else {
+        int j = 0;
+        message = new String[stdError.length + 3];
+        message[j++] = "<html>Command failed: " + process.getCommandLine();
+        message[j++] = "  ";
+        message[j++] = "<html><U>Standard error output:</U>";
+        for (int i = 0; i < stdError.length; i++, j++) {
+          message[j] = stdError[i];
+        }
+      }
+      manager.getMainPanel().openMessageDialog(message,
+          process.getCommand() + " terminated");
+    }
+
+    // Another possible error message source is ERROR: in the stdout stream
+    String[] stdOutput = process.getStdOutput();
+    ArrayList errors = new ArrayList();
+    boolean foundError = false;
+    for (int i = 0; i < stdOutput.length; i++) {
+      if (!foundError) {
+        int index = stdOutput[i].indexOf("ERROR:");
+        if (index != -1) {
+          foundError = true;
+          errors.add(stdOutput[i]);
+        }
+      }
+      else {
+        errors.add(stdOutput[i]);
+      }
+    }
+    String[] errorMessage = (String[]) errors
+      .toArray(new String[errors.size()]);
+
+    if (errorMessage.length > 0) {
+      manager.getMainPanel().openMessageDialog(errorMessage,
+          "Background Process Error");
+    }
+
+    // Command succeeded, check to see if we need to show any application
+    // specific info
+    else {
+      backgroundPostProcess(process);
+    }
+
+    // Null the reference to the appropriate thread
+    if (process == threadAxisA) {
+      threadAxisA = null;
+    }
+    if (process == threadAxisB) {
+      threadAxisB = null;
+    }
+
+    //  Inform the app manager that this process is complete
+    manager.processDone(process.getName(), exitValue, null, null);
+  }
+
 }
