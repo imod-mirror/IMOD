@@ -16,6 +16,10 @@ import etomo.type.AxisID;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.2  2004/09/15 22:36:45  sueh
+* <p> bug# 520 calling createPrcoessControlPanel and initializePanels in
+* <p> constructor
+* <p>
 * <p> Revision 1.1.2.1  2004/09/08 20:06:09  sueh
 * <p> bug# 520 AxisProcessPanel for Join
 * <p> </p>
@@ -26,7 +30,7 @@ public class JoinProcessPanel extends AxisProcessPanel {
   public static  final String  rcsid =  "$Id$";
   
   /**
-   * @param appManager
+   * @param joinManager
    * @param axis
    */
   public JoinProcessPanel(JoinManager joinManager, AxisID axis) {
