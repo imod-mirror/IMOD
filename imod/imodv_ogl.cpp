@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.3  2002/12/17 19:25:56  mast
+fixing braces after removing color index code
+
 Revision 1.1.2.2  2002/12/17 17:44:18  mast
 changes for Qt version
 
@@ -97,12 +100,11 @@ static void imodvSetViewbyModel(ImodvApp *a, Imod *imod)
 {
   Iview *vw;
   GLint vp[4];
-  double ndist, cdist;
+  double cdist;
   double xs, ys;       /* window scaling factors. */
   double zn, zf;
   double znear, zfar;  /* clip in z. */
   double fovytan;
-  double wedge;
   double rad;
   float scale = 1.0f;
   if (!a->imod) return;
@@ -171,8 +173,6 @@ static void imodvSetViewbyModel(ImodvApp *a, Imod *imod)
 
   }
      
-  ndist = fovytan * znear;
-
   if (fovytan)
     cdist = rad/fovytan;
   else
@@ -209,7 +209,6 @@ static void imodvSetDepthCue(Imod *imod)
   Iview *vw = imod->view;
   Ipoint maxp, minp;
   float bgcolor[4];
-  int depthRange[3];
   float fstart, fend;
   float drange;
  
@@ -255,7 +254,6 @@ static void imodvSetDepthCue(Imod *imod)
 static void imodvSetModelTrans(Imod *imod)
 {
   Iview *vw;
-  int useTransMatrix = 0;
   if (!imod) return; 
 
   vw = imod->view;
@@ -358,8 +356,6 @@ void imodvDraw_model(ImodvApp *a, Imod *imod)
 {
   int ob = -1;
   Iobj *obj;
-  int trans = FALSE;
-  float ftrans;
   int obstart, obend;
 
   if (imod == NULL)
@@ -456,7 +452,6 @@ void imodvDraw_model(ImodvApp *a, Imod *imod)
     glLoadName(ob);
     curTessObj = ob;
     obj = &(imod->obj[ob]);
-    trans = obj->trans;
     if (obj->trans > 0){
       glDepthMask(GL_FALSE); 
       clip_obj(obj, True, imod->zscale, Imodv->md->zoom);
@@ -583,7 +578,6 @@ static int check_mesh_draw(Imesh *mesh, int checkTime, int resol)
 static void imodvDraw_object(Iobj *obj, Imod *imod)
 {
   int co, resol;
-  Icont *cont;
   double zscale;
   Imesh *mesh;
   int checkTime = (int)iobjTime(obj->flags);
@@ -950,11 +944,10 @@ static void imodvDraw_filled_contours(Iobj *obj)
   static GLUtesselator *tobj = NULL;
   GLdouble v[3];
   Icont   *cont;
+  Ipoint *pts;
   int      co, pt;
   int psize;
-  GLfloat color[4];
   int ptstr, ptend;
-  Ipoint *pts;
   int checkTime = (int)iobjTime(obj->flags);
   if (!CTime)
     checkTime = 0;
@@ -1206,7 +1199,6 @@ static void imodvDraw_spheres(Iobj *obj, double zscale, int style)
 static void imodvDraw_mesh(Imesh *mesh, int style)
 {
   unsigned long i, lsize;
-  int first;
   GLenum polyStyle, normStyle;
 
   switch(style){
@@ -1426,8 +1418,6 @@ static int ImodvRampData[] =
 static int load_cmap(unsigned char table[3][256], int *rampData)
 {
 
-  FILE *fin;
-  char line[256];
   int nline;
   int *inramp;
   int i,l;
@@ -1489,12 +1479,10 @@ static void imodvDrawScalarMesh(Imesh *mesh, double zscale,
 {
   int i;
   float z = zscale;
-  float oz = 1.0f/(z*z);
   GLUtesselator *tobj;
   GLdouble v[3];
   Ipoint *n;
   float  mag;
-  float brightness = 0.0f, contrast = 1.0f;
   float red, green, blue;
   unsigned char luv;
   unsigned char *ub = (unsigned char *)&(obj->mat3);
@@ -1542,8 +1530,6 @@ static void imodvDrawScalarMesh(Imesh *mesh, double zscale,
      ub[1] = 255; */
   blacklevel = ub[0];
   whitelevel = ub[1];
-  brightness = ub[0] - 128;
-  contrast =  0.05f*(float)(ub[1]+1);
 
   if (blacklevel > whitelevel){
     cmapReverse = blacklevel;

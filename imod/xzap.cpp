@@ -35,6 +35,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.8  2002/12/17 18:28:47  mast
+Adding timer for second draw after resize
+
 Revision 1.1.2.7  2002/12/14 05:23:42  mast
 backing out the fancy subclass, adjusting for new visual detection
 
@@ -826,7 +829,7 @@ void zapStepTime(ZapStruct *zap, int step)
   // if time locked, advance the time lock and draw this window
   // Does this make sense?
   if (zap->timeLock){
-    zap->timeLock + step;
+    zap->timeLock += step;
     if (zap->timeLock <= 0)
       zap->timeLock = 1;
     if (zap->timeLock > ivwGetMaxTime(zap->vi))

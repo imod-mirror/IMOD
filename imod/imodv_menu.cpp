@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.1  2002/12/17 18:43:58  mast
+Qt version
+
 Revision 3.2  2002/12/01 15:31:41  mast
 Changes to compile with g++; also made only one background color window
 be open at any one time.
@@ -108,8 +111,6 @@ void imodvMenuBgcolor()
 /* Edit menu dispatch function. */
 void imodvEditMenu(int item)
 {
-  int mode;
-     
   switch(item){
   case VEDIT_MENU_OBJECTS:
     objed(Imodv);
@@ -546,7 +547,7 @@ static void addImodvViewPlugins(Widget w, ImodvApp *a)
   char *plugdir = getenv("IMOD_PLUGIN_DIR");
   if (!plugdir) return;
 
-  XtVaCreateManagedWidget("", xmSeparatorWidgetClass, w, NULL);
+  //  XtVaCreateManagedWidget("", xmSeparatorWidgetClass, w, NULL);
 
 #ifdef IMODV_PLUGIN_GENERAL
   {

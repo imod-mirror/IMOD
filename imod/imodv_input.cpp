@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 1.1.2.3  2002/12/17 21:38:49  mast
+    include imodconfig so NO_SYS_TIMES can be acted on
+
     Revision 1.1.2.2  2002/12/17 17:44:59  mast
     Changes for Qt version
 
@@ -153,7 +156,6 @@ void imodvKeyPress(QKeyEvent *event)
 {
   ImodvApp *a = Imodv;
   int keysym = event->key();
-  int cview;
   int tstep = 1;
   int newval;
   float elapsed;
@@ -574,7 +576,6 @@ static void imodv_translate(ImodvApp *a, int x, int y)
   int mx, my;
   unsigned int maskr = imodv_query_pointer(a,&mx,&my);
   int dx, dy;
-  float vx[4], vy[4], vz[4];
      
   dx = -(mx - a->lmx);
   dy = my - a->lmy;
@@ -995,7 +996,6 @@ static void imodvSelect(ImodvApp *a)
 static int imodvStepTime(ImodvApp *a, int tstep)
 {
   Iobj *obj;
-  Icont *cont;
   int ob, co;
 
   if (!a->standalone){

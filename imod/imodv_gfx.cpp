@@ -35,6 +35,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.2  2002/12/17 17:39:52  mast
+Qt version
+
 Revision 1.1.2.1  2002/12/15 21:14:02  mast
 conversion to cpp
 
@@ -180,7 +183,6 @@ void imodvPaintGL()
 {
   ImodvApp *a = Imodv;
   static int first = 1;
-  int winx, winy;
   static int drawcount = 0;
 
   //if (Imod_debug)
@@ -273,7 +275,6 @@ void imodvResetSnap()
 int imodv_auto_snapshot(char *inName, int format_type)
 {
   char fname[32];
-  FILE *tfp = NULL;
   char *usename = inName;
   char *fext = "rgb";
 
