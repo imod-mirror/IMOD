@@ -11,6 +11,7 @@ import etomo.process.SystemProcessException;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.AxisTypeException;
+import etomo.type.ConstJoinMetaData;
 import etomo.type.JoinMetaData;
 import etomo.type.JoinProcessTrack;
 import etomo.type.ProcessName;
@@ -32,6 +33,13 @@ import etomo.ui.MainJoinPanel;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.8  2004/09/29 17:42:26  sueh
+* <p> bug# 520 Casting mainPanel and other members from BaseManager to
+* <p> private local variables in the create functions.  Removed
+* <p> openNewDataset() and openExistingDataset().  This functionality is
+* <p> handled in EtomoDirector.  Added startJoin().  Added setTestParamFile()
+* <p> implementation.
+* <p>
 * <p> Revision 1.1.2.7  2004/09/22 22:03:53  sueh
 * <p> bug# 520 Made the imod functions more general by passing in the
 * <p> ImodManager key.  Added imodGetSlicerAngles.
@@ -295,5 +303,9 @@ public class JoinManager extends BaseManager {
   
   protected void startNextProcess(AxisID axisID) {
     
+  }
+  
+  public ConstJoinMetaData getMetaData() {
+    return (ConstJoinMetaData) baseMetaData;
   }
 }
