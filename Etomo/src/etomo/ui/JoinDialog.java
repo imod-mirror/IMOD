@@ -25,6 +25,9 @@ import etomo.type.JoinMetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.1.2.5  2004/09/29 19:34:05  sueh
+ * <p> bug# 520 Added retrieveData() to retrieve data from the screen.
+ * <p>
  * <p> Revision 1.1.2.4  2004/09/23 23:37:46  sueh
  * <p> bug# 520 Converted to DoubleSpacedPanel and SpacedPanel.  Added
  * <p> MakeJoin panel.
@@ -51,7 +54,6 @@ public class JoinDialog implements ContextMenu {
   private JTabbedPane tabPane;
   private DoubleSpacedPanel pnlSetup;
   private SectionTablePanel pnlSectionTable;
-  private DoubleSpacedPanel pnlMakeJoin;
   private JPanel pnlAlign;
   private JPanel pnlJoin;
 
@@ -68,7 +70,8 @@ public class JoinDialog implements ContextMenu {
   private JoinActionListener joinActionListener = new JoinActionListener(this);
   private UseDensityRefSectionActionListener useDensityRefSectionActionListener = new UseDensityRefSectionActionListener(
       this);
-  private WorkingDirActionListener workingDirActionListener = new WorkingDirActionListener(this);
+  private WorkingDirActionListener workingDirActionListener = new WorkingDirActionListener(
+      this);
 
   private final AxisID axisID;
   private final JoinManager joinManager;
@@ -102,51 +105,48 @@ public class JoinDialog implements ContextMenu {
 
   private void createSetupPanel() {
     pnlSetup = new DoubleSpacedPanel(false, FixedDim.x5_y0, FixedDim.x0_y5);
+    //first component
+    SpacedPanel pnlFirst = new SpacedPanel(FixedDim.x5_y0);
+    pnlFirst.setLayout(new BoxLayout(pnlFirst.getContainer(),
+        BoxLayout.X_AXIS));
+    ltfWorkingDir = new LabeledTextField("Working Directory: ");
+    pnlFirst.add(ltfWorkingDir.getContainer());
+    btnWorkingDir = new JButton(iconFolder);
+    btnWorkingDir.setPreferredSize(FixedDim.folderButton);
+    btnWorkingDir.setMaximumSize(FixedDim.folderButton);
+    btnWorkingDir.addActionListener(workingDirActionListener);
+    pnlFirst.add(btnWorkingDir);
+    pnlSetup.add(pnlFirst.getContainer());
+    //second component
+    ltfRootName = new LabeledTextField("Root name for output file: ");
+    pnlSetup.add(ltfRootName.getContainer());
+    //third component    
     pnlSectionTable = new SectionTablePanel(this, joinManager);
     pnlSetup.add(pnlSectionTable.getContainer());
-    createMakeJoinPanel();
-    pnlSetup.add(pnlMakeJoin);
-  }
-
-  private void createMakeJoinPanel() {
-    pnlMakeJoin = new DoubleSpacedPanel(false, FixedDim.x5_y0, FixedDim.x0_y5,
-        BorderFactory.createEtchedBorder());
-    //first component
-    JPanel pnlFirst = new JPanel();
-    pnlFirst.setLayout(new BoxLayout(pnlFirst, BoxLayout.X_AXIS));
+    //fourth component
+    JPanel pnlFourth = new JPanel();
+    pnlFourth.setLayout(new BoxLayout(pnlFourth, BoxLayout.X_AXIS));
     cbUseDensityRefSection = new JCheckBox();
     cbUseDensityRefSection
         .addActionListener(useDensityRefSectionActionListener);
-    pnlFirst.add(cbUseDensityRefSection);
+    pnlFourth.add(cbUseDensityRefSection);
     SpinnerModel spinnerModel = new SpinnerNumberModel(1, 1,
         numSections < 1 ? 1 : numSections, 1);
     spinDensityRefSection = new LabeledSpinner(
         "Reference section for density matching: ", spinnerModel);
     enableDensityRefSection();
     spinDensityRefSection.setTextMaxmimumSize(dimSpinner);
-    pnlFirst.add(spinDensityRefSection.getContainer());
-    pnlMakeJoin.add(pnlFirst);
-    //second component
-    SpacedPanel pnlSecond = new SpacedPanel(FixedDim.x5_y0);
-    pnlSecond.setLayout(new BoxLayout(pnlSecond.getContainer(), BoxLayout.X_AXIS));
-    ltfWorkingDir = new LabeledTextField("Working Directory: ");
-    pnlSecond.add(ltfWorkingDir.getContainer());
-    btnWorkingDir = new JButton(iconFolder);
-    btnWorkingDir.setPreferredSize(FixedDim.folderButton);
-    btnWorkingDir.setMaximumSize(FixedDim.folderButton);
-    btnWorkingDir.addActionListener(workingDirActionListener);
-    pnlSecond.add(btnWorkingDir);
-    pnlMakeJoin.add(pnlSecond);
-    //third component
-    ltfRootName = new LabeledTextField("Root name for output file: ");
-    pnlMakeJoin.add(ltfRootName.getContainer());
-    //fourth component
+    pnlFourth.add(spinDensityRefSection.getContainer());
+    pnlSetup.add(pnlFourth);
+    //fifth component
     btnMakeJoin = new MultiLineToggleButton("Make Join");
+    btnMakeJoin.addActionListener(joinActionListener);
     UIUtilities.setButtonSize(btnMakeJoin, dimButton);
     btnMakeJoin.setAlignmentX(Component.CENTER_ALIGNMENT);
     enableMakeJoin();
-    pnlMakeJoin.add(btnMakeJoin);
+    pnlSetup.add(btnMakeJoin);
   }
+
 
   private void createAlignPanel() {
     pnlAlign = new JPanel();
@@ -185,7 +185,11 @@ public class JoinDialog implements ContextMenu {
   public Container getContainer() {
     return rootPanel;
   }
-
+  
+  String getWorkingDir() {
+    return ltfWorkingDir.getText();
+  }
+  
   /**
    * Right mouse button context menu
    */
@@ -198,6 +202,9 @@ public class JoinDialog implements ContextMenu {
    */
   private void action(ActionEvent event) {
     String command = event.getActionCommand();
+    if (command.equals(btnMakeJoin.getActionCommand())) {
+      joinManager.startJoin();
+    }
   }
 
   private void useDensityRefSectionAction() {
@@ -219,6 +226,7 @@ public class JoinDialog implements ContextMenu {
       catch (Exception excep) {
         excep.printStackTrace();
       }
+      this.pnlSectionTable.enableTableButtons(ltfWorkingDir.getText());
     }
   }
 
