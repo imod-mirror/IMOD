@@ -1,5 +1,10 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/25/05: Fixed bugs in Tiltalign: multiple nondefault grouping lists could get
+off if there were excluded views; rotation variable mapping was not being
+done right with linear mapping and one fixed angle, or with block mapping;
+separate view groups were not remapped properly when views were excluded.
+
 3/23/05: Fixed problem with float losing contrast setting after going to
 section with slider settings that were truncated to stay in range.
 
