@@ -219,8 +219,10 @@ void dia_smsg( char **msg)
       curpos++;
     
     if (doline) {
-      temp = strndup(lineStart, doline);
+      temp = (char *)malloc(doline + 1);
       if (temp) {
+	strncpy(temp, lineStart, doline);
+	temp[doline] = 0x00;
 	test = temp;
 	twidth = dlg->fontMetrics().width(test);
 	if (width < twidth)
@@ -261,7 +263,7 @@ void dia_smsg( char **msg)
   // Figure out width and height of text and height of button, and set size
   if (width > maxWidth)
     width = maxWidth;
-  height = (maxrow + 3) * edit->fontMetrics().height();
+  height = (maxrow + 5) * edit->fontMetrics().height();
   if (height > maxHeight)
     height = maxHeight;
   QSize hint = hbox->sizeHint();
