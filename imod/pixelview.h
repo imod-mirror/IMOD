@@ -12,8 +12,15 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.1  2003/01/04 03:49:53  mast
+Initial creation
+
 */
 
+#ifndef PIXELVIEW_H
+#define PIXELVIEW_H
+
+int  open_pixelview(struct ViewInfo *vi);
 
 #define PV_ROWS 7
 #define PV_COLS 7
@@ -47,3 +54,5 @@ class PixelView: public QWidget
     QColor mGrayColor;       // Original color
     int mMinRow, mMinCol, mMaxRow, mMaxCol;   // Row, column of last min/max
 };
+
+#endif
