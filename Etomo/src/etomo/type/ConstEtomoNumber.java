@@ -18,6 +18,12 @@ import etomo.storage.Storable;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.2  2004/11/19 00:04:05  sueh
+* <p> bug# 520 changed the equals functions so that they work on the same
+* <p> principle as the get functions, since they will be comparing values that
+* <p> came from get.  If value is null, compare resetValue.  Added a useDefault
+* <p> boolean:  if value and resetValue are null, compare defaultValue.
+* <p>
 * <p> Revision 1.1.2.1  2004/11/16 02:26:06  sueh
 * <p> bug# 520 Replacing EtomoInteger, EtomoDouble, EtomoFloat, and
 * <p> EtomoLong with EtomoNumber.  EtomoNumber acts a simple numeric
@@ -43,6 +49,7 @@ public abstract class ConstEtomoNumber implements Storable {
   protected String name;
   protected String description = null;
   protected String invalidReason = null;
+  protected boolean displayDefault = false;
   protected Number value;
   protected Number defaultValue;
   protected Number recommendedValue;
@@ -114,6 +121,11 @@ public abstract class ConstEtomoNumber implements Storable {
     return this;
   }
   
+  public ConstEtomoNumber setDisplayDefault(boolean displayDefault) {
+    this.displayDefault = displayDefault;
+    return this;
+  }
+  
   public ConstEtomoNumber setDefault(String defaultValueString) {
     StringBuffer invalidBuffer = new StringBuffer();
     Number defaultValue = newNumber(defaultValueString, invalidBuffer);
@@ -155,62 +167,34 @@ public abstract class ConstEtomoNumber implements Storable {
   }
   
   public String toString() {
-    return toString(false);
+    return toString(displayDefault);
   }
-  public String toString(boolean useDefault) {
-    if (!isNull()) {
-      return value.toString();
+  public String toString(boolean displayDefault) {
+    Number value = getValue(displayDefault);
+    if (isNull(value)) {
+      return "";
     }
-    if (!isNull(resetValue)) {
-      return resetValue.toString();
-    }
-    if (useDefault && !isNull(defaultValue)) {
-      return defaultValue.toString();
-    }
-    return "";
+    return value.toString();
   }
   
   public int getInteger() {
-    return getInteger(false);
+    return getInteger(displayDefault);
   }
   
-  public int getInteger(boolean useDefault) {
-    if (!isNull()) {
-      return value.intValue();
-    }
-    if (!isNull(resetValue)) {
-      return resetValue.intValue();
-    }
-    if (useDefault && !isNull(defaultValue)) {
-      return defaultValue.intValue();
-    }
-    return integerNullValue;
+  public int getInteger(boolean displayDefault) {
+    return getValue(displayDefault).intValue();
   }
   
   public long getLong() {
-    if (!isNull()) {
-      return value.longValue();
-    }
-    if (!isNull(resetValue)) {
-      return resetValue.longValue();
-    }
-    return longNullValue;
+    return getValue().longValue();
   }
   
   public Number getNumber() {
-    return getNumber(false);
+    return getNumber(displayDefault);
   }
-  public Number getNumber(boolean useDefault) {
-    if (!isNull()) {
-      return newNumber(value);
-    }
-    if (!isNull(resetValue)) {
-      return newNumber(resetValue);
-    }
-    if (useDefault && !isNull(defaultValue)) {
-      return newNumber(defaultValue);
-    }
-    return newNumber();
+  
+  public Number getNumber(boolean displayDefault) {
+    return newNumber(getValue(displayDefault));
   }
 
   public ConstEtomoNumber getNegation() {
@@ -235,66 +219,19 @@ public abstract class ConstEtomoNumber implements Storable {
    * @return
    */
   public boolean equals(ConstEtomoNumber that) {
-    if (equals(value, that.value)) {
-      if (isNull()) {
-        return equals(resetValue, that.resetValue);
-      }
-      return true;
-    }
-    if (isNull()) {
-      return equals(resetValue, that.value);
-    }
-    if (that.isNull()) {
-      return equals(value, that.resetValue);
-    }
-    return false;
+    return equals(getValue(), that.getValue());
   }
 
   public boolean equals(int value) {
-    if (!isNull()) {
-      return equals(this.value, value);
-    }
-    return equals(resetValue, value);
+    return equals(getValue(), value);
   }
 
   public boolean equals(Number value) {
-    if (!isNull()) {
-      return equals(this.value, value);
-    }
-    return equals(resetValue, value);
-  }
-
-  public boolean equals(Number value, boolean useDefault) {
-    if (!useDefault) {
-      return equals(value);
-    }
-    if (!isNull()) {
-      return equals(this.value, value);
-    }
-    if (!isNull(resetValue)) {
-      return equals(resetValue, value);
-    }
-    return equals(defaultValue, value);
+    return equals(getValue(), value);
   }
 
   public boolean equals(String value) {
-    if (!isNull()) {
-      return equals(this.value, newNumber(value, new StringBuffer()));
-    }
-    return equals(resetValue, newNumber(value, new StringBuffer()));
-  }
-  
-  public boolean equals(String value, boolean useDefault) {
-    if (!useDefault) {
-      return equals(value);
-    }
-    if (!isNull()) {
-      return equals(this.value, newNumber(value, new StringBuffer()));
-    }
-    if (!isNull(resetValue)) {
-      return equals(resetValue, newNumber(value, new StringBuffer()));
-    }
-    return equals(defaultValue, newNumber(value, new StringBuffer()));
+    return equals(getValue(), newNumber(value, new StringBuffer()));
   }
 
   private void initialize() {
@@ -513,6 +450,23 @@ public abstract class ConstEtomoNumber implements Storable {
       default:
         throw new IllegalStateException("type=" + type);
     }
+  }
+  
+  protected Number getValue() {
+    return getValue(displayDefault);
+  }
+  
+  protected Number getValue(boolean displayDefault) {
+    if (!isNull()) {
+      return value;
+    }
+    if (!isNull(resetValue)) {
+      return resetValue;
+    }
+    if (displayDefault && !isNull(defaultValue)) {
+      return defaultValue;
+    }
+    return value;
   }
 
 }
