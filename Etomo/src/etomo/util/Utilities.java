@@ -12,6 +12,11 @@
  * @version $$Revision$
  *
  * <p> $$Log$
+ * <p> $Revision 3.10  2004/08/06 23:11:30  sueh
+ * <p> $bug# 508 added a writeFile() function, which writes an array
+ * <p> $of strings to a file.  If newFile is true, it will call Utilities.renameFile(),
+ * <p> $and then write the strings to a new, empty file.
+ * <p> $
  * <p> $Revision 3.9  2004/07/16 23:01:27  sueh
  * <p> $bug# 501 sending System.out prints only when debug is set
  * <p> $
@@ -65,7 +70,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
 
-import etomo.ApplicationManager;
+import etomo.EtomoDirector;
 import etomo.type.ConstMetaData;
 import etomo.type.AxisID;
 import etomo.process.SystemProgram;
@@ -218,7 +223,7 @@ public class Utilities {
    * @param string
    */
   static public void debugPrint(String string, boolean toOut) {
-    if (ApplicationManager.isDebug()) {
+    if (EtomoDirector.isDebug()) {
       if (toOut) {
         System.out.println(string);
       }
