@@ -112,7 +112,6 @@ void imodvMovieHelp()
 
 static void xinput(void)
 {
-  XEvent event_return;
   XFlush(XtDisplay(Imodv->topLevel));
   /* DNM: need to either mask for X events in the while, or process ALL
      types of events; so just call XtAppProcessEvent with XtIMAll */
@@ -121,7 +120,6 @@ static void xinput(void)
                XtDispatchEvent(&event_return); */
     XtAppProcessEvent(Imodv->context, XtIMAll);
   }
-  return;
 }
 
 // Set the starting values to the current display values
@@ -187,7 +185,7 @@ void imodvMovieStop()
 
 void imodvMovieMake()
 {
-  int format, frames, montFrames, overlap;
+  int format;
 
   movie->dia->getButtonStates(movie->longway, movie->reverse, movie->montage,
                               format, movie->saved);
@@ -286,11 +284,8 @@ static void imodvMakeMovie(int frames)
   float bstart, bstep;
   float gstart, gstep;
   float zstart, zstep, zfac;
-  float xm, ym, zm;
   float xtstart, ytstart, ztstart;
   float xtstep, ytstep, ztstep;
-  float tmin, tmax;
-  int mov, moveall;
   double angle, delangle;
   double alpha, beta, gamma;
   Ipoint v;
