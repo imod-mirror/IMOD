@@ -14,6 +14,9 @@ package etomo.type;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.3  2004/10/22 21:05:45  sueh
+* <p> bug# 520 Converted to an abstract class.
+* <p>
 * <p> Revision 1.1.2.2  2004/10/22 03:25:33  sueh
 * <p> bug# 520 added getNumber().
 * <p>
@@ -30,8 +33,11 @@ public abstract class EtomoSimpleType {
   protected String invalidReason = null;
   
   public abstract String getString();
+  public abstract String getString(boolean useDefault);
   public abstract boolean isSetAndNotDefault();
   public abstract Number getNumber();
+  public abstract Number getNumber(boolean useDefault);
+  public abstract EtomoSimpleType getNegation();
   
   public EtomoSimpleType() {
     name = super.toString();
