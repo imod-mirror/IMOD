@@ -32,6 +32,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.6  2002/12/14 05:23:42  mast
+backing out the fancy subclass, adjusting for new visual detection
+
 Revision 1.1.2.5  2002/12/13 07:09:19  mast
 GLMainWindow needed different name for mouse event processors
 
@@ -67,6 +70,7 @@ class QLabel;
 class QToolBar;
 class QSignalMapper;
 class QSlider;
+class QTimer;
 
 struct zapwin;
 class ZapGL;
@@ -83,6 +87,7 @@ class ZapWindow : public QMainWindow
   ~ZapWindow();
   ZapGL *mGLw;
   QToolBar *mToolBar;
+  QTimer *mTimer;
 
   public slots:
     void zoomUp();
@@ -99,6 +104,7 @@ class ZapWindow : public QMainWindow
     void setZoomText(float zoom);
     void setSectionText(int section);
     void setTimeLabel(QString label);
+    void timeoutSlot();
 
  protected:
     void keyPressEvent ( QKeyEvent * e );
