@@ -34,6 +34,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.6  2003/01/06 15:52:16  mast
+changes for Qt version of slicer
+
 Revision 1.1.2.5  2003/01/04 03:47:42  mast
 add include of imod_input.h (!) and control.h
 
@@ -69,6 +72,7 @@ are open
 #include <math.h>
 #include <qevent.h>
 #include <qnamespace.h>
+#include "xgraph.h"
 #include "keypad.h"
 #include "imod.h"
 #include "xzap.h"
