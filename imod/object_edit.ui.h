@@ -87,13 +87,9 @@ void objectEditForm::widthChanged( int value )
 void objectEditForm::setSymbolProperties( int which, bool fill, bool markEnds, int size )
 {
    symbolComboBox->setCurrentItem(which);
-    fillCheckBox->blockSignals(true);
-    fillCheckBox->setChecked(fill);
-    fillCheckBox->blockSignals(false);
-    markCheckBox->blockSignals(true);
-    markCheckBox->setChecked(markEnds);
-    markCheckBox->blockSignals(false);
-    sizeSlider->setValue(size);
+   diaSetChecked(fillCheckBox, fill);
+   diaSetChecked(markCheckBox, markEnds);
+    diaSetSlider(sizeSlider, size);
     QString str;
     str.sprintf("%d", size);
     sizeLabel->setText(str);
@@ -101,9 +97,7 @@ void objectEditForm::setSymbolProperties( int which, bool fill, bool markEnds, i
 
 void objectEditForm::setDrawBox( bool state )
 {
-    drawCheckBox->blockSignals(true);
-    drawCheckBox->setChecked(state);
-    drawCheckBox->blockSignals(false);
+    diaSetChecked(drawCheckBox, state);
 }
 
 void objectEditForm::setObjectName( char *name )
@@ -114,9 +108,7 @@ void objectEditForm::setObjectName( char *name )
 
 void objectEditForm::setTimeBox( bool state, bool enabled )
 {
-    timeCheckBox->blockSignals(true);
-    timeCheckBox->setChecked(state);
-    timeCheckBox->blockSignals(false);
+    diaSetChecked(timeCheckBox, state);
     timeCheckBox->setEnabled(enabled);
 }
 
@@ -144,7 +136,7 @@ void objectEditForm::setObjectType( int value )
 
 void objectEditForm::setLineWidth( int value )
 {
-    widthSlider->setValue(value);
+    diaSetSlider(widthSlider, value);
     QString str;
     str.sprintf("%d", value);
     widthLabel->setText(str);
@@ -162,5 +154,12 @@ void objectEditForm::keyPressEvent( QKeyEvent * e )
 {
     if (e->key() == Qt::Key_Escape)
 	ioew_quit();
-    e->ignore();
+    else
+	ivwControlKey(0, e);
+    //e->ignore();
+}
+
+void objectEditForm::keyReleaseEvent( QKeyEvent * e )
+{
+    ivwControlKey(1, e);
 }
