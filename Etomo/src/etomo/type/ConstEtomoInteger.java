@@ -16,9 +16,12 @@ import etomo.storage.Storable;
 * 
 * @version $Revision$
 * 
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1.2.1  2004/10/18 17:59:48  sueh
+* <p> bug# 520 The const part of EtomoInteger.
+* <p> </p>
 */
-public abstract class ConstEtomoInteger implements Storable {
+public abstract class ConstEtomoInteger implements Storable, EtomoSimpleType {
   public static  final String  rcsid =  "$Id$";
   
   public static final int unsetValue = Integer.MIN_VALUE;
@@ -43,7 +46,7 @@ public abstract class ConstEtomoInteger implements Storable {
     props.setProperty(prepend + "." + name, Integer.toString(value));
   }
   
-  public String toString() {
+  public String getString() {
     if (value == Integer.MIN_VALUE) {
       return "";
     }
@@ -61,11 +64,28 @@ public abstract class ConstEtomoInteger implements Storable {
     return description;
   }
   
-  public boolean isSet() {
-    return value != unsetValue;
+  public boolean isSetAndNotDefault() {
+    return value != Integer.MIN_VALUE && (defaultValue == Integer.MIN_VALUE || value != defaultValue);
   }
   
-  public boolean isDefault() {
-    return defaultValue != unsetValue && value == defaultValue;
+  public boolean isSet() {
+    return value != Integer.MIN_VALUE;
   }
+  
+  public boolean equals(int value) {
+    return this.value == value;
+  }
+  
+  public String toString() {
+    return getClass().getName() + "[" + paramString() + "]";
+  }
+  
+  protected String paramString() {
+    return ",\nname=" + name + ",\ndescription=" + description
+        + ",\nunsetValue=" + unsetValue + ",\nvalue=" + value
+        + ",\ndefaultValue=" + defaultValue + ",\nrecommendedValue="
+        + recommendedValue + ",\nresetValue=" + resetValue
+        + ",\ninvalidReason=" + invalidReason;
+  }
+  
 }

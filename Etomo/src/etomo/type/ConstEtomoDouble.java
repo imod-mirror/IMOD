@@ -17,9 +17,12 @@ import etomo.storage.Storable;
 * 
 * @version $Revision$
 * 
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1.2.1  2004/10/18 17:59:23  sueh
+* <p> bug# 520 The const part of EtomoDouble.
+* <p> </p>
 */
-public abstract class ConstEtomoDouble implements Storable {
+public abstract class ConstEtomoDouble implements Storable, EtomoSimpleType {
   public static  final String  rcsid =  "$Id$";
   
   protected static final double unsetValue = Double.NaN;
@@ -44,7 +47,7 @@ public abstract class ConstEtomoDouble implements Storable {
     props.setProperty(prepend + "." + name, Double.toString(value));
   }
   
-  public String toString() {
+  public String getString() {
     if (Double.isNaN(value)) {
       return "";
     }
@@ -62,11 +65,27 @@ public abstract class ConstEtomoDouble implements Storable {
     return description;
   }
   
+  public boolean isSetAndNotDefault() {
+    return !Double.isNaN(value) && (Double.isNaN(defaultValue) || value != defaultValue);
+  }
+  
   public boolean isSet() {
     return !Double.isNaN(value);
   }
   
-  public boolean isDefault() {
-    return !Double.isNaN(defaultValue) && value == defaultValue;
+  public boolean equals(double value) {
+    return (Double.isNaN(this.value) && Double.isNaN(value)) || this.value == value;
+  }
+  
+  public String toString() {
+    return getClass().getName() + "[" + paramString() + "]";
+  }
+  
+  protected String paramString() {
+    return ",\nname=" + name + ",\ndescription=" + description
+        + ",\nunsetValue=" + unsetValue + ",\nvalue=" + value
+        + ",\ndefaultValue=" + defaultValue + ",\nrecommendedValue="
+        + recommendedValue + ",\nresetValue=" + resetValue
+        + ",\ninvalidReason=" + invalidReason;
   }
 }
