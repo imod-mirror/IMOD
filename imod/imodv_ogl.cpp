@@ -1,6 +1,6 @@
-/*  IMOD VERSION 2.50
+/*  IMOD VERSION 2.7.9
  *
- *  imodv_ogl.c -- OpenGL Drawing functions for imodv. No X code here!
+ *  imodv_ogl.c -- OpenGL Drawing functions to draw models, etc in imodv.
  *
  *  Original author: James Kremer
  *  Revised by: David Mastronarde   email: mast@colorado.edu
@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.1  2002/12/15 21:14:02  mast
+conversion to cpp
+
 Revision 3.3  2002/12/01 15:34:41  mast
 Changes to get clean compilation with g++
 
@@ -54,6 +57,8 @@ Fixed problem with transparency when lighting both sides
 #include <imodel.h>
 #include "imod.h"
 #include "imodv.h"
+#include "imodv_gfx.h"
+#include "imodv_ogl.h"
 
 #define DRAW_POINTS 1
 #define DRAW_LINES  2
@@ -61,24 +66,31 @@ Fixed problem with transparency when lighting both sides
 #define DRAW_OBJECT -1
 #define NO_NAME 0xffffffff
 
+
+static void imodvDraw_spheres(Iobj *obj, double zscale, int style);
+static void imodvDraw_filled_spheres(Iobj *obj, double zscale);
+static void imodvDraw_mesh(Imesh *mesh, int style);
+static void imodvDraw_filled_mesh(Imesh *mesh, double zscale);
+static void imodvDrawScalarMesh(Imesh *mesh, double zscale, Iobj *obj);
+static void imodvDraw_contours(Iobj *obj, int mode);
+static void imodvPick_Contours(Iobj *obj);
+static void imodvSetDepthCue(Imod *imod);
+static void imodvSetViewbyModel(ImodvApp *a, Imod *imod);
+static void imodvDraw_filled_contours(Iobj *obj);
+static void imodvDraw_object(Iobj *obj, Imod *imod);
+static int check_mesh_draw(Imesh *mesh, int checkTime, int resol);
+static void imodvSetObject(Iobj *obj, int style);
+static void set_curcontsurf(int ob, Imod* imod);
+static void imodvUnsetObject(Iobj *obj);
+static int load_cmap(unsigned char table[3][256], int *rampData);
+static void mapfalsecolor(int gray, int *red, int *green, int *blue);
+
 static int CTime = -1;
-
-void imodvDraw_models(ImodvApp *a);
-void imodvDraw_spheres(Iobj *obj, double zscale, int style);
-void imodvDraw_filled_spheres(Iobj *obj, double zscale);
-void imodvDraw_mesh(Imesh *mesh, int style);
-void imodvDraw_filled_mesh(Imesh *mesh, double zscale);
-void imodvDrawScalarMesh(Imesh *mesh, double zscale, Iobj *obj);
-void imodvDrawImage(ImodvApp *a);
-void imodvPick_Contours(Iobj *obj);
-void light_adjust(Iobj *obj, float r, float g, float b);
-void imodvSetDepthCue(Imod *imod);
-
 static float depthShift;
 static int cursurf, curcont;
 static int curTessObj;
 
-void imodvSetViewbyModel(ImodvApp *a, Imod *imod)
+static void imodvSetViewbyModel(ImodvApp *a, Imod *imod)
 {
   Iview *vw;
   GLint vp[4];
@@ -189,7 +201,7 @@ void imodvSetViewbyModel(ImodvApp *a, Imod *imod)
   return;
 }
 
-void imodvSetDepthCue(Imod *imod)
+static void imodvSetDepthCue(Imod *imod)
 {
   Iview *vw = imod->view;
   Ipoint maxp, minp;
@@ -205,8 +217,6 @@ void imodvSetDepthCue(Imod *imod)
     return;
   }
    
-  /* Don't bother doing depth cue in colorindex mode. */
-  if (Imodv->cindex) return;
 
   /* We want drawn colors to blend into the background
    * so adjust fog color to the current background clear color.
@@ -239,7 +249,7 @@ void imodvSetDepthCue(Imod *imod)
   return;
 }
 
-void imodvSetModelTrans(Imod *imod)
+static void imodvSetModelTrans(Imod *imod)
 {
   Iview *vw;
   int useTransMatrix = 0;
@@ -421,36 +431,20 @@ void imodvDraw_model(ImodvApp *a, Imod *imod)
     obend = obstart + 1;
   }
 
-  if (Imodv->cindex){
-    imodvMapModel(Imodv, imod);
-    for (ob = obstart; ob < obend; ob++){
-      set_curcontsurf(ob, imod);
-      obj = &(imod->obj[ob]);
-      glLoadName(ob);
+  /* DNM: draw objects without transparency first; then make the depth
+     buffer read-only and draw objects with transparency. Anti-aliased
+     lines seem to do well enough being drawn in the first round, so
+     don't try to hold those until the second round */
+  for (ob = obstart; ob < obend; ob++){
+    set_curcontsurf(ob, imod);
+    obj = &(imod->obj[ob]);
+    glLoadName(ob);
+    curTessObj = ob;
+    if (obj->trans == 0){
       clip_obj(obj, True, imod->zscale, Imodv->md->zoom);
-      glIndexi(Imodv->cstart + (ob * Imodv->cstep));
-      /* glIndexi(obj->fgcolor); */
-      curTessObj = ob;
       imodvDraw_object( obj , imod);
       clip_obj(obj, False, imod->zscale, Imodv->md->zoom);
       glFinish();
-    }
-  }else{
-    /* DNM: draw objects without transparency first; then make the depth
-       buffer read-only and draw objects with transparency. Anti-aliased
-       lines seem to do well enough being drawn in the first round, so
-       don't try to hold those until the second round */
-    for (ob = obstart; ob < obend; ob++){
-      set_curcontsurf(ob, imod);
-      obj = &(imod->obj[ob]);
-      glLoadName(ob);
-      curTessObj = ob;
-      if (obj->trans == 0){
-        clip_obj(obj, True, imod->zscale, Imodv->md->zoom);
-        imodvDraw_object( obj , imod);
-        clip_obj(obj, False, imod->zscale, Imodv->md->zoom);
-        glFinish();
-      }
     }
 
     for (ob = obstart; ob < obend; ob++){
@@ -475,7 +469,7 @@ void imodvDraw_model(ImodvApp *a, Imod *imod)
 }
 
 /* In which any mode enabled by imodvSetObject should be disabled */
-void imodvUnsetObject(Iobj *obj)
+static void imodvUnsetObject(Iobj *obj)
 {
   light_off();
   glDisable(GL_BLEND);
@@ -484,7 +478,7 @@ void imodvUnsetObject(Iobj *obj)
   return;
 }
 
-void imodvSetObject(Iobj *obj, int style)
+static void imodvSetObject(Iobj *obj, int style)
 {
   float red, green, blue, trans;
   unsigned char *ub;
@@ -535,13 +529,12 @@ void imodvSetObject(Iobj *obj, int style)
     }else{
       glColor4f(obj->red, obj->green, obj->blue, trans);
     }
-    if (!Imodv->cindex){
-      /*if (obj->flags & IMOD_OBJFLAG_LIGHT){*/
-      if ((Imodv->lighting) && (!Imodv->wireframe)){
-        light_on(obj);
-      }else{
-        light_off();
-      }
+
+    /*if (obj->flags & IMOD_OBJFLAG_LIGHT){*/
+    if ((Imodv->lighting) && (!Imodv->wireframe)){
+      light_on(obj);
+    }else{
+      light_off();
     }
     break;
 
@@ -560,13 +553,11 @@ void imodvSetObject(Iobj *obj, int style)
      back faces of the transparent object unless two-sided lighting is
      used.  This works regardless of alpha planes, so there is no need
      to request alpha */
-  if (!Imodv->cindex){
-    if (trans < 1.0f){
-      glEnable(GL_BLEND);
-      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-      if (!(obj->flags & IMOD_OBJFLAG_TWO_SIDE))
-        glEnable(GL_CULL_FACE);
-    }
+  if (trans < 1.0f){
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    if (!(obj->flags & IMOD_OBJFLAG_TWO_SIDE))
+      glEnable(GL_CULL_FACE);
   }
 
   return;
@@ -586,7 +577,7 @@ static int check_mesh_draw(Imesh *mesh, int checkTime, int resol)
   return 0;
 }
 
-void imodvDraw_object(Iobj *obj, Imod *imod)
+static void imodvDraw_object(Iobj *obj, Imod *imod)
 {
   int co, resol;
   Icont *cont;
@@ -780,7 +771,7 @@ void imodvDraw_object(Iobj *obj, Imod *imod)
 /* DRAW CONTOURS 
  */
 #define PICKPOINTS
-void imodvPick_Contours(Iobj *obj)
+static void imodvPick_Contours(Iobj *obj)
 {
   int co, pt, npt;
   Icont *cont;
@@ -863,7 +854,7 @@ void imodvPick_Contours(Iobj *obj)
   glPopName();
 }
 
-void imodvDraw_contours(Iobj *obj, int mode)
+static void imodvDraw_contours(Iobj *obj, int mode)
 {
   int co, pt;
   Icont *cont;
@@ -951,7 +942,7 @@ static void myCombine( GLdouble coords[3], Ipoint *d[4],
 }
 #endif
 
-void imodvDraw_filled_contours(Iobj *obj)
+static void imodvDraw_filled_contours(Iobj *obj)
 {
   static GLUtesselator *tobj = NULL;
   GLdouble v[3];
@@ -1082,7 +1073,7 @@ static int firstSphere = 1;
 
 /***************************************************************************/
 /* Draw point spheres. */
-void imodvDraw_spheres(Iobj *obj, double zscale, int style)
+static void imodvDraw_spheres(Iobj *obj, double zscale, int style)
 {
   int co, pt;
   Icont *cont;
@@ -1209,7 +1200,7 @@ void imodvDraw_spheres(Iobj *obj, double zscale, int style)
 /*  Draw Mesh Data                                                           */
 /*****************************************************************************/
 
-void imodvDraw_mesh(Imesh *mesh, int style)
+static void imodvDraw_mesh(Imesh *mesh, int style)
 {
   unsigned long i, lsize;
   int first;
@@ -1291,7 +1282,7 @@ void imodvDraw_mesh(Imesh *mesh, int style)
 }
 
 /* draws mesh with lighting model */
-void imodvDraw_filled_mesh(Imesh *mesh, double zscale)
+static void imodvDraw_filled_mesh(Imesh *mesh, double zscale)
 {
   int i;
   float z = zscale;
@@ -1490,7 +1481,7 @@ static void mapfalsecolor(int gray, int *red, int *green, int *blue)
 }
         
 
-void imodvDrawScalarMesh(Imesh *mesh, double zscale, 
+static void imodvDrawScalarMesh(Imesh *mesh, double zscale, 
                          Iobj *obj)
 {
   int i;
