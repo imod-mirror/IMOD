@@ -6,7 +6,7 @@ class ToolEdit : public QLineEdit
   Q_OBJECT
 
  public:
-  ToolEdit( QWidget * parent, const char * name = 0 );
+  ToolEdit( QWidget * parent, int columns = 0, const char * name = 0 );
   ~ToolEdit();
 
  signals:
