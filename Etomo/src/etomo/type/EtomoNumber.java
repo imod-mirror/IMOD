@@ -15,7 +15,14 @@ import java.util.Properties;
 * 
 * @version $Revision$
 * 
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1.2.1  2004/11/16 02:27:39  sueh
+* <p> bug# 520 Replacing EtomoInteger, EtomoDouble, EtomoFloat, and
+* <p> EtomoLong with EtomoNumber.  EtomoNumber acts a simple numeric
+* <p> type which handles null values, defaults, and recommended values.
+* <p> EtomoNumber stores its values in Number variables and is created with a
+* <p> required type parameter to keep track of its numeric type.
+* <p> </p>
 */
 public class EtomoNumber extends ConstEtomoNumber {
   public static  final String  rcsid =  "$Id$";
@@ -63,16 +70,16 @@ public class EtomoNumber extends ConstEtomoNumber {
   }
   
   public EtomoNumber set(Object value) {
-    Number setValue = (Number) value;
+    Number newValue = (Number) value;
     invalidReason = null;
     if (value == null) {
       this.value = newNumber();
     }
-    else if (!isNull(ceilingValue) && !isNull(setValue) && gt(setValue, ceilingValue)) {
+    else if (!isNull(ceilingValue) && !isNull(newValue) && gt(newValue, ceilingValue)) {
       this.value = newNumber(ceilingValue);
     }
     else {
-      this.value = newNumber(setValue);
+      this.value = newNumber(newValue);
     }
     return this;
   }
