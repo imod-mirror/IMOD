@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.4  2003/01/27 00:30:07  mast
+Pure Qt version and general cleanup
+
 Revision 1.1.2.3  2003/01/23 20:03:54  mast
 rationalizing object edit update
 
@@ -99,6 +102,7 @@ int ImodForbidLevel = 0;
 static int ctrlPressed = 0;
 static int Imod_obj_cnum = -1;
 static int float_on = 0;
+static int doingFloat = 0;
 
 /*
  * FUNCTIONS FOR THE CONTROLS TO REPORT CHANGES
@@ -380,24 +384,27 @@ void imod_info_setbw(int black, int white)
 {
   static int oblack = 0;
   static int owhite = 255;
-  int remute = FALSE;
+  int changed = FALSE;
 
   if (oblack != black || owhite != white){
     oblack = black;
     owhite = white;
     ImodInfoWidget->setBWSliders(black, white);
-    remute = TRUE;
+    changed = TRUE;
   }
 
   /* if we are using a colormap that isn't
-   * mutable then we need to redraw all image data.
+   * mutable then we need to redraw all image data, unless float is being done
    * use the IMOD_DRAW_IMAGE flag to redraw all image
    * data and clear all image caches, and IMOD_DRAW_NOSYNC to prevent
    * panning the zap window to the current model point
    */
-  if ((remute) && (App->rgba)){
+  if (changed && App->rgba && !doingFloat)
     imodDraw(App->cvi, IMOD_DRAW_IMAGE | IMOD_DRAW_NOSYNC);
-  }
+
+  /* But for color index mode, just do a draw that sets colormaps */
+  else if (changed && !App->rgba)
+    imodDraw(App->cvi, IMOD_DRAW_COLORMAP);
 
   /* DNM: set this information as values for a new reference section for
      floated intensities */
@@ -469,12 +476,18 @@ int imod_info_bwfloat(ImodView *vw, int section, int time)
       image = ivwGetZSectionTime(vw, ref_section, ref_time);
       err1 = sampleMeanSD(image, 0, vw->xsize, vw->ysize, sample,
                           matt, &sec_mean[iref], &sec_sd[iref]);
+
+      /* Adjust for compressed data in 8-bit CI mode */
+      if (!err1 && App->depth == 8)
+	sec_mean[iref] = (sec_mean[iref] - vw->rampbase) * 256. / vw->rampsize;
     }
 	       
     if (!err1 && sec_sd[isec] < 0 ) {
       image = ivwGetZSectionTime(vw, section, time);
       err1 = sampleMeanSD(image, 0, vw->xsize, vw->ysize, sample,
                           matt, &sec_mean[isec], &sec_sd[isec]);
+      if (!err1 && App->depth == 8)
+	sec_mean[isec] = (sec_mean[isec] - vw->rampbase) * 256. / vw->rampsize;
     }
 	       
     if (!err1) {
@@ -501,7 +514,9 @@ int imod_info_bwfloat(ImodView *vw, int section, int time)
         save_ref_time = ref_time;
         save_ref_black = ref_black;
         save_ref_white = ref_white;
+	doingFloat = 1;
         imod_info_setbw(vw->black, vw->white);
+	doingFloat = 0;
         ref_section = save_ref_sec;
         ref_time = save_ref_time;
         ref_black = save_ref_black;
