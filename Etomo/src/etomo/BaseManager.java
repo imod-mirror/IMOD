@@ -42,6 +42,14 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.9  2004/10/08 15:40:48  sueh
+* <p> bug# 520 Set workingDirName instead of system property for manager-
+* <p> level working directory.  Moved SettingsDialog to EtomoDirector.  Since
+* <p> EtomoDirector is a singleton, made all functions and member variables
+* <p> non-static.  The singleton code controls how many EtomoDirector
+* <p> instances can exist.  Moved application-level code in initProgram and
+* <p> exitProgram to EtomoDirector.
+* <p>
 * <p> Revision 1.1.2.8  2004/10/01 20:58:02  sueh
 * <p> bug# 520 Changed getMetaDAta() to getBaseMetaData() so it can return
 * <p> the abstract base class for objects that don't know which type of manager
@@ -102,6 +110,8 @@ public abstract class BaseManager {
   protected ComScriptManager comScriptMgr = null;
   //FIXME paramFile may not have to be visible
   protected File paramFile = null;
+  //FIXME homeDirectory may not have to be visible
+  protected String homeDirectory;
   //  The ProcessManager manages the execution of com scripts
   protected BaseProcessManager baseProcessMgr = null;
   protected boolean isDataParamDirty = false;
@@ -116,7 +126,9 @@ public abstract class BaseManager {
   protected boolean backgroundProcessA = false;
   protected String backgroundProcessNameA = null;
   protected MainPanel mainPanel = null;
-  protected String workingDirName = null;
+
+  
+  //private static variables
   private static boolean debug = false;
 
   protected abstract void createComScriptManager();
@@ -132,7 +144,6 @@ public abstract class BaseManager {
   public abstract void setTestParamFile(File paramFile);
   
   public BaseManager() {
-    workingDirName = System.getProperty("user.dir");
     createBaseMetaData();
     createProcessTrack();
     createProcessManager();
@@ -194,10 +205,6 @@ public abstract class BaseManager {
         "Test parameter file save error");
     }
     isDataParamDirty = false;
-  }
-  
-  public String getWorkingDirName() {
-    return workingDirName;
   }
   
   /**
@@ -337,7 +344,7 @@ public abstract class BaseManager {
       // Uggh, stupid JAVA bug, getParent() only returns the parent if the File
       // was created with the full path
       File newParamFile = new File(paramFile.getAbsolutePath());
-      workingDirName = newParamFile.getParent();
+      System.setProperty("user.dir", newParamFile.getParent());
       setTestParamFile(newParamFile);
       // Update the MRU test data filename list
       userConfig.putDataFile(newParamFile.getAbsolutePath());
