@@ -1,0 +1,49 @@
+/*   pixelview.h  -  declarations for pixelview.cpp and PixelView class
+ *
+ *   Copyright (C) 1995-2002 by Boulder Laboratory for 3-Dimensional Electron
+ *   Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
+ *   Colorado.  See implementation file for full copyright notice.
+ */                                                                           
+
+/*  $Author$
+
+$Date$
+
+$Revision$
+
+$Log$
+*/
+
+
+#define PV_ROWS 7
+#define PV_COLS 7
+
+#include <qwidget.h>
+class QLabel;
+class QPushButton;
+
+class PixelView: public QWidget
+{
+  Q_OBJECT
+
+ public:
+  PixelView(QWidget *parent, const char *name = 0, 
+	      WFlags fl = Qt::WDestructiveClose | Qt::WType_TopLevel);
+  ~PixelView() {};
+  void update();
+
+  public slots:
+    void buttonPressed(int pos);
+
+ protected:
+    void closeEvent ( QCloseEvent * e );
+    void keyPressEvent ( QKeyEvent * e );
+    void keyReleaseEvent ( QKeyEvent * e );
+
+ private:
+    QLabel *mBotLabels[PV_COLS];
+    QLabel *mLeftLabels[PV_ROWS];
+    QPushButton *mButtons[PV_ROWS][PV_COLS];
+    QColor mGrayColor;       // Original color
+    int mMinRow, mMinCol, mMaxRow, mMaxCol;   // Row, column of last min/max
+};
