@@ -27,6 +27,9 @@ import etomo.type.TomogramState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.12  2005/01/21 23:46:00  sueh
+ * <p> bug# 509 bug# 591  Using EtomoNumber.isNull() instead of isSet().
+ * <p>
  * <p> Revision 3.11  2005/01/14 03:07:40  sueh
  * <p> bug# 511 Added DialogType to super constructor.
  * <p>
@@ -156,12 +159,13 @@ public class PostProcessingDialog
 
     // Set the default advanced dialog state
     updateAdvanced();
+    setToolTipText();
   }
   
   private Container createSqueezeVolPanel() {
     SpacedPanel squeezeVolPanel = new SpacedPanel(FixedDim.x0_y5, true, false);
     squeezeVolPanel.setLayout(new BoxLayout(squeezeVolPanel.getContainer(), BoxLayout.Y_AXIS));
-    squeezeVolPanel.setBorder(new EtchedBorder("Squeeze Volume").getBorder());
+    squeezeVolPanel.setBorder(new BeveledBorder("Squeeze Volume").getBorder());
     //first component
     SpacedPanel squeezeVolPanel1 = new SpacedPanel(FixedDim.x5_y0);
     squeezeVolPanel1.setLayout(new BoxLayout(squeezeVolPanel1.getContainer(), BoxLayout.X_AXIS));
@@ -331,6 +335,28 @@ public class PostProcessingDialog
     public void actionPerformed(ActionEvent event) {
       adaptee.action(event);
     }
+  }
+
+  
+  private void setToolTipText() {
+    String text;
+    TooltipFormatter tooltipFormatter = new TooltipFormatter();
+
+    text = "Factor to squeeze by in X and Y.";
+    ltfReductionFactorXY.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = "Factor to squeeze by in Z.";
+    ltfReductionFactorZ.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = "Use linear instead of quadratic interpolation for transforming the "
+      + "volume with Matchvol.";
+    cbLinearInterpolation.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = "Squeeze the trimmed volume by the given factors.";
+    btnSqueezeVolume.setToolTipText(tooltipFormatter.setText(text).format());
+
+    text = "View the squeezed volume.";
+    btnImodSqueezedVolume.setToolTipText(tooltipFormatter.setText(text).format());
   }
 
 }
