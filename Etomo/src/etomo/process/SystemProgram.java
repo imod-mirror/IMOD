@@ -17,6 +17,10 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.9.2.1  2004/10/01 19:49:15  sueh
+ * <p> bug# 520 Add a static parseError(String[]) function that can be used to
+ * <p> parse stdOutput and stdError.
+ * <p>
  * <p> Revision 3.9  2004/08/25 23:04:58  sueh
  * <p> bug# 508 fixed null pointer bug in getRunTimestamp()
  * <p>
@@ -123,7 +127,6 @@ package etomo.process;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
