@@ -12,6 +12,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2004/07/21 00:20:47  sueh
+ * <p> bug# 474 prevented JCheckBox from being set to button size
+ * <p>
  * <p> Revision 1.2  2004/06/17 21:49:21  sueh
  * <p> bug# 474 added setButtonSize(AbstractButton...)
  * <p>
@@ -30,6 +33,8 @@ import javax.swing.AbstractButton;
 import javax.swing.Box;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
+import javax.swing.UIManager;
+import javax.swing.plaf.ColorUIResource;
 
 public class UIUtilities {
   public static final String rcsid = "$Id$";
@@ -107,6 +112,27 @@ public class UIUtilities {
   public static void setButtonSize(AbstractButton button, Dimension size) {
     button.setPreferredSize(size);
     button.setMaximumSize(size);
+  }
+
+  public static ColorUIResource getDefaultUIColor(String property) {
+    ColorUIResource color = new ColorUIResource(0, 0, 0);
+    color = (ColorUIResource) getDefaultUIResource(color, property);
+    return color;
+  }
+
+  public static Object getDefaultUIResource(Object target, String name) {
+    java.util.Enumeration keys = UIManager.getDefaults().keys();
+    if (target == null || name == null) {
+      return null;
+    }
+    while (keys.hasMoreElements()) {
+      Object key = keys.nextElement();
+      Object value = UIManager.get(key);
+      if (key.toString().equals(name) && value.getClass().equals(target.getClass())) {
+        return value;
+      }
+    }
+    return null;
   }
 
 }
