@@ -46,6 +46,13 @@ import etomo.util.MRCHeader;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.8  2004/10/01 20:04:22  sueh
+* <p> bug# 520 Moved fuctionality to create table headers and fields to
+* <p> HeaderCell and FieldCell.  Fixed enable/disable of buttons.  Added
+* <p> enable/disable of Add Section button.  Added functionality to Add
+* <p> Section: checking for duplicate file paths and flipping tomogram if
+* <p> necessary.  To do: add the flip command.
+* <p>
 * <p> Revision 1.1.2.7  2004/09/29 19:38:29  sueh
 * <p> bug# 520 Added retrieveData() to retrieve data from the screen.
 * <p>
@@ -87,16 +94,18 @@ import etomo.util.MRCHeader;
 * <p> </p>
 */
 public class SectionTablePanel implements ContextMenu, Expandable, Table {
-  public static  final String  rcsid =  "$Id$";
-  
+  public static final String rcsid = "$Id$";
+
   private static final Dimension buttonDimension = UIParameters
-  .getButtonDimension();
-  
+      .getButtonDimension();
+  private static final String flipWarning[] = { "Tomograms have to be flipped after generation",
+  "in order to be in the right orientation for joining serial sections." };
+
   private DoubleSpacedPanel rootPanel;
   private JPanel pnlTable;
   private SpacedPanel pnlButtons;
   private SpacedPanel pnlImod;
-  
+
   private ExpandButton btnExpandSections;
   private MultiLineButton btnMoveSectionUp;
   private MultiLineButton btnMoveSectionDown;
@@ -105,16 +114,17 @@ public class SectionTablePanel implements ContextMenu, Expandable, Table {
   private LabeledSpinner spinBinning;
   private MultiLineButton btnOpen3dmod;
   private MultiLineButton btnGetAngles;
-  
+
   private ArrayList rows = new ArrayList();
-  
+
   private GridBagLayout layout = new GridBagLayout();
   private GridBagConstraints constraints = new GridBagConstraints();
-  private SectionTableActionListener sectionTableActionListener = new SectionTableActionListener(this);
-  
+  private SectionTableActionListener sectionTableActionListener = new SectionTableActionListener(
+      this);
+
   private final JoinManager joinManager;
   private final JoinDialog joinDialog;
-  
+
   /**
    * Creates the panel and table.
    *
@@ -126,7 +136,7 @@ public class SectionTablePanel implements ContextMenu, Expandable, Table {
     enableTableButtons("");
     enableRowButtons(-1);
   }
-  
+
   private void createRootPanel() {
     //create rootPanel in X axis to make room at the border
     rootPanel = new DoubleSpacedPanel(false, FixedDim.x5_y0, FixedDim.x0_y5,
@@ -136,7 +146,7 @@ public class SectionTablePanel implements ContextMenu, Expandable, Table {
     createButtonsPanel();
     rootPanel.add(pnlButtons);
   }
-  
+
   /**
    * Creates the panel and table.  Adds the header rows.  Adds SectionTableRows
    * to rows to create each row.
@@ -194,7 +204,7 @@ public class SectionTablePanel implements ContextMenu, Expandable, Table {
     constraints.gridwidth = GridBagConstraints.REMAINDER;
     new HeaderCell(this, "Z", FixedDim.numericWidth).add();
   }
-  
+
   private void createButtonsPanel() {
     pnlButtons = new SpacedPanel(FixedDim.x5_y0);
     pnlButtons.setLayout(new BoxLayout(pnlButtons.getContainer(),
@@ -235,14 +245,15 @@ public class SectionTablePanel implements ContextMenu, Expandable, Table {
     btnGetAngles.addActionListener(sectionTableActionListener);
     pnlButtons.add(btnGetAngles);
   }
-  
+
   private void createImodPanel() {
     pnlImod = new SpacedPanel(FixedDim.x0_y5, true);
     pnlImod.setLayout(new BoxLayout(pnlImod.getContainer(), BoxLayout.Y_AXIS));
     pnlImod.setBorder(BorderFactory.createEtchedBorder());
     //binning panel
     SpacedPanel pnlBinning = new SpacedPanel(FixedDim.x5_y0, true);
-    pnlBinning.setLayout(new BoxLayout(pnlBinning.getContainer(), BoxLayout.X_AXIS));
+    pnlBinning.setLayout(new BoxLayout(pnlBinning.getContainer(),
+        BoxLayout.X_AXIS));
     SpinnerModel spinnerModel = new SpinnerNumberModel(1, 1, 50, 1);
     spinBinning = new LabeledSpinner("Open binned by ", spinnerModel);
     spinBinning.setTextMaxmimumSize(UIParameters.dimSpinner);
@@ -259,7 +270,7 @@ public class SectionTablePanel implements ContextMenu, Expandable, Table {
     btnOpen3dmod.addActionListener(sectionTableActionListener);
     pnlImod.add(btnOpen3dmod);
   }
-  
+
   /**
    * Informs this panel that a row is highlighting.  Only one row may be
    * highlighted at once, so it turns off highlighting on all the other rows.
@@ -268,10 +279,10 @@ public class SectionTablePanel implements ContextMenu, Expandable, Table {
   void msgHighlighting(int rowNumber, boolean highlightTurnedOn) {
     int highlightedRowIndex;
     if (highlightTurnedOn) {
-       highlightedRowIndex = rowNumber - 1;
+      highlightedRowIndex = rowNumber - 1;
       for (int i = 0; i < rows.size(); i++) {
         if (i != rowNumber - 1) {
-          ((SectionTableRow)rows.get(i)).setHighlight(false);
+          ((SectionTableRow) rows.get(i)).setHighlight(false);
         }
       }
     }
@@ -280,7 +291,7 @@ public class SectionTablePanel implements ContextMenu, Expandable, Table {
     }
     enableRowButtons(highlightedRowIndex);
   }
-  
+
   private int getHighlightedRowIndex() {
     if (rows == null) {
       return -1;
@@ -292,11 +303,11 @@ public class SectionTablePanel implements ContextMenu, Expandable, Table {
     }
     return -1;
   }
-  
+
   private void enableRowButtons() {
     enableRowButtons(getHighlightedRowIndex());
   }
-  
+
   private void enableRowButtons(int highlightedRowIndex) {
     int rowsSize = rows.size();
     if (rows != null && rowsSize == 0) {
@@ -319,11 +330,11 @@ public class SectionTablePanel implements ContextMenu, Expandable, Table {
 
   void enableTableButtons(String workingDir) {
     if (workingDir == null) {
-      workingDir = joinDialog.getWorkingDir();
+      workingDir = joinDialog.getWorkingDirName();
     }
     btnAddSection.setEnabled(workingDir.trim().length() != 0);
   }
-  
+
   /**
    * Implements the Exandable interface.  Matches the expand button parameter
    * and performs the expand/contract operation.  Expands the section in each
@@ -336,17 +347,22 @@ public class SectionTablePanel implements ContextMenu, Expandable, Table {
     }
     boolean expand = btnExpandSections.isExpanded();
     for (int i = 0; i < rows.size(); i++) {
-      ((SectionTableRow)rows.get(i)).expandSection(expand);
+      ((SectionTableRow) rows.get(i)).expandSection(expand);
     }
   }
-  
+
   public GridBagLayout getTableLayout() {
     return layout;
   }
+
+  public void setEnabledAddSection(boolean enable) {
+    btnAddSection.setEnabled(enable);
+  }
+  
   public GridBagConstraints getTableConstraints() {
     return constraints;
   }
-  
+
   /**
    * Swap the highlighted row with the one above it.  Move it in the rows 
    * ArrayList.  Move it in the table by removing and adding the two involved
@@ -372,7 +388,7 @@ public class SectionTablePanel implements ContextMenu, Expandable, Table {
     enableRowButtons(rowIndex - 1);
     repaint();
   }
-  
+
   /**
    * Swap the highlighted row with the one below it.  Move it in the rows 
    * ArrayList.  Move it in the table by removing and adding the two involved
@@ -398,11 +414,12 @@ public class SectionTablePanel implements ContextMenu, Expandable, Table {
     enableRowButtons(rowIndex + 1);
     repaint();
   }
-  
+
   private void addSection() {
+
     //  Open up the file chooser in the working directory
     JFileChooser chooser = new JFileChooser(new File(System
-      .getProperty("user.dir")));
+        .getProperty("user.dir")));
     TomogramFileFilter tomogramFilter = new TomogramFileFilter();
     chooser.setFileFilter(tomogramFilter);
     chooser.setPreferredSize(new Dimension(400, 400));
@@ -412,8 +429,15 @@ public class SectionTablePanel implements ContextMenu, Expandable, Table {
       File tomogram = chooser.getSelectedFile();
       if (isDuplicate(tomogram)) {
         return;
+
       }
-      if (!fixFlipped(tomogram)) {
+      MRCHeader header = new MRCHeader(tomogram.getAbsolutePath());
+      if (!readHeader(header)) {
+        return;
+      }
+      btnAddSection.setEnabled(false);
+      if (flipSection(header, tomogram)) {
+        joinManager.flip(tomogram, joinDialog.getWorkingDir());
         return;
       }
       addSection(tomogram);
@@ -421,9 +445,7 @@ public class SectionTablePanel implements ContextMenu, Expandable, Table {
     }
   }
   
-  private boolean fixFlipped(File tomogram) {
-    MRCHeader header = new MRCHeader(tomogram.getAbsolutePath());
-    String flipWarning = "Sections must be in Z for a join to work.";
+  private boolean readHeader(MRCHeader header) {
     try {
       header.read();
     }
@@ -443,8 +465,8 @@ public class SectionTablePanel implements ContextMenu, Expandable, Table {
       if (header.getNRows() == -1 || header.getNSections() == -1) {
         String msgIOException[] = {
             "The header command returned an error (IOException).",
-            "Unable to tell if the tomogram is flipped.", flipWarning,
-            "Are you sure you want to open this file?" };
+            "Unable to tell if the tomogram is flipped.", flipWarning[0],
+            flipWarning[1], "Are you sure you want to open this file?" };
         if (!joinManager.getMainPanel().openYesNoDialog(msgIOException)) {
           return false;
         }
@@ -455,40 +477,46 @@ public class SectionTablePanel implements ContextMenu, Expandable, Table {
       if (header.getNRows() == -1 || header.getNSections() == -1) {
         String msgNumberFormatException[] = {
             "The header command returned an error (NumberFormatException).",
-            "Unable to tell if the tomogram is flipped.", flipWarning,
-            "Are you sure you want to open this file?" };
+            "Unable to tell if the tomogram is flipped.", flipWarning[0],
+            flipWarning[1], "Are you sure you want to open this file?" };
         if (!joinManager.getMainPanel().openYesNoDialog(
             msgNumberFormatException)) {
           return false;
         }
       }
     }
-    if (header.getNRows() < header.getNSections()) {
-      String msgFlipped[] = {
-          "This tomogram may be flipped (sections may be in Y).",
-          "According to the header command, the number of rows is less then the number of sections.",
-          flipWarning,
-          "Shall I use the clip flipyz command to flip Y and Z?"};
-      if (!joinManager.getMainPanel().openYesNoDialog(
-          msgFlipped)) {
-        //joinManager.flip(tomogram, joinDialog.getWorkingDir());
-      }
-    }
     return true;
   }
-  
-  private boolean isDuplicate(File section) {
-    for (int i = 0; i < rows.size(); i++) {
-      if (((SectionTableRow) rows.get(i)).equalsSection(section)) {
-        String msgDuplicate = "The file, " + section.getAbsolutePath() + ", is already in the table.";
-        joinManager.getMainPanel().openMessageDialog(msgDuplicate, "Add Section Failed");
+
+  private boolean flipSection(MRCHeader header, File tomogram) {
+    if (header.getNRows() < header.getNSections()) {
+      String msgFlipped[] = {
+          "It looks like you didn't flip the tomogram in Post Processing",
+          "bacause the tomogram is thicker in Z then it is long in Y.",
+          flipWarning[0], flipWarning[1],
+          "Shall I use the clip flipyz command to flip Y and Z?" };
+      if (joinManager.getMainPanel().openYesNoDialog(msgFlipped)) {
         return true;
       }
     }
     return false;
   }
-  
-  private void addSection(File tomogram) {
+
+  private boolean isDuplicate(File section) {
+    for (int i = 0; i < rows.size(); i++) {
+      if (((SectionTableRow) rows.get(i)).equalsSection(section)) {
+        String msgDuplicate = "The file, " + section.getAbsolutePath()
+            + ", is already in the table.";
+        joinManager.getMainPanel().openMessageDialog(msgDuplicate,
+            "Add Section Failed");
+        return true;
+      }
+    }
+    return false;
+  }
+
+  void addSection(File tomogram) {
+    btnAddSection.setEnabled(true);
     if (!tomogram.exists()) {
       joinManager.getMainPanel().openMessageDialog(
           tomogram.getAbsolutePath() + " does not exist.", "File Error");
@@ -499,8 +527,18 @@ public class SectionTablePanel implements ContextMenu, Expandable, Table {
           tomogram.getAbsolutePath() + " is not a file.", "File Error");
       return;
     }
+    MRCHeader header = new MRCHeader(tomogram.getAbsolutePath());
+    try {
+      header.read();
+    }
+    catch (InvalidParameterException e) {
+      e.printStackTrace();
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+    }
     SectionTableRow row = new SectionTableRow(this, rows.size() + 1, tomogram,
-        btnExpandSections.isExpanded());
+        btnExpandSections.isExpanded(), header.getNSections());
     row.create();
     rows.add(row);
     int newTableSize = rows.size();
@@ -519,19 +557,19 @@ public class SectionTablePanel implements ContextMenu, Expandable, Table {
       return;
     }
     SectionTableRow row = (SectionTableRow) rows.get(rowIndex);
-    if (!joinManager.getMainPanel().openYesNoDialog("Really remove " + row.getSectionText())) {
+    if (!joinManager.getMainPanel().openYesNoDialog(
+        "Really remove " + row.getSectionText())) {
       return;
     }
     rows.remove(rowIndex);
-    joinManager
-        .imodRemove(ImodManager.TOMOGRAM_KEY, row.getImodIndex());
+    joinManager.imodRemove(ImodManager.TOMOGRAM_KEY, row.getImodIndex());
     row.remove();
     renumberTable(rowIndex);
     joinDialog.setNumSections(rows.size());
     enableRowButtons(-1);
     repaint();
   }
-  
+
   private void imodSection() {
     int rowIndex = getHighlightedRowIndex();
     if (rowIndex == -1) {
@@ -541,7 +579,7 @@ public class SectionTablePanel implements ContextMenu, Expandable, Table {
     row.setImodIndex(joinManager.imodOpen(ImodManager.TOMOGRAM_KEY, row
         .getSectionFile(), row.getImodIndex()));
   }
-  
+
   private void imodGetAngles() {
     int rowIndex = getHighlightedRowIndex();
     if (rowIndex == -1) {
@@ -570,10 +608,10 @@ public class SectionTablePanel implements ContextMenu, Expandable, Table {
    */
   private void renumberTable(int startIndex) {
     for (int i = startIndex; i < rows.size(); i++) {
-      ((SectionTableRow)rows.get(i)).setRowNumber(i + 1);
+      ((SectionTableRow) rows.get(i)).setRowNumber(i + 1);
     }
   }
-  
+
   /**
    * Remove the rows from the table starting from the row in the ArrayList at
    * startIndex.
@@ -581,10 +619,10 @@ public class SectionTablePanel implements ContextMenu, Expandable, Table {
    */
   private void removeRowsFromTable(int startIndex) {
     for (int i = startIndex; i < rows.size(); i++) {
-      ((SectionTableRow)rows.get(i)).remove();
+      ((SectionTableRow) rows.get(i)).remove();
     }
   }
-  
+
   /**
    * Add rows in the ArrayList to the table starting from the row in the 
    * ArrayList at startIndex.
@@ -592,15 +630,15 @@ public class SectionTablePanel implements ContextMenu, Expandable, Table {
    */
   private void addRowsToTable(int startIndex) {
     for (int i = startIndex; i < rows.size(); i++) {
-      ((SectionTableRow)rows.get(i)).add();
+      ((SectionTableRow) rows.get(i)).add();
     }
   }
-  
+
   public void retrieveData(JoinMetaData joinMetaData) {
     joinMetaData.resetSectionTableData();
     for (int i = 0; i < rows.size(); i++) {
-      System.out.println("((SectionTableRow) rows.get(i)).getData()=" + ((SectionTableRow) rows.get(i)).getData());
-      joinMetaData.setSectionTableData(((SectionTableRow) rows.get(i)).getData());
+      joinMetaData.setSectionTableData(((SectionTableRow) rows.get(i))
+          .getData());
     }
   }
 
@@ -612,7 +650,7 @@ public class SectionTablePanel implements ContextMenu, Expandable, Table {
     layout.setConstraints(cell, constraints);
     pnlTable.add(cell);
   }
-  
+
   public void removeCell(JComponent cell) {
     pnlTable.remove(cell);
   }
@@ -624,7 +662,7 @@ public class SectionTablePanel implements ContextMenu, Expandable, Table {
   private void repaint() {
     joinManager.getMainPanel().repaint();
   }
-  
+
   /**
    * Create an expand button and add it to the table.
    * @return the expand button
@@ -634,7 +672,7 @@ public class SectionTablePanel implements ContextMenu, Expandable, Table {
     addCell(button);
     return button;
   }
-  
+
   /**
    * Add a multi line toggle button to the table.  Set the border to raised bevel to make
    * it 3D.  Set its preferred width.
@@ -651,7 +689,7 @@ public class SectionTablePanel implements ContextMenu, Expandable, Table {
     addCell(button);
     return button;
   }
-  
+
   /**
    * Create a multi line toggle button.  Set the border to raised bevel to make
    * it 3D.  Set its preferred width.  Add it to the table.
@@ -663,7 +701,7 @@ public class SectionTablePanel implements ContextMenu, Expandable, Table {
     MultiLineToggleButton button = new MultiLineToggleButton(text);
     return addToggleButton(button, text, width);
   }
-  
+
   /**
    * Right mouse button context menu
    */
@@ -688,7 +726,7 @@ public class SectionTablePanel implements ContextMenu, Expandable, Table {
       moveSectionDown();
     }
     else if (command.equals(btnAddSection.getActionCommand())) {
-     addSection();
+      addSection();
     }
     else if (command.equals(btnDeleteSection.getActionCommand())) {
       deleteSection();
