@@ -17,6 +17,9 @@ import java.util.Properties;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.6  2004/10/22 21:07:27  sueh
+* <p> bug# 520 Converting ints to EtomoInteger as necessary.
+* <p>
 * <p> Revision 1.1.2.5  2004/10/22 03:26:02  sueh
 * <p> bug# 520 Converted rowNumber to an EtomoInteger.
 * <p>
@@ -75,6 +78,8 @@ public class SectionTableRowData extends ConstSectionTableRowData {
     String group = prepend + ".";
 
     rowNumber.load(props, prepend);
+    xMax.load(props, prepend);
+    yMax.load(props, prepend);
     zMax = Integer.parseInt(props.getProperty(group + zMaxString,
         Integer.toString(Integer.MIN_VALUE)));
     String sectionName = props.getProperty(group + sectionString, null);
@@ -107,6 +112,14 @@ public class SectionTableRowData extends ConstSectionTableRowData {
   
   public void setSection(File section) {
     this.section = section;
+  }
+  
+  public void setYMax(int xMax) {
+    this.xMax.set(xMax);
+  }
+  
+  public void setXMax(int yMax) {
+    this.yMax.set(yMax);
   }
   
   public void setZMax(int zMax) {
