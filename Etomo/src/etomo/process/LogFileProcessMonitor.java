@@ -24,6 +24,11 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.11  2004/08/24 20:33:44  sueh
+ * <p> bug# 508 create a haltProcess function to halt the monitor
+ * <p> from another thread.  Make sure that the progress bar won't
+ * <p> be updated after haltProcess is run
+ * <p>
  * <p> Revision 3.10  2004/08/23 23:37:00  sueh
  * <p> bug# 508 backed out most recently checked in changes, except
  * <p> for lastProcess
@@ -275,7 +280,7 @@ public abstract class LogFileProcessMonitor implements Runnable {
         + Utilities.millisToMinAndSecs(remainingTime);
     
     if (processRunning) {
-      applicationManager.setProgressBarValue(currentSection, message, axisID);
+      applicationManager.getMainPanel().setProgressBarValue(currentSection, message, axisID);
     }
   }
   
