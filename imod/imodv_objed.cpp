@@ -34,6 +34,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.6  2002/12/30 06:49:50  mast
+rationalizing dialogs as widgets and using dialog list
+
 Revision 1.1.2.5  2002/12/27 17:49:30  mast
 Clean up unused variables
 
@@ -79,6 +82,7 @@ Changes to get clean compilation with g++
 #include "imodv_objed.h"
 #include "imodv_input.h"
 #include "hotslider.h"
+#include "control.h"
 
 /*
  *  internal prototypes (first two were public but unused)
@@ -379,7 +383,7 @@ void imodvObjedDone()
 // Signal from window that it is closing: clear pointer
 void imodvObjedClosing()
 {
-  imodvRemoveDialog((QWidget *)objed_dialog);
+  imodvDialogManager.remove((QWidget *)objed_dialog);
   objed_dialog = NULL;
   numOnoffButtons = 0;
 }
@@ -644,7 +648,7 @@ void objed(ImodvApp *a)
   ctrlPressed = false;
   objed_dialog->setCurrentFrame(CurrentObjectField, Imodv_objed_all);
   objset(a);
-  imodvAddDialog((QWidget *)objed_dialog);
+  imodvDialogManager.add((QWidget *)objed_dialog, IMODV_DIALOG);
   objed_dialog->show();
 }
 
@@ -1449,7 +1453,7 @@ void imodvObjectListDialog(ImodvApp *a, int state)
   if (qstr.isEmpty())
     qstr = "Imodv Object List";
   Oolist_dialog->setCaption(qstr);
-  imodvAddDialog((QWidget *)Oolist_dialog);
+  imodvDialogManager.add((QWidget *)Oolist_dialog, IMODV_DIALOG);
   Oolist_dialog->show();
 }
 
@@ -1482,7 +1486,7 @@ void ImodvOlist::donePressed()
 
 void ImodvOlist::closeEvent ( QCloseEvent * e )
 {
-  imodvRemoveDialog((QWidget *)Oolist_dialog);
+  imodvDialogManager.remove((QWidget *)Oolist_dialog);
   Oolist_dialog  = NULL;
   numOolistButtons = 0;
   e->accept();

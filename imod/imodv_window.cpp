@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.5  2003/01/13 01:15:43  mast
+changes for Qt version of info window
+
 Revision 1.1.2.4  2003/01/01 05:40:21  mast
 add timer to workaround iconifying problem
 
@@ -56,6 +59,7 @@ Initial creation
 #include "imodv_menu.h"
 #include "imodv_gfx.h"
 #include "imodv_input.h"
+#include "control.h"
 
 extern int Imod_debug;
 
@@ -246,8 +250,9 @@ void ImodvWindow::closeEvent ( QCloseEvent * e )
 
 void ImodvWindow::showEvent(QShowEvent *e)
 {
-  if (mMinimized)
-    imodvShowDialogs();
+  if (mMinimized) {
+     imodvDialogManager.show();
+  }
   mMinimized = false;
 }
 
@@ -265,7 +270,7 @@ void ImodvWindow::hideTimeout()
 {
   if (isMinimized()) {
     mMinimized = true;
-    imodvHideDialogs();
+    imodvDialogManager.hide();
   }
 }
 

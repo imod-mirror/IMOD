@@ -36,6 +36,7 @@
 #include "imodv_input.h"
 #include "imodv_views.h"
 #include "imodv_modeled.h"
+#include "control.h"
 
 struct imodv_modeled
 {
@@ -101,7 +102,7 @@ void imodvModeledDone()
 // Closing: unload the pixel size one last time
 void imodvModeledClosing()
 {
-  imodvRemoveDialog((QWidget *)med->dia);
+  imodvDialogManager.remove((QWidget *)med->dia);
   imodvModeledScale(0);
   med->dia = NULL;
 }
@@ -132,7 +133,7 @@ void imodvModelEditDialog(ImodvApp *a, int state)
   updateWorkArea();
   med->dia->setViewSelection(a->drawall);
   med->dia->setMoveEdit(a->moveall, a->crosset);
-  imodvAddDialog((QWidget *)med->dia);
+  imodvDialogManager.add((QWidget *)med->dia, IMODV_DIALOG);
   med->dia->show();
 }
 

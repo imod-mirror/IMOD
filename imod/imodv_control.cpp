@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 1.1.2.8  2002/12/30 06:49:50  mast
+    rationalizing dialogs as widgets and using dialog list
+
     Revision 1.1.2.7  2002/12/23 05:00:25  mast
     Make imodv mainwindow be parent
 
@@ -60,13 +63,13 @@
 */
 #include <qstring.h>
 #include "formv_control.h"
-#include <dia.h>
 #define NO_X_INCLUDES
 #include "imodv.h"
 #include "imodP.h"
 #include "imodv_control.h"
 #include "imodv_gfx.h"
 #include "imodv_input.h"
+#include "control.h"
 
 static imodvControlForm *dialog = NULL;
 static float lastX = -999;
@@ -291,7 +294,7 @@ void imodvControlRate(int value)
 /* receive the signal that the dialog is really closing, and set to NULL */
 void imodvControlClosing(void)
 {
-  imodvRemoveDialog((QWidget *)dialog);
+  imodvDialogManager.remove((QWidget *)dialog);
   dialog = NULL;
 }
 
@@ -404,7 +407,7 @@ int imodv_control(ImodvApp *a, int state)
   if (!qstr.isEmpty())
     dialog->setCaption(qstr);
 
-  imodvAddDialog((QWidget *)dialog);
+  imodvDialogManager.add((QWidget *)dialog, IMODV_DIALOG);
   dialog->show();
 
   lastX = lastY = lastZ = lastScale = -999.;

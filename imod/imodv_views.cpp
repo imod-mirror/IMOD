@@ -35,6 +35,9 @@
     $Revision$
 
     $Log$
+    Revision 1.1.2.6  2002/12/30 06:40:24  mast
+    Prevent multiple draws, adapt to dialog-widget control
+
     Revision 1.1.2.5  2002/12/27 17:45:01  mast
     clean up unused variable
 
@@ -54,6 +57,7 @@
 #include "imodv_views.h"
 #include "imodv_depthcue.h"
 #include "imodv_objed.h"
+#include "control.h"
 
 
 struct imodv_viewed
@@ -204,7 +208,7 @@ void imodvViewsDone()
 // Closing - do we need to autostore view?
 void imodvViewsClosing()
 {
-  imodvRemoveDialog((QWidget *)ved->dia);
+  imodvDialogManager.remove((QWidget *)ved->dia);
   ved->dia = NULL;
 }
 
@@ -244,7 +248,7 @@ void imodvViewEditDialog(ImodvApp *a, int state)
   build_list(a);
   ved->dia->setAutostore(auto_store);
   ved->dia->selectItem(a->imod->cview, true);
-  imodvAddDialog((QWidget *)ved->dia);
+  imodvDialogManager.add((QWidget *)ved->dia, IMODV_DIALOG);
   ved->dia->show();
 }
 
