@@ -30,6 +30,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.20.2.1  2004/07/14 21:13:02  mast
+c	  backport to 3.3
+c	
 c	  Revision 3.21  2004/07/13 18:56:23  mast
 c	  Exit with error message and reference to man page when reading mode 16
 c	
@@ -1166,7 +1169,7 @@ c
 	      iftempopen=1
 	    endif
 c
-	    ibbase=maxin*nx+1
+	    ibbase=maxin*nxbin+1
 c	      
 c	      get the mean of section from previous scan, or a new scan
 c
@@ -1214,8 +1217,8 @@ c		  call irdsecl(1,array(nmove+1),nload,*99)
 c		    
 c		    move data up if it will fill top
 c		    
-		  nmove=(needynd+1-loadyst)*nx
-		  noff=(loadyst-needyst)*nx
+		  nmove=(needynd+1-loadyst)*nxbin
+		  noff=(loadyst-needyst)*nxbin
 		  do i=nmove,1,-1
 		    array(i+noff)=array(i)
 		  enddo
