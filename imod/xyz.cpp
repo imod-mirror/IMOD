@@ -34,6 +34,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.8  2003/01/13 01:15:43  mast
+changes for Qt version of info window
+
 Revision 1.1.2.7  2003/01/06 15:50:47  mast
 Use imodCaption and viewport xy routine
 
@@ -98,6 +101,7 @@ Removed call to autox_build
 #include "xzap.h"
 #include "control.h"
 #include "imod_info_cb.h"
+#include "imod_input.h"
 
 /*************************** internal functions ***************************/
 static void xyzKey_cb(ImodView *vi, void *client, int released, QKeyEvent *e);
