@@ -27,6 +27,11 @@ import javax.swing.border.Border;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.3  2004/10/13 23:16:04  sueh
+* <p> bug# 520 Added a way to set and reset component alignments.  Added
+* <p> specialized add() functions for generic etomo ui objects.  Added a way to
+* <p> prevent spacing being added at the top of a panel and after a component.
+* <p>
 * <p> Revision 1.1.2.2  2004/09/23 23:52:23  sueh
 * <p> bug# 520 Added a class description.
 * <p>
@@ -69,6 +74,10 @@ public class SpacedPanel {
     if (outerSpacing && spaceBefore) {
       panel.add(Box.createRigidArea(spacing));
     }
+  }
+  
+  public Component add(Component comp) {
+    return panel.add(comp);
   }
   
   Component add(JComponent comp) {
