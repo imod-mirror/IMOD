@@ -55,6 +55,9 @@ import etomo.util.InvalidParameterException;
  * 
  * <p>
  * $Log$
+ * Revision 3.24  2004/07/20 23:28:34  sueh
+ * bug# 514
+ *
  * Revision 3.23  2004/07/20 23:08:33  sueh
  * bug# 502 setting fiducialess in tilt (not getting fiducialess
  * from tilt).  Use local alignment is disabled when fiducialess is
@@ -651,7 +654,8 @@ public class TomogramGenerationDialog extends ProcessDialog
       }
 
       if (cbBoxUseLocalAlignment.isSelected()) {
-        tiltParam.setLocalAlignFile(applicationManager.getDatasetName()
+        tiltParam.setLocalAlignFile(applicationManager.getMetaData()
+            .getDatasetName()
             + axisID.getExtension() + "local.xf");
       }
       else {

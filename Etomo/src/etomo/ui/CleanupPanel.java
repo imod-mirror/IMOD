@@ -37,6 +37,10 @@ import etomo.storage.IntermediateFileFilter;
  * 
  * <p>
  * $Log$
+ * Revision 3.2  2004/01/30 22:44:54  sueh
+ * bug# 356 Changing buttons with html labels to
+ * MultiLineButton and MultiLineToggleButton
+ *
  * Revision 3.1  2003/11/10 07:38:21  rickg
  * Task tags moved to bugzilla
  *
@@ -103,7 +107,7 @@ public class CleanupPanel {
 
     //  Create the filechooser
     intermediateFileFilter =
-      new IntermediateFileFilter(applicationManager.getDatasetName());
+      new IntermediateFileFilter(applicationManager.getMetaData().getDatasetName());
     backupFileFilter = new BackupFileFilter();
 
     fileChooser = new JFileChooser();

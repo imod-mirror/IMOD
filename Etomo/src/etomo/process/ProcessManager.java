@@ -20,6 +20,10 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.39.2.1  2004/09/03 21:13:07  sueh
+ * bug# 520 calling functions from EtomoDirector instead of
+ * ApplicationManager
+ *
  * Revision 3.39  2004/08/30 18:43:55  sueh
  * bug# 508 Use notifyKill() to tell this object that
  * a kill has been requested.  This way kill() doesn't have to
@@ -595,6 +599,10 @@ public class ProcessManager {
 
     return comScriptProcess.getName();
   }
+  
+  private String getDatasetName() {
+    return appManager.getMetaData().getDatasetName();
+  }
 
   /**
    * Calculate the cross-correlation for the specified axis
@@ -649,8 +657,8 @@ public class ProcessManager {
     xftoxg[0] = ApplicationManager.getIMODBinPath() + "xftoxg";
     xftoxg[1] = "-NumberToFit";
     xftoxg[2] = "0";
-    xftoxg[3] = appManager.getDatasetName() + axisID.getExtension() + ".prexf";
-    xftoxg[4] = appManager.getDatasetName() + axisID.getExtension() + ".prexg";
+    xftoxg[3] = getDatasetName() + axisID.getExtension() + ".prexf";
+    xftoxg[4] = getDatasetName() + axisID.getExtension() + ".prexg";
     runCommand(xftoxg);
   }
   
@@ -662,10 +670,10 @@ public class ProcessManager {
   public void generateNonFidXF(AxisID axisID) throws SystemProcessException {
     String[] xfproduct = new String[4];
     xfproduct[0] = ApplicationManager.getIMODBinPath() + "xfproduct";
-    xfproduct[1] = appManager.getDatasetName() + axisID.getExtension()
+    xfproduct[1] = getDatasetName() + axisID.getExtension()
       + ".prexg";
     xfproduct[2] = "rotation" + axisID.getExtension() + ".xf";
-    xfproduct[3] = appManager.getDatasetName() + axisID.getExtension()
+    xfproduct[3] = getDatasetName() + axisID.getExtension()
       + "_nonfid.xf";
 
     runCommand(xfproduct);
@@ -680,7 +688,7 @@ public class ProcessManager {
   public void setupNonFiducialAlign(AxisID axisID) throws IOException,
     InvalidParameterException {
     String workingDirectory = System.getProperty("user.dir");
-    String axisDataset = appManager.getDatasetName() + axisID.getExtension();
+    String axisDataset = getDatasetName() + axisID.getExtension();
 
     File nonfidXF = new File(workingDirectory, axisDataset + "_nonfid.xf");
     File xf = new File(workingDirectory, axisDataset + ".xf");
@@ -702,7 +710,7 @@ public class ProcessManager {
    */
   public void setupFiducialAlign(AxisID axisID) throws IOException {
     String workingDirectory = System.getProperty("user.dir");
-    String axisDataset = appManager.getDatasetName() + axisID.getExtension();
+    String axisDataset = getDatasetName() + axisID.getExtension();
     // Files to be managed
     File xf = new File(workingDirectory, axisDataset + ".xf");
     File fidXF = new File(workingDirectory, axisDataset + "_fid.xf");
@@ -754,8 +762,8 @@ public class ProcessManager {
     String[] commandArray = new String[3];
 
     String options = "-a " + String.valueOf(-1 * imageRotation) + " ";
-    String stack = appManager.getDatasetName() + axisID.getExtension() + ".st ";
-    String xform = appManager.getDatasetName() + axisID.getExtension()
+    String stack = getDatasetName() + axisID.getExtension() + ".st ";
+    String xform = getDatasetName() + axisID.getExtension()
       + ".prexf ";
 
     String commandLine = ApplicationManager.getIMODBinPath() + "midas "
@@ -825,7 +833,7 @@ public class ProcessManager {
    */
   public void copyFiducialAlignFiles(AxisID axisID) {
     String workingDirectory = System.getProperty("user.dir");
-    String axisDataset = appManager.getDatasetName() + axisID.getExtension();
+    String axisDataset = getDatasetName() + axisID.getExtension();
 
     try {
       if (Utilities.fileExists(appManager.getMetaData(), ".xf", axisID)) {
