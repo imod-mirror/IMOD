@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.1  2003/01/02 15:45:09  mast
+changes for new controller key callback
+
 Revision 3.3  2002/12/01 15:34:41  mast
 Changes to get clean compilation with g++
 
@@ -54,82 +57,82 @@ Activated faster HQ display method for zoom > 1 using cubic interpolation
 compiler bug.
 
 */
-#include <X11/Intrinsic.h>
-#include <X11/IntrinsicP.h>
-#include <Xm/MainW.h>
-#include <Xm/DrawingA.h>
-#include <Xm/PushB.h>
-#include <Xm/ToggleB.h>
-#include <Xm/ArrowB.h>
-#include <Xm/Label.h>
-#include <Xm/Frame.h>
-#include <Xm/Form.h>
-#include <Xm/Scale.h>
-#include <Xm/RowColumn.h>
-#include <Xm/Text.h>
-#include <X11/keysym.h>
-#include <Xm/VirtKeys.h>
-#include <Xm/Protocols.h>
-#include <Xm/AtomMgr.h>
 #include <math.h>
 #include <limits.h>
 #include <string.h>
+#include <qcursor.h>
+#include <qbitmap.h>
+#include <qapplication.h>
 
-#include "diaP.h"
+#include "slicer_classes.h"
 #include "imod.h"
-#include "slicer.h"
+#include "sslice.h"
 #include "control.h"
+#include "hotslider.h"
+
+#include "qcursor.bits"
+#include "qcursor_mask.bits"
 
 /* internal functions. */
-static void sslice_ginit_cb(Widget w, XtPointer client, XtPointer call);
-static void sslice_clear(struct Super_slicer *win);
-static void input_cb(Widget w, XtPointer client, XtPointer call);
-static void sslice_cube_draw(struct Super_slicer *win);
-static void sslice_draw(struct Super_slicer *win);
-Boolean sslice_update(XtPointer client_data);
-static void sslice_tupdate(XtPointer client, XtIntervalId *id);
-static void sslice_addworkproc(XtPointer client, XtIntervalId *id);
-static void sslice_setxyz(struct Super_slicer *win, int x, int y);
-static void slice_trans_step(struct Super_slicer *win);
-static void slicer_insert_point(struct Super_slicer *win, int x, int y);
-static void slicer_modify_point(struct Super_slicer *win, int x, int y);
-static Widget createThickControls(struct Super_slicer *win, Widget parent);
-
-static void slicerUpdateImage(struct Super_slicer *win);
-static void drawThickControls(struct Super_slicer *win);
-static void sslice_draw_model(struct Super_slicer *win);
-
-
-static String KeyTranslations = "<KeyDown>: sliceKeyInput()\n";
-static void slice_keyinput(XKeyEvent *event, struct Super_slicer *slice);
-
-void sliceSetAnglesFromPoints(struct Super_slicer *ss,
+static void sslice_cube_draw(SlicerStruct *ss);
+static void sslice_draw(SlicerStruct *ss);
+static void sslice_setxyz(SlicerStruct *ss, int x, int y);
+static void slice_trans_step(SlicerStruct *ss);
+static void slicer_insert_point(SlicerStruct *ss, int x, int y);
+static void slicer_modify_point(SlicerStruct *ss, int x, int y);
+static void slicerUpdateImage(SlicerStruct *ss);
+static void drawThickControls(SlicerStruct *ss);
+static void sslice_draw_model(SlicerStruct *ss);
+static void sliceSetAnglesFromPoints(SlicerStruct *ss,
                               Ipoint *p1, Ipoint *p2, int axis);
+static void slicerKey_cb(ImodView *vi, void *client, int released, 
+			 QKeyEvent *e);
+static double fixangle(double angle);
+static void fillImageArray(SlicerStruct *ss);
+static void slicerDraw_cb(ImodView *vi, void *client, int drawflag);
+static void slicerClose_cb(ImodView *vi, void *client, int junk);
+static int sslice_showslice(SlicerStruct *ss);
 
 /* DNM: maximum angles for sliders */
 static float maxAngle[3] = {90.0, 180.0, 180.0};
+static int ctrlPressed = false;
 
 /*
  * Open up slicer help dialog.
  */
-static void help_cb(Widget w, XtPointer client, XtPointer call)
+void slicerHelp()
 {
   dia_vasmsg
     ("Imod Slicer Help\n",
      "-------------------------------------------------------------\n",
-     "\nThe Tool Bar\n\n",
+     "\nSlicer has two dockable toolbars that may be floated as separate "
+     "windows so that the image will fill the entire window area.  When they "
+     "are floated, they will still pass hotkeys on to the slicer window\n",
+
+     "\nThe First Toolbar\n",
+     "-------------------\n",
      "\tThe Up and Down Arrows step the zoom factor up or down.\n",
+     "\tThe text box shows the current zoom and allows  you to type in "
+     "intermediate zoom factors.\n",
+     "\tThe checkerboard button toggles between fast rendering and "
+     "slower but higher quality image rendering.\n",
+     "\tThe lock button will keep the image locked to the current "
+     "position.\n",
      "\tThe show slice button will cause lines to be draw in the "
      "XYZ and ZaP windows to show the intersection of the current "
      "slice.\n",
-     "\tThe lock button will keep the image locked to the current "
-     "position.\n",
-     "\tThe checkerboard button toggles between fast rendering and "
-     "slower but higher quality image rendering.\n",
+     "The Z-Scale box lets you"
+     "control whether the volume will be displayed with Z "
+     "scaling.  If you choose \"Z-Scale Before\", then the volume will be "
+     "scaled before it is rotated and sliced, and thus the rotation "
+     "angles will not select the same slice as with no Z-scaling.  If "
+     "you choose \"Z-Scale After\", the volume is scaled after being "
+     "rotated, and the same slice is selected as with no Z-scaling.\n",
 
-     "\tAdditional controls can be selected using the option menu.\n",
-     "\tThe Slice option shows the position of the current slice and "
-     "shows sliders with which you can adjust the rotations about the "
+     "\nThe Second Toolbar\n",
+     "-------------------\n",
+     "\tOn the left are three sliders "
+     "with which you can adjust the rotations about the "
      "X, Y, and Z axes.  The rotation angles are applied to the volume, "
      "not to the slicing plane, and they are applied in the order Z, Y, "
      "X; thus these same angles can be used directly in other programs "
@@ -138,26 +141,21 @@ static void help_cb(Widget w, XtPointer client, XtPointer call)
      "middle button moves the slider immediately to the position of "
      "mouse.  If you drag the slider, the representation of the slice "
      "in the data volume will change continuously, but the image will "
-     "not be updated until you release the slider.\n",
-     "\tThe Depth option shows controls for adjusting the thickness of "
-     "the image slice and model display.  There is also an option menu "
-     "for controlling whether the volume will be displayed with Z "
-     "scaling.  If you choose \"Scale Before\", then the volume will be "
-     "scaled before it is rotated and sliced, and thus the rotation "
-     "angles will not select the same slice as with no Z-scaling.  If "
-     "you choose \"Scale After\", the volume is scaled after being "
-     "rotated, and the same slice is selected as with no Z-scaling.\n",
-     "\tThe Image option eliminates "
-     "the control panels and just shows the slice image.\n\n",
-     "Mouse Actions\n",
-     "--------\n",
+     "not be updated until you release the slider, unless you press the "
+     "Ctrl key to make the slider continuously active.\n",
+     "\tIn the middle is a representation of the slice that is being cut "
+     "from the data volume.\n"
+     "\tOn the right are controls for adjusting the thickness of "
+     "the image slice and the thickness of model that is shown on the slice.\n"
+     "\nMouse Actions\n",
+     "-----------------\n",
      "Left button: Pick a new current viewing point in the data volume\n"
      "Middle button: In model mode, insert a point after the current "
      "point\n"
      "Right button: In model mode, move the current point to the "
      "selected location\n\n",
      "Hot Keys\n",
-     "--------\n",
+     "-----------\n",
      "-/=\tDecrease/Increase zoom\n",
      "_/+\tDecrease/Increase displayed image thickness\n",
      "9/0\tDecrease/Increase displayed model thickness\n",
@@ -180,446 +178,229 @@ static void help_cb(Widget w, XtPointer client, XtPointer call)
 
 
 /*
- * Handle keybord input for slicer window.
- */
-void sliceKeyInput(Widget w, XEvent *event, String par, Cardinal num)
-{
-  struct Super_slicer *slice;
-     
-  XtVaGetValues(w, XmNuserData, &slice, NULL);
-  slice_keyinput((XKeyEvent *)event, slice);
-  return;
-}
-
-/*
  * Toolbar zoom arrow callbacks.
  */
-static void sslice_zoomup_cb(Widget w, XtPointer client, XtPointer call)
+void slicerStepZoom(SlicerStruct *ss, int dir)
 {
-  struct Super_slicer *win = (struct Super_slicer *)client;
-
-  ivwControlPriority(win->vi, win->ctrl);
-  win->zoom = b3dStepPixelZoom(win->zoom, 1);
-  sslice_draw(win);
-  return;
-}
-static void sslice_zoomdown_cb(Widget w, XtPointer client, XtPointer call)
-{
-  struct Super_slicer *win = (struct Super_slicer *)client;
-
-  ivwControlPriority(win->vi, win->ctrl);
-  win->zoom = b3dStepPixelZoom(win->zoom, -1);
-  /*     win->zoom -= 1.0;
-         if (win->zoom < 1.0)
-         win->zoom = 1.0; */
-  /* sslice_clear(win); DNM: not needed */
-  sslice_draw(win);
-  return;
+  ivwControlPriority(ss->vi, ss->ctrl);
+  ss->zoom = b3dStepPixelZoom(ss->zoom, dir);
+  sslice_draw(ss);
+  ss->qtWindow->setZoomText(ss->zoom);
 }
 
+/* A new zoom value was entered in text box */
+void slicerEnteredZoom(SlicerStruct *ss, float newZoom)
+{
+  ivwControlPriority(ss->vi, ss->ctrl);
+  ss->zoom = newZoom;
+  if (ss->zoom <= 0.01) {
+    ss->zoom = 0.01;
+    ss->qtWindow->setZoomText(ss->zoom);
+  }  
+  sslice_draw(ss);
+  ss->qtWindow->setFocus();
+}
+ 
 
 /* 
  * Show the location of the slice in the XYZ and Zap windows. 
  */
-static void sslice_show_cb(Widget w, XtPointer client, XtPointer call)
+void slicerShowSlice(SlicerStruct *ss)
 {
-  struct Super_slicer *win = (struct Super_slicer *)client;
-
-  slice_trans_step(win);
-  sslice_showslice(win);
-  return;
+  slice_trans_step(ss);
+  sslice_showslice(ss);
 }
 
 
 /*
- * Toolbar: Toggle between fast rendering and highres rendering.
+ * Toolbar Toggle buttons
  */
-static void sslice_res_cb(Widget w, XtPointer client, XtPointer call)
+void slicerStateToggled(SlicerStruct *ss, int index, int state)
 {
-  struct Super_slicer *win = (struct Super_slicer *)client;
+  ivwControlPriority(ss->vi, ss->ctrl);
+  if (index) {
 
-  ivwControlPriority(win->vi, win->ctrl);
-  if (win->hq){
-    win->hq = FALSE;
-    XtVaSetValues(w, XmNlabelPixmap, win->lowrespix, NULL);
-  }else{
-    win->hq = TRUE;
-    XtVaSetValues(w, XmNlabelPixmap, win->highrespix, NULL);
+    /* toggle the lock button (does not need redraw?) */
+    ss->locked = state;
+  } else {
+
+    /* toggle between fast rendering and highres rendering */
+    ss->hq = state;
+    sslice_draw(ss);
   }
-  win->expose_draw = True;
-  sslice_draw(win);
-  return;
 }
 
-/*
- * GfX Event: Redraw graphics window due to window being exposed.
- */
-static void expose_cb(Widget w, XtPointer client, XtPointer call)
+// Selection of a new zscaling option
+void slicerZscale(SlicerStruct *ss, int item)
 {
-  struct Super_slicer *win = (struct Super_slicer *)client;
-  Dimension winx, winy;
-  int ox, oy;
-
-#ifdef RESIZE_EXPOSE_DEBUG
-  printf("Expose:");
-#endif
-
-  if (!win->exposed){
-    XtVaGetValues(w, XmNwidth, &winx, XmNheight, &winy, NULL);
-    win->exposed = True;
-    sslice_ginit_cb(w, client, call);
-  }else{
-    /* Window can change size with expose event. */
-    XtVaGetValues(w, XmNwidth, &winx, XmNheight, &winy, NULL);
-    ox = win->winx; oy = win->winy;
-    win->winx = winx;
-    win->winy = winy;
-    b3dWinset(XtDisplay(win->glw), win->glw, win->context);
-    b3dResizeViewport();
-          
-    /* DNM: send 12 rather than App->depth to guarantee shorts */
-    if ((winx != ox) || (winy != oy)){
-      win->image   = b3dGetNewCIImage(win->image, 12);
-    }
-  }
-  sslice_draw(win);
-
-#ifdef RESIZE_EXPOSE_DEBUG
-  printf("\n");
-#endif
-  return;
+  ivwControlPriority(ss->vi, ss->ctrl);
+  ss->scalez = item;
+  sslice_draw(ss);
 }
 
-/*
- * GfX Event: This is for the cube window.
- */
-static void sslice_expose_cube_cb(Widget w, XtPointer client, XtPointer call)
-{
-  struct Super_slicer *sslice = (struct Super_slicer *)client;
-  if (!sslice->cubegc){
-    sslice->cubegc = b3dGetContext(w);
-  }
-  b3dWinset(XtDisplay(sslice->cube), sslice->cube, sslice->cubegc);
-  b3dResizeViewport();
-  sslice_cube_draw(sslice);
-  return;
-}
-
-
-static void sslice_ginit_cb(Widget w, XtPointer client, XtPointer call)
-{
-  struct Super_slicer *sslice = (struct Super_slicer *)client;
-  Dimension winx, winy;
-
-
-  sslice->context = b3dGetContext(w);
-  b3dWinset(XtDisplay(sslice->glw), sslice->glw, sslice->context);
-  XtVaGetValues(w, XmNwidth, &winx, XmNheight, &winy, NULL);
-  sslice->winx = winx;
-  sslice->winy = winy;
-
-  b3dResizeViewport();
-
-  /* DNM: send 12 rather than App->depth to guarantee shorts */
-  sslice->image   = b3dGetNewCIImage(NULL, 12);
-  return;
-}
-
-
-static void resize_cb(Widget w, XtPointer client, XtPointer call)
-{
-  struct Super_slicer *sslice = (struct Super_slicer *)client;
-  Dimension winx, winy;
-
-  XtVaGetValues(w, XmNwidth, &winx, XmNheight, &winy, NULL);
-  sslice->winx = winx;
-  sslice->winy = winy;
-
-
-  if (sslice->exposed){
-    b3dWinset(XtDisplay(sslice->glw), sslice->glw, sslice->context);
-    b3dResizeViewport();
-    /* DNM: send 12 rather than App->depth to guarantee shorts */
-    sslice->image   = b3dGetNewCIImage(sslice->image, 12);
-
-    ivwControlPriority(sslice->vi, sslice->ctrl);
-    sslice_draw(sslice);
-  }
-  return;
-}
-
-static void sslice_resize_cube_cb(Widget w, XtPointer client, XtPointer call)
-{
-  struct Super_slicer *sslice = (struct Super_slicer *)client;
-
-  if (sslice->cubegc){
-    b3dWinset(XtDisplay(sslice->cube), sslice->cube, sslice->cubegc);
-    b3dResizeViewport();
-    sslice_cube_draw(sslice);
-  }
-  return;
-}
 
 /* 
  * Tilt angle controls.
  */
-/* DNM: in order to have input focus return to the window, call 
-   XmProcessTraversal in each of these, and in the other menu and text box
-   call backs.  The translation override that tries to make each one pass
-   input to the central key input routine must not work.  Traversal must be
-   to a widget where this translation does work.  If problems with Mesa require
-   use of GLwDrawingArea instead of GLwMDrawingArea, set the target of
-   XmProcessTraversal to zoomarrow rather than glw */
-static void sslice_anglevalue_cb(Widget w, XtPointer client, XtPointer call)
+void slicerAngleChanged(SlicerStruct *ss, int axis, int value, 
+			int dragging)
 {
-  struct Super_slicer *sslice = (struct Super_slicer *)client;
-  XmScaleCallbackStruct *cbs = (XmScaleCallbackStruct *)call;
-  int axis = X;
-  if (w == sslice->anglew[Y])
-    axis = Y;
-  if (w == sslice->anglew[Z])
-    axis = Z;
+  ivwControlPriority(ss->vi, ss->ctrl);
+  ss->tang[axis] = value * 0.1f;
+  ss->lastangle = axis;
 
-  ivwControlPriority(sslice->vi, sslice->ctrl);
-  sslice->tang[axis] = cbs->value * 0.1f;
-  sslice->lastangle = axis;
-  /* slice_trans_step(sslice); */
-  sslice_draw(sslice);
-  sslice_showslice(sslice);
-  XmProcessTraversal(sslice->glw, XmTRAVERSE_CURRENT);
-  return;
-}
+  // Do complete redraw if not dragging or hot slider enabled
+  if (!dragging || (hotSliderFlag() == HOT_SLIDER_KEYDOWN && ctrlPressed) ||
+      (hotSliderFlag() == HOT_SLIDER_KEYUP && !ctrlPressed)) {
+    sslice_draw(ss);
+    sslice_showslice(ss);
+  } else {
 
-static void sslice_angledrag_cb(Widget w, XtPointer client, XtPointer call)
-{
-  struct Super_slicer *sslice = (struct Super_slicer *)client;
-  XmScaleCallbackStruct *cbs = (XmScaleCallbackStruct *)call;
-  int axis = X;
-  if (w == sslice->anglew[Y])
-    axis = Y;
-  if (w == sslice->anglew[Z])
-    axis = Z;
-
-  sslice->tang[axis] = cbs->value * 0.1f;
-  slice_trans_step(sslice);
-  sslice_cube_draw(sslice);
-
-  /* only update slice if overlay planes are being used. */
-#ifdef DRAW_GL
-  sslice_showslice(sslice);
-#endif
-  return;
-}
-
-/* DNM: make it simple */
-static void setTiltWidgets(struct Super_slicer *sslice)
-{
-  int axis, value;
-  for (axis = 0; axis < 3; axis++) {
-    value =  (int)floor((double)(sslice->tang[axis] * 10.0 + 0.5f));
-    XmScaleSetValue(sslice->anglew[axis], value);
+    // Otherwise, just draw the cube
+    slice_trans_step(ss);
+    sslice_cube_draw(ss);
   }
 }
 
-/*
- *  Select the current control view.
+/****************************************************************************/
+/* Thickness controls. 
+ *
+ * Update thickness text widgets; get new values from user
  */
-static void controlViewSlice_cb(Widget w, XtPointer client, XtPointer call)
+static void drawThickControls(SlicerStruct *ss)
 {
-  struct Super_slicer *sslice = (struct Super_slicer *)client;
-  Dimension width, height, border_width = 0;
-
-  XtVaGetValues(sslice->dialog, XmNwidth, &width, XmNheight, &height, NULL);
-  sslice->maprowcol = 1;
-  XtUnmanageChild(sslice->wThick);
-  XtManageChild(sslice->rowcol);
-  XtResizeWidget(sslice->dialog, width, height+2, border_width);
-  XmProcessTraversal(sslice->glw, XmTRAVERSE_CURRENT);
+  ss->qtWindow->setModelThickness(ss->depth);
+  ss->qtWindow->setImageThickness(ss->nslice);
 }
-static void controlViewDepth_cb(Widget w, XtPointer client, XtPointer call)
+
+void slicerImageThickness(SlicerStruct *ss, int sno)
 {
-  struct Super_slicer *sslice = (struct Super_slicer *)client;
-  Dimension width, height, border_width = 0;
+  ivwControlPriority(ss->vi, ss->ctrl);
+  if (sno < 1)
+    sno = 1;
+  ss->nslice = sno;
 
-  XtVaGetValues(sslice->dialog, XmNwidth, &width, XmNheight, &height, NULL);
-  sslice->maprowcol = 2;
-  XtUnmanageChild(sslice->rowcol);
-  XtManageChild(sslice->wThick);
-  drawThickControls(sslice);
-  XtResizeWidget(sslice->dialog, width, height+2, border_width);
-  XmProcessTraversal(sslice->glw, XmTRAVERSE_CURRENT);
+  drawThickControls(ss);
+  sslice_draw(ss);
+  ss->qtWindow->setFocus();
 }
-static void controlViewImage_cb(Widget w, XtPointer client, XtPointer call)
+
+void slicerModelThickness(SlicerStruct *ss, float depth)
 {
-  struct Super_slicer *sslice = (struct Super_slicer *)client;
-  Dimension width, height, border_width = 0;
+  ivwControlPriority(ss->vi, ss->ctrl);
+  ss->depth = depth;
+  if (ss->depth <= 0.0)
+    ss->depth = 0.1;
 
-  XtVaGetValues(sslice->dialog, XmNwidth, &width, XmNheight, &height, NULL);
-  sslice->maprowcol = 0;
-  XtUnmanageChild(sslice->rowcol);
-  XtUnmanageChild(sslice->wThick);
-  XtResizeWidget(sslice->dialog, width, height-1, border_width);
-  XmProcessTraversal(sslice->glw, XmTRAVERSE_CURRENT);
+  drawThickControls(ss);
+  sslice_draw(ss);
+  ss->qtWindow->setFocus();
 }
+
 
 /*
- * Lock image position for this window.
+ * GfX resize Events:
  */
-static void sslice_lock_cb(Widget w, XtPointer client, XtPointer call)
+
+void slicerResize(SlicerStruct *ss, int winx, int winy)
 {
-  struct Super_slicer *sslice = (struct Super_slicer *)client;
+  ss->winx = winx;
+  ss->winy = winy;
+  b3dResizeViewportXY(winx, winy);
 
-  ivwControlPriority(sslice->vi, sslice->ctrl);
-  if (sslice->locked){
-    sslice->locked = False;
-    XtVaSetValues(w, XmNlabelPixmap, sslice->unlockpix, NULL);
-  }else{
-    sslice->locked = True;
-    XtVaSetValues(w, XmNlabelPixmap, sslice->lockpix, NULL);
-  }
-  return;
-}   
-
-void slicerClose_cb(ImodView *vi, void *client, int junk)
-{
-  struct Super_slicer *sslice = (struct Super_slicer *)client;
-
-  /* DNM: some kind of recursion happens on PC when two windows are on
-     top of each other and they are closed, so test if closing already */
-  /* 3/29/01: couldn't reproduce problem, this may not be needed, especially
-     after removing the dia_input */
-  if (sslice->closing)
-    return;
-  sslice->closing = 1;
-  if (sslice->iid)
-    XtRemoveTimeOut(sslice->iid);
-  if (sslice->work_id)
-    XtRemoveWorkProc(sslice->work_id);
-  sslice->iid = 0;
-  sslice->work_id = 0;
-
-  /* DNM 3/29/01: This caused crashes on PC when double-clicked on destroy 
-     icon of a slicer that was behind another window and displayed slowly.
-     No other windows use it */
-  /* dia_input(); */
-
-  /* b3dWinset(XtDisplay(sslice->glw), 0, 0);*/
-  b3dWinset(imodDisplay(), 0, 0);
-  XtPopdown(sslice->dialog);
-
-  XtDestroyWidget(sslice->dialog);
-
-  b3dFreeCIImage(sslice->image);
-  imodMatDelete(sslice->mat);
-  free(sslice);
-  return;
+  /* DNM: send 12 rather than App->depth to guarantee shorts */
+  ss->image   = b3dGetNewCIImageSize(ss->image, 12, winx, winy);
+  ivwControlPriority(ss->vi, ss->ctrl);
 }
 
-void slicerDraw_cb(ImodView *vi, void *client, int drawflag)
+void slicerCubeResize(SlicerStruct *ss, int winx, int winy)
 {
-  struct Super_slicer *win = (struct Super_slicer *)client;
+  b3dResizeViewportXY(winx, winy);
+}
+
+
+/* The signal from the controller to close the window */
+static void slicerClose_cb(ImodView *vi, void *client, int junk)
+{
+  SlicerStruct *ss = (SlicerStruct *)client;
+  ss->qtWindow->close();
+}
+
+/* The window is closing now.  Clean up */
+void slicerClosing(SlicerStruct *ss)
+{
+  ivwRemoveControl(ss->vi, ss->ctrl);      
+  b3dFreeCIImage(ss->image);
+  imodMatDelete(ss->mat);
+  free(ss);
+}
+
+static void slicerDraw_cb(ImodView *vi, void *client, int drawflag)
+{
+  SlicerStruct *ss = (SlicerStruct *)client;
   float usex, usey, usez;
 
-  /* DNM: need to make sure window was initialized after first expose */
-  if (!win->exposed)
-    return;
-
   /* DNM: use a value saved in structure in case more than one window */
-  if (win->zslast != win->vi->imod->zscale){
-    win->zslast = win->vi->imod->zscale;
+  if (ss->zslast != ss->vi->imod->zscale){
+    ss->zslast = ss->vi->imod->zscale;
     drawflag |= IMOD_DRAW_ACTIVE;
   }
 
-  b3dWinset(XtDisplay(win->glw), win->glw, (XID)win->context);
-
   if (drawflag & IMOD_DRAW_XYZ){
-    if (!win->locked){
+    if (!ss->locked){
       /* DNM: if there is a pending set of values from a mouse hit,
          use them instead of the mouse values for this */
-      if (win->pending) {
-        usex = win->pendx;
-        usey = win->pendy;
-        usez = win->pendz;
+      if (ss->pending) {
+        usex = ss->pendx;
+        usey = ss->pendy;
+        usez = ss->pendz;
       } else {
-        usex = win->vi->xmouse;
-        usey = win->vi->ymouse;
-        usez = win->vi->zmouse;
+        usex = ss->vi->xmouse;
+        usey = ss->vi->ymouse;
+        usez = ss->vi->zmouse;
       }
-      if ((win->lx != usex) ||
-          (win->ly != usey) ||
-          (win->lz != usez)){
-        win->cx = win->lx = usex;
-        win->cy = win->ly = usey;
-        win->cz = win->lz = usez;
-        win->pending = 0;
-        sslice_draw(win);
+      if ((ss->lx != usex) ||
+          (ss->ly != usey) ||
+          (ss->lz != usez)){
+        ss->cx = ss->lx = usex;
+        ss->cy = ss->ly = usey;
+        ss->cz = ss->lz = usez;
+        ss->pending = 0;
+        sslice_draw(ss);
         return;
       }
     }
   }
 
   if (drawflag & (IMOD_DRAW_ACTIVE | IMOD_DRAW_IMAGE)){
-    if (win->pending) {
-      win->cx = win->lx = win->pendx;
-      win->cy = win->ly = win->pendy;
-      win->cz = win->lz = win->pendz;
-      win->pending = 0;
+    if (ss->pending) {
+      ss->cx = ss->lx = ss->pendx;
+      ss->cy = ss->ly = ss->pendy;
+      ss->cz = ss->lz = ss->pendz;
+      ss->pending = 0;
     }
-    sslice_draw(win);
+    sslice_draw(ss);
     return;
   }
      
   if (drawflag & IMOD_DRAW_MOD){
-    slicerUpdateImage(win);
+    slicerUpdateImage(ss);
   }
 
-  /* todo: if just the model is changed we already have image
-   * buffered.
-   * so all we have to do is redraw the model. 
-   */
-
 }
-
-
-/*
- *  Close window, free resources.
- */
-static void sslice_quit_cb(Widget w, XtPointer client, XtPointer call)
-{
-  struct Super_slicer *sslice = (struct Super_slicer *)client;
-  ivwDeleteControl(sslice->vi, sslice->ctrl);      
-  return;
-}
-
-static int CubeAttrib[] =
-  {
-    GLX_DOUBLEBUFFER, 
-    GLX_RGBA,
-    None
-  };
 
 /*
  * Open new slicer.
  */
 int sslice_open(struct ViewInfo *vi)
 {
-  struct Super_slicer *sslice;
-  XtTranslations keytrans = XtParseTranslationTable(KeyTranslations);
-  Atom wmclose;
-  Widget button;
-  Widget command_col, tool_row;
-  Widget form, rowcol, col, row, frame, window;
-  Widget show, res, label, arrow;
-  char *window_name;
-  XtTranslations transtable;
-  Pixel   fg, bg;
+  SlicerStruct *ss;
   int depth;
-  static int first = True;
+  static int first = 1;
   int axis;
-  XVisualInfo *cubeVisualInfo;
 
-  sslice = (struct Super_slicer *)malloc(sizeof(struct Super_slicer));
-  if (!sslice)
+  ss = (SlicerStruct *)malloc(sizeof(SlicerStruct));
+  if (!ss)
     return(-1);
 
   /* DNM 5/16/02: if the current position is still in the lower left
@@ -630,487 +411,93 @@ int sslice_open(struct ViewInfo *vi)
     imodDraw(vi, IMOD_DRAW_IMAGE | IMOD_DRAW_XYZ);
   }
 
-  sslice->cx = vi->xmouse;
-  sslice->cy = vi->ymouse;
-  sslice->cz = vi->zmouse;
-  sslice->app    = Dia_context;
-  sslice->vi     = vi;
-  sslice->locked = 0;
-  sslice->expose_draw = 0;
-  sslice->ginit  = False;
-  sslice->zoom   = 1.0;
-  sslice->lx     = vi->xmouse;
-  sslice->ly     = vi->ymouse;
-  sslice->lz     = vi->zmouse;
-  sslice->iid    = 0;
-  sslice->work_id = 0;
-  sslice->hq     = 0;
-  sslice->fasthq     = 1;
-  sslice->tang[X] = 0.0f;
-  sslice->tang[Y] = 0.0f;
-  sslice->tang[Z] = 0.0f;
-  sslice->mapped = False;
-  sslice->scalez = False;
-  sslice->depth = 1.0;
-  sslice->image = NULL;
-  sslice->exposed = False;
-  sslice->cubegc = 0;
-  sslice->bcoord[0] = vi->xmouse;
-  sslice->bcoord[1] = vi->ymouse;
-  sslice->bcoord[2] = vi->zmouse;
-  sslice->xstep[0]  = 1.0f; sslice->xstep[1] = sslice->xstep[2] = 0.0f;
-  sslice->ystep[1]  = 1.0f; sslice->ystep[0] = sslice->ystep[2] = 0.0f;
-  sslice->nslice = 1;
-  sslice->mat = imodMatNew(3);
-  sslice->lastangle = X;
-  sslice->zslast = 1.0;
-  sslice->pending = 0;
-  sslice->closing = 0;
-  sslice->cubeDB = False;
+  ss->cx = vi->xmouse;
+  ss->cy = vi->ymouse;
+  ss->cz = vi->zmouse;
+  ss->vi     = vi;
+  ss->locked = 0;
+  ss->zoom   = 1.0;
+  ss->lx     = vi->xmouse;
+  ss->ly     = vi->ymouse;
+  ss->lz     = vi->zmouse;
+  ss->hq     = 0;
+  ss->tang[X] = 0.0f;
+  ss->tang[Y] = 0.0f;
+  ss->tang[Z] = 0.0f;
+  ss->mapped = False;
+  ss->scalez = False;
+  ss->depth = 1.0;
+  ss->image = NULL;
+  ss->bcoord[0] = vi->xmouse;
+  ss->bcoord[1] = vi->ymouse;
+  ss->bcoord[2] = vi->zmouse;
+  ss->xstep[0]  = 1.0f; ss->xstep[1] = ss->xstep[2] = 0.0f;
+  ss->ystep[1]  = 1.0f; ss->ystep[0] = ss->ystep[2] = 0.0f;
+  ss->nslice = 1;
+  ss->mat = imodMatNew(3);
+  ss->lastangle = X;
+  ss->zslast = 1.0;
+  ss->pending = 0;
+  ss->imageFilled = 0;
 
-  slice_trans_step(sslice);
-  window_name = imodwfname("IMOD Slicer: ");
-  sslice->dialog = XtVaCreatePopupShell
-    ("Slicer", topLevelShellWidgetClass, App->toplevel,
-     XmNuserData, (XtPointer)sslice,
-     XmNvisual, App->visual,
-     XtNtitle, window_name,
-     NULL);
-  if (window_name)
-    free(window_name);
-
-  if (!sslice->dialog){
-    free(sslice);
+  slice_trans_step(ss);
+  ss->qtWindow = new SlicerWindow(ss, maxAngle, App->qtRgba, 
+				      App->qtDoubleBuffer, App->qtEnableDepth,
+				      NULL, "slicer window");
+  if (!ss->qtWindow){
+    free(ss);
+    wprint("Error opening slicer window.");
     return(-1);
   }
-     
-  /* DNM 9/5/02: Get visual for cube now, try for single-buffer first
-     then double-buffer */
-  cubeVisualInfo = glXChooseVisual(App->display, 
-                                   DefaultScreen(App->display), 
-                                   &CubeAttrib[1]);
-  if (!cubeVisualInfo) {
-    sslice->cubeDB = True;
-    cubeVisualInfo = glXChooseVisual(App->display, 
-                                     DefaultScreen(App->display), 
-                                     &CubeAttrib[0]);
-    if (!cubeVisualInfo) {
-      wprint("Failed to get visual for slicer cube.\n");
-      free(sslice);
-      return(-1);
-    }
-  }
+  ss->glw = ss->qtWindow->mGLw;
+  ss->cube = ss->qtWindow->mCube;
+  
+  ss->qtWindow->setCaption(imodCaption("Imod Slicer"));
+  ss->qtWindow->mToolBar->setLabel(imodCaption("Slicer Toolbar 1"));
+  ss->qtWindow->mToolBar2->setLabel(imodCaption("Slicer Toolbar 2"));
+	
+  ss->ctrl = ivwNewControl(vi, slicerDraw_cb, slicerClose_cb, slicerKey_cb,
+                               (void *)ss);
 
-  window = XtVaCreateManagedWidget
-    ("slicer",  xmMainWindowWidgetClass,  sslice->dialog,
-     NULL);
+  QBitmap bmCursor(qcursor_width, qcursor_height, qcursor_bits, true);
+  QBitmap bmMask(qcursor_width, qcursor_height, qcursor_mask_bits, true);
+  QCursor cursor(bmCursor, bmMask, qcursor_x_hot, qcursor_y_hot);
+  ss->glw->setCursor(cursor);
+  ss->qtWindow->setZoomText(ss->zoom);
+  drawThickControls(ss);
+  ss->qtWindow->setAngles(ss->tang);
 
-  command_col = XtVaCreateManagedWidget
-    ("command_col", xmRowColumnWidgetClass, window, NULL);
+  ss->qtWindow->show();
+  
+  // The silver lining of having to set geometry after the show is that
+  // the first draw is bad, and the geometry setting gets a good draw
+  QSize toolSize1 = ss->qtWindow->mToolBar->sizeHint();
+  QSize toolSize2 = ss->qtWindow->mToolBar2->sizeHint();
+  int newWidth = toolSize1.width() > toolSize2.width() ?
+    toolSize1.width() : toolSize2.width();
+  QPoint pos = ss->qtWindow->pos();
+  int xleft = pos.x();
+  int ytop = pos.y();
+  int deskWidth = QApplication::desktop()->width();
+  int deskHeight = QApplication::desktop()->height();
+  if (xleft + newWidth > deskWidth - 16)
+    xleft = deskWidth - 16 - newWidth;
+  if (ytop + newWidth > deskHeight - 40)
+  ytop = deskHeight - 40 - newWidth;
+  ss->qtWindow->setGeometry(xleft, ytop, newWidth, newWidth);
 
-  frame = XtVaCreateManagedWidget
-    ("frame", xmFrameWidgetClass,  command_col,
-     XmNshadowType, XmSHADOW_OUT,
-     NULL);
-  tool_row = XtVaCreateManagedWidget
-    ("tool_row", xmRowColumnWidgetClass, frame,
-     XmNorientation, XmHORIZONTAL,
-     NULL);
-  {
-    sslice->zoomarrow = XtVaCreateManagedWidget
-      ("arrow_up", xmArrowButtonWidgetClass, tool_row,
-       XmNarrowDirection, XmARROW_UP, 
-       XmNuserData, (XtPointer)sslice,
-       NULL);
-    imodOverrideTranslations(sslice->zoomarrow, keytrans);
-    XtAddCallback(sslice->zoomarrow, XmNarmCallback, sslice_zoomup_cb,
-                  (XtPointer)sslice);
-    arrow = XtVaCreateManagedWidget
-      ("arrow_down", xmArrowButtonWidgetClass, tool_row,
-       XmNarrowDirection, XmARROW_DOWN, 
-       XmNuserData, (XtPointer)sslice,
-       NULL);
-    imodOverrideTranslations(arrow, keytrans);
-    XtAddCallback(arrow, XmNarmCallback, sslice_zoomdown_cb,
-                  (XtPointer)sslice);
-    XtVaGetValues(arrow,
-                  XmNforeground, &fg,
-                  XmNbackground, &bg,
-                  XmNdepth, &depth,
-                  NULL);
-    XtVaSetValues(sslice->dialog, XmNuserData, (XtPointer)sslice, NULL);
-
-    sslice->showpix = XCreatePixmapFromBitmapData
-      (App->display, XtWindow(App->toplevel), (char *)showslice_bits, 
-       slicer_button_width, slicer_button_height,
-       fg, bg, depth);
-
-    sslice->lockpix = XCreatePixmapFromBitmapData
-      (App->display, XtWindow(App->toplevel), (char *)lock_bits,
-       slicer_button_width, slicer_button_height,
-       fg, bg, depth);
-    sslice->unlockpix = XCreatePixmapFromBitmapData
-      (App->display, XtWindow(App->toplevel), (char *)unlock_bits,
-       slicer_button_width, slicer_button_height,
-       fg, bg, depth);
-
-    sslice->lowrespix = XCreatePixmapFromBitmapData
-      (App->display, XtWindow(App->toplevel), (char *)lowres_bits,
-       slicer_button_width, slicer_button_height,
-       fg, bg, depth);
-    sslice->highrespix = XCreatePixmapFromBitmapData
-      (App->display, XtWindow(App->toplevel), (char *)highres_bits,
-       slicer_button_width, slicer_button_height,
-       fg, bg, depth);
-    button = XtVaCreateManagedWidget
-      ("Show Slice", xmPushButtonWidgetClass, tool_row, 
-       XmNlabelType, XmPIXMAP,
-       XmNlabelPixmap, sslice->showpix,
-       XmNuserData, (XtPointer)sslice,
-       NULL);
-    imodOverrideTranslations(button, keytrans);
-    XtAddCallback(button, XmNactivateCallback, sslice_show_cb,
-                  (XtPointer)sslice);
-
-    button = XtVaCreateManagedWidget
-      ("Lock", xmPushButtonWidgetClass, tool_row,
-       XmNlabelType, XmPIXMAP,
-       XmNlabelPixmap, sslice->unlockpix,
-       XmNuserData, (XtPointer)sslice,
-       NULL);
-    imodOverrideTranslations(button, keytrans);
-    XtAddCallback(button, XmNactivateCallback, sslice_lock_cb,
-                  (XtPointer)sslice);
-    button = XtVaCreateManagedWidget
-      ("HQ Graphics", xmPushButtonWidgetClass, tool_row, 
-       XmNlabelType, XmPIXMAP,
-       XmNlabelPixmap, sslice->lowrespix,
-       XmNindicatorOn, False,
-       XmNuserData, (XtPointer)sslice,
-       NULL);
-    imodOverrideTranslations(button, keytrans);
-    XtAddCallback(button, XmNactivateCallback, sslice_res_cb, 
-                  (XtPointer)sslice);
-
-    /*
-     * Create control option menu.
-     */
-    {
-      Widget optmenu, pulldown, pb, pb1;
-      Arg             args[4];
-      Cardinal        n = 0;
-
-               
-      XtSetArg(args[n], XmNvisual, App->visual); n++;
-      pulldown = XmCreatePulldownMenu
-        (tool_row, "option", args, n);
-      pb1 = XtVaCreateManagedWidget 
-        ("Slice", xmPushButtonWidgetClass, pulldown, NULL);
-      XtAddCallback(pb1, XmNactivateCallback,
-                    controlViewSlice_cb, (XtPointer)sslice);
-      pb = XtVaCreateManagedWidget
-        ("Depth", xmPushButtonWidgetClass, pulldown, NULL);
-      XtAddCallback(pb, XmNactivateCallback,
-                    controlViewDepth_cb, (XtPointer)sslice);
-      pb = XtVaCreateManagedWidget
-        ("Image", xmPushButtonWidgetClass, pulldown, NULL);
-      XtAddCallback(pb, XmNactivateCallback,
-                    controlViewImage_cb, (XtPointer)sslice);
-      XtSetArg(args[n], XmNsubMenuId, pulldown); n++;
-      XtSetArg(args[n], XmNmenuHistory, pb1);    n++;
-      optmenu =  XmCreateOptionMenu(tool_row, "option", args, n);
-      XtManageChild(optmenu);
-    }
-
-    button = XtVaCreateManagedWidget
-      ("Help", xmPushButtonWidgetClass, tool_row,
-       XmNuserData, (XtPointer)sslice,
-       NULL);
-    imodOverrideTranslations(button, keytrans);
-    XtAddCallback(button, XmNactivateCallback, help_cb,
-                  (XtPointer)sslice);
-  }
-  XtManageChild(tool_row);
-  XtManageChild(frame);
-
-  /* DNM: switch from a RowColumn to a Form because a resize on the PC
-     put the cube in the middle and shrunk the sliders */
-  /*     rowcol = XtVaCreateManagedWidget
-         ("slice_rowcol", xmRowColumnWidgetClass, command_col,
-         XmNorientation, XmHORIZONTAL,
-         NULL); */
-  rowcol = XtVaCreateManagedWidget
-    ("slice_form", xmFormWidgetClass, command_col,
-     NULL);
-  sslice->rowcol = rowcol;
-  sslice->maprowcol = 1;
-     
-  sslice->wThick = createThickControls(sslice, command_col);
-
-  /* DNM: added the attachment when switched rowcol to a Form */
-  col = XtVaCreateWidget
-    ("slice_col", xmRowColumnWidgetClass, rowcol,
-     XmNleftAttachment, XmATTACH_FORM,
-     NULL);
-  for (axis = 0; axis < 3; axis++) {
-    sslice->anglew[axis] = XtVaCreateManagedWidget
-      ("slice_scale", xmScaleWidgetClass, col,
-       XmNwidth, 218, 
-       XmNorientation,   XmHORIZONTAL,
-       XmNmaximum,       (int)(10. * maxAngle[axis]),
-       XmNminimum,       (int)(-10. * maxAngle[axis]),
-       XmNvalue,         0,
-       XmNdecimalPoints, 1,
-       XmNshowValue,     True,
-       XmNscaleMultiple, 10,
-       NULL);
-    imodOverrideTranslations(sslice->anglew[axis], keytrans);
-    XtAddCallback(sslice->anglew[axis], XmNvalueChangedCallback, 
-                  sslice_anglevalue_cb, (XtPointer)sslice);
-    XtAddCallback(sslice->anglew[axis], XmNdragCallback, 
-                  sslice_angledrag_cb, (XtPointer)sslice);
-  }
-  XtManageChild(col);
-
-  /* DNM: added the attachments when switched rowcol to a Form */
-  frame = XtVaCreateManagedWidget
-    ("frame", xmFrameWidgetClass, rowcol,
-     XmNshadowType, XmSHADOW_IN,
-     XmNtopAttachment, XmATTACH_FORM,
-     XmNbottomAttachment, XmATTACH_FORM,
-     XmNleftAttachment, XmATTACH_WIDGET,
-     XmNleftWidget, col,
-     NULL);
-
-  /* DNM: doublebuffer needed on PC-Linux in rh 6.x but not 7.0 */
-  /* DNM 9/5/02: use the visual selected above */
-  sslice->cube = XtVaCreateManagedWidget
-    ("glcubewidget", B3dDrawingAreaWidgetClass, frame,
-     GLwNvisualInfo, cubeVisualInfo,
-     NULL);
-  XtAddCallback(sslice->cube, B3dNresizeCallback,
-                sslice_resize_cube_cb, (XtPointer)sslice);
-  XtAddCallback(sslice->cube, B3dNexposeCallback,
-                sslice_expose_cube_cb, (XtPointer)sslice);
-  XtSetMappedWhenManaged(rowcol,True);
-  XtManageChild(rowcol);
-
-  frame = XtVaCreateManagedWidget
-    ("frame", xmFrameWidgetClass, window,
-     XmNshadowType, XmSHADOW_IN,
-     NULL);
-
-  sslice->glw = XtVaCreateManagedWidget
-    ("glwidget", B3dDrawingAreaWidgetClass, frame,
-     XmNnavigationType, XmNONE,
-     XmNtraversalOn, True,
-     XmNheight, 150,
-     XmNtranslations, XtParseTranslationTable (B3DGFX_Translations),
-     /*    XmNvisual, App->visual, */
-     XmNcolormap, App->cmapGL,
-     GLwNvisualInfo, App->visualinfoGL,
-     NULL);
-  XtAddCallback
-    (sslice->glw, B3dNexposeCallback, expose_cb, (XtPointer)sslice);
-  XtAddCallback
-    (sslice->glw, B3dNresizeCallback, resize_cb, (XtPointer)sslice);
-  XtAddCallback
-    (sslice->glw, B3dNinputCallback,  input_cb,  (XtPointer)sslice);
-     
-  imodOverrideTranslations(sslice->glw,
-                           XtParseTranslationTable(B3DGFX_Translations));
-
-
-  XtManageChild(command_col);
-
-#ifdef MWSETWORK
-  XtVaSetValues(window,XmNworkWindow,frame,NULL);
-#endif
-  XmMainWindowSetAreas( window, NULL, command_col, NULL, NULL, frame);
-         
-  wmclose = XmInternAtom( XtDisplay(sslice->dialog), 
-                          "WM_DELETE_WINDOW", False);
-  XmAddWMProtocolCallback(sslice->dialog, wmclose, sslice_quit_cb,
-                          (caddr_t)sslice);
-     
-  XtPopup(sslice->dialog, XtGrabNone);
-
-  sslice->ctrl = ivwNewControl(vi, slicerDraw_cb, slicerClose_cb, NULL,
-                               (XtPointer)sslice);
-
-  XDefineCursor(App->display, XtWindow(sslice->glw), App->cursor_cross);
-  XmProcessTraversal(sslice->glw, XmTRAVERSE_CURRENT);
   return(0);
 }
 
-/****************************************************************************/
-/* Thickness controls. 
- *
- * Update thickness text widgets.
- */
-static void drawThickControls(struct Super_slicer *ss)
-{
-  char vals[16];
-  int i;
-
-  sprintf(vals, "%g", ss->depth);
-  XtVaSetValues(ss->wModelThick, XmNvalue, vals, NULL);
-
-  i = ss->nslice;
-  sprintf(vals, "%3d", i);
-  XtVaSetValues(ss->wImageThick, XmNvalue, vals, NULL);
-}
-
-static void imagethick_cb(Widget w, XtPointer client, XtPointer call)
-{
-  struct Super_slicer *sslice = (struct Super_slicer *)client;
-  char *st = NULL;
-  int sno;
-
-  ivwControlPriority(sslice->vi, sslice->ctrl);
-  st = XmTextGetString(w);
-  sno = atoi(st);
-  XtFree(st);
-  if (sno < 1)
-    sno = 1;
-  sslice->nslice = sno;
-
-  drawThickControls(sslice);
-  sslice_draw(sslice);
-  XmProcessTraversal(sslice->glw, XmTRAVERSE_CURRENT);
-}
-
-static void modelthick_cb(Widget w, XtPointer client, XtPointer call)
-{
-  struct Super_slicer *sslice = (struct Super_slicer *)client;
-  char *st = NULL;
-
-  ivwControlPriority(sslice->vi, sslice->ctrl);
-  st = XmTextGetString(w);
-  sslice->depth = atof(st);
-  if (sslice->depth <= 0.0)
-    sslice->depth = 1.0;
-  XtFree(st);
-
-  drawThickControls(sslice);
-  sslice_draw(sslice);
-  XmProcessTraversal(sslice->glw, XmTRAVERSE_CURRENT);
-}
-
-static void zscale_off_cb(Widget w, XtPointer client, XtPointer call)
-{
-  struct Super_slicer *sslice = (struct Super_slicer *)client;
-
-  ivwControlPriority(sslice->vi, sslice->ctrl);
-  sslice->scalez = 0;
-  sslice_draw(sslice);
-  XmProcessTraversal(sslice->glw, XmTRAVERSE_CURRENT);
-}
-static void zscale_before_cb(Widget w, XtPointer client, XtPointer call)
-{
-  struct Super_slicer *sslice = (struct Super_slicer *)client;
-
-  ivwControlPriority(sslice->vi, sslice->ctrl);
-  sslice->scalez = SLICE_ZSCALE_BEFORE;
-  sslice_draw(sslice);
-  XmProcessTraversal(sslice->glw, XmTRAVERSE_CURRENT);
-}
-static void zscale_after_cb(Widget w, XtPointer client, XtPointer call)
-{
-  struct Super_slicer *sslice = (struct Super_slicer *)client;
-
-  ivwControlPriority(sslice->vi, sslice->ctrl);
-  sslice->scalez = SLICE_ZSCALE_AFTER;
-  sslice_draw(sslice);
-  XmProcessTraversal(sslice->glw, XmTRAVERSE_CURRENT);
-}
-
-static Widget createThickControls(struct Super_slicer *ss,
-                                  Widget parent)
-{
-  Widget w, rowcol, master;
-     
-  master = XtVaCreateWidget
-    ("rowcol", xmRowColumnWidgetClass, parent,
-     NULL);
-     
-  rowcol = XtVaCreateWidget
-    ("rowcol", xmRowColumnWidgetClass, master,
-     XmNorientation, XmHORIZONTAL,
-     NULL);
-  XtVaCreateManagedWidget
-    ("Image Thickness", xmLabelWidgetClass, rowcol, NULL);
-  ss->wImageThick = w = XtVaCreateManagedWidget
-    ("text", xmTextWidgetClass, rowcol,
-     XmNcolumns, 4,
-     NULL);
-  XtAddCallback(w, XmNactivateCallback,
-                imagethick_cb, (XtPointer)ss);
-  XtManageChild(rowcol);
-
-  rowcol = XtVaCreateWidget
-    ("rowcol", xmRowColumnWidgetClass, master,
-     XmNorientation, XmHORIZONTAL,
-     NULL);
-  XtVaCreateManagedWidget
-    ("Model Thickness", xmLabelWidgetClass, rowcol, NULL);
-  ss->wModelThick = w = XtVaCreateManagedWidget
-    ("text", xmTextWidgetClass, rowcol,
-     XmNcolumns, 4,
-     NULL);
-  XtAddCallback(w, XmNactivateCallback,
-                modelthick_cb, (XtPointer)ss);
-  XtManageChild(rowcol);
-
-  {
-    Widget optmenu, pulldown, pb1, pb;
-    Arg             args[10];
-    Cardinal        n = 0;
-
-    rowcol = XtVaCreateWidget
-      ("rowcol", xmRowColumnWidgetClass, master,
-       XmNorientation, XmHORIZONTAL,
-       NULL);
-    XtVaCreateManagedWidget
-      ("Z-Scale:", xmLabelWidgetClass, rowcol, NULL);
-
-    XtSetArg(args[n], XmNvisual, App->visual); n++;
-    pulldown = XmCreatePulldownMenu
-      (rowcol, "option_pd", args, n);
-    pb1 = XtVaCreateManagedWidget
-      ("Off", xmPushButtonWidgetClass, pulldown, NULL);
-    XtAddCallback(pb1, XmNactivateCallback, 
-                  zscale_off_cb, (XtPointer)ss);
-    pb = XtVaCreateManagedWidget
-      ("Scale Before", xmPushButtonWidgetClass, pulldown, NULL);
-    XtAddCallback(pb, XmNactivateCallback,
-                  zscale_before_cb, (XtPointer)ss);
-    pb = XtVaCreateManagedWidget
-      ("Scale After", xmPushButtonWidgetClass, pulldown, NULL);
-    XtAddCallback(pb, XmNactivateCallback,
-                  zscale_after_cb, (XtPointer)ss);
-
-    XtSetArg(args[n], XmNsubMenuId, pulldown); n++;
-    XtSetArg(args[n], XmNmenuHistory, pb1);    n++;
-    optmenu =  XmCreateOptionMenu(rowcol, "option_rc", args, n);
-    XtManageChild(optmenu);
-    XtManageChild(rowcol);
-  }
-  XtSetMappedWhenManaged(master,True);
-  return(master);
-}
 
 /* Broadcast position of this slice, and let other windows
  * show where this slice intersects with their views.
  */
-int sslice_showslice(struct Super_slicer *ss)
+static int sslice_showslice(SlicerStruct *ss)
 {
-  int isize, jsize, i, j;
+  int isize, jsize;
   int xo, yo, zo;
-  float xs, ys;
-  float xsz, ysz, zsz;
-  float x, y, z;
-     
+
   isize = (int)(ss->winx / ss->zoom);
   jsize = (int)(ss->winy / ss->zoom);
 
@@ -1122,279 +509,213 @@ int sslice_showslice(struct Super_slicer *ss)
   return(0);
 }
 
-
-#ifdef USE_SLICER_TIMER
-/* 
- * Timer to check current position.
- */
-static void sslice_addworkproc(XtPointer client, XtIntervalId *id)
+// A key passed on from elsewhere
+static void slicerKey_cb(ImodView *vi, void *client, int released, 
+			 QKeyEvent *e)
 {
-  struct Super_slicer *ss = (struct Super_slicer *)client;
-  ss->work_id = XtAppAddWorkProc(ss->app, sslice_update, ss);
-  ss->iid = 0;
-}
-
-/* Timer update function */
-static void sslice_tupdate(XtPointer client, XtIntervalId *id)
-{
-  struct Super_slicer *ss = (struct Super_slicer *)client;
-  static float zs = 1.0f;
-
-  if (!ss->vi)
-    return;
-  if (!ss->iid)
-    return;
-  if (!ss->locked)
-    if ((ss->lx != ss->vi->xmouse) ||
-        (ss->ly != ss->vi->ymouse) ||
-        (ss->lz != ss->vi->zmouse)){
-      ss->cx = ss->lx = ss->vi->xmouse;
-      ss->cy = ss->ly = ss->vi->ymouse;
-      ss->cz = ss->lz = ss->vi->zmouse;
-               
-      sslice_draw(ss);
-    }
-
-  if (zs != ss->vi->imod->zscale){
-    zs = ss->vi->imod->zscale;
-    sslice_draw(ss);
-  }
-
-  if (ss->locked)
-    ss->iid = XtAppAddTimeOut (ss->app, 1000L, sslice_tupdate,
-                               (XtPointer)ss);
+  SlicerStruct *slicer = (SlicerStruct *)client;
+  if (released)
+    slicerKeyRelease(slicer, e);
   else
-    ss->iid = XtAppAddTimeOut (ss->app, 100L, sslice_tupdate,
-                               (XtPointer)ss);
+    slicerKeyInput(slicer, e);
 }
-/* Workproc update function */
-Boolean sslice_update(XtPointer client_data)
-{
-  struct Super_slicer *ss = (struct Super_slicer *)client_data;
 
-  if ((ss->lx != ss->vi->xmouse) ||
-      (ss->ly != ss->vi->ymouse) ||
-      (ss->lz != ss->vi->zmouse)){
-    ss->lx = ss->vi->xmouse;
-    ss->ly = ss->vi->ymouse;
-    ss->lz = ss->vi->zmouse;
-    sslice_draw(ss);
-    return(True);
+// Key press input
+void slicerKeyInput(SlicerStruct *ss, QKeyEvent *event)
+{
+  int keysym = event->key();
+  int shift = event->state() & Qt::ShiftButton;
+  int ctrl = event->state() & Qt::ControlButton;
+  int lang = ss->lastangle;
+  int dodraw = 1;
+  int handled = 1;
+  Ipoint *p1, *p2;
+  int ob, co, pt, axis;
+  Icont *cont;
+
+  ivwControlPriority(ss->vi, ss->ctrl);
+
+  //  if (imodPlugHandleKey(ss->vi, event)) return;
+
+  // These grabs may not work right if keys are passed from elsewhere
+  if (keysym == hotSliderKey()) {
+    ctrlPressed = true;
+    ss->qtWindow->grabKeyboard();
+    return;
   }
-
-  ss->iid = XtAppAddTimeOut (ss->app, 100L, sslice_addworkproc, 
-                             (XtPointer)ss);
-  ss->work_id = 0;
-  return(True);
-}
-#endif
-
-static void slice_keyinput(XKeyEvent *event, struct Super_slicer *sslice)
-{
-  KeySym keysym = XLookupKeysym(event, 0);
-  int lang = sslice->lastangle;
-  int newang;
-
-  if (imodPlugHandleKey(sslice->vi, event)) return;
 
   switch(keysym){
           
-  case '=':
-    if (event->state & ShiftMask) {
-      sslice->nslice++;
-      drawThickControls(sslice);
-    }
-    else
-      sslice->zoom = b3dStepPixelZoom(sslice->zoom, 1);
+  case Qt::Key_Plus:
+    ss->nslice++;
+    drawThickControls(ss);
+    break;
+    
+  case Qt::Key_Equal:
+    ss->zoom = b3dStepPixelZoom(ss->zoom, 1);
+    ss->qtWindow->setZoomText(ss->zoom);
     break;
 
-  case '-':
-    if (event->state & ShiftMask){
-      sslice->nslice--;
-      if (sslice->nslice < 1) sslice->nslice = 1;
-      drawThickControls(sslice);
-    }else{
-      sslice->zoom = b3dStepPixelZoom(sslice->zoom, -1);
-      /*               sslice->zoom -= 1.0;
-                       if (sslice->zoom < 1.0)
-                       sslice->zoom = 1.0; */
-    }
+  case Qt::Key_Underscore:
+    ss->nslice--;
+    if (ss->nslice < 1) 
+      ss->nslice = 1;
+    drawThickControls(ss);
     break;
 
-  case '9':
-    sslice->depth -= 1.0;
-    if (sslice->depth < 1.0)
-      sslice->depth  = 1.0;
-    drawThickControls(sslice);
+  case Qt::Key_Minus:
+    ss->zoom = b3dStepPixelZoom(ss->zoom, -1);
+    ss->qtWindow->setZoomText(ss->zoom);
     break;
-  case '0':
-    sslice->depth += 1.0;
-    drawThickControls(sslice);
+
+  case Qt::Key_9:
+    ss->depth -= 1.0;
+    if (ss->depth < 1.0)
+      ss->depth  = 1.0;
+    drawThickControls(ss);
+    break;
+
+  case Qt::Key_0:
+    ss->depth += 1.0;
+    drawThickControls(ss);
     break;
           
-  case XK_s:
-  case XK_S:
-    if ((event->state & ShiftMask) || (event->state & ControlMask)){
-      b3dWinset(XtDisplay(sslice->glw), 
-                sslice->glw, sslice->context);
-      sslice_draw(sslice);
-      b3dWinset(XtDisplay(sslice->glw),
-                sslice->glw, sslice->context);
-      if (event->state & ShiftMask)
+  case Qt::Key_S:
+    if (shift || ctrl){
+
+      // Snapshots: need to update just the image window
+      ss->glw->updateGL();
+      if (shift)
         b3dAutoSnapshot("slicer", SnapShot_RGB, NULL);
-      else if (event->state & ControlMask)
+      else
         b3dAutoSnapshot("slicer", SnapShot_TIF, NULL);
     }else
-      sslice_showslice(sslice);
+      sslice_showslice(ss);
+    dodraw = 0;
     break;
 
-
-  case XK_x:
-  case XK_y:
-  case XK_z:
-    {
-      Ipoint *p1, *p2;
-      int ob,co,pt, axis;
-      Icont *cont = imodContourGet(sslice->vi->imod);
-      imodGetIndex(sslice->vi->imod, &ob,&co,&pt);
-
-      p2 = imodPointGet(sslice->vi->imod);
-      if ((cont) && (p2) && (cont->psize > 1)){
-        if (pt)
-          p1 = &cont->pts[pt-1];
-        else
-          p1 = &cont->pts[pt+1];
-        axis = X;
-        if (keysym == XK_y)
-          axis = Y;
-        if (keysym == XK_z)
-          axis = Z;
-        if (event->state & ShiftMask){
-          p2 = &cont->pts[cont->psize - 1];
-          p1 = &cont->pts[0];
-        }
-        sliceSetAnglesFromPoints(sslice, p1, p2, axis);
-        /* slice_trans_step(sslice);
-           sslice_cube_draw(sslice); */
-        sslice_draw(sslice);
+  case Qt::Key_X:
+  case Qt::Key_Y:
+  case Qt::Key_Z:
+    cont = imodContourGet(ss->vi->imod);
+    imodGetIndex(ss->vi->imod, &ob, &co, &pt);
+    
+    p2 = imodPointGet(ss->vi->imod);
+    if ((cont) && (p2) && (cont->psize > 1)){
+      if (pt)
+	p1 = &cont->pts[pt-1];
+      else
+	p1 = &cont->pts[pt+1];
+      axis = X;
+      if (keysym == Qt::Key_Y)
+	axis = Y;
+      if (keysym == Qt::Key_Z)
+	axis = Z;
+      if (shift){
+	p2 = &cont->pts[cont->psize - 1];
+	p1 = &cont->pts[0];
       }
-    }
+      sliceSetAnglesFromPoints(ss, p1, p2, axis);
+    } else
+      dodraw = 0;
     break;
 
     /* DNM: add these to adjust last angle, now that input is properly
        passed to the window */
-  case XK_KP_Up:
-  case XK_KP_Down:
-  case XK_KP_Right:
-  case XK_KP_Left:
-  case XK_KP_Insert:
-    if (keysym == XK_KP_Down) sslice->tang[lang] -= 0.5;
-    if (keysym == XK_KP_Left) sslice->tang[lang] -= 0.1;
-    if (keysym == XK_KP_Right) sslice->tang[lang] += 0.1;
-    if (keysym == XK_KP_Up) sslice->tang[lang] += 0.5;
-    if (keysym == XK_KP_Insert) sslice->tang[lang] = 0.0;
-    if (sslice->tang[lang] > maxAngle[lang])
-      sslice->tang[lang] = maxAngle[lang];
-    if (sslice->tang[lang] < -maxAngle[lang])
-      sslice->tang[lang] = -maxAngle[lang];
+  case Qt::Key_Up:
+  case Qt::Key_Down:
+  case Qt::Key_Right:
+  case Qt::Key_Left:
+  case Qt::Key_Insert:
+    dodraw = 0;
+    if (!(event->state() & Qt::Keypad)) {
+      handled = 0;
+      break;
+    }
+    if (keysym == Qt::Key_Down) 
+      ss->tang[lang] -= 0.5;
+    if (keysym == Qt::Key_Left) 
+      ss->tang[lang] -= 0.1;
+    if (keysym == Qt::Key_Right) 
+      ss->tang[lang] += 0.1;
+    if (keysym == Qt::Key_Up)
+      ss->tang[lang] += 0.5;
+    if (keysym == Qt::Key_Insert)
+      ss->tang[lang] = 0.0;
+    if (ss->tang[lang] > maxAngle[lang])
+      ss->tang[lang] = maxAngle[lang];
+    if (ss->tang[lang] < -maxAngle[lang])
+      ss->tang[lang] = -maxAngle[lang];
 
-    setTiltWidgets(sslice);
+    ss->qtWindow->setAngles(ss->tang);
 
-    sslice_draw(sslice);
-    sslice_showslice(sslice);
+    sslice_draw(ss);
+    sslice_showslice(ss);
     break;
 
-    /* case XK_h:
-       sslice->fasthq = 1 - sslice->fasthq;
-       printf("fasthq = %d\n",sslice->fasthq);
-       break;
-    */
+  case Qt::Key_Escape:
+    ss->qtWindow->close();
+    dodraw = 0;
+    break;
 
   default:
-    inputDefaultKeys(event, sslice->vi);
+    handled = 0;
+    break;
+  }
+
+  // If key not handled, call the default processor
+  if (!handled) {
+    inputQDefaultKeys(event, ss->vi);
     return;
   }
-  sslice_draw(sslice);         
-  return;
+
+  // If draw still needed, do it
+  if (dodraw)
+    sslice_draw(ss);         
 }
 
-static void input_cb(Widget w, XtPointer client, XtPointer call)
+// On any key release, clear the ctrl pressed flag and release the keyboard
+void slicerKeyRelease(SlicerStruct *ss, QKeyEvent *event)
 {
-  struct Super_slicer *sslice = (struct Super_slicer *)client;
-  B3dDrawingAreaCallbackStruct *cbs = (B3dDrawingAreaCallbackStruct *)call;
-
-  ImodView *vi = sslice->vi;
-  char buffer[1];
-  int bufsize = 1;
-  int charcount;
-  KeySym keysym;
-
-  ivwControlPriority(vi, sslice->ctrl);
-  switch(cbs->event->type){
-          
-  case UnmapNotify:
-    sslice->mapped = False;
-    break;
-
-  case MapNotify:
-    sslice->mapped = True;
-    break;
-
-  case EnterNotify:
-    XmProcessTraversal(sslice->glw, XmTRAVERSE_CURRENT);
-    break;
-
-  case KeyPress:
-    slice_keyinput((XKeyEvent *)cbs->event, sslice);
-    break;
-     
-  case KeyRelease:
-    break;
-
-  case ButtonPress:
-    XmProcessTraversal(sslice->glw, XmTRAVERSE_CURRENT);
-    if (cbs->event->xbutton.button == 1){
-      sslice_setxyz(sslice, cbs->event->xbutton.x, 
-                    cbs->event->xbutton.y);
-      /* DNM: for select hits, do keep cz at an integral value */
-      sslice->pending = 0;
-      imodDraw(sslice->vi, IMOD_DRAW_IMAGE | IMOD_DRAW_XYZ);
-    }
-    if (cbs->event->xbutton.button == 2)
-      slicer_insert_point(sslice, cbs->event->xbutton.x,
-                          cbs->event->xbutton.y);
-    if (cbs->event->xbutton.button == 3)
-      slicer_modify_point(sslice, cbs->event->xbutton.x,
-                          cbs->event->xbutton.y);
-    break;
-
-  case ButtonRelease:
-    break;
-
-  case MotionNotify:
-    break;
-
-  default:
-    break;
-  }
-  return;
+  if (ctrlPressed)
+    ss->qtWindow->releaseKeyboard();
+  ctrlPressed = false;
 }
 
-static void slicer_insert_point(struct Super_slicer *ss, int x, int y)
+// Process press of mouse buttons
+void slicerMousePress(SlicerStruct *ss, QMouseEvent *event)
+{
+  ivwControlPriority(ss->vi, ss->ctrl);
+
+  if (event->stateAfter() & Qt::LeftButton){
+    sslice_setxyz(ss, event->x(), event->y());
+    /* DNM: for select hits, do keep cz at an integral value */
+    ss->pending = 0;
+    imodDraw(ss->vi, IMOD_DRAW_IMAGE | IMOD_DRAW_XYZ);
+  }
+
+  if (event->stateAfter() & Qt::MidButton)
+      slicer_insert_point(ss, event->x(), event->y());
+
+  if (event->stateAfter() & Qt::RightButton)
+      slicer_modify_point(ss, event->x(), event->y());
+}
+
+static void slicer_insert_point(SlicerStruct *ss, int x, int y)
 {
   sslice_setxyz(ss, x, y);
   inputInsertPoint(ss->vi);
   return;
 }
 
-static void slicer_modify_point(struct Super_slicer *ss, int x, int y)
+static void slicer_modify_point(SlicerStruct *ss, int x, int y)
 {
   sslice_setxyz(ss, x, y);
   inputModifyPoint(ss->vi);
   return;
 }
 
-static void sslice_setxyz(struct Super_slicer *ss, int x, int y)
+static void sslice_setxyz(SlicerStruct *ss, int x, int y)
 {
   float xoffset, yoffset;
   float xs, ys, zs;
@@ -1455,58 +776,6 @@ static void sslice_setxyz(struct Super_slicer *ss, int x, int y)
   return;
 }
 
-#ifdef NEED_SLICE_CALC
-/* DNM: This has not been changed to reflect change in angle signs */
-static void slice_calc(struct Super_slicer *ss)
-{
-  float v1[3], v2[3], v3[3]; /* normal vectors to points in plane */
-  float a, b, c;  /* input angles in radians. */
-  float pnorm[3]; /* plane normal vector      */
-  float *u1, u2[3];
-  float cosofy;
-     
-  a = RADIANS_PER_DEGREE * ss->inangle[0];
-  b = RADIANS_PER_DEGREE * ss->inangle[1];
-     
-  ss->tang[0] = ss->inangle[0];
-  ss->tang[2] = ss->inangle[2];
-  switch (ss->order[0]){
-  case X:
-    v1[X] = 0; v1[Y] =  cos(a); v1[Z] = sin(a);
-    v2[X] = 0; v2[Y] = -sin(b); v2[Z] = cos(b);
-    /*     pnorm = v1 cross v2; */
-    v3[X] = 0; v3[Y] = pnorm[Z], v3[Z] = pnorm[Y];
-    break;
-  case Y:
-    v1[X] = sin(a); v1[Y] = 0; v1[Z] =  cos(a);
-    v2[X] = cos(b); v2[Y] = 0; v2[Z] = -sin(b);
-    /*     pnorm = v1 cross v2; */
-    v3[X] = pnorm[Z]; v3[Y] = 0; v3[Z] = pnorm[X];
-    break;
-  case Z:
-    v1[X] =  cos(a); v1[Y] = sin(a); v1[Z] = 0;
-    v2[X] = -sin(b); v2[Y] = cos(b); v2[Z] = 0;
-    /*     pnorm = v1 cross v2; */
-    v3[X] = pnorm[Y]; v3[Y] = pnorm[X]; v3[Z] = 0;
-    break;
-  }
-     
-  u1 = v1;
-  /*     c = - (u1 dot u2) / |u1| * |u1|;    */
-  /*     cosofy = |v2| * |u2| / (v2 dot u2); */
-  ss->tang[1] = acos(cosofy);
-     
-  /* now we can do transformations    */
-     
-  /* and fill xstep, ystep, and zstep */
-     
-  /* and then calculate the steps through x,y,z plane intersections. */
-     
-     
-  /* the rest we calculate later. */
-  return;
-}
-#endif
 
 #ifndef NDEBUG
 int printmat(Imat *mat)
@@ -1531,7 +800,7 @@ static double fixangle(double angle)
 }
 
 
-void sliceSetAnglesFromPoints(struct Super_slicer *ss,
+static void sliceSetAnglesFromPoints(SlicerStruct *ss,
                               Ipoint *p1, Ipoint *p2, int axis)
 {
   Ipoint n;
@@ -1594,11 +863,11 @@ void sliceSetAnglesFromPoints(struct Super_slicer *ss,
   ss->tang[X] = a.x / rpd;
   ss->tang[Y] = a.y / rpd;
   ss->tang[Z] = a.z / rpd;
-  setTiltWidgets(ss);
+  ss->qtWindow->setAngles(ss->tang);
 }
 
 /* set up the step factors for a new slice angle. */
-static void slice_trans_step(struct Super_slicer *ss)
+static void slice_trans_step(SlicerStruct *ss)
 {
   Ipoint pnt, tpnt;
   Ipoint xn, yn, zn;
@@ -1760,13 +1029,6 @@ static void slice_trans_step(struct Super_slicer *ss)
   return;
 }
 
-static void sslice_clear(struct Super_slicer *ss)
-{
-  b3dWinset(XtDisplay(ss->glw), ss->glw, ss->context);
-  b3dClear();
-  return;
-}
-
 
 /* DNM: routines to replace ivwGetValue for speedy access */
 
@@ -1794,7 +1056,7 @@ static int fake_GetValue(int x, int y, int z)
   return(0);
 }
 
-static void sslice_draw(struct Super_slicer *ss)
+static void fillImageArray(SlicerStruct *ss)
 {
   int i, j, k, isize, jsize, ksize;
   int xi, yi, zi;
@@ -1836,8 +1098,6 @@ static void sslice_draw(struct Super_slicer *ss)
   unsigned int   *idata = (unsigned int  *)cidata;
   int pixsize  = b3dGetImageType(NULL, NULL);
 
-  if (!ss->exposed)
-    return;
 
   /* DNM 5/16/02: force a cache load of the current z slice at least */
   iz = (int)floor((double)(ss->cz + 0.5));
@@ -1880,8 +1140,6 @@ static void sslice_draw(struct Super_slicer *ss)
     imdataxsize = ss->vi->xsize;
   }
 
-  b3dWinset(XtDisplay(ss->glw), ss->glw, ss->context);
-
   slice_trans_step(ss);
   rbase = ss->vi->rampbase;
   if (!App->rgba && App->depth == 8){
@@ -1911,7 +1169,7 @@ static void sslice_draw(struct Super_slicer *ss)
   if ((ss->scalez) && (ss->vi->imod->zscale > 0))
     zs  = 1.0f/ss->vi->imod->zscale;
 
-  if (ss->scalez == SLICE_ZSCALE_AFTER){
+		if (ss->scalez == SLICE_ZSCALE_AFTER){
     if (ss->vi->imod->zscale > 0)
       zs = ss->vi->imod->zscale;
     xzoom = zoom * sqrt((double)
@@ -2026,15 +1284,14 @@ static void sslice_draw(struct Super_slicer *ss)
   ss->zo = zo;
 
   /* Adjust for multiple slices */
-  xo -= zoffset * xsz;
+		xo -= zoffset * xsz;
   yo -= zoffset * ysz;
   zo -= zoffset * zsz;
   xzo = xo; yzo = yo; zzo = zo;
 
   shortcut = 0;
   izoom = (int) zoom;
-  if ((ss->hq != 0) && (ss->fasthq != 0) && (zoom == izoom) && 
-      (zoom > 1.0)) {
+  if ((ss->hq != 0) && (zoom == izoom) && (zoom > 1.0)) {
     shortcut = 1;
     ilimshort = izoom * ((isize - 1) / izoom - 1);
     jlimshort = izoom * ((jsize - 1) / izoom - 1);
@@ -2276,7 +1533,7 @@ static void sslice_draw(struct Super_slicer *ss)
     int tval;
     int minval = ss->vi->rampbase;
     int maxval = minval + ss->vi->rampsize;
-    if (k)
+    if (k > 1)
       for (j = 0; j < jsize; j++)
         for(i = j * ss->winx; i < j * ss->winx + isize; i++){
           tval = cidata[i]/k;
@@ -2294,14 +1551,14 @@ static void sslice_draw(struct Super_slicer *ss)
   }else{
     switch (pixsize){
     case 1:
-      if (k)
+      if (k > 1)
         for (j = 0; j < jsize; j++)
           for(i = j * ss->winx; i < j * ss->winx + isize; i++){
             cidata[i] = (cidata[i]/k);
           }
       break;
     case 2:
-      if (k)
+      if (k > 1)
         for (j = 0; j < jsize; j++)
           for(i = j * ss->winx; i < j * ss->winx + isize; i++){
             cidata[i] = (cidata[i]/k)+ rbase;
@@ -2313,32 +1570,43 @@ static void sslice_draw(struct Super_slicer *ss)
           }
       break;
     case 4:
-      if (k)
+      if (k > 1)
         for (j = jsize - 1; j >= 0; j--)
           for(i = j * ss->winx + isize - 1; i >= j * ss->winx;
               i--){
             idata[i] = cmap[(cidata[i]/k)];
           }
       else
-        for (j = jsize - 1; j >= 0; j--)
-          for(i = j * ss->winx + isize - 1; i >= j * ss->winx;
-              i--){
-            idata[i] = cmap[cidata[i]];
-          }
+	for (j = jsize - 1; j >= 0; j--) {
+	  for(i = j * ss->winx + isize - 1; i >= j * ss->winx; i--){
+	    idata[i] = cmap[cidata[i]];
+	  }
+	}
     }
   }
-
   ss->xzoom = xzoom;
   ss->yzoom = yzoom;
-  slicerUpdateImage(ss);
   free(imdata);
   if (ss->vi->vmSize)
     free(vmdataxsize);
   return;
 }
 
+static void sslice_draw(SlicerStruct *ss)
+{
+  ss->glw->updateGL();
+  sslice_cube_draw(ss);
+}
 
-static void slicerUpdateImage(struct Super_slicer *win)
+static void slicerUpdateImage(SlicerStruct *ss)
+{
+  ss->imageFilled = 1;
+  ss->glw->updateGL();
+  ss->imageFilled = 0;
+  sslice_cube_draw(ss);
+}
+
+void slicerPaint(SlicerStruct *ss)
 {
   GLenum format = GL_COLOR_INDEX;
   GLenum type   = GL_UNSIGNED_SHORT;
@@ -2349,40 +1617,45 @@ static void slicerUpdateImage(struct Super_slicer *win)
     type   = GL_UNSIGNED_SHORT;
   }
 
+  // Skip draw if minimized!
+  if (ss->qtWindow->isMinimized())
+    return;
+
+  if (!ss->imageFilled)
+    fillImageArray(ss);
+
+  b3dSetCurSize(ss->winx, ss->winy);
+
   glPixelStorei(GL_UNPACK_ALIGNMENT, unpack);
 
   /* Just clear the unused edges if there are shifts */
-  if (win->xshift || win->yshift) {
+  if (ss->xshift || ss->yshift) {
     b3dColorIndex(App->background);
-    b3dDrawFilledRectangle(0, 0, win->winx, (int)win->yshift);
-    b3dDrawFilledRectangle(0, 0, (int)win->xshift, win->winy);
+    b3dDrawFilledRectangle(0, 0, ss->winx, (int)ss->yshift);
+    b3dDrawFilledRectangle(0, 0, (int)ss->xshift, ss->winy);
   }
 
   /* DNM: one-to-one image for fractional zoom as well as in hq case */
-  if (win->hq || win->zoom != (int)win->zoom)
+  if (ss->hq || ss->zoom != (int)ss->zoom)
     glPixelZoom(1.0f, 1.0f);
   else
     /* DNM: don't make this xzoom, yzoom.  */
-    glPixelZoom(win->zoom, win->zoom);
+    glPixelZoom(ss->zoom, ss->zoom);
 
-  glRasterPos2f(win->xshift, win->yshift);
-  glDrawPixels(win->winx, win->winy, format, type, win->image->id1);
+  glRasterPos2f(ss->xshift, ss->yshift);
+
+  glDrawPixels(ss->winx, ss->winy, format, type, ss->image->id1);
     
-
   /* Position of cursor. */
   b3dColorIndex(App->endpoint);
-  if (win->vi->drawcursor)
-    b3dDrawPlus((int)(win->winx * 0.5f),
-                (int)(win->winy * 0.5f), 5);
+  if (ss->vi->drawcursor)
+    b3dDrawPlus((int)(ss->winx * 0.5f),
+                (int)(ss->winy * 0.5f), 5);
 
-  sslice_draw_model(win);
-  b3dSwapBuffers();
-  sslice_cube_draw(win);
-  return;
-
+  sslice_draw_model(ss);
 }
 
-static void sslice_draw_model(struct Super_slicer *ss)
+static void sslice_draw_model(SlicerStruct *ss)
 {
   float depth = ss->depth;
 
@@ -2419,7 +1692,12 @@ static void sslice_draw_model(struct Super_slicer *ss)
   return;
 }
 
-static void sslice_cube_draw(struct Super_slicer *ss)
+static void sslice_cube_draw(SlicerStruct *ss)
+{
+  ss->cube->updateGL();
+}
+
+void slicerCubePaint(SlicerStruct *ss)
 {
   double params[4];
   static float v[3], vx[3], vy[3];
@@ -2429,10 +1707,8 @@ static void sslice_cube_draw(struct Super_slicer *ss)
   float zoom = 1.0/ss->zoom;
   int winx, winy;
   float xo, yo, zo;
-  if (!ss->cubegc)
-    return;
 
-  b3dWinset(XtDisplay(ss->cube), ss->cube, ss->cubegc);
+  b3dSetCurSize(ss->cube->width(), ss->cube->height());
 
   glClearColor(0, 0, 0, 0);
   glClear(GL_COLOR_BUFFER_BIT);
@@ -2445,7 +1721,9 @@ static void sslice_cube_draw(struct Super_slicer *ss)
   xo = ss->xo; yo = ss->yo, zo = ss->zo;
   winx = (int)(ss->winx * zoom);
   winy = (int)(ss->winy * zoom);
-  r = sqrt( (x * x) + (y * y) + (z * z));
+
+  // Make r smaller to increase size of cube
+  r = 0.7 * sqrt( (x * x) + (y * y) + (z * z));
 
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
@@ -2543,9 +1821,4 @@ static void sslice_cube_draw(struct Super_slicer *ss)
 
   glFlush();
 
-  /* DNM 9/5/02: swap, but only if actually double-buffered */
-  if (ss->cubeDB)
-    b3dSwapBuffers();
-
-  return;
 }
