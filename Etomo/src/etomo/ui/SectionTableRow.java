@@ -29,6 +29,9 @@ import etomo.util.MRCHeader;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.15  2004/10/30 02:38:38  sueh
+* <p> bug# 520 Converted rotation angles to EtomoSimpleType.
+* <p>
 * <p> Revision 1.1.2.14  2004/10/29 22:18:33  sueh
 * <p> bug# 520 Added imodRotIndex to manage the 3dmod associated with the
 * <p> .rot file created from section when rotation angles are specified.
@@ -389,6 +392,7 @@ public class SectionTableRow {
     constraints.weighty = 1.0;
     constraints.gridwidth = 1;
     rowNumber.add(panel, layout, constraints);
+    constraints.weighty = 0.0;
     constraints.weightx = 0.0;
     table.addCell(highlighterButton);
     constraints.gridwidth = 2;
