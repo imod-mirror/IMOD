@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.2.2.6  2003/01/27 00:30:07  mast
+Pure Qt version and general cleanup
+
 Revision 3.2.2.5  2003/01/04 03:42:20  mast
 simplified closing logic
 
@@ -97,10 +100,7 @@ typedef struct zapwin
 
   int    hqgfx, hide;
   int    hqgfxsave;           /* Place to save hqgfx when dragging */
-  int    resizedraw2x;        /* Flag to draw twice after resize */
-  int    resizeSkipDraw;      /* Flag  to skip drawing during resize */
   int    drawCurrentOnly;
-  // XtIntervalId exposeTimeOut; /* Timeouts during expose cascade */
 
   int rubberband;    /* Rubber banding flag and corner coordinates */
   int bandllx;
