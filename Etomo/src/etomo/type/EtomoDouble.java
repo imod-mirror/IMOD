@@ -16,6 +16,9 @@ import java.util.Properties;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.3  2004/10/22 03:23:53  sueh
+* <p> bug# 520 Set value unsetValue when set fails.
+* <p>
 * <p> Revision 1.1.2.2  2004/10/21 02:53:51  sueh
 * <p> bug# 520 Corrected typo.
 * <p>
@@ -28,9 +31,22 @@ import java.util.Properties;
 public class EtomoDouble extends ConstEtomoDouble {
   public static  final String  rcsid =  "$Id$";
   
-  EtomoDouble(String name) {
-    this.name = name;
-    description = name;
+  public EtomoDouble() {
+    super();
+  }
+  
+  public EtomoDouble(double initialValue) {
+    super();
+    value = initialValue;
+  }
+  
+  public EtomoDouble(String name) {
+    super(name);
+  }
+  
+  public EtomoDouble(String name, double initialValue) {
+    super(name);
+    value = initialValue;
   }
   
   public void setDefaultValue(double value) {
@@ -62,7 +78,7 @@ public class EtomoDouble extends ConstEtomoDouble {
         .toString(resetValue)));
   }
   
-  public String set(String value) {
+  public EtomoDouble set(String value) {
     invalidReason = null;
     if (value == null || !value.matches("\\S+")) {
       this.value = unsetValue;
@@ -78,17 +94,19 @@ public class EtomoDouble extends ConstEtomoDouble {
         this.value = unsetValue;
       }
     }
-    return invalidReason;
+    return this;
   }
   
-  public String set(Double value) {
+  public EtomoDouble set(Double value) {
+    invalidReason = null;
     this.value = value.doubleValue();
-    return null;
+    return this;
   }
   
-  public String set(double value) {
+  public EtomoDouble set(double value) {
+    invalidReason = null;
     this.value = value;
-    return null;
+    return this;
   }
   
   public void reset() {
@@ -110,5 +128,4 @@ public class EtomoDouble extends ConstEtomoDouble {
       resetValue = unsetValue;
     }
   }
-  
 }

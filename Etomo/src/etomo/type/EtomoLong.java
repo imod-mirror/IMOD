@@ -16,6 +16,9 @@ import java.util.Properties;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.2  2004/10/22 03:25:19  sueh
+* <p> bug# 520 Set value unsetValue when set(String) fails.
+* <p>
 * <p> Revision 1.1.2.1  2004/10/21 02:57:05  sueh
 * <p> bug# 520 EtomoSimpleType which encapsulates long.
 * <p> </p>
@@ -23,9 +26,22 @@ import java.util.Properties;
 public class EtomoLong extends ConstEtomoLong {
   public static  final String  rcsid =  "$Id$";
   
+  public EtomoLong() {
+    super();
+  }
+  
+  public EtomoLong(long initialValue) {
+    super();
+    value = initialValue;
+  }
+  
   public EtomoLong(String name) {
-    this.name = name;
-    description = name;
+    super(name);
+  }
+  
+  public EtomoLong(String name, long initialValue) {
+    super(name);
+    value = initialValue;
   }
   
   public void setDefaultValue(long value) {
@@ -56,7 +72,7 @@ public class EtomoLong extends ConstEtomoLong {
         .toString(resetValue)));
   }
   
-  public String set(String value) {
+  public EtomoLong set(String value) {
     invalidReason = null;
     if (value == null || !value.matches("\\S+")) {
       this.value = unsetValue;
@@ -72,18 +88,20 @@ public class EtomoLong extends ConstEtomoLong {
         this.value = unsetValue;
       }
     }
-    return invalidReason;
+    return this;
   }
   
-  public String set(Long value) {
+  public EtomoLong set(Long value) {
+    invalidReason = null;
     this.value = value.intValue();
-    return null;
+    return this;
   }
   
-  public String set(long value) {
+  public EtomoLong set(long value) {
+    invalidReason = null;
     System.out.println("value=" + value);
     this.value = value;
-    return null;
+    return this;
   }
   
   public void reset() {

@@ -16,6 +16,9 @@ import java.util.Properties;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.3  2004/10/22 03:24:04  sueh
+* <p> bug# 520 Set value unsetValue when set fails.
+* <p>
 * <p> Revision 1.1.2.2  2004/10/21 02:55:45  sueh
 * <p> bug# 520 Pulled out const part of object.
 * <p>
@@ -28,9 +31,22 @@ import java.util.Properties;
 public class EtomoFloat extends ConstEtomoFloat {
   public static  final String  rcsid =  "$Id$";
   
-  EtomoFloat(String name) {
-    this.name = name;
-    description = name;
+  public EtomoFloat() {
+    super();
+  }
+  
+  public EtomoFloat(float initialValue) {
+    super();
+    value = initialValue;
+  }
+  
+  public EtomoFloat(String name) {
+    super(name);
+  }
+  
+  public EtomoFloat(String name, float initialValue) {
+    super(name);
+    value = initialValue;
   }
   
   public void setDefaultValue(float value) {
@@ -63,7 +79,7 @@ public class EtomoFloat extends ConstEtomoFloat {
     value = Float.parseFloat(valueString);
   }
   
-  public String set(String value) {
+  public EtomoFloat set(String value) {
     invalidReason = null;
     if (value == null || !value.matches("\\S+")) {
       this.value = unsetValue;
@@ -79,17 +95,19 @@ public class EtomoFloat extends ConstEtomoFloat {
         this.value = unsetValue;
       }
     }
-    return invalidReason;
+    return this;
   }
   
-  public String set(Float value) {
+  public EtomoFloat set(Float value) {
+    invalidReason = null;
     this.value = value.floatValue();
-    return null;
+    return this;
   }
   
-  public String set(float value) {
+  public EtomoFloat set(float value) {
+    invalidReason = null;
     this.value = value;
-    return null;
+    return this;
   }
   
   public void reset() {
