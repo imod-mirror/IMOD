@@ -49,6 +49,10 @@ import etomo.util.MRCHeader;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.19  2004/10/25 23:16:11  sueh
+* <p> bug# 520 Changed table in Align tab:  Removed Sample Slices.  Added
+* <p> Slices in Sample.  Added Chunk table.  Also add xMax and yMax.
+* <p>
 * <p> Revision 1.1.2.18  2004/10/22 21:12:04  sueh
 * <p> bug# 520 Changed SectionTableRow.sampleSampleTop() to
 * <p> setSampleTopNumberSlices().
@@ -672,7 +676,6 @@ public class SectionTablePanel implements ContextMenu, Expandable {
       File tomogram = chooser.getSelectedFile();
       if (isDuplicate(tomogram)) {
         return;
-
       }
       MRCHeader header = new MRCHeader(tomogram.getAbsolutePath());
       if (!readHeader(header)) {
@@ -791,11 +794,11 @@ public class SectionTablePanel implements ContextMenu, Expandable {
     row.create();
     row.add(pnlTable);
     rows.add(row);
-    if (rows.size() > 1) {
-      ((SectionTableRow) rows.get(rows.size() - 2)).configureFields();
+    int tableSize = rows.size();
+    if (tableSize > 1) {
+      ((SectionTableRow) rows.get(tableSize - 2)).configureFields();
     }
-    int newTableSize = rows.size();
-    joinDialog.setNumSections(newTableSize);
+    joinDialog.setNumSections(tableSize);
     enableRowButtons();
     repaint();
   }
