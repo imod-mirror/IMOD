@@ -36,6 +36,9 @@ import etomo.type.AxisType;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.1.2.7  2004/09/29 19:37:04  sueh
+ * <p> bug# 520 Moved status bar initialization to child classes.
+ * <p>
  * <p> Revision 1.1.2.6  2004/09/21 18:02:52  sueh
  * <p> bug# 520 Added openYesNoDialog(String, String).  For
  * <p> openMessageDialog(), handling the situation where no dataset name is
@@ -211,7 +214,7 @@ public abstract class MainPanel extends JPanel {
     chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
     File[] edfFiles = workingDir.listFiles(edfFilter);
     if (edfFiles.length == 0) {
-      File defaultFile = new File(workingDir, manager.getMetaData().getDatasetName() + ".edf");
+      File defaultFile = new File(workingDir, manager.getBaseMetaData().getMetaDataFileName());
       chooser.setSelectedFile(defaultFile);
     }
     int returnVal = chooser.showSaveDialog(this);
@@ -416,11 +419,7 @@ public abstract class MainPanel extends JPanel {
    * @param title
    */
   public void openMessageDialog(String[] message, String title) {
-    String datasetName = manager.getMetaData().getDatasetName();
-    if (datasetName.equals("")) {
-      EtomoDirector.getMainFrame().openMessageDialog(message, title);
-      return;
-    }
+    String datasetName = manager.getBaseMetaData().getName();
     int messageLength;
     if (message == null) {
       messageLength = 0;
@@ -442,11 +441,7 @@ public abstract class MainPanel extends JPanel {
    * @param title
    */
   public void openMessageDialog(String message, String title) {
-    String datasetName = manager.getMetaData().getDatasetName();
-    if (datasetName.equals("")) {
-      EtomoDirector.getMainFrame().openMessageDialog(message, title);
-      return;
-    }
+    String datasetName = manager.getBaseMetaData().getName();
     if (message == null) {
       EtomoDirector.getMainFrame().openMessageDialog(datasetName + ":", title);
       return;
