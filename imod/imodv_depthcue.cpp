@@ -35,6 +35,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.4  2002/12/23 04:51:22  mast
+Qt version
+
 Revision 1.1.2.3  2002/12/18 04:15:14  mast
 new includes for imodv modules
 
@@ -52,6 +55,7 @@ Changes to get clean compilation with g++
 #include "formv_depthcue.h"
 #include "imodv.h"
 #include "imodv_gfx.h"
+#include "imodv_input.h"
 #include "imodv_depthcue.h"
 
 static struct{
@@ -116,6 +120,7 @@ void imodvDepthcueDone()
 
 void imodvDepthcueClosing()
 {
+  imodvRemoveDialog((QWidget *)idcData.dia);
   idcData.dia = NULL;
 }
 
@@ -132,10 +137,12 @@ void imodvDepthCueEditDialog(ImodvApp *a, int state)
     return;
   }
 
-  idcData.dia = new imodvDepthcueForm((QWidget *)a->mainWin, NULL,
-                                                false, Qt::WDestructiveClose);
+  idcData.dia = new imodvDepthcueForm(NULL, NULL,// false,
+				      Qt::WDestructiveClose |
+				      Qt::WType_TopLevel);
 
   imodvDepthCueSetWidgets();
+  imodvAddDialog((QWidget *)idcData.dia);
   idcData.dia->show();
 }
 

@@ -34,6 +34,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.5  2002/12/27 17:49:30  mast
+Clean up unused variables
+
 Revision 1.1.2.4  2002/12/27 01:21:04  mast
 Qt version
 
@@ -67,6 +70,7 @@ Changes to get clean compilation with g++
 #include "tooledit.h"
 #include "formv_objed.h"
 #include "multislider.h"
+#include "dia_qtutils.h"
 
 #include "imodv.h"
 #include "imodP.h"
@@ -74,6 +78,7 @@ Changes to get clean compilation with g++
 #include "imodv_light.h"
 #include "imodv_objed.h"
 #include "imodv_input.h"
+#include "hotslider.h"
 
 /*
  *  internal prototypes (first two were public but unused)
@@ -89,12 +94,6 @@ static void objset(ImodvApp *a);
 static void setObjFlag(long flag, int state);
 static void setOnoffButtons(void);
 static void finalSpacer(QWidget *parent, QVBoxLayout *layout);     
-static QPushButton *newPushButton(char *text, QWidget *parent,
-                                  QVBoxLayout *layout);
-static QCheckBox *newCheckBox(char *text, QWidget *parent,
-                              QVBoxLayout *layout);
-static QLabel *newLabel(char *text, QWidget *parent, QVBoxLayout *layout);
-static void setChecked(QCheckBox *button, bool state);
 static void setLineColor_cb(void);
 static void mkLineColor_cb(int index);
 static void setFillColor_cb(void);
@@ -354,9 +353,9 @@ static void toggleObj(int ob, bool state)
   /* If the object is within legal limits for a button list, set that button
      in each list */
   if (ob < numOnoffButtons && ob < Imodv->imod->objsize)
-    setChecked(OnoffButtons[ob], state);
+    diaSetChecked(OnoffButtons[ob], state);
   if (ob < numOolistButtons && ob < Imodv->imod->objsize)
-    setChecked(OolistButtons[ob], state);
+    diaSetChecked(OolistButtons[ob], state);
 
   if (objed_dialog)
     objset(Imodv);
@@ -380,6 +379,7 @@ void imodvObjedDone()
 // Signal from window that it is closing: clear pointer
 void imodvObjedClosing()
 {
+  imodvRemoveDialog((QWidget *)objed_dialog);
   objed_dialog = NULL;
   numOnoffButtons = 0;
 }
@@ -565,7 +565,7 @@ static void setOnoffButtons(void)
     else
       state = false;
     OnoffButtons[ob]->setEnabled(ob < a->imod->objsize);
-    setChecked(OnoffButtons[ob], state);
+    diaSetChecked(OnoffButtons[ob], state);
   }
 
   for (ob = 0; ob < numOolistButtons; ob++) {
@@ -582,7 +582,7 @@ static void setOnoffButtons(void)
     } else
       state = false;
     OolistButtons[ob]->setEnabled(ob < a->imod->objsize);
-    setChecked(OolistButtons[ob], state);
+    diaSetChecked(OolistButtons[ob], state);
   }
 }
 
@@ -628,7 +628,7 @@ void objed(ImodvApp *a)
   if (!a->imod)
     return;
 
-  objed_dialog = new imodvObjedForm((QWidget *)a->mainWin, NULL, //false,
+  objed_dialog = new imodvObjedForm(NULL, NULL, //false,
                                     Qt::WDestructiveClose | Qt::WType_TopLevel);
 
   Imodv_objed_all = 0;  // May want to retain this setting
@@ -644,6 +644,7 @@ void objed(ImodvApp *a)
   ctrlPressed = false;
   objed_dialog->setCurrentFrame(CurrentObjectField, Imodv_objed_all);
   objset(a);
+  imodvAddDialog((QWidget *)objed_dialog);
   objed_dialog->show();
 }
 
@@ -720,7 +721,8 @@ void ImodvObjed::lineColorSlot(int color, int value, bool dragging)
           Imodv->mod[m]->obj[Imodv->ob].trans = value;
     break;
   }
-  if (!dragging || ctrlPressed) {
+  if (!dragging || (hotSliderFlag() == HOT_SLIDER_KEYDOWN && ctrlPressed) ||
+      (hotSliderFlag() == HOT_SLIDER_KEYUP && !ctrlPressed)) {
     objset(Imodv);
     imodvDraw(Imodv);
   } else if (color < 3)
@@ -786,7 +788,8 @@ void ImodvObjed::fillColorSlot(int color, int value, bool dragging)
   colors = (unsigned char *)&(obj->mat1);
   colors[color] = value;
 
-  if (!dragging || ctrlPressed) {
+  if (!dragging || (hotSliderFlag() == HOT_SLIDER_KEYDOWN && ctrlPressed) ||
+      (hotSliderFlag() == HOT_SLIDER_KEYUP && !ctrlPressed)) {
     objset(Imodv);
     imodvDraw(Imodv);
   }
@@ -798,8 +801,8 @@ static void setFillColor_cb(void)
   if (!obj) return;
   unsigned char *colors = (unsigned char *)&(obj->mat1);
 
-  setChecked(wFillToggle, obj->flags & IMOD_OBJFLAG_FCOLOR);
-  setChecked(wBothSides, obj->flags & IMOD_OBJFLAG_TWO_SIDE);
+  diaSetChecked(wFillToggle, obj->flags & IMOD_OBJFLAG_FCOLOR);
+  diaSetChecked(wBothSides, obj->flags & IMOD_OBJFLAG_TWO_SIDE);
   for (int i = 0; i < 3; i++)
     fillSliders->setValue(i, colors[i]);
 }
@@ -813,11 +816,11 @@ static void mkFillColor_cb(int index)
   fillSliders = new MultiSlider(oef->control, 3, rgbTitles);
   layout1->addLayout(fillSliders->getLayout());
 
-  wFillToggle = newCheckBox("Use Fill Color", oef->control, layout1);
+  wFillToggle = diaCheckBox("Use Fill Color", oef->control, layout1);
   QObject::connect(wFillToggle, SIGNAL(toggled(bool)), &imodvObjed, 
           SLOT(fillToggleSlot(bool)));
 
-  wBothSides = newCheckBox("Light Both Sides", oef->control, layout1);
+  wBothSides = diaCheckBox("Light Both Sides", oef->control, layout1);
   QObject::connect(wBothSides, SIGNAL(toggled(bool)), &imodvObjed, 
           SLOT(bothSidesSlot(bool)));
   
@@ -890,7 +893,8 @@ void ImodvObjed::materialSlot(int which, int value, bool dragging)
   }
   /*     printf("set mat %d, offset %d, value%d\n", *item, offset, cbs->value); */
      
-  if (!dragging || ctrlPressed)
+  if (!dragging || (hotSliderFlag() == HOT_SLIDER_KEYDOWN && ctrlPressed) ||
+      (hotSliderFlag() == HOT_SLIDER_KEYUP && !ctrlPressed))
     imodvDraw(Imodv);
 }
 
@@ -992,7 +996,7 @@ static void mkPoints_cb(int index)
   QObject::connect(wPointEdit, SIGNAL(lostFocus()), &imodvObjed,
           SLOT(pointSizeSlot()));
 
-  newLabel("Scattered Point Size", oef->control, layout1);
+  diaLabel("Scattered Point Size", oef->control, layout1);
   finalSpacer(oef->control, layout1);
 }
 
@@ -1036,7 +1040,8 @@ void ImodvObjed::lineWidthSlot(int which, int value, bool dragging)
           Imodv->mod[m]->obj[Imodv->ob].linewidth = value;
   }
 
-  if (!dragging || ctrlPressed)
+  if (!dragging || (hotSliderFlag() == HOT_SLIDER_KEYDOWN && ctrlPressed) ||
+      (hotSliderFlag() == HOT_SLIDER_KEYUP && !ctrlPressed))
     imodvDraw(Imodv);
 }
 
@@ -1054,7 +1059,7 @@ static void setLines_cb(void)
   if (!obj) 
     return;
   widthSlider->setValue(0, obj->linewidth);
-  setChecked(wLineAlias, obj->flags & IMOD_OBJFLAG_ANTI_ALIAS );
+  diaSetChecked(wLineAlias, obj->flags & IMOD_OBJFLAG_ANTI_ALIAS );
 }
 
 static void mkLines_cb(int index)
@@ -1068,7 +1073,7 @@ static void mkLines_cb(int index)
   QObject::connect(widthSlider, SIGNAL(sliderChanged(int, int, bool)), &imodvObjed,
           SLOT(lineWidthSlot(int, int, bool)));
 
-  wLineAlias = newCheckBox("Anti-alias rendering", oef->control, layout1);
+  wLineAlias = diaCheckBox("Anti-alias rendering", oef->control, layout1);
   QObject::connect(wLineAlias, SIGNAL(toggled(bool)), &imodvObjed, 
           SLOT(lineAliasSlot(bool)));
 
@@ -1115,8 +1120,8 @@ static void setScalar_cb(void)
   if (!ub[1])
     ub[1] = 255;
 
-  setChecked(wMeshNormal, IMOD_OBJFLAG_SCALAR & obj->flags);
-  setChecked(wMeshFalse, IMOD_OBJFLAG_MCOLOR & obj->flags);
+  diaSetChecked(wMeshNormal, IMOD_OBJFLAG_SCALAR & obj->flags);
+  diaSetChecked(wMeshFalse, IMOD_OBJFLAG_MCOLOR & obj->flags);
      
   meshSliders->setValue(0, (int)ub[0]);
   meshSliders->setValue(1, (int)ub[1]);
@@ -1128,11 +1133,11 @@ static void mkScalar_cb(int index)
 
   QVBoxLayout *layout1 = new QVBoxLayout(oef->control, FIELD_MARGIN, 
                                          FIELD_SPACING, "mesh layout");
-  wMeshNormal = newCheckBox("Show normal magnitudes", oef->control, layout1);
+  wMeshNormal = diaCheckBox("Show normal magnitudes", oef->control, layout1);
   QObject::connect(wMeshNormal, SIGNAL(toggled(bool)), &imodvObjed, 
           SLOT(meshNormalSlot(bool)));
 
-  wMeshFalse = newCheckBox("False color", oef->control, layout1);
+  wMeshFalse = diaCheckBox("False color", oef->control, layout1);
   QObject::connect(wMeshFalse, SIGNAL(toggled(bool)), &imodvObjed, 
           SLOT(meshFalseSlot(bool)));
 
@@ -1203,7 +1208,7 @@ static void setClip_cb(void)
   Iobj *obj = objedObject();
   if (!obj) return;
 
-  setChecked(wClipToggle, obj->clip != 0);
+  diaSetChecked(wClipToggle, obj->clip != 0);
 }
 
 static void mkClip_cb(int index)
@@ -1214,20 +1219,20 @@ static void mkClip_cb(int index)
   QVBoxLayout *layout1 = new QVBoxLayout(oef->control, FIELD_MARGIN, 
                                          FIELD_SPACING, "clip layout");
 
-  wClipToggle = newCheckBox("Turn clipping plane On", oef->control, layout1);
+  wClipToggle = diaCheckBox("Turn clipping plane On", oef->control, layout1);
   QObject::connect(wClipToggle, SIGNAL(toggled(bool)), &imodvObjed, 
           SLOT(clipToggleSlot(bool)));
 
-  button = newPushButton("Reset to Center", oef->control, layout1);
+  button = diaPushButton("Reset to Center", oef->control, layout1);
   QObject::connect(button, SIGNAL(pressed()), &imodvObjed, SLOT(clipResetSlot()));
 
-  button = newPushButton("Invert Polarity", oef->control, layout1);
+  button = diaPushButton("Invert Polarity", oef->control, layout1);
   QObject::connect(button, SIGNAL(pressed()), &imodvObjed, SLOT(clipInvertSlot()));
 
-  newLabel("Hold down the Ctrl Key", oef->control, layout1);
-  newLabel("to move & rotate clip", oef->control, layout1);
-  newLabel("plane with mouse or", oef->control, layout1);
-  newLabel("keypad & arrow keys", oef->control, layout1);
+  diaLabel("Hold down the Ctrl Key", oef->control, layout1);
+  diaLabel("to move & rotate clip", oef->control, layout1);
+  diaLabel("plane with mouse or", oef->control, layout1);
+  diaLabel("keypad & arrow keys", oef->control, layout1);
   finalSpacer(oef->control, layout1);
 }
 
@@ -1302,10 +1307,10 @@ static void mkMove_cb(int index)
 
   QVBoxLayout *layout1 = new QVBoxLayout(oef->control, FIELD_MARGIN, 
                                          FIELD_SPACING, "move layout");
-  button = newPushButton("Center on Object", oef->control, layout1);
+  button = diaPushButton("Center on Object", oef->control, layout1);
   QObject::connect(button, SIGNAL(pressed()), &imodvObjed, SLOT(moveCenterSlot()));
 
-  label = newLabel("Move by rotating around:", oef->control, layout1);
+  label = diaLabel("Move by rotating around:", oef->control, layout1);
 
   // Get a grid and a signal mapper to map the buttons
   QGridLayout *grid = new QGridLayout(layout1, 5, 3, 3, "move grid");
@@ -1362,7 +1367,7 @@ static void mkSubsets_cb(int index)
 
   QVBoxLayout *layout1 = new QVBoxLayout(oef->control, FIELD_MARGIN, 
                                          FIELD_SPACING, "move layout");
-  newLabel("Show subset of model:", oef->control, layout1);
+  diaLabel("Show subset of model:", oef->control, layout1);
 
   QSignalMapper *mapper = new QSignalMapper(oef->control);
   QObject::connect(mapper, SIGNAL(mapped(int)), &imodvObjed, SLOT(subsetSlot(int)));
@@ -1405,7 +1410,7 @@ void imodvObjectListDialog(ImodvApp *a, int state)
     return;
   }
 
-  Oolist_dialog = new ImodvOlist((QWidget *)a->mainWin);
+  Oolist_dialog = new ImodvOlist(NULL);
 
   // Get number of buttons, number of columns and number per column
   // Make maximum number of buttons needed for all loaded models
@@ -1444,6 +1449,7 @@ void imodvObjectListDialog(ImodvApp *a, int state)
   if (qstr.isEmpty())
     qstr = "Imodv Object List";
   Oolist_dialog->setCaption(qstr);
+  imodvAddDialog((QWidget *)Oolist_dialog);
   Oolist_dialog->show();
 }
 
@@ -1476,6 +1482,7 @@ void ImodvOlist::donePressed()
 
 void ImodvOlist::closeEvent ( QCloseEvent * e )
 {
+  imodvRemoveDialog((QWidget *)Oolist_dialog);
   Oolist_dialog  = NULL;
   numOolistButtons = 0;
   e->accept();
@@ -1554,7 +1561,7 @@ static void setObjFlag(long flag, int state)
   return;
 }
 
-/* Utilities for adding widgets */
+/* Utility for adding final spacer, hot slider orphans for now */
 static void finalSpacer(QWidget *parent, QVBoxLayout *layout)
 {
   QVBox *spacer = new QVBox(parent);
@@ -1562,33 +1569,12 @@ static void finalSpacer(QWidget *parent, QVBoxLayout *layout)
   layout->setStretchFactor(spacer, 100);
 }
 
-static QPushButton *newPushButton(char *text, QWidget *parent, 
-                                  QVBoxLayout *layout)
+int hotSliderFlag()
 {
-  QPushButton *button = new QPushButton(text, parent);
-  button->setFocusPolicy(QWidget::NoFocus);
-  layout->addWidget(button);
-  return button;
+  return HOT_SLIDER_KEYDOWN;
 }
 
-static QCheckBox *newCheckBox(char *text, QWidget *parent, QVBoxLayout *layout)
+int hotSliderKey() 
 {
-  QCheckBox *button = new QCheckBox(text, parent);
-  button->setFocusPolicy(QWidget::NoFocus);
-  layout->addWidget(button);
-  return button;
-}
-
-static QLabel *newLabel(char *text, QWidget *parent, QVBoxLayout *layout)
-{
-  QLabel *label = new QLabel(text, parent);
-  layout->addWidget(label);
-  return label;
-}
-
-static void setChecked(QCheckBox *button, bool state)
-{
-  button->blockSignals(true);
-  button->setChecked(state);
-  button->blockSignals(false);
+  return Qt::Key_Control;
 }

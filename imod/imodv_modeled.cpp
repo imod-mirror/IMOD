@@ -33,6 +33,7 @@
 #include "imodv.h"
 #include "imod.h"
 #include "imodv_gfx.h"
+#include "imodv_input.h"
 #include "imodv_views.h"
 #include "imodv_modeled.h"
 
@@ -100,6 +101,7 @@ void imodvModeledDone()
 // Closing: unload the pixel size one last time
 void imodvModeledClosing()
 {
+  imodvRemoveDialog((QWidget *)med->dia);
   imodvModeledScale(0);
   med->dia = NULL;
 }
@@ -124,12 +126,13 @@ void imodvModelEditDialog(ImodvApp *a, int state)
   }
   med->a = a;
 
-  med->dia = new imodvModeledForm((QWidget *)a->mainWin, NULL, //false,
-                                  Qt::WDestructiveClose | Qt::WType_Dialog);
+  med->dia = new imodvModeledForm(NULL, NULL, //false,
+                                  Qt::WDestructiveClose | Qt::WType_TopLevel);
 
   updateWorkArea();
   med->dia->setViewSelection(a->drawall);
   med->dia->setMoveEdit(a->moveall, a->crosset);
+  imodvAddDialog((QWidget *)med->dia);
   med->dia->show();
 }
 
@@ -144,10 +147,11 @@ int imodvSelectModel(ImodvApp *a, int ncm)
     return a->cm;
   selecting = 1;
 
-  // Before changing model, get current scale text
+  // Before changing model, get current scale text and autostore view
   if (med->dia) {
     imodvModeledScale(0);
   }
+  imodvAutoStoreView(a);
 
   if (ncm < 0)
     ncm = 0;

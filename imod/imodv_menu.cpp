@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.4  2002/12/27 01:23:56  mast
+New background color selector
+
 Revision 1.1.2.3  2002/12/18 04:15:14  mast
 new includes for imodv modules
 
@@ -68,7 +71,7 @@ Changed copyright notice to use defined lab name and years
 #include "imodv_image.h"
 #include "imodv_objed.h"
 #include "imodv_movie.h"
-
+#include "hotslider.h"
 
 static ImodvBkgColor bkgColor;
 
@@ -613,8 +616,9 @@ void ImodvBkgColor::openDialog()
   green = Imodv->rbgcolor.green / 256;
   blue  = Imodv->rbgcolor.blue / 256;
   
-  mSelector = new ColorSelector(Imodv->mainWin, "Imodv background color.",
-                                red, green, blue, "selector");
+  mSelector = new ColorSelector(NULL, "Imodv background color.",
+                                red, green, blue, hotSliderFlag(), 
+				hotSliderKey(), "selector");
   connect(mSelector, SIGNAL(newColor(int, int, int)), this, 
           SLOT(newColorSlot(int, int, int)));
   connect(mSelector, SIGNAL(done()), this, SLOT(doneSlot()));
@@ -632,9 +636,8 @@ void ImodvBkgColor::openDialog()
     qstr = "Imodv";
   mSelector->setCaption(qstr);
 
-
+  imodvAddDialog((QWidget *)mSelector);
   mSelector->show();
-
 }
 
 ImodvBkgColor::ImodvBkgColor()
@@ -662,6 +665,7 @@ void ImodvBkgColor::doneSlot()
 
 void ImodvBkgColor::closingSlot()
 {
+  imodvRemoveDialog((QWidget *)mSelector);
   mSelector = NULL;
 }
 
