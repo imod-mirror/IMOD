@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.4.2.3  2002/12/17 18:14:26  mast
+remove unused iput functions
+
 Revision 3.4.2.2  2002/12/12 01:20:32  mast
 When setting fonts, take application display if CurDisplay not defined
 
@@ -193,22 +196,23 @@ void b3dSetCurSize(int width, int height)
 
 void b3dResizeViewport(void)
 {
-  double w,h;
 
   XtVaGetValues(CurWidget, 
                 XmNwidth, &CurWidth, XmNheight, &CurHeight, NULL);
 
-  w = CurWidth;
-  h = CurHeight;
+  b3dResizeViewportXY((int)CurWidth, (int)CurHeight);
+}
+
+void b3dResizeViewportXY(int winx, int winy)
+{
   glViewport((GLint)0, (GLint)0,
-             (GLsizei)CurWidth, (GLsizei)CurHeight);
+             (GLsizei)winx, (GLsizei)winy);
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
 
-  glOrtho(0.0 , w, 0.0, h, 0.5, -0.5);
+  glOrtho(0.0 , (GLdouble)winx, 0.0, (GLdouble)winy, 0.5, -0.5);
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
-  return;
 }
 
 void b3dSwapBuffers(void)
