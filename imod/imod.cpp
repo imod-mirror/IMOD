@@ -34,6 +34,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.11  2003/01/06 15:41:02  mast
+Add imodCaption function
+
 Revision 1.1.2.10  2002/12/23 04:52:58  mast
 Add option to get different font size
 
@@ -113,6 +116,7 @@ index modeling is the default if multiple files are opened.
 #include <string.h>
 #include <errno.h>
 #include <sys/wait.h>
+#include <qfiledialog.h>
 #include "xxyz.h"
 #include <qxt.h>
 
@@ -121,8 +125,11 @@ index modeling is the default if multiple files are opened.
 #include "imod_client_message.h"
 #include "xzap.h"
 #include "imod_display.h"
+#include "imod_info.h"
+#include "imod_info_cb.h"
 #include "sslice.h"
 #include "control.h"
+#include "imodplug.h"
 
 /******************************* Globals *************************************/
 ImodApp *App;
@@ -205,6 +212,7 @@ int main( int argc, char *argv[])
   float font_scale = 0.;
   Iobj *obj;
   char *tmpCwd;
+  QString qname;
 
   /* Initialize data. */
   App = &app;
@@ -273,9 +281,9 @@ int main( int argc, char *argv[])
   /*	 printf("Returned cmap = %d\n", cmap); */
   if (cmap <= 0)
     cmap = 1;
-  if (cmap > 12)
-    cmap = 12;
-  Rampbase  = 256 + ((cmap - 1) * 330);
+  if (cmap > MAXIMUM_RAMPS)
+    cmap = MAXIMUM_RAMPS;
+  Rampbase  = RAMPBASE + ((cmap - 1) * RAMP_INTERVAL);
 #endif
 
   App->base = Rampbase;
@@ -487,13 +495,14 @@ int main( int argc, char *argv[])
     if (!firstfile) {
       vers = imodVersion(NULL);
       imodCopyright();	  
-      Imod_imagefile = dia_filename
-	("IMOD: Enter Image file to LOAD.");
-	  
-      if (Imod_imagefile == NULL){
+      qname = QFileDialog::getOpenFileName(QString::null, QString::null, 0, 0, 
+					   "Imod: Select Image file to load:");
+      if (qname.isEmpty()) {
 	fprintf(stderr, "IMOD: file not selected\n");
 	exit(-1);
       }
+      Imod_imagefile = strdup(qname.latin1());
+
     } else {
       /* Or, just set the image file name */
       Imod_imagefile = argv[firstfile];
@@ -588,10 +597,8 @@ int main( int argc, char *argv[])
 
   /*********************/
   /* Open Main Window. */
-  imod_info_open(argc, argv); 
+  imod_info_open(); 
 
-  if (vi.fakeImage)
-    XtSetSensitive(Imod_widget_float, False);
   if (Imod_debug)
     puts("info opened");
   imod_color_init(App);

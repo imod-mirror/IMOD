@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.1.2.1  2002/12/09 17:51:38  mast
+    add declartion of defaultKeyInput
+
     Revision 3.1  2002/12/01 15:34:41  mast
     Changes to get clean compilation with g++
 
@@ -44,8 +47,6 @@
 extern "C" {
 #endif
 
-  void defaultKeyInput(Widget w, XEvent *event, String s, Cardinal c);
-void inputDefaultKeys(XKeyEvent *event, ImodView *vw);
 void inputDeletePoint(ImodView *vw);
 void inputInsertPoint(ImodView *vw);
 void inputModifyPoint(ImodView *vw);
@@ -78,6 +79,8 @@ void inputFirstPoint(ImodView *vw);
 void inputLastPoint(ImodView *vw);
 void inputNextTime(ImodView *vw);
 void inputPrevTime(ImodView *vw);
+void inputRestorePointIndex(ImodView *vw);
+void inputKeepContourAtSameTime(ImodView *vw);
 
 void inputContourBreak(ImodView *vw);
 void inputContourJoin(ImodView *vw, int x, int y);

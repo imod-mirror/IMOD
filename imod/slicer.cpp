@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.4  2003/01/10 23:53:53  mast
+moved declaration of cubicFillin to include file
+
 Revision 1.1.2.3  2003/01/06 18:59:19  mast
 cleanup and reorganization
 
@@ -74,6 +77,7 @@ compiler bug.
 #include "imod.h"
 #include "sslice.h"
 #include "control.h"
+#include "imodplug.h"
 #include "hotslider.h"
 
 #include "qcursor.bits"

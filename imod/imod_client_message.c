@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.3.2.2  2002/12/17 18:35:03  mast
+Removing argument to call to open imodv
+
 Revision 3.3.2.1  2002/12/05 16:23:52  mast
 No changes - CVS detected as modified in branch
 
@@ -62,7 +65,7 @@ Initital version of code moved from imod_menu_cb.c
 #include <Xm/AtomMgr.h>
 #include <dia.h>
 #include "imod.h"
-#include "imod_info.h"
+#include "imod_info_cb.h"
 #include "imod_client_message.h"
 
 extern int Imod_debug;

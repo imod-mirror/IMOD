@@ -34,6 +34,9 @@
     $Revision$
 
     $Log$
+    Revision 3.0.2.1  2002/12/23 04:59:19  mast
+    Make routine for parsing pixel size string
+
 */
 #include <Xm/Xm.h>
 #include <Xm/RowColumn.h>
@@ -47,6 +50,7 @@
 
 #include "diaP.h"
 #include "imod.h"
+#include "imod_info_cb.h"
 
 static struct
 {

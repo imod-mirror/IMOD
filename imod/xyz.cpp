@@ -34,6 +34,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.7  2003/01/06 15:50:47  mast
+Use imodCaption and viewport xy routine
+
 Revision 1.1.2.6  2003/01/03 16:46:18  mast
 Simplified closing logic
 
@@ -94,6 +97,7 @@ Removed call to autox_build
 #include "imod.h"
 #include "xzap.h"
 #include "control.h"
+#include "imod_info_cb.h"
 
 /*************************** internal functions ***************************/
 static void xyzKey_cb(ImodView *vi, void *client, int released, QKeyEvent *e);

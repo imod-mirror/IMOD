@@ -32,6 +32,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.10  2003/01/02 15:40:27  mast
+use dia call to block signals when setting toolbar slider
+
 Revision 1.1.2.9  2002/12/17 17:30:50  mast
 Adding timer for redraws, using tooledit with column specifier
 
@@ -196,7 +199,7 @@ ZapWindow::ZapWindow(struct zapwin *zap, QString timeLabel, bool rgba,
   connect(button, SIGNAL(clicked()), this, SLOT(info()));
 
   button = new QPushButton("Help", mToolBar, "Help button");
-  button->setFixedWidth(35);
+  button->setFixedWidth((int)(1.2 *fontMetrics().width("Help")));
   button->setFocusPolicy(QWidget::NoFocus);
   connect(button, SIGNAL(clicked()), this, SLOT(help()));
 

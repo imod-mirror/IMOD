@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.6  2003/01/06 18:58:59  mast
+eliminate warning
+
 Revision 1.1.2.5  2003/01/06 15:45:21  mast
 New object color class and code
 
@@ -60,6 +63,7 @@ Changes to get clean compilation with g++
 #include "hotslider.h"
 #include "colorselector.h"
 #include "control.h"
+#include "imod_info_cb.h"
 
 static objectEditForm *Ioew_dialog;
 

@@ -37,6 +37,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.5  2003/01/06 15:52:16  mast
+changes for Qt version of slicer
+
 Revision 1.1.2.4  2002/12/19 04:37:13  mast
 Cleanup of unused global variables and defines
 
@@ -93,10 +96,10 @@ removed old version of imod_io_image_reload
 #include <time.h>
 #include <errno.h>
 #include "imod_object_edit.h"
-#include <dia.h>
-#include "mrcfiles.h"
-#include "imod.h"
 #include "imod_info.h"
+#include <qfiledialog.h>
+#include "imod.h"
+#include "imod_info_cb.h"
 #include "imodv.h"
 #include "imod_io.h"
 #include "imodv_views.h"
@@ -326,20 +329,19 @@ int SaveModel(struct Mod_Model *mod)
    code from save_model into here after filename is gotten */
 int SaveasModel(struct Mod_Model *mod)
 {
-  char *filename;
+  QString qname;
   FILE *fout = NULL;
   int retval = -1;
 
   lastError = IMOD_IO_SUCCESS;
      
-  filename = dia_filename("Model Save File");
-  if ((filename == NULL) || (filename[0] == 0x00)) {
+  qname = QFileDialog::getSaveFileName(QString::null, QString::null, 0, 0, 
+                                       "Model Save File:");
+  if (qname.isEmpty()) {
+    // OLD NOTE ABOUT dia_filename
     /* this dialog doesn't return if no file selected, so this is a cancel
        and needs no message */
-    /* wprint("No file selected. Model not saved."); */
-    /* XBell(imodDisplay(), 100); */
-    if (filename)
-      XtFree(filename);
+    /* wprint("\aNo file selected. Model not saved."); */
     lastError = IMOD_IO_SAVE_CANCEL;
     return IMOD_IO_SAVE_CANCEL;
   }
@@ -347,12 +349,10 @@ int SaveasModel(struct Mod_Model *mod)
   if (!ImodvClosed)
     imodvAutoStoreView(Imodv);
 
-  imod_make_backup(filename);
-  fout = fopen(filename, "w");
+  imod_make_backup((char *)qname.latin1());
+  fout = fopen(qname.latin1(), "wb");
   if (fout == NULL){
-    wprint("Error: Couldn't open %s .  Model not saved.\n", filename);
-    XBell(imodDisplay(), 100);
-    XtFree(filename);
+    wprint("\aError: Couldn't open %s .  Model not saved.\n", qname.latin1());
     imod_undo_backup();
     lastError = mapErrno(errno);
     return lastError;
@@ -365,8 +365,7 @@ int SaveasModel(struct Mod_Model *mod)
   retval = imodWrite(mod, fout);
   fclose(fout);
 
-  strcpy(Imod_filename, filename);
-  XtFree(filename); 
+  strcpy(Imod_filename, qname.latin1());
      
   if (!retval) {
     wprint("Done saving Model\n%s\n", Imod_filename);
@@ -375,8 +374,7 @@ int SaveasModel(struct Mod_Model *mod)
     imod_cleanup_autosave();
   }
   else {
-    wprint("Imod: Error Saving Model.");
-    XBell(imodDisplay(), 100);
+    wprint("\aImod: Error Saving Model.");
     lastError = IMOD_IO_SAVE_ERROR;
     return lastError;
   }
@@ -439,26 +437,25 @@ Imod *LoadModel(FILE *mfin) {
 Imod *LoadModelFile(char *filename) {
   FILE *fin;
   Imod *imod;
+  QString qname;
   
   lastError = IMOD_IO_SUCCESS;
 
   if (filename == NULL) {
-    filename = dia_filename("Enter model file name to LOAD.");
-    if (filename == NULL || filename[0] == '\0') {
+    qname = QFileDialog::getOpenFileName(QString::null, QString::null, 0, 0, 
+                                       "Select Model file to LOAD:");
+    if (qname.isEmpty()) {
       lastError = IMOD_IO_READ_CANCEL;
       /*  show_status("File not selected. Model not loaded."); */
-      if (filename)
-        XtFree(filename);
       return((Imod *)NULL);
     }
-    strcpy(Imod_filename, filename);
-    XtFree(filename);
-    filename = NULL;
-  }
-  else {
+    strcpy(Imod_filename, qname.latin1());
+
+  } else {
     strcpy(Imod_filename, filename);
   }
-  fin = fopen(Imod_filename, "r");
+
+  fin = fopen(Imod_filename, "rb");
 
   if (fin == NULL) {
     lastError = mapErrno(errno);
