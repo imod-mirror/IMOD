@@ -19,6 +19,10 @@ import etomo.EtomoDirector;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.5  2004/10/18 18:05:52  sueh
+* <p> bug# 520 Added fields from JoinDialog.  Converted densityRefSection to
+* <p> an EtomoInteger.
+* <p>
 * <p> Revision 1.1.2.4  2004/10/15 00:30:02  sueh
 * <p> bug# 520 Fixed load().  Added the rowNumber to the
 * <p> SectionTableRowData constructor because rowNumber is used to store
@@ -60,8 +64,8 @@ public class JoinMetaData extends ConstJoinMetaData {
     alignmentRefSection.reset();
     sizeInX.reset();
     sizeInY.reset();
-    offsetInX.reset();
-    offsetInY.reset();
+    shiftInX.reset();
+    shiftInY.reset();
   }
 
   /**
@@ -94,8 +98,8 @@ public class JoinMetaData extends ConstJoinMetaData {
     alignmentRefSection.load(props, prepend);
     sizeInX.load(props, prepend);
     sizeInY.load(props, prepend);
-    offsetInX.load(props, prepend);
-    offsetInY.load(props, prepend);
+    shiftInX.load(props, prepend);
+    shiftInY.load(props, prepend);
     
     int sectionTableRowsSize = Integer.parseInt(props.getProperty(group
         + sectionTableDataSizeString, "-1"));
@@ -138,7 +142,7 @@ public class JoinMetaData extends ConstJoinMetaData {
     sectionTableData.add(row);
   }
   
-  public String setSigmaLowFrequency(String sigmaLowFrequency) {
+  public EtomoSimpleType setSigmaLowFrequency(String sigmaLowFrequency) {
     return this.sigmaLowFrequency.set(sigmaLowFrequency);
   }
   public void setCutoffHighFrequency(String cutoffHighFrequency) {
@@ -162,16 +166,16 @@ public class JoinMetaData extends ConstJoinMetaData {
   public void setAlignmentRefSection(Object alignmentRefSection) {
     this.alignmentRefSection.set((Integer) alignmentRefSection);
   }
-  public String setSizeInX(String sizeInX) {
+  public EtomoSimpleType setSizeInX(String sizeInX) {
     return this.sizeInX.set(sizeInX);
   }
   public void setSizeInY(String sizeInY) {
     this.sizeInY.set(sizeInY);
   }
-  public void setOffsetInX(String offsetInX) {
-    this.offsetInX.set(offsetInX);
+  public void setShiftInX(String shiftInX) {
+    this.shiftInX.set(shiftInX);
   }
-  public void setOffsetInY(String offsetInY) {
-    this.offsetInY.set(offsetInY);
+  public void setShiftInY(String shiftInY) {
+    this.shiftInY.set(shiftInY);
   }
 }

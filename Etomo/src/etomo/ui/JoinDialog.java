@@ -28,6 +28,11 @@ import etomo.type.JoinMetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.1.2.18  2004/10/22 03:26:45  sueh
+ * <p> bug# 520 Reducing the number of ConstJoinMetaData functions by
+ * <p> passing EtomoInteger, EtomoFloat, etc and using their get() and
+ * <p> getString() functions.
+ * <p>
  * <p> Revision 1.1.2.17  2004/10/21 02:58:46  sueh
  * <p> bug# 520 Implemented buttons, added enableMidas to be used after
  * <p> xfalign is run.
@@ -133,7 +138,7 @@ public class JoinDialog implements ContextMenu {
   
   private JButton btnWorkingDir;
   private MultiLineToggleButton btnMakeSamples;
-  private MultiLineButton btnOpenSamples;
+  private MultiLineButton btnOpenSample;
   private MultiLineButton btnOpenSampleAverages;
   private MultiLineButton btnInitialAutoAlignment;
   private MultiLineButton btnMidas;
@@ -155,8 +160,8 @@ public class JoinDialog implements ContextMenu {
   private LabeledSpinner spinAlignmentRefSection;
   private LabeledTextField ltfSizeInX;
   private LabeledTextField ltfSizeInY;
-  private LabeledTextField ltfOffsetInX;
-  private LabeledTextField ltfOffsetInY;
+  private LabeledTextField ltfShiftInX;
+  private LabeledTextField ltfShiftInY;
   private LabeledSpinner spinOpenBinnedBy;
   
   private int numSections = 0;
@@ -292,11 +297,11 @@ public class JoinDialog implements ContextMenu {
     //second component
     pnlAlignComponent1 = new SpacedPanel(FixedDim.x5_y0);
     pnlAlignComponent1.setLayout(new BoxLayout(pnlAlignComponent1.getContainer(), BoxLayout.X_AXIS));
-    btnOpenSamples = new MultiLineButton("Open Samples in 3dmod");
-    btnOpenSamples.addActionListener(joinActionListener);
+    btnOpenSample = new MultiLineButton("Open Sample in 3dmod");
+    btnOpenSample.addActionListener(joinActionListener);
     btnOpenSampleAverages = new MultiLineButton("Open Sample Averages in 3dmod");
     btnOpenSampleAverages.addActionListener(joinActionListener);
-    pnlAlignComponent1.addMultiLineButton(btnOpenSamples);
+    pnlAlignComponent1.addMultiLineButton(btnOpenSample);
     pnlAlignComponent1.addMultiLineButton(btnOpenSampleAverages);
     //third component
     pnlXfalign = new DoubleSpacedPanel(false, FixedDim.x5_y0, FixedDim.x0_y5, new EtchedBorder("Auto Alignment Parameters").getBorder(), false);
@@ -414,10 +419,10 @@ public class JoinDialog implements ContextMenu {
     //third component
     pnlFinishJoinComponent3 = new SpacedPanel(FixedDim.x5_y0);
     pnlFinishJoinComponent3.setLayout(new BoxLayout(pnlFinishJoinComponent3.getContainer(), BoxLayout.X_AXIS));
-    ltfOffsetInX = new LabeledTextField("Offset in X: ");
-    pnlFinishJoinComponent3.add(ltfOffsetInX);
-    ltfOffsetInY = new LabeledTextField("Y: ");
-    pnlFinishJoinComponent3.add(ltfOffsetInY);
+    ltfShiftInX = new LabeledTextField("Shift in X: ");
+    pnlFinishJoinComponent3.add(ltfShiftInX);
+    ltfShiftInY = new LabeledTextField("Y: ");
+    pnlFinishJoinComponent3.add(ltfShiftInY);
     //fourth component
     btnFinishJoin = new MultiLineButton("Finish Join");
     btnFinishJoin.addActionListener(joinActionListener);
@@ -470,8 +475,8 @@ public class JoinDialog implements ContextMenu {
     metaData.setAlignmentRefSection(spinAlignmentRefSection.getValue());
     metaData.setSizeInX(ltfSizeInX.getText());
     metaData.setSizeInY(ltfSizeInY.getText());
-    metaData.setOffsetInX(ltfOffsetInX.getText());
-    metaData.setOffsetInY(ltfOffsetInY.getText());
+    metaData.setShiftInX(ltfShiftInX.getText());
+    metaData.setShiftInY(ltfShiftInY.getText());
     pnlSectionTable.getMetaData(metaData);
   }
   
@@ -489,8 +494,8 @@ public class JoinDialog implements ContextMenu {
     spinAlignmentRefSection.setValue(metaData.getAlignmentRefSection());
     ltfSizeInX.setText(metaData.getSizeInX().getString());
     ltfSizeInY.setText(metaData.getSizeInY().getString());
-    ltfOffsetInX.setText(metaData.getOffsetInX().getString());
-    ltfOffsetInY.setText(metaData.getOffsetInY().getString());
+    ltfShiftInX.setText(metaData.getShiftInX().getString());
+    ltfShiftInY.setText(metaData.getShiftInY().getString());
     
     pnlSectionTable.setMetaData(metaData);
     pnlSectionTable.enableTableButtons(ltfWorkingDir.getText());
@@ -545,7 +550,7 @@ public class JoinDialog implements ContextMenu {
       joinManager.setWorkingDir(ltfWorkingDir.getText());
       joinManager.makejoincom();
     }
-    else if (command.equals(btnOpenSamples.getActionCommand())) {
+    else if (command.equals(btnOpenSample.getActionCommand())) {
       joinManager.imodOpenJoinSamples();
     }
     else if (command.equals(btnOpenSampleAverages.getActionCommand())) {
