@@ -36,6 +36,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.6  2003/01/13 01:00:28  mast
+Qt version
+
 Revision 1.1.2.5  2003/01/10 23:52:17  mast
 Changes for Qt version of tumbler and elimination of tilt window
 
@@ -116,6 +119,7 @@ Added calls for cache filling
 #include "imodv.h"
 #include "sslice.h"
 #include "xtum.h"
+#include "imod_moviecon.h"
 
 /****help text data include files*****/
 #include "imodhelp.h" 

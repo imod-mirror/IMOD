@@ -34,6 +34,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.4.2.4  2003/01/13 01:15:43  mast
+changes for Qt version of info window
+
 Revision 3.4.2.3  2002/12/19 04:37:13  mast
 Cleanup of unused global variables and defines
 
@@ -68,6 +71,7 @@ logic for cache filling
 #include "mrcfiles.h"
 #include "imod.h"
 #include "imod_info_cb.h"
+#include "imod_moviecon.h"
 
 static int ivwSetCacheFromList(ImodView *iv, Ilist *ilist);
 char Ivw_string[64];

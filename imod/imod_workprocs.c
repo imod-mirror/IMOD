@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.5  2002/12/01 15:34:41  mast
+    Changes to get clean compilation with g++
+
     Revision 3.4  2002/10/22 22:44:03  mast
     Fixed bug that was exposed by the EXPOSE_HACK (needed to clear the
     movietimeout value when done).  Eliminated unused code.
@@ -54,6 +57,7 @@
 #include <stdlib.h>
 #include <diaP.h>
 #include "imod.h"
+#include "imod_moviecon.h"
 
 /*
  * Autosave workproc.
