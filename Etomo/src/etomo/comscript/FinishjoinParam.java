@@ -24,7 +24,10 @@ import etomo.type.SectionTableRowData;
 * 
 * @version $Revision$
 * 
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1.2.1  2004/10/21 02:32:20  sueh
+* <p> bug# 520 Param for finishjoin.
+* <p> </p>
 */
 public class FinishjoinParam {
   public static  final String  rcsid =  "$Id$";
@@ -62,12 +65,12 @@ public class FinishjoinParam {
     ArrayList options = new ArrayList();
     if (metaData.getUseAlignmentRefSection()) {
       options.add("-r");
-      options.add(metaData.getAlignmentRefSectionString());
+      options.add(metaData.getAlignmentRefSection().getString());
     }
-    ConstEtomoInteger sizeInX = metaData.getSizeInXField();
-    ConstEtomoInteger sizeInY = metaData.getSizeInYField();
-    ConstEtomoFloat offsetInX = metaData.getOffsetInXField();
-    ConstEtomoFloat offsetInY = metaData.getOffsetInYField();
+    ConstEtomoInteger sizeInX = metaData.getSizeInX();
+    ConstEtomoInteger sizeInY = metaData.getSizeInY();
+    ConstEtomoFloat offsetInX = metaData.getOffsetInX();
+    ConstEtomoFloat offsetInY = metaData.getOffsetInY();
     if (sizeInX.isSetAndNotDefault() || sizeInY.isSetAndNotDefault()) {
       options.add("-s");
       options.add(sizeInX.getString() + "," + sizeInY.getString());

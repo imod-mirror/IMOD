@@ -30,6 +30,9 @@ import etomo.type.SectionTableRowData;
 * <p> </p>
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.4  2004/10/21 02:34:59  sueh
+* <p> bug# 520 Removed unnecessary function run().
+* <p>
 * <p> Revision 1.1.2.3  2004/10/18 17:42:02  sueh
 * <p> bug# 520 Added -reference to the command string.
 * <p>
@@ -99,7 +102,7 @@ public class MakejoincomParam {
       }
       options.add(data.getSectionAbsolutePath());
     }
-    ConstEtomoInteger densityRefSection = metaData.getDensityRefSectionField();
+    ConstEtomoInteger densityRefSection = metaData.getDensityRefSection();
     if (densityRefSection.isSetAndNotDefault()) {
       options.add("-ref");
       options.add(densityRefSection.getString());
