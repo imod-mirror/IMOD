@@ -18,6 +18,12 @@ import java.util.Properties;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.4  2004/10/11 02:07:17  sueh
+* <p> bug# 520 Fixed a bug in ConstMetaData where the open edf file menu
+* <p> item wasn't working because it was validating the propertyUserDir of the
+* <p> current manager, not the parent of the edf file being opened.  Now able
+* <p> to pass in the edf file to get the parent from to use in validation.
+* <p>
 * <p> Revision 1.1.2.3  2004/10/06 01:54:45  sueh
 * <p> bug# 520 Removed Use density reference checkbox.  Created
 * <p> isValidForMakeSamples() which validates for the situation when Make
@@ -178,6 +184,10 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
       return newJoinTitle;
     }
     return rootName;
+  }
+  
+  public String getWorkingDir() {
+    return workingDir;
   }
 
   public static String getNewFileTitle() {
