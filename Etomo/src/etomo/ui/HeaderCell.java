@@ -23,6 +23,12 @@ import javax.swing.plaf.ColorUIResource;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.2  2004/10/13 23:08:37  sueh
+* <p> bug# 520 Changed the add() functions.  No longer relying on the Table
+* <p> interface because a FieldCell instance could be added to different panels.
+* <p> The Add() functions remember what panel they where added to.  The
+* <p> remove() requires no parameters.
+* <p>
 * <p> Revision 1.1.2.1  2004/10/01 19:56:55  sueh
 * <p> bug# 520 A header designed designed to be used with a gridbag layout.
 * <p> It can be used with any ui object with implements Table.  It is actually a
@@ -38,6 +44,7 @@ class HeaderCell {
   
   private JButton cell;
   private JPanel jpanelContainer = null;
+  private String text = "";
   
   HeaderCell() {
     this(null, -1);
@@ -80,7 +87,12 @@ class HeaderCell {
     }
   }
   
+  String getText() {
+    return text;
+  }
+  
   void setText(String text) {
+    this.text = text;
     String htmlText = "<html><b>" + text + "</b>";
     cell.setText(htmlText);
   }
