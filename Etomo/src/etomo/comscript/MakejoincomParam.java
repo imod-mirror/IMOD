@@ -9,6 +9,7 @@ import etomo.process.SystemProgram;
 import etomo.type.ConstEtomoInteger;
 import etomo.type.ConstJoinMetaData;
 import etomo.type.ConstSectionTableRowData;
+import etomo.type.EtomoSimpleType;
 import etomo.type.SectionTableRowData;
 
 /**
@@ -31,6 +32,9 @@ import etomo.type.SectionTableRowData;
 * <p> </p>
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.8  2004/10/29 22:07:58  sueh
+* <p> bug# 520 Use -tmpext to set the temp file extension to .rot.
+* <p>
 * <p> Revision 1.1.2.7  2004/10/29 01:17:19  sueh
 * <p> bug# 520 Removed working directory from meta data.  Getting working
 * <p> directory from propertyUserDir.
@@ -100,19 +104,28 @@ public class MakejoincomParam {
       ConstSectionTableRowData data = (SectionTableRowData) sectionData.get(i);
       if (i < sectionDataSize - 1) {
         options.add("-top");
+        //both numbers must exist
         options.add(data.getSampleTopStart().getString() + ","
             + data.getSampleTopEnd().getString());
       }
       if (i != 0) {
         options.add("-bot");
+        //both numbers must exist
         options.add(data.getSampleBottomStart().getString() + ","
             + data.getSampleBottomEnd().getString());
       }
-      if (data.isRotationAngleSet()) {
+      //Add optional rotation angles
+      EtomoSimpleType rotationAngleX = data.getRotationAngleX();
+      EtomoSimpleType rotationAngleY = data.getRotationAngleY();
+      EtomoSimpleType rotationAngleZ = data.getRotationAngleZ();
+      if (rotationAngleX.isSetAndNotDefault()
+          || rotationAngleY.isSetAndNotDefault()
+          || rotationAngleZ.isSetAndNotDefault()) {
         options.add("-rot");
-        options.add(data.getRotationAngleXString() + ","
-            + data.getRotationAngleYString() + ","
-            + data.getRotationAngleZString());
+        //all three numbers must exist
+        options.add(rotationAngleX.getString(true) + ","
+            + rotationAngleY.getString(true) + ","
+            + rotationAngleZ.getString(true));
       }
       options.add(data.getSectionAbsolutePath());
     }
