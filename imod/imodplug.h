@@ -12,6 +12,9 @@
     $Revision$
 
     $Log$
+    Revision 1.1.2.2  2003/01/27 00:30:07  mast
+    Pure Qt version and general cleanup
+
     Revision 1.1.2.1  2003/01/13 01:06:53  mast
     Initial creation
 
@@ -24,6 +27,9 @@ class QKeyEvent;
 #ifndef IMODP_H
 typedef struct ViewInfo ImodView;
 #endif
+
+/* It looks like these need to be C linkage on the SGI */
+extern "C" {
 
 // Formerly in imod.h
 
@@ -70,5 +76,5 @@ void imodPlugMenu(QPopupMenu *parent); /* build plugin menu. */
 int imodPlugHandleKey(ImodView *vw, QKeyEvent *event);
 void imodPlugOpen(int item);
 
-
+}
 #endif
