@@ -24,6 +24,10 @@ import etomo.type.SectionTableRowData;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.5  2004/10/29 01:17:33  sueh
+* <p> bug# 520 Removed working directory from meta data.  Getting working
+* <p> directory from propertyUserDir.
+* <p>
 * <p> Revision 1.1.2.4  2004/10/28 16:55:07  sueh
 * <p> bug# 520 Specifying output file: -o rootname_midas.xf.
 * <p>
@@ -111,6 +115,10 @@ public class MidasParam implements Command {
   
   public File getOutputFile() {
     return outputFile;
+  }
+  
+  public int getMode() {
+    return 0;
   }
   
   public static String getName() {

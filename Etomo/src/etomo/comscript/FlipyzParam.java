@@ -19,6 +19,9 @@ import etomo.BaseManager;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.4  2004/10/28 22:13:40  sueh
+* <p> bug# 520 Corrected clipflipyz's path.
+* <p>
 * <p> Revision 1.1.2.3  2004/10/14 02:26:59  sueh
 * <p> bug# 520 Added TODO comment
 * <p>
@@ -79,5 +82,9 @@ public class FlipyzParam implements Command {
   
   public File getOutputFile() {
     return flipFile;
+  }
+  
+  public int getMode() {
+    return 0;
   }
 }
