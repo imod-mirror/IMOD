@@ -20,6 +20,10 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.19.2.5  2004/07/20 22:13:36  sueh
+ * bug# 405 merge from head:  use ps axl.  It works on every
+ * OS
+ *
  * Revision 3.19.2.4  2004/07/14 18:45:37  sueh
  * bug# 405 merged from head:
  *  go back to ps -l:  its faster and works for all the
@@ -406,6 +410,7 @@ import etomo.type.ProcessName;
 import etomo.ApplicationManager;
 import etomo.type.ConstMetaData;
 import etomo.ui.TextPageWindow;
+import etomo.util.InvalidParameterException;
 import etomo.util.Utilities;
 import etomo.comscript.CopyTomoComs;
 import etomo.comscript.BadComScriptException;
@@ -581,7 +586,8 @@ public class ProcessManager {
    * Copy the .rawtlt to the .tlt file
    * @param axisID
    */
-  public void setupNonFiducialAlign(AxisID axisID) throws IOException {
+  public void setupNonFiducialAlign(AxisID axisID) throws IOException,
+    InvalidParameterException {
     String workingDirectory = System.getProperty("user.dir");
     String axisDataset = appManager.getDatasetName() + axisID.getExtension();
 
@@ -591,6 +597,9 @@ public class ProcessManager {
 
     File rawtlt = new File(workingDirectory, axisDataset + ".rawtlt");
     File tlt = new File(workingDirectory, axisDataset + ".tlt");
+    if (!rawtlt.exists()) {
+      appManager.makeRawtltFile(axisID);
+    }
     Utilities.copyFile(rawtlt, tlt);
   }
 
