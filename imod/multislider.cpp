@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.1  2002/12/27 01:19:47  mast
+Initial creation
+
 */
 
 /* This class provides an arbitrary number of horizontal sliders, each with
@@ -59,9 +62,9 @@ MultiSlider::MultiSlider(QWidget *parent, int numSliders, char *titles[],
   int i;
 
   // Get arrays for sliders, labels, and pressed flags
-  mSliders = new (QSlider *)[numSliders];
+  mSliders = new QSlider* [numSliders];
   mPressed = new bool[numSliders];
-  mLabels = new (QLabel *)[numSliders];
+  mLabels = new QLabel* [numSliders];
   mNumSliders = numSliders;
   mBigLayout = new QVBoxLayout(NULL, 0, 10, "multislider big");
 
