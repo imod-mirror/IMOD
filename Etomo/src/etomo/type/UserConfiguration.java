@@ -17,6 +17,9 @@ import java.util.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.1.2.1  2004/10/11 02:08:06  sueh
+ * <p> bug# 520 Added toString() function for debugging purposes.
+ * <p>
  * <p> Revision 3.1  2004/07/22 23:58:59  sueh
  * <p> bug# 513 saving autofit property
  * <p>
@@ -69,7 +72,7 @@ public class UserConfiguration implements Storable {
   }
 
   protected String paramString() {
-    return "\nrevisionNumber=" + revisionNumber + ",\nnativeLookAndFeel="
+    return "\n,revisionNumber=" + revisionNumber + ",\nnativeLookAndFeel="
         + nativeLookAndFeel + ",\nadvancedDialogs=" + advancedDialogs
         + ",\ntoolTipsInitialDelay=" + toolTipsInitialDelay
         + ",\ntoolTipsDismissDelay=" + toolTipsDismissDelay + ",\nnMRUFiles="
