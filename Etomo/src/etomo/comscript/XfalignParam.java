@@ -1,7 +1,6 @@
 package etomo.comscript;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 
 import etomo.BaseManager;
@@ -22,52 +21,118 @@ import etomo.type.ConstJoinMetaData;
 * 
 * @version $Revision$
 * 
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1.2.1  2004/10/18 17:45:04  sueh
+* <p> bug# 520 Added a param to create the xfalign command.
+* <p> </p>
 */
-public class XfalignParam {
-  public static  final String  rcsid =  "$Id$";
+public class XfalignParam implements Command {
+  public static final String  rcsid =  "$Id$";
+  
+  private static final int commandSize = 3;
+  private static final String commandName = "xfalign";
+  
+  public static final int INITIAL_MODE = -1;
+  public static final int REFINE_MODE = -2;
   
   private ConstJoinMetaData metaData;
   private String[] commandArray;
-  private SystemProgram makejoincom;
+  private SystemProgram program;
+  private String workingDir = null;
+  private String rootName = null;
+  private String outputFileName = null;
+  private File outputFile = null;
   
-  public XfalignParam(ConstJoinMetaData metaData) {
+  public XfalignParam(ConstJoinMetaData metaData, int mode) {
     this.metaData = metaData;
-
-    //  Create a new SystemProgram object for setupcombine, set the
-    //  working directory and stdin array.
-    // Do not use the -e flag for tcsh since David's scripts handle the failure 
-    // of commands and then report appropriately.  The exception to this is the
-    // com scripts which require the -e flag.  RJG: 2003-11-06  
-    ArrayList options = genOptions();
-    commandArray = new String[options.size() + 3];
+    workingDir = metaData.getWorkingDir();
+    rootName = metaData.getRootName();
+    outputFileName = rootName + ".xf";
+    outputFile = new File(workingDir, outputFileName);
+    ArrayList options = genOptions(mode);
+    commandArray = new String[options.size() + commandSize];
     commandArray[0] = "tcsh";
     commandArray[1] = "-f";
-    commandArray[2] = BaseManager.getIMODBinPath() + "xfalign";          
+    commandArray[2] = BaseManager.getIMODBinPath() + commandName;          
     for (int i = 0; i < options.size(); i++) {
-      commandArray[i + 3] = (String) options.get(i);
+      commandArray[i + commandSize] = (String) options.get(i);
     }
-    makejoincom = new SystemProgram(commandArray);
-    makejoincom.setWorkingDirectory(new File(metaData.getWorkingDir()));
+    program = new SystemProgram(commandArray);
+    program.setWorkingDirectory(new File(workingDir));
   }
   
   public String[] getCommandArray() {
     return commandArray;
   }
   
-  private ArrayList genOptions() {
+  public String getCommandLine() {
+    StringBuffer buffer = new StringBuffer();
+    for (int i = 0; i < commandArray.length; i++) {
+      buffer.append(commandArray[i] + " ");
+    }
+    return buffer.toString();
+  }
+  
+  public String getCommandName() {
+    return commandName;
+  }
+  
+  public static String getName() {
+    return commandName;
+  }
+  
+  public File getOutputFile() {
+    return outputFile;
+  }
+  
+  private ArrayList genOptions(int mode) {
     ArrayList options = new ArrayList();
     options.add("-tomo");
-    options.add("-pre");
-    ConstEtomoDouble sigmaLowFrequency = metaData.getSigmaLowFrequencyField();
-    ConstEtomoDouble cutoffHighFrequency = metaData.getCutoffHighFrequencyField();
-    ConstEtomoDouble sigmaHighFrequency = metaData.getSigmaHighFrequencyField();
-    if ((sigmaLowFrequency.isSet() && !sigmaLowFrequency.isDefault())
-        ||(cutoffHighFrequency.isSet() && !cutoffHighFrequency.isDefault())
-        ||(sigmaHighFrequency.isSet() && !sigmaHighFrequency.isDefault())) {
-      options.add("-fil");
-      options.add(sigmaLowFrequency + "," + sigmaHighFrequency + ",0," + cutoffHighFrequency);
+    switch (mode) {
+    case INITIAL_MODE:
+      genInitialOptions(options);
+      break;
+    case REFINE_MODE:
+      genRefineOptions(options);
+      break;
+    default:
+      throw new IllegalArgumentException("Unknown mode " + mode + ".");
     }
+    return options;
+  }
+  
+  private void genInitialOptions(ArrayList options) {
+    options.add("-pre");
+    genFilterOptions(options);
+    genParamsOptions(options);
+    options.add(rootName + ".sampavg");
+    options.add(outputFileName);
+  }
+  
+  private void genRefineOptions(ArrayList options) {
+    options.add("-ini");
+    options.add(outputFileName);
+    genFilterOptions(options);
+    genParamsOptions(options);
+    options.add(rootName + ".sampavg");
+    options.add(outputFileName);
+  }
+  
+  private void genFilterOptions(ArrayList options) {
+    ConstEtomoDouble sigmaLowFrequency = metaData.getSigmaLowFrequencyField();
+    ConstEtomoDouble cutoffHighFrequency = metaData
+        .getCutoffHighFrequencyField();
+    ConstEtomoDouble sigmaHighFrequency = metaData.getSigmaHighFrequencyField();
+    if (sigmaLowFrequency.isSetAndNotDefault()
+        || cutoffHighFrequency.isSetAndNotDefault()
+        || sigmaHighFrequency.isSetAndNotDefault()) {
+      options.add("-fil");
+      options.add(sigmaLowFrequency.getString() + "," + sigmaHighFrequency.getString() + ",0,"
+          + cutoffHighFrequency.getString());
+    }
+  }
+  
+  private void genParamsOptions(ArrayList options) {
     if (!metaData.isFullLinearTransformation()) {
       if (metaData.isRotationTranslationMagnification()) {
         options.add("-par");
@@ -78,29 +143,6 @@ public class XfalignParam {
         options.add("3");
       }
     }
-    String rootName = metaData.getRootName();
-    options.add(rootName + ".sampavg");
-    options.add(rootName + ".xf");
-    return options;
-  }
-  
-  public int run() throws IOException {
-    int exitValue;
-
-    //  Execute the script
-    makejoincom.setDebug(true);
-    makejoincom.run();
-    exitValue = makejoincom.getExitValue();
-
-    //  TODO we really need to find out what the exception/error condition was
-    if (exitValue != 0) {
-      throw (new IOException(makejoincom.getExceptionMessage()));
-    }
-    return exitValue;
-  }
-  
-  public String[] getStdError() {
-    return makejoincom.getStdError();
   }
 
 }
