@@ -30,6 +30,12 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.21  2004/07/13 18:56:23  mast
+c	  Exit with error message and reference to man page when reading mode 16
+c	
+c	  Revision 3.20  2004/04/27 18:48:38  mast
+c	  Fixed edge effect when undistorting.
+c	
 c	  Revision 3.19  2004/03/22 15:32:58  mast
 c	  Changed option from MagGradientFile to GradientFile
 c	
@@ -286,6 +292,8 @@ c	    open file to make sure it exists and get default section list
 c
 	  CALL IMOPEN(1,FILIN(i),'RO')
 	  CALL IRDHDR(1,NXYZ,MXYZ,MODE,DMIN2,DMAX2,DMEAN2)
+	  if (mode .eq. 16) call errorexit('CANNOT WORK WITH COLOR DATA'//
+     &	      ' (MODE 16); SEE MAN PAGE FOR ALTERNATIVES')
 	  call imclose(1)
 	  if (i .eq. 1) then
 	    nxFirst = nx
