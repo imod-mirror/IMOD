@@ -1,6 +1,6 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-12/30/01: Fixed problems with float crashing on a blank image, and with Subset
+12/30/03: Fixed problems with float crashing on a blank image, and with Subset
 area being initialized on.
 
 12/18/03: Disabled autocontrast hot key for non-existent or RGB images, and 
