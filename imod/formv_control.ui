@@ -1,6 +1,6 @@
 <!DOCTYPE UI><UI version="3.0" stdsetdef="1">
 <class>imodvControlForm</class>
-<widget class="QDialog">
+<widget class="QWidget">
     <property name="name">
         <cstring>imodvControlForm</cstring>
     </property>
@@ -8,8 +8,8 @@
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>235</width>
-            <height>458</height>
+            <width>236</width>
+            <height>486</height>
         </rect>
     </property>
     <property name="caption">
@@ -1204,9 +1204,11 @@
     </connection>
 </connections>
 <includes>
+    <include location="local" impldecl="in implementation">dia_qtutils.h</include>
     <include location="local" impldecl="in implementation">imodv_input.h</include>
     <include location="global" impldecl="in implementation">stdlib.h</include>
     <include location="local" impldecl="in implementation">imodv_control.h</include>
+    <include location="local" impldecl="in implementation">hotslider.h</include>
     <include location="local" impldecl="in implementation">formv_control.ui.h</include>
 </includes>
 <variables>

@@ -149,7 +149,7 @@ void imodvObjedForm::closeEvent( QCloseEvent * e )
 
 void imodvObjedForm::keyPressEvent( QKeyEvent * e )
 {
-    if (e->key() == Qt::Key_Control) {
+    if (hotSliderFlag() != NO_HOT_SLIDER && e->key() == hotSliderKey()) {
 	imodvObjedCtrlKey(true);
 	grabKeyboard();
     }
@@ -161,7 +161,7 @@ void imodvObjedForm::keyPressEvent( QKeyEvent * e )
 
 void imodvObjedForm::keyReleaseEvent( QKeyEvent * e )
 {
-    if (e->key() == Qt::Key_Control) {
+    if (e->key() == hotSliderKey()) {
 	imodvObjedCtrlKey(false);
 	releaseKeyboard();
     }

@@ -37,7 +37,8 @@ void imodvDepthcueForm::displayStartLabel( int value )
 
 void imodvDepthcueForm::startChanged( int value )
 {
-    if (!mStartPressed || mCtrlPressed)
+    if (!mStartPressed || (hotSliderFlag() == HOT_SLIDER_KEYDOWN && mCtrlPressed) ||
+	(hotSliderFlag() == HOT_SLIDER_KEYUP && !mCtrlPressed))
 	imodvDepthcueStart(value);
 }
 
@@ -62,7 +63,8 @@ void imodvDepthcueForm::displayEndLabel( int value )
 
 void imodvDepthcueForm::endChanged( int value )
 {
-     if (!mEndPressed || mCtrlPressed)
+     if (!mEndPressed || (hotSliderFlag() == HOT_SLIDER_KEYDOWN && mCtrlPressed) ||
+	(hotSliderFlag() == HOT_SLIDER_KEYUP && !mCtrlPressed))
 	 imodvDepthcueEnd(value);
 }
 
@@ -90,11 +92,11 @@ void imodvDepthcueForm::helpPressed()
 // Set the states of the widgets
 void imodvDepthcueForm::setStates( int enabled, int start, int end )
 {
-    enableBox->setChecked(enabled);
+    diaSetChecked(enableBox, enabled);
     displayStartLabel(start);
-    startSlider->setValue(start);
+    diaSetSlider(startSlider, start);
     displayEndLabel(end);
-    endSlider->setValue(end);
+    diaSetSlider(endSlider, end);
 }
 
 // Tell imodv we are closing
@@ -111,7 +113,7 @@ void imodvDepthcueForm::keyPressEvent( QKeyEvent * e )
 	imodvDepthcueDone();
     } else {
     
-	if (e->key() == Qt::Key_Control) {
+	if (hotSliderFlag() != NO_HOT_SLIDER && e->key() == hotSliderKey()) {
 	    mCtrlPressed = true;
 	    grabKeyboard();
 	}
@@ -122,7 +124,7 @@ void imodvDepthcueForm::keyPressEvent( QKeyEvent * e )
 // release keyboard if ctrl
 void imodvDepthcueForm::keyReleaseEvent( QKeyEvent * e )
 {
-  if (e->key() == Qt::Key_Control) {
+  if (e->key() == hotSliderKey()) {
 	mCtrlPressed = false;
         releaseKeyboard();
   }

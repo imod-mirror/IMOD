@@ -76,25 +76,29 @@ void imodvControlForm::newScale()
 // Changes in the slider positions
 void imodvControlForm::nearChanged( int value )
 {
-    if (!mNearPressed || mCtrlPressed)
+    if (!mNearPressed ||  (hotSliderFlag() == HOT_SLIDER_KEYDOWN && mCtrlPressed) ||
+	(hotSliderFlag() == HOT_SLIDER_KEYUP && !mCtrlPressed))
 	imodvControlClip(IMODV_CONTROL_NEAR, value);
 }
 
 void imodvControlForm::farChanged( int value )
 {
-    if (!mFarPressed || mCtrlPressed)
+    if (!mFarPressed ||  (hotSliderFlag() == HOT_SLIDER_KEYDOWN && mCtrlPressed) ||
+	(hotSliderFlag() == HOT_SLIDER_KEYUP && !mCtrlPressed))
 	imodvControlClip(IMODV_CONTROL_FAR, value);
 }
 
 void imodvControlForm::perspectiveChanged( int value )
 {
-    if (!mPerspectivePressed || mCtrlPressed)
+    if (!mPerspectivePressed ||  (hotSliderFlag() == HOT_SLIDER_KEYDOWN && mCtrlPressed) ||
+	(hotSliderFlag() == HOT_SLIDER_KEYUP && !mCtrlPressed))
 	imodvControlClip(IMODV_CONTROL_FOVY, value);
 }
 
 void imodvControlForm::zScaleChanged( int value )
 {
-    if (!mZscalePressed || mCtrlPressed)
+    if (!mZscalePressed ||  (hotSliderFlag() == HOT_SLIDER_KEYDOWN && mCtrlPressed) ||
+	(hotSliderFlag() == HOT_SLIDER_KEYUP && !mCtrlPressed))
 	imodvControlZscale(value);
 }
 
@@ -163,7 +167,8 @@ void imodvControlForm::startStop()
 // Rate slider
 void imodvControlForm::rateChanged( int value )
 {
-    if (!mRatePressed || mCtrlPressed)
+    if (!mRatePressed || (hotSliderFlag() == HOT_SLIDER_KEYDOWN && mCtrlPressed) ||
+	(hotSliderFlag() == HOT_SLIDER_KEYUP && !mCtrlPressed))
 	imodvControlRate(value);
 }
 
@@ -201,19 +206,19 @@ void imodvControlForm::setViewSlider( int which, int value )
 {
     switch (which) {
     case IMODV_CONTROL_NEAR:
-	nearSlider->setValue(value);
+	diaSetSlider(nearSlider, value);
 	displayNearLabel(value);
 	break;
     case IMODV_CONTROL_FAR:
-	farSlider->setValue(value);
+	diaSetSlider(farSlider, value);
 	displayFarLabel(value);
 	break;
     case IMODV_CONTROL_FOVY:
-	perspectiveSlider->setValue(value);
+	diaSetSlider(perspectiveSlider, value);
 	displayPerspectiveLabel(value);
 	break;
     case IMODV_CONTROL_ZSCALE:
-	zScaleSlider->setValue(value);
+	diaSetSlider(zScaleSlider, value);
 	displayZscaleLabel(value);
 	break;
     }
@@ -221,7 +226,7 @@ void imodvControlForm::setViewSlider( int which, int value )
 
 void imodvControlForm::setRotationRate( int value )
 {
-    degreesSlider->setValue(value);
+    diaSetSlider(degreesSlider, value);
     displayRateLabel(value);
 }
 
@@ -313,7 +318,7 @@ void imodvControlForm::keyPressEvent( QKeyEvent * e )
 	imodvControlQuit();
     } else {
     
-	if (e->key() == Qt::Key_Control) {
+	if (hotSliderFlag() != NO_HOT_SLIDER && e->key() == hotSliderKey()) {
 	    mCtrlPressed = true;
 	    grabKeyboard();
 	}
@@ -323,11 +328,9 @@ void imodvControlForm::keyPressEvent( QKeyEvent * e )
 
 void imodvControlForm::keyReleaseEvent( QKeyEvent * e )
 {
-  if (e->key() == Qt::Key_Control) {
+  if (e->key() == hotSliderKey()) {
 	mCtrlPressed = false;
         releaseKeyboard();
   }
   imodvKeyRelease(e);
 }
-
-
