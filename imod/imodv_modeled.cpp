@@ -32,12 +32,13 @@
 #include "formv_modeled.h"
 #include "dia_qtutils.h"
 #include "imodv.h"
-#include "imod.h"
+#include "imodP.h"
 #include "imodv_gfx.h"
 #include "imodv_input.h"
 #include "imodv_views.h"
 #include "imodv_modeled.h"
 #include "control.h"
+#include "imod_model_edit.h"
 
 struct imodv_modeled
 {
@@ -233,6 +234,7 @@ void imodvModeledScale(int update)
   //        med->a->imod->pixsize, med->a->imod->fileName, update);
   if (update)
     updateWorkArea();
+  imodModelEditUpdate();
 }
 
 // Refresh the dialog box for the current model
@@ -261,4 +263,10 @@ void imeSetViewData(int wi)
 {
   if (med->dia)
     med->dia->setViewSelection(wi);
+}
+
+void imodvPixelChanged()
+{
+  if (med->dia)
+    updateWorkArea();
 }
