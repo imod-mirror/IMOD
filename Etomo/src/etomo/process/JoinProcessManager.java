@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import etomo.JoinManager;
 import etomo.comscript.BadComScriptException;
+import etomo.comscript.FlipyzParam;
 import etomo.comscript.Makejoincom;
 import etomo.type.AxisID;
 import etomo.type.ConstJoinMetaData;
@@ -21,7 +22,10 @@ import etomo.type.ConstJoinMetaData;
 * 
 * @version $Revision$
 * 
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1.2.1  2004/09/29 17:54:52  sueh
+* <p> bug# 520 Process manager for serial sections.
+* <p> </p>
 */
 public class JoinProcessManager extends BaseProcessManager {
   public static final String rcsid = "$Id$";
@@ -64,6 +68,15 @@ public class JoinProcessManager extends BaseProcessManager {
     }
   }
   
+  /**
+   * Run flip
+   */
+  public String flipyz(FlipyzParam flipyzParam)
+    throws SystemProcessException {
+    BackgroundProcess backgroundProcess = startBackgroundProcess(flipyzParam, AxisID.ONLY);
+    return backgroundProcess.getName();
+  }
+  
   public String startjoin() throws SystemProcessException {
     String command = "startjoin.com";
     ComScriptProcess comScriptProcess = startComScript(command, null, AxisID.ONLY);
@@ -71,6 +84,12 @@ public class JoinProcessManager extends BaseProcessManager {
   }
   
   protected void comScriptPostProcess(ComScriptProcess script, int exitValue) {
-    
+  }
+  
+  protected void backgroundPostProcess(BackgroundProcess process) {
+    String commandName = process.getCommandName();
+    if (commandName != null && commandName.equals(FlipyzParam.getName())) {
+      ((JoinManager) manager).addSection(process.getOutputFile());
+    }
   }
 }
