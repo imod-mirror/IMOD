@@ -20,6 +20,10 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.39.2.8  2004/10/18 19:10:24  sueh
+ * bug# 520 Added getManager().  Moved startSystemProgramThread() to
+ * base class.
+ *
  * Revision 3.39.2.7  2004/10/11 02:04:22  sueh
  * bug# 520 Using a variable called propertyUserDir instead of the "user.dir"
  * property.  This property would need a different value for each manager.
@@ -1311,6 +1315,10 @@ public class ProcessManager extends BaseProcessManager {
     if (process.getCommandLine().equals(transferfidCommandLine)) {
       handleTransferfidMessage(process);
     }
+  }
+  
+  protected void interactiveSystemProgramPostProcess(InteractiveSystemProgram program) {
+    
   }
   
   protected BaseManager getManager() {
