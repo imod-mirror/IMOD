@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.5  2002/12/30 06:40:53  mast
+Qt version
+
 Revision 1.1.2.4  2002/12/19 04:37:13  mast
 Cleanup of unused global variables and defines
 
@@ -91,11 +94,12 @@ struct{
   ImodvApp  *a;
 
   int    flags;
-  int    xsize, ysize, zsize;
-  int    *xd, *yd, *zd;
+  
+  /* DNM 12/30/02: unused currently */
+  /* int    xsize, ysize, zsize;
+     int    *xd, *yd, *zd; */
 
-
-}imodvImageData = {0, 0, 0, 0, 0, 0, 0};
+}imodvImageData = {0, 0, 0};
 
 // Open, close, or raise the dialog box
 void imodvImageEditDialog(ImodvApp *a, int state)
@@ -111,7 +115,7 @@ void imodvImageEditDialog(ImodvApp *a, int state)
   }
 
   imodvImageData.dia = new ImodvImage(NULL, "image view");
-  imodvImageData.a = Imodv;
+  imodvImageData.a = a;
 
   mkcmap();
   imodvAddDialog((QWidget *)imodvImageData.dia);
@@ -240,13 +244,12 @@ void imodvDrawImage(ImodvApp *a)
   Ipoint ll, lr, ur, ul, clamp;
   int tstep = TexImageSize;
   int cix, ciy, ciz;
-  int mix, miy, miz;
-  int x,y,z;
+  int mix, miy;
+  int x,y;
   unsigned char *idata;
   unsigned char pix;
   unsigned char alpha = 0xff;
-  int t, mt, i, mi, j, mj;
-  int base;
+  int i, mi, j, mj;
   int u, v;
      
   if (!imodvImageData.flags) return;
@@ -254,12 +257,9 @@ void imodvDrawImage(ImodvApp *a)
   if (!cmapInit)
     mkcmap();
 
-  mt = tstep * tstep;
-
   ivwGetLocation(a->vi, &cix, &ciy, &ciz);
   mix = a->vi->xsize;
   miy = a->vi->ysize;
-  miz = a->vi->zsize;
 
   alpha = (int)(2.55 * (100 - ImageTrans));
   glColor4ub(alpha, alpha, alpha,alpha);
@@ -298,7 +298,6 @@ void imodvDrawImage(ImodvApp *a)
 	clamp.y = (miy - y); 
 	clamp.y /= (float)tstep;
 	if (clamp.y > 1.0f) clamp.y = 1.0f;
-	base = x + (y * mix);
                     
 	mj = y + tstep;
 	if (mj > miy) mj = miy;
