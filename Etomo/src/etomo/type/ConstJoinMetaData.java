@@ -16,12 +16,18 @@ import java.util.Properties;
 * 
 * @version $Revision$
 * 
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1.2.1  2004/09/29 19:17:41  sueh
+* <p> bug# 520 The const part of the JoinMetaData class.  Implements
+* <p> storable with abstract load functions.  Contains member variables and
+* <p> get functions.
+* <p> </p>
 */
 public abstract class ConstJoinMetaData extends BaseMetaData {
   public static  final String  rcsid =  "$Id$";
   
   private static final String latestRevisionNumber = "1.0";
+  private static final String newJoinTitle = "New Join";
   
   protected static final String groupString = "Join";
   protected static final String sectionTableDataSizeString = "sectionTableDataSize";
@@ -34,6 +40,10 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
   
   public abstract void load(Properties props);
   public abstract void load(Properties props, String prepend);
+  
+  public ConstJoinMetaData() {
+    fileExtension = "ejf";
+  }
   
   public ArrayList getSectionTableData() {
     return sectionTableData;
@@ -95,5 +105,23 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
   
   public String getRootName() {
     return rootName;
+  }
+  
+  public String getMetaDataFileName() {
+    if (rootName.equals("")) {
+      return "";
+    }
+    return rootName + "." + fileExtension;
+  }
+  
+  public String getName() {
+    if (rootName == null) {
+      return newJoinTitle;
+    }
+    return rootName;
+  }
+  
+  public static String getNewFileTitle() {
+    return newJoinTitle;
   }
 }
