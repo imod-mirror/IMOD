@@ -14,6 +14,10 @@ package etomo.type;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.5  2004/10/30 02:35:44  sueh
+* <p> bug# 520 Added set(EtomoSimpleType) to set all values from another
+* <p> instance.
+* <p>
 * <p> Revision 1.1.2.4  2004/10/25 23:08:16  sueh
 * <p> bug# 520 Added abstract functions getString(boolean),
 * <p> getNumber(boolean), and getNegation().
@@ -39,9 +43,9 @@ public abstract class EtomoSimpleType {
   public abstract String getString();
   public abstract String getString(boolean useDefault);
   public abstract boolean isSetAndNotDefault();
+  public abstract boolean isSet();
   public abstract Number getNumber();
   public abstract Number getNumber(boolean useDefault);
-  public abstract EtomoSimpleType getNegation();
   
   protected EtomoSimpleType() {
     name = super.toString();
