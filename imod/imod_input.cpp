@@ -34,6 +34,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.9  2003/01/14 21:52:38  mast
+include new movie controller include file
+
 Revision 1.1.2.8  2003/01/13 01:15:42  mast
 changes for Qt version of info window
 
@@ -79,7 +82,6 @@ are open
 #include <qevent.h>
 #include <qnamespace.h>
 #include "xgraph.h"
-#include "keypad.h"
 #include "imod.h"
 #include "xzap.h"
 #include "imod_info.h"
