@@ -37,11 +37,11 @@ import etomo.process.ImodProcess;
 import etomo.process.ProcessManager;
 import etomo.process.ProcessState;
 import etomo.process.SystemProcessException;
-import etomo.storage.Storable;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.AxisTypeException;
 import etomo.type.BaseMetaData;
+import etomo.type.BaseProcessTrack;
 import etomo.type.ConstMetaData;
 import etomo.type.DialogExitState;
 import etomo.type.FiducialMatch;
@@ -82,6 +82,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.101.2.12  2004/10/21 17:48:01  sueh
+ * <p> bug# 520 Fixed status bar by called updateDataParameters when opening
+ * <p> the processing panel.
+ * <p>
  * <p> Revision 3.101.2.11  2004/10/11 01:55:28  sueh
  * <p> bug# 520 moved responsibility for mainPanel, metaData, processTrack,
  * <p> and progressManager to child classes.  Used abstract functions to use
@@ -5128,77 +5132,16 @@ public class ApplicationManager extends BaseManager {
     return (BaseMetaData) metaData;
   }
   
-  protected void storeMetaData(Storable[] storable, int index ) {
-    storable[index] = metaData;
-  }
-  
-  protected AxisType getAxisType() {
-    return metaData.getAxisType();
-  }
-  
   protected void setMetaData(ImodManager imodManager) {
     imodManager.setMetaData(metaData);
-  }
-  
-  protected boolean isMetaDataValid(boolean fromScreen) {
-    if (!metaData.isValid(false)) {
-      mainPanel.openMessageDialog(metaData.getInvalidReason(),
-        ".edf file error");
-      return false;
-    }
-    return true;
-  }
-  
-  protected boolean isMetaDataValid(File paramFile) {
-    if (!metaData.isValid(paramFile)) {
-      mainPanel.openMessageDialog(metaData.getInvalidReason(),
-        ".edf file error");
-      return false;
-    }
-    return true;
-  }
-  
-  protected void openMessageDialog(String[] message, String title) {
-    mainPanel.openMessageDialog(message, title);
-  }
-  
-  protected void openMessageDialog(String message, String title) {
-    mainPanel.openMessageDialog(message, title);
-  }
-  
-  protected void setMainPanelSize() {
-    mainPanel.setSize(new Dimension(userConfig.getMainWindowWidth(),
-      userConfig.getMainWindowHeight()));
-  }
-  protected void setDividerLocation() {
-    if (isDualAxis()) {
-      mainPanel.setDividerLocation(0.51);
-    }
-  }
-  
-  public void packMainWindow() {
-    mainFrame.repaint();
-    mainPanel.fitWindow();
   }
   
   public MainPanel getMainPanel() {
     return mainPanel;
   }
-  
-  protected void stopProgressBar(AxisID axisID) {
-    mainPanel.stopProgressBar(axisID);
-  }
-  
-  protected void storeProcessTrack(Storable[] storable, int index) {
-    storable[index] = processTrack;
-  }
-  
-  protected void resetProcessTrack() {
-    processTrack.resetModified();
-  }
-  
-  protected boolean isProcessTrackModified() {
-    return processTrack.isModified();
+    
+  protected BaseProcessTrack getProcessTrack() {
+    return processTrack;
   }
   
   /**

@@ -1,5 +1,6 @@
 package etomo;
 
+import java.awt.Dimension;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -17,6 +18,7 @@ import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.AxisTypeException;
 import etomo.type.BaseMetaData;
+import etomo.type.BaseProcessTrack;
 import etomo.type.ProcessName;
 import etomo.type.UserConfiguration;
 import etomo.ui.MainFrame;
@@ -38,6 +40,9 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.14  2004/10/22 03:18:05  sueh
+* <p> bug# 520 Removed a FIXME comment.
+* <p>
 * <p> Revision 1.1.2.13  2004/10/21 17:49:56  sueh
 * <p> bug# 520 In loadTestParamFile() converted paramFile to a file created with
 * <p> an absolute path, so metaData validation would not fail.
@@ -147,22 +152,10 @@ public abstract class BaseManager {
   protected abstract void createProcessTrack();
   protected abstract void updateDialog(ProcessName processName, AxisID axisID);
   protected abstract void startNextProcess(AxisID axisID);
-  protected abstract void storeMetaData(Storable[] storable, int index);
-  protected abstract AxisType getAxisType();
   protected abstract void setMetaData(ImodManager imodManager);
-  protected abstract boolean isMetaDataValid(boolean fromScreen);
-  protected abstract boolean isMetaDataValid(File paramFile);
   public abstract BaseMetaData getBaseMetaData();
-  protected abstract void openMessageDialog(String[] message, String title);
-  protected abstract void openMessageDialog(String message, String title);
-  protected abstract void setMainPanelSize();
-  protected abstract void setDividerLocation();
-  public abstract void packMainWindow();
   public abstract MainPanel getMainPanel();
-  protected abstract void stopProgressBar(AxisID axisID);
-  protected abstract void storeProcessTrack(Storable[] storable, int index);
-  protected abstract void resetProcessTrack();
-  protected abstract boolean isProcessTrackModified();
+  protected abstract BaseProcessTrack getProcessTrack();
   public abstract void kill(AxisID axisID);
 
   //FIXME needs to be public?
@@ -212,14 +205,14 @@ public abstract class BaseManager {
       backupFile(paramFile);
       ParameterStore paramStore = new ParameterStore(paramFile);
       Storable[] storable = new Storable[2];
-      storeMetaData(storable, 0);
-      storeProcessTrack(storable, 1);
+      storable[0] = getBaseMetaData();
+      storable[1] = getProcessTrack();
       paramStore.save(storable);
       //  Update the MRU test data filename list
       userConfig.putDataFile(paramFile.getAbsolutePath());
       mainFrame.setMRUFileLabels(userConfig.getMRUFileList());
       // Reset the process track flag
-      resetProcessTrack();
+      getProcessTrack().resetModified();
     }
     catch (IOException except) {
       except.printStackTrace();
@@ -227,7 +220,7 @@ public abstract class BaseManager {
       errorMessage[0] = "Test parameter file save error";
       errorMessage[1] = "Could not save test parameter data to file:";
       errorMessage[2] = except.getMessage();
-      openMessageDialog(errorMessage, "Test parameter file save error");
+      getMainPanel().openMessageDialog(errorMessage, "Test parameter file save error");
     }
     isDataParamDirty = false;
   }
@@ -273,11 +266,11 @@ public abstract class BaseManager {
       }
       catch (AxisTypeException except) {
         except.printStackTrace();
-        openMessageDialog(except.getMessage(), "AxisType problem");
+        getMainPanel().openMessageDialog(except.getMessage(), "AxisType problem");
       }
       catch (SystemProcessException except) {
         except.printStackTrace();
-        openMessageDialog(except.getMessage(),
+        getMainPanel().openMessageDialog(except.getMessage(),
           "Problem closing 3dmod");
       }
       return true;
@@ -290,7 +283,7 @@ public abstract class BaseManager {
    * @return true if the data set is a dual axis data set
    */
   public boolean isDualAxis() {
-    if (getAxisType() == AxisType.SINGLE_AXIS) {
+    if (getBaseMetaData().getAxisType() == AxisType.SINGLE_AXIS) {
       return false;
     }
     else {
@@ -301,10 +294,13 @@ public abstract class BaseManager {
   protected void setPanel() {
     mainFrame.pack();
     //  Resize to the users preferrred window dimensions
-    setMainPanelSize();
+    getMainPanel().setSize(new Dimension(userConfig.getMainWindowWidth(),
+        userConfig.getMainWindowHeight()));
     mainFrame.doLayout();
     mainFrame.validate();
-    setDividerLocation();
+    if (isDualAxis()) {
+      getMainPanel().setDividerLocation(0.51);
+    }
   }
   
   //get functions
@@ -347,8 +343,8 @@ public abstract class BaseManager {
       // Read in the test parameter data file
       ParameterStore paramStore = new ParameterStore(paramFile);
       Storable[] storable = new Storable[2];
-      storeMetaData(storable, 0);
-      storeProcessTrack(storable, 1);
+      storable[0] = getBaseMetaData();
+      storable[1] = getProcessTrack();
       paramStore.load(storable);
 
       // Set the current working directory for the application, this is the
@@ -369,7 +365,7 @@ public abstract class BaseManager {
       errorMessage[0] = "Test parameter file read error";
       errorMessage[1] = "Could not find the test parameter data file:";
       errorMessage[2] = except.getMessage();
-      openMessageDialog(errorMessage, "File not found error");
+      getMainPanel().openMessageDialog(errorMessage, "File not found error");
       return false;
     }
     catch (IOException except) {
@@ -378,11 +374,11 @@ public abstract class BaseManager {
       errorMessage[0] = "Test parameter file read error";
       errorMessage[1] = "Could not read the test parameter data from file:";
       errorMessage[2] = except.getMessage();
-      openMessageDialog(errorMessage,
+      getMainPanel().openMessageDialog(errorMessage,
         "Test parameter file read error");
       return false;
     }
-    if (!isMetaDataValid(paramFile)) {
+    if (!isFileValid(paramFile)) {
       return false;
     }
     this.paramFile = paramFile;
@@ -399,7 +395,7 @@ public abstract class BaseManager {
       catch (IOException except) {
         System.err.println("Unable to backup file: " + file.getAbsolutePath()
           + " to " + backupFile.getAbsolutePath());
-        openMessageDialog(except.getMessage(), "File Rename Error");
+        getMainPanel().openMessageDialog(except.getMessage(), "File Rename Error");
       }
     }
   }
@@ -414,7 +410,7 @@ public abstract class BaseManager {
    */
   protected boolean saveTestParamIfNecessary() {
     // Check to see if the current dataset needs to be saved
-    if (isDataParamDirty || isProcessTrackModified()) {
+    if (isDataParamDirty || getProcessTrack().isModified()) {
       String[] message = {"Save the current data file ?"};
       int returnValue = mainFrame.openYesNoCancelDialog(message);
       if (returnValue == JOptionPane.CANCEL_OPTION) {
@@ -457,17 +453,17 @@ public abstract class BaseManager {
   public void processDone(String threadName, int exitValue,
     ProcessName processName, AxisID axisID) {
     if (threadName.equals(threadNameA)) {
-      stopProgressBar(AxisID.FIRST);
+      getMainPanel().stopProgressBar(AxisID.FIRST);
       threadNameA = "none";
       backgroundProcessA = false;
       backgroundProcessNameA = null;
     }
     else if (threadName.equals(threadNameB)) {
-      stopProgressBar(AxisID.SECOND);
+      getMainPanel().stopProgressBar(AxisID.SECOND);
       threadNameB = "none";
     }
     else {
-      openMessageDialog("Unknown thread finished!!!", "Thread name: "
+      getMainPanel().openMessageDialog("Unknown thread finished!!!", "Thread name: "
         + threadName);
     }
     if (processName != null) {
@@ -482,6 +478,20 @@ public abstract class BaseManager {
         nextProcess = "";
       }
     }
+  }
+  
+  private boolean isFileValid(File file) {
+    StringBuffer invalidReason = new StringBuffer();
+    if (!Utilities.isValidFile(file, true, true, invalidReason)) {
+      getMainPanel().openMessageDialog(invalidReason.toString(), "File Error");
+      return false;
+    }
+    return true;
+  }
+  
+  public void packMainWindow() {
+    mainFrame.repaint();
+    getMainPanel().fitWindow();
   }
 
 }
