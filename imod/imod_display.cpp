@@ -34,6 +34,9 @@
     $Revision$
 
     $Log$
+    Revision 1.1.2.2  2002/12/14 17:53:13  mast
+    *** empty log message ***
+
     Revision 1.1.2.1  2002/12/14 05:40:43  mast
     new visual-assessing code
 
@@ -55,6 +58,7 @@
 #include "b3dgfx.h"
 #include "imod_input.h"
 #include "imod_display.h"
+#include "imodv.h"
 
 extern int Imodv_window;
 extern int Imod_debug;
@@ -1083,7 +1087,7 @@ ImodGLVisual *imodFindGLVisual(ImodGLRequest request)
 
   // We are all set if we don't want depth and request is satisfied
   if (!request.depthBits && glVisualTable[ind].validDirect >= 0 &&
-      request.colorBits >= glVisualTable[ind].colorBits)
+      request.colorBits <= glVisualTable[ind].colorBits)
     return &glVisualTable[ind];
 
   // Otherwise, need the one with depth enabled too
@@ -1092,11 +1096,11 @@ ImodGLVisual *imodFindGLVisual(ImodGLRequest request)
 
   // Evaluate overall suitability of each
   noDepthOK = glVisualTable[ind].validDirect >= 0 && 
-    request.colorBits >= glVisualTable[ind].colorBits &&
-    request.depthBits >= glVisualTable[ind].depthBits;
+    request.colorBits <= glVisualTable[ind].colorBits &&
+    request.depthBits <= glVisualTable[ind].depthBits;
   depthOK = glVisualTable[ind + 1].validDirect >= 0 && 
-    request.colorBits >= glVisualTable[ind + 1].colorBits &&
-    request.depthBits >= glVisualTable[ind + 1].depthBits;
+    request.colorBits <= glVisualTable[ind + 1].colorBits &&
+    request.depthBits <= glVisualTable[ind + 1].depthBits;
 
   // If both are OK, need to decide between them: take the one with fewer
   // color bits; or if equal, then the one with fewer depth bits
@@ -1105,7 +1109,7 @@ ImodGLVisual *imodFindGLVisual(ImodGLRequest request)
       return &glVisualTable[ind];
     else if (glVisualTable[ind].colorBits > glVisualTable[ind + 1].colorBits)
       return &glVisualTable[ind + 1];
-    else if (glVisualTable[ind].depthBits < glVisualTable[ind + 1].depthBits)
+    else if (glVisualTable[ind].depthBits <= glVisualTable[ind + 1].depthBits)
       return &glVisualTable[ind];
     else
       return &glVisualTable[ind + 1];
@@ -1131,8 +1135,7 @@ void imodFindQGLFormat(ImodApp *ap, char **argv)
       continue;
     visual = imodFindGLVisual(*qtGLRequestList[i]);
 
-    /* If it returns one, and it is rgb, make sure depth is at least 16
-       16 and it is TrueColor, since program can't handle DirectColor */
+    /* If it returns one, and it is rgb, make sure depth is at least 16 */
     if (visual && (!visual->rgba || visual->colorBits >= 16)) {
       ap->qtDoubleBuffer = visual->dbRequested;
       ap->qtRgba = visual->rgbaRequested;
