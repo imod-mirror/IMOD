@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.3.2.5  2003/01/01 19:12:31  mast
+changes to start Qt application in standalone mode
+
 Revision 3.3.2.4  2003/01/01 05:46:29  mast
 changes for qt version of stereo
 
@@ -61,12 +64,9 @@ Changed include of GLwMDrawA to rely upon -I compiler option
 
 #include <limits.h>
 #include <time.h>
-#include <X11/Xlib.h>
-#include <Xm/Xm.h>
+#include <X11/Intrinsic.h>
 #include <imodconfig.h>
-#include <GL/gl.h>
 
-#include "dia_qtutils.h"
 #include <imodel.h>       /* imod library include. */
 
 /* used for finding bounding box. */
