@@ -27,6 +27,9 @@ import etomo.type.TomogramState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.12.2.1  2005/03/21 19:29:02  sueh
+ * <p> bug# 620 Added beveled border and tooltips for Squeeze volume
+ * <p>
  * <p> Revision 3.12  2005/01/21 23:46:00  sueh
  * <p> bug# 509 bug# 591  Using EtomoNumber.isNull() instead of isSet().
  * <p>
@@ -122,7 +125,6 @@ public class PostProcessingDialog
     "$Id$";
   
   private TrimvolPanel trimvolPanel;
-  private CleanupPanel cleanupPanel;
   
   private LabeledTextField ltfReductionFactorXY;
   private LabeledTextField ltfReductionFactorZ;
@@ -142,8 +144,6 @@ public class PostProcessingDialog
     trimvolPanel = new TrimvolPanel(applicationManager);
     rootPanel.add(trimvolPanel.getContainer());
     rootPanel.add(createSqueezeVolPanel());
-    cleanupPanel = new CleanupPanel(applicationManager);
-    rootPanel.add(cleanupPanel.getContainer());
     rootPanel.add(Box.createVerticalGlue());
     rootPanel.add(Box.createRigidArea(FixedDim.x0_y10));
     rootPanel.add(pnlExitButtons);
@@ -274,7 +274,7 @@ public class PostProcessingDialog
    * Right mouse button context menu
    */
   public void popUpContextMenu(MouseEvent mouseEvent) {
-    String[] manPagelabel = { "Trimvol"};
+    String[] manPagelabel = { "Trimvol" };
     String[] manPage = { "trimvol.html" };
 
     //    ContextPopup contextPopup =
