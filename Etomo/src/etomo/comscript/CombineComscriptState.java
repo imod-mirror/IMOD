@@ -1,6 +1,6 @@
 package etomo.comscript;
 
-import etomo.ApplicationManager;
+import etomo.EtomoDirector;
 import etomo.ui.TomogramCombinationDialog;
 
 /**
@@ -19,6 +19,11 @@ import etomo.ui.TomogramCombinationDialog;
 * @version $$Revision$$
 *
 * <p> $Log$
+* <p> Revision 1.5  2004/08/24 23:07:48  sueh
+* <p> bug# 508 in setEndCommand(): making sure I don't delete the wrong
+* <p> echo command in combine.com when getting rid of the code to exit
+* <p> before running volcombine.  Also checking for an incorrect end command
+* <p>
 * <p> Revision 1.4  2004/08/23 23:29:22  sueh
 * <p> bug# 508 added watched file combine.out
 * <p>
@@ -112,7 +117,7 @@ public class CombineComscriptState implements ComscriptState {
     
   public CombineComscriptState() {
     initializeComscriptMatchString();
-    selfTest = ApplicationManager.isSelfTest();
+    selfTest = EtomoDirector.isSelfTest();
     runSelfTest(CONSTRUCTED_STATE);
   }
   
