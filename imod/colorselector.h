@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.2  2002/12/29 04:13:15  mast
+inherit dialog_frame
+
 Revision 1.1.2.1  2002/12/27 01:19:47  mast
 Initial creation
 
@@ -28,7 +31,7 @@ class ColorSelector : public DialogFrame
 
  public:
   ColorSelector(QWidget *parent, QString label, int red, int green, int blue, 
-                const char *name = NULL, 
+                int hotFlag, int hotKey, const char *name = NULL, 
                 WFlags fl =  Qt::WDestructiveClose | Qt::WType_Dialog);
   ~ColorSelector();
 
@@ -55,6 +58,8 @@ class ColorSelector : public DialogFrame
     void qtSelectorPressed();
     void imposeColor(bool setSliders, bool emitSignal);
     bool mCtrlPressed;
+    int mHotKey;
+    int mHotFlag;
     int mOriginalRGB[3];
     int mCurrentRGB[3];
     MultiSlider *mSliders;

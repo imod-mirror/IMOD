@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.2  2002/12/29 04:12:58  mast
+Recoded to inherit dialog_frame
+
 Revision 1.1.2.1  2002/12/27 01:19:47  mast
 Initial creation
 
@@ -41,7 +44,9 @@ Initial creation
 /* This class provides a color selector with a smaple color panel, and three
  * sliders for adjusting red, green, and blue.  It manages the color of the
  * panel continuously during changes, and emits a signal for a new color
- * if the slider is clicked or ctrl is pressed (need to parameterize that!)
+ * if the slider is clicked.  It will also emit signals during a drag if 
+ * hotFlag is nonzero; if the key given by hotKey is up when hotFlag is 1;
+ * or when it is down when hotFlag is -1.
  * It also emits signals when done is pressed, when it is closing, and 
  * when keys are pressed or released
  */
@@ -53,11 +58,15 @@ Initial creation
 #include "multislider.h"
 #include "colorselector.h"
 
+#define NO_HOT_SLIDER 0
+#define HOT_SLIDER_KEYUP 1
+#define HOT_SLIDER_KEYDOWN -1
+
 static char *sliderLabels[] = {"Red", "Green", "Blue"};
 static char *buttonLabels[] = {"Done", "Restore", "Qt Selector"};
 
 ColorSelector::ColorSelector(QWidget *parent, QString label, int red,
-                             int green, int blue,
+                             int green, int blue, int hotFlag, int hotKey,
                              const char *name, WFlags fl)
   : DialogFrame(parent, 3, buttonLabels, false, "test", "test2", name, fl)
 {
@@ -68,6 +77,8 @@ ColorSelector::ColorSelector(QWidget *parent, QString label, int red,
   mOriginalRGB[1] = mCurrentRGB[1] = green;
   mOriginalRGB[2] = mCurrentRGB[2] = blue;
   mCtrlPressed = false;
+  mHotKey = hotKey;
+  mHotFlag = hotFlag;
 
   // Get the top label
   QLabel *topLabel = new QLabel(label, this);
@@ -140,7 +151,9 @@ void ColorSelector::qtSelectorPressed()
 void ColorSelector::sliderChanged(int which, int value, bool dragging)
 {
   mCurrentRGB[which] = value;
-  imposeColor(false, !dragging || mCtrlPressed);
+  imposeColor(false, 
+	      !dragging || (mHotFlag == HOT_SLIDER_KEYDOWN && mCtrlPressed) ||
+	      (mHotFlag == HOT_SLIDER_KEYUP && !mCtrlPressed));
 }
 
 // Act on a new color
@@ -168,7 +181,7 @@ void ColorSelector::keyPressEvent ( QKeyEvent * e )
     emit done();
   } else {
     
-    if (e->key() == Qt::Key_Control) {
+    if (mHotFlag != NO_HOT_SLIDER && e->key() == mHotKey) {
       mCtrlPressed = true;
       grabKeyboard();
     }
@@ -179,7 +192,7 @@ void ColorSelector::keyPressEvent ( QKeyEvent * e )
 
 void ColorSelector::keyReleaseEvent ( QKeyEvent * e )
 {
-  if (e->key() == Qt::Key_Control) {
+  if (e->key() == mHotKey) {
     mCtrlPressed = false;
     releaseKeyboard();
   }
