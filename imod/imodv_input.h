@@ -12,12 +12,16 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.1  2002/12/17 17:41:01  mast
+initial creation
+
 */
 
 #ifndef IMODV_INPUT_H
 #define IMODV_INPUT_H
 
 #include <qevent.h>
+#include <time.h>
 
 #ifndef IMODV_H
 typedef struct __imodv_struct ImodvApp;
