@@ -46,6 +46,10 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.26  2004/11/12 22:44:33  sueh
+* <p> bug# 520 Consolidated the imodOpen functions by passing an
+* <p> ImodManager key.
+* <p>
 * <p> Revision 1.1.2.25  2004/11/11 01:34:23  sueh
 * <p> bug# 520 Adding binning to open 3dmod functions.
 * <p>
@@ -164,7 +168,7 @@ public class JoinManager extends BaseManager {
     // Open the etomo data file if one was found on the command line
     if (!test) {
       openJoinDialog();
-      endSetupMode();
+      setMode();
     }
   }
   
@@ -203,21 +207,6 @@ public class JoinManager extends BaseManager {
     }
     mainPanel.showProcess(joinDialog.getContainer(), AxisID.ONLY);
   }
-  
-  /**
-   *  
-   */
-  public void doneJoinDialog(AxisID axisID) {
-    if (joinDialog == null) {
-      mainPanel.openMessageDialog(
-        "Can not update join without an active join dialog",
-        "Program logic error");
-      return;
-    }
-    isDataParamDirty = true;
-    joinDialog = null;
-  }
-
   
   protected void createMainPanel() {
     mainPanel = new MainJoinPanel(this);
@@ -394,7 +383,7 @@ public class JoinManager extends BaseManager {
     nextProcess = "startjoin";
     isDataParamDirty = true;
     joinDialog.getMetaData(metaData);
-    if (!endSetupMode()) {
+    if (!setMode()) {
       mainPanel.openMessageDialog(metaData.getInvalidReason(), "Invalid Data");
       mainPanel.stopProgressBar(AxisID.ONLY);
       return;
@@ -564,16 +553,20 @@ public class JoinManager extends BaseManager {
     }
   }
   
-  private boolean endSetupMode() {
+  public boolean setMode() {
     mainPanel.updateDataParameters(paramFile, metaData);
     File workingDir = joinDialog.getWorkingDir();
     if (!metaData.isValid(workingDir)) {
+      joinDialog.setMode(JoinDialog.SETUP_MODE);
       return false;
     }
     imodManager.setMetaData(metaData);
-    joinDialog.setEnabledTabs(true);
-    joinDialog.setEnabledWorkingDir(false);
-    joinDialog.setEnabledRootName(false);
+    if (metaData.isSampleProduced()) {
+      joinDialog.setMode(JoinDialog.SAMPLE_PRODUCED);
+    }
+    else {
+      joinDialog.setMode(JoinDialog.SAMPLE_NOT_PRODUCED);
+    }
     return true;
   }
   
