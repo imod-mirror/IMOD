@@ -25,6 +25,9 @@ import etomo.type.SlicerAngles;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.6  2004/10/06 02:31:17  sueh
+* <p> bug# 520 Added Z max
+* <p>
 * <p> Revision 1.1.2.5  2004/10/01 20:07:11  sueh
 * <p> bug# 520 Converted text fields to FieldCells.  Removed color control
 * <p> (done in FieldCell).
@@ -191,17 +194,17 @@ public class SectionTableRow {
   }
   
   private boolean retrieveData() {
-    if (!data.setSampleBottomStart(sampleBottomStart.getText())) {
+    if (!data.setSampleBottomStart(sampleBottomStart.getText())
+        || !data.setSampleBottomEnd(sampleBottomEnd.getText())
+        || !data.setSampleTopStart(sampleTopStart.getText())
+        || !data.setSampleTopEnd(sampleTopEnd.getText())
+        || !data.setFinalStart(finalStart.getText())
+        || !data.setFinalEnd(finalEnd.getText())
+        || !data.setRotationAngleX(rotationAngleX.getText())
+        || !data.setRotationAngleY(rotationAngleY.getText())
+        || !data.setRotationAngleZ(rotationAngleZ.getText())) {
       return false;
     }
-    sampleBottomEnd.setText(data.getSampleBottomEndString());
-    sampleTopStart.setText(data.getSampleTopStartString());
-    sampleTopEnd.setText(data.getSampleTopEndString());
-    finalStart.setText(data.getFinalStartString());
-    finalEnd.setText(data.getFinalEndString());
-    rotationAngleX.setText(data.getRotationAngleXString());
-    rotationAngleY.setText(data.getRotationAngleYString());
-    rotationAngleZ.setText(data.getRotationAngleZString());
     return true;
   }
   
@@ -227,9 +230,13 @@ public class SectionTableRow {
     }
   }
   
-  void setRowNumber(int rowNumber) {
+  void setRowNumber(int rowNumber, boolean maxRow) {
     data.setRowNumber(rowNumber);
     rowNumberHeader.setText("<html><b>" + Integer.toString(rowNumber) + "</b>");
+    sampleBottomStart.setInUse(rowNumber != 1);
+    sampleBottomEnd.setInUse(rowNumber != 1);
+    sampleTopStart.setInUse(!maxRow);
+    sampleTopEnd.setInUse(!maxRow);
   }
   
   void setImodIndex(int imodIndex) {
@@ -297,8 +304,14 @@ public class SectionTableRow {
   }
   
   ConstSectionTableRowData getData() {
-    retrieveData();
+    if (!retrieveData()) {
+      return null;
+    }
     return data;
+  }
+  
+  String getInvalidReason() {
+    return data.getInvalidReason();
   }
     
   public boolean equalsSection(File section) {
