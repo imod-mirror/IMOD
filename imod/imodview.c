@@ -34,6 +34,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.4.2.2  2002/12/12 01:21:53  mast
+xyz no longer a member of ImodView structure
+
 Revision 3.4.2.1  2002/12/11 00:39:45  mast
 Kept it from flipping images while loading data
 
@@ -812,8 +815,8 @@ int ivwFlip(ImodView *vw)
   imod_info_float_clear(-1, -1);
   wprint("\n");
      
-  XYZ_vi->ymouse = ozmouse;
-  XYZ_vi->zmouse = oymouse;
+  vw->ymouse = ozmouse;
+  vw->zmouse = oymouse;
 
   /* DNM: need to reset the movie controller because ny and nz changed */
   imcResetAll(vw);

@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.5.2.2  2002/12/09 17:42:32  mast
+remove include of zap
+
 Revision 3.5.2.1  2002/12/05 16:29:32  mast
 add include of imod_object_edit.h
 
@@ -67,7 +70,6 @@ Call imodDraw instead of xyz_draw after changing model/movie mode
 #include "imod_info.h"
 #include "imodel.h"
 #include "mrcfiles.h"
-#include "options.h"
 #include "imod_object_edit.h"
 
 int sampleMeanSD(unsigned char *image, int type, int nx, int ny, float sample, 
@@ -335,7 +337,6 @@ void imod_mmode_cb(Widget w, XtPointer client, XtPointer call)
 
 void imod_info_quit(Widget w, XtPointer client, XtPointer call)
 {
-  Imod_info_quit = TRUE;
   imod_quit();
   return;
 }

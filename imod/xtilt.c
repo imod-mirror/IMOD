@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.2  2002/12/01 15:34:41  mast
+Changes to get clean compilation with g++
+
 Revision 3.1  2002/01/28 16:52:38  mast
 Added slice argument to calls to b3dDrawGreyScalePixelsSubArea
 
@@ -203,9 +206,9 @@ static void tilt_open_cb(Widget w, XtPointer client, XtPointer call)
   if (cbs->infilename == NULL || cbs->infilename[0] == '\0') {
     /*        show_status("Tilter: No file selected."); */
     wprint("\nOpening tilt window with loaded image.\n");
-    tltfopen(XYZ_vi, NULL);
+    tltfopen(App->cvi, NULL);
   }else
-    tltfopen(XYZ_vi, cbs->infilename);
+    tltfopen(App->cvi, cbs->infilename);
 
 }
 

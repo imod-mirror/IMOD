@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 1.1.2.3  2002/12/18 04:15:14  mast
+    new includes for imodv modules
+
     Revision 1.1.2.2  2002/12/17 18:33:19  mast
     using new includes for imodv compoennts
 
@@ -410,7 +413,7 @@ void imodvDrawImage(ImodvApp *a)
      if (imodvImageData.flags & DRAW_CZ){
 
 	  ll.z = ciz; lr.z = ciz; ur.z = ciz; ul.z = ciz;
-	  idata = ivwGetCurrentZSection(XYZ_vi);
+	  idata = ivwGetCurrentZSection(a->vi);
 	  if (!idata){
 	       glDisable(GL_BLEND);
 	       return;

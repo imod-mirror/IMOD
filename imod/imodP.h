@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.8.2.7  2002/12/17 18:40:24  mast
+    Changes and new includes with Qt version of imodv
+
     Revision 3.8.2.6  2002/12/14 05:40:43  mast
     new visual-assessing code
 
@@ -277,59 +280,28 @@ typedef struct ViewInfo
 }ImodView;
 
 
-#define IMOD_CTRL_OPEN 1
-#define IMOD_CTRL_DONE 0
-
-
 /*****************************************************************************/
+/* Global Variables */
+extern struct Mod_Model *Model;
+extern char   Imod_filename[256];
 
-#define IMOD_ZOOM_COMMAND "zoom &"
-
-#define IMOD_SELSIZE 15   /* Distance for selecting model points with mouse. */
-#define IMOD_AUTOSAVE_MINUTES 3
-
-/*****************************************************************************/
-
-extern char   Tltwind[128];
-extern struct ViewInfo *XYZ_vi;
 extern struct ViewInfo *Tilt_vi;
-extern struct ViewInfo *Imod_vi;
-extern FILE *Imod_Imagefp;
-extern struct MRCheader Imod_hdata;
 
-extern struct TiltInfo Tilts;
-extern int MouseMode;
-extern int Stereo;
-extern int Ghostmode;
-extern int Imod_winfreeze;
 extern int ImodTrans;
 extern int Imod_debug;
 
-/* globels from imod_draw.c */
-extern int Imod_Menu;
-extern int Modelmenu;
-extern int Objmenu;
-extern int Contmenu;
-extern int Pointmenu;
-extern int Imagemenu;
-extern int Helpmenu;
-
-extern char *Imod_autosave_string;
 extern char *Imod_imagefile;
 extern char *Imod_cwdpath;
 extern char *Imod_IFDpath;
 
-/* globals from imod_input.c */
-extern int Imod_obj_moveto;
-
-/* globals from imod_autox.c */
-extern int Imod_info_quit;
-
 extern int Rampbase;
+
+/*****************************************************************************/
+
+#define IMOD_SELSIZE 15   /* Distance for selecting model points with mouse. */
 
 #define MOVIE_DEFAULT 52965
 #define IMOD_MM_TOGGLE 0
-#define IMOD_LOAD_TILT 3
 
 #define IMOD_GHOST_NEXTSEC (1)
 #define IMOD_GHOST_PREVSEC (2)
@@ -346,22 +318,6 @@ extern int Rampbase;
 #define RAMPBASE 256
 #define RAMPSIZE 256  
 #define RAMPSTEP 1
-#define BSIZE    6    /* Border Size */
-#define RCOLOR(rcolor) ((rcolor) + RAMPBASE)
-#define REDC(c)   (((c) | 0x000000ff))
-#define GREENC(c) (((c) | 0x0000ff00) >> 8)
-#define BLUEC(c)  (((c) | 0x00ff0000) >> 16)
-#define ALPHAC(c) (((c) | 0xff000000) >> 24)
-
-#define IMOD_BASE                  266   /* Colorindex base to model colors. */
-#define IMOD_COLOR_BG              -1
-#define IMOD_COLOR_FG              -2
-#define IMOD_COLOR_SELECT          -3    /* Offsets to IMOD_BASE.            */
-#define IMOD_COLOR_SELECT_SHADOW   -4
-#define IMOD_COLOR_END             -5
-#define IMOD_COLOR_BEGIN           -6
-#define IMOD_COLOR_POINT           -7
-#define IMOD_COLOR_GHOST           -8
 
 /* colors for 8-bit systems */
 #define IMOD_MAX_INDEX  236
@@ -379,13 +335,6 @@ extern int Rampbase;
 #define RAMPMIN         101
 #define IMOD_MIN_INDEX  16
 
-#define SELECT_COLOR 0x0000ffff
-#define SHADOW_COLOR 0x00007f7f
-#define ENDPNT_COLOR 0x000000ff
-#define BGNPNT_COLOR 0x007fff7f
-#define FORGND_COLOR 0x00bfbfbf
-#define BAKGND_COLOR 0x003f3f3f
-#define CURPNT_COLOR 0x00000000
 
 #ifndef X
 #define X 0
@@ -399,12 +348,6 @@ extern int Rampbase;
 #define Z 2
 #endif
 
-
-/* Global Variables */
-extern struct Mod_Model *Model;
-extern int   Imod_Window;
-extern char   Imod_filename[256];
-extern int    Modeltouch;
 
 
 /****************************************************************************/

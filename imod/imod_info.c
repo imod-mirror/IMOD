@@ -34,6 +34,9 @@
     $Revision$
 
     $Log$
+    Revision 3.2.2.1  2002/12/07 01:23:44  mast
+    changed calls to get model name string
+
     Revision 3.2  2002/12/01 15:34:41  mast
     Changes to get clean compilation with g++
 
@@ -69,7 +72,6 @@ void imodPlugMenu(Widget parent, int pos);
 static char *truncate_name(char *name, int limit);
 
 XtAppContext Imod_info_context;
-int Imod_info_quit = FALSE;
 int ImodForbidLevel = FALSE;
 
 Widget Imod_info_top;

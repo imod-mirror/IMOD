@@ -34,6 +34,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.2  2002/12/17 18:40:24  mast
+Changes and new includes with Qt version of imodv
+
 Revision 1.1.2.1  2002/12/13 06:15:49  mast
 include file changes
 
@@ -98,7 +101,6 @@ Added calls for cache filling
 #include "imod_io.h"
 #include "imodel.h"
 #include "mrcfiles.h"
-#include "options.h"
 #include "iproc.h"
 #include "imodv.h"
 
@@ -111,7 +113,7 @@ Added calls for cache filling
 void ioew_sgicolor_cb(Widget w, XtPointer client, XtPointer call);
 void imod_file_cb(Widget w, XtPointer client, XtPointer call);
 
-extern int Imod_debug;
+static int obj_moveto = 0;
 
 void imod_file_cb(Widget w, XtPointer client, XtPointer call)
 {
@@ -466,22 +468,22 @@ void imod_edit_object_cb(Widget w, XtPointer client, XtPointer call)
              "to a new object\n");
       break;
     }
-    if (Imod_obj_moveto > App->cvi->imod->objsize)
-      Imod_obj_moveto = App->cvi->imod->objsize;
-    if (Imod_obj_moveto < 1)
-      Imod_obj_moveto = 1;
+    if (obj_moveto > App->cvi->imod->objsize)
+      obj_moveto = App->cvi->imod->objsize;
+    if (obj_moveto < 1)
+      obj_moveto = 1;
 
     if (App->cvi->imod->cindex.object > -1){
-      Imod_obj_moveto = dia_int
-        (1, App->cvi->imod->objsize, Imod_obj_moveto, 0,
+      obj_moveto = dia_int
+        (1, App->cvi->imod->objsize, obj_moveto, 0,
          "Move all contours to selected object.");
       /* DNM: need to set contour inside loop because each deletion
          sets it to -1; and need to not increment counter! 
          And need to not do it if it's the same object! */
-      if (Imod_obj_moveto - 1 != App->cvi->imod->cindex.object) {
+      if (obj_moveto - 1 != App->cvi->imod->cindex.object) {
         for(co = 0; co < obj->contsize; ) {
           App->cvi->imod->cindex.contour = 0;
-          imod_contour_move(Imod_obj_moveto - 1);
+          imod_contour_move(obj_moveto - 1);
         }
         App->cvi->imod->cindex.contour = -1;
         App->cvi->imod->cindex.point = -1;
@@ -490,7 +492,7 @@ void imod_edit_object_cb(Widget w, XtPointer client, XtPointer call)
 			   "contours to.\n");
     }
     /* DNM: need to maintain separate object numbers for two functions */
-    /*	  App->cvi->obj_moveto = Imod_obj_moveto; */
+    /*	  App->cvi->obj_moveto = obj_moveto; */
     imodDraw(App->cvi, IMOD_DRAW_MOD);
     break;
 
@@ -991,7 +993,7 @@ void imod_edit_image_cb(Widget w, XtPointer client, XtPointer call)
 
   case 3:
     /* DNM 12/10/02: if busy loading, this will defer it */
-    if (ivwFlip(XYZ_vi))
+    if (ivwFlip(App->cvi))
 	break;
     /* DNM: check wild flag here */
     ivwCheckWildFlag(App->cvi->imod);
@@ -1067,9 +1069,7 @@ void imod_win_cb(Widget w, XtPointer client, XtPointer call)
     open_pixelview(App->cvi);
     break;
 
-  case 10: /* zoom */
-    system(IMOD_ZOOM_COMMAND);
-    break;
+    /* DNM 12/18/02 removed unused zoom command */
 	  
   default:
     break;

@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.1  2002/12/01 15:34:41  mast
+    Changes to get clean compilation with g++
+
 */
 
 #include <Xm/MainW.h>
@@ -354,13 +357,7 @@ static void res_cb(Widget w, XtPointer client, XtPointer call)
   return;                                                                  
 }                                                                             
                                                                               
-/* stub for old igraph.h */                                                   
-int imod_igraph_open(char axis)                                               
-{                                                                             
-  xgraphOpen(XYZ_vi);                                                      
-  return(-1);                                                              
-}                                                                             
-                                                                              
+/* DNM 12/18/02: removed stub for old igraph.h */                                                   
 int xgraphOpen(struct ViewInfo *vi)                                           
 {                                                                             
   struct imod_xgraph_struct *xg;                                           

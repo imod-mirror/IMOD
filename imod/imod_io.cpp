@@ -37,6 +37,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.3  2002/12/18 04:15:14  mast
+new includes for imodv modules
+
 Revision 1.1.2.2  2002/12/17 18:41:49  mast
 Changes to get imodv to set file name correctly in window title
 
@@ -117,9 +120,9 @@ extern int errno;
  * charactor '#'
  */
 #ifdef __vms
-char *Imod_autosave_string = "_autosave";
+static char *autosave_string = "_autosave";
 #else
-char *Imod_autosave_string = "#autosave#";
+static char *autosave_string = "#autosave#";
 #endif
 
 static char dummystring[] = "         ";
@@ -237,10 +240,10 @@ int imod_autosave(struct Mod_Model *mod)
 
   if (savedir)
     sprintf(autosave_filename, "%s/%s%s", savedir, Imod_filename,
-            Imod_autosave_string);
+            autosave_string);
   else
     sprintf(autosave_filename, "%s%s", Imod_filename,
-            Imod_autosave_string);
+            autosave_string);
      
   remove(autosave_filename);
   tfilep = fopen(autosave_filename, "w");
