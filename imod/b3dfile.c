@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.1.2.2  2003/01/27 00:30:07  mast
+    Pure Qt version and general cleanup
+
     Revision 3.1.2.1  2002/12/23 04:53:51  mast
     Make routines for putting bytes, shorts, ints global and rename as iput...
 
@@ -145,12 +148,6 @@ static void puttiffentry(short tag, short type,
      return;
 }
 
-
-int bdTIFFWriteImage(FILE *fout, int xsize, int ysize, unsigned char *pixels)
-{
-
-     return(0);
-}
 
 int bdTIFFWriteMap(FILE *fout, int xsize, int ysize,
 		   unsigned char *pixels, unsigned short *cmap)

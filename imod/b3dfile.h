@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.1  2003/01/26 23:31:09  mast
+Initial creation
+
 */
 
 #ifndef B3DFILE_H
@@ -23,7 +26,6 @@ extern "C" {
 
 /* special file io commands. */
 int bdRGBWrite(FILE *fout, int xsize, int ysize, unsigned char *pixels);
-int bdTIFFWriteImage(FILE *fout, int xsize, int ysize, unsigned char *pixels);
 int bdTIFFWriteMap(FILE *fout, int xsize, int ysize,
 		   unsigned char *pixels, unsigned short *cmap);
   void iputbyte(FILE *fout, unsigned char val);

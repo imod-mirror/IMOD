@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.3  2003/01/29 01:42:35  mast
+Changes for color index snapshotting
+
 Revision 1.1.2.2  2003/01/27 00:30:07  mast
 Pure Qt version and general cleanup
 
@@ -110,7 +113,7 @@ void b3dResizeViewportXY(int winx, int winy)
 }
 
 
-void b3dColorIndex(unsigned int pix)
+void b3dColorIndex(int pix)
 {
   glIndexi(pix);
   if (App->rgba){
@@ -340,18 +343,9 @@ void b3dVertex2i(int x, int y)
 void b3dDrawBoxout(int llx, int lly, int urx, int ury)
 {
   int cur_color;
-  unsigned int back_color;
 
   glGetIntegerv(GL_CURRENT_INDEX, &cur_color);
 
-  /* TODO: figure out what to do for Qt widgets */
-  /* This may work: that is what the color index function is for
-  if (CurWidget) {
-    XtVaGetValues(CurWidget, XmNbackground, &back_color, NULL);
-    glIndexi(back_color);
-  }
-  if (App->rgba) */
-  
   b3dColorIndex(App->background);
      
   if (lly > 0)
@@ -884,7 +878,6 @@ static void b3dDrawGreyScalePixels15
   int maxi, maxj;
   unsigned int fillval;
   int sidefill;
-  int ibase;
   int drawwidth;
   int wxdraw;
   unsigned char *fillpt = (unsigned char *)(&fillval);
@@ -1091,6 +1084,40 @@ void b3dDrawGreyScalePixelsHQ(unsigned char *data,      /* input data      */
                               double yzoom,
                               int quality, int slice)  
 {
+  float zoom = xzoom;
+  unsigned short *sdata = (unsigned short *)image->id1;
+  unsigned char  *bdata = (unsigned char *)sdata;
+  unsigned int   *idata = (unsigned int *)sdata;
+  unsigned int   *rgbadata;
+  unsigned char  *bidata, *bptr;
+  float ival;
+  unsigned char val;
+
+  float a,b,c,d;
+  int dwidth = (int)(width * zoom);
+  int dheight= (int)(height * zoom);
+  int xi, pxi, nxi, yi, pyi, nyi, x1, x2, y1, y2;
+  int i, j;
+     
+  float cx, cy;                            /* current x,y values          */
+  float dx, dy;                            /* pixel  offset.              */
+  float zs    = 1.0f/(float)zoom;          /* zoom step for x,y           */
+  float trans = -(0.5 - (0.5 * zs));       /* translate offset. */
+  float xstop = xoffset + width + trans; /* stop at this x coord.   */
+  float ystop = yoffset + height + trans; /* stop at this y coord. */
+  unsigned short rbase = base;
+  float pixmin = 0.0f, pixmax = 255.0f;
+  GLenum type, format;
+  GLint unpack = b3dGetImageType(&type, &format);
+  unsigned int *cindex = App->cvi->cramp->ramp;
+  unsigned int fillval;
+  unsigned char *fillpt = (unsigned char *)(&fillval);
+  int sidefill;
+  int rgbascale = 0;
+  int ibase;
+  int drawwidth;
+  int wxdraw;
+
   if (!data){
     b3dColorIndex(base);
     glColor3f(0.0f, 0.0f, 0.0f);
@@ -1137,242 +1164,202 @@ void b3dDrawGreyScalePixelsHQ(unsigned char *data,      /* input data      */
     }
   }
 
-  {
-    float zoom = xzoom;
-    unsigned short *sdata = (unsigned short *)image->id1;
-    unsigned char  *bdata = (unsigned char *)sdata;
-    unsigned int   *idata = (unsigned int *)sdata;
-    unsigned int   *rgbadata;
-    unsigned char  *bidata, *bptr;
-    float ival;
-    unsigned char val;
+  if((unpack == 4) && (App->rgba == 1))
+    rgbascale = 1;
 
-    float a,b,c,d;
-    int dwidth = (int)(width * zoom);
-    int dheight= (int)(height * zoom);
-    int xi, pxi, nxi, yi, pyi, nyi, x1, x2, y1, y2;
-    int i, j;
-     
-    float cx, cy;                            /* current x,y values          */
-    float dx, dy;                            /* pixel  offset.              */
-    float zs    = 1.0f/(float)zoom;          /* zoom step for x,y           */
-    float trans = -(0.5 - (0.5 * zs));       /* translate offset. */
-    float xstop = xoffset + width + trans; /* stop at this x coord.   */
-    float ystop = yoffset + height + trans; /* stop at this y coord. */
-    unsigned short rbase = base;
-    float pixmin = 0.0f, pixmax = 255.0f;
-    GLenum type, format;
-    GLint unpack = b3dGetImageType(&type, &format);
-    unsigned int *cindex = App->cvi->cramp->ramp;
-    unsigned int fillval;
-    unsigned char *fillpt = (unsigned char *)(&fillval);
-    int sidefill;
-    int rgbascale = 0;
-    int ibase;
-    int drawwidth;
-    int wxdraw;
-
-    if((unpack == 4) && (App->rgba == 1))
-      rgbascale = 1;
-
-    if (dwidth > CurWidth){
-      dwidth = CurWidth;
-    }
-    if ( dheight > CurHeight){
-      dheight = CurHeight;
-    }
+  if (dwidth > CurWidth){
+    dwidth = CurWidth;
+  }
+  if ( dheight > CurHeight){
+    dheight = CurHeight;
+  }
 
 
-    if (App->depth == 8){
-      rbase = 0;
-      pixmin = RAMPMIN;
-      pixmax = RAMPMAX;
-    }
+  if (App->depth == 8){
+    rbase = 0;
+    pixmin = RAMPMIN;
+    pixmax = RAMPMAX;
+  }
 
-    /* DNM for PC: need to fill sides of array to work around display bug */
-    sidefill =0;
+  /* DNM for PC: need to fill sides of array to work around display bug */
+  sidefill =0;
 #ifdef PIXELDRAW_HACK
-    if (unpack == 4)
-      sidefill = 1;
+  if (unpack == 4)
+    sidefill = 1;
 #endif
-    if (sidefill) {
-      wxdraw = 0;
-      drawwidth = CurWidth;
-      *fillpt++ = 64;
-      *fillpt++ = 64;
-      *fillpt++ = 96;
-      *fillpt++ = 0;
-    } else {
-      wxdraw = wx;
-      drawwidth = dwidth;
-    }
+  if (sidefill) {
+    wxdraw = 0;
+    drawwidth = CurWidth;
+    *fillpt++ = 64;
+    *fillpt++ = 64;
+    *fillpt++ = 96;
+    *fillpt++ = 0;
+  } else {
+    wxdraw = wx;
+    drawwidth = dwidth;
+  }
 
-    /* DNM: test and send quality rather than 1 so that it can tell whether
-       fractional zooms are truly hq or not */
+  /* DNM: test and send quality rather than 1 so that it can tell whether
+     fractional zooms are truly hq or not */
 
-    if (!b3dImageMatch(image, &sdata, xoffset, yoffset,
-                       width, height, zoom, quality, slice)){
-      b3dImageSet(image, &sdata, xoffset, yoffset,
-                  width, height, zoom , quality, slice); 
+  if (!b3dImageMatch(image, &sdata, xoffset, yoffset,
+		     width, height, zoom, quality, slice)){
+    b3dImageSet(image, &sdata, xoffset, yoffset,
+		width, height, zoom , quality, slice); 
 
-      bdata = (unsigned char *)sdata;
-      idata = (unsigned int  *)sdata;
-      if (quality > 0 && App->rgba < 2){
+    bdata = (unsigned char *)sdata;
+    idata = (unsigned int  *)sdata;
+    if (quality > 0 && App->rgba < 2){
 
-        /* For HQ, step to each display pixel and use quadratic 
-           interpolation at each position.  Not for color data */
-        for(j = 0, cy = yoffset + trans; j < dheight; cy += zs, j++) {
-          yi = (int)(cy + 0.5);
-          pyi = yi - 1;
-          nyi = yi + 1;
-          if (pyi < 0) pyi = 0;
-          if (nyi >= ysize) nyi = yi;
-          ibase = j * drawwidth;
-          if (sidefill)
-            for (i = 0; i < wx; i++)
-              idata[ibase++] = fillval;
+      /* For HQ, step to each display pixel and use quadratic 
+	 interpolation at each position.  Not for color data */
+      for(j = 0, cy = yoffset + trans; j < dheight; cy += zs, j++) {
+	yi = (int)(cy + 0.5);
+	pyi = yi - 1;
+	nyi = yi + 1;
+	if (pyi < 0) pyi = 0;
+	if (nyi >= ysize) nyi = yi;
+	ibase = j * drawwidth;
+	if (sidefill)
+	  for (i = 0; i < wx; i++)
+	    idata[ibase++] = fillval;
 
-          for(i = 0, cx = xoffset + trans; 
-              i < dwidth; cx += zs, i++){
-            xi = (int)(cx + 0.5);
-            val = data[xi + (yi * xsize)];
+	for(i = 0, cx = xoffset + trans; 
+	    i < dwidth; cx += zs, i++){
+	  xi = (int)(cx + 0.5);
+	  val = data[xi + (yi * xsize)];
                          
-            dx = cx - xi;
-            dy = cy - yi;
-            pxi = xi - 1;
-            nxi = xi + 1;
+	  dx = cx - xi;
+	  dy = cy - yi;
+	  pxi = xi - 1;
+	  nxi = xi + 1;
                          
-            if (pxi < 0) pxi = 0;
-            if (nxi >= xsize) nxi = xi;
+	  if (pxi < 0) pxi = 0;
+	  if (nxi >= xsize) nxi = xi;
                          
-            x1 = data[pxi + (yi  * xsize)];
-            x2 = data[nxi + (yi  * xsize)];
-            y1 = data[xi  + (pyi * xsize)];
-            y2 = data[xi  + (nyi * xsize)];
+	  x1 = data[pxi + (yi  * xsize)];
+	  x2 = data[nxi + (yi  * xsize)];
+	  y1 = data[xi  + (pyi * xsize)];
+	  y2 = data[xi  + (nyi * xsize)];
                          
-            a = (x1 + x2) * 0.5f - (float)val;
-            b = (y1 + y2) * 0.5f - (float)val;
-            c = (x2 - x1) * 0.5f;
-            d = (y2 - y1) * 0.5f;
+	  a = (x1 + x2) * 0.5f - (float)val;
+	  b = (y1 + y2) * 0.5f - (float)val;
+	  c = (x2 - x1) * 0.5f;
+	  d = (y2 - y1) * 0.5f;
                          
-            ival = (a * dx * dx) + (b * dy * dy) +
-              (c * dx) + (d * dy) + val;
-            if (ival > pixmax)
-              val = (unsigned char)pixmax;
-            else if (ival < pixmin)
-              val = (unsigned char)pixmin;
-            else 
-              val = (unsigned char)(ival + 0.5f);
+	  ival = (a * dx * dx) + (b * dy * dy) +
+	    (c * dx) + (d * dy) + val;
+	  if (ival > pixmax)
+	    val = (unsigned char)pixmax;
+	  else if (ival < pixmin)
+	    val = (unsigned char)pixmin;
+	  else 
+	    val = (unsigned char)(ival + 0.5f);
 
-            switch(unpack){
-            case 1:
-              bdata[i + ibase] = val;
-              break;
-            case 2:
-              sdata[i + ibase] = val + rbase;
-              break;
-            case 4:
-              idata[i + ibase] = cindex[val];
-              break;
-            } 
-          }
+	  switch(unpack){
+	  case 1:
+	    bdata[i + ibase] = val;
+	    break;
+	  case 2:
+	    sdata[i + ibase] = val + rbase;
+	    break;
+	  case 4:
+	    idata[i + ibase] = cindex[val];
+	    break;
+	  } 
+	}
 
-          if (sidefill) {
-            ibase += dwidth;
-            for (i = wx + dwidth; i < CurWidth; i++)
-              idata[ibase++] = fillval;
-          } 
-        }
-      }else{
+	if (sidefill) {
+	  ibase += dwidth;
+	  for (i = wx + dwidth; i < CurWidth; i++)
+	    idata[ibase++] = fillval;
+	} 
+      }
+    }else{
 
-        /* For low quality, non-integer zooms, use nearest neighbor
-           interpolation at each pixel */
-        for(j = 0, cy = yoffset + trans; cy < ystop; cy += zs, j++) {
-          yi = (int)(cy + 0.5);
-          ibase = j * drawwidth;
+      /* For low quality, non-integer zooms, use nearest neighbor
+	 interpolation at each pixel */
+      for(j = 0, cy = yoffset + trans; cy < ystop; cy += zs, j++) {
+	yi = (int)(cy + 0.5);
+	ibase = j * drawwidth;
 
-          switch(unpack){
-          case 1:
-            for(i = 0, cx = xoffset + trans; 
-                cx < xstop; cx += zs, i++){
-              xi = (int)(cx + 0.5);
-              val = data[xi + (yi * xsize)];
-              bdata[i + ibase] = val;
-            }
-            break;
-          case 2:
-            for(i = 0, cx = xoffset + trans; 
-                cx < xstop; cx += zs, i++){
-              xi = (int)(cx + 0.5);
-              val = data[xi + (yi * xsize)];
-              sdata[i + ibase] = val + rbase;
-            }
-            break;
-          case 4:
-            if (sidefill)
-              for (i = 0; i < wx; i++)
-                idata[ibase++] = fillval;
-            switch (App->rgba) {
-            case 1:   /* lookup from bytes */
-              for(i = 0, cx = xoffset + trans; 
-                  cx < xstop; cx += zs, i++){
-                xi = (int)(cx + 0.5);
-                val = data[xi + (yi * xsize)];
-                idata[i + ibase] = cindex[val];
-              }
-              break;
-            case 3:   /* copy RGB data to RGBA */
-              bidata = (unsigned char *)&(idata[ibase]);
-              bdata = &(data[3 * yi * xsize]);
-              for(i = 0, cx = xoffset + trans; 
-                  cx < xstop; cx += zs, i++){
-                xi = (int)(cx + 0.5);
-                bptr = bdata + 3 * xi;
-                *bidata++ = *bptr++;
-                *bidata++ = *bptr++;
-                *bidata++ = *bptr++;
-                *bidata++ = 0;
-              }
-              break;
-            case 4:   /* untested placekeeper fro RGBA data */
-              rgbadata = (unsigned int *)data + yi * xsize;
-              for(i = 0, cx = xoffset + trans; 
-                  cx < xstop; cx += zs, i++){
-                xi = (int)(cx + 0.5);
-                idata[i + ibase] = rgbadata[xi];
-              }
-              break;
-            }
-            if (sidefill){
-              ibase += dwidth;
-              for (i = wx + dwidth; i < CurWidth; i++)
-                idata[ibase++] = fillval;
-            }
-            break;
-          }
-        }
+	switch(unpack){
+	case 1:
+	  for(i = 0, cx = xoffset + trans; 
+	      cx < xstop; cx += zs, i++){
+	    xi = (int)(cx + 0.5);
+	    val = data[xi + (yi * xsize)];
+	    bdata[i + ibase] = val;
+	  }
+	  break;
+	case 2:
+	  for(i = 0, cx = xoffset + trans; 
+	      cx < xstop; cx += zs, i++){
+	    xi = (int)(cx + 0.5);
+	    val = data[xi + (yi * xsize)];
+	    sdata[i + ibase] = val + rbase;
+	  }
+	  break;
+	case 4:
+	  if (sidefill)
+	    for (i = 0; i < wx; i++)
+	      idata[ibase++] = fillval;
+	  switch (App->rgba) {
+	  case 1:   /* lookup from bytes */
+	    for(i = 0, cx = xoffset + trans; 
+		cx < xstop; cx += zs, i++){
+	      xi = (int)(cx + 0.5);
+	      val = data[xi + (yi * xsize)];
+	      idata[i + ibase] = cindex[val];
+	    }
+	    break;
+	  case 3:   /* copy RGB data to RGBA */
+	    bidata = (unsigned char *)&(idata[ibase]);
+	    bdata = &(data[3 * yi * xsize]);
+	    for(i = 0, cx = xoffset + trans; 
+		cx < xstop; cx += zs, i++){
+	      xi = (int)(cx + 0.5);
+	      bptr = bdata + 3 * xi;
+	      *bidata++ = *bptr++;
+	      *bidata++ = *bptr++;
+	      *bidata++ = *bptr++;
+	      *bidata++ = 0;
+	    }
+	    break;
+	  case 4:   /* untested placekeeper fro RGBA data */
+	    rgbadata = (unsigned int *)data + yi * xsize;
+	    for(i = 0, cx = xoffset + trans; 
+		cx < xstop; cx += zs, i++){
+	      xi = (int)(cx + 0.5);
+	      idata[i + ibase] = rgbadata[xi];
+	    }
+	    break;
+	  }
+	  if (sidefill){
+	    ibase += dwidth;
+	    for (i = wx + dwidth; i < CurWidth; i++)
+	      idata[ibase++] = fillval;
+	  }
+	  break;
+	}
       }
     }
-    /* printf("HQ wx %d wy %d dwidth %d dheight %d window %d %d\n",
-       wxdraw, wy, drawwidth, dheight, CurWidth, CurHeight); */
-
-    glPixelZoom((GLfloat)1.0f, (GLfloat)1.0f); 
-#ifndef CHUNKDRAW_HACK
-    glRasterPos2f((float)wxdraw, (float)wy);
-    glDrawPixels(drawwidth, dheight, format, type, sdata); 
-#else
-    chunkdraw(xsize * ysize, 1., wxdraw, wy, drawwidth, dheight, format,
-              type, (unsigned int *)sdata);
-#endif    
   }
+  /* printf("HQ wx %d wy %d dwidth %d dheight %d window %d %d\n",
+     wxdraw, wy, drawwidth, dheight, CurWidth, CurHeight); */
+
+  glPixelZoom((GLfloat)1.0f, (GLfloat)1.0f); 
+#ifndef CHUNKDRAW_HACK
+  glRasterPos2f((float)wxdraw, (float)wy);
+  glDrawPixels(drawwidth, dheight, format, type, sdata); 
+#else
+  chunkdraw(xsize * ysize, 1., wxdraw, wy, drawwidth, dheight, format,
+	    type, (unsigned int *)sdata);
+#endif
 
   return;
 }
 
-
-static double wzoomvals[] =
-  { 0.25, 0.5, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 8.0, 10.0, 
-    12.0, 15.0, 18.0, 20.0, 25.0, 30.0};
 
 /* DNM 7/28/02: this is the one that gets used, but better maintain zoomvals
    to have MAXZOOMI + 1 values too */
@@ -1520,8 +1507,7 @@ void b3dSnapshot_RGB(char *fname, int rgbmode, int *limits)
   FILE *fout;
   int i;
   unsigned char *pixels = NULL;
-  long xysize, xsize, ysize;
-  int blank = 1;
+  long xysize;
 
   int mapsize;
   unsigned int *fcmapr, *fcmapg, *fcmapb;
@@ -1625,7 +1611,6 @@ void b3dSnapshot_TIF(char *fname, int rgbmode, int *limits,
   unsigned char *pixels = NULL;
   int *lpixels;
   long xysize, xsize, ysize;
-  int blank = 1;
   unsigned int pixel;
   unsigned int ifd;
   unsigned int colortable;
@@ -1637,7 +1622,7 @@ void b3dSnapshot_TIF(char *fname, int rgbmode, int *limits,
 
   int mapsize;
   unsigned int *fcmapr, *fcmapg, *fcmapb;
-  int *cindex, ci;
+  int ci;
   int rpx = 0; 
   int rpy = 0;
   int rpWidth = CurWidth;
