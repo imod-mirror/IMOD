@@ -10,6 +10,7 @@ import javax.swing.*;
 
 import etomo.JoinManager;
 import etomo.type.AxisID;
+import etomo.type.JoinMetaData;
 
 /**
  * <p>Description: The dialog box for creating the fiducial model(s).</p>
@@ -24,6 +25,10 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.1.2.4  2004/09/23 23:37:46  sueh
+ * <p> bug# 520 Converted to DoubleSpacedPanel and SpacedPanel.  Added
+ * <p> MakeJoin panel.
+ * <p>
  * <p> Revision 1.1.2.3  2004/09/21 18:00:42  sueh
  * <p> bug# 520 Moved the buttons that affected section table rows to
  * <p> SectionTablePanel.  Placed a X axis panel called pnlSetupTab behind the
@@ -50,12 +55,13 @@ public class JoinDialog implements ContextMenu {
   private JPanel pnlAlign;
   private JPanel pnlJoin;
 
+  private JButton btnWorkingDir;
+  private MultiLineToggleButton btnMakeJoin;
+  
   private JCheckBox cbUseDensityRefSection;
   private LabeledSpinner spinDensityRefSection;
   private LabeledTextField ltfWorkingDir;
-  private JButton btnWorkingDir;
   private LabeledTextField ltfRootName;
-  private MultiLineToggleButton btnMakeJoin;
   
   private int numSections = 0;
   
@@ -166,6 +172,14 @@ public class JoinDialog implements ContextMenu {
     spinDensityRefSection.setModel(spinnerModel);
     enableDensityRefSection();
     enableMakeJoin();
+  }
+  
+  public void retrieveData(JoinMetaData joinMetaData) {
+    joinMetaData.setUseDensityRefSection(cbUseDensityRefSection.isSelected());
+    joinMetaData.setDensityRefSection(spinDensityRefSection.getValue());
+    joinMetaData.setWorkingDir(ltfWorkingDir.getText());
+    joinMetaData.setRootName(ltfRootName.getText());
+    pnlSectionTable.retrieveData(joinMetaData);
   }
 
   public Container getContainer() {
