@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 1.1.2.1  2002/12/15 21:14:02  mast
+    conversion to cpp
+
     Revision 3.1.2.1  2002/12/07 01:22:49  mast
     Added argument to window tilte generator
 
@@ -63,6 +66,7 @@
 #include <diaP.h>
 #include "imodv.h"
 #include "imodP.h"
+#include "imodv_gfx.h"
 
 
 /******************************************************************

@@ -36,6 +36,7 @@
 #include <Xm/PushB.h>
 #include <dia.h>
 #include "imodv.h"
+#include "imodv_gfx.h"
 
 struct imodv_modeled
 {
@@ -167,6 +168,7 @@ int imodvSelectModel(ImodvApp *a, int ncm)
 	  XmStringFree(xmstr);
 	  updateWorkArea();
      }
+     imodvSetCaption();
      imodvUpdateModel(a);
 
      imodvDraw(a);

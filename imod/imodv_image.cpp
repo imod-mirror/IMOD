@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 1.1.2.1  2002/12/15 21:14:02  mast
+    conversion to cpp
+
     Revision 3.1  2002/12/01 15:34:41  mast
     Changes to get clean compilation with g++
 
@@ -48,6 +51,7 @@
 #include <dia.h>
 #include "imodv.h"
 #include "imod.h"
+#include "imodv_gfx.h"
 
 
 #ifdef NO_IMODV_IMAGE

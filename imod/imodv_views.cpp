@@ -40,6 +40,9 @@
 #include <stdio.h>
 #include <string.h>
 #include "imodv.h"
+#include "imodv_gfx.h"
+#include "imodv_menu.h"
+#include "imodv_control.h"
 
 struct imodv_viewed
 {
@@ -221,6 +224,11 @@ static void SetNewLabel(struct imodv_viewed *ved, Iview *vw)
 	i++;
     }
     strcpy(vw->label, "new label");
+}
+
+static void imodv_file_save_cb(Widget w, XtPointer client, XtPointer call)
+{
+  imodvFileSave();
 }
 
 static void default_cb(Widget w, XtPointer client, XtPointer call)
