@@ -32,6 +32,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.2  2002/12/13 06:04:00  mast
+moving imod_object_edit declaration to include file and removing argument
+
 Revision 1.1.2.1  2002/12/05 16:30:22  mast
 First addition to archive
 
@@ -40,12 +43,34 @@ First addition to archive
 
 #ifndef IMOD_OBJECT_EDIT_H
 #define IMOD_OBJECT_EDIT_H
+#include <qobject.h>
+
+class ColorSelector;
+
+class ImodObjColor : public QObject
+{
+  Q_OBJECT
+
+ public:
+  ImodObjColor(int imodObj);
+  ~ImodObjColor() {};
+
+  ColorSelector *mSelector;
+  int mObjNum;
+
+  public slots:
+   void newColorSlot(int red, int green, int blue);
+  void doneSlot();
+  void closingSlot();
+
+  void keyPressSlot ( QKeyEvent * e );
+  void keyReleaseSlot ( QKeyEvent * e );
+
+};
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-  /* This can't be here because this header will be read by Qt files */
-  /* void ioew_sgicolor_cb(Widget w, XtPointer client, XtPointer call); */
   void ioew_help(void);
   void ioew_quit(void);
   void ioew_closing(void);
@@ -62,6 +87,7 @@ extern "C" {
   void ioew_time(int state);
   int imod_object_edit_draw(void);
   int  imod_object_edit();
+  void imod_object_color(int objNum);
 
 #ifdef __cplusplus
 }
