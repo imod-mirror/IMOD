@@ -19,6 +19,10 @@ import etomo.storage.Storable;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.3  2004/10/08 16:11:24  sueh
+* <p> bug# 520 Added toString() and moved initialization of invalidReason to
+* <p> SectionTableRowData.reset().
+* <p>
 * <p> Revision 1.1.2.2  2004/10/06 01:57:57  sueh
 * <p> bug# 520 Added Z max from header.  Added descriptions of the fields for
 * <p> invalidReason.  Added isValidForMakeSamples() - validate when Make
@@ -33,6 +37,7 @@ import etomo.storage.Storable;
 public abstract class ConstSectionTableRowData implements Storable {
   public static  final String  rcsid =  "$Id$";
   
+  protected static final String groupString = "SectionTableRow";
   protected static final String rowNumberString = "RowNumber";
   protected static final String sectionString = "Section";
   protected static final String sampleBottomStartString = "SampleBottomStart";
@@ -146,9 +151,8 @@ public abstract class ConstSectionTableRowData implements Storable {
   public void store(Properties props, String prepend) {
     prepend = createPrepend(prepend);
     String group = prepend + ".";
-    
     props.setProperty(group + rowNumberString, Integer.toString(rowNumber));
-    props.setProperty(group + zMaxString, Double.toString(zMax));
+    props.setProperty(group + zMaxString, Integer.toString(zMax));
     props.setProperty(group + sectionString, section.getAbsolutePath());   
     props.setProperty(group + sampleBottomStartString, Integer.toString(sampleBottomStart));
     props.setProperty(group + sampleBottomEndString, Integer.toString(sampleBottomEnd));
@@ -163,9 +167,9 @@ public abstract class ConstSectionTableRowData implements Storable {
   
   protected String createPrepend(String prepend) {
     if (prepend == "") {
-      return getClass().getName() + ".";
+      return groupString + "." + Integer.toString(rowNumber);
     }
-    return prepend + "." + getClass().getName();
+    return prepend + "." + groupString + "." + Integer.toString(rowNumber);
   }
   
   public boolean equals(Object object) {
@@ -238,6 +242,9 @@ public abstract class ConstSectionTableRowData implements Storable {
     return convertToString(rowNumber);
   }
   public int getRowIndex() {
+    if (rowNumber < 0 ) {
+      return -1;
+    }
     return rowNumber - 1;
   }
   
