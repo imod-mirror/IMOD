@@ -28,6 +28,9 @@ import etomo.type.ConstMetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.25.4.7  2004/10/21 02:40:14  sueh
+ * <p> bug# 520 Added Join 3dmod.
+ * <p>
  * <p> Revision 3.25.4.6  2004/10/14 17:22:47  sueh
  * <p> bug# 520 fixed bug in joinSampleAverages
  * <p>
@@ -334,6 +337,7 @@ public class ImodManager {
   public static final String JOIN_SAMPLES_KEY = new String("joinSamples");
   public static final String JOIN_SAMPLE_AVERAGES_KEY = new String("joinSampleAverages");
   public static final String JOIN_KEY = new String("join");
+  public static final String ROT_TOMOGRAM_KEY = new String("rotTomogram");
   
 
   //private keys - used with imodMap
@@ -355,6 +359,7 @@ public class ImodManager {
   private static final String joinSamplesKey = JOIN_SAMPLES_KEY;
   private static final String joinSampleAveragesKey = JOIN_SAMPLE_AVERAGES_KEY;
   private static final String joinKey = JOIN_KEY;
+  private static final String rotTomogramKey = ROT_TOMOGRAM_KEY;
 
   private boolean useMap = true;
 
@@ -842,6 +847,9 @@ public class ImodManager {
     if (key.equals(JOIN_KEY) && axisID == null) {
       return newJoin(datasetName);
     }
+    if (key.equals(ROT_TOMOGRAM_KEY) && axisID == null) {
+      return newRotTomogram(file);
+    }
     throw new IllegalArgumentException(
       key
         + " cannot be created in "
@@ -1023,6 +1031,10 @@ public class ImodManager {
   }
   protected ImodState newJoin(String root) {
     ImodState imodState = new ImodState(root + ".join");
+    return imodState;
+  }
+  protected ImodState newRotTomogram(File file) {
+    ImodState imodState = new ImodState(file);
     return imodState;
   }
   
