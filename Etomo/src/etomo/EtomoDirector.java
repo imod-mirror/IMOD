@@ -10,6 +10,8 @@ import javax.swing.ToolTipManager;
 import javax.swing.UIManager;
 import javax.swing.plaf.FontUIResource;
 
+import etomo.storage.EtomoFileFilter;
+import etomo.storage.JoinFileFilter;
 import etomo.storage.ParameterStore;
 import etomo.storage.Storable;
 import etomo.type.ConstJoinMetaData;
@@ -41,6 +43,12 @@ import etomo.util.Utilities;
  * 
  * <p>
  * $Log$
+ * Revision 1.1.2.10  2004/10/11 01:58:57  sueh
+ * bug# 520 Moved initProgram to before creating mainFrame menus to that
+ * userConfiguration could be initialized.  Using a variable called
+ * propertyUserDir instead of the "user.dir" property.  This property would
+ * need a different value for each manager.
+ *
  * Revision 1.1.2.9  2004/10/08 15:42:50  sueh
  * bug# 520 Moved SettingsDialog to EtomoDirector.  Since EtomoDirector
  * is a singleton, made all functions and member variables non-static.  The
@@ -318,7 +326,7 @@ public class EtomoDirector {
     }
   }
   
-  public UniqueKey openTomogram(String etomoDataFileName, boolean makeCurrent) {
+  private UniqueKey openTomogram(String etomoDataFileName, boolean makeCurrent) {
     ApplicationManager manager;
     if (etomoDataFileName == null
         || etomoDataFileName.equals(ConstMetaData.getNewFileTitle())) {
@@ -336,14 +344,14 @@ public class EtomoDirector {
     return openJoin(ConstJoinMetaData.getNewFileTitle(), makeCurrent);
   }
   
-  public UniqueKey openJoin(File etomoJoinFile, boolean makeCurrent) {
+  private UniqueKey openJoin(File etomoJoinFile, boolean makeCurrent) {
     if (etomoJoinFile == null) {
       return openJoin(makeCurrent);
     }
     return openJoin(etomoJoinFile.getAbsolutePath(), makeCurrent);
   }
   
-  public UniqueKey openJoin(String etomoJoinFileName, boolean makeCurrent) {
+  private UniqueKey openJoin(String etomoJoinFileName, boolean makeCurrent) {
     JoinManager manager;
     if (etomoJoinFileName == null
         || etomoJoinFileName.equals(ConstJoinMetaData.getNewFileTitle())) {
@@ -369,13 +377,34 @@ public class EtomoDirector {
     return openTomogram(ConstMetaData.getNewFileTitle(), makeCurrent);
   }
   
+  public UniqueKey openManager(File dataFile, boolean makeCurrent) {
+    if (dataFile == null) {
+      throw new IllegalStateException("null dataFile");
+    }
+    EtomoFileFilter etomoFileFilter = new EtomoFileFilter();
+    if (etomoFileFilter.accept(dataFile)) {
+      return openTomogram(dataFile, makeCurrent);
+    }
+    JoinFileFilter joinFileFilter = new JoinFileFilter();
+    if (joinFileFilter.accept(dataFile)) {
+      return openJoin(dataFile, makeCurrent);
+    }
+    String[] message = { "Unknown file type " + dataFile.getName() + ".",
+        "Open this file as an " + etomoFileFilter.getDescription() + "?" };
+    if (mainFrame.openYesNoDialog(message)) {
+      return openTomogram(dataFile, makeCurrent);
+    }
+    else {
+      return openJoin(dataFile, makeCurrent);
+    }
+  }
+  
   public UniqueKey openTomogram(File etomoDataFile, boolean makeCurrent) {
     if (etomoDataFile == null) {
       return openTomogram(makeCurrent);
     }
     return openTomogram(etomoDataFile.getAbsolutePath(), makeCurrent);
   }
-
 
   public boolean closeCurrentManager() {
     BaseManager currentManager = getCurrentManager();
