@@ -31,6 +31,10 @@ import etomo.type.SectionTableRowData;
 * <p> </p>
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.7  2004/10/29 01:17:19  sueh
+* <p> bug# 520 Removed working directory from meta data.  Getting working
+* <p> directory from propertyUserDir.
+* <p>
 * <p> Revision 1.1.2.6  2004/10/22 20:57:50  sueh
 * <p> bug# 520 Simplifying ConstSectionTableRowData by passing
 * <p> EtomoSimpleType instead of String and int.
@@ -112,6 +116,8 @@ public class MakejoincomParam {
       }
       options.add(data.getSectionAbsolutePath());
     }
+    options.add("-tmpext");
+    options.add("rot");
     ConstEtomoInteger densityRefSection = metaData.getDensityRefSection();
     if (densityRefSection.isSetAndNotDefault()) {
       options.add("-ref");
