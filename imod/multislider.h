@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.1  2002/12/27 01:19:47  mast
+Initial creation
+
 */
 
 #ifndef MULTISLIDER_H
@@ -28,14 +31,14 @@ class MultiSlider : public QObject
 
  public:
   MultiSlider(QWidget *parent, int numSliders, char *titles[], int minVal = 0,
-              int maxVal = 255);
+              int maxVal = 255, int decimals = 0);
   ~MultiSlider();
 
   void setValue(int slider, int value);
   void setRange(int slider, int minVal, int maxVal);
   QSlider *getSlider(int slider);
   QVBoxLayout *getLayout() {return mBigLayout;};
-  
+  void setDecimals(int slider, int decimals);
 
  signals:
   void sliderChanged(int slider, int value, bool dragging);
@@ -58,5 +61,6 @@ class MultiSlider : public QObject
   QVBoxLayout *mBigLayout;
   QSlider **mSliders;
   QLabel **mLabels;
+  int *mDecimals;
 };
 #endif
