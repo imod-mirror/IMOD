@@ -21,6 +21,9 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.17  2004/11/13 02:38:18  sueh
+* <p> bug# 520 Added sampleProduced state boolean.
+* <p>
 * <p> Revision 1.1.2.16  2004/11/12 22:58:00  sueh
 * <p> bug# 520 Added finishjoinTrial values:  binning, size, and shift.
 * <p>
@@ -248,17 +251,11 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
   }
 
   public boolean isValid(File workingDir) {
-    if (workingDir == null) {
-      invalidReason = JoinDialog.WORKING_DIRECTORY_TEXT + " is empty.";
+    StringBuffer invalidBuffer = new StringBuffer();
+    if (!Utilities.isValidFile(workingDir, JoinDialog.WORKING_DIRECTORY_TEXT,
+        invalidBuffer, true, true, true, true)) {
+      invalidReason = invalidBuffer.toString();
       return false;
-    }
-    if (!workingDir.isDirectory()) {
-      invalidReason = workingDir.getAbsolutePath() + ", must be a directory.";
-      return false;
-    }
-    StringBuffer buffer = new StringBuffer();
-    if (!Utilities.isValidFile(workingDir, true, true, buffer)) {
-      invalidReason = buffer.toString();
     }
     return isValid();
   }
@@ -370,6 +367,10 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
   
   public boolean isRotationTranslationMagnification() {
     return rotationTranslationMagnification;
+  }
+  
+  public boolean isSampleProduced() {
+    return sampleProduced;
   }
   
   public boolean isRotationTranslation() {
