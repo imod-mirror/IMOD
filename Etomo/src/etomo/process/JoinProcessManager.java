@@ -27,6 +27,10 @@ import etomo.type.JoinMetaData;
 * @version $Revision$
 *
 * <p> $Log$
+* <p> Revision 1.1.2.10  2004/11/12 22:54:57  sueh
+* <p> bug# 520 Added code to save binning, size, and shift after finishjoin in
+* <p> trial mode ends.
+* <p>
 * <p> Revision 1.1.2.9  2004/11/08 22:20:55  sueh
 * <p> bug# 520 Get the size in and X and Y and the offsetr in X and Y from
 * <p> FinishjoinParam when it is in Max Size mode.  Use FinishjoinParam to
@@ -78,7 +82,7 @@ public class JoinProcessManager extends BaseProcessManager {
   public String makejoincom(MakejoincomParam makejoincomParam)
       throws SystemProcessException {
     BackgroundProcess backgroundProcess = startBackgroundProcess(
-        makejoincomParam.getCommandArray(), AxisID.ONLY);
+        makejoincomParam, AxisID.ONLY);
     return backgroundProcess.getName();
   }
   
@@ -137,8 +141,10 @@ public class JoinProcessManager extends BaseProcessManager {
   protected void postProcess(ComScriptProcess script) {
   }
   
+  /**
+   * non-generic post processing for a successful BackgroundProcess.
+   */
   protected void postProcess(BackgroundProcess process) {
-    System.out.println("postProcess");
     String commandName = process.getCommandName();
     if (commandName == null) {
       return;
@@ -157,7 +163,6 @@ public class JoinProcessManager extends BaseProcessManager {
       return;
     }
     if (commandName.equals(FinishjoinParam.getName())) {
-      System.out.println("commandName.equals(FinishjoinParam.getName()");
       int mode = process.getMode();
       if (mode == FinishjoinParam.MAX_SIZE_MODE) {
         String[] stdOutput = process.getStdOutput();
@@ -180,7 +185,6 @@ public class JoinProcessManager extends BaseProcessManager {
         return;
       }
       if (mode == FinishjoinParam.TRIAL_MODE) {
-        System.out.println("mode == FinishjoinParam.TRIAL_MODE");
         JoinMetaData metaData = joinManager.getJoinMetaData();
         metaData.setFinishjoinTrialBinning(command.getBinning());
         metaData.setFinishjoinTrialSizeInX(command.getIntegerValue(FinishjoinParam.SIZE_IN_X_VALUE_NAME)); 
@@ -188,6 +192,10 @@ public class JoinProcessManager extends BaseProcessManager {
         metaData.setFinishjoinTrialShiftInX(command.getIntegerValue(FinishjoinParam.SHIFT_IN_X_VALUE_NAME));
         metaData.setFinishjoinTrialShiftInY(command.getIntegerValue(FinishjoinParam.SHIFT_IN_Y_VALUE_NAME));
       }
+    }
+    if (commandName.equals(MakejoincomParam.getName())) {
+      joinManager.getJoinMetaData().setSampleProduced(true);
+      joinManager.setMode();
     }
   }
   
