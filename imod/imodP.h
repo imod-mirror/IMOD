@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.8.2.13  2003/01/13 01:15:42  mast
+    changes for Qt version of info window
+
     Revision 3.8.2.12  2003/01/10 23:50:09  mast
     Changes for Qt version of tumbler an elimination of tilt window
 
@@ -443,18 +446,6 @@ int openContourCopyDialog(ImodView *vw);
 /* image process dialog. */
 int inputIProcOpen(ImodView *vw);
 int iprocRethink(ImodView *vw);
-
-/* imod_moviecon.c dialog */
-int imcGetIncrement(ImodView *vw, int xyzt);
-void imcGetStartEnd(ImodView *vw, int xyzt, int *stout, int *endout);
-void imodMovieConDialog(ImodView *vw);
-float imcGetInterval(void);
-void imcSetMovierate(ImodView *vw, int newrate);
-void imcResetAll(ImodView *vw);
-int imcGetLoopMode(ImodView *vw);
-int imcGetSnapshot(ImodView *vw);
-void imcStartTimer(void);
-void imcReadTimer(void);
 
 
 #ifdef __cplusplus
