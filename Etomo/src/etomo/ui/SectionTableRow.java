@@ -29,6 +29,10 @@ import etomo.util.MRCHeader;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.16  2004/11/08 22:30:12  sueh
+* <p> bug# 520 Tried setting constraints.weighty to zero to prevent the table
+* <p> from expanding.
+* <p>
 * <p> Revision 1.1.2.15  2004/10/30 02:38:38  sueh
 * <p> bug# 520 Converted rotation angles to EtomoSimpleType.
 * <p>
@@ -392,8 +396,8 @@ public class SectionTableRow {
     constraints.weighty = 1.0;
     constraints.gridwidth = 1;
     rowNumber.add(panel, layout, constraints);
-    constraints.weighty = 0.0;
     constraints.weightx = 0.0;
+    constraints.weighty = 0.0;
     table.addCell(highlighterButton);
     constraints.gridwidth = 2;
     section.add(panel, layout, constraints);
@@ -531,6 +535,10 @@ public class SectionTableRow {
   
   int getYMax() {
     return data.getYMax().get();
+  }
+  
+  int getZMax() {
+    return data.getZMax();
   }
   
   int getImodIndex() {
