@@ -40,6 +40,7 @@ import etomo.process.SystemProcessException;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.AxisTypeException;
+import etomo.type.ConstMetaData;
 import etomo.type.DialogExitState;
 import etomo.type.FiducialMatch;
 import etomo.type.MetaData;
@@ -78,6 +79,11 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.101.2.7  2004/09/29 17:27:48  sueh
+ * <p> bug# 520 Removed MainPanel pass-through functions.  Casting mainPanel
+ * <p> and other members from BaseManager to private local variables in the
+ * <p> create functions.
+ * <p>
  * <p> Revision 3.101.2.6  2004/09/15 22:32:14  sueh
  * <p> bug# 520 call openMessageDialog in mainPanel instead of mainFrame
  * <p>
@@ -2463,7 +2469,7 @@ public class ApplicationManager extends BaseManager {
     TiltParam tiltParam = comScriptMgr.getTiltParam(currentAxis);
     String alignFileExtension = currentAxis.getExtension() + "local.xf";
     if (tiltalignParam.getLocalAlignments()) {
-      tiltParam.setLocalAlignFile(getMetaData().getDatasetName() + alignFileExtension);
+      tiltParam.setLocalAlignFile(metaData.getDatasetName() + alignFileExtension);
     }
     else {
       tiltParam.setLocalAlignFile("");
@@ -5100,4 +5106,7 @@ public class ApplicationManager extends BaseManager {
     processTrack = (ProcessTrack) baseProcessTrack;
   }
   
+  public ConstMetaData getMetaData() {
+    return (ConstMetaData) baseMetaData;
+  }
 }
