@@ -10,6 +10,8 @@ import javax.swing.JButton;
 import javax.swing.JTextField;
 import javax.swing.plaf.ColorUIResource;
 
+import etomo.type.ConstSectionTableRowData;
+import etomo.type.SectionTableRowData;
 import etomo.type.SlicerAngles;
 
 /**
@@ -27,6 +29,11 @@ import etomo.type.SlicerAngles;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.3  2004/09/22 22:17:30  sueh
+* <p> bug# 520 Added set rotation angle functions.  When highlighting, tell the
+* <p> panel when the highlight is being turned off as well as when its being
+* <p> turned on (for button enable/disable).
+* <p>
 * <p> Revision 1.1.2.2  2004/09/21 18:12:04  sueh
 * <p> bug# 520 Added remove(), to remove the row from the table.  Added
 * <p> imodIndex - the vector index of the 3dmod in ImodManager.  Added
@@ -49,13 +56,18 @@ public class SectionTableRow {
       .getDefaultUIColor("TextField.selectionForeground");
   private static ColorUIResource textFieldSelectedBackground = UIUtilities
       .getDefaultUIColor("TextField.selectionBackground");
-  private int rowNumber = -1;
+  
+  //data
+  SectionTableRowData data = null;
+  
+  //state
+  private int imodIndex = -1;
   private boolean sectionExpanded = false;
+  
+  //ui
   private SectionTablePanel table = null;
   private JButton rowNumberHeader = null;
-  private int imodIndex = -1;
   private MultiLineToggleButton highlighterButton = null;
-  private File sectionFile = null;
   private JTextField section = null;
   private JTextField sampleBottomStart = null;
   private JTextField sampleBottomEnd = null;
@@ -76,9 +88,10 @@ public class SectionTableRow {
    */
   public SectionTableRow(SectionTablePanel table, int rowNumber, File tomogram,
       boolean sectionExpanded) {
-    this.rowNumber = rowNumber;
+    data = new SectionTableRowData();
+    data.setRowNumber(rowNumber);
     this.table = table;
-    sectionFile = tomogram;
+    data.setSection(tomogram);
     this.sectionExpanded = sectionExpanded;
 
     if (textFieldForeground == null) {
@@ -102,13 +115,14 @@ public class SectionTableRow {
     GridBagConstraints constraints = table.getConstraints();
     constraints.weighty = 1.0;
     constraints.gridwidth = 1;
-    rowNumberHeader = table.addHeader(Integer.toString(rowNumber),
+    rowNumberHeader = table.addHeader(data.getRowNumberString(),
         FixedDim.rowNumberWidth);
     constraints.weightx = 0.0;
     highlighterButton = table.addToggleButton("=>", FixedDim.highlighterWidth);
     highlighterButton.addActionListener(actionListener);
     constraints.gridwidth = 2;
     section = table.addField();
+    section.setEnabled(false);
     setSectionText();
     constraints.gridwidth = 1;
     sampleBottomStart = table.addField();
@@ -121,6 +135,7 @@ public class SectionTableRow {
     rotationAngleY = table.addField();
     constraints.gridwidth = GridBagConstraints.REMAINDER;
     rotationAngleZ = table.addField();
+    displayData();
   }
   
   void remove() {
@@ -142,7 +157,7 @@ public class SectionTableRow {
     GridBagConstraints constraints = table.getConstraints();
     constraints.weighty = 1.0;
     constraints.gridwidth = 1;
-    table.addHeader(rowNumberHeader, Integer.toString(rowNumber),
+    table.addHeader(rowNumberHeader, data.getRowNumberString(),
         FixedDim.rowNumberWidth);
     constraints.weightx = 0.0;
     table.addToggleButton(highlighterButton, "=>", FixedDim.highlighterWidth);
@@ -162,6 +177,33 @@ public class SectionTableRow {
     table.addField(rotationAngleZ);
   }
   
+  private void displayData() {
+    rowNumberHeader.setText(data.getRowNumberString());
+    setSectionText();
+    sampleBottomStart.setText(data.getSampleBottomStartString());
+    sampleBottomEnd.setText(data.getSampleBottomEndString());
+    sampleTopStart.setText(data.getSampleTopStartString());
+    sampleTopEnd.setText(data.getSampleTopEndString());
+    finalStart.setText(data.getFinalStartString());
+    finalEnd.setText(data.getFinalEndString());
+    rotationAngleX.setText(data.getRotationAngleXString());
+    rotationAngleY.setText(data.getRotationAngleYString());
+    rotationAngleZ.setText(data.getRotationAngleZString());
+  }
+  
+  private void retrieveData() {
+    data.setRowNumber(rowNumberHeader.getText());
+    data.setSampleBottomStart(sampleBottomStart.getText());
+    sampleBottomEnd.setText(data.getSampleBottomEndString());
+    sampleTopStart.setText(data.getSampleTopStartString());
+    sampleTopEnd.setText(data.getSampleTopEndString());
+    finalStart.setText(data.getFinalStartString());
+    finalEnd.setText(data.getFinalEndString());
+    rotationAngleX.setText(data.getRotationAngleXString());
+    rotationAngleY.setText(data.getRotationAngleYString());
+    rotationAngleZ.setText(data.getRotationAngleZString());
+  }
+  
   /**
    * Toggle section between absolute path when expand is true, and name when
    * expand is false.
@@ -169,7 +211,7 @@ public class SectionTableRow {
    */
   void expandSection(boolean expand) {
     sectionExpanded = expand;
-    if (sectionFile == null) {
+    if (data.getSection() == null) {
       return;
     }
     setSectionText();
@@ -177,15 +219,15 @@ public class SectionTableRow {
   
   private void setSectionText() {
     if (sectionExpanded) {
-      section.setText(sectionFile.getAbsolutePath());
+      section.setText(data.getSectionAbsolutePath());
     }
     else {
-      section.setText(sectionFile.getName());
+      section.setText(data.getSectionName());
     }
   }
   
   void setRowNumber(int rowNumber) {
-    this.rowNumber = rowNumber;
+    data.setRowNumber(rowNumber);
     rowNumberHeader.setText("<html><b>" + Integer.toString(rowNumber) + "</b>");
   }
   
@@ -228,7 +270,7 @@ public class SectionTableRow {
   }
   
   private void highlighterButtonAction() {
-    table.highlighting(rowNumber, highlighterButton.isSelected());
+    table.highlighting(data.getRowNumber(), highlighterButton.isSelected());
     highlight();
   }
   
@@ -237,7 +279,7 @@ public class SectionTableRow {
   }
   
   File getSectionFile() {
-    return sectionFile;
+    return data.getSection();
   }
   
   String getSectionText() {
@@ -246,6 +288,11 @@ public class SectionTableRow {
   
   int getImodIndex() {
     return imodIndex;
+  }
+  
+  ConstSectionTableRowData getData() {
+    retrieveData();
+    return data;
   }
   
   /**
@@ -285,6 +332,20 @@ public class SectionTableRow {
     rotationAngleZ.setForeground(foreground);
     rotationAngleZ.setBackground(background);
   }
+    
+  public boolean equals(Object object) {
+    if (!(object instanceof SectionTableRow))
+      return false;
+
+    SectionTableRow that = (SectionTableRow) object;
+    retrieveData();
+    
+    if (!data.equals(that.data)) {
+      return false;
+    }
+    return true;
+  }
+
   
   /**
    * Handle button actions
