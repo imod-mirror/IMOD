@@ -34,6 +34,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.12  2003/01/27 00:30:07  mast
+Pure Qt version and general cleanup
+
 Revision 1.1.2.11  2003/01/23 20:05:43  mast
 *** empty log message ***
 
@@ -748,25 +751,27 @@ void inputPointMove(ImodView *vw, int x, int y, int z)
   return;
 }
 
+/* Find the maximum value within 5 pixels of the current location */
+/* DNM 1/31/03 fixed problem with mx, my being used for max and loop limits */
 void inputFindMaxValue(ImodView *vw)
 {
   int mx, my;
-  int  x,  y;
+  int  x,  y, maxx, maxy;
   float maxpixval, pixval;
 
+  maxpixval = -1.e30;
   mx = (int)(vw->xmouse - 5);
-  my = (int)(vw->ymouse - 4);
-  maxpixval = ivwGetFileValue(vw, mx, my, (int)vw->zmouse);
-  for (x = mx; x < mx + 10; x++)
-    for (y = my - 1; y < my + 9; y++){
+  my = (int)(vw->ymouse - 5);
+  for (x = mx; x <= mx + 10; x++)
+    for (y = my ; y <= my + 10; y++){
       pixval = ivwGetFileValue(vw, x, y, (int)vw->zmouse);
       if (pixval > maxpixval){
         maxpixval = pixval;
-        mx = x; my = y;
+        maxx = x; maxy = y;
       }
     }
-  vw->xmouse = mx;
-  vw->ymouse = my;
+  vw->xmouse = maxx;
+  vw->ymouse = maxy;
 
   wprint("Pixel %g %g %g = %g\n", 
          vw->xmouse, vw->ymouse, vw->zmouse, maxpixval);
