@@ -1,6 +1,8 @@
 package etomo.process;
 
 import java.io.File;
+
+import etomo.comscript.Command;
 /**
  * <p>Description: </p>
  * 
@@ -14,6 +16,9 @@ import java.io.File;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.1  2004/08/30 18:42:02  sueh
+ * <p> bug# 508 adding notifyKill()
+ * <p>
  * <p> Revision 3.0  2003/11/07 23:19:00  rickg
  * <p> Version 1.0.0
  * <p>
@@ -61,12 +66,14 @@ public class BackgroundProcess
     "$Id$";
   private String commandLine = null;
   private File workingDirectory = null;
-  private ProcessManager processManager;
+  private BaseProcessManager processManager;
   private boolean demoMode = false;
   private boolean debug = false;
   private String[] stdOutput;
   private String[] stdError;
   private StringBuffer commandProcessID;
+  private File outputFile = null;
+  private Command command = null;
   
   private String stdoutLogFile = "";
   private String stderrLogFile = "";
@@ -74,8 +81,15 @@ public class BackgroundProcess
   private boolean started = false;
   private boolean done = false;
 
-  public BackgroundProcess(String commandLine, ProcessManager processManager) {
+  public BackgroundProcess(String commandLine, BaseProcessManager processManager) {
     this.commandLine = commandLine.trim();
+    this.processManager = processManager;
+    commandProcessID = new StringBuffer("");
+  }
+  
+  public BackgroundProcess(Command command, BaseProcessManager processManager) {
+    this.command = command;
+    this.commandLine = command.getCommandLine().trim();
     this.processManager = processManager;
     commandProcessID = new StringBuffer("");
   }
@@ -110,6 +124,20 @@ public class BackgroundProcess
    */
   public String getCommandLine() {
     return commandLine;
+  }
+  
+  public String getCommandName() {
+    if (command == null) {
+      return null;
+    }
+    return command.getCommandName();
+  }
+  
+  public File getOutputFile() {
+    if (command == null) {
+      return null;
+    }
+    return command.getOutputFile();
   }
 
   /**
