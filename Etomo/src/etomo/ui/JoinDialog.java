@@ -33,6 +33,12 @@ import etomo.type.JoinMetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.1.2.26  2004/11/09 15:45:11  sueh
+ * <p> bug# 520 Removed member variables that are unnecessary because they
+ * <p> are only used in one function.  Added createOpen3dmodPanel() to create
+ * <p> all open 3dmod with binning panels in the join dialogs.  Changed Every N
+ * <p> Sections to a spinner.
+ * <p>
  * <p> Revision 1.1.2.25  2004/11/08 22:26:15  sueh
  * <p> Bug# 520 On Join tab:  Moved finish join functionality to the left of the
  * <p> table by changing the orientation of pnlJoin.  Moved Finish Join button and
@@ -209,7 +215,7 @@ public class JoinDialog implements ContextMenu {
   private LabeledSpinner spinTrialBinning;
   private LabeledSpinner spinOpenBinnedBy;
   private LabeledSpinner spinOpenTrialBinnedBy;
-  private LabeledSpinner spinUseEveryNSections;
+  private LabeledSpinner spinUseEveryNSlices;
   
   private int numSections = 0;
   private int curTab = SETUP_TAB;
@@ -487,15 +493,15 @@ public class JoinDialog implements ContextMenu {
     DoubleSpacedPanel pnlTrialJoin = new DoubleSpacedPanel(false, FixedDim.x5_y0, FixedDim.x0_y5, new EtchedBorder("Trial Join").getBorder(), false);
     pnlTrialJoin.setComponentAlignmentX(Component.CENTER_ALIGNMENT);
     //first component
-    JPanel trialJoinPanel1 = new JPanel();
-    trialJoinPanel1.setLayout(new BoxLayout(trialJoinPanel1, BoxLayout.X_AXIS));
+    SpacedPanel trialJoinPanel1 = new SpacedPanel(FixedDim.x5_y0);
+    trialJoinPanel1.setLayout(new BoxLayout(trialJoinPanel1.getContainer(), BoxLayout.X_AXIS));
     int zMax = pnlSectionTable.getZMax();
     SpinnerModel spinnerModel = new SpinnerNumberModel(zMax < 1 ? 1
         : zMax < 10 ? zMax : 10, 1, zMax < 1 ? 1 : zMax, 1);
-    spinUseEveryNSections = new LabeledSpinner("Use every ", spinnerModel);
-    spinUseEveryNSections.setTextMaxmimumSize(dimSpinner);
-    trialJoinPanel1.add(spinUseEveryNSections.getContainer());
-    trialJoinPanel1.add(new JLabel("sections"));
+    spinUseEveryNSlices = new LabeledSpinner("Use every ", spinnerModel);
+    spinUseEveryNSlices.setTextMaxmimumSize(dimSpinner);
+    trialJoinPanel1.add(spinUseEveryNSlices);
+    trialJoinPanel1.add(new JLabel("slices"));
     pnlTrialJoin.add(trialJoinPanel1);
     //second component
     spinnerModel = new SpinnerNumberModel(1, 1, 50, 1);
@@ -539,24 +545,36 @@ public class JoinDialog implements ContextMenu {
     open3dmodPanel.addMultiLineButton(button);
     return open3dmodPanel;
   }
-
+  
+  /**
+   * change the model for spinners when the number of sections changes, but
+   * preserve any value set by the user.
+   * @param numSections
+   */
   void setNumSections(int numSections) {
     this.numSections = numSections;
     //setup
-    SpinnerModel spinnerModel = new SpinnerNumberModel(1, 1,
-        numSections < 1 ? 1 : numSections, 1);
+    EtomoInteger spinnerValue = new EtomoInteger();
+    spinnerValue.set((Integer) spinDensityRefSection.getValue());
+    spinnerValue.setDefault(1);
+    SpinnerModel spinnerModel = new SpinnerNumberModel(spinnerValue.get(true),
+        1, numSections < 1 ? 1 : numSections, 1);
     spinDensityRefSection.setModel(spinnerModel);
     spinDensityRefSection.setEnabled(numSections > 0);
     btnMakeSamples.setEnabled(numSections >= 2);
     //align
-    spinnerModel = new SpinnerNumberModel(1, 1,
+    spinnerValue.set((Integer) spinAlignmentRefSection.getValue());
+    spinnerModel = new SpinnerNumberModel(spinnerValue
+        .get(true), 1,
         numSections < 1 ? 1 : numSections, 1);
     spinAlignmentRefSection.setModel(spinnerModel);
     //every n sections
     int zMax = pnlSectionTable.getZMax();
-    spinnerModel = new SpinnerNumberModel(zMax < 1 ? 1 : zMax < 10 ? zMax : 10,
-        1, zMax < 1 ? 1 : zMax, 1);
-    spinUseEveryNSections.setModel(spinnerModel);
+    spinnerValue.set((Integer) spinUseEveryNSlices.getValue());
+    spinnerValue.setDefault(zMax < 1 ? 1 : zMax < 10 ? zMax : 10);
+    spinnerModel = new SpinnerNumberModel(spinnerValue.get(true), 1,
+        zMax < 1 ? 1 : zMax, 1);
+    spinUseEveryNSlices.setModel(spinnerModel);
   }
   
   public ConstEtomoInteger getSizeInX() {
@@ -621,12 +639,12 @@ public class JoinDialog implements ContextMenu {
     metaData.setSizeInY(ltfSizeInY.getText());
     metaData.setShiftInX(ltfShiftInX.getText());
     metaData.setShiftInY(ltfShiftInY.getText());
+    metaData.setUseEveryNSlices(spinUseEveryNSlices.getValue());
+    metaData.setTrialBinning(spinTrialBinning.getValue());
     pnlSectionTable.getMetaData(metaData);
   }
   
   public void setMetaData(ConstJoinMetaData metaData) {
-    pnlSectionTable.setMetaData(metaData);
-    pnlSectionTable.enableTableButtons(ltfWorkingDir.getText());
     ltfRootName.setText(metaData.getRootName());
     spinDensityRefSection.setValue(metaData.getDensityRefSection());
     ltfSigmaLowFrequency.setText(metaData.getSigmaLowFrequency().getString(true));
@@ -642,6 +660,10 @@ public class JoinDialog implements ContextMenu {
     ltfSizeInY.setText(metaData.getSizeInY().getString(true));
     ltfShiftInX.setText(metaData.getShiftInX().getString(true));
     ltfShiftInY.setText(metaData.getShiftInY().getString(true));
+    spinUseEveryNSlices.setValue(metaData.getUseEveryNSlices());
+    spinTrialBinning.setValue(metaData.getTrialBinning().getNumber(true));
+    pnlSectionTable.setMetaData(metaData);
+    pnlSectionTable.enableTableButtons(ltfWorkingDir.getText());
   }
   
   public void setEnabledWorkingDir(boolean enable) {
@@ -724,7 +746,7 @@ public class JoinDialog implements ContextMenu {
       joinManager.runFinishjoin(FinishjoinParam.FINISH_JOIN_MODE, FINISH_JOIN_TEXT);
     }
     else if (command.equals(btnOpenIn3dmod.getActionCommand())) {
-      joinManager.imodOpenJoin();
+      joinManager.imodOpenJoin(((Integer)spinOpenBinnedBy.getValue()).intValue());
     }
     else if (command.equals(btnGetMaxSize.getActionCommand())) {
       joinManager.runFinishjoin(FinishjoinParam.MAX_SIZE_MODE, GET_MAX_SIZE_TEXT);
