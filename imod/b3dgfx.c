@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.4.2.2  2002/12/12 01:20:32  mast
+When setting fonts, take application display if CurDisplay not defined
+
 Revision 3.4.2.1  2002/12/09 17:49:19  mast
 changes to get Zap as a Qt window
 
@@ -1756,36 +1759,8 @@ void b3dDrawString(char *string, int x, int y, int alignment)
 /***********************************/
 /*  Save window image to rgb file. */
 
-static void iputbyte(FILE *fout, unsigned char val)
-{
-  unsigned char buf[1];
-     
-  buf[0] = val;
-  fwrite(buf, 1, 1, fout);
-  return;
-}
-
-static void iputshort(FILE *fout, unsigned short val)
-{
-  unsigned char buf[2];
-     
-  buf[0] = (unsigned char)(val >> 8);
-  buf[1] = (unsigned char)(val >> 0);
-  fwrite(buf, 2, 1, fout);
-  return;
-}
-
-static void iputlong(FILE *fout, unsigned long val)
-{
-  unsigned char buf[4];
-     
-  buf[0] = (unsigned char)(val >> 24);
-  buf[1] = (unsigned char)(val >> 16);
-  buf[2] = (unsigned char)(val >>  8);
-  buf[3] = (unsigned char)(val >>  0);
-  fwrite(buf, 4, 1, fout);
-  return;
-}
+/* DNM 12/15/02 : eliminated unused iput functions, identical to ones in
+   imodv_gfx.cpp */
 
 
 #ifdef __vms
