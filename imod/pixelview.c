@@ -34,6 +34,13 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.4  2002/12/10 21:07:44  mast
+Changed the flag that it tested on so that it would draw when time changed
+and float option was on
+
+Revision 3.3  2002/12/01 15:34:41  mast
+Changes to get clean compilation with g++
+
 Revision 3.2  2002/11/27 03:23:00  mast
 Changed argument 3 of draw_cb and close_cb from long to int to avoid 
 warnings
@@ -79,7 +86,7 @@ static void pviewClose_cb(ImodView *vi, void *client, int drawflag)
 
 static void pviewDraw_cb(ImodView *vi, void *client, int drawflag)
 {
-  if (PixelViewDialog && (drawflag & IMOD_DRAW_XYZ))
+  if (PixelViewDialog && (drawflag & (IMOD_DRAW_XYZ | IMOD_DRAW_IMAGE)))
     set_pixelview(vi);
 }
 
