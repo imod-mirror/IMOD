@@ -16,6 +16,11 @@ import etomo.comscript.Command;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.1.2.1  2004/10/06 01:34:35  sueh
+ * <p> bug# 520 Using BaseProcessManager in BackgroundProcess.  Created a
+ * <p>  constructor that constructs a BackgroundProcess with a Command.
+ * <p> Added functions to get information from the Command.
+ * <p>
  * <p> Revision 3.1  2004/08/30 18:42:02  sueh
  * <p> bug# 508 adding notifyKill()
  * <p>
@@ -65,6 +70,7 @@ public class BackgroundProcess
   public static final String rcsid =
     "$Id$";
   private String commandLine = null;
+  private String[] commandArray = null;
   private File workingDirectory = null;
   private BaseProcessManager processManager;
   private boolean demoMode = false;
@@ -90,6 +96,12 @@ public class BackgroundProcess
   public BackgroundProcess(Command command, BaseProcessManager processManager) {
     this.command = command;
     this.commandLine = command.getCommandLine().trim();
+    this.processManager = processManager;
+    commandProcessID = new StringBuffer("");
+  }
+  
+  public BackgroundProcess(String[] commandArray, BaseProcessManager processManager) {
+    this.commandArray = commandArray;
     this.processManager = processManager;
     commandProcessID = new StringBuffer("");
   }
@@ -123,7 +135,16 @@ public class BackgroundProcess
    * @return File
    */
   public String getCommandLine() {
-    return commandLine;
+    if (commandLine != null) {
+      return commandLine;
+    }
+    else if (commandArray != null) {
+      return commandArray.toString();
+    }
+    else if (command != null) {
+      return command.getCommandLine();
+    }
+    return null;
   }
   
   public String getCommandName() {
@@ -145,8 +166,17 @@ public class BackgroundProcess
    * @return File
    */
   public String getCommand() {
-    String[] words = commandLine.split("\\s");
-    return words[0];
+    if (commandLine != null) {
+      String[] words = commandLine.split("\\s");
+      return words[0];
+    }
+    if (commandArray != null) {
+      return commandArray[0];
+    }
+    if (command != null) {
+      return command.getCommandName();
+    }
+    return null;
   }
   /**
    * Set the working directory in which the com script is to be run.
@@ -176,14 +206,27 @@ public class BackgroundProcess
    */
   public void run() {
     started = true;
-    SystemProgram command = new SystemProgram(commandLine);
-    command.setWorkingDirectory(workingDirectory);
-    command.setDebug(debug);
+    SystemProgram program;
+    if (commandLine != null) {
+      program = new SystemProgram(commandLine);
+    }
+    else if (commandArray != null) {
+      program = new SystemProgram(commandArray);
+    }
+    else if (command != null) {
+      program = new SystemProgram(command.getCommandLine());
+    }
+    else {
+      processManager.msgBackgroundProcessDone(this, 1);
+      return;
+    }
+    program.setWorkingDirectory(workingDirectory);
+    program.setDebug(debug);
 
     if (demoMode) {
       try {
         sleep(3000);
-        command.setExitValue(0);
+        program.setExitValue(0);
       }
       catch (InterruptedException except) {
         except.printStackTrace();
@@ -192,18 +235,18 @@ public class BackgroundProcess
     }
     else {
       // Execute the command
-      ParsePID parsePID = new ParsePID(command, commandProcessID);
+      ParsePID parsePID = new ParsePID(program, commandProcessID);
       Thread parsePIDThread = new Thread(parsePID);
       parsePIDThread.start();
-      command.run();
+      program.run();
     }
 
     //  Get any output from the command
-    stdError = command.getStdError();
-    stdOutput = command.getStdOutput();
+    stdError = program.getStdError();
+    stdOutput = program.getStdOutput();
 
     // Send a message back to the ProcessManager that this thread is done.
-    processManager.msgBackgroundProcessDone(this, command.getExitValue());
+    processManager.msgBackgroundProcessDone(this, program.getExitValue());
     done = true;
   }
 
