@@ -12,6 +12,14 @@
  * @version $$Revision$
  *
  * <p> $$Log$
+ * <p> $Revision 3.10.2.3  2004/10/11 02:29:06  sueh
+ * <p> $bug# 520 Using a variable called propertyUserDir instead of the "user.dir"
+ * <p> $property.  This property would need a different value for each manager.
+ * <p> $This variable can be retrieved from the manager if the object knows its
+ * <p> $manager.  Otherwise it can retrieve it from the current manager using the
+ * <p> $EtomoDirector singleton.  If there is no current manager, EtomoDirector
+ * <p> $gets the value from the "user.dir" property.
+ * <p> $
  * <p> $Revision 3.10.2.2  2004/10/08 16:41:57  sueh
  * <p> $bug# 520 Since EtomoDirector is a singleton, made all functions and
  * <p> $member variables non-static.
@@ -175,6 +183,52 @@ public class Utilities {
         throw (new IOException(message));
       }
     }
+  }
+  
+  public static File mostRecentFile(String file1Name, String file2Name, String file3Name, String file4Name) {
+    String workingDir = EtomoDirector.getInstance().getCurrentPropertyUserDir();
+    File file1 = null;
+    File file2 = null;
+    File file3 = null;
+    File file4 = null;
+    if (file1Name != null) {
+      file1 = new File(workingDir, file1Name);
+    }
+    if (file2Name != null) {
+      file2 = new File(workingDir, file2Name);
+    }
+    if (file3Name != null) {
+      file3 = new File(workingDir, file3Name);
+    }
+    if (file4Name != null) {
+      file4 = new File(workingDir, file4Name);
+    }
+    long file1Time = 0;
+    long file2Time = 0;
+    long file3Time = 0;
+    long file4Time = 0;
+    if (file1 != null && file1.exists()) {
+      file1Time = file1.lastModified();
+    }
+    if (file2 != null && file2.exists()) {
+      file2Time = file2.lastModified();
+    }
+    if (file3 != null && file3.exists()) {
+      file3Time = file3.lastModified();
+    }
+    if (file4 != null && file4.exists()) {
+      file4Time = file4.lastModified();
+    }
+    if (file1Time >= file2Time && file1Time >= file3Time && file1Time >= file4Time) {
+      return file1;
+    }
+    if (file2Time >= file3Time && file2Time >= file4Time) {
+      return file2;
+    }
+    if (file3Time >= file4Time) {
+      return file3;
+    }
+    return file4;
   }
 
   /**
