@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/4/04: IMOD_3-3-6
+8/4/04: Fixed display bug in Midas on AMD64.
+
 8/3/04: IMOD_3-3-5 released
 8/3/04: eTomo now makes a .rawtlt file from starting and increment tilt angles
 when making a tomogram with fiducialless alignment.
