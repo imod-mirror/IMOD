@@ -36,6 +36,9 @@ import etomo.type.JoinMetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.1.2.28  2004/11/12 23:00:36  sueh
+ * <p> bug# 520 Added setSizeAndShift() to implement get subarea.
+ * <p>
  * <p> Revision 1.1.2.27  2004/11/11 01:42:23  sueh
  * <p> bug# 520 Changed useEveryNSections to useEveryNSlices (sampling rate
  * <p> in Z).  Prevented null values from getting into useEveryNSlices and
@@ -184,6 +187,7 @@ public class JoinDialog implements ContextMenu {
   private DoubleSpacedPanel pnlAlign;
   private DoubleSpacedPanel pnlJoin;
   private SpacedPanel setupPanel1;
+  private DoubleSpacedPanel setupPanel2;
   private SpacedPanel alignPanel1;
   private SpacedPanel alignPanel2;
   private DoubleSpacedPanel pnlXfalign;
@@ -204,6 +208,8 @@ public class JoinDialog implements ContextMenu {
   private MultiLineButton btnGetSubarea;
   private MultiLineButton btnFinishJoin;
   private MultiLineButton btnOpenIn3dmod;
+  private MultiLineButton btnChangeSetup;
+  private MultiLineButton btnRevertToLastSetup;
 
 
   private LabeledTextField ltfWorkingDir;
@@ -394,6 +400,17 @@ public class JoinDialog implements ContextMenu {
     spinDensityRefSection.setTextMaxmimumSize(dimSpinner);
     spinDensityRefSection.setEnabled(false);
     //fifth component
+    setupPanel2 = new DoubleSpacedPanel(true, FixedDim.x5_y0, FixedDim.x0_y5,
+        BorderFactory.createEtchedBorder());
+    btnChangeSetup = new MultiLineButton("Change Setup");
+    btnChangeSetup.addActionListener(joinActionListener);
+    btnChangeSetup.setEnabled(false);
+    setupPanel2.addMultiLineButton(btnChangeSetup);
+    btnRevertToLastSetup = new MultiLineButton("Revert to Last Setup");
+    btnRevertToLastSetup.addActionListener(joinActionListener);
+    btnRevertToLastSetup.setEnabled(false);
+    setupPanel2.addMultiLineButton(btnRevertToLastSetup);
+    //sixth component
     btnMakeSamples = new MultiLineToggleButton("Make Samples");
     btnMakeSamples.addActionListener(joinActionListener);
     UIUtilities.setButtonSize(btnMakeSamples, dimButton);
@@ -408,6 +425,7 @@ public class JoinDialog implements ContextMenu {
     pnlSectionTable.setCurTab(SETUP_TAB);
     pnlSectionTable.displayCurTab();
     pnlSetup.add(spinDensityRefSection);
+    pnlSetup.add(setupPanel2);
     pnlSetup.add(btnMakeSamples);
   }
   
@@ -836,6 +854,12 @@ public class JoinDialog implements ContextMenu {
     else if (command.equals(btnGetSubarea.getActionCommand())) {
       setSizeAndShift(joinManager
           .imodGetRubberbandCoordinates(ImodManager.TRIAL_JOIN_KEY));
+    }
+    else if (command.equals(btnChangeSetup.getActionCommand())) {
+
+    }
+    else if (command.equals(btnRevertToLastSetup.getActionCommand())) {
+
     }
     else {
       throw new IllegalStateException("Unknown command " + command);
