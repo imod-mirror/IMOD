@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.Vector;
 
 import etomo.comscript.BadComScriptException;
+import etomo.comscript.FlipyzParam;
 import etomo.process.ImodProcess;
 import etomo.process.JoinProcessManager;
 import etomo.process.SystemProcessException;
@@ -33,6 +34,9 @@ import etomo.ui.MainJoinPanel;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.9  2004/10/01 21:00:44  sueh
+* <p> bug# 520 Added getMetaData()
+* <p>
 * <p> Revision 1.1.2.8  2004/09/29 17:42:26  sueh
 * <p> bug# 520 Casting mainPanel and other members from BaseManager to
 * <p> private local variables in the create functions.  Removed
@@ -250,10 +254,13 @@ public class JoinManager extends BaseManager {
    * Place the data from the screen in the meta data object.  Run the 
    * makejoincom script.  Run startjoin.com.
    */
-  public void startJoin() {
-    mainPanel.startProgressBar("Starting join", AxisID.ONLY);
+  public void makeSamples() {
+    mainPanel.startProgressBar("Making samples", AxisID.ONLY);
     isDataParamDirty = true;
     joinDialog.retrieveData(joinMetaData);
+    if (!joinMetaData.isValid(true)) {
+      return;
+    }
     try {
       joinProcessMgr.startJoin(joinMetaData);
     }
@@ -276,6 +283,25 @@ public class JoinManager extends BaseManager {
       return; 
     }
     mainPanel.stopProgressBar(AxisID.ONLY);
+  }
+  
+  public void flip(File tomogram, File workingDir) {
+    mainPanel.startProgressBar("Flipping " + tomogram.getName(), AxisID.ONLY);
+    FlipyzParam flipyzParam = new FlipyzParam(tomogram, workingDir);
+    try {
+      threadNameA = joinProcessMgr.flipyz(flipyzParam);
+    }
+    catch (SystemProcessException except) {
+      joinDialog.abortAddSection();
+      except.printStackTrace();
+      mainPanel.openMessageDialog("Can't run clip flipyz\n"
+        + except.getMessage(), "SystemProcessException");
+      return; 
+    }
+  }
+  
+  public void addSection(File tomogram) {
+    joinDialog.addSection(tomogram);
   }
 
   /**
