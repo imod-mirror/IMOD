@@ -22,7 +22,10 @@ import etomo.type.SectionTableRowData;
 * 
 * @version $Revision$
 * 
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1.2.1  2004/10/21 02:35:21  sueh
+* <p> bug# 520 Param for running Midas.
+* <p> </p>
 */
 public class MidasParam implements Command {
   public static  final String  rcsid =  "$Id$";
@@ -74,26 +77,16 @@ public class MidasParam implements Command {
     ArrayList options = new ArrayList();
     ArrayList sectionData = metaData.getSectionTableData();
     int sectionDataSize = sectionData.size();
-    int[] chunkSize = new int[sectionDataSize];
+    StringBuffer chunkSize = new StringBuffer();
+    options.add("-c");
     for (int i = 0; i < sectionDataSize; i++) {
       ConstSectionTableRowData data = (SectionTableRowData) sectionData.get(i);
-      chunkSize[i] = 0;
-      if (i > 0) {
-        chunkSize[i] += data.getSampleBottomEnd() - data.getSampleBottomStart() + 1;
-      }
+      chunkSize.append(data.getChunkSize().getString());
       if (i < sectionDataSize - 1) {
-        chunkSize[i] += data.getSampleTopEnd() - data.getSampleTopStart() + 1;
+        chunkSize.append(",");
       }
     }
-    StringBuffer buffer = new StringBuffer();
-    for (int i = 0; i < sectionDataSize; i++) {
-      buffer.append(chunkSize[i]);
-      if (i < sectionDataSize - 1) {
-        buffer.append(",");
-      }
-    }
-    options.add("-c");
-    options.add(buffer.toString());
+    options.add(chunkSize.toString());
     options.add("-b");
     options.add("0");
     options.add("-D");
