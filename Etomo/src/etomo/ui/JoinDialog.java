@@ -27,6 +27,12 @@ import etomo.type.JoinMetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.1.2.12  2004/10/14 03:31:38  sueh
+ * <p> bug# 520 Disabled Align and Join tabs until Make Samples is run.
+ * <p> Otherwise ImodManager is not initialized with meta data.  Added
+ * <p> functionality for Open Samples in 3dmod button.  Added invalidReason.
+ * <p> Did a validation check when loading meta data.
+ * <p>
  * <p> Revision 1.1.2.11  2004/10/14 02:28:58  sueh
  * <p> bug# 520 Fixed action().  Setting working directory in join manager when
  * <p> Make Samples is pressed.
@@ -488,7 +494,7 @@ public class JoinDialog implements ContextMenu {
       joinManager.imodOpenJoinSamples();
     }
     else if (command.equals(btnOpenSampleAverages.getActionCommand())) {
-      //TODO
+      joinManager.imodOpenJoinSampleAverages();
     }
     else if (command.equals(btnInitialAutoAlignment.getActionCommand())) {
       //TODO
