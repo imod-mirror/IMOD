@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.2  2003/01/27 00:30:07  mast
+Pure Qt version and general cleanup
+
 Revision 1.1.2.1  2003/01/10 23:42:45  mast
 initial creation
 
@@ -96,6 +99,8 @@ class TumblerWindow : public QMainWindow
   void drawBBox(TumblerStruct *xtum);
   void newData(TumblerStruct *xtum);
 
+  TumblerGL *mGLw;
+
   public slots:
     void zoomChanged(int value);
   void thresholdChanged(int which, int value, bool dragging);
@@ -125,7 +130,6 @@ class TumblerWindow : public QMainWindow
   QToolButton *mToggleButs[MAX_XTUM_TOGGLES];
   int mToggleStates[MAX_XTUM_TOGGLES];
   bool mCtrlPressed;
-  TumblerGL *mGLw;
   MultiSlider *mSliders;
   QSpinBox *mZoomBox;
   QSpinBox *mSizeBoxes[3];
