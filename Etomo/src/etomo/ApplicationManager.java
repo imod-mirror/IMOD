@@ -91,6 +91,13 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.127.2.1  2005/03/01 22:16:28  sueh
+ * <p> bug# 607 Catching Throwable in exitProgram and returning true to make
+ * <p> sure that Etomo can always exit.  Bug# 610 Keeping track of current
+ * <p> dialog type in ApplicationManager by setting it in each open function.
+ * <p> Changing saveDialog to saveCurrentDialog and use currentDialogType to
+ * <p> pick the dialog to save.
+ * <p>
  * <p> Revision 3.127  2005/02/18 23:59:08  sueh
  * <p> bug# 606 Removed MetaData (Setup) zfactors, fiducialess, wholetomogram,
  * <p> and localalignments.  Add them for A and B.
@@ -2004,7 +2011,7 @@ public class ApplicationManager extends BaseManager {
     if (updatePrenewstCom(axisID)) {
       processTrack.setCoarseAlignmentState(ProcessState.INPROGRESS, axisID);
       mainPanel.setCoarseAlignState(ProcessState.INPROGRESS, axisID);
-      nextProcess = "checkUpdateFiducialModel";
+      setNextProcess(axisID, "checkUpdateFiducialModel");
       String threadName;
       try {
         threadName = processMgr.coarseAlign(axisID);
@@ -3244,7 +3251,7 @@ public class ApplicationManager extends BaseManager {
       }
     }
 
-    nextProcess = "tilt";
+    setNextProcess(axisID, "tilt");
     String threadName;
     try {
       threadName = processMgr.newst(newstParam, axisID);
@@ -4123,7 +4130,7 @@ public class ApplicationManager extends BaseManager {
    * @param axisID
    */
   private void tiltProcess(AxisID axisID) {
-    nextProcess = "";
+    resetNextProcess(axisID);
     String threadName;
     try {
       threadName = processMgr.tilt(axisID);
@@ -5556,7 +5563,7 @@ public class ApplicationManager extends BaseManager {
    * Start the next process specified by the nextProcess string
    */
   protected void startNextProcess(AxisID axisID) {
-    if (nextProcess.equals("tilt")) {
+    if (getNextProcess(axisID).equals("tilt")) {
       tiltProcess(axisID);
     }
     /*if (nextProcess.equals("matchvol1")) {
@@ -5577,7 +5584,7 @@ public class ApplicationManager extends BaseManager {
       }
       return;
     }*/
-    if (nextProcess.equals("checkUpdateFiducialModel")) {
+    if (getNextProcess(axisID).equals("checkUpdateFiducialModel")) {
       checkUpdateFiducialModel(axisID);
       return;
     }
@@ -5667,7 +5674,7 @@ public class ApplicationManager extends BaseManager {
   }
   
   protected void checkUpdateFiducialModel(AxisID axisID) {
-    nextProcess = "";
+    resetNextProcess(axisID);
     FidXyz fidXyz = getFidXyz(axisID);
     MRCHeader prealiHeader = getMrcHeader(axisID, ".preali");
     MRCHeader rawstackHeader = getMrcHeader(axisID, ".st");
