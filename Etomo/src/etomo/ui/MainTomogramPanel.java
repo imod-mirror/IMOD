@@ -1,12 +1,9 @@
 package etomo.ui;
 
-import javax.swing.JScrollPane;
-import javax.swing.JSplitPane;
-
 import etomo.ApplicationManager;
+import etomo.EtomoDirector;
 import etomo.process.ProcessState;
 import etomo.type.AxisID;
-import etomo.type.AxisType;
 import etomo.type.ProcessTrack;
 /**
 * <p>Description: </p>
@@ -21,7 +18,12 @@ import etomo.type.ProcessTrack;
 * 
 * @version $Revision$
 * 
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1.2.1  2004/09/08 20:13:41  sueh
+* <p> bug# 520 class contains tomogram specific functionality from MainPAnel,
+* <p> which is its base class.  Casts member variables which are used as super
+* <p> classes in MainPanel.
+* <p> </p>
 */
 public class MainTomogramPanel extends MainPanel {
   public static  final String  rcsid =  "$Id$";
@@ -37,40 +39,6 @@ public class MainTomogramPanel extends MainPanel {
    */
   public MainTomogramPanel(ApplicationManager appManager) {
     super(appManager);
-  }
-
-  /**
-   * Show the processing panel for the requested AxisType
-   */
-  public void showProcessingPanel(AxisType axisType) {
-    //  Delete any existing panels
-    axisPanelA = null;
-    axisPanelB = null;
-
-    panelCenter.removeAll();
-    if (axisType == AxisType.SINGLE_AXIS) {
-      createAxisPanelA(AxisID.ONLY);
-      scrollA = new ScrollPanel();
-      scrollA.add(axisPanelA.getContainer());
-      scrollPaneA = new JScrollPane(scrollA);
-      panelCenter.add(scrollPaneA);
-    }
-    else {
-      createAxisPanelA(AxisID.FIRST);
-      scrollA = new ScrollPanel();
-      scrollA.add(axisPanelA.getContainer());
-      scrollPaneA = new JScrollPane(scrollA);
-
-      createAxisPanelB();
-      scrollB = new ScrollPanel();
-      scrollB.add(axisPanelB.getContainer());
-      scrollPaneB = new JScrollPane(scrollB);
-      splitPane =
-        new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, scrollPaneA, scrollPaneB);
-      splitPane.setDividerLocation(0.5);
-      splitPane.setOneTouchExpandable(true);
-      panelCenter.add(splitPane);
-    }
   }
   
   /**
@@ -124,6 +92,16 @@ public class MainTomogramPanel extends MainPanel {
       return castAxisPanelB();
     }
     return castAxisPanelA();
+  }
+  
+  /**
+   * Open the setup panel
+   */
+  public void openSetupPanel(SetupDialog setupDialog) {
+    panelCenter.removeAll();
+    panelCenter.add(setupDialog.getContainer());
+    revalidate();
+    EtomoDirector.getMainFrame().pack();
   }
 
   /**
@@ -211,6 +189,16 @@ public class MainTomogramPanel extends MainPanel {
     castAxisPanelA().setPostProcessingState(state);
   }
   
+  protected void createAxisPanelA(AxisID axisID) {
+    tomogramAxisPanelA = null;
+    axisPanelA = new TomogramProcessPanel(castManager(), axisID);
+  }
+
+  protected void createAxisPanelB() {
+    tomogramAxisPanelB = null;
+    axisPanelB = new TomogramProcessPanel(castManager(), AxisID.SECOND);
+  }
+  
   private ApplicationManager castManager() {
     if (manager == null) {
       throw new NullPointerException();
@@ -233,15 +221,5 @@ public class MainTomogramPanel extends MainPanel {
       tomogramAxisPanelB = (TomogramProcessPanel) axisPanelB;
     }
     return tomogramAxisPanelB;
-  }
-  
-  private void createAxisPanelA(AxisID axisID) {
-    tomogramAxisPanelA = null;
-    axisPanelA = new TomogramProcessPanel(castManager(), axisID);
-  }
-
-  private void createAxisPanelB() {
-    tomogramAxisPanelB = null;
-    axisPanelB = new TomogramProcessPanel(castManager(), AxisID.SECOND);
   }
 }
