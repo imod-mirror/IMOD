@@ -11,13 +11,17 @@
 * 
 * @version $Revision$
 * 
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2004/06/14 23:35:08  rickg
+* <p> Bug #383  Initial revision
+* <p> </p>
  */
 package etomo.comscript;
 
 import java.io.IOException;
 
 import etomo.ApplicationManager;
+import etomo.EtomoDirector;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
 import junit.framework.TestCase;
@@ -31,7 +35,8 @@ public class ComScriptManagerTest extends TestCase {
     //  Need an application manger to get the IMOD_DIR environment
     // variable
     String[] args = {"--test"};
-    ApplicationManager appManager = new ApplicationManager(args);
+    EtomoDirector.createInstance(args);
+    ApplicationManager appManager = (ApplicationManager) EtomoDirector.getInstance().getCurrentManager();
     System.out.println(ApplicationManager.getIMODDirectory().getAbsolutePath());
     ComScriptManager comScriptManager = appManager.getComScriptManager();
     try {
