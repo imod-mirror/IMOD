@@ -12,6 +12,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.6  2004/07/06 16:55:20  mast
+#  Switch from link to rename for Mac
+#
 #  Revision 3.5  2004/07/04 13:47:31  mast
 #  Added details for user and made it work with spaces in directory path
 #
@@ -192,7 +195,7 @@ endif
 
 # Make link or rename
 #
-if ($os == windows) then
+if ($os == windows || $os == osx) then
     echo "Renaming $version to IMOD"
     mv $version IMOD
 else
@@ -230,8 +233,9 @@ else
     end
 endif
 
+set vernum = `echo $version | sed '/[^0-9.]/s///g'`
 echo ""
-echo "The installation is complete."
+echo "The installation of IMOD $vernum is complete."
 echo "It is up to you to remove any previous versions when you are sure"
 echo " that you are done with them."
 echo "IMOD-related files in $installdir :"
