@@ -16,6 +16,11 @@ import etomo.comscript.Command;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.1.2.2  2004/10/08 15:52:29  sueh
+ * <p> bug# 520 Addded a command array option to the constructor.  Integrated
+ * <p> the new Command option into the existing code (run, getCommand and
+ * <p> getCommandLine).
+ * <p>
  * <p> Revision 3.1.2.1  2004/10/06 01:34:35  sueh
  * <p> bug# 520 Using BaseProcessManager in BackgroundProcess.  Created a
  * <p>  constructor that constructs a BackgroundProcess with a Command.
@@ -139,7 +144,11 @@ public class BackgroundProcess
       return commandLine;
     }
     else if (commandArray != null) {
-      return commandArray.toString();
+      StringBuffer buffer = new StringBuffer();
+      for (int i = 0; i < commandArray.length; i++) {
+        buffer.append(commandArray[i] + " ");
+      }
+      return buffer.toString();
     }
     else if (command != null) {
       return command.getCommandLine();
