@@ -35,6 +35,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.3  2002/12/10 16:57:34  mast
+preventing multiple draws, implementing current contour draw while dragging
+
 Revision 1.1.2.2  2002/12/09 23:23:49  mast
 Plugged image memory leak
 
@@ -94,7 +97,7 @@ Added hotkeys to do smoothing and next section in autocontouring
 #include "imod_cursor.h"
 #include "imod_cmask.h"
 
-#define XZAP_DEBUG
+//#define XZAP_DEBUG
 
 void inputQDefaultKeys(QKeyEvent *event, ImodView *vw);
 
@@ -1191,8 +1194,6 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
   case Qt::Key_S:
     if ((event->state() & Qt::ShiftButton) || 
         (event->state() & Qt::ControlButton)){
-      //b3dWinset(XtDisplay(zap->gfx), zap->gfx,
-      //          (XID)zap->context);
       zapDraw(zap);
       limits = NULL;
       if (zap->rubberband) {
@@ -1204,7 +1205,7 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
       }
       if (event->state() & Qt::ShiftButton)
         b3dAutoSnapshot("zap", SnapShot_RGB, limits);
-      else if (event->state() & Qt::ControlButton)
+      else
         b3dAutoSnapshot("zap", SnapShot_TIF, limits);
     }else
       inputSaveModel(vi);
