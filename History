@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/18/03: Disabled autocontrast hot key for non-existent or RGB images, and fixed
+problem with float on first image of a zap movie snapshot.
+
 12/10/03: IMOD_3-1-5
 12/8/03: Fixed Fiberpitch to ignore pixel size from image file.
 
