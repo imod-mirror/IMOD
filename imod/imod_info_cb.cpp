@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.2  2003/01/13 01:00:49  mast
+Qt version
+
 Revision 1.1.2.1  2003/01/06 15:52:16  mast
 changes for Qt version of slicer
 
@@ -72,6 +75,9 @@ Call imodDraw instead of xyz_draw after changing model/movie mode
 
 #include "imod_info.h"
 #include "imod.h"
+#include "imod_input.h"
+#include "imod_cont_edit.h"
+#include "imod_io.h"
 #include "imod_info_cb.h"
 #include "hotslider.h"
 
@@ -137,9 +143,8 @@ void imodInfoNewOCP(int which, int value, int edited)
     break;
   }
 
+  // This takes care of many updates through redraw and imod_info_setocp
   imod_setxyzmouse();
-  if (!which)
-    imod_object_edit_draw();   // CHECK FOR REDUNDANCY
 }
 
 /*
@@ -328,8 +333,11 @@ void imod_info_setocp(void)
     imod_info_setobjcolor();
 
   }
-  contSurfShow();
-  inputContourMoveDialogUpdate();
+
+  // Update dialog boxes if they are open
+  imod_object_edit_draw();
+  imodContEditSurfShow();
+  imodContEditMoveDialogUpdate();
 }
 
 /*
@@ -665,6 +673,6 @@ void imod_draw_window(void)
 
 void imod_imgcnt(char *string)
 {
-  wprint("%s\n%s\r", Statstring, string);
+  wprint("%s\r", string);
   imod_info_input();
 }
