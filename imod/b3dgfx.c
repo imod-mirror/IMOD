@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.4  2002/12/01 15:32:27  mast
+Changes to compile under g++; also eliminated all non openGL code
+
 Revision 3.3  2002/07/28 16:18:58  mast
 Added three new fractional zooms below 1.0 to make steps be 1.4-1.6
 
@@ -178,6 +181,8 @@ void b3dSetCurSize(int width, int height)
 {
   CurWidth = width;
   CurHeight = height;
+  /* Can we do this safely / */
+  CurWidget = 0;
 }
 
 void b3dResizeViewport(void)
@@ -489,8 +494,12 @@ void b3dDrawBoxout(int llx, int lly, int urx, int ury)
   unsigned int back_color;
 
   glGetIntegerv(GL_CURRENT_INDEX, &cur_color);
-  XtVaGetValues(CurWidget, XmNbackground, &back_color, NULL);
-  glIndexi(back_color);
+
+  /* TODO: figure out what to do for Qt widgets */
+  if (CurWidget) {
+    XtVaGetValues(CurWidget, XmNbackground, &back_color, NULL);
+    glIndexi(back_color);
+  }
   if (App->rgba)
     b3dColorIndex(App->background);
      
