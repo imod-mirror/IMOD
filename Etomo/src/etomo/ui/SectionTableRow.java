@@ -29,6 +29,10 @@ import etomo.util.MRCHeader;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.14  2004/10/29 22:18:33  sueh
+* <p> bug# 520 Added imodRotIndex to manage the 3dmod associated with the
+* <p> .rot file created from section when rotation angles are specified.
+* <p>
 * <p> Revision 1.1.2.13  2004/10/25 23:16:49  sueh
 * <p> bug# 520 Changed table in Align tab:  Removed Sample Slices.  Added
 * <p> Slices in Sample.  Added Chunk table.  Also add xMax and yMax.
@@ -404,9 +408,9 @@ public class SectionTableRow {
     sampleTopEnd.setText(data.getSampleTopEnd().getString(true));
     finalStart.setText(data.getFinalStartString());
     finalEnd.setText(data.getFinalEndString());
-    rotationAngleX.setText(data.getRotationAngleXString());
-    rotationAngleY.setText(data.getRotationAngleYString());
-    rotationAngleZ.setText(data.getRotationAngleZString());
+    rotationAngleX.setText(data.getRotationAngleX().getString());
+    rotationAngleY.setText(data.getRotationAngleY().getString());
+    rotationAngleZ.setText(data.getRotationAngleZ().getString());
   }
   
   private boolean retrieveData() {

@@ -19,6 +19,10 @@ import etomo.storage.Storable;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.9  2004/10/29 22:13:21  sueh
+* <p> bug# 520  Added remove() to remove section table data
+* <p> rows from the meta data file.  This gets rid of deleted rows.
+* <p>
 * <p> Revision 1.1.2.8  2004/10/25 23:01:37  sueh
 * <p> bug# 520 Fixed chunk size by passing the number of rows to
 * <p> ConstJoinMetaData.getChunkSize and checking the rowNumber when
@@ -61,9 +65,6 @@ public abstract class ConstSectionTableRowData implements Storable {
   protected static final String sectionString = "Section";
   protected static final String finalStartString = "FinalStart";
   protected static final String finalEndString = "FinalEnd";
-  protected static final String rotationAngleXString = "RotationAngleX";
-  protected static final String rotationAngleYString = "RotationAngleY";
-  protected static final String rotationAngleZString = "RotationAngleZ";
   protected static final String zMaxString = "ZMax";
   
   protected static final String sampleBottomStartName = "Starting bottom sample slice";
@@ -84,9 +85,9 @@ public abstract class ConstSectionTableRowData implements Storable {
   protected EtomoInteger sampleTopEnd = new EtomoInteger("SampleTopEnd");
   protected int finalStart;
   protected int finalEnd;
-  protected double rotationAngleX;
-  protected double rotationAngleY;
-  protected double rotationAngleZ;
+  protected EtomoDouble rotationAngleX = new EtomoDouble("RotationAngleX");
+  protected EtomoDouble rotationAngleY = new EtomoDouble("RotationAngleY");
+  protected EtomoDouble rotationAngleZ = new EtomoDouble("RotationAngleZ");
   protected EtomoInteger xMax = new EtomoInteger("XMax");
   protected EtomoInteger yMax = new EtomoInteger("YMax");
   protected int zMax = Integer.MIN_VALUE;
@@ -95,6 +96,12 @@ public abstract class ConstSectionTableRowData implements Storable {
   
   public abstract void load(Properties props);
   public abstract void load(Properties props, String prepend);
+  
+  protected ConstSectionTableRowData() {
+    rotationAngleX.setDefault(0);
+    rotationAngleY.setDefault(0);
+    rotationAngleZ.setDefault(0);
+  }
   
   public String toString() {
     return getClass().getName() + "[" + paramString() + "]";
@@ -110,12 +117,12 @@ public abstract class ConstSectionTableRowData implements Storable {
         + ",\n" + sampleTopEnd.getDescription() + "="
         + sampleTopEnd.getString() + ",\n" + finalStartString + "="
         + finalStart + ",\n" + finalEndString + "=" + finalEnd + ",\n"
-        + rotationAngleXString + "=" + rotationAngleX + ",\n"
-        + rotationAngleYString + "=" + rotationAngleY + ",\n"
-        + rotationAngleZString + "=" + rotationAngleZ + ",\n" + xMax.getDescription()
-        + "=" + xMax.getString() + ",\n" + yMax.getDescription()
-        + "=" + yMax.getString() + ",\n" + zMaxString
-        + "=" + zMax;
+        + rotationAngleX.getDescription() + "=" + rotationAngleX.getString()
+        + ",\n" + rotationAngleY.getDescription() + "="
+        + rotationAngleY.getString() + ",\n" + rotationAngleZ.getDescription()
+        + "=" + rotationAngleZ.getString() + ",\n" + xMax.getDescription()
+        + "=" + xMax.getString() + ",\n" + yMax.getDescription() + "="
+        + yMax.getString() + ",\n" + zMaxString + "=" + zMax;
   } 
   
   public void store(Properties props) {
@@ -136,9 +143,9 @@ public abstract class ConstSectionTableRowData implements Storable {
     sampleTopEnd.store(props, prepend);
     props.setProperty(group + finalStartString, Integer.toString(finalStart));
     props.setProperty(group + finalEndString, Integer.toString(finalEnd));
-    props.setProperty(group + rotationAngleXString, Double.toString(rotationAngleX));
-    props.setProperty(group + rotationAngleYString, Double.toString(rotationAngleY));
-    props.setProperty(group + rotationAngleZString, Double.toString(rotationAngleZ));
+    rotationAngleX.store(props, prepend);
+    rotationAngleY.store(props, prepend);
+    rotationAngleZ.store(props, prepend);
   }
   
   void remove(Properties props, String prepend) {
@@ -155,9 +162,9 @@ public abstract class ConstSectionTableRowData implements Storable {
     sampleTopEnd.remove(props, prepend);
     props.remove(group + finalStartString);
     props.remove(group + finalEndString);
-    props.remove(group + rotationAngleXString);
-    props.remove(group + rotationAngleYString);
-    props.remove(group + rotationAngleZString);
+    rotationAngleX.remove(props, prepend);
+    rotationAngleY.remove(props, prepend);
+    rotationAngleZ.remove(props, prepend);
   }
 
   
@@ -311,18 +318,16 @@ public abstract class ConstSectionTableRowData implements Storable {
     return convertToString(finalEnd);
   }
   
-  public boolean isRotationAngleSet() {
-    return !Double.isNaN(rotationAngleX);
-  }
-  public String getRotationAngleYString() {
-    return convertToString(rotationAngleY);
+  public EtomoSimpleType getRotationAngleX() {
+    return rotationAngleX;
   }
   
-  public String getRotationAngleXString() {
-    return convertToString(rotationAngleX);
+  public EtomoSimpleType getRotationAngleY() {
+    return rotationAngleY;
+  }
+
+  public EtomoSimpleType getRotationAngleZ() {
+    return rotationAngleZ;
   }
   
-  public String getRotationAngleZString() {
-    return convertToString(rotationAngleZ);
-  }
 }
