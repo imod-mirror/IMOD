@@ -11,6 +11,10 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.17.2.2  2004/10/08 16:41:27  sueh
+ * <p> bug# 520 Since EtomoDirector is a singleton, made all functions and
+ * <p> member variables non-static.
+ * <p>
  * <p> Revision 3.17.2.1  2004/09/15 22:47:53  sueh
  * <p> bug# 520 call openMessageDialog in mainPanel instead of mainFrame.
  * <p>
@@ -526,7 +530,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
   public void initializeFields(ConstMetaData metaData) {
 
     if (!metaData.getDatasetName().equals("")) {
-      String canonicalPath = System.getProperty("user.dir") + "/"
+      String canonicalPath = applicationManager.getPropertyUserDir() + "/"
           + metaData.getDatasetName();
       ltfDataset.setText(canonicalPath);
     }
@@ -604,7 +608,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
       metaData.setDatasetName(ltfDataset.getText());
     }
     else {
-      metaData.setDatasetName(System.getProperty("user.dir") + "/"
+      metaData.setDatasetName(applicationManager.getPropertyUserDir() + "/"
           + ltfDataset.getText());
     }
     return metaData;
@@ -666,7 +670,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     File dataset = new File(datasetText);
     if (!dataset.isAbsolute()) {
 
-      dataset = new File(System.getProperty("user.dir") + File.separator
+      dataset = new File(applicationManager.getPropertyUserDir() + File.separator
           + datasetText);
     }
     return dataset.getParentFile();
@@ -742,8 +746,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
   //
   private void btnDatasetAction(ActionEvent event) {
     //  Open up the file chooser in the working directory
-    JFileChooser chooser = new JFileChooser(new File(System
-      .getProperty("user.dir")));
+    JFileChooser chooser = new JFileChooser(new File(applicationManager.getPropertyUserDir()));
     StackFileFilter stackFilter = new StackFileFilter();
     chooser.setFileFilter(stackFilter);
     chooser.setPreferredSize(new Dimension(400, 400));
@@ -765,7 +768,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     //  Open up the file chooser in the working directory
     String currentBackupDirectory = ltfBackupDirectory.getText();
     if (currentBackupDirectory.equals("")) {
-      currentBackupDirectory = System.getProperty("user.dir");
+      currentBackupDirectory = applicationManager.getPropertyUserDir();
     }
     JFileChooser chooser = new JFileChooser(new File(currentBackupDirectory));
     chooser.setPreferredSize(new Dimension(400, 400));
@@ -794,7 +797,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
         currentDistortionDirectory = distortionDir.getAbsolutePath();
       }
       else {
-        currentDistortionDirectory = System.getProperty("user.dir");
+        currentDistortionDirectory = applicationManager.getPropertyUserDir();
       }
     }
     JFileChooser chooser = new JFileChooser(

@@ -47,6 +47,10 @@ import etomo.util.MRCHeader;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.10  2004/10/08 16:36:00  sueh
+* <p> bug# Using SectionTableRow.setRowNumber() to change the status of
+* <p> sample slice numbers.
+* <p>
 * <p> Revision 1.1.2.9  2004/10/06 02:29:41  sueh
 * <p> bug# 520 Fixed flip tomogram functionality.  If the user wants to flip the
 * <p> tomogram, call JoinManager flip and exit.  Also disable the Add Section
@@ -426,8 +430,7 @@ public class SectionTablePanel implements ContextMenu, Expandable, Table {
   private void addSection() {
 
     //  Open up the file chooser in the working directory
-    JFileChooser chooser = new JFileChooser(new File(System
-        .getProperty("user.dir")));
+    JFileChooser chooser = new JFileChooser(new File(joinManager.getPropertyUserDir()));
     TomogramFileFilter tomogramFilter = new TomogramFileFilter();
     chooser.setFileFilter(tomogramFilter);
     chooser.setPreferredSize(new Dimension(400, 400));

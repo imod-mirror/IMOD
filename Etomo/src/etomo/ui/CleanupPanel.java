@@ -37,6 +37,9 @@ import etomo.storage.IntermediateFileFilter;
  * 
  * <p>
  * $Log$
+ * Revision 3.2.4.2  2004/09/15 22:39:14  sueh
+ * bug# 520 call openMessageDialog in mainPanel instead of mainFrame
+ *
  * Revision 3.2.4.1  2004/09/07 17:58:53  sueh
  * bug# 520 getting dataset name from metadata
  *
@@ -119,7 +122,7 @@ public class CleanupPanel {
     fileChooser.setFileFilter(intermediateFileFilter);
     fileChooser.setMultiSelectionEnabled(true);
     fileChooser.setControlButtonsAreShown(false);
-    fileChooser.setCurrentDirectory(new File(System.getProperty("user.dir")));
+    fileChooser.setCurrentDirectory(new File(applicationManager.getPropertyUserDir()));
 
     pnlCleanup.setLayout(new BoxLayout(pnlCleanup, BoxLayout.Y_AXIS));
     pnlCleanup.setBorder(
