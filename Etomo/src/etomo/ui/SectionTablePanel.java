@@ -1,6 +1,5 @@
 package etomo.ui;
 
-import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
@@ -14,11 +13,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 import javax.swing.BorderFactory;
-import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SpinnerModel;
 import javax.swing.SpinnerNumberModel;
@@ -52,6 +49,12 @@ import etomo.util.MRCHeader;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.24  2004/11/09 16:19:55  sueh
+* <p> bug# 520 Removed small functions that where only being called once from
+* <p> one member function: createRootPanel, displayCurTabInRows,
+* <p> enableRowButtons(), flipSection, setCurTabInRows.  Using function in
+* <p> JoinDialog to create open in 3dmod panel, removing createImodPanel
+* <p>
 * <p> Revision 1.1.2.23  2004/11/08 22:29:27  sueh
 * <p> bug# 520 Removed excess spacing around table or excess spacing in
 * <p> table by wrapping the whole tabel in a panel with a grid layout with a 2,1
@@ -875,6 +878,7 @@ public class SectionTablePanel implements ContextMenu, Expandable {
     if (rowIndex == -1) {
       return;
     }
+    int binning = ((Integer) this.spinBinning.getValue()).intValue();
     SectionTableRow row = (SectionTableRow) rows.get(rowIndex);
     File sectionFile = row.getSectionFile();
     //if join tab, open .rot file, if it exists and is listed in .info file
@@ -889,8 +893,8 @@ public class SectionTablePanel implements ContextMenu, Expandable {
           if (rotSectionFile.exists()) {
             //open rotTomogram 3dmod and keep track of it
             row.setImodRotIndex(joinManager.imodOpenFile(
-                ImodManager.ROT_TOMOGRAM_KEY, rotSectionFile, row
-                    .getImodRotIndex()));
+                ImodManager.ROT_TOMOGRAM_KEY, row
+                    .getImodRotIndex(), rotSectionFile, binning));
             return;
           }
         }
@@ -898,7 +902,7 @@ public class SectionTablePanel implements ContextMenu, Expandable {
     }
     //open tomogram 3dmod and keep track of it
     row.setImodIndex(joinManager.imodOpenFile(ImodManager.TOMOGRAM_KEY,
-        sectionFile, row.getImodIndex()));
+        row.getImodIndex(), sectionFile, binning));
   }
 
   private void imodGetAngles() {
