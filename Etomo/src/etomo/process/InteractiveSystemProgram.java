@@ -19,6 +19,9 @@ import etomo.type.EtomoLong;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.0.6.3  2004/10/28 17:05:51  sueh
+ * <p> bug# 520 Rename oldOutputFileTime to outputFileLastModified.
+ * <p>
  * <p> Revision 3.0.6.2  2004/10/21 02:43:00  sueh
  * <p> bug# 520 Created a constructor which takes a Command interface.  This
  * <p> lets ProcessManager and JoinProcessManager do non-generic post
@@ -223,11 +226,8 @@ public class InteractiveSystemProgram implements Runnable {
     return line;
   }
   
-  public File getOutputFile() {
-    if (commandParam == null) {
-      return null;
-    }
-    return commandParam.getOutputFile();
+  public Command getCommand() {
+    return commandParam;
   }
   
   public EtomoLong getOutputFileLastModified() {
