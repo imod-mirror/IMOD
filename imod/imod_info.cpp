@@ -40,6 +40,9 @@
     $Revision$
 
     $Log$
+    Revision 1.1.2.1  2003/01/13 01:00:08  mast
+    Qt version
+
     Revision 3.2.2.2  2002/12/19 04:37:12  mast
     Cleanup of unused global variables and defines
 
@@ -61,7 +64,7 @@
 #include <qlayout.h>
 #include <qtextedit.h>
 #include <qframe.h>
-#include <qvbox.h>
+#include <qtimer.h>
 #include "imod_info.h"
 #include "imod.h"
 #include "imod_info_cb.h"
@@ -89,6 +92,8 @@ InfoControls *ImodInfoWidget;
 InfoWindow::InfoWindow(QWidget * parent, const char * name, WFlags f)
   : QMainWindow(parent, name, f)
 {
+  mMinimized = false;
+
   QMenuBar *menuBar = new QMenuBar(this);
   mFileMenu = new QPopupMenu();
   menuBar->insertItem("&File", mFileMenu);
@@ -269,6 +274,9 @@ InfoWindow::InfoWindow(QWidget * parent, const char * name, WFlags f)
   setFocusPolicy(StrongFocus);
   mStatusEdit->setFocusPolicy(NoFocus);
   wprintWidget(mStatusEdit);
+
+  mHideTimer = new QTimer(this, "imod info hide timer");
+  connect(mHideTimer, SIGNAL(timeout()), this, SLOT(hideTimeout()));
 }
 
 void InfoWindow::pluginSlot(int item)
@@ -276,14 +284,15 @@ void InfoWindow::pluginSlot(int item)
   imodPlugOpen(item);
 }
 
-// Key events: keep track of the control key; pass on keys
+// Key events: keep track of the control key; pass on keys (except escape!)
 void InfoWindow::keyPressEvent ( QKeyEvent * e )
 {
   if (e->key() == hotSliderKey() && hotSliderFlag() != NO_HOT_SLIDER) {
     imodInfoCtrlPress(1);
     grabKeyboard();
   }
-  ivwControlKey(0, e);
+  if (e->key() != Qt::Key_Escape)
+    ivwControlKey(0, e);
 }
 
 void InfoWindow::keyReleaseEvent ( QKeyEvent * e )
@@ -301,6 +310,33 @@ void InfoWindow::closeEvent ( QCloseEvent * e )
   e->ignore();
 }
 
+// Routines to manage the hiding and showing of other windows when this
+// window is minimized or brought back
+void InfoWindow::showEvent(QShowEvent *e)
+{
+  if (mMinimized) {
+     imodDialogManager.show();
+  }
+  mMinimized = false;
+}
+
+// For a hide event, hide dialogs if the window is minimized; but 
+// if not, do a one-shot timer to check again; workaround to bug 
+// in RH  7.3/ Qt 3.0.5
+void InfoWindow::hideEvent(QHideEvent *e)
+{
+  hideTimeout();
+  if (!mMinimized)
+    mHideTimer->start(1, true);
+}
+
+void InfoWindow::hideTimeout()
+{
+  if (isMinimized()) {
+    mMinimized = true;
+    imodDialogManager.hide();
+  }
+}
 
 
 /* 1/12/03: removed unused imod_info_force, imod_info_pending and 
