@@ -18,6 +18,11 @@ import java.util.Properties;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.3  2004/10/06 01:54:45  sueh
+* <p> bug# 520 Removed Use density reference checkbox.  Created
+* <p> isValidForMakeSamples() which validates for the situation when Make
+* <p> Samples is pressed.
+* <p>
 * <p> Revision 1.1.2.2  2004/10/01 19:45:26  sueh
 * <p> bug# 520 Define a new join string that will go in the menu.  Set a file
 * <p> extension value.
@@ -89,6 +94,10 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
   }
 
   public boolean isValid(boolean fromScreen) {
+    return true;
+  }
+  
+  public boolean isValid(File paramFile) {
     return true;
   }
 
