@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 1.1.2.1  2003/01/02 15:45:09  mast
+    changes for new controller key callback
+
     Revision 3.1.2.1  2002/12/19 04:37:13  mast
     Cleanup of unused global variables and defines
 
@@ -41,566 +44,402 @@
 
 */
 
-#include <Xm/MainW.h>
-#include <Xm/Frame.h>
-#include <Xm/PushB.h>
-#include <Xm/DrawingA.h>
-#include <Xm/Form.h>
-#include <Xm/ArrowB.h>
-#include <Xm/RowColumn.h>
-#include <X11/keysym.h>
-#include <Xm/VirtKeys.h>
-#include <Xm/Protocols.h>
-#include <Xm/AtomMgr.h>
 #include <math.h>
+#include <stdlib.h>
+#include <qlabel.h>
+#include <qvbox.h>
+#include <qapplication.h>
+#include <qhbox.h>
+#include <qlayout.h>
+#include <qbitmap.h>
+#include <qcombobox.h>
+#include <qsignalmapper.h>
+#include <qtoolbutton.h>
+#include <qfont.h>
+#include <qtooltip.h>
+#include <qpushbutton.h>
+#include "arrowbutton.h"
+#include "xgraph.h"
 
 #include "imod.h"
 #include "control.h"
 
-/*#include "xgraph.h" */
 
-#ifdef DRAW_GL
-long Igraphx_Window;
-long Igraphy_Window;
-long Igraphz_Window;
-int imod_igraph_input(Device dev, short val){return(0);}
-void imod_igraph_close(char axis){return;}
-int imod_igraph_draw(struct ViewInfo *vi){return(0);}
-struct ViewInfo Igraphx_vi;
-struct ViewInfo Igraphy_vi;
-struct ViewInfo Igraphz_vi;
-#endif
+#include "lowres.bits"
+#include "highres.bits"
+#include "lock.bits"
+#include "unlock.bits"
 
-#define button_width  16
-#define button_height 16
-#define XGRAPH_PAXIS_HEIGHT 20
-
-static unsigned char lock_bits[] = {
-  0xf8, 0x0f, 0x0c, 0x18, 0x06, 0x30, 0x03, 0x60, 0x03, 0x60, 0x03, 0x60,
-  0x03, 0x60, 0xff, 0x7f, 0xff, 0x7f, 0xff, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f,
-  0x7f, 0x7f, 0x7f, 0x7f, 0xff, 0x7f, 0xff, 0x7f};
-
-static unsigned char unlock_bits[] = {
-  0xf8, 0x0f, 0x08, 0x18, 0x00, 0x30, 0x00, 0x60, 0x00, 0x60, 0x00, 0x60,
-  0x00, 0x60, 0xff, 0x7f, 0xff, 0x7f, 0xff, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f,
-  0x7f, 0x7f, 0x7f, 0x7f, 0xff, 0x7f, 0xff, 0x7f};
-
-static unsigned char lowres_bits[] = {
-  0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0x0f, 0x0f, 0x0f, 0x0f,
-  0x0f, 0x0f, 0x0f, 0x0f, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0,
-  0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f};
-
-static unsigned char highres_bits[] = {
-  0xcc, 0xcc, 0xcc, 0xcc, 0x33, 0x33, 0x33, 0x33, 0xcc, 0xcc, 0xcc, 0xcc,
-  0x33, 0x33, 0x33, 0x33, 0xcc, 0xcc, 0xcc, 0xcc, 0x33, 0x33, 0x33, 0x33,
-  0xcc, 0xcc, 0xcc, 0xcc, 0x33, 0x33, 0x33, 0x33};
+#define BM_WIDTH 16
+#define BM_HEIGHT 16
+#define XGRAPH_WIDTH 320
+#define XGRAPH_HEIGHT 160
+#define AUTO_RAISE true
 
 
-struct imod_xgraph_struct
+static void graphClose_cb(ImodView *vi, void *client, int junk);
+static void graphDraw_cb(ImodView *vi, void *client, int drawflag);
+static void graphKey_cb(ImodView *vi, void *client, int released,
+			QKeyEvent *e);
+
+static unsigned char *bitList[MAX_GRAPH_TOGGLES][2] =
+  { {lowres_bits, highres_bits},
+    {unlock_bits, lock_bits}};
+
+static QBitmap *bitmaps[MAX_GRAPH_TOGGLES][2];
+static int firstTime = 1;
+
+enum {GRAPH_XAXIS, GRAPH_YAXIS, GRAPH_ZAXIS, GRAPH_CONTOUR, GRAPH_HISTOGRAM};
+
+// Open a graph dialog
+int xgraphOpen(struct ViewInfo *vi)
 {
-  struct ViewInfo *vi;
+  GraphStruct *xg;
 
-  Widget        dialog;
-  Widget        gfx;
-  Widget        paxis;
-  Widget        vaxis;
-  XtWorkProcId  work_id;
-  XtIntervalId  iid;
-  XtAppContext  app;
-  XID           context;
-  GC            vaxis_context;
-  GC            paxis_context;
-  XFontStruct   *font;
-  XmFontList    fontlist;
-  Pixmap        lockpix;
-  Pixmap        unlockpix;
-  Pixmap        lowrespix;
-  Pixmap        highrespix;
+  xg = (GraphStruct *)malloc (sizeof(GraphStruct));
+  if (!xg)
+    return(-1);
 
-  int    exposed;
-  int    vexposed, pexposed;
-  int    width, height;
-  int    zoom;
-  float *data;
-  int    dsize;
-  int    cpt;
-  float  cx, cy, cz; /* current location. */
-  int    co, cc, cp; /* current object, contour, point */
-  int    axis;
-  int    locked;
-  int    highres;
-  float  offset;
-  float  scale;
-  float  min, max;
-  int    start;
-  int    ctrl;
-};
+  xg->vi      = vi;
+  xg->axis    = 0;
+  xg->zoom    = 1.0;
+  xg->data    = NULL;
+  xg->dsize   = 0;
+  xg->locked  = False;
+  xg->highres = 0;
 
-static void    addworkproc(XtPointer client, XtIntervalId *id);
-static void    tupdate(XtPointer client, XtIntervalId *id);
-static Boolean work_update(XtPointer client_data);
-static void setxyz(struct imod_xgraph_struct *xg, int mx, int my);
+  xg->dialog = new GraphWindow(xg, App->qtRgba, App->qtDoubleBuffer,
+			       App->qtEnableDepth, NULL, "graph window");
+  if (!xg->dialog){
+    free(xg);
+    wprint("Error opening graph window.");
+    return(-1);
+  }
 
-void xgraphDraw(struct imod_xgraph_struct *xg);
-void xgraphDrawAxis(struct imod_xgraph_struct *xg);
-void xgraphDrawPlot(struct imod_xgraph_struct *xg);
-void xgraphDrawPaxis(struct imod_xgraph_struct *xg);
-void xgraphDrawVaxis(struct imod_xgraph_struct *xg);
-void xgraphStringDraw(Widget w, GC context, char *string, int x, int y, 
-                      int width, unsigned char align);
+  xg->dialog->setCaption(imodCaption("Imod Graph"));
 
-void graphClose_cb(ImodView *vi, void *client, int junk);
-void graphDraw_cb(ImodView *vi, void *client, int drawflag);
+  xg->ctrl = ivwNewControl (xg->vi, graphDraw_cb, graphClose_cb, graphKey_cb,
+			    (void *)xg);
+  xg->dialog->show();
 
-/* Make nice ticks. */
+  return(0);
+}
+
+// The close signal back from the controller
+static void graphClose_cb(ImodView *vi, void *client, int junk)
+{
+  GraphStruct *xg = (GraphStruct *)client;
+  xg->dialog->close();
+}
+
+// The draw signal from the controller
+static void graphDraw_cb(ImodView *vi, void *client, int drawflag)
+{
+  GraphStruct *xg = (GraphStruct *)client;
+
+  if (!xg) return;
+
+
+  if (drawflag & IMOD_DRAW_XYZ){
+    if (!xg->locked){
+      if ((xg->cx != xg->vi->xmouse) ||
+          (xg->cy != xg->vi->ymouse) ||
+          (xg->cz != xg->vi->zmouse)){
+        xg->dialog->xgraphDraw(xg);
+        return;
+      }
+    }
+  }
+
+  if (drawflag & (IMOD_DRAW_ACTIVE | IMOD_DRAW_IMAGE)){
+    xg->dialog->xgraphDraw(xg);
+    return;
+  }
+
+  if ((drawflag & IMOD_DRAW_MOD) && xg->axis == GRAPH_CONTOUR){
+    xg->dialog->xgraphDraw(xg);
+    }
+  return;
+}
+
+static void graphKey_cb(ImodView *vi, void *client, int released,
+			QKeyEvent *e)
+{
+  GraphStruct *xg = (GraphStruct *)client;
+  xg->dialog->externalKeyEvent (e, released);
+}
+
 /*
-  void xgraphTicks(float *min, float *max, float *step)
-  {
+ * IMPLEMENTATION OF THE GraphWindow CLASS
+ *
+ * Constructor to build the window
+ */
+GraphWindow::GraphWindow(GraphStruct *graph, bool rgba,
+            bool doubleBuffer, bool enableDepth, QWidget * parent,
+            const char * name, WFlags f)
+  : QMainWindow(parent, name, f)
+{
+  int j;
+  ArrowButton *arrow;
+  mGraph = graph;
+
+  // Make central vbox and top frame containing an hbox
+  QVBox *central = new QVBox(this, "central");
+  setCentralWidget(central);
+  QFrame * topFrame = new QFrame(central, "topFrame");
+  topFrame->setFrameStyle(QFrame::Raised | QFrame::StyledPanel);
+
+  // Life lessons!  The frame needs a layout inside it; just putting a box
+  // in it does not do the trick, and it asserts no size
+  QHBoxLayout *topLayout = new QHBoxLayout(topFrame, 4);
+  QHBox *topBox = new QHBox(topFrame, "topBox");
+  topLayout->addWidget(topBox);
+  if (!(AUTO_RAISE))
+      topBox->setSpacing(4);
+
+  // Add the toolbar widgets
+  // Zoom arrows
+  arrow = new ArrowButton(Qt::UpArrow, topBox, "zoomup button");
+  arrow->setAutoRaise(AUTO_RAISE);
+  connect(arrow, SIGNAL(clicked()), this, SLOT(zoomUp()));
+  QToolTip::add(arrow, "Increase scale along the pixel axis");
+  arrow = new ArrowButton(Qt::DownArrow, topBox, "zoom down button");
+  arrow->setAutoRaise(AUTO_RAISE);
+  connect(arrow, SIGNAL(clicked()), this, SLOT(zoomDown()));
+  QToolTip::add(arrow, "Decrease scale along the pixel axis");
+
+  // Make the 2 toggle buttons and their signal mapper
+  QSignalMapper *toggleMapper = new QSignalMapper(topBox);
+  connect(toggleMapper, SIGNAL(mapped(int)), this, SLOT(toggleClicked(int)));
+  for (j = 0; j < 2; j++)
+    setupToggleButton(topBox, toggleMapper, j);
+
+  QToolTip::add(mToggleButs[0], "Display file values instead of scaled bytes");
+  QToolTip::add(mToggleButs[1], "Lock X/Y/Z position being displayed");
+
+  // The axis combo box
+  QComboBox *axisCombo = new QComboBox(topBox, "axis combo");
+  axisCombo->insertItem("X-axis", GRAPH_XAXIS);
+  axisCombo->insertItem("Y-axis", GRAPH_YAXIS);
+  axisCombo->insertItem("Z-axis", GRAPH_ZAXIS);
+  axisCombo->insertItem("Contour", GRAPH_CONTOUR);
+  axisCombo->insertItem("Histogram", GRAPH_HISTOGRAM);
+  axisCombo->setFocusPolicy(NoFocus);
+  connect(axisCombo, SIGNAL(activated(int)), this, SLOT(axisSelected(int)));
+  
+  QToolTip::add(axisCombo, "Select axis to graph");
+
+  /*
+  // Help button
+  QPushButton *pbutton = new QPushButton("Help", topBox, "Help button");
+  int width = (int)(1.2 * pbutton->fontMetrics().width("Help"));
+  pbutton->setFixedWidth(width);
+  pbutton->setFocusPolicy(QWidget::NoFocus);
+  connect(pbutton, SIGNAL(pressed()), this, SLOT(help()));
+  */
+
+  QHBox *topSpacer = new QHBox(topBox);
+  topBox->setStretchFactor(topSpacer, 1);
+
+  // Now a frame to put a grid layout in
+  QFrame *botFrame = new QFrame(central, "botFrame");
+  QGridLayout *layout = new QGridLayout(botFrame, 2, 2);
+  QVBox *leftBox = new QVBox(botFrame, "leftBox");
+  layout->addWidget(leftBox, 0, 0);
+  QVBox *spacer = new QVBox(botFrame, "spacer");
+  layout->addWidget(spacer, 1, 0);
+  QHBox *botBox = new QHBox(botFrame, "botBox");
+  layout->addWidget(botBox, 1, 1);
+  layout->setRowStretch(0, 1);
+  layout->setColStretch(1, 1);
+
+  // A frame for the graph widget, and a layout inside it, and the GL widget
+  QFrame *graphFrame = new QFrame(botFrame, "graphFrame");
+  graphFrame->setFrameStyle(QFrame::Sunken | QFrame::StyledPanel);
+  layout->addWidget(graphFrame, 0, 1);
+  QVBoxLayout *graphLayout = new QVBoxLayout(graphFrame);
+  graphLayout->setMargin(3);
+  QGLFormat glFormat;
+  glFormat.setRgba(rgba);
+  glFormat.setDoubleBuffer(doubleBuffer);
+  glFormat.setDepth(enableDepth);
+  mGLw = new GraphGL(graph, glFormat, graphFrame);
+  graphLayout->addWidget(mGLw);
+
+  // Get a bigger font for the labels
+  float font_scale = 1.25;
+  QFont newFont = QApplication::font();
+  float pointSize = newFont.pointSizeFloat();
+  if (pointSize > 0) {
+    newFont.setPointSizeFloat(pointSize * font_scale);
+  } else {
+    int pixelSize = newFont.pixelSize();
+    newFont.setPixelSize((int)floor(pixelSize * font_scale + 0.5));
   }
-*/
 
-static void quit_cb(Widget w, XtPointer client, XtPointer call)
-{
-  struct imod_xgraph_struct *win = (struct imod_xgraph_struct *)client;
-  if (win)
-    ivwDeleteControl(win->vi, win->ctrl);
-  return;
+  // Get the labels, give them the bigger font
+  mPlabel1 = new QLabel(botBox);
+  mPlabel1->setFont(newFont);
+  mPlabel1->setAlignment(Qt::AlignLeft | Qt::AlignTop);
+  mPlabel2 = new QLabel(botBox);
+  mPlabel2->setFont(newFont);
+  mPlabel2->setAlignment(Qt::AlignCenter | Qt::AlignTop);
+  mPlabel3 = new QLabel(botBox);
+  mPlabel3->setFont(newFont);
+  mPlabel3->setAlignment(Qt::AlignRight | Qt::AlignTop);
+
+  mVlabel1 = new QLabel("-88888", leftBox);
+  mVlabel1->setFont(newFont);
+  mVlabel1->setAlignment(Qt::AlignRight | Qt::AlignTop);
+  mVlabel2 = new QLabel(leftBox);
+  mVlabel2->setFont(newFont);
+  mVlabel2->setAlignment(Qt::AlignRight | Qt::AlignBottom);
+
+  QSize hint = mVlabel1->sizeHint();
+  leftBox->setMinimumWidth(hint.width() + 5);
+
+  resize(XGRAPH_WIDTH, XGRAPH_HEIGHT);
+  setFocusPolicy(QWidget::StrongFocus);
 }
 
-static void ginit_cb(Widget w, XtPointer client, XtPointer call)
+// Set up one toggle button, making bitmaps for the two state
+void GraphWindow::setupToggleButton(QHBox *toolBar, QSignalMapper *mapper,
+				    int ind)
 {
-  struct imod_xgraph_struct *xg = (struct imod_xgraph_struct *)client;
-     
-  if (xg->exposed) return;
-     
-  xg->context = b3dGetContext(w);
-  b3dWinset(XtDisplay(xg->gfx), xg->gfx, xg->context);
-  b3dResizeViewport();
-  return;
-}
-static void pexpose_cb(Widget w, XtPointer client, XtPointer call)
-{
-  struct imod_xgraph_struct *xg = (struct imod_xgraph_struct *)client;
-  XmFontList fontlist;
-
-  if (!xg->pexposed){
-    xg->pexposed = True;
-    xg->paxis_context = (GC)b3dGetXContext(xg->paxis);
-    return;
+  if (firstTime) {
+    bitmaps[ind][0] = new QBitmap(BM_WIDTH, BM_HEIGHT, bitList[ind][0], true);
+    bitmaps[ind][1] = new QBitmap(BM_WIDTH, BM_HEIGHT, bitList[ind][1], true);
   }
-  xgraphDrawPaxis(xg);
-  return;
+  mToggleButs[ind] = new QToolButton(toolBar, "toolbar toggle");
+  mToggleButs[ind]->setPixmap(*bitmaps[ind][0]);
+  mToggleButs[ind]->setAutoRaise(AUTO_RAISE);
+  mapper->setMapping(mToggleButs[ind],ind);
+  connect(mToggleButs[ind], SIGNAL(clicked()), mapper, SLOT(map()));
+  mToggleStates[ind] = 0;
 }
-static void vexpose_cb(Widget w, XtPointer client, XtPointer call)
+
+/* 
+ * SLOTS FOR GRAPHWINDOW
+ *
+ * Zoom up and down
+ */
+void GraphWindow::zoomUp()
 {
-  struct imod_xgraph_struct *xg = (struct imod_xgraph_struct *)client;
-  XmFontList fontlist;
-  XGCValues val;
-     
-  if (!xg->vexposed){
-    xg->vexposed = True;
-    xg->vaxis_context = (GC)b3dGetXContext(xg->vaxis);
-    return;
+  mGraph->zoom = b3dStepPixelZoom(mGraph->zoom, 1);
+  xgraphDraw(mGraph);
+}
+
+void GraphWindow::zoomDown()
+{
+  mGraph->zoom = b3dStepPixelZoom(mGraph->zoom, -1);
+  xgraphDraw(mGraph);
+}
+
+void GraphWindow::help()
+{
+
+}
+
+// Toggle button
+void GraphWindow::toggleClicked(int index)
+{
+  int state = 1 - mToggleStates[index];
+  mToggleStates[index] = state;
+  mToggleButs[index]->setPixmap(*bitmaps[index][state]);
+  if (!index) {
+
+    // High res button toggled
+    mGraph->highres = state;
+    xgraphDraw(mGraph);
+  } else {
+
+    // Lock button toggled: draw if unlocking
+    mGraph->locked = state;
+    if (!state)
+      xgraphDraw(mGraph);
   }
-  xgraphDrawVaxis(xg);
-  return;
 }
 
-static void expose_cb(Widget w, XtPointer client, XtPointer call)
+// Axis selection
+void GraphWindow::axisSelected(int item)
 {
-  struct imod_xgraph_struct *xg = (struct imod_xgraph_struct *)client;
-  Dimension winx, winy;
-
-  if (!xg->exposed){
-    XtVaGetValues(w, XmNwidth, &winx, XmNheight, &winy, NULL);
-    xg->width  = winx;
-    xg->height = winy;
-    ginit_cb(w, client, call);
-    xg->exposed = True;
-  }
-  b3dWinset(XtDisplay(xg->gfx), xg->gfx, xg->context);
-  b3dResizeViewport();
-  xgraphDraw(xg);
-  return;
+  mGraph->axis = item;
+  xgraphDraw(mGraph);
 }
 
-static void resize_cb(Widget w, XtPointer client, XtPointer call)
+// For the program to set toggle states
+void GraphWindow::setToggleState(int index, int state)
 {
-  struct imod_xgraph_struct *xg = (struct imod_xgraph_struct *)client;
-  Dimension winx, winy;
-     
-  XtVaGetValues(w, XmNwidth, &winx, XmNheight, &winy, NULL);
-  xg->width  = winx;
-  xg->height = winy;
-  if (xg->exposed){
-    b3dWinset(XtDisplay(xg->gfx), xg->gfx, xg->context);
-    b3dResizeViewport();
-    xgraphDraw(xg);
-  }
-  return;
+  mToggleStates[index] = state ? 1 : 0;
+  mToggleButs[index]->setPixmap(*bitmaps[index][state]);
 }
 
-static void input_cb(Widget w, XtPointer client, XtPointer call)
+/*
+ * EVENT RESPONSES
+ *
+ * Key press: close on Escape, zoom up or down on =/-, and pass on others
+ */
+void GraphWindow::keyPressEvent ( QKeyEvent * e )
 {
-  struct imod_xgraph_struct *xg = (struct imod_xgraph_struct *)client;
-  B3dDrawingAreaCallbackStruct *cbs = (B3dDrawingAreaCallbackStruct *)call;
-  int charcount;
-  char buffer[1];
-  int bufsize = 1;
-  KeySym keysym;
+  ivwControlPriority(mGraph->vi, mGraph->ctrl);
+ int key = e->key();
+  if (key == Qt::Key_Escape)
+    close();
 
-  switch(cbs->event->type){                                                
-                                                                              
-  case KeyPress:                                                        
-    charcount = XLookupString                                           
-      ((XKeyEvent *)cbs->event, buffer, bufsize, &keysym, NULL);     
-    if (charcount){                                                     
-      switch(buffer[0]){                                             
-      case '=':                                                   
-        xg->zoom += 1;
-        break;                                                    
-      case '-':                                                   
-        xg->zoom -= 1;
-        if (xg->zoom < 1)
-          xg->zoom = 1;                                      
-        break;                                                    
-      }                                                              
-    }                                                                   
-    break;                                                              
-  case ButtonPress:                                                     
-    XmProcessTraversal(xg->gfx, XmTRAVERSE_CURRENT);                    
-    if (cbs->event->xbutton.button == 1)                                
-      setxyz(xg, cbs->event->xbutton.x,                              
-             cbs->event->xbutton.y);                                 
-    break;                                                              
-                                                                              
-  }                                                                        
-  return;                                                                  
-}                                                                             
-                                                                              
-static void zoomup_cb(Widget w, XtPointer client, XtPointer call)             
-{                                                                             
-  struct imod_xgraph_struct *xg = (struct imod_xgraph_struct *)client;     
-  xg->zoom++;                                                              
-  xgraphDraw(xg);                                                          
-  return;                                                                  
-}                                                                             
-static void zoomdown_cb(Widget w, XtPointer client, XtPointer call)           
-{                                                                             
-  struct imod_xgraph_struct *xg = (struct imod_xgraph_struct *)client;     
-  xg->zoom--;                                                              
-  if (!xg->zoom)                                                           
-    xg->zoom = 1;                                                       
-  xgraphDraw(xg);                                                          
-  return;                                                                  
-}                                                                             
-                                                                              
-static void xaxis_cb(Widget w, XtPointer client, XtPointer call)              
-{                                                                             
-  struct imod_xgraph_struct *xg = (struct imod_xgraph_struct *)client;     
-  xg->axis = 0;                                                            
-  xgraphDraw(xg);                                                          
-  return;                                                                  
-}                                                                             
-static void yaxis_cb(Widget w, XtPointer client, XtPointer call)              
-{                                                                             
-  struct imod_xgraph_struct *xg = (struct imod_xgraph_struct *)client;     
-  xg->axis = 1;                                                            
-  xgraphDraw(xg);                                                          
-  return;                                                                  
-}                                                                             
-static void zaxis_cb(Widget w, XtPointer client, XtPointer call)              
-{                                                                             
-  struct imod_xgraph_struct *xg = (struct imod_xgraph_struct *)client;     
-  xg->axis = 2;                                                            
-  xgraphDraw(xg);                                                          
-  return;                                                                  
-}                                                                             
-static void caxis_cb(Widget w, XtPointer client, XtPointer call)              
-{                                                                             
-  struct imod_xgraph_struct *xg = (struct imod_xgraph_struct *)client;     
-  xg->axis = 4;                                                            
-  xgraphDraw(xg);                                                          
-  return;                                                                  
+  else if (key == Qt::Key_Equal)
+    zoomUp();
+
+  else if (key == Qt::Key_Minus)
+    zoomDown();
+
+  else
+    inputQDefaultKeys(e, mGraph->vi);
 }
 
-static void haxis_cb(Widget w, XtPointer client, XtPointer call)
+// Pass on a key press to event processor
+void GraphWindow::externalKeyEvent ( QKeyEvent * e, int released)
 {
-  struct imod_xgraph_struct *xg = (struct imod_xgraph_struct *)client;
-  xg->axis = 5;
-  xgraphDraw(xg);
-  return;
+  if (!released)
+    keyPressEvent(e);
 }
-                                                                              
-static void lock_cb(Widget w, XtPointer client, XtPointer call)               
-{                                                                             
-  struct imod_xgraph_struct *xg = (struct imod_xgraph_struct *)client;     
-                                                                              
-  if (xg->locked){                                                         
-    xg->locked = False;                                                 
-    XtVaSetValues(w, XmNlabelPixmap, xg->unlockpix, NULL);              
-  }else{                                                                   
-    xg->locked = True;                                                  
-    XtVaSetValues(w, XmNlabelPixmap, xg->lockpix, NULL);                
-  }                                                                        
-  return;                                                                  
-}                                                                             
-                                                                              
-static void res_cb(Widget w, XtPointer client, XtPointer call)                
-{                                                                             
-  struct imod_xgraph_struct *xg = (struct imod_xgraph_struct *)client;     
-                                                                              
-  if (xg->highres){                                                        
-    xg->highres = False;                                                
-    XtVaSetValues(w, XmNlabelPixmap, xg->lowrespix, NULL);              
-  }else{                                                                   
-    xg->highres = True;                                                 
-    XtVaSetValues(w, XmNlabelPixmap, xg->highrespix, NULL);             
-  }                                                                        
-  xgraphDraw(xg);                                                          
-  return;                                                                  
-}                                                                             
-                                                                              
-/* DNM 12/18/02: removed stub for old igraph.h */                                                   
-int xgraphOpen(struct ViewInfo *vi)                                           
-{                                                                             
-  struct imod_xgraph_struct *xg;                                           
-  char *window_name;                                                       
-  Widget mw, frame, form, tools;                                           
-  Widget row, button, menu;                                                
-  Widget pulldown, option, pb1, pb2, pb3, pb4;                             
-                                                                              
-  Atom            wmclose;                                                 
-  Arg             args[10];                                                
-  Cardinal        n = 0;                                                   
-  Pixel           fg, bg;                                                  
-  int             depth;                                                   
-                                                                              
-  xg = (struct imod_xgraph_struct *)malloc                                 
-    (sizeof(struct imod_xgraph_struct));                                
-  if (!xg)                                                                 
-    return(-1);                                                         
-                                                                              
-  xg->vi      = vi;                                                        
-  xg->axis    = 0;                                                         
-  xg->exposed = xg->pexposed = xg->vexposed = False;                       
-  xg->width   = 300;                                                       
-  xg->height  = 150;                                                       
-  xg->zoom    = 1;                                                         
-  xg->data    = NULL;                                                      
-  xg->dsize   = 0;                                                         
-  xg->locked  = False;                                                     
-  xg->work_id = 0;                                                         
-  xg->iid     = 0;                                                         
-  xg->app     = App->context;                                              
-  xg->highres = 0;                                                         
-  xg->context = 0;
-  xg->paxis_context = xg->vaxis_context = 0;
-  xg->paxis = xg->vaxis = 0;
-  window_name = imodwfname("IMOD Graph: ");                                
-                                                                              
-  xg->dialog = XtVaCreatePopupShell                                        
-    ("Graph", topLevelShellWidgetClass, App->toplevel,                  
-     XmNvisual, App->visual,                                            
-     XtNtitle, window_name,                                             
-     XmNwidth, xg->width,                                               
-     XmNheight, xg->height,                                             
-     NULL);                                                             
-  if (window_name)                                                         
-    free(window_name);                                                  
-  if (!xg->dialog){                                                        
-    free(xg);                                                           
-    return(-1);                                                         
-  }                                                                        
-                                                                              
-  mw = XtVaCreateManagedWidget                                             
-    ("graph",  xmMainWindowWidgetClass,  xg->dialog,                    
-     NULL);                                                             
-                                                                              
-  tools = XtVaCreateManagedWidget                                          
-    ("frame", xmFrameWidgetClass, mw,                                   
-     XmNshadowType, XmSHADOW_OUT,                                       
-     NULL);                                                             
-                                                                              
-  row = XtVaCreateManagedWidget                                            
-    ("toolrow", xmRowColumnWidgetClass, tools,                          
-     XmNorientation, XmHORIZONTAL,                                      
-     NULL);                                                             
-                                                                              
-  {                                                                        
-    button = XtVaCreateManagedWidget                                    
-      ("+", xmPushButtonWidgetClass, row, NULL);                     
-    XtAddCallback(button, XmNactivateCallback, zoomup_cb,               
-                  (XtPointer)xg);                                       
-    button = XtVaCreateManagedWidget                                    
-      ("-", xmPushButtonWidgetClass, row, NULL);                     
-    XtAddCallback(button, XmNactivateCallback, zoomdown_cb,             
-                  (XtPointer)xg);                                       
-                                                                              
-    XtVaGetValues(button,                                               
-                  XmNforeground, &fg,                                   
-                  XmNbackground, &bg,                                   
-                  XmNdepth, &depth,                                     
-                  NULL);                                                
-    xg->lockpix = XCreatePixmapFromBitmapData                           
-      (App->display, XtWindow(App->toplevel), (char *)lock_bits,     
-       button_width, button_height,                                  
-       fg, bg, depth);                                               
-    xg->unlockpix = XCreatePixmapFromBitmapData                         
-      (App->display, XtWindow(App->toplevel), (char *)unlock_bits,   
-       button_width, button_height,                                  
-       fg, bg, depth);                                               
-    button = XtVaCreateManagedWidget                                    
-      ("Lock", xmPushButtonWidgetClass, row,                         
-       XmNlabelType, XmPIXMAP,                                       
-       XmNlabelPixmap, xg->unlockpix,                                
-       NULL);                                                        
-    XtAddCallback(button, XmNactivateCallback, lock_cb,                 
-                  (XtPointer)xg);                                       
-                                                                              
-    xg->highrespix = XCreatePixmapFromBitmapData                        
-      (App->display, XtWindow(App->toplevel), (char *)highres_bits,  
-       button_width, button_height,                                  
-       fg, bg, depth);                                               
-    xg->lowrespix = XCreatePixmapFromBitmapData                         
-      (App->display, XtWindow(App->toplevel), (char *)lowres_bits,   
-       button_width, button_height,                                  
-       fg, bg, depth);                                               
-    button = XtVaCreateManagedWidget                                    
-      ("Res", xmPushButtonWidgetClass, row,                          
-       XmNlabelType, XmPIXMAP,                                       
-       XmNlabelPixmap, xg->lowrespix,                                
-       NULL);                                                        
-    XtAddCallback(button, XmNactivateCallback, res_cb,                  
-                  (XtPointer)xg);                                       
-                                                                              
-    XtSetArg(args[n], XmNvisual, App->visual); n++;                     
-    pulldown = XmCreatePulldownMenu                                     
-      (row, "option_pd", args, n);                                   
-    pb1 = XtVaCreateManagedWidget                                       
-      ("X-axis", xmPushButtonWidgetClass, pulldown, NULL);           
-    XtAddCallback(pb1, XmNactivateCallback, xaxis_cb, (XtPointer)xg);   
-    pb2 = XtVaCreateManagedWidget                                       
-      ("Y-axis", xmPushButtonWidgetClass, pulldown, NULL);           
-    XtAddCallback(pb2, XmNactivateCallback, yaxis_cb, (XtPointer)xg);   
-    pb3 = XtVaCreateManagedWidget                                       
-      ("Z-axis", xmPushButtonWidgetClass, pulldown, NULL);           
-    XtAddCallback(pb3, XmNactivateCallback, zaxis_cb, (XtPointer)xg);   
-    pb4 = XtVaCreateManagedWidget                                       
-      ("Contour", xmPushButtonWidgetClass, pulldown, NULL);          
-    XtAddCallback(pb4, XmNactivateCallback, caxis_cb, (XtPointer)xg);
-    pb4 = XtVaCreateManagedWidget               
-      ("Histo.", xmPushButtonWidgetClass, pulldown, NULL);           
-    XtAddCallback(pb4, XmNactivateCallback, haxis_cb, (XtPointer)xg);
 
-    XtSetArg(args[n], XmNsubMenuId, pulldown); n++;                     
-    XtSetArg(args[n], XmNmenuHistory, pb1);    n++;                     
-    option =  XmCreateOptionMenu(row, "option_rc", args, n);            
-                                                                              
-    XtManageChild(option);                                              
-  }                                                                        
-                                                                              
-  XtManageChild(row);                                                      
-  XtManageChild(tools);                                                    
-                                                                              
-  form  = XtVaCreateManagedWidget("form", xmFormWidgetClass, mw, NULL);    
-                                                                              
-  xg->vaxis = XtVaCreateManagedWidget                                      
-    ("axis", xmDrawingAreaWidgetClass, form,                            
-     XmNwidth,          50,                                             
-     XmNleftAttachment, XmATTACH_FORM,                                  
-     XmNtopAttachment,    XmATTACH_FORM,                                
-     XmNbottomAttachment, XmATTACH_FORM,                                
-     NULL);                                                             
-  XtAddCallback(xg->vaxis,XmNexposeCallback, vexpose_cb, (XtPointer)xg);   
-                                                                              
-  xg->paxis = XtVaCreateManagedWidget                                      
-    ("axis", xmDrawingAreaWidgetClass, form,                            
-     XmNheight,           XGRAPH_PAXIS_HEIGHT,                          
-     XmNleftAttachment,   XmATTACH_WIDGET,                              
-     XmNleftWidget,       xg->vaxis,                                    
-     XmNrightAttachment,  XmATTACH_FORM,                                
-     XmNbottomAttachment, XmATTACH_FORM,                                
-     NULL);                                                             
-  XtAddCallback(xg->paxis,XmNexposeCallback, pexpose_cb, (XtPointer)xg);   
-                                                                              
-  frame = XtVaCreateManagedWidget                                          
-    ("frame", xmFrameWidgetClass, form,                                 
-     XmNshadowType, XmSHADOW_IN,                                        
-     XmNtopAttachment,    XmATTACH_FORM,                                
-     XmNrightAttachment,  XmATTACH_FORM,                                
-     XmNleftAttachment,   XmATTACH_WIDGET,                              
-     XmNleftWidget,       xg->vaxis,                                    
-     XmNbottomAttachment, XmATTACH_WIDGET,                              
-     XmNbottomWidget,     xg->paxis,                                    
-     NULL);                                                             
-                                                                              
-  xg->gfx = XtVaCreateManagedWidget                                        
-    ("gfx", B3dDrawingAreaWidgetClass, frame,                           
-     XmNnavigationType, XmNONE,                                         
-     XmNtraversalOn, True,                                              
-     XmNtranslations, XtParseTranslationTable (B3DGFX_Translations),    
-#ifdef DRAW_OpenGL                                                            
-     GLwNvisualInfo, App->visualinfoGL,
-     XmNcolormap,         App->cmapGL,
-#endif                                                                        
-#ifdef DRAW_GL                                                                
-     GlxNglxConfig, B3DGFX_GLXconfig_doublebuffer,                      
-#endif                                                                        
-     NULL);                                                             
-  XtAddCallback(xg->gfx,B3dNexposeCallback, expose_cb, (XtPointer)xg);     
-  XtAddCallback(xg->gfx,B3dNresizeCallback, resize_cb, (XtPointer)xg);     
-  XtAddCallback(xg->gfx,B3dNinputCallback,  input_cb,  (XtPointer)xg);     
-                                                                              
-  XtManageChild(frame);                                                    
-  XtManageChild(form);                                                     
-                                                                              
-#ifdef MWSETWORK                                                              
-  XtVaSetValues(mw,XmNworkWindow,form,NULL);                               
-#endif                                                                        
-  XmMainWindowSetAreas( mw, NULL, tools, NULL, NULL, form);                
-                                                                              
-  XtManageChild(mw);                                                       
-                                                                              
-  xg->font = b3dGetXFontStruct("9x15");                                    
-                                                                              
-  wmclose = XmInternAtom( XtDisplay(xg->dialog),                           
-                          "WM_DELETE_WINDOW", False);                       
-  XmAddWMProtocolCallback(xg->dialog, wmclose, quit_cb,                    
-                          (caddr_t)xg);                                    
-  XtPopup(xg->dialog, XtGrabNone);                                         
+// When close event comes in, clean up and accept the event
+void GraphWindow::closeEvent ( QCloseEvent * e )
+{
+  ivwRemoveControl(mGraph->vi, mGraph->ctrl);
+  if (mGraph->data)
+    free(mGraph->data);
+  free(mGraph);
+  e->accept();
+}
 
-  /*     xg->iid = XtAppAddTimeOut
-   *  (xg->app, 3000L, tupdate, (XtPointer)xg);                            
-   */
-        
-  xg->ctrl = ivwNewControl
-    (xg->vi, graphDraw_cb, graphClose_cb, NULL,
-     (XtPointer)xg);
+/*
+ * DRAWING ROUTINES 
+ *
+ * The called drawing routine just calls an update on the GL widget
+ */
+void GraphWindow::xgraphDraw(GraphStruct *xg)
+{
+  mGLw->updateGL();
+}
 
-  return(0);                                                               
-}                                                                             
-                                                                              
-                                                                              
-void xgraphFillData(struct imod_xgraph_struct *xg)                            
-{                                                                             
-  int dsize, xsize;                                                        
+// Fill the data structure for drawing
+void GraphWindow::xgraphFillData(GraphStruct *xg)
+{
+  int dsize, xsize;
   /*     unsigned char **idata = xg->vi->idata; */
   unsigned char *image = NULL;
-  int cx, cy, cz, i;                                                       
-  int co, cc, cp;                                                          
+  int cx, cy, cz, i;
+  int co, cc, cp;
   Icont *cont;
   Ipoint *pt1, *pt2;
-  float xs, ys, zs;
   int   pmax, pt;
-  int   di = 0;
-  float x, y, z;
   int curpt;
   float frac, totlen, curint;
   Ipoint scale;
-                                                                              
-  if (!xg->vi)                                                             
-    return;                                                             
+
+  if (!xg->vi)
+    return;
 
   if (! (xg->data))
     xg->dsize = 0;
@@ -613,7 +452,7 @@ void xgraphFillData(struct imod_xgraph_struct *xg)
   cz = (int)(xg->cz + 0.5);
 
   switch(xg->axis){
-  case 0: /* X axis */
+  case GRAPH_XAXIS:
     image = ivwGetCurrentZSection(xg->vi);
     dsize = xg->vi->xsize;
     if (dsize > xg->dsize){
@@ -631,19 +470,19 @@ void xgraphFillData(struct imod_xgraph_struct *xg)
     /* DNM: skip out if outside limits */
     if (cz < 0 || cz >= xg->vi->zsize || cy < 0 || cy >= xg->vi->ysize)
       break;
-    if (xg->highres)                                                    
-      for(i = 0; i < dsize; i++)                                     
-        xg->data[i] = ivwGetFileValue(xg->vi, i, cy, cz);         
-    else      
+    if (xg->highres)
+      for(i = 0; i < dsize; i++)
+        xg->data[i] = ivwGetFileValue(xg->vi, i, cy, cz);
+    else
       for(i = 0; i < dsize; i++)
         if (image)
           xg->data[i] = image[i + xsize];
         else
           xg->data[i] = xg->vi->hdr->amean;
     break;
-          
-          
-  case 1: /* Y axis */
+
+
+  case GRAPH_YAXIS:
     image = ivwGetCurrentZSection(xg->vi);
     dsize = xg->vi->ysize;
     if (dsize > xg->dsize){
@@ -654,17 +493,17 @@ void xgraphFillData(struct imod_xgraph_struct *xg)
     xg->dsize = dsize;
     for(i = 0; i < dsize; i++) xg->data[i] = 0.0f;
     cz = (int)(xg->vi->zmouse + 0.5f);
-    xsize = xg->vi->xsize;                                              
+    xsize = xg->vi->xsize;
     cx = (int)(xg->vi->xmouse + 0.5f);
     xg->cpt = (int)xg->cy;
 
     /* DNM: skip out if outside limits */
     if (cx < 0 || cx >= xg->vi->xsize || cz < 0 || cz >= xg->vi->zsize)
       break;
-    if (xg->highres)                                                    
-      for(i = 0; i < dsize; i++)                                     
-        xg->data[i] = ivwGetFileValue(xg->vi, cx, i, cz);         
-    else                                                                
+    if (xg->highres)
+      for(i = 0; i < dsize; i++)
+        xg->data[i] = ivwGetFileValue(xg->vi, cx, i, cz);
+    else
       for(i = 0; i < dsize; i++){
         if (image)
           xg->data[i] = image[(i*xsize) + cx];
@@ -673,7 +512,7 @@ void xgraphFillData(struct imod_xgraph_struct *xg)
       }
     break;
 
-  case 2: /* Z axis */
+  case GRAPH_ZAXIS:
     dsize = xg->vi->zsize;
     if (dsize > xg->dsize){
       if (xg->data)
@@ -685,28 +524,27 @@ void xgraphFillData(struct imod_xgraph_struct *xg)
     for(i = 0; i < dsize; i++) xg->data[i] = 0.0f;
     cx = (int)(xg->vi->xmouse + 0.5f);
     cy = (int)(xg->cy + 0.5f);
-    xsize = cx + (cy * xg->vi->xsize);                                  
+    xsize = cx + (cy * xg->vi->xsize);
     xg->cpt = (int)xg->cz;
 
     /* DNM: skip out if outside limits */
     if (cx < 0 || cx >= xg->vi->xsize || cy < 0 || cy >= xg->vi->ysize)
       break;
-    if (xg->highres)                                                    
-      for(i = 0; i < dsize; i++)                                     
-        xg->data[i] = ivwGetFileValue(xg->vi, cx, cy, i);         
-    else                                                                
-      for(i = 0; i < dsize; i++)                                     
+    if (xg->highres)
+      for(i = 0; i < dsize; i++)
+        xg->data[i] = ivwGetFileValue(xg->vi, cx, cy, i);
+    else
+      for(i = 0; i < dsize; i++)
         xg->data[i] = ivwGetValue(xg->vi, cx, cy, i);
     break;
 
-  case 3: /* Rotate */                                                  
-    break;
 
-  case 4: /* Contour : DNM got this working properly, and in 3D */
-    co = xg->co = xg->vi->imod->cindex.object;                          
-    cc = xg->cc = xg->vi->imod->cindex.contour;                         
-    cp = xg->cp = xg->vi->imod->cindex.point;                           
-    cont = imodContourGet(xg->vi->imod);                
+    /* Contour : DNM got this working properly, and in 3D */
+  case GRAPH_CONTOUR:
+    co = xg->co = xg->vi->imod->cindex.object;
+    cc = xg->cc = xg->vi->imod->cindex.contour;
+    cp = xg->cp = xg->vi->imod->cindex.point;
+    cont = imodContourGet(xg->vi->imod);
     if (!cont) return;
     if (cont->psize < 2) return;
 
@@ -717,15 +555,15 @@ void xgraphFillData(struct imod_xgraph_struct *xg)
     scale.y = 1.0;
     scale.z = 1.0;
     if (cp < 0) cp = 0;
-    if (cp >= cont->psize) cp = cont->psize - 1;
+    if (cp >= (int)cont->psize) cp = (int)cont->psize - 1;
     xg->cpt = 0;
-    for (i = 1; i < cont->psize; i++) {
+    for (i = 1; i < (int)cont->psize; i++) {
       totlen += imodPoint3DScaleDistance(&cont->pts[i-1],
                                          &cont->pts[i], &scale);
       if (i == cp)
         xg->cpt = (int)(totlen + 0.5);
     }
-          
+
     dsize = (int)(totlen + 1.0);
     if (dsize > xg->dsize){
       if (xg->data)    free(xg->data);
@@ -763,6 +601,8 @@ void xgraphFillData(struct imod_xgraph_struct *xg)
         pt1 = pt2;
         pt2 = &cont->pts[curpt++];
         curint = imodPoint3DScaleDistance(pt1, pt2, &scale);
+	if (curpt >= (int)cont->psize)
+	  break;
       }
       frac = 0;
       if (curint)
@@ -780,7 +620,7 @@ void xgraphFillData(struct imod_xgraph_struct *xg)
 
     break;
 
-  case 5: /* Generate histogram. */
+  case GRAPH_HISTOGRAM:
     image = ivwGetCurrentZSection(xg->vi);
     if (image){
       dsize = 256;
@@ -800,131 +640,58 @@ void xgraphFillData(struct imod_xgraph_struct *xg)
       }
       xg->cpt = image[cx + (cy * xg->vi->xsize)];
     }
-    break;                                                              
-                                                                              
-  default:                                                              
-    break;                                                              
-  }                                                                        
-  return;                                                                  
-}                                                                             
-                                                                             
-                                                                             
-void xgraphDraw(struct imod_xgraph_struct *xg)                               
-{                                                                             
-  if (!xg->exposed)                                                        
-    return;                                                             
-                                                                              
-  if (!xg->locked)                                                         
-    xgraphFillData(xg);                                                 
-                                                                              
-  if (!xg->data)                                                           
-    return;                                                             
-                                                                              
-  b3dWinset(XtDisplay(xg->gfx), xg->gfx, xg->context);                     
-  b3dColorIndex(App->background);                                          
-  b3dClear();                                                              
-  xgraphDrawPlot(xg);                                                      
-  b3dSwapBuffers();                                                        
-  xgraphDrawAxis(xg);                                                      
-  return;                                                                  
-}                                                                             
-                                                                              
-                                                                              
-static void setxyz(struct imod_xgraph_struct *xg, int mx, int my)             
-{                                                                             
-  int ni = (mx/xg->zoom) + xg->start;                                      
-  int x,y,z;                                                               
-                                                                              
-  ivwGetLocation(xg->vi, &x, &y, &z);                                      
-                                                                              
-  switch(xg->axis){                                                        
-  case 0:                                                               
-    x = ni;                                                             
-    break;                                                              
-  case 1:                                                               
-    y = ni;                                                             
-    break;                                                              
-  case 2:                                                               
-    z = ni;
     break;
-  case 3:
-    break;
-  case 4:
-    break;
-  case 5:
-    break;
-  }                                                                        
-  ivwSetLocation(xg->vi, x, y, z);
-  ivwControlPriority(xg->vi, xg->ctrl);
-  imodDraw(xg->vi, IMOD_DRAW_XYZ);
-  return;                                                                  
-}                                                                             
-                                                                              
-void xgraphDrawPaxis(struct imod_xgraph_struct *xg)                           
-{                                                                             
-  char pstr[16];                                                           
 
-  if ((!xg->pexposed)||(!xg->paxis)||(!xg->paxis_context))
-    return;
-
-  /* draw pixel axis */                                                    
-  XClearWindow(XtDisplay(xg->paxis), XtWindow(xg->paxis));                 
-                                                                              
-     
-  b3dXWinset(XtDisplay(xg->paxis), xg->paxis, (XID)xg->paxis_context);     
-  b3dXSetCurrentFont(xg->font);                                            
-  sprintf(pstr, "%d", xg->start);                                          
-  b3dXDrawString(pstr, 0, 5, XmALIGNMENT_BEGINNING);                       
-  sprintf(pstr, "%d", xg->cpt);                                            
-  b3dXDrawString(pstr, xg->width/2, 5, XmALIGNMENT_CENTER);                
-  sprintf(pstr, "%d", xg->cpt + (xg->cpt-xg->start));                      
-  b3dXDrawString(pstr, xg->width, 5, XmALIGNMENT_END);                     
-                                                                              
-  return;                                                                  
-}                                                                             
-                                                                              
-void xgraphDrawVaxis(struct imod_xgraph_struct *xg)                           
-{                                                                             
-  char pstr[16];                                                           
-     
-  if ((!xg->vexposed)||(!xg->vaxis)||(!xg->vaxis_context))
-    return;
-
-  /* draw value axis */            
-  XClearWindow(XtDisplay(xg->vaxis), XtWindow(xg->vaxis));
-  b3dXWinset(XtDisplay(xg->vaxis), xg->vaxis, (XID)xg->vaxis_context);
-  b3dXSetCurrentFont(xg->font);
-  sprintf(pstr, "%.4f", xg->min);
-  b3dXDrawString(pstr, 4, XGRAPH_PAXIS_HEIGHT, XmALIGNMENT_BEGINNING);
-  sprintf(pstr, "%.4f", xg->max);
-  b3dXDrawString(pstr, 4, xg->height + 10, XmALIGNMENT_BEGINNING);
+  default:
+    break;
+  }
   return;
 }
 
-
-void xgraphDrawAxis(struct imod_xgraph_struct *xg)
+// Set the text of the Axis labels
+void GraphWindow::xgraphDrawAxis(GraphStruct *xg)
 {
-  int b = 5;
+  QString str;
 
-  b3dColorIndex(App->foreground);
+  // Output integers on the value axis unless we are in high res mode and 
+  // the file is not byte or integer
+  int floats = !xg->highres || xg->vi->image->mode == MRC_MODE_BYTE || 
+    xg->vi->image->mode == MRC_MODE_SHORT ? 0 : 1;
 
-  xgraphDrawVaxis(xg);
-  xgraphDrawPaxis(xg);
-  return;
+  if (floats)
+    str.sprintf("%9g", xg->min);
+  else
+    str.sprintf("%6d", (int)xg->min);
+  mVlabel2->setText(str);
+
+  if (floats)
+    str.sprintf("%9g", xg->max);
+  else
+    str.sprintf("%6d", (int)xg->max);
+  mVlabel1->setText(str);
+
+  // Output pixel position axis
+  str.sprintf("%d", xg->start);
+  mPlabel1->setText(str);
+  str.sprintf("%d", xg->cpt);
+  mPlabel2->setText(str);
+  str.sprintf("%d", xg->cpt + (xg->cpt-xg->start));
+  mPlabel3->setText(str);
 }
 
-void xgraphDrawPlot(struct imod_xgraph_struct *xg)
+// Actually draw the data
+void GraphWindow::xgraphDrawPlot(GraphStruct *xg)
 {
   int spnt, epnt, i;
   int cpntx = xg->width/2;
   float min, max, yoffset, yscale;
-  int zoom = xg->zoom;
+  float zoom = xg->zoom;
 
   if (!xg->data)
     return;
 
-  spnt = xg->cpt - (cpntx / zoom);
-  epnt = xg->cpt + (cpntx / zoom);
+  spnt = xg->cpt - (int)(cpntx / zoom);
+  epnt = xg->cpt + (int)(cpntx / zoom);
 
   b3dColorIndex(App->foreground);
   min = max = xg->data[xg->cpt];
@@ -955,7 +722,7 @@ void xgraphDrawPlot(struct imod_xgraph_struct *xg)
   b3dEndLine();
 
   b3dColorIndex(App->endpoint);
-  b3dDrawLine((int)((xg->cpt - spnt) * zoom), 0, 
+  b3dDrawLine((int)((xg->cpt - spnt) * zoom), 0,
               (int)((xg->cpt - spnt) * zoom), xg->height);
 
   xg->offset = yoffset;
@@ -964,120 +731,71 @@ void xgraphDrawPlot(struct imod_xgraph_struct *xg)
   return;
 }
 
-/*****************************************************************************/
-/* to do: use callback routines instead of timer. */
 
-static void addworkproc(XtPointer client, XtIntervalId *id)
+/*
+ * The GL WIDGET CLASS: PAINT, RESIZE, MOUSE EVENTS
+ */
+GraphGL::GraphGL(GraphStruct *graph, QGLFormat format, QWidget * parent,
+		 const char * name)
+  : QGLWidget(format, parent, name)
 {
-  struct imod_xgraph_struct *xg = (struct imod_xgraph_struct *)client;
-
-  xg->work_id = XtAppAddWorkProc(xg->app, work_update, xg);
-  xg->iid = 0;
-  return;
+  mGraph = graph;
 }
 
-static void tupdate(XtPointer client, XtIntervalId *id)
+void GraphGL::paintGL()
 {
-  struct imod_xgraph_struct *xg = (struct imod_xgraph_struct *)client;
-     
-  if (!xg->vi)
-    return;
-  if (!xg->iid)
-    return;
+  GraphStruct *xg = mGraph;
   if (!xg->locked)
-    if (((int)xg->cx != (int)xg->vi->xmouse) ||
-        ((int)xg->cy != (int)xg->vi->ymouse) ||
-        ((int)xg->cz != (int)xg->vi->zmouse)){
-      xgraphDraw(xg);
-    }
-     
-  if (xg->locked)
-    xg->iid = XtAppAddTimeOut (xg->app, 1000L, tupdate,
-                               (XtPointer)xg);
-  else
-    xg->iid = XtAppAddTimeOut (xg->app, 100L, tupdate,
-                               (XtPointer)xg);
-  return;
+    xg->dialog->xgraphFillData(xg);
+
+  if (!xg->data)
+    return;
+  b3dColorIndex(App->background);
+  b3dClear();
+  xg->dialog->xgraphDrawPlot(xg);
+  xg->dialog->xgraphDrawAxis(xg);
 }
 
-/* Workproc update function */
-static Boolean work_update(XtPointer client)
+void GraphGL::resizeGL( int wdth, int hght )
 {
-  struct imod_xgraph_struct *xg = (struct imod_xgraph_struct *)client;
-
-  if (((int)xg->cx != (int)xg->vi->xmouse) ||
-      ((int)xg->cy != (int)xg->vi->ymouse) ||
-      ((int)xg->cz != (int)xg->vi->zmouse)){
-    xgraphDraw(xg);
-    return(True);
-  }
-     
-  xg->iid = XtAppAddTimeOut (xg->app, 100L, addworkproc,
-                             (XtPointer)xg);
-  xg->work_id = 0;
-  return(True);
+  mGraph->width  = wdth;
+  mGraph->height = hght;
+  b3dResizeViewportXY(wdth, hght);
 }
 
-void graphClose_cb(ImodView *vi, void *client, int junk)
+void GraphGL::mousePressEvent(QMouseEvent * e )
 {
-  struct imod_xgraph_struct *win = (struct imod_xgraph_struct *)client;
-
-  if (!win) return;
-
-  /*
-   *     if (win->iid)XtRemoveTimeOut(win->iid);
-   *     if (win->work_id) XtRemoveWorkProc(win->work_id);
-   */
-
-  XtPopdown(win->dialog);
-  if (win->context){
-    b3dWinset(XtDisplay(win->gfx), win->gfx, win->context);
-    b3dDestroyGFX();
-    win->context = 0;
-          
-  }
-  if (win->paxis_context){
-    XFreeGC(XtDisplay(win->paxis), win->paxis_context);
-    win->paxis_context = 0;
-  }
-  if (win->vaxis_context){
-    XFreeGC(XtDisplay(win->vaxis), win->vaxis_context);
-    win->vaxis_context = 0;
-  }
-  b3dFreeXFontStruct(win->font);
-  b3dWinset(XtDisplay(win->gfx), 0, 0);
-  XtDestroyWidget(win->dialog);
-  free(win);
-  return;
+  ivwControlPriority(mGraph->vi, mGraph->ctrl);
+  if (e->stateAfter() & Qt::LeftButton)
+    setxyz(mGraph, e->x(), e->y());
 }
 
-void graphDraw_cb(ImodView *vi, void *client, int drawflag)
+// Routine to change the position on the current axis based upon a mouse click
+void GraphGL::setxyz(GraphStruct *xg, int mx, int my)
 {
-  struct imod_xgraph_struct *win = (struct imod_xgraph_struct *)client;
+  int ni = (int)((mx/xg->zoom) + xg->start);
+  int x,y,z;
 
-  if (!win) return;
-     
-  b3dWinset(XtDisplay(win->gfx), win->gfx, (XID)win->context);
+  ivwGetLocation(xg->vi, &x, &y, &z);
 
-  if (drawflag & IMOD_DRAW_XYZ){
-    if (!win->locked){
-      if ((win->cx != win->vi->xmouse) ||
-          (win->cy != win->vi->ymouse) ||
-          (win->cz != win->vi->zmouse)){
-        xgraphDraw(win);
-        return;
-      }
-    }
-  }
+  switch(xg->axis){
+  case GRAPH_XAXIS:
+    x = ni;
+    break;
+  case GRAPH_YAXIS:
+    y = ni;
+    break;
+  case GRAPH_ZAXIS:
+    z = ni;
+    break;
 
-  if (drawflag & (IMOD_DRAW_ACTIVE | IMOD_DRAW_IMAGE)){
-    xgraphDraw(win);
+  case GRAPH_CONTOUR:
+    return;
+  case GRAPH_HISTOGRAM:
     return;
   }
-     
-  if (drawflag & IMOD_DRAW_MOD){
-    xgraphDraw(win);
-  }
+  ivwSetLocation(xg->vi, x, y, z);
+  ivwControlPriority(xg->vi, xg->ctrl);
+  imodDraw(xg->vi, IMOD_DRAW_XYZ);
   return;
 }
-
