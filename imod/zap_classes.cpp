@@ -32,6 +32,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.14  2003/01/30 06:17:47  mast
+Add ability to change range of Z slider on image flip
+
 Revision 1.1.2.13  2003/01/30 00:48:43  mast
 New timer logic
 
@@ -389,7 +392,7 @@ void ZapGL::paintGL()
     mTimerID = startTimer(10);
     mFirstDraw = false;
     if (mTimerID) {
-      glClear(GL_COLOR_BUFFER_BIT);
+      //glClear(GL_COLOR_BUFFER_BIT);
       return;
     }
   }
