@@ -49,6 +49,9 @@ import etomo.util.MRCHeader;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.25  2004/11/11 01:43:00  sueh
+* <p> bug# 520 Adding binning to open 3dmod functions.
+* <p>
 * <p> Revision 1.1.2.24  2004/11/09 16:19:55  sueh
 * <p> bug# 520 Removed small functions that where only being called once from
 * <p> one member function: createRootPanel, displayCurTabInRows,
@@ -855,11 +858,13 @@ public class SectionTablePanel implements ContextMenu, Expandable {
     joinManager.imodRemove(ImodManager.ROT_TOMOGRAM_KEY, row.getImodRotIndex());
     row.remove();
     renumberTable(rowIndex);
-    if (rowIndex == 0) {
-      ((SectionTableRow) rows.get(0)).configureFields();
-    }
-    else if (rowIndex == rows.size()) {
-      ((SectionTableRow) rows.get(rows.size() - 1)).configureFields();
+    if (rows.size() > 0) {
+      if (rowIndex == 0) {
+        ((SectionTableRow) rows.get(0)).configureFields();
+      }
+      else if (rowIndex == rows.size()) {
+        ((SectionTableRow) rows.get(rows.size() - 1)).configureFields();
+      }
     }
     joinDialog.setNumSections(rows.size());
     enableRowButtons(-1);
@@ -892,17 +897,17 @@ public class SectionTablePanel implements ContextMenu, Expandable {
               infoFileSectionName);
           if (rotSectionFile.exists()) {
             //open rotTomogram 3dmod and keep track of it
-            row.setImodRotIndex(joinManager.imodOpenFile(
-                ImodManager.ROT_TOMOGRAM_KEY, row
-                    .getImodRotIndex(), rotSectionFile, binning));
+            row.setImodRotIndex(joinManager.imodOpen(
+                ImodManager.ROT_TOMOGRAM_KEY, row.getImodRotIndex(),
+                rotSectionFile, binning));
             return;
           }
         }
       }
     }
     //open tomogram 3dmod and keep track of it
-    row.setImodIndex(joinManager.imodOpenFile(ImodManager.TOMOGRAM_KEY,
-        row.getImodIndex(), sectionFile, binning));
+    row.setImodIndex(joinManager.imodOpen(ImodManager.TOMOGRAM_KEY, row
+        .getImodIndex(), sectionFile, binning));
   }
 
   private void imodGetAngles() {
