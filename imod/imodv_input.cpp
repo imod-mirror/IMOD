@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 1.1.2.6  2002/12/19 04:37:13  mast
+    Cleanup of unused global variables and defines
+
     Revision 1.1.2.5  2002/12/18 04:15:14  mast
     new includes for imodv modules
 
@@ -136,7 +139,7 @@ void imodvQuit()
   imodMatDelete(a->mat);
   imodMatDelete(a->rmat);
   if (a->standalone) {
-    imod_info_input();
+    // imod_info_input();   // This made it crash
     exit(0);
   }
   return;
