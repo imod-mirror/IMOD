@@ -44,6 +44,12 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.22  2004/10/29 01:16:24  sueh
+* <p> bug# 520 Removing unecessary functions that provided services to
+* <p> BaseManager.  BaseManager can use get... functions to get the
+* <p> mainPanel, metaData, and processTrack.  Setting workingDirectory in
+* <p> JoinDialog from propertyUserDir, when paramFile is loaded.
+* <p>
 * <p> Revision 1.1.2.21  2004/10/28 16:51:46  sueh
 * <p> bug# 520 Copying most recent .xf file to rootName.xf before running
 * <p> finishjoin, midasSample, and refine xfalign.  Added copyXfFile,
@@ -179,7 +185,9 @@ public class JoinManager extends BaseManager {
       }
       joinDialog.setMetaData(metaData);
     }
-    createEmptyXfFile();
+    if (loadedTestParamFile) {
+      createEmptyXfFile(metaData.getRootName());
+    }
     mainPanel.showProcess(joinDialog.getContainer(), AxisID.ONLY);
   }
   
@@ -387,7 +395,9 @@ public class JoinManager extends BaseManager {
       mainPanel.stopProgressBar(AxisID.ONLY);
       return;
     }
-    EtomoDirector.getInstance().renameCurrentManager(metaData.getRootName());
+    String rootName = metaData.getRootName();
+    EtomoDirector.getInstance().renameCurrentManager(rootName);
+    createEmptyXfFile(rootName);
     MakejoincomParam makejoincomParam = new MakejoincomParam(metaData);
     try {
       threadNameA = processMgr.makejoincom(makejoincomParam);
@@ -518,9 +528,8 @@ public class JoinManager extends BaseManager {
     }
   }
   
-  public void createEmptyXfFile() {
-    File emptyXfFile = new File(propertyUserDir, metaData.getRootName()
-        + "_empty.xf");
+  public void createEmptyXfFile(String rootName) {
+    File emptyXfFile = new File(propertyUserDir, rootName + "_empty.xf");
     if (!emptyXfFile.exists()) {
       String emptyLine = "   1.0000000   0.0000000   0.0000000   1.0000000       0.000       0.000";
       try {
@@ -539,7 +548,7 @@ public class JoinManager extends BaseManager {
         return;
       }
     }
-    File xfFile = new File(propertyUserDir, metaData.getRootName() + ".xf");
+    File xfFile = new File(propertyUserDir, rootName + ".xf");
     if (!xfFile.exists()) {
       try {
         Utilities.copyFile(emptyXfFile, xfFile);
@@ -549,7 +558,6 @@ public class JoinManager extends BaseManager {
       }
     }
   }
-
   
   private boolean endSetupMode() {
     mainPanel.updateDataParameters(paramFile, metaData);
