@@ -17,6 +17,10 @@ import etomo.storage.Storable;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.4  2004/10/22 21:01:20  sueh
+* <p> bug# 520 Moved common code to EtomoSimpleType.  Added lessThen
+* <p> and greaterOrEqual.
+* <p>
 * <p> Revision 1.1.2.3  2004/10/22 03:22:14  sueh
 * <p> bug# 520 added getNumber().  Added greaterThen and lessThen.
 * <p>
@@ -49,6 +53,11 @@ public abstract class ConstEtomoInteger extends EtomoSimpleType implements Stora
     super(name);
   }
   
+  public EtomoSimpleType setDefault(int defaultValue) {
+    this.defaultValue = defaultValue;
+    return this;
+  }
+  
   public void store(Properties props) {
     props.setProperty(name, Integer.toString(value));
   }
@@ -58,26 +67,57 @@ public abstract class ConstEtomoInteger extends EtomoSimpleType implements Stora
   }
   
   public String getString() {
-    if (!isSet()) {
-      return "";
+    return getString(false);
+  }
+  public String getString(boolean useDefault) {
+    if (isSet()) {
+      return Integer.toString(value);
     }
-    return Integer.toString(value);
+    if (resetValue != Integer.MIN_VALUE) {
+      return Integer.toString(resetValue);
+    }
+    if (useDefault && defaultValue != Integer.MIN_VALUE) {
+      return Integer.toString(defaultValue);
+    }
+    return "";
   }
   
   public int get() {
-    if (!isSet()) {
+    return get(false);
+  }
+  public int get(boolean useDefault) {
+    if (isSet()) {
+      return value;
+    }
+    if (resetValue != Integer.MIN_VALUE) {
       return resetValue;
     }
-    return value;
+    if (useDefault && defaultValue != Integer.MIN_VALUE) {
+      return defaultValue;
+    }
+    return unsetValue;
   }
   
-  public Number getNumber() {
-    if (!isSet()) {
+  public  Number getNumber() {
+    return getNumber(false);
+  }
+  public  Number getNumber(boolean useDefault) {
+    if (isSet()) {
+      return new Integer(value);
+    }
+    if (resetValue != Integer.MIN_VALUE) {
       return new Integer(resetValue);
     }
-    return new Integer(value);
+    if (useDefault && defaultValue != Integer.MIN_VALUE) {
+      return new Integer(defaultValue);
+    }
+    return new Integer(unsetValue);
   }
   
+  public EtomoSimpleType getNegation() {
+    return new EtomoInteger(value * -1);
+  }
+
   public boolean isSetAndNotDefault() {
     return isSet() && (defaultValue == unsetValue || value != defaultValue);
   }
@@ -88,10 +128,6 @@ public abstract class ConstEtomoInteger extends EtomoSimpleType implements Stora
   
   public boolean equals(int value) {
     return this.value == value;
-  }
-  
-  public boolean greaterThen(int value) {
-    return this.value > value;
   }
   
   public boolean greaterOrEqual(ConstEtomoInteger that) {
