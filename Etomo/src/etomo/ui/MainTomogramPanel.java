@@ -1,9 +1,12 @@
 package etomo.ui;
 
+import java.io.File;
+
 import etomo.ApplicationManager;
 import etomo.EtomoDirector;
 import etomo.process.ProcessState;
 import etomo.type.AxisID;
+import etomo.type.MetaData;
 import etomo.type.ProcessTrack;
 /**
 * <p>Description: </p>
@@ -19,6 +22,11 @@ import etomo.type.ProcessTrack;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.2  2004/09/15 22:46:52  sueh
+* <p> bug# 520 Moved openSetupPanel back to this class.  Moved
+* <p> showProcessingPanel() to this base class.  Created AxisProcessPanel
+* <p> creation functions.
+* <p>
 * <p> Revision 1.1.2.1  2004/09/08 20:13:41  sueh
 * <p> bug# 520 class contains tomogram specific functionality from MainPAnel,
 * <p> which is its base class.  Casts member variables which are used as super
@@ -28,11 +36,10 @@ import etomo.type.ProcessTrack;
 public class MainTomogramPanel extends MainPanel {
   public static  final String  rcsid =  "$Id$";
   
-  //convenience variables set to super class member variables
-  //use through cast functions
-  private ApplicationManager applicationManager = null;
-  private TomogramProcessPanel tomogramAxisPanelA = null;
-  private TomogramProcessPanel tomogramAxisPanelB = null;
+  //variables cast from base class variables
+  //initialized in create function
+  private TomogramProcessPanel tomogramAxisPanelA;
+  private TomogramProcessPanel tomogramAxisPanelB;
   
   /**
    * @param appManager
@@ -51,34 +58,34 @@ public class MainTomogramPanel extends MainPanel {
       return;
     }
 
-    castAxisPanelA().setPreProcState(processTrack.getPreProcessingState(AxisID.ONLY));
-    castAxisPanelA().setCoarseAlignState(
+    tomogramAxisPanelA.setPreProcState(processTrack.getPreProcessingState(AxisID.ONLY));
+    tomogramAxisPanelA.setCoarseAlignState(
       processTrack.getCoarseAlignmentState(AxisID.ONLY));
-    castAxisPanelA().setFiducialModelState(
+    tomogramAxisPanelA.setFiducialModelState(
       processTrack.getFiducialModelState(AxisID.ONLY));
-    castAxisPanelA().setFineAlignmentState(
+    tomogramAxisPanelA.setFineAlignmentState(
       processTrack.getFineAlignmentState(AxisID.ONLY));
-    castAxisPanelA().setTomogramPositioningState(
+    tomogramAxisPanelA.setTomogramPositioningState(
       processTrack.getTomogramPositioningState(AxisID.ONLY));
-    castAxisPanelA().setTomogramGenerationState(
+    tomogramAxisPanelA.setTomogramGenerationState(
       processTrack.getTomogramGenerationState(AxisID.ONLY));
-    castAxisPanelA().setTomogramCombinationState(
+    tomogramAxisPanelA.setTomogramCombinationState(
       processTrack.getTomogramCombinationState());
     if (manager.isDualAxis()) {
-      castAxisPanelB().setPreProcState(
+      tomogramAxisPanelB.setPreProcState(
         processTrack.getPreProcessingState(AxisID.SECOND));
-      castAxisPanelB().setCoarseAlignState(
+      tomogramAxisPanelB.setCoarseAlignState(
         processTrack.getCoarseAlignmentState(AxisID.SECOND));
-      castAxisPanelB().setFiducialModelState(
+      tomogramAxisPanelB.setFiducialModelState(
         processTrack.getFiducialModelState(AxisID.SECOND));
-      castAxisPanelB().setFineAlignmentState(
+      tomogramAxisPanelB.setFineAlignmentState(
         processTrack.getFineAlignmentState(AxisID.SECOND));
-      castAxisPanelB().setTomogramPositioningState(
+      tomogramAxisPanelB.setTomogramPositioningState(
         processTrack.getTomogramPositioningState(AxisID.SECOND));
-      castAxisPanelB().setTomogramGenerationState(
+      tomogramAxisPanelB.setTomogramGenerationState(
         processTrack.getTomogramGenerationState(AxisID.SECOND));
     }
-    castAxisPanelA().setPostProcessingState(processTrack.getPostProcessingState());
+    tomogramAxisPanelA.setPostProcessingState(processTrack.getPostProcessingState());
 
   }
 
@@ -89,9 +96,9 @@ public class MainTomogramPanel extends MainPanel {
    */
   private TomogramProcessPanel mapAndCastAxis(AxisID axisID) {
     if (axisID == AxisID.SECOND) {
-      return castAxisPanelB();
+      return tomogramAxisPanelB;
     }
-    return castAxisPanelA();
+    return tomogramAxisPanelA;
   }
   
   /**
@@ -178,7 +185,7 @@ public class MainTomogramPanel extends MainPanel {
    * @param state
    */
   public void setTomogramCombinationState(ProcessState state) {
-    castAxisPanelA().setTomogramCombinationState(state);
+    tomogramAxisPanelA.setTomogramCombinationState(state);
   }
 
   /**
@@ -186,40 +193,43 @@ public class MainTomogramPanel extends MainPanel {
    * @param state
    */
   public void setPostProcessingState(ProcessState state) {
-    castAxisPanelA().setPostProcessingState(state);
+    tomogramAxisPanelA.setPostProcessingState(state);
   }
   
   protected void createAxisPanelA(AxisID axisID) {
-    tomogramAxisPanelA = null;
-    axisPanelA = new TomogramProcessPanel(castManager(), axisID);
+    axisPanelA = new TomogramProcessPanel((ApplicationManager) manager, axisID);
+    tomogramAxisPanelA = (TomogramProcessPanel) axisPanelA;
+    
   }
 
   protected void createAxisPanelB() {
-    tomogramAxisPanelB = null;
-    axisPanelB = new TomogramProcessPanel(castManager(), AxisID.SECOND);
+    axisPanelB = new TomogramProcessPanel((ApplicationManager) manager, AxisID.SECOND);
+    tomogramAxisPanelB = (TomogramProcessPanel) axisPanelB;
   }
   
-  private ApplicationManager castManager() {
-    if (manager == null) {
-      throw new NullPointerException();
+  /**
+   * Set the status bar with the file name of the data parameter file
+   */
+  public void updateDataParameters(File paramFile, MetaData metaData) {
+    StringBuffer buffer = new StringBuffer();
+    if (metaData == null) {
+      buffer.append("No data set loaded");
     }
-    if (applicationManager == null) {
-      applicationManager = (ApplicationManager) manager;
+    else {
+      if (paramFile == null) {
+        buffer.append("Data file: NOT SAVED");
+      }
+      else {
+        buffer.append("Data file: " + paramFile.getAbsolutePath());
+      }
+
+      buffer.append("   Source: ");
+      buffer.append(metaData.getDataSource().toString());
+      buffer.append("   Axis type: ");
+      buffer.append(metaData.getAxisType().toString());
+      buffer.append("   Tomograms: ");
+      buffer.append(metaData.getSectionType().toString());
     }
-    return applicationManager;
-  }
-  
-  private TomogramProcessPanel castAxisPanelA() {
-    if (tomogramAxisPanelA == null) {
-      tomogramAxisPanelA = (TomogramProcessPanel) axisPanelA;
-    }
-    return tomogramAxisPanelA;
-  }
-  
-  private TomogramProcessPanel castAxisPanelB() {
-    if (tomogramAxisPanelB == null) {
-      tomogramAxisPanelB = (TomogramProcessPanel) axisPanelB;
-    }
-    return tomogramAxisPanelB;
+    statusBar.setText(buffer.toString());
   }
 }
