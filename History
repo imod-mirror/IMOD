@@ -1,6 +1,20 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-7/21/04: IMO_3-3-4
+8/2/04: Fixed problem with eTomo not swapping corresponding point lists when
+matching A to B.
+
+8/2/04: Made get_nxyz subroutine handle numeric filename properly.
+
+8/2/04: Made Transferfid require that A and B prealigned stacks have the same
+pixel size to protect against them having different binnings.
+
+7/22/04: Fixed problem with contours no longer being considered coplanar after
+adding a point.
+
+7/22/04: Changed to better sed command for stripping Ctrl M in Cygwin; previous
+way broke several things with the sed version in Redhat AWS for AMD64.
+
+7/21/04: IMOD_3-3-4
 7/20/04: More changes in eTomo process-killing, including using the right ps 
 command to work on Mac, Windows, and Linux regardless of how eTomo is started.
 
