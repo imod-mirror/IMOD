@@ -1,14 +1,25 @@
 package etomo;
 
+import java.awt.Dimension;
+import java.awt.Point;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 
+import javax.swing.ToolTipManager;
+import javax.swing.UIManager;
+import javax.swing.plaf.FontUIResource;
+
+import etomo.storage.ParameterStore;
+import etomo.storage.Storable;
 import etomo.type.ConstJoinMetaData;
 import etomo.type.ConstMetaData;
 import etomo.type.UserConfiguration;
 import etomo.ui.MainFrame;
+import etomo.ui.SettingsDialog;
 import etomo.util.HashedArray;
 import etomo.util.UniqueKey;
+import etomo.util.Utilities;
 
 /**
  * <p>
@@ -30,6 +41,13 @@ import etomo.util.UniqueKey;
  * 
  * <p>
  * $Log$
+ * Revision 1.1.2.8  2004/10/07 16:32:23  sueh
+ * bug# 520 Simplified EtomoDirector() by doing the initialize in a separate
+ * function.  Some of the initializations performed use the EtomoDirector this
+ * pointer.  It is more reliable to complete construction before using the
+ * instance in another class.  Fixed bug:  was testing the test member
+ * variable before it had been set.
+ *
  * Revision 1.1.2.7  2004/10/06 01:24:03  sueh
  * bug# 520 Prevented having more then one Setup screen or more then one
  * New Join screen.
@@ -74,14 +92,22 @@ public class EtomoDirector {
   public static final String rcsid = "$Id$";
   
   private static EtomoDirector theEtomoDirector = null;
-  private static boolean debug = false;
-  private static boolean demo = false;
-  private static boolean test = false;
-  private static boolean selfTest = false;
+  private File IMODDirectory;
+  private File IMODCalibDirectory;
+  private MainFrame mainFrame = null;
+  private UserConfiguration userConfig = null;
+  private boolean debug = false;
+  private boolean demo = false;
+  private boolean test = false;
+  private boolean selfTest = false;
   private HashedArray managerList = null;
   private UniqueKey currentManagerKey = null;
-  private static MainFrame mainFrame = null;
-  private static UserConfiguration userConfig = null;
+  private String homeDirectory;
+  // advanced dialog state for this instance, this gets set upon startup from
+  // the user configuration and can be modified for this instance by either
+  // the option or advanced menu items
+  private boolean isAdvanced = false;
+  private SettingsDialog settingsDialog = null;
 
   public static void main(String[] args) {
     createInstance(args);
@@ -146,8 +172,117 @@ public class EtomoDirector {
       mainFrame.pack();
       mainFrame.show();
     }
+    initProgram();
   }
   
+  /**
+   *  
+   */
+  private void initProgram() {
+    System.err.println("java.version:  " + System.getProperty("java.version"));
+    System.err.println("java.vendor:  " + System.getProperty("java.vendor"));
+    System.err.println("java.home:  " + System.getProperty("java.home"));
+    System.err.println("java.vm.version:  "
+      + System.getProperty("java.vm.version"));
+    System.err.println("java.vm.vendor:  "
+      + System.getProperty("java.vm.vendor"));
+    System.err.println("java.vm.home:  " + System.getProperty("java.vm.home"));
+    System.err.println("java.class.version:  "
+      + System.getProperty("java.class.version"));
+    System.err.println("java.class.path:  "
+      + System.getProperty("java.class.path"));
+    System.err.println("java.library.path:  "
+      + System.getProperty("java.library.path"));
+    System.err.println("java.io.tmpdir:  "
+      + System.getProperty("java.io.tmpdir"));
+    System.err.println("java.compiler:  " + System.getProperty("java.compiler"));
+    System.err.println("java.ext.dirs:  " + System.getProperty("java.ext.dirs"));
+    System.err.println("os.name:  " + System.getProperty("os.name"));
+    System.err.println("os.arch:  " + System.getProperty("os.arch"));
+    System.err.println("os.version:  " + System.getProperty("os.version"));
+    System.err.println("user.name:  " + System.getProperty("user.name"));
+    System.err.println("user.home:  " + System.getProperty("user.home"));
+    System.err.println("user.dir:  " + System.getProperty("user.dir"));
+    // Get the HOME directory environment variable to find the program
+    // configuration file
+    homeDirectory = System.getProperty("user.home");
+    if (homeDirectory.equals("")) {
+      String[] message = new String[2];
+      message[0] = "Can not find home directory! Unable to load user preferences";
+      message[1] = "Set HOME environment variable and restart program to fix this problem";
+      mainFrame.openMessageDialog(message, "Program Initialization Error");
+      System.exit(1);
+    }
+    // Get the IMOD directory so we know where to find documentation
+    // Check to see if is defined on the command line first with -D
+    // Otherwise check to see if we can get it from the environment
+    String imodDirectoryName = System.getProperty("IMOD_DIR");
+    if (imodDirectoryName == null) {
+      imodDirectoryName = Utilities.getEnvironmentVariable("IMOD_DIR");
+      if (imodDirectoryName.equals("")) {
+        String[] message = new String[3];
+        message[0] = "Can not find IMOD directory!";
+        message[1] = "Set IMOD_DIR environment variable and restart program to fix this problem";
+        mainFrame.openMessageDialog(message, "Program Initialization Error");
+        System.exit(1);
+      }
+      else {
+        if (debug) {
+          System.err.println("IMOD_DIR (env): " + imodDirectoryName);
+        }
+      }
+    }
+    else {
+      if (debug) {
+        System.err.println("IMOD_DIR (-D): " + imodDirectoryName);
+      }
+    }
+    IMODDirectory = new File(imodDirectoryName);
+    // Get the IMOD calibration directory so we know where to find documentation
+    // Check to see if is defined on the command line first with -D
+    // Otherwise check to see if we can get it from the environment
+    String imodCalibDirectoryName = System.getProperty("IMOD_CALIB_DIR");
+    if (imodCalibDirectoryName == null) {
+      imodCalibDirectoryName = Utilities.getEnvironmentVariable("IMOD_CALIB_DIR");
+      if (!imodCalibDirectoryName.equals("")) {
+        if (debug) {
+          System.err.println("IMOD_CALIB_DIR (env): " + imodCalibDirectoryName);
+        }
+      }
+    }
+    else {
+      if (debug) {
+        System.err.println("IMOD_CALIB_DIR (-D): " + imodCalibDirectoryName);
+      }
+    }
+    IMODCalibDirectory = new File(imodCalibDirectoryName);
+    //  Create a File object specifying the user configuration file
+    File userConfigFile = new File(homeDirectory, ".etomo");
+    //  Make sure the config file exists, create it if it doesn't
+    try {
+      userConfigFile.createNewFile();
+    }
+    catch (IOException except) {
+      System.err.println("Could not create file:"
+        + userConfigFile.getAbsolutePath());
+      System.err.println(except.getMessage());
+    }
+    // Load in the user configuration
+    ParameterStore userParams = new ParameterStore(userConfigFile);
+    Storable storable[] = new Storable[1];
+    storable[0] = userConfig;
+    try {
+      userParams.load(storable);
+    }
+    catch (IOException except) {
+      mainFrame.openMessageDialog(except.getMessage(),
+        "IO Exception: Can't load user configuration"
+          + userConfigFile.getAbsolutePath());
+    }
+    //  Set the user preferences
+    setUserPreferences();
+  }
+
   public BaseManager getCurrentManager() {
     return (BaseManager) managerList.get(currentManagerKey);
   }
@@ -262,6 +397,42 @@ public class EtomoDirector {
         return false;
       }
     }
+    //  Should we close the 3dmod windows
+    //  Save the current window size to the user config
+    Dimension size = mainFrame.getSize();
+    userConfig.setMainWindowWidth(size.width);
+    userConfig.setMainWindowHeight(size.height);
+    //  Write out the user configuration data
+    File userConfigFile = new File(homeDirectory, ".etomo");
+    //  Make sure the config file exists, create it if it doesn't
+    try {
+      userConfigFile.createNewFile();
+    }
+    catch (IOException except) {
+      System.err.println("IOException: Could not create file:"
+          + userConfigFile.getAbsolutePath() + "\n" + except.getMessage());
+      System.err.println(except.getMessage());
+      return true;
+    }
+    ParameterStore userParams = new ParameterStore(userConfigFile);
+    Storable storable[] = new Storable[1];
+    storable[0] = userConfig;
+    if (!userConfigFile.canWrite()) {
+      mainFrame.openMessageDialog(
+          "Change permissions of $HOME/.etomo to allow writing",
+          "Unable to save user configuration file");
+    }
+    if (userConfigFile.canWrite()) {
+      try {
+        userParams.save(storable);
+      }
+      catch (IOException excep) {
+        excep.printStackTrace();
+        mainFrame.openMessageDialog(
+            "IOException: unable to save user parameters\n"
+                + excep.getMessage(), "Unable to save user parameters");
+      }
+    }
     return true;
   }
   
@@ -274,25 +445,25 @@ public class EtomoDirector {
     }
   }
   
-  private static void createMainFrame() {
+  private void createMainFrame() {
     mainFrame = new MainFrame();
   }
   
-  public static MainFrame getMainFrame() {
+  public MainFrame getMainFrame() {
     if (mainFrame == null) {
       throw new NullPointerException();
     }
     return mainFrame;
   }
   
-  public static UserConfiguration getUserConfiguration() {
+  public UserConfiguration getUserConfiguration() {
     if (userConfig == null) {
       throw new NullPointerException();
     }
     return userConfig;
   }
   
-  private static void  createUserConfiguration() {
+  private void  createUserConfiguration() {
     userConfig = new UserConfiguration();
   }
   
@@ -329,25 +500,186 @@ public class EtomoDirector {
     }
     return paramFileNameList;
   }
+  
+  /**
+   * Set the user preferences
+   */
+  private void setUserPreferences() {
+    //FIXME this function may not have to be visible
+    ToolTipManager.sharedInstance().setInitialDelay(
+      userConfig.getToolTipsInitialDelay());
+    ToolTipManager.sharedInstance().setDismissDelay(
+      userConfig.getToolTipsDismissDelay());
+    setUIFont(userConfig.getFontFamily(), userConfig.getFontSize());
+    setLookAndFeel(userConfig.getNativeLookAndFeel());
+    isAdvanced = userConfig.getAdvancedDialogs();
+  }
+  
+  /**
+   * Sets the look and feel for the program.
+   * 
+   * @param nativeLookAndFeel
+   *          set to true to use the host os look and feel, false will use the
+   *          Metal look and feel.
+   */
+  private void setLookAndFeel(boolean nativeLookAndFeel) {
+    String lookAndFeelClassName;
 
-  public static boolean isDebug() {
+    //UIManager.LookAndFeelInfo plaf[] = UIManager.getInstalledLookAndFeels();
+    //for(int i = 0; i < plaf.length; i++) {
+    //  System.err.println(plaf[i].getClassName());
+    //}
+    String osName = System.getProperty("os.name");
+    if (debug) {
+      System.err.println("os.name: " + osName);
+    }
+    if (nativeLookAndFeel) {
+      if (osName.startsWith("Mac OS X")) {
+        lookAndFeelClassName = "apple.laf.AquaLookAndFeel";
+        if (debug) {
+          System.err.println("Setting AquaLookAndFeel");
+        }
+      }
+      else if (osName.startsWith("Windows")) {
+        lookAndFeelClassName = "com.sun.java.swing.plaf.windows.WindowsLookAndFeel";
+        if (debug) {
+          System.err.println("Setting WindowsLookAndFeel");
+        }
+      }
+      else {
+        lookAndFeelClassName = "com.sun.java.swing.plaf.motif.MotifLookAndFeel";
+        if (debug) {
+          System.err.println("Setting MotifLookAndFeel");
+        }
+      }
+    }
+    else {
+      lookAndFeelClassName = UIManager.getCrossPlatformLookAndFeelClassName();
+      if (debug) {
+        System.err.println("Setting MetalLookAndFeel");
+      }
+    }
+    try {
+      UIManager.setLookAndFeel(lookAndFeelClassName);
+    }
+    catch (Exception excep) {
+      System.err.println("Could not set " + lookAndFeelClassName
+        + " look and feel");
+    }
+  }
+  
+  /**
+   *  
+   */
+  private void setUIFont(String fontFamily, int fontSize) {
+    // sets the default font for all Swing components.
+    // ex.
+    //  setUIFont (new javax.swing.plaf.FontUIResource("Serif",Font.ITALIC,12));
+    // Taken from: http://www.rgagnon.com/javadetails/java-0335.html
+    java.util.Enumeration keys = UIManager.getDefaults().keys();
+    while (keys.hasMoreElements()) {
+      Object key = keys.nextElement();
+      Object value = UIManager.get(key);
+      if (value instanceof FontUIResource) {
+        FontUIResource currentFont = (FontUIResource) value;
+        FontUIResource newFont = new FontUIResource(fontFamily,
+          currentFont.getStyle(), fontSize);
+        UIManager.put(key, newFont);
+      }
+    }
+  }
+
+  public boolean isDebug() {
     return debug;
   }
 
-  public static boolean isSelfTest() {
+  public boolean isSelfTest() {
     return selfTest;
   }
 
-  public static boolean isDemo() {
+  public boolean isDemo() {
     return demo;
   }
 
-  public static boolean isTest() {
+  public boolean isTest() {
     return test;
   }
   
   public int getManagerListSize() {
     return managerList.size();
+  }
+  
+  /**
+   * Return the IMOD directory
+   */
+  public File getIMODDirectory() {
+    //  Return a copy of the IMODDirectory object
+    return new File(IMODDirectory.getAbsolutePath());
+  }
+  
+  /**
+   * Return the IMOD calibration directory
+   */
+  public File getIMODCalibDirectory() {
+    //  Return a copy of the IMODDirectory object
+    return new File(IMODCalibDirectory.getAbsolutePath());
+  } 
+  
+  /**
+   * Get the current advanced state
+   */
+  public boolean getAdvanced() {
+    return isAdvanced;
+  }
+  
+  /**
+   *  
+   */
+  public void getSettingsParameters() {
+    if (settingsDialog != null) {
+      settingsDialog.getParameters(userConfig);
+      setUserPreferences();
+      mainFrame.repaintWindow();
+    }
+  }
+  
+
+  /**
+   * Open up the settings dialog box
+   */
+  public void openSettingsDialog() {
+    //  Open the dialog in the appropriate mode for the current state of
+    //  processing
+    if (settingsDialog == null) {
+      settingsDialog = new SettingsDialog();
+      settingsDialog.setParameters(userConfig);
+      Dimension frmSize = mainFrame.getSize();
+      Point loc = mainFrame.getLocation();
+      settingsDialog.setLocation(loc.x, loc.y + frmSize.height);
+      settingsDialog.setModal(false);
+    }
+    settingsDialog.show();
+  }
+  
+  /**
+   *  
+   */
+  public void closeSettingsDialog() {
+    if (settingsDialog != null) {
+      settingsDialog.dispose();
+    }
+  }
+  
+  /**
+   * Return the users home directory environment variable HOME or an empty
+   * string if it doesn't exist.
+   */
+  private String getHomeDirectory() {
+    return homeDirectory;
+  }
+
+  private void setAdvanced(boolean state) {
+    isAdvanced = state;
   }
 
 }
