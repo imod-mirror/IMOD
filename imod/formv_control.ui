@@ -15,6 +15,9 @@
     <property name="caption">
         <string>Imodv Controls</string>
     </property>
+    <property name="focusPolicy">
+        <enum>StrongFocus</enum>
+    </property>
     <vbox>
         <property name="name">
             <cstring>unnamed</cstring>
@@ -174,6 +177,12 @@
                             <height>32767</height>
                         </size>
                     </property>
+                    <property name="focusPolicy">
+                        <enum>ClickFocus</enum>
+                    </property>
+                    <property name="alignment">
+                        <set>AlignRight</set>
+                    </property>
                 </widget>
             </hbox>
         </widget>
@@ -208,6 +217,9 @@
                         <widget class="QSlider">
                             <property name="name">
                                 <cstring>nearSlider</cstring>
+                            </property>
+                            <property name="focusPolicy">
+                                <enum>NoFocus</enum>
                             </property>
                             <property name="maxValue">
                                 <number>999</number>
@@ -276,6 +288,9 @@
                         <widget class="QSlider">
                             <property name="name">
                                 <cstring>farSlider</cstring>
+                            </property>
+                            <property name="focusPolicy">
+                                <enum>NoFocus</enum>
                             </property>
                             <property name="minValue">
                                 <number>1</number>
@@ -351,6 +366,9 @@
                             <property name="name">
                                 <cstring>perspectiveSlider</cstring>
                             </property>
+                            <property name="focusPolicy">
+                                <enum>NoFocus</enum>
+                            </property>
                             <property name="maxValue">
                                 <number>89</number>
                             </property>
@@ -418,6 +436,9 @@
                         <widget class="QSlider">
                             <property name="name">
                                 <cstring>zScaleSlider</cstring>
+                            </property>
+                            <property name="focusPolicy">
+                                <enum>NoFocus</enum>
                             </property>
                             <property name="minValue">
                                 <number>10</number>
@@ -569,6 +590,12 @@
                                     <height>32767</height>
                                 </size>
                             </property>
+                            <property name="focusPolicy">
+                                <enum>ClickFocus</enum>
+                            </property>
+                            <property name="alignment">
+                                <set>AlignRight</set>
+                            </property>
                         </widget>
                         <spacer>
                             <property name="name">
@@ -667,6 +694,12 @@
                                     <height>32767</height>
                                 </size>
                             </property>
+                            <property name="focusPolicy">
+                                <enum>ClickFocus</enum>
+                            </property>
+                            <property name="alignment">
+                                <set>AlignRight</set>
+                            </property>
                         </widget>
                         <spacer>
                             <property name="name">
@@ -757,6 +790,12 @@
                                     <height>32767</height>
                                 </size>
                             </property>
+                            <property name="focusPolicy">
+                                <enum>ClickFocus</enum>
+                            </property>
+                            <property name="alignment">
+                                <set>AlignRight</set>
+                            </property>
                         </widget>
                         <spacer>
                             <property name="name">
@@ -781,6 +820,9 @@
                     <property name="name">
                         <cstring>PushButton3</cstring>
                     </property>
+                    <property name="focusPolicy">
+                        <enum>NoFocus</enum>
+                    </property>
                     <property name="text">
                         <string>Start/Stop Rotation</string>
                     </property>
@@ -802,6 +844,9 @@
                         <widget class="QSlider">
                             <property name="name">
                                 <cstring>degreesSlider</cstring>
+                            </property>
+                            <property name="focusPolicy">
+                                <enum>NoFocus</enum>
                             </property>
                             <property name="minValue">
                                 <number>1</number>
@@ -904,6 +949,9 @@
                             <height>32767</height>
                         </size>
                     </property>
+                    <property name="focusPolicy">
+                        <enum>NoFocus</enum>
+                    </property>
                     <property name="text">
                         <string>OK</string>
                     </property>
@@ -928,6 +976,9 @@
                             <width>70</width>
                             <height>32767</height>
                         </size>
+                    </property>
+                    <property name="focusPolicy">
+                        <enum>NoFocus</enum>
                     </property>
                     <property name="text">
                         <string>HELP</string>
@@ -1032,18 +1083,6 @@
         <slot>helpPressed()</slot>
     </connection>
     <connection>
-        <sender>degreesSlider</sender>
-        <signal>valueChanged(int)</signal>
-        <receiver>imodvControlForm</receiver>
-        <slot>rateChanged(int)</slot>
-    </connection>
-    <connection>
-        <sender>degreesSlider</sender>
-        <signal>valueChanged(int)</signal>
-        <receiver>imodvControlForm</receiver>
-        <slot>displayRateLabel(int)</slot>
-    </connection>
-    <connection>
         <sender>nearSlider</sender>
         <signal>valueChanged(int)</signal>
         <receiver>imodvControlForm</receiver>
@@ -1139,13 +1178,39 @@
         <receiver>imodvControlForm</receiver>
         <slot>zScaleReleased()</slot>
     </connection>
+    <connection>
+        <sender>degreesSlider</sender>
+        <signal>sliderPressed()</signal>
+        <receiver>imodvControlForm</receiver>
+        <slot>ratePressed()</slot>
+    </connection>
+    <connection>
+        <sender>degreesSlider</sender>
+        <signal>valueChanged(int)</signal>
+        <receiver>imodvControlForm</receiver>
+        <slot>rateChanged(int)</slot>
+    </connection>
+    <connection>
+        <sender>degreesSlider</sender>
+        <signal>sliderReleased()</signal>
+        <receiver>imodvControlForm</receiver>
+        <slot>rateReleased()</slot>
+    </connection>
+    <connection>
+        <sender>degreesSlider</sender>
+        <signal>valueChanged(int)</signal>
+        <receiver>imodvControlForm</receiver>
+        <slot>displayRateLabel(int)</slot>
+    </connection>
 </connections>
 <includes>
-    <include location="local" impldecl="in implementation">imodv_control.h</include>
+    <include location="local" impldecl="in implementation">imodv_input.h</include>
     <include location="global" impldecl="in implementation">stdlib.h</include>
+    <include location="local" impldecl="in implementation">imodv_control.h</include>
     <include location="local" impldecl="in implementation">formv_control.ui.h</include>
 </includes>
 <variables>
+    <variable>int mRateDisplayed</variable>
     <variable>bool mCtrlPressed</variable>
     <variable>int mZscaleDisplayed</variable>
     <variable>bool mZscalePressed</variable>
@@ -1155,6 +1220,7 @@
     <variable>bool mFarPressed</variable>
     <variable>int mNearDisplayed</variable>
     <variable>bool mNearPressed</variable>
+    <variable>bool mRatePressed</variable>
 </variables>
 <slots>
     <slot>displayFarLabel( int value )</slot>
@@ -1195,6 +1261,8 @@
     <slot>perspectivePressed()</slot>
     <slot>perspectiveReleased()</slot>
     <slot>zScalePressed()</slot>
+    <slot>ratePressed()</slot>
+    <slot>rateReleased()</slot>
     <slot>init()</slot>
     <slot>keyPressEvent( QKeyEvent * e )</slot>
     <slot>keyReleaseEvent( QKeyEvent * e )</slot>

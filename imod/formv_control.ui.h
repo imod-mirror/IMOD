@@ -6,6 +6,7 @@
 ** a constructor, and a destroy() slot in place of a destructor.
 *****************************************************************************/
 
+// Routines to display slider labels, and record the value displayed
 void imodvControlForm::displayFarLabel( int value )
 {
     QString str;
@@ -35,6 +36,7 @@ void imodvControlForm::displayRateLabel( int value )
     QString str;
     str.sprintf("%.1f", value / 10.);
     degreesTextLabel->setText(str);
+    mRateDisplayed = value;
 }
 
 void imodvControlForm::displayZscaleLabel( int value )
@@ -47,6 +49,8 @@ void imodvControlForm::displayZscaleLabel( int value )
     zScaleTextLabel->setText(str);
     mZscaleDisplayed = value;
 }
+
+// ZOOM UP AND DOWN CONTROL BUTTONS
 void imodvControlForm::zoomDown()
 {
     imodvControlZoom(-1);
@@ -57,6 +61,7 @@ void imodvControlForm::zoomUp()
     imodvControlZoom(1);
 }
 
+// A new value is entered in the scale box
 void imodvControlForm::newScale()
 {
     QString str = scaleLineEdit->text();
@@ -64,9 +69,11 @@ void imodvControlForm::newScale()
     if  (value < 0.001)
 	value = 0.001;
     setScaleText(value);
+    setFocus();
     imodvControlScale(value);
 }
 
+// Changes in the slider positions
 void imodvControlForm::nearChanged( int value )
 {
     if (!mNearPressed || mCtrlPressed)
@@ -91,6 +98,7 @@ void imodvControlForm::zScaleChanged( int value )
 	imodvControlZscale(value);
 }
 
+// The rotation buttons
 void imodvControlForm::rotateXminus()
 {
     imodvControlAxisButton(-IMODV_CONTROL_XAXIS);
@@ -121,10 +129,12 @@ void imodvControlForm::rotateZplus()
     imodvControlAxisButton(IMODV_CONTROL_ZAXIS);
 }
 
+// New values entered in the rotation text boxes
 void imodvControlForm::newXrotation()
 {
     QString str = XLineEdit->text();
     float value = atof(str.latin1());
+    setFocus();
     imodvControlAxisText(IMODV_CONTROL_XAXIS, value);
 }
 
@@ -132,6 +142,7 @@ void imodvControlForm::newYrotation()
 {
     QString str = YLineEdit->text();
     float value = atof(str.latin1());
+    setFocus();
     imodvControlAxisText(IMODV_CONTROL_YAXIS, value);
 }
 
@@ -139,17 +150,21 @@ void imodvControlForm::newZrotation()
 {
     QString str = ZLineEdit->text();
     float value = atof(str.latin1());
+    setFocus();
     imodvControlAxisText(IMODV_CONTROL_ZAXIS, value);
 }
 
+// Start/top button
 void imodvControlForm::startStop()
 {
     imodvControlStart();
 }
 
+// Rate slider
 void imodvControlForm::rateChanged( int value )
 {
-    imodvControlRate(value);
+    if (!mRatePressed || mCtrlPressed)
+	imodvControlRate(value);
 }
 
 void imodvControlForm::OKPressed()
@@ -162,6 +177,7 @@ void imodvControlForm::helpPressed()
     imodvControlHelp();    
 }
 
+// Routines for imodv_control to set state of dialog
 void imodvControlForm::setAxisText( int axis, float value )
 {
     QString str;
@@ -261,30 +277,49 @@ void imodvControlForm::zScalePressed()
     mZscalePressed = true;
 }
 
+void imodvControlForm::ratePressed()
+{
+    mRatePressed = true;
+}
+
+void imodvControlForm::rateReleased()
+{
+    mRatePressed = false;
+    rateChanged(mRateDisplayed);
+}
+
 void imodvControlForm::init()
 {
+    int width;
     mNearPressed = false;
     mFarPressed = false;
     mPerspectivePressed = false;
     mZscalePressed = false;
+    mRatePressed = false;
     mCtrlPressed = false;
+    width =( (2 * 6 + 3) * scaleLineEdit->fontMetrics().width("888888")) / (2 * 6);
+    scaleLineEdit->setFixedWidth(width);
+    width =( (2 * 7+ 3) * XLineEdit->fontMetrics().width("8888888")) / (2 * 7);
+    XLineEdit->setFixedWidth(width);
+    YLineEdit->setFixedWidth(width);
+    ZLineEdit->setFixedWidth(width);
 }
 
+// Key event: send quit signal if an escape, keep track of control key, and pass on to imodv_input
 void imodvControlForm::keyPressEvent( QKeyEvent * e )
 {
     // fprintf(stderr, "keyEvent\n");
-    if (e->key() == Qt::Key_Escape)
+    if (e->key() == Qt::Key_Escape) {
 	imodvControlQuit();
+    } else {
     
-    if (e->key() == Qt::Key_Control) {
-	mCtrlPressed = true;
-        grabKeyboard();
+	if (e->key() == Qt::Key_Control) {
+	    mCtrlPressed = true;
+	    grabKeyboard();
+	}
+	imodvKeyPress(e);
     }
-    
-    // This made no difference, probably because this is a top level widget
-    e->ignore();
 }
-
 
 void imodvControlForm::keyReleaseEvent( QKeyEvent * e )
 {
@@ -292,6 +327,5 @@ void imodvControlForm::keyReleaseEvent( QKeyEvent * e )
 	mCtrlPressed = false;
         releaseKeyboard();
   }
-    
-    e->ignore();
+  imodvKeyRelease(e);
 }
