@@ -24,6 +24,12 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.2  2004/10/06 01:38:00  sueh
+* <p> bug# 520 Added abstract backgroundPostProcessing to handle
+* <p> non-generic processing during msgBackgroundProcessDone().  Added
+* <p> startBackgroundProcess() functions to handle constructing
+* <p> BackgroundProcess with a Command rather then a String.
+* <p>
 * <p> Revision 1.1.2.1  2004/09/29 17:48:18  sueh
 * <p> bug# 520 Contains functionality that is command for ProcessManager and
 * <p> JoinProcessManager.
@@ -87,21 +93,21 @@ public abstract class BaseProcessManager {
     // Run the script as a thread in the background
     comScriptProcess.setWorkingDirectory(new File(System
       .getProperty("user.dir")));
-    comScriptProcess.setDebug(EtomoDirector.isDebug());
-    comScriptProcess.setDemoMode(EtomoDirector.isDemo());
+    comScriptProcess.setDebug(EtomoDirector.getInstance().isDebug());
+    comScriptProcess.setDemoMode(EtomoDirector.getInstance().isDemo());
     comScriptProcess.start();
 
     // Map the thread to the correct axis
     mapAxisThread(comScriptProcess, axisID);
 
-    if (EtomoDirector.isDebug()) {
+    if (EtomoDirector.getInstance().isDebug()) {
       System.err.println("Started " + command);
       System.err.println("  Name: " + comScriptProcess.getName());
     }
 
     Thread processMonitorThread = null;
     // Replace the process monitor with a DemoProcessMonitor if demo mode is on
-    if (EtomoDirector.isDemo()) {
+    if (EtomoDirector.getInstance().isDemo()) {
       processMonitor = new DemoProcessMonitor(manager, axisID, command,
         comScriptProcess.getDemoTime());
     }
@@ -534,6 +540,16 @@ public abstract class BaseProcessManager {
         this);
     return startBackgroundProcess(backgroundProcess, commandLine, axisID);
   }
+  
+  protected BackgroundProcess startBackgroundProcess(String[] commandArray,
+      AxisID axisID) throws SystemProcessException {
+
+    isAxisBusy(axisID);
+
+    BackgroundProcess backgroundProcess = new BackgroundProcess(commandArray,
+        this);
+    return startBackgroundProcess(backgroundProcess, commandArray.toString(), axisID);
+  }
 
   protected BackgroundProcess startBackgroundProcess(Command command,
       AxisID axisID) throws SystemProcessException {
@@ -548,10 +564,10 @@ public abstract class BaseProcessManager {
       throws SystemProcessException {
     backgroundProcess.setWorkingDirectory(new File(System
         .getProperty("user.dir")));
-    backgroundProcess.setDemoMode(EtomoDirector.isDemo());
-    backgroundProcess.setDebug(EtomoDirector.isDebug());
+    backgroundProcess.setDemoMode(EtomoDirector.getInstance().isDemo());
+    backgroundProcess.setDebug(EtomoDirector.getInstance().isDebug());
     backgroundProcess.start();
-    if (EtomoDirector.isDebug()) {
+    if (EtomoDirector.getInstance().isDebug()) {
       System.err.println("Started " + commandLine);
       System.err.println("  Name: " + backgroundProcess.getName());
     }
