@@ -37,6 +37,9 @@
     $Revision$
 
     $Log$
+    Revision 1.1.2.1  2002/12/05 03:13:02  mast
+    New Qt version
+
     Revision 3.4  2002/11/05 23:54:24  mast
     Changed to get a visual then pass it to GLw.
 
@@ -65,6 +68,11 @@
 struct Midas_view *VW;
 int Midas_debug = 0;
 #define ARROW_SIZE 19
+
+#ifdef _WIN32
+#define NO_IMOD_FORK
+#include <fcntl.h>
+#endif
 
 static void usage(void)
 {
@@ -101,6 +109,10 @@ int main (int argc, char **argv)
   int dofork = 0;
 #else
   int dofork = 1;
+#endif
+
+#ifdef _WIN32
+  _fmode = _O_BINARY;
 #endif
 
   vw = VW = &MidasView;
