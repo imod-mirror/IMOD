@@ -15,7 +15,10 @@ import java.util.Properties;
 * 
 * @version $Revision$
 * 
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1.2.1  2004/10/21 02:57:05  sueh
+* <p> bug# 520 EtomoSimpleType which encapsulates long.
+* <p> </p>
 */
 public class EtomoLong extends ConstEtomoLong {
   public static  final String  rcsid =  "$Id$";
@@ -66,6 +69,7 @@ public class EtomoLong extends ConstEtomoLong {
       catch (NumberFormatException e) {
         e.printStackTrace();
         invalidReason = "Invalid value:  " + value + ".  " + description + " is an integer.";
+        this.value = unsetValue;
       }
     }
     return invalidReason;
