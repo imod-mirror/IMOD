@@ -10,6 +10,8 @@ import javax.swing.JButton;
 import javax.swing.JTextField;
 import javax.swing.plaf.ColorUIResource;
 
+import etomo.type.SlicerAngles;
+
 /**
 * <p>Description: Manages the fields, buttons, state, and data of one row of
 * SectionTablePanel.</p>
@@ -25,6 +27,12 @@ import javax.swing.plaf.ColorUIResource;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.2  2004/09/21 18:12:04  sueh
+* <p> bug# 520 Added remove(), to remove the row from the table.  Added
+* <p> imodIndex - the vector index of the 3dmod in ImodManager.  Added
+* <p> create(), to create the row in the table for the first time.  Added add(), to
+* <p> added the rows back into the table.
+* <p>
 * <p> Revision 1.1.2.1  2004/09/17 21:48:41  sueh
 * <p> bug# 520 Handles row display, state, and data.  Can highlight all of its
 * <p> fields.  Can expand the section field
@@ -185,6 +193,12 @@ public class SectionTableRow {
     this.imodIndex = imodIndex;
   }
   
+  void setRotationAngles(SlicerAngles slicerAngles) {
+    rotationAngleX.setText(slicerAngles.getXText());
+    rotationAngleY.setText(slicerAngles.getYText());
+    rotationAngleZ.setText(slicerAngles.getZText());
+  }
+
   /**
    * Toggle the highlighter button based on the highlighted parameter.
    * Change the foreground and background for all the fields in the row.  Do
@@ -206,12 +220,16 @@ public class SectionTableRow {
    */
   private void highlight() {
     if (highlighterButton.isSelected()) {
-      table.highlighting(rowNumber);
       setColors(textFieldSelectedForeground, textFieldSelectedBackground);
     }
     else {
       setColors(textFieldForeground, textFieldBackground);
     }
+  }
+  
+  private void highlighterButtonAction() {
+    table.highlighting(rowNumber, highlighterButton.isSelected());
+    highlight();
   }
   
   boolean isHighlighted() {
@@ -276,7 +294,7 @@ public class SectionTableRow {
     String command = event.getActionCommand();
 
     if (command.equals(highlighterButton.getActionCommand())) {
-      highlight();
+      highlighterButtonAction();
     }
   }
 
