@@ -1,7 +1,9 @@
 package etomo;
 
 import java.awt.Dimension;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Vector;
 
@@ -43,6 +45,9 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.20  2004/10/21 17:50:48  sueh
+* <p> bug# 520 In endSetupMode() set paramFile and status bar.
+* <p>
 * <p> Revision 1.1.2.19  2004/10/21 02:31:51  sueh
 * <p> bug# 520 Added enableMidas, finishJoin, revertXfalign, xfalignInitial,
 * <p> xfalignRefine.
@@ -165,6 +170,7 @@ public class JoinManager extends BaseManager {
       joinDialog = new JoinDialog(this);
       joinDialog.setMetaData(metaData);
     }
+    createEmptyXfFile();
     mainPanel.showProcess(joinDialog.getContainer(), AxisID.ONLY);
   }
   
@@ -396,12 +402,15 @@ public class JoinManager extends BaseManager {
       return;
     }
     MidasParam midasParam = new MidasParam(metaData);
+    if (!copyMostRecentXfFile(JoinDialog.MIDAS_TEXT)) {
+      return;
+    }
     try {
       processMgr.midasSample(midasParam);
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      mainPanel.openMessageDialog("Can't run midas\n"
+      mainPanel.openMessageDialog("Can't run"+ JoinDialog.MIDAS_TEXT + "\n"
         + except.getMessage(), "SystemProcessException");
       return; 
     }
@@ -439,18 +448,97 @@ public class JoinManager extends BaseManager {
       return;
     }
     XfalignParam xfalignParam = new XfalignParam(metaData, XfalignParam.REFINE_MODE);
+    if (!copyMostRecentXfFile(JoinDialog.REFINE_AUTO_ALIGNMENT_TEXT)) {
+      return;
+    }
     try {
       threadNameA = processMgr.xfalign(xfalignParam);
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      mainPanel.openMessageDialog("Can't run refine xfalign\n"
+      mainPanel.openMessageDialog("Can't run "+ JoinDialog.REFINE_AUTO_ALIGNMENT_TEXT + "\n"
         + except.getMessage(), "SystemProcessException");
       mainPanel.stopProgressBar(AxisID.ONLY);
       joinDialog.enableMidas();
       return; 
     }
   }
+  
+  private boolean copyMostRecentXfFile(String commandDescription) {
+    String rootName = metaData.getRootName();
+    String xfFileName = rootName + ".xf";
+    File newXfFile = Utilities.mostRecentFile(xfFileName, rootName
+        + MidasParam.getOutputFileExtension(), rootName
+        + XfalignParam.getOutputFileExtension(), rootName + "_empty.xf");
+    if (!newXfFile.getName().equals(xfFileName)) {
+      File xfFile = new File(propertyUserDir, xfFileName);
+      try {
+        Utilities.copyFile(newXfFile, xfFile);
+      }
+      catch (IOException e) {
+        e.printStackTrace();
+        String[] message = {
+            "Unable to copy " + newXfFile.getAbsolutePath() + " to "
+                + xfFileName + ".",
+            "Copy " + newXfFile.getName() + " to " + xfFileName,
+            " and then rerun " + commandDescription + "." };
+        mainPanel
+            .openMessageDialog(message, "Cannot run " + commandDescription);
+        return false;
+      }
+    }
+    return true;
+  }
+  
+  public void copyXfFile(File xfOutputFile) {
+    File xfFile = new File(propertyUserDir, metaData.getRootName() + ".xf");
+    if (xfOutputFile != null && xfOutputFile.exists()) {
+      try {
+        Utilities.copyFile(xfOutputFile, xfFile);
+      }
+      catch (IOException e) {
+        e.printStackTrace();
+        String[] message = {
+            "Unable to copy " + xfOutputFile.getAbsolutePath() + " to "
+                + xfFile.getName() + ".",
+            "Copy " + xfOutputFile.getName() + " to " + xfFile.getName() + "." };
+        mainPanel.openMessageDialog(message, "Cannot Copy File");
+      }
+    }
+  }
+  
+  public void createEmptyXfFile() {
+    File emptyXfFile = new File(propertyUserDir, metaData.getRootName()
+        + "_empty.xf");
+    if (!emptyXfFile.exists()) {
+      String emptyLine = "   1.0000000   0.0000000   0.0000000   1.0000000       0.000       0.000";
+      try {
+        BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(
+            emptyXfFile));
+        bufferedWriter.write(emptyLine);
+        bufferedWriter.newLine();
+        bufferedWriter.write(emptyLine);
+        bufferedWriter.newLine();
+        bufferedWriter.write(emptyLine);
+        bufferedWriter.newLine();
+        bufferedWriter.close();
+      }
+      catch (IOException e) {
+        e.printStackTrace();
+        return;
+      }
+    }
+    File xfFile = new File(propertyUserDir, metaData.getRootName() + ".xf");
+    if (!xfFile.exists()) {
+      try {
+        Utilities.copyFile(emptyXfFile, xfFile);
+      }
+      catch (IOException e) {
+        e.printStackTrace();
+      }
+    }
+  }
+
   
   private boolean endSetupMode() {
     if (!metaData.isValid(true)) {
@@ -485,29 +573,16 @@ public class JoinManager extends BaseManager {
     }
   }
   
-  public void revertXfalign() {
-    String rootName = metaData.getRootName();
-    String workingDir = metaData.getWorkingDir();
-    File xfalignBackupFile = new File(workingDir, rootName + ".xf.bak");
-    File xfalignFile = new File(workingDir, rootName + ".xf");
-    if (!xfalignBackupFile.exists()) {
-      String[] message = {
-          "Unable to move " + xfalignBackupFile.getAbsolutePath() + " to "
-              + xfalignFile.getName() + ".",
-          xfalignBackupFile.getName() + " does not exist." };
-      mainPanel.openMessageDialog(message, "Revert Failed");
-    }
-    try {
-      Utilities.renameFile(xfalignBackupFile, xfalignFile);
-    }
-    catch (IOException e) {
-      e.printStackTrace();
-      String[] message = {
-          "Unable to move " + xfalignBackupFile.getAbsolutePath() + " to "
-              + xfalignFile.getName() + ".",
-          "IOException: " + e.getMessage() };
-      mainPanel.openMessageDialog(message, "Revert Failed");
-    }
+  public void revertXfFileToMidas() {
+    File midasOutputFile = new File(propertyUserDir, metaData.getRootName() + MidasParam.getOutputFileExtension());
+    processMgr.touch(midasOutputFile);
+    copyXfFile(midasOutputFile);
+  }
+  
+  public void revertXfFileToEmpty() {
+    File emptyFile = new File(propertyUserDir, metaData.getRootName() + "_empty.xf");
+    processMgr.touch(emptyFile);
+    copyXfFile(emptyFile);
   }
   
   public void enableMidas() {
@@ -523,12 +598,15 @@ public class JoinManager extends BaseManager {
       return;
     }
     FinishjoinParam finishjoinParam = new FinishjoinParam(metaData);
+    if (!copyMostRecentXfFile(JoinDialog.FINISH_JOIN_TEXT)) {
+      return;
+    }
     try {
       threadNameA = processMgr.finishjoin(finishjoinParam);
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      mainPanel.openMessageDialog("Can't run refine finishjoin\n"
+      mainPanel.openMessageDialog("Can't run "+ JoinDialog.FINISH_JOIN_TEXT + "\n"
         + except.getMessage(), "SystemProcessException");
       mainPanel.stopProgressBar(AxisID.ONLY);
       return; 
