@@ -19,6 +19,9 @@ import etomo.EtomoDirector;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.8  2004/11/11 01:37:30  sueh
+* <p> bug# 520 Added useEveryNSlices and trialBinning.
+* <p>
 * <p> Revision 1.1.2.7  2004/10/29 01:19:48  sueh
 * <p> bug# 520 Removing workingDir.
 * <p>
@@ -71,6 +74,12 @@ public class JoinMetaData extends ConstJoinMetaData {
     sizeInY.reset();
     shiftInX.reset();
     shiftInY.reset();
+    trialBinning.reset();
+    finishjoinTrialBinning.reset();
+    finishjoinTrialSizeInX.reset();
+    finishjoinTrialSizeInY.reset();
+    finishjoinTrialShiftInX.reset();
+    finishjoinTrialShiftInY.reset();
   }
 
   /**
@@ -106,6 +115,11 @@ public class JoinMetaData extends ConstJoinMetaData {
     shiftInY.load(props, prepend);
     useEveryNSlices.load(props, prepend);
     trialBinning.load(props, prepend);
+    finishjoinTrialBinning.load(props, prepend);
+    finishjoinTrialSizeInX.load(props, prepend);
+    finishjoinTrialSizeInY.load(props, prepend);
+    finishjoinTrialShiftInX.load(props, prepend);
+    finishjoinTrialShiftInY.load(props, prepend);
     
     int sectionTableRowsSize = Integer.parseInt(props.getProperty(group
         + sectionTableDataSizeString, "-1"));
@@ -127,6 +141,26 @@ public class JoinMetaData extends ConstJoinMetaData {
 
   public void setDensityRefSection(Object densityRefSection) {
     this.densityRefSection.set((Integer) densityRefSection);
+  }
+  
+  public void setFinishjoinTrialBinning(int trialBinning) {
+    finishjoinTrialBinning.set(trialBinning);
+  }
+  
+  public void setFinishjoinTrialShiftInX(int trialShiftInX) {
+    finishjoinTrialShiftInX.set(trialShiftInX);
+  }
+  
+  public void setFinishjoinTrialShiftInY(int trialShiftInY) {
+    finishjoinTrialShiftInY.set(trialShiftInY);
+  }
+  
+  public void setFinishjoinTrialSizeInX(int trialSizeInX) {
+    finishjoinTrialSizeInX.set(trialSizeInX);
+  }
+  
+  public void setFinishjoinTrialSizeInY(int trialSizeInY) {
+    finishjoinTrialSizeInY.set(trialSizeInY);
   }
   
   public void setUseEveryNSlices(Object useEveryNSlices) {
