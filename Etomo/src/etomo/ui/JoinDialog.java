@@ -29,6 +29,11 @@ import etomo.type.JoinMetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.1.2.20  2004/10/25 23:14:03  sueh
+ * <p> bug# 520 Set default size in X, Y when changing to the join tab.  Fixed
+ * <p> spinners not initializing in setMetaData by setting numSections before
+ * <p> initializing.
+ * <p>
  * <p> Revision 1.1.2.19  2004/10/22 21:08:07  sueh
  * <p> bug# 520 Changed offsetInX, Y to shiftInX, Y.
  * <p>
@@ -116,6 +121,10 @@ public class JoinDialog implements ContextMenu {
   public static final int ALIGN_TAB = 1;
   public static final int JOIN_TAB = 2;
   
+  public static final String REFINE_AUTO_ALIGNMENT_TEXT = "Refine Auto Alignment";
+  public static final String MIDAS_TEXT = "Midas";
+  public static final String FINISH_JOIN_TEXT = "Finish Join";
+  
   private static ImageIcon iconFolder = new ImageIcon(ClassLoader
       .getSystemResource("images/openFile.gif"));
   private static Dimension dimButton = UIParameters.getButtonDimension();
@@ -129,6 +138,9 @@ public class JoinDialog implements ContextMenu {
   private DoubleSpacedPanel pnlJoin;
   private SpacedPanel pnlSetupComponent1;
   private SpacedPanel pnlAlignComponent1;
+  private SpacedPanel pnlAlignComponent2;
+  private SpacedPanel pnlAlignComponent2A;
+  private DoubleSpacedPanel pnlAlignComponent2B;
   private DoubleSpacedPanel pnlXfalign;
   private ButtonGroup bgSearchFor;
   private JLabel lblSearchFor;
@@ -147,7 +159,8 @@ public class JoinDialog implements ContextMenu {
   private MultiLineButton btnInitialAutoAlignment;
   private MultiLineButton btnMidas;
   private MultiLineButton btnRefineAutoAlignment;
-  private MultiLineButton btnRevertAutoAlignment;
+  private MultiLineButton btnRevertToMidas;
+  private MultiLineButton btnRevertToEmpty;
   private MultiLineButton btnFinishJoin;
   private MultiLineButton btnOpenIn3dmod;
 
@@ -335,17 +348,31 @@ public class JoinDialog implements ContextMenu {
     pnlXfalign.add(rbRotationTranslationMagnification, false);
     pnlXfalign.add(rbRotationTranslation);
     //fourth component
+    pnlAlignComponent2 = new SpacedPanel(FixedDim.x5_y0);
+    pnlAlignComponent2.setLayout(new BoxLayout(pnlAlignComponent2
+        .getContainer(), BoxLayout.X_AXIS));
+    pnlAlignComponent2A = new SpacedPanel(FixedDim.x0_y5);
+    pnlAlignComponent2A.setLayout(new BoxLayout(pnlAlignComponent2A
+        .getContainer(), BoxLayout.Y_AXIS));
     btnInitialAutoAlignment = new MultiLineButton("Initial Auto Alignment");
     btnInitialAutoAlignment.addActionListener(joinActionListener);
-    //fifth component
-    btnMidas = new MultiLineButton("Midas");
+    pnlAlignComponent2A.addMultiLineButton(btnInitialAutoAlignment);
+    btnMidas = new MultiLineButton(MIDAS_TEXT);
     btnMidas.addActionListener(joinActionListener);
-    //sixth component
-    btnRefineAutoAlignment = new MultiLineButton("Refine Auto Alignment");
+    pnlAlignComponent2A.addMultiLineButton(btnMidas);
+    btnRefineAutoAlignment = new MultiLineButton(REFINE_AUTO_ALIGNMENT_TEXT);
     btnRefineAutoAlignment.addActionListener(joinActionListener);
-    //seventh component
-    btnRevertAutoAlignment = new MultiLineButton("Revert Auto Alignment");
-    btnRevertAutoAlignment.addActionListener(joinActionListener);
+    pnlAlignComponent2A.addMultiLineButton(btnRefineAutoAlignment);
+    pnlAlignComponent2.add(pnlAlignComponent2A);
+    pnlAlignComponent2B = new DoubleSpacedPanel(false, FixedDim.x5_y0,
+        FixedDim.x0_y5, BorderFactory.createEtchedBorder());
+    btnRevertToMidas = new MultiLineButton("Revert Auto Alignment to Midas");
+    btnRevertToMidas.addActionListener(joinActionListener);
+    pnlAlignComponent2B.addMultiLineButton(btnRevertToMidas);
+    btnRevertToEmpty= new MultiLineButton("Revert to No Transforms");
+    btnRevertToEmpty.addActionListener(joinActionListener);
+    pnlAlignComponent2B.addMultiLineButton(btnRevertToEmpty);
+    pnlAlignComponent2.add(pnlAlignComponent2B);
   }
   
   private void addAlignPanelComponents() {
@@ -358,14 +385,7 @@ public class JoinDialog implements ContextMenu {
     //third component
     pnlAlign.add(pnlXfalign);
     //fourth component
-    pnlAlign.setComponentAlignmentX(Component.CENTER_ALIGNMENT);
-    pnlAlign.addMultiLineButton(btnInitialAutoAlignment);
-    //fifth component
-    pnlAlign.addMultiLineButton(btnMidas);
-    //sixth component
-    pnlAlign.addMultiLineButton(btnRefineAutoAlignment);
-    //seventh component
-    pnlAlign.addMultiLineButton(btnRevertAutoAlignment);
+    pnlAlign.add(pnlAlignComponent2);
   }
 
   private void createJoinPanel() {
@@ -435,7 +455,7 @@ public class JoinDialog implements ContextMenu {
     ltfShiftInY = new LabeledTextField("Y: ");
     pnlFinishJoinComponent3.add(ltfShiftInY);
     //fourth component
-    btnFinishJoin = new MultiLineButton("Finish Join");
+    btnFinishJoin = new MultiLineButton(FINISH_JOIN_TEXT);
     btnFinishJoin.addActionListener(joinActionListener);
   }
   
@@ -580,8 +600,11 @@ public class JoinDialog implements ContextMenu {
       btnMidas.setEnabled(false);
       joinManager.xfalignRefine();
     }
-    else if (command.equals(btnRevertAutoAlignment.getActionCommand())) {
-      joinManager.revertXfalign();
+    else if (command.equals(btnRevertToMidas.getActionCommand())) {
+      joinManager.revertXfFileToMidas();
+    }
+    else if (command.equals(btnRevertToEmpty.getActionCommand())) {
+      joinManager.revertXfFileToEmpty();
     }
     else if (command.equals(btnFinishJoin.getActionCommand())) {
       joinManager.finishjoin();
