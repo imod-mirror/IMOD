@@ -34,6 +34,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.4  2002/12/17 18:42:22  mast
+Qt version, incorporating ximodv startup code
+
 Revision 1.1.2.3  2002/12/14 05:41:08  mast
 Got qxt startup in the right place
 
@@ -318,9 +321,6 @@ static void initstruct(ImodView *vw, ImodvApp *a)
 // OPEN THE DISPLAY AND START X APPLICATION
 static int open_display(int *argc, char **argv, ImodvApp *a)
 {
-  int err;
-  Colormap cmap;
-
   a->topLevel = XtVaAppInitialize
     (&(a->context), "Imodv",
      Imodv_options, XtNumber(Imodv_options),
@@ -364,7 +364,7 @@ static int open_display(int *argc, char **argv, ImodvApp *a)
   new QXtApplication(XtDisplay(Imodv->topLevel));
   QApplication::setStyle("windows");
   
-  if ((err = getVisuals(a)) != 0) {
+  if (getVisuals(a) != 0) {
     fprintf(stderr, "imodv error: Couldn't get rendering visual.\n");
     exit(-1);
   }
@@ -583,7 +583,7 @@ void imodv_open()
   ImodvStruct.md = &Imodv_mdraw;
   ImodvApp *a = Imodv;
 
-  int ob, co, pt, err;
+  int ob, co;
   Imod *imod = vw->imod;
   int hasPoints = 0;
 
@@ -617,7 +617,7 @@ void imodv_open()
 
   initstruct(vw, a);
 
-  if ((err = getVisuals(a)) != 0) {
+  if (getVisuals(a) != 0) {
     wprint("Couldn't get rendering visual for model view."
            "  Try running imodv separately.\n");
     imodMatDelete(a->mat);

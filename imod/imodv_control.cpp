@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 1.1.2.5  2002/12/17 18:33:19  mast
+    using new includes for imodv compoennts
+
     Revision 1.1.2.4  2002/12/13 06:08:40  mast
     simplification in dealing with filename string
 
@@ -171,8 +174,8 @@ void imodvControlClip(int plane, int value)
 
 void imodvControlZscale(int value)
 {
-  int m, nm;
-  nm = Imodv->nm;
+  /*  int m, nm;
+      nm = Imodv->nm; */
   Imodv->mod[Imodv->cm]->zscale = value / 100.0;
   /* DNM: this should not be adjusted in tandem in general */
   /*     if (Imodv->crosset)

@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.2  2002/12/17 18:31:30  mast
+preliminary changes for Qt
+
 Revision 1.1.2.1  2002/12/15 21:14:02  mast
 conversion to cpp
 
@@ -228,7 +231,7 @@ void stereoDrawBuffer(GLenum mode)
     /* sync with X command stream before calling GL */
   //  glXWaitX();
 
-  }
+  //  }
 #endif
   glDrawBuffer(mode);
 }
