@@ -172,6 +172,10 @@ import etomo.type.AxisID;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.19.2.1  2004/09/21 17:56:28  sueh
+ * <p> $bug# 520 Added ImodState(File), which sets the absolute path of the file
+ * <p> $to ImodProcess.datasetName.
+ * <p> $
  * <p> $Revision 1.19  2004/08/31 01:09:03  sueh
  * <p> $bug# 541 reset():  resetting each time 3dmod runs
  * <p> $
@@ -496,6 +500,10 @@ public class ImodState {
 
   public Vector getRubberbandCoordinates() throws SystemProcessException {
     return process.getRubberbandCoordinates();
+  }
+  
+  public Vector getSlicerAngles() throws SystemProcessException {
+    return process.getSlicerAngles();
   }
 
   
