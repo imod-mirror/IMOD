@@ -30,6 +30,9 @@ import java.lang.String;
 * @version $Revision$
 *
 * <p> $Log$
+* <p> Revision 3.2  2004/04/26 03:16:22  rickg
+* <p> Set text margin to 2 all around
+* <p>
 * <p> Revision 3.1  2004/01/30 22:46:17  sueh
 * <p> bug# 356 eliminated the "missing ui" error message
 * <p>
@@ -173,7 +176,7 @@ final public class MultiLineToggleButton extends JToggleButton {
   }
 
   private ColorUIResource getDefaultUIColor(String property) {
-    ColorUIResource color = ButtonHelper.getDefaultUIColor(property);
+    ColorUIResource color = UIUtilities.getDefaultUIColor(property);
     if (color == null) {
       color = createDefaultColor(property);
     }
