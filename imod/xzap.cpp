@@ -35,6 +35,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.2  2002/12/09 23:23:49  mast
+Plugged image memory leak
+
 Revision 1.1.2.1  2002/12/09 17:50:33  mast
 Qt version
 
@@ -76,7 +79,6 @@ Added hotkeys to do smoothing and next section in autocontouring
 #include <qcursor.h>
 #include <qapplication.h>
 #include <qpoint.h>
-#include <qbitmap.h>
 #include "zap_classes.h"
 
 #ifdef REPORT_TIMES
@@ -92,7 +94,7 @@ Added hotkeys to do smoothing and next section in autocontouring
 #include "imod_cursor.h"
 #include "imod_cmask.h"
 
-//#define XZAP_DEBUG
+#define XZAP_DEBUG
 
 void inputQDefaultKeys(QKeyEvent *event, ImodView *vw);
 
@@ -360,7 +362,7 @@ void zapDraw_cb(ImodView *vi, void *client, int drawflag)
   int limarr[4];
 
 #ifdef XZAP_DEBUG
-  puts("Zap Draw");
+  fprintf(stderr, "Zap Draw\n");
 #endif
 
   if (!zap) return;
@@ -497,10 +499,13 @@ static void zapSyncImage(ZapStruct *win)
   }
 }
 
+static int drawRetval;
+
 static int zapDraw(ZapStruct *zap)
 {
+  drawRetval = 0;
   zap->gfx->updateGL();
-  return 0;
+  return drawRetval;
 }
 
 
@@ -509,6 +514,8 @@ static int zapDraw(ZapStruct *zap)
    is done, to avoid double snapshots */
 static int zapReallyDraw(ZapStruct *zap)
 {
+  int ob;
+  drawRetval = 0;
 
   /* DNM 9/10/02: skip a draw if expose timeout is active or a resize
      was started and not finished yet */
@@ -528,9 +535,26 @@ static int zapReallyDraw(ZapStruct *zap)
   //glXWaitX();
   zapAutoTranslate(zap);
 
+  // If the current only flag is set, swap the displayed buffer into the
+  // drawing buffer and just draw the current contour
+  if (zap->drawCurrentOnly > 0) {
+    if (App->doublebuffer)
+      zap->gfx->swapBuffers();
+    ob = zap->vi->imod->cindex.object;
+    imodSetObjectColor(ob); 
+    b3dLineWidth(zap->vi->imod->obj[ob].linewidth2); 
+    zapDrawCurrentContour(zap, zap->vi->imod->cindex.contour, ob);
+    zap->drawCurrentOnly = -1;
+    return 0;
+  }
+  
+  zap->drawCurrentOnly = 0;
+
   /* DNM: this call returns 1 if further drawing can be skipped */
-  if (zapDrawGraphics(zap))
+  if (zapDrawGraphics(zap)) {
+    drawRetval = 1;
     return 1;
+  }
 
   zapDrawModel(zap);
   zapDrawCurrentPoint(zap, False);
@@ -543,9 +567,6 @@ static int zapReallyDraw(ZapStruct *zap)
   } 
   zapDrawTools(zap);
 
-  //  if (!zap->drawingFromPaint)
-  //  b3dSwapBuffers();
-  zap->drawingFromPaint = 0;
   return 0;
 }
 
@@ -678,10 +699,13 @@ void zapPaint(ZapStruct *zap)
      with GeForce4 Ti4600 - possibly due to collisions with X's redraw of
      the window */
 #ifndef ZAP_EXPOSE_HACK
-  zap->drawingFromPaint = 1;
   zapReallyDraw(zap);
-  if (zap->resizedraw2x)
+  if (zap->resizedraw2x) {
+#ifdef XZAP_DEBUG
+    fprintf(stderr, "Drawing twice: ");
+#endif
     zapReallyDraw(zap);
+  }    
   zap->resizedraw2x = 0;
 #else
   if (zap->exposeTimeOut) {
@@ -810,6 +834,8 @@ int imod_zap_open(struct ViewInfo *vi)
   int time, tmax, len, maxlen;
   int needWinx, needWiny;
   QString str;
+  int deskWidth = QApplication::desktop()->width();
+  int deskHeight = QApplication::desktop()->height();
 
   zap = (ZapStruct *)malloc(sizeof(ZapStruct));
   if (!zap) return(-1);
@@ -819,8 +845,8 @@ int imod_zap_open(struct ViewInfo *vi)
   zap->closing  = 0;
   /* DNM: setting max size of the topLevelShell didn't work on the PC, so
      let's just explicitly limit the size asked for in the image portion */
-  zap->winx = QApplication::desktop()->width() - 20;
-  zap->winy = QApplication::desktop()->height() - 76;
+  zap->winx = deskWidth - 20;
+  zap->winy = deskHeight - 76;
   if (vi->xsize < zap->winx)
     zap->winx   = vi->xsize;
   if (vi->ysize < zap->winy)
@@ -853,6 +879,7 @@ int imod_zap_open(struct ViewInfo *vi)
   zap->exposeTimeOut = (XtIntervalId)0;
 #endif
   zap->resizeSkipDraw = 0;
+  zap->drawCurrentOnly = 0;
 
   imod_info_input();
   needWinx = zap->winx;
@@ -913,16 +940,24 @@ int imod_zap_open(struct ViewInfo *vi)
   puts("popup a zap dialog");
 #endif
 
+  // Manage the size and position of the window
   QSize toolSize = zap->qtWindow->mToolBar->sizeHint();
 
   int newWidth = toolSize.width() > needWinx ? toolSize.width() : needWinx;
   int newHeight = needWiny + (zap->qtWindow->height() - zap->gfx->height());
+  QPoint pos = zap->qtWindow->pos();
+  int xleft = pos.x();
+  int ytop = pos.y();
+  if (xleft + newWidth > deskWidth - 16)
+    xleft = deskWidth - 16 - newWidth;
+  if (ytop + newHeight > deskHeight - 40)
+    ytop = deskHeight - 40 - newHeight;
   if (Imod_debug)
     fprintf(stderr, "Sizes: zap %d %d, toolbar %d %d, GL %d %d: "
             "resize %d %d\n", zap->qtWindow->width(), zap->qtWindow->height(), 
             toolSize.width(), toolSize.height(), zap->gfx->width(), 
             zap->gfx->height(), newWidth, newHeight);
-  zap->qtWindow->resize(newWidth, newHeight);
+  zap->qtWindow->setGeometry(xleft, ytop, newWidth, newHeight);
 
   /* DNM: set cursor after window created so it has model mode cursor if
      an existing window put us in model mode */
@@ -1264,6 +1299,7 @@ static int firstdrag = 0;
 static int moveband = 0;
 static int firstmx, firstmy;
 
+// respond to a mouse press event
 void zapMousePress(ZapStruct *zap, QMouseEvent *event)
 {
   int button1, button2, button3;
@@ -1299,6 +1335,7 @@ void zapMousePress(ZapStruct *zap, QMouseEvent *event)
 
 }
 
+// respond to mouse release event
 void zapMouseRelease(ZapStruct *zap, QMouseEvent *event)
 {
   ivwControlPriority(zap->vi, zap->ctrl);
@@ -1312,15 +1349,22 @@ void zapMouseRelease(ZapStruct *zap, QMouseEvent *event)
       }
     zapButton1(zap, event->x(), event->y());
   }
-  
+ 
+  // Button 2 and band moving, release te band
   if ((event->button() == Qt::MidButton) && zap->rubberband && moveband) {
     moveband = 0;
     if (zap->hqgfxsave)
       zapDraw(zap);
     zap->hqgfxsave  = 0;
+
+    // Button 2 and doing a drag draw - draw for real.
+  } else if ((event->button() == Qt::MidButton) && zap->drawCurrentOnly) {
+    zap->drawCurrentOnly = 0;
+    zapDraw(zap);
   }
 }
 
+// Respond to a mouse move event (mouse down)
 void zapMouseMove(ZapStruct *zap, QMouseEvent *event)
 {
   int button1, button2, button3;
@@ -1351,92 +1395,6 @@ void zapMouseMove(ZapStruct *zap, QMouseEvent *event)
     zap->lmy = event->y();
 }
 
-
-#ifdef HOPELESS
-static void zapB2LookAhead(ZapStruct *zap)
-{
-  /*  look ahead for motion events and
-   *       model them before drawing.
-   */
-  Imod   *imod = zap->vi->imod;
-  Icont  *cont= imodContourGet(imod);
-  Ipoint *lpt, cpt;
-  float  ix, iy;
-  double dist;
-  XEvent event;
-  Window rootr, childr;
-  int rx, ry, wx, wy;
-  unsigned int maskr;
-    
-  if (!cont){
-    imodDraw(zap->vi, IMOD_DRAW_RETHINK);
-    return;
-  }
-  XFlush(imodDisplay());
-    
-  /* If drawing because of insert key, update display before starting loop
-     because no new points may be added.  For some reason, the NOSYNC flag
-     isn't needed here but is needed within the loop */
-  if (insertDown)
-    imodDraw(zap->vi, IMOD_DRAW_RETHINK);
-
-  for (;;) {
-    /* Two cases: if insert key was down, loop until it is up, looking
-       at points and adding when distance is big enough */
-    if (insertDown) {
-      if (XCheckMaskEvent(imodDisplay(), KeyReleaseMask, &event)) {
-        /* If the key is up, clear falg and just return, display is
-           already up to date */
-        insertDown = 0;
-        return;
-      }
-      XQueryPointer(XtDisplay(zap->gfx), XtWindow(zap->gfx),
-                    &rootr, &childr, &rx, &ry, &wx, &wy, &maskr);
-      zapGetixy(zap, wx, wy, &ix, &iy);
-    } else {
-      /* Otherwise, loop as long as there are unprocessed mouse
-         motion events */
-      if (!XCheckMaskEvent(imodDisplay(), ButtonMotionMask, &event))
-        break;
-      /* DNM 12/21/00: this was Button3Mask so this wasn't being
-         used */
-      if (!(event.xmotion.state & Button2Mask))
-        break;
-      /* Get coordinate of point we might add. */
-      zapGetixy(zap, event.xmotion.x, event.xmotion.y, &ix, &iy);
-    }
-
-    if (imod->cindex.point < 0)
-      break;
-
-    cpt.x = ix;
-    cpt.y = iy;
-    cpt.z = zap->section;
-         
-    /* See if we want to add this point. */
-    lpt = &(cont->pts[imod->cindex.point]);
-    if (zap->twod)
-      cpt.z = lpt->z;
-    dist = imodel_point_dist( lpt, &cpt);
-    if ( dist > imod->res) {
-      if (imod->cindex.point == cont->psize - 1){
-        if (zap->insertmode){
-          imod->cindex.point--;
-          InsertPoint(imod, &cpt, imod->cindex.point);
-        }else{
-          NewPoint(imod, &cpt);
-        }
-      }
-      /* If drawing because of insert key, redraw each time a point is
-         added and set the no-resync flag */
-      if (insertDown)
-        imodDraw(zap->vi, IMOD_DRAW_IMAGE | IMOD_DRAW_NOSYNC);
-    }
-  }
-  imodDraw(zap->vi, IMOD_DRAW_RETHINK);
-  return;
-}
-#endif
 
 /* Attach to nearest point in model mode, or just modify the current 
    xmouse, ymouse values */
@@ -1640,7 +1598,6 @@ void zapButton2(ZapStruct *zap, int x, int y)
       // TODO: figure out the right flags
       imodDraw(vi, IMOD_DRAW_IMAGE | IMOD_DRAW_XYZ | IMOD_DRAW_NOSYNC);
       
-      //zapB2LookAhead(zap);
     return;
   }
   imodMovieXYZT(vi, MOVIE_DEFAULT, MOVIE_DEFAULT, 1,
@@ -1950,9 +1907,11 @@ void zapB2Drag(ZapStruct *zap, int x, int y)
         InsertPoint(vi->imod, &cpt, pt + 1);
     }
 
+    // Set flag for drawing current contour only
+    zap->drawCurrentOnly = 1;
+
     // TODO: figure out the right flags
     imodDraw(vi, IMOD_DRAW_IMAGE | IMOD_DRAW_XYZ | IMOD_DRAW_NOSYNC);
-    //zapB2LookAhead(zap);
   }
 }
 
@@ -2413,7 +2372,7 @@ static void zapDrawContour(ZapStruct *zap, int co, int ob)
         (!zapPointVisable(zap, &(cont->pts[0])))){
       return;
     }
-          
+
     b3dBeginLine();
     for (pt = 0; pt < cont->psize; pt++){
       if (!zapPointVisable(zap, &(cont->pts[pt])))

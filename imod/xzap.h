@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.2.2.1  2002/12/09 17:50:17  mast
+Initial changes to get Qt version
+
 Revision 3.2  2002/12/01 15:34:41  mast
 Changes to get clean compilation with g++
 
@@ -79,12 +82,12 @@ class ZapGL;
 
     int    ginit;
     int    closing;
-    int    drawingFromPaint;
 
     int    hqgfx, hide;
     int    hqgfxsave;           /* Place to save hqgfx when dragging */
     int    resizedraw2x;        /* Flag to draw twice after resize */
     int    resizeSkipDraw;      /* Flag  to skip drawing during resize */
+    int    drawCurrentOnly;
     // XtIntervalId exposeTimeOut; /* Timeouts during expose cascade */
 
     int rubberband;    /* Rubber banding flag and corner coordinates */
