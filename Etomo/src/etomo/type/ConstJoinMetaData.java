@@ -18,6 +18,11 @@ import java.util.Properties;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.9  2004/10/22 03:22:52  sueh
+* <p> bug# 520 Reducing the number of ConstJoinMetaData functions by
+* <p> passing EtomoInteger, EtomoFloat, etc and using their get() and
+* <p> getString() functions.
+* <p>
 * <p> Revision 1.1.2.8  2004/10/21 02:50:06  sueh
 * <p> bug# 520 Added get functions.
 * <p>
@@ -83,8 +88,8 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
   protected EtomoInteger alignmentRefSection = new EtomoInteger("AlignmentRefSection");
   protected EtomoInteger sizeInX = new EtomoInteger("SizeInX");
   protected EtomoInteger sizeInY = new EtomoInteger("SizeInY");
-  protected EtomoFloat offsetInX = new EtomoFloat("OffsetInX");
-  protected EtomoFloat offsetInY = new EtomoFloat("OffsetInY");
+  protected EtomoInteger shiftInX = new EtomoInteger("ShiftInX");
+  protected EtomoInteger shiftInY = new EtomoInteger("ShiftInY");
 
   public abstract void load(Properties props);
   public abstract void load(Properties props, String prepend);
@@ -94,10 +99,12 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
     densityRefSection.setDefaultValue(1);
     sigmaLowFrequency.setDefaultValue(0);
     cutoffHighFrequency.setDefaultValue(0);
-    cutoffHighFrequency.setRecommendedValue(0.25);
     sigmaHighFrequency.setDefaultValue(0);
-    sigmaHighFrequency.setRecommendedValue(0.05);
     alignmentRefSection.setDefaultValue(1);
+    shiftInX.setDefaultValue(0);
+    shiftInY.setDefaultValue(0);
+    cutoffHighFrequency.setRecommendedValue(0.25);
+    sigmaHighFrequency.setRecommendedValue(0.05);
   }
   
   public String toString() {
@@ -123,8 +130,8 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
         + alignmentRefSection.getDescription() + "=" + alignmentRefSection.getString()
         + ",\n" + sizeInX.getDescription() + "=" + sizeInX + ",\n"
         + sizeInY.getDescription() + "=" + sizeInY.getString() + ",\n"
-        + offsetInX.getDescription() + "=" + offsetInX.getString() + ",\n"
-        + offsetInY.getDescription() + "=" + offsetInY.getString());
+        + shiftInX.getDescription() + "=" + shiftInX.getString() + ",\n"
+        + shiftInY.getDescription() + "=" + shiftInY.getString());
     if (sectionTableData != null) {
       buffer.append(",\n" + sectionTableDataSizeString + "="
           + sectionTableData.size());
@@ -161,8 +168,8 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
     alignmentRefSection.store(props, prepend);
     sizeInX.store(props, prepend);
     sizeInY.store(props, prepend);
-    offsetInX.store(props, prepend);
-    offsetInY.store(props, prepend);
+    shiftInX.store(props, prepend);
+    shiftInY.store(props, prepend);
     if (sectionTableData != null) {
       for (int i = 0; i < sectionTableData.size(); i++) {
         ((SectionTableRowData) sectionTableData.get(i)).store(props, prepend);
@@ -278,15 +285,15 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
     return workingDir != null && workingDir.matches("\\S+");
   }
   
-  public ConstEtomoDouble getSigmaLowFrequency() {
+  public EtomoSimpleType getSigmaLowFrequency() {
     return sigmaLowFrequency;
   }
   
-  public ConstEtomoDouble getCutoffHighFrequency() {
+  public EtomoSimpleType getCutoffHighFrequency() {
     return cutoffHighFrequency;
   }
   
-  public ConstEtomoDouble getSigmaHighFrequency() {
+  public EtomoSimpleType getSigmaHighFrequency() {
     return sigmaHighFrequency;
   }
 
@@ -310,15 +317,15 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
     return useAlignmentRefSection;
   }
   
-  public ConstEtomoInteger getAlignmentRefSection() {
+  public EtomoSimpleType getAlignmentRefSection() {
     return alignmentRefSection;
   }
   
-  public ConstEtomoInteger getSizeInX() {
+  public EtomoSimpleType getSizeInX() {
     return sizeInX;
   }
   
-  public ConstEtomoInteger getSizeInY() {
+  public EtomoSimpleType getSizeInY() {
     return sizeInY;
   }
   
@@ -326,12 +333,12 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
     return useAlignmentRefSection;
   }
   
-  public ConstEtomoFloat getOffsetInX() {
-    return offsetInX;
+  public EtomoSimpleType getShiftInX() {
+    return shiftInX;
   }
   
-  public ConstEtomoFloat getOffsetInY() {
-    return offsetInY;
+  public EtomoSimpleType getShiftInY() {
+    return shiftInY;
   }
   
 }
