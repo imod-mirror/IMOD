@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 1.1.2.8  2002/12/27 01:24:54  mast
+    Using new background color dialog
+
     Revision 1.1.2.7  2002/12/23 05:01:54  mast
     Do not process more events before quitting imodv
 
@@ -107,6 +110,12 @@ static void processHits (ImodvApp *a, GLint hits, GLuint buffer[]);
 static Boolean imodv_movie_wp(XtPointer client);
 #endif
 
+typedef struct imodv_dialog
+{
+  QWidget *widget;
+  int iconified;
+} ImodvDialog;
+
 #define ROTATION_FACTOR 1.26
 
 
@@ -117,6 +126,8 @@ static unsigned int shiftDown = 0;
 static unsigned int leftDown = 0;
 static unsigned int midDown = 0;
 static unsigned int rightDown = 0;
+
+static Ilist *dialogList = NULL;
  
 void imodvQuit()
 {
@@ -124,20 +135,18 @@ void imodvQuit()
   ImodvClosed = True;
 
   stereoHWOff();
-  object_edit_kill();
-  imodvModelEditDialog(a, 0);
-  imodvViewEditDialog(a, 0);
-  imodv_control(a, 0);
-  imodvMovieDialog(Imodv, 0);
-  imodvObjectListDialog(Imodv, 0);
-  imodvImageEditDialog(Imodv, 0);
+  //  object_edit_kill();
+  // imodvModelEditDialog(a, 0);
+  //  imodvViewEditDialog(a, 0);
+  //  imodv_control(a, 0);
+  //  imodvMovieDialog(Imodv, 0);
+  //  imodvObjectListDialog(Imodv, 0);
+  //  imodvImageEditDialog(Imodv, 0);
   imodvStereoEditDialog(Imodv, 0);
-  imodvDepthCueEditDialog(Imodv, 0);
-  imodvMenuBgcolor(0);
+  //  imodvDepthCueEditDialog(Imodv, 0);
+  //  imodvMenuBgcolor(0);
 
-  /* DNM: this is unused so far.  Each window was supposed to add its
-     close callback to the list, that would have saved the above list */
-  // imodvCallCloseCB();
+  imodvCloseDialogs();
 
   a->topLevel = 0;
   imodMatDelete(a->mat);
@@ -312,7 +321,7 @@ void imodvKeyPress(QKeyEvent *event)
     break;
 
   case Qt::Key_I:
-    if (state & Qt::ShiftButton)
+    if (state & Qt::ShiftButton && !a->standalone)
       imodvImageEditDialog(Imodv, 1);
     break;
 
@@ -441,17 +450,18 @@ void imodvKeyPress(QKeyEvent *event)
     }
     break;
 
+    // DNM 12/29/02: actually  implement this as an on-off for image view
   case Qt::Key_Z:
-    if (Imodv->texMap)
-      Imodv->texMap = 0;
-    else
-      Imodv->texMap = 1;
+    if (a->standalone)
+      break;
+    a->texMap = 1 - a->texMap;
+    imodvImageUpdate(a);
+    imodvDraw(a);
     break;
 
   case Qt::Key_R:
     imodvViewMenu(VVIEW_MENU_LOWRES);
     imodvMenuLowres(a->lowres);
-    imodvDraw(a);
     break;
 
   case Qt::Key_A:
@@ -1099,3 +1109,93 @@ void imodvMovieTimeout()
   }
 }
 #endif
+
+
+// Dialog list manager
+
+// Add a dialog to the list
+void imodvAddDialog(QWidget *widget)
+{
+  ImodvDialog dia;
+
+  if (!dialogList) {
+    dialogList = ilistNew(sizeof(ImodvDialog), 4);
+    if (!dialogList) {
+      fprintf(stderr, "IMODV WARNING: Failure to get memory for dialog list\n"
+	      );
+      return;
+    }
+  }
+
+  dia.widget = widget;
+  dia.iconified = 0;
+  ilistAppend(dialogList, &dia);
+}
+
+// Remove a dialog from the list
+void imodvRemoveDialog(QWidget * widget)
+{
+  int index = 0;
+  ImodvDialog *dia;
+  if (!dialogList)
+    return;
+
+  dia = (ImodvDialog *)ilistFirst(dialogList);
+  while (dia){
+    if (dia->widget == widget) {
+      ilistRemove(dialogList, index);
+      return;
+    }
+    dia = (ImodvDialog *)ilistNext(dialogList);
+    index++;
+  }
+  fprintf(stderr, "IMODV WARNING: Failed to find closing dialog on list\n");
+}
+
+// Close all dialogs and delete the list
+void imodvCloseDialogs()
+{
+  ImodvDialog *dia;
+  Ilist *tempList = dialogList;
+
+  // Put list in a local variable and null out the static one so that removals
+  // are ignored
+  if (!dialogList)
+    return;
+  dialogList = NULL;
+
+  dia = (ImodvDialog *)ilistFirst(tempList);
+  while (dia){
+    dia->widget->close();
+    dia = (ImodvDialog *)ilistNext(tempList);
+  }
+  ilistDelete(tempList);
+}
+
+// Iconify any dialogs that are shown now; keep track of them
+void imodvHideDialogs()
+{
+  ImodvDialog *dia;
+  dia = (ImodvDialog *)ilistFirst(dialogList);
+  while (dia){
+    if (dia->widget->isMinimized())
+      dia->iconified = 0;
+    else {
+      dia->iconified = 1;
+      dia->widget->showMinimized();
+    }
+    dia = (ImodvDialog *)ilistNext(dialogList);
+  }
+}
+
+// Show dialogs that were brought down by the hide operation
+void imodvShowDialogs()
+{
+  ImodvDialog *dia;
+  dia = (ImodvDialog *)ilistFirst(dialogList);
+  while (dia){
+    if (dia->iconified)
+      dia->widget->showNormal();
+    dia = (ImodvDialog *)ilistNext(dialogList);
+  }
+}
