@@ -6,7 +6,6 @@ import java.util.Set;
 import java.util.Iterator;
 import java.io.File;
 
-import etomo.ApplicationManager;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.AxisTypeException;
@@ -28,6 +27,11 @@ import etomo.type.ConstMetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.25  2004/06/22 22:50:15  sueh
+ * <p> bug# 455 Moved openWithModel logic to ImodProcess.
+ * <p> Moved useMode logic to ImodState.  Removed model() functions.
+ * <p> Created set functions for openContours and preserveContrast.
+ * <p>
  * <p> Revision 3.24  2004/06/10 18:21:49  sueh
  * <p> bug# 463 changed create() to newImod(), changed
  * <p> openBeadFixer() to setOpenBeadFixer() and made it a state
@@ -249,7 +253,6 @@ public class ImodManager {
   public static final String rcsid =
     "$Id$";
 
-  private ApplicationManager applicationManager;
   private AxisType axisType = AxisType.SINGLE_AXIS;
   private String datasetName = "";
   private HashMap imodMap;
@@ -316,10 +319,8 @@ public class ImodManager {
   //constructors
 
   /**
-   * @param appMgr
    */
-  public ImodManager(ApplicationManager appMgr) {
-    applicationManager = appMgr;
+  public ImodManager() {
     imodMap = new HashMap();
   }
 
