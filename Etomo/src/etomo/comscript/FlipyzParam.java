@@ -3,7 +3,7 @@ package etomo.comscript;
 import java.io.File;
 import java.util.ArrayList;
 
-import etomo.BaseManager;
+import etomo.EtomoDirector;
 
 /**
 * <p>Description: </p>
@@ -18,7 +18,10 @@ import etomo.BaseManager;
 * 
 * @version $Revision$
 * 
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1.2.1  2004/10/06 01:30:03  sueh
+* <p> bug# 520 Object that creates a command line to run clipflipyz.
+* <p> </p>
 */
 public class FlipyzParam implements Command {
   public static  final String  rcsid =  "$Id$";
@@ -28,7 +31,8 @@ public class FlipyzParam implements Command {
   private File flipFile;
   
   public FlipyzParam(File tomogram, File workingDir) {
-    commandLine = new StringBuffer("tcsh -f " + "/home/sueh/workspace/Etomo_3-4-6_JOIN/scripts/" + command);
+    commandLine = new StringBuffer("tcsh -f "
+        + EtomoDirector.getInstance().getIMODDirectory() + command);
     ArrayList options = genOptions(tomogram, workingDir);
     for (int i = 0; i < options.size(); i++) {
       commandLine.append(" " + options.get(i));
