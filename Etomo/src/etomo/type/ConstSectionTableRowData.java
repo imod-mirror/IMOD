@@ -19,6 +19,9 @@ import etomo.storage.Storable;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.10  2004/10/30 02:32:47  sueh
+* <p> bug# 520 Converted rotation angles to EtomoSimpleType.
+* <p>
 * <p> Revision 1.1.2.9  2004/10/29 22:13:21  sueh
 * <p> bug# 520  Added remove() to remove section table data
 * <p> rows from the meta data file.  This gets rid of deleted rows.
@@ -265,6 +268,10 @@ public abstract class ConstSectionTableRowData implements Storable {
   
   public ConstEtomoInteger getYMax() {
     return yMax;
+  }
+  
+  public int getZMax() {
+    return zMax;
   }
   
   public EtomoSimpleType getSampleBottomStart() {
