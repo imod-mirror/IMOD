@@ -77,6 +77,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.101.2.4  2004/09/09 21:46:40  sueh
+ * <p> bug# 552 loading combine.com while creating combine scripts
+ * <p>
  * <p> Revision 3.101.2.3  2004/09/08 19:20:38  sueh
  * <p> bug# 520 Casting mainPanel to MainTomogramPanel where necessary.
  * <p> Calling MainFrame.show in EtomoDirector.  Moving kill() to super class.
@@ -1054,6 +1057,9 @@ public class ApplicationManager extends BaseManager {
     }
   }
   
+  public boolean isNewManager() {
+    return setupDialog != null;
+  }
   /**
    * Open the setup dialog
    */
@@ -1130,6 +1136,8 @@ public class ApplicationManager extends BaseManager {
       }
       processTrack.setSetupState(ProcessState.COMPLETE);
       metaData.setComScriptCreated(true);
+      EtomoDirector.getInstance().renameCurrentManager(
+          metaData.getDatasetName());
     }
     //  Switch the main window to the procesing panel
     openProcessingPanel();
