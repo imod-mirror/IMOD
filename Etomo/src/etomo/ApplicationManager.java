@@ -90,6 +90,11 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.84.2.4  2004/08/03 16:23:48  sueh
+ * <p> bug# 519 merge from head:
+ * <p> added makeRawtltFile(): create a new .rawtlt file from
+ * <p> starting angle, step angle, and # sections
+ * <p>
  * <p> Revision 3.84.2.3  2004/07/12 21:10:26  sueh
  * <p> bug# 492 merge from head:
  * <p> in imodPreview: getting metadata from
@@ -3001,7 +3006,13 @@ public class ApplicationManager {
     BufferedWriter bufferedWriter = null;
     try {
       bufferedWriter = new BufferedWriter(new FileWriter(rawtlt));
-      TiltAngleSpec tiltAngleSpec = metaData.getTiltAngleSpecA();
+      TiltAngleSpec tiltAngleSpec = null;
+      if (axisID == AxisID.SECOND) {
+        tiltAngleSpec = metaData.getTiltAngleSpecB();
+      }
+      else {
+        tiltAngleSpec = metaData.getTiltAngleSpecA();
+      }
       double startingAngle = tiltAngleSpec.getRangeMin();
       double step = tiltAngleSpec.getRangeStep();
       MRCHeader rawStackHeader = getMrcHeader(axisID, ".st");
