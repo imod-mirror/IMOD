@@ -1,16 +1,20 @@
 package etomo;
 
+import java.awt.Dimension;
 import java.io.File;
 import java.util.Vector;
 
 import etomo.comscript.FlipyzParam;
 import etomo.comscript.MakejoincomParam;
+import etomo.process.ImodManager;
 import etomo.process.ImodProcess;
 import etomo.process.JoinProcessManager;
 import etomo.process.SystemProcessException;
+import etomo.storage.Storable;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.AxisTypeException;
+import etomo.type.BaseMetaData;
 import etomo.type.ConstJoinMetaData;
 import etomo.type.JoinMetaData;
 import etomo.type.JoinProcessTrack;
@@ -18,6 +22,7 @@ import etomo.type.ProcessName;
 import etomo.type.SlicerAngles;
 import etomo.ui.JoinDialog;
 import etomo.ui.MainJoinPanel;
+import etomo.ui.MainPanel;
 
 /**
 * <p>Description: </p>
@@ -33,6 +38,10 @@ import etomo.ui.MainJoinPanel;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.11  2004/10/08 15:44:52  sueh
+* <p> bug# 520 Fixed Make Samples functionality.  Used startNextProcess to
+* <p> call startjoin.com.  Used BackgroundProcess to call makejoincom
+* <p>
 * <p> Revision 1.1.2.10  2004/10/06 01:26:11  sueh
 * <p> bug# 520 Changed Make Join button to Make Samples.  Added flip().
 * <p>
@@ -77,9 +86,10 @@ public class JoinManager extends BaseManager {
   
   //variables cast from base class variables
   //initialized in create function
-  private MainJoinPanel mainJoinPanel;
-  private JoinMetaData joinMetaData;
-  private JoinProcessManager joinProcessMgr;
+  private MainJoinPanel mainPanel;
+  private JoinMetaData metaData;
+  private JoinProcessManager processMgr;
+  private JoinProcessTrack processTrack;
   
   public JoinManager(String paramFileName) {
     super();
@@ -95,12 +105,11 @@ public class JoinManager extends BaseManager {
   }
   
   protected void createProcessManager() {
-    baseProcessMgr = new JoinProcessManager(this);
-    joinProcessMgr = (JoinProcessManager) baseProcessMgr;
+    processMgr = new JoinProcessManager(this);
   }
   
   protected void createProcessTrack() {
-    baseProcessTrack = new JoinProcessTrack();
+    processTrack = new JoinProcessTrack();
   }
 
   /**
@@ -131,12 +140,10 @@ public class JoinManager extends BaseManager {
   
   protected void createMainPanel() {
     mainPanel = new MainJoinPanel(this);
-    mainJoinPanel = (MainJoinPanel) mainPanel;
   }
   
-  protected void createBaseMetaData() {
-    baseMetaData = new JoinMetaData();
-    joinMetaData = (JoinMetaData) baseMetaData;
+  protected void createMetaData() {
+    metaData = new JoinMetaData();
   }
   
   /**
@@ -256,19 +263,19 @@ public class JoinManager extends BaseManager {
     mainPanel.startProgressBar("Makejoincom", AxisID.ONLY);
     nextProcess = "startjoin";
     isDataParamDirty = true;
-    if (!joinDialog.getMetaData(joinMetaData)) {
+    if (!joinDialog.getMetaData(metaData)) {
       mainPanel.openMessageDialog(joinDialog.getInvalidReason(), "Invalid Data");
       mainPanel.stopProgressBar(AxisID.ONLY);
       return;
     }
-    if (!joinMetaData.isValid(true)) {
-      mainPanel.openMessageDialog(joinMetaData.getInvalidReason(), "Invalid Data");
+    if (!metaData.isValid(true)) {
+      mainPanel.openMessageDialog(metaData.getInvalidReason(), "Invalid Data");
       mainPanel.stopProgressBar(AxisID.ONLY);
       return;
     }
-    MakejoincomParam makejoincomParam = new MakejoincomParam(joinMetaData);
+    MakejoincomParam makejoincomParam = new MakejoincomParam(metaData);
     try {
-      threadNameA = joinProcessMgr.makejoincom(makejoincomParam);
+      threadNameA = processMgr.makejoincom(makejoincomParam);
     }
     catch (SystemProcessException except) {
       joinDialog.abortAddSection();
@@ -284,7 +291,7 @@ public class JoinManager extends BaseManager {
     mainPanel.startProgressBar("Startjoin", AxisID.ONLY);
     nextProcess = "";
     try {
-      threadNameA = joinProcessMgr.startjoin();
+      threadNameA = processMgr.startjoin();
     }
     catch (SystemProcessException except) {
       joinDialog.abortAddSection();
@@ -300,7 +307,7 @@ public class JoinManager extends BaseManager {
     mainPanel.startProgressBar("Flipping " + tomogram.getName(), AxisID.ONLY);
     FlipyzParam flipyzParam = new FlipyzParam(tomogram, workingDir);
     try {
-      threadNameA = joinProcessMgr.flipyz(flipyzParam);
+      threadNameA = processMgr.flipyz(flipyzParam);
     }
     catch (SystemProcessException except) {
       joinDialog.abortAddSection();
@@ -333,7 +340,7 @@ public class JoinManager extends BaseManager {
   public void setTestParamFile(File paramFile) {
     this.paramFile = paramFile;
     //  Update main window information and status bar
-    mainJoinPanel.updateDataParameters(paramFile, joinMetaData);
+    mainPanel.updateDataParameters(paramFile, metaData);
   }
   
   protected void updateDialog(ProcessName processName, AxisID axisID) {
@@ -341,7 +348,7 @@ public class JoinManager extends BaseManager {
   }
   
   public ConstJoinMetaData getMetaData() {
-    return (ConstJoinMetaData) baseMetaData;
+    return (ConstJoinMetaData) metaData;
   }
   
   /**
@@ -353,4 +360,91 @@ public class JoinManager extends BaseManager {
       return;
     }
   }
+  
+  protected AxisType getAxisType() {
+    return metaData.getAxisType();
+  }
+  
+  public BaseMetaData getBaseMetaData() {
+    return (BaseMetaData) metaData;
+  }
+  
+  protected boolean isMetaDataValid(boolean fromScreen) {
+    if (!metaData.isValid(false)) {
+      mainPanel.openMessageDialog(metaData.getInvalidReason(),
+        ".edf file error");
+      return false;
+    }
+    return true;
+  }
+  
+  protected void setMetaData(ImodManager imodManager) {
+  }
+  
+  protected void storeMetaData(Storable[] storable, int index) {
+    storable[index] = metaData;
+  }
+  
+  
+  protected void openMessageDialog(String[] message, String title) {
+    mainPanel.openMessageDialog(message, title);
+  }
+  
+  protected void openMessageDialog(String message, String title) {
+    mainPanel.openMessageDialog(message, title);
+  }
+  
+  protected void setMainPanelSize() {
+    mainPanel.setSize(new Dimension(userConfig.getMainWindowWidth(),
+      userConfig.getMainWindowHeight()));
+  }
+  protected void setDividerLocation() {
+    if (isDualAxis()) {
+      mainPanel.setDividerLocation(0.51);
+    }
+  }
+  
+  public void packMainWindow() {
+    mainFrame.repaint();
+    mainPanel.fitWindow();
+  }
+  
+  public MainPanel getMainPanel() {
+    return mainPanel;
+  }
+  
+  protected void stopProgressBar(AxisID axisID) {
+    mainPanel.stopProgressBar(axisID);
+  }
+  
+  protected void storeProcessTrack(Storable[] storable, int index) {
+    storable[index] = processTrack;
+  }
+  
+  protected void resetProcessTrack() {
+    processTrack.resetModified();
+  }
+  
+  protected boolean isProcessTrackModified() {
+    return processTrack.isModified();
+  }
+  
+  /**
+   * Interrupt the currently running thread for this axis
+   * 
+   * @param axisID
+   */
+  public void kill(AxisID axisID) {
+    processMgr.kill(axisID);
+  }
+  
+  protected boolean isMetaDataValid(File paramFile) {
+    if (!metaData.isValid(paramFile)) {
+      mainPanel.openMessageDialog(metaData.getInvalidReason(),
+        ".edf file error");
+      return false;
+    }
+    return true;
+  }
+
 }
