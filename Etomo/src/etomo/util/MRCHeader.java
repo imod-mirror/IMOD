@@ -20,6 +20,12 @@ import etomo.process.SystemProgram;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.6.2.1  2004/10/01 17:31:03  sueh
+ * <p> bug# 520 Improving error handling:  parsing standard out to catch
+ * <p> unknown file format, and catching errors when parsing Nrows and
+ * <p> Nsections to make sure that the members are set to -1 when parsing
+ * <p> fails.
+ * <p>
  * <p> Revision 3.6  2004/06/29 23:56:10  sueh
  * <p> bug# 487 adding pixel spacing for x, y, and z.  These variables
  * <p> are equals to the pixel size variables, except when pixel size
@@ -114,12 +120,6 @@ public class MRCHeader {
     SystemProgram header = new SystemProgram(commandArray);
     header.setDebug(true);
     header.run();
-    System.out.println("header.getExitValue()=" + header.getExitValue());
-
-    String[] stdOut = header.getStdOutput();
-    for (int i = 0; i < stdOut.length; i++) {
-      System.out.println(stdOut[i]);
-    }
 
     if (header.getExitValue() != 0) {
       String[] stdOutput = header.getStdOutput();
