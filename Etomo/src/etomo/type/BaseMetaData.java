@@ -18,6 +18,10 @@ import etomo.storage.Storable;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.2  2004/10/01 19:44:27  sueh
+* <p> bug# 520 provide a standard way to get the identifier of a meta data file.
+* <p> Add a file extension static, since there are two meta data file extensions.
+* <p>
 * <p> Revision 1.1.2.1  2004/09/29 19:15:08  sueh
 * <p> bug# 520 Added base class for ConstMetaData and ConstJoinMetaData.
 * <p> Implements Storable with abstract class.  Implements store(Properties),
@@ -41,6 +45,16 @@ public abstract class BaseMetaData implements Storable {
   public abstract void load(Properties props, String prepend);
   public abstract String getMetaDataFileName();
   public abstract String getName();
+  
+  public String toString() {
+    return getClass().getName() + "[" + paramString() + "]";
+  }
+
+  protected String paramString() {
+    return ",\n" + revisionNumberString + "=" + revisionNumber + ",\naxisType="
+        + axisType + ",\ninvalidReason=" + invalidReason + ",\nfileExtension="
+        + fileExtension;
+  } 
   
   public void store(Properties props) {
     store(props, "");
