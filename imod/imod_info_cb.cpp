@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.1  2003/01/06 15:52:16  mast
+changes for Qt version of slicer
+
 Revision 3.5.2.3  2002/12/19 04:37:12  mast
 Cleanup of unused global variables and defines
 
@@ -65,201 +68,128 @@ Call imodDraw instead of xyz_draw after changing model/movie mode
 #include <stdlib.h>
 #include <math.h>
 #include "imod_object_edit.h"
+#include "form_info.h"
 
-#include <Xm/Xm.h>
-#include <Xm/ToggleB.h>
-
-#include <dia.h>
-#include "imod.h"
 #include "imod_info.h"
-#include "imodel.h"
-#include "mrcfiles.h"
+#include "imod.h"
+#include "imod_info_cb.h"
+#include "hotslider.h"
 
 extern "C" {
 int sampleMeanSD(unsigned char *image, int type, int nx, int ny, float sample, 
                  float matt, float *mean, float *sd);
 }
 
-int Imod_obj_cnum = -1;
+/* Global variable: the forbid level, hope to eliminate */
+int ImodForbidLevel = 0;
 
-/* DNM 2/12/01: let the object and contour buttons cycle around at either 
-   end */
-void imod_nextobj_cb(Widget w, XtPointer client, XtPointer call)
-{
-  Imod *imod = App->cvi->imod;
-  /* if there are at least two objects and we're at the end, set to 1 and
-     use inputPrevObject to get to 0 */
-  if ((imod->cindex.object == imod->objsize - 1) && imod->objsize > 1) {
-    imod->cindex.object = 1;
-    inputPrevObject(App->cvi);
-  } else
-    inputNextObject(App->cvi);
-  imod_setxyzmouse();
-  return;
-}
-
-void imod_prevobj_cb(Widget w, XtPointer client, XtPointer call)
-{
-  Imod *imod = App->cvi->imod;
-  /* If there are at least two objects and we're at the first one, set to 
-     the next to last one and us inputNextObject to get to the last one */
-  if (!imod->cindex.object && imod->objsize > 1) {
-    imod->cindex.object = imod->objsize - 2;
-    inputNextObject(App->cvi);
-  } else
-    inputPrevObject(App->cvi);
-  imod_setxyzmouse();
-  return;
-}
-
-void imod_nextcont_cb(Widget w, XtPointer client, XtPointer call)
-{
-  Imod *imod = App->cvi->imod;
-  Iobj *obj = imodObjectGet(imod);
-  if (obj) {
-    if ((imod->cindex.contour == obj->contsize - 1) && 
-        obj->contsize > 1) {
-      imod->cindex.contour = 1;
-      inputPrevContour(App->cvi);
-      imod_setxyzmouse(); 
-      return;
-    }
-  }
-  inputNextContour(App->cvi);
-  imod_setxyzmouse(); 
-  return;
-}
-
-void imod_prevcont_cb(Widget w, XtPointer client, XtPointer call)
-{
-  Imod *imod = App->cvi->imod;
-  Iobj *obj = imodObjectGet(imod);
-  if (obj) {
-    if (!imod->cindex.contour && obj->contsize > 1) {
-      imod->cindex.contour = obj->contsize - 2;
-      inputNextContour(App->cvi);
-      imod_setxyzmouse(); 
-      return;
-    }
-  }
-  inputPrevContour(App->cvi);
-  imod_setxyzmouse(); 
-  return;
-}
-
-void imod_nextpoint_cb(Widget w, XtPointer client, XtPointer call)
-{
-  Imod *imod = App->cvi->imod;
-  Icont *cont = imodContourGet(imod);
-  if (cont) {
-    if ((imod->cindex.point == cont->psize - 1) && cont->psize > 1) {
-      imod->cindex.point = 1;
-      PrevPoint(Model);
-      imod_setxyzmouse(); 
-      return;
-    }
-  }
-  NextPoint(Model);
-  imod_setxyzmouse(); 
-  return;
-}
-
-void imod_prevpoint_cb(Widget w, XtPointer client, XtPointer call)
-{
-  Imod *imod = App->cvi->imod;
-  Icont *cont = imodContourGet(imod);
-  if (cont) {
-    if (!imod->cindex.point && cont->psize > 1) {
-      imod->cindex.point = cont->psize - 2;
-      NextPoint(Model);
-      imod_setxyzmouse(); 
-      return;
-    }
-  }
-  PrevPoint(Model);
-  imod_setxyzmouse();
-}
-
-void imod_nextx_cb(Widget w, XtPointer client, XtPointer call)
-{
-  inputNextx(App->cvi);
-  return;
-}
-
-void imod_prevx_cb(Widget w, XtPointer client, XtPointer call)
-{
-  inputPrevx(App->cvi);
-  return;
-} 
-
-void imod_nexty_cb(Widget w, XtPointer client, XtPointer call)
-{
-  inputNexty(App->cvi);
-  return;
-}
-
-void imod_prevy_cb(Widget w, XtPointer client, XtPointer call)
-{
-  inputPrevy(App->cvi);
-  return;
-} 
-
-void imod_nextz_cb(Widget w, XtPointer client, XtPointer call)
-{
-  inputNextz(App->cvi);
-  return;
-}
-
-void imod_prevz_cb(Widget w, XtPointer client, XtPointer call)
-{
-  inputPrevz(App->cvi);
-  return;
-} 
-
-void imod_obj_select_cb(Widget w, XtPointer client, XtPointer call)
-{
-  XmScaleCallbackStruct *cbs = (XmScaleCallbackStruct *)call;
-  printf("imod_obj_select_cb: %d selected\n", cbs->value);
-  return;
-}
-
-/* DNM: make this function to simplify updating slider numbers from several 
-   places */
-static void display_bwslider_value(Widget w, int white)
-{
-  char val[8];
-  XmString str;
-  sprintf(val, "%03d", white);
-  str = XmStringCreateSimple(val);
-  XtVaSetValues(w, XmNlabelString, str, NULL);
-  XmStringFree(str);
-  return;
-}
-
+static int ctrlPressed = 0;
+static int Imod_obj_cnum = -1;
 static int float_on = 0;
 
-void imod_blacklevel_cb(Widget w, XtPointer client, XtPointer call)
+/*
+ * FUNCTIONS FOR THE CONTROLS TO REPORT CHANGES
+ *
+ * New object, contour, or point
+ */
+void imodInfoNewOCP(int which, int value, int edited)
 {
-  XmScaleCallbackStruct *cbs = (XmScaleCallbackStruct *)call;
+  int ob, co, pt;
+  Imod *imod = App->cvi->imod;
+  imodGetIndex(imod, &ob, &co, &pt);
+
+  ImodInfoWin->setFocus();
+
+  // Get to index value; if it is illegal, try to refresh window and return
+  value--;
+  if (value < 0) {
+    imod_info_setocp();
+    return;
+  }
+
+  switch (which) {
+  case 0:
+    // Object change.  If via the edit box, detach from contour/point
+    if (edited) {
+      imod->cindex.object = value;
+      imod->cindex.contour =  - 1;
+      imod->cindex.point =  - 1;
+    } else {
+      imodSetIndex(imod, value, co, pt);
+      inputKeepContourAtSameTime(App->cvi);
+    }
+    break;
+
+  case 1:
+    // Contour change.  If via edit box, detach from point
+    if (edited) {
+      imod->cindex.contour = value;
+      imod->cindex.point = -1;
+    } else {
+      imodSetIndex(imod, ob, value, pt);
+      inputRestorePointIndex(App->cvi);
+    }
+    break;
+
+  case 2:
+    // Point change
+    imodSetIndex(imod, ob, co, value);
+    break;
+  }
+
+  imod_setxyzmouse();
+  if (!which)
+    imod_object_edit_draw();   // CHECK FOR REDUNDANCY
+}
+
+/*
+ * New point position
+ */
+void imodInfoNewXYZ(int *values)
+{
+  ImodInfoWin->setFocus();
+  App->cvi->xmouse = values[0] - 1;
+  App->cvi->ymouse = values[1] - 1;
+  App->cvi->zmouse = values[2] - 1 ;
+  imodDraw(App->cvi, IMOD_DRAW_XYZ);
+}
+
+/*
+ * New positions of the black/white sliders
+ */
+void imodInfoNewBW(int which, int value, int dragging)
+{
   int white, black;
   int float_save = float_on;
 
-  if (ImodForbidLevel)
-    return;
-
-  black = cbs->value;
-  white = App->cvi->white;
-
-  /* DNM: If TrueColor and slider is being dragged, just display number */
-  if (App->rgba && (cbs->reason == XmCR_DRAG)) {
-    display_bwslider_value(Imod_widget_blackval, black);
+  // THIS IS REALLY SCARY UNLESS WE ASSERT THE SLIDERS BACK
+  if (ImodForbidLevel) {
+    ImodInfoWidget->setBWSliders(App->cvi->black, App->cvi->white);
     return;
   }
 
-  if (black == 255)
-    black = 254;
-  if (black > white)
-    white = black + 1;
+  // Exit if RGBA and there is not a hot slider active
+  if (App->rgba && dragging && 
+      ((ctrlPressed && hotSliderFlag() != HOT_SLIDER_KEYDOWN) || 
+       (!ctrlPressed && hotSliderFlag() != HOT_SLIDER_KEYUP)))
+    return;
+
+  // Keep the sliders from crossing
+  if (which) {
+    white = value;
+    black = App->cvi->black;
+    if (black > white) {
+      black = white;
+      ImodInfoWidget->setBWSliders(black, white);
+    }
+  } else {
+    white = App->cvi->white;
+    black = value;
+    if (black > white) {
+      white = black;
+      ImodInfoWidget->setBWSliders(black, white);
+    }
+  }
 
   xcramp_setlevels(App->cvi->cramp,black,white);
   App->cvi->black = black;
@@ -270,77 +200,36 @@ void imod_blacklevel_cb(Widget w, XtPointer client, XtPointer call)
   float_on = FALSE;
   imod_info_setbw(black, white);
   float_on = float_save;
-  return;
 }
 
-void imod_whitelevel_cb(Widget w, XtPointer client, XtPointer call)
+/*
+ * Float button, movie-model mode, ctrl key, and quit
+ */
+void imodInfoFloat(int state)
 {
-  XmScaleCallbackStruct *cbs = (XmScaleCallbackStruct *)call;
-  int black, white;
-  int float_save = float_on;
-
-  if (ImodForbidLevel)
-    return;
-
-  white = cbs->value;
-  black = App->cvi->black;
-
-  /* DNM: If TrueColor and slider is being dragged, just display number */
-  if (App->rgba && (cbs->reason == XmCR_DRAG)) {
-    display_bwslider_value(Imod_widget_whiteval, white);
-    return;
-  }
-
-  if (!white)
-    white = 1;
-  if (white < black)
-    black = white - 1;
-
-  xcramp_setlevels(App->cvi->cramp,black,white);
-
-  App->cvi->black = black;
-  App->cvi->white = white;
-
-  /* Set the float flag to false to prevent this change from being 
-     undone in a redraw */
-  float_on = FALSE;
-  imod_info_setbw(black, white);
-  float_on = float_save;
-  return;
-}
-
-
-void imod_float_cb(Widget w, XtPointer client, XtPointer call)
-{
-  XmToggleButtonCallbackStruct *cbs = (XmToggleButtonCallbackStruct *)call;
-  if (cbs->set) {
+  if (state) {
     float_on = 1;
     imod_info_setbw(App->cvi->black, App->cvi->white);
   } else
     float_on = 0;
-  return;
 }
 
 /* DNM 6/8/01: fixed bug in getting mode, changed to pass mode to function */
-void imod_mmode_cb(Widget w, XtPointer client, XtPointer call)
+void imodInfoMMSelected(int mode)
 {
-  // XmToggleButtonCallbackStruct *cbs = (XmToggleButtonCallbackStruct *)call;
-  int mode = (int)client;
-
-  /* DNM 6/9/01: workaround for PC now has callbacks only on the disarm
-     of the button that was pushed, so skip this test and unconditionally
-     set the mode buttons */
-  /* if (!cbs->set)
-     return; */
-
-  imod_set_mmode(mode);
+  imod_set_mmode(mode ? IMOD_MMODEL : IMOD_MMOVIE);
 
   /* DNM 1/28/02: change from drawing xyz to general drawing */
   imodDraw(App->cvi, IMOD_DRAW_MOD);
   return;
 }
 
-void imod_info_quit(Widget w, XtPointer client, XtPointer call)
+void imodInfoCtrlPress(int pressed)
+{
+  ctrlPressed = pressed;
+}
+
+void imodInfoQuit()
 {
   imod_quit();
   return;
@@ -348,136 +237,90 @@ void imod_info_quit(Widget w, XtPointer client, XtPointer call)
 
 
 /****************************************************************************/
-/* call back support functions.                                             */
+/* support functions for setting controls                                   */
 /****************************************************************************/
 
+/*
+ * Set the object color in the controls
+ */
 void imod_info_setobjcolor(void)
 {
-  unsigned short red, green, blue;
-  int clev;
-  struct Mod_Object *obj;
-  XColor color;
-  // Colormap cmap;
+  int red, green, blue;
+  double clev, th = 32.;
+  Iobj *obj;
 
   obj = imodel_object_get(Model);
   if (!obj){
     red = green = blue = 128;
   }else{
-    red   = (unsigned short)(255 * obj->red);
-    green = (unsigned short)(255 * obj->green);
-    blue  = (unsigned short)(255 * obj->blue);
+    red   = (int)(255 * obj->red);
+    green = (int)(255 * obj->green);
+    blue  = (int)(255 * obj->blue);
   }
-  clev = ((red * 30) + (green * 59) + (blue * 11)) / 100;
+  QColor backColor(red, green, blue);
 
-  color.flags = DoRed | DoBlue | DoGreen;
-  color.red   = (red   << 8);
-  color.green = (green << 8);
-  color.blue  = (blue  << 8);
-  color.pixel = App->curobj;
+  // Observations on 1/12/03: black is hard to see on pure red below 240,
+  // and on pure green below 175.
+  // Pure blue at 255 is as hard to see as pure green at 90, so its threshold
+  // is 255*175/90 = 495
+  // But then need to subtract a threshold because dim colors tend not to
+  // add correctly
+  clev = (red > th ? (red - th) / (240. - th) : 0) + 
+    (green > th ? (green - th) / (175. - th) : 0) + 
+    (blue > th ? (blue - th) / (495. - th) : 0);
+  red = clev > 1.0 ? 0 : 255;
 
-  if (App->rgba){
-    /* DNM: the color is already there */
-    if (obj)
-      color.pixel = obj->fgcolor;
-    /*	 XAllocColor(App->display, App->cmap, &color); */
-  }else{
+  QColor foreColor(red, red, red);
+
+  ImodInfoWidget->setObjectColor(foreColor, backColor);
+
+  /* This was here for Color index mode - hard to see what it did
     XStoreColors(XtDisplay(App->toplevel), App->cmap, &color, 1);
     if (App->cmap != App->cmapGL)
       XStoreColors(XtDisplay(App->toplevel), App->cmapGL, &color, 1);
-  }
-  XtVaSetValues( Imod_widget_object, XmNbackground, 
-                 color.pixel, NULL);
-
-  if (clev > 127)
-    XtVaSetValues( Imod_widget_object, XtVaTypedArg,  
-                   XmNforeground, XmRString, "Black", 6, NULL);
-  else
-    XtVaSetValues( Imod_widget_object, XtVaTypedArg,  
-                   XmNforeground, XmRString, "White", 6, NULL);
-  return;
+  */
 }
 
+/*
+ * Set the object, contour, and point.
+ * InfoControls figures out if things have changed
+ */
 void imod_info_setocp(void)
 {
   Imod *imod = Model;
-  XmString str;
-  char val[32];
- 
-  static int ob, co, pt;
-  static int mob=0, mco=0, mpt=0;
-  struct Mod_Object *obj;
-  struct Mod_Contour *cont;
+  int val[3], max[3];
+  Iobj *obj;
+  Icont *cont;
      
   obj = imodel_object_get(imod);
   cont = imodContourGet(imod);
      
-  if ((imod->cindex.object + 1 != ob) || (imod->objsize != mob)){
-    ob  = imod->cindex.object + 1;
-    mob = imod->objsize;
-    co  = -2;
-    pt  = -2;
-    if (obj)
-      sprintf(val, "Object  %3d/%3d", imod->cindex.object + 1, 
-              imod->objsize);
-    else
-      sprintf(val, "Object  -x-/%3d", imod->objsize);
-	  
-    str = XmStringCreateSimple(val);
+  // Object is either present or not
+  max[0] = imod->objsize;
+  val[0] = obj ? imod->cindex.object + 1 : 0;
 
-    XtVaSetValues(Imod_widget_object, XmNlabelString, str, NULL);
-    XmStringFree(str);
-    imod_object_edit_draw();
+  // If object present, set up contour values; otherwise set for blanks
+  if (obj) {
+    max[1] = obj->contsize;
+    val[1] = cont ? imod->cindex.contour + 1 : 0;
+  } else {
+    max[1] = -1;
+    val[1] = -1;
   }
 
-    
-  if (!obj){
-	sprintf(val, "Contour");
-	str = XmStringCreateSimple(val);
-	XtVaSetValues(Imod_widget_contour, XmNlabelString, str, NULL);
-	XmStringFree(str);
-  }else{
-	if (((imod->cindex.contour + 1) != co) || (obj->contsize != mco)){
-      co  = imod->cindex.contour + 1;
-      mco = obj->contsize;
-      pt  = -2;
-      if (cont)
-		sprintf(val, "Contour %3d/%3d", imod->cindex.contour + 1,
-                obj->contsize);
-      else
-		sprintf(val, "Contour -x-/%3d", obj->contsize);
-      str = XmStringCreateSimple(val);
-      XtVaSetValues(Imod_widget_contour, XmNlabelString, str, NULL);
-      XmStringFree(str);
-	}
+  // If contour present, set up point values; otherwise set for blanks
+  if (cont) {
+    max[2] = cont->psize;
+    val[2] = cont->psize ? imod->cindex.point + 1 : 0;
+  } else {
+    max[2] = -1;
+    val[2] = -1;
   }
-    
-  if (!cont){
-    sprintf(val, "Point   ");
-    str = XmStringCreateSimple(val);
-    XtVaSetValues(Imod_widget_point, XmNlabelString, str, NULL);
-    XmStringFree(str);
-  }else{
-
-	if ((imod->cindex.point + 1 != pt) || (cont->psize != mpt)){
-      pt  = imod->cindex.point + 1;
-      mpt = cont->psize;
-      if (imod->cindex.point == -1)
-		sprintf(val, "Point   -x-/%3d", cont->psize);
-      else{
-		if ((cont) && (cont->psize)){
-          sprintf(val, "Point   %3d/%3d", imod->cindex.point + 1,
-                  cont->psize);
-		}else{
-          sprintf(val, "Point     0/  0");
-		}
-      }
-      str = XmStringCreateSimple(val);
-      XtVaSetValues(Imod_widget_point, XmNlabelString, str, NULL);
-      XmStringFree(str);
-	}
-  }
-
-
+ 
+  // Send values
+  ImodInfoWidget->updateOCP(val, max);
+  
+  // Update color if object has changed
   if ((Imod_obj_cnum != imod->cindex.object)
       && (imod->cindex.object != -1)){
 
@@ -487,79 +330,52 @@ void imod_info_setocp(void)
   }
   contSurfShow();
   inputContourMoveDialogUpdate();
-  return;
 }
 
+/*
+ * Set X, Y, Z
+ * InfoControls figures out if things have changed
+ */
 void imod_info_setxyz(void)
 {
-  XmString str;
-  char val[32];
-  int x,xs,y,ys,z,zs;
-  static int lx,ly,lz,lys,lzs;
+  int xyz[3], xyzs[3];
 
   ivwBindMouse(App->cvi);
-  x = (int)(App->cvi->xmouse + 1);
-  y = (int)(App->cvi->ymouse + 1);
-  z = (int)(App->cvi->zmouse + 1);
-  xs = App->cvi->xsize;
-  ys = App->cvi->ysize;
-  zs = App->cvi->zsize;
+  xyz[0] = (int)(App->cvi->xmouse + 1);
+  xyz[1] = (int)(App->cvi->ymouse + 1);
+  xyz[2] = (int)(App->cvi->zmouse + 1);
+  xyzs[0] = App->cvi->xsize;
+  xyzs[1] = App->cvi->ysize;
+  xyzs[2] = App->cvi->zsize;
 
-  if (lx != x){
-    lx = x;
-    sprintf(val, "X = %3d / %3d", x, xs);
-    str = XmStringCreateSimple(val);
-    XtVaSetValues(Imod_widget_x, XmNlabelString, str, NULL);
-    XmStringFree(str);
-  }
-
-  if (ly != y || lys != ys){
-    ly = y;
-    lys = ys;
-    sprintf(val, "Y = %3d / %3d", y, ys);
-    str = XmStringCreateSimple(val);
-    XtVaSetValues(Imod_widget_y, XmNlabelString, str, NULL);
-    XmStringFree(str);
-  }
-
-  if (lz != z || lzs != zs){
-    lz = z;
-    lzs = zs;
-    sprintf(val, "Z = %3d / %3d", z, zs);
-    str = XmStringCreateSimple(val);
-    XtVaSetValues(Imod_widget_z, XmNlabelString, str, NULL);
-    XmStringFree(str);
-  }
-
-  /* DNM 11/24/02: this is now called from control list */
-  /* set_pixelview(App->cvi); */
-  return;
+  ImodInfoWidget->updateXYZ(xyz, xyzs);
 }
 
+/* Static variables for the keeping track of floating */
 static int ref_section;
 static int ref_black = 0;
 static int ref_white = 255;
 static int last_section = 0;
 static int ref_time;
 static int last_time = 0;
+static float *sec_mean = NULL;
+static float *sec_sd = NULL;
+static int table_size = 0;
+static int tdim = 0;
 
+/*
+ * Set the black/white sliders, draw if necessary
+ */
 void imod_info_setbw(int black, int white)
 {
   static int oblack = 0;
   static int owhite = 255;
   int remute = FALSE;
 
-  if (oblack != black){
+  if (oblack != black || owhite != white){
     oblack = black;
-    XtVaSetValues( Imod_widget_blacklevel, XmNvalue, black, NULL);
-    display_bwslider_value(Imod_widget_blackval, black);
-    remute = TRUE;
-  }
-
-  if (owhite != white){
     owhite = white;
-    XtVaSetValues( Imod_widget_whitelevel, XmNvalue, white, NULL);
-    display_bwslider_value(Imod_widget_whiteval, white);
+    ImodInfoWidget->setBWSliders(black, white);
     remute = TRUE;
   }
 
@@ -586,10 +402,6 @@ void imod_info_setbw(int black, int white)
 /* Implements floating; i.e. adjusting of sliders according to changes in the
    mean and SD between images 
    Returns 0 if nothing was changed, or 1 if black/white levels changed */
-static float *sec_mean = NULL;
-static float *sec_sd = NULL;
-static int table_size = 0;
-static int tdim = 0;
 int imod_info_bwfloat(ImodView *vw, int section, int time)
 {
   float sample, matt;
@@ -728,6 +540,33 @@ void imod_info_float_clear(int section, int time)
 /****************************************************************************/
 /*  Imod link functions */
 
+int imod_info_input(void)
+{
+  //     XEvent event_return;
+  XFlush(XtDisplay(App->toplevel));
+  /* This loop will execute if there is any pending event but will only
+     process an X event. It was here originally.  */
+  /*     while(XtAppPending(App->context)){
+	 XtAppNextEvent(App->context, &event_return);
+	 XtDispatchEvent(&event_return);
+	 } */
+
+  /* This loop will execute only if there is an X event, and process it.
+     It would avoid hanging up waiting for input */
+  /* while(XtAppPending(App->context) & XtIMXEvent){
+     XtAppNextEvent(App->context, &event_return);
+     XtDispatchEvent(&event_return);
+     } */
+
+  /* This loop will execute if there is any pending event and process all
+     kinds of events.  It seems good to process all events... */
+  while(XtAppPending(App->context) & XtIMAll)
+    XtAppProcessEvent(App->context, XtIMAll);
+
+
+  return(0);
+}
+
 int imod_open(FILE *mfin)
 {
   if (mfin == NULL)
@@ -755,6 +594,7 @@ void show_status(char *info)
   return;
 }
 
+// Unused
 void imod_show_info(char *info, int line)
 {
   if (!info)
@@ -769,30 +609,18 @@ void imod_show_info(char *info, int line)
 
 void imod_info_msg(char *top, char *bot)
 {
-  XmString tstr = NULL;
-  XmString bstr = NULL;
-
   if (top){
     wprint("%s\n", top);
-    tstr = XmStringCreateSimple(top);
   }
 
   if (bot){
     wprint("%s\n", bot);
-    bstr = XmStringCreateSimple(bot);
   }
-     
-  if (tstr)
-    XmStringFree(tstr);
-  if (bstr)
-    XmStringFree(bstr);
-  return;
 }
 
 void imod_info_forbid(void)
 {
   ImodForbidLevel++;
-  return;
 }
 
 void imod_info_enable(void)
@@ -800,7 +628,6 @@ void imod_info_enable(void)
   ImodForbidLevel--;
   if (ImodForbidLevel < 0)
     ImodForbidLevel = 0;
-  return;
 }
 
 /* DNM 6/8/01: changed so that it gets called with the actual mode to be
@@ -815,21 +642,15 @@ void imod_set_mmode(int mode)
         mode = IMOD_MMOVIE;
     }
 
-    if (mode == IMOD_MMOVIE){
-      Model->mousemode = IMOD_MMOVIE;
-      XmToggleButtonSetState(Imod_widget_movie, True, False);
-      XmToggleButtonSetState(Imod_widget_model, False, False);  
-    }
-    else{
+    Model->mousemode = mode;
+    ImodInfoWidget->setMovieModel(mode == IMOD_MMOVIE ? 0 : 1);
+
+    if (mode == IMOD_MMODEL) {
       App->cvi->xmovie = App->cvi->ymovie = App->cvi->zmovie = 
         App->cvi->tmovie = 0;
-      Model->mousemode = IMOD_MMODEL;
-      XmToggleButtonSetState(Imod_widget_model, True, False); 
-      XmToggleButtonSetState(Imod_widget_movie, False, False);  
     }
   }
   imodDraw(App->cvi, IMOD_DRAW_MOD | IMOD_DRAW_NOSYNC);
-  return;
 }
 
 void imod_draw_window(void)
@@ -840,14 +661,10 @@ void imod_draw_window(void)
   if (App->cvi){
     imod_info_setxyz();
   }
-  return;
 }
-
-void oimod_imgcnt(char *string){imod_info_msg(Statstring, string);return;}
 
 void imod_imgcnt(char *string)
 {
   wprint("%s\n%s\r", Statstring, string);
   imod_info_input();
-  return;
 }
