@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.5  2003/01/18 00:58:37  mast
+add tooltips to dialogframe call
+
 Revision 1.1.2.4  2002/12/30 06:53:00  mast
 eliminate unused variables
 
@@ -108,7 +111,6 @@ ColorSelector::ColorSelector(QWidget *parent, QString label, int red,
   // Connect them: have to connect to release of Qt selector because the modal
   // box keeps the button from coming back up (maybe mixed X problem only)
   connect(this, SIGNAL(actionPressed(int)), this, SLOT(buttonPressed(int)));
-  connect(this, SIGNAL(actionReleased(int)), this, SLOT(buttonReleased(int)));
 
   imposeColor(true, false);
 }
@@ -123,11 +125,7 @@ void ColorSelector::buttonPressed(int which)
     donePressed();
   else if (which == 1)
     restorePressed();
-}
-
-void ColorSelector::buttonReleased(int which)
-{
-  if (which == 2)
+  else if (which == 2)
     qtSelectorPressed();
 }
 

@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.3  2003/01/18 01:08:09  mast
+add tooltips
+
 Revision 1.1.2.2  2002/12/30 06:37:46  mast
 set the size small so it will show up at minimum size
 
@@ -91,9 +94,8 @@ DialogFrame::DialogFrame(QWidget *parent, int numButtons, char *labels[],
 
   // set up signal mapper for the buttons
   QSignalMapper *pressMapper = new QSignalMapper(this);
-  connect(pressMapper, SIGNAL(mapped(int)), this, SLOT(buttonPressed(int)));
-  QSignalMapper *releaseMapper = new QSignalMapper(this);
-  connect(releaseMapper, SIGNAL(mapped(int)), this, SLOT(buttonReleased(int)));
+  connect(pressMapper, SIGNAL(mapped(int)), this, 
+          SLOT(actionButtonPressed(int)));
   
   // Make a layout and put the buttons in it
   QHBoxLayout *layout2 = new QHBoxLayout(0, 0, 6, "bottom layout");
@@ -108,9 +110,7 @@ DialogFrame::DialogFrame(QWidget *parent, int numButtons, char *labels[],
     button->setFocusPolicy(NoFocus);
     layout2->addWidget(button);
     pressMapper->setMapping(button, i);
-    releaseMapper->setMapping(button, i);
-    connect(button, SIGNAL(pressed()), pressMapper, SLOT(map()));
-    connect(button, SIGNAL(released()), releaseMapper, SLOT(map()));
+    connect(button, SIGNAL(clicked()), pressMapper, SLOT(map()));
     if (tips != NULL)
       QToolTip::add(button, tips[i]);
   }
@@ -123,12 +123,7 @@ DialogFrame::DialogFrame(QWidget *parent, int numButtons, char *labels[],
   setCaption(str);
 }
 
-void DialogFrame::buttonPressed(int which)
+void DialogFrame::actionButtonPressed(int which)
 {
   emit actionPressed(which);
-}
-
-void DialogFrame::buttonReleased(int which)
-{
-  emit actionReleased(which);
 }

@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.4  2003/01/01 05:43:44  mast
+rationalizing toplevel versus dialog style
+
 Revision 1.1.2.3  2002/12/30 06:36:10  mast
 parameterizing the hot slider
 
@@ -47,7 +50,6 @@ class ColorSelector : public DialogFrame
 
   public slots:
     void buttonPressed(int which);
-    void buttonReleased(int which);
     void sliderChanged(int which, int value, bool dragging);
 
  protected:
