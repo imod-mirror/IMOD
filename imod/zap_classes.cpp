@@ -32,6 +32,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.13  2003/01/30 00:48:43  mast
+New timer logic
+
 Revision 1.1.2.12  2003/01/27 00:30:07  mast
 Pure Qt version and general cleanup
 
@@ -343,6 +346,13 @@ void ZapWindow::setSectionText(int section)
   diaSetSlider(mSecSlider, section);
 }
 
+void ZapWindow::setMaxZ(int maxZ)
+{
+  mSecSlider->blockSignals(true);
+  mSecSlider->setRange(1, maxZ);
+  mSecSlider->blockSignals(false);
+}
+
 void ZapWindow::setTimeLabel(QString label)
 {
   mTimeLabel->setText(label);
@@ -378,8 +388,10 @@ void ZapGL::paintGL()
   if (mFirstDraw) {
     mTimerID = startTimer(10);
     mFirstDraw = false;
-    if (mTimerID)
+    if (mTimerID) {
+      glClear(GL_COLOR_BUFFER_BIT);
       return;
+    }
   }
   zapPaint(mZap);
 }
