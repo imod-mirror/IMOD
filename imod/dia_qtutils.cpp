@@ -34,6 +34,7 @@ $Revision$
 */
 
 #include <stdarg.h>
+#include <string.h>
 #include <qcheckbox.h>
 #include <qlabel.h>
 #include <qslider.h>
@@ -156,16 +157,20 @@ void dia_smsg( char **msg)
 {
   char *p;
   char *buf;
+  char *lineStart;
+  char *temp;
   int maxline, maxrow, linesize;
   long bufsize;
   int n = 0;
-  int i;
+  int i, twidth, doline;
   int lastspace, curpos;
   int maxWidth = (int)(0.8 * QApplication::desktop()->width());
   int maxHeight = (int)(0.8 * QApplication::desktop()->height());
-  int height, width;
+  int height, width = 0;
   QString test;
-  QString qmsg = buf;
+
+  QDialog *dlg = new QDialog(0, 0, false, 
+                             Qt::WDestructiveClose);
 
   for (i = 0, bufsize = 0; msg[i]; i++){
     linesize = strlen(msg[i]);
@@ -191,42 +196,55 @@ void dia_smsg( char **msg)
   maxrow = 1;
   curpos = 0;
   lastspace = 40;
+  lineStart = buf;
+
   for (p = buf; *p; p++) {
+    doline = 0;
     if (*p == '\t')
-      curpos += 8;
-    if (*p == ' ') {
+      curpos = 8 * (curpos/ 8 + 1);
+    else if (*p == ' ') {
       lastspace = curpos;
       curpos++;
-    } 
-    else if (*p == '\n') {
+    } else if (*p == '\n') {
       if (curpos >= maxline)
         maxline = curpos + 1;
       curpos = 0;
-      lastspace = 40;
-      maxrow++;
-    }
-    else if (curpos > 78 ) {
+      doline = p + 1 - lineStart;
+    } else if (curpos > 78 ) {
       if (lastspace >= maxline)
         maxline = lastspace + 1;
       curpos -= lastspace;
+      doline = lastspace;
+    } else
+      curpos++;
+    
+    if (doline) {
+      temp = strndup(lineStart, doline);
+      if (temp) {
+	test = temp;
+	twidth = dlg->fontMetrics().width(test);
+	if (width < twidth)
+	  width = twidth;
+	free(temp);
+      }
+      lineStart = p + 1;
       lastspace = 40;
       maxrow++;
     }
-    else
-      curpos++;
   }
 
-  if (!maxline)
+  if (!maxline & !width) {
     maxline = curpos + 1;
+    test = "";
+    for (i = 0; i < maxline + 2; i++)
+      test += "8";
+    width = dlg->fontMetrics().width(test);
+  }
 
   if (maxrow > 50)
     maxrow = 40;
 
-  for (i = 0; i < maxline + 2; i++)
-    test += "8";
-
-  QDialog *dlg = new QDialog(0, 0, false, 
-                             Qt::WDestructiveClose);
+  QString qmsg = buf;
 
   // Make a vertical layout with the text edit and a close button
   QVBoxLayout *vbox = new QVBoxLayout(dlg);
@@ -241,14 +259,15 @@ void dia_smsg( char **msg)
   QObject::connect(button, SIGNAL(clicked()), dlg, SLOT(close()));
 
   // Figure out width and height of text and height of button, and set size
-  width = edit->fontMetrics().width(test);
   if (width > maxWidth)
     width = maxWidth;
-  height = (maxrow + 2) * edit->fontMetrics().height();
+  height = (maxrow + 3) * edit->fontMetrics().height();
   if (height > maxHeight)
     height = maxHeight;
   QSize hint = hbox->sizeHint();
-  dlg->resize(width + 20, height + hint.height());
+
+  // This was width + 20 when the width was based on character count alone
+  dlg->resize(width + 60, height + hint.height());
 
   // Set title
   test = Dia_title;
