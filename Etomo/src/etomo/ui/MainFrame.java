@@ -47,6 +47,9 @@ import etomo.util.UniqueKey;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.12.2.7  2004/09/15 22:40:52  sueh
+ * <p> bug# 520 making openMessageDialog public
+ * <p>
  * <p> Revision 3.12.2.6  2004/09/13 20:24:20  sueh
  * <p> bug# 520 Change MRUlist action to open a tomogram in a new window
  * <p> using EtomoDirector.
@@ -412,7 +415,7 @@ public class MainFrame extends JFrame implements ContextMenu {
     chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
     File[] edfFiles = workingDir.listFiles(edfFilter);
     if (edfFiles.length == 0) {
-      File defaultFile = new File(workingDir, currentManager.getMetaData().getDatasetName() + ".edf");
+      File defaultFile = new File(workingDir, currentManager.getBaseMetaData().getMetaDataFileName());
       chooser.setSelectedFile(defaultFile);
     }
     int returnVal = chooser.showSaveDialog(this);
