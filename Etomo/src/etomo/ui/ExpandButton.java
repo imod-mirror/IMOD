@@ -6,7 +6,6 @@ import java.awt.event.ActionListener;
 
 import javax.swing.BorderFactory;
 import javax.swing.Icon;
-import javax.swing.JButton;
 import javax.swing.OverlayLayout;
 import javax.swing.border.BevelBorder;
 
@@ -29,13 +28,16 @@ import javax.swing.border.BevelBorder;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.2  2004/09/21 17:57:47  sueh
+* <p> bug# 520 setting a maximum size of the expand button
+* <p>
 * <p> Revision 1.1.2.1  2004/09/17 21:37:21  sueh
 * <p> bug# 520 This class is a button which changes its text from ">" to "<"
 * <p> when pressed.  It remembers its state.  Its has its own listener and
 * <p> tells the component it is displayed on when it has been pressed.
 * <p> </p>
 */
-public class ExpandButton extends JButton {
+public class ExpandButton extends MultiLineButton {
   public static  final String  rcsid =  "$Id$";
   private static final String contractSymbol = "<html><big>&lt</big>";
   private static final String expandSymbol = "<html><big>&gt</big>";
