@@ -46,6 +46,9 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.4  2004/09/09 17:28:38  sueh
+* <p> bug# 520 MRU file labels already being set from EtomoDirector
+* <p>
 * <p> Revision 1.1.2.3  2004/09/08 19:27:19  sueh
 * <p> bug# 520 putting initialize UI parameters into a separate function
 * <p>
@@ -121,6 +124,7 @@ public abstract class BaseManager {
   //FIXME needs to be public?
   public abstract void openNewDataset();
   public abstract void openExistingDataset(File paramFile);
+  public abstract boolean isNewManager();
   
   public BaseManager() {
     createMetaData();
@@ -134,7 +138,6 @@ public abstract class BaseManager {
     initProgram();
     //imodManager should be created only once.
     createImodManager();
-
   }
   
   protected void initializeUIParameters(String paramFileName) {
