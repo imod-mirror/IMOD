@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.4.2.1  2002/12/09 17:49:19  mast
+changes to get Zap as a Qt window
+
 Revision 3.4  2002/12/01 15:32:27  mast
 Changes to compile under g++; also eliminated all non openGL code
 
@@ -1658,6 +1661,8 @@ double b3dStepPixelZoom(double czoom, int step)
 /* fonts                                                                   */
 XFontStruct *b3dGetXFontStruct(char *name)
 {
+  if (!CurDisplay)
+    CurDisplay = App->display;
   return(XLoadQueryFont(CurDisplay, name));
 }
 
