@@ -7,7 +7,6 @@ import java.awt.GridBagLayout;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JPanel;
-import javax.swing.plaf.ColorUIResource;
 
 /**
 * <p>Description: </p>
@@ -23,6 +22,10 @@ import javax.swing.plaf.ColorUIResource;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.3  2004/10/22 16:39:20  sueh
+* <p> bug# 520 Added getText().  Return the original text string before is it
+* <p> wrapped in html.
+* <p>
 * <p> Revision 1.1.2.2  2004/10/13 23:08:37  sueh
 * <p> bug# 520 Changed the add() functions.  No longer relying on the Table
 * <p> interface because a FieldCell instance could be added to different panels.
@@ -39,9 +42,6 @@ import javax.swing.plaf.ColorUIResource;
 class HeaderCell {
   public static  final String  rcsid =  "$Id$";
   
-  private static ColorUIResource foreground = null;
-  private static ColorUIResource background = null;
-  
   private JButton cell;
   private JPanel jpanelContainer = null;
   private String text = "";
@@ -55,7 +55,6 @@ class HeaderCell {
   }
   
   HeaderCell(String text, int width) {
-    initializeColor();
     if (text == null) {
       cell = new JButton();
     }
@@ -65,8 +64,6 @@ class HeaderCell {
     }
     cell.setBorder(BorderFactory.createEtchedBorder());
     cell.setEnabled(false);
-    cell.setForeground(foreground);
-    cell.setBackground(background);
     if (width > 0) {
       Dimension size = cell.getPreferredSize();
       size.width = width;
@@ -97,18 +94,4 @@ class HeaderCell {
     cell.setText(htmlText);
   }
   
-  private void initializeColor() {
-    if (foreground == null) {
-      foreground = UIUtilities.getDefaultUIColor("TableHeader.foregroundvalue");
-      if (foreground == null) {
-        foreground = new ColorUIResource(0, 0, 0);
-      }
-    }
-    if (background == null) {
-      background = UIUtilities.getDefaultUIColor("TableHeader.backgroundvalue");
-      if (background == null) {
-        background = new ColorUIResource(204, 204, 204);
-      }
-    }
-  }
 }
