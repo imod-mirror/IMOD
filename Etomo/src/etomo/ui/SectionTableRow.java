@@ -29,6 +29,10 @@ import etomo.util.MRCHeader;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.13  2004/10/25 23:16:49  sueh
+* <p> bug# 520 Changed table in Align tab:  Removed Sample Slices.  Added
+* <p> Slices in Sample.  Added Chunk table.  Also add xMax and yMax.
+* <p>
 * <p> Revision 1.1.2.12  2004/10/22 21:12:58  sueh
 * <p> bug# 520 Changed SectionTableRow.sampleSampleTop() to
 * <p> setSampleTopNumberSlices().  Removed getSampleBottom().  Fixed
@@ -93,6 +97,7 @@ public class SectionTableRow {
   
   //state
   private int imodIndex = -1;
+  private int imodRotIndex = -1;
   private boolean sectionExpanded = false;
   private int curTab = JoinDialog.SETUP_TAB;
   
@@ -451,6 +456,10 @@ public class SectionTableRow {
     this.imodIndex = imodIndex;
   }
   
+  void setImodRotIndex(int imodRotIndex) {
+    this.imodRotIndex = imodRotIndex;
+  }
+  
   void setRotationAngles(SlicerAngles slicerAngles) {
     rotationAngleX.setText(slicerAngles.getXText());
     rotationAngleY.setText(slicerAngles.getYText());
@@ -518,6 +527,10 @@ public class SectionTableRow {
   
   int getImodIndex() {
     return imodIndex;
+  }
+  
+  int getImodRotIndex() {
+    return imodRotIndex;
   }
   
   int getSampleBottomNumberSlices() {
