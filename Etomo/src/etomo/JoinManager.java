@@ -16,6 +16,9 @@ import java.io.File;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.2  2004/09/07 17:55:15  sueh
+* <p> bug# 520 moved mainFrame show responsibility to EtomoDirector
+* <p>
 * <p> Revision 1.1.2.1  2004/09/03 21:03:27  sueh
 * <p> bug# 520 adding place holders for create functions for now
 * <p> </p>
@@ -24,11 +27,9 @@ public class JoinManager extends BaseManager {
   public static  final String  rcsid =  "$Id$";
   
   public JoinManager(String paramFileName) {
-    super(paramFileName);
-    if (!test) {
-    }
+    super();
   }
-  
+
   protected void createComScriptManager() {
     
   }
@@ -46,6 +47,6 @@ public class JoinManager extends BaseManager {
   }
   
   protected void createMainPanel() {
-    
   }
+  
 }
