@@ -8,8 +8,8 @@
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>222</width>
-            <height>467</height>
+            <width>221</width>
+            <height>439</height>
         </rect>
     </property>
     <property name="caption">
@@ -28,24 +28,40 @@
         <property name="spacing">
             <number>6</number>
         </property>
-        <widget class="QLabel">
+        <widget class="QLayoutWidget">
             <property name="name">
-                <cstring>TextLabel1</cstring>
+                <cstring>Layout9</cstring>
             </property>
-            <property name="text">
-                <string>Object name:</string>
-            </property>
-            <property name="alignment">
-                <set>AlignVCenter|AlignLeft</set>
-            </property>
-        </widget>
-        <widget class="QLineEdit">
-            <property name="name">
-                <cstring>nameEdit</cstring>
-            </property>
-            <property name="focusPolicy">
-                <enum>ClickFocus</enum>
-            </property>
+            <vbox>
+                <property name="name">
+                    <cstring>unnamed</cstring>
+                </property>
+                <property name="margin">
+                    <number>0</number>
+                </property>
+                <property name="spacing">
+                    <number>2</number>
+                </property>
+                <widget class="QLabel">
+                    <property name="name">
+                        <cstring>TextLabel1</cstring>
+                    </property>
+                    <property name="text">
+                        <string>Object name:</string>
+                    </property>
+                    <property name="alignment">
+                        <set>AlignVCenter|AlignLeft</set>
+                    </property>
+                </widget>
+                <widget class="QLineEdit">
+                    <property name="name">
+                        <cstring>nameEdit</cstring>
+                    </property>
+                    <property name="focusPolicy">
+                        <enum>ClickFocus</enum>
+                    </property>
+                </widget>
+            </vbox>
         </widget>
         <widget class="QCheckBox">
             <property name="name">
@@ -70,16 +86,16 @@
                     <cstring>unnamed</cstring>
                 </property>
                 <property name="margin">
-                    <number>6</number>
+                    <number>11</number>
                 </property>
                 <property name="spacing">
                     <number>6</number>
                 </property>
                 <widget class="QLayoutWidget">
                     <property name="name">
-                        <cstring>Layout4</cstring>
+                        <cstring>Layout2</cstring>
                     </property>
-                    <vbox>
+                    <hbox>
                         <property name="name">
                             <cstring>unnamed</cstring>
                         </property>
@@ -89,11 +105,39 @@
                         <property name="spacing">
                             <number>6</number>
                         </property>
+                        <widget class="QComboBox">
+                            <item>
+                                <property name="text">
+                                    <string>None</string>
+                                </property>
+                            </item>
+                            <item>
+                                <property name="text">
+                                    <string>Circle</string>
+                                </property>
+                            </item>
+                            <item>
+                                <property name="text">
+                                    <string>Square</string>
+                                </property>
+                            </item>
+                            <item>
+                                <property name="text">
+                                    <string>Triangle</string>
+                                </property>
+                            </item>
+                            <property name="name">
+                                <cstring>symbolComboBox</cstring>
+                            </property>
+                            <property name="focusPolicy">
+                                <enum>NoFocus</enum>
+                            </property>
+                        </widget>
                         <widget class="QLayoutWidget">
                             <property name="name">
-                                <cstring>Layout2</cstring>
+                                <cstring>Layout1</cstring>
                             </property>
-                            <hbox>
+                            <vbox>
                                 <property name="name">
                                     <cstring>unnamed</cstring>
                                 </property>
@@ -103,74 +147,46 @@
                                 <property name="spacing">
                                     <number>6</number>
                                 </property>
-                                <widget class="QComboBox">
-                                    <item>
-                                        <property name="text">
-                                            <string>None</string>
-                                        </property>
-                                    </item>
-                                    <item>
-                                        <property name="text">
-                                            <string>Circle</string>
-                                        </property>
-                                    </item>
-                                    <item>
-                                        <property name="text">
-                                            <string>Square</string>
-                                        </property>
-                                    </item>
-                                    <item>
-                                        <property name="text">
-                                            <string>Triangle</string>
-                                        </property>
-                                    </item>
+                                <widget class="QCheckBox">
                                     <property name="name">
-                                        <cstring>symbolComboBox</cstring>
+                                        <cstring>fillCheckBox</cstring>
                                     </property>
                                     <property name="focusPolicy">
                                         <enum>NoFocus</enum>
                                     </property>
-                                </widget>
-                                <widget class="QLayoutWidget">
-                                    <property name="name">
-                                        <cstring>Layout1</cstring>
+                                    <property name="text">
+                                        <string>Fill</string>
                                     </property>
-                                    <vbox>
-                                        <property name="name">
-                                            <cstring>unnamed</cstring>
-                                        </property>
-                                        <property name="margin">
-                                            <number>0</number>
-                                        </property>
-                                        <property name="spacing">
-                                            <number>6</number>
-                                        </property>
-                                        <widget class="QCheckBox">
-                                            <property name="name">
-                                                <cstring>fillCheckBox</cstring>
-                                            </property>
-                                            <property name="focusPolicy">
-                                                <enum>NoFocus</enum>
-                                            </property>
-                                            <property name="text">
-                                                <string>Fill</string>
-                                            </property>
-                                        </widget>
-                                        <widget class="QCheckBox">
-                                            <property name="name">
-                                                <cstring>markCheckBox</cstring>
-                                            </property>
-                                            <property name="focusPolicy">
-                                                <enum>NoFocus</enum>
-                                            </property>
-                                            <property name="text">
-                                                <string>Mark ends</string>
-                                            </property>
-                                        </widget>
-                                    </vbox>
                                 </widget>
-                            </hbox>
+                                <widget class="QCheckBox">
+                                    <property name="name">
+                                        <cstring>markCheckBox</cstring>
+                                    </property>
+                                    <property name="focusPolicy">
+                                        <enum>NoFocus</enum>
+                                    </property>
+                                    <property name="text">
+                                        <string>Mark ends</string>
+                                    </property>
+                                </widget>
+                            </vbox>
                         </widget>
+                    </hbox>
+                </widget>
+                <widget class="QLayoutWidget">
+                    <property name="name">
+                        <cstring>Layout10</cstring>
+                    </property>
+                    <vbox>
+                        <property name="name">
+                            <cstring>unnamed</cstring>
+                        </property>
+                        <property name="margin">
+                            <number>0</number>
+                        </property>
+                        <property name="spacing">
+                            <number>2</number>
+                        </property>
                         <widget class="QSlider">
                             <property name="name">
                                 <cstring>sizeSlider</cstring>
@@ -216,7 +232,7 @@
                                         <string>Size</string>
                                     </property>
                                     <property name="alignment">
-                                        <set>AlignVCenter|AlignLeft</set>
+                                        <set>AlignTop|AlignLeft</set>
                                     </property>
                                 </widget>
                                 <widget class="QLabel">
@@ -227,7 +243,7 @@
                                         <string>3</string>
                                     </property>
                                     <property name="alignment">
-                                        <set>AlignVCenter|AlignRight</set>
+                                        <set>AlignTop|AlignRight</set>
                                     </property>
                                 </widget>
                             </hbox>
