@@ -35,6 +35,9 @@
     $Revision$
 
     $Log$
+    Revision 1.1.2.2  2003/01/29 01:46:08  mast
+    changes for color index mode
+
     Revision 1.1.2.1  2003/01/26 23:25:26  mast
     Qt version
 
@@ -45,8 +48,6 @@
 #include <stdio.h>
 #include <qglcolormap.h>
 #include "xcramp.h"
-#include "imod.h"
-#include "imod_display.h"
 
 
 Cramp *xcramp_allinit(int depth, QGLColormap *qCmapPtr,  int low,  int high)
@@ -290,7 +291,6 @@ int xcramp_ramp(Cramp *cr)
   // This seems not to work! 
   cr->qCmapPtr->setEntries(cr->rampsize, rgbtab, cr->rampbase); 
   */
-  imodDraw(App->cvi, IMOD_DRAW_COLORMAP);
   return(0);
 }
 
