@@ -12,10 +12,37 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.1  2002/12/17 17:41:09  mast
+initial creation
+
 */
 
 #ifndef IMODV_MENU_H
 #define IMODV_MENU_H
+#include <qobject.h>
+
+class ColorSelector;
+
+class ImodvBkgColor : public QObject
+{
+  Q_OBJECT
+
+ public:
+  ImodvBkgColor();
+  ~ImodvBkgColor() {};
+  void openDialog();
+
+  ColorSelector *mSelector;
+
+  public slots:
+   void newColorSlot(int red, int green, int blue);
+  void doneSlot();
+  void closingSlot();
+
+  void keyPressSlot ( QKeyEvent * e );
+  void keyReleaseSlot ( QKeyEvent * e );
+
+};
 
   /* menu.c functions */
 void imodvMenuLight(int value);
@@ -26,7 +53,7 @@ void imodvEditMenu(int item);
 void imodvHelpMenu(int item);
 void imodvFileMenu(int item);
 void imodvViewMenu(int item);
-void imodvMenuBgcolor();
+void imodvMenuBgcolor(int state);
 int imodvLoadModel();
 void imodvSaveModelAs();
 
