@@ -32,6 +32,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.2.2.1  2002/12/12 01:22:29  mast
+Changes to become Qt window
+
 Revision 3.2  2002/11/25 19:22:16  mast
 Added a structure element for control id
 
@@ -115,7 +118,6 @@ class XyzGL : public QGLWidget
   ~XyzGL();
  
  protected:
-  void initializeGL();
   void paintGL();
   void resizeGL( int wdth, int hght );
   void mousePressEvent(QMouseEvent * e );
