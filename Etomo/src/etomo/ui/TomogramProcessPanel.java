@@ -23,7 +23,13 @@ import etomo.type.AxisID;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1.2.1  2004/09/08 20:14:27  sueh
+ * <p> bug# 520 class contains tomogram specific functionality from
+ * <p> AxisProcessPanel,
+ * <p> which is its base class.  Casts member variables which are used as super
+ * <p> classes in MainPanel.
+ * <p> </p>
  */
 public class TomogramProcessPanel extends AxisProcessPanel {
   public static final String rcsid = "$Id$";
@@ -45,9 +51,9 @@ public class TomogramProcessPanel extends AxisProcessPanel {
   private ProcessControlPanel procCtlPostProcessing = new ProcessControlPanel(
       "Post-processing");
   
-  //convenience variables set to super class member variables
-  //use through cast functions
-  private ApplicationManager applicationManager = null;
+  //variables cast from base class variables
+  //initialized in constructor
+  private ApplicationManager applicationManager;
 
   /**
    * @param appManager
@@ -55,6 +61,7 @@ public class TomogramProcessPanel extends AxisProcessPanel {
    */
   public TomogramProcessPanel(ApplicationManager appManager, AxisID axis) {
     super(appManager, axis);
+    applicationManager = (ApplicationManager) manager;
     //  Create the process control panel    
     createProcessControlPanel();
     initializePanels();
@@ -67,41 +74,41 @@ public class TomogramProcessPanel extends AxisProcessPanel {
     String command = event.getActionCommand();
 
     if (command.equals(procCtlPreProc.getName())) {
-      castManager().openPreProcDialog(axisID);
+      applicationManager.openPreProcDialog(axisID);
       return;
     }
 
     if (command.equals(procCtlCoarseAlign.getName())) {
-      castManager().openCoarseAlignDialog(axisID);
+      applicationManager.openCoarseAlignDialog(axisID);
       return;
     }
 
     if (command.equals(procCtlFiducialModel.getName())) {
-      castManager().openFiducialModelDialog(axisID);
+      applicationManager.openFiducialModelDialog(axisID);
       return;
     }
 
     if (command.equals(procCtlFineAlignment.getName())) {
-      castManager().openFineAlignmentDialog(axisID);
+      applicationManager.openFineAlignmentDialog(axisID);
       return;
     }
     if (command.equals(procCtlTomogramPositioning.getName())) {
-      castManager().openTomogramPositioningDialog(axisID);
+      applicationManager.openTomogramPositioningDialog(axisID);
       return;
     }
 
     if (command.equals(procCtlTomogramGeneration.getName())) {
-      castManager().openTomogramGenerationDialog(axisID);
+      applicationManager.openTomogramGenerationDialog(axisID);
       return;
     }
 
     if (command.equals(procCtlTomogramCombination.getName())) {
-      castManager().openTomogramCombinationDialog();
+      applicationManager.openTomogramCombinationDialog();
       return;
     }
 
     if (command.equals(procCtlPostProcessing.getName())) {
-      castManager().openPostProcessingDialog();
+      applicationManager.openPostProcessingDialog();
       return;
     }
   }
@@ -284,16 +291,6 @@ public class TomogramProcessPanel extends AxisProcessPanel {
     procCtlPostProcessing.setSelected(false);
   }
   
-  private ApplicationManager castManager() {
-    if (manager == null) {
-      throw new NullPointerException();
-    }
-    if (applicationManager == null) {
-      applicationManager = (ApplicationManager) manager;
-    }
-    return applicationManager;
-  }
-
   /**
    * Initialize the tooltip text for the axis panel objects
    */
