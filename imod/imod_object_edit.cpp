@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.4  2002/12/13 06:03:47  mast
+moving imod_object_edit declaration to include file and removing argument
+
 Revision 1.1.2.3  2002/12/09 17:49:57  mast
 Getting the object type buttons right
 
@@ -48,10 +51,12 @@ Changes to get clean compilation with g++
 */
 
 #include "object_edit.h"
-#include <diaP.h>
 #define NO_X_INCLUDES
 #include "imod.h"
 #include "imod_object_edit.h"
+#include "hotslider.h"
+#include "colorselector.h"
+#include "control.h"
 
 static objectEditForm *Ioew_dialog;
 
@@ -61,48 +66,8 @@ static Iobj *getObjectOrClose(void);
 static int symTable[MAX_SYMBOLS] = 
   { IOBJ_SYM_NONE, IOBJ_SYM_CIRCLE, IOBJ_SYM_SQUARE, IOBJ_SYM_TRIANGLE };
 
-void ioew_sgicolor_cb(Widget w, XtPointer client, XtPointer call)
-{
-  DiaColorCallbackStruct *cbs = (DiaColorCallbackStruct *) call;
-  int ob = (int)client;
-  Iobj *obj;
-
-  switch(cbs->reason){
-  case DIA_INIT:
-    break;
-  case DIA_APPLY:
-  case DIA_OK:
-  case DIA_CANCEL:
-  case DIA_SLIDER_CHANGED:
-  case DIA_SLIDER_DRAG:
-    if (ob >= Model->objsize)
-      return;
-    obj = &(Model->obj[ob]);
-    obj->red = cbs->red / 255.0;
-    obj->green = cbs->green / 255.0;
-    obj->blue = cbs->blue / 255.0;
-
-    /* DNM: if TrueColor, need to free old color and allocate new one */
-    /* well, maybe not, but in any case, need to redraw unless it's a 
-       drag */
-    if (App->rgba) {
-      if (cbs->reason == DIA_SLIDER_DRAG)
-        break;
-      free_object_colors(Model, ob, ob);
-      alloc_object_colors(Model, ob, ob);
-      imodDraw(App->cvi, IMOD_DRAW_MOD);
-    }
-    break;
-  default:
-    break;
-  }
-  imod_cmap(Model);
-  imod_info_setobjcolor();
-
-  return;
-}
-
-/* 12/1/02: Eliminated unused ioew_color_cb */
+#define MAX_COLOR_SELECTORS 20
+static ImodObjColor *colorObjects[MAX_COLOR_SELECTORS];
 
 void ioew_help(void)
 {
@@ -306,9 +271,6 @@ void ioew_time(int state)
 
 int imod_object_edit()
 {
-  QString qstr;
-  char *window_name;
-
   Iobj *obj = imodObjectGet(Model);
   if (!obj){
     dia_err("No Object selected");
@@ -327,12 +289,7 @@ int imod_object_edit()
     return(-1);
   }
 
-  window_name = imodwfname("Imod Object Edit:");
-  if (window_name) {
-    qstr = window_name;
-    free(window_name);
-    Ioew_dialog->setCaption(qstr);
-  }
+  Ioew_dialog->setCaption(imodCaption("Imod Object Edit"));
 
   Ioew_dialog->show();
 
@@ -404,4 +361,128 @@ void ioew_closing(void)
 void ioew_quit(void)
 {
   Ioew_dialog->close();
+}
+
+
+/*  OBJECT COLOR ENTRY POINT AND CLASS */
+
+// Entry point for opening or raising an object color dialog for given object
+void imod_object_color(int objNum)
+{
+  static int firstTime = 1;
+  int i;
+  int freeInd = -1;
+
+  // Initialize list of objects to NULL
+  if (firstTime)
+    for (i = 0; i < MAX_COLOR_SELECTORS; i++)
+      colorObjects[i] = NULL;
+  firstTime = 0;
+
+  // Garbage collect: delete objects if selector is null
+  for (i = 0; i < MAX_COLOR_SELECTORS; i++) 
+    if (colorObjects[i] && !colorObjects[i]->mSelector) {
+      if (Imod_debug)
+	fprintf(stderr, "Deleting selector for object %d from index %d\n", 
+		colorObjects[i]->mObjNum + 1, i);
+      delete colorObjects[i];
+      colorObjects[i] = NULL;
+    } 
+
+  // now find first free slot, or raise window if it exists
+  for (i = 0; i < MAX_COLOR_SELECTORS; i++) {
+    if (freeInd < 0 && !colorObjects[i])
+      freeInd = i;
+
+    if (colorObjects[i] && colorObjects[i]->mObjNum == objNum) {
+      colorObjects[i]->mSelector->raise();
+      return;
+    }
+  }
+
+  // Open the object if there is a free spot
+  if (freeInd >= 0)
+    colorObjects[freeInd] = new ImodObjColor(objNum);
+  else 
+    wprint("\aToo many object color selectors open.\n");
+}
+
+
+// Object color class
+ImodObjColor::ImodObjColor(int objNum)
+  : QObject(0, 0)
+{
+  QString qstr;
+  
+  mObjNum = objNum;
+  Iobj *obj = &(Model->obj[objNum]);
+  qstr.sprintf("Select color for object %d.", objNum + 1);
+
+  mSelector = new ColorSelector(NULL, qstr.latin1(),
+                                (int)(obj->red * 255.),
+                                (int)(obj->green * 255.),
+                                (int)(obj->blue * 255.), hotSliderFlag(), 
+				hotSliderKey(), "selector");
+  connect(mSelector, SIGNAL(newColor(int, int, int)), this, 
+          SLOT(newColorSlot(int, int, int)));
+  connect(mSelector, SIGNAL(done()), this, SLOT(doneSlot()));
+  connect(mSelector, SIGNAL(closing()), this, SLOT(closingSlot()));
+  connect(mSelector, SIGNAL(keyPress(QKeyEvent *)), this, 
+          SLOT(keyPressSlot(QKeyEvent *)));
+  connect(mSelector, SIGNAL(keyRelease(QKeyEvent *)), this, 
+          SLOT(keyReleaseSlot(QKeyEvent *)));
+
+  mSelector->setCaption(imodCaption("Imod"));
+
+  mSelector->show();
+}
+
+void ImodObjColor::newColorSlot(int red, int green, int blue)
+{
+  Iobj *obj;
+  // If the object number is now illegal, close the selector
+  if (mObjNum >= Model->objsize) {
+    mSelector->close();
+    return;
+  }
+
+  // Get the new color
+  obj = &(Model->obj[mObjNum]);
+  obj->red = red / 255.0;
+  obj->green = green / 255.0;
+  obj->blue = blue / 255.0;
+
+  // This was redraw if rgba, but do it in any case because imodv might be open
+    /* DNM: if TrueColor, need to free old color and allocate new one */
+    /* well, maybe not, but in any case, need to redraw unless it's a 
+       drag */
+  if (App->rgba) {  
+
+    // So is this needed?  It won't be...
+    free_object_colors(Model, mObjNum, mObjNum);
+    alloc_object_colors(Model, mObjNum, mObjNum);
+  }
+  imodDraw(App->cvi, IMOD_DRAW_MOD);
+  imod_cmap(Model);
+  imod_info_setobjcolor();
+}
+
+void ImodObjColor::doneSlot()
+{
+  mSelector->close();
+}
+
+void ImodObjColor::closingSlot()
+{
+  mSelector = NULL;
+}
+
+void ImodObjColor::keyPressSlot ( QKeyEvent * e )
+{
+  ivwControlKey(0, e);
+}
+
+void ImodObjColor::keyReleaseSlot ( QKeyEvent * e )
+{
+  ivwControlKey(1, e);
 }
