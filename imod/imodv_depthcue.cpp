@@ -35,6 +35,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.6  2003/01/13 07:21:38  mast
+Changes to use new dialog manager class
+
 Revision 1.1.2.5  2002/12/30 06:49:50  mast
 rationalizing dialogs as widgets and using dialog list
 
@@ -55,7 +58,9 @@ Changes to get clean compilation with g++
 
 */
 
+#include <GL/gl.h>
 #include "formv_depthcue.h"
+#include "dia_qtutils.h"
 #include "imodv.h"
 #include "imodv_gfx.h"
 #include "imodv_input.h"

@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 1.1.2.9  2003/01/13 07:21:38  mast
+    Changes to use new dialog manager class
+
     Revision 1.1.2.8  2002/12/30 06:49:50  mast
     rationalizing dialogs as widgets and using dialog list
 
@@ -63,6 +66,7 @@
 */
 #include <qstring.h>
 #include "formv_control.h"
+#include "dia_qtutils.h"
 #define NO_X_INCLUDES
 #include "imodv.h"
 #include "imodP.h"
