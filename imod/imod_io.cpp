@@ -37,6 +37,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.8  2003/01/27 00:30:07  mast
+Pure Qt version and general cleanup
+
 Revision 1.1.2.7  2003/01/23 20:07:45  mast
 rely on imod_infor_setocp updating dialogs
 
@@ -232,7 +235,7 @@ void imod_cleanup_autosave(void)
 int imod_autosave(struct Mod_Model *mod)
 {
   FILE *tfilep;
-  int new_checksum;
+  int new_checksum, i;
   char *timestr;
   char *savedir = getenv("IMOD_AUTOSAVE_DIR");
 
@@ -250,15 +253,20 @@ int imod_autosave(struct Mod_Model *mod)
 
   imod_cleanup_autosave();
 
-  if (savedir)
-    sprintf(autosave_filename, "%s/%s%s", savedir, Imod_filename,
-            autosave_string);
-  else
-    sprintf(autosave_filename, "%s%s", Imod_filename,
-            autosave_string);
+  if (savedir) {
+    /* Strip the path off the name */
+    timestr = Imod_filename;
+    for (i = 0; Imod_filename[i]; i++)
+      if (Imod_filename[i] == '/')
+        timestr = &(Imod_filename[i]) + 1;
+        
+      sprintf(autosave_filename, "%s/%s%s", savedir, timestr, autosave_string);
+      
+  } else
+    sprintf(autosave_filename, "%s%s", Imod_filename, autosave_string);
      
   remove(autosave_filename);
-  tfilep = fopen(autosave_filename, "w");
+  tfilep = fopen(autosave_filename, "wb");
   if (tfilep == NULL){
     wprint("Error: Can't open autosave file %s\n", autosave_filename);
     autosave_filename[0] = 0x00;
@@ -299,7 +307,7 @@ int SaveModel(struct Mod_Model *mod)
 
   imod_make_backup(Imod_filename);
 
-  fout = fopen(Imod_filename, "w+");
+  fout = fopen(Imod_filename, "wb+");
 
   if (fout == NULL){
     
