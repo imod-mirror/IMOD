@@ -79,6 +79,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.101.2.9  2004/10/08 15:36:53  sueh
+ * <p> bug# 520 Setting workingDirName instead of system property for manager
+ * <p> level working directory.
+ * <p>
  * <p> Revision 3.101.2.8  2004/10/01 20:56:06  sueh
  * <p> bug# 520 Moving getMetaDAta() from base class to this class.
  * <p>
@@ -1116,7 +1120,8 @@ public class ApplicationManager extends BaseManager {
       // Set the current working directory for the application saving the
       // old user.dir property until the meta data is valid
       String oldUserDir = System.getProperty("user.dir");
-      workingDirName = setupDialog.getWorkingDirectory().getAbsolutePath();
+      System.setProperty("user.dir",
+        setupDialog.getWorkingDirectory().getAbsolutePath());
       metaData = setupDialog.getFields();
       if (metaData == null) {
         return;
@@ -1133,7 +1138,7 @@ public class ApplicationManager extends BaseManager {
         errorMessage[0] = "Setup Parameter Error";
         errorMessage[1] = metaData.getInvalidReason();
         mainPanel.openMessageDialog(errorMessage, "Setup Parameter Error");
-        workingDirName = oldUserDir;
+        System.setProperty("user.dir", oldUserDir);
         return;
       }
       // This is really the method to use the existing com scripts
