@@ -32,6 +32,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.1  2002/12/09 17:48:09  mast
+Initial addition to source
+
 */
 #ifndef ZAP_CLASSES_H
 #define ZAP_CLASSES_H
@@ -108,7 +111,6 @@ class ZapGL : public QGLWidget
   ZapGL(struct zapwin *zap, QGLFormat format, QWidget * parent = 0,
         const char * name = 0);
   ~ZapGL();
-  void glReallyDraw() {glDraw();};
  
 protected:
   void initializeGL();

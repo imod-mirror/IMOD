@@ -32,6 +32,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.2  2002/12/09 22:00:29  mast
+include stdio and stdlib for atof/atoi calls
+
 Revision 1.1.2.1  2002/12/09 17:47:51  mast
 Initial addition to source
 
@@ -44,6 +47,7 @@ Initial addition to source
 #include <qtoolbar.h>
 #include <qsignalmapper.h>
 #include <qpushbutton.h>
+#include <qlayout.h>
 
 // Forward declarations to be able to read xzap without reading imodP
 class B3dCIImage;
@@ -132,6 +136,10 @@ ZapWindow::ZapWindow(struct zapwin *zap, QString timeLabel, bool rgba,
 
   // Get the toolbar, add zoom arrows
   mToolBar = new QToolBar(this, "zap toolbar");
+  if (!AUTO_RAISE) {
+    QBoxLayout *boxLayout = mToolBar->boxLayout();
+    boxLayout->setSpacing(4);
+  }
   ArrowButton *arrow = new ArrowButton(Qt::UpArrow, mToolBar, "zoomup button");
   arrow->setAutoRaise(AUTO_RAISE);
   connect(arrow, SIGNAL(clicked()), this, SLOT(zoomUp()));
@@ -175,6 +183,7 @@ ZapWindow::ZapWindow(struct zapwin *zap, QString timeLabel, bool rgba,
 
   // Optional section if time enabled
   if (!timeLabel.isEmpty()) {
+    mToolBar->addSeparator();
     setupToggleButton(mToolBar, toggleMapper, 4);
 
     label = new QLabel("4th D", mToolBar);
