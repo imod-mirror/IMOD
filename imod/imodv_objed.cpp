@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.1.2.1  2002/12/07 01:22:49  mast
+    Added argument to window tilte generator
+
     Revision 3.1  2002/12/01 15:34:41  mast
     Changes to get clean compilation with g++
 

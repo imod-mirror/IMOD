@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.3  2002/12/01 15:34:41  mast
+Changes to get clean compilation with g++
+
 Revision 3.2  2002/09/03 19:36:05  mast
 Eliminated initialized of scalar mesh whitelevel value because endian
 problem is now fixed
