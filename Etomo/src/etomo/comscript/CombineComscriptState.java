@@ -19,6 +19,9 @@ import etomo.ui.TomogramCombinationDialog;
 * @version $$Revision$$
 *
 * <p> $Log$
+* <p> Revision 1.5.2.1  2004/09/03 21:04:05  sueh
+* <p> bug# 520 calling isSelfTest from EtomoDirector
+* <p>
 * <p> Revision 1.5  2004/08/24 23:07:48  sueh
 * <p> bug# 508 in setEndCommand(): making sure I don't delete the wrong
 * <p> echo command in combine.com when getting rid of the code to exit
@@ -117,7 +120,7 @@ public class CombineComscriptState implements ComscriptState {
     
   public CombineComscriptState() {
     initializeComscriptMatchString();
-    selfTest = EtomoDirector.isSelfTest();
+    selfTest = EtomoDirector.getInstance().isSelfTest();
     runSelfTest(CONSTRUCTED_STATE);
   }
   
