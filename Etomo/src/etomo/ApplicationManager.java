@@ -89,6 +89,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.84.2.2  2004/07/02 22:15:56  sueh
+ * <p> bug# 487 merged from 3.4
+ * <p>
  * <p> Revision 3.84.2.1  2004/06/30 21:00:36  rickg
  * <p> Bug #488 merged in rotation.xf fixes
  * <p>
@@ -1417,11 +1420,13 @@ public class ApplicationManager {
       return;
     }
     String key = ImodManager.PREVIEW_KEY;
-    MetaData metaData = setupDialog.getFields();
-    imodManager.setPreviewMetaData(metaData);
-    File previewWorkingDir = metaData.getValidDatasetDirectory(setupDialog.getWorkingDirectory().getAbsolutePath());
+    MetaData previewMetaData = setupDialog.getDataset();
+    imodManager.setPreviewMetaData(previewMetaData);
+    File previewWorkingDir =
+      previewMetaData.getValidDatasetDirectory(
+        setupDialog.getWorkingDirectory().getAbsolutePath());
     if (previewWorkingDir == null) {
-      mainFrame.openMessageDialog(metaData.getInvalidReason(),
+      mainFrame.openMessageDialog(previewMetaData.getInvalidReason(),
         "Raw Image Stack");
       return;
     }
