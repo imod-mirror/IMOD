@@ -32,6 +32,11 @@ import etomo.type.SectionTableRowData;
 * <p> </p>
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.9  2004/10/30 01:31:40  sueh
+* <p> bug# 520 bug fix: A missing rotationAngleX caused the param to not use
+* <p> the -rot options.  Now the option will be used if any rotation angle is set and
+* <p> the unset ones will be defaulted.
+* <p>
 * <p> Revision 1.1.2.8  2004/10/29 22:07:58  sueh
 * <p> bug# 520 Use -tmpext to set the temp file extension to .rot.
 * <p>
@@ -63,10 +68,11 @@ import etomo.type.SectionTableRowData;
 * <p> within parameters.
 * <p> </p>
 */
-public class MakejoincomParam {
+public class MakejoincomParam implements Command {
   public static  final String  rcsid =  "$Id$";
   
   private static final int commandSize = 3;
+  private static final String commandName = "makejoincom";
   
   private ConstJoinMetaData metaData;
   private String[] commandArray;
@@ -84,7 +90,7 @@ public class MakejoincomParam {
     commandArray = new String[options.size() + commandSize];
     commandArray[0] = "tcsh";
     commandArray[1] = "-f";
-    commandArray[2] = BaseManager.getIMODBinPath() + "makejoincom";          
+    commandArray[2] = BaseManager.getIMODBinPath() + commandName;          
     for (int i = 0; i < options.size(); i++) {
       commandArray[i + commandSize] = (String) options.get(i);
     }
@@ -139,4 +145,37 @@ public class MakejoincomParam {
     options.add(metaData.getRootName());
     return options;
   }
+  
+  public int getBinning() {
+    return 1;
+  }
+  
+  public String getCommandLine() {
+    StringBuffer buffer = new StringBuffer();
+    for (int i = 0; i < commandArray.length; i++) {
+      buffer.append(commandArray[i] + " ");
+    }
+    return buffer.toString();
+  }
+  
+  public String getCommandName() {
+    return commandName;
+  }
+  
+  public int getIntegerValue(int name) {
+    return Integer.MIN_VALUE;
+  }
+  
+  public int getMode() {
+    return 0;
+  }
+  
+  public File getOutputFile() {
+    return null;
+  }
+  
+  public static String getName() {
+    return commandName;
+  }
+
 }
