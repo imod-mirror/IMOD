@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 1.1.2.2  2002/12/06 22:12:13  mast
+    *** empty log message ***
+
     Revision 1.1.2.1  2002/12/05 16:31:25  mast
     Qt version
 
@@ -370,7 +373,7 @@ int imodv_control(ImodvApp *a, int state)
     return -1;
   }
   
-  window_name = imodwEithername("IMODV Controls: ", a->imod->fileName);
+  window_name = imodwEithername("Imodv Controls: ", a->imod->fileName, 1);
   dialog = new imodvControlForm(NULL, NULL, false, Qt::WDestructiveClose);
   if (!dialog){
     dia_err("Failed to create imodv controls window!");
