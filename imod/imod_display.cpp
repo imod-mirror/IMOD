@@ -29,47 +29,50 @@
 
 /*  $Author$
 
-    $Date$
+$Date$
 
-    $Revision$
+$Revision$
 
-    $Log$
-    Revision 1.1.2.10  2003/01/27 02:30:06  mast
-    Eliminate X includes
+$Log$
+Revision 1.1.2.11  2003/01/29 01:32:51  mast
+changes for poor colormapping on SGI
 
-    Revision 1.1.2.9  2003/01/26 23:22:16  mast
-    Qt version
+Revision 1.1.2.10  2003/01/27 02:30:06  mast
+Eliminate X includes
 
-    Revision 1.1.2.8  2003/01/13 01:09:51  mast
-    got rid of cursor routine
+Revision 1.1.2.9  2003/01/26 23:22:16  mast
+Qt version
 
-    Revision 1.1.2.7  2003/01/06 15:52:16  mast
-    changes for Qt version of slicer
+Revision 1.1.2.8  2003/01/13 01:09:51  mast
+got rid of cursor routine
 
-    Revision 1.1.2.6  2003/01/02 15:41:21  mast
-    add include of control.h
+Revision 1.1.2.7  2003/01/06 15:52:16  mast
+changes for Qt version of slicer
 
-    Revision 1.1.2.5  2003/01/01 05:41:31  mast
-    add stereo testing to qt visual selection
+Revision 1.1.2.6  2003/01/02 15:41:21  mast
+add include of control.h
 
-    Revision 1.1.2.4  2002/12/30 06:38:49  mast
-    draw model view if image view is on
+Revision 1.1.2.5  2003/01/01 05:41:31  mast
+add stereo testing to qt visual selection
 
-    Revision 1.1.2.3  2002/12/17 18:39:12  mast
-    Implemented code for picking GL visuals for Qt
+Revision 1.1.2.4  2002/12/30 06:38:49  mast
+draw model view if image view is on
 
-    Revision 1.1.2.2  2002/12/14 17:53:13  mast
-    *** empty log message ***
+Revision 1.1.2.3  2002/12/17 18:39:12  mast
+Implemented code for picking GL visuals for Qt
 
-    Revision 1.1.2.1  2002/12/14 05:40:43  mast
-    new visual-assessing code
+Revision 1.1.2.2  2002/12/14 17:53:13  mast
+*** empty log message ***
 
-    Revision 3.2  2002/12/01 15:34:41  mast
-    Changes to get clean compilation with g++
+Revision 1.1.2.1  2002/12/14 05:40:43  mast
+new visual-assessing code
 
-    Revision 3.1  2002/11/25 19:20:45  mast
-    In imodDraw, eliminated conditional on USE_IMOD_CONTROL and stopped drawing
-    xyz window separately (it is now in control list)
+Revision 3.2  2002/12/01 15:34:41  mast
+Changes to get clean compilation with g++
+
+Revision 3.1  2002/11/25 19:20:45  mast
+In imodDraw, eliminated conditional on USE_IMOD_CONTROL and stopped drawing
+xyz window separately (it is now in control list)
 
 */
 #include <qgl.h>
@@ -112,9 +115,9 @@ static ImodGLRequest qtTrue12DB = {1, 1, 12, 0, 0};
 static ImodGLRequest qtTrue12SB = {0, 1, 12, 0, 0};
 
 static ImodGLRequest *qtGLRequestList[] = {
-     &qtTrue24DB, &qtTrue24SB, &qtPseudo12DB, &qtPseudo12SB,
-     &qtPseudo8DB, &qtPseudo8SB, &qtTrue12DB, &qtTrue12SB,
-     NULL
+  &qtTrue24DB, &qtTrue24SB, &qtPseudo12DB, &qtPseudo12SB,
+  &qtPseudo8DB, &qtPseudo8SB, &qtTrue12DB, &qtTrue12SB,
+  NULL
 };
 
 
@@ -132,39 +135,39 @@ int imod_display_init(ImodApp *ap, char **argv)
 /* sets the color index of the given object number. */
 void imodSetObjectColor(int ob)
 {
-     Iobj *obj;
+  Iobj *obj;
 
-     /* check that ob is within range. */
-     if (ob < 0)
-          return;
-     if (ob >= (int)App->cvi->imod->objsize)
-          return;
+  /* check that ob is within range. */
+  if (ob < 0)
+    return;
+  if (ob >= (int)App->cvi->imod->objsize)
+    return;
      
-     obj = &(App->cvi->imod->obj[ob]);
+  obj = &(App->cvi->imod->obj[ob]);
 
-     if (App->rgba){
-          glColor3f(obj->red, obj->green, obj->blue);
-          return;
-     }
+  if (App->rgba){
+    glColor3f(obj->red, obj->green, obj->blue);
+    return;
+  }
 
-     if (App->depth <= 8){
-          obj->fgcolor = App->objbase - ob;
-          b3dColorIndex(App->objbase - ob);
-     }else{
-          b3dColorIndex(ob + App->objbase);
-          obj->fgcolor = App->objbase + ob;
-     }
-     return;
+  if (App->depth <= 8){
+    obj->fgcolor = App->objbase - ob;
+    b3dColorIndex(App->objbase - ob);
+  }else{
+    b3dColorIndex(ob + App->objbase);
+    obj->fgcolor = App->objbase + ob;
+  }
+  return;
 }
 
 
 /* changes color of given pixel */
 int mapcolor(int color, int red, int green, int blue)
 {
-     if (App->rgba) 
-       return 1;
-     App->qColormap->setEntry(color, qRgb(red, green, blue));
-     return(0);
+  if (App->rgba) 
+    return 1;
+  App->qColormap->setEntry(color, qRgb(red, green, blue));
+  return(0);
 }
 
 
@@ -246,110 +249,120 @@ int imod_color_init(ImodApp *ap)
 /* Set the colormap for the given model. */
 void imod_cmap(Imod *m)
 {
-     int i;
-     int red,green,blue;
-     if (App->rgba)
-       return;
-     for (i = 0; i < (int)m->objsize; i++){
-          red   = (int)(m->obj[i].red * 255.0);
-          green = (int)(m->obj[i].green * 255.0);
-          blue  = (int)(m->obj[i].blue * 255.0);
-          if (App->depth == 8){
-               if ((App->objbase - i) > IMOD_MIN_INDEX)
-                    mapcolor(App->objbase - i, red, green, blue);
-               m->obj[i].fgcolor = App->objbase - i;
-          }
-          else{
-               mapcolor(i + App->objbase, red, green, blue);
-               m->obj[i].fgcolor = App->objbase + i;
-          }
-     }
-     mapcolor(App->select,     255, 255,   0);
-     mapcolor(App->shadow,     128, 128,   0);
-     mapcolor(App->endpoint,   255,   0,   0);
-     mapcolor(App->bgnpoint,     0, 255,   0);
-     mapcolor(App->curpoint,   255,   0,   0);
-     mapcolor(App->foreground, 255, 255, 128);
-     mapcolor(App->background,  64,  64,  96);
-     imodDraw(App->cvi, IMOD_DRAW_COLORMAP);
-     return;
+  int i;
+  int red,green,blue;
+  if (App->rgba)
+    return;
+  for (i = 0; i < (int)m->objsize; i++){
+    red   = (int)(m->obj[i].red * 255.0);
+    green = (int)(m->obj[i].green * 255.0);
+    blue  = (int)(m->obj[i].blue * 255.0);
+    if (App->depth == 8){
+      if ((App->objbase - i) > IMOD_MIN_INDEX)
+	mapcolor(App->objbase - i, red, green, blue);
+      m->obj[i].fgcolor = App->objbase - i;
+    }
+    else{
+      mapcolor(i + App->objbase, red, green, blue);
+      m->obj[i].fgcolor = App->objbase + i;
+    }
+  }
+  mapcolor(App->select,     255, 255,   0);
+  mapcolor(App->shadow,     128, 128,   0);
+  mapcolor(App->endpoint,   255,   0,   0);
+  mapcolor(App->bgnpoint,     0, 255,   0);
+  mapcolor(App->curpoint,   255,   0,   0);
+  mapcolor(App->foreground, 255, 255, 128);
+  mapcolor(App->background,  64,  64,  96);
+  imodDraw(App->cvi, IMOD_DRAW_COLORMAP);
+  return;
 }
 
 
 static int rethink(ImodView *vw)
 {
-     Iobj   *obj;
-     Icont  *cont;
-     Ipoint *point;
-     int     index;
+  Iobj   *obj;
+  Icont  *cont;
+  Ipoint *point;
+  int     index;
 
-     // DNM 1/24/03: replace use of Model with vw->imod and App->cvi with vw
+  // DNM 1/24/03: replace use of Model with vw->imod and App->cvi with vw
      
-     if ( (index = vw->imod->cindex.point) < 0){
-          return(IMOD_DRAW_MOD);
-     }
+  if ( (index = vw->imod->cindex.point) < 0){
+    return(IMOD_DRAW_MOD);
+  }
 
-     cont = imodContourGet(vw->imod);
-     if (cont == NULL){
-          return(IMOD_DRAW_MOD);
-     }
-     if ((cont->pts == NULL) || ((int)cont->psize <= index)){
-          return(IMOD_DRAW_MOD);
-     }
+  cont = imodContourGet(vw->imod);
+  if (cont == NULL){
+    return(IMOD_DRAW_MOD);
+  }
+  if ((cont->pts == NULL) || ((int)cont->psize <= index)){
+    return(IMOD_DRAW_MOD);
+  }
 
-     obj = imodObjectGet(vw->imod);
-     if (iobjFlagTime(obj))
-          ivwSetTime(vw, cont->type);
+  obj = imodObjectGet(vw->imod);
+  if (iobjFlagTime(obj))
+    ivwSetTime(vw, cont->type);
 
-     point = &(cont->pts[index]);
-     vw->xmouse = point->x;
-     vw->ymouse = point->y;
-     vw->zmouse = point->z;
-     ivwBindMouse(vw);
-     return(IMOD_DRAW_MOD|IMOD_DRAW_XYZ);
+  point = &(cont->pts[index]);
+  vw->xmouse = point->x;
+  vw->ymouse = point->y;
+  vw->zmouse = point->z;
+  ivwBindMouse(vw);
+  return(IMOD_DRAW_MOD|IMOD_DRAW_XYZ);
 }
 
 /* draw all windows in the display */
 int imodDraw(ImodView *vw, int flag)
 {
-     /* 
-      * IMOD_DRAW_IMAGE: image data or color map has changed; draw all images, 
-      *                  clear caches
-      * IMOD_DRAW_XYZ:   x,y,z position changed.
-      * IMOD_DRAW_MOD:   model has changed.
-      * IMOD_DRAW_SLICE: slice has changed in slicer
-      */
+  int time, cx, cy, cz;
 
-     if (flag & IMOD_DRAW_RETHINK){
-          flag |= rethink(vw);
-     }
+  /* 
+   * IMOD_DRAW_IMAGE: image data or color map has changed; draw all images, 
+   *                  clear caches
+   * IMOD_DRAW_XYZ:   x,y,z position changed.
+   * IMOD_DRAW_MOD:   model has changed.
+   * IMOD_DRAW_SLICE: slice has changed in slicer
+   * IMOD_DRAW_COLORMAP: color index map has changed, do not combine with
+   *                     other flags
+   */
 
-/*
-     if (flag & IMOD_DRAW_XYZ){
-          imod_info_setxyz();
-     }
-*/
+  /* Check for colormap change */
+  if (flag & IMOD_DRAW_COLORMAP) {
+    ivwControlListDraw(vw, IMOD_DRAW_COLORMAP);
+    return 0;
+  }
 
-     if (flag & IMOD_DRAW_MOD){
-          imod_info_setocp();
-     }
+  /* Check for black/white change on float */
+  ivwGetLocation(vw, &cx, &cy, &cz);
+  ivwGetTime(vw, &time);
+  if (imod_info_bwfloat(vw, cz, time) && App->rgba)
+    flag |= IMOD_DRAW_IMAGE;            // DO WE NEED NOSYNC?
 
-     /* DNM 11/24/02: deleted conditional on using controls, stopped drawing
-      xyz window separately (it now has a control) */
+  if (flag & IMOD_DRAW_RETHINK){
+    flag |= rethink(vw);
+  }
 
-     ivwControlListDraw(vw, flag);
+  if (flag & IMOD_DRAW_MOD){
+    imod_info_setocp();
+  }
 
-     if (flag & IMOD_DRAW_XYZ){
-          imod_info_setxyz();
-     }
+  /* DNM 11/24/02: deleted conditional on using controls, stopped drawing
+     xyz window separately (it now has a control) */
 
-     if (flag & IMOD_DRAW_MOD || (flag & IMOD_DRAW_XYZ && Imodv->texMap)) {
-          imodv_draw();
-     }
+  ivwControlListDraw(vw, flag);
+
+  if (flag & IMOD_DRAW_XYZ){
+    imod_info_setxyz();
+  }
+
+  if (flag & IMOD_DRAW_MOD || (flag & IMOD_DRAW_XYZ && Imodv->texMap)) {
+    imodv_draw();
+  }
 
 
 
-     return(0);
+  return(0);
 }
 
 
@@ -411,10 +424,10 @@ static void imodAssessVisual(int ind, int db, int rgba, int depth)
 
       // If pseudocolor is broken, disable this visual
 #ifdef __sgi
-     char *vendor = (char *)glGetString(GL_VENDOR);
-     char *renderer = (char *)glGetString(GL_RENDERER);
-     if (!strcmp(vendor, "SGI") && !strncmp(renderer, "VPRO", 4))
-       glVisualTable[ind].validDirect = -1;
+      char *vendor = (char *)glGetString(GL_VENDOR);
+      char *renderer = (char *)glGetString(GL_RENDERER);
+      if (!strcmp(vendor, "SGI") && !strncmp(renderer, "VPRO", 4))
+	glVisualTable[ind].validDirect = -1;
 #endif
 
     }       
@@ -495,7 +508,7 @@ ImodGLVisual *imodFindGLVisual(ImodGLRequest request)
   // If both are OK, need to decide between them: 
   if (depthOK & noDepthOK) {
 
-  // take the one with stereo if requested and only one has it
+    // take the one with stereo if requested and only one has it
     if (request.stereo) {
       if (glVisualTable[ind].stereo && !glVisualTable[ind + 1].stereo)
         return &glVisualTable[ind];
