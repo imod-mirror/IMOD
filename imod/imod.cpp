@@ -34,6 +34,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.15  2003/01/29 01:31:24  mast
+change -rgb to -ci, close windows on exit
+
 Revision 1.1.2.14  2003/01/27 00:30:07  mast
 Pure Qt version and general cleanup
 
@@ -123,7 +126,6 @@ index modeling is the default if multiple files are opened.
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
-#include <sys/wait.h>
 #include <qfiledialog.h>
 #include <qapplication.h>
 #include "xxyz.h"
@@ -248,15 +250,26 @@ int main( int argc, char *argv[])
   Iobj *obj;
   char *tmpCwd;
   QString qname;
+#ifdef NO_IMOD_FORK
+  int doFork = 0;
+#else
+  int doFork = 1;
+#endif
 
   /* Initialize data. */
   App = &app;
   App->rgba = 1;    /* Set to 1 to force RGB visual */
 
   /*DNM: prescan for debug, ci and style flags before the display_init */
+  /* Cancel forking on debug or -W output */
   for (i = 1; i < argc; i++){
-    if (argv[i][0] == '-' && argv[i][1] == 'D')
+    if (argv[i][0] == '-' && argv[i][1] == 'D') {
       Imod_debug = TRUE;
+      doFork = 0;
+    }
+    if (argv[i][0] == '-' && argv[i][1] == 'W')
+      doFork = 0;
+
     if (argv[i][0] == '-' && argv[i][1] == 'c' && argv[i][2] == 'i' ) {
       App->rgba = -1;  /* Set to -1 to force worthless Color index visual */
     }
@@ -264,6 +277,11 @@ int main( int argc, char *argv[])
 	&& argv[i][3] == 'y' && argv[i][4] == 'l' && argv[i][5] == 'e')
       styleSet = 1;
   }
+
+  /* Fork now to avoid conflicts */
+  if (doFork)
+    if (fork())
+      exit(0);
 
   /* Run the program as imodv? */
   i = strlen(argv[0]);
@@ -662,26 +680,16 @@ int main( int argc, char *argv[])
   if (Model->fileName)
     memcpy(Model->fileName, Imod_filename, namelen);
 
-  /* report window before forking and loading data */
-  if (print_wid)
+  /* report window before loading data */
+  if (print_wid) {
     fprintf(stderr, "Window id = %u\n", ImodInfoWin->winId());
-
-#ifndef NO_IMOD_FORK
-  /* put imod in background if not debug. */
-  if (!Imod_debug)
-    if ((cpid = fork()) != 0) {
-      if(print_wid) {
-	fprintf(stderr, "Process id = %u\n", cpid);
-      }
-      exit(0);
-    }
-#endif
+    fprintf(stderr, "Process id = %u\n", getpid());
+  }
 
   /********************************************/
   /* Load in image data, set up image buffer. */
   /* change the current directory in case there's an IFD file */
   Imod_IFDpath = NULL;
-#ifndef __vms
   if (!vi.fakeImage && vi.ifd > 0) {
 
     /* switch from calling getcwd in non-standard way to getting buffer */
@@ -707,7 +715,6 @@ int main( int argc, char *argv[])
       /*  printf("chdir %s\n", Imod_IFDpath); */
     }
   }
-#endif
 
   if ((vi.ifd == 0 || vi.ifd == -1) && (!vi.fakeImage)) {
     /* Check for piece list file and read it */
