@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.1  2002/12/29 04:20:38  mast
+Initial creation
+
 */
 
 /* DialogFrame provides a widget whose default style is to be a dialog box that
@@ -59,7 +62,10 @@ DialogFrame::DialogFrame(QWidget *parent, int numButtons, char *labels[],
   int i, twidth;
   QString str;
   QPushButton *button;
-  
+
+  // Force it to a small size so it will end up at minumum size
+  resize(50, 50);
+
   // Get outer layout then the layout that derived class will build into
   QVBoxLayout *outerLayout = new QVBoxLayout(this, 8, 6, "outer layout");
   mLayout = new QVBoxLayout(outerLayout);
@@ -88,7 +94,7 @@ DialogFrame::DialogFrame(QWidget *parent, int numButtons, char *labels[],
   QHBoxLayout *layout2 = new QHBoxLayout(0, 0, 6, "bottom layout");
   outerLayout->addLayout(layout2);
 
-  for (i = 0; i < 3; i++) {
+  for (i = 0; i < numButtons; i++) {
     str = labels[i];
     button = new QPushButton(str, this, labels[i]);
     if (!equalSized)
