@@ -12,6 +12,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.7  2004/06/17 18:49:05  sueh
+ * <p> bug# 472
+ * <p>
  * <p> Revision 1.6  2004/05/25 23:25:28  rickg
  * <p> Bug #391 moved fiducialess parameters to the parent dialog
  * <p>
@@ -42,6 +45,7 @@ import javax.swing.JPanel;
 import javax.swing.SpinnerModel;
 import javax.swing.SpinnerNumberModel;
 
+import etomo.ApplicationManager;
 import etomo.comscript.ConstNewstParam;
 import etomo.comscript.NewstParam;
 import etomo.type.AxisID;
@@ -50,13 +54,15 @@ public class PrenewstPanel implements ContextMenu {
   public static final String rcsid = "$Id$";
 
   private JPanel pnlPrenewst = new JPanel();
+  private ApplicationManager applicationManager;
 
   private LabeledSpinner spinBinning;
 
   AxisID axisID;
 
-  public PrenewstPanel(AxisID id) {
+  public PrenewstPanel(ApplicationManager applicationManager, AxisID id) {
     axisID = id;
+    this.applicationManager = applicationManager;
     pnlPrenewst.setLayout(new BoxLayout(pnlPrenewst, BoxLayout.Y_AXIS));
 
     //  Construct the binning spinner
@@ -114,7 +120,7 @@ public class PrenewstPanel implements ContextMenu {
     String[] logFile = new String[1];
     logFile[0] = "prenewst" + axisID.getExtension() + ".log";
     ContextPopup contextPopup = new ContextPopup(pnlPrenewst, mouseEvent,
-      "COARSE ALIGNMENT", manPagelabel, manPage, logFileLabel, logFile);
+      "COARSE ALIGNMENT", manPagelabel, manPage, logFileLabel, logFile, applicationManager);
   }
   
   /**

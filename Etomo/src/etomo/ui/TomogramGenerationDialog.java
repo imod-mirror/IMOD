@@ -56,6 +56,10 @@ import etomo.util.InvalidParameterException;
  * 
  * <p>
  * $Log$
+ * Revision 3.24.2.3  2004/10/08 16:41:41  sueh
+ * bug# 520 Since EtomoDirector is a singleton, made all functions and
+ * member variables non-static.
+ *
  * Revision 3.24.2.2  2004/09/15 22:48:16  sueh
  * bug# 520 call openMessageDialog in mainPanel instead of mainFrame.
  *
@@ -892,7 +896,7 @@ public class TomogramGenerationDialog extends ProcessDialog
         currentMtfDirectory = cameraDir.getAbsolutePath();
       }
       else {
-        currentMtfDirectory = System.getProperty("user.dir");
+        currentMtfDirectory = applicationManager.getPropertyUserDir();
       }
     }
     JFileChooser chooser = new JFileChooser(new File(currentMtfDirectory));
@@ -923,7 +927,7 @@ public class TomogramGenerationDialog extends ProcessDialog
     logFile[0] = "newst" + axisID.getExtension() + ".log";
     logFile[1] = "tilt" + axisID.getExtension() + ".log";
     ContextPopup contextPopup = new ContextPopup(rootPanel, mouseEvent,
-        "TOMOGRAM GENERATION", manPagelabel, manPage, logFileLabel, logFile);
+        "TOMOGRAM GENERATION", manPagelabel, manPage, logFileLabel, logFile, applicationManager);
   }
 
   public void startingAndEndingZKeyReleased(KeyEvent event) {

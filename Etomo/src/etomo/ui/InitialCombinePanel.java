@@ -28,6 +28,11 @@ import etomo.type.FiducialMatch;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.14  2004/08/19 02:50:25  sueh
+ * <p> bug# 508 changed the name of restartAtMatchvol1() to a more standard matchvol1Combine.
+ * <p> Changed:
+ * <p> buttonAction(ActionEvent event)
+ * <p>
  * <p> Revision 3.13  2004/06/21 00:02:34  sueh
  * <p> bug# 436 calling restartAtMatchvol1 instead of matchvol1
  * <p>
@@ -252,7 +257,7 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields {
 
     ContextPopup contextPopup = new ContextPopup(pnlRoot, mouseEvent,
       "Initial Problems in Combining", manPagelabel, manPage, logFileLabel,
-      logFile);
+      logFile, applicationManager);
   }
 
   /**
