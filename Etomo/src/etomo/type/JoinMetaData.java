@@ -19,6 +19,9 @@ import etomo.EtomoDirector;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.6  2004/10/22 21:06:25  sueh
+* <p> bug# 520 Changed offsetInX, Y to shiftInX, Y.
+* <p>
 * <p> Revision 1.1.2.5  2004/10/18 18:05:52  sueh
 * <p> bug# 520 Added fields from JoinDialog.  Converted densityRefSection to
 * <p> an EtomoInteger.
@@ -52,7 +55,6 @@ public class JoinMetaData extends ConstJoinMetaData {
     revisionNumber = "";
     sectionTableData = null;
     densityRefSection.reset();
-    workingDir = "";
     rootName = "";
     sigmaLowFrequency.reset();
     cutoffHighFrequency.reset();
@@ -81,7 +83,6 @@ public class JoinMetaData extends ConstJoinMetaData {
     String group = prepend + ".";
 
     revisionNumber = props.getProperty(group + revisionNumberString, latestRevisionNumber);
-    workingDir = props.getProperty(group + workingDirString, "");
     rootName = props.getProperty(group + rootNameString, "");
     densityRefSection.load(props, prepend);
     sigmaLowFrequency.load(props, prepend);
@@ -121,10 +122,6 @@ public class JoinMetaData extends ConstJoinMetaData {
 
   public void setDensityRefSection(Object densityRefSection) {
     this.densityRefSection.set((Integer) densityRefSection);
-  }
-
-  public void setWorkingDir(String workingDir) {
-    this.workingDir = workingDir;
   }
 
   public void setRootName(String rootName) {
