@@ -34,6 +34,9 @@
     $Revision$
 
     $Log$
+    Revision 1.1.2.4  2002/12/30 06:38:49  mast
+    draw model view if image view is on
+
     Revision 1.1.2.3  2002/12/17 18:39:12  mast
     Implemented code for picking GL visuals for Qt
 
@@ -253,14 +256,14 @@ static int *OpenGLAttribList[] = {
 static int AttribDB[] = {1, 0, 1, 0, 1, 0, 1, 0};
 static int AttribRGB[] = {0, 0, 1, 1, 0, 0, 1, 1};
 
-static ImodGLRequest qtPseudo12DB = {1, 0, 12, 0};
-static ImodGLRequest qtPseudo12SB = {0, 0, 12, 0};
-static ImodGLRequest qtPseudo8DB = {1, 0, 8, 0};
-static ImodGLRequest qtPseudo8SB = {0, 0, 8, 0};
-static ImodGLRequest qtTrue24DB = {1, 1, 24, 0};
-static ImodGLRequest qtTrue24SB = {0, 1, 24, 0};
-static ImodGLRequest qtTrue12DB = {1, 1, 12, 0};
-static ImodGLRequest qtTrue12SB = {0, 1, 12, 0};
+static ImodGLRequest qtPseudo12DB = {1, 0, 12, 0, 0};
+static ImodGLRequest qtPseudo12SB = {0, 0, 12, 0, 0};
+static ImodGLRequest qtPseudo8DB = {1, 0, 8, 0, 0};
+static ImodGLRequest qtPseudo8SB = {0, 0, 8, 0, 0};
+static ImodGLRequest qtTrue24DB = {1, 1, 24, 0, 0};
+static ImodGLRequest qtTrue24SB = {0, 1, 24, 0, 0};
+static ImodGLRequest qtTrue12DB = {1, 1, 12, 0, 0};
+static ImodGLRequest qtTrue12SB = {0, 1, 12, 0, 0};
 
 static ImodGLRequest *qtGLRequestList[] = {
      &qtPseudo12DB, &qtPseudo12SB, &qtTrue24DB, &qtTrue24SB,
@@ -988,6 +991,7 @@ static void imodAssessVisual(int ind, int db, int rgba, int depth)
   QGLWidget *glw;
   GLint red, green, blue, depthBits;
   QGLFormat glFormat;
+  GLboolean stereo;
 
   glFormat.setDoubleBuffer(db);
   glFormat.setRgba(rgba);
@@ -1036,6 +1040,10 @@ static void imodAssessVisual(int ind, int db, int rgba, int depth)
 #endif
 
     }	    
+
+    // Get stereo property
+    glGetBooleanv(GL_STEREO, &stereo);
+    glVisualTable[ind].stereo = (stereo == GL_TRUE) ? 1 : 0;
 	  
     // Get number of depth bits
     glGetIntegerv(GL_DEPTH_BITS, &depthBits);
@@ -1088,8 +1096,9 @@ ImodGLVisual *imodFindGLVisual(ImodGLRequest request)
   if (glVisualTable[ind].validDirect == -2)
     imodAssessVisual(ind, request.doubleBuffer, request.rgba, 0);
 
-  // We are all set if we don't want depth and request is satisfied
-  if (!request.depthBits && glVisualTable[ind].validDirect >= 0 &&
+  // We are all set if we don't want depth or stereo and request is satisfied
+  if (!request.depthBits && !request.stereo &&
+      glVisualTable[ind].validDirect >= 0 &&
       request.colorBits <= glVisualTable[ind].colorBits)
     return &glVisualTable[ind];
 
@@ -1105,9 +1114,19 @@ ImodGLVisual *imodFindGLVisual(ImodGLRequest request)
     request.colorBits <= glVisualTable[ind + 1].colorBits &&
     request.depthBits <= glVisualTable[ind + 1].depthBits;
 
-  // If both are OK, need to decide between them: take the one with fewer
-  // color bits; or if equal, then the one with fewer depth bits
+  // If both are OK, need to decide between them: 
   if (depthOK & noDepthOK) {
+
+  // take the one with stereo if requested and only one has it
+    if (request.stereo) {
+      if (glVisualTable[ind].stereo && !glVisualTable[ind + 1].stereo)
+	return &glVisualTable[ind];
+      if (!glVisualTable[ind].stereo && glVisualTable[ind + 1].stereo)
+	return &glVisualTable[ind + 1];
+    }
+
+    // otherwise take the one with fewer
+    // color bits; or if equal, then the one with fewer depth bits
     if (glVisualTable[ind].colorBits < glVisualTable[ind + 1].colorBits)
       return &glVisualTable[ind];
     else if (glVisualTable[ind].colorBits > glVisualTable[ind + 1].colorBits)
@@ -1117,7 +1136,7 @@ ImodGLVisual *imodFindGLVisual(ImodGLRequest request)
     else
       return &glVisualTable[ind + 1];
 
-    // Otherwise return one, the other, or neither
+    // If only one OK, return one, the other, or neither
   } else if (depthOK)
     return &glVisualTable[ind + 1];
   else if (noDepthOK)

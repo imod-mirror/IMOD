@@ -9,6 +9,9 @@
 $Date$
 
 $Log$
+Revision 1.1.2.2  2002/12/17 18:37:08  mast
+Adding a declaration
+
 Revision 1.1.2.1  2002/12/14 05:46:23  mast
 Initial creation
 
@@ -22,6 +25,7 @@ typedef struct imodglvisual {
   int rgba;
   int colorBits;      // Color index depth, or r + b + g
   int depthBits;
+  int stereo;
   int validDirect;    // 1 for direct, -1 for invalid
   int dbRequested;
   int rgbaRequested;
@@ -33,6 +37,7 @@ typedef struct imodglrequest {
   int rgba;
   int colorBits;      // Color index depth, or r + b + g
   int depthBits;
+  int stereo;
 } ImodGLRequest;
 
 #ifdef __cplusplus
