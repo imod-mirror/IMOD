@@ -1,6 +1,6 @@
 /*  IMOD VERSION 2.7.9
  *
- *  zap_classes.h -- Header file for ZaP mainwindow class.
+ *  zap_classes.h -- Header file for ZaP mainwindow and GLwidget classes.
  *
  *  Author: David Mastronarde   email: mast@colorado.edu
  */
@@ -32,6 +32,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.5  2002/12/13 07:09:19  mast
+GLMainWindow needed different name for mouse event processors
+
 Revision 1.1.2.4  2002/12/13 06:06:29  mast
 using new glmainwindow and mainglwidget classes
 
@@ -55,7 +58,8 @@ Initial addition to source
 #define ZAP_TOGGLE_TIMELOCK 4
 
 
-#include <glmainwindow.h>
+#include <qmainwindow.h>
+#include <qgl.h>
 
 class QToolButton;
 class ToolEdit;
@@ -65,21 +69,19 @@ class QSignalMapper;
 class QSlider;
 
 struct zapwin;
+class ZapGL;
 
-class ZapWindow : public GLMainWindow
+class ZapWindow : public QMainWindow
 {
   Q_OBJECT
 
  public:
   ZapWindow(struct zapwin *zap, QString timeLabel, bool rgba, 
-            bool doubleBuffer, QWidget * parent = 0,
-            const char * name = 0, WFlags f = WType_TopLevel) ;
+            bool doubleBuffer, bool enableDepth, QWidget * parent = 0,
+            const char * name = 0, 
+	    WFlags f = WType_TopLevel | WDestructiveClose) ;
   ~ZapWindow();
-  void paintGL();
-  void resizeGL( int wdth, int hght );
-  void mousePressInGL(QMouseEvent * e );
-  void mouseReleaseInGL( QMouseEvent * e );
-  void mouseMoveInGL( QMouseEvent * e );
+  ZapGL *mGLw;
   QToolBar *mToolBar;
 
   public slots:
@@ -116,4 +118,25 @@ class ZapWindow : public GLMainWindow
     QSlider *mSecSlider;
 };
 
+class ZapGL : public QGLWidget
+{
+  Q_OBJECT
+
+ public:
+  ZapGL(struct zapwin *zap, QGLFormat format, QWidget * parent = 0,
+        const char * name = 0);
+  ~ZapGL();
+ 
+protected:
+  void initializeGL();
+  void paintGL();
+  void resizeGL( int wdth, int hght );
+  void mousePressEvent(QMouseEvent * e );
+  void mouseReleaseEvent ( QMouseEvent * e );
+  void mouseMoveEvent ( QMouseEvent * e );
+
+ private:
+  struct zapwin *mZap;
+  bool mMousePressed;
+};
 #endif     // ZAP_CLASSES_H

@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.2.2.3  2002/12/13 06:06:30  mast
+using new glmainwindow and mainglwidget classes
+
 Revision 3.2.2.2  2002/12/10 16:57:34  mast
 preventing multiple draws, implementing current contour draw while dragging
 
@@ -55,7 +58,7 @@ extern "C" {
 #endif
 
   class ZapWindow;
-  class MainGLWidget;
+  class ZapGL;
 
   void zapClosing(struct zapwin *zap);
   void zapPaint(struct zapwin *zap);
@@ -79,7 +82,7 @@ extern "C" {
   typedef struct zapwin
   {
     ZapWindow *qtWindow;               /* Zap window widget. */
-    MainGLWidget *gfx;                  /* Image sub window.  */
+    ZapGL *gfx;                  /* Image sub window.  */
     int    winx,      winy;      /* Image window size. */
     int    xborder,   yborder;   /* border around image window. */
     int    xstart,    ystart;

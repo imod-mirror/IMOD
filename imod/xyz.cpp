@@ -34,6 +34,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.3  2002/12/13 07:09:19  mast
+GLMainWindow needed different name for mouse event processors
+
 Revision 1.1.2.2  2002/12/13 06:06:29  mast
 using new glmainwindow and mainglwidget classes
 
@@ -140,7 +143,8 @@ int xxyz_open(ImodView *vi)
     xx->winy = (int)((vi->ysize + vi->zsize) * xx->zoom + (3 * XYZ_BSIZE));
   }
      
-  xx->dialog = new XyzWindow(xx, App->rgba, App->doublebuffer, NULL,
+  xx->dialog = new XyzWindow(xx, App->qtRgba, App->qtDoubleBuffer, 
+			     App->qtEnableDepth, NULL,
 			     "xyz window");
   if ((!xx->dialog)||
       (!xx->fdataxz) || (!xx->fdatayz)){
@@ -220,12 +224,21 @@ static void xyzClose_cb(ImodView *vi, void *client, int junk)
 }
 
 // Implementation of the window class
-XyzWindow::XyzWindow(struct xxyzwin *xyz, bool rgba, 
-                     bool doubleBuffer, QWidget * parent,
+XyzWindow::XyzWindow(struct xxyzwin *xyz, bool rgba, bool doubleBuffer, 
+		     bool enableDepth, QWidget * parent,
                      const char * name, WFlags f) 
-  : GLMainWindow(rgba, doubleBuffer, parent, name, f)
+  : QMainWindow(parent, name, f)
 {
   mXyz = xyz;
+  QGLFormat glFormat;
+  glFormat.setRgba(rgba);
+  glFormat.setDoubleBuffer(doubleBuffer);
+  glFormat.setDepth(enableDepth);
+  mGLw = new XyzGL(xyz, glFormat, this);
+  
+  // Set it as main widget, set focus
+  setCentralWidget(mGLw);
+  setFocusPolicy(QWidget::StrongFocus);
 }
 
 XyzWindow::~XyzWindow()
@@ -1554,11 +1567,21 @@ void XyzWindow::keyPressEvent ( QKeyEvent * event )
     inputQDefaultKeys(event, vi);
 }
 
+XyzGL::XyzGL(struct xxyzwin *xyz, QGLFormat inFormat, XyzWindow * parent,
+             const char * name)
+  : QGLWidget(inFormat, parent, name)
+{
+  mMousePressed = false;
+  mXyz = xyz;
+  mWin = parent;
+}
+
+
 // The main drawing routine
 /* DNM 1/21/02: eliminate OpenGL scaling of native coordinates, make all
    model drawing routines multiply coordinates by zoom */
 /* DNM 1/28/02: moved uses of the elements of xx to after the test for zz */
-void XyzWindow::paintGL()
+void XyzGL::paintGL()
 {
   struct xxyzwin *xx = mXyz;
   float z;
@@ -1576,12 +1599,12 @@ void XyzWindow::paintGL()
   by2 = (int)(by + XYZ_BSIZE + floor((double)(xx->vi->ysize * z + 0.5)));
 
 
-  DrawImage();
+  mWin->DrawImage();
 
-  DrawModel();
-  DrawCurrentLines();
-  DrawCurrentPoint();
-  DrawAuto();
+  mWin->DrawModel();
+  mWin->DrawCurrentLines();
+  mWin->DrawCurrentPoint();
+  mWin->DrawAuto();
 
   if (xyzShowSlice){
     b3dColorIndex(App->foreground);
@@ -1608,7 +1631,7 @@ void XyzWindow::paintGL()
 }
 
 // The routine that initializes or reinitializes upon resize
-void XyzWindow::resizeGL( int winx, int winy )
+void XyzGL::resizeGL( int winx, int winy )
 {
   struct xxyzwin *xx = mXyz;
 
@@ -1627,15 +1650,16 @@ void XyzWindow::resizeGL( int winx, int winy )
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
   
-  GetCIImages();
+  mWin->GetCIImages();
   xx->exposed = 1;
 }
 
 // Handlers for mouse events
-void XyzWindow::mousePressInGL(QMouseEvent * event )
+void XyzGL::mousePressEvent(QMouseEvent * event )
 {
   int button1, button2, button3;
   int mx, my, mz;
+  mMousePressed = true;
 
   ivwControlPriority(mXyz->vi, mXyz->ctrl);
   
@@ -1648,19 +1672,19 @@ void XyzWindow::mousePressInGL(QMouseEvent * event )
     if ((button2) || (button3))
         break;
     but1downt.start();
-    mXyz->whichbox = Getxyz(event->x(), event->y(), &mx, &my, &mz);
+    mXyz->whichbox = mWin->Getxyz(event->x(), event->y(), &mx, &my, &mz);
     break;
 
   case Qt::MidButton:
     if ((button1) || (button3))
       break;
-    B2Press(event->x(), event->y());
+    mWin->B2Press(event->x(), event->y());
     break;
 
   case Qt::RightButton:
     if ((button1) || (button2))
       break;
-    B3Press(event->x(), event->y());
+    mWin->B3Press(event->x(), event->y());
     break;
 
   default:
@@ -1671,18 +1695,22 @@ void XyzWindow::mousePressInGL(QMouseEvent * event )
   mXyz->lmy = event->y();
 }
 
-void XyzWindow::mouseReleaseInGL( QMouseEvent * event )
+void XyzGL::mouseReleaseEvent( QMouseEvent * event )
 {
+  mMousePressed = false;
   if (event->button() == Qt::LeftButton){
       if (but1downt.elapsed() > 250)
         return;
-      B1Press(event->x(), event->y());
+      mWin->B1Press(event->x(), event->y());
   }
 }
 
-void XyzWindow::mouseMoveInGL( QMouseEvent * event )
+void XyzGL::mouseMoveEvent( QMouseEvent * event )
 {
   int button1, button2, button3;
+  if(!mMousePressed)
+    return;
+
   ivwControlPriority(mXyz->vi, mXyz->ctrl);
   
   button1 = event->state() & Qt::LeftButton ? 1 : 0;
@@ -1690,11 +1718,11 @@ void XyzWindow::mouseMoveInGL( QMouseEvent * event )
   button3 = event->state() & Qt::RightButton ? 1 : 0;
 
   if ( (button1) && (!button2) && (!button3) && but1downt.elapsed() > 250)
-    B1Drag(event->x(), event->y());
+    mWin->B1Drag(event->x(), event->y());
   if ( (!button1) && (button2) && (!button3))
-    B2Drag(event->x(), event->y());
+    mWin->B2Drag(event->x(), event->y());
   if ( (!button1) && (!button2) && (button3))
-    B3Drag(event->x(), event->y());
+    mWin->B3Drag(event->x(), event->y());
   
   mXyz->lmx = event->x();
   mXyz->lmy = event->y();

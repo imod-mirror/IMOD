@@ -32,6 +32,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.6  2002/12/13 07:09:19  mast
+GLMainWindow needed different name for mouse event processors
+
 Revision 1.1.2.5  2002/12/13 06:06:29  mast
 using new glmainwindow and mainglwidget classes
 
@@ -121,16 +124,14 @@ static QBitmap *bitmaps[5][2];
 static int firstTime = 1;
 
 ZapWindow::ZapWindow(struct zapwin *zap, QString timeLabel, bool rgba, 
-                     bool doubleBuffer, QWidget * parent,
+                     bool doubleBuffer, bool enableDepth, QWidget * parent,
                      const char * name, WFlags f) 
-  : GLMainWindow(rgba, doubleBuffer, parent, name, f)
+  : QMainWindow(parent, name, f)
 {
   int j;
   ArrowButton *arrow;
 
   mZap = zap;
-  // Need GLwidget next
-  createGLWidget(rgba, doubleBuffer);
 
   // Get the toolbar, add zoom arrows
   mToolBar = new QToolBar(this, "zap toolbar");
@@ -211,10 +212,21 @@ ZapWindow::ZapWindow(struct zapwin *zap, QString timeLabel, bool rgba,
   }
   firstTime = 0;
 
-
-  // dock on top and bottom only
+  // Need GLwidget next
+  QGLFormat glFormat;
+  glFormat.setRgba(rgba);
+  glFormat.setDoubleBuffer(doubleBuffer);
+  glFormat.setDepth(enableDepth);
+  mGLw = new ZapGL(zap, glFormat, this);
+  
+  // Set it as main widget, set focus, dock on top and bottom only
+  setCentralWidget(mGLw);
+  setFocusPolicy(QWidget::StrongFocus);
   setDockEnabled(mToolBar, Left, FALSE );
   setDockEnabled(mToolBar, Right, FALSE );
+
+  // This makes the toolbar give a proper size hint before showing window
+  setUpLayout();
 }
 
 
@@ -340,30 +352,48 @@ void ZapWindow::closeEvent (QCloseEvent * e )
   e->accept();
 }
 
-void ZapWindow::paintGL()
+ZapGL::ZapGL(struct zapwin *zap, QGLFormat inFormat, QWidget * parent,
+             const char * name)
+  : QGLWidget(inFormat, parent, name)
+{
+  mMousePressed = false;
+  mZap = zap;
+}
+
+ZapGL::~ZapGL()
+{
+
+}
+ 
+void ZapGL::initializeGL()
+{
+
+}
+
+void ZapGL::paintGL()
 {
   zapPaint(mZap);
 }
 
-void ZapWindow::resizeGL( int wdth, int hght )
+void ZapGL::resizeGL( int wdth, int hght )
 {
   zapResize(mZap, wdth, hght);
 }
 
-void ZapWindow::mousePressInGL(QMouseEvent * e )
+void ZapGL::mousePressEvent(QMouseEvent * e )
 {
+  mMousePressed = true;
   zapMousePress(mZap, e);
 }
 
-void ZapWindow::mouseReleaseInGL( QMouseEvent * e )
+void ZapGL::mouseReleaseEvent ( QMouseEvent * e )
 {
+  mMousePressed = false;
   zapMouseRelease(mZap, e);
 }
 
-void ZapWindow::mouseMoveInGL( QMouseEvent * e )
+void ZapGL::mouseMoveEvent ( QMouseEvent * e )
 {
-  zapMouseMove(mZap, e);
+  if (mMousePressed)
+    zapMouseMove(mZap, e);
 }
-
-
-
