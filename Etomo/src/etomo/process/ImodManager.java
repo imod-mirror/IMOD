@@ -28,6 +28,9 @@ import etomo.type.ConstMetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.25.4.5  2004/10/14 17:13:10  sueh
+ * <p> bug# 520 Added join sample averages key.
+ * <p>
  * <p> Revision 3.25.4.4  2004/10/14 03:28:01  sueh
  * <p> bug# 520 Added an imod for join samples (root.sample).  Added a
  * <p> setMetaData for ConstJoinMetaData.  Added loadJoinMap() which
@@ -326,7 +329,7 @@ public class ImodManager {
   public static final String PREVIEW_KEY = new String("preview");
   public static final String TOMOGRAM_KEY = new String("tomogram");
   public static final String JOIN_SAMPLES_KEY = new String("joinSamples");
-  public static final String JOIN_SAMPLE_AVERAGES_KEY = new String("joinSampleAverages");-
+  public static final String JOIN_SAMPLE_AVERAGES_KEY = new String("joinSampleAverages");
   
 
   //private keys - used with imodMap
@@ -867,7 +870,7 @@ public class ImodManager {
   
   protected void loadJoinMap() {
     imodMap.put(joinSamplesKey, newVector(newJoinSamples(datasetName)));
-    imodMap.put(joinSampleAverageKey, newVector(newJoinSampleAverages(datasetName)));
+    imodMap.put(joinSampleAveragesKey, newVector(newJoinSampleAverages(datasetName)));
   }
 
   protected void loadDualAxisMap() {
