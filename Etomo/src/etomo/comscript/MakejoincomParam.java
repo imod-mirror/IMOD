@@ -31,6 +31,10 @@ import etomo.type.SectionTableRowData;
 * <p> </p>
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.12  2004/11/16 23:27:56  sueh
+* <p> bug# 520 Bug fix:  In genOptions(), checking for sectionData == null
+* <p> before using.
+* <p>
 * <p> Revision 1.1.2.11  2004/11/16 02:20:46  sueh
 * <p> bug# 520 Replacing EtomoInteger, EtomoDouble, EtomoFloat, and
 * <p> EtomoLong with EtomoNumber.
@@ -141,7 +145,7 @@ public class MakejoincomParam implements Command {
               + rotationAngleY.toString(true) + ","
               + rotationAngleZ.toString(true));
         }
-        options.add(data.getSectionAbsolutePath());
+        options.add(data.getSection().getAbsolutePath());
       }
     }
     options.add("-tmpext");
