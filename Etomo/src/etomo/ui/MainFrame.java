@@ -46,6 +46,12 @@ import etomo.util.UniqueKey;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.12.2.13  2004/10/15 00:48:52  sueh
+ * <p> bug# 520 Removed getTestParamFilename() because it is used to get
+ * <p> either .edf or .ejf, but not both.  Changed openEtomoDataFileDialog() to
+ * <p> openDataFileDialog() and changed the function to get either .ejf or .edf
+ * <p> files.
+ * <p>
  * <p> Revision 3.12.2.12  2004/10/11 02:14:34  sueh
  * <p> bug# 520 Using a variable called propertyUserDir instead of the "user.dir"
  * <p> property.  This property would need a different value for each manager.
@@ -485,7 +491,7 @@ public class MainFrame extends JFrame implements ContextMenu {
    * @param event
    */
   private void menuFileMRUListAction(ActionEvent event) {
-    EtomoDirector.getInstance().openTomogram(new File(event.getActionCommand()),
+    EtomoDirector.getInstance().openManager(new File(event.getActionCommand()),
         true);
   }
 
