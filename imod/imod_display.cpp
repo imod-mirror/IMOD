@@ -34,6 +34,9 @@
     $Revision$
 
     $Log$
+    Revision 1.1.2.3  2002/12/17 18:39:12  mast
+    Implemented code for picking GL visuals for Qt
+
     Revision 1.1.2.2  2002/12/14 17:53:13  mast
     *** empty log message ***
 
@@ -711,7 +714,7 @@ int imodDraw(ImodView *vw, int flag)
       *                  clear caches
       * IMOD_DRAW_XYZ:   x,y,z position changed.
       * IMOD_DRAW_MOD:   model has changed.
-      * IMOD_DRAW_SLICE: slice has changed.
+      * IMOD_DRAW_SLICE: slice has changed in slicer
       */
 
      if (flag & IMOD_DRAW_RETHINK){
@@ -737,7 +740,7 @@ int imodDraw(ImodView *vw, int flag)
 	  imod_info_setxyz();
      }
 
-     if (flag & IMOD_DRAW_MOD){
+     if (flag & IMOD_DRAW_MOD || (flag & IMOD_DRAW_XYZ && Imodv->texMap)) {
 	  imodv_draw();
      }
 
