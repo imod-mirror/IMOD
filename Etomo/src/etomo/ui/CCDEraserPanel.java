@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.5.4.1  2004/09/07 17:58:36  sueh
+ * <p> bug# 520 getting dataset name from metadata
+ * <p>
  * <p> Revision 3.5  2004/06/25 00:34:01  sueh
  * <p> bug# 467 Removing outerRadius, adding annulusWidth.
  * <p> Making maximumRadius a basic field.
@@ -423,7 +426,7 @@ public class CCDEraserPanel implements ContextMenu {
     logFile[0] = "eraser" + axisID.getExtension() + ".log";
 
     ContextPopup contextPopup = new ContextPopup(pnlCCDEraser, mouseEvent,
-      "PRE-PROCESSING", label, manPage, logFileLabel, logFile);
+      "PRE-PROCESSING", label, manPage, logFileLabel, logFile, applicationManager);
   }
 
   private void enableXRayReplacement() {

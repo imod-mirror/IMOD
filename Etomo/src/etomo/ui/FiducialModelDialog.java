@@ -25,6 +25,9 @@ import etomo.comscript.FortranInputSyntaxException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.4  2004/05/05 21:21:40  sueh
+ * <p> bug# 430 moving Use fid as seed button
+ * <p>
  * <p> Revision 3.3  2004/03/15 23:13:16  sueh
  * <p> progress button names changed to "btn"
  * <p>
@@ -289,7 +292,7 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu {
       manPagelabel,
       manPage,
       logFileLabel,
-      logFile);
+      logFile, applicationManager);
   }
 
   /**

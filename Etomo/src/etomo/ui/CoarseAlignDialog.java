@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.10  2004/06/17 18:48:45  sueh
+ * <p> bug# 472
+ * <p>
  * <p> Revision 3.9  2004/06/13 17:03:23  rickg
  * <p> Solvematch mid change
  * <p>
@@ -138,8 +141,8 @@ public class CoarseAlignDialog extends ProcessDialog
     super(appMgr, axisID);
     setToolTipText();
     fixRootPanel(rootSize);
-    pnlCrossCorrelation = new CrossCorrelationPanel(axisID);
-    pnlPrenewst = new PrenewstPanel(axisID);
+    pnlCrossCorrelation = new CrossCorrelationPanel(applicationManager, axisID);
+    pnlPrenewst = new PrenewstPanel(applicationManager, axisID);
     btnExecute.setText("Done");
 
     pnlFiducialess.setLayout(new BoxLayout(pnlFiducialess, BoxLayout.Y_AXIS));
@@ -254,7 +257,7 @@ public class CoarseAlignDialog extends ProcessDialog
     logFile[0] = "xcorr" + axisID.getExtension() + ".log";
     logFile[1] = "prenewst" + axisID.getExtension() + ".log";
     ContextPopup contextPopup = new ContextPopup(pnlCoarseAlign, mouseEvent,
-      "COARSE ALIGNMENT", manPagelabel, manPage, logFileLabel, logFile);
+      "COARSE ALIGNMENT", manPagelabel, manPage, logFileLabel, logFile, applicationManager);
   }
 
   /**
