@@ -17,6 +17,9 @@ import etomo.storage.Storable;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.3  2004/10/22 03:22:14  sueh
+* <p> bug# 520 added getNumber().  Added greaterThen and lessThen.
+* <p>
 * <p> Revision 1.1.2.2  2004/10/21 02:49:13  sueh
 * <p> bug# 520 Added equals, isSetAndNotDefault, and toString.  Changed
 * <p> toString to getString.  Removed isDefault.
@@ -25,7 +28,7 @@ import etomo.storage.Storable;
 * <p> bug# 520 The const part of EtomoInteger.
 * <p> </p>
 */
-public abstract class ConstEtomoInteger implements Storable, EtomoSimpleType {
+public abstract class ConstEtomoInteger extends EtomoSimpleType implements Storable {
   public static  final String  rcsid =  "$Id$";
   
   public static final int unsetValue = Integer.MIN_VALUE;
@@ -35,12 +38,16 @@ public abstract class ConstEtomoInteger implements Storable, EtomoSimpleType {
   protected int recommendedValue = unsetValue;
   protected int resetValue = unsetValue;
   
-  protected String name;
-  protected String description = null;
-  protected String invalidReason = null;
-  
   public abstract void load(Properties props);
   public abstract void load(Properties props, String prepend);
+  
+  public ConstEtomoInteger() {
+    super();
+  }
+
+  public ConstEtomoInteger(String name) {
+    super(name);
+  }
   
   public void store(Properties props) {
     props.setProperty(name, Integer.toString(value));
@@ -51,36 +58,32 @@ public abstract class ConstEtomoInteger implements Storable, EtomoSimpleType {
   }
   
   public String getString() {
-    if (value == Integer.MIN_VALUE) {
+    if (!isSet()) {
       return "";
     }
     return Integer.toString(value);
   }
   
   public int get() {
-    if (value == Integer.MIN_VALUE) {
+    if (!isSet()) {
       return resetValue;
     }
     return value;
   }
   
   public Number getNumber() {
-    if (value == Integer.MIN_VALUE) {
+    if (!isSet()) {
       return new Integer(resetValue);
     }
     return new Integer(value);
   }
   
-  public String getDescription() {
-    return description;
-  }
-  
   public boolean isSetAndNotDefault() {
-    return value != Integer.MIN_VALUE && (defaultValue == Integer.MIN_VALUE || value != defaultValue);
+    return isSet() && (defaultValue == unsetValue || value != defaultValue);
   }
   
   public boolean isSet() {
-    return value != Integer.MIN_VALUE;
+    return value != unsetValue;
   }
   
   public boolean equals(int value) {
@@ -91,20 +94,18 @@ public abstract class ConstEtomoInteger implements Storable, EtomoSimpleType {
     return this.value > value;
   }
   
-  public boolean lessThen(int value) {
-    return value != Integer.MIN_VALUE && this.value < value;
+  public boolean greaterOrEqual(ConstEtomoInteger that) {
+    return isSet() && that.isSet() && value >= that.value;
   }
   
-  public String toString() {
-    return getClass().getName() + "[" + paramString() + "]";
+  public boolean lessThen(int value) {
+    return isSet() && this.value < value;
   }
   
   protected String paramString() {
-    return ",\nname=" + name + ",\ndescription=" + description
-        + ",\nunsetValue=" + unsetValue + ",\nvalue=" + value
-        + ",\ndefaultValue=" + defaultValue + ",\nrecommendedValue="
-        + recommendedValue + ",\nresetValue=" + resetValue
-        + ",\ninvalidReason=" + invalidReason;
+    return super.paramString() + ",\nunsetValue=" + unsetValue + ",\nvalue="
+        + value + ",\ndefaultValue=" + defaultValue + ",\nrecommendedValue="
+        + recommendedValue + ",\nresetValue=" + resetValue;
   }
   
 }
