@@ -17,6 +17,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.9  2004/08/25 23:04:58  sueh
+ * <p> bug# 508 fixed null pointer bug in getRunTimestamp()
+ * <p>
  * <p> Revision 3.8  2004/08/25 18:36:40  sueh
  * <p> bug# 508 adding a timestamp that is set just before the process
  * <p> is run.
@@ -120,6 +123,7 @@ package etomo.process;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -501,7 +505,17 @@ public class SystemProgram implements Runnable {
     return new Timestamp(runTimestamp.getTime());
   }
  
-  
+ public static ArrayList parseError(String[] output) {  
+   ArrayList errors = new ArrayList();
+   for (int i = 0; i < output.length; i++) {
+     int index = output[i].indexOf("ERROR:");
+     if (index != -1) {
+       errors.add(output[i].substring(index));
+     }
+   }
+   return errors;
+ }
+
   /**
    * Runnable class to keep the output buffers of the child process from filling
    * up and locking up the process.
