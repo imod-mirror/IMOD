@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.8.2.3  2002/12/09 17:49:19  mast
+    changes to get Zap as a Qt window
+
     Revision 3.8.2.2  2002/12/07 01:23:50  mast
     *** empty log message ***
 
@@ -81,7 +84,6 @@
 #include "autox.h"
 #include "imod_io.h"
 #include "sslice.h"
-#include "xxyz.h"
 
 typedef struct imod_application
 {
@@ -231,8 +233,7 @@ typedef struct ViewInfo
      Imod  *imod;
 
      /* Extra Window Data. */
-  /* 12/7/02: zap not needed */
-     struct xxyzwin *xyz;
+  /* 12/7/02: zap not needed; 12/10/02 xyz not needed either */
      Autox  *ax;
      ImodControlList *ctrlist;
 
@@ -468,24 +469,8 @@ void imod_imgcnt(char *string);
 char *ImodRes_SGIStereoCommand(void);
 char *ImodRes_SGIRestoreCommand(void);
 
-/* imod_draw.c */
-/*
-void imod_draw_window(void);
-int  imod_open(FILE *mfin);
-void show_status(char *info);
-void imod_draw_window(void);
-void imod_draw_xyzinfo(void);
-void DrawModel(struct Mod_Model *mod);
-void DrawObject(struct Mod_Object *obj, int index);
-int  DrawClosedContour(struct Mod_Contour *cont, int obcolor, int select);
-int  DrawOpenContour(struct Mod_Contour *cont, int obcolor);
-int  drawghost(struct Mod_Model *mod);
-void imod_cmap(struct Mod_Model *mod);
-int  xyz_draw(struct ViewInfo *vi);
-*/
-
 /* window fuctions */
-int  xyz_draw(struct ViewInfo *vi);
+int xxyz_open( struct ViewInfo *vi);
 int  imod_zap_open(struct ViewInfo *vi);
 void zapDrawSymbol(int mx, int my, unsigned char sym, unsigned char size, 
                    unsigned char flags);
@@ -521,27 +506,6 @@ void imod_info_forbid(void);
 void imod_info_enable(void);
 void imod_set_mmode(int mode);
 void imod_draw_window(void);
-
-
-/* old imod_igraph.c defines */
-/*
-#define IGRAPH_SIZE 256
-#define IGRAPH_SCALE 1;
-
-extern int Igraphx_Window;
-extern int Igraphy_Window;
-extern int Igraphz_Window;
-
-extern struct ViewInfo Igraphx_vi;
-extern struct ViewInfo Igraphy_vi;
-extern struct ViewInfo Igraphz_vi;
-
-int  imod_igraph_open(char axis);
-void imod_igraph_close(char axis);
-int  imod_igraph_input(unsigned short dev, short val); 
-int  imod_igraph_draw(struct ViewInfo *vi);
-void imod_igraph_gdata(struct ViewInfo *vi);
-*/
 
 
 void imodImageScaleDialog(ImodView *iv);
