@@ -19,6 +19,9 @@ import etomo.EtomoDirector;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.10  2004/11/13 02:38:28  sueh
+* <p> bug# 520 Added sampleProduced state boolean.
+* <p>
 * <p> Revision 1.1.2.9  2004/11/12 22:59:25  sueh
 * <p> bug# 520 Added finishjoinTrial values:  binning, size, and shift.
 * <p>
@@ -207,6 +210,11 @@ public class JoinMetaData extends ConstJoinMetaData {
   public void setRotationTranslationMagnification(boolean rotationTranslationMagnification) {
     this.rotationTranslationMagnification = rotationTranslationMagnification;
   }
+  
+  public void setSampleProduced(boolean sampleProduced) {
+    this.sampleProduced = sampleProduced;
+  }
+  
   public void setRotationTranslation(boolean rotationTranslation) {
     this.rotationTranslation = rotationTranslation;
   }
