@@ -32,6 +32,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.2.2.5  2002/12/14 05:23:42  mast
+backing out the fancy subclass, adjusting for new visual detection
+
 Revision 3.2.2.4  2002/12/13 07:09:19  mast
 GLMainWindow needed different name for mouse event processors
 
@@ -87,6 +90,7 @@ struct xxyzwin
   int closing;
 
   int lx, ly, lz;
+  int lastCacheSum;       /* Sum of cache Z values on last draw */
 
   int xtrans, ytrans;     /* translation (pan) in image coords */
   int xwoffset,ywoffset;  /* offset in window coordinates */
@@ -128,6 +132,7 @@ class XyzWindow : public QMainWindow
 			  struct Mod_Contour *cont);
   void DrawCurrentPoint();
   void DrawCurrentLines();
+  void keyPressPassedOn ( QKeyEvent * e ) {keyPressEvent(e);};
 
  protected:
   void keyPressEvent ( QKeyEvent * e );
