@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.1  2002/12/18 04:10:30  mast
+initial creation
+
 */
 
 #ifndef IMODV_DEPTHCUE_H
@@ -21,9 +24,18 @@ $Log$
 typedef struct __imodv_struct ImodvApp;
 #endif
 
+#define DEPTHCUE_MIN 0
+#define DEPTHCUE_MAX 100
+
 /* depth cue functions */
 void imodvDepthCueSet(void);
 void imodvDepthCueSetWidgets(void);
 void imodvDepthCueEditDialog(ImodvApp *a, int state);
+void imodvDepthcueHelp();
+void imodvDepthcueDone();
+void imodvDepthcueClosing();
+void imodvDepthcueStart(int value);
+void imodvDepthcueEnd(int value);
+void imodvDepthcueToggle(int state);
 
 #endif
