@@ -34,6 +34,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.12  2003/01/13 01:15:42  mast
+changes for Qt version of info window
+
 Revision 1.1.2.11  2003/01/06 15:41:02  mast
 Add imodCaption function
 
@@ -127,6 +130,7 @@ index modeling is the default if multiple files are opened.
 #include "imod_display.h"
 #include "imod_info.h"
 #include "imod_info_cb.h"
+#include "imod_io.h"
 #include "sslice.h"
 #include "control.h"
 #include "imodplug.h"
