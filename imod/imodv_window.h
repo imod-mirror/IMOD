@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.2  2002/12/23 04:57:47  mast
+Add public function to disable autobufferswap
+
 Revision 1.1.2.1  2002/12/17 17:40:37  mast
 initial creation
 
@@ -67,12 +70,15 @@ public slots:
   void keyPressEvent ( QKeyEvent * e );
   void keyReleaseEvent ( QKeyEvent * e );
   void closeEvent ( QCloseEvent * e );
-  
+  void showEvent(QShowEvent *e);
+  void hideEvent(QHideEvent *e);
+
  private:
   QWidgetStack *mStack;    // The stack holding the two widgets
   QPopupMenu *mFileMenu;
   QPopupMenu *mEditMenu;
   QPopupMenu *mViewMenu;
+  bool mMinimized;
 };
 
 class ImodvGL : public QGLWidget
