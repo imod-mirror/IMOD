@@ -27,6 +27,7 @@ import javax.swing.border.LineBorder;
 import etomo.JoinManager;
 import etomo.process.ImodManager;
 import etomo.storage.TomogramFileFilter;
+import etomo.type.JoinMetaData;
 import etomo.type.SlicerAngles;
 
 /**
@@ -44,6 +45,11 @@ import etomo.type.SlicerAngles;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.6  2004/09/23 23:39:51  sueh
+* <p> bug# 520 Converted to DoubleSpacedPanel and SpacedPanel.  Sized the
+* <p> spinner.  Calling JoinDialog.setNumSections() when adding or deleting a
+* <p> section.
+* <p>
 * <p> Revision 1.1.2.5  2004/09/22 22:14:43  sueh
 * <p> bug# 520 Enabling and disabling buttons (enableRowButtons() and
 * <p> enableTableButtons()).  Modified calls to work with the more genral
@@ -97,6 +103,7 @@ public class SectionTablePanel implements ContextMenu, Expandable {
   private MultiLineButton btnGetAngles;
   
   private ArrayList rows = new ArrayList();
+  
   private GridBagLayout layout = new GridBagLayout();
   private GridBagConstraints constraints = new GridBagConstraints();
   private SectionTableActionListener sectionTableActionListener = new SectionTableActionListener(this);
@@ -488,6 +495,13 @@ public class SectionTablePanel implements ContextMenu, Expandable {
   private void addRowsToTable(int startIndex) {
     for (int i = startIndex; i < rows.size(); i++) {
       ((SectionTableRow)rows.get(i)).add();
+    }
+  }
+  
+  public void retrieveData(JoinMetaData joinMetaData) {
+    joinMetaData.resetSectionTableData();
+    for (int i = 0; i < rows.size(); i++) {
+      joinMetaData.setSectionTableData(((SectionTableRow) rows.get(i)).getData());
     }
   }
   /**
