@@ -27,6 +27,10 @@ import etomo.type.JoinMetaData;
 * @version $Revision$
 *
 * <p> $Log$
+* <p> Revision 1.1.2.13  2004/11/16 23:30:06  sueh
+* <p> bug# 520 In errorProcess():  setting join meta data sample produced to
+* <p> false when makejoincom fails.
+* <p>
 * <p> Revision 1.1.2.12  2004/11/16 02:22:45  sueh
 * <p> EtomoNumber used getLong() instead of get().
 * <p>
@@ -196,10 +200,12 @@ public class JoinProcessManager extends BaseProcessManager {
         metaData.setFinishjoinTrialSizeInY(command.getIntegerValue(FinishjoinParam.SIZE_IN_Y_VALUE_NAME));
         metaData.setFinishjoinTrialShiftInX(command.getIntegerValue(FinishjoinParam.SHIFT_IN_X_VALUE_NAME));
         metaData.setFinishjoinTrialShiftInY(command.getIntegerValue(FinishjoinParam.SHIFT_IN_Y_VALUE_NAME));
+        joinManager.saveMetaData();
       }
     }
     else if (commandName.equals(MakejoincomParam.getName())) {
       joinManager.getJoinMetaData().setSampleProduced(true);
+      joinManager.saveMetaData();
       joinManager.setMode();
     }
   }
@@ -214,6 +220,7 @@ public class JoinProcessManager extends BaseProcessManager {
     }
     else if (commandName.equals(MakejoincomParam.getName())) {
       joinManager.getJoinMetaData().setSampleProduced(false);
+      joinManager.saveMetaData();
       joinManager.setMode();
     }
   }
