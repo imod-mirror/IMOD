@@ -34,6 +34,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.4  2003/01/06 15:52:39  mast
+changes for Qt version of slicer and new object color routines
+
 Revision 1.1.2.3  2002/12/19 04:37:13  mast
 Cleanup of unused global variables and defines
 
@@ -94,6 +97,8 @@ Added calls for cache filling
 #include <math.h>
 #include "xxyz.h"
 #include "imod_object_edit.h"
+#include "pixelview.h"
+#include "xgraph.h"
 #include <Xm/Xm.h>
 #include <Xm/RowColumn.h>
 #include <Xm/AtomMgr.h>
@@ -107,6 +112,7 @@ Added calls for cache filling
 #include "iproc.h"
 #include "imodv.h"
 #include "sslice.h"
+#include "xtum.h"
 
 /****help text data include files*****/
 #include "imodhelp.h" 
@@ -1042,11 +1048,11 @@ void imod_win_cb(Widget w, XtPointer client, XtPointer call)
     break;
 	  
   case 2: /* tumble */
-    imod_tumble_open(App->cvi);
+    xtumOpen(App->cvi);
     break;
 
   case 3: /* tilt */
-    tltopen(App->cvi, Tilt_vi);
+    //   tltopen(App->cvi, Tilt_vi);
     break;
 
   case 4: /* model view */
