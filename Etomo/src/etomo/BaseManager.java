@@ -43,6 +43,9 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.16  2004/11/12 22:43:34  sueh
+* <p> bug# 520 Moved imodGetRubberbandCoordinates from ApplicationManager.
+* <p>
 * <p> Revision 1.1.2.15  2004/10/29 01:15:23  sueh
 * <p> bug# 520 Removing unecessary functions that provided services to
 * <p> BaseManager.  BaseManager can use get... functions to get the
@@ -435,7 +438,9 @@ public abstract class BaseManager {
         "Test parameter file read error");
       return false;
     }
-    if (!isFileValid(paramFile)) {
+    StringBuffer invalidReason = new StringBuffer();
+    if (!Utilities.isValidFile(paramFile, "Parameter file", invalidReason, true, true, true, false)) {
+      getMainPanel().openMessageDialog(invalidReason.toString(), "File Error");
       return false;
     }
     this.paramFile = paramFile;
@@ -535,15 +540,6 @@ public abstract class BaseManager {
         nextProcess = "";
       }
     }
-  }
-  
-  private boolean isFileValid(File file) {
-    StringBuffer invalidReason = new StringBuffer();
-    if (!Utilities.isValidFile(file, true, true, invalidReason)) {
-      getMainPanel().openMessageDialog(invalidReason.toString(), "File Error");
-      return false;
-    }
-    return true;
   }
   
   public void packMainWindow() {
