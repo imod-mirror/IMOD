@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.5.2.1  2002/12/05 16:29:32  mast
+add include of imod_object_edit.h
+
 Revision 3.5  2002/12/01 15:34:41  mast
 Changes to get clean compilation with g++
 
@@ -65,7 +68,6 @@ Call imodDraw instead of xyz_draw after changing model/movie mode
 #include "imodel.h"
 #include "mrcfiles.h"
 #include "options.h"
-#include "xzap.h"
 #include "imod_object_edit.h"
 
 int sampleMeanSD(unsigned char *image, int type, int nx, int ny, float sample, 

@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.2  2002/12/01 15:34:41  mast
+    Changes to get clean compilation with g++
+
     Revision 3.1  2002/01/28 16:45:25  mast
     Removed imod_nearest function, which was used only by xyz window and did
     not work
@@ -41,7 +44,6 @@
 
 #include <math.h>
 #include "imod.h"
-#include "xzap.h"
 
 int imod_distance( float *x, float *y, struct Mod_Point *pnt);
 
