@@ -6,8 +6,8 @@ import java.util.ArrayList;
 import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.process.SystemProgram;
+import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstJoinMetaData;
-import etomo.type.EtomoSimpleType;
 
 /**
 * <p>Description: </p>
@@ -23,6 +23,9 @@ import etomo.type.EtomoSimpleType;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.9  2004/11/12 22:49:00  sueh
+* <p> bug# 520 Added empty getIntegerValue and getBinning.
+* <p>
 * <p> Revision 1.1.2.8  2004/11/08 22:12:41  sueh
 * <p> bug# 520 Add getMode to conform to Command.
 * <p>
@@ -166,18 +169,18 @@ public class XfalignParam implements Command {
   }
   
   private void genFilterOptions(ArrayList options) {
-    EtomoSimpleType sigmaLowFrequency = metaData.getSigmaLowFrequency();
-    EtomoSimpleType cutoffHighFrequency = metaData
+    ConstEtomoNumber sigmaLowFrequency = metaData.getSigmaLowFrequency();
+    ConstEtomoNumber cutoffHighFrequency = metaData
         .getCutoffHighFrequency();
-    EtomoSimpleType sigmaHighFrequency = metaData.getSigmaHighFrequency();
+    ConstEtomoNumber sigmaHighFrequency = metaData.getSigmaHighFrequency();
     //optional
     if (sigmaLowFrequency.isSetAndNotDefault()
         || cutoffHighFrequency.isSetAndNotDefault()
         || sigmaHighFrequency.isSetAndNotDefault()) {
       options.add("-fil");
       //all three numbers must exist
-      options.add(sigmaLowFrequency.getString(true) + "," + sigmaHighFrequency.getString(true) + ",0,"
-          + cutoffHighFrequency.getString(true));
+      options.add(sigmaLowFrequency.toString(true) + "," + sigmaHighFrequency.toString(true) + ",0,"
+          + cutoffHighFrequency.toString(true));
     }
   }
   

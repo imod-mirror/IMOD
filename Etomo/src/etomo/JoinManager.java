@@ -20,9 +20,9 @@ import etomo.type.AxisType;
 import etomo.type.AxisTypeException;
 import etomo.type.BaseMetaData;
 import etomo.type.BaseProcessTrack;
-import etomo.type.ConstEtomoInteger;
+import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstJoinMetaData;
-import etomo.type.EtomoInteger;
+import etomo.type.EtomoNumber;
 import etomo.type.JoinMetaData;
 import etomo.type.JoinProcessTrack;
 import etomo.type.ProcessName;
@@ -46,6 +46,11 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.27  2004/11/15 22:06:55  sueh
+* <p> bug# 520  Change endSetupMode() to setMode() and change it to handle
+* <p> JoinDialog.SAMPLE_PRODUCED and JoinDialog.SAMPLE_PRODUCED.
+* <p> Remove doneJoinDialog() because it is not being used.
+* <p>
 * <p> Revision 1.1.2.26  2004/11/12 22:44:33  sueh
 * <p> bug# 520 Consolidated the imodOpen functions by passing an
 * <p> ImodManager key.
@@ -633,15 +638,15 @@ public class JoinManager extends BaseManager {
   }
   
   public void setSize(String sizeInXString, String sizeInYString) {
-    EtomoInteger sizeInX = new EtomoInteger();
-    EtomoInteger sizeInY = new EtomoInteger();
+    EtomoNumber sizeInX = new EtomoNumber(EtomoNumber.INTEGER_TYPE);
+    EtomoNumber sizeInY = new EtomoNumber(EtomoNumber.INTEGER_TYPE);
     sizeInX.set(sizeInXString);
     joinDialog.setSizeInX(sizeInX);
     sizeInY.set(sizeInYString);
     joinDialog.setSizeInY(sizeInY);
   }
   
-  public void setShift(ConstEtomoInteger shiftInX, ConstEtomoInteger shiftInY) {
+  public void setShift(ConstEtomoNumber shiftInX, ConstEtomoNumber shiftInY) {
     joinDialog.setShiftInX(shiftInX);
     joinDialog.setShiftInY(shiftInY);   
   }

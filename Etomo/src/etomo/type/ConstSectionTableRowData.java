@@ -19,6 +19,10 @@ import etomo.storage.Storable;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.12  2004/11/15 22:23:45  sueh
+* <p> bug# 520 Moving state variables from ConstSectionTableRow to this class
+* <p> so they can be saved in meta data.
+* <p>
 * <p> Revision 1.1.2.11  2004/11/09 15:14:57  sueh
 * <p> bug# 520 Added getZMax().
 * <p>
@@ -89,19 +93,19 @@ public abstract class ConstSectionTableRowData implements Storable {
   private int imodRotIndex = -1;
   private boolean sectionExpanded = false;
   
-  protected EtomoInteger rowNumber = new EtomoInteger("RowNumber");
+  protected EtomoNumber rowNumber = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "RowNumber");
   protected File section;
-  protected EtomoInteger sampleBottomStart = new EtomoInteger("SampleBottomStart");
-  protected EtomoInteger sampleBottomEnd = new EtomoInteger("SampleBottomEnd");
-  protected EtomoInteger sampleTopStart = new EtomoInteger("SampleTopStart");
-  protected EtomoInteger sampleTopEnd = new EtomoInteger("SampleTopEnd");
+  protected EtomoNumber sampleBottomStart = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "SampleBottomStart");
+  protected EtomoNumber sampleBottomEnd = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "SampleBottomEnd");
+  protected EtomoNumber sampleTopStart = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "SampleTopStart");
+  protected EtomoNumber sampleTopEnd = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "SampleTopEnd");
   protected int finalStart;
   protected int finalEnd;
-  protected EtomoDouble rotationAngleX = new EtomoDouble("RotationAngleX");
-  protected EtomoDouble rotationAngleY = new EtomoDouble("RotationAngleY");
-  protected EtomoDouble rotationAngleZ = new EtomoDouble("RotationAngleZ");
-  protected EtomoInteger xMax = new EtomoInteger("XMax");
-  protected EtomoInteger yMax = new EtomoInteger("YMax");
+  protected EtomoNumber rotationAngleX = new EtomoNumber(EtomoNumber.DOUBLE_TYPE, "RotationAngleX");
+  protected EtomoNumber rotationAngleY = new EtomoNumber(EtomoNumber.DOUBLE_TYPE, "RotationAngleY");
+  protected EtomoNumber rotationAngleZ = new EtomoNumber(EtomoNumber.DOUBLE_TYPE, "RotationAngleZ");
+  protected EtomoNumber xMax = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "XMax");
+  protected EtomoNumber yMax = new EtomoNumber(EtomoNumber.INTEGER_TYPE, "YMax");
   protected int zMax = Integer.MIN_VALUE;
   
   protected StringBuffer invalidReason;
@@ -120,21 +124,21 @@ public abstract class ConstSectionTableRowData implements Storable {
   }
 
   protected String paramString() {
-    return ",\n" + rowNumber.getDescription() + "=" + rowNumber.getString()
+    return ",\n" + rowNumber.getDescription() + "=" + rowNumber
         + ",\n" + sectionString + "=" + section + ",\n"
         + sampleBottomStart.getDescription() + "="
-        + sampleBottomStart.getString() + ",\n"
-        + sampleBottomEnd.getDescription() + "=" + sampleBottomEnd.getString()
+        + sampleBottomStart + ",\n"
+        + sampleBottomEnd.getDescription() + "=" + sampleBottomEnd
         + ",\n" + sampleTopStart.getDescription() + "=" + sampleTopStart
         + ",\n" + sampleTopEnd.getDescription() + "="
-        + sampleTopEnd.getString() + ",\n" + finalStartString + "="
+        + sampleTopEnd + ",\n" + finalStartString + "="
         + finalStart + ",\n" + finalEndString + "=" + finalEnd + ",\n"
-        + rotationAngleX.getDescription() + "=" + rotationAngleX.getString()
+        + rotationAngleX.getDescription() + "=" + rotationAngleX
         + ",\n" + rotationAngleY.getDescription() + "="
-        + rotationAngleY.getString() + ",\n" + rotationAngleZ.getDescription()
-        + "=" + rotationAngleZ.getString() + ",\n" + xMax.getDescription()
-        + "=" + xMax.getString() + ",\n" + yMax.getDescription() + "="
-        + yMax.getString() + ",\n" + zMaxString + "=" + zMax;
+        + rotationAngleY + ",\n" + rotationAngleZ.getDescription()
+        + "=" + rotationAngleZ + ",\n" + xMax.getDescription()
+        + "=" + xMax + ",\n" + yMax.getDescription() + "="
+        + yMax + ",\n" + zMaxString + "=" + zMax;
   } 
   
   public void store(Properties props) {
@@ -182,9 +186,9 @@ public abstract class ConstSectionTableRowData implements Storable {
   
   protected String createPrepend(String prepend) {
     if (prepend == "") {
-      return groupString + "." + rowNumber.getString();
+      return groupString + "." + rowNumber.toString();
     }
-    return prepend + "." + groupString + "." + rowNumber.getString();
+    return prepend + "." + groupString + "." + rowNumber.toString();
   }
   
   public boolean equals(Object object) {
@@ -250,15 +254,15 @@ public abstract class ConstSectionTableRowData implements Storable {
     return invalidReason.toString();
   }
   
-  public ConstEtomoInteger getRowNumber() {
+  public ConstEtomoNumber getRowNumber() {
     return rowNumber;
   }
 
   public int getRowIndex() {
-    if (rowNumber.lessThen(0)) {
+    if (rowNumber.getInteger() < 0) {
       return -1;
     }
-    return rowNumber.get() - 1;
+    return rowNumber.getInteger() - 1;
   }
   
   public File getSection() {
@@ -271,11 +275,11 @@ public abstract class ConstSectionTableRowData implements Storable {
     return section.getName();
   }
   
-  public ConstEtomoInteger getXMax() {
+  public ConstEtomoNumber getXMax() {
     return xMax;
   }
   
-  public ConstEtomoInteger getYMax() {
+  public ConstEtomoNumber getYMax() {
     return yMax;
   }
   
@@ -283,47 +287,51 @@ public abstract class ConstSectionTableRowData implements Storable {
     return zMax;
   }
   
-  public EtomoSimpleType getSampleBottomStart() {
+  public ConstEtomoNumber getSampleBottomStart() {
     return sampleBottomStart;
   }
   
-  public EtomoSimpleType getSampleBottomEnd() {
+  public ConstEtomoNumber getSampleBottomEnd() {
     return sampleBottomEnd;
   }
   
-  public EtomoSimpleType getSampleTopStart() {
+  public ConstEtomoNumber getSampleTopStart() {
     return sampleTopStart;
   }
   
-  public EtomoSimpleType getSampleTopEnd() {
+  public ConstEtomoNumber getSampleTopEnd() {
     return sampleTopEnd;
   }
   
   public int getSampleBottomNumberSlices() {
-    if (sampleBottomEnd.greaterOrEqual(sampleBottomStart)) {
-      return sampleBottomEnd.get() - sampleBottomStart.get() + 1;
+    int sampleBottomEnd = this.sampleBottomEnd.getInteger();
+    int sampleBottomStart = this.sampleBottomStart.getInteger();
+    if (sampleBottomEnd >= sampleBottomStart) {
+      return sampleBottomEnd - sampleBottomStart + 1;
     }
     return 0;
   }
   
   public int getSampleTopNumberSlices() {
-    if (sampleTopEnd.greaterOrEqual(sampleTopStart)) {
-      return sampleTopEnd.get() - sampleTopStart.get() + 1;
+    int sampleTopEnd = this.sampleTopEnd.getInteger();
+    int sampleTopStart = this.sampleTopStart.getInteger();
+    if (sampleTopEnd >= sampleTopStart) {
+      return sampleTopEnd - sampleTopStart + 1;
     }
     return 0;
   }
   
-  public ConstEtomoInteger getChunkSize(int tableSize) {
+  public ConstEtomoNumber getChunkSize(int tableSize) {
     if (tableSize <= 1) {
-      return new EtomoInteger(0);
+      return new EtomoNumber(0);
     }
     if (rowNumber.equals(1)) {
-      return new EtomoInteger(getSampleTopNumberSlices());
+      return new EtomoNumber(EtomoNumber.INTEGER_TYPE, getSampleTopNumberSlices());
     }
     if (rowNumber.equals(tableSize)) {
-      return new EtomoInteger(getSampleBottomNumberSlices());
+      return new EtomoNumber(EtomoNumber.INTEGER_TYPE, getSampleBottomNumberSlices());
     }
-    return new EtomoInteger(getSampleBottomNumberSlices() + getSampleTopNumberSlices());
+    return new EtomoNumber(EtomoNumber.INTEGER_TYPE, getSampleBottomNumberSlices() + getSampleTopNumberSlices());
   }
   
   public String getFinalStartString() {
@@ -334,15 +342,15 @@ public abstract class ConstSectionTableRowData implements Storable {
     return convertToString(finalEnd);
   }
   
-  public EtomoSimpleType getRotationAngleX() {
+  public ConstEtomoNumber getRotationAngleX() {
     return rotationAngleX;
   }
   
-  public EtomoSimpleType getRotationAngleY() {
+  public ConstEtomoNumber getRotationAngleY() {
     return rotationAngleY;
   }
 
-  public EtomoSimpleType getRotationAngleZ() {
+  public ConstEtomoNumber getRotationAngleZ() {
     return rotationAngleZ;
   }
   
