@@ -34,6 +34,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.16  2003/01/29 17:49:20  mast
+Fork at top of program before doing any Qt stuff, and don't fork with -W
+
 Revision 1.1.2.15  2003/01/29 01:31:24  mast
 change -rgb to -ci, close windows on exit
 
@@ -327,10 +330,8 @@ int main( int argc, char *argv[])
   mrc_init_li(&li, NULL);
   vi.li = &li;
 
-#ifdef __linux
   if (!styleSet)
     QApplication::setStyle("windows");
-#endif
 
   /*******************/
   /* Initialize Data */
