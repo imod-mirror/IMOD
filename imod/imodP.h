@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.8  2002/12/01 15:34:41  mast
+    Changes to get clean compilation with g++
+
     Revision 3.7  2002/11/25 19:19:06  mast
     Eliminated conditional on USE_IMOD_CONTROL
 
@@ -481,8 +484,8 @@ int  imod_zap_close(struct ViewInfo *vi);
 void zapDraw_cb(struct ViewInfo *vi, void *client, int drawflag);
 void imodv_draw(void);
 void imodv_new_model(Imod *mod);
-int  imod_object_edit_draw(void);
 int  imod_object_edit(Widget top);
+void ioew_sgicolor_cb(Widget w, XtPointer client, XtPointer call);
 int  open_pixelview(struct ViewInfo *vi);
 int  xgraphOpen(struct ViewInfo *vi);
 int imod_tumble_open(struct ViewInfo *vi);
@@ -585,6 +588,8 @@ int imodPlugLoaded(int type);
 int imodPlugCall(ImodView *vw, int type, int reason);
 void imodPlugMenu(Widget parent, int pos); /* build plugin menu. */
 int imodPlugHandleKey(ImodView *vw, XKeyEvent *event);
+
+
 #ifdef __cplusplus
 }
 #endif
