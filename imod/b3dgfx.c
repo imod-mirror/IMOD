@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.4.2.5  2003/01/10 23:57:23  mast
+questionable change to display routine used by tumbler
+
 Revision 3.4.2.4  2003/01/06 15:40:11  mast
 Add call to resize viewport given x and Y arguments
 
@@ -521,9 +524,9 @@ void b3dDrawBoxout(int llx, int lly, int urx, int ury)
   if ((CurHeight - ury) > 0)
     b3dDrawFilledRectangle(0, ury, CurWidth, CurHeight);
   if (llx > 0)
-    b3dDrawFilledRectangle(0, lly, llx, ury);
+    b3dDrawFilledRectangle(0, lly, llx, ury - lly);
   if ((CurWidth - urx) > 0)
-    b3dDrawFilledRectangle(urx, lly, CurWidth, ury);
+    b3dDrawFilledRectangle(urx, lly, CurWidth, ury - lly);
 
   glIndexi(cur_color);
 
