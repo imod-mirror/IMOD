@@ -77,6 +77,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.101.2.3  2004/09/08 19:20:38  sueh
+ * <p> bug# 520 Casting mainPanel to MainTomogramPanel where necessary.
+ * <p> Calling MainFrame.show in EtomoDirector.  Moving kill() to super class.
+ * <p>
  * <p> Revision 3.101.2.2  2004/09/07 17:49:36  sueh
  * <p> bug# 520 getting mainFrame and userConfig from EtomoDirector, moved
  * <p> settings dialog to BaseManager,  moved backupFiles() to BaseManager,
@@ -4020,6 +4024,7 @@ public class ApplicationManager extends BaseManager {
     loadSolvematch();
     loadPatchcorr();
     loadMatchorwarp();
+    loadCombineComscript();
     
     tomogramCombinationDialog.enableCombineTabs(true);
     mainPanel.stopProgressBar(AxisID.ONLY);
