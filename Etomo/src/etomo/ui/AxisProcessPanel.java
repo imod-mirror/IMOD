@@ -24,6 +24,10 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.7.2.2  2004/09/08 20:04:43  sueh
+ * <p> butg# 520 class doesn't have to be abstract.  manager should be saved in
+ * <p> this base class because it is used here
+ * <p>
  * <p> Revision 3.7.2.1  2004/09/08 19:46:06  sueh
  * <p> bug# 520 Converted AxisProcessPanel to a base class.  Move
  * <p> everything specific to creating tomograms to TomogramProcessPanel.
@@ -107,7 +111,7 @@ import etomo.type.AxisID;
  * <p> </p>
  */
 
-public class AxisProcessPanel implements ContextMenu {
+public abstract class AxisProcessPanel implements ContextMenu {
   public static final String rcsid =
     "$Id$";
 
