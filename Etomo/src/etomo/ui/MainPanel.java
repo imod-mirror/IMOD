@@ -19,7 +19,7 @@ import javax.swing.JSplitPane;
 
 import etomo.BaseManager;
 import etomo.EtomoDirector;
-import etomo.storage.EtomoFileFilter;
+import etomo.storage.DataFileFilter;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
 
@@ -36,6 +36,12 @@ import etomo.type.AxisType;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.1.2.10  2004/10/11 02:15:57  sueh
+ * <p> bug# 520 Moved responsibility for axisPanelA and axisPanelB member
+ * <p> variables to the child classes.  Used abstract functions to use these
+ * <p> variables in the base class.  This is more reliable and doesn't require
+ * <p> casting.
+ * <p>
  * <p> Revision 1.1.2.9  2004/10/08 16:34:05  sueh
  * <p> bug# 520 Since EtomoDirector is a singleton, made all functions and
  * <p> member variables non-static.
@@ -107,6 +113,7 @@ public abstract class MainPanel extends JPanel {
   protected abstract void showAxisPanelB();
   protected abstract boolean isAxisPanelAFitScreenError();
   protected abstract AxisProcessPanel mapBaseAxis(AxisID axisID);
+  protected abstract DataFileFilter getDataFileFilter();
 
   /**
    * Main window constructor.  This sets up the menus and status line.
@@ -222,13 +229,13 @@ public abstract class MainPanel extends JPanel {
     File workingDir = new File(manager.getPropertyUserDir());
     JFileChooser chooser =
       new JFileChooser(workingDir);
-    EtomoFileFilter edfFilter = new EtomoFileFilter();
-    chooser.setFileFilter(edfFilter);
-    chooser.setDialogTitle("Save etomo data file");
+    DataFileFilter fileFilter = getDataFileFilter();
+    chooser.setFileFilter(fileFilter);
+    chooser.setDialogTitle("Save " + fileFilter.getDescription());
     chooser.setDialogType(JFileChooser.SAVE_DIALOG);
     chooser.setPreferredSize(FixedDim.fileChooser);
     chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-    File[] edfFiles = workingDir.listFiles(edfFilter);
+    File[] edfFiles = workingDir.listFiles(fileFilter);
     if (edfFiles.length == 0) {
       File defaultFile = new File(workingDir, manager.getBaseMetaData().getMetaDataFileName());
       chooser.setSelectedFile(defaultFile);
@@ -240,13 +247,13 @@ public abstract class MainPanel extends JPanel {
     }
     // If the file does not already have an extension appended then add an edf
     // extension
-    File edfFile = chooser.getSelectedFile();
+    File dataFile = chooser.getSelectedFile();
     String fileName = chooser.getSelectedFile().getName();
     if (fileName.indexOf(".") == -1) {
-      edfFile = new File(chooser.getSelectedFile().getAbsolutePath() + ".edf");
+      dataFile = new File(chooser.getSelectedFile().getAbsolutePath() + "." + manager.getBaseMetaData().getFileExtension());
 
     }
-    manager.setTestParamFile(edfFile);
+    manager.setTestParamFile(dataFile);
     return true;
   }
 
@@ -467,30 +474,6 @@ public abstract class MainPanel extends JPanel {
       newMessage[1] = message;
       EtomoDirector.getInstance().getMainFrame().openMessageDialog(newMessage, title);
     }
-  }
-
-  /**
-   * Open a File Chooser dialog with an EDF filter, if the user selects
-   * or names a file return a File object wiht that slected, otherwise
-   * return null.
-   * @return A File object specifiying the selected file or null if none
-   * was selected. 
-   */
-  public File openEtomoDataFileDialog() {
-    //  Open up the file chooser in current working directory
-    JFileChooser chooser =
-      new JFileChooser(new File(manager.getPropertyUserDir()));
-    EtomoFileFilter edfFilter = new EtomoFileFilter();
-    chooser.setFileFilter(edfFilter);
-
-    chooser.setDialogTitle("Open etomo data file");
-    chooser.setPreferredSize(FixedDim.fileChooser);
-    chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-    int returnVal = chooser.showOpenDialog(this);
-    if (returnVal == JFileChooser.APPROVE_OPTION) {
-      return chooser.getSelectedFile();
-    }
-    return null;
   }
 
   //  TODO Need a way to repaint the existing font
