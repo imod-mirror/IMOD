@@ -32,8 +32,8 @@ import etomo.type.JoinMetaData;
 import etomo.type.SectionTableRowData;
 import etomo.type.SlicerAngles;
 import etomo.util.InvalidParameterException;
+import etomo.util.JoinInfoFile;
 import etomo.util.MRCHeader;
-import etomo.util.Utilities;
 
 /**
 * <p>Description: A panel containing the section table.  Implements Expandable
@@ -50,6 +50,12 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.21  2004/10/29 22:17:23  sueh
+* <p> bug# 520 Added .rot file handling.  When a .rot file exists:  Rename the corresponding .rot file when
+* <p> a tomogram file is added with addSection().  Remove the imodRotIndex
+* <p> when a tomogram file is deleted with deleteSection.  Open the .rot file
+* <p> instead of the tomogram file when the current tab is Join.
+* <p>
 * <p> Revision 1.1.2.20  2004/10/28 22:17:45  sueh
 * <p> bug# 520 In addSection(File), used a variable instead of calling
 * <p> rows.size() multiple times.
@@ -803,25 +809,6 @@ public class SectionTablePanel implements ContextMenu, Expandable {
     if (tableSize > 1) {
       ((SectionTableRow) rows.get(tableSize - 2)).configureFields();
     }
-    String tomogramName = tomogram.getName();
-    File rotFile = new File(joinDialog.getWorkingDirName(), tomogramName
-        .substring(0, tomogramName.lastIndexOf(".")) + ".rot");
-    if (rotFile.exists()) {
-      File backupRotFile = new File(rotFile.getAbsolutePath() + "~");
-      try {
-        Utilities.renameFile(rotFile, backupRotFile);
-      }
-      catch (IOException e) {
-        e.printStackTrace();
-        String[] message = {
-            "Unable to rename " + rotFile.getAbsolutePath(),
-            " to " + backupRotFile.getName() + ".",
-            "Remove or rename " + rotFile.getName()
-                + ", if does not contain the correctly rotated version of ",
-            tomogram.getAbsolutePath() + "."};
-        joinManager.getMainPanel().openMessageDialog(message, "Rename Failed");
-      }
-    }
     joinDialog.setNumSections(tableSize);
     enableRowButtons();
     repaint();
@@ -857,6 +844,13 @@ public class SectionTablePanel implements ContextMenu, Expandable {
     repaint();
   }
 
+  /**
+   * Opens a section in 3dmod
+   * May open a .rot file instead of the original section in the join tab.
+   * Keeps track of the index of the 3dmod so it can close it and retrieve
+   * rotation angles.
+   * 
+   */
   private void imodSection() {
     int rowIndex = getHighlightedRowIndex();
     if (rowIndex == -1) {
@@ -864,17 +858,28 @@ public class SectionTablePanel implements ContextMenu, Expandable {
     }
     SectionTableRow row = (SectionTableRow) rows.get(rowIndex);
     File sectionFile = row.getSectionFile();
+    //if join tab, open .rot file, if it exists and is listed in .info file
     if (curTab == JoinDialog.JOIN_TAB) {
-      String sectionFileName = sectionFile.getName();
-      File rotSectionFile = new File(joinManager.getPropertyUserDir(),
-          sectionFileName.substring(0, sectionFileName.lastIndexOf("."))
-              + ".rot");
-      if (rotSectionFile.exists()) {
-        row.setImodRotIndex(joinManager.imodOpenFile(ImodManager.ROT_TOMOGRAM_KEY, rotSectionFile, row.getImodRotIndex()));
-        return;
+      JoinInfoFile infoFile = new JoinInfoFile(joinDialog.getRootName());
+      if (infoFile.read(rows.size())) {
+        String infoFileSectionName = infoFile.getFileName(rowIndex);
+        if (infoFileSectionName.substring(infoFileSectionName.lastIndexOf("."))
+            .equals(".rot")) {
+          File rotSectionFile = new File(joinManager.getPropertyUserDir(),
+              infoFileSectionName);
+          if (rotSectionFile.exists()) {
+            //open rotTomogram 3dmod and keep track of it
+            row.setImodRotIndex(joinManager.imodOpenFile(
+                ImodManager.ROT_TOMOGRAM_KEY, rotSectionFile, row
+                    .getImodRotIndex()));
+            return;
+          }
+        }
       }
     }
-    row.setImodIndex(joinManager.imodOpenFile(ImodManager.TOMOGRAM_KEY, sectionFile, row.getImodIndex()));
+    //open tomogram 3dmod and keep track of it
+    row.setImodIndex(joinManager.imodOpenFile(ImodManager.TOMOGRAM_KEY,
+        sectionFile, row.getImodIndex()));
   }
 
   private void imodGetAngles() {
