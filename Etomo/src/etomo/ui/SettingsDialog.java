@@ -4,7 +4,7 @@ import java.awt.GraphicsEnvironment;
 import java.awt.event.*;
 import javax.swing.*;
 
-import etomo.BaseManager;
+import etomo.EtomoDirector;
 import etomo.type.UserConfiguration;
 
 /**
@@ -18,8 +18,6 @@ import etomo.type.UserConfiguration;
 public class SettingsDialog extends JDialog {
   public static final String rcsid =
     "$Id$";
-
-  BaseManager manager;
 
   // Font selection panel
   JPanel panelFontSelect = new JPanel();
@@ -48,9 +46,7 @@ public class SettingsDialog extends JDialog {
   JButton buttonApply = new JButton("Apply");
   JButton buttonDone = new JButton("Done");
 
-  public SettingsDialog(BaseManager mgr) {
-    manager = mgr;
-
+  public SettingsDialog() {
     panelSettings = (JPanel) getContentPane();
     panelSettings.setLayout(new BoxLayout(panelSettings, BoxLayout.Y_AXIS));
 
@@ -143,16 +139,16 @@ public class SettingsDialog extends JDialog {
   }
 
   void buttonCancelAction() {
-    manager.closeSettingsDialog();
+    EtomoDirector.getInstance().closeSettingsDialog();
   }
 
   void buttonApplyAction() {
-    manager.getSettingsParameters();
+    EtomoDirector.getInstance().getSettingsParameters();
   }
 
   void buttonDoneAction() {
-    manager.getSettingsParameters();
-    manager.closeSettingsDialog();
+    EtomoDirector.getInstance().getSettingsParameters();
+    EtomoDirector.getInstance().closeSettingsDialog();
   }
 
 }
