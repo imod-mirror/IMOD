@@ -29,6 +29,10 @@ import etomo.type.JoinMetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.1.2.23  2004/10/29 01:20:48  sueh
+ * <p> bug# 520 Removed working directory from meta data.  Getting working
+ * <p> directory from constructor.
+ * <p>
  * <p> Revision 1.1.2.22  2004/10/28 22:15:15  sueh
  * <p> bug# 520 Keep the text associated with the Alignment ref section
  * <p> checkbox from getting grayed out.
@@ -565,6 +569,10 @@ public class JoinDialog implements ContextMenu {
   
   public File getWorkingDir() {
     return new File(ltfWorkingDir.getText());
+  }
+  
+  public String getRootName() {
+    return ltfRootName.getText();
   }
   
   public void abortAddSection() {
