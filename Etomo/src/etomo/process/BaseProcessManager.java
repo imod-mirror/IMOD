@@ -24,6 +24,13 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.5  2004/10/18 19:08:18  sueh
+* <p> bug# 520 Replaced manager with abstract BaseManager getManager().
+* <p> The type of manager that is stored will be decided by
+* <p> BaseProcessManager's children.  Moved startSystemProgramThread() to
+* <p> the base class.  Added an interface to this function to handle
+* <p> String[] command.
+* <p>
 * <p> Revision 1.1.2.4  2004/10/11 02:02:37  sueh
 * <p> bug# 520 Using a variable called propertyUserDir instead of the "user.dir"
 * <p> property.  This property would need a different value for each manager.
@@ -55,12 +62,12 @@ public abstract class BaseProcessManager {
   SystemProcessInterface threadAxisB = null;
   Thread processMonitorA = null;
   Thread processMonitorB = null;
-  
   private HashMap killedList = new HashMap();
   
   protected abstract void comScriptPostProcess(ComScriptProcess script, int exitValue);
   protected abstract void backgroundPostProcess(BackgroundProcess process);
   protected abstract BaseManager getManager();
+  protected abstract void interactiveSystemProgramPostProcess(InteractiveSystemProgram program);
   
   public BaseProcessManager() {
   }
@@ -585,6 +592,20 @@ public abstract class BaseProcessManager {
     return backgroundProcess;
   }
   
+  protected InteractiveSystemProgram startInteractiveSystemProgram(Command commandParam)
+      throws SystemProcessException {
+    InteractiveSystemProgram program = new InteractiveSystemProgram(commandParam, this);
+    program.setWorkingDirectory(new File(getManager().getPropertyUserDir()));
+    Thread thread = new Thread(program);
+    thread.start();
+    program.setName(thread.getName());
+    if (EtomoDirector.getInstance().isDebug()) {
+      System.err.println("Started " + program.getCommandLine());
+      System.err.println("  Name: " + thread.getName());
+    }
+    return program;
+  }
+  
   /**
    * Start an arbitrary command as an unmanaged background thread
    */
@@ -688,6 +709,10 @@ public abstract class BaseProcessManager {
 
     //  Inform the app manager that this process is complete
     getManager().processDone(process.getName(), exitValue, null, null);
+  }
+  
+  public void msgInteractiveSystemProgramDone(InteractiveSystemProgram program, int exitValue) {
+    interactiveSystemProgramPostProcess(program);
   }
 
 }
