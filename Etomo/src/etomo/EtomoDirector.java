@@ -30,6 +30,11 @@ import etomo.util.UniqueKey;
  * 
  * <p>
  * $Log$
+ * Revision 1.1.2.6  2004/10/01 21:00:21  sueh
+ * bug# 520 moving newJoinName and newTomogramName to the meta
+ * data classes.  Adding openManager() to do some open manager functionality
+ * generically.
+ *
  * Revision 1.1.2.5  2004/09/13 20:23:22  sueh
  * bug# 520 fix exitProgram() so it calls exitProgram for all the managers in
  * managerList.
@@ -162,6 +167,7 @@ public class EtomoDirector {
     if (etomoDataFileName == null
         || etomoDataFileName.equals(ConstMetaData.getNewFileTitle())) {
       manager = new ApplicationManager("");
+      mainFrame.setEnabledNewTomogramMenuItem(false);
     }
     else {
       manager = new ApplicationManager(etomoDataFileName);
@@ -184,8 +190,9 @@ public class EtomoDirector {
   public UniqueKey openJoin(String etomoJoinFileName, boolean makeCurrent) {
     JoinManager manager;
     if (etomoJoinFileName == null
-        || etomoJoinFileName.equals(ConstMetaData.getNewFileTitle())) {
+        || etomoJoinFileName.equals(ConstJoinMetaData.getNewFileTitle())) {
       manager = new JoinManager("");
+      mainFrame.setEnabledNewJoinMenuItem(false);
     }
     else {
       manager = new JoinManager(etomoJoinFileName);
@@ -220,6 +227,7 @@ public class EtomoDirector {
       return false;
     }
     managerList.remove(currentManagerKey);
+    enableOpenManagerMenuItem();
     currentManagerKey = null;
     if (managerList.size() == 0) {
       if (!test) {
@@ -232,6 +240,15 @@ public class EtomoDirector {
     return true;
   }
   
+  private void enableOpenManagerMenuItem() {
+    if (currentManagerKey.getName().equals(ConstMetaData.getNewFileTitle())) {
+      mainFrame.setEnabledNewTomogramMenuItem(true);
+    }
+    if (currentManagerKey.getName().equals(ConstJoinMetaData.getNewFileTitle())) {
+      mainFrame.setEnabledNewJoinMenuItem(true);
+    }
+  }
+  
   public boolean exitProgram() {
     while (managerList.size() != 0) {
       if (!closeCurrentManager()) {
@@ -242,6 +259,7 @@ public class EtomoDirector {
   }
   
   public void renameCurrentManager(String managerName) {
+    enableOpenManagerMenuItem();
     currentManagerKey = managerList.rekey(currentManagerKey, managerName);
     if (!test) {
       mainFrame.setWindowMenuLabels(managerList);
