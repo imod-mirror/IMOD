@@ -9,6 +9,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.5.2.3  2002/12/06 17:20:04  mast
+#  *** empty log message ***
+#
 #  Revision 3.5.2.2  2002/12/06 17:16:33  mast
 #  *** empty log message ***
 #
@@ -515,7 +518,7 @@ else
 endif
 
 (cd $midas_dir ; qmake midas.pro)
-(cd $imod_dir ; touch imodhelp.h ; qmake imod.pro ; \rm imodhelp.h ; if (! -e imodv) ln -s imod imodv)
+(cd $imod_dir ; touch imodhelp.h ; qmake imod.pro ; \rm imodhelp.h ; if (! -e imodv) ln -s imod imodv )
 
 exit
 
