@@ -25,6 +25,15 @@ import etomo.type.JoinMetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.1.2.7  2004/10/06 02:23:20  sueh
+ * <p> bug# 520 Changed Make Join button to Make Samples.  Removed Use
+ * <p> Density Reference Section checkbox.  Added a function to get the
+ * <p> working directory File.  Added addSection(File) to control adding a
+ * <p> tomogram file to the table from the outside.  Added abortAddSection() to
+ * <p> signal that adding the section had failed.  These are necessary when a
+ * <p> tomogram must be flipped because the signal that the flip is finished
+ * <p> comes from outside.
+ * <p>
  * <p> Revision 1.1.2.6  2004/10/01 19:58:55  sueh
  * <p> bug# 520 Moved working dir and root name above section table.
  * <p>
@@ -156,12 +165,16 @@ public class JoinDialog implements ContextMenu {
     spinDensityRefSection.setEnabled(numSections > 0);
     btnMakeSamples.setEnabled(numSections >= 2);
   }
+  
+  public String getInvalidReason() {
+    return pnlSectionTable.getInvalidReason();
+  }
 
-  public void retrieveData(JoinMetaData joinMetaData) {
+  public boolean getMetaData(JoinMetaData joinMetaData) {
     joinMetaData.setDensityRefSection(spinDensityRefSection.getValue());
     joinMetaData.setWorkingDir(ltfWorkingDir.getText());
     joinMetaData.setRootName(ltfRootName.getText());
-    pnlSectionTable.retrieveData(joinMetaData);
+    return pnlSectionTable.getMetaData(joinMetaData);
   }
 
   public Container getContainer() {
@@ -197,7 +210,7 @@ public class JoinDialog implements ContextMenu {
   private void action(ActionEvent event) {
     String command = event.getActionCommand();
     if (command.equals(btnMakeSamples.getActionCommand())) {
-      joinManager.makeSamples();
+      joinManager.makejoincom();
     }
   }
 
