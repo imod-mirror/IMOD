@@ -35,6 +35,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.4  2002/12/18 04:15:14  mast
+new includes for imodv modules
+
 Revision 1.1.2.3  2002/12/17 22:28:21  mast
 cleanup of unused variables and SGI errors
 
@@ -74,14 +77,12 @@ Force GLw to use the already chosen visual when getting a drawing area
 #include "imodv_input.h"
 #include "imodv_light.h"
 #include "imodv_stereo.h"
+#include "b3dgfx.h"
 
 /* local functions */
 static int imodv_snapshot(ImodvApp *a, char *fname);
 static void imodv_swapbuffers(ImodvApp *a);
 static void imodv_clear(ImodvApp *a);
-static void iputlong(FILE *fout, unsigned long val);
-static void iputshort(FILE *fout, unsigned short val);
-static void iputbyte(FILE *fout, unsigned char val);
 
 
 /* 12/15/02: removed DisplayHasAlpha */
@@ -279,6 +280,7 @@ void imodvResetSnap()
 
 int imodv_auto_snapshot(char *inName, int format_type)
 {
+  ImodvApp *a = Imodv;
   char fname[32];
   char *usename = inName;
   char *fext = "rgb";
@@ -300,9 +302,12 @@ int imodv_auto_snapshot(char *inName, int format_type)
   fflush(stdout);
 
 
+  if (a->db)
+    a->mainWin->mCurGLw->setBufferSwapAuto(false);
+  glReadBuffer(a->db ? GL_BACK : GL_FRONT);
+
   if (format_type == SnapShot_TIF) {
     imodvDraw(Imodv);
-    glReadBuffer(GL_FRONT);
     b3dSetCurSize(Imodv->winx, Imodv->winy);
     b3dSnapshot_TIF(usename, 1, NULL, NULL);
     printf(".\n");
@@ -313,37 +318,14 @@ int imodv_auto_snapshot(char *inName, int format_type)
       printf(".\n");
   }
 
+  if (a->db) {
+    imodv_swapbuffers(a);
+    a->mainWin->mCurGLw->setBufferSwapAuto(true);
+  }
+
   if (inName)
     free(inName);
   return(0);
-}
-
-static void iputbyte(FILE *fout, unsigned char val)
-{
-  unsigned char buf[1];
-     
-  buf[0] = val;
-  fwrite(buf, 1, 1, fout);
-}
-
-static void iputshort(FILE *fout, unsigned short val)
-{
-  unsigned char buf[2];
-
-  buf[0] = (unsigned char)(val >> 8);
-  buf[1] = (unsigned char)(val >> 0);
-  fwrite(buf, 2, 1, fout);
-}
-
-static void iputlong(FILE *fout, unsigned long val)
-{
-  unsigned char buf[4];
-     
-  buf[0] = (unsigned char)(val >> 24);
-  buf[1] = (unsigned char)(val >> 16);
-  buf[2] = (unsigned char)(val >>  8);
-  buf[3] = (unsigned char)(val >>  0);
-  fwrite(buf, 4, 1, fout);
 }
 
 static int imodv_snapshot(ImodvApp *a, char *fname)
@@ -377,7 +359,7 @@ static int imodv_snapshot(ImodvApp *a, char *fname)
   /*     glReadPixels(0, 0, width, height,  
          GL_RGB, GL_UNSIGNED_INT, pixels);
   */
-  glReadBuffer(GL_FRONT);    /* DNM: have to read from front buffer */
+  //  glReadBuffer(GL_FRONT);    /* DNM: have to read from front buffer */
   glReadPixels(xoffset, 0, width, height,  
                GL_RGB, GL_UNSIGNED_BYTE, pixels);
   glFlush();
