@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.3  2002/12/29 04:21:22  mast
+correct delete statements
+
 Revision 1.1.2.2  2002/12/27 17:50:50  mast
 change statements for getting pointer arrays to make SGI compiler happy
 
@@ -47,6 +50,7 @@ Initial creation
  * slider number, its value, and whether it is being dragged. 
  */
 
+#include <math.h>
 #include <qsignalmapper.h>
 #include <qslider.h>
 #include <qlayout.h>
@@ -54,9 +58,13 @@ Initial creation
 #include "multislider.h"
 
 #define NON_VALUE -99999999
+#define MAX_DECIMALS 6
+
+static char *deciFormats[MAX_DECIMALS + 1] = {"%d", "%.1f", "%,2f", "%.3f",
+					      "%.4f", "%.5f", "%.6f"};
 
 MultiSlider::MultiSlider(QWidget *parent, int numSliders, char *titles[], 
-                         int minVal, int maxVal)
+                         int minVal, int maxVal, int decimals)
 {
   QVBoxLayout *layOuter;
   QHBoxLayout *layInner;
@@ -68,6 +76,7 @@ MultiSlider::MultiSlider(QWidget *parent, int numSliders, char *titles[],
   mSliders = new QSlider* [numSliders];
   mPressed = new bool[numSliders];
   mLabels = new QLabel* [numSliders];
+  mDecimals = new int [numSliders];
   mNumSliders = numSliders;
   mBigLayout = new QVBoxLayout(NULL, 0, 10, "multislider big");
 
@@ -101,6 +110,7 @@ MultiSlider::MultiSlider(QWidget *parent, int numSliders, char *titles[],
     layInner->addWidget(mLabels[i]);
     layOuter->addLayout(layInner);
     mBigLayout->addLayout(layOuter);
+    mDecimals[i] = decimals;
 
     // Connect to the mappers and slot
     connect(mSliders[i], SIGNAL(valueChanged(int)), this, 
@@ -125,6 +135,17 @@ MultiSlider::~MultiSlider()
   delete [] mPressed;
   delete [] mSliders;
   delete [] mLabels;
+  delete [] mDecimals;
+}
+
+// Set the number of decimals to display
+void MultiSlider::setDecimals(int slider, int decimals)
+{
+  if (decimals < 0)
+    decimals = 0;
+  if (decimals > MAX_DECIMALS)
+    decimals = MAX_DECIMALS;
+  mDecimals[slider] = decimals;
 }
 
 // They emit signals when they are set, which is a trap for the unwary
@@ -168,7 +189,11 @@ void MultiSlider::processChange()
 void MultiSlider::displayValue(int slider, int value)
 {
   QString str;
-  str.sprintf("%d", value);
+  int dec = mDecimals[slider];
+  if (dec)
+    str.sprintf(deciFormats[dec], value / pow(10., (double)dec));
+  else
+    str.sprintf("%d", value);
   mLabels[slider]->setText(str);
 }
 
