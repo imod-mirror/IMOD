@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.3  2002/12/30 06:36:21  mast
+parameterizing the hot slider
+
 Revision 1.1.2.2  2002/12/29 04:12:58  mast
 Recoded to inherit dialog_frame
 
@@ -71,7 +74,6 @@ ColorSelector::ColorSelector(QWidget *parent, QString label, int red,
   : DialogFrame(parent, 3, buttonLabels, false, "test", "test2", name, fl)
 {
   QString str;
-  int i, width;
 
   mOriginalRGB[0] = mCurrentRGB[0] = red;
   mOriginalRGB[1] = mCurrentRGB[1] = green;
