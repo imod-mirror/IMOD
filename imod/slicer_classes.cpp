@@ -32,6 +32,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.2  2003/01/06 18:59:43  mast
+fixing problems with float spin box
+
 Revision 1.1.2.1  2003/01/06 15:48:30  mast
 initial creation
 
@@ -93,6 +96,7 @@ SlicerWindow::SlicerWindow(SlicerStruct *slicer, float maxAngles[],
 {
   int j;
   ArrowButton *arrow;
+  QGLFormat glFormat;
   
   mSlicer = slicer;
   
@@ -177,17 +181,13 @@ SlicerWindow::SlicerWindow(SlicerStruct *slicer, float maxAngles[],
   connect(mSliders, SIGNAL(sliderChanged(int, int, bool)), this, 
 	  SLOT(angleChanged(int, int, bool)));
 
-  // A frame for the cube widget; and the general GL format, and the cube
+  // A frame for the cube widget; and the cube with the default GL format
   QFrame *cubeFrame = new QFrame(mToolBar2);
   cubeFrame->setFixedWidth(100);
   cubeFrame->setFrameShadow(QFrame::Sunken);
   cubeFrame->setFrameShape(QFrame::StyledPanel);
   QVBoxLayout *cubeLayout = new QVBoxLayout(cubeFrame);
   cubeLayout->setMargin(3);
-  QGLFormat glFormat;
-  glFormat.setRgba(rgba);
-  glFormat.setDoubleBuffer(doubleBuffer);
-  glFormat.setDepth(enableDepth);
   mCube = new SlicerCube(slicer, glFormat, cubeFrame);
   cubeLayout->addWidget(mCube);
 
@@ -214,7 +214,10 @@ SlicerWindow::SlicerWindow(SlicerStruct *slicer, float maxAngles[],
 
   firstTime = 0;
 
-  // Need GLwidget next
+  // Need GLwidget next - this gets the defined format
+  glFormat.setRgba(rgba);
+  glFormat.setDoubleBuffer(doubleBuffer);
+  glFormat.setDepth(enableDepth);
   mGLw = new SlicerGL(slicer, glFormat, this);
   
   // Set it as main widget, set focus, dock on top and bottom only
