@@ -6,6 +6,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.2  2004/06/24 15:38:08  mast
+c	  Changed to work with pip input
+c	
 c	  Revision 3.1  2002/05/07 02:06:54  mast
 c	  Changes to make things work well with a subset of views
 c	
@@ -221,7 +224,7 @@ c
 	common /mapsep/ ivsep,nsepingrp,ngsep
 c	  
 	integer*4 nrantrue,nranspec,iran,ivstr,ivend,nran,ir,ivar
-	integer*4 ninran,iv,ig,ifsep,ngsep,jj,nmapdef,ii,ierr
+	integer*4 ninran,iv,ig,ifsep,ngsep,jj,nmapdef,ii,ierr,nmap
 	integer*4 PipGetInteger, PipNumberOfEntries, PipGetThreeIntegers
 c
 	nranspec = 0
@@ -246,10 +249,9 @@ c
 	  if (ifpip .eq. 0) then
 	    write(*,'(1x,a,i3,a,$)')'Starting and ending views in range',
      &		iran, ', group size: '
-	    read(5,*)ivstr,ivend,nmapspec(iran)
+	    read(5,*)ivstr,ivend,nmap
 	  else
-	    ierr = PipGetThreeIntegers(nonDefaultOption,ivstr,ivend,
-     &		nmapspec(iran))
+	    ierr = PipGetThreeIntegers(nonDefaultOption,ivstr,ivend,nmap)
 	  endif
 c	    
 c	    convert and trim nonexistent views from range
@@ -276,6 +278,7 @@ c
 	    nrantrue=nrantrue+1
 	    ivspecstr(nrantrue)=mapfiletoview(ivstr)
 	    ivspecend(nrantrue)=mapfiletoview(ivend)
+	    nmapspec(nrantrue)=nmap
 c	    print *,ivspecstr(nrantrue),ivspecend(nrantrue)
 	  endif
 	enddo
