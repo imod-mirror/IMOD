@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 1.1.2.12  2003/01/13 07:21:38  mast
+    Changes to use new dialog manager class
+
     Revision 1.1.2.11  2003/01/01 19:12:31  mast
     changes to start Qt application in standalone mode
 
@@ -88,7 +91,6 @@
 #include <qtimer.h>
 #include <qcursor.h>
 #include "imodv_window.h"
-#include <X11/Xutil.h>
 #include <math.h>
 #include "imodv.h"
 #include "imod.h"
@@ -116,9 +118,6 @@ static void imodv_compute_rotation(ImodvApp *a, float x, float y, float z);
 static void imodv_rotate(ImodvApp *a, int throwFlag);
 static int  imodvStepTime(ImodvApp *a, int tstep);
 static void processHits (ImodvApp *a, GLint hits, GLuint buffer[]);
-#ifdef USE_IMODV_WORKPROC
-static Boolean imodv_movie_wp(XtPointer client);
-#endif
 
 #define ROTATION_FACTOR 1.26
 
