@@ -12,14 +12,10 @@ UI_DIR = tmp
 
 TARGET = imod
 
-QMAKE_LFLAGS_DEBUG += -Wl,-E 
-QMAKE_LFLAGS_RELEASE += -Wl,-E
 FORMS	= object_edit.ui formv_control.ui 
 IMAGES	= uparrow.png downarrow.png rightarrow.png leftarrow.png 
 TEMPLATE	=app
-CONFIG	+= qt x11 open_gl debug warn_off
-DEFINES	+= _FILE_OFFSET_BITS=64
-INCLUDEPATH	+= ../include
-LIBS	+= -L../buildlib ../buildlib/libGLw.a -limod -liimod -ldia -ltiff -ldl -lGLU -lXm -lqxt -lm
+CONFIG	+= qt x11 open_gl
 DBFILE	= imod.db
 LANGUAGE	= C++
+include (qconfigure)
