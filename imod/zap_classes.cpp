@@ -32,6 +32,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.8  2002/12/17 04:45:54  mast
+Use new ability to set columns in tooledits
+
 Revision 1.1.2.7  2002/12/14 05:23:42  mast
 backing out the fancy subclass, adjusting for new visual detection
 
@@ -64,6 +67,7 @@ Initial addition to source
 #include <qpushbutton.h>
 #include <qlayout.h>
 #include <qslider.h>
+#include <qtimer.h>
 
 #include "imodP.h"
 #include "zap_classes.h"
@@ -71,9 +75,7 @@ Initial addition to source
 #include "tooledit.h"
 #include "arrowbutton.h"
 
-#define SECTION_WIDTH 40
-#define ZOOM_WIDTH 40
-#define AUTO_RAISE false
+#define AUTO_RAISE true
 #define MIN_SLIDER_WIDTH 20
 #define MAX_SLIDER_WIDTH 100
 
@@ -230,6 +232,9 @@ ZapWindow::ZapWindow(struct zapwin *zap, QString timeLabel, bool rgba,
 
   // This makes the toolbar give a proper size hint before showing window
   setUpLayout();
+
+  mTimer = new QTimer(this);
+  connect(mTimer, SIGNAL(timeout()), this, SLOT(timeoutSlot()));
 }
 
 
@@ -310,6 +315,12 @@ void ZapWindow::toggleClicked(int index)
   mToggleStates[index] = state; 
   mToggleButs[index]->setPixmap(*bitmaps[index][state]);
   zapStateToggled(mZap, index, state);
+}
+
+void ZapWindow::timeoutSlot()
+{
+  mTimer->stop();
+  mGLw->updateGL();
 }
 
 // This allows zap to set one of the buttons
