@@ -11,6 +11,10 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.5  2004/06/25 00:34:01  sueh
+ * <p> bug# 467 Removing outerRadius, adding annulusWidth.
+ * <p> Making maximumRadius a basic field.
+ * <p>
  * <p> Revision 3.4  2004/04/21 17:06:17  rickg
  * <p> Bug #424 simplified panel layout using UIUtilities
  * <p>
@@ -334,7 +338,7 @@ public class CCDEraserPanel implements ContextMenu {
     ccdEraserParams.setIncludeAdjacentPoints(cbIncludeAdjacentPoints
       .isSelected());
     if (cbManualReplacement.isSelected()) {
-      ccdEraserParams.setModelFile(applicationManager.getDatasetName()
+      ccdEraserParams.setModelFile(applicationManager.getMetaData().getDatasetName()
           + axisID.getExtension() + ".erase");
     }
     else {

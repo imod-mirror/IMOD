@@ -11,6 +11,10 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.3  2004/06/17 23:55:51  rickg
+ * <p> Bug #460 moved getting of current time into FileSizeProcessMonitor on
+ * <p> instantiation
+ * <p>
  * <p> Revision 3.2  2004/06/17 23:34:17  rickg
  * <p> Bug #460 added script starting time to differentiate old data files
  * <p>
@@ -57,7 +61,7 @@ public class PrenewstProcessMonitor extends FileSizeProcessMonitor {
 
     // Get the header from the raw stack to calculate the aligned stack stize
     String dataSetPath = System.getProperty("user.dir") + "/"
-      + applicationManager.getDatasetName() + axisID.getExtension();
+      + applicationManager.getMetaData().getDatasetName() + axisID.getExtension();
 
     MRCHeader rawStack = new MRCHeader(dataSetPath + ".st");
     rawStack.read();
