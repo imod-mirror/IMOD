@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.4.2.4  2003/01/06 15:40:11  mast
+Add call to resize viewport given x and Y arguments
+
 Revision 3.4.2.3  2002/12/17 18:14:26  mast
 remove unused iput functions
 
@@ -778,6 +781,7 @@ void b3dPutCIImage(B3dCIImage *image,
 /* This is used by the tumbler and tilt windows (11/1/00) - it sets up 
    offsets correctly to call b3dDrawGreyScalePixels, using OpenGl zoom */
 /* DNM 1/20/02: added slice argument to govern image re-use */
+/* DNM 1/10/03: removed "-1" from winx and xsize and zsize expressions */
 void b3dDrawGreyScalePixelsSubArea
 (B3dCIImage *image,                    /* window image data. */
  unsigned char *data,                  /* input image data. */
@@ -791,12 +795,12 @@ void b3dDrawGreyScalePixelsSubArea
   int xstart = 0, ystart = 0;
   int xborder = 0, yborder = 0;
   int xdrawsize = 0, ydrawsize = 0;
-  int winx = urx - llx - 1;
-  int winy = ury - lly - 1;
+  int winx = urx - llx;
+  int winy = ury - lly;
 
-  if ( ((xsize - 1) * zoom) < winx ){
+  if ( ((xsize) * zoom) < winx ){
     xdrawsize = (xsize);
-    xborder = ( winx - ((xsize - 1) * zoom)) / 2;
+    xborder = ( winx - ((xsize) * zoom)) / 2;
   }else{
     xdrawsize = winx / zoom;
     xstart = (xsize / 2 ) - (winx / zoom / 2);
@@ -806,16 +810,16 @@ void b3dDrawGreyScalePixelsSubArea
       xtrans = xstart;
       xstart -= xtrans;
     }
-    if ( (xstart + xdrawsize) > (xsize - 1)){
+    if ( (xstart + xdrawsize) > (xsize)){
       xstart += xtrans;
-      xtrans = xstart - (xsize - 1 - xdrawsize);
+      xtrans = xstart - (xsize - xdrawsize);
       xstart -= xtrans;
     }
   }
      
-  if ( ((ysize - 1) * zoom) < winy ){
+  if ( ((ysize) * zoom) < winy ){
     ydrawsize = (ysize);
-    yborder = ( winy - ((ysize - 1) * zoom)) / 2;
+    yborder = ( winy - ((ysize) * zoom)) / 2;
   }else{
     ydrawsize = winy / zoom;
     ystart = (ysize / 2 ) - (winy / zoom / 2);
@@ -825,9 +829,9 @@ void b3dDrawGreyScalePixelsSubArea
       ytrans = ystart;
       ystart -= ytrans;
     }
-    if ( (ystart + ydrawsize) > (ysize - 1)){
+    if ( (ystart + ydrawsize) > (ysize)){
       ystart += ytrans;
-      ytrans = ystart - (ysize - 1 - ydrawsize);
+      ytrans = ystart - (ysize - ydrawsize);
       ystart -= ytrans;
     }
   }
