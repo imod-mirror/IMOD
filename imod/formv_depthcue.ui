@@ -320,13 +320,13 @@
     </connection>
     <connection>
         <sender>doneButton</sender>
-        <signal>pressed()</signal>
+        <signal>clicked()</signal>
         <receiver>imodvDepthcueForm</receiver>
         <slot>donePressed()</slot>
     </connection>
     <connection>
         <sender>helpButton</sender>
-        <signal>pressed()</signal>
+        <signal>clicked()</signal>
         <receiver>imodvDepthcueForm</receiver>
         <slot>helpPressed()</slot>
     </connection>

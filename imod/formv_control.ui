@@ -544,6 +544,9 @@
                             <property name="pixmap">
                                 <pixmap>uparrow.png</pixmap>
                             </property>
+                            <property name="autoRepeat">
+                                <bool>true</bool>
+                            </property>
                         </widget>
                         <widget class="QToolButton">
                             <property name="name">
@@ -554,6 +557,9 @@
                             </property>
                             <property name="pixmap">
                                 <pixmap>downarrow.png</pixmap>
+                            </property>
+                            <property name="autoRepeat">
+                                <bool>true</bool>
                             </property>
                         </widget>
                         <widget class="QLabel">
@@ -648,6 +654,9 @@
                             <property name="pixmap">
                                 <pixmap>uparrow.png</pixmap>
                             </property>
+                            <property name="autoRepeat">
+                                <bool>true</bool>
+                            </property>
                         </widget>
                         <widget class="QToolButton">
                             <property name="name">
@@ -658,6 +667,9 @@
                             </property>
                             <property name="pixmap">
                                 <pixmap>downarrow.png</pixmap>
+                            </property>
+                            <property name="autoRepeat">
+                                <bool>true</bool>
                             </property>
                         </widget>
                         <widget class="QLabel">
@@ -752,6 +764,9 @@
                             <property name="pixmap">
                                 <pixmap>uparrow.png</pixmap>
                             </property>
+                            <property name="autoRepeat">
+                                <bool>true</bool>
+                            </property>
                         </widget>
                         <widget class="QToolButton">
                             <property name="name">
@@ -762,6 +777,9 @@
                             </property>
                             <property name="pixmap">
                                 <pixmap>downarrow.png</pixmap>
+                            </property>
+                            <property name="autoRepeat">
+                                <bool>true</bool>
                             </property>
                         </widget>
                         <widget class="QLabel">
@@ -953,7 +971,7 @@
                         <enum>NoFocus</enum>
                     </property>
                     <property name="text">
-                        <string>OK</string>
+                        <string>Done</string>
                     </property>
                     <property name="autoDefault">
                         <bool>false</bool>
@@ -981,7 +999,7 @@
                         <enum>NoFocus</enum>
                     </property>
                     <property name="text">
-                        <string>HELP</string>
+                        <string>Help</string>
                     </property>
                     <property name="autoDefault">
                         <bool>false</bool>

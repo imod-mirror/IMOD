@@ -9,7 +9,7 @@
             <x>0</x>
             <y>0</y>
             <width>193</width>
-            <height>250</height>
+            <height>242</height>
         </rect>
     </property>
     <property name="caption">
@@ -23,7 +23,7 @@
             <number>6</number>
         </property>
         <property name="spacing">
-            <number>6</number>
+            <number>4</number>
         </property>
         <widget class="QButtonGroup">
             <property name="name">
@@ -356,7 +356,7 @@
         </widget>
         <widget class="QLayoutWidget">
             <property name="name">
-                <cstring>Layout35</cstring>
+                <cstring>Layout43</cstring>
             </property>
             <hbox>
                 <property name="name">
@@ -368,34 +368,6 @@
                 <property name="spacing">
                     <number>6</number>
                 </property>
-                <widget class="QPushButton">
-                    <property name="name">
-                        <cstring>doneButton</cstring>
-                    </property>
-                    <property name="sizePolicy">
-                        <sizepolicy>
-                            <hsizetype>0</hsizetype>
-                            <vsizetype>0</vsizetype>
-                            <horstretch>0</horstretch>
-                            <verstretch>0</verstretch>
-                        </sizepolicy>
-                    </property>
-                    <property name="maximumSize">
-                        <size>
-                            <width>54</width>
-                            <height>32767</height>
-                        </size>
-                    </property>
-                    <property name="focusPolicy">
-                        <enum>NoFocus</enum>
-                    </property>
-                    <property name="text">
-                        <string>Done</string>
-                    </property>
-                    <property name="toolTip" stdset="0">
-                        <string>Close dialog box</string>
-                    </property>
-                </widget>
                 <widget class="QPushButton">
                     <property name="name">
                         <cstring>resetButton</cstring>
@@ -422,6 +394,34 @@
                     </property>
                     <property name="toolTip" stdset="0">
                         <string>Set all axes to full range and increment 1</string>
+                    </property>
+                </widget>
+                <widget class="QPushButton">
+                    <property name="name">
+                        <cstring>doneButton</cstring>
+                    </property>
+                    <property name="sizePolicy">
+                        <sizepolicy>
+                            <hsizetype>0</hsizetype>
+                            <vsizetype>0</vsizetype>
+                            <horstretch>0</horstretch>
+                            <verstretch>0</verstretch>
+                        </sizepolicy>
+                    </property>
+                    <property name="maximumSize">
+                        <size>
+                            <width>54</width>
+                            <height>32767</height>
+                        </size>
+                    </property>
+                    <property name="focusPolicy">
+                        <enum>NoFocus</enum>
+                    </property>
+                    <property name="text">
+                        <string>Done</string>
+                    </property>
+                    <property name="toolTip" stdset="0">
+                        <string>Close dialog box</string>
                     </property>
                 </widget>
                 <widget class="QPushButton">
@@ -461,18 +461,6 @@
         <slot>axisSelected(int)</slot>
     </connection>
     <connection>
-        <sender>upButton</sender>
-        <signal>pressed()</signal>
-        <receiver>MovieController</receiver>
-        <slot>upPressed()</slot>
-    </connection>
-    <connection>
-        <sender>downButton</sender>
-        <signal>pressed()</signal>
-        <receiver>MovieController</receiver>
-        <slot>downPressed()</slot>
-    </connection>
-    <connection>
         <sender>rateLineEdit</sender>
         <signal>returnPressed()</signal>
         <receiver>MovieController</receiver>
@@ -492,21 +480,33 @@
     </connection>
     <connection>
         <sender>doneButton</sender>
-        <signal>pressed()</signal>
+        <signal>clicked()</signal>
         <receiver>MovieController</receiver>
         <slot>donePressed()</slot>
     </connection>
     <connection>
         <sender>resetButton</sender>
-        <signal>pressed()</signal>
+        <signal>clicked()</signal>
         <receiver>MovieController</receiver>
         <slot>resetPressed()</slot>
     </connection>
     <connection>
         <sender>helpButton</sender>
-        <signal>pressed()</signal>
+        <signal>clicked()</signal>
         <receiver>MovieController</receiver>
         <slot>helpPressed()</slot>
+    </connection>
+    <connection>
+        <sender>upButton</sender>
+        <signal>clicked()</signal>
+        <receiver>MovieController</receiver>
+        <slot>upPressed()</slot>
+    </connection>
+    <connection>
+        <sender>downButton</sender>
+        <signal>clicked()</signal>
+        <receiver>MovieController</receiver>
+        <slot>downPressed()</slot>
     </connection>
 </connections>
 <includes>

@@ -430,55 +430,55 @@
     </connection>
     <connection>
         <sender>fillButton</sender>
-        <signal>pressed()</signal>
+        <signal>clicked()</signal>
         <receiver>AutoxWindow</receiver>
         <slot>fillPressed()</slot>
     </connection>
     <connection>
         <sender>clearButton</sender>
-        <signal>pressed()</signal>
+        <signal>clicked()</signal>
         <receiver>AutoxWindow</receiver>
         <slot>clearPressed()</slot>
     </connection>
     <connection>
         <sender>buildButton</sender>
-        <signal>pressed()</signal>
+        <signal>clicked()</signal>
         <receiver>AutoxWindow</receiver>
         <slot>buildPressed()</slot>
     </connection>
     <connection>
         <sender>nextButton</sender>
-        <signal>pressed()</signal>
+        <signal>clicked()</signal>
         <receiver>AutoxWindow</receiver>
         <slot>nextPressed()</slot>
     </connection>
     <connection>
         <sender>smoothButton</sender>
-        <signal>pressed()</signal>
+        <signal>clicked()</signal>
         <receiver>AutoxWindow</receiver>
         <slot>smoothPressed()</slot>
     </connection>
     <connection>
         <sender>shrinkButton</sender>
-        <signal>pressed()</signal>
+        <signal>clicked()</signal>
         <receiver>AutoxWindow</receiver>
         <slot>shrinkPressed()</slot>
     </connection>
     <connection>
         <sender>expandButton</sender>
-        <signal>pressed()</signal>
+        <signal>clicked()</signal>
         <receiver>AutoxWindow</receiver>
         <slot>expandPressed()</slot>
     </connection>
     <connection>
         <sender>doneButton</sender>
-        <signal>pressed()</signal>
+        <signal>clicked()</signal>
         <receiver>AutoxWindow</receiver>
         <slot>close()</slot>
     </connection>
     <connection>
         <sender>helpButton</sender>
-        <signal>pressed()</signal>
+        <signal>clicked()</signal>
         <receiver>AutoxWindow</receiver>
         <slot>helpPressed()</slot>
     </connection>
