@@ -21,6 +21,7 @@ import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.storage.EtomoFileFilter;
 import etomo.type.AxisID;
+import etomo.type.AxisType;
 import etomo.type.MetaData;
 
 /**
@@ -36,6 +37,10 @@ import etomo.type.MetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.1.2.4  2004/09/09 17:34:41  sueh
+ * <p> bug# 520 remove unnecessary functions that are duplicated in MainFrame:
+ * <p> menuFileMRUListAction and popUpContextMenu
+ * <p>
  * <p> Revision 1.1.2.3  2004/09/08 22:39:54  sueh
  * <p> bug# 520 class doesn't need to be abstract, fixed problem with packing
  * <p> setup dialog by calling revalidate()
@@ -49,7 +54,7 @@ import etomo.type.MetaData;
  * <p> to MainPanel.
  * <p> </p>
  */
-public class MainPanel extends JPanel {
+public abstract class MainPanel extends JPanel {
   public static final String rcsid =
     "$Id$";
 
@@ -70,6 +75,9 @@ public class MainPanel extends JPanel {
   private static final int estimatedMenuHeight = 60;
   private static final int extraScreenWidthMultiplier = 2;
   private static final Dimension frameBorder = new Dimension(10, 48);
+  
+  protected abstract void createAxisPanelA(AxisID axisID);
+  protected abstract void createAxisPanelB();
 
   /**
    * Main window constructor.  This sets up the menus and status line.
@@ -93,16 +101,6 @@ public class MainPanel extends JPanel {
     panelCenter.setLayout(new BoxLayout(panelCenter, BoxLayout.X_AXIS));
     add(panelCenter, BorderLayout.CENTER);
     add(statusBar, BorderLayout.SOUTH);
-  }
-
-  /**
-   * Open the setup panel
-   */
-  public void openSetupPanel(SetupDialog setupDialog) {
-    panelCenter.removeAll();
-    panelCenter.add(setupDialog.getContainer());
-    revalidate();
-    EtomoDirector.getMainFrame().pack();
   }
 
   /**
@@ -250,6 +248,41 @@ public class MainPanel extends JPanel {
   }
 
   /**
+   * Show the processing panel for the requested AxisType
+   */
+  public void showProcessingPanel(AxisType axisType) {
+    //  Delete any existing panels
+    axisPanelA = null;
+    axisPanelB = null;
+
+    panelCenter.removeAll();
+    if (axisType == AxisType.SINGLE_AXIS) {
+      createAxisPanelA(AxisID.ONLY);
+      scrollA = new ScrollPanel();
+      scrollA.add(axisPanelA.getContainer());
+      scrollPaneA = new JScrollPane(scrollA);
+      panelCenter.add(scrollPaneA);
+    }
+    else {
+      createAxisPanelA(AxisID.FIRST);
+      scrollA = new ScrollPanel();
+      scrollA.add(axisPanelA.getContainer());
+      scrollPaneA = new JScrollPane(scrollA);
+
+      createAxisPanelB();
+      scrollB = new ScrollPanel();
+      scrollB.add(axisPanelB.getContainer());
+      scrollPaneB = new JScrollPane(scrollB);
+      splitPane =
+        new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, scrollPaneA, scrollPaneB);
+      splitPane.setDividerLocation(0.5);
+      splitPane.setOneTouchExpandable(true);
+      panelCenter.add(splitPane);
+    }
+  }
+
+
+  /**
    * if A or B is hidden, hide the panel which the user has hidden before
    * calling pack().
    *
@@ -376,12 +409,39 @@ public class MainPanel extends JPanel {
    * @param message
    * @param title
    */
-  public void openMessageDialog(Object message, String title) {
-    JOptionPane.showMessageDialog(
-      this,
-      message,
-      title,
-      JOptionPane.ERROR_MESSAGE);
+  public void openMessageDialog(String[] message, String title) {
+    int messageLength;
+    if (message == null) {
+      messageLength = 0;
+    }
+    else {
+      messageLength = message.length;
+    }
+    String[] newMessage = new String[messageLength + 1];
+    newMessage[0] = manager.getMetaData().getDatasetName() + ":";
+    for (int i = 0; i < messageLength; i++) {
+      newMessage[i + 1] = message[i];
+    }
+    EtomoDirector.getMainFrame().openMessageDialog(newMessage, title);
+  }
+  
+  /**
+   * Open a message dialog
+   * @param message
+   * @param title
+   */
+  public void openMessageDialog(String message, String title) {
+    if (message == null) {
+      EtomoDirector.getMainFrame().openMessageDialog(manager.getMetaData().getDatasetName() + ":",
+          title);
+      return;
+    }
+    else {
+      String[] newMessage = new String[2];
+      newMessage[0] = manager.getMetaData().getDatasetName() + ":";
+      newMessage[1] = message;
+      EtomoDirector.getMainFrame().openMessageDialog(newMessage, title);
+    }
   }
 
   /**
