@@ -50,6 +50,9 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.27  2004/11/15 22:26:07  sueh
+* <p> bug# 520 Added setMode().  Moved enabling and disabling to setMode().
+* <p>
 * <p> Revision 1.1.2.26  2004/11/12 23:01:12  sueh
 * <p> bug# 520 Fixed bug where deleting all rows did not work.
 * <p>
@@ -611,17 +614,16 @@ public class SectionTablePanel implements ContextMenu, Expandable {
     this.mode = mode;
     //enable buttons that are not effected by highlighting
     switch (mode) {
-    case JoinDialog.SAMPLE_PRODUCED:
+    case JoinDialog.SAMPLE_PRODUCED_MODE:
       btnAddSection.setEnabled(false);
-      btnExpandSections.setEnabled(false);
       btnMoveSectionUp.setEnabled(false);
       btnMoveSectionDown.setEnabled(false);
       btnDeleteSection.setEnabled(false);
       btnGetAngles.setEnabled(false);
       break;
     case JoinDialog.SETUP_MODE:
-    case JoinDialog.SAMPLE_NOT_PRODUCED:
-    case JoinDialog.CHANGING_SAMPLE:
+    case JoinDialog.SAMPLE_NOT_PRODUCED_MODE:
+    case JoinDialog.CHANGING_SAMPLE_MODE:
       btnAddSection.setEnabled(true);
       break;
     default:
@@ -647,9 +649,8 @@ public class SectionTablePanel implements ContextMenu, Expandable {
     }
     if (rows == null || rowsSize == 0) {
       btnOpen3dmod.setEnabled(false);
-      if (mode != JoinDialog.SAMPLE_PRODUCED) {
-        btnOpen3dmod.setEnabled(false);
-        btnExpandSections.setEnabled(false);
+      btnExpandSections.setEnabled(false);
+      if (mode != JoinDialog.SAMPLE_PRODUCED_MODE) {
         btnMoveSectionUp.setEnabled(false);
         btnMoveSectionDown.setEnabled(false);
         btnDeleteSection.setEnabled(false);
@@ -658,9 +659,8 @@ public class SectionTablePanel implements ContextMenu, Expandable {
       return;
     }
     btnOpen3dmod.setEnabled(highlightedRowIndex > -1);
-    if (mode != JoinDialog.SAMPLE_PRODUCED) {
-      btnOpen3dmod.setEnabled(highlightedRowIndex > -1);
-      btnExpandSections.setEnabled(true);
+    btnExpandSections.setEnabled(true);
+    if (mode != JoinDialog.SAMPLE_PRODUCED_MODE) {
       btnMoveSectionUp.setEnabled(highlightedRowIndex > 0);
       btnMoveSectionDown.setEnabled(highlightedRowIndex > -1
           && highlightedRowIndex < rowsSize - 1);
@@ -694,6 +694,52 @@ public class SectionTablePanel implements ContextMenu, Expandable {
   public void enableAddSection() {
     btnAddSection.setEnabled(true);
   }
+  
+  public boolean equals(ConstJoinMetaData metaData) {
+    ArrayList array = metaData.getSectionTableData();
+    if (rows == null) {
+      if (array == null) {
+        return true;
+      }
+      return false;
+    }
+    if (array == null) {
+      return false;
+    }
+    if (rows.size() != array.size()) {
+      return false;
+    }
+    for (int i = 0; i < rows.size(); i++) {
+      if (!((SectionTableRow) rows.get(i)).equals((ConstSectionTableRowData) array.get(i))) {
+        return false;
+      }
+    }
+    return true;
+  }
+  
+  public boolean equalsSample(ConstJoinMetaData metaData) {
+    ArrayList array = metaData.getSectionTableData();
+    if (rows == null) {
+      if (array == null) {
+        return true;
+      }
+      return false;
+    }
+    if (array == null) {
+      return false;
+    }
+    if (rows.size() != array.size()) {
+      return false;
+    }
+    for (int i = 0; i < rows.size(); i++) {
+      if (!((SectionTableRow) rows.get(i)).equalsSample((ConstSectionTableRowData) array.get(i))) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+
   
   public GridBagConstraints getTableConstraints() {
     return constraints;
@@ -903,7 +949,7 @@ public class SectionTablePanel implements ContextMenu, Expandable {
     }
     SectionTableRow row = (SectionTableRow) rows.get(rowIndex);
     if (!joinManager.getMainPanel().openYesNoDialog(
-        "Really remove " + row.getSectionText())) {
+        "Really remove " + row.getSectionText() + "?")) {
       return;
     }
     rows.remove(rowIndex);
@@ -921,6 +967,14 @@ public class SectionTablePanel implements ContextMenu, Expandable {
     }
     joinDialog.setNumSections(rows.size());
     enableRowButtons(-1);
+    repaint();
+  }
+  
+  void deleteSections() {
+    while (rows.size() > 0) {
+      SectionTableRow row = (SectionTableRow) rows.remove(0);
+      row.remove();
+    }
     repaint();
   }
   
@@ -1018,16 +1072,19 @@ public class SectionTablePanel implements ContextMenu, Expandable {
     }
   }
 
-  public boolean getMetaData(JoinMetaData metaData) {
+  public void getMetaData(JoinMetaData metaData) {
     metaData.resetSectionTableData();
+    if (rows == null) {
+      return;
+    }
     for (int i = 0; i < rows.size(); i++) {
       ConstSectionTableRowData rowData = ((SectionTableRow) rows.get(i)).getData();
       if (rowData == null) {
-        return false;
+        return;
       }
-      metaData.setSectionTableData(rowData);
+      metaData.setSectionTableData(new SectionTableRowData(rowData));
     }
-    return true;
+    return;
   }
   
   public void setMetaData(ConstJoinMetaData metaData) {
@@ -1048,6 +1105,7 @@ public class SectionTablePanel implements ContextMenu, Expandable {
       row.add(pnlTable);
     }
     joinDialog.setNumSections(rows.size());
+    repaint();
   }
   
   public String getInvalidReason() {
