@@ -14,6 +14,10 @@ package etomo.type;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.4  2004/10/25 23:08:16  sueh
+* <p> bug# 520 Added abstract functions getString(boolean),
+* <p> getNumber(boolean), and getNegation().
+* <p>
 * <p> Revision 1.1.2.3  2004/10/22 21:05:45  sueh
 * <p> bug# 520 Converted to an abstract class.
 * <p>
@@ -39,14 +43,21 @@ public abstract class EtomoSimpleType {
   public abstract Number getNumber(boolean useDefault);
   public abstract EtomoSimpleType getNegation();
   
-  public EtomoSimpleType() {
+  protected EtomoSimpleType() {
     name = super.toString();
     description = name;
   }
   
-  public EtomoSimpleType(String name) {
+  protected EtomoSimpleType(String name) {
     this.name = name;
     description = name;
+  }
+  
+  protected EtomoSimpleType set(EtomoSimpleType that) {
+    name = that.name;
+    description = that.description;
+    invalidReason = that.invalidReason;
+    return this;
   }
   
   public String getDescription() {
