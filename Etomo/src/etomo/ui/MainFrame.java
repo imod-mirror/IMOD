@@ -47,6 +47,9 @@ import etomo.util.UniqueKey;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.12.2.8  2004/10/01 19:59:57  sueh
+ * <p> bug# 520 Standardized getting the metadata file name.
+ * <p>
  * <p> Revision 3.12.2.7  2004/09/15 22:40:52  sueh
  * <p> bug# 520 making openMessageDialog public
  * <p>
@@ -338,6 +341,14 @@ public class MainFrame extends JFrame implements ContextMenu {
   //  Right mouse button context menu
   public void popUpContextMenu(MouseEvent mouseEvent) {
     ContextPopup contextPopup = new ContextPopup(mainPanel, mouseEvent, "");
+  }
+  
+  public void setEnabledNewTomogramMenuItem(boolean enable) {
+    menuFileNewTomogram.setEnabled(enable);
+  }
+  
+  public void setEnabledNewJoinMenuItem(boolean enable) {
+    menuFileNewJoin.setEnabled(enable);
   }
 
   /**
