@@ -1,6 +1,11 @@
 package etomo.ui;
 
+import java.awt.Font;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+
 import javax.swing.BorderFactory;
+import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.plaf.ColorUIResource;
 
@@ -17,13 +22,20 @@ import javax.swing.plaf.ColorUIResource;
 * 
 * @version $Revision$
 * 
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1.2.1  2004/10/01 19:53:42  sueh
+* <p> bug# 520 A text field designed designed to be used with a gridbag layout.
+* <p> It can be used with any ui object with implements Table.  It has three
+* <p> state variables: isUse (lightens foreground when not in use), enabled
+* <p> darkens background when not enabled), and highlighted (uses table
+* <p> selection color for background when highlighted, setting it darker when
+* <p> field is disabled).
+* <p> </p>
 */
 public class FieldCell {
   public static  final String  rcsid =  "$Id$";
   
   private static ColorUIResource foreground = null;
-  private static ColorUIResource notInUseForeground = null;
   private static ColorUIResource background = null;
   private static ColorUIResource disabledBackground = null;
   private static ColorUIResource highlightedBackground = null;
@@ -31,25 +43,34 @@ public class FieldCell {
   private static ColorUIResource headerBackground = null;
   
   private JTextField cell;
-  private Table table;
-  boolean inUse = true;
-  boolean enabled = true;
-  boolean highlighted = false;
+  private boolean inUse = true;
+  private boolean enabled = true;
+  private boolean highlighted = false;
+  private Font plainFont = null;
+  private Font italicFont = null;
+  private JPanel jpanelContainer = null;
   
-  FieldCell(Table table) {
+  FieldCell() {
     initializeColor();
-    this.table = table;
     cell = new JTextField();
     cell.setBorder(BorderFactory.createEtchedBorder());
+    cell.setDisabledTextColor(foreground);
     setColor();
+    plainFont = cell.getFont();
+    italicFont = new Font(plainFont.getFontName(), Font.ITALIC, plainFont.getSize());
   }
   
-  void add() {
-    table.addCell(cell);
+  void add(JPanel panel, GridBagLayout layout, GridBagConstraints constraints) {
+    layout.setConstraints(cell, constraints);
+    panel.add(cell);
+    jpanelContainer = panel;
   }
   
   void remove() {
-    table.removeCell(cell);
+    if (jpanelContainer != null) {
+      jpanelContainer.remove(cell);
+      jpanelContainer = null;
+    }
   }
   
   void setText(String text) {
@@ -73,7 +94,12 @@ public class FieldCell {
   
   void setInUse(boolean inUse) {
     this.inUse = inUse;
-    setColor();
+    if (inUse) {
+      cell.setFont(plainFont);
+    }
+    else {
+      cell.setFont(italicFont);
+    }
   }
     
   private void setColor() {
@@ -91,14 +117,6 @@ public class FieldCell {
     else {
       cell.setBackground(disabledBackground);
     }
-    if (inUse) {
-      cell.setForeground(foreground);
-      cell.setDisabledTextColor(foreground);
-    }
-    else {
-      cell.setForeground(notInUseForeground);
-      cell.setDisabledTextColor(notInUseForeground);
-    }
   }
   
   private void initializeColor() {
@@ -106,12 +124,6 @@ public class FieldCell {
       foreground = UIUtilities.getDefaultUIColor("ToggleButton.foregroundvalue");
       if (foreground == null) {
         foreground = new ColorUIResource(0, 0, 0);
-      }
-    }
-    if (notInUseForeground == null) {
-      notInUseForeground = UIUtilities.getDefaultUIColor("ToggleButton.disabledSelectedTextvalue");
-      if (notInUseForeground == null) {
-        notInUseForeground = new ColorUIResource(102, 102, 102);
       }
     }
     if (background == null) {
