@@ -34,6 +34,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.5  2002/12/17 22:28:20  mast
+cleanup of unused variables and SGI errors
+
 Revision 1.1.2.4  2002/12/17 18:42:22  mast
 Qt version, incorporating ximodv startup code
 
@@ -76,6 +79,8 @@ Added CVS header.  Changed to getting visuals then passing them to GLw.
 #include "imod.h"
 #include "imod_display.h"
 #include "imodv_gfx.h"
+#include "imodv_stereo.h"
+#include "imodv_modeled.h"
 
 // static declarations
 static void usage(char *pname);

@@ -43,6 +43,11 @@
 #include "imodv_gfx.h"
 #include "imodv_menu.h"
 #include "imodv_control.h"
+#include "imodv_light.h"
+#include "imodv_views.h"
+#include "imodv_depthcue.h"
+#include "imodv_objed.h"
+
 
 struct imodv_viewed
 {
@@ -56,10 +61,11 @@ struct imodv_viewed
 static struct imodv_viewed *ViewEdit = NULL;
 static Widget make_work_area(ImodvApp *a, Widget top);
 static void build_list(ImodvApp *a);
+static void imodvUpdateView(ImodvApp *a);
 
 static int auto_store = 1;
 
-void imodvUpdateView(ImodvApp *a)
+static void imodvUpdateView(ImodvApp *a)
 {
     imodvControlSetView(a);
     imodvObjedNewView();

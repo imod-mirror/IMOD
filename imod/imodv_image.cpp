@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 1.1.2.2  2002/12/17 18:33:19  mast
+    using new includes for imodv compoennts
+
     Revision 1.1.2.1  2002/12/15 21:14:02  mast
     conversion to cpp
 
@@ -52,6 +55,7 @@
 #include "imodv.h"
 #include "imod.h"
 #include "imodv_gfx.h"
+#include "imodv_image.h"
 
 
 #ifdef NO_IMODV_IMAGE

@@ -37,6 +37,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.2  2002/12/17 18:41:49  mast
+Changes to get imodv to set file name correctly in window title
+
 Revision 1.1.2.1  2002/12/15 21:14:02  mast
 conversion to cpp
 
@@ -90,6 +93,7 @@ removed old version of imod_io_image_reload
 #include "imodv.h"
 #include "imod_io.h"
 #include "imod_object_edit.h"
+#include "imodv_views.h"
 
 //  Module private functions
 static void initModelData(Imod *newModel);

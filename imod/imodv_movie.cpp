@@ -38,6 +38,7 @@
 #include "imodv.h"
 #include "b3dgfx.h"
 #include "imodv_gfx.h"
+#include "imodv_movie.h"
 
 static void set_sensitivities(void);
 

@@ -34,6 +34,9 @@
     $Revision$
 
     $Log$
+    Revision 1.1.2.2  2002/12/17 18:33:19  mast
+    using new includes for imodv compoennts
+
     Revision 1.1.2.1  2002/12/15 21:14:02  mast
     conversion to cpp
 
@@ -49,6 +52,7 @@
 #include <math.h>
 #include <GL/gl.h>
 #include "imodv.h"
+#include "imodv_light.h"
 
 float Imodv_light_position[4];
 float Imodv_light_att[3];

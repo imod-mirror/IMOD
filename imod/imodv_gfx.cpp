@@ -35,6 +35,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.3  2002/12/17 22:28:21  mast
+cleanup of unused variables and SGI errors
+
 Revision 1.1.2.2  2002/12/17 17:39:52  mast
 Qt version
 
@@ -69,6 +72,8 @@ Force GLw to use the already chosen visual when getting a drawing area
 #include "imodv_gfx.h"
 #include "imodv_ogl.h"
 #include "imodv_input.h"
+#include "imodv_light.h"
+#include "imodv_stereo.h"
 
 /* local functions */
 static int imodv_snapshot(ImodvApp *a, char *fname);
