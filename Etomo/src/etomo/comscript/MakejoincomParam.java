@@ -31,6 +31,10 @@ import etomo.type.SectionTableRowData;
 * <p> </p>
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.11  2004/11/16 02:20:46  sueh
+* <p> bug# 520 Replacing EtomoInteger, EtomoDouble, EtomoFloat, and
+* <p> EtomoLong with EtomoNumber.
+* <p>
 * <p> Revision 1.1.2.10  2004/11/15 22:17:10  sueh
 * <p> bug# 520 Implementing Command.
 * <p>
@@ -107,35 +111,38 @@ public class MakejoincomParam implements Command {
   private ArrayList genOptions() {
     ArrayList options = new ArrayList();
     ArrayList sectionData = metaData.getSectionTableData();
-    int sectionDataSize = sectionData.size();
-    for (int i = 0; i < sectionDataSize; i++) {
-      ConstSectionTableRowData data = (SectionTableRowData) sectionData.get(i);
-      if (i < sectionDataSize - 1) {
-        options.add("-top");
-        //both numbers must exist
-        options.add(data.getSampleTopStart().toString() + ","
-            + data.getSampleTopEnd().toString());
+    if (sectionData != null) {
+      int sectionDataSize = sectionData.size();
+      for (int i = 0; i < sectionDataSize; i++) {
+        ConstSectionTableRowData data = (SectionTableRowData) sectionData
+            .get(i);
+        if (i < sectionDataSize - 1) {
+          options.add("-top");
+          //both numbers must exist
+          options.add(data.getSampleTopStart().toString() + ","
+              + data.getSampleTopEnd().toString());
+        }
+        if (i != 0) {
+          options.add("-bot");
+          //both numbers must exist
+          options.add(data.getSampleBottomStart().toString() + ","
+              + data.getSampleBottomEnd().toString());
+        }
+        //Add optional rotation angles
+        ConstEtomoNumber rotationAngleX = data.getRotationAngleX();
+        ConstEtomoNumber rotationAngleY = data.getRotationAngleY();
+        ConstEtomoNumber rotationAngleZ = data.getRotationAngleZ();
+        if (rotationAngleX.isSetAndNotDefault()
+            || rotationAngleY.isSetAndNotDefault()
+            || rotationAngleZ.isSetAndNotDefault()) {
+          options.add("-rot");
+          //all three numbers must exist
+          options.add(rotationAngleX.toString(true) + ","
+              + rotationAngleY.toString(true) + ","
+              + rotationAngleZ.toString(true));
+        }
+        options.add(data.getSectionAbsolutePath());
       }
-      if (i != 0) {
-        options.add("-bot");
-        //both numbers must exist
-        options.add(data.getSampleBottomStart().toString() + ","
-            + data.getSampleBottomEnd().toString());
-      }
-      //Add optional rotation angles
-      ConstEtomoNumber rotationAngleX = data.getRotationAngleX();
-      ConstEtomoNumber rotationAngleY = data.getRotationAngleY();
-      ConstEtomoNumber rotationAngleZ = data.getRotationAngleZ();
-      if (rotationAngleX.isSetAndNotDefault()
-          || rotationAngleY.isSetAndNotDefault()
-          || rotationAngleZ.isSetAndNotDefault()) {
-        options.add("-rot");
-        //all three numbers must exist
-        options.add(rotationAngleX.toString(true) + ","
-            + rotationAngleY.toString(true) + ","
-            + rotationAngleZ.toString(true));
-      }
-      options.add(data.getSectionAbsolutePath());
     }
     options.add("-tmpext");
     options.add("rot");
@@ -147,7 +154,7 @@ public class MakejoincomParam implements Command {
     options.add(metaData.getRootName());
     return options;
   }
-  
+
   public int getBinning() {
     return 1;
   }
