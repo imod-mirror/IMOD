@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.8.2.10  2003/01/02 15:38:16  mast
+    remove declarations for control.c functions
+
     Revision 3.8.2.9  2002/12/23 04:55:43  mast
     A little more cleanup
 
@@ -101,7 +104,6 @@
 #include "b3dgfx.h"
 #include "autox.h"
 #include "imod_io.h"
-#include "sslice.h"
 
 /* DNM 12/22/02: eliminated multiple view structures */
 typedef struct imod_application
@@ -169,6 +171,17 @@ typedef struct
      Islice *sec;
 
 }ivwSlice;
+
+/* used to show current slice */
+struct imod_showslice_struct
+{
+     int zx1, zx2;
+     int zy1, zy2;  
+     int xy1, xy2;
+     int xz1, xz2;
+     int yx1, yx2;
+     int yz1, yz2;     
+};
 
 
 /* 
@@ -397,7 +410,6 @@ int  open_pixelview(struct ViewInfo *vi);
 int  xgraphOpen(struct ViewInfo *vi);
 int imod_tumble_open(struct ViewInfo *vi);
 int tltopen(ImodView *vw, struct ViewInfo *ti);
-int sslice_showslice(struct Super_slicer *ss);
 int xtumOpen(struct ViewInfo *vi);
 int set_pixelview(struct ViewInfo *vi);
 
