@@ -34,6 +34,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.4  2002/12/19 04:37:13  mast
+Cleanup of unused global variables and defines
+
 Revision 1.1.2.3  2002/12/17 18:40:24  mast
 Changes and new includes with Qt version of imodv
 
@@ -69,6 +72,8 @@ are open
 #include "imod_info.h"
 #include "mrcfiles.h"
 #include "imodv.h"
+#include "imod_input.h"
+#include "control.h"
 
 extern long Typemenu;
      
