@@ -17,6 +17,9 @@ import java.util.Properties;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.5  2004/10/22 03:26:02  sueh
+* <p> bug# 520 Converted rowNumber to an EtomoInteger.
+* <p>
 * <p> Revision 1.1.2.4  2004/10/15 00:46:03  sueh
 * <p> bug# 520 Initializing rowNumber on construction so that it can be used in
 * <p> load.
@@ -48,10 +51,10 @@ public class SectionTableRowData extends ConstSectionTableRowData {
   private void reset() {
     invalidReason = null;
     section = null;
-    sampleBottomStart = Integer.MIN_VALUE;
-    sampleBottomEnd = Integer.MIN_VALUE;
-    sampleTopStart = Integer.MIN_VALUE;
-    sampleTopEnd = Integer.MIN_VALUE;
+    sampleBottomStart.reset();
+    sampleBottomEnd.reset();
+    sampleTopStart.reset();
+    sampleTopEnd.reset();
     finalStart = 1;
     finalEnd = zMax;
     rotationAngleX = Double.NaN;
@@ -78,14 +81,10 @@ public class SectionTableRowData extends ConstSectionTableRowData {
     if (sectionName != null) {
       section = new File(sectionName);
     }
-    sampleBottomStart = Integer.parseInt(props.getProperty(group
-        + sampleBottomStartString, Integer.toString(Integer.MIN_VALUE)));
-    sampleBottomEnd = Integer.parseInt(props.getProperty(group
-        + sampleBottomEndString, Integer.toString(Integer.MIN_VALUE)));
-    sampleTopStart = Integer.parseInt(props.getProperty(group
-        + sampleTopStartString, Integer.toString(Integer.MIN_VALUE)));
-    sampleTopEnd = Integer.parseInt(props.getProperty(group
-        + sampleTopEndString, Integer.toString(Integer.MIN_VALUE)));
+    sampleBottomStart.load(props, prepend);
+    sampleBottomEnd.load(props, prepend);
+    sampleTopStart.load(props, prepend);
+    sampleTopEnd.load(props, prepend);
     finalStart = Integer.parseInt(props.getProperty(group + finalStartString,
         Integer.toString(Integer.MIN_VALUE)));
     finalEnd = Integer.parseInt(props.getProperty(group + finalEndString,
@@ -151,36 +150,20 @@ public class SectionTableRowData extends ConstSectionTableRowData {
     return doubleValue;
   }
 
-  public boolean setSampleBottomStart(String sampleBottomStart) {
-    this.sampleBottomStart = parseInt(sampleBottomStart, sampleBottomStartName);
-    if (invalidReason != null) {
-      return false;
-    }
-    return true;
+  public EtomoSimpleType setSampleBottomStart(String sampleBottomStart) {
+    return this.sampleBottomStart.set(sampleBottomStart);
   }
 
-  public boolean setSampleBottomEnd(String sampleBottomEnd) {
-    this.sampleBottomEnd = parseInt(sampleBottomEnd, sampleBottomEndName);
-    if (invalidReason != null) {
-      return false;
-    }
-    return true;
+  public EtomoSimpleType setSampleBottomEnd(String sampleBottomEnd) {
+    return this.sampleBottomEnd.set(sampleBottomEnd);
   }
   
-  public boolean setSampleTopStart(String sampleTopStart) {
-    this.sampleTopStart = parseInt(sampleTopStart, sampleTopStartName);
-    if (invalidReason != null) {
-      return false;
-    }
-    return true;
+  public EtomoSimpleType setSampleTopStart(String sampleTopStart) {
+    return this.sampleTopStart.set(sampleTopStart);
   }
   
-  public boolean setSampleTopEnd(String sampleTopEnd) {
-    this.sampleTopEnd = parseInt(sampleTopEnd, sampleTopEndName);
-    if (invalidReason != null) {
-      return false;
-    }
-    return true;
+  public EtomoSimpleType setSampleTopEnd(String sampleTopEnd) {
+    return this.sampleTopEnd.set(sampleTopEnd);
   }
   
   public boolean setFinalStart(String finalStart) {
