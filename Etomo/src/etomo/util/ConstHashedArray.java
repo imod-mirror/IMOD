@@ -16,30 +16,35 @@ import java.util.Vector;
 * 
 * @version $Revision$
 * 
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1.2.1  2004/09/13 19:18:58  sueh
+* <p> bug# 520 A const base class for HashedArray to allow it to be passed
+* <p> without allowing it to be changed.  Contains the member variables and all
+* <p> functions that do not change them.
+* <p> </p>
 */
 public class ConstHashedArray {
   public static  final String  rcsid =  "$Id$";
   
   Hashtable map = null;
-  Vector array = null;
+  Vector keyArray = null;
   
   public ConstHashedArray() {
     map = new Hashtable();
-    array = new Vector();
+    keyArray = new Vector();
   }
   
-  protected ConstHashedArray(Vector array) {
+  protected ConstHashedArray(Vector keyArray) {
     map = new Hashtable();
-    this.array = new Vector(array);
+    this.keyArray = new Vector(keyArray);
   }
   
   public Object get(UniqueKey key) {
     return map.get(key);
   }
   
-  public Object get(int keyIndex) {
-    UniqueKey key = (UniqueKey) array.get(keyIndex);
+  public Object get(int index) {
+    UniqueKey key = (UniqueKey) keyArray.get(index);
     if (key == null) {
       return null;
     }
@@ -47,18 +52,18 @@ public class ConstHashedArray {
   }
   
   public UniqueKey getKey(int index) {
-    return (UniqueKey) array.get(index);
+    return (UniqueKey) keyArray.get(index);
   }
   
   public int size() {
-    return array.size();
+    return keyArray.size();
   }
   
   //FIXME are the elements in the new array copies?  Should they be?  
   //If they aren't
   //copies, should this function be in HashedArray?
   public HashedArray getEmptyHashedArray() {
-    return new HashedArray(array);
+    return new HashedArray(keyArray);
   }
   
   public String toString() {
@@ -67,8 +72,8 @@ public class ConstHashedArray {
   
   protected String paramString() {
     StringBuffer buffer = new StringBuffer(",map=");
-    for (int i = 0; i < array.size(); i++) {
-      UniqueKey key = (UniqueKey) array.get(i);
+    for (int i = 0; i < keyArray.size(); i++) {
+      UniqueKey key = (UniqueKey) keyArray.get(i);
       buffer.append("\nkey=" + key);
       if (key != null) {
         buffer.append(",value=" + map.get(key));
