@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.6  2003/01/23 20:13:33  mast
+add include of imod_input
+
 Revision 1.1.2.5  2003/01/13 01:15:43  mast
 changes for Qt version of info window
 
@@ -78,11 +81,15 @@ compiler bug.
 
 #include "slicer_classes.h"
 #include "imod.h"
+#include "imod_display.h"
+#include "b3dgfx.h"
 #include "sslice.h"
 #include "imod_input.h"
 #include "control.h"
 #include "imodplug.h"
 #include "hotslider.h"
+#include "dia_qtutils.h"
+#include "xcramp.h"
 
 #include "qcursor.bits"
 #include "qcursor_mask.bits"
@@ -357,8 +364,8 @@ int sslice_open(struct ViewInfo *vi)
   ss->tang[X] = 0.0f;
   ss->tang[Y] = 0.0f;
   ss->tang[Z] = 0.0f;
-  ss->mapped = False;
-  ss->scalez = False;
+  ss->mapped = 0;
+  ss->scalez = 0;
   ss->depth = 1.0;
   ss->image = NULL;
   ss->bcoord[0] = vi->xmouse;
@@ -466,7 +473,8 @@ void slicerKeyInput(SlicerStruct *ss, QKeyEvent *event)
 
   ivwControlPriority(ss->vi, ss->ctrl);
 
-  //  if (imodPlugHandleKey(ss->vi, event)) return;
+  if (imodPlugHandleKey(ss->vi, event)) 
+    return;
 
   // These grabs may not work right if keys are passed from elsewhere
   if (keysym == hotSliderKey()) {

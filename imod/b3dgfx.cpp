@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.1  2003/01/23 23:05:54  mast
+conversion to cpp
+
 Revision 3.4.2.6  2003/01/13 01:12:37  mast
 Fixed bug in drawboxout with negative coordinates
 
@@ -71,28 +74,15 @@ excess in sizing of temporary buffers.
 */
 
 #include <stdlib.h>
-#include <stdio.h>
 #include <math.h>
 #include "imod.h"
 #include "b3dgfx.h"
+#include "b3dfile.h"
+#include "xcramp.h"
 
 
-static XFontStruct *CurFont     = NULL;
-static Display     *CurDisplay  = NULL;
-static Visual      *CurVisual   = NULL;
-
-static Drawable     CurD        = 0;
-static GC           CurGC       = 0;
-static Colormap     CurCmap     = 0;
-static Widget       CurWidget   = 0;
-static int          CurDepth    = 0;
-static Dimension    CurWidth;
-static Dimension    CurHeight;
-
-/* used for X11 simulation of bgnline() endline() pairs */
-static int       CurDrawFlag= B3D_NODRAW;
-
-#define b3dX11GetY(y) (CurHeight - (y))
+static int          CurWidth;
+static int          CurHeight;
 
 
 
@@ -101,8 +91,6 @@ void b3dSetCurSize(int width, int height)
 {
   CurWidth = width;
   CurHeight = height;
-  /* Can we do this safely / */
-  CurWidget = 0;
 }
 
 void b3dResizeViewportXY(int winx, int winy)
@@ -115,20 +103,6 @@ void b3dResizeViewportXY(int winx, int winy)
   glOrtho(0.0 , (GLdouble)winx, 0.0, (GLdouble)winy, 0.5, -0.5);
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
-}
-
-
-void b3dClear(void)
-{
-  glClear(GL_COLOR_BUFFER_BIT);
-  return;
-}
-
-void b3dFlush(void)
-{
-  glFlush();
-
-  return;
 }
 
 
@@ -152,8 +126,6 @@ void b3dColorIndex(unsigned int pix)
       glColor3ub(64,  64,  96);
     else if (pix == App->ghost)
       glColor3ub(16, 16, 16);
-    else if (pix == App->imodvbgcolor)
-      glColor3ub(  0,  0,  0);
   }
 
 
@@ -369,12 +341,14 @@ void b3dDrawBoxout(int llx, int lly, int urx, int ury)
   glGetIntegerv(GL_CURRENT_INDEX, &cur_color);
 
   /* TODO: figure out what to do for Qt widgets */
+  /* This may work: that is what the color index function is for
   if (CurWidget) {
     XtVaGetValues(CurWidget, XmNbackground, &back_color, NULL);
     glIndexi(back_color);
   }
-  if (App->rgba)
-    b3dColorIndex(App->background);
+  if (App->rgba) */
+  
+  b3dColorIndex(App->background);
      
   if (lly > 0)
     b3dDrawFilledRectangle(0,0,CurWidth,lly);
@@ -565,7 +539,7 @@ void b3dFillGreyScalePixels(unsigned char *data,      /* input data      */
   int rate   = 255;
   int pixmax = 255;
 
-  if (CurDepth == 8 || App->rgba){
+  if (App->depth == 8 || App->rgba){
     b = 0;
   }
 
@@ -879,7 +853,7 @@ void b3dDrawGreyScalePixels(unsigned char *data,      /* input data      */
          printf("%x ", cindex[i]);
          printf("\n\n");
   */
-  if (CurDepth == 8)
+  if (App->depth == 8)
     rbase = 0;
 
   if (!data){
@@ -1004,7 +978,7 @@ static void b3dDrawGreyScalePixels15
   GLenum type, format;
   GLint unpack = b3dGetImageType(&type, &format);
 
-  if (CurDepth == 8) rbase = 0;
+  if (App->depth == 8) rbase = 0;
   sw = (int)(((float)width * 1.5f) );
   sh = (int)(((float)height * 1.5f));
 
@@ -1293,7 +1267,7 @@ void b3dDrawGreyScalePixelsHQ(unsigned char *data,      /* input data      */
     }
 
 
-    if (CurDepth == 8){
+    if (App->depth == 8){
       rbase = 0;
       pixmin = RAMPMIN;
       pixmax = RAMPMAX;
@@ -1635,7 +1609,7 @@ void b3dSnapshot_RGB(char *fname, int rgbmode, int *limits)
 
   int mapsize;
   unsigned int *fcmapr, *fcmapg, *fcmapb;
-  XColor xcolor;
+  //  XColor xcolor;
   unsigned long *cindex, ci;
   unsigned char *pixout, tmp;
   int rpx = 0; 
@@ -1682,6 +1656,7 @@ void b3dSnapshot_RGB(char *fname, int rgbmode, int *limits)
     }
 
   } else {
+#ifdef OLD_COLOR_INDEX
     mapsize = 1 << App->depth;
     CurCmap = App->cmapGL;
     xcolor.flags = DoRed | DoGreen | DoBlue; 
@@ -1718,6 +1693,7 @@ void b3dSnapshot_RGB(char *fname, int rgbmode, int *limits)
     free(fcmapr);
     free(fcmapg);
     free(fcmapb);
+#endif
   }
 
   bdRGBWrite(fout, (int)rpWidth, (int)rpHeight, pixels);
@@ -1749,7 +1725,7 @@ void b3dSnapshot_TIF(char *fname, int rgbmode, int *limits,
 
   int mapsize;
   unsigned int *fcmapr, *fcmapg, *fcmapb;
-  XColor xcolor;
+  //  XColor xcolor;
   int *cindex, ci;
   int rpx = 0; 
   int rpy = 0;
@@ -1794,14 +1770,15 @@ void b3dSnapshot_TIF(char *fname, int rgbmode, int *limits,
   } else {
     depth = App->depth;
     mapsize = 1 << depth;
-    CurCmap = App->cmapGL;
-    xcolor.flags = DoRed | DoGreen | DoBlue; 
+    //    CurCmap = App->cmapGL;
+    // xcolor.flags = DoRed | DoGreen | DoBlue; 
     fcmapr = (unsigned int *)malloc((mapsize+1) * sizeof(unsigned int));
     if (!fcmapr) return;
     fcmapg = (unsigned int *)malloc((mapsize+1) * sizeof(unsigned int));
     if (!fcmapg) return;
     fcmapb = (unsigned int *)malloc((mapsize+1) * sizeof(unsigned int));
     if (!fcmapb) return;
+#ifdef OLD_COLOR_INDEX
 
     for(i = 0; i < mapsize; i++){
       xcolor.pixel = i;
@@ -1814,6 +1791,7 @@ void b3dSnapshot_TIF(char *fname, int rgbmode, int *limits,
     glReadPixels(rpx, rpy, rpWidth, rpHeight,
                  GL_COLOR_INDEX, GL_UNSIGNED_INT, pixels);
     glFlush();
+#endif
   }
 
   /* DNM: change __vms to LITTLE_ENDIAN to work on PC */

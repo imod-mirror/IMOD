@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.5  2003/01/14 21:46:38  mast
+renamed dialog manager for imod
+
 Revision 1.1.2.4  2003/01/13 07:20:21  mast
 Added dialog manager class
 
@@ -33,18 +36,13 @@ Initial creation
 #define IMOD_DIALOG  1
 #define IMOD_IMAGE   2
 
-// Leave this in until plugins are dealt with
-#ifdef __cplusplus
-extern "C" {
-#endif
-
   // Include rather than forward declare - Ilist has no structure name
 #include "ilist.h"
 
-  // Forward declarations (XtWorkProcId from X11/Intrinsic.h)
+#ifndef IMODP_H
   typedef struct ViewInfo ImodView;
+#endif
   class QKeyEvent;
-  typedef unsigned long      XtWorkProcId;
   class QString;
   class QWidget;
 
@@ -74,7 +72,7 @@ typedef struct imod_control_list
   int          active;
   int          top;
   int          reason;
-  XtWorkProcId workID;
+  int          workID;
 }ImodControlList;
 
 
@@ -83,6 +81,7 @@ void ivwControlListDrawCancel(ImodView *iv);
 void ivwControlListDraw(ImodView *iv, int reason);
 void ivwControlListDelete(ImodView *iv);
 void ivwControlKey(/*ImodView *iv,*/ int released, QKeyEvent *e);
+void ivwWorkProc(ImodView *iv);
 
        /* The functions from imod.h */
 /****************************************************************************/
@@ -125,13 +124,6 @@ int ivwControlPriority(ImodView *iv, int inCtrlId);
  */
 void ivwControlActive(ImodView *iv, int inCtrlId);    
 
-// An orphan until use of imod_input.h is controlled
-void inputQDefaultKeys(QKeyEvent *event, ImodView *vw);
-
-#ifdef __cplusplus
-}
-#endif
-
 // A dialog manager class for hiding, showing, and closing windows in concert
 class DialogManager
 {
@@ -151,11 +143,5 @@ class DialogManager
 /* Global instances */
 extern DialogManager imodvDialogManager;
 extern DialogManager imodDialogManager;
-
-
-/* Another orphan until title stuff is moved somewhere or imodP.h is readable
-   with c++ in it */
-QString imodCaption(char *intro);
-
 
 #endif

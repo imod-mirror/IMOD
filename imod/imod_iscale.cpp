@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.1  2003/01/23 19:57:06  mast
+Qt version
+
 Revision 3.1.2.1  2003/01/13 01:15:42  mast
 changes for Qt version of info window
 
@@ -52,10 +55,12 @@ Changes to get clean compilation with g++
 
 #include "imod_iscale.h"
 #include "imod.h"
+#include "imod_display.h"
 #include "imod_io.h"
 #include "imod_info_cb.h"
 #include "control.h"
 #include "dia_qtutils.h"
+#include "xcramp.h"
 
 struct{
   ImageScaleWindow *dia;

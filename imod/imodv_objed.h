@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.3  2003/01/01 05:43:44  mast
+rationalizing toplevel versus dialog style
+
 Revision 1.1.2.2  2002/12/27 01:21:16  mast
 Qt version
 
@@ -23,9 +26,7 @@ initial creation
 #ifndef IMODV_OBJED_H
 #define IMODV_OBJED_H
 
-#ifndef IMODV_H
 typedef struct __imodv_struct ImodvApp;
-#endif
 #include <qwidget.h>
 class QGridLayout;
 class QFrame;

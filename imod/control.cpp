@@ -37,6 +37,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.5  2003/01/14 21:46:32  mast
+renamed dialog manager for imod
+
 Revision 1.1.2.4  2003/01/13 07:20:04  mast
 Adapted dialog manager calss from imodv_input
 
@@ -65,8 +68,10 @@ Eliminated conditional on USE_IMOD_CONTROL
 #include <math.h>
 #include <string.h>
 #include <qwidget.h>
+#include <qtimer.h>
 #include "imod.h"
 #include "control.h"
+#include "imod_workprocs.h"
 
 /* Structure used by dialog manager */
 typedef struct imodv_dialog
@@ -102,7 +107,6 @@ int ivwNewControl(ImodView *iv,
                   void *data)
 {
   ImodControl ctrl;
-  ImodControl *ctrlPtr;
   static int ctrlId  = 0;
   ctrl.userData = data;
   ctrl.draw_cb  = draw_cb;
@@ -124,7 +128,6 @@ int ivwNewControl(ImodView *iv,
     }
     iv->ctrlist->active = 0;
     iv->ctrlist->top    = 0;
-    iv->ctrlist->workID = (XtWorkProcId)0;
   }
   ctrlId++;
   ctrl.id = ctrlId;
@@ -165,7 +168,8 @@ static int removeControl(ImodView *iv, int inCtrlId, int callClose)
   ctrlPtr = (ImodControl *)ilistFirst(iv->ctrlist->list);
   while(ctrlPtr){
     if (ctrlPtr->id == inCtrlId){
-      (*ctrlPtr->close_cb)(iv, ctrlPtr->userData, 0);
+      if (callClose)
+        (*ctrlPtr->close_cb)(iv, ctrlPtr->userData, 0);
       ilistRemove(iv->ctrlist->list, element);
       ctrlPtr = (ImodControl *)ilistFirst(iv->ctrlist->list);
       if (ctrlPtr)
@@ -226,32 +230,29 @@ void ivwControlDraw(ImodView *iv, int reason, int inCtrlId)
 
 void ivwControlListDrawCancel(ImodView *iv)
 {
-  if (!iv->ctrlist) return;
-  if (!iv->ctrlist->workID) return;
-  XtRemoveWorkProc(iv->ctrlist->workID);
-  iv->ctrlist->workID = 0;
+  if (!iv->ctrlist)
+    return;
+  iv->timers->mControlTimer->stop();
 }
 
-Boolean ivwWorkProc(XtPointer client_data)
+void ivwWorkProc(ImodView *iv)
 {
-  ImodView *iv = (ImodView *)client_data;
 
   ImodControl *ctrlPtr;
 
   if ((!iv->ctrlist)||(!iv->ctrlist->list->size)){
-    iv->ctrlist->workID = 0;
-    return(True);
+    iv->timers->mControlTimer->stop();
+    return;
   }
 
   ctrlPtr = (ImodControl *)ilistNext(iv->ctrlist->list);
   if (!ctrlPtr){
-    iv->ctrlist->workID = 0;
-    return(True);
+    iv->timers->mControlTimer->stop();
+    return;
   }
   if (controlDebug)
     fprintf(stderr, "Drawing %d\n", ctrlPtr->id); 
   (*ctrlPtr->draw_cb)(iv, ctrlPtr->userData, iv->ctrlist->reason);
-  return(False);
 }
 
 /*
@@ -282,8 +283,7 @@ void ivwControlListDraw(ImodView *iv, int reason)
   }
 
   /* draw the rest of the windows. */
-  iv->ctrlist->workID = XtAppAddWorkProc
-    (App->context, (XtWorkProc)ivwWorkProc, (XtPointer)iv);
+  iv->timers->mControlTimer->start(1);
 
   /*     while(NULL != (ctrlPtr = ilistNext(iv->ctrlist->list))){
 	 (*ctrlPtr->draw_cb)(iv, ctrlPtr->userData, reason);

@@ -36,6 +36,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.9  2003/01/23 20:07:02  mast
+add include for imod_cont_copy
+
 Revision 1.1.2.8  2003/01/18 01:15:56  mast
 add include for cache filler
 
@@ -117,7 +120,10 @@ Added calls for cache filling
 #include "dia_qtutils.h"
 #include "imod_cachefill.h"
 #include "imod.h"
+#include "imod_display.h"
+#include "xcramp.h"
 #include "xzap.h"
+#include "imod_edit.h"
 #include "imod_info.h"
 #include "imod_info_cb.h"
 #include "imod_io.h"
@@ -131,6 +137,8 @@ Added calls for cache filling
 #include "imod_moviecon.h"
 #include "imod_model_edit.h"
 #include "imod_iscale.h"
+#include "b3dgfx.h"
+#include "autox.h"
 
 /****help text data include files*****/
 #include "imodhelp.h" 
@@ -357,8 +365,6 @@ void InfoWindow::editModelSlot(int item)
         }
         if (!hasdata) {
           /* delete object if it is empty */
-          if (App->rgba)
-            free_object_colors(imod, ob, ob);
           imodFreeObject(imod, ob);
           if (ob < obsave) 
             /*If this object is less than than the current
@@ -420,10 +426,6 @@ void InfoWindow::editObjectSlot(int item)
   case EOBJECT_MENU_DELETE: /* Delete */
     if (obj)
       if (dia_ask("Delete Object?")) {
-        if (App->rgba)
-          free_object_colors(App->cvi->imod,
-                             App->cvi->imod->cindex.object,
-                             App->cvi->imod->cindex.object);
         imodFreeObject(App->cvi->imod,
                        App->cvi->imod->cindex.object);
       }

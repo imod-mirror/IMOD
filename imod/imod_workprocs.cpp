@@ -1,13 +1,13 @@
-/*  IMOD VERSION 2.50
+/*  IMOD VERSION 2.7.9
  *
- *  imod_workprocs.c -- imod timer and background processing functions.
+ *  imod_workprocs.cpp -- imod timer and background processing functions.
  *
  *  Original author: James Kremer
  *  Revised by: David Mastronarde   email: mast@colorado.edu
  */
 
 /*****************************************************************************
- *   Copyright (C) 1995-2001 by Boulder Laboratory for 3-Dimensional Fine    *
+ *   Copyright (C) 1995-2003 by Boulder Laboratory for 3-Dimensional Fine    *
  *   Structure ("BL3DFS") and the Regents of the University of Colorado.     *
  *                                                                           *
  *   BL3DFS reserves the exclusive rights of preparing derivative works,     *
@@ -28,73 +28,95 @@
  *****************************************************************************/
 /*  $Author$
 
-    $Date$
+$Date$
 
-    $Revision$
+$Revision$
 
-    $Log$
-    Revision 3.5.2.1  2003/01/14 21:52:38  mast
-    include new movie controller include file
+$Log$
+Revision 1.1.2.1  2003/01/23 23:06:07  mast
+conversion to cpp
 
-    Revision 3.5  2002/12/01 15:34:41  mast
-    Changes to get clean compilation with g++
+Revision 3.5.2.1  2003/01/14 21:52:38  mast
+include new movie controller include file
 
-    Revision 3.4  2002/10/22 22:44:03  mast
-    Fixed bug that was exposed by the EXPOSE_HACK (needed to clear the
-    movietimeout value when done).  Eliminated unused code.
+Revision 3.5  2002/12/01 15:34:41  mast
+Changes to get clean compilation with g++
 
-    Revision 3.3  2002/09/11 04:33:40  mast
-    Correct comments on crashes from dual-processor to Ti 4600
+Revision 3.4  2002/10/22 22:44:03  mast
+Fixed bug that was exposed by the EXPOSE_HACK (needed to clear the
+movietimeout value when done).  Eliminated unused code.
 
-    Revision 3.2  2002/09/10 19:49:35  mast
-    Needed to flush events before movie image draw as well as after, to
-    prevent crashes possibly due to expose events after a resize with
-    Nvidia Ti 4600
+Revision 3.3  2002/09/11 04:33:40  mast
+Correct comments on crashes from dual-processor to Ti 4600
 
-    Revision 3.1  2002/01/28 16:47:12  mast
-    Fixed problem with movie rate counter when movie was stopped with mouse
-    button
+Revision 3.2  2002/09/10 19:49:35  mast
+Needed to flush events before movie image draw as well as after, to
+prevent crashes possibly due to expose events after a resize with
+Nvidia Ti 4600
+
+Revision 3.1  2002/01/28 16:47:12  mast
+Fixed problem with movie rate counter when movie was stopped with mouse
+button
 
 */
 
 #include <stdlib.h>
-#include <diaP.h>
+#include <qapplication.h>
+#include <qtimer.h>
 #include "imod.h"
+#include "imod_io.h"
+#include "imod_display.h"
+#include "imod_workprocs.h"
 #include "imod_moviecon.h"
+#include "control.h"
+
+
+ImodWorkproc::ImodWorkproc(ImodView *vw)
+{
+  mVi = vw;
+  mAutoSaveTimer = new QTimer(this);
+  mMovieTimer = new QTimer(this);
+  mControlTimer = new QTimer(this);
+  connect(mAutoSaveTimer, SIGNAL(timeout()), this, SLOT(autoSaveTimeout()));
+  connect(mMovieTimer, SIGNAL(timeout()), this, SLOT(movieTimeout()));
+  connect(mControlTimer, SIGNAL(timeout()), this, SLOT(controlTimeout()));
+}
+
 
 /*
- * Autosave workproc.
+ * Autosave timer
  *
  */
-static int AUTOSAVE_TIMEOUT = 300000;
 
-void imodv_anim(void);
-
-void imod_autosave_to(XtPointer client, XtIntervalId *id)
+void ImodWorkproc::autoSaveTimeout()
 {
-     if (Model)
-	  imod_autosave(Model);
-
-     XtAppAddTimeOut(Dia_context,  AUTOSAVE_TIMEOUT, imod_autosave_to, NULL);
+  if (mVi->imod)
+    imod_autosave(mVi->imod);
 }
 
 /* DNM: make negative numbers specify seconds instead of minutes */
 
-int imod_start_autosave()
+int imod_start_autosave(ImodView *vw)
 {
-    char *userto = getenv("IMOD_AUTOSAVE");
-    if (userto){
-	AUTOSAVE_TIMEOUT = atoi(userto);
-	if (AUTOSAVE_TIMEOUT == 0) 
-	    return(0);
-	else if (AUTOSAVE_TIMEOUT < 0)
-	    AUTOSAVE_TIMEOUT *= - 1000;
-	else 
-	    AUTOSAVE_TIMEOUT *= 60000;
-    }
+  int autosave_timeout = 300000;
+  char *userto = getenv("IMOD_AUTOSAVE");
+  if (userto){
+    autosave_timeout = atoi(userto);
+    if (autosave_timeout == 0) 
+      return(0);
+    else if (autosave_timeout < 0)
+      autosave_timeout *= - 1000;
+    else 
+      autosave_timeout *= 60000;
+  }
 
-     XtAppAddTimeOut(Dia_context, AUTOSAVE_TIMEOUT, imod_autosave_to, NULL);
-     return(0);
+  vw->timers->mAutoSaveTimer->start(autosave_timeout);
+  return(0);
+}
+
+void ImodWorkproc::controlTimeout()
+{
+  ivwWorkProc(mVi);
 }
 
 
@@ -129,145 +151,146 @@ int imod_start_autosave()
 #define MININTERVAL 1
 #endif
 
-static int display_busy, timer_fired;
 static int first_frame;
-void imodMovieProc(XtPointer client_data, XtIntervalId *id);
 
 static void xinput(void)
 {
-     XEvent event_return;
-     XFlush(XtDisplay(App->toplevel));
-     /* DNM: need to either mask for X events in the while, or process ALL
-	types of events; use (XtIMXevent | XtIMTimer) or XtIMAll in both
-	places */
-     while(XtAppPending(App->context) & XtIMXEvent){
-	  /*  fprintf(stderr, "processing X event..."); */
-	  XtAppProcessEvent(App->context, XtIMXEvent);
-	  /* fprintf(stderr, "back\n"); */
-     }
-     return;
+  QApplication::flush();
+  qApp->processEvents();
 }
 
 /* DNM: generalized routine to get increment and limits, and handle looping
    in the proper way */
-static void movie_inc(ImodView *vi, float *mouse, int *movie, int axis,
-		      int *show)
+void ImodWorkproc::movie_inc(ImodView *vi, float *mouse, int *movie, int axis,
+                      int *show)
 {
-     int start, end;
-     if (*movie != 0){
-	  *show = 1;
-	  *mouse += *movie * imcGetIncrement(vi, axis);
-	  imcGetStartEnd(vi, axis, &start, &end);
-	  if (axis == 3) {
-	       start++;
-	       end++;
-	  }
-	  if ( *mouse < start){
-	       if (imcGetLoopMode(vi))
-		    *mouse = end;
-	       else {
-		    *mouse = start;
-		    *movie *= -1;
-	       }
-	  }
-	  if ( *mouse > end){
-	       if (imcGetLoopMode(vi))
-		    *mouse = start;
-	       else {
-		    *mouse = end;
-		    *movie *= -1;
-	       }
-	  }
-     }
+  int start, end;
+  if (*movie != 0){
+    *show = 1;
+    *mouse += *movie * imcGetIncrement(vi, axis);
+    imcGetStartEnd(vi, axis, &start, &end);
+    if (axis == 3) {
+      start++;
+      end++;
+    }
+    if ( *mouse < start){
+      if (imcGetLoopMode(vi))
+        *mouse = end;
+      else {
+        *mouse = start;
+        *movie *= -1;
+      }
+    }
+    if ( *mouse > end){
+      if (imcGetLoopMode(vi))
+        *mouse = start;
+      else {
+        *mouse = end;
+        *movie *= -1;
+      }
+    }
+  }
 }
 
-void imodMovieTimer(XtPointer client_data, XtIntervalId *id)
+void ImodWorkproc::movieTimeout()
 {
-     struct ViewInfo *vi = (struct ViewInfo *)client_data;
-     if (display_busy) {
-          timer_fired = True;
-	  
-	  /* DNM 10/22/02: need to zero out this value to keep the startup 
-	     routine from clearing other timeouts by mistake */
-	  vi->movieTimeOut = 0;
-     } else
-          vi->movieTimeOut = XtAppAddTimeOut(Dia_context, MININTERVAL,
-					     imodMovieProc, client_data);
+  if (mVi->movieRunning < 0)
+    movieTimer();
+  else if (mVi->movieRunning > 0)
+    movieProc();
+  else
+    mMovieTimer->stop();
 }
 
-void imodMovieProc(XtPointer client_data, XtIntervalId *id)
+
+void ImodWorkproc::movieTimer()
 {
-     unsigned int interval; /* milliseconds */
-     struct ViewInfo *vi = (struct ViewInfo *)client_data;
-     int show = 0;
-     long drawflag = IMOD_DRAW_XYZ;
-     int start, end, signedint;
-     float timetmp;
+  struct ViewInfo *vi = mVi;
+  if (mDisplayBusy) {
+    mTimerFired = 1;
+          
+    /* DNM 10/22/02: need to zero out this value to keep the startup 
+       routine from clearing other timeouts by mistake */
+    vi->movieRunning = 0;
+  } else {
+    vi->movieRunning = 1;
+    mMovieTimer->start(MININTERVAL);
+  }
+}
 
-     /* Set flag that this routine is busy, and start the timer */
-     display_busy = True;
-     timer_fired = False;
-     interval = (unsigned int)(imcGetInterval() - 0.5);
-     vi->movieTimeOut = XtAppAddTimeOut(Dia_context, interval,
-					imodMovieTimer, client_data);
+void ImodWorkproc::movieProc()
+{
+  int interval; /* milliseconds */
+  struct ViewInfo *vi = mVi;
+  int show = 0;
+  int drawflag = IMOD_DRAW_XYZ;
+  int start, end, signedint;
+  float timetmp;
+
+  /* Set flag that this routine is busy, and start the timer */
+  mDisplayBusy = 1;
+  mTimerFired = 0;
+  interval = (int)(imcGetInterval() - 0.5);
+  vi->movieRunning = -1;
+  mMovieTimer->start(interval);
      
+  /* printf("movieProc(%d, %d, %d), xyz( %g, %g, %g)\n",
+     vi->xmovie, vi->ymovie, vi->zmovie, vi->xmouse, vi->ymouse,
+     vi->zmouse); */
+
+  movie_inc(vi, &vi->xmouse, &vi->xmovie, 0, &show);
+  movie_inc(vi, &vi->ymouse, &vi->ymovie, 1, &show);
+  movie_inc(vi, &vi->zmouse, &vi->zmovie, 2, &show);
+
+  timetmp = vi->ct;
+  movie_inc(vi, &timetmp, &vi->tmovie, 3, &show);
+  vi->ct = (int)timetmp;
+
+  if (vi->tmovie != 0){
+    vi->hdr = vi->image = &vi->imageList[vi->ct-1];
+    drawflag |= IMOD_DRAW_IMAGE;
+  }
      
-     /* printf("movieProc(%d, %d, %d), xyz( %g, %g, %g)\n",
-	    vi->xmovie, vi->ymovie, vi->zmovie, vi->xmouse, vi->ymouse,
-	    vi->zmouse); */
+  if (first_frame)
+    imcStartTimer();
+  else
+    imcReadTimer();
+  first_frame = 0;
 
-     movie_inc(vi, &vi->xmouse, &vi->xmovie, 0, &show);
-     movie_inc(vi, &vi->ymouse, &vi->ymovie, 1, &show);
-     movie_inc(vi, &vi->zmouse, &vi->zmovie, 2, &show);
+  /* If none of the axes has a movie, return; the mDisplayBusy flag will
+     keep the timer from restarting the movie, and it will clear 
+     movieTimeout */
+  if (!show)
+    return;
 
-     timetmp = vi->ct;
-     movie_inc(vi, &timetmp, &vi->tmovie, 3, &show);
-     vi->ct = (int)timetmp;
+  /* DNM 9/10/02: Process events before the draw to prevent expose events
+     from crashing with Ti 4600 */
+  xinput();
 
-     if (vi->tmovie != 0){
-	  vi->hdr = vi->image = &vi->imageList[vi->ct-1];
-	  drawflag |= IMOD_DRAW_IMAGE;
-     }
-     
-     if (first_frame)
-	  imcStartTimer();
-     else
-	  imcReadTimer();
-     first_frame = False;
+  /*  fprintf(stderr, "calling imodDraw..."); */
+  imodDraw(vi, drawflag);
+  /* fprintf(stderr, "back\n"); */
 
-     /* If none of the axes has a movie, return; the display_busy flag will
-	keep the timer from restarting the movie, and it will clear 
-	movieTimeout */
-     if (!show)
-	  return;
-
-     /* DNM 9/10/02: Process events before the draw to prevent expose events
-	from crashing with Ti 4600 */
-     xinput();
-
-     /*  fprintf(stderr, "calling imodDraw..."); */
-     imodDraw(vi, drawflag);
-     /* fprintf(stderr, "back\n"); */
-
-     /* Process all events to allow the timer to fire */
-     xinput();
-     display_busy = False;
-     if (timer_fired) 
-          vi->movieTimeOut = XtAppAddTimeOut
-	    (Dia_context, MININTERVAL, imodMovieProc, client_data);
+  /* Process all events to allow the timer to fire */
+  xinput();
+  mDisplayBusy = 0;
+  if (mTimerFired) {
+    vi->movieRunning = 1;
+    mMovieTimer->start(MININTERVAL);
+  }
 }
 
 static int setmovievar(int set, int movie)
 {
-     switch(set){
-	case 0:
-	  return (0);
-	case MOVIE_DEFAULT:
-	  return movie;
-	default:
-	  if (movie) return (0);
-	  return(set);
-     }
+  switch(set){
+  case 0:
+    return (0);
+  case MOVIE_DEFAULT:
+    return movie;
+  default:
+    if (movie) return (0);
+    return(set);
+  }
 }
 
 /* Modify the movie flags and restart movie if needed:
@@ -275,26 +298,26 @@ static int setmovievar(int set, int movie)
    0 to stop the movie, and MOVIE_DEFAULT to leave it unmodified */
 int imodMovieXYZT(struct ViewInfo *vi, int x, int y, int z, int t)
 {
-     unsigned int interval; /* milliseconds */
+  unsigned int interval; /* milliseconds */
      
-     vi->xmovie = setmovievar(x, vi->xmovie);
-     vi->ymovie = setmovievar(y, vi->ymovie);
-     vi->zmovie = setmovievar(z, vi->zmovie);
-     vi->tmovie = setmovievar(t, vi->tmovie);
+  vi->xmovie = setmovievar(x, vi->xmovie);
+  vi->ymovie = setmovievar(y, vi->ymovie);
+  vi->zmovie = setmovievar(z, vi->zmovie);
+  vi->tmovie = setmovievar(t, vi->tmovie);
 
-     if (vi->movieTimeOut){
-	  XtRemoveTimeOut(vi->movieTimeOut);
-	  vi->movieTimeOut = 0;
-     }
+  if (vi->movieRunning){
+    vi->timers->mMovieTimer->stop();
+    vi->movieRunning = 0;
+  }
 
-     interval = (unsigned int)(imcGetInterval() + 0.5);
+  interval = (unsigned int)(imcGetInterval() + 0.5);
 
-     /* DNM 1/25/02: test whether the omvie is ending before setting 
-	first_frame */
-     if (vi->xmovie || vi->ymovie || vi->zmovie || vi->tmovie)
-	  first_frame = True;
+  /* DNM 1/25/02: test whether the omvie is ending before setting 
+     first_frame */
+  if (vi->xmovie || vi->ymovie || vi->zmovie || vi->tmovie)
+    first_frame = 1;
      
-     vi->movieTimeOut = 
-	  XtAppAddTimeOut(Dia_context, interval, imodMovieProc, (XtPointer)vi);
-     return 0;
+  vi->movieRunning = 1;
+  vi->timers->mMovieTimer->start(interval);
+  return 0;
 }

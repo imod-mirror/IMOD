@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.1  2003/01/23 19:57:06  mast
+Qt version
+
 Revision 3.3  2002/12/01 15:34:41  mast
 Changes to get clean compilation with g++
 
@@ -64,6 +67,8 @@ Changed include of libgen.h to be on sun only
 #include <qvbuttongroup.h>
 #include "imod_cont_copy.h"
 #include "imod.h"
+#include "imod_display.h"
+#include "imod_edit.h"
 #include "control.h"
 
 /* These have to be maintained as indexes for the combo box */
@@ -101,6 +106,7 @@ static struct
   /* Copy from information. */
   int   currentTime;
   int   currentSection;    /* DNM 11/30/02: change from float to int */
+  int   currentObject;
 }
 
 ThisDialog = 
@@ -199,7 +205,7 @@ static int copyContour(Icont *cont)
 
   case COPY_TO_TIME:
   case COPY_TO_NEXT_TIME:
-    toObj   = imodObjectGet(ThisDialog.vw->imod);
+    toObj   = &ThisDialog.vw->imod->obj[ThisDialog.currentObject];
     cont->type = ThisDialog.timeIndex;
     imodObjectAddContour(toObj, cont);
     break;
@@ -393,7 +399,7 @@ void ContourCopy::update()
 
 void ContourCopy::apply()
 {
-  char *badCopy = "\nCopy operation cancelled.\n";
+  char *badCopy = "Copy operation cancelled.  ";
   /*     char *badObjectErrorMsg = 
          "\nCopy operation cancelled.\n"
          "Object out of range or invalid\n.";
@@ -406,7 +412,7 @@ void ContourCopy::apply()
   int ob, co, errcode, maxcont;
 
   if (!obj){
-    wprint("\n%sBad input object.\n",badCopy);
+    wprint("\a%sBad input object.\n",badCopy);
     return;
   }
 
@@ -417,7 +423,7 @@ void ContourCopy::apply()
          ThisDialog.copyOperation == COPY_TO_CURRENT || 
          ThisDialog.copyOperation == COPY_TO_TIME))) {
     if ((!cont) || (cont->psize <= 0)){
-      wprint("\n%sBad input contour.\n", badCopy);
+      wprint("\a%sBad input contour.\n", badCopy);
       return;
     }
     
@@ -431,7 +437,7 @@ void ContourCopy::apply()
     if ((ThisDialog.objectNumber < 1) ||
         (ThisDialog.objectNumber > imod->objsize) ||
         (ThisDialog.objectNumber == imod->cindex.object + 1)){
-      wprint("%sBad destination object.\n", badCopy);
+      wprint("\a%sBad destination object.\n", badCopy);
       return;
     }
     break;
@@ -447,7 +453,7 @@ void ContourCopy::apply()
     if ((ThisDialog.sectionNumber <= 0) || 
         ( ThisDialog.sectionNumber > ThisDialog.vw->zsize ) ||
         (ThisDialog.currentSection + 1 == ThisDialog.sectionNumber)){
-      wprint("%sBad destination section.\n", badCopy);
+      wprint("\a%sBad destination section.\n", badCopy);
       return;
     }
     break;
@@ -457,7 +463,7 @@ void ContourCopy::apply()
     if ((ThisDialog.timeIndex > ThisDialog.vw->nt) ||
         ( ThisDialog.timeIndex < 1) || 
         (ThisDialog.timeIndex ==  ThisDialog.vw->ct)) {
-      wprint("%sBad destination time index.\n", badCopy);
+      wprint("\a%sBad destination time index.\n", badCopy);
       return;
     }
     break;
@@ -467,7 +473,7 @@ void ContourCopy::apply()
   case COPY_TO_NEXT_SECTION:
     ThisDialog.currentSection = (int)floor(cont->pts->z + 0.5);
     if (ThisDialog.currentSection == (ThisDialog.vw->zsize - 1)){
-      wprint("%sNext section invalid.\n", badCopy);
+      wprint("\a%sNext section invalid.\n", badCopy);
       return;
     }
     ThisDialog.sectionNumber = ThisDialog.currentSection + 2;
@@ -476,7 +482,7 @@ void ContourCopy::apply()
   case COPY_TO_PREV_SECTION:
     ThisDialog.currentSection = (int)floor(cont->pts->z + 0.5);
     if (!ThisDialog.currentSection){
-      wprint("%sPrevious section invalid.\n", badCopy);
+      wprint("\a%sPrevious section invalid.\n", badCopy);
       return;
     }
     ThisDialog.sectionNumber = ThisDialog.currentSection;
@@ -495,6 +501,7 @@ void ContourCopy::apply()
       if (!(ThisDialog.doAllObj || ob == imod->cindex.object))
         continue;
 
+      ThisDialog.currentObject = ob;
       obj = &imod->obj[ob];
       maxcont = obj->contsize;
 
@@ -554,23 +561,30 @@ void ContourCopy::buttonPressed(int which)
        "selected contours in the current object to a selected section, "
        "object or time index.\n",
        "If copying to a section or time index, only contours matching "
-       "the time or section number of the current contour will be copied.\n\n",
+       "the section number or time of the current contour will be copied.\n\n",
        
-       "The Filter settings can be used to filter out contours "
-       "if copying all contours in an object and/or points.  "
-       "The surface number is used to select contours of a given "
-       "surface only.  See the menu item Edit->Contour->Type.  "
-       "The label matching strings can contain special characters "
-       "for pattern matching.  These characters are '?', '*', and "
-       "'\\'.  The '?' charactor is a wildcard character that matches "
-       "a single character.  The '*' character is a wildcard character "
-       "that matches any number of characters.  The '\\' character is "
-       "used to override the special meaning of characters,"
-       "ie \\? \\* \\\\\n\n",
-       "Select Apply to execute the copy operation using the current "
+       "The selection box provides options for copying contours to "
+       "a particular object, to a particular section, or to a different time "
+       "index.  In each of these cases, the spin box will be active and allow "
+       "you to select or enter the number of the object, section, or time "
+       "the contours will be copied to.  In addition, you can select copying "
+       "to the next or previous section, or duplicating contours on the same "
+       "section.  In these cases the spin box is inactive.\n\n"
+
+       "The radio buttons determine the number of contours copied.  The "
+       "standard choices are to copy just the current contour, all contours "
+       "with the same surface number, or all contours in the object.  Again, "
+       "only those contours matching the section or time index of the current "
+       "contour will be copied when copying to a section or time index, while "
+       "all eligible contours in an object will be copied when copying to "
+       "another object.\n"
+       "When copying to a time index, another option is available, to copy "
+       "all contours in all objects from the current time index to the "
+       "selected time index.\n\n"
+       "Push Apply to execute the copy operation using the current "
        "settings.\n",
-       "Select Done to close the dialog without doing any "
-       "copy operation.\n\n",
+       "Push Done to close the dialog without doing any "
+       "copy operation.",
        NULL);
     break;
   }

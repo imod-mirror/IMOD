@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.2.2.5  2003/01/04 03:42:20  mast
+simplified closing logic
+
 Revision 3.2.2.4  2002/12/14 05:23:42  mast
 backing out the fancy subclass, adjusting for new visual detection
 
@@ -56,92 +59,86 @@ Added resizeSkipDraw to prevent redraws during resize
 #ifndef XZAP_H
 #define XZAP_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+class ZapWindow;
+class ZapGL;
+typedef struct b3d_ci_image B3dCIImage;
 
-  class ZapWindow;
-  class ZapGL;
+void zapClosing(struct zapwin *zap);
+void zapPaint(struct zapwin *zap);
+void zapResize(struct zapwin *zap, int winx, int winy);
+void zapKeyInput(struct zapwin *zap, QKeyEvent *e);
+void zapKeyRelease(struct zapwin *zap, QKeyEvent *e);
+void zapMousePress(struct zapwin *zap, QMouseEvent *e);
+void zapMouseRelease(struct zapwin *zap, QMouseEvent *e);
+void zapMouseMove(struct zapwin *zap, QMouseEvent *e);
+void zapHelp(void);
+void zapEnteredZoom(struct zapwin *zap, float newZoom);
+void zapEnteredSection(struct zapwin *zap, int section);
+void zapStepZoom(struct zapwin *zap, int step);
+void zapStateToggled(struct zapwin *zap, int index, int state);
+void zapPrintInfo(struct zapwin *zap);
+void zapStepTime(struct zapwin *zap, int step);
+void zapDrawSymbol(int mx, int my, unsigned char sym, unsigned char size,
+                   unsigned char flags);
+int  imod_zap_open(struct ViewInfo *vi);
 
-  void zapClosing(struct zapwin *zap);
-  void zapPaint(struct zapwin *zap);
-  void zapResize(struct zapwin *zap, int winx, int winy);
-  void zapKeyInput(struct zapwin *zap, QKeyEvent *e);
-  void zapKeyRelease(struct zapwin *zap, QKeyEvent *e);
-  void zapMousePress(struct zapwin *zap, QMouseEvent *e);
-  void zapMouseRelease(struct zapwin *zap, QMouseEvent *e);
-  void zapMouseMove(struct zapwin *zap, QMouseEvent *e);
-  void zapHelp(void);
-  void zapEnteredZoom(struct zapwin *zap, float newZoom);
-  void zapEnteredSection(struct zapwin *zap, int section);
-  void zapStepZoom(struct zapwin *zap, int step);
-  void zapStateToggled(struct zapwin *zap, int index, int state);
-  void zapPrintInfo(struct zapwin *zap);
-  void zapStepTime(struct zapwin *zap, int step);
-  void zapDrawSymbol(int mx, int my, unsigned char sym, unsigned char size,
-		     unsigned char flags);
-  int  imod_zap_open(struct ViewInfo *vi);
+typedef struct zapwin
+{
+  ZapWindow *qtWindow;               /* Zap window widget. */
+  ZapGL *gfx;                  /* Image sub window.  */
+  int    winx,      winy;      /* Image window size. */
+  int    xborder,   yborder;   /* border around image window. */
+  int    xstart,    ystart;
+  int    xdrawsize, ydrawsize;
+  int    xtrans,    ytrans,    ztrans;
+  int    lmx,       lmy;
 
-  typedef struct zapwin
-  {
-    ZapWindow *qtWindow;               /* Zap window widget. */
-    ZapGL *gfx;                  /* Image sub window.  */
-    int    winx,      winy;      /* Image window size. */
-    int    xborder,   yborder;   /* border around image window. */
-    int    xstart,    ystart;
-    int    xdrawsize, ydrawsize;
-    int    xtrans,    ytrans,    ztrans;
-    int    lmx,       lmy;
+  int    ginit;
 
-    int    ginit;
+  int    hqgfx, hide;
+  int    hqgfxsave;           /* Place to save hqgfx when dragging */
+  int    resizedraw2x;        /* Flag to draw twice after resize */
+  int    resizeSkipDraw;      /* Flag  to skip drawing during resize */
+  int    drawCurrentOnly;
+  // XtIntervalId exposeTimeOut; /* Timeouts during expose cascade */
 
-    int    hqgfx, hide;
-    int    hqgfxsave;           /* Place to save hqgfx when dragging */
-    int    resizedraw2x;        /* Flag to draw twice after resize */
-    int    resizeSkipDraw;      /* Flag  to skip drawing during resize */
-    int    drawCurrentOnly;
-    // XtIntervalId exposeTimeOut; /* Timeouts during expose cascade */
+  int rubberband;    /* Rubber banding flag and corner coordinates */
+  int bandllx;
+  int bandurx;
+  int bandlly;
+  int bandury;
 
-    int rubberband;    /* Rubber banding flag and corner coordinates */
-    int bandllx;
-    int bandurx;
-    int bandlly;
-    int bandury;
+  int movieSnapCount; /* Counter if this window is doing movie snapshots */
 
-    int movieSnapCount; /* Counter if this window is doing movie snapshots */
+  float  zoom;
+  char   *data;
 
-    float  zoom;
-    char   *data;
+  /* The graphic image buffer. */
+  B3dCIImage *image;
 
-    /* The graphic image buffer. */
-    B3dCIImage *image;
+  int section;
+  int sectionStep; /* auto step image after new model point. */
+  int time;
+  int lock;
+  int keepcentered;
+  int mousemode;
+  int popup;
+  int   toolSection;
+  float toolZoom;
+  int   toolTime;
 
-    int section;
-    int sectionStep; /* auto step image after new model point. */
-    int time;
-    int lock;
-    int keepcentered;
-    int mousemode;
-    int popup;
-    int   toolSection;
-    float toolZoom;
-    int   toolTime;
+  short insertmode;
+  short showslice;
 
-    short insertmode;
-    short showslice;
+  /* Pointer to view and control sturctures. */
+  ImodView    *vi;
+  int         ctrl;
+  int toolstart;
 
-    /* Pointer to view and control sturctures. */
-    ImodView    *vi;
-    int         ctrl;
-    int toolstart;
+  /* Special, lock time */
+  int    timeLock;
+  int    twod;
 
-    /* Special, lock time */
-    int    timeLock;
-    int    twod;
-
-  }ZapStruct;
-#ifdef __cplusplus
-}
-#endif
+}ZapStruct;
 
 #endif

@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 1.1.2.14  2003/01/23 20:10:18  mast
+    Add include of imod_input
+
     Revision 1.1.2.13  2003/01/18 01:13:24  mast
     remove X workproc stuff
 
@@ -91,12 +94,19 @@
 #endif
 #endif
 
+// Movie timer intervals in standalone and model view modes
+#define STANDALONE_INTERVAL 1
+#define MODELVIEW_INTERVAL 10
+
 #include <qtimer.h>
 #include <qcursor.h>
+#include <qapplication.h>
 #include "imodv_window.h"
 #include <math.h>
 #include "imodv.h"
 #include "imod.h"
+#include "imod_edit.h"
+#include "b3dgfx.h"
 #include "imod_input.h"
 #include "control.h"
 #include "imodv_menu.h"
@@ -111,6 +121,7 @@
 #include "imodv_image.h"
 #include "imodv_objed.h"
 #include "imodv_movie.h"
+#include "dia_qtutils.h"
 
 
 static void imodv_light_move(ImodvApp *a);
@@ -135,18 +146,17 @@ static unsigned int rightDown = 0;
 void imodvQuit()
 {
   ImodvApp *a = Imodv;
-  ImodvClosed = True;
+  ImodvClosed = 1;
 
   stereoHWOff();
   imodvDialogManager.close();
 
-  // a->topLevel = 0;
   imodMatDelete(a->mat);
   imodMatDelete(a->rmat);
   delete a->rbgcolor;
   if (a->standalone) {
     // imod_info_input();   // This made it crash
-    exit(0);
+    QApplication::exit(0);
   }
   return;
 }
@@ -156,7 +166,8 @@ void imodv_exit(ImodvApp *a)
   stereoHWOff();
 
   if (a->standalone){
-    exit(0);
+    QApplication::exit(0);
+    return;
   }
   a->mainWin->close();
   return;
@@ -336,7 +347,7 @@ void imodvKeyPress(QKeyEvent *event)
     break;
   case Qt::Key_8:
     if (a->drawall)
-      a->drawall = False;
+      a->drawall = 0;
     else
       a->drawall = 3;
     imeSetViewData(a->drawall);
@@ -392,9 +403,9 @@ void imodvKeyPress(QKeyEvent *event)
       break;
     if (!a->movie){
       a->md->xrotm = a->md->yrotm = a->md->zrotm =0;
-      a->movie = True;
+      a->movie = 1;
     }else{
-      a->movie = False;
+      a->movie = 0;
       a->md->xrotm = a->md->yrotm = a->md->zrotm = 0;
     }
     break;
@@ -545,7 +556,7 @@ void imodvMouseRelease(QMouseEvent *event)
   rightDown = event->stateAfter() & Qt::RightButton;
   if ((event->button() & Qt::MidButton) && 
       !(event->state() & Qt::ShiftButton))
-    imodv_rotate(a, True);
+    imodv_rotate(a, 1);
 }
 
 
@@ -568,7 +579,7 @@ void imodvMouseMove(QMouseEvent *event)
     if (event->state() & Qt::ShiftButton)
       imodv_light_move(a);
     else 
-      imodv_rotate(a, False);
+      imodv_rotate(a, 0);
   }
   a->lmx = event->x();
   a->lmy = event->y();
@@ -723,13 +734,8 @@ static void imodv_compute_rotation(ImodvApp *a, float x, float y, float z)
     a->md->zrotm = (INT)z;
     /* DNM: new workproc approach, start it here and go on */
     if (!a->wpid) {
-#ifdef USE_IMODV_WORKPROC
-      a->wpid = XtAppAddWorkProc(a->context, 
-                                 (XtWorkProc)imodv_movie_wp, 
-                                 (XtPointer)a);
-#else
-      a->wpid = a->mainWin->mTimer->start(1, false);
-#endif
+      a->wpid = a->mainWin->mTimer->start
+        (a->standalone ? STANDALONE_INTERVAL : MODELVIEW_INTERVAL, false);
       a->movieFrames = 0;
       a->movieStart = imodv_sys_time();
     }
@@ -850,26 +856,21 @@ static void imodv_rotate(ImodvApp *a, int throwFlag)
       dy = (my - b2y);
       if (dx * dx + dy * dy < MIN_SQUARE_TO_THROW) {
         a->md->xrotm = a->md->yrotm = a->md->zrotm = 0;
-        a->movie = False;
+        a->movie = 0;
         return;
       }
 
       idx = (int)(MOUSE_TO_THROW * dy + 0.5);
       idy = (int)(MOUSE_TO_THROW * dx + 0.5);
       if (!idx && !idy)
-        a->movie = False;
+        a->movie = 0;
       a->md->xrotm = idx;
       a->md->yrotm = idy;
       a->md->zrotm = 0;
       /* DNM: new workproc approach, start it here */
       if (a->movie && !a->wpid) {
-#ifdef USE_IMODV_WORKPROC
-        a->wpid = XtAppAddWorkProc(a->context, 
-                                   (XtWorkProc)imodv_movie_wp, 
-                                   (XtPointer)a);
-#else
-        a->wpid = a->mainWin->mTimer->start(1, false);
-#endif
+        a->wpid = a->mainWin->mTimer->start
+          (a->standalone ? STANDALONE_INTERVAL : MODELVIEW_INTERVAL, false);
         a->movieFrames = 0;
         a->movieStart = imodv_sys_time();
       }
@@ -883,7 +884,7 @@ static void imodv_rotate(ImodvApp *a, int throwFlag)
 
   /* Turn off movie for all rotation axis. DNM add movie flag too */
   a->md->xrotm = a->md->yrotm = a->md->zrotm = 0;
-  a->movie = False;
+  a->movie = 0;
 
   /* Get the total x and y movement. */
   dx = (mx - a->lmx);
@@ -1007,13 +1008,13 @@ static void imodvSelect(ImodvApp *a)
   a->yPick = a->winy - y;
 
   a->wPick = a->hPick = 10;
-  a->doPick = True;
+  a->doPick = 1;
      
   glInitNames();
      
   imodvDraw(a);
 
-  a->doPick = False;
+  a->doPick = 0;
   hits = glRenderMode( GL_RENDER );
   processHits(a, hits, buf);
 

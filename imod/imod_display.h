@@ -9,6 +9,9 @@
 $Date$
 
 $Log$
+Revision 1.1.2.3  2003/01/01 05:41:31  mast
+add stereo testing to qt visual selection
+
 Revision 1.1.2.2  2002/12/17 18:37:08  mast
 Adding a declaration
 
@@ -19,6 +22,10 @@ Initial creation
 
 #ifndef IMOD_DISPLAY_H
 #define IMOD_DISPLAY_H
+
+typedef struct ViewInfo ImodView;
+typedef struct imod_application ImodApp;
+typedef struct Mod_Model Imod;
 
 typedef struct imodglvisual {
   int doubleBuffer;
@@ -40,15 +47,18 @@ typedef struct imodglrequest {
   int stereo;
 } ImodGLRequest;
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-  void imodAssessVisuals();
-  void imodFindQGLFormat(ImodApp *ap, char **argv);
-  ImodGLVisual *imodFindGLVisual(ImodGLRequest request);
+void imodAssessVisuals();
+int imodFindQGLFormat(ImodApp *ap, char **argv);
+ImodGLVisual *imodFindGLVisual(ImodGLRequest request);
 
-#ifdef __cplusplus
-}
-#endif
+int  imod_display_init(ImodApp *ap, char **argv);
+int  imod_color_init(ImodApp *ap);
+void imod_cmap(Imod *m);
+void imodSetObjectColor(int ob);
+int  imodDraw(ImodView *vw, int flag);
+ int mapcolor(int color, int red, int green, int blue);
+char *ImodRes_SGIStereoCommand(void);
+char *ImodRes_SGIRestoreCommand(void);
+
 
 #endif

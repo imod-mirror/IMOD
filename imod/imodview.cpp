@@ -34,6 +34,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.2  2003/01/23 20:12:25  mast
+initialize new ghostdist variable
+
 Revision 1.1.2.1  2003/01/18 01:12:48  mast
 convert to cpp
 
@@ -75,13 +78,15 @@ logic for cache filling
 #include <math.h>
 #include <string.h>
 #include "imod_cachefill.h"
-#include "mrcfiles.h"
 #include "imod.h"
+#include "imod_display.h"
 #include "imod_info_cb.h"
 #include "imod_io.h"
 #include "imod_moviecon.h"
 #include "imod_iscale.h"
 #include "iproc.h"
+#include "autox.h"
+#include "imod_workprocs.h"
 
 static int ivwSetCacheFromList(ImodView *iv, Ilist *ilist);
 char Ivw_string[64];
@@ -116,7 +121,6 @@ unsigned char *ivwGetZSectionTime(ImodView *iv, int section, int time)
 {
   int oldTime;
   unsigned char *imageData;
-  FILE *fp;
 
   if (!iv) return NULL;
   if (!iv->nt) return(ivwGetZSection(iv, section));
@@ -311,10 +315,9 @@ void ivwInit(ImodView *vi)
   vi->xysize = 0;
 
   vi->nt = 0; vi->ct = 0;
-  vi->nw = 1; vi->cw = 0;
      
   imcSetMovierate(vi, 0);
-  /*     vi->movierate  = 0; */
+
   vi->vmSize     = 0;
   vi->black      = 0;
   vi->white      = 255;
@@ -329,10 +332,9 @@ void ivwInit(ImodView *vi)
 
   vi->imageList  = NULL;
 
-  vi->movieWorkProc = 0;
-  vi->movieTimeOut  = 0;
   vi->movieInterval = 17L;
-  vi->movieProc     = NULL;
+  vi->timers = new ImodWorkproc(vi);
+  vi->movieRunning = 0;
   vi->ghostmode = 0;
   vi->ghostlast = IMOD_GHOST_SECTION;
   vi->ghostdist = 1;
@@ -483,11 +485,9 @@ int ivwLoadMrc(ImodView *vi)
   int xsize = vi->li->xmax - vi->li->xmin + 1;
   int ysize = vi->li->ymax - vi->li->ymin + 1;
   int zsize = vi->li->zmax - vi->li->zmin + 1;
-  int dzsize = zsize;
-  int i,k;
+  int i;
   int eret;
   int t;
-  struct MRCheader savehdr;
 
   /* DNM 1/25/02: move the setting of these variable up from the bottom
      so that movie controller is OK if it's opened before loading is done,
@@ -645,10 +645,9 @@ int ivwSetScale(ImodView *vi)
 /* flip a tomogram */
 int ivwFlip(ImodView *vw)
 {
-  unsigned char **idata, **tidata;
+  unsigned char **idata;
   unsigned char *trow, *tflag;
   unsigned char *inrow, *outrow;
-  int inrow_y, inrow_z, outrow_y, outrow_z, outrow_i;
   int nx, ny, nz;
   int i, j, k, t;
   int kstore, nextk;
@@ -1287,7 +1286,6 @@ void ivwCheckWildFlag(Imod *imod)
  */
 IrefImage *ivwGetImageRef(ImodView *iv)
 {
-  Imod  *imod = iv->imod;
   IrefImage *ref = (IrefImage *) malloc (sizeof(IrefImage));
   float xscale, yscale, zscale;
   float xtrans, ytrans, ztrans;
@@ -1545,7 +1543,6 @@ static void ivwManageInitialFlips(ImodView *iv)
 /* Load images initially, use for all kinds of data */
 int ivwLoadImage(ImodView *iv)
 {
-  int flipit;
   Ilist *ilist;
 
   if (iv->fakeImage){
@@ -1590,497 +1587,494 @@ int ivwLoadImage(ImodView *iv)
     return(ivwSetCacheFromList(iv, ilist)); 
   }
 
-  /*
+  /*  DNM removed IFDEF here
    * In case we want to finish allowing plugins to
    * install their own image reading formats.
    */
-#ifdef IMOD_PLUG_FILE_USED
-  if (imodPlugLoaded(IMOD_PLUG_FILE)){
-    /* Let plugin load file. */
 
-  }else{
-#endif
+  /*  if (imodPlugLoaded(IMOD_PLUG_FILE)){ */
+  /* Let plugin load file. */
+  
+  /* }else { */
 
-    /* DATA OTHER THAN IMAGE LISTS AND MULTIPLE FILE DATA */
+  /* DATA OTHER THAN IMAGE LISTS AND MULTIPLE FILE DATA */
+ 
+  /* check load info is up to date for image header. */
+  mrc_fix_li(iv->li, iv->image->nx, iv->image->ny, iv->image->nz);
+  
+  /* load image data into contiguous memory, if possible */
+  iv->li->contig = 1; 
      
-    /* check load info is up to date for image header. */
-    mrc_fix_li(iv->li, iv->image->nx, iv->image->ny, iv->image->nz);
-
-    /* load image data into contiguous memory, if possible */
-    iv->li->contig = 1; 
+  /* print load status */
+  wprint("Image size %d x %d, %d sections.\n",
+         iv->li->xmax - iv->li->xmin + 1,
+         iv->li->ymax - iv->li->ymin + 1,
+         iv->li->zmax - iv->li->zmin + 1);
      
-    /* print load status */
-    wprint("Image size %d x %d, %d sections.\n",
-           iv->li->xmax - iv->li->xmin + 1,
-           iv->li->ymax - iv->li->ymin + 1,
-           iv->li->zmax - iv->li->zmin + 1);
-     
-    /* copy limits to image structure, in case loading is via cache */
-    iv->image->llx = iv->li->xmin;
-    iv->image->lly = iv->li->ymin;
-    iv->image->llz = iv->li->zmin;
-    iv->image->urx = iv->li->xmax;
-    iv->image->ury = iv->li->ymax;
-    iv->image->urz = iv->li->zmax;
+  /* copy limits to image structure, in case loading is via cache */
+  iv->image->llx = iv->li->xmin;
+  iv->image->lly = iv->li->ymin;
+  iv->image->llz = iv->li->zmin;
+  iv->image->urx = iv->li->xmax;
+  iv->image->ury = iv->li->ymax;
+  iv->image->urz = iv->li->zmax;
 
-    loadingImage = 1;
-    if (ivwLoadMrc(iv)){
-      fprintf(stderr, "Imod: Error loading image data.\n");
-      loadingImage = 0;
-          
-      return(-1);
-    }
+  loadingImage = 1;
+  if (ivwLoadMrc(iv)){
+    fprintf(stderr, "Imod: Error loading image data.\n");
     loadingImage = 0;
-     
-
-    if (App->depth == 8)
-      ivwScale(iv);
-     
-    ivwManageInitialFlips(iv);
-
-    return(0);
-  }
-
-
-
-  /*****************************************************************************/
-  /*****************************************************************************/
-  /**** IMOD IFD Files. ****/
-  /*****************************************************************************/
-  /*****************************************************************************/
-  /*
-   * Instead of loading an mrc image file imod can load in a text file that
-   * gives a list of mrc images to load.
-   *
-   *****************************************************************************/
-
-  /* Returns the type of image file. 
-   *   0 = Unknown, may be MRC,TIFF image file.
-   *   1 = Is an IMOD image list version 0 or 1
-   *   2 = Is an IMOD image list version 2
-   */
-  int imodImageFileDesc(FILE *fin)
-    {
-      int isifd = 0;
-      char buf[128];
-
-      if (!fin) return 0;
-
-      rewind(fin);
-      imodFgetline(fin, buf, 127);
-
-      if (0 == strncmp("IMOD image list", buf, 15))
-        isifd = 1;
-
-      if (isifd){
-        isifd = 0;
-
-        while((imodFgetline(fin, buf, 127) > 0)){
-          if (!strncmp("VERSION", buf, 7)){
-            isifd = atoi(&buf[8]);
-            if (!isifd)
-              isifd = 1;
-            rewind(fin);
-            return(isifd);
-          }
-        }
-      }
-      rewind(fin);
-      return(isifd);
-    }
-
-  /* Load the IMOD image list file description. */
-#define IFDLINE_SIZE 255
-  int ivwLoadIMODifd(ImodView *iv)
-    {
-      Ilist *ilist = ilistNew(sizeof(ImodImageFile), 32);
-      ImodImageFile *image;
-      char line[IFDLINE_SIZE + 1];
-      int retcode = 0, i;
-      FILE *fin;
-      struct LoadInfo *li;
-      int xsize = 0, ysize = 0, zsize, dzsize, eret;
-      int version = 0;
-
-      char *imgdir = NULL;
-
-      rewind(iv->fp);
-      imodFgetline(iv->fp, line, IFDLINE_SIZE);
-
-      while((imodFgetline(iv->fp, line, IFDLINE_SIZE) > 0)){
-
-        wprint("%s\n\r",line);
-        imod_info_input();
-
-        /* clear the return from the line. */
-        for(i = 0; line[i]; i++)
-          if (line[i] == '\n'){
-            line[i] = 0x00;
-            break;
-          }
-
-        if (!strncmp("VERSION", line, 7)){
-          version = atoi(&line[8]);
-          continue;
-        }
-
-        /* supply size in case first file is not found. */
-        if (!strncmp("SIZE", line, 4)){
-          sscanf(line, "SIZE %d%*c%d%*c%d\n", &xsize, &ysize, &zsize);
-          continue;
-        }
-
-        /* define a root pathname for all image files. */
-        if (!strncmp("IMGDIR", line, 6)){
-          if (imgdir) free(imgdir);
-          imgdir = strdup(&line[7]);
-          continue;
-        }
-
-        /* DNM: XYZ label now supported; require one image file */
-        if (!strncmp("XYZ", line, 3)){
-
-          li = iv->li;            
-          if (ilist->size == 1)
-            image = (ImodImageFile *)ilistItem(ilist, ilist->size - 1);
-          else {
-            fprintf(stderr, "IMOD Error: " 
-                    "Image list file must specify one image file"
-                    " before the XYZ option.\n");
-            exit(-1);
-          }
-          iiPlistLoadF(iv->fp, li, 
-                       image->nx, image->ny, image->nz);
-
-          if (li->xmin != -1)
-            li->xmin -= (int)li->opx;
-          if (li->xmax != -1)
-            li->xmax -= (int)li->opx;
-          if (li->ymin != -1)
-            li->ymin -= (int)li->opy;
-          if (li->ymax != -1)
-            li->ymax -= (int)li->opy;
-          if (li->zmin != -1)
-            li->zmin -= (int)li->opz;
-          if (li->zmax != -1)
-            li->zmax -= (int)li->opz;
-          xsize = (int)li->px;
-          ysize = (int)li->py;
-          zsize = (int)li->pz;
-          mrc_fix_li(li, xsize, ysize, zsize);
-
-          ivwSetCacheSize(iv);
-
-          iv->li->axis = 3;
-          iv->flippable = 0;
-          continue;
-        }
-
-        if (!strncmp("TIME", line, 4)){
-          if (ilist->size) {
-            image = (ImodImageFile *)ilistItem(ilist, ilist->size - 1);
-            if (image->description)
-              free(image->description);
-            image->description = strdup(&line[5]);
-          }
-          continue;
-        }
-
-        if (!strncmp("IMAGE", line, 5)){
-          /* Load image file */
-          int pathlen = strlen(&line[6]);
-          char *filename = NULL;
-               
-          if (imgdir){
-            pathlen += strlen(imgdir);
-            filename = (char *)malloc(pathlen + 3);
-            strcpy(filename, imgdir);
-            strcat(filename, &line[6]);
-          }else{
-            filename = strdup(&line[6]);
-          }
-          image = iiOpen(filename, "r");
-          if (!image){
-            if (!xsize || !ysize) {
-              fprintf(stderr, "IMOD Error: " 
-                      "couldn't open %s, first file in image list,"
-                      "\n and no SIZE specified before this.\n",
-                      filename);
-              exit(-1);
-            }
-            wprint("warning couldn't open %s\n\r",
-                   filename);
-            printf("warning couldn't open %s\n", filename);
-            perror("OSerr");
-            image = iiNew();
-            image->nx = xsize;
-            image->ny = ysize;
-            image->nz = zsize;
-            image->filename = strdup(filename);
-          }
-          /* DNM: set up scaling for this image */
-          iiSetMM(image, (double)iv->li->smin, (double)iv->li->smax);
-          iiClose(image);
-
-          /* DNM: Make filename with directory stripped be the default 
-             descriptor */
-          pathlen = strlen(filename);
-          while (( pathlen > 0) && (filename[pathlen-1] != '/'))
-            pathlen--;
-          image->description = strdup(&filename[pathlen]);
-
-          ilistAppend(ilist, image);
-          /* set xsize etc from size of first file if not set */
-          if (!xsize && !ysize) {
-            xsize = image->nx;
-            ysize = image->ny;
-            zsize = image->nz;
-          }
-
-          /* DNM: set time and increment time counter here, not with
-             the TIME label */
-          image->time = iv->nt;
-          iv->nt++;
-
-          if (filename)
-            free(filename);
-          continue;
-        }
-
-        fprintf(stderr, "imod warning: "
-                "Unknown image list option (%s)\n", line);
-
-      }
-      rewind(iv->fp);
-      /* end of while (getline) */
-
-      retcode = ivwSetCacheFromList(iv, ilist);
-
-      if (imgdir)free(imgdir);
-      return(retcode);
-
-    }
-
-  void ivwMultipleFiles(ImodView *iv, char *argv[], int firstfile, int lastimage)
-    {
-      Ilist *ilist = ilistNew(sizeof(ImodImageFile), 32);
-      ImodImageFile *image;
-      int pathlen, i;
-      int xsize = 0, ysize = 0, zsize;
-
-      for (i = firstfile; i <= lastimage; i++) {
-        image = iiOpen(argv[i], "r");
-        if (!image){
-          fprintf(stderr, "IMOD Error: " 
-                  "couldn't open image file %s.\n", argv[i]);
-          exit(-1);
-        }
-
-        /* set up scaling for this image */
-        iiSetMM(image, (double)iv->li->smin, (double)iv->li->smax);
-        iv->fp = image->fp;
-        iiClose(image);
-
-        image->time = iv->nt;
-        iv->nt++;
-
-        /* Copy filename with directory stripped to the descriptor */
-        pathlen = strlen(argv[i]);
-        while (( pathlen > 0) && (argv[i][pathlen-1] != '/'))
-          pathlen--;
-        image->description = strdup(&argv[i][pathlen]);
-        ilistAppend(ilist, image);
-      }
-
-      /* save this in iv so it can be passed in call to ivwSetCacheFrom List */
-      iv->imageList = (ImodImageFile *)ilist;
-    }
-
-  static int ivwSetCacheFromList(ImodView *iv, Ilist *ilist)
-    {
-      ImodImageFile *image;
-      int retcode = 0;
-      int eret;
-      int xsize, ysize, zsize, i;
-      int rgbs = 0;
-
-      if (!ilist->size)
-        return -1;
-
-      if (!iv->li->plist) {
-     
-        /* First get minimum x, y, z sizes of all the files */
-        for (i = 0; i < ilist->size; i++) {
-          image = (ImodImageFile *)ilistItem(ilist, i);
-          if (!i || image->nx < xsize)
-            xsize = image->nx;
-          if (!i || image->ny < ysize)
-            ysize = image->ny;
-          if (!i || image->nz < zsize)
-            zsize = image->nz;
-        }     
-
-        /* Use this to fix the load-in coordinates, then use those to set the
-           lower left and upper right coords in each file */
-        mrc_fix_li(iv->li, xsize, ysize, zsize);
-        for (i = 0; i < ilist->size; i++) {
-          image = (ImodImageFile *)ilistItem(ilist, i);
-          image->llx = iv->li->xmin;
-          image->lly = iv->li->ymin;
-          image->llz = iv->li->zmin;
-          image->urx = iv->li->xmax;
-          image->ury = iv->li->ymax;
-          image->urz = iv->li->zmax;
-               
-          /* If not an MRC file or color file, set to no flipping ever */
-          if (image->file != IIFILE_MRC || 
-              image->format == IIFORMAT_RGB) {
-            iv->li->axis = 3;
-            iv->flippable = 0;
-          }
-
-          /* Add to count if RGB or not, to see if all the same type */
-          if (image->format == IIFORMAT_RGB)
-            rgbs++;
-        }     
-      } else {
-
-        /* For montage, see if it is rgb */
-        image = (ImodImageFile *)ilistItem(ilist, 0);
-        if (image->format == IIFORMAT_RGB)
-          rgbs = 1;
-      }
-
-      if (rgbs) {
-        if (rgbs < ilist->size) {
-          fprintf(stderr, "IMOD Error: Only %d files out of %d are "
-                  "RGB type and all files must be.\n", rgbs, ilist->size);
-          exit(-1);
-        }
-               
-        if (!App->rgba) {
-          fprintf(stderr, "IMOD Error: You must start Imod with "
-                  "the -rgb option to display RGB files.\n");
-          exit(-1);
-        }
-        
-        /* Set the flag for storing raw images, and set rgba to indicate
-           the number of bytes being stored */
-        App->rgba = 3;
-        iv->rawImageStore = 1;
-      }
-
-      xsize = iv->li->xmax - iv->li->xmin + 1;
-      ysize = iv->li->ymax - iv->li->ymin + 1;
-      zsize = iv->li->zmax - iv->li->zmin + 1;
-
-      if (ilist->size == 1){
-
-        iv->hdr = iv->image = iiNew();
-        if (!iv->image){
-          fprintf(stderr, "Not enough memory.\n"); exit(-1);
-        }
-        memcpy(iv->image, ilist->data, sizeof(ImodImageFile));
-        iiReopen(iv->image);
-        iv->ct = iv->nt = 0;
-
-      } else {
-        iv->imageList = (ImodImageFile *)malloc
-          (sizeof(ImodImageFile) * ilist->size);
-        memcpy(iv->imageList, ilist->data,
-               sizeof(ImodImageFile) * ilist->size);
-        ivwSetTime(iv, 1);
-        iv->hdr = iv->image = iv->imageList;
-        /* mrc_init_li(iv->li, NULL);
-           mrc_fix_li(iv->li, xsize, ysize, zsize); */
-        iv->dim |= 8;
-      }
           
-      iv->xsize  = xsize;
-      iv->ysize  = ysize;
-      iv->zsize  = zsize;
-      iv->xysize = xsize * ysize;
+    return(-1);
+  }
+  loadingImage = 0;
+     
 
-      ivwSetCacheSize(iv);
-      ilistDelete(ilist);
-        
-      /* The first initialization of the cache has to be with unflipped 
-         dimensions regardless of whether it's going to be flipped, so save
-         and restore the axis flag */
-      i = iv->li->axis;
-      iv->li->axis = 3;
-      eret = ivwInitCache(iv);
-      iv->li->axis = i;
+  if (App->depth == 8)
+    ivwScale(iv);
+     
+  ivwManageInitialFlips(iv);
 
-      if (eret){
-        fprintf(stderr, "IMOD Fatal Error. init image cache. (%d)\n",
-                eret);
+  return(0);
+}
+
+
+
+/*****************************************************************************/
+/*****************************************************************************/
+/**** IMOD IFD Files. ****/
+/*****************************************************************************/
+/*****************************************************************************/
+/*
+ * Instead of loading an mrc image file imod can load in a text file that
+ * gives a list of mrc images to load.
+ *
+ *****************************************************************************/
+
+/* Returns the type of image file. 
+ *   0 = Unknown, may be MRC,TIFF image file.
+ *   1 = Is an IMOD image list version 0 or 1
+ *   2 = Is an IMOD image list version 2
+ */
+int imodImageFileDesc(FILE *fin)
+{
+  int isifd = 0;
+  char buf[128];
+
+  if (!fin) return 0;
+
+  rewind(fin);
+  imodFgetline(fin, buf, 127);
+
+  if (0 == strncmp("IMOD image list", buf, 15))
+    isifd = 1;
+
+  if (isifd){
+    isifd = 0;
+
+    while((imodFgetline(fin, buf, 127) > 0)){
+      if (!strncmp("VERSION", buf, 7)){
+        isifd = atoi(&buf[8]);
+        if (!isifd)
+          isifd = 1;
+        rewind(fin);
+        return(isifd);
+      }
+    }
+  }
+  rewind(fin);
+  return(isifd);
+}
+
+/* Load the IMOD image list file description. */
+#define IFDLINE_SIZE 255
+int ivwLoadIMODifd(ImodView *iv)
+{
+  Ilist *ilist = ilistNew(sizeof(ImodImageFile), 32);
+  ImodImageFile *image;
+  char line[IFDLINE_SIZE + 1];
+  int retcode = 0, i;
+  struct LoadInfo *li;
+  int xsize = 0, ysize = 0, zsize;
+  int version = 0;
+
+  char *imgdir = NULL;
+
+  rewind(iv->fp);
+  imodFgetline(iv->fp, line, IFDLINE_SIZE);
+
+  while((imodFgetline(iv->fp, line, IFDLINE_SIZE) > 0)){
+
+    wprint("%s\n\r",line);
+    imod_info_input();
+
+    /* clear the return from the line. */
+    for(i = 0; line[i]; i++)
+      if (line[i] == '\n'){
+        line[i] = 0x00;
+        break;
+      }
+
+    if (!strncmp("VERSION", line, 7)){
+      version = atoi(&line[8]);
+      continue;
+    }
+
+    /* supply size in case first file is not found. */
+    if (!strncmp("SIZE", line, 4)){
+      sscanf(line, "SIZE %d%*c%d%*c%d\n", &xsize, &ysize, &zsize);
+      continue;
+    }
+
+    /* define a root pathname for all image files. */
+    if (!strncmp("IMGDIR", line, 6)){
+      if (imgdir) free(imgdir);
+      imgdir = strdup(&line[7]);
+      continue;
+    }
+
+    /* DNM: XYZ label now supported; require one image file */
+    if (!strncmp("XYZ", line, 3)){
+
+      li = iv->li;            
+      if (ilist->size == 1)
+        image = (ImodImageFile *)ilistItem(ilist, ilist->size - 1);
+      else {
+        fprintf(stderr, "IMOD Error: " 
+                "Image list file must specify one image file"
+                " before the XYZ option.\n");
         exit(-1);
       }
-               
-      iv->li->imin = 0;
-      iv->li->imax = 255;
-      /*     iv->li->slope  = 1.0f;
-             iv->li->offset = 0.0f; */
+      iiPlistLoadF(iv->fp, li, 
+                   image->nx, image->ny, image->nz);
 
-      best_ivwGetValue = cache_ivwGetValue;
-      ivwSetScale(iv);
-      wprint("\r");
+      if (li->xmin != -1)
+        li->xmin -= (int)li->opx;
+      if (li->xmax != -1)
+        li->xmax -= (int)li->opx;
+      if (li->ymin != -1)
+        li->ymin -= (int)li->opy;
+      if (li->ymax != -1)
+        li->ymax -= (int)li->opy;
+      if (li->zmin != -1)
+        li->zmin -= (int)li->opz;
+      if (li->zmax != -1)
+        li->zmax -= (int)li->opz;
+      xsize = (int)li->px;
+      ysize = (int)li->py;
+      zsize = (int)li->pz;
+      mrc_fix_li(li, xsize, ysize, zsize);
 
-      ivwManageInitialFlips(iv);
-      imod_info_input();
-      return(retcode);
+      ivwSetCacheSize(iv);
+
+      iv->li->axis = 3;
+      iv->flippable = 0;
+      continue;
     }
 
-  /* plugin utility functions.*/
-  void ivwGetImageSize(ImodView *inImodView, int *outX, int *outY, int *outZ)
-    {
-      *outX = inImodView->xsize;
-      *outY = inImodView->ysize;
-      *outZ = inImodView->zsize;
-    }
-
-
-  Imod *ivwGetModel(ImodView *inImodView)
-    {
-      if (inImodView == NULL) 
-        return(NULL);
-      return(inImodView->imod);
-    }
-
-  int  ivwDraw(ImodView *inImodView, int inFlags)
-    {
-      imodDraw(inImodView, inFlags);
-      return(0);
-    }
-
-  void ivwGetRamp(ImodView *inImodView, int *outRampBase, int *outRampSize)
-    {
-      *outRampBase = inImodView->rampbase;
-      *outRampSize = inImodView->rampsize;
-    }
-
-  int  ivwGetObjectColor(ImodView *inImodView, int inObject)
-    {
-      Iobj *obj;
-      int objIndex = 0;
-
-      /* check that inObject is within range. */
-      if (inObject < 0)
-        return(objIndex);
-      if (inObject >= inImodView->imod->objsize)
-        return(objIndex);
-     
-      obj = &(inImodView->imod->obj[inObject]);
-     
-      if (App->depth <= 8){
-        obj->fgcolor = App->objbase - inObject;
-      }else{
-        obj->fgcolor = App->objbase + inObject;
+    if (!strncmp("TIME", line, 4)){
+      if (ilist->size) {
+        image = (ImodImageFile *)ilistItem(ilist, ilist->size - 1);
+        if (image->description)
+          free(image->description);
+        image->description = strdup(&line[5]);
       }
-      objIndex = obj->fgcolor;
-      return(objIndex);
+      continue;
     }
+
+    if (!strncmp("IMAGE", line, 5)){
+      /* Load image file */
+      int pathlen = strlen(&line[6]);
+      char *filename = NULL;
+               
+      if (imgdir){
+        pathlen += strlen(imgdir);
+        filename = (char *)malloc(pathlen + 3);
+        strcpy(filename, imgdir);
+        strcat(filename, &line[6]);
+      }else{
+        filename = strdup(&line[6]);
+      }
+      image = iiOpen(filename, "r");
+      if (!image){
+        if (!xsize || !ysize) {
+          fprintf(stderr, "IMOD Error: " 
+                  "couldn't open %s, first file in image list,"
+                  "\n and no SIZE specified before this.\n",
+                  filename);
+          exit(-1);
+        }
+        wprint("warning couldn't open %s\n\r",
+               filename);
+        printf("warning couldn't open %s\n", filename);
+        perror("OSerr");
+        image = iiNew();
+        image->nx = xsize;
+        image->ny = ysize;
+        image->nz = zsize;
+        image->filename = strdup(filename);
+      }
+      /* DNM: set up scaling for this image */
+      iiSetMM(image, (double)iv->li->smin, (double)iv->li->smax);
+      iiClose(image);
+
+      /* DNM: Make filename with directory stripped be the default 
+         descriptor */
+      pathlen = strlen(filename);
+      while (( pathlen > 0) && (filename[pathlen-1] != '/'))
+        pathlen--;
+      image->description = strdup(&filename[pathlen]);
+
+      ilistAppend(ilist, image);
+      /* set xsize etc from size of first file if not set */
+      if (!xsize && !ysize) {
+        xsize = image->nx;
+        ysize = image->ny;
+        zsize = image->nz;
+      }
+
+      /* DNM: set time and increment time counter here, not with
+         the TIME label */
+      image->time = iv->nt;
+      iv->nt++;
+
+      if (filename)
+        free(filename);
+      continue;
+    }
+
+    fprintf(stderr, "imod warning: "
+            "Unknown image list option (%s)\n", line);
+
+  }
+  rewind(iv->fp);
+  /* end of while (getline) */
+
+  retcode = ivwSetCacheFromList(iv, ilist);
+
+  if (imgdir)free(imgdir);
+  return(retcode);
+
+}
+
+void ivwMultipleFiles(ImodView *iv, char *argv[], int firstfile, int lastimage)
+{
+  Ilist *ilist = ilistNew(sizeof(ImodImageFile), 32);
+  ImodImageFile *image;
+  int pathlen, i;
+
+  for (i = firstfile; i <= lastimage; i++) {
+    image = iiOpen(argv[i], "r");
+    if (!image){
+      fprintf(stderr, "IMOD Error: " 
+              "couldn't open image file %s.\n", argv[i]);
+      exit(-1);
+    }
+
+    /* set up scaling for this image */
+    iiSetMM(image, (double)iv->li->smin, (double)iv->li->smax);
+    iv->fp = image->fp;
+    iiClose(image);
+
+    image->time = iv->nt;
+    iv->nt++;
+
+    /* Copy filename with directory stripped to the descriptor */
+    pathlen = strlen(argv[i]);
+    while (( pathlen > 0) && (argv[i][pathlen-1] != '/'))
+      pathlen--;
+    image->description = strdup(&argv[i][pathlen]);
+    ilistAppend(ilist, image);
+  }
+
+  /* save this in iv so it can be passed in call to ivwSetCacheFrom List */
+  iv->imageList = (ImodImageFile *)ilist;
+}
+
+static int ivwSetCacheFromList(ImodView *iv, Ilist *ilist)
+{
+  ImodImageFile *image;
+  int retcode = 0;
+  int eret;
+  int xsize, ysize, zsize, i;
+  int rgbs = 0;
+
+  if (!ilist->size)
+    return -1;
+
+  if (!iv->li->plist) {
+     
+    /* First get minimum x, y, z sizes of all the files */
+    for (i = 0; i < ilist->size; i++) {
+      image = (ImodImageFile *)ilistItem(ilist, i);
+      if (!i || image->nx < xsize)
+        xsize = image->nx;
+      if (!i || image->ny < ysize)
+        ysize = image->ny;
+      if (!i || image->nz < zsize)
+        zsize = image->nz;
+    }     
+
+    /* Use this to fix the load-in coordinates, then use those to set the
+       lower left and upper right coords in each file */
+    mrc_fix_li(iv->li, xsize, ysize, zsize);
+    for (i = 0; i < ilist->size; i++) {
+      image = (ImodImageFile *)ilistItem(ilist, i);
+      image->llx = iv->li->xmin;
+      image->lly = iv->li->ymin;
+      image->llz = iv->li->zmin;
+      image->urx = iv->li->xmax;
+      image->ury = iv->li->ymax;
+      image->urz = iv->li->zmax;
+               
+      /* If not an MRC file or color file, set to no flipping ever */
+      if (image->file != IIFILE_MRC || 
+          image->format == IIFORMAT_RGB) {
+        iv->li->axis = 3;
+        iv->flippable = 0;
+      }
+
+      /* Add to count if RGB or not, to see if all the same type */
+      if (image->format == IIFORMAT_RGB)
+        rgbs++;
+    }     
+  } else {
+
+    /* For montage, see if it is rgb */
+    image = (ImodImageFile *)ilistItem(ilist, 0);
+    if (image->format == IIFORMAT_RGB)
+      rgbs = 1;
+  }
+
+  if (rgbs) {
+    if (rgbs < ilist->size) {
+      fprintf(stderr, "IMOD Error: Only %d files out of %d are "
+              "RGB type and all files must be.\n", rgbs, ilist->size);
+      exit(-1);
+    }
+               
+    if (!App->rgba) {
+      fprintf(stderr, "IMOD Error: You must start Imod with "
+              "the -rgb option to display RGB files.\n");
+      exit(-1);
+    }
+        
+    /* Set the flag for storing raw images, and set rgba to indicate
+       the number of bytes being stored */
+    App->rgba = 3;
+    iv->rawImageStore = 1;
+  }
+
+  xsize = iv->li->xmax - iv->li->xmin + 1;
+  ysize = iv->li->ymax - iv->li->ymin + 1;
+  zsize = iv->li->zmax - iv->li->zmin + 1;
+
+  if (ilist->size == 1){
+
+    iv->hdr = iv->image = iiNew();
+    if (!iv->image){
+      fprintf(stderr, "Not enough memory.\n"); exit(-1);
+    }
+    memcpy(iv->image, ilist->data, sizeof(ImodImageFile));
+    iiReopen(iv->image);
+    iv->ct = iv->nt = 0;
+
+  } else {
+    iv->imageList = (ImodImageFile *)malloc
+      (sizeof(ImodImageFile) * ilist->size);
+    memcpy(iv->imageList, ilist->data,
+           sizeof(ImodImageFile) * ilist->size);
+    ivwSetTime(iv, 1);
+    iv->hdr = iv->image = iv->imageList;
+    /* mrc_init_li(iv->li, NULL);
+       mrc_fix_li(iv->li, xsize, ysize, zsize); */
+    iv->dim |= 8;
+  }
+          
+  iv->xsize  = xsize;
+  iv->ysize  = ysize;
+  iv->zsize  = zsize;
+  iv->xysize = xsize * ysize;
+
+  ivwSetCacheSize(iv);
+  ilistDelete(ilist);
+        
+  /* The first initialization of the cache has to be with unflipped 
+     dimensions regardless of whether it's going to be flipped, so save
+     and restore the axis flag */
+  i = iv->li->axis;
+  iv->li->axis = 3;
+  eret = ivwInitCache(iv);
+  iv->li->axis = i;
+
+  if (eret){
+    fprintf(stderr, "IMOD Fatal Error. init image cache. (%d)\n",
+            eret);
+    exit(-1);
+  }
+               
+  iv->li->imin = 0;
+  iv->li->imax = 255;
+  /*     iv->li->slope  = 1.0f;
+         iv->li->offset = 0.0f; */
+
+  best_ivwGetValue = cache_ivwGetValue;
+  ivwSetScale(iv);
+  wprint("\r");
+
+  ivwManageInitialFlips(iv);
+  imod_info_input();
+  return(retcode);
+}
+
+/* plugin utility functions.*/
+void ivwGetImageSize(ImodView *inImodView, int *outX, int *outY, int *outZ)
+{
+  *outX = inImodView->xsize;
+  *outY = inImodView->ysize;
+  *outZ = inImodView->zsize;
+}
+
+
+Imod *ivwGetModel(ImodView *inImodView)
+{
+  if (inImodView == NULL) 
+    return(NULL);
+  return(inImodView->imod);
+}
+
+int  ivwDraw(ImodView *inImodView, int inFlags)
+{
+  imodDraw(inImodView, inFlags);
+  return(0);
+}
+
+void ivwGetRamp(ImodView *inImodView, int *outRampBase, int *outRampSize)
+{
+  *outRampBase = inImodView->rampbase;
+  *outRampSize = inImodView->rampsize;
+}
+
+int  ivwGetObjectColor(ImodView *inImodView, int inObject)
+{
+  Iobj *obj;
+  int objIndex = 0;
+
+  /* check that inObject is within range. */
+  if (inObject < 0)
+    return(objIndex);
+  if (inObject >= inImodView->imod->objsize)
+    return(objIndex);
+     
+  obj = &(inImodView->imod->obj[inObject]);
+     
+  if (App->depth <= 8){
+    obj->fgcolor = App->objbase - inObject;
+  }else{
+    obj->fgcolor = App->objbase + inObject;
+  }
+  objIndex = obj->fgcolor;
+  return(objIndex);
+}
 
       
   

@@ -34,6 +34,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.2  2003/01/23 20:01:04  mast
+Full Qt version
+
 Revision 1.1.2.1  2003/01/18 01:16:20  mast
 half Qt version
 
@@ -55,6 +58,7 @@ Make routine for parsing pixel size string
 #include <math.h>
 
 #include "imod.h"
+#include "imod_display.h"
 #include "imod_info_cb.h"
 #include "imod_model_edit.h"
 #include "imodv_modeled.h"
@@ -181,7 +185,7 @@ void ModelHeaderWindow::valueEntered()
   setFocus();
   HeaderDialog.vw->imod->zscale = mEditBox[0]->text().toFloat();
 
-  HeaderDialog.vw->imod->res = mEditBox[1]->text().toInt();
+  HeaderDialog.vw->imod->res = atoi(mEditBox[1]->text().latin1());
 
   setPixsizeAndUnits(HeaderDialog.vw->imod, 
                      (char *)mEditBox[2]->text().latin1());

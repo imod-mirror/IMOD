@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.1.2.1  2002/12/23 04:53:51  mast
+    Make routines for putting bytes, shorts, ints global and rename as iput...
+
     Revision 3.1  2002/12/01 15:34:41  mast
     Changes to get clean compilation with g++
 
@@ -51,7 +54,7 @@
 #endif
 #endif
 
-#include "b3dgfx.h"
+#include "b3dfile.h"
 
 void iputbyte(FILE *fout, unsigned char val)
 {

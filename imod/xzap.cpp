@@ -35,6 +35,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.15  2003/01/23 20:12:47  mast
+implement variable ghost distance
+
 Revision 1.1.2.14  2003/01/14 21:52:38  mast
 include new movie controller include file
 
@@ -122,9 +125,9 @@ Added hotkeys to do smoothing and next section in autocontouring
 #include <time.h>
 #endif
 
-#define NO_X_INCLUDES
-#include <diaP.h>
 #include "imod.h"
+#include "imod_display.h"
+#include "b3dgfx.h"
 #include "xzap.h"
 #include "control.h"
 #include "imodplug.h"
@@ -132,6 +135,10 @@ Added hotkeys to do smoothing and next section in autocontouring
 #include "imod_info_cb.h"
 #include "imod_input.h"
 #include "imod_moviecon.h"
+#include "autox.h"
+#include "imod_edit.h"
+#include "imod_workprocs.h"
+#include "dia_qtutils.h"
 
 #include "qcursor.bits"
 #include "qcursor_mask.bits"
@@ -314,7 +321,7 @@ void zapClosing(ZapStruct *zap)
 #endif
 
   // Do cleanup
-  zap->popup = False;
+  zap->popup = 0;
   if (movieSnapLock && zap->movieSnapCount)
     movieSnapLock = 0;
   ivwDeleteControl(zap->vi, zap->ctrl);
@@ -570,7 +577,7 @@ static int zapReallyDraw(ZapStruct *zap)
   }
 
   zapDrawModel(zap);
-  zapDrawCurrentPoint(zap, False);
+  zapDrawCurrentPoint(zap, 0);
   zapDrawAuto(zap);
   if (zap->rubberband) {
     b3dColorIndex(App->endpoint);
@@ -865,14 +872,14 @@ int imod_zap_open(struct ViewInfo *vi)
     zap->winy   = vi->ysize;
   zap->xtrans = zap->ytrans = 0;
   zap->ztrans = 0;
-  zap->hqgfx  = False;
-  zap->hide   = False;
+  zap->hqgfx  = 0;
+  zap->hide   = 0;
   zap->zoom   = 1.0;
   zap->data   = NULL;
   zap->image  = NULL;
-  zap->ginit  = False;
-  zap->lock   = False;
-  zap->keepcentered = False;
+  zap->ginit  = 0;
+  zap->lock   = 0;
+  zap->keepcentered = 0;
   zap->insertmode = 0;
   zap->toolstart = 0;
   zap->showslice = 0;
@@ -930,7 +937,7 @@ int imod_zap_open(struct ViewInfo *vi)
   zap->qtWindow->mToolBar->setLabel(imodCaption("ZaP Toolbar"));
   
   zap->ctrl = ivwNewControl(vi, zapDraw_cb, zapClose_cb, zapKey_cb,
-                            (XtPointer)zap);
+                            (void *)zap);
 
   /* DNM: this is the second call to this, which caused hanging when 
      imod_info_input tested on all events but dispatched only X events.
@@ -960,7 +967,7 @@ int imod_zap_open(struct ViewInfo *vi)
   //  zap->qtWindow->setGeometry(xleft, ytop, newWidth, newHeight);
 
   zap->qtWindow->show();
-  zap->popup = True;
+  zap->popup = 1;
 
 #ifdef XZAP_DEBUG
   puts("popup a zap dialog");
@@ -1042,10 +1049,11 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
   /* downtime.start(); */
 
   ivwControlPriority(zap->vi, zap->ctrl);
-  //  ivwControlActive(vi, 0);
-  // NO PLUGINS FOR A WHILE
-  //  if (imodPlugHandleKey(vi, event)) return;
-  //  ivwControlActive(vi, 1);
+  ivwControlActive(vi, 0);
+
+  if (imodPlugHandleKey(vi, event)) 
+    return;
+  ivwControlActive(vi, 1);
 
   /* DNM: set global insertmode from this zap's mode to get it to work
      right with Delete key */
@@ -2123,10 +2131,8 @@ static int doingBWfloat = 0;
 /* Draws the image.  Returns 1 if further drawing can be skipped */
 static int zapDrawGraphics(ZapStruct *zap)
 {
-  XGCValues val;
   ImodView *vi = zap->vi;
   unsigned char *pixptr;
-  Colorindex *data = (Colorindex *)zap->data;
   int i, j, x, y, z;
   int jsize, xlim;
   int xstop, ystop, ystep;
@@ -2138,7 +2144,8 @@ static int zapDrawGraphics(ZapStruct *zap)
 
   ivwGetLocation(vi, &x, &y, &z);
 
-  b3dSetCurPoint(x, y, zap->section);
+  // DNM eliminated unused function 1/23/03
+  // b3dSetCurPoint(x, y, zap->section);
 
   zoom = (int)zap->zoom;
 
@@ -2395,8 +2402,8 @@ static void zapDrawContour(ZapStruct *zap, int co, int ob)
     }
           
     if (!(cont->flags & ICONT_OPEN))
-      if (!( (co == Model->cindex.contour) &&
-             (ob == Model->cindex.object ))){
+      if (!( (co == vi->imod->cindex.contour) &&
+             (ob == vi->imod->cindex.object ))){
         point = &(cont->pts[0]);
         if (zapPointVisable(zap, point)){
           b3dVertex2i(zapXpos(zap, point->x),
@@ -2584,7 +2591,7 @@ static void zapDrawCurrentPoint(ZapStruct *zap, int undraw)
 static void zapDrawGhost(ZapStruct *zap)
 {
   int ob, co, i;
-  short red, green, blue;
+  int red, green, blue;
   float vert[2];
   struct Mod_Object *obj;
   struct Mod_Contour *cont;
@@ -2608,7 +2615,7 @@ static void zapDrawGhost(ZapStruct *zap)
   green = (int)((obj->green * 255.0) / 3.0);
   blue = (int)((obj->blue * 255.0) / 3.0);
 
-  b3dMapColor(App->ghost, red, green, blue); 
+  mapcolor(App->ghost, red, green, blue); 
   b3dColorIndex(App->ghost);  
 
   /* DNM: if it's RGB, just have to set the color here */

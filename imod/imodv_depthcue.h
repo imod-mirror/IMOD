@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.2  2002/12/23 04:51:01  mast
+Qt version
+
 Revision 1.1.2.1  2002/12/18 04:10:30  mast
 initial creation
 
@@ -20,9 +23,7 @@ initial creation
 #ifndef IMODV_DEPTHCUE_H
 #define IMODV_DEPTHCUE_H
 
-#ifndef IMODV_H
 typedef struct __imodv_struct ImodvApp;
-#endif
 
 #define DEPTHCUE_MIN 0
 #define DEPTHCUE_MAX 100

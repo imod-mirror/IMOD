@@ -34,6 +34,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.3  2003/01/06 15:49:46  mast
+Use imodCaption
+
 Revision 1.1.2.2  2003/01/04 03:48:41  mast
 Qt version
 
@@ -68,6 +71,7 @@ and made it raise itself when it redraws
 #include <qlayout.h>
 #include "pixelview.h"
 #include "imod.h"
+#include "imod_display.h"
 #include "control.h"
 #include "imod_input.h"
 

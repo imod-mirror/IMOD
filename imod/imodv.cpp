@@ -34,6 +34,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.8  2003/01/01 19:12:31  mast
+changes to start Qt application in standalone mode
+
 Revision 1.1.2.7  2003/01/01 05:46:29  mast
 changes for qt version of stereo
 
@@ -77,12 +80,9 @@ Added CVS header.  Changed to getting visuals then passing them to GLw.
 #include <math.h>
 #include <unistd.h>
 #include "imodv_window.h"
-// This had to be after the window include
-//#include <qxt.h>
 #include <qapplication.h>
 #include "dia_qtutils.h"
 
-#define NO_X_INCLUDES
 #include "imodv.h"
 #include "imod.h"
 #include "imod_display.h"
@@ -105,59 +105,12 @@ struct Mod_Draw Imodv_mdraw;
 ImodvApp *Imodv = &ImodvStruct;
 
 /* A global to indicate if the window is closed */
-int ImodvClosed = True;
+int ImodvClosed = 1;
 
 
 #define DEFAULT_XSIZE  512
 #define DEFAULT_YSIZE  512
 
-/* DNM: These fallback resources are needed in case there is no app-default
-   file */
-/*
-static String Imodv_fallback_resources[] = {
-  "*frame*shadowType: SHADOW_IN",
-  "*sgiMode: True",
-  "*useSchemes: all",
-  "*stereoCommand: /usr/gfx/setmon -n 640x512_120s",
-  "*restoreCommand: /usr/gfx/setmon -n 72HZ",
-  "*SGIStereoCommand: /usr/gfx/setmon -n STR_TOP",
-  "*SGIRestoreCommand: /usr/gfx/setmon -n 72HZ",
-  NULL,
-};
-*/
-
-/* DNM: There are default settings for the the stereo commands in case there
-   is an app-default file that doesn't define these resources, since the
-   fallback resources don't cover that case */
-/*
-static XtResource Imodv_resources[] = {
-  {"fullscreen", "FullScreen", XmRBoolean, sizeof(Boolean),
-   XtOffsetOf(ImodvApp, fullscreen), XmRImmediate, (XtPointer)False},
-  {"xsize", "XSize", XmRInt, sizeof(int),
-   XtOffsetOf(ImodvApp, winx), XmRImmediate, (XtPointer)DEFAULT_XSIZE},
-  {"ysize", "YSize", XmRInt, sizeof(int),
-   XtOffsetOf(ImodvApp, winy), XmRImmediate, (XtPointer)DEFAULT_YSIZE},
-  {"renderbackground", "RenderBackground", XmRString, sizeof(XColor),
-   XtOffsetOf(ImodvApp, rbgname), XmRImmediate, (XtPointer)"black"}, 
-  { "stereoCommand",
-    XtCString, XtRString, sizeof (_XtString),
-    XtOffsetOf(ImodvApp, stereoCommand),
-    XtRImmediate, (XtPointer) NULL },
-  { "restoreCommand",
-    XtCString, XtRString, sizeof (_XtString),
-    XtOffsetOf(ImodvApp, restoreCommand),
-    XtRImmediate, (XtPointer) NULL },
-  { "SGIStereoCommand",
-    XtCString, XtRString, sizeof (_XtString),
-    XtOffsetOf(ImodvApp, SGIStereoCommand),
-    XtRString, (XtPointer)"/usr/gfx/setmon -n STR_TOP" },
-  { "SGIRestoreCommand",
-    XtCString, XtRString, sizeof (_XtString),
-    XtOffsetOf(ImodvApp, SGIRestoreCommand),
-    XtRString, (XtPointer)"/usr/gfx/setmon -n 72HZ" }
-     
-};
-*/
 
 /* the default graphics rendering attributes for OpenGL */
 static ImodGLRequest True24 = {1, 1, 24, 1, 1};
@@ -233,10 +186,10 @@ static int imodv_init(ImodvApp *a, struct Mod_Draw *md)
   /* control flags */
   a->fastdraw   = 0;
   a->current_subset = 0;
-  a->crosset    = False;
-  a->fullscreen = False;
-  a->drawall    = False;
-  a->moveall    = True;
+  a->crosset    = 0;
+  a->fullscreen = 0;
+  a->drawall    = 0;
+  a->moveall    = 1;
   a->alpha      = 0;
   imodViewDefault(&a->view);
   a->view.cnear = 0.0f;
@@ -244,9 +197,9 @@ static int imodv_init(ImodvApp *a, struct Mod_Draw *md)
   a->doPick = 0;
   a->wPick = a->hPick = 5;
 
-  a->lighting  = True;
-  a->depthcue  = False;
-  a->wireframe = False;
+  a->lighting  = 1;
+  a->depthcue  = 0;
+  a->wireframe = 0;
   a->lowres = 0;
   a->SGIStereoCommand = NULL;
   a->SGIRestoreCommand = NULL;
@@ -257,7 +210,6 @@ static int imodv_init(ImodvApp *a, struct Mod_Draw *md)
 /* DNM 9/2/02: changed to call imodv_init for bulk of the initialization */
 static void initstruct(ImodView *vw, ImodvApp *a)
 {
-  Screen *screen;
 
   imodv_init(a, &Imodv_mdraw);
 
@@ -276,15 +228,13 @@ static void initstruct(ImodView *vw, ImodvApp *a)
   /* control flags */
   a->fullscreen = 0;
 
-  a->standalone = False;
+  a->standalone = 0;
   a->texMap  = 0;
   a->texTrans = 0;
   a->vi = vw;
 
-  a->context = App->context;
-
-  a->SGIStereoCommand  = (_XtString)ImodRes_SGIStereoCommand();
-  a->SGIRestoreCommand = (_XtString)ImodRes_SGIRestoreCommand();
+  a->SGIStereoCommand  = ImodRes_SGIStereoCommand();
+  a->SGIRestoreCommand = ImodRes_SGIRestoreCommand();
 
   imodViewStore(a->imod, 0);
   if (!a->imod->cview)
@@ -383,7 +333,7 @@ static int openWindow(ImodvApp *a)
   if (!a->mainWin)
     return 1;
 
-  ImodvClosed = False;
+  ImodvClosed = 0;
   imodvSetCaption();
 
   // If the user did not enter a window size, just resize to that before
@@ -471,7 +421,7 @@ static int load_models(int n, char **fname, ImodvApp *a)
 }
 
 // THE ENTRY POINT FOR STANDALONE IMODV
-int imodv_main(int argc, char **argv)
+int imodv_main(int argc, char **argv, int styleSet)
 {
   int i;
   ImodvApp *a = Imodv;
@@ -520,7 +470,8 @@ int imodv_main(int argc, char **argv)
     a->rbgcolor->setRgb(0, 0, 0);
 
   /* Set the style to windows for now because of HighColor problems on druid */
-  QApplication::setStyle("windows");
+  if (!styleSet)
+    QApplication::setStyle("windows");
   
   if (getVisuals(a) != 0) {
     fprintf(stderr, "imodv error: Couldn't get rendering visual.\n");
@@ -594,12 +545,8 @@ void imodv_open()
     return;
   }
 
-  // make application toplevel be toplevel here for X dialogs
-  a->topLevel = App->toplevel;
-
   if (openWindow(a)) {
     wprint("Failed to open model view window window.\n");
-    //    a->topLevel = 0;
     return;
   }
     

@@ -32,20 +32,15 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.0  2002/09/27 20:35:04  rickg
+Initital version of code moved from imod_menu_cb.c
+
 */
 /* imod_client_message.h */
 
 #ifndef IMOD_CLIENT_MESSAGE_H
 #define IMOD_CLIENT_MESSAGE_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-  void imodHandleClientMessage(Widget w, XtPointer client_data, XEvent *event);
-
-#ifdef __cplusplus
-}
-#endif
+bool imodHandleClientMessage(XEvent *event);
 
 #endif /* IMOD_CLIENT_MESSAGE_H */

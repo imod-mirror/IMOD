@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.8.2.16  2003/01/23 20:00:02  mast
+    Changes for Qt versions of final dialog boxes
+
     Revision 3.8.2.15  2003/01/18 01:06:34  mast
     remove imod_cachefill declarations
 
@@ -105,95 +108,72 @@
 #ifndef IMODP_H
 #define IMODP_H
 
-#include <Xm/Xm.h>
-
 #include <imodconfig.h>
 
-#define Colorindex unsigned short
-#define Device     unsigned short
-
 #include <stdio.h>
+#include <qstring.h>
+#define NO_X_INCLUDES
 #include <imodel.h> 
 #include <imodi.h>
-#include <dia.h>
-#include "b3dgfx.h"
-#include "autox.h"
+
+class QGLColormap;
 
 /* DNM 12/22/02: eliminated multiple view structures */
 typedef struct imod_application
 {
      struct ViewInfo *cvi; /* current view                    */     
 
-     Display     *display; /* Display charactoristics.        */
-     Visual      *visual;
-     XVisualInfo *visualinfo;
-     Colormap     cmap;
-     Widget       toplevel;
-     XtAppContext context;
-     int          depth;
-     int          doublebuffer;
-     int          rgba;
-     Visual      *visualGL;
-     XVisualInfo *visualinfoGL;
-     Colormap     cmapGL;
-     int         qtRgba;
-     int         qtDoubleBuffer;
-     int         qtEnableDepth;
-
-     /* Global color pixel values */
-     unsigned int base;
-     unsigned int objbase;
-     unsigned int curobj;
-     unsigned int background;
-     unsigned int foreground;
-     unsigned int select;
-     unsigned int shadow;
-     unsigned int endpoint;
-     unsigned int bgnpoint;
-     unsigned int curpoint;
-     unsigned int ghost;
-     unsigned int imodvbgcolor;
-
-     short wzoom;
+  QGLColormap *qColormap;
+  int          cmapID;
+  int          depth;
+  int          doublebuffer;
+  int          rgba;
+  int         qtRgba;
+  int         qtDoubleBuffer;
+  int         qtEnableDepth;
+  
+  /* Global color pixel values */
+  int base;
+  int objbase;
+  int background;
+  int foreground;
+  int select;
+  int shadow;
+  int endpoint;
+  int bgnpoint;
+  int curpoint;
+  int ghost;
+  
+  short wzoom;
 
 }ImodApp;
+
 extern ImodApp *App;
 
-typedef struct
-{
-     /* Resources */
-     char         *rbgname; /* background color */
-  int    wzoom;    /* 12/12/02: changed from Bool to int */
-
-#ifdef __sgi
-     _XtString    SGIStereoCommand;
-     _XtString    SGIRestoreCommand;
-#endif
-}ImodResourceStruct;
-
-extern ImodResourceStruct ImodResource;
-
 typedef struct imod_control_list ImodControlList;
+typedef struct imod_autox_struct Autox;
+typedef struct xbldrcoloramp Cramp;
+class ImodWorkproc;
 
 
 typedef struct
 {
-     int     cz;
-     int     ct;
-     int     used;
-     Islice *sec;
-
+  int     cz;
+  int     ct;
+  int     used;
+  Islice *sec;
+  
 }ivwSlice;
 
 /* used to show current slice */
 struct imod_showslice_struct
 {
-     int zx1, zx2;
-     int zy1, zy2;  
-     int xy1, xy2;
-     int xz1, xz2;
-     int yx1, yx2;
-     int yz1, yz2;     
+  int zx1, zx2;
+  int zy1, zy2;  
+  int xy1, xy2;
+  int xz1, xz2;
+  int yx1, yx2;
+  int yz1, yz2;     
 };
 
 
@@ -202,79 +182,75 @@ struct imod_showslice_struct
  */
 typedef struct ViewInfo
 {
-     unsigned char **idata;  /* 8 bit 3-D grey scale data. */
+  unsigned char **idata;  /* 8 bit 3-D grey scale data. */
 
-     int   xsize, ysize, zsize;      /* Size of idata */
-     int   xysize;                   /* section size. */
-     float  xmouse, ymouse, zmouse;   /* Current point in idata. */
+  int   xsize, ysize, zsize;      /* Size of idata */
+  int   xysize;                   /* section size. */
+  float  xmouse, ymouse, zmouse;   /* Current point in idata. */
 
-     int   nt, ct; /* number of time frames, current time.       */
-     int   nw, cw; /* number of wavelenghs, current wavelength.  */
+  int   nt, ct; /* number of time frames, current time.       */
 
-     struct LoadInfo *li; 
-     ImodImageFile   *image;
-     ImodImageFile   *imageList;
-     ImodImageFile   *hdr;
+  struct LoadInfo *li; 
+  ImodImageFile   *image;
+  ImodImageFile   *imageList;
+  ImodImageFile   *hdr;
 
-     int      vmSize;            /* virtual memory z-section size. */
-     ivwSlice *vmCache;          /* the cache of z-section data.   */
-     int      vmCount;           /* Use counter for cache */
-     int      vmLastUsed;        /* Index of last accessed section */
+  int      vmSize;            /* virtual memory z-section size. */
+  ivwSlice *vmCache;          /* the cache of z-section data.   */
+  int      vmCount;           /* Use counter for cache */
+  int      vmLastUsed;        /* Index of last accessed section */
 
-     /* Image data scaleing for gray scale images. */
-     int    rampbase;
-     int    rampsize;
-     int    black;
-     int    white;
+  /* Image data scaleing for gray scale images. */
+  int    rampbase;
+  int    rampsize;
+  int    black;
+  int    white;
 
-     /* motion control */
-     int movierate;
-     int xmovie, ymovie, zmovie, tmovie;
-     int movieWorkProc;
-     XtIntervalId  movieTimeOut;
-     int (*movieProc)();
-     unsigned int movieInterval;
+  /* motion control */
+  int movierate;
+  int xmovie, ymovie, zmovie, tmovie;
+  unsigned int movieInterval;  
+  int movieRunning;
+  ImodWorkproc *timers;       /* Class with QTimers */
 
-     /* XYZ slice points. */
-     struct imod_showslice_struct slice;
-     struct imod_showslice_struct lslice;
+  /* XYZ slice points. */
+  struct imod_showslice_struct slice;
+  struct imod_showslice_struct lslice;
 
-     /* Grey Scale Ramp Data. */
-     Cramp *cramp;
+  /* Grey Scale Ramp Data. */
+  Cramp *cramp;
 
-     /* THE MODEL */
-     Imod  *imod;
+  /* THE MODEL */
+  Imod  *imod;
 
-     /* Extra Window Data. */
+  /* Extra Window Data. */
   /* 12/7/02: zap not needed; 12/10/02 xyz not needed either */
-     Autox  *ax;
-     ImodControlList *ctrlist;
+  Autox  *ax;
+  ImodControlList *ctrlist;
 
-     /* Some Flags. */
-     int    dim;         /* bits 0..4, x, y, z, t */
-     int    obj_moveto;  /* default object to move contour to. */
-     int    ghostmode;
-     int    ghostlast;   /* last value of mode, when toggled by g */
-     int    ghostdist;    /* Maximum distance for ghosts */
-     int    insertmode;  /* insert points before/after current point. */
-     int    fastdraw;    
-     int    drawcursor;
-     int    ifd;
+  /* Some Flags. */
+  int    dim;         /* bits 0..4, x, y, z, t */
+  int    obj_moveto;  /* default object to move contour to. */
+  int    ghostmode;
+  int    ghostlast;   /* last value of mode, when toggled by g */
+  int    ghostdist;    /* Maximum distance for ghosts */
+  int    insertmode;  /* insert points before/after current point. */
+  int    fastdraw;    
+  int    drawcursor;
+  int    ifd;
 
      
-     int      flippable;     /* Flag that images can be y-z flipped */
-     short    fakeImage;     /* No real image data. */
-     short    rawImageStore; /* the MRC_MODE in which the raw image is stored. 
-			      * if not 0, data will be cached.
-			      * 0  = unsigned bytes.
-			      * 16 = color rgb unsigned byte triplets.
-			      */
+  int      flippable;     /* Flag that images can be y-z flipped */
+  short    fakeImage;     /* No real image data. */
+  short    rawImageStore; /* the MRC_MODE in which the raw image is stored. 
+                           * if not 0, data will be cached.
+                           * 0  = unsigned bytes.
+                           * 16 = color rgb unsigned byte triplets.
+                           */
 
-     /* Added to fix problem in version 2.00 Beta 5 */
-/*     ImodImageFile *imageList;*/
-     int            imageSize;
+  int            imageSize;
 
-     FILE   *fp;                /* current image file pointer.    */
+  FILE   *fp;                /* current image file pointer.    */
 
 }ImodView;
 
@@ -320,7 +296,6 @@ extern int Rampbase;
 
 /* colors for 8-bit systems */
 #define IMOD_MAX_INDEX  236
-#define IMOD_VIEWBG     (IMOD_MAX_INDEX - 1)
 #define IMOD_GHOST      (IMOD_MAX_INDEX - 2)
 #define IMOD_CURPOINT   (IMOD_MAX_INDEX - 3)
 #define IMOD_BGNPOINT   (IMOD_MAX_INDEX - 4)
@@ -329,7 +304,6 @@ extern int Rampbase;
 #define IMOD_SELECT     (IMOD_MAX_INDEX - 7)
 #define IMOD_FOREGROUND (IMOD_MAX_INDEX - 8)
 #define IMOD_BACKGROUND (IMOD_MAX_INDEX - 9)
-#define IMOD_CUROBJ     (IMOD_MAX_INDEX - 10)
 #define RAMPMAX         (IMOD_MAX_INDEX - 11)
 #define RAMPMIN         101
 #define IMOD_MIN_INDEX  16
@@ -355,11 +329,12 @@ extern int Rampbase;
 
 /****************************************************************************/
 /* Private functions for internal imod use.                                 */
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 void imod_quit(void);
+char *imodwfname(char *intro);
+char *imodwEithername(char *intro, char *filein, int modelFirst);
+char *imodwGivenName(char *intro, char *filein);
+QString imodCaption(char *intro);
 
 unsigned char *ivwGetCurrentSection(ImodView *iv);
 int ivwInitCache(ImodView *vi);
@@ -382,58 +357,10 @@ void ivwMultipleFiles(ImodView *iv, char *argv[], int firstfile,
 void ivwTransModel(ImodView *iv);
 void ivwSetModelTrans(ImodView *iv);
 void ivwFlipModel(ImodView *iv);
-void imodCheckWildFlag(Imod *imod);
 void ivwCheckWildFlag(Imod *imod);
 void ivwScaleDepth8(ImodView *iv, ivwSlice *tempSlicePtr);
 void ivwReadZ(ImodView *iv, unsigned char *buf, int cz);
 
-/* workprocs */
-int imod_start_autosave(void);
-int imodMovieXYZT(struct ViewInfo *vi, int x, int y, int z, int t);
-
-/* imod_display.c */
-int  imod_display_init(ImodApp *ap, char **argv, int *argc);
-int  imod_color_init(ImodApp *ap);
-void imod_cmap(Imod *m);
-void imodSetObjectColor(int ob);
-int  imodDraw(ImodView *vw, int flag);
-void imod_redraw_all(void);
-void stereoHardware(Widget w, int flag);
-void imodOverrideTranslations(Widget w, XtTranslations translations);
-void imodOverrideTransTable(Widget w, String table);
-int mapcolor(unsigned long color, 
-	     unsigned short red, 
-	     unsigned short green, 
-	     unsigned short blue);
-int alloc_object_colors(Imod *m, int obstart, int obend);
-int free_object_colors(Imod *m, int obstart, int obend);
-
-int handle_input(struct ViewInfo *vi);
-char *imodwfname(char *intro);
-char *imodwEithername(char *intro, char *filein, int modelFirst);
-char *imodwGivenName(char *intro, char *filein);
-int imodMovie(struct ViewInfo *vi);
-char *ImodRes_SGIStereoCommand(void);
-char *ImodRes_SGIRestoreCommand(void);
-
-
-/* imod_edit.c */
-int imod_setxyzmouse(void);
-void imod_contour_move(int ob);
-int imod_movepoint(int x, int y, int z);
-int imod_nearest(Imod *mod);
-int imod_obj_nearest(struct Mod_Object *obj, 
-		     struct Mod_Index *index,
-		     struct Mod_Point *pnt,
-		     float selsize);
-
-/* imod_model_draw.c */
-void imodDrawModel(Imod *imod);
-
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif     
 

@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.1  2003/01/23 19:59:15  mast
+Initial creation
+
 */
 
 #ifndef IMOD_CONT_EDIT_H
@@ -19,9 +22,8 @@ $Log$
 
 #define MAX_POINT_SIZE 999
 
-#ifndef IMODP_H
 typedef struct ViewInfo ImodView;
-#endif
+
 #include "dialog_frame.h"
 class QLabel;
 class QSpinBox;

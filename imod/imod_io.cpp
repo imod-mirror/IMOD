@@ -37,6 +37,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.7  2003/01/23 20:07:45  mast
+rely on imod_infor_setocp updating dialogs
+
 Revision 1.1.2.6  2003/01/13 01:15:42  mast
 changes for Qt version of info window
 
@@ -101,6 +104,9 @@ removed old version of imod_io_image_reload
 #include "imod_info.h"
 #include <qfiledialog.h>
 #include "imod.h"
+#include "imod_display.h"
+#include "xcramp.h"
+#include "dia_qtutils.h"
 #include "imod_info_cb.h"
 #include "imodv.h"
 #include "imod_io.h"
@@ -113,8 +119,6 @@ static void imod_undo_backup(void);
 static void imod_finish_backup(void);
 static int mapErrno(int errorCode);
 
-char Statstring[128];  /* used in function show_staus(); */
-char Inputstring[128];
 char Imod_filename[256] = {0x00};
 
 static char autosave_filename[266] = {0x00};
@@ -440,12 +444,13 @@ Imod *LoadModelFile(char *filename) {
   FILE *fin;
   Imod *imod;
   QString qname;
+  char *filter[] = {"Model files (*.*mod *.fid)"};
   
   lastError = IMOD_IO_SUCCESS;
 
   if (filename == NULL) {
-    qname = QFileDialog::getOpenFileName(QString::null, QString::null, 0, 0, 
-                                       "Select Model file to LOAD:");
+    qname = diaOpenFileName(NULL, "Select Model file to LOAD", 1, filter);
+  
     if (qname.isEmpty()) {
       lastError = IMOD_IO_READ_CANCEL;
       /*  show_status("File not selected. Model not loaded."); */
@@ -518,11 +523,7 @@ int openModel(char *modelFilename) {
 //  appear that they can fail.
 static void initModelData(Imod *newModel) {
 	      
-  /* DNM: for TrueColor, free colors of existing model and 
-     allocate colors for the new one */
-  if (App->rgba)
-    free_object_colors(App->cvi->imod, 0, App->cvi->imod->objsize - 1);
-
+  /* DNM 1/23/03: no longer free or allocate object colors */
   /* DNM: no longer causes a crash once we notify imodv of the
      new model */
   imodFree(App->cvi->imod);
@@ -539,9 +540,7 @@ static void initModelData(Imod *newModel) {
      newModel->obj[ob].fgcolor = App->objbase + ob;
   */
 
-  if (App->rgba)
-    alloc_object_colors(newModel, 0, newModel->objsize - 1);
-  else
+  if (!App->rgba)
     imod_cmap(App->cvi->imod);	  
 
   /* set up model name and notify imodv about the model */
@@ -608,11 +607,8 @@ int createNewModel(char *modelFilename) {
   imod_cleanup_autosave();
 
   mode = App->cvi->imod->mousemode;
-  /* DNM: for TrueColor, free colors of existing model and allocate
-     a color for the new one */
-  if (App->rgba)
-    free_object_colors(App->cvi->imod, 0, 
-                       App->cvi->imod->objsize - 1);
+
+  /* DNM 1/23/03: no longer free or allocate object colors */
   imodFree(App->cvi->imod);
   
   //  Allocate the new model
@@ -658,8 +654,6 @@ int createNewModel(char *modelFilename) {
 
   App->cvi->imod->mousemode = mode;
   imod_cmap(App->cvi->imod);
-  if (App->rgba)
-    alloc_object_colors(App->cvi->imod, 0, 0);
 
   /* Set the checksum to avoid save requests */
   App->cvi->imod->csum = imodChecksum(App->cvi->imod);

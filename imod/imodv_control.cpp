@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 1.1.2.11  2003/01/23 20:09:19  mast
+    update z scale in model-header dialog
+
     Revision 1.1.2.10  2003/01/18 01:10:17  mast
     add include of dia_qtutils
 
@@ -70,7 +73,6 @@
 #include <qstring.h>
 #include "formv_control.h"
 #include "dia_qtutils.h"
-#define NO_X_INCLUDES
 #include "imodv.h"
 #include "imodP.h"
 #include "imodv_control.h"
@@ -221,9 +223,9 @@ void imodvControlScale(float scale)
 void imodvControlStart(void)
 {
   if (Imodv->movie)
-    Imodv->movie = False;
+    Imodv->movie = 0;
   else
-    Imodv->movie = True;
+    Imodv->movie = 1;
   
   Imodv->md->xrotm = 0;
   Imodv->md->yrotm = 0;

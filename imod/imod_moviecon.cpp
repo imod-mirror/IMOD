@@ -32,6 +32,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.6  2003/01/14 22:00:26  mast
+fix aberrant character
+
 Revision 1.1.2.5  2003/01/14 21:37:55  mast
 revised help, cleaned up unused variables
 
@@ -75,6 +78,7 @@ Changes to get clean compilation with g++
 #include "imod_moviecon.h"
 #include "imod.h"
 #include "imodv.h"
+#include "dia_qtutils.h"
 #include "control.h"
 
 /* Local variables */
@@ -142,7 +146,7 @@ void imcResetAll(ImodView *vw)
   }
   looponeway = 0;
   autosnap = 0;
-  firsttime = False;
+  firsttime = 0;
   if (dia)
     set_sliders();
 }

@@ -34,6 +34,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.11  2003/01/23 20:05:43  mast
+*** empty log message ***
+
 Revision 1.1.2.10  2003/01/18 01:15:25  mast
 remove keypad include
 
@@ -86,7 +89,11 @@ are open
 #include <qnamespace.h>
 #include "xgraph.h"
 #include "imod.h"
+#include "imod_display.h"
+#include "imod_workprocs.h"
+#include "xcramp.h"
 #include "xzap.h"
+#include "imod_edit.h"
 #include "imod_info.h"
 #include "imod_input.h"
 #include "imod_io.h"
@@ -775,13 +782,11 @@ void inputNewObject(ImodView *vw)
 
   obj = imodObjectGet(vw->imod);
 
-  /* DNM: need to allocate and find pixel value for new object */
-  if (App->rgba)
-    alloc_object_colors(vw->imod, vw->imod->objsize - 1, 
-                        vw->imod->objsize - 1);
-  else if (App->depth <= 8)
+  /* DNM: need to find pixel value for new object, but no longer allocate */
+
+  if (!App->rgba && App->depth <= 8)
     obj->fgcolor = App->objbase - vw->imod->cindex.object;
-  else
+  else if (!App->rgba)
     obj->fgcolor = App->objbase + vw->imod->cindex.object;
      
   /* DNM 5/16/02: if multiple image files, set time flag by default */

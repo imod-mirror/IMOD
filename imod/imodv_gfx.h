@@ -12,18 +12,16 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.1  2002/12/17 17:41:21  mast
+initial creation
+
 */
 
 #ifndef IMODV_GFX_H
 #define IMODV_GFX_H
 
-#ifndef IMODV_H
 typedef struct __imodv_struct ImodvApp;
-#endif
-
-#ifndef IMODV_WINDOW_H
 class ImodvGL;
-#endif
 
 int imodv_auto_snapshot(char *inName, int format_type);
 void imodvResetSnap();

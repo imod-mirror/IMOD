@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.2  2003/01/23 20:01:14  mast
+Full Qt version
+
 Revision 1.1.2.1  2003/01/18 01:17:33  mast
 Initial creation
 
@@ -25,10 +28,8 @@ class QLineEdit;
 class ToolEdit;
 class QCheckBox;
 
-#ifndef IMODP_H
 typedef struct ViewInfo ImodView;
 typedef struct Mod_Model Imod;
-#endif
 
 class ModelHeaderWindow : public DialogFrame
 {

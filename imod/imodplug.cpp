@@ -5,6 +5,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.1  2003/01/13 01:19:04  mast
+Qt versions
+
 Revision 3.1  2002/12/01 15:34:41  mast
 Changes to get clean compilation with g++
 
@@ -27,9 +30,8 @@ Changes to get clean compilation with g++
 #endif
 
 #include <qpopupmenu.h>
-#include "imodplug.h"
-#include <imodel.h>
 #include "imod.h"
+#include "imodplug.h"
 
 
 extern int Imod_debug;

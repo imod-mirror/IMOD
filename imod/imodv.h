@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.3.2.6  2003/01/18 01:00:01  mast
+remove dia_qtutils include
+
 Revision 3.3.2.5  2003/01/01 19:12:31  mast
 changes to start Qt application in standalone mode
 
@@ -64,9 +67,9 @@ Changed include of GLwMDrawA to rely upon -I compiler option
 
 #include <limits.h>
 #include <time.h>
-#include <X11/Intrinsic.h>
 #include <imodconfig.h>
 
+#define NO_X_INCLUDES
 #include <imodel.h>       /* imod library include. */
 
 /* used for finding bounding box. */
@@ -100,9 +103,7 @@ typedef struct __imodv_struct
   int    update_dlist; /* update display list    */
 
   /* windowing data */
-  XtAppContext context;
   int          wpid;
-  Widget       topLevel;
   ImodvWindow  *mainWin;
 
   char         *rbgname;
@@ -112,10 +113,10 @@ typedef struct __imodv_struct
   int          stereoSB;   /* Flags for whether visuals have stereo */
   int          stereoDB;
 
-  _XtString stereoCommand;
-  _XtString restoreCommand;
-  _XtString SGIStereoCommand;
-  _XtString SGIRestoreCommand;
+  char * stereoCommand;
+  char * restoreCommand;
+  char * SGIStereoCommand;
+  char * SGIRestoreCommand;
 
   /* global viewing flags */
   int cnear;       /* clipping planes.                        */
@@ -169,20 +170,11 @@ typedef struct __imodv_struct
 extern ImodvApp *Imodv;
 extern int ImodvClosed;
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-  /* imodv.cpp functions (the only ones that belong here ) */
-  void imodv_open(void);
-  void imodv_draw(void);
-  void imodv_new_model(Imod *mod);
-  int  imodv_main(int argc, char **argv);
-  void imodvSetCaption();
-
-
-#ifdef __cplusplus
-}
-#endif
+/* imodv.cpp functions (the only ones that belong here ) */
+void imodv_open(void);
+void imodv_draw(void);
+void imodv_new_model(Imod *mod);
+int  imodv_main(int argc, char **argv, int styleSet);
+void imodvSetCaption();
 
 #endif /* imodv.h */

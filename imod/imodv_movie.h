@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.2  2002/12/23 04:51:01  mast
+Qt version
+
 Revision 1.1.2.1  2002/12/18 04:10:30  mast
 initial creation
 
@@ -23,9 +26,7 @@ initial creation
 #define IMODV_MOVIE_FULLAXIS_X -1
 #define IMODV_MOVIE_FULLAXIS_Y 1
 
-#ifndef IMODV_H
 typedef struct __imodv_struct ImodvApp;
-#endif
 
 void imodvMovieFullAxis(int ixy);
 void imodvMovieSetStart();

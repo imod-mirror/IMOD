@@ -20,6 +20,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.1  2003/01/13 01:19:04  mast
+Qt versions
+
 Revision 3.1  2002/12/01 15:34:41  mast
 Changes to get clean compilation with g++
 
@@ -35,58 +38,17 @@ Changes to get clean compilation with g++
 
 extern int Imod_debug;
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-  void wprint(char *fmt, ...);
-#ifdef __cplusplus
-}
-#endif
+void wprint(char *fmt, ...);
+
 
 static QTextEdit *Wprint_text_output = NULL;
 
-#ifdef X_APP_EXISTS
-static int
-x_error(Display *dpy, XErrorEvent  *err_event)
-{
-  char                buf[256];
-
-  XGetErrorText (dpy, err_event->error_code, buf, (sizeof buf));
-
-  wprint("X Error: <%s>\n", buf);
-  return 0;
-}
-
-static void
-xt_error(char *message)
-{
-  static int  error_in_here = False;
-     
-  if (error_in_here){
-    fprintf(stderr, "Xt Error: %s\n", message);
-  }else{
-    error_in_here = True;
-    wprint ("Xt Error: %s\n", message);
-  }
-  error_in_here = False;
-}
-#endif
-
 void wprintWidget(QTextEdit *edit)
 {
-#ifdef X_APP_EXISTS
-  if (!Imod_debug){
-    /* catch Xt errors */
-    XtAppSetErrorHandler (app, xt_error);
-    XtAppSetWarningHandler (app, xt_error);
-         
-    /* and Xlib errors */
-    XSetErrorHandler (x_error);
-  }
-#endif
      
   Wprint_text_output = edit;
   edit->setReadOnly(true);
+  edit->setTextFormat(Qt::PlainText);
 }
 
 /*VARARGS*/
@@ -95,7 +57,12 @@ void wprint(char *fmt, ...)
   char msgbuf[1000];
   va_list args;
   bool nopos = false;
-  int i, len;
+  int i, len, lastnl;
+  int beep = 0;
+  static QString str;
+  static bool returnPending = false;
+  static int lastbeep = 0;
+  QString msgstr;
 
   if (!Wprint_text_output)
     return;
@@ -105,12 +72,10 @@ void wprint(char *fmt, ...)
 
   len = strlen(fmt);
   for(i = 0; i < len; i++)
-    if (fmt[i] == 0x07)
+    if (fmt[i] == 0x07) {
       QApplication::beep();
-
-  if (fmt[strlen(fmt) - 1] == '\r'){
-    nopos = true;
-  }
+      beep = 1;
+    }
 
 #ifndef NO_VPRINTF
   (void) vsprintf (msgbuf, fmt, args);
@@ -126,12 +91,52 @@ void wprint(char *fmt, ...)
 #endif /* NO_VPRINTF */
   va_end (args);
      
-  QString str = msgbuf;
-  if (nopos)
-    Wprint_text_output->setText(str);
-  else
-    Wprint_text_output->append(str);
+  msgstr = msgbuf;
+
+  // Strip \r's
+  while ((lastnl = msgstr.find('\r')) >= 0) {
+    //    fprintf(stderr,"stripping ctrl-r at %d\n", lastnl);
+    msgstr.remove(lastnl, 1);
+    nopos = true;
+  }
+
+  // Add a \n if one was pending
+  if (returnPending) {
+    str += '\n';
+  }
+
+  // If there was a \r, remove the last line from existing string
+  if (nopos && !str.isEmpty()) {
+    lastnl = str.findRev('\n');
+    //    fprintf(stderr, "backing up to %d\n", lastnl);
+    if (lastnl >= 0)
+      str.truncate(lastnl + 1);   // Truncate takes a length not an index!
+    else
+      str = "";
+  }
+
+
+  // If string ends with \n, remove it and set it as pending
+  returnPending = msgstr.endsWith("\n");
+  if (returnPending)
+    msgstr.remove(msgstr.length() - 1, 1);
+  
+  //  fprintf(stderr, "%s-*-%s",  str.latin1(), msgstr.latin1());
+  str += msgstr;
+  Wprint_text_output->setText(str);
   Wprint_text_output->scrollToBottom();
+
+  if (beep) {
+    len = Wprint_text_output->paragraphs();
+    lastnl = len - 4;
+    if (lastnl < 0)
+      lastnl = 0;
+    for (i = lastnl; i < len; i++)
+      Wprint_text_output->setParagraphBackgroundColor
+        (i, lastbeep ? "yellow" : "magenta");
+    lastbeep = 1 - lastbeep;
+  } else
+    lastbeep = 0;
 }
 
 

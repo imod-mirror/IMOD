@@ -32,6 +32,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.2  2002/12/17 18:34:31  mast
+Adding declarations for all global functions
+
 Revision 1.1.2.1  2002/12/05 16:30:38  mast
 First addition to archive
 
@@ -41,13 +44,7 @@ First addition to archive
 #ifndef IMODV_CONTROL_H
 #define IMODV_CONTROL_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#ifndef IMODV_H
 typedef struct __imodv_struct ImodvApp;
-#endif
 
 #define IMODV_CONTROL_NEAR 1
 #define IMODV_CONTROL_FAR 2
@@ -68,13 +65,10 @@ void imodvControlAxisButton(int axisDir);
 void imodvControlClosing(void);
 void imodvControlQuit(void);
 
-  int imodv_control(ImodvApp *a, int state);
-  void imodvControlSetArot(ImodvApp *a, int newval);
-  void imodvControlSetView(ImodvApp *a);
-  void imodvControlUpdate(ImodvApp *a);
+int imodv_control(ImodvApp *a, int state);
+void imodvControlSetArot(ImodvApp *a, int newval);
+void imodvControlSetView(ImodvApp *a);
+void imodvControlUpdate(ImodvApp *a);
 
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* IMODV_CONTROL_H */

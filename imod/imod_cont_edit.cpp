@@ -39,6 +39,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.1  2003/01/23 19:57:06  mast
+Qt version
+
 Revision 3.1.2.1  2002/12/19 04:37:12  mast
 Cleanup of unused global variables and defines
 
@@ -57,6 +60,8 @@ Changes to get clean compilation with g++
 #include <qpushbutton.h>
 #include "form_cont_edit.h"
 #include "imod.h"
+#include "imod_display.h"
+#include "imod_edit.h"
 #include "imod_input.h"
 #include "imod_cont_edit.h"
 #include "control.h"
@@ -110,10 +115,6 @@ static struct contour_break_struct cobrk = {NULL, NULL};
 
 void imodContEditBreak(ImodView *vw)
 {
-  Iobj  *obj;
-  Icont *cont;
-  Icont *nc;
-
   if (cobrk.dia){
     cobrk.dia->raise();
     return;
@@ -243,10 +244,8 @@ void ContourBreak::breakCont()
   Iindex *i1p = &cobrk.i1;
   Iindex *i2p = &cobrk.i2;
 
-  Icont *nc, *cont1, *cont2, *cont;
-  Icont *scont1, *scont2;
+  Icont *cont1, *cont2, *cont;
   Iobj *obj;
-  Ipoint *p1, *p2;
   int ob, co, pt;
   int i, ni, pt1, pt2;
   int breakPoints = 1;
@@ -290,7 +289,7 @@ void ContourBreak::breakCont()
   }
 
   /* DNM: make sure object number is valid before accessing it */
-  if (i1p->object >= vw->imod->objsize) {
+  if (i1p->object >= (int)vw->imod->objsize) {
     wprint("\a\nContour Break Error:\n"
            "\tObject number no longer valid.\n");
     return;
@@ -529,7 +528,6 @@ void ContourJoin::join()
   int ob, co, pt;
   Icont *cont1, *cont2, *jcont;
   Iobj *obj;
-  double d1,d2;
 
   /* DNM 2/12/01: put in initial test for a "None" selection */
   if (i1p->object < 0 || i1p->contour < 0 || i1p->point < 0 ||
@@ -1406,9 +1404,6 @@ void iceGhostInterval(int value)
 // One of the ghost check boxes is toggled
 void iceGhostToggled(int state, int flag)
 {
-  Iobj *obj   = imodObjectGet(surf.vw->imod);
-  Icont *cont = imodContourGet(surf.vw->imod);
-
   if (!state)
     surf.vw->ghostmode &= ~flag;
   else

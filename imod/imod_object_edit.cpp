@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.9  2003/01/23 20:08:26  mast
+change name of include for form class
+
 Revision 1.1.2.8  2003/01/14 21:51:42  mast
 Register with dialog manager
 
@@ -63,13 +66,14 @@ Changes to get clean compilation with g++
 */
 
 #include "form_object_edit.h"
-#define NO_X_INCLUDES
 #include "imod.h"
+#include "imod_display.h"
 #include "imod_object_edit.h"
 #include "hotslider.h"
 #include "colorselector.h"
 #include "control.h"
 #include "imod_info_cb.h"
+#include "dia_qtutils.h"
 
 static objectEditForm *Ioew_dialog;
 
@@ -477,17 +481,9 @@ void ImodObjColor::newColorSlot(int red, int green, int blue)
   obj->blue = blue / 255.0;
 
   // This was redraw if rgba, but do it in any case because imodv might be open
-    /* DNM: if TrueColor, need to free old color and allocate new one */
-    /* well, maybe not, but in any case, need to redraw unless it's a 
-       drag */
-  if (App->rgba) {  
-
-    // So is this needed?  It won't be...
-    free_object_colors(Model, mObjNum, mObjNum);
-    alloc_object_colors(Model, mObjNum, mObjNum);
-  }
-  imodDraw(App->cvi, IMOD_DRAW_MOD);
+  /* DNM 1/23/03: no longer free and allocate object colors */
   imod_cmap(Model);
+  imodDraw(App->cvi, IMOD_DRAW_MOD);
   imod_info_setobjcolor();
 }
 

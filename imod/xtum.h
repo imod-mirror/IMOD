@@ -12,14 +12,18 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.1  2003/01/10 23:42:45  mast
+initial creation
+
 
 */
 #ifndef XTUM_H
 #define XTUM_H
 
-#include <imodel.h>
-
 #define MAX_XTUM_TOGGLES 2
+
+#define NO_X_INCLUDES
+#include <imodel.h>
 
 #include <qmainwindow.h>
 #include <qgl.h>

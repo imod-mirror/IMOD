@@ -32,6 +32,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.3  2003/01/06 15:45:34  mast
+new object color stuf
+
 Revision 1.1.2.2  2002/12/13 06:04:00  mast
 moving imod_object_edit declaration to include file and removing argument
 
@@ -68,29 +71,23 @@ class ImodObjColor : public QObject
 
 };
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-  void ioew_help(void);
-  void ioew_quit(void);
-  void ioew_closing(void);
-  void ioew_draw(int state);
-  void ioew_fill(int state);
-  void ioew_ends(int state);
-  void ioew_linewidth(int value);
-  void ioew_open(int value);
-  void ioew_surface(int value);
-  void ioew_pointsize(int value);
-  void ioew_nametext(const char *name);
-  void ioew_symbol(int value);
-  void ioew_symsize(int value);
-  void ioew_time(int state);
-  int imod_object_edit_draw(void);
-  int  imod_object_edit();
-  void imod_object_color(int objNum);
-
-#ifdef __cplusplus
-}
-#endif
+/* GLOBAL FUNCTIONS */
+void ioew_help(void);
+void ioew_quit(void);
+void ioew_closing(void);
+void ioew_draw(int state);
+void ioew_fill(int state);
+void ioew_ends(int state);
+void ioew_linewidth(int value);
+void ioew_open(int value);
+void ioew_surface(int value);
+void ioew_pointsize(int value);
+void ioew_nametext(const char *name);
+void ioew_symbol(int value);
+void ioew_symsize(int value);
+void ioew_time(int state);
+int imod_object_edit_draw(void);
+int  imod_object_edit();
+void imod_object_color(int objNum);
 
 #endif /* IMOD_OBJECT_EDIT_H */

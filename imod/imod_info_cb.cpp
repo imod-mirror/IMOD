@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.3  2003/01/23 20:03:54  mast
+rationalizing object edit update
+
 Revision 1.1.2.2  2003/01/13 01:00:49  mast
 Qt version
 
@@ -70,16 +73,20 @@ Call imodDraw instead of xyz_draw after changing model/movie mode
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <qapplication.h>
 #include "imod_object_edit.h"
 #include "form_info.h"
 
 #include "imod_info.h"
 #include "imod.h"
+#include "imod_display.h"
+#include "imod_edit.h"
 #include "imod_input.h"
 #include "imod_cont_edit.h"
 #include "imod_io.h"
 #include "imod_info_cb.h"
 #include "hotslider.h"
+#include "xcramp.h"
 
 extern "C" {
 int sampleMeanSD(unsigned char *image, int type, int nx, int ny, float sample, 
@@ -279,11 +286,6 @@ void imod_info_setobjcolor(void)
 
   ImodInfoWidget->setObjectColor(foreColor, backColor);
 
-  /* This was here for Color index mode - hard to see what it did
-    XStoreColors(XtDisplay(App->toplevel), App->cmap, &color, 1);
-    if (App->cmap != App->cmapGL)
-      XStoreColors(XtDisplay(App->toplevel), App->cmapGL, &color, 1);
-  */
 }
 
 /*
@@ -550,28 +552,9 @@ void imod_info_float_clear(int section, int time)
 
 int imod_info_input(void)
 {
-  //     XEvent event_return;
-  XFlush(XtDisplay(App->toplevel));
-  /* This loop will execute if there is any pending event but will only
-     process an X event. It was here originally.  */
-  /*     while(XtAppPending(App->context)){
-	 XtAppNextEvent(App->context, &event_return);
-	 XtDispatchEvent(&event_return);
-	 } */
-
-  /* This loop will execute only if there is an X event, and process it.
-     It would avoid hanging up waiting for input */
-  /* while(XtAppPending(App->context) & XtIMXEvent){
-     XtAppNextEvent(App->context, &event_return);
-     XtDispatchEvent(&event_return);
-     } */
-
-  /* This loop will execute if there is any pending event and process all
-     kinds of events.  It seems good to process all events... */
-  while(XtAppPending(App->context) & XtIMAll)
-    XtAppProcessEvent(App->context, XtIMAll);
-
-
+  // This replaces an XFlush and loop to process X events
+  QApplication::flush();
+  qApp->processEvents();
   return(0);
 }
 
