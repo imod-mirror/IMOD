@@ -299,9 +299,9 @@ static void checkMovieSnap(ZapStruct *zap, int dir)
   else
     zap->vi->zmouse = end;
 
-  /* set the lock and draw */
+  /* set the lock and draw via imodDraw to get float done correctly */
   movieSnapLock = 1;
-  zapDraw_cb(zap->vi, zap, IMOD_DRAW_XYZ);
+  imodDraw(zap->vi, IMOD_DRAW_XYZ);
 }
 
 // This is the external draw command from the controller
@@ -2821,6 +2821,9 @@ bool zapTimeMismatch(ImodView *vi, int timelock, Iobj *obj, Icont *cont)
 
 /*
 $Log$
+Revision 4.37  2003/11/25 01:15:02  mast
+Move the window again after the show for Mac OS 10.3
+
 Revision 4.36  2003/11/13 20:08:16  mast
 made spillover factor in setting zoom to a remembered window size the
 same as factor when no remembered size is available
