@@ -1,7 +1,9 @@
 package etomo.ui;
 
+import java.awt.Component;
 import java.awt.Container;
 import java.awt.event.*;
+
 import javax.swing.*;
 
 import etomo.JoinManager;
@@ -19,7 +21,10 @@ import etomo.type.AxisID;
  *
  * @version $Revision$
  *
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1.2.2  2004/09/15 22:40:07  sueh
+ * <p> bug# 520 added create panel functions
+ * <p> </p>
  */
 public class JoinDialog implements ContextMenu {
   public static final String rcsid =
@@ -27,11 +32,14 @@ public class JoinDialog implements ContextMenu {
 
   private JPanel rootPanel;
   private JTabbedPane tabPane;
+  private JPanel pnlSetupTab;
   private JPanel pnlSetup;
+  private JPanel pnlAlignTab;
   private JPanel pnlAlign;
+  private JPanel pnlJoinTab;
   private JPanel pnlJoin;
-  private JPanel pnlSections;
   private SectionTablePanel pnlSectionTable;
+  private JoinActionListener joinActionListener = new JoinActionListener(this);
   
   private final AxisID axisID;
   private final JoinManager joinManager;
@@ -55,33 +63,39 @@ public class JoinDialog implements ContextMenu {
   private void createTabPane() {
     tabPane = new JTabbedPane();
     tabPane.setBorder(new BeveledBorder("Join").getBorder());
+    createSetupTabPanel();
+    tabPane.addTab("Setup", pnlSetupTab);
+    createAlignTabPanel();
+    tabPane.addTab("Align", pnlAlignTab);
+    createJoinTabPanel();
+    tabPane.addTab("Join", pnlJoinTab);
+  }
+  
+  private void createSetupTabPanel() {
+    pnlSetupTab = new JPanel();
+    pnlSetupTab.setLayout(new BoxLayout(pnlSetupTab, BoxLayout.X_AXIS));
+    pnlSetupTab.add(Box.createRigidArea(FixedDim.x5_y0));
     createSetupPanel();
-    tabPane.addTab("Setup", pnlSetup);
-    createAlignPanel();
-    tabPane.addTab("Align", pnlAlign);
-    createJoinPanel();
-    tabPane.addTab("Join", pnlJoin);
+    pnlSetupTab.add(pnlSetup);
+    pnlSetupTab.add(Box.createRigidArea(FixedDim.x5_y0));
   }
   
   private void createSetupPanel() {
     pnlSetup = new JPanel();
-    createSectionsPanel();
-    pnlSetup.add(pnlSections);
+    pnlSetup.setLayout(new BoxLayout(pnlSetup, BoxLayout.Y_AXIS));
+    pnlSetup.setAlignmentX(Component.CENTER_ALIGNMENT);
+    pnlSetup.add(Box.createRigidArea(FixedDim.x0_y5));
+    pnlSectionTable = new SectionTablePanel(joinManager);
+    pnlSetup.add(pnlSectionTable.getContainer());
+    pnlSetup.add(Box.createRigidArea(FixedDim.x0_y5));
   }
   
-  private void createAlignPanel() {
-    pnlAlign = new JPanel();
+  private void createAlignTabPanel() {
+    pnlAlignTab = new JPanel();
   }
   
-  private void createJoinPanel() {
-    pnlJoin = new JPanel();
-  }
-  
-  private void createSectionsPanel() {
-    pnlSections = new JPanel();
-    pnlSections.setBorder(new EtchedBorder("").getBorder());
-    pnlSectionTable = new SectionTablePanel();
-    pnlSections.add(pnlSectionTable.getContainer());
+  private void createJoinTabPanel() {
+    pnlJoinTab = new JPanel();
   }
   
   public Container getContainer() {
@@ -92,6 +106,14 @@ public class JoinDialog implements ContextMenu {
    * Right mouse button context menu
    */
   public void popUpContextMenu(MouseEvent mouseEvent) {
+  }
+
+  /**
+   * Handle actions
+   * @param event
+   */
+  private void action(ActionEvent event) {
+    String command = event.getActionCommand();
   }
 
   //
@@ -106,6 +128,7 @@ public class JoinDialog implements ContextMenu {
     }
 
     public void actionPerformed(ActionEvent event) {
+      action(event);
     }
   }
 }
