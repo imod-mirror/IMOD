@@ -34,6 +34,9 @@
     $Revision$
 
     $Log$
+    Revision 3.2  2002/12/01 15:34:41  mast
+    Changes to get clean compilation with g++
+
     Revision 3.1  2001/12/17 18:45:19  mast
     Added menu entries for cache filling
 
@@ -145,39 +148,8 @@ int imod_info_dispatch(void)
      return(0);
 }
 
-int imod_xinit(int *argc, char **argv)
-{
-     Colormap cmap;
-     XVisualInfo *vlist;
-     Window   window;
-     XVisualInfo vistemp;
-     Visual  *visual;
-     Display *display;
-     Screen  *screen;
-     char *window_name = imodwfname("IMOD ZaP Window:");
-     int depth, screen_num = 0;
+/* DNM 12/6/02: removed unused imod_xinit */
 
-     int i, vsize, v = 0;
-
-     Imod_info_top = XtVaAppInitialize
-	  (&Imod_info_context, "Imod", NULL, 0, argc, argv, NULL, 
-	   XtNtitle,    window_name, NULL);
-     if (window_name) free(window_name);
-     
-     if (!Imod_info_top){
-	  fprintf(stderr, "Imod: couldn't open display.\n");
-	  exit(-1);
-     }
-
-     display = XtDisplay(Imod_info_top);
-     screen  = DefaultScreenOfDisplay(display);
-     window  = RootWindowOfScreen(screen);
-     depth   = DefaultDepthOfScreen(screen);
-     visual  = DefaultVisualOfScreen(screen);
-     
-     dia_xinit(Imod_info_top, Imod_info_context, "Imod");
-     return(0);
-}
 
 int imod_info_open(int argc, char **argv)
 {
@@ -595,7 +567,7 @@ int imod_info_open(int argc, char **argv)
      if (filename)
           free(filename);
 
-     filename = imodwEithername("Model:", Imod_filename);
+     filename = imodwGivenName("Model:", Imod_filename);
      filename = truncate_name(filename, 23);
      Imod_widget_modelname = XtVaCreateManagedWidget 
 	  (filename, xmLabelWidgetClass, bigrow, 
@@ -912,7 +884,7 @@ void MaintainModelName(Imod *mod)
      char *filestr;
      int namelen;
      
-     filestr = imodwEithername("Model:", Imod_filename);
+     filestr = imodwGivenName("Model:", Imod_filename);
      filestr = truncate_name(filestr, 23);
      if(!filestr) {
        filestr = (char *) malloc(1);
