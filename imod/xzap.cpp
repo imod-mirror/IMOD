@@ -35,6 +35,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.6  2002/12/13 07:09:19  mast
+GLMainWindow needed different name for mouse event processors
+
 Revision 1.1.2.5  2002/12/13 06:06:29  mast
 using new glmainwindow and mainglwidget classes
 
@@ -910,8 +913,8 @@ int imod_zap_open(struct ViewInfo *vi)
     str += ivwGetTimeIndexLabel(zap->vi, tmax);
   }
 
-  zap->qtWindow = new ZapWindow(zap, str, App->rgba, App->doublebuffer, NULL,
-                                "zap window"/*, Qt::WDestructiveClose*/);
+  zap->qtWindow = new ZapWindow(zap, str, App->qtRgba, App->qtDoubleBuffer,
+				App->qtEnableDepth, NULL, "zap window");
   if (!zap->qtWindow){
     free(zap);
     wprint("Error opening zap window.");
@@ -932,22 +935,13 @@ int imod_zap_open(struct ViewInfo *vi)
     str = "ZaP Toolbar";
   zap->qtWindow->mToolBar->setLabel(str);
   
-  /*     zap->cursor = XCreateFontCursor(App->display, XC_tcross); */
-  //  zap->cursor = App->cursor_cross;
-
-
   zap->ctrl = ivwNewControl(vi, zapDraw_cb, zapClose_cb, 
                             (XtPointer)zap);
+
   /* DNM: this is the second call to this, which caused hanging when 
      imod_info_input tested on all events but dispatched only X events.
      With dispatching of all events, the call can be left here. */
   imod_info_input();
-  zap->qtWindow->show();
-  zap->popup = True;
-
-#ifdef XZAP_DEBUG
-  puts("popup a zap dialog");
-#endif
 
   // Manage the size and position of the window
   QSize toolSize = zap->qtWindow->mToolBar->sizeHint();
@@ -967,6 +961,13 @@ int imod_zap_open(struct ViewInfo *vi)
             toolSize.width(), toolSize.height(), zap->gfx->width(), 
             zap->gfx->height(), newWidth, newHeight);
   zap->qtWindow->setGeometry(xleft, ytop, newWidth, newHeight);
+
+  zap->qtWindow->show();
+  zap->popup = True;
+
+#ifdef XZAP_DEBUG
+  puts("popup a zap dialog");
+#endif
 
   /* DNM: set cursor after window created so it has model mode cursor if
      an existing window put us in model mode */
@@ -1601,11 +1602,10 @@ void zapButton2(ZapStruct *zap, int x, int y)
       if (vi->zmouse > vi->zsize - 1)
         vi->zmouse = vi->zsize - 1;
                
-      imodDraw(vi, IMOD_DRAW_IMAGE | IMOD_DRAW_XYZ);
+      imodDraw(vi, IMOD_DRAW_IMAGE | IMOD_DRAW_XYZ);  // Why DRAW_IMAGE?
       imod_info_setocp();
     } else
-      // TODO: figure out the right flags
-      imodDraw(vi, IMOD_DRAW_IMAGE | IMOD_DRAW_XYZ | IMOD_DRAW_NOSYNC);
+      imodDraw(vi, IMOD_DRAW_XYZ | IMOD_DRAW_NOSYNC);
       
     return;
   }
