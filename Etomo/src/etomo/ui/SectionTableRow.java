@@ -6,6 +6,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 
+import javax.swing.JButton;
 import javax.swing.JTextField;
 import javax.swing.plaf.ColorUIResource;
 
@@ -23,17 +24,28 @@ import javax.swing.plaf.ColorUIResource;
 * 
 * @version $Revision$
 * 
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1.2.1  2004/09/17 21:48:41  sueh
+* <p> bug# 520 Handles row display, state, and data.  Can highlight all of its
+* <p> fields.  Can expand the section field
+* <p> </p>
 */
 public class SectionTableRow {
-  public static  final String  rcsid =  "$Id$";
-  
-  private static ColorUIResource textFieldForeground = UIUtilities.getDefaultUIColor("TextField.foreground");
-  private static ColorUIResource textFieldBackground = UIUtilities.getDefaultUIColor("TextField.background");
-  private static ColorUIResource textFieldSelectedForeground = UIUtilities.getDefaultUIColor("TextField.selectionForeground");
-  private static ColorUIResource textFieldSelectedBackground = UIUtilities.getDefaultUIColor("TextField.selectionBackground");
+  public static final String rcsid = "$Id$";
+
+  private static ColorUIResource textFieldForeground = UIUtilities
+      .getDefaultUIColor("TextField.foreground");
+  private static ColorUIResource textFieldBackground = UIUtilities
+      .getDefaultUIColor("TextField.background");
+  private static ColorUIResource textFieldSelectedForeground = UIUtilities
+      .getDefaultUIColor("TextField.selectionForeground");
+  private static ColorUIResource textFieldSelectedBackground = UIUtilities
+      .getDefaultUIColor("TextField.selectionBackground");
   private int rowNumber = -1;
+  private boolean sectionExpanded = false;
   private SectionTablePanel table = null;
+  private JButton rowNumberHeader = null;
+  private int imodIndex = -1;
   private MultiLineToggleButton highlighterButton = null;
   private File sectionFile = null;
   private JTextField section = null;
@@ -46,15 +58,20 @@ public class SectionTableRow {
   private JTextField rotationAngleX = null;
   private JTextField rotationAngleY = null;
   private JTextField rotationAngleZ = null;
+  private SectionTableRowActionListener actionListener = new SectionTableRowActionListener(
+      this);
   
   /**
    * Create colors, fields, and buttons.  Add the row to the table
    * @param table
    * @param rowNumber
    */
-  public SectionTableRow(SectionTablePanel table, int rowNumber) {
+  public SectionTableRow(SectionTablePanel table, int rowNumber, File tomogram,
+      boolean sectionExpanded) {
     this.rowNumber = rowNumber;
     this.table = table;
+    sectionFile = tomogram;
+    this.sectionExpanded = sectionExpanded;
 
     if (textFieldForeground == null) {
       textFieldForeground = new ColorUIResource(0, 0, 0);
@@ -68,19 +85,23 @@ public class SectionTableRow {
     if (textFieldSelectedBackground == null) {
       textFieldSelectedBackground = new ColorUIResource(204, 204, 255);
     }
-    SectionTableRowActionListener actionListener = new SectionTableRowActionListener(
-        this);
 
     //add row to table
+    create();
+  }
+  
+  void create() {
     GridBagConstraints constraints = table.getConstraints();
     constraints.weighty = 1.0;
     constraints.gridwidth = 1;
-    table.addHeader(Integer.toString(rowNumber), FixedDim.numericWidth);
+    rowNumberHeader = table.addHeader(Integer.toString(rowNumber),
+        FixedDim.rowNumberWidth);
     constraints.weightx = 0.0;
     highlighterButton = table.addToggleButton("=>", FixedDim.highlighterWidth);
     highlighterButton.addActionListener(actionListener);
     constraints.gridwidth = 2;
     section = table.addField();
+    setSectionText();
     constraints.gridwidth = 1;
     sampleBottomStart = table.addField();
     sampleBottomEnd = table.addField();
@@ -94,21 +115,74 @@ public class SectionTableRow {
     rotationAngleZ = table.addField();
   }
   
+  void remove() {
+    table.removeFromTable(rowNumberHeader);
+    table.removeFromTable(highlighterButton);
+    table.removeFromTable(section);
+    table.removeFromTable(sampleBottomStart);
+    table.removeFromTable(sampleBottomEnd);
+    table.removeFromTable(sampleTopStart);
+    table.removeFromTable(sampleTopEnd);
+    table.removeFromTable(finalStart);
+    table.removeFromTable(finalEnd);
+    table.removeFromTable(rotationAngleX);
+    table.removeFromTable(rotationAngleY);
+    table.removeFromTable(rotationAngleZ);
+  }
+  
+  void add() {
+    GridBagConstraints constraints = table.getConstraints();
+    constraints.weighty = 1.0;
+    constraints.gridwidth = 1;
+    table.addHeader(rowNumberHeader, Integer.toString(rowNumber),
+        FixedDim.rowNumberWidth);
+    constraints.weightx = 0.0;
+    table.addToggleButton(highlighterButton, "=>", FixedDim.highlighterWidth);
+    highlighterButton.addActionListener(actionListener);
+    constraints.gridwidth = 2;
+    table.addField(section);
+    constraints.gridwidth = 1;
+    table.addField(sampleBottomStart);
+    table.addField(sampleBottomEnd);
+    table.addField(sampleTopStart);
+    table.addField(sampleTopEnd);
+    table.addField(finalStart);
+    table.addField(finalEnd);
+    table.addField(rotationAngleX);
+    table.addField(rotationAngleY);
+    constraints.gridwidth = GridBagConstraints.REMAINDER;
+    table.addField(rotationAngleZ);
+  }
+  
   /**
-   * Toggle section between absolution path when expand is true, and name when
+   * Toggle section between absolute path when expand is true, and name when
    * expand is false.
    * @param expand
    */
-  public void expandSection(boolean expand) {
+  void expandSection(boolean expand) {
+    sectionExpanded = expand;
     if (sectionFile == null) {
       return;
     }
-    if (expand) {
+    setSectionText();
+  }
+  
+  private void setSectionText() {
+    if (sectionExpanded) {
       section.setText(sectionFile.getAbsolutePath());
     }
     else {
       section.setText(sectionFile.getName());
     }
+  }
+  
+  void setRowNumber(int rowNumber) {
+    this.rowNumber = rowNumber;
+    rowNumberHeader.setText("<html><b>" + Integer.toString(rowNumber) + "</b>");
+  }
+  
+  void setImodIndex(int imodIndex) {
+    this.imodIndex = imodIndex;
   }
   
   /**
@@ -138,6 +212,22 @@ public class SectionTableRow {
     else {
       setColors(textFieldForeground, textFieldBackground);
     }
+  }
+  
+  boolean isHighlighted() {
+    return highlighterButton.isSelected();
+  }
+  
+  File getSectionFile() {
+    return sectionFile;
+  }
+  
+  String getSectionText() {
+    return section.getText();
+  }
+  
+  int getImodIndex() {
+    return imodIndex;
   }
   
   /**
