@@ -17,11 +17,14 @@ import etomo.storage.Storable;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.2  2004/10/22 03:22:25  sueh
+* <p> bug# 520 added getNumber().
+* <p>
 * <p> Revision 1.1.2.1  2004/10/21 02:49:33  sueh
 * <p> bug# 520 Const object for EtomoLong.
 * <p> </p>
 */
-public abstract class ConstEtomoLong implements Storable, EtomoSimpleType {
+public abstract class ConstEtomoLong extends EtomoSimpleType implements Storable {
   public static  final String  rcsid =  "$Id$";
   
   public static final long unsetValue = Long.MIN_VALUE;
@@ -31,12 +34,16 @@ public abstract class ConstEtomoLong implements Storable, EtomoSimpleType {
   protected long recommendedValue = unsetValue;
   protected long resetValue = unsetValue;
   
-  protected String name;
-  protected String description = null;
-  protected String invalidReason = null;
-  
   public abstract void load(Properties props);
   public abstract void load(Properties props, String prepend);
+  
+  public ConstEtomoLong() {
+    super();
+  }
+
+  public ConstEtomoLong(String name) {
+    super(name);
+  }
   
   public void store(Properties props) {
     props.setProperty(name, Long.toString(value));
@@ -67,10 +74,6 @@ public abstract class ConstEtomoLong implements Storable, EtomoSimpleType {
     return new Long(value);
   }
   
-  public String getDescription() {
-    return description;
-  }
-  
   public boolean isSetAndNotDefault() {
     return value != Long.MIN_VALUE && (defaultValue == Long.MIN_VALUE || value != defaultValue);
   }
@@ -83,16 +86,10 @@ public abstract class ConstEtomoLong implements Storable, EtomoSimpleType {
     return this.value == value;
   }
   
-  public String toString() {
-    return getClass().getName() + "[" + paramString() + "]";
+  protected String paramString() {
+    return super.paramString() + ",\nunsetValue=" + unsetValue + ",\nvalue="
+        + value + ",\ndefaultValue=" + defaultValue + ",\nrecommendedValue="
+        + recommendedValue + ",\nresetValue=" + resetValue;
   }
   
-  protected String paramString() {
-    return ",\nname=" + name + ",\ndescription=" + description
-        + ",\nunsetValue=" + unsetValue + ",\nvalue=" + value
-        + ",\ndefaultValue=" + defaultValue + ",\nrecommendedValue="
-        + recommendedValue + ",\nresetValue=" + resetValue
-        + ",\ninvalidReason=" + invalidReason;
-  }
-
 }

@@ -18,6 +18,9 @@ import etomo.storage.Storable;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.3  2004/10/22 03:21:36  sueh
+* <p> bug# 520 added getNumber().
+* <p>
 * <p> Revision 1.1.2.2  2004/10/21 02:48:28  sueh
 * <p> bug# 520 Added equals, isSetAndNotDefault, and toString.  Changed
 * <p> toString to getString.  Removed isDefault.
@@ -26,7 +29,7 @@ import etomo.storage.Storable;
 * <p> bug# 520 The const part of EtomoDouble.
 * <p> </p>
 */
-public abstract class ConstEtomoDouble implements Storable, EtomoSimpleType {
+public abstract class ConstEtomoDouble extends EtomoSimpleType implements Storable {
   public static  final String  rcsid =  "$Id$";
   
   protected static final double unsetValue = Double.NaN;
@@ -36,12 +39,16 @@ public abstract class ConstEtomoDouble implements Storable, EtomoSimpleType {
   protected double recommendedValue = unsetValue;
   protected double resetValue = unsetValue;
   
-  protected String name;
-  protected String description = null;
-  protected String invalidReason = null;
-  
   public abstract void load(Properties props);  
   public abstract void load(Properties props, String prepend);
+  
+  public ConstEtomoDouble() {
+    super();
+  }
+  
+  public ConstEtomoDouble(String name) {
+    super(name);
+  }
   
   public void store(Properties props) {
     props.setProperty(name, Double.toString(value));
@@ -71,11 +78,7 @@ public abstract class ConstEtomoDouble implements Storable, EtomoSimpleType {
     }
     return new Double(value);
   }
-  
-  public String getDescription() {
-    return description;
-  }
-  
+    
   public boolean isSetAndNotDefault() {
     return !Double.isNaN(value) && (Double.isNaN(defaultValue) || value != defaultValue);
   }
@@ -88,15 +91,9 @@ public abstract class ConstEtomoDouble implements Storable, EtomoSimpleType {
     return (Double.isNaN(this.value) && Double.isNaN(value)) || this.value == value;
   }
   
-  public String toString() {
-    return getClass().getName() + "[" + paramString() + "]";
-  }
-  
   protected String paramString() {
-    return ",\nname=" + name + ",\ndescription=" + description
-        + ",\nunsetValue=" + unsetValue + ",\nvalue=" + value
-        + ",\ndefaultValue=" + defaultValue + ",\nrecommendedValue="
-        + recommendedValue + ",\nresetValue=" + resetValue
-        + ",\ninvalidReason=" + invalidReason;
+    return super.paramString() + ",\nunsetValue=" + unsetValue + ",\nvalue="
+        + value + ",\ndefaultValue=" + defaultValue + ",\nrecommendedValue="
+        + recommendedValue + ",\nresetValue=" + resetValue;
   }
 }
