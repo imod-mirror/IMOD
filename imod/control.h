@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.2  2003/01/04 03:44:16  mast
+Add declaration for removeControl; stick inputQDefaultKeys declaration here
+
 Revision 1.1.2.1  2003/01/02 15:36:19  mast
 Initial creation
 
@@ -31,6 +34,7 @@ extern "C" {
   typedef struct ViewInfo ImodView;
   class QKeyEvent;
   typedef unsigned long      XtWorkProcId;
+  class QString;
 
 /* Each window that shows the view below uses this control 
  * stucture to have the view update the window.
@@ -115,5 +119,10 @@ void inputQDefaultKeys(QKeyEvent *event, ImodView *vw);
 #ifdef __cplusplus
 }
 #endif
+
+/* Another orphan until title stuff is moved somewhere or imodP.h is readable
+   with c++ in it */
+QString imodCaption(char *intro);
+
 
 #endif
