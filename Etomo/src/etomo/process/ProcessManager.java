@@ -20,6 +20,11 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.19.2.4  2004/07/14 18:45:37  sueh
+ * bug# 405 merged from head:
+ *  go back to ps -l:  its faster and works for all the
+ * ways to run etomo that we have tested
+ *
  * Revision 3.19.2.3  2004/07/14 16:10:11  sueh
  * bug# 405 merged from head: recursively kill processes
  *
@@ -1502,7 +1507,7 @@ public class ProcessManager {
   protected String getChildProcess(String processID) {
     Utilities.debugPrint("in getChildProcess: processID=" + processID);
     //ps -l: get user processes on this terminal
-    SystemProgram ps = new SystemProgram("ps -l");
+    SystemProgram ps = new SystemProgram("ps axl");
     ps.run();
 
     //  Find the index of the Parent ID and ProcessID
@@ -1569,7 +1574,7 @@ public class ProcessManager {
   private String[] getChildProcessList(String processID) {
     Utilities.debugPrint("in getChildProcessList: processID=" + processID);
     //ps -l: get user processes on this terminal
-    SystemProgram ps = new SystemProgram("ps -l");
+    SystemProgram ps = new SystemProgram("ps axl");
     ps.run();
 
     //  Find the index of the Parent ID and ProcessID
