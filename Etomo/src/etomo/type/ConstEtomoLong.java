@@ -17,6 +17,9 @@ import etomo.storage.Storable;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.3  2004/10/22 21:01:35  sueh
+* <p> bug# 520 Moved common code to EtomoSimpleType
+* <p>
 * <p> Revision 1.1.2.2  2004/10/22 03:22:25  sueh
 * <p> bug# 520 added getNumber().
 * <p>
@@ -45,6 +48,11 @@ public abstract class ConstEtomoLong extends EtomoSimpleType implements Storable
     super(name);
   }
   
+  public EtomoSimpleType setDefault(long defaultValue) {
+    this.defaultValue = defaultValue;
+    return this;
+  }
+  
   public void store(Properties props) {
     props.setProperty(name, Long.toString(value));
   }
@@ -54,24 +62,55 @@ public abstract class ConstEtomoLong extends EtomoSimpleType implements Storable
   }
   
   public String getString() {
-    if (value == Long.MIN_VALUE) {
-      return "";
+    return getString(false);
+  }
+  public String getString(boolean useDefault) {
+    if (isSet()) {
+      return Long.toString(value);
     }
-    return Long.toString(value);
+    if (resetValue != Long.MIN_VALUE) {
+      return Long.toString(resetValue);
+    }
+    if (useDefault && defaultValue != Long.MIN_VALUE) {
+      return Long.toString(defaultValue);
+    }
+    return "";
   }
   
   public long get() {
-    if (value == Long.MIN_VALUE) {
+    return get(false);
+  }
+  public long get(boolean useDefault) {
+    if (isSet()) {
+      return value;
+    }
+    if (resetValue != Long.MIN_VALUE) {
       return resetValue;
     }
-    return value;
+    if (useDefault && defaultValue != Long.MIN_VALUE) {
+      return defaultValue;
+    }
+    return unsetValue;
   }
   
-  public Number getNumber() {
-    if (value == Long.MIN_VALUE) {
+  public  Number getNumber() {
+    return getNumber(false);
+  }
+  public  Number getNumber(boolean useDefault) {
+    if (isSet()) {
+      return new Long(value);
+    }
+    if (resetValue != Long.MIN_VALUE) {
       return new Long(resetValue);
     }
-    return new Long(value);
+    if (useDefault && defaultValue != Long.MIN_VALUE) {
+      return new Long(defaultValue);
+    }
+    return new Long(unsetValue);
+  }
+  
+  public EtomoSimpleType getNegation() {
+    return new EtomoFloat(value * -1);
   }
   
   public boolean isSetAndNotDefault() {

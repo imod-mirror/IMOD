@@ -18,6 +18,9 @@ import etomo.storage.Storable;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.4  2004/10/22 21:00:03  sueh
+* <p> bug# 520 Moved common code to EtomoSimpleType
+* <p>
 * <p> Revision 1.1.2.3  2004/10/22 03:21:36  sueh
 * <p> bug# 520 added getNumber().
 * <p>
@@ -50,6 +53,12 @@ public abstract class ConstEtomoDouble extends EtomoSimpleType implements Storab
     super(name);
   }
   
+  
+  public EtomoSimpleType setDefault(double defaultValue) {
+    this.defaultValue = defaultValue;
+    return this;
+  }
+  
   public void store(Properties props) {
     props.setProperty(name, Double.toString(value));
   }
@@ -59,28 +68,59 @@ public abstract class ConstEtomoDouble extends EtomoSimpleType implements Storab
   }
   
   public String getString() {
-    if (Double.isNaN(value)) {
-      return "";
+    return getString(false);
+  }
+  public String getString(boolean useDefault) {
+    if (isSet()) {
+      return Double.toString(value);
     }
-    return Double.toString(value);
+    if (!Double.isNaN(resetValue)) {
+      return Double.toString(resetValue);
+    }
+    if (useDefault && !Double.isNaN(defaultValue)) {
+      return Double.toString(defaultValue);
+    }
+    return "";
   }
   
   public double get() {
-    if (Double.isNaN(value)) {
+    return get(false);
+  }
+  public double get(boolean useDefault) {
+    if (isSet()) {
+      return value;
+    }
+    if (!Double.isNaN(resetValue)) {
       return resetValue;
     }
-    return value;
+    if (useDefault && !Double.isNaN(defaultValue)) {
+      return defaultValue;
+    }
+    return unsetValue;
   }
   
   public Number getNumber() {
-    if (Double.isNaN(value)) {
+    return getNumber(false);
+  }
+  public Number getNumber(boolean useDefault) {
+    if (isSet()) {
+      return new Double(value);
+    }
+    if (!Double.isNaN(resetValue)) {
       return new Double(resetValue);
     }
-    return new Double(value);
+    if (useDefault && !Double.isNaN(defaultValue)) {
+      return new Double(defaultValue);
+    }
+    return new Double(unsetValue);
+  }
+  
+  public EtomoSimpleType getNegation() {
+    return new EtomoDouble(value * -1);
   }
     
   public boolean isSetAndNotDefault() {
-    return !Double.isNaN(value) && (Double.isNaN(defaultValue) || value != defaultValue);
+    return isSet() && (Double.isNaN(defaultValue) || value != defaultValue);
   }
   
   public boolean isSet() {
@@ -88,7 +128,7 @@ public abstract class ConstEtomoDouble extends EtomoSimpleType implements Storab
   }
   
   public boolean equals(double value) {
-    return (Double.isNaN(this.value) && Double.isNaN(value)) || this.value == value;
+    return (!isSet() && Double.isNaN(value)) || this.value == value;
   }
   
   protected String paramString() {

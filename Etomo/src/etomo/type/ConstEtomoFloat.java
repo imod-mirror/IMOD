@@ -18,6 +18,9 @@ import etomo.storage.Storable;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.3  2004/10/22 21:00:28  sueh
+* <p> bug# 520 Moved common code to EtomoSimpleType
+* <p>
 * <p> Revision 1.1.2.2  2004/10/22 03:21:48  sueh
 * <p> bug# 520 added getNumber().
 * <p>
@@ -45,6 +48,11 @@ public abstract class ConstEtomoFloat extends EtomoSimpleType implements Storabl
   public ConstEtomoFloat(String name) {
     super(name);
   }
+  
+  public EtomoSimpleType setDefault(float defaultValue) {
+    this.defaultValue = defaultValue;
+    return this;
+  }
 
   public void store(Properties props) {
     props.setProperty(name, Float.toString(value));
@@ -55,28 +63,59 @@ public abstract class ConstEtomoFloat extends EtomoSimpleType implements Storabl
   }
   
   public String getString() {
-    if (Float.isNaN(value)) {
-      return "";
+    return getString(false);
+  }
+  public String getString(boolean useDefault) {
+    if (isSet()) {
+      return Float.toString(value);
     }
-    return Float.toString(value);
+    if (!Float.isNaN(resetValue)) {
+      return Float.toString(resetValue);
+    }
+    if (useDefault && !Float.isNaN(defaultValue)) {
+      return Float.toString(defaultValue);
+    }
+    return "";
   }
   
   public float get() {
-    if (Float.isNaN(value)) {
+    return get(false);
+  }
+  public float get(boolean useDefault) {
+    if (isSet()) {
+      return value;
+    }
+    if (!Float.isNaN(resetValue)) {
       return resetValue;
     }
-    return value;
+    if (useDefault && !Float.isNaN(defaultValue)) {
+      return defaultValue;
+    }
+    return unsetValue;
   }
   
-  public Number getNumber() {
-    if (Float.isNaN(value)) {
+  public  Number getNumber() {
+    return getNumber(false);
+  }
+  public  Number getNumber(boolean useDefault) {
+    if (isSet()) {
+      return new Float(value);
+    }
+    if (!Float.isNaN(resetValue)) {
       return new Float(resetValue);
     }
-    return new Float(value);
+    if (useDefault && !Float.isNaN(defaultValue)) {
+      return new Float(defaultValue);
+    }
+    return new Float(unsetValue);
+  }
+  
+  public EtomoSimpleType getNegation() {
+    return new EtomoFloat(value * -1);
   }
   
   public boolean isSetAndNotDefault() {
-    return !Float.isNaN(value) && (Float.isNaN(defaultValue) || value != defaultValue);
+    return isSet() && (Float.isNaN(defaultValue) || value != defaultValue);
   }
   
   public boolean isSet() {
@@ -84,7 +123,7 @@ public abstract class ConstEtomoFloat extends EtomoSimpleType implements Storabl
   }
   
   public boolean equals(float value) {
-    return (Float.isNaN(this.value) && Float.isNaN(value)) || this.value == value;
+    return (!isSet() && Float.isNaN(value)) || this.value == value;
   }
   
   protected String paramString() {
