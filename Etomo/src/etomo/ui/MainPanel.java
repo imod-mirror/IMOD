@@ -19,14 +19,11 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 
-import etomo.ApplicationManager;
+import etomo.BaseManager;
 import etomo.EtomoDirector;
-import etomo.process.ProcessState;
 import etomo.storage.EtomoFileFilter;
 import etomo.type.AxisID;
-import etomo.type.AxisType;
 import etomo.type.MetaData;
-import etomo.type.ProcessTrack;
 
 /**
  * <p>Description: </p>
@@ -40,40 +37,39 @@ import etomo.type.ProcessTrack;
  *
  * @version $Revision$
  *
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1.2.1  2004/09/07 18:01:08  sueh
+ * <p> bug# 520 moved all variables and functions associated with mainPAnel
+ * <p> to MainPanel.
+ * <p> </p>
  */
-public class MainPanel extends JPanel {
+public abstract class MainPanel extends JPanel {
   public static final String rcsid =
     "$Id$";
 
   private JLabel statusBar = new JLabel("No data set loaded");
 
-  private JPanel panelCenter = new JPanel();
+  protected JPanel panelCenter = new JPanel();
 
   //  These panels get instantiated as needed
-  private AxisProcessPanel axisPanelA;
-  private ScrollPanel scrollA;
-  private JScrollPane scrollPaneA;
-  private AxisProcessPanel axisPanelB;
-  private ScrollPanel scrollB;
-  private JScrollPane scrollPaneB;
-
-  private JSplitPane splitPane;
+  protected ScrollPanel scrollA;
+  protected JScrollPane scrollPaneA;
+  protected ScrollPanel scrollB;
+  protected JScrollPane scrollPaneB;
+  protected JSplitPane splitPane;
+  protected BaseManager manager = null;
+  protected AxisProcessPanel axisPanelA = null;
+  protected AxisProcessPanel axisPanelB = null;
   
   private static final int estimatedMenuHeight = 60;
   private static final int extraScreenWidthMultiplier = 2;
   private static final Dimension frameBorder = new Dimension(10, 48);
-  
-  
-  //  Application manager object
-  private ApplicationManager applicationManager;
 
   /**
    * Main window constructor.  This sets up the menus and status line.
    */
-  public MainPanel(ApplicationManager appManager) {
-    applicationManager = appManager;
-
+  public MainPanel(BaseManager manager) {
+    this.manager = manager;
     enableEvents(AWTEvent.WINDOW_EVENT_MASK);
 
     Toolkit toolkit = Toolkit.getDefaultToolkit();
@@ -100,41 +96,6 @@ public class MainPanel extends JPanel {
     panelCenter.removeAll();
     panelCenter.add(setupDialog.getContainer());
     EtomoDirector.getMainFrame().pack();
-  }
-
-  /**
-   * Show the processing panel for the requested AxisType
-   */
-  public void showProcessingPanel(AxisType axisType) {
-
-    //  Delete any existing panels
-    axisPanelA = null;
-    axisPanelB = null;
-
-    panelCenter.removeAll();
-    if (axisType == AxisType.SINGLE_AXIS) {
-      axisPanelA = new AxisProcessPanel(applicationManager, AxisID.ONLY);
-      scrollA = new ScrollPanel();
-      scrollA.add(axisPanelA.getContainer());
-      scrollPaneA = new JScrollPane(scrollA);
-      panelCenter.add(scrollPaneA);
-    }
-    else {
-      axisPanelA = new AxisProcessPanel(applicationManager, AxisID.FIRST);
-      scrollA = new ScrollPanel();
-      scrollA.add(axisPanelA.getContainer());
-      scrollPaneA = new JScrollPane(scrollA);
-
-      axisPanelB = new AxisProcessPanel(applicationManager, AxisID.SECOND);
-      scrollB = new ScrollPanel();
-      scrollB.add(axisPanelB.getContainer());
-      scrollPaneB = new JScrollPane(scrollB);
-      splitPane =
-        new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, scrollPaneA, scrollPaneB);
-      splitPane.setDividerLocation(0.5);
-      splitPane.setOneTouchExpandable(true);
-      panelCenter.add(splitPane);
-    }
   }
 
   /**
@@ -261,7 +222,7 @@ public class MainPanel extends JPanel {
     chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
     File[] edfFiles = workingDir.listFiles(edfFilter);
     if (edfFiles.length == 0) {
-      File defaultFile = new File(workingDir, applicationManager.getMetaData().getDatasetName() + ".edf");
+      File defaultFile = new File(workingDir, manager.getMetaData().getDatasetName() + ".edf");
       chooser.setSelectedFile(defaultFile);
     }
     int returnVal = chooser.showSaveDialog(this);
@@ -277,7 +238,7 @@ public class MainPanel extends JPanel {
       edfFile = new File(chooser.getSelectedFile().getAbsolutePath() + ".edf");
 
     }
-    applicationManager.setTestParamFile(edfFile);
+    manager.setTestParamFile(edfFile);
     return true;
   }
 
@@ -286,7 +247,7 @@ public class MainPanel extends JPanel {
    * @param event
    */
   private void menuFileMRUListAction(ActionEvent event) {
-    applicationManager.openExistingDataset(new File(event.getActionCommand()));
+    manager.openExistingDataset(new File(event.getActionCommand()));
   }
 
   /**
@@ -295,7 +256,7 @@ public class MainPanel extends JPanel {
    *
    */
   protected void packAxis() {
-    if (applicationManager.isDualAxis()
+    if (manager.isDualAxis()
       && axisPanelA != null
       && axisPanelB != null) {
       boolean hideA = axisPanelA.hide();
@@ -375,131 +336,6 @@ public class MainPanel extends JPanel {
     ContextPopup contextPopup = new ContextPopup(this, mouseEvent, "");
   }
 
-  /**
-   * Update the state of all the process control panels
-   * @param processTrack the process track object containing the state to be
-   * displayed
-   */
-  public void updateAllProcessingStates(ProcessTrack processTrack) {
-    if (axisPanelA == null) {
-      return;
-    }
-
-    axisPanelA.setPreProcState(processTrack.getPreProcessingState(AxisID.ONLY));
-    axisPanelA.setCoarseAlignState(
-      processTrack.getCoarseAlignmentState(AxisID.ONLY));
-    axisPanelA.setFiducialModelState(
-      processTrack.getFiducialModelState(AxisID.ONLY));
-    axisPanelA.setFineAlignmentState(
-      processTrack.getFineAlignmentState(AxisID.ONLY));
-    axisPanelA.setTomogramPositioningState(
-      processTrack.getTomogramPositioningState(AxisID.ONLY));
-    axisPanelA.setTomogramGenerationState(
-      processTrack.getTomogramGenerationState(AxisID.ONLY));
-    axisPanelA.setTomogramCombinationState(
-      processTrack.getTomogramCombinationState());
-    if (applicationManager.isDualAxis()) {
-      axisPanelB.setPreProcState(
-        processTrack.getPreProcessingState(AxisID.SECOND));
-      axisPanelB.setCoarseAlignState(
-        processTrack.getCoarseAlignmentState(AxisID.SECOND));
-      axisPanelB.setFiducialModelState(
-        processTrack.getFiducialModelState(AxisID.SECOND));
-      axisPanelB.setFineAlignmentState(
-        processTrack.getFineAlignmentState(AxisID.SECOND));
-      axisPanelB.setTomogramPositioningState(
-        processTrack.getTomogramPositioningState(AxisID.SECOND));
-      axisPanelB.setTomogramGenerationState(
-        processTrack.getTomogramGenerationState(AxisID.SECOND));
-    }
-    axisPanelA.setPostProcessingState(processTrack.getPostProcessingState());
-
-  }
-
-  /**
-   * 
-   * @param state
-   * @param axisID
-   */
-  public void setPreProcessingState(ProcessState state, AxisID axisID) {
-    AxisProcessPanel axisPanel = mapAxis(axisID);
-    axisPanel.setPreProcState(state);
-  }
-
-  /**
-   * 
-   * @param state
-   * @param axisID
-   */
-  public void setCoarseAlignState(ProcessState state, AxisID axisID) {
-    AxisProcessPanel axisPanel = mapAxis(axisID);
-    axisPanel.setCoarseAlignState(state);
-  }
-
-  /**
-   * 
-   * @param state
-   * @param axisID
-   */
-  public void setFiducialModelState(ProcessState state, AxisID axisID) {
-    AxisProcessPanel axisPanel = mapAxis(axisID);
-    axisPanel.setFiducialModelState(state);
-  }
-
-  /**
-   * 
-   * @param state
-   * @param axisID
-   */
-  public void setFineAlignmentState(ProcessState state, AxisID axisID) {
-    AxisProcessPanel axisPanel = mapAxis(axisID);
-    axisPanel.setFineAlignmentState(state);
-  }
-
-  /**
-   * 
-   * @param state
-   * @param axisID
-   */
-  public void setTomogramPositioningState(ProcessState state, AxisID axisID) {
-    AxisProcessPanel axisPanel = mapAxis(axisID);
-    axisPanel.setTomogramPositioningState(state);
-  }
-
-  /**
-   * 
-   * @param state
-   * @param axisID
-   */
-  public void setTomogramGenerationState(ProcessState state, AxisID axisID) {
-    AxisProcessPanel axisPanel = mapAxis(axisID);
-    axisPanel.setTomogramGenerationState(state);
-  }
-
-  /**
-   * 
-   * @param state
-   */
-  public void setTomogramCombinationState(ProcessState state) {
-    axisPanelA.setTomogramCombinationState(state);
-  }
-
-  /**
-   * 
-   * @param state
-   */
-  public void setPostProcessingState(ProcessState state) {
-    axisPanelA.setPostProcessingState(state);
-  }
-
-  /**
-   * Set the specified button as selected
-   * @param axisID
-   * @param name
-   */
-  public void selectButton(AxisID axisID, String name) {
-    mapAxis(axisID).selectButton(name);
-  }
 
   /**
    * Open a Yes or No question dialog
