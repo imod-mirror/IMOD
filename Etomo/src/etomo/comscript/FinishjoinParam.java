@@ -24,6 +24,10 @@ import etomo.type.SectionTableRowData;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.3  2004/10/22 20:55:34  sueh
+* <p> bug# 520 Using EtomoSimpleType where possible.  Changed offsetInX, Y
+* <p> to shiftInX, Y.
+* <p>
 * <p> Revision 1.1.2.2  2004/10/22 03:20:38  sueh
 * <p> bug# 520 Reducing the number of ConstJoinMetaData functions by
 * <p> passing EtomoInteger, EtomoFloat, etc and using its get() and getString()
@@ -82,7 +86,7 @@ public class FinishjoinParam {
     }
     if (shiftInX.isSetAndNotDefault() || shiftInY.isSetAndNotDefault()) {
       options.add("-o");
-      options.add(shiftInX.getString() + "," + shiftInY.getString());
+      options.add(shiftInX.getNegation().getString() + "," + shiftInY.getNegation().getString());
     }
     options.add(metaData.getRootName());
     ArrayList sectionData = metaData.getSectionTableData();
