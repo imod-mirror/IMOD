@@ -22,7 +22,6 @@ import etomo.EtomoDirector;
 import etomo.storage.EtomoFileFilter;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
-import etomo.type.MetaData;
 
 /**
  * <p>Description: </p>
@@ -37,6 +36,11 @@ import etomo.type.MetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.1.2.6  2004/09/21 18:02:52  sueh
+ * <p> bug# 520 Added openYesNoDialog(String, String).  For
+ * <p> openMessageDialog(), handling the situation where no dataset name is
+ * <p> set by opening the message without adding anything to it.
+ * <p>
  * <p> Revision 1.1.2.5  2004/09/15 22:45:34  sueh
  * <p> bug# 520 Moved openSetupPanel to MainTomogramPanel.  Moved
  * <p> showProcessingPanel() to this class.  Moved AxisProcessPanel creation
@@ -64,7 +68,7 @@ public abstract class MainPanel extends JPanel {
   public static final String rcsid =
     "$Id$";
 
-  private JLabel statusBar = new JLabel("No data set loaded");
+  protected JLabel statusBar = new JLabel("No data set loaded");
 
   protected JPanel panelCenter = new JPanel();
 
@@ -192,32 +196,6 @@ public abstract class MainPanel extends JPanel {
   public void stopProgressBar(AxisID axisID) {
     AxisProcessPanel axisPanel = mapAxis(axisID);
     axisPanel.stopProgressBar();
-  }
-
-  /**
-   * Set the status bar with the file name of the data parameter file
-   */
-  public void updateDataParameters(File paramFile, MetaData metaData) {
-    StringBuffer buffer = new StringBuffer();
-    if (metaData == null) {
-      buffer.append("No data set loaded");
-    }
-    else {
-      if (paramFile == null) {
-        buffer.append("Data file: NOT SAVED");
-      }
-      else {
-        buffer.append("Data file: " + paramFile.getAbsolutePath());
-      }
-
-      buffer.append("   Source: ");
-      buffer.append(metaData.getDataSource().toString());
-      buffer.append("   Axis type: ");
-      buffer.append(metaData.getAxisType().toString());
-      buffer.append("   Tomograms: ");
-      buffer.append(metaData.getSectionType().toString());
-    }
-    statusBar.setText(buffer.toString());
   }
 
   public boolean getTestParamFilename() {
