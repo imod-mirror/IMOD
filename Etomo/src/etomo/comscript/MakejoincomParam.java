@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.ArrayList;
 
 import etomo.BaseManager;
+import etomo.EtomoDirector;
 import etomo.process.SystemProgram;
 import etomo.type.ConstEtomoInteger;
 import etomo.type.ConstJoinMetaData;
@@ -30,6 +31,10 @@ import etomo.type.SectionTableRowData;
 * <p> </p>
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.6  2004/10/22 20:57:50  sueh
+* <p> bug# 520 Simplifying ConstSectionTableRowData by passing
+* <p> EtomoSimpleType instead of String and int.
+* <p>
 * <p> Revision 1.1.2.5  2004/10/22 03:20:52  sueh
 * <p> bug# 520 Reducing the number of ConstJoinMetaData functions by
 * <p> passing EtomoInteger, EtomoFloat, etc and using its get() and getString()
@@ -76,7 +81,7 @@ public class MakejoincomParam {
       commandArray[i + commandSize] = (String) options.get(i);
     }
     program = new SystemProgram(commandArray);
-    program.setWorkingDirectory(new File(metaData.getWorkingDir()));
+    program.setWorkingDirectory(new File(EtomoDirector.getInstance().getCurrentPropertyUserDir()));
   }
   
   public String[] getCommandArray() {
