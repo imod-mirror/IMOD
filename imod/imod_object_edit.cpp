@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.7  2003/01/13 01:15:43  mast
+changes for Qt version of info window
+
 Revision 1.1.2.6  2003/01/06 18:58:59  mast
 eliminate warning
 
@@ -276,6 +279,9 @@ void ioew_time(int state)
   imodDraw(App->cvi, IMOD_DRAW_MOD);
 }
 
+/* 
+ * Open the object edit dialog
+ */
 int imod_object_edit()
 {
   Iobj *obj = imodObjectGet(Model);
@@ -289,7 +295,8 @@ int imod_object_edit()
     return(0);
   }
      
-  Ioew_dialog = new objectEditForm(NULL, NULL, false, Qt::WDestructiveClose);
+  Ioew_dialog = new objectEditForm(NULL, NULL, 
+				   Qt::WType_TopLevel | Qt::WDestructiveClose);
 
   if (!Ioew_dialog){
     dia_err("Object edit failed.");
@@ -297,6 +304,7 @@ int imod_object_edit()
   }
 
   Ioew_dialog->setCaption(imodCaption("Imod Object Edit"));
+  imodDialogManager.add((QWidget *)Ioew_dialog, IMOD_DIALOG);
 
   Ioew_dialog->show();
 
@@ -305,6 +313,9 @@ int imod_object_edit()
 }
 
 
+/* 
+ * External call to refresh the dialog state
+ */
 int imod_object_edit_draw(void)
 {
   int state = 0;
@@ -362,6 +373,7 @@ Iobj *getObjectOrClose(void)
 void ioew_closing(void)
 {
   imod_cmap(Model);
+  imodDialogManager.remove((QWidget *)Ioew_dialog);
   Ioew_dialog = NULL;
 }
 
@@ -439,7 +451,8 @@ ImodObjColor::ImodObjColor(int objNum)
   connect(mSelector, SIGNAL(keyRelease(QKeyEvent *)), this, 
           SLOT(keyReleaseSlot(QKeyEvent *)));
 
-  mSelector->setCaption(imodCaption("Imod"));
+  mSelector->setCaption(imodCaption("Imod Color"));
+  imodDialogManager.add((QWidget *)mSelector, IMOD_DIALOG);
 
   mSelector->show();
 }
@@ -481,6 +494,7 @@ void ImodObjColor::doneSlot()
 
 void ImodObjColor::closingSlot()
 {
+  imodDialogManager.remove((QWidget *)mSelector);
   mSelector = NULL;
 }
 
