@@ -12,6 +12,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4.4.3  2004/10/22 21:08:45  sueh
+ * <p> bug# 520 Using EtomoSimpleType where possible.
+ * <p>
  * <p> Revision 1.4.4.2  2004/10/22 03:27:16  sueh
  * <p> bug# 520 Added setValue(ConstEtomoInteger).
  * <p>
@@ -43,7 +46,7 @@ import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerModel;
 
-import etomo.type.EtomoSimpleType;
+import etomo.type.ConstEtomoNumber;
 
 public class LabeledSpinner {
   public static final String rcsid = "$Id$";
@@ -97,7 +100,7 @@ public class LabeledSpinner {
     spinner.setValue(value);
   }
   
-  public void setValue(EtomoSimpleType value) {
+  public void setValue(ConstEtomoNumber value) {
     spinner.setValue(value.getNumber());
   }
 

@@ -8,7 +8,7 @@ import java.io.File;
 
 import javax.swing.JPanel;
 
-import etomo.type.ConstEtomoInteger;
+import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstSectionTableRowData;
 import etomo.type.SectionTableRowData;
 import etomo.type.SlicerAngles;
@@ -29,6 +29,9 @@ import etomo.util.MRCHeader;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.18  2004/11/15 22:26:27  sueh
+* <p> bug# 520 Added setMode().  Moved enabling and disabling to setMode().
+* <p>
 * <p> Revision 1.1.2.17  2004/11/09 16:20:41  sueh
 * <p> bug# 520 Correcting weight distribution for join tab.  Top header is 2, other
 * <p> lines are 1.
@@ -186,7 +189,7 @@ public class SectionTableRow {
   } 
   
   void create(int mode) {
-    rowNumber = new HeaderCell(data.getRowNumber().getString(true),
+    rowNumber = new HeaderCell(data.getRowNumber().toString(true),
         FixedDim.rowNumberWidth);
     highlighterButton = table.createToggleButton("=>", FixedDim.highlighterWidth);
     highlighterButton.addActionListener(actionListener);
@@ -215,7 +218,7 @@ public class SectionTableRow {
   }
   
   void configureFields() {
-    int rowNumber = data.getRowNumber().get();
+    int rowNumber = data.getRowNumber().getInteger();
     boolean bottomInUse = rowNumber > 1;
     boolean topInUse = rowNumber < table.getTableSize();
     boolean finalInuse = curTab == JoinDialog.JOIN_TAB;
@@ -313,7 +316,7 @@ public class SectionTableRow {
     //Set align display only fields
     if (curTab == JoinDialog.ALIGN_TAB) {
       int start;
-      int chunkSize = data.getChunkSize(table.getTableSize()).get();
+      int chunkSize = data.getChunkSize(table.getTableSize()).getInteger();
       if (chunkSize > 0) {
         start = prevSlice + 1;
         prevSlice += chunkSize;
@@ -335,8 +338,8 @@ public class SectionTableRow {
         currentSection.setText("");
       }
       else {
-        ConstEtomoInteger rowNumber = data.getRowNumber();
-        currentChunk.setText(Integer.toString(rowNumber.get() + 1));
+        ConstEtomoNumber rowNumber = data.getRowNumber();
+        currentChunk.setText(Integer.toString(rowNumber.getInteger() + 1));
         int start;
         int sampleTopNumberSlices = data.getSampleTopNumberSlices();
         if (sampleTopNumberSlices > 0) {
@@ -435,17 +438,17 @@ public class SectionTableRow {
   }
   
   private void displayData() {
-    rowNumber.setText(data.getRowNumber().getString(true));
+    rowNumber.setText(data.getRowNumber().toString(true));
     setSectionText();
-    sampleBottomStart.setText(data.getSampleBottomStart().getString(true));
-    sampleBottomEnd.setText(data.getSampleBottomEnd().getString(true));
-    sampleTopStart.setText(data.getSampleTopStart().getString(true));
-    sampleTopEnd.setText(data.getSampleTopEnd().getString(true));
+    sampleBottomStart.setText(data.getSampleBottomStart().toString(true));
+    sampleBottomEnd.setText(data.getSampleBottomEnd().toString(true));
+    sampleTopStart.setText(data.getSampleTopStart().toString(true));
+    sampleTopEnd.setText(data.getSampleTopEnd().toString(true));
     finalStart.setText(data.getFinalStartString());
     finalEnd.setText(data.getFinalEndString());
-    rotationAngleX.setText(data.getRotationAngleX().getString());
-    rotationAngleY.setText(data.getRotationAngleY().getString());
-    rotationAngleZ.setText(data.getRotationAngleZ().getString());
+    rotationAngleX.setText(data.getRotationAngleX().toString());
+    rotationAngleY.setText(data.getRotationAngleY().toString());
+    rotationAngleZ.setText(data.getRotationAngleZ().toString());
   }
   
   private boolean retrieveData() {
@@ -557,11 +560,11 @@ public class SectionTableRow {
   }
   
   int getXMax() {
-    return data.getXMax().get();
+    return data.getXMax().getInteger();
   }
   
   int getYMax() {
-    return data.getYMax().get();
+    return data.getYMax().getInteger();
   }
   
   int getZMax() {
