@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.3  2002/12/30 06:36:10  mast
+parameterizing the hot slider
+
 Revision 1.1.2.2  2002/12/29 04:13:15  mast
 inherit dialog_frame
 
@@ -32,7 +35,7 @@ class ColorSelector : public DialogFrame
  public:
   ColorSelector(QWidget *parent, QString label, int red, int green, int blue, 
                 int hotFlag, int hotKey, const char *name = NULL, 
-                WFlags fl =  Qt::WDestructiveClose | Qt::WType_Dialog);
+                WFlags fl =  Qt::WDestructiveClose | Qt::WType_TopLevel);
   ~ColorSelector();
 
  signals:
