@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 1.1.2.7  2002/12/23 05:01:54  mast
+    Do not process more events before quitting imodv
+
     Revision 1.1.2.6  2002/12/19 04:37:13  mast
     Cleanup of unused global variables and defines
 
@@ -130,6 +133,7 @@ void imodvQuit()
   imodvImageEditDialog(Imodv, 0);
   imodvStereoEditDialog(Imodv, 0);
   imodvDepthCueEditDialog(Imodv, 0);
+  imodvMenuBgcolor(0);
 
   /* DNM: this is unused so far.  Each window was supposed to add its
      close callback to the list, that would have saved the above list */
@@ -192,7 +196,7 @@ void imodvKeyPress(QKeyEvent *event)
     if (state & Qt::ShiftButton){
 
       /* DNM 12/1/02: call this so it can keep track of open/closed state */
-      imodvMenuBgcolor();
+      imodvMenuBgcolor(1);
     }else{
       imodv_setbuffer(a);
       imodvDraw(Imodv);
