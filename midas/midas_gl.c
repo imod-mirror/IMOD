@@ -27,15 +27,6 @@
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
 
-/*  $Author$
-
-    $Date$
-
-    $Revision$
-
-    $Log$
-*/
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -45,7 +36,8 @@
 #include "midas.h"
 
 
-Window glwWindow(Widget w)
+Window glwWindow(w)
+     Widget w;
 {
      return(XtWindow(w));
 }
@@ -205,7 +197,7 @@ void fill_rgb(unsigned char *fbuf, unsigned long *tobuf,
      /* Make the ramp. */
      for (i = tr->black; i < tr->white; i++){
 	  point = (float)(i - tr->black) * slope;
-	  cmap[i] = (unsigned char)point;
+	  cmap[i] = point;
      }
      
      /* reverse the color ramp */
@@ -271,11 +263,11 @@ void draw_image(struct Midas_view *vw, unsigned long *image,
      /* compute pixels to draw, starts and borders using actual zoom */
      if ( ((xsize - 1) * zoom) < swinx ){
 	  xdrawsize = (xsize);
-	  xborder = (int)(( swinx - ((xsize - 1) * zoom)) / 2);
+	  xborder = ( swinx - ((xsize - 1) * zoom)) / 2;
      }
      else{
-	  xdrawsize = (int)(swinx / zoom);
-	  xstart = (int)((xsize / 2 ) - (swinx / zoom / 2));
+	  xdrawsize = swinx / zoom;
+	  xstart = (xsize / 2 ) - (swinx / zoom / 2);
 	  xstart -= vw->xtrans;
 	  if (xstart < 0){
 	       xstart += vw->xtrans;
@@ -292,11 +284,11 @@ void draw_image(struct Midas_view *vw, unsigned long *image,
      /* same for Y */
      if ( ((ysize - 1) * zoom) < swiny ){
 	  ydrawsize = (ysize);
-	  yborder = (int)(( swiny - ((ysize - 1) * zoom)) / 2);
+	  yborder = ( swiny - ((ysize - 1) * zoom)) / 2;
      }
      else{
-	  ydrawsize = (int)(swiny / zoom);
-	  ystart = (int)((ysize / 2 ) - (swiny / zoom / 2));
+	  ydrawsize = swiny / zoom;
+	  ystart = (ysize / 2 ) - (swiny / zoom / 2);
 	  ystart -= vw->ytrans;
 	  if (ystart < 0){
 	       ystart += vw->ytrans;
@@ -311,13 +303,13 @@ void draw_image(struct Midas_view *vw, unsigned long *image,
      }
 
      /* save offsets for getting from image to window coordinates */
-     vw->xoffset = (int)(xborder - zoom * xstart);
-     vw->yoffset = (int)(yborder - zoom * ystart);
+     vw->xoffset = xborder - zoom * xstart;
+     vw->yoffset = yborder - zoom * ystart;
 
      if (vw->zoom < 0) {
 
 	  /* fractional zoom: adjust sizes and zooms, copy selected pixels */
-	  iskip = (int)(-vw->zoom);
+	  iskip = -vw->zoom;
 	  xdrawsize /= iskip;
 	  ydrawsize /= iskip;
 	  glzoom = 1;
@@ -336,10 +328,10 @@ void draw_image(struct Midas_view *vw, unsigned long *image,
 
 	  /* Special zoom 1.5: adjust sizes, set up for extra lines etc */
 	  glzoom = 1;
-	  xdrawsize = (int)(1.5 * xdrawsize);
+	  xdrawsize *= 1.5;
 	  if (xdrawsize > swinx)
 	       xdrawsize = swinx;
-	  ydrawsize = (int)(1.5 * ydrawsize);
+	  ydrawsize *= 1.5;
 	  if (ydrawsize > swiny)
 	       ydrawsize = swiny;
 	  maxj = (2 * ydrawsize) / 3;
@@ -397,8 +389,8 @@ void draw_image(struct Midas_view *vw, unsigned long *image,
      glRasterPos2i(llx + xborder, lly + yborder);
      glDrawPixels(xdrawsize, ydrawsize,
 		  GL_RGBA, GL_UNSIGNED_BYTE, image);
-     *xdrawn = (int)(xdrawsize * glzoom);
-     *ydrawn = (int)(ydrawsize * glzoom);
+     *xdrawn = xdrawsize * glzoom;
+     *ydrawn = ydrawsize * glzoom;
 
      return;
 }
