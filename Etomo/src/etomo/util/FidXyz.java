@@ -18,10 +18,7 @@ import java.io.IOException;
 *
 * @version $$Revision$$
  *
- * <p> $$Log$
- * <p> $Revision 1.1  2004/06/29 23:52:41  sueh
- * <p> $bug# 487 extracting pixel size from the fid.xyz file
- * <p> $$ </p>
+ * <p> $$Log$$ </p>
  */
 
 public class FidXyz {
