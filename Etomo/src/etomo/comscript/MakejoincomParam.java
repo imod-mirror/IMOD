@@ -1,5 +1,6 @@
 package etomo.comscript;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 
@@ -27,7 +28,12 @@ import etomo.type.SectionTableRowData;
 * <p> ConstJoinMetaData.
 * <p> </p>
 * 
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1.2.1  2004/10/08 15:50:06  sueh
+* <p> bug# 520 Renamed Makejoincom to MakejoincomParam.  Switched from
+* <p> a command line to a command array because of the possibility of spaces
+* <p> within parameters.
+* <p> </p>
 */
 public class MakejoincomParam {
   public static  final String  rcsid =  "$Id$";
@@ -53,6 +59,7 @@ public class MakejoincomParam {
       commandArray[i + 3] = (String) options.get(i);
     }
     makejoincom = new SystemProgram(commandArray);
+    makejoincom.setWorkingDirectory(new File(metaData.getWorkingDir()));
   }
   
   public String[] getCommandArray() {
