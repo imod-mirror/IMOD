@@ -192,7 +192,7 @@ set fbpswitch       = fbpswitch-pc.inc
 # Set up things for Qt include files
 #
 cat << EOF  >! $midas_qconf
-LIBS += -L$lib_dir -limod -liimod -ltiff
+LIBS += -L$lib_dir -limod -liimod -ltiff -lGL
 DEFINES	+= _FILE_OFFSET_BITS=64
 EOF
 

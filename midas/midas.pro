@@ -7,6 +7,6 @@ MOC_DIR = tmp
 OBJECTS_DIR = tmp
 
 TEMPLATE = app
-CONFIG += qt opengl
+CONFIG += qt
 
 include (qconfigure)
