@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.3  2002/12/01 15:34:41  mast
+    Changes to get clean compilation with g++
+
     Revision 3.2  2002/09/04 00:26:25  mast
     Added declarations for imodv_init and imodvGetVisuals
 
@@ -191,6 +194,7 @@ extern int ImodvClosed;
 int  imodv_main(int argc, char **argv);
 void imodv_movie(ImodvApp *a);
 void imodv_exit(ImodvApp *a);
+  void imodv_open_nob(Imod *imod);
 
 void imodv_resize_cb(Widget w, XtPointer client, XtPointer call);
 void imodv_expose_cb(Widget w, XtPointer client, XtPointer call);

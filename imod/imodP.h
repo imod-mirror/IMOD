@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.8.2.2  2002/12/07 01:23:50  mast
+    *** empty log message ***
+
     Revision 3.8.2.1  2002/12/05 16:29:02  mast
     declare ioew_sgicolor_cb
 
@@ -228,8 +231,8 @@ typedef struct ViewInfo
      Imod  *imod;
 
      /* Extra Window Data. */
+  /* 12/7/02: zap not needed */
      struct xxyzwin *xyz;
-     struct zapwin  *zap;
      Autox  *ax;
      ImodControlList *ctrlist;
 
@@ -287,6 +290,7 @@ extern int Stereo;
 extern int Ghostmode;
 extern int Imod_winfreeze;
 extern int ImodTrans;
+extern int Imod_debug;
 
 /* globels from imod_draw.c */
 extern int Imod_Menu;
@@ -483,9 +487,8 @@ int  xyz_draw(struct ViewInfo *vi);
 /* window fuctions */
 int  xyz_draw(struct ViewInfo *vi);
 int  imod_zap_open(struct ViewInfo *vi);
-int  imod_zap_draw(struct ViewInfo *vi);
-int  imod_zap_close(struct ViewInfo *vi);
-void zapDraw_cb(struct ViewInfo *vi, void *client, int drawflag);
+void zapDrawSymbol(int mx, int my, unsigned char sym, unsigned char size, 
+                   unsigned char flags);
 void imodv_draw(void);
 void imodv_new_model(Imod *mod);
 int  imod_object_edit(Widget top);

@@ -34,6 +34,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.3  2002/12/07 01:23:23  mast
+Improved window title code
+
 Revision 1.1.2.2  2002/12/06 21:58:35  mast
 *** empty log message ***
 
@@ -238,7 +241,6 @@ int main( int argc, char *argv[])
   Tilt_vi = &tiltvi;
   ivwInit(&vi);
   vi.fp = fin;
-  vi.zap = NULL;
   vi.vmSize = cacheSize;
   vi.flippable = 1;
 
