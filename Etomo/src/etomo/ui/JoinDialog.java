@@ -27,6 +27,10 @@ import etomo.type.JoinMetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.1.2.11  2004/10/14 02:28:58  sueh
+ * <p> bug# 520 Fixed action().  Setting working directory in join manager when
+ * <p> Make Samples is pressed.
+ * <p>
  * <p> Revision 1.1.2.10  2004/10/13 23:12:27  sueh
  * <p> bug# 520 Added align and join ui components.
  * <p>
@@ -133,6 +137,9 @@ public class JoinDialog implements ContextMenu {
   
   private int numSections = 0;
   private int curTab = SETUP_TAB;
+  private boolean alignTabEnabled = false;
+  private boolean joinTabEnabled = false;
+  private String invalidReason = null;
 
   private JoinActionListener joinActionListener = new JoinActionListener(this);
   private WorkingDirActionListener workingDirActionListener = new WorkingDirActionListener(
@@ -169,6 +176,18 @@ public class JoinDialog implements ContextMenu {
     tabPane.addTab("Align", pnlAlign.getContainer());
     createJoinPanel();
     tabPane.addTab("Join", pnlJoin.getContainer());
+    setEnabledTabs();
+  }
+  
+  public void setEnabledTabs(boolean enabled) {
+    alignTabEnabled = enabled;
+    joinTabEnabled = enabled;
+    setEnabledTabs();
+  }
+  
+  private void setEnabledTabs() {
+    tabPane.setEnabledAt(1, alignTabEnabled);
+    tabPane.setEnabledAt(2, joinTabEnabled);
   }
   
   private void addPanelComponents(int tab) {
@@ -405,13 +424,27 @@ public class JoinDialog implements ContextMenu {
   }
   
   public String getInvalidReason() {
+    if (invalidReason != null) {
+      return invalidReason;
+    }
     return pnlSectionTable.getInvalidReason();
   }
   
   public boolean getMetaData(JoinMetaData joinMetaData) {
+    invalidReason = null;
     joinMetaData.setDensityRefSection(spinDensityRefSection.getValue());
-    joinMetaData.setWorkingDir(ltfWorkingDir.getText());
-    joinMetaData.setRootName(ltfRootName.getText());
+    String workingDir = ltfWorkingDir.getText();
+    if (workingDir == null || !workingDir.matches("\\S+")) {
+      invalidReason = "Working directory is empty.";
+      return false;
+    }
+    joinMetaData.setWorkingDir(workingDir);
+    String rootName = ltfRootName.getText();
+    if (rootName == null || !rootName.matches("\\S+")) {
+      invalidReason = "Root name is empty.";
+      return false;
+    }
+    joinMetaData.setRootName(rootName);
     return pnlSectionTable.getMetaData(joinMetaData);
   }
 
@@ -452,7 +485,7 @@ public class JoinDialog implements ContextMenu {
       joinManager.makejoincom();
     }
     else if (command.equals(btnOpenSamples.getActionCommand())) {
-      //TODO
+      joinManager.imodOpenJoinSamples();
     }
     else if (command.equals(btnOpenSampleAverages.getActionCommand())) {
       //TODO
