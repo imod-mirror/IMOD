@@ -43,6 +43,12 @@ import etomo.storage.EtomoFileFilter;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.12.2.3  2004/09/09 17:39:03  sueh
+ * <p> bug# 520 Add the Window menu.  Add current window list menu item.
+ * <p> Move call to createMenus out of MainFrame() because the list of managers
+ * <p> hasn't been built when MainFrame is created.  Create
+ * <p> setCurrentWindowLabels() which created a new current window menu list.
+ * <p>
  * <p> Revision 3.12.2.2  2004/09/08 22:37:34  sueh
  * <p> bug# 520 removed fields that only belong in MainPanel
  * <p>
@@ -222,7 +228,7 @@ public class MainFrame extends JFrame implements ContextMenu {
     "$Id$";
 
   private JPanel rootPanel;
-  private MainPanel mainPanel;
+  private MainPanel mainPanel = null;
   
   //convenience variable
   private EtomoDirector etomoDirector = EtomoDirector.getInstance();
@@ -282,9 +288,13 @@ public class MainFrame extends JFrame implements ContextMenu {
   
   public void setCurrentManager(BaseManager currentManager) {
     this.currentManager = currentManager;
+    if (mainPanel != null) {
+      rootPanel.remove(mainPanel);
+    }
     mainPanel = currentManager.getMainPanel();
     rootPanel.add(mainPanel);
     mainPanel.addMouseListener(mouseAdapter);
+    pack();
   }
   
   //  Right mouse button context menu
