@@ -16,7 +16,14 @@ import java.util.Vector;
 * 
 * @version $Revision$
 * 
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1.2.1  2004/09/13 19:16:28  sueh
+* <p> bug# 520 A list of name, value pairs the can be accessed by index or key.
+* <p> Has two add functions: one that creates a new unique key and one that
+* <p> adds to an an existing key.  Used for EtomoDirect.managerList and the
+* <p> Window menu in MainFrame.  Can a create a new HashedArray with keys
+* <p> for an existing HashedArray, but no values.  Can remove elements.
+* <p> </p>
 */
 public class HashedArray extends ConstHashedArray {
   public static  final String  rcsid =  "$Id$";
@@ -25,34 +32,35 @@ public class HashedArray extends ConstHashedArray {
     super();
   }
   
-  protected HashedArray(Vector array) {
-    super(array);
+  protected HashedArray(Vector keyArray) {
+    super(keyArray);
   }
   
-  public synchronized UniqueKey add(String name, Object value) {
-    UniqueKey key = new UniqueKey(name, this);
-    array.add(key);
+  public synchronized UniqueKey add(String keyName, Object value) {
+    UniqueKey key = new UniqueKey(keyName, this);
+    keyArray.add(key);
     map.put(key, value);
     return key;
   }
   
-  public synchronized UniqueKey add(int keyIndex, Object value) {
-    UniqueKey key = (UniqueKey) array.get(keyIndex);
+  public synchronized UniqueKey set(int keyIndex, Object value) {
+    UniqueKey key = (UniqueKey) keyArray.get(keyIndex);
+    map.remove(key);
     map.put(key, value);
     return key;
   }
   
   public synchronized Object remove(UniqueKey key) {
-    for (int i = 0; i < array.size(); i++) {
-      if (array.get(i).equals(key)) {
-        array.remove(i);
+    for (int i = 0; i < keyArray.size(); i++) {
+      if (keyArray.get(i).equals(key)) {
+        keyArray.remove(i);
       }
     }
     return map.remove(key);
   }
   
-  public synchronized UniqueKey rekey(UniqueKey oldKey, String newName) {
+  public synchronized UniqueKey rekey(UniqueKey oldKey, String newKeyName) {
     Object value = remove(oldKey);
-    return add(newName, value);
+    return add(newKeyName, value);
   }
 }
