@@ -20,6 +20,10 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.39.2.6  2004/10/08 16:07:17  sueh
+ * bug# 520 Since EtomoDirector is a singleton, made all functions and
+ * member variables non-static.
+ *
  * Revision 3.39.2.5  2004/10/06 01:48:00  sueh
  * bug# 520 Move StartBackgroundProcess() to base class.  Put non-
  * generic post processing for transferfid into backgroundPostProcess().
@@ -646,7 +650,6 @@ public class ProcessManager extends BaseProcessManager {
 
     //  Create the required tiltalign command
     String command = "prenewst" + axisID.getExtension() + ".com";
-
     //  Start the com script in the background
     PrenewstProcessMonitor prenewstProcessMonitor = new PrenewstProcessMonitor(
       appManager, axisID);
@@ -697,7 +700,7 @@ public class ProcessManager extends BaseProcessManager {
    */
   public void setupNonFiducialAlign(AxisID axisID) throws IOException,
     InvalidParameterException {
-    String workingDirectory = System.getProperty("user.dir");
+    String workingDirectory = appManager.getPropertyUserDir();
     String axisDataset = getDatasetName() + axisID.getExtension();
 
     File nonfidXF = new File(workingDirectory, axisDataset + "_nonfid.xf");
@@ -719,7 +722,7 @@ public class ProcessManager extends BaseProcessManager {
    * @param axisID
    */
   public void setupFiducialAlign(AxisID axisID) throws IOException {
-    String workingDirectory = System.getProperty("user.dir");
+    String workingDirectory = appManager.getPropertyUserDir();
     String axisDataset = getDatasetName() + axisID.getExtension();
     // Files to be managed
     File xf = new File(workingDirectory, axisDataset + ".xf");
@@ -842,7 +845,7 @@ public class ProcessManager extends BaseProcessManager {
    * @param axisID
    */
   public void copyFiducialAlignFiles(AxisID axisID) {
-    String workingDirectory = System.getProperty("user.dir");
+    String workingDirectory = appManager.getPropertyUserDir();
     String axisDataset = getDatasetName() + axisID.getExtension();
 
     try {
@@ -1149,7 +1152,7 @@ public class ProcessManager extends BaseProcessManager {
    */
   public String test(String commandLine) {
     BackgroundProcess command = new BackgroundProcess(commandLine, this);
-    command.setWorkingDirectory(new File(System.getProperty("user.dir")));
+    command.setWorkingDirectory(new File(appManager.getPropertyUserDir()));
     command.setDebug(EtomoDirector.getInstance().isDebug());
     command.start();
 
@@ -1167,7 +1170,7 @@ public class ProcessManager extends BaseProcessManager {
 
     // Initialize the SystemProgram object
     SystemProgram sysProgram = new SystemProgram(command);
-    sysProgram.setWorkingDirectory(new File(System.getProperty("user.dir")));
+    sysProgram.setWorkingDirectory(new File(appManager.getPropertyUserDir()));
     sysProgram.setDebug(EtomoDirector.getInstance().isDebug());
 
     //  Start the system program thread
@@ -1176,7 +1179,7 @@ public class ProcessManager extends BaseProcessManager {
     if (EtomoDirector.getInstance().isDebug()) {
       System.err.println("Started " + command);
       System.err.println("  working directory: "
-        + System.getProperty("user.dir"));
+        + appManager.getPropertyUserDir());
     }
   }
 
@@ -1232,8 +1235,7 @@ public class ProcessManager extends BaseProcessManager {
 
       //  Write the standard output to a the log file
       String[] stdOutput = process.getStdOutput();
-      BufferedWriter fileBuffer = new BufferedWriter(new FileWriter(System
-        .getProperty("user.dir")
+      BufferedWriter fileBuffer = new BufferedWriter(new FileWriter(appManager.getPropertyUserDir()
         + "/transferfid.log"));
 
       for (int i = 0; i < stdOutput.length; i++) {
@@ -1244,8 +1246,7 @@ public class ProcessManager extends BaseProcessManager {
 
       //  Show a log file window to the user
       TextPageWindow logFileWindow = new TextPageWindow();
-      logFileWindow.setVisible(logFileWindow.setFile(System
-        .getProperty("user.dir")
+      logFileWindow.setVisible(logFileWindow.setFile(appManager.getPropertyUserDir()
         + File.separator + "transferfid.log"));
     }
     catch (IOException except) {
@@ -1275,7 +1276,7 @@ public class ProcessManager extends BaseProcessManager {
    */
   private void runCommand(String[] commandArray) throws SystemProcessException {
     SystemProgram systemProgram = new SystemProgram(commandArray);
-    systemProgram.setWorkingDirectory(new File(System.getProperty("user.dir")));
+    systemProgram.setWorkingDirectory(new File(appManager.getPropertyUserDir()));
     systemProgram.setDebug(EtomoDirector.getInstance().isDebug());
 
     systemProgram.run();

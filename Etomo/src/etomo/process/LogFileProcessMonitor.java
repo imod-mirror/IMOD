@@ -24,6 +24,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.11.2.1  2004/09/29 17:55:09  sueh
+ * <p> bug# 520 Removing pass-through function calls.
+ * <p>
  * <p> Revision 3.11  2004/08/24 20:33:44  sueh
  * <p> bug# 508 create a haltProcess function to halt the monitor
  * <p> from another thread.  Make sure that the progress bar won't
@@ -146,7 +149,7 @@ public abstract class LogFileProcessMonitor implements Runnable {
     else {
       logFileName = logFileBasename;
     }
-    logFile = new File(System.getProperty("user.dir"), logFileName);
+    logFile = new File(applicationManager.getPropertyUserDir(), logFileName);
 
     try {
       //  Wait for the log file to exist

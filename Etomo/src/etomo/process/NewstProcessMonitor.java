@@ -11,6 +11,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.6.4.1  2004/09/29 19:09:05  sueh
+ * <p> bug# 520 Removing pass-through function calls.
+ * <p>
  * <p> Revision 3.6  2004/06/17 23:55:51  rickg
  * <p> Bug #460 moved getting of current time into FileSizeProcessMonitor on
  * <p> instantiation
@@ -73,7 +76,7 @@ public class NewstProcessMonitor extends FileSizeProcessMonitor {
     NewstParam newstParam = comScriptManager.getNewstComNewstParam(axisID);
 
     // Get the header from the raw stack to calculate the aligned stack stize
-    String rawStackFilename = System.getProperty("user.dir") + "/"
+    String rawStackFilename = applicationManager.getPropertyUserDir() + "/"
       + newstParam.getInputFile();
     MRCHeader rawStack = new MRCHeader(rawStackFilename);
     rawStack.read();
@@ -119,7 +122,7 @@ public class NewstProcessMonitor extends FileSizeProcessMonitor {
       .setProgressBar("Creating aligned stack", nKBytes, axisID);
 
     // Create a file object describing the file to be monitored
-    watchedFile = new File(System.getProperty("user.dir"), newstParam
+    watchedFile = new File(applicationManager.getPropertyUserDir(), newstParam
       .getOutputFile());
   }
 }

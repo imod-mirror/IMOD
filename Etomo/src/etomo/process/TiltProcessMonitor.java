@@ -23,6 +23,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.6.4.1  2004/09/29 19:11:46  sueh
+ * <p> bug# 520 Removing pass-through function calls.
+ * <p>
  * <p> Revision 3.6  2004/06/18 05:36:59  rickg
  * <p> Handle y slice when step size not specified
  * <p>
@@ -86,7 +89,7 @@ public class TiltProcessMonitor extends FileSizeProcessMonitor {
     // Get the header from the aligned stack to use as default nX and
     // nY parameters
     String alignedFilename =
-      System.getProperty("user.dir") + "/" + tiltParam.getInputFile();
+      applicationManager.getPropertyUserDir() + "/" + tiltParam.getInputFile();
 
     MRCHeader alignedStack = new MRCHeader(alignedFilename);
     alignedStack.read();
@@ -145,7 +148,7 @@ public class TiltProcessMonitor extends FileSizeProcessMonitor {
     // Create a file object describing the file to be monitored
     watchedFile =
       new File(
-        System.getProperty("user.dir"),
+        applicationManager.getPropertyUserDir(),
         tiltParam.getOutputFile());
   }
 }
