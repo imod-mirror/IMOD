@@ -24,6 +24,10 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.7.2.1  2004/09/08 19:46:06  sueh
+ * <p> bug# 520 Converted AxisProcessPanel to a base class.  Move
+ * <p> everything specific to creating tomograms to TomogramProcessPanel.
+ * <p>
  * <p> Revision 3.7  2004/07/23 22:43:18  sueh
  * <p> bug# 517, bug# 513 adding comments, moving tooSmall() to
  * <p> MainFrame (renamed), hide() - get the width immediately before
@@ -103,7 +107,7 @@ import etomo.type.AxisID;
  * <p> </p>
  */
 
-public abstract class AxisProcessPanel implements ContextMenu {
+public class AxisProcessPanel implements ContextMenu {
   public static final String rcsid =
     "$Id$";
 
@@ -113,6 +117,7 @@ public abstract class AxisProcessPanel implements ContextMenu {
   private JPanel panelProcessInfo = new JPanel();
   private JPanel panelStatus = new JPanel();
   private JPanel panelDialog = new JPanel();
+  protected BaseManager manager = null;
 
   //  Progress panel
   ProgressPanel progressPanel = new ProgressPanel("No process");
@@ -120,15 +125,14 @@ public abstract class AxisProcessPanel implements ContextMenu {
 
   //  Process select panel
   protected JPanel panelProcessSelect = new JPanel();
-  
-  protected abstract BaseManager getManager();
 
   /**
    * Constructor
    * @param appManager
    * @param axis
    */
-  public AxisProcessPanel(AxisID axis) {
+  public AxisProcessPanel(BaseManager manager, AxisID axis) {
+    this.manager = manager;
     axisID = axis;
 
     //  Create the status panel
@@ -269,7 +273,7 @@ public abstract class AxisProcessPanel implements ContextMenu {
    * @param event
    */
   private void buttonKillAction(ActionEvent event) {
-    getManager().kill(axisID);
+    manager.kill(axisID);
   }
 
   /**
