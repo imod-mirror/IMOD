@@ -23,6 +23,9 @@ import etomo.storage.EtomoFileFilter;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.9  2002/12/18 20:45:32  rickg
+ * <p> Advanced menu implemented
+ * <p>
  * <p> Revision 1.8  2002/12/11 21:28:29  rickg
  * <p> Implemented repaint method, doesn't work well
  * <p>
@@ -57,7 +60,6 @@ public class MainFrame extends JFrame implements ContextMenu {
   private JPanel mainPanel;
   private BorderLayout borderMain = new BorderLayout();
 
-  //
   //  Menu bar
   private final int nMRUFileMax = 10;
   private JMenuBar menuBar = new JMenuBar();
@@ -126,8 +128,10 @@ public class MainFrame extends JFrame implements ContextMenu {
 
     enableEvents(AWTEvent.WINDOW_EVENT_MASK);
 
-    //setIconImage(Toolkit.getDefaultToolkit().createImage(
-    //MainFrame.class.getResource("[Your Icon]")));
+    ImageIcon iconEtomo =
+      new ImageIcon(ClassLoader.getSystemResource("images/etomo.png"));
+    setIconImage(iconEtomo.getImage());
+
 
     setTitle("eTomo");
 
