@@ -12,16 +12,31 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.1  2002/12/18 04:10:30  mast
+initial creation
+
 */
 
 #ifndef IMODV_MOVIE_H
 #define IMODV_MOVIE_H
 
+#define IMODV_MOVIE_FULLAXIS_X -1
+#define IMODV_MOVIE_FULLAXIS_Y 1
+
 #ifndef IMODV_H
 typedef struct __imodv_struct ImodvApp;
 #endif
 
-
+void imodvMovieFullAxis(int ixy);
+void imodvMovieSetStart();
+void imodvMovieSetEnd();
 void imodvMovieDialog(ImodvApp *a, int state);
+void imodvMovieFullAxis();
+void imodvMovieHelp();
+void imodvMovieQuit();
+void imodvMovieMake();
+void imodvMovieStop();
+void imodvMovieHelp();
+void imodvMovieClosing();
 
 #endif

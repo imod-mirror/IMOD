@@ -12,10 +12,15 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.1  2002/12/18 04:10:30  mast
+initial creation
+
 */
 
 #ifndef IMODV_VIEWS_H
 #define IMODV_VIEWS_H
+
+#define VIEW_LABEL_LENGTH  32
 
 #ifndef IMODV_H
 typedef struct __imodv_struct ImodvApp;
@@ -25,6 +30,17 @@ typedef struct __imodv_struct ImodvApp;
 void imodvUpdateModel(ImodvApp *a);
 void imodvViewEditDialog(ImodvApp *a, int state);
 void imodvAutoStoreView(ImodvApp *a);
+void imodvViewsHelp();
+void imodvViewsDefault();
+void imodvViewsDone();
+void imodvViewsClosing();
+void imodvViewsSave();;
+void imodvViewsGoto(int item);
+void imodvViewsStore(int item);
+void imodvViewsNew(const char *label);;
+void imodvViewsDelete(int item, int newCurrent);
+void imodvViewsLabel(const char *label, int item);;
+void imodvViewsAutostore(int state);
 
 #endif
 
