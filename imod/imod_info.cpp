@@ -40,6 +40,9 @@
     $Revision$
 
     $Log$
+    Revision 1.1.2.2  2003/01/14 21:49:06  mast
+    Initialize hiding timer properly
+
     Revision 1.1.2.1  2003/01/13 01:00:08  mast
     Qt version
 
@@ -187,8 +190,10 @@ InfoWindow::InfoWindow(QWidget * parent, const char * name, WFlags f)
   mEImageMenu->insertItem("F&lip", EIMAGE_MENU_FLIP);
   mEImageMenu->insertItem("F&ill Cache", EIMAGE_MENU_FILLCACHE);
   mEImageMenu->insertItem("C&ache Filler...", EIMAGE_MENU_FILLER);
-  mEImageMenu->setItemEnabled(EIMAGE_MENU_FILLCACHE, App->cvi->vmSize != 0);
-  mEImageMenu->setItemEnabled(EIMAGE_MENU_FILLER, App->cvi->vmSize != 0);
+  mEImageMenu->setItemEnabled(EIMAGE_MENU_FILLCACHE, 
+			      App->cvi->vmSize != 0 | App->cvi->nt > 0);
+  mEImageMenu->setItemEnabled(EIMAGE_MENU_FILLER, 
+			      App->cvi->vmSize != 0 | App->cvi->nt > 0);
 
   // The image menu
   mImageMenu = new QPopupMenu();
