@@ -9,6 +9,7 @@ import etomo.comscript.ConstTiltalignParam;
 import etomo.comscript.TiltalignParam;
 import etomo.comscript.FortranInputSyntaxException;
 import etomo.comscript.StringList;
+import etomo.type.AxisID;
 
 /**
  * <p>Description: </p>
@@ -23,6 +24,10 @@ import etomo.comscript.StringList;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.22  2003/01/06 05:57:29  rickg
+ * <p> Quick fix for residual threshold value text field size.  Needs to be more
+ * <p> robust
+ * <p>
  * <p> Revision 1.21  2003/01/04 00:24:29  rickg
  * <p> Wrap tab pane with a border to ID it as a tiltalign
  * <p> panel.
@@ -94,7 +99,7 @@ public class TiltalignPanel implements ContextMenu {
   public static final String rcsid =
     "$Id$";
 
-  private String logSuffix;
+  private AxisID axisID;
 
   //  FIXME need recomended default for all sub groups see (align.com)
   private final int defaultTiltAngleType = 5;
@@ -264,10 +269,11 @@ public class TiltalignPanel implements ContextMenu {
   private LabeledTextField ltfLocalSkewAdditionalGroups =
     new LabeledTextField("Skew additional group list: ");
 
-  public TiltalignPanel(String suffix) {
-    logSuffix = suffix;
+  public TiltalignPanel(AxisID axis) {
+    axisID = axis;
 
-    tabPane.setBorder(new TitledBorder(
+    tabPane.setBorder(
+      new TitledBorder(
         BorderFactory.createEtchedBorder(highlight, shadow),
         "Tiltalign Parameters"));
     //  Create the tabs
@@ -770,7 +776,7 @@ public class TiltalignPanel implements ContextMenu {
     String[] manPage = { "tiltalign.html" };
     String[] logFileLabel = { "align" };
     String[] logFile = new String[1];
-    logFile[0] = "align" + logSuffix + ".log";
+    logFile[0] = "align" + axisID.getExtension() + ".log";
     ContextPopup contextPopup =
       new ContextPopup(
         panelGeneral,
@@ -896,7 +902,6 @@ public class TiltalignPanel implements ContextMenu {
     panelGeneral.add(ltfNSurfaceAnalysis.getContainer());
     panelGeneral.add(Box.createRigidArea(FixedDim.x0_y5));
 
-
     panelResidualThreshold.setLayout(
       new BoxLayout(panelResidualThreshold, BoxLayout.X_AXIS));
     ltfResidualThreshold.setColumns(10);
@@ -950,7 +955,7 @@ public class TiltalignPanel implements ContextMenu {
     panelGeneral.add(ltfNLocalPatches.getContainer());
     panelGeneral.add(Box.createRigidArea(FixedDim.x0_y5));
 
-   panelGeneral.add(ltfMinLocalPatchSize.getContainer());
+    panelGeneral.add(ltfMinLocalPatchSize.getContainer());
     panelGeneral.add(Box.createRigidArea(FixedDim.x0_y5));
 
     panelGeneral.add(ltfMinLocalFiducials.getContainer());
@@ -1055,7 +1060,7 @@ public class TiltalignPanel implements ContextMenu {
 
   /*  private void createCompressionTab() {
       //  Compression solution
-//      ltfCompressionReferenceView.setMaximumSize(dimLTF);
+  //      ltfCompressionReferenceView.setMaximumSize(dimLTF);
       panelCompressionSolution.add(ltfCompressionReferenceView.getContainer());
       JRadioButton[] items = new JRadioButton[3];
       items[0] = rbCompressionAll;
@@ -1164,16 +1169,16 @@ public class TiltalignPanel implements ContextMenu {
     panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
     //  Add the check box
-//    checkBox.setAlignmentX(Component.LEFT_ALIGNMENT);
+    //    checkBox.setAlignmentX(Component.LEFT_ALIGNMENT);
     panel.add(checkBox);
 
     //  Add the group size labeled text field
-//    groupSize.setAlignmentX(Component.LEFT_ALIGNMENT);
+    //    groupSize.setAlignmentX(Component.LEFT_ALIGNMENT);
     panel.add(groupSize.getContainer());
-    
+
     //  Add the additional groups labeled text field
     panel.add(Box.createRigidArea(FixedDim.x0_y5));
-//    additionalGroups.setAlignmentX(Component.LEFT_ALIGNMENT);
+    //    additionalGroups.setAlignmentX(Component.LEFT_ALIGNMENT);
     panel.add(additionalGroups.getContainer());
 
     panel.setBorder(

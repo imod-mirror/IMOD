@@ -23,6 +23,10 @@ import etomo.storage.StackFileFilter;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.14  2003/01/06 20:43:26  rickg
+ * <p> Fixed direct entry of fileset name, working directory
+ * <p> is taken from app manager
+ * <p>
  * <p> Revision 1.13  2003/01/06 20:18:33  rickg
  * <p> Changed edit boxes to LabeledTextFields
  * <p>
@@ -146,11 +150,10 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
   //  Construct the setup dialog
   //
   public SetupDialog(ApplicationManager appMgr) {
-    super(appMgr);
+    //FIXME
+    super(appMgr, AxisID.FIRST);
 
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
-
-    setTitle("eTomo Setup");
 
     createFilesetPanel();
 
@@ -181,7 +184,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     rootPanel.addMouseListener(mouseAdapter);
 
     // Calcute the necessary window size
-    pack();
+    applicationManager.packMainWindow();
   }
 
   private void createFilesetPanel() {
@@ -363,6 +366,10 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     panelPerAxisInfo.add(panelAxisInfoB);
   }
 
+  public Container getContainer() {
+    return rootPanel;
+  }
+
   public void initializeFields(ConstMetaData metaData) {
 
     if (!metaData.getFilesetName().equals("")) {
@@ -494,8 +501,8 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
       return SectionType.SERIAL;
     }
   } /**
-      * Right mouse button context menu
-      */
+       * Right mouse button context menu
+       */
   public void popUpContextMenu(MouseEvent mouseEvent) {
     ContextPopup contextPopup =
       new ContextPopup(rootPanel, mouseEvent, "INITIAL STEPS");
@@ -512,7 +519,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     chooser.setFileFilter(stackFilter);
     chooser.setPreferredSize(new Dimension(400, 400));
     chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-    int returnVal = chooser.showOpenDialog(this);
+    int returnVal = chooser.showOpenDialog(rootPanel);
     if (returnVal == JFileChooser.APPROVE_OPTION) {
       File filesetName = chooser.getSelectedFile();
       try {
@@ -535,7 +542,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     JFileChooser chooser = new JFileChooser(new File(currentBackupDirectory));
     chooser.setPreferredSize(new Dimension(400, 400));
     chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-    int returnVal = chooser.showOpenDialog(this);
+    int returnVal = chooser.showOpenDialog(rootPanel);
     if (returnVal == JFileChooser.APPROVE_OPTION) {
       File backupDirectory = chooser.getSelectedFile();
       try {
@@ -556,23 +563,23 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     tiltAnglesB.setEnabled(true);
     ltfExcludeListB.setEnabled(true);
   } /**
-          * Action to take when the cancel button is pressed, the default action is
-          * to set the exitState attribute to CANCEL.
-          */
+           * Action to take when the cancel button is pressed, the default action is
+           * to set the exitState attribute to CANCEL.
+           */
   public void buttonCancelAction(ActionEvent event) {
     super.buttonCancelAction(event);
     applicationManager.doneSetupDialog();
   } /**
-          * Action to take when the postpone button is pressed, the default action is
-          * to set the exitState attribute to POSTPONE.
-          */
+           * Action to take when the postpone button is pressed, the default action is
+           * to set the exitState attribute to POSTPONE.
+           */
   public void buttonPostponeAction(ActionEvent event) {
     super.buttonPostponeAction(event);
     applicationManager.doneSetupDialog();
   } /**
-          * Action to take when the execute button is pressed, the default action is
-          * to set the exitState attribute to EXECUTE.
-          */
+           * Action to take when the execute button is pressed, the default action is
+           * to set the exitState attribute to EXECUTE.
+           */
   public void buttonExecuteAction(ActionEvent event) {
     super.buttonExecuteAction(event);
     applicationManager.doneSetupDialog();

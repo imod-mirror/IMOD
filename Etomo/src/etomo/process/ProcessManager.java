@@ -27,6 +27,9 @@ import java.io.IOException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.14  2003/01/08 05:00:13  rickg
+ * <p> Wrote transferfid log file and create stdout dialog box
+ * <p>
  * <p> Revision 1.13  2003/01/08 03:56:17  rickg
  * <p> Mods in progress
  * <p>
@@ -122,39 +125,39 @@ public class ProcessManager {
    * Erase the specified pixels
    * @param axisID the AxisID to cross-correlate.
    */
-  public void eraser(AxisID axisID) {
+  public String eraser(AxisID axisID) {
 
     //  Create the required command string
     String command = "eraser" + axisID.getExtension() + ".com";
 
     //  Start the com script in the background
-    startComScript(command);
+    return startComScript(command);
   }
 
   /**
    * Calculate the cross-correlation for the specified axis
    * @param axisID the AxisID to cross-correlate.
    */
-  public void crossCorrelate(AxisID axisID) {
+  public String crossCorrelate(AxisID axisID) {
 
     //  Create the required command string
     String command = "xcorr" + axisID.getExtension() + ".com";
 
     //  Start the com script in the background
-    startComScript(command);
+    return startComScript(command);
   }
 
   /**
    * Calculate the coarse alignment for the specified axis
    * @param axisID the identifyer of the axis to coarse align.
    */
-  public void coarseAlign(AxisID axisID) {
+  public String coarseAlign(AxisID axisID) {
 
     //  Create the required tiltalign command
     String command = "prenewst" + axisID.getExtension() + ".com";
 
     //  Start the com script in the background
-    startComScript(command);
+    return startComScript(command);
   }
 
   /**
@@ -189,96 +192,97 @@ public class ProcessManager {
   * Run the appropriate track com file for the given axis ID
   * @param axisID the AxisID to run track.com on.
   */
-  public void fiducialModelTrack(AxisID axisID) {
+  public String fiducialModelTrack(AxisID axisID) {
     //
     //  Create the required beadtrack command
     //
     String command = "track" + axisID.getExtension() + ".com";
 
     //  Start the com script in the background
-    startComScript(command);
+    return startComScript(command);
   }
 
   /**
    * Run the appropriate align com file for the given axis ID
    * @param axisID the AxisID to run align.com on.
    */
-  public void fineAlignment(AxisID axisID) {
+  public String fineAlignment(AxisID axisID) {
     //
     //  Create the required tiltalign command
     //
     String command = "align" + axisID.getExtension() + ".com";
 
     //  Start the com script in the background
-    startComScript(command);
+    return startComScript(command);
   }
 
   /**
    * Run the transferfid script
    */
-  public void transferFiducials(TransferfidParam transferfidParam) {
+  public String transferFiducials(TransferfidParam transferfidParam) {
     BackgroundProcess transferfid =
       new BackgroundProcess(transferfidParam.getCommandString(), this);
-    System.err.println(transferfidParam.getCommandString());
     transferfid.setWorkingDirectory(new File(appManager.getWorkingDirectory()));
+    transferfid.setDemoMode(appManager.isDemo());
     transferfid.setDebug(appManager.isDebug());
     transferfid.start();
+    return transferfid.getName();
   }
 
   /**
    * Run the appropriate sample com file for the given axis ID
    * @param axisID the AxisID to run sample.com on.
    */
-  public void createSample(AxisID axisID) {
+  public String createSample(AxisID axisID) {
     //
     //  Create the required tiltalign command
     //
     String command = "sample" + axisID.getExtension() + ".com";
 
     //  Start the com script in the background
-    startComScript(command);
+    return startComScript(command);
   }
 
   /**
    * Run the appropriate tomopitch com file for the given axis ID
    * @param axisID the AxisID to run tomoptich on.
    */
-  public void tomopitch(AxisID axisID) {
+  public String tomopitch(AxisID axisID) {
     //
     //  Create the required tiltalign command
     //
     String command = "tomopitch" + axisID.getExtension() + ".com";
 
     //  Start the com script in the background
-    startComScript(command);
+    return startComScript(command);
   }
 
   /**
    * Run the appropriate newst com file for the given axis ID
    * @param axisID the AxisID to run newst on.
    */
-  public void newst(AxisID axisID) {
+  public String newst(AxisID axisID) {
     //
     //  Create the required newst command
     //
     String command = "newst" + axisID.getExtension() + ".com";
 
     //  Start the com script in the background
-    startComScript(command);
+    return startComScript(command);
   }
 
   /**
    * Run the appropriate tilt com file for the given axis ID
    * @param axisID the AxisID to run tilt on.
    */
-  public void tilt(AxisID axisID) {
+  public String tilt(AxisID axisID) {
     //
     //  Create the required tilt command
     //
     String command = "tilt" + axisID.getExtension() + ".com";
 
     //  Start the com script in the background
-    startComScript(command);
+    return startComScript(command);
   }
 
   /**
@@ -319,20 +323,20 @@ public class ProcessManager {
    * Run the combine com file
    * @param axisID the AxisID to run tilt on.
    */
-  public void combine() {
+  public String combine() {
     //
     //  Create the required tilt command
     //
     String command = "combine.com";
 
     //  Start the com script in the background
-    startComScript(command);
+    return startComScript(command);
   }
 
   /**
    * Run the comand specified by the argument string
    */
-  public void test(String commandLine) {
+  public String test(String commandLine) {
     BackgroundProcess command = new BackgroundProcess(commandLine, this);
     command.setWorkingDirectory(new File(appManager.getWorkingDirectory()));
     command.setDebug(appManager.isDebug());
@@ -340,6 +344,8 @@ public class ProcessManager {
 
     System.err.println("Started " + commandLine);
     System.err.println("  Name: " + command.getName());
+
+    return command.getName();
   }
 
   /**
@@ -372,6 +378,7 @@ public class ProcessManager {
         handleTransferfidMessage(process);
       }
     }
+    appManager.processDone(process.getName());
   }
 
   /**
@@ -420,6 +427,7 @@ public class ProcessManager {
           script.getScriptName() + " warnings");
       }
     }
+    appManager.processDone(script.getName());
   }
 
   //  Internal utility functions
@@ -437,7 +445,7 @@ public class ProcessManager {
       "  working directory: " + appManager.getWorkingDirectory());
   }
 
-  private void startComScript(String command) {
+  private String startComScript(String command) {
     //  Run the script as a thread in the background
     RunComScript comScript = new RunComScript(command, this);
     comScript.setWorkingDirectory(new File(appManager.getWorkingDirectory()));
@@ -447,6 +455,8 @@ public class ProcessManager {
 
     System.err.println("Started " + command);
     System.err.println("  Name: " + comScript.getName());
+
+    return comScript.getName();
   }
 
   private void handleTransferfidMessage(BackgroundProcess process) {
@@ -464,7 +474,7 @@ public class ProcessManager {
         fileBuffer.newLine();
       }
       fileBuffer.close();
-      
+
       //  Show a dialog box to the user
       String[] message = new String[stdOutput.length + 1];
       int j = 0;
@@ -480,6 +490,6 @@ public class ProcessManager {
         except.getMessage(),
         "Transferfid log error");
     }
-
   }
+
 }

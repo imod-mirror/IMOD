@@ -18,6 +18,9 @@ import etomo.process.SystemProgram;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.4  2002/10/10 19:22:24  rickg
+ * <p> Enable debugging output from SystemProgram
+ * <p>
  * <p> Revision 1.3  2002/10/08 17:03:49  rickg
  * <p> Swapped position of nColumns and nRows in read()
  * <p>
@@ -72,8 +75,7 @@ public class MRCHeader {
       if (stdOutput[i].startsWith(" Number of columns, rows, section")) {
         String[] tokens = stdOutput[i].split("\\s+");
         if (tokens.length < 4) {
-          throw new IOException(
-            "Header returned less than three parameters for image size");
+          throw new IOException("Header returned less than three parameters for image size");
         }
         nColumns = Integer.parseInt(tokens[7]);
         nRows = Integer.parseInt(tokens[8]);

@@ -12,10 +12,14 @@ package etomo.type;
  *
  * @version $Revision$
  *
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2002/09/09 22:57:02  rickg
+ * <p> Initial CVS entry, basic functionality not including combining
+ * <p> </p>
  */
 public class DialogExitState {
-  public static final String rcsid = "$Id$";
+  public static final String rcsid =
+    "$Id$";
 
   private final String name;
 
@@ -30,10 +34,8 @@ public class DialogExitState {
     return name;
   }
 
-  public static final DialogExitState CANCEL = new
-    DialogExitState("Cancel");
-  public static final DialogExitState POSTPONE = new
-    DialogExitState("Postpone");
-  public static final DialogExitState EXECUTE = new
-    DialogExitState("Execute");
+  public static final DialogExitState CANCEL = new DialogExitState("Cancel");
+  public static final DialogExitState POSTPONE =
+    new DialogExitState("Postpone");
+  public static final DialogExitState EXECUTE = new DialogExitState("Execute");
 }
