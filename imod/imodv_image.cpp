@@ -28,45 +28,39 @@
  *****************************************************************************/
 /*  $Author$
 
-    $Date$
+$Date$
 
-    $Revision$
+$Revision$
 
-    $Log$
-    Revision 1.1.2.3  2002/12/18 04:15:14  mast
-    new includes for imodv modules
+$Log$
+Revision 1.1.2.4  2002/12/19 04:37:13  mast
+Cleanup of unused global variables and defines
 
-    Revision 1.1.2.2  2002/12/17 18:33:19  mast
-    using new includes for imodv compoennts
+Revision 1.1.2.3  2002/12/18 04:15:14  mast
+new includes for imodv modules
 
-    Revision 1.1.2.1  2002/12/15 21:14:02  mast
-    conversion to cpp
+Revision 1.1.2.2  2002/12/17 18:33:19  mast
+using new includes for imodv compoennts
 
-    Revision 3.1  2002/12/01 15:34:41  mast
-    Changes to get clean compilation with g++
+Revision 1.1.2.1  2002/12/15 21:14:02  mast
+conversion to cpp
+
+Revision 3.1  2002/12/01 15:34:41  mast
+Changes to get clean compilation with g++
 
 */
 
-#include <Xm/Label.h>
-#include <Xm/Frame.h>
-#include <Xm/ToggleB.h>
-#include <Xm/RowColumn.h>
-#include <Xm/ArrowB.h>
-#include <Xm/Scale.h>
-#include <Xm/PushB.h>
-#include <dia.h>
+#include <qcheckbox.h>
+#include <qlayout.h>
+#include "hotslider.h"
+#include "multislider.h"
+#include "dia_qtutils.h"
 #include "imodv.h"
 #include "imod.h"
 #include "imodv_gfx.h"
 #include "imodv_image.h"
+#include "imodv_input.h"
 
-
-#ifdef NO_IMODV_IMAGE
-
-void imodvDrawImage(ImodvApp *a){ return };
-void imodvImageEditDialog(ImodvApp *a, int state){ return };
-
-#else
 
 #define DRAW_CZ 1
 #define DRAW_CY (2 << 1)
@@ -77,399 +71,389 @@ void imodvImageEditDialog(ImodvApp *a, int state){ return };
 
 #define TexImageSize 64
 
-static GLubyte tdata[TexImageSize][TexImageSize][3];
 
 static void mkcmap(void);
+static void imodvDrawTImage(Ipoint *p1, Ipoint *p2, Ipoint *p3, Ipoint *p4,
+                            Ipoint *clamp,
+                            unsigned char *data,
+                            int width, int height);
+
+static GLubyte tdata[TexImageSize][TexImageSize][3];
 static GLubyte Cmap[3][256];
-static int CmapInit   = 0;
 static int BlackLevel = 0;
 static int WhiteLevel = 255;
 static int Falsecolor = 0;
-
 static int ImageTrans = 0;
+static int cmapInit = 0;
 
 struct{
-     diaDialog *dia;
-     ImodvApp  *a;
+  ImodvImage *dia;
+  ImodvApp  *a;
 
-     int    flags;
-     int    xsize, ysize, zsize;
-     int    *xd, *yd, *zd;
+  int    flags;
+  int    xsize, ysize, zsize;
+  int    *xd, *yd, *zd;
 
-     Widget wTrans;
-     Widget wCZToggle;
 
 }imodvImageData = {0, 0, 0, 0, 0, 0, 0};
 
-static Widget mkWorkArea(ImodvApp *a, Widget top);
-
-static void help_cb()
-{
-     dia_vasmsg
-	  ("~~~~~~~~~~~~~~~~~~~~~~~~\n"
-	   "Image Control Dialog Help.\n"
-	   "~~~~~~~~~~~~~~~~~~~~~~~~"
-	   "\n\n",
-	   "Manipulate images in model view.",
-	   NULL);
-     return;
-}
-
-static void workarea_cb(Widget w, XtPointer client, XtPointer call)
-{
-     diaDialog *dia = (diaDialog *)call;
-     mkWorkArea(imodvImageData.a, w);
-     return;
-}
-
-static void done_cb(Widget w, XtPointer client, XtPointer call)
-{
-     diaDialog *dia = (diaDialog *)call;
-     diaDestroyDialog(dia);
-
-     imodvImageData.dia = NULL;
-     return;
-}
-
+// Open, close, or raise the dialog box
 void imodvImageEditDialog(ImodvApp *a, int state)
 {
-     XtPointer cbd = (XtPointer)(&imodvImageData);
+  if (!state){
+    if (imodvImageData.dia)
+      imodvImageData.dia->close();
+    return;
+  }
+  if (imodvImageData.dia) {
+    imodvImageData.dia->raise();
+    return;
+  }
 
-     if (!state){
-	  if (imodvImageData.dia)
-	       done_cb(NULL, NULL, (XtPointer)imodvImageData.dia);
-	  return;
-     }
-     if (imodvImageData.dia){
-	  XRaiseWindow(a->display, 
-		       XtWindow(imodvImageData.dia->dialog));
-	  return;
-     }
+  imodvImageData.dia = new ImodvImage(NULL, "image view");
+  imodvImageData.a = Imodv;
 
-     imodvImageData.dia = diaVaCreateDialog
-	  ("Imodv: Image View", a->topLevel, a->context,
-	   DiaNcontrolButton, "Done", done_cb, cbd,
-	   DiaNcontrolButton, "Help", help_cb, cbd,
-	   DiaNworkAreaFunc,  workarea_cb,     cbd,
-	   DiaNwindowQuit,    done_cb,         cbd,
-	   0);
-     imodvImageData.a = Imodv;
-     return;
+  mkcmap();
+  imodvAddDialog((QWidget *)imodvImageData.dia);
+  imodvImageData.dia->show();
 }
 
-/****************************************************************************/
-/*  Image Dialog controls.                                                  */
-
-static void imageZ_cb(Widget w, XtPointer client, XtPointer call)
+// Update the dialog box (just the view flag for now)
+void imodvImageUpdate(ImodvApp *a)
 {
-     XmToggleButtonCallbackStruct *cbs = (XmToggleButtonCallbackStruct *)call;
-     if (imodvImageData.flags & DRAW_CZ)
-	  imodvImageData.flags &= ~DRAW_CZ;
-     else
-	  imodvImageData.flags |= DRAW_CZ;
-     imodvDraw(Imodv);
+  if (a->texMap && !imodvImageData.flags)
+    imodvImageData.flags |= DRAW_CZ;
+  else if (!a->texMap && imodvImageData.flags)
+    imodvImageData.flags = 0;
+  if (imodvImageData.dia)
+    diaSetChecked(imodvImageData.dia->mViewBox, imodvImageData.flags != 0);
 }
-
-static void trans_cb(Widget w, XtPointer client, XtPointer call)
-{
-     XmScaleCallbackStruct *cbs = (XmScaleCallbackStruct *)call;
-     ImageTrans = cbs->value;
-     Imodv->texTrans = ImageTrans;
-     imodvDraw(Imodv);
-}
-
-static void fcolor_cb(Widget w, XtPointer client, XtPointer call)
-{
-     XmToggleButtonCallbackStruct *cbs = (XmToggleButtonCallbackStruct *)call;
-     if (Falsecolor)
-	  Falsecolor = 0;
-     else
-	  Falsecolor = 1;
-     mkcmap();
-     imodvDraw(Imodv);
-}
-
-static void level_cb(Widget w, XtPointer client, XtPointer call)
-{
-     XmScaleCallbackStruct *cbs = (XmScaleCallbackStruct *)call;
-     int *level = (int *)client;
-
-     *level = cbs->value;
-
-     mkcmap();
-     imodvDraw(Imodv);
-}
-
-static Widget mkWorkArea(ImodvApp *a, Widget top)
-{
-     Widget frame, col;
-
-     frame = XtVaCreateWidget
-	  ("frame", xmFrameWidgetClass, top, NULL);
-
-     col = XtVaCreateWidget
-	  ("rowcol", xmRowColumnWidgetClass, frame,
-	   NULL);
-     {
-	  Widget scale, toggle;
-	  int tstate;
-
-	  imodvImageData.wCZToggle = XtVaCreateManagedWidget
-	       ("View Z Image", xmToggleButtonWidgetClass, col, NULL);
-          XtAddCallback(imodvImageData.wCZToggle, XmNvalueChangedCallback,
-			imageZ_cb, NULL);
-	  if (imodvImageData.flags & DRAW_CZ)
-	       tstate = True;
-	  else
-	       tstate = False;
-	  XmToggleButtonSetState(imodvImageData.wCZToggle, tstate, False);
-	  
-
-	  imodvImageData.wTrans =  XtVaCreateManagedWidget
-	       ("scale", xmScaleWidgetClass, col,
-		XmNorientation, XmHORIZONTAL,
-		XmNminimum, 0, XmNmaximum, 255,
-		XmNvalue, ImageTrans,
-		XmNscaleMultiple, 1,
-		XtVaTypedArg, XmNtitleString, XmRString, "Transparency", 13,
-		NULL);
-	  XtAddCallback(imodvImageData.wTrans, 
-			XmNvalueChangedCallback, trans_cb, 0);
-
-	  
-
-	  toggle = XtVaCreateManagedWidget
-	       ("False Color", xmToggleButtonWidgetClass, col, NULL);
-	  XtAddCallback(toggle, XmNvalueChangedCallback,
-			fcolor_cb, NULL);
-	  XmToggleButtonSetState(toggle, Falsecolor, False);
-	  
-
-	  scale = XtVaCreateManagedWidget
-	       ("scale", xmScaleWidgetClass, col,
-		 XmNorientation, XmHORIZONTAL,
-		XmNminimum, 0, XmNmaximum, 255,
-		XmNvalue, BlackLevel,
-		XmNscaleMultiple, 1,
-		XtVaTypedArg, XmNtitleString, XmRString, "Black Level", 12,
-		NULL);
-	  XtAddCallback(scale, XmNvalueChangedCallback, 
-			level_cb, (XtPointer)&BlackLevel);
-
-	  scale = XtVaCreateManagedWidget
-	       ("scale", xmScaleWidgetClass, col,
-		XmNorientation, XmHORIZONTAL,
-		XmNminimum, 0, XmNmaximum, 255,
-		XmNvalue, WhiteLevel,
-		XmNscaleMultiple, 1,
-		XtVaTypedArg, XmNtitleString, XmRString, "White Level", 12,
-		NULL);
-	  XtAddCallback(scale, XmNvalueChangedCallback,
-			level_cb, (XtPointer)&WhiteLevel);
-     }
-     XtManageChild(col);
-     XtManageChild(frame);
-
-     if (!CmapInit)
-	  mkcmap();
-     return(frame);
-}     
-
 
 
 /****************************************************************************/
 /* TEXTURE MAP IMAGE. */
 /****************************************************************************/
 
+// Make a color map
 static void mkcmap(void)
 {
-     int rampsize, cmapReverse = 0;
-     float slope, point;
-     int r,g,b,i;
+  int rampsize, cmapReverse = 0;
+  float slope, point;
+  int r,g,b,i;
 
-     if (BlackLevel > WhiteLevel){
-	  cmapReverse = BlackLevel;
-	  BlackLevel = WhiteLevel;
-	  WhiteLevel = cmapReverse;
-	  cmapReverse = 1;
-     }
+  if (BlackLevel > WhiteLevel){
+    cmapReverse = BlackLevel;
+    BlackLevel = WhiteLevel;
+    WhiteLevel = cmapReverse;
+    cmapReverse = 1;
+  }
 
-     rampsize = WhiteLevel - BlackLevel;
-     if (rampsize < 1) rampsize = 1;
+  rampsize = WhiteLevel - BlackLevel;
+  if (rampsize < 1) rampsize = 1;
      
-     for (i = 0; i < BlackLevel; i++)
-	  Cmap[0][i] = 0;
-     for (i = WhiteLevel; i < 256; i++)
-	  Cmap[0][i] = 255;
-     slope = 256.0 / (float)rampsize;
-     for (i = BlackLevel; i < WhiteLevel; i++){
-	  point = (float)(i - BlackLevel) * slope;
-	  Cmap[0][i] = (unsigned char)point;
-     }
+  for (i = 0; i < BlackLevel; i++)
+    Cmap[0][i] = 0;
+  for (i = WhiteLevel; i < 256; i++)
+    Cmap[0][i] = 255;
+  slope = 256.0 / (float)rampsize;
+  for (i = BlackLevel; i < WhiteLevel; i++){
+    point = (float)(i - BlackLevel) * slope;
+    Cmap[0][i] = (unsigned char)point;
+  }
      
-     if (cmapReverse){
-	  for(i = 0; i < 256; i++){
-	       if (!Cmap[0][i])
-		    Cmap[0][i] = 255;
-	       else
-		    if (Cmap[0][i] > 127){
-			 Cmap[0][i] -= 128;
-			 Cmap[0][i] *= -1;
-			 Cmap[0][i] += 128;
-		    }
-		    else{
-			 Cmap[0][i] -= 128;
-			 Cmap[0][i] *= -1;
-			 Cmap[0][i] += 128;
-		    }
-	  }
-     }
-     if (Falsecolor){
-	  for(i = 0; i < 256; i++){
-	       xcramp_mapfalsecolor(Cmap[0][i], &r, &g, &b);
-	       Cmap[0][i] = (unsigned char)r;
-	       Cmap[1][i] = (unsigned char)g;
-	       Cmap[2][i] = (unsigned char)b;
-	  }
-     }else{
-	  for(i = 0; i < 256; i++){
-	       Cmap[1][i] = Cmap[2][i] = Cmap[0][i];
-	  }
-     }
+  if (cmapReverse){
+    for(i = 0; i < 256; i++){
+      if (!Cmap[0][i])
+	Cmap[0][i] = 255;
+      else
+	if (Cmap[0][i] > 127){
+	  Cmap[0][i] -= 128;
+	  Cmap[0][i] *= -1;
+	  Cmap[0][i] += 128;
+	}
+	else{
+	  Cmap[0][i] -= 128;
+	  Cmap[0][i] *= -1;
+	  Cmap[0][i] += 128;
+	}
+    }
+  }
+  if (Falsecolor){
+    for(i = 0; i < 256; i++){
+      xcramp_mapfalsecolor(Cmap[0][i], &r, &g, &b);
+      Cmap[0][i] = (unsigned char)r;
+      Cmap[1][i] = (unsigned char)g;
+      Cmap[2][i] = (unsigned char)b;
+    }
+  }else{
+    for(i = 0; i < 256; i++){
+      Cmap[1][i] = Cmap[2][i] = Cmap[0][i];
+    }
+  }
+
+  cmapInit = 1;
 }
 
 static void imodvDrawTImage(Ipoint *p1, Ipoint *p2, Ipoint *p3, Ipoint *p4,
-			    Ipoint *clamp,
-			    unsigned char *data,
-			    int width, int height)
+                            Ipoint *clamp,
+                            unsigned char *data,
+                            int width, int height)
 {
-     float xclamp, yclamp;
-     xclamp = clamp->x;
-     yclamp = clamp->y;
+  float xclamp, yclamp;
+  xclamp = clamp->x;
+  yclamp = clamp->y;
 
-     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-     glTexImage2D(GL_TEXTURE_2D, 0, 3, width, height, 
-		  0, GL_RGB, GL_UNSIGNED_BYTE,
-		  data);
+  glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+  glTexImage2D(GL_TEXTURE_2D, 0, 3, width, height, 
+	       0, GL_RGB, GL_UNSIGNED_BYTE,
+	       data);
 
-     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
-		     GL_NEAREST);
-     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
-		     GL_NEAREST);
+  glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+  glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+  glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
+		  GL_NEAREST);
+  glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
+		  GL_NEAREST);
   
-     glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
+  glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
          
-     glEnable(GL_TEXTURE_2D);
+  glEnable(GL_TEXTURE_2D);
 
-     glBegin(GL_QUADS);
-     glTexCoord2f(0.0, 0.0); glVertex3fv((GLfloat *)p1);
-     glTexCoord2f(0.0, yclamp); glVertex3fv((GLfloat *)p2);
-     glTexCoord2f(xclamp, yclamp); glVertex3fv((GLfloat *)p3);
-     glTexCoord2f(xclamp, 0.0); glVertex3fv((GLfloat *)p4);
+  glBegin(GL_QUADS);
+  glTexCoord2f(0.0, 0.0); glVertex3fv((GLfloat *)p1);
+  glTexCoord2f(0.0, yclamp); glVertex3fv((GLfloat *)p2);
+  glTexCoord2f(xclamp, yclamp); glVertex3fv((GLfloat *)p3);
+  glTexCoord2f(xclamp, 0.0); glVertex3fv((GLfloat *)p4);
 
 
-     glEnd();
+  glEnd();
 
-     glFlush();
-     glDisable(GL_TEXTURE_2D);
+  glFlush();
+  glDisable(GL_TEXTURE_2D);
 }
 
 
-
+// The call from within the openGL calling routines to draw the image
 void imodvDrawImage(ImodvApp *a)
 
 {
-     Ipoint ll, lr, ur, ul, clamp;
-     int tstep = TexImageSize;
-     int cix, ciy, ciz;
-     int mix, miy, miz;
-     int x,y,z;
-     unsigned char *idata;
-     unsigned char pix;
-     unsigned char alpha = 0xff;
-     int t, mt, i, mi, j, mj;
-     int base;
-     int u, v;
+  Ipoint ll, lr, ur, ul, clamp;
+  int tstep = TexImageSize;
+  int cix, ciy, ciz;
+  int mix, miy, miz;
+  int x,y,z;
+  unsigned char *idata;
+  unsigned char pix;
+  unsigned char alpha = 0xff;
+  int t, mt, i, mi, j, mj;
+  int base;
+  int u, v;
      
-     if (!imodvImageData.flags) return;
+  if (!imodvImageData.flags) return;
 
-     mt = tstep * tstep;
+  if (!cmapInit)
+    mkcmap();
 
-     ivwGetLocation(a->vi, &cix, &ciy, &ciz);
-     mix = a->vi->xsize;
-     miy = a->vi->ysize;
-     miz = a->vi->zsize;
+  mt = tstep * tstep;
 
-     alpha = 255 - ImageTrans;
-     glColor4ub(alpha, alpha, alpha,alpha);
-     if (ImageTrans){
-	   glEnable(GL_BLEND);
-	   glBlendFunc(GL_SRC_ALPHA,  GL_ONE_MINUS_SRC_ALPHA);
-     }
+  ivwGetLocation(a->vi, &cix, &ciy, &ciz);
+  mix = a->vi->xsize;
+  miy = a->vi->ysize;
+  miz = a->vi->zsize;
 
-     /* Draw Current Z image. */
-     if (imodvImageData.flags & DRAW_CZ){
+  alpha = (int)(2.55 * (100 - ImageTrans));
+  glColor4ub(alpha, alpha, alpha,alpha);
+  if (ImageTrans){
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA,  GL_ONE_MINUS_SRC_ALPHA);
+  }
 
-	  ll.z = ciz; lr.z = ciz; ur.z = ciz; ul.z = ciz;
-	  idata = ivwGetCurrentZSection(a->vi);
-	  if (!idata){
-	       glDisable(GL_BLEND);
-	       return;
+  /* Draw Current Z image. */
+  if (imodvImageData.flags & DRAW_CZ){
+
+    ll.z = ciz; lr.z = ciz; ur.z = ciz; ul.z = ciz;
+    idata = ivwGetCurrentZSection(a->vi);
+    if (!idata){
+      glDisable(GL_BLEND);
+      return;
+    }
+
+    for(x = 0; x < mix; x += tstep){
+      clamp.x = (mix-x);
+      clamp.x /= (float)tstep;
+      if (clamp.x > 1.0f) clamp.x = 1.0f;
+      mi = x + tstep;
+      if (mi > mix) mi = mix;
+      ul.x = ll.x = x;
+      lr.x = x + tstep;
+      if (lr.x > mix) lr.x = mix;
+      ur.x = lr.x;
+               
+      for(y = 0; y < miy; y += tstep){
+	lr.y = ll.y = y;
+	ur.y = y + tstep;
+	if (ur.y > miy) ur.y = miy;
+	ul.y = ur.y;
+
+	clamp.y = (miy - y); 
+	clamp.y /= (float)tstep;
+	if (clamp.y > 1.0f) clamp.y = 1.0f;
+	base = x + (y * mix);
+                    
+	mj = y + tstep;
+	if (mj > miy) mj = miy;
+                    
+                    
+	for(i = x; i < mi; i++){
+	  u = i - x;
+	  for(j = y; j < mj; j++){
+	    v = (j - y);
+	    pix = idata[i + (j * mix)];
+
+	    tdata[u][v][0] = Cmap[0][pix];
+	    tdata[u][v][1] = Cmap[1][pix];
+	    tdata[u][v][2] = Cmap[2][pix];
 	  }
+	}
 
-	  for(x = 0; x < mix; x += tstep){
-	       clamp.x = (mix-x);
-	       clamp.x /= (float)tstep;
-	       if (clamp.x > 1.0f) clamp.x = 1.0f;
-	       mi = x + tstep;
-	       if (mi > mix) mi = mix;
-	       ul.x = ll.x = x;
-	       lr.x = x + tstep;
-	       if (lr.x > mix) lr.x = mix;
-	       ur.x = lr.x;
-	       
-	       for(y = 0; y < miy; y += tstep){
-		    lr.y = ll.y = y;
-		    ur.y = y + tstep;
-		    if (ur.y > miy) ur.y = miy;
-		    ul.y = ur.y;
+	clamp.z = clamp.x;
+	clamp.x = clamp.y;
+	clamp.y = clamp.z;
+	imodvDrawTImage(&ll, &lr, &ur, &ul,
+			&clamp,
+			(unsigned char *)tdata, tstep, tstep);
 
-		    clamp.y = (miy - y); 
-		    clamp.y /= (float)tstep;
-		    if (clamp.y > 1.0f) clamp.y = 1.0f;
-		    base = x + (y * mix);
-		    
-		    mj = y + tstep;
-		    if (mj > miy) mj = miy;
-		    
-		    
-		    for(i = x; i < mi; i++){
-			 u = i - x;
-			 for(j = y; j < mj; j++){
-			      v = (j - y);
-			      pix = idata[i + (j * mix)];
+      }
 
-			      tdata[u][v][0] = Cmap[0][pix];
-			      tdata[u][v][1] = Cmap[1][pix];
-			      tdata[u][v][2] = Cmap[2][pix];
-			 }
-		    }
-
-		    clamp.z = clamp.x;
-		    clamp.x = clamp.y;
-		    clamp.y = clamp.z;
-		    imodvDrawTImage(&ll, &lr, &ur, &ul,
-				    &clamp,
-				    (unsigned char *)tdata, tstep, tstep);
-
-	       }
-
-	  }
-	  
-     }
-     glDisable(GL_BLEND);
+    }
+          
+  }
+  glDisable(GL_BLEND);
 }
 
-#endif
+
+// THE ImodvImage CLASS IMPLEMENTATION
+
+static char *buttonLabels[] = {"Done", "Help"};
+static char *sliderLabels[] = {"Transparency", "Black Level", "White Level"};
+
+ImodvImage::ImodvImage(QWidget *parent, const char *name, WFlags fl)
+  : DialogFrame(parent, 2, buttonLabels, true, "Imodv Image View", "",
+                name, fl)
+{
+  // Make view checkbox
+  mViewBox = diaCheckBox("View Z image", this, mLayout);
+  mViewBox->setChecked(imodvImageData.flags & DRAW_CZ);
+  connect(mViewBox, SIGNAL(toggled(bool)), this, SLOT(viewToggled(bool)));
+
+  // Make multisliders - set range of first to 0 - 100
+  mSliders = new MultiSlider(this, 3, sliderLabels);
+  mSliders->setRange(0, 0, 100);
+  mSliders->setValue(0, ImageTrans);
+  mSliders->setValue(1, BlackLevel);
+  mSliders->setValue(2, WhiteLevel);
+  mLayout->addLayout(mSliders->getLayout());
+  connect(mSliders, SIGNAL(sliderChanged(int, int, bool)), this, 
+          SLOT(sliderMoved(int, int, bool)));
+
+  // Make false color checkbox
+  mFalseBox = diaCheckBox("False color", this, mLayout);
+  mFalseBox->setChecked(Falsecolor);
+  connect(mFalseBox, SIGNAL(toggled(bool)), this, SLOT(falseToggled(bool)));
+
+  connect(this, SIGNAL(actionPressed(int)), this, SLOT(buttonPressed(int)));
+}
+
+// Viewing image is turned on or off
+void ImodvImage::viewToggled(bool state)
+{
+  if (!state) {
+    imodvImageData.flags &= ~DRAW_CZ;
+    Imodv->texMap = 0;
+  } else {
+    imodvImageData.flags |= DRAW_CZ;
+    Imodv->texMap = 1;
+  }
+  imodvDraw(Imodv);
+}
+
+// respond to a change of transparency or contrast
+void ImodvImage::sliderMoved(int which, int value, bool dragging)
+{
+  switch (which) {
+  case 0: 
+    ImageTrans = value;
+    Imodv->texTrans = ImageTrans;
+    break;
+
+  case 1:
+    BlackLevel = value;
+    mkcmap();
+    break;
+
+  case 2:
+    WhiteLevel = value;
+    mkcmap();
+    break;
+  }
+
+  // draw if slider clicked or is in hot state
+  if (!dragging || (hotSliderFlag() == HOT_SLIDER_KEYDOWN && mCtrlPressed) ||
+      (hotSliderFlag() == HOT_SLIDER_KEYUP && !mCtrlPressed))
+    imodvDraw(Imodv);
+}
+
+// User toggles false color
+void ImodvImage::falseToggled(bool state)
+{
+  Falsecolor = state ? 1 : 0;
+  mkcmap();
+  imodvDraw(Imodv);
+}
+
+// Action buttons
+void ImodvImage::buttonPressed(int which)
+{
+  if (which)
+    dia_vasmsg
+      ("~~~~~~~~~~~~~~~~~~~~~~~~\n"
+       "Image Control Dialog Help.\n"
+       "~~~~~~~~~~~~~~~~~~~~~~~~"
+       "\n\n",
+       "Manipulate images in model view.",
+       NULL);
+  else
+    close();
+}
+  
+// Accept a close event and set dia to null
+void ImodvImage::closeEvent ( QCloseEvent * e )
+{
+  imodvRemoveDialog((QWidget *)imodvImageData.dia);
+  imodvImageData.dia = NULL;
+  e->accept();
+}
+
+// Close on escape; watch for the hot slider key; pass on keypress
+void ImodvImage::keyPressEvent ( QKeyEvent * e )
+{
+  if (e->key() == Qt::Key_Escape)
+    close();
+  else {
+    if (hotSliderFlag() != NO_HOT_SLIDER && e->key() == hotSliderKey()) {
+      mCtrlPressed = true;
+      grabKeyboard();
+    }
+    imodvKeyPress(e);
+  }
+}
+
+// pass on key release; watch for hot slider release
+void ImodvImage::keyReleaseEvent ( QKeyEvent * e )
+{
+  if (e->key() == hotSliderKey()) {
+    mCtrlPressed = false;
+    releaseKeyboard();
+  }
+  imodvKeyRelease(e);
+}
