@@ -19,9 +19,7 @@ class MidasSlots : public QObject
   float getIncrement(int index, int type);
   void sprintf_decimals(char *string, int decimals, int digits, float val);
   void backup_current_mat(void);
-  void dia_puts(char *message);
   void sectionInc(int ds);
-  void dia_vasmsg(char *msg, ...);
   void mouse_shift_image(void);
   void mouse_translate(void);
   void mouse_rotate(void);
@@ -87,19 +85,6 @@ class MidasSlots : public QObject
   bool mWhitePressed;
   int mBlackDisplayed;   // Value last displayed during drag
   int mWhiteDisplayed;
-};
-
-class MyLineEdit : public QLineEdit
-{
-  Q_OBJECT
-
- public:
-  MyLineEdit( QWidget * parent, const char * name = 0 );
-  ~MyLineEdit();
-
- protected:
-  void focusOutEvent(QFocusEvent *event);
-
 };
 
 #endif

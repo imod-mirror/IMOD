@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.1  2002/12/05 03:13:02  mast
+New Qt version
+
 Revision 3.2  2002/11/05 23:27:00  mast
 Changed copyright notice to use lab name and years
 
@@ -53,6 +56,7 @@ when there are many pieces
 #include <qtextedit.h>
 #include <qmessagebox.h>
 #include <qfiledialog.h>
+#include "dia_qtutils.h"
 
 static int incDecimals[3] = {2, 4, 2};
 static int paramDecimals[5] = {2, 4, 4, 2, 2};
@@ -246,25 +250,16 @@ int MidasSlots::save_transforms()
 void MidasSlots::slotMidas_quit()
 {
   int done;
-  static int quitting = 0;
-
-  /* Use this flag to keep from popping up more than one window */
-  if (quitting)
-    return;
 
   if (VW->xtype == XTYPE_MONT)
     dia_puts("Remember to build new edge functions the next time you "
 	       "run Blendmont");
   if (VW->changed) {
-    quitting = 1;
-    done = QMessageBox::information(VW->midasWindow, "Midas message", 
-				    "Save transforms before quitting?",
-				    QMessageBox::Yes, QMessageBox::No,
-				    QMessageBox::Cancel);
-    quitting = 0;
-    if (done == QMessageBox::Cancel)
+    done = dia_choice("Save transforms before quitting?", "Yes", "No", 
+                      "Cancel");
+    if (done == 3)
       return;
-    if (done == QMessageBox::Yes) {
+    if (done == 1) {
       if (save_transforms()) {
 	midas_error("Error saving transforms to file. ", 
 		    "Quit cancelled", 0);
@@ -280,6 +275,7 @@ void MidasSlots::slotFilemenu(int item)
 {
   char *filename;
   QString qname, inName;
+  char *filters[] = {"Transform files (*.*xf *.*xg)"};
 
   switch(item){
   case FILE_MENU_LOAD: /* load transforms */
@@ -289,11 +285,7 @@ void MidasSlots::slotFilemenu(int item)
       break;
     }
     if (VW->changed) {
-      if (QMessageBox::information(VW->midasWindow, "Midas message", 
-				    "Save existing transforms to file?",
-				    QMessageBox::Yes, QMessageBox::No,
-				    QMessageBox::NoButton)
-	  == QMessageBox::Yes) {
+      if (dia_ask("Save existing transforms to file?")) {
 	if (save_transforms()) {
 	  midas_error("Existing transforms not saved. ", 
 		      "Load aborted", 0);
@@ -301,9 +293,8 @@ void MidasSlots::slotFilemenu(int item)
 	}
       }
     }	    
-    qname = QFileDialog::getOpenFileName
-      (QString::null, QString::null, 0, 0, 
-       "Select file to load transforms from");
+    qname = diaOpenFileName(NULL, "Select file to load transforms from", 1,
+                            filters);
     if (qname.isEmpty())
       break;
     filename = strdup(qname.latin1());
@@ -1780,65 +1771,3 @@ void MidasSlots::backup_current_mat()
   VW->backup_edgedy = VW->edgedy[VW->edgeind * 2 + VW->xory];
 }
 
-void MidasSlots::dia_puts(char *message)
-{
-  QString str = message;
-  QMessageBox::information(VW->midasWindow, "Midas message", str, 
-			   QMessageBox::Ok, QMessageBox::NoButton,
-			   QMessageBox::NoButton);
-}
-			   
-void MidasSlots::dia_vasmsg(char *msg, ...)
-{
-  int iniWidth = 600;
-  int maxHeight = 800;
-  int height;
-  QString qmsg = msg;
-  char *emsg;
-  va_list ap;
-  
-  va_start(ap, msg);
-  while(( emsg = va_arg(ap, char *))){
-    qmsg += emsg;
-  }
-  va_end(ap);
-
-  QDialog *dlg = new QDialog(VW->midasWindow, 0, false, 
-			     WDestructiveClose);
-
-  QVBoxLayout *vbox = new QVBoxLayout(dlg);
-  QTextEdit *edit = new QTextEdit(dlg);
-  edit->setText(qmsg);
-  edit->setReadOnly(true);
-  height = edit->heightForWidth(iniWidth) + 50;
-  if (height > maxHeight)
-    height = maxHeight;
-  QPushButton *button = new QPushButton("Close", dlg);
-  vbox->addWidget(edit);
-  QHBoxLayout *hbox = new QHBoxLayout(vbox);
-  QSpacerItem *spacer1 = new QSpacerItem(100, 0);
-  QSpacerItem *spacer2 = new QSpacerItem(100, 0);
-  hbox->addItem(spacer1);
-  hbox->addWidget(button);
-  hbox->addItem(spacer2);
-  button->setFixedWidth(100);
-
-  QObject::connect(button, SIGNAL(clicked()), dlg, SLOT(close()));
-  dlg->resize(iniWidth, height);
-  dlg->show();
-}
-
-// A simple subclass of QLineEdit that sends a return pressed signal
-// when it loses focus
-MyLineEdit::MyLineEdit( QWidget * parent, const char * name )
-  : QLineEdit(parent, name)
-{
-}
-MyLineEdit::~MyLineEdit()
-{
-}
-
-void MyLineEdit::focusOutEvent(QFocusEvent *event)
-{
-  emit returnPressed();
-}
