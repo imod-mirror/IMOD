@@ -27,6 +27,10 @@ import etomo.type.ConstMetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.25.4.1  2004/09/03 21:09:49  sueh
+ * <p> bug# 520 removing ApplicationManager from ImodManager constructor,
+ * <p> since its not being used
+ * <p>
  * <p> Revision 3.25  2004/06/22 22:50:15  sueh
  * <p> bug# 455 Moved openWithModel logic to ImodProcess.
  * <p> Moved useMode logic to ImodState.  Removed model() functions.
@@ -297,6 +301,7 @@ public class ImodManager {
   public static final String TRIAL_TOMOGRAM_KEY = new String("trial tomogram");
   public static final String MTF_FILTER_KEY = new String("mtf filter");
   public static final String PREVIEW_KEY = new String("preview");
+  public static final String TOMOGRAM_KEY = new String("tomogram");
 
   //private keys - used with imodMap
   private static final String rawStackKey = RAW_STACK_KEY;
@@ -313,6 +318,7 @@ public class ImodManager {
   private static final String trialTomogramKey = TRIAL_TOMOGRAM_KEY;
   private static final String mtfFilterKey = MTF_FILTER_KEY;
   private static final String previewKey = PREVIEW_KEY;
+  private static final String tomogramKey = TOMOGRAM_KEY;
 
   private boolean useMap = true;
 
@@ -385,6 +391,21 @@ public class ImodManager {
     vector.add(imodState);
     return vector.lastIndexOf(imodState);
   }
+  
+  public int newImod(String key, File file) throws AxisTypeException, SystemProcessException {
+  Vector vector;
+  ImodState imodState;
+  key = getPrivateKey(key);
+  vector = getVector(key);
+  if (vector == null) {
+    vector = newVector(key, file);
+    imodMap.put(key, vector);
+    return 0;
+  }
+  imodState = newImodState(key, file);
+  vector.add(imodState);
+  return vector.lastIndexOf(imodState);
+}
 
   public void open(String key)
     throws AxisTypeException, SystemProcessException {
@@ -469,6 +490,30 @@ public class ImodManager {
     }
     imodState.open();
   }
+  
+  public void open(String key, File file, int vectorIndex)
+      throws AxisTypeException, SystemProcessException {
+    key = getPrivateKey(key);
+    ImodState imodState = get(key, vectorIndex);
+    if (imodState == null) {
+      throw new IllegalArgumentException(key + " was not created in "
+          + axisType.toString() + " at index " + vectorIndex);
+    }
+    imodState.open();
+  }
+  
+  public void delete(String key, int vectorIndex)
+      throws AxisTypeException, SystemProcessException {
+    key = getPrivateKey(key);
+    ImodState imodState = get(key, vectorIndex);
+    if (imodState == null) {
+      throw new IllegalArgumentException(key + " was not created in "
+          + axisType.toString() + " at index " + vectorIndex);
+    }
+    imodState.quit();
+    deleteImodState(key, vectorIndex);
+  }
+
 
   public boolean isOpen(String key) throws AxisTypeException {
     return isOpen(key, null);
@@ -657,19 +702,32 @@ public class ImodManager {
   protected Vector newVector(String key, AxisID axisID, String datasetName) {
     return newVector(newImodState(key, axisID, datasetName));
   }
+  
+  protected Vector newVector(String key, File file) {
+    return newVector(newImodState(key, file));
+  }
 
   protected ImodState newImodState(String key) {
-    return newImodState(key, null, null);
+    return newImodState(key, null, null, null);
   }
 
   protected ImodState newImodState(String key, AxisID axisID) {
-    return newImodState(key, axisID, null);
+    return newImodState(key, axisID, null, null);
+  }
+  
+  protected ImodState newImodState(String key, AxisID axisID, String datasetName) {
+    return newImodState(key, axisID, datasetName, null);
+  }
+  
+  protected ImodState newImodState(String key, File file) {
+    return newImodState(key, null, null, file);
   }
 
   protected ImodState newImodState(
     String key,
     AxisID axisID,
-    String datasetName) {
+    String datasetName,
+    File file) {
     if (key.equals(RAW_STACK_KEY) && axisID != null) {
       return newRawStack(axisID);
     }
@@ -713,6 +771,9 @@ public class ImodManager {
     }
     if (key.equals(PREVIEW_KEY) && axisID != null) {
       return newPreview(axisID);
+    }
+    if (key.equals(TOMOGRAM_KEY) && axisID == null) {
+      return newTomogram(file);
     }
     throw new IllegalArgumentException(
       key
@@ -877,6 +938,10 @@ public class ImodManager {
     ImodState imodState = new ImodState(axisID, datasetName, ".st");
     return imodState;
   }
+  protected ImodState newTomogram(File file) {
+    ImodState imodState = new ImodState(file);
+    return imodState;
+  }
   protected boolean isPerAxis(String key) {
     if (key.equals(COMBINED_TOMOGRAM_KEY)
       || key.equals(PATCH_VECTOR_MODEL_KEY)
@@ -929,6 +994,23 @@ public class ImodManager {
     }
     return (ImodState) vector.get(vectorIndex);
   }
+  
+  protected ImodState get(String key, int vectorIndex) throws AxisTypeException {
+    Vector vector = getVector(key);
+    if (vector == null) {
+      return null;
+    }
+    return (ImodState) vector.get(vectorIndex);
+  }
+  
+  protected void deleteImodState(String key, int vectorIndex) throws AxisTypeException {
+    Vector vector = getVector(key);
+    if (vector == null) {
+      return;
+    }
+    vector.remove(vectorIndex);
+  }
+
 
   protected Vector getVector(String key) throws AxisTypeException {
     Vector vector;
