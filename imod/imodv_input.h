@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.5  2003/01/27 00:30:07  mast
+Pure Qt version and general cleanup
+
 Revision 1.1.2.4  2003/01/13 07:21:38  mast
 Changes to use new dialog manager class
 
@@ -43,7 +46,6 @@ void imodvMouseMove(QMouseEvent *event);
 void imodv_rotate_model(ImodvApp *a, int x, int y, int z);
 void imodv_zoomd(ImodvApp *a, double zoom);
 void imodvQuit();
-void imodv_exit(ImodvApp *a);
 clock_t imodv_sys_time(void);
   
 #endif
