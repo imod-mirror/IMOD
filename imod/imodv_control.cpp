@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 1.1.2.4  2002/12/13 06:08:40  mast
+    simplification in dealing with filename string
+
     Revision 1.1.2.3  2002/12/07 01:21:44  mast
     Taking care of window title
 
@@ -53,6 +56,8 @@
 #include "imodv.h"
 #include "imodP.h"
 #include "imodv_control.h"
+#include "imodv_gfx.h"
+#include "imodv_input.h"
 
 static imodvControlForm *dialog = NULL;
 static float lastX = -999;

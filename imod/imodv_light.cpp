@@ -34,6 +34,9 @@
     $Revision$
 
     $Log$
+    Revision 1.1.2.1  2002/12/15 21:14:02  mast
+    conversion to cpp
+
     Revision 3.2  2002/12/01 15:34:41  mast
     Changes to get clean compilation with g++
 
@@ -161,9 +164,6 @@ void light_init(void)
     GLfloat amb[] = { 0.1, 0.1, 0.1, 1.0};
     GLfloat ambm[] = { 0.7, 0.7, 0.7, 1.0};
     
-    if (Imodv->cindex)
-	return;
-    
     if (first){
 	Imodv_light_dist   = 0.0f;
 	Imodv_light_att[0] = 1.0f;
@@ -212,9 +212,6 @@ void light_move(int *x, int *y)
      int lim = 899;
      float lightpos[4];
      float ldist = Imodv_light_dist;
-
-     if (Imodv->cindex)
-	  return;
 
      if (Imodv_light_dist > 0.0){
 	 Imodv_light_position[0] = *x;
@@ -288,7 +285,6 @@ void light_adjust(Iobj *obj, float r, float g, float b)
     GLfloat spec, amb, diffuse, shine;
     GLenum face = GL_FRONT_AND_BACK;
     
-    if (Imodv->cindex) return;
 /*    if (!(obj->flags & IMOD_OBJFLAG_LIGHT)) return;*/
 
     spec    = obj->specular / 255.0f;
@@ -331,9 +327,6 @@ void light_on(struct Mod_Object *obj)
      /* could make this conditional on both-side lighting flag set if there
 	are problems */
      GLenum face = GL_FRONT_AND_BACK;
-
-     if (Imodv->cindex)
-	  return;
 
      if (obj->flags & IMOD_OBJFLAG_FCOLOR){
 	  ub = ( unsigned char * )&(obj->mat1);
@@ -395,8 +388,6 @@ void light_on(struct Mod_Object *obj)
 
 void light_off(void)
 {
-     if (Imodv->cindex)
-	  return;
      glDisable(GL_LIGHT0);
      glDisable(GL_LIGHTING);
     glDisable(GL_COLOR_MATERIAL);

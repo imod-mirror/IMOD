@@ -37,6 +37,7 @@
 #include <dia.h>
 #include "imodv.h"
 #include "b3dgfx.h"
+#include "imodv_gfx.h"
 
 static void set_sensitivities(void);
 

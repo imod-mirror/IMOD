@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 1.1.2.1  2002/12/15 21:14:02  mast
+    conversion to cpp
+
     Revision 3.1  2002/12/01 15:34:41  mast
     Changes to get clean compilation with g++
 
@@ -47,6 +50,7 @@
 #include <Xm/ToggleB.h>
 #include <dia.h>
 #include "imodv.h"
+#include "imodv_gfx.h"
 
 #define MINDEPTH 0
 #define MAXDEPTH 100
