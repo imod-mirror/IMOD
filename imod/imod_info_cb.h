@@ -13,6 +13,9 @@
     $Revision$
 
     $Log$
+    Revision 1.1.2.1  2003/01/13 01:04:51  mast
+    Initial creation
+
 */
 #ifndef IMOD_INFO_CB_H
 #define IMOD_INFO_CB_H
@@ -23,9 +26,6 @@ extern "C" {
 #ifndef IMODP_H
   typedef struct ViewInfo ImodView;
 #endif
-
-  // Orphan from imod_cont_edit
-  void contSurfShow(void);
 
   void imodInfoNewOCP(int which, int value, int edited);
   void imodInfoNewXYZ(int *values);
