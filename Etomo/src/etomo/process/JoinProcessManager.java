@@ -4,12 +4,14 @@ import java.io.File;
 
 import etomo.BaseManager;
 import etomo.JoinManager;
+import etomo.comscript.Command;
 import etomo.comscript.FinishjoinParam;
 import etomo.comscript.FlipyzParam;
 import etomo.comscript.MakejoincomParam;
 import etomo.comscript.MidasParam;
 import etomo.comscript.XfalignParam;
 import etomo.type.AxisID;
+import etomo.type.JoinMetaData;
 
 /**
 * <p>Description: </p>
@@ -25,6 +27,11 @@ import etomo.type.AxisID;
 * @version $Revision$
 *
 * <p> $Log$
+* <p> Revision 1.1.2.9  2004/11/08 22:20:55  sueh
+* <p> bug# 520 Get the size in and X and Y and the offsetr in X and Y from
+* <p> FinishjoinParam when it is in Max Size mode.  Use FinishjoinParam to
+* <p> find the values and convert offset to shift.
+* <p>
 * <p> Revision 1.1.2.8  2004/10/28 17:07:39  sueh
 * <p> bug# 520 Copy output file after xfalign.  Copy output file after midas, if
 * <p> it was changed.
@@ -127,44 +134,64 @@ public class JoinProcessManager extends BaseProcessManager {
     startSystemProgramThread(commandArray);
   }
 
-  protected void comScriptPostProcess(ComScriptProcess script, int exitValue) {
+  protected void postProcess(ComScriptProcess script) {
   }
   
-  protected void backgroundPostProcess(BackgroundProcess process) {
+  protected void postProcess(BackgroundProcess process) {
+    System.out.println("postProcess");
     String commandName = process.getCommandName();
     if (commandName == null) {
       return;
     }
+    Command command = process.getCommand();
+    if (command == null) {
+      return;
+    }
     if (commandName.equals(FlipyzParam.getName())) {
-      joinManager.addSection(process.getOutputFile());
+      joinManager.addSection(command.getOutputFile());
+      return;
     }
-    else if (commandName.equals(XfalignParam.getName())) {
-      joinManager.copyXfFile(process.getOutputFile());
+    if (commandName.equals(XfalignParam.getName())) {
+      joinManager.copyXfFile(command.getOutputFile());
       joinManager.enableMidas();
+      return;
     }
-    else if (commandName.equals(FinishjoinParam.getName())
-        && process.getMode() == FinishjoinParam.MAX_SIZE_MODE) {
-      String[] stdOutput = process.getStdOutput();
-      for (int i = 0; i < stdOutput.length; i++) {
-        String line = stdOutput[i];
-        String[] lineArray;
-        if (line.indexOf(FinishjoinParam.SIZE_TAG) != -1) {
-          lineArray = line.split("\\s+");
-          joinManager.setSize(lineArray[FinishjoinParam.SIZE_IN_X_INDEX],
-              lineArray[FinishjoinParam.SIZE_IN_Y_INDEX]);
+    if (commandName.equals(FinishjoinParam.getName())) {
+      System.out.println("commandName.equals(FinishjoinParam.getName()");
+      int mode = process.getMode();
+      if (mode == FinishjoinParam.MAX_SIZE_MODE) {
+        String[] stdOutput = process.getStdOutput();
+        for (int i = 0; i < stdOutput.length; i++) {
+          String line = stdOutput[i];
+          String[] lineArray;
+          if (line.indexOf(FinishjoinParam.SIZE_TAG) != -1) {
+            lineArray = line.split("\\s+");
+            joinManager.setSize(lineArray[FinishjoinParam.SIZE_IN_X_INDEX],
+                lineArray[FinishjoinParam.SIZE_IN_Y_INDEX]);
+          }
+          else if (line.indexOf(FinishjoinParam.OFFSET_TAG) != -1) {
+            lineArray = line.split("\\s+");
+            joinManager.setShift(FinishjoinParam
+                .getShift(lineArray[FinishjoinParam.OFFSET_IN_X_INDEX]),
+                FinishjoinParam
+                    .getShift(lineArray[FinishjoinParam.OFFSET_IN_Y_INDEX]));
+          }
         }
-        else if (line.indexOf(FinishjoinParam.OFFSET_TAG) != -1) {
-          lineArray = line.split("\\s+");
-          joinManager.setShift(FinishjoinParam
-              .getShift(lineArray[FinishjoinParam.OFFSET_IN_X_INDEX]),
-              FinishjoinParam
-                  .getShift(lineArray[FinishjoinParam.OFFSET_IN_Y_INDEX]));
-        }
+        return;
+      }
+      if (mode == FinishjoinParam.TRIAL_MODE) {
+        System.out.println("mode == FinishjoinParam.TRIAL_MODE");
+        JoinMetaData metaData = joinManager.getJoinMetaData();
+        metaData.setFinishjoinTrialBinning(command.getBinning());
+        metaData.setFinishjoinTrialSizeInX(command.getIntegerValue(FinishjoinParam.SIZE_IN_X_VALUE_NAME)); 
+        metaData.setFinishjoinTrialSizeInY(command.getIntegerValue(FinishjoinParam.SIZE_IN_Y_VALUE_NAME));
+        metaData.setFinishjoinTrialShiftInX(command.getIntegerValue(FinishjoinParam.SHIFT_IN_X_VALUE_NAME));
+        metaData.setFinishjoinTrialShiftInY(command.getIntegerValue(FinishjoinParam.SHIFT_IN_Y_VALUE_NAME));
       }
     }
   }
   
-  protected void backgroundErrorProcess(BackgroundProcess process) {
+  protected void errorProcess(BackgroundProcess process) {
     String commandName = process.getCommandName();
     if (commandName == null) {
       return;
@@ -174,14 +201,18 @@ public class JoinProcessManager extends BaseProcessManager {
     }
   }
 
-  protected void interactiveSystemProgramPostProcess(
+  protected void postProcess(
       InteractiveSystemProgram program) {
     String commandName = program.getCommandName();
     if (commandName == null) {
       return;
     }
+    Command command = program.getCommand();
+    if (command == null) {
+      return;
+    }
     if (commandName.equals(MidasParam.getName())) {
-      File outputFile = program.getOutputFile();
+      File outputFile = command.getOutputFile();
       if (outputFile != null
           && outputFile.exists()
           && outputFile.lastModified() > program.getOutputFileLastModified()
