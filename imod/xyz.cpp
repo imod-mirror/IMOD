@@ -34,6 +34,10 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.5  2003/01/02 15:43:37  mast
+accept key input from controlled; use a cache sum to detect if xz and yz
+data need redrawing
+
 Revision 1.1.2.4  2002/12/14 05:23:42  mast
 backing out the fancy subclass, adjusting for new visual detection
 
@@ -88,8 +92,6 @@ Removed call to autox_build
 #include "xzap.h"
 #include "control.h"
 
-void inputQDefaultKeys(QKeyEvent *event, ImodView *vw);
-
 /*************************** internal functions ***************************/
 static void xyzKey_cb(ImodView *vi, void *client, int released, QKeyEvent *e);
 static void xyzClose_cb(ImodView *vi, void *client, int junk);
@@ -107,6 +109,7 @@ int xxyz_open(ImodView *vi)
   int i,msize;
   float newzoom;
   struct xxyzwin *xx;
+  char *window_name;
   QString str;
   int deskWidth = QApplication::desktop()->width();
   int deskHeight = QApplication::desktop()->height();
@@ -136,7 +139,6 @@ int xxyz_open(ImodView *vi)
   xx->xtrans = 0;
   xx->ytrans = 0;
   xx->hq = 0;
-  xx->closing = 0;
 
   while (xx->winx > deskWidth - 20 ||
          xx->winy > deskHeight - 40){
@@ -163,7 +165,11 @@ int xxyz_open(ImodView *vi)
   }
   
   xx->glw = xx->dialog->mGLw;
-  str = imodwfname("Imod XYZ Window: ");
+  window_name = imodwfname("Imod XYZ Window: ");
+  if (window_name) {
+    str = window_name;
+    free(window_name);
+  }
   if (str.isEmpty())
     str = "Imod XYZ Window";
   xx->dialog->setCaption(str);
@@ -218,14 +224,11 @@ static void xyzDraw_cb(ImodView *vi, void *client, int drawflag)
 }
 
 
-// This receives the close signal back from the controller, tells the
-// window to close, and sets the closing flag
+// This receives the close signal back from the controller, and tells the
+// window to close
 static void xyzClose_cb(ImodView *vi, void *client, int junk)
 {
   struct xxyzwin *xx = (struct xxyzwin *)client;
-  if (xx->closing)
-    return;
-  xx->closing = 1;
   xx->dialog->close();
 }
 
@@ -256,28 +259,12 @@ XyzWindow::XyzWindow(struct xxyzwin *xyz, bool rgba, bool doubleBuffer,
   setFocusPolicy(QWidget::StrongFocus);
 }
 
-XyzWindow::~XyzWindow()
-{
-
-}
-
-/* This initiates the quit sequence by telling Control to delete this window */
-void XyzWindow::Quit()
-{
-  ivwDeleteControl(mXyz->vi, mXyz->ctrl);
-}
-
-/* This receives a closing request/signal from the window */
-// Whan a close event comes in, tell control to delete window, clean up
+// Whan a close event comes in, tell control to remove window, clean up
 //  and accept
 void XyzWindow::closeEvent (QCloseEvent * e )
 {
   struct xxyzwin *xx = mXyz;
-  // If we are not closing it already, start the quit 
-  if (!xx->closing) {
-    xx->closing = 1;
-    Quit();
-  }
+  ivwRemoveControl(mXyz->vi, mXyz->ctrl);
 
   /* DNM 11/17/01: stop x and y movies when close window */
   imodMovieXYZT(xx->vi, 0, 0, MOVIE_DEFAULT, MOVIE_DEFAULT);
@@ -1581,7 +1568,7 @@ void XyzWindow::keyPressEvent ( QKeyEvent * event )
     break;
 
   case Qt::Key_Escape:
-    Quit();
+    close();
     break;
 
   default:

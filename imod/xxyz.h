@@ -32,6 +32,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.2.2.6  2003/01/02 15:42:49  mast
+add  variable to keep track of sections loaded in cache
+
 Revision 3.2.2.5  2002/12/14 05:23:42  mast
 backing out the fancy subclass, adjusting for new visual detection
 
@@ -87,7 +90,6 @@ struct xxyzwin
   int winx, winy;         /* Size of xyz window.                  */
   int exposed;
   float zoom;
-  int closing;
 
   int lx, ly, lz;
   int lastCacheSum;       /* Sum of cache Z values on last draw */
@@ -108,11 +110,10 @@ class XyzWindow : public QMainWindow
   XyzWindow(struct xxyzwin *xyz, bool rgba, bool doubleBuffer, 
 	    bool enableDepth, QWidget * parent = 0, const char * name = 0,
 	    WFlags f = Qt::WDestructiveClose || Qt::WType_TopLevel) ;
-  ~XyzWindow();
+  ~XyzWindow() {};
 
   XyzGL *mGLw;
   void Draw();
-  void Quit();
   int Getxyz(int x, int y, int *mx, int *my, int *mz);
   void B1Press(int x, int y);
   void B2Press(int x, int y);
