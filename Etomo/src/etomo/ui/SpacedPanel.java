@@ -27,6 +27,10 @@ import javax.swing.border.Border;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.4  2004/11/08 22:31:33  sueh
+* <p> bug# 520 Added an add() function that can handle a Component.  Not
+* <p> spacing this component since it be a spacer.
+* <p>
 * <p> Revision 1.1.2.3  2004/10/13 23:16:04  sueh
 * <p> bug# 520 Added a way to set and reset component alignments.  Added
 * <p> specialized add() functions for generic etomo ui objects.  Added a way to
@@ -74,10 +78,6 @@ public class SpacedPanel {
     if (outerSpacing && spaceBefore) {
       panel.add(Box.createRigidArea(spacing));
     }
-  }
-  
-  public Component add(Component comp) {
-    return panel.add(comp);
   }
   
   Component add(JComponent comp) {
