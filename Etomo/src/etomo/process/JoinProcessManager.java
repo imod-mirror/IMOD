@@ -27,6 +27,9 @@ import etomo.type.JoinMetaData;
 * @version $Revision$
 *
 * <p> $Log$
+* <p> Revision 1.1.2.12  2004/11/16 02:22:45  sueh
+* <p> EtomoNumber used getLong() instead of get().
+* <p>
 * <p> Revision 1.1.2.11  2004/11/15 22:18:58  sueh
 * <p> bug# 520 Changing postProcess(BackgoundProcess):  setting meta data
 * <p> sample produced = true when makejoincom finishes successfully.
@@ -159,14 +162,12 @@ public class JoinProcessManager extends BaseProcessManager {
     }
     if (commandName.equals(FlipyzParam.getName())) {
       joinManager.addSection(command.getOutputFile());
-      return;
     }
-    if (commandName.equals(XfalignParam.getName())) {
+    else if (commandName.equals(XfalignParam.getName())) {
       joinManager.copyXfFile(command.getOutputFile());
       joinManager.enableMidas();
-      return;
     }
-    if (commandName.equals(FinishjoinParam.getName())) {
+    else if (commandName.equals(FinishjoinParam.getName())) {
       int mode = process.getMode();
       if (mode == FinishjoinParam.MAX_SIZE_MODE) {
         String[] stdOutput = process.getStdOutput();
@@ -197,7 +198,7 @@ public class JoinProcessManager extends BaseProcessManager {
         metaData.setFinishjoinTrialShiftInY(command.getIntegerValue(FinishjoinParam.SHIFT_IN_Y_VALUE_NAME));
       }
     }
-    if (commandName.equals(MakejoincomParam.getName())) {
+    else if (commandName.equals(MakejoincomParam.getName())) {
       joinManager.getJoinMetaData().setSampleProduced(true);
       joinManager.setMode();
     }
@@ -210,6 +211,10 @@ public class JoinProcessManager extends BaseProcessManager {
     }
     if (commandName.equals(XfalignParam.getName())) {
       joinManager.enableMidas();
+    }
+    else if (commandName.equals(MakejoincomParam.getName())) {
+      joinManager.getJoinMetaData().setSampleProduced(false);
+      joinManager.setMode();
     }
   }
 
