@@ -24,6 +24,10 @@ import etomo.type.ProcessTrack;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.4  2005/02/17 02:44:31  sueh
+* <p> bug# 605 Added saveDisplayState() to call saveDisplayState() in axis
+* <p> panels.
+* <p>
 * <p> Revision 1.3  2004/12/16 02:52:32  sueh
 * <p> bug# 559 Removing everything from the status bar except the param file
 * <p> and path.
@@ -291,6 +295,14 @@ public class MainTomogramPanel extends MainPanel {
   
   protected boolean isAxisPanelAFitScreenError() {
     return isFitScreenError(axisPanelA);
+  }
+  
+  /**
+   * Show a blank processing panel
+   */
+  public void showBlankProcess(AxisID axisID) {
+    ((ApplicationManager) manager).setCurrentDialogType(null, axisID);
+    super.showBlankProcess(axisID);
   }
   
   /**
