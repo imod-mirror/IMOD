@@ -1,10 +1,12 @@
 package etomo;
 
+import java.io.File;
 import java.util.ArrayList;
-import java.util.HashMap;
 
 import etomo.type.UserConfiguration;
 import etomo.ui.MainFrame;
+import etomo.util.HashedArray;
+import etomo.util.UniqueKey;
 
 /**
  * <p>
@@ -26,6 +28,12 @@ import etomo.ui.MainFrame;
  * 
  * <p>
  * $Log$
+ * Revision 1.1.2.3  2004/09/09 17:32:42  sueh
+ * bug# 520 Allow retrieval of manager by .edf file name or by order by
+ * adding an ArrayList of .edf file names.  Call MainFrame.createMenus after
+ * manager list is created (remove call from MainFrame()).  Add access
+ * and create functions for the manager list.
+ *
  * Revision 1.1.2.2  2004/09/07 17:52:52  sueh
  * bug# 520 moved MainFrame and UserConfiguration to EtomoDirector
  *
@@ -38,17 +46,18 @@ import etomo.ui.MainFrame;
 
 public class EtomoDirector {
   public static final String rcsid = "$Id$";
-
+  
   private static EtomoDirector theEtomoDirector = null;
   private static boolean debug = false;
   private static boolean demo = false;
   private static boolean test = false;
   private static boolean selfTest = false;
-  private HashMap managerList = null;
-  private ArrayList managerListOrder = null;
-  private String currentManagerName = null;
+  private HashedArray managerList = null;
+  private UniqueKey currentManagerKey = null;
   private static MainFrame mainFrame = null;
   private static UserConfiguration userConfig = null;
+  private static final String newTomogramName = "Setup Tomogram";
+  private static final String newJoinName = "New Join";
 
   public static void main(String[] args) {
     createInstance(args);
@@ -77,66 +86,163 @@ public class EtomoDirector {
     ArrayList paramFileNameList = parseCommandLine(args);
     int paramFileNameListSize = paramFileNameList.size();
     String paramFileName = null;
-    createManagerList();
+    managerList = new HashedArray();
     ApplicationManager appMgr = null;
     //if no param file is found bring up AppMgr.SetupDialog
     if (paramFileNameListSize == 0) {
-      paramFileName = "";
-      currentManagerName = paramFileName;
-      addManager(paramFileName, new ApplicationManager(paramFileName));
+      openTomogram(true);
     }
     else {
+      boolean makeCurrent;
       for (int i = 0; i < paramFileNameListSize; i++) {
+        makeCurrent = false;
         paramFileName = (String) paramFileNameList.get(i);
+        UniqueKey managerKey = null;
         if (i == 0) {
-          currentManagerName = paramFileName;
+          makeCurrent = true;
         }
         if (paramFileName.endsWith(".edf")) {
-          addManager(paramFileName, new ApplicationManager(paramFileName));
+          managerKey = openTomogram(paramFileName, makeCurrent);
         }
         else if (paramFileName.endsWith(".ejf")) {
-          addManager(paramFileName, new JoinManager(paramFileName));
+          managerKey = openJoin(paramFileName, makeCurrent);
         }
       }
     }
     if (!test) {
       mainFrame.createMenus();
-      mainFrame.setCurrentManager(getCurrentManager());
+      mainFrame.setWindowMenuLabels(managerList);
+      mainFrame.setCurrentManager((BaseManager) managerList
+          .get(currentManagerKey));
+      mainFrame.selectWindowMenuItem(currentManagerKey);
       mainFrame.setMRUFileLabels(userConfig.getMRUFileList());
       mainFrame.pack();
       mainFrame.show();
     }
   }
   
-  private void createManagerList() {
-    managerList = new HashMap();
-    managerListOrder = new ArrayList();
-  }
-  
-  private void addManager(String key, BaseManager manager) {
-    managerList.put(key, manager);
-    managerListOrder.add(key);
-  }
-  
   public BaseManager getCurrentManager() {
-    return (BaseManager) managerList.get(currentManagerName);
+    return (BaseManager) managerList.get(currentManagerKey);
   }
   
-  public BaseManager getManager(String key) {
-    return (BaseManager) managerList.get(key);
-  }
-
-  public String getManagerName(int index) {
-    return (String) managerListOrder.get(index);
+  public UniqueKey getManagerKey(int index) {
+    return managerList.getKey(index);
   }
   
-  public void setCurrentManager(String key) {
-    currentManagerName = key;
+  public synchronized void setCurrentManager(UniqueKey managerKey) {
+    BaseManager newCurrentManager = (BaseManager) managerList.get(managerKey);
+    if (newCurrentManager == null) {
+      throw new NullPointerException("managerKey=" + managerKey); 
+    }
+    currentManagerKey = managerKey;
     if (!test) {
-      mainFrame.setCurrentManager(getCurrentManager());
+      mainFrame.setWindowMenuLabels(managerList);
+      mainFrame.setCurrentManager(newCurrentManager);
+      mainFrame.selectWindowMenuItem(currentManagerKey);
     }
   }
+  
+  public UniqueKey openTomogram(String etomoDataFileName, boolean makeCurrent) {
+    ApplicationManager manager;
+    if (etomoDataFileName == null || etomoDataFileName == newTomogramName) {
+      manager = new ApplicationManager("");
+    }
+    else {
+      manager = new ApplicationManager(etomoDataFileName);
+    }
+    UniqueKey managerKey;
+    if (manager.isNewManager()) {
+      managerKey = managerList.add(newTomogramName, manager);
+    }
+    else {
+      managerKey = managerList.add(manager.getMetaData().getDatasetName(), manager);
+    }
+    if (makeCurrent) {
+      setCurrentManager(managerKey);
+    }
+    return managerKey;
+  }
+  
+  public UniqueKey openJoin(boolean makeCurrent) {
+    return openJoin(newJoinName, makeCurrent);
+  }
+  
+  public UniqueKey openJoin(File etomoJoinFile, boolean makeCurrent) {
+    if (etomoJoinFile == null) {
+      return openJoin(makeCurrent);
+    }
+    return openJoin(etomoJoinFile.getAbsolutePath(), makeCurrent);
+  }
+  
+  public UniqueKey openJoin(String etomoJoinFileName, boolean makeCurrent) {
+    JoinManager manager;
+    if (etomoJoinFileName == null || etomoJoinFileName == newJoinName) {
+      manager = new JoinManager("");
+    }
+    else {
+      manager = new JoinManager(etomoJoinFileName);
+    }
+    UniqueKey managerKey;
+    if (manager.isNewManager()) {
+      managerKey = managerList.add(newJoinName, manager);
+    }
+    else {
+      managerKey = managerList.add(manager.getMetaData().getDatasetName(), manager);
+    }
+    if (makeCurrent) {
+      setCurrentManager(managerKey);
+    }
+    return managerKey;
+  }
+  
+  public UniqueKey openTomogram(boolean makeCurrent) {
+    return openTomogram(newTomogramName, makeCurrent);
+  }
+  
+  public UniqueKey openTomogram(File etomoDataFile, boolean makeCurrent) {
+    if (etomoDataFile == null) {
+      return openTomogram(makeCurrent);
+    }
+    return openTomogram(etomoDataFile.getAbsolutePath(), makeCurrent);
+  }
 
+
+  public boolean closeCurrentManager() {
+    BaseManager currentManager = getCurrentManager();
+    if (!currentManager.exitProgram()) {
+      return false;
+    }
+    managerList.remove(currentManagerKey);
+    currentManagerKey = null;
+    if (managerList.size() == 0) {
+      if (!test) {
+        mainFrame.setWindowMenuLabels(managerList);
+        mainFrame.setCurrentManager(null);
+      }
+      return true;
+    }
+    setCurrentManager(managerList.getKey(0));
+    return true;
+  }
+  
+  public boolean exitProgram() {
+    for (int i = 0; i < managerList.size(); i++) {
+      System.out.println("i=" + i + ",managerList.getKey(i)=" + managerList.getKey(i) + ",managerList.getKey(i).hashCode()=" + managerList.getKey(i).hashCode());
+      //if (!closeCurrentManager()) {
+        //return false;
+      //}
+    }
+    return true;
+  }
+  
+  public void renameCurrentManager(String managerName) {
+    currentManagerKey = managerList.rekey(currentManagerKey, managerName);
+    if (!test) {
+      mainFrame.setWindowMenuLabels(managerList);
+      mainFrame.selectWindowMenuItem(currentManagerKey);
+    }
+  }
+  
   private static void createMainFrame() {
     mainFrame = new MainFrame();
   }
