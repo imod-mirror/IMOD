@@ -1,7 +1,6 @@
 package etomo.ui;
 
 import java.awt.AWTEvent;
-import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
@@ -20,23 +19,16 @@ import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JSplitPane;
 import javax.swing.KeyStroke;
 
 import etomo.ApplicationManager;
-import etomo.process.ProcessState;
+import etomo.BaseManager;
 import etomo.storage.EtomoFileFilter;
-import etomo.type.AxisID;
-import etomo.type.AxisType;
-import etomo.type.MetaData;
-import etomo.type.ProcessTrack;
 
 /**
  * <p>Description: </p>
@@ -51,6 +43,10 @@ import etomo.type.ProcessTrack;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.12  2004/07/24 01:53:52  sueh
+ * <p> bug# 513 make sure that packAxis() won't fail if it is called
+ * <p> when the Setup dialog is running.
+ * <p>
  * <p> Revision 3.11  2004/07/24 01:48:04  sueh
  * <p> bug# 513 making fitWindow() public so that app manager can
  * <p> call it
@@ -220,7 +216,7 @@ public class MainFrame extends JFrame implements ContextMenu {
     "$Id$";
 
   private JPanel rootPanel;
-  private JPanel mainPanel;
+  private MainPanel mainPanel;
 
   //  Menu bar
   private final int nMRUFileMax = 10;
@@ -248,36 +244,20 @@ public class MainFrame extends JFrame implements ContextMenu {
   private JMenuItem menu3dmodGuide = new JMenuItem("3dmod Users Guide", KeyEvent.VK_3);
 	private JMenuItem menuEtomoGuide = new JMenuItem("Etomo Users Guide", KeyEvent.VK_E);
   private JMenuItem menuHelpAbout = new JMenuItem("About", KeyEvent.VK_A);
-
-  private JLabel statusBar = new JLabel("No data set loaded");
-
-  private JPanel panelCenter = new JPanel();
-
-  //  These panels get instantiated as needed
-  private AxisProcessPanel axisPanelA;
-  private ScrollPanel scrollA;
-  private JScrollPane scrollPaneA;
-  private AxisProcessPanel axisPanelB;
-  private ScrollPanel scrollB;
-  private JScrollPane scrollPaneB;
-
-  private JSplitPane splitPane;
-  private boolean screenLock = false;
   
   private static final int estimatedMenuHeight = 60;
   private static final int extraScreenWidthMultiplier = 2;
   private static final Dimension frameBorder = new Dimension(10, 48);
   
   
-  //  Application manager object
-  private ApplicationManager applicationManager;
+  //manager object
+  private BaseManager currentManager;
+  GenericMouseAdapter mouseAdapter = null;
 
   /**
    * Main window constructor.  This sets up the menus and status line.
    */
-  public MainFrame(ApplicationManager appManager) {
-    applicationManager = appManager;
-
+  public MainFrame() {
     enableEvents(AWTEvent.WINDOW_EVENT_MASK);
 
     ImageIcon iconEtomo =
@@ -297,177 +277,19 @@ public class MainFrame extends JFrame implements ContextMenu {
     
     rootPanel = (JPanel) getContentPane();
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.PAGE_AXIS));
-    
-    mainPanel = new JPanel();
-    mainPanel.setLayout(new BorderLayout());
-    mainPanel.setMaximumSize(mainPanelSize);
-    rootPanel.add(mainPanel);
+
     createMenus();
 
-    //  Construct the main frame panel layout
-    panelCenter.setLayout(new BoxLayout(panelCenter, BoxLayout.X_AXIS));
-    mainPanel.add(panelCenter, BorderLayout.CENTER);
-    mainPanel.add(statusBar, BorderLayout.SOUTH);
-
     //  add the context menu to all of the main window objects
-    GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
-    mainPanel.addMouseListener(mouseAdapter);
+    mouseAdapter = new GenericMouseAdapter(this);
     setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
   }
-
-  /**
-   * Open the setup panel
-   */
-  public void openSetupPanel(SetupDialog setupDialog) {
-    panelCenter.removeAll();
-    panelCenter.add(setupDialog.getContainer());
-    pack();
-  }
-
-  /**
-   * Show the processing panel for the requested AxisType
-   */
-  public void showProcessingPanel(AxisType axisType) {
-
-    //  Delete any existing panels
-    axisPanelA = null;
-    axisPanelB = null;
-
-    panelCenter.removeAll();
-    if (axisType == AxisType.SINGLE_AXIS) {
-      axisPanelA = new AxisProcessPanel(applicationManager, AxisID.ONLY);
-      scrollA = new ScrollPanel();
-      scrollA.add(axisPanelA.getContainer());
-      scrollPaneA = new JScrollPane(scrollA);
-      panelCenter.add(scrollPaneA);
-    }
-    else {
-      axisPanelA = new AxisProcessPanel(applicationManager, AxisID.FIRST);
-      scrollA = new ScrollPanel();
-      scrollA.add(axisPanelA.getContainer());
-      scrollPaneA = new JScrollPane(scrollA);
-
-      axisPanelB = new AxisProcessPanel(applicationManager, AxisID.SECOND);
-      scrollB = new ScrollPanel();
-      scrollB.add(axisPanelB.getContainer());
-      scrollPaneB = new JScrollPane(scrollB);
-      splitPane =
-        new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, scrollPaneA, scrollPaneB);
-      splitPane.setDividerLocation(0.5);
-      splitPane.setOneTouchExpandable(true);
-      panelCenter.add(splitPane);
-    }
-  }
-
-  /**
-   * set divider location
-   * @param value
-   */
-  public void setDividerLocation(double value) {
-    if (splitPane != null) {
-      //removing commands that cause the divider location to change incorrectly
-      //when the window is taller then the screen
-      //scrollPaneA.doLayout();
-      //scrollPaneB.doLayout();
-      //splitPane.doLayout();
-      //splitPane.revalidate();
-      //splitPane.validate();
-      splitPane.setDividerLocation(value);
-    }
-  }
-
-  /**
-   * Show a blank processing panel
-   */
-  public void showBlankProcess(AxisID axisID) {
-    AxisProcessPanel axisPanel = mapAxis(axisID);
-    axisPanel.eraseDialogPanel();
-  }
-
-  /**
-   * Show the specified processing panel
-   */
-  public void showProcess(Container processPanel, AxisID axisID) {
-    AxisProcessPanel axisPanel = mapAxis(axisID);
-    axisPanel.replaceDialogPanel(processPanel);
-    if (applicationManager.getUserConfiguration().isAutoFit()) {
-      fitWindow();
-    }
-  }
-
-  /**
-   * Set the progress bar to the beginning of determinant sequence
-   * @param label
-   * @param nSteps
-   */
-  public void setProgressBar(String label, int nSteps, AxisID axisID) {
-    AxisProcessPanel axisPanel = mapAxis(axisID);
-    axisPanel.setProgressBar(label, nSteps);
-    axisPanel.setProgressBarValue(0);
-  }
-
-  /**
-   * Set the progress bar to the specified value
-   * @param value
-   * @param axisID
-   */
-  public void setProgressBarValue(int value, AxisID axisID) {
-    AxisProcessPanel axisPanel = mapAxis(axisID);
-    axisPanel.setProgressBarValue(value);
-  }
-
-  /**
-   * Set the progress bar to the speficied value and update the string
-   * @param value
-   * @param string
-   * @param axisID
-   */
-  public void setProgressBarValue(int value, String string, AxisID axisID) {
-    AxisProcessPanel axisPanel = mapAxis(axisID);
-    axisPanel.setProgressBarValue(value, string);
-  }
-
-  /**
-   *  Start the indeterminate progress bar on the specified axis 
-   */
-  public void startProgressBar(String name, AxisID axisID) {
-    AxisProcessPanel axisPanel = mapAxis(axisID);
-    axisPanel.startProgressBar(name);
-  }
-
-  /**
-   * Stop the specified progress bar
-   * @param axisID
-   */
-  public void stopProgressBar(AxisID axisID) {
-    AxisProcessPanel axisPanel = mapAxis(axisID);
-    axisPanel.stopProgressBar();
-  }
-
-  /**
-   * Set the status bar with the file name of the data parameter file
-   */
-  public void updateDataParameters(File paramFile, MetaData metaData) {
-    StringBuffer buffer = new StringBuffer();
-    if (metaData == null) {
-      buffer.append("No data set loaded");
-    }
-    else {
-      if (paramFile == null) {
-        buffer.append("Data file: NOT SAVED");
-      }
-      else {
-        buffer.append("Data file: " + paramFile.getAbsolutePath());
-      }
-
-      buffer.append("   Source: ");
-      buffer.append(metaData.getDataSource().toString());
-      buffer.append("   Axis type: ");
-      buffer.append(metaData.getAxisType().toString());
-      buffer.append("   Tomograms: ");
-      buffer.append(metaData.getSectionType().toString());
-    }
-    statusBar.setText(buffer.toString());
+  
+  public void setCurrentManager(BaseManager currentManager) {
+    this.currentManager = currentManager;
+    mainPanel = currentManager.getMainPanel();
+    rootPanel.add(mainPanel);
+    mainPanel.addMouseListener(mouseAdapter);
   }
 
   /**
@@ -505,7 +327,7 @@ public class MainFrame extends JFrame implements ContextMenu {
     chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
     File[] edfFiles = workingDir.listFiles(edfFilter);
     if (edfFiles.length == 0) {
-      File defaultFile = new File(workingDir, applicationManager.getDatasetName() + ".edf");
+      File defaultFile = new File(workingDir, currentManager.getMetaData().getDatasetName() + ".edf");
       chooser.setSelectedFile(defaultFile);
     }
     int returnVal = chooser.showSaveDialog(this);
@@ -521,7 +343,7 @@ public class MainFrame extends JFrame implements ContextMenu {
       edfFile = new File(chooser.getSelectedFile().getAbsolutePath() + ".edf");
 
     }
-    applicationManager.setTestParamFile(edfFile);
+    currentManager.setTestParamFile(edfFile);
     return true;
   }
 
@@ -531,35 +353,35 @@ public class MainFrame extends JFrame implements ContextMenu {
    */
   private void menuFileAction(ActionEvent event) {
     if (event.getActionCommand().equals(menuFileNew.getActionCommand())) {
-      applicationManager.openNewDataset();
+      currentManager.openNewDataset();
     }
 
     if (event.getActionCommand().equals(menuFileOpen.getActionCommand())) {
-      applicationManager.openExistingDataset(null);
+      currentManager.openExistingDataset(null);
     }
 
     if (event.getActionCommand().equals(menuFileSave.getActionCommand())) {
       //  Check to see if there is a current parameter file chosen
       //  if not open a dialog box to select the name
       boolean haveTestParamFilename = true;
-      if (applicationManager.getTestParamFile() == null) {
+      if (currentManager.getTestParamFile() == null) {
         haveTestParamFilename = getTestParamFilename();
       }
       if (haveTestParamFilename) {
-        applicationManager.saveTestParamFile();
+        currentManager.saveTestParamFile();
       }
     }
 
     if (event.getActionCommand().equals(menuFileSaveAs.getActionCommand())) {
       boolean haveTestParamFilename = getTestParamFilename();
       if (haveTestParamFilename) {
-        applicationManager.saveTestParamFile();
+        currentManager.saveTestParamFile();
       }
     }
 
     if (event.getActionCommand().equals(menuFileExit.getActionCommand())) {
       //  Check to see if we need to save any data
-      if (applicationManager.exitProgram()) {
+      if (currentManager.exitProgram()) {
         System.exit(0);
       }
     }
@@ -570,44 +392,9 @@ public class MainFrame extends JFrame implements ContextMenu {
    * @param event
    */
   private void menuFileMRUListAction(ActionEvent event) {
-    applicationManager.openExistingDataset(new File(event.getActionCommand()));
+    currentManager.openExistingDataset(new File(event.getActionCommand()));
   }
 
-  /**
-   * if A or B is hidden, hide the panel which the user has hidden before
-   * calling pack().
-   *
-   */
-  protected void packAxis() {
-    if (applicationManager.isDualAxis()
-      && axisPanelA != null
-      && axisPanelB != null) {
-      boolean hideA = axisPanelA.hide();
-      boolean hideB = axisPanelB.hide();
-      pack();
-      splitPane.resetToPreferredSizes();
-      
-      //handle bug in Windows where divider goes all the way to the left
-      //when the frame is wider then the screen
-      if (!hideA && !hideB && isFitScreenError(axisPanelA)) {
-        setDividerLocation(.8); //.8 currently works.  Adjust as needed.
-        splitPane.resetToPreferredSizes();
-      }
-      
-      axisPanelA.show();
-      axisPanelB.show();
-      if (hideA) {
-        setDividerLocation(0);
-      }
-      else if (hideB) {
-        setDividerLocation(1);
-      }
-    }
-    else {
-      pack();
-    }
-  }
-  
   /**
    * checks for a bug in windows that causes MainFrame.fitScreen() to move the
    * divider almost all the way to the left
@@ -621,60 +408,25 @@ public class MainFrame extends JFrame implements ContextMenu {
   }
 
   /**
-   * set vertical scrollbar policy
-   * @param always
-   */
-  protected void setVerticalScrollBarPolicy(boolean always) {
-    int policy =
-      always
-        ? JScrollPane.VERTICAL_SCROLLBAR_ALWAYS
-        : JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED;
-    if (scrollPaneA != null) {
-      scrollPaneA.setVerticalScrollBarPolicy(policy);
-    }
-    if (scrollPaneB != null) {
-      scrollPaneB.setVerticalScrollBarPolicy(policy);
-    }
-  }
-  
-  
-  /**
    * Handle the options menu events
    * @param event
    */
   private void menuOptionsAction(ActionEvent event) {
     String command = event.getActionCommand();
     if (command.equals(menuSettings.getActionCommand())) {
-      applicationManager.openSettingsDialog();
+      currentManager.openSettingsDialog();
     }
     else if (command.equals(menuAxisA.getActionCommand())) {
-      setDividerLocation(1);
+      mainPanel.setDividerLocation(1);
     }
     else if (command.equals(menuAxisB.getActionCommand())) {
-      setDividerLocation(0);
+      mainPanel.setDividerLocation(0);
     }
     else if (command.equals(menuAxisBoth.getActionCommand())) {
-      setDividerLocation(.5);
+      mainPanel.setDividerLocation(.5);
     }
     else if (command.equals(menuFitWindow.getActionCommand())) {
-      fitWindow();
-    }
-  }
-  
-  /**
-   * fit window to its components and to the screen
-   *
-   */
-  public void fitWindow() {
-    packAxis();
-    //the mainPanel has a limited size, but the frame does not
-    //if the frame has a greater height then the mainPanel + the frame's border
-    //height, then a scroll bar will be uses.
-    //Make room for the scroll bar when calling pack()
-    if (getSize().height - mainPanel.getSize().height > frameBorder.height) {
-      setVerticalScrollBarPolicy(true);
-      packAxis();
-      setVerticalScrollBarPolicy(false);
+      mainPanel.fitWindow();
     }
   }
   
@@ -742,132 +494,6 @@ public class MainFrame extends JFrame implements ContextMenu {
   //  Right mouse button context menu
   public void popUpContextMenu(MouseEvent mouseEvent) {
     ContextPopup contextPopup = new ContextPopup(mainPanel, mouseEvent, "");
-  }
-
-  /**
-   * Update the state of all the process control panels
-   * @param processTrack the process track object containing the state to be
-   * displayed
-   */
-  public void updateAllProcessingStates(ProcessTrack processTrack) {
-    if (axisPanelA == null) {
-      return;
-    }
-
-    axisPanelA.setPreProcState(processTrack.getPreProcessingState(AxisID.ONLY));
-    axisPanelA.setCoarseAlignState(
-      processTrack.getCoarseAlignmentState(AxisID.ONLY));
-    axisPanelA.setFiducialModelState(
-      processTrack.getFiducialModelState(AxisID.ONLY));
-    axisPanelA.setFineAlignmentState(
-      processTrack.getFineAlignmentState(AxisID.ONLY));
-    axisPanelA.setTomogramPositioningState(
-      processTrack.getTomogramPositioningState(AxisID.ONLY));
-    axisPanelA.setTomogramGenerationState(
-      processTrack.getTomogramGenerationState(AxisID.ONLY));
-    axisPanelA.setTomogramCombinationState(
-      processTrack.getTomogramCombinationState());
-    if (applicationManager.isDualAxis()) {
-      axisPanelB.setPreProcState(
-        processTrack.getPreProcessingState(AxisID.SECOND));
-      axisPanelB.setCoarseAlignState(
-        processTrack.getCoarseAlignmentState(AxisID.SECOND));
-      axisPanelB.setFiducialModelState(
-        processTrack.getFiducialModelState(AxisID.SECOND));
-      axisPanelB.setFineAlignmentState(
-        processTrack.getFineAlignmentState(AxisID.SECOND));
-      axisPanelB.setTomogramPositioningState(
-        processTrack.getTomogramPositioningState(AxisID.SECOND));
-      axisPanelB.setTomogramGenerationState(
-        processTrack.getTomogramGenerationState(AxisID.SECOND));
-    }
-    axisPanelA.setPostProcessingState(processTrack.getPostProcessingState());
-
-  }
-
-  /**
-   * 
-   * @param state
-   * @param axisID
-   */
-  public void setPreProcessingState(ProcessState state, AxisID axisID) {
-    AxisProcessPanel axisPanel = mapAxis(axisID);
-    axisPanel.setPreProcState(state);
-  }
-
-  /**
-   * 
-   * @param state
-   * @param axisID
-   */
-  public void setCoarseAlignState(ProcessState state, AxisID axisID) {
-    AxisProcessPanel axisPanel = mapAxis(axisID);
-    axisPanel.setCoarseAlignState(state);
-  }
-
-  /**
-   * 
-   * @param state
-   * @param axisID
-   */
-  public void setFiducialModelState(ProcessState state, AxisID axisID) {
-    AxisProcessPanel axisPanel = mapAxis(axisID);
-    axisPanel.setFiducialModelState(state);
-  }
-
-  /**
-   * 
-   * @param state
-   * @param axisID
-   */
-  public void setFineAlignmentState(ProcessState state, AxisID axisID) {
-    AxisProcessPanel axisPanel = mapAxis(axisID);
-    axisPanel.setFineAlignmentState(state);
-  }
-
-  /**
-   * 
-   * @param state
-   * @param axisID
-   */
-  public void setTomogramPositioningState(ProcessState state, AxisID axisID) {
-    AxisProcessPanel axisPanel = mapAxis(axisID);
-    axisPanel.setTomogramPositioningState(state);
-  }
-
-  /**
-   * 
-   * @param state
-   * @param axisID
-   */
-  public void setTomogramGenerationState(ProcessState state, AxisID axisID) {
-    AxisProcessPanel axisPanel = mapAxis(axisID);
-    axisPanel.setTomogramGenerationState(state);
-  }
-
-  /**
-   * 
-   * @param state
-   */
-  public void setTomogramCombinationState(ProcessState state) {
-    axisPanelA.setTomogramCombinationState(state);
-  }
-
-  /**
-   * 
-   * @param state
-   */
-  public void setPostProcessingState(ProcessState state) {
-    axisPanelA.setPostProcessingState(state);
-  }
-
-  /**
-   * Set the specified button as selected
-   * @param axisID
-   * @param name
-   */
-  public void selectButton(AxisID axisID, String name) {
-    mapAxis(axisID).selectButton(name);
   }
 
   /**
@@ -962,18 +588,6 @@ public class MainFrame extends JFrame implements ContextMenu {
       }
       comps[i].repaint();
     }
-  }
-
-  /**
-   * Convienence function to return a reference to the correct AxisProcessPanel
-   * @param axisID
-   * @return
-   */
-  private AxisProcessPanel mapAxis(AxisID axisID) {
-    if (axisID == AxisID.SECOND) {
-      return axisPanelB;
-    }
-    return axisPanelA;
   }
 
   /**
