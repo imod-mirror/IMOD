@@ -17,6 +17,12 @@ import java.util.Properties;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.2  2004/10/06 02:18:37  sueh
+* <p> bug# 520 Made the defaults for Final start and end based on Z min and
+* <p> max.  Saved Z Max.  Added a generic parseInt() function to set
+* <p> invalidReason when Integer.parseInt() failed.  Did the same for
+* <p> parseDouble.
+* <p>
 * <p> Revision 1.1.2.1  2004/09/29 19:32:58  sueh
 * <p> bug# 520 Divided the SectionTable row into document and view.  This
 * <p> class is the non-const part of the document.  It implements the Storable
@@ -31,6 +37,7 @@ public class SectionTableRowData extends ConstSectionTableRowData {
   }
   
   private void reset() {
+    invalidReason = null;
     rowNumber = Integer.MIN_VALUE;
     section = null;
     sampleBottomStart = Integer.MIN_VALUE;
