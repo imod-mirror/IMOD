@@ -13,6 +13,9 @@
     $Revision$
 
     $Log$
+    Revision 3.1.2.3  2003/01/13 01:05:05  mast
+    Qt version
+
     Revision 3.1.2.2  2002/12/19 04:37:13  mast
     Cleanup of unused global variables and defines
 
@@ -30,6 +33,7 @@
 
 class InfoControls;
 class QTextEdit;
+class QTimer;
 class QPopupMenu;
 class InfoWindow;
 
@@ -84,11 +88,14 @@ class InfoWindow : public QMainWindow
   void imageSlot(int item);
   void pluginSlot(int item);
   void helpSlot(int item);
+  void hideTimeout();
 
  protected:
     void keyPressEvent ( QKeyEvent * e );
     void keyReleaseEvent ( QKeyEvent * e );
     void closeEvent ( QCloseEvent * e );
+    void showEvent(QShowEvent *e);
+    void hideEvent(QHideEvent *e);
 
  private:
   QPopupMenu *mFileMenu;
@@ -105,6 +112,8 @@ class InfoWindow : public QMainWindow
   QPopupMenu *mEImageMenu;
   QPopupMenu *mPlugMenu;
   QTextEdit *mStatusEdit;
+  QTimer *mHideTimer;
+  bool mMinimized;
 };
 
 #ifdef __cplusplus
