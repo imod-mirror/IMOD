@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.1  2002/12/01 15:34:41  mast
+    Changes to get clean compilation with g++
+
 */
 
 #include <stdio.h>
@@ -50,7 +53,7 @@
 
 #include "b3dgfx.h"
 
-static void putbyte(FILE *fout, unsigned char val)
+void iputbyte(FILE *fout, unsigned char val)
 {
      unsigned char buf[1];
      
@@ -59,7 +62,7 @@ static void putbyte(FILE *fout, unsigned char val)
      return;
 }
 
-static void putshort(FILE *fout, unsigned short val)
+void iputshort(FILE *fout, unsigned short val)
 {
      unsigned char buf[2];
      
@@ -69,7 +72,7 @@ static void putshort(FILE *fout, unsigned short val)
      return;
 }
 
-static void putlong(FILE *fout, unsigned long val)
+void iputlong(FILE *fout, unsigned long val)
 {
      unsigned char buf[4];
      
@@ -89,27 +92,27 @@ int bdRGBWrite(FILE *fout, int xsize, int ysize,
      unsigned long i;
 
      /* Create an SGI rgb file */
-     putshort(fout, 474);       /* MAGIC                */
-     putbyte (fout,   0);       /* STORAGE is VERBATIM  */
-     putbyte (fout,   1);       /* BPC is 1             */
-     putshort(fout,   3);       /* DIMENSION is 3       */
-     putshort(fout, xsize);     /* XSIZE                */
-     putshort(fout, ysize);     /* YSIZE                */
-     putshort(fout,   3);       /* ZSIZE                */
-     putlong (fout, 0l);        /* PIXMIN is 0          */
-     putlong (fout, 255l);      /* PIXMAX is 255        */
-     putlong (fout, 0);         /* DUMMY 4 bytes        */
+     iputshort(fout, 474);       /* MAGIC                */
+     iputbyte (fout,   0);       /* STORAGE is VERBATIM  */
+     iputbyte (fout,   1);       /* BPC is 1             */
+     iputshort(fout,   3);       /* DIMENSION is 3       */
+     iputshort(fout, xsize);     /* XSIZE                */
+     iputshort(fout, ysize);     /* YSIZE                */
+     iputshort(fout,   3);       /* ZSIZE                */
+     iputlong (fout, 0l);        /* PIXMIN is 0          */
+     iputlong (fout, 255l);      /* PIXMAX is 255        */
+     iputlong (fout, 0);         /* DUMMY 4 bytes        */
      fwrite(iname, 80, 1, fout); /* IMAGENAME            */
-     putlong (fout, 0);         /* COLORMAP is 0        */
+     iputlong (fout, 0);         /* COLORMAP is 0        */
      for(i=0; i<404; i++)        /* DUMMY 404 bytes      */
-	  putbyte(fout,0);
+	  iputbyte(fout,0);
 
      for (i = 0; i < xysize; i++)
-	  putbyte (fout, pixels[(i*4)+3]);
+	  iputbyte (fout, pixels[(i*4)+3]);
      for (i = 0; i < xysize; i++)
-	  putbyte (fout, pixels[(i*4)+2] );
+	  iputbyte (fout, pixels[(i*4)+2] );
      for (i = 0; i < xysize; i++)
-	  putbyte (fout, pixels[(i*4)+1]);
+	  iputbyte (fout, pixels[(i*4)+1]);
 
      return(0);
 }
