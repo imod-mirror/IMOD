@@ -22,6 +22,9 @@ import etomo.EtomoDirector;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.17.4.1  2004/09/03 21:11:24  sueh
+ * <p> bug# 520 calling from EtomoDirector.isDebug
+ * <p>
  * <p> Revision 3.17  2004/06/22 22:54:50  sueh
  * <p> bug# 462 Removed fillCache.  bug# 455 added openWithModel
  * <p> functionality to handle opening a model while preserving contrast.
@@ -191,11 +194,14 @@ public class ImodProcess {
   public static final String MESSAGE_RUBBERBAND = "10";
   public static final String MESSAGE_OBJ_PROPERTIES = "11";
   public static final String MESSAGE_NEWOBJ_PROPERTIES = "12";
+  public static final String MESSAGE_SLICER_ANGLES = "13";
   
   public static final String ERROR_STRING = "ERROR:";
   public static final String WARNING_STRING = "WARNING:";
   public static final String IMOD_SEND_EVENT_STRING = "imodsendevent returned:";
   public static final String RUBBERBAND_RESULTS_STRING = "Rubberband:";
+  public static final String SLICER_ANGLES_RESULTS_STRING1 = "Slicer";
+  public static final String SLICER_ANGLES_RESULTS_STRING2 = "angles:";
   
   public static final String TRUE = "1";
   public static final String FALSE = "0";
@@ -592,6 +598,12 @@ public class ImodProcess {
   public Vector getRubberbandCoordinates() throws SystemProcessException {
     String[] args = new String[1];
     args[0] = MESSAGE_RUBBERBAND;
+    return imodSendAndReceive(args);
+  }
+  
+  public Vector getSlicerAngles() throws SystemProcessException {
+    String[] args = new String[1];
+    args[0] = MESSAGE_SLICER_ANGLES;
     return imodSendAndReceive(args);
   }
 
