@@ -9,6 +9,9 @@
     $Revision$
 
     $Log$
+    Revision 1.1.2.1  2002/12/13 06:01:44  mast
+    initial creation
+
 */
 
 #include <glmainwindow.h>
@@ -40,9 +43,9 @@ GLMainWindow::~GLMainWindow()
 
 }
 
-MainGLWidget::MainGLWidget(QGLFormat inFormat, GLMainWindow * parent,
+MainGLWidget::MainGLWidget(QGLFormat inFormat, QMainWindow * parent,
              const char * name)
-  : QGLWidget(inFormat, (QWidget *)parent, name)
+  : QGLWidget(inFormat, parent, name)
 {
   if (!format().rgba() && inFormat.rgba())
     fprintf(stderr, "Xyz warning: window is color index mode even though rgb "
@@ -59,25 +62,25 @@ MainGLWidget::MainGLWidget(QGLFormat inFormat, GLMainWindow * parent,
 	    "though\n  double buffering was requested\n");
 
   mMousePressed = false;
-  mWin = parent;
+  mWin = (GLMainWindow *)parent;
 }
 
 void MainGLWidget::mousePressEvent(QMouseEvent * e )
 {
   mMousePressed = true;
-  mWin->mousePressEvent(e);
+  mWin->mousePressInGL(e);
 }
 
 void MainGLWidget::mouseReleaseEvent ( QMouseEvent * e )
 {
   mMousePressed = false;
-  mWin->mouseReleaseEvent(e);
+  mWin->mouseReleaseInGL(e);
 }
 
 void MainGLWidget::mouseMoveEvent ( QMouseEvent * e )
 {
   if (mMousePressed)
-    mWin->mouseMoveEvent(e);
+    mWin->mouseMoveInGL(e);
 }
 
 MainGLWidget::~MainGLWidget()

@@ -35,6 +35,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.5  2002/12/13 06:06:29  mast
+using new glmainwindow and mainglwidget classes
+
 Revision 1.1.2.4  2002/12/12 01:24:50  mast
 Added Z slider
 
@@ -908,7 +911,7 @@ int imod_zap_open(struct ViewInfo *vi)
   }
 
   zap->qtWindow = new ZapWindow(zap, str, App->rgba, App->doublebuffer, NULL,
-                                "zap window", Qt::WDestructiveClose);
+                                "zap window"/*, Qt::WDestructiveClose*/);
   if (!zap->qtWindow){
     free(zap);
     wprint("Error opening zap window.");
@@ -1312,6 +1315,8 @@ void zapMousePress(ZapStruct *zap, QMouseEvent *event)
   button1 = event->state() & Qt::LeftButton ? 1 : 0;
   button2 = event->state() & Qt::MidButton ? 1 : 0;
   button3 = event->state() & Qt::RightButton ? 1 : 0;
+
+  /* fprintf(stderr, "click at %d %d\n", event->x(), event->y()); */
 
   switch(event->button()){
     case Qt::LeftButton:

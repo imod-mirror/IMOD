@@ -32,6 +32,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.2.2.3  2002/12/13 06:06:29  mast
+using new glmainwindow and mainglwidget classes
+
 Revision 3.2.2.2  2002/12/12 02:45:56  mast
 *** empty log message ***
 
@@ -100,9 +103,9 @@ class XyzWindow : public GLMainWindow
 
   void paintGL();
   void resizeGL( int wdth, int hght );
-  void mousePressEvent(QMouseEvent * e );
-  void mouseReleaseEvent ( QMouseEvent * e );
-  void mouseMoveEvent ( QMouseEvent * e );
+  void mousePressInGL(QMouseEvent * e );
+  void mouseReleaseInGL( QMouseEvent * e );
+  void mouseMoveInGL( QMouseEvent * e );
   void Draw();
 
  protected:
