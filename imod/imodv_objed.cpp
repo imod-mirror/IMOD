@@ -34,6 +34,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.9  2003/01/27 00:30:07  mast
+Pure Qt version and general cleanup
+
 Revision 1.1.2.8  2003/01/23 20:12:10  mast
 switch from button pressed to clicked
 
@@ -1584,7 +1587,7 @@ static void finalSpacer(QWidget *parent, QVBoxLayout *layout)
 
 int hotSliderFlag()
 {
-  return HOT_SLIDER_KEYDOWN;
+  return HOT_SLIDER_KEYUP;
 }
 
 int hotSliderKey() 
