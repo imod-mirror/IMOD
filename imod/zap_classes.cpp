@@ -32,6 +32,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.9  2002/12/17 17:30:50  mast
+Adding timer for redraws, using tooledit with column specifier
+
 Revision 1.1.2.8  2002/12/17 04:45:54  mast
 Use new ability to set columns in tooledits
 
@@ -74,6 +77,7 @@ Initial addition to source
 #include "xzap.h"
 #include "tooledit.h"
 #include "arrowbutton.h"
+#include "dia_qtutils.h"
 
 #define AUTO_RAISE true
 #define MIN_SLIDER_WIDTH 20
@@ -342,7 +346,7 @@ void ZapWindow::setSectionText(int section)
   QString str;
   str.sprintf("%d", section);
   mSectionEdit->setText(str);
-  mSecSlider->setValue(section);
+  diaSetSlider(mSecSlider, section);
 }
 
 void ZapWindow::setTimeLabel(QString label)
