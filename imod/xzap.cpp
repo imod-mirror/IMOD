@@ -35,6 +35,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.19  2003/01/30 06:17:47  mast
+Add ability to change range of Z slider on image flip
+
 Revision 1.1.2.18  2003/01/30 00:46:27  mast
 New timer logic and cleanup
 
@@ -1185,8 +1188,8 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
   if (handled)
     event->accept();    // redundant action - supposed to be the default
   else {
-    // What does this mean? Is it wise?  more actions will occur...
-    //ivwControlActive(vi, 0);
+    // What does this mean? It is needed to get images to sync right
+    ivwControlActive(vi, 0);
     inputQDefaultKeys(event, vi);
   }
 }
