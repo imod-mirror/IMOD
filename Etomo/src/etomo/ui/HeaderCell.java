@@ -1,9 +1,12 @@
 package etomo.ui;
 
 import java.awt.Dimension;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
+import javax.swing.JPanel;
 import javax.swing.plaf.ColorUIResource;
 
 /**
@@ -19,7 +22,13 @@ import javax.swing.plaf.ColorUIResource;
 * 
 * @version $Revision$
 * 
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1.2.1  2004/10/01 19:56:55  sueh
+* <p> bug# 520 A header designed designed to be used with a gridbag layout.
+* <p> It can be used with any ui object with implements Table.  It is actually a
+* <p> disabled button with bolded text and an etched border.  It uses
+* <p> TableHeader colors.
+* <p> </p>
 */
 class HeaderCell {
   public static  final String  rcsid =  "$Id$";
@@ -28,19 +37,18 @@ class HeaderCell {
   private static ColorUIResource background = null;
   
   private JButton cell;
-  private Table table;
+  private JPanel jpanelContainer = null;
   
-  HeaderCell(Table table) {
-    this(table, null, -1);
+  HeaderCell() {
+    this(null, -1);
   }
   
-  HeaderCell(Table table, String text) {
-    this(table, text, -1);
+  HeaderCell(String text) {
+    this(text, -1);
   }
   
-  HeaderCell(Table table, String text, int width) {
+  HeaderCell(String text, int width) {
     initializeColor();
-    this.table = table;
     if (text == null) {
       cell = new JButton();
     }
@@ -59,12 +67,17 @@ class HeaderCell {
     }
   }
   
-  void add() {
-    table.addCell(cell);
+  void add(JPanel panel, GridBagLayout layout, GridBagConstraints constraints) {
+    layout.setConstraints(cell, constraints);
+    panel.add(cell);
+    jpanelContainer = panel;
   }
   
   void remove() {
-    table.removeCell(cell);
+    if (jpanelContainer != null) {
+      jpanelContainer.remove(cell);
+      jpanelContainer = null;
+    }
   }
   
   void setText(String text) {
