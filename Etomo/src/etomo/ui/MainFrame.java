@@ -6,7 +6,6 @@ import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.HeadlessException;
 import java.awt.Point;
-import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -43,6 +42,9 @@ import etomo.storage.EtomoFileFilter;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.12.2.1  2004/09/07 17:59:47  sueh
+ * <p> bug# 520 encapsulated mainPanel
+ * <p>
  * <p> Revision 3.12  2004/07/24 01:53:52  sueh
  * <p> bug# 513 make sure that packAxis() won't fail if it is called
  * <p> when the Setup dialog is running.
@@ -243,12 +245,7 @@ public class MainFrame extends JFrame implements ContextMenu {
   private JMenuItem menuImodGuide = new JMenuItem("Imod Users Guide", KeyEvent.VK_I);
   private JMenuItem menu3dmodGuide = new JMenuItem("3dmod Users Guide", KeyEvent.VK_3);
 	private JMenuItem menuEtomoGuide = new JMenuItem("Etomo Users Guide", KeyEvent.VK_E);
-  private JMenuItem menuHelpAbout = new JMenuItem("About", KeyEvent.VK_A);
-  
-  private static final int estimatedMenuHeight = 60;
-  private static final int extraScreenWidthMultiplier = 2;
-  private static final Dimension frameBorder = new Dimension(10, 48);
-  
+  private JMenuItem menuHelpAbout = new JMenuItem("About", KeyEvent.VK_A);  
   
   //manager object
   private BaseManager currentManager;
@@ -265,15 +262,6 @@ public class MainFrame extends JFrame implements ContextMenu {
     setIconImage(iconEtomo.getImage());
 
     setTitle("eTomo");
-
-
-    Toolkit toolkit = Toolkit.getDefaultToolkit();
-    Dimension screenSize = toolkit.getScreenSize();
-    screenSize.height -= estimatedMenuHeight;
-    screenSize.width *= extraScreenWidthMultiplier;
-    Dimension mainPanelSize = new Dimension(screenSize);
-    mainPanelSize.height -= frameBorder.height;
-    mainPanelSize.width -= frameBorder.width;
     
     rootPanel = (JPanel) getContentPane();
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.PAGE_AXIS));
