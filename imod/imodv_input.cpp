@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 1.1.2.15  2003/01/27 00:30:07  mast
+    Pure Qt version and general cleanup
+
     Revision 1.1.2.14  2003/01/23 20:10:18  mast
     Add include of imod_input
 
@@ -158,18 +161,6 @@ void imodvQuit()
     // imod_info_input();   // This made it crash
     QApplication::exit(0);
   }
-  return;
-}
-
-void imodv_exit(ImodvApp *a)
-{
-  stereoHWOff();
-
-  if (a->standalone){
-    QApplication::exit(0);
-    return;
-  }
-  a->mainWin->close();
   return;
 }
 
@@ -481,10 +472,10 @@ void imodvKeyPress(QKeyEvent *event)
     break;
 
   case Qt::Key_Escape:
-    imodv_exit(a);
+    a->mainWin->close();
     break;
   case Qt::Key_Q:
-    imodv_exit(a);
+    a->mainWin->close();
     break;
     
     // Grabs seem not to be needed and avoiding them saves a lot of trouble
