@@ -38,6 +38,12 @@ import etomo.ui.MainPanel;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.12  2004/10/11 01:59:23  sueh
+* <p> bug# 520 moved responsibility for mainPanel, metaData, processTrack,
+* <p> and progressManager to child classes.  Used abstract functions to use
+* <p> these variables in the base classes.  This is more reliable and doesn't
+* <p> require casting.
+* <p>
 * <p> Revision 1.1.2.11  2004/10/08 15:44:52  sueh
 * <p> bug# 520 Fixed Make Samples functionality.  Used startNextProcess to
 * <p> call startjoin.com.  Used BackgroundProcess to call makejoincom
@@ -144,6 +150,10 @@ public class JoinManager extends BaseManager {
   
   protected void createMetaData() {
     metaData = new JoinMetaData();
+  }
+  
+  public void setWorkingDir(String workingDir) {
+    propertyUserDir = workingDir;
   }
   
   /**
