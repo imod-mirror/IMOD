@@ -24,6 +24,10 @@ import etomo.type.SectionTableRowData;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.6  2004/11/08 22:12:00  sueh
+* <p> bug# 520 Add getMode to conform to Command.  Returns 0, since there
+* <p> is no more for this Param.
+* <p>
 * <p> Revision 1.1.2.5  2004/10/29 01:17:33  sueh
 * <p> bug# 520 Removed working directory from meta data.  Getting working
 * <p> directory from propertyUserDir.
@@ -117,6 +121,10 @@ public class MidasParam implements Command {
     return outputFile;
   }
   
+  public int getIntegerValue(int name) {
+    return Integer.MIN_VALUE;
+  }
+  
   public int getMode() {
     return 0;
   }
@@ -127,6 +135,10 @@ public class MidasParam implements Command {
   
   public static String getOutputFileExtension() {
     return outputFileExtension;
+  }
+  
+  public int getBinning() {
+    return 1;
   }
 
 }
