@@ -42,9 +42,12 @@ $Revision$
 #include <qlayout.h>
 #include <qapplication.h>
 #include <qhbox.h>
+#include <qspinbox.h>
 #include <qdialog.h>
 #include <qmessagebox.h>
 #include <qtextedit.h>
+#include <qbuttongroup.h>
+
 #include "dia_qtutils.h"
 
 extern char *Dia_title;
@@ -91,6 +94,25 @@ void diaSetSlider(QSlider *slider, int value)
   slider->setValue(value);
   slider->blockSignals(false);
 }
+
+// Set a spin box and block signals
+void diaSetSpinBox(QSpinBox *box, int value)
+{
+  box->blockSignals(true);
+  box->setValue(value);
+  box->blockSignals(false);
+}
+
+// Set a button group and block signals
+void diaSetGroup(QButtonGroup *group, int value)
+{
+  group->blockSignals(true);
+  group->setButton(value);
+  group->blockSignals(false);
+}
+
+
+
 
 // Set a title into Dia_title
 void diaSetTitle(char *title)

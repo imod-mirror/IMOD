@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.2  2003/01/01 05:44:56  mast
+adding message functions
+
 Revision 1.1.2.1  2002/12/30 06:32:59  mast
 Initial creation
 
@@ -25,7 +28,11 @@ class QPushButton;
 class QVBoxLayout;
 class QWidget;
 class QSlider;
+class QSpinBox;
+class QButtonGroup;
 
+void diaSetSpinBox(QSpinBox *box, int value);
+void diaSetGroup(QButtonGroup *group, int value);
 void diaSetSlider(QSlider *slider, int value);
 void diaSetChecked(QCheckBox *button, bool state);
 QLabel *diaLabel(char *text, QWidget *parent, QVBoxLayout *layout);
