@@ -485,3 +485,29 @@ c
 	endif
 	return
 	end
+
+c	  
+c	  Remap the view numbers in a separate group from file views
+c	  to internal views
+c
+	subroutine mapSeparateGroup(ivSep, nsepInGrp, mapFileToView,
+     &	    nFileViews)
+	implicit none
+	integer*4 ivSep(*),nsepInGrp, mapFileToView(*), nFileViews, i, j
+c
+	i=1
+	do while(i.le.nsepingrp)
+	  if(ivsep(i).le.0.or.ivsep(i).gt.nfileviews)call errorexit(
+     &	      'View in separate group is outside known range of '//
+     &	      'image file', 0)
+	  ivsep(i)=mapfiletoview(ivsep(i))
+	  if(ivsep(i).eq.0)then
+	    nsepingrp=nsepingrp-1
+	    do j=i,nsepingrp
+	      ivsep(j)=ivsep(j+1)
+	    enddo
+	  else
+	    i=i+1
+	  endif
+	enddo
+	end
