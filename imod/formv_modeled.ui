@@ -8,7 +8,7 @@
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>174</width>
+            <width>180</width>
             <height>307</height>
         </rect>
     </property>
@@ -407,21 +407,21 @@
     <include location="local" impldecl="in implementation">formv_modeled.ui.h</include>
 </includes>
 <slots>
-    <slot>closeEvent(QCloseEvent * e)</slot>
-    <slot>donePressed()</slot>
-    <slot>editClicked(int which)</slot>
-    <slot returnType="QString">getPixelString()</slot>
-    <slot>helpPressed()</slot>
-    <slot>keyPressEvent(QKeyEvent * e)</slot>
-    <slot>keyReleaseEvent(QKeyEvent * e)</slot>
-    <slot>modelChanged(int which)</slot>
-    <slot>moveClicked(int which)</slot>
-    <slot>nameChanged(const QString &amp; name)</slot>
+    <slot>modelChanged( int which )</slot>
+    <slot>editClicked( int which )</slot>
+    <slot>moveClicked( int which )</slot>
+    <slot>viewSelected( int which )</slot>
+    <slot>nameChanged( const QString &amp; name )</slot>
     <slot>newPixelSize()</slot>
-    <slot>setModel(int curModel, int numModels, QString filename, QString internalName, QString pixelString)</slot>
-    <slot>setMoveEdit(int move, int edit)</slot>
-    <slot>setViewSelection(int which)</slot>
-    <slot>viewSelected(int which)</slot>
+    <slot>donePressed()</slot>
+    <slot>helpPressed()</slot>
+    <slot returnType="QString">getPixelString()</slot>
+    <slot>setModel( int curModel, int numModels, QString filename, QString internalName, QString pixelString )</slot>
+    <slot>setMoveEdit( int move, int edit )</slot>
+    <slot>setViewSelection( int which )</slot>
+    <slot>closeEvent( QCloseEvent * e )</slot>
+    <slot>keyPressEvent( QKeyEvent * e )</slot>
+    <slot>keyReleaseEvent( QKeyEvent * e )</slot>
 </slots>
 <pixmapinproject/>
 <layoutdefaults spacing="6" margin="11"/>
