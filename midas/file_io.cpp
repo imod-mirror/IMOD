@@ -33,9 +33,6 @@ $Date$
 $Revision$
 
 $Log$
-Revision 3.5  2004/07/12 18:42:43  mast
-Changes for chunk alignment
-
 Revision 3.4  2003/12/17 21:44:19  mast
 Changes to implement global rotations
 
@@ -200,7 +197,7 @@ int save_view(struct Midas_view *vw, char *filename)
  */
 int load_transforms(struct Midas_view *vw, char *filename)
 {
-  int i, k, ixy, nedgex, nedgey, numRead;
+  int k, ixy, nedgex, nedgey;
   QString str = filename;
   QString qline;
 
@@ -235,15 +232,8 @@ int load_transforms(struct Midas_view *vw, char *filename)
     set_mont_pieces(vw);
 
   } else {		 
-
-    // Regular transforms: set up number to read (less if chunks)
-    numRead = vw->numChunks ? vw->numChunks : vw->zsize;
 		    
-    // Make unit transforms
-    for (k = 0 ; k < numRead; k++)
-      tramat_idmat(vw->tr[k].mat);
-
-    for (k = 0 ; k < numRead; k++) {
+    for (k = 0 ; k < vw->zsize; k++){
 
       // Read a line; skip blank lines but quit loop on end of file
       while (1) {
@@ -270,13 +260,6 @@ int load_transforms(struct Midas_view *vw, char *filename)
       rotate_all_transforms(vw, vw->globalRot);
   }
 	
-  // Copy transforms up for chunk mode
-  for (i = vw->numChunks - 1; i >= 0; i--) {
-    for (k = vw->chunk[i + 1].start - 1; k >= vw->chunk[i].start; k--)
-      if (k != i)
-        tramat_copy(vw->tr[i].mat, vw->tr[k].mat);
-  }
-
   /* flush the cache of any transformed images */
   flush_xformed(vw);
 
@@ -291,7 +274,7 @@ int load_transforms(struct Midas_view *vw, char *filename)
  */
 int write_transforms(struct Midas_view *vw, char *filename)
 {
-  int k, ixy, numWrite, i;
+  int k, ixy;
   float mat[9];
   QString str = filename;
 
@@ -314,9 +297,7 @@ int write_transforms(struct Midas_view *vw, char *filename)
 
   } else {
 
-    numWrite = vw->numChunks ? vw->numChunks : vw->zsize;
-    for (i = 0; i < numWrite; i++) {
-      k = vw->numChunks ? vw->chunk[i].start : i;
+    for(k = 0; k < vw->zsize; k++){
       tramat_copy(vw->tr[k].mat, mat);
       if (vw->rotMode)
         rotate_transform(mat, -vw->globalRot);
