@@ -34,6 +34,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.14  2003/01/27 00:30:07  mast
+Pure Qt version and general cleanup
+
 Revision 1.1.2.13  2003/01/23 20:14:09  mast
 Add include of imod_io
 
@@ -156,6 +159,8 @@ int    Rampbase = RAMPBASE;
 
 /*****************************************************************************/
 
+static int loopStarted = 0;
+
 class ImodApplication : public QApplication
 {
 public:
@@ -185,7 +190,7 @@ void imod_usage(char *name)
   printf("%s: Usage, %s [options] <Image files> <model file>\n",
 	 name, name);
   printf("Options: -c #	 Set # of colormap to use (1-12).\n");
-  printf("	   -rgb	 Display images in 24-bit color, not with colormap.\n");
+  printf("	   -ci	 Display images in color index mode with colormap.\n");
   printf("	   -C #	 Set # of sections or Mbytes to cache (#M or #m for Mbytes).\n");
   printf("	   -xyz	 Open xyz window first.\n");
   printf("	   -S	 Open slicer window first.\n");
@@ -246,17 +251,14 @@ int main( int argc, char *argv[])
 
   /* Initialize data. */
   App = &app;
-  App->rgba = 0;
-  App->qtRgba = 0;
+  App->rgba = 1;    /* Set to 1 to force RGB visual */
 
-  /*DNM: prescan for debug and rgb flags before the display_init */
+  /*DNM: prescan for debug, ci and style flags before the display_init */
   for (i = 1; i < argc; i++){
     if (argv[i][0] == '-' && argv[i][1] == 'D')
       Imod_debug = TRUE;
-    if (argv[i][0] == '-' && argv[i][1] == 'r' && argv[i][2] == 'g'
-	&& argv[i][3] == 'b') {
-      App->rgba = 1;
-      App->qtRgba = 1;
+    if (argv[i][0] == '-' && argv[i][1] == 'c' && argv[i][2] == 'i' ) {
+      App->rgba = -1;  /* Set to -1 to force worthless Color index visual */
     }
     if (argv[i][0] == '-' && argv[i][1] == 's' && argv[i][2] == 't'
 	&& argv[i][3] == 'y' && argv[i][4] == 'l' && argv[i][5] == 'e')
@@ -347,6 +349,8 @@ int main( int argc, char *argv[])
       switch (argv[i][1]){
 
       case 'c':
+	if (argv[i][2] == 'i')
+	  break;
 	cmap = atoi(argv[++i]);
 	if ((cmap > 12) || (cmap < 1)){
 	  fprintf(stderr, "imod: valid -c range is 1 - 12\n");
@@ -791,13 +795,21 @@ int main( int argc, char *argv[])
   if (Imod_debug) puts("mainloop");
   imodPlugCall(&vi, 0, IMOD_REASON_STARTUP);
 
+  loopStarted = 1;
+
   return qapp.exec();
 }
 
-
+/* Close everything as gracefully as possible */
 void imod_exit(int retcode)
 {
-  QApplication::exit(retcode);
+  imodv_close();                     // Imodv and associated dialogs
+  ivwControlListDelete(App->cvi);    // Image windows
+  imodDialogManager.close();         // Remaining imod dialog windows
+  // It did NOT work to use qApp->closeAllWindows after this
+  if (loopStarted)
+    QApplication::exit(retcode);
+  exit(retcode);
 }
 
 /* DNM 2/7/02: keep it from sending up another window if one is already up */
