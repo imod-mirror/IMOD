@@ -29,6 +29,45 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.15  2004/08/19 01:25:44  sueh
+ * <p> Added functions to get a CombineComscriptState.  Added ComScript
+ * <p> combine.  Added functions for echo, exit, and goto in the combine
+ * <p> script.  Added new general functions to add a command to a script
+ * <p> based on the location of the previous command or command index.
+ * <p> Added a general function to delete a command based on the location of
+ * <p> the previous command.  Added general initialization functions for
+ * <p> optional command and for commands that must be located by
+ * <p> specifying the previous command.  Added a second useTemplate
+ * <p> command for the simpler case where the .com file did not change.
+ * <p> Added:
+ * <p> ComScript scriptCombine
+ * <p> deleteCommand(ComScript script, String command, AxisID axisID,
+ * <p>     String previousCommand)
+ * <p> deleteFromCombine(String command, String previousCommand)
+ * <p> getCombineComscript()
+ * <p> getEchoParamFromCombine(String previousCommand)
+ * <p> getGotoParamFromCombine()
+ * <p> initialize(CommandParam param, ComScript comScript,
+ * <p>     String command, AxisID axisID, boolean optionalCommand)
+ * <p> initialize(CommandParam param, ComScript comScript,
+ * <p>     String command, AxisID axisID, String previousCommand)
+ * <p> loadCombine()
+ * <p> saveCombine(EchoParam echoParam, String previousCommand)
+ * <p> saveCombine(ExitParam exitParam, int previousCommandIndex)
+ * <p> saveCombine(GotoParam gotoParam, int previousCommandIndex)
+ * <p> saveCombine(GotoParam gotoParam)
+ * <p> updateComScript(ComScript script, CommandParam params,
+ * <p>     String command, AxisID axisID, boolean addNew,
+ * <p>    int previousCommandIndex)
+ * <p> updateComScript(ComScript script, CommandParam params,
+ * <p>     String command, AxisID axisID, boolean addNew,
+ * <p>     String previousCommand)
+ * <p> useTemplate(String scriptName, AxisType axisType, AxisID axisID,
+ * <p>     boolean rename)
+ * <p> Changed:
+ * <p> initialize(CommandParam param, ComScript comScript,
+ * <p>     String command, AxisID axisID)
+ * <p>
  * <p> Revision 3.14  2004/06/24 18:36:20  sueh
  * <p> bug# 482 Removing proof-of-concept test code.  Add functions
  * <p> to retrieve matchshifts from solvematchshift and add it to
@@ -1153,7 +1192,8 @@ public class ComScriptManager {
       errorMessage[0] = "Failed attempt to update comscript for command:"
         + command;
       errorMessage[1] = "It needs to be loaded first";
-      appManager.openMessageDialog(errorMessage, "ComScriptManager Error");
+      appManager.getMainPanel().openMessageDialog(errorMessage,
+          "ComScriptManager Error");
       return;
     }
 
@@ -1212,7 +1252,8 @@ public class ComScriptManager {
       errorMessage[0] = "Failed attempt to update comscript for command:"
         + command;
       errorMessage[1] = "It needs to be loaded first";
-      appManager.openMessageDialog(errorMessage, "ComScriptManager Error");
+      appManager.getMainPanel().openMessageDialog(errorMessage,
+          "ComScriptManager Error");
       return -1;
     }
 
@@ -1225,7 +1266,8 @@ public class ComScriptManager {
       errorMessage[0] = "Failed attempt to update comscript for command:"
         + command;
       errorMessage[1] = "previous command:" + previousCommand + "is missing.";
-      appManager.openMessageDialog(errorMessage, "ComScriptManager Error");
+      appManager.getMainPanel().openMessageDialog(errorMessage,
+          "ComScriptManager Error");
       return -1;
     }
     
@@ -1250,7 +1292,8 @@ public class ComScriptManager {
       errorMessage[0] = "Failed attempt to update comscript for command:"
         + command;
       errorMessage[1] = "It needs to be loaded first";
-      appManager.openMessageDialog(errorMessage, "ComScriptManager Error");
+      appManager.getMainPanel().openMessageDialog(errorMessage,
+          "ComScriptManager Error");
       return -1;
     }
     
@@ -1260,7 +1303,8 @@ public class ComScriptManager {
         + command;
       errorMessage[1] = "previous index, " + previousCommandIndex
         + ", is invalid.";
-      appManager.openMessageDialog(errorMessage, "ComScriptManager Error");
+      appManager.getMainPanel().openMessageDialog(errorMessage,
+          "ComScriptManager Error");
       return -1;
     }
     
@@ -1310,7 +1354,8 @@ public class ComScriptManager {
       errorMessage[0] = "Failed attempt to delete command:"
         + command;
       errorMessage[1] = "It needs to be loaded first";
-      appManager.openMessageDialog(errorMessage, "ComScriptManager Error");
+      appManager.getMainPanel().openMessageDialog(errorMessage,
+          "ComScriptManager Error");
       return;
     }
 
@@ -1323,7 +1368,8 @@ public class ComScriptManager {
       errorMessage[0] = "Failed attempt to delete command:"
         + command;
       errorMessage[1] = "previous command:" + previousCommand + "is missing.";
-      appManager.openMessageDialog(errorMessage, "ComScriptManager Error");
+      appManager.getMainPanel().openMessageDialog(errorMessage,
+          "ComScriptManager Error");
       return;
     }
     
@@ -1430,7 +1476,8 @@ public class ComScriptManager {
         errorMessage[0] = "Failed attempt to initialize comscript for command:"
           + command;
         errorMessage[1] = "previous command:" + previousCommand + "is missing.";
-        appManager.openMessageDialog(errorMessage, "ComScriptManager Error");
+        appManager.getMainPanel().openMessageDialog(errorMessage,
+            "ComScriptManager Error");
         return false;
       }
       
