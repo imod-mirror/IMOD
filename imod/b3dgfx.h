@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.3.2.1  2002/12/23 04:55:13  mast
+    declare routines for putting bytes, shorts, ints that are in b3dfile.c
+
     Revision 3.3  2002/12/01 15:34:41  mast
     Changes to get clean compilation with g++
 
@@ -73,7 +76,7 @@ extern String B3DGFX_Translations;
 #define B3dNresizeCallback GLwNresizeCallback
 #define B3dNinputCallback  GLwNinputCallback
 #define B3dNginitCallback  GLwNginitCallback
-typedef struct
+typedef struct b3d_ci_image
 {
      unsigned short *id1;
      unsigned short *id2;
@@ -115,6 +118,7 @@ void b3dXWinset(Display *dpy, Widget w, XID context);
      void b3dSetCurSize(int width, int height);
 void b3dDestroyGFX(void);
 void b3dResizeViewport(void);
+void b3dResizeViewportXY(int winx, int winy);
 void b3dSwapBuffers(void);
 void b3dFlush(void);
 void b3dMapColor(unsigned int   color,
