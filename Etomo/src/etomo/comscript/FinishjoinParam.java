@@ -6,10 +6,10 @@ import java.util.ArrayList;
 import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.process.SystemProgram;
-import etomo.type.ConstEtomoInteger;
+import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstJoinMetaData;
 import etomo.type.ConstSectionTableRowData;
-import etomo.type.EtomoInteger;
+import etomo.type.EtomoNumber;
 import etomo.type.SectionTableRowData;
 
 /**
@@ -26,6 +26,10 @@ import etomo.type.SectionTableRowData;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.9  2004/11/12 22:47:53  sueh
+* <p> bug# 520 Storing binning, size, and shift information.  Added getBinning().
+* <p> Added getIntegerValue().
+* <p>
 * <p> Revision 1.1.2.8  2004/11/11 01:35:32  sueh
 * <p> bug# 520 Adding trial mode:  using -t with sampling rate in Z and binning.
 * <p>
@@ -143,8 +147,8 @@ public class FinishjoinParam implements Command {
     return commandName;
   }
   
-  public static ConstEtomoInteger getShift(String offset) {
-    return new EtomoInteger().set(offset).getNegation();
+  public static ConstEtomoNumber getShift(String offset) {
+    return new EtomoNumber(EtomoNumber.INTEGER_TYPE).set(offset).getNegation();
   }
   
   public File getOutputFile() {
@@ -159,40 +163,40 @@ public class FinishjoinParam implements Command {
     ArrayList options = new ArrayList();
     if (metaData.getUseAlignmentRefSection()) {
       options.add("-r");
-      options.add(metaData.getAlignmentRefSection().getString());
+      options.add(metaData.getAlignmentRefSection().toString());
     }
     //Add optional size
-    ConstEtomoInteger sizeInX = metaData.getSizeInX();
-    ConstEtomoInteger sizeInY = metaData.getSizeInY();
-    this.sizeInX = sizeInX.get(true);
-    this.sizeInY = sizeInY.get(true);
+    ConstEtomoNumber sizeInX = metaData.getSizeInX();
+    ConstEtomoNumber sizeInY = metaData.getSizeInY();
+    this.sizeInX = sizeInX.getInteger(true);
+    this.sizeInY = sizeInY.getInteger(true);
     if (sizeInX.isSetAndNotDefault() || sizeInY.isSetAndNotDefault()) {
       options.add("-s");
       //both numbers must exist
-      options.add(sizeInX.getString(true) + "," + sizeInY.getString(true));
+      options.add(sizeInX.toString(true) + "," + sizeInY.toString(true));
     }
     //Add optional offset
-    ConstEtomoInteger shiftInX = metaData.getShiftInX();
-    ConstEtomoInteger shiftInY = metaData.getShiftInY();
-    this.shiftInX = shiftInX.get(true);
-    this.shiftInY = shiftInY.get(true);
+    ConstEtomoNumber shiftInX = metaData.getShiftInX();
+    ConstEtomoNumber shiftInY = metaData.getShiftInY();
+    this.shiftInX = shiftInX.getInteger(true);
+    this.shiftInY = shiftInY.getInteger(true);
     if (shiftInX.isSetAndNotDefault() || shiftInY.isSetAndNotDefault()) {
       options.add("-o");
       //both numbers must exist
       //offset is a negative shift
-      options.add(shiftInX.getNegation().getString(true) + "," + shiftInY.getNegation().getString(true));
+      options.add(shiftInX.getNegation().toString(true) + "," + shiftInY.getNegation().toString(true));
     }
     if (mode == MAX_SIZE_MODE) {
       options.add("-m");
     }
     if (mode == TRIAL_MODE) {
       options.add("-t");
-      options.add(metaData.getUseEveryNSlices().getString());
-      ConstEtomoInteger binning = metaData.getTrialBinning();
-      this.binning = binning.get(true);
+      options.add(metaData.getUseEveryNSlices().toString());
+      ConstEtomoNumber binning = metaData.getTrialBinning();
+      this.binning = binning.getInteger(true);
       if (binning.isSetAndNotDefault()) {
         options.add("-b");
-        options.add(binning.getString());
+        options.add(binning.toString());
       }
     }
     options.add(rootName);

@@ -3,7 +3,8 @@ import java.io.*;
 
 import etomo.EtomoDirector;
 import etomo.comscript.Command;
-import etomo.type.EtomoLong;
+import etomo.type.ConstEtomoNumber;
+import etomo.type.EtomoNumber;
 
 /*
  * <p>Description: InteractiveSystemProgram implements a Runable class that can
@@ -19,6 +20,10 @@ import etomo.type.EtomoLong;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.0.6.4  2004/11/12 22:53:53  sueh
+ * <p> bug# 520 Removed pass-through commands to Command.  Added
+ * <p> Command getCommand().
+ * <p>
  * <p> Revision 3.0.6.3  2004/10/28 17:05:51  sueh
  * <p> bug# 520 Rename oldOutputFileTime to outputFileLastModified.
  * <p>
@@ -63,7 +68,7 @@ public class InteractiveSystemProgram implements Runnable {
 
   private BaseProcessManager processManager = null;
   private String threadName = null;
-  private EtomoLong outputFileLastModified = new EtomoLong("");
+  private EtomoNumber outputFileLastModified = new EtomoNumber(EtomoNumber.LONG_TYPE, "");
   
   /**
    * The exit value of the command
@@ -230,7 +235,7 @@ public class InteractiveSystemProgram implements Runnable {
     return commandParam;
   }
   
-  public EtomoLong getOutputFileLastModified() {
+  public ConstEtomoNumber getOutputFileLastModified() {
     return outputFileLastModified;
   }
 

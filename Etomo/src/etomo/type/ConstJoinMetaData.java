@@ -21,6 +21,10 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.18  2004/11/15 22:20:26  sueh
+* <p> bug# 520 Moved all of file validation to Utilities so that is called be called
+* <p> from other places.
+* <p>
 * <p> Revision 1.1.2.17  2004/11/13 02:38:18  sueh
 * <p> bug# 520 Added sampleProduced state boolean.
 * <p>
@@ -108,27 +112,43 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
 
   protected ArrayList sectionTableData;
   protected String rootName;
-  protected EtomoInteger densityRefSection = new EtomoInteger("DensityRefSection");;
-  protected EtomoDouble sigmaLowFrequency = new EtomoDouble("SigmaLowFrequency");
-  protected EtomoDouble cutoffHighFrequency = new EtomoDouble("CutoffHighFrequency");
-  protected EtomoDouble sigmaHighFrequency = new EtomoDouble("SigmaHighFrequency");
+  protected EtomoNumber densityRefSection = new EtomoNumber(
+      EtomoNumber.INTEGER_TYPE, "DensityRefSection");
+  protected EtomoNumber sigmaLowFrequency = new EtomoNumber(
+      EtomoNumber.DOUBLE_TYPE, "SigmaLowFrequency");
+  protected EtomoNumber cutoffHighFrequency = new EtomoNumber(
+      EtomoNumber.DOUBLE_TYPE, "CutoffHighFrequency");
+  protected EtomoNumber sigmaHighFrequency = new EtomoNumber(
+      EtomoNumber.DOUBLE_TYPE, "SigmaHighFrequency");
   protected boolean fullLinearTransformation;
   protected boolean rotationTranslationMagnification;
   protected boolean rotationTranslation;
   protected boolean useAlignmentRefSection;
-  protected EtomoInteger alignmentRefSection = new EtomoInteger("AlignmentRefSection");
-  protected EtomoInteger sizeInX = new EtomoInteger("SizeInX");
-  protected EtomoInteger sizeInY = new EtomoInteger("SizeInY");
-  protected EtomoInteger shiftInX = new EtomoInteger("ShiftInX");
-  protected EtomoInteger shiftInY = new EtomoInteger("ShiftInY");
-  protected EtomoInteger useEveryNSlices = new EtomoInteger("UseEveryNSlices");
-  protected EtomoInteger trialBinning = new EtomoInteger("TrialBinning");
+  protected EtomoNumber alignmentRefSection = new EtomoNumber(
+      EtomoNumber.INTEGER_TYPE, "AlignmentRefSection");
+  protected EtomoNumber sizeInX = new EtomoNumber(EtomoNumber.INTEGER_TYPE,
+      "SizeInX");
+  protected EtomoNumber sizeInY = new EtomoNumber(EtomoNumber.INTEGER_TYPE,
+      "SizeInY");
+  protected EtomoNumber shiftInX = new EtomoNumber(EtomoNumber.INTEGER_TYPE,
+      "ShiftInX");
+  protected EtomoNumber shiftInY = new EtomoNumber(EtomoNumber.INTEGER_TYPE,
+      "ShiftInY");
+  protected EtomoNumber useEveryNSlices = new EtomoNumber(
+      EtomoNumber.INTEGER_TYPE, "UseEveryNSlices");
+  protected EtomoNumber trialBinning = new EtomoNumber(
+      EtomoNumber.INTEGER_TYPE, "TrialBinning");
   //set on the successful completion of finishjoin
-  protected EtomoInteger finishjoinTrialBinning = new EtomoInteger("FinishjoinTrialBinning");
-  protected EtomoInteger finishjoinTrialSizeInX = new EtomoInteger("FinishjoinTrialSizeInX");
-  protected EtomoInteger finishjoinTrialSizeInY = new EtomoInteger("FinishjoinTrialSizeInY");
-  protected EtomoInteger finishjoinTrialShiftInX = new EtomoInteger("FinishjoinTrialShiftInX");
-  protected EtomoInteger finishjoinTrialShiftInY = new EtomoInteger("FinishjoinTrialShiftInY");
+  protected EtomoNumber finishjoinTrialBinning = new EtomoNumber(
+      EtomoNumber.INTEGER_TYPE, "FinishjoinTrialBinning");
+  protected EtomoNumber finishjoinTrialSizeInX = new EtomoNumber(
+      EtomoNumber.INTEGER_TYPE, "FinishjoinTrialSizeInX");
+  protected EtomoNumber finishjoinTrialSizeInY = new EtomoNumber(
+      EtomoNumber.INTEGER_TYPE, "FinishjoinTrialSizeInY");
+  protected EtomoNumber finishjoinTrialShiftInX = new EtomoNumber(
+      EtomoNumber.INTEGER_TYPE, "FinishjoinTrialShiftInX");
+  protected EtomoNumber finishjoinTrialShiftInY = new EtomoNumber(
+      EtomoNumber.INTEGER_TYPE, "FinishjoinTrialShiftInY");
   //state variable for join setup tab
   protected boolean sampleProduced;
   
@@ -160,26 +180,26 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
         + ",\nlatestRevisionNumber=" + latestRevisionNumber
         + ",\nnewJoinTitle=" + newJoinTitle + ",\ngroupString=" + groupString
         + ",\n" + densityRefSection.getDescription() + "="
-        + densityRefSection.getString() + ",\n" + rootNameString + "="
+        + densityRefSection + ",\n" + rootNameString + "="
         + rootName + ",\n" + sigmaLowFrequency.getDescription() + "="
-        + sigmaLowFrequency.getString() + ",\n"
+        + sigmaLowFrequency + ",\n"
         + cutoffHighFrequency.getDescription() + "="
-        + cutoffHighFrequency.getString() + ",\n"
+        + cutoffHighFrequency + ",\n"
         + sigmaHighFrequency.getDescription() + "="
-        + sigmaHighFrequency.getString() + ",\n"
+        + sigmaHighFrequency + ",\n"
         + fullLinearTransformationString + "=" + fullLinearTransformation
         + ",\n" + rotationTranslationMagnificationString + "="
         + rotationTranslationMagnification + ",\n" + rotationTranslationString
         + "=" + rotationTranslation + ",\n" + useAlignmentRefSectionString
         + "=" + useAlignmentRefSection + ",\n"
         + alignmentRefSection.getDescription() + "="
-        + alignmentRefSection.getString() + ",\n" + sizeInX.getDescription()
-        + "=" + sizeInX.getString() + ",\n" + sizeInY.getDescription() + "="
-        + sizeInY.getString() + ",\n" + shiftInX.getDescription() + "="
-        + shiftInX.getString() + ",\n" + shiftInY.getDescription() + "="
-        + shiftInY.getString() + ",\n" + useEveryNSlices.getDescription() + "="
-        + useEveryNSlices.getString() + ",\n" + trialBinning.getDescription() + "="
-        + trialBinning.getString());
+        + alignmentRefSection + ",\n" + sizeInX.getDescription()
+        + "=" + sizeInX + ",\n" + sizeInY.getDescription() + "="
+        + sizeInY + ",\n" + shiftInX.getDescription() + "="
+        + shiftInX + ",\n" + shiftInY.getDescription() + "="
+        + shiftInY + ",\n" + useEveryNSlices.getDescription() + "="
+        + useEveryNSlices + ",\n" + trialBinning.getDescription() + "="
+        + trialBinning);
     if (sectionTableData != null) {
       buffer.append(",\n" + sectionTableDataSizeString + "="
           + sectionTableData.size());
@@ -303,15 +323,15 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
     return rootName != null && rootName.matches("\\S+");
   }
   
-  public ConstEtomoInteger getDensityRefSection() {
+  public ConstEtomoNumber getDensityRefSection() {
     return densityRefSection;
   }
   
-  public ConstEtomoInteger getUseEveryNSlices() {
+  public ConstEtomoNumber getUseEveryNSlices() {
     return useEveryNSlices;
   }
   
-  public ConstEtomoInteger getTrialBinning() {
+  public ConstEtomoNumber getTrialBinning() {
     return trialBinning;
   }
 
@@ -329,15 +349,15 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
     return rootName;
   }
   
-  public EtomoSimpleType getSigmaLowFrequency() {
+  public ConstEtomoNumber getSigmaLowFrequency() {
     return sigmaLowFrequency;
   }
   
-  public EtomoSimpleType getCutoffHighFrequency() {
+  public ConstEtomoNumber getCutoffHighFrequency() {
     return cutoffHighFrequency;
   }
   
-  public EtomoSimpleType getSigmaHighFrequency() {
+  public ConstEtomoNumber getSigmaHighFrequency() {
     return sigmaHighFrequency;
   }
 
@@ -349,16 +369,18 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
     return max - min + 1;
   }
   
-  public int getCoordinate(ConstEtomoInteger coordinate) {
-    return coordinate.get() * finishjoinTrialBinning.get();
+  public int getCoordinate(ConstEtomoNumber coordinate) {
+    return coordinate.getInteger() * finishjoinTrialBinning.getInteger();
   }
   
   public int getNewShiftInX(int min, int max) {
-    return finishjoinTrialShiftInX.get() + (finishjoinTrialSizeInX.get() + 1) / 2 - (max + min) / 2;
+    return finishjoinTrialShiftInX.getInteger()
+        + (finishjoinTrialSizeInX.getInteger() + 1) / 2 - (max + min) / 2;
   }
-  
+
   public int getNewShiftInY(int min, int max) {
-    return finishjoinTrialShiftInY.get() + (finishjoinTrialSizeInY.get() + 1) / 2 - (max + min) / 2;
+    return finishjoinTrialShiftInY.getInteger()
+        + (finishjoinTrialSizeInY.getInteger() + 1) / 2 - (max + min) / 2;
   }
   
   public boolean isFullLinearTransformation() {
@@ -381,15 +403,15 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
     return useAlignmentRefSection;
   }
   
-  public EtomoSimpleType getAlignmentRefSection() {
+  public ConstEtomoNumber getAlignmentRefSection() {
     return alignmentRefSection;
   }
   
-  public ConstEtomoInteger getSizeInX() {
+  public ConstEtomoNumber getSizeInX() {
     return sizeInX;
   }
   
-  public ConstEtomoInteger getSizeInY() {
+  public ConstEtomoNumber getSizeInY() {
     return sizeInY;
   }
   
@@ -397,11 +419,11 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
     return useAlignmentRefSection;
   }
   
-  public ConstEtomoInteger getShiftInX() {
+  public ConstEtomoNumber getShiftInX() {
     return shiftInX;
   }
   
-  public ConstEtomoInteger getShiftInY() {
+  public ConstEtomoNumber getShiftInY() {
     return shiftInY;
   }
   
