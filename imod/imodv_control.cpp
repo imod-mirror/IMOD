@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 1.1.2.10  2003/01/18 01:10:17  mast
+    add include of dia_qtutils
+
     Revision 1.1.2.9  2003/01/13 07:21:38  mast
     Changes to use new dialog manager class
 
@@ -73,6 +76,7 @@
 #include "imodv_control.h"
 #include "imodv_gfx.h"
 #include "imodv_input.h"
+#include "imod_model_edit.h"
 #include "control.h"
 
 static imodvControlForm *dialog = NULL;
@@ -197,6 +201,7 @@ void imodvControlZscale(int value)
          }
   */
   imodvDraw(Imodv);
+  imodModelEditUpdate();
 }
 
 void imodvControlScale(float scale)
