@@ -68,6 +68,9 @@ padding, so that large padding can be used for large images.
 put out in sample.com by copytomocoms, which worked only on RedHat 9 and 
 Cygwin, and changed vmstocsh to preserve continuation lines ending in \\.
 
+11/14/03: Changed file reading, writing, and seeking routines to work for
+files bigger than 2 GB on Windows.
+
 11/13/03: Fixed a problem with newst that showed up for one user under Mac 
 OS 10.3.
 
