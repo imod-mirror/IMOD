@@ -28,6 +28,9 @@ import etomo.type.ConstMetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.25.4.9  2004/11/11 01:36:41  sueh
+ * <p> bug# 520 Adding more setBinning functions.
+ * <p>
  * <p> Revision 3.25.4.8  2004/10/29 22:09:57  sueh
  * <p> bug# 520 Added rotTomogram to keep track of 3dmods displaying the
  * <p> rotated version of tomograms.
@@ -342,6 +345,7 @@ public class ImodManager {
   public static final String JOIN_SAMPLE_AVERAGES_KEY = new String("joinSampleAverages");
   public static final String JOIN_KEY = new String("join");
   public static final String ROT_TOMOGRAM_KEY = new String("rotTomogram");
+  public static final String TRIAL_JOIN_KEY = new String("TrialJoinKey");
   
 
   //private keys - used with imodMap
@@ -364,6 +368,7 @@ public class ImodManager {
   private static final String joinSampleAveragesKey = JOIN_SAMPLE_AVERAGES_KEY;
   private static final String joinKey = JOIN_KEY;
   private static final String rotTomogramKey = ROT_TOMOGRAM_KEY;
+  private static final String trialJoinKey = TRIAL_JOIN_KEY;
 
   private boolean useMap = true;
 
@@ -862,20 +867,23 @@ public class ImodManager {
     if (key.equals(PREVIEW_KEY) && axisID != null) {
       return newPreview(axisID);
     }
-    if (key.equals(TOMOGRAM_KEY) && axisID == null) {
+    if (key.equals(TOMOGRAM_KEY)) {
       return newTomogram(file);
     }
-    if (key.equals(JOIN_SAMPLES_KEY) && axisID == null) {
+    if (key.equals(JOIN_SAMPLES_KEY)) {
       return newJoinSamples();
     }
-    if (key.equals(JOIN_SAMPLE_AVERAGES_KEY) && axisID == null) {
+    if (key.equals(JOIN_SAMPLE_AVERAGES_KEY)) {
       return newJoinSampleAverages();
     }
-    if (key.equals(JOIN_KEY) && axisID == null) {
+    if (key.equals(JOIN_KEY)) {
       return newJoin();
     }
-    if (key.equals(ROT_TOMOGRAM_KEY) && axisID == null) {
+    if (key.equals(ROT_TOMOGRAM_KEY)) {
       return newRotTomogram(file);
+    }
+    if (key.equals(TRIAL_JOIN_KEY)) {
+      return newTrialJoin();
     }
     throw new IllegalArgumentException(
       key
@@ -918,6 +926,7 @@ public class ImodManager {
     imodMap.put(joinSamplesKey, newVector(newJoinSamples()));
     imodMap.put(joinSampleAveragesKey, newVector(newJoinSampleAverages()));
     imodMap.put(joinKey, newVector(newJoin()));
+    imodMap.put(trialJoinKey, newVector(newTrialJoin()));
   }
 
   protected void loadDualAxisMap() {
@@ -1062,6 +1071,10 @@ public class ImodManager {
   }
   protected ImodState newRotTomogram(File file) {
     ImodState imodState = new ImodState(file);
+    return imodState;
+  }
+  protected ImodState newTrialJoin() {
+    ImodState imodState = new ImodState(datasetName + "_trial.join");
     return imodState;
   }
   
