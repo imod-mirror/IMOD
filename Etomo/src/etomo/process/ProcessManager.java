@@ -20,6 +20,11 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.39  2004/08/30 18:43:55  sueh
+ * bug# 508 Use notifyKill() to tell this object that
+ * a kill has been requested.  This way kill() doesn't have to
+ * check the type of the thread object.
+ *
  * Revision 3.38  2004/08/28 00:59:26  sueh
  * bug# 508 In startComScript checking ComScriptProcess.isError() as
  * well as isStarted() in order to get out of a loop.
@@ -491,6 +496,7 @@ package etomo.process;
 import etomo.type.AxisID;
 import etomo.type.ProcessName;
 import etomo.ApplicationManager;
+import etomo.EtomoDirector;
 import etomo.type.ConstMetaData;
 import etomo.ui.TextPageWindow;
 import etomo.util.InvalidParameterException;
@@ -540,7 +546,7 @@ public class ProcessManager {
 
     CopyTomoComs copyTomoComs = new CopyTomoComs(metaData);
 
-    if (ApplicationManager.isDebug()) {
+    if (EtomoDirector.isDebug()) {
       System.err.println("copytomocoms command line: "
         + copyTomoComs.getCommandLine());
     }
@@ -1126,10 +1132,10 @@ public class ProcessManager {
   public String test(String commandLine) {
     BackgroundProcess command = new BackgroundProcess(commandLine, this);
     command.setWorkingDirectory(new File(System.getProperty("user.dir")));
-    command.setDebug(ApplicationManager.isDebug());
+    command.setDebug(EtomoDirector.isDebug());
     command.start();
 
-    if (ApplicationManager.isDebug()) {
+    if (EtomoDirector.isDebug()) {
       System.err.println("Started " + commandLine);
       System.err.println("  Name: " + command.getName());
     }
@@ -1144,12 +1150,12 @@ public class ProcessManager {
     // Initialize the SystemProgram object
     SystemProgram sysProgram = new SystemProgram(command);
     sysProgram.setWorkingDirectory(new File(System.getProperty("user.dir")));
-    sysProgram.setDebug(ApplicationManager.isDebug());
+    sysProgram.setDebug(EtomoDirector.isDebug());
 
     //  Start the system program thread
     Thread sysProgThread = new Thread(sysProgram);
     sysProgThread.start();
-    if (ApplicationManager.isDebug()) {
+    if (EtomoDirector.isDebug()) {
       System.err.println("Started " + command);
       System.err.println("  working directory: "
         + System.getProperty("user.dir"));
@@ -1234,21 +1240,21 @@ public class ProcessManager {
     // Run the script as a thread in the background
     comScriptProcess.setWorkingDirectory(new File(System
       .getProperty("user.dir")));
-    comScriptProcess.setDebug(ApplicationManager.isDebug());
-    comScriptProcess.setDemoMode(appManager.isDemo());
+    comScriptProcess.setDebug(EtomoDirector.isDebug());
+    comScriptProcess.setDemoMode(EtomoDirector.isDemo());
     comScriptProcess.start();
 
     // Map the thread to the correct axis
     mapAxisThread(comScriptProcess, axisID);
 
-    if (ApplicationManager.isDebug()) {
+    if (EtomoDirector.isDebug()) {
       System.err.println("Started " + command);
       System.err.println("  Name: " + comScriptProcess.getName());
     }
 
     Thread processMonitorThread = null;
     // Replace the process monitor with a DemoProcessMonitor if demo mode is on
-    if (appManager.isDemo()) {
+    if (EtomoDirector.isDemo()) {
       processMonitor = new DemoProcessMonitor(appManager, axisID, command,
         comScriptProcess.getDemoTime());
     }
@@ -1381,10 +1387,10 @@ public class ProcessManager {
     BackgroundProcess backgroundProcess = new BackgroundProcess(command, this);
     backgroundProcess.setWorkingDirectory(new File(System
       .getProperty("user.dir")));
-    backgroundProcess.setDemoMode(appManager.isDemo());
-    backgroundProcess.setDebug(ApplicationManager.isDebug());
+    backgroundProcess.setDemoMode(EtomoDirector.isDemo());
+    backgroundProcess.setDebug(EtomoDirector.isDebug());
     backgroundProcess.start();
-    if (ApplicationManager.isDebug()) {
+    if (EtomoDirector.isDebug()) {
       System.err.println("Started " + command);
       System.err.println("  Name: " + backgroundProcess.getName());
     }
@@ -1835,7 +1841,7 @@ public class ProcessManager {
   private void runCommand(String[] commandArray) throws SystemProcessException {
     SystemProgram systemProgram = new SystemProgram(commandArray);
     systemProgram.setWorkingDirectory(new File(System.getProperty("user.dir")));
-    systemProgram.setDebug(ApplicationManager.isDebug());
+    systemProgram.setDebug(EtomoDirector.isDebug());
 
     systemProgram.run();
     if (systemProgram.getExitValue() != 0) {
