@@ -9,7 +9,7 @@
             <x>0</x>
             <y>0</y>
             <width>300</width>
-            <height>201</height>
+            <height>198</height>
         </rect>
     </property>
     <property name="minimumSize">
@@ -226,7 +226,7 @@
                                                 <bool>true</bool>
                                             </property>
                                             <property name="toolTip" stdset="0">
-                                                <string>Set curretn object</string>
+                                                <string>Set current model object</string>
                                             </property>
                                         </widget>
                                         <widget class="QSpinBox">
@@ -250,6 +250,9 @@
                                             <property name="wrapping">
                                                 <bool>true</bool>
                                             </property>
+                                            <property name="toolTip" stdset="0">
+                                                <string>Set current model contour</string>
+                                            </property>
                                         </widget>
                                         <widget class="QSpinBox">
                                             <property name="name">
@@ -271,6 +274,9 @@
                                             </property>
                                             <property name="wrapping">
                                                 <bool>true</bool>
+                                            </property>
+                                            <property name="toolTip" stdset="0">
+                                                <string>Set current model point</string>
                                             </property>
                                         </widget>
                                     </vbox>
@@ -485,6 +491,9 @@
                                             <property name="minValue">
                                                 <number>1</number>
                                             </property>
+                                            <property name="toolTip" stdset="0">
+                                                <string>Set current Y coordinate</string>
+                                            </property>
                                         </widget>
                                         <widget class="QSpinBox">
                                             <property name="name">
@@ -509,6 +518,9 @@
                                             </property>
                                             <property name="minValue">
                                                 <number>1</number>
+                                            </property>
+                                            <property name="toolTip" stdset="0">
+                                                <string>Set current Z coordinate</string>
                                             </property>
                                         </widget>
                                     </vbox>
@@ -670,6 +682,9 @@
                                     <property name="orientation">
                                         <enum>Horizontal</enum>
                                     </property>
+                                    <property name="toolTip" stdset="0">
+                                        <string>Set minimum black level of contrast ramp</string>
+                                    </property>
                                 </widget>
                                 <widget class="QSlider" row="1" column="1">
                                     <property name="name">
@@ -695,6 +710,9 @@
                                     </property>
                                     <property name="orientation">
                                         <enum>Horizontal</enum>
+                                    </property>
+                                    <property name="toolTip" stdset="0">
+                                        <string>Set maximum white level of contrast ramp</string>
                                     </property>
                                 </widget>
                             </grid>
@@ -742,6 +760,9 @@
                             <property name="text">
                                 <string>Movie</string>
                             </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Mouse buttons will start movie</string>
+                            </property>
                         </widget>
                         <widget class="QRadioButton">
                             <property name="name">
@@ -752,6 +773,9 @@
                             </property>
                             <property name="text">
                                 <string>Model</string>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Mouse buttons will modify model</string>
                             </property>
                         </widget>
                     </vbox>
