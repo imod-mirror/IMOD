@@ -34,6 +34,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.2  2002/12/06 21:58:35  mast
+*** empty log message ***
+
 Revision 1.1.2.1  2002/12/05 16:24:46  mast
 Open a Qxt application
 
@@ -759,8 +762,26 @@ void imod_quit(void)
   return;
 }
 
-/* Appends either image or model name to window name */
-char *imodwEithername(char *intro, char *filein)
+/* Appends either the model or file name to the window name, giving
+   first priority to the model name if "modelFirst" is set */
+char *imodwEithername(char *intro, char *filein, int modelFirst)
+{
+  char *retString;
+  if (modelFirst) {
+    retString = imodwGivenName(intro, filein);
+    if (!retString)
+      retString = imodwfname(intro);
+
+  } else {
+    retString = imodwfname(intro);
+    if (!retString)
+      retString = imodwGivenName(intro, filein);
+  }
+}
+
+
+/* Appends the given name to window name */
+char *imodwGivenName(char *intro, char *filein)
 {
   char *winame, *filename;
   int i;
@@ -797,7 +818,7 @@ char *imodwfname(char *intro)
     sprintf(filename, "%s %d image files", intro, App->cvi->nt);
     return(filename);
   }
-  return (imodwEithername(intro, filename));
+  return (imodwGivenName(intro, filename));
 }
 
 
