@@ -6,6 +6,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Vector;
 
+import javax.swing.JOptionPane;
+
 import etomo.comscript.FinishjoinParam;
 import etomo.comscript.FlipyzParam;
 import etomo.comscript.MakejoincomParam;
@@ -46,6 +48,12 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.30  2004/11/17 02:20:47  sueh
+* <p> bug# 520 Added endSetupMode() to do things that need to be done once,
+* <p> such as set paramFile, place the param file name on the status bar, and
+* <p> set the meta data in imod manager.  If paramFile is already set, it will only
+* <p> call setMode().
+* <p>
 * <p> Revision 1.1.2.29  2004/11/16 23:26:24  sueh
 * <p> bug# 520 JoinDialog mode names should end with _MODE.
 * <p>
@@ -389,8 +397,6 @@ public class JoinManager extends BaseManager {
   public void makejoincom() {
     mainPanel.startProgressBar("Makejoincom", AxisID.ONLY);
     nextProcess = "startjoin";
-
-    isDataParamDirty = true;
     joinDialog.getMetaData(metaData);
     if (!endSetupMode()) {
       mainPanel.openMessageDialog(metaData.getInvalidReason(), "Invalid Data");
@@ -428,18 +434,51 @@ public class JoinManager extends BaseManager {
     propertyUserDir = workingDirName;
     imodManager.setMetaData(metaData);
     paramFile = new File(propertyUserDir, metaData.getRootName() + metaData.getFileExtension());
+    loadedTestParamFile = true;
     mainPanel.updateDataParameters(paramFile, metaData);
     return true;
   }
+  
+  protected boolean saveTestParamIfNecessary() {
+    // Check to see if the screen has changed
+    if (!joinDialog.equals(metaData)) {
+      String[] message = {"Data has been changed on the screen.","Save data?"};
+      int returnValue = mainFrame.openYesNoCancelDialog(message);
+      if (returnValue == JOptionPane.CANCEL_OPTION) {
+        return false;
+      }
+      if (returnValue == JOptionPane.NO_OPTION) {
+        return true;
+      }
+      //if fields used to produce a sample have changed then the sample isn't
+      //up to date
+      if (!joinDialog.equalsSample(metaData)) {
+        metaData.setSampleProduced(false);
+      }
+      joinDialog.getMetaData(metaData);
+      // If the user selects Yes then try to save the current EDF file
+      if (paramFile == null && !endSetupMode() &&!getMainPanel().getTestParamFilename()) {
+        return false;
+      }
+      // Be sure the file saving was successful
+      saveTestParamFile();
+      if (isDataParamDirty) {
+        return false;
+      }
+    }
+    return true;
+  }
+  
+  public boolean canChangeParamFileName() {
+    return false;
+  }
+
   
   /**
    * Run midas on the sample
    */
   public void midasSample() {
-    isDataParamDirty = true;
-    joinDialog.getMetaData(metaData);
-    if (!metaData.isValid(joinDialog.getWorkingDir())) {
-      mainPanel.openMessageDialog(metaData.getInvalidReason(), "Invalid Data");
+    if (!updateMetaDataFromJoinDialog()) {
       return;
     }
     MidasParam midasParam = new MidasParam(metaData);
@@ -460,10 +499,7 @@ public class JoinManager extends BaseManager {
   
   public void xfalignInitial() {
     mainPanel.startProgressBar("Initial xfalign", AxisID.ONLY);
-    isDataParamDirty = true;
-    joinDialog.getMetaData(metaData);
-    if (!metaData.isValid(joinDialog.getWorkingDir())) {
-      mainPanel.openMessageDialog(metaData.getInvalidReason(), "Invalid Data");
+    if (!updateMetaDataFromJoinDialog()) {
       return;
     }
     XfalignParam xfalignParam = new XfalignParam(metaData,
@@ -483,10 +519,7 @@ public class JoinManager extends BaseManager {
   
   public void xfalignRefine() {
     mainPanel.startProgressBar("Refine xfalign", AxisID.ONLY);
-    isDataParamDirty = true;
-    joinDialog.getMetaData(metaData);
-    if (!metaData.isValid(joinDialog.getWorkingDir())) {
-      mainPanel.openMessageDialog(metaData.getInvalidReason(), "Invalid Data");
+    if (!updateMetaDataFromJoinDialog()) {
       return;
     }
     XfalignParam xfalignParam = new XfalignParam(metaData, XfalignParam.REFINE_MODE);
@@ -645,10 +678,7 @@ public class JoinManager extends BaseManager {
   
   public void runFinishjoin(int mode, String buttonText) {
     mainPanel.startProgressBar("Finishjoin: " + buttonText, AxisID.ONLY);
-    isDataParamDirty = true;
-    joinDialog.getMetaData(metaData);
-    if (!metaData.isValid(joinDialog.getWorkingDir())) {
-      mainPanel.openMessageDialog(metaData.getInvalidReason(), "Invalid Data");
+    if (!updateMetaDataFromJoinDialog()) {
       return;
     }
     FinishjoinParam finishjoinParam = new FinishjoinParam(metaData, mode);
@@ -665,6 +695,17 @@ public class JoinManager extends BaseManager {
       mainPanel.stopProgressBar(AxisID.ONLY);
       return; 
     }
+  }
+  
+  private boolean updateMetaDataFromJoinDialog() {
+    joinDialog.getMetaData(metaData);
+    if (!metaData.isValid(propertyUserDir)) {
+      mainPanel.openMessageDialog(metaData.getInvalidReason(), "Invalid Data");
+      mainPanel.stopProgressBar(AxisID.ONLY);
+      return false;
+    }
+    saveMetaData();
+    return true;
   }
   
   public void setSize(String sizeInXString, String sizeInYString) {
