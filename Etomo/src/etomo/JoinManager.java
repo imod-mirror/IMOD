@@ -46,6 +46,10 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.28  2004/11/16 02:20:03  sueh
+* <p> bug# 520 Replacing EtomoInteger, EtomoDouble, EtomoFloat, and
+* <p> EtomoLong with EtomoNumber.
+* <p>
 * <p> Revision 1.1.2.27  2004/11/15 22:06:55  sueh
 * <p> bug# 520  Change endSetupMode() to setMode() and change it to handle
 * <p> JoinDialog.SAMPLE_PRODUCED and JoinDialog.SAMPLE_PRODUCED.
@@ -567,10 +571,10 @@ public class JoinManager extends BaseManager {
     }
     imodManager.setMetaData(metaData);
     if (metaData.isSampleProduced()) {
-      joinDialog.setMode(JoinDialog.SAMPLE_PRODUCED);
+      joinDialog.setMode(JoinDialog.SAMPLE_PRODUCED_MODE);
     }
     else {
-      joinDialog.setMode(JoinDialog.SAMPLE_NOT_PRODUCED);
+      joinDialog.setMode(JoinDialog.SAMPLE_NOT_PRODUCED_MODE);
     }
     return true;
   }
