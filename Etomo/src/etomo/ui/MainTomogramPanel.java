@@ -24,6 +24,10 @@ import etomo.type.ProcessTrack;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.4.2.1  2005/03/01 22:18:02  sueh
+* <p> bug# 610 Set ApplicationManager.currentDialogType to null when
+* <p> displaying an empty dialog.
+* <p>
 * <p> Revision 1.4  2005/02/17 02:44:31  sueh
 * <p> bug# 605 Added saveDisplayState() to call saveDisplayState() in axis
 * <p> panels.
@@ -128,7 +132,7 @@ public class MainTomogramPanel extends MainPanel {
         processTrack.getTomogramGenerationState(AxisID.SECOND));
     }
     axisPanelA.setPostProcessingState(processTrack.getPostProcessingState());
-
+    axisPanelA.setCleanUpState(processTrack.getCleanUpState());
   }
 
   /**
@@ -224,6 +228,14 @@ public class MainTomogramPanel extends MainPanel {
    */
   public void setPostProcessingState(ProcessState state) {
     axisPanelA.setPostProcessingState(state);
+  }
+  
+  /**
+   * 
+   * @param state
+   */
+  public void setCleanUpState(ProcessState state) {
+    axisPanelA.setCleanUpState(state);
   }
   
   protected void createAxisPanelA(AxisID axisID) {
