@@ -47,6 +47,10 @@ import etomo.util.UniqueKey;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.12.2.6  2004/09/13 20:24:20  sueh
+ * <p> bug# 520 Change MRUlist action to open a tomogram in a new window
+ * <p> using EtomoDirector.
+ * <p>
  * <p> Revision 3.12.2.5  2004/09/13 17:19:12  sueh
  * <p> bug# 520 Changed file menu:  changed New to New Tomogram, added
  * <p> New Join, added Close to close individual managers.  Changed Window
@@ -643,7 +647,7 @@ public class MainFrame extends JFrame implements ContextMenu {
    * @param message
    * @param title
    */
-  public void openMessageDialog(Object message, String title) {
+  void openMessageDialog(Object message, String title) {
     JOptionPane.showMessageDialog(
       this,
       message,
