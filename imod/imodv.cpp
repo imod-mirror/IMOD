@@ -34,6 +34,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.9  2003/01/27 00:30:07  mast
+Pure Qt version and general cleanup
+
 Revision 1.1.2.8  2003/01/01 19:12:31  mast
 changes to start Qt application in standalone mode
 
@@ -550,6 +553,13 @@ void imodv_open()
     return;
   }
     
+}
+
+// TO CLOSE FROM IMOD
+void imodv_close()
+{
+  if (!ImodvClosed)
+    Imodv->mainWin->close();
 }
 
 // TO DRAW THE MODEL FROM IMOD
