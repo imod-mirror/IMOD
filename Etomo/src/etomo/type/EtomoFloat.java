@@ -16,6 +16,11 @@ import java.util.Properties;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.6  2004/10/30 02:34:24  sueh
+* <p> bug# 520 SetRecommendedValue no longer changes value.  This way it
+* <p> can be set after initialization.  Added set(ConstEtomoFloat) to set all
+* <p> values from another instance.
+* <p>
 * <p> Revision 1.1.2.5  2004/10/25 23:07:02  sueh
 * <p> bug# 520 Fixed default:  Default doesn't affect the value or the
 * <p> resetValue.  Default can returned if value and recommended value are
@@ -60,20 +65,6 @@ public class EtomoFloat extends ConstEtomoFloat {
     value = initialValue;
   }
   
-  public void setRecommendedValue(float recommendedValue) {
-    this.recommendedValue = recommendedValue;
-    setResetValue();
-  }
-  
-  public void setDescription(String description) {
-    if (description != null) {
-      this.description = description;
-    }
-    else {
-      name = description;
-    }
-  }
-  
   public void load(Properties props) {
     value = Float.parseFloat(props.getProperty(name, Float
         .toString(resetValue)));
@@ -101,6 +92,9 @@ public class EtomoFloat extends ConstEtomoFloat {
         this.value = unsetValue;
       }
     }
+    if (isSet() && !Float.isNaN(ceilingValue) && this.value > ceilingValue) {
+      this.value = ceilingValue;
+    }
     return this;
   }
   
@@ -110,35 +104,39 @@ public class EtomoFloat extends ConstEtomoFloat {
     defaultValue = that.defaultValue;
     recommendedValue = that.recommendedValue;
     resetValue = that.resetValue;
+    ceilingValue = that.ceilingValue;
     return this;
   }
   
   public EtomoSimpleType set(Float value) {
     invalidReason = null;
     this.value = value.floatValue();
+    if (isSet() && !Float.isNaN(ceilingValue) && this.value > ceilingValue) {
+      this.value = ceilingValue;
+    }
     return this;
   }
   
   public EtomoSimpleType set(float value) {
     invalidReason = null;
     this.value = value;
+    if (isSet() && !Float.isNaN(ceilingValue) && this.value > ceilingValue) {
+      this.value = ceilingValue;
+    }
     return this;
   }
   
-  public void reset() {
+  public EtomoSimpleType reset() {
     value = resetValue;
+    if (isSet() && !Float.isNaN(ceilingValue) && value > ceilingValue) {
+      value = ceilingValue;
+    }
+    return this;
   }
   
-  public void unset() {
+  public EtomoSimpleType unset() {
     value = unsetValue;
+    return this;
   }
-  
-  private void setResetValue() {
-    if (!Float.isNaN(recommendedValue)) {
-      resetValue = recommendedValue;
-    }
-    else {
-      resetValue = unsetValue;
-    }
-  }
+
 }

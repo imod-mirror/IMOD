@@ -18,6 +18,10 @@ import etomo.storage.Storable;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.6  2004/10/30 02:31:40  sueh
+* <p> bug# 520 Fixed getNegation so that it copies the entire class to a new
+* <p> instances and negates all values.
+* <p>
 * <p> Revision 1.1.2.5  2004/10/29 22:11:04  sueh
 * <p> bug# 520 Added remove() to remove value from the meta data file.
 * <p>
@@ -46,6 +50,7 @@ public abstract class ConstEtomoFloat extends EtomoSimpleType implements Storabl
   protected float defaultValue = unsetValue;
   protected float recommendedValue = unsetValue;
   protected float resetValue = unsetValue;
+  protected float ceilingValue = unsetValue;
   
   public abstract void load(Properties props);
   public abstract void load(Properties props, String prepend);
@@ -61,6 +66,29 @@ public abstract class ConstEtomoFloat extends EtomoSimpleType implements Storabl
   public EtomoSimpleType setDefault(float defaultValue) {
     this.defaultValue = defaultValue;
     return this;
+  }
+  
+  public void setRecommendedValue(float recommendedValue) {
+    this.recommendedValue = recommendedValue;
+    setResetValue();
+  }
+  
+  public void setDescription(String description) {
+    if (description != null) {
+      this.description = description;
+    }
+    else {
+      name = description;
+    }
+  }
+  
+  private void setResetValue() {
+    if (!Float.isNaN(recommendedValue)) {
+      resetValue = recommendedValue;
+    }
+    else {
+      resetValue = unsetValue;
+    }
   }
 
   public void store(Properties props) {

@@ -16,6 +16,11 @@ import java.util.Properties;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.6  2004/10/30 02:34:10  sueh
+* <p> bug# 520 SetRecommendedValue no longer changes value.  This way it
+* <p> can be set after initialization.  Added set(ConstEtomoDouble) to set all
+* <p> values from another instance.
+* <p>
 * <p> Revision 1.1.2.5  2004/10/25 23:06:36  sueh
 * <p> bug# 520 Fixed default:  Default doesn't affect the value or the
 * <p> resetValue.  Default can returned if value and recommended value are
@@ -60,20 +65,6 @@ public class EtomoDouble extends ConstEtomoDouble {
     value = initialValue;
   }
   
-  public void setRecommendedValue(double recommendedValue) {
-    this.recommendedValue = recommendedValue;
-    setResetValue();
-  }
-  
-  public void setDescription(String description) {
-    if (description != null) {
-      this.description = description;
-    }
-    else {
-      name = description;
-    }
-  }
-  
   public void load(Properties props) {
     value = Double.parseDouble(props.getProperty(name, Double
         .toString(resetValue)));
@@ -100,6 +91,9 @@ public class EtomoDouble extends ConstEtomoDouble {
         this.value = unsetValue;
       }
     }
+    if (isSet() && !Double.isNaN(ceilingValue) && this.value > ceilingValue) {
+      this.value = ceilingValue;
+    }
     return this;
   }
   
@@ -109,36 +103,39 @@ public class EtomoDouble extends ConstEtomoDouble {
     defaultValue = that.defaultValue;
     recommendedValue = that.recommendedValue;
     resetValue = that.resetValue;
+    ceilingValue = that.ceilingValue;
     return this;
   }
   
   public EtomoSimpleType set(Double value) {
     invalidReason = null;
     this.value = value.doubleValue();
+    if (isSet() && !Double.isNaN(ceilingValue) && this.value > ceilingValue) {
+      this.value = ceilingValue;
+    }
     return this;
   }
   
   public EtomoSimpleType set(double value) {
     invalidReason = null;
     this.value = value;
+    if (isSet() && !Double.isNaN(ceilingValue) && this.value > ceilingValue) {
+      this.value = ceilingValue;
+    }
     return this;
   }
   
-  public void reset() {
+  public EtomoSimpleType reset() {
     value = resetValue;
+    if (isSet() && !Double.isNaN(ceilingValue) && value > ceilingValue) {
+      value = ceilingValue;
+    }
+    return this;
   }
   
-  public void unset() {
+  public EtomoSimpleType unset() {
     value = unsetValue;
-  }
-  
-  private void setResetValue() {
-    if (!Double.isNaN(recommendedValue)) {
-      resetValue = recommendedValue;
-    }
-    else {
-      resetValue = unsetValue;
-    }
+    return this;
   }
 
 }

@@ -16,6 +16,9 @@ import java.util.Properties;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.7  2004/11/08 22:22:55  sueh
+* <p> bug# 520 set() returns ConstEtomoInteger so the result has more functionality.
+* <p>
 * <p> Revision 1.1.2.6  2004/10/30 02:34:38  sueh
 * <p> bug# 520 SetRecommendedValue no longer changes value.  This way it
 * <p> can be set after initialization.  Added set(ConstEtomoInteger to set all
@@ -65,20 +68,6 @@ public class EtomoInteger extends ConstEtomoInteger {
     super(name);
     value = initialValue;
   }
-  
-  public void setRecommendedValue(int recommendedValue) {
-    this.recommendedValue = recommendedValue;
-    setResetValue();
-  }
-  
-  public void setDescription(String description) {
-    if (description != null) {
-      this.description = description;
-    }
-    else {
-      name = description;
-    }
-  }
     
   public void load(Properties props) {
     value = Integer.parseInt(props.getProperty(name, Integer
@@ -105,6 +94,9 @@ public class EtomoInteger extends ConstEtomoInteger {
         this.value = unsetValue;
       }
     }
+    if (isSet() && ceilingValue != Integer.MIN_VALUE && this.value > ceilingValue) {
+      this.value = ceilingValue;
+    }
     return this;
   }
   
@@ -114,35 +106,39 @@ public class EtomoInteger extends ConstEtomoInteger {
     defaultValue = that.defaultValue;
     recommendedValue = that.recommendedValue;
     resetValue = that.resetValue;
+    ceilingValue = that.ceilingValue;
     return this;
   }
   
   public EtomoSimpleType set(Integer value) {
     invalidReason = null;
     this.value = value.intValue();
+    if (isSet() && ceilingValue != Integer.MIN_VALUE && this.value > ceilingValue) {
+      this.value = ceilingValue;
+    }
     return this;
   }
   
   public EtomoSimpleType set(int value) {
     invalidReason = null;
     this.value = value;
+    if (isSet() && ceilingValue != Integer.MIN_VALUE && this.value > ceilingValue) {
+      this.value = ceilingValue;
+    }
     return this;
   }
   
-  public void reset() {
+  public EtomoSimpleType reset() {
     value = resetValue;
+    if (isSet() && ceilingValue != Integer.MIN_VALUE && value > ceilingValue) {
+      value = ceilingValue;
+    }
+    return this;
   }
   
-  public void unset() {
+  public EtomoSimpleType unset() {
     value = unsetValue;
+    return this;
   }
   
-  private void setResetValue() {
-    if (recommendedValue != unsetValue) {
-      resetValue = recommendedValue;
-    }
-    else {
-      resetValue = unsetValue;
-    }
-  }
 }
