@@ -22,6 +22,9 @@ import etomo.EtomoDirector;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.17.4.2  2004/09/22 22:07:25  sueh
+ * <p> bug# 520 Added get slicer angles functionality.
+ * <p>
  * <p> Revision 3.17.4.1  2004/09/03 21:11:24  sueh
  * <p> bug# 520 calling from EtomoDirector.isDebug
  * <p>
@@ -325,7 +328,7 @@ public class ImodProcess {
       commandBuffer.append(" " + modelName);
     }
     String command = commandBuffer.toString();
-    if(EtomoDirector.isDebug()) {
+    if(EtomoDirector.getInstance().isDebug()) {
       System.err.println(command);
     }
     imod = new InteractiveSystemProgram(command);
@@ -683,7 +686,7 @@ public class ImodProcess {
     for (int i = 0; i < args.length; i++) {
       command = command + args[i] + " ";
     }
-    if(EtomoDirector.isDebug()) {
+    if(EtomoDirector.getInstance().isDebug()) {
       System.err.print(command);
     }
     InteractiveSystemProgram imodSendEvent = new InteractiveSystemProgram(
@@ -698,7 +701,7 @@ public class ImodProcess {
     catch (Exception except) {
       except.printStackTrace();
     }
-    if(EtomoDirector.isDebug()) {
+    if(EtomoDirector.getInstance().isDebug()) {
       System.err.println("...done");
     }
 

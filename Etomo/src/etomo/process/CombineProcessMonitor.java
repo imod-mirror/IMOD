@@ -30,6 +30,9 @@ import etomo.util.Utilities;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.6.2.1  2004/09/03 21:08:47  sueh
+ * <p> $bug# 520 calling isSelfTest from EtomoDirector
+ * <p> $
  * <p> $Revision 1.6  2004/08/28 00:47:16  sueh
  * <p> $bug# 508 setting "processRunning = true" only in the constructor.
  * <p> $A kill monitor call from an error that happens very early
@@ -111,7 +114,7 @@ public class CombineProcessMonitor implements Runnable, BackgroundProcessMonitor
     this.applicationManager = applicationManager;
     this.axisID = axisID;
     this.combineComscriptState = combineComscriptState;
-    selfTest = EtomoDirector.isSelfTest();
+    selfTest = EtomoDirector.getInstance().isSelfTest();
     runSelfTest(CONSTRUCTED_STATE);
   }
 
