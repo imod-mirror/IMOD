@@ -32,6 +32,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.5  2002/12/13 06:06:29  mast
+using new glmainwindow and mainglwidget classes
+
 Revision 1.1.2.4  2002/12/12 01:25:14  mast
 added z slider
 
@@ -123,7 +126,11 @@ ZapWindow::ZapWindow(struct zapwin *zap, QString timeLabel, bool rgba,
   : GLMainWindow(rgba, doubleBuffer, parent, name, f)
 {
   int j;
+  ArrowButton *arrow;
+
   mZap = zap;
+  // Need GLwidget next
+  createGLWidget(rgba, doubleBuffer);
 
   // Get the toolbar, add zoom arrows
   mToolBar = new QToolBar(this, "zap toolbar");
@@ -131,7 +138,8 @@ ZapWindow::ZapWindow(struct zapwin *zap, QString timeLabel, bool rgba,
     QBoxLayout *boxLayout = mToolBar->boxLayout();
     boxLayout->setSpacing(4);
   }
-  ArrowButton *arrow = new ArrowButton(Qt::UpArrow, mToolBar, "zoomup button");
+
+  arrow = new ArrowButton(Qt::UpArrow, mToolBar, "zoomup button");
   arrow->setAutoRaise(AUTO_RAISE);
   connect(arrow, SIGNAL(clicked()), this, SLOT(zoomUp()));
   arrow = new ArrowButton(Qt::DownArrow, mToolBar, "zoom down button");
@@ -145,7 +153,7 @@ ZapWindow::ZapWindow(struct zapwin *zap, QString timeLabel, bool rgba,
   connect(mZoomEdit, SIGNAL(returnPressed()), this, SLOT(newZoom()));
   connect(mZoomEdit, SIGNAL(lostFocus()), this, SLOT(newZoom()));
 
-  // Make the 4 toggle buttons and their signal mapper
+// Make the 4 toggle buttons and their signal mapper
   QSignalMapper *toggleMapper = new QSignalMapper(mToolBar);
   connect(toggleMapper, SIGNAL(mapped(int)), this, SLOT(toggleClicked(int)));
   for (j = 0; j < 4; j++)
@@ -203,8 +211,6 @@ ZapWindow::ZapWindow(struct zapwin *zap, QString timeLabel, bool rgba,
   }
   firstTime = 0;
 
-  // Need GLwidget next
-  createGLWidget(rgba, doubleBuffer);
 
   // dock on top and bottom only
   setDockEnabled(mToolBar, Left, FALSE );
@@ -344,17 +350,17 @@ void ZapWindow::resizeGL( int wdth, int hght )
   zapResize(mZap, wdth, hght);
 }
 
-void ZapWindow::mousePressEvent(QMouseEvent * e )
+void ZapWindow::mousePressInGL(QMouseEvent * e )
 {
   zapMousePress(mZap, e);
 }
 
-void ZapWindow::mouseReleaseEvent ( QMouseEvent * e )
+void ZapWindow::mouseReleaseInGL( QMouseEvent * e )
 {
   zapMouseRelease(mZap, e);
 }
 
-void ZapWindow::mouseMoveEvent ( QMouseEvent * e )
+void ZapWindow::mouseMoveInGL( QMouseEvent * e )
 {
   zapMouseMove(mZap, e);
 }

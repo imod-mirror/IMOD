@@ -32,6 +32,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.4  2002/12/13 06:06:29  mast
+using new glmainwindow and mainglwidget classes
+
 Revision 1.1.2.3  2002/12/12 01:25:23  mast
 added Z slider
 
@@ -74,9 +77,9 @@ class ZapWindow : public GLMainWindow
   ~ZapWindow();
   void paintGL();
   void resizeGL( int wdth, int hght );
-  void mousePressEvent(QMouseEvent * e );
-  void mouseReleaseEvent ( QMouseEvent * e );
-  void mouseMoveEvent ( QMouseEvent * e );
+  void mousePressInGL(QMouseEvent * e );
+  void mouseReleaseInGL( QMouseEvent * e );
+  void mouseMoveInGL( QMouseEvent * e );
   QToolBar *mToolBar;
 
   public slots:

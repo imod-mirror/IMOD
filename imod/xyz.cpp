@@ -34,6 +34,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.2  2002/12/13 06:06:29  mast
+using new glmainwindow and mainglwidget classes
+
 Revision 1.1.2.1  2002/12/12 02:41:10  mast
 Qt version
 
@@ -1629,7 +1632,7 @@ void XyzWindow::resizeGL( int winx, int winy )
 }
 
 // Handlers for mouse events
-void XyzWindow::mousePressEvent(QMouseEvent * event )
+void XyzWindow::mousePressInGL(QMouseEvent * event )
 {
   int button1, button2, button3;
   int mx, my, mz;
@@ -1668,7 +1671,7 @@ void XyzWindow::mousePressEvent(QMouseEvent * event )
   mXyz->lmy = event->y();
 }
 
-void XyzWindow::mouseReleaseEvent ( QMouseEvent * event )
+void XyzWindow::mouseReleaseInGL( QMouseEvent * event )
 {
   if (event->button() == Qt::LeftButton){
       if (but1downt.elapsed() > 250)
@@ -1677,7 +1680,7 @@ void XyzWindow::mouseReleaseEvent ( QMouseEvent * event )
   }
 }
 
-void XyzWindow::mouseMoveEvent ( QMouseEvent * event )
+void XyzWindow::mouseMoveInGL( QMouseEvent * event )
 {
   int button1, button2, button3;
   ivwControlPriority(mXyz->vi, mXyz->ctrl);

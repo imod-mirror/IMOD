@@ -9,6 +9,9 @@
     $Revision$
 
     $Log$
+    Revision 1.1.2.1  2002/12/13 06:01:33  mast
+    Initial creation
+
 */
 
 #ifndef GLMAINWINDOW_H
@@ -34,9 +37,9 @@ class GLMainWindow : public QMainWindow
   virtual void initializeGL() {};
   virtual void paintGL() {};
   virtual void resizeGL( int wdth, int hght ) {};
-  virtual void mousePressEvent(QMouseEvent * e ) {};
-  virtual void mouseReleaseEvent ( QMouseEvent * e ) {};
-  virtual void mouseMoveEvent ( QMouseEvent * e ) {};
+  virtual void mousePressInGL(QMouseEvent * e ) {};
+  virtual void mouseReleaseInGL ( QMouseEvent * e ) {};
+  virtual void mouseMoveInGL ( QMouseEvent * e ) {};
   void createGLWidget(bool rgba, bool doubleBuffer);
 
   MainGLWidget *mGLw;
@@ -50,7 +53,7 @@ class MainGLWidget : public QGLWidget
   Q_OBJECT
 
     public:
-  MainGLWidget(QGLFormat format, GLMainWindow * parent = 0,
+  MainGLWidget(QGLFormat format, QMainWindow * parent = 0,
         const char * name = 0);
   ~MainGLWidget();
  
