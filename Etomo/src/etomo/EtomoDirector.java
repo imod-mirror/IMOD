@@ -41,6 +41,13 @@ import etomo.util.Utilities;
  * 
  * <p>
  * $Log$
+ * Revision 1.1.2.9  2004/10/08 15:42:50  sueh
+ * bug# 520 Moved SettingsDialog to EtomoDirector.  Since EtomoDirector
+ * is a singleton, made all functions and member variables non-static.  The
+ * singleton code controls how many EtomoDirector instances can exist.
+ * Moved application-level code in initProgram and exitProgram to
+ * EtomoDirector.
+ *
  * Revision 1.1.2.8  2004/10/07 16:32:23  sueh
  * bug# 520 Simplified EtomoDirector() by doing the initialize in a separate
  * function.  Some of the initializations performed use the EtomoDirector this
@@ -162,6 +169,7 @@ public class EtomoDirector {
         }
       }
     }
+    initProgram();
     if (!test) {
       mainFrame.createMenus();
       mainFrame.setWindowMenuLabels(managerList);
@@ -172,7 +180,6 @@ public class EtomoDirector {
       mainFrame.pack();
       mainFrame.show();
     }
-    initProgram();
   }
   
   /**
@@ -285,6 +292,13 @@ public class EtomoDirector {
 
   public BaseManager getCurrentManager() {
     return (BaseManager) managerList.get(currentManagerKey);
+  }
+  
+  public String getCurrentPropertyUserDir() {
+    if (currentManagerKey == null) {
+      return System.getProperty("user.dir");
+    }
+    return ((BaseManager) managerList.get(currentManagerKey)).getPropertyUserDir();
   }
   
   public UniqueKey getManagerKey(int index) {
