@@ -179,12 +179,14 @@ C       encode ( 80, 3000, title ) dat, tim
 	subroutine gettilts(critlo,crithi)
 c	  
 	character*60 line
+	logical line_is_filename
 c
 	print *,'Enter either the starting and ending tilt angles,',
      &	    ' or the name of a file with tilt angles in it'
 	read(5,'(a)')line
 	tilthi=-9999.
-	read(line,*,err=10)tiltlo,tilthi
+	if (line_is_filename(line)) go to 10
+	read(line,*,err=10,end=10)tiltlo,tilthi
 	go to 20
 10	call dopen(1,line,'ro','f')
 	read(1,*)tiltlo
