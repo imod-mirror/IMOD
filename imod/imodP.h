@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.8.2.17  2003/01/27 00:30:07  mast
+    Pure Qt version and general cleanup
+
     Revision 3.8.2.16  2003/01/23 20:00:02  mast
     Changes for Qt versions of final dialog boxes
 
@@ -124,12 +127,9 @@ typedef struct imod_application
      struct ViewInfo *cvi; /* current view                    */     
 
   QGLColormap *qColormap;
-  int          cmapID;
   int          depth;
   int          doublebuffer;
   int          rgba;
-  int         qtRgba;
-  int         qtDoubleBuffer;
   int         qtEnableDepth;
   
   /* Global color pixel values */
