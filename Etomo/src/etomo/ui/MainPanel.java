@@ -37,6 +37,12 @@ import etomo.type.MetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.1.2.5  2004/09/15 22:45:34  sueh
+ * <p> bug# 520 Moved openSetupPanel to MainTomogramPanel.  Moved
+ * <p> showProcessingPanel() to this class.  Moved AxisProcessPanel creation
+ * <p> to abstract functions.  Added the dataset name before the message in
+ * <p> openMessageDialog.
+ * <p>
  * <p> Revision 1.1.2.4  2004/09/09 17:34:41  sueh
  * <p> bug# 520 remove unnecessary functions that are duplicated in MainFrame:
  * <p> menuFileMRUListAction and popUpContextMenu
@@ -390,6 +396,28 @@ public abstract class MainPanel extends JPanel {
       return false;
     }
   }
+  
+  public boolean openYesNoDialog(String message) {
+    try {
+      int answer =
+        JOptionPane.showConfirmDialog(
+          this,
+          message,
+          "Etomo question",
+          JOptionPane.YES_NO_OPTION);
+
+      if (answer == JOptionPane.YES_OPTION) {
+        return true;
+      }
+      else {
+        return false;
+      }
+    }
+    catch (HeadlessException except) {
+      except.printStackTrace();
+      return false;
+    }
+  }
 
   /**
    * Open a Yes, No or Cancel question dialog
@@ -410,6 +438,11 @@ public abstract class MainPanel extends JPanel {
    * @param title
    */
   public void openMessageDialog(String[] message, String title) {
+    String datasetName = manager.getMetaData().getDatasetName();
+    if (datasetName.equals("")) {
+      EtomoDirector.getMainFrame().openMessageDialog(message, title);
+      return;
+    }
     int messageLength;
     if (message == null) {
       messageLength = 0;
@@ -418,7 +451,7 @@ public abstract class MainPanel extends JPanel {
       messageLength = message.length;
     }
     String[] newMessage = new String[messageLength + 1];
-    newMessage[0] = manager.getMetaData().getDatasetName() + ":";
+    newMessage[0] = datasetName + ":";
     for (int i = 0; i < messageLength; i++) {
       newMessage[i + 1] = message[i];
     }
@@ -431,14 +464,18 @@ public abstract class MainPanel extends JPanel {
    * @param title
    */
   public void openMessageDialog(String message, String title) {
+    String datasetName = manager.getMetaData().getDatasetName();
+    if (datasetName.equals("")) {
+      EtomoDirector.getMainFrame().openMessageDialog(message, title);
+      return;
+    }
     if (message == null) {
-      EtomoDirector.getMainFrame().openMessageDialog(manager.getMetaData().getDatasetName() + ":",
-          title);
+      EtomoDirector.getMainFrame().openMessageDialog(datasetName + ":", title);
       return;
     }
     else {
       String[] newMessage = new String[2];
-      newMessage[0] = manager.getMetaData().getDatasetName() + ":";
+      newMessage[0] = datasetName + ":";
       newMessage[1] = message;
       EtomoDirector.getMainFrame().openMessageDialog(newMessage, title);
     }
