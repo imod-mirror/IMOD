@@ -43,6 +43,10 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.19  2004/10/21 02:31:51  sueh
+* <p> bug# 520 Added enableMidas, finishJoin, revertXfalign, xfalignInitial,
+* <p> xfalignRefine.
+* <p>
 * <p> Revision 1.1.2.18  2004/10/18 19:05:09  sueh
 * <p> bug# 520 Added midasSample().  Added validation to startjoin.
 * <p>
@@ -456,6 +460,8 @@ public class JoinManager extends BaseManager {
     joinDialog.setEnabledTabs(true);
     joinDialog.setEnabledWorkingDir(false);
     joinDialog.setEnabledRootName(false);
+    paramFile = new File(metaData.getWorkingDir(), metaData.getMetaDataFileName());
+    mainPanel.updateDataParameters(paramFile, metaData);
     return true;
   }
   
