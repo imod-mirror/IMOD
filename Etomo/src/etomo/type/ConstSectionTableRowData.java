@@ -19,6 +19,9 @@ import etomo.storage.Storable;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.6  2004/10/22 03:23:19  sueh
+* <p> bug# 520 Converted rowNumber to an EtomoInteger.
+* <p>
 * <p> Revision 1.1.2.5  2004/10/21 02:52:47  sueh
 * <p> bug# 520 Added get functions.
 * <p>
@@ -46,10 +49,6 @@ public abstract class ConstSectionTableRowData implements Storable {
   
   protected static final String groupString = "SectionTableRow";
   protected static final String sectionString = "Section";
-  protected static final String sampleBottomStartString = "SampleBottomStart";
-  protected static final String sampleBottomEndString = "SampleBottomEnd";
-  protected static final String sampleTopStartString = "SampleTopStart";
-  protected static final String sampleTopEndString = "SampleTopEnd";
   protected static final String finalStartString = "FinalStart";
   protected static final String finalEndString = "FinalEnd";
   protected static final String rotationAngleXString = "RotationAngleX";
@@ -69,10 +68,10 @@ public abstract class ConstSectionTableRowData implements Storable {
   
   protected EtomoInteger rowNumber = new EtomoInteger("RowNumber");
   protected File section;
-  protected int sampleBottomStart;
-  protected int sampleBottomEnd;
-  protected int sampleTopStart;
-  protected int sampleTopEnd;
+  protected EtomoInteger sampleBottomStart = new EtomoInteger("SampleBottomStart");
+  protected EtomoInteger sampleBottomEnd = new EtomoInteger("SampleBottomEnd");
+  protected EtomoInteger sampleTopStart = new EtomoInteger("SampleTopStart");
+  protected EtomoInteger sampleTopEnd = new EtomoInteger("SampleTopEnd");
   protected int finalStart;
   protected int finalEnd;
   protected double rotationAngleX;
@@ -90,65 +89,20 @@ public abstract class ConstSectionTableRowData implements Storable {
   }
 
   protected String paramString() {
-    return ",\n" + rowNumber.getDescription() + "=" + rowNumber.getString() + ",\n" + sectionString
-        + "=" + section + ",\n" + sampleBottomStartString + "="
-        + sampleBottomStart + ",\n" + sampleBottomEndString + "="
-        + sampleBottomEnd + ",\n" + sampleTopStartString + "=" + sampleTopStart
-        + ",\n" + sampleTopEndString + "=" + sampleTopEnd + ",\n"
-        + finalStartString + "=" + finalStart + ",\n" + finalEndString + "="
-        + finalEnd + ",\n" + rotationAngleXString + "=" + rotationAngleX
-        + ",\n" + rotationAngleYString + "=" + rotationAngleY + ",\n"
-        + rotationAngleZString + "=" + rotationAngleZ + ",\n" + zMaxString + "="
-        + zMax;
+    return ",\n" + rowNumber.getDescription() + "=" + rowNumber.getString()
+        + ",\n" + sectionString + "=" + section + ",\n"
+        + sampleBottomStart.getDescription() + "="
+        + sampleBottomStart.getString() + ",\n"
+        + sampleBottomEnd.getDescription() + "=" + sampleBottomEnd.getString()
+        + ",\n" + sampleTopStart.getDescription() + "=" + sampleTopStart
+        + ",\n" + sampleTopEnd.getDescription() + "="
+        + sampleTopEnd.getString() + ",\n" + finalStartString + "="
+        + finalStart + ",\n" + finalEndString + "=" + finalEnd + ",\n"
+        + rotationAngleXString + "=" + rotationAngleX + ",\n"
+        + rotationAngleYString + "=" + rotationAngleY + ",\n"
+        + rotationAngleZString + "=" + rotationAngleZ + ",\n" + zMaxString
+        + "=" + zMax;
   } 
-
-  public boolean isValidForMakeSamples(int tableSize) {
-    invalidReason = new StringBuffer("Row " + rowNumber + ":  ");
-    if (section == null) {
-      invalidReason.append("The section has not been set.");
-      return false;
-    }
-    if (!section.exists()) {
-      invalidReason.append("The section, " + section.getAbsolutePath() + ", does not exist.");
-      return false;
-    }
-    if (!section.isFile()) {
-      invalidReason.append("The section, " + section.getAbsolutePath() + ", is not a file.");
-      return false;
-    }
-    if (!section.canRead()) {
-      invalidReason.append("The section, " + section.getAbsolutePath() + ", is not readable.");
-      return false;
-    }
-    if (rowNumber.greaterThen(1) && !isValidSlice(sampleBottomStart, sampleBottomStartName)) {
-      return false;
-    }
-    if (rowNumber.greaterThen(1) && !isValidSlice(sampleBottomEnd, sampleBottomEndName)) {
-      return false;
-    }
-    if (rowNumber.lessThen(tableSize) && !isValidSlice(sampleTopStart, sampleTopStartName)) {
-      return false;
-    }
-    if (rowNumber.lessThen(tableSize) && !isValidSlice(sampleTopEnd, sampleTopEndName)) {
-      return false;
-    }
-    invalidReason = null;
-    return true;
-  }
-  
-  private boolean isValidSlice(int slice, String description) {
-    if (slice == Integer.MIN_VALUE) {
-      invalidReason.append(description + " is required.");
-      return false;
-    }
-    if (slice < 1) {
-      invalidReason.append(description + " must be greater then 0");
-    }
-    if (zMax != Integer.MIN_VALUE && slice > zMax) {
-      invalidReason.append(description + " cannot be greater then " + zMax);
-    }
-    return true;
-  }
   
   public void store(Properties props) {
     store(props, "");
@@ -159,11 +113,11 @@ public abstract class ConstSectionTableRowData implements Storable {
     String group = prepend + ".";
     rowNumber.store(props, prepend);
     props.setProperty(group + zMaxString, Integer.toString(zMax));
-    props.setProperty(group + sectionString, section.getAbsolutePath());   
-    props.setProperty(group + sampleBottomStartString, Integer.toString(sampleBottomStart));
-    props.setProperty(group + sampleBottomEndString, Integer.toString(sampleBottomEnd));
-    props.setProperty(group + sampleTopStartString, Integer.toString(sampleTopStart));
-    props.setProperty(group + sampleTopEndString, Integer.toString(sampleTopEnd));
+    props.setProperty(group + sectionString, section.getAbsolutePath());  
+    sampleBottomStart.store(props, prepend);
+    sampleBottomEnd.store(props, prepend);
+    sampleTopStart.store(props, prepend);
+    sampleTopEnd.store(props, prepend);
     props.setProperty(group + finalStartString, Integer.toString(finalStart));
     props.setProperty(group + finalEndString, Integer.toString(finalEnd));
     props.setProperty(group + rotationAngleXString, Double.toString(rotationAngleX));
@@ -265,36 +219,38 @@ public abstract class ConstSectionTableRowData implements Storable {
     return section.getName();
   }
   
-  public int getSampleBottomStart() {
+  public EtomoSimpleType getSampleBottomStart() {
     return sampleBottomStart;
   }
   
-  public String getSampleBottomStartString() {
-    return convertToString(sampleBottomStart);
-  }
-  
-  public int getSampleBottomEnd() {
+  public EtomoSimpleType getSampleBottomEnd() {
     return sampleBottomEnd;
   }
   
-  public String getSampleBottomEndString() {
-    return convertToString(sampleBottomEnd);
-  }
-  
-  public int getSampleTopStart() {
+  public EtomoSimpleType getSampleTopStart() {
     return sampleTopStart;
   }
   
-  public String getSampleTopStartString() {
-    return convertToString(sampleTopStart);
-  }
-  
-  public int getSampleTopEnd() {
+  public EtomoSimpleType getSampleTopEnd() {
     return sampleTopEnd;
   }
   
-  public String getSampleTopEndString() {
-    return convertToString(sampleTopEnd);
+  public int getSampleBottomNumberSlices() {
+    if (sampleBottomEnd.greaterOrEqual(sampleBottomStart)) {
+      return sampleBottomEnd.get() - sampleBottomStart.get() + 1;
+    }
+    return 0;
+  }
+  
+  public int getSampleTopNumberSlices() {
+    if (sampleTopEnd.greaterOrEqual(sampleTopStart)) {
+      return sampleTopEnd.get() - sampleTopStart.get() + 1;
+    }
+    return 0;
+  }
+  
+  public EtomoSimpleType getChunkSize() {
+    return new EtomoInteger(getSampleBottomNumberSlices() + getSampleTopNumberSlices());
   }
   
   public String getFinalStartString() {
