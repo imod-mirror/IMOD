@@ -34,6 +34,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.10  2003/01/18 01:15:25  mast
+remove keypad include
+
 Revision 1.1.2.9  2003/01/14 21:52:38  mast
 include new movie controller include file
 
@@ -85,13 +88,17 @@ are open
 #include "imod.h"
 #include "xzap.h"
 #include "imod_info.h"
+#include "imod_input.h"
+#include "imod_io.h"
 #include "imod_info_cb.h"
-#include "mrcfiles.h"
+#include "imod_cont_edit.h"
 #include "imodv.h"
 #include "imod_input.h"
 #include "control.h"
 #include "sslice.h"
 #include "imod_moviecon.h"
+#include "imod_model_edit.h"
+#include "imod_object_edit.h"
 
 extern long Typemenu;
      
@@ -625,7 +632,7 @@ void inputLastPoint(ImodView *vw)
 
 void inputMoveObject(ImodView *vw)
 {
-  inputContourMove();
+  imodContEditMove();
   imod_setxyzmouse();
   return;
 }
@@ -1021,6 +1028,7 @@ void inputQDefaultKeys(QKeyEvent *event, ImodView *vw)
         vw->drawcursor = TRUE;
     }else{
       vw->imod->drawmode -= (2 * vw->imod->drawmode);
+      imodModelEditUpdate();
     }
     imodDraw(vw, IMOD_DRAW_MOD);
     break;
