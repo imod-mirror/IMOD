@@ -14,6 +14,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 
 import etomo.ApplicationManager;
+import etomo.EtomoDirector;
 import etomo.type.AxisID;
 
 /**
@@ -29,6 +30,10 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.2  2004/06/05 00:55:28  sueh
+ * <p> bug# 433 call ApplicationManager.updateLog() when the command equals
+ * <p> the updateLogCommandName
+ * <p>
  * <p> Revision 3.1  2003/11/10 07:42:08  rickg
  * <p> No longer needs to be initialized with applicationManager since
  * <p> getIMODDirectory is static
@@ -493,12 +498,12 @@ public class ContextPopup {
   private void calcImodURL() {
     try {
       imodURL =
-        ApplicationManager.getIMODDirectory().toURL().toString() + "/html/";
+        EtomoDirector.getInstance().getIMODDirectory().toURL().toString() + "/html/";
     }
     catch (MalformedURLException except) {
       except.printStackTrace();
       System.err.println("Malformed URL:");
-      System.err.println(ApplicationManager.getIMODDirectory().toString());
+      System.err.println(EtomoDirector.getInstance().getIMODDirectory().toString());
     }
   }
 }
