@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.2  2002/12/06 05:12:15  mast
+Protect quick translate against big shifts
+
 Revision 1.1.2.1  2002/12/05 03:13:02  mast
 New Qt version
 
@@ -53,6 +56,7 @@ an error in Fortran to C translation
 #include <math.h>
 #include "midas.h"
 #include <imodel.h>
+#include <qfile.h>
 
 static void checklist(int *xpclist, int npclist, int nxframe, int *minxpiece,
 		      int *nxpieces, int *nxoverlap);
@@ -130,8 +134,8 @@ int new_view(struct Midas_view *vw)
 int load_view(struct Midas_view *vw, char *fname)
 {
   int k, ix, ixy, iy, ind, ipclo, ipchi, ned;
-  FILE *file;
-  int maxedges, nsect, scanret, nxypc, maxpieces, nalong, ncross;
+  QString str;
+  int maxedges, nsect, nxypc, maxpieces, nalong, ncross;
 
   if (load_image(vw, fname))
     return(-1);
@@ -226,11 +230,14 @@ int load_view(struct Midas_view *vw, char *fname)
 
   /* Now get pieces and analyze them if montage */
   if (vw->plname) {
-    file = fopen(vw->plname, "r");
-    if (!file) {
+    str = vw->plname;
+    QFile file(str);
+    if (!file.open(IO_ReadOnly | IO_Translate)) {
       fprintf(stderr, "Error opening %s.\n", vw->plname);
       exit(-1);
     }
+    QTextStream stream(&file);
+    stream.setf(QTextStream::dec);
 
     vw->xpclist = (int *)malloc(vw->zsize * sizeof(int));
     vw->ypclist = (int *)malloc(vw->zsize * sizeof(int));
@@ -247,13 +254,14 @@ int load_view(struct Midas_view *vw, char *fname)
     vw->minzpiece = 1000000;
     vw->maxzpiece = -1000000;
     for (k = 0; k < vw->zsize; k++) {
-      scanret = fscanf(file, "%d %d %d", &(vw->xpclist[k]), 
-		       &(vw->ypclist[k]), &(vw->zpclist[k]));
-      if (scanret != 3) {
+      str = stream.readLine();
+      if (str.isEmpty()) {
 	fprintf(stderr, "Error reading piece list after %d lines\n"
 		, k);
 	exit(-1);
       }
+      sscanf(str.latin1(), "%d %d %d", &(vw->xpclist[k]), 
+		       &(vw->ypclist[k]), &(vw->zpclist[k]));
       if (vw->minzpiece > vw->zpclist[k])
 	vw->minzpiece = vw->zpclist[k];
       if (vw->maxzpiece < vw->zpclist[k])
