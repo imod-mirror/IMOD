@@ -22,6 +22,12 @@ import etomo.comscript.TrimvolParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.10.4.3  2004/10/11 02:07:25  sueh
+ * <p> bug# 520 Fixed a bug in ConstMetaData where the open edf file menu
+ * <p> item wasn't working because it was validating the propertyUserDir of the
+ * <p> current manager, not the parent of the edf file being opened.  Now able
+ * <p> to pass in the edf file to get the parent from to use in validation.
+ * <p>
  * <p> Revision 3.10.4.2  2004/10/01 19:47:26  sueh
  * <p> bug# 520 provide a standard way to get the identifier of a meta data file
  * <p> (getName).  Define a new join string that will go in the menu.  Set a file
@@ -165,7 +171,7 @@ public abstract class ConstMetaData extends BaseMetaData {
   public abstract void load(Properties props, String prepend);
     
   public ConstMetaData() {
-    fileExtension = "edf";
+    fileExtension = ".edf";
   }
 
   /**
@@ -234,7 +240,7 @@ public abstract class ConstMetaData extends BaseMetaData {
     if (datasetName.equals("")) {
       return "";
     }
-    return datasetName + "." + fileExtension;
+    return datasetName + fileExtension;
   }
   
   public String getName() {
