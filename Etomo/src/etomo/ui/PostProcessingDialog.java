@@ -27,6 +27,10 @@ import etomo.type.TomogramState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.12.2.2  2005/03/25 21:32:36  sueh
+ * <p> bug# 621 Backported from 3.6.  Moved the clean up panel in to a separate
+ * <p> dialog.
+ * <p>
  * <p> Revision 3.12.2.1  2005/03/21 19:29:02  sueh
  * <p> bug# 620 Added beveled border and tooltips for Squeeze volume
  * <p>
@@ -140,7 +144,7 @@ public class PostProcessingDialog
     fixRootPanel(rootSize);
 
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
-
+    rootPanel.setBorder(new BeveledBorder("Post Processing").getBorder());
     trimvolPanel = new TrimvolPanel(applicationManager);
     rootPanel.add(trimvolPanel.getContainer());
     rootPanel.add(createSqueezeVolPanel());
