@@ -25,6 +25,10 @@ import etomo.type.SectionTableRowData;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.5  2004/10/29 01:17:06  sueh
+* <p> bug# 520 Removed working directory from meta data.  Getting working
+* <p> directory from propertyUserDir.
+* <p>
 * <p> Revision 1.1.2.4  2004/10/25 22:58:24  sueh
 * <p> bug# 520 Use the negative of shift in X, Y when passing to finish join.
 * <p>
@@ -79,24 +83,29 @@ public class FinishjoinParam {
       options.add("-r");
       options.add(metaData.getAlignmentRefSection().getString());
     }
+    //Add optional size
     EtomoSimpleType sizeInX = metaData.getSizeInX();
     EtomoSimpleType sizeInY = metaData.getSizeInY();
-    EtomoSimpleType shiftInX = metaData.getShiftInX();
-    EtomoSimpleType shiftInY = metaData.getShiftInY();
     if (sizeInX.isSetAndNotDefault() || sizeInY.isSetAndNotDefault()) {
       options.add("-s");
-      options.add(sizeInX.getString() + "," + sizeInY.getString());
-      
+      //both numbers must exist
+      options.add(sizeInX.getString(true) + "," + sizeInY.getString(true));
     }
+    //Add optional offset
+    EtomoSimpleType shiftInX = metaData.getShiftInX();
+    EtomoSimpleType shiftInY = metaData.getShiftInY();
     if (shiftInX.isSetAndNotDefault() || shiftInY.isSetAndNotDefault()) {
       options.add("-o");
-      options.add(shiftInX.getNegation().getString() + "," + shiftInY.getNegation().getString());
+      //both numbers must exist
+      //offset is a negative shift
+      options.add(shiftInX.getNegation().getString(true) + "," + shiftInY.getNegation().getString(true));
     }
     options.add(metaData.getRootName());
     ArrayList sectionData = metaData.getSectionTableData();
     int sectionDataSize = sectionData.size();
     for (int i = 0; i < sectionDataSize; i++) {
       ConstSectionTableRowData data = (SectionTableRowData) sectionData.get(i);
+      //both numbers must exist
       options.add(data.getFinalStartString() + "," + data.getFinalEndString());
     }
     return options;

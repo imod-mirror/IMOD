@@ -23,6 +23,10 @@ import etomo.type.EtomoSimpleType;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.6  2004/10/29 01:17:46  sueh
+* <p> bug# 520 Removed working directory from meta data.  Getting working
+* <p> directory from propertyUserDir.
+* <p>
 * <p> Revision 1.1.2.5  2004/10/28 16:57:04  sueh
 * <p> bug# 520 Specifying output file: -o rootname_auto.xf.
 * <p>
@@ -146,12 +150,14 @@ public class XfalignParam implements Command {
     EtomoSimpleType cutoffHighFrequency = metaData
         .getCutoffHighFrequency();
     EtomoSimpleType sigmaHighFrequency = metaData.getSigmaHighFrequency();
+    //optional
     if (sigmaLowFrequency.isSetAndNotDefault()
         || cutoffHighFrequency.isSetAndNotDefault()
         || sigmaHighFrequency.isSetAndNotDefault()) {
       options.add("-fil");
-      options.add(sigmaLowFrequency.getString() + "," + sigmaHighFrequency.getString() + ",0,"
-          + cutoffHighFrequency.getString());
+      //all three numbers must exist
+      options.add(sigmaLowFrequency.getString(true) + "," + sigmaHighFrequency.getString(true) + ",0,"
+          + cutoffHighFrequency.getString(true));
     }
   }
   
