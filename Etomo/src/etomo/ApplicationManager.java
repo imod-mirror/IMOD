@@ -82,6 +82,12 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.101.2.11  2004/10/11 01:55:28  sueh
+ * <p> bug# 520 moved responsibility for mainPanel, metaData, processTrack,
+ * <p> and progressManager to child classes.  Used abstract functions to use
+ * <p> these variables in the base classes.  This is more reliable and doesn't
+ * <p> require casting.
+ * <p>
  * <p> Revision 3.101.2.10  2004/10/08 21:11:33  sueh
  * <p> bug# 520 Backed out conversion from properties to user.dir.
  * <p>
@@ -1066,14 +1072,15 @@ public class ApplicationManager extends BaseManager {
   /**
    *  
    */
-  public ApplicationManager(String testParamFilename) {
+  public ApplicationManager(String paramFileName) {
     super();
-    initializeUIParameters(testParamFilename);
+    initializeUIParameters(paramFileName);
     // Open the etomo data file if one was found on the command line
     if (!test) {
-      if (!testParamFilename.equals("")) {
+      if (!paramFileName.equals("")) {
         if (loadedTestParamFile) {
           openProcessingPanel();
+          mainPanel.updateDataParameters(paramFile, metaData);
         }
         else {
           openSetupDialog();
