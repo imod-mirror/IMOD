@@ -9,7 +9,7 @@ import etomo.comscript.ConstTiltalignParam;
 import etomo.comscript.TiltalignParam;
 import etomo.comscript.FortranInputSyntaxException;
 import etomo.comscript.StringList;
-import etomo.type.AxisID;
+import etomo.type.AxisID; 
 
 /**
  * <p>Description: </p>
@@ -24,6 +24,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.22.2.1  2003/01/24 18:43:37  rickg
+ * <p> Single window GUI layout initial revision
+ * <p>
  * <p> Revision 1.22  2003/01/06 05:57:29  rickg
  * <p> Quick fix for residual threshold value text field size.  Needs to be more
  * <p> robust
@@ -106,8 +109,11 @@ public class TiltalignPanel implements ContextMenu {
   private final int defaultTiltAngleGroupSize = 10;
   private final int defaultMagnificationType = 3;
   private final int defaultDistortionType = 2;
-  private final int defaultXStretchGroupSize = 7;
+  private final int defaultXstretchType = 3;
+  private final int defaultXstretchGroupSize = 7;
+  private final int defaultSkewType = 3;
   private final int defaultSkewGroupSize = 11;
+
   private final int defaultLocalRotationType = 3;
   private final int defaultLocalRotationGroupSize = 6;
   private final int defaultLocalTiltAngleType = 5;
@@ -115,7 +121,9 @@ public class TiltalignPanel implements ContextMenu {
   private final int defaultLocalMagnificationType = 3;
   private final int defaultLocalMagnificationGroupSize = 7;
   private final int defaultLocalDistortionType = 2;
-  private final int defaultLocalXStretchGroupSize = 7;
+  private final int defaultLocalXstretchType = 3;
+  private final int defaultLocalXstretchGroupSize = 7;
+  private final int defaultLocalSkewType = 3;
   private final int defaultLocalSkewGroupSize = 11;
 
   // FIXME: these should be gotten from the app some how
@@ -468,25 +476,6 @@ public class TiltalignPanel implements ContextMenu {
   }
 
   /**
-   * Signal each pane to update its enabled/disabled state and any relevant
-   * parameters.
-   * The order is important because the state of some objects can change the
-   * values of other UI fields in other panels (i.e the distortion check box
-   * will change the angle solution panel.
-   */
-  public void updateEnabled() {
-    //  update all of the enable/disable states
-    updateLocalDistortionSolutionPanel();
-    updateTiltAngleSolutionPanel();
-    updateMagnificationSolutionPanel();
-    //    updateCompressionSolutionPanel();
-    updateDistortionSolutionPanel();
-    updateLocalAlignmentState();
-    updateLocalMagnificationSolutionPanel();
-
-  }
-
-  /**
    * Get the values from the panel by updating tiltalign parameter
    * object.  Currently this makes the assumption that the argument
    * contains valid parameters and that only the known parameters will
@@ -610,10 +599,15 @@ public class TiltalignPanel implements ContextMenu {
                 ltfCompressionAdditionalGroups.getText());
             }
       */
+
       // Distortion pane
       type = 0;
       if (chkDistortion.isSelected()) {
+        //  Set the necessary types for distortion xstretch and skew
         params.setDistortionSolutionType(defaultDistortionType);
+        params.setXstretchType(defaultXstretchType);
+        params.setSkewType(defaultSkewType);
+
         badParameter = ltfXstretchGroupSize.getLabel();
         params.setXstretchSolutionGroupSize(ltfXstretchGroupSize.getText());
 
@@ -686,6 +680,9 @@ public class TiltalignPanel implements ContextMenu {
       type = 0;
       if (chkLocalDistortion.isSelected()) {
         params.setLocalDistortionSolutionType(defaultLocalDistortionType);
+        params.setLocalXstretchType(defaultLocalXstretchType);
+        params.setLocalSkewType(defaultLocalXstretchType);
+        
         badParameter = ltfLocalXstretchGroupSize.getLabel();
         params.setLocalXstretchSolutionGroupSize(
           ltfLocalXstretchGroupSize.getText());
@@ -719,6 +716,15 @@ public class TiltalignPanel implements ContextMenu {
     panelGeneral.setVisible(state);
   }
 
+  void setLargestTab() {
+    //tabPane.setSelectedComponent(panelGlobalVariable);
+    tabPane.setSelectedComponent(panelLocalSolution);
+  }
+
+  void setFirstTab() {
+    tabPane.setSelectedComponent(panelGeneral);
+  }
+
   void setAdvanced(boolean state) {
     ltfMetroFactor.setVisible(state);
     ltfCycleLimit.setVisible(state);
@@ -734,58 +740,71 @@ public class TiltalignPanel implements ContextMenu {
     ltfLocalSkewAdditionalGroups.setVisible(state);
     ltfMinLocalPatchSize.setVisible(state);
   }
+  
+  void selectGlobalDistortion() {
+    if (chkDistortion.isSelected()) {
+      chkLocalDistortion.setSelected(true);
+      setDistortionDefaults();
+      setLocalDistortionDefaults();
+    }
+    else {
+      chkLocalDistortion.setSelected(false);
+      setTiltAndMagnificationDefaults();
+    }
+    updateEnabled();
+  }
 
+  void selectLocalDistortion() {
+    if (chkLocalDistortion.isSelected()) {
+      setLocalDistortionDefaults();
+    }
+    updateEnabled();
+  }
+
+  /**
+   * Set the UI parameters to the defaults for a tilt/mag solution.
+   */
   void setTiltAndMagnificationDefaults() {
     rbTiltAngleAll.setSelected(true);
     chkDistortion.setSelected(false);
     chkLocalDistortion.setSelected(false);
   }
 
+  /**
+   * Set the UI parameters to the default for a distortion solution.  If the
+   * group size and additional group lists do not contain any text set them
+   * to the defaults.
+   */
   void setDistortionDefaults() {
     rbTiltAngleAutomap.setSelected(true);
-    ltfTiltAngleGroupSize.setText(defaultTiltAngleGroupSize);
+    if(ltfTiltAngleGroupSize.getText().matches("^\\s*$")) {
+      ltfTiltAngleGroupSize.setText(defaultTiltAngleGroupSize);
+    }
 
     chkDistortion.setSelected(true);
     chkLocalDistortion.setSelected(true);
-    //  FIXME: what to do about these values, are they always available
-    ltfXstretchGroupSize.setText(defaultXStretchGroupSize);
-    ltfSkewGroupSize.setText(defaultSkewGroupSize);
-    ltfLocalXstretchGroupSize.setText(defaultLocalXStretchGroupSize);
-    ltfLocalSkewGroupSize.setText(defaultLocalSkewGroupSize);
 
+    // If any of the size fields are empty fill them in with the defaults
+    // This will happen if someone starts with a com file with distortion
+    // disabled and then enables distortion
+    if(ltfXstretchGroupSize.getText().matches("^\\s*$")) {
+      ltfXstretchGroupSize.setText(defaultXstretchGroupSize);
+    }
+    if(ltfSkewGroupSize.getText().matches("^\\s*$")) {
+      ltfSkewGroupSize.setText(defaultSkewGroupSize);
+    }
   }
 
-  void setLargestTab() {
-    //tabPane.setSelectedComponent(panelGlobalVariable);
-    tabPane.setSelectedComponent(panelLocalSolution);
-  }
-
-  void setFirstTab() {
-    tabPane.setSelectedComponent(panelGeneral);
-  }
-
-  Container getContainer() {
-    return tabPane;
-  }
-
-  /**
-   * Right mouse button context menu
-   */
-  public void popUpContextMenu(MouseEvent mouseEvent) {
-    String[] manPagelabel = { "tiltalign" };
-    String[] manPage = { "tiltalign.html" };
-    String[] logFileLabel = { "align" };
-    String[] logFile = new String[1];
-    logFile[0] = "align" + axisID.getExtension() + ".log";
-    ContextPopup contextPopup =
-      new ContextPopup(
-        panelGeneral,
-        mouseEvent,
-        "FINAL ALIGNMENT",
-        manPagelabel,
-        manPage,
-        logFileLabel,
-        logFile);
+  void setLocalDistortionDefaults() {
+    // If any of the size fields are empty fill them in with the defaults
+    // This will happen if someone starts with a com file with distortion
+    // disabled and then enables distortion
+    if(ltfLocalXstretchGroupSize.getText().matches("^\\s*$")) {
+      ltfLocalXstretchGroupSize.setText(defaultLocalXstretchGroupSize);
+    }
+    if(ltfLocalSkewGroupSize.getText().matches("^\\s*$")) {
+      ltfLocalSkewGroupSize.setText(defaultLocalSkewGroupSize);
+    }
   }
 
   // Residual solution panel, nothing much to do.  This is here so that
@@ -803,7 +822,27 @@ public class TiltalignPanel implements ContextMenu {
     tabPane.setEnabledAt(tabPane.indexOfComponent(panelLocalSolution), state);
   }
 
-  //  Soluition panel update methods
+  /**
+   * Signal each pane to update its enabled/disabled state.
+   */
+  public void updateEnabled() {
+    //  update all of the enable/disable states
+    updateLocalAlignmentState();
+
+    updateTiltAngleSolutionPanel();
+    updateMagnificationSolutionPanel();
+    //    updateCompressionSolutionPanel();
+    updateDistortionSolutionPanel();
+
+    updateLocalRotationSolutionPanel();
+    updateLocalTiltAngleSolutionPanel();
+    updateLocalMagnificationSolutionPanel();
+    updateLocalDistortionSolutionPanel();
+  }
+
+  /**
+   * Update the enabled/disabled state of the specified solution panel.
+   */
   void updateTiltAngleSolutionPanel() {
     boolean state = rbTiltAngleAutomap.isSelected();
     ltfTiltAngleGroupSize.setEnabled(state);
@@ -825,26 +864,14 @@ public class TiltalignPanel implements ContextMenu {
       ltfCompressionAdditionalGroups.setEnabled(state);
     }
   */
-  void updateDistortionSolutionPanel() {
 
+  void updateDistortionSolutionPanel() {
     //  Xstretch and skew panel state
     boolean state = chkDistortion.isSelected();
     ltfXstretchGroupSize.setEnabled(state);
     ltfXstretchAdditionalGroups.setEnabled(state);
     ltfSkewGroupSize.setEnabled(state);
     ltfSkewAdditionalGroups.setEnabled(state);
-
-    //  Set the local distortion state as well
-    chkLocalDistortion.setSelected(state);
-    updateLocalDistortionSolutionPanel();
-
-    //  Update the parameters to match the solution type
-    if (state == true) {
-      setDistortionDefaults();
-    }
-    else {
-      setTiltAndMagnificationDefaults();
-    }
   }
 
   void updateLocalRotationSolutionPanel() {
@@ -872,6 +899,31 @@ public class TiltalignPanel implements ContextMenu {
     ltfLocalSkewGroupSize.setEnabled(state);
     ltfLocalSkewAdditionalGroups.setEnabled(state);
   }
+
+  Container getContainer() {
+    return tabPane;
+  }
+
+  /**
+   * Right mouse button context menu
+   */
+  public void popUpContextMenu(MouseEvent mouseEvent) {
+    String[] manPagelabel = { "tiltalign" };
+    String[] manPage = { "tiltalign.html" };
+    String[] logFileLabel = { "align" };
+    String[] logFile = new String[1];
+    logFile[0] = "align" + axisID.getExtension() + ".log";
+    ContextPopup contextPopup =
+      new ContextPopup(
+        panelGeneral,
+        mouseEvent,
+        "FINAL ALIGNMENT",
+        manPagelabel,
+        manPage,
+        logFileLabel,
+        logFile);
+  }
+
 
   private void createRadioBox(
     JPanel panel,
@@ -901,6 +953,7 @@ public class TiltalignPanel implements ContextMenu {
 
     panelGeneral.add(ltfNSurfaceAnalysis.getContainer());
     panelGeneral.add(Box.createRigidArea(FixedDim.x0_y5));
+
 
     panelResidualThreshold.setLayout(
       new BoxLayout(panelResidualThreshold, BoxLayout.X_AXIS));
@@ -1229,7 +1282,7 @@ class DistortionCheckListener implements ActionListener {
     panel = adaptee;
   }
   public void actionPerformed(ActionEvent event) {
-    panel.updateDistortionSolutionPanel();
+    panel.selectGlobalDistortion();
   }
 }
 
@@ -1284,7 +1337,7 @@ class LocalDistortionCheckListener implements ActionListener {
     panel = adaptee;
   }
   public void actionPerformed(ActionEvent event) {
-    panel.updateLocalDistortionSolutionPanel();
+    panel.selectLocalDistortion();
   }
 }
 /*
