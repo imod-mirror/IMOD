@@ -33,6 +33,7 @@ import etomo.type.SectionTableRowData;
 import etomo.type.SlicerAngles;
 import etomo.util.InvalidParameterException;
 import etomo.util.MRCHeader;
+import etomo.util.Utilities;
 
 /**
 * <p>Description: A panel containing the section table.  Implements Expandable
@@ -49,6 +50,10 @@ import etomo.util.MRCHeader;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.20  2004/10/28 22:17:45  sueh
+* <p> bug# 520 In addSection(File), used a variable instead of calling
+* <p> rows.size() multiple times.
+* <p>
 * <p> Revision 1.1.2.19  2004/10/25 23:16:11  sueh
 * <p> bug# 520 Changed table in Align tab:  Removed Sample Slices.  Added
 * <p> Slices in Sample.  Added Chunk table.  Also add xMax and yMax.
@@ -798,6 +803,25 @@ public class SectionTablePanel implements ContextMenu, Expandable {
     if (tableSize > 1) {
       ((SectionTableRow) rows.get(tableSize - 2)).configureFields();
     }
+    String tomogramName = tomogram.getName();
+    File rotFile = new File(joinDialog.getWorkingDirName(), tomogramName
+        .substring(0, tomogramName.lastIndexOf(".")) + ".rot");
+    if (rotFile.exists()) {
+      File backupRotFile = new File(rotFile.getAbsolutePath() + "~");
+      try {
+        Utilities.renameFile(rotFile, backupRotFile);
+      }
+      catch (IOException e) {
+        e.printStackTrace();
+        String[] message = {
+            "Unable to rename " + rotFile.getAbsolutePath(),
+            " to " + backupRotFile.getName() + ".",
+            "Remove or rename " + rotFile.getName()
+                + ", if does not contain the correctly rotated version of ",
+            tomogram.getAbsolutePath() + "."};
+        joinManager.getMainPanel().openMessageDialog(message, "Rename Failed");
+      }
+    }
     joinDialog.setNumSections(tableSize);
     enableRowButtons();
     repaint();
@@ -819,6 +843,7 @@ public class SectionTablePanel implements ContextMenu, Expandable {
     }
     rows.remove(rowIndex);
     joinManager.imodRemove(ImodManager.TOMOGRAM_KEY, row.getImodIndex());
+    joinManager.imodRemove(ImodManager.ROT_TOMOGRAM_KEY, row.getImodRotIndex());
     row.remove();
     renumberTable(rowIndex);
     if (rowIndex == 0) {
@@ -838,8 +863,18 @@ public class SectionTablePanel implements ContextMenu, Expandable {
       return;
     }
     SectionTableRow row = (SectionTableRow) rows.get(rowIndex);
-    row.setImodIndex(joinManager.imodOpenFile(ImodManager.TOMOGRAM_KEY, row
-        .getSectionFile(), row.getImodIndex()));
+    File sectionFile = row.getSectionFile();
+    if (curTab == JoinDialog.JOIN_TAB) {
+      String sectionFileName = sectionFile.getName();
+      File rotSectionFile = new File(joinManager.getPropertyUserDir(),
+          sectionFileName.substring(0, sectionFileName.lastIndexOf("."))
+              + ".rot");
+      if (rotSectionFile.exists()) {
+        row.setImodRotIndex(joinManager.imodOpenFile(ImodManager.ROT_TOMOGRAM_KEY, rotSectionFile, row.getImodRotIndex()));
+        return;
+      }
+    }
+    row.setImodIndex(joinManager.imodOpenFile(ImodManager.TOMOGRAM_KEY, sectionFile, row.getImodIndex()));
   }
 
   private void imodGetAngles() {
