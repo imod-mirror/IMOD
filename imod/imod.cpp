@@ -34,6 +34,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.9  2002/12/19 04:37:13  mast
+Cleanup of unused global variables and defines
+
 Revision 1.1.2.8  2002/12/17 18:40:24  mast
 Changes and new includes with Qt version of imodv
 
@@ -194,6 +197,7 @@ int main( int argc, char *argv[])
   int nframey = 0;
   int overx = 0;
   int overy = 0;
+  float font_scale = 0.;
   Iobj *obj;
   char *tmpCwd;
 
@@ -245,19 +249,6 @@ int main( int argc, char *argv[])
   QApplication::setStyle("windows");
   //imodAssessVisuals();
   imodFindQGLFormat(App, argv);
-
-  /* this is for testing big fonts */ 
-  /*
-  QFont newFont = QApplication::font();
-  float pointSize = newFont.pointSizeFloat();
-  if (pointSize > 0) {
-    newFont.setPointSizeFloat(pointSize * 1.2);
-  } else {
-    int pixelSize = newFont.pixelSize();
-    newFont.setPixelSize((int)floor(pixelSize * 1.2 + 0.5));
-  }
-  QApplication::setFont(newFont);
-  */
 
   /*******************/
   /* Initialize Data */
@@ -410,12 +401,29 @@ int main( int argc, char *argv[])
 	print_wid = TRUE;
 	break;
 
+      case 'F':
+        font_scale = atof(argv[++i]);
+        break;
+
       default:
 	break;
 
       }
     } else if (!firstfile)
       firstfile = i;
+  }
+
+  /* this is for testing big fonts */ 
+  if (font_scale > 0.) {
+    QFont newFont = QApplication::font();
+    float pointSize = newFont.pointSizeFloat();
+    if (pointSize > 0) {
+      newFont.setPointSizeFloat(pointSize * font_scale);
+    } else {
+      int pixelSize = newFont.pixelSize();
+      newFont.setPixelSize((int)floor(pixelSize * font_scale + 0.5));
+    }
+    QApplication::setFont(newFont);
   }
 
   /* Load in all the imod plugins that we can use.*/
