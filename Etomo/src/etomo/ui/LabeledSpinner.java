@@ -12,6 +12,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2004/04/07 21:04:02  rickg
+ * <p> Alignment is now set on the panel
+ * <p>
  * <p> Revision 1.3  2004/03/24 03:04:56  rickg
  * <p> Fixed setMaximumSize bug
  * <p>
@@ -66,6 +69,10 @@ public class LabeledSpinner {
     spinner.setMaximumSize(maxSize);
   }
 
+  public void setModel(SpinnerModel model) {
+    spinner.setModel(model);
+  }
+  
   public Container getContainer() {
     return panel;
   }
