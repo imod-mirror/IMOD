@@ -16,43 +16,50 @@ import java.util.Properties;
 * 
 * @version $Revision$
 * 
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1.2.1  2004/09/29 19:28:03  sueh
+* <p> bug# 520 Meta data for serial sections.  Non-const class implements load
+* <p> and set functions.
+* <p> </p>
 */
 public class JoinMetaData extends ConstJoinMetaData {
-  public static  final String  rcsid =  "$Id$";
-  
+  public static final String rcsid = "$Id$";
+
   public JoinMetaData() {
     reset();
   }
-  
+
   private void reset() {
     revisionNumber = "";
     sectionTableData = null;
-    useDensityRefSection = false;
-    densityRefSection = 0;
-    workingDir = null;
-    rootName = null;
+    densityRefSection = defaultDensityRefSection;
+    workingDir = "";
+    rootName = "";
   }
-    
+
   /**
    *  Get the objects attributes from the properties object.
    */
   public void load(Properties props) {
     load(props, "");
   }
+
   public void load(Properties props, String prepend) {
     reset();
     prepend = createPrepend(prepend);
     String group = prepend + ".";
-    
-    revisionNumber = props.getProperty(group + revisionNumberString, "1.0");
-    
+
+    revisionNumber = props.getProperty(group + revisionNumberString, latestRevisionNumber);
+    workingDir = props.getProperty(group + workingDirString, "");
+    rootName = props.getProperty(group + rootNameString, "");
     int sectionTableRowsSize = Integer.parseInt(props.getProperty(group
         + sectionTableDataSizeString, "-1"));
-    if(sectionTableRowsSize <= 0) {
+    densityRefSection = Integer.parseInt(props.getProperty(group
+        + densityRefSectionString, Integer.toString(defaultDensityRefSection)));
+    if (sectionTableRowsSize <= 0) {
       return;
     }
-    
+
     if (sectionTableData == null) {
       sectionTableData = new ArrayList(sectionTableRowsSize);
     }
@@ -62,26 +69,23 @@ public class JoinMetaData extends ConstJoinMetaData {
       sectionTableData.add(row.getRowIndex(), row);
     }
   }
-  
-  public void setUseDensityRefSection(boolean useDensityRefSection) {
-    this.useDensityRefSection = useDensityRefSection;
-  }
-  
+
   public void setDensityRefSection(Object densityRefSection) {
-    this.densityRefSection = ((Integer) densityRefSection).intValue();;
+    this.densityRefSection = ((Integer) densityRefSection).intValue();
   }
-  
+
   public void setWorkingDir(String workingDir) {
     this.workingDir = workingDir;
   }
-  
+
   public void setRootName(String rootName) {
     this.rootName = rootName;
   }
-  
+
   public void resetSectionTableData() {
     sectionTableData = null;
   }
+
   public void setSectionTableData(ConstSectionTableRowData row) {
     sectionTableData.add(row);
   }
