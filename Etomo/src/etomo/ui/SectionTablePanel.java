@@ -47,6 +47,11 @@ import etomo.util.MRCHeader;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.12  2004/10/13 23:14:13  sueh
+* <p> bug# 520 Allowed the components of the rootPanel and the table panel to
+* <p> be removed and re-added.  This way the table can look different on
+* <p> different tabs.
+* <p>
 * <p> Revision 1.1.2.11  2004/10/11 02:17:09  sueh
 * <p> bug# 520 Using a variable called propertyUserDir instead of the "user.dir"
 * <p> property.  This property would need a different value for each manager.
@@ -749,7 +754,7 @@ public class SectionTablePanel implements ContextMenu, Expandable {
       return;
     }
     SectionTableRow row = (SectionTableRow) rows.get(rowIndex);
-    row.setImodIndex(joinManager.imodOpen(ImodManager.TOMOGRAM_KEY, row
+    row.setImodIndex(joinManager.imodOpenFile(ImodManager.TOMOGRAM_KEY, row
         .getSectionFile(), row.getImodIndex()));
   }
 
