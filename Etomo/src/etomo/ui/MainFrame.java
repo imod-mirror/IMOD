@@ -26,7 +26,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.KeyStroke;
 
-import etomo.ApplicationManager;
 import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.storage.EtomoFileFilter;
@@ -47,6 +46,9 @@ import etomo.util.UniqueKey;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.12.2.10  2004/10/07 16:38:40  sueh
+ * <p> bug# 520 formatted
+ * <p>
  * <p> Revision 3.12.2.9  2004/10/06 02:24:30  sueh
  * <p> bug# 520 Created functions to enable and disable New Tomogram and
  * <p> New Join menu items.
@@ -538,7 +540,7 @@ public class MainFrame extends JFrame implements ContextMenu {
   private void menuOptionsAction(ActionEvent event) {
     String command = event.getActionCommand();
     if (command.equals(menuSettings.getActionCommand())) {
-      currentManager.openSettingsDialog();
+      EtomoDirector.getInstance().openSettingsDialog();
     }
     else if (command.equals(menuAxisA.getActionCommand())) {
       mainPanel.setDividerLocation(1);
@@ -559,13 +561,13 @@ public class MainFrame extends JFrame implements ContextMenu {
     // Get the URL to the IMOD html directory
     String imodURL = "";
     try {
-      imodURL = ApplicationManager.getIMODDirectory().toURL().toString()
+      imodURL = EtomoDirector.getInstance().getIMODDirectory().toURL().toString()
           + "/html/";
     }
     catch (MalformedURLException except) {
       except.printStackTrace();
       System.err.println("Malformed URL:");
-      System.err.println(ApplicationManager.getIMODDirectory().toString());
+      System.err.println(EtomoDirector.getInstance().getIMODDirectory().toString());
       return;
     }
 
@@ -651,7 +653,7 @@ public class MainFrame extends JFrame implements ContextMenu {
    * @param message
    * @param title
    */
-  void openMessageDialog(Object message, String title) {
+  public void openMessageDialog(Object message, String title) {
     JOptionPane.showMessageDialog(this, message, title,
         JOptionPane.ERROR_MESSAGE);
   }
