@@ -37,6 +37,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.6  2003/01/13 01:15:42  mast
+changes for Qt version of info window
+
 Revision 1.1.2.5  2003/01/06 15:52:16  mast
 changes for Qt version of slicer
 
@@ -95,7 +98,6 @@ removed old version of imod_io_image_reload
 #include <sys/types.h>
 #include <time.h>
 #include <errno.h>
-#include "imod_object_edit.h"
 #include "imod_info.h"
 #include <qfiledialog.h>
 #include "imod.h"
@@ -666,7 +668,6 @@ int createNewModel(char *modelFilename) {
   imodDraw(App->cvi, IMOD_DRAW_MOD);
 
   imod_info_setocp();
-  imod_object_edit_draw();    /* the setocp may not have called */
   ivwSetModelTrans(App->cvi);
   imod_cmap(App->cvi->imod);
   return IMOD_IO_SUCCESS;
