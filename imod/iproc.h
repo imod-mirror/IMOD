@@ -33,52 +33,80 @@
     $Revision$
 
     $Log$
+    Revision 3.2  2002/12/01 15:34:41  mast
+    Changes to get clean compilation with g++
+
 */
 
 #ifndef BD_IPROC_H_
 #define BD_IPROC_H_
 
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-
 #define PROC_BACKGROUND 0
 #define PROC_FOREGROUND 255
 
+#include "dialog_frame.h"
+class QWidgetStack;
+class QListBox;
+class QVBoxLayout;
 
-  typedef struct
-  {
-    diaDialog     *dia;
-    ImodView      *vw;        /* image data to model                       */
-    unsigned char *idata;     /* Image data processing buffer.             */
-    int           idatasec;   /* data section. */
-    int           idatatime;  /* time value of section */
-    int           procnum;
-    int           modified;   /* flag that section data are modified */
-    Widget        frame;
-    Widget        curcont;   /* current control widget. */
-
-    int           threshold;
-    int           edge;
-
-  } ImodIProc;
-
-
-  typedef struct
-  {
-    char *name;         /* Name of index */
-    void (*cb)(Widget, XtPointer, XtPointer);       /* callback */
-    void (*mkwidget)(Widget, XtPointer, XtPointer);
-    XtPointer client;
-    Widget control;
-  } ImodIProcData;
-
-  int inputIProcOpen(struct ViewInfo *vw);
-
-#ifdef __cplusplus
-}
+#ifndef IMODP_H
+typedef struct ViewInfo ImodView;
 #endif
+
+class IProcWindow : public DialogFrame
+{
+  Q_OBJECT
+
+ public:
+  IProcWindow(QWidget *parent, const char *name = NULL);
+  ~IProcWindow() {};
+
+  public slots:
+  void buttonPressed(int which);
+  void edgeSelected(int which);
+  void filterSelected(int which);
+  void filterHighlighted(int which);
+  void threshChanged(int which, int value, bool dragging);
+
+ protected:
+  void closeEvent ( QCloseEvent * e );
+  void keyPressEvent ( QKeyEvent * e );
+  void keyReleaseEvent ( QKeyEvent * e );
+
+ private:
+  QWidgetStack *mStack;
+  QListBox *mListBox;
+  void apply();
+};
+
+
+typedef struct
+{
+  IProcWindow   *dia;
+  ImodView      *vw;        /* image data to model                       */
+  unsigned char *idata;     /* Image data processing buffer.             */
+  int           idatasec;   /* data section. */
+  int           idatatime;  /* time value of section */
+  int           procnum;
+  int           modified;   /* flag that section data are modified */
+  
+  int           threshold;
+  int           edge;
+  
+} ImodIProc;
+
+
+typedef struct
+{
+  char *name;         /* Name of index */
+  void (*cb)();       /* callback to do action */
+  /* function to make widget */
+  void (*mkwidget)(IProcWindow *, QWidget *, QVBoxLayout *); 
+  char *label;
+} ImodIProcData;
+
+int inputIProcOpen(ImodView *vw);
+int iprocRethink(ImodView *vw);
+
 
 #endif /* BD_IPROC_H_ */
