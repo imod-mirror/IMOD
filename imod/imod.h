@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.1.2.3  2003/01/27 00:30:07  mast
+    Pure Qt version and general cleanup
+
     Revision 3.1.2.2  2003/01/13 01:15:42  mast
     changes for Qt version of info window
 
@@ -79,6 +82,7 @@
 #define IMOD_DRAW_SLICE    (1<<3) /* A slice location has changed.        */
 #define IMOD_DRAW_CMAP     (1<<4) /* Colormap has changed.                */
 #define IMOD_DRAW_MODVIEW  (1<<5) /* model view changed. */
+#define IMOD_DRAW_COLORMAP (1<<11)  /* Colormap has changed (index mode)  */
 #define IMOD_DRAW_NOSYNC  (1<<12) /* do not resync image to model point.  */
 #define IMOD_DRAW_RETHINK (1<<13) /* recalc cursor position               */
 #define IMOD_DRAW_ACTIVE  (1<<14) /* current window is active.            */
