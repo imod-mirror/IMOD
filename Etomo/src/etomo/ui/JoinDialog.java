@@ -28,6 +28,10 @@ import etomo.type.JoinMetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.1.2.17  2004/10/21 02:58:46  sueh
+ * <p> bug# 520 Implemented buttons, added enableMidas to be used after
+ * <p> xfalign is run.
+ * <p>
  * <p> Revision 1.1.2.16  2004/10/18 19:11:15  sueh
  * <p> bug# 520 Added a call to JoinManager.midasSample().
  * <p>
@@ -295,7 +299,7 @@ public class JoinDialog implements ContextMenu {
     pnlAlignComponent1.addMultiLineButton(btnOpenSamples);
     pnlAlignComponent1.addMultiLineButton(btnOpenSampleAverages);
     //third component
-    pnlXfalign = new DoubleSpacedPanel(false, FixedDim.x5_y0, FixedDim.x0_y5, new EtchedBorder("Xfalign Parameters").getBorder(), false);
+    pnlXfalign = new DoubleSpacedPanel(false, FixedDim.x5_y0, FixedDim.x0_y5, new EtchedBorder("Auto Alignment Parameters").getBorder(), false);
     ltfSigmaLowFrequency = new LabeledTextField("Sigma for low-frequency filter: ");
     pnlXfalign.add(ltfSigmaLowFrequency);
     ltfCutoffHighFrequency = new LabeledTextField("Cutoff for high-frequency filter: ");
@@ -475,18 +479,18 @@ public class JoinDialog implements ContextMenu {
     ltfWorkingDir.setText(metaData.getWorkingDir());
     ltfRootName.setText(metaData.getRootName());
     spinDensityRefSection.setValue(metaData.getDensityRefSection());
-    ltfSigmaLowFrequency.setText(metaData.getSigmaLowFrequencyString());
-    ltfCutoffHighFrequency.setText(metaData.getCutoffHighFrequencyString());
-    ltfSigmaHighFrequency.setText(metaData.getSigmaHighFrequencyString());
+    ltfSigmaLowFrequency.setText(metaData.getSigmaLowFrequency().getString());
+    ltfCutoffHighFrequency.setText(metaData.getCutoffHighFrequency().getString());
+    ltfSigmaHighFrequency.setText(metaData.getSigmaHighFrequency().getString());
     rbFullLinearTransformation.setSelected(metaData.isFullLinearTransformation());
     rbRotationTranslationMagnification.setSelected(metaData.isRotationTranslationMagnification());
     rbRotationTranslation.setSelected(metaData.isRotationTranslation());
     cbUseAlignmentRefSection.setSelected(metaData.isUseAlignmentRefSection());
     spinAlignmentRefSection.setValue(metaData.getAlignmentRefSection());
-    ltfSizeInX.setText(metaData.getSizeInXString());
-    ltfSizeInY.setText(metaData.getSizeInYString());
-    ltfOffsetInX.setText(metaData.getOffsetInXString());
-    ltfOffsetInY.setText(metaData.getOffsetInYString());
+    ltfSizeInX.setText(metaData.getSizeInX().getString());
+    ltfSizeInY.setText(metaData.getSizeInY().getString());
+    ltfOffsetInX.setText(metaData.getOffsetInX().getString());
+    ltfOffsetInY.setText(metaData.getOffsetInY().getString());
     
     pnlSectionTable.setMetaData(metaData);
     pnlSectionTable.enableTableButtons(ltfWorkingDir.getText());

@@ -18,6 +18,9 @@ import java.util.Properties;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.8  2004/10/21 02:50:06  sueh
+* <p> bug# 520 Added get functions.
+* <p>
 * <p> Revision 1.1.2.7  2004/10/18 18:01:46  sueh
 * <p> bug# 520 Added fields from JoinDialog.  Converted densityRefSection to
 * <p> an EtomoInteger.  Added validation checks for rootName and workingDir.
@@ -105,23 +108,23 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
     StringBuffer buffer = new StringBuffer(super.paramString()
         + ",\nlatestRevisionNumber=" + latestRevisionNumber
         + ",\nnewJoinTitle=" + newJoinTitle + ",\ngroupString=" + groupString
-        + ",\n" + densityRefSection.getDescription() + "=" + densityRefSection
+        + ",\n" + densityRefSection.getDescription() + "=" + densityRefSection.getString()
         + ",\n" + workingDirString + "=" + workingDir + ",\n" + rootNameString
         + "=" + rootName + ",\n" + sigmaLowFrequency.getDescription() + "="
-        + sigmaLowFrequency + ",\n" + cutoffHighFrequency.getDescription()
-        + "=" + cutoffHighFrequency + ",\n"
-        + sigmaHighFrequency.getDescription() + "=" + sigmaHighFrequency
+        + sigmaLowFrequency.getString() + ",\n" + cutoffHighFrequency.getDescription()
+        + "=" + cutoffHighFrequency.getString() + ",\n"
+        + sigmaHighFrequency.getDescription() + "=" + sigmaHighFrequency.getString()
         + ",\n" + fullLinearTransformationString + "="
         + fullLinearTransformation + ",\n"
         + rotationTranslationMagnificationString + "="
         + rotationTranslationMagnification + ",\n" + rotationTranslationString
         + "=" + rotationTranslation + ",\n" + useAlignmentRefSectionString
         + "=" + useAlignmentRefSection + ",\n"
-        + alignmentRefSection.getDescription() + "=" + alignmentRefSection
+        + alignmentRefSection.getDescription() + "=" + alignmentRefSection.getString()
         + ",\n" + sizeInX.getDescription() + "=" + sizeInX + ",\n"
-        + sizeInY.getDescription() + "=" + sizeInY + ",\n"
-        + offsetInX.getDescription() + "=" + offsetInX + ",\n"
-        + offsetInY.getDescription() + "=" + offsetInY);
+        + sizeInY.getDescription() + "=" + sizeInY.getString() + ",\n"
+        + offsetInX.getDescription() + "=" + offsetInX.getString() + ",\n"
+        + offsetInY.getDescription() + "=" + offsetInY.getString());
     if (sectionTableData != null) {
       buffer.append(",\n" + sectionTableDataSizeString + "="
           + sectionTableData.size());
@@ -249,11 +252,7 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
     return rootName != null && rootName.matches("\\S+");
   }
   
-  public int getDensityRefSection() {
-    return densityRefSection.get();
-  }
-  
-  public ConstEtomoInteger getDensityRefSectionField() {
+  public ConstEtomoInteger getDensityRefSection() {
     return densityRefSection;
   }
 
@@ -279,27 +278,15 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
     return workingDir != null && workingDir.matches("\\S+");
   }
   
-  public String getSigmaLowFrequencyString() {
-    return sigmaLowFrequency.getString();
-  }
-  
-  public ConstEtomoDouble getSigmaLowFrequencyField() {
+  public ConstEtomoDouble getSigmaLowFrequency() {
     return sigmaLowFrequency;
   }
   
-  public String getCutoffHighFrequencyString() {
-    return cutoffHighFrequency.getString();
-  }
-  
-  public ConstEtomoDouble getCutoffHighFrequencyField() {
+  public ConstEtomoDouble getCutoffHighFrequency() {
     return cutoffHighFrequency;
   }
   
-  public String getSigmaHighFrequencyString() {
-    return sigmaHighFrequency.getString();
-  }
-  
-  public ConstEtomoDouble getSigmaHighFrequencyField() {
+  public ConstEtomoDouble getSigmaHighFrequency() {
     return sigmaHighFrequency;
   }
 
@@ -323,47 +310,28 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
     return useAlignmentRefSection;
   }
   
-  public int getAlignmentRefSection() {
-    return alignmentRefSection.get();
+  public ConstEtomoInteger getAlignmentRefSection() {
+    return alignmentRefSection;
   }
   
-  public String getAlignmentRefSectionString() {
-    return alignmentRefSection.getString();
-  }
-  
-  public ConstEtomoInteger getSizeInXField() {
+  public ConstEtomoInteger getSizeInX() {
     return sizeInX;
   }
   
-  public String getSizeInXString() {
-    return sizeInX.getString();
-  }
-  
-  public ConstEtomoInteger getSizeInYField() {
+  public ConstEtomoInteger getSizeInY() {
     return sizeInY;
-  }
-  
-  public String getSizeInYString() {
-    return sizeInY.getString();
   }
   
   public boolean getUseAlignmentRefSection() {
     return useAlignmentRefSection;
   }
   
-  public ConstEtomoFloat getOffsetInXField() {
+  public ConstEtomoFloat getOffsetInX() {
     return offsetInX;
   }
   
-  public String getOffsetInXString() {
-    return offsetInX.getString();
-  }
-  
-  public ConstEtomoFloat getOffsetInYField() {
+  public ConstEtomoFloat getOffsetInY() {
     return offsetInY;
   }
   
-  public String getOffsetInYString() {
-    return offsetInY.getString();
-  }
 }
