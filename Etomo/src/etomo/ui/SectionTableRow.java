@@ -1,14 +1,10 @@
 package etomo.ui;
 
-import java.awt.Color;
 import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-
-import javax.swing.JButton;
-import javax.swing.JTextField;
-import javax.swing.plaf.ColorUIResource;
 
 import etomo.type.ConstSectionTableRowData;
 import etomo.type.SectionTableRowData;
@@ -29,6 +25,13 @@ import etomo.type.SlicerAngles;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.4  2004/09/29 19:45:01  sueh
+* <p> bug# 520 View part of the section table row.  Contains section table row
+* <p> screen fields.  Added SectionTableRowData member variable so hold,
+* <p> store, and compare data from the screen.  Added displayData() to display
+* <p> data on the screen.  Added retrieveData() to retrieve data from the
+* <p> screen.  Added an equals function.  Disabled the sectionFile field.
+* <p>
 * <p> Revision 1.1.2.3  2004/09/22 22:17:30  sueh
 * <p> bug# 520 Added set rotation angle functions.  When highlighting, tell the
 * <p> panel when the highlight is being turned off as well as when its being
@@ -47,15 +50,6 @@ import etomo.type.SlicerAngles;
 */
 public class SectionTableRow {
   public static final String rcsid = "$Id$";
-
-  private static ColorUIResource textFieldForeground = UIUtilities
-      .getDefaultUIColor("TextField.foreground");
-  private static ColorUIResource textFieldBackground = UIUtilities
-      .getDefaultUIColor("TextField.background");
-  private static ColorUIResource textFieldSelectedForeground = UIUtilities
-      .getDefaultUIColor("TextField.selectionForeground");
-  private static ColorUIResource textFieldSelectedBackground = UIUtilities
-      .getDefaultUIColor("TextField.selectionBackground");
   
   //data
   SectionTableRowData data = null;
@@ -66,18 +60,18 @@ public class SectionTableRow {
   
   //ui
   private SectionTablePanel table = null;
-  private JButton rowNumberHeader = null;
+  private HeaderCell rowNumberHeader = null;
   private MultiLineToggleButton highlighterButton = null;
-  private JTextField section = null;
-  private JTextField sampleBottomStart = null;
-  private JTextField sampleBottomEnd = null;
-  private JTextField sampleTopStart = null;
-  private JTextField sampleTopEnd = null;
-  private JTextField finalStart = null;
-  private JTextField finalEnd = null;
-  private JTextField rotationAngleX = null;
-  private JTextField rotationAngleY = null;
-  private JTextField rotationAngleZ = null;
+  private FieldCell section = null;
+  private FieldCell sampleBottomStart = null;
+  private FieldCell sampleBottomEnd = null;
+  private FieldCell sampleTopStart = null;
+  private FieldCell sampleTopEnd = null;
+  private FieldCell finalStart = null;
+  private FieldCell finalEnd = null;
+  private FieldCell rotationAngleX = null;
+  private FieldCell rotationAngleY = null;
+  private FieldCell rotationAngleZ = null;
   private SectionTableRowActionListener actionListener = new SectionTableRowActionListener(
       this);
   
@@ -93,88 +87,88 @@ public class SectionTableRow {
     this.table = table;
     data.setSection(tomogram);
     this.sectionExpanded = sectionExpanded;
-
-    if (textFieldForeground == null) {
-      textFieldForeground = new ColorUIResource(0, 0, 0);
-    }
-    if (textFieldBackground == null) {
-      textFieldBackground = new ColorUIResource(255, 255, 255);
-    }
-    if (textFieldSelectedForeground == null) {
-      textFieldSelectedForeground = new ColorUIResource(0, 0, 0);
-    }
-    if (textFieldSelectedBackground == null) {
-      textFieldSelectedBackground = new ColorUIResource(204, 204, 255);
-    }
-
-    //add row to table
-    create();
   }
   
   void create() {
-    GridBagConstraints constraints = table.getConstraints();
+    GridBagLayout layout = table.getTableLayout();
+    GridBagConstraints constraints = table.getTableConstraints();
     constraints.weighty = 1.0;
     constraints.gridwidth = 1;
-    rowNumberHeader = table.addHeader(data.getRowNumberString(),
+    rowNumberHeader = new HeaderCell(table, data.getRowNumberString(),
         FixedDim.rowNumberWidth);
+    rowNumberHeader.add();
     constraints.weightx = 0.0;
     highlighterButton = table.addToggleButton("=>", FixedDim.highlighterWidth);
     highlighterButton.addActionListener(actionListener);
     constraints.gridwidth = 2;
-    section = table.addField();
+    section = new FieldCell(table);
+    section.add();
     section.setEnabled(false);
     setSectionText();
     constraints.gridwidth = 1;
-    sampleBottomStart = table.addField();
-    sampleBottomEnd = table.addField();
-    sampleTopStart = table.addField();
-    sampleTopEnd = table.addField();
-    finalStart = table.addField();
-    finalEnd = table.addField();
-    rotationAngleX = table.addField();
-    rotationAngleY = table.addField();
+    sampleBottomStart = new FieldCell(table);
+    sampleBottomStart.add();
+    sampleBottomEnd = new FieldCell(table);
+    sampleBottomEnd.add();
+    sampleTopStart = new FieldCell(table);
+    sampleTopStart.add();
+    sampleTopEnd = new FieldCell(table);
+    sampleTopEnd.add();
+    finalStart = new FieldCell(table);
+    finalStart.add();
+    finalStart.setInUse(false);
+    finalEnd = new FieldCell(table);
+    finalEnd.add();
+    finalEnd.setInUse(false);
+    rotationAngleX = new FieldCell(table);
+    rotationAngleX.add();
+    rotationAngleY = new FieldCell(table);
+    rotationAngleY.add();
     constraints.gridwidth = GridBagConstraints.REMAINDER;
-    rotationAngleZ = table.addField();
+    rotationAngleZ = new FieldCell(table);
+    rotationAngleZ.add();
     displayData();
   }
   
   void remove() {
-    table.removeFromTable(rowNumberHeader);
-    table.removeFromTable(highlighterButton);
-    table.removeFromTable(section);
-    table.removeFromTable(sampleBottomStart);
-    table.removeFromTable(sampleBottomEnd);
-    table.removeFromTable(sampleTopStart);
-    table.removeFromTable(sampleTopEnd);
-    table.removeFromTable(finalStart);
-    table.removeFromTable(finalEnd);
-    table.removeFromTable(rotationAngleX);
-    table.removeFromTable(rotationAngleY);
-    table.removeFromTable(rotationAngleZ);
+    rowNumberHeader.remove();
+    table.removeCell(highlighterButton);
+    section.remove();
+    sampleBottomStart.remove();
+    sampleBottomEnd.remove();
+    sampleBottomEnd.remove();
+    sampleTopStart.remove();
+    sampleTopEnd.remove();
+    finalStart.remove();
+    finalEnd.remove();
+    rotationAngleX.remove();
+    rotationAngleY.remove();
+    rotationAngleZ.remove();
+
   }
   
   void add() {
-    GridBagConstraints constraints = table.getConstraints();
+    GridBagLayout layout = table.getTableLayout();
+    GridBagConstraints constraints = table.getTableConstraints();
     constraints.weighty = 1.0;
     constraints.gridwidth = 1;
-    table.addHeader(rowNumberHeader, data.getRowNumberString(),
-        FixedDim.rowNumberWidth);
+    rowNumberHeader.add();
     constraints.weightx = 0.0;
     table.addToggleButton(highlighterButton, "=>", FixedDim.highlighterWidth);
     highlighterButton.addActionListener(actionListener);
     constraints.gridwidth = 2;
-    table.addField(section);
+    section.add();
     constraints.gridwidth = 1;
-    table.addField(sampleBottomStart);
-    table.addField(sampleBottomEnd);
-    table.addField(sampleTopStart);
-    table.addField(sampleTopEnd);
-    table.addField(finalStart);
-    table.addField(finalEnd);
-    table.addField(rotationAngleX);
-    table.addField(rotationAngleY);
+    sampleBottomStart.add();
+    sampleBottomEnd.add();
+    sampleTopStart.add();
+    sampleTopEnd.add();
+    finalStart.add();
+    finalEnd.add();
+    rotationAngleX.add();
+    rotationAngleY.add();
     constraints.gridwidth = GridBagConstraints.REMAINDER;
-    table.addField(rotationAngleZ);
+    rotationAngleZ.add();
   }
   
   private void displayData() {
@@ -192,7 +186,6 @@ public class SectionTableRow {
   }
   
   private void retrieveData() {
-    data.setRowNumber(rowNumberHeader.getText());
     data.setSampleBottomStart(sampleBottomStart.getText());
     sampleBottomEnd.setText(data.getSampleBottomEndString());
     sampleTopStart.setText(data.getSampleTopStartString());
@@ -261,16 +254,21 @@ public class SectionTableRow {
    *
    */
   private void highlight() {
-    if (highlighterButton.isSelected()) {
-      setColors(textFieldSelectedForeground, textFieldSelectedBackground);
-    }
-    else {
-      setColors(textFieldForeground, textFieldBackground);
-    }
+    boolean highlight = highlighterButton.isSelected();
+    section.setHighlighted(highlight);
+    sampleBottomStart.setHighlighted(highlight);
+    sampleBottomEnd.setHighlighted(highlight);
+    sampleTopStart.setHighlighted(highlight);
+    sampleTopEnd.setHighlighted(highlight);
+    finalStart.setHighlighted(highlight);
+    finalEnd.setHighlighted(highlight);
+    rotationAngleX.setHighlighted(highlight);
+    rotationAngleY.setHighlighted(highlight);
+    rotationAngleZ.setHighlighted(highlight);
   }
   
   private void highlighterButtonAction() {
-    table.highlighting(data.getRowNumber(), highlighterButton.isSelected());
+    table.msgHighlighting(data.getRowNumber(), highlighterButton.isSelected());
     highlight();
   }
   
@@ -294,45 +292,14 @@ public class SectionTableRow {
     retrieveData();
     return data;
   }
-  
-  /**
-   * Change the colors of all the fields in the row to foreground and
-   * background.
-   * @param foreground
-   * @param background
-   */
-  private void setColors(Color foreground, Color background) {
-    section.setForeground(foreground);
-    section.setBackground(background);
     
-    sampleBottomStart.setForeground(foreground);
-    sampleBottomStart.setBackground(background);
-    
-    sampleBottomEnd.setForeground(foreground);
-    sampleBottomEnd.setBackground(background);
-    
-    sampleTopStart.setForeground(foreground);
-    sampleTopStart.setBackground(background);
-    
-    sampleTopEnd.setForeground(foreground);
-    sampleTopEnd.setBackground(background);
-    
-    finalStart.setForeground(foreground);
-    finalStart.setBackground(background);
-    
-    finalEnd.setForeground(foreground);
-    finalEnd.setBackground(background);
-    
-    rotationAngleX.setForeground(foreground);
-    rotationAngleX.setBackground(background);
-    
-    rotationAngleY.setForeground(foreground);
-    rotationAngleY.setBackground(background);
-    
-    rotationAngleZ.setForeground(foreground);
-    rotationAngleZ.setBackground(background);
+  public boolean equalsSection(File section) {
+    if (data.getSectionAbsolutePath().equals(section.getAbsolutePath())) {
+      return true;
+    }
+    return false;
   }
-    
+  
   public boolean equals(Object object) {
     if (!(object instanceof SectionTableRow))
       return false;
