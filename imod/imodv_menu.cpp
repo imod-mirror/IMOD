@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.6  2003/01/01 19:12:31  mast
+changes to start Qt application in standalone mode
+
 Revision 1.1.2.5  2002/12/30 06:49:50  mast
 rationalizing dialogs as widgets and using dialog list
 
@@ -613,7 +616,6 @@ void ImodvBkgColor::openDialog()
 {
   QString qstr;
   char *window_name;
-  int red, green, blue;
 
   mSelector = new ColorSelector(NULL, "Imodv background color.",
                                 Imodv->rbgcolor->red(),
