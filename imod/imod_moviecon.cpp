@@ -32,6 +32,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.5  2003/01/14 21:37:55  mast
+revised help, cleaned up unused variables
+
 Revision 1.1.2.4  2003/01/14 17:05:17  mast
 Qt version
 
@@ -299,8 +302,7 @@ void imcHelp()
      "actual rate will be less than the selected rate if the display is "
      "too slow to keep up, and can also differ from the selected rate "
      "due to lack of precision of the system clock.\n\n"
-     "If [Round Trip;
-] is selected, then movies will loop from one "
+     "If [Round Trip] is selected, then movies will loop from one "
      "end to the other then from that end back to the start; "
      "if [One Way] is selected, then movies will always go in one "
      "direction and jump back to the start when the end is reached.\n\n",
