@@ -1,5 +1,16 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/21/04: IMO_3-3-4
+7/20/04: More changes in eTomo process-killing, including using the right ps 
+command to work on Mac, Windows, and Linux regardless of how eTomo is started.
+
+7/16/04: Made Tiltalign put out pixel size in ...local.xf file and Tilt use
+this pixel size to scale local alignment information, which is needed for
+local alignments to work right with binning of aligned OR prealigned stacks.
+
+7/16/04: Fixed a bug in Tilt in which an EXCLUDELIST line would turn on the
+LOG processing with 0 base.
+
 7/14/04: IMOD_3-3-3
 7/14/04: eTomo process killing improved to handle the multi-layered processes
 in combining and fixed to work on Windows again.
