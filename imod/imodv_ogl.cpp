@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.5  2002/12/18 04:15:14  mast
+new includes for imodv modules
+
 Revision 1.1.2.4  2002/12/17 22:28:21  mast
 cleanup of unused variables and SGI errors
 
@@ -63,6 +66,7 @@ Fixed problem with transparency when lighting both sides
 
 #include <GL/gl.h>
 #include <GL/glu.h>
+#include "imodv_image.h"
 #include <imodel.h>
 #include "imod.h"
 #include "imodv.h"
@@ -70,7 +74,6 @@ Fixed problem with transparency when lighting both sides
 #include "imodv_ogl.h"
 #include "imodv_light.h"
 #include "imodv_stereo.h"
-#include "imodv_image.h"
 
 #define DRAW_POINTS 1
 #define DRAW_LINES  2
