@@ -17,6 +17,12 @@ import etomo.storage.Storable;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.4  2004/10/25 23:05:38  sueh
+* <p> bug# 520 Fixed default:  Default doesn't affect the value or the
+* <p> resetValue.  Default can returned if value and recommended value are
+* <p> not set and the parameter useDefault is true.  When recommended value
+* <p> is set, value is changed to recommend value.  Added getNegation().
+* <p>
 * <p> Revision 1.1.2.3  2004/10/22 21:01:35  sueh
 * <p> bug# 520 Moved common code to EtomoSimpleType
 * <p>
@@ -59,6 +65,10 @@ public abstract class ConstEtomoLong extends EtomoSimpleType implements Storable
   
   public void store(Properties props, String prepend) {
     props.setProperty(prepend + "." + name, Long.toString(value));
+  }
+  
+  public void remove(Properties props, String prepend) {
+    props.remove(prepend + "." + name);
   }
   
   public String getString() {
