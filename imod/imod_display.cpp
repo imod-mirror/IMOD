@@ -34,6 +34,9 @@
     $Revision$
 
     $Log$
+    Revision 1.1.2.6  2003/01/02 15:41:21  mast
+    add include of control.h
+
     Revision 1.1.2.5  2003/01/01 05:41:31  mast
     add stereo testing to qt visual selection
 
@@ -115,14 +118,9 @@ static unsigned char cursor_mask_bits[] = {
 
 static int imod_init_cursors(ImodApp *ap);
 
-//extern "C" {
-  void sliceKeyInput(Widget w, XEvent *event, String par, Cardinal num);
-//}
-
 int imod_get_colormap(ImodApp *ap);
 
 static XtActionsRec ActionTable[] = {
-{"sliceKeyInput",   (XtActionProc)sliceKeyInput   },
 {"defaultKeyInput", (XtActionProc)defaultKeyInput },
 };
 

@@ -37,6 +37,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.4  2002/12/19 04:37:13  mast
+Cleanup of unused global variables and defines
+
 Revision 1.1.2.3  2002/12/18 04:15:14  mast
 new includes for imodv modules
 
@@ -86,16 +89,16 @@ removed old version of imod_io_image_reload
 //    this should only have access to the application data
 
 #include <stdio.h>
-#include <dia.h>
 #include <sys/types.h>
 #include <time.h>
 #include <errno.h>
+#include "imod_object_edit.h"
+#include <dia.h>
 #include "mrcfiles.h"
 #include "imod.h"
 #include "imod_info.h"
 #include "imodv.h"
 #include "imod_io.h"
-#include "imod_object_edit.h"
 #include "imodv_views.h"
 
 //  Module private functions
