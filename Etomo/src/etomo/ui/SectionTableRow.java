@@ -29,6 +29,10 @@ import etomo.util.MRCHeader;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.17  2004/11/09 16:20:41  sueh
+* <p> bug# 520 Correcting weight distribution for join tab.  Top header is 2, other
+* <p> lines are 1.
+* <p>
 * <p> Revision 1.1.2.16  2004/11/08 22:30:12  sueh
 * <p> bug# 520 Tried setting constraints.weighty to zero to prevent the table
 * <p> from expanding.
@@ -181,7 +185,7 @@ public class SectionTableRow {
         + currentSection.getText() + ",\ndata=" + data;
   } 
   
-  void create() {
+  void create(int mode) {
     rowNumber = new HeaderCell(data.getRowNumber().getString(true),
         FixedDim.rowNumberWidth);
     highlighterButton = table.createToggleButton("=>", FixedDim.highlighterWidth);
@@ -206,6 +210,7 @@ public class SectionTableRow {
     rotationAngleY = new FieldCell();
     rotationAngleZ = new FieldCell();
     configureFields();
+    setMode(mode);
     displayData();
   }
   
@@ -214,7 +219,7 @@ public class SectionTableRow {
     boolean bottomInUse = rowNumber > 1;
     boolean topInUse = rowNumber < table.getTableSize();
     boolean finalInuse = curTab == JoinDialog.JOIN_TAB;
-    boolean enableSamples = curTab == JoinDialog.SETUP_TAB;
+
     
     sampleBottomStart.setInUse(bottomInUse);
     sampleBottomEnd.setInUse(bottomInUse);
@@ -224,11 +229,6 @@ public class SectionTableRow {
     
     finalStart.setInUse(finalInuse);
     finalEnd.setInUse(finalInuse);
-
-    sampleBottomStart.setEnabled(enableSamples);
-    sampleBottomEnd.setEnabled(enableSamples);
-    sampleTopStart.setEnabled(enableSamples);
-    sampleTopEnd.setEnabled(enableSamples);
   }
   
   void remove() {
@@ -273,6 +273,33 @@ public class SectionTableRow {
     section.remove();
     finalStart.remove();
     finalEnd.remove();
+  }
+  
+  void setMode(int mode) {
+    switch (mode) {
+    case JoinDialog.SAMPLE_PRODUCED:
+      sampleBottomStart.setEnabled(false);
+      sampleBottomEnd.setEnabled(false);
+      sampleTopStart.setEnabled(false);
+      sampleTopEnd.setEnabled(false);
+      rotationAngleX.setEnabled(false);
+      rotationAngleY.setEnabled(false);
+      rotationAngleZ.setEnabled(false);
+      return;
+    case JoinDialog.SETUP_MODE:
+    case JoinDialog.SAMPLE_NOT_PRODUCED:
+    case JoinDialog.CHANGING_SAMPLE:
+      sampleBottomStart.setEnabled(true);
+      sampleBottomEnd.setEnabled(true);
+      sampleTopStart.setEnabled(true);
+      sampleTopEnd.setEnabled(true);
+      rotationAngleX.setEnabled(true);
+      rotationAngleY.setEnabled(true);
+      rotationAngleZ.setEnabled(true);
+      return;
+    default:
+      throw new IllegalStateException("mode=" + mode);
+    }
   }
   
   void setCurTab(int curTab) {

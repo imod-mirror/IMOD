@@ -33,6 +33,7 @@ import etomo.type.SlicerAngles;
 import etomo.util.InvalidParameterException;
 import etomo.util.JoinInfoFile;
 import etomo.util.MRCHeader;
+import etomo.util.Utilities;
 
 /**
 * <p>Description: A panel containing the section table.  Implements Expandable
@@ -49,6 +50,9 @@ import etomo.util.MRCHeader;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.26  2004/11/12 23:01:12  sueh
+* <p> bug# 520 Fixed bug where deleting all rows did not work.
+* <p>
 * <p> Revision 1.1.2.25  2004/11/11 01:43:00  sueh
 * <p> bug# 520 Adding binning to open 3dmod functions.
 * <p>
@@ -245,6 +249,7 @@ public class SectionTablePanel implements ContextMenu, Expandable {
   private final JoinDialog joinDialog;
   
   private int curTab;
+  private int mode = JoinDialog.SETUP_MODE;
 
   /**
    * Creates the panel and table.
@@ -262,10 +267,7 @@ public class SectionTablePanel implements ContextMenu, Expandable {
     addTablePanelComponents();
     createButtonsPanel();
     addButtonsPanelComponents();
-    
     addRootPanelComponents();
-    enableTableButtons("");
-    enableRowButtons(-1);
   }
   
   private void addRootPanelComponents() {
@@ -578,7 +580,7 @@ public class SectionTablePanel implements ContextMenu, Expandable {
     else {
       highlightedRowIndex = -1;
     }
-    enableRowButtons(highlightedRowIndex);
+    setMode();
   }
 
   private int getHighlightedRowIndex() {
@@ -592,35 +594,79 @@ public class SectionTablePanel implements ContextMenu, Expandable {
     }
     return -1;
   }
+  
+  /**
+   * enable buttons made on the current mode parameter
+   *
+   */
+  void setMode() {
+    setMode(mode);
+  }
+  
+  /**
+   * Enable buttons based on the mode parameter
+   * @param mode
+   */
+  void setMode(int mode) {
+    this.mode = mode;
+    //enable buttons that are not effected by highlighting
+    switch (mode) {
+    case JoinDialog.SAMPLE_PRODUCED:
+      btnAddSection.setEnabled(false);
+      btnExpandSections.setEnabled(false);
+      btnMoveSectionUp.setEnabled(false);
+      btnMoveSectionDown.setEnabled(false);
+      btnDeleteSection.setEnabled(false);
+      btnGetAngles.setEnabled(false);
+      break;
+    case JoinDialog.SETUP_MODE:
+    case JoinDialog.SAMPLE_NOT_PRODUCED:
+    case JoinDialog.CHANGING_SAMPLE:
+      btnAddSection.setEnabled(true);
+      break;
+    default:
+      throw new IllegalStateException("mode=" + mode);
+    }
+    enableRowButtons(getHighlightedRowIndex());
+    if (rows == null) {
+      return;
+    }
+    for (int i= 0; i < rows.size(); i++) {
+      ((SectionTableRow) rows.get(i)).setMode(mode);
+    }
+  }
 
+  /**
+   * Enable row level buttons based on the current highlight
+   * @param highlightedRowIndex
+   */
   private void enableRowButtons(int highlightedRowIndex) {
     int rowsSize = 0;
     if (rows != null) {
       rowsSize = rows.size();
     }
-    if (rows != null && rowsSize == 0) {
-      btnExpandSections.setEnabled(false);
-      btnMoveSectionUp.setEnabled(false);
-      btnMoveSectionDown.setEnabled(false);
-      btnDeleteSection.setEnabled(false);
+    if (rows == null || rowsSize == 0) {
       btnOpen3dmod.setEnabled(false);
-      btnGetAngles.setEnabled(false);
+      if (mode != JoinDialog.SAMPLE_PRODUCED) {
+        btnOpen3dmod.setEnabled(false);
+        btnExpandSections.setEnabled(false);
+        btnMoveSectionUp.setEnabled(false);
+        btnMoveSectionDown.setEnabled(false);
+        btnDeleteSection.setEnabled(false);
+        btnGetAngles.setEnabled(false);
+      }
       return;
     }
-    btnExpandSections.setEnabled(true);
-    btnMoveSectionUp.setEnabled(highlightedRowIndex > 0);
-    btnMoveSectionDown.setEnabled(highlightedRowIndex > -1
-        && highlightedRowIndex < rowsSize - 1);
-    btnDeleteSection.setEnabled(highlightedRowIndex > -1);
     btnOpen3dmod.setEnabled(highlightedRowIndex > -1);
-    btnGetAngles.setEnabled(highlightedRowIndex > -1);
-  }
-
-  void enableTableButtons(String workingDir) {
-    if (workingDir == null) {
-      workingDir = joinDialog.getWorkingDirName();
+    if (mode != JoinDialog.SAMPLE_PRODUCED) {
+      btnOpen3dmod.setEnabled(highlightedRowIndex > -1);
+      btnExpandSections.setEnabled(true);
+      btnMoveSectionUp.setEnabled(highlightedRowIndex > 0);
+      btnMoveSectionDown.setEnabled(highlightedRowIndex > -1
+          && highlightedRowIndex < rowsSize - 1);
+      btnDeleteSection.setEnabled(highlightedRowIndex > -1);
+      btnGetAngles.setEnabled(highlightedRowIndex > -1);
     }
-    btnAddSection.setEnabled(workingDir != null && workingDir.matches("\\S+"));
   }
 
   /**
@@ -645,8 +691,8 @@ public class SectionTablePanel implements ContextMenu, Expandable {
     return layout;
   }
 
-  public void setEnabledAddSection(boolean enable) {
-    btnAddSection.setEnabled(enable);
+  public void enableAddSection() {
+    btnAddSection.setEnabled(true);
   }
   
   public GridBagConstraints getTableConstraints() {
@@ -706,8 +752,16 @@ public class SectionTablePanel implements ContextMenu, Expandable {
   }
 
   private void addSection() {
+    StringBuffer invalidBuffer = new StringBuffer();
+    if (!Utilities.isValidFile(joinDialog.getWorkingDir(),
+        JoinDialog.WORKING_DIRECTORY_TEXT, invalidBuffer, true,
+        true, true, true)) {
+      joinManager.getMainPanel().openMessageDialog(invalidBuffer.toString(), "Unable to Add Section");
+      return;
+    }
     //  Open up the file chooser in the working directory
-    JFileChooser chooser = new JFileChooser(new File(joinManager.getPropertyUserDir()));
+    JFileChooser chooser = new JFileChooser(new File(joinManager
+        .getPropertyUserDir()));
     TomogramFileFilter tomogramFilter = new TomogramFileFilter();
     chooser.setFileFilter(tomogramFilter);
     chooser.setPreferredSize(new Dimension(400, 400));
@@ -827,7 +881,7 @@ public class SectionTablePanel implements ContextMenu, Expandable {
     }
     SectionTableRow row = new SectionTableRow(this, rows.size() + 1, tomogram,
         btnExpandSections.isExpanded(), header, curTab);
-    row.create();
+    row.create(mode);
     row.add(pnlTable);
     rows.add(row);
     int tableSize = rows.size();
@@ -835,7 +889,6 @@ public class SectionTablePanel implements ContextMenu, Expandable {
       ((SectionTableRow) rows.get(tableSize - 2)).configureFields();
     }
     joinDialog.setNumSections(tableSize);
-    enableRowButtons(getHighlightedRowIndex());
     repaint();
   }
   
@@ -870,7 +923,7 @@ public class SectionTablePanel implements ContextMenu, Expandable {
     enableRowButtons(-1);
     repaint();
   }
-
+  
   /**
    * Opens a section in 3dmod
    * May open a .rot file instead of the original section in the join tab.
@@ -991,7 +1044,7 @@ public class SectionTablePanel implements ContextMenu, Expandable {
     }
     for (int i = 0; i < rows.size(); i++) {
       SectionTableRow row = (SectionTableRow) rows.get(i);
-      row.create();
+      row.create(mode);
       row.add(pnlTable);
     }
     joinDialog.setNumSections(rows.size());
