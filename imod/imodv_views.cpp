@@ -35,6 +35,9 @@
     $Revision$
 
     $Log$
+    Revision 1.1.2.5  2002/12/27 17:45:01  mast
+    clean up unused variable
+
 */
 
 #include <stdio.h>
@@ -44,6 +47,7 @@
 #include "imod.h"
 #include "imod_input.h"
 #include "imodv_gfx.h"
+#include "imodv_input.h"
 #include "imodv_menu.h"
 #include "imodv_control.h"
 #include "imodv_light.h"
@@ -96,8 +100,8 @@ void imodvUpdateModel(ImodvApp *a)
     return;
   ved->dia->removeAllItems();
   build_list(a);
-  imodvViewsGoto(a->imod->cview);
-  ved->dia->selectItem(a->imod->cview);
+  imodvViewsGoto(a->imod->cview, false);
+  ved->dia->selectItem(a->imod->cview, true);
 }
 
 /* set the current application flags into the current view */
@@ -176,7 +180,7 @@ void imodvViewsHelp()
 }
 
 /* Return to default view */
-void imodvViewsDefault()
+void imodvViewsDefault(bool draw)
 {
   if (!ved->a->imod) return;
 
@@ -187,8 +191,8 @@ void imodvViewsDefault()
   imodViewModelDefault(ved->a->imod, ved->a->imod->view);
   imodViewUse(ved->a->imod);
   imodvUpdateView(ved->a);
-  imodvDraw(ved->a);
-  return;
+  if (draw)
+    imodvDraw(ved->a);
 }
 
 // Done: tell the box to close
@@ -200,6 +204,7 @@ void imodvViewsDone()
 // Closing - do we need to autostore view?
 void imodvViewsClosing()
 {
+  imodvRemoveDialog((QWidget *)ved->dia);
   ved->dia = NULL;
 }
 
@@ -225,8 +230,8 @@ void imodvViewEditDialog(ImodvApp *a, int state)
   }
   ved->a = a;
 
-  ved->dia = new imodvViewsForm((QWidget *)a->mainWin, NULL, //false,
-                                Qt::WDestructiveClose | Qt::WType_Dialog);
+  ved->dia = new imodvViewsForm(NULL, NULL, //false,
+                                Qt::WDestructiveClose | Qt::WType_TopLevel);
 
   // Set title bar
   window_name = imodwEithername("Imodv Views: ", a->imod->fileName, 1);
@@ -238,7 +243,8 @@ void imodvViewEditDialog(ImodvApp *a, int state)
 
   build_list(a);
   ved->dia->setAutostore(auto_store);
-  ved->dia->selectItem(a->imod->cview);
+  ved->dia->selectItem(a->imod->cview, true);
+  imodvAddDialog((QWidget *)ved->dia);
   ved->dia->show();
 }
 
@@ -254,7 +260,7 @@ void imodvViewsSave()
 /*
  * The goto view callback.
  */
-void imodvViewsGoto(int item)
+void imodvViewsGoto(int item, bool draw)
 {
    if (!ved->a->imod)
      return;
@@ -266,14 +272,15 @@ void imodvViewsGoto(int item)
   ved->a->imod->cview = item;
 
   if (item == 0) {
-    imodvViewsDefault();
+    imodvViewsDefault(draw);
     return;
   }
      
   imodViewUse(ved->a->imod);
 
   imodvUpdateView(ved->a);
-  imodvDraw(Imodv);
+  if (draw)
+    imodvDraw(Imodv);
 }
 
 
@@ -324,7 +331,7 @@ void imodvViewsNew(const char *label)
   imodViewStore(ved->a->imod, cview);
 
   ved->dia->addItem(ved->a->imod->view[cview].label);
-  ved->dia->selectItem(cview);
+  ved->dia->selectItem(cview, true);
 }
 
 /* Delete a view */
@@ -344,8 +351,8 @@ void imodvViewsDelete(int item, int newCurrent)
 
   imod->viewsize--;
   imod->cview = newCurrent >= 0 ? newCurrent : 0;
-  imodvViewsGoto(imod->cview);
-  ved->dia->selectItem(imod->cview);
+  imodvViewsGoto(imod->cview, true);
+  ved->dia->selectItem(imod->cview, true);
 }
 
 // A new label has been entered
