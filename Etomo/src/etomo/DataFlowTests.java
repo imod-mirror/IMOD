@@ -20,6 +20,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.4  2004/06/30 17:36:46  rickg
+ * <p> Added fiducialless capability and partial single axis handling
+ * <p>
  * <p> Revision 3.3.2.1  2004/06/30 17:32:39  rickg
  * <p> Added fiducialless capability and partial single axis handling
  * <p>
@@ -90,7 +93,8 @@ public class DataFlowTests {
     argsIn[0] = "--debug";
     argsIn[1] = System.getProperty("user.dir") + File.separator + datasetName
       + ".edf";
-    applicationManager = new ApplicationManager(argsIn);
+    EtomoDirector.createInstance(argsIn);
+    applicationManager = (ApplicationManager) EtomoDirector.getInstance().getCurrentManager();
     mainFrame = applicationManager.getMainFrame();
     // A hack around the const object returned we really know is not const
     MetaData metaData = (MetaData) applicationManager.getMetaData();
