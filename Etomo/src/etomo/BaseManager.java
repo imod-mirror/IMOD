@@ -38,6 +38,10 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.12  2004/10/15 00:00:02  sueh
+* <p> bug# 520 Moving getTestParamFilename() to mainPanel.  It is used for
+* <p> saving existing data files, so knows which type (.edf or .ejf) it is saving.
+* <p>
 * <p> Revision 1.1.2.11  2004/10/11 01:55:43  sueh
 * <p> bug# 520 moved responsibility for mainPanel, metaData, processTrack,
 * <p> and progressManager to child classes.  Used abstract functions to use
@@ -349,10 +353,10 @@ public abstract class BaseManager {
       // user.dir system property.
       // Uggh, stupid JAVA bug, getParent() only returns the parent if the File
       // was created with the full path
-      File newParamFile = new File(paramFile.getAbsolutePath());
-      propertyUserDir = newParamFile.getParent();
+      paramFile = new File(paramFile.getAbsolutePath());
+      propertyUserDir = paramFile.getParent();
       // Update the MRU test data filename list
-      userConfig.putDataFile(newParamFile.getAbsolutePath());
+      userConfig.putDataFile(paramFile.getAbsolutePath());
       //  Initialize a new IMOD manager
       setMetaData(imodManager);
     }
@@ -378,6 +382,7 @@ public abstract class BaseManager {
     if (!isMetaDataValid(paramFile)) {
       return false;
     }
+    this.paramFile = paramFile;
     return true;
   }
   
