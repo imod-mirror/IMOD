@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.6  2003/01/01 05:45:42  mast
+Qt version
+
 Revision 1.1.2.5  2002/12/18 04:49:31  mast
 Don't require sgi-only stereo to be only standalone
 
@@ -81,6 +84,7 @@ Changes to get clean compilation with g++
 #include "imodv_input.h"
 #include "imodv_stereo.h"
 #include "hotslider.h"
+#include "control.h"
 
 //#define LIMIT_Stereo
 
@@ -455,7 +459,7 @@ void imodvStereoEditDialog(ImodvApp *a, int state)
   imodvStereoData.dia = new ImodvStereo(NULL, "stereo dialog");
   imodvStereoData.a = a;
 
-  imodvAddDialog((QWidget *)imodvStereoData.dia);
+  imodvDialogManager.add((QWidget *)imodvStereoData.dia, IMODV_DIALOG);
   imodvStereoUpdate();
   imodvStereoData.dia->show();
 }
@@ -565,7 +569,7 @@ void ImodvStereo::update()
 // Accept a close event and set dia to null
 void ImodvStereo::closeEvent ( QCloseEvent * e )
 {
-  imodvRemoveDialog((QWidget *)imodvStereoData.dia);
+  imodvDialogManager.remove((QWidget *)imodvStereoData.dia);
   imodvStereoData.dia = NULL;
   e->accept();
 }

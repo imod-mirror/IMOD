@@ -35,6 +35,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.5  2002/12/30 06:49:50  mast
+rationalizing dialogs as widgets and using dialog list
+
 Revision 1.1.2.4  2002/12/23 04:51:22  mast
 Qt version
 
@@ -57,6 +60,7 @@ Changes to get clean compilation with g++
 #include "imodv_gfx.h"
 #include "imodv_input.h"
 #include "imodv_depthcue.h"
+#include "control.h"
 
 static struct{
   imodvDepthcueForm *dia;
@@ -120,7 +124,7 @@ void imodvDepthcueDone()
 
 void imodvDepthcueClosing()
 {
-  imodvRemoveDialog((QWidget *)idcData.dia);
+  imodvDialogManager.remove((QWidget *)idcData.dia);
   idcData.dia = NULL;
 }
 
@@ -142,7 +146,7 @@ void imodvDepthCueEditDialog(ImodvApp *a, int state)
 				      Qt::WType_TopLevel);
 
   imodvDepthCueSetWidgets();
-  imodvAddDialog((QWidget *)idcData.dia);
+  imodvDialogManager.add((QWidget *)idcData.dia, IMODV_DIALOG);
   idcData.dia->show();
 }
 

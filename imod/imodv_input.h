@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.3  2002/12/30 06:48:32  mast
+Add widget list capability
+
 Revision 1.1.2.2  2002/12/17 21:38:18  mast
 include time.h so clock_t is defined
 
@@ -34,14 +37,7 @@ typedef struct __imodv_struct ImodvApp;
 extern "C" {
 #endif
 
-#ifndef USE_IMODV_WORKPROC
   void imodvMovieTimeout();
-#endif
-  void imodvCloseDialogs();
-  void imodvRemoveDialog(QWidget * widget);
-  void imodvAddDialog(QWidget *widget);
-  void imodvHideDialogs();
-  void imodvShowDialogs();
   void imodvKeyPress(QKeyEvent *event);
   void imodvKeyRelease(QKeyEvent *event);
   void imodvMousePress(QMouseEvent *event);

@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.7  2003/01/06 15:53:07  mast
+eliminate unused varaiables
+
 Revision 1.1.2.6  2003/01/01 19:12:31  mast
 changes to start Qt application in standalone mode
 
@@ -78,6 +81,7 @@ Changed copyright notice to use defined lab name and years
 #include "imodv_objed.h"
 #include "imodv_movie.h"
 #include "hotslider.h"
+#include "control.h"
 
 static ImodvBkgColor bkgColor;
 
@@ -639,7 +643,7 @@ void ImodvBkgColor::openDialog()
     qstr = "Imodv";
   mSelector->setCaption(qstr);
 
-  imodvAddDialog((QWidget *)mSelector);
+  imodvDialogManager.add((QWidget *)mSelector, IMODV_DIALOG);
   mSelector->show();
 }
 
@@ -665,7 +669,7 @@ void ImodvBkgColor::doneSlot()
 
 void ImodvBkgColor::closingSlot()
 {
-  imodvRemoveDialog((QWidget *)mSelector);
+  imodvDialogManager.remove((QWidget *)mSelector);
   mSelector = NULL;
 }
 

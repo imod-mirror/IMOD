@@ -35,6 +35,7 @@
 #include "imodv_gfx.h"
 #include "imodv_input.h"
 #include "imodv_movie.h"
+#include "control.h"
 
 /* The movie control structure  */
 struct imodvMovieDialogStruct
@@ -180,7 +181,7 @@ void imodvMovieClosing()
                               format, movie->saved);
   movie->file_format = format ? SnapShot_TIF : SnapShot_RGB; 
   movie->dia->getFrameBoxes(movie->frames, movie->montFrames, movie->overlap);
-  imodvRemoveDialog((QWidget *)movie->dia);
+  imodvDialogManager.remove((QWidget *)movie->dia);
   movie->dia = NULL;
   movie->abort = 1;
 }
@@ -264,7 +265,7 @@ void imodvMovieDialog(ImodvApp *a, int state)
                               movie->file_format == SnapShot_TIF ? 1 : 0, 
                               movie->saved);
   movie->dia->setFrameBoxes(movie->frames, movie->montFrames, movie->overlap);
-  imodvAddDialog((QWidget *)movie->dia);
+  imodvDialogManager.add((QWidget *)movie->dia, IMODV_DIALOG);
   movie->dia->show();
 }
 

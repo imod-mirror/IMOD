@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.7  2003/01/01 05:43:44  mast
+rationalizing toplevel versus dialog style
+
 Revision 1.1.2.6  2002/12/30 17:32:42  mast
 eliminate unused variables
 
@@ -66,6 +69,7 @@ Changes to get clean compilation with g++
 #include "imodv_gfx.h"
 #include "imodv_image.h"
 #include "imodv_input.h"
+#include "control.h"
 
 
 #define DRAW_CZ 1
@@ -121,7 +125,7 @@ void imodvImageEditDialog(ImodvApp *a, int state)
   imodvImageData.a = a;
 
   mkcmap();
-  imodvAddDialog((QWidget *)imodvImageData.dia);
+  imodvDialogManager.add((QWidget *)imodvImageData.dia, IMODV_DIALOG);
   imodvImageData.dia->show();
 }
 
@@ -433,7 +437,7 @@ void ImodvImage::buttonPressed(int which)
 // Accept a close event and set dia to null
 void ImodvImage::closeEvent ( QCloseEvent * e )
 {
-  imodvRemoveDialog((QWidget *)imodvImageData.dia);
+  imodvDialogManager.remove((QWidget *)imodvImageData.dia);
   imodvImageData.dia = NULL;
   e->accept();
 }
