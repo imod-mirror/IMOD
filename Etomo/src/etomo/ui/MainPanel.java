@@ -7,8 +7,6 @@ import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.HeadlessException;
 import java.awt.Toolkit;
-import java.awt.event.ActionEvent;
-import java.awt.event.MouseEvent;
 import java.io.File;
 
 import javax.swing.BoxLayout;
@@ -38,6 +36,10 @@ import etomo.type.MetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.1.2.3  2004/09/08 22:39:54  sueh
+ * <p> bug# 520 class doesn't need to be abstract, fixed problem with packing
+ * <p> setup dialog by calling revalidate()
+ * <p>
  * <p> Revision 1.1.2.2  2004/09/08 20:11:31  sueh
  * <p> bug# 520 make this class into a base class.  Move all tomogram specific
  * <p> functionality to MainTomogramPanel.
@@ -248,14 +250,6 @@ public class MainPanel extends JPanel {
   }
 
   /**
-   * Open the specified MRU EDF file
-   * @param event
-   */
-  private void menuFileMRUListAction(ActionEvent event) {
-    manager.openExistingDataset(new File(event.getActionCommand()));
-  }
-
-  /**
    * if A or B is hidden, hide the panel which the user has hidden before
    * calling pack().
    *
@@ -334,11 +328,6 @@ public class MainPanel extends JPanel {
       packAxis();
       setVerticalScrollBarPolicy(false);
     }
-  }
- 
-  //  Right mouse button context menu
-  public void popUpContextMenu(MouseEvent mouseEvent) {
-    ContextPopup contextPopup = new ContextPopup(this, mouseEvent, "");
   }
 
 
