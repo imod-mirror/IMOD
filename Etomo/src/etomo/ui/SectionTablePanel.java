@@ -1,31 +1,23 @@
 package etomo.ui;
 
-import java.awt.Color;
-import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.Insets;
 import java.awt.event.MouseEvent;
+import java.util.ArrayList;
 
 import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComponent;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JSeparator;
 import javax.swing.JTextField;
-import javax.swing.SwingConstants;
 import javax.swing.border.BevelBorder;
-import javax.swing.border.Border;
-import javax.swing.border.CompoundBorder;
 import javax.swing.border.LineBorder;
 
 /**
-* <p>Description: </p>
+* <p>Description: A panel containing the section table.  Implements Expandable
+* so it can use ExpandButtons. </p>
 * 
 * <p>Copyright: Copyright (c) 2002, 2003, 2004</p>
 *
@@ -38,24 +30,36 @@ import javax.swing.border.LineBorder;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.2  2004/09/16 18:31:26  sueh
+* <p> bug# 520 sized the fields, added a row number, reorganized
+* <p> functions
+* <p>
 * <p> Revision 1.1.2.1  2004/09/15 22:47:26  sueh
 * <p> bug# 520 creates the Sections table for JoinDialog.
 * <p> </p>
 */
-public class SectionTablePanel implements ContextMenu {
+public class SectionTablePanel implements ContextMenu, Expandable {
   public static  final String  rcsid =  "$Id$";
   
-  JPanel rootPanel;
-  MultiLineButton btnExpandSections;
-  MultiLineButton btnHighlighter;
+  private JPanel rootPanel;
+  private ExpandButton btnExpandSections;
+  private ArrayList rows = new ArrayList();
+  private GridBagLayout layout = new GridBagLayout();
+  private GridBagConstraints constraints = new GridBagConstraints();
   
-  GridBagLayout layout = new GridBagLayout();
-  GridBagConstraints constraints = new GridBagConstraints();
-  
+  /**
+   * Creates the panel and table.
+   *
+   */
   SectionTablePanel() {
     createRootPanel();
   }
   
+  /**
+   * Creates the panel and table.  Adds the header rows.  Adds SectionTableRows
+   * to rows to create each row.
+   *
+   */
   private void createRootPanel() {
     rootPanel = new JPanel();
     rootPanel.setBorder(LineBorder.createBlackLineBorder());
@@ -72,7 +76,7 @@ public class SectionTablePanel implements ContextMenu {
     constraints.weighty = 0.0;
     constraints.gridwidth = 1;
     addHeader("Sections", FixedDim.sectionsWidth);
-    addSquareMultiLineButton(btnExpandSections, ">");
+    btnExpandSections = addExpandButton();
     constraints.gridwidth = 4;
     addHeader("Sample Slices");
     constraints.gridwidth = 2;
@@ -105,85 +109,139 @@ public class SectionTablePanel implements ContextMenu {
     addHeader("Y", FixedDim.numericWidth);
     constraints.gridwidth = GridBagConstraints.REMAINDER;
     addHeader("Z", FixedDim.numericWidth);
-    addDataRow(1);
-    addDataRow(2);
+    rows.add(new SectionTableRow(this, 1));
+    rows.add(new SectionTableRow(this, 2));
+    rows.add(new SectionTableRow(this, 3));
+    rows.add(new SectionTableRow(this, 4));
   }
   
-  private void addDataRow(int rowNumber) {
-    constraints.gridwidth = 1;
-    addHeader(Integer.toString(rowNumber), FixedDim.rowNumberWdith);
-    addMultiLineButton(btnHighlighter, "=>", FixedDim.highlighterWidth);
-    constraints.gridwidth = 2;
-    addField();
-    constraints.gridwidth = 1;
-    addField();
-    addField();
-    addField();
-    addField();
-    addField();
-    addField();
-    addField();
-    addField();
-    constraints.gridwidth = GridBagConstraints.REMAINDER;
-    addField();
+  /**
+   * Informs this panel that a row is highlighting.  Only one row may be
+   * highlighted at once, so it turns off highlighting on all the other rows.
+   * @param rowNumber
+   */
+  void highlighting(int rowNumber) {
+    for (int i = 0; i < rows.size(); i++) {
+      if (i != rowNumber - 1) {
+        ((SectionTableRow)rows.get(i)).setHighlight(false);
+      }
+    }
   }
   
-  private void addHeader(String value) {
-    JButton cell = createHeader(value);
+  /**
+   * Implements the Exandable interface.  Matches the expand button parameter
+   * and performs the expand/contract operation.  Expands the section in each
+   * row.
+   * @param expandButton
+   */
+  public void expand(ExpandButton expandButton) {
+    if (!expandButton.equals(btnExpandSections)) {
+      throw new IllegalStateException("Unknown expand button," + expandButton);
+    }
+    boolean expand = btnExpandSections.isExpanded();
+    for (int i = 0; i < rows.size(); i++) {
+      ((SectionTableRow)rows.get(i)).expandSection(expand);
+    }
+  }
+  
+  /**
+   * 
+   * @return constraints
+   */
+  GridBagConstraints getConstraints() {
+    return constraints;
+  }
+  
+  /**
+   * Add a header cell to the table and set the text.
+   * @param text
+   */
+  private void addHeader(String text) {
+    JButton cell = createHeader(text);
     addToTable(cell);
   }
   
-  private JButton createHeader(String value) {
-    String htmlValue = "<html><b>" + value + "</b>";
-    JButton cell = new JButton(htmlValue);
+  /**
+   * Create a header cell:  Create a JButton and wrap its text
+   * in an HTML bold tag to bold it and keep the text from changing color when
+   * the button is disabled.  Set the border to etched to keep it flat.  Disable
+   * it.
+   * @param value
+   * @return
+   */
+  private JButton createHeader(String text) {
+    String htmlText = "<html><b>" + text + "</b>";
+    JButton cell = new JButton(htmlText);
     cell.setBorder(BorderFactory.createEtchedBorder());
     cell.setEnabled(false);
-    System.out.println("value=" + value + ",size=" + cell.getPreferredSize());
     return cell;
   }
   
+  /**
+   * Add a blank header cell to the table.
+   *
+   */
   private void addHeader() {
     addHeader("");
   }
   
-  private void addHeader(String value, int width) {
-    JButton cell = createHeader(value);
+  /**
+   * Add a header cell with a preferred width and set the text to value.
+   * @param value
+   * @param width
+   */
+  void addHeader(String text, int width) {
+    JButton cell = createHeader(text);
     Dimension size = cell.getPreferredSize();
     size.width = width;
     cell.setPreferredSize(size);
     addToTable(cell);
   }
   
+  /**
+   * Add a JComponent to the table.
+   * @param cell
+   */
   private void addToTable(JComponent cell) {
     layout.setConstraints(cell, constraints);
     rootPanel.add(cell);
   }
   
-  private void addField() {
+  /**
+   * Create a field and add it to the table.
+   * @return The created field
+   */
+  JTextField addField() {
     JTextField cell = new JTextField();
     addToTable(cell);
+    return cell;
   }
   
-  private void addSquareMultiLineButton(JButton button, String value) {
-    button = new MultiLineButton(value);
-    button.setBorder(BorderFactory.createBevelBorder(BevelBorder.RAISED));
-    Dimension size = button.getPreferredSize();
-    if (size.width < size.height) {
-      size.width = size.height;
-    }
-    button.setPreferredSize(size);
-    layout.setConstraints(button, constraints);
-    rootPanel.add(button);
+  /**
+   * Create an expand button and add it to the table.
+   * @return the expand button
+   */
+  private ExpandButton addExpandButton() {
+    ExpandButton button = new ExpandButton(this);
+    addToTable(button);
+    return button;
   }
   
-  private void addMultiLineButton(JButton button, String value, int width) {
-    button = new MultiLineButton(value);
+  /**
+   * Create a multi line toggle button.  Set the border to raised bevel to make
+   * it 3D.  Set its preferred widthl
+   * @param value
+   * @param width
+   * @return button created
+   */
+  MultiLineToggleButton addToggleButton(String text, int width) {
+    MultiLineToggleButton button = new MultiLineToggleButton(text);
     button.setBorder(BorderFactory.createBevelBorder(BevelBorder.RAISED));
     Dimension size = button.getPreferredSize();
     size.width = width;
     button.setPreferredSize(size);
-    layout.setConstraints(button, constraints);
-    rootPanel.add(button);
+    addToTable(button);
+    return button;
   }
   
   /**
