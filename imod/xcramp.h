@@ -30,6 +30,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.1  2003/01/26 23:26:40  mast
+Qt version
+
 Revision 3.1  2002/12/01 15:39:50  mast
 Declare extern C if c++
 
@@ -44,7 +47,7 @@ typedef struct xbldrcoloramp
 {
   int  depth;    /* The depth of colormap.     */
   int  rgba;
-  QGLColormap **qCmapPtr;
+  QGLColormap *qCmapPtr;
   float         scale;    /* rampsize/255                 */
   int    rampsize;        /* The number of colors allocated.          */
   int    rampbase;    /* The number of first color.               */
@@ -61,7 +64,7 @@ typedef struct xbldrcoloramp
 } Cramp;
 
 
-Cramp *xcramp_allinit(int depth, QGLColormap **qCmapPtr,  int low,  int high);
+Cramp *xcramp_allinit(int depth, QGLColormap *qCmapPtr,  int low,  int high);
 int    xcramp_level(Cramp *xcramp, int black, int white);
 int    xcramp_falsecolor(Cramp *xcramp, int flag);
 int    xcramp_reverse(Cramp *xcramp, int flag);
@@ -72,7 +75,6 @@ void xcramp_getlevels(Cramp *xcramp, int *black, int *white);
 
 int  xcrampStoreInit(Cramp *cramp, int size);
 int  xcrampSelectIndex(Cramp *cramp, int index);
-void xcrampNewBase(Cramp *cr, int base);
 
 #endif /* XCRAMP_H */
 

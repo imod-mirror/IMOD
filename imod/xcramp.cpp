@@ -35,6 +35,9 @@
     $Revision$
 
     $Log$
+    Revision 1.1.2.1  2003/01/26 23:25:26  mast
+    Qt version
+
 */
 
 
@@ -42,8 +45,11 @@
 #include <stdio.h>
 #include <qglcolormap.h>
 #include "xcramp.h"
+#include "imod.h"
+#include "imod_display.h"
 
-Cramp *xcramp_allinit(int depth, QGLColormap **qCmapPtr,  int low,  int high)
+
+Cramp *xcramp_allinit(int depth, QGLColormap *qCmapPtr,  int low,  int high)
 {
   Cramp *cramp;
   int value, i;
@@ -53,7 +59,7 @@ Cramp *xcramp_allinit(int depth, QGLColormap **qCmapPtr,  int low,  int high)
   cramp = (Cramp *)malloc(sizeof(Cramp));
   cramp->rgba = 1;
 
-  if (*qCmapPtr) {
+  if (qCmapPtr) {
     for (i=0; i < depth;i++)
       maxval*=2;
     if (high > maxval)
@@ -81,18 +87,6 @@ Cramp *xcramp_allinit(int depth, QGLColormap **qCmapPtr,  int low,  int high)
   xcrampStoreInit(cramp, 4);
 
   return(cramp);
-}
-
-void xcrampNewBase(Cramp *cr, int base)
-{
-  int i;
-  if (!cr) return;
-
-  cr->rampbase = base;
-  /*  for (i = 0; i < cr->rampsize; i++){
-    cr->xcolor[i].pixel = i + base;
-    } */
-  return;
 }
 
 /* alloc space for storage of extra color index values. */
@@ -275,6 +269,8 @@ int xcramp_ramp(Cramp *cr)
       ival = (int)((float)i / cr->scale);
       val = cmap[ival];
       rgbtab[i] = qRgb(val, val, val);
+      cr->qCmapPtr->setEntry(i + cr->rampbase, rgbtab[i]);
+      /* fprintf(stderr, "%d %d %d %x\n", i, ival, val, rgbtab[i]); */
     }
     break;
           
@@ -283,11 +279,18 @@ int xcramp_ramp(Cramp *cr)
       ival = (int)((float)i / cr->scale);
       xcramp_mapfalsecolor( cmap[ival], &red, &green, &blue);
       rgbtab[i] = qRgb(red, green, blue);
+      cr->qCmapPtr->setEntry(i + cr->rampbase, rgbtab[i]);
     }
     break;
 
   }
-  (*(cr->qCmapPtr))->setEntries(cr->rampsize, rgbtab, cr->rampbase);
+  /*
+  fprintf(stderr, "loading size %d base %d  colormap size %d\n",
+	  cr->rampsize, cr->rampbase,  cr->qCmapPtr->size());
+  // This seems not to work! 
+  cr->qCmapPtr->setEntries(cr->rampsize, rgbtab, cr->rampbase); 
+  */
+  imodDraw(App->cvi, IMOD_DRAW_COLORMAP);
   return(0);
 }
 
