@@ -38,12 +38,16 @@ import etomo.type.MetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.1.2.2  2004/09/08 20:11:31  sueh
+ * <p> bug# 520 make this class into a base class.  Move all tomogram specific
+ * <p> functionality to MainTomogramPanel.
+ * <p>
  * <p> Revision 1.1.2.1  2004/09/07 18:01:08  sueh
  * <p> bug# 520 moved all variables and functions associated with mainPAnel
  * <p> to MainPanel.
  * <p> </p>
  */
-public abstract class MainPanel extends JPanel {
+public class MainPanel extends JPanel {
   public static final String rcsid =
     "$Id$";
 
@@ -95,6 +99,7 @@ public abstract class MainPanel extends JPanel {
   public void openSetupPanel(SetupDialog setupDialog) {
     panelCenter.removeAll();
     panelCenter.add(setupDialog.getContainer());
+    revalidate();
     EtomoDirector.getMainFrame().pack();
   }
 
