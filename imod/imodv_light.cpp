@@ -34,6 +34,9 @@
     $Revision$
 
     $Log$
+    Revision 3.2  2002/12/01 15:34:41  mast
+    Changes to get clean compilation with g++
+
     Revision 3.1  2002/09/03 19:37:54  mast
     Changed shininess call from glMateriali to glMaterialf
 

@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.4  2002/12/01 15:34:41  mast
+    Changes to get clean compilation with g++
+
     Revision 3.3  2002/09/04 00:25:34  mast
     Pass GLw the visuals that have been chosen already.  Rationalize single
     buffer versus double code a bit.
@@ -643,7 +646,7 @@ void imodvDraw(ImodvApp *a)
 
 static int snap_fileno = 0;
 
-void imodv_reset_snap_cb(Widget w, XtPointer client, XtPointer call)
+void imodvResetSnap()
 {
      snap_fileno = 0;
 }

@@ -37,6 +37,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.1.2.2  2002/12/09 17:42:32  mast
+remove include of zap
+
 Revision 4.1.2.1  2002/12/05 16:30:00  mast
 Add include of imod_object_edit.h
 

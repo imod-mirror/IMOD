@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.2  2002/12/01 16:51:34  mast
+    Changes to eliminate warnings on SGI
+
     Revision 3.1  2002/12/01 15:34:41  mast
     Changes to get clean compilation with g++
 
@@ -91,7 +94,6 @@ void imodvDepthCueEditDialog(ImodvApp *a, int state);
 #define ROTATION_FACTOR 1.26
 
 int ImodvClosed = True;
-int ImodvBgColorOpen = False;
 
 void ximodv_quit_cb(Widget w, XtPointer client, XtPointer call)
 {
@@ -179,7 +181,7 @@ void imodv_input_cb(Widget w, XtPointer client, XtPointer call)
       if (cbs->event->xkey.state & ShiftMask){
 
         /* DNM 12/1/02: call this so it can keep track of open/closed state */
-        menu_bgcolor_cb(w, client, call);
+        imodvMenuBgcolor();
       }else{
         imodv_setbuffer(a);
         imodvDraw(Imodv);
