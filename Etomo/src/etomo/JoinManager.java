@@ -1,5 +1,7 @@
 package etomo;
 
+import java.io.File;
+
 /**
 * <p>Description: </p>
 * 
@@ -13,7 +15,10 @@ package etomo;
 * 
 * @version $Revision$
 * 
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1.2.1  2004/09/03 21:03:27  sueh
+* <p> bug# 520 adding place holders for create functions for now
+* <p> </p>
 */
 public class JoinManager extends BaseManager {
   public static  final String  rcsid =  "$Id$";
@@ -21,8 +26,6 @@ public class JoinManager extends BaseManager {
   public JoinManager(String paramFileName) {
     super(paramFileName);
     if (!test) {
-      mainFrame.pack();
-      mainFrame.show();
     }
   }
   
@@ -30,11 +33,19 @@ public class JoinManager extends BaseManager {
     
   }
   
-  protected void createMainFrame() {
+  protected void createProcessManager() {
     
   }
   
-  protected void createProcessManager() {
+  public void openNewDataset() {
+    
+  }
+  
+  public void openExistingDataset(File paramFile) {
+    
+  }
+  
+  protected void createMainPanel() {
     
   }
 }
