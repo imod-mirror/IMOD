@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.5  2003/01/13 01:15:43  mast
+changes for Qt version of info window
+
 Revision 1.1.2.4  2003/01/10 23:53:53  mast
 moved declaration of cubicFillin to include file
 
@@ -76,6 +79,7 @@ compiler bug.
 #include "slicer_classes.h"
 #include "imod.h"
 #include "sslice.h"
+#include "imod_input.h"
 #include "control.h"
 #include "imodplug.h"
 #include "hotslider.h"
