@@ -34,6 +34,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.6  2002/12/01 15:34:41  mast
+Changes to get clean compilation with g++
+
 Revision 3.5  2002/11/27 03:22:12  mast
 Changed argumnet 3 of xyz_draw_cb from long to int to avoid warnings
 
@@ -70,6 +73,7 @@ Removed call to autox_build
 #include <diaP.h>
 #include "imod.h"
 #include "keypad.h"
+#include "xxyz.h"
 
 /*************************** internal functions ***************************/
 static void xxyz_quit_cb(Widget w, XtPointer client, XtPointer call);
@@ -100,7 +104,9 @@ static void xyzDrawImage(struct xxyzwin *xx);
 void zapDrawSymbol(int mx, int my, unsigned char sym, unsigned char size,
                    unsigned char flags);
 
-int xyz_draw(struct ViewInfo *vi) {xxyz_draw(vi->xyz);return(0);}
+/* The resident pointer to the structure */
+static struct xxyzwin *XYZ = NULL;
+
 static int xyzShowSlice = 0;
 
 int xxyz_open(ImodView *vi)
@@ -112,9 +118,8 @@ int xxyz_open(ImodView *vi)
   float newzoom;
   struct xxyzwin *xx;
   Atom wmclose;
-  xx = vi->xyz;
 
-  if (xx){
+  if (XYZ){
     wprint("Error:\n\tXYZ Window already open.\n\n");
     return(-1);
   }
@@ -174,7 +179,7 @@ int xxyz_open(ImodView *vi)
   }
 
   xx->lx = xx->ly = xx->lz = -1;
-  vi->xyz  = xx;
+  XYZ  = xx;
 
   xx->glw = XtVaCreateManagedWidget
     ("xyz_glw", B3dDrawingAreaWidgetClass, xx->dialog,
@@ -238,7 +243,7 @@ static void xyzClose_cb(ImodView *vi, void *client, int junk)
   XtPopdown(xx->dialog);
   XtDestroyWidget(xx->dialog);
   free(xx);
-  vi->xyz = NULL;
+  XYZ = NULL;
 }
 
 /* DNM 1/19/02: Add this function to get the CI Images whenever size has
@@ -1718,7 +1723,7 @@ static void xyzDraw_cb(ImodView *vi, void *client, int drawflag)
     }
     if (drawflag & IMOD_DRAW_SLICE)
       xyzShowSlice = 1;
-    xyz_draw(vi);
+    xxyz_draw(XYZ);
   }
   return;
 }
@@ -1730,9 +1735,9 @@ static void xyzDrawShowSlice(struct xxyzwin *xx)
 
 int xyz_draw_showslice(struct ViewInfo *vi)
 {
-  if (!vi->xyz)
+  if (!XYZ)
     return(-1);
   xyzShowSlice = 1;
-  xyz_draw(vi);
+  xxyz_draw(XYZ);
   return(0);
 }
