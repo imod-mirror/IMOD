@@ -35,6 +35,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.6  2003/01/01 05:46:29  mast
+changes for qt version of stereo
+
 Revision 1.1.2.5  2002/12/23 04:57:07  mast
 Defer swapping buffers when taking a snapshot
 
@@ -118,10 +121,8 @@ static void imodv_swapbuffers(ImodvApp *a)
 static void imodv_clear(ImodvApp *a)
 {
   a->mainWin->mCurGLw->makeCurrent();
-  glClearColor((a->rbgcolor.red   & 0xf000) / 65535.0,
-               (a->rbgcolor.green & 0xf000) / 65535.0,
-               (a->rbgcolor.blue  & 0xf000) / 65535.0,
-               1.0);
+  glClearColor(a->rbgcolor->red() / 256., a->rbgcolor->green() / 256.,
+	       a->rbgcolor->blue() / 256., 1.0);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glFlush();
 }

@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.3.2.4  2003/01/01 05:46:29  mast
+changes for qt version of stereo
+
 Revision 3.3.2.3  2002/12/18 04:15:14  mast
 new includes for imodv modules
 
@@ -63,7 +66,7 @@ Changed include of GLwMDrawA to rely upon -I compiler option
 #include <imodconfig.h>
 #include <GL/gl.h>
 
-#include <dia.h>          /* local dialog library. */
+#include "dia_qtutils.h"
 #include <imodel.h>       /* imod library include. */
 
 /* used for finding bounding box. */
@@ -77,6 +80,7 @@ Changed include of GLwMDrawA to rely upon -I compiler option
 #ifndef IMODV_WINDOW_H
 class ImodvWindow;
 #endif
+class QColor;
 
 typedef struct __imodv_struct
 {
@@ -97,20 +101,12 @@ typedef struct __imodv_struct
 
   /* windowing data */
   XtAppContext context;
-#ifdef USE_IMODV_WORKPROC
-  XtWorkProcId wpid;
-#else
   int          wpid;
-#endif
-  Display      *display;
-  Visual       *visual;
-  int          depth;
-  Colormap     cmap;
   Widget       topLevel;
   ImodvWindow  *mainWin;
 
   char         *rbgname;
-  XColor       rbgcolor; /* background color for rendering.    */
+  QColor       *rbgcolor; /* background color for rendering.    */
   int          enableDepthSB;
   int          enableDepthDB;
   int          stereoSB;   /* Flags for whether visuals have stereo */
@@ -139,7 +135,6 @@ typedef struct __imodv_struct
   float plax;      /* parallax for stereo separation.         */
   int movie;       /* allow movies.                           */
   int drawall;     /* draw all models at once.                */
-  int bindex;      /* background colorindex.                  */
   int alpha;       /* number of alpha planes.                 */
   int current_subset;  /* display subset of model (current element) */
                        /* 0 = all, 1 = obj, 2 = surf, 3 = cont */

@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 1.1.2.10  2003/01/01 05:46:29  mast
+    changes for qt version of stereo
+
     Revision 1.1.2.9  2002/12/30 06:47:47  mast
     Implement Z key correctly and call new dialog closing function
 
@@ -122,8 +125,6 @@ typedef struct imodv_dialog
 #define ROTATION_FACTOR 1.26
 
 
-int ImodvClosed = True;
-
 static unsigned int ctrlDown = 0;
 static unsigned int shiftDown = 0;
 static unsigned int leftDown = 0;
@@ -151,9 +152,10 @@ void imodvQuit()
 
   imodvCloseDialogs();
 
-  a->topLevel = 0;
+  // a->topLevel = 0;
   imodMatDelete(a->mat);
   imodMatDelete(a->rmat);
+  delete a->rbgcolor;
   if (a->standalone) {
     // imod_info_input();   // This made it crash
     exit(0);
@@ -176,8 +178,8 @@ void imodv_exit(ImodvApp *a)
 static unsigned int imodv_query_pointer(ImodvApp *a, int *wx, int *wy)
 {
   unsigned int maskr = leftDown | midDown | rightDown | ctrlDown | shiftDown;
-  *wx = (Imodv->mainWin->mCurGLw->mapFromGlobal(QCursor::pos())).x();
-  *wy = (Imodv->mainWin->mCurGLw->mapFromGlobal(QCursor::pos())).y();
+  *wx = (a->mainWin->mCurGLw->mapFromGlobal(QCursor::pos())).x();
+  *wy = (a->mainWin->mCurGLw->mapFromGlobal(QCursor::pos())).y();
   return(maskr);
 }
 
@@ -1079,32 +1081,11 @@ clock_t imodv_sys_time(void)
    to using just this workproc after starting the movie.
    DNM 5/21/01: eliminated old code */
 
-#ifdef USE_IMODV_WORKPROC
-static Boolean imodv_movie_wp(XtPointer client)
-{
-  ImodvApp *a = (ImodvApp *)client;
-     
-  Boolean finished = False;
-     
-  if (a->topLevel && a->movie && 
-      (a->md->xrotm || a->md->yrotm || a->md->zrotm)) {
-    a->movieFrames++;
-    a->movieCurrent = imodv_sys_time();
-    imodv_rotate_model(a,a->md->xrotm, a->md->yrotm, a->md->zrotm);
-  } else {
-    a->wpid = (XtWorkProcId)0;
-    finished = True;
-  }
-
-  return(finished);
-}
-#else
-
 void imodvMovieTimeout()
 {
   ImodvApp *a = Imodv;
      
-  if (a->wpid && a->topLevel && a->movie && 
+  if (a->wpid && !ImodvClosed && a->movie && 
       (a->md->xrotm || a->md->yrotm || a->md->zrotm)) {
     a->movieFrames++;
     a->movieCurrent = imodv_sys_time();
@@ -1114,7 +1095,6 @@ void imodvMovieTimeout()
     a->mainWin->mTimer->stop();
   }
 }
-#endif
 
 
 // Dialog list manager
