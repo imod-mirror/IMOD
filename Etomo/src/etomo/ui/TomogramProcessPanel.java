@@ -24,6 +24,11 @@ import etomo.type.AxisID;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.1.2.2  2004/09/29 19:45:25  sueh
+ * <p> bug# 520 Created private variables that are cast from base-class
+ * <p> member variables during construction.  Moved status bar initiailization from
+ * <p> base class.
+ * <p>
  * <p> Revision 1.1.2.1  2004/09/08 20:14:27  sueh
  * <p> bug# 520 class contains tomogram specific functionality from
  * <p> AxisProcessPanel,
@@ -51,8 +56,6 @@ public class TomogramProcessPanel extends AxisProcessPanel {
   private ProcessControlPanel procCtlPostProcessing = new ProcessControlPanel(
       "Post-processing");
   
-  //variables cast from base class variables
-  //initialized in constructor
   private ApplicationManager applicationManager;
 
   /**
@@ -60,11 +63,19 @@ public class TomogramProcessPanel extends AxisProcessPanel {
    * @param axis
    */
   public TomogramProcessPanel(ApplicationManager appManager, AxisID axis) {
-    super(appManager, axis);
-    applicationManager = (ApplicationManager) manager;
+    super(axis);
+    applicationManager = appManager;
     //  Create the process control panel    
     createProcessControlPanel();
     initializePanels();
+  }
+  
+  /**
+   * 
+   * @param event
+   */
+  protected void buttonKillAction(ActionEvent event) {
+    applicationManager.kill(axisID);
   }
   
   /**
