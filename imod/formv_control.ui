@@ -13,7 +13,7 @@
         </rect>
     </property>
     <property name="caption">
-        <string>Form1</string>
+        <string>Imodv Controls</string>
     </property>
     <vbox>
         <property name="name">
@@ -1146,14 +1146,15 @@
     <include location="local" impldecl="in implementation">formv_control.ui.h</include>
 </includes>
 <variables>
-    <variable>bool mNearPressed</variable>
-    <variable>int mNearDisplayed</variable>
-    <variable>bool mFarPressed</variable>
-    <variable>int mFarDisplayed</variable>
-    <variable>bool mPerspectivePressed</variable>
-    <variable>int mPerspectiveDisplayed</variable>
-    <variable>bool mZscalePressed</variable>
+    <variable>bool mCtrlPressed</variable>
     <variable>int mZscaleDisplayed</variable>
+    <variable>bool mZscalePressed</variable>
+    <variable>int mPerspectiveDisplayed</variable>
+    <variable>bool mPerspectivePressed</variable>
+    <variable>int mFarDisplayed</variable>
+    <variable>bool mFarPressed</variable>
+    <variable>int mNearDisplayed</variable>
+    <variable>bool mNearPressed</variable>
 </variables>
 <slots>
     <slot>displayFarLabel( int value )</slot>
@@ -1195,6 +1196,8 @@
     <slot>perspectiveReleased()</slot>
     <slot>zScalePressed()</slot>
     <slot>init()</slot>
+    <slot>keyPressEvent( QKeyEvent * e )</slot>
+    <slot>keyReleaseEvent( QKeyEvent * e )</slot>
 </slots>
 <pixmapinproject/>
 <layoutdefaults spacing="6" margin="11"/>

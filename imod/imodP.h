@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.8.2.1  2002/12/05 16:29:02  mast
+    declare ioew_sgicolor_cb
+
     Revision 3.8  2002/12/01 15:34:41  mast
     Changes to get clean compilation with g++
 
@@ -454,7 +457,8 @@ int free_object_colors(Imod *m, int obstart, int obend);
 
 int handle_input(struct ViewInfo *vi);
 char *imodwfname(char *intro);
-char *imodwEithername(char *intro, char *filename);
+char *imodwEithername(char *intro, char *filein, int modelFirst);
+char *imodwGivenName(char *intro, char *filein);
 int imodMovie(struct ViewInfo *vi);
 void imod_imgcnt(char *string);
 char *ImodRes_SGIStereoCommand(void);
