@@ -19,6 +19,11 @@ import etomo.storage.Storable;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.2  2004/10/06 01:57:57  sueh
+* <p> bug# 520 Added Z max from header.  Added descriptions of the fields for
+* <p> invalidReason.  Added isValidForMakeSamples() - validate when Make
+* <p> Samples is pressed.
+* <p>
 * <p> Revision 1.1.2.1  2004/09/29 19:26:26  sueh
 * <p> bug# 520 Divided the SectionTable row into document and view.  This
 * <p> class is the const part of the document.  It implements Storable with
@@ -64,11 +69,28 @@ public abstract class ConstSectionTableRowData implements Storable {
   protected double rotationAngleZ;
   protected int zMax = Integer.MIN_VALUE;
   
-  protected StringBuffer invalidReason = null;
+  protected StringBuffer invalidReason;
   
   public abstract void load(Properties props);
   public abstract void load(Properties props, String prepend);
   
+  public String toString() {
+    return getClass().getName() + "[" + paramString() + "]";
+  }
+
+  protected String paramString() {
+    return ",\n" + rowNumberString + "=" + rowNumber + ",\n" + sectionString
+        + "=" + section + ",\n" + sampleBottomStartString + "="
+        + sampleBottomStart + ",\n" + sampleBottomEndString + "="
+        + sampleBottomEnd + ",\n" + sampleTopStartString + "=" + sampleTopStart
+        + ",\n" + sampleTopEndString + "=" + sampleTopEnd + ",\n"
+        + finalStartString + "=" + finalStart + ",\n" + finalEndString + "="
+        + finalEnd + ",\n" + rotationAngleXString + "=" + rotationAngleX
+        + ",\n" + rotationAngleYString + "=" + rotationAngleY + ",\n"
+        + rotationAngleZString + "=" + rotationAngleZ + ",\n" + zMaxString + "="
+        + zMax;
+  } 
+
   public boolean isValidForMakeSamples(int tableSize) {
     invalidReason = new StringBuffer("Row " + rowNumber + ":  ");
     if (section == null) {
