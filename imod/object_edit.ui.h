@@ -6,6 +6,7 @@
 ** a constructor, and a destroy() slot in place of a destructor.
 *****************************************************************************/
 
+// Respond to signals from the widgets
 void objectEditForm::helpPressed()
 {
     ioew_help();
@@ -26,14 +27,8 @@ void objectEditForm::OKPressed()
     ioew_quit();
 }
 
-void objectEditForm::radiusChanged()
+void objectEditForm::radiusChanged(int value)
 {
-    QString str = radiusEdit->text();
-    int value = atoi(str.latin1());
-    if  (value < 0)
-	value = 0;
-    str.sprintf("%d", value);
-    radiusEdit->setText(str);
     ioew_pointsize(value);
 }
 
@@ -77,13 +72,10 @@ void objectEditForm::toggledTime( bool state )
 
 void objectEditForm::widthChanged( int value )
 {
-    QString str;
-    str.sprintf("%d", value);
-    widthLabel->setText(str);
-    ioew_linewidth(value);
+     ioew_linewidth(value);
 }	
 
-
+// Set the state of the widgets initially or when a new object is selected
 void objectEditForm::setSymbolProperties( int which, bool fill, bool markEnds, int size )
 {
    symbolComboBox->setCurrentItem(which);
@@ -114,41 +106,30 @@ void objectEditForm::setTimeBox( bool state, bool enabled )
 
 void objectEditForm::setPointRadius( int value )
 {
-    QString str;
-    str.sprintf("%d", value);
-    radiusEdit->setText(str);
+    diaSetSpinBox(radiusSpinBox, value);
 }
 
 void objectEditForm::setFrontSurface( int value )
 {
-    surfaceButtonGroup->blockSignals(true);
-    surfaceButtonGroup->setButton(value);
-    surfaceButtonGroup->blockSignals(false);   
+    diaSetGroup(surfaceButtonGroup, value);
 }
 
 void objectEditForm::setObjectType( int value )
 {
-    typeButtonGroup->blockSignals(true);
-    typeButtonGroup->setButton(value);
-    typeButtonGroup->blockSignals(false);   
+    diaSetGroup(typeButtonGroup, value);
 }
-
 
 void objectEditForm::setLineWidth( int value )
 {
-    diaSetSlider(widthSlider, value);
-    QString str;
-    str.sprintf("%d", value);
-    widthLabel->setText(str);
+    diaSetSpinBox(widthSpinBox, value);
 }
 
-
+// Handle close event; pass on keypress
 void objectEditForm::closeEvent( QCloseEvent *e )
 {
     ioew_closing();
     e->accept();
 }
-
 
 void objectEditForm::keyPressEvent( QKeyEvent * e )
 {
