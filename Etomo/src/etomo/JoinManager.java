@@ -38,6 +38,11 @@ import etomo.ui.MainPanel;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.14  2004/10/14 03:24:33  sueh
+* <p> bug# 520 Added open join samples in Imod.  Using the Make Samples as
+* <p> a signal somewhat like exiting Setup successfully.  In this case I only
+* <p> need to call imodManager.setMetaData and enable the other join tabs.
+* <p>
 * <p> Revision 1.1.2.13  2004/10/14 02:26:38  sueh
 * <p> bug# 520 Added setWorkingDir() to set the propertyUserDir.
 * <p>
@@ -174,6 +179,24 @@ public class JoinManager extends BaseManager {
       except.printStackTrace();
       mainPanel.openMessageDialog(except.getMessage(),
         "Can't open " + ImodManager.JOIN_SAMPLES_KEY + " 3dmod ");
+    }
+  }
+  
+  /**
+   * Open 3dmod to view join samples
+   */
+  public void imodOpenJoinSampleAverages() {
+    try {
+      imodManager.open(ImodManager.JOIN_SAMPLE_AVERAGES_KEY);
+    }
+    catch (AxisTypeException except) {
+      except.printStackTrace();
+      mainPanel.openMessageDialog(except.getMessage(), "AxisType problem");
+    }
+    catch (SystemProcessException except) {
+      except.printStackTrace();
+      mainPanel.openMessageDialog(except.getMessage(),
+        "Can't open " + ImodManager.JOIN_SAMPLE_AVERAGES_KEY + " 3dmod ");
     }
   }
 
