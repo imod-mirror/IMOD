@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.4  2002/12/18 04:15:14  mast
+new includes for imodv modules
+
 Revision 1.1.2.3  2002/12/17 22:28:21  mast
 cleanup of unused variables and SGI errors
 
@@ -84,16 +87,11 @@ Changes to get clean compilation with g++
 
 static void stereoInitl(void);
 static void stereoSetUp(void);
-
-void stereoInit(int usingStereoVisual, 
+static void stereoInit(int usingStereoVisual, 
                 char *stereoCmd, char *restoreCmd);
-void stereoEnable(void);
-void stereoDisable(void);
-void stereoDrawBuffer(GLenum mode);
-void stereoClear(GLbitfield mask);
-void stereoMakeCurrent(Display *dpy, Window win, GLXContext ctx);
-void stereoDone(void);
-     
+static void stereoEnable(void);
+static void stereoDisable(void);
+static void stereoDone(void);
      
 
 struct{
@@ -592,14 +590,14 @@ static Widget mkWorkArea(ImodvApp *a, Widget top)
 
 #ifdef __sgi
 
-      if (a->standalone){ 
+      // if (a->standalone){ 
         imodvStereoData.wlist[4] = XtVaCreateManagedWidget
           ("Hardware", xmPushButtonWidgetClass, 
            menuWidget, NULL);
         XtAddCallback( imodvStereoData.wlist[4], 
                        XmNactivateCallback,
                        stereo_cb, (XtPointer)IMODV_STEREO_HW);
-      } 
+	//} 
 #endif
 
 #else
