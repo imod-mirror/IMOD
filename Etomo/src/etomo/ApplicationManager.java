@@ -6,8 +6,6 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.Iterator;
-import java.util.Vector;
 import etomo.comscript.BadComScriptException;
 import etomo.comscript.BeadtrackParam;
 import etomo.comscript.CCDEraserParam;
@@ -33,7 +31,6 @@ import etomo.comscript.TransferfidParam;
 import etomo.comscript.TrimvolParam;
 import etomo.comscript.XfproductParam;
 import etomo.process.ImodManager;
-import etomo.process.ImodProcess;
 import etomo.process.ProcessManager;
 import etomo.process.ProcessState;
 import etomo.process.SystemProcessException;
@@ -82,6 +79,11 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.101.2.13  2004/10/29 01:15:02  sueh
+ * <p> bug# 520 Removing unecessary functions that provided services to
+ * <p> BaseManager.  BaseManager can use get... functions to get the
+ * <p> mainPanel, metaData, and processTrack.
+ * <p>
  * <p> Revision 3.101.2.12  2004/10/21 17:48:01  sueh
  * <p> bug# 520 Fixed status bar by called updateDataParameters when opening
  * <p> the processing panel.
@@ -4700,54 +4702,6 @@ public class ApplicationManager extends BaseManager {
       except.printStackTrace();
       mainPanel.openMessageDialog(except.getMessage(), "AxisType problem");
     }
-  }
-
-  public Vector imodGetRubberbandCoordinates(String imodKey) {
-    Vector results = null;
-    try {
-      results = imodManager.getRubberbandCoordinates(imodKey);
-    }
-    catch (AxisTypeException except) {
-      except.printStackTrace();
-      mainPanel.openMessageDialog(except.getMessage(), "AxisType problem");
-    }
-    catch (SystemProcessException except) {
-      except.printStackTrace();
-      mainPanel.openMessageDialog(except.getMessage(),
-        "Unable to retrieve rubberband coordinates from " + imodKey + ".");
-    }
-    Vector messageArray = new Vector();
-    if (results == null) {
-      messageArray.add("Unable to retrieve rubberband coordinates from "
-        + imodKey + ".");
-      return null;
-    }
-    else {
-      boolean success = false;
-      String result = null;
-      Iterator i = results.iterator();
-      while (i.hasNext()) {
-        result = (String) i.next();
-        if (result.indexOf(ImodProcess.IMOD_SEND_EVENT_STRING) != -1
-          || result.indexOf(ImodProcess.ERROR_STRING) != -1
-          || result.indexOf(ImodProcess.WARNING_STRING) != -1) {
-          messageArray.add(result);
-          i.remove();
-        }
-        if (result.indexOf(ImodProcess.RUBBERBAND_RESULTS_STRING) != -1) {
-          success = true;
-        }
-      }
-      if (!success) {
-        messageArray.add("Unable to retrieve rubberband coordinates from "
-          + imodKey + ".");
-      }
-    }
-    if (messageArray.size() > 0) {
-      String[] messages = (String[]) messageArray.toArray(new String[messageArray.size()]);
-      mainPanel.openMessageDialog(messages, "Rubberband Coordinates");
-    }
-    return results;
   }
 
   /**
