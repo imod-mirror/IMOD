@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.8.2.15  2003/01/18 01:06:34  mast
+    remove imod_cachefill declarations
+
     Revision 3.8.2.14  2003/01/14 21:43:17  mast
     changes for Qt versions of autox and imod_moviecon
 
@@ -115,7 +118,6 @@
 #include <dia.h>
 #include "b3dgfx.h"
 #include "autox.h"
-#include "imod_io.h"
 
 /* DNM 12/22/02: eliminated multiple view structures */
 typedef struct imod_application
@@ -253,6 +255,7 @@ typedef struct ViewInfo
      int    obj_moveto;  /* default object to move contour to. */
      int    ghostmode;
      int    ghostlast;   /* last value of mode, when toggled by g */
+     int    ghostdist;    /* Maximum distance for ghosts */
      int    insertmode;  /* insert points before/after current point. */
      int    fastdraw;    
      int    drawcursor;
@@ -280,8 +283,6 @@ typedef struct ViewInfo
 /* Global Variables */
 extern struct Mod_Model *Model;
 extern char   Imod_filename[256];
-
-extern struct ViewInfo *Tilt_vi;
 
 extern int ImodTrans;
 extern int Imod_debug;
@@ -416,14 +417,6 @@ char *ImodRes_SGIStereoCommand(void);
 char *ImodRes_SGIRestoreCommand(void);
 
 
-void imodImageScaleDialog(ImodView *iv);
-void imodImageScaleUpdate(ImodView *iv);
-
-/* imod_model_edit.c */
-int openModelEdit(ImodView *vw);
-int openModelOffset(ImodView *vw);
-void setPixsizeAndUnits(Imod *imod, char *string);
-
 /* imod_edit.c */
 int imod_setxyzmouse(void);
 void imod_contour_move(int ob);
@@ -437,19 +430,10 @@ int imod_obj_nearest(struct Mod_Object *obj,
 /* imod_model_draw.c */
 void imodDrawModel(Imod *imod);
 
-/* imod_cont_copy.c dialog */
-int openContourCopyDialog(ImodView *vw);
-
-/* image process dialog. */
-int inputIProcOpen(ImodView *vw);
-int iprocRethink(ImodView *vw);
-
 
 #ifdef __cplusplus
 }
 #endif
-
-#include "imod_input.h" 
 
 #endif     
 
