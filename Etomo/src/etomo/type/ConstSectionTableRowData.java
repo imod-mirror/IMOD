@@ -19,6 +19,11 @@ import etomo.storage.Storable;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.8  2004/10/25 23:01:37  sueh
+* <p> bug# 520 Fixed chunk size by passing the number of rows to
+* <p> ConstJoinMetaData.getChunkSize and checking the rowNumber when
+* <p> calculating chunk size.  Added xmax and ymax from header.
+* <p>
 * <p> Revision 1.1.2.7  2004/10/22 21:03:21  sueh
 * <p> bug# 520 Simplifying by passing EtomoSimpleType instead of String and
 * <p> int in get functions.  Removed validation.  Converted ints to
@@ -135,6 +140,26 @@ public abstract class ConstSectionTableRowData implements Storable {
     props.setProperty(group + rotationAngleYString, Double.toString(rotationAngleY));
     props.setProperty(group + rotationAngleZString, Double.toString(rotationAngleZ));
   }
+  
+  void remove(Properties props, String prepend) {
+    prepend = createPrepend(prepend);
+    String group = prepend + ".";
+    rowNumber.store(props, prepend);
+    xMax.remove(props, prepend);
+    yMax.remove(props, prepend);
+    props.remove(group + zMaxString);
+    props.remove(group + sectionString);  
+    sampleBottomStart.remove(props, prepend);
+    sampleBottomEnd.remove(props, prepend);
+    sampleTopStart.remove(props, prepend);
+    sampleTopEnd.remove(props, prepend);
+    props.remove(group + finalStartString);
+    props.remove(group + finalEndString);
+    props.remove(group + rotationAngleXString);
+    props.remove(group + rotationAngleYString);
+    props.remove(group + rotationAngleZString);
+  }
+
   
   protected String createPrepend(String prepend) {
     if (prepend == "") {
