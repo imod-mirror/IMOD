@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.3  2003/01/06 18:59:19  mast
+cleanup and reorganization
+
 Revision 1.1.2.2  2003/01/06 15:47:55  mast
 Qt version
 
@@ -1005,7 +1008,6 @@ static void fillImageArray(SlicerStruct *ss)
   int crossget, crosswant;
   Ipoint pnt, tpnt;
   Imat *mat = ss->mat;
-  int ifill, jfill, deli, delj, joffset, yoffset;
   int izoom, shortcut, ilimshort, jlimshort, ishort;
 
   int cindex;
@@ -1200,7 +1202,7 @@ static void fillImageArray(SlicerStruct *ss)
   ss->zo = zo;
 
   /* Adjust for multiple slices */
-		xo -= zoffset * xsz;
+  xo -= zoffset * xsz;
   yo -= zoffset * ysz;
   zo -= zoffset * zsz;
   xzo = xo; yzo = yo; zzo = zo;
@@ -1321,124 +1323,10 @@ static void fillImageArray(SlicerStruct *ss)
 
   if (shortcut) {
 
-    minval *= ss->nslice;
-    maxval *= ss->nslice;
-    /* Quadratic interpolation code */
-    /*
-      for (jfill = 0; jfill < izoom; jfill++) {
-      dy = jfill / zoom;
-      delj = -jfill;
-      if (dy > 0.5) {
-      dy = dy - 1.0;
-      delj = izoom - jfill;
-      }
-      ifill = 0;
-      if (jfill == 0)
-      ifill = 1;
-      for (; ifill < izoom; ifill++) {
-      dx = ifill / zoom;
-      deli = -ifill;
-      if (dx > 0.5) {
-      dx = dx - 1.0;
-      deli = izoom - ifill;
-      }
-
-      for (j = izoom + jfill; j < jlimshort; j += izoom) {
-      joffset = j * ss->winx;
-      yi = j + delj;
-      yoffset = yi * ss->winx;
-      nyoffset = (yi + izoom) * ss->winx;
-      pyoffset = (yi - izoom) * ss->winx;
-
-      for (i = izoom + ifill; i < ilimshort; i += izoom) {
-      xi = i + deli;
-      cval = cidata[xi + yoffset];
-      x1 = cidata[xi - izoom + yoffset];
-      x2 = cidata[xi + izoom + yoffset];
-      y1 = cidata[xi  + pyoffset];
-      y2 = cidata[xi  + nyoffset];
-                         
-      a = (x1 + x2) * 0.5f - cval;
-      b = (y1 + y2) * 0.5f - cval;
-      c = (x2 - x1) * 0.5f;
-      d = (y2 - y1) * 0.5f;
-                         
-      ival = (a * dx * dx) + (b * dy * dy) +
-      (c * dx) + (d * dy) + cval;
-      if (ival > maxval)
-      ival = maxval;
-      if (ival < minval)
-      ival = minval;
-      cidata[i + joffset] = ival + 0.5f;
-
-      }
-      }
-      }
-      }
-    */
-
-    /* cubic convolution interpolation looks much better at high zoom */
-
-    for (jfill = 0; jfill < izoom; jfill++) {
-      int xn, xn2, xp, ynoffset, yn2offset, ypoffset;
-      float dysq, dycub, fyp, fy, fyn, fyn2;
-      float dxsq, dxcub, fxp, fx, fxn, fxn2;
-      float yp, y0, yn, yn2;
-      dy = jfill / zoom;
-      delj = -jfill;
-      ifill = 0;
-      dysq = dy * dy;
-      dycub = dy * dysq;
-      fyp = 2 * dysq - dycub - dy;
-      fy = 1 + dycub - 2 * dysq;
-      fyn = dy + dysq - dycub;
-      fyn2 = dycub - dysq;
-      if (jfill == 0)
-        ifill = 1;
-      for (; ifill < izoom; ifill++) {
-        dx = ifill / zoom;
-        deli = -ifill;
-        dxsq = dx * dx;
-        dxcub = dx * dxsq;
-        fxp = 2 * dxsq - dxcub - dx;
-        fx = 1 + dxcub - 2 * dxsq;
-        fxn = dx + dxsq - dxcub;
-        fxn2 = dxcub - dxsq;
-
-        for (j = izoom + jfill; j < jlimshort; j += izoom) {
-          joffset = j * ss->winx;
-          yi = j + delj;
-          yoffset = yi * ss->winx;
-          ynoffset = (yi + izoom) * ss->winx;
-          yn2offset = (yi + 2 * izoom) * ss->winx;
-          ypoffset = (yi - izoom) * ss->winx;
-
-          for (i = izoom + ifill; i < ilimshort; i += izoom) {
-            xi = i + deli;
-            xn = xi + izoom;
-            xn2 = xn + izoom;
-            xp = xi - izoom;
-            yp = fxp * cidata[xp + ypoffset] + fx * cidata[xi + ypoffset] +
-              fxn * cidata[xn + ypoffset] + fxn2 * cidata[xn2 + ypoffset];
-            y0 = fxp * cidata[xp + yoffset] + fx * cidata[xi + yoffset] +
-              fxn * cidata[xn + yoffset] + fxn2 * cidata[xn2 + yoffset];
-            yn = fxp * cidata[xp + ynoffset] + fx * cidata[xi + ynoffset] +
-              fxn * cidata[xn + ynoffset] + fxn2 * cidata[xn2 + ynoffset];
-            yn2 = fxp * cidata[xp + yn2offset] + fx * cidata[xi + yn2offset] +
-              fxn * cidata[xn + yn2offset] + fxn2 * cidata[xn2 + yn2offset];
-            ival = fyp * yp + fy * y0 + fyn * yn + fyn2 * yn2;
-                         
-            if (ival > maxval)
-              ival = maxval;
-            if (ival < minval)
-              ival = minval;
-            cidata[i + joffset] = (unsigned short)(ival + 0.5f);
-
-          }
-        }
-      }
-    }
-
+    /* DNM 1/9/03: deleted quadratic interpolation code, turned cubic code
+       into a routine that can be used by tumbler */
+    slicerCubicFillin(cidata, ss->winx, ss->winy, izoom, ilimshort, jlimshort,
+		      minval * ss->nslice, maxval * ss->nslice);
   }
 
   cindex = ss->image->width * ss->image->height;
@@ -1507,6 +1395,80 @@ static void fillImageArray(SlicerStruct *ss)
     free(vmdataxsize);
   return;
 }
+
+/* cubic convolution interpolation looks much better at high zoom : use it
+ to fill in array created by shortcut */
+
+void slicerCubicFillin(unsigned short *cidata, int winx, int winy, int izoom,
+		       int ilimshort, int jlimshort, int minval, int maxval)
+{
+  int ifill, jfill, deli, delj, joffset, yoffset;
+  int xn, xn2, xp, ynoffset, yn2offset, ypoffset;
+  int i, j, xi, yi;
+  float dysq, dycub, fyp, fy, fyn, fyn2;
+  float dxsq, dxcub, fxp, fx, fxn, fxn2;
+  float yp, y0, yn, yn2;
+  float dx, dy, ival;
+  float zoom = (float)izoom;
+  unsigned short oldval;
+
+  for (jfill = 0; jfill < izoom; jfill++) {
+    dy = jfill / zoom;
+    delj = -jfill;
+    ifill = 0;
+    dysq = dy * dy;
+    dycub = dy * dysq;
+    fyp = 2 * dysq - dycub - dy;
+    fy = 1 + dycub - 2 * dysq;
+    fyn = dy + dysq - dycub;
+    fyn2 = dycub - dysq;
+    if (jfill == 0)
+      ifill = 1;
+    for (; ifill < izoom; ifill++) {
+      dx = ifill / zoom;
+      deli = -ifill;
+      dxsq = dx * dx;
+      dxcub = dx * dxsq;
+      fxp = 2 * dxsq - dxcub - dx;
+      fx = 1 + dxcub - 2 * dxsq;
+      fxn = dx + dxsq - dxcub;
+      fxn2 = dxcub - dxsq;
+
+      for (j = izoom + jfill; j < jlimshort; j += izoom) {
+	joffset = j * winx;
+	yi = j + delj;
+	yoffset = yi * winx;
+	ynoffset = (yi + izoom) * winx;
+	yn2offset = (yi + 2 * izoom) * winx;
+	ypoffset = (yi - izoom) * winx;
+
+	for (i = izoom + ifill; i < ilimshort; i += izoom) {
+	  xi = i + deli;
+	  xn = xi + izoom;
+	  xn2 = xn + izoom;
+	  xp = xi - izoom;
+	  yp = fxp * cidata[xp + ypoffset] + fx * cidata[xi + ypoffset] +
+	    fxn * cidata[xn + ypoffset] + fxn2 * cidata[xn2 + ypoffset];
+	  y0 = fxp * cidata[xp + yoffset] + fx * cidata[xi + yoffset] +
+	    fxn * cidata[xn + yoffset] + fxn2 * cidata[xn2 + yoffset];
+	  yn = fxp * cidata[xp + ynoffset] + fx * cidata[xi + ynoffset] +
+	    fxn * cidata[xn + ynoffset] + fxn2 * cidata[xn2 + ynoffset];
+	  yn2 = fxp * cidata[xp + yn2offset] + fx * cidata[xi + yn2offset] +
+	    fxn * cidata[xn + yn2offset] + fxn2 * cidata[xn2 + yn2offset];
+	  ival = fyp * yp + fy * y0 + fyn * yn + fyn2 * yn2;
+                         
+	  if (ival > maxval)
+	    ival = maxval;
+	  if (ival < minval)
+	    ival = minval;
+	  oldval = cidata[i + joffset];
+	  cidata[i + joffset] = (unsigned short)(ival + 0.5f);
+	}
+      }
+    }
+  }
+}
+
 
 /*
  * GfX resize Events:

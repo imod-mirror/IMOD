@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.2.2.1  2003/01/06 15:48:11  mast
+    Qt version
+
     Revision 3.2  2002/12/01 15:34:41  mast
     Changes to get clean compilation with g++
 
@@ -55,6 +58,9 @@
 class SlicerWindow;
 class SlicerGL;
 class SlicerCube;
+class QKeyEvent;
+class QMouseEvent;
+
 struct ViewInfo;
 typedef struct b3d_ci_image B3dCIImage;
 typedef struct imodel_matrix Imat;
@@ -116,6 +122,8 @@ typedef struct Super_slicer{
      int   ctrl;
 } SlicerStruct;     
 
+void slicerCubicFillin(unsigned short *cidata, int winx, int winy, int izoom,
+		  int ilimshort, int jlimshort, int minval, int maxval);
 int sslice_open(struct ViewInfo *vi);
 void slicerHelp();
 void slicerStepZoom(SlicerStruct *win, int dir);
