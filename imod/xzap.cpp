@@ -35,6 +35,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.17  2003/01/29 01:49:33  mast
+changes for colormap mode, fix closing calls to ivwControl
+
 Revision 1.1.2.16  2003/01/27 00:30:07  mast
 Pure Qt version and general cleanup
 
@@ -123,11 +126,6 @@ Added hotkeys to do smoothing and next section in autocontouring
 #include <qtimer.h>
 #include "zap_classes.h"
 
-#ifdef REPORT_TIMES
-#include <sys/times.h>
-#include <time.h>
-#endif
-
 #include "imod.h"
 #include "imod_display.h"
 #include "b3dgfx.h"
@@ -149,8 +147,7 @@ Added hotkeys to do smoothing and next section in autocontouring
 static void zapDraw_cb(ImodView *vi, void *client, int drawflag);
 static void zapClose_cb(ImodView *vi, void *client, int drawflag);
 static void zapKey_cb(ImodView *vi, void *client, int released, QKeyEvent *e);
-static int zapDraw(ZapStruct *zap);
-static int zapReallyDraw(ZapStruct *zap);
+static void zapDraw(ZapStruct *zap);
 static void zapButton1(struct zapwin *zap, int x, int y);
 static void zapButton2(struct zapwin *zap, int x, int y);
 static void zapButton3(struct zapwin *zap, int x, int y, int controlDown);
@@ -158,7 +155,7 @@ static void zapB1Drag(struct zapwin *zap, int x, int y);
 static void zapB2Drag(struct zapwin *zap, int x, int y);
 static void zapB3Drag(struct zapwin *zap, int x, int y, int controlDown);
 
-static int  zapDrawGraphics(ZapStruct *zap);
+static void zapDrawGraphics(ZapStruct *zap);
 static void zapDrawModel(ZapStruct *zap);
 static void zapDrawContour(ZapStruct *zap, int co, int ob);
 static void zapDrawCurrentContour(ZapStruct *zap, int co, int ob);
@@ -185,7 +182,7 @@ static int movieSnapLock = 0;
 static QTime insertTime;
 static QTime but1downt;
 
-static int zapDebug = 1;
+static int zapDebug = 0;
 
 void zapHelp()
 {
@@ -409,10 +406,8 @@ void zapDraw_cb(ImodView *vi, void *client, int drawflag)
     if (!(drawflag & IMOD_DRAW_ACTIVE) && !(drawflag & IMOD_DRAW_NOSYNC))
       zapSyncImage(zap);
 
-    /* DNM: replace multiple calls with one call to internal drawing 
-       routine */
-    if (zapDraw(zap))
-      return;
+    /* DNM 1/29/03: no more worry about multiple calls */
+    zapDraw(zap);
 
     /* DNM 3/8/01: add autosnapshot when movieing */
     if (imcGetSnapshot(zap->vi) && zap->vi->zmovie && 
@@ -521,77 +516,6 @@ static void zapSyncImage(ZapStruct *win)
   }
 }
 
-static int drawRetval;
-
-static int zapDraw(ZapStruct *zap)
-{
-  drawRetval = 0;
-  zap->gfx->updateGL();
-  return drawRetval;
-}
-
-
-// This is the central drawing routine
-/* DNM 6/22/01: change it to return int so that it can return 1 if no drawing
-   is done, to avoid double snapshots */
-static int zapReallyDraw(ZapStruct *zap)
-{
-  int ob;
-  drawRetval = 0;
-
-  /* DNM 9/10/02: skip a draw if expose timeout is active or a resize
-     was started and not finished yet */
-#ifdef ZAP_EXPOSE_HACK
-  if (zap->exposeTimeOut || zap->resizeSkipDraw) {
-    if (zapDebug)
-      fprintf(stderr, "Skipping a draw because of expose timeout\n");
-    return 0;
-  }
-#endif
-
-  zap->gfx->makeCurrent();
-  b3dSetCurSize(zap->winx, zap->winy);
-
-  /* But this wait is also needed to prevent the crashes */
-  //glXWaitX();
-  zapAutoTranslate(zap);
-
-  // If the current only flag is set, swap the displayed buffer into the
-  // drawing buffer and just draw the current contour
-  if (zap->drawCurrentOnly > 0) {
-    if (App->doublebuffer)
-      zap->gfx->swapBuffers();
-    ob = zap->vi->imod->cindex.object;
-    imodSetObjectColor(ob); 
-    b3dLineWidth(zap->vi->imod->obj[ob].linewidth2); 
-    zapDrawCurrentContour(zap, zap->vi->imod->cindex.contour, ob);
-    zap->drawCurrentOnly = -1;
-    return 0;
-  }
-  
-  zap->drawCurrentOnly = 0;
-
-  /* DNM: this call returns 1 if further drawing can be skipped */
-  if (zapDrawGraphics(zap)) {
-    drawRetval = 1;
-    return 1;
-  }
-
-  zapDrawModel(zap);
-  zapDrawCurrentPoint(zap, 0);
-  zapDrawAuto(zap);
-  if (zap->rubberband) {
-    b3dColorIndex(App->endpoint);
-    b3dDrawRectangle(zap->bandllx, zap->winy - 1 - zap->bandury, 
-                     zap->bandurx - zap->bandllx, 
-                     zap->bandury - zap->bandlly);
-  } 
-  zapDrawTools(zap);
-
-  return 0;
-}
-
-
 
 // This receives the resize events which precede paint signals
 void zapResize(ZapStruct *zap, int winx, int winy)
@@ -602,14 +526,6 @@ void zapResize(ZapStruct *zap, int winx, int winy)
 
   if (zapDebug)
     fprintf(stderr, "RESIZE: ");
-
-  /* DNM 8/10/01: Needed on RH 7.1/GeForce3 to prevent garbage */
-#ifdef ZAP_RESIZE_HACK
-  zap->resizedraw2x = 1;
-#endif
-#ifdef ZAP_EXPOSE_HACK
-  zap->resizeSkipDraw = 1;
-#endif
 
   if (zapDebug) {
     fprintf(stderr, "Size = %d x %d :", winx, winy);
@@ -652,13 +568,6 @@ void zapResize(ZapStruct *zap, int winx, int winy)
   }
 
   b3dResizeViewportXY(winx, winy);
-  /*  glViewport((GLint)0, (GLint)0, (GLsizei)winx, (GLsizei)winy);
-  glMatrixMode(GL_PROJECTION);
-  glLoadIdentity();
-
-  glOrtho(0.0 , (GLdouble)winx, 0.0, (GLdouble)winy, 0.5, -0.5);
-  glMatrixMode(GL_MODELVIEW);
-  glLoadIdentity(); */
 
   zap->image =  b3dGetNewCIImage(zap->image, App->depth);
   b3dBufferImage(zap->image);
@@ -670,73 +579,53 @@ void zapResize(ZapStruct *zap, int winx, int winy)
 }
 
 
+/* 1/29/03: removed the resize and expose hack code and the report time code */
 
-/* DNM 9/10/02: when the time out ends after the last expose event, finally 
-   do the draws */
-#ifdef ZAP_EXPOSE_HACK
-void expose_to(XtPointer client_data, XtIntervalId *id)
+// This is the central drawing routine
+static void zapDraw(ZapStruct *zap)
 {
-  ZapStruct *zap = (ZapStruct *)client_data;
-  zap->exposeTimeOut = (XtIntervalId)0;
-  zap->resizeSkipDraw = 0;
-  if (zapDebug) {
-    fprintf(stderr, "Drawing after expose timeout\n");
-  }
-  zapDraw(zap);
-  if (zap->resizedraw2x)
-    zapDraw(zap);
-  zap->resizedraw2x = 0;
+  zap->gfx->updateGL();
 }
-#endif     
-
 
 // This receives the paint events generated by the window manager
 void zapPaint(ZapStruct *zap)
 {
-  
-#ifdef REPORT_TIMES
-  static clock_t lasttime, thistime;
-  struct tms buf;
-  float elapsed;
-#endif
-  unsigned int interval = 120;    /* The value from midas - could be less */
-
+  int ob;
   if (zapDebug)
     fprintf(stderr, "Paint:");
 
-#ifdef REPORT_TIMES
-  thistime = times(&buf);
-  elapsed = 1000.*(float)(thistime - lasttime) / CLK_TCK;
-  printf ("%6.1f\n", elapsed);
-  lasttime = thistime;
-#endif
+  b3dSetCurSize(zap->winx, zap->winy);
 
-  /* DNM 9/10/02: start a timeout after every expose event to avoid crashes
-     with GeForce4 Ti4600 - possibly due to collisions with X's redraw of
-     the window */
-#ifndef ZAP_EXPOSE_HACK
-  zapReallyDraw(zap);
-  if (zap->resizedraw2x) {
-    if (zapDebug) {
-      fprintf(stderr, "Drawing twice: ");
-    }
-    //zapReallyDraw(zap);
-    zap->qtWindow->mTimer->start(0, false);
-  }    
-  zap->resizedraw2x = 0;
-#else
-  if (zap->exposeTimeOut) {
-    XtRemoveTimeOut(zap->exposeTimeOut);
-    if (zapDebug)
-      fprintf(stderr, "Restarting expose timeout for %d", interval);
-  } else {
-    if (zapDebug)
-      fprintf(stderr, "Starting an expose timeout for %d", interval);
+  zapAutoTranslate(zap);
+
+  // If the current only flag is set, swap the displayed buffer into the
+  // drawing buffer and just draw the current contour
+  if (zap->drawCurrentOnly > 0) {
+    if (App->doublebuffer)
+      zap->gfx->swapBuffers();
+    ob = zap->vi->imod->cindex.object;
+    imodSetObjectColor(ob); 
+    b3dLineWidth(zap->vi->imod->obj[ob].linewidth2); 
+    zapDrawCurrentContour(zap, zap->vi->imod->cindex.contour, ob);
+    zap->drawCurrentOnly = -1;
+    return;
   }
-  zap->exposeTimeOut = XtAppAddTimeOut(Dia_context, interval, 
-                                       expose_to, (XtPointer)zap);
-#endif
+  
+  zap->drawCurrentOnly = 0;
 
+  /* DNM 1/29/03: no more skipping of further drawing */
+  zapDrawGraphics(zap);
+
+  zapDrawModel(zap);
+  zapDrawCurrentPoint(zap, 0);
+  zapDrawAuto(zap);
+  if (zap->rubberband) {
+    b3dColorIndex(App->endpoint);
+    b3dDrawRectangle(zap->bandllx, zap->winy - 1 - zap->bandury, 
+                     zap->bandurx - zap->bandllx, 
+                     zap->bandury - zap->bandlly);
+  } 
+  zapDrawTools(zap);
   if (zapDebug)
     fprintf(stderr, "\n");
 }
@@ -888,14 +777,8 @@ int imod_zap_open(struct ViewInfo *vi)
   zap->mousemode = 0;
   zap->rubberband = 0;
   zap->movieSnapCount = 0;
-  zap->resizedraw2x = 0;
-#ifdef ZAP_EXPOSE_HACK
-  zap->exposeTimeOut = (XtIntervalId)0;
-#endif
-  zap->resizeSkipDraw = 0;
   zap->drawCurrentOnly = 0;
 
-  //  imod_info_input();
   needWinx = zap->winx;
   needWiny = zap->winy;
 
@@ -936,10 +819,7 @@ int imod_zap_open(struct ViewInfo *vi)
   zap->ctrl = ivwNewControl(vi, zapDraw_cb, zapClose_cb, zapKey_cb,
                             (void *)zap);
 
-  /* DNM: this is the second call to this, which caused hanging when 
-     imod_info_input tested on all events but dispatched only X events.
-     With dispatching of all events, the call can be left here. */
-  /* 1/28/03: the call is needed to get the toolbar size hint right */
+  /* 1/28/03: this call is needed to get the toolbar size hint right */
   imod_info_input();
 
   // Manage the size and position of the window
@@ -1613,7 +1493,6 @@ void zapButton2(ZapStruct *zap, int x, int y)
         vi->zmouse = vi->zsize - 1;
                
       imodDraw(vi, IMOD_DRAW_MOD | IMOD_DRAW_XYZ);
-      imod_info_setocp();
     } else
       imodDraw(vi, IMOD_DRAW_MOD | IMOD_DRAW_XYZ | IMOD_DRAW_NOSYNC);
       
@@ -1657,7 +1536,6 @@ static void zapDelUnderCursor(ZapStruct *zap, int x, int y, Icont *cont)
   if (!deleted)
     return;
   imodDraw(zap->vi, IMOD_DRAW_XYZ | IMOD_DRAW_MOD );
-  imod_info_setocp();
 }
 
 /* In model mode, modify current point; otherwise run movie */
@@ -2127,7 +2005,7 @@ static void zapResizeToFit(ZapStruct *zap)
 static int doingBWfloat = 0;
 
 /* Draws the image.  Returns 1 if further drawing can be skipped */
-static int zapDrawGraphics(ZapStruct *zap)
+static void zapDrawGraphics(ZapStruct *zap)
 {
   ImodView *vi = zap->vi;
   unsigned char *pixptr;
@@ -2138,7 +2016,6 @@ static int zapDrawGraphics(ZapStruct *zap)
   int time;
   int xz, yz;
   unsigned char *imageData;
-  int skipDraw = 0;
 
   ivwGetLocation(vi, &x, &y, &z);
 
@@ -2165,7 +2042,6 @@ static int zapDrawGraphics(ZapStruct *zap)
       b3dFlushImage(zap->image);
       zap->time = time;
     }
-    fprintf(stderr, "Getting imageData for %d\n", zap->section);
     imageData = ivwGetZSection(vi, zap->section);
   }
 
@@ -2173,31 +2049,26 @@ static int zapDrawGraphics(ZapStruct *zap)
      being called, so that it won't be called again when it initiates a
      redraw.  If a redraw actually occurred, set the flag to skip drawing
      on the rest of this invocation and in the rest of zapdraw */
-  if(!doingBWfloat) {
+  /*  if(!doingBWfloat) {
     doingBWfloat = 1;
     if (imod_info_bwfloat(vi, zap->section, time) && App->rgba)
       skipDraw = 1;
     doingBWfloat = 0;
-  }
+    } */
 
-  if (!skipDraw) {
 
-    b3dDrawBoxout(zap->xborder, zap->yborder, 
-                  zap->xborder + (int)(zap->xdrawsize * zap->zoom),
-                  zap->yborder + (int)(zap->ydrawsize * zap->zoom));
-    fprintf(stderr, "calling draw for %d\n", zap->section);
-    b3dDrawGreyScalePixelsHQ(imageData,
-                             vi->xsize, vi->ysize,
-                             zap->xstart, zap->ystart,
-                             zap->xborder, zap->yborder,
-                             zap->xdrawsize, zap->ydrawsize,
-                             zap->image,
-                             vi->rampbase, 
-                             zap->zoom, zap->zoom,
-                             zap->hqgfx, zap->section);
-  }
-
-  return(skipDraw);
+  b3dDrawBoxout(zap->xborder, zap->yborder, 
+		zap->xborder + (int)(zap->xdrawsize * zap->zoom),
+		zap->yborder + (int)(zap->ydrawsize * zap->zoom));
+  b3dDrawGreyScalePixelsHQ(imageData,
+			   vi->xsize, vi->ysize,
+			   zap->xstart, zap->ystart,
+			   zap->xborder, zap->yborder,
+			   zap->xdrawsize, zap->ydrawsize,
+			   zap->image,
+			   vi->rampbase, 
+			   zap->zoom, zap->zoom,
+			   zap->hqgfx, zap->section);
 }
 
 static void zapDrawModel(ZapStruct *zap)
