@@ -27,13 +27,16 @@
  *****************************************************************************/
 /*  $Author$
 
-    $Date$
+$Date$
 
-    $Revision$
+$Revision$
 
-    $Log$
-    Revision 3.1  2002/01/28 16:54:55  mast
-    Added structure elements for new enhancements
+$Log$
+Revision 3.2  2002/11/25 19:22:16  mast
+Added a structure element for control id
+
+Revision 3.1  2002/01/28 16:54:55  mast
+Added structure elements for new enhancements
 
 */
 
@@ -41,45 +44,94 @@
 #define XXYZ_H
 
 #define XYZ_BSIZE 8
-#define XYZ_STRINGSIZE 128
+
+#include <qmainwindow.h>
+#include <qgl.h>
+#include <qevent.h>
+#include <qstring.h>
+#include "b3dgfx.h"
+
+struct ViewInfo;
+class XyzGL;
+class XyzWindow;
 
 struct xxyzwin
 {
-     struct ViewInfo *vi;   /* Image Data information.              */
-     Widget dialog;         /* The top widget of the xyz window     */
-     Widget glw;            /* The drawing widget of the xyz window */
-     XID    context;
-     int ctrl;              /* id of control */
+  struct ViewInfo *vi;   /* Image Data information.              */
+  XyzWindow *dialog;         /* The top widget of the xyz window     */
+  XyzGL *glw;            /* The drawing widget of the xyz window */
+  int ctrl;              /* id of control */
      
-     unsigned char *fdataxz; /* tmp data storage for xz image       */
-     unsigned char *fdatayz; /* tmp data storage for yz image       */
-     B3dCIImage *xydata;    /* Draw buffer for Z slices.            */
-     B3dCIImage *xzdata;    /* Draw buffer for Y slices.            */
-     B3dCIImage *yzdata;    /* Draw buffer for X slices.            */
+  unsigned char *fdataxz; /* tmp data storage for xz image       */
+  unsigned char *fdatayz; /* tmp data storage for yz image       */
+  B3dCIImage *xydata;    /* Draw buffer for Z slices.            */
+  B3dCIImage *xzdata;    /* Draw buffer for Y slices.            */
+  B3dCIImage *yzdata;    /* Draw buffer for X slices.            */
 
-     int winx, winy;         /* Size of xyz window.                  */
-     int overclear;          /* Clear overlay planes if set.         */
-     int exposed;
-     float zoom;
+  int winx, winy;         /* Size of xyz window.                  */
+  int exposed;
+  float zoom;
+  int closing;
 
-     int lx, ly, lz;
+  int lx, ly, lz;
 
-     int xtrans, ytrans;     /* translation (pan) in image coords */
-     int xwoffset,ywoffset;  /* offset in window coordinates */
-     int lmx, lmy;           /* last mouse position for panning */
-     int hq;                 /* High resolution flag */
-     int whichbox;           /* box that left mouse button went down in */
+  int xtrans, ytrans;     /* translation (pan) in image coords */
+  int xwoffset,ywoffset;  /* offset in window coordinates */
+  int lmx, lmy;           /* last mouse position for panning */
+  int hq;                 /* High resolution flag */
+  int whichbox;           /* box that left mouse button went down in */
 };
 
+
+class XyzWindow : public QMainWindow
+{
+  Q_OBJECT
+
+    public:
+  XyzWindow(struct xxyzwin *xyz, bool rgba, 
+            bool doubleBuffer, QWidget * parent = 0,
+            const char * name = 0, WFlags f = WType_TopLevel) ;
+  ~XyzWindow();
+  XyzGL *mGLgfx;
+
+  public slots:
+
+ protected:
+  void keyPressEvent ( QKeyEvent * e );
+  void closeEvent ( QCloseEvent * e );
+
+ private:
+
+  struct xxyzwin *mXyz;
+};
+
+class XyzGL : public QGLWidget
+{
+  Q_OBJECT
+
+    public:
+  XyzGL(struct xxyzwin *xyz, QGLFormat format, QWidget * parent = 0,
+        const char * name = 0);
+  ~XyzGL();
+ 
+ protected:
+  void initializeGL();
+  void paintGL();
+  void resizeGL( int wdth, int hght );
+  void mousePressEvent(QMouseEvent * e );
+  void mouseReleaseEvent ( QMouseEvent * e );
+  void mouseMoveEvent ( QMouseEvent * e );
+
+ private:
+  struct xxyzwin *mXyz;
+  bool mMousePressed;
+};
 
 /* Functions */
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-int xxyz_open( struct ViewInfo *vi);  /* open the xxyz window             */
-int xyz_draw(struct ViewInfo *vi);    /* force update of the xxyz window. */
-int xyz_draw_showslice(struct ViewInfo *vi);
 
 #ifdef __cplusplus
 }
