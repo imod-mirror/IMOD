@@ -18,6 +18,9 @@ import etomo.storage.Storable;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.3  2004/10/15 00:16:21  sueh
+* <p> bug# 520 Added toString().
+* <p>
 * <p> Revision 1.1.2.2  2004/10/01 19:44:27  sueh
 * <p> bug# 520 provide a standard way to get the identifier of a meta data file.
 * <p> Add a file extension static, since there are two meta data file extensions.
@@ -38,8 +41,6 @@ public abstract class BaseMetaData implements Storable {
   protected AxisType axisType = AxisType.NOT_SET;
   protected String invalidReason = "";
   
-  public abstract boolean isValid();
-  public abstract boolean isValid(boolean fromScreen);
   public abstract void store(Properties props, String prepend);
   public abstract void load(Properties props);
   public abstract void load(Properties props, String prepend);
