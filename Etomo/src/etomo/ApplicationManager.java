@@ -79,6 +79,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.101.2.8  2004/10/01 20:56:06  sueh
+ * <p> bug# 520 Moving getMetaDAta() from base class to this class.
+ * <p>
  * <p> Revision 3.101.2.7  2004/09/29 17:27:48  sueh
  * <p> bug# 520 Removed MainPanel pass-through functions.  Casting mainPanel
  * <p> and other members from BaseManager to private local variables in the
@@ -1113,8 +1116,7 @@ public class ApplicationManager extends BaseManager {
       // Set the current working directory for the application saving the
       // old user.dir property until the meta data is valid
       String oldUserDir = System.getProperty("user.dir");
-      System.setProperty("user.dir",
-        setupDialog.getWorkingDirectory().getAbsolutePath());
+      workingDirName = setupDialog.getWorkingDirectory().getAbsolutePath();
       metaData = setupDialog.getFields();
       if (metaData == null) {
         return;
@@ -1131,7 +1133,7 @@ public class ApplicationManager extends BaseManager {
         errorMessage[0] = "Setup Parameter Error";
         errorMessage[1] = metaData.getInvalidReason();
         mainPanel.openMessageDialog(errorMessage, "Setup Parameter Error");
-        System.setProperty("user.dir", oldUserDir);
+        workingDirName = oldUserDir;
         return;
       }
       // This is really the method to use the existing com scripts
