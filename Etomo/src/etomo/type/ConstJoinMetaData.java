@@ -21,6 +21,9 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.14  2004/11/08 22:22:09  sueh
+* <p> bug# 520 Remove default from shift in X and Y.
+* <p>
 * <p> Revision 1.1.2.13  2004/10/29 22:12:55  sueh
 * <p> bug# 520  Added removeSectionTableData() to remove section table data
 * <p> rows from the meta data file before adding them.  This gets rid of deleted
@@ -107,6 +110,8 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
   protected EtomoInteger sizeInY = new EtomoInteger("SizeInY");
   protected EtomoInteger shiftInX = new EtomoInteger("ShiftInX");
   protected EtomoInteger shiftInY = new EtomoInteger("ShiftInY");
+  protected EtomoInteger useEveryNSlices = new EtomoInteger("UseEveryNSlices");
+  protected EtomoInteger trialBinning = new EtomoInteger("TrialBinning");
 
   public abstract void load(Properties props);
   public abstract void load(Properties props, String prepend);
@@ -118,6 +123,10 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
     cutoffHighFrequency.setDefault(0);
     sigmaHighFrequency.setDefault(0);
     alignmentRefSection.setDefault(1);
+    trialBinning.setDefault(1);
+    useEveryNSlices.setDefault(1);
+    shiftInX.setDefault(0);
+    shiftInY.setDefault(0);
     cutoffHighFrequency.setRecommendedValue(0.25);
     sigmaHighFrequency.setRecommendedValue(0.05);
   }
@@ -148,7 +157,9 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
         + "=" + sizeInX.getString() + ",\n" + sizeInY.getDescription() + "="
         + sizeInY.getString() + ",\n" + shiftInX.getDescription() + "="
         + shiftInX.getString() + ",\n" + shiftInY.getDescription() + "="
-        + shiftInY.getString());
+        + shiftInY.getString() + ",\n" + useEveryNSlices.getDescription() + "="
+        + useEveryNSlices.getString() + ",\n" + trialBinning.getDescription() + "="
+        + trialBinning.getString());
     if (sectionTableData != null) {
       buffer.append(",\n" + sectionTableDataSizeString + "="
           + sectionTableData.size());
@@ -186,6 +197,8 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
     sizeInY.store(props, prepend);
     shiftInX.store(props, prepend);
     shiftInY.store(props, prepend);
+    useEveryNSlices.store(props, prepend);
+    trialBinning.store(props, prepend);
     if (sectionTableData != null) {
       for (int i = 0; i < sectionTableData.size(); i++) {
         ((SectionTableRowData) sectionTableData.get(i)).store(props, prepend);
@@ -271,6 +284,14 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
   
   public ConstEtomoInteger getDensityRefSection() {
     return densityRefSection;
+  }
+  
+  public ConstEtomoInteger getUseEveryNSlices() {
+    return useEveryNSlices;
+  }
+  
+  public ConstEtomoInteger getTrialBinning() {
+    return trialBinning;
   }
 
   public String getMetaDataFileName() {

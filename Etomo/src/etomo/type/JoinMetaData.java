@@ -19,6 +19,9 @@ import etomo.EtomoDirector;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.7  2004/10/29 01:19:48  sueh
+* <p> bug# 520 Removing workingDir.
+* <p>
 * <p> Revision 1.1.2.6  2004/10/22 21:06:25  sueh
 * <p> bug# 520 Changed offsetInX, Y to shiftInX, Y.
 * <p>
@@ -101,6 +104,8 @@ public class JoinMetaData extends ConstJoinMetaData {
     sizeInY.load(props, prepend);
     shiftInX.load(props, prepend);
     shiftInY.load(props, prepend);
+    useEveryNSlices.load(props, prepend);
+    trialBinning.load(props, prepend);
     
     int sectionTableRowsSize = Integer.parseInt(props.getProperty(group
         + sectionTableDataSizeString, "-1"));
@@ -122,6 +127,14 @@ public class JoinMetaData extends ConstJoinMetaData {
 
   public void setDensityRefSection(Object densityRefSection) {
     this.densityRefSection.set((Integer) densityRefSection);
+  }
+  
+  public void setUseEveryNSlices(Object useEveryNSlices) {
+    this.useEveryNSlices.set((Integer) useEveryNSlices);
+  }
+  
+  public void setTrialBinning(Object trialBinning) {
+    this.trialBinning.set((Integer) trialBinning);
   }
 
   public void setRootName(String rootName) {
