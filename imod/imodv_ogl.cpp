@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.2  2002/12/17 17:44:18  mast
+changes for Qt version
+
 Revision 1.1.2.1  2002/12/15 21:14:02  mast
 conversion to cpp
 
@@ -446,21 +449,21 @@ void imodvDraw_model(ImodvApp *a, Imod *imod)
       clip_obj(obj, False, imod->zscale, Imodv->md->zoom);
       glFinish();
     }
-
-    for (ob = obstart; ob < obend; ob++){
-      set_curcontsurf(ob, imod);
-      glLoadName(ob);
-      curTessObj = ob;
-      obj = &(imod->obj[ob]);
-      trans = obj->trans;
-      if (obj->trans > 0){
-        glDepthMask(GL_FALSE); 
-        clip_obj(obj, True, imod->zscale, Imodv->md->zoom);
-        imodvDraw_object( obj , imod);
-        clip_obj(obj, False, imod->zscale, Imodv->md->zoom);
-        glDepthMask(GL_TRUE); 
-        glFinish();
-      }
+  }
+  
+  for (ob = obstart; ob < obend; ob++){
+    set_curcontsurf(ob, imod);
+    glLoadName(ob);
+    curTessObj = ob;
+    obj = &(imod->obj[ob]);
+    trans = obj->trans;
+    if (obj->trans > 0){
+      glDepthMask(GL_FALSE); 
+      clip_obj(obj, True, imod->zscale, Imodv->md->zoom);
+      imodvDraw_object( obj , imod);
+      clip_obj(obj, False, imod->zscale, Imodv->md->zoom);
+      glDepthMask(GL_TRUE); 
+      glFinish();
     }
   }
      
