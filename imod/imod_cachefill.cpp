@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.1  2003/01/18 01:12:20  mast
+qt version
+
 Revision 3.2  2002/12/01 15:34:41  mast
 Changes to get clean compilation with g++
 
@@ -527,7 +530,7 @@ ImodCacheFill::ImodCacheFill(QWidget *parent, const char *name)
   radio = diaRadioButton("1/4", mFillGroup);
 
   mFillGroup->setButton(imodCacheFillData.fracfill);
-  connect(mFillGroup, SIGNAL(pressed(int)), this, SLOT(fractionSelected(int)));
+  connect(mFillGroup, SIGNAL(clicked(int)), this, SLOT(fractionSelected(int)));
   
   // Set up balance radio buttons only if times loaded
   if (imodCacheFillData.vw->nt > 0) {
@@ -546,7 +549,7 @@ ImodCacheFill::ImodCacheFill(QWidget *parent, const char *name)
     QToolTip::add(radio, "Load sections only for the current time");
     
     mBalanceGroup->setButton(imodCacheFillData.balance);
-    connect(mBalanceGroup, SIGNAL(pressed(int)), this, 
+    connect(mBalanceGroup, SIGNAL(clicked(int)), this, 
 	    SLOT(balanceSelected(int)));
   }
 
@@ -568,7 +571,7 @@ ImodCacheFill::ImodCacheFill(QWidget *parent, const char *name)
   mOverlapRadio[2] = diaRadioButton("1/8", mOverlapGroup);
 
   mOverlapGroup->setButton(imodCacheFillData.overlap);
-  connect(mOverlapGroup, SIGNAL(pressed(int)), this,
+  connect(mOverlapGroup, SIGNAL(clicked(int)), this,
 	  SLOT(overlapSelected(int)));
 
   // Enable the overlap buttons only if autofill is on
