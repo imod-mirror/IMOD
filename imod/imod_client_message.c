@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.3.2.1  2002/12/05 16:23:52  mast
+No changes - CVS detected as modified in branch
+
 Revision 3.4  2002/12/03 15:53:57  mast
 Make it set the forbid level before any action that can produce file
 dialog box.  Have it distinguish cancel from error in error reports
@@ -216,7 +219,7 @@ static void executeMessage() {
 
   case MESSAGE_VIEW_MODEL:
     imod_autosave(App->cvi->imod);
-    imodv_open(App->cvi->imod, Rampbase + IMOD_BASE);
+    imodv_open();
     break;
 
   case MESSAGE_QUIT:
