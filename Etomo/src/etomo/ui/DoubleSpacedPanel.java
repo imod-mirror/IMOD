@@ -5,6 +5,7 @@ import java.awt.Container;
 import java.awt.Dimension;
 
 import javax.swing.AbstractButton;
+import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JComponent;
 import javax.swing.border.Border;
@@ -28,6 +29,11 @@ import javax.swing.border.Border;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.3  2004/10/13 23:01:48  sueh
+* <p> bug# 520 Added a way to set and reset component alignments.  Added
+* <p> specialized add() functions for generic etomo ui objects.  Added a way to
+* <p> prevent spacing being added at the top of a panel and after a component.
+* <p>
 * <p> Revision 1.1.2.2  2004/09/23 23:52:12  sueh
 * <p> bug# 520 Added a class description.
 * <p>
@@ -39,8 +45,9 @@ import javax.swing.border.Border;
 public class DoubleSpacedPanel {
   public static final String rcsid = "$Id$";
 
-  SpacedPanel innerPanel;
-  SpacedPanel outerPanel;
+  private SpacedPanel innerPanel;
+  private SpacedPanel outerPanel;
+  private boolean xAxisLayout;
 
   public DoubleSpacedPanel(boolean xAxisLayout, Dimension xPixels,
       Dimension yPixels) {
@@ -54,6 +61,7 @@ public class DoubleSpacedPanel {
   
   public DoubleSpacedPanel(boolean xAxisLayout, Dimension xPixels,
       Dimension yPixels, Border border, boolean spaceTop) {
+    this.xAxisLayout = xAxisLayout;
     if (xAxisLayout) {
       intialize(border, BoxLayout.X_AXIS, xPixels, true, BoxLayout.Y_AXIS, yPixels, spaceTop);
     }
@@ -90,6 +98,10 @@ public class DoubleSpacedPanel {
     return "\n,innerPanel=" + innerPanel + ",\nouterPanel=" + outerPanel;
   }
   
+  public Component add(Component comp) {
+    return innerPanel.add(comp);
+  }
+  
   public Component add(JComponent comp) {
     return innerPanel.add(comp);
   }
@@ -116,6 +128,19 @@ public class DoubleSpacedPanel {
   
   public Component addMultiLineButton(AbstractButton button) {
     return innerPanel.addMultiLineButton(button);
+  }
+  
+  public Component addStrut(int size, boolean layoutDirection) {
+    if (layoutDirection) {
+      if (xAxisLayout) {
+        return innerPanel.add(Box.createHorizontalStrut(size));
+      }
+      return innerPanel.add(Box.createVerticalStrut(size));
+    }
+    else if (xAxisLayout) {
+      return outerPanel.add(Box.createVerticalStrut(size));
+    }
+    return outerPanel.add(Box.createHorizontalStrut(size));
   }
   
   public void removeAll() {
