@@ -32,6 +32,9 @@
     $Revision$
 
     $Log$
+    Revision 1.1.2.2  2002/12/17 18:40:24  mast
+    Changes and new includes with Qt version of imodv
+
     Revision 1.1.2.1  2002/12/15 21:14:02  mast
     conversion to cpp
 
@@ -48,6 +51,7 @@
 #include <math.h>
 #include <time.h>
 #include <limits.h>
+#include "imodconfig.h"
 #ifndef NO_SYS_TIMES
 #include <sys/times.h>
 #ifdef FIXED_CLK_TCK
