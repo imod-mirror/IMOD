@@ -10,6 +10,7 @@ import java.io.IOException;
 import javax.swing.JOptionPane;
 
 import etomo.ApplicationManager;
+import etomo.EtomoDirector;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.util.Utilities;
@@ -29,6 +30,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.15.2.1  2004/09/15 22:34:51  sueh
+ * <p> bug# 520 call openMessageDialog in mainPanel instead of mainFrame
+ * <p>
  * <p> Revision 3.15  2004/08/19 01:25:44  sueh
  * <p> Added functions to get a CombineComscriptState.  Added ComScript
  * <p> combine.  Added functions for echo, exit, and goto in the combine
@@ -1048,7 +1052,7 @@ public class ComScriptManager {
     AxisType axisType, AxisID axisID) throws BadComScriptException, IOException {
     // Read in the template file from the IMOD_DIR/com directory replacing all
     // instances of the tag g5a and g5b with the appropriate dataset name
-    String comDirectory = ApplicationManager.getIMODDirectory()
+    String comDirectory = EtomoDirector.getInstance().getIMODDirectory()
       .getAbsolutePath()
       + File.separator + "com";
 
@@ -1116,7 +1120,7 @@ public class ComScriptManager {
   public void useTemplate(String scriptName, AxisType axisType, AxisID axisID, 
     boolean rename) throws BadComScriptException, IOException {
     // Copy the template file from the IMOD_DIR/com directory to the script
-    String comDirectory = ApplicationManager.getIMODDirectory()
+    String comDirectory = EtomoDirector.getInstance().getIMODDirectory()
       .getAbsolutePath()
       + File.separator + "com";
 

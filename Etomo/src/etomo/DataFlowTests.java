@@ -20,6 +20,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.4.2.2  2004/09/07 17:51:30  sueh
+ * <p> bug# 520 getting mainFrame from ETomoDirector
+ * <p>
  * <p> Revision 3.4.2.1  2004/09/03 20:57:52  sueh
  * <p> bug# 520 getting app mgr from EtomoDirector
  * <p>
@@ -98,7 +101,7 @@ public class DataFlowTests {
       + ".edf";
     EtomoDirector.createInstance(argsIn);
     applicationManager = (ApplicationManager) EtomoDirector.getInstance().getCurrentManager();
-    mainFrame = EtomoDirector.getMainFrame();
+    mainFrame = EtomoDirector.getInstance().getMainFrame();
     // A hack around the const object returned we really know is not const
     MetaData metaData = (MetaData) applicationManager.getMetaData();
 

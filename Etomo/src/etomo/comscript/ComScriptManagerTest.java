@@ -12,6 +12,9 @@
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.4.1  2004/09/03 21:08:11  sueh
+* <p> bug# 520 getting app mgr from EtomoDirector
+* <p>
 * <p> Revision 1.1  2004/06/14 23:35:08  rickg
 * <p> Bug #383  Initial revision
 * <p> </p>
@@ -37,7 +40,7 @@ public class ComScriptManagerTest extends TestCase {
     String[] args = {"--test"};
     EtomoDirector.createInstance(args);
     ApplicationManager appManager = (ApplicationManager) EtomoDirector.getInstance().getCurrentManager();
-    System.out.println(ApplicationManager.getIMODDirectory().getAbsolutePath());
+    System.out.println(EtomoDirector.getInstance().getIMODDirectory().getAbsolutePath());
     ComScriptManager comScriptManager = appManager.getComScriptManager();
     try {
       comScriptManager.useTemplate("mtffilter", "datasetName", AxisType.SINGLE_AXIS, AxisID.ONLY);
