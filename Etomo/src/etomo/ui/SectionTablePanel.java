@@ -49,6 +49,10 @@ import etomo.util.MRCHeader;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.18  2004/10/22 21:12:04  sueh
+* <p> bug# 520 Changed SectionTableRow.sampleSampleTop() to
+* <p> setSampleTopNumberSlices().
+* <p>
 * <p> Revision 1.1.2.17  2004/10/22 16:40:05  sueh
 * <p> bug# 520 Don't need prevSampleBottom.  This value should come from
 * <p> the current sample.
@@ -165,30 +169,28 @@ public class SectionTablePanel implements ContextMenu, Expandable {
   private HeaderCell hdrOrder;
   private HeaderCell hdrSections;
   private HeaderCell hdrSampleSlices;
-  private HeaderCell hdrSlicesInSample;
-  private HeaderCell hdrChunk;
-  private HeaderCell hdrReferenceSection;
-  private HeaderCell hdrCurrentSection;
+  private HeaderCell hdrSlicesInSample1;
+  private HeaderCell hdrCurrentChunk1;
+  private HeaderCell hdrReferenceSection1;
+  private HeaderCell hdrCurrentSection1;
   private HeaderCell hdrFinal;
   private HeaderCell hdrRotationAngles;
   private HeaderCell hdr1Row2;
   private HeaderCell hdr2Row2;
   private HeaderCell hdrBottom;
   private HeaderCell hdrTop;
+  private HeaderCell hdrSlicesInSample2;
+  private HeaderCell hdrCurrentChunk2;
+  private HeaderCell hdrReferenceSection2;
+  private HeaderCell hdrCurrentSection2;
   private HeaderCell hdr3Row2;
   private HeaderCell hdr4Row2;
-  private HeaderCell hdr5Row2;
   private HeaderCell hdr1Row3;
   private HeaderCell hdr2Row3;
   private HeaderCell hdrSampleSlicesBottomStart;
   private HeaderCell hdrSampleSlicesBottomEnd;
   private HeaderCell hdrSampleSlicesTopStart;
   private HeaderCell hdrSampleSlicesTopEnd;
-  private HeaderCell hdr3Row3;
-  private HeaderCell hdrReferenceSectionStart;
-  private HeaderCell hdrReferenceSectionEnd;
-  private HeaderCell hdrCurrentSectionStart;
-  private HeaderCell hdrCurrentSectionEnd;
   private HeaderCell hdrFinalStart;
   private HeaderCell hdrFinalEnd;
   private HeaderCell hdrRotationAnglesX;
@@ -254,9 +256,10 @@ public class SectionTablePanel implements ContextMenu, Expandable {
     hdrSections = new HeaderCell("Sections", FixedDim.sectionsWidth);
     btnExpandSections = new ExpandButton(this);
     hdrSampleSlices = new HeaderCell("Sample Slices");
-    hdrChunk = new HeaderCell("Chunk");
-    hdrReferenceSection = new HeaderCell("Reference Sec.");
-    hdrCurrentSection = new HeaderCell("Current Sec.");
+    hdrSlicesInSample1 = new HeaderCell("Slices in");
+    hdrCurrentChunk1 = new HeaderCell("Current");
+    hdrReferenceSection1 = new HeaderCell("Reference");
+    hdrCurrentSection1 = new HeaderCell("Current");
     hdrFinal = new HeaderCell("Final");
     hdrRotationAngles = new HeaderCell("Rotation Angles");
     //second row
@@ -264,9 +267,12 @@ public class SectionTablePanel implements ContextMenu, Expandable {
     hdr2Row2 = new HeaderCell();
     hdrBottom = new HeaderCell("Bottom");
     hdrTop = new HeaderCell("Top");
+    hdrSlicesInSample2 = new HeaderCell("Sample");
+    hdrCurrentChunk2 = new HeaderCell("Chunk");
+    hdrReferenceSection2 = new HeaderCell("Section");
+    hdrCurrentSection2 = new HeaderCell("Section");
     hdr3Row2 = new HeaderCell();
     hdr4Row2 = new HeaderCell();
-    hdr5Row2 = new HeaderCell();
     //Third row
     hdr1Row3 = new HeaderCell();
     hdr2Row3 = new HeaderCell();
@@ -274,16 +280,11 @@ public class SectionTablePanel implements ContextMenu, Expandable {
     hdrSampleSlicesBottomEnd = new HeaderCell("End", FixedDim.numericWidth);
     hdrSampleSlicesTopStart = new HeaderCell("Start", FixedDim.numericWidth);
     hdrSampleSlicesTopEnd = new HeaderCell("End", FixedDim.numericWidth);
-    hdr3Row3 = new HeaderCell();
     hdrFinalStart = new HeaderCell("Start", FixedDim.numericWidth);
     hdrFinalEnd = new HeaderCell("End", FixedDim.numericWidth);
     hdrRotationAnglesX = new HeaderCell("X", FixedDim.numericWidth);
     hdrRotationAnglesY = new HeaderCell("Y", FixedDim.numericWidth);
     hdrRotationAnglesZ = new HeaderCell("Z", FixedDim.numericWidth);
-    hdrReferenceSectionStart = new HeaderCell("Start", FixedDim.numericWidth);
-    hdrReferenceSectionEnd = new HeaderCell("End", FixedDim.numericWidth);
-    hdrCurrentSectionStart = new HeaderCell("Start", FixedDim.numericWidth);
-    hdrCurrentSectionEnd = new HeaderCell("End", FixedDim.numericWidth);
   }
 
   private void addTablePanelComponents() {
@@ -365,14 +366,12 @@ public class SectionTablePanel implements ContextMenu, Expandable {
     constraints.gridwidth = 1;
     btnExpandSections.add(pnlTable, layout, constraints);
     constraints.weightx = 1.0;
-    constraints.gridwidth = 4;
-    hdrSampleSlices.add(pnlTable, layout, constraints);
     constraints.gridwidth = 1;
-    hdrChunk.add(pnlTable, layout, constraints);
-    constraints.gridwidth = 2;
-    hdrReferenceSection.add(pnlTable, layout, constraints);
+    hdrSlicesInSample1.add(pnlTable, layout, constraints);
+    hdrCurrentChunk1.add(pnlTable, layout, constraints);
+    hdrReferenceSection1.add(pnlTable, layout, constraints);
     constraints.gridwidth = GridBagConstraints.REMAINDER;
-    hdrCurrentSection.add(pnlTable, layout, constraints);
+    hdrCurrentSection1.add(pnlTable, layout, constraints);
     
     //second row
     constraints.weightx = 0.0;
@@ -380,30 +379,12 @@ public class SectionTablePanel implements ContextMenu, Expandable {
     hdr1Row2.add(pnlTable, layout, constraints);
     constraints.gridwidth = 2;
     hdr2Row2.add(pnlTable, layout, constraints);
-    hdrBottom.add(pnlTable, layout, constraints);
-    hdrTop.add(pnlTable, layout, constraints);
     constraints.gridwidth = 1;
-    hdr3Row2.add(pnlTable, layout, constraints);
-    constraints.gridwidth = 2;
-    hdr4Row2.add(pnlTable, layout, constraints);
+    hdrSlicesInSample2.add(pnlTable, layout, constraints);
+    hdrCurrentChunk2.add(pnlTable, layout, constraints);
+    hdrReferenceSection2.add(pnlTable, layout, constraints);
     constraints.gridwidth = GridBagConstraints.REMAINDER;
-    hdr5Row2.add(pnlTable, layout, constraints);
-    //Third row
-    constraints.gridwidth = 1;
-    hdr1Row3.add(pnlTable, layout, constraints);
-    constraints.gridwidth = 2;
-    hdr2Row3.add(pnlTable, layout, constraints);
-    constraints.gridwidth = 1;
-    hdrSampleSlicesBottomStart.add(pnlTable, layout, constraints);
-    hdrSampleSlicesBottomEnd.add(pnlTable, layout, constraints);
-    hdrSampleSlicesTopStart.add(pnlTable, layout, constraints);
-    hdrSampleSlicesTopEnd.add(pnlTable, layout, constraints);
-    hdr3Row3.add(pnlTable, layout, constraints);
-    hdrReferenceSectionStart.add(pnlTable, layout, constraints);
-    hdrReferenceSectionEnd.add(pnlTable, layout, constraints);
-    hdrCurrentSectionStart.add(pnlTable, layout, constraints);
-    constraints.gridwidth = GridBagConstraints.REMAINDER;
-    hdrCurrentSectionEnd.add(pnlTable, layout, constraints);
+    hdrCurrentSection2.add(pnlTable, layout, constraints);
   }
   
   private void addJoinTablePanelComponents() {
@@ -806,7 +787,7 @@ public class SectionTablePanel implements ContextMenu, Expandable {
       rows = new ArrayList();
     }
     SectionTableRow row = new SectionTableRow(this, rows.size() + 1, tomogram,
-        btnExpandSections.isExpanded(), header.getNSections(), curTab);
+        btnExpandSections.isExpanded(), header, curTab);
     row.create();
     row.add(pnlTable);
     rows.add(row);
@@ -926,12 +907,22 @@ public class SectionTablePanel implements ContextMenu, Expandable {
     if (rows == null) {
       return;
     }
-    int prevSlice = 0;
-    int prevSampleTopNumberSlices = 0;
-    for (int i = 0; i < rows.size(); i++) {
+    int prevSampleSlice = 0;
+    int prevChunkTableSlice = 0;
+    int nextSampleBottomNumberSlices;
+    int rowsSize = rows.size();
+    for (int i = 0; i < rowsSize; i++) {
       SectionTableRow row = (SectionTableRow) rows.get(i);
-      prevSlice = row.displayCurTab(pnlTable, prevSlice, prevSampleTopNumberSlices);
-      prevSampleTopNumberSlices = row.getSampleTopNumberSlices();
+      prevSampleSlice = row.displayCurTab(pnlTable, prevSampleSlice);
+      if (i < rowsSize - 1) {
+        SectionTableRow nextRow = (SectionTableRow) rows.get(i + 1);
+        nextSampleBottomNumberSlices = nextRow.getSampleBottomNumberSlices();
+
+      }
+      else {
+        nextSampleBottomNumberSlices = -1;
+      }
+      prevChunkTableSlice = row.displayCurTabChunkTable(pnlTable, prevChunkTableSlice, nextSampleBottomNumberSlices);
     }
   }
   
@@ -977,6 +968,24 @@ public class SectionTablePanel implements ContextMenu, Expandable {
       }
     }
     return null;
+  }
+  
+  int getXMax() {
+    int xMax = 0;
+    for (int i = 0; i < rows.size(); i++) {
+      SectionTableRow row = (SectionTableRow) rows.get(i);
+      xMax = Math.max(xMax, row.getXMax());
+    }
+    return xMax;
+  }
+  
+  int getYMax() {
+    int yMax = 0;
+    for (int i = 0; i < rows.size(); i++) {
+      SectionTableRow row = (SectionTableRow) rows.get(i);
+      yMax = Math.max(yMax, row.getYMax());
+    }
+    return yMax;
   }
 
   /**
