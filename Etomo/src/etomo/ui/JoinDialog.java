@@ -35,6 +35,10 @@ import etomo.type.JoinMetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.1.2.32  2004/11/17 02:27:27  sueh
+ * <p> bug# 520 Changed mode setting names to end in "_MODE".  In Revert to
+ * <p> Last Setup, deleting sections before getting data from meta data.
+ * <p>
  * <p> Revision 1.1.2.31  2004/11/16 02:28:50  sueh
  * <p> bug# 520 Replacing EtomoSimpleType, EtomoInteger, EtomoDouble,
  * <p> EtomoFloat, and EtomoLong with EtomoNumber.
@@ -190,6 +194,20 @@ public class JoinDialog implements ContextMenu {
   private static final String OPEN_IN_3DMOD = "Open in 3dmod";
   private static final String IN_X_AND_Y = "in X and Y";
   
+  //Use default settings for numerics saved in meta data
+  //(used in get and equals functions)
+  private static final boolean sigmaLowFrequencyUseDefault = false;
+  private static final boolean cutoffHighFrequencyUseDefault = false;
+  private static final boolean sigmaHighFrequencyUseDefault = false;
+  private static final boolean sizeInXUseDefault = false;
+  private static final boolean sizeInYUseDefault = false;
+  private static final boolean shiftInXUseDefault = true;
+  private static final boolean shiftInYUseDefault = true;
+  private static final boolean alignmentRefSectionUseDefault = true;
+  private static final boolean densityRefSectionUseDefault = true;
+  private static final boolean trialBinningUseDefault = true;
+  private static final boolean useEveryNSlicesUseDefault = false;
+  
   private static ImageIcon iconFolder = new ImageIcon(ClassLoader
       .getSystemResource("images/openFile.gif"));
   private static Dimension dimButton = UIParameters.getButtonDimension();
@@ -225,7 +243,6 @@ public class JoinDialog implements ContextMenu {
   private MultiLineButton btnOpenIn3dmod;
   private MultiLineButton btnChangeSetup;
   private MultiLineButton btnRevertToLastSetup;
-
 
   private LabeledTextField ltfWorkingDir;
   private LabeledTextField ltfRootName;
@@ -775,22 +792,23 @@ public class JoinDialog implements ContextMenu {
   
   public void setMetaData(ConstJoinMetaData metaData) {
     ltfRootName.setText(metaData.getRootName());
-    spinDensityRefSection.setValue(metaData.getDensityRefSection().getInteger(true));
-    ltfSigmaLowFrequency.setText(metaData.getSigmaLowFrequency().toString(true));
-    ltfCutoffHighFrequency.setText(metaData.getCutoffHighFrequency().toString(true));
-    ltfSigmaHighFrequency.setText(metaData.getSigmaHighFrequency().toString(true));
+    spinDensityRefSection.setValue(metaData.getDensityRefSection().getInteger(densityRefSectionUseDefault));
+    ltfSigmaLowFrequency.setText(metaData.getSigmaLowFrequency().toString(sigmaLowFrequencyUseDefault));
+    ltfCutoffHighFrequency.setText(metaData.getCutoffHighFrequency().toString(cutoffHighFrequencyUseDefault));
+    ltfSigmaHighFrequency.setText(metaData.getSigmaHighFrequency().toString(sigmaHighFrequencyUseDefault));
     rbFullLinearTransformation.setSelected(metaData.isFullLinearTransformation());
     rbRotationTranslationMagnification.setSelected(metaData.isRotationTranslationMagnification());
     rbRotationTranslation.setSelected(metaData.isRotationTranslation());
     cbUseAlignmentRefSection.setSelected(metaData.isUseAlignmentRefSection());
     useAlignmentRefSectionAction();
-    spinAlignmentRefSection.setValue(metaData.getAlignmentRefSection().getNumber());
-    ltfSizeInX.setText(metaData.getSizeInX().toString(true));
-    ltfSizeInY.setText(metaData.getSizeInY().toString(true));
-    ltfShiftInX.setText(metaData.getShiftInX().toString(true));
-    ltfShiftInY.setText(metaData.getShiftInY().toString(true));
-    spinUseEveryNSlices.setValue(metaData.getUseEveryNSlices());
-    spinTrialBinning.setValue(metaData.getTrialBinning().getNumber(true));
+    spinAlignmentRefSection.setValue(metaData.getAlignmentRefSection()
+        .getNumber(alignmentRefSectionUseDefault));
+    ltfSizeInX.setText(metaData.getSizeInX().toString(sizeInXUseDefault));
+    ltfSizeInY.setText(metaData.getSizeInY().toString(sizeInYUseDefault));
+    ltfShiftInX.setText(metaData.getShiftInX().toString(shiftInXUseDefault));
+    ltfShiftInY.setText(metaData.getShiftInY().toString(shiftInYUseDefault));
+    spinUseEveryNSlices.setValue(metaData.getUseEveryNSlices().getNumber(useEveryNSlicesUseDefault));
+    spinTrialBinning.setValue(metaData.getTrialBinning().getNumber(trialBinningUseDefault));
     pnlSectionTable.setMetaData(metaData);
   }
 
@@ -821,6 +839,102 @@ public class JoinDialog implements ContextMenu {
   public void enableMidas() {
     btnMidas.setEnabled(true);
   }
+  
+  /**
+   * checking if dialog is equal to meta data.  Set useDefault to match how 
+   * useDefault is used in setMetaData()
+   * @param metaData
+   * @return
+   */
+  public boolean equals(ConstJoinMetaData metaData) {
+    if (!ltfRootName.equals(metaData.getRootName())) {
+      return false;
+    }
+    if (!metaData.getDensityRefSection().equals(
+        (Number) spinDensityRefSection.getValue(), densityRefSectionUseDefault)) {
+      return false;
+    }
+    if (!metaData.getSigmaLowFrequency().equals(ltfSigmaLowFrequency.getText(),
+        sigmaLowFrequencyUseDefault)) {
+      return false;
+    }
+    if (!metaData.getCutoffHighFrequency().equals(
+        ltfCutoffHighFrequency.getText(), cutoffHighFrequencyUseDefault)) {
+      return false;
+    }
+    if (!metaData.getSigmaHighFrequency().equals(
+        ltfSigmaHighFrequency.getText(), sigmaHighFrequencyUseDefault)) {
+      return false;
+    }
+    if (rbFullLinearTransformation.isSelected() != metaData
+        .isFullLinearTransformation()) {
+      return false;
+    }
+    if (rbRotationTranslationMagnification.isSelected() != metaData
+        .isRotationTranslationMagnification()) {
+      return false;
+    }
+    if (rbRotationTranslation.isSelected() != metaData.isRotationTranslation()) {
+      return false;
+    }
+    if (cbUseAlignmentRefSection.isSelected() != metaData
+        .isUseAlignmentRefSection()) {
+      return false;
+    }
+    if (!metaData.getAlignmentRefSection().equals(
+        (Number) spinAlignmentRefSection.getValue(),
+        alignmentRefSectionUseDefault)) {
+      return false;
+    }
+    if (!metaData.getSizeInX().equals(ltfSizeInX.getText(), sizeInXUseDefault)) {
+      return false;
+    }
+    if (!metaData.getSizeInY().equals(ltfSizeInY.getText(), sizeInYUseDefault)) {
+      return false;
+    }
+    if (!metaData.getShiftInX().equals(ltfShiftInX.getText(),
+        shiftInXUseDefault)) {
+      return false;
+    }
+    if (!metaData.getShiftInY().equals(ltfShiftInY.getText(),
+        shiftInYUseDefault)) {
+      return false;
+    }
+    if (!metaData.getUseEveryNSlices().equals(
+        (Number) spinUseEveryNSlices.getValue(), useEveryNSlicesUseDefault)) {
+      return false;
+    }
+    if (!metaData.getTrialBinning().equals(
+        (Number) spinTrialBinning.getValue(), trialBinningUseDefault)) {
+      return false;
+    }
+    if (!pnlSectionTable.equals(metaData)) {
+      return false;
+    }
+    return true;
+  }
+  
+  /**
+   * checking if dialog fields used to make the sample are equal to the fields
+   * in meta data.  Set useDefault to match how 
+   * useDefault is used in setMetaData()
+   * @param metaData
+   * @return
+   */
+  public boolean equalsSample(ConstJoinMetaData metaData) {
+    if (!ltfRootName.equals(metaData.getRootName())) {
+      return false;
+    }
+    if (!metaData.getDensityRefSection().equals(
+        (Number) spinDensityRefSection.getValue(), densityRefSectionUseDefault)) {
+      return false;
+    }
+    if (!pnlSectionTable.equalsSample(metaData)) {
+      return false;
+    }
+    return true;
+  }
+
   
   public void addSection(File tomogram) {
     pnlSectionTable.addSection(tomogram);
