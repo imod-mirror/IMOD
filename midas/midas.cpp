@@ -37,6 +37,9 @@
     $Revision$
 
     $Log$
+    Revision 1.1.2.3  2003/01/26 23:20:33  mast
+    using new library
+
     Revision 1.1.2.2  2002/12/06 19:05:01  mast
     Changes for binary file reading under windows
 
@@ -122,10 +125,20 @@ int main (int argc, char **argv)
 
   vw = VW = &MidasView;
 
-  for (i = 1; i < argc; i++)
+  // Prescan for style and debug flags
+  for (i = 1; i < argc; i++) {
     if (argv[i][0] == '-' && argv[i][1] == 's' && argv[i][2] == 't'
 	&& argv[i][3] == 'y' && argv[i][4] == 'l' && argv[i][5] == 'e')
       styleSet = 1;
+    if (argv[i][0] == '-' && argv[i][1] == 'D')
+      dofork = 0;
+  }
+
+  // Fork before starting Qt application
+  if (dofork) {
+    if (fork())
+      exit(0);
+  }
 
   QApplication myapp(argc, argv);
 
@@ -174,7 +187,6 @@ int main (int argc, char **argv)
 	break;
 
       case 'D':
-	dofork = 0;
 	Midas_debug = 1;
 	break;
 
@@ -240,11 +252,6 @@ int main (int argc, char **argv)
   if (load_view(VW, argv[i])){
     fprintf(stderr, "%s: error opening %s.\n", argv[0], argv[i]);
     exit(-1);
-  }
-
-  if (dofork) {
-    if (fork())
-      exit(0);
   }
 
   // Increase the default point size if font is specified in points,
