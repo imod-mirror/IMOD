@@ -17,6 +17,10 @@ import etomo.storage.Storable;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.2  2004/10/21 02:49:13  sueh
+* <p> bug# 520 Added equals, isSetAndNotDefault, and toString.  Changed
+* <p> toString to getString.  Removed isDefault.
+* <p>
 * <p> Revision 1.1.2.1  2004/10/18 17:59:48  sueh
 * <p> bug# 520 The const part of EtomoInteger.
 * <p> </p>
@@ -60,6 +64,13 @@ public abstract class ConstEtomoInteger implements Storable, EtomoSimpleType {
     return value;
   }
   
+  public Number getNumber() {
+    if (value == Integer.MIN_VALUE) {
+      return new Integer(resetValue);
+    }
+    return new Integer(value);
+  }
+  
   public String getDescription() {
     return description;
   }
@@ -74,6 +85,14 @@ public abstract class ConstEtomoInteger implements Storable, EtomoSimpleType {
   
   public boolean equals(int value) {
     return this.value == value;
+  }
+  
+  public boolean greaterThen(int value) {
+    return this.value > value;
+  }
+  
+  public boolean lessThen(int value) {
+    return value != Integer.MIN_VALUE && this.value < value;
   }
   
   public String toString() {
