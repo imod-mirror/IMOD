@@ -37,9 +37,11 @@ import etomo.process.ImodProcess;
 import etomo.process.ProcessManager;
 import etomo.process.ProcessState;
 import etomo.process.SystemProcessException;
+import etomo.storage.Storable;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.AxisTypeException;
+import etomo.type.BaseMetaData;
 import etomo.type.ConstMetaData;
 import etomo.type.DialogExitState;
 import etomo.type.FiducialMatch;
@@ -51,6 +53,7 @@ import etomo.ui.AlignmentEstimationDialog;
 import etomo.ui.CoarseAlignDialog;
 import etomo.ui.FiducialModelDialog;
 import etomo.ui.FiducialessParams;
+import etomo.ui.MainPanel;
 import etomo.ui.MainTomogramPanel;
 import etomo.ui.PostProcessingDialog;
 import etomo.ui.PreProcessingDialog;
@@ -79,6 +82,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.101.2.10  2004/10/08 21:11:33  sueh
+ * <p> bug# 520 Backed out conversion from properties to user.dir.
+ * <p>
  * <p> Revision 3.101.2.9  2004/10/08 15:36:53  sueh
  * <p> bug# 520 Setting workingDirName instead of system property for manager
  * <p> level working directory.
@@ -1052,10 +1058,8 @@ public class ApplicationManager extends BaseManager {
 
   private PostProcessingDialog postProcessingDialog = null;
   
-  //variables cast from base class variables
-  //initialized in create function
-  private MainTomogramPanel mainTomogramPanel; 
   private MetaData metaData;
+  private MainTomogramPanel mainPanel;
   private ProcessTrack processTrack;
   private ProcessManager processMgr;
   
@@ -1092,9 +1096,9 @@ public class ApplicationManager extends BaseManager {
     //  processing
     if (setupDialog == null) {
       setupDialog = new SetupDialog(this);
-      setupDialog.initializeFields(metaData);
+      setupDialog.initializeFields((ConstMetaData) metaData);
     }
-    mainTomogramPanel.openSetupPanel(setupDialog);
+    mainPanel.openSetupPanel(setupDialog);
     Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
     Dimension frameSize = mainPanel.getSize();
     mainPanel.setLocation((screenSize.width - frameSize.width) / 2,
@@ -1119,15 +1123,14 @@ public class ApplicationManager extends BaseManager {
       }
       // Set the current working directory for the application saving the
       // old user.dir property until the meta data is valid
-      String oldUserDir = System.getProperty("user.dir");
-      System.setProperty("user.dir",
-        setupDialog.getWorkingDirectory().getAbsolutePath());
+      String oldUserDir = propertyUserDir;
+      propertyUserDir = setupDialog.getWorkingDirectory().getAbsolutePath();
       metaData = setupDialog.getFields();
       if (metaData == null) {
         return;
       }
       if (metaData.isValid()) {
-        mainTomogramPanel.updateDataParameters(null, metaData);
+        mainPanel.updateDataParameters(null, metaData);
         processTrack.setSetupState(ProcessState.INPROGRESS);
         isDataParamDirty = true;
         //final initialization of IMOD manager
@@ -1138,7 +1141,7 @@ public class ApplicationManager extends BaseManager {
         errorMessage[0] = "Setup Parameter Error";
         errorMessage[1] = metaData.getInvalidReason();
         mainPanel.openMessageDialog(errorMessage, "Setup Parameter Error");
-        System.setProperty("user.dir", oldUserDir);
+        propertyUserDir = oldUserDir;
         return;
       }
       // This is really the method to use the existing com scripts
@@ -1174,7 +1177,7 @@ public class ApplicationManager extends BaseManager {
    */
   private void openProcessingPanel() {
     mainPanel.showProcessingPanel(metaData.getAxisType());
-    mainTomogramPanel.updateAllProcessingStates(processTrack);
+    mainPanel.updateAllProcessingStates(processTrack);
     setPanel();
   }
 
@@ -1188,7 +1191,7 @@ public class ApplicationManager extends BaseManager {
       setupRequestDialog();
       return;
     }
-    mainTomogramPanel.selectButton(axisID, "Pre-processing");
+    mainPanel.selectButton(axisID, "Pre-processing");
     // TODO: When a panel is overwriten by another should it be nulled and
     // closed or left and and reshown when needed?
     // Problem with stale data for align and tilt info since they are on
@@ -1258,13 +1261,13 @@ public class ApplicationManager extends BaseManager {
       }
       if (exitState == DialogExitState.EXECUTE) {
         processTrack.setPreProcessingState(ProcessState.COMPLETE, axisID);
-        mainTomogramPanel.setPreProcessingState(ProcessState.COMPLETE, axisID);
+        mainPanel.setPreProcessingState(ProcessState.COMPLETE, axisID);
         //  Go to the coarse align dialog by default
         openCoarseAlignDialog(axisID);
       }
       else {
         processTrack.setPreProcessingState(ProcessState.INPROGRESS, axisID);
-        mainTomogramPanel.setPreProcessingState(ProcessState.INPROGRESS, axisID);
+        mainPanel.setPreProcessingState(ProcessState.INPROGRESS, axisID);
         //  Go to the coarse align dialog by default
         mainPanel.showBlankProcess(axisID);
       }
@@ -1288,7 +1291,7 @@ public class ApplicationManager extends BaseManager {
     try {
       imodManager.open(ImodManager.RAW_STACK_KEY, axisID, eraseModelName, true);
       processTrack.setPreProcessingState(ProcessState.INPROGRESS, axisID);
-      mainTomogramPanel.setPreProcessingState(ProcessState.INPROGRESS, axisID);
+      mainPanel.setPreProcessingState(ProcessState.INPROGRESS, axisID);
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
@@ -1333,7 +1336,7 @@ public class ApplicationManager extends BaseManager {
   public void eraser(AxisID axisID) {
     updateEraserCom(axisID, false);
     processTrack.setPreProcessingState(ProcessState.INPROGRESS, axisID);
-    mainTomogramPanel.setPreProcessingState(ProcessState.INPROGRESS, axisID);
+    mainPanel.setPreProcessingState(ProcessState.INPROGRESS, axisID);
     String threadName;
     try {
       threadName = processMgr.eraser(axisID);
@@ -1356,7 +1359,7 @@ public class ApplicationManager extends BaseManager {
   public void findXrays(AxisID axisID) {
     updateEraserCom(axisID, true);
     processTrack.setPreProcessingState(ProcessState.INPROGRESS, axisID);
-    mainTomogramPanel.setPreProcessingState(ProcessState.INPROGRESS, axisID);
+    mainPanel.setPreProcessingState(ProcessState.INPROGRESS, axisID);
     String threadName;
     try {
       threadName = processMgr.eraser(axisID);
@@ -1428,7 +1431,7 @@ public class ApplicationManager extends BaseManager {
     AxisID axisID,
     String extension,
     String fileDescription) {
-    String filename = System.getProperty("user.dir") + File.separator
+    String filename = propertyUserDir + File.separator
       + metaData.getDatasetName() + axisID.getExtension() + extension;
     File file = new File(filename);
     if (!file.exists() && mustExist) {
@@ -1448,18 +1451,18 @@ public class ApplicationManager extends BaseManager {
   public void replaceRawStack(AxisID axisID) {
     mainPanel.setProgressBar("Using fixed stack", 1, axisID);
     // Instantiate file objects for the original raw stack and the fixed stack
-    String rawStackFilename = System.getProperty("user.dir") + File.separator
-      + metaData.getDatasetName() + axisID.getExtension() + ".st";
+    String rawStackFilename = propertyUserDir + File.separator
+    + metaData.getDatasetName() + axisID.getExtension() + ".st";
     File rawStack = new File(rawStackFilename);
-    String rawStackRename = System.getProperty("user.dir") + File.separator
-      + metaData.getDatasetName() + axisID.getExtension() + "_orig.st";
+    String rawStackRename = propertyUserDir + File.separator
+    + metaData.getDatasetName() + axisID.getExtension() + "_orig.st";
     File rawRename = new File(rawStackRename);
     File fixedStack = getFile(true, axisID, "_fixed.st", "erased stack");
     if (fixedStack == null) {
       return;
     }
     processTrack.setPreProcessingState(ProcessState.INPROGRESS, axisID);
-    mainTomogramPanel.setPreProcessingState(ProcessState.INPROGRESS, axisID);
+    mainPanel.setPreProcessingState(ProcessState.INPROGRESS, axisID);
 
     // Rename the fixed stack to the raw stack file name and save the orginal
     // raw stack to _orig.st if that does not already exist
@@ -1535,7 +1538,7 @@ public class ApplicationManager extends BaseManager {
       setupRequestDialog();
       return;
     }
-    mainTomogramPanel.selectButton(axisID, "Coarse Alignment");
+    mainPanel.selectButton(axisID, "Coarse Alignment");
     if (showIfExists(coarseAlignDialogA, coarseAlignDialogB, axisID)) {
       return;
     }
@@ -1592,7 +1595,7 @@ public class ApplicationManager extends BaseManager {
       }
       if (exitState == DialogExitState.EXECUTE) {
         processTrack.setCoarseAlignmentState(ProcessState.COMPLETE, axisID);
-        mainTomogramPanel.setCoarseAlignState(ProcessState.COMPLETE, axisID);
+        mainPanel.setCoarseAlignState(ProcessState.COMPLETE, axisID);
         //  Go to the fiducial model dialog by default
         if (metaData.isFiducialessAlignment()) {
           openTomogramPositioningDialog(axisID);
@@ -1624,7 +1627,7 @@ public class ApplicationManager extends BaseManager {
       }
       else {
         processTrack.setCoarseAlignmentState(ProcessState.INPROGRESS, axisID);
-        mainTomogramPanel.setCoarseAlignState(ProcessState.INPROGRESS, axisID);
+        mainPanel.setCoarseAlignState(ProcessState.INPROGRESS, axisID);
         mainPanel.showBlankProcess(axisID);
       }
     }
@@ -1645,7 +1648,7 @@ public class ApplicationManager extends BaseManager {
     // Get the parameters from the dialog box
     if (updateXcorrCom(axisID)) {
       processTrack.setCoarseAlignmentState(ProcessState.INPROGRESS, axisID);
-      mainTomogramPanel.setCoarseAlignState(ProcessState.INPROGRESS, axisID);
+      mainPanel.setCoarseAlignState(ProcessState.INPROGRESS, axisID);
       String threadName;
       try {
         threadName = processMgr.crossCorrelate(axisID);
@@ -1668,7 +1671,7 @@ public class ApplicationManager extends BaseManager {
   public void coarseAlign(AxisID axisID) {
     if (updatePrenewstCom(axisID)) {
       processTrack.setCoarseAlignmentState(ProcessState.INPROGRESS, axisID);
-      mainTomogramPanel.setCoarseAlignState(ProcessState.INPROGRESS, axisID);
+      mainPanel.setCoarseAlignState(ProcessState.INPROGRESS, axisID);
       nextProcess = "checkUpdateFiducialModel";
       String threadName;
       try {
@@ -1714,7 +1717,7 @@ public class ApplicationManager extends BaseManager {
     }
     processMgr.midasRawStack(axisID, metaData.getImageRotation(axisID));
     processTrack.setCoarseAlignmentState(ProcessState.INPROGRESS, axisID);
-    mainTomogramPanel.setCoarseAlignState(ProcessState.INPROGRESS, axisID);
+    mainPanel.setCoarseAlignState(ProcessState.INPROGRESS, axisID);
   }
 
   /**
@@ -1833,8 +1836,8 @@ public class ApplicationManager extends BaseManager {
    */
   private void updateRotationXF(float angle, AxisID axisID) {
     //  Open the appropriate rotation file
-    String fnRotationXF = System.getProperty("user.dir") + File.separator
-      + "rotation" + axisID.getExtension() + ".xf";
+    String fnRotationXF = propertyUserDir + File.separator
+    + "rotation" + axisID.getExtension() + ".xf";
     File rotationXF = new File(fnRotationXF);
     try {
       BufferedWriter out = new BufferedWriter(new FileWriter(rotationXF));
@@ -1868,7 +1871,7 @@ public class ApplicationManager extends BaseManager {
       setupRequestDialog();
       return;
     }
-    mainTomogramPanel.selectButton(axisID, "Fiducial Model Gen.");
+    mainPanel.selectButton(axisID, "Fiducial Model Gen.");
     if (showIfExists(fiducialModelDialogA, fiducialModelDialogB, axisID)) {
       return;
     }
@@ -1925,12 +1928,12 @@ public class ApplicationManager extends BaseManager {
       }
       if (exitState == DialogExitState.EXECUTE) {
         processTrack.setFiducialModelState(ProcessState.COMPLETE, axisID);
-        mainTomogramPanel.setFiducialModelState(ProcessState.COMPLETE, axisID);
+        mainPanel.setFiducialModelState(ProcessState.COMPLETE, axisID);
         openFineAlignmentDialog(axisID);
       }
       else {
         processTrack.setFiducialModelState(ProcessState.INPROGRESS, axisID);
-        mainTomogramPanel.setFiducialModelState(ProcessState.INPROGRESS, axisID);
+        mainPanel.setFiducialModelState(ProcessState.INPROGRESS, axisID);
         mainPanel.showBlankProcess(axisID);
       }
     }
@@ -1956,7 +1959,7 @@ public class ApplicationManager extends BaseManager {
       imodManager.open(ImodManager.COARSE_ALIGNED_KEY, axisID, seedModel,
         true);
       processTrack.setFiducialModelState(ProcessState.INPROGRESS, axisID);
-      mainTomogramPanel.setFiducialModelState(ProcessState.INPROGRESS, axisID);
+      mainPanel.setFiducialModelState(ProcessState.INPROGRESS, axisID);
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
@@ -1976,7 +1979,7 @@ public class ApplicationManager extends BaseManager {
   public void fiducialModelTrack(AxisID axisID) {
     if (updateTrackCom(axisID)) {
       processTrack.setFiducialModelState(ProcessState.INPROGRESS, axisID);
-      mainTomogramPanel.setFiducialModelState(ProcessState.INPROGRESS, axisID);
+      mainPanel.setFiducialModelState(ProcessState.INPROGRESS, axisID);
       String threadName;
       try {
         threadName = processMgr.fiducialModelTrack(axisID);
@@ -1999,10 +2002,10 @@ public class ApplicationManager extends BaseManager {
    * @param axisID
    */
   public void makeFiducialModelSeedModel(AxisID axisID) {
-    String seedModelFilename = System.getProperty("user.dir") + File.separator
+    String seedModelFilename = propertyUserDir + File.separator
       + metaData.getDatasetName() + axisID.getExtension() + ".seed";
     File seedModel = new File(seedModelFilename);
-    String fiducialModelFilename = System.getProperty("user.dir")
+    String fiducialModelFilename = propertyUserDir
       + File.separator + metaData.getDatasetName() + axisID.getExtension()
       + ".fid";
     File fiducialModel = new File(fiducialModelFilename);
@@ -2017,8 +2020,8 @@ public class ApplicationManager extends BaseManager {
     }
     mainPanel.setProgressBar("Using Fiducial Model as Seed", 1, axisID);
     processTrack.setFiducialModelState(ProcessState.INPROGRESS, axisID);
-    mainTomogramPanel.setFiducialModelState(ProcessState.INPROGRESS, axisID);
-    String origSeedModelFilename = System.getProperty("user.dir")
+    mainPanel.setFiducialModelState(ProcessState.INPROGRESS, axisID);
+    String origSeedModelFilename = propertyUserDir
       + File.separator + metaData.getDatasetName() + axisID.getExtension()
       + "_orig.seed";
     File origSeedModel = new File(origSeedModelFilename);
@@ -2142,7 +2145,7 @@ public class ApplicationManager extends BaseManager {
       setupRequestDialog();
       return;
     }
-    mainTomogramPanel.selectButton(axisID, "Fine Alignment");
+    mainPanel.selectButton(axisID, "Fine Alignment");
     if (showIfExists(fineAlignmentDialogA, fineAlignmentDialogB, axisID)) {
       return;
     }
@@ -2198,12 +2201,12 @@ public class ApplicationManager extends BaseManager {
       }
       if (exitState == DialogExitState.POSTPONE) {
         processTrack.setFineAlignmentState(ProcessState.INPROGRESS, axisID);
-        mainTomogramPanel.setFineAlignmentState(ProcessState.INPROGRESS, axisID);
+        mainPanel.setFineAlignmentState(ProcessState.INPROGRESS, axisID);
         mainPanel.showBlankProcess(axisID);
       }
       else {
         processTrack.setFineAlignmentState(ProcessState.COMPLETE, axisID);
-        mainTomogramPanel.setFineAlignmentState(ProcessState.COMPLETE, axisID);
+        mainPanel.setFineAlignmentState(ProcessState.COMPLETE, axisID);
         openTomogramPositioningDialog(axisID);
 
         // Check to see if the user wants to keep any coarse aligned imods
@@ -2253,7 +2256,7 @@ public class ApplicationManager extends BaseManager {
       return;
     }
     processTrack.setFineAlignmentState(ProcessState.INPROGRESS, axisID);
-    mainTomogramPanel.setFineAlignmentState(ProcessState.INPROGRESS, axisID);
+    mainPanel.setFineAlignmentState(ProcessState.INPROGRESS, axisID);
     String threadName;
     try {
       threadName = processMgr.fineAlignment(axisID);
@@ -2444,7 +2447,7 @@ public class ApplicationManager extends BaseManager {
       comScriptMgr.saveAlign(tiltalignParam, axisID);
       //  Update the tilt.com script with the dependent parameters
       updateTiltCom(tiltalignParam, axisID);
-      mainTomogramPanel.setFineAlignmentState(ProcessState.INPROGRESS, axisID);
+      mainPanel.setFineAlignmentState(ProcessState.INPROGRESS, axisID);
     }
     catch (FortranInputSyntaxException except) {
       String[] errorMessage = new String[3];
@@ -2496,7 +2499,7 @@ public class ApplicationManager extends BaseManager {
       setupRequestDialog();
       return;
     }
-    mainTomogramPanel.selectButton(axisID, "Tomogram Positioning");
+    mainPanel.selectButton(axisID, "Tomogram Positioning");
     if (showIfExists(tomogramPositioningDialogA, tomogramPositioningDialogB,
       axisID)) {
       return;
@@ -2605,12 +2608,12 @@ public class ApplicationManager extends BaseManager {
       if (exitState == DialogExitState.POSTPONE) {
         processTrack.setTomogramPositioningState(ProcessState.INPROGRESS,
           axisID);
-        mainTomogramPanel.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
+        mainPanel.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
         mainPanel.showBlankProcess(axisID);
       }
       else {
         processTrack.setTomogramPositioningState(ProcessState.COMPLETE, axisID);
-        mainTomogramPanel.setTomogramPositioningState(ProcessState.COMPLETE, axisID);
+        mainPanel.setTomogramPositioningState(ProcessState.COMPLETE, axisID);
         openTomogramGenerationDialog(axisID);
         try {
           if (imodManager.isOpen(ImodManager.SAMPLE_KEY, axisID)) {
@@ -2665,7 +2668,7 @@ public class ApplicationManager extends BaseManager {
       return;
     }
     processTrack.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
-    mainTomogramPanel.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
+    mainPanel.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
     
     // Make sure we have a current prexg and _nonfid.xf if fiducialess is
     // selected
@@ -2720,7 +2723,7 @@ public class ApplicationManager extends BaseManager {
       return;
     }
     processTrack.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
-    mainTomogramPanel.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
+    mainPanel.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
 
     // Make sure we have a current prexg and _nonfid.xf if fiducialess is
     // selected
@@ -2768,7 +2771,7 @@ public class ApplicationManager extends BaseManager {
       imodManager.setOpenContours(ImodManager.SAMPLE_KEY, axisID, true);
       imodManager.open(ImodManager.SAMPLE_KEY, axisID);
       processTrack.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
-      mainTomogramPanel.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
+      mainPanel.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
@@ -2792,7 +2795,7 @@ public class ApplicationManager extends BaseManager {
       imodManager.setOpenContours(ImodManager.FULL_VOLUME_KEY, axisID, true);
       imodManager.open(ImodManager.FULL_VOLUME_KEY, axisID, tomopitchModelName, true);
       processTrack.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
-      mainTomogramPanel.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
+      mainPanel.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
@@ -2811,7 +2814,7 @@ public class ApplicationManager extends BaseManager {
   public void tomopitch(AxisID axisID) {
     if (updateTomopitchCom(axisID)) {
       processTrack.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
-      mainTomogramPanel.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
+      mainPanel.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
       String threadName;
       try {
         threadName = processMgr.tomopitch(axisID);
@@ -2838,7 +2841,7 @@ public class ApplicationManager extends BaseManager {
   public void openTomopitchLog(AxisID axisID) {
     String logFileName = "tomopitch" + axisID.getExtension() + ".log";
     TextPageWindow logFileWindow = new TextPageWindow();
-    logFileWindow.setVisible(logFileWindow.setFile(System.getProperty("user.dir")
+    logFileWindow.setVisible(logFileWindow.setFile(propertyUserDir
       + File.separator + logFileName));
   }
 
@@ -2853,7 +2856,7 @@ public class ApplicationManager extends BaseManager {
     TomogramPositioningDialog tomogramPositioningDialog = mapPositioningDialog(axisID);
     if (updateAlignCom(tomogramPositioningDialog, axisID)) {
       processTrack.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
-      mainTomogramPanel.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
+      mainPanel.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
       String threadName;
       try {
         threadName = processMgr.fineAlignment(axisID);
@@ -3061,11 +3064,11 @@ public class ApplicationManager extends BaseManager {
     InvalidParameterException {
     File rawtlt =
       new File(
-        System.getProperty("user.dir"),
+          propertyUserDir,
         metaData.getDatasetName() + axisID.getExtension() + ".rawtlt");
     //backing up .rawtlt, which is currently unnecessary because this function
     //is only called when .rawtlt doesn't exist
-    Utilities.renameFile(rawtlt, new File(System.getProperty("user.dir"),
+    Utilities.renameFile(rawtlt, new File(propertyUserDir,
       metaData.getDatasetName() + axisID.getExtension() + ".rawtlt~"));
     
     BufferedWriter bufferedWriter = null;
@@ -3122,7 +3125,7 @@ public class ApplicationManager extends BaseManager {
       return;
     }
     // 
-    mainTomogramPanel.selectButton(axisID, "Tomogram Generation");
+    mainPanel.selectButton(axisID, "Tomogram Generation");
     if (showIfExists(tomogramGenerationDialogA, tomogramGenerationDialogB,
       axisID)) {
       return;
@@ -3214,12 +3217,12 @@ public class ApplicationManager extends BaseManager {
 
       if (exitState == DialogExitState.POSTPONE) {
         processTrack.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
-        mainTomogramPanel.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
+        mainPanel.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
         mainPanel.showBlankProcess(axisID);
       }
       else {
         processTrack.setTomogramGenerationState(ProcessState.COMPLETE, axisID);
-        mainTomogramPanel.setTomogramGenerationState(ProcessState.COMPLETE, axisID);
+        mainPanel.setTomogramGenerationState(ProcessState.COMPLETE, axisID);
         if (isDualAxis()) {
           openTomogramCombinationDialog();
           if (axisID == AxisID.SECOND) {
@@ -3422,7 +3425,7 @@ public class ApplicationManager extends BaseManager {
     }
 
     processTrack.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
-    mainTomogramPanel.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
+    mainPanel.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
 
     // Make sure we have a current prexg and _nonfid.xf if fiducialess is
     // selected
@@ -3467,11 +3470,11 @@ public class ApplicationManager extends BaseManager {
     mainPanel.setProgressBar("Using filtered full aligned stack", 1, axisID);
     // Instantiate file objects for the original raw stack and the fixed
     // stack
-    String fullAlignedStackFilename = System.getProperty("user.dir")
+    String fullAlignedStackFilename = propertyUserDir
       + File.separator + metaData.getDatasetName() + axisID.getExtension()
       + ".ali";
     File fullAlignedStack = new File(fullAlignedStackFilename);
-    String filteredFullAlignedStackFilename = System.getProperty("user.dir")
+    String filteredFullAlignedStackFilename = propertyUserDir
       + File.separator + metaData.getDatasetName() + axisID.getExtension()
       + "_filt.ali";
     File filteredFullAlignedStack = new File(filteredFullAlignedStackFilename);
@@ -3482,7 +3485,7 @@ public class ApplicationManager extends BaseManager {
       return;
     }
     processTrack.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
-    mainTomogramPanel.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
+    mainPanel.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
     //don't have to rename full aligned stack because it is a generated
     // file
     try {
@@ -3517,7 +3520,7 @@ public class ApplicationManager extends BaseManager {
   public void mtffilter(AxisID axisID) {
     if (updateMTFFilterCom(axisID)) {
       processTrack.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
-      mainTomogramPanel.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
+      mainPanel.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
       String threadName;
       try {
         threadName = processMgr.mtffilter(axisID);
@@ -3544,7 +3547,7 @@ public class ApplicationManager extends BaseManager {
   public void trialTilt(AxisID axisID) {
     if (updateTiltCom(axisID, false)) {
       processTrack.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
-      mainTomogramPanel.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
+      mainPanel.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
       tiltProcess(axisID);
     }
   }
@@ -3555,7 +3558,7 @@ public class ApplicationManager extends BaseManager {
   public void tilt(AxisID axisID) {
     if (updateTiltCom(axisID, true)) {
       processTrack.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
-      mainTomogramPanel.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
+      mainPanel.setTomogramGenerationState(ProcessState.INPROGRESS, axisID);
       tiltProcess(axisID);
     }
   }
@@ -3650,7 +3653,7 @@ public class ApplicationManager extends BaseManager {
     }
     String trialTomogramName = tomogramGenerationDialog.getTrialTomogramName();
     //  Check to see if the trial tomogram exist
-    File trialTomogramFile = new File(System.getProperty("user.dir"),
+    File trialTomogramFile = new File(propertyUserDir,
       trialTomogramName);
     if (!trialTomogramFile.exists()) {
       String message[] = new String[2];
@@ -3662,11 +3665,11 @@ public class ApplicationManager extends BaseManager {
     // tilt.com
     File outputFile;
     if (metaData.getAxisType() == AxisType.SINGLE_AXIS) {
-      outputFile = new File(System.getProperty("user.dir"),
+      outputFile = new File(propertyUserDir,
         metaData.getDatasetName() + "_full.rec");
     }
     else {
-      outputFile = new File(System.getProperty("user.dir"),
+      outputFile = new File(propertyUserDir,
         metaData.getDatasetName() + axisID.getExtension() + ".rec");
     }
     mainPanel.setProgressBar("Using trial tomogram: " + trialTomogramName, 1,
@@ -3703,7 +3706,7 @@ public class ApplicationManager extends BaseManager {
     //          "Can not delete file");
     //      }
     //    }
-    File aligned = new File(System.getProperty("user.dir"),
+    File aligned = new File(propertyUserDir,
       metaData.getDatasetName() + axisID.getExtension() + ".ali");
     if (aligned.exists()) {
       if (!aligned.delete()) {
@@ -3731,7 +3734,7 @@ public class ApplicationManager extends BaseManager {
         "Invalid tomogram combination selection");
       return;
     }
-    mainTomogramPanel.selectButton(AxisID.FIRST, "Tomogram Combination");
+    mainPanel.selectButton(AxisID.FIRST, "Tomogram Combination");
     if (tomogramCombinationDialog == null) {
       tomogramCombinationDialog = new TomogramCombinationDialog(this);
       // Get the setupcombine parameters and set the default patch
@@ -3780,7 +3783,7 @@ public class ApplicationManager extends BaseManager {
       if (combineScriptsExist()) {
         // Check to see if a solvematch.com file exists and load it if so
         //otherwise load the correct old solvematch* file
-        File solvematch = new File(System.getProperty("user.dir"),
+        File solvematch = new File(propertyUserDir,
           "solvematch.com");
         if (solvematch.exists()) {
           loadSolvematch();
@@ -3976,12 +3979,12 @@ public class ApplicationManager extends BaseManager {
       }
       if (exitState == DialogExitState.POSTPONE) {
         processTrack.setTomogramCombinationState(ProcessState.INPROGRESS);
-        mainTomogramPanel.setTomogramCombinationState(ProcessState.INPROGRESS);
+        mainPanel.setTomogramCombinationState(ProcessState.INPROGRESS);
         mainPanel.showBlankProcess(AxisID.ONLY);
       }
       else {
         processTrack.setTomogramCombinationState(ProcessState.COMPLETE);
-        mainTomogramPanel.setTomogramCombinationState(ProcessState.COMPLETE);
+        mainPanel.setTomogramCombinationState(ProcessState.COMPLETE);
         openPostProcessingDialog();
       }
     }
@@ -3993,15 +3996,15 @@ public class ApplicationManager extends BaseManager {
    * @return true if the combine scripts exist
    */
   public boolean combineScriptsExist() {
-    File solvematchshift = new File(System.getProperty("user.dir"), "solvematchshift.com");
-    File solvematchmod = new File(System.getProperty("user.dir"), "solvematchmod.com");
-    File solvematch = new File(System.getProperty("user.dir"), "solvematch.com");
-    File matchvol1 = new File(System.getProperty("user.dir"), "matchvol1.com");
-    File matchorwarp = new File(System.getProperty("user.dir"),
+    File solvematchshift = new File(propertyUserDir, "solvematchshift.com");
+    File solvematchmod = new File(propertyUserDir, "solvematchmod.com");
+    File solvematch = new File(propertyUserDir, "solvematch.com");
+    File matchvol1 = new File(propertyUserDir, "matchvol1.com");
+    File matchorwarp = new File(propertyUserDir,
       "matchorwarp.com");
-    File patchcorr = new File(System.getProperty("user.dir"), "patchcorr.com");
-    File volcombine = new File(System.getProperty("user.dir"), "volcombine.com");
-    File warpvol = new File(System.getProperty("user.dir"), "warpvol.com");
+    File patchcorr = new File(propertyUserDir, "patchcorr.com");
+    File volcombine = new File(propertyUserDir, "volcombine.com");
+    File warpvol = new File(propertyUserDir, "warpvol.com");
     return (
       solvematch.exists()
         || (solvematchshift.exists() && solvematchmod.exists()))
@@ -4026,7 +4029,7 @@ public class ApplicationManager extends BaseManager {
     try {
       processMgr.setupCombineScripts(metaData);
       processTrack.setTomogramCombinationState(ProcessState.INPROGRESS);
-      mainTomogramPanel.setTomogramCombinationState(ProcessState.INPROGRESS);
+      mainPanel.setTomogramCombinationState(ProcessState.INPROGRESS);
     }
     catch (BadComScriptException except) {
       except.printStackTrace();
@@ -4343,7 +4346,7 @@ public class ApplicationManager extends BaseManager {
     }
 
     processTrack.setTomogramCombinationState(ProcessState.INPROGRESS);
-    mainTomogramPanel.setTomogramCombinationState(ProcessState.INPROGRESS);
+    mainPanel.setTomogramCombinationState(ProcessState.INPROGRESS);
     warnStaleFile(ImodManager.PATCH_VECTOR_MODEL_KEY, true);
     //  Set the next process to execute when this is finished
     //nextProcess = "matchvol1";
@@ -4390,10 +4393,10 @@ public class ApplicationManager extends BaseManager {
       return;
     }
     processTrack.setTomogramCombinationState(ProcessState.INPROGRESS);
-    mainTomogramPanel.setTomogramCombinationState(ProcessState.INPROGRESS);
+    mainPanel.setTomogramCombinationState(ProcessState.INPROGRESS);
     warnStaleFile(ImodManager.PATCH_VECTOR_MODEL_KEY, true);
     //  Check to see if solve.xf exists first
-    File solveXf = new File(System.getProperty("user.dir"), "solve.xf");
+    File solveXf = new File(propertyUserDir, "solve.xf");
     if (!solveXf.exists()) {
       //nextProcess = "";
       String[] message = new String[2];
@@ -4438,7 +4441,7 @@ public class ApplicationManager extends BaseManager {
     }
 
     processTrack.setTomogramCombinationState(ProcessState.INPROGRESS);
-    mainTomogramPanel.setTomogramCombinationState(ProcessState.INPROGRESS);
+    mainPanel.setTomogramCombinationState(ProcessState.INPROGRESS);
     warnStaleFile(ImodManager.PATCH_VECTOR_MODEL_KEY, true);
     //  Set the next process to execute when this is finished
     //nextProcess = "matchorwarp";
@@ -4505,7 +4508,7 @@ public class ApplicationManager extends BaseManager {
     }
     if (updateMatchorwarpCom(false)) {
       processTrack.setTomogramCombinationState(ProcessState.INPROGRESS);
-      mainTomogramPanel.setTomogramCombinationState(ProcessState.INPROGRESS);
+      mainPanel.setTomogramCombinationState(ProcessState.INPROGRESS);
     
       //  Set the next process to execute when this is finished
       //nextProcess = next;
@@ -4532,7 +4535,7 @@ public class ApplicationManager extends BaseManager {
   public void matchorwarpTrial() {
     if (updateMatchorwarpCom(true)) {
       processTrack.setTomogramCombinationState(ProcessState.INPROGRESS);
-      mainTomogramPanel.setTomogramCombinationState(ProcessState.INPROGRESS);
+      mainPanel.setTomogramCombinationState(ProcessState.INPROGRESS);
       //  Set the next process to execute when this is finished
       //nextProcess = next;
       String threadName;
@@ -4560,7 +4563,7 @@ public class ApplicationManager extends BaseManager {
     CombineComscriptState combineComscriptState = 
       updateCombineComscriptState(CombineComscriptState.VOLCOMBINE_INDEX);
     processTrack.setTomogramCombinationState(ProcessState.INPROGRESS);
-    mainTomogramPanel.setTomogramCombinationState(ProcessState.INPROGRESS);
+    mainPanel.setTomogramCombinationState(ProcessState.INPROGRESS);
     //  Set the next process to execute when this is finished
     //nextProcess = "";
     String threadName;
@@ -4608,7 +4611,7 @@ public class ApplicationManager extends BaseManager {
     }
     //  Open the dialog in the appropriate mode for the current state of
     //  processing
-    mainTomogramPanel.selectButton(AxisID.ONLY, "Post Processing");
+    mainPanel.selectButton(AxisID.ONLY, "Post Processing");
     if (postProcessingDialog == null) {
       postProcessingDialog = new PostProcessingDialog(this);
       //  Set the appropriate input and output files
@@ -4660,11 +4663,11 @@ public class ApplicationManager extends BaseManager {
     }
     else if (exitState == DialogExitState.POSTPONE) {
       processTrack.setPostProcessingState(ProcessState.INPROGRESS);
-      mainTomogramPanel.setPostProcessingState(ProcessState.INPROGRESS);
+      mainPanel.setPostProcessingState(ProcessState.INPROGRESS);
     }
     else {
       processTrack.setPostProcessingState(ProcessState.COMPLETE);
-      mainTomogramPanel.setPostProcessingState(ProcessState.COMPLETE);
+      mainPanel.setPostProcessingState(ProcessState.COMPLETE);
       postProcessingDialog = null;
     }
     mainPanel.showBlankProcess(AxisID.ONLY);
@@ -4744,9 +4747,9 @@ public class ApplicationManager extends BaseManager {
    */
   public boolean updateLog(String commandName, AxisID axisID) {
     String alignLogName = "align" + axisID.getExtension() + ".log";
-    File alignLog = new File(System.getProperty("user.dir"), alignLogName);
+    File alignLog = new File(propertyUserDir, alignLogName);
     String taErrorLogName = "taError" + axisID.getExtension() + ".log";
-    File taErrorLog = new File(System.getProperty("user.dir"), taErrorLogName);
+    File taErrorLog = new File(propertyUserDir, taErrorLogName);
     if (!alignLog.exists()) {
       return false;
     }
@@ -4793,7 +4796,7 @@ public class ApplicationManager extends BaseManager {
     TrimvolParam trimvolParam = updateTrimvolParam();
     // Start the trimvol process
     processTrack.setPostProcessingState(ProcessState.INPROGRESS);
-    mainTomogramPanel.setPostProcessingState(ProcessState.INPROGRESS);
+    mainPanel.setPostProcessingState(ProcessState.INPROGRESS);
     String threadName;
     try {
       threadName = processMgr.trimVolume(trimvolParam);
@@ -5083,18 +5086,16 @@ public class ApplicationManager extends BaseManager {
   }
   
   protected void createProcessManager() {
-    baseProcessMgr = new ProcessManager(this);
-    processMgr = (ProcessManager) baseProcessMgr;
+    processMgr = new ProcessManager(this);
   }
   
   protected void createMainPanel() {
     mainPanel = new MainTomogramPanel(this);
-    mainTomogramPanel = (MainTomogramPanel) mainPanel;
+    mainPanel = (MainTomogramPanel) mainPanel;
   }
   
-  protected void createBaseMetaData() {
-    baseMetaData = new MetaData();
-    metaData = (MetaData) baseMetaData;
+  protected void createMetaData() {
+    metaData = new MetaData();
   }
   
   /**
@@ -5105,15 +5106,100 @@ public class ApplicationManager extends BaseManager {
   public void setTestParamFile(File paramFile) {
     this.paramFile = paramFile;
     //  Update main window information and status bar
-    mainTomogramPanel.updateDataParameters(paramFile, metaData);
+    mainPanel.updateDataParameters(paramFile, metaData);
   }
   
   protected void createProcessTrack() {
-    baseProcessTrack = new ProcessTrack();
-    processTrack = (ProcessTrack) baseProcessTrack;
+    processTrack = new ProcessTrack();
   }
   
   public ConstMetaData getMetaData() {
-    return (ConstMetaData) baseMetaData;
+    return (ConstMetaData) metaData;
+  }
+  
+  public BaseMetaData getBaseMetaData() {
+    return (BaseMetaData) metaData;
+  }
+  
+  protected void storeMetaData(Storable[] storable, int index ) {
+    storable[index] = metaData;
+  }
+  
+  protected AxisType getAxisType() {
+    return metaData.getAxisType();
+  }
+  
+  protected void setMetaData(ImodManager imodManager) {
+    imodManager.setMetaData(metaData);
+  }
+  
+  protected boolean isMetaDataValid(boolean fromScreen) {
+    if (!metaData.isValid(false)) {
+      mainPanel.openMessageDialog(metaData.getInvalidReason(),
+        ".edf file error");
+      return false;
+    }
+    return true;
+  }
+  
+  protected boolean isMetaDataValid(File paramFile) {
+    if (!metaData.isValid(paramFile)) {
+      mainPanel.openMessageDialog(metaData.getInvalidReason(),
+        ".edf file error");
+      return false;
+    }
+    return true;
+  }
+  
+  protected void openMessageDialog(String[] message, String title) {
+    mainPanel.openMessageDialog(message, title);
+  }
+  
+  protected void openMessageDialog(String message, String title) {
+    mainPanel.openMessageDialog(message, title);
+  }
+  
+  protected void setMainPanelSize() {
+    mainPanel.setSize(new Dimension(userConfig.getMainWindowWidth(),
+      userConfig.getMainWindowHeight()));
+  }
+  protected void setDividerLocation() {
+    if (isDualAxis()) {
+      mainPanel.setDividerLocation(0.51);
+    }
+  }
+  
+  public void packMainWindow() {
+    mainFrame.repaint();
+    mainPanel.fitWindow();
+  }
+  
+  public MainPanel getMainPanel() {
+    return mainPanel;
+  }
+  
+  protected void stopProgressBar(AxisID axisID) {
+    mainPanel.stopProgressBar(axisID);
+  }
+  
+  protected void storeProcessTrack(Storable[] storable, int index) {
+    storable[index] = processTrack;
+  }
+  
+  protected void resetProcessTrack() {
+    processTrack.resetModified();
+  }
+  
+  protected boolean isProcessTrackModified() {
+    return processTrack.isModified();
+  }
+  
+  /**
+   * Interrupt the currently running thread for this axis
+   * 
+   * @param axisID
+   */
+  public void kill(AxisID axisID) {
+    processMgr.kill(axisID);
   }
 }

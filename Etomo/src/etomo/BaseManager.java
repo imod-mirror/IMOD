@@ -1,6 +1,5 @@
 package etomo;
 
-import java.awt.Dimension;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -10,7 +9,6 @@ import java.util.ArrayList;
 import javax.swing.JOptionPane;
 
 import etomo.comscript.ComScriptManager;
-import etomo.process.BaseProcessManager;
 import etomo.process.ImodManager;
 import etomo.process.SystemProcessException;
 import etomo.storage.ParameterStore;
@@ -19,8 +17,6 @@ import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.AxisTypeException;
 import etomo.type.BaseMetaData;
-import etomo.type.BaseProcessTrack;
-import etomo.type.ConstMetaData;
 import etomo.type.ProcessName;
 import etomo.type.UserConfiguration;
 import etomo.ui.MainFrame;
@@ -42,6 +38,9 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.10  2004/10/08 21:12:27  sueh
+* <p> bug# 520 Backed out conversion from properties user.dir to workingDir
+* <p>
 * <p> Revision 1.1.2.9  2004/10/08 15:40:48  sueh
 * <p> bug# 520 Set workingDirName instead of system property for manager-
 * <p> level working directory.  Moved SettingsDialog to EtomoDirector.  Since
@@ -101,8 +100,6 @@ public abstract class BaseManager {
   
   //protected variables
   protected boolean loadedTestParamFile = false;
-  protected BaseMetaData baseMetaData = null;
-  protected BaseProcessTrack baseProcessTrack = null;
   // imodManager manages the opening and closing closing of imod(s), message
   // passing for loading model
   protected ImodManager imodManager = null;
@@ -112,8 +109,6 @@ public abstract class BaseManager {
   protected File paramFile = null;
   //FIXME homeDirectory may not have to be visible
   protected String homeDirectory;
-  //  The ProcessManager manages the execution of com scripts
-  protected BaseProcessManager baseProcessMgr = null;
   protected boolean isDataParamDirty = false;
   // Control variable for process execution
   // FIXME: this going to need to expand to handle both axis
@@ -125,7 +120,7 @@ public abstract class BaseManager {
   
   protected boolean backgroundProcessA = false;
   protected String backgroundProcessNameA = null;
-  protected MainPanel mainPanel = null;
+  protected String propertyUserDir = null;
 
   
   //private static variables
@@ -134,17 +129,35 @@ public abstract class BaseManager {
   protected abstract void createComScriptManager();
   protected abstract void createProcessManager();
   protected abstract void createMainPanel();
-  protected abstract void createBaseMetaData();
+  protected abstract void createMetaData();
   protected abstract void createProcessTrack();
   protected abstract void updateDialog(ProcessName processName, AxisID axisID);
   protected abstract void startNextProcess(AxisID axisID);
+  protected abstract void storeMetaData(Storable[] storable, int index);
+  protected abstract AxisType getAxisType();
+  protected abstract void setMetaData(ImodManager imodManager);
+  protected abstract boolean isMetaDataValid(boolean fromScreen);
+  protected abstract boolean isMetaDataValid(File paramFile);
+  public abstract BaseMetaData getBaseMetaData();
+  protected abstract void openMessageDialog(String[] message, String title);
+  protected abstract void openMessageDialog(String message, String title);
+  protected abstract void setMainPanelSize();
+  protected abstract void setDividerLocation();
+  public abstract void packMainWindow();
+  public abstract MainPanel getMainPanel();
+  protected abstract void stopProgressBar(AxisID axisID);
+  protected abstract void storeProcessTrack(Storable[] storable, int index);
+  protected abstract void resetProcessTrack();
+  protected abstract boolean isProcessTrackModified();
+  public abstract void kill(AxisID axisID);
 
   //FIXME needs to be public?
   public abstract boolean isNewManager();
   public abstract void setTestParamFile(File paramFile);
   
   public BaseManager() {
-    createBaseMetaData();
+    propertyUserDir = System.getProperty("user.dir");
+    createMetaData();
     createProcessTrack();
     createProcessManager();
     createComScriptManager();
@@ -154,8 +167,16 @@ public abstract class BaseManager {
     test = EtomoDirector.getInstance().isTest();
     //imodManager should be created only once.
     createImodManager();
+    initProgram();
   }
   
+  private void initProgram() {
+    System.err.println("propertyUserDir:  " + propertyUserDir);
+  }
+  
+  public String getPropertyUserDir() {
+    return propertyUserDir;
+  }
   protected void initializeUIParameters(String paramFileName) {
     if (!test) {
       //  Initialize the static UIParameter object
@@ -169,15 +190,6 @@ public abstract class BaseManager {
   }
   
   /**
-   * Interrupt the currently running thread for this axis
-   * 
-   * @param axisID
-   */
-  public void kill(AxisID axisID) {
-    baseProcessMgr.kill(axisID);
-  }
-  
-  /**
    * A message asking the ApplicationManager to save the test parameter
    * information to a file.
    */
@@ -186,14 +198,14 @@ public abstract class BaseManager {
       backupFile(paramFile);
       ParameterStore paramStore = new ParameterStore(paramFile);
       Storable[] storable = new Storable[2];
-      storable[0] = baseMetaData;
-      storable[1] = baseProcessTrack;
+      storeMetaData(storable, 0);
+      storeProcessTrack(storable, 1);
       paramStore.save(storable);
       //  Update the MRU test data filename list
       userConfig.putDataFile(paramFile.getAbsolutePath());
       mainFrame.setMRUFileLabels(userConfig.getMRUFileList());
       // Reset the process track flag
-      baseProcessTrack.resetModified();
+      resetProcessTrack();
     }
     catch (IOException except) {
       except.printStackTrace();
@@ -201,8 +213,7 @@ public abstract class BaseManager {
       errorMessage[0] = "Test parameter file save error";
       errorMessage[1] = "Could not save test parameter data to file:";
       errorMessage[2] = except.getMessage();
-      mainPanel.openMessageDialog(errorMessage,
-        "Test parameter file save error");
+      openMessageDialog(errorMessage, "Test parameter file save error");
     }
     isDataParamDirty = false;
   }
@@ -248,11 +259,11 @@ public abstract class BaseManager {
       }
       catch (AxisTypeException except) {
         except.printStackTrace();
-        mainPanel.openMessageDialog(except.getMessage(), "AxisType problem");
+        openMessageDialog(except.getMessage(), "AxisType problem");
       }
       catch (SystemProcessException except) {
         except.printStackTrace();
-        mainPanel.openMessageDialog(except.getMessage(),
+        openMessageDialog(except.getMessage(),
           "Problem closing 3dmod");
       }
       return true;
@@ -265,7 +276,7 @@ public abstract class BaseManager {
    * @return true if the data set is a dual axis data set
    */
   public boolean isDualAxis() {
-    if (baseMetaData.getAxisType() == AxisType.SINGLE_AXIS) {
+    if (getAxisType() == AxisType.SINGLE_AXIS) {
       return false;
     }
     else {
@@ -276,13 +287,10 @@ public abstract class BaseManager {
   protected void setPanel() {
     mainFrame.pack();
     //  Resize to the users preferrred window dimensions
-    mainPanel.setSize(new Dimension(userConfig.getMainWindowWidth(),
-      userConfig.getMainWindowHeight()));
+    setMainPanelSize();
     mainFrame.doLayout();
     mainFrame.validate();
-    if (isDualAxis()) {
-      mainPanel.setDividerLocation(0.51);
-    }
+    setDividerLocation();
   }
   
   //get functions
@@ -302,14 +310,6 @@ public abstract class BaseManager {
    */
   public ComScriptManager getComScriptManager() {
     return comScriptMgr;
-  }
-  
-  /**
-   *  
-   */
-  public void packMainWindow() {
-    mainFrame.repaint();
-    mainPanel.fitWindow();
   }
   
   /**
@@ -334,8 +334,8 @@ public abstract class BaseManager {
       // Read in the test parameter data file
       ParameterStore paramStore = new ParameterStore(paramFile);
       Storable[] storable = new Storable[2];
-      storable[0] = baseMetaData;
-      storable[1] = baseProcessTrack;
+      storeMetaData(storable, 0);
+      storeProcessTrack(storable, 1);
       paramStore.load(storable);
 
       // Set the current working directory for the application, this is the
@@ -344,12 +344,11 @@ public abstract class BaseManager {
       // Uggh, stupid JAVA bug, getParent() only returns the parent if the File
       // was created with the full path
       File newParamFile = new File(paramFile.getAbsolutePath());
-      System.setProperty("user.dir", newParamFile.getParent());
-      setTestParamFile(newParamFile);
+      propertyUserDir = newParamFile.getParent();
       // Update the MRU test data filename list
       userConfig.putDataFile(newParamFile.getAbsolutePath());
       //  Initialize a new IMOD manager
-      imodManager.setMetaData((ConstMetaData) baseMetaData);
+      setMetaData(imodManager);
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();
@@ -357,7 +356,7 @@ public abstract class BaseManager {
       errorMessage[0] = "Test parameter file read error";
       errorMessage[1] = "Could not find the test parameter data file:";
       errorMessage[2] = except.getMessage();
-      mainPanel.openMessageDialog(errorMessage, "File not found error");
+      openMessageDialog(errorMessage, "File not found error");
       return false;
     }
     catch (IOException except) {
@@ -366,13 +365,11 @@ public abstract class BaseManager {
       errorMessage[0] = "Test parameter file read error";
       errorMessage[1] = "Could not read the test parameter data from file:";
       errorMessage[2] = except.getMessage();
-      mainPanel.openMessageDialog(errorMessage,
+      openMessageDialog(errorMessage,
         "Test parameter file read error");
       return false;
     }
-    if (!baseMetaData.isValid(false)) {
-      mainPanel.openMessageDialog(baseMetaData.getInvalidReason(),
-        ".edf file error");
+    if (!isMetaDataValid(paramFile)) {
       return false;
     }
     return true;
@@ -388,7 +385,7 @@ public abstract class BaseManager {
       catch (IOException except) {
         System.err.println("Unable to backup file: " + file.getAbsolutePath()
           + " to " + backupFile.getAbsolutePath());
-        mainPanel.openMessageDialog(except.getMessage(), "File Rename Error");
+        openMessageDialog(except.getMessage(), "File Rename Error");
       }
     }
   }
@@ -403,7 +400,7 @@ public abstract class BaseManager {
    */
   protected boolean saveTestParamIfNecessary() {
     // Check to see if the current dataset needs to be saved
-    if (isDataParamDirty || baseProcessTrack.isModified()) {
+    if (isDataParamDirty || isProcessTrackModified()) {
       String[] message = {"Save the current data file ?"};
       int returnValue = mainFrame.openYesNoCancelDialog(message);
       if (returnValue == JOptionPane.CANCEL_OPTION) {
@@ -437,10 +434,6 @@ public abstract class BaseManager {
     imodManager = new ImodManager();
   }
   
-  public MainPanel getMainPanel() {
-    return mainPanel;
-  }
-  
   /**
    * Notification message that a background process is done.
    * 
@@ -450,17 +443,17 @@ public abstract class BaseManager {
   public void processDone(String threadName, int exitValue,
     ProcessName processName, AxisID axisID) {
     if (threadName.equals(threadNameA)) {
-      mainPanel.stopProgressBar(AxisID.FIRST);
+      stopProgressBar(AxisID.FIRST);
       threadNameA = "none";
       backgroundProcessA = false;
       backgroundProcessNameA = null;
     }
     else if (threadName.equals(threadNameB)) {
-      mainPanel.stopProgressBar(AxisID.SECOND);
+      stopProgressBar(AxisID.SECOND);
       threadNameB = "none";
     }
     else {
-      mainPanel.openMessageDialog("Unknown thread finished!!!", "Thread name: "
+      openMessageDialog("Unknown thread finished!!!", "Thread name: "
         + threadName);
     }
     if (processName != null) {
@@ -475,10 +468,6 @@ public abstract class BaseManager {
         nextProcess = "";
       }
     }
-  }
-  
-  public BaseMetaData getBaseMetaData() {
-    return baseMetaData;
   }
 
 }
