@@ -17,6 +17,9 @@ import java.util.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.1  2004/07/22 23:58:59  sueh
+ * <p> bug# 513 saving autofit property
+ * <p>
  * <p> Revision 3.0  2003/11/07 23:19:01  rickg
  * <p> Version 1.0.0
  * <p>
@@ -60,6 +63,22 @@ public class UserConfiguration implements Storable {
       MRUFileList.put("");
     }
   }
+  
+  public String toString() {
+    return getClass().getName() + "[" + paramString() + "]";
+  }
+
+  protected String paramString() {
+    return "\nrevisionNumber=" + revisionNumber + ",\nnativeLookAndFeel="
+        + nativeLookAndFeel + ",\nadvancedDialogs=" + advancedDialogs
+        + ",\ntoolTipsInitialDelay=" + toolTipsInitialDelay
+        + ",\ntoolTipsDismissDelay=" + toolTipsDismissDelay + ",\nnMRUFiles="
+        + nMRUFiles + ",\nMRUFileList=" + MRUFileList.toString()
+        + ",\nfontFamily=" + fontFamily + ",\nfontSize=" + fontSize
+        + ",\nmainWindowWidth=" + mainWindowWidth + ",\nmainWindowHeight="
+        + mainWindowHeight + ",\nautoFit=" + autoFit;
+  } 
+
 
   /**
    *  Insert the objects attributes into the properties object.
