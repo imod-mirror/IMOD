@@ -16,7 +16,10 @@ import javax.swing.filechooser.FileFilter;
 * 
 * @version $Revision$
 * 
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1.2.1  2004/09/21 17:57:00  sueh
+* <p> bug# 520 A file filter for .rec files
+* <p> </p>
 */
 public class TomogramFileFilter extends FileFilter implements
     java.io.FileFilter {
@@ -26,7 +29,8 @@ public class TomogramFileFilter extends FileFilter implements
    */
   public boolean accept(File f) {
     //  If this is a file test its extension, all others should return true
-    if (f.isFile() && !f.getAbsolutePath().endsWith(".rec")) {
+    if (f.isFile() && !f.getAbsolutePath().endsWith(".rec")
+        && !f.getAbsolutePath().endsWith(".flip")) {
       return false;
     }
     return true;
