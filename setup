@@ -9,6 +9,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.5.2.6  2003/01/27 00:38:37  mast
+#  fine-tuning the build after pure Qt imod
+#
 #  Revision 3.5.2.5  2002/12/06 22:08:30  mast
 #  *** empty log message ***
 #
@@ -515,10 +518,14 @@ echo INCLUDEPATH += $inc_dir >> $midas_qconf
 echo LIBS += -L$lib_dir -limod -liimod -ldiaqt -ltiff >> $midas_qconf
 echo target.path = $inst_bin_dir >> $midas_qconf
 
-echo INCLUDEPATH += $inc_dir >> $imod_qconf
-echo target.path = $inst_bin_dir >> $imod_qconf
-echo imodv.path = $inst_bin_dir >> $imod_qconf
-echo "unix:imodv.extra = \\rm -f $inst_bin_dir/imodv ; ln -s $inst_bin_dir/imod $inst_bin_dir/imodv" >> $imod_qconf
+# echo gives two \\ in tcsh 6.12 under RH 8.0 so use cat
+#
+cat <<EOF >> $imod_qconf
+INCLUDEPATH += $inc_dir
+target.path = $inst_bin_dir
+imodv.path = $inst_bin_dir
+unix:imodv.extra = \\rm -f $inst_bin_dir/imodv ; ln -s $inst_bin_dir/imod $inst_bin_dir/imodv
+EOF
 
 if ($debug == true) then
     echo CONFIG += debug warn_on >> $midas_qconf
