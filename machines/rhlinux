@@ -20,7 +20,7 @@ set glwinst_lib_dir = $source_dir/buildlib
 
 # add location of system glw includes if using system glw instead
 # (define glwincdir and add -I$glwincdir)
-set c_includes =  "-I$Xincdir -I$Mincdir"
+set c_includes =  "-I$Xincdir -I$Mincdir"' -I$(QTDIR)/include'
 
 # add -I$opengl_lib if it's not on the system library path
 echo 'LDFLAGS = -L$(LIBDIR)' "-L$Xlibdir" >> $configure
@@ -192,13 +192,12 @@ set fbpswitch       = fbpswitch-pc.inc
 # Set up things for Qt include files
 #
 cat << EOF  >! $midas_qconf
-LIBS += -L$lib_dir -limod -liimod -ltiff -lGL
 DEFINES	+= _FILE_OFFSET_BITS=64
 EOF
 
 cat << EOF >! $imod_qconf
-LIBS += -L$lib_dir $lib_dir/libGLw.a -limod -liimod -ldia -ltiff -ldl
-LIBS += -lXm -lqxt -lm
+LIBS += -L$lib_dir -limod -liimod -ldiaqt -ltiff -ldl
+LIBS += -lm
 DEFINES	+= _FILE_OFFSET_BITS=64
 QMAKE_LFLAGS_DEBUG += -Wl,-E 
 QMAKE_LFLAGS_RELEASE += -Wl,-E

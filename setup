@@ -9,6 +9,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.5.2.5  2002/12/06 22:08:30  mast
+#  *** empty log message ***
+#
 #  Revision 3.5.2.4  2002/12/06 17:36:51  mast
 #  *** empty log message ***
 #
@@ -50,7 +53,7 @@
 #
 # Global setup
 #
-set imod_copyright    = '1994-2002'
+set imod_copyright    = '1994-2003'
 set lab_name1     = 'Boulder Laboratory for 3-Dimensional'
 set lab_name2     = 'Electron Microscopy of Cells'
 set source_dir    = `pwd`
@@ -186,7 +189,6 @@ cat << EOF >! $hconfigure
 #define COPYRIGHT_YEARS "$imod_copyright"
 #define LAB_NAME1 "$lab_name1"
 #define LAB_NAME2 "$lab_name2"
-#define DRAW_OpenGL 1
 EOF
 
 #
@@ -481,6 +483,7 @@ echo "INSTLIBDIR = $inst_lib_dir"  >> $configure
 echo "INSTDIR = $inst_dir"  >> $configure
 echo "INCDIR  = $inc_dir"          >> $configure
 echo "IMOD_PLUGIN_DIR = $inst_plug_dir" >> $configure
+echo 'MOC = $(QTDIR)/bin/moc'     >> $configure
 echo "# end of configure"          >> $configure
 
 echo "#endif"                      >> $hconfigure
@@ -509,8 +512,14 @@ mkdir -p $inst_dir/man/cat5
 # manage qconfigure files
 #
 echo INCLUDEPATH += $inc_dir >> $midas_qconf
+echo LIBS += -L$lib_dir -limod -liimod -ldiaqt -ltiff >> $midas_qconf
+echo target.path = $inst_bin_dir >> $midas_qconf
+
 echo INCLUDEPATH += $inc_dir >> $imod_qconf
-echo DEFINES += QT_CLEAN_NAMESPACE >> $imod_qconf
+echo target.path = $inst_bin_dir >> $imod_qconf
+echo imodv.path = $inst_bin_dir >> $imod_qconf
+echo "unix:imodv.extra = \\rm -f $inst_bin_dir/imodv ; ln -s $inst_bin_dir/imod $inst_bin_dir/imodv" >> $imod_qconf
+
 if ($debug == true) then
     echo CONFIG += debug warn_on >> $midas_qconf
     echo CONFIG += debug warn_off >> $imod_qconf
@@ -520,7 +529,7 @@ else
 endif
 
 (cd $midas_dir ; qmake midas.pro)
-(cd $imod_dir ; touch imodhelp.h ; qmake imod.pro ; \rm imodhelp.h ; if (! -e imodv) ln -s imod imodv )
+(cd $imod_dir ; touch imodhelp.h ; qmake imod.pro ; \rm -f imodhelp.h imodv mkargv mkargv.o ; ln -s imod imodv)
 
 exit
 
