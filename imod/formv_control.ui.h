@@ -276,8 +276,10 @@ void imodvControlForm::keyPressEvent( QKeyEvent * e )
     if (e->key() == Qt::Key_Escape)
 	imodvControlQuit();
     
-    if (e->key() == Qt::Key_Control)
+    if (e->key() == Qt::Key_Control) {
 	mCtrlPressed = true;
+        grabKeyboard();
+    }
     
     // This made no difference, probably because this is a top level widget
     e->ignore();
@@ -286,8 +288,10 @@ void imodvControlForm::keyPressEvent( QKeyEvent * e )
 
 void imodvControlForm::keyReleaseEvent( QKeyEvent * e )
 {
-    if (e->key() == Qt::Key_Control)
+  if (e->key() == Qt::Key_Control) {
 	mCtrlPressed = false;
+        releaseKeyboard();
+  }
     
     e->ignore();
 }
