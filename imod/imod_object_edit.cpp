@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.3  2002/12/09 17:49:57  mast
+Getting the object type buttons right
+
 Revision 1.1.2.2  2002/12/07 01:22:02  mast
 Taking care of window title
 
@@ -301,7 +304,7 @@ void ioew_time(int state)
   imodDraw(App->cvi, IMOD_DRAW_MOD);
 }
 
-int imod_object_edit(Widget top)
+int imod_object_edit()
 {
   QString qstr;
   char *window_name;

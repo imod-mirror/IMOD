@@ -32,6 +32,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.1  2002/12/05 16:30:22  mast
+First addition to archive
+
 
 */
 
@@ -42,7 +45,7 @@ $Log$
 extern "C" {
 #endif
   /* This can't be here because this header will be read by Qt files */
-  /*  void ioew_sgicolor_cb(Widget w, XtPointer client, XtPointer call); */
+  /* void ioew_sgicolor_cb(Widget w, XtPointer client, XtPointer call); */
   void ioew_help(void);
   void ioew_quit(void);
   void ioew_closing(void);
@@ -58,6 +61,7 @@ extern "C" {
   void ioew_symsize(int value);
   void ioew_time(int state);
   int imod_object_edit_draw(void);
+  int  imod_object_edit();
 
 #ifdef __cplusplus
 }
