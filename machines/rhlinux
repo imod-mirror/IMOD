@@ -47,7 +47,12 @@ endif
 set wrapper = ""
 
 if ($shared_libs != false) then
-	echo "AR      = ld"                 >> $configure
+        # A timid change for 3.5 just before release, just change for debug
+        if ($debug == true) then
+            echo "AR      = g++"                 >> $configure
+        else
+            echo "AR      = ld"                 >> $configure
+        endif
 	echo "ARCPP   = g++"                >> $configure
 	echo "ARFLAGS = $flags $libflags -shared -o "    >> $configure
 	echo "RANLIB    = true"                     >> $configure
