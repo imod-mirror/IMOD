@@ -1,3 +1,5 @@
+This is just to check out how CVS works
+
 1. why have two options for name of the image file or to enter image structure
    parameters?
 2. what are X-Y-Z coordinates, X-Y-Z coordinates of what?
