@@ -34,6 +34,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.4  2002/12/14 05:23:42  mast
+backing out the fancy subclass, adjusting for new visual detection
+
 Revision 1.1.2.3  2002/12/13 07:09:19  mast
 GLMainWindow needed different name for mouse event processors
 
@@ -83,10 +86,12 @@ Removed call to autox_build
 #include "xxyz.h"
 #include "imod.h"
 #include "xzap.h"
+#include "control.h"
 
 void inputQDefaultKeys(QKeyEvent *event, ImodView *vw);
 
 /*************************** internal functions ***************************/
+static void xyzKey_cb(ImodView *vi, void *client, int released, QKeyEvent *e);
 static void xyzClose_cb(ImodView *vi, void *client, int junk);
 static void xyzDraw_cb(ImodView *vi, void *client, int drawflag);
 
@@ -163,10 +168,11 @@ int xxyz_open(ImodView *vi)
     str = "Imod XYZ Window";
   xx->dialog->setCaption(str);
 
-  xx->lx = xx->ly = xx->lz = -1;
+  xx->lx = xx->ly = xx->lz = xx->lastCacheSum -1;
   XYZ  = xx;
 
-  xx->ctrl = ivwNewControl(vi, xyzDraw_cb, xyzClose_cb, (XtPointer)xx);
+  xx->ctrl = ivwNewControl(vi, xyzDraw_cb, xyzClose_cb, xyzKey_cb, 
+			   (XtPointer)xx);
   
   // This one we can resize before showing, since there is no toolbar size
   // that needs to get corrected
@@ -222,6 +228,15 @@ static void xyzClose_cb(ImodView *vi, void *client, int junk)
   xx->closing = 1;
   xx->dialog->close();
 }
+
+// This receives a key from the controller
+static void xyzKey_cb(ImodView *vi, void *client, int released, QKeyEvent *e)
+{
+  struct xxyzwin *xx = (struct xxyzwin *)client;
+  if (!released)
+    xx->dialog->keyPressPassedOn(e);
+}
+
 
 // Implementation of the window class
 XyzWindow::XyzWindow(struct xxyzwin *xyz, bool rgba, bool doubleBuffer, 
@@ -838,7 +853,7 @@ void XyzWindow::DrawImage()
   int sz = (int)(nz * win->zoom);
   int wx1, wx2, wy1, wy2;
   int xoffset1, xoffset2, yoffset1, yoffset2;
-  int width1, height1, width2, height2;
+  int width1, height1, width2, height2, cacheSum, xslice, yslice;
           
           
   if (!win) return;
@@ -853,6 +868,9 @@ void XyzWindow::DrawImage()
   if (!imdata)
     return;
 
+  // Keep track of a sum of Z values in the cache in order to detect 
+  // Changes in available data that will require redisplay of XZ and YZ data
+  cacheSum = 0;
   if (win->vi->vmSize) {
     /* For cached data, get pointers to data that exist at this time */
     for (i = 0; i < win->vi->zsize; i++)
@@ -862,6 +880,7 @@ void XyzWindow::DrawImage()
       if (iz < win->vi->zsize && iz >= 0 &&
           win->vi->vmCache[i].ct == win->vi->ct){
         imdata[iz] = win->vi->vmCache[i].sec->data.b;
+	cacheSum += iz;
       }
     }
 
@@ -928,9 +947,13 @@ void XyzWindow::DrawImage()
                              win->hq, cz);
   }
 
+  // Send out a negative xslice or yslice if the data are being reloaded,
+  // this is the best way to signal that they are new to the matching routine
   if (width2 > 0 && height1 > 0) {
+    xslice = cx;
     fdata  = win->fdatayz;
-    if (cx != win->lx){
+    if (cx != win->lx || cacheSum != win->lastCacheSum){
+      xslice = -1 - cx;
       win->lx = cx;
       for(z = 0; z < nz; z++) {
         if (!win->vi->fakeImage && imdata[z]) {
@@ -945,12 +968,14 @@ void XyzWindow::DrawImage()
     b3dDrawGreyScalePixelsHQ(win->fdatayz, nz, ny, xoffset2, yoffset1,
                              wx2, wy1, width2, height1, win->yzdata,
                              win->vi->rampbase, win->zoom, win->zoom, 
-                             win->hq, cx);
+                             win->hq, xslice);
   }
 
   if (width1 > 0 && height2 > 0) {
+    yslice = cy;
     fdata  = win->fdataxz;
-    if (cy != win->ly){
+    if (cy != win->ly || cacheSum != win->lastCacheSum){
+      yslice = -1 - cy;
       win->ly = cy;
       for(i = 0,z = 0; z < nz; z++) {
         if (!win->vi->fakeImage && imdata[z]) {
@@ -965,8 +990,9 @@ void XyzWindow::DrawImage()
     b3dDrawGreyScalePixelsHQ(win->fdataxz, nx, nz, xoffset1, yoffset2,
                              wx1, wy2, width1, height2, win->xzdata,
                              win->vi->rampbase, win->zoom, win->zoom, 
-                             win->hq, cy);
+                             win->hq, yslice);
   }
+  win->lastCacheSum = cacheSum;
 
   free(imdata);
      
