@@ -30,6 +30,7 @@ protected:
 
  private:
   bool mSkipClearOnDraw;
+  bool mMousePressed;
 };
 
 #endif

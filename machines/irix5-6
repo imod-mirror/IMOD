@@ -8,6 +8,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.2.2.4  2002/12/05 19:48:32  mast
+#  *** empty log message ***
+#
 #  Revision 3.2.2.3  2002/12/05 19:04:19  mast
 #  *** empty log message ***
 #
@@ -166,7 +169,7 @@ set fbpswitch       = fbpswitch-sgi.inc
 # Set up things for Qt include files
 #
 cat << EOF  >! $midas_qconf
-LIBS += -L$lib_dir -limod -liimod -ltiff -lGL
+LIBS += -L$lib_dir -limod -liimod -ltiff
 EOF
 
 cat << EOF >! $imod_qconf
