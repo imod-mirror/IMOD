@@ -1,10 +1,8 @@
 package etomo.process;
 
 import java.io.File;
-import java.io.IOException;
 
 import etomo.BaseManager;
-import etomo.EtomoDirector;
 import etomo.JoinManager;
 import etomo.comscript.FinishjoinParam;
 import etomo.comscript.FlipyzParam;
@@ -12,8 +10,6 @@ import etomo.comscript.MakejoincomParam;
 import etomo.comscript.MidasParam;
 import etomo.comscript.XfalignParam;
 import etomo.type.AxisID;
-import etomo.type.ConstEtomoLong;
-import etomo.util.Utilities;
 
 /**
 * <p>Description: </p>
@@ -29,6 +25,10 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.7  2004/10/25 23:11:52  sueh
+* <p> bug# 520 Added to backgroundErrorProcess() for post processing when
+* <p> BackgroundProcess fails (enabling Midas when xfalign fails).
+* <p>
 * <p> Revision 1.1.2.6  2004/10/21 02:44:29  sueh
 * <p> bug# 520 Added finishJoin and midasSample.  Added post processing for
 * <p> midas and xfalign.
@@ -117,8 +117,12 @@ public class JoinProcessManager extends BaseProcessManager {
     InteractiveSystemProgram program = startInteractiveSystemProgram(midasParam);
     return program.getName();
   }
-
   
+  public void touch(File file) {
+    String[] commandArray = { "touch", file.getAbsolutePath() };
+    startSystemProgramThread(commandArray);
+  }
+
   protected void comScriptPostProcess(ComScriptProcess script, int exitValue) {
   }
   
@@ -130,7 +134,8 @@ public class JoinProcessManager extends BaseProcessManager {
     if (commandName.equals(FlipyzParam.getName())) {
       joinManager.addSection(process.getOutputFile());
     }
-    if (commandName.equals(XfalignParam.getName())) {
+    else if (commandName.equals(XfalignParam.getName())) {
+      joinManager.copyXfFile(process.getOutputFile());
       joinManager.enableMidas();
     }
   }
@@ -153,25 +158,11 @@ public class JoinProcessManager extends BaseProcessManager {
     }
     if (commandName.equals(MidasParam.getName())) {
       File outputFile = program.getOutputFile();
-      if (outputFile != null) {
-        ConstEtomoLong oldOutputFileTime = program.getOldOutputFileTime();
-        if (oldOutputFileTime.isSet()
-            && !oldOutputFileTime.equals(outputFile.lastModified())) {
-          try {
-            Utilities.copyFile(outputFile, new File(outputFile.getAbsolutePath()
-                + ".bak"));
-          }
-          catch (IOException e) {
-            e.printStackTrace();
-            String outputFileName = outputFile.getName();
-            String[] message = {
-                "Unable to backup " + outputFile.getAbsolutePath() + ".",
-                "Copy " + outputFileName + " to " + outputFileName + ".bak",
-                "before using Automatic Alignment or Revert." };
-            EtomoDirector.getInstance().getMainFrame().openMessageDialog(
-                message, "WARNING!  Unable to Backup");
-          }
-        }
+      if (outputFile != null
+          && outputFile.exists()
+          && outputFile.lastModified() > program.getOutputFileLastModified()
+              .get()) {
+        joinManager.copyXfFile(outputFile);
       }
     }
   }
