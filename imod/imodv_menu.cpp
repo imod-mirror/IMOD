@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.3  2002/12/18 04:15:14  mast
+new includes for imodv modules
+
 Revision 1.1.2.2  2002/12/17 22:28:21  mast
 cleanup of unused variables and SGI errors
 
@@ -49,10 +52,10 @@ Changed copyright notice to use defined lab name and years
 */
 
 #include <qfiledialog.h>
+#include "colorselector.h"
 #include "imodv_window.h"
-#include <Xm/Xm.h>
-#include <dia.h>
 #include "imodv.h"
+#include "imod.h"
 #include "b3dgfx.h"
 #include "imodv_gfx.h"
 #include "imodv_menu.h"
@@ -66,54 +69,24 @@ Changed copyright notice to use defined lab name and years
 #include "imodv_objed.h"
 #include "imodv_movie.h"
 
-static void imodv_setbgcolor(Widget w, XtPointer client, XtPointer call);
 
-/* Callback function for setting the background color in
- * the model view window.
- */
-static int bgColorOpen = False;
-static void imodv_setbgcolor(Widget w, XtPointer client, XtPointer call)
-{
-  DiaColorCallbackStruct *cbs = (DiaColorCallbackStruct *)call;
-  ImodvApp *a = (ImodvApp *)client;
+static ImodvBkgColor bkgColor;
 
-  /* Keep track if it is closed */
-  if (cbs->reason == DIA_OK || cbs->reason == DIA_CANCEL)
-    bgColorOpen = False;
-
-  if (ImodvClosed) return;
-
-  if (cbs->reason == DIA_SLIDER_DRAG)
-    return;
-  if (cbs->reason == DIA_SLIDER_CHANGED)
-    return;
-  if (cbs->reason == DIA_CANCEL)
-    return;
-  if (cbs->reason == DIA_HELP)
-    return;
-
-  a->rbgcolor.red   = cbs->red *   255;
-  a->rbgcolor.green = cbs->green * 255;
-  a->rbgcolor.blue  = cbs->blue *  255;
-
-  imodvDraw(a);
-  return;
-}
-                                 
 /* DNM 12/1/02: make this the single path to opening the window, and have
    it keep track of whether window is open or not, and return if it is */
-void imodvMenuBgcolor()
+void imodvMenuBgcolor(int state)
 {
-  short red, green, blue;
-  if (bgColorOpen)
-    return;
 
-  red   = Imodv->rbgcolor.red / 256;
-  green = Imodv->rbgcolor.green / 256;
-  blue  = Imodv->rbgcolor.blue / 256;
-  dia_setcolor(red, green, blue, "Imodv background color.",
-               imodv_setbgcolor, Imodv);
-  bgColorOpen = True;
+  // Qt version: raise the window if already open, or open it; or close it
+  if (state) {
+    if (bkgColor.mSelector) {
+      bkgColor.mSelector->raise();
+      return;
+    }
+    bkgColor.openDialog();
+  } else {
+    bkgColor.doneSlot();
+  }
 }
 
 
@@ -132,7 +105,7 @@ void imodvEditMenu(int item)
     imodvObjectListDialog(Imodv, 1);
     break;
   case VEDIT_MENU_BKG: /* background color */
-    imodvMenuBgcolor();
+    imodvMenuBgcolor(1);
     break;
   case VEDIT_MENU_MODELS: /* models */
     imodvModelEditDialog(Imodv, 1);
@@ -626,4 +599,77 @@ void imodvMenuWireframe(int value)
 void imodvMenuLowres(int value)
 {
   Imodv->mainWin->setCheckableItem(VVIEW_MENU_LOWRES, value);
+}
+
+
+// Background color class
+void ImodvBkgColor::openDialog()
+{
+  QString qstr;
+  char *window_name;
+  int red, green, blue;
+
+  red   = Imodv->rbgcolor.red / 256;
+  green = Imodv->rbgcolor.green / 256;
+  blue  = Imodv->rbgcolor.blue / 256;
+  
+  mSelector = new ColorSelector(Imodv->mainWin, "Imodv background color.",
+                                red, green, blue, "selector");
+  connect(mSelector, SIGNAL(newColor(int, int, int)), this, 
+          SLOT(newColorSlot(int, int, int)));
+  connect(mSelector, SIGNAL(done()), this, SLOT(doneSlot()));
+  connect(mSelector, SIGNAL(closing()), this, SLOT(closingSlot()));
+  connect(mSelector, SIGNAL(keyPress(QKeyEvent *)), this, 
+          SLOT(keyPressSlot(QKeyEvent *)));
+  connect(mSelector, SIGNAL(keyRelease(QKeyEvent *)), this, 
+          SLOT(keyReleaseSlot(QKeyEvent *)));
+
+  window_name = imodwEithername("Imodv: ", Imodv->imod->fileName, 1);
+  qstr = window_name;
+  if (window_name)
+    free(window_name);
+  if (qstr.isEmpty())
+    qstr = "Imodv";
+  mSelector->setCaption(qstr);
+
+
+  mSelector->show();
+
+}
+
+ImodvBkgColor::ImodvBkgColor()
+  : QObject(0, 0)
+{
+  mSelector = NULL;
+}
+
+void ImodvBkgColor::newColorSlot(int red, int green, int blue)
+{
+  ImodvApp *a = Imodv;
+
+  a->rbgcolor.red   = red *   255;
+  a->rbgcolor.green = green * 255;
+  a->rbgcolor.blue  = blue *  255;
+
+  imodvDraw(a);
+}
+
+void ImodvBkgColor::doneSlot()
+{
+  if (mSelector)
+    mSelector->close();
+}
+
+void ImodvBkgColor::closingSlot()
+{
+  mSelector = NULL;
+}
+
+void ImodvBkgColor::keyPressSlot ( QKeyEvent * e )
+{
+  imodvKeyPress(e);
+}
+void ImodvBkgColor::keyReleaseSlot ( QKeyEvent * e )
+{
+  imodvKeyRelease(e);
 }
