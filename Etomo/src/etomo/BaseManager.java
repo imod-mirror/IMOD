@@ -1,7 +1,6 @@
 package etomo;
 
 import java.awt.Dimension;
-import java.awt.Point;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -9,9 +8,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 import javax.swing.JOptionPane;
-import javax.swing.ToolTipManager;
-import javax.swing.UIManager;
-import javax.swing.plaf.FontUIResource;
 
 import etomo.comscript.ComScriptManager;
 import etomo.process.BaseProcessManager;
@@ -29,7 +25,6 @@ import etomo.type.ProcessName;
 import etomo.type.UserConfiguration;
 import etomo.ui.MainFrame;
 import etomo.ui.MainPanel;
-import etomo.ui.SettingsDialog;
 import etomo.ui.UIParameters;
 import etomo.util.Utilities;
 
@@ -47,6 +42,11 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.8  2004/10/01 20:58:02  sueh
+* <p> bug# 520 Changed getMetaDAta() to getBaseMetaData() so it can return
+* <p> the abstract base class for objects that don't know which type of manager
+* <p> they are using.
+* <p>
 * <p> Revision 1.1.2.7  2004/09/29 17:37:09  sueh
 * <p> bug# 520 Using BaseMetaData, BaseProcessTrack, and
 * <p> BaseProcessManager.  Moved processDone() from app mgr to base mgr.
@@ -86,9 +86,10 @@ public abstract class BaseManager {
   
   //protected static variables
   protected static boolean test = false;
-  protected static MainFrame mainFrame = EtomoDirector.getMainFrame();
-  protected static UserConfiguration userConfig = EtomoDirector
-  .getUserConfiguration();
+  protected static MainFrame mainFrame = EtomoDirector.getInstance()
+      .getMainFrame();
+  protected static UserConfiguration userConfig = EtomoDirector.getInstance()
+      .getUserConfiguration();
   
   //protected variables
   protected boolean loadedTestParamFile = false;
@@ -101,8 +102,6 @@ public abstract class BaseManager {
   protected ComScriptManager comScriptMgr = null;
   //FIXME paramFile may not have to be visible
   protected File paramFile = null;
-  //FIXME homeDirectory may not have to be visible
-  protected String homeDirectory;
   //  The ProcessManager manages the execution of com scripts
   protected BaseProcessManager baseProcessMgr = null;
   protected boolean isDataParamDirty = false;
@@ -117,25 +116,9 @@ public abstract class BaseManager {
   protected boolean backgroundProcessA = false;
   protected String backgroundProcessNameA = null;
   protected MainPanel mainPanel = null;
-
-  
-  //private static variables
+  protected String workingDirName = null;
   private static boolean debug = false;
-  private static File IMODDirectory;
-  private static File IMODCalibDirectory;
-  
-  //private variables
-  
-  // advanced dialog state for this instance, this gets set upon startup from
-  // the user configuration and can be modified for this instance by either
-  // the option or advanced menu items
-  private boolean isAdvanced = false;
-  private SettingsDialog settingsDialog = null;
-  
-  
-  //abstract functions
-  
-  //create functions
+
   protected abstract void createComScriptManager();
   protected abstract void createProcessManager();
   protected abstract void createMainPanel();
@@ -149,15 +132,15 @@ public abstract class BaseManager {
   public abstract void setTestParamFile(File paramFile);
   
   public BaseManager() {
+    workingDirName = System.getProperty("user.dir");
     createBaseMetaData();
     createProcessTrack();
     createProcessManager();
     createComScriptManager();
     createMainPanel();
     //  Initialize the program settings
-    debug = EtomoDirector.isDebug();
-    test = EtomoDirector.isTest();
-    initProgram();
+    debug = EtomoDirector.getInstance().isDebug();
+    test = EtomoDirector.getInstance().isTest();
     //imodManager should be created only once.
     createImodManager();
   }
@@ -213,6 +196,10 @@ public abstract class BaseManager {
     isDataParamDirty = false;
   }
   
+  public String getWorkingDirName() {
+    return workingDirName;
+  }
+  
   /**
    * Exit the program
    */
@@ -242,41 +229,6 @@ public abstract class BaseManager {
     }
     if (saveTestParamIfNecessary()) {
       //  Should we close the 3dmod windows
-      //  Save the current window size to the user config
-      Dimension size = mainFrame.getSize();
-      userConfig.setMainWindowWidth(size.width);
-      userConfig.setMainWindowHeight(size.height);
-      //  Write out the user configuration data
-      File userConfigFile = new File(homeDirectory, ".etomo");
-      //  Make sure the config file exists, create it if it doesn't
-      try {
-        userConfigFile.createNewFile();
-      }
-      catch (IOException except) {
-        System.err.println("IOException: Could not create file:"
-          + userConfigFile.getAbsolutePath() + "\n" + except.getMessage());
-        System.err.println(except.getMessage());
-        return true;
-      }
-      ParameterStore userParams = new ParameterStore(userConfigFile);
-      Storable storable[] = new Storable[1];
-      storable[0] = userConfig;
-      if (!userConfigFile.canWrite()) {
-        mainPanel.openMessageDialog(
-          "Change permissions of $HOME/.etomo to allow writing",
-          "Unable to save user configuration file");
-      }
-      if (userConfigFile.canWrite()) {
-        try {
-          userParams.save(storable);
-        }
-        catch (IOException excep) {
-          excep.printStackTrace();
-          mainPanel.openMessageDialog(
-            "IOException: unable to save user parameters\n"
-              + excep.getMessage(), "Unable to save user parameters");
-        }
-      }
       try {
         if (imodManager.isOpen()) {
           String[] message = new String[3];
@@ -325,26 +277,6 @@ public abstract class BaseManager {
       mainPanel.setDividerLocation(0.51);
     }
   }
-
-  /**
-   * Open up the settings dialog box
-   */
-  public void openSettingsDialog() {
-    //  Open the dialog in the appropriate mode for the current state of
-    //  processing
-    if (settingsDialog == null) {
-      settingsDialog = new SettingsDialog(this);
-      settingsDialog.setParameters(userConfig);
-      Dimension frmSize = mainFrame.getSize();
-      Point loc = mainFrame.getLocation();
-      settingsDialog.setLocation(loc.x, loc.y + frmSize.height);
-      settingsDialog.setModal(false);
-    }
-    settingsDialog.show();
-  }
-
-  
-
   
   //get functions
   
@@ -353,25 +285,9 @@ public abstract class BaseManager {
    * @return
    */
   public static String getIMODBinPath() {
-    return getIMODDirectory().getAbsolutePath()
+    return EtomoDirector.getInstance().getIMODDirectory().getAbsolutePath()
       + File.separator + "bin" + File.separator;
   }
-  
-  /**
-   * Return the IMOD directory
-   */
-  static public File getIMODDirectory() {
-    //  Return a copy of the IMODDirectory object
-    return new File(IMODDirectory.getAbsolutePath());
-  }
-  
-  /**
-   * Return the IMOD calibration directory
-   */
-  static public File getIMODCalibDirectory() {
-    //  Return a copy of the IMODDirectory object
-    return new File(IMODCalibDirectory.getAbsolutePath());
-  } 
   
   /**
    * Return a reference to THE com script manager
@@ -388,12 +304,6 @@ public abstract class BaseManager {
     mainFrame.repaint();
     mainPanel.fitWindow();
   }
-  /**
-   * Get the current advanced state
-   */
-  public boolean getAdvanced() {
-    return isAdvanced;
-  }
   
   /**
    * Return the test parameter file as a File object
@@ -404,26 +314,7 @@ public abstract class BaseManager {
     return paramFile;
   }
   
-  /**
-   *  
-   */
-  public void getSettingsParameters() {
-    if (settingsDialog != null) {
-      settingsDialog.getParameters(userConfig);
-      setUserPreferences();
-      mainFrame.repaintWindow();
-    }
-  }
-  
-  /**
-   *  
-   */
-  public void closeSettingsDialog() {
-    if (settingsDialog != null) {
-      settingsDialog.dispose();
-    }
-  }
-  
+
   /**
    * A message asking the ApplicationManager to load in the information from the
    * test parameter file.
@@ -446,7 +337,7 @@ public abstract class BaseManager {
       // Uggh, stupid JAVA bug, getParent() only returns the parent if the File
       // was created with the full path
       File newParamFile = new File(paramFile.getAbsolutePath());
-      System.setProperty("user.dir", newParamFile.getParent());
+      workingDirName = newParamFile.getParent();
       setTestParamFile(newParamFile);
       // Update the MRU test data filename list
       userConfig.putDataFile(newParamFile.getAbsolutePath());
@@ -480,204 +371,6 @@ public abstract class BaseManager {
     return true;
   }
   
-  /**
-   * Set the user preferences
-   */
-  protected void setUserPreferences() {
-    //FIXME this function may not have to be visible
-    ToolTipManager.sharedInstance().setInitialDelay(
-      userConfig.getToolTipsInitialDelay());
-    ToolTipManager.sharedInstance().setDismissDelay(
-      userConfig.getToolTipsDismissDelay());
-    setUIFont(userConfig.getFontFamily(), userConfig.getFontSize());
-    setLookAndFeel(userConfig.getNativeLookAndFeel());
-    isAdvanced = userConfig.getAdvancedDialogs();
-  }
-
-  //private functions
-  
-  /**
-   *  
-   */
-  private void initProgram() {
-    System.err.println("java.version:  " + System.getProperty("java.version"));
-    System.err.println("java.vendor:  " + System.getProperty("java.vendor"));
-    System.err.println("java.home:  " + System.getProperty("java.home"));
-    System.err.println("java.vm.version:  "
-      + System.getProperty("java.vm.version"));
-    System.err.println("java.vm.vendor:  "
-      + System.getProperty("java.vm.vendor"));
-    System.err.println("java.vm.home:  " + System.getProperty("java.vm.home"));
-    System.err.println("java.class.version:  "
-      + System.getProperty("java.class.version"));
-    System.err.println("java.class.path:  "
-      + System.getProperty("java.class.path"));
-    System.err.println("java.library.path:  "
-      + System.getProperty("java.library.path"));
-    System.err.println("java.io.tmpdir:  "
-      + System.getProperty("java.io.tmpdir"));
-    System.err.println("java.compiler:  " + System.getProperty("java.compiler"));
-    System.err.println("java.ext.dirs:  " + System.getProperty("java.ext.dirs"));
-    System.err.println("os.name:  " + System.getProperty("os.name"));
-    System.err.println("os.arch:  " + System.getProperty("os.arch"));
-    System.err.println("os.version:  " + System.getProperty("os.version"));
-    System.err.println("user.name:  " + System.getProperty("user.name"));
-    System.err.println("user.home:  " + System.getProperty("user.home"));
-    System.err.println("user.dir:  " + System.getProperty("user.dir"));
-    // Get the HOME directory environment variable to find the program
-    // configuration file
-    homeDirectory = System.getProperty("user.home");
-    if (homeDirectory.equals("")) {
-      String[] message = new String[2];
-      message[0] = "Can not find home directory! Unable to load user preferences";
-      message[1] = "Set HOME environment variable and restart program to fix this problem";
-      mainPanel.openMessageDialog(message, "Program Initialization Error");
-      System.exit(1);
-    }
-    // Get the IMOD directory so we know where to find documentation
-    // Check to see if is defined on the command line first with -D
-    // Otherwise check to see if we can get it from the environment
-    String imodDirectoryName = System.getProperty("IMOD_DIR");
-    if (imodDirectoryName == null) {
-      imodDirectoryName = Utilities.getEnvironmentVariable("IMOD_DIR");
-      if (imodDirectoryName.equals("")) {
-        String[] message = new String[3];
-        message[0] = "Can not find IMOD directory!";
-        message[1] = "Set IMOD_DIR environment variable and restart program to fix this problem";
-        mainPanel.openMessageDialog(message, "Program Initialization Error");
-        System.exit(1);
-      }
-      else {
-        if (debug) {
-          System.err.println("IMOD_DIR (env): " + imodDirectoryName);
-        }
-      }
-    }
-    else {
-      if (debug) {
-        System.err.println("IMOD_DIR (-D): " + imodDirectoryName);
-      }
-    }
-    IMODDirectory = new File(imodDirectoryName);
-
-    // Get the IMOD calibration directory so we know where to find documentation
-    // Check to see if is defined on the command line first with -D
-    // Otherwise check to see if we can get it from the environment
-    String imodCalibDirectoryName = System.getProperty("IMOD_CALIB_DIR");
-    if (imodCalibDirectoryName == null) {
-      imodCalibDirectoryName = Utilities.getEnvironmentVariable("IMOD_CALIB_DIR");
-      if (!imodCalibDirectoryName.equals("")) {
-        if (debug) {
-          System.err.println("IMOD_CALIB_DIR (env): " + imodCalibDirectoryName);
-        }
-      }
-    }
-    else {
-      if (debug) {
-        System.err.println("IMOD_CALIB_DIR (-D): " + imodCalibDirectoryName);
-      }
-    }
-    IMODCalibDirectory = new File(imodCalibDirectoryName);
-    //  Create a File object specifying the user configuration file
-    File userConfigFile = new File(homeDirectory, ".etomo");
-    //  Make sure the config file exists, create it if it doesn't
-    try {
-      userConfigFile.createNewFile();
-    }
-    catch (IOException except) {
-      System.err.println("Could not create file:"
-        + userConfigFile.getAbsolutePath());
-      System.err.println(except.getMessage());
-    }
-    // Load in the user configuration
-    ParameterStore userParams = new ParameterStore(userConfigFile);
-    Storable storable[] = new Storable[1];
-    storable[0] = userConfig;
-    try {
-      userParams.load(storable);
-    }
-    catch (IOException except) {
-      mainPanel.openMessageDialog(except.getMessage(),
-        "IO Exception: Can't load user configuration"
-          + userConfigFile.getAbsolutePath());
-    }
-    //  Set the user preferences
-    setUserPreferences();
-  }
-  
-  /**
-   *  
-   */
-  private static void setUIFont(String fontFamily, int fontSize) {
-    // sets the default font for all Swing components.
-    // ex.
-    //  setUIFont (new javax.swing.plaf.FontUIResource("Serif",Font.ITALIC,12));
-    // Taken from: http://www.rgagnon.com/javadetails/java-0335.html
-    java.util.Enumeration keys = UIManager.getDefaults().keys();
-    while (keys.hasMoreElements()) {
-      Object key = keys.nextElement();
-      Object value = UIManager.get(key);
-      if (value instanceof FontUIResource) {
-        FontUIResource currentFont = (FontUIResource) value;
-        FontUIResource newFont = new FontUIResource(fontFamily,
-          currentFont.getStyle(), fontSize);
-        UIManager.put(key, newFont);
-      }
-    }
-  }
-  
-  /**
-   * Sets the look and feel for the program.
-   * 
-   * @param nativeLookAndFeel
-   *          set to true to use the host os look and feel, false will use the
-   *          Metal look and feel.
-   */
-  private void setLookAndFeel(boolean nativeLookAndFeel) {
-    String lookAndFeelClassName;
-
-    //UIManager.LookAndFeelInfo plaf[] = UIManager.getInstalledLookAndFeels();
-    //for(int i = 0; i < plaf.length; i++) {
-    //  System.err.println(plaf[i].getClassName());
-    //}
-    String osName = System.getProperty("os.name");
-    if (debug) {
-      System.err.println("os.name: " + osName);
-    }
-    if (nativeLookAndFeel) {
-      if (osName.startsWith("Mac OS X")) {
-        lookAndFeelClassName = "apple.laf.AquaLookAndFeel";
-        if (debug) {
-          System.err.println("Setting AquaLookAndFeel");
-        }
-      }
-      else if (osName.startsWith("Windows")) {
-        lookAndFeelClassName = "com.sun.java.swing.plaf.windows.WindowsLookAndFeel";
-        if (debug) {
-          System.err.println("Setting WindowsLookAndFeel");
-        }
-      }
-      else {
-        lookAndFeelClassName = "com.sun.java.swing.plaf.motif.MotifLookAndFeel";
-        if (debug) {
-          System.err.println("Setting MotifLookAndFeel");
-        }
-      }
-    }
-    else {
-      lookAndFeelClassName = UIManager.getCrossPlatformLookAndFeelClassName();
-      if (debug) {
-        System.err.println("Setting MetalLookAndFeel");
-      }
-    }
-    try {
-      UIManager.setLookAndFeel(lookAndFeelClassName);
-    }
-    catch (Exception excep) {
-      System.err.println("Could not set " + lookAndFeelClassName
-        + " look and feel");
-    }
-  }
   
   protected void backupFile(File file) {
     if (file.exists()) {
@@ -727,18 +420,6 @@ public abstract class BaseManager {
     return true;
   }
 
-  /**
-   * Return the users home directory environment variable HOME or an empty
-   * string if it doesn't exist.
-   */
-  private String getHomeDirectory() {
-    return homeDirectory;
-  }
-
-  private void setAdvanced(boolean state) {
-    isAdvanced = state;
-  }
-  
   private static boolean getTest() {
     return test;
   }
