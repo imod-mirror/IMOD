@@ -7,6 +7,7 @@ import java.io.FileReader;
 import java.io.IOException;
 
 import etomo.ApplicationManager;
+import etomo.EtomoDirector;
 import etomo.comscript.CombineComscriptState;
 import etomo.type.AxisID;
 import etomo.util.Utilities;
@@ -29,6 +30,12 @@ import etomo.util.Utilities;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.6  2004/08/28 00:47:16  sueh
+ * <p> $bug# 508 setting "processRunning = true" only in the constructor.
+ * <p> $A kill monitor call from an error that happens very early
+ * <p> $(like combine.com is already running) was being ignored when
+ * <p> $processRunning was turned back on.
+ * <p> $
  * <p> $Revision 1.5  2004/08/24 20:31:18  sueh
  * <p> $bug# 508 make kill() interrupt the thread which is executing
  * <p> $the run function
@@ -104,7 +111,7 @@ public class CombineProcessMonitor implements Runnable, BackgroundProcessMonitor
     this.applicationManager = applicationManager;
     this.axisID = axisID;
     this.combineComscriptState = combineComscriptState;
-    selfTest = ApplicationManager.isSelfTest();
+    selfTest = EtomoDirector.isSelfTest();
     runSelfTest(CONSTRUCTED_STATE);
   }
 
