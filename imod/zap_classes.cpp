@@ -32,6 +32,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.3  2002/12/09 23:24:06  mast
+*** empty log message ***
+
 Revision 1.1.2.2  2002/12/09 22:00:29  mast
 include stdio and stdlib for atof/atoi calls
 
@@ -48,10 +51,12 @@ Initial addition to source
 #include <qsignalmapper.h>
 #include <qpushbutton.h>
 #include <qlayout.h>
+#include <qslider.h>
 
 // Forward declarations to be able to read xzap without reading imodP
-class B3dCIImage;
-class ImodView;
+//class B3dCIImage;
+//class ImodView;
+#include "imodP.h"
 #include "zap_classes.h"
 #include "xzap.h"
 #include "tooledit.h"
@@ -59,7 +64,9 @@ class ImodView;
 
 #define SECTION_WIDTH 40
 #define ZOOM_WIDTH 40
-#define AUTO_RAISE false
+#define AUTO_RAISE true
+#define MIN_SLIDER_WIDTH 20
+#define MAX_SLIDER_WIDTH 100
 
 #define BM_WIDTH 16
 #define BM_HEIGHT 16
@@ -160,10 +167,19 @@ ZapWindow::ZapWindow(struct zapwin *zap, QString timeLabel, bool rgba,
   for (j = 0; j < 4; j++)
     setupToggleButton(mToolBar, toggleMapper, j);
 
-  // Section edit box
-  QLabel *label = new QLabel("section", mToolBar);
+  // Section slider
+  QLabel *label = new QLabel("Z", mToolBar);
   label->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+  mSecSlider = new QSlider(1, zap->vi->zsize, 1, 1, Qt::Horizontal, mToolBar,
+			  "section slider");
+  int swidth = zap->vi->zsize < MAX_SLIDER_WIDTH ? 
+    zap->vi->zsize : MAX_SLIDER_WIDTH;
+  swidth = swidth > MIN_SLIDER_WIDTH ? swidth : MIN_SLIDER_WIDTH;
+  mSecSlider->setFixedWidth(swidth + 15);    // 10 was needed
+  connect(mSecSlider, SIGNAL(valueChanged(int)), this, 
+	  SLOT(sliderChanged(int)));
 
+  // Section edit box
   mSectionEdit = new ToolEdit(mToolBar, "section edit box");
   mSectionEdit->setFixedWidth(SECTION_WIDTH);
   mSectionEdit->setFocusPolicy(QWidget::ClickFocus);
@@ -171,6 +187,7 @@ ZapWindow::ZapWindow(struct zapwin *zap, QString timeLabel, bool rgba,
   connect(mSectionEdit, SIGNAL(returnPressed()), this, SLOT(newSection()));
   connect(mSectionEdit, SIGNAL(lostFocus()), this, SLOT(newSection()));
   
+  // Info and help buttons
   QPushButton *button = new QPushButton("I", mToolBar, "I button");
   button->setFixedWidth(15);
   button->setFocusPolicy(QWidget::NoFocus);
@@ -261,6 +278,11 @@ void ZapWindow::newSection()
   zapEnteredSection(mZap, atoi(str.latin1()));
 }
 
+void ZapWindow::sliderChanged(int value)
+{
+  zapEnteredSection(mZap, value);
+}
+
 void ZapWindow::help()
 {
   zapHelp();
@@ -309,6 +331,7 @@ void ZapWindow::setSectionText(int section)
   QString str;
   str.sprintf("%d", section);
   mSectionEdit->setText(str);
+  mSecSlider->setValue(section);
 }
 
 void ZapWindow::setTimeLabel(QString label)
