@@ -39,6 +39,12 @@ import etomo.ui.MainPanel;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.17  2004/10/18 17:28:59  sueh
+* <p> bug# 520 Added setSetupMode(), which tests for a valid meta data object
+* <p> and then enables the other tabs and disables rootName.  This is done
+* <p> when Make Sample is pressed and when a new join manager is created.
+* <p> Added xfalign.
+* <p>
 * <p> Revision 1.1.2.16  2004/10/15 00:14:00  sueh
 * <p> bug# 520 Initializing ui parameters on JoinManager construction.  Setting
 * <p> metaData in JoinDialog.
@@ -351,10 +357,26 @@ public class JoinManager extends BaseManager {
     }
   }
   
+  /**
+   * Run midas on the sample
+   */
+  public void midasSample() {
+    isDataParamDirty = true;
+    joinDialog.getMetaData(metaData);
+    if (!metaData.isValid(true)) {
+      mainPanel.openMessageDialog(metaData.getInvalidReason(), "Invalid Data");
+      mainPanel.stopProgressBar(AxisID.ONLY);
+      return;
+    }
+    processMgr.midasSample();
+    mainPanel.stopProgressBar(AxisID.ONLY);
+  }
+  
   public void xfalign() {
     mainPanel.startProgressBar("Xfalign", AxisID.ONLY);
     isDataParamDirty = true;
     joinDialog.getMetaData(metaData);
+    
     XfalignParam xfalignParam = new XfalignParam(metaData);
     try {
       threadNameA = processMgr.xfalign(xfalignParam);
@@ -382,6 +404,11 @@ public class JoinManager extends BaseManager {
   
   public void startjoin() {
     mainPanel.startProgressBar("Startjoin", AxisID.ONLY);
+    if (!metaData.isValid(true)) {
+      mainPanel.openMessageDialog(metaData.getInvalidReason(), "Invalid Data");
+      mainPanel.stopProgressBar(AxisID.ONLY);
+      return;
+    }
     nextProcess = "";
     try {
       threadNameA = processMgr.startjoin();
