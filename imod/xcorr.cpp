@@ -13,6 +13,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.6  2005/03/08 02:50:48  mast
+Fix a return value
+
 Revision 1.5  2005/03/08 02:36:04  mast
 Put FFT of subarea into the subarea, filled with mean
 
@@ -74,7 +77,7 @@ float sliceByteBinnedFFT(Islice *sin, int binning, int ix0, int ix1, int iy0,
     nxDim /= binning;
     indata = (b3dUByte *)malloc(nxDim * (sin->ysize / binning));
     if (!indata)
-      return 1;
+      return -1.;
     ivwBinByN(sin->data.b, sin->xsize, sin->ysize, binning, indata);
   }
   
