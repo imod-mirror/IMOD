@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.2.2.4  2002/12/14 05:23:42  mast
+backing out the fancy subclass, adjusting for new visual detection
+
 Revision 3.2.2.3  2002/12/13 06:06:30  mast
 using new glmainwindow and mainglwidget classes
 
@@ -91,7 +94,6 @@ extern "C" {
     int    lmx,       lmy;
 
     int    ginit;
-    int    closing;
 
     int    hqgfx, hide;
     int    hqgfxsave;           /* Place to save hqgfx when dragging */

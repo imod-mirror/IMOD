@@ -35,6 +35,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.10  2003/01/02 15:44:19  mast
+accept key input from controller
+
 Revision 1.1.2.9  2002/12/17 22:28:21  mast
 cleanup of unused variables and SGI errors
 
@@ -119,8 +122,6 @@ Added hotkeys to do smoothing and next section in autocontouring
 
 // #define XZAP_DEBUG
 
-void inputQDefaultKeys(QKeyEvent *event, ImodView *vw);
-
 
 static void zapDraw_cb(ImodView *vi, void *client, int drawflag);
 static void zapClose_cb(ImodView *vi, void *client, int drawflag);
@@ -149,7 +150,6 @@ static void zapGetixy(ZapStruct *zap, int mx, int my, float *x, float *y);
 static int  zapPointVisable(ZapStruct *zap, Ipoint *pnt);
 static void zapAutoTranslate(ZapStruct *zap);
 static void zapSyncImage(ZapStruct *win);
-static void zapQuit(ZapStruct *zap);
 static void zapResizeToFit(ZapStruct *zap);
 
 
@@ -284,57 +284,30 @@ void zapHelp()
 static void zapClose_cb(ImodView *vi, void *client, int junk)
 {
   ZapStruct *zap = (ZapStruct *)client;
-
-  // Needed?
-  if (!zap || zap->closing)
-    return;
-
 #ifdef XZAP_DEBUG
   fprintf(stderr, "Sending zap window close.\n");
 #endif
-  zap->closing = 1;
   zap->qtWindow->close();
 }
 
-/* This receives a closing request/signal from the window */
+/* This receives a closing signal from the window */
 void zapClosing(ZapStruct *zap)
 {
 #ifdef XZAP_DEBUG
   fprintf(stderr, "ZapClosing received.\n");
 #endif
 
-  // If we are not closing it already, start the quit 
-  if (!zap->closing) {
-    zap->closing = 1;
-    zapQuit(zap);
-  }
-
-  // Do cleanup (of questionable purpose) 
+  // Do cleanup
   zap->popup = False;
-
-  b3dFreeCIImage(zap->image);
-  zap->ctrl  = 0;
-  zap->image = NULL;
-  zap->winx  = zap->winy = 0;
   if (movieSnapLock && zap->movieSnapCount)
     movieSnapLock = 0;
+  ivwDeleteControl(zap->vi, zap->ctrl);
 
-  // What for?
+  // What for?  flush any events that might refer to this zap
   imod_info_input();     
-  free(zap);
-#ifdef XZAP_DEBUG
-  fprintf(stderr, "Zap Killed.\n");
-#endif
-}
 
-/* This initiates the quit sequence by telling Control to delete this window */
-static void zapQuit(ZapStruct *zap)
-{
-   ivwDeleteControl(zap->vi, zap->ctrl);
-#ifdef XZAP_DEBUG
-  fprintf(stderr, "Zap Control deleted.\n");
-#endif
-  return;
+  b3dFreeCIImage(zap->image);
+  free(zap);
 }
 
 
@@ -866,7 +839,6 @@ int imod_zap_open(struct ViewInfo *vi)
 
   zap->vi     = vi;
   zap->ctrl   = 0;
-  zap->closing  = 0;
   /* DNM: setting max size of the topLevelShell didn't work on the PC, so
      let's just explicitly limit the size asked for in the image portion */
   zap->winx = deskWidth - 20;
@@ -1245,7 +1217,7 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
     break;
           
   case Qt::Key_Escape:
-    zapQuit(zap);
+    zap->qtWindow->close();
     handled = 1;
     break;
 
