@@ -20,6 +20,10 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.39.2.10  2004/10/25 23:12:05  sueh
+ * bug# 520 Added a call to backgroundErrorProcess() for post processing
+ * when BackgroundProcess fails.
+ *
  * Revision 3.39.2.9  2004/10/21 02:46:29  sueh
  * bug# 520 Added empty interactiveSystemProgramPostProcess().
  *
@@ -1301,7 +1305,7 @@ public class ProcessManager extends BaseProcessManager {
     }
   }
   
-  protected void comScriptPostProcess(ComScriptProcess script, int exitValue) {
+  protected void postProcess(ComScriptProcess script) {
     // TODO: Should this script specific processing be handled by the
     // nextProcess attribute of the application manager.
     // Script specific post processing
@@ -1314,16 +1318,16 @@ public class ProcessManager extends BaseProcessManager {
     }  
   }
   
-  protected void backgroundPostProcess(BackgroundProcess process) {
+  protected void postProcess(BackgroundProcess process) {
     if (process.getCommandLine().equals(transferfidCommandLine)) {
       handleTransferfidMessage(process);
     }
   }
   
-  protected void backgroundErrorProcess(BackgroundProcess process) {
+  protected void errorProcess(BackgroundProcess process) {
   }
   
-  protected void interactiveSystemProgramPostProcess(InteractiveSystemProgram program) {
+  protected void postProcess(InteractiveSystemProgram program) {
   }
   
   protected BaseManager getManager() {
