@@ -5,6 +5,7 @@ import java.io.File;
 import java.util.Vector;
 
 import etomo.ApplicationManager;
+import etomo.EtomoDirector;
 
 /**
  * <p> Description: ImodProcess opens an instance of imod with the specfied stack
@@ -21,6 +22,11 @@ import etomo.ApplicationManager;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.17  2004/06/22 22:54:50  sueh
+ * <p> bug# 462 Removed fillCache.  bug# 455 added openWithModel
+ * <p> functionality to handle opening a model while preserving contrast.
+ * <p> Added open contours functions
+ * <p>
  * <p> Revision 3.16  2004/06/17 01:29:52  sueh
  * <p> added 3dmod command to err log because it is useful to see
  * <p>
@@ -313,7 +319,7 @@ public class ImodProcess {
       commandBuffer.append(" " + modelName);
     }
     String command = commandBuffer.toString();
-    if(ApplicationManager.isDebug()) {
+    if(EtomoDirector.isDebug()) {
       System.err.println(command);
     }
     imod = new InteractiveSystemProgram(command);
@@ -665,7 +671,7 @@ public class ImodProcess {
     for (int i = 0; i < args.length; i++) {
       command = command + args[i] + " ";
     }
-    if(ApplicationManager.isDebug()) {
+    if(EtomoDirector.isDebug()) {
       System.err.print(command);
     }
     InteractiveSystemProgram imodSendEvent = new InteractiveSystemProgram(
@@ -680,7 +686,7 @@ public class ImodProcess {
     catch (Exception except) {
       except.printStackTrace();
     }
-    if(ApplicationManager.isDebug()) {
+    if(EtomoDirector.isDebug()) {
       System.err.println("...done");
     }
 
