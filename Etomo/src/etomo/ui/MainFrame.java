@@ -16,6 +16,7 @@ import java.net.MalformedURLException;
 
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
@@ -29,6 +30,9 @@ import etomo.ApplicationManager;
 import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.storage.EtomoFileFilter;
+import etomo.util.ConstHashedArray;
+import etomo.util.HashedArray;
+import etomo.util.UniqueKey;
 
 /**
  * <p>Description: </p>
@@ -43,6 +47,10 @@ import etomo.storage.EtomoFileFilter;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.12.2.4  2004/09/09 22:12:55  sueh
+ * <p> bug# 520 make etomo switch between datasets by removing and adding
+ * <p> MainPanel
+ * <p>
  * <p> Revision 3.12.2.3  2004/09/09 17:39:03  sueh
  * <p> bug# 520 Add the Window menu.  Add current window list menu item.
  * <p> Move call to createMenus out of MainFrame() because the list of managers
@@ -238,10 +246,13 @@ public class MainFrame extends JFrame implements ContextMenu {
   private JMenuBar menuBar = new JMenuBar();
 
   private JMenu menuFile = new JMenu("File");
-  private JMenuItem menuFileNew = new JMenuItem("New", KeyEvent.VK_N);
+  private JMenuItem menuFileNewTomogram = new JMenuItem("New Tomogram",
+      KeyEvent.VK_N);
+  private JMenuItem menuFileNewJoin = new JMenuItem("New Join", KeyEvent.VK_J);
   private JMenuItem menuFileOpen = new JMenuItem("Open...", KeyEvent.VK_O);
   private JMenuItem menuFileSave = new JMenuItem("Save", KeyEvent.VK_S);
   private JMenuItem menuFileSaveAs = new JMenuItem("Save As", KeyEvent.VK_A);
+  private JMenuItem menuFileClose = new JMenuItem("Close", KeyEvent.VK_C); 
   private JMenuItem menuFileExit = new JMenuItem("Exit", KeyEvent.VK_X);
   private JMenuItem[] menuMRUList = new JMenuItem[nMRUFileMax];
 
@@ -253,14 +264,17 @@ public class MainFrame extends JFrame implements ContextMenu {
   private JMenuItem menuFitWindow = new JMenuItem("Fit Window", KeyEvent.VK_F);
   
   private JMenu menuWindow = new JMenu("Window");
-  private JMenuItem[] menuCurrentList = null;
+  private HashedArray menuWindowList = null;
   
   private JMenu menuHelp = new JMenu("Help");
   private JMenuItem menuTomoGuide =
     new JMenuItem("Tomography Guide", KeyEvent.VK_T);
-  private JMenuItem menuImodGuide = new JMenuItem("Imod Users Guide", KeyEvent.VK_I);
-  private JMenuItem menu3dmodGuide = new JMenuItem("3dmod Users Guide", KeyEvent.VK_3);
-	private JMenuItem menuEtomoGuide = new JMenuItem("Etomo Users Guide", KeyEvent.VK_E);
+  private JMenuItem menuImodGuide = new JMenuItem("Imod Users Guide",
+      KeyEvent.VK_I);
+  private JMenuItem menu3dmodGuide = new JMenuItem("3dmod Users Guide",
+      KeyEvent.VK_3);
+  private JMenuItem menuEtomoGuide = new JMenuItem("Etomo Users Guide",
+      KeyEvent.VK_E);
   private JMenuItem menuHelpAbout = new JMenuItem("About", KeyEvent.VK_A);  
   
   //manager object
@@ -291,9 +305,12 @@ public class MainFrame extends JFrame implements ContextMenu {
     if (mainPanel != null) {
       rootPanel.remove(mainPanel);
     }
-    mainPanel = currentManager.getMainPanel();
-    rootPanel.add(mainPanel);
-    mainPanel.addMouseListener(mouseAdapter);
+    if (currentManager != null) {
+      mainPanel = currentManager.getMainPanel();
+      rootPanel.add(mainPanel);
+      mainPanel.addMouseListener(mouseAdapter);
+      mainPanel.repaint();
+    }
     pack();
   }
   
@@ -329,32 +346,38 @@ public class MainFrame extends JFrame implements ContextMenu {
    * Set the open etomo data file list.  This fills in the current window items
    * on the Window menu
    */
-  public void setCurrentWindowLabels() {
+  public void setWindowMenuLabels(ConstHashedArray managerList) {
+    WindowListActionListener windowListActionListener =
+      new WindowListActionListener(this);
     //remove old list
-    if (menuCurrentList != null) {
-      for (int i = 0; i < menuCurrentList.length; i++) {
-        menuWindow.remove(menuCurrentList[i]);
+    if (menuWindowList != null) {
+      for (int i = 0; i < menuWindowList.size(); i++) {
+        menuWindow.remove((JMenuItem) menuWindowList.get(i));
       }
     }
-    int numCurrentWindows = etomoDirector.getManagerListSize();
-    JMenuItem[] menuCurrentList = new JMenuItem[numCurrentWindows];
-    System.out.println("numCurrentWindows=" + numCurrentWindows);
-    CurrentWindowListActionListener currentWindowListActionListener =
-      new CurrentWindowListActionListener(this);
-    for (int i = 0; i < numCurrentWindows; i++) {
-      System.out.println("etomoDirector.getManagerName(i)=" + etomoDirector.getManagerName(i));
-      menuCurrentList[i] = new JMenuItem();
-      menuCurrentList[i].addActionListener(currentWindowListActionListener);
-      String managerName = etomoDirector.getManagerName(i);
-      if (managerName.equals("")) {
-        menuCurrentList[i].setVisible(false);
-      }
-      else {
-        menuCurrentList[i].setText(managerName);
-        menuCurrentList[i].setVisible(true);
-      }
-      menuWindow.add(menuCurrentList[i]);
+    menuWindowList = managerList.getEmptyHashedArray();
+    for (int i = 0; i < menuWindowList.size(); i++) {
+      JCheckBoxMenuItem menuItem = new JCheckBoxMenuItem();
+      menuItem.addActionListener(windowListActionListener);
+      menuItem.setText(Integer.toString(i + 1) + ": "
+          + menuWindowList.getKey(i).getName());
+      menuItem.setVisible(true);
+      menuWindow.add(menuItem);
+      menuWindowList.add(i, menuItem);
     }
+  }
+  
+  public void selectWindowMenuItem(UniqueKey currentManagerKey) {
+    if (menuWindowList == null) {
+      return;
+    }
+    JMenuItem menuItem = null;
+    for (int i = 0; i < menuWindowList.size(); i++) {
+      menuItem = (JMenuItem) menuWindowList.get(i);
+      menuItem.setSelected(false);
+    }
+    menuItem = (JMenuItem) menuWindowList.get(currentManagerKey);
+    menuItem.setSelected(true);
   }
 
 
@@ -396,12 +419,17 @@ public class MainFrame extends JFrame implements ContextMenu {
    * @param event
    */
   private void menuFileAction(ActionEvent event) {
-    if (event.getActionCommand().equals(menuFileNew.getActionCommand())) {
-      currentManager.openNewDataset();
+    if (event.getActionCommand().equals(menuFileNewTomogram.getActionCommand())) {
+      etomoDirector.openTomogram(true);
+    }
+    
+    if (event.getActionCommand().equals(menuFileNewJoin.getActionCommand())) {
+      etomoDirector.openJoin(true);
     }
 
     if (event.getActionCommand().equals(menuFileOpen.getActionCommand())) {
-      currentManager.openExistingDataset(null);
+      File etomoDataFile = openEtomoDataFileDialog();
+      etomoDirector.openTomogram(etomoDataFile, true);
     }
 
     if (event.getActionCommand().equals(menuFileSave.getActionCommand())) {
@@ -422,10 +450,14 @@ public class MainFrame extends JFrame implements ContextMenu {
         currentManager.saveTestParamFile();
       }
     }
+    
+    if (event.getActionCommand().equals(menuFileClose.getActionCommand())) {
+      etomoDirector.closeCurrentManager();
+    }
 
     if (event.getActionCommand().equals(menuFileExit.getActionCommand())) {
       //  Check to see if we need to save any data
-      if (currentManager.exitProgram()) {
+      if (etomoDirector.exitProgram()) {
         System.exit(0);
       }
     }
@@ -446,8 +478,14 @@ public class MainFrame extends JFrame implements ContextMenu {
    * Open the specified window
    * @param event
    */
-  private void currentWindowListAction(ActionEvent event) {
-    etomoDirector.setCurrentManager(event.getActionCommand());
+  private void menuWindowListAction(ActionEvent event) {
+    String menuChoice = event.getActionCommand();
+    int index = menuChoice.indexOf(":");
+    if (index < 1 || index > menuChoice.length()) {
+      throw new IllegalStateException(menuChoice);
+    }
+    int keyIndex = Integer.parseInt(menuChoice.substring(0, index)) - 1;
+    etomoDirector.setCurrentManager(menuWindowList.getKey(keyIndex));
   }
 
   /**
@@ -665,10 +703,12 @@ public class MainFrame extends JFrame implements ContextMenu {
 
     //  Bind the menu items to their listeners
     FileActionListener fileActionListener = new FileActionListener(this);
-    menuFileNew.addActionListener(fileActionListener);
+    menuFileNewTomogram.addActionListener(fileActionListener);
+    menuFileNewJoin.addActionListener(fileActionListener);
     menuFileOpen.addActionListener(fileActionListener);
     menuFileSave.addActionListener(fileActionListener);
     menuFileSaveAs.addActionListener(fileActionListener);
+    menuFileClose.addActionListener(fileActionListener);
     menuFileExit.addActionListener(fileActionListener);
 
     OptionsActionListener optionsActionListener =
@@ -681,7 +721,6 @@ public class MainFrame extends JFrame implements ContextMenu {
     
     WindowActionListener windowActionListener =
       new WindowActionListener(this);
-    setCurrentWindowLabels(); 
     
     HelpActionListener helpActionListener = new HelpActionListener(this);
     menuTomoGuide.addActionListener(helpActionListener);
@@ -691,10 +730,12 @@ public class MainFrame extends JFrame implements ContextMenu {
     menuHelpAbout.addActionListener(helpActionListener);
 
     //  File menu
-    menuFile.add(menuFileNew);
+    menuFile.add(menuFileNewTomogram);
+    menuFile.add(menuFileNewJoin);
     menuFile.add(menuFileOpen);
     menuFile.add(menuFileSave);
     menuFile.add(menuFileSaveAs);
+    menuFile.add(menuFileClose);
     menuFile.add(menuFileExit);
     menuFile.addSeparator();
 
@@ -755,14 +796,14 @@ public class MainFrame extends JFrame implements ContextMenu {
   }
 
   //  MRU file list action listener
-  class CurrentWindowListActionListener implements ActionListener {
+  class WindowListActionListener implements ActionListener {
     MainFrame adaptee;
 
-    CurrentWindowListActionListener(MainFrame adaptee) {
+    WindowListActionListener(MainFrame adaptee) {
       this.adaptee = adaptee;
     }
     public void actionPerformed(ActionEvent e) {
-      adaptee.currentWindowListAction(e);
+      adaptee.menuWindowListAction(e);
     }
   }
 
