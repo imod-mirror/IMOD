@@ -34,6 +34,9 @@
     $Revision$
 
     $Log$
+    Revision 1.1.2.7  2003/01/06 15:52:16  mast
+    changes for Qt version of slicer
+
     Revision 1.1.2.6  2003/01/02 15:41:21  mast
     add include of control.h
 
@@ -69,60 +72,14 @@
 #include "imod.h"
 #include "b3dgfx.h"
 #include "imod_input.h"
+#include "imod_info_cb.h"
 #include "imod_display.h"
 #include "imodv.h"
 #include "control.h"
 
-#define cursor_width 15
-#define cursor_height 15
-#define cursor_x_hot 7
-#define cursor_y_hot 7
-/* Cursor with 2-pixel tails */
-/* static unsigned char cursor_bits[] = {
-   0x00, 0x00, 0xe0, 0x03, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x82, 0x20,
-   0x02, 0x20, 0x3e, 0x3e, 0x02, 0x20, 0x82, 0x20, 0x80, 0x00, 0x80, 0x00,
-   0x80, 0x00, 0xe0, 0x03, 0x00, 0x00};
-static unsigned char cursor_mask_bits[] = {
-   0xe0, 0x03, 0xe0, 0x03, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x83, 0x60,
-   0x03, 0x60, 0x3f, 0x7e, 0x03, 0x60, 0x83, 0x60, 0x80, 0x00, 0x80, 0x00,
-   0x80, 0x00, 0xe0, 0x03, 0xe0, 0x03}; */
-/* Cursor with 1-pixel tails */
-/*static unsigned char cursor_bits[] = {
-   0x00, 0x00, 0xc0, 0x01, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00,
-   0x02, 0x20, 0x3e, 0x3e, 0x02, 0x20, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00,
-   0x80, 0x00, 0xc0, 0x01, 0x00, 0x00};
-static unsigned char cursor_mask_bits[] = {
-   0xc0, 0x01, 0xc0, 0x01, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00,
-   0x03, 0x60, 0x3f, 0x7e, 0x03, 0x60, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00,
-   0x80, 0x00, 0xc0, 0x01, 0xc0, 0x01}; */
 
-/* Longer red cross with 1-pixel white tails */
-static unsigned char cursor_bits[] = {
-   0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00,
-   0x00, 0x00, 0x3f, 0x7e, 0x00, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00,
-   0x80, 0x00, 0x80, 0x00, 0x80, 0x00};
-static unsigned char cursor_mask_bits[] = {
-   0xc0, 0x01, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00,
-   0x01, 0x40, 0x3f, 0x7e, 0x01, 0x40, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00,
-   0x80, 0x00, 0x80, 0x00, 0xc0, 0x01};
-
-/* Cursor with no tails */
-/*static unsigned char cursor_bits[] = {
-     0x00, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00,
-     0x00, 0x00, 0x3e, 0x3e, 0x00, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00,
-     0x80, 0x00, 0x80, 0x00, 0x00, 0x00};
-static unsigned char cursor_mask_bits[] = {
-     0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00,
-     0x00, 0x00, 0x3f, 0x7e, 0x00, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00,
-     0x80, 0x00, 0x80, 0x00, 0x80, 0x00}; */
-
-static int imod_init_cursors(ImodApp *ap);
 
 int imod_get_colormap(ImodApp *ap);
-
-static XtActionsRec ActionTable[] = {
-{"defaultKeyInput", (XtActionProc)defaultKeyInput },
-};
 
 
 /* DNM: These fallback resources are needed in case there is no app-default
@@ -433,7 +390,7 @@ int imod_display_init(ImodApp *ap, char **argv, int *argc)
   } 
 
   dia_xinit(ap->toplevel,ap->context, "Imod");
-  XtAppAddActions(ap->context, ActionTable, XtNumber(ActionTable));
+//  XtAppAddActions(ap->context, ActionTable, XtNumber(ActionTable));
   atexit(stereoOff);
 
   return(0);
@@ -587,7 +544,6 @@ int imod_color_init(ImodApp *ap)
 					  ap->cmapGL, 0, 255);
 	  /*  imod_info_setbw(ap->cvi->black, ap->cvi->white);  NOT YET */
 	  xcramp_setlevels(App->cvi->cramp, App->cvi->black, App->cvi->white);
-	  imod_init_cursors(ap);
 
 	  return 0;
      }
@@ -641,7 +597,6 @@ int imod_color_init(ImodApp *ap)
      mapcolor(App->ghost,       16, 16, 16);
      mapcolor(App->imodvbgcolor,  0,  0,  0);
 
-     imod_init_cursors(ap);
 
      return(0);
 }
@@ -711,8 +666,8 @@ static int rethink(ImodView *vw)
 /* draw all windows in the display */
 int imodDraw(ImodView *vw, int flag)
 {
-     /* todo: set up callback functions.
-      * IMOD_DRAW_IMAGE: image data has changed draw all images, 
+     /* 
+      * IMOD_DRAW_IMAGE: image data or color map has changed; draw all images, 
       *                  clear caches
       * IMOD_DRAW_XYZ:   x,y,z position changed.
       * IMOD_DRAW_MOD:   model has changed.
@@ -751,25 +706,6 @@ int imodDraw(ImodView *vw, int flag)
      return(0);
 }
 
-static int imod_init_cursors(ImodApp *ap)
-{
-     Pixmap shape, mask;
-     XColor fgc, bgc;
-     
-     shape = XCreatePixmapFromBitmapData
-	  (ap->display, XtWindow(ap->toplevel),
-	   (char *)cursor_bits, cursor_width, cursor_height, 1, 0, 1);
-     mask = XCreatePixmapFromBitmapData
-	  (App->display, XtWindow(ap->toplevel),
-	   (char *)cursor_mask_bits, cursor_width, cursor_height, 1, 0, 1);
-     XParseColor(ap->display, ap->cmap, "red", &fgc);
-     XParseColor(ap->display, ap->cmap, "white", &bgc);
-     ap->cursor_cross = XCreatePixmapCursor
-	  (ap->display, shape, mask,
-	   &fgc, &bgc,
-	   cursor_x_hot, cursor_y_hot);
-     return(0);
-}
 
 void stereoHardware(Widget w, int flag)
 {
