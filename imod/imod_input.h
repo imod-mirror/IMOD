@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.1  2002/12/01 15:34:41  mast
+    Changes to get clean compilation with g++
+
 */
 
 #ifndef IMOD_INPUT_H
@@ -41,6 +44,7 @@
 extern "C" {
 #endif
 
+  void defaultKeyInput(Widget w, XEvent *event, String s, Cardinal c);
 void inputDefaultKeys(XKeyEvent *event, ImodView *vw);
 void inputDeletePoint(ImodView *vw);
 void inputInsertPoint(ImodView *vw);
