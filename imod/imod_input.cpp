@@ -34,6 +34,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.3  2002/12/17 18:40:24  mast
+Changes and new includes with Qt version of imodv
+
 Revision 1.1.2.2  2002/12/13 06:09:09  mast
 include file changes
 
@@ -69,8 +72,6 @@ are open
 
 extern long Typemenu;
      
-int Imod_obj_moveto = 0;
-
 /* old function still in use */
 int mouse_in_box(int llx, int lly, int urx, int  ury, int mousex, int mousey)
 {
@@ -1106,7 +1107,7 @@ void inputDefaultKeys(XKeyEvent *event, ImodView *vw)
 
 void defaultKeyInput(Widget w, XEvent *event, String s, Cardinal c)
 {
-  inputDefaultKeys((XKeyEvent *)event, XYZ_vi);
+  inputDefaultKeys((XKeyEvent *)event, App->cvi);
   return;
 }
 

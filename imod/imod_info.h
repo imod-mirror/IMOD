@@ -6,6 +6,9 @@
     $Revision$
 
     $Log$
+    Revision 3.1.2.1  2002/12/17 21:37:47  mast
+    Move global variable declarations outside extern "C" construct
+
     Revision 3.1  2002/12/01 15:34:41  mast
     Changes to get clean compilation with g++
 
@@ -14,7 +17,6 @@
 #define IMOD_INFO_H
 
 extern XtAppContext Imod_info_context;
-extern int Imod_info_quit;
 extern int ImodForbidLevel;
 
 /* Widgets */

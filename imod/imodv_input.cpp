@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 1.1.2.5  2002/12/18 04:15:14  mast
+    new includes for imodv modules
+
     Revision 1.1.2.4  2002/12/17 22:28:21  mast
     cleanup of unused variables and SGI errors
 
@@ -893,7 +896,6 @@ static void imodv_rotate(ImodvApp *a, int throwFlag)
 
 static void processHits (ImodvApp *a, GLint hits, GLuint buffer[])
 {
-  extern struct ViewInfo *XYZ_vi;
   unsigned int i, j;
   GLuint names, *ptr, *ptrstr;
   unsigned int z1, z2, zav, zmin;

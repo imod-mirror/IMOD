@@ -34,6 +34,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.8  2002/12/17 18:40:24  mast
+Changes and new includes with Qt version of imodv
+
 Revision 1.1.2.7  2002/12/14 17:53:04  mast
 *** empty log message ***
 
@@ -117,24 +120,12 @@ index modeling is the default if multiple files are opened.
 ImodApp *App;
 Imod	*Model;
 
-struct ViewInfo *XYZ_vi	 = NULL;
 struct ViewInfo *Tilt_vi = NULL;
-struct ViewInfo *Imod_vi = NULL;
-
-struct MRCheader Imod_hdata;
-struct TiltInfo Tilts;
-
-char   Tomwind[128];
-char   Tltwind[128];   /* Title of Tilt Window.				 */
 
 char   *Imod_imagefile;
-FILE   *Imod_Imagefp;
 char   *Imod_IFDpath;
 char   *Imod_cwdpath = NULL;
 
-int    Stereo;		/* Flag to tell if tilt window is in stereo mode. */
-int    Modeltouch = FALSE;
-int    Ghostmode = FALSE;
 int    Imod_debug = FALSE;
 int    ImodTrans  = TRUE;
 int    Rampbase = RAMPBASE;
@@ -270,7 +261,7 @@ int main( int argc, char *argv[])
 
   /*******************/
   /* Initialize Data */
-  XYZ_vi  = App->cvi = &vi;
+  App->cvi = &vi;
   Tilt_vi = &tiltvi;
   ivwInit(&vi);
   vi.fp = fin;

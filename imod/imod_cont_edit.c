@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.1  2002/12/01 15:34:41  mast
+    Changes to get clean compilation with g++
+
 */
 
 #include <Xm/RowColumn.h>
@@ -1325,7 +1328,6 @@ static int movefirst = 1;
 /* The current object to move the contour to.  This allows hotkeys
  * to be used to move the contour to the current 'moveto' object.
  */
-extern int Imod_obj_moveto;
 
 static void movehelp_cb(Widget w, XtPointer client, XtPointer call)
 {
