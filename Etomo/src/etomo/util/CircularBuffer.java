@@ -13,10 +13,14 @@ import java.util.Vector;
  *
  * @version $Revision$
  *
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2002/09/09 22:57:02  rickg
+ * <p> Initial CVS entry, basic functionality not including combining
+ * <p> </p>
  */
 public final class CircularBuffer {
-  public static final String rcsid = "$Id$";
+  public static final String rcsid =
+    "$Id$";
 
   Vector buffer;
 
@@ -42,11 +46,11 @@ public final class CircularBuffer {
   /**
    * Place an object into the next position on circular buffer.
    */
-  public void put(Object obj){
-    if(iHead == buffer.size()-1){
+  public void put(Object obj) {
+    if (iHead == buffer.size() - 1) {
       iHead = 0;
     }
-    else{
+    else {
       iHead = iHead + 1;
     }
     buffer.set(iHead, obj);
@@ -56,9 +60,9 @@ public final class CircularBuffer {
    * Get an object from current position in the buffer and move the position
    * down one element.
    */
-  public Object get(){
+  public Object get() {
     int iCurrent = iHead;
-    if(iHead == 0){
+    if (iHead == 0) {
       iHead = buffer.size() - 1;
     }
     else {
@@ -70,10 +74,10 @@ public final class CircularBuffer {
   /**
    * Search the list to see if the specified object is on it
    */
-   public int search(Object obj) {
-    for(int i = 0; i < buffer.size(); i++) {
-      if(buffer.get(i).equals(obj)) {
-	return i;
+  public int search(Object obj) {
+    for (int i = 0; i < buffer.size(); i++) {
+      if (buffer.get(i).equals(obj)) {
+        return i;
       }
     }
     return -1;

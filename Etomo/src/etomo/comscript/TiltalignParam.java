@@ -18,6 +18,9 @@ import etomo.type.TiltAngleType;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.6  2002/12/18 19:13:57  rickg
+ * <p> Added setters for metro factor and cycle limit
+ * <p>
  * <p> Revision 1.5  2002/12/10 21:37:01  rickg
  * <p> changed reportStddevThreshold to residualThreshold
  * <p>
@@ -570,7 +573,7 @@ public class TiltalignParam extends ConstTiltalignParam {
   public void setMetroFactor(String factor) {
     minimizationParams.set(0, Double.parseDouble(factor));
   }
-  
+
   public void setCycleLimit(String limit) {
     minimizationParams.set(1, Integer.parseInt(limit));
   }
@@ -1178,8 +1181,7 @@ public class TiltalignParam extends ConstTiltalignParam {
    * name of the command and the appropriate number of input arguments.
    * @param scriptCommand the ComScriptCommand containing the tiltalign command
    */
-  private ComScriptInputArg[] getComScriptArguments(
-    ComScriptCommand scriptCommand)
+  private ComScriptInputArg[] getComScriptArguments(ComScriptCommand scriptCommand)
     throws BadComScriptException {
 
     //  Check to be sure that it is a tiltxcorr xommand

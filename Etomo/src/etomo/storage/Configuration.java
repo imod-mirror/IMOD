@@ -12,10 +12,14 @@ package etomo.storage;
  *
  * @version $Revision$
  *
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2002/09/09 22:57:02  rickg
+ * <p> Initial CVS entry, basic functionality not including combining
+ * <p> </p>
  */
 public class Configuration {
-  public static final String rcsid = "$Id$";
+  public static final String rcsid =
+    "$Id$";
 
   boolean advanced = false;
   boolean metalLookAndFeel = true;

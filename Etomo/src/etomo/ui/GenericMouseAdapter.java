@@ -16,10 +16,14 @@ import javax.swing.SwingUtilities;
  *
  * @version $Revision$
  *
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2002/09/09 22:57:02  rickg
+ * <p> Initial CVS entry, basic functionality not including combining
+ * <p> </p>
  */
 public class GenericMouseAdapter implements MouseListener {
-  public static final String rcsid = "$Id$";
+  public static final String rcsid =
+    "$Id$";
 
   ContextMenu adaptee;
 
@@ -27,7 +31,7 @@ public class GenericMouseAdapter implements MouseListener {
     this.adaptee = adaptee;
   }
   public void mouseClicked(MouseEvent e) {
-    if(SwingUtilities.isRightMouseButton(e))
+    if (SwingUtilities.isRightMouseButton(e))
       adaptee.popUpContextMenu(e);
   }
   public void mousePressed(MouseEvent e) {

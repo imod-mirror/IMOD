@@ -14,11 +14,14 @@ import junit.framework.TestCase;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2002/10/03 19:15:51  rickg
+ * <p> Initial revision
+ * <p> </p>
  */
 public class CircularBufferTest extends TestCase {
   CircularBuffer cb;
-  
+
   /**
    * Constructor for CircularBufferTest.
    * @param arg0

@@ -20,12 +20,17 @@ import etomo.type.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.2  2002/10/07 22:31:18  rickg
+ * <p> removed unused imports
+ * <p> reformat after emacs trashed it
+ * <p>
  * <p> Revision 1.1  2002/09/09 22:57:02  rickg
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
  */
 public class DataSetTypePanel {
-  public static final String rcsid = "$Id$";
+  public static final String rcsid =
+    "$Id$";
 
   JPanel panelDataSetType = new JPanel();
   BeveledBorder borderDataSetType = new BeveledBorder("Data Set Type");
@@ -33,17 +38,16 @@ public class DataSetTypePanel {
   GridLayout gridDataSetType = new GridLayout();
 
   JPanel panelAxis;
-  String[] axisTypes = {"Single Axis", "Dual Axis"};
+  String[] axisTypes = { "Single Axis", "Dual Axis" };
   HighlightList highlightAxisType = new HighlightList(axisTypes);
 
   JPanel panelViewType;
-  String[] viewTypes = {"Single View", "Montaged"};
+  String[] viewTypes = { "Single View", "Montaged" };
   HighlightList highlightViewType = new HighlightList(viewTypes);
 
   JPanel panelSectionType;
-  String[] sectionTypes = {"Single Tomogram", "Serial Tomogram"};
+  String[] sectionTypes = { "Single Tomogram", "Serial Tomogram" };
   HighlightList highlightSectionType = new HighlightList(sectionTypes);
-
 
   public DataSetTypePanel() {
     //
@@ -81,14 +85,12 @@ public class DataSetTypePanel {
     setToolTipText();
   }
 
-
   public JPanel getPanel() {
     return panelDataSetType;
   }
 
-
   public void setAxisType(AxisType axisType) {
-    if(axisType == AxisType.SINGLE_AXIS) {
+    if (axisType == AxisType.SINGLE_AXIS) {
       highlightAxisType.setSelected(0);
     }
     else {
@@ -96,9 +98,8 @@ public class DataSetTypePanel {
     }
   }
 
-
   public void setViewType(ViewType viewType) {
-    if(viewType == ViewType.SINGLE_VIEW) {
+    if (viewType == ViewType.SINGLE_VIEW) {
       highlightViewType.setSelected(0);
     }
     else {
@@ -106,16 +107,14 @@ public class DataSetTypePanel {
     }
   }
 
-
   public void setSectionType(SectionType sectionType) {
-    if(sectionType == SectionType.SINGLE) {
+    if (sectionType == SectionType.SINGLE) {
       highlightSectionType.setSelected(0);
     }
     else {
       highlightSectionType.setSelected(1);
     }
   }
-
 
   public void addMouseListener(MouseListener listener) {
     panelDataSetType.addMouseListener(listener);
@@ -124,10 +123,12 @@ public class DataSetTypePanel {
     highlightSectionType.addMouseListener(listener);
   }
 
-
-  private void setToolTipText(){
-    panelAxis.setToolTipText("<html>This highlight panel specifies the current axis type.<br>The axis type is selected in the Setup process below");
-    panelViewType.setToolTipText("<html>This highlight panel specifies the current view type.<br>The view type is selected in the Setup process below");
-    panelSectionType.setToolTipText("<html>This highlight panel specifies the current section type.<br>The section type is selected in the Setup process below");
+  private void setToolTipText() {
+    panelAxis.setToolTipText(
+      "<html>This highlight panel specifies the current axis type.<br>The axis type is selected in the Setup process below");
+    panelViewType.setToolTipText(
+      "<html>This highlight panel specifies the current view type.<br>The view type is selected in the Setup process below");
+    panelSectionType.setToolTipText(
+      "<html>This highlight panel specifies the current section type.<br>The section type is selected in the Setup process below");
   }
 }

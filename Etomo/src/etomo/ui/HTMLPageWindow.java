@@ -24,6 +24,9 @@ import java.net.URL;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.3  2002/11/14 04:22:51  rickg
+ * <p> HTMLPage and ContextPopup now work with URLS
+ * <p>
  * <p> Revision 1.2  2002/10/07 22:31:18  rickg
  * <p> removed unused imports
  * <p> reformat after emacs trashed it
@@ -63,7 +66,7 @@ public class HTMLPageWindow extends JFrame implements HyperlinkListener {
       except.printStackTrace();
     }
   }
-  
+
   public void hyperlinkUpdate(HyperlinkEvent event) {
     if (event.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
       try {

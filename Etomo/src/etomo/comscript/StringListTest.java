@@ -15,11 +15,14 @@ import junit.framework.TestCase;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.1  2002/09/19 23:15:54  rickg
+ * <p> Moving unit tests from Etomo_test
+ * <p>
  * <p> </p>
  */
 public class StringListTest extends TestCase {
-   StringList slEmpty;
-   
+  StringList slEmpty;
+
   /**
    * Constructor for StringListTest.
    * @param arg0

@@ -14,11 +14,15 @@ import etomo.type.TiltAngleSpec;
  *
  * @version $Revision$
  *
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2002/09/09 22:57:02  rickg
+ * <p> Initial CVS entry, basic functionality not including combining
+ * <p> </p>
  */
 
 public class ConstBeadtrackParam {
-  public static final String rcsid = "$Id$";
+  public static final String rcsid =
+    "$Id$";
 
   protected String inputFile;
   protected String pieceListFile;
@@ -49,7 +53,6 @@ public class ConstBeadtrackParam {
   protected FortranInputString secondPassParams;
   protected FortranInputString meanResidChangeLimits;
   protected FortranInputString deletionParams;
-
 
   public ConstBeadtrackParam() {
     additionalViewGroups = new StringList(0);
@@ -127,7 +130,7 @@ public class ConstBeadtrackParam {
     return additionalViewGroups.toString();
   }
 
-  public TiltAngleSpec getTiltAngleSpec(){
+  public TiltAngleSpec getTiltAngleSpec() {
     return new TiltAngleSpec(tiltAngleSpec);
   };
 
@@ -151,7 +154,6 @@ public class ConstBeadtrackParam {
     return magnificationGroupParams.getInt(0);
   }
 
-
   public String getMagnificationGroups() {
     return magnificationGroups.toString();
   }
@@ -163,7 +165,6 @@ public class ConstBeadtrackParam {
   public String getFiducialParams() {
     return fiducialParams.toString();
   }
-
 
   public boolean getFillGaps() {
     return fillGaps;

@@ -17,10 +17,14 @@ package etomo.type;
  *
  * @version $Revision$
  *
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2002/09/09 22:57:02  rickg
+ * <p> Initial CVS entry, basic functionality not including combining
+ * <p> </p>
  */
 public class DataSource {
-  public static final String rcsid = "$Id$";
+  public static final String rcsid =
+    "$Id$";
 
   private final String name;
 
@@ -31,10 +35,8 @@ public class DataSource {
   //
   //  Only two instances are ever created
   //
-  public static final DataSource CCD = new
-    DataSource("CCD");
-  public static final DataSource FILM = new
-    DataSource("Film");
+  public static final DataSource CCD = new DataSource("CCD");
+  public static final DataSource FILM = new DataSource("Film");
 
   /**
    * Returns a string representation of the object.
@@ -49,10 +51,10 @@ public class DataSource {
    * string is not one of the possibilities from toString().
    */
   public static DataSource fromString(String name) {
-    if(name.compareToIgnoreCase(CCD.toString()) == 0) {
+    if (name.compareToIgnoreCase(CCD.toString()) == 0) {
       return CCD;
     }
-    if(name.compareToIgnoreCase(FILM.toString()) == 0) {
+    if (name.compareToIgnoreCase(FILM.toString()) == 0) {
       return FILM;
     }
     return null;

@@ -22,6 +22,11 @@ import etomo.type.TiltAngleSpec;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.2  2003/01/06 20:17:40  rickg
+ * <p> Changed edit boxed to LabeledTextFields
+ * <p> Added an action listener and enable funcsions to
+ * <p> enable the specify dialogs only when selected
+ * <p>
  * <p> Revision 1.1  2002/09/09 22:57:02  rickg
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
@@ -117,8 +122,7 @@ public class TiltAngleDialogPanel {
     }
     tiltAngleSpec.setRangeMin(Double.parseDouble(ltfAngleMin.getText()));
     tiltAngleSpec.setRangeMax(Double.parseDouble(ltfAngleMax.getText()));
-    tiltAngleSpec.setRangeStep(
-      Double.parseDouble(ltfAngleStep.getText()));
+    tiltAngleSpec.setRangeStep(Double.parseDouble(ltfAngleStep.getText()));
   }
 
   //
