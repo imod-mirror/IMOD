@@ -25,6 +25,11 @@ import etomo.type.JoinMetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.1.2.8  2004/10/08 16:30:53  sueh
+ * <p> bug# 520 Changed the name of the function retrieveData(JoinMetaData)
+ * <p> to getMetaData.  Retrieve now only refers to pulling data off the screen
+ * <p> and into storage owned by the ui object.  Edded getInvalidReason().
+ * <p>
  * <p> Revision 1.1.2.7  2004/10/06 02:23:20  sueh
  * <p> bug# 520 Changed Make Join button to Make Samples.  Removed Use
  * <p> Density Reference Section checkbox.  Added a function to get the
@@ -216,8 +221,7 @@ public class JoinDialog implements ContextMenu {
 
   private void workingDirAction() {
     //  Open up the file chooser in the working directory
-    JFileChooser chooser = new JFileChooser(new File(System
-        .getProperty("user.dir")));
+    JFileChooser chooser = new JFileChooser(new File(joinManager.getPropertyUserDir()));
     chooser.setPreferredSize(FixedDim.fileChooser);
     chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
     int returnVal = chooser.showOpenDialog(rootPanel);

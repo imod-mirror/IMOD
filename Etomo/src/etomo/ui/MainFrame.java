@@ -46,6 +46,11 @@ import etomo.util.UniqueKey;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.12.2.11  2004/10/08 16:33:08  sueh
+ * <p> bug# 520 Moved SettingsDialog to EtomoDirector.  Since EtomoDirector
+ * <p> is a singleton, made all functions and member variables non-static.
+ * <p> Made openMessageDialog() available to EtomoDirector.
+ * <p>
  * <p> Revision 3.12.2.10  2004/10/07 16:38:40  sueh
  * <p> bug# 520 formatted
  * <p>
@@ -415,7 +420,7 @@ public class MainFrame extends JFrame implements ContextMenu {
 
   public boolean getTestParamFilename() {
     //  Open up the file chooser in current working directory
-    File workingDir = new File(System.getProperty("user.dir"));
+    File workingDir = new File(currentManager.getPropertyUserDir());
     JFileChooser chooser = new JFileChooser(workingDir);
     EtomoFileFilter edfFilter = new EtomoFileFilter();
     chooser.setFileFilter(edfFilter);
@@ -461,7 +466,9 @@ public class MainFrame extends JFrame implements ContextMenu {
 
     if (event.getActionCommand().equals(menuFileOpen.getActionCommand())) {
       File etomoDataFile = openEtomoDataFileDialog();
-      EtomoDirector.getInstance().openTomogram(etomoDataFile, true);
+      if (etomoDataFile != null) {
+        EtomoDirector.getInstance().openTomogram(etomoDataFile, true);
+      }
     }
 
     if (event.getActionCommand().equals(menuFileSave.getActionCommand())) {
