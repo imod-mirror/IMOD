@@ -32,6 +32,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.2.2.2  2002/12/12 02:45:56  mast
+*** empty log message ***
+
 Revision 3.2.2.1  2002/12/12 01:22:29  mast
 Changes to become Qt window
 
@@ -48,21 +51,20 @@ Added structure elements for new enhancements
 
 #define XYZ_BSIZE 8
 
-#include <qmainwindow.h>
-#include <qgl.h>
-#include <qevent.h>
-#include <qstring.h>
+#include <glmainwindow.h>
 #include "b3dgfx.h"
 
+/* Forward declarations to minimize includes */
 struct ViewInfo;
-class XyzGL;
+struct Mod_object;
+struct Mod_contour;
 class XyzWindow;
 
 struct xxyzwin
 {
   struct ViewInfo *vi;   /* Image Data information.              */
   XyzWindow *dialog;         /* The top widget of the xyz window     */
-  XyzGL *glw;            /* The drawing widget of the xyz window */
+  MainGLWidget *glw;            /* The drawing widget of the xyz window */
   int ctrl;              /* id of control */
      
   unsigned char *fdataxz; /* tmp data storage for xz image       */
@@ -86,58 +88,56 @@ struct xxyzwin
 };
 
 
-class XyzWindow : public QMainWindow
+class XyzWindow : public GLMainWindow
 {
   Q_OBJECT
 
     public:
-  XyzWindow(struct xxyzwin *xyz, bool rgba, 
-            bool doubleBuffer, QWidget * parent = 0,
-            const char * name = 0, WFlags f = WType_TopLevel) ;
+  XyzWindow(struct xxyzwin *xyz, bool rgba, bool doubleBuffer,
+	    QWidget * parent = 0, const char * name = 0,
+	    WFlags f = Qt::WDestructiveClose || Qt::WType_TopLevel) ;
   ~XyzWindow();
-  XyzGL *mGLgfx;
 
-  public slots:
+  void paintGL();
+  void resizeGL( int wdth, int hght );
+  void mousePressEvent(QMouseEvent * e );
+  void mouseReleaseEvent ( QMouseEvent * e );
+  void mouseMoveEvent ( QMouseEvent * e );
+  void Draw();
 
  protected:
   void keyPressEvent ( QKeyEvent * e );
   void closeEvent ( QCloseEvent * e );
 
  private:
+  void Quit();
+  int Getxyz(int x, int y, int *mx, int *my, int *mz);
+  void B1Press(int x, int y);
+  void B2Press(int x, int y);
+  void B3Press(int x, int y);
+  void B1Drag(int x, int y);
+  void B2Drag(int x, int y);
+  void B3Drag(int x, int y);
+  void DrawAuto();
+  void DrawModel();
+  void DrawImage();
+  void GetCIImages();
+  void SetSubimage(int absStart, int winSize, int imSize, float zoom,
+		   int *drawsize, int *woffset, int *dataStart);
+  void DrawGhost();
+  void DrawContour(struct Mod_Object *obj, int ob, struct Mod_Contour *cont);
+  void DrawCurrentContour(struct Mod_Object *obj, int ob, 
+			  struct Mod_Contour *cont);
+  void DrawCurrentPoint();
+  void DrawCurrentLines();
+
+
 
   struct xxyzwin *mXyz;
 };
 
-class XyzGL : public QGLWidget
-{
-  Q_OBJECT
-
-    public:
-  XyzGL(struct xxyzwin *xyz, QGLFormat format, QWidget * parent = 0,
-        const char * name = 0);
-  ~XyzGL();
- 
- protected:
-  void paintGL();
-  void resizeGL( int wdth, int hght );
-  void mousePressEvent(QMouseEvent * e );
-  void mouseReleaseEvent ( QMouseEvent * e );
-  void mouseMoveEvent ( QMouseEvent * e );
-
- private:
-  struct xxyzwin *mXyz;
-  bool mMousePressed;
-};
-
-/* Functions */
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-
-#ifdef __cplusplus
-}
-#endif
+/* Global functions */
+int xxyz_open(struct ViewInfo *vi);
 
 #endif /* xxyz.h */
 

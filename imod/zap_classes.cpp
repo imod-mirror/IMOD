@@ -32,6 +32,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.4  2002/12/12 01:25:14  mast
+added z slider
+
 Revision 1.1.2.3  2002/12/09 23:24:06  mast
 *** empty log message ***
 
@@ -53,9 +56,6 @@ Initial addition to source
 #include <qlayout.h>
 #include <qslider.h>
 
-// Forward declarations to be able to read xzap without reading imodP
-//class B3dCIImage;
-//class ImodView;
 #include "imodP.h"
 #include "zap_classes.h"
 #include "xzap.h"
@@ -64,12 +64,18 @@ Initial addition to source
 
 #define SECTION_WIDTH 40
 #define ZOOM_WIDTH 40
-#define AUTO_RAISE true
+#define AUTO_RAISE false
 #define MIN_SLIDER_WIDTH 20
 #define MAX_SLIDER_WIDTH 100
 
 #define BM_WIDTH 16
 #define BM_HEIGHT 16
+
+// Unfinished business: recovering bitmap files
+#include "unlock.bits"
+#include "lock.bits"
+#include "time_unlock.bits"
+#include "time_lock.bits"
 
 static unsigned char lowRes_bits[] = {
   0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0x0f, 0x0f, 0x0f, 0x0f,
@@ -81,35 +87,15 @@ static unsigned char highRes_bits[] = {
   0x33, 0x33, 0x33, 0x33, 0xcc, 0xcc, 0xcc, 0xcc, 0x33, 0x33, 0x33, 0x33,
   0xcc, 0xcc, 0xcc, 0xcc, 0x33, 0x33, 0x33, 0x33};
 
-static unsigned char lock_bits[] = {
-  0xf8, 0x0f, 0x0c, 0x18, 0x06, 0x30, 0x03, 0x60, 0x03, 0x60, 0x03, 0x60,
-  0x03, 0x60, 0xff, 0x7f, 0xff, 0x7f, 0xff, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f,
-  0x7f, 0x7f, 0x7f, 0x7f, 0xff, 0x7f, 0xff, 0x7f};
-
-static unsigned char unlock_bits[] = {
-  0xf8, 0x0f, 0x08, 0x18, 0x00, 0x30, 0x00, 0x60, 0x00, 0x60, 0x00, 0x60,
-  0x00, 0x60, 0xff, 0x7f, 0xff, 0x7f, 0xff, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f,
-  0x7f, 0x7f, 0x7f, 0x7f, 0xff, 0x7f, 0xff, 0x7f};
-
-static unsigned char insertAfter_bits[] = {
+static unsigned char insert_after_bits[] = {
   0x00, 0x00, 0xc0, 0x03, 0xc0, 0x03, 0xc0, 0x03, 0xc0, 0x03, 0x80, 0x01,
   0x80, 0x01, 0x80, 0x01, 0x80, 0x01, 0x80, 0x01, 0x80, 0x01, 0x80, 0x01,
   0x80, 0x01, 0x80, 0x01, 0xff, 0xff, 0xff, 0xff};
 
-static unsigned char insertBefore_bits[] = {
+static unsigned char insert_before_bits[] = {
   0xff, 0xff, 0xff, 0xff, 0x80, 0x01, 0x80, 0x01, 0x80, 0x01, 0x80, 0x01,
   0x80, 0x01, 0x80, 0x01, 0x80, 0x01, 0x80, 0x01, 0x80, 0x01, 0xc0, 0x03,
   0xc0, 0x03, 0xc0, 0x03, 0xc0, 0x03, 0x00, 0x00};
-
-static unsigned char timeUnlock_bits[] = {
-  0xf8, 0x0f, 0x08, 0x18, 0x00, 0x30, 0x00, 0x60, 0x00, 0x60, 0x00, 0x60,
-  0x00, 0x60, 0xff, 0x7f, 0xff, 0x7f, 0x0f, 0x78, 0x7f, 0x7f, 0x7f, 0x7f,
-  0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0xff, 0x7f};
-
-static unsigned char timeLock_bits[] = {
-  0xf8, 0x0f, 0x0c, 0x18, 0x06, 0x30, 0x03, 0x60, 0x03, 0x60, 0x03, 0x60,
-  0x03, 0x60, 0xff, 0x7f, 0xff, 0x7f, 0x0f, 0x78, 0x7f, 0x7f, 0x7f, 0x7f,
-  0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0xff, 0x7f};
 
 static unsigned char keepCenter_bits[] = {
   0xff, 0xff, 0x01, 0x80, 0x01, 0x80, 0x01, 0x80, 0x01, 0x80, 0x01, 0x80,
@@ -125,20 +111,18 @@ static unsigned char *bitList[5][2] =
   { {lowRes_bits, highRes_bits},
     {unlock_bits, lock_bits},
     {smartCenter_bits, keepCenter_bits},
-    {insertAfter_bits, insertBefore_bits},
-    {timeUnlock_bits, timeLock_bits}};
+    {insert_after_bits, insert_before_bits},
+    {time_unlock_bits, time_lock_bits}};
 
 static QBitmap *bitmaps[5][2];
 static int firstTime = 1;
 
-extern int Imod_debug;
-
 ZapWindow::ZapWindow(struct zapwin *zap, QString timeLabel, bool rgba, 
                      bool doubleBuffer, QWidget * parent,
                      const char * name, WFlags f) 
-  : QMainWindow(parent, name, f)
+  : GLMainWindow(rgba, doubleBuffer, parent, name, f)
 {
-  int i, j;
+  int j;
   mZap = zap;
 
   // Get the toolbar, add zoom arrows
@@ -220,14 +204,9 @@ ZapWindow::ZapWindow(struct zapwin *zap, QString timeLabel, bool rgba,
   firstTime = 0;
 
   // Need GLwidget next
-  QGLFormat glFormat;
-  glFormat.setRgba(rgba);
-  glFormat.setDoubleBuffer(doubleBuffer);
-  mGLgfx = new ZapGL(zap, glFormat, this);
-  
-  // Set it as main widget, set focus, dock on top and bottom only
-  setCentralWidget(mGLgfx);
-  setFocusPolicy(QWidget::StrongFocus);
+  createGLWidget(rgba, doubleBuffer);
+
+  // dock on top and bottom only
   setDockEnabled(mToolBar, Left, FALSE );
   setDockEnabled(mToolBar, Right, FALSE );
 }
@@ -355,64 +334,29 @@ void ZapWindow::closeEvent (QCloseEvent * e )
   e->accept();
 }
 
-ZapGL::ZapGL(struct zapwin *zap, QGLFormat inFormat, QWidget * parent,
-             const char * name)
-  : QGLWidget(inFormat, parent, name)
-{
-  if (!format().rgba() && inFormat.rgba())
-    fprintf(stderr, "Zap warning: window is color index mode even though rgb "
-                "was requested\n");
-  if (format().rgba() && !inFormat.rgba())
-    fprintf(stderr, "Zap warning: window is rgb mode even though color index "
-                "was requested\n");
-
-  if (format().doubleBuffer() && !inFormat.doubleBuffer())
-    fprintf(stderr, "Zap warning: Double buffering is being used even "
-	    "though\n  single buffering was requested\n");
-  if (!format().doubleBuffer() && inFormat.doubleBuffer())
-    fprintf(stderr, "Zap warning: Single buffering is being used even "
-	    "though\n  double buffering was requested\n");
-
-  mMousePressed = false;
-  mZap = zap;
-}
-
-ZapGL::~ZapGL()
-{
-
-}
- 
-void ZapGL::initializeGL()
-{
-
-}
-
-void ZapGL::paintGL()
+void ZapWindow::paintGL()
 {
   zapPaint(mZap);
 }
 
-void ZapGL::resizeGL( int wdth, int hght )
+void ZapWindow::resizeGL( int wdth, int hght )
 {
   zapResize(mZap, wdth, hght);
 }
 
-void ZapGL::mousePressEvent(QMouseEvent * e )
+void ZapWindow::mousePressEvent(QMouseEvent * e )
 {
-  mMousePressed = true;
   zapMousePress(mZap, e);
 }
 
-void ZapGL::mouseReleaseEvent ( QMouseEvent * e )
+void ZapWindow::mouseReleaseEvent ( QMouseEvent * e )
 {
-  mMousePressed = false;
   zapMouseRelease(mZap, e);
 }
 
-void ZapGL::mouseMoveEvent ( QMouseEvent * e )
+void ZapWindow::mouseMoveEvent ( QMouseEvent * e )
 {
-  if (mMousePressed)
-    zapMouseMove(mZap, e);
+  zapMouseMove(mZap, e);
 }
 
 

@@ -1,6 +1,6 @@
 /*  IMOD VERSION 2.7.9
  *
- *  zap_classes.h -- Header file for ZaP mainwindow and GLwidget classes.
+ *  zap_classes.h -- Header file for ZaP mainwindow class.
  *
  *  Author: David Mastronarde   email: mast@colorado.edu
  */
@@ -32,6 +32,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.3  2002/12/12 01:25:23  mast
+added Z slider
+
 Revision 1.1.2.2  2002/12/09 23:24:12  mast
 *** empty log message ***
 
@@ -49,10 +52,8 @@ Initial addition to source
 #define ZAP_TOGGLE_TIMELOCK 4
 
 
-#include <qmainwindow.h>
-#include <qgl.h>
-#include <qevent.h>
-#include <qstring.h>
+#include <glmainwindow.h>
+
 class QToolButton;
 class ToolEdit;
 class QLabel;
@@ -61,9 +62,8 @@ class QSignalMapper;
 class QSlider;
 
 struct zapwin;
-class ZapGL;
 
-class ZapWindow : public QMainWindow
+class ZapWindow : public GLMainWindow
 {
   Q_OBJECT
 
@@ -72,7 +72,11 @@ class ZapWindow : public QMainWindow
             bool doubleBuffer, QWidget * parent = 0,
             const char * name = 0, WFlags f = WType_TopLevel) ;
   ~ZapWindow();
-  ZapGL *mGLgfx;
+  void paintGL();
+  void resizeGL( int wdth, int hght );
+  void mousePressEvent(QMouseEvent * e );
+  void mouseReleaseEvent ( QMouseEvent * e );
+  void mouseMoveEvent ( QMouseEvent * e );
   QToolBar *mToolBar;
 
   public slots:
@@ -107,28 +111,6 @@ class ZapWindow : public QMainWindow
     ToolEdit *mSectionEdit;
     QLabel *mTimeLabel;
     QSlider *mSecSlider;
-};
-
-class ZapGL : public QGLWidget
-{
-  Q_OBJECT
-
- public:
-  ZapGL(struct zapwin *zap, QGLFormat format, QWidget * parent = 0,
-        const char * name = 0);
-  ~ZapGL();
- 
-protected:
-  void initializeGL();
-  void paintGL();
-  void resizeGL( int wdth, int hght );
-  void mousePressEvent(QMouseEvent * e );
-  void mouseReleaseEvent ( QMouseEvent * e );
-  void mouseMoveEvent ( QMouseEvent * e );
-
- private:
-  struct zapwin *mZap;
-  bool mMousePressed;
 };
 
 #endif     // ZAP_CLASSES_H

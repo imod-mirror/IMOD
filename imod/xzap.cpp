@@ -35,6 +35,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.4  2002/12/12 01:24:50  mast
+Added Z slider
+
 Revision 1.1.2.3  2002/12/10 16:57:34  mast
 preventing multiple draws, implementing current contour draw while dragging
 
@@ -94,8 +97,8 @@ Added hotkeys to do smoothing and next section in autocontouring
 #include "imod.h"
 #include "xzap.h"
 
-#include "imod_cursor.h"
-#include "imod_cmask.h"
+#include "qcursor.bits"
+#include "qcursor_mask.bits"
 
 //#define XZAP_DEBUG
 
@@ -914,7 +917,7 @@ int imod_zap_open(struct ViewInfo *vi)
 #ifdef XZAP_DEBUG
   puts("Got a zap window");
 #endif
-  zap->gfx = zap->qtWindow->mGLgfx;
+  zap->gfx = zap->qtWindow->mGLw;
 
   str = imodwfname("Imod ZaP Window:");
   if (str.isEmpty())
@@ -2722,11 +2725,11 @@ static void zapSetCursor(ZapStruct *zap, int mode)
 {
   if (zap->mousemode != mode){
     if (mode == IMOD_MMODEL) {
-      QBitmap bmCursor(imod_cursor_width, imod_cursor_height, imod_cursor_bits,
+      QBitmap bmCursor(qcursor_width, qcursor_height, qcursor_bits,
                        true);
-      QBitmap bmMask(imod_cursor_width, imod_cursor_height, imod_cmask_bits, 
+      QBitmap bmMask(qcursor_width, qcursor_height, qcursor_mask_bits, 
                      true);
-      QCursor cursor(bmCursor, bmMask, imod_cursor_x_hot, imod_cursor_y_hot);
+      QCursor cursor(bmCursor, bmMask, qcursor_x_hot, qcursor_y_hot);
       zap->gfx->setCursor(cursor);
     } else
       zap->gfx->unsetCursor();
