@@ -35,6 +35,10 @@ import etomo.type.JoinMetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.1.2.31  2004/11/16 02:28:50  sueh
+ * <p> bug# 520 Replacing EtomoSimpleType, EtomoInteger, EtomoDouble,
+ * <p> EtomoFloat, and EtomoLong with EtomoNumber.
+ * <p>
  * <p> Revision 1.1.2.30  2004/11/15 22:25:32  sueh
  * <p> bug# 520 Added setMode().  Moved enabling and disabling to setMode().
  * <p> Implemented ChangeSetup.
@@ -170,9 +174,9 @@ public class JoinDialog implements ContextMenu {
   public static final int JOIN_TAB = 2;
   
   public static final int SETUP_MODE = -1;
-  public static final int SAMPLE_NOT_PRODUCED = -2;
-  public static final int SAMPLE_PRODUCED = -3;
-  public static final int CHANGING_SAMPLE = -4;
+  public static final int SAMPLE_NOT_PRODUCED_MODE = -2;
+  public static final int SAMPLE_PRODUCED_MODE = -3;
+  public static final int CHANGING_SAMPLE_MODE = -4;
   
   public static final String REFINE_AUTO_ALIGNMENT_TEXT = "Refine Auto Alignment";
   public static final String MIDAS_TEXT = "Midas";
@@ -243,6 +247,7 @@ public class JoinDialog implements ContextMenu {
   private LabeledSpinner spinOpenTrialBinnedBy;
   private LabeledSpinner spinUseEveryNSlices;
   
+  //state
   private int numSections = 0;
   private int curTab = SETUP_TAB;
   private String invalidReason = null;
@@ -384,7 +389,7 @@ public class JoinDialog implements ContextMenu {
     }
     switch (mode) {
     case SETUP_MODE:
-    case SAMPLE_NOT_PRODUCED:
+    case SAMPLE_NOT_PRODUCED_MODE:
       tabPane.setEnabledAt(1, false);
       tabPane.setEnabledAt(2, false);
       spinDensityRefSection.setEnabled(true);
@@ -392,7 +397,7 @@ public class JoinDialog implements ContextMenu {
       btnRevertToLastSetup.setEnabled(false);
       btnMakeSamples.setEnabled(true);
       break;
-    case SAMPLE_PRODUCED:
+    case SAMPLE_PRODUCED_MODE:
       tabPane.setEnabledAt(1, true);
       tabPane.setEnabledAt(2, true);
       spinDensityRefSection.setEnabled(false);
@@ -400,7 +405,7 @@ public class JoinDialog implements ContextMenu {
       btnRevertToLastSetup.setEnabled(false);
       btnMakeSamples.setEnabled(false);
       break;
-    case CHANGING_SAMPLE:
+    case CHANGING_SAMPLE_MODE:
       tabPane.setEnabledAt(1, false);
       tabPane.setEnabledAt(2, false);
       spinDensityRefSection.setEnabled(true);
@@ -779,7 +784,6 @@ public class JoinDialog implements ContextMenu {
     rbRotationTranslation.setSelected(metaData.isRotationTranslation());
     cbUseAlignmentRefSection.setSelected(metaData.isUseAlignmentRefSection());
     useAlignmentRefSectionAction();
-    System.out.println("getNumber="+metaData.getAlignmentRefSection().getNumber());
     spinAlignmentRefSection.setValue(metaData.getAlignmentRefSection().getNumber());
     ltfSizeInX.setText(metaData.getSizeInX().toString(true));
     ltfSizeInY.setText(metaData.getSizeInY().toString(true));
@@ -794,7 +798,7 @@ public class JoinDialog implements ContextMenu {
     return rootPanel;
   }
 
-  String getWorkingDirName() {
+  public String getWorkingDirName() {
     return ltfWorkingDir.getText();
   }
   
@@ -835,7 +839,6 @@ public class JoinDialog implements ContextMenu {
   private void action(ActionEvent event) {
     String command = event.getActionCommand();
     if (command.equals(btnMakeSamples.getActionCommand())) {
-      joinManager.setWorkingDir(ltfWorkingDir.getText());
       joinManager.makejoincom();
     }
     else if (command.equals(btnOpenSample.getActionCommand())) {
@@ -883,15 +886,16 @@ public class JoinDialog implements ContextMenu {
           .imodGetRubberbandCoordinates(ImodManager.TRIAL_JOIN_KEY));
     }
     else if (command.equals(btnChangeSetup.getActionCommand())) {
-      setMode(JoinDialog.CHANGING_SAMPLE);
+      setMode(JoinDialog.CHANGING_SAMPLE_MODE);
     }
     else if (command.equals(btnRevertToLastSetup.getActionCommand())) {
       ConstJoinMetaData metaData = joinManager.getMetaData();
       if (!metaData.isSampleProduced()) {
         throw new IllegalStateException("sample produced is false but Revert to Last Setup is enabled");
       }
+      pnlSectionTable.deleteSections();
       setMetaData(joinManager.getMetaData());
-      setMode(JoinDialog.SAMPLE_PRODUCED);
+      setMode(SAMPLE_PRODUCED_MODE);
     }
     else {
       throw new IllegalStateException("Unknown command " + command);
