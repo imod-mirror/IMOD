@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.1  2002/12/27 01:19:47  mast
+Initial creation
+
 */
 
 /* This class provides a color selector with a smaple color panel, and three
@@ -46,7 +49,6 @@ $Log$
 #include <qframe.h>
 #include <qlayout.h>
 #include <qlabel.h>
-#include <qpushbutton.h>
 #include <qcolordialog.h>
 #include "multislider.h"
 #include "colorselector.h"
@@ -55,12 +57,11 @@ static char *sliderLabels[] = {"Red", "Green", "Blue"};
 static char *buttonLabels[] = {"Done", "Restore", "Qt Selector"};
 
 ColorSelector::ColorSelector(QWidget *parent, QString label, int red,
-                             int green, int blue, 
+                             int green, int blue,
                              const char *name, WFlags fl)
-  : QWidget(parent, name, fl)
+  : DialogFrame(parent, 3, buttonLabels, false, "test", "test2", name, fl)
 {
   QString str;
-  QPushButton *buttons[3];
   int i, width;
 
   mOriginalRGB[0] = mCurrentRGB[0] = red;
@@ -68,52 +69,45 @@ ColorSelector::ColorSelector(QWidget *parent, QString label, int red,
   mOriginalRGB[2] = mCurrentRGB[2] = blue;
   mCtrlPressed = false;
 
-  // Get the outer layout and top label
-  QVBoxLayout *layout1 =  new QVBoxLayout( this, 11, 6, "ColorSelectorlayout");
+  // Get the top label
   QLabel *topLabel = new QLabel(label, this);
-  layout1->addWidget(topLabel);
+  mLayout->addWidget(topLabel);
   
   mColorBox = new QFrame(this);
   mColorBox->setFrameStyle(QFrame::Plain);
   mColorBox->setFixedHeight(50);
-  layout1->addWidget(mColorBox);
+  mLayout->addWidget(mColorBox);
 
   // Get the sliders, connect them and initialize them to current color
   mSliders = new MultiSlider(this, 3, sliderLabels);
-  layout1->addLayout(mSliders->getLayout());
+  mLayout->addLayout(mSliders->getLayout());
   connect(mSliders, SIGNAL(sliderChanged(int, int, bool)), this, 
           SLOT(sliderChanged(int, int, bool)));
 
-  // Make the line
-  QFrame *line = new QFrame(this);
-  line->setFrameShape( QFrame::HLine );
-  line->setFrameShadow( QFrame::Sunken );
-  layout1->addWidget(line);
-
-  // Make a layout and put the buttons in it
-  QHBoxLayout *layout2 = new QHBoxLayout(0, 0, 6, "bottom layout");
-  for (i = 0; i < 3; i++) {
-    str = buttonLabels[i];
-    buttons[i] = new QPushButton(str, this, buttonLabels[i]);
-    width = (int)(1.2 * buttons[i]->fontMetrics().width(str));
-    buttons[i]->setFixedWidth(width);
-    buttons[i]->setFocusPolicy(NoFocus);
-    layout2->addWidget(buttons[i]);
-  }
-  layout1->addLayout(layout2);
-
   // Connect them: have to connect to release of Qt selector because the modal
   // box keeps the button from coming back up (maybe mixed X problem only)
-  connect(buttons[0], SIGNAL(pressed()), this, SLOT(donePressed()));
-  connect(buttons[1], SIGNAL(pressed()), this, SLOT(restorePressed()));
-  connect(buttons[2], SIGNAL(released()), this, SLOT(qtSelectorPressed()));
+  connect(this, SIGNAL(actionPressed(int)), this, SLOT(buttonPressed(int)));
+  connect(this, SIGNAL(actionReleased(int)), this, SLOT(buttonReleased(int)));
 
-  setFocusPolicy(StrongFocus);
   imposeColor(true, false);
 }
 
 ColorSelector::~ColorSelector()
 {
+}
+
+void ColorSelector::buttonPressed(int which)
+{
+  if (which == 0)
+    donePressed();
+  else if (which == 1)
+    restorePressed();
+}
+
+void ColorSelector::buttonReleased(int which)
+{
+  if (which == 2)
+    qtSelectorPressed();
 }
 
 void ColorSelector::donePressed()
