@@ -34,6 +34,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.5  2003/01/04 03:47:42  mast
+add include of imod_input.h (!) and control.h
+
 Revision 1.1.2.4  2002/12/19 04:37:13  mast
 Cleanup of unused global variables and defines
 
@@ -74,6 +77,7 @@ are open
 #include "imodv.h"
 #include "imod_input.h"
 #include "control.h"
+#include "sslice.h"
 
 extern long Typemenu;
      
