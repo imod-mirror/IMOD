@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.1  2002/12/01 15:34:41  mast
+    Changes to get clean compilation with g++
+
 */
 #ifndef IMOD_H
 #define IMOD_H
@@ -96,40 +99,8 @@ void imodPlugExecute(ImodView *vw);
  */
 int imodPlugKeys(ImodView *vw, XKeyEvent *event);
 
-/****************************************************************************/
-/* Create a new drawing control for an imod view. 
- * A nonzero integer that is used as the inCtrlId
- * in other control functions is returned.
- *
- * The inDrawFunction is called when the imod draw function
- * is called.  The integer in the third argument contains
- * the draw flags.
- *
- * The inQuitFunction is called when a user quits imod.
- *
- */
-
-int ivwNewControl(ImodView *inImodView,
-		  ImodControlProc inDrawFunction,
-		  ImodControlProc inQuitFunction,
-		  void *data);
-
-/* delete the control associated with the inCtrlId value.
- * this will also call the close or quit method of the control.
- */
-int ivwDeleteControl(ImodView *iv, int inCtrlId);
-
-/* move control to top of control Q if it exists
- * also sets or clears the control active flag.
- * returns the id of the highest priority control id.
- */
-int ivwControlPriority(ImodView *iv, int inCtrlId);
-
-/* make the given control the active one.
- * A zero value for inCtrlId make no control the active one.
- */
-void ivwControlActive(ImodView *iv, int inCtrlId);    
-
+       // 1/1/03: Moved ivwControl stuff to control.h, until all files can
+       // read c++
 
 /*********************** Graphics functions. *********************************/
 

@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.8.2.9  2002/12/23 04:55:43  mast
+    A little more cleanup
+
     Revision 3.8.2.8  2002/12/19 04:37:13  mast
     Cleanup of unused global variables and defines
 
@@ -155,33 +158,7 @@ typedef struct
 
 extern ImodResourceStruct ImodResource;
 
-/* Each window that shows the view below uses this control 
- * stucture to have the view update the window.
- */
-typedef void (*ImodControlProc)(struct ViewInfo *, void *, int);
-
-typedef struct
-{
-     void *userData;
-     ImodControlProc draw_cb;
-/*     void (*draw_cb)(struct ViewInfo *vi, void *user_data, int drawflag); */
-     void (*close_cb)(struct ViewInfo *vi, void *user_data, int status);
-     int  id;
-     int  status;
-
-}ImodControl;
-
-/* This structure sits inside of each view and is the
- * master controller.
- */
-typedef struct
-{
-     Ilist *      list;
-     int          active;
-     int          top;
-     int          reason;
-     XtWorkProcId workID;
-}ImodControlList;
+typedef struct imod_control_list ImodControlList;
 
 
 typedef struct
@@ -356,11 +333,6 @@ extern "C" {
 #endif
 
 void imod_quit(void);
-
-/* imodview.c private control functions */
-void ivwControlListDrawCancel(ImodView *iv);
-void ivwControlListDraw(ImodView *iv, int reason);
-void ivwControlListDelete(ImodView *iv);
 
 unsigned char *ivwGetCurrentSection(ImodView *iv);
 int ivwInitCache(ImodView *vi);
