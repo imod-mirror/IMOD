@@ -17,12 +17,18 @@ import etomo.storage.Storable;
 * 
 * @version $Revision$
 * 
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1.2.1  2004/09/29 19:15:08  sueh
+* <p> bug# 520 Added base class for ConstMetaData and ConstJoinMetaData.
+* <p> Implements Storable with abstract class.  Implements store(Properties),
+* <p> since this function is generic and suitable for a const class.
+* <p> </p>
 */
 public abstract class BaseMetaData implements Storable {
   public static  final String  rcsid =  "$Id$";
   
   protected static final String revisionNumberString = "RevisionNumber";
+  protected static String fileExtension;
 
   protected String revisionNumber;
   protected AxisType axisType = AxisType.NOT_SET;
@@ -33,6 +39,8 @@ public abstract class BaseMetaData implements Storable {
   public abstract void store(Properties props, String prepend);
   public abstract void load(Properties props);
   public abstract void load(Properties props, String prepend);
+  public abstract String getMetaDataFileName();
+  public abstract String getName();
   
   public void store(Properties props) {
     store(props, "");
@@ -48,6 +56,10 @@ public abstract class BaseMetaData implements Storable {
   
   public String getInvalidReason() {
     return invalidReason;
+  }
+  
+  public String getFileExtension() {
+    return fileExtension;
   }
   
   public boolean equals(Object object) {
