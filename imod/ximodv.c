@@ -34,6 +34,9 @@
     $Revision$
 
     $Log$
+    Revision 3.2.2.1  2002/12/05 16:23:52  mast
+    No changes - CVS detected as modified in branch
+
     Revision 3.3  2002/12/02 00:42:17  mast
     include imodv.h directly, eliminate ximodv.h
 
@@ -206,7 +209,7 @@ void imodvOpen(ImodView *vw)
 	  return;
      }
      initstruct(vw, a);
-     window_name = imodwEithername("IMOD Model View: ", Imod_filename);
+     window_name = imodwEithername("IMOD Model View: ", Imod_filename, 1);
 
      Imodv->topLevel = XtVaCreatePopupShell
 	  ("Model View", topLevelShellWidgetClass, App->toplevel,
