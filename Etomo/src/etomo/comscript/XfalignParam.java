@@ -23,6 +23,9 @@ import etomo.type.EtomoSimpleType;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.8  2004/11/08 22:12:41  sueh
+* <p> bug# 520 Add getMode to conform to Command.
+* <p>
 * <p> Revision 1.1.2.7  2004/10/30 01:32:09  sueh
 * <p> bug# 520 Added comments.
 * <p>
@@ -117,8 +120,16 @@ public class XfalignParam implements Command {
     return outputFile;
   }
   
+  public int getIntegerValue(int name) {
+    return Integer.MIN_VALUE;
+  }
+  
   public int getMode() {
     return mode;
+  }
+  
+  public int getBinning() {
+    return 1;
   }
   
   private ArrayList genOptions() {

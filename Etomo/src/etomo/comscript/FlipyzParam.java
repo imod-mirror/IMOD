@@ -19,6 +19,10 @@ import etomo.BaseManager;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.5  2004/11/08 22:11:46  sueh
+* <p> bug# 520 Add getMode to conform to Command.  Returns 0, since there
+* <p> is no more for this Param.
+* <p>
 * <p> Revision 1.1.2.4  2004/10/28 22:13:40  sueh
 * <p> bug# 520 Corrected clipflipyz's path.
 * <p>
@@ -84,7 +88,15 @@ public class FlipyzParam implements Command {
     return flipFile;
   }
   
+  public int getIntegerValue(int name) {
+    return Integer.MIN_VALUE;
+  }
+  
   public int getMode() {
     return 0;
+  }
+  
+  public int getBinning() {
+    return 1;
   }
 }
