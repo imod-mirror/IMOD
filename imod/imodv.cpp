@@ -34,6 +34,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.1  2002/12/05 16:28:37  mast
+Open a qxt application
+
 Revision 3.5  2002/12/01 15:34:41  mast
 Changes to get clean compilation with g++
 
@@ -708,8 +711,11 @@ int imodv_main(int argc, char **argv)
             imodv_application.context, 
             "imodv");
 
-  /* initialize the qxt application AFTER EVERYTHING ELSE */
+  /* initialize the qxt application AFTER EVERYTHING ELSE 
+   Set the style to windows for now because of HighColor problems on druid */
   QXtApplication qapp(XtDisplay(Imodv->topLevel));
+  QApplication::setStyle("windows");
+  
 
   /* DNM: new approach to movie workproc, skip time outs */
   /* imodv_movie(Imodv); */
