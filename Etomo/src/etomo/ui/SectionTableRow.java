@@ -27,6 +27,11 @@ import etomo.type.SlicerAngles;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.8  2004/10/13 23:15:36  sueh
+* <p> bug# 520 Allowed the ui components of the row to be removed and re-
+* <p> added.  This way the table can look different on different tabs.  Set the
+* <p> state of fields based on the tab.
+* <p>
 * <p> Revision 1.1.2.7  2004/10/08 16:40:22  sueh
 * <p> bug# Using setRowNumber() to change the status of sample slice
 * <p> numbers.  Fixed retrieveData().  Changed getData() to return false when
@@ -98,13 +103,39 @@ public class SectionTableRow {
   public SectionTableRow(SectionTablePanel table, int rowNumber, File tomogram,
       boolean sectionExpanded, int zMax, int curTab) {
     this.table = table;
-    data = new SectionTableRowData();
-    data.setRowNumber(rowNumber);
+    data = new SectionTableRowData(rowNumber);
     data.setSection(tomogram);
     data.setZMax(zMax);
     this.sectionExpanded = sectionExpanded;
     this.curTab = curTab;
   }
+  
+  public SectionTableRow(SectionTablePanel table, SectionTableRowData data,
+      boolean sectionExpanded, int curTab) {
+    this.table = table;
+    this.data = data;
+    this.sectionExpanded = sectionExpanded;
+    this.curTab = curTab;
+  }
+  
+  public String toString() {
+    return getClass().getName() + "[" + paramString() + "]";
+  }
+
+  protected String paramString() {
+    return ",\ntable=" + table + ",\nrowNumberHeader=" + rowNumberHeader + ",\nhighlighterButton="
+        + highlighterButton + ",\nsection="
+        + section + ",\nsampleBottomStart=" + sampleBottomStart
+        + ",\nsampleBottomEnd=" + sampleBottomEnd + ",\nsampleTopStart=" + sampleTopStart + ",\nsampleTopEnd="
+        + sampleTopEnd + ",\nfinalStart=" + finalStart
+        + ",\nfinalEnd=" + finalEnd + ",\nrotationAngleX=" + rotationAngleX + ",\nrotationAngleY="
+        + rotationAngleY + ",\nrotationAngleZ="
+        + rotationAngleZ + ",\nimodIndex="
+        + imodIndex + ",\nsectionExpanded="
+        + sectionExpanded + ",\ncurTab="
+        + curTab + ",\ndata="
+        + data;
+  } 
   
   void create() {
     rowNumberHeader = new HeaderCell(data.getRowNumberString(),
