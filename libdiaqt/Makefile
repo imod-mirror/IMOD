@@ -1,5 +1,5 @@
 #
-# Makefile for libdia.a
+# Makefile for libdiaqt.so
 # 
 include ../configure
 
@@ -13,7 +13,7 @@ all : $(LIB)
 
 $(LIB) : $(OBJS)
 	$(FIND) . -type f -name $(LIB) -exec rm "{}" \;
-	$(MAKELIB) $(LIB) $(OBJS)
+	$(MAKELIBCPP) $(LIB) $(OBJS)
 	$(RANLIB) $(LIB)
 	$(CP) $(LIB) $(LIBDIR)
 
