@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/13/04: Fixed problems with copytomocoms and setupcombine under csh on SGI.
+
 1/9/04: IMOD_3-1-6 released
 12/30/03: Fixed problems with float crashing on a blank image, and with Subset
 area being initialized on.
