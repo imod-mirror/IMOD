@@ -34,6 +34,9 @@
     $Revision$
 
     $Log$
+    Revision 1.1.2.1  2002/12/14 05:40:43  mast
+    new visual-assessing code
+
     Revision 3.2  2002/12/01 15:34:41  mast
     Changes to get clean compilation with g++
 
@@ -254,7 +257,7 @@ static ImodGLRequest qtTrue12SB = {0, 1, 12, 0};
 
 static ImodGLRequest *qtGLRequestList[] = {
      &qtPseudo12DB, &qtPseudo12SB, &qtTrue24DB, &qtTrue24SB,
-     &qtPseudo8DB, &qtPseudo8SB, &qtTrue12DB, &qtTrue12DB,
+     &qtPseudo8DB, &qtPseudo8SB, &qtTrue12DB, &qtTrue12SB,
      NULL
 };
 

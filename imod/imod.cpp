@@ -34,6 +34,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.6  2002/12/14 05:40:43  mast
+new visual-assessing code
+
 Revision 1.1.2.5  2002/12/13 06:09:09  mast
 include file changes
 
@@ -793,6 +796,7 @@ char *imodwEithername(char *intro, char *filein, int modelFirst)
     if (!retString)
       retString = imodwGivenName(intro, filein);
   }
+  return(retString);
 }
 
 
