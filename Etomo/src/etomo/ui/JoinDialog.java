@@ -25,6 +25,9 @@ import etomo.type.JoinMetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.1.2.6  2004/10/01 19:58:55  sueh
+ * <p> bug# 520 Moved working dir and root name above section table.
+ * <p>
  * <p> Revision 1.1.2.5  2004/09/29 19:34:05  sueh
  * <p> bug# 520 Added retrieveData() to retrieve data from the screen.
  * <p>
@@ -49,7 +52,7 @@ public class JoinDialog implements ContextMenu {
       .getSystemResource("images/openFile.gif"));
   private static Dimension dimButton = UIParameters.getButtonDimension();
   private static Dimension dimSpinner = UIParameters.getSpinnerDimension();
-  
+
   private JPanel rootPanel;
   private JTabbedPane tabPane;
   private DoubleSpacedPanel pnlSetup;
@@ -58,18 +61,15 @@ public class JoinDialog implements ContextMenu {
   private JPanel pnlJoin;
 
   private JButton btnWorkingDir;
-  private MultiLineToggleButton btnMakeJoin;
-  
-  private JCheckBox cbUseDensityRefSection;
+  private MultiLineToggleButton btnMakeSamples;
+
   private LabeledSpinner spinDensityRefSection;
   private LabeledTextField ltfWorkingDir;
   private LabeledTextField ltfRootName;
-  
+
   private int numSections = 0;
-  
+
   private JoinActionListener joinActionListener = new JoinActionListener(this);
-  private UseDensityRefSectionActionListener useDensityRefSectionActionListener = new UseDensityRefSectionActionListener(
-      this);
   private WorkingDirActionListener workingDirActionListener = new WorkingDirActionListener(
       this);
 
@@ -107,8 +107,8 @@ public class JoinDialog implements ContextMenu {
     pnlSetup = new DoubleSpacedPanel(false, FixedDim.x5_y0, FixedDim.x0_y5);
     //first component
     SpacedPanel pnlFirst = new SpacedPanel(FixedDim.x5_y0);
-    pnlFirst.setLayout(new BoxLayout(pnlFirst.getContainer(),
-        BoxLayout.X_AXIS));
+    pnlFirst
+        .setLayout(new BoxLayout(pnlFirst.getContainer(), BoxLayout.X_AXIS));
     ltfWorkingDir = new LabeledTextField("Working Directory: ");
     pnlFirst.add(ltfWorkingDir.getContainer());
     btnWorkingDir = new JButton(iconFolder);
@@ -124,29 +124,21 @@ public class JoinDialog implements ContextMenu {
     pnlSectionTable = new SectionTablePanel(this, joinManager);
     pnlSetup.add(pnlSectionTable.getContainer());
     //fourth component
-    JPanel pnlFourth = new JPanel();
-    pnlFourth.setLayout(new BoxLayout(pnlFourth, BoxLayout.X_AXIS));
-    cbUseDensityRefSection = new JCheckBox();
-    cbUseDensityRefSection
-        .addActionListener(useDensityRefSectionActionListener);
-    pnlFourth.add(cbUseDensityRefSection);
     SpinnerModel spinnerModel = new SpinnerNumberModel(1, 1,
         numSections < 1 ? 1 : numSections, 1);
     spinDensityRefSection = new LabeledSpinner(
         "Reference section for density matching: ", spinnerModel);
-    enableDensityRefSection();
     spinDensityRefSection.setTextMaxmimumSize(dimSpinner);
-    pnlFourth.add(spinDensityRefSection.getContainer());
-    pnlSetup.add(pnlFourth);
+    spinDensityRefSection.setEnabled(false);
+    pnlSetup.add(spinDensityRefSection.getContainer());
     //fifth component
-    btnMakeJoin = new MultiLineToggleButton("Make Join");
-    btnMakeJoin.addActionListener(joinActionListener);
-    UIUtilities.setButtonSize(btnMakeJoin, dimButton);
-    btnMakeJoin.setAlignmentX(Component.CENTER_ALIGNMENT);
-    enableMakeJoin();
-    pnlSetup.add(btnMakeJoin);
+    btnMakeSamples = new MultiLineToggleButton("Make Samples");
+    btnMakeSamples.addActionListener(joinActionListener);
+    UIUtilities.setButtonSize(btnMakeSamples, dimButton);
+    btnMakeSamples.setAlignmentX(Component.CENTER_ALIGNMENT);
+    btnMakeSamples.setEnabled(false);
+    pnlSetup.add(btnMakeSamples);
   }
-
 
   private void createAlignPanel() {
     pnlAlign = new JPanel();
@@ -156,26 +148,16 @@ public class JoinDialog implements ContextMenu {
     pnlJoin = new JPanel();
   }
 
-  private void enableDensityRefSection() {
-    spinDensityRefSection.setEnabled(cbUseDensityRefSection.isSelected()
-        && numSections >= 1);
-  }
-  
-  private void enableMakeJoin() {
-    btnMakeJoin.setEnabled(numSections >= 2);
-  }
-
   void setNumSections(int numSections) {
     this.numSections = numSections;
     SpinnerModel spinnerModel = new SpinnerNumberModel(1, 1,
         numSections < 1 ? 1 : numSections, 1);
     spinDensityRefSection.setModel(spinnerModel);
-    enableDensityRefSection();
-    enableMakeJoin();
+    spinDensityRefSection.setEnabled(numSections > 0);
+    btnMakeSamples.setEnabled(numSections >= 2);
   }
-  
+
   public void retrieveData(JoinMetaData joinMetaData) {
-    joinMetaData.setUseDensityRefSection(cbUseDensityRefSection.isSelected());
     joinMetaData.setDensityRefSection(spinDensityRefSection.getValue());
     joinMetaData.setWorkingDir(ltfWorkingDir.getText());
     joinMetaData.setRootName(ltfRootName.getText());
@@ -185,11 +167,23 @@ public class JoinDialog implements ContextMenu {
   public Container getContainer() {
     return rootPanel;
   }
-  
-  String getWorkingDir() {
+
+  String getWorkingDirName() {
     return ltfWorkingDir.getText();
   }
   
+  File getWorkingDir() {
+    return new File(ltfWorkingDir.getText());
+  }
+  
+  public void abortAddSection() {
+    pnlSectionTable.setEnabledAddSection(true);
+  }
+  
+  public void addSection(File tomogram) {
+    pnlSectionTable.addSection(tomogram);
+  }
+
   /**
    * Right mouse button context menu
    */
@@ -202,19 +196,15 @@ public class JoinDialog implements ContextMenu {
    */
   private void action(ActionEvent event) {
     String command = event.getActionCommand();
-    if (command.equals(btnMakeJoin.getActionCommand())) {
-      joinManager.startJoin();
+    if (command.equals(btnMakeSamples.getActionCommand())) {
+      joinManager.makeSamples();
     }
   }
 
-  private void useDensityRefSectionAction() {
-    enableDensityRefSection();
-  }
-  
   private void workingDirAction() {
     //  Open up the file chooser in the working directory
     JFileChooser chooser = new JFileChooser(new File(System
-      .getProperty("user.dir")));
+        .getProperty("user.dir")));
     chooser.setPreferredSize(FixedDim.fileChooser);
     chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
     int returnVal = chooser.showOpenDialog(rootPanel);
@@ -246,19 +236,6 @@ public class JoinDialog implements ContextMenu {
     }
   }
 
-  class UseDensityRefSectionActionListener implements ActionListener {
-
-    JoinDialog adaptee;
-
-    UseDensityRefSectionActionListener(JoinDialog adaptee) {
-      this.adaptee = adaptee;
-    }
-
-    public void actionPerformed(ActionEvent event) {
-      adaptee.useDensityRefSectionAction();
-    }
-  }
-  
   class WorkingDirActionListener implements ActionListener {
 
     JoinDialog adaptee;
