@@ -20,6 +20,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.4.2.1  2004/09/03 20:57:52  sueh
+ * <p> bug# 520 getting app mgr from EtomoDirector
+ * <p>
  * <p> Revision 3.4  2004/06/30 17:36:46  rickg
  * <p> Added fiducialless capability and partial single axis handling
  * <p>
@@ -95,7 +98,7 @@ public class DataFlowTests {
       + ".edf";
     EtomoDirector.createInstance(argsIn);
     applicationManager = (ApplicationManager) EtomoDirector.getInstance().getCurrentManager();
-    mainFrame = applicationManager.getMainFrame();
+    mainFrame = EtomoDirector.getMainFrame();
     // A hack around the const object returned we really know is not const
     MetaData metaData = (MetaData) applicationManager.getMetaData();
 
