@@ -14,21 +14,53 @@ package etomo.type;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.2  2004/10/22 03:25:33  sueh
+* <p> bug# 520 added getNumber().
+* <p>
 * <p> Revision 1.1.2.1  2004/10/21 02:57:50  sueh
 * <p> bug# 520 Interface for EtomoInteger, EtomoDouble, EtomoFloat, and
 * <p> EtomoLong.
 * <p> </p>
 */
-public interface EtomoSimpleType {
+public abstract class EtomoSimpleType {
   public static  final String  rcsid =  "$Id$";
   
-  public void setDescription(String description);
-  public String set(String value);
-   public void reset();
-  public void unset();
-  public Number getNumber();
-  public String getString();
-  public String getDescription();
-  public boolean isSetAndNotDefault();
-  public boolean isSet();
+  protected String name;
+  protected String description = null;
+  protected String invalidReason = null;
+  
+  public abstract String getString();
+  public abstract boolean isSetAndNotDefault();
+  public abstract Number getNumber();
+  
+  public EtomoSimpleType() {
+    name = super.toString();
+    description = name;
+  }
+  
+  public EtomoSimpleType(String name) {
+    this.name = name;
+    description = name;
+  }
+  
+  public String getDescription() {
+    return description;
+  }
+  
+  public boolean isValid() {
+    return invalidReason == null;
+  }
+  
+  public String getInvalidReason() {
+    return invalidReason;
+  }
+  
+  public String classInfoString() {
+    return getClass().getName() + "[" + paramString() + "]";
+  }
+  
+  protected String paramString() {
+    return ",\nname=" + name + ",\ndescription=" + description
+        + ",\ninvalidReason=" + invalidReason;
+  }
 }
