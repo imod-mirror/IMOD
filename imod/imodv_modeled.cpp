@@ -37,6 +37,8 @@
 #include <dia.h>
 #include "imodv.h"
 #include "imodv_gfx.h"
+#include "imodv_views.h"
+#include "imodv_modeled.h"
 
 struct imodv_modeled
 {

@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.3.2.2  2002/12/17 17:41:58  mast
+Changes for Qt port of imodv
+
 Revision 3.3.2.1  2002/12/09 17:49:19  mast
 changes to get Zap as a Qt window
 
@@ -126,15 +129,15 @@ typedef struct __imodv_struct
   int fastdraw;    /* 0 = standard rendering for spheres, range 0 -3 */
   int mousemove;   /* 0 = move model, 1 light, 2 clip.        */
   int stereo;      /* 0 = no stereo view.                     */
-  /* 1 = cross, 2 = wall, 3 = red/green      */
-  /* 4 = display hardware stereo.            */
+                   /* 1 = cross, 2 = wall, 3 = red/green      */
+                   /* 4 = display hardware stereo.            */
   float plax;      /* parallax for stereo separation.         */
   int movie;       /* allow movies.                           */
   int drawall;     /* draw all models at once.                */
   int bindex;      /* background colorindex.                  */
   int alpha;       /* number of alpha planes.                 */
   int current_subset;  /* display subset of model (current element) */
-  /* 0 = all, 1 = obj, 2 = surf, 3 = cont */
+                       /* 0 = all, 1 = obj, 2 = surf, 3 = cont */
   int movieFrames;    /* Number of movie frames displayed     */
   clock_t movieStart; /* Starting CPU time of movie           */
   clock_t movieCurrent; /* Current CPU time of movie          */
@@ -176,66 +179,6 @@ extern "C" {
   void imodv_new_model(Imod *mod);
   int  imodv_main(int argc, char **argv);
   void imodvSetCaption();
-
-
-  /* input.c functions */
-  void objed(ImodvApp *a);
-  int object_edit_kill(void);
-  void imodvModelEditDialog(ImodvApp *a, int state);
-
-  /* imodv_objed.c: object editing functions */
-  /* update the display after a new view is selected */
-  void imodvObjedNewView(void);
-  void imodvObjectListDialog(ImodvApp *a, int state);
-
-  /* view editing functions */
-  void imodvUpdateView(ImodvApp *a);
-  void imodvUpdateModel(ImodvApp *a);
-  void imodvViewEditDialog(ImodvApp *a, int state);
-  void imodvAutoStoreView(ImodvApp *a);
-
-  void imodvMovieDialog(ImodvApp *a, int state);
-
-  /* light functions */
-  void light_init(void);
-  void light_getparam(int param, float *outValue);
-  void light_setparam(int param, double value);
-  void light_move(int *x, int *y);
-  int clip_obj(Iobj *obj, int flag, double zscale, double zoom);
-  void light_on(struct Mod_Object *obj);
-  void light_off(void);
-  void imodvSetLight(Iview *vw);
-  void light_moveby(int x, int y);
-  void light_adjust(Iobj *obj, float r, float g, float b);
-
-  /* depth cue functions */
-  void imodvDepthCueSet(void);
-  void imodvDepthCueSetWidgets(void);
-  void imodvDepthCueEditDialog(ImodvApp *a, int state);
-
-  void imeSetViewData(int wi);
-  int imodvSelectModel(ImodvApp *a, int ncm);
-  void imodvDrawImage(ImodvApp *a);
-
-
-#define IMODV_MAX_INDEX 225
-
-
-  /* Stereo Control functions. */
-#define IMODV_STEREO_OFF 0
-#define IMODV_STEREO_RL  1
-#define IMODV_STEREO_TB  2
-#define IMODV_STEREO_HW  3
-
-  void imodvStereoEditDialog(ImodvApp *a, int state);
-  void imodvStereoToggle(void);
-  void stereoHWOff(void);
-  void stereoClear(GLbitfield mask);
-  void stereoDrawBuffer(GLenum mode);
-
-  /* Image Control functions. */
-  void imodvDrawImage(ImodvApp *a);
-  void imodvImageEditDialog(ImodvApp *a, int state);
 
 
 #ifdef __cplusplus

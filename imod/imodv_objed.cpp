@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 1.1.2.2  2002/12/17 18:33:19  mast
+    using new includes for imodv compoennts
+
     Revision 1.1.2.1  2002/12/15 21:14:02  mast
     conversion to cpp
 
@@ -67,28 +70,18 @@
 #include "imodv.h"
 #include "imodP.h"
 #include "imodv_gfx.h"
-
-
-/******************************************************************
- * Public Interface function prototypes.
- ******************************************************************/
-
-/* Close up and clean the object edit dialog. */
-int object_edit_kill(void);
-
-/* Create and init the object edit dialog. */
-void objed(ImodvApp *a);
-
-/* Version 1.3 Functions. */
-/*  returns the current object being edited by objed. */
-Iobj *objedObject(void) { return(Imodv->obj); }
-
-/* returns the current model being used for object editing. */
-Imod *objedModel(void) { return(Imodv->imod); }
+#include "imodv_light.h"
+#include "imodv_objed.h"
 
 /*
- *  internal prototypes 
+ *  internal prototypes (first two were public but unused)
  */
+
+/*  returns the current object being edited by objed. */
+static Iobj *objedObject(void) { return(Imodv->obj); }
+
+/* returns the current model being used for object editing. */
+static Imod *objedModel(void) { return(Imodv->imod); }
 
 static void setEachAll(void);
 static void objset(ImodvApp *a);

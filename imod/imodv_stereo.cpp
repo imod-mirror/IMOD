@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.3  2002/12/17 22:28:21  mast
+cleanup of unused variables and SGI errors
+
 Revision 1.1.2.2  2002/12/17 18:31:30  mast
 preliminary changes for Qt
 
@@ -71,6 +74,7 @@ Changes to get clean compilation with g++
 #include "imodv.h"
 #include "imod.h"
 #include "imodv_gfx.h"
+#include "imodv_stereo.h"
 
 #define LIMIT_Stereo
 

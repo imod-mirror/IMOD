@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.4  2002/12/17 22:28:21  mast
+cleanup of unused variables and SGI errors
+
 Revision 1.1.2.3  2002/12/17 19:25:56  mast
 fixing braces after removing color index code
 
@@ -65,6 +68,9 @@ Fixed problem with transparency when lighting both sides
 #include "imodv.h"
 #include "imodv_gfx.h"
 #include "imodv_ogl.h"
+#include "imodv_light.h"
+#include "imodv_stereo.h"
+#include "imodv_image.h"
 
 #define DRAW_POINTS 1
 #define DRAW_LINES  2

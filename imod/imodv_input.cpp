@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 1.1.2.4  2002/12/17 22:28:21  mast
+    cleanup of unused variables and SGI errors
+
     Revision 1.1.2.3  2002/12/17 21:38:49  mast
     include imodconfig so NO_SYS_TIMES can be acted on
 
@@ -72,6 +75,14 @@
 #include "imodv_gfx.h"
 #include "imodv_input.h"
 #include "imodv_control.h"
+#include "imodv_light.h"
+#include "imodv_stereo.h"
+#include "imodv_depthcue.h"
+#include "imodv_views.h"
+#include "imodv_modeled.h"
+#include "imodv_image.h"
+#include "imodv_objed.h"
+#include "imodv_movie.h"
 
 
 static void imodv_light_move(ImodvApp *a);
