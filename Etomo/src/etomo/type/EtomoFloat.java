@@ -2,8 +2,6 @@ package etomo.type;
 
 import java.util.Properties;
 
-import etomo.storage.Storable;
-
 /**
 * <p>Description: </p>
 * 
@@ -17,21 +15,15 @@ import etomo.storage.Storable;
 * 
 * @version $Revision$
 * 
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1.2.1  2004/10/18 18:04:55  sueh
+* <p> bug# 520 A class representing a float which handles all issues
+* <p> concerning defaults, null values, assigning strings that are blank, and
+* <p> handling errors in numeric parsing.  It also implements Storable.
+* <p> </p>
 */
-public class EtomoFloat implements Storable {
+public class EtomoFloat extends ConstEtomoFloat {
   public static  final String  rcsid =  "$Id$";
-  
-  private static final float unsetValue = Float.NaN;
-  
-  private float value = unsetValue;
-  private float defaultValue = unsetValue;
-  private float recommendedValue = unsetValue;
-  private float resetValue = unsetValue;
-  
-  private String name;
-  private String description = null;
-  private String invalidReason = null;
   
   EtomoFloat(String name) {
     this.name = name;
@@ -57,26 +49,15 @@ public class EtomoFloat implements Storable {
     }
   }
   
-  /**
-   * Stores value in props.  If value is unset, removes value from props as long
-   * as value wa
-   */
-  public void store(Properties props) {
-    props.setProperty(name, Double.toString(value));
-  }
-  
-  public void store(Properties props, String prepend) {
-    props.setProperty(prepend + "." + name, Float.toString(value));
-  }
-  
   public void load(Properties props) {
     value = Float.parseFloat(props.getProperty(name, Float
         .toString(resetValue)));
   }
   
   public void load(Properties props, String prepend) {
-    value = Float.parseFloat(props.getProperty(prepend + "." + name, Float
-        .toString(resetValue)));
+    String valueString = props.getProperty(prepend + "." + name, Float
+        .toString(resetValue));
+    value = Float.parseFloat(valueString);
   }
   
   public String set(String value) {
@@ -91,7 +72,7 @@ public class EtomoFloat implements Storable {
       }
       catch (NumberFormatException e) {
         e.printStackTrace();
-        invalidReason = "Invalid value:  " + value + ".  " + description + " is an double.";
+        invalidReason = "Invalid value:  " + value + ".  " + description + " is a float.";
       }
     }
     return invalidReason;
@@ -116,40 +97,14 @@ public class EtomoFloat implements Storable {
   }
   
   private void setResetValue() {
-    if (!Double.isNaN(recommendedValue)) {
+    if (!Float.isNaN(recommendedValue)) {
       resetValue = recommendedValue;
     }
-    else if (!Double.isNaN(defaultValue)) {
+    else if (!Float.isNaN(defaultValue)) {
       resetValue = defaultValue;
     }
     else {
       resetValue = unsetValue;
     }
-  }
-  
-  public String toString() {
-    if (Double.isNaN(value)) {
-      return "";
-    }
-    return Double.toString(value);
-  }
-  
-  public float get() {
-    if (Float.isNaN(value)) {
-      return resetValue;
-    }
-    return value;
-  }
-  
-  public String getDescription() {
-    return description;
-  }
-  
-  public boolean isSet() {
-    return !Double.isNaN(value);
-  }
-  
-  public boolean isDefault() {
-    return !Float.isNaN(defaultValue) && value == defaultValue;
   }
 }
