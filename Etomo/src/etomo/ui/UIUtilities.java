@@ -12,6 +12,10 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3.2.1  2004/09/17 21:49:45  sueh
+ * <p> bug# 520 Move getDefaultUIColor() and getDefaultUIResource() to this
+ * <p> class from ButtonHelper because they are used in non-buttons.
+ * <p>
  * <p> Revision 1.3  2004/07/21 00:20:47  sueh
  * <p> bug# 474 prevented JCheckBox from being set to button size
  * <p>
@@ -110,8 +114,16 @@ public class UIUtilities {
    * @param size
    */
   public static void setButtonSize(AbstractButton button, Dimension size) {
+    setButtonSize(button, size, false);
+  }
+  
+  public static void setButtonSize(AbstractButton button, Dimension size,
+      boolean setMinimum) {
     button.setPreferredSize(size);
     button.setMaximumSize(size);
+    if (setMinimum) {
+      button.setMinimumSize(size);
+    }
   }
 
   public static ColorUIResource getDefaultUIColor(String property) {
