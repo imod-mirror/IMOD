@@ -4,7 +4,9 @@ import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
 
+import javax.swing.AbstractButton;
 import javax.swing.BoxLayout;
+import javax.swing.JComponent;
 import javax.swing.border.Border;
 
 /**
@@ -26,6 +28,9 @@ import javax.swing.border.Border;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.2  2004/09/23 23:52:12  sueh
+* <p> bug# 520 Added a class description.
+* <p>
 * <p> Revision 1.1.2.1  2004/09/23 23:36:12  sueh
 * <p> bug# 520 A panel which has rigid areas on both the X axis and Y axis.
 * <p> Useful with borders and panels containing panels with borders.
@@ -34,8 +39,6 @@ import javax.swing.border.Border;
 public class DoubleSpacedPanel {
   public static final String rcsid = "$Id$";
 
-  Dimension outerPixels;
-  Dimension innerPixels;
   SpacedPanel innerPanel;
   SpacedPanel outerPanel;
 
@@ -43,42 +46,80 @@ public class DoubleSpacedPanel {
       Dimension yPixels) {
     this(xAxisLayout, xPixels, yPixels, null);
   }
-
+  
   public DoubleSpacedPanel(boolean xAxisLayout, Dimension xPixels,
       Dimension yPixels, Border border) {
+    this(xAxisLayout, xPixels, yPixels, border, true);
+  }
+  
+  public DoubleSpacedPanel(boolean xAxisLayout, Dimension xPixels,
+      Dimension yPixels, Border border, boolean spaceTop) {
     if (xAxisLayout) {
-      outerPixels = yPixels;
-      innerPixels = xPixels;
-      intialize(border, BoxLayout.Y_AXIS, BoxLayout.X_AXIS);
+      intialize(border, BoxLayout.X_AXIS, xPixels, true, BoxLayout.Y_AXIS, yPixels, spaceTop);
     }
     else {
-      outerPixels = xPixels;
-      innerPixels = yPixels;
-      intialize(border, BoxLayout.X_AXIS, BoxLayout.Y_AXIS);
+      intialize(border, BoxLayout.Y_AXIS, yPixels, spaceTop, BoxLayout.X_AXIS, xPixels, true);
     }
   }
-
-  private void intialize(Border border, int outerAxis, int innerAxis) {
-    outerPanel = new SpacedPanel(outerPixels, true);
-    innerPanel = new SpacedPanel(innerPixels, true);
+  
+  private void intialize(Border border, int innerAxis, Dimension innerPixels,
+      boolean innerSpaceBefore, int outerAxis, Dimension outerPixels, boolean outerSpaceBefore) {
+    outerPanel = new SpacedPanel(outerPixels, true, outerSpaceBefore);
+    innerPanel = new SpacedPanel(innerPixels, true, innerSpaceBefore);
     outerPanel.setLayout(new BoxLayout(outerPanel.getContainer(), outerAxis));
     if (border != null) {
       outerPanel.setBorder(border);
     }
     innerPanel.setLayout(new BoxLayout(innerPanel.getContainer(), innerAxis));
-    outerPanel.add(innerPanel.getContainer());
+    outerPanel.add(innerPanel);
+  }
+  
+  public void setComponentAlignmentX(float alignmentX) {
+    innerPanel.setComponentAlignmentX(alignmentX);
+  }
+  
+  public void resetComponentAlignmentX() {
+    innerPanel.resetComponentAlignmentX();
+  }
+  
+  public String toString() {
+    return getClass().getName() + "[" + paramString() + "]";
   }
 
-  public Component add(Component comp) {
+  protected String paramString() {
+    return "\n,innerPanel=" + innerPanel + ",\nouterPanel=" + outerPanel;
+  }
+  
+  public Component add(JComponent comp) {
     return innerPanel.add(comp);
+  }
+  
+  public Component add(JComponent comp, boolean spaceAfter) {
+    return innerPanel.add(comp, spaceAfter);
   }
 
   public Component add(DoubleSpacedPanel doubleSpacedPanel) {
-    return innerPanel.add(doubleSpacedPanel.getContainer());
+    return innerPanel.add(doubleSpacedPanel);
   }
 
   public Component add(SpacedPanel spacedPanel) {
-    return innerPanel.add(spacedPanel.getContainer());
+    return innerPanel.add(spacedPanel);
+  }
+  
+  public Component add(LabeledTextField field) {
+    return innerPanel.add(field);
+  }
+  
+  public Component add(LabeledSpinner spinner) {
+    return innerPanel.add(spinner);
+  }
+  
+  public Component addMultiLineButton(AbstractButton button) {
+    return innerPanel.addMultiLineButton(button);
+  }
+  
+  public void removeAll() {
+    innerPanel.removeAll();
   }
 
   public Container getContainer() {
