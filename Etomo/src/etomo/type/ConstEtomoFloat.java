@@ -17,7 +17,10 @@ import etomo.storage.Storable;
 * 
 * @version $Revision$
 * 
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1.2.1  2004/10/21 02:48:57  sueh
+* <p> bug# Const object for EtomoFloat.
+* <p> </p>
 */
 public abstract class ConstEtomoFloat implements Storable, EtomoSimpleType {
   public static  final String  rcsid =  "$Id$";
@@ -56,6 +59,13 @@ public abstract class ConstEtomoFloat implements Storable, EtomoSimpleType {
       return resetValue;
     }
     return value;
+  }
+  
+  public Number getNumber() {
+    if (Float.isNaN(value)) {
+      return new Float(resetValue);
+    }
+    return new Float(value);
   }
   
   public String getDescription() {

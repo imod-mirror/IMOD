@@ -13,7 +13,11 @@ package etomo.type;
 * 
 * @version $Revision$
 * 
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1.2.1  2004/10/21 02:57:50  sueh
+* <p> bug# 520 Interface for EtomoInteger, EtomoDouble, EtomoFloat, and
+* <p> EtomoLong.
+* <p> </p>
 */
 public interface EtomoSimpleType {
   public static  final String  rcsid =  "$Id$";
@@ -22,6 +26,7 @@ public interface EtomoSimpleType {
   public String set(String value);
    public void reset();
   public void unset();
+  public Number getNumber();
   public String getString();
   public String getDescription();
   public boolean isSetAndNotDefault();

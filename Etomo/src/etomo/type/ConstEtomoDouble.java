@@ -18,6 +18,10 @@ import etomo.storage.Storable;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.2  2004/10/21 02:48:28  sueh
+* <p> bug# 520 Added equals, isSetAndNotDefault, and toString.  Changed
+* <p> toString to getString.  Removed isDefault.
+* <p>
 * <p> Revision 1.1.2.1  2004/10/18 17:59:23  sueh
 * <p> bug# 520 The const part of EtomoDouble.
 * <p> </p>
@@ -59,6 +63,13 @@ public abstract class ConstEtomoDouble implements Storable, EtomoSimpleType {
       return resetValue;
     }
     return value;
+  }
+  
+  public Number getNumber() {
+    if (Double.isNaN(value)) {
+      return new Double(resetValue);
+    }
+    return new Double(value);
   }
   
   public String getDescription() {

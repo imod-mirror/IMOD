@@ -16,7 +16,10 @@ import etomo.storage.Storable;
 * 
 * @version $Revision$
 * 
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1.2.1  2004/10/21 02:49:33  sueh
+* <p> bug# 520 Const object for EtomoLong.
+* <p> </p>
 */
 public abstract class ConstEtomoLong implements Storable, EtomoSimpleType {
   public static  final String  rcsid =  "$Id$";
@@ -55,6 +58,13 @@ public abstract class ConstEtomoLong implements Storable, EtomoSimpleType {
       return resetValue;
     }
     return value;
+  }
+  
+  public Number getNumber() {
+    if (value == Long.MIN_VALUE) {
+      return new Long(resetValue);
+    }
+    return new Long(value);
   }
   
   public String getDescription() {
