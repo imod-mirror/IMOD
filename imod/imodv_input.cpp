@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 1.1.2.13  2003/01/18 01:13:24  mast
+    remove X workproc stuff
+
     Revision 1.1.2.12  2003/01/13 07:21:38  mast
     Changes to use new dialog manager class
 
@@ -94,6 +97,7 @@
 #include <math.h>
 #include "imodv.h"
 #include "imod.h"
+#include "imod_input.h"
 #include "control.h"
 #include "imodv_menu.h"
 #include "imodv_gfx.h"
