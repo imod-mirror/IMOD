@@ -1,13 +1,19 @@
 package etomo;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Vector;
 
+import etomo.comscript.BadComScriptException;
 import etomo.process.ImodProcess;
+import etomo.process.JoinProcessManager;
 import etomo.process.SystemProcessException;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.AxisTypeException;
+import etomo.type.JoinMetaData;
+import etomo.type.JoinProcessTrack;
+import etomo.type.ProcessName;
 import etomo.type.SlicerAngles;
 import etomo.ui.JoinDialog;
 import etomo.ui.MainJoinPanel;
@@ -26,6 +32,10 @@ import etomo.ui.MainJoinPanel;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.7  2004/09/22 22:03:53  sueh
+* <p> bug# 520 Made the imod functions more general by passing in the
+* <p> ImodManager key.  Added imodGetSlicerAngles.
+* <p>
 * <p> Revision 1.1.2.6  2004/09/21 17:43:41  sueh
 * <p> bug# 520 add imodTomogram and imodRemoveTomogram
 * <p>
@@ -51,9 +61,11 @@ public class JoinManager extends BaseManager {
   //  Process dialog references
   private JoinDialog joinDialog = null;
   
-  //convenience variable set equals to mainPanel
-  //use through castMainPanel
-  private MainJoinPanel mainJoinPanel = null; 
+  //variables cast from base class variables
+  //initialized in create function
+  private MainJoinPanel mainJoinPanel;
+  private JoinMetaData joinMetaData;
+  private JoinProcessManager joinProcessMgr;
   
   public JoinManager(String paramFileName) {
     super();
@@ -69,17 +81,14 @@ public class JoinManager extends BaseManager {
   }
   
   protected void createProcessManager() {
-    
+    baseProcessMgr = new JoinProcessManager(this);
+    joinProcessMgr = (JoinProcessManager) baseProcessMgr;
   }
   
-  public void openNewDataset() {
-    
+  protected void createProcessTrack() {
+    baseProcessTrack = new JoinProcessTrack();
   }
-  
-  public void openExistingDataset(File paramFile) {
-    
-  }
-  
+
   /**
    * Open the join dialog
    */
@@ -108,16 +117,12 @@ public class JoinManager extends BaseManager {
   
   protected void createMainPanel() {
     mainPanel = new MainJoinPanel(this);
+    mainJoinPanel = (MainJoinPanel) mainPanel;
   }
   
-  private MainJoinPanel castMainPanel() {
-    if (mainPanel == null) {
-      throw new NullPointerException();
-    }
-    if (mainJoinPanel == null) {
-      mainJoinPanel = (MainJoinPanel) mainPanel;
-    }
-    return mainJoinPanel;
+  protected void createBaseMetaData() {
+    baseMetaData = new JoinMetaData();
+    joinMetaData = (JoinMetaData) baseMetaData;
   }
   
   /**
@@ -233,12 +238,62 @@ public class JoinManager extends BaseManager {
     return slicerAngles;
   }
 
-  
+  /**
+   * Place the data from the screen in the meta data object.  Run the 
+   * makejoincom script.  Run startjoin.com.
+   */
+  public void startJoin() {
+    mainPanel.startProgressBar("Starting join", AxisID.ONLY);
+    isDataParamDirty = true;
+    joinDialog.retrieveData(joinMetaData);
+    try {
+      joinProcessMgr.startJoin(joinMetaData);
+    }
+    catch (BadComScriptException except) {
+      except.printStackTrace();
+      mainPanel.openMessageDialog(except.getMessage(),
+          "Can't run makejoincom or startjoin.com");
+      return;
+    }
+    catch (IOException except) {
+      except.printStackTrace();
+      mainPanel.openMessageDialog("Can't run makejoincom or startjoin.com\n"
+        + except.getMessage(), "IOException");
+      return;
+    }
+    catch (SystemProcessException except) {
+      except.printStackTrace();
+      mainPanel.openMessageDialog("Can't run makejoincom or startjoin.com\n"
+        + except.getMessage(), "SystemProcessException");
+      return; 
+    }
+    mainPanel.stopProgressBar(AxisID.ONLY);
+  }
+
   /**
    * Open the main window in processing mode
    */
   private void openProcessingPanel() {
     mainPanel.showProcessingPanel(AxisType.SINGLE_AXIS);
     setPanel();
+  }
+  
+  /**
+   * Set the data set parameter file. This also updates the mainframe data
+   * parameters.
+   * @param paramFile a File object specifying the data set parameter file.
+   */
+  public void setTestParamFile(File paramFile) {
+    this.paramFile = paramFile;
+    //  Update main window information and status bar
+    mainJoinPanel.updateDataParameters(paramFile, joinMetaData);
+  }
+  
+  protected void updateDialog(ProcessName processName, AxisID axisID) {
+    
+  }
+  
+  protected void startNextProcess(AxisID axisID) {
+    
   }
 }
