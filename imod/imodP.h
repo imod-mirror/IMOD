@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.8.2.4  2002/12/12 01:21:09  mast
+    Changes for xyz window to become Qt
+
     Revision 3.8.2.3  2002/12/09 17:49:19  mast
     changes to get Zap as a Qt window
 
@@ -135,7 +138,7 @@ typedef struct
 {
      /* Resources */
      char         *rbgname; /* background color */
-     Bool    wzoom;  
+  int    wzoom;    /* 12/12/02: changed from Bool to int */
 
 #ifdef __sgi
      _XtString    SGIStereoCommand;
@@ -470,13 +473,8 @@ char *ImodRes_SGIStereoCommand(void);
 char *ImodRes_SGIRestoreCommand(void);
 
 /* window fuctions */
-int xxyz_open( struct ViewInfo *vi);
-int  imod_zap_open(struct ViewInfo *vi);
-void zapDrawSymbol(int mx, int my, unsigned char sym, unsigned char size, 
-                   unsigned char flags);
 void imodv_draw(void);
 void imodv_new_model(Imod *mod);
-int  imod_object_edit(Widget top);
 void ioew_sgicolor_cb(Widget w, XtPointer client, XtPointer call);
 int  open_pixelview(struct ViewInfo *vi);
 int  xgraphOpen(struct ViewInfo *vi);

@@ -34,6 +34,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.4  2002/12/09 17:49:19  mast
+changes to get Zap as a Qt window
+
 Revision 1.1.2.3  2002/12/07 01:23:23  mast
 Improved window title code
 
@@ -83,6 +86,7 @@ Added -S option to open slicer first; made it set a new model so that time
 index modeling is the default if multiple files are opened.
 
 */
+#define NO_X_INCLUDES
 
 #include <stdio.h>
 #include <unistd.h>
@@ -91,12 +95,13 @@ index modeling is the default if multiple files are opened.
 #include <string.h>
 #include <errno.h>
 #include <sys/wait.h>
+#include "xxyz.h"
 #include <qxt.h>
 
-#define NO_X_INCLUDES
 #include "imod.h" 
 #include "imodv.h"
 #include "imod_client_message.h"
+#include "xzap.h"
 
 /******************************* Globals *************************************/
 ImodApp *App;

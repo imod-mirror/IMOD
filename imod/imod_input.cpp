@@ -34,6 +34,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.1  2002/12/09 17:51:07  mast
+Conversion to cpp and inclusion of a Qt version for default input keys
+
 Revision 3.2.2.1  2002/12/05 16:23:52  mast
 No changes - CVS detected as modified in branch
 
@@ -56,6 +59,7 @@ are open
 #include <qnamespace.h>
 #include "keypad.h"
 #include "imod.h"
+#include "xzap.h"
 #include "imod_info.h"
 #include "mrcfiles.h"
 #include "imodv.h"
