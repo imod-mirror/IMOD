@@ -35,6 +35,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.9  2002/12/17 22:28:21  mast
+cleanup of unused variables and SGI errors
+
 Revision 1.1.2.8  2002/12/17 18:28:47  mast
 Adding timer for second draw after resize
 
@@ -109,17 +112,19 @@ Added hotkeys to do smoothing and next section in autocontouring
 #include <diaP.h>
 #include "imod.h"
 #include "xzap.h"
+#include "control.h"
 
 #include "qcursor.bits"
 #include "qcursor_mask.bits"
 
-//#define XZAP_DEBUG
+// #define XZAP_DEBUG
 
 void inputQDefaultKeys(QKeyEvent *event, ImodView *vw);
 
 
-static void zapDraw_cb(struct ViewInfo *vi, void *client, int drawflag);
-static void zapClose_cb(struct ViewInfo *vi, void *client, int drawflag);
+static void zapDraw_cb(ImodView *vi, void *client, int drawflag);
+static void zapClose_cb(ImodView *vi, void *client, int drawflag);
+static void zapKey_cb(ImodView *vi, void *client, int released, QKeyEvent *e);
 static int zapDraw(ZapStruct *zap);
 static int zapReallyDraw(ZapStruct *zap);
 static void zapButton1(struct zapwin *zap, int x, int y);
@@ -812,7 +817,6 @@ void zapStateToggled(ZapStruct *zap, int index, int state)
 
 void zapEnteredSection(ZapStruct *zap, int sec)
 {
-
   ivwControlPriority(zap->vi, zap->ctrl);
   if (zap->lock != 2)
     zap->vi->zmouse = sec-1;
@@ -943,7 +947,7 @@ int imod_zap_open(struct ViewInfo *vi)
     str = "ZaP Toolbar";
   zap->qtWindow->mToolBar->setLabel(str);
   
-  zap->ctrl = ivwNewControl(vi, zapDraw_cb, zapClose_cb, 
+  zap->ctrl = ivwNewControl(vi, zapDraw_cb, zapClose_cb, zapKey_cb,
                             (XtPointer)zap);
 
   /* DNM: this is the second call to this, which caused hanging when 
@@ -1028,6 +1032,15 @@ static void zapTranslate(ZapStruct *zap, int x, int y)
   return;
 }
 
+static void zapKey_cb(ImodView *vi, void *client, int released, QKeyEvent *e)
+{
+  ZapStruct *zap = (ZapStruct *)client;
+  if (released)
+    zapKeyRelease(zap, e);
+  else
+    zapKeyInput(zap, e);
+}
+
 /* DNM: change the key definitions that were #ifndef __sgi to #ifdef __vms
    since they seemed to work under Linux */
 
@@ -1046,10 +1059,11 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
   int handled = 0;
   /* downtime.start(); */
 
-  ivwControlActive(vi, 0);
+  ivwControlPriority(zap->vi, zap->ctrl);
+  //  ivwControlActive(vi, 0);
   // NO PLUGINS FOR A WHILE
   //  if (imodPlugHandleKey(vi, event)) return;
-  ivwControlActive(vi, 1);
+  //  ivwControlActive(vi, 1);
 
   /* DNM: set global insertmode from this zap's mode to get it to work
      right with Delete key */
@@ -1303,7 +1317,7 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
     event->accept();    // redundant action - supposed to be the default
   else {
     // What does this mean? Is it wise?  more actions will occur...
-    ivwControlActive(vi, 0);
+    //ivwControlActive(vi, 0);
     inputQDefaultKeys(event, vi);
   }
 }
@@ -1613,10 +1627,10 @@ void zapButton2(ZapStruct *zap, int x, int y)
       if (vi->zmouse > vi->zsize - 1)
         vi->zmouse = vi->zsize - 1;
                
-      imodDraw(vi, IMOD_DRAW_IMAGE | IMOD_DRAW_XYZ);  // Why DRAW_IMAGE?
+      imodDraw(vi, IMOD_DRAW_MOD | IMOD_DRAW_XYZ);
       imod_info_setocp();
     } else
-      imodDraw(vi, IMOD_DRAW_XYZ | IMOD_DRAW_NOSYNC);
+      imodDraw(vi, IMOD_DRAW_MOD | IMOD_DRAW_XYZ | IMOD_DRAW_NOSYNC);
       
     return;
   }
@@ -1931,7 +1945,7 @@ void zapB2Drag(ZapStruct *zap, int x, int y)
     zap->drawCurrentOnly = 1;
 
     // TODO: figure out the right flags
-    imodDraw(vi, IMOD_DRAW_IMAGE | IMOD_DRAW_XYZ | IMOD_DRAW_NOSYNC);
+    imodDraw(vi, IMOD_DRAW_MOD | IMOD_DRAW_XYZ | IMOD_DRAW_NOSYNC);
   }
 }
 
@@ -2173,7 +2187,6 @@ static int zapDrawGraphics(ZapStruct *zap)
      being called, so that it won't be called again when it initiates a
      redraw.  If a redraw actually occurred, set the flag to skip drawing
      on the rest of this invocation and in the rest of zapdraw */
-
   if(!doingBWfloat) {
     doingBWfloat = 1;
     if (imod_info_bwfloat(vi, zap->section, time) && App->rgba)
