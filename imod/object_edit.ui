@@ -1,0 +1,653 @@
+<!DOCTYPE UI><UI version="3.0" stdsetdef="1">
+<class>objectEditForm</class>
+<widget class="QDialog">
+    <property name="name">
+        <cstring>objectEditForm</cstring>
+    </property>
+    <property name="geometry">
+        <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>225</width>
+            <height>473</height>
+        </rect>
+    </property>
+    <property name="caption">
+        <string>Form1</string>
+    </property>
+    <vbox>
+        <property name="name">
+            <cstring>unnamed</cstring>
+        </property>
+        <property name="margin">
+            <number>11</number>
+        </property>
+        <property name="spacing">
+            <number>6</number>
+        </property>
+        <widget class="QLabel">
+            <property name="name">
+                <cstring>TextLabel1</cstring>
+            </property>
+            <property name="text">
+                <string>Object name:</string>
+            </property>
+            <property name="alignment">
+                <set>AlignVCenter|AlignLeft</set>
+            </property>
+        </widget>
+        <widget class="QLineEdit">
+            <property name="name">
+                <cstring>nameEdit</cstring>
+            </property>
+        </widget>
+        <widget class="QCheckBox">
+            <property name="name">
+                <cstring>drawCheckBox</cstring>
+            </property>
+            <property name="text">
+                <string>Draw</string>
+            </property>
+        </widget>
+        <widget class="QGroupBox">
+            <property name="name">
+                <cstring>GroupBox1</cstring>
+            </property>
+            <property name="title">
+                <string>Symbols</string>
+            </property>
+            <vbox>
+                <property name="name">
+                    <cstring>unnamed</cstring>
+                </property>
+                <property name="margin">
+                    <number>11</number>
+                </property>
+                <property name="spacing">
+                    <number>6</number>
+                </property>
+                <widget class="QLayoutWidget">
+                    <property name="name">
+                        <cstring>Layout4</cstring>
+                    </property>
+                    <vbox>
+                        <property name="name">
+                            <cstring>unnamed</cstring>
+                        </property>
+                        <property name="margin">
+                            <number>0</number>
+                        </property>
+                        <property name="spacing">
+                            <number>6</number>
+                        </property>
+                        <widget class="QLayoutWidget">
+                            <property name="name">
+                                <cstring>Layout2</cstring>
+                            </property>
+                            <hbox>
+                                <property name="name">
+                                    <cstring>unnamed</cstring>
+                                </property>
+                                <property name="margin">
+                                    <number>0</number>
+                                </property>
+                                <property name="spacing">
+                                    <number>6</number>
+                                </property>
+                                <widget class="QComboBox">
+                                    <item>
+                                        <property name="text">
+                                            <string>None</string>
+                                        </property>
+                                    </item>
+                                    <item>
+                                        <property name="text">
+                                            <string>Circle</string>
+                                        </property>
+                                    </item>
+                                    <item>
+                                        <property name="text">
+                                            <string>Square</string>
+                                        </property>
+                                    </item>
+                                    <item>
+                                        <property name="text">
+                                            <string>Triangle</string>
+                                        </property>
+                                    </item>
+                                    <property name="name">
+                                        <cstring>symbolComboBox</cstring>
+                                    </property>
+                                </widget>
+                                <widget class="QLayoutWidget">
+                                    <property name="name">
+                                        <cstring>Layout1</cstring>
+                                    </property>
+                                    <vbox>
+                                        <property name="name">
+                                            <cstring>unnamed</cstring>
+                                        </property>
+                                        <property name="margin">
+                                            <number>0</number>
+                                        </property>
+                                        <property name="spacing">
+                                            <number>6</number>
+                                        </property>
+                                        <widget class="QCheckBox">
+                                            <property name="name">
+                                                <cstring>fillCheckBox</cstring>
+                                            </property>
+                                            <property name="text">
+                                                <string>Fill</string>
+                                            </property>
+                                        </widget>
+                                        <widget class="QCheckBox">
+                                            <property name="name">
+                                                <cstring>markCheckBox</cstring>
+                                            </property>
+                                            <property name="text">
+                                                <string>Mark ends</string>
+                                            </property>
+                                        </widget>
+                                    </vbox>
+                                </widget>
+                            </hbox>
+                        </widget>
+                        <widget class="QSlider">
+                            <property name="name">
+                                <cstring>sizeSlider</cstring>
+                            </property>
+                            <property name="minValue">
+                                <number>1</number>
+                            </property>
+                            <property name="maxValue">
+                                <number>100</number>
+                            </property>
+                            <property name="pageStep">
+                                <number>1</number>
+                            </property>
+                            <property name="value">
+                                <number>3</number>
+                            </property>
+                            <property name="orientation">
+                                <enum>Horizontal</enum>
+                            </property>
+                        </widget>
+                        <widget class="QLayoutWidget">
+                            <property name="name">
+                                <cstring>Layout3</cstring>
+                            </property>
+                            <hbox>
+                                <property name="name">
+                                    <cstring>unnamed</cstring>
+                                </property>
+                                <property name="margin">
+                                    <number>0</number>
+                                </property>
+                                <property name="spacing">
+                                    <number>6</number>
+                                </property>
+                                <widget class="QLabel">
+                                    <property name="name">
+                                        <cstring>TextLabel2</cstring>
+                                    </property>
+                                    <property name="text">
+                                        <string>Size</string>
+                                    </property>
+                                    <property name="alignment">
+                                        <set>AlignVCenter|AlignLeft</set>
+                                    </property>
+                                </widget>
+                                <widget class="QLabel">
+                                    <property name="name">
+                                        <cstring>sizeLabel</cstring>
+                                    </property>
+                                    <property name="text">
+                                        <string>3</string>
+                                    </property>
+                                    <property name="alignment">
+                                        <set>AlignVCenter|AlignRight</set>
+                                    </property>
+                                </widget>
+                            </hbox>
+                        </widget>
+                    </vbox>
+                </widget>
+            </vbox>
+        </widget>
+        <spacer>
+            <property name="name">
+                <cstring>Spacer8</cstring>
+            </property>
+            <property name="orientation">
+                <enum>Vertical</enum>
+            </property>
+            <property name="sizeType">
+                <enum>Expanding</enum>
+            </property>
+            <property name="sizeHint">
+                <size>
+                    <width>0</width>
+                    <height>16</height>
+                </size>
+            </property>
+        </spacer>
+        <widget class="QSlider">
+            <property name="name">
+                <cstring>widthSlider</cstring>
+            </property>
+            <property name="minValue">
+                <number>1</number>
+            </property>
+            <property name="maxValue">
+                <number>10</number>
+            </property>
+            <property name="pageStep">
+                <number>1</number>
+            </property>
+            <property name="orientation">
+                <enum>Horizontal</enum>
+            </property>
+        </widget>
+        <widget class="QLayoutWidget">
+            <property name="name">
+                <cstring>Layout5</cstring>
+            </property>
+            <hbox>
+                <property name="name">
+                    <cstring>unnamed</cstring>
+                </property>
+                <property name="margin">
+                    <number>0</number>
+                </property>
+                <property name="spacing">
+                    <number>6</number>
+                </property>
+                <widget class="QLabel">
+                    <property name="name">
+                        <cstring>TextLabel4</cstring>
+                    </property>
+                    <property name="text">
+                        <string>Line width</string>
+                    </property>
+                    <property name="alignment">
+                        <set>AlignVCenter|AlignLeft</set>
+                    </property>
+                </widget>
+                <widget class="QLabel">
+                    <property name="name">
+                        <cstring>widthLabel</cstring>
+                    </property>
+                    <property name="text">
+                        <string>1</string>
+                    </property>
+                    <property name="alignment">
+                        <set>AlignVCenter|AlignRight</set>
+                    </property>
+                </widget>
+            </hbox>
+        </widget>
+        <widget class="QCheckBox">
+            <property name="name">
+                <cstring>timeCheckBox</cstring>
+            </property>
+            <property name="text">
+                <string>Contours have time values</string>
+            </property>
+        </widget>
+        <widget class="QLayoutWidget">
+            <property name="name">
+                <cstring>Layout6</cstring>
+            </property>
+            <hbox>
+                <property name="name">
+                    <cstring>unnamed</cstring>
+                </property>
+                <property name="margin">
+                    <number>0</number>
+                </property>
+                <property name="spacing">
+                    <number>6</number>
+                </property>
+                <widget class="QButtonGroup">
+                    <property name="name">
+                        <cstring>typeButtonGroup</cstring>
+                    </property>
+                    <property name="title">
+                        <string>Object type</string>
+                    </property>
+                    <vbox>
+                        <property name="name">
+                            <cstring>unnamed</cstring>
+                        </property>
+                        <property name="margin">
+                            <number>11</number>
+                        </property>
+                        <property name="spacing">
+                            <number>6</number>
+                        </property>
+                        <widget class="QRadioButton">
+                            <property name="name">
+                                <cstring>closedButton</cstring>
+                            </property>
+                            <property name="text">
+                                <string>Closed</string>
+                            </property>
+                        </widget>
+                        <widget class="QRadioButton">
+                            <property name="name">
+                                <cstring>openButton</cstring>
+                            </property>
+                            <property name="text">
+                                <string>Open</string>
+                            </property>
+                        </widget>
+                        <widget class="QRadioButton">
+                            <property name="name">
+                                <cstring>scatteredButton</cstring>
+                            </property>
+                            <property name="text">
+                                <string>Scattered</string>
+                            </property>
+                        </widget>
+                    </vbox>
+                </widget>
+                <widget class="QButtonGroup">
+                    <property name="name">
+                        <cstring>surfaceButtonGroup</cstring>
+                    </property>
+                    <property name="title">
+                        <string>Front face</string>
+                    </property>
+                    <vbox>
+                        <property name="name">
+                            <cstring>unnamed</cstring>
+                        </property>
+                        <property name="margin">
+                            <number>11</number>
+                        </property>
+                        <property name="spacing">
+                            <number>6</number>
+                        </property>
+                        <widget class="QRadioButton">
+                            <property name="name">
+                                <cstring>outsideButton</cstring>
+                            </property>
+                            <property name="text">
+                                <string>Outside</string>
+                            </property>
+                        </widget>
+                        <widget class="QRadioButton">
+                            <property name="name">
+                                <cstring>insideButton</cstring>
+                            </property>
+                            <property name="text">
+                                <string>Inside</string>
+                            </property>
+                        </widget>
+                    </vbox>
+                </widget>
+            </hbox>
+        </widget>
+        <widget class="QLayoutWidget">
+            <property name="name">
+                <cstring>Layout13</cstring>
+            </property>
+            <hbox>
+                <property name="name">
+                    <cstring>unnamed</cstring>
+                </property>
+                <property name="margin">
+                    <number>0</number>
+                </property>
+                <property name="spacing">
+                    <number>6</number>
+                </property>
+                <widget class="QLabel">
+                    <property name="name">
+                        <cstring>TextLabel6</cstring>
+                    </property>
+                    <property name="text">
+                        <string>Scattered point 3-D radius</string>
+                    </property>
+                    <property name="alignment">
+                        <set>AlignVCenter|AlignRight</set>
+                    </property>
+                </widget>
+                <widget class="QLineEdit">
+                    <property name="name">
+                        <cstring>radiusEdit</cstring>
+                    </property>
+                    <property name="sizePolicy">
+                        <sizepolicy>
+                            <hsizetype>0</hsizetype>
+                            <vsizetype>0</vsizetype>
+                            <horstretch>0</horstretch>
+                            <verstretch>0</verstretch>
+                        </sizepolicy>
+                    </property>
+                    <property name="maximumSize">
+                        <size>
+                            <width>40</width>
+                            <height>32767</height>
+                        </size>
+                    </property>
+                </widget>
+                <spacer>
+                    <property name="name">
+                        <cstring>Spacer3</cstring>
+                    </property>
+                    <property name="orientation">
+                        <enum>Horizontal</enum>
+                    </property>
+                    <property name="sizeType">
+                        <enum>Expanding</enum>
+                    </property>
+                    <property name="sizeHint">
+                        <size>
+                            <width>15</width>
+                            <height>0</height>
+                        </size>
+                    </property>
+                </spacer>
+            </hbox>
+        </widget>
+        <widget class="Line">
+            <property name="name">
+                <cstring>Line1</cstring>
+            </property>
+            <property name="frameShape">
+                <enum>HLine</enum>
+            </property>
+            <property name="frameShadow">
+                <enum>Sunken</enum>
+            </property>
+            <property name="orientation">
+                <enum>Horizontal</enum>
+            </property>
+        </widget>
+        <widget class="QLayoutWidget">
+            <property name="name">
+                <cstring>Layout10</cstring>
+            </property>
+            <hbox>
+                <property name="name">
+                    <cstring>unnamed</cstring>
+                </property>
+                <property name="margin">
+                    <number>0</number>
+                </property>
+                <property name="spacing">
+                    <number>12</number>
+                </property>
+                <widget class="QPushButton">
+                    <property name="name">
+                        <cstring>OKButton</cstring>
+                    </property>
+                    <property name="sizePolicy">
+                        <sizepolicy>
+                            <hsizetype>0</hsizetype>
+                            <vsizetype>0</vsizetype>
+                            <horstretch>0</horstretch>
+                            <verstretch>0</verstretch>
+                        </sizepolicy>
+                    </property>
+                    <property name="maximumSize">
+                        <size>
+                            <width>70</width>
+                            <height>32767</height>
+                        </size>
+                    </property>
+                    <property name="text">
+                        <string>OK</string>
+                    </property>
+                    <property name="autoDefault">
+                        <bool>false</bool>
+                    </property>
+                </widget>
+                <widget class="QPushButton">
+                    <property name="name">
+                        <cstring>helpButton</cstring>
+                    </property>
+                    <property name="sizePolicy">
+                        <sizepolicy>
+                            <hsizetype>0</hsizetype>
+                            <vsizetype>0</vsizetype>
+                            <horstretch>0</horstretch>
+                            <verstretch>0</verstretch>
+                        </sizepolicy>
+                    </property>
+                    <property name="maximumSize">
+                        <size>
+                            <width>70</width>
+                            <height>32767</height>
+                        </size>
+                    </property>
+                    <property name="text">
+                        <string>HELP</string>
+                    </property>
+                    <property name="autoDefault">
+                        <bool>false</bool>
+                    </property>
+                </widget>
+            </hbox>
+        </widget>
+    </vbox>
+</widget>
+<connections>
+    <connection>
+        <sender>nameEdit</sender>
+        <signal>textChanged(const QString&amp;)</signal>
+        <receiver>objectEditForm</receiver>
+        <slot>nameChanged(const QString&amp;)</slot>
+    </connection>
+    <connection>
+        <sender>drawCheckBox</sender>
+        <signal>toggled(bool)</signal>
+        <receiver>objectEditForm</receiver>
+        <slot>toggledDraw(bool)</slot>
+    </connection>
+    <connection>
+        <sender>fillCheckBox</sender>
+        <signal>toggled(bool)</signal>
+        <receiver>objectEditForm</receiver>
+        <slot>toggledFill(bool)</slot>
+    </connection>
+    <connection>
+        <sender>markCheckBox</sender>
+        <signal>toggled(bool)</signal>
+        <receiver>objectEditForm</receiver>
+        <slot>toggledMarkEnds(bool)</slot>
+    </connection>
+    <connection>
+        <sender>sizeSlider</sender>
+        <signal>valueChanged(int)</signal>
+        <receiver>objectEditForm</receiver>
+        <slot>sizeChanged(int)</slot>
+    </connection>
+    <connection>
+        <sender>symbolComboBox</sender>
+        <signal>activated(int)</signal>
+        <receiver>objectEditForm</receiver>
+        <slot>symbolChanged(int)</slot>
+    </connection>
+    <connection>
+        <sender>widthSlider</sender>
+        <signal>valueChanged(int)</signal>
+        <receiver>objectEditForm</receiver>
+        <slot>widthChanged(int)</slot>
+    </connection>
+    <connection>
+        <sender>timeCheckBox</sender>
+        <signal>toggled(bool)</signal>
+        <receiver>objectEditForm</receiver>
+        <slot>toggledTime(bool)</slot>
+    </connection>
+    <connection>
+        <sender>typeButtonGroup</sender>
+        <signal>clicked(int)</signal>
+        <receiver>objectEditForm</receiver>
+        <slot>selectedType(int)</slot>
+    </connection>
+    <connection>
+        <sender>surfaceButtonGroup</sender>
+        <signal>clicked(int)</signal>
+        <receiver>objectEditForm</receiver>
+        <slot>selectedSurface(int)</slot>
+    </connection>
+    <connection>
+        <sender>OKButton</sender>
+        <signal>clicked()</signal>
+        <receiver>objectEditForm</receiver>
+        <slot>OKPressed()</slot>
+    </connection>
+    <connection>
+        <sender>helpButton</sender>
+        <signal>clicked()</signal>
+        <receiver>objectEditForm</receiver>
+        <slot>helpPressed()</slot>
+    </connection>
+    <connection>
+        <sender>radiusEdit</sender>
+        <signal>textChanged(const QString&amp;)</signal>
+        <receiver>objectEditForm</receiver>
+        <slot>radiusChanged()</slot>
+    </connection>
+    <connection>
+        <sender>radiusEdit</sender>
+        <signal>returnPressed()</signal>
+        <receiver>objectEditForm</receiver>
+        <slot>radiusChanged()</slot>
+    </connection>
+</connections>
+<includes>
+    <include location="local" impldecl="in declaration">imod_object_edit.h</include>
+    <include location="local" impldecl="in implementation">object_edit.ui.h</include>
+</includes>
+<slots>
+    <slot>closeEvent(QCloseEvent * e)</slot>
+    <slot>helpPressed()</slot>
+    <slot>nameChanged(const QString &amp; newName)</slot>
+    <slot>OKPressed()</slot>
+    <slot>radiusChanged()</slot>
+    <slot>selectedSurface(int value)</slot>
+    <slot>selectedType(int value)</slot>
+    <slot>setDrawBox(bool state)</slot>
+    <slot>setFrontSurface(int value)</slot>
+    <slot>setLineWidth(int value)</slot>
+    <slot>setObjectName(char * name)</slot>
+    <slot>setObjectType(int value)</slot>
+    <slot>setPointRadius(int value)</slot>
+    <slot>setSymbolProperties(int which, bool fill, bool markEnds, int size)</slot>
+    <slot>setTimeBox(bool state, bool enabled)</slot>
+    <slot>sizeChanged(int value)</slot>
+    <slot>symbolChanged(int value)</slot>
+    <slot>toggledDraw(bool state)</slot>
+    <slot>toggledFill(bool state)</slot>
+    <slot>toggledMarkEnds(bool state)</slot>
+    <slot>toggledTime(bool state)</slot>
+    <slot>widthChanged(int value)</slot>
+</slots>
+<pixmapinproject/>
+<layoutdefaults spacing="6" margin="11"/>
+</UI>
