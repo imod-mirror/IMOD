@@ -37,6 +37,7 @@ import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.MetaData;
 import etomo.type.ProcessTrack;
+import etomo.util.Utilities;
 
 /**
  * <p>Description: </p>
@@ -51,6 +52,9 @@ import etomo.type.ProcessTrack;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.5  2004/05/19 23:17:14  sueh
+ * <p> bug# 425 fixing single axis bug
+ * <p>
  * <p> Revision 3.4  2004/05/19 23:11:47  sueh
  * <p> bug# 425 if the window is too tall for the screen, resize it
  * <p>
@@ -511,11 +515,22 @@ public class MainFrame extends JFrame implements ContextMenu {
 
 
   protected void packAxis(int widthA, int widthB) {
+    Utilities.debugPrint("in packAxis", true);
     if (applicationManager.isDualAxis()) {
+      Utilities.debugPrint("A:", true);
       boolean hideA = axisPanelA.hide(widthA);
+      Utilities.debugPrint("B:", true);
       boolean hideB = axisPanelB.hide(widthB);
+      Utilities.debugPrint("hideA=" + hideA + ",hideB=" + hideB, true);
       pack();
+      Utilities.debugPrint("after pack(): widthA=" + axisPanelA.getWidth() + ",widthB=" + axisPanelB.getWidth(), true);
       splitPane.resetToPreferredSizes();
+      if (!hideA && !hideB && axisPanelA.tooSmall()) {
+        Utilities.debugPrint("fixing divider location", true);
+        setDividerLocation(.8);
+        splitPane.resetToPreferredSizes();
+      }
+      Utilities.debugPrint("after split pane reset: widthA=" + axisPanelA.getWidth() + ",widthB=" + axisPanelB.getWidth(), true);
       axisPanelA.show();
       axisPanelB.show();
       if (hideA) {
@@ -528,6 +543,7 @@ public class MainFrame extends JFrame implements ContextMenu {
     else {
       pack();
     }
+    Utilities.debugPrint("end packAxis", true);
   }
   
   protected void setScrollBarPolicy(boolean always) {
@@ -546,6 +562,7 @@ public class MainFrame extends JFrame implements ContextMenu {
    * @param event
    */
   private void menuOptionsAction(ActionEvent event) {
+    Utilities.debugPrint("In menuOptionsAction", true);
     String command = event.getActionCommand();
     if (command.equals(menuSettings.getActionCommand())) {
       applicationManager.openSettingsDialog();
@@ -566,6 +583,7 @@ public class MainFrame extends JFrame implements ContextMenu {
       if (axisPanelB != null) {
         widthB = axisPanelB.getWidth();
       }
+      Utilities.debugPrint("widthA=" + widthA + ",widthB=" + widthB, true);
       packAxis(widthA, widthB);
       Toolkit toolkit = Toolkit.getDefaultToolkit();
       Dimension screenSize = toolkit.getScreenSize();
@@ -575,7 +593,10 @@ public class MainFrame extends JFrame implements ContextMenu {
       if (windowSize.height > screenSize.height) {
         //want to shorten window, so make sure that the window is wide enough
         //to have vertical scroll bars
+        Utilities.debugPrint("shortening window", true);
         setScrollBarPolicy(true);
+        Utilities.debugPrint("widthA=" + widthA + ",widthB=" + widthB, true);
+        packAxis(widthA, widthB);
         packAxis(widthA, widthB);
         windowSize = getSize();
         windowSize.height = screenSize.height;
@@ -649,7 +670,6 @@ public class MainFrame extends JFrame implements ContextMenu {
     }
   }
   
-
   private void menuHelpAction(ActionEvent event) {
 
 		// Get the URL to the IMOD html directory
