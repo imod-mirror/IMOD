@@ -13,7 +13,7 @@
         </rect>
     </property>
     <property name="caption">
-        <string>Form1</string>
+        <string>Imod Object Edit</string>
     </property>
     <vbox>
         <property name="name">
@@ -648,6 +648,7 @@
     <slot>setObjectType( int value )</slot>
     <slot>setLineWidth( int value )</slot>
     <slot>closeEvent( QCloseEvent * e )</slot>
+    <slot>keyPressEvent( QKeyEvent * e )</slot>
 </slots>
 <pixmapinproject/>
 <layoutdefaults spacing="6" margin="11"/>

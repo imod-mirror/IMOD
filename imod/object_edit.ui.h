@@ -156,3 +156,11 @@ void objectEditForm::closeEvent( QCloseEvent *e )
     ioew_closing();
     e->accept();
 }
+
+
+void objectEditForm::keyPressEvent( QKeyEvent * e )
+{
+    if (e->key() == Qt::Key_Escape)
+	ioew_quit();
+    e->ignore();
+}

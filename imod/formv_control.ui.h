@@ -69,25 +69,25 @@ void imodvControlForm::newScale()
 
 void imodvControlForm::nearChanged( int value )
 {
-    if (!mNearPressed)
+    if (!mNearPressed || mCtrlPressed)
 	imodvControlClip(IMODV_CONTROL_NEAR, value);
 }
 
 void imodvControlForm::farChanged( int value )
 {
-    if (!mFarPressed)
+    if (!mFarPressed || mCtrlPressed)
 	imodvControlClip(IMODV_CONTROL_FAR, value);
 }
 
 void imodvControlForm::perspectiveChanged( int value )
 {
-    if (!mPerspectivePressed)
+    if (!mPerspectivePressed || mCtrlPressed)
 	imodvControlClip(IMODV_CONTROL_FOVY, value);
 }
 
 void imodvControlForm::zScaleChanged( int value )
 {
-    if (!mZscalePressed)
+    if (!mZscalePressed || mCtrlPressed)
 	imodvControlZscale(value);
 }
 
@@ -215,7 +215,8 @@ void imodvControlForm::closeEvent( QCloseEvent *e )
     e->accept();
 }
 
-
+// To keep the sliders from being continuously active while dragged, record when they are
+// pressed and released
 void imodvControlForm::farPressed()
 {
     mFarPressed = true;
@@ -266,4 +267,27 @@ void imodvControlForm::init()
     mFarPressed = false;
     mPerspectivePressed = false;
     mZscalePressed = false;
+    mCtrlPressed = false;
+}
+
+void imodvControlForm::keyPressEvent( QKeyEvent * e )
+{
+    // fprintf(stderr, "keyEvent\n");
+    if (e->key() == Qt::Key_Escape)
+	imodvControlQuit();
+    
+    if (e->key() == Qt::Key_Control)
+	mCtrlPressed = true;
+    
+    // This made no difference, probably because this is a top level widget
+    e->ignore();
+}
+
+
+void imodvControlForm::keyReleaseEvent( QKeyEvent * e )
+{
+    if (e->key() == Qt::Key_Control)
+	mCtrlPressed = false;
+    
+    e->ignore();
 }
