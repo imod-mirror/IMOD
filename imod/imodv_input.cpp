@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 1.1.2.9  2002/12/30 06:47:47  mast
+    Implement Z key correctly and call new dialog closing function
+
     Revision 1.1.2.8  2002/12/27 01:24:54  mast
     Using new background color dialog
 
@@ -142,7 +145,7 @@ void imodvQuit()
   //  imodvMovieDialog(Imodv, 0);
   //  imodvObjectListDialog(Imodv, 0);
   //  imodvImageEditDialog(Imodv, 0);
-  imodvStereoEditDialog(Imodv, 0);
+  // imodvStereoEditDialog(Imodv, 0);
   //  imodvDepthCueEditDialog(Imodv, 0);
   //  imodvMenuBgcolor(0);
 
@@ -279,11 +282,13 @@ void imodvKeyPress(QKeyEvent *event)
     /* '[' and ']' adjust stereo */
   case Qt::Key_BracketLeft:
     a->plax -= 0.5f;
+    imodvStereoUpdate();
     imodvDraw(a);
     break;
 
   case Qt::Key_BracketRight:
     a->plax += 0.5f;
+    imodvStereoUpdate();
     imodvDraw(a);
     break;
 
@@ -292,6 +297,7 @@ void imodvKeyPress(QKeyEvent *event)
       imodvObjectListDialog(a, 1);
     else {
       a->plax *= -1.0f;
+      imodvStereoUpdate();
       imodvDraw(a);
     }
     break;
@@ -732,7 +738,7 @@ static void imodv_compute_rotation(ImodvApp *a, float x, float y, float z)
                                  (XtWorkProc)imodv_movie_wp, 
                                  (XtPointer)a);
 #else
-      a->wpid = a->mainWin->mTimer->start(0, false);
+      a->wpid = a->mainWin->mTimer->start(1, false);
 #endif
       a->movieFrames = 0;
       a->movieStart = imodv_sys_time();
@@ -872,7 +878,7 @@ static void imodv_rotate(ImodvApp *a, int throwFlag)
                                    (XtWorkProc)imodv_movie_wp, 
                                    (XtPointer)a);
 #else
-        a->wpid = a->mainWin->mTimer->start(0, false);
+        a->wpid = a->mainWin->mTimer->start(1, false);
 #endif
         a->movieFrames = 0;
         a->movieStart = imodv_sys_time();

@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.3.2.3  2002/12/18 04:15:14  mast
+new includes for imodv modules
+
 Revision 3.3.2.2  2002/12/17 17:41:58  mast
 Changes for Qt port of imodv
 
@@ -110,6 +113,8 @@ typedef struct __imodv_struct
   XColor       rbgcolor; /* background color for rendering.    */
   int          enableDepthSB;
   int          enableDepthDB;
+  int          stereoSB;   /* Flags for whether visuals have stereo */
+  int          stereoDB;
 
   _XtString stereoCommand;
   _XtString restoreCommand;

@@ -34,6 +34,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.6  2002/12/18 04:15:14  mast
+new includes for imodv modules
+
 Revision 1.1.2.5  2002/12/17 22:28:20  mast
 cleanup of unused variables and SGI errors
 
@@ -166,12 +169,12 @@ static XtResource Imodv_resources[] = {
 };
 
 /* the default graphics rendering attributes for OpenGL */
-static ImodGLRequest True24 = {1, 1, 24, 1};
-static ImodGLRequest True15 = {1, 1, 15, 1};
-static ImodGLRequest True12 = {1, 1, 12, 1};
-static ImodGLRequest True24nodep = {1, 1, 24, 0};
-static ImodGLRequest True15nodep = {1, 1, 15, 0};
-static ImodGLRequest True12nodep = {1, 1, 12, 0};
+static ImodGLRequest True24 = {1, 1, 24, 1, 1};
+static ImodGLRequest True15 = {1, 1, 15, 1, 1};
+static ImodGLRequest True12 = {1, 1, 12, 1, 1};
+static ImodGLRequest True24nodep = {1, 1, 24, 0, 1};
+static ImodGLRequest True15nodep = {1, 1, 15, 0, 1};
+static ImodGLRequest True12nodep = {1, 1, 12, 0, 1};
 
 /* List the attribute lists in order of priority */
 static ImodGLRequest *OpenGLAttribList[] = {
@@ -190,15 +193,8 @@ static void usage(char *pname)
   fprintf(stderr, "\t-f                Open window to max size.\n");
   fprintf(stderr, "\t-rbg color_name   Background color for rendering.\n");
   fprintf(stderr, "\t-x width          Window width in pixels.\n");
-  fprintf(stderr, "\t-x height         Window height in pixels.\n");
+  fprintf(stderr, "\t-y height         Window height in pixels.\n");
   exit(-1);
-}
-
-int myDebugError(Display *inDisplay, XErrorEvent *inError)
-{
-  fprintf(stderr, "imodv: xerror\n");
-  abort();
-  return 0;
 }
 
 /* DEFAULT INITIALIZATION OF THE STRUCTURES
@@ -402,6 +398,7 @@ static int getVisuals(ImodvApp *a)
       visual = imodFindGLVisual(*OpenGLAttribList[i]);
       if (visual) {
         a->enableDepthDB = visual->depthEnabled;
+	a->stereoDB = visual->stereo;
         depthDB = visual->depthBits;
         colorDB = visual->colorBits;
       }
@@ -412,6 +409,7 @@ static int getVisuals(ImodvApp *a)
       visual = imodFindGLVisual(*OpenGLAttribList[i]);
       if (visual) {
         a->enableDepthSB = visual->depthEnabled;
+	a->stereoSB = visual->stereo;
         depthSB = visual->depthBits;
         colorSB = visual->colorBits;
       }
@@ -433,11 +431,13 @@ static int getVisuals(ImodvApp *a)
   if (depthDB < 0)
     fprintf(stderr, "Imodv warning: no double buffer visual available.\n");
   else if (Imod_debug)
-    printf("DB visual: %d color bits, %d depth bits\n", colorDB, depthDB);
+    printf("DB visual: %d color bits, %d depth bits, stereo %d\n",
+	   colorDB, depthDB, a->stereoDB);
   if (depthSB < 0)
     fprintf(stderr, "Imodv warning: no single buffer visual available.\n");
   else if (Imod_debug)
-    printf("SB visual: %d color bits, %d depth bits\n", colorSB, depthSB);
+    printf("SB visual: %d color bits, %d depth bits, stereo %d\n",
+	   colorSB, depthSB, a->stereoSB);
 
   // set to double buffer if visual exists
   a->db = depthDB >= 0 ? 1 : 0;
