@@ -32,6 +32,9 @@ $Date$
 
 $Revision$
 $Log$
+Revision 1.1.2.8  2003/01/13 01:08:43  mast
+Implemented dia_ask, dia_choice, and a replacement for dia_int
+
 Revision 1.1.2.7  2003/01/06 19:01:47  mast
 adding log line
 
@@ -45,6 +48,7 @@ adding log line
 #include <qlabel.h>
 #include <qslider.h>
 #include <qpushbutton.h>
+#include <qradiobutton.h>
 #include <qlayout.h>
 #include <qapplication.h>
 #include <qhbox.h>
@@ -75,6 +79,14 @@ QCheckBox *diaCheckBox(char *text, QWidget *parent, QVBoxLayout *layout)
   QCheckBox *button = new QCheckBox(text, parent);
   button->setFocusPolicy(QWidget::NoFocus);
   layout->addWidget(button);
+  return button;
+}
+
+// Make a new radio button, set for no focus
+QRadioButton *diaRadioButton(char *text, QWidget *parent)
+{
+  QRadioButton *button = new QRadioButton(text, parent);
+  button->setFocusPolicy(QWidget::NoFocus);
   return button;
 }
 

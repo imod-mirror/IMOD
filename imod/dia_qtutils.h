@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.4  2003/01/13 01:09:10  mast
+added dia_ask, dia_choice, and diaQInput
+
 Revision 1.1.2.3  2003/01/06 15:37:40  mast
 new functions for setting spin box and button group
 
@@ -28,6 +31,7 @@ Initial creation
 class QCheckBox;
 class QLabel;
 class QPushButton;
+class QRadioButton;
 class QVBoxLayout;
 class QWidget;
 class QSlider;
@@ -39,6 +43,7 @@ void diaSetGroup(QButtonGroup *group, int value);
 void diaSetSlider(QSlider *slider, int value);
 void diaSetChecked(QCheckBox *button, bool state);
 QLabel *diaLabel(char *text, QWidget *parent, QVBoxLayout *layout);
+QRadioButton *diaRadioButton(char *text, QWidget *parent);
 QPushButton *diaPushButton(char *text, QWidget *parent, 
 			   QVBoxLayout *layout);
 QCheckBox *diaCheckBox(char *text, QWidget *parent, QVBoxLayout *layout);
