@@ -32,6 +32,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.12  2003/01/27 00:30:07  mast
+Pure Qt version and general cleanup
+
 Revision 1.1.2.11  2003/01/13 01:15:43  mast
 changes for Qt version of info window
 
@@ -76,7 +79,6 @@ Initial addition to source
 #include <qpushbutton.h>
 #include <qlayout.h>
 #include <qslider.h>
-#include <qtimer.h>
 
 #include "imodP.h"
 #include "zap_classes.h"
@@ -237,9 +239,6 @@ ZapWindow::ZapWindow(struct zapwin *zap, QString timeLabel, bool rgba,
 
   // This makes the toolbar give a proper size hint before showing window
   setUpLayout();
-
-  mTimer = new QTimer(this);
-  connect(mTimer, SIGNAL(timeout()), this, SLOT(timeoutSlot()));
 }
 
 
@@ -322,12 +321,6 @@ void ZapWindow::toggleClicked(int index)
   zapStateToggled(mZap, index, state);
 }
 
-void ZapWindow::timeoutSlot()
-{
-  mTimer->stop();
-  mGLw->updateGL();
-}
-
 // This allows zap to set one of the buttons
 void ZapWindow::setToggleState(int index, int state)
 {
@@ -377,21 +370,24 @@ ZapGL::ZapGL(struct zapwin *zap, QGLFormat inFormat, QWidget * parent,
 {
   mMousePressed = false;
   mZap = zap;
-}
-
-ZapGL::~ZapGL()
-{
-
-}
- 
-void ZapGL::initializeGL()
-{
-
+  mFirstDraw = true;
 }
 
 void ZapGL::paintGL()
 {
+  if (mFirstDraw) {
+    mTimerID = startTimer(10);
+    mFirstDraw = false;
+    if (mTimerID)
+      return;
+  }
   zapPaint(mZap);
+}
+
+void ZapGL::timerEvent(QTimerEvent * e )
+{
+  killTimer(mTimerID);
+  updateGL();
 }
 
 void ZapGL::resizeGL( int wdth, int hght )
