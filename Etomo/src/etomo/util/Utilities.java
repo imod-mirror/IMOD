@@ -12,6 +12,10 @@
  * @version $$Revision$
  *
  * <p> $$Log$
+ * <p> $Revision 3.10.2.1  2004/09/03 21:19:31  sueh
+ * <p> $bug# 520 calling functions from EtomoDirector instead of
+ * <p> $ApplicationManager
+ * <p> $
  * <p> $Revision 3.10  2004/08/06 23:11:30  sueh
  * <p> $bug# 508 added a writeFile() function, which writes an array
  * <p> $of strings to a file.  If newFile is true, it will call Utilities.renameFile(),
@@ -223,7 +227,7 @@ public class Utilities {
    * @param string
    */
   static public void debugPrint(String string, boolean toOut) {
-    if (EtomoDirector.isDebug()) {
+    if (EtomoDirector.getInstance().isDebug()) {
       if (toOut) {
         System.out.println(string);
       }

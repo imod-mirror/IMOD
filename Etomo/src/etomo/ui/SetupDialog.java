@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.17.2.1  2004/09/15 22:47:53  sueh
+ * <p> bug# 520 call openMessageDialog in mainPanel instead of mainFrame.
+ * <p>
  * <p> Revision 3.17  2004/08/20 23:07:58  sueh
  * <p> bug# 515 add fields names for error messages about tilt angles
  * <p> Changed:
@@ -213,6 +216,7 @@ import javax.swing.JRadioButton;
 import javax.swing.SpinnerNumberModel;
 
 import etomo.ApplicationManager;
+import etomo.EtomoDirector;
 import etomo.storage.StackFileFilter;
 import etomo.storage.DistortionFileFilter;
 import etomo.type.AxisID;
@@ -783,7 +787,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     //otherwise open in the working directory
     String currentDistortionDirectory = ltfDistortionFile.getText();
     if (currentDistortionDirectory.equals("")) {
-      File calibrationDir = ApplicationManager.getIMODCalibDirectory();
+      File calibrationDir = EtomoDirector.getInstance().getIMODCalibDirectory();
       File distortionDir = new File(calibrationDir.getAbsolutePath(),
         "Distortion");
       if (distortionDir.exists()) {
