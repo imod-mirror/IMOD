@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/9/04: IMOD_3-3-7
+8/9/04: Fixed fatal error in setupcombine; 7/22/04 change was done by copying
+incompatible version from 3.4.  Backport of Midas fix also screwed up.
+
 8/4/04: IMOD_3-3-6
 8/4/04: Fixed display bug in Midas on AMD64.
 
