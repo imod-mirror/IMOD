@@ -12,6 +12,7 @@ import javax.swing.event.ChangeListener;
 
 import etomo.JoinManager;
 import etomo.type.AxisID;
+import etomo.type.ConstJoinMetaData;
 import etomo.type.JoinMetaData;
 
 /**
@@ -27,6 +28,9 @@ import etomo.type.JoinMetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.1.2.13  2004/10/14 17:23:11  sueh
+ * <p> bug# 520 Open sample averages.
+ * <p>
  * <p> Revision 1.1.2.12  2004/10/14 03:31:38  sueh
  * <p> bug# 520 Disabled Align and Join tabs until Make Samples is run.
  * <p> Otherwise ImodManager is not initialized with meta data.  Added
@@ -436,22 +440,29 @@ public class JoinDialog implements ContextMenu {
     return pnlSectionTable.getInvalidReason();
   }
   
-  public boolean getMetaData(JoinMetaData joinMetaData) {
+  public boolean getMetaData(JoinMetaData metaData) {
     invalidReason = null;
-    joinMetaData.setDensityRefSection(spinDensityRefSection.getValue());
+    metaData.setDensityRefSection(spinDensityRefSection.getValue());
     String workingDir = ltfWorkingDir.getText();
     if (workingDir == null || !workingDir.matches("\\S+")) {
       invalidReason = "Working directory is empty.";
       return false;
     }
-    joinMetaData.setWorkingDir(workingDir);
+    metaData.setWorkingDir(workingDir);
     String rootName = ltfRootName.getText();
     if (rootName == null || !rootName.matches("\\S+")) {
       invalidReason = "Root name is empty.";
       return false;
     }
-    joinMetaData.setRootName(rootName);
-    return pnlSectionTable.getMetaData(joinMetaData);
+    metaData.setRootName(rootName);
+    return pnlSectionTable.getMetaData(metaData);
+  }
+  
+  public void setMetaData(ConstJoinMetaData metaData) {
+    spinDensityRefSection.setValue(metaData.getDensityRefSection());
+    ltfWorkingDir.setText(metaData.getWorkingDir());
+    ltfRootName.setText(metaData.getRootName());
+    pnlSectionTable.setMetaData(metaData);
   }
 
   public Container getContainer() {
