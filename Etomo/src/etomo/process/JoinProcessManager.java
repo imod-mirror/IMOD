@@ -1,13 +1,9 @@
 package etomo.process;
 
-import java.io.IOException;
-
 import etomo.JoinManager;
-import etomo.comscript.BadComScriptException;
 import etomo.comscript.FlipyzParam;
-import etomo.comscript.Makejoincom;
+import etomo.comscript.MakejoincomParam;
 import etomo.type.AxisID;
-import etomo.type.ConstJoinMetaData;
 
 /**
 * <p>Description: </p>
@@ -23,6 +19,10 @@ import etomo.type.ConstJoinMetaData;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.2  2004/10/06 01:40:27  sueh
+* <p> bug# 520 Added flipyz().  Added backgroundPostProcess() to handle non-
+* <p> generic processing after BackgroundProcess is done.
+* <p>
 * <p> Revision 1.1.2.1  2004/09/29 17:54:52  sueh
 * <p> bug# 520 Process manager for serial sections.
 * <p> </p>
@@ -34,38 +34,14 @@ public class JoinProcessManager extends BaseProcessManager {
     super(joinMgr);
   }
   
-  public String startJoin(ConstJoinMetaData metaData)
-      throws BadComScriptException, IOException, SystemProcessException {
-    makejoincom(metaData);
-    return startjoin();
-  }
-  
-  private void makejoincom(ConstJoinMetaData metaData)
-      throws BadComScriptException, IOException {
-
-    Makejoincom makejoincom = new Makejoincom(metaData);
-
-    int exitValue = makejoincom.run();
-
-    if (exitValue != 0) {
-      System.err.println("Exit value: " + String.valueOf(exitValue));
-
-      //  Compile the exception message from the stderr stream
-      String[] stdError = makejoincom.getStdError();
-      if (stdError.length < 1) {
-        stdError = new String[1];
-        stdError[0] = "Get David to add some std error reporting to makejoincom";
-      }
-      StringBuffer buffer = new StringBuffer();
-      buffer.append("makejoincom Error\n");
-      buffer.append("Standard error output:\n");
-      for (int i = 0; i < stdError.length; i++) {
-        buffer.append(stdError[i]);
-        buffer.append("\n");
-      }
-
-      throw (new BadComScriptException(buffer.toString()));
-    }
+  /**
+   * Run makejoincom
+   */
+  public String makejoincom(MakejoincomParam makejoincomParam)
+      throws SystemProcessException {
+    BackgroundProcess backgroundProcess = startBackgroundProcess(
+        makejoincomParam.getCommandArray(), AxisID.ONLY);
+    return backgroundProcess.getName();
   }
   
   /**
@@ -77,9 +53,13 @@ public class JoinProcessManager extends BaseProcessManager {
     return backgroundProcess.getName();
   }
   
+  /**
+   * Run the startjoin com file
+   */
   public String startjoin() throws SystemProcessException {
     String command = "startjoin.com";
-    ComScriptProcess comScriptProcess = startComScript(command, null, AxisID.ONLY);
+    ComScriptProcess comScriptProcess = startComScript(command,
+      null, AxisID.ONLY);
     return comScriptProcess.getName();
   }
   
