@@ -28,6 +28,14 @@
  *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
 
 #include <stdio.h>
 #include <string.h>
@@ -322,7 +330,6 @@ void imodvViewsNew(const char *label)
 /* Delete a view */
 void imodvViewsDelete(int item, int newCurrent)
 {
-  int cview = ved->a->imod->cview;
   Imod *imod = ved->a->imod;
   int i;
 
