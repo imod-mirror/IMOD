@@ -9,7 +9,7 @@
             <x>0</x>
             <y>0</y>
             <width>234</width>
-            <height>276</height>
+            <height>303</height>
         </rect>
     </property>
     <property name="sizePolicy">
@@ -421,7 +421,7 @@
     <slot>setAutostore( int state )</slot>
     <slot>addItem( char * label )</slot>
     <slot>enableButtons( int current )</slot>
-    <slot>selectItem( int item )</slot>
+    <slot>selectItem( int item, bool block )</slot>
     <slot>removeAllItems()</slot>
     <slot>closeEvent( QCloseEvent * e )</slot>
     <slot>keyPressEvent( QKeyEvent * e )</slot>

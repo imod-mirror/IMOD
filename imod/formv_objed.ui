@@ -8,7 +8,7 @@
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>269</width>
+            <width>284</width>
             <height>340</height>
         </rect>
     </property>
@@ -522,9 +522,10 @@
     </connection>
 </connections>
 <includes>
-    <include location="local" impldecl="in implementation">imodv_input.h</include>
-    <include location="local" impldecl="in implementation">imodv_objed.h</include>
     <include location="global" impldecl="in declaration">qwidgetstack.h</include>
+    <include location="local" impldecl="in implementation">hotslider.h</include>
+    <include location="local" impldecl="in implementation">imodv_objed.h</include>
+    <include location="local" impldecl="in implementation">imodv_input.h</include>
     <include location="local" impldecl="in implementation">formv_objed.ui.h</include>
 </includes>
 <variables>

@@ -34,7 +34,7 @@ void imodvViewsForm::revertPressed()
 {
     int item = viewListBox->currentItem();
     if (item >= 0)
-	imodvViewsGoto(item);
+	imodvViewsGoto(item, true);
 }
 
 // New view: find a unique temporary label for it and pass it on
@@ -55,7 +55,9 @@ void imodvViewsForm::newPressed()
 void imodvViewsForm::deletePressed()
 {
     int item = viewListBox->currentItem();
+    viewListBox->blockSignals(true);
     viewListBox->removeItem(item);
+    viewListBox->blockSignals(false);
     imodvViewsDelete(item, viewListBox->currentItem());
 }
 
@@ -72,7 +74,7 @@ void imodvViewsForm::autostoreToggled( bool state )
 // This receives a signal when a view is highlighted or selected, so it sets the selection
 void imodvViewsForm::viewSelected( int item )
 {
-    imodvViewsGoto(item);
+    imodvViewsGoto(item, true);
     viewListBox->setCurrentItem(item);
 }
 
@@ -121,14 +123,16 @@ void imodvViewsForm::enableButtons( int current )
 }
 
 // Select an item in the list
-void imodvViewsForm::selectItem( int item )
+void imodvViewsForm::selectItem( int item, bool block )
 {
     if (item < 0)
 	item = 0;
     if (item >= viewListBox->count())
 	item = viewListBox->count();
+    viewListBox->blockSignals(block);
     viewListBox->setCurrentItem(item);
     viewListBox->ensureCurrentVisible();
+    viewListBox->blockSignals(false);
     viewLabelEdit->setText(viewListBox->currentText());
 }
 
@@ -162,19 +166,19 @@ void imodvViewsForm::keyPressEvent( QKeyEvent * e )
 	break;
     case Key_Up:
 	if (handled)
-	    selectItem(item - 1);
+	    selectItem(item - 1, false);
 	break;
     case Key_Down:
 	if (handled)
-	    selectItem(item + 1);
+	    selectItem(item + 1, false);
 	break;
     case Key_Prior:
 	if (handled)
-	    selectItem(item - jump);
+	    selectItem(item - jump, false);
 	break;
     case Key_Next:
 	if (handled)
-	    selectItem(item + jump);
+	    selectItem(item + jump, false);
 	break;
 	
     default:	
