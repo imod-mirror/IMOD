@@ -34,6 +34,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.7  2003/01/13 07:21:38  mast
+Changes to use new dialog manager class
+
 Revision 1.1.2.6  2002/12/30 06:49:50  mast
 rationalizing dialogs as widgets and using dialog list
 
@@ -1228,10 +1231,12 @@ static void mkClip_cb(int index)
           SLOT(clipToggleSlot(bool)));
 
   button = diaPushButton("Reset to Center", oef->control, layout1);
-  QObject::connect(button, SIGNAL(pressed()), &imodvObjed, SLOT(clipResetSlot()));
+  QObject::connect(button, SIGNAL(clicked()), &imodvObjed, 
+                   SLOT(clipResetSlot()));
 
   button = diaPushButton("Invert Polarity", oef->control, layout1);
-  QObject::connect(button, SIGNAL(pressed()), &imodvObjed, SLOT(clipInvertSlot()));
+  QObject::connect(button, SIGNAL(clicked()), &imodvObjed,
+                   SLOT(clipInvertSlot()));
 
   diaLabel("Hold down the Ctrl Key", oef->control, layout1);
   diaLabel("to move & rotate clip", oef->control, layout1);
@@ -1312,7 +1317,8 @@ static void mkMove_cb(int index)
   QVBoxLayout *layout1 = new QVBoxLayout(oef->control, FIELD_MARGIN, 
                                          FIELD_SPACING, "move layout");
   button = diaPushButton("Center on Object", oef->control, layout1);
-  QObject::connect(button, SIGNAL(pressed()), &imodvObjed, SLOT(moveCenterSlot()));
+  QObject::connect(button, SIGNAL(clicked()), &imodvObjed, 
+                   SLOT(moveCenterSlot()));
 
   label = diaLabel("Move by rotating around:", oef->control, layout1);
 
@@ -1337,7 +1343,7 @@ static void mkMove_cb(int index)
     button->setFixedWidth(width);
     grid->addWidget(button, i % 4 + 1, icol);
     mapper->setMapping(button, i);
-    QObject::connect(button, SIGNAL(pressed()), mapper, SLOT(map()));
+    QObject::connect(button, SIGNAL(clicked()), mapper, SLOT(map()));
   }    
 
   finalSpacer(oef->control, layout1);
@@ -1381,7 +1387,7 @@ static void mkSubsets_cb(int index)
     layout1->addWidget(subsetButtons[i]);
     subsetButtons[i]->setFocusPolicy(QWidget::NoFocus);
     mapper->setMapping(subsetButtons[i], i);
-    QObject::connect(subsetButtons[i], SIGNAL(pressed()), mapper, SLOT(map()));
+    QObject::connect(subsetButtons[i], SIGNAL(clicked()), mapper, SLOT(map()));
   }
 
   subsetButtons[Imodv->current_subset]->setChecked(true);
@@ -1476,7 +1482,7 @@ ImodvOlist::ImodvOlist(QWidget *parent, const char *name, WFlags fl)
   button->setFixedWidth(width);
   button->setFocusPolicy(QWidget::NoFocus);
   layout->addWidget(box);
-  connect(button, SIGNAL(pressed()), this, SLOT(donePressed()));
+  connect(button, SIGNAL(clicked()), this, SLOT(donePressed()));
 }
 
 void ImodvOlist::donePressed()
