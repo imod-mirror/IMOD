@@ -46,6 +46,9 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.3  2004/09/08 19:27:19  sueh
+* <p> bug# 520 putting initialize UI parameters into a separate function
+* <p>
 * <p> Revision 1.1.2.2  2004/09/07 17:51:00  sueh
 * <p> bug# 520 getting mainFrame and userConfig from EtomoDirector, moved
 * <p> settings dialog to BaseManager,  moved backupFiles() to BaseManager,
@@ -433,7 +436,6 @@ public abstract class BaseManager {
       setTestParamFile(newParamFile);
       // Update the MRU test data filename list
       userConfig.putDataFile(newParamFile.getAbsolutePath());
-      mainFrame.setMRUFileLabels(userConfig.getMRUFileList());
       //  Initialize a new IMOD manager
       imodManager.setMetaData(metaData);
     }
