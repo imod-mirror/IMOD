@@ -24,6 +24,11 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.6  2004/10/21 02:39:49  sueh
+* <p> bug# 520 Created functions to manager InteractiveSystemProgram:
+* <p> startInteractiveSystemProgram, msgInteractivesystemProgramDone,
+* <p> interactiveSystemProgramPostProcess.
+* <p>
 * <p> Revision 1.1.2.5  2004/10/18 19:08:18  sueh
 * <p> bug# 520 Replaced manager with abstract BaseManager getManager().
 * <p> The type of manager that is stored will be decided by
@@ -66,6 +71,7 @@ public abstract class BaseProcessManager {
   
   protected abstract void comScriptPostProcess(ComScriptProcess script, int exitValue);
   protected abstract void backgroundPostProcess(BackgroundProcess process);
+  protected abstract void backgroundErrorProcess(BackgroundProcess process);
   protected abstract BaseManager getManager();
   protected abstract void interactiveSystemProgramPostProcess(InteractiveSystemProgram program);
   
@@ -691,6 +697,7 @@ public abstract class BaseProcessManager {
     if (errorMessage.length > 0) {
       getManager().getMainPanel().openMessageDialog(errorMessage,
           "Background Process Error");
+      backgroundErrorProcess(process);
     }
 
     // Command succeeded, check to see if we need to show any application

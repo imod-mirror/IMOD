@@ -20,6 +20,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.39.2.9  2004/10/21 02:46:29  sueh
+ * bug# 520 Added empty interactiveSystemProgramPostProcess().
+ *
  * Revision 3.39.2.8  2004/10/18 19:10:24  sueh
  * bug# 520 Added getManager().  Moved startSystemProgramThread() to
  * base class.
@@ -1317,8 +1320,10 @@ public class ProcessManager extends BaseProcessManager {
     }
   }
   
+  protected void backgroundErrorProcess(BackgroundProcess process) {
+  }
+  
   protected void interactiveSystemProgramPostProcess(InteractiveSystemProgram program) {
-    
   }
   
   protected BaseManager getManager() {
