@@ -1,5 +1,6 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/10/03: IMOD_3-1-5
 12/8/03: Fixed Fiberpitch to ignore pixel size from image file.
 
 12/8/03: Fixed the sed command in sample.com to work under Mac OS 10.2 and
