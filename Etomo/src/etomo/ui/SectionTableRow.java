@@ -6,6 +6,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 
+import javax.swing.JPanel;
+
 import etomo.type.ConstSectionTableRowData;
 import etomo.type.SectionTableRowData;
 import etomo.type.SlicerAngles;
@@ -25,6 +27,11 @@ import etomo.type.SlicerAngles;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.7  2004/10/08 16:40:22  sueh
+* <p> bug# Using setRowNumber() to change the status of sample slice
+* <p> numbers.  Fixed retrieveData().  Changed getData() to return false when
+* <p> retrieveData() fails.  Added getInvalidReason().
+* <p>
 * <p> Revision 1.1.2.6  2004/10/06 02:31:17  sueh
 * <p> bug# 520 Added Z max
 * <p>
@@ -64,9 +71,10 @@ public class SectionTableRow {
   //state
   private int imodIndex = -1;
   private boolean sectionExpanded = false;
+  private int curTab = JoinDialog.SETUP_TAB;
   
   //ui
-  private SectionTablePanel table = null;
+  SectionTablePanel table = null;
   private HeaderCell rowNumberHeader = null;
   private MultiLineToggleButton highlighterButton = null;
   private FieldCell section = null;
@@ -88,95 +96,139 @@ public class SectionTableRow {
    * @param rowNumber
    */
   public SectionTableRow(SectionTablePanel table, int rowNumber, File tomogram,
-      boolean sectionExpanded, int zMax) {
+      boolean sectionExpanded, int zMax, int curTab) {
+    this.table = table;
     data = new SectionTableRowData();
     data.setRowNumber(rowNumber);
-    this.table = table;
     data.setSection(tomogram);
     data.setZMax(zMax);
     this.sectionExpanded = sectionExpanded;
+    this.curTab = curTab;
   }
   
   void create() {
-    GridBagLayout layout = table.getTableLayout();
-    GridBagConstraints constraints = table.getTableConstraints();
-    constraints.weighty = 1.0;
-    constraints.gridwidth = 1;
-    rowNumberHeader = new HeaderCell(table, data.getRowNumberString(),
+    rowNumberHeader = new HeaderCell(data.getRowNumberString(),
         FixedDim.rowNumberWidth);
-    rowNumberHeader.add();
-    constraints.weightx = 0.0;
-    highlighterButton = table.addToggleButton("=>", FixedDim.highlighterWidth);
+    highlighterButton = table.createToggleButton("=>", FixedDim.highlighterWidth);
     highlighterButton.addActionListener(actionListener);
-    constraints.gridwidth = 2;
-    section = new FieldCell(table);
-    section.add();
+    section = new FieldCell();
     section.setEnabled(false);
     setSectionText();
-    constraints.gridwidth = 1;
-    sampleBottomStart = new FieldCell(table);
-    sampleBottomStart.add();
-    sampleBottomEnd = new FieldCell(table);
-    sampleBottomEnd.add();
-    sampleTopStart = new FieldCell(table);
-    sampleTopStart.add();
-    sampleTopEnd = new FieldCell(table);
-    sampleTopEnd.add();
-    finalStart = new FieldCell(table);
-    finalStart.add();
-    finalStart.setInUse(false);
-    finalEnd = new FieldCell(table);
-    finalEnd.add();
-    finalEnd.setInUse(false);
-    rotationAngleX = new FieldCell(table);
-    rotationAngleX.add();
-    rotationAngleY = new FieldCell(table);
-    rotationAngleY.add();
-    constraints.gridwidth = GridBagConstraints.REMAINDER;
-    rotationAngleZ = new FieldCell(table);
-    rotationAngleZ.add();
+    sampleBottomStart = new FieldCell();
+    sampleBottomEnd = new FieldCell();
+    sampleTopStart = new FieldCell();
+    sampleTopEnd = new FieldCell();
+    finalStart = new FieldCell();
+    finalEnd = new FieldCell();
+    rotationAngleX = new FieldCell();
+    rotationAngleY = new FieldCell();
+    rotationAngleZ = new FieldCell();
+    configureFields();
     displayData();
+  }
+  
+  void configureFields() {
+    sampleBottomStart.setInUse(data.getRowNumber() > 1);
+    sampleBottomEnd.setInUse(data.getRowNumber() > 1);
+    sampleTopStart.setInUse(data.getRowNumber() < table.getTableSize());
+    sampleTopEnd.setInUse(data.getRowNumber() < table.getTableSize());
+    finalStart.setInUse(curTab == JoinDialog.JOIN_TAB);
+    finalEnd.setInUse(curTab == JoinDialog.JOIN_TAB);
   }
   
   void remove() {
     rowNumberHeader.remove();
-    table.removeCell(highlighterButton);
+    if (curTab == JoinDialog.SETUP_TAB) {
+      table.removeCell(highlighterButton);
+    }
     section.remove();
-    sampleBottomStart.remove();
-    sampleBottomEnd.remove();
-    sampleBottomEnd.remove();
-    sampleTopStart.remove();
-    sampleTopEnd.remove();
-    finalStart.remove();
-    finalEnd.remove();
-    rotationAngleX.remove();
-    rotationAngleY.remove();
-    rotationAngleZ.remove();
-
+    if (curTab == JoinDialog.SETUP_TAB) {
+      sampleBottomStart.remove();
+      sampleBottomEnd.remove();
+      sampleBottomEnd.remove();
+      sampleTopStart.remove();
+      sampleTopEnd.remove();
+    }
+    if (curTab != JoinDialog.ALIGN_TAB) {
+      finalStart.remove();
+      finalEnd.remove();
+    }
+    if (curTab == JoinDialog.SETUP_TAB) {
+      rotationAngleX.remove();
+      rotationAngleY.remove();
+      rotationAngleZ.remove();
+    }
   }
   
-  void add() {
+  void setCurTab(int curTab) {
+    this.curTab = curTab;
+  }
+  
+  void displayCurTab(JPanel panel) {
+    remove();
+    add(panel);
+    configureFields();
+  }
+  
+  void add(JPanel panel) {
+    if (curTab == JoinDialog.SETUP_TAB) {
+      addSetup(panel);
+    }
+    else if (curTab == JoinDialog.ALIGN_TAB) {
+      addAlign(panel);
+    }
+    else if (curTab == JoinDialog.JOIN_TAB) {
+      addJoin(panel);
+    }
+  }
+  
+  void addSetup(JPanel panel) {
     GridBagLayout layout = table.getTableLayout();
     GridBagConstraints constraints = table.getTableConstraints();
     constraints.weighty = 1.0;
     constraints.gridwidth = 1;
-    rowNumberHeader.add();
+    rowNumberHeader.add(panel, layout, constraints);
     constraints.weightx = 0.0;
-    table.addToggleButton(highlighterButton, "=>", FixedDim.highlighterWidth);
-    highlighterButton.addActionListener(actionListener);
+    table.addCell(highlighterButton);
     constraints.gridwidth = 2;
-    section.add();
+    section.add(panel, layout, constraints);
     constraints.gridwidth = 1;
-    sampleBottomStart.add();
-    sampleBottomEnd.add();
-    sampleTopStart.add();
-    sampleTopEnd.add();
-    finalStart.add();
-    finalEnd.add();
-    rotationAngleX.add();
-    rotationAngleY.add();
+    sampleBottomStart.add(panel, layout, constraints);
+    sampleBottomEnd.add(panel, layout, constraints);
+    sampleTopStart.add(panel, layout, constraints);
+    sampleTopEnd.add(panel, layout, constraints);
+    finalStart.add(panel, layout, constraints);
+    finalEnd.add(panel, layout, constraints);
+    rotationAngleX.add(panel, layout, constraints);
+    rotationAngleY.add(panel, layout, constraints);
     constraints.gridwidth = GridBagConstraints.REMAINDER;
-    rotationAngleZ.add();
+    rotationAngleZ.add(panel, layout, constraints);
+  }
+  
+  void addAlign(JPanel panel) {
+    GridBagLayout layout = table.getTableLayout();
+    GridBagConstraints constraints = table.getTableConstraints();
+    constraints.weighty = 1.0;
+    constraints.gridwidth = 1;
+    rowNumberHeader.add(panel, layout, constraints);
+    constraints.weightx = 0.0;
+    constraints.gridwidth = GridBagConstraints.REMAINDER;
+    section.add(panel, layout, constraints);
+  }
+  
+  void addJoin(JPanel panel) {
+    GridBagLayout layout = table.getTableLayout();
+    GridBagConstraints constraints = table.getTableConstraints();
+    constraints.weighty = 1.0;
+    constraints.gridwidth = 1;
+    rowNumberHeader.add(panel, layout, constraints);
+    constraints.weightx = 0.0;
+    constraints.gridwidth = 2;
+    section.add(panel, layout, constraints);
+    constraints.gridwidth = 1;
+    finalStart.add(panel, layout, constraints);
+    constraints.gridwidth = GridBagConstraints.REMAINDER;
+    finalEnd.add(panel, layout, constraints);
   }
   
   private void displayData() {
@@ -233,10 +285,7 @@ public class SectionTableRow {
   void setRowNumber(int rowNumber, boolean maxRow) {
     data.setRowNumber(rowNumber);
     rowNumberHeader.setText("<html><b>" + Integer.toString(rowNumber) + "</b>");
-    sampleBottomStart.setInUse(rowNumber != 1);
-    sampleBottomEnd.setInUse(rowNumber != 1);
-    sampleTopStart.setInUse(!maxRow);
-    sampleTopEnd.setInUse(!maxRow);
+    configureFields();
   }
   
   void setImodIndex(int imodIndex) {
