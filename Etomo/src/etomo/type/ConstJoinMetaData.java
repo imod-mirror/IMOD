@@ -4,6 +4,9 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Properties;
 
+import etomo.ui.JoinDialog;
+import etomo.util.Utilities;
+
 /**
 * <p>Description: </p>
 * 
@@ -18,6 +21,9 @@ import java.util.Properties;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.11  2004/10/25 23:09:16  sueh
+* <p> bug# 520 Added get functions.
+* <p>
 * <p> Revision 1.1.2.10  2004/10/22 21:02:12  sueh
 * <p> bug# 520 Simplifying by passing EtomoSimpleType instead of String and
 * <p> int in get functions.
@@ -69,7 +75,6 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
 
   protected static final String groupString = "Join";
   protected static final String sectionTableDataSizeString = "SectionTableDataSize";
-  protected static final String workingDirString = "WorkingDir";
   protected static final String rootNameString = "RootName";
   protected static final String fullLinearTransformationString = "FullLinearTransformation";
   protected static final String rotationTranslationMagnificationString = "RotationTranslationMagnification";
@@ -79,7 +84,6 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
   protected static final boolean defaultFullLinearTransformation = true;
 
   protected ArrayList sectionTableData;
-  protected String workingDir;
   protected String rootName;
   protected EtomoInteger densityRefSection = new EtomoInteger("DensityRefSection");;
   protected EtomoDouble sigmaLowFrequency = new EtomoDouble("SigmaLowFrequency");
@@ -119,23 +123,25 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
     StringBuffer buffer = new StringBuffer(super.paramString()
         + ",\nlatestRevisionNumber=" + latestRevisionNumber
         + ",\nnewJoinTitle=" + newJoinTitle + ",\ngroupString=" + groupString
-        + ",\n" + densityRefSection.getDescription() + "=" + densityRefSection.getString()
-        + ",\n" + workingDirString + "=" + workingDir + ",\n" + rootNameString
-        + "=" + rootName + ",\n" + sigmaLowFrequency.getDescription() + "="
-        + sigmaLowFrequency.getString() + ",\n" + cutoffHighFrequency.getDescription()
-        + "=" + cutoffHighFrequency.getString() + ",\n"
-        + sigmaHighFrequency.getDescription() + "=" + sigmaHighFrequency.getString()
-        + ",\n" + fullLinearTransformationString + "="
-        + fullLinearTransformation + ",\n"
-        + rotationTranslationMagnificationString + "="
+        + ",\n" + densityRefSection.getDescription() + "="
+        + densityRefSection.getString() + ",\n" + rootNameString + "="
+        + rootName + ",\n" + sigmaLowFrequency.getDescription() + "="
+        + sigmaLowFrequency.getString() + ",\n"
+        + cutoffHighFrequency.getDescription() + "="
+        + cutoffHighFrequency.getString() + ",\n"
+        + sigmaHighFrequency.getDescription() + "="
+        + sigmaHighFrequency.getString() + ",\n"
+        + fullLinearTransformationString + "=" + fullLinearTransformation
+        + ",\n" + rotationTranslationMagnificationString + "="
         + rotationTranslationMagnification + ",\n" + rotationTranslationString
         + "=" + rotationTranslation + ",\n" + useAlignmentRefSectionString
         + "=" + useAlignmentRefSection + ",\n"
-        + alignmentRefSection.getDescription() + "=" + alignmentRefSection.getString()
-        + ",\n" + sizeInX.getDescription() + "=" + sizeInX.getString() + ",\n"
-        + sizeInY.getDescription() + "=" + sizeInY.getString() + ",\n"
-        + shiftInX.getDescription() + "=" + shiftInX.getString() + ",\n"
-        + shiftInY.getDescription() + "=" + shiftInY.getString());
+        + alignmentRefSection.getDescription() + "="
+        + alignmentRefSection.getString() + ",\n" + sizeInX.getDescription()
+        + "=" + sizeInX.getString() + ",\n" + sizeInY.getDescription() + "="
+        + sizeInY.getString() + ",\n" + shiftInX.getDescription() + "="
+        + shiftInX.getString() + ",\n" + shiftInY.getDescription() + "="
+        + shiftInY.getString());
     if (sectionTableData != null) {
       buffer.append(",\n" + sectionTableDataSizeString + "="
           + sectionTableData.size());
@@ -155,9 +161,7 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
   public void store(Properties props, String prepend) {
     prepend = createPrepend(prepend);
     String group = prepend + ".";
-
     props.setProperty(group + revisionNumberString, latestRevisionNumber);
-    props.setProperty(group + workingDirString, workingDir);
     props.setProperty(group + rootNameString, rootName);
     densityRefSection.store(props, prepend);
     props.setProperty(group + sectionTableDataSizeString, Integer
@@ -188,46 +192,30 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
     return prepend + "." + groupString;
   }
 
-  public boolean isValid() {
-    return isValid(false);
+  public boolean isValid(File workingDir) {
+    if (workingDir == null) {
+      invalidReason = JoinDialog.WORKING_DIRECTORY_TEXT + " is empty.";
+      return false;
+    }
+    if (!workingDir.isDirectory()) {
+      invalidReason = workingDir.getAbsolutePath() + ", must be a directory.";
+      return false;
+    }
+    StringBuffer buffer = new StringBuffer();
+    if (!Utilities.isValidFile(workingDir, true, true, buffer)) {
+      invalidReason = buffer.toString();
+    }
+    return isValid();
   }
-
-  public boolean isValid(boolean fromScreen) {
-    if (fromScreen && (workingDir == null || !workingDir.matches("\\S+"))) {
-      invalidReason = workingDirString + " is empty.";
-      return false;
-    }
-    File dir = new File(workingDir);
-    if (!dir.isDirectory()) {
-      invalidReason = dir.getAbsolutePath() + ", must be a directory.";
-      return false;
-    }
-    if (!isValid(dir)) {
-      return false;
-    }
-    if (fromScreen && (rootName == null || !rootName.matches("\\S+"))) {
+  
+  public boolean isValid() {
+    if (rootName == null || !rootName.matches("\\S+")) {
       invalidReason = rootNameString + " is empty.";
       return false;
     }
     return true;
   }
-  
-  public boolean isValid(File file) {
-    if (file == null || !file.exists()) {
-      invalidReason = file.getAbsolutePath() + ", does not exist.";
-      return false;
-    }
 
-    if (!file.canRead()) {
-      invalidReason = file.getAbsolutePath() + ", must be readable.";
-      return false;
-    }
-    if (!file.canWrite()) {
-      invalidReason = file.getAbsolutePath() + ", must be writable.";
-      return false;
-    }
-    return true;
-  }
 
   public boolean equals(Object object) {
     if (!super.equals(object)) {
@@ -279,14 +267,6 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
       return newJoinTitle;
     }
     return rootName;
-  }
-  
-  public String getWorkingDir() {
-    return workingDir;
-  }
-  
-  public boolean isWorkingDirSet() {
-    return workingDir != null && workingDir.matches("\\S+");
   }
   
   public EtomoSimpleType getSigmaLowFrequency() {
