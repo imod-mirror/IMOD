@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.2  2003/01/01 05:45:15  mast
+rationalizing toplevel versus dialog style
+
 Revision 1.1.2.1  2002/12/29 04:15:04  mast
 Initial creation
 
@@ -28,7 +31,7 @@ class DialogFrame : public QWidget
   Q_OBJECT
 
  public:
-  DialogFrame(QWidget *parent, int numButtons, char *labels[], 
+  DialogFrame(QWidget *parent, int numButtons, char *labels[], char *tips[],
 	      bool equalSized, char *caption, char *fallback,
 	      const char *name = 0, 
 	      WFlags fl = Qt::WDestructiveClose | Qt::WType_TopLevel);
