@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.2  2002/12/17 22:04:00  mast
+cleanup
+
 Revision 1.1.2.1  2002/12/17 18:46:08  mast
 Initial creation
 
@@ -55,6 +58,7 @@ ImodvWindow::ImodvWindow(bool standAlone, int enableDepthDB,
                          QWidget * parent, const char * name, WFlags f)
 {
   mDBw = mSBw = NULL;
+  mMinimized = false;
 
   // construct file menu
   mFileMenu = new QPopupMenu;
@@ -231,6 +235,21 @@ void ImodvWindow::closeEvent ( QCloseEvent * e )
   e->accept();
 }
 
+void ImodvWindow::showEvent(QShowEvent *e)
+{
+  if (mMinimized)
+    imodvShowDialogs();
+  mMinimized = false;
+}
+
+void ImodvWindow::hideEvent(QHideEvent *e)
+{
+  if (isMinimized()) {
+    mMinimized = true;
+    imodvHideDialogs();
+  }
+}
+
 void ImodvWindow::timeoutSlot()
 {
   imodvMovieTimeout();
@@ -280,4 +299,3 @@ void ImodvGL::mouseMoveEvent ( QMouseEvent * e )
   if (mMousePressed)
     imodvMouseMove(e);
 }
-
