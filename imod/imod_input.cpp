@@ -34,6 +34,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.2  2002/12/13 06:09:09  mast
+include file changes
+
 Revision 1.1.2.1  2002/12/09 17:51:07  mast
 Conversion to cpp and inclusion of a Qt version for default input keys
 
@@ -67,8 +70,6 @@ are open
 extern long Typemenu;
      
 int Imod_obj_moveto = 0;
-
-void imodv_open_nob(Imod *imod);
 
 /* old function still in use */
 int mouse_in_box(int llx, int lly, int urx, int  ury, int mousex, int mousey)
@@ -992,10 +993,7 @@ void inputDefaultKeys(XKeyEvent *event, ImodView *vw)
     break;
           
   case XK_v:
-    if (event->state & ShiftMask)
-      imodv_open_nob(vw->imod);
-    else
-      imodv_open(vw->imod, App->objbase);
+    imodv_open();
     break;
 
   case XK_z:
@@ -1328,10 +1326,7 @@ void inputQDefaultKeys(QKeyEvent *event, ImodView *vw)
     break;
           
   case Qt::Key_V:
-    if (shifted)
-      imodv_open_nob(vw->imod);
-    else
-      imodv_open(vw->imod, App->objbase);
+    imodv_open();
     break;
 
   case Qt::Key_Z:
