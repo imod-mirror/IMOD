@@ -1,0 +1,610 @@
+package etomo.ui;
+
+import java.awt.AWTEvent;
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.HeadlessException;
+import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.MouseEvent;
+import java.io.File;
+
+import javax.swing.BoxLayout;
+import javax.swing.JFileChooser;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
+
+import etomo.ApplicationManager;
+import etomo.EtomoDirector;
+import etomo.process.ProcessState;
+import etomo.storage.EtomoFileFilter;
+import etomo.type.AxisID;
+import etomo.type.AxisType;
+import etomo.type.MetaData;
+import etomo.type.ProcessTrack;
+
+/**
+ * <p>Description: </p>
+ *
+ * <p>Copyright: Copyright (c) 2004</p>
+ *
+ * <p>Organization: Boulder Laboratory for 3D Fine Structure,
+ * University of Colorado</p>
+ *
+ * @author $Author$
+ *
+ * @version $Revision$
+ *
+ * <p> $Log$ </p>
+ */
+public class MainPanel extends JPanel {
+  public static final String rcsid =
+    "$Id$";
+
+  private JLabel statusBar = new JLabel("No data set loaded");
+
+  private JPanel panelCenter = new JPanel();
+
+  //  These panels get instantiated as needed
+  private AxisProcessPanel axisPanelA;
+  private ScrollPanel scrollA;
+  private JScrollPane scrollPaneA;
+  private AxisProcessPanel axisPanelB;
+  private ScrollPanel scrollB;
+  private JScrollPane scrollPaneB;
+
+  private JSplitPane splitPane;
+  
+  private static final int estimatedMenuHeight = 60;
+  private static final int extraScreenWidthMultiplier = 2;
+  private static final Dimension frameBorder = new Dimension(10, 48);
+  
+  
+  //  Application manager object
+  private ApplicationManager applicationManager;
+
+  /**
+   * Main window constructor.  This sets up the menus and status line.
+   */
+  public MainPanel(ApplicationManager appManager) {
+    applicationManager = appManager;
+
+    enableEvents(AWTEvent.WINDOW_EVENT_MASK);
+
+    Toolkit toolkit = Toolkit.getDefaultToolkit();
+    Dimension screenSize = toolkit.getScreenSize();
+    screenSize.height -= estimatedMenuHeight;
+    screenSize.width *= extraScreenWidthMultiplier;
+    Dimension mainPanelSize = new Dimension(screenSize);
+    mainPanelSize.height -= frameBorder.height;
+    mainPanelSize.width -= frameBorder.width;
+
+    setLayout(new BorderLayout());
+    setMaximumSize(mainPanelSize);
+
+    //  Construct the main frame panel layout
+    panelCenter.setLayout(new BoxLayout(panelCenter, BoxLayout.X_AXIS));
+    add(panelCenter, BorderLayout.CENTER);
+    add(statusBar, BorderLayout.SOUTH);
+  }
+
+  /**
+   * Open the setup panel
+   */
+  public void openSetupPanel(SetupDialog setupDialog) {
+    panelCenter.removeAll();
+    panelCenter.add(setupDialog.getContainer());
+    EtomoDirector.getMainFrame().pack();
+  }
+
+  /**
+   * Show the processing panel for the requested AxisType
+   */
+  public void showProcessingPanel(AxisType axisType) {
+
+    //  Delete any existing panels
+    axisPanelA = null;
+    axisPanelB = null;
+
+    panelCenter.removeAll();
+    if (axisType == AxisType.SINGLE_AXIS) {
+      axisPanelA = new AxisProcessPanel(applicationManager, AxisID.ONLY);
+      scrollA = new ScrollPanel();
+      scrollA.add(axisPanelA.getContainer());
+      scrollPaneA = new JScrollPane(scrollA);
+      panelCenter.add(scrollPaneA);
+    }
+    else {
+      axisPanelA = new AxisProcessPanel(applicationManager, AxisID.FIRST);
+      scrollA = new ScrollPanel();
+      scrollA.add(axisPanelA.getContainer());
+      scrollPaneA = new JScrollPane(scrollA);
+
+      axisPanelB = new AxisProcessPanel(applicationManager, AxisID.SECOND);
+      scrollB = new ScrollPanel();
+      scrollB.add(axisPanelB.getContainer());
+      scrollPaneB = new JScrollPane(scrollB);
+      splitPane =
+        new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, scrollPaneA, scrollPaneB);
+      splitPane.setDividerLocation(0.5);
+      splitPane.setOneTouchExpandable(true);
+      panelCenter.add(splitPane);
+    }
+  }
+
+  /**
+   * set divider location
+   * @param value
+   */
+  public void setDividerLocation(double value) {
+    if (splitPane != null) {
+      //removing commands that cause the divider location to change incorrectly
+      //when the window is taller then the screen
+      //scrollPaneA.doLayout();
+      //scrollPaneB.doLayout();
+      //splitPane.doLayout();
+      //splitPane.revalidate();
+      //splitPane.validate();
+      splitPane.setDividerLocation(value);
+    }
+  }
+
+  /**
+   * Show a blank processing panel
+   */
+  public void showBlankProcess(AxisID axisID) {
+    AxisProcessPanel axisPanel = mapAxis(axisID);
+    axisPanel.eraseDialogPanel();
+  }
+
+  /**
+   * Show the specified processing panel
+   */
+  public void showProcess(Container processPanel, AxisID axisID) {
+    AxisProcessPanel axisPanel = mapAxis(axisID);
+    axisPanel.replaceDialogPanel(processPanel);
+    if (EtomoDirector.getUserConfiguration().isAutoFit()) {
+      fitWindow();
+    }
+  }
+
+  /**
+   * Set the progress bar to the beginning of determinant sequence
+   * @param label
+   * @param nSteps
+   */
+  public void setProgressBar(String label, int nSteps, AxisID axisID) {
+    AxisProcessPanel axisPanel = mapAxis(axisID);
+    axisPanel.setProgressBar(label, nSteps);
+    axisPanel.setProgressBarValue(0);
+  }
+
+  /**
+   * Set the progress bar to the specified value
+   * @param value
+   * @param axisID
+   */
+  public void setProgressBarValue(int value, AxisID axisID) {
+    AxisProcessPanel axisPanel = mapAxis(axisID);
+    axisPanel.setProgressBarValue(value);
+  }
+
+  /**
+   * Set the progress bar to the speficied value and update the string
+   * @param value
+   * @param string
+   * @param axisID
+   */
+  public void setProgressBarValue(int value, String string, AxisID axisID) {
+    AxisProcessPanel axisPanel = mapAxis(axisID);
+    axisPanel.setProgressBarValue(value, string);
+  }
+
+  /**
+   *  Start the indeterminate progress bar on the specified axis 
+   */
+  public void startProgressBar(String name, AxisID axisID) {
+    AxisProcessPanel axisPanel = mapAxis(axisID);
+    axisPanel.startProgressBar(name);
+  }
+
+  /**
+   * Stop the specified progress bar
+   * @param axisID
+   */
+  public void stopProgressBar(AxisID axisID) {
+    AxisProcessPanel axisPanel = mapAxis(axisID);
+    axisPanel.stopProgressBar();
+  }
+
+  /**
+   * Set the status bar with the file name of the data parameter file
+   */
+  public void updateDataParameters(File paramFile, MetaData metaData) {
+    StringBuffer buffer = new StringBuffer();
+    if (metaData == null) {
+      buffer.append("No data set loaded");
+    }
+    else {
+      if (paramFile == null) {
+        buffer.append("Data file: NOT SAVED");
+      }
+      else {
+        buffer.append("Data file: " + paramFile.getAbsolutePath());
+      }
+
+      buffer.append("   Source: ");
+      buffer.append(metaData.getDataSource().toString());
+      buffer.append("   Axis type: ");
+      buffer.append(metaData.getAxisType().toString());
+      buffer.append("   Tomograms: ");
+      buffer.append(metaData.getSectionType().toString());
+    }
+    statusBar.setText(buffer.toString());
+  }
+
+  public boolean getTestParamFilename() {
+    //  Open up the file chooser in current working directory
+    File workingDir = new File(System.getProperty("user.dir"));
+    JFileChooser chooser =
+      new JFileChooser(workingDir);
+    EtomoFileFilter edfFilter = new EtomoFileFilter();
+    chooser.setFileFilter(edfFilter);
+    chooser.setDialogTitle("Save etomo data file");
+    chooser.setDialogType(JFileChooser.SAVE_DIALOG);
+    chooser.setPreferredSize(FixedDim.fileChooser);
+    chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+    File[] edfFiles = workingDir.listFiles(edfFilter);
+    if (edfFiles.length == 0) {
+      File defaultFile = new File(workingDir, applicationManager.getMetaData().getDatasetName() + ".edf");
+      chooser.setSelectedFile(defaultFile);
+    }
+    int returnVal = chooser.showSaveDialog(this);
+
+    if (returnVal != JFileChooser.APPROVE_OPTION) {
+      return false;
+    }
+    // If the file does not already have an extension appended then add an edf
+    // extension
+    File edfFile = chooser.getSelectedFile();
+    String fileName = chooser.getSelectedFile().getName();
+    if (fileName.indexOf(".") == -1) {
+      edfFile = new File(chooser.getSelectedFile().getAbsolutePath() + ".edf");
+
+    }
+    applicationManager.setTestParamFile(edfFile);
+    return true;
+  }
+
+  /**
+   * Open the specified MRU EDF file
+   * @param event
+   */
+  private void menuFileMRUListAction(ActionEvent event) {
+    applicationManager.openExistingDataset(new File(event.getActionCommand()));
+  }
+
+  /**
+   * if A or B is hidden, hide the panel which the user has hidden before
+   * calling pack().
+   *
+   */
+  protected void packAxis() {
+    if (applicationManager.isDualAxis()
+      && axisPanelA != null
+      && axisPanelB != null) {
+      boolean hideA = axisPanelA.hide();
+      boolean hideB = axisPanelB.hide();
+      EtomoDirector.getMainFrame().pack();
+      splitPane.resetToPreferredSizes();
+      
+      //handle bug in Windows where divider goes all the way to the left
+      //when the frame is wider then the screen
+      if (!hideA && !hideB && isFitScreenError(axisPanelA)) {
+        setDividerLocation(.8); //.8 currently works.  Adjust as needed.
+        splitPane.resetToPreferredSizes();
+      }
+      
+      axisPanelA.show();
+      axisPanelB.show();
+      if (hideA) {
+        setDividerLocation(0);
+      }
+      else if (hideB) {
+        setDividerLocation(1);
+      }
+    }
+    else {
+      EtomoDirector.getMainFrame().pack();
+    }
+  }
+  
+  /**
+   * checks for a bug in windows that causes MainFrame.fitScreen() to move the
+   * divider almost all the way to the left
+   * @return
+   */
+  protected boolean isFitScreenError(AxisProcessPanel axisPanel) {
+    if (axisPanel.getWidth() <= 16) {
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * set vertical scrollbar policy
+   * @param always
+   */
+  protected void setVerticalScrollBarPolicy(boolean always) {
+    int policy =
+      always
+        ? JScrollPane.VERTICAL_SCROLLBAR_ALWAYS
+        : JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED;
+    if (scrollPaneA != null) {
+      scrollPaneA.setVerticalScrollBarPolicy(policy);
+    }
+    if (scrollPaneB != null) {
+      scrollPaneB.setVerticalScrollBarPolicy(policy);
+    }
+  }
+  
+  /**
+   * fit window to its components and to the screen
+   *
+   */
+  public void fitWindow() {
+    packAxis();
+    //the mainPanel has a limited size, but the frame does not
+    //if the frame has a greater height then the mainPanel + the frame's border
+    //height, then a scroll bar will be uses.
+    //Make room for the scroll bar when calling pack()
+    if (getSize().height - getSize().height > frameBorder.height) {
+      setVerticalScrollBarPolicy(true);
+      packAxis();
+      setVerticalScrollBarPolicy(false);
+    }
+  }
+ 
+  //  Right mouse button context menu
+  public void popUpContextMenu(MouseEvent mouseEvent) {
+    ContextPopup contextPopup = new ContextPopup(this, mouseEvent, "");
+  }
+
+  /**
+   * Update the state of all the process control panels
+   * @param processTrack the process track object containing the state to be
+   * displayed
+   */
+  public void updateAllProcessingStates(ProcessTrack processTrack) {
+    if (axisPanelA == null) {
+      return;
+    }
+
+    axisPanelA.setPreProcState(processTrack.getPreProcessingState(AxisID.ONLY));
+    axisPanelA.setCoarseAlignState(
+      processTrack.getCoarseAlignmentState(AxisID.ONLY));
+    axisPanelA.setFiducialModelState(
+      processTrack.getFiducialModelState(AxisID.ONLY));
+    axisPanelA.setFineAlignmentState(
+      processTrack.getFineAlignmentState(AxisID.ONLY));
+    axisPanelA.setTomogramPositioningState(
+      processTrack.getTomogramPositioningState(AxisID.ONLY));
+    axisPanelA.setTomogramGenerationState(
+      processTrack.getTomogramGenerationState(AxisID.ONLY));
+    axisPanelA.setTomogramCombinationState(
+      processTrack.getTomogramCombinationState());
+    if (applicationManager.isDualAxis()) {
+      axisPanelB.setPreProcState(
+        processTrack.getPreProcessingState(AxisID.SECOND));
+      axisPanelB.setCoarseAlignState(
+        processTrack.getCoarseAlignmentState(AxisID.SECOND));
+      axisPanelB.setFiducialModelState(
+        processTrack.getFiducialModelState(AxisID.SECOND));
+      axisPanelB.setFineAlignmentState(
+        processTrack.getFineAlignmentState(AxisID.SECOND));
+      axisPanelB.setTomogramPositioningState(
+        processTrack.getTomogramPositioningState(AxisID.SECOND));
+      axisPanelB.setTomogramGenerationState(
+        processTrack.getTomogramGenerationState(AxisID.SECOND));
+    }
+    axisPanelA.setPostProcessingState(processTrack.getPostProcessingState());
+
+  }
+
+  /**
+   * 
+   * @param state
+   * @param axisID
+   */
+  public void setPreProcessingState(ProcessState state, AxisID axisID) {
+    AxisProcessPanel axisPanel = mapAxis(axisID);
+    axisPanel.setPreProcState(state);
+  }
+
+  /**
+   * 
+   * @param state
+   * @param axisID
+   */
+  public void setCoarseAlignState(ProcessState state, AxisID axisID) {
+    AxisProcessPanel axisPanel = mapAxis(axisID);
+    axisPanel.setCoarseAlignState(state);
+  }
+
+  /**
+   * 
+   * @param state
+   * @param axisID
+   */
+  public void setFiducialModelState(ProcessState state, AxisID axisID) {
+    AxisProcessPanel axisPanel = mapAxis(axisID);
+    axisPanel.setFiducialModelState(state);
+  }
+
+  /**
+   * 
+   * @param state
+   * @param axisID
+   */
+  public void setFineAlignmentState(ProcessState state, AxisID axisID) {
+    AxisProcessPanel axisPanel = mapAxis(axisID);
+    axisPanel.setFineAlignmentState(state);
+  }
+
+  /**
+   * 
+   * @param state
+   * @param axisID
+   */
+  public void setTomogramPositioningState(ProcessState state, AxisID axisID) {
+    AxisProcessPanel axisPanel = mapAxis(axisID);
+    axisPanel.setTomogramPositioningState(state);
+  }
+
+  /**
+   * 
+   * @param state
+   * @param axisID
+   */
+  public void setTomogramGenerationState(ProcessState state, AxisID axisID) {
+    AxisProcessPanel axisPanel = mapAxis(axisID);
+    axisPanel.setTomogramGenerationState(state);
+  }
+
+  /**
+   * 
+   * @param state
+   */
+  public void setTomogramCombinationState(ProcessState state) {
+    axisPanelA.setTomogramCombinationState(state);
+  }
+
+  /**
+   * 
+   * @param state
+   */
+  public void setPostProcessingState(ProcessState state) {
+    axisPanelA.setPostProcessingState(state);
+  }
+
+  /**
+   * Set the specified button as selected
+   * @param axisID
+   * @param name
+   */
+  public void selectButton(AxisID axisID, String name) {
+    mapAxis(axisID).selectButton(name);
+  }
+
+  /**
+   * Open a Yes or No question dialog
+   * @param message
+   * @return boolean True if the Yes option was selected
+   */
+  public boolean openYesNoDialog(String[] message) {
+    try {
+      int answer =
+        JOptionPane.showConfirmDialog(
+          this,
+          message,
+          "Etomo question",
+          JOptionPane.YES_NO_OPTION);
+
+      if (answer == JOptionPane.YES_OPTION) {
+        return true;
+      }
+      else {
+        return false;
+      }
+    }
+    catch (HeadlessException except) {
+      except.printStackTrace();
+      return false;
+    }
+  }
+
+  /**
+   * Open a Yes, No or Cancel question dialog
+   * @param message
+   * @return int state of the users select
+   */
+  public int openYesNoCancelDialog(String[] message) {
+    return JOptionPane.showConfirmDialog(
+      this,
+      message,
+      "Etomo question",
+      JOptionPane.YES_NO_CANCEL_OPTION);
+  }
+
+  /**
+   * Open a message dialog
+   * @param message
+   * @param title
+   */
+  public void openMessageDialog(Object message, String title) {
+    JOptionPane.showMessageDialog(
+      this,
+      message,
+      title,
+      JOptionPane.ERROR_MESSAGE);
+  }
+
+  /**
+   * Open a File Chooser dialog with an EDF filter, if the user selects
+   * or names a file return a File object wiht that slected, otherwise
+   * return null.
+   * @return A File object specifiying the selected file or null if none
+   * was selected. 
+   */
+  public File openEtomoDataFileDialog() {
+    //  Open up the file chooser in current working directory
+    JFileChooser chooser =
+      new JFileChooser(new File(System.getProperty("user.dir")));
+    EtomoFileFilter edfFilter = new EtomoFileFilter();
+    chooser.setFileFilter(edfFilter);
+
+    chooser.setDialogTitle("Open etomo data file");
+    chooser.setPreferredSize(FixedDim.fileChooser);
+    chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+    int returnVal = chooser.showOpenDialog(this);
+    if (returnVal == JFileChooser.APPROVE_OPTION) {
+      return chooser.getSelectedFile();
+    }
+    return null;
+  }
+
+  //  TODO Need a way to repaint the existing font
+  public void repaintWindow() {
+    repaintContainer(this);
+    this.repaint();
+  }
+
+  private void repaintContainer(Container container) {
+    Component[] comps = container.getComponents();
+    for (int i = 0; i < comps.length; i++) {
+      if (comps[i] instanceof Container) {
+        Container cont = (Container) comps[i];
+        repaintContainer(cont);
+      }
+      comps[i].repaint();
+    }
+  }
+
+  /**
+   * Convienence function to return a reference to the correct AxisProcessPanel
+   * @param axisID
+   * @return
+   */
+  private AxisProcessPanel mapAxis(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return axisPanelB;
+    }
+    return axisPanelA;
+  }
+
+}
