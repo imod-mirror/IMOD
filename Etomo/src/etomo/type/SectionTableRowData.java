@@ -17,6 +17,10 @@ import java.util.Properties;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.3  2004/10/08 16:24:37  sueh
+* <p> bug# 520 AMoved initialization of invalidReason to
+* <p> SectionTableRowData.reset().
+* <p>
 * <p> Revision 1.1.2.2  2004/10/06 02:18:37  sueh
 * <p> bug# 520 Made the defaults for Final start and end based on Z min and
 * <p> max.  Saved Z Max.  Added a generic parseInt() function to set
@@ -32,13 +36,13 @@ import java.util.Properties;
 public class SectionTableRowData extends ConstSectionTableRowData {
   public static final String rcsid = "$Id$";
   
-  public SectionTableRowData() {
+  public SectionTableRowData(int rowNumber) {
     reset();
+    this.rowNumber = rowNumber;
   }
   
   private void reset() {
     invalidReason = null;
-    rowNumber = Integer.MIN_VALUE;
     section = null;
     sampleBottomStart = Integer.MIN_VALUE;
     sampleBottomEnd = Integer.MIN_VALUE;
@@ -67,7 +71,10 @@ public class SectionTableRowData extends ConstSectionTableRowData {
         Integer.toString(Integer.MIN_VALUE)));
     zMax = Integer.parseInt(props.getProperty(group + zMaxString,
         Integer.toString(Integer.MIN_VALUE)));
-    section = new File(props.getProperty(group + sectionString));
+    String sectionName = props.getProperty(group + sectionString, null);
+    if (sectionName != null) {
+      section = new File(sectionName);
+    }
     sampleBottomStart = Integer.parseInt(props.getProperty(group
         + sampleBottomStartString, Integer.toString(Integer.MIN_VALUE)));
     sampleBottomEnd = Integer.parseInt(props.getProperty(group
