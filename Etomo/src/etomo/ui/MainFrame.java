@@ -27,6 +27,7 @@ import javax.swing.KeyStroke;
 
 import etomo.ApplicationManager;
 import etomo.BaseManager;
+import etomo.EtomoDirector;
 import etomo.storage.EtomoFileFilter;
 
 /**
@@ -42,6 +43,9 @@ import etomo.storage.EtomoFileFilter;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.12.2.2  2004/09/08 22:37:34  sueh
+ * <p> bug# 520 removed fields that only belong in MainPanel
+ * <p>
  * <p> Revision 3.12.2.1  2004/09/07 17:59:47  sueh
  * <p> bug# 520 encapsulated mainPanel
  * <p>
@@ -219,6 +223,9 @@ public class MainFrame extends JFrame implements ContextMenu {
 
   private JPanel rootPanel;
   private MainPanel mainPanel;
+  
+  //convenience variable
+  private EtomoDirector etomoDirector = EtomoDirector.getInstance();
 
   //  Menu bar
   private final int nMRUFileMax = 10;
@@ -238,7 +245,10 @@ public class MainFrame extends JFrame implements ContextMenu {
   private JMenuItem menuAxisBoth = new JMenuItem("Both Axes", KeyEvent.VK_2);
   private JMenuItem menuSettings = new JMenuItem("Settings", KeyEvent.VK_S);
   private JMenuItem menuFitWindow = new JMenuItem("Fit Window", KeyEvent.VK_F);
-
+  
+  private JMenu menuWindow = new JMenu("Window");
+  private JMenuItem[] menuCurrentList = null;
+  
   private JMenu menuHelp = new JMenu("Help");
   private JMenuItem menuTomoGuide =
     new JMenuItem("Tomography Guide", KeyEvent.VK_T);
@@ -266,10 +276,7 @@ public class MainFrame extends JFrame implements ContextMenu {
     rootPanel = (JPanel) getContentPane();
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.PAGE_AXIS));
 
-    createMenus();
-
     //  add the context menu to all of the main window objects
-    mouseAdapter = new GenericMouseAdapter(this);
     setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
   }
   
@@ -278,6 +285,11 @@ public class MainFrame extends JFrame implements ContextMenu {
     mainPanel = currentManager.getMainPanel();
     rootPanel.add(mainPanel);
     mainPanel.addMouseListener(mouseAdapter);
+  }
+  
+  //  Right mouse button context menu
+  public void popUpContextMenu(MouseEvent mouseEvent) {
+    ContextPopup contextPopup = new ContextPopup(mainPanel, mouseEvent, "");
   }
 
   /**
@@ -301,6 +313,40 @@ public class MainFrame extends JFrame implements ContextMenu {
       menuMRUList[i].setVisible(false);
     }
   }
+  
+  
+  /**
+   * Set the open etomo data file list.  This fills in the current window items
+   * on the Window menu
+   */
+  public void setCurrentWindowLabels() {
+    //remove old list
+    if (menuCurrentList != null) {
+      for (int i = 0; i < menuCurrentList.length; i++) {
+        menuWindow.remove(menuCurrentList[i]);
+      }
+    }
+    int numCurrentWindows = etomoDirector.getManagerListSize();
+    JMenuItem[] menuCurrentList = new JMenuItem[numCurrentWindows];
+    System.out.println("numCurrentWindows=" + numCurrentWindows);
+    CurrentWindowListActionListener currentWindowListActionListener =
+      new CurrentWindowListActionListener(this);
+    for (int i = 0; i < numCurrentWindows; i++) {
+      System.out.println("etomoDirector.getManagerName(i)=" + etomoDirector.getManagerName(i));
+      menuCurrentList[i] = new JMenuItem();
+      menuCurrentList[i].addActionListener(currentWindowListActionListener);
+      String managerName = etomoDirector.getManagerName(i);
+      if (managerName.equals("")) {
+        menuCurrentList[i].setVisible(false);
+      }
+      else {
+        menuCurrentList[i].setText(managerName);
+        menuCurrentList[i].setVisible(true);
+      }
+      menuWindow.add(menuCurrentList[i]);
+    }
+  }
+
 
   public boolean getTestParamFilename() {
     //  Open up the file chooser in current working directory
@@ -374,6 +420,9 @@ public class MainFrame extends JFrame implements ContextMenu {
       }
     }
   }
+  
+  private void menuWindowAction(ActionEvent event) {
+  }
 
   /**
    * Open the specified MRU EDF file
@@ -381,6 +430,14 @@ public class MainFrame extends JFrame implements ContextMenu {
    */
   private void menuFileMRUListAction(ActionEvent event) {
     currentManager.openExistingDataset(new File(event.getActionCommand()));
+  }
+  
+  /**
+   * Open the specified window
+   * @param event
+   */
+  private void currentWindowListAction(ActionEvent event) {
+    etomoDirector.setCurrentManager(event.getActionCommand());
   }
 
   /**
@@ -477,11 +534,6 @@ public class MainFrame extends JFrame implements ContextMenu {
     if (event.getID() == WindowEvent.WINDOW_CLOSING) {
       menuFileExit.doClick();
     }
-  }
-
-  //  Right mouse button context menu
-  public void popUpContextMenu(MouseEvent mouseEvent) {
-    ContextPopup contextPopup = new ContextPopup(mainPanel, mouseEvent, "");
   }
 
   /**
@@ -581,7 +633,7 @@ public class MainFrame extends JFrame implements ContextMenu {
   /**
    * Create the menus for the main window
    */
-  private void createMenus() {
+  public void createMenus() {
     //  Mnemonics for the main menu bar
     menuFile.setMnemonic(KeyEvent.VK_F);
     menuOptions.setMnemonic(KeyEvent.VK_O);
@@ -616,6 +668,10 @@ public class MainFrame extends JFrame implements ContextMenu {
     menuAxisA.addActionListener(optionsActionListener);
     menuAxisB.addActionListener(optionsActionListener);
     menuAxisBoth.addActionListener(optionsActionListener);
+    
+    WindowActionListener windowActionListener =
+      new WindowActionListener(this);
+    setCurrentWindowLabels(); 
     
     HelpActionListener helpActionListener = new HelpActionListener(this);
     menuTomoGuide.addActionListener(helpActionListener);
@@ -659,6 +715,7 @@ public class MainFrame extends JFrame implements ContextMenu {
     //  Construct menu bar
     menuBar.add(menuFile);
     menuBar.add(menuOptions);
+    menuBar.add(menuWindow);
     menuBar.add(menuHelp);
     setJMenuBar(menuBar);
   }
@@ -687,6 +744,18 @@ public class MainFrame extends JFrame implements ContextMenu {
     }
   }
 
+  //  MRU file list action listener
+  class CurrentWindowListActionListener implements ActionListener {
+    MainFrame adaptee;
+
+    CurrentWindowListActionListener(MainFrame adaptee) {
+      this.adaptee = adaptee;
+    }
+    public void actionPerformed(ActionEvent e) {
+      adaptee.currentWindowListAction(e);
+    }
+  }
+
   // Options file action listener
   class OptionsActionListener implements ActionListener {
     MainFrame adaptee;
@@ -696,6 +765,18 @@ public class MainFrame extends JFrame implements ContextMenu {
     }
     public void actionPerformed(ActionEvent e) {
       adaptee.menuOptionsAction(e);
+    }
+  }
+
+  // Options file action listener
+  class WindowActionListener implements ActionListener {
+    MainFrame adaptee;
+
+    WindowActionListener(MainFrame adaptee) {
+      this.adaptee = adaptee;
+    }
+    public void actionPerformed(ActionEvent e) {
+      adaptee.menuWindowAction(e);
     }
   }
 
