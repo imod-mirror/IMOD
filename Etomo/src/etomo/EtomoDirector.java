@@ -26,6 +26,9 @@ import etomo.ui.MainFrame;
  * 
  * <p>
  * $Log$
+ * Revision 1.1.2.2  2004/09/07 17:52:52  sueh
+ * bug# 520 moved MainFrame and UserConfiguration to EtomoDirector
+ *
  * Revision 1.1.2.1  2004/09/03 20:59:07  sueh
  * bug# 520 transfering constructor code from ApplicationManager.  Allowing
  * multiple ApplicationManagers and JoinManagers
@@ -42,7 +45,8 @@ public class EtomoDirector {
   private static boolean test = false;
   private static boolean selfTest = false;
   private HashMap managerList = null;
-  private String currentParamFileName = null;
+  private ArrayList managerListOrder = null;
+  private String currentManagerName = null;
   private static MainFrame mainFrame = null;
   private static UserConfiguration userConfig = null;
 
@@ -64,10 +68,6 @@ public class EtomoDirector {
     return theEtomoDirector;
   }
 
-  public BaseManager getCurrentManager() {
-    return (BaseManager) managerList.get(currentParamFileName);
-  }
-
   private EtomoDirector(String[] args) {
     theEtomoDirector = this;
     createUserConfiguration();
@@ -77,32 +77,63 @@ public class EtomoDirector {
     ArrayList paramFileNameList = parseCommandLine(args);
     int paramFileNameListSize = paramFileNameList.size();
     String paramFileName = null;
-    managerList = new HashMap();
+    createManagerList();
+    ApplicationManager appMgr = null;
     //if no param file is found bring up AppMgr.SetupDialog
     if (paramFileNameListSize == 0) {
       paramFileName = "";
-      currentParamFileName = paramFileName;
-      managerList.put(paramFileName, new ApplicationManager(paramFileName));
+      currentManagerName = paramFileName;
+      addManager(paramFileName, new ApplicationManager(paramFileName));
     }
     else {
       for (int i = 0; i < paramFileNameListSize; i++) {
         paramFileName = (String) paramFileNameList.get(i);
         if (i == 0) {
-          currentParamFileName = paramFileName;
+          currentManagerName = paramFileName;
         }
         if (paramFileName.endsWith(".edf")) {
-          managerList.put(paramFileName, new ApplicationManager(paramFileName));
+          addManager(paramFileName, new ApplicationManager(paramFileName));
         }
         else if (paramFileName.endsWith(".ejf")) {
-          managerList.put(paramFileName, new JoinManager(paramFileName));
+          addManager(paramFileName, new JoinManager(paramFileName));
         }
       }
     }
     if (!test) {
+      mainFrame.createMenus();
       mainFrame.setCurrentManager(getCurrentManager());
       mainFrame.setMRUFileLabels(userConfig.getMRUFileList());
       mainFrame.pack();
       mainFrame.show();
+    }
+  }
+  
+  private void createManagerList() {
+    managerList = new HashMap();
+    managerListOrder = new ArrayList();
+  }
+  
+  private void addManager(String key, BaseManager manager) {
+    managerList.put(key, manager);
+    managerListOrder.add(key);
+  }
+  
+  public BaseManager getCurrentManager() {
+    return (BaseManager) managerList.get(currentManagerName);
+  }
+  
+  public BaseManager getManager(String key) {
+    return (BaseManager) managerList.get(key);
+  }
+
+  public String getManagerName(int index) {
+    return (String) managerListOrder.get(index);
+  }
+  
+  public void setCurrentManager(String key) {
+    currentManagerName = key;
+    if (!test) {
+      mainFrame.setCurrentManager(getCurrentManager());
     }
   }
 
@@ -176,6 +207,10 @@ public class EtomoDirector {
 
   public static boolean isTest() {
     return test;
+  }
+  
+  public int getManagerListSize() {
+    return managerList.size();
   }
 
 }
