@@ -21,6 +21,9 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.15  2004/11/11 01:37:13  sueh
+* <p> bug# 520 Added useEveryNSlices and trialBinning.
+* <p>
 * <p> Revision 1.1.2.14  2004/11/08 22:22:09  sueh
 * <p> bug# 520 Remove default from shift in X and Y.
 * <p>
@@ -112,6 +115,12 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
   protected EtomoInteger shiftInY = new EtomoInteger("ShiftInY");
   protected EtomoInteger useEveryNSlices = new EtomoInteger("UseEveryNSlices");
   protected EtomoInteger trialBinning = new EtomoInteger("TrialBinning");
+  //set on the successful completion of finishjoin
+  protected EtomoInteger finishjoinTrialBinning = new EtomoInteger("FinishjoinTrialBinning");
+  protected EtomoInteger finishjoinTrialSizeInX = new EtomoInteger("FinishjoinTrialSizeInX");
+  protected EtomoInteger finishjoinTrialSizeInY = new EtomoInteger("FinishjoinTrialSizeInY");
+  protected EtomoInteger finishjoinTrialShiftInX = new EtomoInteger("FinishjoinTrialShiftInX");
+  protected EtomoInteger finishjoinTrialShiftInY = new EtomoInteger("FinishjoinTrialShiftInY");
 
   public abstract void load(Properties props);
   public abstract void load(Properties props, String prepend);
@@ -199,6 +208,11 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
     shiftInY.store(props, prepend);
     useEveryNSlices.store(props, prepend);
     trialBinning.store(props, prepend);
+    finishjoinTrialBinning.store(props, prepend);
+    finishjoinTrialSizeInX.store(props, prepend);
+    finishjoinTrialSizeInY.store(props, prepend);
+    finishjoinTrialShiftInX.store(props, prepend);
+    finishjoinTrialShiftInY.store(props, prepend);
     if (sectionTableData != null) {
       for (int i = 0; i < sectionTableData.size(); i++) {
         ((SectionTableRowData) sectionTableData.get(i)).store(props, prepend);
@@ -322,6 +336,22 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
 
   public static String getNewFileTitle() {
     return newJoinTitle;
+  }
+  
+  public static int getSize(int min, int max) {
+    return max - min + 1;
+  }
+  
+  public int getCoordinate(ConstEtomoInteger coordinate) {
+    return coordinate.get() * finishjoinTrialBinning.get();
+  }
+  
+  public int getNewShiftInX(int min, int max) {
+    return finishjoinTrialShiftInX.get() + (finishjoinTrialSizeInX.get() + 1) / 2 - (max + min) / 2;
+  }
+  
+  public int getNewShiftInY(int min, int max) {
+    return finishjoinTrialShiftInY.get() + (finishjoinTrialSizeInY.get() + 1) / 2 - (max + min) / 2;
   }
   
   public boolean isFullLinearTransformation() {
