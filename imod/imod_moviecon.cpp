@@ -32,6 +32,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.4  2003/01/14 17:05:17  mast
+Qt version
+
 Revision 1.1.2.3  2002/12/17 21:39:14  mast
 include imodconfig so NO_SYS_TIMES canbe defined
 
@@ -199,7 +202,7 @@ void imcSetMovierate(ImodView *vw, int newrate)
 
 /*
  * Routines for keeping track of actual timing 
- * /
+ */
 /* DNM 5/21/01: add an actual frame rate output to the box; the variant if
    there is no times function is pretty lame */
 
@@ -219,8 +222,6 @@ void imcReadTimer(void)
   char persec[] = "sec";
 #endif
 
-  XmString xstring;
-  char cstring[40];
   float elapsed, instrate;
 
   movieCount++;
@@ -280,7 +281,7 @@ void imcHelp()
      "This window allows you to control the starting and ending "
      "coordinates within which a movie will run, the increment between "
      "successive frames, and the frame rate.\n\n"
-     "Use the radio buttons to select whether the sliders will adjust "
+     "Use the axis radio buttons to select whether the sliders will adjust "
      "the start, end, and increment for X, Y, Z or Time.  The initial "
      "default setting is for the sliders to adjust movies in Z.\n\n"
      "The [Reset] button will reset the start, end, and increment to "
@@ -298,7 +299,8 @@ void imcHelp()
      "actual rate will be less than the selected rate if the display is "
      "too slow to keep up, and can also differ from the selected rate "
      "due to lack of precision of the system clock.\n\n"
-     "If [Forward & Back] is selected, then movies will loop from one "
+     "If [Round Trip;
+] is selected, then movies will loop from one "
      "end to the other then from that end back to the start; "
      "if [One Way] is selected, then movies will always go in one "
      "direction and jump back to the start when the end is reached.\n\n",
