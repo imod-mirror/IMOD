@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.8.2.14  2003/01/14 21:43:17  mast
+    changes for Qt versions of autox and imod_moviecon
+
     Revision 3.8.2.13  2003/01/13 01:15:42  mast
     changes for Qt version of info window
 
@@ -420,12 +423,6 @@ void imodImageScaleUpdate(ImodView *iv);
 int openModelEdit(ImodView *vw);
 int openModelOffset(ImodView *vw);
 void setPixsizeAndUnits(Imod *imod, char *string);
-
-/* imod_cachefill.c */
-int icfGetAutofill(void);
-unsigned char *icfDoAutofill(ImodView *vw, int cz);
-void imodCacheFillDialog(ImodView *vw);
-void imodCacheFill(ImodView *vw);
 
 /* imod_edit.c */
 int imod_setxyzmouse(void);
