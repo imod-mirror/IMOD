@@ -18,11 +18,14 @@ import etomo.storage.Storable;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.2  2004/10/22 03:21:48  sueh
+* <p> bug# 520 added getNumber().
+* <p>
 * <p> Revision 1.1.2.1  2004/10/21 02:48:57  sueh
 * <p> bug# Const object for EtomoFloat.
 * <p> </p>
 */
-public abstract class ConstEtomoFloat implements Storable, EtomoSimpleType {
+public abstract class ConstEtomoFloat extends EtomoSimpleType implements Storable {
   public static  final String  rcsid =  "$Id$";
   
   protected static final float unsetValue = Float.NaN;
@@ -32,13 +35,17 @@ public abstract class ConstEtomoFloat implements Storable, EtomoSimpleType {
   protected float recommendedValue = unsetValue;
   protected float resetValue = unsetValue;
   
-  protected String name;
-  protected String description = null;
-  protected String invalidReason = null;
-  
   public abstract void load(Properties props);
   public abstract void load(Properties props, String prepend);
   
+  public ConstEtomoFloat() {
+    super();
+  }
+
+  public ConstEtomoFloat(String name) {
+    super(name);
+  }
+
   public void store(Properties props) {
     props.setProperty(name, Float.toString(value));
   }
@@ -68,10 +75,6 @@ public abstract class ConstEtomoFloat implements Storable, EtomoSimpleType {
     return new Float(value);
   }
   
-  public String getDescription() {
-    return description;
-  }
-  
   public boolean isSetAndNotDefault() {
     return !Float.isNaN(value) && (Float.isNaN(defaultValue) || value != defaultValue);
   }
@@ -83,16 +86,11 @@ public abstract class ConstEtomoFloat implements Storable, EtomoSimpleType {
   public boolean equals(float value) {
     return (Float.isNaN(this.value) && Float.isNaN(value)) || this.value == value;
   }
-   
-  public String toString() {
-    return getClass().getName() + "[" + paramString() + "]";
-  }
   
   protected String paramString() {
-    return ",\nname=" + name + ",\ndescription=" + description
-        + ",\nunsetValue=" + unsetValue + ",\nvalue=" + value
-        + ",\ndefaultValue=" + defaultValue + ",\nrecommendedValue="
-        + recommendedValue + ",\nresetValue=" + resetValue
-        + ",\ninvalidReason=" + invalidReason;
-  } 
+    return super.paramString() + ",\nunsetValue=" + unsetValue + ",\nvalue="
+        + value + ",\ndefaultValue=" + defaultValue + ",\nrecommendedValue="
+        + recommendedValue + ",\nresetValue=" + resetValue;
+  }
+
 }
