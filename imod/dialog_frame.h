@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.3  2003/01/18 01:08:10  mast
+add tooltips
+
 Revision 1.1.2.2  2003/01/01 05:45:15  mast
 rationalizing toplevel versus dialog style
 
@@ -39,11 +42,9 @@ class DialogFrame : public QWidget
 
  signals:
   void actionPressed(int which);
-  void actionReleased(int which);
 
   public slots:
-    void buttonPressed(int which);
-    void buttonReleased(int which);
+    void actionButtonPressed(int which);
 
  protected:
   QVBoxLayout *mLayout;
