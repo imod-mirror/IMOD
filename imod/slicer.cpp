@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.7  2003/01/27 00:30:07  mast
+Pure Qt version and general cleanup
+
 Revision 1.1.2.6  2003/01/23 20:13:33  mast
 add include of imod_input
 
@@ -381,8 +384,8 @@ int sslice_open(struct ViewInfo *vi)
   ss->imageFilled = 0;
 
   slice_trans_step(ss);
-  ss->qtWindow = new SlicerWindow(ss, maxAngle, App->qtRgba, 
-				      App->qtDoubleBuffer, App->qtEnableDepth,
+  ss->qtWindow = new SlicerWindow(ss, maxAngle, App->rgba, 
+				      App->doublebuffer, App->qtEnableDepth,
 				      NULL, "slicer window");
   if (!ss->qtWindow){
     free(ss);
@@ -391,7 +394,9 @@ int sslice_open(struct ViewInfo *vi)
   }
   ss->glw = ss->qtWindow->mGLw;
   ss->cube = ss->qtWindow->mCube;
-  
+  if (!App->rgba)
+    ss->glw->setColormap(*(App->qColormap));
+
   ss->qtWindow->setCaption(imodCaption("Imod Slicer"));
   ss->qtWindow->mToolBar->setLabel(imodCaption("Slicer Toolbar 1"));
   ss->qtWindow->mToolBar2->setLabel(imodCaption("Slicer Toolbar 2"));
@@ -1513,6 +1518,11 @@ static void slicerDraw_cb(ImodView *vi, void *client, int drawflag)
 {
   SlicerStruct *ss = (SlicerStruct *)client;
   float usex, usey, usez;
+
+  if (drawflag & IMOD_DRAW_COLORMAP) {
+    ss->glw->setColormap(*(App->qColormap));
+    return;
+  }
 
   /* DNM: use a value saved in structure in case more than one window */
   if (ss->zslast != ss->vi->imod->zscale){

@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.2  2003/01/27 00:30:07  mast
+Pure Qt version and general cleanup
+
 Revision 1.1.2.1  2003/01/10 23:47:49  mast
 Qt version and many general fixes and enhancements
 
@@ -121,6 +124,12 @@ static void xtumKey_cb(ImodView *vi, void *client, int released,
 static void xtumDraw_cb(ImodView *vi, void *client, int drawflag)
 {
   TumblerStruct *xtum = (TumblerStruct *)client;
+
+  if (drawflag & IMOD_DRAW_COLORMAP) {
+    xtum->dialog->mGLw->setColormap(*(App->qColormap));
+    return;
+  }
+
   if (!xtum->locked && (drawflag & IMOD_DRAW_XYZ)) {
     xtum->cx = (int)vi->xmouse;
     xtum->cy = (int)vi->ymouse;
@@ -171,14 +180,17 @@ int xtumOpen(struct ViewInfo *vi)
   xtum->beta = 0.0;
   xtum->gamma = 0.0;
      
-  xtum->dialog = new TumblerWindow(xtum, App->qtRgba, 
-				      App->qtDoubleBuffer, App->qtEnableDepth,
+  xtum->dialog = new TumblerWindow(xtum, App->rgba, 
+				      App->doublebuffer, App->qtEnableDepth,
 				      NULL, "tumbler window");
   if (!xtum->dialog){
     free(xtum);
     wprint("Error opening tumbler window.");
     return(-1);
   }
+
+  if (!App->rgba)
+    xtum->dialog->mGLw->setColormap(*(App->qColormap));
 
   xtum->dialog->setCaption(imodCaption("Imod Tumbler"));
   xtum->ctrl = ivwNewControl(vi, xtumDraw_cb, xtumClose_cb, xtumKey_cb,

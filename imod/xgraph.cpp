@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 1.1.2.3  2003/01/27 00:30:07  mast
+    Pure Qt version and general cleanup
+
     Revision 1.1.2.2  2003/01/10 23:41:28  mast
     clean up warnings
 
@@ -114,13 +117,16 @@ int xgraphOpen(struct ViewInfo *vi)
   xg->locked  = 0;
   xg->highres = 0;
 
-  xg->dialog = new GraphWindow(xg, App->qtRgba, App->qtDoubleBuffer,
+  xg->dialog = new GraphWindow(xg, App->rgba, App->doublebuffer,
 			       App->qtEnableDepth, NULL, "graph window");
   if (!xg->dialog){
     free(xg);
     wprint("Error opening graph window.");
     return(-1);
   }
+
+  if (!App->rgba)
+    xg->dialog->mGLw->setColormap(*(App->qColormap));
 
   xg->dialog->setCaption(imodCaption("Imod Graph"));
 
@@ -145,6 +151,10 @@ static void graphDraw_cb(ImodView *vi, void *client, int drawflag)
 
   if (!xg) return;
 
+  if (drawflag & IMOD_DRAW_COLORMAP) {
+    xg->dialog->mGLw->setColormap(*(App->qColormap));
+    return;
+  }
 
   if (drawflag & IMOD_DRAW_XYZ){
     if (!xg->locked){
