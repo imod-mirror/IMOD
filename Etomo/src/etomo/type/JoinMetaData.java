@@ -19,6 +19,9 @@ import etomo.EtomoDirector;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.9  2004/11/12 22:59:25  sueh
+* <p> bug# 520 Added finishjoinTrial values:  binning, size, and shift.
+* <p>
 * <p> Revision 1.1.2.8  2004/11/11 01:37:30  sueh
 * <p> bug# 520 Added useEveryNSlices and trialBinning.
 * <p>
@@ -80,6 +83,7 @@ public class JoinMetaData extends ConstJoinMetaData {
     finishjoinTrialSizeInY.reset();
     finishjoinTrialShiftInX.reset();
     finishjoinTrialShiftInY.reset();
+    sampleProduced = defaultSampleProduced;
   }
 
   /**
@@ -120,6 +124,8 @@ public class JoinMetaData extends ConstJoinMetaData {
     finishjoinTrialSizeInY.load(props, prepend);
     finishjoinTrialShiftInX.load(props, prepend);
     finishjoinTrialShiftInY.load(props, prepend);
+    sampleProduced = Boolean.valueOf(props.getProperty(group
+        + sampleProducedString, Boolean.toString(defaultSampleProduced))).booleanValue();
     
     int sectionTableRowsSize = Integer.parseInt(props.getProperty(group
         + sectionTableDataSizeString, "-1"));
