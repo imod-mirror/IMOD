@@ -47,6 +47,14 @@ import etomo.util.MRCHeader;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.11  2004/10/11 02:17:09  sueh
+* <p> bug# 520 Using a variable called propertyUserDir instead of the "user.dir"
+* <p> property.  This property would need a different value for each manager.
+* <p> This variable can be retrieved from the manager if the object knows its
+* <p> manager.  Otherwise it can retrieve it from the current manager using the
+* <p> EtomoDirector singleton.  If there is no current manager, EtomoDirector
+* <p> gets the value from the "user.dir" property.
+* <p>
 * <p> Revision 1.1.2.10  2004/10/08 16:36:00  sueh
 * <p> bug# Using SectionTableRow.setRowNumber() to change the status of
 * <p> sample slice numbers.
@@ -105,7 +113,7 @@ import etomo.util.MRCHeader;
 * <p> bug# 520 creates the Sections table for JoinDialog.
 * <p> </p>
 */
-public class SectionTablePanel implements ContextMenu, Expandable, Table {
+public class SectionTablePanel implements ContextMenu, Expandable {
   public static final String rcsid = "$Id$";
 
   private static final Dimension buttonDimension = UIParameters
@@ -126,6 +134,29 @@ public class SectionTablePanel implements ContextMenu, Expandable, Table {
   private LabeledSpinner spinBinning;
   private MultiLineButton btnOpen3dmod;
   private MultiLineButton btnGetAngles;
+  
+  private HeaderCell hdrOrder;
+  private HeaderCell hdrSections;
+  private HeaderCell hdrSampleSlices;
+  private HeaderCell hdrFinal;
+  private HeaderCell hdrRotationAngles;
+  private HeaderCell hdr1Row2;
+  private HeaderCell hdr2Row2;
+  private HeaderCell hdrBottom;
+  private HeaderCell hdrTop;
+  private HeaderCell hdr3Row2;
+  private HeaderCell hdr4Row2;
+  private HeaderCell hdr1Row3;
+  private HeaderCell hdr2Row3;
+  private HeaderCell hdrSampleSlicesBottomStart;
+  private HeaderCell hdrSampleSlicesBottomEnd;
+  private HeaderCell hdrSampleSlicesTopStart;
+  private HeaderCell hdrSampleSlicesTopEnd;
+  private HeaderCell hdrFinalStart;
+  private HeaderCell hdrFinalEnd;
+  private HeaderCell hdrRotationAnglesX;
+  private HeaderCell hdrRotationAnglesY;
+  private HeaderCell hdrRotationAnglesZ;
 
   private ArrayList rows = new ArrayList();
 
@@ -136,15 +167,19 @@ public class SectionTablePanel implements ContextMenu, Expandable, Table {
 
   private final JoinManager joinManager;
   private final JoinDialog joinDialog;
+  
+  private int curTab;
 
   /**
    * Creates the panel and table.
    *
    */
-  SectionTablePanel(JoinDialog joinDialog, JoinManager joinManager) {
+  SectionTablePanel(JoinDialog joinDialog, JoinManager joinManager, int curTab) {
     this.joinDialog = joinDialog;
     this.joinManager = joinManager;
+    this.curTab = curTab;
     createRootPanel();
+    addRootPanelComponents();
     enableTableButtons("");
     enableRowButtons(-1);
   }
@@ -154,9 +189,17 @@ public class SectionTablePanel implements ContextMenu, Expandable, Table {
     rootPanel = new DoubleSpacedPanel(false, FixedDim.x5_y0, FixedDim.x0_y5,
         BorderFactory.createEtchedBorder());
     createTablePanel();
-    rootPanel.add(pnlTable);
+    addTablePanelComponents();
     createButtonsPanel();
-    rootPanel.add(pnlButtons);
+  }
+  
+  private void addRootPanelComponents() {
+    if (curTab != JoinDialog.SETUP_TAB) {
+    }
+    rootPanel.add(pnlTable);
+    if (curTab == JoinDialog.SETUP_TAB) {
+      rootPanel.add(pnlButtons);
+    }
   }
 
   /**
@@ -168,54 +211,144 @@ public class SectionTablePanel implements ContextMenu, Expandable, Table {
     pnlTable = new JPanel();
     pnlTable.setBorder(LineBorder.createBlackLineBorder());
     pnlTable.setLayout(layout);
+    //Header
+    //First row
+    hdrOrder = new HeaderCell("Order");
+    hdrSections = new HeaderCell("Sections", FixedDim.sectionsWidth);
+    btnExpandSections = new ExpandButton(this);
+    hdrSampleSlices = new HeaderCell("Sample Slices");
+    hdrFinal = new HeaderCell("Final");
+    hdrRotationAngles = new HeaderCell("Rotation Angles");
+    //second row
+    hdr1Row2 = new HeaderCell();
+    hdr2Row2 = new HeaderCell();
+    hdrBottom = new HeaderCell("Bottom");
+    hdrTop = new HeaderCell("Top");
+    hdr3Row2 = new HeaderCell();
+    hdr4Row2 = new HeaderCell();
+    //Third row
+    hdr1Row3 = new HeaderCell();
+    hdr2Row3 = new HeaderCell();
+    hdrSampleSlicesBottomStart = new HeaderCell("Start", FixedDim.numericWidth);
+    hdrSampleSlicesBottomEnd = new HeaderCell("End", FixedDim.numericWidth);
+    hdrSampleSlicesTopStart = new HeaderCell("Start", FixedDim.numericWidth);
+    hdrSampleSlicesTopEnd = new HeaderCell("End", FixedDim.numericWidth);
+    hdrFinalStart = new HeaderCell("Start", FixedDim.numericWidth);
+    hdrFinalEnd = new HeaderCell("End", FixedDim.numericWidth);
+    hdrRotationAnglesX = new HeaderCell("X", FixedDim.numericWidth);
+    hdrRotationAnglesY = new HeaderCell("Y", FixedDim.numericWidth);
+    hdrRotationAnglesZ = new HeaderCell("Z", FixedDim.numericWidth);
+  }
+
+  private void addTablePanelComponents() {
     //Table constraints
     constraints.fill = GridBagConstraints.BOTH;
+    if (curTab == JoinDialog.SETUP_TAB) {
+      addSetupTablePanelComponents();
+    }
+    else if (curTab == JoinDialog.ALIGN_TAB) {
+      addAlignTablePanelComponents();
+    }
+    else if (curTab == JoinDialog.JOIN_TAB) {
+      addJoinTablePanelComponents();
+    }
+  }
+  /**
+   * Creates the panel and table.  Adds the header rows.  Adds SectionTableRows
+   * to rows to create each row.
+   *
+   */
+  private void addSetupTablePanelComponents() {
     //Header
     //First row
     constraints.weightx = 1.0;
     constraints.weighty = 1.0;
     constraints.gridheight = 1;
     constraints.gridwidth = 2;
-    new HeaderCell(this, "Order").add();
+    hdrOrder.add(pnlTable, layout, constraints);
     constraints.weighty = 0.0;
     constraints.gridwidth = 1;
-    new HeaderCell(this, "Sections", FixedDim.sectionsWidth).add();
+    hdrSections.add(pnlTable, layout, constraints);
     constraints.weightx = 0.0;
-    btnExpandSections = addExpandButton();
+    btnExpandSections.add(pnlTable, layout, constraints);
     constraints.weightx = 1.0;
     constraints.gridwidth = 4;
-    new HeaderCell(this, "Sample Slices").add();
+    hdrSampleSlices.add(pnlTable, layout, constraints);
     constraints.gridwidth = 2;
-    new HeaderCell(this, "Final").add();
+    hdrFinal.add(pnlTable, layout, constraints);
     constraints.gridwidth = GridBagConstraints.REMAINDER;
-    new HeaderCell(this, "Rotation Angles").add();
+    hdrRotationAngles.add(pnlTable, layout, constraints);
     //second row
     constraints.weightx = 0.0;
     constraints.gridwidth = 2;
-    new HeaderCell(this).add();
-    new HeaderCell(this).add();
-    new HeaderCell(this, "Bottom").add();
-    new HeaderCell(this, "Top").add();
+    hdr1Row2.add(pnlTable, layout, constraints);
+    hdr2Row2.add(pnlTable, layout, constraints);
+    hdrBottom.add(pnlTable, layout, constraints);
+    hdrTop.add(pnlTable, layout, constraints);
     constraints.gridwidth = 2;
-    new HeaderCell(this).add();
+    hdr3Row2.add(pnlTable, layout, constraints);
     constraints.gridwidth = GridBagConstraints.REMAINDER;
-    new HeaderCell(this).add();
+    hdr4Row2.add(pnlTable, layout, constraints);
     //Third row
     constraints.gridwidth = 2;
-    new HeaderCell(this).add();
-    new HeaderCell(this).add();
+    hdr1Row3.add(pnlTable, layout, constraints);
+    hdr2Row3.add(pnlTable, layout, constraints);
     constraints.gridwidth = 1;
-    new HeaderCell(this, "Start", FixedDim.numericWidth).add();
-    new HeaderCell(this, "End", FixedDim.numericWidth).add();
-    new HeaderCell(this, "Start", FixedDim.numericWidth).add();
-    new HeaderCell(this, "End", FixedDim.numericWidth).add();
-    new HeaderCell(this, "Start", FixedDim.numericWidth).add();
-    new HeaderCell(this, "End", FixedDim.numericWidth).add();
-    new HeaderCell(this, "X", FixedDim.numericWidth).add();
-    new HeaderCell(this, "Y", FixedDim.numericWidth).add();
+    hdrSampleSlicesBottomStart.add(pnlTable, layout, constraints);
+    hdrSampleSlicesBottomEnd.add(pnlTable, layout, constraints);
+    hdrSampleSlicesTopStart.add(pnlTable, layout, constraints);
+    hdrSampleSlicesTopEnd.add(pnlTable, layout, constraints);
+    hdrFinalStart.add(pnlTable, layout, constraints);
+    hdrFinalEnd.add(pnlTable, layout, constraints);
+    hdrRotationAnglesX.add(pnlTable, layout, constraints);
+    hdrRotationAnglesY.add(pnlTable, layout, constraints);
     constraints.gridwidth = GridBagConstraints.REMAINDER;
-    new HeaderCell(this, "Z", FixedDim.numericWidth).add();
+    hdrRotationAnglesZ.add(pnlTable, layout, constraints);
   }
+  
+  private void addAlignTablePanelComponents() {
+    //Header
+    //First row
+    constraints.weightx = 1.0;
+    constraints.weighty = 1.0;
+    constraints.gridheight = 1;
+    constraints.gridwidth = 1;
+    hdrOrder.add(pnlTable, layout, constraints);
+    constraints.weighty = 0.0;
+    hdrSections.add(pnlTable, layout, constraints);
+    constraints.weightx = 0.0;
+    constraints.gridwidth = GridBagConstraints.REMAINDER;
+    btnExpandSections.add(pnlTable, layout, constraints);
+  }
+  
+  private void addJoinTablePanelComponents() {
+    //Header
+    //First row
+    constraints.weightx = 1.0;
+    constraints.weighty = 1.0;
+    constraints.gridheight = 1;
+    constraints.gridwidth = 1;
+    hdrOrder.add(pnlTable, layout, constraints);
+    constraints.weighty = 0.0;
+    constraints.gridwidth = 1;
+    hdrSections.add(pnlTable, layout, constraints);
+    constraints.weightx = 0.0;
+    btnExpandSections.add(pnlTable, layout, constraints);
+    constraints.weightx = 1.0;
+    constraints.gridwidth = GridBagConstraints.REMAINDER;
+    hdrFinal.add(pnlTable, layout, constraints);
+    //Second row
+    constraints.gridwidth = 1;
+    hdr1Row3.add(pnlTable, layout, constraints);
+    constraints.gridwidth = 2;
+    hdr2Row3.add(pnlTable, layout, constraints);
+    constraints.gridwidth = 1;
+    hdrFinalStart.add(pnlTable, layout, constraints);
+    constraints.gridwidth = GridBagConstraints.REMAINDER;
+    hdrFinalEnd.add(pnlTable, layout, constraints);
+  }
+
+
 
   private void createButtonsPanel() {
     pnlButtons = new SpacedPanel(FixedDim.x5_y0);
@@ -269,7 +402,7 @@ public class SectionTablePanel implements ContextMenu, Expandable, Table {
     SpinnerModel spinnerModel = new SpinnerNumberModel(1, 1, 50, 1);
     spinBinning = new LabeledSpinner("Open binned by ", spinnerModel);
     spinBinning.setTextMaxmimumSize(UIParameters.dimSpinner);
-    pnlBinning.add(spinBinning.getContainer());
+    pnlBinning.add(spinBinning);
     JLabel lblIn = new JLabel("in X and Y");
     pnlBinning.add(lblIn);
     pnlImod.add(pnlBinning);
@@ -281,6 +414,23 @@ public class SectionTablePanel implements ContextMenu, Expandable, Table {
     btnOpen3dmod.setMaximumSize(buttonDimension);
     btnOpen3dmod.addActionListener(sectionTableActionListener);
     pnlImod.add(btnOpen3dmod);
+  }
+  
+  void setCurTab(int curTab) {
+    this.curTab = curTab;
+  }
+  
+  void displayCurTab() {
+    rootPanel.removeAll();
+    addRootPanelComponents();
+    pnlTable.removeAll();
+    addTablePanelComponents();
+    setCurTabInRows();
+    displayCurTabInRows();
+  }
+  
+  int getTableSize() {
+    return rows.size();
   }
 
   /**
@@ -344,22 +494,24 @@ public class SectionTablePanel implements ContextMenu, Expandable, Table {
     if (workingDir == null) {
       workingDir = joinDialog.getWorkingDirName();
     }
-    btnAddSection.setEnabled(workingDir.trim().length() != 0);
+    btnAddSection.setEnabled(workingDir != null && workingDir.matches("\\S+"));
   }
 
   /**
-   * Implements the Exandable interface.  Matches the expand button parameter
+   * Implements the Expandable interface.  Matches the expand button parameter
    * and performs the expand/contract operation.  Expands the section in each
    * row.
    * @param expandButton
    */
   public void expand(ExpandButton expandButton) {
-    if (!expandButton.equals(btnExpandSections)) {
-      throw new IllegalStateException("Unknown expand button," + expandButton);
+    if (expandButton.equals(btnExpandSections)) {
+      boolean expand = btnExpandSections.isExpanded();
+      for (int i = 0; i < rows.size(); i++) {
+        ((SectionTableRow) rows.get(i)).expandSection(expand);
+      }
     }
-    boolean expand = btnExpandSections.isExpanded();
-    for (int i = 0; i < rows.size(); i++) {
-      ((SectionTableRow) rows.get(i)).expandSection(expand);
+    else {
+      throw new IllegalStateException("Unknown expand button," + expandButton);
     }
   }
 
@@ -549,15 +701,19 @@ public class SectionTablePanel implements ContextMenu, Expandable, Table {
       e.printStackTrace();
     }
     SectionTableRow row = new SectionTableRow(this, rows.size() + 1, tomogram,
-        btnExpandSections.isExpanded(), header.getNSections());
+        btnExpandSections.isExpanded(), header.getNSections(), curTab);
     row.create();
+    row.add(pnlTable);
     rows.add(row);
+    if (rows.size() > 1) {
+      ((SectionTableRow) rows.get(rows.size() - 2)).configureFields();
+    }
     int newTableSize = rows.size();
     joinDialog.setNumSections(newTableSize);
     enableRowButtons();
     repaint();
   }
-
+  
   /**
    * Delete the highlighted row.  Remove it in the rows ArrayList.
    * Remove it from the table.  Renumber the row numbers in the table.
@@ -576,6 +732,12 @@ public class SectionTablePanel implements ContextMenu, Expandable, Table {
     joinManager.imodRemove(ImodManager.TOMOGRAM_KEY, row.getImodIndex());
     row.remove();
     renumberTable(rowIndex);
+    if (rowIndex == 0) {
+      ((SectionTableRow) rows.get(0)).configureFields();
+    }
+    else if (rowIndex == rows.size()) {
+      ((SectionTableRow) rows.get(rows.size() - 1)).configureFields();
+    }
     joinDialog.setNumSections(rows.size());
     enableRowButtons(-1);
     repaint();
@@ -642,9 +804,22 @@ public class SectionTablePanel implements ContextMenu, Expandable, Table {
    */
   private void addRowsToTable(int startIndex) {
     for (int i = startIndex; i < rows.size(); i++) {
-      ((SectionTableRow) rows.get(i)).add();
+      ((SectionTableRow) rows.get(i)).add(pnlTable);
     }
   }
+ 
+  private void setCurTabInRows() {
+    for (int i = 0; i < rows.size(); i++) {
+      ((SectionTableRow) rows.get(i)).setCurTab(curTab);
+    }
+  }
+  
+  private void displayCurTabInRows() {
+    for (int i = 0; i < rows.size(); i++) {
+      ((SectionTableRow) rows.get(i)).displayCurTab(pnlTable);
+    }
+  }
+  
 
   public boolean getMetaData(JoinMetaData joinMetaData) {
     joinMetaData.resetSectionTableData();
@@ -691,42 +866,19 @@ public class SectionTablePanel implements ContextMenu, Expandable, Table {
   }
 
   /**
-   * Create an expand button and add it to the table.
-   * @return the expand button
-   */
-  private ExpandButton addExpandButton() {
-    ExpandButton button = new ExpandButton(this);
-    addCell(button);
-    return button;
-  }
-
-  /**
-   * Add a multi line toggle button to the table.  Set the border to raised bevel to make
+   * Create a multi line toggle button.  Set the border to raised bevel to make
    * it 3D.  Set its preferred width.
    * @param value
    * @param width
    * @return button created
    */
-  MultiLineToggleButton addToggleButton(MultiLineToggleButton button,
-      String text, int width) {
+  MultiLineToggleButton createToggleButton(String text, int width) {
+    MultiLineToggleButton button = new MultiLineToggleButton(text);
     button.setBorder(BorderFactory.createBevelBorder(BevelBorder.RAISED));
     Dimension size = button.getPreferredSize();
     size.width = width;
     button.setPreferredSize(size);
-    addCell(button);
     return button;
-  }
-
-  /**
-   * Create a multi line toggle button.  Set the border to raised bevel to make
-   * it 3D.  Set its preferred width.  Add it to the table.
-   * @param value
-   * @param width
-   * @return button created
-   */
-  MultiLineToggleButton addToggleButton(String text, int width) {
-    MultiLineToggleButton button = new MultiLineToggleButton(text);
-    return addToggleButton(button, text, width);
   }
 
   /**
@@ -737,6 +889,10 @@ public class SectionTablePanel implements ContextMenu, Expandable, Table {
 
   Container getContainer() {
     return rootPanel.getContainer();
+  }
+  
+  DoubleSpacedPanel getRootPanel() {
+    return rootPanel;
   }
 
   /**
