@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.4  2002/12/06 20:45:40  mast
+Forgot to initialize midasWindow to NULL
+
 Revision 1.1.2.3  2002/12/06 19:59:52  mast
 Implement QTextStream for reading piece list
 
@@ -60,6 +63,7 @@ an error in Fortran to C translation
 #include "midas.h"
 #include <imodel.h>
 #include <qfile.h>
+#include "dia_qtutils.h"
 
 static void checklist(int *xpclist, int npclist, int nxframe, int *minxpiece,
 		      int *nxpieces, int *nxoverlap);
@@ -1019,12 +1023,11 @@ void transform_model(char *infname, char *outfname, struct Midas_view *vw)
      
   model = imodRead(infname);
   if (!model){
-    // WAS dia_err
-    vw->midasSlots->dia_puts("Error reading model.");
+    dia_err("Error reading model.");
     return;
   }
   if (imodOpenFile(outfname, "w", model)){
-    vw->midasSlots->dia_puts("Error opening output.");
+    dia_err("Error opening output.");
     return;
   }
      
@@ -1033,7 +1036,7 @@ void transform_model(char *infname, char *outfname, struct Midas_view *vw)
   }
   imodWriteFile(model);
   imodCloseFile(model);
-  vw->midasSlots->dia_puts("Finished transforming model.");
+  dia_puts("Finished transforming model.");
   return;
 }
 

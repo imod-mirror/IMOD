@@ -35,6 +35,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.2.2.1  2002/12/05 03:13:47  mast
+New Qt version
+
 Revision 3.2  2002/08/19 04:44:54  mast
 Added a flag that mouse is moving, to prevent repeated error updates in
 montage-fixing mode when there are many pieces.
@@ -46,11 +49,11 @@ Changed include of GLwMDrawA to rely upon -I compiler option
 class MidasWindow;
 class MidasSlots;
 class MidasGL;
-class MyLineEdit;
+class ToolEdit;
 
 #include <qlabel.h>
 #include <qstring.h>
-#include <qlineedit.h>
+#include "tooledit.h"
 #include <qpushbutton.h>
 #include <qradiobutton.h>
 #include <qslider.h>
@@ -135,11 +138,11 @@ public slots:
  private:
  void makeSeparator(QVBox *parent, int width);
  void makeTwoArrows(QHBox *parent, int direction, int signal,
-			    QSignalMapper *mapper);
+                    QSignalMapper *mapper, bool repeat);
  QSignalMapper *makeLabeledArrows(QVBox *parent, QString textlabel, 
-				  QLabel **outLabel);
+				  QLabel **outLabel, bool repeat);
  QLabel *makeArrowRow(QVBox *parent, int direction, int signal, 
-		      QSignalMapper *mapper, QString textlabel, 
+		      QSignalMapper *mapper, bool repeat, QString textlabel, 
 		      int decimals, int digits, float value);
  void createParameterDisplay(QVBox *parent);
  void createSectionControls(QVBox *parent);
@@ -279,15 +282,15 @@ struct Midas_view
   QCheckBox *reversetoggle;
   int      reversemap;   /* flag to reverse contrast */
   int      applytoone;   /* Flag to apply to only one section */
-  MyLineEdit *reftext;
-  MyLineEdit *curtext;
+  ToolEdit *reftext;
+  ToolEdit *curtext;
   QCheckBox *difftoggle;
   int      keepsecdiff;  /* flag to keep Curr-Ref constant */
   QButtonGroup *edgeGroup;
   QRadioButton *wXedge;
   QRadioButton *wYedge;
   
-  MyLineEdit *edgetext;
+  ToolEdit *edgetext;
   QLabel   *zoomlabel;
   QLabel   *blocklabel;
   int      boxsize;      /* block size for transforms */

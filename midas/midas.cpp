@@ -37,6 +37,9 @@
     $Revision$
 
     $Log$
+    Revision 1.1.2.2  2002/12/06 19:05:01  mast
+    Changes for binary file reading under windows
+
     Revision 1.1.2.1  2002/12/05 03:13:02  mast
     New Qt version
 
@@ -64,6 +67,7 @@
 #include <qgrid.h>
 #include <qlayout.h>
 #include "arrowbutton.h"
+#include "dia_qtutils.h"
 
 struct Midas_view *VW;
 int Midas_debug = 0;
@@ -104,6 +108,7 @@ int main (int argc, char **argv)
   FILE *file;
   int i;
   bool doubleBuffer = true;
+  int styleSet = 0;
 
 #ifdef NO_IMOD_FORK
   int dofork = 0;
@@ -117,10 +122,23 @@ int main (int argc, char **argv)
 
   vw = VW = &MidasView;
 
+  for (i = 1; i < argc; i++)
+    if (argv[i][0] == '-' && argv[i][1] == 's' && argv[i][2] == 't'
+	&& argv[i][3] == 'y' && argv[i][4] == 'l' && argv[i][5] == 'e')
+      styleSet = 1;
+
   QApplication myapp(argc, argv);
+
+  // Workaround apparent bug
+  argc = myapp.argc();
 
   if (argc < 2)
     usage();
+
+#ifdef __linux
+  if (!styleSet)
+    QApplication::setStyle("windows");
+#endif
 
   new_view(VW);
 
@@ -252,6 +270,7 @@ int main (int argc, char **argv)
 
   vw->midasWindow->show();
   vw->midasWindow->setFocus();
+  diaSetTitle("Midas");
 
   return myapp.exec();
 }
@@ -400,7 +419,7 @@ void MidasWindow::makeSeparator(QVBox *parent, int width)
 }
 
 void MidasWindow::makeTwoArrows(QHBox *parent, int direction, 
-					int signal, QSignalMapper *mapper)
+                                int signal, QSignalMapper *mapper, bool repeat)
 
 {
   parent->setSpacing(4);
@@ -408,6 +427,7 @@ void MidasWindow::makeTwoArrows(QHBox *parent, int direction,
 					Qt::LeftArrow : Qt::UpArrow, parent);
   arrow->setFixedWidth(ARROW_SIZE);
   arrow->setFixedHeight(ARROW_SIZE);
+  arrow->setAutoRepeat(repeat);
   mapper->setMapping(arrow, direction * signal);
   QObject::connect(arrow, SIGNAL(clicked()), mapper, SLOT(map()));
 
@@ -415,12 +435,13 @@ void MidasWindow::makeTwoArrows(QHBox *parent, int direction,
 			  parent);
   arrow->setFixedWidth(ARROW_SIZE);
   arrow->setFixedHeight(ARROW_SIZE);
+  arrow->setAutoRepeat(repeat);
   mapper->setMapping(arrow, -direction * signal);
   QObject::connect(arrow, SIGNAL(clicked()), mapper, SLOT(map()));
 }
 
 QLabel *MidasWindow::makeArrowRow(QVBox *parent, int direction, int signal,
-				  QSignalMapper *mapper,
+				  QSignalMapper *mapper, bool repeat,
 				  QString textlabel, int decimals, int digits,
 				  float value)
 {
@@ -428,7 +449,7 @@ QLabel *MidasWindow::makeArrowRow(QVBox *parent, int direction, int signal,
   QLabel *label;
   QString str;
   QHBox *row = new QHBox(parent);
-  makeTwoArrows(row, direction, signal, mapper);
+  makeTwoArrows(row, direction, signal, mapper, repeat);
   
   label = new QLabel(textlabel, row);
   label->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
@@ -440,12 +461,12 @@ QLabel *MidasWindow::makeArrowRow(QVBox *parent, int direction, int signal,
 }
 
 QSignalMapper *MidasWindow::makeLabeledArrows(QVBox *parent, QString textlabel,
-					      QLabel **outLabel)
+					      QLabel **outLabel, bool repeat)
 {
   QHBox *row = new QHBox(parent);
   QSignalMapper *mapper = new QSignalMapper(row);
   
-  makeTwoArrows(row, 1, 1, mapper);
+  makeTwoArrows(row, 1, 1, mapper, repeat);
   
   *outLabel = new QLabel(textlabel, row);
   (*outLabel)->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
@@ -461,39 +482,39 @@ void MidasWindow::createParameterDisplay(QVBox *col)
   QSignalMapper *paramMapper = new QSignalMapper(col);
   QSignalMapper *incMapper = new QSignalMapper(col);
   VW->wParameter[3] = makeArrowRow
-    (col, -1, 4, paramMapper, "X translation",
+    (col, -1, 4, paramMapper, true, "X translation",
      VW->midasSlots->getParamDecimals(3), VW->midasSlots->getParamDigits(3),
      -1000.0);
   VW->wParameter[4] = makeArrowRow
-    (col, 1, 5, paramMapper, "Y translation",
+    (col, 1, 5, paramMapper, true, "Y translation",
      VW->midasSlots->getParamDecimals(4), VW->midasSlots->getParamDigits(4),
      -1000.0);
   VW->wIncrement[2] = makeArrowRow
-    (col, 1, 3, incMapper, "   increment ",
+    (col, 1, 3, incMapper, false, "   increment ",
      VW->midasSlots->getIncDecimals(2),  VW->midasSlots->getIncDigits(2),
      VW->increment[2]);
   if (VW->xtype != XTYPE_MONT) {
     makeSeparator(col, 1);
     VW->wParameter[0] = makeArrowRow
-      (col, -1, 1, paramMapper, "Rotation    ",
+      (col, -1, 1, paramMapper, true, "Rotation    ",
        VW->midasSlots->getParamDecimals(0), VW->midasSlots->getParamDigits(0),
        -179.);
     VW->wIncrement[0] = makeArrowRow
-      (col, 1, 1, incMapper, "   increment",
+      (col, 1, 1, incMapper, false, "   increment",
        VW->midasSlots->getIncDecimals(0), VW->midasSlots->getIncDigits(0),
        VW->increment[0]);
     makeSeparator(col, 1);
 
     VW->wParameter[1] = makeArrowRow
-      (col, 1, 2, paramMapper, "Magnification",
+      (col, 1, 2, paramMapper, true, "Magnification",
        VW->midasSlots->getParamDecimals(1),  VW->midasSlots->getParamDigits(1),
        1.0);
     VW->wParameter[2] = makeArrowRow
-      (col, 1, 3, paramMapper, "Stretch      ",
+      (col, 1, 3, paramMapper, true, "Stretch      ",
        VW->midasSlots->getParamDecimals(2),  VW->midasSlots->getParamDigits(2),
        1.0);
     VW->wIncrement[1] = makeArrowRow
-      (col, 1, 2, incMapper, "   factor    ", 
+      (col, 1, 2, incMapper, false, "   factor    ", 
        VW->midasSlots->getIncDecimals(1),  VW->midasSlots->getIncDigits(1),
        VW->increment[1]);
 
@@ -560,7 +581,7 @@ void MidasWindow::createSectionControls(QVBox *parent)
     label = new QLabel("Reference Sec. ", row);
     label->setAlignment(AlignRight | AlignVCenter);
     row->setStretchFactor(label, 1);
-    VW->reftext = new MyLineEdit(row);
+    VW->reftext = new ToolEdit(row);
     VW->reftext->setAlignment(Qt::AlignRight);
     VW->reftext->setFixedWidth(60);
     VW->reftext->setFocusPolicy(ClickFocus);
@@ -573,7 +594,7 @@ void MidasWindow::createSectionControls(QVBox *parent)
   label = new QLabel("Current Sec. ", row);
   label->setAlignment(AlignRight | AlignVCenter);
   row->setStretchFactor(label, 1);
-  VW->curtext = new MyLineEdit(row);
+  VW->curtext = new ToolEdit(row);
   VW->curtext->setFixedWidth(60);
   VW->curtext->setAlignment(Qt::AlignRight);
   VW->curtext->setFocusPolicy(ClickFocus);
@@ -581,7 +602,7 @@ void MidasWindow::createSectionControls(QVBox *parent)
 		   VW->midasSlots, SLOT(slotCurtext()));
   
   // The section arrows
-  mapper = makeLabeledArrows(col, "Section", &label);
+  mapper = makeLabeledArrows(col, "Section", &label, false);
   QObject::connect(mapper, SIGNAL(mapped(int)), VW->midasSlots, 
 		   SLOT(slotSection(int)));
 
@@ -617,14 +638,14 @@ void MidasWindow::createSectionControls(QVBox *parent)
     label = new QLabel("Edge ", row);
     label->setAlignment(AlignRight | AlignVCenter);
     row->setStretchFactor(label, 1);
-    VW->edgetext = new MyLineEdit(row);
+    VW->edgetext = new ToolEdit(row);
     VW->edgetext->setFixedWidth(60);
     VW->edgetext->setFocusPolicy(ClickFocus);
     QObject::connect(VW->edgetext, SIGNAL(returnPressed()),
 		     VW->midasSlots, SLOT(slotEdgetext()));
 
     // The edge number arrows
-    mapper = makeLabeledArrows(col, "Edge Number", &label);
+    mapper = makeLabeledArrows(col, "Edge Number", &label, false);
     QObject::connect(mapper, SIGNAL(mapped(int)), VW->midasSlots,
 		     SLOT(slotEdge(int)));
     VW->midasSlots->manage_xory(VW);
@@ -640,12 +661,12 @@ void MidasWindow::createZoomBlock(QVBox *parent)
   QString str;
 
   QSignalMapper *mapper = makeLabeledArrows(parent, "Zoom  1.00", 
-					    &VW->zoomlabel);
+					    &VW->zoomlabel, false);
   QObject::connect(mapper, SIGNAL(mapped(int)), VW->midasSlots,
 		     SLOT(slotZoom(int)));
 
   str.sprintf("Block size %2d", VW->boxsize);
-  mapper = makeLabeledArrows(parent, str, &VW->blocklabel);
+  mapper = makeLabeledArrows(parent, str, &VW->blocklabel, false);
   QObject::connect(mapper, SIGNAL(mapped(int)), VW->midasSlots,
 		     SLOT(slotBlock(int)));
   
@@ -726,7 +747,7 @@ void midas_error(char *tmsg, char *bmsg, int retval)
     fprintf(stderr, "%s %s\n", tmsg, bmsg);
   else {
     str.sprintf("%s %s\n", tmsg, bmsg);
-    VW->midasSlots->dia_puts((char *)str.latin1());
+    dia_puts((char *)str.latin1());
   }  
   if (retval)
     exit(retval);
