@@ -22,6 +22,11 @@ import etomo.type.ConstJoinMetaData;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.2  2004/10/21 02:37:22  sueh
+* <p> bug# 520 Adding modes (initial and refine) that can change how the
+* <p> options are set.  Removed unnecessary function run().  Implementing
+* <p> Command interface.
+* <p>
 * <p> Revision 1.1.2.1  2004/10/18 17:45:04  sueh
 * <p> bug# 520 Added a param to create the xfalign command.
 * <p> </p>
@@ -119,10 +124,10 @@ public class XfalignParam implements Command {
   }
   
   private void genFilterOptions(ArrayList options) {
-    ConstEtomoDouble sigmaLowFrequency = metaData.getSigmaLowFrequencyField();
+    ConstEtomoDouble sigmaLowFrequency = metaData.getSigmaLowFrequency();
     ConstEtomoDouble cutoffHighFrequency = metaData
-        .getCutoffHighFrequencyField();
-    ConstEtomoDouble sigmaHighFrequency = metaData.getSigmaHighFrequencyField();
+        .getCutoffHighFrequency();
+    ConstEtomoDouble sigmaHighFrequency = metaData.getSigmaHighFrequency();
     if (sigmaLowFrequency.isSetAndNotDefault()
         || cutoffHighFrequency.isSetAndNotDefault()
         || sigmaHighFrequency.isSetAndNotDefault()) {
