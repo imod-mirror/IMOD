@@ -16,6 +16,11 @@ import java.util.Properties;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.5  2004/10/30 02:34:55  sueh
+* <p> bug# 520 SetRecommendedValue no longer changes value.  This way it
+* <p> can be set after initialization.  Added set(ConstEtomoLongto set all
+* <p> values from another instance.
+* <p>
 * <p> Revision 1.1.2.4  2004/10/25 23:07:23  sueh
 * <p> bug# 520 Fixed default:  Default doesn't affect the value or the
 * <p> resetValue.  Default can returned if value and recommended value are
@@ -54,20 +59,6 @@ public class EtomoLong extends ConstEtomoLong {
     super(name);
     value = initialValue;
   }
-  
-  public void setRecommendedValue(long recommendedValue) {
-    this.recommendedValue = recommendedValue;
-    setResetValue();
-  }
-  
-  public void setDescription(String description) {
-    if (description != null) {
-      this.description = description;
-    }
-    else {
-      name = description;
-    }
-  }
     
   public void load(Properties props) {
     value = Long.parseLong(props.getProperty(name, Long
@@ -94,6 +85,9 @@ public class EtomoLong extends ConstEtomoLong {
         this.value = unsetValue;
       }
     }
+    if (isSet() && ceilingValue != Long.MIN_VALUE && this.value > ceilingValue) {
+      this.value = ceilingValue;
+    }
     return this;
   }
   
@@ -103,35 +97,39 @@ public class EtomoLong extends ConstEtomoLong {
     defaultValue = that.defaultValue;
     recommendedValue = that.recommendedValue;
     resetValue = that.resetValue;
+    ceilingValue = that.ceilingValue;
     return this;
   }
   
   public EtomoSimpleType set(Long value) {
     invalidReason = null;
     this.value = value.intValue();
+    if (isSet() && ceilingValue != Long.MIN_VALUE && this.value > ceilingValue) {
+      this.value = ceilingValue;
+    }
     return this;
   }
   
   public EtomoSimpleType set(long value) {
     invalidReason = null;
     this.value = value;
+    if (isSet() && ceilingValue != Long.MIN_VALUE && this.value > ceilingValue) {
+      this.value = ceilingValue;
+    }
     return this;
   }
   
-  public void reset() {
+  public EtomoSimpleType reset() {
     value = resetValue;
+    if (isSet() && ceilingValue != Long.MIN_VALUE && value > ceilingValue) {
+      value = ceilingValue;
+    }
+    return this;
   }
   
-  public void unset() {
+  public EtomoSimpleType unset() {
     value = unsetValue;
+    return this;
   }
-  
-  private void setResetValue() {
-    if (recommendedValue != unsetValue) {
-      resetValue = recommendedValue;
-    }
-    else {
-      resetValue = unsetValue;
-    }
-  }
+
 }
