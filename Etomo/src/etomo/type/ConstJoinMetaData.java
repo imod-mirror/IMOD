@@ -21,6 +21,10 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.19  2004/11/16 02:26:22  sueh
+* <p> bug# 520 Replacing EtomoInteger, EtomoDouble, EtomoFloat, and
+* <p> EtomoLong with EtomoNumber.
+* <p>
 * <p> Revision 1.1.2.18  2004/11/15 22:20:26  sueh
 * <p> bug# 520 Moved all of file validation to Utilities so that is called be called
 * <p> from other places.
@@ -157,7 +161,7 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
   public abstract void load(Properties props, String prepend);
 
   public ConstJoinMetaData() {
-    fileExtension = "ejf";
+    fileExtension = ".ejf";
     densityRefSection.setDefault(1);
     sigmaLowFrequency.setDefault(0);
     cutoffHighFrequency.setDefault(0);
@@ -270,6 +274,14 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
     return prepend + "." + groupString;
   }
 
+  public boolean isValid(String workingDirName) {
+    if (workingDirName == null || !workingDirName.matches("\\S+")) {
+      invalidReason = "Working directory is not set.";
+      return false;
+    }
+    return isValid(new File(workingDirName));
+  }
+  
   public boolean isValid(File workingDir) {
     StringBuffer invalidBuffer = new StringBuffer();
     if (!Utilities.isValidFile(workingDir, JoinDialog.WORKING_DIRECTORY_TEXT,
