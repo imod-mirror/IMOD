@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.8  2003/01/14 21:51:42  mast
+Register with dialog manager
+
 Revision 1.1.2.7  2003/01/13 01:15:43  mast
 changes for Qt version of info window
 
@@ -59,7 +62,7 @@ Changes to get clean compilation with g++
 
 */
 
-#include "object_edit.h"
+#include "form_object_edit.h"
 #define NO_X_INCLUDES
 #include "imod.h"
 #include "imod_object_edit.h"
@@ -321,10 +324,11 @@ int imod_object_edit_draw(void)
   int state = 0;
   int symbol = 0;
   int i;
+  // static int update = 0;
   Iobj *obj;
   if (!Ioew_dialog)
     return(-1);
-
+  // fprintf(stderr, "updating %d\n", update++);
   obj = getObjectOrClose();
   if (!obj)
     return (-1);
