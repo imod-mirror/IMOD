@@ -34,6 +34,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.4.2.1  2002/12/11 00:39:45  mast
+Kept it from flipping images while loading data
+
 Revision 3.4  2002/12/01 15:34:41  mast
 Changes to get clean compilation with g++
 
@@ -304,7 +307,6 @@ void ivwInit(ImodView *vi)
   vi->white      = 255;
   vi->fastdraw   = 0;
   vi->dim        = 1+2+4;
-  vi->xyz        = NULL;
   vi->ax         = NULL;
   vi->ctrlist    = NULL;
 
