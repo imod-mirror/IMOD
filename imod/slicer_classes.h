@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.1  2003/01/06 15:48:55  mast
+initila creation
+
 */
 #ifndef SLICER_CLASSES_H
 #define SLICER_CLASSES_H
@@ -28,7 +31,6 @@ class ToolEdit;
 class QLabel;
 class QSignalMapper;
 class QSlider;
-class QTimer;
 class MultiSlider;
 class QComboBox;
 
@@ -48,6 +50,12 @@ class SlicerWindow : public QMainWindow
             const char * name = 0, 
 	    WFlags f = WType_TopLevel | WDestructiveClose) ;
   ~SlicerWindow() {};
+  void setToggleState(int index, int state);
+  void setZoomText(float zoom);
+  void setModelThickness(float depth);
+  void setImageThickness(int depth);
+  void setAngles(float *angles);
+
   SlicerGL *mGLw;
   SlicerCube *mCube;
   HotToolBar *mToolBar;
@@ -60,15 +68,10 @@ class SlicerWindow : public QMainWindow
   void newZoom();
   void angleChanged(int which, int value, bool dragging);
   void toggleClicked(int index);
-  void setToggleState(int index, int state);
-  void setZoomText(float zoom);
-  void setModelThickness(float depth);
-  void setImageThickness(int depth);
   void imageThicknessChanged(int depth);
   void modelThicknessChanged(int depth);
   void showslicePressed();
   void zScaleSelected(int item);
-  void setAngles(float *angles);
   void toolKeyPress(QKeyEvent *e) {keyPressEvent(e);};
   void toolKeyRelease(QKeyEvent *e) {keyReleaseEvent(e);};
 
