@@ -47,6 +47,14 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.7  2004/09/29 17:37:09  sueh
+* <p> bug# 520 Using BaseMetaData, BaseProcessTrack, and
+* <p> BaseProcessManager.  Moved processDone() from app mgr to base mgr.
+* <p> Created abstract startNextProcess() and
+* <p> updateDialog(ProcessName, AxisID).  Removed resetState(),
+* <p> openNewDataset() and openExistingDataset().  Managers will not be
+* <p> reset and this functionality will be handled by EtomoDirector.
+* <p>
 * <p> Revision 1.1.2.6  2004/09/15 22:33:39  sueh
 * <p> bug# 520 call openMessageDialog in mainPanel instead of mainFrame.
 * <p> Move packMainWindow and setPanel from ApplicationMAnager to
@@ -371,12 +379,6 @@ public abstract class BaseManager {
    */
   public ComScriptManager getComScriptManager() {
     return comScriptMgr;
-  }
-  
-  // FIXME: this is a temporary patch until we can transition the MetaData
-  // object to a static object or singleton
-  public ConstMetaData getMetaData() {
-    return (ConstMetaData) baseMetaData;
   }
   
   /**
@@ -785,6 +787,10 @@ public abstract class BaseManager {
         nextProcess = "";
       }
     }
+  }
+  
+  public BaseMetaData getBaseMetaData() {
+    return baseMetaData;
   }
 
 }
