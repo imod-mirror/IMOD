@@ -28,6 +28,9 @@ import etomo.type.JoinMetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.1.2.14  2004/10/15 00:46:31  sueh
+ * <p> bug# 520 Added setMetaData()
+ * <p>
  * <p> Revision 1.1.2.13  2004/10/14 17:23:11  sueh
  * <p> bug# 520 Open sample averages.
  * <p>
@@ -131,9 +134,9 @@ public class JoinDialog implements ContextMenu {
   private LabeledSpinner spinDensityRefSection;
   private LabeledTextField ltfWorkingDir;
   private LabeledTextField ltfRootName;
-  private LabeledTextField ltfSigmaLowFrequencyFilter;
-  private LabeledTextField ltfCutoffLowFrequencyFilter;
-  private LabeledTextField ltfSigmaHighFrequencyFilter;
+  private LabeledTextField ltfSigmaLowFrequency;
+  private LabeledTextField ltfCutoffHighFrequency;
+  private LabeledTextField ltfSigmaHighFrequency;
   private JRadioButton rbFullLinearTransformation;
   private JRadioButton rbRotationTranslationMagnification;
   private JRadioButton rbRotationTranslation;
@@ -286,12 +289,12 @@ public class JoinDialog implements ContextMenu {
     pnlAlignComponent1.addMultiLineButton(btnOpenSampleAverages);
     //third component
     pnlXfalign = new DoubleSpacedPanel(false, FixedDim.x5_y0, FixedDim.x0_y5, new EtchedBorder("Xfalign Parameters").getBorder(), false);
-    ltfSigmaLowFrequencyFilter = new LabeledTextField("Sigma for low-frequency filter: ");
-    pnlXfalign.add(ltfSigmaLowFrequencyFilter);
-    ltfCutoffLowFrequencyFilter = new LabeledTextField("Cutoff for low-frequency filter: ");
-    pnlXfalign.add(ltfCutoffLowFrequencyFilter);
-    ltfSigmaHighFrequencyFilter = new LabeledTextField("Sigma for high-frequency filter: ");
-    pnlXfalign.add(ltfSigmaHighFrequencyFilter);
+    ltfSigmaLowFrequency = new LabeledTextField("Sigma for low-frequency filter: ");
+    pnlXfalign.add(ltfSigmaLowFrequency);
+    ltfCutoffHighFrequency = new LabeledTextField("Cutoff for high-frequency filter: ");
+    pnlXfalign.add(ltfCutoffHighFrequency);
+    ltfSigmaHighFrequency = new LabeledTextField("Sigma for high-frequency filter: ");
+    pnlXfalign.add(ltfSigmaHighFrequency);
     bgSearchFor = new ButtonGroup();
     rbFullLinearTransformation = new JRadioButton("Full linear transformation");
     rbRotationTranslationMagnification = new JRadioButton("Rotation/translation/magnification");
@@ -349,8 +352,7 @@ public class JoinDialog implements ContextMenu {
     pnlJoinComponent1.setBorder(BorderFactory.createEtchedBorder());
     pnlJoinComponent1A = new SpacedPanel(FixedDim.x5_y0, true);
     pnlJoinComponent1A.setLayout(new BoxLayout(pnlJoinComponent1A.getContainer(), BoxLayout.X_AXIS));
-    SpinnerModel spinnerModel = new SpinnerNumberModel(1, 1,
-        numSections < 1 ? 1 : 50, 1);
+    SpinnerModel spinnerModel = new SpinnerNumberModel(1, 1, 50, 1);
     spinOpenBinnedBy = new LabeledSpinner(
         "Open binned by ", spinnerModel);
     spinOpenBinnedBy.setTextMaxmimumSize(dimSpinner);
@@ -440,29 +442,53 @@ public class JoinDialog implements ContextMenu {
     return pnlSectionTable.getInvalidReason();
   }
   
-  public boolean getMetaData(JoinMetaData metaData) {
-    invalidReason = null;
+  public void getMetaData(JoinMetaData metaData) { 
+    metaData.setWorkingDir(ltfWorkingDir.getText());
+    metaData.setRootName(ltfRootName.getText());
     metaData.setDensityRefSection(spinDensityRefSection.getValue());
-    String workingDir = ltfWorkingDir.getText();
-    if (workingDir == null || !workingDir.matches("\\S+")) {
-      invalidReason = "Working directory is empty.";
-      return false;
-    }
-    metaData.setWorkingDir(workingDir);
-    String rootName = ltfRootName.getText();
-    if (rootName == null || !rootName.matches("\\S+")) {
-      invalidReason = "Root name is empty.";
-      return false;
-    }
-    metaData.setRootName(rootName);
-    return pnlSectionTable.getMetaData(metaData);
+    metaData.setSigmaLowFrequency(ltfSigmaLowFrequency.getText());
+    metaData.setCutoffHighFrequency(ltfCutoffHighFrequency.getText());
+    metaData.setSigmaHighFrequency(ltfSigmaHighFrequency.getText());
+    metaData.setFullLinearTransformation(rbFullLinearTransformation.isSelected());
+    metaData.setRotationTranslationMagnification(rbRotationTranslationMagnification.isSelected());
+    metaData.setRotationTranslation(rbRotationTranslation.isSelected());
+    metaData.setUseAlignmentRefSection(cbUseAlignmentRefSection.isSelected());
+    metaData.setAlignmentRefSection(spinAlignmentRefSection.getValue());
+    metaData.setSizeInX(ltfSizeInX.getText());
+    metaData.setSizeInY(ltfSizeInY.getText());
+    metaData.setOffsetInX(ltfOffsetInX.getText());
+    metaData.setOffsetInY(ltfOffsetInY.getText());
+    pnlSectionTable.getMetaData(metaData);
   }
   
   public void setMetaData(ConstJoinMetaData metaData) {
-    spinDensityRefSection.setValue(metaData.getDensityRefSection());
     ltfWorkingDir.setText(metaData.getWorkingDir());
     ltfRootName.setText(metaData.getRootName());
+    spinDensityRefSection.setValue(metaData.getDensityRefSection());
+    ltfSigmaLowFrequency.setText(metaData.getSigmaLowFrequencyString());
+    ltfCutoffHighFrequency.setText(metaData.getCutoffHighFrequencyString());
+    ltfSigmaHighFrequency.setText(metaData.getSigmaHighFrequencyString());
+    rbFullLinearTransformation.setSelected(metaData.isFullLinearTransformation());
+    rbRotationTranslationMagnification.setSelected(metaData.isRotationTranslationMagnification());
+    rbRotationTranslation.setSelected(metaData.isRotationTranslation());
+    cbUseAlignmentRefSection.setSelected(metaData.isUseAlignmentRefSection());
+    spinAlignmentRefSection.setValue(metaData.getAlignmentRefSection());
+    ltfSizeInX.setText(metaData.getSizeInXString());
+    ltfSizeInY.setText(metaData.getSizeInYString());
+    ltfOffsetInX.setText(metaData.getOffsetInXString());
+    ltfOffsetInY.setText(metaData.getOffsetInYString());
+    
     pnlSectionTable.setMetaData(metaData);
+    pnlSectionTable.enableTableButtons(ltfWorkingDir.getText());
+  }
+  
+  public void setEnabledWorkingDir(boolean enable) {
+    ltfWorkingDir.setEnabled(enable);
+    btnWorkingDir.setEnabled(enable);
+  }
+  
+  public void setEnabledRootName(boolean enable) {
+    ltfRootName.setEnabled(enable);
   }
 
   public Container getContainer() {
@@ -508,7 +534,7 @@ public class JoinDialog implements ContextMenu {
       joinManager.imodOpenJoinSampleAverages();
     }
     else if (command.equals(btnInitialAutoAlignment.getActionCommand())) {
-      //TODO
+      joinManager.xfalign();
     }
     else if (command.equals(btnMidas.getActionCommand())) {
       //TODO
@@ -543,7 +569,7 @@ public class JoinDialog implements ContextMenu {
   }
   
   private void useAlignmentRefSectionAction() {
-    //TODO
+    spinAlignmentRefSection.setEnabled(cbUseAlignmentRefSection.isSelected());
   }
 
   //
