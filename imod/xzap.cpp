@@ -35,6 +35,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.7  2002/12/14 05:23:42  mast
+backing out the fancy subclass, adjusting for new visual detection
+
 Revision 1.1.2.6  2002/12/13 07:09:19  mast
 GLMainWindow needed different name for mouse event processors
 
@@ -91,6 +94,7 @@ Added hotkeys to do smoothing and next section in autocontouring
 #include <qcursor.h>
 #include <qapplication.h>
 #include <qpoint.h>
+#include <qtimer.h>
 #include "zap_classes.h"
 
 #ifdef REPORT_TIMES
@@ -716,7 +720,8 @@ void zapPaint(ZapStruct *zap)
 #ifdef XZAP_DEBUG
     fprintf(stderr, "Drawing twice: ");
 #endif
-    zapReallyDraw(zap);
+    //zapReallyDraw(zap);
+    zap->qtWindow->mTimer->start(0, false);
   }    
   zap->resizedraw2x = 0;
 #else
@@ -948,19 +953,22 @@ int imod_zap_open(struct ViewInfo *vi)
 
   int newWidth = toolSize.width() > needWinx ? toolSize.width() : needWinx;
   int newHeight = needWiny + (zap->qtWindow->height() - zap->gfx->height());
-  QPoint pos = zap->qtWindow->pos();
+  // If you can show before the resize, the complete geometry adjustment
+  // is not needed
+  /*  QPoint pos = zap->qtWindow->pos();
   int xleft = pos.x();
   int ytop = pos.y();
   if (xleft + newWidth > deskWidth - 16)
     xleft = deskWidth - 16 - newWidth;
   if (ytop + newHeight > deskHeight - 40)
-    ytop = deskHeight - 40 - newHeight;
+  ytop = deskHeight - 40 - newHeight; */
   if (Imod_debug)
     fprintf(stderr, "Sizes: zap %d %d, toolbar %d %d, GL %d %d: "
             "resize %d %d\n", zap->qtWindow->width(), zap->qtWindow->height(), 
             toolSize.width(), toolSize.height(), zap->gfx->width(), 
             zap->gfx->height(), newWidth, newHeight);
-  zap->qtWindow->setGeometry(xleft, ytop, newWidth, newHeight);
+  zap->qtWindow->resize( newWidth, newHeight);
+  //  zap->qtWindow->setGeometry(xleft, ytop, newWidth, newHeight);
 
   zap->qtWindow->show();
   zap->popup = True;
@@ -1313,9 +1321,9 @@ void zapMousePress(ZapStruct *zap, QMouseEvent *event)
   int button1, button2, button3;
   ivwControlPriority(zap->vi, zap->ctrl);
   
-  button1 = event->state() & Qt::LeftButton ? 1 : 0;
-  button2 = event->state() & Qt::MidButton ? 1 : 0;
-  button3 = event->state() & Qt::RightButton ? 1 : 0;
+  button1 = event->stateAfter() & Qt::LeftButton ? 1 : 0;
+  button2 = event->stateAfter() & Qt::MidButton ? 1 : 0;
+  button3 = event->stateAfter() & Qt::RightButton ? 1 : 0;
 
   /* fprintf(stderr, "click at %d %d\n", event->x(), event->y()); */
 
