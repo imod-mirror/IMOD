@@ -14,6 +14,9 @@
     $Revision$
 
     $Log$
+    Revision 3.4  2005/03/14 18:32:18  mast
+    Fixed crash with bad argument
+
     Revision 3.3  2005/03/12 15:50:45  mast
     Added imodel.h include for parselist
 
@@ -1039,7 +1042,7 @@ int main (int argc, char **argv)
         writeArg = iarg;
         break;
       default:
-        printf("ERROR: %s - Invalid option %s\n", progname, argv[i]);
+        printf("ERROR: %s - Invalid option %s\n", progname, argv[iarg]);
         exit(3);
         break;
       }
