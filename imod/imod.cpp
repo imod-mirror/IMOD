@@ -34,6 +34,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.1  2002/12/05 16:24:46  mast
+Open a Qxt application
+
 Revision 3.11  2002/12/03 15:45:08  mast
 Call SaveModel instead of SaveModelQuit when quitting, to give user a chance
 to set the filename to save to
@@ -224,6 +227,7 @@ int main( int argc, char *argv[])
 
   /* initialize the qxt application */
   QXtApplication qapp(XtDisplay(App->toplevel));
+  QApplication::setStyle("windows");
 
   /*******************/
   /* Initialize Data */
