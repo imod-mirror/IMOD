@@ -137,7 +137,7 @@ void imodvControlForm::newYrotation()
 
 void imodvControlForm::newZrotation()
 {
-    QString str = YLineEdit->text();
+    QString str = ZLineEdit->text();
     float value = atof(str.latin1());
     imodvControlAxisText(IMODV_CONTROL_ZAXIS, value);
 }
