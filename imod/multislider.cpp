@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.6  2003/01/18 20:43:50  mast
+resolve merge conflict
+
 Revision 1.1.2.5  2003/01/14 21:45:48  mast
 fix format for 2-decimal case, block signals when setting range
 
@@ -152,7 +155,6 @@ void MultiSlider::setDecimals(int slider, int decimals)
   if (decimals > MAX_DECIMALS)
     decimals = MAX_DECIMALS;
   mDecimals[slider] = decimals;
->>>>>>> 1.1.2.5
 }
 
 // They emit signals when they are set, which is a trap for the unwary
