@@ -34,6 +34,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.3  2002/12/19 04:37:13  mast
+Cleanup of unused global variables and defines
+
 Revision 1.1.2.2  2002/12/17 18:40:24  mast
 Changes and new includes with Qt version of imodv
 
@@ -103,6 +106,7 @@ Added calls for cache filling
 #include "mrcfiles.h"
 #include "iproc.h"
 #include "imodv.h"
+#include "sslice.h"
 
 /****help text data include files*****/
 #include "imodhelp.h" 
@@ -385,7 +389,6 @@ void imod_edit_object_cb(Widget w, XtPointer client, XtPointer call)
   struct Mod_Object *obj;
   int ob, co;
   long cob;
-  char prompt[32];
   float vol;
   int cosave, ptsave;
 
@@ -424,13 +427,7 @@ void imod_edit_object_cb(Widget w, XtPointer client, XtPointer call)
     imod_info_input();
     imod_info_enable();
 	  
-    red = (short int)(obj->red * 255);
-    blue = (short int)(obj->blue * 255);
-    green = (short int)(obj->green * 255);
-    ob = App->cvi->imod->cindex.object;
-    cob = ob;
-    sprintf(prompt, "Imod: Object %d color.", App->cvi->imod->cindex.object + 1);
-    dia_setcolor(red, green, blue, prompt, ioew_sgicolor_cb, (XtPointer)cob);
+    imod_object_color(App->cvi->imod->cindex.object);
     break;
 
   case 3: /* type*/
