@@ -43,6 +43,10 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.17  2004/11/15 22:04:42  sueh
+* <p> bug# 520 Removed the function isFileValid() because it is only called once.
+* <p> Placed the code from isFileValid() into loadTestParamFile().
+* <p>
 * <p> Revision 1.1.2.16  2004/11/12 22:43:34  sueh
 * <p> bug# 520 Moved imodGetRubberbandCoordinates from ApplicationManager.
 * <p>
@@ -408,7 +412,7 @@ public abstract class BaseManager {
       paramStore.load(storable);
 
       // Set the current working directory for the application, this is the
-      // path to the EDF file.  The working directory is defined by the current
+      // path to the EDF or EJF file.  The working directory is defined by the current
       // user.dir system property.
       // Uggh, stupid JAVA bug, getParent() only returns the parent if the File
       // was created with the full path
