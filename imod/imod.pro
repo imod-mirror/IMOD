@@ -28,8 +28,5 @@ mkargvtarget.target = mkargv
 mkargvtarget.depends = mkargv.o
 mkargvtarget.commands = gcc -o mkargv mkargv.o
 
-menutarget.target = tmp/imod_menu.o
-menutarget.depends = imodhelp.h
 
-QMAKE_EXTRA_UNIX_TARGETS += mkargvtarget helptarget menutarget
-#TARGETDEPS = imodhelp.h
+QMAKE_EXTRA_UNIX_TARGETS += mkargvtarget helptarget

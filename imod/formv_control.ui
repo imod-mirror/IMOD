@@ -1141,7 +1141,8 @@
     </connection>
 </connections>
 <includes>
-    <include location="local" impldecl="in declaration">imodv_control.h</include>
+    <include location="local" impldecl="in implementation">imodv_control.h</include>
+    <include location="global" impldecl="in implementation">stdlib.h</include>
     <include location="local" impldecl="in implementation">formv_control.ui.h</include>
 </includes>
 <variables>

@@ -8,7 +8,7 @@
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>225</width>
+            <width>229</width>
             <height>473</height>
         </rect>
     </property>
@@ -621,32 +621,33 @@
     </connection>
 </connections>
 <includes>
-    <include location="local" impldecl="in declaration">imod_object_edit.h</include>
+    <include location="local" impldecl="in implementation">imod_object_edit.h</include>
+    <include location="global" impldecl="in implementation">stdlib.h</include>
     <include location="local" impldecl="in implementation">object_edit.ui.h</include>
 </includes>
 <slots>
-    <slot>closeEvent(QCloseEvent * e)</slot>
     <slot>helpPressed()</slot>
-    <slot>nameChanged(const QString &amp; newName)</slot>
+    <slot>nameChanged( const QString &amp; newName )</slot>
+    <slot>symbolChanged( int value )</slot>
     <slot>OKPressed()</slot>
     <slot>radiusChanged()</slot>
-    <slot>selectedSurface(int value)</slot>
-    <slot>selectedType(int value)</slot>
-    <slot>setDrawBox(bool state)</slot>
-    <slot>setFrontSurface(int value)</slot>
-    <slot>setLineWidth(int value)</slot>
-    <slot>setObjectName(char * name)</slot>
-    <slot>setObjectType(int value)</slot>
-    <slot>setPointRadius(int value)</slot>
-    <slot>setSymbolProperties(int which, bool fill, bool markEnds, int size)</slot>
-    <slot>setTimeBox(bool state, bool enabled)</slot>
-    <slot>sizeChanged(int value)</slot>
-    <slot>symbolChanged(int value)</slot>
-    <slot>toggledDraw(bool state)</slot>
-    <slot>toggledFill(bool state)</slot>
-    <slot>toggledMarkEnds(bool state)</slot>
-    <slot>toggledTime(bool state)</slot>
-    <slot>widthChanged(int value)</slot>
+    <slot>selectedSurface( int value )</slot>
+    <slot>selectedType( int value )</slot>
+    <slot>sizeChanged( int value )</slot>
+    <slot>toggledDraw( bool state )</slot>
+    <slot>toggledFill( bool state )</slot>
+    <slot>toggledMarkEnds( bool state )</slot>
+    <slot>toggledTime( bool state )</slot>
+    <slot>widthChanged( int value )</slot>
+    <slot>setSymbolProperties( int which, bool fill, bool markEnds, int size )</slot>
+    <slot>setDrawBox( bool state )</slot>
+    <slot>setObjectName( char * name )</slot>
+    <slot>setTimeBox( bool state, bool enabled )</slot>
+    <slot>setPointRadius( int value )</slot>
+    <slot>setFrontSurface( int value )</slot>
+    <slot>setObjectType( int value )</slot>
+    <slot>setLineWidth( int value )</slot>
+    <slot>closeEvent( QCloseEvent * e )</slot>
 </slots>
 <pixmapinproject/>
 <layoutdefaults spacing="6" margin="11"/>

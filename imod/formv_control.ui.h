@@ -6,7 +6,6 @@
 ** a constructor, and a destroy() slot in place of a destructor.
 *****************************************************************************/
 
-
 void imodvControlForm::displayFarLabel( int value )
 {
     QString str;
