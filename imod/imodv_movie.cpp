@@ -27,6 +27,7 @@
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
 
+#include <qapplication.h>
 #include "formv_movie.h"
 #include "imodv.h"
 #include "imod.h"
@@ -113,13 +114,17 @@ void imodvMovieHelp()
 
 static void xinput(void)
 {
-  XFlush(XtDisplay(Imodv->topLevel));
-  /* DNM: need to either mask for X events in the while, or process ALL
-     types of events; so just call XtAppProcessEvent with XtIMAll */
-  while(XtAppPending(Imodv->context)){
-    /*         XtAppNextEvent(Imodv->context, &event_return);
-               XtDispatchEvent(&event_return); */
-    XtAppProcessEvent(Imodv->context, XtIMAll);
+  if (Imodv->standalone) {
+    qApp->processEvents();
+  } else {
+    XFlush(XtDisplay(Imodv->topLevel));
+    /* DNM: need to either mask for X events in the while, or process ALL
+       types of events; so just call XtAppProcessEvent with XtIMAll */
+    while(XtAppPending(Imodv->context)){
+      /*         XtAppNextEvent(Imodv->context, &event_return);
+		 XtDispatchEvent(&event_return); */
+      XtAppProcessEvent(Imodv->context, XtIMAll);
+    }
   }
 }
 

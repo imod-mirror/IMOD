@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.5  2002/12/30 06:49:50  mast
+rationalizing dialogs as widgets and using dialog list
+
 Revision 1.1.2.4  2002/12/27 01:23:56  mast
 New background color selector
 
@@ -166,37 +169,37 @@ void imodvHelpMenu(int item)
     dia_vasmsg
       ("Imodv Help for Keyboard Commands\n",
        "----------------------------------------------------------\n",
-       "\nKeys   | Command \n",
+       "\nKeys \tCommand \n",
        "----------------------------------------------------------\n",
-       "Arrows | Translate model in x and y\n",
-       "Page   | Up and Down keys translate model in z\n",
-       "Keypad | Rotates model in x, y and z. the '5' key toggles\n",
-       "       | movie mode on/off\n"
-       " Esc/q | Quit this program\n",
-       "  s    | Toggle stereo mode\n",
-       "  S    | Snapshot image as an RGB file to imodvnnnn.rgb\n",
-       "Ctrl-S | Snapshot image as a TIFF file to imodvnnnn.tif\n",
-       "  o    | Output transformation information\n",
-       "  c    | Output clipping plane information\n",
-       " -/=   | Decrease/Increase zoom\n",
-       " _/+   | Decrease/Increase zoom by big steps\n"
-       "  m    | Open movie control window\n",
-       "  O    | Open Object Edit window\n",
-       "  C    | Open controls window\n",
-       "  B    | Open background color window\n",
-       "  L    | Open Object List window\n",
-       "  M    | Open model selection window\n",
-       "  v    | Open view editing window\n",
-       "  i    | Open image overlay control window\n",
-       "  b    | Toggle double buffering\n",
-       "  r    | Toggle low resolution drawing of mesh and spheres\n",
-       " g/G   | Increase/Decrease the quality of sphere drawing\n",
-       " [/]   | Adjust parallax for stereo viewing\n",
-       "  l    | Invert the parallax angle\n",
-       " ,/.   | Decrease/Increase rotation increment and thus speed\n",
-       " 1/2   | Decrease/Increase time for 4D models\n",
-       "  8    | Toggle displaying all models or one model\n",
-       " 9/0   | Previous/Next model\n",
+       "Arrows\tTranslate model in x and y\n",
+       "Page  \tUp and Down keys translate model in z\n",
+       "Keypad\tRotates model in x, y and z. the '5' key toggles\n",
+       "      \tmovie mode on/off\n"
+       " Esc/q\tQuit this program\n",
+       "  s   \tToggle stereo mode\n",
+       "  S   \tSnapshot image as an RGB file to imodvnnnn.rgb\n",
+       "Ctrl-S\tSnapshot image as a TIFF file to imodvnnnn.tif\n",
+       "  o   \tOutput transformation information\n",
+       "  c   \tOutput clipping plane information\n",
+       " -/=  \tDecrease/Increase zoom\n",
+       " _/+  \tDecrease/Increase zoom by big steps\n"
+       "  m   \tOpen movie control window\n",
+       "  O   \tOpen Object Edit window\n",
+       "  C   \tOpen controls window\n",
+       "  B   \tOpen background color window\n",
+       "  L   \tOpen Object List window\n",
+       "  M   \tOpen model selection window\n",
+       "  v   \tOpen view editing window\n",
+       "  i   \tOpen image overlay control window\n",
+       "  b   \tToggle double buffering\n",
+       "  r   \tToggle low resolution drawing of mesh and spheres\n",
+       " g/G  \tIncrease/Decrease the quality of sphere drawing\n",
+       " [/]  \tAdjust parallax for stereo viewing\n",
+       "  l   \tInvert the parallax angle\n",
+       " ,/.  \tDecrease/Increase rotation increment and thus speed\n",
+       " 1/2  \tDecrease/Increase time for 4D models\n",
+       "  8   \tToggle displaying all models or one model\n",
+       " 9/0  \tPrevious/Next model\n",
        "----------------------------------------------------------\n",
        NULL);
     break;
@@ -612,12 +615,10 @@ void ImodvBkgColor::openDialog()
   char *window_name;
   int red, green, blue;
 
-  red   = Imodv->rbgcolor.red / 256;
-  green = Imodv->rbgcolor.green / 256;
-  blue  = Imodv->rbgcolor.blue / 256;
-  
   mSelector = new ColorSelector(NULL, "Imodv background color.",
-                                red, green, blue, hotSliderFlag(), 
+                                Imodv->rbgcolor->red(),
+				Imodv->rbgcolor->green(),
+				Imodv->rbgcolor->blue(), hotSliderFlag(), 
 				hotSliderKey(), "selector");
   connect(mSelector, SIGNAL(newColor(int, int, int)), this, 
           SLOT(newColorSlot(int, int, int)));
@@ -650,10 +651,7 @@ void ImodvBkgColor::newColorSlot(int red, int green, int blue)
 {
   ImodvApp *a = Imodv;
 
-  a->rbgcolor.red   = red *   255;
-  a->rbgcolor.green = green * 255;
-  a->rbgcolor.blue  = blue *  255;
-
+  a->rbgcolor->setRgb(red, green, blue);
   imodvDraw(a);
 }
 
