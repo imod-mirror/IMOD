@@ -46,6 +46,10 @@ import etomo.util.UniqueKey;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.12.2.15  2004/10/28 22:16:20  sueh
+ * <p> bug# 520 Changes HashedArray function to a set a value to an existing
+ * <p> key from add() to set().
+ * <p>
  * <p> Revision 3.12.2.14  2004/10/18 19:12:24  sueh
  * <p> bug# 520 In menuFileMRUListAction changed call to openManager instead
  * <p> of openTomogram, so Joins can be opened this way.
@@ -358,6 +362,7 @@ public class MainFrame extends JFrame implements ContextMenu {
       mainPanel = currentManager.getMainPanel();
       rootPanel.add(mainPanel);
       mainPanel.addMouseListener(mouseAdapter);
+      menuFileSaveAs.setEnabled(currentManager.canChangeParamFileName());
       mainPanel.repaint();
     }
     pack();
