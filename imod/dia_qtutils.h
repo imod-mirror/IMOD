@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.1  2002/12/30 06:32:59  mast
+Initial creation
+
 */
 
 #ifndef DIA_QTUTILS_H
@@ -29,4 +32,16 @@ QLabel *diaLabel(char *text, QWidget *parent, QVBoxLayout *layout);
 QPushButton *diaPushButton(char *text, QWidget *parent, 
 			   QVBoxLayout *layout);
 QCheckBox *diaCheckBox(char *text, QWidget *parent, QVBoxLayout *layout);
+void diaSetTitle(char *title);
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+  int dia_err(char *message);
+  int dia_puts(char *message);
+  void dia_vasmsg(char *msg, ...);
+  void dia_smsg(char **msg);
+#ifdef __cplusplus
+}
+#endif
 #endif
