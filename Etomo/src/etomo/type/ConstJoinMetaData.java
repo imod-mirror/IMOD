@@ -21,6 +21,11 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.20  2004/11/17 02:22:20  sueh
+* <p> bug# 520 Created a isValid() function that takes workingDirName, so the
+* <p> working dir name in join dialog can be tested before it is placed in
+* <p> propertyUserDir and used to create paramFile.
+* <p>
 * <p> Revision 1.1.2.19  2004/11/16 02:26:22  sueh
 * <p> bug# 520 Replacing EtomoInteger, EtomoDouble, EtomoFloat, and
 * <p> EtomoLong with EtomoNumber.
@@ -163,15 +168,15 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
   public ConstJoinMetaData() {
     fileExtension = ".ejf";
     densityRefSection.setDefault(1);
-    sigmaLowFrequency.setDefault(0);
-    cutoffHighFrequency.setDefault(0);
-    sigmaHighFrequency.setDefault(0);
     alignmentRefSection.setDefault(1);
     trialBinning.setDefault(1);
-    useEveryNSlices.setDefault(1);
     shiftInX.setDefault(0);
     shiftInY.setDefault(0);
+    sigmaLowFrequency.setDefault(0);
+    sigmaLowFrequency.setRecommendedValue(0.0);
+    cutoffHighFrequency.setDefault(0);
     cutoffHighFrequency.setRecommendedValue(0.25);
+    sigmaHighFrequency.setDefault(0);
     sigmaHighFrequency.setRecommendedValue(0.05);
   }
   
@@ -227,8 +232,13 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
     props.setProperty(group + revisionNumberString, latestRevisionNumber);
     props.setProperty(group + rootNameString, rootName);
     densityRefSection.store(props, prepend);
-    props.setProperty(group + sectionTableDataSizeString, Integer
-        .toString(sectionTableData.size()));
+    if (sectionTableData == null) {
+      props.setProperty(group + sectionTableDataSizeString, "0");
+    }
+    else {
+      props.setProperty(group + sectionTableDataSizeString, Integer
+          .toString(sectionTableData.size()));
+    }
     sigmaLowFrequency.store(props, prepend);
     cutoffHighFrequency.store(props, prepend);
     sigmaHighFrequency.store(props, prepend);
@@ -351,7 +361,7 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
     if (rootName.equals("")) {
       return null;
     }
-    return rootName + "." + fileExtension;
+    return rootName + fileExtension;
   }
 
   public String getName() {
