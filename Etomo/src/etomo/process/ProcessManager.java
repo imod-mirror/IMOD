@@ -20,6 +20,10 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.39.2.5  2004/10/06 01:48:00  sueh
+ * bug# 520 Move StartBackgroundProcess() to base class.  Put non-
+ * generic post processing for transferfid into backgroundPostProcess().
+ *
  * Revision 3.39.2.4  2004/09/29 19:11:07  sueh
  * bug# 520 Added base class.  Moved functionality in common with
  * JoinProcessManager to base class.
@@ -556,7 +560,7 @@ public class ProcessManager extends BaseProcessManager {
 
     CopyTomoComs copyTomoComs = new CopyTomoComs(metaData);
 
-    if (EtomoDirector.isDebug()) {
+    if (EtomoDirector.getInstance().isDebug()) {
       System.err.println("copytomocoms command line: "
         + copyTomoComs.getCommandLine());
     }
@@ -1146,10 +1150,10 @@ public class ProcessManager extends BaseProcessManager {
   public String test(String commandLine) {
     BackgroundProcess command = new BackgroundProcess(commandLine, this);
     command.setWorkingDirectory(new File(System.getProperty("user.dir")));
-    command.setDebug(EtomoDirector.isDebug());
+    command.setDebug(EtomoDirector.getInstance().isDebug());
     command.start();
 
-    if (EtomoDirector.isDebug()) {
+    if (EtomoDirector.getInstance().isDebug()) {
       System.err.println("Started " + commandLine);
       System.err.println("  Name: " + command.getName());
     }
@@ -1164,12 +1168,12 @@ public class ProcessManager extends BaseProcessManager {
     // Initialize the SystemProgram object
     SystemProgram sysProgram = new SystemProgram(command);
     sysProgram.setWorkingDirectory(new File(System.getProperty("user.dir")));
-    sysProgram.setDebug(EtomoDirector.isDebug());
+    sysProgram.setDebug(EtomoDirector.getInstance().isDebug());
 
     //  Start the system program thread
     Thread sysProgThread = new Thread(sysProgram);
     sysProgThread.start();
-    if (EtomoDirector.isDebug()) {
+    if (EtomoDirector.getInstance().isDebug()) {
       System.err.println("Started " + command);
       System.err.println("  working directory: "
         + System.getProperty("user.dir"));
@@ -1272,7 +1276,7 @@ public class ProcessManager extends BaseProcessManager {
   private void runCommand(String[] commandArray) throws SystemProcessException {
     SystemProgram systemProgram = new SystemProgram(commandArray);
     systemProgram.setWorkingDirectory(new File(System.getProperty("user.dir")));
-    systemProgram.setDebug(EtomoDirector.isDebug());
+    systemProgram.setDebug(EtomoDirector.getInstance().isDebug());
 
     systemProgram.run();
     if (systemProgram.getExitValue() != 0) {
