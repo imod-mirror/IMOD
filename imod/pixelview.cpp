@@ -34,6 +34,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.1  2003/01/02 15:45:09  mast
+changes for new controller key callback
+
 Revision 3.3.2.1  2002/12/12 01:22:09  mast
 *** empty log message ***
 
@@ -56,168 +59,234 @@ and made it raise itself when it redraws
 */
 
 #include <stdlib.h>
-#include <Xm/Xm.h>
-#include <Xm/Label.h>
-#include <Xm/PushB.h>
-#include <Xm/RowColumn.h>
-#include <Xm/Protocols.h>
-#include <Xm/AtomMgr.h>
-#include "diaP.h"
+#include <qpushbutton.h>
+#include <qlabel.h>
+#include <qsignalmapper.h>
+#include <qlayout.h>
+#include "pixelview.h"
 #include "imod.h"
-#include "mrcfiles.h"
 #include "control.h"
-
-#define PV_ROWS 8
-#define PV_COLS 8
+#include "imod_input.h"
 
 
-Widget PixelViewGrid[PV_ROWS][PV_COLS];
-Widget PixelViewDialog = 0;
+static PixelView *PixelViewDialog = NULL;
 static int ctrl;
-
-static void pview_quit_cb(Widget w, XtPointer client, XtPointer call)
-{
-  ImodView *vi = (ImodView *)client;
-  ivwDeleteControl(vi, ctrl);
-}
 
 static void pviewClose_cb(ImodView *vi, void *client, int drawflag)
 {
-  XtPopdown(PixelViewDialog);
-  XtDestroyWidget(PixelViewDialog);
-  PixelViewDialog = 0;
+  if( PixelViewDialog)
+    PixelViewDialog->close();
 }
 
 static void pviewDraw_cb(ImodView *vi, void *client, int drawflag)
 {
   if (PixelViewDialog && (drawflag & (IMOD_DRAW_XYZ | IMOD_DRAW_IMAGE)))
-    set_pixelview(vi);
+    PixelViewDialog->update();
 }
 
-
-int set_pixelview(struct ViewInfo *vi)
+int open_pixelview(struct ViewInfo *vi)
 {
-  int i, j, x, y;
-  float pixal;
-  char buf[32];
-  XmString st;
+  char *window_name;
+  QString str;
 
-  if (!PixelViewDialog)
+  if (PixelViewDialog){
+    PixelViewDialog->raise();
     return(-1);
+  }
 
-  /* DNM 11/24/02: Bring window to the top */
-  XRaiseWindow(App->display, XtWindow(PixelViewDialog));
+  PixelViewDialog = new PixelView(NULL, "pixel view");
 
-  for (i = 0; i < PV_COLS; i++)
-    for(j = 0; j < PV_ROWS; j++){
-      /* DNM: take floor to avoid duplicating 1 at 0 */
-      x = (int)floor((double)vi->xmouse) + i - (PV_COLS/2);
-      y = (int)floor((double)vi->ymouse) + j - (PV_ROWS/2);
-      if ( (i) && (j)){
-        if ((x < 0) || (y < 0) || (x >= vi->xsize) 
-            || (y >= vi->ysize))
-          sprintf(buf, "         x");
-        else{
-          pixal = ivwGetFileValue(vi, x, y, 
-                                  (int)(vi->zmouse + 0.5));
-          sprintf(buf, "%9g ", pixal);
-        }
-        st = XmStringCreateSimple(buf);
-      }else{
-        if ((!i) && (!j)){
-          sprintf(buf, " Y / X ");
-        }else
-          if (!i){
-            sprintf(buf, " %6d ", y+1);
-            if (j == (PV_COLS / 2))
-              sprintf(buf, " %6d*", y+1);
-          }else {
-            sprintf(buf, " %6d ", x+1);
-            if (i == (PV_ROWS / 2))
-              sprintf(buf, " %6d*", x+1);
-          }
+  window_name = imodwfname("Imod Pixel View: ");
+  if (window_name) {
+    str = window_name;
+    free(window_name);
+  }
+  if (str.isEmpty())
+    str = "Imod Pixel View";
+  PixelViewDialog->setCaption(str);
 
-        st = XmStringCreateSimple(buf);
-      }
-      XtVaSetValues(PixelViewGrid[j][i],
-                    XmNlabelString, st, NULL);
-      XmStringFree(st);
-               
-    }
+  ctrl = ivwNewControl(vi, pviewDraw_cb, pviewClose_cb, NULL, (void *)0);
+
+  // Adjust for the buttons that are too large if the current file is ints
+  // The minimum size setting of the buttons will keep this from getting
+  // too small
+  if (vi->image->mode == MRC_MODE_BYTE || vi->image->mode == MRC_MODE_SHORT) {
+    QSize hint = PixelViewDialog->sizeHint();
+    PixelViewDialog->resize((int)(0.7 * hint.width()), hint.height());
+  }
+
+  PixelViewDialog->show();
+  PixelViewDialog->update();
+
   return(0);
 }
 
-void pixelview_cb(Widget w, XtPointer client, XtPointer call)
+PixelView::PixelView(QWidget *parent, const char *name, WFlags fl)
 {
-  int pos = (int)client;
+  int i, j;
+  int width;
+  QGridLayout *layout = new QGridLayout(this, PV_ROWS + 1, PV_COLS + 1, 
+				       7, 5, "pixel view layout");
+  // Add labels on left
+  for (i = 0; i < PV_ROWS; i++) {
+    mLeftLabels[i] = new QLabel("88888", this);
+    mLeftLabels[i]->setAlignment(AlignRight | AlignVCenter);
+    layout->addWidget(mLeftLabels[i], PV_ROWS - 1 - i, 0);
+  }
+
+  // Add labels on bottom
+  for (i = 0; i < PV_COLS; i++) {
+    mBotLabels[i] = new QLabel("8", this);
+    mBotLabels[i]->setAlignment(AlignCenter);
+    layout->addWidget(mBotLabels[i], PV_ROWS, i + 1);
+  }
+  QLabel *labXY = new QLabel("Y/X", this);
+  labXY->setAlignment(AlignCenter);
+  layout->addWidget(labXY, PV_ROWS, 0);
+
+  // Make signal mapper
+  QSignalMapper *mapper = new QSignalMapper(this);
+  connect(mapper, SIGNAL(mapped(int)), this, SLOT(buttonPressed(int)));
+
+  // Make the buttons - put them in array in order of right-handed coordinates
+  // Fixed widths do not work well
+  width = (int)(1.2 * labXY->fontMetrics().width("-88888"));
+  for (i = 0; i < PV_ROWS; i++) {
+    for (j = 0; j < PV_COLS; j++) {
+      mButtons[i][j] = new QPushButton("8", this);
+      mButtons[i][j]->setFocusPolicy(NoFocus);
+      // This at least lets them resize smaller
+      mButtons[i][j]->setMinimumWidth(width);
+      layout->addWidget(mButtons[i][j], PV_ROWS - 1 - i, j + 1);
+      mapper->setMapping(mButtons[i][j], i * PV_COLS + j);
+      connect(mButtons[i][j], SIGNAL(pressed()), mapper, SLOT(map()));
+    }
+  }
+
+  // Get the default background color, initial minimum/maximum rows
+  mGrayColor = mButtons[0][0]->paletteBackgroundColor();
+  mMinRow = -1;
+  mMaxRow = -1;
+}
+
+void PixelView::update()
+{
+  struct ViewInfo *vi = App->cvi;
+  QString str;
+  int i, j, x, y;
+  float pixel;
+  float minVal = 1.e38;
+  float maxVal = -1.e38;
+  int floats = 1;
+
+  if (vi->image->mode == MRC_MODE_BYTE || vi->image->mode == MRC_MODE_SHORT)
+    floats = 0;
+
+  /* DNM 11/24/02: Bring window to the top */
+  raise();
+
+  // Reset the button colors from previous min/max
+  if (mMinRow >= 0)
+    mButtons[mMinRow][mMinCol]->setPaletteBackgroundColor(mGrayColor);
+  if (mMaxRow >= 0)
+    mButtons[mMaxRow][mMaxCol]->setPaletteBackgroundColor(mGrayColor);
+  mMinRow = -1;
+  mMaxRow = -1;
+
+  for (i = 0; i < PV_COLS; i++) {
+    /* DNM: take floor to avoid duplicating 1 at 0 */
+    x = (int)floor((double)vi->xmouse) + i - (PV_COLS/2);
+    
+    // Update labels on bottom
+    if (i == (PV_COLS / 2))
+      str.sprintf("%5d*", x+1);
+    else
+      str.sprintf("%5d ", x+1);
+    mBotLabels[i]->setText(str);
+
+    // Update the buttons
+    for(j = 0; j < PV_ROWS; j++){
+      y = (int)floor((double)vi->ymouse) + j - (PV_ROWS/2);
+      if ((x < 0) || (y < 0) || (x >= vi->xsize) || (y >= vi->ysize))
+	str = "     x";
+      else{
+	pixel = ivwGetFileValue(vi, x, y, (int)(vi->zmouse + 0.5));
+	if (floats)
+	  str.sprintf("%9g", pixel);
+	else
+	  str.sprintf("%6d", (int)pixel);
+	if (pixel < minVal) {
+	  minVal = pixel;
+	  mMinCol = i;
+	  mMinRow = j;
+	}
+	if (pixel > maxVal) {
+	  maxVal = pixel;
+	  mMaxCol = i;
+	  mMaxRow = j;
+	}
+      }
+      mButtons[j][i]->setText(str);
+
+      // do label on left for this row
+      if (!i){
+	if (j == (PV_COLS / 2))
+	  str.sprintf("%5d*", y+1);
+	else
+	  str.sprintf("%5d ", y+1);
+	mLeftLabels[j]->setText(str);
+      }
+    }
+  }
+  if (mMinRow >= 0)
+    mButtons[mMinRow][mMinCol]->setPaletteBackgroundColor(QColor(0, 255, 255));
+  if (mMaxRow >= 0)
+    mButtons[mMaxRow][mMaxCol]->setPaletteBackgroundColor(QColor(255, 0, 128));
+}
+
+void PixelView::buttonPressed(int pos)
+{
   int x,y;
 
   ivwControlPriority(App->cvi, ctrl);
 
   y = pos / PV_COLS - PV_COLS / 2;
   x = pos % PV_COLS - PV_ROWS / 2;
-  y += 1;
   App->cvi->xmouse += x;
-  App->cvi->ymouse -= y;
+  App->cvi->ymouse += y;
   ivwBindMouse(App->cvi);
-  /*   set_pixelview(App->cvi); */
-  imodDraw(App->cvi, IMOD_DRAW_IMAGE | IMOD_DRAW_XYZ);
+  imodDraw(App->cvi, IMOD_DRAW_XYZ);   // Removed IMOD_DRAW_IMAGE
 }
 
-int open_pixelview(struct ViewInfo *vi)
+
+// Close event: just remove control from list and null pointer
+void PixelView::closeEvent ( QCloseEvent * e )
 {
-
-  static Widget row, col;
-  char *pixtitle = "Pixel View";
-  int i, j, x, y;
-  float pixal;
-  char buf[32];
-
-  Atom wmclose;
-
-  if (PixelViewDialog){
-    set_pixelview(vi);
-    return(-1);
-  }
-
-  PixelViewDialog = XtVaCreatePopupShell
-    ("PixelView", topLevelShellWidgetClass, App->toplevel,
-     XtNtitle, pixtitle,
-     XmNvisual, App->visual,
-     NULL);
-
-  row = XtVaCreateManagedWidget
-    ("rowcolumn", xmRowColumnWidgetClass, PixelViewDialog,
-     XmNpacking, XmPACK_COLUMN,
-     XmNnumColumns, PV_COLS,
-     XmNorientation, XmVERTICAL,
-     NULL);
-
-  for (i = 0; i < PV_COLS; i++)
-    for(j = 0; j < PV_ROWS; j++){
-      sprintf(buf, "         x");
-      if ((i) && (j<(PV_ROWS-1))){
-        PixelViewGrid[PV_ROWS - j - 1][i] = XtVaCreateManagedWidget
-          (buf, xmPushButtonWidgetClass, row, NULL);
-        XtAddCallback( PixelViewGrid[PV_ROWS - j - 1][i],
-                       XmNactivateCallback, pixelview_cb,
-                       (XtPointer)((j * PV_COLS) + i));
-      }else{
-        PixelViewGrid[PV_ROWS - j - 1][i] = XtVaCreateManagedWidget
-          (buf, xmLabelWidgetClass, row, NULL);
-      }
-    }
-
-
-     
-  wmclose = XmInternAtom( XtDisplay(PixelViewDialog),
-                          "WM_DELETE_WINDOW", False);
-  XmAddWMProtocolCallback(PixelViewDialog, wmclose, pview_quit_cb,
-                          (caddr_t)vi);
-
-  ctrl = ivwNewControl(vi, pviewDraw_cb, pviewClose_cb, NULL, (XtPointer)0);
-
-  XtPopup(PixelViewDialog, XtGrabNone);
-  set_pixelview(vi);
-  return(0);
+  ivwRemoveControl(App->cvi, ctrl);
+  PixelViewDialog = NULL;
+  e->accept();
 }
+
+// Key press: look for arrow keys and pass directly to default input,
+// pass on others to next window that cares
+void PixelView::keyPressEvent ( QKeyEvent * e )
+{
+  int key = e->key();
+  if (key == Qt::Key_Escape)
+    close();
+
+  else if (!(e->state() & Qt::Keypad) && 
+	   (key == Qt::Key_Right || key == Qt::Key_Left || 
+	    key == Qt::Key_Up || key == Qt::Key_Down))
+    inputQDefaultKeys(e, App->cvi);
+    
+  else
+    ivwControlKey(0, e);
+}
+
+void PixelView::keyReleaseEvent ( QKeyEvent * e )
+{
+  ivwControlKey(1, e);
+}
+
+
