@@ -90,6 +90,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.84.2.5  2004/08/03 19:17:36  sueh
+ * <p> bug# 519 get the correct tiltAngleSpec for axis B
+ * <p>
  * <p> Revision 3.84.2.4  2004/08/03 16:23:48  sueh
  * <p> bug# 519 merge from head:
  * <p> added makeRawtltFile(): create a new .rawtlt file from
@@ -1042,6 +1045,7 @@ public class ApplicationManager {
       mainFrame.openMessageDialog(
         "Can not update metadata parameters without an active setup dialog",
         "Program logic error");
+      return;
     }
     //  Get the selected exit button
     DialogExitState exitState = setupDialog.getExitState();
@@ -1055,6 +1059,9 @@ public class ApplicationManager {
       System.setProperty("user.dir",
         setupDialog.getWorkingDirectory().getAbsolutePath());
       metaData = setupDialog.getFields();
+      if (metaData == null) {
+        return;
+      }
       if (metaData.isValid()) {
         mainFrame.updateDataParameters(null, metaData);
         processTrack.setSetupState(ProcessState.INPROGRESS);
