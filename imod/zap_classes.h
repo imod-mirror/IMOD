@@ -32,6 +32,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.2  2002/12/09 23:24:12  mast
+*** empty log message ***
+
 Revision 1.1.2.1  2002/12/09 17:48:09  mast
 Initial addition to source
 
@@ -55,6 +58,7 @@ class ToolEdit;
 class QLabel;
 class QToolBar;
 class QSignalMapper;
+class QSlider;
 
 struct zapwin;
 class ZapGL;
@@ -78,6 +82,7 @@ class ZapWindow : public QMainWindow
     void info();
     void newZoom();
     void newSection();
+    void sliderChanged(int value);
     void timeBack();
     void timeForward();
     void toggleClicked(int index);
@@ -101,6 +106,7 @@ class ZapWindow : public QMainWindow
     ToolEdit *mZoomEdit;
     ToolEdit *mSectionEdit;
     QLabel *mTimeLabel;
+    QSlider *mSecSlider;
 };
 
 class ZapGL : public QGLWidget
