@@ -9,6 +9,10 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.12  2005/03/28 22:52:13  mast
+c	  Called function for remapping separate groups, fixed this not being
+c	  done for PIP input
+c	
 c	  Revision 3.11  2005/03/25 20:10:47  mast
 c	  Fixed problems with mapping rotation variables in blocks or linearly
 c	  with a fixed angle
@@ -108,6 +112,8 @@ c
 	  do ig =1, ngsep
 	    ierr = PipGetString('SeparateGroup', listString)
 	    call parselist(listString, ivsep(1,ig),nsepingrp(ig))
+	    call mapSeparateGroup(ivsep(1,ig), nsepingrp(ig), mapFileToView,
+     &		nFileViews)
 	  enddo
 	  rotstart = 0.
 	  ierr = PipGetFloat('RotationAngle', rotstart)
@@ -279,23 +285,8 @@ c
 c	      
 c	      check legality and trim ones not in included views
 c	      
-	    i=1
-	    do while(i.le.nsepingrp(ig))
-	      if(ivsep(i,ig).le.0.or.ivsep(i,ig).gt.nfileviews)then
-		print *,'View',ivsep(i,ig),
-     &		    ' is outside known range of image file'
-		call exit(1)
-	      endif
-	      ivsep(i,ig)=mapfiletoview(ivsep(i,ig))
-	      if(ivsep(i,ig).eq.0)then
-		nsepingrp(ig)=nsepingrp(ig)-1
-		do j=i,nsepingrp(ig)
-		  ivsep(j,ig)=ivsep(j+1,ig)
-		enddo
-	      else
-		i=i+1
-	      endif
-	    enddo
+	    call mapSeparateGroup(ivsep(1,ig), nsepingrp(ig), mapFileToView,
+     &		nFileViews)
 c	    print *,(ivsep(i,ig),i=1,nsepingrp(ig))
 	  enddo
 	endif
