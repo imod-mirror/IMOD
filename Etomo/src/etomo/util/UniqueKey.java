@@ -13,7 +13,11 @@ package etomo.util;
 * 
 * @version $Revision$
 * 
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1.2.1  2004/09/13 19:20:23  sueh
+* <p> bug# 520 An immutable key which is unque to the HashedArray passed
+* <p> to it.  Contains a hashCode() function.
+* <p> </p>
 */
 public class UniqueKey {
   public static  final String  rcsid =  "$Id$";
@@ -21,14 +25,14 @@ public class UniqueKey {
   private final String name;
   private long count = 0;
   
-  UniqueKey(String name, HashedArray array) {
+  UniqueKey(String name, HashedArray keyedStorage) {
     this.name = name;
-    makeUnique(array);
+    makeUnique(keyedStorage);
   }
   
-  private void makeUnique(HashedArray array) {
-    for (int i = 0; i < array.size(); i++) {
-      UniqueKey storedKey = (UniqueKey) array.getKey(i);
+  private void makeUnique(HashedArray keyedStorage) {
+    for (int i = 0; i < keyedStorage.size(); i++) {
+      UniqueKey storedKey = (UniqueKey) keyedStorage.getKey(i);
       if (storedKey.name.equals(name)) {
         count = storedKey.count + 1;
       }
