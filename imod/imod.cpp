@@ -34,6 +34,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.10  2002/12/23 04:52:58  mast
+Add option to get different font size
+
 Revision 1.1.2.9  2002/12/19 04:37:13  mast
 Cleanup of unused global variables and defines
 
@@ -118,6 +121,8 @@ index modeling is the default if multiple files are opened.
 #include "imod_client_message.h"
 #include "xzap.h"
 #include "imod_display.h"
+#include "sslice.h"
+#include "control.h"
 
 /******************************* Globals *************************************/
 ImodApp *App;
@@ -856,7 +861,20 @@ char *imodwfname(char *intro)
   return (imodwGivenName(intro, filename));
 }
 
-
+/* Takes an intro without a :, and returns a qstring with intro: filename
+   or just intro */
+QString imodCaption(char *intro)
+{
+  QString qstr = intro;
+  qstr += ":";
+  char *name = imodwfname((char *)qstr.latin1());
+  if (name) {
+    qstr = name;
+    free(name);
+  } else
+    qstr = intro;
+  return qstr;
+}
 
 /***********************************************************************
  * Core application plugin lookup functions.
