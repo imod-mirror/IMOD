@@ -20,6 +20,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.19.2.3  2004/07/14 16:10:11  sueh
+ * bug# 405 merged from head: recursively kill processes
+ *
  * Revision 3.19.2.2  2004/07/02 22:12:45  rickg
  * Bug #491 merged in fixed xf detection logic
  *
@@ -1498,8 +1501,8 @@ public class ProcessManager {
    */
   protected String getChildProcess(String processID) {
     Utilities.debugPrint("in getChildProcess: processID=" + processID);
-    //ps -el: get all processes in the computer
-    SystemProgram ps = new SystemProgram("ps -el");
+    //ps -l: get user processes on this terminal
+    SystemProgram ps = new SystemProgram("ps -l");
     ps.run();
 
     //  Find the index of the Parent ID and ProcessID
@@ -1565,8 +1568,8 @@ public class ProcessManager {
    */
   private String[] getChildProcessList(String processID) {
     Utilities.debugPrint("in getChildProcessList: processID=" + processID);
-    //ps -el: get all processes in the computer
-    SystemProgram ps = new SystemProgram("ps -el");
+    //ps -l: get user processes on this terminal
+    SystemProgram ps = new SystemProgram("ps -l");
     ps.run();
 
     //  Find the index of the Parent ID and ProcessID
@@ -1607,7 +1610,7 @@ public class ProcessManager {
       if (fields[idxPPID].equals(processID)
         && !killedList.containsKey(fields[idxPID])) {
         if (idxCMD != -1) {
-        Utilities.debugPrint(
+          Utilities.debugPrint(
           "child found:PID="
             + fields[idxPID]
             + ",PPID="
