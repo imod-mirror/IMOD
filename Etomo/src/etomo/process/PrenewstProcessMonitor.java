@@ -11,6 +11,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.3.4.2  2004/09/29 19:09:42  sueh
+ * <p> bug# 520 Removing pass-through function calls.
+ * <p>
  * <p> Revision 3.3.4.1  2004/09/07 17:55:50  sueh
  * <p> bug# 520 getting dataset name from metadata
  * <p>
@@ -63,7 +66,7 @@ public class PrenewstProcessMonitor extends FileSizeProcessMonitor {
     int modeBytes = 1;
 
     // Get the header from the raw stack to calculate the aligned stack stize
-    String dataSetPath = System.getProperty("user.dir") + "/"
+    String dataSetPath = applicationManager.getPropertyUserDir() + "/"
       + applicationManager.getMetaData().getDatasetName() + axisID.getExtension();
 
     MRCHeader rawStack = new MRCHeader(dataSetPath + ".st");

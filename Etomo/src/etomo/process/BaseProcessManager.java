@@ -24,6 +24,11 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.3  2004/10/08 15:55:17  sueh
+* <p> bug# 520 Handled command array in BackgroundProcess.  Since
+* <p> EtomoDirector is a singleton, made all functions and member variables
+* <p> non-static.
+* <p>
 * <p> Revision 1.1.2.2  2004/10/06 01:38:00  sueh
 * <p> bug# 520 Added abstract backgroundPostProcessing to handle
 * <p> non-generic processing during msgBackgroundProcessDone().  Added
@@ -91,8 +96,7 @@ public abstract class BaseProcessManager {
     isAxisBusy(axisID);
 
     // Run the script as a thread in the background
-    comScriptProcess.setWorkingDirectory(new File(System
-      .getProperty("user.dir")));
+    comScriptProcess.setWorkingDirectory(new File(manager.getPropertyUserDir()));
     comScriptProcess.setDebug(EtomoDirector.getInstance().isDebug());
     comScriptProcess.setDemoMode(EtomoDirector.getInstance().isDemo());
     comScriptProcess.start();
@@ -562,8 +566,7 @@ public abstract class BaseProcessManager {
   private BackgroundProcess startBackgroundProcess(
       BackgroundProcess backgroundProcess, String commandLine, AxisID axisID)
       throws SystemProcessException {
-    backgroundProcess.setWorkingDirectory(new File(System
-        .getProperty("user.dir")));
+    backgroundProcess.setWorkingDirectory(new File(manager.getPropertyUserDir()));
     backgroundProcess.setDemoMode(EtomoDirector.getInstance().isDemo());
     backgroundProcess.setDebug(EtomoDirector.getInstance().isDebug());
     backgroundProcess.start();

@@ -30,6 +30,10 @@ import etomo.util.Utilities;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.6.2.2  2004/10/08 15:56:41  sueh
+ * <p> $bug# 520 Since EtomoDirector is a singleton, made all functions and
+ * <p> $member variables non-static.
+ * <p> $
  * <p> $Revision 1.6.2.1  2004/09/03 21:08:47  sueh
  * <p> $bug# 520 calling isSelfTest from EtomoDirector
  * <p> $
@@ -288,7 +292,7 @@ public class CombineProcessMonitor implements Runnable, BackgroundProcessMonitor
     initializeProgressBar();
     //  Instantiate the logFile object
     String logFileName = CombineComscriptState.COMSCRIPT_NAME + ".log";
-    logFile = new File(System.getProperty("user.dir"), logFileName);
+    logFile = new File(applicationManager.getPropertyUserDir(), logFileName);
 
     try {
       //  Wait for the log file to exist

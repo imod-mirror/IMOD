@@ -17,6 +17,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.9.2.2  2004/10/06 01:51:00  sueh
+ * <p> bug# 520 Removed unnecessary import.
+ * <p>
  * <p> Revision 3.9.2.1  2004/10/01 19:49:15  sueh
  * <p> bug# 520 Add a static parseError(String[]) function that can be used to
  * <p> parse stdOutput and stdError.
@@ -136,6 +139,8 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
 
+import etomo.EtomoDirector;
+
 
 public class SystemProgram implements Runnable {
   public static final String rcsid =
@@ -231,7 +236,7 @@ public class SystemProgram implements Runnable {
         System.err.println("null");
         System.err.println(
           "SystemProgram: using current user.dir "
-            + System.getProperty("user.dir"));
+            + EtomoDirector.getInstance().getCurrentPropertyUserDir());
       }
       else {
         System.err.println(workingDirectory.getAbsoluteFile());
@@ -245,7 +250,7 @@ public class SystemProgram implements Runnable {
         System.err.print("SystemProgram: Exec'ing process...");
 
       if (workingDirectory == null) {
-        workingDirectory = new File(System.getProperty("user.dir"));
+        workingDirectory = new File(EtomoDirector.getInstance().getCurrentPropertyUserDir());
       }
       runTimestamp = new Date();
       process = Runtime.getRuntime().exec(commandArray, null, workingDirectory);

@@ -1,6 +1,8 @@
 package etomo.process;
 import java.io.*;
 
+import etomo.EtomoDirector;
+
 /*
  * <p>Description: InteractiveSystemProgram implements a Runable class that can
  * execute an arbitrary program under the host operating system.</p>
@@ -15,6 +17,9 @@ import java.io.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.0  2003/11/07 23:19:00  rickg
+ * <p> Version 1.0.0
+ * <p>
  * <p> Revision 2.2  2003/03/20 17:26:48  rickg
  * <p> Comment update
  * <p>
@@ -85,7 +90,7 @@ public class InteractiveSystemProgram implements Runnable {
     Process process = null;
     try {
       if (workingDirectory == null) {
-        File currentUserDirectory = new File(System.getProperty("user.dir"));
+        File currentUserDirectory = new File(EtomoDirector.getInstance().getCurrentPropertyUserDir());
         process =
           Runtime.getRuntime().exec(command, null, currentUserDirectory);
       }
