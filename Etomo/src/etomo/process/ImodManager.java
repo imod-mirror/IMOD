@@ -28,6 +28,11 @@ import etomo.type.ConstMetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.25.4.4  2004/10/14 03:28:01  sueh
+ * <p> bug# 520 Added an imod for join samples (root.sample).  Added a
+ * <p> setMetaData for ConstJoinMetaData.  Added loadJoinMap() which
+ * <p> creates join imods like join samples.
+ * <p>
  * <p> Revision 3.25.4.3  2004/09/22 22:06:36  sueh
  * <p> bug# 520 Made isOpen() check all imodStates of each type, instead of
  * <p> only the most recent.  Added getSlicerAngles().  Removed
@@ -321,6 +326,8 @@ public class ImodManager {
   public static final String PREVIEW_KEY = new String("preview");
   public static final String TOMOGRAM_KEY = new String("tomogram");
   public static final String JOIN_SAMPLES_KEY = new String("joinSamples");
+  public static final String JOIN_SAMPLE_AVERAGES_KEY = new String("joinSampleAverages");-
+  
 
   //private keys - used with imodMap
   private static final String rawStackKey = RAW_STACK_KEY;
@@ -339,6 +346,7 @@ public class ImodManager {
   private static final String previewKey = PREVIEW_KEY;
   private static final String tomogramKey = TOMOGRAM_KEY;
   private static final String joinSamplesKey = JOIN_SAMPLES_KEY;
+  private static final String joinSampleAveragesKey = JOIN_SAMPLE_AVERAGES_KEY;
 
   private boolean useMap = true;
 
@@ -859,6 +867,7 @@ public class ImodManager {
   
   protected void loadJoinMap() {
     imodMap.put(joinSamplesKey, newVector(newJoinSamples(datasetName)));
+    imodMap.put(joinSampleAverageKey, newVector(newJoinSampleAverages(datasetName)));
   }
 
   protected void loadDualAxisMap() {
@@ -991,6 +1000,10 @@ public class ImodManager {
   }
   protected ImodState newJoinSamples(String root) {
     ImodState imodState = new ImodState(root + ".sample");
+    return imodState;
+  }
+  protected ImodState newJoinSampleAverages(String root) {
+    ImodState imodState = new ImodState(root + ".sampavg");
     return imodState;
   }
   
