@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.8.2.5  2002/12/13 06:09:09  mast
+    include file changes
+
     Revision 3.8.2.4  2002/12/12 01:21:09  mast
     Changes for xyz window to become Qt
 
@@ -107,6 +110,9 @@ typedef struct imod_application
      Visual      *visualGL;
      XVisualInfo *visualinfoGL;
      Colormap     cmapGL;
+     int         qtRgba;
+     int         qtDoubleBuffer;
+     int         qtEnableDepth;
 
      /* Global color pixel values */
      unsigned int base;

@@ -34,6 +34,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.5  2002/12/13 06:09:09  mast
+include file changes
+
 Revision 1.1.2.4  2002/12/09 17:49:19  mast
 changes to get Zap as a Qt window
 
@@ -102,6 +105,7 @@ index modeling is the default if multiple files are opened.
 #include "imodv.h"
 #include "imod_client_message.h"
 #include "xzap.h"
+#include "imod_display.h"
 
 /******************************* Globals *************************************/
 ImodApp *App;
@@ -199,14 +203,17 @@ int main( int argc, char *argv[])
   /* Initialize data. */
   App = &app;
   App->rgba = 0;
+  App->qtRgba = 0;
 
   /*DNM: prescan for debug and rgb flags before the display_init */
   for (i = 1; i < argc; i++){
     if (argv[i][0] == '-' && argv[i][1] == 'D')
       Imod_debug = TRUE;
     if (argv[i][0] == '-' && argv[i][1] == 'r' && argv[i][2] == 'g'
-        && argv[i][3] == 'b')
+        && argv[i][3] == 'b') {
       App->rgba = 1;
+      App->qtRgba = 1;
+    }
   }
 
   /* Run the program as imodv? */
@@ -239,6 +246,8 @@ int main( int argc, char *argv[])
   /* initialize the qxt application */
   QXtApplication qapp(XtDisplay(App->toplevel));
   QApplication::setStyle("windows");
+  //imodAssessVisuals();
+  imodFindQGLFormat(App, argv);
 
   /*******************/
   /* Initialize Data */
