@@ -35,6 +35,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.5  2002/12/23 04:57:07  mast
+Defer swapping buffers when taking a snapshot
+
 Revision 1.1.2.4  2002/12/18 04:15:14  mast
 new includes for imodv modules
 
@@ -128,6 +131,11 @@ void imodv_setbuffer(ImodvApp *a)
 {
   /* DNM 9/2/02: skip if one of the visuals didn't exist */
   if (a->enableDepthSB < 0 || a->enableDepthDB < 0)
+    return;
+
+  // Also skip if we are in hardware stereo and the other buffer won't support
+  if (a->stereo == IMODV_STEREO_HW && 
+      (a->db && !a->stereoSB || !a->db && !a->stereoDB))
     return;
 
   imodv_clear(a);
