@@ -35,6 +35,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.14  2003/01/14 21:52:38  mast
+include new movie controller include file
+
 Revision 1.1.2.13  2003/01/13 01:15:43  mast
 changes for Qt version of info window
 
@@ -127,6 +130,7 @@ Added hotkeys to do smoothing and next section in autocontouring
 #include "imodplug.h"
 #include "imod_info.h"
 #include "imod_info_cb.h"
+#include "imod_input.h"
 #include "imod_moviecon.h"
 
 #include "qcursor.bits"
@@ -2612,8 +2616,8 @@ static void zapDrawGhost(ZapStruct *zap)
     glColor3f(red/255., green/255., blue/255.);
 
   /* DNM 6/16/01: need to be based on zap->section, not zmouse */
-  nextz = zap->section + 1;
-  prevz = zap->section - 1;
+  nextz = zap->section + zap->vi->ghostdist;
+  prevz = zap->section - zap->vi->ghostdist;
      
   for(co = 0; co < obj->contsize; co++){
     cont = &(obj->cont[co]);
@@ -2622,9 +2626,10 @@ static void zapDrawGhost(ZapStruct *zap)
     /* By popular demand, display ghosts from lower and upper sections */
     if (cont->pts && !(cont->flags & ICONT_WILD)) {
       iz = (int)floor((double)cont->pts->z + 0.5);
-      if ((iz == nextz && (zap->vi->ghostmode & IMOD_GHOST_PREVSEC))
-          || (iz == prevz && (zap->vi->ghostmode & IMOD_GHOST_NEXTSEC)
-              )){
+      if ((iz > zap->section && iz <= nextz && 
+           (zap->vi->ghostmode & IMOD_GHOST_PREVSEC)) ||
+          (iz < zap->section && iz >= prevz && 
+           (zap->vi->ghostmode & IMOD_GHOST_NEXTSEC))){
         b3dBeginLine();
         for (i = 0; i < cont->psize; i++){
           b3dVertex2i(zapXpos(zap, cont->pts[i].x),
