@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.5  2002/12/18 04:49:31  mast
+Don't require sgi-only stereo to be only standalone
+
 Revision 1.1.2.4  2002/12/18 04:15:14  mast
 new includes for imodv modules
 
@@ -65,25 +68,25 @@ Changes to get clean compilation with g++
  * be cleaned up and the various default settings rationalized.
  */
 
+#include <math.h>
+#include <qcombobox.h>
+#include <qlayout.h>
+#include <qslider.h>
+#include "multislider.h"
+#include "dialog_frame.h"
 #include "imodv_window.h"
-#include <Xm/Label.h>
-#include <Xm/Frame.h>
-#include <Xm/RowColumn.h>
-#include <Xm/ArrowB.h>
-#include <Xm/Scale.h>
-#include <Xm/PushB.h>
-#include <X11/IntrinsicP.h>
-#include <dia.h>
 #include "imodv.h"
 #include "imod.h"
 #include "imodv_gfx.h"
+#include "imodv_input.h"
 #include "imodv_stereo.h"
+#include "hotslider.h"
 
-#define LIMIT_Stereo
+//#define LIMIT_Stereo
 
-#ifdef __sgi
-#include <X11/extensions/SGIStereo.h>
-#endif
+//#ifdef __sgi
+//#include <X11/extensions/SGIStereo.h>
+//#endif
 
 static void stereoInitl(void);
 static void stereoSetUp(void);
@@ -93,72 +96,48 @@ static void stereoEnable(void);
 static void stereoDisable(void);
 static void stereoDone(void);
      
+static bool hardwareOK(void);
 
-struct{
+
+static struct{
   int       init;
   int       hw;
-  diaDialog *dia;
+  ImodvStereo *dia;
   ImodvApp  *a;
-  Widget    wlist[5];
   int       cw;
   int       omode; /* the default mode when on */
 
-  Dimension   width, height;
-  Position    x, y;
+  int   width, height;
+  int    x, y;
   float       rad;
 
   Bool        useSGIStereo;
-  Display     *currentDisplay;
-  Window      currentWindow;
-  GLXContext  currentContext;
   GLenum      currentDrawBuffer;
-  int         currentStereoBuffer;
-  Bool        enabled;
+  //  int         currentStereoBuffer;
+  bool        enabled;
   char        *stereoCommand;
   char        *restoreCommand;
      
 
 }imodvStereoData = {0, 0, 0, 0};
 
-void imodv_resize_cb(Widget w, XtPointer client, XtPointer call);
 
-static Widget mkWorkArea(ImodvApp *a, Widget top);
 
-static void help_cb()
+static bool hardwareOK(void)
 {
-  dia_vasmsg
-    ("~~~~~~~~~~~~~~~~~~~~~~~~\n"
-     "Stereo Edit Dialog Help.\n"
-     "~~~~~~~~~~~~~~~~~~~~~~~~"
-     "\n\n",
-     "Manipulate stereo view.",
-     NULL);
-  return;
+  return (Imodv->db && Imodv->stereoDB || !Imodv->db && Imodv->stereoSB);
 }
 
-static void workarea_cb(Widget w, XtPointer client, XtPointer call)
+void imodvStereoUpdate(void)
 {
-  diaDialog *dia = (diaDialog *)call;
-  mkWorkArea(imodvStereoData.a, w);
-  return;
+  if (imodvStereoData.dia)
+    imodvStereoData.dia->update();
 }
-
-static void done_cb(Widget w, XtPointer client, XtPointer call)
-{
-  diaDialog *dia = (diaDialog *)call;
-  diaDestroyDialog(dia);
-
-  imodvStereoData.dia = NULL;
-  imodvStereoData.wlist[0] = 0;
-  return;
-}
-
 
 /*
  * Stereo lib modified code.      DNM: 5/2/98, switched to use the SGI values
  */
-void
-stereoEnable(void)
+static void stereoEnable(void)
 {
   /*  printf ("In stereoEnable, command %s\n", Imodv->SGIStereoCommand); */
   /*
@@ -175,8 +154,7 @@ stereoEnable(void)
 }
 
 /* call to turn off stereo viewing */
-void
-stereoDisable(void)
+static void stereoDisable(void)
 {
   /*  printf ("In stereoDisable, command %s\n", Imodv->SGIRestoreCommand); */
   /*
@@ -194,47 +172,37 @@ stereoDisable(void)
 void stereoDrawBuffer(GLenum mode)
 {
 
-#ifdef __sgi
+  if (hardwareOK()) {
 
-  imodvStereoData.currentDrawBuffer = mode;
-  switch (mode) {
-  case GL_FRONT:
-  case GL_BACK:
-  case GL_FRONT_AND_BACK:
-    /*
-    ** Simultaneous drawing to both left and right buffers isn't
-    ** really possible if we don't have a stereo capable visual.
-    ** For now just fall through and use the left buffer.
-    */
-  case GL_LEFT:
-  case GL_FRONT_LEFT:
-  case GL_BACK_LEFT:
-    imodvStereoData.currentStereoBuffer = STEREO_BUFFER_LEFT;
-    break;
-  case GL_RIGHT:
-  case GL_FRONT_RIGHT:
-    imodvStereoData.currentStereoBuffer = STEREO_BUFFER_RIGHT;
-    mode = GL_FRONT;
-    break;
-  case GL_BACK_RIGHT:
-    imodvStereoData.currentStereoBuffer = STEREO_BUFFER_RIGHT;
-    mode = GL_BACK;
-    break;
-  default:
-    break;
+    imodvStereoData.currentDrawBuffer = mode;
+    switch (mode) {
+    case GL_FRONT:
+    case GL_BACK:
+    case GL_FRONT_AND_BACK:
+      /*
+      ** Simultaneous drawing to both left and right buffers isn't
+      ** really possible if we don't have a stereo capable visual.
+      ** For now just fall through and use the left buffer.
+      */
+    case GL_LEFT:
+    case GL_FRONT_LEFT:
+    case GL_BACK_LEFT:
+      //      imodvStereoData.currentStereoBuffer = STEREO_BUFFER_LEFT;
+      break;
+    case GL_RIGHT:
+    case GL_FRONT_RIGHT:
+      //      imodvStereoData.currentStereoBuffer = STEREO_BUFFER_RIGHT;
+      mode = GL_FRONT;
+      break;
+    case GL_BACK_RIGHT:
+      //      imodvStereoData.currentStereoBuffer = STEREO_BUFFER_RIGHT;
+      mode = GL_BACK;
+      break;
+    default:
+      break;
+    }
   }
         
-  //  if (Imodv->display && Imodv->cgfx) {
-    /* sync with GL command stream before calling X */
-  //  glXWaitGL();
-  //  XSGISetStereoBuffer(Imodv->display,
-  //                      XtWindow(Imodv->cgfx),
-  //                      imodvStereoData.currentStereoBuffer);
-    /* sync with X command stream before calling GL */
-  //  glXWaitX();
-
-  //  }
-#endif
   glDrawBuffer(mode);
 }
 
@@ -242,7 +210,9 @@ void stereoDrawBuffer(GLenum mode)
 void
 stereoClear(GLbitfield mask)
 {
-  if (imodvStereoData.useSGIStereo) {
+  //
+  if (hardwareOK()) {
+    //    if (imodvStereoData.useSGIStereo) {
     GLenum drawBuffer = imodvStereoData.currentDrawBuffer;
     switch (drawBuffer) {
     case GL_FRONT:
@@ -282,16 +252,13 @@ stereoClear(GLbitfield mask)
 #endif
           
 /* call before using stereo */
-void stereoInit(int usingStereoVisual, char *stereoCmd, char
+static void stereoInit(int usingStereoVisual, char *stereoCmd, char
                 *restoreCmd)
 {
 
   imodvStereoData.useSGIStereo = !usingStereoVisual;
-  imodvStereoData.currentDisplay = NULL;
-  imodvStereoData.currentWindow = None;
-  imodvStereoData.currentContext = NULL;
   imodvStereoData.currentDrawBuffer = GL_NONE;
-  imodvStereoData.currentStereoBuffer = STEREO_BUFFER_NONE;
+  //  imodvStereoData.currentStereoBuffer = STEREO_BUFFER_NONE;
   imodvStereoData.enabled = False;
   if (imodvStereoData.stereoCommand) {
     free(imodvStereoData.stereoCommand);
@@ -424,17 +391,15 @@ static void stereoInitl(void)
   stereoInit(1,
              Imodv->stereoCommand,
              Imodv->restoreCommand);
-  imodvStereoData.currentDisplay = Imodv->display;
-  //    imodvStereoData.currentWindow = XtWindow(Imodv->cgfx);
   atexit(stereoHWOff);
   /***/
   if (!imodvStereoData.init){
 #ifdef __sgi
     /*       if (Imodv->fullscreen) */
-    imodvStereoData.omode = IMODV_STEREO_RL;  // WAS _HW
+    imodvStereoData.omode = IMODV_STEREO_HW;  // WAS _HW
     /*        else */
 #else
-    imodvStereoData.omode = IMODV_STEREO_RL;
+    imodvStereoData.omode = IMODV_STEREO_HW;
 #endif
     imodvStereoData.a = Imodv;
     imodvStereoData.init = True;
@@ -459,55 +424,76 @@ void imodvStereoToggle(void)
   if (Imodv->stereo != IMODV_STEREO_OFF){
     Imodv->stereo = IMODV_STEREO_OFF;
   }else{
+
+    // If hardware is old mode and it is not OK, drop to RL
     Imodv->stereo = imodvStereoData.omode;
+    if ((Imodv->stereo == IMODV_STEREO_HW) && !hardwareOK())
+      Imodv->stereo = IMODV_STEREO_RL;
   }
 
-  if (imodvStereoData.dia)
-    if (imodvStereoData.wlist[0])
-      XtVaSetValues(imodvStereoData.wlist[0],
-                    XmNmenuHistory, 
-                    imodvStereoData.wlist[Imodv->stereo + 1],
-                    NULL);
+  if(Imod_debug)
+    printf("hardware OK %d, stereo %d\n", hardwareOK() ? 1 : 0, Imodv->stereo);
+  imodvStereoUpdate();
   stereoSetUp();
 }
 
 void imodvStereoEditDialog(ImodvApp *a, int state)
 {
-  XtPointer cbd = (XtPointer)(&imodvStereoData);
-
   if (!state){
     if (imodvStereoData.dia)
-      done_cb(NULL, NULL, (XtPointer)imodvStereoData.dia);
+      imodvStereoData.dia->close();
     return;
   }
 
   stereoInitl();
 
   if (imodvStereoData.dia){
-    XRaiseWindow(a->display, 
-                 XtWindow(imodvStereoData.dia->dialog));
+    imodvStereoData.dia->raise();
     return;
   }
 
-  imodvStereoData.dia = diaVaCreateDialog
-    ("Imodv: Stereo View", a->topLevel, a->context,
-     DiaNcontrolButton, "Done", done_cb, cbd,
-     DiaNcontrolButton, "Help", help_cb, cbd,
-     DiaNworkAreaFunc,  workarea_cb,     cbd,
-     DiaNwindowQuit,    done_cb,         cbd,
-     0);
-  return;
+  imodvStereoData.dia = new ImodvStereo(NULL, "stereo dialog");
+  imodvStereoData.a = a;
+
+  imodvAddDialog((QWidget *)imodvStereoData.dia);
+  imodvStereoUpdate();
+  imodvStereoData.dia->show();
 }
 
 /****************************************************************************/
-/*  Stereo Dialog controls.                                                 */
+/*  Stereo Dialog class                                                     */
 
-static void stereo_cb(Widget w, XtPointer client, XtPointer call)
+static char *buttonLabels[] = {"Done", "Help"};
+static char *sliderLabels[] = {"Angle"};
+
+ImodvStereo::ImodvStereo(QWidget *parent, const char *name)
+  : DialogFrame(parent, 2, buttonLabels, true, "Imodv Stereo", "",
+                name)
 {
+  // Make combo box, with just the 2 software options
+  mCtrlPressed = false;
+  mComboBox = new QComboBox(this, "stereo combo");
+  mLayout->addWidget(mComboBox);
+  mComboBox->insertItem("Stereo Off", IMODV_STEREO_OFF);
+  mComboBox->insertItem("Side by Side", IMODV_STEREO_RL);
+  mComboBox->insertItem("Top / Bottom", IMODV_STEREO_TB);
+  mComboBox->setFocusPolicy(NoFocus);
+  connect(mComboBox, SIGNAL(activated(int)), this, SLOT(newOption(int)));
 
-  int option = (int)client;
+  // Make the slider with 1 decimal point
+  mSlider = new MultiSlider(this, 1, sliderLabels, -100, 100, 1);
+  mLayout->addLayout(mSlider->getLayout());
+  mSlider->getSlider(0)->setPageStep(5);
+  connect(mSlider, SIGNAL(sliderChanged(int, int, bool)), this, 
+          SLOT(sliderMoved(int, int, bool)));
 
-  switch (option) {
+  connect(this, SIGNAL(actionPressed(int)), this, SLOT(buttonPressed(int)));
+}
+
+// User selects a new option
+void ImodvStereo::newOption(int item)
+{
+  switch (item) {
 
   case IMODV_STEREO_OFF:
     Imodv->stereo = IMODV_STEREO_OFF;
@@ -530,122 +516,82 @@ static void stereo_cb(Widget w, XtPointer client, XtPointer call)
 
   }
   stereoSetUp();
-  return;
 }
 
-static void angle_cb(Widget w, XtPointer client, XtPointer call)
+void ImodvStereo::sliderMoved(int which, int value, bool dragging)
 {
-  XmScaleCallbackStruct *cbs = (XmScaleCallbackStruct *)call;
-  ImodvApp *a = (ImodvApp *)client;
-
-  float newval = cbs->value * 0.1f;
-  a->plax = newval;
-  imodvDraw(a);
-  return;
+  Imodv->plax = (float)(value / 10.);
+  if (!dragging || (hotSliderFlag() == HOT_SLIDER_KEYDOWN && mCtrlPressed) ||
+      (hotSliderFlag() == HOT_SLIDER_KEYUP && !mCtrlPressed))
+    imodvDraw(Imodv);
 }
 
-static Widget mkWorkArea(ImodvApp *a, Widget top)
+void ImodvStereo::buttonPressed(int which)
 {
-  Widget frame, col;
-
-  frame = XtVaCreateWidget
-    ("frame", xmFrameWidgetClass, top, NULL);
-
-  col = XtVaCreateWidget
-    ("rowcol", xmRowColumnWidgetClass, frame,
+  if (which)
+    dia_vasmsg
+    ("~~~~~~~~~~~~~~~~~~~~~~~~\n"
+     "Stereo Edit Dialog Help.\n"
+     "~~~~~~~~~~~~~~~~~~~~~~~~"
+     "\n\n",
+     "Manipulate stereo view.",
      NULL);
-  {
-    {
-      Widget menuWidget;
-      Arg args[4];
-      int n = 0;
-               
-      XtSetArg(args[n], XmNvisual, Imodv->visual); n++;
-      menuWidget = XmCreatePulldownMenu(col, "pulldown", args, n);
-      XtSetArg(args[n], XmNsubMenuId, menuWidget); n++;
-               
-      imodvStereoData.wlist[0] = XmCreateOptionMenu
-        (col, "option", args, n);
-               
-      imodvStereoData.wlist[1] = XtVaCreateManagedWidget
-        ("Off", xmPushButtonWidgetClass, menuWidget, NULL);
-      XtAddCallback( imodvStereoData.wlist[1], XmNactivateCallback,
-                     stereo_cb, (XtPointer)IMODV_STEREO_OFF);
-               
-      imodvStereoData.wlist[2] = XtVaCreateManagedWidget
-        ("Side by Side", xmPushButtonWidgetClass, menuWidget, 
-         NULL);
-      XtAddCallback( imodvStereoData.wlist[2], XmNactivateCallback,
-                     stereo_cb, (XtPointer)IMODV_STEREO_RL);
-               
-      imodvStereoData.wlist[3] = XtVaCreateManagedWidget
-        ("Top / Bottom", xmPushButtonWidgetClass, menuWidget, 
-         NULL);
-      XtAddCallback( imodvStereoData.wlist[3], XmNactivateCallback,
-                     stereo_cb, (XtPointer)IMODV_STEREO_TB);
+  else
+    close();
+}
 
+// Update the dialog box
+void ImodvStereo::update()
+{
+  // Verify and send out the plax value
+  if (Imodv->plax < -10.)
+    Imodv->plax = -10.;
+  if (Imodv->plax > 10.)
+    Imodv->plax = 10.;
 
-      /* Stereo for SGI machines only right now. */
-#ifdef LIMIT_Stereo
+  mSlider->setValue(0, (int)floor(Imodv->plax * 10. + 0.5));
 
-#ifdef __sgi
+  // Adjust the number of combo items for status of hardware stereo
+  if (hardwareOK() && mComboBox->count() == 3)
+    mComboBox->insertItem("Hardware", IMODV_STEREO_HW);
 
-      // if (a->standalone){ 
-        imodvStereoData.wlist[4] = XtVaCreateManagedWidget
-          ("Hardware", xmPushButtonWidgetClass, 
-           menuWidget, NULL);
-        XtAddCallback( imodvStereoData.wlist[4], 
-                       XmNactivateCallback,
-                       stereo_cb, (XtPointer)IMODV_STEREO_HW);
-	//} 
-#endif
+  if (!hardwareOK() && mComboBox->count() == 4)
+    mComboBox->removeItem(IMODV_STEREO_HW);
 
-#else
+  // Set the combo box
+  mComboBox->setCurrentItem(Imodv->stereo);
+}
+  
+// Accept a close event and set dia to null
+void ImodvStereo::closeEvent ( QCloseEvent * e )
+{
+  imodvRemoveDialog((QWidget *)imodvStereoData.dia);
+  imodvStereoData.dia = NULL;
+  e->accept();
+}
 
-      imodvStereoData.wlist[4] = XtVaCreateManagedWidget
-        ("Hardware", xmPushButtonWidgetClass,
-         menuWidget, NULL);
-      XtAddCallback( imodvStereoData.wlist[4],
-                     XmNactivateCallback,
-                     stereo_cb, (XtPointer)IMODV_STEREO_HW);
-               
-
-
-#endif
-               
-      XtVaSetValues(imodvStereoData.wlist[0],
-                    XmNmenuHistory, 
-                    imodvStereoData.wlist[Imodv->stereo+1], 
-                    NULL);
-               
-      XtManageChild(imodvStereoData.wlist[0]);
+// Close on escape; watch for the hot slider key; pass on keypress
+void ImodvStereo::keyPressEvent ( QKeyEvent * e )
+{
+  if (e->key() == Qt::Key_Escape)
+    close();
+  else {
+    if (hotSliderFlag() != NO_HOT_SLIDER && e->key() == hotSliderKey()) {
+      mCtrlPressed = true;
+      grabKeyboard();
     }
-
-    {
-      int angle;
-      Widget wplax;
-               
-      angle = (int)(a->plax * 10.0f);
-      wplax = XtVaCreateManagedWidget
-        ("Separation",  xmScaleWidgetClass, col,
-         XmNorientation, XmHORIZONTAL,
-         XmNminimum, -100,  XmNmaximum, 100,
-         XmNvalue, angle,    
-         XmNshowValue, True,
-         XmNscaleMultiple, 1,
-         XmNdecimalPoints, 1,
-         XtVaTypedArg, XmNtitleString, XmRString, 
-         "Angle", 6,
-         NULL);
-      XtAddCallback(wplax,
-                    XmNvalueChangedCallback,
-                    angle_cb, (XtPointer)a);
-    }
-
+    imodvKeyPress(e);
   }
-  XtManageChild(col);
-  XtManageChild(frame);
-  return(frame);
-}     
+}
+
+// pass on key release; watch for hot slider release
+void ImodvStereo::keyReleaseEvent ( QKeyEvent * e )
+{
+  if (e->key() == hotSliderKey()) {
+    mCtrlPressed = false;
+    releaseKeyboard();
+  }
+  imodvKeyRelease(e);
+}
 
 
