@@ -26,8 +26,10 @@ import javax.swing.border.LineBorder;
 import etomo.JoinManager;
 import etomo.process.ImodManager;
 import etomo.storage.TomogramFileFilter;
+import etomo.type.ConstJoinMetaData;
 import etomo.type.ConstSectionTableRowData;
 import etomo.type.JoinMetaData;
+import etomo.type.SectionTableRowData;
 import etomo.type.SlicerAngles;
 import etomo.util.InvalidParameterException;
 import etomo.util.MRCHeader;
@@ -47,6 +49,9 @@ import etomo.util.MRCHeader;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.13  2004/10/14 03:32:56  sueh
+* <p> bug# 520 Renamed JoinManager.imodOpen() to imodOpenFile.
+* <p>
 * <p> Revision 1.1.2.12  2004/10/13 23:14:13  sueh
 * <p> bug# 520 Allowed the components of the rootPanel and the table panel to
 * <p> be removed and re-added.  This way the table can look different on
@@ -163,7 +168,7 @@ public class SectionTablePanel implements ContextMenu, Expandable {
   private HeaderCell hdrRotationAnglesY;
   private HeaderCell hdrRotationAnglesZ;
 
-  private ArrayList rows = new ArrayList();
+  private ArrayList rows = null;
 
   private GridBagLayout layout = new GridBagLayout();
   private GridBagConstraints constraints = new GridBagConstraints();
@@ -476,7 +481,10 @@ public class SectionTablePanel implements ContextMenu, Expandable {
   }
 
   private void enableRowButtons(int highlightedRowIndex) {
-    int rowsSize = rows.size();
+    int rowsSize = 0;
+    if (rows != null) {
+      rowsSize = rows.size();
+    }
     if (rows != null && rowsSize == 0) {
       btnExpandSections.setEnabled(false);
       btnMoveSectionUp.setEnabled(false);
@@ -671,6 +679,9 @@ public class SectionTablePanel implements ContextMenu, Expandable {
   }
 
   private boolean isDuplicate(File section) {
+    if (rows == null) {
+      return false;
+    }
     for (int i = 0; i < rows.size(); i++) {
       if (((SectionTableRow) rows.get(i)).equalsSection(section)) {
         String msgDuplicate = "The file, " + section.getAbsolutePath()
@@ -704,6 +715,9 @@ public class SectionTablePanel implements ContextMenu, Expandable {
     }
     catch (IOException e) {
       e.printStackTrace();
+    }
+    if (rows == null) {
+      rows = new ArrayList();
     }
     SectionTableRow row = new SectionTableRow(this, rows.size() + 1, tomogram,
         btnExpandSections.isExpanded(), header.getNSections(), curTab);
@@ -814,28 +828,55 @@ public class SectionTablePanel implements ContextMenu, Expandable {
   }
  
   private void setCurTabInRows() {
+    if (rows == null) {
+      return;
+    }
     for (int i = 0; i < rows.size(); i++) {
       ((SectionTableRow) rows.get(i)).setCurTab(curTab);
     }
   }
   
   private void displayCurTabInRows() {
+    if (rows == null) {
+      return;
+    }
     for (int i = 0; i < rows.size(); i++) {
       ((SectionTableRow) rows.get(i)).displayCurTab(pnlTable);
     }
   }
   
 
-  public boolean getMetaData(JoinMetaData joinMetaData) {
-    joinMetaData.resetSectionTableData();
+  public boolean getMetaData(JoinMetaData metaData) {
+    metaData.resetSectionTableData();
     for (int i = 0; i < rows.size(); i++) {
       ConstSectionTableRowData rowData = ((SectionTableRow) rows.get(i)).getData();
       if (rowData == null) {
         return false;
       }
-      joinMetaData.setSectionTableData(rowData);
+      metaData.setSectionTableData(rowData);
     }
     return true;
+  }
+  
+  public void setMetaData(ConstJoinMetaData metaData) {
+    //System.out.println("setMetaData:metaData=" + metaData);
+    ArrayList rowData = metaData.getSectionTableData();
+    if (rowData == null) {
+      return;
+    }
+    rows = new ArrayList(rowData.size());
+    for (int i = 0; i < rowData.size(); i++) {
+      SectionTableRowData data = (SectionTableRowData) rowData.get(i);
+      SectionTableRow row = new SectionTableRow(this, data, false, JoinDialog.SETUP_TAB);
+      int rowIndex = data.getRowIndex();
+      rows.add(rowIndex, row);
+    }
+    for (int i = 0; i < rows.size(); i++) {
+      SectionTableRow row = (SectionTableRow) rows.get(i);
+      row.create();
+      row.add(pnlTable);
+    }
+    joinDialog.setNumSections(rows.size());
   }
   
   public String getInvalidReason() {
