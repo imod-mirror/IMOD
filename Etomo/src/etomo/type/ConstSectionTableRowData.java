@@ -19,6 +19,9 @@ import etomo.storage.Storable;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.14  2004/11/17 02:22:48  sueh
+* <p> bug# 520 Added a copy constructor.just
+* <p>
 * <p> Revision 1.1.2.13  2004/11/16 02:26:35  sueh
 * <p> bug# 520 Replacing EtomoInteger, EtomoDouble, EtomoFloat, and
 * <p> EtomoLong with EtomoNumber.
@@ -215,28 +218,23 @@ public abstract class ConstSectionTableRowData implements Storable {
     return prepend + "." + groupString + "." + rowNumber.toString();
   }
   
-  public boolean equals(Object object) {
-    if (!(object instanceof SectionTableRowData))
-      return false;
-
-    SectionTableRowData that = (SectionTableRowData) object;
-    
-    if (rowNumber != that.rowNumber) {
+  public boolean equals(ConstSectionTableRowData that) {
+    if (!rowNumber.equals(that.rowNumber)) {
       return false;
     }
     if (!section.equals(that.section)) {
       return false;
     }
-    if (sampleBottomStart != that.sampleBottomStart) {
+    if (!sampleBottomStart.equals(that.sampleBottomStart)) {
       return false;
     }
-    if (sampleBottomEnd != that.sampleBottomEnd) {
+    if (!sampleBottomEnd.equals(that.sampleBottomEnd)) {
       return false;
     }
-    if (sampleTopStart != that.sampleTopStart) {
+    if (!sampleTopStart.equals(that.sampleTopStart)) {
       return false;
     }
-    if (sampleTopEnd != that.sampleTopEnd) {
+    if (!sampleTopEnd.equals(that.sampleTopEnd)) {
       return false;
     }
     if (finalStart != that.finalStart) {
@@ -245,20 +243,49 @@ public abstract class ConstSectionTableRowData implements Storable {
     if (finalEnd != that.finalEnd) {
       return false;
     }
-    if (rotationAngleX != that.rotationAngleX) {
+    if (!rotationAngleX.equals(that.rotationAngleX)) {
       return false;
     }
-    if (rotationAngleY != that.rotationAngleY) {
+    if (!rotationAngleY.equals(that.rotationAngleY)) {
       return false;
     }
-    if (rotationAngleZ != that.rotationAngleZ) {
-      return false;
-    }
-    if (rotationAngleZ != that.rotationAngleZ) {
+    if (!rotationAngleZ.equals(that.rotationAngleY)) {
       return false;
     }
     return true;
   }
+  
+  public boolean equalsSample(ConstSectionTableRowData that) {
+    if (!rowNumber.equals(that.rowNumber)) {
+      return false;
+    }
+    if (!section.equals(that.section)) {
+      return false;
+    }
+    if (!sampleBottomStart.equals(that.sampleBottomStart)) {
+      return false;
+    }
+    if (!sampleBottomEnd.equals(that.sampleBottomEnd)) {
+      return false;
+    }
+    if (!sampleTopStart.equals(that.sampleTopStart)) {
+      return false;
+    }
+    if (!sampleTopEnd.equals(that.sampleTopEnd)) {
+      return false;
+    }
+    if (!rotationAngleX.equals(that.rotationAngleX)) {
+      return false;
+    }
+    if (!rotationAngleY.equals(that.rotationAngleY)) {
+      return false;
+    }
+    if (!rotationAngleZ.equals(that.rotationAngleY)) {
+      return false;
+    }
+    return true;
+  }
+
   
   private static String convertToString(int value) {
     if (value == Integer.MIN_VALUE) {
@@ -291,12 +318,6 @@ public abstract class ConstSectionTableRowData implements Storable {
   
   public File getSection() {
     return section;
-  }
-  public String getSectionAbsolutePath() {
-    return section.getAbsolutePath();
-  }
-  public String getSectionName() {
-    return section.getName();
   }
   
   public ConstEtomoNumber getXMax() {
