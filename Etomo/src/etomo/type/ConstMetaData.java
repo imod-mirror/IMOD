@@ -3,6 +3,7 @@ package etomo.type;
 import java.io.File;
 import java.util.Properties;
 
+import etomo.EtomoDirector;
 import etomo.comscript.ConstCombineParams;
 import etomo.comscript.CombineParams;
 import etomo.comscript.TransferfidParam;
@@ -21,6 +22,11 @@ import etomo.comscript.TrimvolParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.10.4.2  2004/10/01 19:47:26  sueh
+ * <p> bug# 520 provide a standard way to get the identifier of a meta data file
+ * <p> (getName).  Define a new join string that will go in the menu.  Set a file
+ * <p> extension value.
+ * <p>
  * <p> Revision 3.10.4.1  2004/09/29 19:23:26  sueh
  * <p> bug# 520 Added base class BaseMetaData.  Made
  * <p> latestRevisionNumber static.  Moved revision functionality to base class.
@@ -318,10 +324,18 @@ public abstract class ConstMetaData extends BaseMetaData {
   }
 
   public boolean isValid() {
-    return isValid(true);
+    return isValid(true, null);
   }
   
   public boolean isValid(boolean fromScreen) {
+    return isValid(fromScreen, null);
+  }
+  
+  public boolean isValid(File paramFile) {
+    return isValid(false, paramFile);
+  }
+  
+  public boolean isValid(boolean fromScreen, File paramFile) {
     invalidReason = "";
     
     String helpString;
@@ -338,7 +352,7 @@ public abstract class ConstMetaData extends BaseMetaData {
       return false;
     }
 
-    if (!isDatasetNameValid()) {
+    if (!isDatasetNameValid(paramFile)) {
       invalidReason += helpString;
       return false;
     }
@@ -359,13 +373,24 @@ public abstract class ConstMetaData extends BaseMetaData {
   }
 
   public boolean isDatasetNameValid() {
+    return isDatasetNameValid(null);
+  }
+  
+  public boolean isDatasetNameValid(File paramFile) {
     invalidReason = "";
     if (datasetName.equals("")) {
       invalidReason = "Dataset name has not been set.";
       return false;
     }
-    if (getValidDatasetDirectory(System.getProperty("user.dir")) != null) {
-      return true;
+    if (paramFile == null) {
+      if (getValidDatasetDirectory(EtomoDirector.getInstance().getCurrentPropertyUserDir()) != null) {
+        return true;
+      }
+    }
+    else {
+      if (getValidDatasetDirectory(new File(paramFile.getParent()).getAbsolutePath()) != null) {
+        return true;
+      }
     }
     return false;
   }
