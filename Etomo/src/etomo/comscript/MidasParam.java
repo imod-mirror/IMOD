@@ -23,6 +23,10 @@ import etomo.type.SectionTableRowData;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.3  2004/10/25 22:59:49  sueh
+* <p> bug# 520 Fix chunk size by passing the number of rows to
+* <p> ConstJoinMetaData.getChunkSize.
+* <p>
 * <p> Revision 1.1.2.2  2004/10/22 20:58:58  sueh
 * <p> bug# 520 Getting chunk size from ConstSectionTableRowData.
 * <p>
@@ -35,6 +39,7 @@ public class MidasParam implements Command {
   
   private static final int commandSize = 1;
   private static final String commandName = "midas";
+  private static final String outputFileExtension = "_midas.xf";
   
   private ConstJoinMetaData metaData;
   private String[] commandArray;
@@ -48,7 +53,7 @@ public class MidasParam implements Command {
     this.metaData = metaData;
     workingDir = metaData.getWorkingDir();
     rootName = metaData.getRootName();
-    outputFileName = rootName + ".xf";
+    outputFileName = rootName + outputFileExtension;
     outputFile = new File(workingDir, outputFileName);
     ArrayList options = genOptions();
     commandArray = new String[options.size() + commandSize];
@@ -93,8 +98,10 @@ public class MidasParam implements Command {
     options.add("-b");
     options.add("0");
     options.add("-D");
-    options.add(rootName + ".sample");
+    options.add("-o");
     options.add(outputFileName);
+    options.add(rootName + ".sample");
+    options.add(rootName + ".xf");
     return options;
   }
   
@@ -104,6 +111,10 @@ public class MidasParam implements Command {
   
   public static String getName() {
     return commandName;
+  }
+  
+  public static String getOutputFileExtension() {
+    return outputFileExtension;
   }
 
 }
