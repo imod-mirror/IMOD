@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.5  2003/01/06 15:45:21  mast
+New object color class and code
+
 Revision 1.1.2.4  2002/12/13 06:03:47  mast
 moving imod_object_edit declaration to include file and removing argument
 
@@ -441,7 +444,7 @@ void ImodObjColor::newColorSlot(int red, int green, int blue)
 {
   Iobj *obj;
   // If the object number is now illegal, close the selector
-  if (mObjNum >= Model->objsize) {
+  if (mObjNum >= (int)Model->objsize) {
     mSelector->close();
     return;
   }
