@@ -17,6 +17,11 @@ import java.util.Properties;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.2  2004/10/06 02:14:13  sueh
+* <p> bug# 520 Removed Use density reference checkbox.  Changed string
+* <p> default to "", since their default when coming from store() is "".  Added
+* <p> variables to the load() function.
+* <p>
 * <p> Revision 1.1.2.1  2004/09/29 19:28:03  sueh
 * <p> bug# 520 Meta data for serial sections.  Non-const class implements load
 * <p> and set functions.
@@ -87,6 +92,9 @@ public class JoinMetaData extends ConstJoinMetaData {
   }
 
   public void setSectionTableData(ConstSectionTableRowData row) {
+    if (sectionTableData == null) {
+      sectionTableData = new ArrayList();
+    }
     sectionTableData.add(row);
   }
 }
