@@ -23,6 +23,12 @@ import etomo.type.JoinMetaData;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.5  2004/10/11 02:15:37  sueh
+* <p> bug# 520 Moved responsibility for axisPanelA and axisPanelB member
+* <p> variables to the child classes.  Used abstract functions to use these
+* <p> variables in the base class.  This is more reliable and doesn't require
+* <p> casting.
+* <p>
 * <p> Revision 1.1.2.4  2004/10/08 16:33:43  sueh
 * <p> bug# 520 Since EtomoDirector is a singleton, made all functions and
 * <p> member variables non-static.
@@ -82,8 +88,6 @@ public class MainJoinPanel extends MainPanel {
       else {
         buffer.append("Data file: " + paramFile.getAbsolutePath());
       }
-      buffer.append("   Axis type: ");
-      buffer.append(joinMetaData.getAxisType().toString());
     }
     statusBar.setText(buffer.toString());
   }
