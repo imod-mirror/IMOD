@@ -49,6 +49,10 @@ import etomo.util.MRCHeader;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.17  2004/10/22 16:40:05  sueh
+* <p> bug# 520 Don't need prevSampleBottom.  This value should come from
+* <p> the current sample.
+* <p>
 * <p> Revision 1.1.2.16  2004/10/22 03:28:05  sueh
 * <p> bug# 520 Added Open 3dmod button to Join tab.  Added Chunk,
 * <p> reference section, and current section to Align tab.
@@ -161,6 +165,7 @@ public class SectionTablePanel implements ContextMenu, Expandable {
   private HeaderCell hdrOrder;
   private HeaderCell hdrSections;
   private HeaderCell hdrSampleSlices;
+  private HeaderCell hdrSlicesInSample;
   private HeaderCell hdrChunk;
   private HeaderCell hdrReferenceSection;
   private HeaderCell hdrCurrentSection;
@@ -922,11 +927,11 @@ public class SectionTablePanel implements ContextMenu, Expandable {
       return;
     }
     int prevSlice = 0;
-    int prevSampleTop = 0;
+    int prevSampleTopNumberSlices = 0;
     for (int i = 0; i < rows.size(); i++) {
       SectionTableRow row = (SectionTableRow) rows.get(i);
-      prevSlice = row.displayCurTab(pnlTable, prevSlice, prevSampleTop);
-      prevSampleTop = row.getSampleTop();
+      prevSlice = row.displayCurTab(pnlTable, prevSlice, prevSampleTopNumberSlices);
+      prevSampleTopNumberSlices = row.getSampleTopNumberSlices();
     }
   }
   
