@@ -1,6 +1,9 @@
 /*  IMOD VERSION 2.41
  *
- *  control.c -- Document callback control.
+ *  control.c -- Document callback control for drawing, passing keys to, and
+ *                  closing image windows
+ *               Also implements the DialogManager class for hiding, showing
+ *                  and closing dialog  or image windows together
  *
  *  Original author: James Kremer
  *  Revised by: David Mastronarde   email: mast@colorado.edu
@@ -34,6 +37,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.3  2003/01/10 23:48:47  mast
+Made diagnostic output conditional on a flag
+
 Revision 1.1.2.2  2003/01/04 03:45:12  mast
 Add a function to remove a control without calling its close function
 to deconvolute the closing logic
@@ -55,13 +61,30 @@ Eliminated conditional on USE_IMOD_CONTROL
 #include <limits.h>
 #include <math.h>
 #include <string.h>
-#include "mrcfiles.h"
+#include <qwidget.h>
 #include "imod.h"
 #include "control.h"
+
+/* Structure used by dialog manager */
+typedef struct imodv_dialog
+{
+  QWidget *widget;
+  int iconified;
+  int dlgClass;
+} ImodvDialog;
+
+/* Global resident instances of dialog managers for imod and imodv */
+
+DialogManager imodvDialogManager;
+DialogManager imodDialogHider;
+
 
 static int removeControl(ImodView *iv, int inCtrlId, int callClose);
 
 static int controlDebug = 0;
+
+// Flags for whether dialog classes should be hidden together
+static int hideTogether[] = {1, 1, 0};
 
 /****************************************************************************/
 
@@ -302,5 +325,105 @@ void ivwControlKey(/*ImodView *iv, */int released, QKeyEvent *e)
       return;
     }
     ctrlPtr = (ImodControl *)ilistNext(iv->ctrlist->list);
+  }
+}
+
+/***************************************************************************
+ * DIALOG MANAGER CLASS - FOR HIDING, SHOWING, AND CLOSING DIALOGS
+ *      This may include image windows
+ */
+
+DialogManager::DialogManager()
+{
+  mDialogList = NULL;
+}
+
+// Add a dialog to the list
+void DialogManager::add(QWidget *widget, int dlgClass)
+{
+  ImodvDialog dia;
+
+  if (!mDialogList) {
+    mDialogList = ilistNew(sizeof(ImodvDialog), 4);
+    if (!mDialogList) {
+      fprintf(stderr, "IMODV WARNING: Failure to get memory for dialog list\n"
+	      );
+      return;
+    }
+  }
+
+  dia.widget = widget;
+  dia.iconified = 0;
+  dia.dlgClass = dlgClass;
+  ilistAppend(mDialogList, &dia);
+}
+
+// Remove a dialog from the list
+void DialogManager::remove(QWidget * widget)
+{
+  int index = 0;
+  ImodvDialog *dia;
+  if (!mDialogList)
+    return;
+
+  dia = (ImodvDialog *)ilistFirst(mDialogList);
+  while (dia){
+    if (dia->widget == widget) {
+      ilistRemove(mDialogList, index);
+      return;
+    }
+    dia = (ImodvDialog *)ilistNext(mDialogList);
+    index++;
+  }
+  fprintf(stderr, "IMOD WARNING: Failed to find closing dialog on list\n");
+}
+
+// Close all dialogs and delete the list
+void DialogManager::close()
+{
+  ImodvDialog *dia;
+  Ilist *tempList = mDialogList;
+
+  // Put list in a local variable and null out the static one so that removals
+  // are ignored
+  if (!mDialogList)
+    return;
+  mDialogList = NULL;
+
+  dia = (ImodvDialog *)ilistFirst(tempList);
+  while (dia){
+    dia->widget->close();
+    dia = (ImodvDialog *)ilistNext(tempList);
+  }
+  ilistDelete(tempList);
+}
+
+// Iconify any dialogs that are shown now; keep track of them
+void DialogManager::hide()
+{
+  ImodvDialog *dia;
+  dia = (ImodvDialog *)ilistFirst(mDialogList);
+  while (dia){
+    // Do not iconify if it is already minimized or if this class should
+    // not be hidden together
+    if (dia->widget->isMinimized() || !hideTogether[dia->dlgClass])
+      dia->iconified = 0;
+    else {
+      dia->iconified = 1;
+      dia->widget->showMinimized();
+    }
+    dia = (ImodvDialog *)ilistNext(mDialogList);
+  }
+}
+
+// Show dialogs that were brought down by the hide operation
+void DialogManager::show()
+{
+  ImodvDialog *dia;
+  dia = (ImodvDialog *)ilistFirst(mDialogList);
+  while (dia){
+    if (dia->iconified)
+      dia->widget->showNormal();
+    dia = (ImodvDialog *)ilistNext(mDialogList);
   }
 }
