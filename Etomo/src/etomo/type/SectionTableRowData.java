@@ -17,6 +17,10 @@ import java.util.Properties;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.9  2004/11/16 02:28:37  sueh
+* <p> bug# 520 Replacing EtomoSimpleType, EtomoInteger, EtomoDouble,
+* <p> EtomoFloat, and EtomoLong with EtomoNumber.
+* <p>
 * <p> Revision 1.1.2.8  2004/10/30 02:36:12  sueh
 * <p> bug# 520 Converted rotation angles to EtomoSimpleType.
 * <p>
@@ -55,6 +59,10 @@ public class SectionTableRowData extends ConstSectionTableRowData {
   public SectionTableRowData(int rowNumber) {
     reset();
     this.rowNumber.set(rowNumber);
+  }
+  
+  public SectionTableRowData(ConstSectionTableRowData that) {
+    super(that);
   }
   
   private void reset() {
