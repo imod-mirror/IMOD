@@ -18,6 +18,9 @@ import java.util.Properties;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.5  2004/10/14 02:28:12  sueh
+* <p> bug# 520 Added getWorkingDir().
+* <p>
 * <p> Revision 1.1.2.4  2004/10/11 02:07:17  sueh
 * <p> bug# 520 Fixed a bug in ConstMetaData where the open edf file menu
 * <p> item wasn't working because it was validating the propertyUserDir of the
@@ -48,7 +51,7 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
   protected static final String groupString = "Join";
   protected static final String sectionTableDataSizeString = "SectionTableDataSize";
   protected static final String densityRefSectionString = "DensityRefSection";
-  protected static final String workingDirString = "WorkingDirString";
+  protected static final String workingDirString = "WorkingDir";
   protected static final String rootNameString = "RootName";
 
   protected static final int defaultDensityRefSection = 1;
@@ -64,6 +67,26 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
   public ConstJoinMetaData() {
     fileExtension = "ejf";
   }
+  
+  public String toString() {
+    return getClass().getName() + "[" + paramString() + "]";
+  }
+
+  protected String paramString() {
+    StringBuffer buffer = new StringBuffer(super.paramString() + ",\nlatestRevisionNumber=" + latestRevisionNumber + ",\nnewJoinTitle="
+        + newJoinTitle + ",\ngroupString=" + groupString + ",\n" + densityRefSectionString + "="
+        + densityRefSection + ",\n" + workingDirString + "="
+        + workingDir + ",\n" + rootNameString + "="
+        + rootName);
+    if (sectionTableData != null) {
+      buffer.append(",\n"+ sectionTableDataSizeString + "=" + sectionTableData.size());
+      for (int i = 0; i < sectionTableData.size(); i++) {
+        ConstSectionTableRowData row = (ConstSectionTableRowData) sectionTableData.get(i);
+        buffer.append(row.toString());
+      }
+    }
+    return buffer.toString();
+  } 
 
   public ArrayList getSectionTableData() {
     return sectionTableData;
@@ -80,7 +103,6 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
         .toString(densityRefSection));
     props.setProperty(group + sectionTableDataSizeString, Integer
         .toString(sectionTableData.size()));
-
     if (sectionTableData != null) {
       for (int i = 0; i < sectionTableData.size(); i++) {
         ((SectionTableRowData) sectionTableData.get(i)).store(props, prepend);
@@ -90,7 +112,7 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
 
   protected static String createPrepend(String prepend) {
     if (prepend == "") {
-      return groupString + ".";
+      return groupString;
     }
     return prepend + "." + groupString;
   }
@@ -170,6 +192,10 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
 
   public String getRootName() {
     return rootName;
+  }
+  
+  public int getDensityRefSection() {
+    return densityRefSection;
   }
 
   public String getMetaDataFileName() {
