@@ -29,6 +29,10 @@ import etomo.util.MRCHeader;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.19  2004/11/16 02:29:23  sueh
+* <p> bug# 520 Replacing EtomoSimpleType, EtomoInteger, EtomoDouble,
+* <p> EtomoFloat, and EtomoLong with EtomoNumber.
+* <p>
 * <p> Revision 1.1.2.18  2004/11/15 22:26:27  sueh
 * <p> bug# 520 Added setMode().  Moved enabling and disabling to setMode().
 * <p>
@@ -156,15 +160,15 @@ public class SectionTableRow {
     this.sectionExpanded = sectionExpanded;
     this.curTab = curTab;
   }
-  
+
   public SectionTableRow(SectionTablePanel table, SectionTableRowData data,
       boolean sectionExpanded, int curTab) {
     this.table = table;
-    this.data = data;
+    this.data = new SectionTableRowData(data);
     this.sectionExpanded = sectionExpanded;
     this.curTab = curTab;
   }
-  
+
   public String toString() {
     return getClass().getName() + "[" + paramString() + "]";
   }
@@ -187,7 +191,7 @@ public class SectionTableRow {
         + currentSection.getText() + ",\ncurrentSection="
         + currentSection.getText() + ",\ndata=" + data;
   } 
-  
+
   void create(int mode) {
     rowNumber = new HeaderCell(data.getRowNumber().toString(true),
         FixedDim.rowNumberWidth);
@@ -280,7 +284,7 @@ public class SectionTableRow {
   
   void setMode(int mode) {
     switch (mode) {
-    case JoinDialog.SAMPLE_PRODUCED:
+    case JoinDialog.SAMPLE_PRODUCED_MODE:
       sampleBottomStart.setEnabled(false);
       sampleBottomEnd.setEnabled(false);
       sampleTopStart.setEnabled(false);
@@ -290,8 +294,8 @@ public class SectionTableRow {
       rotationAngleZ.setEnabled(false);
       return;
     case JoinDialog.SETUP_MODE:
-    case JoinDialog.SAMPLE_NOT_PRODUCED:
-    case JoinDialog.CHANGING_SAMPLE:
+    case JoinDialog.SAMPLE_NOT_PRODUCED_MODE:
+    case JoinDialog.CHANGING_SAMPLE_MODE:
       sampleBottomStart.setEnabled(true);
       sampleBottomEnd.setEnabled(true);
       sampleTopStart.setEnabled(true);
@@ -437,6 +441,11 @@ public class SectionTableRow {
     finalEnd.add(panel, layout, constraints);
   }
   
+  /**
+   * Copy field from data to the screen.
+   * Copy all fields stored in data that can be displayed on the screen
+   *
+   */
   private void displayData() {
     rowNumber.setText(data.getRowNumber().toString(true));
     setSectionText();
@@ -451,6 +460,12 @@ public class SectionTableRow {
     rotationAngleZ.setText(data.getRotationAngleZ().toString());
   }
   
+  /**
+   * Copy data from screen to data.
+   * Copies all fields that can be modified on the screen and are stored in data
+   * 
+   * @return
+   */
   private boolean retrieveData() {
     if (!data.setSampleBottomStart(sampleBottomStart.getText()).isValid()
         || !data.setSampleBottomEnd(sampleBottomEnd.getText()).isValid()
@@ -465,7 +480,7 @@ public class SectionTableRow {
     }
     return true;
   }
-  
+
   /**
    * Toggle section between absolute path when expand is true, and name when
    * expand is false.
@@ -481,10 +496,10 @@ public class SectionTableRow {
   
   private void setSectionText() {
     if (sectionExpanded) {
-      section.setText(data.getSectionAbsolutePath());
+      section.setText(data.getSection().getAbsolutePath());
     }
     else {
-      section.setText(data.getSectionName());
+      section.setText(data.getSection().getName());
     }
   }
   
@@ -595,26 +610,27 @@ public class SectionTableRow {
   }
     
   public boolean equalsSection(File section) {
-    if (data.getSectionAbsolutePath().equals(section.getAbsolutePath())) {
+    if (data.getSection().getAbsolutePath().equals(section.getAbsolutePath())) {
       return true;
     }
     return false;
   }
   
-  public boolean equals(Object object) {
-    if (!(object instanceof SectionTableRow))
-      return false;
-
-    SectionTableRow that = (SectionTableRow) object;
+  public boolean equals(SectionTableRow that) {
     retrieveData();
-    
-    if (!data.equals(that.data)) {
-      return false;
-    }
-    return true;
+    return data.equals(that.data);
+  }
+  
+  public boolean equals(ConstSectionTableRowData thatData) {
+    retrieveData();
+    return data.equals(thatData);
   }
 
-  
+  public boolean equalsSample(ConstSectionTableRowData thatData) {
+    retrieveData();
+    return data.equalsSample(thatData);
+  }
+ 
   /**
    * Handle button actions
    * @param event
