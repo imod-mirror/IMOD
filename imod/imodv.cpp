@@ -1,6 +1,6 @@
 /*  IMOD VERSION 2.50
  *
- *  imodv.c -- The main imodv stand alone program.
+ *  imodv.cpp -- The main imodv entry point for standalone or imod operation
  *
  *  Original author: James Kremer
  *  Revised by: David Mastronarde   email: mast@colorado.edu
@@ -34,6 +34,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.3  2002/12/14 05:41:08  mast
+Got qxt startup in the right place
+
 Revision 1.1.2.2  2002/12/06 21:58:40  mast
 *** empty log message ***
 
@@ -61,185 +64,439 @@ Added CVS header.  Changed to getting visuals then passing them to GLw.
 #include <limits.h>
 #include <math.h>
 #include <unistd.h>
+#include "imodv_window.h"
+// This had to be after the window include
 #include <qxt.h>
-
-#include <Xm/Xm.h>
-#include <Xm/Form.h>
-#include <Xm/Frame.h>
-#include <Xm/BulletinB.h>
-//#include <Xm/MwmUtil.h>
-#include <Xm/MainW.h>
 
 #define NO_X_INCLUDES
 #include "imodv.h"
 #include "imod.h"
+#include "imod_display.h"
+#include "imodv_gfx.h"
 
-ImodvApp *Imodv;
-extern int Imod_debug;
-
-#ifdef DRAW_X11
-#define IMODV_VERSION_STRING "1.20x"
-#else
-#define IMODV_VERSION_STRING "1.20"
-#endif
-
-#include <GL/glx.h>
-
-/* the default graphics rendering attributes for OpenGL */
-
-/* These visuals are for displays that only have color index modes */
-/* Decided to leave depth out of the requests */
-static int Pseudo12[] = 
-  {
-    GLX_DOUBLEBUFFER,
-    GLX_BUFFER_SIZE, 12,
-    GLX_DEPTH_SIZE, 8,
-    None
-  };
-
-static int Pseudo8[] = 
-  {
-    GLX_DOUBLEBUFFER,
-    GLX_BUFFER_SIZE, 8,
-    GLX_DEPTH_SIZE, 8,
-    None
-  };
-
-/*
- * These visuals are for displays with TrueColor
- * force it to be TrueColor on SGI, since the code doesn't handle 
- * DirectColor ? - by analogy withy imod visuals;
- * put in some minimal
- * R, G, B sizes in the second selection to 
- * force us past an 8-bit RGB visual, which is pretty bad
- */
-static int True24[] =
-  {
-    GLX_DOUBLEBUFFER, 
-#ifdef __sgi
-    GLX_X_VISUAL_TYPE_EXT, GLX_TRUE_COLOR_EXT, 
-#endif
-    GLX_RGBA,
-    GLX_RED_SIZE, 8,
-    GLX_GREEN_SIZE, 8,
-    GLX_BLUE_SIZE, 8,
-    GLX_DEPTH_SIZE, 8,
-    None
-  };
-static int True12[] =
-  {
-    GLX_DOUBLEBUFFER, 
-#ifdef __sgi
-    GLX_X_VISUAL_TYPE_EXT, GLX_TRUE_COLOR_EXT, 
-#endif
-    GLX_RGBA,
-    GLX_RED_SIZE, 4,
-    GLX_GREEN_SIZE, 4,
-    GLX_BLUE_SIZE, 4,
-    GLX_DEPTH_SIZE, 8,
-    None
-  };
-static int True15[] =
-  {
-    GLX_DOUBLEBUFFER, 
-#ifdef __sgi
-    GLX_X_VISUAL_TYPE_EXT, GLX_TRUE_COLOR_EXT, 
-#endif
-    GLX_RGBA,
-    GLX_RED_SIZE, 5,
-    GLX_GREEN_SIZE, 5,
-    GLX_BLUE_SIZE, 5,
-    GLX_DEPTH_SIZE, 8,
-    None
-  };
-
-/* Some visuals with no depth for the truly desperate */
-static int True24nodep[] =
-  {
-    GLX_DOUBLEBUFFER, 
-#ifdef __sgi
-    GLX_X_VISUAL_TYPE_EXT, GLX_TRUE_COLOR_EXT, 
-#endif
-    GLX_RGBA,
-    GLX_RED_SIZE, 8,
-    GLX_GREEN_SIZE, 8,
-    GLX_BLUE_SIZE, 8,
-    None
-  };
-static int True15nodep[] =
-  {
-    GLX_DOUBLEBUFFER, 
-#ifdef __sgi
-    GLX_X_VISUAL_TYPE_EXT, GLX_TRUE_COLOR_EXT, 
-#endif
-    GLX_RGBA,
-    GLX_RED_SIZE, 5,
-    GLX_GREEN_SIZE, 5,
-    GLX_BLUE_SIZE, 5,
-    None
-  };
-static int True12nodep[] =
-  {
-    GLX_DOUBLEBUFFER, 
-#ifdef __sgi
-    GLX_X_VISUAL_TYPE_EXT, GLX_TRUE_COLOR_EXT, 
-#endif
-    GLX_RGBA,
-    GLX_RED_SIZE, 4,
-    GLX_GREEN_SIZE, 4,
-    GLX_BLUE_SIZE, 4,
-    None
-  };
-static int Pseudo12nodep[] = 
-  {
-    GLX_DOUBLEBUFFER,
-    GLX_BUFFER_SIZE, 12,
-    None
-  };
-
-static int Pseudo8nodep[] = 
-  {
-    GLX_DOUBLEBUFFER,
-    GLX_BUFFER_SIZE, 8,
-    None
-  };
-
-/* List the attribute lists in order of priority, indicate if they are
-   truecolor (rgb) type */
-static int *OpenGLAttribList[] = {
-  True24, True24 + 1, True15, True15 + 1, Pseudo12, Pseudo12 + 1,
-  True12, True12 + 1, Pseudo8, Pseudo8 + 1,
-  True24nodep, True24nodep + 1, True15nodep, True15nodep + 1,
-  Pseudo12nodep, Pseudo12nodep + 1,
-  True12nodep, True12nodep + 1, Pseudo8nodep, Pseudo8nodep + 1,
-  NULL
-};
-static int AttribRGB[] = {1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 
-                          1, 1, 0, 0};
-static int AttribDepth[] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0,
-                            0, 0, 0, 0};
-
-/*void __eprintf(void){return;} */
-
+// static declarations
 static void usage(char *pname);
 static int load_models(int n, char **fname, ImodvApp *a);
-static int setmodelview(ImodvApp *a);
+static int open_display(int *argc, char **argv, ImodvApp *a);
+static int openWindow(ImodvApp *a);
+static int getVisuals(ImodvApp *a);
+static void initstruct(ImodView *vw, ImodvApp *a);
+static int imodv_init(ImodvApp *a, struct Mod_Draw *md);
+
+
+// GLOBAL VARIABLES for the imodv and draw structures
+ImodvApp  ImodvStruct;
+struct Mod_Draw Imodv_mdraw;
+ImodvApp *Imodv = &ImodvStruct;
+
+/* DNM: make this a static for the whole module, so that it can be used to
+   test whether window is open before it's been opened, rather than trusting
+   that ImodvStruct.toplevel is initialized at zero */
+static int first_open = 1;
+
+#define DEFAULT_XSIZE  512
+#define DEFAULT_YSIZE  512
+#define DEFAULT_XSTRING  "512"
+#define DEFAULT_YSTRING  "512"
+
+/* DNM: These fallback resources are needed in case there is no app-default
+   file */
+
+static String Imodv_fallback_resources[] = {
+  "*frame*shadowType: SHADOW_IN",
+  "*sgiMode: True",
+  "*useSchemes: all",
+  "*stereoCommand: /usr/gfx/setmon -n 640x512_120s",
+  "*restoreCommand: /usr/gfx/setmon -n 72HZ",
+  "*SGIStereoCommand: /usr/gfx/setmon -n STR_TOP",
+  "*SGIRestoreCommand: /usr/gfx/setmon -n 72HZ",
+  NULL,
+};
+
+/* DNM 9/2/02: add -D argument to get debug mode to work */
+static XrmOptionDescRec Imodv_options[] = {
+  {"-fullscreen",    "*fullscreen",   XrmoptionNoArg, "True"},
+  {"-f",             "*fullscreen",   XrmoptionNoArg, "True"},
+  {"-fs",            "*fullscreen",   XrmoptionNoArg, "True"},
+  {"-renderbackground", "*renderbackground", XrmoptionSepArg, "black"}, 
+  {"-rbg",       "*renderbackground", XrmoptionSepArg, "black"},
+  {"-D",    "*debug",       XrmoptionNoArg, "True"},
+  {"-x", "*xsize", XrmoptionSepArg, DEFAULT_XSTRING}, 
+  {"-y", "*ysize", XrmoptionSepArg, DEFAULT_YSTRING}, 
+};
+
+/* DNM: There are default settings for the the stereo commands in case there
+   is an app-default file that doesn't define these resources, since the
+   fallback resources don't cover that case */
+
+static XtResource Imodv_resources[] = {
+  {"fullscreen", "FullScreen", XmRBoolean, sizeof(Boolean),
+   XtOffsetOf(ImodvApp, fullscreen), XmRImmediate, (XtPointer)False},
+  {"xsize", "XSize", XmRInt, sizeof(int),
+   XtOffsetOf(ImodvApp, winx), XmRImmediate, (XtPointer)DEFAULT_XSIZE},
+  {"ysize", "YSize", XmRInt, sizeof(int),
+   XtOffsetOf(ImodvApp, winy), XmRImmediate, (XtPointer)DEFAULT_YSIZE},
+  {"renderbackground", "RenderBackground", XmRString, sizeof(XColor),
+   XtOffsetOf(ImodvApp, rbgname), XmRImmediate, (XtPointer)"black"}, 
+  { "stereoCommand",
+    XtCString, XtRString, sizeof (_XtString),
+    XtOffsetOf(ImodvApp, stereoCommand),
+    XtRImmediate, (XtPointer) NULL },
+  { "restoreCommand",
+    XtCString, XtRString, sizeof (_XtString),
+    XtOffsetOf(ImodvApp, restoreCommand),
+    XtRImmediate, (XtPointer) NULL },
+  { "SGIStereoCommand",
+    XtCString, XtRString, sizeof (_XtString),
+    XtOffsetOf(ImodvApp, SGIStereoCommand),
+    XtRString, (XtPointer)"/usr/gfx/setmon -n STR_TOP" },
+  { "SGIRestoreCommand",
+    XtCString, XtRString, sizeof (_XtString),
+    XtOffsetOf(ImodvApp, SGIRestoreCommand),
+    XtRString, (XtPointer)"/usr/gfx/setmon -n 72HZ" }
+     
+};
+
+/* the default graphics rendering attributes for OpenGL */
+static ImodGLRequest True24 = {1, 1, 24, 1};
+static ImodGLRequest True15 = {1, 1, 15, 1};
+static ImodGLRequest True12 = {1, 1, 12, 1};
+static ImodGLRequest True24nodep = {1, 1, 24, 0};
+static ImodGLRequest True15nodep = {1, 1, 15, 0};
+static ImodGLRequest True12nodep = {1, 1, 12, 0};
+
+/* List the attribute lists in order of priority */
+static ImodGLRequest *OpenGLAttribList[] = {
+  &True24, &True15, &True12, &True24nodep, &True15nodep, &True12nodep, 
+  NULL
+};
+
+/*void __eprintf(void){return;} */
 
 static void usage(char *pname)
 {
   imodVersion(pname);
   imodCopyright();
-  fprintf(stderr, "options: all Xt Toolkit options plus:\n");
-  fprintf(stderr, "\t-noborder         Open window with no border.\n");
+  fprintf(stderr, "options: all Qt options plus:\n");
   fprintf(stderr, "\t-fullscreen       Open window to max size.\n");
   fprintf(stderr, "\t-f                Open window to max size.\n");
-  fprintf(stderr, "\t-renderbackground Background color for rendering.\n");
-  fprintf(stderr, "\t-rbg              Background color for rendering.\n");
-  fprintf(stderr, "\t-cindex           Use color index mode.\n");
+  fprintf(stderr, "\t-rbg color_name   Background color for rendering.\n");
+  fprintf(stderr, "\t-x width          Window width in pixels.\n");
+  fprintf(stderr, "\t-x height         Window height in pixels.\n");
   exit(-1);
 }
 
+int myDebugError(Display *inDisplay, XErrorEvent *inError)
+{
+  fprintf(stderr, "imodv: xerror\n");
+  abort();
+  return 0;
+}
 
+/* DEFAULT INITIALIZATION OF THE STRUCTURES
+   9/2/02: also called for model view initialization in imod */
+static int imodv_init(ImodvApp *a, struct Mod_Draw *md)
+{
+  a->nm = 0;
+  a->cm = 0;
+  a->mod = NULL;
+  a->imod = NULL;
+  a->mat  = imodMatNew(3);
+  a->rmat  = imodMatNew(3);
+  a->dobj = imodObjectNew();
+  a->obj = a->dobj;
+  a->ob = 0;
+  a->md = md;
+  a->cnear = 0;
+  a->cfar = 1000;
+  a->fovy = 0;
+  a->dlist = 0;
+  a->update_dlist = 1;
+  a->movie = 0;
+  a->movieFrames = 0;
+#ifdef USE_IMODV_WORKPROC
+  a->wpid = (XtWorkProcId)0;
+#else
+  a->wpid = 0;
+#endif
+  a->stereo = IMODV_STEREO_OFF;
+  a->plax = 5.0f;
+  a->lightx = a->lighty = 0;
+  a->winx = DEFAULT_XSIZE;
+  a->winy = DEFAULT_YSIZE;
+
+  a->rbgcolor.red = a->rbgcolor.green = a->rbgcolor.blue = 0;
+  md->xorg = md->yorg = md->zorg = 0;
+  md->xrot = md->yrot = md->zrot = 0;  /* current rotation. */
+  md->zoom = 1.0f;
+  md->arot = 10;
+  md->atrans = 5.0f;
+  md->azoom = 1.05f;
+  md->azscale = 0.2;
+  md->xrotm = 0; /* rotation movie */
+  md->yrotm = 0;
+  md->zrotm = 0;
+
+  /* control flags */
+  a->fastdraw   = 0;
+  a->current_subset = 0;
+  a->crosset    = False;
+  a->fullscreen = False;
+  a->drawall    = False;
+  a->moveall    = True;
+  a->bindex     = 64;
+  a->alpha      = 0;
+  imodViewDefault(&a->view);
+  a->view.cnear = 0.0f;
+  a->view.cfar  = 1.0f;
+  a->doPick = 0;
+  a->wPick = a->hPick = 5;
+
+  a->lighting  = True;
+  a->depthcue  = False;
+  a->wireframe = False;
+  a->lowres = 0;
+  a->SGIStereoCommand = NULL;
+  a->SGIRestoreCommand = NULL;
+  return(0);
+}
+
+// ADDITIONAL INITIALIZATION TO OPEN MODEL VIEW FROM IMOD
+/* DNM 9/2/02: changed to call imodv_init for bulk of the initialization */
+static void initstruct(ImodView *vw, ImodvApp *a)
+{
+  Screen *screen;
+
+  imodv_init(a, &Imodv_mdraw);
+
+  a->nm = 1;
+  a->mod = (Imod **)malloc(sizeof(Imod *));
+  a->mod[0] = vw->imod;
+  a->imod = vw->imod;
+
+  /* DNM 8/3/01: start with current object if defined */
+  if (a->imod->cindex.object >= 0 && 
+      a->imod->cindex.object < a->imod->objsize) {
+    a->ob = a->imod->cindex.object;
+    a->obj = &(a->imod->obj[a->ob]);
+  }
+
+  /* control flags */
+  a->fullscreen = 0;
+
+  a->standalone = False;
+  a->texMap  = 0;
+  a->texTrans = 0;
+  a->vi = vw;
+
+  a->bindex = App->imodvbgcolor;
+  a->context = App->context;
+  a->display = App->display;
+  a->visual = App->visual;
+  screen = DefaultScreenOfDisplay(a->display);
+  /* If we've changed the main visual, we need to set this depth to be
+     the App->depth to match, but otherwise we need to take the default
+     depth because App->depth applies to GL windows */
+  if (a->visual == DefaultVisualOfScreen(screen))
+    a->depth = DefaultDepthOfScreen(screen);
+  else
+    a->depth = App->depth;
+  a->cmap = App->cmap;
+
+  a->SGIStereoCommand  = (_XtString)ImodRes_SGIStereoCommand();
+  a->SGIRestoreCommand = (_XtString)ImodRes_SGIRestoreCommand();
+
+  imodViewStore(a->imod, 0);
+  if (!a->imod->cview)
+    imodViewModelDefault(a->imod, a->imod->view);
+  else 
+    imodViewUse(a->imod);
+
+  return;
+}
+
+// OPEN THE DISPLAY AND START X APPLICATION
+static int open_display(int *argc, char **argv, ImodvApp *a)
+{
+  int err;
+  Colormap cmap;
+
+  a->topLevel = XtVaAppInitialize
+    (&(a->context), "Imodv",
+     Imodv_options, XtNumber(Imodv_options),
+     argc, argv,
+     Imodv_fallback_resources,
+     NULL);
+  if (!a->topLevel){
+    fprintf(stderr, "%s: open display failed.\n",
+            argv[0]);
+    exit(-1);
+  }
+  a->display = XtDisplay(a->topLevel);
+  first_open = 0;
+
+  /*
+   *   XSetErrorHandler(myDebugError);
+   */
+
+  XtVaGetApplicationResources
+    (a->topLevel, (XtPointer)a,
+     Imodv_resources, XtNumber(Imodv_resources),
+     NULL);
+
+  /* DNM 9/2/02: first get these values from the topLevel, then get the
+     visuals, which may modify them for color index mode */
+  XtVaGetValues(a->topLevel,
+                XmNdepth, &a->depth,
+                XmNvisual, &a->visual,
+                XmNcolormap, &a->cmap,
+                NULL);
+
+  a->db        = True;
+
+  XParseColor(a->display, a->cmap, a->rbgname, &(a->rbgcolor));
+  a->rbgcolor.red &= 0xff00;
+  a->rbgcolor.green &= 0xff00;
+  a->rbgcolor.blue &= 0xff00;
+
+  /* initialize the qxt application - into the heap so it stays alive
+   Set the style to windows for now because of HighColor problems on druid */
+  new QXtApplication(XtDisplay(Imodv->topLevel));
+  QApplication::setStyle("windows");
+  
+  if ((err = getVisuals(a)) != 0) {
+    fprintf(stderr, "imodv error: Couldn't get rendering visual.\n");
+    exit(-1);
+  }
+
+  return(0);
+}
+
+// GET THE VISUAL INFORMATION NEEDED TO OPEN GL WIDGETS
+/* DMN 9/2/02: replaced old imodvSetCmap with this, which is accessed from
+   both imodv and ximodv (model view startup in imod), and which gets the
+   best visuals for double and single buffering then does the old work of
+   imodvSetCmap to get color map if needed in color index mode */
+
+static int getVisuals(ImodvApp *a)
+{
+  int i, colorDB, colorSB;
+  int depthSB = -1;
+  int depthDB = -1;
+  ImodGLVisual *visual;
+
+  // Keep track of what depth request is used to get the visuals selected
+  // and of the actual depth bits that result
+  a->enableDepthSB = -1;
+  a->enableDepthDB = -1;
+
+  // Loop through all requests, asking first for double buffer then for single
+  // buffer.  When one is found, the depth is set
+  for (i = 0; OpenGLAttribList[i] != NULL; i++) {
+    if (depthDB < 0) {
+      visual = imodFindGLVisual(*OpenGLAttribList[i]);
+      if (visual) {
+        a->enableDepthDB = visual->depthEnabled;
+        depthDB = visual->depthBits;
+        colorDB = visual->colorBits;
+      }
+    }
+      
+    if (depthSB < 0) {
+      OpenGLAttribList[i]->doubleBuffer = 0;
+      visual = imodFindGLVisual(*OpenGLAttribList[i]);
+      if (visual) {
+        a->enableDepthSB = visual->depthEnabled;
+        depthSB = visual->depthBits;
+        colorSB = visual->colorBits;
+      }
+    }
+
+    /* If got both, stop the loop */
+    if (depthDB >= 0 && depthSB >= 0)
+      break;
+  }
+
+  /* error if no visuals */
+  if (depthDB < 0 && depthSB < 0)
+    return 1;
+
+  if (!depthDB || !depthSB)
+    fprintf(stderr, "Imodv warning: using a visual with"
+            " no depth buffer\n");
+
+  if (depthDB < 0)
+    fprintf(stderr, "Imodv warning: no double buffer visual available.\n");
+  else if (Imod_debug)
+    printf("DB visual: %d color bits, %d depth bits\n", colorDB, depthDB);
+  if (depthSB < 0)
+    fprintf(stderr, "Imodv warning: no single buffer visual available.\n");
+  else if (Imod_debug)
+    printf("SB visual: %d color bits, %d depth bits\n", colorSB, depthSB);
+
+  // set to double buffer if visual exists
+  a->db = depthDB >= 0 ? 1 : 0;
+  return 0;
+}
+
+// OPEN THE MAIN WINDOW
+static int openWindow(ImodvApp *a)
+{
+  int deskWidth = QApplication::desktop()->width();
+  int deskHeight = QApplication::desktop()->height();
+  int newWidth = a->winx;
+  int needy = a->winy;
+
+  a->lighting = Imodv->imod->view->world & VIEW_WORLD_LIGHT;
+  a->lowres = Imodv->imod->view->world & VIEW_WORLD_LOWRES;
+  a->mainWin = new ImodvWindow(a->standalone, a->enableDepthDB, 
+                               a->enableDepthSB, a->lighting, a->lowres);
+
+  if (!a->mainWin)
+    return 1;
+
+  imodvSetCaption();
+
+  // If the user did not enter a window size, just resize to that before
+  // showing
+  if (a->winx == DEFAULT_XSIZE && a->winy == DEFAULT_YSIZE) {
+    a->mainWin->resize(a->winx, a->winy);
+    if (a->fullscreen)
+      a->mainWin->showMaximized();
+    a->mainWin->show();
+  } else {
+
+    // Otherwise, show the window and then set the size and fix the position
+    // This seems not to cause two initial draws, but it might someday
+    a->mainWin->show();
+    int newHeight = needy + a->mainWin->height() - a->winy;
+    if (newHeight > deskHeight - 50)
+      newHeight = deskHeight - 50;
+    if (newWidth > deskWidth - 30)
+      newWidth = deskWidth -30;
+
+    QPoint pos = a->mainWin->pos();
+    int xleft = pos.x();
+    int ytop = pos.y();
+    if (xleft + newWidth > deskWidth - 16)
+      xleft = deskWidth - 16 - newWidth;
+    if (ytop + newHeight > deskHeight - 40)
+      ytop = deskHeight - 40 - newHeight;
+
+    if (Imod_debug)
+      fprintf(stderr, "Sizes: imodv %d %d, GL %d %d: "
+            "resize %d %d\n", a->mainWin->width(), a->mainWin->height(),
+             a->mainWin->mCurGLw->width(), 
+            a->mainWin->mCurGLw->height(),
+            newWidth, newHeight);
+    a->mainWin->setGeometry(xleft, ytop, newWidth, newHeight);
+  }
+
+  ImodvClosed = False;
+  return(0);
+}
+
+// OPEN THE MODELS IN IMODV
 static int load_models(int n, char **fname, ImodvApp *a)
 {
   int i, ob, co;
@@ -282,423 +539,16 @@ static int load_models(int n, char **fname, ImodvApp *a)
     a->obj = &(a->imod->obj[a->ob]);
   }
    
-  /* DNM 9/2/02: this did nothing */
-  /* setmodelview(a); */
   return(0);
 }
 
-/* DNM 9/2/02: eliminate unused setmodelview */
-
-/* Initialize the structure: 
-   9/2/02: also called for model view initialization in imod */
-int imodv_init(ImodvApp *a, struct Mod_Draw *md)
-{
-  a->nm = 0;
-  a->cm = 0;
-  a->mod = NULL;
-  a->imod = NULL;
-  a->mat  = imodMatNew(3);
-  a->rmat  = imodMatNew(3);
-  a->dobj = imodObjectNew();
-  a->obj = a->dobj;
-  a->ob = 0;
-  a->md = md;
-  a->cnear = 0;
-  a->cfar = 1000;
-  a->fovy = 0;
-  a->gc = a->dgc = 0;
-  a->dlist = 0;
-  a->update_dlist = 1;
-  a->movie = 0;
-  a->movieFrames = 0;
-  a->wpid = (XtWorkProcId)0;
-  a->stereo = IMODV_STEREO_OFF;
-  a->plax = 5.0f;
-  a->lightx = a->lighty = 0;
-  a->wxt = a->wyt = a->wzt = 0;
-
-  a->rbgcolor.red = a->rbgcolor.green = a->rbgcolor.blue = 0;
-  md->xorg = md->yorg = md->zorg = 0;
-  md->xrot = md->yrot = md->zrot = 0;  /* current rotation. */
-  md->zoom = 1.0f;
-  md->arot = 10;
-  md->atrans = 5.0f;
-  md->azoom = 1.05f;
-  md->azscale = 0.2;
-  md->xrotm = 0; /* rotation movie */
-  md->yrotm = 0;
-  md->zrotm = 0;
-
-  /* control flags */
-  a->fastdraw   = 0;
-  a->current_subset = 0;
-  a->crosset    = False;
-  a->noborder   = False;
-  a->fullscreen = False;
-  a->drawall    = False;
-  a->moveall    = True;
-  a->standalone = True;
-  a->cindex     = False;
-  a->cstart     = 65;
-  a->cstep      = 2;
-  a->bindex     = 64;
-  a->alpha      = 0;
-  imodViewDefault(&a->view);
-  a->view.cnear = 0.0f;
-  a->view.cfar  = 1.0f;
-  a->doPick = 0;
-  a->wPick = a->hPick = 5;
-
-  a->lighting  = True;
-  a->depthcue  = False;
-  a->wireframe = False;
-  a->lowres = 0;
-  a->SGIStereoCommand = NULL;
-  a->SGIRestoreCommand = NULL;
-  return(0);
-}
-
-
-/* DNM: These fallback resources are needed in case there is no app-default
-   file */
-
-static String Imodv_fallback_resources[] = {
-  "*frame*shadowType: SHADOW_IN",
-  "*sgiMode: True",
-  "*useSchemes: all",
-  "*stereoCommand: /usr/gfx/setmon -n 640x512_120s",
-  "*restoreCommand: /usr/gfx/setmon -n 72HZ",
-  "*SGIStereoCommand: /usr/gfx/setmon -n STR_TOP",
-  "*SGIRestoreCommand: /usr/gfx/setmon -n 72HZ",
-  NULL,
-};
-
-/* DNM 9/2/02: add -D argument to get debug mode to work */
-static XrmOptionDescRec Imodv_options[] = {
-  {"-noborder",     "*noborder",     XrmoptionNoArg, "True"},
-  {"-fullscreen",    "*fullscreen",   XrmoptionNoArg, "True"},
-  {"-f",             "*fullscreen",   XrmoptionNoArg, "True"},
-  {"-fs",            "*fullscreen",   XrmoptionNoArg, "True"},
-  {"-renderbackground", "*renderbackground", XrmoptionSepArg, "black"}, 
-  {"-rbg",       "*renderbackground", XrmoptionSepArg, "black"},
-  {"-cindex",    "*colorindex",       XrmoptionNoArg, "True"},
-  {"-D",    "*debug",       XrmoptionNoArg, "True"},
-};
-
-/* DNM: There are default settings for the the stereo commands in case there
-   is an app-default file that doesn't define these resources, since the
-   fallback resources don't cover that case */
-
-static XtResource Imodv_resources[] = {
-  {"noborder", "NoBorder", XmRBoolean, sizeof(Boolean),
-   XtOffsetOf(ImodvApp, noborder), XmRImmediate, (XtPointer)False},
-  {"fullscreen", "FullScreen", XmRBoolean, sizeof(Boolean),
-   XtOffsetOf(ImodvApp, fullscreen), XmRImmediate, (XtPointer)False},
-  {"renderbackground", "RenderBackground", XmRString, sizeof(XColor),
-   XtOffsetOf(ImodvApp, rbgname), XmRImmediate, (XtPointer)"black"}, 
-  {"colorindex", "ColorIndex", XmRBoolean, sizeof(Boolean),
-   XtOffsetOf(ImodvApp, cindex), XmRImmediate, (XtPointer)False},
-  { "stereoCommand",
-    XtCString, XtRString, sizeof (_XtString),
-    XtOffsetOf(ImodvApp, stereoCommand),
-    XtRImmediate, (XtPointer) NULL },
-  { "restoreCommand",
-    XtCString, XtRString, sizeof (_XtString),
-    XtOffsetOf(ImodvApp, restoreCommand),
-    XtRImmediate, (XtPointer) NULL },
-  { "SGIStereoCommand",
-    XtCString, XtRString, sizeof (_XtString),
-    XtOffsetOf(ImodvApp, SGIStereoCommand),
-    XtRString, (XtPointer)"/usr/gfx/setmon -n STR_TOP" },
-  { "SGIRestoreCommand",
-    XtCString, XtRString, sizeof (_XtString),
-    XtOffsetOf(ImodvApp, SGIRestoreCommand),
-    XtRString, (XtPointer)"/usr/gfx/setmon -n 72HZ" }
-     
-};
-
-
-int myDebugError(Display *inDisplay, XErrorEvent *inError)
-{
-  fprintf(stderr, "imodv: xerror\n");
-  abort();
-  return 0;
-}
-
-static int open_display(int *argc, char **argv, ImodvApp *a)
-{
-  int err;
-  Colormap cmap;
-
-  a->topLevel = XtVaAppInitialize
-    (&(a->context), "Imodv",
-     Imodv_options, XtNumber(Imodv_options),
-     argc, argv,
-     Imodv_fallback_resources,
-     NULL);
-  if (!a->topLevel){
-    fprintf(stderr, "%s: open display failed.\n",
-            argv[0]);
-    exit(-1);
-  }
-  a->display = XtDisplay(a->topLevel);
-
-
-  /*
-   *   XSetErrorHandler(myDebugError);
-   */
-
-  XtVaGetApplicationResources
-    (a->topLevel, (XtPointer)a,
-     Imodv_resources, XtNumber(Imodv_resources),
-     NULL);
-
-  XtVaGetValues(a->topLevel, XmNcolormap, &cmap, NULL);
-  a->hidemenu  = False;
-  a->db        = True;
-  a->dgfx_init = False;
-  a->gfx_init  = False;
-  if (a->noborder || a->fullscreen){
-    XtVaSetValues(a->topLevel, XmNmwmDecorations, 0, NULL);
-    a->hidemenu = True;
-  }
-  XParseColor(a->display, cmap, a->rbgname, &(a->rbgcolor));
-  a->rbgcolor.red &= 0xff00;
-  a->rbgcolor.green &= 0xff00;
-  a->rbgcolor.blue &= 0xff00;
-
-
-  /* DNM 9/2/02: first get these values from the topLevel, then get the
-     visuals, which may modify them for color index mode */
-  XtVaGetValues(a->topLevel,
-                XmNdepth, &a->depth,
-                XmNvisual, &a->visual,
-                XmNcolormap, &a->cmap,
-                NULL);
-
-  /* initialize the qxt application - into the heap so it stays alive
-   Set the style to windows for now because of HighColor problems on druid */
-  new QXtApplication(XtDisplay(Imodv->topLevel));
-  QApplication::setStyle("windows");
-  
-  if ((err = imodvGetVisuals(a)) != 0) {
-    if (err > 0)
-      fprintf(stderr, "imodv error: Couldn't get rendering visual.\n");
-    else
-      fprintf(stderr, "imodv error: Couldn't get color map.\n");
-    exit(-1);
-  }
-
-  a->gcmap = a->cmap;  /* ?? */
-  return(0);
-}
-
-static int open_window(ImodvApp *a)
-{
-  Dimension width, height;
-  Widget form,frame;
-
-  a->mainWin = XtVaCreateWidget
-    ("imodv", xmMainWindowWidgetClass, a->topLevel,
-     NULL);
-
-  a->form = XtVaCreateWidget
-    ("form", xmFormWidgetClass, a->mainWin,
-     NULL);
-
-  if (a->fullscreen){
-    width = WidthOfScreen(XtScreen(a->topLevel));
-    height = HeightOfScreen(XtScreen(a->topLevel));
-    XtVaSetValues(a->topLevel, XmNwidth, width,
-                  XmNheight, height, 
-                  XmNx, 0, XmNy, 0,
-                  XtVaTypedArg, XmNgeometry, XmRString, "+0+0", 5,
-                  NULL);
-  }else{
-    /* DNM: let's have bigger windows */
-    width = height = 512;
-    if (width > WidthOfScreen(XtScreen(a->topLevel)))
-      width = WidthOfScreen(XtScreen(a->topLevel));
-    if (height > HeightOfScreen(XtScreen(a->topLevel)))
-      height = HeightOfScreen(XtScreen(a->topLevel));
-    XtVaSetValues(a->form, XmNwidth, width,
-                  XmNheight, height, NULL);
-  }
-
-  if (imodv_init_drawing_widget(a, a->form)){
-    fprintf(stderr, "Error opening graphics.\n");
-    exit(-1);
-  }
-
-  XtManageChild(a->form);
-
-#ifdef MWSETWORK
-  XtVaSetValues(a->mainWin,XmNworkWindow,a->form,NULL);
-#endif
-
-  if (a->hidemenu){
-    a->popup   = imodv_create_popup(a);
-    XmMainWindowSetAreas (a->mainWin, NULL, NULL, NULL, NULL, a->form);
-    XtSetMappedWhenManaged(a->popup, True); 
-  }else{
-    a->menubar = imodv_create_menu(a);
-    XtManageChild(a->menubar);
-    XmMainWindowSetAreas (a->mainWin, a->menubar, NULL, 
-                          NULL, NULL, a->form);
-  }
-  XtManageChild(a->mainWin);
-  XtRealizeWidget(a->topLevel);
-  ImodvClosed = False;
-  return(0);
-}
-
-/* DMN 9/2/02: replaced old imodvSetCmap with this, which is accessed from
-   both imodv and ximodv (model view startup in imod), and which gets the
-   best visuals for double and single buffering then does the old work of
-   imodvSetCmap to get color map if needed in color index mode */
-
-int imodvGetVisuals(ImodvApp *a)
-{
-  XVisualInfo vistemp;
-  XVisualInfo *vlist;
-  Window   window;
-  Screen  *screen;
-  XColor color;
-  int depth, screen_num = 0;
-  int i, vsize, v = 0;
-  unsigned long plane[1];
-  unsigned long pixels[IMODV_MAX_INDEX];
-  int iGot1 = -1;
-  int iGot2 = -1;
-
-  a->display = XtDisplay(a->topLevel);
-  screen  = DefaultScreenOfDisplay(a->display);
-  screen_num  = DefaultScreen(a->display);
-  window  = RootWindowOfScreen(screen);
-
-  a->visualInfoSB = NULL;
-  a->visualInfoDB = NULL;
-  for (i = 0; OpenGLAttribList[i] != NULL; i += 2) {
-
-    /* If want a color index visual and this is not one, skip */
-    if (a->cindex && AttribRGB[i])
-      continue;
-
-    /* Insist on a RGB visual in model view from imod because of bugs */
-    if (!a->standalone && !AttribRGB[i])
-      continue;
-
-    /* If got one already, make sure RGB character matches */
-    if (iGot1 >= 0 && AttribRGB[i] != AttribRGB[iGot1])
-      continue;
-
-    if (!a->visualInfoDB)
-      a->visualInfoDB = glXChooseVisual(a->display, screen_num,
-                                        OpenGLAttribList[i]);
-
-    if (!a->visualInfoSB)
-      a->visualInfoSB = glXChooseVisual(a->display, screen_num,
-                                        OpenGLAttribList[i + 1]);
-
-    if (iGot1 < 0 && (a->visualInfoDB || a->visualInfoSB))
-      iGot1 = i;
-
-    /* If got both, stop the loop */
-    if (a->visualInfoDB && a->visualInfoSB) {
-      iGot2 = i;
-      break;
-    }
-  }
-
-  /* error if no visuals */
-  if (!a->visualInfoDB && !a->visualInfoSB)
-    return 1;
-
-  if (!AttribRGB[iGot1])
-    a->cindex = 1;
-  if (!AttribDepth[iGot1] || (iGot2 >= 0 && !AttribDepth[iGot2]))
-    fprintf(stderr, "Imodv warning: using a visual with"
-            " no depth buffer\n");
-
-  if (Imod_debug) {
-    if (a->visualInfoDB)
-#ifdef __cplusplus
-      printf("DB class %d, depth %d, ID 0x%x\n", a->visualInfoDB->c_class, 
-             a->visualInfoDB->depth, a->visualInfoDB->visualid);
-#else
-    printf("DB class %d, depth %d, ID 0x%x\n", a->visualInfoDB->class, 
-           a->visualInfoDB->depth, a->visualInfoDB->visualid);
-#endif
-    if (a->visualInfoSB)
-#ifdef __cplusplus
-      printf("SB class %d, depth %d, ID 0x%x\n", a->visualInfoSB->c_class, 
-             a->visualInfoSB->depth, a->visualInfoSB->visualid);
-#else
-    printf("SB class %d, depth %d, ID 0x%x\n", a->visualInfoSB->class, 
-           a->visualInfoSB->depth, a->visualInfoSB->visualid);
-#endif
-  }
-
-  /* done if RGB */
-  if (!a->cindex)
-    return 0;
-
-  fprintf(stderr, "Imodv warning: using color index visual\n");
-
-  /* If color index and no DB, set SB into DB */
-  if (!a->visualInfoDB) {
-    a->visualInfoDB = a->visualInfoSB;
-    a->db = False;
-  }
-
-  /* get properties from this visualInfo */
-  a->visual = a->visualInfoDB->visual;
-  a->depth  = a->visualInfoDB->depth;
-
-  /* If not standalone, and the visual matches the App visual, then
-     we use the same colormap, otherwise need a new colormap */
-  if (a->standalone || a->visual != App->visual) {
-    a->gcmap = a->cmap = XCreateColormap
-      (a->display, window,  a->visual, AllocNone);
-    if (!a->cmap)
-      return -1;
-  }
-
-  /* set toplevel properties */
-  XtVaSetValues(a->topLevel,
-                XmNdepth, a->depth,
-                XmNvisual, a->visual,
-                XmNcolormap, a->cmap,
-                NULL);
-
-  /* Get the colors */
-  if (a->standalone) { /* || a->visual != App->visual) {*/
-    if (!XAllocColorCells(a->display, a->cmap, True,
-                          plane, 0, pixels, IMODV_MAX_INDEX)){
-      fprintf(stderr, "Imodv Warning: Couldn't get colors\n");
-    }
-    for (i = 0; i < IMODV_MAX_INDEX; i++){
-      color.pixel = i;
-      color.flags = DoRed|DoGreen|DoBlue;
-      XQueryColor (a->display,
-                   DefaultColormap(a->display,screen_num),
-                   &color);
-      XStoreColors(a->display, a->cmap, &color, 1); 
-    }
-  }
-  return 0;
-}
-
+// THE ENTRY POINT FOR STANDALONE IMODV
 int imodv_main(int argc, char **argv)
 {
-  ImodvApp imodv_application;
-  struct Mod_Draw mdraw;
+  Imodv->standalone = True;
+  imodv_init(Imodv, &Imodv_mdraw);
 
-  Imodv = &imodv_application;
-
-  imodv_init(&imodv_application, &mdraw);
-
-  open_display(&argc, argv, &imodv_application);
+  open_display(&argc, argv, Imodv);
 
   if (argc < 2)
     usage(argv[0]);
@@ -710,20 +560,124 @@ int imodv_main(int argc, char **argv)
       exit(0);
 #endif
 
-  if (load_models(argc - 1, &(argv[1]), &imodv_application))
+  if (load_models(argc - 1, &(argv[1]), Imodv))
     exit(-1);
 
-  open_window(&imodv_application);
+  openWindow(Imodv);
 
-  dia_xinit(imodv_application.topLevel, 
-            imodv_application.context, 
-            "imodv");
-
+  dia_xinit(Imodv->topLevel, Imodv->context, "imodv");
 
   /* DNM: new approach to movie workproc, skip time outs */
   /* imodv_movie(Imodv); */
-  imodv_application.standalone = True;
-  XtAppMainLoop(imodv_application.context);
+  XtAppMainLoop(Imodv->context);
   exit(0);
   return 0;
+}
+
+
+// THE CALL TO OPEN THE MODEL VIEW WINDOW FROM IMOD
+void imodv_open()
+{
+  ImodView *vw = App->cvi;
+  Imodv = &ImodvStruct;
+  ImodvStruct.md = &Imodv_mdraw;
+  ImodvApp *a = Imodv;
+
+  int ob, co, pt, err;
+  Imod *imod = vw->imod;
+  int hasPoints = 0;
+
+  /* mt model ? */
+  if (!imod){
+    wprint("Model View didn't open because "
+           "there is no model loaded.\n");
+    return;
+  }
+  for(ob = 0; ob < imod->objsize; ob++){
+    if (hasPoints > 1) break;
+    for(co = 0; co < imod->obj[ob].contsize; co++){
+      hasPoints += imod->obj[ob].cont[co].psize;
+      if (hasPoints > 1) break;
+    }
+  }
+  if (hasPoints < 2){
+    wprint("Model View didn't open because model has no points.\n");
+    return;
+  }
+
+  /* check for already open? */
+  if (first_open){
+    first_open = 0;
+    Imodv->topLevel = 0;
+  }
+  if (Imodv->topLevel){
+    a->mainWin->raise();
+    return;
+  }
+
+  initstruct(vw, a);
+
+  if ((err = getVisuals(a)) != 0) {
+    wprint("Couldn't get rendering visual for model view."
+           "  Try running imodv separately.\n");
+    imodMatDelete(a->mat);
+    imodMatDelete(a->rmat);
+    return;
+  }
+
+  // make application toplevel be toplevel here for X dialogs
+  a->topLevel = App->toplevel;
+
+  if (openWindow(a)) {
+    wprint("Failed to open model view window window.\n");
+    a->topLevel = 0;
+    return;
+  }
+    
+}
+
+// TO DRAW THE MODEL FROM IMOD
+void imodv_draw()
+{
+  if (!first_open && ImodvStruct.topLevel)
+    imodvDraw(Imodv);
+  return;
+}
+
+/* DNM: a routine for imod to notify imodv of a change in model */
+void imodv_new_model(Imod *mod)
+{
+  if (first_open || !ImodvStruct.topLevel)
+    return;
+  Imodv->imod = mod;
+  Imodv->mod[0] = mod;
+
+  /* Set up the views and scaling, notify everybody of changes */
+  imodViewStore(mod, 0);
+     
+  if (!mod->cview){
+    imodViewModelDefault(mod, mod->view);
+  }else
+    imodViewUse(mod);
+  imodvSelectModel(Imodv, 0);
+}
+
+void imodvSetCaption()
+{
+  ImodvApp *a = Imodv;
+  char *window_name;
+  QString str;
+  if (first_open || !a->topLevel)
+    return;
+
+  window_name = imodwEithername((char *)(a->standalone ? "Imodv:" : 
+                                 "Imod Model View: "), a->imod->fileName, 1);
+  if (window_name) {
+    str = window_name;
+    free(window_name);
+  } 
+  if (str.isEmpty())
+    str = "Imod Model View";
+
+  a->mainWin->setCaption(str);
 }
