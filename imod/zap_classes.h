@@ -32,6 +32,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.9  2003/01/30 00:48:53  mast
+new timer logic
+
 Revision 1.1.2.8  2003/01/10 23:56:56  mast
 move some declarations out of slots
 
@@ -93,6 +96,7 @@ class ZapWindow : public QMainWindow
   void setToggleState(int index, int state);
   void setZoomText(float zoom);
   void setSectionText(int section);
+  void setMaxZ(int maxZ);
   void setTimeLabel(QString label);
 
   ZapGL *mGLw;
