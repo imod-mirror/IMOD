@@ -77,6 +77,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.101.2.5  2004/09/13 16:24:54  sueh
+ * <p> bug# 520 Added isNewManager(); true if setup dialog came up.  Telling
+ * <p> EtomoDirectory the dataset name when completes successfully.
+ * <p>
  * <p> Revision 3.101.2.4  2004/09/09 21:46:40  sueh
  * <p> bug# 552 loading combine.com while creating combine scripts
  * <p>
@@ -1032,6 +1036,7 @@ public class ApplicationManager extends BaseManager {
   private PostProcessingDialog postProcessingDialog = null;
   
   //convenience variable set equals to mainPanel
+  //use through castMainPanel
   private MainTomogramPanel mainTomogramPanel = null; 
   
   /**
@@ -1070,7 +1075,7 @@ public class ApplicationManager extends BaseManager {
       setupDialog = new SetupDialog(this);
       setupDialog.initializeFields(metaData);
     }
-    mainPanel.openSetupPanel(setupDialog);
+    castMainPanel().openSetupPanel(setupDialog);
     Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
     Dimension frameSize = mainPanel.getSize();
     mainPanel.setLocation((screenSize.width - frameSize.width) / 2,
@@ -1082,7 +1087,7 @@ public class ApplicationManager extends BaseManager {
    */
   public void doneSetupDialog() {
     if (setupDialog == null) {
-      mainFrame.openMessageDialog(
+      mainPanel.openMessageDialog(
         "Can not update metadata parameters without an active setup dialog",
         "Program logic error");
       return;
@@ -1113,7 +1118,7 @@ public class ApplicationManager extends BaseManager {
         String[] errorMessage = new String[2];
         errorMessage[0] = "Setup Parameter Error";
         errorMessage[1] = metaData.getInvalidReason();
-        mainFrame.openMessageDialog(errorMessage, "Setup Parameter Error");
+        mainPanel.openMessageDialog(errorMessage, "Setup Parameter Error");
         System.setProperty("user.dir", oldUserDir);
         return;
       }
@@ -1124,12 +1129,12 @@ public class ApplicationManager extends BaseManager {
         }
         catch (BadComScriptException except) {
           except.printStackTrace();
-          mainFrame.openMessageDialog(except.getMessage(),
+          mainPanel.openMessageDialog(except.getMessage(),
             "Can't run copytomocoms");
           return;
         }
         catch (IOException except) {
-          mainFrame.openMessageDialog("Can't run copytomocoms\n"
+          mainPanel.openMessageDialog("Can't run copytomocoms\n"
             + except.getMessage(), "Copytomocoms IOException");
           return;
         }
@@ -1148,18 +1153,10 @@ public class ApplicationManager extends BaseManager {
   /**
    * Open the main window in processing mode
    */
-  public void openProcessingPanel() {
-    castMainPanel().showProcessingPanel(metaData.getAxisType());
+  private void openProcessingPanel() {
+    mainPanel.showProcessingPanel(metaData.getAxisType());
     castMainPanel().updateAllProcessingStates(processTrack);
-    mainFrame.pack();
-    //  Resize to the users preferrred window dimensions
-    mainPanel.setSize(new Dimension(userConfig.getMainWindowWidth(),
-      userConfig.getMainWindowHeight()));
-    mainFrame.doLayout();
-    mainFrame.validate();
-    if (isDualAxis()) {
-      mainPanel.setDividerLocation(0.51);
-    }
+    setPanel();
   }
 
   /**
@@ -1207,7 +1204,7 @@ public class ApplicationManager extends BaseManager {
       preProcDialog = preProcDialogA;
     }
     if (preProcDialog == null) {
-      mainFrame.openMessageDialog(
+      mainPanel.openMessageDialog(
         "Can not update preprocessing parameters without an active "
           + "preprocessing dialog", "Program logic error");
       return;
@@ -1233,11 +1230,11 @@ public class ApplicationManager extends BaseManager {
       }
       catch (AxisTypeException except) {
         except.printStackTrace();
-        mainFrame.openMessageDialog(except.getMessage(), "AxisType problem");
+        mainPanel.openMessageDialog(except.getMessage(), "AxisType problem");
       }
       catch (SystemProcessException except) {
         except.printStackTrace();
-        mainFrame.openMessageDialog(except.getMessage(),
+        mainPanel.openMessageDialog(except.getMessage(),
           "Problem closing raw stack");
       }
       if (exitState == DialogExitState.EXECUTE) {
@@ -1276,12 +1273,12 @@ public class ApplicationManager extends BaseManager {
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      mainFrame.openMessageDialog(except.getMessage(),
+      mainPanel.openMessageDialog(except.getMessage(),
         "Can't open 3dmod on raw stack");
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
-      mainFrame.openMessageDialog(except.getMessage(),
+      mainPanel.openMessageDialog(except.getMessage(),
         "Axis type problem in 3dmod erase");
     }
   }
@@ -1327,7 +1324,7 @@ public class ApplicationManager extends BaseManager {
       String[] message = new String[2];
       message[0] = "Can not execute eraser" + axisID.getExtension() + ".com";
       message[1] = e.getMessage();
-      mainFrame.openMessageDialog(message, "Unable to execute com script");
+      mainPanel.openMessageDialog(message, "Unable to execute com script");
       return;
     }
     setThreadName(threadName, axisID);
@@ -1350,7 +1347,7 @@ public class ApplicationManager extends BaseManager {
       String[] message = new String[2];
       message[0] = "Can not execute eraser" + axisID.getExtension() + ".com";
       message[1] = e.getMessage();
-      mainFrame.openMessageDialog(message, "Unable to execute com script");
+      mainPanel.openMessageDialog(message, "Unable to execute com script");
       return;
     }
     setThreadName(threadName, axisID);
@@ -1368,11 +1365,11 @@ public class ApplicationManager extends BaseManager {
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
-      mainFrame.openMessageDialog(except.getMessage(), "AxisType problem");
+      mainPanel.openMessageDialog(except.getMessage(), "AxisType problem");
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      mainFrame.openMessageDialog(except.getMessage(),
+      mainPanel.openMessageDialog(except.getMessage(),
         "Problem opening coarse stack");
     }
   }
@@ -1389,11 +1386,11 @@ public class ApplicationManager extends BaseManager {
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
-      mainFrame.openMessageDialog(except.getMessage(), "AxisType problem");
+      mainPanel.openMessageDialog(except.getMessage(), "AxisType problem");
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      mainFrame.openMessageDialog(except.getMessage(),
+      mainPanel.openMessageDialog(except.getMessage(),
         "Problem opening erased stack");
     }
   }
@@ -1416,7 +1413,7 @@ public class ApplicationManager extends BaseManager {
       + metaData.getDatasetName() + axisID.getExtension() + extension;
     File file = new File(filename);
     if (!file.exists() && mustExist) {
-      mainFrame.openMessageDialog(
+      mainPanel.openMessageDialog(
         "The " + fileDescription + " doesn't exist.  Create the "
          + fileDescription + " first",
       fileDescription + " missing");
@@ -1454,7 +1451,7 @@ public class ApplicationManager extends BaseManager {
       Utilities.renameFile(fixedStack, rawStack);
     }
     catch (IOException except) {
-      mainFrame.openMessageDialog(except.getMessage(), "File Rename Error");
+      mainPanel.openMessageDialog(except.getMessage(), "File Rename Error");
     }
     try {
       if (imodManager.isOpen(ImodManager.RAW_STACK_KEY, axisID)) {
@@ -1488,7 +1485,7 @@ public class ApplicationManager extends BaseManager {
       previewMetaData.getValidDatasetDirectory(
         setupDialog.getWorkingDirectory().getAbsolutePath());
     if (previewWorkingDir == null) {
-      mainFrame.openMessageDialog(previewMetaData.getInvalidReason(),
+      mainPanel.openMessageDialog(previewMetaData.getInvalidReason(),
         "Raw Image Stack");
       return;
     }
@@ -1500,11 +1497,11 @@ public class ApplicationManager extends BaseManager {
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
-      mainFrame.openMessageDialog(except.getMessage(), "AxisType problem");
+      mainPanel.openMessageDialog(except.getMessage(), "AxisType problem");
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      mainFrame.openMessageDialog(except.getMessage(),
+      mainPanel.openMessageDialog(except.getMessage(),
         "Problem opening raw stack");
     }
   }
@@ -1554,7 +1551,7 @@ public class ApplicationManager extends BaseManager {
     //  Set a reference to the correct object
     CoarseAlignDialog coarseAlignDialog = mapCoarseAlignDialog(axisID);
     if (coarseAlignDialog == null) {
-      mainFrame.openMessageDialog(
+      mainPanel.openMessageDialog(
         "Can not update coarse align without an active coarse align dialog",
         "Program logic error");
       return;
@@ -1594,11 +1591,11 @@ public class ApplicationManager extends BaseManager {
           }
           catch (AxisTypeException except) {
             except.printStackTrace();
-            mainFrame.openMessageDialog(except.getMessage(), "AxisType problem");
+            mainPanel.openMessageDialog(except.getMessage(), "AxisType problem");
           }
           catch (SystemProcessException except) {
             except.printStackTrace();
-            mainFrame.openMessageDialog(except.getMessage(),
+            mainPanel.openMessageDialog(except.getMessage(),
               "Problem closing coarse stack");
           }
         }
@@ -1639,7 +1636,7 @@ public class ApplicationManager extends BaseManager {
         String[] message = new String[2];
         message[0] = "Can not execute xcorr" + axisID.getExtension() + ".com";
         message[1] = e.getMessage();
-        mainFrame.openMessageDialog(message, "Unable to execute com script");
+        mainPanel.openMessageDialog(message, "Unable to execute com script");
         return;
       }
       setThreadName(threadName, axisID);
@@ -1664,7 +1661,7 @@ public class ApplicationManager extends BaseManager {
         message[0] = "Can not execute prenewst" + axisID.getExtension()
           + ".com";
         message[1] = e.getMessage();
-        mainFrame.openMessageDialog(message, "Unable to execute com script");
+        mainPanel.openMessageDialog(message, "Unable to execute com script");
         return;
       }
       setThreadName(threadName, axisID);
@@ -1680,11 +1677,11 @@ public class ApplicationManager extends BaseManager {
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
-      mainFrame.openMessageDialog(except.getMessage(), "AxisType problem");
+      mainPanel.openMessageDialog(except.getMessage(), "AxisType problem");
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      mainFrame.openMessageDialog(except.getMessage(),
+      mainPanel.openMessageDialog(except.getMessage(),
         "Problem opening coarse stack");
     }
   }
@@ -1720,7 +1717,7 @@ public class ApplicationManager extends BaseManager {
       errorMessage[0] = "Xcorr Parameter Syntax Error";
       errorMessage[1] = except.getMessage();
       errorMessage[2] = "New value: " + except.getNewString();
-      mainFrame.openMessageDialog(errorMessage, "Xcorr Parameter Syntax Error");
+      mainPanel.openMessageDialog(errorMessage, "Xcorr Parameter Syntax Error");
       return false;
     }
     catch (NumberFormatException except) {
@@ -1729,7 +1726,7 @@ public class ApplicationManager extends BaseManager {
       errorMessage[0] = "Xcorr Align Parameter Syntax Error";
       errorMessage[1] = axisID.getExtension();
       errorMessage[2] = except.getMessage();
-      mainFrame.openMessageDialog(errorMessage, "Xcorr Parameter Syntax Error");
+      mainPanel.openMessageDialog(errorMessage, "Xcorr Parameter Syntax Error");
       return false;
     }
     return true;
@@ -1763,7 +1760,7 @@ public class ApplicationManager extends BaseManager {
       errorMessage[0] = "Align Parameter Syntax Error (xfproduct)";
       errorMessage[1] = except.getMessage();
       errorMessage[2] = "New value: " + except.getNewString();
-      mainFrame.openMessageDialog(errorMessage, "Align Parameter Syntax Error");
+      mainPanel.openMessageDialog(errorMessage, "Align Parameter Syntax Error");
       return false;
     }
     return true;
@@ -1787,7 +1784,7 @@ public class ApplicationManager extends BaseManager {
       String[] errorMessage = new String[2];
       errorMessage[0] = "Tilt axis rotation format error";
       errorMessage[1] = except.getMessage();
-      mainFrame.openMessageDialog(errorMessage,
+      mainPanel.openMessageDialog(errorMessage,
         "Tilt axis rotation syntax error");
       return false;
     }
@@ -1837,7 +1834,7 @@ public class ApplicationManager extends BaseManager {
       errorMessage[0] = "Rotation Transform IO Exception";
       errorMessage[1] = except.getMessage();
       errorMessage[2] = fnRotationXF;
-      mainFrame.openMessageDialog(errorMessage,
+      mainPanel.openMessageDialog(errorMessage,
         "Rotation Transform IO Exception");
     }
   }
@@ -1889,7 +1886,7 @@ public class ApplicationManager extends BaseManager {
       fiducialModelDialog = fiducialModelDialogA;
     }
     if (fiducialModelDialog == null) {
-      mainFrame.openMessageDialog(
+      mainPanel.openMessageDialog(
         "Can not update fiducial model without an active fiducial model dialog",
         "Program logic error");
       return;
@@ -1944,11 +1941,11 @@ public class ApplicationManager extends BaseManager {
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
-      mainFrame.openMessageDialog(except.getMessage(), "AxisType problem");
+      mainPanel.openMessageDialog(except.getMessage(), "AxisType problem");
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      mainFrame.openMessageDialog(except.getMessage(),
+      mainPanel.openMessageDialog(except.getMessage(),
         "Can't open 3dmod on coarse aligned stack with model: " + seedModel);
     }
   }
@@ -1970,7 +1967,7 @@ public class ApplicationManager extends BaseManager {
         String[] message = new String[2];
         message[0] = "Can not execute track" + axisID.getExtension() + ".com";
         message[1] = e.getMessage();
-        mainFrame.openMessageDialog(message, "Unable to execute com script");
+        mainPanel.openMessageDialog(message, "Unable to execute com script");
         return;
       }
       setThreadName(threadName, axisID);
@@ -1996,7 +1993,7 @@ public class ApplicationManager extends BaseManager {
       message[0] = "WARNING: The seed model file is more recent the fiducial model file";
       message[1] = "To avoid losing your changes to the seed model file,";
       message[2] = "track fiducials before pressing Use Fiducial Model as Seed.";
-      mainFrame.openMessageDialog(message, "Use Fiducial Model as Seed Failed");
+      mainPanel.openMessageDialog(message, "Use Fiducial Model as Seed Failed");
       return;
     }
     mainPanel.setProgressBar("Using Fiducial Model as Seed", 1, axisID);
@@ -2018,7 +2015,7 @@ public class ApplicationManager extends BaseManager {
       Utilities.renameFile(fiducialModel, seedModel);
     }
     catch (IOException except) {
-      mainFrame.openMessageDialog(except.getMessage(), "File Rename Error");
+      mainPanel.openMessageDialog(except.getMessage(), "File Rename Error");
     }
     try {
       if (imodManager.isOpen(ImodManager.COARSE_ALIGNED_KEY, axisID)) {
@@ -2063,11 +2060,11 @@ public class ApplicationManager extends BaseManager {
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
-      mainFrame.openMessageDialog(except.getMessage(), "AxisType problem");
+      mainPanel.openMessageDialog(except.getMessage(), "AxisType problem");
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      mainFrame.openMessageDialog(except.getMessage(),
+      mainPanel.openMessageDialog(except.getMessage(),
         "Can't open 3dmod on coarse aligned stack with model: " + fiducialModel);
     }
   }
@@ -2085,7 +2082,7 @@ public class ApplicationManager extends BaseManager {
       fiducialModelDialog = fiducialModelDialogA;
     }
     if (fiducialModelDialog == null) {
-      mainFrame.openMessageDialog(
+      mainPanel.openMessageDialog(
         "Can not update track?.com without an active fiducial model dialog",
         "Program logic error");
       return false;
@@ -2100,7 +2097,7 @@ public class ApplicationManager extends BaseManager {
       errorMessage[0] = "Beadtrack Parameter Syntax Error";
       errorMessage[1] = except.getMessage();
       errorMessage[2] = "New value: " + except.getNewString();
-      mainFrame.openMessageDialog(errorMessage,
+      mainPanel.openMessageDialog(errorMessage,
         "Beadtrack Parameter Syntax Error");
       return false;
     }
@@ -2109,7 +2106,7 @@ public class ApplicationManager extends BaseManager {
       errorMessage[0] = "Beadtrack Parameter Syntax Error";
       errorMessage[1] = axisID.getExtension();
       errorMessage[2] = except.getMessage();
-      mainFrame.openMessageDialog(errorMessage,
+      mainPanel.openMessageDialog(errorMessage,
         "Beadtrack Parameter Syntax Error");
       return false;
     }
@@ -2166,7 +2163,7 @@ public class ApplicationManager extends BaseManager {
       fineAlignmentDialog = fineAlignmentDialogA;
     }
     if (fineAlignmentDialog == null) {
-      mainFrame.openMessageDialog(
+      mainPanel.openMessageDialog(
         "Can not update align?.com without an active alignment dialog",
         "Program logic error");
       return;
@@ -2204,11 +2201,11 @@ public class ApplicationManager extends BaseManager {
         }
         catch (AxisTypeException except) {
           except.printStackTrace();
-          mainFrame.openMessageDialog(except.getMessage(), "AxisType problem");
+          mainPanel.openMessageDialog(except.getMessage(), "AxisType problem");
         }
         catch (SystemProcessException except) {
           except.printStackTrace();
-          mainFrame.openMessageDialog(except.getMessage(),
+          mainPanel.openMessageDialog(except.getMessage(),
             "Problem closing coarse stack");
         }
       }
@@ -2248,7 +2245,7 @@ public class ApplicationManager extends BaseManager {
       String[] message = new String[2];
       message[0] = "Can not execute align" + axisID.getExtension() + ".com";
       message[1] = e.getMessage();
-      mainFrame.openMessageDialog(message, "Unable to execute com script");
+      mainPanel.openMessageDialog(message, "Unable to execute com script");
       return;
     }
     setThreadName(threadName, axisID);
@@ -2270,11 +2267,11 @@ public class ApplicationManager extends BaseManager {
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
-      mainFrame.openMessageDialog(except.getMessage(), "AxisType problem");
+      mainPanel.openMessageDialog(except.getMessage(), "AxisType problem");
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      mainFrame.openMessageDialog(except.getMessage(),
+      mainPanel.openMessageDialog(except.getMessage(),
         "Can't open 3dmod on coarse aligned stack with model: " + fiducialModel);
     }
   }
@@ -2290,11 +2287,11 @@ public class ApplicationManager extends BaseManager {
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
-      mainFrame.openMessageDialog(except.getMessage(), "AxisType problem");
+      mainPanel.openMessageDialog(except.getMessage(), "AxisType problem");
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      mainFrame.openMessageDialog(except.getMessage(),
+      mainPanel.openMessageDialog(except.getMessage(),
         "Can't open 3dmod on fine aligned stack");
     }
   }
@@ -2311,11 +2308,11 @@ public class ApplicationManager extends BaseManager {
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
-      mainFrame.openMessageDialog(except.getMessage(), "AxisType problem");
+      mainPanel.openMessageDialog(except.getMessage(), "AxisType problem");
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      mainFrame.openMessageDialog(except.getMessage(),
+      mainPanel.openMessageDialog(except.getMessage(),
         "Can't open 3dmod on fine aligned stack");
     }
   }
@@ -2332,11 +2329,11 @@ public class ApplicationManager extends BaseManager {
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
-      mainFrame.openMessageDialog(except.getMessage(), "AxisType problem");
+      mainPanel.openMessageDialog(except.getMessage(), "AxisType problem");
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      mainFrame.openMessageDialog(except.getMessage(),
+      mainPanel.openMessageDialog(except.getMessage(),
         "Can't open 3dmod on MTF filter results");
     }
   }
@@ -2359,7 +2356,7 @@ public class ApplicationManager extends BaseManager {
       && !Utilities.fileExists(metaData, "fid.xyz", (destAxisID == AxisID.FIRST
         ? AxisID.SECOND
         : AxisID.FIRST))) {
-      mainFrame.openMessageDialog(
+      mainPanel.openMessageDialog(
         "It is recommended that you run Fine Alignment on axis "
           + (destAxisID == AxisID.FIRST ? "B" : "A") + " at least once",
         "Warning");
@@ -2387,7 +2384,7 @@ public class ApplicationManager extends BaseManager {
         String[] message = new String[2];
         message[0] = "Can not execute transferfid command";
         message[1] = e.getMessage();
-        mainFrame.openMessageDialog(message, "Unable to execute command");
+        mainPanel.openMessageDialog(message, "Unable to execute command");
         return;
       }
       setThreadName(threadName, destAxisID);
@@ -2417,7 +2414,7 @@ public class ApplicationManager extends BaseManager {
       fineAlignmentDialog = fineAlignmentDialogA;
     }
     if (fineAlignmentDialog == null) {
-      mainFrame.openMessageDialog(
+      mainPanel.openMessageDialog(
         "Can not update align?.com without an active alignment dialog",
         "Program logic error");
       return false;
@@ -2435,7 +2432,7 @@ public class ApplicationManager extends BaseManager {
       errorMessage[0] = "Tiltalign Parameter Syntax Error";
       errorMessage[1] = except.getNewString();
       errorMessage[2] = except.getMessage();
-      mainFrame.openMessageDialog(errorMessage,
+      mainPanel.openMessageDialog(errorMessage,
         "Tiltalign Parameter Syntax Error");
       return false;
     }
@@ -2443,7 +2440,7 @@ public class ApplicationManager extends BaseManager {
       String[] errorMessage = new String[2];
       errorMessage[0] = "Tiltalign Parameter Syntax Error";
       errorMessage[1] = except.getMessage();
-      mainFrame.openMessageDialog(errorMessage,
+      mainPanel.openMessageDialog(errorMessage,
         "Tiltalign Parameter Syntax Error");
       return false;
     }
@@ -2511,14 +2508,14 @@ public class ApplicationManager extends BaseManager {
       errorMessage[0] = "Unable to read full image size from projection image stack";
       errorMessage[1] = "Axis: " + axisID.getExtension();
       errorMessage[2] = except.getMessage();
-      mainFrame.openMessageDialog(errorMessage, "MRCHeader IO Error");
+      mainPanel.openMessageDialog(errorMessage, "MRCHeader IO Error");
     }
     catch (InvalidParameterException except) {
       String[] errorMessage = new String[3];
       errorMessage[0] = "Unable to read full image size from projection image stack";
       errorMessage[1] = "Axis: " + axisID.getExtension();
       errorMessage[2] = except.getMessage();
-      mainFrame.openMessageDialog(errorMessage,
+      mainPanel.openMessageDialog(errorMessage,
         "MRCHeader Invalid Parameter Error");
     }
 
@@ -2558,7 +2555,7 @@ public class ApplicationManager extends BaseManager {
     //  Set a reference to the correct object
     TomogramPositioningDialog tomogramPositioningDialog = mapPositioningDialog(axisID);
     if (tomogramPositioningDialog == null) {
-      mainFrame.openMessageDialog(
+      mainPanel.openMessageDialog(
         "Can not update sample.com without an active positioning dialog",
         "Program logic error");
       return;
@@ -2608,11 +2605,11 @@ public class ApplicationManager extends BaseManager {
         }
         catch (AxisTypeException except) {
           except.printStackTrace();
-          mainFrame.openMessageDialog(except.getMessage(), "AxisType problem");
+          mainPanel.openMessageDialog(except.getMessage(), "AxisType problem");
         }
         catch (SystemProcessException except) {
           except.printStackTrace();
-          mainFrame.openMessageDialog(except.getMessage(),
+          mainPanel.openMessageDialog(except.getMessage(),
             "Problem closing sample reconstruction");
         }
       }
@@ -2636,7 +2633,7 @@ public class ApplicationManager extends BaseManager {
     TomogramPositioningDialog tomogramPositioningDialog = mapPositioningDialog(axisID);
     // Make sure that we have an active positioning dialog
     if (tomogramPositioningDialog == null) {
-      mainFrame.openMessageDialog(
+      mainPanel.openMessageDialog(
         "Can not update sample.com without an active positioning dialog",
         "Program logic error");
       return;
@@ -2665,7 +2662,7 @@ public class ApplicationManager extends BaseManager {
         String[] message = new String[2];
         message[0] = "Problem copying fiducial alignment files";
         message[1] = except.getMessage();
-        mainFrame.openMessageDialog(message, "Unable to copy fiducial alignment files");
+        mainPanel.openMessageDialog(message, "Unable to copy fiducial alignment files");
       }
     }
     
@@ -2678,7 +2675,7 @@ public class ApplicationManager extends BaseManager {
       String[] message = new String[2];
       message[0] = "Can not execute sample" + axisID.getExtension() + ".com";
       message[1] = e.getMessage();
-      mainFrame.openMessageDialog(message, "Unable to execute com script");
+      mainPanel.openMessageDialog(message, "Unable to execute com script");
       return;
     }
     setThreadName(threadName, axisID);
@@ -2720,7 +2717,7 @@ public class ApplicationManager extends BaseManager {
         String[] message = new String[2];
         message[0] = "Problem copying fiducial alignment files";
         message[1] = except.getMessage();
-        mainFrame.openMessageDialog(message, "Unable to copy fiducial alignment files");
+        mainPanel.openMessageDialog(message, "Unable to copy fiducial alignment files");
       }
     }
 
@@ -2734,7 +2731,7 @@ public class ApplicationManager extends BaseManager {
       String[] message = new String[2];
       message[0] = "Can not execute newst" + axisID.getExtension() + ".com";
       message[1] = e.getMessage();
-      mainFrame.openMessageDialog(message, "Unable to execute com script");
+      mainPanel.openMessageDialog(message, "Unable to execute com script");
       return;
     }
     setThreadName(threadName, axisID);
@@ -2756,11 +2753,11 @@ public class ApplicationManager extends BaseManager {
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
-      mainFrame.openMessageDialog(except.getMessage(), "AxisType problem");
+      mainPanel.openMessageDialog(except.getMessage(), "AxisType problem");
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      mainFrame.openMessageDialog(except.getMessage(),
+      mainPanel.openMessageDialog(except.getMessage(),
         "Problem opening sample reconstruction");
     }
   }
@@ -2780,11 +2777,11 @@ public class ApplicationManager extends BaseManager {
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
-      mainFrame.openMessageDialog(except.getMessage(), "AxisType problem");
+      mainPanel.openMessageDialog(except.getMessage(), "AxisType problem");
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      mainFrame.openMessageDialog(except.getMessage(),
+      mainPanel.openMessageDialog(except.getMessage(),
         "Problem opening sample reconstruction");
     }
   }
@@ -2806,7 +2803,7 @@ public class ApplicationManager extends BaseManager {
         message[0] = "Can not execute tomopitch" + axisID.getExtension()
           + ".com";
         message[1] = e.getMessage();
-        mainFrame.openMessageDialog(message, "Unable to execute com script");
+        mainPanel.openMessageDialog(message, "Unable to execute com script");
         return;
       }
       setThreadName(threadName, axisID);
@@ -2848,7 +2845,7 @@ public class ApplicationManager extends BaseManager {
         String[] message = new String[2];
         message[0] = "Can not execute align" + axisID.getExtension() + ".com";
         message[1] = e.getMessage();
-        mainFrame.openMessageDialog(message, "Unable to execute com script");
+        mainPanel.openMessageDialog(message, "Unable to execute com script");
         return;
       }
       setThreadName(threadName, axisID);
@@ -2865,7 +2862,7 @@ public class ApplicationManager extends BaseManager {
     TomogramPositioningDialog tomogramPositioningDialog = mapPositioningDialog(axisID);
     // Make sure that we have an active positioning dialog
     if (tomogramPositioningDialog == null) {
-      mainFrame.openMessageDialog(
+      mainPanel.openMessageDialog(
         "Can not update sample.com without an active positioning dialog",
         "Program logic error");
       return false;
@@ -2891,7 +2888,7 @@ public class ApplicationManager extends BaseManager {
       errorMessage[0] = "Tilt Parameter Syntax Error";
       errorMessage[1] = "Axis: " + axisID.getExtension();
       errorMessage[2] = except.getMessage();
-      mainFrame.openMessageDialog(errorMessage, "Tilt Parameter Syntax Error");
+      mainPanel.openMessageDialog(errorMessage, "Tilt Parameter Syntax Error");
       return false;
     }
     return true;
@@ -2906,7 +2903,7 @@ public class ApplicationManager extends BaseManager {
     TomogramPositioningDialog tomogramPositioningDialog = mapPositioningDialog(axisID);
     // Make sure that we have an active positioning dialog
     if (tomogramPositioningDialog == null) {
-      mainFrame.openMessageDialog(
+      mainPanel.openMessageDialog(
         "Can not update tomopitch.com without an active positioning dialog",
         "Program logic error");
       return false;
@@ -2923,7 +2920,7 @@ public class ApplicationManager extends BaseManager {
       errorMessage[0] = "Tomopitch Parameter Syntax Error";
       errorMessage[1] = "Axis: " + axisID.getExtension();
       errorMessage[2] = except.getMessage();
-      mainFrame.openMessageDialog(errorMessage,
+      mainPanel.openMessageDialog(errorMessage,
         "Tomopitch Parameter Syntax Error");
       return false;
     }
@@ -2960,7 +2957,7 @@ public class ApplicationManager extends BaseManager {
       errorMessage[0] = "Tiltalign Parameter Syntax Error";
       errorMessage[1] = "Axis: " + axisID.getExtension();
       errorMessage[2] = except.getMessage();
-      mainFrame.openMessageDialog(errorMessage,
+      mainPanel.openMessageDialog(errorMessage,
         "Tiltalign Parameter Syntax Error");
       return false;
     }
@@ -3011,7 +3008,7 @@ public class ApplicationManager extends BaseManager {
       String[] message = new String[2];
       message[0] = "Unable to generate prexg";
       message[1] = except.getMessage();
-      mainFrame.openMessageDialog(message, "Unable to generate prexg");
+      mainPanel.openMessageDialog(message, "Unable to generate prexg");
     }
     try {
       processMgr.generateNonFidXF(axisID);
@@ -3021,7 +3018,7 @@ public class ApplicationManager extends BaseManager {
       String[] message = new String[2];
       message[0] = "Unable to generate _nonfid.xf";
       message[1] = except.getMessage();
-      mainFrame.openMessageDialog(message, "Unable to generate _nonfid.xf");
+      mainPanel.openMessageDialog(message, "Unable to generate _nonfid.xf");
     }
     try {
       processMgr.setupNonFiducialAlign(axisID);
@@ -3031,13 +3028,13 @@ public class ApplicationManager extends BaseManager {
       String[] message = new String[2];
       message[0] = "Unable to setup fiducialless align files";
       message[1] = except.getMessage();
-      mainFrame.openMessageDialog(message, "Unable to setup fiducialless align files");
+      mainPanel.openMessageDialog(message, "Unable to setup fiducialless align files");
     }
     catch (InvalidParameterException except) {
       String[] message = new String[2];
       message[0] = "Unable to setup fiducialless align files";
       message[1] = except.getMessage();
-      mainFrame.openMessageDialog(message, "Unable to setup fiducialless align files");
+      mainPanel.openMessageDialog(message, "Unable to setup fiducialless align files");
     }
   }
   
@@ -3078,7 +3075,7 @@ public class ApplicationManager extends BaseManager {
       String[] message = new String[2];
       message[0] = "Unable to create " + rawtlt.getAbsolutePath();
       message[1] = except.getMessage();
-      mainFrame.openMessageDialog(message, "Unable to create raw tilt file"); 
+      mainPanel.openMessageDialog(message, "Unable to create raw tilt file"); 
       throw except;
     }
     catch (InvalidParameterException except) {
@@ -3086,7 +3083,7 @@ public class ApplicationManager extends BaseManager {
       String[] message = new String[2];
       message[0] = "Unable to create " + rawtlt.getAbsolutePath();
       message[1] = except.getMessage();
-      mainFrame.openMessageDialog(message, "Unable to create raw tilt file");
+      mainPanel.openMessageDialog(message, "Unable to create raw tilt file");
       throw except;
     }
 
@@ -3136,14 +3133,14 @@ public class ApplicationManager extends BaseManager {
       errorMessage[0] = "Unable to read full image size from projection image stack";
       errorMessage[1] = "Axis: " + axisID.getExtension();
       errorMessage[2] = except.getMessage();
-      mainFrame.openMessageDialog(errorMessage, "MRCHeader IO Error");
+      mainPanel.openMessageDialog(errorMessage, "MRCHeader IO Error");
     }
     catch (InvalidParameterException except) {
       String[] errorMessage = new String[3];
       errorMessage[0] = "Unable to read full image size from projection image stack";
       errorMessage[1] = "Axis: " + axisID.getExtension();
       errorMessage[2] = except.getMessage();
-      mainFrame.openMessageDialog(errorMessage,
+      mainPanel.openMessageDialog(errorMessage,
         "MRCHeader Invalid Parameter Error");
     }
     // Read in the newst{|a|b}.com parameters. WARNING this needs to be done
@@ -3172,7 +3169,7 @@ public class ApplicationManager extends BaseManager {
     //  Set a reference to the correct object
     TomogramGenerationDialog tomogramGenerationDialog = mapGenerationDialog(axisID);
     if (tomogramGenerationDialog == null) {
-      mainFrame.openMessageDialog(
+      mainPanel.openMessageDialog(
         "Can not update tilt?.com without an active tomogram generation dialog",
         "Program logic error");
       return;
@@ -3239,7 +3236,7 @@ public class ApplicationManager extends BaseManager {
     //  Set a reference to the correct object
     TomogramGenerationDialog tomogramGenerationDialog = mapGenerationDialog(axisID);
     if (tomogramGenerationDialog == null) {
-      mainFrame.openMessageDialog(
+      mainPanel.openMessageDialog(
         "Can not update tilt?.com without an active tomogram generation dialog",
         "Program logic error");
       return false;
@@ -3269,7 +3266,7 @@ public class ApplicationManager extends BaseManager {
       errorMessage[0] = "Tilt Parameter Syntax Error";
       errorMessage[1] = "Axis: " + axisID.getExtension();
       errorMessage[2] = except.getMessage();
-      mainFrame.openMessageDialog(errorMessage, "Tilt Parameter Syntax Error");
+      mainPanel.openMessageDialog(errorMessage, "Tilt Parameter Syntax Error");
       return false;
     }
     catch (InvalidParameterException except) {
@@ -3277,7 +3274,7 @@ public class ApplicationManager extends BaseManager {
       errorMessage[0] = "Tilt Parameter Syntax Error";
       errorMessage[1] = "Axis: " + axisID.getExtension();
       errorMessage[2] = except.getMessage();
-      mainFrame.openMessageDialog(errorMessage, "Tilt Parameter Syntax Error");
+      mainPanel.openMessageDialog(errorMessage, "Tilt Parameter Syntax Error");
       return false;
     }
     return true;
@@ -3293,7 +3290,7 @@ public class ApplicationManager extends BaseManager {
     //  Set a reference to the correct object
     TomogramGenerationDialog tomogramGenerationDialog = mapGenerationDialog(axisID);
     if (tomogramGenerationDialog == null) {
-      mainFrame.openMessageDialog(
+      mainPanel.openMessageDialog(
         "Can not update mtffilter?.com without an active tomogram generation dialog",
         "Program logic error");
       return false;
@@ -3324,7 +3321,7 @@ public class ApplicationManager extends BaseManager {
       errorMessage[0] = "MTF Filter Parameter Syntax Error";
       errorMessage[1] = "Axis: " + axisID.getExtension();
       errorMessage[2] = except.getMessage();
-      mainFrame.openMessageDialog(errorMessage,
+      mainPanel.openMessageDialog(errorMessage,
         "MTF Filter Parameter Syntax Error");
       return false;
     }
@@ -3333,7 +3330,7 @@ public class ApplicationManager extends BaseManager {
       errorMessage[0] = "MTF Filter Parameter Syntax Error";
       errorMessage[1] = "Axis: " + axisID.getExtension();
       errorMessage[2] = except.getMessage();
-      mainFrame.openMessageDialog(errorMessage,
+      mainPanel.openMessageDialog(errorMessage,
         "MTF Filter Parameter Syntax Error");
       return false;
     }
@@ -3350,7 +3347,7 @@ public class ApplicationManager extends BaseManager {
     //  Set a reference to the correct object
     TomogramGenerationDialog tomogramGenerationDialog = mapGenerationDialog(axisID);
     if (tomogramGenerationDialog == null) {
-      mainFrame.openMessageDialog(
+      mainPanel.openMessageDialog(
         "Can not update newst?.com without an active tomogram generation dialog",
         "Program logic error");
       return false;
@@ -3368,7 +3365,7 @@ public class ApplicationManager extends BaseManager {
       errorMessage[0] = "newst Parameter Syntax Error";
       errorMessage[1] = "Axis: " + axisID.getExtension();
       errorMessage[2] = except.getMessage();
-      mainFrame.openMessageDialog(errorMessage, "Newst Parameter Syntax Error");
+      mainPanel.openMessageDialog(errorMessage, "Newst Parameter Syntax Error");
       return false;
     }
     catch (FortranInputSyntaxException except) {
@@ -3422,7 +3419,7 @@ public class ApplicationManager extends BaseManager {
         String[] message = new String[2];
         message[0] = "Problem copying fiducial alignment files";
         message[1] = except.getMessage();
-        mainFrame.openMessageDialog(message, "Unable to copy fiducial alignment files");
+        mainPanel.openMessageDialog(message, "Unable to copy fiducial alignment files");
       }
     }
 
@@ -3435,7 +3432,7 @@ public class ApplicationManager extends BaseManager {
       String[] message = new String[2];
       message[0] = "Can not execute newst" + axisID.getExtension() + ".com";
       message[1] = e.getMessage();
-      mainFrame.openMessageDialog(message, "Unable to execute com script");
+      mainPanel.openMessageDialog(message, "Unable to execute com script");
       return;
     }
     setThreadName(threadName, axisID);
@@ -3460,7 +3457,7 @@ public class ApplicationManager extends BaseManager {
       + "_filt.ali";
     File filteredFullAlignedStack = new File(filteredFullAlignedStackFilename);
     if (!filteredFullAlignedStack.exists()) {
-      mainFrame.openMessageDialog(
+      mainPanel.openMessageDialog(
         "The filtered full aligned stack doesn't exist.  Create the filtered full aligned stack first",
         "Filtered full aligned stack missing");
       return;
@@ -3473,7 +3470,7 @@ public class ApplicationManager extends BaseManager {
       Utilities.renameFile(filteredFullAlignedStack, fullAlignedStack);
     }
     catch (IOException except) {
-      mainFrame.openMessageDialog(except.getMessage(), "File Rename Error");
+      mainPanel.openMessageDialog(except.getMessage(), "File Rename Error");
     }
     try {
       if (imodManager.isOpen(ImodManager.FINE_ALIGNED_KEY, axisID)) {
@@ -3512,7 +3509,7 @@ public class ApplicationManager extends BaseManager {
         message[0] = "Can not execute mtffilter" + axisID.getExtension()
           + ".com";
         message[1] = e.getMessage();
-        mainFrame.openMessageDialog(message, "Unable to execute com script");
+        mainPanel.openMessageDialog(message, "Unable to execute com script");
         return;
       }
       setThreadName(threadName, axisID);
@@ -3562,7 +3559,7 @@ public class ApplicationManager extends BaseManager {
       String[] message = new String[2];
       message[0] = "Can not execute tilt" + axisID.getExtension() + ".com";
       message[1] = e.getMessage();
-      mainFrame.openMessageDialog(message, "Unable to execute com script");
+      mainPanel.openMessageDialog(message, "Unable to execute com script");
       return;
     }
     setThreadName(threadName, axisID);
@@ -3580,11 +3577,11 @@ public class ApplicationManager extends BaseManager {
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
-      mainFrame.openMessageDialog(except.getMessage(), "AxisType problem");
+      mainPanel.openMessageDialog(except.getMessage(), "AxisType problem");
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      mainFrame.openMessageDialog(except.getMessage(),
+      mainPanel.openMessageDialog(except.getMessage(),
         "Can't open 3dmod with the tomogram");
     }
   }
@@ -3614,12 +3611,12 @@ public class ApplicationManager extends BaseManager {
       String message[] = new String[2];
       message[0] = "Unable to open specified tomogram:" + trialTomogramName;
       message[1] = "Does it exist in the working directory?";
-      mainFrame.openMessageDialog(except.getMessage(),
+      mainPanel.openMessageDialog(except.getMessage(),
         "Can't open 3dmod with the tomogram");
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
-      mainFrame.openMessageDialog(except.getMessage(), "AxisType problem");
+      mainPanel.openMessageDialog(except.getMessage(), "AxisType problem");
     }
   }
 
@@ -3640,7 +3637,7 @@ public class ApplicationManager extends BaseManager {
       String message[] = new String[2];
       message[0] = "The specified tomogram does not exist:" + trialTomogramName;
       message[1] = "It must be calculated before commiting";
-      mainFrame.openMessageDialog(message, "Can't rename tomogram");
+      mainPanel.openMessageDialog(message, "Can't rename tomogram");
     }
     // rename the trial tomogram to the output filename of appropriate
     // tilt.com
@@ -3659,7 +3656,7 @@ public class ApplicationManager extends BaseManager {
       Utilities.renameFile(trialTomogramFile, outputFile);
     }
     catch (IOException except) {
-      mainFrame.openMessageDialog(except.getMessage(), "File Rename Error");
+      mainPanel.openMessageDialog(except.getMessage(), "File Rename Error");
     }
     mainPanel.stopProgressBar(axisID);
   }
@@ -3691,7 +3688,7 @@ public class ApplicationManager extends BaseManager {
       metaData.getDatasetName() + axisID.getExtension() + ".ali");
     if (aligned.exists()) {
       if (!aligned.delete()) {
-        mainFrame.openMessageDialog("Unable to delete aligned stack: "
+        mainPanel.openMessageDialog("Unable to delete aligned stack: "
           + aligned.getAbsolutePath(), "Can not delete file");
       }
     }
@@ -3710,7 +3707,7 @@ public class ApplicationManager extends BaseManager {
     }
     // Verify that this process is applicable
     if (metaData.getAxisType() == AxisType.SINGLE_AXIS) {
-      mainFrame.openMessageDialog(
+      mainPanel.openMessageDialog(
         "This step is valid only for a dual axis tomogram",
         "Invalid tomogram combination selection");
       return;
@@ -3740,7 +3737,7 @@ public class ApplicationManager extends BaseManager {
           detailedMessage[1] = "Are both tomograms computed and available?";
           detailedMessage[2] = "";
           detailedMessage[3] = except.getMessage();
-          mainFrame.openMessageDialog(detailedMessage, "Invalid parameter: "
+          mainPanel.openMessageDialog(detailedMessage, "Invalid parameter: "
             + recFileName);
           // Delete the dialog
           tomogramCombinationDialog = null;
@@ -3748,7 +3745,7 @@ public class ApplicationManager extends BaseManager {
         }
         catch (IOException except) {
           except.printStackTrace();
-          mainFrame.openMessageDialog(except.getMessage(), "IO Error: "
+          mainPanel.openMessageDialog(except.getMessage(), "IO Error: "
             + recFileName);
           //Delete the dialog
           tomogramCombinationDialog = null;
@@ -3830,12 +3827,12 @@ public class ApplicationManager extends BaseManager {
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      mainFrame.openMessageDialog(except.getMessage(),
+      mainPanel.openMessageDialog(except.getMessage(),
         "Can't open 3dmod on tomograms for matching models");
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
-      mainFrame.openMessageDialog(except.getMessage(), "AxisType problem");
+      mainPanel.openMessageDialog(except.getMessage(), "AxisType problem");
     }
   }
 
@@ -3848,12 +3845,12 @@ public class ApplicationManager extends BaseManager {
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      mainFrame.openMessageDialog(except.getMessage(),
+      mainPanel.openMessageDialog(except.getMessage(),
         "Can't open 3dmod on matchcheck.mat or matchcheck.rec");
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
-      mainFrame.openMessageDialog(except.getMessage(), "AxisType problem");
+      mainPanel.openMessageDialog(except.getMessage(), "AxisType problem");
     }
   }
 
@@ -3878,12 +3875,12 @@ public class ApplicationManager extends BaseManager {
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      mainFrame.openMessageDialog(except.getMessage(),
+      mainPanel.openMessageDialog(except.getMessage(),
         "Can't open 3dmod on tomogram for patch region models");
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
-      mainFrame.openMessageDialog(except.getMessage(), "AxisType problem");
+      mainPanel.openMessageDialog(except.getMessage(), "AxisType problem");
     }
   }
 
@@ -3896,12 +3893,12 @@ public class ApplicationManager extends BaseManager {
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      mainFrame.openMessageDialog(except.getMessage(),
+      mainPanel.openMessageDialog(except.getMessage(),
         "Can't open 3dmod on tomogram for patch vector model");
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
-      mainFrame.openMessageDialog(except.getMessage(), "AxisType problem");
+      mainPanel.openMessageDialog(except.getMessage(), "AxisType problem");
     }
   }
 
@@ -3919,12 +3916,12 @@ public class ApplicationManager extends BaseManager {
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      mainFrame.openMessageDialog(except.getMessage(),
+      mainPanel.openMessageDialog(except.getMessage(),
         "Can't open 3dmod on tomogram being matched to");
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
-      mainFrame.openMessageDialog(except.getMessage(), "AxisType problem");
+      mainPanel.openMessageDialog(except.getMessage(), "AxisType problem");
     }
   }
 
@@ -3933,7 +3930,7 @@ public class ApplicationManager extends BaseManager {
    */
   public void doneTomogramCombinationDialog() {
     if (tomogramCombinationDialog == null) {
-      mainFrame.openMessageDialog(
+      mainPanel.openMessageDialog(
         "Can not update combine.com without an active tomogram combination dialog",
         "Program logic error");
       return;
@@ -4014,12 +4011,12 @@ public class ApplicationManager extends BaseManager {
     }
     catch (BadComScriptException except) {
       except.printStackTrace();
-      mainFrame.openMessageDialog(except.getMessage(), "Can't run setupcombine");
+      mainPanel.openMessageDialog(except.getMessage(), "Can't run setupcombine");
       return;
     }
     catch (IOException except) {
       except.printStackTrace();
-      mainFrame.openMessageDialog("Can't run setupcombine\n"
+      mainPanel.openMessageDialog("Can't run setupcombine\n"
         + except.getMessage(), "Setupcombine IOException");
       return;
     }
@@ -4047,7 +4044,7 @@ public class ApplicationManager extends BaseManager {
    */
   private void updateCombineParams() {
     if (tomogramCombinationDialog == null) {
-      mainFrame.openMessageDialog(
+      mainPanel.openMessageDialog(
         "Can not update combine.com without an active tomogram combination dialog",
         "Program logic error");
       return;
@@ -4056,13 +4053,13 @@ public class ApplicationManager extends BaseManager {
     try {
       tomogramCombinationDialog.getCombineParams(combineParams);
       if (!combineParams.isValid()) {
-        mainFrame.openMessageDialog(combineParams.getInvalidReasons(),
+        mainPanel.openMessageDialog(combineParams.getInvalidReasons(),
           "Invalid combine parameters");
         return;
       }
     }
     catch (NumberFormatException except) {
-      mainFrame.openMessageDialog(except.getMessage(), "Number format error");
+      mainPanel.openMessageDialog(except.getMessage(), "Number format error");
       return;
     }
     CombineParams originalCombineParams = metaData.getCombineParams();
@@ -4114,7 +4111,7 @@ public class ApplicationManager extends BaseManager {
    */
   public boolean updateSolvematchCom() {
     if (tomogramCombinationDialog == null) {
-      mainFrame.openMessageDialog(
+      mainPanel.openMessageDialog(
         "Can not update solvematch.com without an active tomogram generation dialog",
         "Program logic error");
       return false;
@@ -4129,7 +4126,7 @@ public class ApplicationManager extends BaseManager {
       String[] errorMessage = new String[2];
       errorMessage[0] = "Solvematch Parameter Syntax Error";
       errorMessage[1] = except.getMessage();
-      mainFrame.openMessageDialog(errorMessage,
+      mainPanel.openMessageDialog(errorMessage,
         "Solvematch Parameter Syntax Error");
       return false;
     }
@@ -4145,7 +4142,7 @@ public class ApplicationManager extends BaseManager {
       String[] message = new String[2];
       message[0] = "Unable to create solvematch com script";
       message[1] = "Check file and directory permissions";
-      openMessageDialog(message, "Can't create solvematch.com");
+      mainPanel.openMessageDialog(message, "Can't create solvematch.com");
       return;
     }
     //  Write it out the converted object disk
@@ -4171,7 +4168,7 @@ public class ApplicationManager extends BaseManager {
   private boolean updatePatchcorrCom() {
     //  Set a reference to the correct object
     if (tomogramCombinationDialog == null) {
-      mainFrame.openMessageDialog(
+      mainPanel.openMessageDialog(
         "Can not update patchcorr.com without an active tomogram generation dialog",
         "Program logic error");
       return false;
@@ -4185,7 +4182,7 @@ public class ApplicationManager extends BaseManager {
       String[] errorMessage = new String[2];
       errorMessage[0] = "Patchcorr Parameter Syntax Error";
       errorMessage[1] = except.getMessage();
-      mainFrame.openMessageDialog(errorMessage,
+      mainPanel.openMessageDialog(errorMessage,
         "Patchcorr Parameter Syntax Error");
       return false;
     }
@@ -4213,7 +4210,7 @@ public class ApplicationManager extends BaseManager {
         String[] message = new String[2];
         message[0] = "Unable to copy combine com script";
         message[1] = "Check file and directory permissions";
-        openMessageDialog(message, "Can't create a new combine.com");
+        mainPanel.openMessageDialog(message, "Can't create a new combine.com");
         return null;
       }
       comScriptMgr.loadCombine();
@@ -4241,7 +4238,7 @@ public class ApplicationManager extends BaseManager {
   */
   protected CombineComscriptState updateCombineComscriptState(int startCommand) {
     if (tomogramCombinationDialog == null) {
-      mainFrame.openMessageDialog(
+      mainPanel.openMessageDialog(
         "Can not update combine.com without an active tomogram generation dialog",
         "Program logic error");
       return null;
@@ -4280,7 +4277,7 @@ public class ApplicationManager extends BaseManager {
   private boolean updateMatchorwarpCom(boolean trialMode) {
     //  Set a reference to the correct object
     if (tomogramCombinationDialog == null) {
-      mainFrame.openMessageDialog(
+      mainPanel.openMessageDialog(
         "Can not update matchorwarp.com without an active tomogram generation dialog",
         "Program logic error");
       return false;
@@ -4295,7 +4292,7 @@ public class ApplicationManager extends BaseManager {
       String[] errorMessage = new String[2];
       errorMessage[0] = "Matchorwarp Parameter Syntax Error";
       errorMessage[1] = except.getMessage();
-      mainFrame.openMessageDialog(errorMessage,
+      mainPanel.openMessageDialog(errorMessage,
         "Matchorwarp Parameter Syntax Error");
       return false;
     }
@@ -4341,7 +4338,7 @@ public class ApplicationManager extends BaseManager {
       String[] message = new String[2];
       message[0] = "Can not execute combine.com";
       message[1] = e.getMessage();
-      mainFrame.openMessageDialog(message, "Unable to execute com script");
+      mainPanel.openMessageDialog(message, "Unable to execute com script");
       return;
     }
     setBackgroundThreadName(threadName, AxisID.FIRST, 
@@ -4383,7 +4380,7 @@ public class ApplicationManager extends BaseManager {
       String[] message = new String[2];
       message[0] = "Can not execute combine.com";
       message[1] = "solve.xf must exist in the working";
-      mainFrame.openMessageDialog(message, "Unable to execute com script");
+      mainPanel.openMessageDialog(message, "Unable to execute com script");
       return;
     }
     //  Set the next process to execute when this is finished
@@ -4397,7 +4394,7 @@ public class ApplicationManager extends BaseManager {
       String[] message = new String[2];
       message[0] = "Can not execute combine.com";
       message[1] = e.getMessage();
-      mainFrame.openMessageDialog(message, "Unable to execute com script");
+      mainPanel.openMessageDialog(message, "Unable to execute com script");
       return;
     }
     setBackgroundThreadName(threadName, AxisID.FIRST, 
@@ -4435,7 +4432,7 @@ public class ApplicationManager extends BaseManager {
       String[] message = new String[2];
       message[0] = "Can not execute patchcorr.com";
       message[1] = e.getMessage();
-      mainFrame.openMessageDialog(message, "Unable to execute com script");
+      mainPanel.openMessageDialog(message, "Unable to execute com script");
       return;
     }
     setBackgroundThreadName(threadName, AxisID.FIRST, 
@@ -4502,7 +4499,7 @@ public class ApplicationManager extends BaseManager {
         String[] message = new String[2];
         message[0] = "Can not execute combine.com";
         message[1] = e.getMessage();
-        mainFrame.openMessageDialog(message, "Unable to execute com script");
+        mainPanel.openMessageDialog(message, "Unable to execute com script");
         return;
       }
       setBackgroundThreadName(threadName, AxisID.FIRST, 
@@ -4528,7 +4525,7 @@ public class ApplicationManager extends BaseManager {
         String[] message = new String[2];
         message[0] = "Can not execute matchorwarp.com";
         message[1] = e.getMessage();
-        mainFrame.openMessageDialog(message, "Unable to execute com script");
+        mainPanel.openMessageDialog(message, "Unable to execute com script");
         return;
       }
       setThreadName(threadName, AxisID.FIRST);
@@ -4556,7 +4553,7 @@ public class ApplicationManager extends BaseManager {
       String[] message = new String[2];
       message[0] = "Can not execute combine.com";
       message[1] = e.getMessage();
-      mainFrame.openMessageDialog(message, "Unable to execute com script");
+      mainPanel.openMessageDialog(message, "Unable to execute com script");
       return;
     }
     setBackgroundThreadName(threadName, AxisID.FIRST, 
@@ -4575,7 +4572,7 @@ public class ApplicationManager extends BaseManager {
       String[] errorMessage = new String[2];
       errorMessage[0] = "Unable to convert patch_vector.mod to patch.out";
       errorMessage[1] = except.getMessage();
-      mainFrame.openMessageDialog(errorMessage, "Patch vector model error");
+      mainPanel.openMessageDialog(errorMessage, "Patch vector model error");
       return;
     }
   }
@@ -4609,7 +4606,7 @@ public class ApplicationManager extends BaseManager {
         detailedMessage[1] = "Does the reconstruction file exist yet?";
         detailedMessage[2] = "";
         detailedMessage[3] = except.getMessage();
-        mainFrame.openMessageDialog(detailedMessage, "Invalid parameter: "
+        mainPanel.openMessageDialog(detailedMessage, "Invalid parameter: "
           + trimvolParam.getInputFile());
         //    Delete the dialog
         postProcessingDialog = null;
@@ -4617,7 +4614,7 @@ public class ApplicationManager extends BaseManager {
       }
       catch (IOException except) {
         except.printStackTrace();
-        mainFrame.openMessageDialog(except.getMessage(), "IO Error: "
+        mainPanel.openMessageDialog(except.getMessage(), "IO Error: "
           + trimvolParam.getInputFile());
         //      Delete the dialog
         postProcessingDialog = null;
@@ -4633,7 +4630,7 @@ public class ApplicationManager extends BaseManager {
    */
   public void donePostProcessing() {
     if (postProcessingDialog == null) {
-      mainFrame.openMessageDialog("Post processing dialog not open",
+      mainPanel.openMessageDialog("Post processing dialog not open",
         "Program logic error");
       return;
     }
@@ -4663,12 +4660,12 @@ public class ApplicationManager extends BaseManager {
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      mainFrame.openMessageDialog(except.getMessage(),
+      mainPanel.openMessageDialog(except.getMessage(),
         "Can't open 3dmod on the trimmed tomogram");
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
-      mainFrame.openMessageDialog(except.getMessage(), "AxisType problem");
+      mainPanel.openMessageDialog(except.getMessage(), "AxisType problem");
     }
   }
 
@@ -4679,11 +4676,11 @@ public class ApplicationManager extends BaseManager {
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
-      mainFrame.openMessageDialog(except.getMessage(), "AxisType problem");
+      mainPanel.openMessageDialog(except.getMessage(), "AxisType problem");
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      mainFrame.openMessageDialog(except.getMessage(),
+      mainPanel.openMessageDialog(except.getMessage(),
         "Unable to retrieve rubberband coordinates from " + imodKey + ".");
     }
     Vector messageArray = new Vector();
@@ -4715,7 +4712,7 @@ public class ApplicationManager extends BaseManager {
     }
     if (messageArray.size() > 0) {
       String[] messages = (String[]) messageArray.toArray(new String[messageArray.size()]);
-      mainFrame.openMessageDialog(messages, "Rubberband Coordinates");
+      mainPanel.openMessageDialog(messages, "Rubberband Coordinates");
     }
     return results;
   }
@@ -4755,12 +4752,12 @@ public class ApplicationManager extends BaseManager {
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      mainFrame.openMessageDialog(except.getMessage(),
+      mainPanel.openMessageDialog(except.getMessage(),
         "Can't open 3dmod on the trimmed tomogram");
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
-      mainFrame.openMessageDialog(except.getMessage(), "AxisType problem");
+      mainPanel.openMessageDialog(except.getMessage(), "AxisType problem");
     }
   }
 
@@ -4770,7 +4767,7 @@ public class ApplicationManager extends BaseManager {
   public void trimVolume() {
     // Make sure that the post processing panel is open
     if (postProcessingDialog == null) {
-      mainFrame.openMessageDialog("Post processing dialog not open",
+      mainPanel.openMessageDialog("Post processing dialog not open",
         "Program logic error");
       return;
     }
@@ -4787,7 +4784,7 @@ public class ApplicationManager extends BaseManager {
       String[] message = new String[2];
       message[0] = "Can not execute trimvol command";
       message[1] = e.getMessage();
-      mainFrame.openMessageDialog(message, "Unable to execute command");
+      mainPanel.openMessageDialog(message, "Unable to execute command");
       return;
     }
     setThreadName(threadName, AxisID.ONLY);
@@ -4848,14 +4845,6 @@ public class ApplicationManager extends BaseManager {
         return true;
       }
     }
-  }
-
-  /**
-   *  
-   */
-  public void packMainWindow() {
-    mainFrame.repaint();
-    mainPanel.fitWindow();
   }
 
   /**
@@ -4925,7 +4914,7 @@ public class ApplicationManager extends BaseManager {
     String[] message = new String[2];
     message[0] = "The setup process has not been completed";
     message[1] = "Complete the Setup process before opening other process dialogs";
-    mainFrame.openMessageDialog(message, "Program Operation Error");
+    mainPanel.openMessageDialog(message, "Program Operation Error");
     return;
   }
   
@@ -4936,16 +4925,6 @@ public class ApplicationManager extends BaseManager {
    */
   public void backgroundProcess(String commandLine) {
     processMgr.test(commandLine);
-  }
-
-  /**
-   * Open a messsage dialog with the given message and title
-   * 
-   * @param message
-   * @param title
-   */
-  public void openMessageDialog(Object message, String title) {
-    mainFrame.openMessageDialog(message, title);
   }
 
   /**
@@ -5014,7 +4993,7 @@ public class ApplicationManager extends BaseManager {
       threadNameB = "none";
     }
     else {
-      mainFrame.openMessageDialog("Unknown thread finished!!!", "Thread name: "
+      mainPanel.openMessageDialog("Unknown thread finished!!!", "Thread name: "
         + threadName);
     }
     if (processName != null) {
@@ -5176,7 +5155,7 @@ public class ApplicationManager extends BaseManager {
       }
     }
     if (!fidXyzPixelSizeSet || fidXyz.getPixelSize() != prealiHeader.getXPixelSpacing()) {
-      mainFrame.openMessageDialog(
+      mainPanel.openMessageDialog(
         "The prealigned image stack binning has changed.  You must:\n    1. Go "
         + "to Fiducial Model Gen. and Press Fix Fiducial Model to open the "
         + "fiducial model.\n    2. Save the fiducial model by pressing "

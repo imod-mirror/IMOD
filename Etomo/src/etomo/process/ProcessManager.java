@@ -20,6 +20,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.39.2.2  2004/09/07 17:56:08  sueh
+ * bug# 520 getting dataset name from metadata
+ *
  * Revision 3.39.2.1  2004/09/03 21:13:07  sueh
  * bug# 520 calling functions from EtomoDirector instead of
  * ApplicationManager
@@ -820,8 +823,8 @@ public class ProcessManager {
       alignLogGenerator.run();
     }
     catch (IOException except) {
-      appManager.openMessageDialog("Unable to create alignlog files",
-        "Alignlog Error");
+      appManager.getMainPanel().openMessageDialog(
+          "Unable to create alignlog files", "Alignlog Error");
     }
   }
 
@@ -849,8 +852,8 @@ public class ProcessManager {
     }
     catch (IOException e) {
       e.printStackTrace();
-      appManager.openMessageDialog("Unable to copy protected align files:",
-        "Align Error");
+      appManager.getMainPanel().openMessageDialog(
+          "Unable to copy protected align files:", "Align Error");
     }
 
   }
@@ -1327,8 +1330,8 @@ public class ProcessManager {
           combined[j] = stdError[i];
         }
       }
-      appManager.openMessageDialog(combined, script.getScriptName()
-        + " terminated");
+      appManager.getMainPanel().openMessageDialog(combined,
+          script.getScriptName() + " terminated");
     }
     else {
       // TODO: Should this script specific processing be handled by the
@@ -1352,7 +1355,8 @@ public class ProcessManager {
         for (int i = 0; i < warningMessages.length; i++) {
           dialogMessage[j++] = warningMessages[i];
         }
-        appManager.openMessageDialog(dialogMessage, script.getScriptName()
+        appManager.getMainPanel().openMessageDialog(dialogMessage,
+            script.getScriptName()
           + " warnings");
       }
 
@@ -1438,8 +1442,8 @@ public class ProcessManager {
           message[j] = stdError[i];
         }
       }
-      appManager.openMessageDialog(message, process.getCommand()
-        + " terminated");
+      appManager.getMainPanel().openMessageDialog(message,
+          process.getCommand() + " terminated");
     }
 
     // Another possible error message source is ERROR: in the stdout stream
@@ -1462,7 +1466,8 @@ public class ProcessManager {
       .toArray(new String[errors.size()]);
 
     if (errorMessage.length > 0) {
-      appManager.openMessageDialog(errorMessage, "Background Process Error");
+      appManager.getMainPanel().openMessageDialog(errorMessage,
+          "Background Process Error");
     }
 
     // Command succeeded, check to see if we need to show any application
@@ -1512,8 +1517,8 @@ public class ProcessManager {
         + File.separator + "transferfid.log"));
     }
     catch (IOException except) {
-      appManager
-        .openMessageDialog(except.getMessage(), "Transferfid log error");
+      appManager.getMainPanel().openMessageDialog(except.getMessage(),
+          "Transferfid log error");
     }
   }
 

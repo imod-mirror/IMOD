@@ -37,6 +37,9 @@ import etomo.storage.IntermediateFileFilter;
  * 
  * <p>
  * $Log$
+ * Revision 3.2.4.1  2004/09/07 17:58:53  sueh
+ * bug# 520 getting dataset name from metadata
+ *
  * Revision 3.2  2004/01/30 22:44:54  sueh
  * bug# 356 Changing buttons with html labels to
  * MultiLineButton and MultiLineToggleButton
@@ -161,9 +164,8 @@ public class CleanupPanel {
         String message[] = new String[2];
         message[0] = "Unable to delete " + deleteList[i].getName();
         message[1] = "Check file permissions";
-        applicationManager.openMessageDialog(
-          message,
-          "Unable to delete intermediate file");
+        applicationManager.getMainPanel().openMessageDialog(message,
+            "Unable to delete intermediate file");
       }
     }
     fileChooser.rescanCurrentDirectory();
