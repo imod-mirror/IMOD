@@ -34,6 +34,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.3  2003/01/27 00:30:07  mast
+Pure Qt version and general cleanup
+
 Revision 1.1.2.2  2003/01/23 20:12:25  mast
 initialize new ghostdist variable
 
@@ -879,7 +882,7 @@ void ivwGetLocation(ImodView *vw, int *x, int *y, int *z)
 {
   *x = (int)(vw->xmouse);
   *y = (int)(vw->ymouse);
-  *z = (int)(vw->zmouse);
+  *z = (int)(vw->zmouse + 0.5);
   return;
 }
 
