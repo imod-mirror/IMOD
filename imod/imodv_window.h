@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.1  2002/12/17 17:40:37  mast
+initial creation
+
 */
 
 #ifndef IMODV_WINDOW_H
@@ -79,6 +82,7 @@ class ImodvGL : public QGLWidget
  public:
   ImodvGL(QGLFormat format, QWidget * parent = 0, const char * name = 0);
   ~ImodvGL();
+  void setBufferSwapAuto(bool state) { setAutoBufferSwap(state); };
  
 protected:
   void initializeGL();
