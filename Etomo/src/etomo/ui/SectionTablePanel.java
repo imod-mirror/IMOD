@@ -26,6 +26,7 @@ import javax.swing.border.LineBorder;
 import etomo.JoinManager;
 import etomo.process.ImodManager;
 import etomo.storage.TomogramFileFilter;
+import etomo.type.ConstSectionTableRowData;
 import etomo.type.JoinMetaData;
 import etomo.type.SlicerAngles;
 import etomo.util.InvalidParameterException;
@@ -46,6 +47,13 @@ import etomo.util.MRCHeader;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.9  2004/10/06 02:29:41  sueh
+* <p> bug# 520 Fixed flip tomogram functionality.  If the user wants to flip the
+* <p> tomogram, call JoinManager flip and exit.  Also disable the Add Section
+* <p> button while the tomogram is being flipped.  When the flip process is
+* <p> done, the process manager will call the function to add the section and
+* <p> enable the Add Section button.
+* <p>
 * <p> Revision 1.1.2.8  2004/10/01 20:04:22  sueh
 * <p> bug# 520 Moved fuctionality to create table headers and fields to
 * <p> HeaderCell and FieldCell.  Fixed enable/disable of buttons.  Added
@@ -607,8 +615,9 @@ public class SectionTablePanel implements ContextMenu, Expandable, Table {
    * @param startIndex
    */
   private void renumberTable(int startIndex) {
-    for (int i = startIndex; i < rows.size(); i++) {
-      ((SectionTableRow) rows.get(i)).setRowNumber(i + 1);
+    int rowsSize = rows.size();
+    for (int i = startIndex; i < rowsSize; i++) {
+      ((SectionTableRow) rows.get(i)).setRowNumber(i + 1, i + 1 == rowsSize);
     }
   }
 
@@ -634,12 +643,27 @@ public class SectionTablePanel implements ContextMenu, Expandable, Table {
     }
   }
 
-  public void retrieveData(JoinMetaData joinMetaData) {
+  public boolean getMetaData(JoinMetaData joinMetaData) {
     joinMetaData.resetSectionTableData();
     for (int i = 0; i < rows.size(); i++) {
-      joinMetaData.setSectionTableData(((SectionTableRow) rows.get(i))
-          .getData());
+      ConstSectionTableRowData rowData = ((SectionTableRow) rows.get(i)).getData();
+      if (rowData == null) {
+        return false;
+      }
+      joinMetaData.setSectionTableData(rowData);
     }
+    return true;
+  }
+  
+  public String getInvalidReason() {
+    for (int i = 0; i < rows.size(); i++) {
+      SectionTableRow row = (SectionTableRow) rows.get(i);
+      String invalidReason = row.getInvalidReason();
+      if (invalidReason != null) {
+        return invalidReason;
+      }
+    }
+    return null;
   }
 
   /**
