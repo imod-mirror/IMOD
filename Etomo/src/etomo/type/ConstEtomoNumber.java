@@ -18,6 +18,12 @@ import etomo.storage.Storable;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.3  2004/11/19 03:02:57  sueh
+* <p> bug# 520 Added a default displayDefault.  If not overriden it will affect how
+* <p> get, toString, and equals fuctions work.  The default value is used only if
+* <p> displayDefault is true.  DisplayDefault can be overriden by a parameter.
+* <p> Added getValue to simplify choosing the first non-null value to work with.
+* <p>
 * <p> Revision 1.1.2.2  2004/11/19 00:04:05  sueh
 * <p> bug# 520 changed the equals functions so that they work on the same
 * <p> principle as the get functions, since they will be comparing values that
@@ -108,7 +114,8 @@ public abstract class ConstEtomoNumber implements Storable {
     return ",\ntype=" + type + ",\nname=" + name + ",\ndescription=" + description
         + ",\ninvalidReason=" + invalidReason + ",\nvalue="
         + value + ",\ndefaultValue=" + defaultValue + ",\nrecommendedValue="
-        + recommendedValue + ",\nresetValue=" + resetValue;
+        + recommendedValue + ",\nresetValue=" + resetValue
+        + ",\nceilingValue=" + ceilingValue;
   }
   
   public ConstEtomoNumber setCeiling(int ceilingValue) {
@@ -121,17 +128,17 @@ public abstract class ConstEtomoNumber implements Storable {
     return this;
   }
   
-  public ConstEtomoNumber setDisplayDefault(boolean displayDefault) {
-    this.displayDefault = displayDefault;
-    return this;
-  }
-  
   public ConstEtomoNumber setDefault(String defaultValueString) {
     StringBuffer invalidBuffer = new StringBuffer();
     Number defaultValue = newNumber(defaultValueString, invalidBuffer);
     if (invalidBuffer.length() == 0 && !isNull(defaultValue)) {
       this.defaultValue = defaultValue;
     }
+    return this;
+  }
+  
+  public ConstEtomoNumber setDisplayDefault(boolean displayDefault) {
+    this.displayDefault = displayDefault;
     return this;
   }
   
@@ -169,6 +176,7 @@ public abstract class ConstEtomoNumber implements Storable {
   public String toString() {
     return toString(displayDefault);
   }
+  
   public String toString(boolean displayDefault) {
     Number value = getValue(displayDefault);
     if (isNull(value)) {
@@ -257,6 +265,23 @@ public abstract class ConstEtomoNumber implements Storable {
     else {
       resetValue = newNumber();
     }
+  }
+  
+  private Number getValue() {
+    return getValue(displayDefault);
+  }
+  
+  private Number getValue(boolean displayDefault) {
+    if (!isNull()) {
+      return value;
+    }
+    if (!isNull(resetValue)) {
+      return resetValue;
+    }
+    if (displayDefault && !isNull(defaultValue)) {
+      return defaultValue;
+    }
+    return value;
   }
   
   protected Number newNumber() {
@@ -452,21 +477,4 @@ public abstract class ConstEtomoNumber implements Storable {
     }
   }
   
-  protected Number getValue() {
-    return getValue(displayDefault);
-  }
-  
-  protected Number getValue(boolean displayDefault) {
-    if (!isNull()) {
-      return value;
-    }
-    if (!isNull(resetValue)) {
-      return resetValue;
-    }
-    if (displayDefault && !isNull(defaultValue)) {
-      return defaultValue;
-    }
-    return value;
-  }
-
 }
