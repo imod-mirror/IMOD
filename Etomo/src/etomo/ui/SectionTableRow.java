@@ -12,6 +12,7 @@ import etomo.type.ConstEtomoInteger;
 import etomo.type.ConstSectionTableRowData;
 import etomo.type.SectionTableRowData;
 import etomo.type.SlicerAngles;
+import etomo.util.MRCHeader;
 
 /**
 * <p>Description: Manages the fields, buttons, state, and data of one row of
@@ -28,6 +29,11 @@ import etomo.type.SlicerAngles;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.12  2004/10/22 21:12:58  sueh
+* <p> bug# 520 Changed SectionTableRow.sampleSampleTop() to
+* <p> setSampleTopNumberSlices().  Removed getSampleBottom().  Fixed
+* <p> displayCurTab().
+* <p>
 * <p> Revision 1.1.2.11  2004/10/22 16:42:41  sueh
 * <p> bug# 520 Fixed displayCurTab: getting sample bottom size from current
 * <p> row.  Changed Chunk to a header.
@@ -99,11 +105,10 @@ public class SectionTableRow {
   private FieldCell sampleBottomEnd = null;
   private FieldCell sampleTopStart = null;
   private FieldCell sampleTopEnd = null;
-  private HeaderCell chunk = null;
-  private FieldCell referenceSectionStart = null;
-  private FieldCell referenceSectionEnd = null;
-  private FieldCell currentSectionStart = null;
-  private FieldCell currentSectionEnd = null;
+  private FieldCell slicesInSample = null;
+  private HeaderCell currentChunk = null;
+  private FieldCell referenceSection = null;
+  private FieldCell currentSection = null;
   private FieldCell finalStart = null;
   private FieldCell finalEnd = null;
   private FieldCell rotationAngleX = null;
@@ -118,11 +123,13 @@ public class SectionTableRow {
    * @param rowNumber
    */
   public SectionTableRow(SectionTablePanel table, int rowNumber, File tomogram,
-      boolean sectionExpanded, int zMax, int curTab) {
+      boolean sectionExpanded, MRCHeader header, int curTab) {
     this.table = table;
     data = new SectionTableRowData(rowNumber);
     data.setSection(tomogram);
-    data.setZMax(zMax);
+    data.setXMax(header.getNColumns());
+    data.setYMax(header.getNRows());
+    data.setZMax(header.getNSections());
     this.sectionExpanded = sectionExpanded;
     this.curTab = curTab;
   }
@@ -140,23 +147,26 @@ public class SectionTableRow {
   }
 
   protected String paramString() {
-    return ",\ntable=" + table + ",\rowNumber=" + rowNumber
-        + ",\nhighlighterButton=" + highlighterButton + ",\nsection=" + section
-        + ",\nsampleBottomStart=" + sampleBottomStart + ",\nsampleBottomEnd="
-        + sampleBottomEnd + ",\nsampleTopStart=" + sampleTopStart
-        + ",\nsampleTopEnd=" + sampleTopEnd + ",\nfinalStart=" + finalStart
-        + ",\nfinalEnd=" + finalEnd + ",\nrotationAngleX=" + rotationAngleX
-        + ",\nrotationAngleY=" + rotationAngleY + ",\nrotationAngleZ="
-        + rotationAngleZ + ",\nimodIndex=" + imodIndex + ",\nsectionExpanded="
-        + sectionExpanded + ",\ncurTab=" + curTab + ",\nchunk=" + chunk
-        + ",\nreferenceSectionStart=" + referenceSectionStart
-        + ",\nreferenceSectionEnd=" + referenceSectionEnd
-        + ",\ncurrentSectionStart=" + currentSectionStart
-        + ",\ncurrentSectionEnd=" + currentSectionEnd + ",\ndata=" + data;
+    return ",\ntable=" + table + ",\rowNumber=" + rowNumber.getText()
+        + ",\nsection=" + section.getText() + ",\nsampleBottomStart="
+        + sampleBottomStart.getText() + ",\nsampleBottomEnd="
+        + sampleBottomEnd.getText() + ",\nsampleTopStart="
+        + sampleTopStart.getText() + ",\nsampleTopEnd="
+        + sampleTopEnd.getText() + ",\nfinalStart=" + finalStart.getText()
+        + ",\nfinalEnd=" + finalEnd.getText() + ",\nrotationAngleX="
+        + rotationAngleX.getText() + ",\nrotationAngleY="
+        + rotationAngleY.getText() + ",\nrotationAngleZ="
+        + rotationAngleZ.getText() + ",\nimodIndex=" + imodIndex
+        + ",\nsectionExpanded=" + sectionExpanded + ",\ncurTab=" + curTab
+        + ",\ncurrentChunk=" + currentChunk.getText() + ",\nslicesInSample="
+        + slicesInSample.getText() + ",\nreferenceSection="
+        + referenceSection.getText() + ",\ncurrentSection="
+        + currentSection.getText() + ",\ncurrentSection="
+        + currentSection.getText() + ",\ndata=" + data;
   } 
   
   void create() {
-    rowNumber = new HeaderCell(data.getRowNumber().getString(),
+    rowNumber = new HeaderCell(data.getRowNumber().getString(true),
         FixedDim.rowNumberWidth);
     highlighterButton = table.createToggleButton("=>", FixedDim.highlighterWidth);
     highlighterButton.addActionListener(actionListener);
@@ -167,15 +177,13 @@ public class SectionTableRow {
     sampleBottomEnd = new FieldCell();
     sampleTopStart = new FieldCell();
     sampleTopEnd = new FieldCell();
-    chunk = new HeaderCell();
-    referenceSectionStart = new FieldCell();
-    referenceSectionStart.setEnabled(false);
-    referenceSectionEnd = new FieldCell();
-    referenceSectionEnd.setEnabled(false);
-    currentSectionStart = new FieldCell();
-    currentSectionStart.setEnabled(false);
-    currentSectionEnd = new FieldCell();
-    currentSectionEnd.setEnabled(false);
+    slicesInSample = new FieldCell();
+    slicesInSample.setEnabled(false);
+    currentChunk = new HeaderCell();
+    referenceSection = new FieldCell();
+    referenceSection.setEnabled(false);
+    currentSection = new FieldCell();
+    currentSection.setEnabled(false);
     finalStart = new FieldCell();
     finalEnd = new FieldCell();
     rotationAngleX = new FieldCell();
@@ -237,15 +245,10 @@ public class SectionTableRow {
   private void removeAlign() {
     rowNumber.remove();
     section.remove();
-    sampleBottomStart.remove();
-    sampleBottomEnd.remove();
-    sampleTopStart.remove();
-    sampleTopEnd.remove();
-    chunk.remove();
-    referenceSectionStart.remove();
-    referenceSectionEnd.remove();
-    currentSectionStart.remove();
-    currentSectionEnd.remove();
+    slicesInSample.remove();
+    currentChunk.remove();
+    referenceSection.remove();
+    currentSection.remove();
   }
   
   private void removeJoin() {
@@ -260,45 +263,64 @@ public class SectionTableRow {
     this.curTab = curTab;
   }
   
-  int displayCurTab(JPanel panel, int prevSlice, int prevSampleTopNumberSlices) {
+  int displayCurTab(JPanel panel, int prevSlice) {
     remove();
     add(panel);
     configureFields();
     //Set align display only fields
     if (curTab == JoinDialog.ALIGN_TAB) {
-      ConstEtomoInteger rowNumber = data.getRowNumber();
-      if (rowNumber.equals(1)) {
-        chunk.setText("");
-        referenceSectionStart.setText("");
-        referenceSectionEnd.setText("");
-        currentSectionStart.setText("");
-        currentSectionEnd.setText("");
+      int start;
+      int chunkSize = data.getChunkSize(table.getTableSize()).get();
+      if (chunkSize > 0) {
+        start = prevSlice + 1;
+        prevSlice += chunkSize;
+        slicesInSample.setText(Integer.toString(start) + " - " + Integer.toString(prevSlice));
       }
       else {
-        chunk.setText(rowNumber.getString());
-        if (prevSampleTopNumberSlices > 0) {
-          referenceSectionStart.setText(Integer.toString(prevSlice + 1));
-          prevSlice += prevSampleTopNumberSlices;
-          referenceSectionEnd.setText(Integer.toString(prevSlice));
+        referenceSection.setText("");
+      }
+    }
+    return prevSlice;
+  }
+  
+  int displayCurTabChunkTable(JPanel panel, int prevSlice,
+      int nextSampleBottomNumberSlices) {
+    if (curTab == JoinDialog.ALIGN_TAB) {
+      if (nextSampleBottomNumberSlices == -1) {
+        currentChunk.setText("");
+        referenceSection.setText("");
+        currentSection.setText("");
+      }
+      else {
+        ConstEtomoInteger rowNumber = data.getRowNumber();
+        currentChunk.setText(Integer.toString(rowNumber.get() + 1));
+        int start;
+        int sampleTopNumberSlices = data.getSampleTopNumberSlices();
+        if (sampleTopNumberSlices > 0) {
+          start = prevSlice + 1;
+          prevSlice += sampleTopNumberSlices;
+          referenceSection.setText(Integer.toString(start) + " - "
+              + Integer.toString(prevSlice));
         }
         else {
-          referenceSectionStart.setText("");
-          referenceSectionEnd.setText("");
+          referenceSection.setText("");
         }
-        int sampleBottomNumberSlices = data.getSampleBottomNumberSlices();
-        if (sampleBottomNumberSlices > 0) {
-          currentSectionStart.setText(Integer.toString(prevSlice + 1));
-          prevSlice += sampleBottomNumberSlices;
-          currentSectionEnd.setText(Integer.toString(prevSlice));
+
+        if (nextSampleBottomNumberSlices > 0) {
+          start = prevSlice + 1;
+          prevSlice += nextSampleBottomNumberSlices;
+          currentSection.setText(Integer.toString(start) + " - "
+              + Integer.toString(prevSlice));
         }
         else {
-          currentSectionStart.setText("");
-          currentSectionEnd.setText("");
+          currentSection.setText("");
         }
       }
     }
     return prevSlice;
   }
+
+
   
   void add(JPanel panel) {
     if (curTab == JoinDialog.SETUP_TAB) {
@@ -345,16 +367,11 @@ public class SectionTableRow {
     constraints.gridwidth = 2;
     section.add(panel, layout, constraints);
     constraints.gridwidth = 1;
-    sampleBottomStart.add(panel, layout, constraints);
-    sampleBottomEnd.add(panel, layout, constraints);
-    sampleTopStart.add(panel, layout, constraints);
-    sampleTopEnd.add(panel, layout, constraints);
-    chunk.add(panel, layout, constraints);
-    referenceSectionStart.add(panel, layout, constraints);
-    referenceSectionEnd.add(panel, layout, constraints);
-    currentSectionStart.add(panel, layout, constraints);
+    slicesInSample.add(panel, layout, constraints);
+    currentChunk.add(panel, layout, constraints);
+    referenceSection.add(panel, layout, constraints);
     constraints.gridwidth = GridBagConstraints.REMAINDER;
-    currentSectionEnd.add(panel, layout, constraints);
+    currentSection.add(panel, layout, constraints);
   }
   
   private void addJoin(JPanel panel) {
@@ -374,12 +391,12 @@ public class SectionTableRow {
   }
   
   private void displayData() {
-    rowNumber.setText(data.getRowNumber().getString());
+    rowNumber.setText(data.getRowNumber().getString(true));
     setSectionText();
-    sampleBottomStart.setText(data.getSampleBottomStart().getString());
-    sampleBottomEnd.setText(data.getSampleBottomEnd().getString());
-    sampleTopStart.setText(data.getSampleTopStart().getString());
-    sampleTopEnd.setText(data.getSampleTopEnd().getString());
+    sampleBottomStart.setText(data.getSampleBottomStart().getString(true));
+    sampleBottomEnd.setText(data.getSampleBottomEnd().getString(true));
+    sampleTopStart.setText(data.getSampleTopStart().getString(true));
+    sampleTopEnd.setText(data.getSampleTopEnd().getString(true));
     finalStart.setText(data.getFinalStartString());
     finalEnd.setText(data.getFinalEndString());
     rotationAngleX.setText(data.getRotationAngleXString());
@@ -466,6 +483,7 @@ public class SectionTableRow {
     sampleBottomEnd.setHighlighted(highlight);
     sampleTopStart.setHighlighted(highlight);
     sampleTopEnd.setHighlighted(highlight);
+    slicesInSample.setHighlighted(highlight);
     finalStart.setHighlighted(highlight);
     finalEnd.setHighlighted(highlight);
     rotationAngleX.setHighlighted(highlight);
@@ -490,12 +508,20 @@ public class SectionTableRow {
     return section.getText();
   }
   
+  int getXMax() {
+    return data.getXMax().get();
+  }
+  
+  int getYMax() {
+    return data.getYMax().get();
+  }
+  
   int getImodIndex() {
     return imodIndex;
   }
   
-  int getSampleTopNumberSlices() {
-    return data.getSampleTopNumberSlices();
+  int getSampleBottomNumberSlices() {
+    return data.getSampleBottomNumberSlices();
   }
   
   ConstSectionTableRowData getData() {
