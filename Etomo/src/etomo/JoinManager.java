@@ -16,6 +16,9 @@ import java.io.File;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.3  2004/09/08 19:28:25  sueh
+* <p> bug# 520 update call to BaseMAnager()
+* <p>
 * <p> Revision 1.1.2.2  2004/09/07 17:55:15  sueh
 * <p> bug# 520 moved mainFrame show responsibility to EtomoDirector
 * <p>
@@ -28,6 +31,10 @@ public class JoinManager extends BaseManager {
   
   public JoinManager(String paramFileName) {
     super();
+  }
+  
+  public boolean isNewManager() {
+    return false;
   }
 
   protected void createComScriptManager() {
