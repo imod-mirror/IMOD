@@ -5,6 +5,7 @@ import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.event.*;
 import java.io.File;
+import java.util.Vector;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
@@ -13,6 +14,8 @@ import javax.swing.event.ChangeListener;
 import etomo.EtomoDirector;
 import etomo.JoinManager;
 import etomo.comscript.FinishjoinParam;
+import etomo.process.ImodManager;
+import etomo.process.ImodProcess;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoInteger;
 import etomo.type.ConstJoinMetaData;
@@ -33,6 +36,12 @@ import etomo.type.JoinMetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.1.2.27  2004/11/11 01:42:23  sueh
+ * <p> bug# 520 Changed useEveryNSections to useEveryNSlices (sampling rate
+ * <p> in Z).  Prevented null values from getting into useEveryNSlices and
+ * <p> trialBinning.  Changed setNumSections to preserve user set values in
+ * <p> spinners densityRefSection, AlignmentRefSection, and useEveryNSlices.
+ * <p>
  * <p> Revision 1.1.2.26  2004/11/09 15:45:11  sueh
  * <p> bug# 520 Removed member variables that are unnecessary because they
  * <p> are only used in one function.  Added createOpen3dmodPanel() to create
@@ -288,6 +297,56 @@ public class JoinDialog implements ContextMenu {
     }
   }
   
+  private void setSizeAndShift(Vector coordinates) {
+    if (coordinates == null) {
+      return;
+    }
+    int size = coordinates.size();
+    if (size == 0) {
+      return;
+    }
+    int index = 0;
+    EtomoInteger estXMin = new EtomoInteger();
+    EtomoInteger estYMin = new EtomoInteger();
+    EtomoInteger estXMax = new EtomoInteger();
+    EtomoInteger estYMax = new EtomoInteger();
+    while (index < size) {
+      if (ImodProcess
+        .RUBBERBAND_RESULTS_STRING
+        .equals((String) coordinates.get(index++))) {
+        estXMin.set((String) coordinates.get(index++));
+        if (index >= size) {
+          break;
+        }
+        estYMin.set((String) coordinates.get(index++));
+        if (index >= size) {
+          break;
+        }
+        estXMax.set((String) coordinates.get(index++));
+        if (index >= size) {
+          break;
+        }
+        estYMax.set((String) coordinates.get(index++));
+      }
+    }
+    int min;
+    int max;
+    ConstJoinMetaData metaData = joinManager.getMetaData();
+    if (estXMin.isSet() && estXMax.isSet()) {
+      min = metaData.getCoordinate(estXMin);
+      max = metaData.getCoordinate(estXMax);
+      ltfSizeInX.setText(JoinMetaData.getSize(min, max));
+      ltfShiftInX.setText(metaData.getNewShiftInX(min, max));
+    }
+    if (estYMin.isSet() && estYMax.isSet()) {
+      min = metaData.getCoordinate(estYMin);
+      max = metaData.getCoordinate(estYMax);
+      ltfSizeInY.setText(JoinMetaData.getSize(min, max));
+      ltfShiftInY.setText(metaData.getNewShiftInY(min, max));
+    }
+  }
+
+  
   private void removePanelComponents(int tab) {
     if (tab == SETUP_TAB) {
       pnlSetup.removeAll();
@@ -521,7 +580,7 @@ public class JoinDialog implements ContextMenu {
         OPEN_BINNED_BY, spinnerModel);
     pnlTrialJoin.add(createOpen3dmodPanel(spinOpenTrialBinnedBy, btnOpenTrialIn3dmod));
     //fifth component
-    btnGetSubarea = new MultiLineButton("Get Subarea");
+    btnGetSubarea = new MultiLineButton("Get Subarea Size And Shift");
     btnGetSubarea.addActionListener(joinActionListener);
     pnlTrialJoin.addMultiLineButton(btnGetSubarea);
     pnlFinishJoin.add(pnlTrialJoin);
@@ -570,11 +629,26 @@ public class JoinDialog implements ContextMenu {
     spinAlignmentRefSection.setModel(spinnerModel);
     //every n sections
     int zMax = pnlSectionTable.getZMax();
-    spinnerValue.set((Integer) spinUseEveryNSlices.getValue());
+    if (zMax == 0) {
+      spinnerValue.set(1);
+    }
+    else {
+      spinnerValue.setCeiling(zMax);
+      spinnerValue.set((Integer) spinUseEveryNSlices.getValue());
+    }
     spinnerValue.setDefault(zMax < 1 ? 1 : zMax < 10 ? zMax : 10);
+    System.out.println("zMax=" + zMax + ",spinnerValue=" + spinnerValue.getString()+ ",spinnerValue default="+spinnerValue.getDefault());
     spinnerModel = new SpinnerNumberModel(spinnerValue.get(true), 1,
         zMax < 1 ? 1 : zMax, 1);
     spinUseEveryNSlices.setModel(spinnerModel);
+    //update size in X and Y defaults
+    ConstJoinMetaData metaData = joinManager.getMetaData();
+    ConstEtomoInteger size = metaData.getSizeInX();
+    size.setDefault(pnlSectionTable.getXMax());
+    ltfSizeInX.setText(size.get(true));
+    size = metaData.getSizeInY();
+    size.setDefault(pnlSectionTable.getYMax());
+    ltfSizeInY.setText(size.get(true));
   }
   
   public ConstEtomoInteger getSizeInX() {
@@ -720,10 +794,10 @@ public class JoinDialog implements ContextMenu {
       joinManager.makejoincom();
     }
     else if (command.equals(btnOpenSample.getActionCommand())) {
-      joinManager.imodOpenJoinSamples();
+      joinManager.imodOpen(ImodManager.JOIN_SAMPLES_KEY);
     }
     else if (command.equals(btnOpenSampleAverages.getActionCommand())) {
-      joinManager.imodOpenJoinSampleAverages();
+      joinManager.imodOpen(ImodManager.JOIN_SAMPLE_AVERAGES_KEY);
     }
     else if (command.equals(btnInitialAutoAlignment.getActionCommand())) {
       btnMidas.setEnabled(false);
@@ -746,7 +820,8 @@ public class JoinDialog implements ContextMenu {
       joinManager.runFinishjoin(FinishjoinParam.FINISH_JOIN_MODE, FINISH_JOIN_TEXT);
     }
     else if (command.equals(btnOpenIn3dmod.getActionCommand())) {
-      joinManager.imodOpenJoin(((Integer)spinOpenBinnedBy.getValue()).intValue());
+      joinManager.imodOpen(ImodManager.JOIN_KEY, ((Integer) spinOpenBinnedBy
+          .getValue()).intValue());
     }
     else if (command.equals(btnGetMaxSize.getActionCommand())) {
       joinManager.runFinishjoin(FinishjoinParam.MAX_SIZE_MODE, GET_MAX_SIZE_TEXT);
@@ -755,10 +830,12 @@ public class JoinDialog implements ContextMenu {
       joinManager.runFinishjoin(FinishjoinParam.TRIAL_MODE, TRIAL_JOIN_TEXT);
     }
     else if (command.equals(btnOpenTrialIn3dmod.getActionCommand())) {
-      
+      joinManager.imodOpen(ImodManager.TRIAL_JOIN_KEY,
+          ((Integer) this.spinOpenTrialBinnedBy.getValue()).intValue());
     }
     else if (command.equals(btnGetSubarea.getActionCommand())) {
-      
+      setSizeAndShift(joinManager
+          .imodGetRubberbandCoordinates(ImodManager.TRIAL_JOIN_KEY));
     }
     else {
       throw new IllegalStateException("Unknown command " + command);
