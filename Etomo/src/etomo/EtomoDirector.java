@@ -3,6 +3,9 @@ package etomo;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import etomo.type.UserConfiguration;
+import etomo.ui.MainFrame;
+
 /**
  * <p>
  * Description: Directs ApplicationManager and JoinManager through BaseManager.
@@ -23,6 +26,10 @@ import java.util.HashMap;
  * 
  * <p>
  * $Log$
+ * Revision 1.1.2.1  2004/09/03 20:59:07  sueh
+ * bug# 520 transfering constructor code from ApplicationManager.  Allowing
+ * multiple ApplicationManagers and JoinManagers
+ *
  * </p>
  */
 
@@ -36,6 +43,8 @@ public class EtomoDirector {
   private static boolean selfTest = false;
   private HashMap managerList = null;
   private String currentParamFileName = null;
+  private static MainFrame mainFrame = null;
+  private static UserConfiguration userConfig = null;
 
   public static void main(String[] args) {
     createInstance(args);
@@ -61,9 +70,14 @@ public class EtomoDirector {
 
   private EtomoDirector(String[] args) {
     theEtomoDirector = this;
+    createUserConfiguration();
+    if (!test) {
+      createMainFrame();
+    }
     ArrayList paramFileNameList = parseCommandLine(args);
     int paramFileNameListSize = paramFileNameList.size();
     String paramFileName = null;
+    managerList = new HashMap();
     //if no param file is found bring up AppMgr.SetupDialog
     if (paramFileNameListSize == 0) {
       paramFileName = "";
@@ -72,9 +86,6 @@ public class EtomoDirector {
     }
     else {
       for (int i = 0; i < paramFileNameListSize; i++) {
-        if (managerList == null) {
-          managerList = new HashMap();
-        }
         paramFileName = (String) paramFileNameList.get(i);
         if (i == 0) {
           currentParamFileName = paramFileName;
@@ -87,8 +98,36 @@ public class EtomoDirector {
         }
       }
     }
+    if (!test) {
+      mainFrame.setCurrentManager(getCurrentManager());
+      mainFrame.setMRUFileLabels(userConfig.getMRUFileList());
+      mainFrame.pack();
+      mainFrame.show();
+    }
   }
 
+  private static void createMainFrame() {
+    mainFrame = new MainFrame();
+  }
+  
+  public static MainFrame getMainFrame() {
+    if (mainFrame == null) {
+      throw new NullPointerException();
+    }
+    return mainFrame;
+  }
+  
+  public static UserConfiguration getUserConfiguration() {
+    if (userConfig == null) {
+      throw new NullPointerException();
+    }
+    return userConfig;
+  }
+  
+  private static void  createUserConfiguration() {
+    userConfig = new UserConfiguration();
+  }
+  
   /**
    * Parse the command line. This method will return a non-empty string if there
    * is a etomo data .
