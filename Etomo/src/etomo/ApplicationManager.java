@@ -88,6 +88,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.84  2004/06/28 22:10:29  rickg
+ * <p> Bug #470 Moved the fiducial mode file copying to the same sections
+ * <p> where the fiducialless is handled.
+ * <p>
  * <p> Revision 3.83  2004/06/28 04:36:39  rickg
  * <p> Bug #470 Added method to update prexf and _nonfid.xf
  * <p>
@@ -1717,6 +1721,7 @@ public class ApplicationManager {
     }
     metaData.setFiducialessAlignment(dialog.isFiducialessAlignment());
     metaData.setImageRotation(tiltAxisAngle, axisID);
+    updateRotationXF(tiltAxisAngle, axisID);
     return true;
   }
 
