@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.4  2003/01/01 05:39:50  mast
+add decimal point capability for value output
+
 Revision 1.1.2.3  2002/12/29 04:21:22  mast
 correct delete statements
 
@@ -60,7 +63,7 @@ Initial creation
 #define NON_VALUE -99999999
 #define MAX_DECIMALS 6
 
-static char *deciFormats[MAX_DECIMALS + 1] = {"%d", "%.1f", "%,2f", "%.3f",
+static char *deciFormats[MAX_DECIMALS + 1] = {"%d", "%.1f", "%.2f", "%.3f",
 					      "%.4f", "%.5f", "%.6f"};
 
 MultiSlider::MultiSlider(QWidget *parent, int numSliders, char *titles[], 
@@ -161,8 +164,11 @@ void MultiSlider::setValue(int slider, int value)
 
 void MultiSlider::setRange(int slider, int minVal, int maxVal)
 {
-  if (slider >=0 && slider < mNumSliders)
+  if (slider >=0 && slider < mNumSliders) {
+    mSliders[slider]->blockSignals(true);
     mSliders[slider]->setRange(minVal, maxVal);
+    mSliders[slider]->blockSignals(false);
+  }
 }
 
 QSlider *MultiSlider::getSlider(int slider)
