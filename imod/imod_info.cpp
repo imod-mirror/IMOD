@@ -40,6 +40,9 @@
     $Revision$
 
     $Log$
+    Revision 1.1.2.3  2003/01/18 01:15:00  mast
+    fix enabling of cache filler menu items
+
     Revision 1.1.2.2  2003/01/14 21:49:06  mast
     Initialize hiding timer properly
 
@@ -76,7 +79,7 @@
 #include "control.h"
 
 #define INFO_MIN_LINES 3.5
-#define INFO_STARTING_LINES 4.5
+#define INFO_STARTING_LINES 4.75
 
 /* some declarations */
 void wprintWidget(QTextEdit *edit);
@@ -161,17 +164,19 @@ InfoWindow::InfoWindow(QWidget * parent, const char * name, WFlags f)
   mEContourMenu->insertItem("&Delete", ECONTOUR_MENU_DELETE);
   mEContourMenu->setAccel(SHIFT + Key_D, ECONTOUR_MENU_DELETE);
   mEContourMenu->insertItem("&Move...", ECONTOUR_MENU_MOVE);
+  mEContourMenu->insertItem("&Copy...", ECONTOUR_MENU_COPY);
   mEContourMenu->insertItem("&Sort", ECONTOUR_MENU_SORT);
+  mEContourMenu->insertSeparator();
+  mEContourMenu->insertItem("&Break...", ECONTOUR_MENU_BREAK);
+  mEContourMenu->insertItem("&Join...", ECONTOUR_MENU_JOIN);
+  mEContourMenu->insertItem("&Break by Z", ECONTOUR_MENU_FIXZ);
+  mEContourMenu->insertItem("&Fill in Z", ECONTOUR_MENU_FILLIN);
+  mEContourMenu->insertItem("&Loopback", ECONTOUR_MENU_LOOPBACK);
+  mEContourMenu->insertItem("&Invert", ECONTOUR_MENU_INVERT);
+  mEContourMenu->insertSeparator();
+  mEContourMenu->insertItem("&Info", ECONTOUR_MENU_INFO);
   mEContourMenu->insertItem("&Auto...", ECONTOUR_MENU_AUTO);
   mEContourMenu->insertItem("&Type...", ECONTOUR_MENU_TYPE);
-  mEContourMenu->insertItem("&Info", ECONTOUR_MENU_INFO);
-  mEContourMenu->insertItem("&Break...", ECONTOUR_MENU_BREAK);
-  mEContourMenu->insertItem("&Fix by Z", ECONTOUR_MENU_FIXZ);
-  mEContourMenu->insertItem("&Join...", ECONTOUR_MENU_JOIN);
-  mEContourMenu->insertItem("&Invert", ECONTOUR_MENU_INVERT);
-  mEContourMenu->insertItem("&Copy...", ECONTOUR_MENU_COPY);
-  mEContourMenu->insertItem("&Loopback", ECONTOUR_MENU_LOOPBACK);
-  mEContourMenu->insertItem("&Fill In", ECONTOUR_MENU_FILLIN);
 
   // Edit Point submenu
   mEPointMenu->insertItem("&Delete", EPOINT_MENU_DELETE);
