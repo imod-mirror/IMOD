@@ -8,8 +8,8 @@
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>300</width>
-            <height>508</height>
+            <width>306</width>
+            <height>524</height>
         </rect>
     </property>
     <property name="caption">
@@ -1021,9 +1021,9 @@
     </connection>
 </connections>
 <includes>
-    <include location="global" impldecl="in implementation">stdio.h</include>
-    <include location="local" impldecl="in implementation">imodv_movie.h</include>
     <include location="local" impldecl="in implementation">imodv_input.h</include>
+    <include location="local" impldecl="in implementation">imodv_movie.h</include>
+    <include location="global" impldecl="in implementation">stdlib.h</include>
     <include location="local" impldecl="in implementation">formv_movie.ui.h</include>
 </includes>
 <variables>
