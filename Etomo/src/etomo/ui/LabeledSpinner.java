@@ -12,6 +12,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4.4.2  2004/10/22 03:27:16  sueh
+ * <p> bug# 520 Added setValue(ConstEtomoInteger).
+ * <p>
  * <p> Revision 1.4.4.1  2004/09/23 23:38:18  sueh
  * <p> bug# 520 Added setModel() so that the spinner model can be changed.
  * <p>
@@ -40,7 +43,7 @@ import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerModel;
 
-import etomo.type.ConstEtomoInteger;
+import etomo.type.EtomoSimpleType;
 
 public class LabeledSpinner {
   public static final String rcsid = "$Id$";
@@ -94,7 +97,7 @@ public class LabeledSpinner {
     spinner.setValue(value);
   }
   
-  public void setValue(ConstEtomoInteger value) {
+  public void setValue(EtomoSimpleType value) {
     spinner.setValue(value.getNumber());
   }
 
