@@ -19,6 +19,11 @@ import etomo.storage.Storable;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.7  2004/10/22 21:03:21  sueh
+* <p> bug# 520 Simplifying by passing EtomoSimpleType instead of String and
+* <p> int in get functions.  Removed validation.  Converted ints to
+* <p> EtomoInteger as necessary.
+* <p>
 * <p> Revision 1.1.2.6  2004/10/22 03:23:19  sueh
 * <p> bug# 520 Converted rowNumber to an EtomoInteger.
 * <p>
@@ -77,6 +82,8 @@ public abstract class ConstSectionTableRowData implements Storable {
   protected double rotationAngleX;
   protected double rotationAngleY;
   protected double rotationAngleZ;
+  protected EtomoInteger xMax = new EtomoInteger("XMax");
+  protected EtomoInteger yMax = new EtomoInteger("YMax");
   protected int zMax = Integer.MIN_VALUE;
   
   protected StringBuffer invalidReason;
@@ -100,7 +107,9 @@ public abstract class ConstSectionTableRowData implements Storable {
         + finalStart + ",\n" + finalEndString + "=" + finalEnd + ",\n"
         + rotationAngleXString + "=" + rotationAngleX + ",\n"
         + rotationAngleYString + "=" + rotationAngleY + ",\n"
-        + rotationAngleZString + "=" + rotationAngleZ + ",\n" + zMaxString
+        + rotationAngleZString + "=" + rotationAngleZ + ",\n" + xMax.getDescription()
+        + "=" + xMax.getString() + ",\n" + yMax.getDescription()
+        + "=" + yMax.getString() + ",\n" + zMaxString
         + "=" + zMax;
   } 
   
@@ -112,6 +121,8 @@ public abstract class ConstSectionTableRowData implements Storable {
     prepend = createPrepend(prepend);
     String group = prepend + ".";
     rowNumber.store(props, prepend);
+    xMax.store(props, prepend);
+    yMax.store(props, prepend);
     props.setProperty(group + zMaxString, Integer.toString(zMax));
     props.setProperty(group + sectionString, section.getAbsolutePath());  
     sampleBottomStart.store(props, prepend);
@@ -198,9 +209,6 @@ public abstract class ConstSectionTableRowData implements Storable {
   public ConstEtomoInteger getRowNumber() {
     return rowNumber;
   }
-  public int getRowNumberValue() {
-    return rowNumber.get();
-  }
 
   public int getRowIndex() {
     if (rowNumber.lessThen(0)) {
@@ -217,6 +225,14 @@ public abstract class ConstSectionTableRowData implements Storable {
   }
   public String getSectionName() {
     return section.getName();
+  }
+  
+  public ConstEtomoInteger getXMax() {
+    return xMax;
+  }
+  
+  public ConstEtomoInteger getYMax() {
+    return yMax;
   }
   
   public EtomoSimpleType getSampleBottomStart() {
@@ -249,7 +265,16 @@ public abstract class ConstSectionTableRowData implements Storable {
     return 0;
   }
   
-  public EtomoSimpleType getChunkSize() {
+  public ConstEtomoInteger getChunkSize(int tableSize) {
+    if (tableSize <= 1) {
+      return new EtomoInteger(0);
+    }
+    if (rowNumber.equals(1)) {
+      return new EtomoInteger(getSampleTopNumberSlices());
+    }
+    if (rowNumber.equals(tableSize)) {
+      return new EtomoInteger(getSampleBottomNumberSlices());
+    }
     return new EtomoInteger(getSampleBottomNumberSlices() + getSampleTopNumberSlices());
   }
   
