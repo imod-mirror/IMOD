@@ -23,6 +23,10 @@ import etomo.type.JoinMetaData;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.4  2004/10/08 16:33:43  sueh
+* <p> bug# 520 Since EtomoDirector is a singleton, made all functions and
+* <p> member variables non-static.
+* <p>
 * <p> Revision 1.1.2.3  2004/09/29 19:35:59  sueh
 * <p> bug# 520 Created private variables that are cast from base-class
 * <p> member variables during construction.
@@ -38,6 +42,8 @@ import etomo.type.JoinMetaData;
 public class MainJoinPanel extends MainPanel {
   public static  final String  rcsid =  "$Id$";
   
+  private JoinProcessPanel axisPanelA;
+  private JoinProcessPanel axisPanelB;
   /**
    * @param joinManager
    */
@@ -80,5 +86,54 @@ public class MainJoinPanel extends MainPanel {
       buffer.append(joinMetaData.getAxisType().toString());
     }
     statusBar.setText(buffer.toString());
+  }
+  
+  
+  protected void resetAxisPanels() {
+    axisPanelA = null;
+    axisPanelB = null;
+  }
+  
+  protected void addAxisPanelA() {
+    scrollA.add(axisPanelA.getContainer());
+  }
+  
+  protected void addAxisPanelB() {
+    scrollB.add(axisPanelB.getContainer());
+  }
+  
+  protected boolean AxisPanelAIsNull() {
+    return axisPanelA == null;
+  }
+  
+  protected boolean AxisPanelBIsNull() {
+    return axisPanelB == null;
+  }
+  
+  protected boolean hideAxisPanelA() {
+    return axisPanelA.hide();
+  }
+  
+  protected boolean hideAxisPanelB() {
+    return axisPanelB.hide();
+  }
+  
+  protected void showAxisPanelA() {
+    axisPanelA.show();
+  }
+  
+  protected void showAxisPanelB() {
+    axisPanelB.show();
+  }
+  
+  protected boolean isAxisPanelAFitScreenError() {
+    return isFitScreenError(axisPanelA);
+  }
+  
+  protected AxisProcessPanel mapBaseAxis(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return axisPanelB;
+    }
+    return axisPanelA;
   }
 }

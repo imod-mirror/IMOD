@@ -36,6 +36,10 @@ import etomo.type.AxisType;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.1.2.9  2004/10/08 16:34:05  sueh
+ * <p> bug# 520 Since EtomoDirector is a singleton, made all functions and
+ * <p> member variables non-static.
+ * <p>
  * <p> Revision 1.1.2.8  2004/10/01 20:00:21  sueh
  * <p> bug# 520 Standardized getting the metadata file name.
  * <p>
@@ -85,8 +89,6 @@ public abstract class MainPanel extends JPanel {
   protected JScrollPane scrollPaneB;
   protected JSplitPane splitPane;
   protected BaseManager manager = null;
-  protected AxisProcessPanel axisPanelA = null;
-  protected AxisProcessPanel axisPanelB = null;
   
   private static final int estimatedMenuHeight = 60;
   private static final int extraScreenWidthMultiplier = 2;
@@ -94,6 +96,17 @@ public abstract class MainPanel extends JPanel {
   
   protected abstract void createAxisPanelA(AxisID axisID);
   protected abstract void createAxisPanelB();
+  protected abstract void resetAxisPanels();
+  protected abstract void addAxisPanelA();
+  protected abstract void addAxisPanelB();
+  protected abstract boolean AxisPanelAIsNull();
+  protected abstract boolean AxisPanelBIsNull();
+  protected abstract boolean hideAxisPanelA();
+  protected abstract boolean hideAxisPanelB();
+  protected abstract void showAxisPanelA();  
+  protected abstract void showAxisPanelB();
+  protected abstract boolean isAxisPanelAFitScreenError();
+  protected abstract AxisProcessPanel mapBaseAxis(AxisID axisID);
 
   /**
    * Main window constructor.  This sets up the menus and status line.
@@ -140,7 +153,7 @@ public abstract class MainPanel extends JPanel {
    * Show a blank processing panel
    */
   public void showBlankProcess(AxisID axisID) {
-    AxisProcessPanel axisPanel = mapAxis(axisID);
+    AxisProcessPanel axisPanel = mapBaseAxis(axisID);
     axisPanel.eraseDialogPanel();
   }
 
@@ -148,7 +161,7 @@ public abstract class MainPanel extends JPanel {
    * Show the specified processing panel
    */
   public void showProcess(Container processPanel, AxisID axisID) {
-    AxisProcessPanel axisPanel = mapAxis(axisID);
+    AxisProcessPanel axisPanel = mapBaseAxis(axisID);
     axisPanel.replaceDialogPanel(processPanel);
     if (EtomoDirector.getInstance().getUserConfiguration().isAutoFit()) {
       fitWindow();
@@ -161,7 +174,7 @@ public abstract class MainPanel extends JPanel {
    * @param nSteps
    */
   public void setProgressBar(String label, int nSteps, AxisID axisID) {
-    AxisProcessPanel axisPanel = mapAxis(axisID);
+    AxisProcessPanel axisPanel = mapBaseAxis(axisID);
     axisPanel.setProgressBar(label, nSteps);
     axisPanel.setProgressBarValue(0);
   }
@@ -172,7 +185,7 @@ public abstract class MainPanel extends JPanel {
    * @param axisID
    */
   public void setProgressBarValue(int value, AxisID axisID) {
-    AxisProcessPanel axisPanel = mapAxis(axisID);
+    AxisProcessPanel axisPanel = mapBaseAxis(axisID);
     axisPanel.setProgressBarValue(value);
   }
 
@@ -183,7 +196,7 @@ public abstract class MainPanel extends JPanel {
    * @param axisID
    */
   public void setProgressBarValue(int value, String string, AxisID axisID) {
-    AxisProcessPanel axisPanel = mapAxis(axisID);
+    AxisProcessPanel axisPanel = mapBaseAxis(axisID);
     axisPanel.setProgressBarValue(value, string);
   }
 
@@ -191,7 +204,7 @@ public abstract class MainPanel extends JPanel {
    *  Start the indeterminate progress bar on the specified axis 
    */
   public void startProgressBar(String name, AxisID axisID) {
-    AxisProcessPanel axisPanel = mapAxis(axisID);
+    AxisProcessPanel axisPanel = mapBaseAxis(axisID);
     axisPanel.startProgressBar(name);
   }
 
@@ -200,13 +213,13 @@ public abstract class MainPanel extends JPanel {
    * @param axisID
    */
   public void stopProgressBar(AxisID axisID) {
-    AxisProcessPanel axisPanel = mapAxis(axisID);
+    AxisProcessPanel axisPanel = mapBaseAxis(axisID);
     axisPanel.stopProgressBar();
   }
 
   public boolean getTestParamFilename() {
     //  Open up the file chooser in current working directory
-    File workingDir = new File(System.getProperty("user.dir"));
+    File workingDir = new File(manager.getPropertyUserDir());
     JFileChooser chooser =
       new JFileChooser(workingDir);
     EtomoFileFilter edfFilter = new EtomoFileFilter();
@@ -242,26 +255,25 @@ public abstract class MainPanel extends JPanel {
    */
   public void showProcessingPanel(AxisType axisType) {
     //  Delete any existing panels
-    axisPanelA = null;
-    axisPanelB = null;
+    resetAxisPanels();
 
     panelCenter.removeAll();
     if (axisType == AxisType.SINGLE_AXIS) {
       createAxisPanelA(AxisID.ONLY);
       scrollA = new ScrollPanel();
-      scrollA.add(axisPanelA.getContainer());
+      addAxisPanelA();
       scrollPaneA = new JScrollPane(scrollA);
       panelCenter.add(scrollPaneA);
     }
     else {
       createAxisPanelA(AxisID.FIRST);
       scrollA = new ScrollPanel();
-      scrollA.add(axisPanelA.getContainer());
+      addAxisPanelA();
       scrollPaneA = new JScrollPane(scrollA);
 
       createAxisPanelB();
       scrollB = new ScrollPanel();
-      scrollB.add(axisPanelB.getContainer());
+      addAxisPanelB();
       scrollPaneB = new JScrollPane(scrollB);
       splitPane =
         new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, scrollPaneA, scrollPaneB);
@@ -279,22 +291,22 @@ public abstract class MainPanel extends JPanel {
    */
   protected void packAxis() {
     if (manager.isDualAxis()
-      && axisPanelA != null
-      && axisPanelB != null) {
-      boolean hideA = axisPanelA.hide();
-      boolean hideB = axisPanelB.hide();
+      && !AxisPanelAIsNull()
+      && !AxisPanelBIsNull()) {
+      boolean hideA = hideAxisPanelA();
+      boolean hideB = hideAxisPanelB();
       EtomoDirector.getInstance().getMainFrame().pack();
       splitPane.resetToPreferredSizes();
       
       //handle bug in Windows where divider goes all the way to the left
       //when the frame is wider then the screen
-      if (!hideA && !hideB && isFitScreenError(axisPanelA)) {
+      if (!hideA && !hideB && isAxisPanelAFitScreenError()) {
         setDividerLocation(.8); //.8 currently works.  Adjust as needed.
         splitPane.resetToPreferredSizes();
       }
       
-      axisPanelA.show();
-      axisPanelB.show();
+      showAxisPanelA();
+      showAxisPanelB();
       if (hideA) {
         setDividerLocation(0);
       }
@@ -467,7 +479,7 @@ public abstract class MainPanel extends JPanel {
   public File openEtomoDataFileDialog() {
     //  Open up the file chooser in current working directory
     JFileChooser chooser =
-      new JFileChooser(new File(System.getProperty("user.dir")));
+      new JFileChooser(new File(manager.getPropertyUserDir()));
     EtomoFileFilter edfFilter = new EtomoFileFilter();
     chooser.setFileFilter(edfFilter);
 
@@ -496,18 +508,6 @@ public abstract class MainPanel extends JPanel {
       }
       comps[i].repaint();
     }
-  }
-
-  /**
-   * Convienence function to return a reference to the correct AxisProcessPanel
-   * @param axisID
-   * @return
-   */
-  private AxisProcessPanel mapAxis(AxisID axisID) {
-    if (axisID == AxisID.SECOND) {
-      return axisPanelB;
-    }
-    return axisPanelA;
   }
 
 }
