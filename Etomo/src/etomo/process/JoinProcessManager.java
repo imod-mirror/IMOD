@@ -1,11 +1,19 @@
 package etomo.process;
 
+import java.io.File;
+import java.io.IOException;
+
 import etomo.BaseManager;
+import etomo.EtomoDirector;
 import etomo.JoinManager;
+import etomo.comscript.FinishjoinParam;
 import etomo.comscript.FlipyzParam;
 import etomo.comscript.MakejoincomParam;
+import etomo.comscript.MidasParam;
 import etomo.comscript.XfalignParam;
 import etomo.type.AxisID;
+import etomo.type.ConstEtomoLong;
+import etomo.util.Utilities;
 
 /**
 * <p>Description: </p>
@@ -21,6 +29,9 @@ import etomo.type.AxisID;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.5  2004/10/18 19:08:50  sueh
+* <p> bug# 520 Added misdasSample.  Added getManager().
+* <p>
 * <p> Revision 1.1.2.4  2004/10/18 17:58:26  sueh
 * <p> bug# 520 Added xfalign.
 * <p>
@@ -57,12 +68,22 @@ public class JoinProcessManager extends BaseProcessManager {
   }
   
   /**
+   * Run finishjoin
+   */
+  public String finishjoin(FinishjoinParam finishjoinParam)
+      throws SystemProcessException {
+    BackgroundProcess backgroundProcess = startBackgroundProcess(
+        finishjoinParam.getCommandArray(), AxisID.ONLY);
+    return backgroundProcess.getName();
+  }
+  
+  /**
    * Run xfalign
    */
   public String xfalign(XfalignParam xfalignParam)
       throws SystemProcessException {
-    BackgroundProcess backgroundProcess = startBackgroundProcess(
-        xfalignParam.getCommandArray(), AxisID.ONLY);
+    BackgroundProcess backgroundProcess = startBackgroundProcess(xfalignParam,
+        AxisID.ONLY);
     return backgroundProcess.getName();
   }
   
@@ -88,13 +109,9 @@ public class JoinProcessManager extends BaseProcessManager {
   /**
    * Run midas on the sample file.
    */
-  public void midasSample() {
-    String rootName = joinManager.getMetaData().getRootName();
-    //  Construct the command line strings
-    String[] commandArray = { BaseManager.getIMODBinPath() + "midas", "-b",
-        "0", rootName + ".sample", rootName + ".xf" };
-    //  Start the system program thread
-    startSystemProgramThread(commandArray);
+  public String midasSample(MidasParam midasParam) throws SystemProcessException {
+    InteractiveSystemProgram program = startInteractiveSystemProgram(midasParam);
+    return program.getName();
   }
 
   
@@ -103,8 +120,45 @@ public class JoinProcessManager extends BaseProcessManager {
   
   protected void backgroundPostProcess(BackgroundProcess process) {
     String commandName = process.getCommandName();
-    if (commandName != null && commandName.equals(FlipyzParam.getName())) {
-      ((JoinManager) joinManager).addSection(process.getOutputFile());
+    if (commandName == null) {
+      return;
+    }
+    if (commandName.equals(FlipyzParam.getName())) {
+      joinManager.addSection(process.getOutputFile());
+    }
+    if (commandName.equals(XfalignParam.getName())) {
+      joinManager.enableMidas();
+    }
+  }
+
+  protected void interactiveSystemProgramPostProcess(
+      InteractiveSystemProgram program) {
+    String commandName = program.getCommandName();
+    if (commandName == null) {
+      return;
+    }
+    if (commandName.equals(MidasParam.getName())) {
+      File outputFile = program.getOutputFile();
+      if (outputFile != null) {
+        ConstEtomoLong oldOutputFileTime = program.getOldOutputFileTime();
+        if (oldOutputFileTime.isSet()
+            && !oldOutputFileTime.equals(outputFile.lastModified())) {
+          try {
+            Utilities.copyFile(outputFile, new File(outputFile.getAbsolutePath()
+                + ".bak"));
+          }
+          catch (IOException e) {
+            e.printStackTrace();
+            String outputFileName = outputFile.getName();
+            String[] message = {
+                "Unable to backup " + outputFile.getAbsolutePath() + ".",
+                "Copy " + outputFileName + " to " + outputFileName + ".bak",
+                "before using Automatic Alignment or Revert." };
+            EtomoDirector.getInstance().getMainFrame().openMessageDialog(
+                message, "WARNING!  Unable to Backup");
+          }
+        }
+      }
     }
   }
   
