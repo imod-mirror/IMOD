@@ -36,6 +36,9 @@ import etomo.type.AxisType;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.1.2.8  2004/10/01 20:00:21  sueh
+ * <p> bug# 520 Standardized getting the metadata file name.
+ * <p>
  * <p> Revision 1.1.2.7  2004/09/29 19:37:04  sueh
  * <p> bug# 520 Moved status bar initialization to child classes.
  * <p>
@@ -147,7 +150,7 @@ public abstract class MainPanel extends JPanel {
   public void showProcess(Container processPanel, AxisID axisID) {
     AxisProcessPanel axisPanel = mapAxis(axisID);
     axisPanel.replaceDialogPanel(processPanel);
-    if (EtomoDirector.getUserConfiguration().isAutoFit()) {
+    if (EtomoDirector.getInstance().getUserConfiguration().isAutoFit()) {
       fitWindow();
     }
   }
@@ -280,7 +283,7 @@ public abstract class MainPanel extends JPanel {
       && axisPanelB != null) {
       boolean hideA = axisPanelA.hide();
       boolean hideB = axisPanelB.hide();
-      EtomoDirector.getMainFrame().pack();
+      EtomoDirector.getInstance().getMainFrame().pack();
       splitPane.resetToPreferredSizes();
       
       //handle bug in Windows where divider goes all the way to the left
@@ -300,7 +303,7 @@ public abstract class MainPanel extends JPanel {
       }
     }
     else {
-      EtomoDirector.getMainFrame().pack();
+      EtomoDirector.getInstance().getMainFrame().pack();
     }
   }
   
@@ -432,7 +435,7 @@ public abstract class MainPanel extends JPanel {
     for (int i = 0; i < messageLength; i++) {
       newMessage[i + 1] = message[i];
     }
-    EtomoDirector.getMainFrame().openMessageDialog(newMessage, title);
+    EtomoDirector.getInstance().getMainFrame().openMessageDialog(newMessage, title);
   }
   
   /**
@@ -443,14 +446,14 @@ public abstract class MainPanel extends JPanel {
   public void openMessageDialog(String message, String title) {
     String datasetName = manager.getBaseMetaData().getName();
     if (message == null) {
-      EtomoDirector.getMainFrame().openMessageDialog(datasetName + ":", title);
+      EtomoDirector.getInstance().getMainFrame().openMessageDialog(datasetName + ":", title);
       return;
     }
     else {
       String[] newMessage = new String[2];
       newMessage[0] = datasetName + ":";
       newMessage[1] = message;
-      EtomoDirector.getMainFrame().openMessageDialog(newMessage, title);
+      EtomoDirector.getInstance().getMainFrame().openMessageDialog(newMessage, title);
     }
   }
 

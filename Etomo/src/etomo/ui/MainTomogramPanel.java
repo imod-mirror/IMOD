@@ -22,6 +22,11 @@ import etomo.type.ProcessTrack;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.3  2004/09/29 19:38:03  sueh
+* <p> bug# 520 Created private variables that are cast from base-class
+* <p> member variables during construction.  Moved status bar initiailization from
+* <p> base class.
+* <p>
 * <p> Revision 1.1.2.2  2004/09/15 22:46:52  sueh
 * <p> bug# 520 Moved openSetupPanel back to this class.  Moved
 * <p> showProcessingPanel() to this base class.  Created AxisProcessPanel
@@ -108,7 +113,7 @@ public class MainTomogramPanel extends MainPanel {
     panelCenter.removeAll();
     panelCenter.add(setupDialog.getContainer());
     revalidate();
-    EtomoDirector.getMainFrame().pack();
+    EtomoDirector.getInstance().getMainFrame().pack();
   }
 
   /**
