@@ -19,6 +19,9 @@ import etomo.EtomoDirector;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.2  2004/10/08 15:47:41  sueh
+* <p> bug# 520 Get the checked-in version of clipflipyz.
+* <p>
 * <p> Revision 1.1.2.1  2004/10/06 01:30:03  sueh
 * <p> bug# 520 Object that creates a command line to run clipflipyz.
 * <p> </p>
@@ -31,6 +34,7 @@ public class FlipyzParam implements Command {
   private File flipFile;
   
   public FlipyzParam(File tomogram, File workingDir) {
+    //TODO use array for command string
     commandLine = new StringBuffer("tcsh -f "
         + EtomoDirector.getInstance().getIMODDirectory() + command);
     ArrayList options = genOptions(tomogram, workingDir);
