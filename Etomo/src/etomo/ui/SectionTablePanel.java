@@ -52,6 +52,14 @@ import etomo.util.MRCHeader;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.23  2004/11/08 22:29:27  sueh
+* <p> bug# 520 Removed excess spacing around table or excess spacing in
+* <p> table by wrapping the whole tabel in a panel with a grid layout with a 2,1
+* <p> layout.  The entire table takes up the top element.  The bottom element is
+* <p> not filled in.  This keeps the table from expanding when the other item
+* <p> on the join panel is taller.  Also tried setting constraints.weighty to zero
+* <p> to prevent the table from expanding.
+* <p>
 * <p> Revision 1.1.2.22  2004/10/30 02:38:24  sueh
 * <p> bug# 520 Stopped deleting .rot file when getting section.  Checking
 * <p> rootname.info file for .rot file when opening the section in the join tab.
@@ -240,13 +248,7 @@ public class SectionTablePanel implements ContextMenu, Expandable {
     this.joinDialog = joinDialog;
     this.joinManager = joinManager;
     this.curTab = curTab;
-    createRootPanel();
-    addRootPanelComponents();
-    enableTableButtons("");
-    enableRowButtons(-1);
-  }
-
-  private void createRootPanel() {
+    //create root panel
     rootPanel = new JPanel();
     pnlBorder = new DoubleSpacedPanel(false, FixedDim.x5_y0, FixedDim.x0_y5,
         BorderFactory.createEtchedBorder());
@@ -254,6 +256,10 @@ public class SectionTablePanel implements ContextMenu, Expandable {
     addTablePanelComponents();
     createButtonsPanel();
     addButtonsPanelComponents();
+    
+    addRootPanelComponents();
+    enableTableButtons("");
+    enableRowButtons(-1);
   }
   
   private void addRootPanelComponents() {
@@ -423,10 +429,11 @@ public class SectionTablePanel implements ContextMenu, Expandable {
     //Header
     //First row
     constraints.weightx = 1.0;
-    constraints.weighty = 0.0;
+    constraints.weighty = 2.0;
     constraints.gridheight = 1;
     constraints.gridwidth = 2;
     hdrOrder.add(pnlTable, layout, constraints);
+    constraints.weighty = 0.0;
     constraints.gridwidth = 1;
     hdrSections.add(pnlTable, layout, constraints);
     constraints.weightx = 0.0;
@@ -435,8 +442,10 @@ public class SectionTablePanel implements ContextMenu, Expandable {
     constraints.gridwidth = GridBagConstraints.REMAINDER;
     hdrFinal.add(pnlTable, layout, constraints);
     //Second row
+    constraints.weighty = 1.0;
     constraints.gridwidth = 2;
     hdr1Row3.add(pnlTable, layout, constraints);
+    constraints.weighty = 0.0;
     hdr2Row3.add(pnlTable, layout, constraints);
     constraints.gridwidth = 1;
     hdrFinalStart.add(pnlTable, layout, constraints);
@@ -476,7 +485,12 @@ public class SectionTablePanel implements ContextMenu, Expandable {
     btnDeleteSection.addActionListener(sectionTableActionListener);
     pnlButtonsComponent2.add(btnDeleteSection);
     //third component
-    createImodPanel();
+    btnOpen3dmod = new MultiLineButton("Open in/Raise 3dmod");
+    btnOpen3dmod.addActionListener(sectionTableActionListener);
+    SpinnerModel spinnerModel = new SpinnerNumberModel(1, 1, 50, 1);
+    spinBinning = new LabeledSpinner(JoinDialog.OPEN_BINNED_BY, spinnerModel);
+    pnlImod = joinDialog.createOpen3dmodPanel(spinBinning, btnOpen3dmod);
+    //createImodPanel();
     //fourth component
     btnGetAngles = new MultiLineButton("Get Angles from Slicer");
     UIUtilities.setButtonSize(btnGetAngles, buttonDimension, true);
@@ -495,32 +509,6 @@ public class SectionTablePanel implements ContextMenu, Expandable {
       pnlButtons.add(btnGetAngles);
     }
   }
-
-
-  private void createImodPanel() {
-    pnlImod = new SpacedPanel(FixedDim.x0_y5, true);
-    pnlImod.setLayout(new BoxLayout(pnlImod.getContainer(), BoxLayout.Y_AXIS));
-    pnlImod.setBorder(BorderFactory.createEtchedBorder());
-    //binning panel
-    SpacedPanel pnlBinning = new SpacedPanel(FixedDim.x5_y0, true);
-    pnlBinning.setLayout(new BoxLayout(pnlBinning.getContainer(),
-        BoxLayout.X_AXIS));
-    SpinnerModel spinnerModel = new SpinnerNumberModel(1, 1, 50, 1);
-    spinBinning = new LabeledSpinner("Open binned by ", spinnerModel);
-    spinBinning.setTextMaxmimumSize(UIParameters.dimSpinner);
-    pnlBinning.add(spinBinning);
-    JLabel lblIn = new JLabel("in X and Y");
-    pnlBinning.add(lblIn);
-    pnlImod.add(pnlBinning);
-    //3dmod button
-    btnOpen3dmod = new MultiLineButton("Open in/Raise 3dmod");
-    UIUtilities.setButtonSize(btnOpen3dmod, buttonDimension, true);
-    btnOpen3dmod.setAlignmentX(Component.CENTER_ALIGNMENT);
-    btnOpen3dmod.setPreferredSize(buttonDimension);
-    btnOpen3dmod.setMaximumSize(buttonDimension);
-    btnOpen3dmod.addActionListener(sectionTableActionListener);
-    pnlImod.add(btnOpen3dmod);
-  }
   
   void setCurTab(int curTab) {
     this.curTab = curTab;
@@ -534,8 +522,32 @@ public class SectionTablePanel implements ContextMenu, Expandable {
     addButtonsPanelComponents();
     pnlTable.removeAll();
     addTablePanelComponents();
-    setCurTabInRows();
-    displayCurTabInRows();
+    if (rows == null) {
+      return;
+    }
+    int rowsSize = rows.size();
+    int prevSampleSlice = 0;
+    int prevChunkTableSlice = 0;
+    int nextSampleBottomNumberSlices;
+    //Set curTab
+    for (int i = 0; i < rowsSize; i++) {
+      ((SectionTableRow) rows.get(i)).setCurTab(curTab);
+    }
+    //redisplay rows and calculate chunks
+    for (int i = 0; i < rowsSize; i++) {
+      SectionTableRow row = (SectionTableRow) rows.get(i);
+      prevSampleSlice = row.displayCurTab(pnlTable, prevSampleSlice);
+      if (i < rowsSize - 1) {
+        SectionTableRow nextRow = (SectionTableRow) rows.get(i + 1);
+        nextSampleBottomNumberSlices = nextRow.getSampleBottomNumberSlices();
+
+      }
+      else {
+        nextSampleBottomNumberSlices = -1;
+      }
+      prevChunkTableSlice = row.displayCurTabChunkTable(pnlTable,
+          prevChunkTableSlice, nextSampleBottomNumberSlices);
+    }
   }
   
   int getTableSize() {
@@ -573,10 +585,6 @@ public class SectionTablePanel implements ContextMenu, Expandable {
       }
     }
     return -1;
-  }
-
-  private void enableRowButtons() {
-    enableRowButtons(getHighlightedRowIndex());
   }
 
   private void enableRowButtons(int highlightedRowIndex) {
@@ -692,7 +700,6 @@ public class SectionTablePanel implements ContextMenu, Expandable {
   }
 
   private void addSection() {
-
     //  Open up the file chooser in the working directory
     JFileChooser chooser = new JFileChooser(new File(joinManager.getPropertyUserDir()));
     TomogramFileFilter tomogramFilter = new TomogramFileFilter();
@@ -710,9 +717,18 @@ public class SectionTablePanel implements ContextMenu, Expandable {
         return;
       }
       btnAddSection.setEnabled(false);
-      if (flipSection(header, tomogram)) {
-        joinManager.flip(tomogram, joinDialog.getWorkingDir());
-        return;
+      if (header.getNRows() < header.getNSections()) {
+        //The tomogram may not be flipped
+        //Ask use if can flip the tomogram
+        String msgFlipped[] = {
+            "It looks like you didn't flip the tomogram in Post Processing",
+            "bacause the tomogram is thicker in Z then it is long in Y.",
+            flipWarning[0], flipWarning[1],
+            "Shall I use the clip flipyz command to flip Y and Z?" };
+        if (joinManager.getMainPanel().openYesNoDialog(msgFlipped)) {
+          joinManager.flip(tomogram, joinDialog.getWorkingDir());
+          return;
+        }
       }
       addSection(tomogram);
       joinManager.packMainWindow();
@@ -760,20 +776,6 @@ public class SectionTablePanel implements ContextMenu, Expandable {
       }
     }
     return true;
-  }
-
-  private boolean flipSection(MRCHeader header, File tomogram) {
-    if (header.getNRows() < header.getNSections()) {
-      String msgFlipped[] = {
-          "It looks like you didn't flip the tomogram in Post Processing",
-          "bacause the tomogram is thicker in Z then it is long in Y.",
-          flipWarning[0], flipWarning[1],
-          "Shall I use the clip flipyz command to flip Y and Z?" };
-      if (joinManager.getMainPanel().openYesNoDialog(msgFlipped)) {
-        return true;
-      }
-    }
-    return false;
   }
 
   private boolean isDuplicate(File section) {
@@ -827,7 +829,7 @@ public class SectionTablePanel implements ContextMenu, Expandable {
       ((SectionTableRow) rows.get(tableSize - 2)).configureFields();
     }
     joinDialog.setNumSections(tableSize);
-    enableRowButtons();
+    enableRowButtons(getHighlightedRowIndex());
     repaint();
   }
   
@@ -953,39 +955,6 @@ public class SectionTablePanel implements ContextMenu, Expandable {
       ((SectionTableRow) rows.get(i)).add(pnlTable);
     }
   }
- 
-  private void setCurTabInRows() {
-    if (rows == null) {
-      return;
-    }
-    for (int i = 0; i < rows.size(); i++) {
-      ((SectionTableRow) rows.get(i)).setCurTab(curTab);
-    }
-  }
-  
-  private void displayCurTabInRows() {
-    if (rows == null) {
-      return;
-    }
-    int prevSampleSlice = 0;
-    int prevChunkTableSlice = 0;
-    int nextSampleBottomNumberSlices;
-    int rowsSize = rows.size();
-    for (int i = 0; i < rowsSize; i++) {
-      SectionTableRow row = (SectionTableRow) rows.get(i);
-      prevSampleSlice = row.displayCurTab(pnlTable, prevSampleSlice);
-      if (i < rowsSize - 1) {
-        SectionTableRow nextRow = (SectionTableRow) rows.get(i + 1);
-        nextSampleBottomNumberSlices = nextRow.getSampleBottomNumberSlices();
-
-      }
-      else {
-        nextSampleBottomNumberSlices = -1;
-      }
-      prevChunkTableSlice = row.displayCurTabChunkTable(pnlTable, prevChunkTableSlice, nextSampleBottomNumberSlices);
-    }
-  }
-  
 
   public boolean getMetaData(JoinMetaData metaData) {
     metaData.resetSectionTableData();
@@ -1046,6 +1015,18 @@ public class SectionTablePanel implements ContextMenu, Expandable {
       yMax = Math.max(yMax, row.getYMax());
     }
     return yMax;
+  }
+  
+  int getZMax() {
+    if (rows == null) {
+      return 0;
+    }
+    int zMax = 0;
+    for (int i = 0; i < rows.size(); i++) {
+      SectionTableRow row = (SectionTableRow) rows.get(i);
+      zMax = Math.max(zMax, row.getZMax());
+    }
+    return zMax;
   }
 
   /**
