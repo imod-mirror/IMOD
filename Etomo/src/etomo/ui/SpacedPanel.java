@@ -9,7 +9,11 @@ import javax.swing.Box;
 import javax.swing.JPanel;
 import javax.swing.border.Border;
 /**
-* <p>Description: </p>
+* <p>Description: A JPanel-like object that places rigid areas between 
+* components.  It can optionally create rigid areas outside the components on
+* the layout axis.  If rigid areas are needed outside the components on both
+* axes, use DoubleSpacedPanel.  It is most useful for creating panels which
+* would normally need rigid areas.  It should work like a JPanel.</p>
 * 
 * <p>Copyright: Copyright (c) 2002, 2003, 2004</p>
 *
@@ -21,7 +25,12 @@ import javax.swing.border.Border;
 * 
 * @version $Revision$
 * 
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1.2.1  2004/09/23 23:41:40  sueh
+* <p> bug# 520 Panel which automatically places rigid areas between
+* <p> components.  Can choose whether to place rigid areas before and after
+* <p> placing all components.
+* <p> </p>
 */
 public class SpacedPanel {
   public static  final String  rcsid =  "$Id$";
