@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.2  2003/01/06 15:47:55  mast
+Qt version
+
 Revision 1.1.2.1  2003/01/02 15:45:09  mast
 changes for new controller key callback
 
@@ -198,7 +201,6 @@ void slicerEnteredZoom(SlicerStruct *ss, float newZoom)
     ss->qtWindow->setZoomText(ss->zoom);
   }  
   sslice_draw(ss);
-  ss->qtWindow->setFocus();
 }
  
 
@@ -282,7 +284,6 @@ void slicerImageThickness(SlicerStruct *ss, int sno)
 
   drawThickControls(ss);
   sslice_draw(ss);
-  ss->qtWindow->setFocus();
 }
 
 void slicerModelThickness(SlicerStruct *ss, float depth)
@@ -294,28 +295,6 @@ void slicerModelThickness(SlicerStruct *ss, float depth)
 
   drawThickControls(ss);
   sslice_draw(ss);
-  ss->qtWindow->setFocus();
-}
-
-
-/*
- * GfX resize Events:
- */
-
-void slicerResize(SlicerStruct *ss, int winx, int winy)
-{
-  ss->winx = winx;
-  ss->winy = winy;
-  b3dResizeViewportXY(winx, winy);
-
-  /* DNM: send 12 rather than App->depth to guarantee shorts */
-  ss->image   = b3dGetNewCIImageSize(ss->image, 12, winx, winy);
-  ivwControlPriority(ss->vi, ss->ctrl);
-}
-
-void slicerCubeResize(SlicerStruct *ss, int winx, int winy)
-{
-  b3dResizeViewportXY(winx, winy);
 }
 
 
@@ -335,69 +314,12 @@ void slicerClosing(SlicerStruct *ss)
   free(ss);
 }
 
-static void slicerDraw_cb(ImodView *vi, void *client, int drawflag)
-{
-  SlicerStruct *ss = (SlicerStruct *)client;
-  float usex, usey, usez;
-
-  /* DNM: use a value saved in structure in case more than one window */
-  if (ss->zslast != ss->vi->imod->zscale){
-    ss->zslast = ss->vi->imod->zscale;
-    drawflag |= IMOD_DRAW_ACTIVE;
-  }
-
-  if (drawflag & IMOD_DRAW_XYZ){
-    if (!ss->locked){
-      /* DNM: if there is a pending set of values from a mouse hit,
-         use them instead of the mouse values for this */
-      if (ss->pending) {
-        usex = ss->pendx;
-        usey = ss->pendy;
-        usez = ss->pendz;
-      } else {
-        usex = ss->vi->xmouse;
-        usey = ss->vi->ymouse;
-        usez = ss->vi->zmouse;
-      }
-      if ((ss->lx != usex) ||
-          (ss->ly != usey) ||
-          (ss->lz != usez)){
-        ss->cx = ss->lx = usex;
-        ss->cy = ss->ly = usey;
-        ss->cz = ss->lz = usez;
-        ss->pending = 0;
-        sslice_draw(ss);
-        return;
-      }
-    }
-  }
-
-  if (drawflag & (IMOD_DRAW_ACTIVE | IMOD_DRAW_IMAGE)){
-    if (ss->pending) {
-      ss->cx = ss->lx = ss->pendx;
-      ss->cy = ss->ly = ss->pendy;
-      ss->cz = ss->lz = ss->pendz;
-      ss->pending = 0;
-    }
-    sslice_draw(ss);
-    return;
-  }
-     
-  if (drawflag & IMOD_DRAW_MOD){
-    slicerUpdateImage(ss);
-  }
-
-}
-
 /*
  * Open new slicer.
  */
 int sslice_open(struct ViewInfo *vi)
 {
   SlicerStruct *ss;
-  int depth;
-  static int first = 1;
-  int axis;
 
   ss = (SlicerStruct *)malloc(sizeof(SlicerStruct));
   if (!ss)
@@ -459,10 +381,13 @@ int sslice_open(struct ViewInfo *vi)
   ss->ctrl = ivwNewControl(vi, slicerDraw_cb, slicerClose_cb, slicerKey_cb,
                                (void *)ss);
 
+  // Set up cursor
   QBitmap bmCursor(qcursor_width, qcursor_height, qcursor_bits, true);
   QBitmap bmMask(qcursor_width, qcursor_height, qcursor_mask_bits, true);
   QCursor cursor(bmCursor, bmMask, qcursor_x_hot, qcursor_y_hot);
   ss->glw->setCursor(cursor);
+
+  // Initialize controls
   ss->qtWindow->setZoomText(ss->zoom);
   drawThickControls(ss);
   ss->qtWindow->setAngles(ss->tang);
@@ -471,6 +396,7 @@ int sslice_open(struct ViewInfo *vi)
   
   // The silver lining of having to set geometry after the show is that
   // the first draw is bad, and the geometry setting gets a good draw
+  // (most of the time)
   QSize toolSize1 = ss->qtWindow->mToolBar->sizeHint();
   QSize toolSize2 = ss->qtWindow->mToolBar2->sizeHint();
   int newWidth = toolSize1.width() > toolSize2.width() ?
@@ -492,28 +418,22 @@ int sslice_open(struct ViewInfo *vi)
 
 /* Broadcast position of this slice, and let other windows
  * show where this slice intersects with their views.
+ * DNM 1/6/03: removed extraneous code
  */
 static int sslice_showslice(SlicerStruct *ss)
 {
-  int isize, jsize;
-  int xo, yo, zo;
-
-  isize = (int)(ss->winx / ss->zoom);
-  jsize = (int)(ss->winy / ss->zoom);
-
-  xo = (int)(ss->vi->xmouse);
-  yo = (int)(ss->vi->ymouse);
-  zo = (int)(ss->vi->zmouse);
-
   imodDraw(ss->vi, IMOD_DRAW_SLICE);
   return(0);
 }
 
 // A key passed on from elsewhere
+// Do not pass on the hot slider key that would cause a grab
 static void slicerKey_cb(ImodView *vi, void *client, int released, 
 			 QKeyEvent *e)
 {
   SlicerStruct *slicer = (SlicerStruct *)client;
+  if (e->key() == hotSliderKey())
+    return;
   if (released)
     slicerKeyRelease(slicer, e);
   else
@@ -718,10 +638,9 @@ static void slicer_modify_point(SlicerStruct *ss, int x, int y)
 static void sslice_setxyz(SlicerStruct *ss, int x, int y)
 {
   float xoffset, yoffset;
-  float xs, ys, zs;
-  float xsz, ysz, zsz;
   float xm, ym, zm;
   int zmouse;
+  float zs;
 
   /* DNM: the xzoom and yzoom are correct for all cases, and the zs
      needs to be applied only for the case of SCALE_BEFORE */
@@ -869,10 +788,9 @@ static void sliceSetAnglesFromPoints(SlicerStruct *ss,
 /* set up the step factors for a new slice angle. */
 static void slice_trans_step(SlicerStruct *ss)
 {
-  Ipoint pnt, tpnt;
+  Ipoint pnt;
   Ipoint xn, yn, zn;
   Ipoint normal, xcut, ycut, zcut;
-  float xp,yp,zp;
   float x,y,z;
   float isize, jsize, zs;
   Imat *mat = ss->mat;
@@ -1029,7 +947,9 @@ static void slice_trans_step(SlicerStruct *ss)
   return;
 }
 
-
+/*
+ * Main routines for filling the data array with interpolated values
+ */
 /* DNM: routines to replace ivwGetValue for speedy access */
 
 static int (*best_GetValue)(int x, int y, int z);
@@ -1064,7 +984,7 @@ static void fillImageArray(SlicerStruct *ss)
   float xo, yo, zo;  /* coords of the lower left zap origin. */
   float xzo, yzo,zzo;
   float xs = 1.0f, ys = 1.0f, zs = 1.0f;  /* scale factors.  */
-  float zoffset, alpha;
+  float zoffset;
   float xsx, ysx, zsx; /* steps for moving x in zap. */
   float xsy, ysy, zsy; /* steps for moving y in zap. */
   float xsz, ysz, zsz; /* steps for moving z in zap. */
@@ -1073,28 +993,24 @@ static void fillImageArray(SlicerStruct *ss)
   float dx, dy, dz;
   float x1, x2, y1, y2, z1, z2;
   float a, b, c, d, e, f;
-  float ival, sval, dval;
+  float ival;
   int pxi, nxi, pyi, nyi, pzi, nzi;
   float maxval = 255.0f, minval = 0.0f;
   float xzoom, yzoom, zzoom;
   float x, y, z; /* coords of pixel in 3-D image block. */
   unsigned char val, noDataVal = 0;
   float zoom = ss->zoom;
-  int iz, jz;
+  int iz;
   float extrashift;
   int crossget, crosswant;
   Ipoint pnt, tpnt;
   Imat *mat = ss->mat;
-  int ifill, jfill, deli, delj, joffset, yoffset, nyoffset, pyoffset;
+  int ifill, jfill, deli, delj, joffset, yoffset;
   int izoom, shortcut, ilimshort, jlimshort, ishort;
-  float cval;
 
   int cindex;
   unsigned int *cmap = App->cvi->cramp->ramp;
-  B3dCIImage *image = ss->image;
-  double avgval;
   unsigned short *cidata = ss->image->id1;
-  unsigned char  *bdata = (unsigned char *)cidata;
   unsigned int   *idata = (unsigned int  *)cidata;
   int pixsize  = b3dGetImageType(NULL, NULL);
 
@@ -1592,12 +1508,93 @@ static void fillImageArray(SlicerStruct *ss)
   return;
 }
 
+/*
+ * GfX resize Events:
+ */
+
+void slicerResize(SlicerStruct *ss, int winx, int winy)
+{
+  ss->winx = winx;
+  ss->winy = winy;
+  b3dResizeViewportXY(winx, winy);
+
+  /* DNM: send 12 rather than App->depth to guarantee shorts */
+  ss->image   = b3dGetNewCIImageSize(ss->image, 12, winx, winy);
+  ivwControlPriority(ss->vi, ss->ctrl);
+}
+
+void slicerCubeResize(SlicerStruct *ss, int winx, int winy)
+{
+  b3dResizeViewportXY(winx, winy);
+}
+
+/*
+ *  The external draw command from the controller
+ */
+static void slicerDraw_cb(ImodView *vi, void *client, int drawflag)
+{
+  SlicerStruct *ss = (SlicerStruct *)client;
+  float usex, usey, usez;
+
+  /* DNM: use a value saved in structure in case more than one window */
+  if (ss->zslast != ss->vi->imod->zscale){
+    ss->zslast = ss->vi->imod->zscale;
+    drawflag |= IMOD_DRAW_ACTIVE;
+  }
+
+  if (drawflag & IMOD_DRAW_XYZ){
+    if (!ss->locked){
+      /* DNM: if there is a pending set of values from a mouse hit,
+         use them instead of the mouse values for this */
+      if (ss->pending) {
+        usex = ss->pendx;
+        usey = ss->pendy;
+        usez = ss->pendz;
+      } else {
+        usex = ss->vi->xmouse;
+        usey = ss->vi->ymouse;
+        usez = ss->vi->zmouse;
+      }
+      if ((ss->lx != usex) ||
+          (ss->ly != usey) ||
+          (ss->lz != usez)){
+        ss->cx = ss->lx = usex;
+        ss->cy = ss->ly = usey;
+        ss->cz = ss->lz = usez;
+        ss->pending = 0;
+        sslice_draw(ss);
+        return;
+      }
+    }
+  }
+
+  if (drawflag & (IMOD_DRAW_ACTIVE | IMOD_DRAW_IMAGE)){
+    if (ss->pending) {
+      ss->cx = ss->lx = ss->pendx;
+      ss->cy = ss->ly = ss->pendy;
+      ss->cz = ss->lz = ss->pendz;
+      ss->pending = 0;
+    }
+    sslice_draw(ss);
+    return;
+  }
+     
+  if (drawflag & IMOD_DRAW_MOD){
+    slicerUpdateImage(ss);
+  }
+
+}
+
+/*
+ * Internal draw function: draw the image then the cube
+ */
 static void sslice_draw(SlicerStruct *ss)
 {
   ss->glw->updateGL();
   sslice_cube_draw(ss);
 }
 
+/* Redraw image, assuming data array is filled */
 static void slicerUpdateImage(SlicerStruct *ss)
 {
   ss->imageFilled = 1;
@@ -1606,6 +1603,9 @@ static void slicerUpdateImage(SlicerStruct *ss)
   sslice_cube_draw(ss);
 }
 
+/*
+ * The paint routine called by the GL widget
+ */
 void slicerPaint(SlicerStruct *ss)
 {
   GLenum format = GL_COLOR_INDEX;
@@ -1655,6 +1655,7 @@ void slicerPaint(SlicerStruct *ss)
   sslice_draw_model(ss);
 }
 
+/* Model drawing routine */
 static void sslice_draw_model(SlicerStruct *ss)
 {
   float depth = ss->depth;
@@ -1692,11 +1693,13 @@ static void sslice_draw_model(SlicerStruct *ss)
   return;
 }
 
+/* cube drawing function call */
 static void sslice_cube_draw(SlicerStruct *ss)
 {
   ss->cube->updateGL();
 }
 
+/* The paint routine called by the cube GL widget */
 void slicerCubePaint(SlicerStruct *ss)
 {
   double params[4];
