@@ -28,6 +28,9 @@ import etomo.type.ConstMetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.25.4.6  2004/10/14 17:22:47  sueh
+ * <p> bug# 520 fixed bug in joinSampleAverages
+ * <p>
  * <p> Revision 3.25.4.5  2004/10/14 17:13:10  sueh
  * <p> bug# 520 Added join sample averages key.
  * <p>
@@ -330,6 +333,7 @@ public class ImodManager {
   public static final String TOMOGRAM_KEY = new String("tomogram");
   public static final String JOIN_SAMPLES_KEY = new String("joinSamples");
   public static final String JOIN_SAMPLE_AVERAGES_KEY = new String("joinSampleAverages");
+  public static final String JOIN_KEY = new String("join");
   
 
   //private keys - used with imodMap
@@ -350,6 +354,7 @@ public class ImodManager {
   private static final String tomogramKey = TOMOGRAM_KEY;
   private static final String joinSamplesKey = JOIN_SAMPLES_KEY;
   private static final String joinSampleAveragesKey = JOIN_SAMPLE_AVERAGES_KEY;
+  private static final String joinKey = JOIN_KEY;
 
   private boolean useMap = true;
 
@@ -831,6 +836,12 @@ public class ImodManager {
     if (key.equals(JOIN_SAMPLES_KEY) && axisID == null) {
       return newJoinSamples(datasetName);
     }
+    if (key.equals(JOIN_SAMPLE_AVERAGES_KEY) && axisID == null) {
+      return newJoinSampleAverages(datasetName);
+    }
+    if (key.equals(JOIN_KEY) && axisID == null) {
+      return newJoin(datasetName);
+    }
     throw new IllegalArgumentException(
       key
         + " cannot be created in "
@@ -871,6 +882,7 @@ public class ImodManager {
   protected void loadJoinMap() {
     imodMap.put(joinSamplesKey, newVector(newJoinSamples(datasetName)));
     imodMap.put(joinSampleAveragesKey, newVector(newJoinSampleAverages(datasetName)));
+    imodMap.put(joinKey, newVector(newJoin(datasetName)));
   }
 
   protected void loadDualAxisMap() {
@@ -1007,6 +1019,10 @@ public class ImodManager {
   }
   protected ImodState newJoinSampleAverages(String root) {
     ImodState imodState = new ImodState(root + ".sampavg");
+    return imodState;
+  }
+  protected ImodState newJoin(String root) {
+    ImodState imodState = new ImodState(root + ".join");
     return imodState;
   }
   
