@@ -11,7 +11,6 @@ import java.awt.Rectangle;
 import etomo.ApplicationManager;
 import etomo.process.ProcessState;
 import etomo.type.AxisID;
-import etomo.util.Utilities;
 
 /**
  * <p>Description: </p>
@@ -26,6 +25,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.3.2.1  2004/07/16 23:14:02  sueh
+ * <p> bug# 501 sending System.out prints only when debug is set
+ * <p>
  * <p> Revision 3.3  2004/05/19 23:09:46  sueh
  * <p> bug# 425 separating getting the panel width from deciding to hide
  * <p> because computeVisibleRect() is inaccurate after
@@ -159,29 +161,32 @@ public class AxisProcessPanel implements ContextMenu {
     panelRoot.add(panelProcessInfo);
   }
   
-  public boolean hide(int width) {
+  /**
+   * hide the panel if its width it zero because of the divider
+   * @return
+   */
+  public boolean hide() {
     boolean hide = false;
-    if (width != 0) {
+    if (getWidth() != 0) {
       return hide;
     }
     hide = true;
-    Utilities.debugPrint("hiding" , true);
     panelRoot.setVisible(false);
     return hide;
   }
   
-  public boolean tooSmall() {
-    Utilities.debugPrint("in tooSmall: getWidth()=" + getWidth(), true);
-    if (getWidth() <= 16) {
-      return true;
-    }
-    return false;
-  }
-
+  /**
+   * make panel visible
+   *
+   */
   public void show() {
     panelRoot.setVisible(true);
   }
   
+  /**
+   * get panel width
+   * @return
+   */
   public int getWidth() {
     Rectangle size = new Rectangle();
     panelRoot.computeVisibleRect(size);
