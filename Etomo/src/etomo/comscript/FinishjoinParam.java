@@ -27,6 +27,11 @@ import etomo.type.SectionTableRowData;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.7  2004/11/08 22:10:50  sueh
+* <p> bug# 520 Add modes, implement MAX_SIZE_MODE.  Implement
+* <p> Command.  Add function to query current mode.  This way the information
+* <p> return by the -m option (max size) can be retrieved with generic code.
+* <p>
 * <p> Revision 1.1.2.6  2004/10/30 01:28:16  sueh
 * <p> bug# 520 Added comments.
 * <p>
@@ -146,6 +151,15 @@ public class FinishjoinParam implements Command {
     }
     if (mode == MAX_SIZE_MODE) {
       options.add("-m");
+    }
+    if (mode == TRIAL_MODE) {
+      options.add("-t");
+      options.add(metaData.getUseEveryNSlices().getString());
+      EtomoSimpleType binning = metaData.getTrialBinning();
+      if (binning.isSetAndNotDefault()) {
+        options.add("-b");
+        options.add(binning.getString());
+      }
     }
     options.add(rootName);
     ArrayList sectionData = metaData.getSectionTableData();
