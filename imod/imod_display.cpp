@@ -34,6 +34,9 @@
     $Revision$
 
     $Log$
+    Revision 1.1.2.9  2003/01/26 23:22:16  mast
+    Qt version
+
     Revision 1.1.2.8  2003/01/13 01:09:51  mast
     got rid of cursor routine
 
@@ -67,10 +70,6 @@
 
 */
 #include <qgl.h>
-#include <X11/Xlib.h>
-#include <X11/IntrinsicP.h>
-#include <Xm/Xm.h>
-#include <GL/glx.h>
 
 #include "imod.h"
 #include "b3dgfx.h"
