@@ -23,6 +23,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.6  2004/06/18 05:36:59  rickg
+ * <p> Handle y slice when step size not specified
+ * <p>
  * <p> Revision 3.5  2004/06/17 23:55:51  rickg
  * <p> Bug #460 moved getting of current time into FileSizeProcessMonitor on
  * <p> instantiation
@@ -137,7 +140,7 @@ public class TiltProcessMonitor extends FileSizeProcessMonitor {
     long fileSize = 1024 + (long) nX * nY * nZ * modeBytes;
     nKBytes = (int) (fileSize / 1024);
 
-    applicationManager.setProgressBar("Calculating tomogram", nKBytes, axisID);
+    applicationManager.getMainPanel().setProgressBar("Calculating tomogram", nKBytes, axisID);
 
     // Create a file object describing the file to be monitored
     watchedFile =

@@ -11,6 +11,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.3.4.1  2004/09/07 17:55:50  sueh
+ * <p> bug# 520 getting dataset name from metadata
+ * <p>
  * <p> Revision 3.3  2004/06/17 23:55:51  rickg
  * <p> Bug #460 moved getting of current time into FileSizeProcessMonitor on
  * <p> instantiation
@@ -84,7 +87,7 @@ public class PrenewstProcessMonitor extends FileSizeProcessMonitor {
     long fileSize = 1024 + nX * nY * nZ * modeBytes;
     nKBytes = (int) (fileSize / 1024);
 
-    applicationManager.setProgressBar("Creating coarse stack", nKBytes, axisID);
+    applicationManager.getMainPanel().setProgressBar("Creating coarse stack", nKBytes, axisID);
 
     // Create a file object describing the file to be monitored
     watchedFile = new File(dataSetPath + ".preali");
