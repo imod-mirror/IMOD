@@ -20,6 +20,10 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.39.2.4  2004/09/29 19:11:07  sueh
+ * bug# 520 Added base class.  Moved functionality in common with
+ * JoinProcessManager to base class.
+ *
  * Revision 3.39.2.3  2004/09/15 22:35:09  sueh
  * bug# 520 call openMessageDialog in mainPanel instead of mainFrame
  *
@@ -523,7 +527,6 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 
 public class ProcessManager extends BaseProcessManager {
   public static final String rcsid = "$Id$";
@@ -1216,112 +1219,6 @@ public class ProcessManager extends BaseProcessManager {
 
 
   /**
-   * Start a managed background process
-   * 
-   * @param command
-   * @param axisID
-   * @throws SystemProcessException
-   */
-  private BackgroundProcess startBackgroundProcess(String command, AxisID axisID)
-    throws SystemProcessException {
-
-    isAxisBusy(axisID);
-
-    BackgroundProcess backgroundProcess = new BackgroundProcess(command, this);
-    backgroundProcess.setWorkingDirectory(new File(System
-      .getProperty("user.dir")));
-    backgroundProcess.setDemoMode(EtomoDirector.isDemo());
-    backgroundProcess.setDebug(EtomoDirector.isDebug());
-    backgroundProcess.start();
-    if (EtomoDirector.isDebug()) {
-      System.err.println("Started " + command);
-      System.err.println("  Name: " + backgroundProcess.getName());
-    }
-
-    mapAxisThread(backgroundProcess, axisID);
-    return backgroundProcess;
-  }
-
-  /**
-   * A message specifying that a background process has finished execution
-   * 
-   * @param script
-   *          the BackgroundProcess execution object that finished
-   * @param exitValue
-   *          the exit value for the process
-   */
-  public void msgBackgroundProcessDone(BackgroundProcess process, int exitValue) {
-
-    //  Check to see if the exit value is non-zero
-    if (exitValue != 0) {
-      String[] stdError = process.getStdError();
-      String[] message;
-
-      // Is the last string "Killed"
-      if ((stdError.length > 0)
-        && (stdError[stdError.length - 1].trim().equals("Killed"))) {
-        message = new String[1];
-        message[0] = "<html>Terminated: " + process.getCommandLine();
-      }
-      else {
-        int j = 0;
-        message = new String[stdError.length + 3];
-        message[j++] = "<html>Command failed: " + process.getCommandLine();
-        message[j++] = "  ";
-        message[j++] = "<html><U>Standard error output:</U>";
-        for (int i = 0; i < stdError.length; i++, j++) {
-          message[j] = stdError[i];
-        }
-      }
-      appManager.getMainPanel().openMessageDialog(message,
-          process.getCommand() + " terminated");
-    }
-
-    // Another possible error message source is ERROR: in the stdout stream
-    String[] stdOutput = process.getStdOutput();
-    ArrayList errors = new ArrayList();
-    boolean foundError = false;
-    for (int i = 0; i < stdOutput.length; i++) {
-      if (!foundError) {
-        int index = stdOutput[i].indexOf("ERROR:");
-        if (index != -1) {
-          foundError = true;
-          errors.add(stdOutput[i]);
-        }
-      }
-      else {
-        errors.add(stdOutput[i]);
-      }
-    }
-    String[] errorMessage = (String[]) errors
-      .toArray(new String[errors.size()]);
-
-    if (errorMessage.length > 0) {
-      appManager.getMainPanel().openMessageDialog(errorMessage,
-          "Background Process Error");
-    }
-
-    // Command succeeded, check to see if we need to show any application
-    // specific info
-    else {
-      if (process.getCommandLine().equals(transferfidCommandLine)) {
-        handleTransferfidMessage(process);
-      }
-    }
-
-    // Null the reference to the appropriate thread
-    if (process == threadAxisA) {
-      threadAxisA = null;
-    }
-    if (process == threadAxisB) {
-      threadAxisB = null;
-    }
-
-    //	Inform the app manager that this process is complete
-    appManager.processDone(process.getName(), exitValue, null, null);
-  }
-
-  /**
    * Unique case to parse the output of transferfid and save it to a file
    * 
    * @param process
@@ -1416,5 +1313,11 @@ public class ProcessManager extends BaseProcessManager {
     if (script.getProcessName() == ProcessName.TOMOPITCH) {
       appManager.openTomopitchLog(script.getAxisID());
     }  
+  }
+  
+  protected void backgroundPostProcess(BackgroundProcess process) {
+    if (process.getCommandLine().equals(transferfidCommandLine)) {
+      handleTransferfidMessage(process);
+    }
   }
 }
