@@ -21,6 +21,9 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.21  2004/11/19 00:09:15  sueh
+* <p> bug# 520 Fixed null pointer bug in store
+* <p>
 * <p> Revision 1.1.2.20  2004/11/17 02:22:20  sueh
 * <p> bug# 520 Created a isValid() function that takes workingDirName, so the
 * <p> working dir name in join dialog can be tested before it is placed in
@@ -168,10 +171,15 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
   public ConstJoinMetaData() {
     fileExtension = ".ejf";
     densityRefSection.setDefault(1);
+    densityRefSection.setDisplayDefault(true);
     alignmentRefSection.setDefault(1);
+    alignmentRefSection.setDisplayDefault(true);
     trialBinning.setDefault(1);
+    trialBinning.setDisplayDefault(true);
     shiftInX.setDefault(0);
+    shiftInX.setDisplayDefault(true);
     shiftInY.setDefault(0);
+    shiftInY.setDisplayDefault(true);
     sigmaLowFrequency.setDefault(0);
     sigmaLowFrequency.setRecommendedValue(0.0);
     cutoffHighFrequency.setDefault(0);
