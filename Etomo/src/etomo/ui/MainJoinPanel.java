@@ -25,6 +25,9 @@ import etomo.type.JoinMetaData;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.7  2004/10/15 00:49:31  sueh
+* <p> bug# 520 Added implementation of getDataFileFilter.
+* <p>
 * <p> Revision 1.1.2.6  2004/10/14 02:29:24  sueh
 * <p> bug# 520 Removed Axis Type from the join status bar.
 * <p>
@@ -87,7 +90,7 @@ public class MainJoinPanel extends MainPanel {
    */
   public void updateDataParameters(File paramFile, JoinMetaData joinMetaData) {
     StringBuffer buffer = new StringBuffer();
-    if (joinMetaData == null) {
+    if (joinMetaData == null || !joinMetaData.isValid()) {
       buffer.append("No data set loaded");
     }
     else {
