@@ -1,6 +1,6 @@
 /*  IMOD VERSION 2.50
  *
- *  imodv_input.c -- Input handlers for imodv.
+ *  imodv_input.c -- Keyboard and mouse input handlers for imodv.
  *
  *  Original author: James Kremer
  *  Revised by: David Mastronarde   email: mast@colorado.edu
@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 1.1.2.1  2002/12/15 21:14:02  mast
+    conversion to cpp
+
     Revision 3.2  2002/12/01 16:51:34  mast
     Changes to eliminate warnings on SGI
 
@@ -50,54 +53,47 @@
 #define USE_CLK_TCK CLK_TCK
 #endif
 #endif
-#include <Xm/Xm.h>
-#include <X11/keysym.h>
-#include <Xm/VirtKeys.h>
+
+#include <qtimer.h>
+#include <qcursor.h>
+#include "imodv_window.h"
 #include <X11/Xutil.h>
 #include <math.h>
 #include "imodv.h"
 #include "imod.h"
+#include "imodv_menu.h"
+#include "imodv_gfx.h"
+#include "imodv_input.h"
+#include "imodv_control.h"
 
-/*
- *  Some defines for porting to VMS.
- */
-#ifndef XK_KP_Up
-#define XK_KP_Up XK_KP_8
-#endif
-#ifndef XK_KP_Down
-#define XK_KP_Down XK_KP_2
-#endif
-#ifndef XK_KP_Left
-#define XK_KP_Left XK_KP_4
-#endif
-#ifndef XK_KP_Right
-#define XK_KP_Right XK_KP_6
-#endif
-#ifndef XK_KP_Next
-#define XK_KP_Next XK_KP_9
-#endif
-#ifndef XK_KP_Prior
-#define XK_KP_Prior XK_KP_3
-#endif
-#ifndef XK_KP_Begin
-#define XK_KP_Begin XK_KP_5
-#endif
 
-void imodvSelect(ImodvApp *a);
-int  imodvStepTime(ImodvApp *a, int tstep);
-void imodv_fog_move(ImodvApp *a);
-void light_moveby(int x, int y);
-void imeSetViewData(int wi);
-Boolean imodv_movie_wp(XtPointer client);
-void imodvDepthCueEditDialog(ImodvApp *a, int state);
+static void imodv_light_move(ImodvApp *a);
+static void imodv_translate(ImodvApp *a, int x, int y);
+static void imodv_translated(ImodvApp *a, int x, int y, int z);
+static void imodvSelect(ImodvApp *a);
+static void imodv_translated(ImodvApp *a, int x, int y, int z);
+static void imodv_compute_rotation(ImodvApp *a, float x, float y, float z);
+static void imodv_rotate(ImodvApp *a, int throwFlag);
+static int  imodvStepTime(ImodvApp *a, int tstep);
+static void processHits (ImodvApp *a, GLint hits, GLuint buffer[]);
+#ifdef USE_IMODV_WORKPROC
+static Boolean imodv_movie_wp(XtPointer client);
+#endif
 
 #define ROTATION_FACTOR 1.26
 
+
 int ImodvClosed = True;
 
-void ximodv_quit_cb(Widget w, XtPointer client, XtPointer call)
+static unsigned int ctrlDown = 0;
+static unsigned int shiftDown = 0;
+static unsigned int leftDown = 0;
+static unsigned int midDown = 0;
+static unsigned int rightDown = 0;
+ 
+void imodvQuit()
 {
-  ImodvApp *a = (ImodvApp *)client;
+  ImodvApp *a = Imodv;
   ImodvClosed = True;
 
   stereoHWOff();
@@ -113,14 +109,15 @@ void ximodv_quit_cb(Widget w, XtPointer client, XtPointer call)
 
   /* DNM: this is unused so far.  Each window was supposed to add its
      close callback to the list, that would have saved the above list */
-  imodvCallCloseCB();
+  // imodvCallCloseCB();
 
-  glXMakeCurrent(Imodv->display, None, NULL);
-  XtPopdown(a->topLevel);
-  XtDestroyWidget(a->topLevel);
   a->topLevel = 0;
   imodMatDelete(a->mat);
   imodMatDelete(a->rmat);
+  if (a->standalone) {
+    imod_info_input();
+    exit(0);
+  }
   return;
 }
 
@@ -131,25 +128,16 @@ void imodv_exit(ImodvApp *a)
   if (a->standalone){
     exit(0);
   }
-  ximodv_quit_cb(a->topLevel, (XtPointer)a, (XtPointer)0);
+  a->mainWin->close();
   return;
 }
 
-
+// Look up current position of pointer and report last state of buttons/keys
 static unsigned int imodv_query_pointer(ImodvApp *a, int *wx, int *wy)
 {
-  Window rootr, childr;
-  int rx, ry;
-  unsigned int maskr;
-
-  if (a->db)
-    XQueryPointer(a->display,
-                  XtWindow(a->dgfx), &rootr, &childr,
-                  &rx, &ry, wx, wy, &maskr);
-  else
-    XQueryPointer(a->display,
-                  XtWindow(a->gfx), &rootr, &childr,
-                  &rx, &ry, wx, wy, &maskr);
+  unsigned int maskr = leftDown | midDown | rightDown | ctrlDown | shiftDown;
+  *wx = (Imodv->mainWin->mCurGLw->mapFromGlobal(QCursor::pos())).x();
+  *wy = (Imodv->mainWin->mCurGLw->mapFromGlobal(QCursor::pos())).y();
   return(maskr);
 }
 
@@ -157,370 +145,411 @@ static unsigned int imodv_query_pointer(ImodvApp *a, int *wx, int *wy)
 static int b2x = 0;
 static int b2y = 0;
 
-void imodv_input_cb(Widget w, XtPointer client, XtPointer call)
+void imodvKeyPress(QKeyEvent *event)
 {
-  ImodvApp *a = (ImodvApp *)client;
-  GLwDrawingAreaCallbackStruct *cbs = (GLwDrawingAreaCallbackStruct *)call;
-  KeySym keysym;
+  ImodvApp *a = Imodv;
+  int keysym = event->key();
   int cview;
   int tstep = 1;
   int newval;
-  int b2dx, b2dy;
   float elapsed;
+  int state = event->state();
+  int keypad = event->state() & Qt::Keypad;
+  if (state & Qt::ShiftButton)
+    tstep = 10;
 
   if (!Imodv->imod) return;
 
-  switch(cbs->event->type){
-  case KeyPress:
-    keysym = XLookupKeysym((XKeyEvent *)cbs->event, 0);
-    if (cbs->event->xkey.state & ShiftMask)
-      tstep = 10;
-    switch(keysym){
+  if (Imod_debug)
+    printf("key %x\n", keysym);
 
-    case XK_b:
-      if (cbs->event->xkey.state & ShiftMask){
+  switch(keysym){
 
-        /* DNM 12/1/02: call this so it can keep track of open/closed state */
-        imodvMenuBgcolor();
-      }else{
-        imodv_setbuffer(a);
-        imodvDraw(Imodv);
-      }
-      break;
+  case Qt::Key_B:
+    if (state & Qt::ShiftButton){
+
+      /* DNM 12/1/02: call this so it can keep track of open/closed state */
+      imodvMenuBgcolor();
+    }else{
+      imodv_setbuffer(a);
+      imodvDraw(Imodv);
+    }
+    break;
                
-      /* Kludge, add clip data to model/object later. */
-    case XK_c: /* print the current clipping plane parameters */
-      if (cbs->event->xkey.state & ShiftMask){
-        imodv_control(a, 1);
-      }else{
-        if (a->obj){
-          /* DNM 7/31/01 remove pixsize from D */
-          printf("Current Object clip data = (A B C D) "
-                 "= %g %g %g %g.\n",
-                 a->obj->clip_normal.x,
-                 a->obj->clip_normal.y,
-                 a->obj->clip_normal.z / a->imod->zscale,
-                 ((a->obj->clip_normal.x * 
-                   a->obj->clip_point.x) +
-                  (a->obj->clip_normal.y * 
-                   a->obj->clip_point.y) +
-                  (a->obj->clip_normal.z * 
-                   a->obj->clip_point.z)));
-        }
+    /* Kludge, add clip data to model/object later. */
+  case Qt::Key_C: /* print the current clipping plane parameters */
+    if (state & Qt::ShiftButton){
+      imodv_control(a, 1);
+    }else{
+      if (a->obj){
+        /* DNM 7/31/01 remove pixsize from D */
+        printf("Current Object clip data = (A B C D) "
+               "= %g %g %g %g.\n",
+               a->obj->clip_normal.x,
+               a->obj->clip_normal.y,
+               a->obj->clip_normal.z / a->imod->zscale,
+               ((a->obj->clip_normal.x * 
+                 a->obj->clip_point.x) +
+                (a->obj->clip_normal.y * 
+                 a->obj->clip_point.y) +
+                (a->obj->clip_normal.z * 
+                 a->obj->clip_point.z)));
       }
-      break;
+    }
+    break;
 
-    case XK_g: /* gooder (sic) */
-      if (!(cbs->event->xkey.state & ShiftMask))
-        Imodv->fastdraw++;
-      else
-        Imodv->fastdraw--;
-      if (Imodv->fastdraw < 0)
-        Imodv->fastdraw = 0;
-      if (Imodv->fastdraw > 3)
-        Imodv->fastdraw = 3;
-      printf("Sphere draw quality %d\n", Imodv->fastdraw);
-      imodvDraw(Imodv);
-      break;
+  case Qt::Key_G: /* gooder (sic) */
+    if (!(state & Qt::ShiftButton))
+      Imodv->fastdraw++;
+    else
+      Imodv->fastdraw--;
+    if (Imodv->fastdraw < 0)
+      Imodv->fastdraw = 0;
+    if (Imodv->fastdraw > 3)
+      Imodv->fastdraw = 3;
+    printf("Sphere draw quality %d\n", Imodv->fastdraw);
+    imodvDraw(Imodv);
+    break;
 
-    case XK_minus:
-      if (!(cbs->event->xkey.state & ShiftMask))
-        imodv_zoomd(Imodv, 0.95238095);
-      else
-        imodv_zoomd(Imodv, 0.5);
-      imodvDraw(Imodv);
-      break;
-    case XK_equal:
-      if (!(cbs->event->xkey.state & ShiftMask))
-        imodv_zoomd(Imodv, 1.05);
-      else
-        imodv_zoomd(Imodv, 2.0);
-      imodvDraw(Imodv);
-      break;
+  case Qt::Key_Minus:
+    imodv_zoomd(Imodv, 0.95238095);
+    imodvDraw(Imodv);
+    break;
 
-    case XK_s:
-    case XK_S:
-      if (cbs->event->xkey.state & ShiftMask)
-        imodv_auto_snapshot(NULL, SnapShot_RGB);
-      else if (cbs->event->xkey.state & ControlMask)
-        imodv_auto_snapshot(NULL, SnapShot_TIF);
-      else
-        imodvStereoToggle();
-      break;
+  case Qt::Key_Underscore:
+    imodv_zoomd(Imodv, 0.5);
+    imodvDraw(Imodv);
+    break;
 
-      /* '[' and ']' adjust stereo */
-    case XK_bracketleft:
-      a->plax -= 0.5f;
+  case Qt::Key_Equal:
+    imodv_zoomd(Imodv, 1.05);
+    imodvDraw(Imodv);
+    break;
+
+  case Qt::Key_Plus:
+    imodv_zoomd(Imodv, 2.0);
+    imodvDraw(Imodv);
+    break;
+
+  case Qt::Key_S:
+    if (state & Qt::ShiftButton)
+      imodv_auto_snapshot(NULL, SnapShot_RGB);
+    else if (state & Qt::ControlButton)
+      imodv_auto_snapshot(NULL, SnapShot_TIF);
+    else
+      imodvStereoToggle();
+    break;
+
+    /* '[' and ']' adjust stereo */
+  case Qt::Key_BracketLeft:
+    a->plax -= 0.5f;
+    imodvDraw(a);
+    break;
+
+  case Qt::Key_BracketRight:
+    a->plax += 0.5f;
+    imodvDraw(a);
+    break;
+
+  case Qt::Key_L:
+    if (state & Qt::ShiftButton)
+      imodvObjectListDialog(a, 1);
+    else {
+      a->plax *= -1.0f;
       imodvDraw(a);
-      break;
+    }
+    break;
 
-    case XK_bracketright:
-      a->plax += 0.5f;
-      imodvDraw(a);
-      break;
+  case Qt::Key_Comma:
+    newval = (int)(a->md->arot / ROTATION_FACTOR + 0.5);
+    if (newval == a->md->arot)
+      newval--;
+    if (!newval)
+      newval = 1;
+    imodvControlSetArot(a, newval);
+    break;
 
-    case XK_l:
-      if (cbs->event->xkey.state & ShiftMask)
-        imodvObjectListDialog(a, 1);
-      else {
-        a->plax *= -1.0f;
-        imodvDraw(a);
-      }
-      break;
+  case Qt::Key_Period:
+    newval = (int)(a->md->arot * ROTATION_FACTOR + 0.5);
+    if (newval == a->md->arot)
+      newval++;
+    imodvControlSetArot(a, newval);
+    break;
 
-    case XK_comma:
-      newval = (int)(a->md->arot / ROTATION_FACTOR + 0.5);
-      if (newval == a->md->arot)
-        newval--;
-      if (!newval)
-        newval = 1;
-      imodvControlSetArot(a, newval);
-      break;
+  case Qt::Key_M:
+    if (state & Qt::ShiftButton){
+      imodvModelEditDialog(Imodv, 1);
+    }else{
+      imodvMovieDialog(Imodv, 1);
+    }
+    break;
 
-    case XK_period:
-      newval = (int)(a->md->arot * ROTATION_FACTOR + 0.5);
-      if (newval == a->md->arot)
-        newval++;
-      imodvControlSetArot(a, newval);
-      break;
-
-    case XK_m:
-      if (cbs->event->xkey.state & ShiftMask){
-        imodvModelEditDialog(Imodv, 1);
-      }else{
-        imodvMovieDialog(Imodv, 1);
-      }
-      break;
-
-    case XK_i:
+  case Qt::Key_I:
+    if (state & Qt::ShiftButton)
       imodvImageEditDialog(Imodv, 1);
-      break;
+    break;
 
-    case XK_v:
+  case Qt::Key_V:
+    if (state & Qt::ShiftButton)
       imodvViewEditDialog(a, 1);
-      break;
+    break;
 
-    case XK_1:
-      imodvStepTime(a,-1);
-      imodvDraw(a);
-      break;
-    case XK_2:
-      imodvStepTime(a,1);
-      imodvDraw(a);
-      break;
-    case XK_8:
-      if (a->drawall)
-        a->drawall = False;
-      else
-        a->drawall = 3;
-      imeSetViewData(a->drawall);
-      imodvDraw(a);
-      break;
+  case Qt::Key_1:
+    imodvStepTime(a,-1);
+    imodvDraw(a);
+    break;
+  case Qt::Key_2:
+    imodvStepTime(a,1);
+    imodvDraw(a);
+    break;
+  case Qt::Key_8:
+    if (a->drawall)
+      a->drawall = False;
+    else
+      a->drawall = 3;
+    imeSetViewData(a->drawall);
+    imodvDraw(a);
+    break;
 
-    case XK_9:
-      imodvSelectModel(a, a->cm - 1);
-      break;
+  case Qt::Key_9:
+    imodvSelectModel(a, a->cm - 1);
+    break;
                
-    case XK_0:
-      imodvSelectModel(a, a->cm + 1);
-      break;
+  case Qt::Key_0:
+    imodvSelectModel(a, a->cm + 1);
+    break;
 
-    case XK_Next:
-      imodv_translated(a, 0, 0, tstep);
-      break;
-    case XK_Prior:
-      imodv_translated(a, 0, 0, -tstep);
-      break;
-    case XK_Up:
-      imodv_translated(a, 0, -tstep, 0);
-      break;
-    case XK_Down:
-      imodv_translated(a, 0, tstep, 0);
-      break;
-    case XK_Right:
-      imodv_translated(a, -tstep, 0, 0);
-      break;
-    case XK_Left:
-      imodv_translated(a, tstep, 0, 0);
-      break;
-    case XK_KP_Begin:
-      if (!a->movie){
-        a->md->xrotm = a->md->yrotm = a->md->zrotm =0;
-        a->movie = True;
-      }else{
-        a->movie = False;
-        a->md->xrotm = a->md->yrotm = a->md->zrotm = 0;
-      }
-      break;
-    case XK_KP_Prior:
-      imodv_rotate_model(a,0, 0, a->md->arot);
-      break;
-    case XK_KP_Next:
+  case Qt::Key_Next:
+    if (keypad)
       imodv_rotate_model(a,0, 0, -a->md->arot);
-      break;
-    case XK_KP_Up:
+    else
+      imodv_translated(a, 0, 0, tstep);
+    break;
+  case Qt::Key_Prior:
+    if (keypad)
+      imodv_rotate_model(a,0, 0, a->md->arot);
+    else
+      imodv_translated(a, 0, 0, -tstep);
+    break;
+  case Qt::Key_Up:
+    if (keypad)
       imodv_rotate_model(a,-a->md->arot, 0, 0);
-      break;
-    case XK_KP_Down:
+    else
+      imodv_translated(a, 0, -tstep, 0);
+    break;
+  case Qt::Key_Down:
+    if (keypad)
       imodv_rotate_model(a,a->md->arot, 0, 0);
-      break;
-    case XK_KP_Left:
-      imodv_rotate_model(a,0, -a->md->arot, 0);
-      break;
-    case XK_KP_Right:
+    else
+      imodv_translated(a, 0, tstep, 0);
+    break;
+  case Qt::Key_Right:
+    if (keypad)
       imodv_rotate_model(a,0, a->md->arot, 0);
+    else
+      imodv_translated(a, -tstep, 0, 0);
+    break;
+  case Qt::Key_Left:
+    if (keypad)
+      imodv_rotate_model(a,0, -a->md->arot, 0);
+    else
+      imodv_translated(a, tstep, 0, 0);
+    break;
+  case Qt::Key_Enter:
+    if (!keypad)
       break;
+    if (!a->movie){
+      a->md->xrotm = a->md->yrotm = a->md->zrotm =0;
+      a->movie = True;
+    }else{
+      a->movie = False;
+      a->md->xrotm = a->md->yrotm = a->md->zrotm = 0;
+    }
+    break;
                
-    case XK_o:
-      if ((cbs->event->xkey.state & ShiftMask)){
-        objed(Imodv);
-      }else{
-        /* output info */
-        printf("Zoom = %g\n", a->md->zoom);
-        if (a->imod->view->world & VIEW_WORLD_ON){
-          printf("Transformation matrix:");
-          for(tstep = 0; tstep < 16; tstep++){
-            if (!(tstep%4))
-              printf("\n");
-            printf("%7.3f ", a->imod->view->mat[tstep]);
-          }
-          printf("\n");
+  case Qt::Key_O:
+    if ((state & Qt::ShiftButton)){
+      objed(Imodv);
+    } else if (state & Qt::ControlButton){
+      if (a->standalone && imodvLoadModel() < 0)
+          dia_err("Error reading model file.  No model loaded.");
+    } else {
+      /* output info */
+      printf("Zoom = %g\n", a->md->zoom);
+      if (a->imod->view->world & VIEW_WORLD_ON){
+        printf("Transformation matrix:");
+        for(tstep = 0; tstep < 16; tstep++){
+          if (!(tstep%4))
+            printf("\n");
+          printf("%7.3f ", a->imod->view->mat[tstep]);
         }
-        printf("Trans (x,y,z) = (%g, %g, %g)\n",
-               a->imod->view->trans.x,
-               a->imod->view->trans.y,
-               a->imod->view->trans.z);
-        printf("Rotate (x,y,z) = (%g, %g, %g)\n",
-               a->imod->view->rot.x,
-               a->imod->view->rot.y,
-               a->imod->view->rot.z);
-        if (a->movieFrames) {
-#ifdef NO_SYS_TIMES
-          elapsed = (float)(a->movieCurrent - a->movieStart) / 
-	    (float)CLOCKS_PER_SEC;
-#else
-          elapsed = (float)(a->movieCurrent - a->movieStart) / 
-	    (float)USE_CLK_TCK;
-#endif
-#ifdef NO_SYS_TIMES
-          printf("%d frames / %.3f CPU sec = %.3f FPS\n",
-                 a->movieFrames, elapsed, 
-                 a->movieFrames / elapsed);
-#else
-          printf("%d frames / %.3f sec = %.3f FPS\n", 
-                 a->movieFrames, elapsed, 
-                 a->movieFrames / elapsed);
-#endif
-        }
+        printf("\n");
       }
-      break;
+      printf("Trans (x,y,z) = (%g, %g, %g)\n",
+             a->imod->view->trans.x,
+             a->imod->view->trans.y,
+             a->imod->view->trans.z);
+      printf("Rotate (x,y,z) = (%g, %g, %g)\n",
+             a->imod->view->rot.x,
+             a->imod->view->rot.y,
+             a->imod->view->rot.z);
+      if (a->movieFrames) {
+#ifdef NO_SYS_TIMES
+        elapsed = (float)(a->movieCurrent - a->movieStart) / 
+          (float)CLOCKS_PER_SEC;
+#else
+        elapsed = (float)(a->movieCurrent - a->movieStart) / 
+          (float)USE_CLK_TCK;
+#endif
+#ifdef NO_SYS_TIMES
+        printf("%d frames / %.3f CPU sec = %.3f FPS\n",
+               a->movieFrames, elapsed, 
+               a->movieFrames / elapsed);
+#else
+        printf("%d frames / %.3f sec = %.3f FPS\n", 
+               a->movieFrames, elapsed, 
+               a->movieFrames / elapsed);
+#endif
+      }
+    }
+    break;
 
-    case XK_z:
-      if (Imodv->texMap)
-        Imodv->texMap = 0;
-      else
-        Imodv->texMap = 1;
-      break;
+  case Qt::Key_Z:
+    if (Imodv->texMap)
+      Imodv->texMap = 0;
+    else
+      Imodv->texMap = 1;
+    break;
 
-    case XK_r:
-      if (Imodv->lowres)
-        Imodv->lowres = 0;
-      else
-        Imodv->lowres = 1;
-      imodvMenuLowres(a->lowres);
-      imodvDraw(a);
-      break;
+  case Qt::Key_R:
+    imodvViewMenu(VVIEW_MENU_LOWRES);
+    imodvMenuLowres(a->lowres);
+    imodvDraw(a);
+    break;
 
+  case Qt::Key_A:
+    if (state & Qt::ControlButton && a->standalone)
+      imodvSaveModelAs();
+    break;
 
-    case XK_F1:
+  case Qt::Key_F1:
                
-      break;
-
-    case XK_Escape:
-      imodv_exit(a);
-      break;
-    case XK_q:
-      imodv_exit(a);
-      break;
-    }
     break;
 
-  case KeyRelease:
+  case Qt::Key_Escape:
+    imodv_exit(a);
     break;
-          
-  case ButtonPress:
-    switch(cbs->event->xbutton.button){
-    case Button1:
-      a->lmx = cbs->event->xbutton.x;
-      a->lmy = cbs->event->xbutton.y;
-      b2x = -10;
-      b2y = -10;
-      /* DNM: why draw here? */
-      /* imodvDraw(a); */
-      break;
-    case Button2:
-      b2x = a->lmx = cbs->event->xbutton.x;
-      b2y = a->lmy = cbs->event->xbutton.y;
-      /* DNM: why draw here? */
-      /* imodvDraw(a); */
-      break;
-
-    case Button3:
-      if (a->hidemenu) break;
-      imodvSelect(a);
-      break;
-    }
+  case Qt::Key_Q:
+    imodv_exit(a);
+    break;
+    
+    // Grabs seem not to be needed and avoiding them saves a lot of trouble
+  case Qt::Key_Control:
+    ctrlDown = Qt::ControlButton;
+    //    a->mainWin->grabKeyboard();
     break;
 
-  case ButtonRelease:
-    /*      b2dx = b2x - cbs->event->xbutton.x;
-            b2dy = b2y - cbs->event->xbutton.y; */
-    /*      if ((b2x == cbs->event->xbutton.x) &&
-            (b2y == cbs->event->xbutton.y)){ */
-    /*      if (b2dx * b2dx + b2dy * b2dy < 17) {
-            a->md->xrotm = a->md->yrotm = a->md->zrotm = 0;
-            a->movie = False;
-            break;
-            } */
-    if (cbs->event->xmotion.state & Button2Mask){
-      if (!(cbs->event->xmotion.state & ShiftMask))
-        imodv_rotate(a, True);
-    }
+  case Qt::Key_Shift:
+    shiftDown = Qt::ShiftButton;
+    //    a->mainWin->grabKeyboard();
     break;
 
-  case MotionNotify:
-    if (cbs->event->xmotion.state & Button1Mask){
-      if (!(cbs->event->xmotion.state & ShiftMask))
-        /*   DNM: disable this */
-        /*           imodv_fog_move(a);
-                     else */
-        imodv_translate(a, cbs->event->xmotion.x, 
-                        cbs->event->xmotion.y);
-    }
-    if (cbs->event->xmotion.state & Button2Mask){
-      if (cbs->event->xmotion.state & ShiftMask)
-        imodv_light_move(a);
-      else 
-        imodv_rotate(a, False);
-    }
-    a->lmx = cbs->event->xmotion.x;
-    a->lmy = cbs->event->xmotion.y;
+  }
+}
+
+void imodvKeyRelease(QKeyEvent *event)
+{
+  if (event->key() == Qt::Key_Control) {
+    ctrlDown = 0;
+    if (!shiftDown)
+      Imodv->mainWin->releaseKeyboard();
+  }
+  if (event->key() == Qt::Key_Shift) {
+    shiftDown = 0;
+    if (!ctrlDown)
+      Imodv->mainWin->releaseKeyboard();
+  }
+}
+
+void imodvMousePress(QMouseEvent *event)
+{
+  ImodvApp *a = Imodv;
+
+  // Use state after in press and release to keep track of mouse state
+  leftDown = event->stateAfter() & Qt::LeftButton;
+  midDown = event->stateAfter() & Qt::MidButton;
+  rightDown = event->stateAfter() & Qt::RightButton;
+
+  switch(event->button()){
+  case Qt::LeftButton:
+    leftDown = Qt::LeftButton;
+    a->lmx = event->x();
+    a->lmy = event->y();
+    b2x = -10;
+    b2y = -10;
+    /* DNM: why draw here? */
+    /* imodvDraw(a); */
+    break;
+  case Qt::MidButton:
+    b2x = a->lmx = event->x();
+    b2y = a->lmy = event->y();
+    /* DNM: why draw here? */
+    /* imodvDraw(a); */
     break;
 
-  default:
+  case Qt::RightButton:
+    imodvSelect(a);
     break;
   }
+}
+
+void imodvMouseRelease(QMouseEvent *event)
+{
+  ImodvApp *a = Imodv;
+
+  leftDown = event->stateAfter() & Qt::LeftButton;
+  midDown = event->stateAfter() & Qt::MidButton;
+  rightDown = event->stateAfter() & Qt::RightButton;
+  if ((event->button() & Qt::MidButton) && 
+      !(event->state() & Qt::ShiftButton))
+    imodv_rotate(a, True);
+}
+
+
+void imodvMouseMove(QMouseEvent *event)
+{
+  ImodvApp *a = Imodv;
+
+  // Use state in mouse move to keep track of button down
+  leftDown = event->state() & Qt::LeftButton;
+  midDown = event->state() & Qt::MidButton;
+  rightDown = event->state() & Qt::RightButton;
+  if (leftDown){
+    if (!(event->state() & Qt::ShiftButton))
+      /*   DNM: disable this */
+      /*           imodv_fog_move(a);
+                   else */
+      imodv_translate(a, event->x(), event->y());
+  }
+  if (midDown){
+    if (event->state() & Qt::ShiftButton)
+      imodv_light_move(a);
+    else 
+      imodv_rotate(a, False);
+  }
+  a->lmx = event->x();
+  a->lmy = event->y();
 }
 
 /*
  *  Move the light.
  */
-void imodv_light_move(ImodvApp *a)
+static void imodv_light_move(ImodvApp *a)
 {
-  int mx, my;
+  int mx, my; 
   unsigned int maskr = imodv_query_pointer(a,&mx,&my);
 
-  if ((maskr & Button2Mask) && (maskr & ShiftMask)){
+  if ((maskr & Qt::MidButton) && (maskr & Qt::ShiftButton)){
 
     /*        a->lightx += 10 * (mx - a->lmx);
               a->lighty += 10 * (my - a->lmy);
@@ -536,7 +565,7 @@ void imodv_light_move(ImodvApp *a)
 
 /* model coord transformation. */
 
-void imodv_translate(ImodvApp *a, int x, int y)
+static void imodv_translate(ImodvApp *a, int x, int y)
 {
   int mx, my;
   unsigned int maskr = imodv_query_pointer(a,&mx,&my);
@@ -566,7 +595,7 @@ void imodv_zoomd(ImodvApp *a, double zoom)
   return;
 }
 
-void imodv_translated(ImodvApp *a, int x, int y, int z)
+static void imodv_translated(ImodvApp *a, int x, int y, int z)
 {
   int mx, my;
   unsigned int maskr = imodv_query_pointer(a,&mx,&my);
@@ -577,7 +606,7 @@ void imodv_translated(ImodvApp *a, int x, int y, int z)
   int m, mstrt, mend;
   float scrnscale;
 
-  if ((maskr & ControlMask) || !a->moveall) {
+  if ((maskr & Qt::ControlButton) || !a->moveall) {
     mstrt = a->cm;
     mend = mstrt + 1;
   } else {
@@ -612,7 +641,7 @@ void imodv_translated(ImodvApp *a, int x, int y, int z)
     opt.y *= (1.0/ imod->view->scale.y);
     opt.z *= (1.0/ imod->view->scale.z);
     
-    if (maskr & ControlMask){
+    if (maskr & Qt::ControlButton){
       if (a->obj){
         if (a->obj->clip){
           a->obj->clip_point.x += opt.x;
@@ -643,7 +672,7 @@ void imodv_rotate_model(ImodvApp *a, int x, int y, int z)
   return;
 }
 
-void imodv_compute_rotation(ImodvApp *a, float x, float y, float z)
+static void imodv_compute_rotation(ImodvApp *a, float x, float y, float z)
 {
   int mx, my;
   unsigned int maskr = imodv_query_pointer(a,&mx,&my);
@@ -662,9 +691,13 @@ void imodv_compute_rotation(ImodvApp *a, float x, float y, float z)
     a->md->zrotm = (INT)z;
     /* DNM: new workproc approach, start it here and go on */
     if (!a->wpid) {
+#ifdef USE_IMODV_WORKPROC
       a->wpid = XtAppAddWorkProc(a->context, 
                                  (XtWorkProc)imodv_movie_wp, 
                                  (XtPointer)a);
+#else
+      a->wpid = a->mainWin->mTimer->start(0, false);
+#endif
       a->movieFrames = 0;
       a->movieStart = imodv_sys_time();
     }
@@ -685,7 +718,7 @@ void imodv_compute_rotation(ImodvApp *a, float x, float y, float z)
   imodMatRot(mat, alpha, X);
   imodMatRot(mat, gamma + (double)(0.1 * z), Z);
 
-  if (!(maskr & ControlMask)){
+  if (!(maskr & Qt::ControlButton)){
 
     /* Regular rotation of one or all models */
 
@@ -766,7 +799,7 @@ void imodv_compute_rotation(ImodvApp *a, float x, float y, float z)
 #define MOUSE_TO_THROW 0.25f
 #define MIN_SQUARE_TO_THROW 17
 
-void imodv_rotate(ImodvApp *a, int throwFlag)
+static void imodv_rotate(ImodvApp *a, int throwFlag)
 {
   int mx, my, idx, idy;
   unsigned int maskr = imodv_query_pointer(a,&mx,&my);
@@ -774,7 +807,7 @@ void imodv_rotate(ImodvApp *a, int throwFlag)
 
   /* If movie on and not a Control rotation, then check the throw flag */
 
-  if (a->movie && !(maskr & ControlMask)) {
+  if (a->movie && !(maskr & Qt::ControlButton)) {
     if (throwFlag) { 
 
       /* If throwing at end of movement, then turn off movie if
@@ -798,9 +831,13 @@ void imodv_rotate(ImodvApp *a, int throwFlag)
       a->md->zrotm = 0;
       /* DNM: new workproc approach, start it here */
       if (a->movie && !a->wpid) {
+#ifdef USE_IMODV_WORKPROC
         a->wpid = XtAppAddWorkProc(a->context, 
                                    (XtWorkProc)imodv_movie_wp, 
                                    (XtPointer)a);
+#else
+        a->wpid = a->mainWin->mTimer->start(0, false);
+#endif
         a->movieFrames = 0;
         a->movieStart = imodv_sys_time();
       }
@@ -809,7 +846,7 @@ void imodv_rotate(ImodvApp *a, int throwFlag)
   }
        
   /* If the mouse button has been released, don't rotate. */
-  if (!(maskr & Button2Mask))
+  if (!(maskr & Qt::MidButton))
     return; 
 
   /* Turn off movie for all rotation axis. DNM add movie flag too */
@@ -831,125 +868,14 @@ void imodv_rotate(ImodvApp *a, int throwFlag)
   return;
 }
 
-
-
-/*****************************************************************************/
-/* Callbacks. */
-static Ilist *closeCB = NULL;
-static Ilist *drawCB = NULL;
-
-void imodvAddCloseCB(void (*func)(ImodvApp *, XtPointer, int),
-                     XtPointer client)
-{
-  ImodvCallBack cb;
-  if (!closeCB){
-    closeCB = ilistNew(sizeof(ImodvCallBack),4);
-    if (!closeCB) return;
-  }
-  cb.func   = func;
-  cb.client = client;
-  ilistAppend(closeCB, &cb);
-}
-
-void imodvRemoveCloseCB(void (*func)(ImodvApp *, XtPointer, int),
-                        XtPointer client)
-{
-  int index = 0;
-  ImodvCallBack *cb;
-  if (!closeCB) return;
-
-  cb = (ImodvCallBack *)ilistFirst(closeCB);
-  while(cb){
-    if (((int)cb->func == (int)func) && 
-        ((int)cb->client == (int)client)){
-      ilistRemove(closeCB, index);
-    }
-    cb = (ImodvCallBack *)ilistNext(closeCB);
-    index++;
-  }
-}
-
-void imodvCallCloseCB(void)
-{
-  ImodvCallBack *cb;
-
-  if (closeCB){
-    cb = (ImodvCallBack *)ilistFirst(closeCB);
-    while(cb){
-      (*cb->func)(Imodv, cb->client, 0);
-      cb = (ImodvCallBack *)ilistNext(closeCB);
-    }
-    ilistDelete(closeCB);
-    closeCB = NULL;
-  }
-  if (drawCB){
-    ilistDelete(drawCB);
-    drawCB = NULL;
-  }
-}
-
-/* Add a function to the draw callback list. */
-void imodvAddDrawCB(void (*func)(ImodvApp *, XtPointer, int),
-                    XtPointer client)
-{
-  ImodvCallBack cb;
-  if (!drawCB){
-    drawCB = ilistNew(sizeof(ImodvCallBack),4);
-    if (!drawCB) return;
-  }
-  cb.func   = func;
-  cb.client = client;
-  ilistAppend(drawCB, &cb);
-}
-
-void imodvRemoveDrawCB(void (*func)(ImodvApp *, XtPointer, int),
-                       XtPointer client)
-{
-  int index = 0;
-  ImodvCallBack *cb;
-  if (!drawCB) return;
-
-  cb = (ImodvCallBack *)ilistFirst(drawCB);
-  while(cb){
-
-    if (((int)cb->func == (int)func) && 
-        ((int)cb->client == (int)client)){
-      /*             printf("listsize %d\n", drawCB->size);
-                     printf("removed drawCB %x, %x, %d\n",
-                     cb->func,cb->client,index);
-                     ilistRemove(drawCB, index);
-                     printf("listsize %d\n", drawCB->size);
-      */
-      ilistRemove(drawCB, index);
-    }
-    cb = (ImodvCallBack *)ilistNext(drawCB);
-    index++;
-  }
-}
-
-void imodvCallDrawCB(int reason)
-{
-  ImodvCallBack *cb;
-
-  if (drawCB){
-    if (drawCB->size){
-      cb = (ImodvCallBack *)ilistFirst(drawCB);
-      while(cb){
-        (*cb->func)(Imodv, cb->client, reason);
-        cb = (ImodvCallBack *)ilistNext(drawCB);
-      }
-    }
-  }
-  return;
-}
-
+/* DNM 12/16/02: removed unused callback code */
 
 /*****************************************************************************/
 #define SELECT_BUFSIZE 4096
 #define OBJCONTNAME(a,b) = ((a<<16)|(b))
 /*#define HIT_DEBUG       */
 
-void processHits (ImodvApp *a, GLint hits, GLuint buffer[])
+static void processHits (ImodvApp *a, GLint hits, GLuint buffer[])
 {
   extern struct ViewInfo *XYZ_vi;
   unsigned int i, j;
@@ -1035,7 +961,7 @@ void processHits (ImodvApp *a, GLint hits, GLuint buffer[])
   }
 }
 
-void imodvSelect(ImodvApp *a)
+static void imodvSelect(ImodvApp *a)
 {
   static unsigned int buf[SELECT_BUFSIZE];
   GLint hits;
@@ -1062,7 +988,7 @@ void imodvSelect(ImodvApp *a)
 
 }
 
-int imodvStepTime(ImodvApp *a, int tstep)
+static int imodvStepTime(ImodvApp *a, int tstep)
 {
   Iobj *obj;
   Icont *cont;
@@ -1106,3 +1032,46 @@ clock_t imodv_sys_time(void)
   return(clock());
 #endif
 }
+
+/**************imodv movie workproc **************************/
+
+/* DNM 11/5/00: changed logic from using interlocked time-outs and workprocs
+   to using just this workproc after starting the movie.
+   DNM 5/21/01: eliminated old code */
+
+#ifdef USE_IMODV_WORKPROC
+static Boolean imodv_movie_wp(XtPointer client)
+{
+  ImodvApp *a = (ImodvApp *)client;
+     
+  Boolean finished = False;
+     
+  if (a->topLevel && a->movie && 
+      (a->md->xrotm || a->md->yrotm || a->md->zrotm)) {
+    a->movieFrames++;
+    a->movieCurrent = imodv_sys_time();
+    imodv_rotate_model(a,a->md->xrotm, a->md->yrotm, a->md->zrotm);
+  } else {
+    a->wpid = (XtWorkProcId)0;
+    finished = True;
+  }
+
+  return(finished);
+}
+#else
+
+void imodvMovieTimeout()
+{
+  ImodvApp *a = Imodv;
+     
+  if (a->wpid && a->topLevel && a->movie && 
+      (a->md->xrotm || a->md->yrotm || a->md->zrotm)) {
+    a->movieFrames++;
+    a->movieCurrent = imodv_sys_time();
+    imodv_rotate_model(a,a->md->xrotm, a->md->yrotm, a->md->zrotm);
+  } else {
+    a->wpid = 0;
+    a->mainWin->mTimer->stop();
+  }
+}
+#endif
