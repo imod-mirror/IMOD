@@ -15,7 +15,7 @@ TARGET = imod
 FORMS	= object_edit.ui formv_control.ui 
 IMAGES	= uparrow.png downarrow.png rightarrow.png leftarrow.png 
 TEMPLATE	=app
-CONFIG	+= qt x11 open_gl
+CONFIG	+= qt x11 opengl
 DBFILE	= imod.db
 LANGUAGE	= C++
 include (qconfigure)
