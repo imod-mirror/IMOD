@@ -17,6 +17,14 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.9.2.3  2004/10/11 02:04:39  sueh
+ * <p> bug# 520 Using a variable called propertyUserDir instead of the "user.dir"
+ * <p> property.  This property would need a different value for each manager.
+ * <p> This variable can be retrieved from the manager if the object knows its
+ * <p> manager.  Otherwise it can retrieve it from the current manager using the
+ * <p> EtomoDirector singleton.  If there is no current manager, EtomoDirector
+ * <p> gets the value from the "user.dir" property.
+ * <p>
  * <p> Revision 3.9.2.2  2004/10/06 01:51:00  sueh
  * <p> bug# 520 Removed unnecessary import.
  * <p>
@@ -472,6 +480,14 @@ public class SystemProgram implements Runnable {
     exitValue = value;
   }
 
+  String getCommandLine() {
+    StringBuffer buffer = new StringBuffer();
+    for (int i = 0; i < commandArray.length; i++) {
+      buffer.append(commandArray[i]);
+    }
+    return buffer.toString();
+  }
+  
   public String getExceptionMessage() {
     return exceptionMessage;
   }
