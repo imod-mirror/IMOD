@@ -27,6 +27,9 @@ import etomo.type.JoinMetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.1.2.10  2004/10/13 23:12:27  sueh
+ * <p> bug# 520 Added align and join ui components.
+ * <p>
  * <p> Revision 1.1.2.9  2004/10/11 02:13:46  sueh
  * <p> bug# 520 Using a variable called propertyUserDir instead of the "user.dir"
  * <p> property.  This property would need a different value for each manager.
@@ -445,24 +448,25 @@ public class JoinDialog implements ContextMenu {
   private void action(ActionEvent event) {
     String command = event.getActionCommand();
     if (command.equals(btnMakeSamples.getActionCommand())) {
+      joinManager.setWorkingDir(ltfWorkingDir.getText());
       joinManager.makejoincom();
     }
-    if (command.equals(btnOpenSamples.getActionCommand())) {
+    else if (command.equals(btnOpenSamples.getActionCommand())) {
       //TODO
     }
-    if (command.equals(btnOpenSampleAverages.getActionCommand())) {
+    else if (command.equals(btnOpenSampleAverages.getActionCommand())) {
       //TODO
     }
-    if (command.equals(btnInitialAutoAlignment.getActionCommand())) {
+    else if (command.equals(btnInitialAutoAlignment.getActionCommand())) {
       //TODO
     }
-    if (command.equals(btnMidas.getActionCommand())) {
+    else if (command.equals(btnMidas.getActionCommand())) {
       //TODO
     }
-    if (command.equals(btnRefineAutoAlignment.getActionCommand())) {
+    else if (command.equals(btnRefineAutoAlignment.getActionCommand())) {
       //TODO
     }
-    if (command.equals(btnRevertAutoAlignment.getActionCommand())) {
+    else if (command.equals(btnRevertAutoAlignment.getActionCommand())) {
       //TODO
     }
     else {
