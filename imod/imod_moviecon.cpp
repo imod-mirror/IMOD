@@ -32,6 +32,9 @@
     $Revision$
 
     $Log$
+    Revision 1.1.2.1  2002/12/15 21:14:02  mast
+    conversion to cpp
+
     Revision 3.2  2002/12/01 16:51:34  mast
     Changes to eliminate warnings on SGI
 
@@ -53,6 +56,8 @@
 #define USE_CLK_TCK CLK_TCK
 #endif
 #endif
+
+#include "imodv_input.h"
 
 #include <Xm/Label.h>
 #include <Xm/Frame.h>

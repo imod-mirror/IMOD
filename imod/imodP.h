@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.8.2.6  2002/12/14 05:40:43  mast
+    new visual-assessing code
+
     Revision 3.8.2.5  2002/12/13 06:09:09  mast
     include file changes
 
@@ -479,14 +482,11 @@ char *ImodRes_SGIStereoCommand(void);
 char *ImodRes_SGIRestoreCommand(void);
 
 /* window fuctions */
-void imodv_draw(void);
-void imodv_new_model(Imod *mod);
 void ioew_sgicolor_cb(Widget w, XtPointer client, XtPointer call);
 int  open_pixelview(struct ViewInfo *vi);
 int  xgraphOpen(struct ViewInfo *vi);
 int imod_tumble_open(struct ViewInfo *vi);
 int tltopen(ImodView *vw, struct ViewInfo *ti);
-void imodv_open(struct Mod_Model *imod, int cmapbase);
 int sslice_showslice(struct Super_slicer *ss);
 int xtumOpen(struct ViewInfo *vi);
 int set_pixelview(struct ViewInfo *vi);

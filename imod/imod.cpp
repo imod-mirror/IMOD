@@ -9,22 +9,22 @@
 /*****************************************************************************
  *   Copyright (C) 1995-2001 by Boulder Laboratory for 3-Dimensional Fine    *
  *   Structure ("BL3DFS") and the Regents of the University of Colorado.     *
- *                                                                           *
+ *									     *
  *   BL3DFS reserves the exclusive rights of preparing derivative works,     *
- *   distributing copies for sale, lease or lending and displaying this      *
- *   software and documentation.                                             *
- *   Users may reproduce the software and documentation as long as the       *
- *   copyright notice and other notices are preserved.                       *
- *   Neither the software nor the documentation may be distributed for       *
- *   profit, either in original form or in derivative works.                 *
- *                                                                           *
- *   THIS SOFTWARE AND/OR DOCUMENTATION IS PROVIDED WITH NO WARRANTY,        *
- *   EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTY OF          *
- *   MERCHANTABILITY AND WARRANTY OF FITNESS FOR A PARTICULAR PURPOSE.       *
- *                                                                           *
- *   This work is supported by NIH biotechnology grant #RR00592,             *
- *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
- *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
+ *   distributing copies for sale, lease or lending and displaying this	     *
+ *   software and documentation.					     *
+ *   Users may reproduce the software and documentation as long as the	     *
+ *   copyright notice and other notices are preserved.			     *
+ *   Neither the software nor the documentation may be distributed for	     *
+ *   profit, either in original form or in derivative works.		     *
+ *									     *
+ *   THIS SOFTWARE AND/OR DOCUMENTATION IS PROVIDED WITH NO WARRANTY,	     *
+ *   EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTY OF	     *
+ *   MERCHANTABILITY AND WARRANTY OF FITNESS FOR A PARTICULAR PURPOSE.	     *
+ *									     *
+ *   This work is supported by NIH biotechnology grant #RR00592,	     *
+ *   for the Boulder Laboratory for 3-Dimensional Fine Structure.	     *
+ *   University of Colorado, MCDB Box 347, Boulder, CO 80309		     *
  *****************************************************************************/
 
 /*  $Author$
@@ -34,6 +34,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.7  2002/12/14 17:53:04  mast
+*** empty log message ***
+
 Revision 1.1.2.6  2002/12/14 05:40:43  mast
 new visual-assessing code
 
@@ -112,9 +115,9 @@ index modeling is the default if multiple files are opened.
 
 /******************************* Globals *************************************/
 ImodApp *App;
-Imod    *Model;
+Imod	*Model;
 
-struct ViewInfo *XYZ_vi  = NULL;
+struct ViewInfo *XYZ_vi	 = NULL;
 struct ViewInfo *Tilt_vi = NULL;
 struct ViewInfo *Imod_vi = NULL;
 
@@ -122,14 +125,14 @@ struct MRCheader Imod_hdata;
 struct TiltInfo Tilts;
 
 char   Tomwind[128];
-char   Tltwind[128];   /* Title of Tilt Window.                          */
+char   Tltwind[128];   /* Title of Tilt Window.				 */
 
 char   *Imod_imagefile;
 FILE   *Imod_Imagefp;
 char   *Imod_IFDpath;
 char   *Imod_cwdpath = NULL;
 
-int    Stereo;          /* Flag to tell if tilt window is in stereo mode. */
+int    Stereo;		/* Flag to tell if tilt window is in stereo mode. */
 int    Modeltouch = FALSE;
 int    Ghostmode = FALSE;
 int    Imod_debug = FALSE;
@@ -145,26 +148,26 @@ void imod_usage(char *name)
   imodVersion(name);
   imodCopyright();
   printf("%s: Usage, %s [options] <Image files> <model file>\n",
-         name, name);
-  printf("Options: -c #  Set # of colormap to use (1-12).\n");
-  printf("         -rgb  Display images in 24-bit color, not with colormap.\n");
-  printf("         -C #  Set # of sections or Mbytes to cache (#M or #m for Mbytes).\n");
-  printf("         -xyz  Open xyz window first.\n");
-  printf("         -S    Open slicer window first.\n");
-  printf("         -x min,max  Load in sub image.\n");
-  printf("         -y min,max  Load in sub image.\n");
-  printf("         -z min,max  Load in sub image.\n");
-  printf("         -s min,max  Scale input to range [min,max].\n");
-  printf("         -Y  Model planes normal to y axis.\n");
-  printf("         -Z  Model planes normal to z axis. (Default)\n");
-  printf("         -p <file name>  Load piece list file.\n");
-  printf("         -P nx,ny  Display images as montage in nx by ny array.\n");
-  printf("         -o nx,ny  Set x and y overlaps for montage display.\n");
-  printf("         -f  Load as frames even if image file has piece coordinates.\n");
-  printf("         -m  Load model with model coords (override scaling).\n");
-  printf("         -2  Treat model as 2D only.\n");
-  printf("         -G  Display RGB-mode MRC file in gray-scale.\n");
-  printf("         -h  Print this help message.\n");
+	 name, name);
+  printf("Options: -c #	 Set # of colormap to use (1-12).\n");
+  printf("	   -rgb	 Display images in 24-bit color, not with colormap.\n");
+  printf("	   -C #	 Set # of sections or Mbytes to cache (#M or #m for Mbytes).\n");
+  printf("	   -xyz	 Open xyz window first.\n");
+  printf("	   -S	 Open slicer window first.\n");
+  printf("	   -x min,max  Load in sub image.\n");
+  printf("	   -y min,max  Load in sub image.\n");
+  printf("	   -z min,max  Load in sub image.\n");
+  printf("	   -s min,max  Scale input to range [min,max].\n");
+  printf("	   -Y  Model planes normal to y axis.\n");
+  printf("	   -Z  Model planes normal to z axis. (Default)\n");
+  printf("	   -p <file name>  Load piece list file.\n");
+  printf("	   -P nx,ny  Display images as montage in nx by ny array.\n");
+  printf("	   -o nx,ny  Set x and y overlaps for montage display.\n");
+  printf("	   -f  Load as frames even if image file has piece coordinates.\n");
+  printf("	   -m  Load model with model coords (override scaling).\n");
+  printf("	   -2  Treat model as 2D only.\n");
+  printf("	   -G  Display RGB-mode MRC file in gray-scale.\n");
+  printf("	   -h  Print this help message.\n");
   printf("\n");
   return;
 }
@@ -176,15 +179,15 @@ int main( int argc, char *argv[])
   struct ViewInfo vi;
   struct ViewInfo tiltvi;
   struct LoadInfo li;
-  FILE *fin        = NULL;
-  FILE *mfin       = NULL;
+  FILE *fin	   = NULL;
+  FILE *mfin	   = NULL;
   char *plistfname = NULL;
   int xyzwinopen   = FALSE;
   int sliceropen   = FALSE;
-  int print_wid    = FALSE;
-  int loadinfo     = FALSE;
+  int print_wid	   = FALSE;
+  int loadinfo	   = FALSE;
   int new_model_created = FALSE;
-  int i      = 0;
+  int i	     = 0;
   int vers;
   int flipit = 0;
   int cpid;
@@ -213,7 +216,7 @@ int main( int argc, char *argv[])
     if (argv[i][0] == '-' && argv[i][1] == 'D')
       Imod_debug = TRUE;
     if (argv[i][0] == '-' && argv[i][1] == 'r' && argv[i][2] == 'g'
-        && argv[i][3] == 'b') {
+	&& argv[i][3] == 'b') {
       App->rgba = 1;
       App->qtRgba = 1;
     }
@@ -252,6 +255,19 @@ int main( int argc, char *argv[])
   //imodAssessVisuals();
   imodFindQGLFormat(App, argv);
 
+  /* this is for testing big fonts */ 
+  /*
+  QFont newFont = QApplication::font();
+  float pointSize = newFont.pointSizeFloat();
+  if (pointSize > 0) {
+    newFont.setPointSizeFloat(pointSize * 1.2);
+  } else {
+    int pixelSize = newFont.pixelSize();
+    newFont.setPixelSize((int)floor(pixelSize * 1.2 + 0.5));
+  }
+  QApplication::setFont(newFont);
+  */
+
   /*******************/
   /* Initialize Data */
   XYZ_vi  = App->cvi = &vi;
@@ -267,7 +283,7 @@ int main( int argc, char *argv[])
      imod_menu.c */
   cmap = system ("exit `\\ps -a | grep imod | wc -l`");
   cmap = WEXITSTATUS(cmap);
-  /*     printf("Returned cmap = %d\n", cmap); */
+  /*	 printf("Returned cmap = %d\n", cmap); */
   if (cmap <= 0)
     cmap = 1;
   if (cmap > 12)
@@ -281,130 +297,130 @@ int main( int argc, char *argv[])
   for (i = 1; i < argc; i++){
     if (argv[i][0] == '-'){
       if (firstfile) {
-        fprintf(stderr, "Imod: invalid to have argument %s after"
+	fprintf(stderr, "Imod: invalid to have argument %s after"
 			    " first filename\n", argv[i]);
-        exit(1);
+	exit(1);
       }
       switch (argv[i][1]){
 
       case 'c':
-        cmap = atoi(argv[++i]);
-        if ((cmap > 12) || (cmap < 1)){
-          fprintf(stderr, "imod: valid -c range is 1 - 12\n");
-          exit(-1);
-        }
-        Rampbase  = 256 + ((cmap - 1) * 330);
-        App->base = Rampbase;
-        break;
+	cmap = atoi(argv[++i]);
+	if ((cmap > 12) || (cmap < 1)){
+	  fprintf(stderr, "imod: valid -c range is 1 - 12\n");
+	  exit(-1);
+	}
+	Rampbase  = 256 + ((cmap - 1) * 330);
+	App->base = Rampbase;
+	break;
 		    
       case 'C':
-        /* value ending in m or M is megabytes, store as minus */
-        pathlen = strlen(argv[++i]);
-        sscanf(argv[i], "%d%*c", &cacheSize);
-        /* if (cacheSize < 0)
-           cacheSize = 0; */
-        if (argv[i][pathlen - 1] == 'M' ||
+	/* value ending in m or M is megabytes, store as minus */
+	pathlen = strlen(argv[++i]);
+	sscanf(argv[i], "%d%*c", &cacheSize);
+	/* if (cacheSize < 0)
+	   cacheSize = 0; */
+	if (argv[i][pathlen - 1] == 'M' ||
 			argv[i][pathlen - 1] == 'm')
-          cacheSize = -cacheSize;
-        vi.vmSize = cacheSize;
-        break;
+	  cacheSize = -cacheSize;
+	vi.vmSize = cacheSize;
+	break;
 
       case 'x':
-        if (argv[i][2] == 'y')
-          if(argv[i][3] == 'z'){
-            xyzwinopen = TRUE;
-            break;
-          }
-        loadinfo = TRUE;
-        if (argv[i][2] != 0x00)
-          sscanf(argv[i], "-x%d%*c%d", &(li.xmin), &(li.xmax));
-        else
-          sscanf(argv[++i], "%d%*c%d", &(li.xmin), &(li.xmax));
-        break;
+	if (argv[i][2] == 'y')
+	  if(argv[i][3] == 'z'){
+	    xyzwinopen = TRUE;
+	    break;
+	  }
+	loadinfo = TRUE;
+	if (argv[i][2] != 0x00)
+	  sscanf(argv[i], "-x%d%*c%d", &(li.xmin), &(li.xmax));
+	else
+	  sscanf(argv[++i], "%d%*c%d", &(li.xmin), &(li.xmax));
+	break;
 
       case 'y':
-        loadinfo = TRUE;
-        if (argv[i][2] != 0x00)
-          sscanf(argv[i], "-y%d%*c%d", &(li.ymin), &(li.ymax));
-        else
-          sscanf(argv[++i], "%d%*c%d", &(li.ymin), &(li.ymax));
-        break;
+	loadinfo = TRUE;
+	if (argv[i][2] != 0x00)
+	  sscanf(argv[i], "-y%d%*c%d", &(li.ymin), &(li.ymax));
+	else
+	  sscanf(argv[++i], "%d%*c%d", &(li.ymin), &(li.ymax));
+	break;
 
       case 'z':
-        loadinfo = TRUE;
-        if (argv[i][2] != 0x00)
-          sscanf(argv[i], "-z%d%*c%d", &(li.zmin), &(li.zmax));
-        else
-          sscanf(argv[++i], "%d%*c%d", &(li.zmin), &(li.zmax));
-        break;
+	loadinfo = TRUE;
+	if (argv[i][2] != 0x00)
+	  sscanf(argv[i], "-z%d%*c%d", &(li.zmin), &(li.zmax));
+	else
+	  sscanf(argv[++i], "%d%*c%d", &(li.zmin), &(li.zmax));
+	break;
 
       case 's':
-        loadinfo = TRUE;
-        sscanf(argv[++i], "%f%*c%f", &(li.smin), &(li.smax));
-        break;
+	loadinfo = TRUE;
+	sscanf(argv[++i], "%f%*c%f", &(li.smin), &(li.smax));
+	break;
 		    
       case 'i':
       case 'D':
-        Imod_debug = TRUE;
-        break;
+	Imod_debug = TRUE;
+	break;
 
       case 'm':
-        ImodTrans = FALSE;
-        break;
+	ImodTrans = FALSE;
+	break;
 
-        /* DNM: better disable this
-           case 'X':
-           li.axis = 1;
-           break;
-        */
+	/* DNM: better disable this
+	   case 'X':
+	   li.axis = 1;
+	   break;
+	*/
       case 'Y':
-        flipit = TRUE;
-        li.axis = 2;
-        break;
+	flipit = TRUE;
+	li.axis = 2;
+	break;
 
       case 'Z':
-        li.axis = 3;
-        break;
+	li.axis = 3;
+	break;
   
       case 'h':
-        imod_usage(argv[0]);
-        exit(1);
-        break;
+	imod_usage(argv[0]);
+	exit(1);
+	break;
 
       case 'p':
-        plistfname = argv[++i];
-        break;
+	plistfname = argv[++i];
+	break;
 
       case 'f':
-        frames = 1;
-        break;
+	frames = 1;
+	break;
 
       case 'G':
-        grayrgbs = 1;
-        break;
+	grayrgbs = 1;
+	break;
 
       case '2':
-        vi.dim &= ~4;
-        break;
+	vi.dim &= ~4;
+	break;
 
       case 'P':
-        sscanf(argv[++i], "%d%*c%d", &nframex, &nframey);
-        break;
+	sscanf(argv[++i], "%d%*c%d", &nframex, &nframey);
+	break;
 		    
       case 'o':
-        sscanf(argv[++i], "%d%*c%d", &overx, &overy);
-        break;
+	sscanf(argv[++i], "%d%*c%d", &overx, &overy);
+	break;
 
       case 'S':
-        sliceropen = TRUE;
-        break;
+	sliceropen = TRUE;
+	break;
 
       case 'W':
-        print_wid = TRUE;
-        break;
+	print_wid = TRUE;
+	break;
 
       default:
-        break;
+	break;
 
       }
     } else if (!firstfile)
@@ -424,13 +440,13 @@ int main( int argc, char *argv[])
 
       /* Fail to open, and it is the only filename, then exit */
       if (firstfile == argc - 1) {
-        printf("Couldn't open input file %s.\n", argv[argc - 1]);
-        exit(10);
+	printf("Couldn't open input file %s.\n", argv[argc - 1]);
+	exit(10);
       }
 
       /* But if there are other files, open new model with that name*/
       fprintf(stderr, "Model file (%s) not found: opening "
-              "new model by that name.\n", argv[argc - 1]);
+	      "new model by that name.\n", argv[argc - 1]);
       /* This creates a new model in Model */
       imod_open(NULL);
       lastimage = argc - 2;
@@ -442,12 +458,12 @@ int main( int argc, char *argv[])
        */
       Model = (struct Mod_Model *)LoadModel(mfin);
       if (Model){
-        if (Imod_debug)
-          fprintf(stderr, "Loaded model %s\n", argv[argc -1]);
-        lastimage = argc - 2;
+	if (Imod_debug)
+	  fprintf(stderr, "Loaded model %s\n", argv[argc -1]);
+	lastimage = argc - 2;
       } else {
-        /* If fail, last file is an image */
-        lastimage = argc - 1;
+	/* If fail, last file is an image */
+	lastimage = argc - 1;
       }
     }
   }
@@ -468,11 +484,11 @@ int main( int argc, char *argv[])
       vers = imodVersion(NULL);
       imodCopyright();	  
       Imod_imagefile = dia_filename
-        ("IMOD: Enter Image file to LOAD.");
+	("IMOD: Enter Image file to LOAD.");
 	  
       if (Imod_imagefile == NULL){
-        fprintf(stderr, "IMOD: file not selected\n");
-        exit(-1);
+	fprintf(stderr, "IMOD: file not selected\n");
+	exit(-1);
       }
     } else {
       /* Or, just set the image file name */
@@ -506,33 +522,33 @@ int main( int argc, char *argv[])
 
       vi.image = iiOpen(Imod_imagefile, "r");
       if (!vi.image){
-        fprintf(stderr, "imod error: "
+	fprintf(stderr, "imod error: "
 			    "Failed to load input file %s\n",
 			    Imod_imagefile);
-        if (errno) perror("image open");
-        exit(-1);
+	if (errno) perror("image open");
+	exit(-1);
       }
 	       
       if (vi.image->file == IIFILE_MRC && 
-          ((vi.image->format != IIFORMAT_RGB) || grayrgbs)) {
-        vi.hdr = vi.image;
+	  ((vi.image->format != IIFORMAT_RGB) || grayrgbs)) {
+	vi.hdr = vi.image;
 		    
-        if (li.smin == li.smax){
-          li.smin = vi.image->imin;
-          li.smax = vi.image->imax;
-        }
+	if (li.smin == li.smax){
+	  li.smin = vi.image->imin;
+	  li.smax = vi.image->imax;
+	}
 
-        iiSetMM(vi.image, (double)li.smin, (double)li.smax);
-        /* Removed alternative code to USEIMODI which seemed to 
-           allow plugin reading */
+	iiSetMM(vi.image, (double)li.smin, (double)li.smax);
+	/* Removed alternative code to USEIMODI which seemed to 
+	   allow plugin reading */
 		    
       } else {
-        /* If it's not an MRC file or has color, call the 
-           multiple file handler, set ifd -1 */
-        iiClose(vi.image);
-        ivwMultipleFiles(&vi, &Imod_imagefile, 0, 0);
-        vi.ifd = -1;
-        vi.hdr = (ImodImageFile *)ilistItem((Ilist *)vi.imageList, 0);
+	/* If it's not an MRC file or has color, call the 
+	   multiple file handler, set ifd -1 */
+	iiClose(vi.image);
+	ivwMultipleFiles(&vi, &Imod_imagefile, 0, 0);
+	vi.ifd = -1;
+	vi.hdr = (ImodImageFile *)ilistItem((Ilist *)vi.imageList, 0);
       }
     }
   } else {
@@ -592,15 +608,15 @@ int main( int argc, char *argv[])
   if (!Imod_debug)
     if ((cpid = fork()) != 0) {
       if(print_wid) {
-        fprintf(stderr, "Process id = %u\n", cpid);
+	fprintf(stderr, "Process id = %u\n", cpid);
       }
       exit(0);
     }
 #endif
 
   XtAddEventHandler(App->toplevel, 0, True, 
-                    (XtEventHandler)imodHandleClientMessage,
-                    (XtPointer)App);
+		    (XtEventHandler)imodHandleClientMessage,
+		    (XtPointer)App);
 
   /********************************************/
   /* Load in image data, set up image buffer. */
@@ -622,7 +638,7 @@ int main( int argc, char *argv[])
 
     pathlen = strlen(Imod_imagefile);
     while (( pathlen > 0) && 
-           (Imod_imagefile[pathlen-1] != '/'))
+	   (Imod_imagefile[pathlen-1] != '/'))
       pathlen--;
 	 
     if (pathlen > 0){
@@ -637,38 +653,38 @@ int main( int argc, char *argv[])
   if ((vi.ifd == 0 || vi.ifd == -1) && (!vi.fakeImage)) {
     /* Check for piece list file and read it */
     iiPlistLoad(plistfname, vi.li, 
-                vi.hdr->nx, vi.hdr->ny, vi.hdr->nz);
+		vi.hdr->nx, vi.hdr->ny, vi.hdr->nz);
 
     if (!vi.li->plist && nframex > 0 && nframey > 0)
       mrc_plist_create(vi.li, vi.hdr->nx, vi.hdr->ny, vi.hdr->nz,
-                       nframex, nframey, overx, overy);
+		       nframex, nframey, overx, overy);
 
     /* Or, check for piece coordinates in image header */
     if (!vi.li->plist && !frames)
       iiLoadPCoord(vi.image, vi.li,
-                   vi.hdr->nx, vi.hdr->ny, vi.hdr->nz);
+		   vi.hdr->nx, vi.hdr->ny, vi.hdr->nz);
 	  
     if (vi.li->plist) {
       /* If pieces, change loading coordinates by the offset in piece
 		 coordinates */
       if (li.xmin != -1)
-        li.xmin -= (int)li.opx;
+	li.xmin -= (int)li.opx;
       if (li.xmax != -1)
-        li.xmax -= (int)li.opx;
+	li.xmax -= (int)li.opx;
       if (li.ymin != -1)
-        li.ymin -= (int)li.opy;
+	li.ymin -= (int)li.opy;
       if (li.ymax != -1)
-        li.ymax -= (int)li.opy;
+	li.ymax -= (int)li.opy;
       if (li.zmin != -1)
-        li.zmin -= (int)li.opz;
+	li.zmin -= (int)li.opz;
       if (li.zmax != -1)
-        li.zmax -= (int)li.opz;
+	li.zmax -= (int)li.opz;
       /* nip the -Y flag in the bud to avoid misunderstanding */
       li.axis = 3;
       vi.flippable = 0;
       /* need to fix the coordinates now if not standard MRC */
       if (vi.ifd < 0)
-        mrc_fix_li(&li, (int)li.px, (int)li.py, (int)li.pz);
+	mrc_fix_li(&li, (int)li.px, (int)li.py, (int)li.pz);
     }
 
   }
@@ -676,7 +692,7 @@ int main( int argc, char *argv[])
   /* Finish loading/setting up images, reading IFD if necessary */
   if (ivwLoadImage(&vi)){
     fprintf(stderr, "imod: Fatal Error --" 
-            " while reading image data.\n");
+	    " while reading image data.\n");
     perror("imod LoadImage");
     exit(-1);
   }
@@ -700,8 +716,8 @@ int main( int argc, char *argv[])
 
   /* Satisfy the lawyers. */
   wprint("Imod %s Copyright %s\n"
-         "BL3DFS & Regents of the Univ. of Colo.\n", 
-         VERSION_NAME, COPYRIGHT_YEARS);
+	 "BL3DFS & Regents of the Univ. of Colo.\n", 
+	 VERSION_NAME, COPYRIGHT_YEARS);
   imod_draw_window();
   xcramp_setlevels(App->cvi->cramp,App->cvi->black,App->cvi->white);
 
@@ -747,7 +763,7 @@ void imod_quit(void)
 
   quitting = 1;
   done = dia_choice("Save model before quitting?",
-                    "Yes", "No", "Cancel");
+		    "Yes", "No", "Cancel");
   quitting = 0;
 
   switch(done){
@@ -755,7 +771,7 @@ void imod_quit(void)
 	  
     if ((err = SaveModel(Model))){
       if (err == IMOD_IO_SAVE_CANCEL)
-        break;
+	break;
       wprint("%s\n", imodIOGetErrorString());
       wprint("Model not saved; quit aborted.\n");
       break;
@@ -848,14 +864,14 @@ char *imodwfname(char *intro)
  *
  */
 
-Display      *imodDisplay(void){ return(App->display); }
+Display	     *imodDisplay(void){ return(App->display); }
 XtAppContext  imodAppContext(void){ return(App->context); }
 
-Widget        imodTopLevel(void){ return(App->toplevel); }
-Visual       *imodVisual(void){ return(App->visual); }
+Widget	      imodTopLevel(void){ return(App->toplevel); }
+Visual	     *imodVisual(void){ return(App->visual); }
 XVisualInfo  *imodVisualInfo(void){ return(App->visualinfo); }
 Colormap      imodColormap(void){ return(App->cmap); }
-int           imodDepth(void){ return(App->depth); }
+int	      imodDepth(void){ return(App->depth); }
 
      
 

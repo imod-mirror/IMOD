@@ -34,6 +34,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.1  2002/12/13 06:15:49  mast
+include file changes
+
 Revision 3.10.2.2  2002/12/11 00:41:00  mast
 Prevent flipping while loading data
 
@@ -97,6 +100,7 @@ Added calls for cache filling
 #include "mrcfiles.h"
 #include "options.h"
 #include "iproc.h"
+#include "imodv.h"
 
 /****help text data include files*****/
 #include "imodhelp.h" 
@@ -1048,7 +1052,7 @@ void imod_win_cb(Widget w, XtPointer client, XtPointer call)
 
   case 4: /* model view */
     imod_autosave(App->cvi->imod);
-    imodv_open(App->cvi->imod, Rampbase + IMOD_BASE);
+    imodv_open();
     break;
 
   case 5:
