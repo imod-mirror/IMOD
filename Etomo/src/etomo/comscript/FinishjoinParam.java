@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.ArrayList;
 
 import etomo.BaseManager;
+import etomo.EtomoDirector;
 import etomo.process.SystemProgram;
 import etomo.type.ConstJoinMetaData;
 import etomo.type.ConstSectionTableRowData;
@@ -24,6 +25,9 @@ import etomo.type.SectionTableRowData;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.4  2004/10/25 22:58:24  sueh
+* <p> bug# 520 Use the negative of shift in X, Y when passing to finish join.
+* <p>
 * <p> Revision 1.1.2.3  2004/10/22 20:55:34  sueh
 * <p> bug# 520 Using EtomoSimpleType where possible.  Changed offsetInX, Y
 * <p> to shiftInX, Y.
@@ -62,7 +66,7 @@ public class FinishjoinParam {
       commandArray[i + 3] = (String) options.get(i);
     }
     program = new SystemProgram(commandArray);
-    program.setWorkingDirectory(new File(metaData.getWorkingDir()));
+    program.setWorkingDirectory(new File(EtomoDirector.getInstance().getCurrentPropertyUserDir()));
   }
   
   public String[] getCommandArray() {

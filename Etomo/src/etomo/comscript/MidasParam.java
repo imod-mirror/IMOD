@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.ArrayList;
 
 import etomo.BaseManager;
+import etomo.EtomoDirector;
 import etomo.process.SystemProgram;
 import etomo.type.ConstJoinMetaData;
 import etomo.type.ConstSectionTableRowData;
@@ -23,6 +24,9 @@ import etomo.type.SectionTableRowData;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.4  2004/10/28 16:55:07  sueh
+* <p> bug# 520 Specifying output file: -o rootname_midas.xf.
+* <p>
 * <p> Revision 1.1.2.3  2004/10/25 22:59:49  sueh
 * <p> bug# 520 Fix chunk size by passing the number of rows to
 * <p> ConstJoinMetaData.getChunkSize.
@@ -51,7 +55,7 @@ public class MidasParam implements Command {
   
   public MidasParam(ConstJoinMetaData metaData) {
     this.metaData = metaData;
-    workingDir = metaData.getWorkingDir();
+    workingDir = EtomoDirector.getInstance().getCurrentPropertyUserDir();
     rootName = metaData.getRootName();
     outputFileName = rootName + outputFileExtension;
     outputFile = new File(workingDir, outputFileName);

@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.ArrayList;
 
 import etomo.BaseManager;
+import etomo.EtomoDirector;
 import etomo.process.SystemProgram;
 import etomo.type.ConstJoinMetaData;
 import etomo.type.EtomoSimpleType;
@@ -22,6 +23,9 @@ import etomo.type.EtomoSimpleType;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.5  2004/10/28 16:57:04  sueh
+* <p> bug# 520 Specifying output file: -o rootname_auto.xf.
+* <p>
 * <p> Revision 1.1.2.4  2004/10/22 20:59:25  sueh
 * <p> bug# 520 Using EtomoSimpleType where possible.  Changed offsetInX, Y
 * <p> to shiftInX, Y.
@@ -60,7 +64,7 @@ public class XfalignParam implements Command {
   
   public XfalignParam(ConstJoinMetaData metaData, int mode) {
     this.metaData = metaData;
-    workingDir = metaData.getWorkingDir();
+    workingDir = EtomoDirector.getInstance().getCurrentPropertyUserDir();
     rootName = metaData.getRootName();
     outputFileName = rootName + outputFileExtension;
     outputFile = new File(workingDir, outputFileName);
