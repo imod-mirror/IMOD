@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.8  2003/01/29 01:34:00  mast
+implement colormaps
+
 Revision 1.1.2.7  2003/01/27 00:30:07  mast
 Pure Qt version and general cleanup
 
@@ -88,6 +91,7 @@ compiler bug.
 #include "b3dgfx.h"
 #include "sslice.h"
 #include "imod_input.h"
+#include "imod_info_cb.h"
 #include "control.h"
 #include "imodplug.h"
 #include "hotslider.h"
@@ -243,8 +247,14 @@ void slicerStateToggled(SlicerStruct *ss, int index, int state)
   ivwControlPriority(ss->vi, ss->ctrl);
   if (index) {
 
-    /* toggle the lock button (does not need redraw?) */
+    /* toggle the lock button, redraw if unlocking */
     ss->locked = state;
+    if (!state) {
+      ss->cx = ss->vi->xmouse;
+      ss->cy = ss->vi->ymouse;
+      ss->cz = ss->vi->zmouse;
+      sslice_draw(ss);
+    }
   } else {
 
     /* toggle between fast rendering and highres rendering */
@@ -415,25 +425,16 @@ int sslice_open(struct ViewInfo *vi)
   drawThickControls(ss);
   ss->qtWindow->setAngles(ss->tang);
 
-  ss->qtWindow->show();
+  // Include this to get toolbar sizes right
+  imod_info_input();
   
-  // The silver lining of having to set geometry after the show is that
-  // the first draw is bad, and the geometry setting gets a good draw
-  // (most of the time)
   QSize toolSize1 = ss->qtWindow->mToolBar->sizeHint();
   QSize toolSize2 = ss->qtWindow->mToolBar2->sizeHint();
   int newWidth = toolSize1.width() > toolSize2.width() ?
     toolSize1.width() : toolSize2.width();
-  QPoint pos = ss->qtWindow->pos();
-  int xleft = pos.x();
-  int ytop = pos.y();
-  int deskWidth = QApplication::desktop()->width();
-  int deskHeight = QApplication::desktop()->height();
-  if (xleft + newWidth > deskWidth - 16)
-    xleft = deskWidth - 16 - newWidth;
-  if (ytop + newWidth > deskHeight - 40)
-  ytop = deskHeight - 40 - newWidth;
-  ss->qtWindow->setGeometry(xleft, ytop, newWidth, newWidth);
+  ss->qtWindow->resize( newWidth, newWidth);
+
+  ss->qtWindow->show();
 
   return(0);
 }
