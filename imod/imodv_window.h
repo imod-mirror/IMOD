@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.3  2002/12/30 06:42:09  mast
+catch show and hide events
+
 Revision 1.1.2.2  2002/12/23 04:57:47  mast
 Add public function to disable autobufferswap
 
@@ -65,6 +68,7 @@ public slots:
   void viewMenuSlot(int which);
   void helpMenuSlot(int which);
   void timeoutSlot();
+  void hideTimeout();
 
  protected:
   void keyPressEvent ( QKeyEvent * e );
@@ -79,6 +83,7 @@ public slots:
   QPopupMenu *mEditMenu;
   QPopupMenu *mViewMenu;
   bool mMinimized;
+  QTimer *mHideTimer;
 };
 
 class ImodvGL : public QGLWidget
