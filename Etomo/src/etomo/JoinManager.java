@@ -1,6 +1,5 @@
 package etomo;
 
-import java.awt.Dimension;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -16,11 +15,11 @@ import etomo.process.ImodManager;
 import etomo.process.ImodProcess;
 import etomo.process.JoinProcessManager;
 import etomo.process.SystemProcessException;
-import etomo.storage.Storable;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.AxisTypeException;
 import etomo.type.BaseMetaData;
+import etomo.type.BaseProcessTrack;
 import etomo.type.ConstJoinMetaData;
 import etomo.type.JoinMetaData;
 import etomo.type.JoinProcessTrack;
@@ -45,6 +44,11 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.21  2004/10/28 16:51:46  sueh
+* <p> bug# 520 Copying most recent .xf file to rootName.xf before running
+* <p> finishjoin, midasSample, and refine xfalign.  Added copyXfFile,
+* <p> createEmptyXfFile, and copyMostRecentXfFile.
+* <p>
 * <p> Revision 1.1.2.20  2004/10/21 17:50:48  sueh
 * <p> bug# 520 In endSetupMode() set paramFile and status bar.
 * <p>
@@ -167,7 +171,12 @@ public class JoinManager extends BaseManager {
   public void openJoinDialog() {
     openProcessingPanel();
     if (joinDialog == null) {
-      joinDialog = new JoinDialog(this);
+      if (loadedTestParamFile) {
+        joinDialog = new JoinDialog(this, propertyUserDir);
+      }
+      else {
+        joinDialog = new JoinDialog(this);
+      }
       joinDialog.setMetaData(metaData);
     }
     createEmptyXfFile();
@@ -378,6 +387,7 @@ public class JoinManager extends BaseManager {
       mainPanel.stopProgressBar(AxisID.ONLY);
       return;
     }
+    EtomoDirector.getInstance().renameCurrentManager(metaData.getRootName());
     MakejoincomParam makejoincomParam = new MakejoincomParam(metaData);
     try {
       threadNameA = processMgr.makejoincom(makejoincomParam);
@@ -397,7 +407,7 @@ public class JoinManager extends BaseManager {
   public void midasSample() {
     isDataParamDirty = true;
     joinDialog.getMetaData(metaData);
-    if (!metaData.isValid(true)) {
+    if (!metaData.isValid(joinDialog.getWorkingDir())) {
       mainPanel.openMessageDialog(metaData.getInvalidReason(), "Invalid Data");
       return;
     }
@@ -421,11 +431,12 @@ public class JoinManager extends BaseManager {
     mainPanel.startProgressBar("Initial xfalign", AxisID.ONLY);
     isDataParamDirty = true;
     joinDialog.getMetaData(metaData);
-    if (!metaData.isValid(true)) {
+    if (!metaData.isValid(joinDialog.getWorkingDir())) {
       mainPanel.openMessageDialog(metaData.getInvalidReason(), "Invalid Data");
       return;
     }
-    XfalignParam xfalignParam = new XfalignParam(metaData, XfalignParam.INITIAL_MODE);
+    XfalignParam xfalignParam = new XfalignParam(metaData,
+        XfalignParam.INITIAL_MODE);
     try {
       threadNameA = processMgr.xfalign(xfalignParam);
     }
@@ -443,7 +454,7 @@ public class JoinManager extends BaseManager {
     mainPanel.startProgressBar("Refine xfalign", AxisID.ONLY);
     isDataParamDirty = true;
     joinDialog.getMetaData(metaData);
-    if (!metaData.isValid(true)) {
+    if (!metaData.isValid(joinDialog.getWorkingDir())) {
       mainPanel.openMessageDialog(metaData.getInvalidReason(), "Invalid Data");
       return;
     }
@@ -541,21 +552,21 @@ public class JoinManager extends BaseManager {
 
   
   private boolean endSetupMode() {
-    if (!metaData.isValid(true)) {
+    mainPanel.updateDataParameters(paramFile, metaData);
+    File workingDir = joinDialog.getWorkingDir();
+    if (!metaData.isValid(workingDir)) {
       return false;
     }
     imodManager.setMetaData(metaData);
     joinDialog.setEnabledTabs(true);
     joinDialog.setEnabledWorkingDir(false);
     joinDialog.setEnabledRootName(false);
-    paramFile = new File(metaData.getWorkingDir(), metaData.getMetaDataFileName());
-    mainPanel.updateDataParameters(paramFile, metaData);
     return true;
   }
   
   public void startjoin() {
     mainPanel.startProgressBar("Startjoin", AxisID.ONLY);
-    if (!metaData.isValid(true)) {
+    if (!metaData.isValid(joinDialog.getWorkingDir())) {
       mainPanel.openMessageDialog(metaData.getInvalidReason(), "Invalid Data");
       mainPanel.stopProgressBar(AxisID.ONLY);
       return;
@@ -574,13 +585,15 @@ public class JoinManager extends BaseManager {
   }
   
   public void revertXfFileToMidas() {
-    File midasOutputFile = new File(propertyUserDir, metaData.getRootName() + MidasParam.getOutputFileExtension());
+    File midasOutputFile = new File(propertyUserDir, metaData.getRootName()
+        + MidasParam.getOutputFileExtension());
     processMgr.touch(midasOutputFile);
     copyXfFile(midasOutputFile);
   }
   
   public void revertXfFileToEmpty() {
-    File emptyFile = new File(propertyUserDir, metaData.getRootName() + "_empty.xf");
+    File emptyFile = new File(propertyUserDir, metaData.getRootName()
+        + "_empty.xf");
     processMgr.touch(emptyFile);
     copyXfFile(emptyFile);
   }
@@ -593,7 +606,7 @@ public class JoinManager extends BaseManager {
     mainPanel.startProgressBar("Finishjoin", AxisID.ONLY);
     isDataParamDirty = true;
     joinDialog.getMetaData(metaData);
-    if (!metaData.isValid(true)) {
+    if (!metaData.isValid(joinDialog.getWorkingDir())) {
       mainPanel.openMessageDialog(metaData.getInvalidReason(), "Invalid Data");
       return;
     }
@@ -606,8 +619,8 @@ public class JoinManager extends BaseManager {
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      mainPanel.openMessageDialog("Can't run "+ JoinDialog.FINISH_JOIN_TEXT + "\n"
-        + except.getMessage(), "SystemProcessException");
+      mainPanel.openMessageDialog("Can't run " + JoinDialog.FINISH_JOIN_TEXT
+          + "\n" + except.getMessage(), "SystemProcessException");
       mainPanel.stopProgressBar(AxisID.ONLY);
       return; 
     }
@@ -671,72 +684,19 @@ public class JoinManager extends BaseManager {
     }
   }
   
-  protected AxisType getAxisType() {
-    return metaData.getAxisType();
-  }
-  
   public BaseMetaData getBaseMetaData() {
     return (BaseMetaData) metaData;
   }
   
-  protected boolean isMetaDataValid(boolean fromScreen) {
-    if (!metaData.isValid(false)) {
-      mainPanel.openMessageDialog(metaData.getInvalidReason(),
-        ".edf file error");
-      return false;
-    }
-    return true;
-  }
-  
   protected void setMetaData(ImodManager imodManager) {
-  }
-  
-  protected void storeMetaData(Storable[] storable, int index) {
-    storable[index] = metaData;
-  }
-  
-  
-  protected void openMessageDialog(String[] message, String title) {
-    mainPanel.openMessageDialog(message, title);
-  }
-  
-  protected void openMessageDialog(String message, String title) {
-    mainPanel.openMessageDialog(message, title);
-  }
-  
-  protected void setMainPanelSize() {
-    mainPanel.setSize(new Dimension(userConfig.getMainWindowWidth(),
-      userConfig.getMainWindowHeight()));
-  }
-  protected void setDividerLocation() {
-    if (isDualAxis()) {
-      mainPanel.setDividerLocation(0.51);
-    }
-  }
-  
-  public void packMainWindow() {
-    mainFrame.repaint();
-    mainPanel.fitWindow();
   }
   
   public MainPanel getMainPanel() {
     return mainPanel;
   }
   
-  protected void stopProgressBar(AxisID axisID) {
-    mainPanel.stopProgressBar(axisID);
-  }
-  
-  protected void storeProcessTrack(Storable[] storable, int index) {
-    storable[index] = processTrack;
-  }
-  
-  protected void resetProcessTrack() {
-    processTrack.resetModified();
-  }
-  
-  protected boolean isProcessTrackModified() {
-    return processTrack.isModified();
+  protected BaseProcessTrack getProcessTrack() {
+    return processTrack;
   }
   
   /**
@@ -746,15 +706,6 @@ public class JoinManager extends BaseManager {
    */
   public void kill(AxisID axisID) {
     processMgr.kill(axisID);
-  }
-  
-  protected boolean isMetaDataValid(File paramFile) {
-    if (!metaData.isValid(paramFile)) {
-      mainPanel.openMessageDialog(metaData.getInvalidReason(),
-        ".edf file error");
-      return false;
-    }
-    return true;
   }
 
 }
