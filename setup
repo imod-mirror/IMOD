@@ -9,6 +9,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.5.2.7  2003/01/29 06:14:17  mast
+#  Fix output to imod's qconfigure under RH 8.0
+#
 #  Revision 3.5.2.6  2003/01/27 00:38:37  mast
 #  fine-tuning the build after pure Qt imod
 #
@@ -303,13 +306,17 @@ echo "FIND    = find"          	  >> $configure
 
 # define how to make libraries - see specific machines for shared libs
 echo "AR      = ar"               >> $configure
+echo "ARCPP   = ar"               >> $configure
 echo "ARFLAGS = r"                >> $configure
 echo 'LDFLAGS = -L$(LIBDIR)'      >> $configure
 echo "RANLIB  = ranlib"           >> $configure
 echo 'MAKELIB = $(AR) $(ARFLAGS)' >> $configure
 
+# MAKELIBCPP needs to be defined to make a library from cpp files.
+
 # MAKELIBSO needs to be defined to describe how to make a .so plugin
 # from .o files; all systems are OK with MAKELIB for shared libraries
+
 
 # Basic C libraries, used to build almost all programs, C and Fortran; but
 # the Fortran Makefiles use FORTCLIBS
