@@ -14,17 +14,18 @@ import javax.swing.UIManager;
 import javax.swing.plaf.FontUIResource;
 
 import etomo.comscript.ComScriptManager;
+import etomo.process.BaseProcessManager;
 import etomo.process.ImodManager;
-import etomo.process.ProcessManager;
 import etomo.process.SystemProcessException;
 import etomo.storage.ParameterStore;
 import etomo.storage.Storable;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.AxisTypeException;
+import etomo.type.BaseMetaData;
+import etomo.type.BaseProcessTrack;
 import etomo.type.ConstMetaData;
-import etomo.type.MetaData;
-import etomo.type.ProcessTrack;
+import etomo.type.ProcessName;
 import etomo.type.UserConfiguration;
 import etomo.ui.MainFrame;
 import etomo.ui.MainPanel;
@@ -46,6 +47,11 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.6  2004/09/15 22:33:39  sueh
+* <p> bug# 520 call openMessageDialog in mainPanel instead of mainFrame.
+* <p> Move packMainWindow and setPanel from ApplicationMAnager to
+* <p> BaseManager.
+* <p>
 * <p> Revision 1.1.2.5  2004/09/13 16:26:46  sueh
 * <p> bug# 520 Adding abstract isNewManager.  Each manager would have a
 * <p> different way to tell whether they had a file open.
@@ -78,8 +84,8 @@ public abstract class BaseManager {
   
   //protected variables
   protected boolean loadedTestParamFile = false;
-  protected MetaData metaData = null;
-  protected ProcessTrack processTrack = null;
+  protected BaseMetaData baseMetaData = null;
+  protected BaseProcessTrack baseProcessTrack = null;
   // imodManager manages the opening and closing closing of imod(s), message
   // passing for loading model
   protected ImodManager imodManager = null;
@@ -90,7 +96,7 @@ public abstract class BaseManager {
   //FIXME homeDirectory may not have to be visible
   protected String homeDirectory;
   //  The ProcessManager manages the execution of com scripts
-  protected ProcessManager processMgr = null;
+  protected BaseProcessManager baseProcessMgr = null;
   protected boolean isDataParamDirty = false;
   // Control variable for process execution
   // FIXME: this going to need to expand to handle both axis
@@ -103,6 +109,7 @@ public abstract class BaseManager {
   protected boolean backgroundProcessA = false;
   protected String backgroundProcessNameA = null;
   protected MainPanel mainPanel = null;
+
   
   //private static variables
   private static boolean debug = false;
@@ -124,14 +131,17 @@ public abstract class BaseManager {
   protected abstract void createComScriptManager();
   protected abstract void createProcessManager();
   protected abstract void createMainPanel();
+  protected abstract void createBaseMetaData();
+  protected abstract void createProcessTrack();
+  protected abstract void updateDialog(ProcessName processName, AxisID axisID);
+  protected abstract void startNextProcess(AxisID axisID);
 
   //FIXME needs to be public?
-  public abstract void openNewDataset();
-  public abstract void openExistingDataset(File paramFile);
   public abstract boolean isNewManager();
+  public abstract void setTestParamFile(File paramFile);
   
   public BaseManager() {
-    createMetaData();
+    createBaseMetaData();
     createProcessTrack();
     createProcessManager();
     createComScriptManager();
@@ -162,7 +172,7 @@ public abstract class BaseManager {
    * @param axisID
    */
   public void kill(AxisID axisID) {
-    processMgr.kill(axisID);
+    baseProcessMgr.kill(axisID);
   }
   
   /**
@@ -174,14 +184,14 @@ public abstract class BaseManager {
       backupFile(paramFile);
       ParameterStore paramStore = new ParameterStore(paramFile);
       Storable[] storable = new Storable[2];
-      storable[0] = metaData;
-      storable[1] = processTrack;
+      storable[0] = baseMetaData;
+      storable[1] = baseProcessTrack;
       paramStore.save(storable);
       //  Update the MRU test data filename list
       userConfig.putDataFile(paramFile.getAbsolutePath());
       mainFrame.setMRUFileLabels(userConfig.getMRUFileList());
       // Reset the process track flag
-      processTrack.resetModified();
+      baseProcessTrack.resetModified();
     }
     catch (IOException except) {
       except.printStackTrace();
@@ -288,7 +298,7 @@ public abstract class BaseManager {
    * @return true if the data set is a dual axis data set
    */
   public boolean isDualAxis() {
-    if (metaData.getAxisType() == AxisType.SINGLE_AXIS) {
+    if (baseMetaData.getAxisType() == AxisType.SINGLE_AXIS) {
       return false;
     }
     else {
@@ -326,17 +336,7 @@ public abstract class BaseManager {
   }
 
   
-  /**
-   * Set the data set parameter file. This also updates the mainframe data
-   * parameters.
-   * @param paramFile a File object specifying the data set parameter file.
-   */
-  //FIXME this may not have to be visible
-  public void setTestParamFile(File paramFile) {
-    this.paramFile = paramFile;
-    //  Update main window information and status bar
-    mainPanel.updateDataParameters(paramFile, metaData);
-  }
+
   
   //get functions
   
@@ -376,7 +376,7 @@ public abstract class BaseManager {
   // FIXME: this is a temporary patch until we can transition the MetaData
   // object to a static object or singleton
   public ConstMetaData getMetaData() {
-    return metaData;
+    return (ConstMetaData) baseMetaData;
   }
   
   /**
@@ -400,20 +400,6 @@ public abstract class BaseManager {
   //FIXME this may not have to be visible
   public File getTestParamFile() {
     return paramFile;
-  }
-  
-  /**
-   * Reset the state of the application to the startup condition
-   */
-  protected void resetState() {
-    //FIXME should EtomoDirectory handle reseting managers?
-    // Delete the objects associated with the current dataset
-    createMetaData();
-    paramFile = null;
-    createComScriptManager();
-    createProcessManager();
-    createProcessTrack();
-    settingsDialog = null;
   }
   
   /**
@@ -448,8 +434,8 @@ public abstract class BaseManager {
       // Read in the test parameter data file
       ParameterStore paramStore = new ParameterStore(paramFile);
       Storable[] storable = new Storable[2];
-      storable[0] = metaData;
-      storable[1] = processTrack;
+      storable[0] = baseMetaData;
+      storable[1] = baseProcessTrack;
       paramStore.load(storable);
 
       // Set the current working directory for the application, this is the
@@ -463,7 +449,7 @@ public abstract class BaseManager {
       // Update the MRU test data filename list
       userConfig.putDataFile(newParamFile.getAbsolutePath());
       //  Initialize a new IMOD manager
-      imodManager.setMetaData(metaData);
+      imodManager.setMetaData((ConstMetaData) baseMetaData);
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();
@@ -484,8 +470,8 @@ public abstract class BaseManager {
         "Test parameter file read error");
       return false;
     }
-    if (!metaData.isValid(false)) {
-      mainPanel.openMessageDialog(metaData.getInvalidReason(),
+    if (!baseMetaData.isValid(false)) {
+      mainPanel.openMessageDialog(baseMetaData.getInvalidReason(),
         ".edf file error");
       return false;
     }
@@ -715,7 +701,7 @@ public abstract class BaseManager {
    */
   protected boolean saveTestParamIfNecessary() {
     // Check to see if the current dataset needs to be saved
-    if (isDataParamDirty || processTrack.isModified()) {
+    if (isDataParamDirty || baseProcessTrack.isModified()) {
       String[] message = {"Save the current data file ?"};
       int returnValue = mainFrame.openYesNoCancelDialog(message);
       if (returnValue == JOptionPane.CANCEL_OPTION) {
@@ -761,15 +747,44 @@ public abstract class BaseManager {
     imodManager = new ImodManager();
   }
   
-  private void createMetaData() {
-    metaData = new MetaData();
-  }
-  
-  private void createProcessTrack() {
-    processTrack = new ProcessTrack();
-  }
-  
   public MainPanel getMainPanel() {
     return mainPanel;
   }
+  
+  /**
+   * Notification message that a background process is done.
+   * 
+   * @param threadName
+   *            The name of the thread that has finished
+   */
+  public void processDone(String threadName, int exitValue,
+    ProcessName processName, AxisID axisID) {
+    if (threadName.equals(threadNameA)) {
+      mainPanel.stopProgressBar(AxisID.FIRST);
+      threadNameA = "none";
+      backgroundProcessA = false;
+      backgroundProcessNameA = null;
+    }
+    else if (threadName.equals(threadNameB)) {
+      mainPanel.stopProgressBar(AxisID.SECOND);
+      threadNameB = "none";
+    }
+    else {
+      mainPanel.openMessageDialog("Unknown thread finished!!!", "Thread name: "
+        + threadName);
+    }
+    if (processName != null) {
+      updateDialog(processName, axisID);
+    }
+    //  Start the next process if one exists and the exit value was equal zero
+    if (!nextProcess.equals("")) {
+      if (exitValue == 0) {
+        startNextProcess(axisID);
+      }
+      else {
+        nextProcess = "";
+      }
+    }
+  }
+
 }
