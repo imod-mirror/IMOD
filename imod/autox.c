@@ -34,6 +34,9 @@
     $Revision$
 
     $Log$
+    Revision 3.2  2002/12/01 15:34:41  mast
+    Changes to get clean compilation with g++
+
     Revision 3.1  2001/12/17 18:41:51  mast
     Add calls for smooth and next section to be done from hotkeys
 
@@ -50,6 +53,7 @@
 #include <string.h>
 #include "diaP.h"
 #include "imod.h"
+#include "imod_info_cb.h"
 
 /* The current section number and data that is being contoured. */
 static int autox_cz = -1;

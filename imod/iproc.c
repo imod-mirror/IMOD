@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.2  2002/12/01 15:34:41  mast
+    Changes to get clean compilation with g++
+
 */
 
 #include <Xm/Xm.h>
@@ -53,6 +56,7 @@
 #include "imod.h"
 #include "iproc.h"
 #include "sliceproc.h"
+#include "imod_info_cb.h"
 
 static ImodIProc proc = {0};
 

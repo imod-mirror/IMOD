@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.1  2002/12/01 15:34:41  mast
+    Changes to get clean compilation with g++
+
 */
 
 #include <stdio.h>
@@ -49,6 +52,7 @@
 #include <Xm/Separator.h>
 #include <dia.h>
 #include "imod.h"
+#include "imod_info_cb.h"
 
 struct{
      int       init;

@@ -34,6 +34,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.4.2.3  2002/12/19 04:37:13  mast
+Cleanup of unused global variables and defines
+
 Revision 3.4.2.2  2002/12/12 01:21:53  mast
 xyz no longer a member of ImodView structure
 
@@ -64,6 +67,7 @@ logic for cache filling
 #include <string.h>
 #include "mrcfiles.h"
 #include "imod.h"
+#include "imod_info_cb.h"
 
 static int ivwSetCacheFromList(ImodView *iv, Ilist *ilist);
 char Ivw_string[64];

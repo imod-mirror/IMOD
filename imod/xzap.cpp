@@ -35,6 +35,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.12  2003/01/06 15:51:17  mast
+Use imodcaption and viewport setting routines
+
 Revision 1.1.2.11  2003/01/04 03:42:05  mast
 simplified closing logic
 
@@ -118,6 +121,9 @@ Added hotkeys to do smoothing and next section in autocontouring
 #include "imod.h"
 #include "xzap.h"
 #include "control.h"
+#include "imodplug.h"
+#include "imod_info.h"
+#include "imod_info_cb.h"
 
 #include "qcursor.bits"
 #include "qcursor_mask.bits"
@@ -1233,7 +1239,6 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
         zap->sectionStep = 1;
         wprint("\aAuto-section advance turned ON\n");
       }
-      //XBell(imodDisplay(), 100);
     } else
       imod_zap_open(vi);
     handled = 1;
@@ -1246,7 +1251,6 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
       zapStateToggled(zap, ZAP_TOGGLE_INSERT, 1 - zap->insertmode);
       zap->qtWindow->setToggleState(ZAP_TOGGLE_INSERT, zap->insertmode);
       wprint("\aToggled modeling direction\n");
-      //XBell(imodDisplay(), 100);
     }
     handled = 1;
     break;
@@ -2017,7 +2021,7 @@ void zapPrintInfo(ZapStruct *zap)
   int ixl, ixr, iyb, iyt;
   int ixcen, iycen, ixofs, iyofs;
   ivwControlPriority(zap->vi, zap->ctrl);
-  XRaiseWindow(App->display, XtWindow(App->toplevel));
+  ImodInfoWin->raise();
   if (zap->rubberband) {
     zapGetixy(zap, zap->bandllx + 1, zap->bandlly + 1, &xl, &yt);
     zapGetixy(zap, zap->bandurx - 1, zap->bandury - 1, &xr, &yb);

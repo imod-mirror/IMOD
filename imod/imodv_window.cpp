@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.4  2003/01/01 05:40:21  mast
+add timer to workaround iconifying problem
+
 Revision 1.1.2.3  2002/12/30 06:42:47  mast
 On show and hide events, make calls to show or hide dialogs
 
@@ -59,6 +62,7 @@ extern int Imod_debug;
 ImodvWindow::ImodvWindow(bool standAlone, int enableDepthDB, 
                          int enableDepthSB, bool lighting, bool lowRes,
                          QWidget * parent, const char * name, WFlags f)
+  : QMainWindow(parent, name, f)
 {
   mDBw = mSBw = NULL;
   mMinimized = false;

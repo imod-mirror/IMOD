@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.1.2.1  2003/01/02 15:38:16  mast
+    remove declarations for control.c functions
+
     Revision 3.1  2002/12/01 15:34:41  mast
     Changes to get clean compilation with g++
 
@@ -63,41 +66,7 @@
      extern "C" {
 #endif
 
-
-/*************************** Setup Functions *********************************/
-
-/*
- * Function must be defined by plugin.
- *
- * Returns the name of the plugin.
- * Bit flags for the type of plugins are returned in the type.
- * Not all of imod's data structures may be initialized at the time of
- * this function call so no initialization should be done.
- */
-char *imodPlugInfo(int *type);
-
-/*
- * Generic Plugin interface.
- * IMOD will call this functions on your behalf at 
- * well defined times.
- */
-void imodPlugExecuteType(ImodView *inView, int inType, int inReason);
-
-/* Menu execution function for plugins with the IMOD_PLUG_MENU bit set.
- * This function will be called if available, if not defined then. 
- * the following call will be made.
- * imodPlugExecuteType(inView, IMOD_PLUG_MENU, IMOD_REASON_EXECUTE);
- */
-void imodPlugExecute(ImodView *vw);
-
-/* Key input callback function to be defined by plugins with the
- * IMOD_PLUG_KEYS bit set.
- * This function can be used to override imod hot key settings.
- * A nonzero return value indicates that the plugin handled the input key.
- * and that no other action should be taken by the imod program.
- * A zero return value indicates that imod should process the key as usual.
- */
-int imodPlugKeys(ImodView *vw, XKeyEvent *event);
+       // 1/12/03: Moved plugin stuff to imodplug.h
 
        // 1/1/03: Moved ivwControl stuff to control.h, until all files can
        // read c++
@@ -227,10 +196,9 @@ int imodColorValue(int inColor);
  */
 void wprint(char *fmt, ...);
 
-/*
+/* 1/13/02: removed inputDefaultKeys
  *  Call a keyevent, execute imod hot keys.
  */
-void inputDefaultKeys(XKeyEvent *event, ImodView *vw);
      
 
 

@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.8.2.12  2003/01/10 23:50:09  mast
+    Changes for Qt version of tumbler an elimination of tilt window
+
     Revision 3.8.2.11  2003/01/06 15:44:23  mast
     changes for making Qt version of slicer
 
@@ -143,7 +146,6 @@ typedef struct imod_application
      unsigned int ghost;
      unsigned int imodvbgcolor;
 
-     Cursor cursor_cross;
      short wzoom;
 
 }ImodApp;
@@ -306,6 +308,8 @@ extern int Rampbase;
 #define RAMPBASE 256
 #define RAMPSIZE 256  
 #define RAMPSTEP 1
+#define RAMP_INTERVAL 480
+#define MAXIMUM_RAMPS 8
 
 /* colors for 8-bit systems */
 #define IMOD_MAX_INDEX  236
@@ -376,7 +380,6 @@ void ivwCheckWildFlag(Imod *imod);
 void ivwScaleDepth8(ImodView *iv, ivwSlice *tempSlicePtr);
 void ivwReadZ(ImodView *iv, unsigned char *buf, int cz);
 
-
 /* workprocs */
 int imod_start_autosave(void);
 int imodMovieXYZT(struct ViewInfo *vi, int x, int y, int z, int t);
@@ -403,29 +406,8 @@ char *imodwfname(char *intro);
 char *imodwEithername(char *intro, char *filein, int modelFirst);
 char *imodwGivenName(char *intro, char *filein);
 int imodMovie(struct ViewInfo *vi);
-void imod_imgcnt(char *string);
 char *ImodRes_SGIStereoCommand(void);
 char *ImodRes_SGIRestoreCommand(void);
-
-/* imod_info public functions */
-void imod_info_setglwin(void);
-int  imod_info_input(void);
-int  imod_info_open(int argc, char **argv);
-void imod_info_quit(Widget w, XtPointer client, XtPointer call);
-void imod_info_setobjcolor(void);
-void imod_info_setocp(void);
-void imod_info_setxyz(void);
-void imod_info_setbw(int black, int white);
-int  imod_info_bwfloat(ImodView *vw, int section, int time);
-void imod_info_float_clear(int section, int time);
-int  imod_open(FILE *mfin);
-void show_status(char *info);
-void imod_show_info(char *info, int line);
-void imod_info_msg(char *top, char *bot);
-void imod_info_forbid(void);
-void imod_info_enable(void);
-void imod_set_mmode(int mode);
-void imod_draw_window(void);
 
 
 void imodImageScaleDialog(ImodView *iv);
@@ -473,13 +455,6 @@ int imcGetLoopMode(ImodView *vw);
 int imcGetSnapshot(ImodView *vw);
 void imcStartTimer(void);
 void imcReadTimer(void);
-
-/* plugin mods for imod. */
-int imodPlugInit(void);
-int imodPlugLoaded(int type);
-int imodPlugCall(ImodView *vw, int type, int reason);
-void imodPlugMenu(Widget parent, int pos); /* build plugin menu. */
-int imodPlugHandleKey(ImodView *vw, XKeyEvent *event);
 
 
 #ifdef __cplusplus

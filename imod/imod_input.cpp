@@ -34,6 +34,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.7  2003/01/10 23:52:54  mast
+add new xgraoh include
+
 Revision 1.1.2.6  2003/01/06 15:52:16  mast
 changes for Qt version of slicer
 
@@ -77,6 +80,7 @@ are open
 #include "imod.h"
 #include "xzap.h"
 #include "imod_info.h"
+#include "imod_info_cb.h"
 #include "mrcfiles.h"
 #include "imodv.h"
 #include "imod_input.h"
@@ -299,40 +303,33 @@ void inputNewSurface(ImodView *vw)
 void inputNextObject(ImodView *vw)
 {
   Iobj *obj;
-  Icont *cont;
-  int currentTime, co;
-  int objIndex, contIndex, pointIndex;
 
-  ivwGetTime(vw, &currentTime);
   imodNextObject(vw->imod);
 
-  obj  = imodObjectGet(vw->imod);
+  /*  Try leaving these tests out - see if the setxyzmouse works OK with no
+      object */
+  /* obj  = imodObjectGet(vw->imod);
   if (!obj) return;
-  cont = imodContourGet(vw->imod);
-
-  /* DNM: modify so that imod_setxyzmouse always gets called - it's needed
-     to keep the info window updated properly */
-  if (cont) {
-    imodGetIndex(vw->imod, &objIndex, &contIndex, &pointIndex);
-
-    if iobjFlagTime(obj){
-      if (cont->type != currentTime){
-        for(co = 0; co < obj->contsize; co++){
-          if (obj->cont[co].type ==  currentTime){
-            imodSetIndex
-              (vw->imod, objIndex, co, pointIndex);
-            break;
-          }
-        }
-      }
-    }
-  }
+  */
 
   imod_setxyzmouse();
-  return;
 }
 
 void inputPrevObject(ImodView *vw)
+{
+  Iobj *obj;
+  imodPrevObject(vw->imod);
+     
+  /*
+  obj  = imodObjectGet(vw->imod);
+  if (!obj) return;
+  */
+
+  inputKeepContourAtSameTime(vw);
+  imod_setxyzmouse();
+}
+
+void inputKeepContourAtSameTime(ImodView *vw)
 {
   Iobj *obj;
   Icont *cont;
@@ -340,28 +337,25 @@ void inputPrevObject(ImodView *vw)
   int objIndex, contIndex, pointIndex;
 
   ivwGetTime(vw, &currentTime);
-  imodPrevObject(vw->imod);
-     
+
   obj  = imodObjectGet(vw->imod);
-  if (!obj) return;
+  if (!obj || !iobjFlagTime(obj)) 
+    return;
+
   cont = imodContourGet(vw->imod);
   if (cont) {
     imodGetIndex(vw->imod, &objIndex, &contIndex, &pointIndex);
 
-    if iobjFlagTime(obj){
-      if (cont->type != currentTime){
-        for(co = 0; co < obj->contsize; co++){
-          if (obj->cont[co].type ==  currentTime){
-            imodSetIndex
-              (vw->imod, objIndex, co, pointIndex);
-            break;
-          }
+    if (cont->type != currentTime){
+      for(co = 0; co < obj->contsize; co++){
+	if (obj->cont[co].type ==  currentTime){
+	  imodSetIndex
+	    (vw->imod, objIndex, co, pointIndex);
+	  break;
         }
       }
     }
   }
-  imod_setxyzmouse();
-  return;
 }
 
 void inputAdjacentSurface(ImodView *vw, int direction)
@@ -471,25 +465,23 @@ void inputAdjacentContInSurf(ImodView *vw, int direction)
 
 void inputNextContour(ImodView *vw)
 {
-  Icont *cont;
-     
   NextContour(vw->imod);
-     
-  if (vw->imod->cindex.point == -1){
-    cont = imodContourGet(vw->imod);
-    if (cont)
-      if (cont->psize)
-        vw->imod->cindex.point = 0;
-  }
-
+  inputRestorePointIndex(vw);
   imod_setxyzmouse();
-  return;
 }
 
 void inputPrevContour(ImodView *vw)
 {
-  Icont *cont;
   PrevContour(vw->imod);
+  inputRestorePointIndex(vw);
+  imod_setxyzmouse();
+}
+
+/* If the current point index is -1 and the new contour has points, set
+   to starting point */
+void inputRestorePointIndex(ImodView *vw)
+{
+  Icont *cont;
 
   if (vw->imod->cindex.point == -1){
     cont = imodContourGet(vw->imod);
@@ -497,9 +489,6 @@ void inputPrevContour(ImodView *vw)
       if (cont->psize)
         vw->imod->cindex.point = 0;
   }
-
-  imod_setxyzmouse();
-  return;
 }
 
 void inputNextPoint(ImodView *vw)
@@ -812,315 +801,6 @@ void inputSaveModel(ImodView *vw)
 
   imod_info_enable();
   imod_draw_window();
-  return;
-}
-
-void inputDefaultKeys(XKeyEvent *event, ImodView *vw)
-{
-  KeySym keysym = XLookupKeysym(event, 0);
-
-  switch(keysym){
-
-    /* DNM: Make this go to midpoint of stack instead of Inserting 
-       a point */
-  case XK_Insert:
-    vw->zmouse = vw->zsize/2;
-    imodDraw(vw, IMOD_DRAW_XYZ);
-    break;
-  case XK_Delete:
-    inputDeletePoint(vw);
-    break;
-  case XK_Home:
-    vw->zmouse = vw->zsize - 1;
-    imodDraw(vw, IMOD_DRAW_XYZ);
-    break;
-  case XK_End:
-    vw->zmouse = 0;
-    imodDraw(vw, IMOD_DRAW_XYZ);
-    break;
-
-  case XK_j:
-  case IMOD_XK_Prior:
-    inputPrevz(vw);
-    break;
-
-  case XK_k:
-  case IMOD_XK_Next:
-    inputNextz(vw);
-    break;
-
-  case XK_Up:
-    inputNexty(vw);
-    break;
-  case XK_Down: 
-    inputPrevy(vw);
-    break;
-  case XK_Right: 
-    inputNextx(vw);
-    break;
-  case XK_Left: 
-    inputPrevx(vw);
-    break;
-
-  case XK_backslash:
-    if (!vw->rawImageStore)
-      sslice_open(vw);
-    break; 
-          
-  case XK_c:
-  case XK_C:
-    if (event->state & ShiftMask)
-      inputNextContour(vw);
-    else
-      inputPrevContour(vw);
-    break;
-          
-  case XK_d:
-  case XK_D:
-    if (event->state & ShiftMask)
-      inputDeleteContour(vw);
-    break;
-
-  case XK_e: /* erase current contour and/or point */
-    if (event->state & ShiftMask)
-      vw->imod->cindex.contour = -1;
-    vw->imod->cindex.point = -1;
-    imod_setxyzmouse();
-    break;
-          
-  case XK_f:
-  case XK_F:
-    if (event->state & ShiftMask)
-      inputFindMaxValue(vw);
-    else
-      inputFindValue(vw);
-    break;
-
-
-  case XK_g:
-  case XK_G:
-    if (event->state & ShiftMask) {
-      /* DMN 2/25/01: do not open with fake image */
-      if (!vw->rawImageStore && !vw->fakeImage)
-        xgraphOpen(vw);
-    } else  
-      inputGhostmode(vw);
-    break;
-
-  case XK_m:
-  case XK_M:
-    if (event->state & ShiftMask)
-      inputMoveObject(vw);
-    else
-      imod_set_mmode(IMOD_MM_TOGGLE);
-    break;
-          
-  case XK_n:
-  case XK_N:
-    if (event->state & ShiftMask)
-      inputNewSurface(vw);
-    else
-      inputNewContour(vw);
-    break;
-
-  case XK_0:
-    inputNewObject(vw);
-    break;
-
-  case XK_h:
-  case XK_1:
-    inputPrevTime(vw);
-    break;
-
-  case XK_l:
-  case XK_2:
-    inputNextTime(vw);
-    break;
-
-  case XK_3:
-    inputMovieTime(vw, -1);
-    break;
-  case XK_4:
-    inputMovieTime(vw, 1);
-    break;
-
-  case XK_5:
-    inputAdjacentContInSurf(vw, -1);
-    break;
-
-  case XK_6:
-    inputAdjacentContInSurf(vw, 1);
-    break;
-
-  case XK_7:
-    inputAdjacentSurface(vw, -1);
-    break;
-
-  case XK_8:
-    inputAdjacentSurface(vw, 1);
-    break;
-
-  case XK_o:
-  case XK_O:
-    inputPrevObject(vw);
-    break;
-
-  case XK_p:
-  case XK_P:
-    inputNextObject(vw);
-    break;
-          
-  case XK_braceleft:
-  case XK_bracketleft:
-    if (event->state & ShiftMask)
-      inputFirstPoint(vw);
-    else
-      inputPrevPoint(vw);
-    break;
-          
-  case XK_braceright:
-  case XK_bracketright:
-    if (event->state & ShiftMask)
-      inputLastPoint(vw);
-    else
-      inputNextPoint(vw);
-    break;
-
-    /* DNM: forget this, it doesn't work anymore and image scale does */
-    /* case XK_R:
-       case XK_r:
-       if (event->state & ShiftMask)
-       imod_io_image_reload(vw);
-       break;
-    */
-  case XK_t:
-  case XK_T:
-    if (event->state & ShiftMask){
-      if (vw->drawcursor)
-        vw->drawcursor = FALSE;
-      else
-        vw->drawcursor = TRUE;
-    }else{
-      vw->imod->drawmode -= (2 * vw->imod->drawmode);
-    }
-    imodDraw(vw, IMOD_DRAW_MOD);
-    break;
-          
-  case XK_v:
-    imodv_open();
-    break;
-
-  case XK_z:
-    imod_zap_open(vw);
-    break;
-          
-  case XK_comma: /* slower movie */
-    imcSetMovierate(vw, vw->movierate + 1);
-    /* vw->movierate++; */
-    break;
-  case XK_period: /* faster movie */
-    imcSetMovierate(vw, vw->movierate - 1);
-    /*
-      vw->movierate--;
-      if (vw->movierate < 0)
-      vw->movierate = 0;
-    */
-    break;
-          
-    /* DNM 3/14/01: took out the DRAW_GL versions for readability */
-  case XK_F1:
-    xcramp_level(vw->cramp, -1, 0);
-    xcramp_getlevels(vw->cramp, &(vw->black), &(vw->white));
-    imod_info_setbw(vw->black, vw->white);
-    break;
-  case XK_F2:
-    /* DNM: move in tandem if they're equal; xcramp_ramp takes care
-       of it in the F3 case */
-    if (vw->black == vw->white)
-      xcramp_level(vw->cramp, 1, 1);
-    else
-      xcramp_level(vw->cramp, 1, 0);
-    xcramp_getlevels(vw->cramp, &(vw->black), &(vw->white));
-    imod_info_setbw(vw->black, vw->white);
-    break;
-  case XK_F3:
-    xcramp_level(vw->cramp, 0, -1);
-    xcramp_getlevels(vw->cramp, &(vw->black), &(vw->white));
-    imod_info_setbw(vw->black, vw->white);
-    break;
-  case XK_F4:
-    xcramp_level(vw->cramp, 0, 1);
-    xcramp_getlevels(vw->cramp, &(vw->black), &(vw->white));
-    imod_info_setbw(vw->black, vw->white);
-    break;
-  case XK_F5:
-    xcramp_level(vw->cramp, -1, 1);
-    xcramp_getlevels(vw->cramp, &(vw->black), &(vw->white));
-    imod_info_setbw(vw->black, vw->white);
-    break;
-  case XK_F6:
-    /* DNM 3/14/01: don't move if they are equal */
-    if (vw->black == vw->white)
-      break;
-    xcramp_level(vw->cramp, 1, -1);
-    xcramp_getlevels(vw->cramp, &(vw->black), &(vw->white));
-    imod_info_setbw(vw->black, vw->white);
-    break;
-  case XK_F7:
-    xcramp_level(vw->cramp, -1, -1);
-    xcramp_getlevels(vw->cramp, &(vw->black), &(vw->white));
-    imod_info_setbw(vw->black, vw->white);
-    break;
-  case XK_F8:
-    xcramp_level(vw->cramp, 1, 1);
-    xcramp_getlevels(vw->cramp, &(vw->black), &(vw->white));
-    imod_info_setbw(vw->black, vw->white);
-    break;
-  case XK_F9:
-    xcrampSelectIndex(vw->cramp, 0);
-    xcramp_ramp(vw->cramp);
-    xcramp_getlevels(vw->cramp, &(vw->black), &(vw->white));
-    imod_info_setbw(vw->black, vw->white);
-
-    break;
-  case XK_F10:
-    xcrampSelectIndex(vw->cramp, 
-                      (vw->cramp->clevel + 1) % vw->cramp->noflevels);
-    xcramp_ramp(vw->cramp);
-    xcramp_getlevels(vw->cramp, &(vw->black), &(vw->white));
-    imod_info_setbw(vw->black, vw->white);
-    break;
-  case XK_F11:
-    xcramp_reverse(vw->cramp, !(vw->cramp->reverse));
-    if (App->rgba){
-      imodDraw(App->cvi, IMOD_DRAW_IMAGE);
-    }
-    break;
-  case XK_F12:
-    xcramp_falsecolor(vw->cramp, !(vw->cramp->falsecolor));
-    if (App->rgba){
-      imodDraw(App->cvi, IMOD_DRAW_IMAGE);
-    }
-    break;
-    /* DNM: never knew this was here: now that there's a model clean,
-       take it out */
-    /*
-      case XK_q:
-      {
-      int ob;
-      for (ob = vw->imod->objsize - 1; ob >= 0; ob--)
-      if (!vw->imod->obj[ob].contsize)
-      imodFreeObject(vw->imod, ob);
-      }
-      break;
-    */
-  }
-  return;
-}
-
-void defaultKeyInput(Widget w, XEvent *event, String s, Cardinal c)
-{
-  inputDefaultKeys((XKeyEvent *)event, App->cvi);
   return;
 }
 
