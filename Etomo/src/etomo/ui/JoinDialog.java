@@ -10,10 +10,14 @@ import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import etomo.EtomoDirector;
 import etomo.JoinManager;
+import etomo.comscript.FinishjoinParam;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoInteger;
 import etomo.type.ConstJoinMetaData;
+import etomo.type.EtomoInteger;
+import etomo.type.EtomoSimpleType;
 import etomo.type.JoinMetaData;
 
 /**
@@ -29,6 +33,9 @@ import etomo.type.JoinMetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.1.2.24  2004/10/30 02:36:30  sueh
+ * <p> bug# 520 Added getRootName().
+ * <p>
  * <p> Revision 1.1.2.23  2004/10/29 01:20:48  sueh
  * <p> bug# 520 Removed working directory from meta data.  Getting working
  * <p> directory from constructor.
@@ -137,6 +144,8 @@ public class JoinDialog implements ContextMenu {
   public static final String MIDAS_TEXT = "Midas";
   public static final String FINISH_JOIN_TEXT = "Finish Join";
   public static final String WORKING_DIRECTORY_TEXT = "Working directory";
+  public static final String GET_MAX_SIZE_TEXT = "Get Max Size and Shift";
+  public static final String TRIAL_JOIN_TEXT = "Trial Join";
   
   private static ImageIcon iconFolder = new ImageIcon(ClassLoader
       .getSystemResource("images/openFile.gif"));
@@ -163,7 +172,10 @@ public class JoinDialog implements ContextMenu {
   private JPanel pnlFinishJoinComponent1;
   private SpacedPanel pnlFinishJoinComponent2;
   private SpacedPanel pnlFinishJoinComponent3;
+  private DoubleSpacedPanel pnlTrialJoin;
+  private JPanel pnlTrialJoinComponent1;
   private JLabel lblInXAndY;
+  private JLabel lblSections;
   
   private JButton btnWorkingDir;
   private MultiLineToggleButton btnMakeSamples;
@@ -174,6 +186,10 @@ public class JoinDialog implements ContextMenu {
   private MultiLineButton btnRefineAutoAlignment;
   private MultiLineButton btnRevertToMidas;
   private MultiLineButton btnRevertToEmpty;
+  private MultiLineButton btnGetMaxSize;
+  private MultiLineButton btnTrialJoin;
+  private MultiLineButton btnOpenTrialIn3dmod;
+  private MultiLineButton btnGetSubarea;
   private MultiLineButton btnFinishJoin;
   private MultiLineButton btnOpenIn3dmod;
 
@@ -189,11 +205,11 @@ public class JoinDialog implements ContextMenu {
   private JCheckBox cbUseAlignmentRefSection;
   private JSpinner spinAlignmentRefSection;
   private LabeledTextField ltfSizeInX;
-  private ConstEtomoInteger sizeInX;
   private LabeledTextField ltfSizeInY;
-  private ConstEtomoInteger sizeInY;
   private LabeledTextField ltfShiftInX;
   private LabeledTextField ltfShiftInY;
+  private LabeledTextField ltfUseEveryNSections;
+  private LabeledSpinner spinTrialBinning;
   private LabeledSpinner spinOpenBinnedBy;
   
   private int numSections = 0;
@@ -283,10 +299,8 @@ public class JoinDialog implements ContextMenu {
     removePanelComponents(curTab);
     curTab = tabPane.getSelectedIndex();
     addPanelComponents(curTab);
-    if (curTab == JOIN_TAB) {
-      sizeInX.setDefault(pnlSectionTable.getXMax());
-      ltfSizeInX.setText(sizeInX.setDefault(pnlSectionTable.getXMax()).getString(true));
-      ltfSizeInY.setText(sizeInY.setDefault(pnlSectionTable.getYMax()).getString(true));
+    if (EtomoDirector.getInstance().getUserConfiguration().isAutoFit()) {
+      joinManager.getMainPanel().fitWindow();
     }
   }
 
@@ -407,29 +421,9 @@ public class JoinDialog implements ContextMenu {
   }
 
   private void createJoinPanel() {
-    pnlJoin = new DoubleSpacedPanel(false, FixedDim.x5_y0, FixedDim.x0_y5);
+    pnlJoin = new DoubleSpacedPanel(true, FixedDim.x5_y0, FixedDim.x0_y5);
     //second component
     createFinishJoinPanel();
-    addFinishJoinPanelComponents();
-    //third component
-    pnlJoinComponent1 = new SpacedPanel(FixedDim.x0_y5, true);
-    pnlJoinComponent1.setLayout(new BoxLayout(pnlJoinComponent1.getContainer(),
-        BoxLayout.Y_AXIS));
-    pnlJoinComponent1.setBorder(BorderFactory.createEtchedBorder());
-    pnlJoinComponent1A = new SpacedPanel(FixedDim.x5_y0, true);
-    pnlJoinComponent1A.setLayout(new BoxLayout(pnlJoinComponent1A
-        .getContainer(), BoxLayout.X_AXIS));
-    SpinnerModel spinnerModel = new SpinnerNumberModel(1, 1, 50, 1);
-    spinOpenBinnedBy = new LabeledSpinner("Open binned by ", spinnerModel);
-    spinOpenBinnedBy.setTextMaxmimumSize(dimSpinner);
-    pnlJoinComponent1A.add(spinOpenBinnedBy);
-    lblInXAndY = new JLabel("in X and Y");
-    pnlJoinComponent1A.add(lblInXAndY);
-    pnlJoinComponent1.add(pnlJoinComponent1A);
-    pnlJoinComponent1.setComponentAlignmentX(Component.CENTER_ALIGNMENT);
-    btnOpenIn3dmod = new MultiLineButton("Open in 3dmod");
-    btnOpenIn3dmod.addActionListener(joinActionListener);
-    pnlJoinComponent1.addMultiLineButton(btnOpenIn3dmod);
   }
   
   private void addJoinPanelComponents() {
@@ -439,12 +433,11 @@ public class JoinDialog implements ContextMenu {
     pnlSectionTable.displayCurTab();
     //second component
     pnlJoin.add(pnlFinishJoin);
-    //third component
-    pnlJoin.add(pnlJoinComponent1);
   }
   
   private void createFinishJoinPanel() {
     pnlFinishJoin = new DoubleSpacedPanel(false, FixedDim.x5_y0, FixedDim.x0_y5, BorderFactory.createEtchedBorder());
+    pnlFinishJoin.setComponentAlignmentX(Component.CENTER_ALIGNMENT);
     //first component
     pnlFinishJoinComponent1 = new JPanel();
     pnlFinishJoinComponent1.setLayout(new BoxLayout(pnlFinishJoinComponent1, BoxLayout.X_AXIS));
@@ -458,35 +451,85 @@ public class JoinDialog implements ContextMenu {
     spinAlignmentRefSection.setMaximumSize(dimSpinner);
     spinAlignmentRefSection.setEnabled(false);
     pnlFinishJoinComponent1.add(spinAlignmentRefSection);
+    pnlFinishJoin.add(pnlFinishJoinComponent1);
     //second component
+    btnGetMaxSize = new MultiLineButton(GET_MAX_SIZE_TEXT);
+    btnGetMaxSize.addActionListener(joinActionListener);
+    pnlFinishJoin.addMultiLineButton(btnGetMaxSize);
+    //third component
     pnlFinishJoinComponent2 = new SpacedPanel(FixedDim.x5_y0);
     pnlFinishJoinComponent2.setLayout(new BoxLayout(pnlFinishJoinComponent2.getContainer(), BoxLayout.X_AXIS));
     ltfSizeInX = new LabeledTextField("Size in X: ");
     pnlFinishJoinComponent2.add(ltfSizeInX);
     ltfSizeInY = new LabeledTextField("Y: ");
     pnlFinishJoinComponent2.add(ltfSizeInY);
-    //third component
+    pnlFinishJoin.add(pnlFinishJoinComponent2);
+    //fourth component
     pnlFinishJoinComponent3 = new SpacedPanel(FixedDim.x5_y0);
     pnlFinishJoinComponent3.setLayout(new BoxLayout(pnlFinishJoinComponent3.getContainer(), BoxLayout.X_AXIS));
     ltfShiftInX = new LabeledTextField("Shift in X: ");
     pnlFinishJoinComponent3.add(ltfShiftInX);
     ltfShiftInY = new LabeledTextField("Y: ");
     pnlFinishJoinComponent3.add(ltfShiftInY);
-    //fourth component
+    pnlFinishJoin.add(pnlFinishJoinComponent3);
+    //fifth component
+    createTrialJoinPanel();
+    pnlFinishJoin.add(pnlTrialJoin);
+    //sixth component
     btnFinishJoin = new MultiLineButton(FINISH_JOIN_TEXT);
     btnFinishJoin.addActionListener(joinActionListener);
+    pnlFinishJoin.addMultiLineButton(btnFinishJoin);
+    //seventh component
+    pnlJoinComponent1 = new SpacedPanel(FixedDim.x0_y5, true);
+    pnlJoinComponent1.setLayout(new BoxLayout(pnlJoinComponent1.getContainer(),
+        BoxLayout.Y_AXIS));
+    pnlJoinComponent1.setBorder(BorderFactory.createEtchedBorder());
+    pnlJoinComponent1A = new SpacedPanel(FixedDim.x5_y0, true);
+    pnlJoinComponent1A.setLayout(new BoxLayout(pnlJoinComponent1A
+        .getContainer(), BoxLayout.X_AXIS));
+    spinnerModel = new SpinnerNumberModel(1, 1, 50, 1);
+    spinOpenBinnedBy = new LabeledSpinner("Open binned by ", spinnerModel);
+    spinOpenBinnedBy.setTextMaxmimumSize(dimSpinner);
+    pnlJoinComponent1A.add(spinOpenBinnedBy);
+    lblInXAndY = new JLabel("in X and Y");
+    pnlJoinComponent1A.add(lblInXAndY);
+    pnlJoinComponent1.add(pnlJoinComponent1A);
+    pnlJoinComponent1.setComponentAlignmentX(Component.CENTER_ALIGNMENT);
+    btnOpenIn3dmod = new MultiLineButton("Open in 3dmod");
+    btnOpenIn3dmod.addActionListener(joinActionListener);
+    pnlJoinComponent1.addMultiLineButton(btnOpenIn3dmod);
+    pnlFinishJoin.add(pnlJoinComponent1);
   }
   
-  private void addFinishJoinPanelComponents() {
+  private void createTrialJoinPanel() {
+    pnlTrialJoin = new DoubleSpacedPanel(false, FixedDim.x5_y0, FixedDim.x0_y5, new EtchedBorder("Trial Join").getBorder(), false);
+    pnlTrialJoin.setComponentAlignmentX(Component.CENTER_ALIGNMENT);
     //first component
-    pnlFinishJoin.add(pnlFinishJoinComponent1);
+    pnlTrialJoinComponent1 = new JPanel();
+    pnlTrialJoinComponent1.setLayout(new BoxLayout(pnlTrialJoinComponent1, BoxLayout.X_AXIS));
+    ltfUseEveryNSections = new LabeledTextField("Use every ");
+    pnlTrialJoinComponent1.add(ltfUseEveryNSections.getContainer());
+    lblSections = new JLabel("sections");
+    pnlTrialJoinComponent1.add(lblSections);
+    pnlTrialJoin.add(pnlTrialJoinComponent1);
     //second component
-    pnlFinishJoin.add(pnlFinishJoinComponent2);
+    SpinnerModel spinnerModel = new SpinnerNumberModel(1, 1, 50, 1);
+    spinTrialBinning = new LabeledSpinner(
+        "Binning in X and Y: ", spinnerModel);
+    spinTrialBinning.setTextMaxmimumSize(dimSpinner);
+    pnlTrialJoin.add(spinTrialBinning);
     //third component
-    pnlFinishJoin.add(pnlFinishJoinComponent3);
+    btnTrialJoin = new MultiLineButton(TRIAL_JOIN_TEXT);
+    btnTrialJoin.addActionListener(joinActionListener);
+    pnlTrialJoin.addMultiLineButton(btnTrialJoin);
     //fourth component
-    pnlFinishJoin.setComponentAlignmentX(Component.CENTER_ALIGNMENT);
-    pnlFinishJoin.addMultiLineButton(btnFinishJoin);
+    btnOpenTrialIn3dmod = new MultiLineButton("Open Trial in 3dmod");
+    btnOpenTrialIn3dmod.addActionListener(joinActionListener);
+    pnlTrialJoin.addMultiLineButton(btnOpenTrialIn3dmod);
+    //fifth component
+    btnGetSubarea = new MultiLineButton("Get Subarea");
+    btnGetSubarea.addActionListener(joinActionListener);
+    pnlTrialJoin.addMultiLineButton(btnGetSubarea);
   }
 
   void setNumSections(int numSections) {
@@ -501,6 +544,46 @@ public class JoinDialog implements ContextMenu {
     spinnerModel = new SpinnerNumberModel(1, 1,
         numSections < 1 ? 1 : numSections, 1);
     spinAlignmentRefSection.setModel(spinnerModel);
+  }
+  
+  public ConstEtomoInteger getSizeInX() {
+    EtomoInteger sizeInX = new EtomoInteger();
+    sizeInX.set(ltfSizeInX.getText());
+    return sizeInX;
+  }
+  
+  public ConstEtomoInteger getSizeInY() {
+    EtomoInteger sizeInY = new EtomoInteger();
+    sizeInY.set(ltfSizeInY.getText());
+    return sizeInY;
+  }
+  
+  public ConstEtomoInteger getShiftInX() {
+    EtomoInteger shiftInX = new EtomoInteger();
+    shiftInX.set(ltfShiftInX.getText());
+    return shiftInX;
+  }
+  
+  public ConstEtomoInteger getShiftInY() {
+    EtomoInteger shiftInY = new EtomoInteger();
+    shiftInY.set(ltfShiftInY.getText());
+    return shiftInY;
+  }
+
+  public void setSizeInX(EtomoSimpleType sizeInX) {
+    ltfSizeInX.setText(sizeInX.getString(true));
+  }
+  
+  public void setSizeInY(EtomoSimpleType sizeInY) {
+    ltfSizeInY.setText(sizeInY.getString(true));
+  }
+  
+  public void setShiftInX(EtomoSimpleType shiftInX) {
+    ltfShiftInX.setText(shiftInX.getString(true));
+  }
+  
+  public void setShiftInY(EtomoSimpleType shiftInY) {
+    ltfShiftInY.setText(shiftInY.getString(true));
   }
   
   public String getInvalidReason() {
@@ -542,10 +625,8 @@ public class JoinDialog implements ContextMenu {
     cbUseAlignmentRefSection.setSelected(metaData.isUseAlignmentRefSection());
     useAlignmentRefSectionAction();
     spinAlignmentRefSection.setValue(metaData.getAlignmentRefSection().getNumber());
-    sizeInX = metaData.getSizeInX();
-    ltfSizeInX.setText(sizeInX.getString(true));
-    sizeInY = metaData.getSizeInY();
-    ltfSizeInY.setText(sizeInY.getString(true));
+    ltfSizeInX.setText(metaData.getSizeInX().getString(true));
+    ltfSizeInY.setText(metaData.getSizeInY().getString(true));
     ltfShiftInX.setText(metaData.getShiftInX().getString(true));
     ltfShiftInY.setText(metaData.getShiftInY().getString(true));
   }
@@ -627,10 +708,22 @@ public class JoinDialog implements ContextMenu {
       joinManager.revertXfFileToEmpty();
     }
     else if (command.equals(btnFinishJoin.getActionCommand())) {
-      joinManager.finishjoin();
+      joinManager.runFinishjoin(FinishjoinParam.FINISH_JOIN_MODE, FINISH_JOIN_TEXT);
     }
     else if (command.equals(btnOpenIn3dmod.getActionCommand())) {
       joinManager.imodOpenJoin();
+    }
+    else if (command.equals(btnGetMaxSize.getActionCommand())) {
+      joinManager.runFinishjoin(FinishjoinParam.MAX_SIZE_MODE, GET_MAX_SIZE_TEXT);
+    }
+    else if (command.equals(btnTrialJoin.getActionCommand())) {
+      joinManager.runFinishjoin(FinishjoinParam.TRIAL_MODE, TRIAL_JOIN_TEXT);
+    }
+    else if (command.equals(btnOpenTrialIn3dmod.getActionCommand())) {
+      
+    }
+    else if (command.equals(btnGetSubarea.getActionCommand())) {
+      
     }
     else {
       throw new IllegalStateException("Unknown command " + command);
