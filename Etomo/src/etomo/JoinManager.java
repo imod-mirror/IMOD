@@ -38,6 +38,9 @@ import etomo.ui.MainPanel;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.13  2004/10/14 02:26:38  sueh
+* <p> bug# 520 Added setWorkingDir() to set the propertyUserDir.
+* <p>
 * <p> Revision 1.1.2.12  2004/10/11 01:59:23  sueh
 * <p> bug# 520 moved responsibility for mainPanel, metaData, processTrack,
 * <p> and progressManager to child classes.  Used abstract functions to use
@@ -157,9 +160,27 @@ public class JoinManager extends BaseManager {
   }
   
   /**
+   * Open 3dmod to view join samples
+   */
+  public void imodOpenJoinSamples() {
+    try {
+      imodManager.open(ImodManager.JOIN_SAMPLES_KEY);
+    }
+    catch (AxisTypeException except) {
+      except.printStackTrace();
+      mainPanel.openMessageDialog(except.getMessage(), "AxisType problem");
+    }
+    catch (SystemProcessException except) {
+      except.printStackTrace();
+      mainPanel.openMessageDialog(except.getMessage(),
+        "Can't open " + ImodManager.JOIN_SAMPLES_KEY + " 3dmod ");
+    }
+  }
+
+  /**
    * Open 3dmod to view a file
    */
-  public int imodOpen(String imodKey, File file, int imodIndex) {
+  public int imodOpenFile(String imodKey, File file, int imodIndex) {
     try {
       if (imodIndex == -1) {
         imodIndex = imodManager.newImod(imodKey, file);
@@ -283,6 +304,8 @@ public class JoinManager extends BaseManager {
       mainPanel.stopProgressBar(AxisID.ONLY);
       return;
     }
+    imodManager.setMetaData(metaData);
+    joinDialog.setEnabledTabs(true);
     MakejoincomParam makejoincomParam = new MakejoincomParam(metaData);
     try {
       threadNameA = processMgr.makejoincom(makejoincomParam);
