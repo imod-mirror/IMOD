@@ -23,6 +23,10 @@ import etomo.type.JoinMetaData;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.3  2004/09/29 19:35:59  sueh
+* <p> bug# 520 Created private variables that are cast from base-class
+* <p> member variables during construction.
+* <p>
 * <p> Revision 1.1.2.2  2004/09/15 22:42:21  sueh
 * <p> bug# 520 added castManger(), overrode createAxisPanelA and B
 * <p>
@@ -54,7 +58,7 @@ public class MainJoinPanel extends MainPanel {
   public void openPanel(JPanel panel) {
     scrollA.add(panel);
     revalidate();
-    EtomoDirector.getMainFrame().pack();
+    EtomoDirector.getInstance().getMainFrame().pack();
   }
 
   /**
