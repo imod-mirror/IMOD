@@ -33,11 +33,20 @@ $Date$
 $Revision$
 */
 
+#include <stdarg.h>
 #include <qcheckbox.h>
 #include <qlabel.h>
 #include <qslider.h>
 #include <qpushbutton.h>
 #include <qlayout.h>
+#include <qapplication.h>
+#include <qhbox.h>
+#include <qdialog.h>
+#include <qmessagebox.h>
+#include <qtextedit.h>
+#include "dia_qtutils.h"
+
+extern char *Dia_title;
 
 // Make a new push button, add it to the vertical box layout, set for no focus
 QPushButton *diaPushButton(char *text, QWidget *parent, 
@@ -80,4 +89,170 @@ void diaSetSlider(QSlider *slider, int value)
   slider->blockSignals(true);
   slider->setValue(value);
   slider->blockSignals(false);
+}
+
+// Set a title into Dia_title
+void diaSetTitle(char *title)
+{
+  Dia_title = strdup(title);
+}
+
+// An application-model box with an information string
+int dia_puts(char *message)
+{
+  QString str = message;
+  QString title = Dia_title;
+  title += " Message";
+  QMessageBox::information(0, title, str, 
+			   QMessageBox::Ok, QMessageBox::NoButton,
+			   QMessageBox::NoButton);
+}
+
+// An application-model box with an error string
+int dia_err(char *message)
+{
+  QString str = message;
+  QString title = Dia_title;
+  title += " Error";
+  QMessageBox::warning(0, title, str, 
+			   QMessageBox::Ok, QMessageBox::NoButton,
+			   QMessageBox::NoButton);
+}
+
+// Get a scrolled message window from a variable set of character strings
+// Turn it into an array of strings
+void dia_vasmsg(char *msg, ...)
+{
+  char **argv;
+  char *emsg;
+  char *tmsg;
+  int argc = 0;
+  va_list ap;
+
+  tmsg = msg;
+  va_start(ap, msg);
+  while( emsg = va_arg(ap, char *)){
+    argc++;
+  }
+  va_end(ap);
+
+  argv = (char **)malloc((argc + 2) * sizeof(char *));
+
+  argc = 1;
+  va_start(ap, msg);
+  argv[0] = tmsg;
+  while( emsg = va_arg(ap, char *)){
+    argv[argc] = emsg;
+    argc++;
+  }
+  argv[argc] = NULL;
+  va_end(ap);
+  dia_smsg(argv);
+  free(argv);
+}
+
+// Get a scrolled message window from an array of character strings
+void dia_smsg( char **msg)
+{
+  char *p;
+  char *buf;
+  int maxline, maxrow, linesize;
+  long bufsize;
+  int n = 0;
+  int i;
+  int lastspace, curpos;
+  int maxWidth = (int)(0.8 * QApplication::desktop()->width());
+  int maxHeight = (int)(0.8 * QApplication::desktop()->height());
+  int height, width;
+  QString test;
+  QString qmsg = buf;
+
+  for (i = 0, bufsize = 0; msg[i]; i++){
+    linesize = strlen(msg[i]);
+    bufsize += linesize;
+  }
+
+  buf = (char *)malloc(bufsize + i + 1);
+  p = buf;
+  for (p = buf, i = 0; msg[i]; i++) {
+    p += strlen (strcpy (p, msg[i]));
+    /* DNM: this macro call caused program built on Irix 6.5 to not run
+       on earlier Irix's.  Casting as (int) didn't help - just do 
+       explicit tests */
+    /*if (!isspace (p[-1]))  spaces, tabs and newlines are spaces.. */
+    if (p[-1] != ' ' && p[-1] != '\t' && p[-1] != '\n')
+      *p++ = ' '; /* lines are concatenated, insert a space */
+  }
+  *--p = 0; /* get rid of trailing space... */
+
+  // DNM: count the actual lines and their lengths to get the right size window
+
+  maxline = 0;
+  maxrow = 1;
+  curpos = 0;
+  lastspace = 40;
+  for (p = buf; *p; p++) {
+    if (*p == '\t')
+      curpos += 8;
+    if (*p == ' ') {
+      lastspace = curpos;
+      curpos++;
+    } 
+    else if (*p == '\n') {
+      if (curpos >= maxline)
+        maxline = curpos + 1;
+      curpos = 0;
+      lastspace = 40;
+      maxrow++;
+    }
+    else if (curpos > 78 ) {
+      if (lastspace >= maxline)
+        maxline = lastspace + 1;
+      curpos -= lastspace;
+      lastspace = 40;
+      maxrow++;
+    }
+    else
+      curpos++;
+  }
+
+  if (!maxline)
+    maxline = curpos + 1;
+
+  if (maxrow > 50)
+    maxrow = 40;
+
+  for (i = 0; i < maxline + 2; i++)
+    test += "8";
+
+  QDialog *dlg = new QDialog(0, 0, false, 
+                             Qt::WDestructiveClose);
+
+  // Make a vertical layout with the text edit and a close button
+  QVBoxLayout *vbox = new QVBoxLayout(dlg);
+  QTextEdit *edit = new QTextEdit(dlg);
+  edit->setText(qmsg);
+  edit->setReadOnly(true);
+  vbox->addWidget(edit);
+  QHBox *hbox = new QHBox(dlg);
+  vbox->addWidget(hbox);
+  QPushButton *button = new QPushButton("Close", hbox);
+  button->setFixedWidth((int)(1.3 * button->fontMetrics().width("Close")));
+  QObject::connect(button, SIGNAL(clicked()), dlg, SLOT(close()));
+
+  // Figure out width and height of text and height of button, and set size
+  width = edit->fontMetrics().width(test);
+  if (width > maxWidth)
+    width = maxWidth;
+  height = (maxrow + 2) * edit->fontMetrics().height();
+  if (height > maxHeight)
+    height = maxHeight;
+  QSize hint = hbox->sizeHint();
+  dlg->resize(width + 20, height + hint.height());
+
+  // Set title
+  test = Dia_title;
+  test += " Help";
+  dlg->setCaption(test);
+  dlg->show();
 }
