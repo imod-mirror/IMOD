@@ -6,6 +6,7 @@ import java.util.Vector;
 
 import etomo.comscript.FlipyzParam;
 import etomo.comscript.MakejoincomParam;
+import etomo.comscript.XfalignParam;
 import etomo.process.ImodManager;
 import etomo.process.ImodProcess;
 import etomo.process.JoinProcessManager;
@@ -38,6 +39,10 @@ import etomo.ui.MainPanel;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.16  2004/10/15 00:14:00  sueh
+* <p> bug# 520 Initializing ui parameters on JoinManager construction.  Setting
+* <p> metaData in JoinDialog.
+* <p>
 * <p> Revision 1.1.2.15  2004/10/14 17:09:30  sueh
 * <p> bug# 520 Added imodOpenJoinSampleAverages.
 * <p>
@@ -114,6 +119,7 @@ public class JoinManager extends BaseManager {
     // Open the etomo data file if one was found on the command line
     if (!test) {
       openJoinDialog();
+      endSetupMode();
     }
   }
   
@@ -325,18 +331,12 @@ public class JoinManager extends BaseManager {
     mainPanel.startProgressBar("Makejoincom", AxisID.ONLY);
     nextProcess = "startjoin";
     isDataParamDirty = true;
-    if (!joinDialog.getMetaData(metaData)) {
-      mainPanel.openMessageDialog(joinDialog.getInvalidReason(), "Invalid Data");
-      mainPanel.stopProgressBar(AxisID.ONLY);
-      return;
-    }
-    if (!metaData.isValid(true)) {
+    joinDialog.getMetaData(metaData);
+    if (!endSetupMode()) {
       mainPanel.openMessageDialog(metaData.getInvalidReason(), "Invalid Data");
       mainPanel.stopProgressBar(AxisID.ONLY);
       return;
     }
-    imodManager.setMetaData(metaData);
-    joinDialog.setEnabledTabs(true);
     MakejoincomParam makejoincomParam = new MakejoincomParam(metaData);
     try {
       threadNameA = processMgr.makejoincom(makejoincomParam);
@@ -349,6 +349,35 @@ public class JoinManager extends BaseManager {
       mainPanel.stopProgressBar(AxisID.ONLY);
       return; 
     }
+  }
+  
+  public void xfalign() {
+    mainPanel.startProgressBar("Xfalign", AxisID.ONLY);
+    isDataParamDirty = true;
+    joinDialog.getMetaData(metaData);
+    XfalignParam xfalignParam = new XfalignParam(metaData);
+    try {
+      threadNameA = processMgr.xfalign(xfalignParam);
+    }
+    catch (SystemProcessException except) {
+      joinDialog.abortAddSection();
+      except.printStackTrace();
+      mainPanel.openMessageDialog("Can't run xfalign\n"
+        + except.getMessage(), "SystemProcessException");
+      mainPanel.stopProgressBar(AxisID.ONLY);
+      return; 
+    }
+  }
+  
+  private boolean endSetupMode() {
+    if (!metaData.isValid(true)) {
+      return false;
+    }
+    imodManager.setMetaData(metaData);
+    joinDialog.setEnabledTabs(true);
+    joinDialog.setEnabledWorkingDir(false);
+    joinDialog.setEnabledRootName(false);
+    return true;
   }
   
   public void startjoin() {
