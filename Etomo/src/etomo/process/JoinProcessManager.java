@@ -19,12 +19,16 @@ import etomo.type.AxisID;
 *<p>Organization:
 * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
 * University of Colorado</p>
-* 
+*
 * @author $Author$
-* 
+*
 * @version $Revision$
-* 
+*
 * <p> $Log$
+* <p> Revision 1.1.2.8  2004/10/28 17:07:39  sueh
+* <p> bug# 520 Copy output file after xfalign.  Copy output file after midas, if
+* <p> it was changed.
+* <p>
 * <p> Revision 1.1.2.7  2004/10/25 23:11:52  sueh
 * <p> bug# 520 Added to backgroundErrorProcess() for post processing when
 * <p> BackgroundProcess fails (enabling Midas when xfalign fails).
@@ -77,7 +81,7 @@ public class JoinProcessManager extends BaseProcessManager {
   public String finishjoin(FinishjoinParam finishjoinParam)
       throws SystemProcessException {
     BackgroundProcess backgroundProcess = startBackgroundProcess(
-        finishjoinParam.getCommandArray(), AxisID.ONLY);
+        finishjoinParam, AxisID.ONLY);
     return backgroundProcess.getName();
   }
   
@@ -137,6 +141,26 @@ public class JoinProcessManager extends BaseProcessManager {
     else if (commandName.equals(XfalignParam.getName())) {
       joinManager.copyXfFile(process.getOutputFile());
       joinManager.enableMidas();
+    }
+    else if (commandName.equals(FinishjoinParam.getName())
+        && process.getMode() == FinishjoinParam.MAX_SIZE_MODE) {
+      String[] stdOutput = process.getStdOutput();
+      for (int i = 0; i < stdOutput.length; i++) {
+        String line = stdOutput[i];
+        String[] lineArray;
+        if (line.indexOf(FinishjoinParam.SIZE_TAG) != -1) {
+          lineArray = line.split("\\s+");
+          joinManager.setSize(lineArray[FinishjoinParam.SIZE_IN_X_INDEX],
+              lineArray[FinishjoinParam.SIZE_IN_Y_INDEX]);
+        }
+        else if (line.indexOf(FinishjoinParam.OFFSET_TAG) != -1) {
+          lineArray = line.split("\\s+");
+          joinManager.setShift(FinishjoinParam
+              .getShift(lineArray[FinishjoinParam.OFFSET_IN_X_INDEX]),
+              FinishjoinParam
+                  .getShift(lineArray[FinishjoinParam.OFFSET_IN_Y_INDEX]));
+        }
+      }
     }
   }
   
