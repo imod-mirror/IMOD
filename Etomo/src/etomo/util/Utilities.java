@@ -12,6 +12,10 @@
  * @version $$Revision$
  *
  * <p> $$Log$
+ * <p> $Revision 3.10.2.2  2004/10/08 16:41:57  sueh
+ * <p> $bug# 520 Since EtomoDirector is a singleton, made all functions and
+ * <p> $member variables non-static.
+ * <p> $
  * <p> $Revision 3.10.2.1  2004/09/03 21:19:31  sueh
  * <p> $bug# 520 calling functions from EtomoDirector instead of
  * <p> $ApplicationManager
@@ -109,7 +113,7 @@ public class Utilities {
    */
   static public boolean fileExists(ConstMetaData metaData, String extension,
       AxisID axisID) {
-    String workingDirectory = System.getProperty("user.dir");
+    String workingDirectory = EtomoDirector.getInstance().getCurrentPropertyUserDir();
     File file = new File(workingDirectory, metaData.getDatasetName()
         + axisID.getExtension() + extension);
     if (file.exists()) {
