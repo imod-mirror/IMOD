@@ -5,10 +5,9 @@ import java.util.ArrayList;
 
 import etomo.BaseManager;
 import etomo.process.SystemProgram;
-import etomo.type.ConstEtomoFloat;
-import etomo.type.ConstEtomoInteger;
 import etomo.type.ConstJoinMetaData;
 import etomo.type.ConstSectionTableRowData;
+import etomo.type.EtomoSimpleType;
 import etomo.type.SectionTableRowData;
 
 /**
@@ -25,6 +24,11 @@ import etomo.type.SectionTableRowData;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.2  2004/10/22 03:20:38  sueh
+* <p> bug# 520 Reducing the number of ConstJoinMetaData functions by
+* <p> passing EtomoInteger, EtomoFloat, etc and using its get() and getString()
+* <p> functions.
+* <p>
 * <p> Revision 1.1.2.1  2004/10/21 02:32:20  sueh
 * <p> bug# 520 Param for finishjoin.
 * <p> </p>
@@ -67,18 +71,18 @@ public class FinishjoinParam {
       options.add("-r");
       options.add(metaData.getAlignmentRefSection().getString());
     }
-    ConstEtomoInteger sizeInX = metaData.getSizeInX();
-    ConstEtomoInteger sizeInY = metaData.getSizeInY();
-    ConstEtomoFloat offsetInX = metaData.getOffsetInX();
-    ConstEtomoFloat offsetInY = metaData.getOffsetInY();
+    EtomoSimpleType sizeInX = metaData.getSizeInX();
+    EtomoSimpleType sizeInY = metaData.getSizeInY();
+    EtomoSimpleType shiftInX = metaData.getShiftInX();
+    EtomoSimpleType shiftInY = metaData.getShiftInY();
     if (sizeInX.isSetAndNotDefault() || sizeInY.isSetAndNotDefault()) {
       options.add("-s");
       options.add(sizeInX.getString() + "," + sizeInY.getString());
       
     }
-    if (offsetInX.isSetAndNotDefault() || offsetInY.isSetAndNotDefault()) {
+    if (shiftInX.isSetAndNotDefault() || shiftInY.isSetAndNotDefault()) {
       options.add("-o");
-      options.add(offsetInX.getString() + "," + offsetInY.getString());
+      options.add(shiftInX.getString() + "," + shiftInY.getString());
     }
     options.add(metaData.getRootName());
     ArrayList sectionData = metaData.getSectionTableData();

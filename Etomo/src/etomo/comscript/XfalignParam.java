@@ -5,8 +5,8 @@ import java.util.ArrayList;
 
 import etomo.BaseManager;
 import etomo.process.SystemProgram;
-import etomo.type.ConstEtomoDouble;
 import etomo.type.ConstJoinMetaData;
+import etomo.type.EtomoSimpleType;
 
 /**
 * <p>Description: </p>
@@ -22,6 +22,11 @@ import etomo.type.ConstJoinMetaData;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.3  2004/10/22 03:21:16  sueh
+* <p> bug# 520 Reducing the number of ConstJoinMetaData functions by
+* <p> passing EtomoInteger, EtomoFloat, etc and using their get() and
+* <p> getString() functions.
+* <p>
 * <p> Revision 1.1.2.2  2004/10/21 02:37:22  sueh
 * <p> bug# 520 Adding modes (initial and refine) that can change how the
 * <p> options are set.  Removed unnecessary function run().  Implementing
@@ -124,10 +129,10 @@ public class XfalignParam implements Command {
   }
   
   private void genFilterOptions(ArrayList options) {
-    ConstEtomoDouble sigmaLowFrequency = metaData.getSigmaLowFrequency();
-    ConstEtomoDouble cutoffHighFrequency = metaData
+    EtomoSimpleType sigmaLowFrequency = metaData.getSigmaLowFrequency();
+    EtomoSimpleType cutoffHighFrequency = metaData
         .getCutoffHighFrequency();
-    ConstEtomoDouble sigmaHighFrequency = metaData.getSigmaHighFrequency();
+    EtomoSimpleType sigmaHighFrequency = metaData.getSigmaHighFrequency();
     if (sigmaLowFrequency.isSetAndNotDefault()
         || cutoffHighFrequency.isSetAndNotDefault()
         || sigmaHighFrequency.isSetAndNotDefault()) {
