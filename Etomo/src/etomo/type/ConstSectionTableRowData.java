@@ -19,6 +19,9 @@ import etomo.storage.Storable;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.11  2004/11/09 15:14:57  sueh
+* <p> bug# 520 Added getZMax().
+* <p>
 * <p> Revision 1.1.2.10  2004/10/30 02:32:47  sueh
 * <p> bug# 520 Converted rotation angles to EtomoSimpleType.
 * <p>
@@ -79,6 +82,12 @@ public abstract class ConstSectionTableRowData implements Storable {
   protected static final String rotationAngleXName = "X rotation angle";
   protected static final String rotationAngleYName = "Y rotation angle";
   protected static final String rotationAngleZName = "Z rotation angle";
+  
+  //state - these do not have to be saved to a file, but they are necessary
+  //for remembering the state of a row that is being retrieved from meta data.
+  private int imodIndex = -1;
+  private int imodRotIndex = -1;
+  private boolean sectionExpanded = false;
   
   protected EtomoInteger rowNumber = new EtomoInteger("RowNumber");
   protected File section;
