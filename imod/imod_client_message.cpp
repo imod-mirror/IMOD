@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.2  2003/01/27 00:30:07  mast
+Pure Qt version and general cleanup
+
 Revision 1.1.2.1  2003/01/23 23:05:57  mast
 conversion to cpp
 
@@ -163,6 +166,7 @@ bool imodHandleClientMessage(XEvent *event)
 
   //  Execute the compiled message
   executeMessage();
+  return TRUE;
 }
 
 static void executeMessage() {
