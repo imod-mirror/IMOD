@@ -17,6 +17,10 @@ import java.util.Properties;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.4  2004/10/15 00:46:03  sueh
+* <p> bug# 520 Initializing rowNumber on construction so that it can be used in
+* <p> load.
+* <p>
 * <p> Revision 1.1.2.3  2004/10/08 16:24:37  sueh
 * <p> bug# 520 AMoved initialization of invalidReason to
 * <p> SectionTableRowData.reset().
@@ -38,7 +42,7 @@ public class SectionTableRowData extends ConstSectionTableRowData {
   
   public SectionTableRowData(int rowNumber) {
     reset();
-    this.rowNumber = rowNumber;
+    this.rowNumber.set(rowNumber);
   }
   
   private void reset() {
@@ -67,8 +71,7 @@ public class SectionTableRowData extends ConstSectionTableRowData {
     prepend = createPrepend(prepend);
     String group = prepend + ".";
 
-    rowNumber = Integer.parseInt(props.getProperty(group + rowNumberString,
-        Integer.toString(Integer.MIN_VALUE)));
+    rowNumber.load(props, prepend);
     zMax = Integer.parseInt(props.getProperty(group + zMaxString,
         Integer.toString(Integer.MIN_VALUE)));
     String sectionName = props.getProperty(group + sectionString, null);
@@ -97,10 +100,10 @@ public class SectionTableRowData extends ConstSectionTableRowData {
   
   
   public void setRowNumber(int rowNumber) {
-    this.rowNumber = rowNumber;
+    this.rowNumber.set(rowNumber);
   }
   public void setRowNumber(String rowNumber) {
-    this.rowNumber = Integer.parseInt(rowNumber);
+    this.rowNumber.set(rowNumber);
   }
   
   public void setSection(File section) {

@@ -19,6 +19,9 @@ import etomo.storage.Storable;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.5  2004/10/21 02:52:47  sueh
+* <p> bug# 520 Added get functions.
+* <p>
 * <p> Revision 1.1.2.4  2004/10/15 00:18:24  sueh
 * <p> bug# 520 Fix createPrepend().  Fix store().  Prevent underflow in
 * <p> getRowIndex().
@@ -42,7 +45,6 @@ public abstract class ConstSectionTableRowData implements Storable {
   public static  final String  rcsid =  "$Id$";
   
   protected static final String groupString = "SectionTableRow";
-  protected static final String rowNumberString = "RowNumber";
   protected static final String sectionString = "Section";
   protected static final String sampleBottomStartString = "SampleBottomStart";
   protected static final String sampleBottomEndString = "SampleBottomEnd";
@@ -65,7 +67,7 @@ public abstract class ConstSectionTableRowData implements Storable {
   protected static final String rotationAngleYName = "Y rotation angle";
   protected static final String rotationAngleZName = "Z rotation angle";
   
-  protected int rowNumber;
+  protected EtomoInteger rowNumber = new EtomoInteger("RowNumber");
   protected File section;
   protected int sampleBottomStart;
   protected int sampleBottomEnd;
@@ -88,7 +90,7 @@ public abstract class ConstSectionTableRowData implements Storable {
   }
 
   protected String paramString() {
-    return ",\n" + rowNumberString + "=" + rowNumber + ",\n" + sectionString
+    return ",\n" + rowNumber.getDescription() + "=" + rowNumber.getString() + ",\n" + sectionString
         + "=" + section + ",\n" + sampleBottomStartString + "="
         + sampleBottomStart + ",\n" + sampleBottomEndString + "="
         + sampleBottomEnd + ",\n" + sampleTopStartString + "=" + sampleTopStart
@@ -118,16 +120,16 @@ public abstract class ConstSectionTableRowData implements Storable {
       invalidReason.append("The section, " + section.getAbsolutePath() + ", is not readable.");
       return false;
     }
-    if (rowNumber > 1 && !isValidSlice(sampleBottomStart, sampleBottomStartName)) {
+    if (rowNumber.greaterThen(1) && !isValidSlice(sampleBottomStart, sampleBottomStartName)) {
       return false;
     }
-    if (rowNumber > 1 && !isValidSlice(sampleBottomEnd, sampleBottomEndName)) {
+    if (rowNumber.greaterThen(1) && !isValidSlice(sampleBottomEnd, sampleBottomEndName)) {
       return false;
     }
-    if (rowNumber < tableSize && !isValidSlice(sampleTopStart, sampleTopStartName)) {
+    if (rowNumber.lessThen(tableSize) && !isValidSlice(sampleTopStart, sampleTopStartName)) {
       return false;
     }
-    if (rowNumber < tableSize && !isValidSlice(sampleTopEnd, sampleTopEndName)) {
+    if (rowNumber.lessThen(tableSize) && !isValidSlice(sampleTopEnd, sampleTopEndName)) {
       return false;
     }
     invalidReason = null;
@@ -155,7 +157,7 @@ public abstract class ConstSectionTableRowData implements Storable {
   public void store(Properties props, String prepend) {
     prepend = createPrepend(prepend);
     String group = prepend + ".";
-    props.setProperty(group + rowNumberString, Integer.toString(rowNumber));
+    rowNumber.store(props, prepend);
     props.setProperty(group + zMaxString, Integer.toString(zMax));
     props.setProperty(group + sectionString, section.getAbsolutePath());   
     props.setProperty(group + sampleBottomStartString, Integer.toString(sampleBottomStart));
@@ -171,9 +173,9 @@ public abstract class ConstSectionTableRowData implements Storable {
   
   protected String createPrepend(String prepend) {
     if (prepend == "") {
-      return groupString + "." + Integer.toString(rowNumber);
+      return groupString + "." + rowNumber.getString();
     }
-    return prepend + "." + groupString + "." + Integer.toString(rowNumber);
+    return prepend + "." + groupString + "." + rowNumber.getString();
   }
   
   public boolean equals(Object object) {
@@ -239,17 +241,18 @@ public abstract class ConstSectionTableRowData implements Storable {
     return invalidReason.toString();
   }
   
-  public int getRowNumber() {
+  public ConstEtomoInteger getRowNumber() {
     return rowNumber;
   }
-  public String getRowNumberString() {
-    return convertToString(rowNumber);
+  public int getRowNumberValue() {
+    return rowNumber.get();
   }
+
   public int getRowIndex() {
-    if (rowNumber < 0 ) {
+    if (rowNumber.lessThen(0)) {
       return -1;
     }
-    return rowNumber - 1;
+    return rowNumber.get() - 1;
   }
   
   public File getSection() {
