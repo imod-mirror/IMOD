@@ -34,6 +34,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.10.2.1  2002/12/05 16:23:52  mast
+No changes - CVS detected as modified in branch
+
 Revision 3.11  2002/12/03 15:49:07  mast
 consistently set the forbid-level before any potential file dialog to
 prevent multiple file dialogs from appearing; switched memory save to
@@ -977,7 +980,9 @@ void imod_edit_image_cb(Widget w, XtPointer client, XtPointer call)
     break;
 
   case 3:
-    ivwFlip(XYZ_vi);
+    /* DNM 12/10/02: if busy loading, this will defer it */
+    if (ivwFlip(XYZ_vi))
+	break;
     /* DNM: check wild flag here */
     ivwCheckWildFlag(App->cvi->imod);
     imodDraw(App->cvi, IMOD_DRAW_IMAGE | IMOD_DRAW_XYZ);
