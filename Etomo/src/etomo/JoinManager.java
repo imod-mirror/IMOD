@@ -20,7 +20,9 @@ import etomo.type.AxisType;
 import etomo.type.AxisTypeException;
 import etomo.type.BaseMetaData;
 import etomo.type.BaseProcessTrack;
+import etomo.type.ConstEtomoInteger;
 import etomo.type.ConstJoinMetaData;
+import etomo.type.EtomoInteger;
 import etomo.type.JoinMetaData;
 import etomo.type.JoinProcessTrack;
 import etomo.type.ProcessName;
@@ -44,6 +46,10 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.23  2004/10/29 22:07:25  sueh
+* <p> bug# 520 Don't run createEmptyXfFile when the .ejf file isn't loaded.  When
+* <p> makejoincom is run, run createEmptyXfFile.
+* <p>
 * <p> Revision 1.1.2.22  2004/10/29 01:16:24  sueh
 * <p> bug# 520 Removing unecessary functions that provided services to
 * <p> BaseManager.  BaseManager can use get... functions to get the
@@ -491,6 +497,7 @@ public class JoinManager extends BaseManager {
     File newXfFile = Utilities.mostRecentFile(xfFileName, rootName
         + MidasParam.getOutputFileExtension(), rootName
         + XfalignParam.getOutputFileExtension(), rootName + "_empty.xf");
+    //If the most recent .xf file is not root.xf, copy it to root.xf
     if (!newXfFile.getName().equals(xfFileName)) {
       File xfFile = new File(propertyUserDir, xfFileName);
       try {
@@ -610,16 +617,16 @@ public class JoinManager extends BaseManager {
     joinDialog.enableMidas();
   }
   
-  public void finishjoin() {
-    mainPanel.startProgressBar("Finishjoin", AxisID.ONLY);
+  public void runFinishjoin(int mode, String buttonText) {
+    mainPanel.startProgressBar("Finishjoin: " + buttonText, AxisID.ONLY);
     isDataParamDirty = true;
     joinDialog.getMetaData(metaData);
     if (!metaData.isValid(joinDialog.getWorkingDir())) {
       mainPanel.openMessageDialog(metaData.getInvalidReason(), "Invalid Data");
       return;
     }
-    FinishjoinParam finishjoinParam = new FinishjoinParam(metaData);
-    if (!copyMostRecentXfFile(JoinDialog.FINISH_JOIN_TEXT)) {
+    FinishjoinParam finishjoinParam = new FinishjoinParam(metaData, mode);
+    if (!copyMostRecentXfFile(buttonText)) {
       return;
     }
     try {
@@ -627,13 +634,28 @@ public class JoinManager extends BaseManager {
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      mainPanel.openMessageDialog("Can't run " + JoinDialog.FINISH_JOIN_TEXT
+      mainPanel.openMessageDialog("Can't run " + buttonText
           + "\n" + except.getMessage(), "SystemProcessException");
       mainPanel.stopProgressBar(AxisID.ONLY);
       return; 
     }
   }
   
+  public void setSize(String sizeInXString, String sizeInYString) {
+    EtomoInteger sizeInX = new EtomoInteger();
+    EtomoInteger sizeInY = new EtomoInteger();
+    sizeInX.set(sizeInXString);
+    joinDialog.setSizeInX(sizeInX);
+    sizeInY.set(sizeInYString);
+    joinDialog.setSizeInY(sizeInY);
+  }
+  
+  public void setShift(ConstEtomoInteger shiftInX, ConstEtomoInteger shiftInY) {
+    joinDialog.setShiftInX(shiftInX);
+    joinDialog.setShiftInY(shiftInY);   
+  }
+
+   
   public void flip(File tomogram, File workingDir) {
     mainPanel.startProgressBar("Flipping " + tomogram.getName(), AxisID.ONLY);
     FlipyzParam flipyzParam = new FlipyzParam(tomogram, workingDir);
@@ -650,7 +672,6 @@ public class JoinManager extends BaseManager {
     }
   }
 
-  
   public void addSection(File tomogram) {
     joinDialog.addSection(tomogram);
   }
