@@ -35,6 +35,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.16  2003/01/27 00:30:07  mast
+Pure Qt version and general cleanup
+
 Revision 1.1.2.15  2003/01/23 20:12:47  mast
 implement variable ghost distance
 
@@ -143,9 +146,6 @@ Added hotkeys to do smoothing and next section in autocontouring
 #include "qcursor.bits"
 #include "qcursor_mask.bits"
 
-// #define XZAP_DEBUG
-
-
 static void zapDraw_cb(ImodView *vi, void *client, int drawflag);
 static void zapClose_cb(ImodView *vi, void *client, int drawflag);
 static void zapKey_cb(ImodView *vi, void *client, int released, QKeyEvent *e);
@@ -185,7 +185,7 @@ static int movieSnapLock = 0;
 static QTime insertTime;
 static QTime but1downt;
 
-
+static int zapDebug = 1;
 
 void zapHelp()
 {
@@ -307,24 +307,22 @@ void zapHelp()
 static void zapClose_cb(ImodView *vi, void *client, int junk)
 {
   ZapStruct *zap = (ZapStruct *)client;
-#ifdef XZAP_DEBUG
-  fprintf(stderr, "Sending zap window close.\n");
-#endif
+  if (zapDebug)
+    fprintf(stderr, "Sending zap window close.\n");
   zap->qtWindow->close();
 }
 
 /* This receives a closing signal from the window */
 void zapClosing(ZapStruct *zap)
 {
-#ifdef XZAP_DEBUG
-  fprintf(stderr, "ZapClosing received.\n");
-#endif
+  if (zapDebug)
+    fprintf(stderr, "ZapClosing received.\n");
 
   // Do cleanup
   zap->popup = 0;
   if (movieSnapLock && zap->movieSnapCount)
     movieSnapLock = 0;
-  ivwDeleteControl(zap->vi, zap->ctrl);
+  ivwRemoveControl(zap->vi, zap->ctrl);
 
   // What for?  flush any events that might refer to this zap
   imod_info_input();     
@@ -381,14 +379,18 @@ void zapDraw_cb(ImodView *vi, void *client, int drawflag)
   int *limits;
   int limarr[4];
 
-#ifdef XZAP_DEBUG
-  fprintf(stderr, "Zap Draw\n");
-#endif
+  if (zapDebug)
+    fprintf(stderr, "Zap Draw\n");
 
   if (!zap) return;
   if ((!zap->popup) || (!zap->ginit)) return;
      
   zapSetCursor(zap, vi->imod->mousemode);
+
+  if (drawflag & IMOD_DRAW_COLORMAP) {
+    zap->gfx->setColormap(*(App->qColormap));
+    return;
+  }
 
   // zapDrawTools(zap);
 
@@ -541,9 +543,8 @@ static int zapReallyDraw(ZapStruct *zap)
      was started and not finished yet */
 #ifdef ZAP_EXPOSE_HACK
   if (zap->exposeTimeOut || zap->resizeSkipDraw) {
-#ifdef XZAP_DEBUG
-    fprintf(stderr, "Skipping a draw because of expose timeout\n");
-#endif
+    if (zapDebug)
+      fprintf(stderr, "Skipping a draw because of expose timeout\n");
     return 0;
   }
 #endif
@@ -599,9 +600,8 @@ void zapResize(ZapStruct *zap, int winx, int winy)
 
   ivwControlPriority(zap->vi, zap->ctrl);
 
-#ifdef XZAP_DEBUG
-  fprintf(stderr, "RESIZE: ");
-#endif
+  if (zapDebug)
+    fprintf(stderr, "RESIZE: ");
 
   /* DNM 8/10/01: Needed on RH 7.1/GeForce3 to prevent garbage */
 #ifdef ZAP_RESIZE_HACK
@@ -611,14 +611,12 @@ void zapResize(ZapStruct *zap, int winx, int winy)
   zap->resizeSkipDraw = 1;
 #endif
 
-#ifdef XZAP_DEBUG
-  fprintf(stderr, "Size = %d x %d :", winx, winy);
-#endif
+  if (zapDebug) {
+    fprintf(stderr, "Size = %d x %d :", winx, winy);
+    if (zap->ginit)
+      fprintf(stderr, "Old Size = %d x %d :", zap->winx, zap->winy);
+  }
 
-#ifdef XZAP_DEBUG
-  if (zap->ginit)
-    fprintf(stderr, "Old Size = %d x %d :", zap->winx, zap->winy);
-#endif
   zap->winx = winx;
   zap->winy = winy;
   b3dSetCurSize(winx, winy);
@@ -666,9 +664,8 @@ void zapResize(ZapStruct *zap, int winx, int winy)
   b3dBufferImage(zap->image);
   zap->ginit = 1;
 
-#ifdef XZAP_DEBUG
-  fprintf(stderr, "\n");
-#endif
+  if (zapDebug)
+    fprintf(stderr, "\n");
   return;
 }
 
@@ -682,9 +679,9 @@ void expose_to(XtPointer client_data, XtIntervalId *id)
   ZapStruct *zap = (ZapStruct *)client_data;
   zap->exposeTimeOut = (XtIntervalId)0;
   zap->resizeSkipDraw = 0;
-#ifdef XZAP_DEBUG
-  fprintf(stderr, "Drawing after expose timeout\n");
-#endif
+  if (zapDebug) {
+    fprintf(stderr, "Drawing after expose timeout\n");
+  }
   zapDraw(zap);
   if (zap->resizedraw2x)
     zapDraw(zap);
@@ -704,9 +701,8 @@ void zapPaint(ZapStruct *zap)
 #endif
   unsigned int interval = 120;    /* The value from midas - could be less */
 
-#ifdef XZAP_DEBUG
-  fprintf(stderr, "Paint:");
-#endif
+  if (zapDebug)
+    fprintf(stderr, "Paint:");
 
 #ifdef REPORT_TIMES
   thistime = times(&buf);
@@ -721,9 +717,9 @@ void zapPaint(ZapStruct *zap)
 #ifndef ZAP_EXPOSE_HACK
   zapReallyDraw(zap);
   if (zap->resizedraw2x) {
-#ifdef XZAP_DEBUG
-    fprintf(stderr, "Drawing twice: ");
-#endif
+    if (zapDebug) {
+      fprintf(stderr, "Drawing twice: ");
+    }
     //zapReallyDraw(zap);
     zap->qtWindow->mTimer->start(0, false);
   }    
@@ -731,19 +727,18 @@ void zapPaint(ZapStruct *zap)
 #else
   if (zap->exposeTimeOut) {
     XtRemoveTimeOut(zap->exposeTimeOut);
-#ifdef XZAP_DEBUG
-    fprintf(stderr, "Restarting expose timeout for %d", interval);
+    if (zapDebug)
+      fprintf(stderr, "Restarting expose timeout for %d", interval);
   } else {
-    fprintf(stderr, "Starting an expose timeout for %d", interval);
-#endif
+    if (zapDebug)
+      fprintf(stderr, "Starting an expose timeout for %d", interval);
   }
   zap->exposeTimeOut = XtAppAddTimeOut(Dia_context, interval, 
                                        expose_to, (XtPointer)zap);
 #endif
 
-#ifdef XZAP_DEBUG
-  fprintf(stderr, "\n");
-#endif
+  if (zapDebug)
+    fprintf(stderr, "\n");
 }
 
 
@@ -900,7 +895,7 @@ int imod_zap_open(struct ViewInfo *vi)
   zap->resizeSkipDraw = 0;
   zap->drawCurrentOnly = 0;
 
-  imod_info_input();
+  //  imod_info_input();
   needWinx = zap->winx;
   needWiny = zap->winy;
 
@@ -920,17 +915,19 @@ int imod_zap_open(struct ViewInfo *vi)
     str += ivwGetTimeIndexLabel(zap->vi, tmax);
   }
 
-  zap->qtWindow = new ZapWindow(zap, str, App->qtRgba, App->qtDoubleBuffer,
+  zap->qtWindow = new ZapWindow(zap, str, App->rgba, App->doublebuffer,
 				App->qtEnableDepth, NULL, "zap window");
   if (!zap->qtWindow){
     free(zap);
     wprint("Error opening zap window.");
     return(-1);
   }
-#ifdef XZAP_DEBUG
-  puts("Got a zap window");
-#endif
+  if (zapDebug)
+    puts("Got a zap window");
+
   zap->gfx = zap->qtWindow->mGLw;
+  if (!App->rgba)
+    zap->gfx->setColormap(*(App->qColormap));
 
   zap->qtWindow->setCaption(imodCaption("Imod ZaP Window"));
 
@@ -942,6 +939,7 @@ int imod_zap_open(struct ViewInfo *vi)
   /* DNM: this is the second call to this, which caused hanging when 
      imod_info_input tested on all events but dispatched only X events.
      With dispatching of all events, the call can be left here. */
+  /* 1/28/03: the call is needed to get the toolbar size hint right */
   imod_info_input();
 
   // Manage the size and position of the window
@@ -969,9 +967,8 @@ int imod_zap_open(struct ViewInfo *vi)
   zap->qtWindow->show();
   zap->popup = 1;
 
-#ifdef XZAP_DEBUG
-  puts("popup a zap dialog");
-#endif
+  if (zapDebug)
+    puts("popup a zap dialog");
 
   /* DNM: set cursor after window created so it has model mode cursor if
      an existing window put us in model mode */
@@ -1920,8 +1917,12 @@ void zapB2Drag(ZapStruct *zap, int x, int y)
     if ((cont->psize - 1) == pt){
       if (zap->insertmode && cont->psize)
         InsertPoint(vi->imod, &cpt, pt);
-      else
+      else {
         NewPoint(vi->imod, &cpt);
+
+	// Set flag for drawing current contour only in this case
+	zap->drawCurrentOnly = 1;
+      }
     }else{
       if (zap->insertmode)
         InsertPoint(vi->imod, &cpt, pt);
@@ -1929,8 +1930,6 @@ void zapB2Drag(ZapStruct *zap, int x, int y)
         InsertPoint(vi->imod, &cpt, pt + 1);
     }
 
-    // Set flag for drawing current contour only
-    zap->drawCurrentOnly = 1;
 
     // TODO: figure out the right flags
     imodDraw(vi, IMOD_DRAW_MOD | IMOD_DRAW_XYZ | IMOD_DRAW_NOSYNC);
@@ -2109,16 +2108,15 @@ static void zapResizeToFit(ZapStruct *zap)
   if (newdy + newh > limh - 8)
     newdy = limh - 8 - newh;
 
-#ifdef XZAP_DEBUG
-  fprintf(stderr, "configuring widget...");
-#endif
+  if (zapDebug)
+    fprintf(stderr, "configuring widget...");
+
 #ifdef ZAP_EXPOSE_HACK
   imodMovieXYZT(zap->vi, 0, 0, 0, 0);
 #endif
   zap->qtWindow->setGeometry(newdx, newdy, neww, newh);
-#ifdef XZAP_DEBUG
-  fprintf(stderr, "back\n");
-#endif
+  if (zapDebug)
+    fprintf(stderr, "back\n");
 }
      
      
@@ -2167,6 +2165,7 @@ static int zapDrawGraphics(ZapStruct *zap)
       b3dFlushImage(zap->image);
       zap->time = time;
     }
+    fprintf(stderr, "Getting imageData for %d\n", zap->section);
     imageData = ivwGetZSection(vi, zap->section);
   }
 
@@ -2186,6 +2185,7 @@ static int zapDrawGraphics(ZapStruct *zap)
     b3dDrawBoxout(zap->xborder, zap->yborder, 
                   zap->xborder + (int)(zap->xdrawsize * zap->zoom),
                   zap->yborder + (int)(zap->ydrawsize * zap->zoom));
+    fprintf(stderr, "calling draw for %d\n", zap->section);
     b3dDrawGreyScalePixelsHQ(imageData,
                              vi->xsize, vi->ysize,
                              zap->xstart, zap->ystart,
@@ -2196,6 +2196,7 @@ static int zapDrawGraphics(ZapStruct *zap)
                              zap->zoom, zap->zoom,
                              zap->hqgfx, zap->section);
   }
+
   return(skipDraw);
 }
 
