@@ -2,8 +2,11 @@ package etomo;
 
 import java.io.File;
 
+import etomo.process.ImodManager;
+import etomo.process.SystemProcessException;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
+import etomo.type.AxisTypeException;
 import etomo.ui.JoinDialog;
 import etomo.ui.MainJoinPanel;
 
@@ -21,6 +24,9 @@ import etomo.ui.MainJoinPanel;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.5  2004/09/15 22:34:34  sueh
+* <p> bug# 520 casting  base manager when necessary.  Added JoinDialog
+* <p>
 * <p> Revision 1.1.2.4  2004/09/13 16:41:18  sueh
 * <p> bug# 520 added isNewManager stub function
 * <p>
@@ -107,6 +113,47 @@ public class JoinManager extends BaseManager {
       mainJoinPanel = (MainJoinPanel) mainPanel;
     }
     return mainJoinPanel;
+  }
+  
+  /**
+   * Open 3dmod to view a tomogram
+   */
+  public int imodTomogram(File tomogramFile, int imodIndex) {
+    try {
+      if (imodIndex == -1) {
+        imodIndex = imodManager.newImod(ImodManager.TOMOGRAM_KEY, tomogramFile);
+      }
+      imodManager.open(ImodManager.TOMOGRAM_KEY, tomogramFile, imodIndex);
+    }
+    catch (AxisTypeException except) {
+      except.printStackTrace();
+      mainPanel.openMessageDialog(except.getMessage(), "AxisType problem");
+    }
+    catch (SystemProcessException except) {
+      except.printStackTrace();
+      mainPanel.openMessageDialog(except.getMessage(),
+        "Can't open 3dmod with imodIndex=" + imodIndex);
+    }
+    return imodIndex;
+  }
+  
+  public void imodRemoveTomogram(int imodIndex) {
+    if (imodIndex == -1) {
+      return;
+    }
+    try {
+      imodManager.delete(ImodManager.TOMOGRAM_KEY, imodIndex);
+    }
+    catch (AxisTypeException except) {
+      except.printStackTrace();
+      mainPanel.openMessageDialog(except.getMessage(), "AxisType problem");
+    }
+    catch (SystemProcessException except) {
+      except.printStackTrace();
+      mainPanel.openMessageDialog(except.getMessage(),
+        "Can't delete 3dmod with imodIndex=" + imodIndex);
+    }
+
   }
   
   /**
