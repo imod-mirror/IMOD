@@ -30,6 +30,10 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.2.4.1  2004/10/08 16:25:55  sueh
+ * <p> bug# 520 Since EtomoDirector is a singleton, made all functions and
+ * <p> member variables non-static.
+ * <p>
  * <p> Revision 3.2  2004/06/05 00:55:28  sueh
  * <p> bug# 433 call ApplicationManager.updateLog() when the command equals
  * <p> the updateLogCommandName
@@ -214,7 +218,8 @@ public class ContextPopup {
     String[] manPageLabel,
     String[] manPage,
     String[] logFileLabel,
-    String[] logFile) {
+    String[] logFile,
+    final ApplicationManager applicationManager) {
 
     // Check to make sure that the menu label and man page arrays are the same
     // length
@@ -254,7 +259,7 @@ public class ContextPopup {
             TextPageWindow logFileWindow = new TextPageWindow();
             logFileWindow.setVisible(
               logFileWindow.setFile(
-                System.getProperty("user.dir")
+                applicationManager.getPropertyUserDir()
                   + File.separator
                   + logFileName[i]));
           }
@@ -350,7 +355,7 @@ public class ContextPopup {
             //  Create full path to the appropriate log file items
             String[] logFileList = (String[]) logFile.get(i);
             String[] logFileFullPath = new String[logFileList.length];
-            String path = System.getProperty("user.dir") + File.separator;
+            String path = applicationManager.getPropertyUserDir() + File.separator;
             for (int j = 0; j < logFileList.length; j++) {
               logFileFullPath[j] = path + logFileList[j];
             }
