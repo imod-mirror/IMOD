@@ -21,6 +21,11 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.13  2004/10/29 22:12:55  sueh
+* <p> bug# 520  Added removeSectionTableData() to remove section table data
+* <p> rows from the meta data file before adding them.  This gets rid of deleted
+* <p> rows.
+* <p>
 * <p> Revision 1.1.2.12  2004/10/29 01:19:29  sueh
 * <p> bug# 520 Removing workingDir.  Calling isValid with workingDir.  Moving
 * <p> file validations to Utilities.
@@ -113,8 +118,6 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
     cutoffHighFrequency.setDefault(0);
     sigmaHighFrequency.setDefault(0);
     alignmentRefSection.setDefault(1);
-    shiftInX.setDefault(0);
-    shiftInY.setDefault(0);
     cutoffHighFrequency.setRecommendedValue(0.25);
     sigmaHighFrequency.setRecommendedValue(0.05);
   }
@@ -332,11 +335,11 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
     return useAlignmentRefSection;
   }
   
-  public EtomoSimpleType getShiftInX() {
+  public ConstEtomoInteger getShiftInX() {
     return shiftInX;
   }
   
-  public EtomoSimpleType getShiftInY() {
+  public ConstEtomoInteger getShiftInY() {
     return shiftInY;
   }
   
