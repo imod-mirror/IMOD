@@ -8,6 +8,7 @@ import java.awt.Dimension;
 import java.awt.HeadlessException;
 import java.awt.Toolkit;
 import java.io.File;
+import java.util.ArrayList;
 
 import javax.swing.BoxLayout;
 import javax.swing.JFileChooser;
@@ -36,6 +37,10 @@ import etomo.type.AxisType;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.1.2.12  2004/11/19 00:23:45  sueh
+ * <p> bug# 520 Changed the file extension in ConstJoinMetaData to contain the
+ * <p> period.
+ * <p>
  * <p> Revision 1.1.2.11  2004/10/15 00:50:18  sueh
  * <p> bug# 520 Made getTestParamFilename() generic.  Removed
  * <p> openEtomoDataFileDialog().
@@ -103,6 +108,8 @@ public abstract class MainPanel extends JPanel {
   private static final int estimatedMenuHeight = 60;
   private static final int extraScreenWidthMultiplier = 2;
   private static final Dimension frameBorder = new Dimension(10, 48);
+  private static final int messageWidth = 60;
+  private static final int maxMessageLines = 20;
   
   protected abstract void createAxisPanelA(AxisID axisID);
   protected abstract void createAxisPanelB();
@@ -445,20 +452,13 @@ public abstract class MainPanel extends JPanel {
    * @param title
    */
   public void openMessageDialog(String[] message, String title) {
-    String datasetName = manager.getBaseMetaData().getName();
-    int messageLength;
     if (message == null) {
-      messageLength = 0;
+      EtomoDirector.getInstance().getMainFrame().openMessageDialog(
+          manager.getBaseMetaData().getName() + ":", title);
+      return;
     }
-    else {
-      messageLength = message.length;
-    }
-    String[] newMessage = new String[messageLength + 1];
-    newMessage[0] = datasetName + ":";
-    for (int i = 0; i < messageLength; i++) {
-      newMessage[i + 1] = message[i];
-    }
-    EtomoDirector.getInstance().getMainFrame().openMessageDialog(newMessage, title);
+    String[] wrappedMessage = wrap(message);
+    EtomoDirector.getInstance().getMainFrame().openMessageDialog(wrappedMessage, title);
   }
   
   /**
@@ -467,17 +467,55 @@ public abstract class MainPanel extends JPanel {
    * @param title
    */
   public void openMessageDialog(String message, String title) {
-    String datasetName = manager.getBaseMetaData().getName();
     if (message == null) {
-      EtomoDirector.getInstance().getMainFrame().openMessageDialog(datasetName + ":", title);
+      EtomoDirector.getInstance().getMainFrame().openMessageDialog(
+          manager.getBaseMetaData().getName() + ":", title);
       return;
     }
     else {
-      String[] newMessage = new String[2];
-      newMessage[0] = datasetName + ":";
-      newMessage[1] = message;
-      EtomoDirector.getInstance().getMainFrame().openMessageDialog(newMessage, title);
+      String[] wrappedMessage = wrap(message);
+      EtomoDirector.getInstance().getMainFrame().openMessageDialog(wrappedMessage, title);
     }
+  }
+  
+  private String[] wrap(String message) {
+    ArrayList messageArray = new ArrayList();
+    messageArray.add(manager.getBaseMetaData().getName() + ":");
+    messageArray = wrap(message, messageArray);
+    if (messageArray.size() == 1) {
+      String[] returnArray = {message};
+      return returnArray;
+    }
+    return (String[]) messageArray.toArray(new String[messageArray.size()]);
+  }
+  
+  private String[] wrap(String[] message) {
+    ArrayList messageArray = new ArrayList();
+    messageArray.add(manager.getBaseMetaData().getName() + ":");
+    for (int i = 0; i < message.length; i++) {
+      messageArray = wrap(message[i], messageArray);
+    }
+    if (messageArray.size() == 1) {
+      String[] returnArray = {(String) messageArray.get(0)};
+      return returnArray;
+    }
+    return (String[]) messageArray.toArray(new String[messageArray.size()]);
+  }
+  
+  private ArrayList wrap(String message, ArrayList messageArray) {
+    int messageLength = message.length();
+    int messageIndex = 0;
+    while (messageIndex < messageLength && messageArray.size() < maxMessageLines) {
+      int endIndex = Math.min(messageLength, messageIndex + messageWidth);
+      StringBuffer line = new StringBuffer(message.substring(messageIndex, endIndex));
+      messageIndex = endIndex;
+      while (messageIndex < messageLength
+          && message.substring(messageIndex, messageIndex + 1).matches("\\S+")) {
+        line.append(message.charAt(messageIndex++));
+      }
+      messageArray.add(line.toString());
+    }
+    return messageArray;
   }
 
   //  TODO Need a way to repaint the existing font
