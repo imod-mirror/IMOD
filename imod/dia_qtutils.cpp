@@ -32,11 +32,15 @@ $Date$
 
 $Revision$
 $Log$
+Revision 1.1.2.7  2003/01/06 19:01:47  mast
+adding log line
+
 */
 
 #include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 #include <qcheckbox.h>
 #include <qlabel.h>
 #include <qslider.h>
@@ -46,6 +50,7 @@ $Log$
 #include <qhbox.h>
 #include <qspinbox.h>
 #include <qdialog.h>
+#include <qinputdialog.h>
 #include <qmessagebox.h>
 #include <qtextedit.h>
 #include <qbuttongroup.h>
@@ -144,6 +149,66 @@ int dia_err(char *message)
 			   QMessageBox::Ok, QMessageBox::NoButton,
 			   QMessageBox::NoButton);
   return 0;
+}
+
+// An application modal box to ask a yes-no question
+int dia_ask(char *question)
+{
+  QString str = question;
+  QString title = Dia_title;
+  title += " Query";
+  int retval =   QMessageBox::information(0, title, str, 
+			   QMessageBox::Yes, QMessageBox::No,
+			   QMessageBox::NoButton);
+  return retval == QMessageBox::Yes ? 1 : 0;
+}
+
+// An application modal box to give up to three arbitrary responses
+int dia_choice(char *question, char *lab1, char *lab2, char *lab3)
+{
+  QString str = question;
+  QString title = Dia_title;
+  QString but1 = lab1;
+  QString but2, but3;
+  if (lab2)
+    but2 = lab2;
+  if (lab3)
+    but3 = lab3;
+  title += " Query";
+  return  QMessageBox::information(0, title, str, but1, but2, but3) + 1;
+}
+
+// A function to use QInputDialogs to get an integer or float
+// It returns 0 if the user cancels and leave value unchanged
+int diaQInput(int *value, int low, int high, int decimal, char *prompt)
+{
+  bool ok = false;
+  QString str = prompt;
+  QString title = Dia_title;
+  int result, i;
+  double from, to, dresult, dvalue, factor;
+  
+
+  if (!decimal) {
+    result = QInputDialog::getInteger(title, str, *value, low, high, 1, &ok);
+    if (ok)
+      *value = result;
+    return ok ? 1 : 0;
+  } else {
+
+    factor = 1.;
+    for (i = 0; i < decimal; i++)
+      factor *= 10.;
+    from = low / factor;
+    to = high / factor;
+    dvalue = *value / factor;
+    dresult = QInputDialog::getDouble(title, str, dvalue, from, to, decimal,
+				      &ok);
+    if (ok)
+      *value = (int)floor(dresult * factor + 0.5);
+  }
+
+  return ok ? 1 : 0;
 }
 
 // Get a scrolled message window from a variable set of character strings
