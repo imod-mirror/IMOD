@@ -16,6 +16,9 @@ import java.util.Properties;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.2  2004/10/21 02:55:45  sueh
+* <p> bug# 520 Pulled out const part of object.
+* <p>
 * <p> Revision 1.1.2.1  2004/10/18 18:04:55  sueh
 * <p> bug# 520 A class representing a float which handles all issues
 * <p> concerning defaults, null values, assigning strings that are blank, and
@@ -73,6 +76,7 @@ public class EtomoFloat extends ConstEtomoFloat {
       catch (NumberFormatException e) {
         e.printStackTrace();
         invalidReason = "Invalid value:  " + value + ".  " + description + " is a float.";
+        this.value = unsetValue;
       }
     }
     return invalidReason;

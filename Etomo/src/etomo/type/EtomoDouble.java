@@ -16,6 +16,9 @@ import java.util.Properties;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.2  2004/10/21 02:53:51  sueh
+* <p> bug# 520 Corrected typo.
+* <p>
 * <p> Revision 1.1.2.1  2004/10/18 18:04:35  sueh
 * <p> bug# 520 A class representing a double which handles all issues
 * <p> concerning defaults, null values, assigning strings that are blank, and
@@ -72,6 +75,7 @@ public class EtomoDouble extends ConstEtomoDouble {
       catch (NumberFormatException e) {
         e.printStackTrace();
         invalidReason = "Invalid value:  " + value + ".  " + description + " is a double.";
+        this.value = unsetValue;
       }
     }
     return invalidReason;
