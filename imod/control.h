@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.4  2003/01/13 07:20:21  mast
+Added dialog manager class
+
 Revision 1.1.2.3  2003/01/06 15:39:08  mast
 add another orphan declaration
 
@@ -147,7 +150,7 @@ class DialogManager
 
 /* Global instances */
 extern DialogManager imodvDialogManager;
-extern DialogManager imodDialogHider;
+extern DialogManager imodDialogManager;
 
 
 /* Another orphan until title stuff is moved somewhere or imodP.h is readable

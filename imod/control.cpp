@@ -37,6 +37,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.4  2003/01/13 07:20:04  mast
+Adapted dialog manager calss from imodv_input
+
 Revision 1.1.2.3  2003/01/10 23:48:47  mast
 Made diagnostic output conditional on a flag
 
@@ -76,7 +79,7 @@ typedef struct imodv_dialog
 /* Global resident instances of dialog managers for imod and imodv */
 
 DialogManager imodvDialogManager;
-DialogManager imodDialogHider;
+DialogManager imodDialogManager;
 
 
 static int removeControl(ImodView *iv, int inCtrlId, int callClose);
