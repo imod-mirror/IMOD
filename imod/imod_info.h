@@ -6,13 +6,12 @@
     $Revision$
 
     $Log$
+    Revision 3.1  2002/12/01 15:34:41  mast
+    Changes to get clean compilation with g++
+
 */
 #ifndef IMOD_INFO_H
 #define IMOD_INFO_H
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 extern XtAppContext Imod_info_context;
 extern int Imod_info_quit;
@@ -39,6 +38,9 @@ extern Widget Imod_widget_movie;
 extern Widget Imod_widget_recallbyz;
 extern XColor Imod_object_color;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 void contSurfShow(void);
 
