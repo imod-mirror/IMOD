@@ -25,6 +25,10 @@ import etomo.type.SlicerAngles;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.5  2004/10/01 20:07:11  sueh
+* <p> bug# 520 Converted text fields to FieldCells.  Removed color control
+* <p> (done in FieldCell).
+* <p>
 * <p> Revision 1.1.2.4  2004/09/29 19:45:01  sueh
 * <p> bug# 520 View part of the section table row.  Contains section table row
 * <p> screen fields.  Added SectionTableRowData member variable so hold,
@@ -81,11 +85,12 @@ public class SectionTableRow {
    * @param rowNumber
    */
   public SectionTableRow(SectionTablePanel table, int rowNumber, File tomogram,
-      boolean sectionExpanded) {
+      boolean sectionExpanded, int zMax) {
     data = new SectionTableRowData();
     data.setRowNumber(rowNumber);
     this.table = table;
     data.setSection(tomogram);
+    data.setZMax(zMax);
     this.sectionExpanded = sectionExpanded;
   }
   
@@ -185,8 +190,10 @@ public class SectionTableRow {
     rotationAngleZ.setText(data.getRotationAngleZString());
   }
   
-  private void retrieveData() {
-    data.setSampleBottomStart(sampleBottomStart.getText());
+  private boolean retrieveData() {
+    if (!data.setSampleBottomStart(sampleBottomStart.getText())) {
+      return false;
+    }
     sampleBottomEnd.setText(data.getSampleBottomEndString());
     sampleTopStart.setText(data.getSampleTopStartString());
     sampleTopEnd.setText(data.getSampleTopEndString());
@@ -195,6 +202,7 @@ public class SectionTableRow {
     rotationAngleX.setText(data.getRotationAngleXString());
     rotationAngleY.setText(data.getRotationAngleYString());
     rotationAngleZ.setText(data.getRotationAngleZString());
+    return true;
   }
   
   /**
