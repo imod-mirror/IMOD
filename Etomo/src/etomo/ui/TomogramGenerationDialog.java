@@ -24,6 +24,7 @@ import javax.swing.JPanel;
 import javax.swing.SpinnerModel;
 import javax.swing.SpinnerNumberModel;
 import etomo.ApplicationManager;
+import etomo.EtomoDirector;
 import etomo.comscript.ConstMTFFilterParam;
 import etomo.comscript.ConstTiltParam;
 import etomo.comscript.MTFFilterParam;
@@ -55,6 +56,9 @@ import etomo.util.InvalidParameterException;
  * 
  * <p>
  * $Log$
+ * Revision 3.24.2.2  2004/09/15 22:48:16  sueh
+ * bug# 520 call openMessageDialog in mainPanel instead of mainFrame.
+ *
  * Revision 3.24.2.1  2004/09/07 18:02:16  sueh
  * bug# 520 getting dataset name from metadata
  *
@@ -882,7 +886,7 @@ public class TomogramGenerationDialog extends ProcessDialog
     //otherwise open in the working directory
     String currentMtfDirectory = ltfMtfFile.getText();
     if (currentMtfDirectory.equals("")) {
-      File calibrationDir = ApplicationManager.getIMODCalibDirectory();
+      File calibrationDir = EtomoDirector.getInstance().getIMODCalibDirectory();
       File cameraDir = new File(calibrationDir.getAbsolutePath(), "Camera");
       if (cameraDir.exists()) {
         currentMtfDirectory = cameraDir.getAbsolutePath();
