@@ -3,6 +3,8 @@ package etomo;
 import java.io.File;
 import java.util.ArrayList;
 
+import etomo.type.ConstJoinMetaData;
+import etomo.type.ConstMetaData;
 import etomo.type.UserConfiguration;
 import etomo.ui.MainFrame;
 import etomo.util.HashedArray;
@@ -28,6 +30,10 @@ import etomo.util.UniqueKey;
  * 
  * <p>
  * $Log$
+ * Revision 1.1.2.5  2004/09/13 20:23:22  sueh
+ * bug# 520 fix exitProgram() so it calls exitProgram for all the managers in
+ * managerList.
+ *
  * Revision 1.1.2.4  2004/09/13 16:40:41  sueh
  * bug# 520 Finding manager by key because there can be duplicate names.
  * Using a etomo.util.HashedArray to store managers because they may
@@ -67,8 +73,6 @@ public class EtomoDirector {
   private UniqueKey currentManagerKey = null;
   private static MainFrame mainFrame = null;
   private static UserConfiguration userConfig = null;
-  private static final String newTomogramName = "Setup Tomogram";
-  private static final String newJoinName = "New Join";
 
   public static void main(String[] args) {
     createInstance(args);
@@ -155,27 +159,19 @@ public class EtomoDirector {
   
   public UniqueKey openTomogram(String etomoDataFileName, boolean makeCurrent) {
     ApplicationManager manager;
-    if (etomoDataFileName == null || etomoDataFileName == newTomogramName) {
+    if (etomoDataFileName == null
+        || etomoDataFileName.equals(ConstMetaData.getNewFileTitle())) {
       manager = new ApplicationManager("");
     }
     else {
       manager = new ApplicationManager(etomoDataFileName);
     }
     UniqueKey managerKey;
-    if (manager.isNewManager()) {
-      managerKey = managerList.add(newTomogramName, manager);
-    }
-    else {
-      managerKey = managerList.add(manager.getMetaData().getDatasetName(), manager);
-    }
-    if (makeCurrent) {
-      setCurrentManager(managerKey);
-    }
-    return managerKey;
+    return openManager(manager, makeCurrent);
   }
   
   public UniqueKey openJoin(boolean makeCurrent) {
-    return openJoin(newJoinName, makeCurrent);
+    return openJoin(ConstJoinMetaData.getNewFileTitle(), makeCurrent);
   }
   
   public UniqueKey openJoin(File etomoJoinFile, boolean makeCurrent) {
@@ -187,19 +183,19 @@ public class EtomoDirector {
   
   public UniqueKey openJoin(String etomoJoinFileName, boolean makeCurrent) {
     JoinManager manager;
-    if (etomoJoinFileName == null || etomoJoinFileName == newJoinName) {
+    if (etomoJoinFileName == null
+        || etomoJoinFileName.equals(ConstMetaData.getNewFileTitle())) {
       manager = new JoinManager("");
     }
     else {
       manager = new JoinManager(etomoJoinFileName);
     }
+    return openManager(manager, makeCurrent);
+  }
+  
+  private UniqueKey openManager(BaseManager manager, boolean makeCurrent) {
     UniqueKey managerKey;
-    if (manager.isNewManager()) {
-      managerKey = managerList.add(newJoinName, manager);
-    }
-    else {
-      managerKey = managerList.add(manager.getMetaData().getDatasetName(), manager);
-    }
+    managerKey = managerList.add(manager.getBaseMetaData().getName(), manager);
     if (makeCurrent) {
       setCurrentManager(managerKey);
     }
@@ -207,7 +203,7 @@ public class EtomoDirector {
   }
   
   public UniqueKey openTomogram(boolean makeCurrent) {
-    return openTomogram(newTomogramName, makeCurrent);
+    return openTomogram(ConstMetaData.getNewFileTitle(), makeCurrent);
   }
   
   public UniqueKey openTomogram(File etomoDataFile, boolean makeCurrent) {
