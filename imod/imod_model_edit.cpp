@@ -34,6 +34,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.1  2003/01/18 01:16:20  mast
+half Qt version
+
 Revision 3.0.2.2  2003/01/13 01:15:43  mast
 changes for Qt version of info window
 
@@ -42,122 +45,57 @@ Make routine for parsing pixel size string
 
 */
 #include <qlineedit.h>
+#include <tooledit.h>
+#include <qcheckbox.h>
 #include <qlabel.h>
 #include <qlayout.h>
 #include <qtooltip.h>
 #include "dia_qtutils.h"
-#include "imod_model_edit.h"
-#include <Xm/Xm.h>
-#include <Xm/RowColumn.h>
-#include <Xm/Separator.h>
-#include <Xm/Label.h>
-#include <Xm/Text.h>
-#include <Xm/ToggleB.h>
-#include <Xm/PushB.h>
 #include <stdio.h>
 #include <math.h>
 
-#include "diaP.h"
 #include "imod.h"
 #include "imod_info_cb.h"
+#include "imod_model_edit.h"
+#include "imodv_modeled.h"
 #include "control.h"
+
+static void imodTransXYZ(Imod *imod, Ipoint trans);
+
+/* THE MODEL HEADER DIALOG  */
 
 static struct
 {
-  diaDialog     *dia;
+  ModelHeaderWindow  *dia;
   ImodView      *vw;        /* image data to model                       */
 
-  /* Widgets used in model edit. */
-  Widget wDraw;
-  Widget wZscale;
-  Widget wPixelSize;
-  Widget wResolution;
-  Widget wTimeCopy;
+}HeaderDialog = { NULL, 0 };
 
-}ThisDialog = { NULL, 0 };
-
-static void workarea_cb(Widget w, XtPointer client, XtPointer call);
-static void setvw(void);
-
-static void quit_cb(Widget w, XtPointer client, XtPointer call)
-{
-  setvw();
-  diaDestroyDialog(ThisDialog.dia);
-  ThisDialog.dia = NULL;
-  return;
-}
 
 int openModelEdit(ImodView *vw)
 {
      
-  if (ThisDialog.dia){
-    XRaiseWindow(XtDisplay(ThisDialog.dia->dialog), 
-		 XtWindow(ThisDialog.dia->dialog));
+  if (HeaderDialog.dia){
+    HeaderDialog.dia->raise();
     return(0);
   }
      
-  ThisDialog.vw = vw;
-  ThisDialog.dia = diaVaCreateDialog
-    ("Imod: Model Edit",
-     App->toplevel, App->context,
-     DiaNcontrolButton, "Done",
-     quit_cb, (XtPointer)&ThisDialog,
-     DiaNworkAreaFunc, workarea_cb, (XtPointer)&ThisDialog,
-     DiaNwindowQuit, quit_cb, (XtPointer)&ThisDialog,
-     0);     
-     
+  HeaderDialog.vw = vw;
+  HeaderDialog.dia = new ModelHeaderWindow(NULL, "model offset");
+
+  imodDialogManager.add((QWidget *)HeaderDialog.dia, IMOD_DIALOG);
   return 0;
+
+}
+
+void imodModelEditUpdate()
+{
+  if (HeaderDialog.dia)
+    HeaderDialog.dia->update();
 }
 
 /****************************************************************************/
 
-static void setwidgets(void)
-{
-  char *units;
-  char string[32];
-
-  XmToggleButtonSetState
-    (ThisDialog.wDraw,
-     (ThisDialog.vw->imod->drawmode > 0) ? True : False,
-     False);
-
-
-  sprintf(string, "%g", ThisDialog.vw->imod->zscale);
-  XmTextSetString(ThisDialog.wZscale, string);
-
-  sprintf(string, "%d", ThisDialog.vw->imod->res);
-  XmTextSetString(ThisDialog.wResolution, string);
-        
-  units = imodUnits(ThisDialog.vw->imod);
-  if (units)
-    sprintf(string, "%g %s", ThisDialog.vw->imod->pixsize, units);
-  else
-    sprintf(string, "%g", ThisDialog.vw->imod->pixsize);
-
-  XmTextSetString(ThisDialog.wPixelSize, string);
-
-
-
-}
-
-static void setvw(void)
-{
-  char *string;
-  float fscale;
-
-  string = XmTextGetString(ThisDialog.wZscale);
-  ThisDialog.vw->imod->zscale = atof(string);
-  free(string);
-
-  string = XmTextGetString(ThisDialog.wResolution);
-  ThisDialog.vw->imod->res = atoi(string);
-  free(string);
-
-  string = XmTextGetString(ThisDialog.wPixelSize);
-  setPixsizeAndUnits(ThisDialog.vw->imod, string);
-  free(string);
-
-}
 
 /* DNM 12/21/02: interpret the pixel size from string and set into model */
 void setPixsizeAndUnits(Imod *imod, char *string)
@@ -192,145 +130,124 @@ void setPixsizeAndUnits(Imod *imod, char *string)
 }
 
 
-static void setvw_cb(Widget w, XtPointer client, XtPointer call)
-{
-  setvw();
-}
+/* THE WINDOW CLASS FOR MODEL HEADER */
 
-static void modeldraw_cb(Widget w, XtPointer client, XtPointer call)
-{
-  ThisDialog.vw->imod->drawmode -= (2 * ThisDialog.vw->imod->drawmode);
-  setwidgets();
-  imodDraw(ThisDialog.vw, IMOD_DRAW_MOD);
-}
+static char *headerLabels[] = {"Done"};
+static char *headerTips[] = {"Close dialog box using current values"};
 
-static void timecopy_cb(Widget w, XtPointer client, XtPointer call)
+ModelHeaderWindow::ModelHeaderWindow(QWidget *parent, const char *name)
+  : DialogFrame(parent, 1, headerLabels, headerTips, true, 
+                " ", "", name)
 {
-  Imod *imod         = ThisDialog.vw->imod;
-  int currentObject  = imod->cindex.object;
-  int currentContour = imod->cindex.contour;
-  int currentPoint   = imod->cindex.point;
-  int currentTime    = ThisDialog.vw->ct;
-  int nextTime       = currentTime + 1;
-  int whichTime      = (int)client;
-  char *string;
-  Iobj  *obj;
-  Icont *cont, *dupcont;
-  int ob, co;
-     
-  if (whichTime){
-    string = XmTextGetString(ThisDialog.wTimeCopy);
-    nextTime = atoi(string);
-    free(string);
+  char *boxLabels[] = {"Z scale", "Resolution", "Pixel size"};
+  char *boxTips[] = 
+    {"Ratio of section thickness to X/Y pixel size",
+     "Interval at which model points are added when drag drawing",
+     "Pixel size and units (m, mm, um, nm, A)"}; 
+  QString str;
+  QLabel *label;
+
+  mDrawBox = diaCheckBox("Draw model", this, mLayout);
+  QGridLayout *grid = new QGridLayout(mLayout, 3, 2);
+  connect(mDrawBox, SIGNAL(toggled(bool)), this, SLOT(drawToggled(bool)));
+
+  for (int i = 0; i < 3; i++) {
+    str = boxLabels[i];
+    label = new QLabel(str, this);
+    grid->addWidget(label, i, 0);
+    mEditBox[i] = new ToolEdit(this, 12);
+    grid->addWidget(mEditBox[i], i, 1);
+    connect(mEditBox[i], SIGNAL(returnPressed()), this, SLOT(valueEntered()));
+    connect(mEditBox[i], SIGNAL(lostFocus()), this, SLOT(valueEntered()));
+    QToolTip::add(mEditBox[i], boxTips[i]);
   }
 
-  if (nextTime > ThisDialog.vw->nt){
-    wprint("Warning: Copy failed.\n"
-	   "\tNext time point is invalid.\n");
-    return;
-  }
+  connect(this, SIGNAL(actionPressed(int)), this, SLOT(buttonPressed(int)));
+  setCaption(imodCaption("Imod Model Header"));
 
-  for (ob = 0; ob < imod->objsize; ob++){
-    obj = &imod->obj[ob];
-    if (!iobjFlagTime(obj)) continue;
-    imod->cindex.object = ob;
-    for(co = 0; co < obj->contsize; co++){
-      cont = &obj->cont[co];
-      if (cont->type != currentTime)
-	continue;
-      dupcont = imodContourDup(cont);
-      dupcont->type = nextTime;
-      NewContour(imod);
-      cont  = imodContourGet(imod);
-      *cont = *dupcont;
-      free(dupcont);
-    }
-  }
-
-  imod->cindex.object  = currentObject;
-  imod->cindex.contour = currentContour;
-  imod->cindex.point   = currentPoint;
-  imod_info_setocp();
-  wprint("Time copy completed.\n");
-  return;
+  update();
+  show();
 }
 
-static void workarea_cb(Widget w, XtPointer client, XtPointer call)
+void ModelHeaderWindow::buttonPressed(int which)
 {
-  Widget rowcol, grid;
-
-  rowcol = XtVaCreateWidget
-    ("rowcol", xmRowColumnWidgetClass, w, NULL);
-
-  ThisDialog.wDraw = XtVaCreateManagedWidget
-    ("Draw Model",  xmToggleButtonWidgetClass, rowcol, NULL);
-  XtAddCallback(ThisDialog.wDraw, XmNvalueChangedCallback, 
-		modeldraw_cb, NULL);
-
-  grid = XtVaCreateWidget
-    ("rowcol", xmRowColumnWidgetClass, rowcol, 
-     XmNpacking, XmPACK_COLUMN,
-     XmNnumColumns, 2,
-     XmNorientation, XmVERTICAL,
-     NULL);
-
-  XtVaCreateManagedWidget
-    ("Z-Scale", xmLabelWidgetClass, grid, NULL);
-  XtVaCreateManagedWidget
-    ("Resolution", xmLabelWidgetClass, grid, NULL);
-  XtVaCreateManagedWidget
-    ("Pixel Size", xmLabelWidgetClass, grid, NULL);
-
-  ThisDialog.wZscale = XtVaCreateManagedWidget
-    ("Zscale", xmTextWidgetClass, grid,  NULL);
-  XtAddCallback(ThisDialog.wZscale, XmNactivateCallback, 
-		setvw_cb, NULL);
-  ThisDialog.wResolution = XtVaCreateManagedWidget
-    ("Resolution", xmTextWidgetClass, grid,  NULL);
-  XtAddCallback(ThisDialog.wResolution, XmNactivateCallback, 
-		setvw_cb, NULL);
-  ThisDialog.wPixelSize = XtVaCreateManagedWidget
-    ("pixsize", xmTextWidgetClass, grid,  NULL);
-  XtAddCallback(ThisDialog.wPixelSize, XmNactivateCallback, 
-		setvw_cb, NULL);
-
-  XtManageChild(grid);
-
-  /* Add Time controls. */
-  if (ThisDialog.vw->nt){
-    Widget row, button;
-
-    XtVaCreateManagedWidget
-      ("separator", xmSeparatorWidgetClass, rowcol, NULL);
-
-    button = XtVaCreateManagedWidget
-      ("Copy Time Data to Next Index", 
-       xmPushButtonWidgetClass, rowcol,  NULL);
-    XtAddCallback(button, XmNactivateCallback, 
-		  timecopy_cb, 0);
-          
-    row = XtVaCreateWidget
-      ("rowcol", xmRowColumnWidgetClass, rowcol,
-       XmNorientation, XmHORIZONTAL,
-       NULL);
-    button = XtVaCreateManagedWidget
-      ("Copy Time Data to ", xmPushButtonWidgetClass, row, NULL);
-    XtAddCallback(button, XmNactivateCallback, 
-		  timecopy_cb, (XtPointer)1);
-
-    ThisDialog.wTimeCopy = XtVaCreateManagedWidget
-      ("label", xmTextWidgetClass, row, NULL);
-
-    XtManageChild(row);
-  }
-     
-  XtManageChild(rowcol);
-  setwidgets();
-  return;
+  close();
 }
+
+// Key press, lost focus, or window closing: unload the tool edits
+// update them, and draw model
+void ModelHeaderWindow::valueEntered()
+{
+  setFocus();
+  HeaderDialog.vw->imod->zscale = mEditBox[0]->text().toFloat();
+
+  HeaderDialog.vw->imod->res = mEditBox[1]->text().toInt();
+
+  setPixsizeAndUnits(HeaderDialog.vw->imod, 
+                     (char *)mEditBox[2]->text().latin1());
+
+  update();
+  imodvPixelChanged();
+  imodDraw(HeaderDialog.vw, IMOD_DRAW_MOD);
+}
+
+// The draw box has been toggled
+void ModelHeaderWindow::drawToggled(bool state)
+{
+  if (state && HeaderDialog.vw->imod->drawmode <= 0 ||
+      !state &&HeaderDialog.vw->imod->drawmode > 0)
+    HeaderDialog.vw->imod->drawmode = -HeaderDialog.vw->imod->drawmode;
+  imodDraw(HeaderDialog.vw, IMOD_DRAW_MOD);
+}
+
+// Set the check box and edit boxes according to model state
+void ModelHeaderWindow::update() 
+{
+  QString str;
+  char *units;
+
+  diaSetChecked(mDrawBox, HeaderDialog.vw->imod->drawmode > 0);
+ 
+  str.sprintf("%g", HeaderDialog.vw->imod->zscale);
+  mEditBox[0]->setText(str);
+
+  str.sprintf("%g", (float)HeaderDialog.vw->imod->res);
+  mEditBox[1]->setText(str);
+
+  str.sprintf("%g ", HeaderDialog.vw->imod->pixsize);
+  units = imodUnits(HeaderDialog.vw->imod);
+  if (units)
+    str += units;
+  mEditBox[2]->setText(str);
+}
+
+// Window is closing - unload values and remove dialog
+void ModelHeaderWindow::closeEvent ( QCloseEvent * e )
+{
+  valueEntered();
+  imodDialogManager.remove((QWidget *)HeaderDialog.dia);
+  HeaderDialog.dia = NULL;
+  e->accept();
+}
+
+// Exit on escape, pass on other keys
+void ModelHeaderWindow::keyPressEvent ( QKeyEvent * e )
+{
+  if (e->key() == Qt::Key_Escape)
+    close();
+  else
+    ivwControlKey(0, e);
+}
+
+void ModelHeaderWindow::keyReleaseEvent ( QKeyEvent * e )
+{
+    ivwControlKey(1, e);
+}
+
+
 
 /****************************************************************************/
-
+/*  MODEL OFFSET DIALOG                                                     */
 
 static struct
 {
@@ -342,6 +259,25 @@ static struct
 }OffsetDialog = { NULL, 0 };
 
 
+int openModelOffset(ImodView *vw)
+{
+     
+  if (OffsetDialog.dia){
+    OffsetDialog.dia->raise();
+    return(0);
+  }
+     
+  OffsetDialog.vw = vw;
+  OffsetDialog.base.x = OffsetDialog.base.y = OffsetDialog.base.z = 0.0;
+  OffsetDialog.applied = OffsetDialog.base;
+
+  OffsetDialog.dia = new ModelOffsetWindow(NULL, "model offset");
+
+  imodDialogManager.add((QWidget *)OffsetDialog.dia, IMOD_DIALOG);
+  return 0;
+}
+
+// Translate the model
 static void imodTransXYZ(Imod *imod, Ipoint trans)
 {
   int ob, co, pt,  me, i;
@@ -374,24 +310,7 @@ static void imodTransXYZ(Imod *imod, Ipoint trans)
   }
 }
 
-int openModelOffset(ImodView *vw)
-{
-     
-  if (OffsetDialog.dia){
-    OffsetDialog.dia->raise();
-    return(0);
-  }
-     
-  OffsetDialog.vw = vw;
-  OffsetDialog.base.x = OffsetDialog.base.y = OffsetDialog.base.z = 0.0;
-  OffsetDialog.applied = OffsetDialog.base;
-
-  OffsetDialog.dia = new ModelOffsetWindow(NULL, "model offset");
-
-  imodDialogManager.add((QWidget *)OffsetDialog.dia, IMOD_DIALOG);
-  return 0;
-}
-
+/* The window class */
 
 static char *buttonLabels[] = {"Apply", "Revert", "Set Base", "Done"};
 static char *buttonTips[] = 
@@ -415,14 +334,14 @@ ModelOffsetWindow::ModelOffsetWindow(QWidget *parent, const char *name)
   for (int i = 0; i < 3; i++) {
     str = xyz[i];
     label = new QLabel(str + ":", this);
-    grid->addWidget(label, i, 1);
+    grid->addWidget(label, i, 0);
     mEditBox[i] = new QLineEdit(this);
-    grid->addWidget(mEditBox[i], i, 2);
+    grid->addWidget(mEditBox[i], i, 1);
     //   mEditBox[i]->setFocusPolicy(ClickFocus);
     connect(mEditBox[i], SIGNAL(returnPressed()), this, SLOT(valueEntered()));
     QToolTip::add(mEditBox[i], "Enter offset to apply in " + str);
     mBaseLabel[i] = new QLabel(" ", this);
-    grid->addWidget(mBaseLabel[i], i, 3);
+    grid->addWidget(mBaseLabel[i], i, 2);
   }
 
   diaLabel("Current applied offset:", this, mLayout);
@@ -434,6 +353,7 @@ ModelOffsetWindow::ModelOffsetWindow(QWidget *parent, const char *name)
   show();
 }
 
+// Respond to button press: apply, revert, set base, done
 void ModelOffsetWindow::buttonPressed(int which)
 {
   Ipoint offset;
@@ -483,11 +403,13 @@ void ModelOffsetWindow::buttonPressed(int which)
   }
 }
 
+// Return in an edit box is like apply
 void ModelOffsetWindow::valueEntered()
 {
   buttonPressed(0);
 }
 
+// Update the labels in the dialog
 void ModelOffsetWindow::updateLabels()
 {
   QString str;
@@ -501,6 +423,7 @@ void ModelOffsetWindow::updateLabels()
   mAppliedLabel->setText(str);
 }
 
+// The window is closing, remove from manager
 void ModelOffsetWindow::closeEvent ( QCloseEvent * e )
 {
   imodDialogManager.remove((QWidget *)OffsetDialog.dia);
@@ -508,6 +431,7 @@ void ModelOffsetWindow::closeEvent ( QCloseEvent * e )
   e->accept();
 }
 
+// Close on escape, pass on keys
 void ModelOffsetWindow::keyPressEvent ( QKeyEvent * e )
 {
   if (e->key() == Qt::Key_Escape)
