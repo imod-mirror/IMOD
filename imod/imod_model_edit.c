@@ -27,6 +27,14 @@
  *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
  *****************************************************************************/
 
+/*  $Author$
+
+    $Date$
+
+    $Revision$
+
+    $Log$
+*/
 #include <Xm/Xm.h>
 #include <Xm/RowColumn.h>
 #include <Xm/Separator.h>
@@ -91,6 +99,7 @@ int openModelEdit(ImodView *vw)
 
 static void setwidgets(void)
 {
+  char *units;
      char string[32];
 
      XmToggleButtonSetState
@@ -105,36 +114,12 @@ static void setwidgets(void)
      sprintf(string, "%d", ThisDialog.vw->imod->res);
      XmTextSetString(ThisDialog.wResolution, string);
 	
-     switch(ThisDialog.vw->imod->units){
-
-	case IMOD_UNIT_KILO:
-	  sprintf(string, "%g km", ThisDialog.vw->imod->pixsize);
-	  break;
-	case IMOD_UNIT_METER:
-	  sprintf(string, "%g m", ThisDialog.vw->imod->pixsize);
-	  break;
-	case IMOD_UNIT_CM:
-	  sprintf(string, "%g cm", ThisDialog.vw->imod->pixsize);
-	  break;
-	case IMOD_UNIT_MM:
-	  sprintf(string, "%g mm", ThisDialog.vw->imod->pixsize);
-	  break;
-	case IMOD_UNIT_UM:
-	  sprintf(string, "%g um", ThisDialog.vw->imod->pixsize);
-	  break;
-	case IMOD_UNIT_NM:
-	  sprintf(string, "%g nm", ThisDialog.vw->imod->pixsize);
-	  break;
-	case IMOD_UNIT_ANGSTROM:
-	  sprintf(string, "%g A", ThisDialog.vw->imod->pixsize);
-	  break;
-	case IMOD_UNIT_PM:
-	  sprintf(string, "%g pm", ThisDialog.vw->imod->pixsize);
-	  break;
-	default:
+     units = imodUnits(ThisDialog.vw->imod);
+     if (units)
+	  sprintf(string, "%g %s", ThisDialog.vw->imod->pixsize, units);
+     else
 	  sprintf(string, "%g", ThisDialog.vw->imod->pixsize);
-	  break;
-     }
+
      XmTextSetString(ThisDialog.wPixelSize, string);
 
 
@@ -155,31 +140,43 @@ static void setvw(void)
      free(string);
 
      string = XmTextGetString(ThisDialog.wPixelSize);
-     /* DNM: protect sscanf from empty strings for PC */
-     fscale = 0.;
-     if (string && string[0] != 0x00)
-	  sscanf(string, "%f", &fscale);
-     if (fscale != 0)
-	  ThisDialog.vw->imod->pixsize = fscale;
-     if (strstr(string, "km"))
-	  ThisDialog.vw->imod->units = IMOD_UNIT_KILO;
-     if (strstr(string, "m"))
-	  ThisDialog.vw->imod->units = IMOD_UNIT_METER;
-     if (strstr(string, "cm"))
-	  ThisDialog.vw->imod->units = IMOD_UNIT_CM;
-     if (strstr(string, "mm"))
-	  ThisDialog.vw->imod->units = IMOD_UNIT_MM;
-     if (strstr(string, "um"))
-	  ThisDialog.vw->imod->units = IMOD_UNIT_UM;
-     if (strstr(string, "nm"))
-	  ThisDialog.vw->imod->units = IMOD_UNIT_NM;
-     if (strstr(string, "A"))
-	  ThisDialog.vw->imod->units = IMOD_UNIT_ANGSTROM;
-     if (strstr(string, "pm"))
-	  ThisDialog.vw->imod->units = IMOD_UNIT_PM;
+     setPixsizeAndUnits(ThisDialog.vw->imod, string);
      free(string);
 
 }
+
+/* DNM 12/21/02: interpret the pixel size from string and set into model */
+void setPixsizeAndUnits(Imod *imod, char *string)
+{
+  float fscale = 0.;
+  
+  if (!string || string[0] == 0x00)
+    return;
+  fscale = atof(string);
+  if (!fscale)
+    return;
+ 
+  /* Leave unchanged if zero, otherwise find the units */
+  imod->pixsize = fscale;
+  imod->units = IMOD_UNIT_PIXEL;
+  if (strstr(string, "km"))
+    imod->units = IMOD_UNIT_KILO;
+  if (strstr(string, "m"))
+    imod->units = IMOD_UNIT_METER;
+  if (strstr(string, "cm"))
+    imod->units = IMOD_UNIT_CM;
+  if (strstr(string, "mm"))
+    imod->units = IMOD_UNIT_MM;
+  if (strstr(string, "um"))
+    imod->units = IMOD_UNIT_UM;
+  if (strstr(string, "nm"))
+    imod->units = IMOD_UNIT_NM;
+  if (strstr(string, "A"))
+    imod->units = IMOD_UNIT_ANGSTROM;
+  if (strstr(string, "pm"))
+    imod->units = IMOD_UNIT_PM;
+}
+
 
 static void setvw_cb(Widget w, XtPointer client, XtPointer call)
 {
