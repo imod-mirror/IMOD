@@ -37,6 +37,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.1  2002/12/15 21:14:02  mast
+conversion to cpp
+
 Revision 4.1.2.2  2002/12/09 17:42:32  mast
 remove include of zap
 
@@ -368,6 +371,7 @@ int SaveasModel(struct Mod_Model *mod)
     return lastError;
   }
   MaintainModelName(mod);
+  imodvSetCaption();
 
   return(0);
 }
@@ -531,7 +535,8 @@ static void initModelData(Imod *newModel) {
   else
     imod_cmap(App->cvi->imod);	  
 
-  /* Notify imodv about the model */
+  /* set up model name and notify imodv about the model */
+  MaintainModelName(App->cvi->imod);
   imodv_new_model(newModel);
 
   /* DNM: select the first color ramp; call xcramp_setlevels, 
@@ -558,7 +563,6 @@ static void initModelData(Imod *newModel) {
   App->cvi->imod->ymax = App->cvi->ysize;
   App->cvi->imod->zmax = App->cvi->zsize;
 
-  MaintainModelName(App->cvi->imod);
 }
 
 //  createNewModel  create a new model data structure and optionally give the
