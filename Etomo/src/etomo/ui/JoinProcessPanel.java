@@ -1,5 +1,7 @@
 package etomo.ui;
 
+import java.awt.event.ActionEvent;
+
 import etomo.JoinManager;
 import etomo.type.AxisID;
 /**
@@ -16,6 +18,9 @@ import etomo.type.AxisID;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.3  2004/09/29 19:34:29  sueh
+* <p> bug# 520 updated comment
+* <p>
 * <p> Revision 1.1.2.2  2004/09/15 22:36:45  sueh
 * <p> bug# 520 calling createPrcoessControlPanel and initializePanels in
 * <p> constructor
@@ -29,13 +34,23 @@ import etomo.type.AxisID;
 public class JoinProcessPanel extends AxisProcessPanel {
   public static  final String  rcsid =  "$Id$";
   
+  JoinManager joinManager;
   /**
    * @param joinManager
    * @param axis
    */
   public JoinProcessPanel(JoinManager joinManager, AxisID axis) {
-    super(joinManager, axis);
+    super(axis);
+    this.joinManager = joinManager;
     createProcessControlPanel();
     initializePanels();
+  }
+  
+  /**
+   * 
+   * @param event
+   */
+  protected void buttonKillAction(ActionEvent event) {
+    joinManager.kill(axisID);
   }
 }
