@@ -47,6 +47,20 @@ import etomo.util.UniqueKey;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.12.2.5  2004/09/13 17:19:12  sueh
+ * <p> bug# 520 Changed file menu:  changed New to New Tomogram, added
+ * <p> New Join, added Close to close individual managers.  Changed Window
+ * <p> menu storeage to a HashedArray with the same keys as
+ * <p> EtomoDirectory.managerList.  This makes it easier to build the menu and
+ * <p> to access it when a menu item is selected.  Added JPanel.repaint() call
+ * <p> to fix a problem where the Setup dialog is not repainting which it is
+ * <p> selected in the Window menu.  Renamed setCurrentWindowLabels() to
+ * <p> setWindowMenuLabels().  Added numbering to tomogram datasets and
+ * <p> joins listed under the window menu, because they may not have unique
+ * <p> names.  Changed the menu items under window to JCheckBoxMenuItem
+ * <p> and created a function to check one menu item.  Handling most of the
+ * <p> file menu items with EtomoDirector.
+ * <p>
  * <p> Revision 3.12.2.4  2004/09/09 22:12:55  sueh
  * <p> bug# 520 make etomo switch between datasets by removing and adding
  * <p> MainPanel
@@ -471,7 +485,7 @@ public class MainFrame extends JFrame implements ContextMenu {
    * @param event
    */
   private void menuFileMRUListAction(ActionEvent event) {
-    currentManager.openExistingDataset(new File(event.getActionCommand()));
+    etomoDirector.openTomogram(new File(event.getActionCommand()), true);
   }
   
   /**
