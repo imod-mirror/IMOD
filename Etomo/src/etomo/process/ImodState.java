@@ -172,6 +172,9 @@ import etomo.type.AxisID;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.19  2004/08/31 01:09:03  sueh
+ * <p> $bug# 541 reset():  resetting each time 3dmod runs
+ * <p> $
  * <p> $Revision 1.18  2004/06/22 23:39:39  sueh
  * <p> $bug# 455 Removing usingOpenContours because it automatcally
  * <p> $gets reset to default when a new model is opened.
@@ -347,6 +350,11 @@ public class ImodState {
     this.datasetName = datasetName;
     initialModelName = modelName;
     process = new ImodProcess(datasetName, modelName);
+    reset();
+  }
+  
+  public ImodState(File file) {
+    process = new ImodProcess(file.getAbsolutePath());
     reset();
   }
 
