@@ -32,6 +32,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.3  2003/01/29 01:45:29  mast
+Make cube be a rgb widget regardless
+
 Revision 1.1.2.2  2003/01/06 18:59:43  mast
 fixing problems with float spin box
 
@@ -97,7 +100,7 @@ SlicerWindow::SlicerWindow(SlicerStruct *slicer, float maxAngles[],
   int j;
   ArrowButton *arrow;
   QGLFormat glFormat;
-  
+
   mSlicer = slicer;
   
   // Get the toolbar
@@ -371,11 +374,25 @@ SlicerGL::SlicerGL(SlicerStruct *slicer, QGLFormat inFormat, QWidget * parent,
 {
   mMousePressed = false;
   mSlicer = slicer;
+  mFirstDraw = true;
 }
 
 void SlicerGL::paintGL()
 {
+  if (mFirstDraw) {
+    mTimerID = startTimer(10);
+    mFirstDraw = false;
+    if (mTimerID)
+      return;
+  }
+
   slicerPaint(mSlicer);
+}
+
+void SlicerGL::timerEvent(QTimerEvent * e )
+{
+  killTimer(mTimerID);
+  updateGL();
 }
 
 void SlicerGL::resizeGL( int wdth, int hght )
