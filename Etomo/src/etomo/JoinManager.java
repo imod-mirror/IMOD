@@ -1,12 +1,14 @@
 package etomo;
 
 import java.io.File;
+import java.util.Vector;
 
-import etomo.process.ImodManager;
+import etomo.process.ImodProcess;
 import etomo.process.SystemProcessException;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.AxisTypeException;
+import etomo.type.SlicerAngles;
 import etomo.ui.JoinDialog;
 import etomo.ui.MainJoinPanel;
 
@@ -24,6 +26,9 @@ import etomo.ui.MainJoinPanel;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.6  2004/09/21 17:43:41  sueh
+* <p> bug# 520 add imodTomogram and imodRemoveTomogram
+* <p>
 * <p> Revision 1.1.2.5  2004/09/15 22:34:34  sueh
 * <p> bug# 520 casting  base manager when necessary.  Added JoinDialog
 * <p>
@@ -116,14 +121,14 @@ public class JoinManager extends BaseManager {
   }
   
   /**
-   * Open 3dmod to view a tomogram
+   * Open 3dmod to view a file
    */
-  public int imodTomogram(File tomogramFile, int imodIndex) {
+  public int imodOpen(String imodKey, File file, int imodIndex) {
     try {
       if (imodIndex == -1) {
-        imodIndex = imodManager.newImod(ImodManager.TOMOGRAM_KEY, tomogramFile);
+        imodIndex = imodManager.newImod(imodKey, file);
       }
-      imodManager.open(ImodManager.TOMOGRAM_KEY, tomogramFile, imodIndex);
+      imodManager.open(imodKey, file, imodIndex);
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
@@ -132,17 +137,17 @@ public class JoinManager extends BaseManager {
     catch (SystemProcessException except) {
       except.printStackTrace();
       mainPanel.openMessageDialog(except.getMessage(),
-        "Can't open 3dmod with imodIndex=" + imodIndex);
+        "Can't open " + imodKey + " 3dmod with imodIndex=" + imodIndex);
     }
     return imodIndex;
   }
   
-  public void imodRemoveTomogram(int imodIndex) {
+  public void imodRemove(String imodKey, int imodIndex) {
     if (imodIndex == -1) {
       return;
     }
     try {
-      imodManager.delete(ImodManager.TOMOGRAM_KEY, imodIndex);
+      imodManager.delete(imodKey, imodIndex);
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
@@ -151,10 +156,83 @@ public class JoinManager extends BaseManager {
     catch (SystemProcessException except) {
       except.printStackTrace();
       mainPanel.openMessageDialog(except.getMessage(),
-        "Can't delete 3dmod with imodIndex=" + imodIndex);
+        "Can't delete " + imodKey + " 3dmod with imodIndex=" + imodIndex);
     }
-
   }
+  
+  public SlicerAngles imodGetSlicerAngles(String imodKey, int imodIndex) {
+    Vector results = null;
+    try {
+      if (imodIndex == -1) {
+        mainPanel.openMessageDialog("The is no open " + imodKey
+            + " 3dmod for the highlighted row.", "No 3dmod");
+      }
+      results = imodManager.getSlicerAngles(imodKey, imodIndex);
+    }
+    catch (AxisTypeException except) {
+      except.printStackTrace();
+      mainPanel.openMessageDialog(except.getMessage(), "AxisType problem");
+    }
+    catch (SystemProcessException except) {
+      except.printStackTrace();
+      mainPanel.openMessageDialog(except.getMessage(),
+          "Can't get rotation angles from " + imodKey
+              + " 3dmod.");
+    }
+    Vector messageArray = new Vector();
+    SlicerAngles slicerAngles = null;
+    if (results == null) {
+      messageArray.add("Unable to retrieve slicer angles.");
+      messageArray.add("The " + imodKey + " may not be open in 3dmod.");
+    }
+    else {
+      slicerAngles = new SlicerAngles();
+      boolean foundResultLine1 = false;
+      boolean foundResult = false;
+      String result = null;
+      for (int i = 0; i < results.size(); i++) {
+        result = (String) results.get(i);
+        if (result.indexOf(ImodProcess.IMOD_SEND_EVENT_STRING) != -1
+            || result.indexOf(ImodProcess.ERROR_STRING) != -1
+            || result.indexOf(ImodProcess.WARNING_STRING) != -1) {
+          messageArray.add(result);
+        }
+        else if (!foundResultLine1 && !foundResult
+            && result.equals(ImodProcess.SLICER_ANGLES_RESULTS_STRING1)) {
+          foundResultLine1 = true;
+        }
+        else if (foundResultLine1 && !foundResult
+            && result.equals(ImodProcess.SLICER_ANGLES_RESULTS_STRING2)) {
+          foundResult = true;
+        }
+        else if (foundResult && !slicerAngles.isComplete()) {
+          try {
+            slicerAngles.add(result);
+          }
+          catch (NumberFormatException e) {
+            messageArray.add(result);
+          }
+        }
+        else {
+          messageArray.add(result);
+        }
+      }
+      if (!slicerAngles.isComplete()) {
+        messageArray.add("Unable to retrieve slicer angles from " + imodKey
+            + " 3dmod.");
+        if (!slicerAngles.isEmpty()) {
+          messageArray.add("slicerAngles=" + slicerAngles);
+        }
+      }
+    }
+    if (messageArray.size() > 0) {
+      String[] messages = (String[]) messageArray
+          .toArray(new String[messageArray.size()]);
+      mainPanel.openMessageDialog(messages, "Slicer Angles");
+    }
+    return slicerAngles;
+  }
+
   
   /**
    * Open the main window in processing mode
