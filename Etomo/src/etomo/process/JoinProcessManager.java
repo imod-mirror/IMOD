@@ -29,6 +29,10 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.6  2004/10/21 02:44:29  sueh
+* <p> bug# 520 Added finishJoin and midasSample.  Added post processing for
+* <p> midas and xfalign.
+* <p>
 * <p> Revision 1.1.2.5  2004/10/18 19:08:50  sueh
 * <p> bug# 520 Added misdasSample.  Added getManager().
 * <p>
@@ -125,6 +129,16 @@ public class JoinProcessManager extends BaseProcessManager {
     }
     if (commandName.equals(FlipyzParam.getName())) {
       joinManager.addSection(process.getOutputFile());
+    }
+    if (commandName.equals(XfalignParam.getName())) {
+      joinManager.enableMidas();
+    }
+  }
+  
+  protected void backgroundErrorProcess(BackgroundProcess process) {
+    String commandName = process.getCommandName();
+    if (commandName == null) {
+      return;
     }
     if (commandName.equals(XfalignParam.getName())) {
       joinManager.enableMidas();
