@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.10  2003/01/27 00:30:07  mast
+Pure Qt version and general cleanup
+
 Revision 1.1.2.9  2003/01/18 01:13:44  mast
 add include of dia_qtutils
 
@@ -465,8 +468,7 @@ void imodvFileMenu(int item)
     break;
  
   case VFILE_MENU_QUIT:
-    stereoHWOff();
-    imodv_exit(Imodv);
+    Imodv->mainWin->close();
     break;
   }
 } 
