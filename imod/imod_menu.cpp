@@ -36,6 +36,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.7  2003/01/14 21:52:38  mast
+include new movie controller include file
+
 Revision 1.1.2.6  2003/01/13 01:00:28  mast
 Qt version
 
@@ -109,6 +112,7 @@ Added calls for cache filling
 #include "pixelview.h"
 #include "xgraph.h"
 #include "dia_qtutils.h"
+#include "imod_cachefill.h"
 #include "imod.h"
 #include "xzap.h"
 #include "imod_info.h"
