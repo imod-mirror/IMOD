@@ -9,6 +9,7 @@ import java.io.File;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.AxisTypeException;
+import etomo.type.ConstJoinMetaData;
 import etomo.type.ConstMetaData;
 
 /*p
@@ -27,6 +28,11 @@ import etomo.type.ConstMetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.25.4.3  2004/09/22 22:06:36  sueh
+ * <p> bug# 520 Made isOpen() check all imodStates of each type, instead of
+ * <p> only the most recent.  Added getSlicerAngles().  Removed
+ * <p> get(String, boolean) because it is not used in isOpen() anymore.
+ * <p>
  * <p> Revision 3.25.4.2  2004/09/21 17:55:18  sueh
  * <p> bug# 520 Added a new type of 3dmod called a tomogram.  A tomogram
  * <p> 3dmod opens a file regardless of dataset and axisID.  Multiple tomogram
@@ -314,6 +320,7 @@ public class ImodManager {
   public static final String MTF_FILTER_KEY = new String("mtf filter");
   public static final String PREVIEW_KEY = new String("preview");
   public static final String TOMOGRAM_KEY = new String("tomogram");
+  public static final String JOIN_SAMPLES_KEY = new String("joinSamples");
 
   //private keys - used with imodMap
   private static final String rawStackKey = RAW_STACK_KEY;
@@ -331,6 +338,7 @@ public class ImodManager {
   private static final String mtfFilterKey = MTF_FILTER_KEY;
   private static final String previewKey = PREVIEW_KEY;
   private static final String tomogramKey = TOMOGRAM_KEY;
+  private static final String joinSamplesKey = JOIN_SAMPLES_KEY;
 
   private boolean useMap = true;
 
@@ -371,6 +379,14 @@ public class ImodManager {
     else {
       loadDualAxisMap();
     }
+  }
+  
+  public void setMetaData(ConstJoinMetaData metaData) {
+    metaDataSet = true;
+    axisType = metaData.getAxisType();
+    datasetName = metaData.getRootName();
+    createPrivateKeys();
+    loadJoinMap();
   }
 
   public int newImod(String key)
@@ -801,6 +817,9 @@ public class ImodManager {
     if (key.equals(TOMOGRAM_KEY) && axisID == null) {
       return newTomogram(file);
     }
+    if (key.equals(JOIN_SAMPLES_KEY) && axisID == null) {
+      return newJoinSamples(datasetName);
+    }
     throw new IllegalArgumentException(
       key
         + " cannot be created in "
@@ -827,7 +846,6 @@ public class ImodManager {
   }
 
   protected void loadSingleAxisMap() {
-    ImodState imodState;
     imodMap.put(rawStackKey, newVector(newRawStack(AxisID.ONLY)));
     imodMap.put(erasedStackKey, newVector(newErasedStack(AxisID.ONLY)));
     imodMap.put(coarseAlignedKey, newVector(newCoarseAligned(AxisID.ONLY)));
@@ -838,9 +856,12 @@ public class ImodManager {
     imodMap.put(trimmedVolumeKey, newVector(newTrimmedVolume()));
     imodMap.put(mtfFilterKey, newVector(newMtfFilter(AxisID.ONLY)));
   }
+  
+  protected void loadJoinMap() {
+    imodMap.put(joinSamplesKey, newVector(newJoinSamples(datasetName)));
+  }
 
   protected void loadDualAxisMap() {
-    ImodState imodState;
     imodMap.put(
       rawStackKey + AxisID.FIRST.getExtension(),
       newVector(newRawStack(AxisID.FIRST)));
@@ -968,6 +989,11 @@ public class ImodManager {
     ImodState imodState = new ImodState(file);
     return imodState;
   }
+  protected ImodState newJoinSamples(String root) {
+    ImodState imodState = new ImodState(root + ".sample");
+    return imodState;
+  }
+  
   protected boolean isPerAxis(String key) {
     if (key.equals(COMBINED_TOMOGRAM_KEY)
       || key.equals(PATCH_VECTOR_MODEL_KEY)
