@@ -37,6 +37,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.1.2.1  2002/12/05 16:30:00  mast
+Add include of imod_object_edit.h
+
 Revision 4.2  2002/12/03 16:08:28  mast
 Switched SavasModel to using dia_filename so that there would be no callback
 returns from file dialogs (thus preventing multiple file dialogs).  Refined
@@ -77,7 +80,6 @@ removed old version of imod_io_image_reload
 #include <errno.h>
 #include "mrcfiles.h"
 #include "imod.h"
-#include "xzap.h"
 #include "imod_info.h"
 #include "imodv.h"
 #include "imod_io.h"
