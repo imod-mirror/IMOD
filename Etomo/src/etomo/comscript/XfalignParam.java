@@ -22,6 +22,10 @@ import etomo.type.EtomoSimpleType;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.4  2004/10/22 20:59:25  sueh
+* <p> bug# 520 Using EtomoSimpleType where possible.  Changed offsetInX, Y
+* <p> to shiftInX, Y.
+* <p>
 * <p> Revision 1.1.2.3  2004/10/22 03:21:16  sueh
 * <p> bug# 520 Reducing the number of ConstJoinMetaData functions by
 * <p> passing EtomoInteger, EtomoFloat, etc and using their get() and
@@ -41,6 +45,7 @@ public class XfalignParam implements Command {
   
   private static final int commandSize = 3;
   private static final String commandName = "xfalign";
+  private static final String outputFileExtension = "_auto.xf";
   
   public static final int INITIAL_MODE = -1;
   public static final int REFINE_MODE = -2;
@@ -57,7 +62,7 @@ public class XfalignParam implements Command {
     this.metaData = metaData;
     workingDir = metaData.getWorkingDir();
     rootName = metaData.getRootName();
-    outputFileName = rootName + ".xf";
+    outputFileName = rootName + outputFileExtension;
     outputFile = new File(workingDir, outputFileName);
     ArrayList options = genOptions(mode);
     commandArray = new String[options.size() + commandSize];
@@ -91,6 +96,10 @@ public class XfalignParam implements Command {
     return commandName;
   }
   
+  public static String getOutputFileExtension() {
+    return outputFileExtension;
+  }
+  
   public File getOutputFile() {
     return outputFile;
   }
@@ -121,7 +130,7 @@ public class XfalignParam implements Command {
   
   private void genRefineOptions(ArrayList options) {
     options.add("-ini");
-    options.add(outputFileName);
+    options.add(rootName + ".xf");
     genFilterOptions(options);
     genParamsOptions(options);
     options.add(rootName + ".sampavg");
