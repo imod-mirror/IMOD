@@ -29,6 +29,10 @@ import etomo.type.SlicerAngles;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.10  2004/10/22 03:28:33  sueh
+* <p> bug# 520 Added Chunk, Reference section, and Current section to Align
+* <p> tab.
+* <p>
 * <p> Revision 1.1.2.9  2004/10/15 00:52:26  sueh
 * <p> bug# 520 Added toString().
 * <p>
@@ -85,14 +89,14 @@ public class SectionTableRow {
   
   //ui
   SectionTablePanel table = null;
-  private HeaderCell rowNumberHeader = null;
+  private HeaderCell rowNumber = null;
   private MultiLineToggleButton highlighterButton = null;
   private FieldCell section = null;
   private FieldCell sampleBottomStart = null;
   private FieldCell sampleBottomEnd = null;
   private FieldCell sampleTopStart = null;
   private FieldCell sampleTopEnd = null;
-  private FieldCell chunk = null;
+  private HeaderCell chunk = null;
   private FieldCell referenceSectionStart = null;
   private FieldCell referenceSectionEnd = null;
   private FieldCell currentSectionStart = null;
@@ -133,7 +137,7 @@ public class SectionTableRow {
   }
 
   protected String paramString() {
-    return ",\ntable=" + table + ",\nrowNumberHeader=" + rowNumberHeader
+    return ",\ntable=" + table + ",\rowNumber=" + rowNumber
         + ",\nhighlighterButton=" + highlighterButton + ",\nsection=" + section
         + ",\nsampleBottomStart=" + sampleBottomStart + ",\nsampleBottomEnd="
         + sampleBottomEnd + ",\nsampleTopStart=" + sampleTopStart
@@ -149,7 +153,7 @@ public class SectionTableRow {
   } 
   
   void create() {
-    rowNumberHeader = new HeaderCell(data.getRowNumber().getString(),
+    rowNumber = new HeaderCell(data.getRowNumber().getString(),
         FixedDim.rowNumberWidth);
     highlighterButton = table.createToggleButton("=>", FixedDim.highlighterWidth);
     highlighterButton.addActionListener(actionListener);
@@ -160,8 +164,7 @@ public class SectionTableRow {
     sampleBottomEnd = new FieldCell();
     sampleTopStart = new FieldCell();
     sampleTopEnd = new FieldCell();
-    chunk = new FieldCell();
-    chunk.setEnabled(false);
+    chunk = new HeaderCell();
     referenceSectionStart = new FieldCell();
     referenceSectionStart.setEnabled(false);
     referenceSectionEnd = new FieldCell();
@@ -214,7 +217,7 @@ public class SectionTableRow {
   }
   
   private void removeSetup() {
-    rowNumberHeader.remove();
+    rowNumber.remove();
     table.removeCell(highlighterButton);
     section.remove();
     sampleBottomStart.remove();
@@ -229,7 +232,7 @@ public class SectionTableRow {
   }
   
   private void removeAlign() {
-    rowNumberHeader.remove();
+    rowNumber.remove();
     section.remove();
     sampleBottomStart.remove();
     sampleBottomEnd.remove();
@@ -243,7 +246,7 @@ public class SectionTableRow {
   }
   
   private void removeJoin() {
-    rowNumberHeader.remove();
+    rowNumber.remove();
     table.removeCell(highlighterButton);
     section.remove();
     finalStart.remove();
@@ -254,7 +257,7 @@ public class SectionTableRow {
     this.curTab = curTab;
   }
   
-  int displayCurTab(JPanel panel, int prevSlice, int prevSampleBottom, int prevSampleTop) {
+  int displayCurTab(JPanel panel, int prevSlice, int prevSampleTop) {
     remove();
     add(panel);
     configureFields();
@@ -275,10 +278,19 @@ public class SectionTableRow {
           prevSlice += prevSampleTop;
           referenceSectionEnd.setText(Integer.toString(prevSlice));
         }
-        if (prevSampleBottom > 0) {
+        else {
+          referenceSectionStart.setText("");
+          referenceSectionEnd.setText("");
+        }
+        int sampleBottom = getSampleBottom();
+        if (sampleBottom > 0) {
           currentSectionStart.setText(Integer.toString(prevSlice + 1));
-          prevSlice += prevSampleBottom;
+          prevSlice += sampleBottom;
           currentSectionEnd.setText(Integer.toString(prevSlice));
+        }
+        else {
+          currentSectionStart.setText("");
+          currentSectionEnd.setText("");
         }
       }
     }
@@ -302,7 +314,7 @@ public class SectionTableRow {
     GridBagConstraints constraints = table.getTableConstraints();
     constraints.weighty = 1.0;
     constraints.gridwidth = 1;
-    rowNumberHeader.add(panel, layout, constraints);
+    rowNumber.add(panel, layout, constraints);
     constraints.weightx = 0.0;
     table.addCell(highlighterButton);
     constraints.gridwidth = 2;
@@ -325,7 +337,7 @@ public class SectionTableRow {
     GridBagConstraints constraints = table.getTableConstraints();
     constraints.weighty = 1.0;
     constraints.gridwidth = 1;
-    rowNumberHeader.add(panel, layout, constraints);
+    rowNumber.add(panel, layout, constraints);
     constraints.weightx = 0.0;
     constraints.gridwidth = 2;
     section.add(panel, layout, constraints);
@@ -347,7 +359,7 @@ public class SectionTableRow {
     GridBagConstraints constraints = table.getTableConstraints();
     constraints.weighty = 1.0;
     constraints.gridwidth = 1;
-    rowNumberHeader.add(panel, layout, constraints);
+    rowNumber.add(panel, layout, constraints);
     constraints.weightx = 0.0;
     table.addCell(highlighterButton);
     constraints.gridwidth = 2;
@@ -359,7 +371,7 @@ public class SectionTableRow {
   }
   
   private void displayData() {
-    rowNumberHeader.setText(data.getRowNumber().getString());
+    rowNumber.setText(data.getRowNumber().getString());
     setSectionText();
     sampleBottomStart.setText(data.getSampleBottomStartString());
     sampleBottomEnd.setText(data.getSampleBottomEndString());
@@ -411,7 +423,7 @@ public class SectionTableRow {
   
   void setRowNumber(int rowNumber, boolean maxRow) {
     data.setRowNumber(rowNumber);
-    rowNumberHeader.setText("<html><b>" + Integer.toString(rowNumber) + "</b>");
+    this.rowNumber.setText("<html><b>" + Integer.toString(rowNumber) + "</b>");
     configureFields();
   }
   
@@ -487,7 +499,6 @@ public class SectionTableRow {
     if (startInteger.isSet() && endInteger.isSet()) {
       int start = startInteger.get();
       int end = endInteger.get();
-      System.out.println("getSampleBottom:start="+start+",end="+end);
       return end - start + 1;
     }
     return 0;
@@ -501,7 +512,6 @@ public class SectionTableRow {
     if (startInteger.isSet() && endInteger.isSet()) {
       int start = startInteger.get();
       int end = endInteger.get();
-      System.out.println("getSampleTop:start="+start+",end="+end);
       return end - start + 1;
     }
     return 0;
