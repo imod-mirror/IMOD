@@ -1,5 +1,10 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/10/04: IMOD_3-3-9
+9/10/04: Fixed tif2mrc, mrc2tif problems on AMD64.
+
+9/9/04: Fixed problems with 3dmod writing tiff files on AMD64.
+
 9/8/04: IMOD_3-3-8 released
 9/1/04: Fixed bug in determining if piece list file was entered to Blendmont,
 only showed up on AMD64.
