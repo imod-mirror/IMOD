@@ -28,6 +28,17 @@ import etomo.util.UniqueKey;
  * 
  * <p>
  * $Log$
+ * Revision 1.1.2.4  2004/09/13 16:40:41  sueh
+ * bug# 520 Finding manager by key because there can be duplicate names.
+ * Using a etomo.util.HashedArray to store managers because they may
+ * have duplicate names and they need to because accessed by index and
+ * \key.  Making a set of openTomogram and OpenJoin functions to creating
+ * new ApplicationManagers and JoinManagers.  Adding calls to functions
+ * that create the Window menu items and check the current menu item to
+ * EtomoDirector.  Add public functions to access the manager list.  Add
+ * public functions to set the current manager, close the current manager,
+ * rename the current manager, and exit the program.
+ *
  * Revision 1.1.2.3  2004/09/09 17:32:42  sueh
  * bug# 520 Allow retrieval of manager by .edf file name or by order by
  * adding an ArrayList of .edf file names.  Call MainFrame.createMenus after
@@ -226,11 +237,10 @@ public class EtomoDirector {
   }
   
   public boolean exitProgram() {
-    for (int i = 0; i < managerList.size(); i++) {
-      System.out.println("i=" + i + ",managerList.getKey(i)=" + managerList.getKey(i) + ",managerList.getKey(i).hashCode()=" + managerList.getKey(i).hashCode());
-      //if (!closeCurrentManager()) {
-        //return false;
-      //}
+    while (managerList.size() != 0) {
+      if (!closeCurrentManager()) {
+        return false;
+      }
     }
     return true;
   }
