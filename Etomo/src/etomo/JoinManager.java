@@ -46,6 +46,9 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.25  2004/11/11 01:34:23  sueh
+* <p> bug# 520 Adding binning to open 3dmod functions.
+* <p>
 * <p> Revision 1.1.2.24  2004/11/08 22:08:04  sueh
 * <p> bug# 520 consolidate functionality that calls finishjoin into runFinishjoin().
 * <p> Add functions to set shift and size.
@@ -229,12 +232,12 @@ public class JoinManager extends BaseManager {
   }
   
   /**
-   * Open 3dmod to view final join 
+   * Open 3dmod with binning 
    */
-  public void imodOpenJoin(int binning) {
+  public void imodOpen(String imodKey, int binning) {
     try {
-      imodManager.setBinning(ImodManager.JOIN_KEY, binning);
-      imodManager.open(ImodManager.JOIN_KEY);
+      imodManager.setBinning(imodKey, binning);
+      imodManager.open(imodKey);
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
@@ -243,16 +246,16 @@ public class JoinManager extends BaseManager {
     catch (SystemProcessException except) {
       except.printStackTrace();
       mainPanel.openMessageDialog(except.getMessage(),
-        "Can't open " + ImodManager.JOIN_KEY + " in 3dmod ");
+        "Can't open " + imodKey + " in 3dmod ");
     }
   }
   
   /**
-   * Open 3dmod to view join samples
+   * Open 3dmod
    */
-  public void imodOpenJoinSamples() {
+  public void imodOpen(String imodKey) {
     try {
-      imodManager.open(ImodManager.JOIN_SAMPLES_KEY);
+      imodManager.open(imodKey);
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
@@ -261,32 +264,16 @@ public class JoinManager extends BaseManager {
     catch (SystemProcessException except) {
       except.printStackTrace();
       mainPanel.openMessageDialog(except.getMessage(),
-        "Can't open " + ImodManager.JOIN_SAMPLES_KEY + " in 3dmod ");
-    }
-  }
-  
-  /**
-   * Open 3dmod to view join samples
-   */
-  public void imodOpenJoinSampleAverages() {
-    try {
-      imodManager.open(ImodManager.JOIN_SAMPLE_AVERAGES_KEY);
-    }
-    catch (AxisTypeException except) {
-      except.printStackTrace();
-      mainPanel.openMessageDialog(except.getMessage(), "AxisType problem");
-    }
-    catch (SystemProcessException except) {
-      except.printStackTrace();
-      mainPanel.openMessageDialog(except.getMessage(),
-        "Can't open " + ImodManager.JOIN_SAMPLE_AVERAGES_KEY + " in 3dmod ");
+        "Can't open " + imodKey + " in 3dmod ");
     }
   }
 
   /**
-   * Open 3dmod to view a file
+   * Open or raise a specific 3dmod to view a file with binning.
+   * Or open a new 3dmod.
+   * Return the index of the 3dmod opened or raised.
    */
-  public int imodOpenFile(String imodKey, int imodIndex, File file, int binning) {
+  public int imodOpen(String imodKey, int imodIndex, File file, int binning) {
     try {
       if (imodIndex == -1) {
         imodIndex = imodManager.newImod(imodKey, file);
@@ -306,6 +293,11 @@ public class JoinManager extends BaseManager {
     return imodIndex;
   }
   
+  /**
+   * Remove a specific 3dmod
+   * @param imodKey
+   * @param imodIndex
+   */
   public void imodRemove(String imodKey, int imodIndex) {
     if (imodIndex == -1) {
       return;
@@ -707,6 +699,10 @@ public class JoinManager extends BaseManager {
   
   public ConstJoinMetaData getMetaData() {
     return (ConstJoinMetaData) metaData;
+  }
+  
+  public JoinMetaData getJoinMetaData() {
+    return metaData;
   }
   
   /**
