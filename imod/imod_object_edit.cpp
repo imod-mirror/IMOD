@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.1  2002/12/05 16:30:58  mast
+Qt version
+
 Revision 3.1  2002/12/01 15:34:41  mast
 Changes to get clean compilation with g++
 
@@ -297,6 +300,9 @@ void ioew_time(int state)
 
 int imod_object_edit(Widget top)
 {
+  QString qstr;
+  char *window_name;
+
   Iobj *obj = imodObjectGet(Model);
   if (!obj){
     dia_err("No Object selected");
@@ -313,6 +319,13 @@ int imod_object_edit(Widget top)
   if (!Ioew_dialog){
     dia_err("Object edit failed.");
     return(-1);
+  }
+
+  window_name = imodwfname("Imod Object Edit:");
+  if (window_name) {
+    qstr = window_name;
+    free(window_name);
+    Ioew_dialog->setCaption(qstr);
   }
 
   Ioew_dialog->show();
