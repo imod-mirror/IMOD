@@ -16,6 +16,10 @@ import etomo.comscript.Command;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.1.2.3  2004/10/18 17:46:22  sueh
+ * <p> bug# 520 Fixed getCommandLine():  when the command is in an array,
+ * <p> getCommandLine() should return the complete command in a string.
+ * <p>
  * <p> Revision 3.1.2.2  2004/10/08 15:52:29  sueh
  * <p> bug# 520 Addded a command array option to the constructor.  Integrated
  * <p> the new Command option into the existing code (run, getCommand and
@@ -273,6 +277,13 @@ public class BackgroundProcess
    */
   public String[] getStdOutput() {
     return stdOutput;
+  }
+  
+  public int getMode() {
+    if (command == null) {
+      return 0;
+    }
+    return command.getMode();
   }
   
   public boolean isStarted() {
