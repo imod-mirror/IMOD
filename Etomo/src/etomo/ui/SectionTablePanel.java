@@ -5,6 +5,7 @@ import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
@@ -13,6 +14,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 import javax.swing.BorderFactory;
+import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
@@ -50,6 +52,11 @@ import etomo.util.MRCHeader;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.22  2004/10/30 02:38:24  sueh
+* <p> bug# 520 Stopped deleting .rot file when getting section.  Checking
+* <p> rootname.info file for .rot file when opening the section in the join tab.
+* <p> Will use the .rot name instead of the section, if it is listed in the .info file.
+* <p>
 * <p> Revision 1.1.2.21  2004/10/29 22:17:23  sueh
 * <p> bug# 520 Added .rot file handling.  When a .rot file exists:  Rename the corresponding .rot file when
 * <p> a tomogram file is added with addSection().  Remove the imodRotIndex
@@ -165,7 +172,8 @@ public class SectionTablePanel implements ContextMenu, Expandable {
   private static final String flipWarning[] = { "Tomograms have to be flipped after generation",
   "in order to be in the right orientation for joining serial sections." };
 
-  private DoubleSpacedPanel rootPanel;
+  private JPanel rootPanel;
+  private DoubleSpacedPanel pnlBorder;
   private JPanel pnlTable;
   private SpacedPanel pnlButtons;
   private SpacedPanel pnlImod;
@@ -239,8 +247,8 @@ public class SectionTablePanel implements ContextMenu, Expandable {
   }
 
   private void createRootPanel() {
-    //create rootPanel in X axis to make room at the border
-    rootPanel = new DoubleSpacedPanel(false, FixedDim.x5_y0, FixedDim.x0_y5,
+    rootPanel = new JPanel();
+    pnlBorder = new DoubleSpacedPanel(false, FixedDim.x5_y0, FixedDim.x0_y5,
         BorderFactory.createEtchedBorder());
     createTablePanel();
     addTablePanelComponents();
@@ -249,10 +257,17 @@ public class SectionTablePanel implements ContextMenu, Expandable {
   }
   
   private void addRootPanelComponents() {
-    rootPanel.add(pnlTable);
+    if (curTab == JoinDialog.JOIN_TAB) {
+      rootPanel.setLayout(new GridLayout(2,1));
+    }
+    else {
+      rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
+    }
+    rootPanel.add(pnlBorder.getContainer());
+    pnlBorder.add(pnlTable);
     if (curTab != JoinDialog.ALIGN_TAB) {
       addButtonsPanelComponents();
-      rootPanel.add(pnlButtons);
+      pnlBorder.add(pnlButtons);
     }
   }
 
@@ -265,6 +280,7 @@ public class SectionTablePanel implements ContextMenu, Expandable {
     pnlTable = new JPanel();
     pnlTable.setBorder(LineBorder.createBlackLineBorder());
     pnlTable.setLayout(layout);
+    constraints.fill = GridBagConstraints.BOTH;
     //Header
     //First row
     hdrOrder = new HeaderCell("Order");
@@ -304,7 +320,6 @@ public class SectionTablePanel implements ContextMenu, Expandable {
 
   private void addTablePanelComponents() {
     //Table constraints
-    constraints.fill = GridBagConstraints.BOTH;
     if (curTab == JoinDialog.SETUP_TAB) {
       addSetupTablePanelComponents();
     }
@@ -323,6 +338,7 @@ public class SectionTablePanel implements ContextMenu, Expandable {
   private void addSetupTablePanelComponents() {
     //Header
     //First row
+    constraints.anchor = GridBagConstraints.CENTER;
     constraints.weightx = 1.0;
     constraints.weighty = 1.0;
     constraints.gridheight = 1;
@@ -370,6 +386,7 @@ public class SectionTablePanel implements ContextMenu, Expandable {
   private void addAlignTablePanelComponents() {
     //Header
     //First row
+    constraints.anchor = GridBagConstraints.CENTER;
     constraints.weightx = 1.0;
     constraints.weighty = 1.0;
     constraints.gridheight = 1;
@@ -406,11 +423,10 @@ public class SectionTablePanel implements ContextMenu, Expandable {
     //Header
     //First row
     constraints.weightx = 1.0;
-    constraints.weighty = 1.0;
+    constraints.weighty = 0.0;
     constraints.gridheight = 1;
     constraints.gridwidth = 2;
     hdrOrder.add(pnlTable, layout, constraints);
-    constraints.weighty = 0.0;
     constraints.gridwidth = 1;
     hdrSections.add(pnlTable, layout, constraints);
     constraints.weightx = 0.0;
@@ -511,8 +527,9 @@ public class SectionTablePanel implements ContextMenu, Expandable {
   }
   
   void displayCurTab() {
-    pnlButtons.removeAll();
     rootPanel.removeAll();
+    pnlButtons.removeAll();
+    pnlBorder.removeAll();
     addRootPanelComponents();
     addButtonsPanelComponents();
     pnlTable.removeAll();
@@ -682,7 +699,7 @@ public class SectionTablePanel implements ContextMenu, Expandable {
     chooser.setFileFilter(tomogramFilter);
     chooser.setPreferredSize(new Dimension(400, 400));
     chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-    int returnVal = chooser.showOpenDialog(rootPanel.getContainer());
+    int returnVal = chooser.showOpenDialog(pnlBorder.getContainer());
     if (returnVal == JFileChooser.APPROVE_OPTION) {
       File tomogram = chooser.getSelectedFile();
       if (isDuplicate(tomogram)) {
@@ -1075,10 +1092,10 @@ public class SectionTablePanel implements ContextMenu, Expandable {
   }
 
   Container getContainer() {
-    return rootPanel.getContainer();
+    return rootPanel;
   }
   
-  DoubleSpacedPanel getRootPanel() {
+  JPanel getRootPanel() {
     return rootPanel;
   }
 
