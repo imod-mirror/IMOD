@@ -28,6 +28,9 @@ import etomo.type.JoinMetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.1.2.16  2004/10/18 19:11:15  sueh
+ * <p> bug# 520 Added a call to JoinManager.midasSample().
+ * <p>
  * <p> Revision 1.1.2.15  2004/10/18 18:11:10  sueh
  * <p> bug# 520 Passing fields to and from meta data.  Added call to xfalign().
  * <p> Moved validation of workingDir and rootName to ConstJoinMetaData.
@@ -352,13 +355,14 @@ public class JoinDialog implements ContextMenu {
     addFinishJoinPanelComponents();
     //third component
     pnlJoinComponent1 = new SpacedPanel(FixedDim.x0_y5, true);
-    pnlJoinComponent1.setLayout(new BoxLayout(pnlJoinComponent1.getContainer(), BoxLayout.Y_AXIS));
+    pnlJoinComponent1.setLayout(new BoxLayout(pnlJoinComponent1.getContainer(),
+        BoxLayout.Y_AXIS));
     pnlJoinComponent1.setBorder(BorderFactory.createEtchedBorder());
     pnlJoinComponent1A = new SpacedPanel(FixedDim.x5_y0, true);
-    pnlJoinComponent1A.setLayout(new BoxLayout(pnlJoinComponent1A.getContainer(), BoxLayout.X_AXIS));
+    pnlJoinComponent1A.setLayout(new BoxLayout(pnlJoinComponent1A
+        .getContainer(), BoxLayout.X_AXIS));
     SpinnerModel spinnerModel = new SpinnerNumberModel(1, 1, 50, 1);
-    spinOpenBinnedBy = new LabeledSpinner(
-        "Open binned by ", spinnerModel);
+    spinOpenBinnedBy = new LabeledSpinner("Open binned by ", spinnerModel);
     spinOpenBinnedBy.setTextMaxmimumSize(dimSpinner);
     pnlJoinComponent1A.add(spinOpenBinnedBy);
     lblInXAndY = new JLabel("in X and Y");
@@ -366,6 +370,7 @@ public class JoinDialog implements ContextMenu {
     pnlJoinComponent1.add(pnlJoinComponent1A);
     pnlJoinComponent1.setComponentAlignmentX(Component.CENTER_ALIGNMENT);
     btnOpenIn3dmod = new MultiLineButton("Open in 3dmod");
+    btnOpenIn3dmod.addActionListener(joinActionListener);
     pnlJoinComponent1.addMultiLineButton(btnOpenIn3dmod);
   }
   
@@ -411,6 +416,7 @@ public class JoinDialog implements ContextMenu {
     pnlFinishJoinComponent3.add(ltfOffsetInY);
     //fourth component
     btnFinishJoin = new MultiLineButton("Finish Join");
+    btnFinishJoin.addActionListener(joinActionListener);
   }
   
   private void addFinishJoinPanelComponents() {
@@ -511,6 +517,10 @@ public class JoinDialog implements ContextMenu {
     pnlSectionTable.setEnabledAddSection(true);
   }
   
+  public void enableMidas() {
+    btnMidas.setEnabled(true);
+  }
+  
   public void addSection(File tomogram) {
     pnlSectionTable.addSection(tomogram);
   }
@@ -538,16 +548,24 @@ public class JoinDialog implements ContextMenu {
       joinManager.imodOpenJoinSampleAverages();
     }
     else if (command.equals(btnInitialAutoAlignment.getActionCommand())) {
-      joinManager.xfalign();
+      btnMidas.setEnabled(false);
+      joinManager.xfalignInitial();
     }
     else if (command.equals(btnMidas.getActionCommand())) {
       joinManager.midasSample();
     }
     else if (command.equals(btnRefineAutoAlignment.getActionCommand())) {
-      //TODO
+      btnMidas.setEnabled(false);
+      joinManager.xfalignRefine();
     }
     else if (command.equals(btnRevertAutoAlignment.getActionCommand())) {
-      //TODO
+      joinManager.revertXfalign();
+    }
+    else if (command.equals(btnFinishJoin.getActionCommand())) {
+      joinManager.finishjoin();
+    }
+    else if (command.equals(btnOpenIn3dmod.getActionCommand())) {
+      joinManager.imodOpenJoin();
     }
     else {
       throw new IllegalStateException("Unknown command " + command);
