@@ -8,6 +8,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.2.2.8  2003/01/27 00:38:37  mast
+#  fine-tuning the build after pure Qt imod
+#
 #  Revision 3.2.2.7  2002/12/06 22:04:56  mast
 #  *** empty log message ***
 #
@@ -125,6 +128,7 @@ else
 endif
 echo "RANLIB    = true"                     >> $configure
 echo "MAKELIBSO = ld $flags -shared -all -o"       >> $configure
+echo 'MAKELIBCPP = $(MAKELIB)'              >> $configure
 
 if ($debug == true) then
 #	echo "CLIBS   = -lmalloc_cv -lm -lc" >> $configure

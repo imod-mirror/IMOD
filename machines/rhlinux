@@ -55,6 +55,7 @@ set wrapper = ""
 
 if ($shared_libs != false) then
 	echo "AR      = ld"                 >> $configure
+	echo "ARCPP   = g++"                >> $configure
 	echo "ARFLAGS = $flags -shared -o"    >> $configure
 	echo "RANLIB    = true"                     >> $configure
 	echo "LIBEXT  = so"                 >> $configure
@@ -70,13 +71,15 @@ if ($shared_libs != false) then
 	endif
 else
 	echo "AR      = ar"                 >> $configure
+	echo "ARCPP   = ar"                 >> $configure
 	echo "ARFLAGS = ruv"                >> $configure
 	echo "RANLIB    = ranlib"            >> $configure
 	echo "LIBEXT  = a"                  >> $configure
 endif
 
 echo 'MAKELIB   = $(AR) $(ARFLAGS)' >> $configure
-echo "MAKELIBSO = ld $flags -shared -o" >> $configure
+echo 'MAKELIBCPP = $(ARCPP) $(ARFLAGS)' >> $configure
+echo "MAKELIBSO = g++ $flags -shared -o" >> $configure
 
 
 echo "CLIBS   = -lc -lm" >> $configure
