@@ -30,6 +30,7 @@
 #include <math.h>
 #include <string.h>
 #include "formv_modeled.h"
+#include "dia_qtutils.h"
 #include "imodv.h"
 #include "imod.h"
 #include "imodv_gfx.h"

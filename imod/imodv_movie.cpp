@@ -29,6 +29,7 @@
 
 #include <qapplication.h>
 #include "formv_movie.h"
+#include "dia_qtutils.h"
 #include "imodv.h"
 #include "imod.h"
 #include "b3dgfx.h"

@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.8  2003/01/13 07:21:38  mast
+Changes to use new dialog manager class
+
 Revision 1.1.2.7  2003/01/06 15:53:07  mast
 eliminate unused varaiables
 
@@ -66,6 +69,7 @@ Changed copyright notice to use defined lab name and years
 #include <qfiledialog.h>
 #include "colorselector.h"
 #include "imodv_window.h"
+#include "dia_qtutils.h"
 #include "imodv.h"
 #include "imod.h"
 #include "b3dgfx.h"

@@ -35,6 +35,9 @@
     $Revision$
 
     $Log$
+    Revision 1.1.2.7  2003/01/13 07:21:38  mast
+    Changes to use new dialog manager class
+
     Revision 1.1.2.6  2002/12/30 06:40:24  mast
     Prevent multiple draws, adapt to dialog-widget control
 
@@ -47,6 +50,7 @@
 #include <string.h>
 #include "formv_views.h"
 #include "imodv.h"
+#include "dia_qtutils.h"
 #include "imod.h"
 #include "imod_input.h"
 #include "imodv_gfx.h"
