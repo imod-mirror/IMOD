@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.2  2003/01/27 00:30:07  mast
+Pure Qt version and general cleanup
+
 Revision 1.1.2.1  2003/01/23 23:05:54  mast
 conversion to cpp
 
@@ -75,6 +78,7 @@ excess in sizing of temporary buffers.
 
 #include <stdlib.h>
 #include <math.h>
+#include <qglcolormap.h>
 #include "imod.h"
 #include "b3dgfx.h"
 #include "b3dfile.h"
@@ -521,96 +525,8 @@ B3dCIImage *b3dGetNewCIImageSize(B3dCIImage *image, int depth,
      
 }
 
-/* 1/20/02: No longer used by xyz window.  For OpenGL, this routine fills the
-   temporary data array - then xyz window used glDrawPixels with OpenGL zoom */
-void b3dFillGreyScalePixels(unsigned char *data,      /* input data      */
-                            int xsize, int ysize,     /* size of input   */
-                            B3dCIImage *image,        /* tmp image data. */
-                            int base)                 /* colorindex ramp */
-{
-  unsigned long x, y;
-  unsigned long mx = xsize;
-  unsigned long my = ysize;
-  unsigned long xysize = xsize * ysize;
-  unsigned long i = 0;
-  unsigned short b = base;
+/* 1/28/03: eliminated unused b3dPutCIImage and  b3dFillGreyScalePixels */
 
-  int pixmin = 0;
-  int rate   = 255;
-  int pixmax = 255;
-
-  if (App->depth == 8 || App->rgba){
-    b = 0;
-  }
-
-  {
-    GLint  unpack = b3dGetImageType(NULL, NULL);
-    unsigned short *ids = image->id1;
-    unsigned char *idb = (unsigned char *)ids;
-    unsigned int *idi = (unsigned int *)ids;
-    unsigned int *cindex = App->cvi->cramp->ramp;
-
-    /* This would be a wrong thing to do */
-    if (!data){
-      b3dColorIndex(base);
-      glColor3f(0.0f, 0.0f, 0.0f);
-      b3dDrawFilledRectangle(0, 0, xsize, ysize);
-      return;
-    }
-    switch (unpack) {
-    case 1:
-      if (data)
-        for(i = 0; i < xysize; i++)
-          idb[i] = data[i];
-      else
-        for(i = 0; i < xysize; i++)
-          idb[i] = 0;
-      break;
-    case 2:
-      if (data) {
-        if (b)
-          for(i = 0; i < xysize; i++)
-            ids[i] = data[i] + b;
-        else
-          for(i = 0; i < xysize; i++)
-            ids[i] = data[i];
-      } else
-        for(i = 0; i < xysize; i++)
-          ids[i] = b;
-      break;
-    case 4:
-      if (data)
-        for(i = 0; i < xysize; i++)
-          idi[i] = cindex[data[i]];
-      else
-        for(i = 0; i < xysize; i++)
-          idi[i] = 0;
-      break;
-    }
-  }
-
-  return;
-}
-
-/* Unused by any routines with OpenGL */
-void b3dPutCIImage(B3dCIImage *image, 
-                   int src_x, int src_y,
-                   int dest_x, int dest_y,
-                   unsigned int width, unsigned int height)
-     /* width and height must be equal to image width,height */
-{
-  /* fix later, image src must be 0 now. */
-  src_x = src_y = 0;
-
-  glPixelStorei( GL_UNPACK_ALIGNMENT, 2);
-  /*     glPixelMap(GL_PIXEL_MAP_I_TO_I, rampsize, *ramp); */
-  glPixelZoom(1.0,1.0);
-  glRasterPos2i(dest_x, dest_y);
-  glDrawPixels(width, height, GL_COLOR_INDEX, GL_UNSIGNED_SHORT, 
-               image->id1);
-
-  return;
-}
 
 /* This is used by the tumbler and tilt windows (11/1/00) - it sets up 
    offsets correctly to call b3dDrawGreyScalePixels, using OpenGl zoom */
@@ -1609,7 +1525,6 @@ void b3dSnapshot_RGB(char *fname, int rgbmode, int *limits)
 
   int mapsize;
   unsigned int *fcmapr, *fcmapg, *fcmapb;
-  //  XColor xcolor;
   unsigned long *cindex, ci;
   unsigned char *pixout, tmp;
   int rpx = 0; 
@@ -1656,10 +1571,8 @@ void b3dSnapshot_RGB(char *fname, int rgbmode, int *limits)
     }
 
   } else {
-#ifdef OLD_COLOR_INDEX
+
     mapsize = 1 << App->depth;
-    CurCmap = App->cmapGL;
-    xcolor.flags = DoRed | DoGreen | DoBlue; 
     fcmapr = (unsigned int *)malloc((mapsize+1) * sizeof(unsigned int));
     if (!fcmapr) return;
     fcmapg = (unsigned int *)malloc((mapsize+1) * sizeof(unsigned int));
@@ -1668,11 +1581,10 @@ void b3dSnapshot_RGB(char *fname, int rgbmode, int *limits)
     if (!fcmapb) return;
           
     for(i = 0; i < mapsize; i++){
-      xcolor.pixel = i;
-      XQueryColor(CurDisplay, CurCmap, &xcolor);
-      fcmapr[i] = xcolor.red/256;
-      fcmapg[i] = xcolor.green/256;
-      fcmapb[i] = xcolor.blue/256;
+      QColor qcolor = App->qColormap->entryColor(i);
+      fcmapr[i] = qcolor.red();
+      fcmapg[i] = qcolor.green();
+      fcmapb[i] = qcolor.blue();
     }
 
     glReadPixels(rpx, rpy, rpWidth, rpHeight,
@@ -1693,7 +1605,7 @@ void b3dSnapshot_RGB(char *fname, int rgbmode, int *limits)
     free(fcmapr);
     free(fcmapg);
     free(fcmapb);
-#endif
+
   }
 
   bdRGBWrite(fout, (int)rpWidth, (int)rpHeight, pixels);
@@ -1725,7 +1637,6 @@ void b3dSnapshot_TIF(char *fname, int rgbmode, int *limits,
 
   int mapsize;
   unsigned int *fcmapr, *fcmapg, *fcmapb;
-  //  XColor xcolor;
   int *cindex, ci;
   int rpx = 0; 
   int rpy = 0;
@@ -1770,28 +1681,23 @@ void b3dSnapshot_TIF(char *fname, int rgbmode, int *limits,
   } else {
     depth = App->depth;
     mapsize = 1 << depth;
-    //    CurCmap = App->cmapGL;
-    // xcolor.flags = DoRed | DoGreen | DoBlue; 
     fcmapr = (unsigned int *)malloc((mapsize+1) * sizeof(unsigned int));
     if (!fcmapr) return;
     fcmapg = (unsigned int *)malloc((mapsize+1) * sizeof(unsigned int));
     if (!fcmapg) return;
     fcmapb = (unsigned int *)malloc((mapsize+1) * sizeof(unsigned int));
     if (!fcmapb) return;
-#ifdef OLD_COLOR_INDEX
 
     for(i = 0; i < mapsize; i++){
-      xcolor.pixel = i;
-      XQueryColor(CurDisplay, CurCmap, &xcolor);
-      fcmapr[i] = xcolor.red/256;
-      fcmapg[i] = xcolor.green/256;
-      fcmapb[i] = xcolor.blue/256;
+      QColor qcolor = App->qColormap->entryColor(i);
+      fcmapr[i] = qcolor.red();
+      fcmapg[i] = qcolor.green();
+      fcmapb[i] = qcolor.blue();
     }
           
     glReadPixels(rpx, rpy, rpWidth, rpHeight,
                  GL_COLOR_INDEX, GL_UNSIGNED_INT, pixels);
     glFlush();
-#endif
   }
 
   /* DNM: change __vms to LITTLE_ENDIAN to work on PC */
