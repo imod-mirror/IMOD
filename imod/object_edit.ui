@@ -8,12 +8,15 @@
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>229</width>
-            <height>473</height>
+            <width>232</width>
+            <height>499</height>
         </rect>
     </property>
     <property name="caption">
         <string>Imod Object Edit</string>
+    </property>
+    <property name="focusPolicy">
+        <enum>StrongFocus</enum>
     </property>
     <vbox>
         <property name="name">
@@ -40,10 +43,16 @@
             <property name="name">
                 <cstring>nameEdit</cstring>
             </property>
+            <property name="focusPolicy">
+                <enum>ClickFocus</enum>
+            </property>
         </widget>
         <widget class="QCheckBox">
             <property name="name">
                 <cstring>drawCheckBox</cstring>
+            </property>
+            <property name="focusPolicy">
+                <enum>NoFocus</enum>
             </property>
             <property name="text">
                 <string>Draw</string>
@@ -137,6 +146,9 @@
                                             <property name="name">
                                                 <cstring>fillCheckBox</cstring>
                                             </property>
+                                            <property name="focusPolicy">
+                                                <enum>NoFocus</enum>
+                                            </property>
                                             <property name="text">
                                                 <string>Fill</string>
                                             </property>
@@ -144,6 +156,9 @@
                                         <widget class="QCheckBox">
                                             <property name="name">
                                                 <cstring>markCheckBox</cstring>
+                                            </property>
+                                            <property name="focusPolicy">
+                                                <enum>NoFocus</enum>
                                             </property>
                                             <property name="text">
                                                 <string>Mark ends</string>
@@ -156,6 +171,9 @@
                         <widget class="QSlider">
                             <property name="name">
                                 <cstring>sizeSlider</cstring>
+                            </property>
+                            <property name="focusPolicy">
+                                <enum>NoFocus</enum>
                             </property>
                             <property name="minValue">
                                 <number>1</number>
@@ -236,6 +254,9 @@
             <property name="name">
                 <cstring>widthSlider</cstring>
             </property>
+            <property name="focusPolicy">
+                <enum>NoFocus</enum>
+            </property>
             <property name="minValue">
                 <number>1</number>
             </property>
@@ -291,6 +312,9 @@
             <property name="name">
                 <cstring>timeCheckBox</cstring>
             </property>
+            <property name="focusPolicy">
+                <enum>NoFocus</enum>
+            </property>
             <property name="text">
                 <string>Contours have time values</string>
             </property>
@@ -330,6 +354,9 @@
                             <property name="name">
                                 <cstring>closedButton</cstring>
                             </property>
+                            <property name="focusPolicy">
+                                <enum>NoFocus</enum>
+                            </property>
                             <property name="text">
                                 <string>Closed</string>
                             </property>
@@ -338,6 +365,9 @@
                             <property name="name">
                                 <cstring>openButton</cstring>
                             </property>
+                            <property name="focusPolicy">
+                                <enum>NoFocus</enum>
+                            </property>
                             <property name="text">
                                 <string>Open</string>
                             </property>
@@ -345,6 +375,9 @@
                         <widget class="QRadioButton">
                             <property name="name">
                                 <cstring>scatteredButton</cstring>
+                            </property>
+                            <property name="focusPolicy">
+                                <enum>NoFocus</enum>
                             </property>
                             <property name="text">
                                 <string>Scattered</string>
@@ -373,6 +406,9 @@
                             <property name="name">
                                 <cstring>outsideButton</cstring>
                             </property>
+                            <property name="focusPolicy">
+                                <enum>NoFocus</enum>
+                            </property>
                             <property name="text">
                                 <string>Outside</string>
                             </property>
@@ -380,6 +416,9 @@
                         <widget class="QRadioButton">
                             <property name="name">
                                 <cstring>insideButton</cstring>
+                            </property>
+                            <property name="focusPolicy">
+                                <enum>NoFocus</enum>
                             </property>
                             <property name="text">
                                 <string>Inside</string>
@@ -431,6 +470,9 @@
                             <width>40</width>
                             <height>32767</height>
                         </size>
+                    </property>
+                    <property name="focusPolicy">
+                        <enum>ClickFocus</enum>
                     </property>
                 </widget>
                 <spacer>
@@ -498,6 +540,9 @@
                             <height>32767</height>
                         </size>
                     </property>
+                    <property name="focusPolicy">
+                        <enum>NoFocus</enum>
+                    </property>
                     <property name="text">
                         <string>OK</string>
                     </property>
@@ -522,6 +567,9 @@
                             <width>70</width>
                             <height>32767</height>
                         </size>
+                    </property>
+                    <property name="focusPolicy">
+                        <enum>NoFocus</enum>
                     </property>
                     <property name="text">
                         <string>HELP</string>
@@ -621,8 +669,10 @@
     </connection>
 </connections>
 <includes>
+    <include location="local" impldecl="in implementation">control.h</include>
     <include location="local" impldecl="in implementation">imod_object_edit.h</include>
     <include location="global" impldecl="in implementation">stdlib.h</include>
+    <include location="local" impldecl="in implementation">dia_qtutils.h</include>
     <include location="local" impldecl="in implementation">object_edit.ui.h</include>
 </includes>
 <slots>
@@ -649,6 +699,7 @@
     <slot>setLineWidth( int value )</slot>
     <slot>closeEvent( QCloseEvent * e )</slot>
     <slot>keyPressEvent( QKeyEvent * e )</slot>
+    <slot>keyReleaseEvent( QKeyEvent * e )</slot>
 </slots>
 <pixmapinproject/>
 <layoutdefaults spacing="6" margin="11"/>
