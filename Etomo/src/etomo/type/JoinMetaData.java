@@ -3,6 +3,8 @@ package etomo.type;
 import java.util.ArrayList;
 import java.util.Properties;
 
+import etomo.EtomoDirector;
+
 /**
 * <p>Description: </p>
 * 
@@ -17,6 +19,9 @@ import java.util.Properties;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.3  2004/10/08 16:23:40  sueh
+* <p> bug# 520 Make sure  sectionTableData exists before it is used.
+* <p>
 * <p> Revision 1.1.2.2  2004/10/06 02:14:13  sueh
 * <p> bug# 520 Removed Use density reference checkbox.  Changed string
 * <p> default to "", since their default when coming from store() is "".  Added
@@ -61,16 +66,18 @@ public class JoinMetaData extends ConstJoinMetaData {
         + sectionTableDataSizeString, "-1"));
     densityRefSection = Integer.parseInt(props.getProperty(group
         + densityRefSectionString, Integer.toString(defaultDensityRefSection)));
-    if (sectionTableRowsSize <= 0) {
+    if (sectionTableRowsSize < 1) {
       return;
     }
-
-    if (sectionTableData == null) {
-      sectionTableData = new ArrayList(sectionTableRowsSize);
-    }
+    sectionTableData = new ArrayList(sectionTableRowsSize);
     for (int i = 0; i < sectionTableRowsSize; i++) {
-      SectionTableRowData row = new SectionTableRowData();
+      SectionTableRowData row = new SectionTableRowData(i + 1);
       row.load(props, prepend);
+      int rowIndex = row.getRowIndex();
+      if (rowIndex < 0) {
+        EtomoDirector.getInstance().getMainFrame().openMessageDialog(
+            "Invalid row index: " + rowIndex, "Corrupted .ejf file");
+      }
       sectionTableData.add(row.getRowIndex(), row);
     }
   }
