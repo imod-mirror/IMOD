@@ -6,6 +6,8 @@ import javax.swing.JPanel;
 
 import etomo.EtomoDirector;
 import etomo.JoinManager;
+import etomo.storage.DataFileFilter;
+import etomo.storage.JoinFileFilter;
 import etomo.type.AxisID;
 import etomo.type.JoinMetaData;
 
@@ -23,6 +25,9 @@ import etomo.type.JoinMetaData;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.6  2004/10/14 02:29:24  sueh
+* <p> bug# 520 Removed Axis Type from the join status bar.
+* <p>
 * <p> Revision 1.1.2.5  2004/10/11 02:15:37  sueh
 * <p> bug# 520 Moved responsibility for axisPanelA and axisPanelB member
 * <p> variables to the child classes.  Used abstract functions to use these
@@ -55,6 +60,10 @@ public class MainJoinPanel extends MainPanel {
    */
   public MainJoinPanel(JoinManager joinManager) {
     super(joinManager);
+  }
+  
+  protected DataFileFilter getDataFileFilter() {
+    return new JoinFileFilter();
   }
   
   protected void createAxisPanelA(AxisID axisID) {

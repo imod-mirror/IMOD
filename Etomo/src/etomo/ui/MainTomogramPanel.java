@@ -5,6 +5,8 @@ import java.io.File;
 import etomo.ApplicationManager;
 import etomo.EtomoDirector;
 import etomo.process.ProcessState;
+import etomo.storage.DataFileFilter;
+import etomo.storage.EtomoFileFilter;
 import etomo.type.AxisID;
 import etomo.type.MetaData;
 import etomo.type.ProcessTrack;
@@ -22,6 +24,12 @@ import etomo.type.ProcessTrack;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.5  2004/10/11 02:16:18  sueh
+* <p> bug# 520 Moved responsibility for axisPanelA and axisPanelB member
+* <p> variables to the child classes.  Used abstract functions to use these
+* <p> variables in the base class.  This is more reliable and doesn't require
+* <p> casting.
+* <p>
 * <p> Revision 1.1.2.4  2004/10/08 16:34:23  sueh
 * <p> bug# 520 Since EtomoDirector is a singleton, made all functions and
 * <p> member variables non-static.
@@ -53,6 +61,10 @@ public class MainTomogramPanel extends MainPanel {
    */
   public MainTomogramPanel(ApplicationManager appManager) {
     super(appManager);
+  }
+  
+  protected DataFileFilter getDataFileFilter() {
+    return new EtomoFileFilter();
   }
   
   /**
