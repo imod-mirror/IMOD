@@ -187,7 +187,7 @@ int load_transforms(struct Midas_view *vw, char *filename)
     return(-1);
 
   QTextStream stream(&file);
-  //stream.dec(); // REALLY?
+  stream.setf(QTextStream::dec);
 
   if (vw->xtype == XTYPE_MONT) {
     qline = stream.readLine();
@@ -259,22 +259,27 @@ int load_transforms(struct Midas_view *vw, char *filename)
  */
 int write_transforms(struct Midas_view *vw, char *filename)
 {
-  FILE *fout;
   int k, ixy;
   float dx, dy, xc, yc;
+  QString str = filename;
 
-  fout = fopen(filename, "w");
-  if (!fout){
+  QFile file(str);
+  if (!file.open(IO_WriteOnly | IO_Translate)) {
     midas_error("Couldn't open", filename, 0);
     return(-1);
   }
+  QTextStream stream(&file);
 
   if (vw->xtype == XTYPE_MONT) {
-    fprintf(fout, "%7d %7d\n", vw->nedge[0], vw->nedge[1]);
+    str.sprintf("%7d %7d\n", vw->nedge[0], vw->nedge[1]);
+    stream << str;
     for (ixy = 0; ixy < 2; ixy++)
-      for (k = 0 ; k < vw->nedge[ixy]; k++)
-	fprintf(fout, "%8.3f %8.3f\n", (vw->edgedx[k * 2 + ixy]),
+      for (k = 0 ; k < vw->nedge[ixy]; k++) {
+	str.sprintf("%8.3f %8.3f\n", (vw->edgedx[k * 2 + ixy]),
 		(vw->edgedy[k * 2 + ixy]));
+	stream << str;
+      }
+
   } else {
 
     xc = (float)vw->xsize * 0.5f;
@@ -285,15 +290,15 @@ int write_transforms(struct Midas_view *vw, char *filename)
 	+ (yc * vw->tr[k].mat[3]) - xc;
       dy = vw->tr[k].mat[7] + (xc * vw->tr[k].mat[1]) 
 	+ (yc * vw->tr[k].mat[4]) - yc;
-      fprintf(fout, "%12.7f%12.7f%12.7f%12.7f%12.3f%12.3f\n",
+      str.sprintf("%12.7f%12.7f%12.7f%12.7f%12.3f%12.3f\n",
 	      vw->tr[k].mat[0],
 	      vw->tr[k].mat[3],
 	      vw->tr[k].mat[1],
 	      vw->tr[k].mat[4],
 	      dx, dy);
-	       
+	stream << str;
     }
   }
-  fclose(fout);
+  file.close();
   return(0);
 }
