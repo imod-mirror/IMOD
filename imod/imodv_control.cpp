@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 1.1.2.3  2002/12/07 01:21:44  mast
+    Taking care of window title
+
     Revision 1.1.2.2  2002/12/06 22:12:13  mast
     *** empty log message ***
 
@@ -360,7 +363,6 @@ void imodvControlUpdate(ImodvApp *a)
 int imodv_control(ImodvApp *a, int state)
 {
   QString qstr;
-  char *window_name;
 
   if (!state){
     if (dialog)
@@ -373,17 +375,14 @@ int imodv_control(ImodvApp *a, int state)
     return -1;
   }
   
-  window_name = imodwEithername("Imodv Controls: ", a->imod->fileName, 1);
+  qstr = imodwEithername("Imodv Controls: ", a->imod->fileName, 1);
   dialog = new imodvControlForm(NULL, NULL, false, Qt::WDestructiveClose);
   if (!dialog){
     dia_err("Failed to create imodv controls window!");
     return(-1);
   }
-  if (window_name) {
-    qstr = window_name;
-    free(window_name);
+  if (!qstr.isEmpty())
     dialog->setCaption(qstr);
-  }
 
   dialog->show();
 
