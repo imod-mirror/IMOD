@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.2  2003/01/10 23:55:07  mast
+make setAngle public, remove timer
+
 Revision 1.1.2.1  2003/01/06 15:48:55  mast
 initila creation
 
@@ -109,10 +112,14 @@ protected:
   void resizeGL( int wdth, int hght );
   void mousePressEvent(QMouseEvent * e );
   void mouseReleaseEvent ( QMouseEvent * e );
+  void timerEvent(QTimerEvent *e);
 
  private:
+
   SlicerStruct *mSlicer;
   bool mMousePressed;
+  bool mFirstDraw;
+  int mTimerID;
 };
 
 // The cube drawing class
