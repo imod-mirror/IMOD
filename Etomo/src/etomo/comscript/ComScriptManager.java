@@ -30,6 +30,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.15.2.2  2004/10/08 15:45:42  sueh
+ * <p> bug# 520 Since EtomoDirector is a singleton, made all functions and
+ * <p> member variables non-static.
+ * <p>
  * <p> Revision 3.15.2.1  2004/09/15 22:34:51  sueh
  * <p> bug# 520 call openMessageDialog in mainPanel instead of mainFrame
  * <p>
@@ -1070,11 +1074,11 @@ public class ComScriptManager {
     // Open the appropriate output script and change the dataset name if
     // necessary.
     if (axisType == AxisType.SINGLE_AXIS) {
-      script = new File(System.getProperty("user.dir"), scriptName + ".com");
+      script = new File(appManager.getPropertyUserDir(), scriptName + ".com");
       scriptWriter = new BufferedWriter(new FileWriter(script));
     }
     else {
-      script = new File(System.getProperty("user.dir"), scriptName
+      script = new File(appManager.getPropertyUserDir(), scriptName
         + axisID.getExtension() + ".com");
       scriptWriter = new BufferedWriter(new FileWriter(script));
       datasetName = datasetName + axisID.getExtension();
@@ -1133,10 +1137,10 @@ public class ComScriptManager {
     // The ouput script
     File script;
     if (axisType == AxisType.SINGLE_AXIS) {
-      script = new File(System.getProperty("user.dir"), scriptName + ".com");
+      script = new File(appManager.getPropertyUserDir(), scriptName + ".com");
     }
     else {
-      script = new File(System.getProperty("user.dir"), scriptName
+      script = new File(appManager.getPropertyUserDir(), scriptName
         + axisID.getExtension() + ".com");
     }
     
@@ -1156,7 +1160,7 @@ public class ComScriptManager {
   private ComScript loadComScript(String scriptName, AxisID axisID,
     boolean parseComments) {
     String command = scriptName + axisID.getExtension() + ".com";
-    File comFile = new File(System.getProperty("user.dir"), command);
+    File comFile = new File(appManager.getPropertyUserDir(), command);
 
     ComScript comScript = new ComScript(comFile);
     try {
