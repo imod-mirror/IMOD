@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.3  2002/12/01 15:34:41  mast
+    Changes to get clean compilation with g++
+
     Revision 3.2  2002/07/18 20:20:35  rickg
     Changed include of GLwMDrawA to rely upon -I compiler option
 
@@ -239,6 +242,9 @@ int bdRGBWrite(FILE *fout, int xsize, int ysize, unsigned char *pixels);
 int bdTIFFWriteImage(FILE *fout, int xsize, int ysize, unsigned char *pixels);
 int bdTIFFWriteMap(FILE *fout, int xsize, int ysize,
 		   unsigned char *pixels, unsigned short *cmap);
+  void iputbyte(FILE *fout, unsigned char val);
+  void iputshort(FILE *fout, unsigned short val);
+  void iputlong(FILE *fout, unsigned long val);
 
 
 #ifdef __cplusplus
