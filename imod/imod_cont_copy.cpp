@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.2  2003/01/27 00:30:07  mast
+Pure Qt version and general cleanup
+
 Revision 1.1.2.1  2003/01/23 19:57:06  mast
 Qt version
 
@@ -255,11 +258,12 @@ ContourCopy::ContourCopy(QWidget *parent, const char *name)
   if (ThisDialog.vw->nt)
     mToCombo->insertItem("Copy to Time Index #", COPY_TO_TIME);
   mToCombo->setFocusPolicy(NoFocus);
+  mToCombo->setCurrentItem(ThisDialog.copyOperation);
   QToolTip::add(mToCombo, "Select type of place to copy contours to");
   connect(mToCombo, SIGNAL(activated(int)), this, SLOT(placeSelected(int)));
 
   mToSpinBox = new QSpinBox(hBox);
-  mToSpinBox->setFocusPolicy(NoFocus);
+  mToSpinBox->setFocusPolicy(ClickFocus);
   QToolTip::add(mToSpinBox, "Set object, section, or time");
   connect(mToSpinBox, SIGNAL(valueChanged(int)), this, 
           SLOT(toValueChanged(int)));
@@ -310,6 +314,7 @@ void ContourCopy::placeSelected(int which)
 
 void ContourCopy::toValueChanged(int value)
 {
+  setFocus();
   switch (ThisDialog.copyOperation) {
   case COPY_TO_OBJECT:
     ThisDialog.objectNumber = value;
