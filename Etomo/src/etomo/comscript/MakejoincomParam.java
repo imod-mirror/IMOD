@@ -6,6 +6,7 @@ import java.util.ArrayList;
 
 import etomo.BaseManager;
 import etomo.process.SystemProgram;
+import etomo.type.ConstEtomoInteger;
 import etomo.type.ConstJoinMetaData;
 import etomo.type.SectionTableRowData;
 
@@ -29,6 +30,9 @@ import etomo.type.SectionTableRowData;
 * <p> </p>
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.2  2004/10/14 02:27:53  sueh
+* <p> bug# 520 Setting working directory in SystemProgram.
+* <p>
 * <p> Revision 1.1.2.1  2004/10/08 15:50:06  sueh
 * <p> bug# 520 Renamed Makejoincom to MakejoincomParam.  Switched from
 * <p> a command line to a command array because of the possibility of spaces
@@ -89,6 +93,11 @@ public class MakejoincomParam {
             + data.getRotationAngleZString());
       }
       options.add(data.getSectionAbsolutePath());
+    }
+    ConstEtomoInteger densityRefSection = metaData.getDensityRefSectionField();
+    if (densityRefSection.isSet() && !densityRefSection.isDefault()) {
+      options.add("-reference");
+      options.add(densityRefSection.toString());
     }
     options.add(metaData.getRootName());
     return options;
