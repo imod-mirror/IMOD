@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.3  2002/12/30 06:42:47  mast
+On show and hide events, make calls to show or hide dialogs
+
 Revision 1.1.2.2  2002/12/17 22:04:00  mast
 cleanup
 
@@ -169,6 +172,8 @@ ImodvWindow::ImodvWindow(bool standAlone, int enableDepthDB,
 
   mTimer = new QTimer(this, "imodv timer");
   connect(mTimer, SIGNAL(timeout()), this, SLOT(timeoutSlot()));
+  mHideTimer = new QTimer(this, "imodv hide timer");
+  connect(mHideTimer, SIGNAL(timeout()), this, SLOT(hideTimeout()));
 }
 
 ImodvWindow::~ImodvWindow()
@@ -242,7 +247,17 @@ void ImodvWindow::showEvent(QShowEvent *e)
   mMinimized = false;
 }
 
+// For a hide event, hide dialogs if the window is minimized; but 
+// if not, do a one-shot timer to check again; workaround to bug 
+// in RH  7.3/ Qt 3.0.5
 void ImodvWindow::hideEvent(QHideEvent *e)
+{
+  hideTimeout();
+  if (!mMinimized)
+    mHideTimer->start(1, true);
+}
+
+void ImodvWindow::hideTimeout()
 {
   if (isMinimized()) {
     mMinimized = true;
