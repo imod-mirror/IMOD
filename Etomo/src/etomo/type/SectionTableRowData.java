@@ -16,7 +16,12 @@ import java.util.Properties;
 * 
 * @version $Revision$
 * 
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1.2.1  2004/09/29 19:32:58  sueh
+* <p> bug# 520 Divided the SectionTable row into document and view.  This
+* <p> class is the non-const part of the document.  It implements the Storable
+* <p> load functions, and has set functions.
+* <p> </p>
 */
 public class SectionTableRowData extends ConstSectionTableRowData {
   public static final String rcsid = "$Id$";
@@ -32,8 +37,8 @@ public class SectionTableRowData extends ConstSectionTableRowData {
     sampleBottomEnd = Integer.MIN_VALUE;
     sampleTopStart = Integer.MIN_VALUE;
     sampleTopEnd = Integer.MIN_VALUE;
-    finalStart = Integer.MIN_VALUE;
-    finalEnd = Integer.MIN_VALUE;
+    finalStart = 1;
+    finalEnd = zMax;
     rotationAngleX = Double.NaN;
     rotationAngleY = Double.NaN;
     rotationAngleZ = Double.NaN;
@@ -53,6 +58,8 @@ public class SectionTableRowData extends ConstSectionTableRowData {
 
     rowNumber = Integer.parseInt(props.getProperty(group + rowNumberString,
         Integer.toString(Integer.MIN_VALUE)));
+    zMax = Integer.parseInt(props.getProperty(group + zMaxString,
+        Integer.toString(Integer.MIN_VALUE)));
     section = new File(props.getProperty(group + sectionString));
     sampleBottomStart = Integer.parseInt(props.getProperty(group
         + sampleBottomStartString, Integer.toString(Integer.MIN_VALUE)));
@@ -65,12 +72,12 @@ public class SectionTableRowData extends ConstSectionTableRowData {
     finalStart = Integer.parseInt(props.getProperty(group + finalStartString,
         Integer.toString(Integer.MIN_VALUE)));
     finalEnd = Integer.parseInt(props.getProperty(group + finalEndString,
-        Integer.toString(Integer.MIN_VALUE)));
-    rotationAngleX = Integer.parseInt(props.getProperty(group
+        Integer.toString(zMax)));
+    rotationAngleX = Double.parseDouble(props.getProperty(group
         + rotationAngleXString, Double.toString(Double.NaN)));
-    rotationAngleY = Integer.parseInt(props.getProperty(group
+    rotationAngleY = Double.parseDouble(props.getProperty(group
         + rotationAngleYString, Double.toString(Double.NaN)));
-    rotationAngleZ = Integer.parseInt(props.getProperty(group
+    rotationAngleZ = Double.parseDouble(props.getProperty(group
         + rotationAngleZString, Double.toString(Double.NaN)));
   }
   
@@ -86,39 +93,116 @@ public class SectionTableRowData extends ConstSectionTableRowData {
     this.section = section;
   }
   
-  public void setSampleBottomStart(String sampleBottomStart) {
-    this.sampleBottomStart = Integer.parseInt(sampleBottomStart);
+  public void setZMax(int zMax) {
+    this.zMax = zMax;
+    finalEnd = zMax;
+  }
+  
+  public int parseInt(String value, String valueName) {
+    invalidReason = null;
+    int intValue;
+    if (value == null || !value.matches("\\S+")) {
+      return Integer.MIN_VALUE;
+    }
+    try {
+      intValue = Integer.parseInt(value);
+    }
+    catch (NumberFormatException e) {
+      e.printStackTrace();
+      invalidReason = new StringBuffer("Row " + rowNumber + ":  " + valueName
+          + " must be an integer.");
+      return Integer.MIN_VALUE;
+    }
+    return intValue;
   }
 
-  public void setSampleBottomEnd(String sampleBottomEnd) {
-    this.sampleBottomEnd = Integer.parseInt(sampleBottomEnd);
+  public double parseDouble(String value, String valueName) {
+    invalidReason = null;
+    double doubleValue;
+    if (value == null || !value.matches("\\S+")) {
+      return Double.NaN;
+    }
+    try {
+      doubleValue = Double.parseDouble(value);
+    }
+    catch (NumberFormatException e) {
+      e.printStackTrace();
+      invalidReason = new StringBuffer("Row " + rowNumber + ":  " + valueName
+          + " must be a number.");
+      return Double.NaN;
+    }
+    return doubleValue;
+  }
+
+  public boolean setSampleBottomStart(String sampleBottomStart) {
+    this.sampleBottomStart = parseInt(sampleBottomStart, sampleBottomStartName);
+    if (invalidReason != null) {
+      return false;
+    }
+    return true;
+  }
+
+  public boolean setSampleBottomEnd(String sampleBottomEnd) {
+    this.sampleBottomEnd = parseInt(sampleBottomEnd, sampleBottomEndName);
+    if (invalidReason != null) {
+      return false;
+    }
+    return true;
   }
   
-  public void setSampleTopStart(String sampleTopStart) {
-    this.sampleTopStart = Integer.parseInt(sampleTopStart);
+  public boolean setSampleTopStart(String sampleTopStart) {
+    this.sampleTopStart = parseInt(sampleTopStart, sampleTopStartName);
+    if (invalidReason != null) {
+      return false;
+    }
+    return true;
   }
   
-  public void setSampleTopEnd(String sampleTopEnd) {
-    this.sampleTopEnd = Integer.parseInt(sampleTopEnd);
+  public boolean setSampleTopEnd(String sampleTopEnd) {
+    this.sampleTopEnd = parseInt(sampleTopEnd, sampleTopEndName);
+    if (invalidReason != null) {
+      return false;
+    }
+    return true;
   }
   
-  public void setFinalStart(String finalStart) {
-    this.finalStart = Integer.parseInt(finalStart);
+  public boolean setFinalStart(String finalStart) {
+    this.finalStart = parseInt(finalStart, finalStartName);
+    if (invalidReason != null) {
+      return false;
+    }
+    return true;
   }
   
-  public void setFinalEnd(String finalEnd) {
-    this.finalEnd = Integer.parseInt(finalEnd);
+  public boolean setFinalEnd(String finalEnd) {
+    this.finalEnd = parseInt(finalEnd, finalEndName);
+    if (invalidReason != null) {
+      return false;
+    }
+    return true;
   }
   
-  public void setRotationAngleX(String rotationAngleX) {
-    this.rotationAngleX = Double.parseDouble(rotationAngleX);
+  public boolean setRotationAngleX(String rotationAngleX) {
+    this.rotationAngleX = parseDouble(rotationAngleX, rotationAngleXName);
+    if (invalidReason != null) {
+      return false;
+    }
+    return true;
   }
   
-  public void setRotationAngleY(String rotationAngleY) {
-    this.rotationAngleY = Double.parseDouble(rotationAngleY);
+  public boolean setRotationAngleY(String rotationAngleY) {
+    this.rotationAngleY = parseDouble(rotationAngleY, rotationAngleYName);
+    if (invalidReason != null) {
+      return false;
+    }
+    return true;
   }
   
-  public void setRotationAngleZ(String rotationAngleZ) {
-    this.rotationAngleZ = Double.parseDouble(rotationAngleZ);
+  public boolean setRotationAngleZ(String rotationAngleZ) {
+    this.rotationAngleZ = parseDouble(rotationAngleZ, rotationAngleZName);
+    if (invalidReason != null) {
+      return false;
+    }
+    return true;
   }
 }
