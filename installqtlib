@@ -1,0 +1,173 @@
+#!/bin/csh -f
+# Script to add Qt libraries and links to a distribution file
+#
+#  $Author$
+#
+#  $Date$
+#
+#  $Revision$
+#
+#  $Log$
+#  Revision 3.18  2004/01/27 05:53:54  mast
+#  Needed to define LIBEXT line better
+#
+#  Revision 3.17  2004/01/27 05:16:26  mast
+#  Start out by copying needed files from dist
+#
+#  Revision 3.16  2003/12/30 17:24:58  mast
+#  Delete stray .libs in windows install
+#
+#  Revision 3.15  2003/12/02 02:07:08  mast
+#  Change the way Qt lib is identified in Windows, give up on Makefiles
+#
+#  Revision 3.14  2003/11/26 21:48:08  mast
+#  Allow large number of dll lists to copy
+#
+#  Revision 3.13  2003/10/25 16:25:59  mast
+#  fix for Cygwin/Intel and add ability to copy other libraries
+#
+#  Revision 3.12  2003/10/25 02:52:27  mast
+#  find library in cygwin/Intel makefile
+#
+#  Revision 3.11  2003/10/03 05:04:45  mast
+#  Discovered extension can go before (SGI) or after (Mac) version numbers
+#
+#  Revision 3.10  2003/09/25 00:04:08  mast
+#  Improve test for no entry in configure
+#
+#  Revision 3.9  2003/08/25 18:47:13  mast
+#  Have it make the install directory if needed, and delete existing links
+#
+#  Revision 3.8  2003/08/13 20:01:41  mast
+#  Have it use LIBEXT from configure if available, add test for libqt.la
+#
+#  Revision 3.7  2003/05/08 23:29:09  mast
+#  change for windows
+#
+#  Revision 3.6  2003/05/08 21:42:35  mast
+#  Get libqt name better
+#
+#  Revision 3.5  2003/05/08 20:58:43  mast
+#  Initial creation (deleted messages while thrashing
+#
+#
+
+# get the install directory
+#
+set instdir = `sed -n '/INSTDIR/s/^.*= *//p' configure`
+
+#
+# Get list of install files and copy them to install directory
+#
+set instlist = `sed -n '/INSTALL_FILES/s/^.*= *//p' configure`
+if ("$instlist" != "") then
+    foreach i ($instlist)
+        \cp dist/$i $instdir
+    end
+endif
+
+#
+# Get list of install files that need renaming and copy them to install directory
+#
+set instlist = `sed -n '/INSTALL_RENAME/s/^.*= *//p' configure`
+while ($#instlist > 1)
+    \cp dist/$instlist[1] $instdir/$instlist[2]
+    shift instlist
+    shift instlist
+end
+
+#
+# Get the subdirectory to copy the libraries to, exit if not defined
+#
+set qtlibdir = `sed -n '/QTINSTLIBDIR/s/^.*= *//p' configure`
+
+if ($#qtlibdir == 0) exit 0
+if ($qtlibdir == "") exit 0
+
+#
+# Get the library extension, but don't worry if it's not defined
+#
+set libext = `sed -n '/^LIBEXT.*=/s/^.*= *//p' configure`
+
+#
+# Copy DLL's from various places to the install directory
+#
+@ dllnum = 1
+while ($dllnum < 100)
+    set dlldir = `sed -n "/DLLSOURCEDIR$dllnum/s/^.*= *//p" configure`
+
+    set dlllist = `sed -n "/DLLSTOCOPY$dllnum/s/^.*= *//p" configure`
+    if ("$dlllist" != "") then
+        foreach i ($dlllist)
+            \cp "$dlldir"/$i $instdir/$qtlibdir
+        end
+    else
+        break
+    endif
+    @ dllnum++
+end
+
+#
+# grab the name of the Qt lib from the ever-useful sendevent Makefile
+#
+set qtlib = `sed -n '/^LIBS.*=/s/^.*-lqt/libqt/p' sendevent/Makefile`
+
+# If the library goes to bin, it is Windows and need to copy a dll
+# First get rid of any lib's that installed into the bin with the dll's
+#
+if ($qtlibdir == "bin") then
+    \find $instdir/$qtlibdir -name '*.lib' -print -exec \rm '{}' \;
+    if (`\find $QTDIR/lib -name 'qt-mt*.dll' -print` != "") then
+        \cp $QTDIR/lib/qt-mt*.dll $instdir/$qtlibdir
+        exit 0
+    endif
+    if (`\find $QTDIR/lib -name 'qt-*.dll' -print` != "") then
+        \cp $QTDIR/lib/qt-*.dll $instdir/$qtlibdir
+        exit 0
+    endif
+    if (`\find $QTDIR/lib -name 'qt*.dll' -print` != "") then
+        \cp $QTDIR/lib/qt*.dll $instdir/$qtlibdir
+        exit 0
+    endif
+
+    echo "INSTALLQTLIB CANNOT FIND LIBRARY IN $QTDIR/lib"
+    exit 1
+endif
+
+set qtlib = $qtlib[1]
+
+#
+# Count up non-links and save name of real file
+#
+@ numreal = 0
+foreach i ($QTDIR/lib/${qtlib}.*${libext}*)
+    if ((! -l $i) && $i:e != "prl" && $i:e != "la") then
+        @ numreal++
+        set realname = $i
+    endif
+end
+
+if ($numreal == 0) then
+        echo "installqtlib: Qt Library not found at $QTDIR/lib/$qtlib.*"
+        exit 1
+endif
+
+if ($numreal > 1) then
+    echo "installqtlib: $numreal real Qt libraries match $QTDIR/lib/$qtlib.*"
+    echo Cannot make links properly
+    exit 1
+endif
+
+#
+# Make directory, copy the real file, make the links
+#
+if (! -e $instdir/$qtlibdir) mkdir -p $instdir/$qtlibdir
+
+cd $instdir/$qtlibdir
+\cp $realname .
+foreach i ($QTDIR/lib/${qtlib}*${libext}*)
+    if (-l $i) then
+        \rm -f $i:t
+        ln -s $realname:t $i:t
+    endif
+end
