@@ -34,6 +34,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.10  2003/01/27 00:30:07  mast
+Pure Qt version and general cleanup
+
 Revision 1.1.2.9  2003/01/23 20:13:33  mast
 add include of imod_input
 
@@ -166,7 +169,7 @@ int xxyz_open(ImodView *vi)
     xx->winy = (int)((vi->ysize + vi->zsize) * xx->zoom + (3 * XYZ_BSIZE));
   }
      
-  xx->dialog = new XyzWindow(xx, App->qtRgba, App->qtDoubleBuffer, 
+  xx->dialog = new XyzWindow(xx, App->rgba, App->doublebuffer, 
 			     App->qtEnableDepth, NULL,
 			     "xyz window");
   if ((!xx->dialog)||
@@ -181,6 +184,9 @@ int xxyz_open(ImodView *vi)
   }
   
   xx->glw = xx->dialog->mGLw;
+  if (!App->rgba)
+    xx->glw->setColormap(*(App->qColormap));
+
   xx->dialog->setCaption(imodCaption("Imod XYZ Window"));
 
   xx->lx = xx->ly = xx->lz = xx->lastCacheSum -1;
@@ -210,6 +216,11 @@ static void xyzDraw_cb(ImodView *vi, void *client, int drawflag)
 
   if ((!vi) || (!xx) || (!drawflag)) return;
      
+  if (drawflag & IMOD_DRAW_COLORMAP) {
+    xx->glw->setColormap(*(App->qColormap));
+    return;
+  }
+
   if (drawflag){
     if (drawflag & IMOD_DRAW_IMAGE){
 
