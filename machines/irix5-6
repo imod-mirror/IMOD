@@ -8,6 +8,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.2.2.3  2002/12/05 19:04:19  mast
+#  *** empty log message ***
+#
 #  Revision 3.2.2.2  2002/12/05 18:57:00  mast
 #  *** empty log message ***
 #
@@ -169,7 +172,5 @@ EOF
 cat << EOF >! $imod_qconf
 LIBS += -L$lib_dir $lib_dir/libGLw.a -limod -liimod -ldia -ltiff
 LIBS += -LGL -lGLU -lXm -lqxt -lPW -lm
-INCLUDEPATH += /usr/include/X11/GLw
-CFLAGS_WARN_OFF += -woff 1174,1552
-CXXFLAGS_WARN_OFF += -woff 1174,1552
+INCLUDEPATH += /usr/include/X11/GLw .
 EOF
