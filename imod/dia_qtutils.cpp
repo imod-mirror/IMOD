@@ -31,6 +31,7 @@
 $Date$
 
 $Revision$
+$Log$
 */
 
 #include <stdarg.h>
