@@ -16,6 +16,9 @@ import java.io.File;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.2  2004/11/08 22:08:52  sueh
+* <p> bug# 520 Add a function to query current mode.
+* <p>
 * <p> Revision 1.1.2.1  2004/10/06 01:28:49  sueh
 * <p> bug# 520 An interface that allow BackgroundProcess to take a param
 * <p> object rather then just a command line.  This allows BackgroundProcess
@@ -29,4 +32,6 @@ public interface Command {
   public String getCommandName();
   public File getOutputFile();
   public int getMode();
+  public int getBinning();
+  public int getIntegerValue(int name);
 }
