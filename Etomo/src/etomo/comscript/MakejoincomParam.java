@@ -30,6 +30,11 @@ import etomo.type.SectionTableRowData;
 * <p> </p>
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.5  2004/10/22 03:20:52  sueh
+* <p> bug# 520 Reducing the number of ConstJoinMetaData functions by
+* <p> passing EtomoInteger, EtomoFloat, etc and using its get() and getString()
+* <p> functions.
+* <p>
 * <p> Revision 1.1.2.4  2004/10/21 02:34:59  sueh
 * <p> bug# 520 Removed unnecessary function run().
 * <p>
@@ -86,13 +91,13 @@ public class MakejoincomParam {
       ConstSectionTableRowData data = (SectionTableRowData) sectionData.get(i);
       if (i < sectionDataSize - 1) {
         options.add("-top");
-        options.add(data.getSampleTopStartString() + ","
-            + data.getSampleTopEndString());
+        options.add(data.getSampleTopStart().getString() + ","
+            + data.getSampleTopEnd().getString());
       }
       if (i != 0) {
         options.add("-bot");
-        options.add(data.getSampleBottomStartString() + ","
-            + data.getSampleBottomEndString());
+        options.add(data.getSampleBottomStart().getString() + ","
+            + data.getSampleBottomEnd().getString());
       }
       if (data.isRotationAngleSet()) {
         options.add("-rot");
