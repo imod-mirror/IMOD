@@ -32,7 +32,12 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.1  2002/12/09 17:47:51  mast
+Initial addition to source
+
 */
+#include <stdlib.h>
+#include <stdio.h>
 #include <qtoolbutton.h>
 #include <qlabel.h>
 #include <qbitmap.h>
