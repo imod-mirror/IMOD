@@ -12,6 +12,9 @@
  * @version $$Revision$
  *
  * <p> $$Log$
+ * <p> $Revision 3.10.2.4  2004/10/28 17:09:38  sueh
+ * <p> $bug# 520 Adding mostRecentFile.
+ * <p> $
  * <p> $Revision 3.10.2.3  2004/10/11 02:29:06  sueh
  * <p> $bug# 520 Using a variable called propertyUserDir instead of the "user.dir"
  * <p> $property.  This property would need a different value for each manager.
@@ -401,4 +404,28 @@ public class Utilities {
       bufferedWriter.close();
     }
   }
+  
+  public static boolean isValidFile(File file, boolean exists,
+      boolean writable, StringBuffer invalidReason) {
+    if (exists && !file.exists()) {
+      if (invalidReason != null) {
+        invalidReason.append(file.getAbsolutePath() + ", does not exist.");
+      }
+      return false;
+    }
+    if (!file.canRead()) {
+      if (invalidReason != null) {
+        invalidReason.append(file.getAbsolutePath() + ", must be readable.");
+      }
+      return false;
+    }
+    if (writable && !file.canWrite()) {
+      if (invalidReason != null) {
+        invalidReason.append(file.getAbsolutePath() + ", must be writable.");
+      }
+      return false;
+    }
+    return true;
+  }
+  
 }
