@@ -46,6 +46,10 @@ import etomo.util.UniqueKey;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.12.2.14  2004/10/18 19:12:24  sueh
+ * <p> bug# 520 In menuFileMRUListAction changed call to openManager instead
+ * <p> of openTomogram, so Joins can be opened this way.
+ * <p>
  * <p> Revision 3.12.2.13  2004/10/15 00:48:52  sueh
  * <p> bug# 520 Removed getTestParamFilename() because it is used to get
  * <p> either .edf or .ejf, but not both.  Changed openEtomoDataFileDialog() to
@@ -415,7 +419,7 @@ public class MainFrame extends JFrame implements ContextMenu {
           + menuWindowList.getKey(i).getName());
       menuItem.setVisible(true);
       menuWindow.add(menuItem);
-      menuWindowList.add(i, menuItem);
+      menuWindowList.set(i, menuItem);
     }
   }
 
