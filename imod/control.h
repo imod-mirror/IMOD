@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.1  2003/01/02 15:36:19  mast
+Initial creation
+
 */
 #ifndef CONTROL_H
 #define CONTROL_H
@@ -90,6 +93,11 @@ int ivwNewControl(ImodView *inImodView,
  */
 int ivwDeleteControl(ImodView *iv, int inCtrlId);
 
+/* remove the control associated with the inCtrlId value.
+ * do not call the close method of the control
+ */
+int ivwRemoveControl(ImodView *iv, int inCtrlId);
+
 /* move control to top of control Q if it exists
  * also sets or clears the control active flag.
  * returns the id of the highest priority control id.
@@ -101,8 +109,8 @@ int ivwControlPriority(ImodView *iv, int inCtrlId);
  */
 void ivwControlActive(ImodView *iv, int inCtrlId);    
 
-
-
+// An orphan until use of imod_input.h is controlled
+void inputQDefaultKeys(QKeyEvent *event, ImodView *vw);
 
 #ifdef __cplusplus
 }
