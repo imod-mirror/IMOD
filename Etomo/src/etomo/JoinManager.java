@@ -38,6 +38,9 @@ import etomo.ui.MainPanel;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.15  2004/10/14 17:09:30  sueh
+* <p> bug# 520 Added imodOpenJoinSampleAverages.
+* <p>
 * <p> Revision 1.1.2.14  2004/10/14 03:24:33  sueh
 * <p> bug# 520 Added open join samples in Imod.  Using the Make Samples as
 * <p> a signal somewhat like exiting Setup successfully.  In this case I only
@@ -107,7 +110,11 @@ public class JoinManager extends BaseManager {
   
   public JoinManager(String paramFileName) {
     super();
-    openJoinDialog();
+    initializeUIParameters(paramFileName);
+    // Open the etomo data file if one was found on the command line
+    if (!test) {
+      openJoinDialog();
+    }
   }
   
   public boolean isNewManager() {
@@ -133,6 +140,7 @@ public class JoinManager extends BaseManager {
     openProcessingPanel();
     if (joinDialog == null) {
       joinDialog = new JoinDialog(this);
+      joinDialog.setMetaData(metaData);
     }
     mainPanel.showProcess(joinDialog.getContainer(), AxisID.ONLY);
   }
