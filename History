@@ -1,5 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/22/04: Added workaround to Windows problem reading internal strings that 
+could be numbers or filenames.
+
+8/11/04: Added error checking on image rotation and other fields of eTomo setup
+page so copytomocoms will not hang when rotation is left blank.
+
 8/9/04: IMOD_3-3-7
 8/9/04: Fixed fatal error in setupcombine; 7/22/04 change was done by copying
 incompatible version from 3.4.  Backport of Midas fix also screwed up.
