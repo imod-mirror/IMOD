@@ -34,6 +34,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.10  2003/01/29 01:29:42  mast
+add call for imod to close imodv
+
 Revision 1.1.2.9  2003/01/27 00:30:07  mast
 Pure Qt version and general cleanup
 
@@ -484,13 +487,8 @@ int imodv_main(int argc, char **argv, int styleSet)
   if (myapp.argc() - i < 1)
     usage(myapp.argv()[0]);
 
-#ifndef NO_IMOD_FORK
-  /* put imodv in background if not debug. */
-  if (!Imod_debug)
-    if (fork() != 0)
-      exit(0);
-#endif
-
+  /* DNM 1/29/03: already forked in imod, no need to do it here */
+  
   if (load_models(myapp.argc() - i, &(myapp.argv()[i]), Imodv))
     exit(-1);
 
