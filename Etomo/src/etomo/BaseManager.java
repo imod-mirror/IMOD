@@ -19,6 +19,8 @@ import etomo.process.ProcessManager;
 import etomo.process.SystemProcessException;
 import etomo.storage.ParameterStore;
 import etomo.storage.Storable;
+import etomo.type.AxisID;
+import etomo.type.AxisType;
 import etomo.type.AxisTypeException;
 import etomo.type.ConstMetaData;
 import etomo.type.MetaData;
@@ -44,6 +46,12 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.2  2004/09/07 17:51:00  sueh
+* <p> bug# 520 getting mainFrame and userConfig from EtomoDirector, moved
+* <p> settings dialog to BaseManager,  moved backupFiles() to BaseManager,
+* <p> moved exitProgram() and processing variables to BaseManager, split
+* <p> MainPanel off from MainFrame
+* <p>
 * <p> Revision 1.1.2.1  2004/09/03 20:37:24  sueh
 * <p> bug# 520 Base class for ApplicationManager and JoinManager.  Transfering
 * <p> constructor functionality from AppMgr
@@ -60,7 +68,6 @@ public abstract class BaseManager {
   
   //protected variables
   protected boolean loadedTestParamFile = false;
-  protected MainPanel mainPanel = null;
   protected MetaData metaData = null;
   protected ProcessTrack processTrack = null;
   // imodManager manages the opening and closing closing of imod(s), message
@@ -85,6 +92,7 @@ public abstract class BaseManager {
   
   protected boolean backgroundProcessA = false;
   protected String backgroundProcessNameA = null;
+  protected MainPanel mainPanel = null;
   
   //private static variables
   private static boolean debug = false;
@@ -106,24 +114,27 @@ public abstract class BaseManager {
   protected abstract void createComScriptManager();
   protected abstract void createProcessManager();
   protected abstract void createMainPanel();
-  //FIXME
+
+  //FIXME needs to be public?
   public abstract void openNewDataset();
   public abstract void openExistingDataset(File paramFile);
   
-  
-  public BaseManager(String paramFileName) {
+  public BaseManager() {
     createMetaData();
     createProcessTrack();
     createProcessManager();
     createComScriptManager();
+    createMainPanel();
     //  Initialize the program settings
     debug = EtomoDirector.isDebug();
     test = EtomoDirector.isTest();
     initProgram();
     //imodManager should be created only once.
     createImodManager();
-    //  Create a new main window and wait for an event from the user
-    createMainPanel();
+
+  }
+  
+  protected void initializeUIParameters(String paramFileName) {
     if (!test) {
       //  Initialize the static UIParameter object
       UIParameters uiparameters = new UIParameters();
@@ -133,6 +144,15 @@ public abstract class BaseManager {
         loadedTestParamFile = loadTestParamFile(etomoDataFile);
       }
     }
+  }
+  
+  /**
+   * Interrupt the currently running thread for this axis
+   * 
+   * @param axisID
+   */
+  public void kill(AxisID axisID) {
+    processMgr.kill(axisID);
   }
   
   /**
@@ -252,6 +272,19 @@ public abstract class BaseManager {
     }
     return false;
   }
+  
+  /**
+   * Check if the current data set is a dual axis data set
+   * @return true if the data set is a dual axis data set
+   */
+  public boolean isDualAxis() {
+    if (metaData.getAxisType() == AxisType.SINGLE_AXIS) {
+      return false;
+    }
+    else {
+      return true;
+    }
+  }
 
   /**
    * Open up the settings dialog box
@@ -339,15 +372,6 @@ public abstract class BaseManager {
   public File getTestParamFile() {
     return paramFile;
   }
-  
-  public MainPanel getMainPanel() {
-    if (mainPanel == null) {
-      throw new NullPointerException();
-    }
-    return mainPanel;
-  }
-  
-
   
   /**
    * Reset the state of the application to the startup condition
@@ -717,5 +741,8 @@ public abstract class BaseManager {
     processTrack = new ProcessTrack();
   }
   
-
+  public MainPanel getMainPanel() {
+    return mainPanel;
+  }
+  
 }
