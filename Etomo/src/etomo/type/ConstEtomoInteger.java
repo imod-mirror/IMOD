@@ -17,6 +17,9 @@ import etomo.storage.Storable;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.8  2004/11/08 22:21:37  sueh
+* <p> bug# 520 Add setDefault functions.
+* <p>
 * <p> Revision 1.1.2.7  2004/10/30 02:31:59  sueh
 * <p> bug# 520 Fixed getNegation so that it copies the entire class to a new
 * <p> instances and negates all values.
@@ -54,6 +57,7 @@ public abstract class ConstEtomoInteger extends EtomoSimpleType implements Stora
   protected int defaultValue = unsetValue;
   protected int recommendedValue = unsetValue;
   protected int resetValue = unsetValue;
+  protected int ceilingValue = unsetValue;
   
   public abstract void load(Properties props);
   public abstract void load(Properties props, String prepend);
@@ -64,6 +68,11 @@ public abstract class ConstEtomoInteger extends EtomoSimpleType implements Stora
 
   protected ConstEtomoInteger(String name) {
     super(name);
+  }
+  
+  public EtomoSimpleType setCeiling(int ceilingValue) {
+    this.ceilingValue = ceilingValue;
+    return this;
   }
   
   public EtomoSimpleType setDefault(int defaultValue) {
@@ -83,6 +92,29 @@ public abstract class ConstEtomoInteger extends EtomoSimpleType implements Stora
       setDefault(defaultValue);
     }
     return this;
+  }
+  
+  public void setRecommendedValue(int recommendedValue) {
+    this.recommendedValue = recommendedValue;
+    setResetValue();
+  }
+  
+  public void setDescription(String description) {
+    if (description != null) {
+      this.description = description;
+    }
+    else {
+      name = description;
+    }
+  }
+  
+  private void setResetValue() {
+    if (recommendedValue != unsetValue) {
+      resetValue = recommendedValue;
+    }
+    else {
+      resetValue = unsetValue;
+    }
   }
   
   public void store(Properties props) {
@@ -158,6 +190,10 @@ public abstract class ConstEtomoInteger extends EtomoSimpleType implements Stora
       that.defaultValue *= -1;
     }
     return that;
+  }
+  
+  public int getDefault() {
+    return defaultValue;
   }
 
   public boolean isSetAndNotDefault() {
