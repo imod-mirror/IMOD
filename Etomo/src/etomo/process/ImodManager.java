@@ -27,6 +27,18 @@ import etomo.type.ConstMetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.25.4.2  2004/09/21 17:55:18  sueh
+ * <p> bug# 520 Added a new type of 3dmod called a tomogram.  A tomogram
+ * <p> 3dmod opens a file regardless of dataset and axisID.  Multiple tomogram
+ * <p> 3dmods are managed at the same time, so they always have to be found
+ * <p> using a vector index.  They should be deleted when the
+ * <p> SectionTableRow they are associated with is deleted.  Added
+ * <p> delete(key, vectorIndex), and open(key, File, int).  Added
+ * <p> get(key, vectorIndex).  Added newImod(key, File) and
+ * <p> newVector(key, File).  Added new tomogram functionality to
+ * <p> newImodState.  Added a File parameter to newImodState.  Added
+ * <p> deleteImodState(key, vectorIndex).
+ * <p>
  * <p> Revision 3.25.4.1  2004/09/03 21:09:49  sueh
  * <p> bug# 520 removing ApplicationManager from ImodManager constructor,
  * <p> since its not being used
@@ -535,9 +547,13 @@ public class ImodManager {
     Set set = imodMap.keySet();
     Iterator iterator = set.iterator();
     while (iterator.hasNext()) {
-      ImodState imodState = get((String) iterator.next(), true);
-      if (imodState != null && imodState.isOpen()) {
-        return true;
+      Vector vector = getVector((String) iterator.next(), true);
+      Iterator vectorInterator = vector.iterator();
+      while (vectorInterator.hasNext()) {
+        ImodState imodState = (ImodState) vectorInterator.next();
+        if (imodState != null && imodState.isOpen()) {
+          return true;
+        }
       }
     }
     return false;
@@ -561,6 +577,16 @@ public class ImodManager {
     }
     return imodState.getRubberbandCoordinates();
   }
+  
+  public Vector getSlicerAngles(String key, int vectorIndex)
+  throws AxisTypeException, SystemProcessException {
+  key = getPrivateKey(key);
+  ImodState imodState = get(key, vectorIndex);
+  if (imodState == null || !imodState.isOpen()) {
+    return null;
+  }
+  return imodState.getSlicerAngles();
+}
 
   public void quit(String key)
     throws AxisTypeException, SystemProcessException {
@@ -963,15 +989,6 @@ public class ImodManager {
 
   protected ImodState get(String key) throws AxisTypeException {
     Vector vector = getVector(key);
-    if (vector == null) {
-      return null;
-    }
-    return (ImodState) vector.lastElement();
-  }
-
-  protected ImodState get(String key, boolean axisIdInKey)
-    throws AxisTypeException {
-    Vector vector = getVector(key, axisIdInKey);
     if (vector == null) {
       return null;
     }
