@@ -55,6 +55,9 @@ import etomo.util.InvalidParameterException;
  * 
  * <p>
  * $Log$
+ * Revision 3.24.2.1  2004/09/07 18:02:16  sueh
+ * bug# 520 getting dataset name from metadata
+ *
  * Revision 3.24  2004/07/20 23:28:34  sueh
  * bug# 514
  *
@@ -991,7 +994,7 @@ public class TomogramGenerationDialog extends ProcessDialog
         errorMessage[0] = "Missing trial tomogram filename:";
         errorMessage[1] = "A filename for the trial tomogram must be entered in the Trial"
             + " tomogram filename edit box.";
-        applicationManager.openMessageDialog(errorMessage,
+        applicationManager.getMainPanel().openMessageDialog(errorMessage,
             "Tilt Parameter Syntax Error");
         return;
       }

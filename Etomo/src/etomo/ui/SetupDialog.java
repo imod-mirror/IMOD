@@ -11,6 +11,11 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.17  2004/08/20 23:07:58  sueh
+ * <p> bug# 515 add fields names for error messages about tilt angles
+ * <p> Changed:
+ * <p> getFields()
+ * <p>
  * <p> Revision 3.16  2004/08/20 22:56:19  sueh
  * <p> bug# 515 catching exceptions on numeric fields
  * <p> Changed:
@@ -575,8 +580,8 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
       tiltAnglesB.getFields(metaData.getTiltAngleSpecB());
     }
     catch (NumberFormatException e) {
-      applicationManager.openMessageDialog(
-        currentField + " must be numeric.", "Setup Dialog Error");
+      applicationManager.getMainPanel().openMessageDialog(
+          currentField + " must be numeric.", "Setup Dialog Error");
       return null;
     }
     metaData.setBinning(((Integer) spnBinning.getValue()).intValue());
@@ -608,16 +613,17 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     String panelErrorMessage;
 
     if (datasetText.equals("")) {
-      applicationManager.openMessageDialog(
-        "Dataset name has not been entered.", errorMessageTitle);
+      applicationManager.getMainPanel().openMessageDialog(
+          "Dataset name has not been entered.", errorMessageTitle);
       return false;
     }
     File dataset = new File(datasetText);
     String datasetFileName = dataset.getName();
     if (datasetFileName.equals("a.st") || datasetFileName.equals("b.st")
         || datasetFileName.equals(".")) {
-      applicationManager.openMessageDialog("The name " + datasetFileName
-          + " cannot be used as a dataset name.", errorMessageTitle);
+      applicationManager.getMainPanel().openMessageDialog(
+          "The name " + datasetFileName + " cannot be used as a dataset name.",
+          errorMessageTitle);
       return false;
     }
     //validate image distortion field file name
@@ -628,21 +634,22 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
       File distortionFile = new File(distortionFileText);
       if (!distortionFile.exists()) {
         String distortionFileName = distortionFile.getName();
-        applicationManager.openMessageDialog("The image distortion field file "
-            + distortionFileName + " does not exist.", errorMessageTitle);
+        applicationManager.getMainPanel().openMessageDialog(
+            "The image distortion field file " + distortionFileName
+                + " does not exist.", errorMessageTitle);
         return false;
       }
     }
     panelErrorMessage = tiltAnglesA.getErrorMessage();
     if (panelErrorMessage != null) {
-      applicationManager.openMessageDialog(panelErrorMessage + " in Axis A.",
-        errorMessageTitle);
+      applicationManager.getMainPanel().openMessageDialog(
+          panelErrorMessage + " in Axis A.", errorMessageTitle);
       return false;
     }
     panelErrorMessage = tiltAnglesB.getErrorMessage();
     if (panelErrorMessage != null) {
-      applicationManager.openMessageDialog(panelErrorMessage + " in Axis B.",
-        errorMessageTitle);
+      applicationManager.getMainPanel().openMessageDialog(
+          panelErrorMessage + " in Axis B.", errorMessageTitle);
       return false;
     }
 
@@ -820,8 +827,8 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     // Get the dataset name from the UI object
     String datasetName = ltfDataset.getText();
     if (datasetName == null || datasetName.equals("")) {
-      applicationManager.openMessageDialog("Dataset name has not been entered",
-        "Missing dataset name");
+      applicationManager.getMainPanel().openMessageDialog(
+          "Dataset name has not been entered", "Missing dataset name");
       return;
     }
     //  Add the appropriate extension onto the filename if necessary 
@@ -842,11 +849,12 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
       header.read();
     }
     catch (InvalidParameterException except) {
-      applicationManager.openMessageDialog(except.getMessage(),
-        "Invalid Parameter Exception");
+      applicationManager.getMainPanel().openMessageDialog(except.getMessage(),
+          "Invalid Parameter Exception");
     }
     catch (IOException except) {
-      applicationManager.openMessageDialog(except.getMessage(), "IO Exception");
+      applicationManager.getMainPanel().openMessageDialog(except.getMessage(),
+          "IO Exception");
     }
 
     // Set the image rotation if available
@@ -859,22 +867,23 @@ public class SetupDialog extends ProcessDialog implements ContextMenu {
     double xPixelSize = header.getXPixelSize();
     double yPixelSize = header.getYPixelSize();
     if (Double.isNaN(xPixelSize) || Double.isNaN(yPixelSize)) {
-      applicationManager.openMessageDialog(
+      applicationManager.getMainPanel().openMessageDialog(
         "Pixel size is not defined in the image file header",
         "Pixel size is missing");
+      
       return;
     }
 
     if (xPixelSize != yPixelSize) {
-      applicationManager.openMessageDialog(
-        "X & Y pixels sizes are different, don't know what to do",
-        "Pixel sizes are different");
+      applicationManager.getMainPanel().openMessageDialog(
+          "X & Y pixels sizes are different, don't know what to do",
+          "Pixel sizes are different");
       return;
     }
     if (xPixelSize == 1.0) {
-      applicationManager.openMessageDialog(
-        "Pixel size is not defined in the image file header",
-        "Pixel size is missing");
+      applicationManager.getMainPanel().openMessageDialog(
+          "Pixel size is not defined in the image file header",
+          "Pixel size is missing");
       return;
     }
     ltfPixelSize.setText(xPixelSize / 10.0);
