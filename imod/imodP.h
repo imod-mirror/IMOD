@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.8.2.11  2003/01/06 15:44:23  mast
+    changes for making Qt version of slicer
+
     Revision 3.8.2.10  2003/01/02 15:38:16  mast
     remove declarations for control.c functions
 
@@ -403,15 +406,6 @@ int imodMovie(struct ViewInfo *vi);
 void imod_imgcnt(char *string);
 char *ImodRes_SGIStereoCommand(void);
 char *ImodRes_SGIRestoreCommand(void);
-
-/* window fuctions */
-void ioew_sgicolor_cb(Widget w, XtPointer client, XtPointer call);
-int  open_pixelview(struct ViewInfo *vi);
-int  xgraphOpen(struct ViewInfo *vi);
-int imod_tumble_open(struct ViewInfo *vi);
-int tltopen(ImodView *vw, struct ViewInfo *ti);
-int xtumOpen(struct ViewInfo *vi);
-int set_pixelview(struct ViewInfo *vi);
 
 /* imod_info public functions */
 void imod_info_setglwin(void);
