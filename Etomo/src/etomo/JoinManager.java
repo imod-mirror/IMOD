@@ -1,11 +1,10 @@
 package etomo;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Vector;
 
-import etomo.comscript.BadComScriptException;
 import etomo.comscript.FlipyzParam;
+import etomo.comscript.MakejoincomParam;
 import etomo.process.ImodProcess;
 import etomo.process.JoinProcessManager;
 import etomo.process.SystemProcessException;
@@ -34,6 +33,9 @@ import etomo.ui.MainJoinPanel;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.10  2004/10/06 01:26:11  sueh
+* <p> bug# 520 Changed Make Join button to Make Samples.  Added flip().
+* <p>
 * <p> Revision 1.1.2.9  2004/10/01 21:00:44  sueh
 * <p> bug# 520 Added getMetaData()
 * <p>
@@ -250,39 +252,48 @@ public class JoinManager extends BaseManager {
     return slicerAngles;
   }
 
-  /**
-   * Place the data from the screen in the meta data object.  Run the 
-   * makejoincom script.  Run startjoin.com.
-   */
-  public void makeSamples() {
-    mainPanel.startProgressBar("Making samples", AxisID.ONLY);
+  public void makejoincom() {
+    mainPanel.startProgressBar("Makejoincom", AxisID.ONLY);
+    nextProcess = "startjoin";
     isDataParamDirty = true;
-    joinDialog.retrieveData(joinMetaData);
+    if (!joinDialog.getMetaData(joinMetaData)) {
+      mainPanel.openMessageDialog(joinDialog.getInvalidReason(), "Invalid Data");
+      mainPanel.stopProgressBar(AxisID.ONLY);
+      return;
+    }
     if (!joinMetaData.isValid(true)) {
+      mainPanel.openMessageDialog(joinMetaData.getInvalidReason(), "Invalid Data");
+      mainPanel.stopProgressBar(AxisID.ONLY);
       return;
     }
+    MakejoincomParam makejoincomParam = new MakejoincomParam(joinMetaData);
     try {
-      joinProcessMgr.startJoin(joinMetaData);
-    }
-    catch (BadComScriptException except) {
-      except.printStackTrace();
-      mainPanel.openMessageDialog(except.getMessage(),
-          "Can't run makejoincom or startjoin.com");
-      return;
-    }
-    catch (IOException except) {
-      except.printStackTrace();
-      mainPanel.openMessageDialog("Can't run makejoincom or startjoin.com\n"
-        + except.getMessage(), "IOException");
-      return;
+      threadNameA = joinProcessMgr.makejoincom(makejoincomParam);
     }
     catch (SystemProcessException except) {
+      joinDialog.abortAddSection();
       except.printStackTrace();
-      mainPanel.openMessageDialog("Can't run makejoincom or startjoin.com\n"
+      mainPanel.openMessageDialog("Can't run makejoincom\n"
         + except.getMessage(), "SystemProcessException");
+      mainPanel.stopProgressBar(AxisID.ONLY);
       return; 
     }
-    mainPanel.stopProgressBar(AxisID.ONLY);
+  }
+  
+  public void startjoin() {
+    mainPanel.startProgressBar("Startjoin", AxisID.ONLY);
+    nextProcess = "";
+    try {
+      threadNameA = joinProcessMgr.startjoin();
+    }
+    catch (SystemProcessException except) {
+      joinDialog.abortAddSection();
+      except.printStackTrace();
+      mainPanel.openMessageDialog("Can't run startjoin.com\n"
+        + except.getMessage(), "SystemProcessException");
+      mainPanel.stopProgressBar(AxisID.ONLY);
+      return; 
+    }
   }
   
   public void flip(File tomogram, File workingDir) {
@@ -296,9 +307,11 @@ public class JoinManager extends BaseManager {
       except.printStackTrace();
       mainPanel.openMessageDialog("Can't run clip flipyz\n"
         + except.getMessage(), "SystemProcessException");
+      mainPanel.stopProgressBar(AxisID.ONLY);
       return; 
     }
   }
+
   
   public void addSection(File tomogram) {
     joinDialog.addSection(tomogram);
@@ -327,11 +340,17 @@ public class JoinManager extends BaseManager {
     
   }
   
-  protected void startNextProcess(AxisID axisID) {
-    
-  }
-  
   public ConstJoinMetaData getMetaData() {
     return (ConstJoinMetaData) baseMetaData;
+  }
+  
+  /**
+   * Start the next process specified by the nextProcess string
+   */
+  protected void startNextProcess(AxisID axisID) {
+    if (nextProcess.equals("startjoin")) {
+      startjoin();
+      return;
+    }
   }
 }
