@@ -54,6 +54,7 @@ import etomo.type.FiducialMatch;
 import etomo.type.MetaData;
 import etomo.type.ProcessName;
 import etomo.type.ProcessTrack;
+import etomo.type.TiltAngleSpec;
 import etomo.type.UserConfiguration;
 import etomo.ui.AlignmentEstimationDialog;
 import etomo.ui.CoarseAlignDialog;
@@ -89,6 +90,13 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.84.2.3  2004/07/12 21:10:26  sueh
+ * <p> bug# 492 merge from head:
+ * <p> in imodPreview: getting metadata from
+ * <p> SetupDialog.getDataset().  Also changed the metadata variable
+ * <p> name to previewMetaData to avoid confusing it with the
+ * <p> member variable metaData
+ * <p>
  * <p> Revision 3.84.2.2  2004/07/02 22:15:56  sueh
  * <p> bug# 487 merged from 3.4
  * <p>
@@ -2970,6 +2978,60 @@ public class ApplicationManager {
       message[0] = "Unable to setup fiducialless align files";
       message[1] = except.getMessage();
       mainFrame.openMessageDialog(message, "Unable to setup fiducialless align files");
+    }
+    catch (InvalidParameterException except) {
+      String[] message = new String[2];
+      message[0] = "Unable to setup fiducialless align files";
+      message[1] = except.getMessage();
+      mainFrame.openMessageDialog(message, "Unable to setup fiducialless align files");
+    }
+  }
+  
+  public void makeRawtltFile(AxisID axisID) throws IOException,
+    InvalidParameterException {
+    File rawtlt =
+      new File(
+        System.getProperty("user.dir"),
+        metaData.getDatasetName() + axisID.getExtension() + ".rawtlt");
+    //backing up .rawtlt, which is currently unnecessary because this function
+    //is only called when .rawtlt doesn't exist
+    Utilities.renameFile(rawtlt, new File(System.getProperty("user.dir"),
+      metaData.getDatasetName() + axisID.getExtension() + ".rawtlt~"));
+    
+    BufferedWriter bufferedWriter = null;
+    try {
+      bufferedWriter = new BufferedWriter(new FileWriter(rawtlt));
+      TiltAngleSpec tiltAngleSpec = metaData.getTiltAngleSpecA();
+      double startingAngle = tiltAngleSpec.getRangeMin();
+      double step = tiltAngleSpec.getRangeStep();
+      MRCHeader rawStackHeader = getMrcHeader(axisID, ".st");
+      rawStackHeader.read();
+      int sections = rawStackHeader.getNSections();
+      for (int curSection = 0; curSection < sections; curSection++) {
+        bufferedWriter.write(
+          Double.toString(startingAngle + (step * curSection)));
+        bufferedWriter.newLine();
+      }
+    }
+    catch (IOException except) {
+      except.printStackTrace();
+      String[] message = new String[2];
+      message[0] = "Unable to create " + rawtlt.getAbsolutePath();
+      message[1] = except.getMessage();
+      mainFrame.openMessageDialog(message, "Unable to create raw tilt file"); 
+      throw except;
+    }
+    catch (InvalidParameterException except) {
+      except.printStackTrace();
+      String[] message = new String[2];
+      message[0] = "Unable to create " + rawtlt.getAbsolutePath();
+      message[1] = except.getMessage();
+      mainFrame.openMessageDialog(message, "Unable to create raw tilt file");
+      throw except;
+    }
+
+    if (bufferedWriter != null) {
+      bufferedWriter.close();
     }
   }
 
