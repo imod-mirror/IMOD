@@ -310,46 +310,10 @@
         <slot>setText(const QString&amp;)</slot>
     </connection>
     <connection>
-        <sender>storeButton</sender>
-        <signal>pressed()</signal>
-        <receiver>imodvViewsForm</receiver>
-        <slot>storePressed()</slot>
-    </connection>
-    <connection>
-        <sender>newButton</sender>
-        <signal>pressed()</signal>
-        <receiver>imodvViewsForm</receiver>
-        <slot>newPressed()</slot>
-    </connection>
-    <connection>
-        <sender>deleteButton</sender>
-        <signal>pressed()</signal>
-        <receiver>imodvViewsForm</receiver>
-        <slot>deletePressed()</slot>
-    </connection>
-    <connection>
-        <sender>saveButton</sender>
-        <signal>pressed()</signal>
-        <receiver>imodvViewsForm</receiver>
-        <slot>savePressed()</slot>
-    </connection>
-    <connection>
         <sender>autoStoreBox</sender>
         <signal>toggled(bool)</signal>
         <receiver>imodvViewsForm</receiver>
         <slot>autostoreToggled(bool)</slot>
-    </connection>
-    <connection>
-        <sender>doneButton</sender>
-        <signal>pressed()</signal>
-        <receiver>imodvViewsForm</receiver>
-        <slot>donePressed()</slot>
-    </connection>
-    <connection>
-        <sender>helpButton</sender>
-        <signal>pressed()</signal>
-        <receiver>imodvViewsForm</receiver>
-        <slot>helpPressed()</slot>
     </connection>
     <connection>
         <sender>viewLabelEdit</sender>
@@ -394,10 +358,46 @@
         <slot>ensureCurrentVisible()</slot>
     </connection>
     <connection>
+        <sender>doneButton</sender>
+        <signal>clicked()</signal>
+        <receiver>imodvViewsForm</receiver>
+        <slot>donePressed()</slot>
+    </connection>
+    <connection>
+        <sender>helpButton</sender>
+        <signal>clicked()</signal>
+        <receiver>imodvViewsForm</receiver>
+        <slot>helpPressed()</slot>
+    </connection>
+    <connection>
+        <sender>storeButton</sender>
+        <signal>clicked()</signal>
+        <receiver>imodvViewsForm</receiver>
+        <slot>storePressed()</slot>
+    </connection>
+    <connection>
         <sender>revertButton</sender>
-        <signal>pressed()</signal>
+        <signal>clicked()</signal>
         <receiver>imodvViewsForm</receiver>
         <slot>revertPressed()</slot>
+    </connection>
+    <connection>
+        <sender>deleteButton</sender>
+        <signal>clicked()</signal>
+        <receiver>imodvViewsForm</receiver>
+        <slot>deletePressed()</slot>
+    </connection>
+    <connection>
+        <sender>newButton</sender>
+        <signal>clicked()</signal>
+        <receiver>imodvViewsForm</receiver>
+        <slot>newPressed()</slot>
+    </connection>
+    <connection>
+        <sender>saveButton</sender>
+        <signal>clicked()</signal>
+        <receiver>imodvViewsForm</receiver>
+        <slot>savePressed()</slot>
     </connection>
 </connections>
 <includes>

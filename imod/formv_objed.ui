@@ -437,18 +437,6 @@
         <slot>objectSelected(int)</slot>
     </connection>
     <connection>
-        <sender>doneButton_2</sender>
-        <signal>pressed()</signal>
-        <receiver>imodvObjedForm</receiver>
-        <slot>donePressed()</slot>
-    </connection>
-    <connection>
-        <sender>helpButton_2</sender>
-        <signal>pressed()</signal>
-        <receiver>imodvObjedForm</receiver>
-        <slot>helpPressed()</slot>
-    </connection>
-    <connection>
         <sender>nameLineEdit</sender>
         <signal>textChanged(const QString&amp;)</signal>
         <receiver>imodvObjedForm</receiver>
@@ -519,6 +507,18 @@
         <signal>selected(int)</signal>
         <receiver>imodvObjedForm</receiver>
         <slot>frameSelected(int)</slot>
+    </connection>
+    <connection>
+        <sender>doneButton_2</sender>
+        <signal>clicked()</signal>
+        <receiver>imodvObjedForm</receiver>
+        <slot>donePressed()</slot>
+    </connection>
+    <connection>
+        <sender>helpButton_2</sender>
+        <signal>clicked()</signal>
+        <receiver>imodvObjedForm</receiver>
+        <slot>helpPressed()</slot>
     </connection>
 </connections>
 <includes>

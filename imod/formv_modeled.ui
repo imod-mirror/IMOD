@@ -353,18 +353,6 @@
         <slot>viewSelected(int)</slot>
     </connection>
     <connection>
-        <sender>doneButton</sender>
-        <signal>pressed()</signal>
-        <receiver>imodvModeledForm</receiver>
-        <slot>donePressed()</slot>
-    </connection>
-    <connection>
-        <sender>helpButton</sender>
-        <signal>pressed()</signal>
-        <receiver>imodvModeledForm</receiver>
-        <slot>helpPressed()</slot>
-    </connection>
-    <connection>
         <sender>currentSpinBox</sender>
         <signal>valueChanged(int)</signal>
         <receiver>imodvModeledForm</receiver>
@@ -399,6 +387,18 @@
         <signal>returnPressed()</signal>
         <receiver>imodvModeledForm</receiver>
         <slot>newPixelSize()</slot>
+    </connection>
+    <connection>
+        <sender>doneButton</sender>
+        <signal>clicked()</signal>
+        <receiver>imodvModeledForm</receiver>
+        <slot>donePressed()</slot>
+    </connection>
+    <connection>
+        <sender>helpButton</sender>
+        <signal>clicked()</signal>
+        <receiver>imodvModeledForm</receiver>
+        <slot>helpPressed()</slot>
     </connection>
 </connections>
 <includes>
