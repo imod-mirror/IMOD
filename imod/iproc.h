@@ -68,6 +68,8 @@ class IProcWindow : public DialogFrame
   void fourFiltChanged(int which, int value, bool dragging);
   void binningChanged(int val);
   void subsetChanged(bool state);
+  void growChanged(bool state);
+  void shrinkChanged(bool state);
   void medSizeChanged(int val);
   void med3DChanged(bool state);
   void andfIterChanged(int val);
@@ -108,6 +110,8 @@ typedef struct
   int           modified;   /* flag that section data are modified */
 
   int           threshold;  /* Parameters for individual filters */
+  bool          threshGrow;
+  bool          threshShrink;
   int           edge;
   float         radius1;
   float         radius2;
@@ -153,6 +157,9 @@ bool iprocBusy(void);
 #endif /* BD_IPROC_H_ */
 /*
     $Log$
+    Revision 3.13  2005/03/23 18:47:29  mast
+    Added threshold grow and shrink states
+
     Revision 3.12  2005/03/09 21:20:12  mast
     converted diffusion to floats
 
