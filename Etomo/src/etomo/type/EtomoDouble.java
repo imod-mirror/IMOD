@@ -16,6 +16,10 @@ import java.util.Properties;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.4  2004/10/22 21:04:20  sueh
+* <p> bug# 520 Allowing value initialization in constructor.  Returning this in
+* <p> set().
+* <p>
 * <p> Revision 1.1.2.3  2004/10/22 03:23:53  sueh
 * <p> bug# 520 Set value unsetValue when set fails.
 * <p>
@@ -49,13 +53,9 @@ public class EtomoDouble extends ConstEtomoDouble {
     value = initialValue;
   }
   
-  public void setDefaultValue(double value) {
-    defaultValue = value;
-    setResetValue();
-  }
-  
-  public void setRecommendedValue(double value) {
-    recommendedValue = value;
+  public void setRecommendedValue(double recommendedValue) {
+    this.recommendedValue = recommendedValue;
+    value = recommendedValue;
     setResetValue();
   }
   
@@ -78,7 +78,7 @@ public class EtomoDouble extends ConstEtomoDouble {
         .toString(resetValue)));
   }
   
-  public EtomoDouble set(String value) {
+  public EtomoSimpleType set(String value) {
     invalidReason = null;
     if (value == null || !value.matches("\\S+")) {
       this.value = unsetValue;
@@ -97,13 +97,13 @@ public class EtomoDouble extends ConstEtomoDouble {
     return this;
   }
   
-  public EtomoDouble set(Double value) {
+  public EtomoSimpleType set(Double value) {
     invalidReason = null;
     this.value = value.doubleValue();
     return this;
   }
   
-  public EtomoDouble set(double value) {
+  public EtomoSimpleType set(double value) {
     invalidReason = null;
     this.value = value;
     return this;
@@ -121,11 +121,9 @@ public class EtomoDouble extends ConstEtomoDouble {
     if (!Double.isNaN(recommendedValue)) {
       resetValue = recommendedValue;
     }
-    else if (!Double.isNaN(defaultValue)) {
-      resetValue = defaultValue;
-    }
     else {
       resetValue = unsetValue;
     }
   }
+
 }

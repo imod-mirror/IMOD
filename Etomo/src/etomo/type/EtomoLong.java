@@ -16,6 +16,10 @@ import java.util.Properties;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.3  2004/10/22 21:05:13  sueh
+* <p> bug# 520 Allowing value initialization in constructor.  Returning this in
+* <p> set().
+* <p>
 * <p> Revision 1.1.2.2  2004/10/22 03:25:19  sueh
 * <p> bug# 520 Set value unsetValue when set(String) fails.
 * <p>
@@ -44,13 +48,9 @@ public class EtomoLong extends ConstEtomoLong {
     value = initialValue;
   }
   
-  public void setDefaultValue(long value) {
-    defaultValue = value;
-    setResetValue();
-  }
-  
-  public void setRecommendedValue(long value) {
-    recommendedValue = value;
+  public void setRecommendedValue(long recommendedValue) {
+    this.recommendedValue = recommendedValue;
+    value = recommendedValue;
     setResetValue();
   }
   
@@ -72,7 +72,7 @@ public class EtomoLong extends ConstEtomoLong {
         .toString(resetValue)));
   }
   
-  public EtomoLong set(String value) {
+  public EtomoSimpleType set(String value) {
     invalidReason = null;
     if (value == null || !value.matches("\\S+")) {
       this.value = unsetValue;
@@ -91,15 +91,14 @@ public class EtomoLong extends ConstEtomoLong {
     return this;
   }
   
-  public EtomoLong set(Long value) {
+  public EtomoSimpleType set(Long value) {
     invalidReason = null;
     this.value = value.intValue();
     return this;
   }
   
-  public EtomoLong set(long value) {
+  public EtomoSimpleType set(long value) {
     invalidReason = null;
-    System.out.println("value=" + value);
     this.value = value;
     return this;
   }
@@ -115,9 +114,6 @@ public class EtomoLong extends ConstEtomoLong {
   private void setResetValue() {
     if (recommendedValue != unsetValue) {
       resetValue = recommendedValue;
-    }
-    else if (defaultValue != unsetValue) {
-      resetValue = defaultValue;
     }
     else {
       resetValue = unsetValue;

@@ -16,6 +16,10 @@ import java.util.Properties;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.4  2004/10/22 21:04:32  sueh
+* <p> bug# 520 Allowing value initialization in constructor.  Returning this in
+* <p> set().
+* <p>
 * <p> Revision 1.1.2.3  2004/10/22 03:24:04  sueh
 * <p> bug# 520 Set value unsetValue when set fails.
 * <p>
@@ -49,13 +53,9 @@ public class EtomoFloat extends ConstEtomoFloat {
     value = initialValue;
   }
   
-  public void setDefaultValue(float value) {
-    defaultValue = value;
-    setResetValue();
-  }
-  
-  public void setRecommendedValue(float value) {
-    recommendedValue = value;
+  public void setRecommendedValue(float recommendedValue) {
+    this.recommendedValue = recommendedValue;
+    value = recommendedValue;
     setResetValue();
   }
   
@@ -79,7 +79,7 @@ public class EtomoFloat extends ConstEtomoFloat {
     value = Float.parseFloat(valueString);
   }
   
-  public EtomoFloat set(String value) {
+  public EtomoSimpleType set(String value) {
     invalidReason = null;
     if (value == null || !value.matches("\\S+")) {
       this.value = unsetValue;
@@ -98,13 +98,13 @@ public class EtomoFloat extends ConstEtomoFloat {
     return this;
   }
   
-  public EtomoFloat set(Float value) {
+  public EtomoSimpleType set(Float value) {
     invalidReason = null;
     this.value = value.floatValue();
     return this;
   }
   
-  public EtomoFloat set(float value) {
+  public EtomoSimpleType set(float value) {
     invalidReason = null;
     this.value = value;
     return this;
@@ -121,9 +121,6 @@ public class EtomoFloat extends ConstEtomoFloat {
   private void setResetValue() {
     if (!Float.isNaN(recommendedValue)) {
       resetValue = recommendedValue;
-    }
-    else if (!Float.isNaN(defaultValue)) {
-      resetValue = defaultValue;
     }
     else {
       resetValue = unsetValue;
