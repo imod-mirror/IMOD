@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 1.1.2.2  2002/12/17 17:44:59  mast
+    Changes for Qt version
+
     Revision 1.1.2.1  2002/12/15 21:14:02  mast
     conversion to cpp
 
@@ -45,6 +48,7 @@
 */
 
 #include <stdlib.h>
+#include "imodconfig.h"
 #ifndef NO_SYS_TIMES
 #include <sys/times.h>
 #ifdef FIXED_CLK_TCK
