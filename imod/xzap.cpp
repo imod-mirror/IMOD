@@ -35,6 +35,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.1  2002/12/09 17:50:33  mast
+Qt version
+
 Revision 3.9  2002/12/01 16:51:34  mast
 Changes to eliminate warnings on SGI
 
@@ -89,7 +92,7 @@ Added hotkeys to do smoothing and next section in autocontouring
 #include "imod_cursor.h"
 #include "imod_cmask.h"
 
-#define XZAP_DEBUG
+//#define XZAP_DEBUG
 
 void inputQDefaultKeys(QKeyEvent *event, ImodView *vw);
 
@@ -280,11 +283,10 @@ void zapClosing(ZapStruct *zap)
     zapQuit(zap);
   }
 
-  // Do cleanup (of questionable purpose) and tell window to accept
+  // Do cleanup (of questionable purpose) 
   zap->popup = False;
 
-  if (zap->image)
-    free(zap->image);
+  b3dFreeCIImage(zap->image);
   zap->ctrl  = 0;
   zap->image = NULL;
   zap->winx  = zap->winy = 0;
@@ -497,7 +499,7 @@ static void zapSyncImage(ZapStruct *win)
 
 static int zapDraw(ZapStruct *zap)
 {
-  zap->gfx->glReallyDraw();
+  zap->gfx->updateGL();
   return 0;
 }
 
@@ -892,7 +894,7 @@ int imod_zap_open(struct ViewInfo *vi)
   str = imodwfname("ZaP Toolbar:");
   if (str.isEmpty())
     str = "ZaP Toolbar";
-  zap->qtWindow->mToolBar->setCaption(str);
+  zap->qtWindow->mToolBar->setLabel(str);
   
   /*     zap->cursor = XCreateFontCursor(App->display, XC_tcross); */
   //  zap->cursor = App->cursor_cross;
