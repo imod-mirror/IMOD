@@ -18,6 +18,9 @@ import etomo.storage.Storable;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.6  2004/10/29 22:10:53  sueh
+* <p> bug# 520 Added remove() to remove value from the meta data file.
+* <p>
 * <p> Revision 1.1.2.5  2004/10/25 23:04:23  sueh
 * <p> bug# 520 Fixed default:  Default doesn't affect the value or the
 * <p> resetValue.  Default can returned if value and recommended value are
@@ -51,14 +54,13 @@ public abstract class ConstEtomoDouble extends EtomoSimpleType implements Storab
   public abstract void load(Properties props);  
   public abstract void load(Properties props, String prepend);
   
-  public ConstEtomoDouble() {
+  protected ConstEtomoDouble() {
     super();
   }
   
-  public ConstEtomoDouble(String name) {
+  protected ConstEtomoDouble(String name) {
     super(name);
   }
-  
   
   public EtomoSimpleType setDefault(double defaultValue) {
     this.defaultValue = defaultValue;
@@ -126,9 +128,20 @@ public abstract class ConstEtomoDouble extends EtomoSimpleType implements Storab
   }
   
   public EtomoSimpleType getNegation() {
-    return new EtomoDouble(value * -1);
+    EtomoDouble that = new EtomoDouble();
+    that.set(this);
+    if (that.isSet()) {
+      that.value *= -1;
+    }
+    if (!Double.isNaN(that.recommendedValue)) {
+      that.recommendedValue *= -1;
+    }
+    if (!Double.isNaN(that.defaultValue)) {
+      that.defaultValue *= -1;
+    }
+    return that;
   }
-    
+  
   public boolean isSetAndNotDefault() {
     return isSet() && (Double.isNaN(defaultValue) || value != defaultValue);
   }

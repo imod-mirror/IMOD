@@ -17,6 +17,9 @@ import etomo.storage.Storable;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.5  2004/10/29 22:11:25  sueh
+* <p> bug# 520 Added remove() to remove value from the meta data file.
+* <p>
 * <p> Revision 1.1.2.4  2004/10/25 23:05:38  sueh
 * <p> bug# 520 Fixed default:  Default doesn't affect the value or the
 * <p> resetValue.  Default can returned if value and recommended value are
@@ -46,11 +49,11 @@ public abstract class ConstEtomoLong extends EtomoSimpleType implements Storable
   public abstract void load(Properties props);
   public abstract void load(Properties props, String prepend);
   
-  public ConstEtomoLong() {
+  protected ConstEtomoLong() {
     super();
   }
 
-  public ConstEtomoLong(String name) {
+  protected ConstEtomoLong(String name) {
     super(name);
   }
   
@@ -118,9 +121,20 @@ public abstract class ConstEtomoLong extends EtomoSimpleType implements Storable
     }
     return new Long(unsetValue);
   }
-  
+
   public EtomoSimpleType getNegation() {
-    return new EtomoFloat(value * -1);
+    EtomoLong that = new EtomoLong();
+    that.set(this);
+    if (that.isSet()) {
+      that.value *= -1;
+    }
+    if (that.recommendedValue != unsetValue) {
+      recommendedValue *= -1;
+    }
+    if (that.defaultValue != unsetValue) {
+      defaultValue *= -1;
+    }
+    return that;
   }
   
   public boolean isSetAndNotDefault() {
