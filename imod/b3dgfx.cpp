@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.4.2.6  2003/01/13 01:12:37  mast
+Fixed bug in drawboxout with negative coordinates
+
 Revision 3.4.2.5  2003/01/10 23:57:23  mast
 questionable change to display routine used by tumbler
 
@@ -73,13 +76,6 @@ excess in sizing of temporary buffers.
 #include "imod.h"
 #include "b3dgfx.h"
 
-/* DNM 1/20/02: add button 1 up since xyz window needs it now */
-String B3DGFX_Translations =
-"<KeyDown>:   glwInput()\n\
- <BtnDown>:   glwInput()\n\
- <Btn1Up>:    glwInput()\n\
- <BtnMotion>: glwInput()\n\
-";
 
 static XFontStruct *CurFont     = NULL;
 static Display     *CurDisplay  = NULL;
@@ -95,101 +91,10 @@ static Dimension    CurHeight;
 
 /* used for X11 simulation of bgnline() endline() pairs */
 static int       CurDrawFlag= B3D_NODRAW;
-static int       CurX;
-static int       CurY;
-static int       CurZ;
 
 #define b3dX11GetY(y) (CurHeight - (y))
 
 
-XID b3dGetXContext(Widget w)
-{
-  if (!w)
-    return(0);
-  return((XID)XCreateGC(XtDisplay(w), XtWindow(w), 0, NULL));
-}
-
-XID b3dGetContext(Widget w)
-{
-  XVisualInfo *vi;
-  GLXContext ct;
-  Bool direct = GL_TRUE;
-  if (!w) return(0);
-
-
-  XtVaGetValues(w, GLwNvisualInfo, &vi, NULL);
-
-  /*     XtVaSetValues(w, XmNcolormap, App->cmap, NULL); */
-
-  ct = glXCreateContext(XtDisplay(w),
-                        vi,
-                        None,
-                        direct);
-
-  glXMakeCurrent(XtDisplay(w), (GLXDrawable)XtWindow(w), (GLXContext)ct);
-  if (ct){
-    if (!glXIsDirect(XtDisplay(w),ct)){
-      wprint("Imod Warning :"
-             "Failed to get a direct rendering context.\n"
-             "Using software level rendering.");
-    }
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 2);
-  }else{
-    fprintf(stderr,"IMOD Warning : OpenGL context init failed.\n");
-  }
-  CurGC = (GC)ct;
-  return((XID)ct);
-}
-
-void b3dDestroyGFX()
-{
-  glXDestroyContext(CurDisplay, (GLXContext)CurGC); 
-}
-
-void b3dXWinset(Display *dpy, Widget w, XID context)
-{
-  CurDisplay  = dpy;
-  CurD        = XtWindow(w);
-  CurWidget   = w;
-  CurDepth    = App->depth;
-  CurGC       = (GC)context;
-  CurDrawFlag = B3D_NODRAW;
-  CurCmap = 0;
-  XtVaGetValues(w,XmNwidth, &CurWidth, XmNheight, &CurHeight,
-                XmNvisual, &CurVisual, NULL);
-  return;
-}
-
-void b3dWinset(Display *dpy, Widget w, XID context)
-{
-  CurDisplay = dpy;
-
-  /* Set to NULL Window. */
-  if ((!w) || (!context)){
-    CurD       = 0;
-    CurGC      = 0;
-    CurWidget  = 0;
-    CurDepth   = 0;
-          
-    glXMakeCurrent(dpy, None, None);
-
-    return;
-  }
-
-  CurD        = XtWindow(w);
-  CurWidget   = w;
-  CurDepth    = App->depth;
-
-  glXMakeCurrent(dpy, CurD, (GLXContext)context);
-  CurGC = (GC)context;
-
-  XtVaGetValues(w, 
-                XmNwidth, &CurWidth, 
-                XmNheight, &CurHeight, 
-                XmNvisual, &CurVisual,
-                NULL);
-  return;
-}
 
 /* DNM: needed so that imodv can use snapshot functions */
 void b3dSetCurSize(int width, int height)
@@ -198,15 +103,6 @@ void b3dSetCurSize(int width, int height)
   CurHeight = height;
   /* Can we do this safely / */
   CurWidget = 0;
-}
-
-void b3dResizeViewport(void)
-{
-
-  XtVaGetValues(CurWidget, 
-                XmNwidth, &CurWidth, XmNheight, &CurHeight, NULL);
-
-  b3dResizeViewportXY((int)CurWidth, (int)CurHeight);
 }
 
 void b3dResizeViewportXY(int winx, int winy)
@@ -221,14 +117,6 @@ void b3dResizeViewportXY(int winx, int winy)
   glLoadIdentity();
 }
 
-void b3dSwapBuffers(void)
-{
-  glXSwapBuffers(CurDisplay, CurD);
-  /*     if (!glXIsDirect(CurD, CurGC)) */
-  glFinish();
-
-  return;
-}
 
 void b3dClear(void)
 {
@@ -243,30 +131,6 @@ void b3dFlush(void)
   return;
 }
 
-
-void b3dMapColor(unsigned int color,
-                 unsigned short red,
-                 unsigned short green,
-                 unsigned short blue)
-{
-#ifndef NOUSEIMODDISPLAYMAPCOLOR
-  mapcolor(color, red, green, blue);
-#else
-
-  XColor c;
-  Colormap cmap;
-
-  wprint("map: %d (%d, %d, %d)\n", color, red, green, blue);
-  XtVaGetValues(CurWidget, XmNcolormap, &cmap, NULL);
-  c.flags    = DoRed | DoGreen | DoBlue;
-  c.pixel    = color;
-  c.red   = red << 8;
-  c.green = green << 8;
-  c.blue  = blue << 8;
-  XStoreColors(CurDisplay, cmap, &c, 1);
-#endif
-  return;
-}
 
 void b3dColorIndex(unsigned int pix)
 {
@@ -490,13 +354,6 @@ void b3dEndLine(void)
   return;
 }
 
-
-void b3dSetCurPoint(int x, int y, int z)
-{
-  CurX = x;
-  CurY = y;
-  CurZ = z;
-}
 
 void b3dVertex2i(int x, int y)
 {
@@ -1671,98 +1528,6 @@ double b3dStepPixelZoom(double czoom, int step)
 }
 
 
-/***************************************************************************/
-/* fonts                                                                   */
-XFontStruct *b3dGetXFontStruct(char *name)
-{
-  if (!CurDisplay)
-    CurDisplay = App->display;
-  return(XLoadQueryFont(CurDisplay, name));
-}
-
-void b3dFreeXFontStruct(XFontStruct *fs)
-{
-  XFreeFont(CurDisplay, fs);
-}
-
-void b3dXSetCurrentFont(XFontStruct *fs)
-{
-  if (!fs)
-    return;
-  CurFont = fs;
-  XSetFont(CurDisplay, CurGC, CurFont->fid);
-}
-
-void b3dSetCurrentFont(XFontStruct *fs)
-{
-  glXUseXFont(CurFont->fid, CurFont->min_char_or_byte2,
-              CurFont->max_char_or_byte2 - CurFont->min_char_or_byte2,
-              CurFont->min_char_or_byte2);
-  return;
-}
-
-void b3dXDrawString(char *string, int x, int y, int alignment)
-{
-  int strsize = strlen(string);
-  int swidth;
-  int xp, yp;
-  yp = y;
-  switch(alignment){
-          
-  case XmALIGNMENT_BEGINNING:
-    xp = x;
-    break;
-          
-  case XmALIGNMENT_CENTER:
-    swidth = XTextWidth(CurFont, string, strsize);
-    xp = x - (swidth/2);
-    break;
-          
-  case XmALIGNMENT_END:
-    swidth = XTextWidth(CurFont, string, strsize);
-    xp = x - swidth;
-    break;
-          
-  default:
-    return;
-  }
-  yp = b3dX11GetY(yp);
-  XDrawString(CurDisplay, CurD, CurGC,
-              xp, yp, string, strsize);
-}
-
- 
-
-void b3dDrawString(char *string, int x, int y, int alignment)
-{
-  int strsize = strlen(string);
-  int swidth;
-  int xp, yp;
-  yp = y;
-  switch(alignment){
-
-  case XmALIGNMENT_BEGINNING:
-    xp = x;
-    break;
-
-  case XmALIGNMENT_CENTER:
-    swidth = XTextWidth(CurFont, string, strsize);
-    xp = x - (swidth/2);
-    break;
-
-  case XmALIGNMENT_END:
-    swidth = XTextWidth(CurFont, string, strsize);
-    xp = x - swidth;
-    break;
-          
-  default:
-    return;
-  }
-
-  glRasterPos2i(xp,yp);
-  glCallLists(strsize, GL_BYTE, string);
-  return;
-}
 
 /*****************************************************************************/
 /* Image Save Functions. */
@@ -2203,19 +1968,4 @@ void b3dSnapshot(char *fname)
     b3dSnapshot_RGB(fname, App->rgba, NULL);
   else
     b3dSnapshot_TIF(fname, App->rgba, NULL, NULL);
-}
-
-
-void b3dGetMouseWindowCoord(int *x, int *y)
-{
-  Window rootr, childr;
-  int rx, ry;
-  unsigned int maskr;
-
-  XQueryPointer(CurDisplay, XtWindow(CurWidget),
-                &rootr, &childr,
-                &rx, &ry, x, y, &maskr);
-
-  *y = CurHeight - *y;
-  return;
 }

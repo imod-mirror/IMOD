@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.3.2.4  2003/01/23 19:54:09  mast
+add include of imod_io
+
 Revision 3.3.2.3  2003/01/13 01:15:42  mast
 changes for Qt version of info window
 

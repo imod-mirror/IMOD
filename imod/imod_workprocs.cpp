@@ -33,6 +33,9 @@
     $Revision$
 
     $Log$
+    Revision 3.5.2.1  2003/01/14 21:52:38  mast
+    include new movie controller include file
+
     Revision 3.5  2002/12/01 15:34:41  mast
     Changes to get clean compilation with g++
 
