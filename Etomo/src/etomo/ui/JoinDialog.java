@@ -36,6 +36,9 @@ import etomo.type.JoinMetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.1.2.29  2004/11/13 02:39:10  sueh
+ * <p> bug# 520 Added new buttons Change Setup and Revert to Last Setup.
+ * <p>
  * <p> Revision 1.1.2.28  2004/11/12 23:00:36  sueh
  * <p> bug# 520 Added setSizeAndShift() to implement get subarea.
  * <p>
@@ -163,6 +166,11 @@ public class JoinDialog implements ContextMenu {
   public static final int ALIGN_TAB = 1;
   public static final int JOIN_TAB = 2;
   
+  public static final int SETUP_MODE = -1;
+  public static final int SAMPLE_NOT_PRODUCED = -2;
+  public static final int SAMPLE_PRODUCED = -3;
+  public static final int CHANGING_SAMPLE = -4;
+  
   public static final String REFINE_AUTO_ALIGNMENT_TEXT = "Refine Auto Alignment";
   public static final String MIDAS_TEXT = "Midas";
   public static final String FINISH_JOIN_TEXT = "Finish Join";
@@ -194,7 +202,7 @@ public class JoinDialog implements ContextMenu {
   private DoubleSpacedPanel pnlFinishJoin;
   
   private JButton btnWorkingDir;
-  private MultiLineToggleButton btnMakeSamples;
+  private MultiLineButton btnMakeSamples;
   private MultiLineButton btnOpenSample;
   private MultiLineButton btnOpenSampleAverages;
   private MultiLineButton btnInitialAutoAlignment;
@@ -234,8 +242,6 @@ public class JoinDialog implements ContextMenu {
   
   private int numSections = 0;
   private int curTab = SETUP_TAB;
-  private boolean alignTabEnabled = false;
-  private boolean joinTabEnabled = false;
   private String invalidReason = null;
 
   private JoinActionListener joinActionListener = new JoinActionListener(this);
@@ -277,18 +283,6 @@ public class JoinDialog implements ContextMenu {
     tabPane.addTab("Align", pnlAlign.getContainer());
     createJoinPanel();
     tabPane.addTab("Join", pnlJoin.getContainer());
-    setEnabledTabs();
-  }
-  
-  public void setEnabledTabs(boolean enabled) {
-    alignTabEnabled = enabled;
-    joinTabEnabled = enabled;
-    setEnabledTabs();
-  }
-  
-  private void setEnabledTabs() {
-    tabPane.setEnabledAt(1, alignTabEnabled);
-    tabPane.setEnabledAt(2, joinTabEnabled);
   }
   
   private void addPanelComponents(int tab) {
@@ -373,6 +367,49 @@ public class JoinDialog implements ContextMenu {
       joinManager.getMainPanel().fitWindow();
     }
   }
+  
+  public void setMode(int mode) {
+    if (mode == SETUP_MODE) {
+      ltfWorkingDir.setEnabled(true);
+      btnWorkingDir.setEnabled(true);
+      ltfRootName.setEnabled(true);
+    }
+    else {
+      ltfWorkingDir.setEnabled(false);
+      btnWorkingDir.setEnabled(false);
+      ltfRootName.setEnabled(false);
+    }
+    switch (mode) {
+    case SETUP_MODE:
+    case SAMPLE_NOT_PRODUCED:
+      tabPane.setEnabledAt(1, false);
+      tabPane.setEnabledAt(2, false);
+      spinDensityRefSection.setEnabled(true);
+      btnChangeSetup.setEnabled(false);
+      btnRevertToLastSetup.setEnabled(false);
+      btnMakeSamples.setEnabled(true);
+      break;
+    case SAMPLE_PRODUCED:
+      tabPane.setEnabledAt(1, true);
+      tabPane.setEnabledAt(2, true);
+      spinDensityRefSection.setEnabled(false);
+      btnChangeSetup.setEnabled(true);
+      btnRevertToLastSetup.setEnabled(false);
+      btnMakeSamples.setEnabled(false);
+      break;
+    case CHANGING_SAMPLE:
+      tabPane.setEnabledAt(1, false);
+      tabPane.setEnabledAt(2, false);
+      spinDensityRefSection.setEnabled(true);
+      btnChangeSetup.setEnabled(false);
+      btnRevertToLastSetup.setEnabled(true);
+      btnMakeSamples.setEnabled(true);
+      break;
+    default:
+      throw new IllegalStateException("mode=" + mode);
+    }
+    pnlSectionTable.setMode(mode);
+  }
 
   private void createSetupPanel(String workingDirName) {
     pnlSetup = new DoubleSpacedPanel(false, FixedDim.x5_y0, FixedDim.x0_y5);
@@ -398,24 +435,20 @@ public class JoinDialog implements ContextMenu {
     spinDensityRefSection = new LabeledSpinner(
         "Reference section for density matching: ", spinnerModel);
     spinDensityRefSection.setTextMaxmimumSize(dimSpinner);
-    spinDensityRefSection.setEnabled(false);
     //fifth component
     setupPanel2 = new DoubleSpacedPanel(true, FixedDim.x5_y0, FixedDim.x0_y5,
         BorderFactory.createEtchedBorder());
     btnChangeSetup = new MultiLineButton("Change Setup");
     btnChangeSetup.addActionListener(joinActionListener);
-    btnChangeSetup.setEnabled(false);
     setupPanel2.addMultiLineButton(btnChangeSetup);
     btnRevertToLastSetup = new MultiLineButton("Revert to Last Setup");
     btnRevertToLastSetup.addActionListener(joinActionListener);
-    btnRevertToLastSetup.setEnabled(false);
     setupPanel2.addMultiLineButton(btnRevertToLastSetup);
     //sixth component
-    btnMakeSamples = new MultiLineToggleButton("Make Samples");
+    btnMakeSamples = new MultiLineButton("Make Samples");
     btnMakeSamples.addActionListener(joinActionListener);
     UIUtilities.setButtonSize(btnMakeSamples, dimButton);
     btnMakeSamples.setAlignmentX(Component.CENTER_ALIGNMENT);
-    btnMakeSamples.setEnabled(false);
   }
   
   private void addSetupPanelComponents() {
@@ -529,7 +562,6 @@ public class JoinDialog implements ContextMenu {
     spinAlignmentRefSection = new JSpinner();
     spinAlignmentRefSection.setModel(spinnerModel);
     spinAlignmentRefSection.setMaximumSize(dimSpinner);
-    spinAlignmentRefSection.setEnabled(false);
     finishJoinPanel1.add(spinAlignmentRefSection);
     pnlFinishJoin.add(finishJoinPanel1);
     //second component
@@ -637,8 +669,6 @@ public class JoinDialog implements ContextMenu {
     SpinnerModel spinnerModel = new SpinnerNumberModel(spinnerValue.get(true),
         1, numSections < 1 ? 1 : numSections, 1);
     spinDensityRefSection.setModel(spinnerModel);
-    spinDensityRefSection.setEnabled(numSections > 0);
-    btnMakeSamples.setEnabled(numSections >= 2);
     //align
     spinnerValue.set((Integer) spinAlignmentRefSection.getValue());
     spinnerModel = new SpinnerNumberModel(spinnerValue
@@ -655,7 +685,6 @@ public class JoinDialog implements ContextMenu {
       spinnerValue.set((Integer) spinUseEveryNSlices.getValue());
     }
     spinnerValue.setDefault(zMax < 1 ? 1 : zMax < 10 ? zMax : 10);
-    System.out.println("zMax=" + zMax + ",spinnerValue=" + spinnerValue.getString()+ ",spinnerValue default="+spinnerValue.getDefault());
     spinnerModel = new SpinnerNumberModel(spinnerValue.get(true), 1,
         zMax < 1 ? 1 : zMax, 1);
     spinUseEveryNSlices.setModel(spinnerModel);
@@ -738,7 +767,7 @@ public class JoinDialog implements ContextMenu {
   
   public void setMetaData(ConstJoinMetaData metaData) {
     ltfRootName.setText(metaData.getRootName());
-    spinDensityRefSection.setValue(metaData.getDensityRefSection());
+    spinDensityRefSection.setValue(metaData.getDensityRefSection().get(true));
     ltfSigmaLowFrequency.setText(metaData.getSigmaLowFrequency().getString(true));
     ltfCutoffHighFrequency.setText(metaData.getCutoffHighFrequency().getString(true));
     ltfSigmaHighFrequency.setText(metaData.getSigmaHighFrequency().getString(true));
@@ -755,16 +784,6 @@ public class JoinDialog implements ContextMenu {
     spinUseEveryNSlices.setValue(metaData.getUseEveryNSlices());
     spinTrialBinning.setValue(metaData.getTrialBinning().getNumber(true));
     pnlSectionTable.setMetaData(metaData);
-    pnlSectionTable.enableTableButtons(ltfWorkingDir.getText());
-  }
-  
-  public void setEnabledWorkingDir(boolean enable) {
-    ltfWorkingDir.setEnabled(enable);
-    btnWorkingDir.setEnabled(enable);
-  }
-  
-  public void setEnabledRootName(boolean enable) {
-    ltfRootName.setEnabled(enable);
   }
 
   public Container getContainer() {
@@ -776,6 +795,10 @@ public class JoinDialog implements ContextMenu {
   }
   
   public File getWorkingDir() {
+    String workingDirName = ltfWorkingDir.getText();
+    if (workingDirName == null || !workingDirName.matches("\\S+")) {
+      return null;
+    }
     return new File(ltfWorkingDir.getText());
   }
   
@@ -784,7 +807,7 @@ public class JoinDialog implements ContextMenu {
   }
   
   public void abortAddSection() {
-    pnlSectionTable.setEnabledAddSection(true);
+    pnlSectionTable.enableAddSection();
   }
   
   public void enableMidas() {
@@ -856,10 +879,15 @@ public class JoinDialog implements ContextMenu {
           .imodGetRubberbandCoordinates(ImodManager.TRIAL_JOIN_KEY));
     }
     else if (command.equals(btnChangeSetup.getActionCommand())) {
-
+      setMode(JoinDialog.CHANGING_SAMPLE);
     }
     else if (command.equals(btnRevertToLastSetup.getActionCommand())) {
-
+      ConstJoinMetaData metaData = joinManager.getMetaData();
+      if (!metaData.isSampleProduced()) {
+        throw new IllegalStateException("sample produced is false but Revert to Last Setup is enabled");
+      }
+      setMetaData(joinManager.getMetaData());
+      setMode(JoinDialog.SAMPLE_PRODUCED);
     }
     else {
       throw new IllegalStateException("Unknown command " + command);
@@ -880,10 +908,9 @@ public class JoinDialog implements ContextMenu {
       catch (Exception excep) {
         excep.printStackTrace();
       }
-      this.pnlSectionTable.enableTableButtons(ltfWorkingDir.getText());
     }
   }
-  
+    
   private void useAlignmentRefSectionAction() {
     spinAlignmentRefSection.setEnabled(cbUseAlignmentRefSection.isSelected());
   }
