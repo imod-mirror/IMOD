@@ -29,6 +29,10 @@ import etomo.type.JoinMetaData;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.1.2.22  2004/10/28 22:15:15  sueh
+ * <p> bug# 520 Keep the text associated with the Alignment ref section
+ * <p> checkbox from getting grayed out.
+ * <p>
  * <p> Revision 1.1.2.21  2004/10/28 17:09:12  sueh
  * <p> bug# 520 Adding revert to empty.  Putting revert buttons in a box to the
  * <p> right.  Making button text available for message boxes.
@@ -128,6 +132,7 @@ public class JoinDialog implements ContextMenu {
   public static final String REFINE_AUTO_ALIGNMENT_TEXT = "Refine Auto Alignment";
   public static final String MIDAS_TEXT = "Midas";
   public static final String FINISH_JOIN_TEXT = "Finish Join";
+  public static final String WORKING_DIRECTORY_TEXT = "Working directory";
   
   private static ImageIcon iconFolder = new ImageIcon(ClassLoader
       .getSystemResource("images/openFile.gif"));
@@ -202,27 +207,31 @@ public class JoinDialog implements ContextMenu {
   private final JoinManager joinManager;
 
   public JoinDialog(JoinManager joinManager) {
+    this(joinManager, null);
+  }
+  
+  public JoinDialog(JoinManager joinManager, String workingDirName) {
     axisID = AxisID.ONLY;
     this.joinManager = joinManager;
-    createRootPanel();
+    createRootPanel(workingDirName);
     joinManager.packMainWindow();
   }
 
-  private void createRootPanel() {
+  private void createRootPanel(String workingDirName) {
     rootPanel = new JPanel();
     //  Mouse adapter for context menu
     GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
     rootPanel.addMouseListener(mouseAdapter);
-    createTabPane();
+    createTabPane(workingDirName);
     rootPanel.add(tabPane);
   }
 
-  private void createTabPane() {
+  private void createTabPane(String workingDirName) {
     tabPane = new JTabbedPane();
     TabChangeListener tabChangeListener = new TabChangeListener(this);
     tabPane.addChangeListener(tabChangeListener);
     tabPane.setBorder(new BeveledBorder("Join").getBorder());
-    createSetupPanel();
+    createSetupPanel(workingDirName);
     tabPane.addTab("Setup", pnlSetup.getContainer());
     createAlignPanel();
     tabPane.addTab("Align", pnlAlign.getContainer());
@@ -277,13 +286,14 @@ public class JoinDialog implements ContextMenu {
     }
   }
 
-  private void createSetupPanel() {
+  private void createSetupPanel(String workingDirName) {
     pnlSetup = new DoubleSpacedPanel(false, FixedDim.x5_y0, FixedDim.x0_y5);
     //first component
     pnlSetupComponent1 = new SpacedPanel(FixedDim.x5_y0);
     pnlSetupComponent1
         .setLayout(new BoxLayout(pnlSetupComponent1.getContainer(), BoxLayout.X_AXIS));
-    ltfWorkingDir = new LabeledTextField("Working Directory: ");
+    ltfWorkingDir = new LabeledTextField(WORKING_DIRECTORY_TEXT + ": ");
+    ltfWorkingDir.setText(workingDirName);
     pnlSetupComponent1.add(ltfWorkingDir);
     btnWorkingDir = new JButton(iconFolder);
     btnWorkingDir.setPreferredSize(FixedDim.folderButton);
@@ -497,7 +507,6 @@ public class JoinDialog implements ContextMenu {
   }
   
   public void getMetaData(JoinMetaData metaData) { 
-    metaData.setWorkingDir(ltfWorkingDir.getText());
     metaData.setRootName(ltfRootName.getText());
     metaData.setDensityRefSection(spinDensityRefSection.getValue());
     metaData.setSigmaLowFrequency(ltfSigmaLowFrequency.getText());
@@ -518,7 +527,6 @@ public class JoinDialog implements ContextMenu {
   public void setMetaData(ConstJoinMetaData metaData) {
     pnlSectionTable.setMetaData(metaData);
     pnlSectionTable.enableTableButtons(ltfWorkingDir.getText());
-    ltfWorkingDir.setText(metaData.getWorkingDir());
     ltfRootName.setText(metaData.getRootName());
     spinDensityRefSection.setValue(metaData.getDensityRefSection());
     ltfSigmaLowFrequency.setText(metaData.getSigmaLowFrequency().getString(true));
@@ -555,7 +563,7 @@ public class JoinDialog implements ContextMenu {
     return ltfWorkingDir.getText();
   }
   
-  File getWorkingDir() {
+  public File getWorkingDir() {
     return new File(ltfWorkingDir.getText());
   }
   
