@@ -17,6 +17,10 @@ import etomo.storage.Storable;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.7  2004/10/30 02:31:59  sueh
+* <p> bug# 520 Fixed getNegation so that it copies the entire class to a new
+* <p> instances and negates all values.
+* <p>
 * <p> Revision 1.1.2.6  2004/10/29 22:11:15  sueh
 * <p> bug# 520 Added remove() to remove value from the meta data file.
 * <p>
@@ -64,6 +68,20 @@ public abstract class ConstEtomoInteger extends EtomoSimpleType implements Stora
   
   public EtomoSimpleType setDefault(int defaultValue) {
     this.defaultValue = defaultValue;
+    return this;
+  }
+  
+  public EtomoSimpleType setDefault(ConstEtomoInteger that) {
+    this.defaultValue = that.get();
+    return this;
+  }
+  
+  public EtomoSimpleType setDefault(String defaultValueString) {
+    EtomoInteger defaultValue = new EtomoInteger();
+    defaultValue.set(defaultValueString);
+    if (defaultValue.isValid() && defaultValue.isSet()) {
+      setDefault(defaultValue);
+    }
     return this;
   }
   
@@ -127,7 +145,7 @@ public abstract class ConstEtomoInteger extends EtomoSimpleType implements Stora
     return new Integer(unsetValue);
   }
   
-  public EtomoSimpleType getNegation() {
+  public ConstEtomoInteger getNegation() {
     EtomoInteger that = new EtomoInteger();
     that.set(this);
     if (that.isSet()) {
