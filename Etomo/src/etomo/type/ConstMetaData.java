@@ -21,6 +21,13 @@ import etomo.comscript.TrimvolParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.10.4.1  2004/09/29 19:23:26  sueh
+ * <p> bug# 520 Added base class BaseMetaData.  Made
+ * <p> latestRevisionNumber static.  Moved revision functionality to base class.
+ * <p> Moved axisType and invalid reason to base class.  Moved store()
+ * <p> functions to this class.  Implemented Storable with abstract load
+ * <p> functions.
+ * <p>
  * <p> Revision 3.10  2004/06/22 02:01:52  sueh
  * <p> bug# 441 added TrimvolParam, updated equals().
  * <p>
@@ -115,6 +122,7 @@ public abstract class ConstMetaData extends BaseMetaData {
   public static final String rcsid = "$Id$";
 
   private static final String latestRevisionNumber = "1.7";
+  private static final String newTomogramTitle = "Setup Tomogram";
   
   protected String datasetName = "";
   protected String backupDirectory = "";
@@ -151,6 +159,7 @@ public abstract class ConstMetaData extends BaseMetaData {
   public abstract void load(Properties props, String prepend);
     
   public ConstMetaData() {
+    fileExtension = "edf";
   }
 
   /**
@@ -213,6 +222,24 @@ public abstract class ConstMetaData extends BaseMetaData {
 
   public String getDatasetName() {
     return datasetName;
+  }
+  
+  public String getMetaDataFileName() {
+    if (datasetName.equals("")) {
+      return "";
+    }
+    return datasetName + "." + fileExtension;
+  }
+  
+  public String getName() {
+    if (datasetName.equals("")) {
+      return newTomogramTitle;
+    }
+    return datasetName;
+  }
+  
+  public static String getNewFileTitle() {
+    return newTomogramTitle;
   }
 
   public String getBackupDirectory() {
