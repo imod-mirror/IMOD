@@ -32,6 +32,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.7  2002/12/14 05:23:42  mast
+backing out the fancy subclass, adjusting for new visual detection
+
 Revision 1.1.2.6  2002/12/13 07:09:19  mast
 GLMainWindow needed different name for mouse event processors
 
@@ -147,8 +150,8 @@ ZapWindow::ZapWindow(struct zapwin *zap, QString timeLabel, bool rgba,
   arrow->setAutoRaise(AUTO_RAISE);
   connect(arrow, SIGNAL(clicked()), this, SLOT(zoomDown()));
 
-  mZoomEdit = new ToolEdit(mToolBar, "zoom edit box");
-  mZoomEdit->setFixedWidth(ZOOM_WIDTH);
+  mZoomEdit = new ToolEdit(mToolBar, 5, "zoom edit box");
+  //mZoomEdit->setFixedWidth(ZOOM_WIDTH);
   mZoomEdit->setFocusPolicy(QWidget::ClickFocus);
   mZoomEdit->setAlignment(Qt::AlignRight);
   connect(mZoomEdit, SIGNAL(returnPressed()), this, SLOT(newZoom()));
@@ -173,8 +176,8 @@ ZapWindow::ZapWindow(struct zapwin *zap, QString timeLabel, bool rgba,
 	  SLOT(sliderChanged(int)));
 
   // Section edit box
-  mSectionEdit = new ToolEdit(mToolBar, "section edit box");
-  mSectionEdit->setFixedWidth(SECTION_WIDTH);
+  mSectionEdit = new ToolEdit(mToolBar, 4, "section edit box");
+  // mSectionEdit->setFixedWidth(SECTION_WIDTH);
   mSectionEdit->setFocusPolicy(QWidget::ClickFocus);
   mSectionEdit->setAlignment(Qt::AlignRight);
   connect(mSectionEdit, SIGNAL(returnPressed()), this, SLOT(newSection()));
