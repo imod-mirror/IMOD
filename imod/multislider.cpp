@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.2  2002/12/27 17:50:50  mast
+change statements for getting pointer arrays to make SGI compiler happy
+
 Revision 1.1.2.1  2002/12/27 01:19:47  mast
 Initial creation
 
@@ -119,9 +122,9 @@ MultiSlider::MultiSlider(QWidget *parent, int numSliders, char *titles[],
 
 MultiSlider::~MultiSlider()
 {
-  delete mPressed;
-  delete mSliders;
-  delete mLabels;
+  delete [] mPressed;
+  delete [] mSliders;
+  delete [] mLabels;
 }
 
 // They emit signals when they are set, which is a trap for the unwary
