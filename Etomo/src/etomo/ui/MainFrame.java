@@ -28,7 +28,7 @@ import javax.swing.KeyStroke;
 
 import etomo.BaseManager;
 import etomo.EtomoDirector;
-import etomo.storage.EtomoFileFilter;
+import etomo.storage.DataFileFilter;
 import etomo.util.ConstHashedArray;
 import etomo.util.HashedArray;
 import etomo.util.UniqueKey;
@@ -46,6 +46,14 @@ import etomo.util.UniqueKey;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.12.2.12  2004/10/11 02:14:34  sueh
+ * <p> bug# 520 Using a variable called propertyUserDir instead of the "user.dir"
+ * <p> property.  This property would need a different value for each manager.
+ * <p> This variable can be retrieved from the manager if the object knows its
+ * <p> manager.  Otherwise it can retrieve it from the current manager using the
+ * <p> EtomoDirector singleton.  If there is no current manager, EtomoDirector
+ * <p> gets the value from the "user.dir" property.
+ * <p>
  * <p> Revision 3.12.2.11  2004/10/08 16:33:08  sueh
  * <p> bug# 520 Moved SettingsDialog to EtomoDirector.  Since EtomoDirector
  * <p> is a singleton, made all functions and member variables non-static.
@@ -418,39 +426,6 @@ public class MainFrame extends JFrame implements ContextMenu {
     menuItem.setSelected(true);
   }
 
-  public boolean getTestParamFilename() {
-    //  Open up the file chooser in current working directory
-    File workingDir = new File(currentManager.getPropertyUserDir());
-    JFileChooser chooser = new JFileChooser(workingDir);
-    EtomoFileFilter edfFilter = new EtomoFileFilter();
-    chooser.setFileFilter(edfFilter);
-    chooser.setDialogTitle("Save etomo data file");
-    chooser.setDialogType(JFileChooser.SAVE_DIALOG);
-    chooser.setPreferredSize(FixedDim.fileChooser);
-    chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-    File[] edfFiles = workingDir.listFiles(edfFilter);
-    if (edfFiles.length == 0) {
-      File defaultFile = new File(workingDir, currentManager.getBaseMetaData()
-          .getMetaDataFileName());
-      chooser.setSelectedFile(defaultFile);
-    }
-    int returnVal = chooser.showSaveDialog(this);
-
-    if (returnVal != JFileChooser.APPROVE_OPTION) {
-      return false;
-    }
-    // If the file does not already have an extension appended then add an edf
-    // extension
-    File edfFile = chooser.getSelectedFile();
-    String fileName = chooser.getSelectedFile().getName();
-    if (fileName.indexOf(".") == -1) {
-      edfFile = new File(chooser.getSelectedFile().getAbsolutePath() + ".edf");
-
-    }
-    currentManager.setTestParamFile(edfFile);
-    return true;
-  }
-
   /**
    * Handle File menu actions
    * @param event
@@ -465,9 +440,9 @@ public class MainFrame extends JFrame implements ContextMenu {
     }
 
     if (event.getActionCommand().equals(menuFileOpen.getActionCommand())) {
-      File etomoDataFile = openEtomoDataFileDialog();
-      if (etomoDataFile != null) {
-        EtomoDirector.getInstance().openTomogram(etomoDataFile, true);
+      File dataFile = openDataFileDialog();
+      if (dataFile != null) {
+        EtomoDirector.getInstance().openManager(dataFile, true);
       }
     }
 
@@ -476,7 +451,7 @@ public class MainFrame extends JFrame implements ContextMenu {
       //  if not open a dialog box to select the name
       boolean haveTestParamFilename = true;
       if (currentManager.getTestParamFile() == null) {
-        haveTestParamFilename = getTestParamFilename();
+        haveTestParamFilename = mainPanel.getTestParamFilename();
       }
       if (haveTestParamFilename) {
         currentManager.saveTestParamFile();
@@ -484,7 +459,7 @@ public class MainFrame extends JFrame implements ContextMenu {
     }
 
     if (event.getActionCommand().equals(menuFileSaveAs.getActionCommand())) {
-      boolean haveTestParamFilename = getTestParamFilename();
+      boolean haveTestParamFilename = mainPanel.getTestParamFilename();
       if (haveTestParamFilename) {
         currentManager.saveTestParamFile();
       }
@@ -666,20 +641,20 @@ public class MainFrame extends JFrame implements ContextMenu {
   }
 
   /**
-   * Open a File Chooser dialog with an EDF filter, if the user selects
+   * Open a File Chooser dialog with an data file filter, if the user selects
    * or names a file return a File object wiht that slected, otherwise
    * return null.
    * @return A File object specifiying the selected file or null if none
    * was selected. 
    */
-  public File openEtomoDataFileDialog() {
+  public File openDataFileDialog() {
     //  Open up the file chooser in current working directory
     JFileChooser chooser = new JFileChooser(new File(System
         .getProperty("user.dir")));
-    EtomoFileFilter edfFilter = new EtomoFileFilter();
-    chooser.setFileFilter(edfFilter);
+    DataFileFilter fileFilter = new DataFileFilter();
+    chooser.setFileFilter(fileFilter);
 
-    chooser.setDialogTitle("Open etomo data file");
+    chooser.setDialogTitle("Open " + fileFilter.getDescription());
     chooser.setPreferredSize(FixedDim.fileChooser);
     chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
     int returnVal = chooser.showOpenDialog(this);
