@@ -16,6 +16,11 @@ import java.util.Properties;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.6  2004/10/30 02:34:38  sueh
+* <p> bug# 520 SetRecommendedValue no longer changes value.  This way it
+* <p> can be set after initialization.  Added set(ConstEtomoInteger to set all
+* <p> values from another instance.
+* <p>
 * <p> Revision 1.1.2.5  2004/10/25 23:07:13  sueh
 * <p> bug# 520 Fixed default:  Default doesn't affect the value or the
 * <p> resetValue.  Default can returned if value and recommended value are
@@ -84,7 +89,7 @@ public class EtomoInteger extends ConstEtomoInteger {
         .toString(resetValue)));
   }
   
-  public EtomoSimpleType set(String value) {
+  public ConstEtomoInteger set(String value) {
     invalidReason = null;
     if (value == null || !value.matches("\\S+")) {
       this.value = unsetValue;
