@@ -17,6 +17,9 @@ import etomo.storage.Storable;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.6  2004/10/29 22:11:15  sueh
+* <p> bug# 520 Added remove() to remove value from the meta data file.
+* <p>
 * <p> Revision 1.1.2.5  2004/10/25 23:05:27  sueh
 * <p> bug# 520 Fixed default:  Default doesn't affect the value or the
 * <p> resetValue.  Default can returned if value and recommended value are
@@ -51,11 +54,11 @@ public abstract class ConstEtomoInteger extends EtomoSimpleType implements Stora
   public abstract void load(Properties props);
   public abstract void load(Properties props, String prepend);
   
-  public ConstEtomoInteger() {
+  protected ConstEtomoInteger() {
     super();
   }
 
-  public ConstEtomoInteger(String name) {
+  protected ConstEtomoInteger(String name) {
     super(name);
   }
   
@@ -125,7 +128,18 @@ public abstract class ConstEtomoInteger extends EtomoSimpleType implements Stora
   }
   
   public EtomoSimpleType getNegation() {
-    return new EtomoInteger(value * -1);
+    EtomoInteger that = new EtomoInteger();
+    that.set(this);
+    if (that.isSet()) {
+      that.value *= -1;
+    }
+    if (that.recommendedValue != unsetValue) {
+      that.recommendedValue *= -1;
+    }
+    if (that.defaultValue != unsetValue) {
+      that.defaultValue *= -1;
+    }
+    return that;
   }
 
   public boolean isSetAndNotDefault() {
