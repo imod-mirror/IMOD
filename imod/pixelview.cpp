@@ -34,6 +34,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.2  2003/01/04 03:48:41  mast
+Qt version
+
 Revision 1.1.2.1  2003/01/02 15:45:09  mast
 changes for new controller key callback
 
@@ -86,8 +89,6 @@ static void pviewDraw_cb(ImodView *vi, void *client, int drawflag)
 
 int open_pixelview(struct ViewInfo *vi)
 {
-  char *window_name;
-  QString str;
 
   if (PixelViewDialog){
     PixelViewDialog->raise();
@@ -96,14 +97,7 @@ int open_pixelview(struct ViewInfo *vi)
 
   PixelViewDialog = new PixelView(NULL, "pixel view");
 
-  window_name = imodwfname("Imod Pixel View: ");
-  if (window_name) {
-    str = window_name;
-    free(window_name);
-  }
-  if (str.isEmpty())
-    str = "Imod Pixel View";
-  PixelViewDialog->setCaption(str);
+  PixelViewDialog->setCaption(imodCaption("Imod Pixel View"));
 
   ctrl = ivwNewControl(vi, pviewDraw_cb, pviewClose_cb, NULL, (void *)0);
 
