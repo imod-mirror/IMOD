@@ -34,6 +34,7 @@ $Revision$
 */
 
 #include <stdarg.h>
+#include <stdlib.h>
 #include <string.h>
 #include <qcheckbox.h>
 #include <qlabel.h>
@@ -129,6 +130,7 @@ int dia_puts(char *message)
   QMessageBox::information(0, title, str, 
 			   QMessageBox::Ok, QMessageBox::NoButton,
 			   QMessageBox::NoButton);
+  return 0;
 }
 
 // An application-model box with an error string
@@ -140,6 +142,7 @@ int dia_err(char *message)
   QMessageBox::warning(0, title, str, 
 			   QMessageBox::Ok, QMessageBox::NoButton,
 			   QMessageBox::NoButton);
+  return 0;
 }
 
 // Get a scrolled message window from a variable set of character strings
@@ -183,7 +186,6 @@ void dia_smsg( char **msg)
   char *temp;
   int maxline, maxrow, linesize;
   long bufsize;
-  int n = 0;
   int i, twidth, doline;
   int lastspace, curpos;
   int maxWidth = (int)(0.8 * QApplication::desktop()->width());
