@@ -1,11 +1,14 @@
 package etomo.ui;
 
 import java.awt.Dimension;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import javax.swing.BorderFactory;
 import javax.swing.Icon;
+import javax.swing.JPanel;
 import javax.swing.OverlayLayout;
 import javax.swing.border.BevelBorder;
 
@@ -28,6 +31,12 @@ import javax.swing.border.BevelBorder;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.3  2004/09/22 22:10:30  sueh
+* <p> bug# 520 Inheriting from MultiLineButton so that ExpandButton with
+* <p> disable correctly.  ExpandButton is not a MultiLineButton, but the real
+* <p> problem is that MultiLineButton should have named differently (something
+* <p> like HtmlFormattedButton).
+* <p>
 * <p> Revision 1.1.2.2  2004/09/21 17:57:47  sueh
 * <p> bug# 520 setting a maximum size of the expand button
 * <p>
@@ -43,20 +52,23 @@ public class ExpandButton extends MultiLineButton {
   private static final String expandSymbol = "<html><big>&gt</big>";
 
   private boolean expanded = false;
-  Expandable component = null;
+  private Expandable container = null;
+  private JPanel jpanelContainer = null;
+  private DoubleSpacedPanel doubleSpacePanelContainer = null;
   
   /**
-   * Create a button with ">" if expanded is false, or "<" expanded is false.
+   * Create a button with ">" if expanded is false, or "<" expanded is true.
    * Add an action listener and a raised, beveled border to make it 3D.  Set the
    * size so that it is square, unless the width needs to be greater then the
    * height.  The button remembers the expanded state and keeps track of it.
+   * The button can be used on any ui.
    * @param expanded Current state of the component.
    * @param component Exandable component displaying the button.
    */
-  public ExpandButton(boolean expanded, Expandable component) {
+  ExpandButton(boolean expanded, Expandable container) {
     super(expanded ? contractSymbol : expandSymbol);
     this.expanded = expanded;
-    this.component = component;
+    this.container = container;
     addActionListener(new ExpandButtonActionListener(this));
     setBorder(BorderFactory.createBevelBorder(BevelBorder.RAISED));
     Dimension size = getPreferredSize();
@@ -71,7 +83,7 @@ public class ExpandButton extends MultiLineButton {
    * Create a button where the current state of the component is not expanded.
    * @param component
    */
-  public ExpandButton(Expandable component) {
+  ExpandButton(Expandable component) {
     this(false, component);
   }
   
@@ -88,6 +100,23 @@ public class ExpandButton extends MultiLineButton {
    */
   public void setText(String text) {
     throw new IllegalStateException("ExpandButton.setText(String) has no effect.");
+  }
+  
+  void add(JPanel panel, GridBagLayout layout, GridBagConstraints constraints) {
+    layout.setConstraints(this, constraints);
+    panel.add(this);
+    jpanelContainer = panel;
+    doubleSpacePanelContainer = null;
+  }
+  
+  void add(DoubleSpacedPanel panel, boolean spaceAfter) {
+    panel.add(this, spaceAfter);
+    doubleSpacePanelContainer = panel;
+    jpanelContainer = null;
+  }
+  
+  void add(DoubleSpacedPanel panel) {
+    add(panel, true);
   }
   
   /**
@@ -138,7 +167,7 @@ public class ExpandButton extends MultiLineButton {
       expanded = true;
       super.setText(contractSymbol);
     }
-    component.expand(this); 
+    container.expand(this); 
   }
   
   /**
