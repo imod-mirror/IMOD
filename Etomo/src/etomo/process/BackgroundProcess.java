@@ -16,6 +16,9 @@ import etomo.comscript.Command;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.1.2.4  2004/11/08 22:18:17  sueh
+ * <p> bug# 520 Added getMode(), which gets the mode the from Command.
+ * <p>
  * <p> Revision 3.1.2.3  2004/10/18 17:46:22  sueh
  * <p> bug# 520 Fixed getCommandLine():  when the command is in an array,
  * <p> getCommandLine() should return the complete command in a string.
@@ -160,34 +163,24 @@ public class BackgroundProcess
     return null;
   }
   
-  public String getCommandName() {
-    if (command == null) {
-      return null;
-    }
-    return command.getCommandName();
-  }
-  
-  public File getOutputFile() {
-    if (command == null) {
-      return null;
-    }
-    return command.getOutputFile();
+  public Command getCommand() {
+    return command;
   }
 
   /**
    * Returns command name of the process
    * @return File
    */
-  public String getCommand() {
+  public String getCommandName() {
+    if (command != null) {
+      return command.getCommandName();
+    }
     if (commandLine != null) {
       String[] words = commandLine.split("\\s");
       return words[0];
     }
     if (commandArray != null) {
       return commandArray[0];
-    }
-    if (command != null) {
-      return command.getCommandName();
     }
     return null;
   }
