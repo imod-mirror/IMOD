@@ -1,10 +1,14 @@
 package etomo;
 
+import java.awt.Dimension;
+import java.awt.Point;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
 
+import javax.swing.JOptionPane;
 import javax.swing.ToolTipManager;
 import javax.swing.UIManager;
 import javax.swing.plaf.FontUIResource;
@@ -12,13 +16,17 @@ import javax.swing.plaf.FontUIResource;
 import etomo.comscript.ComScriptManager;
 import etomo.process.ImodManager;
 import etomo.process.ProcessManager;
+import etomo.process.SystemProcessException;
 import etomo.storage.ParameterStore;
 import etomo.storage.Storable;
+import etomo.type.AxisTypeException;
 import etomo.type.ConstMetaData;
 import etomo.type.MetaData;
 import etomo.type.ProcessTrack;
 import etomo.type.UserConfiguration;
 import etomo.ui.MainFrame;
+import etomo.ui.MainPanel;
+import etomo.ui.SettingsDialog;
 import etomo.ui.UIParameters;
 import etomo.util.Utilities;
 
@@ -35,24 +43,29 @@ import etomo.util.Utilities;
 * 
 * @version $Revision$
 * 
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1.2.1  2004/09/03 20:37:24  sueh
+* <p> bug# 520 Base class for ApplicationManager and JoinManager.  Transfering
+* <p> constructor functionality from AppMgr
+* <p> </p>
 */
 public abstract class BaseManager {
   public static  final String  rcsid =  "$Id$";
   
   //protected static variables
   protected static boolean test = false;
+  protected static MainFrame mainFrame = EtomoDirector.getMainFrame();
+  protected static UserConfiguration userConfig = EtomoDirector
+  .getUserConfiguration();
   
   //protected variables
   protected boolean loadedTestParamFile = false;
-  protected MainFrame mainFrame = null;
+  protected MainPanel mainPanel = null;
   protected MetaData metaData = null;
   protected ProcessTrack processTrack = null;
   // imodManager manages the opening and closing closing of imod(s), message
   // passing for loading model
   protected ImodManager imodManager = null;
-  //FIXME userConfig may not have to be visible
-  protected UserConfiguration userConfig = null;
   //  This object controls the reading and writing of David's com scripts
   protected ComScriptManager comScriptMgr = null;
   //FIXME paramFile may not have to be visible
@@ -61,6 +74,17 @@ public abstract class BaseManager {
   protected String homeDirectory;
   //  The ProcessManager manages the execution of com scripts
   protected ProcessManager processMgr = null;
+  protected boolean isDataParamDirty = false;
+  // Control variable for process execution
+  // FIXME: this going to need to expand to handle both axis
+  protected String nextProcess = "";
+
+  protected String threadNameA = "none";
+
+  protected String threadNameB = "none";
+  
+  protected boolean backgroundProcessA = false;
+  protected String backgroundProcessNameA = null;
   
   //private static variables
   private static boolean debug = false;
@@ -73,11 +97,21 @@ public abstract class BaseManager {
   // the user configuration and can be modified for this instance by either
   // the option or advanced menu items
   private boolean isAdvanced = false;
+  private SettingsDialog settingsDialog = null;
   
-  //public functions
+  
+  //abstract functions
+  
+  //create functions
+  protected abstract void createComScriptManager();
+  protected abstract void createProcessManager();
+  protected abstract void createMainPanel();
+  //FIXME
+  public abstract void openNewDataset();
+  public abstract void openExistingDataset(File paramFile);
+  
   
   public BaseManager(String paramFileName) {
-    createUserConfiguration();
     createMetaData();
     createProcessTrack();
     createProcessManager();
@@ -89,9 +123,8 @@ public abstract class BaseManager {
     //imodManager should be created only once.
     createImodManager();
     //  Create a new main window and wait for an event from the user
+    createMainPanel();
     if (!test) {
-      createMainFrame();   
-      mainFrame.setMRUFileLabels(userConfig.getMRUFileList());
       //  Initialize the static UIParameter object
       UIParameters uiparameters = new UIParameters();
       // Open the etomo data file if one was found on the command line
@@ -103,6 +136,142 @@ public abstract class BaseManager {
   }
   
   /**
+   * A message asking the ApplicationManager to save the test parameter
+   * information to a file.
+   */
+  public void saveTestParamFile() {
+    try {
+      backupFile(paramFile);
+      ParameterStore paramStore = new ParameterStore(paramFile);
+      Storable[] storable = new Storable[2];
+      storable[0] = metaData;
+      storable[1] = processTrack;
+      paramStore.save(storable);
+      //  Update the MRU test data filename list
+      userConfig.putDataFile(paramFile.getAbsolutePath());
+      mainFrame.setMRUFileLabels(userConfig.getMRUFileList());
+      // Reset the process track flag
+      processTrack.resetModified();
+    }
+    catch (IOException except) {
+      except.printStackTrace();
+      String[] errorMessage = new String[3];
+      errorMessage[0] = "Test parameter file save error";
+      errorMessage[1] = "Could not save test parameter data to file:";
+      errorMessage[2] = except.getMessage();
+      mainFrame.openMessageDialog(errorMessage,
+        "Test parameter file save error");
+    }
+    isDataParamDirty = false;
+  }
+  
+  /**
+   * Exit the program
+   */
+  public boolean exitProgram() {
+    //  Check to see if any processes are still running
+    ArrayList messageArray = new ArrayList();
+    //handle background processes
+    if (!threadNameA.equals("none") && backgroundProcessA) {
+      messageArray.add("The " + backgroundProcessNameA
+        + " process will continue to run after Etomo ends.");
+      messageArray.add("Check " + backgroundProcessNameA
+        + ".log for status.");
+      messageArray.add(" ");
+    }
+    //handle regular processes
+    if ((!threadNameA.equals("none") && !backgroundProcessA)
+      || !threadNameB.equals("none")) {
+      messageArray.add("There are still processes running.");
+      messageArray.add("Exiting Etomo now may terminate those processes.");
+    }
+    if (messageArray.size() > 0) {
+      messageArray.add("Do you still wish to exit the program?");
+      if (!mainFrame.openYesNoDialog(
+        (String[]) messageArray.toArray(new String[messageArray.size()]))) {
+        return false;
+      }
+    }
+    if (saveTestParamIfNecessary()) {
+      //  Should we close the 3dmod windows
+      //  Save the current window size to the user config
+      Dimension size = mainFrame.getSize();
+      userConfig.setMainWindowWidth(size.width);
+      userConfig.setMainWindowHeight(size.height);
+      //  Write out the user configuration data
+      File userConfigFile = new File(homeDirectory, ".etomo");
+      //  Make sure the config file exists, create it if it doesn't
+      try {
+        userConfigFile.createNewFile();
+      }
+      catch (IOException except) {
+        System.err.println("IOException: Could not create file:"
+          + userConfigFile.getAbsolutePath() + "\n" + except.getMessage());
+        System.err.println(except.getMessage());
+        return true;
+      }
+      ParameterStore userParams = new ParameterStore(userConfigFile);
+      Storable storable[] = new Storable[1];
+      storable[0] = userConfig;
+      if (!userConfigFile.canWrite()) {
+        mainFrame.openMessageDialog(
+          "Change permissions of $HOME/.etomo to allow writing",
+          "Unable to save user configuration file");
+      }
+      if (userConfigFile.canWrite()) {
+        try {
+          userParams.save(storable);
+        }
+        catch (IOException excep) {
+          excep.printStackTrace();
+          mainFrame.openMessageDialog(
+            "IOException: unable to save user parameters\n"
+              + excep.getMessage(), "Unable to save user parameters");
+        }
+      }
+      try {
+        if (imodManager.isOpen()) {
+          String[] message = new String[3];
+          message[0] = "There are still 3dmod programs running.";
+          message[1] = "Do you wish to end these programs?";
+          if (mainFrame.openYesNoDialog(message)) {
+            imodManager.quit();
+          }
+        }
+      }
+      catch (AxisTypeException except) {
+        except.printStackTrace();
+        mainFrame.openMessageDialog(except.getMessage(), "AxisType problem");
+      }
+      catch (SystemProcessException except) {
+        except.printStackTrace();
+        mainFrame.openMessageDialog(except.getMessage(),
+          "Problem closing 3dmod");
+      }
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Open up the settings dialog box
+   */
+  public void openSettingsDialog() {
+    //  Open the dialog in the appropriate mode for the current state of
+    //  processing
+    if (settingsDialog == null) {
+      settingsDialog = new SettingsDialog(this);
+      settingsDialog.setParameters(userConfig);
+      Dimension frmSize = mainFrame.getSize();
+      Point loc = mainFrame.getLocation();
+      settingsDialog.setLocation(loc.x, loc.y + frmSize.height);
+      settingsDialog.setModal(false);
+    }
+    settingsDialog.show();
+  }
+
+  
+  /**
    * Set the data set parameter file. This also updates the mainframe data
    * parameters.
    * @param paramFile a File object specifying the data set parameter file.
@@ -111,7 +280,7 @@ public abstract class BaseManager {
   public void setTestParamFile(File paramFile) {
     this.paramFile = paramFile;
     //  Update main window information and status bar
-    mainFrame.updateDataParameters(paramFile, metaData);
+    mainPanel.updateDataParameters(paramFile, metaData);
   }
   
   //get functions
@@ -123,13 +292,6 @@ public abstract class BaseManager {
   public static String getIMODBinPath() {
     return getIMODDirectory().getAbsolutePath()
       + File.separator + "bin" + File.separator;
-  }
-  
-  public MainFrame getMainFrame() {
-    if (mainFrame == null) {
-      throw new NullPointerException();
-    }
-    return mainFrame;
   }
   
   /**
@@ -162,14 +324,6 @@ public abstract class BaseManager {
     return metaData;
   }
   
-  //FIXME this may not have to be visible
-  public UserConfiguration getUserConfiguration() {
-    if (userConfig == null) {
-      throw new NullPointerException();
-    }
-    return userConfig;
-  }
-  
   /**
    * Get the current advanced state
    */
@@ -186,12 +340,14 @@ public abstract class BaseManager {
     return paramFile;
   }
   
-  //overridden functions
+  public MainPanel getMainPanel() {
+    if (mainPanel == null) {
+      throw new NullPointerException();
+    }
+    return mainPanel;
+  }
   
-  //create functions
-  protected abstract void createMainFrame();
-  protected abstract void createComScriptManager();
-  protected abstract void createProcessManager();
+
   
   /**
    * Reset the state of the application to the startup condition
@@ -204,9 +360,28 @@ public abstract class BaseManager {
     createComScriptManager();
     createProcessManager();
     createProcessTrack();
+    settingsDialog = null;
   }
   
-  //other protected functions
+  /**
+   *  
+   */
+  public void getSettingsParameters() {
+    if (settingsDialog != null) {
+      settingsDialog.getParameters(userConfig);
+      setUserPreferences();
+      mainFrame.repaintWindow();
+    }
+  }
+  
+  /**
+   *  
+   */
+  public void closeSettingsDialog() {
+    if (settingsDialog != null) {
+      settingsDialog.dispose();
+    }
+  }
   
   /**
    * A message asking the ApplicationManager to load in the information from the
@@ -463,6 +638,54 @@ public abstract class BaseManager {
         + " look and feel");
     }
   }
+  
+  protected void backupFile(File file) {
+    if (file.exists()) {
+      File backupFile = new File(file.getAbsolutePath() + "~");
+      try {
+        Utilities.renameFile(file, backupFile);
+      }
+      catch (IOException except) {
+        System.err.println("Unable to backup file: " + file.getAbsolutePath()
+          + " to " + backupFile.getAbsolutePath());
+        mainFrame.openMessageDialog(except.getMessage(), "File Rename Error");
+      }
+    }
+  }
+  
+  /**
+   * If the current state needs to be saved the users is queried with a dialog
+   * box.
+   * @return True if either: the current state does not need to be saved, the
+   * state is successfully saved, or the user chooses not to save the current
+   * state by selecting no.  False is returned if the state can not be
+   * successfully saved, or the user chooses cancel.
+   */
+  protected boolean saveTestParamIfNecessary() {
+    // Check to see if the current dataset needs to be saved
+    if (isDataParamDirty || processTrack.isModified()) {
+      String[] message = {"Save the current data file ?"};
+      int returnValue = mainFrame.openYesNoCancelDialog(message);
+      if (returnValue == JOptionPane.CANCEL_OPTION) {
+        return false;
+      }
+      if (returnValue == JOptionPane.NO_OPTION) {
+        return true;
+      }
+      // If the selects Yes then try to save the current EDF file
+      if (paramFile == null) {
+        if (!mainFrame.getTestParamFilename()) {
+          return false;
+        }
+      }
+      // Be sure the file saving was successful
+      saveTestParamFile();
+      if (isDataParamDirty) {
+        return false;
+      }
+    }
+    return true;
+  }
 
   /**
    * Return the users home directory environment variable HOME or an empty
@@ -486,10 +709,6 @@ public abstract class BaseManager {
     imodManager = new ImodManager();
   }
   
-  private void createUserConfiguration() {
-    userConfig = new UserConfiguration();
-  }
-  
   private void createMetaData() {
     metaData = new MetaData();
   }
@@ -497,4 +716,6 @@ public abstract class BaseManager {
   private void createProcessTrack() {
     processTrack = new ProcessTrack();
   }
+  
+
 }
