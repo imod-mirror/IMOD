@@ -46,6 +46,9 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.29  2004/11/16 23:26:24  sueh
+* <p> bug# 520 JoinDialog mode names should end with _MODE.
+* <p>
 * <p> Revision 1.1.2.28  2004/11/16 02:20:03  sueh
 * <p> bug# 520 Replacing EtomoInteger, EtomoDouble, EtomoFloat, and
 * <p> EtomoLong with EtomoNumber.
@@ -225,10 +228,6 @@ public class JoinManager extends BaseManager {
     metaData = new JoinMetaData();
   }
   
-  public void setWorkingDir(String workingDir) {
-    propertyUserDir = workingDir;
-  }
-  
   /**
    * Open 3dmod with binning 
    */
@@ -390,9 +389,10 @@ public class JoinManager extends BaseManager {
   public void makejoincom() {
     mainPanel.startProgressBar("Makejoincom", AxisID.ONLY);
     nextProcess = "startjoin";
+
     isDataParamDirty = true;
     joinDialog.getMetaData(metaData);
-    if (!setMode()) {
+    if (!endSetupMode()) {
       mainPanel.openMessageDialog(metaData.getInvalidReason(), "Invalid Data");
       mainPanel.stopProgressBar(AxisID.ONLY);
       return;
@@ -411,6 +411,25 @@ public class JoinManager extends BaseManager {
       mainPanel.stopProgressBar(AxisID.ONLY);
       return; 
     }
+  }
+  
+  /**
+   * if paramFile is not set, attempts to end setup mode and set the param file name.
+   * @return
+   */
+  public boolean endSetupMode() {
+    if (paramFile != null) {
+      return setMode();
+    }
+    String workingDirName = joinDialog.getWorkingDirName();
+    if (!setMode(workingDirName)) {
+      return false;
+    }
+    propertyUserDir = workingDirName;
+    imodManager.setMetaData(metaData);
+    paramFile = new File(propertyUserDir, metaData.getRootName() + metaData.getFileExtension());
+    mainPanel.updateDataParameters(paramFile, metaData);
+    return true;
   }
   
   /**
@@ -562,14 +581,17 @@ public class JoinManager extends BaseManager {
     }
   }
   
-  public boolean setMode() {
-    mainPanel.updateDataParameters(paramFile, metaData);
-    File workingDir = joinDialog.getWorkingDir();
-    if (!metaData.isValid(workingDir)) {
+  /**
+   * sets the mode in joinDialog based on whether the working directory and
+   * root name are entered and whether a sample is saved
+   * @param workingDirName
+   * @return
+   */
+  public boolean setMode(String workingDirName) {
+    if (!metaData.isValid(workingDirName)) {
       joinDialog.setMode(JoinDialog.SETUP_MODE);
       return false;
     }
-    imodManager.setMetaData(metaData);
     if (metaData.isSampleProduced()) {
       joinDialog.setMode(JoinDialog.SAMPLE_PRODUCED_MODE);
     }
@@ -577,6 +599,10 @@ public class JoinManager extends BaseManager {
       joinDialog.setMode(JoinDialog.SAMPLE_NOT_PRODUCED_MODE);
     }
     return true;
+  }
+  
+  public boolean setMode() {
+    return setMode(propertyUserDir);
   }
   
   public void startjoin() {
@@ -722,6 +748,7 @@ public class JoinManager extends BaseManager {
   }
   
   protected void setMetaData(ImodManager imodManager) {
+    imodManager.setMetaData(metaData);
   }
   
   public MainPanel getMainPanel() {
