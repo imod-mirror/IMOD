@@ -384,7 +384,7 @@ cleansrc : ALWAYS
 csrc : ALWAYS
 	mkdir -p $(ARCDIR)_src
 	cp Makefile setup README History .version original_dates vcimod.dsw \
-	installqtlib packMacApps $(ARCDIR)_src/
+	installqtlib packMacApps setup2 $(ARCDIR)_src/
 	tar cBf - \
 	machines \
 	lib*/*.[ch] lib*/*.cpp lib[ic]*/Makefile libdiaqt/Makefile.dummy \
@@ -447,6 +447,9 @@ ALWAYS:
 
 ############################################################################
 #  $Log$
+#  Revision 3.47.2.1  2005/03/31 22:30:03  mast
+#  Fixed sourcedoc entry and removed libdoc/*.html from make src
+#
 #  Revision 3.47  2005/02/25 04:26:43  mast
 #  Added entries for sourcedoc and libdoc
 #
