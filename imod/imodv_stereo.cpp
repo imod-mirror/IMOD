@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.7  2003/01/13 07:21:38  mast
+Changes to use new dialog manager class
+
 Revision 1.1.2.6  2003/01/01 05:45:42  mast
 Qt version
 
@@ -77,6 +80,7 @@ Changes to get clean compilation with g++
 #include <qslider.h>
 #include "multislider.h"
 #include "dialog_frame.h"
+#include "dia_qtutils.h"
 #include "imodv_window.h"
 #include "imodv.h"
 #include "imod.h"
@@ -468,10 +472,11 @@ void imodvStereoEditDialog(ImodvApp *a, int state)
 /*  Stereo Dialog class                                                     */
 
 static char *buttonLabels[] = {"Done", "Help"};
+static char *buttonTips[] = {"Close dialog box", "Open help window"};
 static char *sliderLabels[] = {"Angle"};
 
 ImodvStereo::ImodvStereo(QWidget *parent, const char *name)
-  : DialogFrame(parent, 2, buttonLabels, true, "Imodv Stereo", "",
+  : DialogFrame(parent, 2, buttonLabels, buttonTips, true, "Imodv Stereo", "",
                 name)
 {
   // Make combo box, with just the 2 software options

@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.4  2002/12/30 06:53:00  mast
+eliminate unused variables
+
 Revision 1.1.2.3  2002/12/30 06:36:21  mast
 parameterizing the hot slider
 
@@ -67,11 +70,16 @@ Initial creation
 
 static char *sliderLabels[] = {"Red", "Green", "Blue"};
 static char *buttonLabels[] = {"Done", "Restore", "Qt Selector"};
+static char *buttonTips[] = 
+  {"Close color selector",
+   "Restore to starting color when selector was opened",
+   "Select color with Qt color selector box"};
 
 ColorSelector::ColorSelector(QWidget *parent, QString label, int red,
                              int green, int blue, int hotFlag, int hotKey,
                              const char *name, WFlags fl)
-  : DialogFrame(parent, 3, buttonLabels, false, "test", "test2", name, fl)
+  : DialogFrame(parent, 3, buttonLabels, buttonTips, false, "test", "test2",
+		name, fl)
 {
   QString str;
 

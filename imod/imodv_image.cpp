@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.8  2003/01/13 07:21:38  mast
+Changes to use new dialog manager class
+
 Revision 1.1.2.7  2003/01/01 05:43:44  mast
 rationalizing toplevel versus dialog style
 
@@ -341,11 +344,12 @@ void imodvDrawImage(ImodvApp *a)
 // THE ImodvImage CLASS IMPLEMENTATION
 
 static char *buttonLabels[] = {"Done", "Help"};
+static char *buttonTips[] = {"Close dialog box", "Open help window"};
 static char *sliderLabels[] = {"Transparency", "Black Level", "White Level"};
 
 ImodvImage::ImodvImage(QWidget *parent, const char *name)
-  : DialogFrame(parent, 2, buttonLabels, true, "Imodv Image View", "",
-                name)
+  : DialogFrame(parent, 2, buttonLabels, buttonTips, true, "Imodv Image View",
+		"", name)
 {
   mCtrlPressed = false;
 
