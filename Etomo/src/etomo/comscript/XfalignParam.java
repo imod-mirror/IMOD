@@ -23,6 +23,9 @@ import etomo.type.EtomoSimpleType;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.7  2004/10/30 01:32:09  sueh
+* <p> bug# 520 Added comments.
+* <p>
 * <p> Revision 1.1.2.6  2004/10/29 01:17:46  sueh
 * <p> bug# 520 Removed working directory from meta data.  Getting working
 * <p> directory from propertyUserDir.
@@ -65,14 +68,16 @@ public class XfalignParam implements Command {
   private String rootName = null;
   private String outputFileName = null;
   private File outputFile = null;
+  private int mode;
   
   public XfalignParam(ConstJoinMetaData metaData, int mode) {
     this.metaData = metaData;
+    this.mode = mode;
     workingDir = EtomoDirector.getInstance().getCurrentPropertyUserDir();
     rootName = metaData.getRootName();
     outputFileName = rootName + outputFileExtension;
     outputFile = new File(workingDir, outputFileName);
-    ArrayList options = genOptions(mode);
+    ArrayList options = genOptions();
     commandArray = new String[options.size() + commandSize];
     commandArray[0] = "tcsh";
     commandArray[1] = "-f";
@@ -112,7 +117,11 @@ public class XfalignParam implements Command {
     return outputFile;
   }
   
-  private ArrayList genOptions(int mode) {
+  public int getMode() {
+    return mode;
+  }
+  
+  private ArrayList genOptions() {
     ArrayList options = new ArrayList();
     options.add("-tomo");
     switch (mode) {
