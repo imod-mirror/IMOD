@@ -35,6 +35,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.11  2003/01/04 03:42:05  mast
+simplified closing logic
+
 Revision 1.1.2.10  2003/01/02 15:44:19  mast
 accept key input from controller
 
@@ -100,7 +103,6 @@ Added hotkeys to do smoothing and next section in autocontouring
 #include <qcursor.h>
 #include <qbitmap.h>
 #include <qdatetime.h>
-#include <qcursor.h>
 #include <qapplication.h>
 #include <qpoint.h>
 #include <qtimer.h>
@@ -630,14 +632,14 @@ void zapResize(ZapStruct *zap, int winx, int winy)
     b3dFlushImage(zap->image);
   }
 
-  //  b3dResizeViewport();
-  glViewport((GLint)0, (GLint)0, (GLsizei)winx, (GLsizei)winy);
+  b3dResizeViewportXY(winx, winy);
+  /*  glViewport((GLint)0, (GLint)0, (GLsizei)winx, (GLsizei)winy);
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
 
   glOrtho(0.0 , (GLdouble)winx, 0.0, (GLdouble)winy, 0.5, -0.5);
   glMatrixMode(GL_MODELVIEW);
-  glLoadIdentity();
+  glLoadIdentity(); */
 
   zap->image =  b3dGetNewCIImage(zap->image, App->depth);
   b3dBufferImage(zap->image);
@@ -827,10 +829,10 @@ void zapStepTime(ZapStruct *zap, int step)
 int imod_zap_open(struct ViewInfo *vi)
 {
   ZapStruct *zap;
+  QString str;
   int    depth;
   int time, tmax, len, maxlen;
   int needWinx, needWiny;
-  QString str;
   int deskWidth = QApplication::desktop()->width();
   int deskHeight = QApplication::desktop()->height();
 
@@ -909,15 +911,9 @@ int imod_zap_open(struct ViewInfo *vi)
 #endif
   zap->gfx = zap->qtWindow->mGLw;
 
-  str = imodwfname("Imod ZaP Window:");
-  if (str.isEmpty())
-    str = "Imod ZaP Window";
-  zap->qtWindow->setCaption(str);
+  zap->qtWindow->setCaption(imodCaption("Imod ZaP Window"));
 
-  str = imodwfname("ZaP Toolbar:");
-  if (str.isEmpty())
-    str = "ZaP Toolbar";
-  zap->qtWindow->mToolBar->setLabel(str);
+  zap->qtWindow->mToolBar->setLabel(imodCaption("ZaP Toolbar"));
   
   zap->ctrl = ivwNewControl(vi, zapDraw_cb, zapClose_cb, zapKey_cb,
                             (XtPointer)zap);
@@ -932,7 +928,7 @@ int imod_zap_open(struct ViewInfo *vi)
 
   int newWidth = toolSize.width() > needWinx ? toolSize.width() : needWinx;
   int newHeight = needWiny + (zap->qtWindow->height() - zap->gfx->height());
-  // If you can show before the resize, the complete geometry adjustment
+  // If you can resize before the show, the complete geometry adjustment
   // is not needed
   /*  QPoint pos = zap->qtWindow->pos();
   int xleft = pos.x();
