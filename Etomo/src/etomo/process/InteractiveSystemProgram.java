@@ -19,6 +19,12 @@ import etomo.type.EtomoLong;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.0.6.2  2004/10/21 02:43:00  sueh
+ * <p> bug# 520 Created a constructor which takes a Command interface.  This
+ * <p> lets ProcessManager and JoinProcessManager do non-generic post
+ * <p> processing for this program type.  Added functions to be used during post
+ * <p> processing.
+ * <p>
  * <p> Revision 3.0.6.1  2004/10/11 02:03:07  sueh
  * <p> bug# 520 Using a variable called propertyUserDir instead of the "user.dir"
  * <p> property.  This property would need a different value for each manager.
@@ -54,7 +60,7 @@ public class InteractiveSystemProgram implements Runnable {
 
   private BaseProcessManager processManager = null;
   private String threadName = null;
-  private EtomoLong oldOutputFileTime = new EtomoLong("");
+  private EtomoLong outputFileLastModified = new EtomoLong("");
   
   /**
    * The exit value of the command
@@ -131,7 +137,7 @@ public class InteractiveSystemProgram implements Runnable {
     File outputFile = null;
     if (commandParam != null) {
       outputFile = commandParam.getOutputFile();
-      oldOutputFileTime.set(outputFile.lastModified());
+      outputFileLastModified.set(outputFile.lastModified());
     }
     try {
       if (workingDirectory == null) {
@@ -224,8 +230,8 @@ public class InteractiveSystemProgram implements Runnable {
     return commandParam.getOutputFile();
   }
   
-  public EtomoLong getOldOutputFileTime() {
-    return oldOutputFileTime;
+  public EtomoLong getOutputFileLastModified() {
+    return outputFileLastModified;
   }
 
   /**
