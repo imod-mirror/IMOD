@@ -16,6 +16,9 @@ import java.util.Properties;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.1.2.2  2004/10/21 02:56:11  sueh
+* <p> bug# 520 Made constructor public.
+* <p>
 * <p> Revision 1.1.2.1  2004/10/18 18:05:16  sueh
 * <p> bug# 520 A class representing an integer which handles all issues
 * <p> concerning defaults, null values, assigning strings that are blank, and
@@ -24,6 +27,17 @@ import java.util.Properties;
 */
 public class EtomoInteger extends ConstEtomoInteger {
   public static  final String  rcsid =  "$Id$";
+  
+  public EtomoInteger() {
+    name = super.toString();
+    description = name;
+  }
+  
+  public EtomoInteger(int defaultValue) {
+    name = super.toString();
+    description = name;
+    setDefaultValue(defaultValue);
+  }
   
   public EtomoInteger(String name) {
     this.name = name;
@@ -71,6 +85,7 @@ public class EtomoInteger extends ConstEtomoInteger {
       catch (NumberFormatException e) {
         e.printStackTrace();
         invalidReason = "Invalid value:  " + value + ".  " + description + " is an integer.";
+        this.value = unsetValue;
       }
     }
     return invalidReason;
