@@ -34,6 +34,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.8  2003/01/13 01:15:42  mast
+changes for Qt version of info window
+
 Revision 1.1.2.7  2003/01/10 23:52:54  mast
 add new xgraoh include
 
@@ -86,6 +89,7 @@ are open
 #include "imod_input.h"
 #include "control.h"
 #include "sslice.h"
+#include "imod_moviecon.h"
 
 extern long Typemenu;
      

@@ -35,6 +35,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.13  2003/01/13 01:15:43  mast
+changes for Qt version of info window
+
 Revision 1.1.2.12  2003/01/06 15:51:17  mast
 Use imodcaption and viewport setting routines
 
@@ -124,6 +127,7 @@ Added hotkeys to do smoothing and next section in autocontouring
 #include "imodplug.h"
 #include "imod_info.h"
 #include "imod_info_cb.h"
+#include "imod_moviecon.h"
 
 #include "qcursor.bits"
 #include "qcursor_mask.bits"
@@ -409,9 +413,9 @@ void zapDraw_cb(ImodView *vi, void *client, int drawflag)
         limarr[3] = zap->bandury - 1 - zap->bandlly;
       }
       if (imcGetSnapshot(zap->vi) == 1)
-        b3dAutoSnapshot("zap", SnapShot_RGB, limits);
-      else
         b3dAutoSnapshot("zap", SnapShot_TIF, limits);
+      else
+        b3dAutoSnapshot("zap", SnapShot_RGB, limits);
       zap->movieSnapCount--;
       /* When count expires, stop movie and clear the lock */
       if(!zap->movieSnapCount) {
