@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.1.2.3  2002/12/06 19:59:52  mast
+Implement QTextStream for reading piece list
+
 Revision 1.1.2.2  2002/12/06 05:12:15  mast
 Protect quick translate against big shifts
 
@@ -120,6 +123,7 @@ int new_view(struct Midas_view *vw)
   vw->applytoone = 0;
   vw->difftoggle = NULL;
   vw->keepsecdiff = 1;
+  vw->midasWindow = NULL;
   for (i = 0; i < 3; i++) {
     vw->incindex[i] = 4;
     vw->increment[i] = vw->midasSlots->getIncrement(4, i);
