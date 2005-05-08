@@ -1,5 +1,13 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/7/05: Fixed linklibs-mac to include libifft.
+
+5/7/05: Fixed dm2mrc to work on Mac (it now uses hexdump instead of od where
+available).
+
+4/4/05: Fixed Imodmesh problem with contours on last section being forced
+down to previous section.
+
 3/31/05: IMOD_3-5-3 released
 3/25/05: Fixed bugs in Tiltalign: multiple nondefault grouping lists could get
 off if there were excluded views; rotation variable mapping was not being
