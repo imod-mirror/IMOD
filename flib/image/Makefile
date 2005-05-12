@@ -5,6 +5,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.7  2004/10/28 22:22:40  mast
+#  Added binvol
+#
 #  Revision 3.6  2004/10/28 21:14:36  mast
 #  Added maxjoinsize
 #
@@ -206,7 +209,7 @@ xyzproj$(E): xyzproj.$(O)
 	$(FC) -o xyzproj xyzproj.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
 install: $(PROGS)
-	strip $(PROGS)
+	$(STRIP) $(PROGS)
 	$(CP) $(PROGS) $(INSTBINDIR)
 
 clean:
