@@ -19,6 +19,10 @@ import etomo.comscript.TransferfidParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.16  2005/02/19 00:09:57  sueh
+ * <p> bug# 606 Removed MetaData (Setup) zfactors, fiducialess, wholetomogram,
+ * <p> and localalignments.  Add them for A and B.
+ * <p>
  * <p> Revision 3.15  2005/02/15 21:05:46  sueh
  * <p> bug# 603 Removed SectionType (single or serial sections).
  * <p>
@@ -337,10 +341,10 @@ public class MetaData extends ConstMetaData {
         .getProperty(group + "PixelSize", "0.0"));
 
     useLocalAlignmentsA = Boolean.valueOf(
-        props.getProperty(group + "UseLocalAlignmentsA", "false"))
+        props.getProperty(group + "UseLocalAlignmentsA", "true"))
         .booleanValue();
     useLocalAlignmentsB = Boolean.valueOf(
-        props.getProperty(group + "UseLocalAlignmentsB", "false"))
+        props.getProperty(group + "UseLocalAlignmentsB", "true"))
         .booleanValue();
     fiducialDiameter = Double.parseDouble(props.getProperty(group
         + "FiducialDiameter", "0.0"));
