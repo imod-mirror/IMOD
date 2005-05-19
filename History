@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/17/05: Fixed alignlog output of surface analysis when program is run with
+PIP input.
+
 5/12/05: Fixed problem with local alignments being off inappropriately in
 tomogram generation panel.
 
