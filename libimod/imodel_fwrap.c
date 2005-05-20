@@ -24,8 +24,8 @@ Log at end of file
 #include <math.h>
 #include "imodel.h"
 
-#define FWRAP_MAX_OBJECT 100000
-#define FWRAP_MAX_POINTS 5000000
+#define FWRAP_MAX_OBJECT 200000
+#define FWRAP_MAX_POINTS 10000000
 #define FWRAP_MAX_CLIP_PLANES 100
 
 #define FWRAP_NOERROR              0
@@ -1364,6 +1364,9 @@ int getimodnesting(int *ob, int *inOnly, int *level, int *inIndex,
 
 /*
 $Log$
+Revision 3.15  2005/01/30 17:44:39  mast
+Make scanlines contours only when needed for nesting analysis
+
 Revision 3.14  2005/01/29 20:26:19  mast
 Added routine to return information on nested contours
 
