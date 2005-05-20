@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/19/05: Increased model size that C routines will feed to a Fortran, so now
+allowed model size really is doubled.
+
 5/17/05: Fixed alignlog output of surface analysis when program is run with
 PIP input.
 
