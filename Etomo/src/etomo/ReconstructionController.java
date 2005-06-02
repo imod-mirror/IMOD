@@ -16,7 +16,11 @@ import etomo.type.MetaData;
 * 
 * @version $Revision$
 * 
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2005/01/21 22:17:36  sueh
+* <p> bug# 509 bug# 591  Implements Controller.  Manages a group of controller
+* <p> classes, including ApplicationManager and MetaData.
+* <p> </p>
 */
 public class ReconstructionController implements Controller {
   public static  final String  rcsid =  "$Id$";
@@ -34,10 +38,10 @@ public class ReconstructionController implements Controller {
   }
   
   public BaseMetaData getMetaData() {
-    return metaData;
+    return manager.getBaseMetaData();
   }
   
   MetaData getReconstructionMetaData() {
-    return metaData;
+    return manager.getTomogramMetaData();
   }
 }
