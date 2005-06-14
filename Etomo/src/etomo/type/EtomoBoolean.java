@@ -19,6 +19,9 @@ import etomo.comscript.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.8  2005/01/25 22:12:41  sueh
+ * <p> Removing unused default constructor.
+ * <p>
  * <p> Revision 1.7  2005/01/10 23:27:20  sueh
  * <p> bug# 578 Removed backwardCompatibleValue since it is not being used.
  * <p>
@@ -73,13 +76,19 @@ public class EtomoBoolean extends ConstEtomoBoolean {
   public ConstEtomoBoolean set(ComScriptCommand scriptCommand)
       throws InvalidParameterException {
     //If the keyword is missing, set value to false
-    //Since a missing keyword can mean false, it value shouldn't be set to null
+    //Since a missing keyword can mean false, its value shouldn't be set to null
     if (!scriptCommand.hasKeyword(name)) {
       value = 0;
     }
     else {
       try {
-        value = toInteger(scriptCommand.getValue(name));
+        String scriptValue = scriptCommand.getValue(name);
+        if (scriptValue == null || scriptValue.matches("\\s*")) {
+          value = 1;
+        }
+        else {
+          value = toInteger(scriptValue);
+        }
       }
       catch (InvalidParameterException e) {
         value = 1;
