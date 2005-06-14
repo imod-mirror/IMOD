@@ -114,6 +114,7 @@ public class TiltalignPanel {
       "Min. local patch size or overlap factor (x,y): ");
   private LabeledTextField ltfMinLocalFiducials = new LabeledTextField(
       "Min. # of fiducials (total, each surface): ");
+  private JCheckBox cbFixXYZCoordinates = new JCheckBox("Use global X-Y-Z coordinates");
 
   //  Global variables pane
   private JPanel pnlGlobalVariable = new JPanel();
@@ -343,6 +344,7 @@ public class TiltalignPanel {
     ltfNLocalPatches.setText(params.getNumberOfLocalPatchesXandY());
     ltfMinLocalPatchSize.setText(params.getMinSizeOrOverlapXandY());
     ltfMinLocalFiducials.setText(params.getMinFidsTotalAndEachSurface());
+    cbFixXYZCoordinates.setSelected(params.getFixXYZCoordinates().is());
 
     //  Tilt angle solution parameters
     int solutionType = params.getTiltOption().getInteger();
@@ -571,6 +573,9 @@ public class TiltalignPanel {
 
       badParameter = ltfMinLocalFiducials.getLabel();
       params.setMinFidsTotalAndEachSurface(ltfMinLocalFiducials.getText());
+      
+      badParameter = cbFixXYZCoordinates.getText();
+      params.setFixXYZCoordinates(cbFixXYZCoordinates.isSelected());
 
       // Tilt angle pane
       int type = 0;
@@ -796,6 +801,7 @@ public class TiltalignPanel {
     ltfLocalXstretchNonDefaultGroups.setVisible(state);
     ltfLocalSkewNonDefaultGroups.setVisible(state);
     ltfMinLocalPatchSize.setVisible(state);
+    cbFixXYZCoordinates.setVisible(state);
   }
 
   //  Local alignment state
@@ -804,6 +810,7 @@ public class TiltalignPanel {
     ltfNLocalPatches.setEnabled(state);
     ltfMinLocalPatchSize.setEnabled(state);
     ltfMinLocalFiducials.setEnabled(state);
+    cbFixXYZCoordinates.setEnabled(state);
     tabPane.setEnabledAt(tabPane.indexOfComponent(pnlLocalSolution), state);
   }
 
@@ -1048,7 +1055,7 @@ public class TiltalignPanel {
     ltfMinLocalFiducials.setTextPreferredWidth(FixedDim.integerPairWidth);
     createVariablePanel(pnlLocalParameters, cbLocalAlignments,
         ltfNLocalPatches, ltfMinLocalPatchSize, ltfMinLocalFiducials,
-        "Local Alignment Parameters");
+        cbFixXYZCoordinates, "Local Alignment Parameters");
     LocalAlignmentsListener localAlignmentsListener = new LocalAlignmentsListener(
         this);
     cbLocalAlignments.addActionListener(localAlignmentsListener);
@@ -1110,7 +1117,7 @@ public class TiltalignPanel {
         magnificationRadioListener);
     createVariablePanel(pnlMagnificationSolution, pnlRBMagnification,
         ltfMagnificationReferenceView, ltfMagnificationGroupSize,
-        ltfMagnificationNonDefaultGroups, null, "Magnification Solution Type");
+        ltfMagnificationNonDefaultGroups, null, null, "Magnification Solution Type");
 
     // Layout the global distortion pane
 
@@ -1130,7 +1137,7 @@ public class TiltalignPanel {
         .setTextPreferredWidth(FixedDim.integerTripletWidth);
     createVariablePanel(pnlDistortionSolution, pnlRBDistortion,
         ltfXstretchGroupSize, ltfXstretchNonDefaultGroups, ltfSkewGroupSize,
-        ltfSkewNonDefaultGroups, "Distortion Solution Type");
+        ltfSkewNonDefaultGroups, null, "Distortion Solution Type");
 
     //  Add the individual panes to the tab
     pnlGlobalVariable.add(Box.createRigidArea(FixedDim.x0_y10));
@@ -1230,7 +1237,7 @@ public class TiltalignPanel {
     createVariablePanel(pnlLocalDistortionSolution, pnlRBLocalDistortion,
         ltfLocalXstretchGroupSize, ltfLocalXstretchNonDefaultGroups,
         ltfLocalSkewGroupSize, ltfLocalSkewNonDefaultGroups,
-        "Local Distortion Solution Type");
+        null, "Local Distortion Solution Type");
 
     pnlLocalSolution.add(Box.createVerticalGlue());
     pnlLocalSolution.add(Box.createRigidArea(FixedDim.x0_y10));
@@ -1255,16 +1262,16 @@ public class TiltalignPanel {
       LabeledTextField groupSize, LabeledTextField additionalGroups,
       String title) {
     createVariablePanel(panel, checkBox, groupSize, additionalGroups, null,
-        title);
+        null, title);
   }
 
-  private void createVariablePanel(JPanel panel, JCheckBox checkBox,
+  private void createVariablePanel(JPanel panel, JCheckBox checkBox1,
       LabeledTextField field1, LabeledTextField field2,
-      LabeledTextField field3, String title) {
+      LabeledTextField field3, JCheckBox checkBox2, String title) {
     JPanel buttonPanel = new JPanel();
     buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.Y_AXIS));
-    buttonPanel.add(checkBox);
-    createVariablePanel(panel, buttonPanel, field1, field2, field3, null, title);
+    buttonPanel.add(checkBox1);
+    createVariablePanel(panel, buttonPanel, field1, field2, field3, null, checkBox2, title);
   }
 
   /*
@@ -1275,12 +1282,12 @@ public class TiltalignPanel {
       LabeledTextField groupSize, LabeledTextField additionalGroups,
       String title) {
     createVariablePanel(panel, buttonPanel, groupSize, additionalGroups, null,
-        null, title);
+        null, null, title);
   }
 
   private void createVariablePanel(JPanel panel, JPanel buttonPanel,
       LabeledTextField field1, LabeledTextField field2,
-      LabeledTextField field3, LabeledTextField field4, String title) {
+      LabeledTextField field3, LabeledTextField field4, JCheckBox checkBox, String title) {
     panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
     panel.add(Box.createRigidArea(FixedDim.x5_y0));
     panel.add(buttonPanel);
@@ -1297,6 +1304,10 @@ public class TiltalignPanel {
     }
     if (field4 != null) {
       fieldPanel.add(field4);
+    }
+    if (checkBox != null) {
+      checkBox.setAlignmentX(Component.RIGHT_ALIGNMENT);
+      fieldPanel.add(checkBox);
     }
     panel.add(fieldPanel.getContainer());
     panel.setBorder(new EtchedBorder(title).getBorder());
@@ -1487,6 +1498,7 @@ private void setToolTipText() {
     ltfNLocalPatches.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, TiltalignParam.NUMBER_OF_LOCAL_PATCHES_X_AND_Y_KEY)).format());
     ltfMinLocalPatchSize.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, TiltalignParam.MIN_SIZE_OR_OVERLAP_X_AND_Y_KEY)).format());
     ltfMinLocalFiducials.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, TiltalignParam.MIN_FIDS_TOTAL_AND_EACH_SURFACE_KEY)).format());
+    cbFixXYZCoordinates.setToolTipText(tooltipFormatter.setText(EtomoAutodoc.getTooltip(autodoc, TiltalignParam.FIX_XYZ_COORDINATES_KEY)).format());
 
     //  Global variables
     section = autodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME, TiltalignParam.TILT_OPTION_KEY);
@@ -1579,6 +1591,9 @@ private void setToolTipText() {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.22  2005/02/24 00:52:35  sueh
+ * <p> bug# 600 Fixed a bug that was saving a value to the wrong parameter.
+ * <p>
  * <p> Revision 3.21  2005/02/21 23:05:04  sueh
  * <p> bug# 600 Making ConstTiltalignParam parameter name statics public.
  * <p>
