@@ -628,6 +628,10 @@ public class TiltalignParam extends ConstTiltalignParam implements CommandParam 
       throws FortranInputSyntaxException {
     this.minFidsTotalAndEachSurface.validateAndSet(minFidsTotalAndEachSurface);
   }
+  
+  public void setFixXYZCoordinates(boolean fixXYZCoordinates) {
+    this.fixXYZCoordinates.set(fixXYZCoordinates);
+  }
 
   /**
    * @param minSizeOrOverlapXandY The minSizeOrOverlapXandY to set.
@@ -847,6 +851,9 @@ public class TiltalignParam extends ConstTiltalignParam implements CommandParam 
 
 /**
  * <p> $Log$
+ * <p> Revision 3.17  2005/02/24 00:50:35  sueh
+ * <p> bug# 600 Fixed a bug that was saving a value to the wrong parameter.
+ * <p>
  * <p> Revision 3.16  2005/02/21 22:57:18  sueh
  * <p> bug# 600 Making parameter name statics public.
  * <p>
