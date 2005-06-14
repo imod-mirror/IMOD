@@ -81,6 +81,7 @@ public class ConstTiltalignParam implements Command {
   public static final String LOCAL_SKEW_DEFAULT_GROUPING_KEY = "LocalSkewDefaultGrouping";
   public static final String LOCAL_SKEW_NONDEFAULT_GROUP_KEY = "LocalSkewNondefaultGroup";
   public static final String PROJECTION_STRETCH_KEY = "ProjectionStretch";
+  public static final String FIX_XYZ_COORDINATES_KEY = "FixXYZCoordinates";
   
   protected static final String modelFileString = "ModelFile";
   protected static final String imageFileString = "ImageFile";
@@ -242,6 +243,7 @@ public class ConstTiltalignParam implements Command {
     localAlignments = new EtomoBoolean(LOCAL_ALIGNMENTS_KEY);
     localAlignments.setUpdateAs(EtomoBoolean.UPDATE_AS_INTEGER).setResetValue(false);
     fixXYZCoordinates = new EtomoBoolean("FixXYZCoordinates");
+    fixXYZCoordinates.setUpdateAs(EtomoBoolean.UPDATE_AS_INTEGER);
     reset();
   }
   
@@ -766,6 +768,9 @@ public class ConstTiltalignParam implements Command {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.15  2005/02/24 00:50:23  sueh
+ * <p> bug# 600 Fixed a bug that was saving a value to the wrong parameter.
+ * <p>
  * <p> Revision 3.14  2005/02/21 22:53:57  sueh
  * <p> bug# 600 Making parameter string statics public.
  * <p>
