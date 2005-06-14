@@ -21,6 +21,9 @@ import etomo.storage.Storable;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.14  2005/01/25 22:48:00  sueh
+ * <p> Added is(Number value) to convert value to a boolean.
+ * <p>
  * <p> Revision 1.13  2005/01/25 21:56:30  sueh
  * <p> Changing resetValue to displayValue.  Removing empty functionality.  Removing
  * <p> displayDefault functionality.  Adding boolean useDisplayValue, but not
@@ -475,7 +478,7 @@ public abstract class ConstEtomoNumber implements Storable {
     }
     StringBuffer buffer = new StringBuffer(toString((Number) numberVector.get(0)));
     for (int i = 1; i < numberVector.size(); i++) {
-      buffer.append("," + toString((Number) numberVector.get(0)));
+      buffer.append("," + toString((Number) numberVector.get(i)));
     }
     return buffer.toString();
   }
