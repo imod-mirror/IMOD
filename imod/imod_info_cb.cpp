@@ -393,6 +393,11 @@ void imod_info_setbw(int black, int white)
     changed = TRUE;
   }
 
+  /* DNM: set this information as values for a new reference section for
+     floated intensities - 6/15/05, needed to do this before the draw call */
+  ref_black = black;
+  ref_white = white;
+
   /* if we are using a colormap that isn't
    * mutable then we need to redraw all image data, unless float is being done
    * use the IMOD_DRAW_IMAGE flag to redraw all image
@@ -406,10 +411,6 @@ void imod_info_setbw(int black, int white)
   else if (changed && !App->rgba)
     imodDraw(App->cvi, IMOD_DRAW_COLORMAP);
 
-  /* DNM: set this information as values for a new reference section for
-     floated intensities */
-  ref_black = black;
-  ref_white = white;
   return;
 }
 
@@ -801,6 +802,10 @@ void imod_imgcnt(char *string)
 
 /*
 $Log$
+Revision 4.17.2.1  2005/03/23 18:57:09  mast
+Saved floating b/w values as reference values before truncating to range to
+retain state after going to a section with truncated range
+
 Revision 4.17  2005/02/12 01:35:31  mast
 Initialized clearedSd properly, prevented b/w values out of range in
 float, and called bwfloat when float is turned on to get things going
