@@ -68,7 +68,7 @@ MinSizeOrOverlapXandY	0.5,0.5
 # Minimum fiducials total and on one surface if two surfaces
 #
 MinFidsTotalAndEachSurface	8,3
-FixXYZCoordinates
+FixXYZCoordinates       1
 LocalOutputOptions	1,0,1
 LocalRotOption	3
 LocalRotDefaultGrouping	6
