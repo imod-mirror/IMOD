@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/6/05: IMOD_3-5-6
+7/6/05: Eliminated unneeded repack_mod routine which was breaking Beadtrack
+and a few other programs on the SGI.  (In 3.5)
+
 6/15/05: IMOD_3-5-5
 6/15/05: Fixed bug in behavior of F1-F8 keys when contrast floating is on. 
 
