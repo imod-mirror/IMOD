@@ -1,0 +1,697 @@
+#!/bin/csh -f
+# A script to process command files on multiple machines
+#
+#  $Author$
+#
+#  $Date$
+#
+#  $Revision$
+#  Log at end of file
+#
+
+nohup
+set pn = processchunks
+set nice = 18
+@ dropcrit = 5
+@ maxchunkerr = 5
+
+if ($#argv < 2) then
+cat <<EOF
+Usage: $pn [options] machine_list root_name
+Will process multiple command files on multiple processors or machines
+  machine_list is a list of available machines, separated by commas; enter 
+    ALL (or all) for a list defined in environment variable IMOD_ALL_MACHINES
+  root_name is the base name of the command files, omitting -nnn.com
+  Options:
+    -r     Resume, retaining existing finished files (the default is to remove
+             all log files and redo everything)
+    -g     Go process, without asking for confirmation after probing machines
+    -n #   Set the "nice" value to the given number (default $nice, range 0-19)
+    -d #   Drop a machine after given number of failures in a row (default $dropcrit)
+    -e #   Quit after the given # of processing errors for a chunk (default $maxchunkerr)
+    -c name  Check file "name" for commands P, Q, and D
+    -w path  Full path to working directory on remote machines
+    -P     Output process ID
+EOF
+exit 0
+endif
+
+if ($?IMOD_DIR) then
+    set path = ($IMOD_DIR/bin $path)
+endif
+
+set retain = 0
+set justgo = 0
+set skipprobe = 0
+set checkfile = ""
+
+while ($#argv > 2)
+  switch ($argv[1])
+    case -r:
+      set retain = 1
+      shift
+      breaksw
+
+    case -g:
+      set justgo = 1
+      shift
+      breaksw
+
+    case -n:
+      set nice = $argv[2]
+      shift ; shift
+      breaksw
+
+    case -d:
+      @ dropcrit = $argv[2]
+      shift ; shift
+      breaksw
+
+    case -e:
+      @ maxchunkerr = $argv[2]
+      shift ; shift
+      breaksw
+
+    case -P:
+      echo2 Shell PID: $$
+      set skipprobe = 1
+      shift
+      breaksw
+
+    case -c:
+      set checkfile = $argv[2]
+      shift ; shift
+      breaksw
+
+    case -w:
+      set curdir = "$argv[2]"
+      shift ; shift
+      breaksw
+
+    default:
+        echo "ERROR: $pn - Unrecognized option $argv[1]"
+        exit 1
+        breaksw
+  endsw
+end
+
+if ("$argv[1]" == "ALL" || "$argv[1]" == "all") then
+    if ($?IMOD_ALL_MACHINES) then
+        set machines = `echo $IMOD_ALL_MACHINES | sed '/,/s// /g'`
+        echo "The All-machine list is:"
+        echo "$IMOD_ALL_MACHINES"
+    else
+        echo "ERROR: $pn - Environment variable IMOD_ALL_MACHINES is not defined"
+        exit 1
+    endif
+else
+    set machines = `echo $argv[1] | sed '/,/s// /g'`
+endif
+
+if ($#machines < 1) then
+    echo "ERROR: $pn - No machines specified"
+    exit 1
+endif
+
+set rootname = $argv[2]
+set comlist = `ls $rootname-[0-9]*.com`
+
+if ($#comlist < 1) then
+    echo "ERROR: $pn - There are no command files matching $rootname-nnn.com"
+    exit 1
+endif
+
+set thishost = `hostname`
+set hostroot = $thishost:r:r:r
+
+# Get current directory if not entered, escape the spaces
+#
+if ($?curdir) then
+    set curdir = `echo $curdir | sed '/ /s//\\ /g'`
+else
+    set curdir = `pwd | sed -e "/^\/localscratch/s//\/scratch\/$hostroot/" -e "/ /s//\\ /g"`
+endif
+
+# probe machines and get all the verifications unless etomo is running it
+#
+if ($skipprobe == 0 || $justgo == 0) then
+    if ("$checkfile" != "" && -e "$checkfile") \rm -f $checkfile
+    echo "Probing machine connections and loads..."
+    @ num = 0
+    set newlist = ()
+    while ($num < $#machines)
+        @ num++ 
+        set machname = $machines[$num]
+        set checkit = 1
+        if ($num > 1) then
+            @ last = $num - 1
+            if ( "$machname" == "$machines[$last]" ) set checkit = 0
+        endif
+        if ($checkit == 1) then
+            if ("$machname" == $hostroot || $machname == localhost) then
+                echo $machname
+                w | head -n 1
+                set laststat = 0
+            else
+                ssh -x $machname "hostname ; w | head -n 1"
+                set laststat = $status
+
+                # The SGI returns 141 for some strange reason so...
+                #
+                if ($laststat != 0 && $laststat != 141) then
+                    echo "Dropping $machname from list because it does not respond"
+                    echo ""
+                endif
+            endif
+        endif
+        if ($laststat == 0 || $laststat == 141) set newlist = ($newlist $machname)
+    end 
+
+    set machines = ($newlist)
+endif
+
+if ($justgo == 0) then
+    echo -n "Enter Y to proceed with the current set of machines: "
+    set answer = $<
+    if ("$answer" != "Y" && "$answer" != "y") exit
+endif
+
+restart:
+
+# set up flag list and list of assignments
+#
+set flags = ()
+set numchunkerr = ()
+@ num = 0
+while ($num < $#comlist)
+    @ num++
+    set sync = 0
+    set test = `echo $comlist[$num] | grep -i '[0-9]-sync.com'`
+    if (! $status) set sync = -1
+    set flags = ($flags $sync)
+    set numchunkerr = ($numchunkerr 0)
+end
+
+set assigned = ()
+set startcount = ()
+set failed = ()
+set namelist = ()
+set nameind = ()
+set chunkerred = ()
+@ num = 0
+while ($num < $#machines)
+    @ num++
+    set assigned = ($assigned 0)
+    set startcount = ($startcount 0)
+
+
+    # Build a list of unique names and an index to the name and failure list
+    #
+    @ name = 0
+    set index = 0
+    while ($name < $#namelist)
+        @ name++
+        if ($namelist[$name] == $machines[$num]) then
+            set index = $name
+            break;
+        endif
+    end
+
+    if ($index == 0) then
+        set namelist = ($namelist $machines[$num])
+        set index = $#namelist
+        set failed = ($failed 0)
+        set chunkerred = ($chunkerred 0)
+    endif
+    set nameind = ($nameind $index)
+end
+
+# remove logs if not restarting, and run starting file
+#
+@ numdone = 0
+if ($retain == 0) then
+    \find . -type f -name  "$rootname-[0-9]*.log" -exec rm -f "{}" \;
+    if (-e $rootname-start.com) then
+        echo "Going to run $rootname-start first..."
+        vmstocsh $rootname-start.log < $rootname-start.com | csh -ef
+        if ($status) then
+            echo "Error running $rootname-start.com, check $rootname-start.log"
+            exit 1
+        endif
+    endif
+else
+
+    # otherwise prescan logs for done ones
+    #
+    @ num = 0
+    while ($num < $#comlist)
+        @ num++
+        set logname = $comlist[$num]:r.log
+        if (-e $logname) then
+            set lastline = `tail -n 1 $logname`
+            if ("$lastline" == "CHUNK DONE") then
+                set flags[$num] = 2
+                @ numdone++
+            endif
+        endif
+    end 
+endif
+
+onintr report
+echo $numdone OF $#comlist DONE SO FAR
+
+# Loop until all appear to be done
+#
+@ lastdone = 0
+@ count = 0
+@ nextsync = $#comlist + 2
+set anydone = 0
+@ holdcrit = ($#machines + 1) / 2
+set pausing = 0
+@ checkline = 0
+
+continue:
+
+while ($numdone < $#comlist)
+    @ count++
+
+    # Count failures and assignments
+    #
+    @ proc = 0
+    @ failtot = 0
+    @ assigntot =0
+    @ minfail = $dropcrit
+    @ chunkerrtot = 0
+    while ($proc < $#machines)
+        @ proc++
+        if ($assigned[$proc] != 0) @ assigntot++
+        @ failcount = $failed[$nameind[$proc]]
+        if ($failcount != 0) @ failtot++
+        if ($failcount < $minfail) @ minfail = $failcount
+        if ($chunkerred[$nameind[$proc]] != 0) @ chunkerrtot++
+    end
+
+    # Stop if all have now been dropped out or all have failed and none done
+    #
+    if ($minfail >= $dropcrit) then
+        echo "ERROR: ALL MACHINES HAVE FAILED ON THEIR LAST $dropcrit TRIES"
+        exit 1
+    endif
+
+    if ($failtot == $#machines && $assigntot == 0 && $numdone == 0) then
+        echo "ERROR: NO CHUNKS HAVE WORKED AND EVERY MACHINE HAS FAILED"
+        exit 1
+    endif
+
+    if ($pausing != 0 && $assigntot == 0) then
+        echo "All previously running chunks are done - exiting as requested"
+        echo "Rerun with -r to resume and retain existing results"
+        exit 2
+    endif
+
+    # Loop on machines, if they have an assignment check if it is done
+    #
+    @ proc = 0
+    while ($proc < $#machines)
+        @ proc++
+        @ ind =$assigned[$proc]
+        set dropout = 0
+        set name = $nameind[$proc]
+        if ($ind != 0) then
+            set logname = $comlist[$ind]:r.log
+            set cshname = $comlist[$ind]:r.csh
+            set errormess = ""
+            if ((-e $logname) && (! -e $cshname)) then
+                set lastline = `tail -n 1 $logname | sed '/[[:cntrl:]]/s///g'`
+                if ("$lastline" == "CHUNK DONE") then
+
+                    # If it is DONE, then set flag to done and deassign
+                    # Exonerate the machine from chunk errors if this chunk 
+                    # gave a previous chunk error
+                    #
+                    set flags[$ind] = 2
+                    set assigned[$proc] = 0
+                    set failed[$name] = 0
+                    if ($numchunkerr[$ind] != 0) set chunkerred[$name] = 0
+                    @ numdone++
+                    set anydone = 1
+                    echo "$comlist[$ind] finished on $machines[$proc]"
+                else
+
+                    # If the log file exists but the .csh is gone, 
+                    # set flag to redo it
+                    #
+                    set dropout = 1
+                    if (! -z $logname) then
+                        set errormess = `awk '/ERROR:/, /EOF/' $logname`
+                        if ("$errormess" == "") then
+                            set errormess = `tail -n 1 $logname`
+                            set errormess = "CHUNK ERROR: (last line) - $errormess"
+                        else
+                            set errormess = "CHUNK $errormess"
+                        endif
+                        @ numerr = $numchunkerr[$ind]
+                        @ numerr++
+                        set numchunkerr[$ind] = $numerr
+                        set chunkerred[$name] = 1
+                        if ($numerr >= $maxchunkerr) then
+                            echo \
+        "$comlist[$ind] has given processing error $numerr times - giving up"
+                            echo $errormess
+                            set ans = "E"
+                            goto command
+                        endif
+                    endif
+                endif
+            else if (! -e $logname) then
+            
+                # Similarly if log file doesn't exist after timeout, give up
+                #
+                @ tmpcount = $startcount[$proc]
+                if ($count > $tmpcount + 30) set dropout = 1
+            endif
+
+            # if failed, remove the assignment, mark chunk as to be done, 
+            # skip this machine on this round
+            #
+            if ($dropout == 1) then
+                echo "$comlist[$ind] failed on $machines[$proc] - need to restart"
+                if ("$errormess" != "") echo $errormess
+                set flags[$ind] = 0
+                set assigned[$proc] = 0
+                @ failcount = $failed[$name]
+                @ failcount++
+                set failed[$name] = $failcount
+                if ($failcount >= $dropcrit) echo \
+        "Dropping $machines[$proc] - it has failed $failcount times in a row"
+            endif
+        endif
+
+        # Drop a machine if it has failed more than given number of times
+        # Institute hold if none done and failure count is above criterion
+        #
+        @ failcount = $failed[$name]
+        if ($failcount >= $dropcrit || $pausing != 0 || \
+            ($anydone == 0 && $failtot >= $holdcrit)) set dropout = 1
+
+        # If the current machine is unassigned, find next com to do and run it
+        # Move current log out of way so non-existence of log can be sign of
+        # nothing having started
+        #
+        @ num = 0
+        while ($num < $#comlist && $assigned[$proc] == 0 && $dropout == 0)
+            @ num++
+
+            # But if the next com is a sync, record number and break loop
+            #
+            if ($flags[$num] == -1) then
+                @ nextsync = $num
+                break
+            endif
+
+            # Skip a chunk if it has errored, if this machine has given chunk 
+            # error, and not all machines have done so
+            #
+            set chunkok = 1
+            if ($numchunkerr[$num] > 0 && $chunkerred[$name] == 1 && \
+                $chunkerrtot < $#machines) set chunkok = 0
+
+            if ($flags[$num] == 0 && $chunkok == 1) then
+                set assigned[$proc] = $num
+                set flags[$num] = 1
+                set startcount[$proc] = $count
+                set comname = $comlist[$num]
+                set logname = $comname:r.log
+                set cshname = $comname:r.csh
+                set pidname = $comname:r.pid
+                set machname = $machines[$proc]
+                if (-e $logname) \mv $logname $logname~
+                if (-e $pidname) \rm -f $pidname
+                echo "Running $comname on $machname ..."
+                \echo "nice +$nice" >! $cshname
+                vmstocsh $logname < $comname >> $cshname
+                if ("$machname" == $hostroot || "$machname" == localhost) then
+                    csh -ef < $cshname >& $pidname ; \rm -f $cshname $pidname &
+                else
+                    ssh -x $machname bash --login -c \'"cd $curdir ; csh -ef < $cshname >& $pidname ; \rm -f $cshname $pidname"\' &
+                endif
+            endif
+        end 
+    end
+
+    if ($numdone > $lastdone) echo $numdone OF $#comlist DONE SO FAR
+    @ lastdone = $numdone
+
+    # If we have finished up to the sync file, then run it
+    if ($numdone >= $nextsync - 1) then
+        set comname = $comlist[$nextsync]
+        set logname = $comname:r.log
+        echo "Running $comname to synchronize ..."
+        vmstocsh $logname < $comname | csh -ef
+        if ($status) then
+            echo "Error running $comname, check $logname"
+            exit 1
+        endif
+        set flags[$nextsync] = 1
+        @ nextsync = $#comlist + 2
+        @ numdone++
+    endif
+    
+    # Check the check file now
+    #
+    if ("$checkfile" != "" && -r "$checkfile") then
+        set checkwc = `wc -l $checkfile`
+        @ checklen = $checkwc[1]
+        if ($checklen > $checkline) then
+            @ checkline++
+            set comline = `tail -n +$checkline $checkfile | head -n 1`
+            if ($#comline > 0) then
+                set ans = $comline[1]
+                if ("$ans" == "P" || "$ans" == "Q" || \
+                    ("$ans" == "D" && $#comline > 1)) then
+                    if ("$ans" == "D") then
+                        shift comline
+                        set drops = `echo $comline | sed '/,/s// /g'`
+                    endif
+                    goto command
+                else
+                    echo "BAD COMMAND IGNORED: $comline"
+                endif
+            endif
+        endif
+    endif
+
+    sleep 2
+end
+
+onintr finishkilled
+echo "ALL DONE - going to run $rootname-finish to reassemble"
+vmstocsh $rootname-finish.log < $rootname-finish.com | csh -ef
+if ("$checkfile" != "" && -e "$checkfile") \rm -f $checkfile
+exit
+
+report:
+@ undone = $#comlist - $numdone
+echo  " $undone chunks are still undone"
+set ans = 0
+while ("$ans" != "R" && "$ans" != "Q" && "$ans" != "C" && "$ans" != "P" && "$ans" != "D")
+    echo "Enter R to kill and restart with the current list of machines,"
+    echo " Q to kill all jobs and quit, P to finish running jobs then exit,"
+    echo " D machine_list to kill jobs and drop given machines,"
+    echo " or C to continue waiting: "
+    set ans = "$<"
+    set ans = ($ans)
+    if ("$ans" == "r") set ans = R
+    if ("$ans" == "q") set ans = Q
+    if ("$ans" == "p") set ans = P
+    if ("$ans" == "c") set ans = C
+    if ($#ans > 1) then
+        if ($ans[1] == "d" || $ans[1] == "D") then
+            shift ans
+            set drops = `echo $ans | sed '/,/s// /g'`
+            set ans = D
+        endif
+    endif
+end
+
+command:
+set pausing = 0
+if ("$ans" == "P") set pausing = 1
+if ("$ans" == "C" || "$ans" == "P") goto continue
+
+# now try to kill jobs
+@ proc = 0
+set machkills = ()
+set comkills = ()
+set pidkills = ()
+while ($proc < $#machines)
+    @ proc++
+    @ ind =$assigned[$proc]
+    set name = $nameind[$proc]
+    set machname = $machines[$proc]
+    set kill = 1
+    if ("$ans" == "D") then
+        set kill = 0
+        foreach i ($drops)
+            if ("$machname" == $i) then
+                set kill = 1
+                set failed[$name] = $dropcrit
+                set assigned[$proc] = 0
+                echo "Dropping $machname as requested"
+            endif
+        end
+    endif
+    if ($ind != 0 && $kill != 0) then
+        set flags[$ind] = 0
+        set pidname = $comlist[$ind]:r.pid
+        if (-e $pidname) then
+            set cshname = $comlist[$ind]:r.csh
+            echo "Killing $comlist[$ind] on $machname"
+
+            # If the pid file is not really there yet, do a sync and wait for
+            # it to take effect
+            #
+            if (-z $pidname) then
+                if ("$machname" == $hostroot || "$machname" == localhost) then
+                    sync
+                else
+                    ssh -x $machname sync
+                endif
+                @ waited = 0
+                while (-z $pidname && $waited < 15)
+                    @ waited++
+                    sleep 1
+                end
+            endif
+            set pid = `cat $pidname | sed '/[^0-9]/s///g'`
+            if ("$machname" == $hostroot || "$machname" == localhost) then
+                imodkillgroup $pid
+                \rm -f $pidname
+            else
+
+                # Kill a remote job in background and have this command clean
+                # up the PID file
+                #
+                ssh -x $machname bash --login -c \'"imodkillgroup $pid ; \rm -f $curdir/$pidname"\' &
+            endif
+            set machkills = ($machkills $machname)
+            set comkills = ($comkills $comlist[$ind])
+            set pidkills = ($pidkills $pidname)
+            \rm -f $cshname
+        endif
+    endif
+end
+
+# Loop until all pid's disappear or it times out
+#
+@ waited = 0
+@ undone = 1
+while ($waited < 15 && $undone > 0)
+    @ waited++
+    sleep 1
+    @ ind = 0
+    @ undone = 0
+    while ($ind < $#pidkills)
+        @ ind++
+        if (-e $pidkills[$ind]) @ undone++
+    end
+end
+
+# Loop again to clean up and report if anybody didn't clean up
+#
+@ ind = 0
+while ($ind < $#pidkills)
+    @ ind++
+    if (-e $pidkills[$ind]) then
+        \rm -f $pidkills[$ind]
+        echo "Failed to kill $comkills[$ind] on $machkills[$ind] (no problem if machine is dead)"
+    endif
+end
+
+if ("$ans" == "E") then
+    echo "ERROR: A CHUNK HAS FAILED $maxchunkerr TIMES"
+    exit 4
+endif
+
+if ("$ans" == "D") then
+    echo "Resuming processing"
+    goto continue
+endif
+
+set retain = 1
+if ("$ans" == "R") goto restart
+echo ""
+echo "When you rerun with a different set of machines, be sure to use"
+echo "the -r flag to retain the existing results"
+exit 2
+
+finishkilled:
+echo ""
+echo "$rootname-finish was interrupted and the data have not been reassembled."
+echo "Rerun with -r or use subm $rootname-finish to reassemble."
+exit 3
+
+#
+#  $Log$
+#  Revision 3.18  2005/10/06 16:44:04  mast
+#  Provided option to enter path; kept track of chunk errors and machines that
+#  gave chunk errors so that a bad chunk will not have to be run until it
+#  each machine to drop; fixed order of tests for .csh gone versus CHUNK DONE
+#  present; fixed test for all machines failed and no chunks worked
+#
+#  Revision 3.17  2005/09/08 00:14:50  mast
+#  Made it take commands from a file since the interrupts don't work
+#  from inside etomo
+#
+#  Revision 3.16  2005/08/30 22:03:13  mast
+#  Kill remote jobs with background ssh calls that can time out
+#
+#  Revision 3.15  2005/08/27 22:27:16  mast
+#  Added ability to enter machines to drop after interrupt
+#
+#  Revision 3.14  2005/08/26 23:11:23  mast
+#  Fixed dumb bugs
+#
+#  Revision 3.13  2005/08/26 20:44:44  mast
+#  Added CHUNK ERROR reports when there is a nonempty log
+#
+#  Revision 3.12  2005/08/24 16:10:50  mast
+#  Implemented killing via calling a process group kill script, added a
+#  sync message in case pid file was not written by nfs yet, switched to
+#  bash --login and allowed exit code 145 from the w to get it to work on
+#  our SGI
+#
+#  Revision 3.11  2005/07/19 00:19:01  mast
+#  Switched to running bash -l -c and added PID output
+#
+#  Revision 3.10  2005/07/16 00:26:25  mast
+#  Added failure counting, machine dropping, a pause option to let jobs finish,
+#  exiting if all machines have failed and no chunks have finished, and
+#  exiting if all machines have dropped out.
+#
+#  Revision 3.9  2005/06/30 18:13:03  mast
+#  Added finished on machine message, changed failed message, reduce sleep
+#
+#  Revision 3.8  2005/06/28 23:33:20  mast
+#  Made it work with spaces in the directory path
+#
+#  Revision 3.7  2005/05/12 23:11:08  mast
+#  Fixed for windows, made .csh file before starting process
+#
+#  Revision 3.6  2005/05/12 21:24:09  mast
+#  Added ability to run with sync files
+#
+#  Revision 3.5  2004/08/27 05:46:48  mast
+#  Switched to using head -n and tail -n
+#
+#  Revision 3.4  2004/07/23 00:09:00  mast
+#  Set default nice to 18 per user request
+#
+#  Revision 3.3  2004/07/21 17:00:27  mast
+#  Output the all file list when it is used.
+#
+#  Revision 3.2  2004/06/29 03:41:48  mast
+#  Added nohup
+#
+#  Revision 3.1  2004/06/29 02:47:09  mast
+#  Initial addition to package
