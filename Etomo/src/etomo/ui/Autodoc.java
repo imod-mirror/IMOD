@@ -461,8 +461,11 @@ public class Autodoc implements AttributeCollection {
     if (envVariable == null || envVariable.matches("\\s*+")) {
       return null;
     }
-    String dirName = new String(Utilities.getEnvironmentVariable(null,
-        envVariable, axisID));
+    String dirName = Utilities.getEnvironmentVariable(null,
+        envVariable, axisID);
+    if (dirName == null || dirName.matches("\\s*+")) {
+      return null;
+    }
     File dir = new File(dirName);
     if (!checkDir(dir, envVariable)) {
       return null;
@@ -539,6 +542,9 @@ public class Autodoc implements AttributeCollection {
 }
 /**
  *<p> $$Log$
+ *<p> $Revision 1.22  2005/11/10 22:20:31  sueh
+ *<p> $bug# 759 Added VERSION constant.
+ *<p> $
  *<p> $Revision 1.21  2005/11/10 18:14:16  sueh
  *<p> $bug# 733 added setTestDir(), which sets the autodoc directory directly and
  *<p> $can only be used in test mode.  Rewrote getTestAutodocDir() to let it use
