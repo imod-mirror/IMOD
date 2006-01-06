@@ -23,5 +23,9 @@ public interface DetachedCommand extends Command {
   public String getCommandString();
 }
 /**
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2006/01/06 02:36:34  sueh
+* <p> bug# 792 Command interface for DetachedCommand.  Can create a safe
+* <p> command string that can go into a run file.
+* <p> </p>
 */
