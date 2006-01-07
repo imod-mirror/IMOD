@@ -1,7 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/6/06: IMOD_3-7-1
 1/6/06: Fixed a bug which prevented starting and ending error messages from
-processchunks to be completely displayed to the user.
+processchunks from being completely displayed to the user.
+
+1/6/06: Fixed processchunks to send standardized error messages upon failure
+of the start, finish, or sync files and to send the error from the log file.
 
 1/6/06: Fixed a bug which caused the Matchvol1 and Matchorwarp done percentage
 monitors to start late.
@@ -9,8 +13,11 @@ monitors to start late.
 1/6/06: Fixed a bug that caused the autodoc reader to send an error to the
 error log when $AUTODOC_DIR wasn't set.
 
-1/5/06: Fixed a bug where processchunk failed on a working directory path with
+1/5/06: Fixed a bug where processchunks failed on a working directory path with
 embedded spaces.
+
+12/16/05: Fixed a bug in Join which allowed the user to get into the align and
+join tabs with out of date screen values.
 
 12/13/05: IMOD_3-8-0 and branch to IMOD_3-7-0
 12/13/05: Fixed a bug in Etomo Join which caused the default X and Y sizes in
