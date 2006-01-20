@@ -32,6 +32,9 @@ import etomo.util.MRCHeader;
  * </p>
  * 
  * <p> $Log$
+ * <p> Revision 1.8  2005/12/14 01:29:21  sueh
+ * <p> bug# 782 Added toString().
+ * <p>
  * <p> Revision 1.7  2005/12/06 23:01:50  sueh
  * <p> bug# 757 Removed convertZ and added convertToRotatedZ and
  * <p> convertFromRotationZ.  Going to .rot and going from .rot now have
@@ -190,7 +193,7 @@ public class SectionTableRowData extends ConstSectionTableRowData {
    * Assumes setupSection is set.
    */
   public final void synchronizeSetupToJoin() {
-    File rotatedSection = DatasetFiles.getRotatedTomogram(setupSection);
+    File rotatedSection = DatasetFiles.getRotatedTomogram(manager, setupSection);
     if (rotatedSection.exists()
         && (!rotationAngleX.isNull() || !rotationAngleY.isNull() || !rotationAngleZ
             .isNull())) {
