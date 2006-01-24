@@ -40,6 +40,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.37  2005/11/14 22:29:13  sueh
+ * <p> bug# 762 Made buttonAction() protected.
+ * <p>
  * <p> Revision 3.36  2005/08/12 00:01:26  sueh
  * <p> bug# 711  Change enum Run3dmodMenuOption to
  * <p> Run3dmodMenuOptions, which can turn on multiple options at once.
@@ -539,8 +542,8 @@ public class TomogramPositioningDialog extends ProcessDialog
    * Right mouse button context menu
    */
   public void popUpContextMenu(MouseEvent mouseEvent) {
-    String[] manPagelabel = {"Tomopitch", "Newst", "3dmod", "Tilt"};
-    String[] manPage = {"tomopitch.html", "newst.html", "3dmod.html",
+    String[] manPagelabel = {"Tomopitch", "Newstack", "3dmod", "Tilt"};
+    String[] manPage = {"tomopitch.html", "newstack.html", "3dmod.html",
         "tilt.html"};
 
     String[] logFileLabel = {"Tomopitch", "Sample"};
