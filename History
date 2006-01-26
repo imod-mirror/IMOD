@@ -1,9 +1,10 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/26/06: IMOD_3-7-3
 1/25/06: Fixed gaps in zap montage snapshot and set read buffer so it works
 on Quadro cards.
 
-1/23/05: Fixed progress output of matchvol/warpvol for > 999 cubes.
+1/23/06: Fixed progress output of matchvol/warpvol for > 999 cubes.
 
 1/19/06: IMOD_3-7-2
 1/19/06: Increased default radius in eraser.com from 2.1 to 3.6 pixels.
