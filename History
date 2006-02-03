@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/3/06: Fixed linklibs-mac for new library.
+
+2/3/06: Fixed running tomosnapshot from eTomo under Windows.
+
 1/26/06: IMOD_3-7-3
 1/25/06: Fixed gaps in zap montage snapshot and set read buffer so it works
 on Quadro cards.
