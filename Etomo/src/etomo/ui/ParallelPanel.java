@@ -26,6 +26,7 @@ import etomo.type.EtomoNumber;
 import etomo.type.PanelHeaderState;
 import etomo.type.ProcessName;
 import etomo.util.HashedArray;
+import etomo.util.Utilities;
 
 /**
  * <p>Description: </p>
@@ -222,7 +223,8 @@ public final class ParallelPanel implements ParallelProgressDisplay,
     }
     validAutodoc = new EtomoBoolean2();
     Autodoc autodoc = getAutodoc(axisID);
-    if (autodoc != null && autodoc.isSectionExists(ProcessorTable.SECTION_TYPE)) {
+    if (autodoc != null && autodoc.isSectionExists(ProcessorTable.SECTION_TYPE)
+        && !Utilities.isWindowsOS()) {
       validAutodoc.set(true);
     }
     return validAutodoc.is();
@@ -439,11 +441,8 @@ public final class ParallelPanel implements ParallelProgressDisplay,
             .setText(
                 "Starts the process but does not redo the chunks that are already completed.")
             .format());
-    btnSaveDefaults
-    .setToolTipText(tooltipFormatter
-        .setText(
-            "Saves the computers and number of CPUs selected.")
-        .format());
+    btnSaveDefaults.setToolTipText(tooltipFormatter.setText(
+        "Saves the computers and number of CPUs selected.").format());
   }
 
   private final class ParallelPanelActionListener implements ActionListener {
@@ -460,6 +459,9 @@ public final class ParallelPanel implements ParallelProgressDisplay,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.26.4.1  2005/12/15 20:35:51  sueh
+ * <p> bug# 784 Added tool tips.
+ * <p>
  * <p> Revision 1.26  2005/11/21 22:01:46  sueh
  * <p> bug# 761 In getParameters(ProcesschunksParam) pop up an error
  * <p> message and return false if ProcesschunksParam.validate() does not
