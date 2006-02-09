@@ -1,0 +1,151 @@
+package etomo.comscript;
+
+import java.util.ArrayList;
+import java.util.Hashtable;
+
+/**
+* <p>Description: </p>
+* 
+* <p>Copyright: Copyright (c) 2005</p>
+*
+* <p>Organization:
+* Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
+* University of Colorado</p>
+* 
+* @author $Author$
+* 
+* @version $Revision$
+*/
+public class LoadAverageParam implements IntermittentCommand {
+  public static  final String  rcsid =  "$Id$";
+  
+  private static Hashtable instances = new Hashtable();//one instance per computer
+  
+  private final String computer;
+  private String[] localCommandArray = null;
+  private String[] remoteCommandArray = null;
+  private String intermittentCommand = null;
+  private String endCommand = null;
+  
+  public final static LoadAverageParam getInstance(String computer) {
+    LoadAverageParam loadAverageParam = (LoadAverageParam) instances.get(computer);
+    if (loadAverageParam != null) {
+      return loadAverageParam;
+    }
+    synchronized (instances) {
+      loadAverageParam = (LoadAverageParam) instances.get(computer);
+      if (loadAverageParam != null) {
+        return loadAverageParam;
+      }
+      loadAverageParam = new LoadAverageParam(computer);
+      instances.put(computer, loadAverageParam);
+      return loadAverageParam;
+    }
+  }
+  
+  private LoadAverageParam(String computer) {
+    this.computer = computer;
+  }
+  
+  public final String[] getLocalCommand() {
+    if (localCommandArray == null) {
+      buildLocalCommand();
+    }
+    return localCommandArray;
+  }
+  
+  public final String[] getRemoteCommand() {
+    if (remoteCommandArray == null) {
+      buildRemoteCommand();
+    }
+    return remoteCommandArray;
+  }
+  
+  public String getIntermittentCommand() {
+    if (intermittentCommand == null) {
+      buildIntermittentCommand();
+    }
+    return intermittentCommand;
+  }
+  
+  public String getEndCommand() {
+    if (endCommand == null) {
+      buildEndCommand();
+    }
+    return endCommand;
+  }
+  
+  public int getInterval() {
+    return 5000;
+  }
+  
+  private final void buildLocalCommand() {
+    ArrayList command = new ArrayList();
+    command.add("tcsh");    
+    int commandSize = command.size();
+    localCommandArray = new String[commandSize];
+    for (int i = 0; i < commandSize; i++) {
+      localCommandArray[i] = (String) command.get(i);
+    }
+  }
+  
+  private final void buildRemoteCommand() {
+    ArrayList command = new ArrayList();
+    command.add("ssh");
+    //prevents ssh from waiting for an answer when connecting to a computer for
+    //the first time
+    //see man ssh_config
+    command.add("-x");
+    command.add("-o");
+    command.add("StrictHostKeyChecking=no");
+    command.add(computer);
+    
+    int commandSize = command.size();
+    remoteCommandArray = new String[commandSize];
+    for (int i = 0; i < commandSize; i++) {
+      remoteCommandArray[i] = (String) command.get(i);
+    }
+  }
+  
+  public boolean notifySentIntermittentCommand() {
+    return true;
+  }
+  
+  private final void buildIntermittentCommand() {
+    intermittentCommand = "w";
+  }
+  
+  private final void buildEndCommand() {
+    endCommand = "exit";
+  }
+
+  public final String getComputer() {
+    return computer;
+  }
+}
+/**
+* <p> $Log$
+* <p> Revision 1.5  2005/10/27 00:21:57  sueh
+* <p> bug# 745 ssh should be run with -x.  Hoping this will solve the XServer
+* <p> problem.
+* <p>
+* <p> Revision 1.4  2005/09/14 20:20:40  sueh
+* <p> bug# 532 Added notifySentIntermittentCommand() so that notifying the
+* <p> monitor that the intermittent command was sent can be optional.
+* <p>
+* <p> Revision 1.3  2005/09/09 21:21:01  sueh
+* <p> bug# 532 Made LoadAverageParam an n'ton (one for each computer) so
+* <p> that there aren't IntermittentSystemPrograms then computers.  This allows
+* <p> IntermittentSystemProgram to be used for other things and conforms to
+* <p> it definition of having one instance per IntermittentCommand, instead of
+* <p> one instance per computer.
+* <p>
+* <p> Revision 1.2  2005/08/24 00:19:36  sueh
+* <p> bug #532 Added getEndCommand().  The exit command used in
+* <p> IntermittentSystemProgram should be generic.
+* <p>
+* <p> Revision 1.1  2005/08/22 16:04:33  sueh
+* <p> bug# 532 Param object for getting this load average.  Currently tested
+* <p> only on Linux.  Needs to work for all three OSs.
+* <p> </p>
+*/
