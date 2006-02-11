@@ -1,5 +1,6 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/11/06: IMOD_3-7-4
 2/6/06: Made default ccderaser radius vary with fiducial size.
 
 2/3/06: Fixed linklibs-mac for new library.
