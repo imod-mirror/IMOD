@@ -17,6 +17,10 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.30  2005/11/19 02:41:13  sueh
+ * <p> bug# 744 Added another option to ProcessMessage constructor.  Made the
+ * <p> constructor private and used getInstance functions to simply its use.
+ * <p>
  * <p> Revision 3.29  2005/11/10 18:06:58  sueh
  * <p> bug# 758 Correcting a line that prints in the error log.  propertyUserDir
  * <p> may not always be the same as user.dir.
@@ -527,7 +531,7 @@ public class SystemProgram implements Runnable {
     processMessages.addProcessOutput(stderr);
 
     if (debug) {
-      if (stdout.size() > 0) {
+      if (stdout != null && stdout.size() > 0) {
         System.err.println("SystemProgram: Read from process stdout:");
         System.err.println(
           "------------------------------------------------------------");
