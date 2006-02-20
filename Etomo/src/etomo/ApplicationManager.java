@@ -4236,7 +4236,15 @@ public class ApplicationManager extends BaseManager {
       // Update the com script and metadata info from the tomogram
       // combination dialog box. Since there are multiple pages and scripts
       // associated with the postpone button get the ones that are appropriate
-      updateCombineParams();
+      
+      //Don't send the setup values to combine param (which saves to the .edf
+      //file unless create combine scripts is being run or a script is being
+      //updated.  In the combine setup tab, screen values should reflect the
+      //state of the script instead of the values that the user places there.
+      //This is because Create Combine Scripts is used to create the scripts 
+      //instead of saving them directly from the screen, so the values in .edf
+      //file and the values in the scripts can get out of sync.
+      //updateCombineParams();
       tomogramCombinationDialog.getParameters(metaData);
       tomogramCombinationDialog.getParameters(getScreenState(AxisID.ONLY));
       if (tomogramCombinationDialog.isCombinePanelEnabled()) {
@@ -5959,6 +5967,9 @@ public class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.202  2005/12/12 21:48:32  sueh
+ * <p> bug# 779 Made BaseManager.resetNextProcess() private.
+ * <p>
  * <p> Revision 3.201  2005/12/09 20:20:21  sueh
  * <p> bug# 776 Added canSnapshot.
  * <p>
