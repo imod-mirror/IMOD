@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/22/06: Fixed a bug in Combine where Replace Patch Vectors fails when patch.out
+is missing.
+
 2/20/06: IMOD_3-7-5
 2/20/06: Fixed a bug in Combine where Setup values got out of sync.
 
