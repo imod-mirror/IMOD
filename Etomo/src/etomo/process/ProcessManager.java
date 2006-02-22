@@ -20,6 +20,10 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.88  2005/12/09 20:28:09  sueh
+ * bug# 776 Added non-abstract super.postProcessing to handle
+ * tomosnapshot
+ *
  * Revision 3.87  2005/11/19 02:36:48  sueh
  * bug# 744 Moved functions only used by process manager post
  * processing and error processing from Commands to ProcessDetails.
@@ -1375,8 +1379,7 @@ public class ProcessManager extends BaseProcessManager {
    *          A read-only object containing the parameters for setupcombine
    *          script
    */
-  public boolean setupCombineScripts(ConstMetaData metaData)
-      throws IOException {
+  public boolean setupCombineScripts(ConstMetaData metaData) throws IOException {
     SetupCombine setupCombine = new SetupCombine(appManager);
     appManager.saveIntermediateParamFile(AxisID.ONLY);
     int exitValue = setupCombine.run();
@@ -1390,7 +1393,8 @@ public class ProcessManager extends BaseProcessManager {
           "Setup Combine Warning", AxisID.ONLY);
     }
     if (exitValue != 0) {
-      UIHarness.INSTANCE.openMessageDialog("Setup combine failed.  Exit value = " + exitValue,
+      UIHarness.INSTANCE.openMessageDialog(
+          "Setup combine failed.  Exit value = " + exitValue,
           "Setup Combine Failed", AxisID.ONLY);
       return false;
     }
@@ -1402,10 +1406,12 @@ public class ProcessManager extends BaseProcessManager {
    * for this command
    */
   public void modelToPatch(AxisID axisID) throws SystemProcessException {
-    //  Copy the old patch.out to patch.out~
-    String[] mv = { "mv", "-f", "patch.out", "patch.out~" };
-    runCommand(mv, axisID);
-
+    File patchOut = new File(appManager.getPropertyUserDir(), "patch.out");
+    if (patchOut.exists()) {
+      //  Copy the old patch.out to patch.out~
+      String[] mv = { "mv", "-f", "patch.out", "patch.out~" };
+      runCommand(mv, axisID);
+    }
     // Convert the new patchvector.mod
     String[] imod2patch = { "imod2patch", "patch_vector.mod", "patch.out" };
     runCommand(imod2patch, axisID);
@@ -1682,8 +1688,10 @@ public class ProcessManager extends BaseProcessManager {
     else if (processName == ProcessName.NEWST) {
       if (processDetails != null
           && processDetails.getCommandMode() == NewstParam.FULL_ALIGNED_STACK_MODE) {
-        appManager.getState().setNewstFiducialessAlignment(axisID,
-            processDetails.getBooleanValue(NewstParam.GET_FIDUCIALESS_ALIGNMENT));
+        appManager.getState().setNewstFiducialessAlignment(
+            axisID,
+            processDetails
+                .getBooleanValue(NewstParam.GET_FIDUCIALESS_ALIGNMENT));
         appManager.setEnabledTiltParameters(script.getAxisID());
       }
     }
@@ -1708,7 +1716,8 @@ public class ProcessManager extends BaseProcessManager {
     }
   }
 
-  private void setInvalidEdgeFunctions(ProcessDetails processDetails, boolean succeeded) {
+  private void setInvalidEdgeFunctions(ProcessDetails processDetails,
+      boolean succeeded) {
     if (appManager.getConstMetaData().getViewType() == ViewType.MONTAGE
         && processDetails.getCommandName().equals(BlendmontParam.COMMAND_NAME)
         && (processDetails.getCommandMode() == BlendmontParam.XCORR_MODE || processDetails
