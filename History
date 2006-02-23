@@ -4,8 +4,6 @@ IMOD History
 is missing.
 
 2/20/06: IMOD_3-7-5
-2/20/06: Fixed a bug in Combine where Setup values got out of sync.
-
 2/15/06: Revised scripts to use new header and strip control characters from
 output of header and other programs, since new sed in cygwin does not take
 care of this unless CYGWIN is set to nobinmode.
