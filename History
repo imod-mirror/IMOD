@@ -1,7 +1,10 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-2/22/06: Fixed a bug in Combine where Replace Patch Vectors fails when patch.out
-is missing.
+2/22/06: Fixed a bug in Combine where Replace Patch Vectors fails when 
+patch.out is missing.
+
+2/23/06: Changed Extracttilts to exit with error when there are no entries for
+the requested item, and made Copytomocoms pass error on.
 
 2/20/06: IMOD_3-7-5
 2/15/06: Revised scripts to use new header and strip control characters from
