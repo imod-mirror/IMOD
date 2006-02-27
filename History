@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/27/06: Displaying all copytomocoms error messages and warnings to the user.
+
 2/22/06: Fixed a bug in Combine where Replace Patch Vectors fails when 
 patch.out is missing.
 
