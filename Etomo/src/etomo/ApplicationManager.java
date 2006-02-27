@@ -8,7 +8,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 
 import etomo.comscript.ArchiveorigParam;
-import etomo.comscript.BadComScriptException;
 import etomo.comscript.BeadtrackParam;
 import etomo.comscript.BlendmontParam;
 import etomo.comscript.CCDEraserParam;
@@ -471,18 +470,7 @@ public class ApplicationManager extends BaseManager {
       }
       // This is really the method to use the existing com scripts
       if (exitState == DialogExitState.EXECUTE) {
-        try {
-          processMgr.setupComScripts(metaData, AxisID.ONLY);
-        }
-        catch (BadComScriptException except) {
-          except.printStackTrace();
-          uiHarness.openMessageDialog(except.getMessage(),
-              "Can't run copytomocoms", AxisID.ONLY);
-          return;
-        }
-        catch (IOException except) {
-          uiHarness.openMessageDialog("Can't run copytomocoms\n"
-              + except.getMessage(), "Copytomocoms IOException", AxisID.ONLY);
+        if (!processMgr.setupComScripts(metaData, AxisID.ONLY)) {
           return;
         }
       }
@@ -5959,6 +5947,9 @@ public class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.202.2.2  2006/02/23 20:15:02  sueh
+ * <p> bug# 828 backing out changes in 3.7
+ * <p>
  * <p> Revision 3.202.2.1  2006/02/20 22:22:50  sueh
  * <p> bug# 828 Don't save values from Combine Setup tab to the .edf on exit
  * <p> because they might contradict values that where saved by Create Combine
