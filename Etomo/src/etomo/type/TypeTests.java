@@ -1,0 +1,61 @@
+package etomo.type;
+
+import java.io.File;
+
+import etomo.JUnitTests;
+import junit.framework.Test;
+import junit.framework.TestSuite;
+/**
+ * <p>Description: </p>
+ *
+ * <p>Copyright: Copyright (c) 2002 - 2005</p>
+ *
+ * <p>Organization:
+ * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
+ * University of Colorado</p>
+ *
+ * @author $Author$
+ *
+ * @version $Revision$
+ *
+ * <p> $Log$
+ * <p> Revision 3.7  2006/01/20 21:09:01  sueh
+ * <p> bug# 401 Added tests for ProcessResultDisplay
+ * <p>
+ * <p> Revision 3.6  2005/11/10 18:10:53  sueh
+ * <p> bug# 758 Placed the root test directory in a File object in JUnitTests.  It is
+ * <p> instanciated once so there won't be a problem if the working directory is
+ * <p> changed.  Added a root test directory File object to each of the suites,
+ * <p> which is based on the JUnitTests root test directory.
+ * <p>
+ * <p> Revision 3.5  2005/06/16 20:08:50  sueh
+ * <p> bug# 692 ConstEtomoNumberTest.
+ * <p>
+ * <p> Revision 3.4  2004/12/07 23:45:30  sueh
+ * <p> bug# 520 Reinstating metadata tests.
+ * <p>
+ * <p> Revision 3.3  2004/12/07 22:54:51  sueh
+ * <p> bug# 520 Temporarily hidding MetaDataTest.
+ * <p>
+ * <p> Revision 3.2  2004/04/07 21:04:45  rickg
+ * <p> Javadoc fix
+ * <p>
+ * <p> </p>
+*/
+public class TypeTests {
+  public static  final String  rcsid =  "$Id$";
+  
+  private static final String TEST_DIR = "etomo/type";
+  static final File TEST_ROOT_DIR = new File(JUnitTests.TEST_ROOT_DIR, TEST_DIR);
+  
+  public static Test suite() {
+    TestSuite suite = new TestSuite("Tests:  " + TEST_DIR);
+    //$JUnit-BEGIN$
+    suite.addTestSuite(ConstEtomoNumberTest.class);
+    suite.addTestSuite(ConstMetaDataTest.class);
+    suite.addTestSuite(MetaDataTest.class);
+    suite.addTestSuite(ProcessResultDisplayStateTest.class);
+    //$JUnit-END$
+    return suite;
+  }
+}
