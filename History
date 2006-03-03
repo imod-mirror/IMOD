@@ -1,6 +1,10 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/2/06: IMOD_3-7-6
 2/27/06: Displaying all copytomocoms error messages and warnings to the user.
+
+2/26/06: Increased maximum box size in Beadtrack to 100 pixels and added error
+check.
 
 2/22/06: Fixed a bug in Combine where Replace Patch Vectors fails when 
 patch.out is missing.
@@ -9,6 +13,8 @@ patch.out is missing.
 the requested item, and made Copytomocoms pass error on.
 
 2/20/06: IMOD_3-7-5
+2/20/06: Fixed archiving of original stack to work under Windows.
+
 2/15/06: Revised scripts to use new header and strip control characters from
 output of header and other programs, since new sed in cygwin does not take
 care of this unless CYGWIN is set to nobinmode.
