@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4/10/06: Fixed bug in Beadtrack error check of box size.
+
 3/2/06: IMOD_3-7-6
 2/27/06: Displaying all copytomocoms error messages and warnings to the user.
 
