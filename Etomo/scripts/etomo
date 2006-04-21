@@ -41,7 +41,11 @@ if java -version 2>&1 | grep GNU > /dev/null ; then
 fi
 
 #  Workaround for java 1.4.0 / new threading library clash
-export LD_ASSUME_KERNEL=2.4.1
+#  Really needed to be gone for Fedora Core 5, so make it 2.4 specific
+kvers=(`uname -r | sed '/\./s// /g'`)
+if [[ ${#kvers[*]} -gt 1 && ${kvers[0]} -eq 2 && ${kvers[1]} -eq 4 ]] ; then
+  export LD_ASSUME_KERNEL=2.4.1
+fi
 
 # Test for existance of IMOD_DIR
 if [ -z "$IMOD_DIR" ]; then
@@ -110,6 +114,9 @@ java -Xmx${javaMemLim} -cp ${IMOD_DIR}/bin/etomo \
 
 
 # $Log$
+# Revision 1.16  2005/11/18 23:35:47  mast
+# Switched from timestamped local error logs to simple rolling numbered logs
+#
 # Revision 1.15  2005/10/28 00:27:36  mast
 # Set up for timestamped logs in current directory
 #
