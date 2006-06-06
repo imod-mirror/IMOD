@@ -8,6 +8,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.9.2.1  2006/02/17 22:12:39  mast
+#  Backport to 3.7
+#
 #  Revision 3.10  2006/02/16 06:32:33  mast
 #  Put IMOD on the path
 #
@@ -112,8 +115,8 @@ endif
 # Get set name and axis type from edf file
 #
 if ("$edffile" != "")then
-    set setname = `sed -n -e '/Setup.DatasetName=/s///p' -e '/[[:cntrl:]]/s///g' $edffile`
-    set axistype = `sed -n -e '/Setup.AxisType=/s///p' -e '/[[:cntrl:]]/s///g' $edffile`
+    set setname = `sed -n -e '/[[:cntrl:]]/s///g -e '/Setup.DatasetName=/s///p'' $edffile`
+    set axistype = `sed -n -e '/[[:cntrl:]]/s///g' -e '/Setup.AxisType=/s///p' $edffile`
 endif
 
 # Get the axis type from xcorr.com as fallback
@@ -145,7 +148,7 @@ endif
 # Get the setname from xcorr.com as fallback
 #
 if ("$setname" == "") then
-    set setname = `sed -n -e "/InputFile[[:space:]]*\(.*\)$axislet.st/s//\1/p" -e '/[[:cntrl:]]/s///g' $xcorrfile`
+    set setname = `sed -n -e '/[[:cntrl:]]/s///g -e "/InputFile[[:space:]]*\(.*\)$axislet.st/s//\1/p"' $xcorrfile`
     if ($setname == "") then
         echo "ERROR: $pn - Cannot find DatasetName in edf file or $xcorrfile"
         exit 1
