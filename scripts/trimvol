@@ -7,6 +7,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.9.2.1  2006/02/17 22:12:39  mast
+#  Backport to 3.7
+#
 #  Revision 3.10  2006/02/16 06:47:09  mast
 #  Stripped control chars from output of sed/header etc for Windows
 #
@@ -325,7 +328,7 @@ EOF
         goto clean
     endif
 
-    set bwout = `sed -n -e '/Implied/s/Imp.*are *//p' -e '/[[:cntrl:]]/s///g' $tmpfil`
+    set bwout = `sed -n -e '/[[:cntrl:]]/s///g' -e '/Implied/s/Imp.*are *//p' $tmpfil`
     \rm -f $tmpfil
     if ($#bwout != 3) then
 	echo 'ERROR: $pn - findcontrast failed to return scaling values'

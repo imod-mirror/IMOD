@@ -622,7 +622,7 @@ while ($itomo <= $ntomo)
         if ($#newmode == 0) set newmode = 0
     else
         echo "Determining scaling for tomogram # $itomo ..."
-        set scaling = `densmatch -report "$reclist[$scaleref]" "$reclist[$itomo]" | sed -n -e '/Scale factor.*:/s///p' -e '/[[:cntrl:]]/s///g'`
+        set scaling = `densmatch -report "$reclist[$scaleref]" "$reclist[$itomo]" | sed -n -e '/[[:cntrl:]]/s///g' -e '/Scale factor.*:/s///p'`
     endif
     if ($#scaling < 2) then
         echo "WARNING: Densmatch failed for tomogram # $itomo ; using 1.,0. for scaling"
@@ -769,6 +769,9 @@ EOF
 
 #
 #  $Log$
+#  Revision 3.12.2.1  2006/02/17 22:11:19  mast
+#  Filter sed and goodframe output for Windows
+#
 #  Revision 3.12  2005/12/01 06:37:58  mast
 #  Added option to set rotated volumes to max needed size in X/Y
 #
