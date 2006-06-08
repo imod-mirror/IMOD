@@ -1,5 +1,12 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/7/06: IMOD_3-7-9
+6/6/06: Fixed control-stripping for Windows in Copytomocoms, Makejoincom,
+Tomosnapshot, Trimvol.
+
+6/6/06: Made Copytomocoms put control-character stripping commands in 
+sample.com for Windows.
+
 5/4/06: IMOD_3-7-8
 5/4/06: Fixed contour copy in the line tracker for Windows with Intel compiler
 8+.
