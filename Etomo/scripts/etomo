@@ -42,9 +42,12 @@ fi
 
 #  Workaround for java 1.4.0 / new threading library clash
 #  Really needed to be gone for Fedora Core 5, so make it 2.4 specific
-kvers=(`uname -r | sed '/\./s// /g'`)
-if [[ ${#kvers[*]} -gt 1 && ${kvers[0]} -eq 2 && ${kvers[1]} -eq 4 ]] ; then
-  export LD_ASSUME_KERNEL=2.4.1
+osname=`uname -s`
+if [ $osname == 'Linux' ] ; then
+  kvers=(`uname -r | sed '/\./s// /g'`)
+  if [[ ${#kvers[*]} -gt 1 && ${kvers[0]} -eq 2 && ${kvers[1]} -eq 4 ]] ; then
+    export LD_ASSUME_KERNEL=2.4.1
+  fi
 fi
 
 # Test for existance of IMOD_DIR
@@ -114,6 +117,9 @@ java -Xmx${javaMemLim} -cp ${IMOD_DIR}/bin/etomo \
 
 
 # $Log$
+# Revision 1.16.2.1  2006/04/21 16:05:36  mast
+# Set LD_ASSUME_KERNEL only for 2.4 kernel
+#
 # Revision 1.16  2005/11/18 23:35:47  mast
 # Switched from timestamped local error logs to simple rolling numbered logs
 #
