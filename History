@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/23/06: Fixed etomo startup script for SGI (broke 4/21/06).
+
 6/7/06: IMOD_3-7-9
 6/6/06: Fixed control-stripping for Windows in Copytomocoms, Makejoincom,
 Tomosnapshot, Trimvol.
