@@ -44,8 +44,10 @@ fi
 #  Really needed to be gone for Fedora Core 5, so make it 2.4 specific
 osname=`uname -s`
 if [ $osname == 'Linux' ] ; then
-  kvers=(`uname -r | sed '/\./s// /g'`)
-  if [[ ${#kvers[*]} -gt 1 && ${kvers[0]} -eq 2 && ${kvers[1]} -eq 4 ]] ; then
+  kvers=`uname -r | sed '/\./s// /g'`
+  kvers1=`echo $kvers | awk '{print $1}'`
+  kvers2=`echo $kvers | awk '{print $2}'`
+  if [[ ${kvers1} -eq 2 && ${kvers2} -eq 4 ]] ; then
     export LD_ASSUME_KERNEL=2.4.1
   fi
 fi
@@ -117,6 +119,9 @@ java -Xmx${javaMemLim} -cp ${IMOD_DIR}/bin/etomo \
 
 
 # $Log$
+# Revision 1.16.2.2  2006/06/23 16:33:50  mast
+# Make kernel test linux specific to avoid problem on SGI
+#
 # Revision 1.16.2.1  2006/04/21 16:05:36  mast
 # Set LD_ASSUME_KERNEL only for 2.4 kernel
 #
