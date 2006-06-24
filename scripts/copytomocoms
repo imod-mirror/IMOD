@@ -26,7 +26,13 @@ set pn = "copytomocoms"
 # Log at end of file
 #
 if ($?IMOD_DIR) then
+
+    # Set the com directory.  If on cygwin, convert to cygwin path otherwise
+    # sed's create extra ^M
+    #
     set srcdir = "$IMOD_DIR/com"
+    set test = `which cygpath`
+    if (! $status) set srcdir = `cygpath $IMOD_DIR`/com
     setenv PATH "$IMOD_DIR/bin:$PATH"
 else
     echo "Environment variable IMOD_DIR must be set to the top IMOD directory"
@@ -1363,6 +1369,9 @@ exit 0
 
 #
 #  $Log$
+#  Revision 3.44.2.4  2006/06/06 23:30:26  mast
+#  Added control stripping to sed's in sample.com, fixed order in montagesize
+#
 #  Revision 3.44.2.3  2006/02/26 20:33:48  mast
 #  Backport to 3.7
 #
