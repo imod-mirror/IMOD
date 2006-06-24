@@ -44,7 +44,13 @@ set volcombine = volcombine.com
 #
 
 if ($?IMOD_DIR) then
+
+    # Set the com directory.  If on cygwin, convert to cygwin path otherwise
+    # sed's create extra ^M (although the | cat's prevent this)
+    #
     set srcdir = "$IMOD_DIR/com"
+    set test = `which cygpath`
+    if (! $status) set srcdir = `cygpath $IMOD_DIR`/com
     setenv PATH "$IMOD_DIR/bin:$PATH"
 else
     echo "Environment variable IMOD_DIR must be set to the top IMOD directory"
@@ -622,6 +628,9 @@ echo '$'"if (-e $backupname) $backupname" | cat >> $volcombine
 
 #
 #  $Log$
+#  Revision 3.31.2.1  2006/02/17 22:12:39  mast
+#  Backport to 3.7
+#
 #  Revision 3.32  2006/02/16 06:47:09  mast
 #  Stripped control chars from output of sed/header etc for Windows
 #
