@@ -8,6 +8,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.9.2.2  2006/06/06 23:30:31  mast
+#  Moved control stripping before /p
+#
 #  Revision 3.9.2.1  2006/02/17 22:12:39  mast
 #  Backport to 3.7
 #
@@ -115,7 +118,7 @@ endif
 # Get set name and axis type from edf file
 #
 if ("$edffile" != "")then
-    set setname = `sed -n -e '/[[:cntrl:]]/s///g -e '/Setup.DatasetName=/s///p'' $edffile`
+    set setname = `sed -n -e '/[[:cntrl:]]/s///g -e '/Setup.DatasetName=/s///p' $edffile`
     set axistype = `sed -n -e '/[[:cntrl:]]/s///g' -e '/Setup.AxisType=/s///p' $edffile`
 endif
 
