@@ -330,16 +330,17 @@ switch($target_computer)
                 breaksw
 
         # Cygwin on Intel 
-        case i686__CYGWIN_NT-5.*__*__*:
-                echo $target_computer is Intel running Cygwin under Windows
-                set machine = cygwin
-                goto cygwin
-                breaksw
-
+        case *__CYGWIN_NT-5.*WOW64__*__*:
         case x86_64__CYGWIN_NT-5.*__*__*:
                 echo $target_computer is Intel running Cygwin under Windows-64
                 set machine = cygwin64
                 goto cygwin64
+                breaksw
+
+        case i686__CYGWIN_NT-5.*__*__*:
+                echo $target_computer is Intel running Cygwin under Windows
+                set machine = cygwin
+                goto cygwin
                 breaksw
 
 	case Power_Macintosh__Darwin__*__*:
@@ -822,6 +823,9 @@ exit
 
 #
 #  $Log$
+#  Revision 1.11.2.1  2006/01/23 19:39:50  mast
+#  *** empty log message ***
+#
 #  Revision 1.11  2005/12/09 21:24:34  mast
 #  Changed dummytiff output to add extension here
 #
