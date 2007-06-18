@@ -1,0 +1,372 @@
+#! /bin/csh -f
+# splittilt: splits tilt command file into multiple files to do in chunks
+#
+#  $Author$
+#
+#  $Date$
+#
+#  $Revision$
+#
+#  Log at end
+
+set pn = splittilt
+set penalty = 1.33
+@ maxextrapct = 102
+@ numproc = 8
+@ targetslabs = 0
+@ minslabs = 0
+@ minslices = 50
+@ minratio = 2
+@ targetratio = 5
+
+if ($#argv < 1) then
+cat <<EOF
+Usage: $pn [options] command_file
+   Produces multiple command files for running Tilt in parallel
+   Options:
+      -n #   Target or expected number of machines (default $numproc)
+      -s #   Minimum number of slices per chunk (default $minslices)
+      -t #   Target # of chunks (default $targetratio times # of machines)
+      -m #   Minimum # of chunks (default $minratio times # of machines)
+      -p #   Penalty for old-style X-axis tilting (default $penalty)
+      -v     Do vertical slices instead of old-style X-axis tilting
+      -f     Allow fast backprojection where possible
+      -c     Write chunks to separate files, not directly to single output file
+EOF
+exit 0
+endif
+
+setenv LC_NUMERIC C
+
+if ($?IMOD_DIR) then
+    setenv PATH "$IMOD_DIR/bin:$PATH"
+endif
+
+set vertical = 0
+set oldstyle = "#"
+set nofbp = "FBPINTERP 0"
+set direct = 1
+
+while ($#argv > 1)
+  switch ($argv[1])
+    case -n:
+      @ numproc = $argv[2]
+      shift; shift
+      breaksw
+
+    case -s:
+      @ minslices = $argv[2]
+      shift; shift
+      breaksw
+
+    case -p:
+      set penalty = $argv[2]
+      shift; shift
+      breaksw
+
+    case -t:
+      @ targetslabs = $argv[2]
+      shift; shift
+      breaksw
+
+    case -m:
+      @ minslabs = $argv[2]
+      shift; shift
+      breaksw
+
+    case -v:
+      set vertical = 1
+      shift
+      breaksw
+
+    case -f:
+      set nofbp = "#"
+      shift
+      breaksw
+
+    case -c:
+      set direct = 0
+      shift
+      breaksw
+
+    default:
+      echo "ERROR: $pn - unrecognized option $argv[1]"
+      exit 1
+  endsw
+end
+
+set rootname = $argv[1]:r
+set comname = $rootname.com
+if (! -e $comname) then
+    echo "ERROR: $pn - command file $comname does not exist"
+    exit 1
+endif
+
+# Set min and target slabs if not entered
+#
+if ($minslabs == 0) @ minslabs = $minratio * $numproc
+if ($targetslabs == 0) @ targetslabs = $targetratio * $numproc
+
+# Collect info from command file
+#
+
+set xaxistilt = `grep -i xaxistilt $comname | grep -v '^#' | sed '/[^0-9\.]/s///g'`
+set fullimage = `grep -i fullimage $comname | grep -v '^#' | sed '/[^ 0-9\.]/s///g'`
+set thickness = `grep -i thickness $comname | grep -v '^#' | sed '/[^0-9\.]/s///g'`
+set slices = `grep -i slice $comname | grep -v '^#' | sed '/[^ 0-9\.]/s///g'`
+set local = `grep -i localfile $comname | grep -v '^#'`
+set binning = `grep -i imagebinned $comname | grep -v '^#' | sed '/[^0-9\.]/s///g'`
+
+# Get the input image file name from the command file
+#
+set topline  = `vmstocsh < $comname | awk '/tilt/{print NR}' | \
+                sed '/[[:cntrl:]]/s///g'`
+if ($#topline > 1) then
+    @ topnum = $topline[1]
+else
+    @ topnum = $topline
+endif
+@ nextline = $topnum + 1
+set alifile = `vmstocsh < $comname | awk '{if (NR==LINE) print}' \
+                LINE=$nextline | sed '/[[:cntrl:]]/s///g'`
+@ nextline = $topnum + 2
+set recfile = `vmstocsh < $comname | awk '{if (NR==LINE) print}' \
+                LINE=$nextline | sed '/[[:cntrl:]]/s///g'`
+
+if (! -e $alifile && $#fullimage == 0 && "$slices" == "") then
+    echo "ERROR: $pn - Command file has neither a SLICES nor a FULLIMAGE entry and image file does not exist yet"
+    exit 1
+endif
+
+if ($thickness == "") then
+    echo "ERROR: $pn - Command file has no THICKNESS entry"
+    exit 1
+endif
+
+# Divide thickness and slice entries by the binning for computations
+#
+if ("$binning" != "") @ binval = $binning[1]
+@ thickness /= $binval
+
+# Remove any previous files now in case the number has changed or 
+# direct/indirect mode
+#
+\find . -type f -name  "$rootname-[0-9]*.*" -exec rm -f "{}" \;
+\rm -f $rootname-start.com $rootname-finish.com
+
+# Get the size from the aligned stack instead of relying on FULLIMAGE if
+# possible, and scale them up by binning
+#
+if (-e $alifile) then
+    set fullimage = `header -s $alifile | sed '/[[:cntrl:]]/s///g'`
+    if ($#fullimage < 3) then
+        echo "ERROR: $pn - Reading header of $alifile"
+        exit 1
+    endif
+    @ num = $fullimage[1]
+    @ num *= $binval
+    set fullimage[1] = $num
+    @ num = $fullimage[2]
+    @ num *= $binval
+    set fullimage[2] = $num
+else
+    echo "WARNING: $pn - aligned stack ot found; sizes will be taken from FULLIMAGE entry"
+endif
+
+if ($#fullimage > 1) then
+    @ firstslice = 0
+    @ numslices = $fullimage[2]
+    @ numslices = ($numslices + $binval - 1) / $binval
+endif
+
+if ($#slices > 1) then
+    @ firstslice = $slices[1]
+    @ firstslice /= $binval
+    @ numslices = $slices[2]
+    @ numslices = ($numslices / $binval) + 1 - $firstslice
+endif
+
+# Start with target size, make sure bigger than minimum
+#
+@ slabsize = $numslices / $targetslabs
+if ($slabsize < $minslices) @ slabsize = $minslices
+
+if ("$local" == "" && $xaxistilt != "") then
+    #
+    # If no locals and X axis tilt, go for maximum # of slabs that has a
+    # percentage of extra slices within a minimal limit, down to the
+    # "min" # of slabs
+    #
+    @ nslabs = $targetslabs
+    while ($nslabs >= $minslabs)
+        @ slabsize = $numslices / $nslabs
+        if ($slabsize < $minslices) @ slabsize = $minslices
+        @ nslabs--
+        #
+        # Get percent of extra slices required
+        #
+        set extra = `echo $slabsize $thickness $xaxistilt | \
+          awk '{print int(100. * ($1 + $2 * sin(0.01745329 * $3)) / $1)}' | \
+          sed '/[[:cntrl:]]/s///g'`
+        # echo $extra
+        @ extranum = $extra
+        if ($extranum <= $maxextrapct) break
+    end
+
+    # echo $slabsize $thickness $xaxistilt
+    set penpct = `echo $penalty | awk '{print int(100. * $1)}' | \
+        sed '/[[:cntrl:]]/s///g'`
+    @ pennum = $penpct
+
+    # If extra is less than penalty, proceed
+    # Otherwise, drop to old-style tilting unless vertical specified
+    #
+    if ($extranum > $pennum) then
+        if ($vertical == 0) then
+            set oldstyle = "XTILTINTERP 0"
+        else
+            # If vertical specified, compute optimum size that just breaks
+            # even with penalty for old-style tilting, but limit it
+            #
+            set optsize = `echo $penalty $thickness $xaxistilt | \
+                awk '{print int($2 * sin(0.01745329 * $3) / ($1 - 1.))}' | \
+                sed '/[[:cntrl:]]/s///g'`
+            @ slabsize = $optsize
+            @ maxsize = $numproc / $minslabs
+            if ($slabsize > $maxsize) @ slabsize = $maxsize
+            if ($slabsize < $minslices) @ slabsize = $minslices
+        endif
+    endif
+endif
+
+@ numslabs = ($numslices + $slabsize / 2) / $slabsize
+@ slabsize = $numslices / $numslabs
+@ remainder = $numslices - $numslabs * $slabsize
+
+set recroot = $recfile:r
+set templist = ()
+set recsed = $recfile
+@ mintotslice = $binval * $firstslice
+@ maxtotslice = $binval * ($firstslice + $numslices - 1)
+set totsed = gibberish
+if ($direct) then
+    set totsed = THICKNESS
+    set recsed = gibberish
+    set thiscom = $rootname-start.com
+    sed -e "/SLICE/d" \
+        -e '/savework/d' \
+        -e "/THICKNESS/a\\
+SLICE -1 -1\
+" \
+        -e "/THICKNESS/a\\
+TOTALSLICES $mintotslice $maxtotslice\
+" \
+    $comname >! $thiscom
+    cat <<EOF >> $thiscom
+\$sync
+EOF
+endif
+
+@ num = 0
+while ($num < $numslabs)
+    @ num++
+    set numtext = $num
+    if ($num < 10) then
+        set numtext = 00"$numtext"
+    else if ($num < 100) then
+        set numtext = 0"$numtext"
+    endif
+    set thiscom = $rootname-$numtext.com
+    set tempname = $recroot-$numtext.rec
+    set templist = ($templist $tempname)
+    @ lastslice = $firstslice + $slabsize - 1
+    if ($num <= $remainder) @ lastslice++
+
+    # Get unbinned first and last slices for output
+    #
+    @ ubfirst = $firstslice * $binval
+    @ ublast = $lastslice * $binval
+
+    # Modify the command file: delete existing slice, get rid of savework,
+    # Set the new slice command and the xtiltinterp control, and turn off
+    # FBP for consistency
+    #
+    cat <<EOF >! $thiscom
+\$sync
+EOF
+    sed -e "/$recsed/s//$tempname/" \
+        -e "/SLICE/d" \
+        -e '/savework/d' \
+        -e "/THICKNESS/a\\
+SLICE $ubfirst $ublast\
+" \
+        -e "/THICKNESS/a\\
+$oldstyle\
+" \
+        -e "/$totsed/a\\
+TOTALSLICES $mintotslice $maxtotslice\
+" \
+        -e "/THICKNESS/a\\
+$nofbp\
+" $comname >> $thiscom
+    cat <<EOF >> $thiscom
+\$echo CHUNK DONE
+EOF
+
+    @ firstslice = $lastslice + 1
+end
+
+set finish = $rootname-finish.com
+if (! $direct) then
+    cat <<EOF >! $finish
+\$newstack -StandardInput
+OutputFile $recfile
+EOF
+@ num = 0
+while ($num < $numslabs)
+    @ num++
+    echo "InputFile $templist[$num]" >> $finish
+end
+cat <<EOF >> $finish
+\$\\rm -f $rootname-[0-9]*.* $recroot-[0-9]*.rec
+EOF
+else
+    cat <<EOF >! $finish
+\$collectmmm pixels= $rootname $numslabs $recfile
+\$\\rm -f $rootname-[0-9]*.*
+EOF
+endif
+
+echo "Command files for $numslabs chunks created and ready to run with:"
+echo "  processchunks machine_list $rootname"
+
+#  $Log$
+#  Revision 3.9  2006/05/10 22:18:30  mast
+#  Added sync statements to the direct -start file and each chunk for Mac
+#
+#  Revision 3.8  2006/03/25 06:11:26  mast
+#  Switched to using commands that make tilt write to single file
+#
+#  Revision 3.7  2006/03/24 00:33:03  mast
+#  Changed to use image size if available so it will work with subset or
+#  oversized stack.
+#
+#  Revision 3.6  2006/02/16 06:29:42  mast
+#  Put IMOD on the path
+#
+#  Revision 3.5  2005/11/12 06:10:09  mast
+#  When there is X-axis tilt, made it find the largest number of chunks
+#  that gives a minimal number of extra slices (2%)
+#
+#  Revision 3.4  2005/10/08 20:10:38  mast
+#  Fixed for binned images
+#
+#  Revision 3.3  2004/07/22 20:51:47  mast
+#  Added exit statement to unrecognized option error point
+#
+#  Revision 3.2  2004/07/22 18:16:56  mast
+#  Change to better sed command for stripping Ctrl M
+#
+#  Revision 3.1  2004/07/21 17:00:07  mast
+#  Initial creation
+#

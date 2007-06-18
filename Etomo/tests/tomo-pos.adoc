@@ -1,0 +1,68 @@
+Version = 1.2
+
+[function = build]
+function = create-sample-tomograms
+function = compute-z-shift-&-pitch-angles
+function = create-final-alignment
+bn.done =
+
+[function = create-sample-tomograms]
+copy.file = %{dataset}%{axis}.fid
+tf.sample-tomogram-thickness = %{sample-tomogram-thickness}
+bn.create-sample-tomograms =
+waitfor.process.sample = done
+
+[function = compute-z-shift-&-pitch-angles]
+copy.file = tomopitch%{axis}.mod
+bn.compute-z-shift-&-pitch-angles =
+waitfor.process.tomopitch = done
+
+[function = create-final-alignment]
+bn.create-final-alignment =
+waitfor.process.align = done
+
+[function = run]
+copy.file = %{dataset}%{axis}.fid
+tf.sample-tomogram-thickness = %{sample-tomogram-thickness}
+bn.create-sample-tomograms =
+waitfor.process.sample = done
+assert.file.exists = sample%{axis}.log
+bn.create-sample-tomograms =
+waitfor.process.sample = done
+assert.file.exists = sample%{axis}.log~
+copy.file = tomopitch%{axis}.mod
+bn.compute-z-shift-&-pitch-angles =
+waitfor.process.tomopitch = done
+assert.file.exists = tomopitch%{axis}.log
+bn.compute-z-shift-&-pitch-angles =
+waitfor.process.tomopitch = done
+assert.file.exists = tomopitch%{axis}.log~
+bn.create-final-alignment =
+waitfor.process.align = done
+assert.file.exists = align%{axis}.log
+bn.create-final-alignment =
+waitfor.process.align = done
+assert.file.exists = align%{axis}.log~
+bn.done =
+
+[function = run-fidless]
+copy.file = %{dataset}%{axis}.fid
+tf.sample-tomogram-thickness = %{sample-tomogram-thickness}
+cb.use-whole-tomogram =
+bn.create-whole-tomogram =
+waitfor.process.tilt = done
+assert.file.exists = newst%{axis}.log
+assert.file.exists = tilt%{axis}.log
+bn.create-whole-tomogram =
+waitfor.process.tilt = done
+assert.file.exists = newst%{axis}.log~
+assert.file.exists = tilt%{axis}.log~
+copy.file = tomopitch%{axis}.mod
+bn.compute-z-shift-&-pitch-angles =
+waitfor.process.tomopitch = done
+assert.file.exists = tomopitch%{axis}.log
+bn.compute-z-shift-&-pitch-angles =
+waitfor.process.tomopitch = done
+assert.file.exists = tomopitch%{axis}.log~
+bn.done =
+
