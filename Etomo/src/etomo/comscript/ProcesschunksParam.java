@@ -35,9 +35,6 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
   public static final int NICE_CEILING = 19;
   public static final int DROP_VALUE = 5;
   public static final String WORKING_DIR_OPTION = "-w";
-  public static final String COMMAND_FILE_OPTION = "-f";
-  public static final String[] DIR_OPTIONS = { COMMAND_FILE_OPTION,
-      WORKING_DIR_OPTION };
 
   private final EtomoBoolean2 resume = new EtomoBoolean2();
   private final EtomoNumber nice = new EtomoNumber();
@@ -262,6 +259,9 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
    * Gets a string version of the command array which can be used safely, even
    * if there are embedded spaces in the directory paths, because the directory
    * path spaces have been back-slashed.
+   * The command file is already quoted and doesn't need a backslash this is
+   * because in Windows the command contains backslashes for the path and has to
+   * be quoted.
    */
   public String getCommandString() {
     getCommandArray();
@@ -274,12 +274,10 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
       String command = commandArray[i];
       //add back slashes to the spaces in any directory path
       boolean foundDirOption = false;
-      for (int j = 0; j < DIR_OPTIONS.length; j++) {
-        if (command.equals(DIR_OPTIONS[j])) {
-          //found an option which takes a directory path
-          foundDirOption = true;
-          foundDir = true;
-        }
+      if (command.equals(WORKING_DIR_OPTION)) {
+        //found an option which takes a directory path
+        foundDirOption = true;
+        foundDir = true;
       }
       if (!foundDirOption && foundDir) {
         //add back slashes to the spaces in this directory path
@@ -304,16 +302,16 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
     }
     return null;
   }
-  
+
   public boolean isSecondCommandLine() {
     return queueCommand != null;
   }
-  
+
   /**
    * Use the second command line to  nice processchunks when it runs on a queue.
    */
   public String getSecondCommandLine() {
-    if (queueCommand==null) {
+    if (queueCommand == null) {
       return "";
     }
     return "nice +18";
@@ -323,7 +321,7 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
     valid = true;
     ArrayList command = new ArrayList();
     command.add("tcsh");
-    command.add(COMMAND_FILE_OPTION);
+    command.add("-f");
     command.add("'" + BaseManager.getIMODBinPath()
         + ProcessName.PROCESSCHUNKS.toString() + "'");
     if (resume.is()) {
@@ -432,6 +430,10 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.31  2007/12/17 18:35:36  sueh
+ * <p> bug# 1061 Added isSecondCommandLine and getSecondCommandLine to nice
+ * <p> processchunks when its running on a queue.
+ * <p>
  * <p> Revision 1.30  2007/12/10 21:59:33  sueh
  * <p> bug# 1041 Added setting the root name to the constructor since its required.
  * <p> Root name can be set either with a root name name string, which is taken
