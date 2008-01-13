@@ -105,7 +105,6 @@ static void zapToggleRubberband(ZapStruct *zap);
 static void zapBandImageToMouse(ZapStruct *zap, int ifclip); 
 static void zapBandMouseToImage(ZapStruct *zap, int ifclip);
 static void montageSnapshot(ZapStruct *zap);
-static ZapStruct *getTopZapWindow(bool withBand);
 static void shiftRubberband(ZapStruct *zap, float idx, float idy);
 static void getMontageShifts(ZapStruct *zap, int factor, int imStart, 
                              int border, int imSize, int winSize,
@@ -640,6 +639,7 @@ int imod_zap_open(struct ViewInfo *vi)
   zap->time = 0;
   zap->overlay = 0;
   zap->mousemode = 0;
+  zap->lastShape = -1;
   zap->rubberband = 0;
   zap->startingBand = 0;
   zap->shiftingCont = 0;
@@ -1119,10 +1119,7 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
           
   case Qt::Key_P:
     if (shifted) {
-      if (zap->shiftingCont)
-        endContourShift(zap);
-      else
-        setupContourShift(zap);
+      zapToggleContourShift(zap);
       handled = 1;
     }
     break;
@@ -2347,6 +2344,17 @@ static void registerDragAdditions(ZapStruct *zap)
  */
 
 /*
+ * Single routine to toggle shift for contour move window to call
+ */
+void zapToggleContourShift(ZapStruct *zap)
+{
+  if (zap->shiftingCont)
+    endContourShift(zap);
+  else
+    setupContourShift(zap);
+}
+
+/*
  * Turn off contour shifting and reset mouse
  */
 static void endContourShift(ZapStruct *zap)
@@ -2998,7 +3006,7 @@ static void shiftRubberband(ZapStruct *zap, float idx, float idy)
 /*
  * Find the first zap window, with a rubberband if flag is set
  */
-static ZapStruct *getTopZapWindow(bool withBand)
+ZapStruct *getTopZapWindow(bool withBand)
 {
   QObjectList objList;
   ZapStruct *zap;
@@ -3999,7 +4007,6 @@ static void zapDrawTools(ZapStruct *zap)
 
 static void zapSetCursor(ZapStruct *zap, int mode)
 {
-  static int lastShape = -1;
   int shape;
 
   // Set up a special cursor for the rubber band
@@ -4015,20 +4022,20 @@ static void zapSetCursor(ZapStruct *zap, int mode)
       shape = Qt::SizeHorCursor;
     else if (dragging[2] || dragging[3])
       shape = Qt::SizeVerCursor;
-    if (shape != lastShape)
+    if (shape != zap->lastShape)
       zap->gfx->setCursor(QCursor(shape));
-    lastShape = shape;
+    zap->lastShape = shape;
     return;
   }
 
   // Or restore cursor from rubber band or change cursor dur to mode change
-  if (zap->mousemode != mode || lastShape >= 0){
+  if (zap->mousemode != mode || zap->lastShape >= 0){
     if (mode == IMOD_MMODEL)
       zap->gfx->setCursor(*App->modelCursor);
     else
       zap->gfx->unsetCursor();
     zap->mousemode = mode;
-    lastShape = -1;
+    zap->lastShape = -1;
     imod_info_input();
   }
   return;
@@ -4052,6 +4059,10 @@ static int zapPointVisable(ZapStruct *zap, Ipoint *pnt)
 
 /*
 $Log$
+Revision 4.107  2007/12/04 18:46:13  mast
+Moved functions to util, added cursor-like and other drawing capabilities and
+expanded draw control when plugin uses mouse.
+
 Revision 4.106  2007/11/27 17:53:32  mast
 Add stipple display if enabled
 

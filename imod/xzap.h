@@ -76,6 +76,7 @@ typedef struct zapwin
   int lock;
   int keepcentered;
   int mousemode;
+  int lastShape;   /* Last shape for cursor */
   int popup;
   int   toolSection;
   int   toolMaxZ;
@@ -115,6 +116,8 @@ void zapStepZoom(ZapStruct *zap, int step);
 void zapStateToggled(ZapStruct *zap, int index, int state);
 void zapPrintInfo(ZapStruct *zap);
 void zapStepTime(ZapStruct *zap, int step);
+void zapToggleContourShift(ZapStruct *zap);
+ZapStruct *getTopZapWindow(bool withBand);
 int  imod_zap_open(struct ViewInfo *vi);
 int zapSubsetLimits(ViewInfo *vi, int &ixStart, int &iyStart, int &nxUse, 
                     int &nyUse);
@@ -126,6 +129,10 @@ void zapSetMouseTracking();
 
 /*
 $Log$
+Revision 3.26  2007/12/04 18:47:27  mast
+Changes for moving functions to utilities module, and for mouse tracking
+and cursor-like drawing
+
 Revision 3.25  2007/08/13 16:04:50  mast
 Changes for locator window
 
