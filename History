@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/17/08: Changed Tlitxcorr to allow 8Kx8K images.
+
 1/13/08: Fixed some problems with Zap window cursor with multiple windows.
 
 1/10/08: Fixed Ccderaser to scale the model file to pixel coordinates on the
