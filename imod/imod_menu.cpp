@@ -405,6 +405,13 @@ void InfoWindow::editObjectSlot(int item)
     }
     vi->undo->finishUnit();
     imodSelectionListClear(vi);
+
+    // Most things work with no objects, but who wants to check all the dialogs
+    if (!imod->objsize) {
+      inputNewObject(vi);
+      wprint("\aA new empty object was created because you deleted all "
+             "objects\n");
+    }
     imodDraw(vi, IMOD_DRAW_MOD);
     imod_cmap(imod);
     imod_info_setobjcolor();
@@ -1274,6 +1281,9 @@ static int imodContourBreakByZ(ImodView *vi, Iobj *obj, int ob, int co)
 
 /*
   $Log$
+  Revision 4.37.2.1  2008/01/09 06:03:47  mast
+  Backport
+
   Revision 4.38  2008/01/09 05:59:34  mast
   Called new 3D version of contour sort
 
