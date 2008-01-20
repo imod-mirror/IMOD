@@ -26,7 +26,7 @@ c       Log at end
 c       
       implicit none
       integer idim,idim2,limview
-      parameter (idim=8200*8200,idim2=1200*1200,limview=720)
+      parameter (idim=5000*5000,idim2=1200*1200,limview=720)
       integer*4 NX,NY,NZ,nxs,nys,nzs
       COMMON //NX,NY,NZ,nxs,nys,nzs
 C       
@@ -820,6 +820,9 @@ c	print *,xpeak,ypeak
 
 c       
 c       $Log$
+c       Revision 3.24.2.1  2008/01/17 23:49:07  mast
+c       Allowed 8K image
+c
 c       Revision 3.24  2007/10/10 17:22:18  mast
 c       Switched to new parabolic fit routine
 c
