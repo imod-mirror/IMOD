@@ -378,6 +378,7 @@ void InfoWindow::editObjectSlot(int item)
     inputNewObject(vi);
     imod_object_edit();
     imod_info_setobjcolor();
+    imodvObjedNewView();
     break;
           
   case EOBJECT_MENU_DELETE: /* Delete */
@@ -415,6 +416,7 @@ void InfoWindow::editObjectSlot(int item)
     imodDraw(vi, IMOD_DRAW_MOD);
     imod_cmap(imod);
     imod_info_setobjcolor();
+    imodvObjedNewView();
     break;
           
   case EOBJECT_MENU_COLOR: /* Color */
@@ -501,6 +503,7 @@ void InfoWindow::editObjectSlot(int item)
     imodDraw(vi, IMOD_DRAW_MOD);
     imod_cmap(imod);
     imod_info_setobjcolor();
+    imodvObjedNewView();
     break;
 
   case EOBJECT_MENU_INFO: /* stats */
@@ -1281,6 +1284,9 @@ static int imodContourBreakByZ(ImodView *vi, Iobj *obj, int ob, int co)
 
 /*
   $Log$
+  Revision 4.37.2.2  2008/01/19 22:15:56  mast
+  Made it create new object after last one is deleted
+
   Revision 4.37.2.1  2008/01/09 06:03:47  mast
   Backport
 
