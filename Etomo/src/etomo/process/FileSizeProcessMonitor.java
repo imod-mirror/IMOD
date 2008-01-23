@@ -27,6 +27,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.27  2006/10/24 21:19:10  sueh
+ * <p> bug# 947 Changed ProcessName.fromString() to getInstance().
+ * <p>
  * <p> Revision 3.26  2006/10/10 05:08:51  sueh
  * <p> bug# 931 Managing the log file with LogFile.
  * <p>
@@ -202,7 +205,8 @@ abstract class FileSizeProcessMonitor implements ProcessMonitor {
     running = true;
     try {
       // Reset the progressBar 
-      applicationManager.getMainPanel().setProgressBar(" ", 1, axisID,processName);
+      applicationManager.getMainPanel().setProgressBar(" ", 1, axisID,
+          processName);
       applicationManager.getMainPanel().setProgressBarValue(0,
           reconnect ? "Reconnecting..." : "Starting...", axisID);
 
@@ -383,8 +387,10 @@ abstract class FileSizeProcessMonitor implements ProcessMonitor {
   }
 
   private void openLogFileReader() throws InterruptedException {
-    while (!logFileRenamed) {
-      Thread.sleep(updatePeriod);
+    if (!reconnect) {
+      while (!logFileRenamed) {
+        Thread.sleep(updatePeriod);
+      }
     }
     //File logFile = null;
     boolean logFileExists = false;
