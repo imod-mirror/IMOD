@@ -21,6 +21,10 @@ import etomo.util.DatasetFiles;
 * @version $$Revision$$
 *
 * <p> $Log$
+* <p> Revision 1.9  2007/09/07 00:17:12  sueh
+* <p> bug# 989 Using a public INSTANCE to refer to the EtomoDirector singleton
+* <p> instead of getInstance and createInstance.
+* <p>
 * <p> Revision 1.8  2006/10/10 05:02:05  sueh
 * <p> bug# 931 Getting the patch out file name from DatasetFiles.
 * <p>
@@ -349,13 +353,13 @@ public class CombineComscriptState implements ComscriptState {
    */
   private static void initializeComscriptMatchString() {
     //match 0 or more characters and a word boundary
-    StringBuffer stringBuffer = new StringBuffer(".*\\b[");
+    StringBuffer stringBuffer = new StringBuffer(".*\\b?[");
     //match 1 or the strings in COMMANDS
     for (int i = 0; i < NUM_COMMANDS; i++) {
       stringBuffer.append("\\Q" + COMMANDS[i] + "\\E");
     }
     //match ".com", a word boundary, and 0 or more characters
-    stringBuffer.append("]\\.com\\b.*");
+    stringBuffer.append("]\\.com\\b?.*");
     COMSCRIPT_MATCH_STRING = stringBuffer.toString();
   }
   
