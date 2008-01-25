@@ -18,6 +18,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.46  2007/12/13 01:08:45  sueh
+ * bug# 1056 added a constructor with CommandDetails.
+ *
  * Revision 3.45  2007/12/10 22:06:53  sueh
  * bug# 1041 working with the changes in ProcessName.
  *
@@ -608,7 +611,13 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
         }
       }
       catch (LogFile.FileException except) {
-        processManager.msgComScriptDone(this, vmstocsh.getExitValue());
+        if (processManager != null) {
+          int exitValue = 0;
+          if (vmstocsh != null) {
+            exitValue = vmstocsh.getExitValue();
+          }
+          processManager.msgComScriptDone(this, exitValue);
+        }
         return;
       }
       //  Covert the com script to a sequence of csh commands
