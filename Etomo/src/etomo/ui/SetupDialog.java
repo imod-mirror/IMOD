@@ -391,8 +391,10 @@ public class SetupDialog extends ProcessDialog implements ContextMenu,
           + metaData.getDatasetName();
       ltfDataset.setText(canonicalPath);
     }
-    boolean validAutodoc = CpuAdoc.getInstance(AxisID.ONLY, applicationManager)
-        .isValid();
+    CpuAdoc cpuAdoc = CpuAdoc.getInstance(AxisID.ONLY, applicationManager);
+    //Parallel processing is optional in tomogram reconstruction, so only use it
+    //if the user set it up.
+    boolean validAutodoc = cpuAdoc.isValid() && cpuAdoc.isSetByUser();
     if (validAutodoc && !userConfig.getNoParallelProcessing()) {
       cbParallelProcess.setSelected(true);
     }
@@ -1069,6 +1071,10 @@ public class SetupDialog extends ProcessDialog implements ContextMenu,
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.59  2007/09/07 00:28:43  sueh
+ * <p> bug# 989 Using a public INSTANCE to refer to the EtomoDirector singleton
+ * <p> instead of getInstance and createInstance.
+ * <p>
  * <p> Revision 3.58  2007/08/08 15:04:14  sueh
  * <p> bug# 834 Using UserConfiguration to initialize fields.
  * <p>
