@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/25/08: Added install option to use libg2c packed with IMOD if the package
+has it.
+
 1/22/08: Converted patch2imod, imo2patch wrappers with dos2unix.
 
 1/21/08: Stripped control characters from ssh version test and quoted drop
