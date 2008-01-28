@@ -11,6 +11,10 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.26  2007/12/13 01:06:36  sueh
+ * <p> bug# 1056 Added adjustOrigin.  Merged ConstTiltParam with TiltParam and made
+ * <p> ConstTiltParam an interface.
+ * <p>
  * <p> Revision 3.25  2007/08/29 20:36:42  sueh
  * <p> bug# 1035 In setSubsetStart handling IOException.
  * <p>
@@ -288,7 +292,7 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
   }
   
   public CommandMode getCommandMode() {
-    return null;
+    return commandMode;
   }
   
   public CommandDetails getSubcommandDetails() {
