@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/28/08: IMOD_3-11-2
+1/28/08: In eTomo, fixed updating of shift and offset values after running
+tomopitch with whole tomogram positioning.
+
 1/25/08: In eTomo, fixed reconnect to non-parallel tilt, problem with combine
 process monitor in Java 1.6, and mistaken enabling of parallel processing for
 tomogram processing.
