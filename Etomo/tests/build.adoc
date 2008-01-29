@@ -1,0 +1,42 @@
+Version = 1.2
+verbose =
+
+[Dialog = SetupRecon]
+adoc = setup-recon.adoc
+function = build_single
+
+[Dialog = PreProc]
+adoc = pre-proc.adoc
+function = build
+
+[Dialog = CoarseAlign]
+adoc = coarse-align.adoc
+function = build
+
+[Dialog = FidModel]
+copy.file = %{dataset}%{axis}.seed
+adoc = fid-model.adoc
+function = run
+
+[Dialog = FineAlign]
+adoc = fine-align.adoc
+function = build
+
+[Dialog = TomoPos]
+adoc = tomo-pos.adoc
+function = build
+
+[Dialog = TomoGen]
+adoc = tomo-gen.adoc
+function = run
+bn.done =
+
+[Dialog = PostProc]
+sleep =
+adoc = post-proc.adoc
+function = run
+
+[Dialog = CleanUp]
+adoc = clean-up.adoc
+function = run-single
+
