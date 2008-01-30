@@ -302,7 +302,6 @@ EXPORTS
 	imodLabelPrint
 	imodObjectGetName
 	imodContourReduce
-	imodContourSort3D
 	imodel_scans_overlap
 	imodPutBytes
 	istoreLookup
