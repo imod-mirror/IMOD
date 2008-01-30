@@ -340,7 +340,7 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
         return;
       }
     }
-    if (updateTomoPosTiltCom(false) == null) {
+    if (updateTomoPosTiltCom(true) == null) {
       sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
       return;
     }
@@ -494,7 +494,7 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
    * Update the tilt{|a|b}.com file with sample parameters for the specified
    * axis
    */
-  private ConstTiltParam updateTomoPosTiltCom(boolean sample) {
+  private ConstTiltParam updateTomoPosTiltCom(boolean positioning) {
     // Make sure that we have an active positioning dialog
     if (dialog == null) {
       UIHarness.INSTANCE.openMessageDialog(
@@ -509,8 +509,13 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
       tiltParam = comScriptMgr.getTiltParam(axisID);
       tiltParam.setFiducialess(metaData.isFiducialess(axisID));
       getTiltParams(tiltParam);
-      if (sample) {
+      //if not postioning then just saving tilt.com to continue, so want the
+      //final thickness instead of the sample thickness.
+      if (positioning) {
         getTiltParamsForSample(tiltParam);
+      }
+      //get the command mode right
+      if (!dialog.isWholeTomogram()) {
         tiltParam.setCommandMode(TiltParam.Mode.SAMPLE);
       }
       else {
@@ -927,6 +932,12 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.20.2.1  2008/01/28 23:53:02  sueh
+ * <p> bug# 1071 Setting commandMode to WHOLE in sampleTilt, which is only used
+ * <p> for whole tomogram samples.  When using wholeTomogram to create a whole
+ * <p> tomogram sample, call updateTomoPosTiltCom with sample == true.  Otherwise
+ * <p> it sets the command mode to SAMPLE.
+ * <p>
  * <p> Revision 1.20  2007/12/13 01:14:23  sueh
  * <p> bug# 1056 Setting the Mode in TiltParam.
  * <p>
