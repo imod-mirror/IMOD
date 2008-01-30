@@ -1,0 +1,324 @@
+#!/bin/csh
+#############################################################################
+#
+set c_includes = '-I$(QTDIR)/include'
+#
+#   default is to assume tifflib does exist
+#
+if ($tifflibs == default) set tifflibs = true
+
+if ($tifflibs == true) set c_includes = '-I$(QTDIR)/include -I/usr/local/include'
+
+echo 'LDFLAGS = -L$(LIBDIR) -dynamic -read_only_relocs warning' >> $configure
+
+
+# DNM 1/1/9/03: remove the defines for FILE_OFFSET_BITS=64 here and in the
+# qconfigures - it doesn't work anymore on OS 10.3
+
+echo "CC        = gcc"              >> $configure
+echo "CXX       = g++"              >> $configure
+
+# Set default compiler to intel for intel chip
+#
+if ($compiler == default && $intel == true) set compiler = ifort
+
+if ($compiler == ifort) then
+    set fcomp = "ifort"
+    set fcompFlags = "-132 -assume bscc"
+
+    echo "      parameter (nbytes_recl_item=4)" >! $endian_dir/recl_bytes.inc
+    set fortvers = 3
+    set ldfflags = '-L$(LIBDIR) -i-dynamic -Wl,-dynamic -Wl,-read_only_relocs,warning'
+    set fcmpldFlags = "-i-dynamic"
+    set exefflags = "-mdynamic-no-pic"
+    set fortdir = `which ifort`
+    set fortlibdir = $fortdir:h:h/lib
+    echo "DLLSOURCEDIR1 = $fortlibdir" >> $configure
+    echo "DLLSTOCOPY1 = libifcore libifport libirc libimf libsvml" >> $configure
+    
+else
+
+    set fcompFlags = "-ffixed-line-length-0"
+    set exefflags = ""
+    set fcmpldFlags = $ldfflags
+
+    gcc -v >&! gfortran.tmp
+    set fortvers = `sed -n '/gcc version/s/.*sion \([0-9\.]*\).*/\1/p' gfortran.tmp |sed '/\./s// /g'`
+    \rm -f gfortran.tmp
+    if ($#fortvers < 2) set fortvers = 3
+    echo "DLLSOURCEDIR1 = /usr/local/lib" >> $configure
+    if ($fortvers[1] == 3) then
+        set fcomp = "g77"
+        set ctfplot_flibs = "-lg2c"
+
+        # tell the C routines being called by Fortran that they need two __
+        #
+        echo '#define G77__HACK' >> $hconfigure
+        echo "DLLSTOCOPY1 = libg2c" >> $configure
+    else
+        #
+        # gfortran needs unlimited fixed format, and date and time subroutines
+        #
+        set fcomp = "gfortran"
+        echo "DATESRC   = compat/datetime.f" >> $configure
+        echo "DIRDATEOBJ  = compat/datetime.o" >> $configure
+        echo "DATEOBJ  = datetime.o" >> $configure
+        echo "DLLSTOCOPY1 = libgfortran" >> $configure
+    endif
+endif
+echo "DLLDESTDIR = lib" >> $configure
+
+# Set up to copy jpeg plugin for Qt
+#
+echo "QTPLUG_SRCDIR1 = imageformats" >> $configure
+echo "QTPLUGS_TOCOPY1 = libqjpeg.dylib" >> $configure
+
+# Needed under tcsh 6.12 in RH 8.0 to avoid getting two \ out
+cat << EOF >> $configure
+CP        = \\cp
+FIND      = \\find
+EOF
+
+#set shared_libs = false
+
+set release = `echo $URELEASE | sed 's/\./ /g'`
+@ majorrel = $release[1]
+
+if ($shared_libs != false) then
+	echo "AR      = c++"                 >> $configure
+	echo "ARCPP   = c++"                >> $configure
+	echo "ARFLAGS = $flags -i-dynamic -dynamiclib -Wl,-single_module -Wl,-flat_namespace -Wl,-undefined,suppress -Wl,-read_only_relocs,warning -o "    >> $configure
+	echo "RANLIB    = true"                     >> $configure
+	echo "LIBEXT  = dylib"                 >> $configure
+        if ($majorrel > 7) then
+            set far = $fcomp
+            set makestaticlib = "ar -sruv "
+            set makenmcar = '$(MAKESTATICLIB)'
+            set nmcarext = "a"
+            if ($tifflibs == true) echo 'LIBIIMODDEF = -ltiff -lSystemStubs' >> $configure
+        endif
+else
+	echo "AR      = ar"                 >> $configure
+	echo "ARCPP   = ar"                 >> $configure
+	echo "ARFLAGS = ruv "                >> $configure
+	echo "RANLIB    = ranlib"            >> $configure
+	echo "LIBEXT  = a"                  >> $configure
+endif
+
+echo 'MAKELIB   = $(AR) $(ARFLAGS)' >> $configure
+echo 'MAKELIBCPP = $(ARCPP) $(ARFLAGS)' >> $configure
+
+# No longer needed 5/12/05, and needs to be gone for gcc 4
+# 7/12/05: But needed on 10.4 with gcc 3.3
+set fort_cpplibs = -lstdc++
+if ($fortvers[1] != 3) set fort_cpplibs = "-lstdc++.6"
+if ($compiler == ifort) set fort_cpplibs = "-lstdc++ -lgcc_s.1"
+
+echo "CLIBS   = -lc -lm" >> $configure
+echo 'LIBS    = $(CLIBS)'  >> $configure
+echo 'FORTCLIBS = '  >> $configure
+
+# Removed FLCC and F77LIBS since clip no longer needs fortran
+
+# 
+# tell the C routines which way to swap floats
+#
+echo '#define SWAP_IEEE_FLOATS' >> $hconfigure
+
+# 
+# tell the C and fortran routines to swap the bytes for INTEL
+#
+if ($intel == true) then
+    echo '#define B3D_LITTLE_ENDIAN' >> $hconfigure
+    \cp $endian_dir/little_endian.inc $endian_dir/endian.inc
+endif
+
+#
+# Fork does not work
+# Clipboard works WITHOUT the timer hack and not with it
+# GLU quadric objects seem to be context specific
+# Clipboard is unreliable so resend events at given interval
+#
+echo '#define NO_IMOD_FORK' >> $hconfigure
+echo '#define GLU_QUADRIC_HACK' >> $hconfigure
+echo '#define SENDEVENT_RETRY_HACK 300' >> $hconfigure
+echo '#define MAC103_BIGFILE' >> $hconfigure
+
+set optimization = "-O3 -w"
+# 12/9/05: hurt more than helped on G5
+#if ($fortvers[1] != 3) set optimization = "-O3 -w -ftree-vectorize -maltivec"
+if ($compiler == ifort) set optimization = "-O2"
+if ($debug == true) set optimization = "-g -O0"
+
+set cflags = "$flags $optimization $defines $include_flags $c_includes"
+set fflags = "$flags $fcompFlags $fcmpldFlags $optimization $include_flags"
+
+echo "CFLAGS  = $cflags" >> $configure
+echo "CXXFLAGS = $cflags" >> $configure
+echo "FFLAGS  = $fflags $exefflags" >> $configure
+echo "NOOPFFLAGS = $fflags $exefflags -O0" >> $configure
+echo "LIBCFLAGS  = $cflags" >> $configure
+echo "LIBFFLAGS  = $fflags" >> $configure
+
+# 7/6/05: took out the fallbacks; no longer needed on SGI
+#
+
+# Use fortran code for tilt program
+echo 'TILTOBJS = bpsumnox.o bpsumxtilt.o bpsumlocal.o' >> $configure
+
+# make extra fortran libs
+if ($compiler == ifort) then
+    echo 'LINUXFLIBS = ' >> $configure
+    echo "IMLIBS     = -lhvem -lmrcim -lifft  -lcfshr" >> $configure
+else
+    echo 'LINUXFLIBS = $(LIBCOMPAT)' >> $configure
+    echo "IMLIBS     = -lhvem -lmrcim -lifft  -lcfshr -lb3dcmpt" >> $configure
+endif
+#
+# Set the switch point include file for the FBP algorithm in Tilt
+#
+set fbpswitch       = fbpswitch-pc.inc
+
+
+# Set the string for the "ctrl" key
+#
+set ctrl_string = Apple
+
+# 5/11/05: removed libdl.a and dlfcn.h copying, no longer needed
+# set up strip to use -x flag (needed for 10.4)
+if ($compiler != ifort) set strip = "strip -x"
+
+#
+# Set up things for Qt include files
+#
+
+# get target executable name pattern from sendevent
+#
+(cd $sendevent_dir ; qmake imodsendevent.pro)
+set send_target = `sed -n '/^TARGET *= */s///p' $sendevent_dir/Makefile`
+set imod_target = `echo $send_target | sed '/imod/s/imodsendevent/3dmod/g'`
+set midas_target = `echo $send_target | sed '/imod/s/imodsendevent/midas/g'`
+set assist_target = `echo $send_target | sed '/imod/s/imodsendevent/imodqtassist/g'`
+set ctf_target = `echo $send_target | sed '/imod/s/imodsendevent/ctfplotter/g'`
+set sourcedoc_exe = `echo $send_target | sed '/imod/s/imodsendevent/sourcedoc/g'`
+set qt_libs = `sed -n '/^LIBS /s/^LIBS.*-L\$(QTDIR/-L\$(QTDIR/p' $sendevent_dir/Makefile`
+
+# Tell plugins where imod is
+#
+set plug_loader = ${source_dir}/${imod_dir}/${imod_target}
+echo 'MAKELIBSO = $(ARCPP) -bundle -dynamic -bundle_loader '"$plug_loader"' $(LDFLAGS) -limod -lcfshr -ldiaqt '"$qt_libs -o " >> $configure
+echo  'MAKEF77PLUGIN  = $(FC)  -bundle -dynamic -bundle_loader '"$plug_loader"' $(LDFLAGS) -limod -lcfshr -ldiaqt '"$qt_libs $fort_cpplibs -o " >> $configure
+
+# Make some more lists for looping
+#
+set qrun = (runsendevent runqtassist runctfplotter runmidas)
+set qtarget = ($send_target $assist_target $ctf_target)
+
+# make script files to run programs
+# Set DYLD_LIBRARY_PATH with qtlib before running program
+#
+@ i = 0   # Loop on imodsendevent imodqtassist ctfplotter
+while ($i < 3)
+    @ i++
+cat <<EOF >! $qdir[$i]/$qrun[$i]
+#!/bin/sh
+export DYLD_LIBRARY_PATH="\${IMOD_QTLIBDIR}:\$DYLD_LIBRARY_PATH"
+\$IMOD_DIR/bin/${qtarget[$i]} "\$@"
+EOF
+chmod a+x $qdir[$i]/$qrun[$i]
+end
+
+cat <<EOF >! $imod_dir/runimod
+#!/bin/sh
+export DYLD_LIBRARY_PATH="\${IMOD_QTLIBDIR}:\$DYLD_LIBRARY_PATH"
+background=1
+for i
+do
+    if [[ "\$i" == '-D' || "\$i" == '-W' || "\$i" == '-L' ]] ; then
+        background=0
+    fi
+done
+if [[ \$background == "0" ]] ; then
+    \$IMOD_DIR/bin/${imod_target} "\$@"
+else
+    \$IMOD_DIR/bin/${imod_target} "\$@" &
+fi
+EOF
+
+cat <<EOF >! $imod_dir/runimodv
+#!/bin/sh
+export DYLD_LIBRARY_PATH="\${IMOD_QTLIBDIR}:\$DYLD_LIBRARY_PATH"
+background=1
+for i
+do
+    if [[ "\$i" == '-D' || "\$i" == '-W' || "\$i" == '-L' ]] ; then
+        background=0
+    fi
+done
+if [[ \$background == "0" ]] ; then
+    \$IMOD_DIR/bin/${imod_target} -view "\$@"
+else
+    \$IMOD_DIR/bin/${imod_target} -view "\$@" &
+fi
+EOF
+
+cat <<EOF >! $midas_dir/runmidas
+#!/bin/sh
+export DYLD_LIBRARY_PATH="\${IMOD_QTLIBDIR}:\$DYLD_LIBRARY_PATH"
+background=1
+for i
+do
+    if [[ "\$i" == '-D' ]] ; then
+        background=0
+    fi
+done
+if [[ \$background == "0" ]] ; then
+    \$IMOD_DIR/bin/${midas_target} "\$@"
+else
+    \$IMOD_DIR/bin/${midas_target} "\$@" &
+fi
+EOF
+
+chmod a+x $imod_dir/runimod $imod_dir/runimodv $midas_dir/runmidas 
+
+cat << EOF  >! $midas_qconf
+
+EOF
+
+# 3/33/04: removed -ldl from the second LIBS line because it is in libqt now
+# 6/4/04: removed -ldtrigs because track is rewritten not to need it
+cat << EOF >! $imod_qconf
+SOURCES += linegui.cpp
+HEADERS += linegui.h
+LIBS += -L$lib_dir -liimod -limesh -limod -lcfshr -ldiaqt -lifft -ltiff -ltrack
+LIBS += -lqassistantclient -lm
+RC_FILE = b3dicon.icns
+EOF
+
+# Make run scripts for the fortran Qt programs
+# They have to be named run... because the programs install in bin first
+#
+set fortqtprogs = (mtk nda sda genhstplt mtoverlap mtpairing avgstatplot)
+set gen_scripts = ()
+foreach i ($fortqtprogs)
+    set gen_scripts = ($gen_scripts run$i)
+    cat <<EOF >! $scripts_dir/run$i
+#!/bin/sh
+export DYLD_LIBRARY_PATH="\${IMOD_QTLIBDIR}:\$DYLD_LIBRARY_PATH"
+\$IMOD_DIR/bin/$i.app/Contents/MacOS/$i "\$@"
+EOF
+    chmod a+x $scripts_dir/run$i
+end
+
+#
+# Set up to copy qt lib for a distribution, and set name of LD_LIBRARY variable
+echo 'QTINSTLIBDIR = qtlib' >> $configure
+set ld_lib_var      = DYLD_LIBRARY_PATH
+echo "MACAPPS = $fortqtprogs" >> $configure
+set qtapp_path  = '$1.app/Contents/MacOS/'
+echo 'INSTALL_FILES = IMOD-mac.csh mac.cshrc IMOD-mac.sh mac.bashrc linklibs-mac' >> $configure
+if ($distname == "") then
+    set distname = _osx_ppc
+    if ($intel == true) set distname = _osx_intel 
+endif
+

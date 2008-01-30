@@ -1,0 +1,430 @@
+package etomo.type;
+
+import java.util.Vector;
+
+import etomo.ui.AlignmentEstimationDialog;
+import etomo.ui.CoarseAlignDialog;
+import etomo.ui.FiducialModelDialog;
+import etomo.ui.PostProcessingDialog;
+import etomo.ui.PreProcessingDialog;
+import etomo.ui.TomogramCombinationDialog;
+import etomo.ui.TomogramGenerationDialog;
+import etomo.ui.TomogramPositioningDialog;
+
+/**
+ * <p>Description: </p>
+ * 
+ * <p>Copyright: Copyright (c) 2006</p>
+ *
+ * <p>Organization:
+ * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
+ * University of Colorado</p>
+ * 
+ * @author $Author$
+ * 
+ * @version $Revision$
+ */
+public final class ProcessResultDisplayFactory {
+  public static final String rcsid = "$Id$";
+
+  private final BaseScreenState screenState;
+  private final Vector dependentDisplayList = new Vector();
+
+  //Recon
+  //preprocessing
+
+  private final ProcessResultDisplay findXRays = PreProcessingDialog
+      .getFindXRaysDisplay();
+  private final ProcessResultDisplay createFixedStack = PreProcessingDialog
+      .getCreateFixedStackDisplay();
+  private final ProcessResultDisplay useFixedStack = PreProcessingDialog
+      .getUseFixedStackDisplay();
+
+  //coarse alignment
+
+  private final ProcessResultDisplay crossCorrelate = CoarseAlignDialog
+      .getCrossCorrelateDisplay();
+  private final ProcessResultDisplay distortionCorrectedStack = CoarseAlignDialog
+      .getDistortionCorrectedStackDisplay();
+  private final ProcessResultDisplay fixEdgesMidas = CoarseAlignDialog
+      .getFixEdgesMidasDisplay();
+  private final ProcessResultDisplay coarseAlign = CoarseAlignDialog
+      .getCoarseAlignDisplay();
+  private final ProcessResultDisplay midas = CoarseAlignDialog
+      .getMidasDisplay();
+
+  //fiducial model
+
+  private final ProcessResultDisplay transferFiducials = FiducialModelDialog
+      .getTransferFiducialsDisplay();
+  private final ProcessResultDisplay seedFiducialModel = FiducialModelDialog
+      .getSeedFiducialModelDisplay();
+  private final ProcessResultDisplay trackFiducials = FiducialModelDialog
+      .getTrackFiducialsDisplay();
+  private final ProcessResultDisplay fixFiducialModel = FiducialModelDialog
+      .getFixFiducialModelDisplay();
+
+  //fine alignment
+
+  private final ProcessResultDisplay computeAlignment = AlignmentEstimationDialog
+      .getComputeAlignmentDisplay();
+
+  //positioning
+
+  private final ProcessResultDisplay sampleTomogram = TomogramPositioningDialog
+      .getSampleTomogramDisplay();
+  private final ProcessResultDisplay computePitch = TomogramPositioningDialog
+      .getComputePitchDisplay();
+  private final ProcessResultDisplay finalAlignment = TomogramPositioningDialog
+      .getFinalAlignmentDisplay();
+
+  //generation
+
+  private final ProcessResultDisplay fullAlignedStack = TomogramGenerationDialog
+      .getFullAlignedStackDisplay();
+  private final ProcessResultDisplay filter = TomogramGenerationDialog
+      .getFilterDisplay();
+  private final ProcessResultDisplay useFilteredStack = TomogramGenerationDialog
+      .getUseFilteredStackDisplay();
+  private final ProcessResultDisplay useTrialTomogram = TomogramGenerationDialog
+      .getUseTrialTomogramDisplay();
+  private final ProcessResultDisplay generateTomogram = TomogramGenerationDialog
+      .getGenerateTomogramDisplay();
+  private final ProcessResultDisplay deleteAlignedStack = TomogramGenerationDialog
+      .getDeleteAlignedStackDisplay();
+
+  //combination
+
+  private final ProcessResultDisplay createCombine = TomogramCombinationDialog
+      .getCreateCombineDisplay();
+  private final ProcessResultDisplay combine = TomogramCombinationDialog
+      .getCombineDisplay();
+  private final ProcessResultDisplay restartCombine = TomogramCombinationDialog
+      .getRestartCombineDisplay();
+  private final ProcessResultDisplay restartMatchvol1 = TomogramCombinationDialog
+      .getRestartMatchvol1Display();
+  private final ProcessResultDisplay restartPatchcorr = TomogramCombinationDialog
+      .getRestartPatchcorrDisplay();
+  private final ProcessResultDisplay restartMatchorwarp = TomogramCombinationDialog
+      .getRestartMatchorwarpDisplay();
+  private final ProcessResultDisplay restartVolcombine = TomogramCombinationDialog
+      .getRestartVolcombineDisplay();
+
+  //post processing
+  private final ProcessResultDisplay trimVolume = PostProcessingDialog
+      .getTrimVolumeDisplay();
+  private final ProcessResultDisplay squeezeVolume = PostProcessingDialog
+      .getSqueezeVolumeDisplay();
+
+  private ProcessResultDisplayFactory(BaseScreenState screenState) {
+    this.screenState = screenState;
+  }
+
+  public static ProcessResultDisplayFactory getInstance(
+      BaseScreenState screenState) {
+    ProcessResultDisplayFactory instance = new ProcessResultDisplayFactory(
+        screenState);
+    instance.initialize();
+    return instance;
+  }
+
+  private void initialize() {
+    //initialize global dependency list
+
+    //preprocessing
+    addDependency(findXRays);
+    addDependency(createFixedStack);
+    addDependency(useFixedStack);
+    //coarse alignment
+    addDependency(crossCorrelate);
+    addDependency(distortionCorrectedStack);
+    addDependency(fixEdgesMidas);
+    addDependency(coarseAlign);
+    addDependency(midas);
+    //fiducial model
+    addDependency(transferFiducials);
+    addDependency(seedFiducialModel);
+    addDependency(trackFiducials);
+    addDependency(fixFiducialModel);
+    //fine alignment
+    addDependency(computeAlignment);
+    //positioning
+    addDependency(sampleTomogram);
+    addDependency(computePitch);
+    addDependency(finalAlignment);
+    //generation
+    addDependency(fullAlignedStack);
+    addDependency(filter);
+    addDependency(useFilteredStack);
+    addDependency(useTrialTomogram);
+    addDependency(generateTomogram);
+    addDependency(deleteAlignedStack);
+    //combination
+    addDependency(createCombine);
+    addDependency(combine);
+    addDependency(restartCombine);
+    addDependency(restartMatchvol1);
+    addDependency(restartPatchcorr);
+    addDependency(restartMatchorwarp);
+    addDependency(restartVolcombine);
+    //post processing
+    addDependency(squeezeVolume);
+    addDependency(trimVolume);
+
+    //add dependents
+
+    //preprocessing
+    findXRays.setScreenState(screenState);
+    addDependents(findXRays);
+    createFixedStack.setScreenState(screenState);
+    addDependents(createFixedStack);
+    useFixedStack.setScreenState(screenState);
+    addDependents(useFixedStack);
+    //coarse alignment
+    crossCorrelate.setScreenState(screenState);
+    addDependents(crossCorrelate);
+    distortionCorrectedStack.setScreenState(screenState);
+    addDependents(distortionCorrectedStack);
+    fixEdgesMidas.setScreenState(screenState);
+    addDependents(fixEdgesMidas);
+    coarseAlign.setScreenState(screenState);
+    addDependents(coarseAlign);
+    midas.setScreenState(screenState);
+    addDependents(midas);
+    //fiducial model
+    transferFiducials.setScreenState(screenState);
+    addDependents(transferFiducials);
+    seedFiducialModel.setScreenState(screenState);
+    addDependents(seedFiducialModel);
+    trackFiducials.setScreenState(screenState);
+    addDependents(trackFiducials);
+    fixFiducialModel.setScreenState(screenState);
+    addDependents(fixFiducialModel);
+    //fine alignment
+    computeAlignment.setScreenState(screenState);
+    addDependents(computeAlignment);
+    //positioning
+    sampleTomogram.setScreenState(screenState);
+    addDependents(sampleTomogram);
+    computePitch.setScreenState(screenState);
+    addDependents(computePitch);
+    finalAlignment.setScreenState(screenState);
+    addDependents(finalAlignment);
+    //generation
+    fullAlignedStack.setScreenState(screenState);
+    addDependents(fullAlignedStack);
+    filter.setScreenState(screenState);
+    //filter is optional
+    filter.addDependentDisplay(useFilteredStack);
+    useFilteredStack.setScreenState(screenState);
+    addDependents(useFilteredStack);
+    useTrialTomogram.setScreenState(screenState);
+    //use trial tomogram and generate tomogram are equals in the dependency order
+    addDependents(generateTomogram);
+    generateTomogram.setScreenState(screenState);
+    addDependents(generateTomogram);
+    deleteAlignedStack.setScreenState(screenState);
+    addDependents(deleteAlignedStack);
+    //combination
+    createCombine.setScreenState(screenState);
+    addDependents(createCombine);
+    combine.setScreenState(screenState);
+    //combine and restart combine are equals in the dependency order
+    addDependents(restartCombine);
+    //combine and restart combine run the same process (solvematch)
+    restartCombine.addFailureDisplay(restartCombine);
+    restartCombine.addSuccessDisplay(restartCombine);
+    restartCombine.setScreenState(screenState);
+    addDependents(restartCombine);
+    //combine and restart combine run the same process (solvematch)
+    restartCombine.addFailureDisplay(getCombine());
+    restartCombine.addSuccessDisplay(combine);
+    restartMatchvol1.setScreenState(screenState);
+    addDependents(restartMatchvol1);
+    restartPatchcorr.setScreenState(screenState);
+    addDependents(restartPatchcorr);
+    restartMatchorwarp.setScreenState(screenState);
+    addDependents(restartMatchorwarp);
+    restartVolcombine.setScreenState(screenState);
+    addDependents(restartVolcombine);
+    //post processing
+    trimVolume.setScreenState(screenState);
+    addDependents(trimVolume);
+    squeezeVolume.setScreenState(screenState);
+  }
+
+  private synchronized void addDependency(ProcessResultDisplay display) {
+    dependentDisplayList.add(display);
+    display.setDependencyIndex(dependentDisplayList.size() - 1);
+  }
+
+  private void addDependents(ProcessResultDisplay display) {
+    if (display == null) {
+      return;
+    }
+    int index = display.getDependencyIndex();
+    if (index < 0) {
+      return;
+    }
+    for (int i = index + 1; i < dependentDisplayList.size(); i++) {
+      display.addDependentDisplay((ProcessResultDisplay) dependentDisplayList
+          .get(i));
+    }
+  }
+
+  //preprocessing
+
+  public ProcessResultDisplay getFindXRays() {
+    return findXRays;
+  }
+
+  public ProcessResultDisplay getCreateFixedStack() {
+    return createFixedStack;
+  }
+
+  public ProcessResultDisplay getUseFixedStack() {
+    return useFixedStack;
+  }
+
+  //coarse alignment
+
+  public ProcessResultDisplay getCrossCorrelate() {
+    return crossCorrelate;
+  }
+
+  public ProcessResultDisplay getDistortionCorrectedStack() {
+    return distortionCorrectedStack;
+  }
+
+  public ProcessResultDisplay getFixEdgesMidas() {
+    return fixEdgesMidas;
+  }
+
+  public ProcessResultDisplay getCoarseAlign() {
+    return coarseAlign;
+  }
+
+  public ProcessResultDisplay getMidas() {
+    return midas;
+  }
+
+  //fiducial model
+
+  public ProcessResultDisplay getTransferFiducials() {
+    return transferFiducials;
+  }
+
+  public ProcessResultDisplay getSeedFiducialModel() {
+    return seedFiducialModel;
+  }
+
+  public ProcessResultDisplay getTrackFiducials() {
+    return trackFiducials;
+  }
+
+  public ProcessResultDisplay getFixFiducialModel() {
+    return fixFiducialModel;
+  }
+
+  //fine alignment
+
+  public ProcessResultDisplay getComputeAlignment() {
+    return computeAlignment;
+  }
+
+  //positioning
+
+  public ProcessResultDisplay getSampleTomogram() {
+    return sampleTomogram;
+  }
+
+  public ProcessResultDisplay getComputePitch() {
+    return computePitch;
+  }
+
+  public ProcessResultDisplay getFinalAlignment() {
+    return finalAlignment;
+  }
+
+  //generation
+
+  public ProcessResultDisplay getFullAlignedStack() {
+    return fullAlignedStack;
+  }
+
+  public ProcessResultDisplay getFilter() {
+    return filter;
+  }
+
+  public ProcessResultDisplay getUseFilteredStack() {
+    return useFilteredStack;
+  }
+
+  public ProcessResultDisplay getUseTrialTomogram() {
+    return useTrialTomogram;
+  }
+
+  public ProcessResultDisplay getGenerateTomogram() {
+    return generateTomogram;
+  }
+
+  public ProcessResultDisplay getDeleteAlignedStack() {
+    return deleteAlignedStack;
+  }
+
+  //combination
+
+  public ProcessResultDisplay getCreateCombine() {
+    return createCombine;
+  }
+
+  public ProcessResultDisplay getCombine() {
+    return combine;
+  }
+
+  public ProcessResultDisplay getRestartCombine() {
+    return restartCombine;
+  }
+
+  public ProcessResultDisplay getRestartMatchvol1() {
+    return restartMatchvol1;
+  }
+
+  public ProcessResultDisplay getRestartPatchcorr() {
+    return restartPatchcorr;
+  }
+
+  public ProcessResultDisplay getRestartMatchorwarp() {
+    return restartMatchorwarp;
+  }
+
+  public ProcessResultDisplay getRestartVolcombine() {
+    return restartVolcombine;
+  }
+
+  //post processing
+
+  public ProcessResultDisplay getTrimVolume() {
+    return trimVolume;
+  }
+
+  public ProcessResultDisplay getSqueezeVolume() {
+    return squeezeVolume;
+  }
+}
+/**
+ * <p> $Log$
+ * <p> Revision 1.3  2006/03/20 17:59:11  sueh
+ * <p> reformatted
+ * <p>
+ * <p> Revision 1.2  2006/02/06 21:18:17  sueh
+ * <p> bug 521 Added all the process dialog toggle buttons.  Added an array
+ * <p> of dependent displays.  Making the displays final so they can be added as
+ * <p> dependent displays before they are initialized.
+ * <p>
+ * <p> Revision 1.1  2006/01/31 20:52:33  sueh
+ * <p> bug# 521 Class to manage toggle buttons that affect or can be affected
+ * <p> by other toggle buttons.  Defines how ProcessResultDisplay's affect each
+ * <p> other.  Buttons continue to exist after their dialogs are removed.
+ * <p> </p>
+ */
