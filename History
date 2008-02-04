@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/4/08: Fixed findhotpixels if filenames entered with -input & -output.
+
 1/31/08: Increased allowed filename length from 120 to 320 in header.
 
 1/28/08: IMOD_3-11-2
