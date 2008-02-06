@@ -17,6 +17,7 @@
 #include "b3dgfx.h"
 #include "preferences.h"
 #include "imod_input.h"
+#include "imod_client_message.h"
 #include "imod_assistant.h"
 #include "dia_qtutils.h"  
 
@@ -208,10 +209,10 @@ void imodError(FILE *out, const char *format, ...)
 #ifdef _WIN32
   out = NULL;
 #endif
-  if (out)
-    fprintf(out, errorMess);
-  else
+  if (!out || (ClipHandler && ClipHandler->disconnectedFromStderr()))
     dia_err(errorMess);
+  else
+    fprintf(out, errorMess);
 }
 
 /* Takes an arbitrarily sized string and gives a message box on windows or
@@ -219,10 +220,15 @@ void imodError(FILE *out, const char *format, ...)
 void imodPrintInfo(const char *message)
 {
 #ifdef _WIN32
-  dia_puts((char *)message);
+  bool windows = true;
 #else
-  printf(message);
+  bool windows = false;
 #endif
+  
+  if (windows || (ClipHandler && ClipHandler->disconnectedFromStderr()))
+    dia_puts((char *)message);
+  else
+    printf(message);
 }
 
 /* Takes fprintf-type arguments and prints to stderr, and flushes on Windows */
@@ -231,8 +237,14 @@ void imodPrintStderr(const char *format, ...)
   char errorMess[512];
   va_list args;
   va_start(args, format);
-  
   vsprintf(errorMess, format, args);
+
+  // Send to wprint if disconnected from stderr (THIS WILL BE A PROBLEM IF
+  // WPRINT IS CHANGED TO SEND TO STDERR!)
+  if (ClipHandler && ClipHandler->disconnectedFromStderr()) {
+    wprint(errorMess);
+    return;
+  }
   fprintf(stderr, errorMess);
 #ifdef _WIN32
   fflush(stderr);
@@ -242,6 +254,10 @@ void imodPrintStderr(const char *format, ...)
 /* Takes a message for "puts", adds newline, prints and flushes stderr */
 void imodPuts(const char *message)
 {
+  if (ClipHandler && ClipHandler->disconnectedFromStderr()) {
+    wprint("%s\n", message);
+    return;
+  }
   fprintf(stderr, "%s\n", message);
 #ifdef _WIN32
   fflush(stderr);
@@ -306,5 +322,8 @@ int imodColorValue(int inColor)
 /*
 
 $Log$
+Revision 1.1  2007/12/04 18:41:51  mast
+Added to get common functions out of xzap.cpp and imod.cpp
+
 
 */
