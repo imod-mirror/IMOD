@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/6/08: Prevented 3dmod started from eTomo from crashing by writing messages
+(e.g., from modv snapshots) to terminal after eTomo has exited.
+
 2/4/08: Fixed findhotpixels if filenames entered with -input & -output.
 
 1/31/08: Increased allowed filename length from 120 to 320 in header.
