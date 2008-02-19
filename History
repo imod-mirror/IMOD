@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/18/08: Stopped Processchunks from misinterpreting 'cd:' in a complaint about
+a key from ssh as a failure to cd.
+
 2/18/08: Stopped eTomo from taking up increasing memory and CPU time up to
 100% if the parallel processing screen is left open for hours.
 
@@ -30,7 +33,7 @@ at 36 and strip width no longer fixed at 256.
 1/25/08: Added install option to use libg2c packed with IMOD if the package
 has it.
 
-1/22/08: Converted patch2imod, imo2patch wrappers with dos2unix.
+1/22/08: Converted patch2imod, imod2patch wrappers with dos2unix.
 
 1/21/08: Stripped control characters from ssh version test and quoted drop
 message to avoid script failure in Processchunks.
