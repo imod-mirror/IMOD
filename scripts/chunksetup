@@ -33,7 +33,7 @@ endif
 set tmpdir = /usr/tmp
 if ($?IMOD_DIR) then
     setenv PATH "$IMOD_DIR/bin:$PATH"
-    if (-e $IMOD_DIR/bin/settmpdir) source $IMOD_DIR/bin/settmpdir
+    if (-e "$IMOD_DIR/bin/settmpdir") source "$IMOD_DIR/bin/settmpdir"
 endif
 
 set padstring =
@@ -75,9 +75,9 @@ while ($#argv > 3)
   endsw
 end
 
-set mastercom = $argv[1]
-set infile = $argv[2]
-set outfile = $argv[3]
+set mastercom = `\echo "$argv[1]" | sed '/\\/s//\//g'`
+set infile = `\echo "$argv[2]" | sed '/\\/s//\//g'`
+set outfile = `\echo "$argv[3]" | sed '/\\/s//\//g'`
 
 set fullroot = $mastercom:r
 set rootname = $fullroot:t
@@ -265,6 +265,15 @@ EOF
 
 #
 #  $Log$
+#  Revision 3.12  2008/02/22 04:59:00  mast
+#  Made it convert backslashes in filename inputs
+#
+#  Revision 3.11  2008/01/04 07:03:38  mast
+#  Fixed for space in IMOD_DIR, possibly for space in tmpdir
+#
+#  Revision 3.10  2007/11/02 22:07:32  mast
+#  Made it work from an upper directory
+#
 #  Revision 3.9  2005/11/19 04:31:26  mast
 #  Quote path setting to preserve spaces
 #
