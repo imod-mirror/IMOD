@@ -1,4 +1,4 @@
-# IMOD 3.8.26
+# IMOD 3.11.5/3.12.5
 #
 # Startup file for users of IMOD on a Macintosh, running bash
 #
@@ -43,16 +43,3 @@ function subm () { submfg $* & }
 #
 export IMOD_QTLIBDIR=$IMOD_DIR/qtlib
 
-# Set up aliases to run qt programs through runimodqtapp
-#
-alias genhstplt='runimodqtapp genhstplt'
-alias mtpairing='runimodqtapp mtpairing'
-alias avgstatplot='runimodqtapp avgstatplot'
-alias mtoverlap='runimodqtapp mtoverlap'
-alias nda='runimodqtapp nda'
-alias sda='runimodqtapp sda'
-alias mtk='runimodqtapp mtk'
-
-# Remove stacksize limitations, may be needed running Intel-compiled programs
-#
-ulimit -S -s unlimited
