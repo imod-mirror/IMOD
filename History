@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/4/08: In Ccderaser, fixed bug when patch had more than 1000 pixels, fixed
+merging of multiple circles, and increased linear maximum extent of patches to 
+200.
+
 3/3/08: Fixed linklibs-mac to include libimesh not libmesh, and to add Intel
 libraries for Intel Mac.
 
