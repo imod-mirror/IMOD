@@ -38,7 +38,7 @@ awk "/$instext2/, /$instext3/" $adpin | grep -v "INSERT" >> $adpout
 
 foreach i (libhelp/*.html)
     set file = $i:r:t
-    set title = `grep -i -A 1 '<title>' $i | tail -n 1`
+    set title = `sed -n '/.*<title>\(.*\)<\/title>.*/s//\1/p' $i`
     if ("$title" == "") set title = $file
     
     cat <<EOF >> $adpout
