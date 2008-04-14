@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4/14/08: Fixed Sirtsetup/Splittilt for Windows: switched Sirtsetup to unix line
+endings, used \echo to output \rm to workaround tcsh problems.
+
 3/21/08: IMOD_3-11-5
 3/27/08: Fixed IMOD.adp, fixed package to include bash.profile for Mac.
 
