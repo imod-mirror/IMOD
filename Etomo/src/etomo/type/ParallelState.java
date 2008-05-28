@@ -1,0 +1,108 @@
+package etomo.type;
+
+import java.util.Properties;
+
+/**
+ * <p>Description: </p>
+ * 
+ * <p>Copyright: Copyright 2006</p>
+ *
+ * <p>Organization:
+ * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
+ * University of Colorado</p>
+ * 
+ * @author $Author$
+ * 
+ * @version $Revision$
+ * 
+ * <p> $Log$
+ * <p> Revision 1.2  2007/11/09 17:46:04  sueh
+ * <p> bug# 1047 Changed the names of NAD fields for clarity.
+ * <p>
+ * <p> Revision 1.1  2007/11/06 19:38:00  sueh
+ * <p> bug# 1047 Added process state for anisotropic diffusion.
+ * <p> </p>
+ */
+public final class ParallelState extends BaseState {
+  public static final String rcsid = "$Id$";
+
+  private static final String GROUP_KEY = "State";
+
+  private final ParsedArray testKValueList = ParsedArray.getInstance(
+      EtomoNumber.Type.FLOAT, "TestKValueList");
+  private final EtomoNumber testIteration = new EtomoNumber("TestIteration");
+  /**
+   * IterationList may contain array descriptors in the form start-end.
+   * Example: "2,4 - 9,10".
+   */
+  private final ParsedArray testIterationList = ParsedArray
+      .getInstance("TestIterationList");
+  private final EtomoNumber testKValue = new EtomoNumber(
+      EtomoNumber.Type.FLOAT, "TestKValue");
+
+  public void store(final Properties props) {
+    store(props, "");
+  }
+
+  public void store(final Properties props, String prepend) {
+    super.store(props, prepend);
+    prepend = createPrepend(prepend);
+    testKValueList.store(props, prepend);
+    testIteration.store(props, prepend);
+    testIterationList.store(props, prepend);
+    testKValue.store(props, prepend);
+  }
+
+  public void load(final Properties props) {
+    load(props, "");
+  }
+
+  public void load(final Properties props, String prepend) {
+    super.load(props, prepend);
+    prepend = createPrepend(prepend);
+    testKValueList.load(props, prepend);
+    testIteration.load(props, prepend);
+    testIterationList.load(props, prepend);
+    testKValue.load(props, prepend);
+  }
+
+  String createPrepend(final String prepend) {
+    if (prepend.equals("")) {
+      return GROUP_KEY + "." + ParallelMetaData.ANISOTROPIC_DIFFUSION_GROUP_KEY;
+    }
+    return prepend + "." + GROUP_KEY + "."
+        + ParallelMetaData.ANISOTROPIC_DIFFUSION_GROUP_KEY;
+  }
+
+  public void setTestKValueList(String input) {
+    testKValueList.setRawString(input);
+  }
+
+  public ParsedArray getTestKValueList() {
+    return testKValueList;
+  }
+
+  public void setTestIteration(int input) {
+    testIteration.set(input);
+  }
+
+  public ConstEtomoNumber getTestIteration() {
+    return testIteration;
+  }
+
+  public void setTestIterationList(String input) {
+    testIterationList.setRawString(input);
+  }
+
+  public ParsedArray getTestIterationList() {
+    return testIterationList;
+  }
+
+  public void setTestKValue(float input) {
+    testKValue.set(input);
+  }
+
+  public ConstEtomoNumber getTestKValue() {
+    return testKValue;
+  }
+}

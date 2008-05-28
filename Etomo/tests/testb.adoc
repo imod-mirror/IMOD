@@ -1,0 +1,36 @@
+Version = 1.2
+#waitfor = SetupRecon
+verbose = 
+#waitfor = PostProc
+
+[Dialog = PreProc]
+adoc = pre-proc.adoc
+function = test
+
+[Dialog = CoarseAlign]
+adoc = coarse-align.adoc
+function = test
+waitfor =  FineAlign
+
+[Dialog = FidModel]
+mb.transfer-fiducials-open = 1
+bn.transfer-fiducials-from-other-axis =
+waitfor.process.transferfid = done
+#bn.transfer-fiducials-from-other-axis =
+#waitfor.process.transferfid = done
+adoc = fid-model.adoc
+function = run
+
+[Dialog = FineAlign]
+set.use-global-x-y-z-coordinates=1
+adoc = fine-align.adoc
+function = test
+
+[Dialog = TomoPos]
+adoc = tomo-pos.adoc
+function = run
+
+[Dialog = TomoGen]
+adoc = tomo-gen.adoc
+function = run
+bn.done =
