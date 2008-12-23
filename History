@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/22/08: Fixed imod2patch and patch2imod command wrappers so edgepatches will
+run in Windows.
+
 12/18/08: Changed isosurface color again, changed object names and scaled down 
 new color when saving an isosurface (In 3.13).
 
