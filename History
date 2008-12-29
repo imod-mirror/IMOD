@@ -1,10 +1,16 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/29/08: Fixed Stitchalign to avoid multiple vectors at same Z level and put
+out only one layer of vectors if input edges have only one layer.
+
+12/29/08: Made Findwarp give an appropriate error when discounting zero vectors
+leaves no fits; adjusted ratio of measured/unknowns if one layer in Z.
+
 12/22/08: Fixed imod2patch and patch2imod command wrappers so edgepatches will
 run in Windows.
 
 12/18/08: Changed isosurface color again, changed object names and scaled down 
-new color when saving an isosurface (In 3.13).
+new color when saving an isosurface.
 
 12/17/08: IMOD_4-0-0 and branch to IMOD_3-13-0
 12/17/08: Fixed problem in Edgepatches with reading a Frame entry with no Z.
