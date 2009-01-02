@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/2/09: Made a script for imodhelp to run it properly.
+
 12/29/08: Fixed Stitchalign to avoid multiple vectors at same Z level and put
 out only one layer of vectors if input edges have only one layer.
 
