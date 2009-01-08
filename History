@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/7/09: Added option to imodmop to paint tubes only in planes.
+
 1/6/09: Fixed model view display problem on some Macs caused by stereo 
 changes by swapping buffers twice more after the draw.
 
