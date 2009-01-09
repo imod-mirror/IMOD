@@ -59,9 +59,9 @@ void RawImageForm::manageState()
         which = dataTypeGroup->id(dataTypeGroup->selected());
     if (which < 0)
         return;
-    bool enab = which !=4 && !scanCheckBox->isChecked();
-    swapCheckBox->setEnabled(which && which != 4);
-    scanCheckBox->setEnabled(which != 4);
+    bool enab = which !=5 && !scanCheckBox->isChecked();
+    swapCheckBox->setEnabled(which && which != 5);
+    scanCheckBox->setEnabled(which != 5);
     minLabel->setEnabled(enab);
     minLineEdit->setEnabled(enab);
     maxLabel->setEnabled(enab);
