@@ -15,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 1.24.2.2  2009/01/07 15:37:07  mast
+    Backport
+
     Revision 1.26  2009/01/07 15:36:06  mast
     Had to make an argument float in a pow statement
 
@@ -3705,11 +3708,13 @@ void DrawingTools::setReducePtsOptionAndChangeDisplay( int value )
   if( plug.draw_reducePtsOpt == RD_TOL )
   {
     lblTol->show();
+    lblMinArea->hide();
     ((QSpinBox *)fSmoothSpinner)->setValue( plug.draw_reducePtsTol * 100.0f );
   }
   else
   {
     lblTol->hide();
+    lblMinArea->show();
     ((QSpinBox *)fSmoothSpinner)->setValue( plug.draw_reducePtsMinArea * 100.0f );
   }
 }
