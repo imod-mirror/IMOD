@@ -163,7 +163,7 @@ int main (int argc, char **argv)
 
       case 't': /* tilt angles */
 	vw->tiltname = argv[++i];
-        vw->cosStretch = 1;
+        vw->cosStretch = -1;
         vw->rotMode = 1;
 	break;
 
@@ -669,7 +669,7 @@ void MidasWindow::createParameterDisplay(QVBox *col)
         check->setFocusPolicy(NoFocus);
         QObject::connect(check, SIGNAL(toggled(bool)), VW->midasSlots,
                          SLOT(slotCosStretch(bool)));
-        VW->cosStretch = false;
+        VW->cosStretch = 0;
 
         QHBox *tiltOffBox = new QHBox(col);
         QLabel *tiltOffLabel = new QLabel("Tilt angle offset", tiltOffBox);
@@ -896,6 +896,9 @@ void midas_error(char *tmsg, char *bmsg, int retval)
 
 /*
     $Log$
+    Revision 3.22  2008/11/02 15:00:45  mast
+    Changed so cosine stretch option is not on by default
+
     Revision 3.21  2008/10/13 04:36:00  mast
     Added cosine stretch, switched to 3 lines of mouse reminders, got rid of
     larger font
