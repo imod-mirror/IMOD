@@ -458,6 +458,7 @@ static void setOnoffButtons(void)
   ImodvApp *a = Imodv;
   static int numShown = 0;
 
+  imodvOlistUpdateOnOffs(a);
   if (!objed_dialog)
     return;
   num = B3DMAX(numOnoffButtons, B3DMIN(MAX_ONOFF_BUTTONS, a->imod->objsize));
@@ -477,8 +478,6 @@ static void setOnoffButtons(void)
   if (numShown != a->imod->objsize)
     objed_dialog->adjustSize();
   numShown = a->imod->objsize;
-
-  imodvOlistUpdateOnOffs(a);
 }
 
 
@@ -2548,6 +2547,9 @@ static void makeRadioButton(char *label, QWidget *parent, QButtonGroup *group,
 /*
 
 $Log$
+Revision 4.42  2008/12/10 01:05:56  mast
+Fixed test for on flags to require all flags be on
+
 Revision 4.41  2008/12/09 23:27:36  mast
 Changed flag from line to noline
 
