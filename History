@@ -1,6 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-1/11/08: Made object list window get updated for model or view change even
+1/12/09: Fixed problem of Midas starting up with cosine stretch on.
+
+1/11/09: Made object list window get updated for model or view change even
 when object edit window not open.
 
 1/7/09: Added option to imodmop to paint tubes only in planes.
