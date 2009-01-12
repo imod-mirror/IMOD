@@ -435,7 +435,7 @@ static Islice *getXformSlice(MidasView *vw, int zval, int shiftOK,
     tramat_idmat(rmat);
     tramat_rot(rmat, vw->globalRot);
     if (zval == vw->cz || vw->xtype == XTYPE_XG) {
-      if (vw->cosStretch && zval) {
+      if (vw->cosStretch > 0 && zval) {
         lastAng = (vw->tiltAngles[vw->refz]-vw->tiltOffset)*RADIANS_PER_DEGREE;
         angle = (vw->tiltAngles[zval] - vw->tiltOffset) * RADIANS_PER_DEGREE;
         stretch = cos(lastAng) / cos(angle);
@@ -1709,6 +1709,9 @@ static void solve_for_shifts(MidasView *vw, float *a, float *b,
 
 /*
 $Log$
+Revision 3.19  2008/11/07 05:32:16  mast
+Fixed auto contrast of reference slice in reference mode
+
 Revision 3.18  2008/10/13 04:36:23  mast
 Added cosine stretching
 
