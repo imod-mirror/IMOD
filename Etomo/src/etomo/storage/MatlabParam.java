@@ -43,6 +43,16 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.25  2009/01/13 19:35:55  sueh
+ * <p> bug# 1170 Changed N_WEIGHT_GROUP_DEFAULT to 8.  Added
+ * <p> N_WEIGHT_GROUP_MIN.  Setting the floor of nWeightGroup to
+ * <p> N_WEIGHT_GROUP_MIN for backwards compatibility, since the previous
+ * <p> version have a min of 0, which causes the spinner to lock up.  Added
+ * <p> isNWeightGroupEmpty.
+ * <p>
+ * <p> Revision 1.24  2008/10/10 20:42:48  sueh
+ * <p> bug# 1142 Clear tiltRange when tiltRange check box is unchecked.
+ * <p>
  * <p> Revision 1.23  2008/09/10 20:55:24  sueh
  * <p> bug# 1135 Check for null when calling ParsedElementList.get(int).  Check
  * <p> for null when calling ParsedElement.getElement or getRawNumber.  Make
@@ -267,7 +277,8 @@ public final class MatlabParam {
   public static final String INSIDE_MASK_RADIUS_KEY = "insideMaskRadius";
   public static final String OUTSIDE_MASK_RADIUS_KEY = "outsideMaskRadius";
   public static final String N_WEIGHT_GROUP_KEY = "nWeightGroup";
-  public static final int N_WEIGHT_GROUP_DEFAULT = 0;
+  public static final int N_WEIGHT_GROUP_DEFAULT = 8;
+  public static final int N_WEIGHT_GROUP_MIN = 2;
 
   private static final int VOLUME_INDEX = 0;
   private static final int PARTICLE_INDEX = 1;
@@ -327,6 +338,7 @@ public final class MatlabParam {
     this.file = file;
     this.newFile = newFile;
     nWeightGroup.setDefault(N_WEIGHT_GROUP_DEFAULT);
+    nWeightGroup.setFloor(N_WEIGHT_GROUP_MIN);
   }
 
   /**
@@ -731,6 +743,10 @@ public final class MatlabParam {
 
   public ParsedElement getNWeightGroup() {
     return nWeightGroup;
+  }
+  
+  public boolean isNWeightGroupEmpty() {
+    return nWeightGroup.isEmpty();
   }
 
   public String getOutsideMaskRadius() {
