@@ -229,8 +229,10 @@ void ImodClipboard::stdinTimeout()
 
   if (!lineLen) {
     disconnect(mStdinTimer);
-    delete mStdinTimer;
-    mStdinTimer = NULL;
+
+    // Qt 4 warns not to delete timer in its event handler so why do it?
+    //delete mStdinTimer;
+    //mStdinTimer = NULL;
     sendResponse(1);
     mDisconnected = true;
     return;
@@ -642,6 +644,9 @@ static int readLine(char *line)
 
 /*
 $Log$
+Revision 4.29  2008/07/24 17:22:01  mast
+Fixed reading of object properties 2 to not swallow another number
+
 Revision 4.28  2008/07/16 04:29:08  mast
 Added new messages for some more object properties
 
