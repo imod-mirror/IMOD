@@ -1768,7 +1768,7 @@ void BeadFixer::deleteBelow()
 {
   Imod *imod = ivwGetModel(plug->view);
   Iobj *obj;
-  int ob, i, del, ix, iy, iz, pt, curobj;
+  int ob, i, del, ix, iy, iz, pt, curobj, anydel = 0;
   Istore *store;
   Iindex index;
   Icont *cont;
@@ -1802,14 +1802,19 @@ void BeadFixer::deleteBelow()
                 }
               }
             }
-            if (del)    
+            if (del) {
+              if (!anydel)
+                imodSelectionListClear(plug->view);
               imodSelectionListAdd(plug->view, index);
+              anydel = 1;
+            }
           }
         }
       }
     }
   }
-  inputDeleteContour(plug->view);
+  if (anydel)
+    inputDeleteContour(plug->view);
 }
 
 
@@ -2443,6 +2448,9 @@ void BeadFixer::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 1.52  2008/12/13 01:25:48  mast
+Improved criteria for accepting farther peak in autocenter
+
 Revision 1.51  2008/12/10 00:58:59  mast
 Save the binning that goes along with a diameter
 
