@@ -64,7 +64,8 @@ ImodClipboard::ImodClipboard(bool useStdin)
   mHandling = false;
   mExiting = false;
   mDisconnected = false;
-  mClipTimer = NULL;
+  mClipTimer = new QTimer(this);
+  connect(mClipTimer, SIGNAL(timeout()), this, SLOT(clipTimeout()));
   mClipHackTimer = NULL;
   mStdinTimer = NULL;
   mUseStdin = useStdin;
@@ -144,8 +145,6 @@ void ImodClipboard::clipboardChanged()
   // Otherwise create and start a timer to execute the action
   // Set flag because event comes in twice in Windows
   mHandling = true;
-  mClipTimer = new QTimer(this);
-  connect(mClipTimer, SIGNAL(timeout()), this, SLOT(clipTimeout()));
   mClipTimer->start(10, true);
 }
 
@@ -153,9 +152,9 @@ void ImodClipboard::clipTimeout()
 {
   // If exiting flag is set, then finally quit
   if (mExiting) {
-    disconnect(mClipTimer);
+    /*disconnect(mClipTimer);
     delete mClipTimer;
-    mClipTimer = NULL;
+    mClipTimer = NULL; */
     if (ImodvClosed || !Imodv->standalone)
       imod_quit();
     else
@@ -169,13 +168,13 @@ void ImodClipboard::clipTimeout()
       // If it returns true, set the exiting flag and start another timer
       mExiting = true;
       mClipTimer->start(200, true);          // 100 ms is too short on SGI
-    } else if (mClipTimer){
+    } /*else if (mClipTimer){
 
       // Otherwise, all done with this timer
       disconnect(mClipTimer);
       delete mClipTimer;
       mClipTimer = NULL;
-    }
+      } */
     mHandling = false;
   }
 }
@@ -228,6 +227,7 @@ void ImodClipboard::stdinTimeout()
 #endif
 
   if (!lineLen) {
+    mStdinTimer->stop();
     disconnect(mStdinTimer);
 
     // Qt 4 warns not to delete timer in its event handler so why do it?
@@ -242,8 +242,8 @@ void ImodClipboard::stdinTimeout()
 
   // Start timer to execute message just as for clipboard
   mHandling = true;
-  mClipTimer = new QTimer(this);
-  connect(mClipTimer, SIGNAL(timeout()), this, SLOT(clipTimeout()));
+  //mClipTimer = new QTimer(this);
+  //connect(mClipTimer, SIGNAL(timeout()), this, SLOT(clipTimeout()));
   mClipTimer->start(10, true);
 }
 
@@ -644,6 +644,9 @@ static int readLine(char *line)
 
 /*
 $Log$
+Revision 4.29.2.1  2009/01/16 15:45:51  mast
+*** empty log message ***
+
 Revision 4.29  2008/07/24 17:22:01  mast
 Fixed reading of object properties 2 to not swallow another number
 
