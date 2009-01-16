@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/15/09: Stopped beadfixer from deleting current contour when deleting ones
+below threshold.
+
 1/12/09: Fixed problem of Midas starting up with cosine stretch on.
 
 1/11/09: Made object list window get updated for model or view change even
