@@ -390,7 +390,7 @@ csrc : ALWAYS
 	tar cBf - \
 	machines \
 	lib*/*.[ch] lib*/*.cpp lib[icm]*/Makefile libdiaqt/Makefile.dummy \
-	libdiaqt/Makefile.unix lib*/*.dsp libimod/libimod.dsw \
+	libdiaqt/Makefile.unix lib*/*.dsp lib*/*.vcproj libimod/libimod.dsw \
 	USFFTlib/*/*.a sysdep/*/* \
 	imod/*.[ch] imod/*.cpp imod/*.ui imod/imod.pro imod/imodhelp \
 	imod/*.bits imod/*.png imod/*.xpm \
@@ -454,6 +454,9 @@ ALWAYS:
 
 ############################################################################
 #  $Log$
+#  Revision 3.73  2008/01/29 05:32:58  mast
+#  Remove devkit from src build
+#
 #  Revision 3.72  2008/01/24 15:46:08  mast
 #  Added html in plugin directories
 #
