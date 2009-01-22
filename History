@@ -1,5 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/21/09: Matchshifts makes sure solve.xf is readable by owner to solve problem
+on Vista when files appear to have no permissions to cygwin.
+
+1/21/09: Made Findbeads3d set mean of correlation reference to zero, needed
+for valid correlations.
+
 1/16/09: Fixed runimodqtapp for spaces in IMOD_DIR.
 
 1/15/09: Stopped beadfixer from deleting current contour when deleting ones
