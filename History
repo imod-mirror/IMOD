@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/23/09: Fixed size of current point sphere in model view if data loaded with
+binning.
+
 1/21/09: Matchshifts makes sure solve.xf is readable by owner to solve problem
 on Vista when files appear to have no permissions to cygwin.
 

@@ -66,6 +66,8 @@ void ivwInit(ImodView *vi, bool modview)
   startExtraObjectIfNone(vi);
   vi->undo = new UndoRedo(vi);
   vi->modelViewVi = modview ? 1 : 0;
+  vi->xybin = 1;
+  vi->zbin = 1;
   if (modview)
     return;
      
@@ -110,8 +112,6 @@ void ivwInit(ImodView *vi, bool modview)
   vi->linePtrs = NULL;
   vi->linePtrMax = 0;
   vi->blankLine = NULL;
-  vi->xybin = 1;
-  vi->zbin = 1;
   vi->flippable = 1;
   vi->grayRGBs = 0;
   vi->reloadable = 0;
@@ -2795,6 +2795,9 @@ void ivwBinByN(unsigned char *array, int nxin, int nyin, int nbin,
 /*
 
 $Log$
+Revision 4.77  2008/12/07 05:21:27  mast
+Set xyzmouse position with floating point if given an Ipoint
+
 Revision 4.76  2008/12/03 04:32:57  mast
 Made it detect 3D FFT and not mirror it
 
