@@ -462,7 +462,7 @@ void imodvViewMenu(int item)
         xobj->flags |= IMOD_OBJFLAG_SCAT | IMOD_OBJFLAG_MESH |
           IMOD_OBJFLAG_NOLINE | IMOD_OBJFLAG_FILL | IMOD_OBJFLAG_EXTRA_MODV |
           IMOD_OBJFLAG_EXTRA_EDIT | IMOD_OBJFLAG_MODV_ONLY;
-        xobj->pdrawsize = 7.;
+        xobj->pdrawsize = 7. * a->vi->xybin;
         xobj->red = 1.;
         xobj->green = 0.;
         xobj->blue = 0.;
@@ -470,7 +470,7 @@ void imodvViewMenu(int item)
         cont = imodContourNew();
         if (cont) {
           imodPointAppendXYZ(cont, 0., 0., 0.);
-          imodPointSetSize(cont, 0, 5.);
+          imodPointSetSize(cont, 0, 5. * a->vi->xybin);
           if (cont->psize && cont->sizes && imodObjectAddContour(xobj, cont)
               >= 0)
             freeXobj = false;
@@ -647,6 +647,9 @@ void ImodvBkgColor::keyReleaseSlot ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 4.30  2008/12/15 21:28:00  mast
+Changes to call for switching buffering
+
 Revision 4.29  2008/12/09 23:27:05  mast
 Changed flag from line to noline
 
