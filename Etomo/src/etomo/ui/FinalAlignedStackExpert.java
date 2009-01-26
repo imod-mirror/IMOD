@@ -62,6 +62,14 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.9  2009/01/26 22:43:32  sueh
+ * <p> bug# 1173 Saved current tab from dialog.  Added new line to simple
+ * <p> defocus file.
+ * <p>
+ * <p> Revision 1.8  2008/12/15 23:03:30  sueh
+ * <p> bug# 1161 Added parameters imageRotation and manager to
+ * <p> NewstParam.setSizeToOutputInXandY.
+ * <p>
  * <p> Revision 1.7  2008/12/09 21:08:06  sueh
  * <p> bug# 1154 In getParameters(CtfPhaseFlipParam) setting OutputFileName.
  * <p>
@@ -100,6 +108,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
   private FinalAlignedStackDialog dialog = null;
   private boolean advanced = false;
   private boolean enableFiltering = false;
+  private FinalAlignedStackDialog.Tab curTab = FinalAlignedStackDialog.Tab.DEFAULT;
 
   public FinalAlignedStackExpert(ApplicationManager manager,
       MainTomogramPanel mainPanel, ProcessTrack processTrack, AxisID axisID) {
@@ -123,7 +132,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     //Create the dialog and show it.
     Utilities.timestamp("new", "FinalAlignedStackDialog",
         Utilities.STARTED_STATUS);
-    dialog = FinalAlignedStackDialog.getInstance(manager, this, axisID);
+    dialog = FinalAlignedStackDialog.getInstance(manager, this, axisID,curTab);
     Utilities.timestamp("new", "FinalAlignedStackDialog",
         Utilities.FINISHED_STATUS);
     // no longer managing image size
@@ -193,6 +202,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     if (dialog == null) {
       return false;
     }
+    curTab = dialog.getCurTab();
     DialogExitState exitState = dialog.getExitState();
     if (exitState == DialogExitState.EXECUTE) {
       manager.closeImod(ImodManager.MTF_FILTER_KEY, axisID,
@@ -582,6 +592,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
       if (!updateToDate) {
         writeId = file.openWriter();
         file.write("1 1 0 0 " + dialog.getExpectedDefocus(), writeId);
+        file.newLine(writeId);
         updateToDate = true;
         if (file.closeWriter(writeId)) {
           writeId = LogFile.NO_ID;
