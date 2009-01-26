@@ -1,5 +1,10 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/26/09: IMOD_3-13-1
+1/26/09: Fixed right-click popup menu on Final Aligned Stack panel.
+
+1/26/09: Fixed eTomo reporting of error messages from Ctfplotter.
+
 1/23/09: Fixed size of current point sphere in model view if data loaded with
 binning.
 
