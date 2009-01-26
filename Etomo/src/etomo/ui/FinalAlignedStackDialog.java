@@ -62,6 +62,11 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.11  2009/01/26 22:42:55  sueh
+ * <p> bug# 1173 Added mouse listener to tabbed panel.  Added tooltips.
+ * <p> Revision 1.9  2008/12/02 21:39:10  sueh
+ * <p> bug# 1157 Added "(pixels)" to the final stack fiducial diameter.
+ * <p>
  * <p> Revision 1.8  2008/12/02 21:21:51  sueh
  * <p> bug# 1157 Changed better radius to fiducial diameter.
  * <p>
@@ -210,9 +215,10 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
   private Tab curTab = Tab.DEFAULT;
 
   private FinalAlignedStackDialog(ApplicationManager appMgr,
-      FinalAlignedStackExpert expert, AxisID axisID) {
+      FinalAlignedStackExpert expert, AxisID axisID, Tab curTab) {
     super(appMgr, axisID, DIALOG_TYPE);
     this.expert = expert;
+    this.curTab = curTab;
     screenState = appMgr.getScreenState(axisID);
     ProcessResultDisplayFactory displayFactory = appMgr
         .getProcessResultDisplayFactory(axisID);
@@ -269,10 +275,11 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
   }
 
   public static FinalAlignedStackDialog getInstance(ApplicationManager appMgr,
-      FinalAlignedStackExpert expert, AxisID axisID) {
+      FinalAlignedStackExpert expert, AxisID axisID, Tab curTab) {
     FinalAlignedStackDialog instance = new FinalAlignedStackDialog(appMgr,
-        expert, axisID);
+        expert, axisID, curTab);
     instance.addListeners();
+    instance.tabbedPane.setSelectedIndex(curTab.toInt());
     return instance;
   }
 
@@ -304,6 +311,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
     //  Mouse adapter for context menu
     GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
     rootPanel.addMouseListener(mouseAdapter);
+    tabbedPane.addMouseListener(mouseAdapter);
   }
 
   public static ProcessResultDisplay getFullAlignedStackDisplay() {
@@ -442,6 +450,10 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
 
   public float getImageRotation() throws NumberFormatException {
     return Float.parseFloat(ltfRotation.getText());
+  }
+
+  Tab getCurTab() {
+    return curTab;
   }
 
   String getInterpolationWidth() {
@@ -890,9 +902,9 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
       alignLogfile = "newst";
     }
     String[] manPagelabel = { alignManpageLabel, "Ctfplotter", "Ctfphaseflip",
-        "Mtffilter", "3dmod" };
+        "CcdEraser", "Mtffilter", "3dmod" };
     String[] manPage = { alignManpage + ".html", "ctfplotter.html",
-        "ctfphaseflip.html", "mtffilter.html", "3dmod.html" };
+        "ctfphaseflip.html", "ccderaser.html", "mtffilter.html", "3dmod.html" };
     String[] logFileLabel = { alignLogfileLabel, "Ctfplotter", "Ctfcorrection",
         "Mtffilter" };
     String[] logFile = new String[4];
@@ -901,7 +913,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
     logFile[2] = "ctfcorrection" + axisID.getExtension() + ".log";
     logFile[3] = "mtffilter" + axisID.getExtension() + ".log";
     ContextPopup contextPopup = new ContextPopup(rootPanel, mouseEvent,
-        "FINAL ALIGNED STACK", ContextPopup.TOMO_GUIDE, manPagelabel, manPage,
+        "FinalAligned", ContextPopup.TOMO_GUIDE, manPagelabel, manPage,
         logFileLabel, logFile, applicationManager, axisID);
   }
 
@@ -1177,6 +1189,29 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
     btnUseCtfCorrection.setToolTipText("Replace full aligned stack ("
         + DatasetFiles.FULL_ALIGNED_EXT + ") with CTF corrected stack ("
         + DatasetFiles.CTF_CORRECTION_EXT + ").");
+    //erase gold
+    btnXfModel
+        .setToolTipText("Transform .fid mode built on prealigned stack to "
+            + "_erase.fid model that fits the aligned stack.");
+    btn3dmodXfModel
+        .setToolTipText("View the _erase.fid model on the aligned stack.");
+    ltfFiducialDiameter
+        .setToolTipText("The diameter that will be erased around each point.");
+    rbPolynomialOrderUseMean
+        .setToolTipText("Fill the erased pixel with the mean of surrounding "
+            + "points.");
+    rbPolynomialOrderFitAPlane
+        .setToolTipText("Fill the erased pixels with a gradient based on plane "
+            + "fit to surrounding points.");
+    btnCcdEraser
+        .setToolTipText("Run Ccderaser on the aligned stack to erase around "
+            + "model points.");
+    btn3dmodCcdEraser
+        .setToolTipText("View the results of running Ccderaser on the aligned "
+            + "stack along with the _erase.fid model.");
+    btnUseCcdEraser
+        .setToolTipText("Replace the full aligned stack (.ali) with the erased "
+            + "stack (_erase.ali).");
   }
 
   private static final class ButtonListener implements ActionListener {
@@ -1234,13 +1269,13 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
     }
   }
 
-  private static final class Tab {
+  static final class Tab {
     private static final Tab NEWST = new Tab(0);
     private static final Tab CTF_CORRECTION = new Tab(1);
     private static final Tab CCD_ERASER = new Tab(2);
     private static final Tab MTF_FILTER = new Tab(3);
 
-    private static final Tab DEFAULT = NEWST;
+    static final Tab DEFAULT = NEWST;
 
     private final int index;
 
