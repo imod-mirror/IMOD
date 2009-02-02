@@ -2332,9 +2332,17 @@ static int finishMesh()
     else 
       obj->flags &= ~IMOD_OBJFLAG_PNT_NOMODV;
 
-    if (meshedModNum == Imodv->cm && meshedObjNum == Imodv->ob && objed_dialog)
-      objset(Imodv);
-
+    // Update various things
+    if (meshedModNum == Imodv->cm) {
+      if (meshedObjNum == Imodv->ob && objed_dialog)
+        objset(Imodv);
+      if (turnon) {
+        if (meshedObjNum < numOnoffButtons)
+          diaSetChecked(OnoffButtons[meshedObjNum], true);
+        imodvOlistSetChecked(Imodv, meshedObjNum, true);
+        imodvDrawImodImages();
+      }
+    }
     if (!ImodvClosed)
       imodvDraw(Imodv);
   }
@@ -2547,6 +2555,9 @@ static void makeRadioButton(char *label, QWidget *parent, QButtonGroup *group,
 /*
 
 $Log$
+Revision 4.42.2.1  2009/01/12 01:31:42  mast
+Update ubject list for view/model change even if this window not open
+
 Revision 4.42  2008/12/10 01:05:56  mast
 Fixed test for on flags to require all flags be on
 
