@@ -50,10 +50,6 @@ if (! -e $comname) then
     exit 1
 endif
 
-# Set target slabs if not entered
-#
-if ($targetslabs == 0) @ targetslabs = $targetratio * $numproc
-
 # Get name of output file
 set outline = `sed -n -e '/	/s// /g' -e '/[[:cntrl:]]/s///g' -e '/^ *OutputF/p' $comname`
 if ($#outline < 2) then
@@ -66,7 +62,7 @@ set outfile = $outline[2]
 \rm -f $rootname-start.com $rootname-finish.com
 
 set views = `grep -i StartingEndingViews $comname | grep -v '^#' | sed '/[^ 0-9\.]/s///g'`
-set inStack = `grep -i InputStack $comname | grep -v '^#'` 
+set inStack = `grep -i InputStack $comname | grep -v '^#' | sed '/[[:cntrl:]]/s///g'` 
 if ($#views <2 ) then
    set dimensions = `header -s $inStack[2] | sed '/[[:cntrl:]]/s///g'`
    set views = `echo "1  $dimensions[3]"`
@@ -74,6 +70,10 @@ endif
 
 set viewdel = 'StartingEndingViews'
 @ total = 1 + $views[2] - $views[1]
+
+@ numslabs = ($total + $maxslices - 1) / $maxslices
+@ slabsize = $total / $numslabs
+@ remainder = $total - $numslabs * $slabsize
 
 set outroot = $outfile:r
 set outext = $outfile:e
@@ -98,10 +98,9 @@ EOF
 endif
 
 @ num = 0
-set currSlice = 0
 set origOffset = $views[1]
 
-while ($currSlice < $total)
+while ($num < $numslabs)
     @ num++
     set numtext = $num
     if ($num < 10) then
@@ -111,13 +110,8 @@ while ($currSlice < $total)
     endif
     set thiscom = $rootname-$numtext.com
 
-    @ currSlice = $currSlice + $maxslices
-
-    if ($currSlice > $total ) then
-        set origEnd = $views[2]
-    else
-        @ origEnd = $origOffset + $maxslices - 1 
-    endif
+    @ origEnd = $origOffset + $slabsize - 1 
+    if ($num <= $remainder) @ origEnd++
 
     sed -e "/$viewdel/d" \
         -e "/DefocusFile/a\\
@@ -130,7 +124,7 @@ TotalViews $views[1] $views[2]\
     cat <<EOF >> $thiscom
 \$echo CHUNK DONE
 EOF
-   @ origOffset =$origOffset + $maxslices
+   @ origOffset = $origEnd + 1
 end
 
 set finish = $rootname-finish.com
@@ -140,4 +134,7 @@ set finish = $rootname-finish.com
 EOF
 
 #  $Log$
+#  Revision 3.3  2007/11/06 23:31:45  xiongq
+#  add log funtion and use DefocusFile option
+#
 #
