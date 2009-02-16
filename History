@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/15/09: Fixed problem with getting max coordinates in Point2model.
+
 2/7/09: Fixed bug in Splitcorrection for Windows and made chunk sizes as near
 equal as possible.
 
