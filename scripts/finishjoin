@@ -284,6 +284,7 @@ set wcout = `wc -l $joinroot.xf`
 #
 if ($nlines == $ntomo) then
     \cp $joinroot.xf $joinroot.tomoxf
+    chmod u+rw $joinroot.tomoxf
 else
 
     # Now work on getting the transforms if it is an old file
@@ -380,6 +381,12 @@ exit 1
 
 #
 #  $Log$
+#  Revision 3.23  2009/02/17 05:44:04  mast
+#  Changing directory or copied file modes for Vista
+#
+#  Revision 3.22  2008/05/20 22:45:49  mast
+#  Added option to do local fits with xftoxg
+#
 #  Revision 3.21  2008/01/04 07:03:38  mast
 #  Fixed for space in IMOD_DIR, possibly for space in tmpdir
 #
