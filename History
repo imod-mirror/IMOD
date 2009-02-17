@@ -1,5 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/16/09: Set working directory permissions in Copytomocoms and Makejoincom and set
+permissions of copied files in align.com, Finishjoin, Xfalign, Tomosnapshot to get
+around problems in Vista.
+
+2/16/09: Made error messages produced by PIP come out on one line.
+
 2/16/09: Improved messages from Solvematch and guide instructions when the
 center shift is above the limit.
 
