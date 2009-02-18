@@ -2324,6 +2324,7 @@ static int finishMesh()
     passClearFlags = 0;
     failSetFlags = IMOD_OBJFLAG_MESH;
     failClearFlags = IMOD_OBJFLAG_OFF;
+    int turnon = iobjOff(obj->flags);
     optionSetFlags(&obj->flags);
 
     // Transfer points off flag
@@ -2555,6 +2556,9 @@ static void makeRadioButton(char *label, QWidget *parent, QButtonGroup *group,
 /*
 
 $Log$
+Revision 4.42.2.2  2009/02/02 13:34:43  mast
+Synchronize on/off butons when meshing turns object on
+
 Revision 4.42.2.1  2009/01/12 01:31:42  mast
 Update ubject list for view/model change even if this window not open
 
