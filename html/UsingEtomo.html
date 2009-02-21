@@ -1,0 +1,535 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+  <meta http-equiv="CONTENT-TYPE" content="text/html; charset=utf-8">
+  <title>Using Etomo</title>
+  <meta name="GENERATOR" content="OpenOffice.org 1.0.2  (Linux)">
+  <meta name="CREATED" content="20030421;23004100">
+  <meta name="CHANGED" content="20031105;14225600">
+<!-- $Author$
+
+$Revision$
+
+$Log$
+Revision 3.12  2008/08/21 00:08:24  mast
+*** empty log message ***
+
+Revision 3.11  2007/11/20 22:55:57  mast
+Updates for multiple processing functions
+
+Revision 3.10  2007/02/20 19:25:57  mast
+Eliminated even disguised email addresses
+
+Revision 3.9  2006/10/14 15:28:12  mast
+*** empty log message ***
+
+Revision 3.8  2006/10/09 18:03:54  mast
+*** empty log message ***
+
+Revision 3.7  2006/10/07 00:14:11  mast
+*** empty log message ***
+
+Revision 3.6  2006/06/19 18:54:01  mast
+*** empty log message ***
+
+Revision 3.5  2006/01/07 01:58:54  mast
+*** empty log message ***
+
+Revision 3.4  2005/03/08 23:54:26  mast
+Updated for IMOD 3.5
+
+Revision 3.3  2003/11/05 21:25:49  rickg
+*** empty log message ***
+
+Revision 3.2  2003/10/03 17:38:42  rickg
+Removed installation section, no longer applicable
+
+Revision 3.1  2003/09/11 15:44:51  mast
+*** empty log message ***
+
+Revision 1.5  2003/06/13 19:33:09  rickg
+Updated for Beta 2
+
+Revision 1.4  2003/04/28 17:35:48  rickg
+Typo fixes and contents
+
+Revision 1.3  2003/04/25 23:42:09  rickg
+Moved CVS info ahead HTML tag
+
+Revision 1.2  2003/04/25 22:44:18  rickg
+Added comment trailer for CVS header
+
+Revision 1.1  2003/04/25 22:11:29  rickg
+Initial revision
+-->
+  <style>
+	<!--
+		H1.western { font-family: "Arial", sans-serif; font-size: 14pt }
+		P.western { font-family: "Arial", sans-serif; font-size: 11pt }
+		H2.western { font-family: "Arial", sans-serif; font-size: 12pt }
+	-->
+	</style>
+</head>
+<body lang="en-US">
+<p class="western" style="margin-top: 0.42cm; page-break-after: avoid;"
+ align="center">
+<font face="Albany, sans-serif"><font style="font-size: 22pt;" size="6">Using
+eTomo</font></font></p>
+<p class="western" style="margin-top: 0.42cm; page-break-after: avoid;"
+ align="center">
+<font face="Albany, sans-serif"><font size="4">Rick Gaudette</font></font></p>
+<p class="western" style="margin-top: 0.42cm; page-break-after: avoid;"
+ align="center">
+<font face="Albany, sans-serif"><font size="4">Boulder Laboratory for
+3D Electron Microscopy of Cells</font></font></p>
+<p class="western" style="margin-top: 0.42cm; page-break-after: avoid;"
+ align="center">
+<font face="Albany, sans-serif"><font size="4">University of Colorado</font></font></p>
+<p class="western" style="margin-top: 0.42cm; page-break-after: avoid;"
+ align="center">
+<br>
+<br>
+</p>
+<h1 class="western">Contents</h1>
+<p class="western"
+ style="margin-left: 2cm; margin-top: 0.42cm; page-break-after: avoid;"
+ align="left">
+<a href="#Usage">Usage</a><br>
+<a href="#Other_Interfaces">Other Interfaces in eTomo</a><br>
+<a href="#ReportingBugs">Reporting bugs</a></p>
+<p class="western" style="margin-top: 0.42cm; page-break-after: avoid;"
+ align="left">
+<br>
+<br>
+</p>
+<h1 class="western"><a name="Usage"></a>Usage</h1>
+<p class="western">eTomo provides a graphical user interface (GUI) to
+the IMOD Tomography package. The general user interface design idea
+on which eTomo is built is to present a separate panel for each
+distinct step in computing a tomogram with the IMOD package. This
+allows the user to focus on the current step in the processing
+sequence,
+presenting only the parameters and controls required for the current
+step.</p>
+<h2 class="western">Starting eTomo</h2>
+<p class="western">eTomo can be started from the command line with
+the command</p>
+<dl>
+  <dd><i>etomo</i></dd>
+  <dd style="margin-bottom: 0.5cm;"> <br>
+    <br>
+  </dd>
+</dl>
+<p class="western">
+It may take a little while to come up; Java applications have a slow
+startup time. You can also open up a previous dataset by specifying
+the relative path to the .edf file on the command line, such as</p>
+<dl>
+  <dd style="margin-bottom: 0.5cm;"><i>etomo path/to/dataset.edf</i></dd>
+</dl>
+<p class="western">
+<br>
+<br>
+</p>
+<h2 class="western">The Setup Panel</h2>
+<p class="western">When eTomo is first started the <b>Setup Panel</b>
+is shown; at this point you can either setup the processing for a new
+tomogram, open one that was previously being worked on, or open several
+other interfaces (see below). </p>
+<p class="western">To start working on a new dataset you need to fill
+out the fields in the <b>Setup Panel</b>. </p>
+<ul>
+  <li>
+    <p class="western">The <b>Dataset Name</b> is the name of the file
+containing the projection sequence (or the name of one of these files
+in the case of a dual axis tomogram). You can enter the <b>Dataset Name</b>
+by opening the file selection dialog window using the folder labeled
+button associated with the <b>Dataset Name</b> field. Alternatively,
+you may enter the relative path to the projection sequence file
+directly into the edit box.</p>
+  </li>
+  <li>
+    <p class="western">The <b>Backup Directory</b> is optionally
+available to save small working files every time you run a procedure.
+You can leave this field empty if you do not wish to use a backup
+directory.</p>
+  </li>
+  <li>
+    <p class="western">Specify the pixel size, fiducial size and image
+rotation in the appropriate fields.&nbsp; If the header of your image
+file includes pixel size and/or image rotation information, press the <span
+ style="font-weight: bold;">Scan Header</span> button to extract these
+values.<br>
+    </p>
+  </li>
+  <li>
+    <p class="western">Specify the source for the tilt angles for
+either one or both axes, as appropriate. You can also optionally
+specify individual projections to exclude from the processing. The
+syntax for this exclude list is a comma separated list of ranges (i.e.
+1,4-5,60-70)</p>
+  </li>
+</ul>
+<p class="western">Press the <b>Create com scripts</b> button to move
+on to generating the tomogram. You can also use an existing set of
+com scripts by pressing the <b>Use existing coms</b> button; just be
+sure that the setup parameters you have entered exactly match those
+that were entered using <i>copytomocoms</i>.</p>
+<p class="western">To return to a previous tomogram, select the .edf
+(eTomo Data File) file from the most recently used list on the bottom
+of the File menu, or the Open... item on the File menu if the .edf is
+not listed in the most recently used list. The file dialog will let
+you navigate around to select the .edf file associated with the
+tomogram you wish to work on.</p>
+<h2 class="western">The Main Window</h2>
+<p class="western">The main window consists of several areas: on the
+left is a column of buttons (<b>Process Control Buttons</b>) that
+allow you to select the particular step of the tomogram computation
+to work on, the top center is the <b>Process Monitor</b> that will
+inform you of the status of the current process or the last process
+completed and a button to kill the current process, the bottom status
+bar presents some basic information about the dataset you are working
+on. If you are working on a dual axis tomogram this layout will be
+repeated for both the A and B axes.</p>
+<p class="western">The <b>Process Control Buttons</b> are arranged in
+the suggested order of processing from top to bottom and are color
+coded to signify the state of the process. Red indicates that the
+process has not been started, magenta indicates that the process is
+in progress, and green indicates that the process has been completed.
+The state of the process is also indicated in text on the button.
+When one of the buttons is selected the right side of the window will
+fill in with information and fields associated with that process;
+these forms are called <b>Process Panels</b>. They allow you to
+modify the necessary parameters and execute the programs required by
+that processing step. The parameters and buttons on each <b>Process
+Panel</b> are typically laid out from top to bottom in the order they
+should be executed. When you execute a process (by pressing a button
+on one of the <b>Process Panels</b>) the <b>Process Monitor</b> will
+indicate what the process is doing and when it is complete.&nbsp; In
+many cases, the button that you pressed will turn dark to indicate that
+the operation has been completed.<br>
+</p>
+<p class="western">The text output of a particular process is written
+to a log file named for the particular process; this log file can be
+viewed by right clicking the mouse pointer over the window region
+associated with the process. This will open a menu that is split into
+three sections: the entries in the first section will open up the log
+files associated with the current process; the second section will
+allow you to open up man pages associated with the current
+process; the final menu section opens the general help documents.
+There is more information regarding online help resources in the
+section <a href="#AccessingHelp">Accessing Help</a>.</p>
+<p class="western">When you are done with all of the processes for a
+given step press the <b>Done</b> button; this will inform eTomo that
+the step is complete and will also move the GUI forward to the next
+step in the tomogram processing. Pressing the <b>Postpone</b> button
+will save all of the current parameters for that step and pressing
+<b>Cancel</b> will abort all of the changes made since the last
+process was run for that step. If you move between process panels by
+pressing the buttons in the left column, this will save the current
+parameters just as a Postpone does.&nbsp; The final button of interest
+at the
+bottom of most processing panels is the <b>Advanced</b> button. This
+will present a much more complete list of parameters for each step,
+which are mostly needed for unique or extreme cases.</p>
+<p class="western">Since the number of parameters that a particular
+step requires can vary significantly, <span
+ style="font-family: helvetica,arial,sans-serif;"></span>the amount
+of screen space the
+GUI needs to present that information also changes. The current version
+of the program will adjust the window size automatically to fit tightly
+around the <b>Process Panel </b>whenever you change
+screens or change the amount of information displayed (such as by
+changing to advanced mode).&nbsp; You make this fitting occur
+automatically by selecting the <b>Options/Fit Window</b>
+menu item or using Ctrl-F hot key.&nbsp; Whenever the window is
+too small to display the information, scroll bars will appear so that
+you can pan across the <b>Process Panel</b>.&nbsp; To reduce the need
+for scrolling, several of the large panels are divided into sections
+that can be opened or closed independently with a button in the
+upper-left corner.&nbsp; This button is initially "<span
+ style="font-weight: bold;">-</span>" when the section is open, and
+becomes "<span style="font-weight: bold;">+</span>" when the section is
+closed.&nbsp; In addition, a<span style="font-weight: bold;"></span>
+button may appear in the upper right corner to allow a section to be
+switched to advanced or basic mode independently of the others; this
+button will be labeled <span style="font-weight: bold;">A</span> in
+basic mode and <span style="font-weight: bold;">B</span> in
+advanced.&nbsp; <br>
+</p>
+<p class="western">If you are working on a dual axis tomogram, each
+tomogram is processed in a separate window.&nbsp; The upper left corner
+of the <span style="font-weight: bold;">Axis A</span> window (or the <span
+ style="font-weight: bold;">Axis B</span> window, if it is the only one
+open) will have buttons to allow you to switch between displaying one
+or the other axis or both axes.&nbsp; There are also hot keys, Ctrl-A,
+Ctrl-B, and Ctrl-2, to display axis A, axis B, or both. <br>
+</p>
+<p class="western">Every process panel has one or more buttons for
+starting 3dmod to display an image file.&nbsp; To make it easier to
+deal with very large data sets and problems that require more control
+over the way that 3dmod is run, there are two ways to make 3dmod load
+in images binned by 2 or to make it open with its startup window, so
+that options can be selected.&nbsp; One way is to right-click on one of
+these buttons, then select <span style="font-weight: bold;">Open with
+startup window</span> or <span style="font-weight: bold;">Open binned
+by 2.</span>&nbsp; The other way is to select the corresponding items
+in the <span style="font-weight: bold;">Options</span> menu, which
+will make 3dmod open that way every time.<br>
+</p>
+<p class="western">For many processing steps, it is also possible to
+run the operation and have the resulting images loaded into 3dmod
+automatically.&nbsp; Right click on the button that starts the action
+(e.g., Generate Tomogram) and menu will pop up with the choices <span
+ style="font-weight: bold;">And open 3dmod</span>, <span
+ style="font-weight: bold;">And open 3dmod with startup window</span>, <span
+ style="font-weight: bold;">And open 3dmod binned by 2.<span
+ style="font-weight: bold;">&nbsp; </span></span>Select the desired
+option to start the operation.<span style="font-weight: bold;"><br>
+</span></p>
+<p class="western">It is possible to load more than one data set into
+eTomo.&nbsp; Under the <span style="font-weight: bold;">File</span>
+menu there are entries to open an existing data set, open a new Setup
+window for tomogram processing, or open a new window to setup joining
+serial sections.&nbsp; If you start working on more than one data set
+by any of these routes, eTomo will place each data set in a separate
+tab so that you can go between them easily.<br>
+</p>
+<p class="western">The <span style="font-weight: bold;">Options/Settings</span>
+dialog presents several configuration options, such as one to change
+the font size being used, and one to switch to a compact display in
+which the buttons on the left are very small.&nbsp; It may be necessary
+to close and reopen the program to see options like these take full
+effect.<br>
+</p>
+<h2 class="western"><a name="AccessingHelp"></a>Accessing
+Help</h2>
+<p class="western">One of the significant features of the eTomo GUI
+is the immediate access to context sensitive online help. By context
+sensitive we mean that the help being presented is specific to the
+current processing problem at hand. Access to the online help is
+available through two methods. The first, commonly know as Tooltips,
+is accessed by leaving the mouse stationary over the parameter or
+other GUI object of interest. This will pop up a short text
+description of the parameter or function of the object. The object
+being described can be changed by moving the mouse around or the
+description can be removed by moving the mouse over a blank window
+region. The description will also be dismissed (disappear) after a
+short time if the mouse is not moved. Both the amount of time to
+delay displaying the Tooltip and the amount of time to keep the
+Tooltip visible can be set in the <b>Options/Settings</b> dialog.</p>
+<p class="western">The second method to access context sensitive help
+is by right clicking the mouse over the processing region of
+interest. This will open up a pop-up menu containing three sections.
+The top section presents menu items that will open up a new window
+containing a log file appropriate for the current processing step.
+The second section presents menu items that will open up the
+appropriate man pages for the current processing step. The final
+section provides access to the Tomography Guide, Serial Section Joining
+Guide, IMOD Guide and the 3dmod Introduction. If
+the Tomography Guide is selected the Guide will be opened up to the
+section that is appropriate for the current processing step.&nbsp; All
+documentation is opened in the Qt Assistant, so that you can follow
+hyperlinks and return from them, as well as have access to the full
+IMOD documentation using the sidebar on the left.<br>
+</p>
+<h2 class="western">Saving Your Work</h2>
+<p class="western">The current state of the
+processing and the value of any parameters you entered or changed (that
+are not saved in the underlying com scripts) are saved automatically to
+a file with the dataset name and the extension .edf.&nbsp; If you are
+working on joining serial sections, the state is saved instead to a
+file with extension .ejf.&nbsp; The state file is updated whenever you
+run a process, change process panels, or exit the program.&nbsp; If you
+wish to save this file with a different name, use the <b>File/Save as</b>
+menu item.&nbsp; Be aware that if you reopen an earlier version of the
+.edf file you may get unpredictable results. <br>
+</p>
+<h2 class="western">Using Parallel Processing<br>
+</h2>
+<p><span style="font-family: helvetica,arial,sans-serif;">Two steps in
+the processing can now be split into chunks and run in parallel on
+multiple machines or processors: tomogram generation, and the final
+stage of combining volumes in a dual-axis data set.&nbsp; This
+capability is enabled if the machine on which you are running eTomo has
+a configuration file called cpu.adoc located in the IMOD calibration
+directory, which is /usr/local/ImodCalib by default.&nbsp; Run "man
+cpuadoc" for a full description of how to set up such a file.&nbsp; A
+two-line file is sufficient to use a single multiprocessor
+system.&nbsp; There are two other alternatives when using a single
+system.&nbsp; First , you can open the <span style="font-weight: bold;">Options/Settings</span>
+dialog<span style="font-weight: bold;"></span>, turn on <span
+ style="font-weight: bold;">Enable Parallel processing</span>, and then
+fill in the number of CPUs.&nbsp; Second, you can enable parallel
+processing by
+setting an environment variable IMOD_PROCESSORS to the number of
+processors in the computer.&nbsp; For example, if you have 4 processors
+and use tcsh for your shell, place <br>
+&nbsp; <span style="font-style: italic;">setenv IMOD_PROCESSORS 4</span><br>
+in your .cshrc file, or if you use the bash shell, place<br>
+&nbsp; <span style="font-style: italic;">export IMOD_PROCESSORS=4</span><br>
+in your .bashrc file.&nbsp; If you are using multiple machines, you
+will also need to be able to log in via ssh without entering a password
+(see below) and run IMOD on all of the other computers that you want to
+use.&nbsp;
+<br>
+</span></p>
+<p><span style="font-family: helvetica,arial,sans-serif;">When parallel
+processing is available, you will be able to select
+whether to use it with checkboxes on the Tomogram Generation and the
+Combination Final Match pages.&nbsp; With it selected, a parallel
+processing table and controls will appear in the Process Monitor area
+of the window.&nbsp; The table will show computers, their properties,
+and their current loads.&nbsp; When you are ready to run the given
+operation, select the computers and number of CPUs that you want to
+use, then press the appropriate action button (e.g., <span
+ style="font-weight: bold;">Generate Tomogram</span>).&nbsp; The table
+will show how many chunks are completed on each machine.&nbsp; The
+parallel processing area includes several controls:<br>
+</span></p>
+<ul>
+  <li><span style="font-family: helvetica,arial,sans-serif;">The <span
+ style="font-weight: bold;">Kill</span> button, as usual, will kill all
+running processes</span></li>
+  <li><span style="font-family: helvetica,arial,sans-serif;">The <span
+ style="font-weight: bold;">Pause</span> button will stop the
+processing more gracefully by allowing all currently running chunks to
+finish.</span></li>
+  <li><span style="font-family: helvetica,arial,sans-serif;">The <span
+ style="font-weight: bold;">Resume</span> button can be used after
+either a Kill or a Pause to resume processing without having to redo
+any
+chunks that were already completed.</span></li>
+  <li><span style="font-family: helvetica,arial,sans-serif;">The <span
+ style="font-weight: bold;">Save as Defaults</span> button will save
+your current selection of computers as the default for future sessions.</span></li>
+  <li><span style="font-family: helvetica,arial,sans-serif;">The <span
+ style="font-weight: bold;">Nice</span> control lets you select the
+"niceness" of your jobs; the higher the value, the lower the
+priority.&nbsp; The highest value is 19, which will compete with screen
+savers, while a value of 0 will compete equally with normal interactive
+usage of the machine.</span></li>
+  <li><span style="font-family: helvetica,arial,sans-serif;">The <span
+ style="font-weight: bold;">+/-</span> button in the upper left can be
+used to minimize the table.</span></li>
+  <li><span style="font-family: helvetica,arial,sans-serif;">The <span
+ style="font-weight: bold;">&lt;/&gt;</span> button in the upper right
+can be used to make the table smaller, so that it shows only the
+selected computers and information needed while running.<br>
+    </span></li>
+</ul>
+<p class="western"> </p>
+<span style="font-family: helvetica,arial,sans-serif;">To&nbsp; be able
+to log in via ssh without a password, you need to generate ssh keys
+that are present on each machine.&nbsp; First run <br>
+&nbsp;&nbsp; </span><span
+ style="font-family: helvetica,arial,sans-serif; font-style: italic;">ssh-keygen
+-t dsa</span><br>
+<span style="font-family: helvetica,arial,sans-serif;">and type Enter
+for all of the queries.&nbsp; Then do<br>
+&nbsp;&nbsp;&nbsp; <span style="font-style: italic;">cp
+$HOME/.ssh/id_dsa.pub $HOME/.ssh/authorized_keys2</span><br>
+If necessary, distribute this authorized_keys2 file to the .ssh
+directories on other machines that do not have the same home
+directory.&nbsp; The three different kinds of platforms (Linux/Unix,
+Mac OSX, Windows) may require separately generated keys.&nbsp; If this
+seems
+to be the case, run
+ssh-keygen once on each type of machine then combine the
+.ssh/id_dsa.pub files from each into one authorized_keys2 file.&nbsp;
+Distribute this combined authorized_keys2 file to the .ssh directories.<br>
+&nbsp;
+<br>
+</span>
+<h1 class="western"><a name="Other_Interfaces"></a>Other Interfaces in
+Etomo</h1>
+<p><span style="font-family: helvetica,arial,sans-serif;">eTomo
+provides a good framework for developing new interfaces for managing
+parameter files and running processes, so we continue to add interfaces
+for operations other than generating a tomogram.&nbsp; All of these
+interfaces are available through the <span style="font-weight: bold;">File</span>
+menu via the various selections starting with <span
+ style="font-weight: bold;">New</span>.&nbsp; They include interfaces
+for:<br>
+</span></p>
+<ul>
+  <li><span style="font-family: helvetica,arial,sans-serif;">Joining
+together tomograms from serial sections, opened by selecting <span
+ style="font-weight: bold;">File/New Join</span>.&nbsp; See&nbsp;
+the&nbsp;&nbsp;<a href="tomojoin.html">Guide to Joining Tomograms</a>
+for instructions.&nbsp; The processing state is saved to a file with
+extension <span style="font-style: italic;">.ejf</span>, which you can
+reopen to resume your work.<span style="text-decoration: underline;"></span></span><br>
+  </li>
+  <li><span style="font-family: helvetica,arial,sans-serif;">Running
+the PEET volume alignment and averaging software, opened by selecting <span
+ style="font-weight: bold;">File/New PEET</span>.&nbsp; The processing
+state is saved to a file with extension <span
+ style="font-style: italic;">.epe</span>, which you can reopen to
+resume working on a data set.</span></li>
+  <li><span style="font-family: helvetica,arial,sans-serif;">Running
+parallel processing on an appropriate set of command files, such as the
+ones created by the programs <a href="man/chunksetup.html">chunksetup</a>,
+    <a href="man/sirtsetup.html">sirtsetup</a>, and <a
+ href="man/splitcorrection.html">splitcorrection</a>.&nbsp; This
+interface is opened by selecting <span style="font-weight: bold;">File/New
+Parallel Process</span> then pressing the <span
+ style="font-weight: bold;">Generic Parallel Process</span>
+button.&nbsp; The program state is saved in a file with extension<span
+ style="font-style: italic;"> .epp</span>, which you can reopen to
+process files with the same name as previously. <br>
+    </span></li>
+  <li><span style="font-family: helvetica,arial,sans-serif;">Filtering
+by nonlinear anisotropic diffusion.&nbsp; This procedure often requires
+finding the right parameter settings with a small test volume before
+running on the full volume, so the interface provides tools for doing
+this conveniently.&nbsp; All of the temporary and working files are
+kept in a subdirectory that you can remove at the end.&nbsp; The
+interface is opened by </span><span
+ style="font-family: helvetica,arial,sans-serif;">selecting <span
+ style="font-weight: bold;">File/New Parallel Process</span> then
+pressing the <span style="font-weight: bold;">Nonlinear Anisotropic
+Diffusion</span> button. </span><span
+ style="font-family: helvetica,arial,sans-serif;">The program state is
+saved in a file with extension <span style="font-style: italic;">.epp</span>.&nbsp;
+See the&nbsp;<a href="man/nad_eed_3d.html">nad_eed_3d man page</a> for
+more details.<br>
+    </span></li>
+</ul>
+<span style="font-weight: bold;"></span>
+<h1 class="western"><a name="ReportingBugs"></a>Reporting
+bugs</h1>
+<p class="western">We very much appreciate feedback from our
+users; this includes bug reports, suggestions for enhancements and
+general comments on what ideas or use models do or do not work.&nbsp;
+It is often not initially
+obvious to either you or us whether a problem is occuring because of
+bug in eTomo, a bug in the rest of IMOD, or other difficulties with a
+particular data set.&nbsp; To help diagnose problems, we have developed
+a script, tomosnapshot, that will collect system information and
+package up many of the small files that reflect the state of the
+processing.&nbsp; The best way to run this is to cd to the directory
+where the data are, start eTomo with the .edf file for the given data
+set, repeat the series of actions that give the error (if this is
+reasonably fast), then select the menu item <span
+ style="font-weight: bold;">File/Run Tomosnapshot</span>.&nbsp; You can
+then send the resulting tar file (setname-snapshot.tar.gz), along with
+a description of what you did and the undesired result, to&nbsp;
+David Mastronarde or Sue Held (see <a href="http://bio3d.colorado.edu">
+web
+site</a> for addresses).&nbsp; You can
+also report bugs and make suggestions or comments by posting a message
+on the IMOD mailing list at the University of
+Colorado. This allows others to observe the discussion and see if they
+are
+encountering similar problems; but please don't post your snapshot file
+to the list. To subscribe to the IMOD mailing list
+send an email to <a href="mailto:listproc@lists.Colorado.edu">listproc@lists.Colorado.edu</a>
+with the contents of the message being</p>
+<p class="western">subscribe IMOD <i>your-full-name</i></p>
+<p class="western">replacing <i>your-full-name</i> with your name. </p>
+<p class="western"><br>
+<br>
+</p>
+</body>
+</html>
