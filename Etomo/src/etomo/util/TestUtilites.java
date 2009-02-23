@@ -13,6 +13,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.18.4.2  2009/02/21 00:20:18  sueh
+ * <p> bug# 1180 Porting from Head.
+ * <p>
  * <p> Revision 1.20  2009/02/20 18:06:26  sueh
  * <p> bug# 1180 Added more diagnositic info to checkVector.  Trying the bad directory deletion for both export commands.
  * <p>
@@ -238,11 +241,24 @@ public class TestUtilites {
         cvsCommand, AxisID.ONLY);
     cvs.setDebug(true);
     cvs.run();
-    if (cvs.getExitValue() > 0
-        && cvs.getStdErrorString().indexOf("no such tag") != -1) {
+    //make sure that the file system is up to date
+    String[] command = new String[2];
+    command[0] = "ls";
+    command[1] = checkoutLocation;
+    SystemProgram systemProgram = new SystemProgram(manager
+        .getPropertyUserDir(), command, AxisID.ONLY);
+    systemProgram.run();
+    if ((cvs.getExitValue() > 0 && cvs.getStdErrorString().indexOf(
+        "no such tag") != -1)
+        || (!(new File(checkoutLocation + target.getName())).exists()
+            && cvs.getStdErrorString() != null && cvs.getStdErrorString()
+            .indexOf("has disappeared") != -1)) {
       // NOTE: some version of cvs (1.11.2) have bug that results in a checkout
       // (CVS directory is created) instead of an export when using the -d flag
       // This is a work around to handle that case
+      //This also seems to happen with a -r tag.
+      //The mysterious "has disappeared" warning turned up, so I need to check
+      //for it when the target was not checked out.
       File badDirectory = new File(testDir, "CVS");
       if (badDirectory.exists()) {
         String[] rmCommand = new String[3];
@@ -286,19 +302,19 @@ public class TestUtilites {
       EtomoDirector.INSTANCE.setCurrentPropertyUserDir(originalDirName);
       throw new SystemProcessException(message);
     }
-      // NOTE: some version of cvs (1.11.2) have bug that results in a checkout
-      // (CVS directory is created) instead of an export when using the -d flag
-      // This is a work around to handle that case
-      File badDirectory = new File(testDir, "CVS");
-      if (badDirectory.exists()) {
-        String[] rmCommand = new String[3];
-        rmCommand[0] = "rm";
-        rmCommand[1] = "-rf";
-        rmCommand[2] = badDirectory.getAbsolutePath();
-        SystemProgram rm = new SystemProgram(manager.getPropertyUserDir(),
-            rmCommand, AxisID.ONLY);
-        rm.run();
-      }
+    // NOTE: some version of cvs (1.11.2) have bug that results in a checkout
+    // (CVS directory is created) instead of an export when using the -d flag
+    // This is a work around to handle that case
+    File badDirectory = new File(testDir, "CVS");
+    if (badDirectory.exists()) {
+      String[] rmCommand = new String[3];
+      rmCommand[0] = "rm";
+      rmCommand[1] = "-rf";
+      rmCommand[2] = badDirectory.getAbsolutePath();
+      SystemProgram rm = new SystemProgram(manager.getPropertyUserDir(),
+          rmCommand, AxisID.ONLY);
+      rm.run();
+    }
     //reset working directory
     EtomoDirector.INSTANCE.setCurrentPropertyUserDir(originalDirName);
     return target;
