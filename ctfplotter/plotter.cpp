@@ -98,6 +98,8 @@ Plotter::Plotter(QWidget *parent, const char *name, WFlags flags)
 
     printer= new QPrinter;
     setPlotSettings(PlotSettings());
+    printer->setOrientation(QPrinter::Landscape);
+    printer->setColorMode(QPrinter::Color);
 }
 
 Plotter::~Plotter(){
@@ -202,9 +204,10 @@ void Plotter::printIt()
     //QPainter painter(&pixmap, this);
     QPainter painter;
     if( !painter.begin( printer ) ) return;
-    painter.setWindow(0, 0, width(), height() );
-    drawGrid(&painter);
+    painter.setWindow(0, 0, width(), height());
     drawCurves(&painter);
+    drawGrid(&painter, false);
+    painter.flush();
   }
 }
 
@@ -478,18 +481,18 @@ void Plotter::refreshPixmap()
     pixmap.resize(size());
     pixmap.fill(this, 0, 0);
     QPainter painter(&pixmap, this);
-    drawGrid(&painter);
+    drawGrid(&painter, true);
     drawCurves(&painter);
     update();
 }
 
-void Plotter::drawGrid(QPainter *painter)
+void Plotter::drawGrid(QPainter *painter, bool onScreen)
 {
     QRect rect(Margin, Margin,
                width() - 2 * Margin, height() - 2 * Margin);
     PlotSettings settings = zoomStack[curZoom];
     QPen quiteDark = colorGroup().dark().light();
-    QPen light = colorGroup().light();
+    QPen light = onScreen ? colorGroup().light() : colorGroup().dark().light();
 
     for (int i = 0; i <= settings.numXTicks; ++i) {
         int x = rect.left() + (i * (rect.width() - 1)
@@ -608,6 +611,9 @@ void PlotSettings::adjustAxis(double &min, double &max,
 /*
 
    $Log$
+   Revision 1.9  2008/11/08 21:54:04  xiongq
+   adjust plotter setting for initializaion
+
    Revision 1.8  2008/11/07 17:26:24  xiongq
    add the copyright heading
 
