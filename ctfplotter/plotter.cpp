@@ -205,9 +205,11 @@ void Plotter::printIt()
     QPainter painter;
     if( !painter.begin( printer ) ) return;
     painter.setWindow(0, 0, width(), height());
+    QRect v = painter.viewport();
+    painter.setViewport( 40, 40, v.width()*2/3, v.height()*2/3 );
+
     drawCurves(&painter);
     drawGrid(&painter, false);
-    painter.flush();
   }
 }
 
@@ -611,6 +613,9 @@ void PlotSettings::adjustAxis(double &min, double &max,
 /*
 
    $Log$
+   Revision 1.9.2.1  2009/02/24 23:21:40  mast
+   Provisional checkin to try to fix printing
+
    Revision 1.9  2008/11/08 21:54:04  xiongq
    adjust plotter setting for initializaion
 
