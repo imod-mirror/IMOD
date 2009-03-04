@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/3/09: Made combine.com convert volcombine.csh to unix line endings to get
+around bug in Cygwin tcsh.
+
 2/27/09: Fixed 3dscat option in Imodmop, broken by change on 1/7/09.
 
 2/25/09: Fixed truncation of curves in prints from Ctfplotter.
