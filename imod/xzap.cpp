@@ -1681,7 +1681,8 @@ void zapMouseMove(ZapStruct *zap, QMouseEvent *event, bool mousePressed)
         zapDraw(zap);
       return;
     }
-  }
+  } else
+    setControlAndLimits(zap);
 
   if (!(mousePressed || insertDown)) {
     if (zap->rubberband)
@@ -4586,6 +4587,9 @@ static int zapPointVisable(ZapStruct *zap, Ipoint *pnt)
 /*
 
 $Log$
+Revision 4.133  2008/12/17 00:10:06  mast
+Switched trimvol statement from -yz to -rx
+
 Revision 4.132  2008/12/08 17:27:42  mast
 Fixed crash potential and background line problems with montage snapshots
 Added scaling of sizes and thicknesses; added whole 1:1 snapshot
