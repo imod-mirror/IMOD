@@ -231,8 +231,8 @@ int main(int argc, char *argv[])
   int stripDist[2];
   float *restoredArray;
   double meanSum=0.0;
-  double amin=numeric_limits<double>::max();
-  double amax=numeric_limits<double>::min();
+  double amin = 0.1 * numeric_limits<double>::max();
+  double amax = -amin;
 
   Islice *outSlice;
 
@@ -441,6 +441,9 @@ int main(int argc, char *argv[])
 /*
 
 $Log$
+Revision 3.11  2008/11/20 01:32:31  mast
+Restored \n on 3 printf's including critical min/max/mean statement
+
 Revision 3.10  2008/11/07 22:25:08  xiongq
 add fflush calls
 
