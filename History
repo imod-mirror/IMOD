@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/25/09: Fixed uninitialized variable in Xfjointomo.
+
 3/34/09: Tomosnapshot copies coms to a directory and strips .com.
 
 3/23/09: Fixed initialization of maximum in Ctfphaseflip so output file with
