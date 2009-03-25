@@ -12,6 +12,12 @@ c
 c       $Id$
 c       
 c       $Log$
+c       Revision 3.5  2009/03/25 21:37:26  mast
+c       Initialized reference section number
+c
+c       Revision 3.4  2008/07/14 23:45:15  mast
+c       Made it skip points if a trajectory was coplanar on one side or other
+c
 c       Revision 3.3  2006/12/20 16:09:00  mast
 c       Removed a ;
 c
@@ -92,6 +98,7 @@ c
       editOld = .false.
       sliceOut = .false.
       ifFullRpt = 0
+      irefSec = 0
 c
 c       Pip startup: set error, parse options, check help
 c       
