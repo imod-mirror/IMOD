@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/27/09: Header now inverts the sign of rotation angles from FEI header because
+they are defined as clockwise positive.
+
 3/25/09: Fixed uninitialized variable in Xfjointomo.
 
 3/34/09: Tomosnapshot copies coms to a directory and strips .com.
