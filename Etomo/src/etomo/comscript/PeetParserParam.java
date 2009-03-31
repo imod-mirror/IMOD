@@ -10,6 +10,7 @@ import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstIntKeyList;
 
 import etomo.type.ProcessName;
+import etomo.ui.UIHarness;
 import etomo.util.EnvironmentVariable;
 
 /**
@@ -26,6 +27,17 @@ import etomo.util.EnvironmentVariable;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.7  2009/03/31 21:06:28  sueh
+ * <p> bug# 1204 In getCommandArray, changed error message to give the typical location
+ * <p> of the PEET software.
+ * <p>
+ * <p> Revision 1.6  2009/03/23 16:47:16  sueh
+ * <p> bug# 1204 Added a usefull error message for PARTICLE_DIR not being set to
+ * <p> getCommandArray.
+ * <p>
+ * <p> Revision 1.4  2007/12/13 01:05:49  sueh
+ * <p> bug# 1056 Changed etomo.comscript.Fields to etomo.comscript.Field.
+ * <p>
  * <p> Revision 1.3  2007/11/06 19:14:58  sueh
  * <p> bug# 1047 Added getSubcommandDetails.
  * <p>
@@ -46,7 +58,6 @@ public final class PeetParserParam implements CommandDetails {
   private final BaseManager manager;
 
   private boolean debug = true;
-  private String[] command = null;
   private int iterationListSize;
   private String[] lstThresholdsArray;
 
@@ -56,11 +67,24 @@ public final class PeetParserParam implements CommandDetails {
   }
 
   public String[] getCommandArray() {
+    String[] command = null;
     if (command != null) {
       return command;
     }
     command = new String[3];
     command[0] = "sh";
+    String particleDir = EnvironmentVariable.INSTANCE.getValue(manager
+        .getPropertyUserDir(), "PARTICLE_DIR", AxisID.ONLY);
+    if (particleDir == null || particleDir.matches("\\s*")) {
+      UIHarness.INSTANCE.openMessageDialog(
+          "The environment variables PARTICLE_DIR has not been set.  Set it "
+              + "to the location of the directory containing the PEET "
+              + "software.  Make sure the PEET package is installed "
+              + "(typically installed in /usr/local/Particle).  To download "
+              + "PEET, go to ftp://bio3d.colorado.edu/PEET.",
+          "Environment Error");
+      return null;
+    }
     File commandFile = new File(new File(EnvironmentVariable.INSTANCE.getValue(
         manager.getPropertyUserDir(), "PARTICLE_DIR", AxisID.ONLY), "bin"),
         ProcessName.PEET_PARSER.toString());
