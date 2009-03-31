@@ -17,6 +17,12 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.38  2009/03/23 17:09:52  sueh
+ * <p> bug# 1204 Handling a null commandArray.
+ * <p>
+ * <p> Revision 3.35.2.1  2009/01/13 22:31:32  sueh
+ * <p> bug# 1171 Added bug fix to 3.13.
+ * <p>
  * <p> Revision 3.36  2009/01/13 22:29:19  sueh
  * <p> bug# 1171 popping up an error message when tcsh is missing.
  * <p>
@@ -397,6 +403,10 @@ public class SystemProgram implements Runnable {
       }
       //timestamp
       StringBuffer timestampString = new StringBuffer(3);
+      if (commandArray == null) {
+        exitValue = 1204;//bug# 1204
+        return;
+      }
       for (int i = 0; i < Math.min(2, commandArray.length); i++) {
         timestampString.append(commandArray[i] + " ");
       }
@@ -406,7 +416,7 @@ public class SystemProgram implements Runnable {
       if (workingDirectory == null) {
         process = Runtime.getRuntime().exec(commandArray, null);
       }
-      else {
+      else if (commandArray != null) {
         process = Runtime.getRuntime().exec(commandArray, null,
             workingDirectory);
       }
