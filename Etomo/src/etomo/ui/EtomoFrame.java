@@ -146,7 +146,7 @@ abstract class EtomoFrame extends JFrame {
       UIHarness.INSTANCE.exit(axisID);
     }
     else if (menu.equalsFileTomosnapshot(event)) {
-      currentManager.tomosnapshot(axisID, null);
+      currentManager.tomosnapshot(axisID);
     }
   }
 
@@ -856,6 +856,10 @@ abstract class EtomoFrame extends JFrame {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.39  2008/05/30 22:31:42  sueh
+ * <p> bug# 1102 Isolating the etomo.uitest package so it is not need for
+ * <p> running EtomoDirector.
+ * <p>
  * <p> Revision 1.38  2008/05/30 21:28:16  sueh
  * <p> bug# 1102 Moved uitest classes to etomo.uitest.
  * <p>

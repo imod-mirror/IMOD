@@ -203,13 +203,7 @@ public final class EtomoMenu {
       menuAxisB.setEnabled(dualAxis);
       menuAxisBoth.setEnabled(dualAxis);
     }
-    if (currentManager == null || !currentManager.canSnapshot()) {
-      menuFileTomosnapshot.setEnabled(false);
     }
-    else {
-      menuFileTomosnapshot.setEnabled(true);
-    }
-  }
 
   /**
    * Enable/disable menu items based on main Frame Menu.
@@ -224,7 +218,6 @@ public final class EtomoMenu {
         .isEnabled());
     menuFileNewPeet.setEnabled(mainFrameMenu.menuFileNewPeet.isEnabled());
     menuFileSaveAs.setEnabled(mainFrameMenu.menuFileSaveAs.isEnabled());
-    menuFileTomosnapshot.setEnabled(menuFileTomosnapshot.isEnabled());
     menuAxisA.setEnabled(mainFrameMenu.menuAxisA.isEnabled());
     menuAxisB.setEnabled(mainFrameMenu.menuAxisB.isEnabled());
     menuAxisBoth.setEnabled(mainFrameMenu.menuAxisBoth.isEnabled());
@@ -439,6 +432,9 @@ public final class EtomoMenu {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.12  2008/01/14 22:04:24  sueh
+ * <p> bug# 1050 Moved string "Axis B" to TomogramProcessPanel.
+ * <p>
  * <p> Revision 1.11  2007/05/02 21:07:33  sueh
  * <p> bug# 964 Removed Import PRM and Duplicate PEET menu items.
  * <p>

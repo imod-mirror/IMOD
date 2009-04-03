@@ -1214,10 +1214,9 @@ public abstract class BaseManager {
     getMainPanel().setParallelDialog(axisID, dialog.usingParallelProcessing());
   }
 
-  public final void tomosnapshot(AxisID axisID, ConstProcessSeries processSeries) {
-    String threadName;
+  public final void tomosnapshot(AxisID axisID) {
     try {
-      threadName = getProcessManager().tomosnapshot(axisID, processSeries);
+      getProcessManager().tomosnapshot(axisID);
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
@@ -1228,13 +1227,13 @@ public abstract class BaseManager {
           + ProcessName.TOMOSNAPSHOT, axisID);
       return;
     }
-    setThreadName(threadName, axisID);
-    getMainPanel().startProgressBar("Running " + ProcessName.TOMOSNAPSHOT,
-        axisID, ProcessName.TOMOSNAPSHOT);
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.105.2.1  2009/01/26 23:08:13  sueh
+ * <p> bug# 1173 Porting from head.
+ * <p>
  * <p> Revision 1.106  2009/01/26 22:40:57  sueh
  * <p> bug# 1173 Added boolean nonBlocking to processDone functions, so it
  * <p> knows not to pop up an error message that thread name is not set.
