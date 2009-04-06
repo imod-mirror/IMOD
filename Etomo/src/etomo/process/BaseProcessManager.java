@@ -44,6 +44,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.72.2.2  2009/04/03 23:23:32  sueh
+ * <p> bug# 1206 porting from Head.
+ * <p>
  * <p> Revision 1.79  2009/04/02 19:16:09  sueh
  * <p> bug# 1206 Calling tomosnapshot in the main thread using SystemProgram.  Popping
  * <p> up message if it succeeds or fails.
@@ -1555,29 +1558,14 @@ public abstract class BaseProcessManager {
     return program;
   }
 
-  public final void tomosnapshot(final AxisID axisID)
-      throws SystemProcessException {
-    SystemProgram sysProgram = new SystemProgram(
-        System.getProperty("user.dir"), new TomosnapshotParam(axisID)
-            .getCommandArray(), axisID);
-    sysProgram.run();
-    if (sysProgram.getExitValue() != 0) {
-      StringBuffer errorMessage = new StringBuffer();
-      errorMessage.append("Unable to run tomosnapshot in "
-          + System.getProperty("user.dir") + ".  Exit value is "
-          + sysProgram.getExitValue() + ".  ");
-      String[] err = sysProgram.getStdError();
-      if (err != null) {
-        for (int i = 0; i < err.length; i++) {
-          errorMessage.append(err[i] + "  ");
-        }
-      }
-      uiHarness.openMessageDialog(errorMessage.toString(), "Process Failed",
-          axisID);
+  public final void tomosnapshot(final AxisID axisID) {
+    try {
+      TomosnapshotProcess process = new TomosnapshotProcess(axisID);
+      new Thread(process).start();
     }
-    else {
-      uiHarness.openMessageDialog("Snapshot file created in "
-          + System.getProperty("user.dir"), "Snapshot Created", axisID);
+    catch (Exception e) {
+      UIHarness.INSTANCE.openMessageDialog(e.getMessage(), "Process Exception",
+          axisID);
     }
   }
 

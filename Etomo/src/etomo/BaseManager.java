@@ -1215,22 +1215,14 @@ public abstract class BaseManager {
   }
 
   public final void tomosnapshot(AxisID axisID) {
-    try {
-      getProcessManager().tomosnapshot(axisID);
-    }
-    catch (SystemProcessException e) {
-      e.printStackTrace();
-      String[] message = new String[2];
-      message[0] = "Can not execute " + ProcessName.TOMOSNAPSHOT;
-      message[1] = e.getMessage();
-      uiHarness.openMessageDialog(message, "Unable to execute "
-          + ProcessName.TOMOSNAPSHOT, axisID);
-      return;
-    }
+    getProcessManager().tomosnapshot(axisID);
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.105.2.2  2009/04/03 23:22:49  sueh
+ * <p> bug# 1206 porting from Head.
+ * <p>
  * <p> Revision 1.105.2.1  2009/01/26 23:08:13  sueh
  * <p> bug# 1173 Porting from head.
  * <p>
