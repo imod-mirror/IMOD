@@ -1,5 +1,12 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4/9/09: IMOD_3-13-4
+4/6/09: In Etomo fixed the Tomosnapshot menu option so that it is on all the 
+time.
+
+4/2/09: In Etomo - PEET changed Phi, Theta, Psi increments so that a 0 value
+defaults to 1.
+
 3/27/09: Header now inverts the sign of rotation angles from FEI header because
 they are defined as clockwise positive.
 
