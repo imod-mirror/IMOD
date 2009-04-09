@@ -43,6 +43,13 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.28  2009/04/02 21:47:55  sueh
+ * <p> bug# 1203 In SearchAngleArea.setIncrement(String), corrected function so that it
+ * <p> passes the modified value to descriptor.
+ * <p>
+ * <p> Revision 1.24.2.1  2009/01/13 20:04:17  sueh
+ * <p> bug# 1170 Added bug fix to 3-13.
+ * <p>
  * <p> Revision 1.25  2009/01/13 19:35:55  sueh
  * <p> bug# 1170 Changed N_WEIGHT_GROUP_DEFAULT to 8.  Added
  * <p> N_WEIGHT_GROUP_MIN.  Setting the floor of nWeightGroup to
@@ -1869,7 +1876,7 @@ public final class MatlabParam {
       if (increment.equals(0)) {
         increment.set(1);
       }
-      descriptor.setRawStringIncrement(input);
+      descriptor.setRawStringIncrement(increment.toString());
     }
 
     private String getEnd() {
