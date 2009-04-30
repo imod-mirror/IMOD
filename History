@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4/30/09: Included fix to problems in mrctaper from 12/20/08 in 3.13.
+
+4/30/09: Fixed problem in dm2mrc that shows up with latest tcsh on RHEL5.
+
 4/9/09: IMOD_3-13-4
 4/6/09: In Etomo fixed the Tomosnapshot menu option so that it is on all the 
 time.
