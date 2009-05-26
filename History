@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/26/09: Fixed processchunks to ignore error lines when getting ssh version.
+
 4/30/09: IMOD_3-13-5
 4/30/09: Included fix to problems in mrctaper from 12/20/08 in 3.13.
 
