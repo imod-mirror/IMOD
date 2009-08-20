@@ -18,6 +18,16 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.25  2009/08/19 00:27:17  sueh
+ * bug# 1255 Added -CT option to genOptions.
+ *
+ * Revision 3.23  2009/02/25 00:14:09  sueh
+ * bug# 1182 Made sphericalAberration a double.
+ *
+ * Revision 3.22  2008/10/27 17:47:34  sueh
+ * bug# 1141 Added options to setup ctf files only:  ctfFiles,
+ * sphericalAberration, and voltage.
+ *
  * Revision 3.21  2007/12/26 22:11:48  sueh
  * bug# 1052 Moved argument handling from EtomoDirector to a separate class.
  *
@@ -201,7 +211,6 @@ import java.io.File;
 import java.util.ArrayList;
 
 import etomo.ApplicationManager;
-import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.process.ProcessMessages;
 import etomo.process.SystemProgram;
@@ -213,16 +222,18 @@ import etomo.type.DataSource;
 import etomo.type.EtomoNumber;
 import etomo.type.TiltAngleType;
 import etomo.type.ViewType;
+import etomo.ui.UIHarness;
 
 public final class CopyTomoComs {
   public static final String rcsid = "$Id$";
 
   private final ArrayList command = new ArrayList();
   private final EtomoNumber voltage = new EtomoNumber();
-  private final EtomoNumber sphericalAberration = new EtomoNumber();
+  private final EtomoNumber sphericalAberration = new EtomoNumber(
+      EtomoNumber.Type.DOUBLE);
   private final EtomoNumber ctfFiles = new EtomoNumber();
 
-  private final BaseManager manager;
+  private final ApplicationManager manager;
 
   private StringBuffer commandLine = null;
   private int exitValue;
@@ -236,7 +247,7 @@ public final class CopyTomoComs {
     debug = EtomoDirector.INSTANCE.getArguments().isDebug();
   }
 
-  public void setup() {
+  public boolean setup() {
     // Create a new SystemProgram object for copytomocom, set the
     // working directory and stdin array.
     // Do not use the -e flag for tcsh since David's scripts handle the failure 
@@ -245,10 +256,13 @@ public final class CopyTomoComs {
     command.add("tcsh");
     command.add("-f");
     command.add(ApplicationManager.getIMODBinPath() + "copytomocoms");
-    genOptions();
+    if (!genOptions()) {
+      return false;
+    }
     copytomocoms = new SystemProgram(manager.getPropertyUserDir(), command,
         AxisID.ONLY);
     //genStdInputSequence();
+    return true;
   }
 
   public void setVoltage(ConstEtomoNumber input) {
@@ -258,7 +272,7 @@ public final class CopyTomoComs {
   public void setSphericalAberration(ConstEtomoNumber input) {
     sphericalAberration.set(input);
   }
-  
+
   public void setCTFFiles(CtfFilesValue ctfFilesValue) {
     ctfFiles.set(ctfFilesValue.get());
   }
@@ -275,7 +289,16 @@ public final class CopyTomoComs {
     return copytomocoms.getCommandLine();
   }
 
-  private void genOptions() {
+  private boolean genOptions() {
+    //Copytomocoms overrides the existing .com files.  Make sure that the full
+    //functionality is only used during setup.
+    if (!manager.isNewManager() && ctfFiles.isNull()) {
+      UIHarness.INSTANCE
+          .openMessageDialog(
+              "ERROR:  Attempting to rebuild .com files when setup is already completed.",
+              "Etomo Error");
+      return false;
+    }
     boolean montage = false;
     boolean gradient = false;
     //  Dataset name
@@ -334,7 +357,11 @@ public final class CopyTomoComs {
       command.add("-Cs");
       command.add(sphericalAberration.toString());
     }
-
+    //Only create ctf files.
+    if (!ctfFiles.isNull()) {
+      command.add("-CTFfiles");
+      command.add(ctfFiles.toString());
+    }
     //Undistort images with the given .idf file
     String distortionFile = metaData.getDistortionFile();
     if (!distortionFile.equals("")) {
@@ -356,7 +383,6 @@ public final class CopyTomoComs {
         command.add("-focus");
       }
     }
-
     //  Axis type: single or dual
     if (metaData.getAxisType() == AxisType.DUAL_AXIS) {
       command.add("-dual");
@@ -393,6 +419,7 @@ public final class CopyTomoComs {
     //  CCDEraser and local alignment entries
     //  Always yes tiltalign relies on local entries to save default values
     //  even if they are not used.
+    return true;
   }
 
   /**
@@ -579,11 +606,14 @@ public final class CopyTomoComs {
   }
 
   /**
-   * Check to see if the tilt angle files exist and the tilt angle type is not
-   * FILE. They need to be deleted because the copytomocoms script is not
-   * consistent in the sequence of responses expected.
+   * The raw tilt files still need to be deleted because the user might be
+   * restarting with a trimmed stack, making the old raw tilt files invalid.
+   * Only do this during setup.  Don't delete when using option -CT.
    */
   private void checkTiltAngleFiles() {
+    if (!manager.isNewManager() || !ctfFiles.isNull()) {
+      return;
+    }
     String workingDirectory = manager.getPropertyUserDir();
     if (metaData.getAxisType() == AxisType.SINGLE_AXIS) {
       if (metaData.getTiltAngleSpecA().getType() != TiltAngleType.FILE) {
@@ -621,7 +651,7 @@ public final class CopyTomoComs {
     private CtfFilesValue(int value) {
       this.value = value;
     }
-    
+
     private int get() {
       return value;
     }
