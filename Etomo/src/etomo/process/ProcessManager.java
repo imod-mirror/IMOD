@@ -20,6 +20,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.126  2008/11/20 01:33:37  sueh
+ * bug# 1147 Added ccdEraser, to run ccderaser as a command.
+ *
  * Revision 3.125  2008/10/30 21:02:19  sueh
  * bug# 1145 In midasBlendStack, added -t option.
  *
@@ -947,7 +950,6 @@ public class ProcessManager extends BaseProcessManager {
 
   public boolean setupComScripts(AxisID axisID) {
     CopyTomoComs copyTomoComs = new CopyTomoComs(appManager);
-
     if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
       System.err.println("copytomocoms command line: "
           + copyTomoComs.getCommandLine());
@@ -965,7 +967,9 @@ public class ProcessManager extends BaseProcessManager {
    *          copytomocoms script
    */
   private boolean setupComScripts(CopyTomoComs copyTomoComs, AxisID axisID) {
-    copyTomoComs.setup();
+    if (!copyTomoComs.setup()) {
+      return false;
+    }
     int exitValue = copyTomoComs.run();
     //process messages
     ProcessMessages messages = copyTomoComs.getProcessMessages();
