@@ -41,13 +41,13 @@ cb.use-expected-defocus-instead-of-ctfplotter-output =
 function = expected-defocus-enabled
 #run
 #test ctf plotter
-cb.use-expected-defocus-instead-of-ctfplotter-output =
-tf.config-file = /usr/local/ImodCalib/CTFnoise/F20.cfg
-bn.run-ctf-plotter =
-sleep =
-assert.file.exists = ctfplotter%{axis}.log
+#cb.use-expected-defocus-instead-of-ctfplotter-output =
+#tf.config-file = /usr/local/ImodCalib/CTFnoise/F20.cfg
+#bn.run-ctf-plotter =
+#sleep =
+#assert.file.exists = ctfplotter%{axis}.log
 #test ctf correction
-cb.use-expected-defocus-instead-of-ctfplotter-output =
+#cb.use-expected-defocus-instead-of-ctfplotter-output =
 bn.correct-ctf =
 waitfor.process.ctf-correction = done
 assert.file.exists = %{dataset}%{axis}_simple.defocus
