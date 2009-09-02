@@ -1,5 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/2/09: Fixed residual outputs into patch files from Refinematch and Findwarp;
+residuals were being assigned to the wrong vectors.
+
+9/2/09: Fixed 3dmod crash when starting a new contour with limited points per 
+contour and there are two empty contours.
+
 8/20/09: IMOD_3-13-6
 8/20/09: Fixed eTomo bug that made it rerun copytomocoms completely
 (overwriting existing com files and their parameters) upon opening the Final
