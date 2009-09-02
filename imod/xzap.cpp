@@ -2046,7 +2046,7 @@ int zapButton2(ZapStruct *zap, int x, int y, int controlDown)
     // and just call InsertPoint with it
     // Set insertion point to next point and adjust it down if going backwards
     pt = vi->imod->cindex.point + 1;
-    if (pt > 0)
+    if (pt > 0 && cont->psize)
       lastz = cont->pts[pt - 1].z;
     else
       lastz = point.z;
@@ -4587,6 +4587,9 @@ static int zapPointVisable(ZapStruct *zap, Ipoint *pnt)
 /*
 
 $Log$
+Revision 4.133.2.1  2009/03/14 00:43:18  mast
+Made sure mouse move set limits regardless, fixed rubberband moving float
+
 Revision 4.133  2008/12/17 00:10:06  mast
 Switched trimvol statement from -yz to -rx
 
