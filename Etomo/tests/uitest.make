@@ -2,7 +2,7 @@ all:	test build
 
 test:	test-dual test-single
 
-build:	build-dual build-single
+build:	build-dual build-single build-dual-montage
 
 build-fidless:	build-dual-fidless
 
