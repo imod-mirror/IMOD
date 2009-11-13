@@ -1,0 +1,69 @@
+IMOD Version 3.12.0                     Copyright Notice and Credits
+--------------------------------------------------------------------------
+Except as noted, ALL SOFTWARE LISTED IS Copyright (C) 1994-2007 by
+Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells
+("BL3DEMC") and the Regents of the University of Colorado.
+
+BL3DEMC reserves the exclusive rights of preparing derivative works,
+distributing copies for sale, lease or lending and displaying this
+software and documentation.
+Users may reproduce the software and documentation as long as the
+copyright notice and other notices are preserved.
+Neither the software nor the documentation may be distributed for
+profit, either in original form or in derivative works.
+
+THIS SOFTWARE AND/OR DOCUMENTATION IS PROVIDED WITH NO WARRANTY,
+EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTY OF
+MERCHANTABILITY AND WARRANTY OF FITNESS FOR A PARTICULAR PURPOSE.
+
+Portions of IMOD using Qt, associated libraries, and some other
+components are open source under the General Public License (GPL).  A
+copy of this license is in the file GPL.txt.  This portion of the source
+code is available at http://bio3d.colorado.edu/imod/openSource
+This source package and the complete source package both include a file
+dist/GPLfileList with a complete list of the source files covered by the
+GPL.  Other source code files (ones not listed in this file) may not be
+redistributed without permission.
+
+Programs were written by David Mastronarde, James Kremer, Rick
+Gaudette, Sue Held, and Quanren Xiong from the BL3DEMC, some based on
+work and libraries from the MRC.  We thank David Agard and Hans Chen for
+the original MRC source code, Wah Chiu for a Unix version of low-level
+MRC file routines used in the FORTRAN parts, and Chuck Robertson for
+much work on the port to Linux.
+
+The program nad_eed_3d by Achilleas Frangakis and Reiner Hegerl is
+excluded from this notice; it is copyright Max-Planck-Institut for
+Biochemistry, Martinsried, Germany.
+
+The LSQR routine by Michael Saunders is used in some programs.  It is
+covered by the Common Public License.  IMOD now uses a C version of LSQR
+and some BLAS routines from the BCLS package of Michael Friedlander,
+which are covered by the Lesser GPL.  The source code used here and the
+licenses can be found at  http://bio3d.colorado.edu/imod/openSource
+
+IMOD uses a subset of the LAPACK routines developed at Univ. of
+Tennessee, Univ. of California Berkeley, NAG Ltd., Courant Institute,
+Argonne National Lab, and Rice University.  It also uses a subset of
+the BLAS routines, developed by: Jack Dongarra, Argonne National Lab;
+Jeremy Du Croz, NAG Ltd.; Iain Duff, AERE Harwell; Richard Hanson,
+Sandia National Labs; and Sven Hammarling, NAG Ltd.
+
+The program imodwincpu was adapted from code obtained from
+www.codeproject.com and written by Dudi Abramov.
+
+Andrew Noske at the University of Queensland, Australia contributed the
+beadhelper and drawingtools plugins.
+
+The isosurface display in 3dmod uses contouring and surface smoothing
+modules from Chimera, developed at the Resource for Biocomputing,
+Visualization, and Informatics at the University of California, San
+Francisco, supported by NIH/NCRR grant P41-RR01081.
+
+This work is supported by NIH/NCRR grant RR00592 to Andreas Hoenger and
+NIBIB grant EB005027 to David Mastronarde for the Boulder Laboratory for
+3-Dimensional Electron Microscopy of Cells.
+University of Colorado, Dept. of MCD Biology, 347 UCB, Boulder, CO 80309
+
+Contact:  mast at colorado dot edu
+    www:  http://bio3d.colorado.edu/imod/index.html
