@@ -1,0 +1,541 @@
+Version = 1.2
+
+[dialog = peet]
+set.adoc.function=peet.adoc
+run.function.main =
+
+
+[function = main]
+[[if = test-gui]]
+	if.not.var.keep-dataset-dir.set.var.test-values=
+	return.var.test-values=
+[[]]
+run.function.setup=
+run.function.runtab=
+[[if = test-gui]]
+	run.function.check-prm=
+[[]]
+
+
+[function = setup]
+tb.setup=
+#check empty directory error
+run.function.setup-test-run-error=
+bn.directory=
+wait.file-chooser.open=%{testdir}
+#check empty root name error
+run.function.setup-test-run-error=
+tf.root-name-for-output=%{dataset}
+run.function.volume-table=
+run.function.reference=
+[[if = test-gui]]
+	run.function.missing-wedge-compensation=
+	run.function.masking=
+	run.function.cylinder-orientation=
+	run.function.initial-motive-list=
+	run.function.y-axis-type=
+[[]]
+
+
+[function = setup-test-run-error]
+if.not.var.test-values.return=
+tb.setup.1=
+mb.parallel-processing=-
+bn.run=
+wait.popup.entry-error=OK
+#error message sends it back to setup tab
+
+
+[function = volume-table]
+#check empty table error
+run.function.setup-test-run-error=
+bn.add-volume-and-model=
+wait.file-chooser.open=%{dataset}-a.rec
+wait.file-chooser.open=%{dataset}-a.mod
+#highlight the first row
+mb.volume-table-1-vol-#=
+#copy the highlighted row
+bn.copy-row=
+bn.add-volume-and-model=
+wait.file-chooser.open=%{dataset}-b.rec
+wait.file-chooser.open=%{dataset}-b.mod
+mb.volume-table-3-vol-#=
+bn.move-up=
+tf.volume-table-2-rel-orient=-38
+tf.volume-table-2-rel-orient.1=-21
+tf.volume-table-2-rel-orient.2=40.5
+[[if = test-gui]]
+	#test move up and move down
+	mb.volume-table-3-vol-#=
+	#check enable/disable for bottom row
+	assert.enabled.bn.move-up=
+	assert.disabled.bn.move-down=
+	bn.move-up=
+	#highlight should follow the moved row
+	assert.enabled.bn.move-up=
+	assert.enabled.bn.move-down=
+	assert.tf.volume-table-2-volume=%{dataset}-a.rec
+	assert.tf.volume-table-2-model=%{dataset}-a.mod
+	assert.tf.volume-table-2-rel-orient=
+	assert.tf.volume-table-2-rel-orient.1=
+	assert.tf.volume-table-2-rel-orient.2=
+	bn.move-down=
+	assert.tf.volume-table-3-volume=%{dataset}-a.rec
+	assert.tf.volume-table-3-model=%{dataset}-a.mod
+	assert.tf.volume-table-3-rel-orient=
+	assert.tf.volume-table-3-rel-orient.1=
+	assert.tf.volume-table-3-rel-orient.2=
+	#check enable/disable for middle row
+	mb.volume-table-2-vol-#=
+	assert.enabled.bn.move-up=
+	assert.enabled.bn.move-down=
+	#check enable/disable for top row
+	mb.volume-table-1-vol-#=
+	assert.disabled.bn.move-up=
+	assert.enabled.bn.move-down=
+	#check enable/disable when nothing is highlighted
+	mb.volume-table-1-vol-#=
+	assert.disabled.bn.move-up=
+	assert.disabled.bn.move-down=
+[[]]
+
+
+
+
+[function = reference]
+#check empty particle # error
+run.function.setup-test-run-error=
+tf.particle-#=2
+#check empty reference file error
+[[if = test-values]]
+	rb.reference-file=
+	run.function.setup-test-run-error=
+	rb.volume-#=
+[[]]
+
+
+[function = missing-wedge-compensation]
+if.not.var.test-values.return=
+#check empty tilt range error
+#tilt range required with averaging
+cb.use-tilt-range-in-averaging=on
+run.function.setup-test-run-error=
+#tilt range required with alignment alone (bug# 1234)
+cb.use-tilt-range-in-alignment=on
+cb.use-tilt-range-in-averaging=off
+run.function.setup-test-run-error=
+cb.use-tilt-range-in-averaging=on
+cb.use-tilt-range-in-alignment=off
+tf.volume-table-1-tilt-range=-10
+tf.volume-table-1-tilt-range.1=10
+run.function.setup-test-run-error=
+tf.volume-table-2-tilt-range=-10
+tf.volume-table-2-tilt-range.1=10
+run.function.setup-test-run-error=
+tf.volume-table-3-tilt-range=
+tf.volume-table-3-tilt-range.1=
+tf.volume-table-2-tilt-range=
+tf.volume-table-2-tilt-range.1=
+tf.volume-table-3-tilt-range=
+tf.volume-table-3-tilt-range.1=
+#check empty edge shift error
+tf.edge-shift=
+run.function.setup-test-run-error=
+tf.edge-shift=2
+cb.use-tilt-range-in-averaging=off
+
+
+[function = masking]
+if.not.var.test-values.return=
+#check empty volume masking volume
+rb.volume=
+run.function.setup-test-run-error=
+rb.none=
+
+
+[function = cylinder-orientation]
+[[if = test-values]]
+	#check values
+	assert.sp.model-#=1
+	assert.tf.particle-#.1=
+[[]]
+#check enabled/disabled
+rb.cylinder=
+rb.volume-#=
+assert.disabled.sp.model-#=
+assert.disabled.tf.particle-#.1=
+rb.reference-file=
+assert.enabled.sp.model-#=
+assert.enabled.tf.particle-#.1=
+[[if = test-values]]
+	#check particle empty error
+	run.function.setup-test-run-error=
+[[]]
+rb.volume-#=
+rb.none=
+
+[function = initial-motive-list]
+
+
+[function = y-axis-type]
+if.not.var.test-values.return=
+rb.end-points-of-contour=
+#check object empty error
+run.function.setup-test-run-error=
+tf.object-#=1
+#check contour empty error
+run.function.setup-test-run-error=
+tf.object-#=
+rb.original-y-axis=
+
+
+[function = runtab]
+tb.setup.1=
+mb.parallel-processing=-
+[[if = test-gui]]
+	mb.run=-
+	mb.run=+
+[[]]
+[[if = test-values]]
+	#ccmode should have changed when flgwedgeweight was checked
+	mb.run.1=A
+	assert.rb.normalized-cross-correlation=on
+	rb.local-energy-normalized-cross-correlation=
+	mb.run.1=B
+[[]]
+run.function.iteration-table=
+[[if = test-gui]]
+	run.function.spherical-sampling-for-theta-and-psi=
+[[]]
+#check particle volume x empty error
+run.function.test-run-error=
+tf.particle-volume-x=%{particle-volume}
+#check particle volume y empty error
+run.function.test-run-error=
+tf.y=%{particle-volume}
+#check particle volume z empty error
+run.function.test-run-error=
+tf.z=%{particle-volume}
+cb.use-equal-numbers-of-particles-from-all-tomograms-for-new-reference=on
+run.function.number-of-particles-in-averages=
+cb.use-equal-numbers-of-particles-from-all-tomograms-for-averages=on
+sp.particles-per-cpu=1
+bn.run=
+wait.process.processchunks-%{dataset}=done
+[[if = test-gui]]
+	#test remake averages
+	bn.remake-averaged-volumes=
+	wait.process.running-averageall=done
+	bn.open-averaged-volumes-in-3dmod=
+[[]]
+
+
+[function = iteration-table]
+[[if = test-gui]]
+	#check empty iteration table error
+	mb.iteration-table-1-run-#=
+	bn.delete-row=
+	run.function.test-run-error=
+	bn.add-row=
+	#check enable/disable on an added row
+	bn.add-row=
+	cb.remove-duplicates=off
+	assert.disabled.tf.iteration-table-2-duplicate=
+	assert.disabled.tf.iteration-table-2-duplicate.1=
+	cb.remove-duplicates=on
+	assert.enabled.tf.iteration-table-2-duplicate=
+	assert.enabled.tf.iteration-table-2-duplicate.1=
+	#remove extra row
+	mb.iteration-table-2-run-#=
+	bn.delete-row=
+	cb.remove-duplicates=off
+[[]]
+#check phi max empty error
+run.function.test-run-error=
+tf.iteration-table-1-angular-search-range=%{angular-search-range-max}
+#check phi incr empty error
+run.function.test-run-error=
+tf.iteration-table-1-angular-search-range.1=%{angular-search-range-incr}
+#check theta max empty error
+run.function.test-run-error=
+tf.iteration-table-1-angular-search-range.2=%{angular-search-range-max}
+#check theta incr empty error
+run.function.test-run-error=
+tf.iteration-table-1-angular-search-range.3=%{angular-search-range-incr}
+#check psi max empty error
+run.function.test-run-error=
+tf.iteration-table-1-angular-search-range.4=%{angular-search-range-max}
+#check psi incr empty error
+run.function.test-run-error=
+tf.iteration-table-1-angular-search-range.5=%{angular-search-range-incr}
+#check search radius error checking
+run.function.test-run-error=
+tf.iteration-table-1-search=5,5
+tf.iteration-table-1-search=5
+#check cutoff empty error
+run.function.test-run-error=
+tf.iteration-table-1-high-freq=.5
+#check sigma empty error
+run.function.test-run-error=
+tf.iteration-table-1-high-freq.1=.05
+#check reference threshold empty error
+run.function.test-run-error=
+tf.iteration-table-1-reference=4
+[[if = test-gui]]
+	#check remove duplicates
+	#check enable/disable
+	cb.remove-duplicates=off
+	assert.disabled.tf.iteration-table-1-duplicate=
+	assert.disabled.tf.iteration-table-1-duplicate.1=
+	cb.remove-duplicates=on
+	assert.enabled.tf.iteration-table-1-duplicate=
+	assert.enabled.tf.iteration-table-1-duplicate.1=
+	#check run error checking on duplicate shift tolerance
+	run.function.test-run-error=
+	tf.iteration-table-1-duplicate=1.2
+	run.function.test-run-error=
+	#check run error checking on duplicate angular tolerance
+	tf.iteration-table-1-duplicate=1
+	run.function.test-run-error=
+	tf.iteration-table-1-duplicate.1=1.2
+	run.function.test-run-error=
+	#remove changes
+	tf.iteration-table-1-duplicate=
+	tf.iteration-table-1-duplicate.1=
+	cb.remove-duplicates=off
+	#test copy row
+	mb.iteration-table-1-run-#=
+	bn.copy-row=
+	assert.tf.iteration-table-2-angular-search-range=%{angular-search-range-max}
+	#test move up
+	tf.iteration-table-2-angular-search-range=99
+	mb.iteration-table-2-run-#=
+	bn.move-up=
+	assert.tf.iteration-table-1-angular-search-range=99
+	#test move down
+	bn.move-down=
+	assert.tf.iteration-table-2-angular-search-range=99
+	bn.delete-row=
+	#make sure search radius works with an array
+	tf.iteration-table-1-search=5,5,5
+[[]]
+
+
+[function = test-run-error]
+if.not.var.test-values.return=
+bn.run=
+wait.popup.entry-error=OK
+
+
+[function = spherical-sampling-for-theta-and-psi]
+if.not.var.test-values.return=
+#check sample interval empty error
+rb.full-sphere=
+run.function.test-run-error=
+rb.half-sphere=
+run.function.test-run-error=
+rb.none=
+
+
+[function = number-of-particles-in-averages]
+#check number of particles empty error
+run.function.test-run-error=
+tf.start=3
+#check missing end empty error
+run.function.test-run-error=
+tf.incr=3
+#check missing end empty error
+run.function.test-run-error=
+tf.end=9
+
+[function = check-prm]
+KeyValueDelimiter = ==
+run.function.setup-check-prm==
+run.function.runtab-check-prm==
+
+
+[function == setup-check-prm]
+tb.setup==
+run.function.volume-table-check-prm==
+run.function.reference-check-prm==
+run.function.missing-wedge-compensation-check-prm==
+run.function.masking-check-prm==
+run.function.cylinder-orientation-check-prm==
+run.function.initial-motive-list-check-prm==
+run.function.y-axis-type-check-prm==
+
+
+[function == runtab-check-prm]
+tb.setup.1==
+run.function.spherical-sampling-for-theta-and-psi-check-prm==
+#check remove duplicates
+cb.remove-duplicates==on
+bn.add-row==
+tf.iteration-table-1-duplicate==1
+tf.iteration-table-1-duplicate.1==2
+tf.iteration-table-2-duplicate==0
+tf.iteration-table-2-duplicate.1==0
+save==
+assert.contains.file==pi.prm|flgRemoveDuplicates = 1
+assert.contains.file==pi.prm|duplicateShiftTolerance = [1, 0]
+assert.contains.file==pi.prm|duplicateAngularTolerance = [2, 0]
+cb.remove-duplicates==off
+#flgAlignAverages is always saved
+assert.contains.file==pi.prm|flgAlignAverages = 0
+#aligned base name
+mb.run.1==A
+tf.aligned-base-name==bob
+save==
+assert.contains.file==pi.prm|alignedBaseName = 'bob'
+mb.run.1==B
+
+
+[function == volume-table-check-prm]
+#enable tilt range
+cb.use-tilt-range-in-averaging==on
+tf.volume-table-1-tilt-range==-10
+tf.volume-table-1-tilt-range.1==10
+tf.volume-table-2-tilt-range==-20
+tf.volume-table-2-tilt-range.1==20
+tf.volume-table-3-tilt-range==-10
+tf.volume-table-3-tilt-range.1==10
+#enable initial MOTL
+rb.use-files==
+mb.volume-table-1-vol-#==
+bn.set-initial-motive-list-file==
+wait.file-chooser.open==%{dataset}_MOTL_Tom1_Iter0.csv
+mb.volume-table-2-vol-#==
+bn.set-initial-motive-list-file==
+wait.file-chooser.open==%{dataset}_MOTL_Tom2_Iter0.csv
+mb.volume-table-3-vol-#==
+bn.set-initial-motive-list-file==
+wait.file-chooser.open==%{dataset}_MOTL_Tom3_Iter0.csv
+save==
+assert.contains.file==pi.prm|initMOTL = {'*/UITests/peet-test-gui/pi_MOTL_Tom1_Iter0.csv', '*/UITests/peet-test-gui/pi_MOTL_Tom2_Iter0.csv', '*/UITests/peet-test-gui/pi_MOTL_Tom3_Iter0.csv'}
+
+assert.contains.file==pi.prm|tiltRange = {[-10, 10], [-20, 20], [-10, 10]}
+cb.use-tilt-range-in-averaging==off
+rb.set-all-rotational-values-to-zero==
+
+
+[function == reference-check-prm]
+rb.reference-file==
+bn.reference-file==
+wait.file-chooser.open==unMaskedpi_Ref1.mrc
+save==
+assert.contains.file==pi.prm|reference = '*/UITests/peet-test-gui/unMaskedpi_Ref1.mrc'
+rb.volume-#==
+
+
+[function == missing-wedge-compensation-check-prm]
+cb.use-tilt-range-in-averaging==on
+cb.use-tilt-range-in-alignment==on
+cb.#-of-weight-groups-for-equalizing-cccs==on
+save==
+assert.contains.file==pi.prm|tiltRange = {[-10, 10], [-20, 20], [-10, 10]}
+assert.contains.file==pi.prm|edgeShift = 2
+assert.contains.file==pi.prm|nWeightGroup = 8
+assert.contains.file==pi.prm|flgWedgeWeight = 1
+cb.use-tilt-range-in-alignment==off
+cb.use-tilt-range-in-averaging==off
+
+
+[function == masking-check-prm]
+#test volume
+rb.volume==
+bn.volume==
+wait.file-chooser.open==unMaskedpi_Ref1.mrc
+save==
+assert.contains.file==pi.prm|maskType = '*/UITests/peet-test-gui/unMaskedpi_Ref1.mrc'
+#test sphere
+rb.sphere==
+tf.inner==10
+tf.outer==20
+save==
+assert.contains.file==pi.prm|maskType = 'sphere'
+assert.contains.file==pi.prm|insideMaskRadius = 10
+assert.contains.file==pi.prm|outsideMaskRadius = 20
+rb.none==
+
+
+[function == cylinder-orientation-check-prm]
+#test cylinder
+rb.cylinder==
+save==
+assert.contains.file==pi.prm|maskType = 'cylinder'
+#test cylinder with mask model points
+rb.reference-file==
+tf.particle-#.1==3
+save==
+assert.contains.file==pi.prm|maskType = 'cylinder'
+assert.contains.file==pi.prm|maskModelPts = [1, 3]
+rb.volume-#==
+rb.none==
+
+
+[function == initial-motive-list-check-prm]
+#test initialize Z axis
+rb.initialize-z-axis==
+save==
+assert.contains.file==pi.prm|initMOTL = 1
+#test initialize X and Z axis
+rb.initialize-x-and-z-axis==
+save==
+assert.contains.file==pi.prm|initMOTL = 2
+#use files is tested in volume-table-check-prm
+rb.set-all-rotational-values-to-zero==
+
+
+[function == y-axis-type-check-prm]
+#test particle model points
+rb.particle-model-points==
+save==
+assert.contains.file==pi.prm|yaxisType = 1
+#test end ponts of contour
+rb.end-points-of-contour==
+tf.object-#==2
+tf.contour-#==3
+save==
+assert.contains.file==pi.prm|yaxisType = 2
+assert.contains.file==pi.prm|yaxisObjectNum = 2
+assert.contains.file==pi.prm|yaxisContourNum = 3
+rb.original-y-axis==
+
+
+[function == iteration-table-check-prm]
+cb.remove-duplicates==on
+mb.iteration-table-1-duplicate==2
+mb.iteration-table-1-duplicate.1==3
+save==
+assert.contains.file==pi.prm|flgRemoveDuplicates = 1
+assert.contains.file==pi.prm|duplicateShiftTolerance = {2}
+assert.contains.file==pi.prm|duplicateAngularTolerance = {3}
+cb.remove-duplicates==off
+
+[function == spherical-sampling-for-theta-and-psi-check-prm]
+#test full sphere
+rb.full-sphere==
+tf.sample-interval==3
+save==
+assert.contains.file==pi.prm|sampleSphere = 'full'
+assert.contains.file==pi.prm|sampleInterval = 3
+#test half sphere
+rb.half-sphere==
+save==
+assert.contains.file==pi.prm|sampleSphere = 'half'
+assert.contains.file==pi.prm|sampleInterval = 3
+rb.none==
+
+
+[function == number-of-particles-in-averages-check-prm]
+tf.additional-numbers==4
+save==
+assert.contains.file==pi.prm|lstThresholds = [3:3:9, 4]
+
+
+[function == cross-correlation-measure-check-prm]
+rb.local-energy-normalized-cross-correlation==
+save==
+assert.contains.file==pi.prm|CCMode = 0
+rb.normalized-cross-correlation==
+KeyValueDelimiter == =

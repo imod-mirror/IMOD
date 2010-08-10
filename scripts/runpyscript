@@ -1,0 +1,32 @@
+#!/bin/bash
+# A simple wrapper to run a python script against the python on the path
+# and get a PID out for Etomo if -P is given before the script name
+#
+#  $Author$
+#
+#  $Date$
+#
+#  $Revision$
+#
+#  $Log$
+#  Revision 3.1  2006/09/23 17:47:53  mast
+#  Added to package
+#
+#
+if [ $# -lt 1 ] ; then
+    exit 1
+fi
+if [ "$1" == "-P" ] ; then
+    echo2 "Wrapper PID: $$"
+    shift
+fi
+if [ $# -lt 1 ] ; then
+    exit 1
+fi
+if [ -z "$IMOD_DIR" ]; then
+    echo "ERROR: runpyscript - environment variable IMOD_DIR is not defined"
+    exit 1
+fi
+prog="$1"
+shift
+python -u "$IMOD_DIR/bin/$prog" "$@"
