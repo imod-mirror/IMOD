@@ -1,0 +1,36 @@
+package etomo.ui.swing;
+
+import etomo.type.ProcessResultDisplay;
+import etomo.type.Run3dmodMenuOptions;
+
+/**
+ * <p>Description: </p>
+ * 
+ * <p>Copyright: Copyright 2009</p>
+ *
+ * <p>Organization:
+ * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
+ * University of Colorado</p>
+ * 
+ * @author $Author$
+ * 
+ * @version $Revision$
+ * 
+ * <p> $Log$
+ * <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ * <p>
+ * <p> Revision 3.2  2010/04/09 03:02:04  sueh
+ * <p> bug# 1352 Passing the ProcessResultDisplay via parameter instead of retrieving it with a function so that it always be passed.
+ * <p>
+ * <p> Revision 3.1  2009/09/01 03:18:25  sueh
+ * <p> bug# 1222
+ * <p> </p>
+ */
+interface Tilt3dFindParent  {
+  public static final String rcsid = "$Id$";
+
+  public void tilt3dFindAction(ProcessResultDisplay processResultDisplay,
+      Deferred3dmodButton deferred3dmodButton,
+      Run3dmodMenuOptions run3dmodMenuOptions);
+}
