@@ -1,0 +1,284 @@
+#!/bin/bash
+#
+# Startup script for eTomo
+# 
+# $Id$
+# Log at end of file
+# 
+
+rollLogs() {
+  lasterr=etomo_err12.log
+  for i in 11 10 9 8 7 6 5 4 3 2 1
+  do
+    thiserr=etomo_err${i}.log
+    if [ -e ${thiserr} ] ; then 
+      mv -f ${thiserr} ${lasterr} 
+    fi
+    lasterr=${thiserr}
+  done
+  if [ -e etomo_err.log ]; then
+    mv -f etomo_err.log ${lasterr}
+  fi
+}
+
+# To increase the memory limit for Java, define this environment variable
+# to a higher number
+#
+export ETOMO_MEM_LIM=${ETOMO_MEM_LIM:=128m}
+
+# If you wish to use a different java runtime than the default uncomment the
+# following line and define the path to the desired runtime directory
+
+#export IMOD_JAVADIR=/usr/local/j2re1.4.0_04
+
+if [ ! -z "$IMOD_JAVADIR" ]; then
+  export PATH=${IMOD_JAVADIR}/bin:${PATH}
+fi
+
+# Test for appropriate java run time
+if ! which java 2>&1 > /dev/null ; then
+  echo "There is no java runtime in the current search path.  A Java runtime"
+  echo "environment needs to be installed and the command search path needs"
+  echo "to be defined to locate the java command."
+  exit
+fi
+
+jversion=`java -version 2>&1 | cat`
+if echo $jversion | grep GNU > /dev/null ; then
+  echo "eTomo will not work with GNU java.  You should install a Sun version"
+  echo "of the Java runtime environment and put it on your command search path"
+  if [ ! -z "$IMOD_JAVADIR" ]; then
+      echo "or make a link to it from $IMOD_JAVADIR"
+  fi
+  exit
+fi
+
+if echo $jversion | grep '1\.4' > /dev/null ; then
+  echo "You are trying to run a 1.4 version of Java, located at:"
+  which java
+  echo "eTomo will no longer work with java 1.4.  You should install a Sun"
+  echo "version of the Java runtime environment, version 1.5 or higher, and"
+  echo "put it on your command search path, point IMOD_JAVADIR to it"
+  if [ ! -z "$IMOD_JAVADIR" ]; then
+      echo "or make a link to it from $IMOD_JAVADIR"
+  fi
+fi
+
+#  Workaround for java 1.4.0 / new threading library clash
+#  Really needed to be gone for Fedora Core 5, so make it 2.4 specific
+osname=`uname -s`
+if [ $osname == 'Linux' ] ; then
+  kvers=`uname -r | sed '/\./s// /g'`
+  kvers1=`echo $kvers | awk '{print $1}'`
+  kvers2=`echo $kvers | awk '{print $2}'`
+  if [[ ${kvers1} -eq 2 && ${kvers2} -eq 4 ]] ; then
+    export LD_ASSUME_KERNEL=2.4.1
+  fi
+fi
+
+#  Make sure awk produces . not , for decimal in floating point output
+export LC_NUMERIC=C
+
+# Make sure all PIP programs print entries
+export PIP_PRINT_ENTRIES=1
+
+# Test for existance of IMOD_DIR
+if [ -z "$IMOD_DIR" ]; then
+  echo "The IMOD_DIR environment variable has not been set"
+  echo "Set it to point to the directory where IMOD is installed"
+  exit
+fi
+if [ ! -e "$IMOD_DIR" ]; then
+  echo "IMOD_DIR="${IMOD_DIR} " does not exist"
+  echo "Set it to point to the directory where IMOD is installed"
+  exit
+fi
+
+
+# If the system-dependent script for setting the library search path exists,
+# source it.  This takes care of putting our Qt libraries on the right path
+# variable, and allows other directories to be placed on the path too, to
+# prevent clashes with libraries supplied by other packages
+
+if [ -e "${IMOD_DIR}/bin/setlibpath" ]; then
+  . "${IMOD_DIR}/bin/setlibpath"
+fi
+
+# Check for help option
+# Check for foreground option - needed to run multiple etomos with automation.
+
+help=0
+foreground=0
+if [ $# -gt 0 ] ; then
+    if [ "$1" == '-h' ] ; then
+    	help=1
+    elif [ "$1" == '--help' ] ; then
+    	help=1
+    elif [ "$1" == '--fg' ] ; then
+    	foreground=1
+    fi
+fi
+
+# If ETOMO_LOG_DIR is defined and writable, set up log files there with 
+# date/time stamp; if not defined, put them in a hidden directory
+if [ ${help} -eq 0 ] ; then
+  outlog=etomo_out.log
+  errlog=etomo_err.log
+
+  # Put logs in hidden directory if directory is not defined
+  if [ -z "${ETOMO_LOG_DIR}" ] ; then
+      ETOMO_LOG_DIR=$HOME/.etomologs
+      mkdir -p ${ETOMO_LOG_DIR}
+  fi
+  if [[ -n "${ETOMO_LOG_DIR}" && -w "${ETOMO_LOG_DIR}" ]] ; then
+
+    # purge the directory to 60 files (30 sessions) or whatever user chooses
+    purgenum=31
+    if [ ! -z ${ETOMO_LOGS_TO_RETAIN} ] ; then
+      purgenum=${ETOMO_LOGS_TO_RETAIN}
+    fi
+    timestamp=`date | sed 's/://g' | awk '{printf "%s-%s-%s",$2,$3,$4}'`
+    errlog="${ETOMO_LOG_DIR}/etomo_err_${timestamp}.log"
+    anypurge=`cd "${ETOMO_LOG_DIR}" ; find . -name 'etomo_*.log' -print`
+    if [ ! -z "${anypurge}" ] ; then
+      purgelist=`cd "${ETOMO_LOG_DIR}" ; ls -t etomo_*.log | tail -n +$purgenum`
+      # echo $purgelist
+      if [ ! -z "${purgelist}" ] ; then 
+        (cd "${ETOMO_LOG_DIR}" ; rm -f ${purgelist})
+      fi
+    fi
+
+    # If there is an existing real log, roll it
+    if [ -e etomo_err.log ] ; then
+      match=`head -n 1 etomo_err.log | grep "Error log"`
+      if [ -z "$match" ] ; then
+        rollLogs
+      fi
+    fi
+
+    # Write location of log into file here
+    touch etomo_err.log
+    echo "Error log for `date` is in ${errlog}" >> etomo_err.log
+
+  else
+
+    # Otherwise roll numbered logs here
+    rollLogs
+
+  fi
+
+  # Copy the previous out log file to backup
+  if [ -e ${outlog} ]; then
+    cp -p ${outlog} ${outlog}~
+  fi
+
+	if [ ${foreground} -eq 0 ] ; then
+    echo "starting eTomo with log in ${errlog}"
+    java -Xmx${ETOMO_MEM_LIM} -cp "${IMOD_DIR}/bin/etomo" \
+     -jar "${IMOD_DIR}/bin/etomo.jar" "$@" 2>"${errlog}" >${outlog} &
+  else
+    echo "starting eTomo with log in ${errlog}"
+    java -Xmx${ETOMO_MEM_LIM} -cp "${IMOD_DIR}/bin/etomo" \
+     -jar "${IMOD_DIR}/bin/etomo.jar" "$@" 2>$"{errlog}" >${outlog}
+  fi
+else
+  java -Xmx${ETOMO_MEM_LIM} -cp "${IMOD_DIR}/bin/etomo" \
+   -jar "${IMOD_DIR}/bin/etomo.jar" "$@"
+fi
+
+# $Log$
+# Revision 1.34  2010/04/13 16:04:21  mast
+# Quote the argument testing so filename can have spaces
+#
+# Revision 1.33  2010/03/31 03:55:28  mast
+# Fixed problems with spaces in ETOMO_LOG_DIR
+#
+# Revision 1.32  2009/12/04 20:26:33  mast
+# Set variable for printing entries in PIP
+#
+# Revision 1.31  2009/03/09 17:31:33  sueh
+# bug# 1172 Added --fg.
+#
+# Revision 1.30  2009/02/21 00:10:28  mast
+# Added test for java 1.4
+#
+# Revision 1.29  2008/12/12 21:52:46  mast
+# New startup message was confusing
+#
+# Revision 1.28  2008/12/05 22:27:04  mast
+# Save logs to .etomologs if ETOMO_LOG_DIR not defined
+#
+# Revision 1.27  2008/07/29 18:35:27  mast
+# Define as a bash script to avoid problems with Ubuntu link to dash
+#
+# Revision 1.26  2008/03/17 23:05:02  mast
+# Allowed user to set environment variable to increase memory limit
+#
+# Revision 1.25  2008/01/04 22:03:56  mast
+# Fixes for spaces in IMOD_DIR
+#
+# Revision 1.24  2007/12/19 20:59:14  mast
+# Quote the $@ so spaces are preserved in arguments
+#
+# Revision 1.23  2006/06/26 18:06:01  mast
+# Export the memory limit so etomo knows what it is
+#
+# Revision 1.22  2006/06/23 19:50:06  mast
+# But needed to eliminate () construct even from inside if block
+#
+# Revision 1.21  2006/06/23 16:11:23  mast
+# Check kernel version only on Linux
+#
+# Revision 1.20  2006/04/21 16:02:08  mast
+# Set LD_ASSUME_KERNEL for a 2.4 kernel only
+#
+# Revision 1.19  2006/04/06 00:12:38  mast
+# Comment out the LD_ASSUME_KERNEL
+#
+# Revision 1.18  2006/03/17 16:08:30  mast
+# Set LC_NUMERIC to C to prevent awk from using , for decimal place
+#
+# Revision 1.17  2005/12/23 01:53:18  sueh
+# bug# 786 Added help message to Etomo.  If -h or --help is detected in the
+# first parameters, don't use or roll the log files and don't run disconnected.
+#
+# Revision 1.16  2005/11/18 23:35:47  mast
+# Switched from timestamped local error logs to simple rolling numbered logs
+#
+# Revision 1.15  2005/10/28 00:27:36  mast
+# Set up for timestamped logs in current directory
+#
+# Revision 1.14  2005/10/03 18:56:34  mast
+# Added test for GNU java
+#
+# Revision 1.13  2005/05/19 23:00:33  mast
+# Added variable for setting memory limit higher, default 128 now
+#
+# Revision 1.12  2005/01/19 00:56:05  mast
+# Made the purging of log files safer
+#
+# Revision 1.11  2005/01/19 00:13:44  mast
+# Added ability to direct logs to a specific directory
+#
+# Revision 1.10  2003/09/11 05:54:52  rickg
+# updated for IMOD_JAVADIR
+#
+# Revision 1.9  2003/09/03 20:04:50  mast
+# There is no source command in sh - needed  . instead
+#
+# Revision 1.8  2003/09/03 17:40:01  mast
+# Modified to use system-dependent 'setlibpath' to fix library paths
+#
+# Revision 1.7  2003/07/22 22:13:32  rickg
+# Use JVM defined by the PATH
+# Check to see if we have our our QTLIB
+# Force the system QTLIB to the front of LD_LIBRARY_PATH if
+# it exists.
+#
+# Revision 1.6  2003/06/13 19:24:29  rickg
+# Added LD_ASSUME_KERNEL=2.4.1 export
+#
+# Revision 1.5  2003/04/25 22:04:07  rickg
+# Added echoing at startup
+#
+  
