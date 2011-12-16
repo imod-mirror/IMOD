@@ -1,6 +1,10 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-2/15/11: In eTomo - PEET, upgraded Y axis and initial motive list panels.
+12/15/11: Edit-Object-Move will move meshes from one saved isosurface object
+to another; multiple saved isosurface objects can be selected in Model view
+with Ctrl-right mouse; and Edit-Object-Combine will combine them.
+
+12/15/11: In eTomo - PEET, upgraded Y axis and initial motive list panels.
 (Bug# 1569)
 
 2/15/11: Made movie making work when only the clip planes change.
