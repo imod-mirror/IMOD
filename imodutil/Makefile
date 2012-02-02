@@ -150,4 +150,3 @@ imodold : imodold.$(O)
 
 imodmkhv : imodmkhv.$(O) 
 	$(CC) -o imodmkhv imodmkhv.$(O) $(LDFLAGS) $(MODLIBS) $(CLIBS)
-
