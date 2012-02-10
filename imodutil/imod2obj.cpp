@@ -4,7 +4,7 @@
  *  Author:     Andrew Noske
  *  Revised by: David Mastronarde   email: mast@colorado.edu
  *
- *  Info on OBJ: http://www.andrewnoske.com/wiki/index.php?title=OBJ
+ *  Info on OBJ: http://www.andrewnoske.com/wiki/index.php?title=OBJ_file_format
  *
  *  Copyright (C) 1995-2005 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
@@ -35,7 +35,7 @@ static int rotateModel    = 0;		// "rotate" (flip Y and Z axis)
 static int printMatFile   = 0;		// generate a .mtl file
 static int printNormals   = 0;		// print normals
 static int sphereSegments = 8;		// number of segments per sphere
-static int useIcosahedrons  = 0;		// draw isohedrons instead of "standard" sphere meshes
+static int useIcosahedrons= 0;		// draw isohedrons instead of "standard" sphere meshes
 
 
 //## FUNCTION DECLARATION:
@@ -187,7 +187,7 @@ int main( int argc, char *argv[])
 //-- then calling "printObject" on each object.
 //-- For more information about OBJ format see:
 //-- > http://www.fileformat.info/format/wavefrontobj/egff.htm   (official specs)   OR
-//-- > http://www.andrewnoske.com/wiki/index.php?title=OBJ  (author's notes)
+//-- > http://www.andrewnoske.com/wiki/index.php?title=OBJ_file_format  (author's notes)
 
 void imod_to_obj(Imod *imod, FILE *fout, char *matFileName)
 {
@@ -208,7 +208,7 @@ void imod_to_obj(Imod *imod, FILE *fout, char *matFileName)
   }
 	fprintf(fout,"\n\n");
 	fprintf(fout,"# For more info on OBJ file format see:\n");
-	fprintf(fout,"#  http://www.andrewnoske.com/wiki/index.php?title=OBJ\n");
+	fprintf(fout,"#  http://www.andrewnoske.com/wiki/index.php?title=OBJ_file_format\n");
 }
 
 //------------------------
