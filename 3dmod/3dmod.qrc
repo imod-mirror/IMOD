@@ -1,0 +1,11 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource>
+<file>images/uparrow.png</file>
+<file>images/downarrow.png</file>
+<file>images/rightarrow.png</file>
+<file>images/leftarrow.png</file>
+<file>images/raisewindow.png</file>
+<file>images/undo.png</file>
+<file>images/redo.png</file>
+</qresource>
+</RCC>
