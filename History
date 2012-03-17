@@ -5,6 +5,9 @@ IMOD History
 button with data loaded as integers; fixed problems if model view is closed
 and reopened; image display state is now retained if model view reopened.
 
+3/15/12: In eTomo added an interface for running gputilttest to the Tools
+menu.(Bug# 1525)
+
 3/16/12: In eTomo - PEET, popping up an error message when the PEET
 installation is not compatible with the current IMOD version.(Bug# 1597)
 
@@ -63,9 +66,6 @@ objects.
 
 2/28/12: In eTomo - PEET fixed an initMotl bug where the incorrect radio
 button was selected.(Bug# 1602).
-
-2/28/12: In eTomo added an interface for running gputilttest to the Tools
-menu.(Bug# 1525)
 
 2/28/12: In eTomo getting EXCLUDELIST for tilt.com from align.log when
 possible.(Bug# 1407)
