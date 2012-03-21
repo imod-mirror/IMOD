@@ -94,13 +94,15 @@ def runcmd(cmd, input=None, outfile=None, inStderr = None):
        - spawn a command with optional input, either send its output to
        outfile or return its output in an array of strings.
        cmd is a string; input is an array; outfile is a file object or
-       the string 'stdout' to send output to standard out
-       inStderr is used for the stderr argument when calling Popen and could be
-       PIPE for it to be swallowed or STDOUT for it to be combined with other output;
-       otherwise it should be a file object.
+       the string 'stdout' to send output to standard out.
+       inStderr specifies the destination of standard error output, but it is
+       ignored if outfile is 'stdout'.  It can be either a file object, 'stdout'
+       for it to be combined with standard output, or 'pipe' for it to be neither
+       returned nor written into a file (it will either be lost or appear on the
+       terminal depending on whether the subprocess module is being used).
        If the command fails with a broken pipe within 0.5 second,
-       it will retry up to 10 times.  Call setRetryLimit() to modify the allowed number
-       of retries and the maximum run time for a failure to be retried."""
+       it will retry up to 10 times.  Call setRetryLimit() to modify the allowed
+       number of retries and the maximum run time for a failure to be retried."""
 
    global errStrings, errStatus
 
@@ -142,7 +144,13 @@ def runcmd(cmd, input=None, outfile=None, inStderr = None):
 
             if pyVersion >= 300 and retryCount == 0:
                input = input.encode()
-               
+
+            if inStderr and isinstance(inStderr, str):
+               if inStderr == 'stdout':
+                  inStderr = STDOUT
+               elif inStderr == 'pipe':
+                  inStderr = PIPE
+
             # Run it three different ways depending on where output goes
             if collect:
                p = Popen(cmd, shell=True, stdout=PIPE, stdin=PIPE, stderr=inStderr)
@@ -163,7 +171,7 @@ def runcmd(cmd, input=None, outfile=None, inStderr = None):
             
          else:
 
-            # The old way, use popen or popen2 depending on where the output
+            # The old way, use popen, popen2-4 depending on where the output
             # is going
             if toStdout:
                kin = os.popen(cmd, 'w')
@@ -172,16 +180,27 @@ def runcmd(cmd, input=None, outfile=None, inStderr = None):
                      prnstr(l, file=kin)
                ec = kin.close()
             else:
-               (kin, kout) = os.popen2(cmd)
+               errToFile =inStderr and isinstance(inStderr, file)
+               if errToFile:
+                  (kin, kout, kerr) = os.popen3(cmd)
+               elif inStderr and isinstance(inStderr, str) and inStderr == 'stdout':
+                  (kin, kout) = os.popen4(cmd)
+               else:
+                  (kin, kout) = os.popen2(cmd)
                if input:
                   for l in input:
                      prnstr(l, file=kin)
                kin.close()
                output = kout.readlines()
                kout.close()
+               if errToFile:
+                  errlines = kerr.readlines()
+                  kerr.close()
                kpid, ec = os.wait()
                if not collect and output:
                   outfile.writelines(output)
+               if errToFile:
+                  inStderr.writelines(errlines)
 
             # Error status is high byte of os.wait() return value
             if ec:
