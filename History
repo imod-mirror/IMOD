@@ -1,6 +1,17 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-5/24/12: Fixed problem where eTomo freezes on Ubuntu when is looks for lsof in the wrong directory (In 4.5).(Bug# 1617)
+5/26/12: Changed Tiltalign and Beadtrack to get initial x/y/z
+coordinates with a direct solution instead of iteration, and added an initial
+scan for correct starting tilt axis rotation angle to Tiltalign.
+
+5/26/12: Changed -linear option to Imodfindbeads to allow use of antialias
+image reduction instead of regular interpolation.
+
+5/26/12: Made Taperoutvol and  Assemblevol preserve angles in header so they
+are not lost when running NAD (In 4.5).
+
+5/24/12: Fixed problem where eTomo freezes on Ubuntu when is looks for lsof in
+the wrong directory (In 4.5).(Bug# 1617)
 
 5/21/12: Fixed get_nxyz to take long filenames, which should fix Setupcombine
 and some other combine steps (In 4.5).
