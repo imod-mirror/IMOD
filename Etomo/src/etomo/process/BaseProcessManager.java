@@ -521,6 +521,15 @@ public abstract class BaseProcessManager {
 
   private final EtomoDirector etomoDirector = EtomoDirector.INSTANCE;
 
+  public void dumpState() {
+    System.err.println("[processMonitorA:" + processMonitorA + ",processMonitorB:"
+        + processMonitorB + ",debug:" + debug + ",killedList:");
+    if (killedList != null) {
+      System.err.println(killedList.toString());
+    }
+    System.err.println(",blockAxisA:" + blockAxisA + ",blockAxisB:" + blockAxisB + "]");
+  }
+
   BaseProcessManager(final BaseManager manager) {
     this.manager = manager;
     savedProcessDataA = new ProcessData(AxisID.FIRST, manager);
@@ -1518,6 +1527,9 @@ public abstract class BaseProcessManager {
           && script.getProcessEndState() != ProcessEndState.PAUSED) {
         uiHarness.openErrorMessageDialog(manager, combinedMessages,
             "Reconnect Terminated", script.getAxisID());
+        System.err.print("Reconnect Terminated (" + Utilities.getDateTimeStamp()
+            + "):exitValue:" + exitValue + ",\nscript:");
+        script.dumpState(2);
         // make sure script knows about failure
         script.setProcessEndState(ProcessEndState.FAILED);
       }
