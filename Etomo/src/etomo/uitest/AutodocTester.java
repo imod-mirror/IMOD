@@ -1261,7 +1261,7 @@ final class AutodocTester extends Assert implements VariableList {
         wait = false;
         // Check the end_state
         try {
-          Thread.sleep(500);
+          Thread.sleep(1000);
         }
         catch (InterruptedException e) {
         }
