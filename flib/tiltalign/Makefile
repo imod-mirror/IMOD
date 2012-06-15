@@ -3,7 +3,8 @@ O        = $(OBJEXT)
 E        = $(BINEXT)
 
 TAOBJS = tiltalign.$(O) input_model.$(O) input_vars.$(O) find_surfaces.$(O) \
- solve_xyzd.$(O) funct.$(O) map_vars.$(O) beamtilt.$(O) fill_matrices.$(O) alivar.$(O)
+ solve_xyzd.$(O) funct.$(O) map_vars.$(O) beamtilt.$(O) fill_matrices.$(O) alivar.$(O) \
+ robustfit.$(O)
 
 # PROGS = tiltalign$(E) xfforfidless$(E)
 PROGS = tiltalign$(E)
@@ -11,8 +12,8 @@ PROGS = tiltalign$(E)
 all: $(PROGS)
 
 
-tiltalign.$(O): tiltalign.f
-	$(FC) -c $(NOOPFFLAGS) tiltalign.f
+tiltalign.$(O): tiltalign.f90
+	$(FC) -c $(NOOPFFLAGS) tiltalign.f90
 
 tiltalign$(E): $(TAOBJS)
 	$(FC) -o tiltalign $(TAOBJS) $(LDFFLAGS) $(LSMLMOD) $(LIMOD) \
@@ -36,4 +37,3 @@ install: $(PROGS)
 
 clean:
 	-\rm -f *.o* *.exe *~ tiltalign xfforfidless alivar.mod
-
