@@ -15,15 +15,20 @@
 #ifdef F77FUNCAP
 #define fitcircle FITCIRCLE
 #define fitcirclewgt FITCIRCLEWGT
+#define enableradiusfitting ENABLERADIUSFITTING
 #else
-#define fitcircle fitcircle
+#define fitcircle fitcircle_
 #define fitcirclewgt fitcirclewgt_
+#define enableradiusfitting enableradiusfitting_
 #endif
 
 static void circleErr(float *y, float *error);
 static void sphereErr(float *y, float *error);
 static void circleErrWgt(float *y, float *error);
 static void sphereErrWgt(float *y, float *error);
+
+static int fitRadius = 1;
+static float fixedRadius;
 
 /*!
  * Computes the radius [rad] and center ([xc], [yc]) for a circle through the 3
@@ -71,7 +76,8 @@ static int numpt;
 
 /*! 
  * Fit a circle or sphere to a set of points using a simplex search with
- * the @amoeba routine. ^
+ * the @amoeba routine.  By default, it finds the radius as well as the center, unless 
+ * @enableRadiusFitting has been called with a 0. ^
  * Inputs: X and Y coordinates in arrays [xpt], [ypt]; [zpt] is NULL for a 
  * circle fit or has the array of Z coordinate; number of points in [numPts]. ^
  * Inputs/Outputs: radius in [rad], center coordinate in [xcen], [ycen], and [zcen]
@@ -88,7 +94,8 @@ int fitSphere(float *xpt, float *ypt, float *zpt, int numPts, float *rad,
 
 /*! 
  * Fit a circle or sphere to a set of points with weighting of errors using a 
- * simplex search with the @amoeba routine. ^
+ * simplex search with the @amoeba routine.  By default, it finds the radius as well as 
+ * the center, unless @enableRadiusFitting has been called with a 0. ^
  * Inputs: X and Y coordinates in arrays [xpt], [ypt]; [zpt] is NULL for a 
  * circle fit or has the array of Z coordinate; [weights] has an array of 
  * weights or is NULL for no weighting; the number of points is in [numPts]. ^
@@ -117,22 +124,24 @@ int fitSphereWgt(float *xpt, float *ypt, float *zpt, float *weights,
   ftol1 = 1.e-5f;
   ptol2 = 0.1f;
   ptol1 = .002f;
-  nvar = 3;
+  nvar = 2 + fitRadius;
 
   xp = xpt;
   yp = ypt;
   numpt = numPts;
-  a[0] = *rad;
-  a[1] = *xcen;
-  a[2] = *ycen;
+  fixedRadius = *rad;
+  if (fitRadius)
+    a[0] = *rad;
+  a[fitRadius] = *xcen;
+  a[fitRadius+1] = *ycen;
 
   if (zpt) {
     zp = zpt;
-    a[3] = *zcen;
+    a[fitRadius+2] = *zcen;
     funk = sphereErr;
     if (weights)
       funk = sphereErrWgt;
-    nvar = 4;
+    nvar++;
   }
 
   funk(a, &errmin);
@@ -151,11 +160,12 @@ int fitSphereWgt(float *xpt, float *ypt, float *zpt, float *weights,
     funk(a, &errmin);
   }
 
-  *rad  = a[0];
-  *xcen  = a[1];
-  *ycen  = a[2];
+  if (fitRadius)
+    *rad  = a[0];
+  *xcen  = a[fitRadius];
+  *ycen  = a[fitRadius+1];
   if (zpt)
-    *zcen = a[3];
+    *zcen = a[fitRadius];
   *rmsErr = (float)sqrt((double)errmin);
   return 0;
 }
@@ -174,6 +184,22 @@ void fitcirclewgt(float *xpt, float *ypt, float *weights, int *numPts, float *ra
   fitSphereWgt(xpt, ypt, NULL, weights, *numPts, rad, xcen, ycen, NULL, rmsErr);
 }
 
+/*!
+ * Makes the fitting routines find a center position only using the radius provided
+ * when [doFit] is nonzero.  Call with 1 to disable finding the radius and 0 to 
+ * re-enable it.
+ */
+void enableRadiusFitting(int doFit)
+{
+  fitRadius = doFit ? 1 : 0;
+}
+
+/*! Fortran wrapper to @enableRadiusFitting */
+void enableradiusfitting(int *doFit)
+{
+  fitRadius = *doFit ? 1 : 0;
+}
+
 /* Function to compute the error of the circle fit for given vector y */
 static void circleErr(float *y, float *error)
 {
@@ -181,9 +207,9 @@ static void circleErr(float *y, float *error)
   double delx, dely, delrad, err;
   int i;
 
-  rad = y[0];
-  xcen = y[1];
-  ycen = y[2];
+  rad = fitRadius ? y[0] : fixedRadius;
+  xcen = y[fitRadius];
+  ycen = y[fitRadius+1];
   err = 0.;
   for (i = 0; i < numpt; i++) {
     delx = xp[i] - xcen;
@@ -203,9 +229,9 @@ static void circleErrWgt(float *y, float *error)
   double delx, dely, delrad, err;
   int i;
 
-  rad = y[0];
-  xcen = y[1];
-  ycen = y[2];
+  rad = fitRadius ? y[0] : fixedRadius;
+  xcen = y[fitRadius];
+  ycen = y[fitRadius+1];
   err = 0.;
   for (i = 0; i < numpt; i++) {
     delx = xp[i] - xcen;
@@ -217,6 +243,7 @@ static void circleErrWgt(float *y, float *error)
   *error = (float)(err / numpt);
 }
 
+
 /* Function to compute the error of the sphere fit for given vector y */
 static void sphereErr(float *y, float *error)
 {
@@ -224,10 +251,10 @@ static void sphereErr(float *y, float *error)
   double delx, dely, delz, delrad, err;
   int i;
 
-  rad = y[0];
-  xcen = y[1];
-  ycen = y[2];
-  zcen = y[3];
+  rad = fitRadius ? y[0] : fixedRadius;
+  xcen = y[fitRadius];
+  ycen = y[fitRadius+1];
+  zcen = y[fitRadius+2];
   err = 0.;
   for (i = 0; i < numpt; i++) {
     delx = xp[i] - xcen;
@@ -248,10 +275,10 @@ static void sphereErrWgt(float *y, float *error)
   double delx, dely, delz, delrad, err;
   int i;
 
-  rad = y[0];
-  xcen = y[1];
-  ycen = y[2];
-  zcen = y[3];
+  rad = fitRadius ? y[0] : fixedRadius;
+  xcen = y[fitRadius];
+  ycen = y[fitRadius+1];
+  zcen = y[fitRadius+2];
   err = 0.;
   for (i = 0; i < numpt; i++) {
     delx = xp[i] - xcen;

@@ -79,6 +79,7 @@ program tiltalign
   integer*4 numWgtTotal, numWgtZero, numWgt1, numWgt2, numWgt5, maxDelWgtBelowCrit
   integer*4 maxRobustOneCycle, numOneCycle, numTotCycles, maxTotCycles, numBelowCrit
   real*4 robustTotCycleFac, delWgtMeanCrit, delWgtMaxCrit, rmsScale
+  real*4 wgtErrMean, wgtErrSumLocal, wgtErrLocalMin, wgtErrLocalMax
   character*20 message
   character*320 concat
   !
@@ -87,56 +88,49 @@ program tiltalign
   integer*4 PipGetInteger, PipGetBoolean
   integer*4 PipGetString, PipGetFloat, PipGetTwoIntegers
   !
-  ! fallbacks from .. / .. / manpages / autodoc2man - 2 2  tiltalign
+  ! fallbacks from ../../manpages/autodoc2man -3 2  tiltalign
   !
   integer numOptions
-  parameter (numOptions = 104)
+  parameter (numOptions = 108)
   character*(40 * numOptions) options(1)
   options(1) = &
-      ':ModelFile:FN:@:ImageFile:FN:@:ImageSizeXandY:IP:@'// &
-      ':ImageOriginXandY:FP:@:ImagePixelSizeXandY:FP:@'// &
-      ':ImagesAreBinned:I:@:OutputModelFile:FN:@:OutputResidualFile:FN:@'// &
-      ':OutputModelAndResidual:FN:@:OutputTopBotResiduals:FN:@'// &
-      ':OutputFidXYZFile:FN:@:OutputTiltFile:FN:@'// &
-      ':OutputXAxisTiltFile:FN:@:OutputTransformFile:FN:@'// &
-      ':OutputZFactorFile:FN:@:IncludeStartEndInc:IT:@:IncludeList:LI:@'// &
-      ':ExcludeList:LI:@:RotationAngle:F:@:SeparateGroup:LIM:@'// &
-      'first:FirstTiltAngle:F:@increment:TiltIncrement:F:@'// &
-      'tiltfile:TiltFile:FN:@angles:TiltAngles:FAM:@:AngleOffset:F:@'// &
-      ':ProjectionStretch:B:@:BeamTiltOption:I:@'// &
-      ':FixedOrInitialBeamTilt:F:@'// &
-      ':RotOption:I:@:RotDefaultGrouping:I:@:RotNondefaultGroup:ITM:@'// &
-      ':RotationFixedView:I:@:LocalRotOption:I:@'// &
-      ':LocalRotDefaultGrouping:I:@:LocalRotNondefaultGroup:ITM:@'// &
+      ':ModelFile:FN:@:ImageFile:FN:@:ImageSizeXandY:IP:@:ImageOriginXandY:FP:@'// &
+      ':ImagePixelSizeXandY:FP:@:ImagesAreBinned:I:@:OutputModelFile:FN:@'// &
+      ':OutputResidualFile:FN:@:OutputModelAndResidual:FN:@'// &
+      ':OutputTopBotResiduals:FN:@:OutputFidXYZFile:FN:@:OutputTiltFile:FN:@'// &
+      ':OutputUnadjustedTiltFile:FN:@:OutputXAxisTiltFile:FN:@'// &
+      ':OutputTransformFile:FN:@:OutputZFactorFile:FN:@:IncludeStartEndInc:IT:@'// &
+      ':IncludeList:LI:@:ExcludeList:LI:@:RotationAngle:F:@:SeparateGroup:LIM:@'// &
+      'first:FirstTiltAngle:F:@increment:TiltIncrement:F:@tiltfile:TiltFile:FN:@'// &
+      'angles:TiltAngles:FAM:@:AngleOffset:F:@:ProjectionStretch:B:@'// &
+      ':BeamTiltOption:I:@:FixedOrInitialBeamTilt:F:@:RotOption:I:@'// &
+      ':RotDefaultGrouping:I:@:RotNondefaultGroup:ITM:@:RotationFixedView:I:@'// &
+      ':LocalRotOption:I:@:LocalRotDefaultGrouping:I:@:LocalRotNondefaultGroup:ITM:@'// &
       ':TiltOption:I:@:TiltFixedView:I:@:TiltSecondFixedView:I:@'// &
-      ':TiltDefaultGrouping:I:@:TiltNondefaultGroup:ITM:@'// &
-      ':LocalTiltOption:I:@:LocalTiltFixedView:I:@'// &
-      ':LocalTiltSecondFixedView:I:@:LocalTiltDefaultGrouping:I:@'// &
-      ':LocalTiltNondefaultGroup:ITM:@:MagReferenceView:I:@'// &
-      ':MagOption:I:@:MagDefaultGrouping:I:@:MagNondefaultGroup:ITM:@'// &
-      ':LocalMagReferenceView:I:@:LocalMagOption:I:@'// &
+      ':TiltDefaultGrouping:I:@:TiltNondefaultGroup:ITM:@:LocalTiltOption:I:@'// &
+      ':LocalTiltFixedView:I:@:LocalTiltSecondFixedView:I:@'// &
+      ':LocalTiltDefaultGrouping:I:@:LocalTiltNondefaultGroup:ITM:@'// &
+      ':MagReferenceView:I:@:MagOption:I:@:MagDefaultGrouping:I:@'// &
+      ':MagNondefaultGroup:ITM:@:LocalMagReferenceView:I:@:LocalMagOption:I:@'// &
       ':LocalMagDefaultGrouping:I:@:LocalMagNondefaultGroup:ITM:@'// &
       ':CompReferenceView:I:@:CompOption:I:@:CompDefaultGrouping:I:@'// &
-      ':CompNondefaultGroup:ITM:@:XStretchOption:I:@'// &
-      ':XStretchDefaultGrouping:I:@:XStretchNondefaultGroup:ITM:@'// &
-      ':LocalXStretchOption:I:@:LocalXStretchDefaultGrouping:I:@'// &
-      ':LocalXStretchNondefaultGroup:ITM:@:SkewOption:I:@'// &
-      ':SkewDefaultGrouping:I:@:SkewNondefaultGroup:ITM:@'// &
+      ':CompNondefaultGroup:ITM:@:XStretchOption:I:@:XStretchDefaultGrouping:I:@'// &
+      ':XStretchNondefaultGroup:ITM:@:LocalXStretchOption:I:@'// &
+      ':LocalXStretchDefaultGrouping:I:@:LocalXStretchNondefaultGroup:ITM:@'// &
+      ':SkewOption:I:@:SkewDefaultGrouping:I:@:SkewNondefaultGroup:ITM:@'// &
       ':LocalSkewOption:I:@:LocalSkewDefaultGrouping:I:@'// &
-      ':LocalSkewNondefaultGroup:ITM:@:XTiltOption:I:@'// &
-      ':XTiltDefaultGrouping:I:@:XTiltNondefaultGroup:ITM:@'// &
-      ':LocalXTiltOption:I:@:LocalXTiltDefaultGrouping:I:@'// &
+      ':LocalSkewNondefaultGroup:ITM:@:XTiltOption:I:@:XTiltDefaultGrouping:I:@'// &
+      ':XTiltNondefaultGroup:ITM:@:LocalXTiltOption:I:@:LocalXTiltDefaultGrouping:I:@'// &
       ':LocalXTiltNondefaultGroup:ITM:@:ResidualReportCriterion:F:@'// &
-      ':SurfacesToAnalyze:I:@:MetroFactor:F:@:MaximumCycles:I:@'// &
-      ':AxisZShift:F:@:AxisXShift:F:@:LocalAlignments:B:@'// &
-      ':OutputLocalFile:FN:@:NumberOfLocalPatchesXandY:IP:@'// &
+      ':SurfacesToAnalyze:I:@:MetroFactor:F:@:MaximumCycles:I:@:RobustFitting:B:@'// &
+      ':KFactorScaling:I:@:MinWeightGroupSizes:IP:@:AxisZShift:F:@:AxisXShift:F:@'// &
+      ':LocalAlignments:B:@:OutputLocalFile:FN:@:NumberOfLocalPatchesXandY:IP:@'// &
       ':TargetPatchSizeXandY:IP:@:MinSizeOrOverlapXandY:FP:@'// &
-      ':MinFidsTotalAndEachSurface:IP:@:FixXYZCoordinates:B:@'// &
-      ':LocalOutputOptions:IT:@:RotMapping:IAM:@:LocalRotMapping:IAM:@'// &
-      ':TiltMapping:IAM:@:LocalTiltMapping:IAM:@:MagMapping:IAM:@'// &
-      ':LocalMagMapping:IAM:@:CompMapping:IAM:@:XStretchMapping:IAM:@'// &
-      ':LocalXStretchMapping:IAM:@:SkewMapping:IAM:@'// &
-      ':LocalSkewMapping:IAM:@:XTiltMapping:IAM:@'// &
+      ':MinFidsTotalAndEachSurface:IP:@:FixXYZCoordinates:B:@:LocalOutputOptions:IT:@'// &
+      ':RotMapping:IAM:@:LocalRotMapping:IAM:@:TiltMapping:IAM:@'// &
+      ':LocalTiltMapping:IAM:@:MagMapping:IAM:@:LocalMagMapping:IAM:@'// &
+      ':CompMapping:IAM:@:XStretchMapping:IAM:@:LocalXStretchMapping:IAM:@'// &
+      ':SkewMapping:IAM:@:LocalSkewMapping:IAM:@:XTiltMapping:IAM:@'// &
       ':LocalXTiltMapping:IAM:@param:ParameterFile:PF:@help:usage:B:'
   !
   maxtemp = 10000
@@ -151,7 +145,7 @@ program tiltalign
   delWgtMaxCrit = 0.01
   maxDelWgtBelowCrit = 4
   maxRobustOneCycle = 10
-  robustTotCycleFac = 1.5
+  robustTotCycleFac = 3.
   ifDoRobust = 0
   incrGmag = 0
   incrDmag = 0
@@ -306,7 +300,6 @@ program tiltalign
     xx(i) = xx(i) / scaleXY
     yy(i) = yy(i) / scaleXY
   enddo
-  rmsScale = scaleXY**2 / nprojpt
   !
   ! Get the h array big enough for the solution and for temporary arrays in solveXyzd
   maxvar = nvarSearch + 3 * nrealPt
@@ -456,11 +449,13 @@ program tiltalign
         write(*,'(/,a)')'Summary of robust weighting in local areas:'
         write(*,321)numWgtTotal, numWgtZero, numWgt1, numWgt2, numWgt5,  &
             (100. * numWgt5) / numWgtTotal
-321     format(i6,' weights: ',i4,' are 0, ',i3,' are < .1, ',i3,' are < .2, ',i4, &
+321     format(i6,' weights:',i5,' are 0,',i5,' are < .1,',i5,' are < .2,',i6, &
             ' (',f4.1,'%) are < .5')
       endif
       write(*,119) errsumLocal / (numPatchX * numPatchY), errLocalMin, errLocalMax
 119   format(/,' Residual error local mean:  ',f9.3,'    range', f8.3, ' to',f8.3)
+      if (ifDoRobust > 0 )write(*,1191) wgtErrsumLocal / (numPatchX * numPatchY), wgtErrLocalMin, wgtErrLocalMax
+1191   format(/,' Weighted error local mean:  ',f9.3,'    range', f8.3, ' to',f8.3)
     endif
   endif
   close(7)
@@ -500,6 +495,7 @@ CONTAINS
     !
     ! Do beam tilt search only for global alignment
     robustWeights = .false.
+    rmsScale = scaleXY**2 / nprojpt
     if (ifBTSearch == 0 .or. ifLocal > 0) then
       call runMetro(nvarSearch, var, varErr, grad, h, ifLocal, facm, ncycle, 0, &
           rmsScale, fFinal, i, metroError)
@@ -573,7 +569,7 @@ CONTAINS
           numTotCycles,' cycles without meeting convergence criteria'
       write(*,'(a,2f8.4)')' Final mean and max weight change',errMean, errSd
       write(*,321) nprojpt, index, ipt, iv, jpt, (100. * jpt) / nprojpt
-321     format(i6,' weights: ',i4,' are 0, ',i3,' are < .1, ',i3,' are < .2, ',i4, &
+321     format(i6,' weights:',i5,' are 0,',i5,' are < .1,',i5,' are < .2,',i6, &
             ' (',f4.1,'%) are < .5',/)
       if (ifLocal .ne. 0) then
         numWgtTotal = numWgtTotal + nprojpt
@@ -1190,11 +1186,16 @@ CONTAINS
       if (ifDoRobust .ne. 0) write(*,1181) wgtErrSum / wgtSum, '(Global)'
     else
       write(*,118) errMean, errSd, '(Local area', ipatchX, ipatchy, ')'
-      if (ifDoRobust .ne. 0) write(*,1181) wgtErrSum / wgtSum, '(Local area', ipatchX,  &
-          ipatchy, ')'
       errsumLocal = errsumLocal + errMean
       errLocalMin = min(errLocalMin, errMean)
       errLocalMax = max(errLocalMax, errMean)
+      if (ifDoRobust .ne. 0) then
+        wgtErrMean = wgtErrSum / wgtSum
+        write(*,1181) wgtErrMean, '(Local area', ipatchX, ipatchy, ')'
+        wgtErrsumLocal = wgtErrsumLocal + wgtErrMean
+        wgtErrLocalMin = min(wgtErrLocalMin, wgtErrMean)
+        wgtErrLocalMax = max(wgtErrLocalMax, wgtErrMean)
+      endif
     endif
     if (ifResOut > 0) then
       message = ' '
@@ -1284,6 +1285,9 @@ CONTAINS
     errsumLocal = 0.
     errLocalMin = 1.e10
     errLocalMax = -10.
+    wgtErrSumLocal = 0.
+    wgtErrLocalMin = 1.e10
+    wgtErrLocalMax = -10.
     ifVarOut = 0
     ifResOut = 0
     ifXyzOut = 0
