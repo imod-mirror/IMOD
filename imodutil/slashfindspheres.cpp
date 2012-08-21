@@ -9,13 +9,12 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *  
  * $Id: slashfindspheres.cpp
- *  Log at end
  */
 
 //############################################################
 
 #include <stdlib.h>
-#include <string>
+#include <string.h>
 #include <stdio.h>
 #include "mrcc.h"
 #include "sliceproc.h"
@@ -64,6 +63,9 @@ const float DEFAULT_CUTOFF = 0.85f;		// default cutoff range to use if none spec
 const int MAX_COMPARES = 500;		      // max number of "cross comparions" between the 
                                       //  templates around input spheres in order
                                       //  to generate a estimated "good cutoff"
+
+const float NULL_FLOAT = -999; //MIN_FLOAT;	// represents a pixel not on the image
+	
 
 //############################################################
 //## MAIN PROGRAM VARIABLES:
@@ -431,8 +433,6 @@ public:
 	
 	int totXY;  // the number of pixels on each z level (stored for faster calculation)
 	int totPx;  // the total nubmer of pixels in the template
-	
-	const static float NULL_FLOAT = -999; //MIN_FLOAT;	// represents a pixel not on the image
 	
 	PixTemplate()			{  reset(); }
 	
@@ -3317,12 +3317,3 @@ bool writeOutMrcFileWithCutoffVals( MrcHeader &inHead, char outfile[MAX_CHARS],
 
 //############################################################
 
-
-
-
-
-
-/*
- $Log: slashfindspheres.cpp,v $
- Revision 1.0  2012/05/21 21:37:14  noske
- */
