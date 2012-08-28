@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/28/12: Remove duplicate uitest directories testBB, testmidzone2, and
+testunicross.(Bug# 1639)
+
 8/28/12: Boxstartend now sets the origin correctly when extracting to separate
 files so models will be interchangeable between full and subvolumes.
 
