@@ -1,5 +1,26 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/6/12: In eTomo fixed a bug which caused Tomogram Setup to fail when there was
+a subdirectory in the target directory.(Bug# 1640)
+
+9/5/12: IMOD_4-6-10
+9/5/12: Fixed a division by 0 in Beadtrack that made it hang or crash.
+
+9/5/12: Changes to Autofidseed and associated tools: made it possible to
+ignore surface information for selected tracked models or to drop models, 
+switched to a local temporary directory and left surface sorted models and
+peak models there; improved elimination of elongated points when there are
+many clustered points.  Added ability to draw boundary contours around
+excluded instead of included areas.
+
+8/30/12: Supermontaging changes: split Edgepatches into two, with a new program 
+Setupstitch to set up the info file.  Added options to edgepatches to help with
+fixing problems in initial 2D correlations.  Changed Stitchalign and
+Tomostitch so the volumes are not shifted into alignment during warping but
+using piece shifts in Blendmont, to guarantee that Blendmont's overlap zone
+analysis includes the actual overlap.  Made all patch models show false color
+value display without having to turn it on.
+
 8/29/12: IMOD_4-5-7
 8/28/12: Fixed Alterheader FEIPIXEL command, which never worked (In 4.5).
 
