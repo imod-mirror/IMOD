@@ -1,0 +1,67 @@
+Version = 1.0
+Pip = 1
+
+[Field = InputFile]
+short = input
+type = FN
+usage = Input file with f transforms 
+tooltip = 
+manpage = 
+
+[Field = GOutputFile]
+short = goutput
+type = FN
+usage = Output file for g transforms (optional if input name ends in xf)
+tooltip = 
+manpage = Output file for g transforms.  If an output filename is omitted
+and the input filename ends in xf, the input filename will be used as output
+with the last letter converted from f to g.
+
+[Field = NumberToFit]
+short = nfit
+type = I
+usage = Number of adjacent sections to fit, 0 for global alignment, or 1 for
+fit to all sections
+tooltip = 
+manpage = 
+
+[Field = ReferenceSection]
+short = ref
+type = I
+usage = Do a global alignment to the given section (numbered from 1)
+tooltip = 
+manpage = Do a global alignment to the given section; this will give the
+reference section a unit transform and keep it from being transformed.
+Sections are numbered from 1.
+
+[Field = OrderOfPolynomialFit]
+short = order
+type = I
+usage = Order of the polynomial fit to the data. The default is 1 (linear fit).
+tooltip = 
+manpage = 
+
+[Field = HybridFits]
+short = mixed
+type = I
+usage = Number of parameters to eliminate trends for with a hybrid alignment
+tooltip = 
+manpage = Number of parameters to eliminate trends for with a hybrid alignment:
+2 for translations only, 3 for rotations also, 4 for size changes also.
+
+[Field = RangeOfAnglesInAverage]
+short = range
+type = F
+usage = Range of rotation angles for sections to include in average and fits
+tooltip = 
+manpage = Compute the global average center position, and the center position
+for local fits, using the largest group of sections whose rotation angles fall
+within the given range.
+
+[Field = usage]
+short = help
+long = usage
+type = B
+usage = Print help output
+tooltip = 
+manpage = 
