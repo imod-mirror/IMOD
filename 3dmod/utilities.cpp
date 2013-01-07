@@ -27,6 +27,7 @@
 #include <QKeyEvent>
 #include <QMouseEvent>
 #include "imod.h"
+#include "imodv.h"
 #include "utilities.h"
 #include "b3dgfx.h"
 #include "preferences.h"
@@ -80,10 +81,10 @@ void utilDrawSymbol(int mx, int my, int sym, int size, int flags)
 void utilGetLongestTimeString(ImodView *vi, QString *str)
 {
   int maxlen, time, len, tmax;
-  if (vi->nt){
+  if (vi->numTimes){
     *str = " (999)";
     maxlen = -1;
-    for (time = 1; time < vi->nt; time++) {
+    for (time = 1; time < vi->numTimes; time++) {
       len = strlen(ivwGetTimeIndexLabel(vi, time));
       if (len > maxlen) {
         maxlen = len;
@@ -529,6 +530,18 @@ float utilWheelToPointSizeScaling(float zoom)
   return wheelScale;
 }
 
+/* Converts a flipped model to a rotated one if direction is FLIP_TO_ROTATION, or
+ * a rotated model to a flipped one if direction is ROTATION_TO_FLIP, otherwise
+ * does nothing */
+void utilExchangeFlipRotation(Imod *imod, int direction)
+{
+  if ((direction == FLIP_TO_ROTATION && !(imod->flags & IMODF_FLIPYZ)) ||
+      (direction == ROTATION_TO_FLIP && !(imod->flags & IMODF_ROT90X)))
+    return;
+  imodInvertZ(imod);
+  setOrClearFlags(&imod->flags, IMODF_ROT90X, direction == FLIP_TO_ROTATION ? 1 : 0);
+  setOrClearFlags(&imod->flags, IMODF_FLIPYZ, direction == ROTATION_TO_FLIP ? 1 : 0);
+}
 
 /* Appends either the model or file name to the window name, giving
    first priority to the model name if "modelFirst" is set */
@@ -548,6 +561,24 @@ char *imodwEithername(const char *intro, const char *filein, int modelFirst)
   return(retString);
 }
 
+/* Sets the window title of a model view dialog */
+void setModvDialogTitle(QWidget *dia, const char *intro)
+{
+  QString qstr;
+  char *window_name;
+  int ind;
+  window_name = imodwEithername(intro, Imodv->imod->fileName, 1);
+  qstr = window_name;
+  if (window_name)
+    free(window_name);
+  if (qstr.isEmpty()) {
+    qstr = intro;
+    ind = qstr.lastIndexOf(':');
+    if (ind > 0)
+      qstr = qstr.left(ind);
+  }
+  dia->setWindowTitle(qstr);
+}
 
 /* Appends the given name to window name */
 char *imodwGivenName(const char *intro, const char *filein)
@@ -581,11 +612,11 @@ char *imodwfname(const char *intro)
   filename = Imod_imagefile;
 
   /* DNM 7/21/02: if multiple files, output number of image files */
-  if (!filename && App->cvi->nt > 1) {
+  if (!filename && App->cvi->numTimes > 1) {
     filename = (char *)malloc(20 + strlen(intro));
     if (!filename)
       return NULL;
-    sprintf(filename, "%s %d image files", intro, App->cvi->nt);
+    sprintf(filename, "%s %d image files", intro, App->cvi->numTimes);
     return(filename);
   }
   return (imodwGivenName(intro, filename));

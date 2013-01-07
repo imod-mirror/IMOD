@@ -184,7 +184,7 @@ InfoWindow::InfoWindow(QWidget * parent, const char * name, Qt::WFlags f)
   ADD_ACTION(ePoint, "S&ort by dist", EPOINT_MENU_SORTDIST);
 
   // Edit Image submenu
-  ADD_ACTION(eImage, "F&lip", EIMAGE_MENU_FLIP);
+  ADD_ACTION(eImage, "F&lip/Rotate", EIMAGE_MENU_FLIP);
   ADD_ACTION(eImage, "P&rocess...", EIMAGE_MENU_PROCESS);
   ADD_ACTION(eImage, "R&eload...", EIMAGE_MENU_RELOAD);
   ADD_ACTION(eImage, "F&ill Cache", EIMAGE_MENU_FILLCACHE);
@@ -436,8 +436,8 @@ void InfoWindow::manageMenus()
     (vi->rgbStore == 0 && vi->fakeImage == 0 && vi->multiFileZ <= 0 &&
      vi->noReadableImage == 0);
   /*fprintf(stderr, "vi->multiFileZ=%d\n", vi->multiFileZ);*/
-  mActions[EIMAGE_MENU_FILLCACHE]->setEnabled(vi->vmSize != 0 || vi->nt > 0);
-  mActions[EIMAGE_MENU_FILLER]->setEnabled(vi->vmSize != 0 || vi->nt > 0);
+  mActions[EIMAGE_MENU_FILLCACHE]->setEnabled(vi->vmSize != 0 || vi->numTimes > 0);
+  mActions[EIMAGE_MENU_FILLER]->setEnabled(vi->vmSize != 0 || vi->numTimes > 0);
   //mActions[IMAGE_MENU_SLICER]->setEnabled(vi->rawImageStore == 0);
   mActions[IMAGE_MENU_ISOSURFACE]->setEnabled(imageOK);
   mActions[ECONTOUR_MENU_AUTO]->setEnabled(imageOK);
@@ -697,13 +697,13 @@ void InfoWindow::timerEvent(QTimerEvent *e)
     raise();
 }
 
-void InfoWindow::openSelectedWindows(char *keys)
+void InfoWindow::openSelectedWindows(char *keys, int modelViewOpen)
 {
   bool imageOK = !(App->cvi->fakeImage || App->cvi->rgbStore);
   if (!keys)
     return;
 
-  // Model view uses mBCDILMOSV
+  // Model view uses mBCDILMOSVN
   if (strchr(keys, 'a'))
     editContourSlot(ECONTOUR_MENU_AUTO);
   if (strchr(keys, 'b'))
@@ -712,7 +712,7 @@ void InfoWindow::openSelectedWindows(char *keys)
     editContourSlot(ECONTOUR_MENU_COPY);
   if (strchr(keys, 'e'))
     editSlot(EDIT_MENU_SCALEBAR);
-  if (strchr(keys, 'f') && (App->cvi->vmSize != 0 || App->cvi->nt > 0))
+  if (strchr(keys, 'f') && (App->cvi->vmSize != 0 || App->cvi->numTimes > 0))
     editImageSlot(EIMAGE_MENU_FILLER);
   if (strchr(keys, 'g') && imageOK)
     imageSlot(IMAGE_MENU_GRAPH);
@@ -722,7 +722,7 @@ void InfoWindow::openSelectedWindows(char *keys)
     editContourSlot(ECONTOUR_MENU_JOIN);
   if (strchr(keys, 'l'))
     editObjectSlot(EOBJECT_MENU_COLOR);
-  if (strchr(keys, 'm') && imageOK)
+  if (strchr(keys, 'm') && imageOK && modelViewOpen == FALSE)
     imageSlot(IMAGE_MENU_LOCATOR);
   if (strchr(keys, 'n'))
     fileSlot(FILE_MENU_MOVIEMONT);
