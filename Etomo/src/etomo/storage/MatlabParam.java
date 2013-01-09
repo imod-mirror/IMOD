@@ -509,6 +509,7 @@ public final class MatlabParam {
       return false;
     }
     catch (LogFile.LockException e) {
+      e.printStackTrace();
       UIHarness.INSTANCE.openMessageDialog(
           manager,
           "Unable to read " + file.getAbsolutePath() + ".  LogFile.ReadException:  "
@@ -540,6 +541,7 @@ public final class MatlabParam {
           + ".adoc.\nIOException:  " + e.getMessage());
     }
     catch (LogFile.LockException e) {
+      e.printStackTrace();
       System.err.println("Problem with " + AutodocFactory.PEET_PRM
           + ".adoc.\nLogFile.ReadException:  " + e.getMessage());
     }
@@ -551,7 +553,12 @@ public final class MatlabParam {
       }
       else {
         LogFile logFile = LogFile.getInstance(file);
-        logFile.backup();
+        if (!logFile.isBackedup()) {
+          logFile.doubleBackupOnce();
+        }
+        else {
+          logFile.backup();
+        }
       }
       if (commentAutodoc == null) {
         // The peetprm.adoc is not available.
