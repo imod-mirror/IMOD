@@ -1112,7 +1112,10 @@ public abstract class BaseManager {
     }
     // Give Windows a chance to release control of the file.
     try {
-      Thread.sleep(2000);
+      if (debug) {
+        System.err.println("Waiting for Windows file lock to be released.");
+      }
+      Thread.sleep(3000);
     }
     catch (InterruptedException e) {
     }

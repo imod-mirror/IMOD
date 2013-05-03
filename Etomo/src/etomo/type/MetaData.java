@@ -26,6 +26,7 @@ import etomo.util.Utilities;
  * @author $Author$
  *
  * @version $Revision$
+ * @version $Revision$
  *
  * <p> $Log$
  * <p> Revision 3.74  2011/06/21 18:05:30  sueh

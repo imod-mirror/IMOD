@@ -467,6 +467,9 @@ public final class DirectiveFile {
   }
 
   ReadOnlyAttributeIterator getCopyArgIterator() {
+    if (copyArg == null) {
+      return null;
+    }
     ReadOnlyAttributeList list = copyArg.getChildren();
     if (list != null) {
       return list.iterator();
