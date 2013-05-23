@@ -631,14 +631,27 @@ public abstract class BaseManager {
    * 
    * @throws IOException
    */
-  void save() throws LogFile.LockException, LogFile.LockException, IOException {
+  boolean save() throws LogFile.LockException, LogFile.LockException, IOException {
     if (parameterStore == null) {
-      return;
+      return false;
     }
     parameterStore.setAutoStore(false);
     parameterStore.save(getProcessManager().getProcessData(AxisID.FIRST));
     parameterStore.save(getProcessManager().getProcessData(AxisID.SECOND));
     parameterStore.save(getLogPanel());
+    return true;
+  }
+
+  public boolean saveToFile() {
+    return false;
+  }
+
+  public boolean saveAsToFile() {
+    return false;
+  }
+  
+  public boolean closeFrame() {
+    return false;
   }
 
   /**
