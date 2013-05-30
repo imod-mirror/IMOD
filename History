@@ -1,5 +1,30 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/30/13: Fixed Tomodataplots to send right color option to Onegenplot.
+
+5/29/13: IMOD-4-6-21
+5/29/13: Ctfplotter: added version number to defocus file so the old bug of
+view numbers off by 1 will not be detected in error, allowed double-clicking a
+row to set the angles to that row, and added checkbox fo fitting to each view.
+
+5/28/13: In eTomo - Join, using the -cs Midas parameter instead of the -c
+parameter.(Bug# 1704)
+
+5/28/13: Changed the local load average process to use the bash shell unless
+the user's shell is tcsh.(Bug# 1703)
+
+5/27/13: Tiltxcorr can now produce a file of warping transformations with a
+variant of patch tracking.
+
+5/27/13: Made Patch2imod able to produce a model from warping transforms.
+
+5/27/13: Midas: Added input option to specify sample sizes instead of chunks
+sizes so that selected sections can be constrained better; added controls for
+see warping vectors and selecting warp points based on size of their shifts;
+improved cross-correlation around warp point to reduce need for iterating.
+
+5/27/13: Made Xf2rotmagstr able to read warping files.
+
 5/22/13: Fixed 3dmod recognition of DigitalMicrograph files to work with file
 from tilt series.
 
