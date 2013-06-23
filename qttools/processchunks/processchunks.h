@@ -47,6 +47,7 @@
 #include <QCoreApplication>
 #include <QDir>
 #include <typeinfo>
+#include <vector>
 //All processchunks application header files should be included here.
 #include "comfilejobs.h"
 #include "processhandler.h"
@@ -80,6 +81,10 @@ public:
 
   inline bool isQueue() {
     return mQueue;
+  }
+  ;
+  inline bool getGpuMode() {
+    return mGpuMode;
   }
   ;
   inline const QString &getQueueCommand() {
@@ -178,8 +183,11 @@ private:
   int runGenericProcess(QByteArray &output, QProcess &process, const QString &command,
       const QStringList &params, const int numLinesToPrint);
   void setupSshOpts();
-  int * initMachineList(QStringList &machineNameList);
-  void setupMachineList(QStringList &machineNameList, int *numCpusList);
+  void initMachineList(QStringList &machineNameList, std::vector<int> &numCpusList, 
+                       std::vector<int> &gpuList);
+  void setupMachineList(QStringList &machineNameList, 
+                        const std::vector<int> &numCpusList,
+                        const std::vector<int> &gpuList);
   void setupHostRoot();
   void setupComFileJobs();
   void probeMachines(QStringList &machineNameList);
@@ -191,9 +199,9 @@ private:
       handleLogFileError(QString &errorMess, MachineHandler &machine,
           ProcessHandler *process);
   void handleComProcessNotDone(bool &dropout, QString &dropMess, MachineHandler &machine,
-      ProcessHandler *process);
+                               ProcessHandler *process, bool &needKill);
   void handleDropOut(bool &noChunks, QString &dropMess, MachineHandler &machine,
-      ProcessHandler *process, QString &errorMess);
+                     ProcessHandler *process, QString &errorMess, bool needKill);
   bool checkChunk(int &runFlag, bool &noChunks, int &undone, bool &foundChunks,
       bool &chunkOk, MachineHandler &machine, const int jobIndex, const int chunkErrTot);
   void runProcess(MachineHandler &machine, ProcessHandler *process, const int jobIndex);
@@ -204,7 +212,9 @@ private:
   void killProcesses(QStringList *dropList = NULL);
   void startTimers();
   bool handleError(const QString *errorMess, MachineHandler &machine,
-      ProcessHandler *process);
+                   ProcessHandler *process, bool hungJob);
+  bool processTooSlow(const int elapsed, const int slowestTime, const int slowTimeCount,
+                      float slowCrit);
   bool isVerbose(const QString &verboseClass, const QString verboseFunction,
       const int verbosity, const bool print);
 
@@ -215,7 +225,7 @@ private:
 
   //parameters
   int mRetain, mJustGo, mNice, mMillisecSleep, mDropCrit, mQueue, mSingleFile,
-      mMaxChunkErr, mVerbose;
+    mMaxChunkErr, mVerbose, mGpuMode;
   bool mSkipProbe;
   char *mQueueName, *mRootName;
   QFile *mCheckFile;
@@ -230,8 +240,10 @@ private:
 
   //loop
   int mNumDone, mLastNumDone, mHoldCrit, mTimerId, mFirstUndoneIndex, mNextSyncIndex,
-      mSyncing, mCheckFileReconnect;
+    mSyncing, mCheckFileReconnect, mSlowestTime, mSlowTimeCount;
   bool mPausing, mAnyDone;
+  float mSlowOverallCrit, mSlowMachineCrit, mSlowSyncFactor;
+  int mSlowLogTimeout, mSlowSyncLogTimeout;
   char mAns;
   QStringList mSaveCheckFileLines;
 

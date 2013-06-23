@@ -27,36 +27,22 @@
 //Using a shorter sleep time then the processchunks script and not adjusting
 //the sleep depending on the number of machines.
 static const int sleepMillisec = 1000;
-static const int maxLocalByNum = 32;
+static const int maxLocalByNum = 64;
 //converting old timeout counter to milliseconds
 static const int runProcessTimeout = 30 * 2 * 1000;
-static const int numOptions = 14;
 static const int checkFileReconnectReset = 10;
 
 static char *commandName = "processchunks";
 using namespace std;
-/* Fallbacks from    ../manpages/autodoc2man 2 0 processchunks
+/* Fallbacks from    ../../manpages/autodoc2man 2 0 processchunks
  * cd manpages
  make autodoc2man
+ * Add static const to numOptions and static to options
  */
-static const char
-    *options[] =
-        {
-            ":help:B:Print usage message",
-            ":r:B:Resume, retaining existing finished files (the default is to remove all log files and redo everything)",
-            ":s:B:Run a single command file named root_name or root_name.com",
-            ":g:B:Go process, without asking for confirmation after probing machines",
-            ":n:I:Set the \"nice\" value to the given number (default 18, range 0-19).  No effect when running on a queue.",
-            ":w:FN:Full path to working directory on remote machines",
-            ":d:I:Drop a machine after given number of failures in a row (default 5)",
-            ":e:I:Quit after the given # of processing errors for a chunk (default 5)",
-            ":c:FN:Check file \"name\" for commands P, Q, and D (default processchunks.input)",
-            ":q:I:Run on cluster queue with given maximum # of jobs at once",
-            ":Q:CH:Machine name to use for the queue (default queue)",
-            //":m:I:Milliseconds to pause before killing each process (default 50)",
-            ":P:B:Output process ID",
-            ":v:B:Verbose.",
-            ":V:CH:?|?,2|class[,function[,...]][,2]|2  Verbose instructions:  case insensitive, matches from the end of the class or function name." };
+static const int numOptions = 17;
+static const char *options[] = {
+  ":r:B:", ":s:B:", ":G:B:", ":g:B:", ":n:I:", ":w:FN:", ":d:I:", ":e:I:", ":C:FT:",
+  ":T:IP:", ":c:FN:", ":q:I:", ":Q:CH:", ":P:B:", ":v:B:", ":V:CH:", ":help:B:"};
 static char *queueNameDefault = "queue";
 Processchunks *processchunksInstance;
 
@@ -64,8 +50,8 @@ int main(int argc, char **argv) {
   Processchunks pc(argc, argv);
   setlocale(LC_NUMERIC, "C");
   processchunksInstance = &pc;
-  pc.printOsInformation();
   pc.loadParams(argc, argv);
+  pc.printOsInformation();
   pc.setup();
   if (!pc.askGo()) {
     return 0;
@@ -78,6 +64,7 @@ Processchunks::Processchunks(int &argc, char **argv) :
   //initialize member variables
   mOutStream = new QTextStream(stdout);
   mRemoteDir = NULL;
+  mGpuMode = 0;
   mNice = 18;
   mMillisecSleep = 50;
   mDropCrit = 5;
@@ -88,6 +75,11 @@ Processchunks::Processchunks(int &argc, char **argv) :
   mSkipProbe = false;
   mQueue = 0;
   mSingleFile = 0;
+  mSlowMachineCrit = 4.;   // This is a true criterion
+  mSlowOverallCrit = 3.;   // This is a factor here, it will be multiplied by machine crit
+  mSlowSyncFactor = 0.;
+  mSlowLogTimeout = 300;
+  mSlowSyncLogTimeout = 0;
   mSshOpts.append("-o PreferredAuthentications=publickey");
   mSshOpts.append("-o StrictHostKeyChecking=no");
   mRootName = NULL;
@@ -96,6 +88,8 @@ Processchunks::Processchunks(int &argc, char **argv) :
   mCopyLogIndex = -1;
   mAns = ' ';
   mTimerId = 0;
+  mSlowestTime = -1;
+  mSlowTimeCount = 0;
   mKill = false;
   mKillCounter = 0;
   mLsProcess = new QProcess(this);
@@ -134,12 +128,12 @@ void Processchunks::printOsInformation() {
 //Print usage statement
 //Not implementing $IMOD_ALL_MACHINES since no one seems to have used it.
 void processchunksUsageHeader(const char *pname) {
+  imodUsageHeader(pname);
   printf("\nUsage: %s [Options] machine_list root_name\nWill process multiple command "
     "files on multiple processors or machines\nmachine_list is a list of "
-    "available machines, separated by commas.\nList machines names multiple "
-    "times to gain access to multiple CPUs on a machine.\nRoot_name is "
+    "available machines, separated by commas.\nList machine names multiple "
+    "times or followed by #n to use multiple CPUs on a machine.\nRoot_name is "
     "the base name of the command files, omitting -nnn.com\n\n", pname);
-  imodUsageHeader(pname);
 }
 
 //Loads parameters, does error checking, returns zero if parameters are correct.
@@ -150,6 +144,7 @@ void Processchunks::loadParams(int &argc, char **argv) {
   PipReadOrParseOptions(argc, argv, options, numOptions, commandName, 2, 2, 0,
       &numOptArgs, &numNonOptArgs, processchunksUsageHeader);
   PipGetBoolean("r", &mRetain);
+  PipGetBoolean("G", &mGpuMode);
   PipGetBoolean("s", &mSingleFile);
   PipGetBoolean("g", &mJustGo);
   PipGetInteger("n", &mNice);
@@ -161,6 +156,9 @@ void Processchunks::loadParams(int &argc, char **argv) {
   }
   PipGetInteger("d", &mDropCrit);
   PipGetInteger("e", &mMaxChunkErr);
+  PipGetThreeFloats("C", &mSlowMachineCrit, &mSlowOverallCrit, &mSlowSyncFactor);
+  mSlowOverallCrit *= mSlowMachineCrit;
+  PipGetTwoIntegers("T", &mSlowLogTimeout, &mSlowSyncLogTimeout);
   char *checkFile = NULL;
   PipGetString("c", &checkFile);
   if (checkFile != NULL) {
@@ -232,19 +230,19 @@ void Processchunks::loadParams(int &argc, char **argv) {
 //Setup mSshOpts, mCpuArray, mProcessArray, mHostRoot, mRemoteDir.  Probe
 //machines.
 void Processchunks::setup() {
+  std::vector<int> numCpusList, gpuList;
   setupSshOpts();
   //Get current directory if the -w option was not used
   if (mRemoteDir == NULL) {
     mRemoteDir = new QString(mCurrentDir.absolutePath().toLatin1().data());
   }
   QStringList machineNameList;
-  int *numCpusList = initMachineList(machineNameList);
+  initMachineList(machineNameList, numCpusList, gpuList);
   setupHostRoot();
   setupComFileJobs();
   probeMachines(machineNameList);
-  setupMachineList(machineNameList, numCpusList);
+  setupMachineList(machineNameList, numCpusList, gpuList);
   machineNameList.clear();
-  delete[] numCpusList;
 }
 
 //Setup mFlags.  Find first not-done log file.  Delete log files and
@@ -255,7 +253,7 @@ int Processchunks::startLoop() {
   mNumDone = 0;
   mFirstUndoneIndex = -1;
   ProcessHandler process;
-  process.setup(*this);
+  process.setup(*this, -1);
   for (i = 0; i < mSizeJobArray; i++) {
     process.setJob(i);
     if (process.logFileExists(false)) {
@@ -301,6 +299,9 @@ int Processchunks::startLoop() {
   //Error messages from inside the event loop must using QApplication functionality
   PipDone();
   startTimers();
+
+  // 6/11/3: Tried SetConsoleCtrlHandler in Windows for catching Ctrl-C.  It worked
+  // fine in a DOS window but not in a mintty, so we are stuck with the current situation
   signal(SIGINT, SIG_IGN);
 #ifndef _WIN32
   signal(SIGHUP, SIG_IGN);
@@ -351,6 +352,7 @@ void Processchunks::timerEvent(QTimerEvent */*timerEvent*/) {
   int chunkErrTot = 0;
   int numCpus = 0;
   bool noChunks = false;
+  bool needKill = false;
   for (i = 0; i < mMachineListSize; i++) {
     // Change from script: neither chunkErrTot nor failTot is incremented for each cpu,
     // only per machine
@@ -421,7 +423,7 @@ void Processchunks::timerEvent(QTimerEvent */*timerEvent*/) {
               //to standard out, it can't run the first real command in the
               //file.
               if (process->isPidInStderr()) {
-                if (!handleError(NULL, mMachineList[i], process)) {
+                if (!handleError(NULL, mMachineList[i], process, false)) {
                   return;
                 }
               }
@@ -429,13 +431,30 @@ void Processchunks::timerEvent(QTimerEvent */*timerEvent*/) {
           }
         }
         else {
-          handleComProcessNotDone(dropout, dropMess, mMachineList[i], process);
+          handleComProcessNotDone(dropout, dropMess, mMachineList[i], process, needKill);
         }
+
         //if failed, remove the assignment, mark chunk as to be done,
         //skip this machine on this round
         if (dropout) {
-          handleDropOut(noChunks, dropMess, mMachineList[i], process, errorMess);
+          handleDropOut(noChunks, dropMess, mMachineList[i], process, errorMess, 
+                        needKill);
         }
+        
+        // For a kill, set flag and slow down timer as in killProcesses, but first let
+        // a chunk error kill and exit occur
+        if (needKill) {
+          if (!handleError(NULL, mMachineList[i], process, true))
+            return;
+          killTimer(mTimerId);
+          mKill = true;
+          mAns = 'P';
+          mMachineList[i].startKill(process->getPid());
+          killSignal();
+          mTimerId = startTimer(1000);
+          return;
+        }
+
         //OLD:Clean up .ssh and .pid if no longer assigned
         //For queue only:  clean up .job and .qid if no longer assigned
         if (!process->isJobValid() && mQueue) {
@@ -629,7 +648,7 @@ void Processchunks::killProcesses(QStringList *dropList) {
   //machine on the drop list.
   for (i = 0; i < mMachineListSize; i++) {
     bool activeMachine = !mMachineList[i].isDropped();
-    mMachineList[i].startKill();
+    mMachineList[i].startKill("");
     if (activeMachine && mMachineList[i].isDropped()) {
       mNumMachinesDropped++;
     }
@@ -726,101 +745,155 @@ void Processchunks::setupSshOpts() {
   }
 }
 
-//Setup mMachineList with the queue name or the values in mCpuList.
-int *Processchunks::initMachineList(QStringList &machineNameList) {
-  int i, j;
+//Setup mMachineList with the values in mCpuList (nothing to do for queue)
+void Processchunks::initMachineList(QStringList &machineNameList, 
+                                    std::vector<int> &numCpusList, 
+                                    std::vector<int> &gpuList) {
+  int i, j, numCores;
+  bool ok;
+  int numCpus = 0;
+
   //Not implementing $IMOD_ALL_MACHINES since no one seems to have used it.
-  if (!mQueue) {
-    //Setup up machine names from mCpuList
-    const QStringList cpuArray = mCpuList.split(",", QString::SkipEmptyParts);
-    /*The number of chunk (.com file) processes that this program can run at
-     one time equals the size of the cpuArray.  The CPU limit is necessary
-     because of the OS's application-level 1024 process pipe limit (this
-     program uses a pipe limit of 1012 for safety).  There are 4 pipes per
-     chunk process because stdout is going to a file (if it wasn't, there would
-     be 6 per process). Keeping the number chunk process pipes under the pipe
-     limit leaves room for running vmstocsh and killing processes.*/
+  if (mQueue) 
+    return;
+
+  if (!mGpuMode && mCpuList.contains(":"))
+    exitError("The machine list cannot contain : unless -G is entered");
+  if (mGpuMode && mCpuList.contains("#"))
+    exitError("The machine list cannot contain # if -G is entered");
+  
+  //Setup up machine names from mCpuList
+  const QStringList cpuArray = mCpuList.split(",", QString::SkipEmptyParts);
+  /*The number of chunk (.com file) processes that this program can run at
+    one time is added up below.  The CPU limit is necessary
+    because of the OS's application-level 1024 process pipe limit (this
+    program uses a pipe limit of 1012 for safety).  There are 4 pipes per
+    chunk process because stdout is going to a file (if it wasn't, there would
+    be 6 per process). Keeping the number chunk process pipes under the pipe
+    limit leaves room for running vmstocsh and killing processes.*/
 #ifndef _WIN32
-    const int numCpusLimit = 240;
+  const int numCpusLimit = 240;
 #else
-    //Handling this message: QWinEventNotifier: Cannot have more than 62 enabled at one time
-    //The message appears around the time the 63rd chunk is run, so there is one
-    //QWinEventNotifier per process.
-    const int numCpusLimit = 56;
+  //Handling this message: QWinEventNotifier: Cannot have more than 62 enabled at one time
+  //The message appears around the time the 63rd chunk is run, so there is one
+  //QWinEventNotifier per process.
+  const int numCpusLimit = 56;
 #endif
-    int numCpus = cpuArray.size();
-    if (numCpus > numCpusLimit) {
-      *mOutStream << "WARNING:the number of CPUs exceeds limit (" << numCpusLimit
-          << ").  CPU list will be truncated." << endl;
-      numCpus = numCpusLimit;
+
+  /*Now handling mixed up names (as in bear,shrek,bear) without extra probes
+    and MachineHandler instances.  Identical machine names are always
+    consolidated into one MachineHandler instance and the MachineHandler
+    instance order is based on where a machine name first appeared in the
+    list.*/
+  //Consolidate list of machines and add up CPUs, allowing for multiple entries with
+  // '#' and for multiple GPU specifications with ':'
+  QString machineName;
+  for (i = 0; i < cpuArray.size(); i++) {
+    const QString cpuMachine = cpuArray.at(i);
+    const QStringList machineSplit = cpuMachine.split(mGpuMode ? ":" : "#");
+    machineName = machineSplit[0].toLower();
+    if (machineSplit.size() == 1) {
+      numCores = 1;
+        
+      // If no complex entry, add a 0 to the list for a GPU
+      if (mGpuMode)
+        gpuList.push_back(0);
     }
-    //set max kills allowed to run at the same time, leaving room for misc processes
-#ifndef _WIN32
-    //1024 pipe limit
-    mMaxKills = (1012 - (4 * numCpus)) / 6;
-#else
-    //62 whatsit limit
-    mMaxKills = 60 - numCpus;
-#endif
-    /*Now handling mixed up names (as in bear,shrek,bear) without extra probes
-     and MachineHandler instances.  Identical machine names are always
-     consolidated into one MachineHandler instance and the MachineHandler
-     instance order is based on where a machine name first appeared in the
-     list.*/
-    //Consolidate list of machines and add up CPUs.
-    int *numCpusList = new int[numCpus];
-    QString machineName;
-    for (i = 0; i < numCpus; i++) {
-      const QString cpuMachine = cpuArray.at(i);
-      if (!machineNameList.contains(cpuMachine)) {
-        machineNameList.append(cpuMachine);
-        numCpusList[machineNameList.size() - 1] = 1;
+    else {
+      if (mGpuMode) {
+          
+        // In GPU mode, each component is a positive GPU number
+        numCores = 0;
+        for (j = 1; j < machineSplit.size(); j++) {
+          int gpuNum = machineSplit[j].toInt(&ok);
+          if (!ok || gpuNum < 1)
+            exitError("Incorrect entry for GPU number in: %s",
+                      cpuMachine.toLatin1().data());
+          numCores++;
+          gpuList.push_back(gpuNum);
+        }            
       }
       else {
-        //Increment the number of CPUs in an existing machine.
-        machineName = machineNameList.last();
-        if (machineName == cpuMachine) {
-          numCpusList[machineNameList.size() - 1]++;
-        }
-        else {
-          //Machine names are mixed up (as in bear,bebop,bear).  Find the
-          //correct machine name.
-          for (j = 0; j < machineNameList.size(); j++) {
-            machineName = machineNameList[j];
-            if (machineName == cpuMachine) {
-              numCpusList[j]++;
-              break;
-            }
-          }
+
+        // For regular machines, insist on one * and convert the number as numCores
+        if (machineSplit.size() > 2)
+          exitError("Multiple # signs in machine specification: %s", 
+                    cpuMachine.toLatin1().data());
+        numCores = machineSplit[1].toInt(&ok);
+        if (!ok || numCores < 1)
+          exitError("Incorrect entry for number of cores in: %s",
+                    cpuMachine.toLatin1().data());
+        if (numCores > maxLocalByNum)
+          exitError("You cannot specify more than %d cores on a machine with "
+                    "machine#number", maxLocalByNum);
+      }
+    } 
+      
+    // Now test if there are too many CPUs
+    if (numCpus + numCores > numCpusLimit) {
+      *mOutStream << "WARNING:the number of CPUs exceeds limit (" << numCpusLimit
+                  << ").  CPU list will be truncated." << endl;
+      numCores = numCpusLimit - numCpus;
+      if (!numCores)
+        break;
+    }
+    numCpus += numCores;
+
+    // Add a machine if the name has not occurred before
+    if (!machineNameList.contains(machineName)) {
+      machineNameList.append(machineName);
+      numCpusList.push_back(numCores);
+    }
+    else {
+      //Increment the number of CPUs in an existing machine, unless GPU mode
+      if (mGpuMode)
+        exitError("You can enter each machine only once with the -G option");
+
+      //Machine names could be mixed up (as in bear,bebop,bear).  Find the
+      //correct machine name.
+      for (j = 0; j < machineNameList.size(); j++) {
+        if (machineName == machineNameList[j]) {
+          numCpusList[j] += numCores;
+          break;
         }
       }
     }
-    if (machineNameList.size() < 1) {
-      exitError("No machines specified");
-    }
-    //OLD:Translate a single number into a list of localhost entries
-    //Set the single number as the number of CPUs in the one instance of MachineHandler.
-    if (machineNameList.size() == 1) {
-      bool ok;
-      const long localByNum = machineNameList[0].toLong(&ok);
-      if (ok) {
-        if (localByNum > maxLocalByNum) {
-          exitError("You cannot run more than %d chunks on localhost by "
-            "entering a number", maxLocalByNum);
-        }
-        machineNameList[0] = "localhost";
-        numCpusList[0] = localByNum;
+  }
+  if (machineNameList.size() < 1) {
+    exitError("No machines specified");
+  }
+  //OLD:Translate a single number into a list of localhost entries
+  //Set the single number as the number of CPUs in the one instance of MachineHandler.
+  if (machineNameList.size() == 1) {
+    const int localByNum = machineNameList[0].toInt(&ok);
+    if (ok) {
+      if (localByNum > maxLocalByNum) {
+        exitError("You cannot run more than %d chunks on localhost by "
+                  "entering a number", maxLocalByNum);
       }
+      if (mGpuMode)
+        exitError("You cannot enter a number for the machine list with the -G option");
+      if (localByNum < 1)
+        exitError("A number entered for the machine list must be positive");
+      machineNameList[0] = "localhost";
+      numCpusList[0] = localByNum;
+      numCpus = localByNum;
     }
-    return numCpusList;
   }
-  else {
-    return NULL;
-  }
+  //set max kills allowed to run at the same time, leaving room for misc processes
+#ifndef _WIN32
+  //1024 pipe limit
+  mMaxKills = (1012 - (4 * numCpus)) / 6;
+#else
+  //62 whatsit limit
+  mMaxKills = 60 - numCpus;
+#endif
 }
 
 //Setup mMachineList with the queue name or the values in mCpuList.
-void Processchunks::setupMachineList(QStringList &machineNameList, int *numCpusList) {
+void Processchunks::setupMachineList(QStringList &machineNameList,
+                                     const std::vector<int> &numCpusList,
+                                     const std::vector<int> &gpuList) {
   int i;
   //Not implementing $IMOD_ALL_MACHINES since no one seems to have used it.
   if (mQueue) {
@@ -831,7 +904,7 @@ void Processchunks::setupMachineList(QStringList &machineNameList, int *numCpusL
     //OLD: For a queue, make a CPU list that is all the same name
     //For a queue, create a single MachineHandler instance.
     mMachineList = new MachineHandler[mMachineListSize];
-    mMachineList[0].setup(*this, mQueueName, mQueue);
+    mMachineList[0].setup(*this, mQueueName, mQueue, gpuList, 0);
     //Parse mCpuList into mQueueComand and mQueueParamList
     if (mCpuList.isEmpty()) {
       exitError("Queue command doesn't exist.");
@@ -853,15 +926,18 @@ void Processchunks::setupMachineList(QStringList &machineNameList, int *numCpusL
     mNumCpus = 0;
     mMachineList = new MachineHandler[mMachineListSize];
     int newIndex = 0;
+    int baseIndex = 0;
     for (i = 0; i < machineNameList.size(); i++) {
       if (!machineNameList[i].isEmpty()) {
-        mMachineList[newIndex].setup(*this, machineNameList[i], numCpusList[i]);
+        mMachineList[newIndex].setup(*this, machineNameList[i], numCpusList[i], gpuList,
+                                     baseIndex);
         mNumCpus += numCpusList[i];
         if (isVerbose(mDecoratedClassName, __func__)) {
           *mOutStream << newIndex << ":" << mMachineList[newIndex].getName() << endl;
         }
         newIndex++;
       }
+      baseIndex += numCpusList[i];
     }
     if (isVerbose(mDecoratedClassName, __func__)) {
       *mOutStream << endl;
@@ -878,10 +954,10 @@ void Processchunks::setupHostRoot() {
     const QString temp(hostname.readAllStandardOutput());
     const int i = temp.indexOf(".");
     if (i != -1) {
-      mHostRoot = temp.mid(0, i);
+      mHostRoot = temp.mid(0, i).toLower();
     }
     else {
-      mHostRoot = temp;
+      mHostRoot = temp.toLower();
     }
     if (isVerbose(mDecoratedClassName, __func__)) {
       *mOutStream << "mHostRoot:" << mHostRoot << endl;
@@ -1220,13 +1296,35 @@ bool Processchunks::exitIfDropped(const int minFail, const int failTot,
 //Return true if all chunks are done
 bool Processchunks::handleChunkDone(MachineHandler &machine, ProcessHandler *process,
     const int jobIndex) {
-  int i;
+  int i, time;
   //If it is DONE, then set flag to done and deassign
   //Exonerate the machine from chunk errors if this chunk
   //gave a previous chunk error
   process->setFlag(CHUNK_DONE);
   process->invalidateJob();
   machine.setFailureCount(0);
+
+  // For a non-sync chunk, keep track of the longest time for the machine and overall
+  if (!mSyncing) {
+    time = process->getElapsedTime();
+    machine.setSlowestTime(time);
+    if (mSlowestTime < 0 || time > mSlowestTime)
+      mSlowestTime = time;
+    mSlowTimeCount++;
+    if (isVerbose(mDecoratedClassName, __func__)) {
+      *mOutStream << mDecoratedClassName << ":" << __func__ << ":slowest time, machine "
+                  << machine.getSlowestTime() << " - " << machine.getSlowTimeCount() 
+                  << "  overall " << mSlowestTime << " - " << mSlowTimeCount << endl;
+    }
+  } 
+  // But if we were syncing, reset the longest time data
+  else {
+    mSlowestTime = -1;
+    mSlowTimeCount = 0;
+    for (i = 0; i < mMachineListSize; i++)
+      mMachineList[i].setSlowestTime(-1);
+  }
+    
   mSyncing = 0;
   if (process->getNumChunkErr() != 0) {
     machine.setChunkErred(false);
@@ -1285,40 +1383,48 @@ bool Processchunks::handleChunkDone(MachineHandler &machine, ProcessHandler *pro
 bool Processchunks::handleLogFileError(QString &errorMess, MachineHandler &machine,
     ProcessHandler *process) {
   process->getErrorMessageFromLog(errorMess);
-  return handleError(&errorMess, machine, process);
+  return handleError(&errorMess, machine, process, false);
 }
 
 //Print an error message.
 //If the chunk has errored too many times, set mAns to E and kill jobs
 //Return false the chunk has errored too many times
 bool Processchunks::handleError(const QString *errorMess, MachineHandler &machine,
-    ProcessHandler *process) {
+                                ProcessHandler *process, bool hungJob) {
   int numErr;
   process->incrementNumChunkErr();
   numErr = process->getNumChunkErr();
   machine.setChunkErred(true);
   //Give up if the chunk errored too many  times: and
-  //for a sync chunk that is twice or once if one machine
-  if (numErr >= mMaxChunkErr || (mSyncing && (mMachineListSize == 1 || numErr >= 2))) {
+  //for a sync chunk that is twice or once if one machine, or up to 3 times for hung job
+  if (numErr >= mMaxChunkErr || 
+      (mSyncing && ((!hungJob && (mMachineListSize == 1 || numErr >= 2)) ||
+                    (hungJob && numErr >= B3DMIN(mMachineListSize + 1, 3))))) {
     process->printTooManyErrorsMessage(numErr);
     if (errorMess != NULL && !errorMess->isEmpty()) {
       *mOutStream << *errorMess << endl;
     }
     mAns = 'E';
-    process->invalidateJob();
+    
+    // A hung job needs to stay valid to get killed in this process, since it is not
+    // a single process kill
+    if (!hungJob)
+      process->invalidateJob();
     killProcesses();
     return false;
   }
   return true;
 }
-
+ 
 //Handle timeouts and missing qid files for queues
 //Handle com never started and process ended - drop
 //Handle ssh error - drop
 //Handle com not started yet
 //Handle log doen't exist and timeout - drop
-void Processchunks::handleComProcessNotDone(bool &dropout, QString &dropMess,
-    MachineHandler &machine, ProcessHandler *process) {
+void Processchunks::handleComProcessNotDone(bool &dropout, QString &dropMess, 
+                                            MachineHandler &machine,
+                                            ProcessHandler *process, bool &needKill) {
+  needKill = false;
   if (mQueue && !process->qidFileExists()) {
     //For a queue, the qid file should be there
     dropout = true;
@@ -1346,14 +1452,50 @@ void Processchunks::handleComProcessNotDone(bool &dropout, QString &dropMess,
         dropout = true;
       }
     }
+    if (!dropout && !process->isPidEmpty()) {
+
+      // Test the elapsed time relative to other chunks, and then the log file time
+      // to see if job looks hung
+      int elapsed = process->getElapsedTime();
+      float factor = mSyncing ? mSlowSyncFactor : 1.;
+      bool tooSlow = 
+        processTooSlow(elapsed, mSlowestTime, mSlowTimeCount, mSlowOverallCrit * factor)
+        || processTooSlow(elapsed, machine.getSlowestTime(), machine.getSlowTimeCount(), 
+                          mSlowMachineCrit * factor);
+
+      // Only test for a log file time if it will be conclusive
+      if (mSyncing)
+        needKill = ((mSlowSyncFactor > 0. && tooSlow) || !mSlowSyncFactor) && 
+          process->isLogFileOlderThan(mSlowSyncLogTimeout);
+      else
+        needKill = tooSlow && process->isLogFileOlderThan(mSlowLogTimeout);
+      dropout = needKill;
+    }
   }
 }
 
-//remove the assignment, mark chunk as to be done,
-//skip this machine on this round
+// Evaluate whether an elapsed time is too long based on the criterion, current slowest 
+// time and number of times that is based on.  Ignore if the count is not at least 2 or
+// if there is no criterion; make the criterion even bigger for small count
+bool Processchunks::processTooSlow(const int elapsed, const int slowestTime, 
+                                   const int slowTimeCount, float slowCrit) {
+  float maxDerate = 4.;
+  if (slowTimeCount < 2 || slowCrit <= 0)
+    return false;
+  if (slowTimeCount < maxDerate)
+    slowCrit *= maxDerate / slowTimeCount;
+  return elapsed > slowestTime * slowCrit;
+}
+ 
+//remove the assignment, mark chunk as to be done, issue messages including machine drops
 void Processchunks::handleDropOut(bool &noChunks, QString &dropMess,
-    MachineHandler &machine, ProcessHandler *process, QString &errorMess) {
-  if (!machine.isDropped()) {
+                                  MachineHandler &machine, ProcessHandler *process, 
+                                  QString &errorMess, bool needKill) {
+  if (needKill) {
+    *mOutStream << "Killing " << process->getComFileName() << " on " <<
+            machine.getName() << ", it appears to be hung up" << endl;
+  } 
+  else if (!machine.isDropped()) {
     *mOutStream << process->getComFileName() << " failed on " << machine.getName()
         << " - need to restart" << endl;
     if (!errorMess.isEmpty()) {
@@ -1364,7 +1506,10 @@ void Processchunks::handleDropOut(bool &noChunks, QString &dropMess,
   if (mSyncing) {
     mSyncing = 1;
   }
-  process->invalidateJob();
+
+  // Keep a hung job valid until it is killed
+  if (!needKill)
+    process->invalidateJob();
   noChunks = false;
   machine.incrementFailureCount();
   if (!machine.isDropped() && machine.getFailureCount() >= mDropCrit) {
@@ -1549,50 +1694,7 @@ void Processchunks::handleFileSystemBug() {
   mLsProcess->waitForFinished(10000);
 }
 /* CSH -> PY
-//Return if csh file is made
-void Processchunks::makeCshFile(ProcessHandler *process) {
-  QString cshFileName = process->getCshFile();
-  if (cshFileName.isEmpty()) {
-    *mOutStream << "Warning: no .csh file name available " << endl;
-    return;
-  }
-  QFile cshFile(cshFileName);
-  mCurrentDir.remove(cshFile.fileName());
-  QTextStream writeStream(&cshFile);
-  if (!cshFile.open(QIODevice::WriteOnly)) {
-    *mOutStream << "Warning: unable to open and create " << cshFileName << endl;
-    return;
-  }
-  if (!mQueue) {
-    writeStream << "nice +" << mNice << endl;
-  }
-  //convert and add CHUNK DONE to all files
-  QString comFileName = process->getComFileName();
-  mVmstocsh->setStandardInputFile(comFileName);
-  //This does not work:
-  //mVmstocsh->setStandardOutputFile(mCshFile->fileName(), QIODevice::Append);
-  QString command("vmstocsh");
-  QStringList paramList;
-  paramList.append(process->getLogFileName());
-  mVmstocsh->start(command, paramList);
-  if (!mVmstocsh->waitForFinished()) {
-    if (mVmstocsh->exitStatus() == QProcess::CrashExit) {
-      *mOutStream << "Warning: vmstocsh conversion of " << comFileName
-          << " failed with exit code " << mVmstocsh->exitCode() << " "
-          << mVmstocsh->readAllStandardError().data() << endl;
-    }
-    else {
-      *mOutStream << "Warning: vmstocsh conversion of " << comFileName
-          << " timed out after 30 seconds: " << mVmstocsh->readAllStandardError().data()
-          << endl;
-    }
-  }
-  writeStream << mVmstocsh->readAllStandardOutput().data() << "echo CHUNK DONE >> "
-      << process->getLogFileName() << endl;
-
-  cshFile.close();
-}
-*/
+   Deleted old makeCshFile 6/13/13, see earlier versions */
 
 void Processchunks::makeCshFile(ProcessHandler *process) {
   QString cshFileName = process->getCshFile();
@@ -1609,6 +1711,9 @@ void Processchunks::makeCshFile(ProcessHandler *process) {
   paramList.append("-c");
   if (!mQueue) {
     paramList << "-n" << QString("%1").arg(mNice);
+  }
+  if (process->getGpuNumber() >= 0) {
+    paramList << "-e" << QString("IMOD_USE_GPU2=%1").arg(process->getGpuNumber());
   }
   paramList.append(comFileName);
   paramList.append(process->getLogFileName());

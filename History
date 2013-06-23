@@ -1,5 +1,52 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/22/13: IMOD_4-5-8 and IMOD_4-6-23
+6/22/13: Placed all of eTomo's initialization into the Swing event loop in
+order make eTomo work with Java for Mac 1.6.0_51 (update 16) (In 4.5).
+(Bug# 1717)
+
+6/20/13: IMOD_4-6-22
+6/18/13: Made a subm script to start submfg in the background in cases where
+the subm alias is not available; added a man page for subm.
+
+6/17/13: Standardized the  Mac ps command to be the same as the Linux one.
+(Bug# 1714)
+
+6/17/13: Made a new Imodkillgroup that can kill a process tree as well as a
+process group, and that works on Windows without Cygwin.  Changed
+Processchunks to use this for all non-queue kills, thus fixing killing on
+Windows.  Also added b3dwinps and b3dtouch for eTomo to use instead of Cygwin
+calls.
+
+6/13/13: Made processchunks watch for jobs taking way too long and kill them.
+
+6/11/13: Made processchunks able to send jobs to specific GPUs.
+
+6/9/13: Added options to find warping transforms to Xfalign and changed
+Tiltxcorr to take pairs of raw and aligned sections so that it can find
+warping when only F transforms exist.
+
+6/9/13: In Xfalign, implemented local fitting for warping transforms to avoid
+bad buildup of cumulative warps over many sections, made the reference section
+option work with warping, and added an ability to do robust fitting to
+transform components to keep the alignment from being thrown off by isolated
+aberrant images.
+
+6/7/13: Fixed 3dmod icon missing from dock on Mac, adopted a higher-resolution
+version from Mike Strauss.
+
+6/6/13: Switched to makecomfile for the creation of patch tracking and
+sirtsetup com files in eTomo.(Bug# 1705)
+
+6/5/13: Added value for maximum distance between contour points for the
+surface output of imodinfo.
+
+6/5/13: Handling null values during tomogram reconstruction setup that are
+caused by running eTomo through batchruntomo.(Bug# 1708)
+
+6/4/13: Added options for inverted the Z order of the output to dm2mrc,
+raw2mrc, and tif2mrc.
+
 6/2/13: In eTomo fixed the batchruntomo error message.(Bug# 1702)
 
 6/2/13: Added an editor for directives derived from the dataset.(Bug# 1685)
@@ -9,7 +56,7 @@ IMOD History
 5/29/13: IMOD-4-6-21
 5/29/13: Ctfplotter: added version number to defocus file so the old bug of
 view numbers off by 1 will not be detected in error, allowed double-clicking a
-row to set the angles to that row, and added checkbox fo fitting to each view.
+row to set the angles to that row, and added checkbox for fitting to each view.
 
 5/28/13: In eTomo - Join, using the -cs Midas parameter instead of the -c
 parameter.(Bug# 1704)

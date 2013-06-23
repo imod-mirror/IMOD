@@ -23,6 +23,7 @@ class MachineHandler;
 #include <QProcess>
 #include <QTextStream>
 #include <QTime>
+#include <QDateTime>
 #include <QFile>
 
 #define CHUNK_PROCESS_PIPES 4
@@ -35,7 +36,7 @@ public:
   ProcessHandler();
   ~ProcessHandler();
 
-  void setup(Processchunks &processchunks);
+  void setup(Processchunks &processchunks, int gpuNum);
   bool logFileExists(const bool newlyCreatedFile);
   bool isChunkDone();
   void setFlag(const int flag);
@@ -49,6 +50,7 @@ public:
   const QByteArray readAllLogFile();
   bool isLogFileEmpty();
   bool isStartProcessTimedOut(const int timeoutMillisec);
+  bool isLogFileOlderThan(const int timeoutSec);
   void getErrorMessageFromLog(QString &errorMess);
   void incrementNumChunkErr();
   bool isComProcessDone();
@@ -85,6 +87,14 @@ public:
     return mComFileJobIndex;
   }
   ;
+  inline int getGpuNumber() {
+    return mGpuNumber;
+  }
+  ;
+  inline int getElapsedTime() {
+    return mElapsedTime < 0 ? mStartTime.elapsed() : mElapsedTime;
+  }
+  ;
   inline bool isJobValid() {
     return mValidJob;
   }
@@ -97,7 +107,7 @@ public:
   ;
   void resetKill();
   void setJobNotDone();
-  void startKill();
+  void startKill(bool killOne);
   void killQProcesses();
 
 public slots:
@@ -112,8 +122,6 @@ private:
   bool getSshError(QString &dropMess, QTextStream &stream);
   void resetSignalValues();
   void readAllStandardError();
-  void killLocalProcessAndDescendents(QString &pid);
-  void stopProcess(const QString &pid);
   void resetFields();
 
   QFile *mLogFile, *mJobFile, *mQidFile;
@@ -130,12 +138,18 @@ private:
   Processchunks *mProcesschunks;
   QProcess *mProcess;
   QTime mStartTime;
+  int mElapsedTime;
+  QDateTime mLogLastModified;
+  QDateTime mLastSizeCheckTime;
+  QDateTime mSizeChangedTime;
+  int mLastLogSize;
   MachineHandler *mMachine;
+  int mGpuNumber;
 
   //Kill process variables
   QProcess *mKillProcess;
-  int mKillCounter, mPidWaitCounter;
-  bool mKill, mLocalKill, mKillStarted, mIgnoreKill;
+  int mKillCounter;
+  bool mKill, mKillStarted, mIgnoreKill, mKillingOne;
 
   //Signal variables
   bool mErrorSignalReceived, mFinishedSignalReceived, mKillFinishedSignalReceived;

@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.swing.SwingUtilities;
 import javax.swing.ToolTipManager;
 import javax.swing.UIDefaults;
 import javax.swing.UIManager;
@@ -107,8 +108,17 @@ public class EtomoDirector {
   }
 
   public static void main(String[] args) {
+    EtomoDirector.INSTANCE.arguments.parse(args);
+    if (EtomoDirector.INSTANCE.arguments.isHeadless()) {
+      setup(args);
+    }
+    else {
+      SwingUtilities.invokeLater(new Setup(args));
+    }
+  }
+
+  private static void setup(final String[] args) {
     try {
-      EtomoDirector.INSTANCE.arguments.parse(args);
       if (!EtomoDirector.INSTANCE.arguments.isHelp()) {
         // Print out java properties
         Enumeration enumeration = System.getProperties().propertyNames();
@@ -173,6 +183,10 @@ public class EtomoDirector {
         UIHarness.INSTANCE.exit(AxisID.ONLY, 1);
       }
     }
+  }
+
+  private void setAdvanced(boolean state) {
+    isAdvanced = state;
   }
 
   public void doAutomation() {
@@ -1222,8 +1236,16 @@ public class EtomoDirector {
     return homeDirectory;
   }
 
-  private void setAdvanced(boolean state) {
-    isAdvanced = state;
+  private static final class Setup implements Runnable {
+    private final String[] args;
+
+    private Setup(final String[] args) {
+      this.args = args;
+    }
+
+    public void run() {
+      setup(args);
+    }
   }
 
   private final class UtilityThread implements Runnable {
