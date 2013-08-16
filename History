@@ -1,5 +1,42 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/13/13: IMOD_4-6-27
+8/13/13: Added ability to draw the interior of contours in the Zap window with
+transparent color (see Edit-Object-type dialog).
+
+8/13/13: Allowed 0 to be entered for Cs in Ctfplotter and Ctfphaseflip.
+
+8/12/13: IMOD_4-6-26
+8/12/13: Added ability to scale output from clip multiply and divide.
+
+8/12/13: Fixed problems with values not showing up in the Directive Editor,
+which now shows intelligible labels for all fields and combo boxes with
+descriptions for choices.(Bug# 1728)
+
+8/8/13: Added Clip options to print histogram and unpack 4-bit data.
+
+8/7/13: Inverted the false color ramp for value displays to match the polarity
+of the ramp for image display, so that "hot" is bigger.  Added color ramp bar
+to the Values panel of the Model view Object Edit dialog.
+
+8/2/13: In eTomo handling messages starting with "LOGFILE:".  The message
+following this tag will be treated as a local file name, the contents of which
+will be placed in the project log.(Bug# 1700)
+
+8/2/13: Added an option for the PEET Help pages to the eTomo menus.
+(Bug# 1650)
+
+7/31/13: Clip multiply/divide can have a stack as first file and a single
+image as the second file.
+
+7/31/13: Changes to Batchruntomo: option to send emails, more informative
+output about what is running, a log file with a copy of program output saved
+in each dataset, delivery of more files to dataset directory, running clip
+stat on a fixed stack.
+
+7/31/13: Fix a bug in Beadtrack that zeroed out the sobel sum when reversing
+direction.
+
 7/31/13: In eTomo - Template Editor, improved the labels and fields.
 (Bug# 1724)
 
@@ -17,9 +54,6 @@ Cygwin.
 
 7/22/13: Fixed etomo script so it can run java.exe in Windows/System32
 directory (In 4.5).
-
-7/22/13: Added an option for the PEET Help pages to the eTomo menus.
-(Bug# 1650)
 
 7/18/13: IMOD_4-6-25
 7/17/13: Made Imodfindbeads able to analyze for bead diameter in averaged bead

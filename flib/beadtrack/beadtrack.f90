@@ -209,7 +209,7 @@ program beadtrack
   limcxBound = 2500
   imageBinned = 1
   npad = 8
-  maxSobelSum = 50
+  maxSobelSum = 0
   scaleByInterp = 1.2
   targetSobel = 8
   sobelSigma = 0.5
@@ -465,16 +465,14 @@ program beadtrack
     ierr = PipGetTwoIntegers('PointsToFitMaxAndMin', numFit, minFit)
     ierr = PipGetTwoFloats('DensityRescueFractionAndSD', fracCrit, sdCrit)
     ierr = PipGetFloat('DistanceRescueCriterion', distCrit)
-    ierr = PipGetTwoFloats('RescueRelaxationDensityAndDistance', &
-        relaxInt, relaxDist)
+    ierr = PipGetTwoFloats('RescueRelaxationDensityAndDistance', relaxInt, relaxDist)
     ierr = PipGetFloat('PostFitRescueResidual', fitDistCrit )
     ierr = PipGetFloat('DensityRelaxationPostFit', relaxFit)
     ierr = PipGetFloat('MaxRescueDistance', radMaxFit)
-    ierr = PipGetTwoIntegers('ResidualsToAnalyzeMaxAndMin', &
-        maxResid, minResid)
-    ierr = PipGetTwoFloats('DeletionCriterionMinAndSD', resDiffMin, &
-        resDiffCrit)
+    ierr = PipGetTwoIntegers('ResidualsToAnalyzeMaxAndMin', maxResid, minResid)
+    ierr = PipGetTwoFloats('DeletionCriterionMinAndSD', resDiffMin, resDiffCrit)
     ierr = PipGetLogical('TrackObjectsTogether', ignoreObjs)
+    maxSobelSum = 50
     ierr = PipGetInteger('AverageBeadsForSobel', maxSobelSum)
     i = 0
     ierr = PipGetBoolean('SobelFilterCentering', i)
@@ -509,6 +507,7 @@ program beadtrack
     write(*,'(1x,a,$)') 'Radius for centroid calculation, 0 for '// &
         'dark or 1 for light beads: '
     read(5,*) cgRadius, ifWhite
+    diameter = max(2., 2. * cgRadius - 3.)
     !
     write(*,'(1x,a,$)') '1 to fill in gaps, 0 not to: '
     read(5,*) ifFillIn
@@ -1618,10 +1617,12 @@ CONTAINS
             endif
           enddo
           !
-          ! now load ones that are needed into last free box
+          ! now load ones that are needed into last free box and form sums
           !
           do ic = 1, maxBoxUse
             if (numberInList(izClose(ic), inCore(1, iobjDo), maxAnySum, 0) == 0) then
+              !
+              ! If not loaded, look up last free box
               do ibox = 1, maxAnySum
                 if (inCore(ibox, iobjDo) < 0) ib = ibox
               enddo
@@ -1665,21 +1666,27 @@ CONTAINS
                   snrSumb = snrSumb + bestSum / max(abs(1.e-10 * wsum), edgeSD)
                 endif
               endif
+            else
               !
-              ! Add to correlation sum
-              if (ic <= maxSum) then
-                inCorrSum(ib, iobjDo) = .true.
-                corrSum(1:npixBox, iobjDo) = corrSum(1:npixBox, iobjDo) + &
-                    boxes(1:npixBox, ib, iobjDo)
-              endif
-              !
-              ! Add to sobel sum
-              if (ic <= maxSobelSum) then
-                inSobelSum(ib, iobjDo) = .true.
-                numInSobelSum(iobjDo) = numInSobelSum(iobjDo) + 1
-                sobelSum(1:npixBox, iobjDo) = sobelSum(1:npixBox, iobjDo) + &
-                    boxes(1:npixBox, ib, iobjDo)
-              endif
+              ! Or if it is loaded, look it up
+              do ibox = 1, maxAnySum
+                if (inCore(ibox, iobjDo) == izClose(ic)) ib = ibox
+              enddo
+            endif
+            !
+            ! Add to correlation sum if not in there
+            if (ic <= maxSum .and. .not. inCorrSum(ib, iobjDo)) then
+              inCorrSum(ib, iobjDo) = .true.
+              corrSum(1:npixBox, iobjDo) = corrSum(1:npixBox, iobjDo) + &
+                  boxes(1:npixBox, ib, iobjDo)
+            endif
+            !
+            ! Add to sobel sum if not there
+            if (ic <= maxSobelSum .and. .not. inSobelSum(ib, iobjDo)) then
+              inSobelSum(ib, iobjDo) = .true.
+              numInSobelSum(iobjDo) = numInSobelSum(iobjDo) + 1
+              sobelSum(1:npixBox, iobjDo) = sobelSum(1:npixBox, iobjDo) + &
+                  boxes(1:npixBox, ib, iobjDo)
             endif
           enddo
         endif
