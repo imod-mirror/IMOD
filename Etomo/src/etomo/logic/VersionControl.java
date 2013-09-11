@@ -12,6 +12,7 @@ import etomo.process.SystemProgram;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
 import etomo.type.EtomoVersion;
+import etomo.type.ImodVersion;
 import etomo.ui.swing.UIHarness;
 import etomo.util.EnvironmentVariable;
 
@@ -34,7 +35,7 @@ import etomo.util.EnvironmentVariable;
 public final class VersionControl {
   public final String rcsid = "$$Id$$";
 
-  public static final String TIME_STAMP = "8/24/2013 20:35";
+  public static final String TIME_STAMP = "9/4/2013 16:32";
 
   private static final String DEPENDANT_IMOD_VERSION = "4.4.4";
   private static final String DEPENDANT_PEET_VERSION = "1.8.0";
@@ -102,6 +103,10 @@ public final class VersionControl {
       peetVersionFile.closeRead(id);
     }
     return null;
+  }
+
+  public static String getEtomoVersion() {
+    return ImodVersion.CURRENT_VERSION + "9/4/2013 16:32" + VersionControl.TIME_STAMP;
   }
 
   /**
