@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/28/13: In eTomo fixed a bug where stack header data was not getting into
+the dataset file when eTomo was run from batchruntomo.(Bug# 1758)
+
 10/27/13: Added option to Tilt to get output in parallel (X/Y) slices without
 inverting handedness. 
 
