@@ -39,6 +39,7 @@ This module provides the following functions:
   cygwinPath(path)          - Returns path, or a Cygwin path if running in Cygwin
 
   addIMODbinIgnoreSIGHUP()  - Adds IMOD_DIR/bin to front of PATH and ignores SIGHUP
+  printPID(doPrint)   - Prints a PID with system-dependent prefix if doPrint is true
   imodIsAbsPath(path) - Tests whether the path is an absolute path (works in Cygwin)
   imodAbsPath(path) - Returns absolute path, converted to windows format if on Windows
   imodNice(niceInc) - Sets niceness of process, even on Windows
@@ -49,7 +50,7 @@ This module provides the following functions:
 """
 
 # other modules needed by imodpy
-import sys, os, re, time, glob, signal
+import sys, os, re, time, glob, signal, stat
 from pip import exitError
 
 pyVersion = 100 * sys.version_info[0] + 10 * sys.version_info[1]
@@ -117,6 +118,8 @@ def runcmd(cmd, input=None, outfile=None, inStderr = None):
        number of retries and the maximum run time for a failure to be retried."""
 
    global errStrings, errStatus
+
+   cmd = avoidLocalComFile(cmd)
 
    # Set up flags for whether to collect output or send to stderr
    errStatus = 0
@@ -800,7 +803,7 @@ def cleanupFiles(files):
 def getCygpath(windows, path):
    if windows:
       try:
-         cygtemp = runcmd('cygpath -m ' + path)
+         cygtemp = runcmd('cygpath -m ' + path, inStderr = 'stdout')
          if cygtemp != None and len(cygtemp) > 0:
             return cygtemp[0].strip()
       except Exception:
@@ -812,7 +815,7 @@ def getCygpath(windows, path):
 def cygwinPath(path):
    if 'cygwin' in sys.platform:
       try:
-         cygtemp = runcmd('cygpath "' + path + '"')
+         cygtemp = runcmd('cygpath "' + path + '"', inStderr = 'stdout')
          if cygtemp != None and len(cygtemp) > 0:
             return cygtemp[0].strip()
       except Exception:
@@ -831,11 +834,24 @@ def addIMODbinIgnoreSIGHUP():
          pass
    
 
+# Conditionally prints a PID with appropriate OS-dependent prefix
+def printPID(doPrint):
+   if not doPrint:
+      return
+   PID = 'Python PID: ' + str(os.getpid()) + '\n'
+   if 'win32' in sys.platform:
+      PID = 'Windows ' + PID
+   elif 'cygwin' in sys.platform:
+      PID = 'Cygwin ' + PID
+   sys.stderr.write(PID)
+   sys.stderr.flush()
+
+
 # Tests whether the path is an absolute path
 def imodIsAbsPath(path):
    if 'cygwin' in sys.platform:
       try:
-         pathlines = runcmd('cygpath "' + path + '"')
+         pathlines = runcmd('cygpath "' + path + '"', inStderr = 'stdout')
          if len(pathlines):
             path = pathlines[0]
       except Exception:
@@ -892,7 +908,8 @@ def imodTempDir():
    imodtemp = getCygpath(windows, '/tmp')
    if os.path.exists(imodtemp) and os.access(imodtemp, os.W_OK):
       return imodtemp
-   return None
+   return '.'
+
 
 # Set the appropriate path variables for executing Qt programs if IMOD_QTLIBDIR is defined
 def setLibPath():
@@ -913,7 +930,56 @@ def setLibPath():
       if os.getenv(mainvar) != None:
          suffix = os.pathsep + os.environ[mainvar]
       os.environ[mainvar] = os.environ['IMOD_QTLIBDIR'] + suffix
-      
+
+
+# Function for runcmd to avoid running a .com file in current directory on Windows
+def avoidLocalComFile(command):
+   if 'win32' not in sys.platform:
+      return command
+
+   def isExecutable(fpath):
+      return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
+
+   # There is no problem if this command has a path in front of it or if there is no
+   # com file in the current directory
+   comstr = command.split()[0]
+   (comPath, comName) = os.path.split(comstr)
+   if comPath:
+      return command
+   if not os.path.isfile(comstr + '.com'):
+      return command
+
+   # Problem.  Look on the path to find program.  IMOD is already on front...
+   for path in os.environ["PATH"].split(os.pathsep):
+      path = path.strip('"')
+      fullPath = os.path.join(path, comstr)
+      if isExecutable(fullPath) or isExecutable(fullPath + '.exe') or \
+          isExecutable(fullPath + '.cmd'):
+         return os.path.join(path, command)
+
+
+# Function to try to make current directory writable on Windows or at least make sure
+# that it is
+def makeCurrentDirWritable():
+   # On Windows, make sure the current directory is rxw, first try the cygwin command
+   # then use the system command.  Windows python may be useless at this
+   # When the directory is set -rwx, its running of chmod gives permission denied, it sees
+   # 777 from os.stat and os.chmod has no effect
+   # 12/13/13: At least in Cygwin, some Win 7 systems have files with --------- for
+   # permissions and this test failed with no consequence; so finish with real test
+   if not ('win32' in sys.platform  or 'cygwin' in sys.platform):
+      return None
+   try:
+      runcmd('chmod u+rwx .', inStderr = 'stdout')
+   except ImodpyError:
+      mode = stat.S_IMODE(os.stat('.')[stat.ST_MODE])
+      try:
+         os.chmod('.', mode | stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR)
+      except Exception:
+         errStr = writeTextFile('writetest.tmp', ['Test for writability'], True)
+         cleanupFiles(['writetest.tmp'])
+         return errStr
+
 
 # Function to format a string in new format for earlier versions of python
 def fmtstr(stringIn, *args):

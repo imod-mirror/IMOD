@@ -99,6 +99,8 @@ class ZapWindow : public QMainWindow
     void toolKeyRelease(QKeyEvent *e) {keyReleaseEvent(e);};
     void setLowSection();
     void setHighSection();
+    void contextMenuHit(int val);
+    void toolbarMenuEvent(QContextMenuEvent *e);
 
  protected:
     void keyPressEvent ( QKeyEvent * e );

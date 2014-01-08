@@ -16,12 +16,14 @@
 #include <qcolor.h>
 #include <qicon.h>
 #include <qdir.h>
+#include <qmenu.h>
 #include <qaction.h>
 #include <qtoolbutton.h>
 #include <qpushbutton.h>
 #include <qtoolbar.h>
 #include <qbitmap.h>
 #include <QBoxLayout>
+#include <qmainwindow.h>
 #include <qsignalmapper.h>
 
 //Added by qt3to4:
@@ -36,16 +38,94 @@
 #include "undoredo.h"
 #include "preferences.h"
 #include "imod_input.h"
+#include "info_cb.h"
 #include "client_message.h"
 #include "imod_assistant.h"
 #include "dia_qtutils.h"  
 #include "tooledit.h"
+#include "hottoolbar.h"
 #include "arrowbutton.h"
 #include "scalebar.h"
 
 #define TOOLBUT_SIZE 20
 #define BM_WIDTH 16
 #define BM_HEIGHT 16
+
+// For popup menus
+PopupEntry sDefaultActions[] = {
+  {"Go to next/previous item", -1, 0, 0, 0},
+  {"Go to previous object", Qt::Key_O, 0, 0, 0},
+  {"Go to next object", Qt::Key_P, 0, 0, 0},
+  {"Go to previous contour", Qt::Key_C, 0, 0, 0},
+  {"Go to next contour", Qt::Key_C, 0, 1, 0},
+  {"Go to previous contour in surface", Qt::Key_5, 0, 0, 0},
+  {"Go to next contour in surface", Qt::Key_6, 0, 0, 0},
+  {"Go to previous point", Qt::Key_BracketLeft, 0, 0, 0},
+  {"Go to next point", Qt::Key_BracketRight, 0, 0, 0},
+  {"Go to first point in contour", Qt::Key_BraceLeft, 0, 0, 0},
+  {"Go to last point in contour", Qt::Key_BraceRight, 0, 0, 0},
+  {"Unselect current point", Qt::Key_E, 0, 0, 0},
+  {"Unselect current contour", Qt::Key_E, 0, 1, 0},
+  {"Add/Delete/Change items", -1, 0, 0, 0},
+  {"Create a new object", Qt::Key_0, 0, 0, 0},
+  {"New surface (starts a new contour)", Qt::Key_N, 0, 1, 0},
+  {"Start a new contour", Qt::Key_N, 0, 0, 0},
+  {"Delete current model point", Qt::Key_Delete, 0, 0, 0},
+  {"Delete current contour", Qt::Key_D, 0, 1, 0},
+  {"Truncate current contour at current point", Qt::Key_D, 1, 0, 0},
+  {"Delete current surface", Qt::Key_D, 1, 1, 0},
+  {"Move contour to selected object or surface", Qt::Key_M, 0, 1, 0},
+  {"Copy contour (when Contour Copy is open)", Qt::Key_K, 0, 0, 0},
+  {"Join selected contours", Qt::Key_J, 0, 1, 0},
+  {"Break contour (when Contour Break is open)", Qt::Key_B, 1, 0, 0},
+  {"Toggle contour(s) between open and closed", Qt::Key_O, 0, 1, 0},
+  {"Toggle gap between current and next point", Qt::Key_G, 1, 0, 0},
+  {"Display controls", -1, 0, 0, 0},
+  {"Toggle model edit mode and movie mode", Qt::Key_M, 0, 0, 0},
+  {"Toggle model drawing on/off", Qt::Key_T, 0, 0, 0},
+  {"Toggle current point markers on/off", Qt::Key_T, 0, 1, 0},
+  {"Toggle current object on/off", Qt::Key_T, 1, 0, 0},
+  {"Toggle nearby contour ghost drawing", Qt::Key_G, 0, 0, 0},
+  {"Autocontrast", Qt::Key_A, 0, 1, 0},
+  {"Decrease Black level", Qt::Key_F1, 0, 0, 0},
+  {"Increase Black level", Qt::Key_F2, 0, 0, 0},
+  {"Decrease White level", Qt::Key_F3, 0, 0, 0},
+  {"Increase White level", Qt::Key_F4, 0, 0, 0},
+  {"Decrease contrast", Qt::Key_F5, 0, 0, 0},
+  {"Increase contrast", Qt::Key_F6, 0, 0, 0},
+  {"Decrease brightness", Qt::Key_F7, 0, 0, 0},
+  {"Increase brightness", Qt::Key_F8, 0, 0, 0},
+  {"Invert contrast", Qt::Key_F11, 0, 0, 0},
+  {"Toggle false color", Qt::Key_F12, 0, 0, 0},
+  {"Movies && Z/Time changes", -1, 0, 0, 0},
+  {"Toggle movie forward in Z", Qt::Key_NumberSign, 0, 0, 0},
+  {"Toggle movie forward in time", Qt::Key_3, 0, 0, 0},
+  {"Decrease movie speed", Qt::Key_Comma, 0, 0, 0},
+  {"Increase movie speed", Qt::Key_Period, 0, 0, 0},
+  {"Go to Z = 1", Qt::Key_End, 0, 0, 0},
+  {"Go to maximum Z", Qt::Key_Home, 0, 0, 0},
+  {"Go to middle Z", Qt::Key_Insert, 0, 0, 0},
+  {"Go to first image file", Qt::Key_Exclam, 0, 0, 0},
+  {"Go to last image file", Qt::Key_At, 0, 0, 0},
+  {"Window Control", -1, 0, 0, 0},
+  {"Raise all 3dmod windows", Qt::Key_R, 1, 0, 0},
+  {"Open Slicer window", Qt::Key_Backslash, 0, 0, 0},
+  {"Open Zap window (except in Slicer)", Qt::Key_Z, 0, 0, 0},
+  {"Open Graph window", Qt::Key_G, 0, 1, 0},
+  {"Open Model View window", Qt::Key_V, 0, 0, 0},
+  {"Open Isosurface in Model View window", Qt::Key_U, 0, 1, 0},
+  {"", -2, 0, 0, 0},
+  {"", -3, 0, 0, 0},
+  {"Make TIFF snapshot of window", Qt::Key_S, 1, 0, 0},
+  {"Make non-TIFF snapshot of window", Qt::Key_S, 0, 1, 0},
+  {"Make 2nd nonTIFF format snapshot of window", Qt::Key_S, 1, 1, 0},
+  {"", -3, 0, 0, 0},
+  {"Print current pixel value in Info window", Qt::Key_F, 0, 0, 0},
+  {"Print maximum pixel within 10 pixels", Qt::Key_F, 0, 1, 0},
+  {"Save model to file", Qt::Key_S, 0, 0, 0},
+  {"Undo changes to the model", Qt::Key_Z, 1, 0, 0},
+  {"Redo model changes that were undone", Qt::Key_Y, 1, 0, 0},
+  {"", 0, 0, 0, 0}};
 
 /* Draw a symbol of the given type, size, and flags */
 void utilDrawSymbol(int mx, int my, int sym, int size, int flags)
@@ -221,9 +301,9 @@ ToolEdit *utilTBZoomTools(QWidget *parent, QToolBar *toolBar,
 {
   ToolEdit *edit;
   utilTBArrowButton(Qt::UpArrow, parent, toolBar, upArrow,
-                         "Increase zoom factor");
+                         "Increase zoom factor (hot key = (equals)");
   utilTBArrowButton(Qt::DownArrow, parent, toolBar, downArrow,
-                         "Decrease zoom factor");
+                         "Decrease zoom factor (hot key - (minus)");
   utilTBToolEdit(6, parent, toolBar, &edit, "Enter a zoom factor");
   return edit;
 }
@@ -557,6 +637,218 @@ void utilWheelChangePointSize(ImodView *vi, float zoom, int delta)
   imodDraw(vi, IMOD_DRAW_MOD);
 }
 
+/*
+ * Determines whether the mouse has moved enough from the mouse press point to commit
+ * the rubber band to a certain direction.  If so it assigns the corners in the correct
+ * order and sets dragging flags.
+ */
+int utilIsBandCommitted(int x, int y, int winX, int winY, int bandmin, int &rbMouseX0,
+                        int &rbMouseX1, int &rbMouseY0, int &rbMouseY1, int *dragging)
+{
+  int bandCrit1 = 3 * bandmin;
+  int bandCrit2 = 6 * bandmin;
+  int bandMin2 = B3DMAX(1, bandmin / 2);
+  int diffX, diffY, absDiffX, absDiffY, i, longc = 0;
+
+  // get differences and absolute differences
+  diffX = x - rbMouseX0;
+  diffY = y - rbMouseY0;
+  absDiffX = diffX < 0 ? -diffX : diffX;
+  absDiffY = diffY < 0 ? -diffY : diffY;
+
+  // If one axis change is still zero but the other is big enough, commit to the 
+  // direction toward middle of window; revise differences
+  if (!diffY && absDiffX >= bandCrit2) {
+    if (y < winY / 2)
+      y = rbMouseY0 + bandmin;
+    else 
+      y = rbMouseY0 - bandmin;
+    absDiffY = bandmin;
+    longc = 1;
+  } else if (!diffX && absDiffY >= bandCrit2) {
+    if (x < winX / 2)
+      x = rbMouseX0 + bandmin;
+    else 
+      x = rbMouseX0 - bandmin;
+    absDiffX = bandmin;
+    longc = 2;
+  }
+
+  // Ready to start if both directions are bigger than the minimum, or one is
+  // bigger than a criterion and the other is big enough
+  if (!((absDiffX >= bandmin && absDiffY >= bandmin) || 
+        (absDiffX >= bandCrit1 && absDiffY >= bandMin2 ) || 
+        (absDiffY >= bandCrit1 && absDiffX >= bandMin2)))
+    return 0;
+
+  //imodPrintStderr("COMMIT rb0 %d %d x,y %d %d diffX %d  diffY %d longc %d\n",
+  //                rbMouseX0,rbMouseY0 , x, y, absDiffX, absDiffY , longc);
+  for (i = 0; i < 4; i++)
+    dragging[i] = 0;
+
+  // Put the two coords in order on each axis and set the dragging flags
+  if (x > rbMouseX0) {
+    dragging[1] = 1;
+    rbMouseX1 = x;
+  } else {
+    dragging[0] = 1;
+    rbMouseX1 = rbMouseX0;
+    rbMouseX0 = x;
+  }
+  if (y > rbMouseY0) {
+    dragging[3] = 1;
+    rbMouseY1 = y;
+  } else {
+    dragging[2] = 1;
+    rbMouseY1 = rbMouseY0;
+    rbMouseY0 = y;
+  }
+  return 1;
+}
+
+void utilAnalyzeBandEdge(int ix, int iy, int rbMouseX0, int rbMouseX1, int rbMouseY0,
+                         int rbMouseY1, int &dragBand, int *dragging)
+{
+  int rubbercrit = 10;  /* Criterion distance for grabbing the band */
+  int i, dminsq, dist, distsq, dmin, dxll, dyll, dxur, dyur;
+  int minedgex, minedgey;
+
+  dminsq = rubbercrit * rubbercrit;
+  dragBand = 0;
+  minedgex = -1;
+  for (i = 0; i < 4; i++)
+    dragging[i] = 0;
+  dxll = ix - rbMouseX0;
+  dxur = ix - rbMouseX1;
+  dyll = iy - rbMouseY0;
+  dyur = iy - rbMouseY1;
+
+  /* Find distance from each corner, keep track of a min */
+  distsq = dxll * dxll + dyll * dyll;
+  if (distsq < dminsq) {
+    dminsq = distsq;
+    minedgex = 0;
+    minedgey = 2;
+  }
+  distsq = dxur * dxur + dyll * dyll;
+  if (distsq < dminsq) {
+    dminsq = distsq;
+    minedgex = 1;
+    minedgey = 2;
+  }
+  distsq = dxll * dxll + dyur * dyur;
+  if (distsq < dminsq) {
+    dminsq = distsq;
+    minedgex = 0;
+    minedgey = 3;
+  }
+  distsq = dxur * dxur + dyur * dyur;
+  if (distsq < dminsq) {
+    dminsq = distsq;
+    minedgex = 1;
+    minedgey = 3;
+  }
+
+  /* If we are close to a corner, set up to drag the band */
+  if (minedgex >= 0) {
+    dragBand = 1;
+    dragging[minedgex] = 1;
+    dragging[minedgey] = 1;
+  } else {
+    /* Otherwise look at each edge in turn */
+    dmin = rubbercrit;
+    dist = dxll > 0 ? dxll : -dxll;
+    if (dyll > 0 && dyur < 0 && dist < dmin){
+      dmin = dist;
+      minedgex = 0;
+    }
+    dist = dxur > 0 ? dxur : -dxur;
+    if (dyll > 0 && dyur < 0 && dist < dmin){
+      dmin = dist;
+      minedgex = 1;
+    }
+    dist = dyll > 0 ? dyll : -dyll;
+    if (dxll > 0 && dxur < 0 && dist < dmin){
+      dmin = dist;
+      minedgex = 2;
+    }
+    dist = dyur > 0 ? dyur : -dyur;
+    if (dxll > 0 && dxur < 0 && dist < dmin){
+      dmin = dist;
+      minedgex = 3;
+    }
+    if (minedgex < 0)
+      dragBand = 0;
+    else {
+      dragging[minedgex] = 1;
+      dragBand = 1;
+    }
+  }
+}
+
+// Test whether the cursor is within criterion distance of band edge for moving it
+int utilTestBandMove(int x, int y, int rbMouseX0, int rbMouseX1, int rbMouseY0,
+                     int rbMouseY1)
+{
+  int dxll, dxur,dyll, dyur;
+  int rcrit = 10;   /* Criterion for moving the whole band */
+  dxll = x - rbMouseX0;
+  dxur = x - rbMouseX1;
+  dyll = y - rbMouseY0;
+  dyur = y - rbMouseY1;
+  if ((dyll > 0 && dyur < 0 && ((dxll < rcrit && dxll > -rcrit) ||
+                                (dxur < rcrit && dxur > -rcrit))) ||
+      (dxll > 0 && dxur < 0 && ((dyll < rcrit && dyll > -rcrit) ||
+                                (dyur < rcrit && dyur > -rcrit))))
+    return 1;
+  return 0;
+}
+
+/*
+ * Set a cursor based on movie/model mode or need for special drawing cursor; maintain
+ * the last state set and mode for which is was set
+ */
+void utilSetCursor(int mode, bool setAnyway, bool needSpecial, bool needSizeAll,
+                   int *dragging, bool needModel, int &mouseMode, int &lastShape, 
+                   QGLWidget *GLw)
+{
+  Qt::CursorShape shape;
+
+  // Set up a special cursor for the rubber band, lasso, etc
+  if (needSpecial) {
+    if (needSizeAll)
+      shape = Qt::SizeAllCursor;
+    else if ((dragging[0] && dragging[2]) || (dragging[1] && dragging[3]))
+      shape = Qt::SizeFDiagCursor;
+    else if ((dragging[1] && dragging[2]) || (dragging[0] && dragging[3]))
+      shape = Qt::SizeBDiagCursor;
+    else if (dragging[0] || dragging[1])
+      shape = Qt::SizeHorCursor;
+    else if (dragging[2] || dragging[3])
+      shape = Qt::SizeVerCursor;
+    if (shape != lastShape || setAnyway) {
+
+      // This one makes the cursor show up a little better on starting/MAC
+      imod_info_input();
+      GLw->setCursor(QCursor(shape));
+    }
+    lastShape = shape;
+    return;
+  }
+
+  // Or restore cursor from special state or change cursor due to mode change
+  if (mouseMode != mode || lastShape >= 0 || setAnyway) {
+    if (mode == IMOD_MMODEL || needModel) {
+      GLw->setCursor(*App->modelCursor);
+    } else {
+      GLw->unsetCursor();
+    }
+    mouseMode = mode;
+    lastShape = -1;
+    imod_info_input();
+  }
+}
+
 /* Converts a flipped model to a rotated one if direction is FLIP_TO_ROTATION, or
  * a rotated model to a flipped one if direction is ROTATION_TO_FLIP, otherwise
  * does nothing */
@@ -610,6 +902,147 @@ void utilAssignSurfToCont(ImodView *vi, Iobj *obj, Icont *cont, int newSurf)
     cont->surf = newSurf;
   }
 }
+
+static int sNumSpecActions;
+
+/*
+ * Builds a popup menu for a window with the given table specialized for that window
+ * then with the default table is addDefault is true; allocates the necessary actions,
+ * adds them to the given menu and mapper, and returns the array of actions
+ * Special key values: -1 to start submenu, -2 to end submenu, -3 for separator
+ */
+QAction **utilBuildPopupMenu(PopupEntry *specTable, bool addDefault,
+                             QSignalMapper *mapper, QMenu *menu, int &numSpecific, 
+                             QAction **mainActions)
+{
+  QString text, format;
+  PopupEntry *table = specTable;
+  int key, numActions = 0, tableInd = 0;
+  QMenu *menuUse = menu;
+
+  // Count actions, inflate the estimate a bit, and allocate
+  while (specTable[tableInd].key)
+    tableInd++;
+  numSpecific = tableInd++;
+  if (addDefault)
+    tableInd += sizeof(sDefaultActions) / sizeof(PopupEntry);
+  QAction **actions = B3DMALLOC(QAction *, tableInd);
+  if (!actions)
+    return NULL;
+
+  // Loop on specialized then default actions
+  for (int loop = 0; loop < (addDefault ? 2 : 1); loop++) {
+    tableInd = 0;
+    while ((key = table[tableInd].key) != 0) {
+
+      if (key < 0) {
+        if (key == -1)
+          menuUse = menu->addMenu(table[tableInd].text);
+        else if (key == -2)
+          menuUse = menu;
+        else if (key == -3)
+          menuUse->addSeparator();
+      } else {
+        
+        if (mainActions && table[tableInd].mainIndex) {
+          menuUse->addAction(mainActions[table[tableInd].mainIndex]);
+        } else {
+
+          // Quick check for "Mak" prefix to snapshot entries then replace them if 
+          //possible
+          if (table[tableInd].text[0] != 'M' || table[tableInd].text[1] != 'a' || 
+              table[tableInd].text[2] != 'k')  {
+            actions[numActions] = menuUse->addAction(table[tableInd].text);
+          } else {
+            text = table[tableInd].text;
+            text.replace(QString("non-TIFF"), ImodPrefs->snapFormat());
+            format = ImodPrefs->snapFormat2();
+            if (!format.isEmpty())
+              text.replace(QString("2nd nonTIFF format"), format);
+            actions[numActions] = menuUse->addAction(text);
+          }
+          
+          // Set up shortcuts, connection and mapping
+          actions[numActions]->setShortcut(table[tableInd].key + 
+                                           (table[tableInd].ctrl ? Qt::CTRL : 0) +
+                                           (table[tableInd].shift ? Qt::SHIFT : 0));
+          QObject::connect(actions[numActions], SIGNAL(triggered()), mapper, SLOT(map()));
+          mapper->setMapping(actions[numActions], numActions);
+        }
+      }
+      numActions++;
+      tableInd++;
+    }
+
+    if (addDefault)
+      menu->addSeparator();
+    table = &sDefaultActions[0];
+  }
+  return actions;
+}
+
+/*
+ * Builds a popup menu for a window with the given table specialized for that window
+ * then with the default table is addDefault is true; then runs the menu
+ */
+void utilBuildExecPopupMenu(QWidget *parent, PopupEntry *specTable, bool addDefault, 
+                            QSignalMapper *mapper, QContextMenuEvent *event)
+{
+  QMenu menu(parent);
+  QAction **actions = utilBuildPopupMenu(specTable, addDefault, mapper, &menu,
+                                         sNumSpecActions, NULL);
+  if (!actions)
+    return;
+  menu.exec(event->globalPos());
+  menu.clear();
+  free(actions);
+}
+
+/*
+ * Given the menu hit index, the specific table, and the number of specific entries,
+ * look the action up in the specific or default table and return the key and modifiers
+ */
+int utilLookupPopupHit(int index, PopupEntry *specificTable, int numSpecific,
+                       Qt::KeyboardModifiers &modifiers)
+{
+  PopupEntry *entry;
+  if (numSpecific < 0)
+    numSpecific = sNumSpecActions;
+  imod_info_input();   // Should we do this?  There is a redisplay from menu dropping
+  if (index < numSpecific)
+    entry = &specificTable[index];
+  else
+    entry = &sDefaultActions[index - numSpecific];
+  modifiers = (Qt::KeyboardModifiers)((entry->ctrl ? Qt::ControlModifier : 0) | 
+                                      (entry->shift ? Qt::ShiftModifier : 0));
+  return entry->key;
+}
+
+/*
+ * Does the boilerplate of adding a new toolbar to a main window, with option break,
+ * spacing setting, and caption
+ */
+HotToolBar *utilMakeToolBar(QMainWindow *parent, bool addBreak, int spacing,
+                            const char *caption)
+{
+  HotToolBar *toolBar = new HotToolBar(parent);
+  if (addBreak)
+    parent->addToolBarBreak();
+  parent->addToolBar(toolBar);
+  toolBar->layout()->setSpacing(spacing);
+  if (caption)
+    toolBar->setWindowTitle(imodCaption(caption));
+  QObject::connect(toolBar, SIGNAL(keyPress(QKeyEvent *)), parent,
+                   SLOT(toolKeyPress(QKeyEvent *)));
+  QObject::connect(toolBar, SIGNAL(keyRelease(QKeyEvent *)), parent,
+                   SLOT(toolKeyRelease(QKeyEvent *)));
+  QObject::connect(toolBar, SIGNAL(contextMenu(QContextMenuEvent *)), parent, 
+                   SLOT(toolbarMenuEvent(QContextMenuEvent *)));
+  
+  toolBar->setAllowedAreas(Qt::TopToolBarArea);
+  return toolBar;
+}
+
 
 static GLUtesselator *sTessel = NULL;
 static int sTessError;

@@ -1,9 +1,3 @@
-//Added by qt3to4:
-#include <QCloseEvent>
-#include <QTimerEvent>
-#include <QLabel>
-#include <QMouseEvent>
-#include <QKeyEvent>
 /*   slicer_classes.h  -  declarations for slicer_classes.cpp
  *
  *   Copyright (C) 1995-2003 by Boulder Laboratory for 3-Dimensional Electron
@@ -16,11 +10,19 @@
 #ifndef SLICER_CLASSES_H
 #define SLICER_CLASSES_H
 
-#define MAX_SLICER_TOGGLES 7
+#define MAX_SLICER_TOGGLES 9
 
 enum {SLICER_TOGGLE_HIGHRES = 0, SLICER_TOGGLE_LOCK, SLICER_TOGGLE_CENTER, 
-      SLICER_TOGGLE_SHIFTLOCK, SLICER_TOGGLE_FFT, SLICER_TOGGLE_ARROW, 
-      SLICER_TOGGLE_TIMELOCK};
+      SLICER_TOGGLE_BAND, SLICER_TOGGLE_ARROW, SLICER_TOGGLE_FFT, SLICER_TOGGLE_ZSCALE,
+      SLICER_TOGGLE_TIMELOCK, SLICER_TOGGLE_SHIFTLOCK};
+enum {SLICER_LIMIT_INVALID = 0, SLICER_LIMIT_TRUNCATE, SLICER_LIMIT_VALID};
+
+//Added by qt3to4:
+#include <QCloseEvent>
+#include <QTimerEvent>
+#include <QLabel>
+#include <QMouseEvent>
+#include <QKeyEvent>
 
 #include <qmainwindow.h>
 #include <qspinbox.h>
@@ -35,14 +37,15 @@ class QLabel;
 class QSignalMapper;
 class QSlider;
 class MultiSlider;
-class QComboBox;
 class QCheckBox;
+class QAction;
 
 class SlicerFuncs;
 class SlicerGL;
 class SlicerCube;
 class QDoubleSpinBox;
 class HotToolBar;
+class RotationTool;
 
 class SlicerWindow : public QMainWindow
 {
@@ -58,7 +61,11 @@ class SlicerWindow : public QMainWindow
   void setModelThickness(float depth);
   void setImageThickness(int depth);
   void setAngles(float *angles);
+  void setViewAxisPosition(int amin, int amax, int current);
   void showSaveAngleToolbar();
+  void setLowHighValidity(int which, int state);
+  void enableLowHighButtons(int enable);
+  void manageAutoLink(int newState);
 
   SlicerGL *mGLw;
   SlicerCube *mCube;
@@ -69,8 +76,10 @@ class SlicerWindow : public QMainWindow
   HotToolBar *mSaveAngBar;
   QPushButton *mSetAngBut;
   QCheckBox *mAutoBox;
+  QCheckBox *mLinkBox;
   QPushButton *mNewRowBut;
   QPushButton *mSaveAngBut;
+  RotationTool *mRotationTool;
 
   public slots:
     void zoomUp();
@@ -85,7 +94,6 @@ class SlicerWindow : public QMainWindow
   void contourPressed();
   void fillCachePressed();
   void setTimeLabel(int time, QString label);
-  void zScaleSelected(int item);
   void toolKeyPress(QKeyEvent *e) {keyPressEvent(e);};
   void toolKeyRelease(QKeyEvent *e) {keyReleaseEvent(e);};
   void timeBack();
@@ -95,6 +103,12 @@ class SlicerWindow : public QMainWindow
   void newRowClicked();
   void continuousToggled(bool state);
   void linkToggled(bool state);
+  void rotationClicked(int deltaX, int deltaY, int deltaZ);
+  void stepSizeChanged(int delta);
+  void shiftToggled(bool state);
+  void lowHighClicked(int which);
+  void contextMenuHit(int val);
+  void toolbarMenuEvent(QContextMenuEvent *event);
 
  protected:
   void keyPressEvent ( QKeyEvent * e );
@@ -104,6 +118,8 @@ class SlicerWindow : public QMainWindow
   
  private:
   void setFontDependentWidths();
+  HotToolBar *makeToolBar(bool addBreak, int spacing, const char *caption);
+  void buildToolBar2();
   
   QToolButton *mToggleButs[MAX_SLICER_TOGGLES];
   int mToggleStates[MAX_SLICER_TOGGLES];
@@ -111,10 +127,12 @@ class SlicerWindow : public QMainWindow
   QSpinBox *mImageBox;
   QDoubleSpinBox *mModelBox;
   MultiSlider *mSliders;
-  QComboBox *mZscaleCombo;
   QLabel *mTimeNumLabel;
   QLabel *mTimeLabel;
   QPushButton *mHelpButton;
+  QPushButton *mLowHighButtons[2];
+  int mLowHighStates[2];
+  QAction *mLowHighActions[2];
   int mBreakBeforeAngBar;
 };
 
@@ -162,22 +180,5 @@ protected:
  private:
   SlicerFuncs *mFuncs;
 };
-
-#ifdef QT_THREAD_SUPPORT
-#include <qthread.h>
-
-class SlicerThread : public QThread
-{
- public:
-  SlicerThread(int jStart, int jLimit);
-  ~SlicerThread() {};
-
- protected:
-  void run();
-
- private:
-  int mJstart, mJlimit;
-};
-#endif
 
 #endif     // SLICER_CLASSES_H

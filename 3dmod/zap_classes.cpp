@@ -30,6 +30,7 @@
 #include <qslider.h>
 #include <qcheckbox.h>
 #include <qspinbox.h>
+#include <qmenu.h>
 
 #include "imod.h"
 #include "zap_classes.h"
@@ -61,12 +62,25 @@ static const char *toggleTips[] = {
   "Lock window at current section unless section is changed in this window",
   "Toggle between centering when model point nears edge and keeping model"
   " point centered\nIn movie mode, toggle on and off to center current image point",
-  "Toggle between inserting points after or before current point",
-  "Toggle rubberband on or off (resize with first mouse, move with second)",
+  "Toggle between inserting points after or before current point (hot key I)",
+  "Toggle rubberband on or off (resize with first mouse, move with second; hot key "
+  "Shift+B)",
   "Toggle lasso tool on or off (draw and move with first or second mouse)",
   "Toggle arrow on or off (draw with first mouse)",
   "Lock window at current time unless time is changed in this window"};
 
+static PopupEntry sPopupTable[] = {
+  {"Toggle automatic section advance", Qt::Key_Z, 0, 1, 0},
+  {"Toggle modeling direction", Qt::Key_I, 0, 0, 0},
+  {"Print area information, raise Info window", Qt::Key_I, 0, 1, 0},
+  {"Toggle rubber band", Qt::Key_B, 0, 1, 0},
+  {"Report distance from current point to cursor", Qt::Key_Q, 0, 0, 0},
+  {"Toggle adjusting contour with mouse", Qt::Key_P, 0, 1, 0},
+  {"Add contours on section to selection list", Qt::Key_A, 1, 0, 0},
+  {"Add contours from all objects to selection", Qt::Key_A, 1, 1, 0},
+  {"Resize window to image or rubber band", Qt::Key_R, 0, 1, 0},
+  {"Resize area within rubber band to fit window", Qt::Key_R, 1, 1, 0},
+  {"", 0, 0, 0, 0}};
 
 ZapWindow::ZapWindow(ZapFuncs *zap, QString timeLabel, bool panels,
                      bool rgba, bool doubleBuffer, bool enableDepth, 
@@ -96,13 +110,7 @@ ZapWindow::ZapWindow(ZapFuncs *zap, QString timeLabel, bool panels,
   firstTime = 0;
 
   // Get the toolbar, add zoom arrows
-  mToolBar = new HotToolBar(this);
-  if (!TB_AUTO_RAISE)
-    mToolBar->layout()->setSpacing(4);
-  connect(mToolBar, SIGNAL(keyPress(QKeyEvent *)), this,
-	  SLOT(toolKeyPress(QKeyEvent *)));
-  connect(mToolBar, SIGNAL(keyRelease(QKeyEvent *)), this,
-	  SLOT(toolKeyRelease(QKeyEvent *)));
+  mToolBar = utilMakeToolBar(this, false, TB_AUTO_RAISE ? 0 : 4, "Zap Toolbar");
 
   mZoomEdit = utilTBZoomTools(this, mToolBar, &upArrow, &downArrow);
   connect(upArrow, SIGNAL(clicked()), this, SLOT(zoomUp()));
@@ -175,25 +183,18 @@ ZapWindow::ZapWindow(ZapFuncs *zap, QString timeLabel, bool panels,
   // Info and help buttons
   if (!panels) {
     utilTBPushButton("I", this, mToolBar, &mInfoButton,
-                  "Bring Info Window to top, get Zap window info");
+                  "Bring Info Window to top, get Zap window info (hot key Ctrl+I)");
     connect(mInfoButton, SIGNAL(clicked()), this, SLOT(info()));
   }
 
   utilTBPushButton("Help", this, mToolBar, &mHelpButton, "Open help window");
   connect(mHelpButton, SIGNAL(clicked()), this, SLOT(help()));
-  mToolBar->setAllowedAreas(Qt::TopToolBarArea);
   setFontDependentWidths();
-  addToolBar(mToolBar);
   
   // Optional section if time enabled
   if (!timeLabel.isEmpty()) {
-    mToolBar2 = new HotToolBar(this);
-    if (!TB_AUTO_RAISE)
-      mToolBar2->layout()->setSpacing(4);
-    connect(mToolBar2, SIGNAL(keyPress(QKeyEvent *)), this,
-            SLOT(toolKeyPress(QKeyEvent *)));
-    connect(mToolBar2, SIGNAL(keyRelease(QKeyEvent *)), this,
-            SLOT(toolKeyRelease(QKeyEvent *)));
+    mToolBar2 = utilMakeToolBar(this, false, TB_AUTO_RAISE ? 0 : 4, "Zap Time Toolbar");
+
     j = NUM_TOOLBUTTONS - 1;
     mToggleActs[j] = utilSetupToggleButton(mToolBar2, mToolBar2, NULL,
                                            toggleMapper, icons, toggleTips,
@@ -205,12 +206,12 @@ ZapWindow::ZapWindow(ZapFuncs *zap, QString timeLabel, bool panels,
     mToolBar2->addWidget(label);
 
     utilTBArrowButton(Qt::LeftArrow, this, mToolBar2, &downArrow, 
-                      "Move back in 4th dimension (time)");
+                      "Move to previous image file, (hot key 1)");
     connect(downArrow, SIGNAL(clicked()), this, SLOT(timeBack()));
     downArrow->setAutoRepeat(true);
 
     utilTBArrowButton(Qt::RightArrow, this, mToolBar2, &upArrow, 
-                      "Move forward in 4th dimension (time)");
+                      "Move to next image file (hot key 2)");
     connect(upArrow, SIGNAL(clicked()), this, SLOT(timeForward()));
     upArrow->setAutoRepeat(true);
 
@@ -219,14 +220,12 @@ ZapWindow::ZapWindow(ZapFuncs *zap, QString timeLabel, bool panels,
     setTimeLabel(ivwGetTime(mZap->mVi, &j), timeLabel);
     mToolBar2->addWidget(mTimeNumLabel);
     mToolBar2->addWidget(mTimeLabel);
-    mToolBar2->setAllowedAreas(Qt::TopToolBarArea);
-    addToolBar(mToolBar2);
   }
 
   // Optional panel toolbar
   if (panels) {
     setLowHighSectionState(0);
-    mPanelBar =  new HotToolBar(this);
+    mPanelBar =  utilMakeToolBar(this, false, 0, "MultiZ Toolbar");
     label = new QLabel("# X");
     mPanelBar->addWidget(label);
     mColumnSpin = (QSpinBox *)diaLabeledSpin(0, 1., (float)MULTIZ_MAX_PANELS,
@@ -272,8 +271,6 @@ ZapWindow::ZapWindow(ZapFuncs *zap, QString timeLabel, bool panels,
             SLOT(drawOthersToggled(bool)));
     button->setToolTip("Draw model on panels other than middle one in Z");
 
-    mPanelBar->setAllowedAreas(Qt::TopToolBarArea);
-    addToolBar(mPanelBar);
   }
 
   // Need GLwidget next
@@ -567,6 +564,26 @@ void ZapWindow::closeEvent (QCloseEvent * e )
   delete mZap;
 }
 
+// Process a right click on the toolbar with a popup menu
+void ZapWindow::toolbarMenuEvent(QContextMenuEvent *event)
+{
+  QSignalMapper mapper(this);
+  connect(&mapper, SIGNAL(mapped(int)), this, SLOT(contextMenuHit(int)));
+  utilBuildExecPopupMenu(this, &sPopupTable[0], true, &mapper, event);
+}
+
+void ZapWindow::contextMenuHit(int index)
+{
+  Qt::KeyboardModifiers modifiers;
+  int key = utilLookupPopupHit(index, &sPopupTable[0], -1, modifiers);
+  QKeyEvent *event = new QKeyEvent(QEvent::KeyPress, key, modifiers);
+  mZap->keyInput(event);
+  delete event;
+}
+
+/*
+* The GL class
+*/
 ZapGL::ZapGL(ZapFuncs *zap, QGLFormat inFormat, QWidget * parent)
   : QGLWidget(inFormat, parent)
 {

@@ -42,6 +42,9 @@
 #define MSA_IMG_LEVELS "ImgLevels"
 #define MSA_IMG_AXIS "ImgAxis"
 #define MSA_IMG_FALSE "ImageFalseColor"
+#define MSA_NUMOBJ_DELTRANS "NumTransChangeObjs"
+#define MSA_OBJ_DELTRANS "TransChangeObjs"
+#define MSA_OBJ_TRANSP "ObjTransparency"
 
 
 /*
@@ -86,6 +89,8 @@ void MovieSequenceForm::changeEvent(QEvent *e)
  */
 void MovieSequenceForm::init()
 {
+  setAttribute(Qt::WA_DeleteOnClose);
+  setAttribute(Qt::WA_AlwaysShowToolTips);
   mSegments = mvMovieSegmentArray();
   connect(doneButton, SIGNAL(clicked()), this, SLOT(close()));
   connect(addAfterButton, SIGNAL(clicked()), this, SLOT(addAfterClicked()));
@@ -264,7 +269,7 @@ void MovieSequenceForm::saveClicked()
  */
 int MovieSequenceForm::saveSequence()
 {
-  QString key;
+  QString key, value, oneVal;
   int iseg, err, se, cl;
   char buffer[2 * MAX_OBJ_ONOFF];
   MovieSegment *segp;
@@ -334,6 +339,20 @@ int MovieSequenceForm::saveSequence()
     if (AdocSetKeyValue(MSA_SEGMENT, iseg, MSA_OBJ_ONOFF, buffer))
       break;
 
+    // Objects with trans changing
+    if (AdocSetInteger(MSA_SEGMENT, iseg, MSA_NUMOBJ_DELTRANS,
+                       segp->transChangeObjs.size()))
+      break;
+    if (segp->transChangeObjs.size()) {
+      value = "";
+      for (cl = 0; cl < segp->transChangeObjs.size(); cl++) {
+        oneVal.sprintf(" %d", segp->transChangeObjs[cl]);
+        value += oneVal;
+      }
+      if (AdocSetKeyValue(MSA_SEGMENT, iseg, MSA_OBJ_DELTRANS, LATIN1(value)))
+        break;
+    }
+
     // Now put out start and end data
     term = &segp->start;
     for (se = 0; se < 2; se++) {
@@ -372,6 +391,19 @@ int MovieSequenceForm::saveSequence()
       }
       if (cl < segp->numClips)
         break;
+
+      // Terminal transparency values
+      if (segp->transChangeObjs.size()) {
+        value = "";
+        for (cl = 0; cl < segp->transChangeObjs.size(); cl++) {
+          oneVal.sprintf(" %d", (int)term->objTrans[cl]);
+          value += oneVal;
+        }
+        key.sprintf("%s%s", MSA_OBJ_TRANSP, se ? "End" : "Start");
+        if (AdocSetKeyValue(MSA_SEGMENT, iseg, LATIN1(key), LATIN1(value)))
+          break;
+      }
+
       term= &segp->end;
     }
     if (se < 2)
@@ -407,6 +439,7 @@ void MovieSequenceForm::loadClicked()
 {
   int numSeg, iseg, err, se, cl, numObj;
   char *buffer;
+  int *intArray = NULL;
   MovieSegment *segp;
   MovieTerminus *term;
   QString key;
@@ -505,6 +538,24 @@ void MovieSequenceForm::loadClicked()
     }
     for (cl = 0; cl < numObj; cl++)
       segp->objStates[cl] = buffer[cl * 2] == '0' ? 0 : 1;
+    free(buffer);
+    err++;
+
+    // Objects with changed transparency
+    if (AdocGetInteger(MSA_SEGMENT, iseg, MSA_NUMOBJ_DELTRANS, &numObj))
+      break;
+    err++;
+    if (numObj > 0) {
+      intArray = B3DMALLOC(int, numObj);
+      if (!intArray)
+        break;
+      if (AdocGetIntegerArray(MSA_SEGMENT, iseg, MSA_OBJ_DELTRANS, intArray, &numObj,
+                              numObj))
+        break;
+      segp->transChangeObjs.resize(numObj);
+      for (cl = 0; cl < numObj; cl++)
+        segp->transChangeObjs[cl] = intArray[cl];
+    }
     err++;
 
     // Now start and end data
@@ -547,12 +598,25 @@ void MovieSequenceForm::loadClicked()
       }
       if (cl < segp->numClips)
         break;
+      err++;
+      
+      // Terminus transparencies
+      if (numObj > 0) {
+        key.sprintf("%s%s", MSA_OBJ_TRANSP, se ? "End" : "Start");
+        if (AdocGetIntegerArray(MSA_SEGMENT, iseg, LATIN1(key), intArray, &numObj, 
+                                 numObj))
+          break;
+        for (cl = 0; cl < numObj; cl++)
+          term->objTrans[cl] = (unsigned char)intArray[cl];
+      }
+
       term= &segp->end;
     }
     if (se < 2)
       break;
     err = 0;
   }
+  B3DFREE(intArray);
 
   if (err) {
     imodPrintStderr("err %d\n", err);

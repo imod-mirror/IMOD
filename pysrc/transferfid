@@ -110,10 +110,13 @@ options = ["s:Setname:CH:", "b:TransferBtoA:B:", "ia:AImageFile:FN:",
            "n:ViewsToSearch:I:", "za:ACenterView:I:", "zb:BCenterView:I:",
            "a:AngleOfRotation:I:", "x:MirrorXaxis:B:", "m:RunMidas:B:",
            "c:CorrespondingCoordFile:FN:", "lowest:LowestTiltTransformFile:FN:",
-           "t:LeaveTempFiles:B:"]
+           "t:LeaveTempFiles:B:", ":PID:B:"]
 
 (opts, nonopts) = PipReadOrParseOptions(sys.argv, options, progname, 1, 0, 0)
 passOnKeyInterrupt(True)
+
+doPID = PipGetBoolean('PID', 0)
+printPID(doPID)
 
 # Set names of temp files
 tmpdir = imodTempDir()
@@ -450,16 +453,16 @@ try:
          if len(pmdiffs) == 2:
             if pmdiffs[0] < pmdiffs[1]:
                minuswin += 1
-	    if pmdiffs[0] > pmdiffs[1]:
+            if pmdiffs[0] > pmdiffs[1]:
                pluswin += 1
             if pmdiffs[0] * BIG_WIN_FACTOR < pmdiffs[1]:
                minusbig += 1
-	    if pmdiffs[0] > pmdiffs[1] * BIG_WIN_FACTOR:
+            if pmdiffs[0] > pmdiffs[1] * BIG_WIN_FACTOR:
                plusbig += 1
-	    if pluswin >= minuswin + DIRECTION_WIN_THRESH or \
+            if pluswin >= minuswin + DIRECTION_WIN_THRESH or \
                    (plusbig >= BIG_WIN_THRESH and not minuswin):
                pmstart = 1
-	    if minuswin >= pluswin + DIRECTION_WIN_THRESH or \
+            if minuswin >= pluswin + DIRECTION_WIN_THRESH or \
                    (minusbig >= BIG_WIN_THRESH and not pluswin):
                pmend = 0
 

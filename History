@@ -1,5 +1,48 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/2/14: Replaced Fortran image I/O system with system used by C programs.
+Fortran programs can now read TIFF, DigitalMicrograph, and other MRC-like
+files.
+
+1/2/14: IMOD_4-6-35
+1/2/14: Fixes in 3dmod for problems with toolbar and popup menu and new model
+view tool windows.
+
+12/31/13: IMOD_4-6-34
+12/25/13: Changed description of hot keys in help files and tooltips to show
+plain letter as upper instead of lower case (S not s) and shifted letter with
+Shift+ instead or just upper case (Shift+S not S).
+
+12/23/13: Added ability to change object transparency during Model View
+movies. 
+
+12/23/13: Made hot key popup menus for Zap, Slicer, and XYZ windows that show
+up when right-clicking over a toolbar, and added a HotKey menu to Model View.
+These menus allow most hot keys to be seen and selected.
+
+12/23/13: Added hot key for resizing image inside Zap or Slicer rubber band to
+fill window.
+
+12/22/13: Added a dialog to set the size of the Model View window without
+changing model zoom.
+ 
+12/22/13: Added menu entry Image - Linked Slicers to open an array of slicers,
+one per  image file, controlled by a single slice toolbar,
+
+12/21/13: Added a small rotation tool window to Model View with arrows for 
+rotating model.
+
+12/19/13: Rubberband, arrows for view-axis based rotation, and slider for
+moving along view axis added to slicer; with band on, limits can be set and
+File-Extract File can be used extract selected region with Rotatevol.
+
+12/19/13: Fixed File-Extract File when subarea of volume or volumes of
+different size are loaded or when the time lock is on.
+
+12/19/13: Allowed X, Y, and Z limits out of range for Trimvol.
+
+12/19/13: Fixed autofidseed and findsirtdiffs for Python 3.
+
 12/13/13: Fixed 3dmod button resizing in Windows when change font size.
 
 12/13/13: In eTomo - Fine Alignment, exposed tiltalign - weightWholeTracks.
