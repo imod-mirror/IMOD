@@ -1,0 +1,70 @@
+<head>
+<title>Grab With Note Plugin Help</title>
+</head>
+<body>
+<a name="TOP"></a>
+<h3>Grab With Note Plugin Help</h3><br>
+--------------------------<br><br>
+This plugin is designed to grab the display in 3dmod top Slicer or 
+Zap window, and save it as an image with text note and Slicer
+parameters (if it's Slicer window) or the center position (if it's a Zap window).
+<P>
+When this plugin is open, scale bars will be displayed in the image windows
+even when the Scale Bar dialog is not open, provided that
+ <B>Show and record scale bar</B> is checked.  This will be turned on by
+ default if the image or model file appears to have a pixel size defined.
+<P>
+Another special feature when this plugin is open is that snapshots will always
+be of the full window area, even when a rubber band is drawn in the window.
+Thus, you can use a rubber band to outline an area of interest in either type
+of window.  The toolbar in either window also provides an arrow for pointing
+to a feature of interest, and the lasso in the Zap toolbar can also be used
+for outlining a feature.
+<br><br><br>
+<b>Hot Keys</b><br>
+---------------------<br>
+<b>[Shift+W]</b>&nbsp &nbsp
+Save image with note in imod snapshot directory
+<br>
+<b>[W]</b>&nbsp &nbsp
+Save image with note in the Caltech Tomography Database. The image will
+be attached to an existing database tilt series id. See more details below.
+<br>
+<br>
+<br>
+<b>Save Image</b><br>
+---------------------<br>
+
+This function saves the grabbed image with note in standard 3dmod snapshot directory
+with default snapshot naming.
+
+<br>
+<br>
+<br>
+<b>Save to Database</b><br>
+---------------------<br>
+
+If you are using Caltech Tomography Database, you may use this function 
+to add grabbed image with note to the database and attached with a given 
+tilt series id. A database configuration file must be present.
+
+<ul>
+<li><b>image type</b> - For display purpose, only JPG or PNG are allowed to be saved 
+to database.</li>
+<li><b>configuration file</b> - should be located at $IMOD_CALIB_DIR/grabDatabase.ini. 
+By default $IMOD_CALIB_DIR is /usr/local/ImodCalib/ .</li>
+<li><b>tilt series id</b> - you may manually input "Tilt Series Database ID", or,
+if the 3D image opened by 3dmod is under standard path in the database (has a format
+of &lt;Database path&gt;/&lt; tilt series id&gt;/... ), the tilt series id will be automatically
+detected.</li>
+<li><b>database image path</b> - all images are saved under  &lt;Database path&gt;/Caps/ .
+File name formats: &lt;tilt series id&gt;_&lt;zap or slicer&gt;&lt;file id&gt;.jpg</li>
+</ul>
+
+<br>
+---------------------<br>
+<br>
+This plugin was created by <b>Jane Ding</b> (<u>hding&lt;at&gt;caltech&lt;dot&gt;edu</u>).<br>
+Last updated January 14, 2014
+<br><br>
+</body>
