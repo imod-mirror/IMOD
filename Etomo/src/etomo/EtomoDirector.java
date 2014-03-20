@@ -21,6 +21,7 @@ import javax.swing.plaf.FontUIResource;
 import etomo.logic.VersionControl;
 import etomo.process.IntermittentBackgroundProcess;
 import etomo.process.ProcessRestarter;
+import etomo.storage.BatchRunTomoFileFilter;
 import etomo.storage.EtomoFileFilter;
 import etomo.storage.JoinFileFilter;
 import etomo.storage.LogFile;
@@ -29,6 +30,7 @@ import etomo.storage.ParameterStore;
 import etomo.storage.PeetFileFilter;
 import etomo.storage.SerialSectionsFileFilter;
 import etomo.type.AxisID;
+import etomo.type.BatchRunTomoMetaData;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.DataFileType;
 import etomo.type.DialogType;
@@ -316,6 +318,9 @@ public class EtomoDirector {
         }
         else if (paramFileName.endsWith(DataFileType.PARALLEL.extension)) {
           managerKey = openParallel(paramFileName, false, AxisID.ONLY);
+        }
+        else if (paramFileName.endsWith(DataFileType.BATCH_RUN_TOMO.extension)) {
+          managerKey = openBatchRunTomo(paramFileName, false, AxisID.ONLY);
         }
         else if (paramFileName.endsWith(DataFileType.PEET.extension)) {
           managerKey = openPeet(paramFileName, false, AxisID.ONLY);
@@ -621,6 +626,11 @@ public class EtomoDirector {
         axisID);
   }
 
+  public ManagerKey openBatchRunTomo(boolean makeCurrent, AxisID axisID) {
+    closeDefaultWindow(axisID);
+    return openBatchRunTomo((String) null, makeCurrent, axisID);
+  }
+
   /**
    * Build, save, and display a ToolsManager instance.
    * @param dialogType may not be null
@@ -677,6 +687,14 @@ public class EtomoDirector {
     return openParallel(etomoParallelFile.getAbsolutePath(), makeCurrent, axisID);
   }
 
+  private ManagerKey openBatchRunTomo(File etomoBatchRunTomoFile, boolean makeCurrent,
+      AxisID axisID) {
+    if (etomoBatchRunTomoFile == null) {
+      return openBatchRunTomo(makeCurrent, axisID);
+    }
+    return openBatchRunTomo(etomoBatchRunTomoFile.getAbsolutePath(), makeCurrent, axisID);
+  }
+
   private ManagerKey openPeet(File etomoPeetFile, boolean makeCurrent, AxisID axisID) {
     if (etomoPeetFile == null) {
       return openPeet(makeCurrent, axisID);
@@ -722,6 +740,19 @@ public class EtomoDirector {
     }
     else {
       manager = new ParallelManager(parallelFileName);
+    }
+    return setManager(manager, makeCurrent);
+  }
+
+  private ManagerKey openBatchRunTomo(String batchRunTomoFileName, boolean makeCurrent,
+      AxisID axisID) {
+    BatchRunTomoManager manager;
+    if (batchRunTomoFileName == null) {
+      manager = new BatchRunTomoManager();
+    }
+    else {
+      manager = new BatchRunTomoManager(batchRunTomoFileName);
+      UIHarness.INSTANCE.setEnabledNewBatchRunTomoMenuItem(false);
     }
     return setManager(manager, makeCurrent);
   }
@@ -831,6 +862,11 @@ public class EtomoDirector {
       openParallel(dataFile, makeCurrent, axisID);
       return;
     }
+    BatchRunTomoFileFilter batchRunTomoFileFilter = new BatchRunTomoFileFilter();
+    if (batchRunTomoFileFilter.accept(dataFile)) {
+      openBatchRunTomo(dataFile, makeCurrent, axisID);
+      return;
+    }
     PeetFileFilter peetFileFilter = new PeetFileFilter();
     if (peetFileFilter.accept(dataFile)) {
       openPeet(dataFile, makeCurrent, axisID);
@@ -900,6 +936,9 @@ public class EtomoDirector {
     }
     else if (key.getName().equals(ParallelMetaData.NEW_ANISOTROPIC_DIFFUSION_TITLE)) {
       UIHarness.INSTANCE.setEnabledNewAnisotropicDiffusionMenuItem(true);
+    }
+    else if (key.getName().equals(BatchRunTomoMetaData.NEW_TITLE)) {
+      UIHarness.INSTANCE.setEnabledNewBatchRunTomoMenuItem(true);
     }
     else if (key.getName().equals(PeetMetaData.NEW_TITLE)) {
       UIHarness.INSTANCE.setEnabledNewPeetMenuItem(true);
