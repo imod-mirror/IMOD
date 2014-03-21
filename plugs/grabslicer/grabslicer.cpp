@@ -116,10 +116,10 @@ int imodPlugKeys(ImodView *vw, QKeyEvent *event)
     //plug->window->saveImage();
     break;
   case Qt::Key_W:
-    if(shift)
+    if(shift && !ctrl)
       plug->window->saveImage();
     else if (sHasDBini) {
-      sSaveBoth = ctrl != 0;
+      sSaveBoth = shift != 0 && ctrl != 0;
       plug->window->saveDatabase();
     }
     break;
@@ -397,7 +397,7 @@ void GrabSlicer::closeEvent ( QCloseEvent * e )
 // come through here in that case and need to be ignored
 void GrabSlicer::keyPressEvent ( QKeyEvent * e )
 {
-  if (tilt_note->hasFocus() || tilt_id->hasFocus())
+  if (tilt_note->hasFocus() || (sHasDBini && tilt_id->hasFocus()))
     return;
   if (e->key() == Qt::Key_Escape)
     close();
