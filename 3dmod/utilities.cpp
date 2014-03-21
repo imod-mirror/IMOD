@@ -114,7 +114,7 @@ PopupEntry sDefaultActions[] = {
   {"Open Graph window", Qt::Key_G, 0, 1, 0},
   {"Open Model View window", Qt::Key_V, 0, 0, 0},
   {"Open Isosurface in Model View window", Qt::Key_U, 0, 1, 0},
-  {"Open Grab with Note plugin", Qt::Key_H, 1, 0, 0},
+  {"Open Grab with Note plugin", Qt::Key_H, 0, 1, 0},
   {"", -2, 0, 0, 0},
   {"", -3, 0, 0, 0},
   {"Make TIFF snapshot of window", Qt::Key_S, 1, 0, 0},
@@ -474,7 +474,8 @@ bool utilCloseKey(QKeyEvent *e)
   if (e->key() == Qt::Key_Escape)
     return true;
 #ifdef Q_OS_MACX
-  if (e->key() == Qt::Key_W && (e->modifiers() & Qt::ControlModifier))
+  if (e->key() == Qt::Key_W && (e->modifiers() & Qt::ControlModifier) && 
+      !(e->modifiers() & Qt::ShiftModifier))
     return true;
 #endif
   return false;

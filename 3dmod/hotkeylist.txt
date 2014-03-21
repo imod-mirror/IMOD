@@ -24,7 +24,7 @@ F - Find the maximum pixel within 10 pixels and report its value.
 g - Toggle previous contour ghost draw mode.
 G - Open Graph window.
 Ctrl-G - Toggle gap at current point
-Ctrl-H - Open Grab with Note
+Shift-H - Open Grab with Note (Ctrl-H hides windows on Mac - do not use)
 i - Zap - toggles the modeling direction.
 I - Zap - prints information about the window and image size and 
 
@@ -49,9 +49,12 @@ Ctrl+Shift+S - Make snapshot with second non-TIFF format.
 t - Toggle model drawing on/off.
 T - Toggle current point/contour markers on/off.
 Ctrl+T - Toggle current object on/off.
-v - Open Model View window.
 u - Zap - smooths a filled area when auto contouring.
 U - Open Model View and Isosurface windows.
+v - Open Model View window.
+w - Grab with Note to database
+Shift+W - Grab to image
+Ctrl+Shift+W - Grab to image and to database  (Ctrl-W closes windows on Mac)
 Ctrl-Y - Redo model changes that were undone.
 z - Open Zap window.
 Z - Zap - toggles auto section advance on and off.  When this is on, 
