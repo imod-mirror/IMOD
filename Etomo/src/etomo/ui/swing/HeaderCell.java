@@ -205,6 +205,16 @@ final class HeaderCell implements Cell {
     }
   }
 
+  void setText(final int text) {
+    this.text = String.valueOf(text);
+    cell.setText(formatText());
+    if (children != null) {
+      for (int i = 0; i < children.size(); i++) {
+        ((Cell) children.get(i)).msgLabelChanged();
+      }
+    }
+  }
+
   void addChild(Cell child) {
     if (children == null) {
       children = new ArrayList();
