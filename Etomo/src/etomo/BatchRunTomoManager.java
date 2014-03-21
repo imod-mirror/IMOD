@@ -8,7 +8,6 @@ import etomo.type.AxisType;
 import etomo.type.BaseMetaData;
 import etomo.type.BaseScreenState;
 import etomo.type.BatchRunTomoMetaData;
-import etomo.type.BatchRunTomoState;
 import etomo.type.DialogType;
 import etomo.type.InterfaceType;
 import etomo.ui.swing.BatchRunTomoDialog;
@@ -38,7 +37,6 @@ public final class BatchRunTomoManager extends BaseManager {
 
   private final BaseScreenState screenState = new BaseScreenState(AXIS_ID,
       AxisType.SINGLE_AXIS);
-  private final BatchRunTomoState state = new BatchRunTomoState();
 
   private final BatchRunTomoMetaData metaData;
 
@@ -118,11 +116,10 @@ public final class BatchRunTomoManager extends BaseManager {
   }
 
   Storable[] getStorables(final int offset) {
-    Storable[] storables = new Storable[3 + offset];
+    Storable[] storables = new Storable[2 + offset];
     int index = offset;
     storables[index++] = metaData;
     storables[index++] = screenState;
-    storables[index++] = state;
     return storables;
   }
 }
