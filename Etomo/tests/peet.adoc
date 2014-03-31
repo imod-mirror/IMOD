@@ -621,7 +621,10 @@ save=
 assert.contains.file=%{dataset}.prm|initMOTL = {'%{dataset}-a-initMOTL.csv', '%{dataset}-b-initMOTL.csv', '%{dataset}-a-initMOTL.csv'}
 #test uniform random rotations
 rb.uniform-random-rotations=
+assert.rb.user-supplied-csv-files=off
+assert.rb.uniform-random-rotations=on
 save=
+sleep=
 assert.contains.file=%{dataset}.prm|initMOTL = 3
 #test uniform random rotations
 rb.random-axial-rotations=
