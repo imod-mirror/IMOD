@@ -70,7 +70,8 @@ typedef void (*TIFFWarningHandler)(const char *module, const char *fmt, va_list 
 
 static TIFFWarningHandler oldHandler = NULL;
 static void warningHandler(const char *module, const char *fmt, va_list ap);
-static int useMapping = 1;
+static int sUseMapping = 1;
+static int sWarningsSuppressed = 0;
 
 int iiTIFFCheck(ImodImageFile *inFile)
 {
@@ -463,6 +464,7 @@ void tiffSuppressErrors(void)
 void tiffSuppressWarnings(void)
 {
   TIFFSetWarningHandler(NULL);
+  sWarningsSuppressed = 1;
 }
 
 static void warningHandler(const char *module, const char *fmt, va_list ap)
@@ -484,12 +486,13 @@ static void warningHandler(const char *module, const char *fmt, va_list ap)
 /* Set up to filter out the ubiquitous unknown field warnings */
 void tiffFilterWarnings(void)
 {
-  oldHandler = TIFFSetWarningHandler(warningHandler);
+  if (!sWarningsSuppressed)
+    oldHandler = TIFFSetWarningHandler(warningHandler);
 }
 
 void tiffSetMapping(int value)
 {
-  useMapping = value;
+  sUseMapping = value;
 }
 
 /* Mode 'b' means something completely different for TIFF, so strip it */
@@ -504,7 +507,7 @@ static TIFF *openWithoutBMode(ImodImageFile *inFile)
   if (!len)
     return NULL;
 
-  if (!useMapping || inFile->fmode[len - 1] == 'b') {
+  if (!sUseMapping || inFile->fmode[len - 1] == 'b') {
     stripped = 1;
     tmpmode = (char *)malloc(len + 4);
     if (!tmpmode)
@@ -512,7 +515,7 @@ static TIFF *openWithoutBMode(ImodImageFile *inFile)
     strcpy(tmpmode, inFile->fmode);
     if (inFile->fmode[len - 1] == 'b')
       tmpmode[len - 1] = 0x00;
-    if (!useMapping) {
+    if (!sUseMapping) {
       len = strlen(tmpmode);
       tmpmode[len] = 'm';
       tmpmode[len+1] = 0x00;

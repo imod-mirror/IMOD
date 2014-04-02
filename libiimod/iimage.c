@@ -46,6 +46,9 @@ static int initCheckList()
   ilistAppend(sCheckList, &func);
   func = iiLikeMRCCheck;
   ilistAppend(sCheckList, &func);
+
+  /* Turn off tiff unknown tag warnings: no effect if caller suppressed all warnings */
+  tiffFilterWarnings();
   return 0;
 }
 
