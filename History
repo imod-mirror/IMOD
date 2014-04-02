@@ -27,6 +27,7 @@ HDF files can consist of stacks of 2D images of the same size, or files with
 multiple 3D volumes, which 3dmod will open like multiple files.  Makepyramid
 can make a multi-volume HDF file that 3dmod will recognize as an image
 pyramid.
+
 3/22/14: Fixed newstack when -fromone used with default section list (In 4.7).
 
 3/14/14: Fixed a Windows problem with opening 3dmod from eTomo where
