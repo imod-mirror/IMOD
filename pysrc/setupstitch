@@ -117,10 +117,6 @@ if nozopt and (addingx and infoExists or addingz):
 if not nozopt and addingx and not addingz:
    exitError(" You must enter either -zadd to add volumes that have Z" + \
          "values")
-if infoExists and not (addingxy or addingx or addingy or addingz) and \
-       (rootname or xOverlap > 0 or yOverlap > 0):
-   prnstr('INFO: There is no need to enter a rootname or overlaps when not adding ' + \
-             'pieces')
 
 PipDone()
 
@@ -196,7 +192,7 @@ if addingx:
 
 # Build a piece map and fill in size entries for pieces
 (xsize, xysize, addedData, pieceMap) = buildPieceMap(pieces, xmin, xmax, ymin, ymax, \
-                                                        zmin, zmax, addedData)
+                                                        zmin, zmax, addedData, progname)
 
 # Add edges for Z values that don't have any
 for z in zlist:
