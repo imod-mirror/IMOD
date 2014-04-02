@@ -1,5 +1,6 @@
 package etomo.type;
 
+import java.awt.Color;
 import java.io.File;
 
 import etomo.BaseManager;
@@ -23,13 +24,13 @@ public final class DirectiveFileType {
   public static final String rcsid = "$Id:$";
 
   public static DirectiveFileType SCOPE = new DirectiveFileType(0, "Scope",
-      "Scope Template", FileType.LOCAL_SCOPE_TEMPLATE);
+      "Scope Template", FileType.LOCAL_SCOPE_TEMPLATE, Color.green);
   public static DirectiveFileType SYSTEM = new DirectiveFileType(1, "System",
-      "System Template", FileType.LOCAL_SYSTEM_TEMPLATE);
+      "System Template", FileType.LOCAL_SYSTEM_TEMPLATE, Color.magenta);
   public static DirectiveFileType USER = new DirectiveFileType(2, "User",
-      "User Template", FileType.LOCAL_USER_TEMPLATE);
+      "User Template", FileType.LOCAL_USER_TEMPLATE, Color.blue);
   public static DirectiveFileType BATCH = new DirectiveFileType(3, "Batch",
-      "Batch Directive File", FileType.LOCAL_BATCH_DIRECTIVE_FILE);
+      "Batch Directive File", FileType.LOCAL_BATCH_DIRECTIVE_FILE, null);
 
   public static int NUM = 4;
 
@@ -37,13 +38,15 @@ public final class DirectiveFileType {
   private final String string;
   private final String label;
   private final FileType fileType;
+  private final Color color;
 
   private DirectiveFileType(final int index, final String string, final String label,
-      final FileType fileType) {
+      final FileType fileType, final Color color) {
     this.index = index;
     this.string = string;
     this.label = label;
     this.fileType = fileType;
+    this.color = color;
   }
 
   public static DirectiveFileType getInstance(final String label) {
@@ -79,6 +82,10 @@ public final class DirectiveFileType {
       return BATCH;
     }
     return null;
+  }
+
+  public Color getColor() {
+    return color;
   }
 
   public File getLocalFile(final BaseManager manager, final AxisID axisID) {
