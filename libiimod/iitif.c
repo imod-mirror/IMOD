@@ -160,7 +160,8 @@ int iiTIFFCheck(ImodImageFile *inFile)
       resScale = 1.e8 * (resUnit == 2 ? 2.54 : 1.);
       xPixelIm = resScale / xResol;
       yPixelIm = resScale / yResol;
-    }
+    } else
+      hasPixelIm = 0;
 
     /* If this is a bigger image, it is a new standard, so set all the
        properties and reset to one directory */
