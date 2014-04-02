@@ -1,6 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-3/31/14:IMOD_4-7-3
+4/2/14: Fixed setupstitch when there is an error reading header (In 4.7).
+
+3/31/14:IMOD_4-7-3 released
 3/29/14: In eTomo - PEET, fixed the loading of a non-array selectClassID
 value, and fixed more problems with unnecessary errors generated because of
 missing parameters (In 4.7).(Bug# 1789)
