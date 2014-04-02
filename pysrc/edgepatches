@@ -453,7 +453,7 @@ if not len(pieces):
 
 # Build a piece map and fill in size entries for pieces
 (xsize, xysize, addedData, pieceMap) = buildPieceMap(pieces, xmin, xmax, ymin, ymax, \
-                                                        zmin, zmax, addedData)
+                                                        zmin, zmax, addedData, progname)
 
 # Run the desired edges if any
 if anyrun:
