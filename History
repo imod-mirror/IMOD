@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4/1/14: Improved unit tests for the PEET interface in eTomo.(Bug# 1794)
+
 3/31/14:IMOD_4-7-3
 3/29/14: In eTomo - PEET, fixed the loading of a non-array selectClassID
 value, and fixed more problems with unnecessary errors generated because of
