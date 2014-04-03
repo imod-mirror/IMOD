@@ -1,5 +1,6 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4/2/14: IMOD_4-8-3
 4/2/14: Fixed pixel size and model scaling set from a TIFF file when there is
 a resolution with no units (In 4.7).
 
