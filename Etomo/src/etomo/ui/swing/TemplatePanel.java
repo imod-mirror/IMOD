@@ -130,6 +130,13 @@ final class TemplatePanel {
   Component getComponent() {
     return pnlRoot;
   }
+  
+  void setColor() {
+    cmbScopeTemplate.setColor(DirectiveFileType.SCOPE);
+    cmbSystemTemplate.setColor(DirectiveFileType.SYSTEM);
+    cmbUserTemplate.setColor(DirectiveFileType.USER);
+    UIHarness.INSTANCE.pack(manager);
+  }
 
   private void loadUserTemplate() {
     userTemplateFileList = null;
