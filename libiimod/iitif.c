@@ -70,7 +70,8 @@ typedef void (*TIFFWarningHandler)(const char *module, const char *fmt, va_list 
 
 static TIFFWarningHandler oldHandler = NULL;
 static void warningHandler(const char *module, const char *fmt, va_list ap);
-static int useMapping = 1;
+static int sUseMapping = 1;
+static int sWarningsSuppressed = 0;
 
 int iiTIFFCheck(ImodImageFile *inFile)
 {
@@ -160,7 +161,8 @@ int iiTIFFCheck(ImodImageFile *inFile)
       resScale = 1.e8 * (resUnit == 2 ? 2.54 : 1.);
       xPixelIm = resScale / xResol;
       yPixelIm = resScale / yResol;
-    }
+    } else
+      hasPixelIm = 0;
 
     /* If this is a bigger image, it is a new standard, so set all the
        properties and reset to one directory */
@@ -462,6 +464,7 @@ void tiffSuppressErrors(void)
 void tiffSuppressWarnings(void)
 {
   TIFFSetWarningHandler(NULL);
+  sWarningsSuppressed = 1;
 }
 
 static void warningHandler(const char *module, const char *fmt, va_list ap)
@@ -483,12 +486,13 @@ static void warningHandler(const char *module, const char *fmt, va_list ap)
 /* Set up to filter out the ubiquitous unknown field warnings */
 void tiffFilterWarnings(void)
 {
-  oldHandler = TIFFSetWarningHandler(warningHandler);
+  if (!sWarningsSuppressed)
+    oldHandler = TIFFSetWarningHandler(warningHandler);
 }
 
 void tiffSetMapping(int value)
 {
-  useMapping = value;
+  sUseMapping = value;
 }
 
 /* Mode 'b' means something completely different for TIFF, so strip it */
@@ -503,7 +507,7 @@ static TIFF *openWithoutBMode(ImodImageFile *inFile)
   if (!len)
     return NULL;
 
-  if (!useMapping || inFile->fmode[len - 1] == 'b') {
+  if (!sUseMapping || inFile->fmode[len - 1] == 'b') {
     stripped = 1;
     tmpmode = (char *)malloc(len + 4);
     if (!tmpmode)
@@ -511,7 +515,7 @@ static TIFF *openWithoutBMode(ImodImageFile *inFile)
     strcpy(tmpmode, inFile->fmode);
     if (inFile->fmode[len - 1] == 'b')
       tmpmode[len - 1] = 0x00;
-    if (!useMapping) {
+    if (!sUseMapping) {
       len = strlen(tmpmode);
       tmpmode[len] = 'm';
       tmpmode[len+1] = 0x00;
@@ -1168,9 +1172,10 @@ int tiffWriteSetup(ImodImageFile *inFile, int compression, int inverted, int res
 
   if (*tileSizeX) {
 
+    /* For tiles, make sure each dimension is multiple of 16, it is what tiffcp does */
     sRowsPerStrip = *outRows;
-    bestTileSize(inFile->nx, tileSizeX, &sNumXtiles);
-    bestTileSize(inFile->ny, (int *)(&sRowsPerStrip), &sNumStrips);
+    iiBestTileSize(inFile->nx, tileSizeX, &sNumXtiles, 16);
+    iiBestTileSize(inFile->ny, (int *)(&sRowsPerStrip), &sNumStrips, 16);
     sXtileSize = *tileSizeX;
     TIFFSetField(tif, TIFFTAG_TILEWIDTH, sXtileSize);
     TIFFSetField(tif, TIFFTAG_TILELENGTH, sRowsPerStrip);
@@ -1213,16 +1218,6 @@ int tiffWriteSetup(ImodImageFile *inFile, int compression, int inverted, int res
   sLinesDone = 0;
   sAlreadyInverted = inverted;
   return 0;
-}
-
-/* For tiles, make sure each dimension is multiple of 16, it is what tiffcp does 
-   But also increase tile size to the point that minimizes the extra amount that is
-   put out because tiles must be equal */
-static void bestTileSize(int imSize, int *tileSize, int *numTiles)
-{
-  *numTiles = (imSize + *tileSize - 1) / *tileSize;
-  *tileSize = 16 * (int)ceil(imSize / (16. * *numTiles));
-  *numTiles = (imSize + *tileSize - 1) / *tileSize;
 }
 
 /*
