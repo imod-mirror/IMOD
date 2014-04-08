@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4/9/14: Suppressed Newstack warning about truncated sections unless a lot of
+pixels were truncated (In 4.7).
+
 4/8/14: Add ability to copy a contour as its equivalent ellipse in 3dmod, and
 get report of equivalent ellipse parameters in imodinfo.
 
