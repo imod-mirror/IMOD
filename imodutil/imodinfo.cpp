@@ -23,7 +23,7 @@
 
 enum {MINFO_STANDARD = 1, MINFO_CHART, MINFO_DIST, MINFO_ASCII, MINFO_LENGTH, 
       MINFO_SURFACE, MINFO_OBJECT, MINFO_POINTS, MINFO_RATIOS, MINFO_COLORLEN,
-      MINFO_SPECIAL};
+      MINFO_SPECIAL, MINFO_ELLIPSE};
 
 static double info_contour_length(Icont *cont, int objflags,
                                   double pixsize, double zscale);
@@ -34,6 +34,7 @@ static double info_contour_vol(Icont *cont, int objflags,
 static void imodinfo_points(Imod *imod, int ob, int subarea, Ipoint ptmin,
                             Ipoint ptmax, int useclip, int verbose);
 static void imodinfo_ratios(Imod *imod, int ob);
+static void imodinfo_ellipse(Imod *imod, int ob);
 static void imodinfo_object(Imod *imod, int ob, int scaninside, 
                             int subarea, Ipoint min, Ipoint max,
                             int useclip);
@@ -175,6 +176,10 @@ int main( int argc, char *argv[])
 
       case 'p':
         mode = MINFO_POINTS;
+        break;
+
+      case 'e':
+        mode = MINFO_ELLIPSE;
         break;
 
       case 'r':
@@ -344,6 +349,11 @@ int main( int argc, char *argv[])
     case MINFO_POINTS:
       for (ob = 0; ob < objList.size(); ob++) 
         imodinfo_points(model, objList[ob], subarea, ptmin, ptmax, useclip, verbose);
+      break;
+
+    case MINFO_ELLIPSE:
+      for (ob = 0; ob < objList.size(); ob++) 
+        imodinfo_ellipse(model, objList[ob]);
       break;
 
     case MINFO_RATIOS:
@@ -915,11 +925,44 @@ static void imodinfo_ratios(Imod *model, int ob)
       sa = imodContourArea(cont);
       sa *= model->pixsize * model->pixsize;
       ratio = sa / dist;
-      fprintf(fout, "%d %g\n", ob + 1, ratio);
+      fprintf(fout, "%d %g\n", co + 1, ratio);
     }
   }
 }
 
+/*
+ * Prints equivalent ellipse information for each contour or closed object
+ */
+static void imodinfo_ellipse(Imod *model, int ob)
+{
+  Iobj *obj;
+  Icont *cont;
+  Ipoint center;
+  int co;
+  float aa, bb, angle;
+     
+  obj = &(model->obj[ob]);
+  if (!((obj->flags & IMOD_OBJFLAG_SCAT) || 
+        (obj->flags & IMOD_OBJFLAG_OPEN))) {
+    fprintf(fout, "\nOBJECT %d\n", ob + 1);
+    fprintf(fout, "NAME:  %s\n", obj->name);
+    fprintf
+      (fout, "contour     center (pixels)                 axes (%s)        eccen-   long"
+       "\n   #      x        y        z       semi-major   semi-minor  tricity  angle\n",
+       imodUnits(model));
+
+    for (co = 0; co < obj->contsize; co++) {
+      cont = &(obj->cont[co]);
+      if (cont->psize <=2)
+        continue;
+
+      if (!imodContourEquivEllipse(cont, &center, &aa, &bb, &angle))
+        fprintf(fout, "%4d %8.1f %8.1f %8.1f   %12.5g %12.5g   %.4f  %6.2f\n", co + 1,
+                center.x, center.y, center.z, aa * model->pixsize, bb * model->pixsize, 
+                sqrt(1. - bb * bb / (aa * aa)), angle);
+    }
+  }
+}
 
 /* Prints full report on an object, whose object number (numbered from 1) is
    ob.  Other arguments defined as above */
