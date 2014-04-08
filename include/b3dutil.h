@@ -42,6 +42,7 @@
 #define OUTPUT_TYPE_DEFAULT OUTPUT_TYPE_MRC
 #define OUTPUT_TYPE_ENV_VAR "IMOD_OUTPUT_FORMAT"
 
+#define RADIANS_PER_DEGREE 0.01745329252
 
 /* Determinant of 3x3 matrix */
 #define determ3(a1,a2,a3,b1,b2,b3,c1,c2,c3) ((a1)*(b2)*(c3) - (a1)*(b3)*(c2) +\
