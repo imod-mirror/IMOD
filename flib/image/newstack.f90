@@ -88,7 +88,7 @@ program newstack
   integer*4 ifOnePerFile, ifUseFill, listIncrement, indOut, ifMeanSdEntered
   integer*4 numReplace, isecReplace, modeOld, loadYoffset, loadBaseInd, listAlloc
   integer*4 indFilter, linesShrink, numAllSec, maxNumXF, nxMax, nyMax, ifControl
-  integer*4 indFiltTemp, ifFiltSet, ifShrink
+  integer*4 indFiltTemp, ifFiltSet, ifShrink, numSecTrunc
   real*4 rxOffset, ryOffset
   real*4 fieldMaxY, rotateAngle, expandFactor, fillVal, shrinkFactor
   real*8 dsum, dsumSq, tsum, tsumSq, wallStart, wallTime, loadTime, saveTime
@@ -195,6 +195,7 @@ program newstack
   twoDirections = .false.
   numberOffset = 0
   numExclude = 0
+  numSecTrunc = 0
   !
   ! Preliminary allocation of array
   allocate(array(limToAlloc), stat = ierr)
@@ -1016,13 +1017,12 @@ program newstack
         !call rsMADN(secZmaxes, numOutTot, zmaxMed, ztemp, zmaxMADN)
         !print *,'median', zmaxMed, '   MADN', zmaxMADN
         !write(*,'(8f9.2)')(ztemp(i) / zmaxMADN, i = 1, numOutTot)
-        isecOut =   0
         call rsMadMedianOutliers(secZmins, numOutTot, 8., ztemp)
         do i = 1, numOutTot
           if (ztemp(i) >= 0.) then
             zmin = min(zmin, secZmins(i))
           else
-            isecOut = isecOut + 1
+            numSecTrunc = numSecTrunc + 1
           endif
         enddo
         call rsMadMedianOutliers(secZmaxes, numOutTot, 8., ztemp)
@@ -1030,13 +1030,10 @@ program newstack
           if (ztemp(i) <= 0.) then
             zmax = max(zmax, secZmaxes(i))
           else
-            isecOut = isecOut + 1
+            numSecTrunc = numSecTrunc + 1
           endif
         enddo
         deallocate(secZmins, secZmaxes, ztemp)
-        if (isecOut > 0) write(*,'(/,a,i3,a)')'WARNING: NEWSTACK - ',isecOut, &
-            ' sections have extreme ranges and will be truncated to preserve dynamic'// &
-            ' range'
       endif
     endif
   endif
@@ -1870,6 +1867,15 @@ program newstack
   if (numTruncLow + numTruncHigh > 0) write(*,103) numTruncLow, numTruncHigh
 103 format(' TRUNCATIONS OCCURRED:',i11,' at low end,',i11, &
       ' at high end of range')
+  if (numSecTrunc > 0 .and. &
+      numTruncLow + numTruncHigh > numSecTrunc * 4. * (1. + nxOut * (nyOut / 1.e6))) then
+    write(*,'(/,a,i4,a,i11,a)') 'WARNING: NEWSTACK - ',numSecTrunc,  &
+        ' sections had extreme ranges and were truncated to preserve dynamic range '// &
+        '(overall, ', numTruncLow + numTruncHigh, ' pixels were truncated)'
+  else if (numSecTrunc > 0) then
+    write(*,'(/,a,i4,a)') 'NOTE: ',numSecTrunc,  &
+        ' sections had extreme ranges and were truncated to preserve dynamic range '
+  endif
   if (iVerbose > 0) write(*,'(a,f8.4,a,f8.4,a,f8.4,a,f8.4)') 'loadtime', &
       loadTime, '  savetime', saveTime, '  sum', loadTime + saveTime, &
       '  rottime', rotTime
