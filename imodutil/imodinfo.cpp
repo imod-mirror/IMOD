@@ -34,7 +34,7 @@ static double info_contour_vol(Icont *cont, int objflags,
 static void imodinfo_points(Imod *imod, int ob, int subarea, Ipoint ptmin,
                             Ipoint ptmax, int useclip, int verbose);
 static void imodinfo_ratios(Imod *imod, int ob);
-static void imodinfo_ellipse(Imod *imod, int ob);
+static void imodinfo_ellipse(Imod *imod, int ob, int subarea, Ipoint min, Ipoint max);
 static void imodinfo_object(Imod *imod, int ob, int scaninside, 
                             int subarea, Ipoint min, Ipoint max,
                             int useclip);
@@ -353,7 +353,7 @@ int main( int argc, char *argv[])
 
     case MINFO_ELLIPSE:
       for (ob = 0; ob < objList.size(); ob++) 
-        imodinfo_ellipse(model, objList[ob]);
+        imodinfo_ellipse(model, objList[ob], subarea, ptmin, ptmax);
       break;
 
     case MINFO_RATIOS:
@@ -933,13 +933,19 @@ static void imodinfo_ratios(Imod *model, int ob)
 /*
  * Prints equivalent ellipse information for each contour or closed object
  */
-static void imodinfo_ellipse(Imod *model, int ob)
+static void imodinfo_ellipse(Imod *model, int ob, int subarea, Ipoint min, Ipoint max)
 {
   Iobj *obj;
   Icont *cont;
   Ipoint center;
-  int co;
-  float aa, bb, angle;
+  int co, nsum = 0;
+  float sectorCrit = 44.;
+  int sector = 0;
+  float aa, bb, angle, angSum, angSumSq, aaSum, aaSumSq, bbSum, bbSumSq, eccSum, eccSumSq;
+  float aaAvg, aaSd, bbAvg, bbSd, eccAvg, eccSd, angAvg, angSd, ecc, minAngle, maxAngle;
+  angSum = angSumSq = aaSum = aaSumSq = bbSum = bbSumSq = eccSum = eccSumSq = 0;
+  minAngle = 1000.;
+  maxAngle = -1000.;
      
   obj = &(model->obj[ob]);
   if (!((obj->flags & IMOD_OBJFLAG_SCAT) || 
@@ -956,10 +962,60 @@ static void imodinfo_ellipse(Imod *model, int ob)
       if (cont->psize <=2)
         continue;
 
-      if (!imodContourEquivEllipse(cont, &center, &aa, &bb, &angle))
-        fprintf(fout, "%4d %8.1f %8.1f %8.1f   %12.5g %12.5g   %.4f  %6.2f\n", co + 1,
-                center.x, center.y, center.z, aa * model->pixsize, bb * model->pixsize, 
-                sqrt(1. - bb * bb / (aa * aa)), angle);
+      if (!imodContourEquivEllipse(cont, &center, &aa, &bb, &angle)) {
+        if (!subarea || (center.x >= min.x && center.x <= max.x &&
+                         center.y >= min.y && center.y <= max.y &&
+                         center.z >= min.z && center.z <= max.z)) {
+
+          // This is standard definition for eccentricity, a not terribly intuitive number
+          ecc = sqrt(1. - bb * bb / (aa * aa));
+          aa *= model->pixsize;
+          bb *= model->pixsize;
+          
+          // If the angle is within criterion of either end, the first time use it to
+          // set the standard direction; after that adjust angles near the other end by
+          // 180 so they can be averaged
+          if (angle < sectorCrit || angle > 180. - sectorCrit) {
+            if (!nsum)
+              sector = angle < sectorCrit ? 1 : -1;
+            else if (sector < 0 && angle < sectorCrit)
+              angle += 180.;
+            else if (sector > 0 && angle > 180 - sectorCrit)
+              angle -= 180.;
+          }
+          fprintf(fout, "%4d %8.1f %8.1f %8.1f   %12.5g %12.5g   %.4f  %6.2f\n", co + 1,
+                  center.x, center.y, center.z, aa, bb, ecc, angle);
+          aaSum += aa;
+          aaSumSq += aa * aa;
+          bbSum += bb;
+          bbSumSq += bb * bb;
+          eccSum += ecc;
+          eccSumSq += ecc * ecc;
+          angSum += angle;
+          angSumSq += angle * angle;
+          nsum++;
+          minAngle = B3DMIN(minAngle, angle);
+          maxAngle = B3DMAX(maxAngle, angle);
+        }
+      }
+    }
+    if (nsum) {
+
+      // Get the statistics and adjust an angle to be within range
+      sumsToAvgSD(aaSum, aaSumSq, nsum, &aaAvg, &aaSd);
+      sumsToAvgSD(bbSum, bbSumSq, nsum, &bbAvg, &bbSd);
+      sumsToAvgSD(eccSum, eccSumSq, nsum, &eccAvg, &eccSd);
+      sumsToAvgSD(angSum, angSumSq, nsum, &angAvg, &angSd);
+      if (angAvg < 0)
+        angAvg += 180.;
+      if (angAvg >= 180.)
+        angAvg -= 180.;
+      printf("Mean                              %12.5g %12.5g   %.4f  %6.2f\n"
+             " SD                               %12.5g %12.5g   %.4f  %6.2f\n",
+             aaAvg, bbAvg, eccAvg, angAvg, aaSd, bbSd, eccSd, angSd);
+      if (maxAngle - minAngle > 2 * sectorCrit)
+        printf("WARNING: The range of angles is %.0f degrees and the mean may be "
+               "inaccurate\n", maxAngle - minAngle);
     }
   }
 }
