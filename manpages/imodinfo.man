@@ -157,12 +157,15 @@ maximally elongated ellipse), and the angle of the semi-major axis (a
 value between 0 and 180 except as described next).  If the range of
 angles is less than 80 degrees, then numbers will be
 reported that are suitable for simple averaging.  This is accomplished
-based on the angle of the first contour for an object: if it is less than 40, then all
-subsequent angles greater than 140 will have 180 subtracted to give
-negative angles; if it is greater than 140, 180 is then added to angles less
-than 40.  Means and and standard deviations are also reported for these
+based on the angle of the first contour for an object: if it is less than 44, then all
+subsequent angles greater than 136 will have 180 subtracted to give
+negative angles; if it is greater than 136, 180 is then added to angles less
+than 45.  Means and and standard deviations are also reported for these
 four measures; the mean of the angles will be adjusted to be between 0
-and 180.
+and 180.  BEWARE: if the range of angles is greater than 88 degrees,
+the mean will be meaningless unless the distribution of angles does not
+wrap around at 0 or 180, so you need to examine the individual angles
+before using the mean.
 .TP
 .B -F
 Print full report on the objects, a collection of summary information.
