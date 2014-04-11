@@ -90,6 +90,7 @@ static void imodinfo_usage(char *name)
   printf("\t-s\tPrint surface information.\n");
   printf("\t-p\tPrint point size information.\n");
   printf("\t-r\tPrint ratio of length to area for closed contours.\n");
+  printf("\t-e\tPrint center and axes of equivalent ellipse for closed contours.\n");
   printf("\t-F\tPrint full report on objects.\n");
   printf("\t-o list\tList of object to process (default is all).\n");
   printf("\t-i\tAnalyze for inside contours and adjust volume.\n");
