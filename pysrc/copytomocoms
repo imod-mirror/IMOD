@@ -631,6 +631,8 @@ for iaxis in range(naxis):
       if mode == 0:
          newstmode = "ModeToOutput 1"
       if mode == 1:
+
+         # Etomo sets metadata from these two INFO lines simply by looking for 32768
          if  meandens < -1000 and mindens < -10000:
             logbase = 32768
             printInfo('Setting logarithm offset for Tilt to 32768 because the mean '+\
@@ -885,6 +887,28 @@ for iaxis in range(naxis):
       if fullx >= tiltsize:
          break
 
+   # Check if a template is turning off the log by modifiying key lines
+   if len(changeList) > 0:
+      testLines = ["$tilt -StandardInput",
+                   fmtstr("LOG {}", logbase),
+                   fmtstr("SCALE 0 {}", tiltscale)]
+      testLines = modifyForChangeList(testLines, "tilt", setlet, changeList)
+      if len(testLines) <= 1 or testLines[1].startswith("SCALE"):
+
+         # If the log line is gone, set up to divide scale by 5000, but if the
+         # scale is already appropriate for linear, do not divide it
+         divScale = 5000.
+         if len(testLines) > 1:
+            try:
+               tsplit = testLines[1].split()
+               newScale = atof(tsplit[2])
+               if newScale < 3:
+                  divScale = 1.
+            except Exception:
+               pass
+         if divScale > 1:
+            tiltscale = tiltscale / divScale
+   
    sedcom = [srcToDist,
              fmtstr("/^LOG/s/LOG.*/LOG {}/", logbase),
              fmtstr("/MODE/s/MODE.*/MODE {}/", tiltmode),
@@ -892,6 +916,7 @@ for iaxis in range(naxis):
              fmtstr("/FULLIMAGE/s//FULLIMAGE {} {}/", fullx, fully),
              fmtstr("/EXCLUDELIST/s//EXCLUDELIST {}/", excludelist),
              fmtstr("/{}/d", delexclude)]
+   
    editAndWrite("tilt", "tilt", sedcom)
 
    # COMPUTE OFFSET FOR SAMPLING
