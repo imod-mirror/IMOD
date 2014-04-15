@@ -720,7 +720,16 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
     boolean log = tiltParam.hasLogOffset();
     // If initialize is true, get defaults from tilt.com
     if (log || initialize) {
-      ctfLog.setText(tiltParam.getLogShift());
+      String text = tiltParam.getLogShift();
+      if (text != null && !text.matches("\\s*")) {
+        ctfLog.setText(text);
+      }
+    }
+    if (!log && initialize) {
+      String text = ctfLog.getText();
+      if (text == null || text.matches("\\s*")) {
+        ctfLog.setText("0.0");
+      }
     }
     if ((log || initialize) && tiltParam.hasScale()) {
       if (log) {
@@ -728,10 +737,10 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
         ltfLogDensityScaleFactor.setText(tiltParam.getScaleCoeff());
       }
       else {
-        //New combination of parameters: !log and initialize
-        ltfLinearDensityScaleOffset.setText(tiltParam.getScaleFLevel());
-        ltfLinearDensityScaleFactor
-            .setText((Math.round(tiltParam.getScaleCoeff() * 5000. / 10.) * 10.));
+        // New combination of parameters: !log and initialize
+        ltfLogDensityScaleOffset.setText(tiltParam.getScaleFLevel());
+        ltfLogDensityScaleFactor
+            .setText((Math.round((tiltParam.getScaleCoeff() * 5000.) / 10.) * 10.));
       }
     }
     if (!log && tiltParam.hasScale()) {
@@ -743,9 +752,9 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
       String text = null;
       text = ltfLogDensityScaleFactor.getText();
       logScale.set(text);
-      if (log && !logScale.isNull() && logScale.isValid()) {
+      if (!logScale.isNull() && logScale.isValid()) {
         ltfLinearDensityScaleFactor
-            .setText(Math.round(logScale.getDouble() / 5000. * 1000.) / 1000.);
+            .setText(Math.round((logScale.getDouble() / 5000.) * 1000.) / 1000.);
       }
     }
     if (!initialize) {
