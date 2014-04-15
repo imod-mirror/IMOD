@@ -514,7 +514,8 @@ public final class ApplicationManager extends BaseManager implements
         }
         CopyTomoComs param = updateCopytomocoms();
         // Run copytomocoms on the command line
-        ProcessMessages messages = processMgr.setupComScripts(AxisID.ONLY, param);
+        ProcessMessages messages = processMgr.setupComScripts(AxisID.ONLY, param,
+            metaData.getAxisType());
         if (messages == null) {
           return false;
         }
