@@ -314,7 +314,7 @@ def montMinMax(pieces):
 
 
 # Function to build a piece map and also return needed sizes
-def buildPieceMap(pieces, xmin, xmax, ymin, ymax, zmin, zmax, addedData):
+def buildPieceMap(pieces, xmin, xmax, ymin, ymax, zmin, zmax, addedData, progname):
    xsize = xmax + 1 - xmin
    xysize = xsize * (ymax + 1 - ymin)
    maxPieces = (zmax + 1 - zmin) * xysize
