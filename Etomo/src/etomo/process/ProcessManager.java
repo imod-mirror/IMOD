@@ -997,6 +997,7 @@ import etomo.storage.LogFile;
 import etomo.storage.TrackLog;
 import etomo.storage.TransferFidLog;
 import etomo.type.AxisID;
+import etomo.type.AxisType;
 import etomo.type.FileType;
 import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
@@ -1078,21 +1079,22 @@ public class ProcessManager extends BaseProcessManager {
     copyTomoComs.setCTFFiles(CopyTomoComs.CtfFilesValue.CTF_PLOTTER);
     copyTomoComs.setVoltage(ctfPhaseFlipParam.getVoltage());
     copyTomoComs.setSphericalAberration(ctfPhaseFlipParam.getSphericalAberration());
-    setupComScripts(copyTomoComs, axisID);
+    setupComScripts(copyTomoComs, axisID, null);
   }
 
   public void setupCtfCorrectionComScript(AxisID axisID) {
     CopyTomoComs copyTomoComs = new CopyTomoComs(appManager);
     copyTomoComs.setCTFFiles(CopyTomoComs.CtfFilesValue.CTF_CORRECTION);
-    setupComScripts(copyTomoComs, axisID);
+    setupComScripts(copyTomoComs, axisID, null);
   }
 
-  public ProcessMessages setupComScripts(AxisID axisID, final CopyTomoComs param) {
+  public ProcessMessages setupComScripts(AxisID axisID, final CopyTomoComs param,
+      final AxisType axisType) {
     if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
       System.err.println("copytomocoms command line: " + param.getCommandLine());
     }
     appManager.saveStorables(axisID);
-    return setupComScripts(param, axisID);
+    return setupComScripts(param, axisID, axisType);
   }
 
   /**
@@ -1103,13 +1105,27 @@ public class ProcessManager extends BaseProcessManager {
    *          a read-only MetaData object containing the information to run the
    *          copytomocoms script
    */
-  private ProcessMessages setupComScripts(CopyTomoComs copyTomoComs, AxisID axisID) {
+  private ProcessMessages setupComScripts(CopyTomoComs copyTomoComs, AxisID axisID,
+      final AxisType axisType) {
     if (!copyTomoComs.setup()) {
       return null;
     }
     int exitValue = copyTomoComs.run();
     // process messages
     ProcessMessages messages = copyTomoComs.getProcessMessages();
+    if (messages.isInfo()) {
+      // smallest signed 16-bit integer (amount that needs to be added to make everything
+      // positive).
+      String infoValue = "32768";
+      for (int i = 0; i < messages.infoListSize(); i++) {
+        if (messages.getInfo(i).indexOf(infoValue) != -1) {
+          appManager.getMetaData().setGenLog(AxisID.FIRST, infoValue);
+          if (axisType != null && axisType == AxisType.DUAL_AXIS) {
+            appManager.getMetaData().setGenLog(AxisID.SECOND, infoValue);
+          }
+        }
+      }
+    }
     if (messages.isError()) {
       StringBuffer errorMessage = new StringBuffer("Error running Copytomocoms");
       for (int i = 0; i < messages.errorListSize(); i++) {
