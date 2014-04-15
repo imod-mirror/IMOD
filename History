@@ -1,10 +1,23 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4/14/14: Made Copytomocoms set the linear scaling properly in tilt.com when the cryo
+template is used and turns off logarithmic scaling (In 4.7).
+
+4/9/14: Suppressed Newstack warning about truncated sections unless a lot of
+pixels were truncated (In 4.7).
+
+4/2/14: Fixed pixel size and model scaling set from a TIFF file when there is
+a resolution with no units (In 4.7).
+
+4/2/14: Fixed setupstitch when there is an error reading header (In 4.7).
+
+3/31/14:IMOD_4-7-3 released
+3/29/14: In eTomo - PEET, fixed the loading of a non-array selectClassID
+value, and fixed more problems with unnecessary errors generated because of
+missing parameters (In 4.7).(Bug# 1789)
+
 3/27/14: Fixed a communication problem between eTomo and 3dmod and rolled back
 previous incorrect fixes from 2/14/14 and 3/14/14 (In 4.7).(Bug# 1792)
-
-3/25/14: Fixed a etomo - PEET, which was not loading a non-array selectClassID
-(In 4.7).(Bug# 1789)
 
 3/22/14: Fixed newstack when -fromone used with default section list (In 4.7).
 
