@@ -1,5 +1,6 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4/15/14: IMOD_4-7-4
 4/14/14: Made Copytomocoms set the linear scaling properly in tilt.com when the cryo
 template is used and turns off logarithmic scaling (In 4.7).
 
