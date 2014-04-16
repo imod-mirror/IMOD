@@ -1054,6 +1054,7 @@ int mrc_write_slice(void *buf, FILE *fout, MrcHeader *hdata, int slice, char axi
   size_t slicesize, sxsize, sysize;
   int j,k, dcsize, nx, ny;
   unsigned char *data = NULL;
+  unsigned char *dataOrig = NULL;
   b3dInt16 *sbuf;
   b3dFloat *fbuf;
   int bytesSigned = (!hdata->mode && hdata->bytesSigned) ? 1 : 0;
@@ -1120,6 +1121,7 @@ int mrc_write_slice(void *buf, FILE *fout, MrcHeader *hdata, int slice, char axi
   /* if swapped,  get memory, copy slice, and swap it in one gulp */
   if ((hdata->swapped && dsize > 1) || bytesSigned) {
     data = malloc(slicesize * dcsize);
+    dataOrig = data;
     if (!data) {
       b3dError(stderr, "ERROR: mrc_write_slice - failure to allocate memory.\n");
       return(-1);
@@ -1180,7 +1182,7 @@ int mrc_write_slice(void *buf, FILE *fout, MrcHeader *hdata, int slice, char axi
     retval = -1;
   }
   if ((hdata->swapped && dsize > 1) || bytesSigned)
-    free(data);
+    free(dataOrig);
   return(retval);
 }
 
