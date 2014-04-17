@@ -132,8 +132,8 @@ void cubinterp(float *array, float *bray, int nxa, int nya, int nxb, int nyb,
     ixst = nxb + 1 - (int)(nxb + 1 - B3DMIN(xst, nxb + 1.));
      
     /* If they're crossed, set them up so fill will do whole line.
-       Otherwise, set up fallback region limits depending on whether doing 
-       2 pixels or whole line */
+       Otherwise, set up fallback region limits to do 2 pixels if not doing whole line.
+       Then if doing fallback for whole line, set that up */
     if (ixst > ixnd) {
       ixst = nxb / 2;
       ixnd = ixst - 1;
@@ -142,7 +142,8 @@ void cubinterp(float *array, float *bray, int nxa, int nya, int nxb, int nyb,
     } else if (linefb == 0) {
       ixfbst = B3DMAX(1, ixst - 2);
       ixfbnd = B3DMIN(nxb, ixnd + 2);
-    } else {
+    }
+    if (linefb) {
       ixfbst = 1;
       ixfbnd = nxb;
     }
@@ -153,7 +154,7 @@ void cubinterp(float *array, float *bray, int nxa, int nya, int nxb, int nyb,
     for (ix = ixfbnd + 1; ix <= nxb; ix++)
       bray[ix + ixbase] = dmean;
      
-    /* Do fallback to quadratic with tests */
+    /* Do fallback cubic to quadratic, or linear/nearest, with tests */
     iqst = ixfbst;
     iqnd = ixst - 1;
     for (ifall = 1; ifall <= 2; ifall++) {
@@ -213,7 +214,7 @@ void cubinterp(float *array, float *bray, int nxa, int nya, int nxb, int nyb,
 
       } else {
   
-  /* fallback to linear */
+        /* fallback to linear */
         for (ix = iqst; ix <= iqnd; ix++) {
           xp = a11 * ix + xbase;
           yp = a21 * ix + ybase;
