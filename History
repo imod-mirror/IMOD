@@ -1,5 +1,6 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4/16/14: IMOD_4-8-4
 4/16/14: Fixed loss of bottom and top lines in interpolation routine when
 there is 0 or 180 degree rotation (In 4.7).
 
