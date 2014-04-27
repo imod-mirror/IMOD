@@ -253,7 +253,6 @@ extern "C" int iiQImageCheck(ImodImageFile *inFile);
   a.swap(std::vector<b>(a)); \
   a.resize(c); }
 
-#define RADIANS_PER_DEGREE 0.017453293
 #define MOVIE_DEFAULT 52965
 #define HUGE_CACHE 2000000000
 
