@@ -83,9 +83,9 @@ try:
    iz = PipGetInteger('izSize', tz)
    PipDone()
    #
-   ox = 2 * int(ix * (0.5 / xs))
+   ox = int(ix / xs)
    oy = int(iy / ys)
-   oz = 2 * int(iz * (0.5 / zs))
+   oz = int(iz / zs)
    squeezex = 1 / xs
    squeezey = 1 / ys
    squeezez = 1 / zs
