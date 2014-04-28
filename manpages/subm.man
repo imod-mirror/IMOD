@@ -55,8 +55,8 @@ Convert the command files to C-shell scripts with Vmstocsh(1) and run with
 csh.  See that man page for the allowed format.
 .TP
 .B -n \fI#\fR
-.TP
 Run the jobs with a "niceness" increment set to the given number.
+.TP
 .B -l \fI#\fR
 Set the type of numbered or time-stamped log file names to use.  The options
 are:
