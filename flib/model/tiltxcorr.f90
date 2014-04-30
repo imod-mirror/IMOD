@@ -26,7 +26,7 @@ program tiltxcorr
   include 'smallmodel.inc90'
   integer*4 nx, ny, nz
   !
-  integer*4 nxyz(3), mxyz(3), nxyzs(3)
+  integer*4 nxyz(3), mxyz(3)
   real*4 title(20), delta(3), origin(3)
   real*4 ctfp(8193), ctfUB(8193)
   real*4, allocatable :: sumArray(:), crray(:), array(:), brray(:)
@@ -96,10 +96,9 @@ program tiltxcorr
   logical*4 tracking, verbose, breaking, taperCur, taperRef, reverseOrder, evalCCC
   logical*4 refViewOut, rawAlignedPair, addToWarps, curViewOut, limitingShift
   logical*4 searchedForMag, searchMag
-  integer*4 niceFrame, newImod, putImodMaxes, putModelName, numberInList, taperAtFill
+  integer*4 niceFrame, newImod, putImodMaxes, putModelName, numberInList
   integer*4 newWarpFile, setWarpPoints, writeWarpFile, setLinearTransform, readWarpFile
   integer*4 separateLinearTransform, niceFFTlimit, minimize1D
-  logical inside
   real*4 cosd, sind
 
   logical pipinput
@@ -357,8 +356,7 @@ program tiltxcorr
     ierr = PipGetBoolean('LeaveTiltAxisShifted', ifLeaveAxis)
     ierr = PipGetThreeFloats('CentralPeakExclusionCriteria', peak2ToPeak3Crit, &
         centralPeakMaxWidth, ubWidthRatioCrit)
-    ierr = PipGetBoolean('RectangularLimits', iv)
-    ifEllipse = 1 - iv
+    if (PipGetBoolean('RectangularLimits', iv) == 0) ifEllipse = 1 - iv
     ierr = PipGetLogical('SearchMagChanges', searchMag) 
     if (searchMag .and. PipGetString('ViewsWithMagChanges', listString) == 0) &
         call parselist2(listString, listMagViews, numMagViews, nz)
@@ -2127,7 +2125,7 @@ end subroutine usablePatchExtent
 subroutine evaluatePairPatch(nx, ny, nxPatch, nyPatch, ixStart, iyStart, prexfInv, &
     critNonBlank, taperCur, curViewOut)
   implicit none
-  integer*4 nx, ny, nxPatch, nyPatch, ixStart, iyStart, numInside, ix, iy, numTest
+  integer*4 nx, ny, nxPatch, nyPatch, ixStart, iyStart, numTest
   real*4 prexfInv(2, 3), critNonBlank
   real*4 xtmp, ytmp, area, xLoLf, xLoRt, xUpLf, xUpRt, yLoLf, yLoRt, yUpLf, yUpRt
   logical*4 taperCur, curViewOut
