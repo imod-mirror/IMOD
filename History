@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4/30/14: Fixed Tiltxcorr when using shift limits (In 4.7).
+
 4/27/14: Changed Squeezevol to allow odd output sizes in X and Z (In 4.7).
 
 4/16/14: Fixed loss of bottom and top lines in interpolation routine when
