@@ -349,6 +349,8 @@ foreach dir ($qtassist_dir $ctfplot_dir $midas_dir)
 end
 \find $mrc2tif_dir -name tiff.c ! -newer mrc/tiff.c -exec \rm -f '{}' \;
 if (! -e $mrc2tif_dir/tiff.c) \cp mrc/tiff.c $mrc2tif_dir
+\find $mrc2tif_dir -name iiqimage.cpp ! -newer $imod_dir/iiqimage.cpp -exec \rm -f '{}' \;
+if (! -e $mrc2tif_dir/iiqimage.cpp) \cp $imod_dir/iiqimage.cpp $mrc2tif_dir
 
 # Make lists of qt directories and project names.  List them in order of
 # the ones that can be treated the same for runscripts, etc, then midas, then
