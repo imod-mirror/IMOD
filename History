@@ -1,5 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/1/14: Fixed ability to run certain steps on single axis datasets in a
+Windows installation without Cygwin (In 4.7).
+
+5/1/14: Fixed setting of IMOD_CALIB_DIR in by installer for Windows without
+Cygwin (In 4.7).
+
 4/30/14: Fixed Tiltxcorr when using shift limits (In 4.7).
 
 4/27/14: Changed Squeezevol to allow odd output sizes in X and Z (In 4.7).
