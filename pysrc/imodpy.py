@@ -50,7 +50,7 @@ This module provides the following functions:
 """
 
 # other modules needed by imodpy
-import sys, os, re, time, glob, signal, stat
+import sys, os, re, time, glob, signal, stat, shlex
 from pip import exitError
 
 pyVersion = 100 * sys.version_info[0] + 10 * sys.version_info[1]
@@ -942,7 +942,9 @@ def avoidLocalComFile(command):
 
    # There is no problem if this command has a path in front of it or if there is no
    # com file in the current directory
-   comstr = command.split()[0]
+   # This split respects quotes around components and strips them
+   comSplit = shlex.split(command)
+   comstr = comSplit[0]
    (comPath, comName) = os.path.split(comstr)
    if comPath:
       return command
@@ -955,7 +957,14 @@ def avoidLocalComFile(command):
       fullPath = os.path.join(path, comstr)
       if isExecutable(fullPath) or isExecutable(fullPath + '.exe') or \
           isExecutable(fullPath + '.cmd'):
-         return os.path.join(path, command)
+
+         # Compose a new command with the full path, and all components quoted
+         newcom = '"' + os.path.join(path, comstr) + '"'
+         for arg in comSplit[1:]:
+            newcom += ' "' + arg + '"'
+         return newcom
+
+   return command
 
 
 # Function to try to make current directory writable on Windows or at least make sure
