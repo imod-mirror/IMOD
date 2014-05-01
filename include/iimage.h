@@ -329,6 +329,9 @@ extern "C" {
                            LineProcData *d, int *freeMap, int *yEnd, const char *caller);
   void iiBestTileSize(int imSize, int *tileSize, int *numTiles, int multipleOf);
 
+  /* This is here in case a program links with iiqimage */
+  int iiQImageCheck(ImodImageFile *inFile);
+
 #ifdef __cplusplus
 }
 #endif
