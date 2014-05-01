@@ -665,6 +665,10 @@ Python category.&nbsp; In addition, there must be a Python executable named
 				You can add the location of the IMOD <code>bin</code> directory (e.g., <code>C:\cygwin\usr\local\IMOD\bin</code>) 
 			to the Windows path, in which case you will be able to run everything, 
 			including shell scripts, from a DOS window.
+      <li>
+        If there will be multiple IMOD users of the system, they should add HOME
+        environment variables to point to their directories
+        in <code>C:\Users</code>, following the procedure described below.
 			<li>
 				If you want to be able to display and print Postscript graphs from the Fortran 
 				graphics programs (e.g., <code>nda, mtk, mtoverlap</code>), you can install <a href="http://bio3d.colorado.edu/imod/windows/gs811w32.exe">
@@ -693,7 +697,9 @@ by executing it from the command line.</span>&nbsp; To install or upgrade IMOD t
 			Windows:</p>
 		<ol>
 			<li>
-			Right click My Computer, select Properties, Advanced, Environment Variables. 
+			Right click Computer or My Computer on the Desktop, browser window or
+			Start menu, select Properties, Advanced or Advanced System Properties,
+			then Environment Variables. 
 			Define all of these paths in Windows format as illustrated in the following 
 			steps. Press "New" to define a variable.
 			<li>
@@ -774,9 +780,11 @@ by executing it from the command line.</span>&nbsp; To install or upgrade IMOD t
     </p>
     <p>After Python is installed, click on the IMOD installer.  It will
     install IMOD in <code>C:\Program Files\IMOD</code>, define the environment
-    variables <code>IMOD_DIR</code>, <code>IMOD_CALIB_DIR</code>, and 
-      <code>IMOD_PLUGIN_DIR</code>, and place both IMOD and the version of
-      Python that it finds on the path.
+    variables <code>IMOD_DIR</code>, <code>IMOD_PLUGIN_DIR</code>, and 
+      <code>HOME</code>, and place both IMOD and the version of
+      Python that it finds on the path.  For Windows Vista and higher, it will
+      also define <code>IMOD_CALIB_DIR</code> to
+      be <code>C:\ProgramData\IMOD</code>.  
     </p>
     <p>In order to run eTomo, you also need to have Java installed.&nbsp; If
       you do not already have Java (most machines do now), get the latest Java
@@ -806,6 +814,16 @@ by executing it from the command line.</span>&nbsp; To install or upgrade IMOD t
       but <code>imodhelp programName</code> will open Qt Assistant to the
       manual page for the given program.  The program name can even be
       abbreviated. 
+    </p>
+    <p> 
+      If there will be multiple IMOD users of the system, they should add HOME
+      environment variables to point to their directories in <code>C:\Users</code>. 
+      Without Cygwin, environment variables can be set only through a
+      Windows dialog that can be opened by various means, such as by
+      right-clicking on Computer in a browser or Start menu, selecting
+      Properties, then pressing Advanced System Settings, then pressing the
+      Environment Variables button.  There is no IMOD startup script, so ignore any
+      references to IMOD startup scripts below.
     </p>
     <p>
       If you want to upgrade to a beta version after you have installed IMOD
@@ -914,8 +932,10 @@ by executing it from the command line.</span>&nbsp; To install or upgrade IMOD t
 		include the <code>cpu.adoc</code> file for enabling parallel processing, 
 		distortion correction files, noise files for microscope CTF correction, and 
 		local startup files. The default value for IMOD_CALIB_DIR is <code>/usr/local/ImodCalib</code>
-		on all platforms, and it is set in the IMOD startup scripts if it is not 
-		already defined. We have designed this directory as a place for local files 
+		on all platforms except Windows without Cygwin, where it is set to 
+    <code>C:\ProgramData\IMOD</code> on Windows Vista and higher.  It is set
+		in the IMOD startup scripts if it is not already defined. We have designed
+		this directory as a place for local files 
 		that should not be replaced when IMOD is upgraded. Minimally, then, you may 
 		want to create this directory and place a <code>cpu.adoc</code> there defining 
 		the number of processors on one or more machines. In addition, the IMOD startup 
