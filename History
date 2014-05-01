@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4/30/14: IMOD_4-8-5
+4/30/14: Made Mrc2tif able to read all file types including JPEG/PNG/BMP.
+
 4/30/14: Fixed Tiltxcorr when using shift limits (In 4.7).
 
 4/27/14: Changed Squeezevol to allow odd output sizes in X and Z (In 4.7).
