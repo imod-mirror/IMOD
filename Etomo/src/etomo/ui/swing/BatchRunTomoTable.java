@@ -9,11 +9,14 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.JFileChooser;
 import javax.swing.JPanel;
 import javax.swing.border.LineBorder;
 
 import etomo.BaseManager;
+import etomo.storage.StackFileFilter;
 
 /**
 * <p>Description: </p>
@@ -30,8 +33,10 @@ import etomo.BaseManager;
 * 
 * <p> $Log$ </p>
 */
-final class BatchRunTomoTable implements Viewable, Highlightable {
+final class BatchRunTomoTable implements Viewable, Highlightable, Expandable {
   public static final String rcsid = "$Id:$";
+
+  private static final String STACK_TITLE = "Stack";
 
   private final JPanel pnlRoot = new JPanel();
   private final RowList rowList = new RowList(this);
@@ -39,12 +44,19 @@ final class BatchRunTomoTable implements Viewable, Highlightable {
   private final GridBagLayout layout = new GridBagLayout();
   private final GridBagConstraints constraints = new GridBagConstraints();
   private final HeaderCell hcNumber = new HeaderCell("#");
-  private final HeaderCell hcStack = new HeaderCell("Stack");
+  private final HeaderCell hcStack = new HeaderCell(STACK_TITLE);
   private final HeaderCell hcDualAxis = new HeaderCell("Dual Axis");
   private final HeaderCell hcMontage = new HeaderCell("Montage");
   private final HeaderCell hcExcludeViews = new HeaderCell("Exclude Views");
   private final HeaderCell hcBoundaryModel = new HeaderCell("Boundary Model");
-  private final MultiLineButton btnAdd = new MultiLineButton("Add");
+  private final HeaderCell hcTwoSurfaces = new HeaderCell("Beads on Two Surfaces");
+  private final MultiLineButton btnAdd = new MultiLineButton("Add Stack(s)");
+  private final MultiLineButton btnCopy = new MultiLineButton("Copy Down");
+  private final MultiLineButton btnDelete = new MultiLineButton("Delete");
+  private final MultiLineButton btnEditDataset = new MultiLineButton(
+      "Set Dataset Specific Data");
+  private final ExpandButton btnStack = ExpandButton.getInstance(this,
+      ExpandButton.Type.MORE);
 
   private final BaseManager manager;
   private final Viewport viewport;
@@ -67,17 +79,31 @@ final class BatchRunTomoTable implements Viewable, Highlightable {
     // init
     JPanel pnlView = new JPanel();
     JPanel pnlButtons = new JPanel();
+    btnAdd.setToPreferredSize();
+    btnCopy.setToPreferredSize();
+    btnDelete.setToPreferredSize();
+    btnEditDataset.setToPreferredSize();
+    btnStack.setName(STACK_TITLE);
     // Root
     pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.Y_AXIS));
     pnlRoot.add(pnlView);
+    pnlRoot.add(Box.createRigidArea(FixedDim.x0_y3));
     pnlRoot.add(pnlButtons);
     // View
     pnlView.setLayout(new BoxLayout(pnlView, BoxLayout.Y_AXIS));
     pnlView.add(viewport.getPagingPanel());
     pnlView.add(pnlTable);
     // Buttons
-    pnlButtons.setLayout(new BoxLayout(pnlButtons, BoxLayout.Y_AXIS));
+    pnlButtons.setLayout(new BoxLayout(pnlButtons, BoxLayout.X_AXIS));
+    pnlButtons.add(Box.createHorizontalGlue());
     pnlButtons.add(btnAdd.getComponent());
+    pnlButtons.add(Box.createHorizontalGlue());
+    pnlButtons.add(btnCopy.getComponent());
+    pnlButtons.add(Box.createHorizontalGlue());
+    pnlButtons.add(btnDelete.getComponent());
+    pnlButtons.add(Box.createHorizontalGlue());
+    pnlButtons.add(btnEditDataset.getComponent());
+    pnlButtons.add(Box.createHorizontalGlue());
     // Table
     pnlTable.setLayout(layout);
     pnlTable.setBorder(LineBorder.createBlackLineBorder());
@@ -90,13 +116,18 @@ final class BatchRunTomoTable implements Viewable, Highlightable {
     // header
     constraints.gridwidth = 2;
     hcNumber.add(pnlTable, layout, constraints);
-    hcStack.add(pnlTable, layout, constraints);
     constraints.gridwidth = 1;
+    hcStack.add(pnlTable, layout, constraints);
+    btnStack.add(pnlTable, layout, constraints);
+    hcBoundaryModel.add(pnlTable, layout, constraints);
     hcDualAxis.add(pnlTable, layout, constraints);
     hcMontage.add(pnlTable, layout, constraints);
     hcExcludeViews.add(pnlTable, layout, constraints);
     constraints.gridwidth = GridBagConstraints.REMAINDER;
-    hcBoundaryModel.add(pnlTable, layout, constraints);
+    hcTwoSurfaces.add(pnlTable, layout, constraints);
+    // update
+    viewport.adjustViewport(-1);
+    updateDisplay();
   }
 
   private void addListeners() {
@@ -107,9 +138,22 @@ final class BatchRunTomoTable implements Viewable, Highlightable {
     return pnlRoot;
   }
 
+  void setCurrentDirectory(final String currentAbsolutePath) {
+    if (currentAbsolutePath != null) {
+      currentDirectory = new File(currentAbsolutePath);
+    }
+    else {
+      currentDirectory = null;
+    }
+    rowList.setCurrentDirectory(currentAbsolutePath);
+  }
+
   private void updateDisplay() {
     boolean enable = rowList.size() > 0;
     boolean highlighted = rowList.isHighlighted();
+    btnCopy.setEnabled(enable && highlighted);
+    btnDelete.setEnabled(enable && highlighted);
+    btnEditDataset.setEnabled(enable && highlighted);
   }
 
   public void msgViewportPaged() {
@@ -127,12 +171,34 @@ final class BatchRunTomoTable implements Viewable, Highlightable {
       return;
     }
     if (actionCommand.equals(btnAdd.getActionCommand())) {
-      rowList.add();
+      JFileChooser chooser = new FileChooser(currentDirectory);
+      chooser.setDialogTitle("Select a stack for each dataset");
+      chooser.setFileFilter(new StackFileFilter());
+      chooser.setMultiSelectionEnabled(true);
+      chooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
+      int returnVal = chooser.showOpenDialog(btnAdd.getComponent());
+      File[] stackList = null;
+      if (returnVal == JFileChooser.APPROVE_OPTION) {
+        stackList = chooser.getSelectedFiles();
+      }
+      if (stackList != null) {
+        rowList.add(stackList);
+      }
     }
   }
 
+  public void expand(final ExpandButton button) {
+    if (button == btnStack) {
+      rowList.expandStack(btnStack.isExpanded());
+    }
+    UIHarness.INSTANCE.pack(manager);
+  }
+
+  public void expand(final GlobalExpandButton button) {
+  }
+
   public int size() {
-    return 0;
+    return rowList.size();
   }
 
   private static final class BatchRunTomoListener implements ActionListener {
@@ -156,14 +222,37 @@ final class BatchRunTomoTable implements Viewable, Highlightable {
       this.table = table;
     }
 
-    private void add() {
-      int index = list.size();
-      BatchRunTomoRow row = BatchRunTomoRow.getInstance(manager.getPropertyUserDir(),
-          table, pnlTable, layout, constraints, index);
-      list.add(row);
-      row.display();
-      viewport.adjustViewport(index);
+    private void add(final File[] stackList) {
+      if (stackList == null) {
+        return;
+      }
+      for (int i = 0; i < stackList.length; i++) {
+        int index = list.size();
+        BatchRunTomoRow prevRow = null;
+        if (index > 0) {
+          prevRow = list.get(index - 1);
+        }
+        BatchRunTomoRow row = BatchRunTomoRow.getInstance(manager.getPropertyUserDir(),
+            table, pnlTable, layout, constraints, index, stackList[i], prevRow,
+            currentDirectory);
+        row.expandStack(btnStack.isExpanded());
+        list.add(row);
+        viewport.adjustViewport(index);
+        row.display(viewport);
+      }
       UIHarness.INSTANCE.pack(manager);
+    }
+
+    private void expandStack(final boolean expanded) {
+      for (int i = 0; i < list.size(); i++) {
+        list.get(i).expandStack(expanded);
+      }
+    }
+
+    private void setCurrentDirectory(final String currentAbsolutePath) {
+      for (int i = 0; i < list.size(); i++) {
+        list.get(i).setCurrentDirectory(currentAbsolutePath);
+      }
     }
 
     private void removeAll() {
@@ -174,7 +263,7 @@ final class BatchRunTomoTable implements Viewable, Highlightable {
 
     private void display(Viewport viewport) {
       for (int i = 0; i < list.size(); i++) {
-        list.get(i).display(i, viewport);
+        list.get(i).display(viewport);
       }
     }
 
