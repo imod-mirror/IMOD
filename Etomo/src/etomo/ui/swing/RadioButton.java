@@ -44,6 +44,7 @@ final class RadioButton implements RadioButtonInterface {
 
   private boolean debug = false;
   private EtomoBoolean2 checkpointValue = null;
+  private Color origForeground = null;
 
   RadioButton(final String text) {
     this(text, null, null);
@@ -170,6 +171,23 @@ final class RadioButton implements RadioButtonInterface {
 
   public void setDebug(final boolean input) {
     debug = input;
+  }
+
+  void setTemplateColor(final boolean input) {
+    if (input) {
+      if (origForeground == null) {
+        origForeground = radioButton.getForeground();
+      }
+      setForeground(Colors.TEMPLATE);
+    }
+    else {
+      if (origForeground != null) {
+        setForeground(origForeground);
+      }
+      else {
+        setForeground(Color.black);
+      }
+    }
   }
 
   /**
