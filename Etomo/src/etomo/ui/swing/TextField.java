@@ -6,6 +6,7 @@ import java.awt.Font;
 
 import javax.swing.JLabel;
 import javax.swing.JTextField;
+import javax.swing.border.Border;
 
 import etomo.EtomoDirector;
 import etomo.logic.FieldValidator;
@@ -29,7 +30,7 @@ import etomo.util.Utilities;
  * 
  * @version $Revision$
  */
-final class TextField implements UIComponent ,SwingComponent{
+final class TextField implements UIComponent, SwingComponent {
   public static final String rcsid = "$Id$";
 
   private final JTextField textField = new JTextField();
@@ -39,6 +40,7 @@ final class TextField implements UIComponent ,SwingComponent{
   private final String locationDescr;
 
   private boolean required = false;
+  private Border origBorder = null;
 
   TextField(final FieldType fieldType, final String reference, final String locationDescr) {
     this.locationDescr = locationDescr;
@@ -61,7 +63,7 @@ final class TextField implements UIComponent ,SwingComponent{
   void setToolTipText(String text) {
     textField.setToolTipText(TooltipFormatter.INSTANCE.format(text));
   }
-  
+
   public SwingComponent getUIComponent() {
     return this;
   }
@@ -80,6 +82,27 @@ final class TextField implements UIComponent ,SwingComponent{
 
   void setEditable(boolean editable) {
     textField.setEditable(editable);
+  }
+
+  /**
+   * Sets text field border to border param.  If border param is null, attempts to set the
+   * border back to the original border.
+   * @param border
+   */
+  void setBorder(final Border border) {
+    if (border != null) {
+      if (origBorder == null) {
+        origBorder = textField.getBorder();
+      }
+      textField.setBorder(border);
+    }
+    else {
+      textField.setBorder(origBorder);
+    }
+  }
+
+  Border getBorder() {
+    return textField.getBorder();
   }
 
   void setText(String text) {
