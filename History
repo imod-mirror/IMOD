@@ -1,5 +1,40 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/1/14: Fixed ability to run certain steps on single axis datasets in a
+Windows installation without Cygwin (In 4.7).
+
+5/1/14: Fixed setting of IMOD_CALIB_DIR by installer for Windows without
+Cygwin (In 4.7).
+
+4/30/14: IMOD_4-8-5
+4/30/14: Made Mrc2tif able to read all file types including JPEG/PNG/BMP.
+
+4/30/14: Fixed Tiltxcorr when using shift limits (In 4.7).
+
+4/27/14: Changed Squeezevol to allow odd output sizes in X and Z (In 4.7).
+
+4/16/14: IMOD_4-8-4
+4/16/14: Fixed loss of bottom and top lines in interpolation routine when
+there is 0 or 180 degree rotation (In 4.7).
+
+4/16/14: Allowed new output mode for clip flip operations except yz and rotx.
+
+4/16/14: Fixed clip flipxy when writing signed bytes (In 4.7).
+
+4/15/14: IMOD_4-7-4
+4/15/14: In eTomo - Tomogram Generation fixing an initialization error in
+logarithm density scaling.  Also handled the logarithm offset from
+copytomocoms (In 4.7).(Bug# 1796)
+
+4/14/14: Made Copytomocoms set the linear scaling properly in tilt.com when the cryo
+template is used and turns off logarithmic scaling (In 4.7).
+
+4/9/14: Suppressed Newstack warning about truncated sections unless a lot of
+pixels were truncated (In 4.7).
+
+4/8/14: Add ability to copy a contour as its equivalent ellipse in 3dmod, and
+get report of equivalent ellipse parameters in imodinfo.
+
 4/2/14: IMOD_4-8-3
 4/2/14: Fixed pixel size and model scaling set from a TIFF file when there is
 a resolution with no units (In 4.7).

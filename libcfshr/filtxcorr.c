@@ -354,7 +354,7 @@ void XCorrPeakFindWidth(float *array, int nxdim, int ny, float  *xpeak, float *y
                 continue;
             }
             *peak = array[ix + iy * nxdim];
-            ixpeak = ix - iy * nxdim;
+            ixpeak = ix;
             iypeak = iy;
           }
         }

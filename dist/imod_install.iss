@@ -60,7 +60,7 @@ Root: HKCU; Subkey: "Environment"; ValueType: string; ValueName: "HOME"; ValueDa
 Root: HKCU; Subkey: "Environment"; ValueType: string; ValueName: "IMOD_DIR"; ValueData: "{app}\IMOD"; Check: (not isFailed) and isCygwin and (not IsAdminLoggedOn)
 ;Windows-only installations - admin privledges only
 Root: HKLM; Subkey: "SYSTEM\CurrentControlSet\Control\Session Manager\Environment"; ValueType: string; ValueName: "IMOD_PLUGIN_DIR"; ValueData: "{app}\IMOD\lib\imodplug"; Check: (not isFailed) and (not isCygwin) and IsAdminLoggedOn
-Root: HKLM; Subkey: "SYSTEM\CurrentControlSet\Control\Session Manager\Environment"; ValueType: string; ValueName: "IMOD_CALIB_DIR"; ValueData: "C:\ProgramData"; Check: (not isFailed) and (not isCygwin) and IsAdminLoggedOn and DirExists('C:\ProgramData')
+Root: HKLM; Subkey: "SYSTEM\CurrentControlSet\Control\Session Manager\Environment"; ValueType: string; ValueName: "IMOD_CALIB_DIR"; ValueData: "C:\ProgramData\IMOD"; Check: (not isFailed) and (not isCygwin) and IsAdminLoggedOn and DirExists('C:\ProgramData')
 ;Cygwin installations - the combination of single user and Windows-only does not work.
 Root: HKCU; Subkey: "Environment"; ValueType: string; ValueName: "IMOD_DIR"; ValueData: "{app}\IMOD"; Check: (not isFailed) and isCygwin and (not IsAdminLoggedOn)
 
