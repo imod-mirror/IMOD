@@ -224,6 +224,8 @@ final class LabeledTextField implements UIComponent, SwingComponent {
   private String checkpointValue = null;
   private EtomoNumber nCheckpointValue = null;
   private boolean required = false;
+  private Color origTextForeground = null;
+  private Color origLabelForeground = null;
 
   public String toString() {
     return "[label:" + getLabel() + "]";
@@ -304,6 +306,31 @@ final class LabeledTextField implements UIComponent, SwingComponent {
     if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
       System.out.println(textField.getName() + ' ' + AutodocTokenizer.DEFAULT_DELIMITER
           + ' ');
+    }
+  }
+
+  void setTemplateColor(final boolean input) {
+    if (input) {
+      if (origTextForeground == null) {
+        origTextForeground = textField.getForeground();
+        origLabelForeground = label.getForeground();
+      }
+      textField.setForeground(Colors.TEMPLATE);
+      label.setForeground(Colors.TEMPLATE);
+    }
+    else {
+      if (origTextForeground != null) {
+        textField.setForeground(origTextForeground);
+      }
+      else {
+        textField.setForeground(Color.black);
+      }
+      if (origLabelForeground != null) {
+        label.setForeground(origLabelForeground);
+      }
+      else {
+        label.setForeground(Color.black);
+      }
     }
   }
 
