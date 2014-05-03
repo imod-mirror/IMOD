@@ -335,6 +335,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import etomo.ApplicationManager;
@@ -1340,6 +1341,10 @@ public class Utilities {
   public static String getDateTimeStamp(final boolean includeMs) {
     Date date = new Date();
     return date.toString() + (includeMs ? ", " + date.getTime() % 1000 + " ms" : "");
+  }
+
+  public static String getDateTimeStampRootName() {
+    return new SimpleDateFormat("ddMMMyy-HHmm").format(new Date());
   }
 
   public static String getDateTimeStamp() {

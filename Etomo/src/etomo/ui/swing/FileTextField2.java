@@ -12,6 +12,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import javax.swing.Box;
+import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
@@ -46,14 +48,15 @@ final class FileTextField2 implements FileTextFieldInterface {
   private final FieldType STRING_FIELD_TYPE = FieldType.STRING;
 
   private final JPanel panel = new JPanel();
-  private final GridBagLayout layout = new GridBagLayout();
-  private final GridBagConstraints constraints = new GridBagConstraints();
 
   private final SimpleButton button;
   private final TextField field;
   private final JLabel label;
   private final boolean labeled;
   private final BaseManager manager;
+  final boolean alternateLayout;
+  private final GridBagLayout layout;
+  private final GridBagConstraints constraints;
 
   private List<ResultListener> resultListenerList = null;
   private int fileSelectionMode = -1;
@@ -73,7 +76,7 @@ final class FileTextField2 implements FileTextFieldInterface {
   private boolean originEtomoRunDir = false;
 
   private FileTextField2(final BaseManager manager, final String label,
-      final boolean labeled, final boolean peet) {
+      final boolean labeled, final boolean peet, final boolean alternateLayout) {
     if (!peet) {
       button = new SimpleButton(new ImageIcon(
           ClassLoader.getSystemResource("images/openFile.gif")));
@@ -87,6 +90,15 @@ final class FileTextField2 implements FileTextFieldInterface {
     this.label = new JLabel(label);
     this.labeled = labeled;
     this.manager = manager;
+    this.alternateLayout = alternateLayout;
+    if (!alternateLayout) {
+      layout = new GridBagLayout();
+      constraints = new GridBagConstraints();
+    }
+    else {
+      layout = null;
+      constraints = null;
+    }
   }
 
   /**
@@ -99,7 +111,7 @@ final class FileTextField2 implements FileTextFieldInterface {
    */
   static FileTextField2 getUnlabeledPeetInstance(final BaseManager manager,
       final String name) {
-    FileTextField2 instance = new FileTextField2(manager, name, false, true);
+    FileTextField2 instance = new FileTextField2(manager, name, false, true, false);
     instance.createPanel();
     instance.addListeners();
     return instance;
@@ -114,14 +126,21 @@ final class FileTextField2 implements FileTextFieldInterface {
    * @return
    */
   static FileTextField2 getPeetInstance(final BaseManager manager, final String name) {
-    FileTextField2 instance = new FileTextField2(manager, name, true, true);
+    FileTextField2 instance = new FileTextField2(manager, name, true, true, false);
     instance.createPanel();
     instance.addListeners();
     return instance;
   }
 
   static FileTextField2 getInstance(final BaseManager manager, final String name) {
-    FileTextField2 instance = new FileTextField2(manager, name, true, false);
+    FileTextField2 instance = new FileTextField2(manager, name, true, false, false);
+    instance.createPanel();
+    instance.addListeners();
+    return instance;
+  }
+
+  static FileTextField2 getAltLayoutInstance(final BaseManager manager, final String name) {
+    FileTextField2 instance = new FileTextField2(manager, name, true, false, true);
     instance.createPanel();
     instance.addListeners();
     return instance;
@@ -134,23 +153,32 @@ final class FileTextField2 implements FileTextFieldInterface {
     button.setName(label.getText());
     button.setPreferredSize(FixedDim.folderButton);
     button.setMaximumSize(FixedDim.folderButton);
-    // panel
-    panel.setLayout(layout);
-    constraints.fill = GridBagConstraints.BOTH;
-    constraints.weightx = 0.0;
-    constraints.weighty = 0.0;
-    constraints.gridheight = 1;
-    constraints.gridwidth = 1;
-    if (labeled) {
-      layout.setConstraints(label, constraints);
-      panel.add(label);
+    if (!alternateLayout) {
+      // panel
+      panel.setLayout(layout);
+      constraints.fill = GridBagConstraints.BOTH;
+      constraints.weightx = 0.0;
+      constraints.weighty = 0.0;
+      constraints.gridheight = 1;
+      constraints.gridwidth = 1;
+      if (labeled) {
+        layout.setConstraints(label, constraints);
+        panel.add(label);
+      }
+      constraints.insets = new Insets(0, 0, 0, -1);
+      layout.setConstraints(field.getComponent(), constraints);
+      panel.add(field.getComponent());
+      constraints.insets = new Insets(0, -1, 0, 0);
+      layout.setConstraints(button, constraints);
+      panel.add(button);
     }
-    constraints.insets = new Insets(0, 0, 0, -1);
-    layout.setConstraints(field.getComponent(), constraints);
-    panel.add(field.getComponent());
-    constraints.insets = new Insets(0, -1, 0, 0);
-    layout.setConstraints(button, constraints);
-    panel.add(button);
+    else {
+      panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
+      panel.add(label);
+      panel.add(field.getComponent());
+      panel.add(button);
+      panel.add(Box.createHorizontalGlue());
+    }
   }
 
   private void addListeners() {
@@ -223,6 +251,10 @@ final class FileTextField2 implements FileTextFieldInterface {
 
   void setOriginEtomoRunDir(final boolean input) {
     this.originEtomoRunDir = input;
+  }
+  
+  void setPreferredWidth(final double width) {
+    field.setTextPreferredWidth(width);
   }
 
   /**
@@ -387,6 +419,10 @@ final class FileTextField2 implements FileTextFieldInterface {
   void setEnabled(final boolean enabled) {
     field.setEnabled(enabled);
     button.setEnabled(enabled);
+  }
+
+  void setFieldEditable(final boolean editable) {
+    field.setEditable(editable);
   }
 
   void setToolTipText(String text) {
