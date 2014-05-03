@@ -1344,7 +1344,7 @@ public class Utilities {
   }
 
   public static String getDateTimeStampRootName() {
-    return new SimpleDateFormat("ddMMMyy-HH:mm").format(new Date());
+    return new SimpleDateFormat("ddMMMyy-HHmm").format(new Date());
   }
 
   public static String getDateTimeStamp() {
