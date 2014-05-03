@@ -4,7 +4,6 @@ import java.awt.Component;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusListener;
 
-import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JComboBox;
@@ -14,7 +13,6 @@ import javax.swing.JPanel;
 import etomo.Arguments.DebugLevel;
 import etomo.EtomoDirector;
 import etomo.storage.autodoc.AutodocTokenizer;
-import etomo.type.DirectiveFileType;
 import etomo.type.UITestFieldType;
 import etomo.util.Utilities;
 
@@ -59,7 +57,6 @@ final class ComboBox {
   private boolean checkpointed = false;
   private int checkpointIndex = -1;
   private DebugLevel debug = EtomoDirector.INSTANCE.getArguments().getDebugLevel();
-  private DirectiveFileType directiveFileType = null;
 
   private ComboBox(final String name, final boolean labeled, final boolean addEmptyChoice) {
     this.addEmptyChoice = addEmptyChoice;
@@ -119,18 +116,9 @@ final class ComboBox {
     comboBox.addItem(input);
   }
 
-  void setColor(final DirectiveFileType directiveFileType) {
-    this.directiveFileType = directiveFileType;
-    updateColor();
-  }
-  
-  private void updateColor() {
-    if (directiveFileType != null && isEnabled()) {
-      comboBox.setBorder(BorderFactory.createLineBorder(directiveFileType.getColor()));
-    }
-    else {
-      comboBox.setBorder(BorderFactory.createEmptyBorder());
-    }
+  void setTemplateColor() {
+    label.setForeground(Colors.TEMPLATE);
+    comboBox.setForeground(Colors.TEMPLATE);
   }
 
   String getActionCommand() {
@@ -174,7 +162,6 @@ final class ComboBox {
       label.setEnabled(enabled);
     }
     comboBox.setEnabled(enabled);
-    updateColor();
   }
 
   void setComboBoxEnabled(final boolean enabled) {
