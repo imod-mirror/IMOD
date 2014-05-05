@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/4/14: In eTomo fixed the icon for warning message popups (In 4.7).
+(Bug# 1797)
+
 5/1/14: Fixed ability to run certain steps on single axis datasets in a
 Windows installation without Cygwin (In 4.7).
 
