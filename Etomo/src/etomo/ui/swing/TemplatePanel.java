@@ -1,6 +1,7 @@
 package etomo.ui.swing;
 
 import java.awt.Component;
+import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.io.File;
@@ -51,6 +52,7 @@ final class TemplatePanel {
   private final AxisID axisID;
   final SettingsDialog settings;
   private final DirectiveFileCollection directiveFileCollection;
+  private final boolean drawBorder;
 
   private File[] scopeTemplateFileList = null;
   private File[] systemTemplateFileList = null;
@@ -58,18 +60,29 @@ final class TemplatePanel {
   private File newUserTemplateDir = null;
 
   private TemplatePanel(final BaseManager manager, final AxisID axisID,
-      final TemplateActionListener listener, final SettingsDialog settings) {
+      final TemplateActionListener listener, final SettingsDialog settings,
+      final boolean drawBorder) {
     this.listener = listener;
     this.manager = manager;
     this.axisID = axisID;
     this.settings = settings;
+    this.drawBorder = drawBorder;
     directiveFileCollection = new DirectiveFileCollection(manager, axisID);
   }
 
   static TemplatePanel getInstance(final BaseManager manager, final AxisID axisID,
       final TemplateActionListener listener, final String title,
       final SettingsDialog settings) {
-    TemplatePanel instance = new TemplatePanel(manager, axisID, listener, settings);
+    TemplatePanel instance = new TemplatePanel(manager, axisID, listener, settings, true);
+    instance.createPanel(title);
+    instance.addListeners();
+    return instance;
+  }
+
+  static TemplatePanel getBorderlessInstance(final BaseManager manager,
+      final AxisID axisID, final TemplateActionListener listener, final String title,
+      final SettingsDialog settings) {
+    TemplatePanel instance = new TemplatePanel(manager, axisID, listener, settings, false);
     instance.createPanel(title);
     instance.addListeners();
     return instance;
@@ -105,11 +118,13 @@ final class TemplatePanel {
     cmbSystemTemplate.setSelectedIndex(0);
     loadUserTemplate();
     pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.Y_AXIS));
-    if (title != null) {
-      pnlRoot.setBorder(new EtchedBorder(title).getBorder());
-    }
-    else {
-      pnlRoot.setBorder(BorderFactory.createEtchedBorder());
+    if (drawBorder) {
+      if (title != null) {
+        pnlRoot.setBorder(new EtchedBorder(title).getBorder());
+      }
+      else {
+        pnlRoot.setBorder(BorderFactory.createEtchedBorder());
+      }
     }
     pnlRoot.add(Box.createRigidArea(FixedDim.x0_y2));
     pnlRoot.add(cmbScopeTemplate.getComponent());
@@ -121,14 +136,24 @@ final class TemplatePanel {
   }
 
   private void addListeners() {
-    cmbScopeTemplate.addActionListener(listener);
-    cmbSystemTemplate.addActionListener(listener);
-    cmbUserTemplate.addActionListener(listener);
+    addActionListener(listener);
     cmbUserTemplate.addFocusListener(new TemplateFocusListener(this));
   }
 
   Component getComponent() {
     return pnlRoot;
+  }
+
+  void addActionListener(final ActionListener listener) {
+    cmbScopeTemplate.addActionListener(listener);
+    cmbSystemTemplate.addActionListener(listener);
+    cmbUserTemplate.addActionListener(listener);
+  }
+
+  void setTemplateColor() {
+    cmbScopeTemplate.setTemplateColor();
+    cmbSystemTemplate.setTemplateColor();
+    cmbUserTemplate.setTemplateColor();
   }
 
   private void loadUserTemplate() {
@@ -175,6 +200,11 @@ final class TemplatePanel {
         break;
       }
     }
+  }
+
+  void demo() {
+    cmbSystemTemplate.setSelectedIndex(2);
+    cmbUserTemplate.setSelectedIndex(1);
   }
 
   boolean equalsActionCommand(final String actionCommand) {
