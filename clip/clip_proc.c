@@ -513,18 +513,24 @@ int clipDiffusion(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
 int clip_flip(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
 {
   int i,j,k, rotx, numDone, numTodo, maxSlices, yst, ynd, ydir, csize, dsize;
-  int err;
+  int err, newMode;
   float memlim, memmin = 512000000., memmax = 2048000000.;
   float sizefac = 8.;
-  size_t lineOfs;
+  size_t lineOfs, sliceOfs;
   float ycen, zcen;
-  Islice *sl, *tsl;
+  Islice *sl, *tsl, *outSlice;
   Islice **yslice;
   Ival val;
   IloadInfo li;
 
+  /* Change mode (undone for yz/rotx).  For most variations, it gets and frees a slice
+   inside the loop when the mode is changing, outside the loop otherwise */
   hout->mode = hin->mode;
+  if (opt->mode != IP_DEFAULT)
+    hout->mode = opt->mode;
+  newMode = hout->mode != hin->mode ? 1 : 0;
 
+  /* XY */
   if ((!strncmp(opt->command, "flipxy",6)) || 
       (!strncmp(opt->command, "flipyx",6))){
     mrc_head_label(hout, "clip: flipxy");
@@ -539,20 +545,29 @@ int clip_flip(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
     hout->ylen = hin->xlen;
     if (mrc_head_write(hout->fp, hout))
       return -1;
-    sl = sliceCreate(hout->nx, hout->nz, hout->mode);
+    if (!newMode)
+      sl = sliceCreate(hout->nx, hout->nz, hout->mode);
     for(i = 0, j = 0; i < hin->nx; i++, j++){
+      if (newMode)
+        sl = sliceCreate(hout->nx, hout->nz, hin->mode);
       if (mrc_read_slice(sl->data.b, hin->fp, hin, i, 'x'))
+        return -1;
+      if (newMode && sliceNewMode(sl, hout->mode) < 0)
         return -1;
       if (opt->sano)
         sliceMirror(sl, 'y');
       if (mrc_write_slice(sl->data.b, hout->fp, hout, j, 'y'))
         return -1;
+      if (newMode)
+        sliceFree(sl);
     }
-    sliceFree(sl);
+    if (!newMode)
+      sliceFree(sl);
     puts(" Done!");
     return(0);
   }
 
+  /* XZ */
   if ((!strncmp(opt->command, "flipzx",6)) ||
       (!strncmp(opt->command, "flipxz",6))){
     mrc_head_label(hout, "clip: flipxz");
@@ -567,7 +582,7 @@ int clip_flip(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
     hout->zlen = hin->xlen;
     if (mrc_head_write(hout->fp, hout))
       return -1;
-    sl = sliceCreate(hin->ny, hin->nz, hout->mode);
+    sl = sliceCreate(hin->ny, hin->nz, hin->mode);
 
     /* DNM 3/23/01: need to transpose into a new slice because it is
        read in as a y by z slice, not a z by y slice */
@@ -589,6 +604,7 @@ int clip_flip(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
     return(0);
   }
 
+  /* YZ and ROTX */
   if ((!strncmp(opt->command, "flipyz",6)) ||
       (!strncmp(opt->command, "flipzy",6)) ||
       (!strncmp(opt->command, "rotx",4))) {
@@ -597,6 +613,9 @@ int clip_flip(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
       mrc_head_label(hout, "clip: rotx - rotation by -90 around X");
     else
       mrc_head_label(hout, "clip: flipyz");
+
+    /* This one is not allowed to change mode */
+    hout->mode = hin->mode;
     hout->nx = hin->nx;
     hout->mx = hin->mx;
     hout->xlen = hin->xlen;
@@ -629,8 +648,9 @@ int clip_flip(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
     maxSlices = (int)((memlim / (dsize * hout->nx)) / hout->ny);
     maxSlices = B3DMAX(1, B3DMIN(hout->nz / (2 * dsize), maxSlices));
     yslice = (Islice **)malloc(hin->nz * sizeof(Islice));
-    if (!yslice) {
-      printf("ERROR: CLIP - getting memory for slice array\n");
+    outSlice = sliceCreate(hout->nx, hin->nz, hout->mode);
+    if (!yslice|| !outSlice) {
+      printf("ERROR: CLIP - getting memory for slice array or output slice\n");
       return (-1);
     }
     for (k = 0; k < hin->nz; k++) {
@@ -664,40 +684,41 @@ int clip_flip(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
         yst = 0;
       }
 
-      /* Load the slices within the Y range and shift bytes for output if needed */
+      /* Load the slices within the Y range */
       for (k = 0; k < hin->nz; k++) {
         if ((err = mrcReadZ(hin, &li, yslice[k]->data.b, k))) {
           printf("ERROR: CLIP - Reading section %d, y %d to %d (error # %d)\n",
                  k, li.ymin, li.ymax, err);
           return -1;
         }
-        if (!hout->mode && hout->bytesSigned)
-          b3dShiftBytes(yslice[k]->data.b, (char *)yslice[k]->data.b, hout->nx, 
-                        li.ymax + 1 - li.ymin, 1, 1);
       }
       
-      /* Write Z slices in order, line by line */
+      /* Write Z slices in order after copying into output slice */
       for (j = yst; j * ydir <= ynd * ydir; j += ydir) {
         lineOfs = (size_t)(hout->nx * dsize) * (size_t)j;
+        sliceOfs = 0;
         for (k = 0; k < hin->nz; k++) {
-          if (b3dFwrite(yslice[k]->data.b + lineOfs, dsize, hout->nx, hout->fp) != 
-              hout->nx) {
-            printf("ERROR: CLIP - Writing section %d, line %d\n", numDone + 
-                   ydir * (j - yst), k);
-            return -1;
-          }
+          memcpy(outSlice->data.b + sliceOfs, yslice[k]->data.b + lineOfs, dsize *
+                 hout->nx);
+          sliceOfs += (size_t)(hout->nx * dsize);
         }
+        if (mrc_write_slice(outSlice->data.b, hout->fp, hout, numDone, 'z')) {
+          printf("ERROR: CLIP - Writing section %d\n", numDone);
+          return -1;
+        }
+        numDone++;
       }
-      numDone += numTodo;
     }
 
     /* Clean up */
     for (k = 0; k < hin->nz; k++)
       sliceFree(yslice[k]);
+    sliceFree(outSlice);
     puts(" Done!");
     return(0);
   }
 
+  /* X or Y */
   if ((!strncmp(opt->command, "flipx",5)) ||
       (!strncmp(opt->command, "flipy",5))){
     if (!strncmp(opt->command, "flipx",5))
@@ -710,18 +731,28 @@ int clip_flip(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
     /* DNM 3/21/01: added head_write here and below */
     if (mrc_head_write(hout->fp, hout))
       return -1;
-    sl = sliceCreate(hout->nx, hout->ny, hout->mode);
+    if (!newMode)
+      sl = sliceCreate(hout->nx, hout->ny, hin->mode);
     for (k = 0; k < hin->nz; k++){
+      if (newMode)
+        sl = sliceCreate(hout->nx, hout->ny, hin->mode);
       if (mrc_read_slice(sl->data.b, hin->fp, hin, k, 'z'))
+        return -1;
+      if (newMode && sliceNewMode(sl, hout->mode) < 0)
         return -1;
       sliceMirror(sl, opt->command[4]);
       if (mrc_write_slice(sl->data.b, hout->fp, hout, k, 'z'))
         return -1;
+      if (newMode)
+        sliceFree(sl);
     }
-    sliceFree(sl);
+    if (!newMode)
+      sliceFree(sl);
     puts(" Done!");
     return(0);
   }
+
+  /* Z */
   if (!strncmp(opt->command, "flipz",5)){
     mrc_head_label(hout, "clip: flipz");
     hout->nx = hin->nx;
@@ -729,16 +760,25 @@ int clip_flip(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
     hout->nz = hin->nz;
     if (mrc_head_write(hout->fp, hout))
       return -1;
-    tsl = sliceCreate(hout->nx, hout->ny, hout->mode);
+    if (!newMode)
+      sl = sliceCreate(hout->nx, hout->ny, hout->mode);
 
     /* DNM 11/14/08: switch to doing file in order, don't pretend it could be
        done on a file in place */
     for (k = 0; k < hin->nz; k++){
-      if (mrc_read_slice(tsl->data.b, hin->fp, hin, hout->nz-k-1, 'z') ||
-          mrc_write_slice(tsl->data.b, hout->fp, hout, k, 'z'))
+      if (newMode)
+        sl = sliceCreate(hout->nx, hout->ny, hin->mode);
+      if (mrc_read_slice(sl->data.b, hin->fp, hin, hout->nz-k-1, 'z'))
         return -1;
+      if (newMode && sliceNewMode(sl, hout->mode) < 0)
+        return -1;
+      if (mrc_write_slice(sl->data.b, hout->fp, hout, k, 'z'))
+        return -1;
+      if (newMode)
+        sliceFree(sl);
     }
-    sliceFree(tsl);
+    if (!newMode)
+      sliceFree(sl);
     puts(" Done!");
     return(0);
   }
