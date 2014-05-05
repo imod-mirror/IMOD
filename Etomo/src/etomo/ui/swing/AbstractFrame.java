@@ -536,9 +536,9 @@ abstract class AbstractFrame extends JFrame implements UIComponent, SwingCompone
    */
   private int showOptionDialog(final BaseManager manager, final AxisID axisID,
       final Component parentComponent, final String[] message, final String title,
-      final int optionType, final int messageType, final Icon icon,
-      final Object initialValue, final boolean overrideDefaultLabels,
-      final String[] optionLabels) throws HeadlessException {
+      final int optionType, int messageType, final Icon icon, final Object initialValue,
+      final boolean overrideDefaultLabels, final String[] optionLabels)
+      throws HeadlessException {
     if (manager != null) {
       manager.logMessage(message, title, axisID);
     }
@@ -550,6 +550,38 @@ abstract class AbstractFrame extends JFrame implements UIComponent, SwingCompone
       }
     }
     JOptionPane pane = null;
+    // Change the message icon to match the message.
+    if (icon == null && messageType == JOptionPane.ERROR_MESSAGE) {
+      boolean errorMessage = false;
+      boolean warningMessage = false;
+      if (title != null) {
+        String lcTitle = title.toLowerCase();
+        // Change the icon if the message contains "warning", and does not contain
+        // "error".
+        if (lcTitle.indexOf("error") != -1) {
+          errorMessage = true;
+        }
+        else if (lcTitle.indexOf("warning") != -1) {
+          warningMessage = true;
+        }
+        if (!errorMessage && message != null) {
+          // Check the first three lines of the message.
+          for (int i = 0; i < Math.min(message.length, 3); i++) {
+            String lcMessage = message[i].toLowerCase();
+            if (lcMessage.indexOf("error:") != -1) {
+              errorMessage = true;
+              break;
+            }
+            if (lcMessage.indexOf("warning:") != -1) {
+              warningMessage = true;
+            }
+          }
+        }
+        if (!errorMessage && warningMessage) {
+          messageType = JOptionPane.WARNING_MESSAGE;
+        }
+      }
+    }
     // Decide whether to pass an array of button labels (to override the defaults) or
     // null.
     if (overrideDefaultLabels) {
