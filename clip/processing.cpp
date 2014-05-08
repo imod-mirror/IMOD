@@ -1,5 +1,5 @@
 /*
- *  clip_proc.c -- Processing functions for clip.
+ *  processing.cpp -- Processing functions for clip.
  *
  *  Original author: James Kremer
  *  Revised by: David Mastronarde   email: mast@colorado.edu
@@ -14,10 +14,8 @@
 #include <limits.h>
 #include <math.h>
 #include <string.h>
-#include <stdlib.h>
 #include "iimage.h"
 #include "sliceproc.h"
-#include "b3dutil.h"
 #include "clip.h"
 
 #ifndef FLT_MIN
@@ -160,6 +158,10 @@ int clip_scaling(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
 
     } else if (opt->process != IP_RESIZE)
       mrc_slice_lie(slice, min, alpha);
+
+    if (opt->readDefects && correctDefects(slice, hin->nx, hin->ny, opt))
+      return -1;
+    
     if (clipWriteSlice(slice, hout, opt, k, &z, 1))
       return -1;
   }
@@ -1888,6 +1890,9 @@ int clip_multdiv(MrcHeader *h1, MrcHeader *h2, MrcHeader *hout,
       }
     }
     
+    if (opt->readDefects && correctDefects(so, h2->nx, h2->ny, opt))
+      return -1;
+    
     if (clipWriteSlice(so, hout, opt, k, &z, 1))
       return -1;
 
@@ -1995,6 +2000,9 @@ int clipUnpack(MrcHeader *hin1, MrcHeader *hin2, MrcHeader *hout, ClipOptions *o
       }
     }
 
+    if (opt->readDefects && correctDefects(slOut, hin2->nx, hin2->ny, opt))
+      return -1;
+    
     if (clipWriteSlice(slOut, hout, opt, k, &z, 0))
       return -1;
   }
@@ -2583,6 +2591,73 @@ int clipHistogram(MrcHeader *hin, ClipOptions *opt)
   return 0;
 }
 
+/*
+ * Common routine for defect processing before output
+ */
+int correctDefects(Islice *slice, int nxFull, int nyFull,  ClipOptions *opt)
+{
+  int top, left, bottom, right, binning = 1;
+  char bintext[8];
+  bool scaledForK2;
+
+  // See if the defects need to be scaled up: a one-time error or action
+  if (nxFull > opt->camSizeX * 2 || nyFull > opt->camSizeY * 2) {
+    show_error("clip with defect correction - Image size is more than twice the size "
+               "stored in the defect list");
+    return -1;
+  }
+  if (nxFull > opt->camSizeX || nyFull > opt->camSizeY || 
+      (opt->scaleDefects && opt->defects.wasScaled <= 0)) {
+    if (!(opt->scaleDefects && opt->defects.wasScaled <= 0))
+      printf("Scaling defect list up by 2 because images are larger than camera size "
+             "in list\n");
+    CorDefScaleDefectsForK2(&opt->defects, 0);
+    opt->camSizeX *= 2;
+    opt->camSizeY *= 2;
+  }
+  scaledForK2 = opt->defects.K2Type > 0 && opt->defects.wasScaled > 0;
+
+  if (sliceModeIfReal(slice->mode) < 0) {
+    show_error("clip with defect correction - The output slice mode must be byte, "
+               "integer or floating point");
+    return -1;
+  }
+
+  // Now deduce the binning; this could be superceded by an option if needed
+  // Increase it as long as image still fits within defect camera size
+  if (opt->binning == IP_DEFAULT) {
+    while (nxFull * (binning + 1) <= opt->camSizeX && 
+           nyFull * (binning + 1) <= opt->camSizeY) {
+      binning += 1;
+    }
+    if (binning > 1) {
+      if (scaledForK2)
+        sprintf(bintext, "%.1f", binning / 2.);
+      else
+        sprintf(bintext, "%d", binning);
+      printf("Assuming binning of %s instead of a small subarea;\n"
+             "    use the -B option to set a binning if this is incorrect.\n", bintext);
+    }
+  } else {
+    binning = B3DNINT((scaledForK2 ? 2 : 1) * opt->binning + 0.02);
+  }
+
+  // Compute the coordinates for the defect routine
+  left = (opt->camSizeX / binning - nxFull) / 2 + (int)opt->cx - opt->ix / 2;
+  right = left + opt->ix;
+  top = (opt->camSizeY / binning - nyFull) / 2 + (int)opt->cy - opt->iy / 2;
+  bottom = top + opt->iy;
+  if (left < 0 || top < 0 || right > opt->camSizeX / binning || 
+      bottom > opt->camSizeY / binning) {
+    show_error("clip with defect correction - The size and centering options "
+               "select an area outside the camera field");
+    return -1;
+  }
+
+  CorDefCorrectDefects(&opt->defects, slice->data.b, slice->mode, binning, top, left,
+                       bottom, right);
+  return 0;
+}
 
 int write_vol(Islice **vol, MrcHeader *hout)
 {
