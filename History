@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/8/14: Added an option to Clip to specify a defect correction file for K2
+images.
+
 5/4/14: IMOD_4-7-5
 5/4/14: In eTomo fixed the icon for warning message popups (In 4.7).
 (Bug# 1797)
