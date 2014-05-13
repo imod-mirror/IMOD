@@ -10,6 +10,7 @@ import java.awt.geom.Ellipse2D;
 
 import javax.swing.BorderFactory;
 import javax.swing.ButtonModel;
+import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.border.Border;
 
@@ -37,8 +38,8 @@ final class Minibutton extends JButton {
   private Color pressedColor;
   private Color outlineColor;
 
-  private Minibutton(final String text) {
-    super();
+  private Minibutton(final String text, final Icon icon) {
+    super(icon);
     round = false;
     rolloverColor = null;
     pressedColor = null;
@@ -89,7 +90,14 @@ final class Minibutton extends JButton {
   }
 
   static Minibutton getSquareInstance(final String label, final Border border) {
-    Minibutton instance = new Minibutton(label);
+    Minibutton instance = new Minibutton(label, null);
+    instance.setBorder(border);
+    instance.setSize();
+    return instance;
+  }
+
+  static Minibutton getSquareInstance(final Icon icon, final Border border) {
+    Minibutton instance = new Minibutton(null, icon);
     instance.setBorder(border);
     instance.setSize();
     return instance;
