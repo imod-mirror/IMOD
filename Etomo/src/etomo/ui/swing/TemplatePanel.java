@@ -202,11 +202,6 @@ final class TemplatePanel {
     }
   }
 
-  void demo() {
-    cmbSystemTemplate.setSelectedIndex(2);
-    cmbUserTemplate.setSelectedIndex(1);
-  }
-
   boolean equalsActionCommand(final String actionCommand) {
     return actionCommand.equals(cmbScopeTemplate.getActionCommand())
         || actionCommand.equals(cmbSystemTemplate.getActionCommand())
