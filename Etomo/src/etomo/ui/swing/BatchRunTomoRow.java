@@ -3,8 +3,12 @@ package etomo.ui.swing;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.io.File;
+import java.net.URL;
 
+import javax.swing.ImageIcon;
 import javax.swing.JPanel;
+
+import etomo.ui.BatchRunTomoTab;
 
 /**
 * <p>Description: </p>
@@ -24,12 +28,19 @@ import javax.swing.JPanel;
 final class BatchRunTomoRow implements Highlightable {
   public static final String rcsid = "$Id:$";
 
+ private static final URL IMOD_ICON_URL = ClassLoader.getSystemResource("images/b3dicon.png");
+ private static final   URL ETOMO_ICON_URL = ClassLoader.getSystemResource("images/etomo.png");
+
   private final HeaderCell hcNumber = new HeaderCell();
   private final CheckBoxCell cbcBoundaryModel = new CheckBoxCell();
   private final CheckBoxCell cbcDualAxis = new CheckBoxCell();
   private final CheckBoxCell cbcMontage = new CheckBoxCell();
   private final FieldCell fcExcludeViews = FieldCell.getEditableInstance();
   private final CheckBoxCell cbcTwoSurfaces = new CheckBoxCell();
+  private final FieldCell fcStatus = FieldCell.getIneditableInstance();
+  private final CheckBoxCell cbcRun = new CheckBoxCell();
+  private final ButtonCell bcEtomo = new ButtonCell(new ImageIcon(ETOMO_ICON_URL));
+  private final MinibuttonCell mbc3dmod = new MinibuttonCell(new ImageIcon(IMOD_ICON_URL));
 
   private final JPanel panel;
   private final GridBagLayout layout;
@@ -57,6 +68,8 @@ final class BatchRunTomoRow implements Highlightable {
       cbcMontage.setSelected(prevRow.cbcMontage.isSelected());
       cbcTwoSurfaces.setSelected(prevRow.cbcTwoSurfaces.isSelected());
     }
+    cbcRun.setSelected(true);
+    //bcEtomo.setEnabled(false);
   }
 
   static BatchRunTomoRow getInstance(final String propertyUserDir,
@@ -76,22 +89,38 @@ final class BatchRunTomoRow implements Highlightable {
     cbcMontage.remove();
     fcExcludeViews.remove();
     cbcTwoSurfaces.remove();
+    fcStatus.remove();
+    cbcRun.remove();
+    bcEtomo.remove();
+    mbc3dmod.remove();
   }
 
-  void display(final Viewport viewport) {
-    if (viewport.inViewport(hcNumber.getInt())) {
+  void display(final Viewport viewport, final BatchRunTomoTab tab) {
+    // See if index is in the viewport
+    if (viewport.inViewport(hcNumber.getInt() - 1)) {
       constraints.gridwidth = 1;
       hcNumber.add(panel, layout, constraints);
-      hbRow.add(panel, layout, constraints);
+      if (tab == BatchRunTomoTab.STACKS) {
+        hbRow.add(panel, layout, constraints);
+      }
       constraints.gridwidth = 2;
       fcStack.add(panel, layout, constraints);
       constraints.gridwidth = 1;
-      cbcBoundaryModel.add(panel, layout, constraints);
-      cbcDualAxis.add(panel, layout, constraints);
-      cbcMontage.add(panel, layout, constraints);
-      fcExcludeViews.add(panel, layout, constraints);
-      constraints.gridwidth = GridBagConstraints.REMAINDER;
-      cbcTwoSurfaces.add(panel, layout, constraints);
+      if (tab == BatchRunTomoTab.STACKS) {
+        cbcBoundaryModel.add(panel, layout, constraints);
+        cbcDualAxis.add(panel, layout, constraints);
+        cbcMontage.add(panel, layout, constraints);
+        fcExcludeViews.add(panel, layout, constraints);
+        cbcTwoSurfaces.add(panel, layout, constraints);
+        constraints.gridwidth = GridBagConstraints.REMAINDER;
+        mbc3dmod.add(panel, layout, constraints);
+      }
+      else {
+        fcStatus.add(panel, layout, constraints);
+        cbcRun.add(panel, layout, constraints);
+        constraints.gridwidth = GridBagConstraints.REMAINDER;
+        bcEtomo.add(panel, layout, constraints);
+      }
     }
   }
 
