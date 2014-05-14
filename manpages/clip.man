@@ -333,7 +333,11 @@ deduces the effective binning of the images relative to the coordinates
 used in the file by assuming that images are not subareas of half or
 less.  These decisions on scaling and binning are usually reported by
 the program and can be overridden in rare cases by the options
-described next.
+described next.  If an acquired image is a subarea of the camera area,
+then it is assumed to be centered, and correction will not work
+properly if it is not.  The \fB-ix\fR, \fB-iy\fR, \fB-cx\fR, \fB-cy\fR,
+\fB-ox\fR, and \fB-oy\fR can still be used to process subareas of the
+acquired images, and these subareas need not be centered.
 .TP
 .B -B \fIvalue\fR
 Set the assumed binning to the given value; if the defect coordinates
