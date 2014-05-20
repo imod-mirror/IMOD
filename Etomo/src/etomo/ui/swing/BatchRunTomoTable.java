@@ -207,7 +207,14 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable {
     else {
       currentDirectory = null;
     }
-    rowList.setCurrentDirectory(currentAbsolutePath);
+  }
+
+  /**
+   * Check isDifferentFromCheckpoint on the row list
+   * @return true if the row list's isDifferentFromCheckpoint function returned true
+   */
+  boolean isDifferentFromCheckpoint() {
+    return rowList.isDifferentFromCheckpoint();
   }
 
   private void updateDisplay() {
@@ -304,8 +311,7 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable {
           prevRow = list.get(index - 1);
         }
         BatchRunTomoRow row = BatchRunTomoRow.getInstance(manager.getPropertyUserDir(),
-            table, pnlTable, layout, constraints, index + 1, stackList[i], prevRow,
-            currentDirectory);
+            table, pnlTable, layout, constraints, index + 1, stackList[i], prevRow);
         row.expandStack(btnStack.isExpanded());
         list.add(row);
         viewport.adjustViewport(index);
@@ -317,12 +323,6 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable {
     private void expandStack(final boolean expanded) {
       for (int i = 0; i < list.size(); i++) {
         list.get(i).expandStack(expanded);
-      }
-    }
-
-    private void setCurrentDirectory(final String currentAbsolutePath) {
-      for (int i = 0; i < list.size(); i++) {
-        list.get(i).setCurrentDirectory(currentAbsolutePath);
       }
     }
 
@@ -349,6 +349,18 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable {
         }
       }
       return false;
+    }
+
+    /**
+     * Check isDifferentFromCheckpoint on all rows
+     * @return true if any row's isDifferentFromCheckpoint function returned true
+     */
+    private boolean isDifferentFromCheckpoint() {
+      boolean changed = false;
+      for (int i = 0; i < list.size(); i++) {
+        changed = list.get(i).isDifferentFromCheckpoint();
+      }
+      return changed;
     }
   }
 }
