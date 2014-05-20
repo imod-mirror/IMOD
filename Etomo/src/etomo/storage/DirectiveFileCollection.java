@@ -324,12 +324,21 @@ public class DirectiveFileCollection implements SetupReconInterface {
         DirectiveFile.MONTAGE_NAME));
   }
 
+  /**
+   * Template files will be set from the batch file.  If a
+   * template file is missing from the batch file, it will be set to null here.
+   * @param baseDirectiveFile
+   * @param setTemplateFiles
+   */
   public void setBatchDirectiveFile(final DirectiveFile baseDirectiveFile) {
     directiveFileArray[DirectiveFileType.BATCH.getIndex()] = baseDirectiveFile;
     if (baseDirectiveFile != null) {
-      setDirectiveFile(baseDirectiveFile.getScopeTemplate(), DirectiveFileType.SCOPE);
-      setDirectiveFile(baseDirectiveFile.getSystemTemplate(), DirectiveFileType.SYSTEM);
-      setDirectiveFile(baseDirectiveFile.getUserTemplate(), DirectiveFileType.USER);
+      DirectiveFileType type = DirectiveFileType.SCOPE;
+      setDirectiveFile(baseDirectiveFile.getTemplate(type), type);
+      type = DirectiveFileType.SYSTEM;
+      setDirectiveFile(baseDirectiveFile.getTemplate(type), type);
+      type = DirectiveFileType.USER;
+      setDirectiveFile(baseDirectiveFile.getTemplate(type), type);
     }
   }
 
