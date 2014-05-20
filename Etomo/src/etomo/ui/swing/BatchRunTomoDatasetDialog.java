@@ -264,6 +264,88 @@ final class BatchRunTomoDatasetDialog implements ActionListener {
     lThicknessSpacingFallback.setEnabled(thicknessSpacing);
   }
 
+  /**
+   * Check isDifferentFromCheckpoint on all data entry fields
+   * @return true if any field's isDifferentFromCheckpoint function returned true
+   */
+  boolean isDifferentFromCheckpoint() {
+    boolean changed = false;
+    if (ftfDistort.isDifferentFromCheckpoint(true)) {
+      changed = true;
+    }
+    if (ftfGradient.isDifferentFromCheckpoint(true)) {
+      changed = true;
+    }
+    if (cbRemoveXrays.isDifferentFromCheckpoint(true)) {
+      changed = true;
+    }
+    if (ftfModelFile.isDifferentFromCheckpoint(true)) {
+      changed = true;
+    }
+    if (rbTrackingMethodSeed.isDifferentFromCheckpoint(true)) {
+      changed = true;
+    }
+    if (rbTrackingMethodRaptor.isDifferentFromCheckpoint(true)) {
+      changed = true;
+    }
+    if (rbTrackingMethodPatchTracking.isDifferentFromCheckpoint(true)) {
+      changed = true;
+    }
+    if (rbFiducialless.isDifferentFromCheckpoint(true)) {
+      changed = true;
+    }
+    if (ltfGold.isDifferentFromCheckpoint(true)) {
+      changed = true;
+    }
+    if (cbTwoSurfaces.isDifferentFromCheckpoint(true)) {
+      changed = true;
+    }
+    if (ltfLocalAreaTargetSize.isDifferentFromCheckpoint(true)) {
+      changed = true;
+    }
+    if (ltfTargetNumberOfBeads.isDifferentFromCheckpoint(true)) {
+      changed = true;
+    }
+    if (ltfSizeOfPatchesXandY.isDifferentFromCheckpoint(true)) {
+      changed = true;
+    }
+    /* if (lsContourPieces.isDifferentFromCheckpoint(true)) { changed = true; } if
+     * (lsBinByFactor.isDifferentFromCheckpoint(true)) { changed = true; } */
+    if (cbCorrectCTF.isDifferentFromCheckpoint(true)) {
+      changed = true;
+    }
+    if (ltfDefocus.isDifferentFromCheckpoint(true)) {
+      changed = true;
+    }
+    if (rbFitEveryImage.isDifferentFromCheckpoint(true)) {
+      changed = true;
+    }
+    /* if (rtfAutoFitRangeAndStep.isDifferentFromCheckpoint(true)) { changed = true; } */
+    if (rbUseSirtFalse.isDifferentFromCheckpoint(true)) {
+      changed = true;
+    }
+    if (rbUseSirtTrue.isDifferentFromCheckpoint(true)) {
+      changed = true;
+    }
+    if (rbDoBackprojAlso.isDifferentFromCheckpoint(true)) {
+      changed = true;
+    }
+
+    /* RadioButton = new RadioButton("Both", bgUseSirt); LabeledTextField
+     * ltfLeaveIterations = new LabeledTextField( FieldType.STRING, "Leave iterations: ");
+     * CheckBox cbScaleToInteger = new CheckBox("Scale to integers"); ButtonGroup
+     * bgThickness = new ButtonGroup(); RadioTextField rtfThicknessPixels =
+     * RadioTextField.getInstance( FieldType.INTEGER,
+     * "Thickness total (unbinned pixels): ", bgThickness); RadioTextField
+     * rtfBinnedThickness = RadioTextField.getInstance( FieldType.INTEGER,
+     * "Thickness total   (binned pixels): ", bgThickness); RadioTextField rtfThicknessNm
+     * = RadioTextField.getInstance( FieldType.INTEGER, "Thickness total (nm): ",
+     * bgThickness); RadioTextField rtfThicknessSpacingPlus = RadioTextField.getInstance(
+     * FieldType.INTEGER, "Thickness from Intergold spacing plus: ", bgThickness);
+     * LabeledTextField ltfThicknessSpacingFallback */
+    return changed;
+  }
+
   public void actionPerformed(final ActionEvent event) {
     String actionCommand = event.getActionCommand();
     if (actionCommand == null) {
