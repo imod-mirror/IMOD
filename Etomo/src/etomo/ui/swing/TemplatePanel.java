@@ -13,6 +13,7 @@ import javax.swing.JPanel;
 
 import etomo.BaseManager;
 import etomo.logic.ConfigTool;
+import etomo.storage.DirectiveFile;
 import etomo.storage.DirectiveFileCollection;
 import etomo.type.AxisID;
 import etomo.type.DirectiveFileType;
@@ -61,19 +62,25 @@ final class TemplatePanel {
 
   private TemplatePanel(final BaseManager manager, final AxisID axisID,
       final TemplateActionListener listener, final SettingsDialog settings,
-      final boolean drawBorder) {
+      final boolean drawBorder, final DirectiveFileCollection directiveFileCollection) {
     this.listener = listener;
     this.manager = manager;
     this.axisID = axisID;
     this.settings = settings;
     this.drawBorder = drawBorder;
-    directiveFileCollection = new DirectiveFileCollection(manager, axisID);
+    if (directiveFileCollection == null) {
+      this.directiveFileCollection = new DirectiveFileCollection(manager, axisID);
+    }
+    else {
+      this.directiveFileCollection = directiveFileCollection;
+    }
   }
 
   static TemplatePanel getInstance(final BaseManager manager, final AxisID axisID,
       final TemplateActionListener listener, final String title,
       final SettingsDialog settings) {
-    TemplatePanel instance = new TemplatePanel(manager, axisID, listener, settings, true);
+    TemplatePanel instance = new TemplatePanel(manager, axisID, listener, settings, true,
+        null);
     instance.createPanel(title);
     instance.addListeners();
     return instance;
@@ -81,8 +88,9 @@ final class TemplatePanel {
 
   static TemplatePanel getBorderlessInstance(final BaseManager manager,
       final AxisID axisID, final TemplateActionListener listener, final String title,
-      final SettingsDialog settings) {
-    TemplatePanel instance = new TemplatePanel(manager, axisID, listener, settings, false);
+      final SettingsDialog settings, final DirectiveFileCollection directiveFileCollection) {
+    TemplatePanel instance = new TemplatePanel(manager, axisID, listener, settings,
+        false, directiveFileCollection);
     instance.createPanel(title);
     instance.addListeners();
     return instance;
@@ -187,16 +195,27 @@ final class TemplatePanel {
     return null;
   }
 
-  private void setTemplate(final String templateAbsPath, final File[] templateFileList,
+  /**
+   * Choose the combobox element that matches template
+   * @param template - either an absolute file path or a file name with no path (imodhelp)
+   * @param templateFileList
+   * @param cmbTemplate
+   */
+  private void setTemplate(final String template, final File[] templateFileList,
       final ComboBox cmbTemplate) {
-    if (templateFileList == null) {
+    if (templateFileList == null || template == null) {
       return;
     }
-    // If templateAbsPath doesn't match something in templateFileList, nothing will be
+    boolean absPath = false;
+    if (template.indexOf(File.separator) != -1) {
+      absPath = true;
+    }
+    // If template doesn't match something in templateFileList, nothing will be
     // selected in the combobox.
     for (int i = 0; i < templateFileList.length; i++) {
-      if (templateFileList[i].getAbsolutePath().equals(templateAbsPath)) {
-        cmbTemplate.setSelectedIndex(i);
+      if ((absPath && templateFileList[i].getAbsolutePath().equals(template))
+          || (!absPath && templateFileList[i].getName().equals(template))) {
+        cmbTemplate.setSelectedIndex(i + 1);
         break;
       }
     }
@@ -241,7 +260,14 @@ final class TemplatePanel {
   }
 
   private void focusGained() {
-    // Only listening to user template combobox
+    // Only need to listen to user template combobox
+    reloadUserTemplate();
+  }
+
+  /**
+   *  Updates the user template combobox. It may need to change if settings are modified.
+   */
+  private void reloadUserTemplate() {
     if (settings != null && !settings.equalsUserTemplateDir(newUserTemplateDir)) {
       // If a new user template directory has been entered, reload the user template combo
       // box.
@@ -269,6 +295,29 @@ final class TemplatePanel {
     }
     if (userConfig.isUserTemplateSet()) {
       setTemplate(userConfig.getUserTemplate(), userTemplateFileList, cmbUserTemplate);
+    }
+  }
+
+  /**
+   * Set the template file if the entry exists in the directiveFile, otherwise don't
+   * change it.
+   * @param directiveFile
+   */
+  void setParameters(final DirectiveFile directiveFile) {
+    DirectiveFileType type = DirectiveFileType.SCOPE;
+    if (directiveFile.containsTemplate(type)) {
+      setTemplate(directiveFile.getTemplate(type), scopeTemplateFileList,
+          cmbScopeTemplate);
+    }
+    type = DirectiveFileType.SYSTEM;
+    if (directiveFile.containsTemplate(type)) {
+      setTemplate(directiveFile.getTemplate(type), systemTemplateFileList,
+          cmbSystemTemplate);
+    }
+    type = DirectiveFileType.USER;
+    if (directiveFile.containsTemplate(type)) {
+      reloadUserTemplate();
+      setTemplate(directiveFile.getTemplate(type), userTemplateFileList, cmbUserTemplate);
     }
   }
 
