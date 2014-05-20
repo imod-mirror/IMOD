@@ -1949,7 +1949,7 @@ int b3dSnapshot_NonTIF(QString fname, int rgbmode, int *limits,
         *pixout++ = data[j][rgbmode*i];
         *pixout++ = data[j][rgbmode*i+1];
         *pixout++ = data[j][rgbmode*i+2];
-        *pixout++ = 0;
+        *pixout++ = transBkgd ? data[j][rgbmode*i+3] : 0;
       }
     }
   }
