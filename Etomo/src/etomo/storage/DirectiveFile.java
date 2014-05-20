@@ -17,6 +17,7 @@ import etomo.storage.autodoc.ReadOnlyAttributeIterator;
 import etomo.storage.autodoc.ReadOnlyAttributeList;
 import etomo.storage.autodoc.ReadOnlyAutodoc;
 import etomo.type.AxisID;
+import etomo.type.DirectiveFileType;
 import etomo.type.TiltAngleSpec;
 import etomo.type.TiltAngleType;
 import etomo.ui.FieldType;
@@ -191,6 +192,22 @@ public final class DirectiveFile {
       }
     }
     return false;
+  }
+
+  private boolean containsAttribute(final AttributeName parentName,
+      final String sectionName, final String name) {
+    ReadOnlyAttribute parent = getAttribute(parentName, sectionName);
+    if (parent == null) {
+      return false;
+    }
+    ReadOnlyAttribute attribute = parent.getAttribute(sectionName);
+    if (attribute == null) {
+      return false;
+    }
+    if (attribute.getAttribute(name) == null) {
+      return false;
+    }
+    return true;
   }
 
   private boolean containsAttribute(final ReadOnlyAttribute parent,
@@ -464,6 +481,19 @@ public final class DirectiveFile {
         USE_SIRT_NAME);
   }
 
+  public boolean containsTemplate(final DirectiveFileType type) {
+    if (type == DirectiveFileType.SCOPE) {
+      return containsAttribute(AttributeName.SETUP_SET, SCOPE_TEMPLATE_NAME);
+    }
+    if (type == DirectiveFileType.SYSTEM) {
+      return containsAttribute(AttributeName.SETUP_SET, SYSTEM_TEMPLATE_NAME);
+    }
+    if (type == DirectiveFileType.USER) {
+      return containsAttribute(AttributeName.SETUP_SET, USER_TEMPLATE_NAME);
+    }
+    return false;
+  }
+
   public static void setDebug(final boolean input) {
     debug = input;
   }
@@ -547,16 +577,18 @@ public final class DirectiveFile {
         NUMBER_OF_MARKERS_NAME);
   }
 
-  public String getScopeTemplate() {
-    return getValue(AttributeName.SETUP_SET, SCOPE_TEMPLATE_NAME);
-  }
+  public String getTemplate(final DirectiveFileType type) {
+    if (type == DirectiveFileType.SCOPE) {
+      return getValue(AttributeName.SETUP_SET, SCOPE_TEMPLATE_NAME);
+    }
+    if (type == DirectiveFileType.SYSTEM) {
+      return getValue(AttributeName.SETUP_SET, SYSTEM_TEMPLATE_NAME);
+    }
 
-  public String getSystemTemplate() {
-    return getValue(AttributeName.SETUP_SET, SYSTEM_TEMPLATE_NAME);
-  }
-
-  public String getUserTemplate() {
-    return getValue(AttributeName.SETUP_SET, USER_TEMPLATE_NAME);
+    if (type == DirectiveFileType.USER) {
+      return getValue(AttributeName.SETUP_SET, USER_TEMPLATE_NAME);
+    }
+    return null;
   }
 
   /**
