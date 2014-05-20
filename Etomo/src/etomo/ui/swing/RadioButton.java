@@ -121,6 +121,18 @@ final class RadioButton implements RadioButtonInterface {
     }
     return checkpointValue.is();
   }
+  
+  /**
+   * 
+   * @param alwaysCheck - check for difference even when the field is disables or invisible
+   * @return
+   */
+  boolean isDifferentFromCheckpoint(final boolean alwaysCheck) {
+    if (!alwaysCheck && (!isEnabled() || !radioButton.isVisible())) {
+      return false;
+    }
+    return checkpointValue == null || !checkpointValue.equals(isSelected());
+  }
 
   void setText(final String text) {
     radioButton.setText(text);
