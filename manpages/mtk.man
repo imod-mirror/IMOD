@@ -349,24 +349,24 @@ a series of cycles, where the allowed distance to shift is increased from
 one cycle to the next.  There are many entries to make:
 .P
    Minimum and maximum distance to shift in the X/Y plane.  The program
-   will attempt to shift objects by a distance between these limits for a
-   certain number of trials on the first cycle, then increase the limits
-   for each following cycle of trials.  If none of these attempts
-   succeed, the entity will remain unshifted.
+   will attempt to shift objects by a distance between these limits for
+   a certain number of trials on the first cycle, then increase the
+   limits for each following cycle of trials.  If none of these
+   attempts succeed, the entity will remain unshifted.
 .P
-   Maximum amount to shift in Z relative to the maximum shift in the X/Y
-   plane.  Enter 1.0 for shifts in Z as large as shifts in X and Y, or 0
-   for no shifting in Z, or a number in between to constrain Z shifts to
-   be smaller than shifts in X and Y.
+   Maximum amount to shift in Z relative to the maximum shift in the
+   X/Y plane.  Enter 1.0 for shifts in Z as large as shifts in X and Y,
+   or 0 for no shifting in Z, or a number in between to constrain Z
+   shifts to be smaller than shifts in X and Y.
 .P
    List of object numbers of objects to shift, or Return for all
    objects.  The objects must all be of the same kind.
 .P
-   List of other objects to check distances from, or Return for all other
-   objects.  When the program attempts to shift an entity, it checks its
-   distance of closest approach to all entities in the objects specified
-   in this entry.  This is in addition to checking its distance from
-   entities in the objects that are being shifted.
+   List of other objects to check distances from, or Return for all
+   other objects.  When the program attempts to shift an entity, it
+   checks its distance of closest approach to all entities in the
+   objects specified in this entry.  This is in addition to checking
+   its distance from entities in the objects that are being shifted.
 .P
    The number of probability curves to use for determining whether a
    shifted entity is too close to other items.  The first curve will be
@@ -379,16 +379,16 @@ one cycle to the next.  There are many entries to make:
 .P
    Make the following entries for each of the probability curves:
 .P
-      The number of bins of probability values to use for rejecting
-      a shifted entity as being too close to other entities, and the bin
-      size (a radial distance).  This bin size need not match the bin size
-      the density analysis.
+      The number of bins of probability values to use for rejecting a
+      shifted entity as being too close to other entities, and the bin
+      size (a radial distance).  This bin size need not match the bin
+      size the density analysis.
 .P
       The probability values for each bin (between 0 and 1)
 .P
-   IF you have entered more than one curve, next enter the number of the
-   probability curve to use for each of the other objects that distances
-   are going to be checked against.
+   IF you have entered more than one curve, next enter the number of
+   the probability curve to use for each of the other objects that
+   distances are going to be checked against.
 .P
    Maximum distance to shift objects outside the bounding box of the
    original data, i.e., the maximum extent in X, Y, Z and Z of the
@@ -397,21 +397,21 @@ one cycle to the next.  There are many entries to make:
    Object number of an object with contours that surround the allowed
    volume within which shifted entities must lie.  If the model doesnot
    uniformly fill its bounding box, bounding contours can be used to
-   place tighter constraints on the shifted objects and avoid having them
-   placed preferentially in empty areas of the volume.
+   place tighter constraints on the shifted objects and avoid having
+   them placed preferentially in empty areas of the volume.
 .P
    1 to check a potentially shifted item against both items that have
    been shifted and items yet to be shifted, or 0 to check them only
-   against items yet to be shifted (as well as against the other objects
-   that you specified).  If there is a substantial failure rate in
-   shifting items, checking against unshifted items will make the
+   against items yet to be shifted (as well as against the other
+   objects that you specified).  If there is a substantial failure rate
+   in shifting items, checking against unshifted items will make the
    spacings between all items be legal after shifting, but it might
    increase the difficulty in finding shifted positions.
 .P
    Maximum total number of trials or attempts to shift an entity.
 .P
-   Number of trials per cycle and factor by which to increase the maximum
-   allowed shifts on each cycle.
+   Number of trials per cycle and factor by which to increase the
+   maximum allowed shifts on each cycle.
 .P
 40: Unshift an object that has been shifted.  Enter the object number to
 unshift.  The program will remember which entities were successfully
@@ -433,23 +433,24 @@ option 23, first make the entries described above under option 20 to
 control the shifting of objects.  For all of the options, then make the
 following entries to control the computation of integrals:
 .P
-   0 to make a separate specification for each graph of the bins to use in
-   computing the integral, or 1 to use the same specification for all graphs
+   0 to make a separate specification for each graph of the bins to use
+   in computing the integral, or 1 to use the same specification for
+   all graphs
 .P
-   IF you entered 0, make the following entries for each graph; otherwise
-   just make these entries once:
+   IF you entered 0, make the following entries for each graph;
+   otherwise just make these entries once:
 .P
       Starting and ending bins of the peak or deficiency to integrate
 .P
-      Starting and ending bins to compute a baseline density from, or 0,0 to
-         use a fixed value for the baseline instead of computing it from
-         each graph
+      Starting and ending bins to compute a baseline density from, or
+      0,0 to use a fixed value for the baseline instead of computing it
+      from each graph
 .P
       IF you entered 0,0, then enter the fixed baseline density value.
 .P
-   1 to accumulate mean and standard deviation graphs, or 0 not to.  This
-   question appears after the program computes and types out the integral
-   for each graph.
+   1 to accumulate mean and standard deviation graphs, or 0 not to.
+   This question appears after the program computes and types out the
+   integral for each graph.
 .P
 The program will then ask you for the number of control sets to run.  It
 will do these control sets, and type out the mean and standard deviation of
