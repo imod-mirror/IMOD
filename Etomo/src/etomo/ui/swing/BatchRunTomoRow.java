@@ -28,8 +28,10 @@ import etomo.ui.BatchRunTomoTab;
 final class BatchRunTomoRow implements Highlightable {
   public static final String rcsid = "$Id:$";
 
- private static final URL IMOD_ICON_URL = ClassLoader.getSystemResource("images/b3dicon.png");
- private static final   URL ETOMO_ICON_URL = ClassLoader.getSystemResource("images/etomo.png");
+  private static final URL IMOD_ICON_URL = ClassLoader
+      .getSystemResource("images/b3dicon.png");
+  private static final URL ETOMO_ICON_URL = ClassLoader
+      .getSystemResource("images/etomo.png");
 
   private final HeaderCell hcNumber = new HeaderCell();
   private final CheckBoxCell cbcBoundaryModel = new CheckBoxCell();
@@ -51,17 +53,13 @@ final class BatchRunTomoRow implements Highlightable {
   private BatchRunTomoRow(final String propertyUserDir, final BatchRunTomoTable table,
       final JPanel panel, final GridBagLayout layout,
       final GridBagConstraints constraints, final int number, final File stack,
-      final BatchRunTomoRow prevRow, final File currentDirectory) {
+      final BatchRunTomoRow prevRow) {
     this.panel = panel;
     this.layout = layout;
     this.constraints = constraints;
     hcNumber.setText(number);
     hbRow = HighlighterButton.getInstance(this, table);
-    String currentAbsolutePath = null;
-    if (currentDirectory != null) {
-      currentAbsolutePath = currentDirectory.getAbsolutePath();
-    }
-    fcStack = FieldCell.getExpandableInstance(currentAbsolutePath);
+    fcStack = FieldCell.getExpandableInstance(null);
     fcStack.setValue(stack);
     if (prevRow != null) {
       cbcDualAxis.setSelected(prevRow.cbcDualAxis.isSelected());
@@ -69,15 +67,15 @@ final class BatchRunTomoRow implements Highlightable {
       cbcTwoSurfaces.setSelected(prevRow.cbcTwoSurfaces.isSelected());
     }
     cbcRun.setSelected(true);
-    //bcEtomo.setEnabled(false);
+    bcEtomo.setEnabled(false);
   }
 
   static BatchRunTomoRow getInstance(final String propertyUserDir,
       final BatchRunTomoTable table, final JPanel panel, final GridBagLayout layout,
       final GridBagConstraints constraints, final int number, final File stack,
-      final BatchRunTomoRow prevRow, final File currentDirectory) {
+      final BatchRunTomoRow prevRow) {
     return new BatchRunTomoRow(propertyUserDir, table, panel, layout, constraints,
-        number, stack, prevRow, currentDirectory);
+        number, stack, prevRow);
   }
 
   void remove() {
@@ -128,10 +126,6 @@ final class BatchRunTomoRow implements Highlightable {
     fcStack.expand(expanded);
   }
 
-  void setCurrentDirectory(final String currentAbsolutePath) {
-    fcStack.setRootDir(currentAbsolutePath);
-  }
-
   public void highlight(final boolean highlight) {
     fcStack.setHighlight(highlight);
     cbcBoundaryModel.setHighlight(highlight);
@@ -143,5 +137,24 @@ final class BatchRunTomoRow implements Highlightable {
 
   boolean isHighlighted() {
     return hbRow.isHighlighted();
+  }
+
+  /**
+   * Check isDifferentFromCheckpoint on all data entry fields that are loaded from
+   * directive files.
+   * @return true if any field's isDifferentFromCheckpoint function returned true
+   */
+  boolean isDifferentFromCheckpoint() {
+    boolean changed = false;
+    if (cbcDualAxis.isDifferentFromCheckpoint(true)) {
+      changed = true;
+    }
+    if (cbcMontage.isDifferentFromCheckpoint(true)) {
+      changed = true;
+    }
+    if (cbcTwoSurfaces.isDifferentFromCheckpoint(true)) {
+      changed = true;
+    }
+    return changed;
   }
 }
