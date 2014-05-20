@@ -5,6 +5,9 @@ import java.awt.Container;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -15,9 +18,12 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import etomo.BaseManager;
+import etomo.EtomoDirector;
+import etomo.storage.DirectiveFileCollection;
 import etomo.type.AxisID;
 import etomo.type.BatchRunTomoMetaData;
 import etomo.type.DialogType;
+import etomo.type.DirectiveFileType;
 import etomo.ui.BatchRunTomoTab;
 import etomo.ui.FieldType;
 import etomo.util.Utilities;
@@ -69,9 +75,11 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
   private final BatchRunTomoTable table;
   private final BaseManager manager;
   private final AxisID axisID;
-  private final BatchRunTomoDatasetDialog datasetDialog ;
+  private final BatchRunTomoDatasetDialog datasetDialog;
+  private final DirectiveFileCollection directiveFileCollection;
 
   private BatchRunTomoTab curTab = null;
+  private List<BatchRunTomoDatasetDialog> datasetLevelDialogList = new ArrayList<BatchRunTomoDatasetDialog>();
 
   private BatchRunTomoDialog(final BaseManager manager, final AxisID axisID) {
     this.manager = manager;
@@ -79,13 +87,13 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
     ftfRootName = FileTextField2.getAltLayoutInstance(manager, "Location: ");
     ftfInputDirectiveFile = FileTextField2.getAltLayoutInstance(manager,
         "Starting directive file: ");
-    templatePanel = TemplatePanel
-        .getBorderlessInstance(manager, axisID, null, null, null);
     ftfDeliverToDirectory = FileTextField2.getAltLayoutInstance(manager,
         DELIVER_TO_DIRECTORY_NAME + ": ");
     table = BatchRunTomoTable.getInstance(manager);
-    datasetDialog = BatchRunTomoDatasetDialog
-        .getInstace(manager);
+    datasetDialog = BatchRunTomoDatasetDialog.getInstace(manager);
+    directiveFileCollection = new DirectiveFileCollection(manager, axisID);
+    templatePanel = TemplatePanel.getBorderlessInstance(manager, axisID, null, null,
+        null, directiveFileCollection);
   }
 
   public static BatchRunTomoDialog getInstance(final BaseManager manager,
@@ -106,12 +114,12 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
     ltfRootName.setText(Utilities.getDateTimeStampRootName());
     cbDeliverToDirectory.setName(DELIVER_TO_DIRECTORY_NAME);
     templatePanel.setTemplateColor();
+    ftfInputDirectiveFile.setAbsolutePath(true);
     ftfInputDirectiveFile.setFieldEditable(false);
     ftfDeliverToDirectory.setFileSelectionMode(FileChooser.DIRECTORIES_ONLY);
     btnRun.setToPreferredSize();
     tabbedPane.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
-    // tabbedPane.setTabLayoutPolicy(JTabbedPane.WRAP_TAB_LAYOUT);
-    // tabbedPane.setTabPlacement(JTabbedPane.LEFT);
+    templatePanel.setParameters(EtomoDirector.INSTANCE.getUserConfiguration());
     // root panel
     pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.Y_AXIS));
     pnlRoot.setBorder(new BeveledBorder("Batchruntomo Interface").getBorder());
@@ -135,11 +143,11 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
     // Stacks
     pnlStacks.setLayout(new BoxLayout(pnlStacks, BoxLayout.Y_AXIS));
     pnlStacks.setBorder(BorderFactory.createEtchedBorder());
-    //panel created on tab change
+    // panel created on tab change
     // Run
     pnlRun.setLayout(new BoxLayout(pnlRun, BoxLayout.Y_AXIS));
     pnlRun.setBorder(BorderFactory.createEtchedBorder());
-    //panel created on tab change
+    // panel created on tab change
     // Table
     pnlTable.setLayout(new BoxLayout(pnlTable, BoxLayout.Y_AXIS));
     pnlTable.setBorder(new EtchedBorder("Datasets").getBorder());
@@ -175,11 +183,13 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
     // update
     processResult(ftfRootName);
     stateChanged(null);
+    msgDirectivesChanged(true);
     updateDisplay();
   }
 
   private void addListeners() {
     cbDeliverToDirectory.addActionListener(this);
+    ftfInputDirectiveFile.addResultListener(this);
     templatePanel.addActionListener(this);
     tabbedPane.addChangeListener(this);
   }
@@ -191,13 +201,74 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
   public void setParameters(final BatchRunTomoMetaData metaData) {
   }
 
+  /**
+   * Handles any changes in the selection of the starting batch directive file and the
+   * template files.
+   * @param init
+   */
+  private void msgDirectivesChanged(final boolean init) {
+    boolean retainUserValues = false;
+    if (!init) {
+      // see if the user has changed any values, and save values that the user has changed
+      boolean changed = false;
+      if (cbDeliverToDirectory.isDifferentFromCheckpoint(true)) {
+        changed = true;
+      }
+      if (ftfDeliverToDirectory.isDifferentFromCheckpoint(true)) {
+        changed = true;
+      }
+      if (ltfRootName.isDifferentFromCheckpoint(true)) {
+        changed = true;
+      }
+      if (ftfRootName.isDifferentFromCheckpoint(true)) {
+        changed = true;
+      }
+      if (table.isDifferentFromCheckpoint()) {
+        changed = true;
+      }
+      Iterator<BatchRunTomoDatasetDialog> iterator = datasetLevelDialogList.iterator();
+      while (iterator.hasNext()) {
+        if (iterator.next().isDifferentFromCheckpoint()) {
+          changed = true;
+        }
+      }
+      if (datasetDialog.isDifferentFromCheckpoint()) {
+        changed = true;
+      }
+      if (cbUseCPUMachineList.isDifferentFromCheckpoint(true)) {
+        changed = true;
+      }
+      if (cbUseGPUMachineList.isDifferentFromCheckpoint(true)) {
+        changed = true;
+      }
+      if (ltfEmailAddress.isDifferentFromCheckpoint(true)) {
+        changed = true;
+      }
+      if (changed) {
+        // ask the user whether they want to keep the values they changed
+        retainUserValues = UIHarness.INSTANCE
+            .openYesNoDialog(
+                manager,
+                "New batch directive/template values will be applied.  Keep your changed values?",
+                axisID);
+      }
+      // Go back to initial values
+    }
+    // apply the setup values, starting batch directive file and template files
+    // checkpoint
+    if (retainUserValues) {
+      // apply saved user values
+    }
+    // delete saved user values
+  }
+
   public void actionPerformed(final ActionEvent event) {
     String actionCommand = event.getActionCommand();
     if (actionCommand == null) {
       return;
     }
     if (templatePanel.equalsActionCommand(actionCommand)) {
-
+      msgDirectivesChanged(false);
     }
     else if (actionCommand.equals(cbDeliverToDirectory.getActionCommand())) {
       updateDisplay();
@@ -205,12 +276,23 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
   }
 
   public void processResult(final Object object) {
-    File rootLocation = ftfRootName.getFile();
-    if (rootLocation != null) {
-      table.setCurrentDirectory(rootLocation.getAbsolutePath());
+    if (object == ftfRootName) {
+      File rootLocation = ftfRootName.getFile();
+      if (rootLocation != null) {
+        table.setCurrentDirectory(rootLocation.getAbsolutePath());
+      }
+      else {
+        table.setCurrentDirectory(null);
+      }
     }
-    else {
-      table.setCurrentDirectory(null);
+    else if (object == ftfInputDirectiveFile) {
+      directiveFileCollection.setDirectiveFile(ftfInputDirectiveFile.getFile(),
+          DirectiveFileType.BATCH);
+      templatePanel.setParameters(directiveFileCollection
+          .getDirectiveFile(DirectiveFileType.BATCH));
+      // update directive file collorection from the template panel
+      templatePanel.getDirectiveFileCollection();
+      msgDirectivesChanged(false);
     }
   }
 
