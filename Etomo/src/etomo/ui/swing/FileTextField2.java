@@ -252,7 +252,7 @@ final class FileTextField2 implements FileTextFieldInterface {
   void setOriginEtomoRunDir(final boolean input) {
     this.originEtomoRunDir = input;
   }
-  
+
   void setPreferredWidth(final double width) {
     field.setTextPreferredWidth(width);
   }
@@ -325,7 +325,7 @@ final class FileTextField2 implements FileTextFieldInterface {
 
   /**
    * 
-   * @param alwaysCheck - check for difference even when the field is disables or invisible
+   * @param alwaysCheck - check for difference even when the field is disabled or invisible
    * @return
    */
   boolean isDifferentFromCheckpoint(final boolean alwaysCheck) {
