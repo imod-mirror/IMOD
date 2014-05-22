@@ -114,6 +114,7 @@ final class CheckBox extends JCheckBox {
   public static final String rcsid = "$Id$";
 
   private EtomoBoolean2 checkpointValue = null;
+  private EtomoBoolean2 backupValue = null;
   private boolean debug = false;
   private Color origForeground = null;
 
@@ -150,6 +151,13 @@ final class CheckBox extends JCheckBox {
     if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
       System.out.println(getName() + ' ' + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
     }
+  }
+  
+  void backup(){
+    if (backupValue == null) {
+      backupValue = new EtomoBoolean2();
+    }
+    backupValue.set(isSelected());
   }
 
   /**
