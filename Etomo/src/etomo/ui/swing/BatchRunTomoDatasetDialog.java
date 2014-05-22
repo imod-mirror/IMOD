@@ -358,10 +358,15 @@ final class BatchRunTomoDatasetDialog implements ActionListener {
       rbDoBackprojAlso.backup();
       changed = true;
     }
-
-    /* RadioButton = new RadioButton("Both", bgUseSirt); LabeledTextField
-     * ltfLeaveIterations = new LabeledTextField( FieldType.STRING, "Leave iterations: ");
-     * CheckBox cbScaleToInteger = new CheckBox("Scale to integers"); ButtonGroup
+    if (ltfLeaveIterations.isDifferentFromCheckpoint(true)) {
+      ltfLeaveIterations.backup();
+      changed = true;
+    }
+    if (cbScaleToInteger.isDifferentFromCheckpoint(true)) {
+      cbScaleToInteger.backup();
+      changed = true;
+    }
+    /*  ButtonGroup
      * bgThickness = new ButtonGroup(); RadioTextField rtfThicknessPixels =
      * RadioTextField.getInstance( FieldType.INTEGER,
      * "Thickness total (unbinned pixels): ", bgThickness); RadioTextField
