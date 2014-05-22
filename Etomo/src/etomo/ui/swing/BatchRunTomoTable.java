@@ -210,11 +210,12 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable {
   }
 
   /**
-   * Check isDifferentFromCheckpoint on the row list
-   * @return true if the row list's isDifferentFromCheckpoint function returned true
+   * Check each field to see if it has been changed from its checkpoint.  If it has
+   * changed, then back up its current value.
+   * @return true if any field has been changed from its checkpoint
    */
-  boolean isDifferentFromCheckpoint() {
-    return rowList.isDifferentFromCheckpoint();
+  boolean backupIfChanged() {
+    return rowList.backupIfChanged();
   }
 
   private void updateDisplay() {
@@ -352,13 +353,16 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable {
     }
 
     /**
-     * Check isDifferentFromCheckpoint on all rows
-     * @return true if any row's isDifferentFromCheckpoint function returned true
+     * Check each field to see if it has been changed from its checkpoint.  If it has
+     * changed, then back up its current value.
+     * @return true if any field has been changed from its checkpoint
      */
-    private boolean isDifferentFromCheckpoint() {
+    boolean backupIfChanged() {
       boolean changed = false;
       for (int i = 0; i < list.size(); i++) {
-        changed = list.get(i).isDifferentFromCheckpoint();
+        if (list.get(i).backupIfChanged()) {
+          changed = true;
+        }
       }
       return changed;
     }
