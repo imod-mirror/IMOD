@@ -33,7 +33,8 @@ final class CheckBoxCell extends InputCell implements ToggleCell {
   private String unformattedLabel = "";
   private boolean enabled = true;
   private EtomoBoolean2 checkpointValue = null;
-
+  private EtomoBoolean2 backupValue = null;
+  
   CheckBoxCell() {
     super();
     checkBox.setBorderPainted(true);
@@ -61,6 +62,13 @@ final class CheckBoxCell extends InputCell implements ToggleCell {
       return false;
     }
     return checkpointValue == null || !checkpointValue.equals(isSelected());
+  }
+  
+  void backup(){
+    if (backupValue == null) {
+      backupValue = new EtomoBoolean2();
+    }
+    backupValue.set(isSelected());
   }
 
   public void setEnabled(final boolean enabled) {
