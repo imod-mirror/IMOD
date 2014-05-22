@@ -212,36 +212,43 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
       // see if the user has changed any values, and save values that the user has changed
       boolean changed = false;
       if (cbDeliverToDirectory.isDifferentFromCheckpoint(true)) {
+        cbDeliverToDirectory.backup();
         changed = true;
       }
       if (ftfDeliverToDirectory.isDifferentFromCheckpoint(true)) {
-        changed = true;
+        cbDeliverToDirectory.backup();
+       changed = true;
       }
       if (ltfRootName.isDifferentFromCheckpoint(true)) {
+        ltfRootName.backup();
         changed = true;
       }
       if (ftfRootName.isDifferentFromCheckpoint(true)) {
+        ftfRootName.backup();
         changed = true;
       }
-      if (table.isDifferentFromCheckpoint()) {
+      if (table.backupIfChanged()) {
         changed = true;
       }
       Iterator<BatchRunTomoDatasetDialog> iterator = datasetLevelDialogList.iterator();
       while (iterator.hasNext()) {
-        if (iterator.next().isDifferentFromCheckpoint()) {
+        if (iterator.next().backupIfChanged()) {
           changed = true;
         }
       }
-      if (datasetDialog.isDifferentFromCheckpoint()) {
+      if (datasetDialog.backupIfChanged()) {
         changed = true;
       }
       if (cbUseCPUMachineList.isDifferentFromCheckpoint(true)) {
+        cbUseCPUMachineList.backup();
         changed = true;
       }
       if (cbUseGPUMachineList.isDifferentFromCheckpoint(true)) {
+        cbUseGPUMachineList.backup();
         changed = true;
       }
       if (ltfEmailAddress.isDifferentFromCheckpoint(true)) {
+        ltfEmailAddress.backup();
         changed = true;
       }
       if (changed) {
