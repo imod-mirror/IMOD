@@ -144,15 +144,19 @@ final class BatchRunTomoRow implements Highlightable {
    * directive files.
    * @return true if any field's isDifferentFromCheckpoint function returned true
    */
-  boolean isDifferentFromCheckpoint() {
+  boolean backupIfChanged() {
     boolean changed = false;
     if (cbcDualAxis.isDifferentFromCheckpoint(true)) {
+      cbcDualAxis.backup();
       changed = true;
+
     }
     if (cbcMontage.isDifferentFromCheckpoint(true)) {
+      cbcMontage.backup();
       changed = true;
     }
     if (cbcTwoSurfaces.isDifferentFromCheckpoint(true)) {
+      cbcTwoSurfaces.backup();
       changed = true;
     }
     return changed;
