@@ -11,6 +11,7 @@ import javax.swing.border.Border;
 import etomo.EtomoDirector;
 import etomo.logic.FieldValidator;
 import etomo.storage.autodoc.AutodocTokenizer;
+import etomo.type.EtomoNumber;
 import etomo.type.UITestFieldType;
 import etomo.ui.FieldType;
 import etomo.ui.FieldValidationFailedException;
@@ -82,6 +83,74 @@ final class TextField implements UIComponent, SwingComponent {
 
   void setEditable(boolean editable) {
     textField.setEditable(editable);
+  }
+  
+  /**
+   * 
+   * @param alwaysCheck - check for difference even when the field is disables or invisible
+   * @return
+   */
+  boolean isDifferentFromCheckpoint(final boolean alwaysCheck) {
+    if (!alwaysCheck && (!isEnabled() || !isVisible())) {
+      return false;
+    }
+    if (checkpointValue == null) {
+      return true;
+    }
+    if (numericType == null) {
+      return !checkpointValue.equals(textField.getText());
+    }
+    return !nCheckpointValue.equals(textField.getText());
+  }
+  
+  /**
+   * @param alwaysCheck - check for difference even when the field is disables or invisible
+   * @return true if checkBox is visible, enabled, and different from checkpoint or text field is visible, enabled, and different from checkpoint
+   */
+  boolean isDifferentFromCheckpoint() {
+    if (checkBox.isDifferentFromCheckpoint()) {
+      return true;
+    }
+    // Check the text field.
+    // Disabled or invisible fields cause this function to return false.
+    if (!checkBox.isEnabled() || !checkBox.isSelected() || !textField.isEnabled()
+        || !textField.isVisible()) {
+      return false;
+    }
+    if (checkpointValue == null) {
+      return true;
+    }
+    if (checkpointValue.equals(textField.getText())) {
+      return true;
+    }
+    // Failed string comparison. Try comparing numerically
+    EtomoNumber.Type type = null;
+    if (numericType != null) {
+      type = numericType;
+    }
+    else if (fieldType == FieldType.FLOATING_POINT) {
+      type = EtomoNumber.Type.DOUBLE;
+    }
+    else if (fieldType == FieldType.INTEGER) {
+      type = EtomoNumber.Type.LONG;
+    }
+    if (type != null) {
+      EtomoNumber checkpointNumber = new EtomoNumber(type);
+      checkpointNumber.set(checkpointValue);
+      if (!checkpointNumber.isValid()) {
+        // Cannot compare numerically
+        return false;
+      }
+      EtomoNumber currentNumber = new EtomoNumber(type);
+      currentNumber.set(textField.getText());
+      if (!currentNumber.isValid()) {
+        // Cannot compare numerically
+        return false;
+      }
+      return !checkpointValue.equals(textField.getText());
+    }
+    // Not a number
+    return false;
   }
 
   /**
