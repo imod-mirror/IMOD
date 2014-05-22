@@ -44,6 +44,7 @@ final class RadioButton implements RadioButtonInterface {
 
   private boolean debug = false;
   private EtomoBoolean2 checkpointValue = null;
+  private EtomoBoolean2 backupValue = null;
   private Color origForeground = null;
 
   RadioButton(final String text) {
@@ -113,6 +114,13 @@ final class RadioButton implements RadioButtonInterface {
       checkpointValue = new EtomoBoolean2();
     }
     checkpointValue.set(isSelected());
+  }
+  
+  void backup() {
+    if (backupValue == null) {
+      backupValue = new EtomoBoolean2();
+    }
+    backupValue.set(isSelected());
   }
 
   boolean isCheckpointValue() {
