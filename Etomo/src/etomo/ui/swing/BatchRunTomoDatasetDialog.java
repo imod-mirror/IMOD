@@ -268,66 +268,94 @@ final class BatchRunTomoDatasetDialog implements ActionListener {
    * Check isDifferentFromCheckpoint on all data entry fields
    * @return true if any field's isDifferentFromCheckpoint function returned true
    */
-  boolean isDifferentFromCheckpoint() {
+  boolean backupIfChanged() {
     boolean changed = false;
     if (ftfDistort.isDifferentFromCheckpoint(true)) {
+      ftfDistort.backup();
       changed = true;
     }
     if (ftfGradient.isDifferentFromCheckpoint(true)) {
+      ftfGradient.backup();
       changed = true;
     }
     if (cbRemoveXrays.isDifferentFromCheckpoint(true)) {
+      cbRemoveXrays.backup();
       changed = true;
     }
     if (ftfModelFile.isDifferentFromCheckpoint(true)) {
+      ftfModelFile.backup();
       changed = true;
     }
     if (rbTrackingMethodSeed.isDifferentFromCheckpoint(true)) {
+      rbTrackingMethodSeed.backup();
       changed = true;
     }
     if (rbTrackingMethodRaptor.isDifferentFromCheckpoint(true)) {
+      rbTrackingMethodRaptor.backup();
       changed = true;
     }
     if (rbTrackingMethodPatchTracking.isDifferentFromCheckpoint(true)) {
+      rbTrackingMethodPatchTracking.backup();
       changed = true;
     }
     if (rbFiducialless.isDifferentFromCheckpoint(true)) {
+      rbFiducialless.backup();
       changed = true;
     }
     if (ltfGold.isDifferentFromCheckpoint(true)) {
+      ltfGold.backup();
       changed = true;
     }
     if (cbTwoSurfaces.isDifferentFromCheckpoint(true)) {
+      cbTwoSurfaces.backup();
       changed = true;
     }
     if (ltfLocalAreaTargetSize.isDifferentFromCheckpoint(true)) {
+      ltfLocalAreaTargetSize.backup();
       changed = true;
     }
     if (ltfTargetNumberOfBeads.isDifferentFromCheckpoint(true)) {
+      ltfTargetNumberOfBeads.backup();
       changed = true;
     }
     if (ltfSizeOfPatchesXandY.isDifferentFromCheckpoint(true)) {
+      ltfSizeOfPatchesXandY.backup();
       changed = true;
     }
-    /* if (lsContourPieces.isDifferentFromCheckpoint(true)) { changed = true; } if
-     * (lsBinByFactor.isDifferentFromCheckpoint(true)) { changed = true; } */
+    if (lsContourPieces.isDifferentFromCheckpoint(true)) {
+      lsContourPieces.backup();
+      changed = true;
+    }
+    if (lsBinByFactor.isDifferentFromCheckpoint(true)) {
+      lsBinByFactor.backup();
+      changed = true;
+    }
     if (cbCorrectCTF.isDifferentFromCheckpoint(true)) {
+      cbCorrectCTF.backup();
       changed = true;
     }
     if (ltfDefocus.isDifferentFromCheckpoint(true)) {
+      ltfDefocus.backup();
       changed = true;
     }
     if (rbFitEveryImage.isDifferentFromCheckpoint(true)) {
+      rbFitEveryImage.backup();
       changed = true;
     }
-    /* if (rtfAutoFitRangeAndStep.isDifferentFromCheckpoint(true)) { changed = true; } */
+    if (rtfAutoFitRangeAndStep.isDifferentFromCheckpoint(true)) {
+      rtfAutoFitRangeAndStep.backup();
+      changed = true;
+    }
     if (rbUseSirtFalse.isDifferentFromCheckpoint(true)) {
+      rbUseSirtFalse.backup();
       changed = true;
     }
     if (rbUseSirtTrue.isDifferentFromCheckpoint(true)) {
+      rbUseSirtTrue.backup();
       changed = true;
     }
     if (rbDoBackprojAlso.isDifferentFromCheckpoint(true)) {
+      rbDoBackprojAlso.backup();
       changed = true;
     }
 
