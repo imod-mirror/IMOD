@@ -410,21 +410,47 @@ final class LabeledTextField implements UIComponent, SwingComponent {
   }
 
   /**
-   * 
-   * @param alwaysCheck - check for difference even when the field is disables or invisible
-   * @return
+   * @param alwaysCheck - when false return false when the field is disabled or invisible
+   * @return true if text field is different from checkpoint
    */
   boolean isDifferentFromCheckpoint(final boolean alwaysCheck) {
-    if (!alwaysCheck && (!isEnabled() || !isVisible())) {
+    if (!alwaysCheck && (!textField.isEnabled() || !textField.isVisible())) {
       return false;
     }
     if (checkpointValue == null) {
       return true;
     }
-    if (numericType == null) {
+    if (checkpointValue.equals(textField.getText())) {
+      return true;
+    }
+    // Failed string comparison. Try comparing numerically
+    EtomoNumber.Type type = null;
+    if (numericType != null) {
+      type = numericType;
+    }
+    else if (fieldType == FieldType.FLOATING_POINT) {
+      type = EtomoNumber.Type.DOUBLE;
+    }
+    else if (fieldType == FieldType.INTEGER) {
+      type = EtomoNumber.Type.LONG;
+    }
+    if (type != null) {
+      EtomoNumber checkpointNumber = new EtomoNumber(type);
+      checkpointNumber.set(checkpointValue);
+      if (!checkpointNumber.isValid()) {
+        // Cannot compare numerically
+        return false;
+      }
+      EtomoNumber currentNumber = new EtomoNumber(type);
+      currentNumber.set(textField.getText());
+      if (!currentNumber.isValid()) {
+        // Cannot compare numerically
+        return false;
+      }
       return !checkpointValue.equals(textField.getText());
     }
-    return !nCheckpointValue.equals(textField.getText());
+    // Not a number
+    return false;
   }
 
   void clear() {
