@@ -151,6 +151,11 @@ final class RadioTextField implements RadioButtonInterface {
     }
   }
 
+  void backup() {
+    radioButton.backup();
+    textField.backup();
+  }
+
   boolean isDifferentFromCheckpoint(final boolean alwaysCheck) {
     return radioButton.isDifferentFromCheckpoint(alwaysCheck)
         || textField.isDifferentFromCheckpoint(alwaysCheck);
