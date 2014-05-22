@@ -222,7 +222,8 @@ final class LabeledTextField implements UIComponent, SwingComponent {
 
   private boolean debug = false;
   private String checkpointValue = null;
-  private EtomoNumber nCheckpointValue = null;
+  private String backupValue = null;
+  private EtomoNumber nBackupValue = null;
   private boolean required = false;
   private Color origTextForeground = null;
   private Color origLabelForeground = null;
@@ -339,11 +340,18 @@ final class LabeledTextField implements UIComponent, SwingComponent {
    */
   void checkpoint() {
     checkpointValue = getText();
+  }
+
+  /**
+   * Saves the current text as the checkpoint.
+   */
+  void backup() {
+    backupValue = getText();
     if (numericType != null) {
-      if (nCheckpointValue == null) {
-        nCheckpointValue = new EtomoNumber(numericType);
+      if (nBackupValue == null) {
+        nBackupValue = new EtomoNumber(numericType);
       }
-      nCheckpointValue.set(checkpointValue);
+      nBackupValue.set(backupValue);
     }
   }
 
@@ -352,12 +360,6 @@ final class LabeledTextField implements UIComponent, SwingComponent {
    */
   void checkpoint(final int value) {
     checkpointValue = new Integer(value).toString();
-    if (numericType != null) {
-      if (nCheckpointValue == null) {
-        nCheckpointValue = new EtomoNumber(numericType);
-      }
-      nCheckpointValue.set(checkpointValue);
-    }
   }
 
   /**
@@ -365,12 +367,6 @@ final class LabeledTextField implements UIComponent, SwingComponent {
    */
   void checkpoint(final ConstEtomoNumber value) {
     checkpointValue = value.toString();
-    if (numericType != null) {
-      if (nCheckpointValue == null) {
-        nCheckpointValue = new EtomoNumber(numericType);
-      }
-      nCheckpointValue.set(checkpointValue);
-    }
   }
 
   /**
@@ -378,12 +374,6 @@ final class LabeledTextField implements UIComponent, SwingComponent {
    */
   void checkpoint(final double value) {
     checkpointValue = new Double(value).toString();
-    if (numericType != null) {
-      if (nCheckpointValue == null) {
-        nCheckpointValue = new EtomoNumber(numericType);
-      }
-      nCheckpointValue.set(checkpointValue);
-    }
   }
 
   /**
@@ -391,12 +381,6 @@ final class LabeledTextField implements UIComponent, SwingComponent {
    */
   void checkpoint(final String value) {
     checkpointValue = value;
-    if (numericType != null) {
-      if (nCheckpointValue == null) {
-        nCheckpointValue = new EtomoNumber(numericType);
-      }
-      nCheckpointValue.set(checkpointValue);
-    }
   }
 
   /**
