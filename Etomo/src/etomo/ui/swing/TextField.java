@@ -42,6 +42,8 @@ final class TextField implements UIComponent, SwingComponent {
 
   private boolean required = false;
   private Border origBorder = null;
+  private String checkpointValue = null;
+  private String backupValue = null;
 
   TextField(final FieldType fieldType, final String reference, final String locationDescr) {
     this.locationDescr = locationDescr;
@@ -84,37 +86,13 @@ final class TextField implements UIComponent, SwingComponent {
   void setEditable(boolean editable) {
     textField.setEditable(editable);
   }
-  
+
   /**
-   * 
-   * @param alwaysCheck - check for difference even when the field is disables or invisible
-   * @return
+   * @param alwaysCheck - when false return false when the field is disabled or invisible
+   * @return true if text field is different from checkpoint
    */
   boolean isDifferentFromCheckpoint(final boolean alwaysCheck) {
-    if (!alwaysCheck && (!isEnabled() || !isVisible())) {
-      return false;
-    }
-    if (checkpointValue == null) {
-      return true;
-    }
-    if (numericType == null) {
-      return !checkpointValue.equals(textField.getText());
-    }
-    return !nCheckpointValue.equals(textField.getText());
-  }
-  
-  /**
-   * @param alwaysCheck - check for difference even when the field is disables or invisible
-   * @return true if checkBox is visible, enabled, and different from checkpoint or text field is visible, enabled, and different from checkpoint
-   */
-  boolean isDifferentFromCheckpoint() {
-    if (checkBox.isDifferentFromCheckpoint()) {
-      return true;
-    }
-    // Check the text field.
-    // Disabled or invisible fields cause this function to return false.
-    if (!checkBox.isEnabled() || !checkBox.isSelected() || !textField.isEnabled()
-        || !textField.isVisible()) {
+    if (!alwaysCheck && (!textField.isEnabled() || !textField.isVisible())) {
       return false;
     }
     if (checkpointValue == null) {
@@ -125,10 +103,7 @@ final class TextField implements UIComponent, SwingComponent {
     }
     // Failed string comparison. Try comparing numerically
     EtomoNumber.Type type = null;
-    if (numericType != null) {
-      type = numericType;
-    }
-    else if (fieldType == FieldType.FLOATING_POINT) {
+    if (fieldType == FieldType.FLOATING_POINT) {
       type = EtomoNumber.Type.DOUBLE;
     }
     else if (fieldType == FieldType.INTEGER) {
@@ -151,6 +126,10 @@ final class TextField implements UIComponent, SwingComponent {
     }
     // Not a number
     return false;
+  }
+
+  void backup() {
+    backupValue = textField.getText();
   }
 
   /**
