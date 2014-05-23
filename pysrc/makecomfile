@@ -216,7 +216,7 @@ elif typeName == 'tilt_3dfind':
 # FINDBEADS3D
 elif typeName == 'findbeads3d':
    beadSize = PipGetFloat('BeadSize', 0.)
-   if beadSize <= 0:
+   if PipGetErrNo():
       exitError('BeadSize must be entered')
    prefix = [baseout + axislet, 'findbeads3d']
    comlines = ['# Command file for running findbeads3d created by makecomfile',
@@ -232,7 +232,7 @@ elif typeName == 'findbeads3d':
 # GOLDERASER
 elif typeName == 'golderaser':
    beadSize = PipGetFloat('BeadSize', 0.)
-   if beadSize <= 0:
+   if PipGetErrNo():
       exitError('BeadSize must be entered')
    comlines = ['# Command file for running ccderaser created by makecomfile',
                '$ccderaser -StandardInput',

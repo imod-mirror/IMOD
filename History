@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/21/14: Stopped Makecomfile from giving error when run with a bead size of 0
+(In 4.7).
+
 5/14/14: Fixed transparent background when saving model montage (In 4.7). 
 
 5/8/14: Added an option to Clip to specify a defect correction file for K2
