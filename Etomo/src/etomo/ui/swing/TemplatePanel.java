@@ -238,13 +238,21 @@ final class TemplatePanel {
    * @return
    */
   DirectiveFileCollection getDirectiveFileCollection() {
+    refreshDirectiveFileCollection();
+    return directiveFileCollection;
+  }
+
+  /**
+   * Refresh the directive file collection and return it.
+   * @return
+   */
+  void refreshDirectiveFileCollection() {
     directiveFileCollection.setDirectiveFile(getScopeTemplateFile(),
         DirectiveFileType.SCOPE);
     directiveFileCollection.setDirectiveFile(getSystemTemplateFile(),
         DirectiveFileType.SYSTEM);
     directiveFileCollection.setDirectiveFile(getUserTemplateFile(),
         DirectiveFileType.USER);
-    return directiveFileCollection;
   }
 
   private File getScopeTemplateFile() {
@@ -319,6 +327,7 @@ final class TemplatePanel {
       reloadUserTemplate();
       setTemplate(directiveFile.getTemplate(type), userTemplateFileList, cmbUserTemplate);
     }
+    refreshDirectiveFileCollection();
   }
 
   private static final class TemplateFocusListener implements FocusListener {
