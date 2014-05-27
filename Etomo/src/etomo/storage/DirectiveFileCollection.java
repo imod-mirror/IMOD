@@ -77,6 +77,35 @@ public class DirectiveFileCollection implements SetupReconInterface {
     return false;
   }
 
+  /**
+   * Returns true if an attribute called name is in any of the directive files.
+   * @param parentName
+   * @param name
+   * @return
+   */
+  private boolean containsComparamAttribute(final String fileName,
+      final String commandName, final String name) {
+    for (int i = 0; i < directiveFileArray.length; i++) {
+      if (directiveFileArray[i] != null
+          && directiveFileArray[i].containsComparamAttribute(fileName, commandName, name)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private boolean containsComparamAttribute(final String fileName, final AxisID axisID,
+      final String commandName, final String name) {
+    for (int i = 0; i < directiveFileArray.length; i++) {
+      if (directiveFileArray[i] != null
+          && directiveFileArray[i].containsComparamAttribute(fileName, axisID,
+              commandName, name)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   private String getValue(final DirectiveFile.AttributeName parentName, final String name) {
     String value = null;
     for (int i = 0; i < directiveFileArray.length; i++) {
@@ -91,6 +120,29 @@ public class DirectiveFileCollection implements SetupReconInterface {
             && directiveFileArray[i].containsExtraValue(parentName, name)) {
           value = directiveFileArray[i].getExtraValue(parentName, name);
         }
+      }
+    }
+    return value;
+  }
+
+  private String getComparamValue(final String fileName, final String commandName,
+      final String name) {
+    String value = null;
+    for (int i = 0; i < directiveFileArray.length; i++) {
+      if (directiveFileArray[i] != null) {
+        value = directiveFileArray[i].getComparamValue(fileName, commandName, name);
+      }
+    }
+    return value;
+  }
+
+  private String getComparamValue(final String fileName, final AxisID axisID,
+      final String commandName, final String name) {
+    String value = null;
+    for (int i = 0; i < directiveFileArray.length; i++) {
+      if (directiveFileArray[i] != null) {
+        value = directiveFileArray[i]
+            .getComparamValue(fileName, axisID, commandName, name);
       }
     }
     return value;
@@ -145,6 +197,36 @@ public class DirectiveFileCollection implements SetupReconInterface {
     return containsAttribute(DirectiveFile.AttributeName.COPY_ARG,
         DirectiveFile.convertAttributeName(axisID, DirectiveFile.TWODIR_NAME));
   }
+
+  public boolean containsTwoSurfaces() {
+    return containsComparamAttribute(DirectiveFile.AUTO_FID_SEED_COMMAND,
+        DirectiveFile.AUTO_FID_SEED_COMMAND, DirectiveFile.TWO_SURFACES_NAME)
+        || containsComparamAttribute(DirectiveFile.AUTO_FID_SEED_COMMAND, AxisID.FIRST,
+            DirectiveFile.AUTO_FID_SEED_COMMAND, DirectiveFile.TWO_SURFACES_NAME)
+        || containsComparamAttribute(DirectiveFile.AUTO_FID_SEED_COMMAND, AxisID.SECOND,
+            DirectiveFile.AUTO_FID_SEED_COMMAND, DirectiveFile.TWO_SURFACES_NAME);
+  }
+
+  public boolean isTwoSurfaces() {
+    return DirectiveFile.toBoolean(getComparamValue(DirectiveFile.AUTO_FID_SEED_COMMAND,
+        DirectiveFile.AUTO_FID_SEED_COMMAND, DirectiveFile.TWO_SURFACES_NAME))
+        || DirectiveFile.toBoolean(getComparamValue(DirectiveFile.AUTO_FID_SEED_COMMAND,
+            AxisID.FIRST, DirectiveFile.AUTO_FID_SEED_COMMAND,
+            DirectiveFile.TWO_SURFACES_NAME))
+        || DirectiveFile.toBoolean(getComparamValue(DirectiveFile.AUTO_FID_SEED_COMMAND,
+            AxisID.SECOND, DirectiveFile.AUTO_FID_SEED_COMMAND,
+            DirectiveFile.TWO_SURFACES_NAME));
+  }
+  
+  public boolean containsSurfacesToAnalyze() {
+    return containsComparamAttribute(DirectiveFile.ALIGN_FILE,
+        DirectiveFile.TILT_ALIGN_COMMAND, DirectiveFile.SURFACES_TO_ANALYZE_NAME)
+        || containsComparamAttribute(DirectiveFile.AUTO_FID_SEED_COMMAND, AxisID.FIRST,
+            DirectiveFile.AUTO_FID_SEED_COMMAND, DirectiveFile.TWO_SURFACES_NAME)
+        || containsComparamAttribute(DirectiveFile.AUTO_FID_SEED_COMMAND, AxisID.SECOND,
+            DirectiveFile.AUTO_FID_SEED_COMMAND, DirectiveFile.TWO_SURFACES_NAME);
+  }
+
 
   public boolean containsRotation() {
     return containsAttribute(AttributeName.COPY_ARG, DirectiveFile.ROTATION_NAME);
