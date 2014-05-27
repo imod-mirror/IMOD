@@ -45,10 +45,12 @@ public final class DirectiveFile {
   public static final String ALIGNED_STACK_MODULE_NAME = "AlignedStack";
   public static final String ANY_AXIS_NAME = "any";
   public static final String ARCHIVE_ORIGINAL_NAME = "archiveOriginal";
+  public static final String AUTO_FID_SEED_COMMAND = "autofidseed";
   public static final String AUTO_FIT_RANGE_AND_STEP_NAME = "autoFitRangeAndStep";
   static final String B_AXIS_NAME = "b";
   public static final String BIN_BY_FACTOR_NAME = "binByFactor";
   public static final String BINNING_NAME = "binning";
+  private static final String COM_PARAM_NAME = "comparam";
   public static final String COPY_ARG_NAME = "copyarg";
   public static final String CS_NAME = "Cs";
   public static final String CTF_NOISE_NAME = "ctfnoise";
@@ -88,6 +90,7 @@ public final class DirectiveFile {
   public static final String TRACKING_METHOD_NAME = "trackingMethod";
   static final String TRUE_VALUE = "1";
   public static final String TWODIR_NAME = "twodir";
+  public static final String TWO_SURFACES_NAME = "TwoSurfaces";
   public static final String USE_ALIGNED_STACK_NAME = "useAlignedStack";
   public static final String USE_RAW_TLT_NAME = "userawtlt";
   public static final String USE_SIRT_NAME = "useSirt";
@@ -105,6 +108,7 @@ public final class DirectiveFile {
   private Map<String, String> copyArgExtraValues = null;
   private ReadOnlyAttribute runtime = null;
   private ReadOnlyAttribute setupSet = null;
+  private ReadOnlyAttribute comparam = null;
 
   private DirectiveFile(final BaseManager manager, final AxisID axisID, final File file) {
     this.manager = manager;
@@ -170,6 +174,30 @@ public final class DirectiveFile {
     return true;
   }
 
+  private void initComparam() {
+    if (comparam != null) {
+      return;
+    }
+    try {
+      ReadOnlyAutodoc autodoc = (ReadOnlyAutodoc) AutodocFactory.getInstance(manager,
+          file, axisID);
+      comparam = autodoc.getAttribute(COM_PARAM_NAME);
+    }
+    catch (FileNotFoundException e) {
+      UIHarness.INSTANCE.openMessageDialog(manager, e.getMessage(),
+          "Directive File Not Found");
+    }
+    catch (IOException e) {
+      UIHarness.INSTANCE.openMessageDialog(manager, e.getMessage(),
+          "Directive File Read Failure");
+    }
+    catch (LogFile.LockException e) {
+      e.printStackTrace();
+      UIHarness.INSTANCE.openMessageDialog(manager, e.getMessage(),
+          "Directive File Read Failure");
+    }
+  }
+
   boolean containsAttribute(final AttributeName parentName, final String name) {
     return getAttribute(parentName, name) != null;
   }
@@ -194,13 +222,30 @@ public final class DirectiveFile {
     return false;
   }
 
-  private boolean containsAttribute(final AttributeName parentName,
-      final String sectionName, final String name) {
-    ReadOnlyAttribute parent = getAttribute(parentName, sectionName);
-    if (parent == null) {
+  boolean containsComparamAttribute(final String fileName, final String commandName,
+      final String name) {
+    ReadOnlyAttribute attribute = getAttribute(AttributeName.COM_PARAM, fileName);
+    if (attribute == null) {
       return false;
     }
-    ReadOnlyAttribute attribute = parent.getAttribute(sectionName);
+    attribute = attribute.getAttribute(commandName);
+    if (attribute == null) {
+      return false;
+    }
+    if (attribute.getAttribute(name) == null) {
+      return false;
+    }
+    return true;
+  }
+
+  boolean containsComparamAttribute(final String fileName, final AxisID axisID,
+      final String commandName, final String name) {
+    ReadOnlyAttribute attribute = getAttribute(AttributeName.COM_PARAM, fileName
+        + (axisID != null ? axisID.getExtension() : ""));
+    if (attribute == null) {
+      return false;
+    }
+    attribute = attribute.getAttribute(commandName);
     if (attribute == null) {
       return false;
     }
@@ -259,6 +304,10 @@ public final class DirectiveFile {
     }
     if (parentName == AttributeName.RUN_TIME) {
       return runtime;
+    }
+    if (parentName == AttributeName.COM_PARAM) {
+      initComparam();
+      return comparam;
     }
     return null;
   }
@@ -361,6 +410,66 @@ public final class DirectiveFile {
     if (axisName != null && containsAttribute(section, axisName, name)) {
       value = getValue(section, axisName, name);
     }
+    if (value == null) {
+      value = "";
+    }
+    return value;
+  }
+
+  /**
+   * Returns null if the attribute called name is not there.  Returns an empty string if
+   * this attribute is there and it has no value.
+   * @param fileName
+   * @param commandName
+   * @param name
+   * @return
+   */
+   String getComparamValue(final String fileName, final String commandName,
+      final String name) {
+    ReadOnlyAttribute attribute = getAttribute(AttributeName.COM_PARAM, fileName);
+    if (attribute == null) {
+      return null;
+    }
+    attribute = attribute.getAttribute(commandName);
+    if (attribute == null) {
+      return null;
+    }
+    attribute = attribute.getAttribute(name);
+    if (attribute == null) {
+      return null;
+    }
+    String value = attribute.getValue();
+    if (value == null) {
+      value = "";
+    }
+    return value;
+  }
+
+  /**
+   * Returns null if the attribute called name is not there.  Returns an empty string if
+   * this attribute is there and it has no value.
+   * @param fileName
+   * @param axisID
+   * @param commandName
+   * @param name
+   * @return
+   */
+  String getComparamValue(final String fileName, final AxisID axisID,
+      final String commandName, final String name) {
+    ReadOnlyAttribute attribute = getAttribute(AttributeName.COM_PARAM, fileName
+        + (axisID != null ? axisID.getExtension() : ""));
+    if (attribute == null) {
+      return null;
+    }
+    attribute = attribute.getAttribute(commandName);
+    if (attribute == null) {
+      return null;
+    }
+    attribute = attribute.getAttribute(name);
+    if (attribute == null) {
+      return null;
+    }
+    String value = attribute.getValue();
     if (value == null) {
       value = "";
     }
@@ -682,6 +791,7 @@ public final class DirectiveFile {
     static final AttributeName SETUP_SET = new AttributeName();
     static final AttributeName COPY_ARG = new AttributeName();
     static final AttributeName RUN_TIME = new AttributeName();
+    static final AttributeName COM_PARAM = new AttributeName();
 
     private AttributeName() {
     }
