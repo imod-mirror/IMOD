@@ -211,22 +211,6 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
     if (!init) {
       // see if the user has changed any values, and save values that the user has changed
       boolean changed = false;
-      if (cbDeliverToDirectory.isDifferentFromCheckpoint(true)) {
-        cbDeliverToDirectory.backup();
-        changed = true;
-      }
-      if (ftfDeliverToDirectory.isDifferentFromCheckpoint(true)) {
-        cbDeliverToDirectory.backup();
-       changed = true;
-      }
-      if (ltfRootName.isDifferentFromCheckpoint(true)) {
-        ltfRootName.backup();
-        changed = true;
-      }
-      if (ftfRootName.isDifferentFromCheckpoint(true)) {
-        ftfRootName.backup();
-        changed = true;
-      }
       if (table.backupIfChanged()) {
         changed = true;
       }
@@ -239,18 +223,6 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
       if (datasetDialog.backupIfChanged()) {
         changed = true;
       }
-      if (cbUseCPUMachineList.isDifferentFromCheckpoint(true)) {
-        cbUseCPUMachineList.backup();
-        changed = true;
-      }
-      if (cbUseGPUMachineList.isDifferentFromCheckpoint(true)) {
-        cbUseGPUMachineList.backup();
-        changed = true;
-      }
-      if (ltfEmailAddress.isDifferentFromCheckpoint(true)) {
-        ltfEmailAddress.backup();
-        changed = true;
-      }
       if (changed) {
         // ask the user whether they want to keep the values they changed
         retainUserValues = UIHarness.INSTANCE
@@ -259,8 +231,14 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
                 "New batch directive/template values will be applied.  Keep your changed values?",
                 axisID);
       }
-      // Go back to initial values
     }
+    // Go back to initial values
+    table.setValues(directiveFileCollection);
+    Iterator<BatchRunTomoDatasetDialog>   iterator = datasetLevelDialogList.iterator();
+    while (iterator.hasNext()) {
+      iterator.next().setValues(directiveFileCollection);
+    }
+    datasetDialog.setValues(directiveFileCollection);
     // apply the setup values, starting batch directive file and template files
     // checkpoint
     if (retainUserValues) {
@@ -275,6 +253,8 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
       return;
     }
     if (templatePanel.equalsActionCommand(actionCommand)) {
+      // refresh the shared directive file collection
+      templatePanel.refreshDirectiveFileCollection();
       msgDirectivesChanged(false);
     }
     else if (actionCommand.equals(cbDeliverToDirectory.getActionCommand())) {
@@ -297,8 +277,6 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
           DirectiveFileType.BATCH);
       templatePanel.setParameters(directiveFileCollection
           .getDirectiveFile(DirectiveFileType.BATCH));
-      // update directive file collorection from the template panel
-      templatePanel.getDirectiveFileCollection();
       msgDirectivesChanged(false);
     }
   }
