@@ -617,6 +617,16 @@ install it.</span>&nbsp; This command will not work on Windows unless the
 				can access them (such as <code>/usr/local</code>).
 			</li>
 		</ol>
+    <p>Occasionally you will get an annoying warning in a terminal window
+    starting with <i>cygwin warning: MS-DOS style path detected</i>.  To eliminate
+    this, you need to define an environment variable in Windows with the name
+    CYGWIN and the value "nodosfilewarning".  To do so, right click Computer
+    or My Computer on the Desktop, browser window or
+	  Start menu, select Properties, Advanced or Advanced System Properties,
+	  then press Environment Variables. Press "New" in the "User variables"
+    or "System variables" section.  Enter "CYGWIN" as the name and
+    "nodosfilewarning" as the value (without the quotes).
+    </p>
 		<p>If you want to customize your Cygwin installation instead of using our package, 
 			go to <a href="http://www.cygwin.com">www.cygwin.com</a>, click on "Setup", and 
 			follow the installation procedures. &nbsp;<span style="COLOR: rgb(255,0,0); FONT-WEIGHT: bold">In addition to the
