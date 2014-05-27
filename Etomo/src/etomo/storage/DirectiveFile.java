@@ -42,6 +42,7 @@ public final class DirectiveFile {
   public static final String rcsid = "$Id:$";
 
   static final String A_AXIS_NAME = "a";
+  static final String ALIGN_FILE = "align";
   public static final String ALIGNED_STACK_MODULE_NAME = "AlignedStack";
   public static final String ANY_AXIS_NAME = "any";
   public static final String ARCHIVE_ORIGINAL_NAME = "archiveOriginal";
@@ -85,8 +86,10 @@ public final class DirectiveFile {
   static final String SETUP_SET_NAME = "setupset";
   public static final String SIZE_IN_X_AND_Y_NAME = "sizeInXandY";
   public static final String SKIP_NAME = "skip";
+  static final String SURFACES_TO_ANALYZE_NAME = "SurfacesToAnalyze";
   public static final String SYSTEM_TEMPLATE_NAME = "systemTemplate";
   public static final String THICKNESS_NAME = "thickness";
+  static final String TILT_ALIGN_COMMAND="tiltalign";
   public static final String TRACKING_METHOD_NAME = "trackingMethod";
   static final String TRUE_VALUE = "1";
   public static final String TWODIR_NAME = "twodir";
