@@ -366,16 +366,26 @@ final class BatchRunTomoDatasetDialog implements ActionListener {
       cbScaleToInteger.backup();
       changed = true;
     }
-    /*  ButtonGroup
-     * bgThickness = new ButtonGroup(); RadioTextField rtfThicknessPixels =
-     * RadioTextField.getInstance( FieldType.INTEGER,
-     * "Thickness total (unbinned pixels): ", bgThickness); RadioTextField
-     * rtfBinnedThickness = RadioTextField.getInstance( FieldType.INTEGER,
-     * "Thickness total   (binned pixels): ", bgThickness); RadioTextField rtfThicknessNm
-     * = RadioTextField.getInstance( FieldType.INTEGER, "Thickness total (nm): ",
-     * bgThickness); RadioTextField rtfThicknessSpacingPlus = RadioTextField.getInstance(
-     * FieldType.INTEGER, "Thickness from Intergold spacing plus: ", bgThickness);
-     * LabeledTextField ltfThicknessSpacingFallback */
+    if (rtfThicknessPixels.isDifferentFromCheckpoint(true)) {
+      rtfThicknessPixels.backup();
+      changed = true;
+    }
+    if (rtfBinnedThickness.isDifferentFromCheckpoint(true)) {
+      rtfBinnedThickness.backup();
+      changed = true;
+    }
+    if (rtfThicknessNm.isDifferentFromCheckpoint(true)) {
+      rtfThicknessNm.backup();
+      changed = true;
+    }
+    if (rtfThicknessSpacingPlus.isDifferentFromCheckpoint(true)) {
+      rtfThicknessSpacingPlus.backup();
+      changed = true;
+    }
+    if (ltfThicknessSpacingFallback.isDifferentFromCheckpoint(true)) {
+      ltfThicknessSpacingFallback.backup();
+      changed = true;
+    }
     return changed;
   }
 
