@@ -8,6 +8,8 @@ import java.net.URL;
 import javax.swing.ImageIcon;
 import javax.swing.JPanel;
 
+import etomo.storage.DirectiveFile;
+import etomo.storage.DirectiveFileCollection;
 import etomo.ui.BatchRunTomoTab;
 
 /**
@@ -68,6 +70,7 @@ final class BatchRunTomoRow implements Highlightable {
     }
     cbcRun.setSelected(true);
     bcEtomo.setEnabled(false);
+    DirectiveFile.setupDualField(cbcDualAxis);
   }
 
   static BatchRunTomoRow getInstance(final String propertyUserDir,
@@ -160,5 +163,24 @@ final class BatchRunTomoRow implements Highlightable {
       changed = true;
     }
     return changed;
+  }
+
+  /**
+   * Set values from the directive file collection
+   * @param directiveFileCollection
+   */
+  void setValues(final DirectiveFileCollection directiveFileCollection) {
+    if (directiveFileCollection.containsDual()) {
+      cbcDualAxis.setSelected(directiveFileCollection.isDual());
+    }
+    if (directiveFileCollection.containsMontage()) {
+      cbcMontage.setSelected(directiveFileCollection.isMontage());
+    }
+    if (directiveFileCollection.containsTwoSurfaces()) {
+      cbcTwoSurfaces.setSelected(directiveFileCollection.isTwoSurfaces());
+    }
+    else if (directiveFileCollection.containsSurfacesToAnalyze()) {
+      cbcTwoSurfaces.setSelected(directiveFileCollection.getSurfacesToAnalyze() == 2);
+    }
   }
 }
