@@ -16,6 +16,7 @@ import javax.swing.JPanel;
 import javax.swing.border.LineBorder;
 
 import etomo.BaseManager;
+import etomo.storage.DirectiveFileCollection;
 import etomo.storage.StackFileFilter;
 import etomo.ui.BatchRunTomoTab;
 
@@ -218,6 +219,14 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable {
     return rowList.backupIfChanged();
   }
 
+  /**
+   * Set values from the directive file collection
+   * @param directiveFileCollection
+   */
+  void setValues(final DirectiveFileCollection directiveFileCollection) {
+    rowList.setValues(directiveFileCollection);
+  }
+
   private void updateDisplay() {
     boolean enable = rowList.size() > 0;
     boolean highlighted = rowList.isHighlighted();
@@ -365,6 +374,16 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable {
         }
       }
       return changed;
+    }
+
+    /**
+     * Set row values from the directive file collection
+     * @param directiveFileCollection
+     */
+    void setValues(final DirectiveFileCollection directiveFileCollection) {
+      for (int i = 0; i < list.size(); i++) {
+        list.get(i).setValues(directiveFileCollection);
+      }
     }
   }
 }
