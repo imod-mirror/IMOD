@@ -13,6 +13,7 @@ import etomo.storage.DirectiveFile.AttributeName;
 import etomo.storage.autodoc.ReadOnlyAttribute;
 import etomo.storage.autodoc.ReadOnlyAttributeIterator;
 import etomo.type.AxisID;
+import etomo.type.ConstEtomoNumber;
 import etomo.type.DirectiveFileType;
 import etomo.type.EtomoNumber;
 import etomo.type.TiltAngleSpec;
@@ -141,8 +142,8 @@ public class DirectiveFileCollection implements SetupReconInterface {
     String value = null;
     for (int i = 0; i < directiveFileArray.length; i++) {
       if (directiveFileArray[i] != null) {
-        value = directiveFileArray[i]
-            .getComparamValue(fileName, axisID, commandName, name);
+        value = directiveFileArray[i].getComparamValue(fileName, axisID, commandName,
+            name);
       }
     }
     return value;
@@ -200,33 +201,25 @@ public class DirectiveFileCollection implements SetupReconInterface {
 
   public boolean containsTwoSurfaces() {
     return containsComparamAttribute(DirectiveFile.AUTO_FID_SEED_COMMAND,
-        DirectiveFile.AUTO_FID_SEED_COMMAND, DirectiveFile.TWO_SURFACES_NAME)
-        || containsComparamAttribute(DirectiveFile.AUTO_FID_SEED_COMMAND, AxisID.FIRST,
-            DirectiveFile.AUTO_FID_SEED_COMMAND, DirectiveFile.TWO_SURFACES_NAME)
-        || containsComparamAttribute(DirectiveFile.AUTO_FID_SEED_COMMAND, AxisID.SECOND,
-            DirectiveFile.AUTO_FID_SEED_COMMAND, DirectiveFile.TWO_SURFACES_NAME);
+        DirectiveFile.AUTO_FID_SEED_COMMAND, DirectiveFile.TWO_SURFACES_NAME);
   }
 
   public boolean isTwoSurfaces() {
     return DirectiveFile.toBoolean(getComparamValue(DirectiveFile.AUTO_FID_SEED_COMMAND,
-        DirectiveFile.AUTO_FID_SEED_COMMAND, DirectiveFile.TWO_SURFACES_NAME))
-        || DirectiveFile.toBoolean(getComparamValue(DirectiveFile.AUTO_FID_SEED_COMMAND,
-            AxisID.FIRST, DirectiveFile.AUTO_FID_SEED_COMMAND,
-            DirectiveFile.TWO_SURFACES_NAME))
-        || DirectiveFile.toBoolean(getComparamValue(DirectiveFile.AUTO_FID_SEED_COMMAND,
-            AxisID.SECOND, DirectiveFile.AUTO_FID_SEED_COMMAND,
-            DirectiveFile.TWO_SURFACES_NAME));
-  }
-  
-  public boolean containsSurfacesToAnalyze() {
-    return containsComparamAttribute(DirectiveFile.ALIGN_FILE,
-        DirectiveFile.TILT_ALIGN_COMMAND, DirectiveFile.SURFACES_TO_ANALYZE_NAME)
-        || containsComparamAttribute(DirectiveFile.AUTO_FID_SEED_COMMAND, AxisID.FIRST,
-            DirectiveFile.AUTO_FID_SEED_COMMAND, DirectiveFile.TWO_SURFACES_NAME)
-        || containsComparamAttribute(DirectiveFile.AUTO_FID_SEED_COMMAND, AxisID.SECOND,
-            DirectiveFile.AUTO_FID_SEED_COMMAND, DirectiveFile.TWO_SURFACES_NAME);
+        DirectiveFile.AUTO_FID_SEED_COMMAND, DirectiveFile.TWO_SURFACES_NAME));
   }
 
+  public ConstEtomoNumber getSurfacesToAnalyze() {
+    return DirectiveFile.toNumber(
+        getComparamValue(DirectiveFile.AUTO_FID_SEED_COMMAND,
+            DirectiveFile.AUTO_FID_SEED_COMMAND, DirectiveFile.TWO_SURFACES_NAME),
+        EtomoNumber.Type.INTEGER);
+  }
+
+  public boolean containsSurfacesToAnalyze() {
+    return containsComparamAttribute(DirectiveFile.ALIGN_FILE,
+        DirectiveFile.TILT_ALIGN_COMMAND, DirectiveFile.SURFACES_TO_ANALYZE_NAME);
+  }
 
   public boolean containsRotation() {
     return containsAttribute(AttributeName.COPY_ARG, DirectiveFile.ROTATION_NAME);
