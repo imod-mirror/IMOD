@@ -409,7 +409,7 @@ bool ImodClipboard::executeMessage()
                                 sMessageAction == MESSAGE_OPEN_KEEP_BW, false);
         if(returnValue == IMOD_IO_SUCCESS) {
           wprint("%s loaded.\n", 
-                 LATIN1(QDir::convertSeparators(QString(Imod_filename))));
+                 LATIN1(QDir::toNativeSeparators(QString(Imod_filename))));
 
         }
         else if(returnValue == IMOD_IO_SAVE_ERROR) {
@@ -427,7 +427,7 @@ bool ImodClipboard::executeMessage()
           if(returnValue == IMOD_IO_SUCCESS) {
         
             wprint("New model %s created.\n", 
-                   LATIN1(QDir::convertSeparators(QString(Imod_filename))));
+                   LATIN1(QDir::toNativeSeparators(QString(Imod_filename))));
           }
           else {
             wprint("Could not create a new model %s.\n", 

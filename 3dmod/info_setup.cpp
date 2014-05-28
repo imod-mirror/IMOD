@@ -522,7 +522,7 @@ void InfoWindow::extract()
     commandString = slicer->rotateVolCommand();
     prin = 0;
     timeLock = slicer->mTimeLock;
-    executable = QDir::convertSeparators(QString(imodDir) + "/bin/rotatevol");
+    executable = QDir::toNativeSeparators(QString(imodDir) + "/bin/rotatevol");
   } else {
     commandString = zap->printInfo(false);
     timeLock = zap->getTimeLock();
@@ -550,14 +550,14 @@ void InfoWindow::extract()
   QStringList command = commandString.split(" ", QString::SkipEmptyParts);
   if (!rotateVol) {
     arguments << "-u";
-    command[0] = QDir::convertSeparators(QString(imodDir) + "/bin/trimvol");
+    command[0] = QDir::toNativeSeparators(QString(imodDir) + "/bin/trimvol");
     prin = 2;
   }
   for (i = 0; i < command.count(); i++)
     arguments << command[i];
     
-  arguments << QDir::convertSeparators(filePath);
-  arguments << QDir::convertSeparators(mTrimvolOutput);
+  arguments << QDir::toNativeSeparators(filePath);
+  arguments << QDir::toNativeSeparators(mTrimvolOutput);
   wprint(rotateVol ? "rotatevol " : "trimvol ");
   for (i = prin; i < arguments.count(); i++)
     wprint("%s ", LATIN1(arguments[i]));
