@@ -14,13 +14,12 @@
 #include <math.h>
 #include <stdio.h>
 #include <locale.h>
-#include <QtGui>
+#include "myapp.h"
 
 #include "simplexfitting.h"
 #include "linearfitting.h"
 #include "plotter.h"
 #include "imod_assistant.h"
-#include "myapp.h"
 
 #include "b3dutil.h"
 #include "mrcfiles.h"
