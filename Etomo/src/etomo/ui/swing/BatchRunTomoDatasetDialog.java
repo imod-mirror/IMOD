@@ -13,6 +13,8 @@ import javax.swing.JPanel;
 
 import etomo.BaseManager;
 import etomo.logic.TrackingMethod;
+import etomo.storage.DirectiveFileCollection;
+import etomo.type.ConstEtomoNumber;
 import etomo.ui.FieldType;
 
 /**
@@ -50,8 +52,6 @@ final class BatchRunTomoDatasetDialog implements ActionListener {
       TrackingMethod.PATCH_TRACKING, bgTrackingMethod);
   private final LabeledTextField ltfGold = new LabeledTextField(FieldType.FLOATING_POINT,
       "Bead size (nm): ");
-  private final CheckBox cbTwoSurfaces = new CheckBox(
-      "Beads are on two distinct surfaces");
   private final LabeledTextField ltfLocalAreaTargetSize = new LabeledTextField(
       FieldType.INTEGER_PAIR, "Local tracking area size: ");
   private LabeledTextField ltfTargetNumberOfBeads = new LabeledTextField(
@@ -161,7 +161,6 @@ final class BatchRunTomoDatasetDialog implements ActionListener {
     // Gold
     pnlGold.setLayout(new GridLayout(2, 2, 15, 0));
     pnlGold.add(ltfGold.getComponent());
-    pnlGold.add(cbTwoSurfaces);
     pnlGold.add(ltfTargetNumberOfBeads.getComponent());
     pnlGold.add(ltfLocalAreaTargetSize.getComponent());
     // SizeOfPatchesXandY
@@ -247,7 +246,6 @@ final class BatchRunTomoDatasetDialog implements ActionListener {
         || rbTrackingMethodRaptor.isSelected();
     ltfGold.setEnabled(beadTracking);
     ltfTargetNumberOfBeads.setEnabled(beadTracking);
-    cbTwoSurfaces.setEnabled(beadTracking);
     ltfLocalAreaTargetSize.setEnabled(beadTracking);
     boolean patchTracking = rbTrackingMethodPatchTracking.isSelected();
     ltfSizeOfPatchesXandY.setEnabled(patchTracking);
@@ -304,10 +302,6 @@ final class BatchRunTomoDatasetDialog implements ActionListener {
     }
     if (ltfGold.isDifferentFromCheckpoint(true)) {
       ltfGold.backup();
-      changed = true;
-    }
-    if (cbTwoSurfaces.isDifferentFromCheckpoint(true)) {
-      cbTwoSurfaces.backup();
       changed = true;
     }
     if (ltfLocalAreaTargetSize.isDifferentFromCheckpoint(true)) {
@@ -387,6 +381,64 @@ final class BatchRunTomoDatasetDialog implements ActionListener {
       changed = true;
     }
     return changed;
+  }
+
+  /**
+   * Set values from the directive file collection
+   * @param directiveFileCollection
+   */
+  void setValues(final DirectiveFileCollection directiveFileCollection) {
+    if (directiveFileCollection.containsDistort()) {
+      ftfDistort.setText(directiveFileCollection.getDistortionFile());
+    }
+    if (directiveFileCollection.containsGradient()) {
+      ftfGradient.setText(directiveFileCollection.getGradient());
+    }
+    if (directiveFileCollection.containsRemoveXrays()) {
+      cbRemoveXrays.setSelected(directiveFileCollection.isRemoveXrays());
+    }
+    if (directiveFileCollection.containsModelFile()) {
+      ftfModelFile.setText(directiveFileCollection.getModelFile());
+    }
+    if (directiveFileCollection.containsTrackingMethod()) {
+      TrackingMethod trackingMethod = directiveFileCollection.getTrackingMethod();
+      if (trackingMethod == TrackingMethod.SEED) {
+        rbTrackingMethodSeed.setSelected(true);
+      }
+      else if (trackingMethod == TrackingMethod.RAPTOR) {
+        rbTrackingMethodRaptor.setSelected(true);
+      }
+      else if (trackingMethod == TrackingMethod.PATCH_TRACKING) {
+        rbTrackingMethodPatchTracking.setSelected(true);
+      }
+    }
+    if (directiveFileCollection.containsFiducialless()) {
+      rbFiducialless.setSelected(directiveFileCollection.isFiducialless());
+    }
+    if (directiveFileCollection.containsGold()) {
+      ltfGold.setText(directiveFileCollection.getGold());
+    }
+    if (directiveFileCollection.containsLocalAreaTargetSize()) {
+      ltfLocalAreaTargetSize.setText(directiveFileCollection.getLocalAreaTargetSize());
+    }
+    if (directiveFileCollection.containsTargetNumberOfBeads()) {
+      ltfTargetNumberOfBeads.setText(directiveFileCollection.getTargetNumberOfBeads());
+    }
+    if (directiveFileCollection.containsSizeOfPatchesXandY()) {
+      ltfSizeOfPatchesXandY.setText(directiveFileCollection.getSizeOfPatchesXandY());
+    }
+    if (directiveFileCollection.containsContourPieces()) {
+      lsContourPieces.setText(directiveFileCollection.getContourPieces());
+    }
+    if (directiveFileCollection.containsBinByFactor()) {
+      lsBinByFactor.setText(directiveFileCollection.getBinByFactor());
+    }
+    if (directiveFileCollection.containscbCorrectCTF()) {
+      cbCorrectCTF.setSelected(directiveFileCollection.iscbCorrectCTF());
+    }
+    if (directiveFileCollection.containsDefocus()) {
+      ltfDefocus.setText(directiveFileCollection.getDefocus());
+    }
   }
 
   public void actionPerformed(final ActionEvent event) {
