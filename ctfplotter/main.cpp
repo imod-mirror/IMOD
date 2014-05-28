@@ -223,7 +223,9 @@ int main(int argc, char *argv[])
 
     // At least 4 of these are needed to make it work reliably!
     qApp->flush();
+#if QT_VERSION < 0x050000
     qApp->syncX();
+#endif
     qApp->processEvents();
     splash->repaint(0, 0, -1, -1);
 #ifdef Q_OS_MACX  

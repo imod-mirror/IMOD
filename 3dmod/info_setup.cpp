@@ -71,7 +71,7 @@ InfoControls *ImodInfoWidget = NULL;
 /*
  * THE CONSTRUCTOR FOR InfoWindow
  */
-InfoWindow::InfoWindow(QWidget * parent, const char * name, Qt::WFlags f)
+InfoWindow::InfoWindow(QWidget * parent, const char * name, Qt::WindowFlags f)
   : QMainWindow(parent, f)
 {
   mMinimized = false;

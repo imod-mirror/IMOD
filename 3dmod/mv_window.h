@@ -45,7 +45,7 @@ class ImodvWindow : public QMainWindow
 
  public:
   ImodvWindow(ImodvApp *a, QWidget * parent = 0, const char * name = 0, 
-              Qt::WFlags f = Qt::Window) ;
+              Qt::WindowFlags f = Qt::Window) ;
   ~ImodvWindow();
   void setCheckableItem(int id, bool state);
   void setEnabledMenuItem(int id, bool state);
