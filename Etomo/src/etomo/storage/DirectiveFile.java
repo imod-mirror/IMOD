@@ -17,7 +17,9 @@ import etomo.storage.autodoc.ReadOnlyAttributeIterator;
 import etomo.storage.autodoc.ReadOnlyAttributeList;
 import etomo.storage.autodoc.ReadOnlyAutodoc;
 import etomo.type.AxisID;
+import etomo.type.ConstEtomoNumber;
 import etomo.type.DirectiveFileType;
+import etomo.type.EtomoNumber;
 import etomo.type.TiltAngleSpec;
 import etomo.type.TiltAngleType;
 import etomo.ui.FieldType;
@@ -89,7 +91,7 @@ public final class DirectiveFile {
   static final String SURFACES_TO_ANALYZE_NAME = "SurfacesToAnalyze";
   public static final String SYSTEM_TEMPLATE_NAME = "systemTemplate";
   public static final String THICKNESS_NAME = "thickness";
-  static final String TILT_ALIGN_COMMAND="tiltalign";
+  static final String TILT_ALIGN_COMMAND = "tiltalign";
   public static final String TRACKING_METHOD_NAME = "trackingMethod";
   static final String TRUE_VALUE = "1";
   public static final String TWODIR_NAME = "twodir";
@@ -427,7 +429,7 @@ public final class DirectiveFile {
    * @param name
    * @return
    */
-   String getComparamValue(final String fileName, final String commandName,
+  String getComparamValue(final String fileName, final String commandName,
       final String name) {
     ReadOnlyAttribute attribute = getAttribute(AttributeName.COM_PARAM, fileName);
     if (attribute == null) {
@@ -513,6 +515,15 @@ public final class DirectiveFile {
         + ".  Valid boolean values are 0 or 1.  Treating value as 1.");
     Thread.dumpStack();
     return true;
+  }
+
+  static ConstEtomoNumber toNumber(final String value, EtomoNumber.Type numberType) {
+    if (value == null) {
+      return null;
+    }
+    EtomoNumber number = new EtomoNumber(numberType);
+    number.set(value);
+    return number;
   }
 
   public boolean containsAlignedStackBinByFactor(final AxisID axisID) {
