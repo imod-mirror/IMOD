@@ -448,7 +448,11 @@ if ($packqt == true) then
     #
     set assistant = `which assistant`
     set qt4libstocopy = `ldd $assistant | sed -n '/libQt/s/ *lib\([^\.]*\).*=.*/\1/p'`
-    set qt4libstocopy = (QtOpenGL $qt4libstocopy)
+    if ($qtVersion > 4) then
+        set qt4libstocopy = (Qt5OpenGL Qt5DBus $qt4libstocopy)
+    else
+        set qt4libstocopy = (QtOpenGL $qt4libstocopy)
+    endif
     echo 'QTINSTLIBDIR = qtlib' >> $configure
     if ($useqt == true) then
         if ($compiler == intel && $intelstat == false && $wrapintel == true) then
