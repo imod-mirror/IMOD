@@ -526,6 +526,8 @@ if PipGetErrNo():
    else:
       exitError('There is no BeadDiameter entry in ' + trackcom + \
                    '; fix this or enter a size with -size')
+   if beadSize == 0.:
+      exitError('The BeadDiameter entry in ' + trackcom + ' is zero')
    beadSize /= binning
 
 # Get filtering information if sobel activated
