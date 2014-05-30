@@ -233,7 +233,7 @@ bool imodvOlistGrouping(void)
 /*
  * Object list class constructor
  */
-ImodvOlist::ImodvOlist(QWidget *parent, Qt::WFlags fl)
+ImodvOlist::ImodvOlist(QWidget *parent, Qt::WindowFlags fl)
   : QWidget(parent, fl)
 {
   int nPerCol, olistNcol, ob, i;

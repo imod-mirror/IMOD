@@ -280,6 +280,15 @@ set URELEASE = `uname -r`
 #set target_computer = {$UMACHINE}__{$USYSTEM}__{$URELEASE}__{$UVERSION}
 set target_computer = {$UMACHINE}__{$USYSTEM}__{$URELEASE}__all
 
+# Detect Qt version with qmake and fix some things
+set qtVersion = `qmake -version | sed -n '/Using Qt version \([0-9]\).*/s//\1/p'`
+if ("$qtVersion" == "") set qtVersion = 4
+@ qtVersion = $qtVersion
+if ($qtVersion > 4) then
+    set qt_flags = "$qt_flags "'-I$(QTINCDIR)/QtWidgets -I$(QTINCDIR)/QtPrintSupport'
+    set qt4libstocopy = 'Qt5OpenGL Qt5Network Qt5Core Qt5Gui QtXml Qt5Help Qt5Sql QtCLucene Qt5Widgets Qt5PrintSupport Qt5DBus'
+    set midasGL         =  "-lQt5OpenGL"
+endif
 #
 # Create imodconfig.h file
 #
@@ -767,6 +776,12 @@ EOF
             echo DEFINES += QT_THREAD_SUPPORT >> $i
         endif
     end
+    if ($qtVersion > 4) then
+        foreach i ($ctfplot_qconf $sendevent_qconf $mrc2tif_qconf $qtassist_qconf)
+            echo QT += widgets >> $i
+        end
+        echo QT += printsupport >> $ctfplot_qconf
+    endif
 
     # Finish qconfigure install instructions now that inst_bin_dir is defined
     #
@@ -881,6 +896,7 @@ EOF
     (cd $imod_dir ; \rm -f 3dmodv ; ln -s 3dmod 3dmodv)
 
     set qt_libs = `sed -n -e '/^LIBS /s/^LIBS.*) *//p' $sendevent_dir/Makefile`
+    if ($qtVersion > 4) set qt_libs = "$qt_libs -lQt5PrintSupport"
 
     # Make the script for etomo to source to set library path
     #

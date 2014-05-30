@@ -182,7 +182,7 @@ static int ReadSection(ImodImageFile *inFile, char *buf, int byte)
     // Get a map for scaling the bytes, then get composite map to go from
     // pixel indexes to scaled value;
     map2 = get_byte_map(slope, offset, outmin, outmax, 0);
-    maxind = image->numColors() - 1;
+    maxind = B3DMAX(0, colorTable.size() - 1);
     for (i = 0; i < 256; i++) {
       pixel = qRed(colorTable[B3DMIN(i, maxind)]);
       map[i] = map2[pixel];
