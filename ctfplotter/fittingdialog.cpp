@@ -10,11 +10,11 @@
 *  $Id$
 */
 
-#include <QtGui>
+#include "myapp.h"
 #include <stdio.h>
 
 #include "fittingdialog.h"
-#include "myapp.h"
+
 #define PRECISION 0.00005
 
 FittingDialog::FittingDialog(MyApp *app, QWidget *parent) :QDialog(parent)

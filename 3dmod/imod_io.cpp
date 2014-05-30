@@ -99,7 +99,7 @@ static void imod_make_backup(const char *filename)
   QString qname, nfname1, nfname2;
   if ((filename[0] != 0x00) && strcmp(filename, saved_filename)) {
     QDir *curdir = new QDir();
-    qname = QDir::convertSeparators(QString(filename));
+    qname = QDir::toNativeSeparators(QString(filename));
     nfname1 = qname + "~";
     nfname2 = qname + "~~";
     curdir->remove(LATIN1(nfname2));
@@ -196,7 +196,7 @@ int imod_autosave(Imod *mod)
   // Then clean up with the new name
   imod_cleanup_autosave();
   convname = strdup
-    (LATIN1(QDir::convertSeparators(QString(autosave_filename))));
+    (LATIN1(QDir::toNativeSeparators(QString(autosave_filename))));
 
   tfilep = fopen(convname, "wb");
   if (tfilep == NULL){
@@ -265,7 +265,7 @@ int SaveModel(Imod *mod)
 
   imod_make_backup(Imod_filename);
 
-  fout = fopen(LATIN1(QDir::convertSeparators(QString(Imod_filename))), "wb+");
+  fout = fopen(LATIN1(QDir::toNativeSeparators(QString(Imod_filename))), "wb+");
 
   if (fout == NULL){
     imod_undo_backup();
@@ -309,7 +309,7 @@ int SaveasModel(Imod *mod)
   }
 
   imod_make_backup(LATIN1(qname));
-  fout = fopen(LATIN1(QDir::convertSeparators(qname)), "wb");
+  fout = fopen(LATIN1(QDir::toNativeSeparators(qname)), "wb");
   if (fout == NULL){
     wprint("\aError: Couldn't open %s .  Model not saved.\n", LATIN1(qname));
     imod_undo_backup();
@@ -355,7 +355,7 @@ static int writeModel(Imod *mod, FILE *fout, QString qname)
   if (!retval) {
     timestr = datetime();
     wprint("Done saving model %s\n%s\n", timestr,
-           LATIN1(QDir::convertSeparators(qname)));
+           LATIN1(QDir::toNativeSeparators(qname)));
     imod_finish_backup();
     mod->csum = imodChecksum(mod);
     if (imodDebug('C'))
@@ -481,7 +481,7 @@ static Imod *LoadModelFile(const char *filename)
     qname = filename;
   }
 
-  fin = fopen(LATIN1(QDir::convertSeparators(qname)), "rb");
+  fin = fopen(LATIN1(QDir::toNativeSeparators(qname)), "rb");
 
   if (fin == NULL) {
     lastError = mapErrno(errno);

@@ -483,7 +483,7 @@ int main( int argc, char *argv[])
             break;
           }
           plistfname = argv[++i];
-          plFileNames << QDir::convertSeparators(curdir->cleanPath(QString(plistfname)));
+          plFileNames << QDir::toNativeSeparators(curdir->cleanPath(QString(plistfname)));
           break;
         
         case 'a':
@@ -639,7 +639,7 @@ int main( int argc, char *argv[])
 
   /* Try to open the last file if there is one */
   if (firstfile) {
-    qname = QDir::convertSeparators(QString(argv[argcHere - 1]));
+    qname = QDir::toNativeSeparators(QString(argv[argcHere - 1]));
 
     // first check if it is directory, if so say it is last image
     QFileInfo info(qname);
@@ -738,7 +738,7 @@ int main( int argc, char *argv[])
       imodPrintStderr("Loading %s\n", Imod_imagefile);
     }
    
-    qname = QDir::convertSeparators(QString(Imod_imagefile));
+    qname = QDir::toNativeSeparators(QString(Imod_imagefile));
 
     // Check if it is directory (again)
     QFileInfo info(qname);
