@@ -17,6 +17,9 @@ import etomo.storage.autodoc.ReadOnlyAttributeIterator;
 import etomo.storage.autodoc.ReadOnlyAttributeList;
 import etomo.storage.autodoc.ReadOnlyAutodoc;
 import etomo.type.AxisID;
+import etomo.type.ConstEtomoNumber;
+import etomo.type.DirectiveFileType;
+import etomo.type.EtomoNumber;
 import etomo.type.TiltAngleSpec;
 import etomo.type.TiltAngleType;
 import etomo.ui.FieldType;
@@ -41,13 +44,16 @@ public final class DirectiveFile {
   public static final String rcsid = "$Id:$";
 
   static final String A_AXIS_NAME = "a";
+  static final String ALIGN_FILE = "align";
   public static final String ALIGNED_STACK_MODULE_NAME = "AlignedStack";
   public static final String ANY_AXIS_NAME = "any";
   public static final String ARCHIVE_ORIGINAL_NAME = "archiveOriginal";
+  public static final String AUTO_FID_SEED_COMMAND = "autofidseed";
   public static final String AUTO_FIT_RANGE_AND_STEP_NAME = "autoFitRangeAndStep";
   static final String B_AXIS_NAME = "b";
   public static final String BIN_BY_FACTOR_NAME = "binByFactor";
   public static final String BINNING_NAME = "binning";
+  private static final String COM_PARAM_NAME = "comparam";
   public static final String COPY_ARG_NAME = "copyarg";
   public static final String CS_NAME = "Cs";
   public static final String CTF_NOISE_NAME = "ctfnoise";
@@ -82,11 +88,14 @@ public final class DirectiveFile {
   static final String SETUP_SET_NAME = "setupset";
   public static final String SIZE_IN_X_AND_Y_NAME = "sizeInXandY";
   public static final String SKIP_NAME = "skip";
+  static final String SURFACES_TO_ANALYZE_NAME = "SurfacesToAnalyze";
   public static final String SYSTEM_TEMPLATE_NAME = "systemTemplate";
   public static final String THICKNESS_NAME = "thickness";
+  static final String TILT_ALIGN_COMMAND = "tiltalign";
   public static final String TRACKING_METHOD_NAME = "trackingMethod";
   static final String TRUE_VALUE = "1";
   public static final String TWODIR_NAME = "twodir";
+  public static final String TWO_SURFACES_NAME = "TwoSurfaces";
   public static final String USE_ALIGNED_STACK_NAME = "useAlignedStack";
   public static final String USE_RAW_TLT_NAME = "userawtlt";
   public static final String USE_SIRT_NAME = "useSirt";
@@ -104,6 +113,7 @@ public final class DirectiveFile {
   private Map<String, String> copyArgExtraValues = null;
   private ReadOnlyAttribute runtime = null;
   private ReadOnlyAttribute setupSet = null;
+  private ReadOnlyAttribute comparam = null;
 
   private DirectiveFile(final BaseManager manager, final AxisID axisID, final File file) {
     this.manager = manager;
@@ -169,6 +179,30 @@ public final class DirectiveFile {
     return true;
   }
 
+  private void initComparam() {
+    if (comparam != null) {
+      return;
+    }
+    try {
+      ReadOnlyAutodoc autodoc = (ReadOnlyAutodoc) AutodocFactory.getInstance(manager,
+          file, axisID);
+      comparam = autodoc.getAttribute(COM_PARAM_NAME);
+    }
+    catch (FileNotFoundException e) {
+      UIHarness.INSTANCE.openMessageDialog(manager, e.getMessage(),
+          "Directive File Not Found");
+    }
+    catch (IOException e) {
+      UIHarness.INSTANCE.openMessageDialog(manager, e.getMessage(),
+          "Directive File Read Failure");
+    }
+    catch (LogFile.LockException e) {
+      e.printStackTrace();
+      UIHarness.INSTANCE.openMessageDialog(manager, e.getMessage(),
+          "Directive File Read Failure");
+    }
+  }
+
   boolean containsAttribute(final AttributeName parentName, final String name) {
     return getAttribute(parentName, name) != null;
   }
@@ -191,6 +225,39 @@ public final class DirectiveFile {
       }
     }
     return false;
+  }
+
+  boolean containsComparamAttribute(final String fileName, final String commandName,
+      final String name) {
+    ReadOnlyAttribute attribute = getAttribute(AttributeName.COM_PARAM, fileName);
+    if (attribute == null) {
+      return false;
+    }
+    attribute = attribute.getAttribute(commandName);
+    if (attribute == null) {
+      return false;
+    }
+    if (attribute.getAttribute(name) == null) {
+      return false;
+    }
+    return true;
+  }
+
+  boolean containsComparamAttribute(final String fileName, final AxisID axisID,
+      final String commandName, final String name) {
+    ReadOnlyAttribute attribute = getAttribute(AttributeName.COM_PARAM, fileName
+        + (axisID != null ? axisID.getExtension() : ""));
+    if (attribute == null) {
+      return false;
+    }
+    attribute = attribute.getAttribute(commandName);
+    if (attribute == null) {
+      return false;
+    }
+    if (attribute.getAttribute(name) == null) {
+      return false;
+    }
+    return true;
   }
 
   private boolean containsAttribute(final ReadOnlyAttribute parent,
@@ -242,6 +309,10 @@ public final class DirectiveFile {
     }
     if (parentName == AttributeName.RUN_TIME) {
       return runtime;
+    }
+    if (parentName == AttributeName.COM_PARAM) {
+      initComparam();
+      return comparam;
     }
     return null;
   }
@@ -350,6 +421,66 @@ public final class DirectiveFile {
     return value;
   }
 
+  /**
+   * Returns null if the attribute called name is not there.  Returns an empty string if
+   * this attribute is there and it has no value.
+   * @param fileName
+   * @param commandName
+   * @param name
+   * @return
+   */
+  String getComparamValue(final String fileName, final String commandName,
+      final String name) {
+    ReadOnlyAttribute attribute = getAttribute(AttributeName.COM_PARAM, fileName);
+    if (attribute == null) {
+      return null;
+    }
+    attribute = attribute.getAttribute(commandName);
+    if (attribute == null) {
+      return null;
+    }
+    attribute = attribute.getAttribute(name);
+    if (attribute == null) {
+      return null;
+    }
+    String value = attribute.getValue();
+    if (value == null) {
+      value = "";
+    }
+    return value;
+  }
+
+  /**
+   * Returns null if the attribute called name is not there.  Returns an empty string if
+   * this attribute is there and it has no value.
+   * @param fileName
+   * @param axisID
+   * @param commandName
+   * @param name
+   * @return
+   */
+  String getComparamValue(final String fileName, final AxisID axisID,
+      final String commandName, final String name) {
+    ReadOnlyAttribute attribute = getAttribute(AttributeName.COM_PARAM, fileName
+        + (axisID != null ? axisID.getExtension() : ""));
+    if (attribute == null) {
+      return null;
+    }
+    attribute = attribute.getAttribute(commandName);
+    if (attribute == null) {
+      return null;
+    }
+    attribute = attribute.getAttribute(name);
+    if (attribute == null) {
+      return null;
+    }
+    String value = attribute.getValue();
+    if (value == null) {
+      value = "";
+    }
+    return value;
+  }
+
   private String getValue(final ReadOnlyAttribute parent, final String axisName,
       final String name) {
     if (parent == null) {
@@ -384,6 +515,15 @@ public final class DirectiveFile {
         + ".  Valid boolean values are 0 or 1.  Treating value as 1.");
     Thread.dumpStack();
     return true;
+  }
+
+  static ConstEtomoNumber toNumber(final String value, EtomoNumber.Type numberType) {
+    if (value == null) {
+      return null;
+    }
+    EtomoNumber number = new EtomoNumber(numberType);
+    number.set(value);
+    return number;
   }
 
   public boolean containsAlignedStackBinByFactor(final AxisID axisID) {
@@ -462,6 +602,19 @@ public final class DirectiveFile {
   public boolean containsReconstructionUseSirt(final AxisID axisID) {
     return containsAttribute(AttributeName.RUN_TIME, RECONSTRUCTION_MODULE_NAME, axisID,
         USE_SIRT_NAME);
+  }
+
+  public boolean containsTemplate(final DirectiveFileType type) {
+    if (type == DirectiveFileType.SCOPE) {
+      return containsAttribute(AttributeName.SETUP_SET, SCOPE_TEMPLATE_NAME);
+    }
+    if (type == DirectiveFileType.SYSTEM) {
+      return containsAttribute(AttributeName.SETUP_SET, SYSTEM_TEMPLATE_NAME);
+    }
+    if (type == DirectiveFileType.USER) {
+      return containsAttribute(AttributeName.SETUP_SET, USER_TEMPLATE_NAME);
+    }
+    return false;
   }
 
   public static void setDebug(final boolean input) {
@@ -547,16 +700,18 @@ public final class DirectiveFile {
         NUMBER_OF_MARKERS_NAME);
   }
 
-  public String getScopeTemplate() {
-    return getValue(AttributeName.SETUP_SET, SCOPE_TEMPLATE_NAME);
-  }
+  public String getTemplate(final DirectiveFileType type) {
+    if (type == DirectiveFileType.SCOPE) {
+      return getValue(AttributeName.SETUP_SET, SCOPE_TEMPLATE_NAME);
+    }
+    if (type == DirectiveFileType.SYSTEM) {
+      return getValue(AttributeName.SETUP_SET, SYSTEM_TEMPLATE_NAME);
+    }
 
-  public String getSystemTemplate() {
-    return getValue(AttributeName.SETUP_SET, SYSTEM_TEMPLATE_NAME);
-  }
-
-  public String getUserTemplate() {
-    return getValue(AttributeName.SETUP_SET, USER_TEMPLATE_NAME);
+    if (type == DirectiveFileType.USER) {
+      return getValue(AttributeName.SETUP_SET, USER_TEMPLATE_NAME);
+    }
+    return null;
   }
 
   /**
@@ -650,6 +805,7 @@ public final class DirectiveFile {
     static final AttributeName SETUP_SET = new AttributeName();
     static final AttributeName COPY_ARG = new AttributeName();
     static final AttributeName RUN_TIME = new AttributeName();
+    static final AttributeName COM_PARAM = new AttributeName();
 
     private AttributeName() {
     }

@@ -13,6 +13,7 @@ import etomo.storage.DirectiveFile.AttributeName;
 import etomo.storage.autodoc.ReadOnlyAttribute;
 import etomo.storage.autodoc.ReadOnlyAttributeIterator;
 import etomo.type.AxisID;
+import etomo.type.ConstEtomoNumber;
 import etomo.type.DirectiveFileType;
 import etomo.type.EtomoNumber;
 import etomo.type.TiltAngleSpec;
@@ -77,6 +78,35 @@ public class DirectiveFileCollection implements SetupReconInterface {
     return false;
   }
 
+  /**
+   * Returns true if an attribute called name is in any of the directive files.
+   * @param parentName
+   * @param name
+   * @return
+   */
+  private boolean containsComparamAttribute(final String fileName,
+      final String commandName, final String name) {
+    for (int i = 0; i < directiveFileArray.length; i++) {
+      if (directiveFileArray[i] != null
+          && directiveFileArray[i].containsComparamAttribute(fileName, commandName, name)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private boolean containsComparamAttribute(final String fileName, final AxisID axisID,
+      final String commandName, final String name) {
+    for (int i = 0; i < directiveFileArray.length; i++) {
+      if (directiveFileArray[i] != null
+          && directiveFileArray[i].containsComparamAttribute(fileName, axisID,
+              commandName, name)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   private String getValue(final DirectiveFile.AttributeName parentName, final String name) {
     String value = null;
     for (int i = 0; i < directiveFileArray.length; i++) {
@@ -91,6 +121,29 @@ public class DirectiveFileCollection implements SetupReconInterface {
             && directiveFileArray[i].containsExtraValue(parentName, name)) {
           value = directiveFileArray[i].getExtraValue(parentName, name);
         }
+      }
+    }
+    return value;
+  }
+
+  private String getComparamValue(final String fileName, final String commandName,
+      final String name) {
+    String value = null;
+    for (int i = 0; i < directiveFileArray.length; i++) {
+      if (directiveFileArray[i] != null) {
+        value = directiveFileArray[i].getComparamValue(fileName, commandName, name);
+      }
+    }
+    return value;
+  }
+
+  private String getComparamValue(final String fileName, final AxisID axisID,
+      final String commandName, final String name) {
+    String value = null;
+    for (int i = 0; i < directiveFileArray.length; i++) {
+      if (directiveFileArray[i] != null) {
+        value = directiveFileArray[i].getComparamValue(fileName, axisID, commandName,
+            name);
       }
     }
     return value;
@@ -144,6 +197,28 @@ public class DirectiveFileCollection implements SetupReconInterface {
   public boolean containsTwodir(final AxisID axisID) {
     return containsAttribute(DirectiveFile.AttributeName.COPY_ARG,
         DirectiveFile.convertAttributeName(axisID, DirectiveFile.TWODIR_NAME));
+  }
+
+  public boolean containsTwoSurfaces() {
+    return containsComparamAttribute(DirectiveFile.AUTO_FID_SEED_COMMAND,
+        DirectiveFile.AUTO_FID_SEED_COMMAND, DirectiveFile.TWO_SURFACES_NAME);
+  }
+
+  public boolean isTwoSurfaces() {
+    return DirectiveFile.toBoolean(getComparamValue(DirectiveFile.AUTO_FID_SEED_COMMAND,
+        DirectiveFile.AUTO_FID_SEED_COMMAND, DirectiveFile.TWO_SURFACES_NAME));
+  }
+
+  public ConstEtomoNumber getSurfacesToAnalyze() {
+    return DirectiveFile.toNumber(
+        getComparamValue(DirectiveFile.AUTO_FID_SEED_COMMAND,
+            DirectiveFile.AUTO_FID_SEED_COMMAND, DirectiveFile.TWO_SURFACES_NAME),
+        EtomoNumber.Type.INTEGER);
+  }
+
+  public boolean containsSurfacesToAnalyze() {
+    return containsComparamAttribute(DirectiveFile.ALIGN_FILE,
+        DirectiveFile.TILT_ALIGN_COMMAND, DirectiveFile.SURFACES_TO_ANALYZE_NAME);
   }
 
   public boolean containsRotation() {
@@ -324,12 +399,21 @@ public class DirectiveFileCollection implements SetupReconInterface {
         DirectiveFile.MONTAGE_NAME));
   }
 
+  /**
+   * Template files will be set from the batch file.  If a
+   * template file is missing from the batch file, it will be set to null here.
+   * @param baseDirectiveFile
+   * @param setTemplateFiles
+   */
   public void setBatchDirectiveFile(final DirectiveFile baseDirectiveFile) {
     directiveFileArray[DirectiveFileType.BATCH.getIndex()] = baseDirectiveFile;
     if (baseDirectiveFile != null) {
-      setDirectiveFile(baseDirectiveFile.getScopeTemplate(), DirectiveFileType.SCOPE);
-      setDirectiveFile(baseDirectiveFile.getSystemTemplate(), DirectiveFileType.SYSTEM);
-      setDirectiveFile(baseDirectiveFile.getUserTemplate(), DirectiveFileType.USER);
+      DirectiveFileType type = DirectiveFileType.SCOPE;
+      setDirectiveFile(baseDirectiveFile.getTemplate(type), type);
+      type = DirectiveFileType.SYSTEM;
+      setDirectiveFile(baseDirectiveFile.getTemplate(type), type);
+      type = DirectiveFileType.USER;
+      setDirectiveFile(baseDirectiveFile.getTemplate(type), type);
     }
   }
 
