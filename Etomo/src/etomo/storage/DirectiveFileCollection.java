@@ -8,6 +8,7 @@ import java.util.Map.Entry;
 
 import etomo.BaseManager;
 import etomo.logic.DatasetTool;
+import etomo.logic.TrackingMethod;
 import etomo.logic.UserEnv;
 import etomo.storage.DirectiveFile.AttributeName;
 import etomo.storage.autodoc.ReadOnlyAttribute;
@@ -197,6 +198,56 @@ public class DirectiveFileCollection implements SetupReconInterface {
   public boolean containsTwodir(final AxisID axisID) {
     return containsAttribute(DirectiveFile.AttributeName.COPY_ARG,
         DirectiveFile.convertAttributeName(axisID, DirectiveFile.TWODIR_NAME));
+  }
+
+  public boolean containsRemoveXrays() {
+    return containsRuntimeAttribute(DirectiveFile.PREPROCESSING_MODULE,
+        DirectiveFile.REMOVE_XRAYS_NAME);
+  }
+
+  public boolean isRemoveXrays() {
+    return DirectiveFile.toBoolean(getRuntimeValue(DirectiveFile.PREPROCESSING_MODULE,
+        DirectiveFile.REMOVE_XRAYS_NAME));
+  }
+
+  public boolean containsModelFile() {
+    return containsComparamAttribute(DirectiveFile.ERASER_FILE,
+        DirectiveFile.CCDERASER_COMMAND, DirectiveFile.MODEL_FILE_NAME);
+  }
+
+  public String getModelFile() {
+    return getComparamValue(DirectiveFile.ERASER_FILE, DirectiveFile.CCDERASER_COMMAND,
+        DirectiveFile.MODEL_FILE_NAME);
+  }
+
+  public boolean containsTrackingMethod() {
+    return containsRuntimeAttribute(DirectiveFile.FIDUCIALS_MODULE,
+        DirectiveFile.TRACKING_METHOD_NAME);
+  }
+
+  public TrackingMethod getTrackingMethod() {
+    return TrackingMethod.getInstance(getRuntimeAttribute(DirectiveFile.FIDUCIALS_MODULE,
+        DirectiveFile.TRACKING_METHOD_NAME));
+  }
+
+  public boolean containsFiducialless() {
+    return containsRuntimeAttribute(DirectiveFile.FIDUCIALS_MODULE,
+        DirectiveFile.FIDUCIALLESS_NAME);
+  }
+
+  public boolean isFiducialless() {
+    return DirectiveFile.toBoolean(getRuntimeValue(DirectiveFile.FIDUCIALS_MODULE,
+        DirectiveFile.FIDUCIALLESS_NAME));
+  }
+
+  public boolean containsLocalAreaTargetSize() {
+    return containsComparamAttribute(DirectiveFile.TRACK_FILE,
+        DirectiveFile.BEADTRACK_COMMAND, DirectiveFile.LOCAL_AREA_TARGET_SIZE_NAME);
+  }
+
+  public boolean isLocalAreaTargetSize() {
+    return DirectiveFile.toBoolean(getComparamValue(DirectiveFile.TRACK_FILE,
+        DirectiveFile.BEADTRACK_COMMAND, DirectiveFile.LOCAL_AREA_TARGET_SIZE_NAME));
   }
 
   public boolean containsTwoSurfaces() {
