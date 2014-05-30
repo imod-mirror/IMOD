@@ -35,6 +35,8 @@ import etomo.ui.FieldType;
 final class BatchRunTomoDatasetDialog implements ActionListener {
   public static final String rcsid = "$Id:$";
 
+  private static final String AUTO_FIT_RANGE_AND_STEP_LABEL = "Autofit range and step: ";
+
   private final JPanel pnlRoot = new JPanel();
   private final CheckBox cbRemoveXrays = new CheckBox("Remove X-rays");
   private final CheckBox cbEnableStretching = new CheckBox(
@@ -68,8 +70,12 @@ final class BatchRunTomoDatasetDialog implements ActionListener {
   private final ButtonGroup bgAutofit = new ButtonGroup();
   private final RadioButton rbFitEveryImage = new RadioButton("Fit every image",
       bgAutofit);
-  private final RadioTextField rtfAutoFitRangeAndStep = RadioTextField.getInstance(
-      FieldType.FLOATING_POINT_PAIR, "Autofit range and step: ", bgAutofit);
+  private final RadioButton rbAutoFitRangeAndStep = new RadioButton(
+      "Autofit range and step: ", bgAutofit);
+  private final TextField tfAutoFitRange = new TextField(FieldType.FLOATING_POINT,
+      AUTO_FIT_RANGE_AND_STEP_LABEL, null);
+  private final TextField tfAutoFitStep = new TextField(FieldType.FLOATING_POINT,
+      AUTO_FIT_RANGE_AND_STEP_LABEL, null);
   private final ButtonGroup bgUseSirt = new ButtonGroup();
   private final RadioButton rbUseSirtFalse = new RadioButton("Back-projection", bgUseSirt);
   private final RadioButton rbUseSirtTrue = new RadioButton("SIRT", bgUseSirt);
@@ -120,6 +126,7 @@ final class BatchRunTomoDatasetDialog implements ActionListener {
     JPanel pnlReconstructionType = new JPanel();
     JPanel pnlThickness = new JPanel();
     JPanel pnlThicknessSpacingFallback = new JPanel();
+    JPanel pnlAutoFitRangeAndStep = new JPanel();
     ftfGradient.setPreferredWidth(272);
     btnModelFile.setToPreferredSize();
     rbUseSirtFalse.setSelected(true);
@@ -174,9 +181,15 @@ final class BatchRunTomoDatasetDialog implements ActionListener {
     // CorrectCTF
     pnlCorrectCTF.setLayout(new GridLayout(2, 2, 30, 0));
     pnlCorrectCTF.add(cbCorrectCTF);
-    pnlCorrectCTF.add(rtfAutoFitRangeAndStep.getContainer());
+    pnlCorrectCTF.add(pnlAutoFitRangeAndStep);
     pnlCorrectCTF.add(ltfDefocus.getComponent());
     pnlCorrectCTF.add(rbFitEveryImage.getComponent());
+    // AutoFitRangeAndStep
+    pnlAutoFitRangeAndStep.setLayout(new BoxLayout(pnlAutoFitRangeAndStep,
+        BoxLayout.X_AXIS));
+    pnlAutoFitRangeAndStep.add(rbAutoFitRangeAndStep.getComponent());
+    pnlAutoFitRangeAndStep.add(tfAutoFitRange.getComponent());
+    pnlAutoFitRangeAndStep.add(tfAutoFitStep.getComponent());
     // Reconstruction
     pnlReconstruction.setLayout(new BoxLayout(pnlReconstruction, BoxLayout.X_AXIS));
     pnlReconstruction.setBorder(new EtchedBorder("Reconstruction").getBorder());
@@ -252,8 +265,11 @@ final class BatchRunTomoDatasetDialog implements ActionListener {
     lsContourPieces.setEnabled(patchTracking);
     boolean ctf = cbCorrectCTF.isSelected();
     ltfDefocus.setEnabled(ctf);
-    rtfAutoFitRangeAndStep.setEnabled(ctf);
+    rbAutoFitRangeAndStep.setEnabled(ctf);
     rbFitEveryImage.setEnabled(ctf);
+    boolean autoFitRangeAndStep = ctf && rbAutoFitRangeAndStep.isSelected();
+    tfAutoFitRange.setEnabled(autoFitRangeAndStep);
+    tfAutoFitStep.setEnabled(autoFitRangeAndStep);
     boolean sirt = rbUseSirtTrue.isSelected() || rbDoBackprojAlso.isSelected();
     ltfLeaveIterations.setEnabled(sirt);
     cbScaleToInteger.setEnabled(sirt);
@@ -336,8 +352,16 @@ final class BatchRunTomoDatasetDialog implements ActionListener {
       rbFitEveryImage.backup();
       changed = true;
     }
-    if (rtfAutoFitRangeAndStep.isDifferentFromCheckpoint(true)) {
-      rtfAutoFitRangeAndStep.backup();
+    if (rbAutoFitRangeAndStep.isDifferentFromCheckpoint(true)) {
+      rbAutoFitRangeAndStep.backup();
+      changed = true;
+    }
+    if (tfAutoFitRange.isDifferentFromCheckpoint(true)) {
+      tfAutoFitRange.backup();
+      changed = true;
+    }
+    if (tfAutoFitStep.isDifferentFromCheckpoint(true)) {
+      tfAutoFitStep.backup();
       changed = true;
     }
     if (rbUseSirtFalse.isDifferentFromCheckpoint(true)) {
@@ -438,6 +462,30 @@ final class BatchRunTomoDatasetDialog implements ActionListener {
     }
     if (directiveFileCollection.containsDefocus()) {
       ltfDefocus.setText(directiveFileCollection.getDefocus());
+    }
+    if (directiveFileCollection.containsAutoFitRangeAndStep) {
+      ConstEtomoNumber number = directiveFileCollection.getAutoFitStep();
+      if (directiveFileCollection.getAutoFitStep().equals(0)) {
+        rbFitEveryImage.setSelected(true);
+      }
+      else {
+        rbAutoFitRangeAndStep.setSelected(true);
+        tfAutoFitRange.setText(directiveFileCollection.getAutoFitRange());
+        tfAutoFitStep.setText(number);
+      }
+    }
+    boolean useSirt = false;
+    if (directiveFileCollection.containsUseSirt()) {
+      if (directiveFileCollection.isUseSirt()) {
+        rbUseSirtTrue.setSelected(true);
+        useSirt = true;
+      }
+      else {
+        rbUseSirtFalse.setSelected(false);
+      }
+    }
+    if (directiveFileCollection.containsDoBackprojAlso()) {
+      
     }
   }
 
