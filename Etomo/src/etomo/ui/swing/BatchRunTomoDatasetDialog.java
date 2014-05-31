@@ -416,7 +416,7 @@ final class BatchRunTomoDatasetDialog implements ActionListener {
       ftfDistort.setText(directiveFileCollection.getDistortionFile());
     }
     if (directiveFileCollection.containsGradient()) {
-      ftfGradient.setText(directiveFileCollection.getGradient());
+      ftfGradient.setText(directiveFileCollection.getMagGradientFile());
     }
     if (directiveFileCollection.containsRemoveXrays()) {
       cbRemoveXrays.setSelected(directiveFileCollection.isRemoveXrays());
@@ -440,7 +440,7 @@ final class BatchRunTomoDatasetDialog implements ActionListener {
       rbFiducialless.setSelected(directiveFileCollection.isFiducialless());
     }
     if (directiveFileCollection.containsGold()) {
-      ltfGold.setText(directiveFileCollection.getGold());
+      ltfGold.setText(directiveFileCollection.getFiducialDiameter(false));
     }
     if (directiveFileCollection.containsLocalAreaTargetSize()) {
       ltfLocalAreaTargetSize.setText(directiveFileCollection.getLocalAreaTargetSize());
@@ -476,16 +476,34 @@ final class BatchRunTomoDatasetDialog implements ActionListener {
     }
     boolean useSirt = false;
     if (directiveFileCollection.containsUseSirt()) {
-      if (directiveFileCollection.isUseSirt()) {
-        rbUseSirtTrue.setSelected(true);
-        useSirt = true;
-      }
-      else {
-        rbUseSirtFalse.setSelected(false);
-      }
+      useSirt = directiveFileCollection.isUseSirt();
     }
+    boolean doBackprojAlso = false;
     if (directiveFileCollection.containsDoBackprojAlso()) {
-      
+      doBackprojAlso = directiveFileCollection.isDoBackprojAlso();
+    }
+    if (!useSirt) {
+      rbUseSirtFalse.setSelected(true);
+    }
+    else if (!doBackprojAlso) {
+      rbUseSirtTrue.setSelected(true);
+    }
+    else {
+      rbDoBackprojAlso.setSelected(true);
+    }
+    if (directiveFileCollection.containsLeaveIterations) {
+      ltfLeaveIterations.setText(directiveFileCollection.getLeaveIterations());
+    }
+    if (directiveFileCollection.containsScaleToInteger()) {
+      cbScaleToInteger.setSelected(directiveFileCollection.isScaleToInteger());
+    }
+    if (directiveFileCollection.containsTiltThickness()) {
+      // ??
+    }
+    if (directiveFileCollection.containsBinnedThickness()) {
+      String string = directiveFileCollection.getBinnedThickness();
+      rtfBinnedThickness.setSelected(string != null && !string.equals(""));
+      rtfBinnedThickness.setText(string);
     }
   }
 
