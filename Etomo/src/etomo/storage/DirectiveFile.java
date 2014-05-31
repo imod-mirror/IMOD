@@ -806,7 +806,7 @@ public final class DirectiveFile {
 
   static final class Module {
     public static final Module ALIGNED_STACK = new Module("AlignedStack");
-
+    public static final Module PREPROCESSING = new Module("Preprocessing");
     private final String tag;
 
     Module(final String tag) {
@@ -815,7 +815,7 @@ public final class DirectiveFile {
   }
 
   static final class DirectiveDescr {
-    public static final DirectiveDescr ARCHIVE_ORIGINAL = new DirectiveDescr(
+    public static final DirectiveDescr ARCHIVE_ORIGINAL = new DirectiveDescr(DirectiveType.RUN_TIME,Module.PREPROCESSING,
         "archiveOriginal");
     public static final DirectiveDescr BIN_BY_FACTOR = new DirectiveDescr(
         DirectiveType.RUN_TIME, Module.ALIGNED_STACK, "binByFactor");
