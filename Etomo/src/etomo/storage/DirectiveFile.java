@@ -219,6 +219,33 @@ public final class DirectiveFile {
     return false;
   }
 
+  private boolean containsAttribute(final DirectiveDef directiveDef, final AxisID axisID) {
+    ReadOnlyAttribute attribute = getParentAttribute(directiveDef.directiveType);
+    if (attribute == null) {
+      return false;
+    }
+    if (directiveDef.directiveType == DirectiveType.RUN_TIME) {
+      attribute = attribute.getAttribute(directiveDef.module.tag);
+    }
+    if (attribute == null) {
+      return false;
+    }
+    if (directiveDef.directiveType == DirectiveType.RUN_TIME) {
+      ReadOnlyAttribute axis = attribute.getAttribute(ANY_AXIS_NAME);
+      if (axis != null && axis.getAttribute(directiveDef.name) != null) {
+        return true;
+      }
+      String axisName = getAxisName(axisID);
+      if (axisName != null) {
+        axis = attribute.getAttribute(axisName);
+        if (axis != null && axis.getAttribute(directiveDef.name) != null) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
   boolean containsComparamAttribute(final String fileName, final String commandName,
       final String name) {
     ReadOnlyAttribute attribute = getAttribute(DirectiveType.COM_PARAM, fileName);
@@ -520,13 +547,12 @@ public final class DirectiveFile {
   }
 
   public boolean containsAlignedStackBinByFactor(final AxisID axisID) {
-    return containsAttribute(DirectiveType.RUN_TIME, ALIGNED_STACK_MODULE_NAME, axisID,
-        BIN_BY_FACTOR_NAME);
+    return containsAttribute(DirectiveDescr.BIN_BY_FACTOR_FOR_ALIGNED_STACK, axisID);
   }
 
   public boolean containsAlignedStackSizeInXandY(final AxisID axisID) {
     return containsAttribute(AttributeName.RUN_TIME, ALIGNED_STACK_MODULE_NAME, axisID,
-        SIZE_IN_X_AND_Y_NAME);
+        DirectiveDescr.SIZE_IN_X_AND_Y);
   }
 
   public boolean containsCTFplottingAutoFitRangeAndStep(final AxisID axisID) {
@@ -814,19 +840,21 @@ public final class DirectiveFile {
     }
   }
 
-  static final class DirectiveDescr {
-    public static final DirectiveDescr ARCHIVE_ORIGINAL = new DirectiveDescr(DirectiveType.RUN_TIME,Module.PREPROCESSING,
-        "archiveOriginal");
-    public static final DirectiveDescr BIN_BY_FACTOR = new DirectiveDescr(
+  private static final class DirectiveDef {
+    private static final DirectiveDef ARCHIVE_ORIGINAL = new DirectiveDef(
+        DirectiveType.RUN_TIME, Module.PREPROCESSING, "archiveOriginal");
+    private static final DirectiveDef BIN_BY_FACTOR_FOR_ALIGNED_STACK = new DirectiveDef(
         DirectiveType.RUN_TIME, Module.ALIGNED_STACK, "binByFactor");
 
     private final DirectiveType directiveType;
     private final Module module;
-    private final String tag;
+    private final String name;
 
-    DirectiveDescr(final DirectiveType directiveType, final Module module,
-        final String tag) {
-      this.tag = tag;
+    private DirectiveDef(final DirectiveType directiveType, final Module module,
+        final String name) {
+      this.directiveType = directiveType;
+      this.module = module;
+      this.name = name;
     }
   }
 }
