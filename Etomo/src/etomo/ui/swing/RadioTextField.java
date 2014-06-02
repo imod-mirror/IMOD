@@ -72,7 +72,7 @@ final class RadioTextField implements RadioButtonInterface {
   private final JPanel rootPanel = new JPanel();
   private final RadioButton radioButton;
   private final TextField textField;
-  
+
   private boolean debug = false;
 
   /**
@@ -150,9 +150,19 @@ final class RadioTextField implements RadioButtonInterface {
       Thread.dumpStack();
     }
   }
-  
+
+  void backup() {
+    radioButton.backup();
+    textField.backup();
+  }
+
+  boolean isDifferentFromCheckpoint(final boolean alwaysCheck) {
+    return radioButton.isDifferentFromCheckpoint(alwaysCheck)
+        || textField.isDifferentFromCheckpoint(alwaysCheck);
+  }
+
   void setDebug(final boolean debug) {
-    this.debug=debug;
+    this.debug = debug;
   }
 
   void setText(final ConstEtomoNumber text) {
@@ -212,7 +222,7 @@ final class RadioTextField implements RadioButtonInterface {
   void setSelected(boolean selected) {
     radioButton.setSelected(selected);
     if (debug) {
-      System.out.println("RadioTextField:setSelected:selected:"+selected);
+      System.out.println("RadioTextField:setSelected:selected:" + selected);
     }
   }
 

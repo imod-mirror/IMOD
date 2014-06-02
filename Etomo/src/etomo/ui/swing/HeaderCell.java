@@ -1,5 +1,6 @@
 package etomo.ui.swing;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
@@ -203,6 +204,20 @@ final class HeaderCell implements Cell {
         ((Cell) children.get(i)).msgLabelChanged();
       }
     }
+  }
+
+  void setText(final int text) {
+    this.text = String.valueOf(text);
+    cell.setText(formatText());
+    if (children != null) {
+      for (int i = 0; i < children.size(); i++) {
+        ((Cell) children.get(i)).msgLabelChanged();
+      }
+    }
+  }
+  
+  void setForeground(final Color color) {
+    cell.setForeground(color);
   }
 
   void addChild(Cell child) {

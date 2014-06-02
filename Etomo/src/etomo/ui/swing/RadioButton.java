@@ -44,6 +44,8 @@ final class RadioButton implements RadioButtonInterface {
 
   private boolean debug = false;
   private EtomoBoolean2 checkpointValue = null;
+  private EtomoBoolean2 backupValue = null;
+  private Color origForeground = null;
 
   RadioButton(final String text) {
     this(text, null, null);
@@ -113,12 +115,31 @@ final class RadioButton implements RadioButtonInterface {
     }
     checkpointValue.set(isSelected());
   }
+  
+  void backup() {
+    if (backupValue == null) {
+      backupValue = new EtomoBoolean2();
+    }
+    backupValue.set(isSelected());
+  }
 
   boolean isCheckpointValue() {
     if (checkpointValue == null) {
       return false;
     }
     return checkpointValue.is();
+  }
+  
+  /**
+   * 
+   * @param alwaysCheck - check for difference even when the field is disables or invisible
+   * @return
+   */
+  boolean isDifferentFromCheckpoint(final boolean alwaysCheck) {
+    if (!alwaysCheck && (!isEnabled() || !radioButton.isVisible())) {
+      return false;
+    }
+    return checkpointValue == null || !checkpointValue.equals(isSelected());
   }
 
   void setText(final String text) {
@@ -170,6 +191,23 @@ final class RadioButton implements RadioButtonInterface {
 
   public void setDebug(final boolean input) {
     debug = input;
+  }
+
+  void setTemplateColor(final boolean input) {
+    if (input) {
+      if (origForeground == null) {
+        origForeground = radioButton.getForeground();
+      }
+      setForeground(Colors.TEMPLATE);
+    }
+    else {
+      if (origForeground != null) {
+        setForeground(origForeground);
+      }
+      else {
+        setForeground(Color.black);
+      }
+    }
   }
 
   /**

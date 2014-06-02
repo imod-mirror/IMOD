@@ -160,7 +160,8 @@ final class LabeledSpinner {
   private int maximum;
 
   private Number checkpointValue = null;
-
+  private Number backupValue = null;
+  
   /**
    * @param spinner
    */
@@ -240,6 +241,10 @@ final class LabeledSpinner {
     checkpointValue = getValue();
   }
 
+  void backup() {
+    backupValue = getValue();
+  }
+  
   /**
    * Resets to checkpointValue if checkpointValue has been set.  Otherwise has no effect.
    */
@@ -248,6 +253,21 @@ final class LabeledSpinner {
       return;
     }
     setValue(checkpointValue.intValue());
+  }
+
+  /**
+   * 
+   * @param alwaysCheck - check for difference even when the field is disables or invisible
+   * @return
+   */
+  boolean isDifferentFromCheckpoint(final boolean alwaysCheck) {
+    if (!alwaysCheck && (!isEnabled() || !isVisible())) {
+      return false;
+    }
+    if (checkpointValue == null) {
+      return true;
+    }
+    return !checkpointValue.equals(getValue());
   }
 
   Number getValue() {
