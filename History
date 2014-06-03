@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/3/14: Made 3dmod automatically look for piece coordinates in an associated
+.mdoc file and eliminated -pm option, which was not in the man page (In 4.7).
+
 5/26/14: IMOD_4-8-6
 5/21/14: Stopped Makecomfile from giving error when run with a bead size of 0
 (In 4.7).
