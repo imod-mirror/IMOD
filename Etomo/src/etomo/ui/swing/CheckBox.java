@@ -1,5 +1,6 @@
 package etomo.ui.swing;
 
+import java.awt.Color;
 import java.awt.Container;
 
 import javax.swing.JCheckBox;
@@ -113,7 +114,9 @@ final class CheckBox extends JCheckBox {
   public static final String rcsid = "$Id$";
 
   private EtomoBoolean2 checkpointValue = null;
+  private EtomoBoolean2 backupValue = null;
   private boolean debug = false;
+  private Color origForeground = null;
 
   public CheckBox() {
     super();
@@ -149,6 +152,13 @@ final class CheckBox extends JCheckBox {
       System.out.println(getName() + ' ' + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
     }
   }
+  
+  void backup(){
+    if (backupValue == null) {
+      backupValue = new EtomoBoolean2();
+    }
+    backupValue.set(isSelected());
+  }
 
   /**
    * Constructs savedValue (if it doesn't exist).  Saves the current setting.
@@ -182,6 +192,23 @@ final class CheckBox extends JCheckBox {
 
   void setDebug(final boolean input) {
     debug = input;
+  }
+
+  void setTemplateColor(final boolean input) {
+    if (input) {
+      if (origForeground == null) {
+        origForeground = getForeground();
+      }
+      setForeground(Colors.TEMPLATE);
+    }
+    else {
+      if (origForeground != null) {
+        setForeground(origForeground);
+      }
+      else {
+        setForeground(Color.black);
+      }
+    }
   }
 
   /**

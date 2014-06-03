@@ -150,6 +150,16 @@ public class UIUtilities {
     }
   }
 
+  public static void alignComponentsY(Container container, float alignment) {
+    Component[] children = container.getComponents();
+    for (int i = 0; i < children.length; i++) {
+      if (children[i] instanceof JComponent) {
+        JComponent jcomp = (JComponent) children[i];
+        jcomp.setAlignmentY(alignment);
+      }
+    }
+  }
+
   /**
    * Set the button sizes (preferred and maximum) of all buttons in a container
    * to the same size.
