@@ -51,7 +51,6 @@ public final class DirectiveFile {
   public static final String BINNING_NAME = "binning";
   public static final String CS_NAME = "Cs";
   public static final String CTF_NOISE_NAME = "ctfnoise";
-  public static final String CTF_PLOTTING_MODULE_NAME = "CTFplotting";
   static final String DATASET_DIRECTORY_NAME = "datasetDirectory";
   public static final String DEFOCUS_NAME = "defocus";
   public static final String DISTORT_NAME = "distort";
@@ -78,7 +77,6 @@ public final class DirectiveFile {
   static final String SCAN_HEADER_NAME = "scanHeader";
   public static final String SCOPE_TEMPLATE_NAME = "scopeTemplate";
   public static final String SEEDING_METHOD_NAME = "seedingMethod";
-  public static final String SIZE_IN_X_AND_Y_NAME = "sizeInXandY";
   public static final String SKIP_NAME = "skip";
   static final String SURFACES_TO_ANALYZE_NAME = "SurfacesToAnalyze";
   public static final String SYSTEM_TEMPLATE_NAME = "systemTemplate";
@@ -547,12 +545,11 @@ public final class DirectiveFile {
   }
 
   public boolean containsAlignedStackBinByFactor(final AxisID axisID) {
-    return containsAttribute(DirectiveDescr.BIN_BY_FACTOR_FOR_ALIGNED_STACK, axisID);
+    return containsAttribute(DirectiveDef.BIN_BY_FACTOR_FOR_ALIGNED_STACK, axisID);
   }
 
   public boolean containsAlignedStackSizeInXandY(final AxisID axisID) {
-    return containsAttribute(AttributeName.RUN_TIME, ALIGNED_STACK_MODULE_NAME, axisID,
-        DirectiveDescr.SIZE_IN_X_AND_Y);
+    return containsAttribute(DirectiveDef.SIZE_IN_X_AND_Y, axisID);
   }
 
   public boolean containsCTFplottingAutoFitRangeAndStep(final AxisID axisID) {
@@ -832,6 +829,7 @@ public final class DirectiveFile {
 
   static final class Module {
     public static final Module ALIGNED_STACK = new Module("AlignedStack");
+    public static final Module CTF_PLOTTING =new Module( "CTFplotting");
     public static final Module PREPROCESSING = new Module("Preprocessing");
     private final String tag;
 
@@ -843,8 +841,12 @@ public final class DirectiveFile {
   private static final class DirectiveDef {
     private static final DirectiveDef ARCHIVE_ORIGINAL = new DirectiveDef(
         DirectiveType.RUN_TIME, Module.PREPROCESSING, "archiveOriginal");
+    private static final DirectiveDef     AUTO_FIT_RANGE_AND_STEP= new DirectiveDef(DirectiveType.RUN_TIME,Module.CTF_PLOTTINGE,
+        AUTO_FIT_RANGE_AND_STEP_NAME);
     private static final DirectiveDef BIN_BY_FACTOR_FOR_ALIGNED_STACK = new DirectiveDef(
         DirectiveType.RUN_TIME, Module.ALIGNED_STACK, "binByFactor");
+    private static final DirectiveDef SIZE_IN_X_AND_Y = new DirectiveDef(
+        DirectiveType.RUN_TIME, Module.ALIGNED_STACK, "sizeInXandY");
 
     private final DirectiveType directiveType;
     private final Module module;
