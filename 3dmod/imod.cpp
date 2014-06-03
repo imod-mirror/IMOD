@@ -103,7 +103,6 @@ void imod_usage(char *name)
     "default=1).\n";
   qstr += "   -a <file name>  Load tilt angles from file.\n";
   qstr += "   -p <file name>  Load piece list file.\n";
-  qstr += "   -pm   Load piece list from .mdoc metadata file\n";
   qstr += "   -P nx,ny  Display images as montage in nx by ny array.\n";
   qstr += "   -o nx,ny  Set X and X overlaps for montage display.\n";
   qstr += "   -f    Load as frames even if image file has piece "
@@ -474,10 +473,6 @@ int main( int argc, char *argv[])
           break;
         
         case 'p':
-          if (argv[i][2] == 'm') {
-            useMdoc = 1;
-            break;
-          }
           if (argv[i][2] == 'y') {
             vi.imagePyramid = 1;
             break;
@@ -854,6 +849,8 @@ int main( int argc, char *argv[])
     /* Or, check for piece coordinates in image header */
     if (!vi.li->plist && !frames && vi.image->file == IIFILE_MRC) {
       ivwReopen(vi.image);
+      if (QFile::exists(QString(vi.image->filename) + ".mdoc"))
+        useMdoc = 1;
       iiLoadPCoord(vi.image, useMdoc, vi.li, vi.hdr->nx, vi.hdr->ny,
                    vi.hdr->nz);
       iiClose(vi.image);
