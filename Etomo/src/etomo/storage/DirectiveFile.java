@@ -46,52 +46,32 @@ public final class DirectiveFile {
   static final String A_AXIS_NAME = "a";
   public static final String ANY_AXIS_NAME = "any";
   public static final String AUTO_FID_SEED_COMMAND = "autofidseed";
-  public static final String AUTO_FIT_RANGE_AND_STEP_NAME = "autoFitRangeAndStep";
   static final String B_AXIS_NAME = "b";
-  public static final String BINNING_NAME = "binning";
   public static final String CS_NAME = "Cs";
   public static final String CTF_NOISE_NAME = "ctfnoise";
   static final String DATASET_DIRECTORY_NAME = "datasetDirectory";
   public static final String DEFOCUS_NAME = "defocus";
   public static final String DISTORT_NAME = "distort";
-  public static final String DUAL_NAME = "dual";
   public static final String EXTRACT_NAME = "extract";
   static final String FALSE_VALUE = "0";
-  public static final String FIDUCIALLESS_NAME = "fiducialless";
-  public static final String FIDUCIALS_MODULE_NAME = "Fiducials";
   public static final String FIRST_INC_NAME = "firstinc";
   public static final String FOCUS_NAME = "focus";
-  public static final String GOLD_ERASING_MODULE_NAME = "GoldErasing";
   public static final String GOLD_NAME = "gold";
   public static final String GRADIENT_NAME = "gradient";
-  public static final String MONTAGE_NAME = "montage";
   public static final String NAME_NAME = "name";
-  public static final String NUMBER_OF_MARKERS_NAME = "numberOfMarkers";
   public static final String PIXEL_NAME = "pixel";
-  public static final String POSITIONING_MODULE_NAME = "Positioning";
-  public static final String RAPTOR_MODULE_NAME = "RAPTOR";
-  public static final String RECONSTRUCTION_MODULE_NAME = "Reconstruction";
   public static final String REMOVE_XRAYS_NAME = "removeXrays";
   public static final String REORIENT_NAME = "reorient";
   public static final String ROTATION_NAME = "rotation";
   static final String SCAN_HEADER_NAME = "scanHeader";
-  public static final String SCOPE_TEMPLATE_NAME = "scopeTemplate";
-  public static final String SEEDING_METHOD_NAME = "seedingMethod";
   public static final String SKIP_NAME = "skip";
   static final String SURFACES_TO_ANALYZE_NAME = "SurfacesToAnalyze";
-  public static final String SYSTEM_TEMPLATE_NAME = "systemTemplate";
-  public static final String THICKNESS_NAME = "thickness";
   static final String TILT_ALIGN_COMMAND = "tiltalign";
-  public static final String TRACKING_METHOD_NAME = "trackingMethod";
   static final String TRUE_VALUE = "1";
   public static final String TWODIR_NAME = "twodir";
   public static final String TWO_SURFACES_NAME = "TwoSurfaces";
-  public static final String USE_ALIGNED_STACK_NAME = "useAlignedStack";
   public static final String USE_RAW_TLT_NAME = "userawtlt";
-  public static final String USE_SIRT_NAME = "useSirt";
-  public static final String USER_TEMPLATE_NAME = "userTemplate";
   public static final String VOLTAGE_NAME = "voltage";
-  public static final String WHOLE_TOMOGRAM_NAME = "wholeTomogram";
 
   private static boolean debug = false;
 
@@ -217,31 +197,99 @@ public final class DirectiveFile {
     return false;
   }
 
-  private boolean containsAttribute(final DirectiveDef directiveDef, final AxisID axisID) {
-    ReadOnlyAttribute attribute = getParentAttribute(directiveDef.directiveType);
+  /**
+   * Returns the leaf attribute defined by directiveDef.
+   * @param directiveDef
+   * @param axisID
+   * @return
+   */
+  public ReadOnlyAttribute getAttribute(final DirectiveDef directiveDef,
+      final AxisID axisID) {
+    // get parent attribute
+    DirectiveType type = directiveDef.getDirectiveType();
+    ReadOnlyAttribute attribute = getParentAttribute(type);
     if (attribute == null) {
-      return false;
+      return null;
     }
-    if (directiveDef.directiveType == DirectiveType.RUN_TIME) {
-      attribute = attribute.getAttribute(directiveDef.module.tag);
+    if (type == DirectiveType.RUN_TIME) {
+      // get module attribute
+      attribute = attribute.getAttribute(directiveDef.getModule());
+      if (attribute == null) {
+        return null;
+      }
     }
-    if (attribute == null) {
-      return false;
+    else if (type == DirectiveType.COM_PARAM) {
+      // get file name attribute
+      attribute = attribute.getAttribute(directiveDef.getComfile(axisID));
+      if (attribute == null) {
+        return null;
+      }
+      // get command attribute
+      attribute = attribute.getAttribute(directiveDef.getCommand());
+      if (attribute == null) {
+        return null;
+      }
     }
-    if (directiveDef.directiveType == DirectiveType.RUN_TIME) {
-      ReadOnlyAttribute axis = attribute.getAttribute(ANY_AXIS_NAME);
-      if (axis != null && axis.getAttribute(directiveDef.name) != null) {
-        return true;
+    // get name attribute
+    String name = directiveDef.getName();
+    if (type == DirectiveType.RUN_TIME) {
+      // get axis and name
+      attribute = attribute.getAttribute(ANY_AXIS_NAME);
+
+      if (attribute != null && (attribute = attribute.getAttribute(name)) != null) {
+        return attribute;
       }
       String axisName = getAxisName(axisID);
       if (axisName != null) {
-        axis = attribute.getAttribute(axisName);
-        if (axis != null && axis.getAttribute(directiveDef.name) != null) {
-          return true;
+        attribute = attribute.getAttribute(axisName);
+        if (attribute != null && (attribute = attribute.getAttribute(name)) != null) {
+          return attribute;
         }
       }
     }
-    return false;
+    else {
+      return attribute.getAttribute(directiveDef.getName());
+    }
+    return null;
+  }
+
+  /**
+   * Returns true if the leaf attribute defined by directiveDef is present.
+   * @param directiveDef
+   * @param axisID
+   * @return
+   */
+  public boolean contains(final DirectiveDef directiveDef, final AxisID axisID) {
+    return getAttribute(directiveDef, axisID) != null;
+  }
+
+  /**
+   * Returns true if the leaf attribute defined by directiveDef is present.
+   * @param directiveDef
+   * @return
+   */
+  public boolean contains(final DirectiveDef directiveDef) {
+    return getAttribute(directiveDef, null) != null;
+  }
+
+  /**
+   * Returns the value of the leaf attribute defined by directiveDef.  Returns null
+   * of the attribute is missing.  Returns an empty string if this attribute is there and
+   * it has no value.
+   * @param directiveDef
+   * @param axisID
+   * @return
+   */
+  public String getValue(final DirectiveDef directiveDef, final AxisID axisID) {
+    ReadOnlyAttribute attribute = getAttribute(directiveDef, axisID);
+    if (attribute != null) {
+      String value = attribute.getValue();
+      if (value == null) {
+        return "";
+      }
+      return value;
+    }
+    return null;
   }
 
   boolean containsComparamAttribute(final String fileName, final String commandName,
@@ -380,6 +428,12 @@ public final class DirectiveFile {
   boolean containsExtraValue(final DirectiveType directiveType, final String name) {
     return directiveType == DirectiveType.COPY_ARG && copyArgExtraValues != null
         && copyArgExtraValues.containsKey(name);
+  }
+
+  boolean containsExtraValue(final DirectiveDef directiveDef) {
+    return directiveDef.getDirectiveType() == DirectiveType.COPY_ARG
+        && copyArgExtraValues != null
+        && copyArgExtraValues.containsKey(directiveDef.getName());
   }
 
   String getExtraValue(final DirectiveType directiveType, final String name) {
@@ -544,102 +598,8 @@ public final class DirectiveFile {
     return number;
   }
 
-  public boolean containsAlignedStackBinByFactor(final AxisID axisID) {
-    return containsAttribute(DirectiveDef.BIN_BY_FACTOR_FOR_ALIGNED_STACK, axisID);
-  }
-
-  public boolean containsAlignedStackSizeInXandY(final AxisID axisID) {
-    return containsAttribute(DirectiveDef.SIZE_IN_X_AND_Y, axisID);
-  }
-
-  public boolean containsCTFplottingAutoFitRangeAndStep(final AxisID axisID) {
-    return containsAttribute(AttributeName.RUN_TIME, CTF_PLOTTING_MODULE_NAME, axisID,
-        AUTO_FIT_RANGE_AND_STEP_NAME);
-  }
-
-  public boolean containsDual() {
-    return containsAttribute(AttributeName.COPY_ARG, DUAL_NAME);
-  }
-
-  public boolean containsFiducialsFiducialless(final AxisID axisID) {
-    return containsAttribute(AttributeName.RUN_TIME, FIDUCIALS_MODULE_NAME, axisID,
-        FIDUCIALLESS_NAME);
-  }
-
-  public boolean containsFiducialsSeedingMethod(final AxisID axisID) {
-    return containsAttribute(AttributeName.RUN_TIME, FIDUCIALS_MODULE_NAME, axisID,
-        SEEDING_METHOD_NAME);
-  }
-
-  public boolean containsFiducialsTrackingMethod(final AxisID axisID) {
-    return containsAttribute(AttributeName.RUN_TIME, FIDUCIALS_MODULE_NAME, axisID,
-        TRACKING_METHOD_NAME);
-  }
-
-  public boolean containsGoldErasingBinning(final AxisID axisID) {
-    return containsAttribute(AttributeName.RUN_TIME, GOLD_ERASING_MODULE_NAME, axisID,
-        BINNING_NAME);
-  }
-
-  public boolean containsGoldErasingThickness(final AxisID axisID) {
-    return containsAttribute(AttributeName.RUN_TIME, GOLD_ERASING_MODULE_NAME, axisID,
-        THICKNESS_NAME);
-  }
-
-  public boolean containsMontage() {
-    return containsAttribute(AttributeName.COPY_ARG, MONTAGE_NAME);
-  }
-
-  public boolean containsPositioningBinByFactor(final AxisID axisID) {
-    return containsAttribute(AttributeName.RUN_TIME, POSITIONING_MODULE_NAME, axisID,
-        BIN_BY_FACTOR_NAME);
-  }
-
-  public boolean containsPositioningThickness(final AxisID axisID) {
-    return containsAttribute(AttributeName.RUN_TIME, POSITIONING_MODULE_NAME, axisID,
-        THICKNESS_NAME);
-  }
-
-  public boolean containsPositioningWholeTomogram(final AxisID axisID) {
-    return containsAttribute(AttributeName.RUN_TIME, POSITIONING_MODULE_NAME, axisID,
-        WHOLE_TOMOGRAM_NAME);
-  }
-
-  public boolean containsRaptorNumberOfMarkers(final AxisID axisID) {
-    return containsAttribute(AttributeName.RUN_TIME, RAPTOR_MODULE_NAME, axisID,
-        NUMBER_OF_MARKERS_NAME);
-  }
-
-  public boolean containsRaptorUseAlignedStack(final AxisID axisID) {
-    return containsAttribute(AttributeName.RUN_TIME, RAPTOR_MODULE_NAME, axisID,
-        USE_ALIGNED_STACK_NAME);
-  }
-
-  public boolean containsReconstructionUseSirt(final AxisID axisID) {
-    return containsAttribute(AttributeName.RUN_TIME, RECONSTRUCTION_MODULE_NAME, axisID,
-        USE_SIRT_NAME);
-  }
-
-  public boolean containsTemplate(final DirectiveFileType type) {
-    if (type == DirectiveFileType.SCOPE) {
-      return containsAttribute(AttributeName.SETUP_SET, SCOPE_TEMPLATE_NAME);
-    }
-    if (type == DirectiveFileType.SYSTEM) {
-      return containsAttribute(AttributeName.SETUP_SET, SYSTEM_TEMPLATE_NAME);
-    }
-    if (type == DirectiveFileType.USER) {
-      return containsAttribute(AttributeName.SETUP_SET, USER_TEMPLATE_NAME);
-    }
-    return false;
-  }
-
   public static void setDebug(final boolean input) {
     debug = input;
-  }
-
-  public String getAlignedStackBinByFactor(final AxisID axisID) {
-    return getValue(AttributeName.RUN_TIME, ALIGNED_STACK_MODULE_NAME, axisID,
-        BIN_BY_FACTOR_NAME);
   }
 
   public String getAlignedStackSizeInXandY(final AxisID axisID) {
@@ -829,34 +789,46 @@ public final class DirectiveFile {
 
   static final class Module {
     public static final Module ALIGNED_STACK = new Module("AlignedStack");
-    public static final Module CTF_PLOTTING =new Module( "CTFplotting");
+    public static final Module CTF_PLOTTING = new Module("CTFplotting");
+    public static final Module FIDUCIALS = new Module("Fiducials");
+    public static final Module GOLD_ERASING = new Module("GoldErasing");
+    public static final Module POSITIONING = new Module("Positioning");
     public static final Module PREPROCESSING = new Module("Preprocessing");
+    public static final Module RAPTOR = new Module("RAPTOR");
+    public static final Module RECONSTRUCTION = new Module("Reconstruction");
+
     private final String tag;
 
-    Module(final String tag) {
+    private Module(final String tag) {
       this.tag = tag;
+    }
+
+    public String toString() {
+      return tag;
     }
   }
 
-  private static final class DirectiveDef {
-    private static final DirectiveDef ARCHIVE_ORIGINAL = new DirectiveDef(
-        DirectiveType.RUN_TIME, Module.PREPROCESSING, "archiveOriginal");
-    private static final DirectiveDef     AUTO_FIT_RANGE_AND_STEP= new DirectiveDef(DirectiveType.RUN_TIME,Module.CTF_PLOTTINGE,
-        AUTO_FIT_RANGE_AND_STEP_NAME);
-    private static final DirectiveDef BIN_BY_FACTOR_FOR_ALIGNED_STACK = new DirectiveDef(
-        DirectiveType.RUN_TIME, Module.ALIGNED_STACK, "binByFactor");
-    private static final DirectiveDef SIZE_IN_X_AND_Y = new DirectiveDef(
-        DirectiveType.RUN_TIME, Module.ALIGNED_STACK, "sizeInXandY");
+  static final class Comfile {
+    private final String tag;
 
-    private final DirectiveType directiveType;
-    private final Module module;
-    private final String name;
+    private Comfile(final String tag) {
+      this.tag = tag;
+    }
 
-    private DirectiveDef(final DirectiveType directiveType, final Module module,
-        final String name) {
-      this.directiveType = directiveType;
-      this.module = module;
-      this.name = name;
+    public String toString() {
+      return tag;
+    }
+  }
+
+  static final class Commmand {
+    private final String tag;
+
+    private Commmand(final String tag) {
+      this.tag = tag;
+    }
+
+    public String toString() {
+      return tag;
     }
   }
 }
