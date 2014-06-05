@@ -78,6 +78,22 @@ public class DirectiveFileCollection implements SetupReconInterface {
     }
     return false;
   }
+  
+  public boolean contains(final DirectiveDef directiveDef) {
+    for (int i = 0; i < directiveFileArray.length; i++) {
+      if (directiveFileArray[i] != null
+          && directiveFileArray[i].contains(directiveDef)) {
+        return true;
+      }
+    }
+    for (int i = 0; i < directiveFileArray.length; i++) {
+      if (directiveFileArray[i] != null
+          && directiveFileArray[i].containsExtraValue(directiveDef)) {
+        return true;
+      }
+    }
+    return false;
+  }
 
   /**
    * Returns true if an attribute called name is in any of the directive files.
@@ -407,11 +423,6 @@ public class DirectiveFileCollection implements SetupReconInterface {
   public boolean isDual() {
     return DirectiveFile.toBoolean(getValue(DirectiveFile.AttributeName.COPY_ARG,
         DirectiveFile.DUAL_NAME));
-  }
-
-  public boolean containsDual() {
-    return containsAttribute(DirectiveFile.AttributeName.COPY_ARG,
-        DirectiveFile.DUAL_NAME);
   }
 
   public boolean isDualAxisSelected() {
