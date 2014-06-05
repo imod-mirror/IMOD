@@ -585,7 +585,7 @@ subroutine findshift(rotLabel, ycen, thick, ifUse, numSpots, shift)
   ithick = 2 * (int(realThick / 2. +0.99))
   ithick = niceFrame(ithick, 2, 19)
   write(6, 101) rotLabel, shift, realThick, ithick
-101 format(1x,a,' lines imply added Z shift of',f7.1,'; thickness of', &
+101 format(1x,a,' lines imply added Z shift of ',f7.1,'; thickness of ', &
       f6.1,', set to',i5)
   return
 end subroutine findshift
