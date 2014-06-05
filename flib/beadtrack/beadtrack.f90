@@ -420,9 +420,10 @@ program beadtrack
     ierr = PipGetInteger('ImagesAreBinned', imageBinned)
     ierr = PipGetFloat('CentroidRadius', cgRadius)
     j = PipGetFloat('BeadDiameter', diameter)
-    if (ierr + j .ne. 1) call errorExit( &
-        'YOU MUST ENTER EITHER BeadDiameter OR CentroidRadius '// &
-        'BUT NOT BOTH', 0)
+    if (ierr + j .ne. 1) call errorExit('YOU MUST ENTER EITHER BeadDiameter'// &
+        ' OR CentroidRadius BUT NOT BOTH', 0)
+    if (j == 0 .and. diameter <= 0) call exitError( &
+        'YOU MUST ENTER A POSITIVE VALUE FOR BeadDiameter')
     !
     ! compute diameter from cgRadius by the formula used to get cgRadius in
     ! copytomocoms, then divide by binning and get cgRadius back
