@@ -10,7 +10,7 @@ import etomo.BaseManager;
 import etomo.logic.DatasetTool;
 import etomo.logic.TrackingMethod;
 import etomo.logic.UserEnv;
-import etomo.storage.DirectiveFile.AttributeName;
+
 import etomo.storage.autodoc.ReadOnlyAttribute;
 import etomo.storage.autodoc.ReadOnlyAttributeIterator;
 import etomo.type.AxisID;
@@ -56,33 +56,9 @@ public class DirectiveFileCollection implements SetupReconInterface {
     debug = input;
   }
 
-  /**
-   * Returns true if an attribute called name is in any of the directive files.
-   * @param parentName
-   * @param name
-   * @return
-   */
-  private boolean containsAttribute(final DirectiveFile.AttributeName parentName,
-      final String name) {
-    for (int i = 0; i < directiveFileArray.length; i++) {
-      if (directiveFileArray[i] != null
-          && directiveFileArray[i].containsAttribute(parentName, name)) {
-        return true;
-      }
-    }
-    for (int i = 0; i < directiveFileArray.length; i++) {
-      if (directiveFileArray[i] != null
-          && directiveFileArray[i].containsExtraValue(parentName, name)) {
-        return true;
-      }
-    }
-    return false;
-  }
-  
   public boolean contains(final DirectiveDef directiveDef) {
     for (int i = 0; i < directiveFileArray.length; i++) {
-      if (directiveFileArray[i] != null
-          && directiveFileArray[i].contains(directiveDef)) {
+      if (directiveFileArray[i] != null && directiveFileArray[i].contains(directiveDef)) {
         return true;
       }
     }
@@ -124,19 +100,18 @@ public class DirectiveFileCollection implements SetupReconInterface {
     return false;
   }
 
-  private String getValue(final DirectiveFile.AttributeName parentName, final String name) {
+  private String getValue(final DirectiveDef directiveDef) {
     String value = null;
     for (int i = 0; i < directiveFileArray.length; i++) {
-      if (directiveFileArray[i] != null
-          && directiveFileArray[i].containsAttribute(parentName, name)) {
-        value = directiveFileArray[i].getValue(parentName, name);
+      if (directiveFileArray[i] != null && directiveFileArray[i].contains(directiveDef)) {
+        value = directiveFileArray[i].getValue(directiveDef);
       }
     }
     if (value == null) {
       for (int i = 0; i < directiveFileArray.length; i++) {
         if (directiveFileArray[i] != null
-            && directiveFileArray[i].containsExtraValue(parentName, name)) {
-          value = directiveFileArray[i].getExtraValue(parentName, name);
+            && directiveFileArray[i].containsExtraValue(directiveDef)) {
+          value = directiveFileArray[i].getExtraValue(directiveDef);
         }
       }
     }
@@ -470,18 +445,22 @@ public class DirectiveFileCollection implements SetupReconInterface {
   public void setBatchDirectiveFile(final DirectiveFile baseDirectiveFile) {
     directiveFileArray[DirectiveFileType.BATCH.getIndex()] = baseDirectiveFile;
     if (baseDirectiveFile != null) {
+      DirectiveDef directiveDef = DirectiveDef.SCOPE_TEMPLATE;
       DirectiveFileType type = DirectiveFileType.SCOPE;
-      setDirectiveFile(baseDirectiveFile.getTemplate(type), type);
+      setDirectiveFile(baseDirectiveFile.getValue(directiveDef), type);
+      directiveDef = DirectiveDef.SYSTEM_TEMPLATE;
       type = DirectiveFileType.SYSTEM;
-      setDirectiveFile(baseDirectiveFile.getTemplate(type), type);
+      setDirectiveFile(baseDirectiveFile.getValue(directiveDef), type);
+      directiveDef = DirectiveDef.USER_TEMPLATE;
       type = DirectiveFileType.USER;
-      setDirectiveFile(baseDirectiveFile.getTemplate(type), type);
+      setDirectiveFile(baseDirectiveFile.getValue(directiveDef), type);
     }
   }
 
   public void setBinning(final int input) {
     if (directiveFileArray[DirectiveFileType.BATCH.getIndex()] != null) {
-      directiveFileArray[DirectiveFileType.BATCH.getIndex()].setBinning(input);
+      directiveFileArray[DirectiveFileType.BATCH.getIndex()].setValue(
+          DirectiveDef.BINNING, input);
     }
   }
 
@@ -584,7 +563,8 @@ public class DirectiveFileCollection implements SetupReconInterface {
       // If scan header (only found in the batch directive file and is not in copyarg) is
       // true, then get values from scanning the header which aren't already in the map.
       if (directiveFileArray[DirectiveFileType.BATCH.getIndex()] != null
-          && directiveFileArray[DirectiveFileType.BATCH.getIndex()].isScanHeader()) {
+          && directiveFileArray[DirectiveFileType.BATCH.getIndex()]
+              .isValue(DirectiveDef.SCAN_HEADER)) {
         Iterator<Entry<String, String>> iterator = directiveFileArray[DirectiveFileType.BATCH
             .getIndex()].getCopyArgExtraValuesIterator();
         while (iterator.hasNext()) {
