@@ -578,11 +578,12 @@ public final class SetupReconUIHarness {
     }
     AxisType axisType = getAxisType();
     if (directiveFile.contains(DirectiveDef.USE_ALIGNED_STACK, AxisID.FIRST)) {
-      metaData.setTrackRaptorUseRawStack(directiveFile
-          .isRaptorUseAlignedStack(AxisID.FIRST));
+      metaData.setTrackRaptorUseRawStack(directiveFile.isValue(
+          DirectiveDef.USE_ALIGNED_STACK, AxisID.FIRST));
     }
     if (directiveFile.contains(DirectiveDef.NUMBER_OF_MARKERS, AxisID.FIRST)) {
-      metaData.setTrackRaptorMark(directiveFile.getRaptorNumberOfMarkers(AxisID.FIRST));
+      metaData.setTrackRaptorMark(directiveFile.getValue(DirectiveDef.NUMBER_OF_MARKERS,
+          AxisID.FIRST));
     }
     saveDirectiveFile(directiveFile, metaData, AxisID.FIRST);
     saveDirectiveFile(directiveFile, metaData, AxisID.SECOND);
@@ -591,12 +592,13 @@ public final class SetupReconUIHarness {
   private void saveDirectiveFile(final DirectiveFile directiveFile,
       final MetaData metaData, final AxisID axisID) {
     if (directiveFile.contains(DirectiveDef.FIDUCIALLESS, axisID)) {
-      boolean value = directiveFile.isFiducialsFiducialless(axisID);
+      boolean value = directiveFile.isValue(DirectiveDef.FIDUCIALLESS, axisID);
       metaData.setFiducialess(axisID, value);
       metaData.setFiducialessAlignment(axisID, value);
     }
     if (directiveFile.contains(DirectiveDef.SEEDING_METHOD, axisID)) {
-      SeedingMethod seedingMethod = directiveFile.getFiducialsSeedingMethod(axisID);
+      SeedingMethod seedingMethod = SeedingMethod.getInstance(directiveFile.getValue(
+          DirectiveDef.SEEDING_METHOD, axisID));
       if (seedingMethod == SeedingMethod.MANUAL) {
         metaData.setTrackSeedModelManual(true, axisID);
       }
@@ -611,17 +613,17 @@ public final class SetupReconUIHarness {
     }
     if (directiveFile.contains(DirectiveDef.TRACKING_METHOD, axisID)) {
       metaData.setTrackMethod(axisID, TrackingMethod.toMetaDataValue(directiveFile
-          .getFiducialsTrackingMethod(axisID)));
+          .getValue(DirectiveDef.TRACKING_METHOD, axisID)));
     }
     if (directiveFile.contains(DirectiveDef.SIZE_IN_X_AND_Y, axisID)) {
       try {
         metaData.setSizeToOutputInXandY(axisID,
-            directiveFile.getAlignedStackSizeInXandY(axisID));
+            directiveFile.getValue(DirectiveDef.SIZE_IN_X_AND_Y, axisID));
       }
       catch (FortranInputSyntaxException e) {
         UIHarness.INSTANCE.openMessageDialog(manager, "Invalid directive file: "
             + directiveFile.getFile().getAbsolutePath() + ".  Invalid directive: "
-            + directiveFile.getAlignedStackSizeInXandYDescr() + ".  " + e.getMessage(),
+            + DirectiveDef.SIZE_IN_X_AND_Y.getDescr() + ".  " + e.getMessage(),
             "Invalid Directive");
       }
     }
@@ -632,38 +634,39 @@ public final class SetupReconUIHarness {
     if (directiveFile.contains(DirectiveDef.AUTO_FIT_RANGE_AND_STEP, axisID)) {
       try {
         metaData.setStackCtfAutoFitRangeAndStep(axisID,
-            directiveFile.getCTFplottingAutoFitRangeAndStep(axisID));
+            directiveFile.getValue(DirectiveDef.AUTO_FIT_RANGE_AND_STEP, axisID));
       }
       catch (FortranInputSyntaxException e) {
-        UIHarness.INSTANCE.openMessageDialog(
-            manager,
-            "Invalid directive file: " + directiveFile.getFile().getAbsolutePath()
-                + ".  Invalid directive: "
-                + directiveFile.getCTFplottingAutoFitRangeAndStepDescr() + ".  "
-                + e.getMessage(), "Invalid Directive");
+        UIHarness.INSTANCE.openMessageDialog(manager, "Invalid directive file: "
+            + directiveFile.getFile().getAbsolutePath() + ".  Invalid directive: "
+            + DirectiveDef.AUTO_FIT_RANGE_AND_STEP.getDescr() + ".  " + e.getMessage(),
+            "Invalid Directive");
       }
     }
     if (directiveFile.contains(DirectiveDef.BINNING_FOR_GOLD_ERASING, axisID)) {
-      metaData.setStack3dFindBinning(axisID, directiveFile.getGoldErasingBinning(axisID));
+      metaData.setStack3dFindBinning(axisID,
+          directiveFile.getValue(DirectiveDef.BINNING_FOR_GOLD_ERASING, axisID));
     }
     // GoldErasingThickness overrides the .com file
     if (directiveFile.contains(DirectiveDef.THICKNESS_FOR_GOLD_ERASING, axisID)) {
       metaData.setStack3dFindThickness(axisID,
-          directiveFile.getGoldErasingThickness(axisID));
+          directiveFile.getValue(DirectiveDef.THICKNESS_FOR_GOLD_ERASING, axisID));
     }
     if (directiveFile.contains(DirectiveDef.WHOLE_TOMOGRAM, axisID)) {
       metaData.setWholeTomogramSample(axisID,
-          directiveFile.isPositioningWholeTomogram(axisID));
+          directiveFile.isValue(DirectiveDef.WHOLE_TOMOGRAM, axisID));
     }
     if (directiveFile.contains(DirectiveDef.USE_SIRT, axisID)) {
       metaData.setGenBackProjection(axisID,
-          !directiveFile.isReconstructionUseSirt(axisID));
+          !directiveFile.isValue(DirectiveDef.USE_SIRT,axisID));
     }
     if (directiveFile.contains(DirectiveDef.THICKNESS_FOR_POSITIONING, axisID)) {
-      metaData.setSampleThickness(axisID, directiveFile.getPositioningThickness(axisID));
+      metaData.setSampleThickness(axisID,
+          directiveFile.getValue(DirectiveDef.THICKNESS_FOR_POSITIONING, axisID));
     }
     if (directiveFile.contains(DirectiveDef.BIN_BY_FACTOR_FOR_POSITIONING, axisID)) {
-      metaData.setPosBinning(axisID, directiveFile.getPositioningBinByFactor(axisID));
+      metaData.setPosBinning(axisID,
+          directiveFile.getValue(DirectiveDef.BIN_BY_FACTOR_FOR_POSITIONING, axisID));
     }
   }
 
