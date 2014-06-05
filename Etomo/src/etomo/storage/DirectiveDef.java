@@ -24,12 +24,24 @@ public final class DirectiveDef {
   public static final String rcsid = "$Id:$";
 
   private static final String BIN_BY_FACTOR_NAME = "binByFactor";
+  private static final String BINNING_NAME = "binning";
   private static final String THICKNESS_NAME = "thickness";
 
-  public static final DirectiveDef DUAL = new DirectiveDef(DirectiveType.COPY_ARG, "dual");
+  public static final DirectiveDef BINNING = new DirectiveDef(DirectiveType.COPY_ARG,
+      BINNING_NAME, false);
+  public static final DirectiveDef DUAL = new DirectiveDef(DirectiveType.COPY_ARG,
+      "dual", false);
+  public static final DirectiveDef EXTRACT = new DirectiveDef(DirectiveType.COPY_ARG,
+      "extract", true);
+  public static final DirectiveDef FIRST_INC = new DirectiveDef(DirectiveType.COPY_ARG,
+      "firstinc", true);
   public static final DirectiveDef MONTAGE = new DirectiveDef(DirectiveType.COPY_ARG,
-      "montage");
+      "montage", false);
+  public static final DirectiveDef USE_RAW_TLT = new DirectiveDef(DirectiveType.COPY_ARG,
+      "userawtlt", true);
 
+  public static final DirectiveDef SCAN_HEADER = new DirectiveDef(
+      DirectiveType.SETUP_SET, "scanHeader");
   public static final DirectiveDef SCOPE_TEMPLATE = new DirectiveDef(
       DirectiveType.SETUP_SET, "scopeTemplate");
   public static final DirectiveDef SYSTEM_TEMPLATE = new DirectiveDef(
@@ -53,7 +65,7 @@ public final class DirectiveDef {
       DirectiveType.RUN_TIME, Module.FIDUCIALS, "trackingMethod");
 
   public static final DirectiveDef BINNING_FOR_GOLD_ERASING = new DirectiveDef(
-      DirectiveType.RUN_TIME, Module.GOLD_ERASING, "binning");
+      DirectiveType.RUN_TIME, Module.GOLD_ERASING, BINNING_NAME);
   public static final DirectiveDef THICKNESS_FOR_GOLD_ERASING = new DirectiveDef(
       DirectiveType.RUN_TIME, Module.GOLD_ERASING, THICKNESS_NAME);
 
@@ -80,6 +92,12 @@ public final class DirectiveDef {
   private final String comfile;
   private final String command;
   private final String name;
+  /**
+   * True if this is a copyarg directive, there is a "b" version of the directive, and this
+   * is not the "b" version of the directive.
+   * True if the directive type is runtime comparam.
+   */
+  private final boolean twoAxis;
 
   /**
    * Global constructor
@@ -90,7 +108,8 @@ public final class DirectiveDef {
    * @param name
    */
   private DirectiveDef(final DirectiveType directiveType, final Module module,
-      final Comfile comfile, final Commmand command, final String name) {
+      final Comfile comfile, final Commmand command, final String name,
+      final boolean twoAxis) {
     this.directiveType = directiveType;
     if (module != null) {
       this.module = module.toString();
@@ -111,15 +130,26 @@ public final class DirectiveDef {
       this.command = null;
     }
     this.name = name;
+    this.twoAxis = twoAxis;
   }
 
   /**
-   * Constructor for setupset and setupset.copyarg
+   * Constructor for setupset.copyarg
+   * @param directiveType
+   * @param name
+   */
+  private DirectiveDef(final DirectiveType directiveType, final String name,
+      final boolean twoAxis) {
+    this(directiveType, null, null, null, name, twoAxis);
+  }
+
+  /**
+   * Constructor for setupset
    * @param directiveType
    * @param name
    */
   private DirectiveDef(final DirectiveType directiveType, final String name) {
-    this(directiveType, null, null, null, name);
+    this(directiveType, null, null, null, name, false);
   }
 
   /**
@@ -130,7 +160,7 @@ public final class DirectiveDef {
    */
   private DirectiveDef(final DirectiveType directiveType, final Module module,
       final String name) {
-    this(directiveType, module, null, null, name);
+    this(directiveType, module, null, null, name, true);
   }
 
   /**
@@ -142,7 +172,7 @@ public final class DirectiveDef {
    */
   private DirectiveDef(final DirectiveType directiveType, final Comfile comfile,
       final Commmand command, final String name) {
-    this(directiveType, null, comfile, command, name);
+    this(directiveType, null, comfile, command, name, true);
   }
 
   DirectiveType getDirectiveType() {
@@ -164,7 +194,29 @@ public final class DirectiveDef {
     return command;
   }
 
-  String getName() {
+  String getName(final AxisID axisID) {
+    if (twoAxis && directiveType == DirectiveType.COPY_ARG && axisID == AxisID.SECOND) {
+      return AxisID.SECOND.getExtension() + name;
+    }
     return name;
+  }
+
+  public String getKey(final AxisID axisID) {
+    return directiveType + comfile + command + module + name
+        + (axisID == AxisID.SECOND ? axisID.getExtension() : "");
+  }
+
+  public String getDescr() {
+    if (directiveType == DirectiveType.COPY_ARG
+        || directiveType == DirectiveType.SETUP_SET) {
+      return directiveType + "." + name;
+    }
+    else if (directiveType == DirectiveType.RUN_TIME) {
+      return directiveType + "." + module + "..." + name;
+    }
+    else if (directiveType == DirectiveType.COM_PARAM) {
+      return directiveType + "." + comfile + "..." + command + name;
+    }
+    return null;
   }
 }
