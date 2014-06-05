@@ -1,0 +1,170 @@
+package etomo.storage;
+
+import etomo.storage.DirectiveFile.Comfile;
+import etomo.storage.DirectiveFile.Commmand;
+import etomo.storage.DirectiveFile.Module;
+import etomo.type.AxisID;
+
+/**
+* <p>Description: </p>
+* 
+* <p>Copyright: Copyright 2014</p>
+*
+* <p>Organization:
+* Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
+* University of Colorado</p>
+* 
+* @author $Author$
+* 
+* @version $Revision$
+* 
+* <p> $Log$ </p>
+*/
+public final class DirectiveDef {
+  public static final String rcsid = "$Id:$";
+
+  private static final String BIN_BY_FACTOR_NAME = "binByFactor";
+  private static final String THICKNESS_NAME = "thickness";
+
+  public static final DirectiveDef DUAL = new DirectiveDef(DirectiveType.COPY_ARG, "dual");
+  public static final DirectiveDef MONTAGE = new DirectiveDef(DirectiveType.COPY_ARG,
+      "montage");
+
+  public static final DirectiveDef SCOPE_TEMPLATE = new DirectiveDef(
+      DirectiveType.SETUP_SET, "scopeTemplate");
+  public static final DirectiveDef SYSTEM_TEMPLATE = new DirectiveDef(
+      DirectiveType.SETUP_SET, "systemTemplate");
+  public static final DirectiveDef USER_TEMPLATE = new DirectiveDef(
+      DirectiveType.SETUP_SET, "userTemplate");
+
+  public static final DirectiveDef BIN_BY_FACTOR_FOR_ALIGNED_STACK = new DirectiveDef(
+      DirectiveType.RUN_TIME, Module.ALIGNED_STACK, BIN_BY_FACTOR_NAME);
+  public static final DirectiveDef SIZE_IN_X_AND_Y = new DirectiveDef(
+      DirectiveType.RUN_TIME, Module.ALIGNED_STACK, "sizeInXandY");
+
+  public static final DirectiveDef AUTO_FIT_RANGE_AND_STEP = new DirectiveDef(
+      DirectiveType.RUN_TIME, Module.CTF_PLOTTING, "autoFitRangeAndStep");
+
+  public static final DirectiveDef FIDUCIALLESS = new DirectiveDef(
+      DirectiveType.RUN_TIME, Module.FIDUCIALS, "fiducialless");
+  public static final DirectiveDef SEEDING_METHOD = new DirectiveDef(
+      DirectiveType.RUN_TIME, Module.FIDUCIALS, "seedingMethod");
+  public static final DirectiveDef TRACKING_METHOD = new DirectiveDef(
+      DirectiveType.RUN_TIME, Module.FIDUCIALS, "trackingMethod");
+
+  public static final DirectiveDef BINNING_FOR_GOLD_ERASING = new DirectiveDef(
+      DirectiveType.RUN_TIME, Module.GOLD_ERASING, "binning");
+  public static final DirectiveDef THICKNESS_FOR_GOLD_ERASING = new DirectiveDef(
+      DirectiveType.RUN_TIME, Module.GOLD_ERASING, THICKNESS_NAME);
+
+  public static final DirectiveDef BIN_BY_FACTOR_FOR_POSITIONING = new DirectiveDef(
+      DirectiveType.RUN_TIME, Module.POSITIONING, BIN_BY_FACTOR_NAME);
+  public static final DirectiveDef THICKNESS_FOR_POSITIONING = new DirectiveDef(
+      DirectiveType.RUN_TIME, Module.POSITIONING, THICKNESS_NAME);
+  public static final DirectiveDef WHOLE_TOMOGRAM = new DirectiveDef(
+      DirectiveType.RUN_TIME, Module.POSITIONING, "wholeTomogram");
+
+  public static final DirectiveDef NUMBER_OF_MARKERS = new DirectiveDef(
+      DirectiveType.RUN_TIME, Module.RAPTOR, "numberOfMarkers");
+  public static final DirectiveDef USE_ALIGNED_STACK = new DirectiveDef(
+      DirectiveType.RUN_TIME, Module.RAPTOR, "useAlignedStack");
+
+  public static final DirectiveDef USE_SIRT = new DirectiveDef(DirectiveType.RUN_TIME,
+      Module.RECONSTRUCTION, "useSirt");
+
+  public static final DirectiveDef ARCHIVE_ORIGINAL = new DirectiveDef(
+      DirectiveType.RUN_TIME, Module.PREPROCESSING, "archiveOriginal");
+
+  private final DirectiveType directiveType;
+  private final String module;
+  private final String comfile;
+  private final String command;
+  private final String name;
+
+  /**
+   * Global constructor
+   * @param directiveType
+   * @param module
+   * @param comfile
+   * @param command
+   * @param name
+   */
+  private DirectiveDef(final DirectiveType directiveType, final Module module,
+      final Comfile comfile, final Commmand command, final String name) {
+    this.directiveType = directiveType;
+    if (module != null) {
+      this.module = module.toString();
+    }
+    else {
+      this.module = null;
+    }
+    if (comfile != null) {
+      this.comfile = comfile.toString();
+    }
+    else {
+      this.comfile = null;
+    }
+    if (command != null) {
+      this.command = command.toString();
+    }
+    else {
+      this.command = null;
+    }
+    this.name = name;
+  }
+
+  /**
+   * Constructor for setupset and setupset.copyarg
+   * @param directiveType
+   * @param name
+   */
+  private DirectiveDef(final DirectiveType directiveType, final String name) {
+    this(directiveType, null, null, null, name);
+  }
+
+  /**
+   * Constructor for runtime
+   * @param directiveType
+   * @param module
+   * @param name
+   */
+  private DirectiveDef(final DirectiveType directiveType, final Module module,
+      final String name) {
+    this(directiveType, module, null, null, name);
+  }
+
+  /**
+   * Constructor for comparam
+   * @param directiveType
+   * @param comfile
+   * @param command
+   * @param name
+   */
+  private DirectiveDef(final DirectiveType directiveType, final Comfile comfile,
+      final Commmand command, final String name) {
+    this(directiveType, null, comfile, command, name);
+  }
+
+  DirectiveType getDirectiveType() {
+    return directiveType;
+  }
+
+  String getModule() {
+    return module;
+  }
+
+  String getComfile(final AxisID axisID) {
+    if (comfile != null) {
+      return comfile + (axisID != null ? axisID.getExtension() : "");
+    }
+    return null;
+  }
+
+  String getCommand() {
+    return command;
+  }
+
+  String getName() {
+    return name;
+  }
+}
