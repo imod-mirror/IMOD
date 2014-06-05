@@ -31,6 +31,7 @@ import javax.swing.filechooser.FileFilter;
 import etomo.ApplicationManager;
 import etomo.logic.ConfigTool;
 import etomo.logic.DatasetTool;
+import etomo.storage.DirectiveDef;
 import etomo.storage.DirectiveFileCollection;
 import etomo.storage.MagGradientFileFilter;
 import etomo.storage.StackFileFilter;
@@ -302,7 +303,7 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     DirectiveFileCollection directiveFileCollection = templatePanel
         .getDirectiveFileCollection();
     // Handle dual differently because the dual is the default.
-    if (directiveFileCollection.containsDual()) {
+    if (directiveFileCollection.contains(DirectiveDef.DUAL)) {
       if (directiveFileCollection.isDual()) {
         rbDualAxis.setSelected(true);
       }
