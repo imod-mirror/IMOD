@@ -8,6 +8,7 @@ import java.net.URL;
 import javax.swing.ImageIcon;
 import javax.swing.JPanel;
 
+import etomo.storage.DirectiveDef;
 import etomo.storage.DirectiveFileCollection;
 import etomo.type.ConstEtomoNumber;
 import etomo.ui.BatchRunTomoTab;
@@ -169,7 +170,7 @@ final class BatchRunTomoRow implements Highlightable {
    * @param directiveFileCollection
    */
   void setValues(final DirectiveFileCollection directiveFileCollection) {
-    if (directiveFileCollection.containsDual()) {
+    if (directiveFileCollection.contains(DirectiveDef.DUAL)) {
       cbcDualAxis.setSelected(directiveFileCollection.isDual());
     }
     if (directiveFileCollection.containsMontage()) {
