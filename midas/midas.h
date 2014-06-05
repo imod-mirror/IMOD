@@ -88,7 +88,7 @@ class MidasWindow : public QMainWindow
 
 public:
   MidasWindow(bool doubleBuffer, QWidget * parent = 0,
-              Qt::WFlags f = Qt::Window);
+              Qt::WindowFlags f = Qt::Window);
   ~MidasWindow();
 
  protected:
