@@ -26,6 +26,7 @@ ToolEdit::ToolEdit( QWidget * parent, int columns, const char * name)
 {
   mColumns = 0;
   setColumnWidth(columns);
+  connect(this, SIGNAL(editingFinished()), this, SLOT(doneEditing()));
 }
 
 ToolEdit::~ToolEdit()
@@ -65,5 +66,4 @@ void ToolEdit::setColumnWidth(int columns)
     width = ((2 * columns + 3) * fontMetrics().width(str) ) / (2 * columns);
     setFixedWidth(width);
   }
-  connect(this, SIGNAL(editingFinished()), this, SLOT(doneEditing()));
 }
