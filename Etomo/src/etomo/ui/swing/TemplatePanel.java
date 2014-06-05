@@ -13,6 +13,7 @@ import javax.swing.JPanel;
 
 import etomo.BaseManager;
 import etomo.logic.ConfigTool;
+import etomo.storage.DirectiveDef;
 import etomo.storage.DirectiveFile;
 import etomo.storage.DirectiveFileCollection;
 import etomo.type.AxisID;
@@ -312,20 +313,20 @@ final class TemplatePanel {
    * @param directiveFile
    */
   void setParameters(final DirectiveFile directiveFile) {
-    DirectiveFileType type = DirectiveFileType.SCOPE;
-    if (directiveFile.containsTemplate(type)) {
-      setTemplate(directiveFile.getTemplate(type), scopeTemplateFileList,
+    DirectiveDef directiveDef = DirectiveDef.SCOPE_TEMPLATE;
+    if (directiveFile.contains(directiveDef)) {
+      setTemplate(directiveFile.getTemplate(directiveDef), scopeTemplateFileList,
           cmbScopeTemplate);
     }
-    type = DirectiveFileType.SYSTEM;
-    if (directiveFile.containsTemplate(type)) {
-      setTemplate(directiveFile.getTemplate(type), systemTemplateFileList,
+    directiveDef = DirectiveDef.SYSTEM_TEMPLATE;
+    if (directiveFile.contains(directiveDef)) {
+      setTemplate(directiveFile.getTemplate(directiveDef), systemTemplateFileList,
           cmbSystemTemplate);
     }
-    type = DirectiveFileType.USER;
-    if (directiveFile.containsTemplate(type)) {
+    directiveDef = DirectiveDef.USER_TEMPLATE;
+    if (directiveFile.contains(directiveDef)) {
       reloadUserTemplate();
-      setTemplate(directiveFile.getTemplate(type), userTemplateFileList, cmbUserTemplate);
+      setTemplate(directiveFile.getTemplate(directiveDef), userTemplateFileList, cmbUserTemplate);
     }
     refreshDirectiveFileCollection();
   }
