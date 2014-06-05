@@ -12,6 +12,7 @@ import etomo.logic.SeedingMethod;
 import etomo.logic.TrackingMethod;
 import etomo.storage.DirectiveFile;
 import etomo.storage.DirectiveFileCollection;
+import etomo.storage.DirectiveDef;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.ConstEtomoNumber;
@@ -576,11 +577,11 @@ public final class SetupReconUIHarness {
       return;
     }
     AxisType axisType = getAxisType();
-    if (directiveFile.containsRaptorUseAlignedStack(AxisID.FIRST)) {
+    if (directiveFile.contains(DirectiveDef.USE_ALIGNED_STACK, AxisID.FIRST)) {
       metaData.setTrackRaptorUseRawStack(directiveFile
           .isRaptorUseAlignedStack(AxisID.FIRST));
     }
-    if (directiveFile.containsRaptorNumberOfMarkers(AxisID.FIRST)) {
+    if (directiveFile.contains(DirectiveDef.NUMBER_OF_MARKERS, AxisID.FIRST)) {
       metaData.setTrackRaptorMark(directiveFile.getRaptorNumberOfMarkers(AxisID.FIRST));
     }
     saveDirectiveFile(directiveFile, metaData, AxisID.FIRST);
@@ -589,12 +590,12 @@ public final class SetupReconUIHarness {
 
   private void saveDirectiveFile(final DirectiveFile directiveFile,
       final MetaData metaData, final AxisID axisID) {
-    if (directiveFile.containsFiducialsFiducialless(axisID)) {
+    if (directiveFile.contains(DirectiveDef.FIDUCIALLESS, axisID)) {
       boolean value = directiveFile.isFiducialsFiducialless(axisID);
       metaData.setFiducialess(axisID, value);
       metaData.setFiducialessAlignment(axisID, value);
     }
-    if (directiveFile.containsFiducialsSeedingMethod(axisID)) {
+    if (directiveFile.contains(DirectiveDef.SEEDING_METHOD, axisID)) {
       SeedingMethod seedingMethod = directiveFile.getFiducialsSeedingMethod(axisID);
       if (seedingMethod == SeedingMethod.MANUAL) {
         metaData.setTrackSeedModelManual(true, axisID);
@@ -608,11 +609,11 @@ public final class SetupReconUIHarness {
         metaData.setTrackSeedModelTransfer(true, axisID);
       }
     }
-    if (directiveFile.containsFiducialsTrackingMethod(axisID)) {
+    if (directiveFile.contains(DirectiveDef.TRACKING_METHOD, axisID)) {
       metaData.setTrackMethod(axisID, TrackingMethod.toMetaDataValue(directiveFile
           .getFiducialsTrackingMethod(axisID)));
     }
-    if (directiveFile.containsAlignedStackSizeInXandY(axisID)) {
+    if (directiveFile.contains(DirectiveDef.SIZE_IN_X_AND_Y, axisID)) {
       try {
         metaData.setSizeToOutputInXandY(axisID,
             directiveFile.getAlignedStackSizeInXandY(axisID));
@@ -624,10 +625,11 @@ public final class SetupReconUIHarness {
             "Invalid Directive");
       }
     }
-    if (directiveFile.containsAlignedStackBinByFactor(axisID)) {
-      metaData.setStackBinning(axisID, directiveFile.getAlignedStackBinByFactor(axisID));
+    if (directiveFile.contains(DirectiveDef.BIN_BY_FACTOR_FOR_ALIGNED_STACK, axisID)) {
+      metaData.setStackBinning(axisID,
+          directiveFile.getValue(DirectiveDef.BIN_BY_FACTOR_FOR_ALIGNED_STACK, axisID));
     }
-    if (directiveFile.containsCTFplottingAutoFitRangeAndStep(axisID)) {
+    if (directiveFile.contains(DirectiveDef.AUTO_FIT_RANGE_AND_STEP, axisID)) {
       try {
         metaData.setStackCtfAutoFitRangeAndStep(axisID,
             directiveFile.getCTFplottingAutoFitRangeAndStep(axisID));
@@ -641,26 +643,26 @@ public final class SetupReconUIHarness {
                 + e.getMessage(), "Invalid Directive");
       }
     }
-    if (directiveFile.containsGoldErasingBinning(axisID)) {
+    if (directiveFile.contains(DirectiveDef.BINNING_FOR_GOLD_ERASING, axisID)) {
       metaData.setStack3dFindBinning(axisID, directiveFile.getGoldErasingBinning(axisID));
     }
     // GoldErasingThickness overrides the .com file
-    if (directiveFile.containsGoldErasingThickness(axisID)) {
+    if (directiveFile.contains(DirectiveDef.THICKNESS_FOR_GOLD_ERASING, axisID)) {
       metaData.setStack3dFindThickness(axisID,
           directiveFile.getGoldErasingThickness(axisID));
     }
-    if (directiveFile.containsPositioningWholeTomogram(axisID)) {
+    if (directiveFile.contains(DirectiveDef.WHOLE_TOMOGRAM, axisID)) {
       metaData.setWholeTomogramSample(axisID,
           directiveFile.isPositioningWholeTomogram(axisID));
     }
-    if (directiveFile.containsReconstructionUseSirt(axisID)) {
+    if (directiveFile.contains(DirectiveDef.USE_SIRT, axisID)) {
       metaData.setGenBackProjection(axisID,
           !directiveFile.isReconstructionUseSirt(axisID));
     }
-    if (directiveFile.containsPositioningThickness(axisID)) {
+    if (directiveFile.contains(DirectiveDef.THICKNESS_FOR_POSITIONING, axisID)) {
       metaData.setSampleThickness(axisID, directiveFile.getPositioningThickness(axisID));
     }
-    if (directiveFile.containsPositioningBinByFactor(axisID)) {
+    if (directiveFile.contains(DirectiveDef.BIN_BY_FACTOR_FOR_POSITIONING, axisID)) {
       metaData.setPosBinning(axisID, directiveFile.getPositioningBinByFactor(axisID));
     }
   }
