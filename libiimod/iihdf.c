@@ -133,7 +133,7 @@ int iiHDFCheck(ImodImageFile *inFile)
   int retval, nsum, hdfSource, ind, sub, singleImStack, set, nxStack, nyStack, stackType;
   float tmp, xscale, yscale, zscale, sectXorig, sectYorig;
   int volInd, adocIndex, addedSectInd, sectInd, grp, numKeys, numMatch, mode, keyInd;
-  int origMatch;
+  int origMatch, itx, ity, itz;
   char sectText[10], labelKey[14];
   ImodImageFile *iiVol;
   const char *collName;
@@ -580,6 +580,15 @@ int iiHDFCheck(ImodImageFile *inFile)
       deletePrefixedKeyValue("MRC.ny");
       deletePrefixedKeyValue("MRC.nz");
       deletePrefixedKeyValue("MRC.mode");
+
+      /* See if every section has piece coordinates */
+      if (singleImStack) {
+        inFile->hasPieceCoords = 1;
+        for (sub = 0; sub < inFile->nz && inFile->hasPieceCoords; sub++) {
+          if (AdocGetThreeIntegers(sZvalue, sub, "PieceCoordinates", &itx, &ity, &itz))
+            inFile->hasPieceCoords = 0;
+        }
+      }
 
     } else if (hdfSource == IIHDF_CHIMERA) {
       /* SIGN? */
