@@ -13,6 +13,8 @@ import javax.swing.JPanel;
 
 import etomo.BaseManager;
 import etomo.logic.TrackingMethod;
+import etomo.storage.DirectiveDef;
+import etomo.storage.DirectiveFile;
 import etomo.storage.DirectiveFileCollection;
 import etomo.type.ConstEtomoNumber;
 import etomo.ui.FieldType;
@@ -408,24 +410,27 @@ final class BatchRunTomoDatasetDialog implements ActionListener {
   }
 
   /**
-   * Set values from the directive file collection
+   * Set values from the directive file collection.  Only set fields from directives that
+   * are in a least one of the directive files.
    * @param directiveFileCollection
    */
   void setValues(final DirectiveFileCollection directiveFileCollection) {
-    if (directiveFileCollection.containsDistort()) {
+    if (directiveFileCollection.contains(DirectiveDef.DISTORT)) {
       ftfDistort.setText(directiveFileCollection.getDistortionFile());
     }
-    if (directiveFileCollection.containsGradient()) {
+    if (directiveFileCollection.contains(DirectiveDef.GRADIENT)) {
       ftfGradient.setText(directiveFileCollection.getMagGradientFile());
     }
-    if (directiveFileCollection.containsRemoveXrays()) {
-      cbRemoveXrays.setSelected(directiveFileCollection.isRemoveXrays());
+    if (directiveFileCollection.contains(DirectiveDef.REMOVE_XRAYS)) {
+      cbRemoveXrays.setSelected(directiveFileCollection
+          .isValue(DirectiveDef.REMOVE_XRAYS));
     }
-    if (directiveFileCollection.containsModelFile()) {
-      ftfModelFile.setText(directiveFileCollection.getModelFile());
+    if (directiveFileCollection.contains(DirectiveDef.MODEL_FILE)) {
+      ftfModelFile.setText(directiveFileCollection.getValue(DirectiveDef.MODEL_FILE));
     }
-    if (directiveFileCollection.containsTrackingMethod()) {
-      TrackingMethod trackingMethod = directiveFileCollection.getTrackingMethod();
+    if (directiveFileCollection.contains(DirectiveDef.TRACKING_METHOD)) {
+      TrackingMethod trackingMethod = TrackingMethod.getInstance(directiveFileCollection
+          .getValue(DirectiveDef.TRACKING_METHOD));
       if (trackingMethod == TrackingMethod.SEED) {
         rbTrackingMethodSeed.setSelected(true);
       }
@@ -436,14 +441,16 @@ final class BatchRunTomoDatasetDialog implements ActionListener {
         rbTrackingMethodPatchTracking.setSelected(true);
       }
     }
-    if (directiveFileCollection.containsFiducialless()) {
-      rbFiducialless.setSelected(directiveFileCollection.isFiducialless());
+    if (directiveFileCollection.contains(DirectiveDef.FIDUCIALLESS)) {
+      rbFiducialless.setSelected(directiveFileCollection
+          .isValue(DirectiveDef.FIDUCIALLESS));
     }
-    if (directiveFileCollection.containsGold()) {
+    if (directiveFileCollection.contains(DirectiveDef.GOLD)) {
       ltfGold.setText(directiveFileCollection.getFiducialDiameter(false));
     }
-    if (directiveFileCollection.containsLocalAreaTargetSize()) {
-      ltfLocalAreaTargetSize.setText(directiveFileCollection.getLocalAreaTargetSize());
+    if (directiveFileCollection.contains(DirectiveDef.LOCAL_AREA_TARGET_SIZE)) {
+      ltfLocalAreaTargetSize.setText(directiveFileCollection
+          .getValue(DirectiveDef.LOCAL_AREA_TARGET_SIZE));
     }
     if (directiveFileCollection.containsTargetNumberOfBeads()) {
       ltfTargetNumberOfBeads.setText(directiveFileCollection.getTargetNumberOfBeads());
