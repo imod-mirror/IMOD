@@ -373,6 +373,9 @@ option.  It is not necessary to use this option if there are piece
 coordinates either in the extended header of an MRC file or in a
 metadata autodoc (.mdoc) file created along with an MRC file by
 SerialEM (provided that the file is present in the same directory).
+The option may also be omitted if there is only a single image file and
+if piece coordinates are in a file with extension ".pl" and the same
+root name as the image file.
 .TP
 .B -P \fInx,ny\fR
 Create an internal piece list to display images from the file in a montage
