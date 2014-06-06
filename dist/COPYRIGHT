@@ -94,6 +94,10 @@ IMOD use FFTW libraries which are Copyright (c) 1997--1999 Massachusetts
 Institute of Technology, written by Matteo Frigo and Steven G. Johnson, and
 covered by version 2 of the GPL.
 
+IMOD uses HDF5 libraries which are Copyright 1998-2006 by the Board of
+Trustees of the University of Illinois and Copyright 2006-2014 by The HDF
+Group and covered by the the license in HDF5.txt.
+
 This work is supported by NIH/NIGMS grant 8P41-GM103431 to Andreas Hoenger and
 NIBIB grant EB005027 to David Mastronarde for the Boulder Laboratory for
 3-Dimensional Electron Microscopy of Cells.
