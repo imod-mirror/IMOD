@@ -225,7 +225,7 @@ public final class SetupReconUIHarness {
    */
   public String getPropertyUserDir() {
     if (directiveFileCollection != null
-        && directiveFileCollection.containsDatasetDirectory()) {
+        && directiveFileCollection.contains(DirectiveDef.DATASET_DIRECTORY)) {
       return directiveFileCollection.getDatasetDirectory();
     }
     else if (expert != null) {
@@ -658,7 +658,7 @@ public final class SetupReconUIHarness {
     }
     if (directiveFile.contains(DirectiveDef.USE_SIRT, axisID)) {
       metaData.setGenBackProjection(axisID,
-          !directiveFile.isValue(DirectiveDef.USE_SIRT,axisID));
+          !directiveFile.isValue(DirectiveDef.USE_SIRT, axisID));
     }
     if (directiveFile.contains(DirectiveDef.THICKNESS_FOR_POSITIONING, axisID)) {
       metaData.setSampleThickness(axisID,
