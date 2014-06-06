@@ -10,7 +10,6 @@ import etomo.BaseManager;
 import etomo.logic.DatasetTool;
 import etomo.logic.TrackingMethod;
 import etomo.logic.UserEnv;
-
 import etomo.storage.autodoc.ReadOnlyAttribute;
 import etomo.storage.autodoc.ReadOnlyAttributeIterator;
 import etomo.type.AxisID;
@@ -41,6 +40,7 @@ public class DirectiveFileCollection implements SetupReconInterface {
 
   private final DirectiveFile[] directiveFileArray = new DirectiveFile[] { null, null,
       null, null };
+  private Map<String, String> extraValues = null;
 
   private final BaseManager manager;
   private final AxisID axisID;
@@ -56,215 +56,113 @@ public class DirectiveFileCollection implements SetupReconInterface {
     debug = input;
   }
 
-  public boolean contains(final DirectiveDef directiveDef) {
-    for (int i = 0; i < directiveFileArray.length; i++) {
-      if (directiveFileArray[i] != null && directiveFileArray[i].contains(directiveDef)) {
-        return true;
-      }
-    }
-    for (int i = 0; i < directiveFileArray.length; i++) {
-      if (directiveFileArray[i] != null
-          && directiveFileArray[i].containsExtraValue(directiveDef)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
   /**
-   * Returns true if an attribute called name is in any of the directive files.
-   * @param parentName
-   * @param name
+   * Returns true if directiveDef was found in a directive file, or in extraValues.
+   * @param directiveDef
+   * @param axisID
    * @return
    */
-  private boolean containsComparamAttribute(final String fileName,
-      final String commandName, final String name) {
-    for (int i = 0; i < directiveFileArray.length; i++) {
-      if (directiveFileArray[i] != null
-          && directiveFileArray[i].containsComparamAttribute(fileName, commandName, name)) {
+  public boolean contains(final DirectiveDef directiveDef, final AxisID axisID) {
+    // check extraValues
+    if (extraValues != null) {
+      String key = directiveDef.getKey(axisID);
+      if (extraValues.containsKey(key)) {
         return true;
       }
     }
-    return false;
-  }
-
-  private boolean containsComparamAttribute(final String fileName, final AxisID axisID,
-      final String commandName, final String name) {
+    // check all of the directive files.
     for (int i = 0; i < directiveFileArray.length; i++) {
-      if (directiveFileArray[i] != null
-          && directiveFileArray[i].containsComparamAttribute(fileName, axisID,
-              commandName, name)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  private String getValue(final DirectiveDef directiveDef) {
-    String value = null;
-    for (int i = 0; i < directiveFileArray.length; i++) {
-      if (directiveFileArray[i] != null && directiveFileArray[i].contains(directiveDef)) {
-        value = directiveFileArray[i].getValue(directiveDef);
-      }
-    }
-    if (value == null) {
-      for (int i = 0; i < directiveFileArray.length; i++) {
-        if (directiveFileArray[i] != null
-            && directiveFileArray[i].containsExtraValue(directiveDef)) {
-          value = directiveFileArray[i].getExtraValue(directiveDef);
+      if (directiveFileArray[i] != null) {
+        ReadOnlyAttribute attribute = directiveFileArray[i].getAttribute(directiveDef,
+            axisID);
+        if (attribute != null) {
+          return true;
         }
       }
     }
-    return value;
+    return false;
   }
 
-  private String getComparamValue(final String fileName, final String commandName,
-      final String name) {
-    String value = null;
-    for (int i = 0; i < directiveFileArray.length; i++) {
-      if (directiveFileArray[i] != null) {
-        value = directiveFileArray[i].getComparamValue(fileName, commandName, name);
-      }
-    }
-    return value;
-  }
-
-  private String getComparamValue(final String fileName, final AxisID axisID,
-      final String commandName, final String name) {
-    String value = null;
-    for (int i = 0; i < directiveFileArray.length; i++) {
-      if (directiveFileArray[i] != null) {
-        value = directiveFileArray[i].getComparamValue(fileName, axisID, commandName,
-            name);
-      }
-    }
-    return value;
+  public boolean contains(final DirectiveDef directiveDef) {
+    return contains(directiveDef);
   }
 
   /**
-   * Returns true if getValue does not return null.  If getValue does return null then
-   * either the attribute wasn't there, or it was there and was overridden (the last time
-   * it appeared in the collection there was no value).
+   * Returns the value of directiveDef in the highest priority directive file, or in
+   * extraValues, if it isn't in a directive file.  If directiveDef isn't set anywhere,
+   * returns null.  If the value was not set in the highest priority source, returns a
+   * blank string, which is the way to override (turn off) lower priority string values.
+   * Empty values are illegal in booleans, so booleans and only be turned on and off.
+   * @param directiveDef
+   * @param axisID
+   * @return null if not found, "" if no value (override), otherwise directiveDef attribute value
+   */
+  public String getValue(final DirectiveDef directiveDef, final AxisID axisID) {
+    String value = null;
+    boolean found = false;
+    // set value from extraValues - will be overridden from the directive files, if
+    // directiveDef is set in any of them.
+    if (extraValues != null) {
+      String key = directiveDef.getKey(axisID);
+      if (extraValues.containsKey(key)) {
+        found = true;
+        value = extraValues.get(key);
+      }
+    }
+    // Look for directiveDef in all of the directive files.
+    for (int i = 0; i < directiveFileArray.length; i++) {
+      if (directiveFileArray[i] != null) {
+        ReadOnlyAttribute attribute = directiveFileArray[i].getAttribute(directiveDef,
+            axisID);
+        if (attribute != null) {
+          found = true;
+          value = attribute.getValue();
+        }
+      }
+    }
+    if (!found) {
+      // DirectiveDef was not found
+      return null;
+    }
+    if (value == null) {
+      // The highest priority source overrode the value
+      return "";
+    }
+    return value;
+  }
+
+  public String getValue(final DirectiveDef directiveDef) {
+    return getValue(directiveDef, null);
+  }
+
+  /**
+   * Returns false if there is no value or the highest priority source overrode the value.
    * @param parentName
    * @param name
-   * @return
+   * @return true if value is not empty in the high priority source to contain directiveDef
    */
-  private boolean isValueSet(final DirectiveFile.AttributeName parentName,
-      final String name) {
-    return getValue(parentName, name) != null;
+  public boolean isValueSet(final DirectiveDef directiveDef, final AxisID axisID) {
+    String value = getValue(directiveDef, axisID);
+    return value != null && !value.equals("");
   }
 
-  public boolean containsBinning() {
-    return containsAttribute(AttributeName.COPY_ARG, DirectiveFile.BINNING_NAME);
+  public boolean isValueSet(final DirectiveDef directiveDef) {
+    return isValueSet(directiveDef, null);
   }
 
-  public boolean containsDatasetDirectory() {
-    return containsAttribute(DirectiveFile.AttributeName.SETUP_SET,
-        DirectiveFile.DATASET_DIRECTORY_NAME);
+  /**
+   * Returns true, unless getValue returns null or 0.  The only legal boolean values are
+   * 0 and 1. 
+   * @param directiveDef
+   * @param axisID
+   * @return true, unless getValue returns null or 0
+   */
+  public boolean isValue(final DirectiveDef directiveDef, final AxisID axisID) {
+    return DirectiveFile.toBoolean(getValue(directiveDef, axisID));
   }
 
-  public boolean containsDistort() {
-    return containsAttribute(AttributeName.COPY_ARG, DirectiveFile.DISTORT_NAME);
-  }
-
-  public boolean containsFocus(final AxisID axisID) {
-    return containsAttribute(AttributeName.COPY_ARG,
-        DirectiveFile.convertAttributeName(axisID, DirectiveFile.FOCUS_NAME));
-  }
-
-  public boolean containsGold() {
-    return containsAttribute(DirectiveFile.AttributeName.COPY_ARG,
-        DirectiveFile.GOLD_NAME);
-  }
-
-  public boolean containsGradient() {
-    return containsAttribute(AttributeName.COPY_ARG, DirectiveFile.GRADIENT_NAME);
-  }
-
-  public boolean containsPixel() {
-    return containsAttribute(DirectiveFile.AttributeName.COPY_ARG,
-        DirectiveFile.PIXEL_NAME);
-  }
-
-  public boolean containsTwodir(final AxisID axisID) {
-    return containsAttribute(DirectiveFile.AttributeName.COPY_ARG,
-        DirectiveFile.convertAttributeName(axisID, DirectiveFile.TWODIR_NAME));
-  }
-
-  public boolean containsRemoveXrays() {
-    return containsRuntimeAttribute(DirectiveFile.PREPROCESSING_MODULE,
-        DirectiveFile.REMOVE_XRAYS_NAME);
-  }
-
-  public boolean isRemoveXrays() {
-    return DirectiveFile.toBoolean(getRuntimeValue(DirectiveFile.PREPROCESSING_MODULE,
-        DirectiveFile.REMOVE_XRAYS_NAME));
-  }
-
-  public boolean containsModelFile() {
-    return containsComparamAttribute(DirectiveFile.ERASER_FILE,
-        DirectiveFile.CCDERASER_COMMAND, DirectiveFile.MODEL_FILE_NAME);
-  }
-
-  public String getModelFile() {
-    return getComparamValue(DirectiveFile.ERASER_FILE, DirectiveFile.CCDERASER_COMMAND,
-        DirectiveFile.MODEL_FILE_NAME);
-  }
-
-  public boolean containsTrackingMethod() {
-    return containsRuntimeAttribute(DirectiveFile.FIDUCIALS_MODULE,
-        DirectiveFile.TRACKING_METHOD_NAME);
-  }
-
-  public TrackingMethod getTrackingMethod() {
-    return TrackingMethod.getInstance(getRuntimeAttribute(DirectiveFile.FIDUCIALS_MODULE,
-        DirectiveFile.TRACKING_METHOD_NAME));
-  }
-
-  public boolean containsFiducialless() {
-    return containsRuntimeAttribute(DirectiveFile.FIDUCIALS_MODULE,
-        DirectiveFile.FIDUCIALLESS_NAME);
-  }
-
-  public boolean isFiducialless() {
-    return DirectiveFile.toBoolean(getRuntimeValue(DirectiveFile.FIDUCIALS_MODULE,
-        DirectiveFile.FIDUCIALLESS_NAME));
-  }
-
-  public boolean containsLocalAreaTargetSize() {
-    return containsComparamAttribute(DirectiveFile.TRACK_FILE,
-        DirectiveFile.BEADTRACK_COMMAND, DirectiveFile.LOCAL_AREA_TARGET_SIZE_NAME);
-  }
-
-  public boolean isLocalAreaTargetSize() {
-    return DirectiveFile.toBoolean(getComparamValue(DirectiveFile.TRACK_FILE,
-        DirectiveFile.BEADTRACK_COMMAND, DirectiveFile.LOCAL_AREA_TARGET_SIZE_NAME));
-  }
-
-  public boolean containsTwoSurfaces() {
-    return containsComparamAttribute(DirectiveFile.AUTO_FID_SEED_COMMAND,
-        DirectiveFile.AUTO_FID_SEED_COMMAND, DirectiveFile.TWO_SURFACES_NAME);
-  }
-
-  public boolean isTwoSurfaces() {
-    return DirectiveFile.toBoolean(getComparamValue(DirectiveFile.AUTO_FID_SEED_COMMAND,
-        DirectiveFile.AUTO_FID_SEED_COMMAND, DirectiveFile.TWO_SURFACES_NAME));
-  }
-
-  public ConstEtomoNumber getSurfacesToAnalyze() {
-    return DirectiveFile.toNumber(
-        getComparamValue(DirectiveFile.AUTO_FID_SEED_COMMAND,
-            DirectiveFile.AUTO_FID_SEED_COMMAND, DirectiveFile.TWO_SURFACES_NAME),
-        EtomoNumber.Type.INTEGER);
-  }
-
-  public boolean containsSurfacesToAnalyze() {
-    return containsComparamAttribute(DirectiveFile.ALIGN_FILE,
-        DirectiveFile.TILT_ALIGN_COMMAND, DirectiveFile.SURFACES_TO_ANALYZE_NAME);
-  }
-
-  public boolean containsRotation() {
-    return containsAttribute(AttributeName.COPY_ARG, DirectiveFile.ROTATION_NAME);
+  public boolean isValue(final DirectiveDef directiveDef) {
+    return DirectiveFile.toBoolean(getValue(directiveDef, null));
   }
 
   public boolean containsTiltAngleSpec(final AxisID axisID) {
