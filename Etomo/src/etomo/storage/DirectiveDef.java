@@ -1,7 +1,7 @@
 package etomo.storage;
 
 import etomo.storage.DirectiveFile.Comfile;
-import etomo.storage.DirectiveFile.Commmand;
+import etomo.storage.DirectiveFile.Command;
 import etomo.storage.DirectiveFile.Module;
 import etomo.type.AxisID;
 
@@ -29,17 +29,31 @@ public final class DirectiveDef {
 
   public static final DirectiveDef BINNING = new DirectiveDef(DirectiveType.COPY_ARG,
       BINNING_NAME, false);
+  public static final DirectiveDef DISTORT = new DirectiveDef(DirectiveType.COPY_ARG,
+      "distort", false);
   public static final DirectiveDef DUAL = new DirectiveDef(DirectiveType.COPY_ARG,
       "dual", false);
   public static final DirectiveDef EXTRACT = new DirectiveDef(DirectiveType.COPY_ARG,
       "extract", true);
   public static final DirectiveDef FIRST_INC = new DirectiveDef(DirectiveType.COPY_ARG,
       "firstinc", true);
+  public static final DirectiveDef FOCUS = new DirectiveDef(DirectiveType.COPY_ARG,
+      "focus", true);
+  public static final DirectiveDef GOLD = new DirectiveDef(DirectiveType.COPY_ARG,
+      "gold", false);
+  public static final DirectiveDef GRADIENT = new DirectiveDef(DirectiveType.COPY_ARG,
+      "gradient", false);
   public static final DirectiveDef MONTAGE = new DirectiveDef(DirectiveType.COPY_ARG,
       "montage", false);
+  public static final DirectiveDef PIXEL = new DirectiveDef(DirectiveType.COPY_ARG,
+      "pixel", false);
+  public static final DirectiveDef ROTATION = new DirectiveDef(DirectiveType.COPY_ARG,
+      "rotation", false);
   public static final DirectiveDef USE_RAW_TLT = new DirectiveDef(DirectiveType.COPY_ARG,
       "userawtlt", true);
 
+  public static final DirectiveDef DATASET_DIRECTORY = new DirectiveDef(
+      DirectiveType.SETUP_SET, "datasetDirectory");
   public static final DirectiveDef SCAN_HEADER = new DirectiveDef(
       DirectiveType.SETUP_SET, "scanHeader");
   public static final DirectiveDef SCOPE_TEMPLATE = new DirectiveDef(
@@ -76,6 +90,9 @@ public final class DirectiveDef {
   public static final DirectiveDef WHOLE_TOMOGRAM = new DirectiveDef(
       DirectiveType.RUN_TIME, Module.POSITIONING, "wholeTomogram");
 
+  public static final DirectiveDef REMOVE_XRAYS = new DirectiveDef(
+      DirectiveType.RUN_TIME, Module.PREPROCESSING, "removeXrays");
+
   public static final DirectiveDef NUMBER_OF_MARKERS = new DirectiveDef(
       DirectiveType.RUN_TIME, Module.RAPTOR, "numberOfMarkers");
   public static final DirectiveDef USE_ALIGNED_STACK = new DirectiveDef(
@@ -86,6 +103,18 @@ public final class DirectiveDef {
 
   public static final DirectiveDef ARCHIVE_ORIGINAL = new DirectiveDef(
       DirectiveType.RUN_TIME, Module.PREPROCESSING, "archiveOriginal");
+
+  public static final DirectiveDef SURFACES_TO_ANALYZE = new DirectiveDef(
+      DirectiveType.COM_PARAM, Comfile.ALIGN, Command.TILTALIGN, "SurfacesToAnalyze");
+  
+  public static final DirectiveDef TWO_SURFACES = new DirectiveDef(
+      DirectiveType.COM_PARAM, Comfile.AUTOFIDSEED, Command.AUTOFIDSEED, "TwoSurfaces");
+
+  public static final DirectiveDef MODEL_FILE = new DirectiveDef(DirectiveType.COM_PARAM,
+      Comfile.ERASER, Command.CCDERASER, "ModelFile");
+
+  public static final DirectiveDef LOCAL_AREA_TARGET_SIZE = new DirectiveDef(
+      DirectiveType.COM_PARAM, Comfile.TRACK, Command.BEADTRACK, "LocalAreaTargetSize");
 
   private final DirectiveType directiveType;
   private final String module;
@@ -108,7 +137,7 @@ public final class DirectiveDef {
    * @param name
    */
   private DirectiveDef(final DirectiveType directiveType, final Module module,
-      final Comfile comfile, final Commmand command, final String name,
+      final Comfile comfile, final Command command, final String name,
       final boolean twoAxis) {
     this.directiveType = directiveType;
     if (module != null) {
@@ -171,7 +200,7 @@ public final class DirectiveDef {
    * @param name
    */
   private DirectiveDef(final DirectiveType directiveType, final Comfile comfile,
-      final Commmand command, final String name) {
+      final Command command, final String name) {
     this(directiveType, null, comfile, command, name, true);
   }
 
