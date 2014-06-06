@@ -19,6 +19,7 @@
 #ifdef F77FUNCAP
 #define adocread ADOCREAD
 #define adocopenimagemetadata ADOCOPENIMAGEMETADATA
+#define adocgetimagemetainfo ADOCGETIMAGEMETAINFO
 #define adocnew ADOCNEW
 #define adocsetcurrent ADOCSETCURRENT
 #define adocdone ADOCDONE
@@ -54,6 +55,7 @@
 #else
 #define adocread adocread_
 #define adocopenimagemetadata adocopenimagemetadata_
+#define adocgetimagemetainfo adocgetimagemetainfo_
 #define adocnew adocnew_
 #define adocsetcurrent adocsetcurrent_
 #define adocclear adocclear_
@@ -113,6 +115,11 @@ int adocopenimagemetadata(char *filename, int *addMdoc, int *montage,
   err = AdocOpenImageMetadata(cStr, *addMdoc, montage, numSect, sectType);
   free(cStr);
   return (err >= 0 ? err + 1 : err);
+}
+
+int adocgetimagemetainfo(int *montage, int *numSect, int *sectType) 
+{
+  return AdocGetImageMetaInfo(montage, numSect, sectType);
 }
 
 int adocnew()

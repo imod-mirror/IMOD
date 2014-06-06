@@ -360,7 +360,7 @@ int iiuvolumeopen(int *newUnit, int *mainUnit, int *volIndex)
 /*!
  * Returns the autodoc index for an HDF file or potentially opens a metadata autodoc
  * or a new autodoc for an MRC file; see @@iimage.html#iiGetAdocIndex@.  Fortran wrapper
- * iiuretadocindex, returns an index numbered from 1.
+ * iiuretadocindex, returns an index numbered from 1 but -2 or -2 for error
  */
 int iiuRetAdocIndex(int iunit, int global, int openMdocOrNew)
 {
@@ -369,7 +369,10 @@ int iiuRetAdocIndex(int iunit, int global, int openMdocOrNew)
 }
 
 int iiuretadocindex(int *iunit, int *global, int *openMdocOrNew)
-{return iiuRetAdocIndex(*iunit, *global, *openMdocOrNew) + 1;}
+{
+  int err = iiuRetAdocIndex(*iunit, *global, *openMdocOrNew);
+  return err < 0 ? err : err + 1;
+}
 
 /* This function is here because unit_header has no access to lookupUnit */
 int iiuTransAdocSections(int toUnit, int fromUnit)
