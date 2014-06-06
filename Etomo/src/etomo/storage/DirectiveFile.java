@@ -47,16 +47,9 @@ public final class DirectiveFile {
   static final String B_AXIS_NAME = "b";
   public static final String CS_NAME = "Cs";
   public static final String CTF_NOISE_NAME = "ctfnoise";
-  static final String DATASET_DIRECTORY_NAME = "datasetDirectory";
   public static final String DEFOCUS_NAME = "defocus";
-  public static final String DISTORT_NAME = "distort";
   static final String FALSE_VALUE = "0";
-  public static final String FOCUS_NAME = "focus";
-  public static final String GOLD_NAME = "gold";
-  public static final String GRADIENT_NAME = "gradient";
   public static final String NAME_NAME = "name";
-  public static final String PIXEL_NAME = "pixel";
-  public static final String REMOVE_XRAYS_NAME = "removeXrays";
   public static final String REORIENT_NAME = "reorient";
   public static final String ROTATION_NAME = "rotation";
   public static final String SKIP_NAME = "skip";
@@ -74,7 +67,6 @@ public final class DirectiveFile {
   private final File file;
 
   private ReadOnlyAttribute copyArg = null;
-  private Map<String, String> extraValues = null;
   private ReadOnlyAttribute runtime = null;
   private ReadOnlyAttribute setupSet = null;
   private ReadOnlyAttribute comparam = null;
@@ -750,6 +742,11 @@ public final class DirectiveFile {
   }
 
   static final class Comfile {
+    static final Comfile ALIGN = new Comfile("align");
+    static final Comfile AUTOFIDSEED = new Comfile("autofidseed");
+    static final Comfile ERASER = new Comfile("eraser");
+    static final Comfile TRACK = new Comfile("track");
+
     private final String tag;
 
     private Comfile(final String tag) {
@@ -761,10 +758,15 @@ public final class DirectiveFile {
     }
   }
 
-  static final class Commmand {
+  static final class Command {
+    static final Command AUTOFIDSEED = new Command("autofidseed");
+    static final Command CCDERASER = new Command("ccderaser");
+    static final Command BEADTRACK = new Command("beadtrack");
+    static final Command TILTALIGN = new Command("tiltalign");    
+
     private final String tag;
 
-    private Commmand(final String tag) {
+    private Command(final String tag) {
       this.tag = tag;
     }
 
