@@ -11,6 +11,7 @@ import javax.swing.JPanel;
 import etomo.storage.DirectiveDef;
 import etomo.storage.DirectiveFileCollection;
 import etomo.type.ConstEtomoNumber;
+import etomo.type.EtomoNumber;
 import etomo.ui.BatchRunTomoTab;
 
 /**
@@ -176,11 +177,13 @@ final class BatchRunTomoRow implements Highlightable {
     if (directiveFileCollection.containsMontage()) {
       cbcMontage.setSelected(directiveFileCollection.isMontage());
     }
-    if (directiveFileCollection.containsTwoSurfaces()) {
-      cbcTwoSurfaces.setSelected(directiveFileCollection.isTwoSurfaces());
+    if (directiveFileCollection.contains(DirectiveDef.TWO_SURFACES)) {
+      cbcTwoSurfaces.setSelected(directiveFileCollection
+          .isValue(DirectiveDef.TWO_SURFACES));
     }
-    else if (directiveFileCollection.containsSurfacesToAnalyze()) {
-      ConstEtomoNumber number = directiveFileCollection.getSurfacesToAnalyze();
+    else if (directiveFileCollection.contains(DirectiveDef.SURFACES_TO_ANALYZE)) {
+      EtomoNumber number = new EtomoNumber();
+      number.set(directiveFileCollection.getValue(DirectiveDef.SURFACES_TO_ANALYZE));
       cbcTwoSurfaces.setSelected(number != null && number.equals(2));
     }
   }
