@@ -325,7 +325,7 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     else {
       resetRadioButtons(rbSingleView, rbMontage);
     }
-    if (directiveFileCollection.containsPixel()) {
+    if (directiveFileCollection.contains(DirectiveDef.PIXEL)) {
       ltfPixelSize.setText(directiveFileCollection.getPixelSize(false));
     }
     else {
@@ -345,13 +345,13 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     else {
       ctfBtwodir.resetToCheckpoint();
     }
-    if (directiveFileCollection.containsGold()) {
+    if (directiveFileCollection.contains(DirectiveDef.GOLD)) {
       ltfFiducialDiameter.setText(directiveFileCollection.getFiducialDiameter(false));
     }
     else {
       ltfFiducialDiameter.resetToCheckpoint();
     }
-    if (directiveFileCollection.containsRotation()) {
+    if (directiveFileCollection.contains(DirectiveDef.ROTATION)) {
       ltfImageRotation.setText(directiveFileCollection.getImageRotation(AxisID.FIRST,
           false));
     }
@@ -359,32 +359,32 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
       ltfImageRotation.resetToCheckpoint();
     }
     expert.updateTiltAnglePanelTemplateValues(directiveFileCollection);
-    if (directiveFileCollection.containsDistort()) {
+    if (directiveFileCollection.contains(DirectiveDef.DISTORT)) {
       ftfDistortionFile.setText(directiveFileCollection.getDistortionFile());
     }
     else {
       ftfDistortionFile.resetToCheckpoint();
     }
-    if (directiveFileCollection.containsBinning()) {
+    if (directiveFileCollection.contains(DirectiveDef.BINNING)) {
       spnBinning.setValue(directiveFileCollection.getIntBinning(BINNING_DEFAULT));
     }
     else {
       spnBinning.resetToCheckpoint();
     }
-    if (directiveFileCollection.containsGradient()) {
+    if (directiveFileCollection.contains(DirectiveDef.GRADIENT)) {
       ftfMagGradientFile.setText(directiveFileCollection.getMagGradientFile());
     }
     else {
       ftfMagGradientFile.resetToCheckpoint();
     }
-    if (directiveFileCollection.containsFocus(AxisID.FIRST)) {
+    if (directiveFileCollection.contains(DirectiveDef.FOCUS, AxisID.FIRST)) {
       cbAdjustedFocusA.setSelected(directiveFileCollection
           .isAdjustedFocusSelected(AxisID.FIRST));
     }
     else {
       cbAdjustedFocusA.resetToCheckpoint();
     }
-    if (directiveFileCollection.containsFocus(AxisID.SECOND)) {
+    if (directiveFileCollection.contains(DirectiveDef.FOCUS, AxisID.SECOND)) {
       cbAdjustedFocusB.setSelected(directiveFileCollection
           .isAdjustedFocusSelected(AxisID.SECOND));
     }
