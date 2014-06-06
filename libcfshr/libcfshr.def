@@ -97,6 +97,7 @@ EXPORTS
 	ADOCREAD
 	AdocWrite
 	AdocSetKeyValue
+	AdocGetImageMetaInfo
 	CCCoefficientTwoPads
 	PipSetUsageString
 	mrcHugeSeek
@@ -264,6 +265,7 @@ EXPORTS
 	PIPGETTWOFLOATS
 	b3dOMPthreadNum
 	b3dIMax
+	ADOCGETIMAGEMETAINFO
 	zoomFiltInterp
 	FINDPIECESHIFTS
 	b3dIMin
