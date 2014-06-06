@@ -170,6 +170,7 @@ EXPORTS
 	sliceByteConvolve
 	iiuMrcHeader
 	sliceMMM
+	iiPlistFromAutodoc
 	iiuFileType
 	ITRHDR
 	mrc_write_slice
