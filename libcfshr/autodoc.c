@@ -329,23 +329,45 @@ int AdocOpenImageMetadata(const char *filename, int addMdoc, int *montage,
   if (index < 0)
     return index;
 
-  /* Determine section type or return -3 if not a metadata file */
+  series = AdocGetImageMetaInfo(montage, numSect, sectType);
+  if (series) {
+    AdocClear(index);
+    return series;
+  }
+  return index;
+}
+
+/*!
+ * Determines whether the current autodoc is a valid image metadata autodoc and
+ * returns a non-zero in [montage] if the file indicates a montage; the number of 
+ * sections in [numSect]; and 1 for a metadata autodoc, 2 for an image series autodoc,
+ * or 3 for any other autodoc with sections named ZValue (including the autodoc holding
+ * attributes for an HDF file).  The return value is -3 if it 
+ * is not one of these types of autodocs.
+ */
+int AdocGetImageMetaInfo(int *montage, int *numSect, int *sectType) 
+{
+  int series;
+  char *usename;
+
   if (!AdocGetString(GLOBAL_NAME, 0, "ImageFile", &usename)) {
     *sectType = 1;
     free(usename);
-    *numSect = AdocGetNumberOfSections("ZValue");
-  } else if (!AdocGetInteger(GLOBAL_NAME, 0, "ImageSeries", &series) && 
-             series) {
+    *numSect = AdocGetNumberOfSections(ADOC_ZVALUE_NAME);
+  } else if (!AdocGetInteger(GLOBAL_NAME, 0, "ImageSeries", &series) && series) {
     *sectType = 2;
     *numSect = AdocGetNumberOfSections("Image");
   } else {
-    AdocClear(index);
-    return -3;
+    *numSect = AdocGetNumberOfSections(ADOC_ZVALUE_NAME);
+    if (! *numSect)
+      return -3;
+    *sectType = 3;
   }
  
   *montage = 0;
-  AdocGetInteger(GLOBAL_NAME, 0, "Montage", montage);
-  return index;
+  if (AdocGetInteger(GLOBAL_NAME, 0, "Montage", montage))
+    AdocGetInteger(GLOBAL_NAME, 0, "IMOD.Montage", montage);
+  return 0;
 }
 
 /*!
@@ -645,7 +667,9 @@ int AdocLookupSection(const char *typeName, const char *name)
 /*!
  * Looks up a section of type specified by [typeName] whose name converts to the integer
  * value [nameValue]. Returns the index of that section in the collection of sections of
- * that type, -1 if there is none, or -2 for error.
+ * that type, -1 if there is none, or -2 for error.  When calling from Fortran, be sure
+ * to pass the actual value in the file, as this routine will not adjust the passed
+ * value down by 1.
  */
 int AdocLookupByNameValue(const char *typeName, int nameValue)
 {

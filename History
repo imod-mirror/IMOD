@@ -1,5 +1,13 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/6/14: Made Extractpieces and Extracttilts take information from an
+associated .mdoc file automatically as a fallback and work with metadata in an
+HDF file also; made Extracttilts able to extract the text strings for any
+metadata in .modc or HDF file; made 3dmod able to take piece coordinates from
+an HDF file.
+
+6/6/14: Added script for copying header of MRC file.
+
 6/5/14: Made 3dmod automatically get piece coordinates from a .pl file
 with same root name as single image file entered (In 4.7).
 

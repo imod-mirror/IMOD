@@ -971,7 +971,14 @@ float iiReadPoint(ImodImageFile *inFile, int x, int y, int z)
 int iiLoadPCoord(ImodImageFile *inFile, int useMdoc, IloadInfo *li, int nx,
                  int ny, int nz)
 {
-  int err;
+  int err, adocIndex, montage, numSect, sectType;
+  if (inFile->file == IIFILE_HDF) {
+    adocIndex = iiGetAdocIndex(inFile, 0, 0);
+    if (adocIndex >= 0 && !AdocSetCurrent(adocIndex) && 
+        !AdocGetImageMetaInfo(&montage, &numSect, &sectType))
+      err = iiPlistFromAutodoc(adocIndex, 0, li, nx, ny, nz, montage, numSect, sectType);
+    return 0;
+  }
   if (iiMRCCheck(inFile))
     return (0);
   iiMRCLoadPCoord(inFile, li, nx, ny, nz);
