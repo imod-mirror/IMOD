@@ -80,7 +80,7 @@ public final class DirectiveName {
   public String getKeyDescription() {
     String key = getKey();
     if (type == DirectiveType.RUNTIME) {
-      return key.replace(AutodocTokenizer.SEPARATOR_CHAR + DirectiveFile.ANY_AXIS_NAME,
+      return key.replace(AutodocTokenizer.SEPARATOR_CHAR + DirectiveFile.RUN_TIME_ANY_AXIS_NAME,
           "");
     }
     return key;
@@ -236,7 +236,7 @@ public final class DirectiveName {
           axisID = AxisID.SECOND;
         }
         // Replace with "any".
-        key[i] = DirectiveFile.ANY_AXIS_NAME;
+        key[i] = DirectiveFile.RUN_TIME_ANY_AXIS_NAME;
       }
     }
     return axisID;
@@ -267,7 +267,7 @@ public final class DirectiveName {
     // Set ext to the correct form
     String ext = "";
     if (type == DirectiveType.RUNTIME) {
-      ext = DirectiveFile.ANY_AXIS_NAME;
+      ext = DirectiveFile.RUN_TIME_ANY_AXIS_NAME;
     }
     // Create a string version of the directive name with the correct axisID string
     StringBuffer buffer = new StringBuffer();
