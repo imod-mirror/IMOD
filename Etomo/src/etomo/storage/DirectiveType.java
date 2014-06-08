@@ -78,6 +78,13 @@ public final class DirectiveType {
     return input.equals(this.tag);
   }
 
+  public String getKey() {
+    if (this == COPY_ARG) {
+      return SETUP_SET.tag + AutodocTokenizer.SEPARATOR_CHAR + tag;
+    }
+    return tag;
+  }
+
   public String toString() {
     return tag;
   }
