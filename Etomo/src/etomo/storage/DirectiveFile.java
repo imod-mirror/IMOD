@@ -16,6 +16,7 @@ import etomo.storage.autodoc.ReadOnlyAttributeIterator;
 import etomo.storage.autodoc.ReadOnlyAttributeList;
 import etomo.storage.autodoc.ReadOnlyAutodoc;
 import etomo.type.AxisID;
+import etomo.type.AxisType;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.EtomoNumber;
 import etomo.type.TiltAngleSpec;
@@ -41,10 +42,6 @@ import etomo.ui.swing.UIHarness;
 public final class DirectiveFile {
   public static final String rcsid = "$Id:$";
 
-  static final String A_AXIS_NAME = "a";
-  public static final String ANY_AXIS_NAME = "any";
-  public static final String AUTO_FID_SEED_COMMAND = "autofidseed";
-  static final String B_AXIS_NAME = "b";
   public static final String CS_NAME = "Cs";
   public static final String CTF_NOISE_NAME = "ctfnoise";
   public static final String DEFOCUS_NAME = "defocus";
@@ -163,28 +160,9 @@ public final class DirectiveFile {
     return getAttribute(directiveType, name) != null;
   }
 
-  private boolean containsAttribute(final DirectiveType directiveType,
-      final String sectionName, final AxisID axisID, final String name) {
-    ReadOnlyAttribute parent = getAttribute(directiveType, sectionName);
-    if (parent == null) {
-      return false;
-    }
-    ReadOnlyAttribute axis = parent.getAttribute(ANY_AXIS_NAME);
-    if (axis != null && axis.getAttribute(name) != null) {
-      return true;
-    }
-    String axisName = getAxisName(axisID);
-    if (axisName != null) {
-      axis = parent.getAttribute(axisName);
-      if (axis != null && axis.getAttribute(name) != null) {
-        return true;
-      }
-    }
-    return false;
-  }
-
   /**
-   * Returns the leaf attribute defined by directiveDef.
+   * Returns the leaf attribute defined by directiveDef.  Searches under no axis tag and
+   * and A or B axis tag.
    * @param directiveDef
    * @param axisID
    * @return
@@ -205,13 +183,27 @@ public final class DirectiveFile {
       }
     }
     else if (type == DirectiveType.COM_PARAM) {
-      // get file name attribute
-      attribute = attribute.getAttribute(directiveDef.getComfile(axisID));
-      if (attribute == null) {
-        return null;
+      // get comfile attribute
+      ReadOnlyAttribute comfileAttribute = attribute.getAttribute(directiveDef
+          .getComfile());
+      attribute = getAttribute(directiveDef
+          .getComfile(),directiveDef.getCommand());
+      String axisTag;
+      if (comfileAttribute == null) {
+        // Can't find anything with no axis tag - try a or b postfix.
+        if (axisID == AxisID.SECOND) {
+          axisTag = axisID.getExtension();
+        }
+        else {
+          axisTag = AxisID.FIRST.getExtension();
+        }
+        comfileAttribute = attribute.getAttribute(directiveDef.getComfile());
+        if (comfileAttribute == null) {
+          return null;
+        }
       }
       // get command attribute
-      attribute = attribute.getAttribute(directiveDef.getCommand());
+      attribute = comfileAttribute.getAttribute(directiveDef.getCommand());
       if (attribute == null) {
         return null;
       }
@@ -220,23 +212,32 @@ public final class DirectiveFile {
     String name = directiveDef.getName(axisID);
     if (type == DirectiveType.RUN_TIME) {
       // get axis and name
-      ReadOnlyAttribute axisAttribute = attribute.getAttribute(ANY_AXIS_NAME);
+      ReadOnlyAttribute axisAttribute = attribute
+          .getAttribute(DirectiveDef.RUN_TIME_ANY_AXIS_TAG);
       if (axisAttribute != null && (attribute = axisAttribute.getAttribute(name)) != null) {
         return attribute;
       }
-      String axisName = getAxisName(axisID);
-      if (axisName != null) {
-        axisAttribute = attribute.getAttribute(axisName);
-        if (axisAttribute != null
-            && (attribute = axisAttribute.getAttribute(name)) != null) {
-          return attribute;
-        }
+      // Can't find anything under "any" - look under the axis letter.
+      String axisTag;
+      if (axisID == AxisID.SECOND) {
+        axisTag = DirectiveDef.RUN_TIME_B_AXIS_TAG;
+      }
+      else {
+        axisTag = DirectiveDef.RUN_TIME_A_AXIS_TAG;
+      }
+      axisAttribute = attribute.getAttribute(axisTag);
+      if (axisAttribute != null && (attribute = axisAttribute.getAttribute(name)) != null) {
+        return attribute;
       }
     }
     else {
       return attribute.getAttribute(name);
     }
     return null;
+  }
+  
+  private ReadOnlyAttribute getAttribute() {
+    
   }
 
   /**
@@ -396,8 +397,8 @@ public final class DirectiveFile {
       return false;
     }
     String value = null;
-    if (containsAttribute(section, ANY_AXIS_NAME, name)) {
-      value = getValue(section, ANY_AXIS_NAME, name);
+    if (containsAttribute(section, RUN_TIME_ANY_AXIS_NAME, name)) {
+      value = getValue(section, RUN_TIME_ANY_AXIS_NAME, name);
     }
     String axisName = getAxisName(axisID);
     if (axisName != null && containsAttribute(section, axisName, name)) {
@@ -515,8 +516,8 @@ public final class DirectiveFile {
       return null;
     }
     String value = null;
-    if (containsAttribute(section, ANY_AXIS_NAME, name)) {
-      value = getValue(section, ANY_AXIS_NAME, name);
+    if (containsAttribute(section, RUN_TIME_ANY_AXIS_NAME, name)) {
+      value = getValue(section, RUN_TIME_ANY_AXIS_NAME, name);
       if (value == null) {
         value = "";
       }
@@ -762,7 +763,7 @@ public final class DirectiveFile {
     static final Command AUTOFIDSEED = new Command("autofidseed");
     static final Command CCDERASER = new Command("ccderaser");
     static final Command BEADTRACK = new Command("beadtrack");
-    static final Command TILTALIGN = new Command("tiltalign");    
+    static final Command TILTALIGN = new Command("tiltalign");
 
     private final String tag;
 
