@@ -3,7 +3,9 @@ package etomo.storage;
 import etomo.storage.DirectiveFile.Comfile;
 import etomo.storage.DirectiveFile.Command;
 import etomo.storage.DirectiveFile.Module;
+import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.type.AxisID;
+import etomo.type.AxisType;
 
 /**
 * <p>Description: </p>
@@ -23,9 +25,16 @@ import etomo.type.AxisID;
 public final class DirectiveDef {
   public static final String rcsid = "$Id:$";
 
+  public static final String RUN_TIME_ANY_AXIS_TAG = "any";
+  public static final String RUN_TIME_A_AXIS_TAG = "a";
+  public static final String RUN_TIME_B_AXIS_TAG = "b";
+  private static final String COPY_ARG_B_AXIS_PREFIX = "b";
+
   private static final String BIN_BY_FACTOR_NAME = "binByFactor";
   private static final String BINNING_NAME = "binning";
   private static final String THICKNESS_NAME = "thickness";
+
+  // copyarg
 
   public static final DirectiveDef BINNING = new DirectiveDef(DirectiveType.COPY_ARG,
       BINNING_NAME, false);
@@ -52,6 +61,8 @@ public final class DirectiveDef {
   public static final DirectiveDef USE_RAW_TLT = new DirectiveDef(DirectiveType.COPY_ARG,
       "userawtlt", true);
 
+  // setupset
+
   public static final DirectiveDef DATASET_DIRECTORY = new DirectiveDef(
       DirectiveType.SETUP_SET, "datasetDirectory");
   public static final DirectiveDef SCAN_HEADER = new DirectiveDef(
@@ -62,6 +73,8 @@ public final class DirectiveDef {
       DirectiveType.SETUP_SET, "systemTemplate");
   public static final DirectiveDef USER_TEMPLATE = new DirectiveDef(
       DirectiveType.SETUP_SET, "userTemplate");
+
+  // runtime
 
   public static final DirectiveDef BIN_BY_FACTOR_FOR_ALIGNED_STACK = new DirectiveDef(
       DirectiveType.RUN_TIME, Module.ALIGNED_STACK, BIN_BY_FACTOR_NAME);
@@ -104,9 +117,11 @@ public final class DirectiveDef {
   public static final DirectiveDef ARCHIVE_ORIGINAL = new DirectiveDef(
       DirectiveType.RUN_TIME, Module.PREPROCESSING, "archiveOriginal");
 
+  // comparam
+
   public static final DirectiveDef SURFACES_TO_ANALYZE = new DirectiveDef(
       DirectiveType.COM_PARAM, Comfile.ALIGN, Command.TILTALIGN, "SurfacesToAnalyze");
-  
+
   public static final DirectiveDef TWO_SURFACES = new DirectiveDef(
       DirectiveType.COM_PARAM, Comfile.AUTOFIDSEED, Command.AUTOFIDSEED, "TwoSurfaces");
 
@@ -129,7 +144,7 @@ public final class DirectiveDef {
   private final boolean twoAxis;
 
   /**
-   * Global constructor
+   * General constructor
    * @param directiveType
    * @param module
    * @param comfile
@@ -204,25 +219,53 @@ public final class DirectiveDef {
     this(directiveType, null, comfile, command, name, true);
   }
 
+  /**
+   * @return
+   */
   DirectiveType getDirectiveType() {
     return directiveType;
   }
 
+  /**
+   * @return module name for runtime directives
+   */
   String getModule() {
     return module;
   }
 
-  String getComfile(final AxisID axisID) {
+  /**
+   * Returns the comfile name for comparam directives
+   * @param axisID
+   * @param axisType - when dual, forces the use of the "a" postfix
+   * @return
+   */
+  String getComfile(final AxisID axisID, final AxisType axisType) {
     if (comfile != null) {
-      return comfile + (axisID != null ? axisID.getExtension() : "");
+      return comfile + getAxisTag(axisID, axisType);
     }
     return null;
   }
 
+  String getComfile() {
+    if (comfile != null) {
+      return comfile;
+    }
+    return null;
+  }
+
+  /**
+   * @return the command name element for comparam directives
+   */
   String getCommand() {
     return command;
   }
 
+  /**
+   * Returns the name element.  For copyarg, returns the "b" name when axisID is
+   * AxisID.SECOND.
+   * @param axisID
+   * @return
+   */
   String getName(final AxisID axisID) {
     if (twoAxis && directiveType == DirectiveType.COPY_ARG && axisID == AxisID.SECOND) {
       return AxisID.SECOND.getExtension() + name;
@@ -230,22 +273,104 @@ public final class DirectiveDef {
     return name;
   }
 
-  public String getKey(final AxisID axisID) {
-    return directiveType + comfile + command + module + name
-        + (axisID == AxisID.SECOND ? axisID.getExtension() : "");
+  /**
+   * Returns the full directive string with the axis tag.  An unrecognized directive type
+   * causes the function to return all of directive elements that are set, followed by
+   * the axisID extension.
+   * @param axisID
+   * @param axisType - when dual, forces the use of "a" in runtime and comparam directives
+   * @return
+   */
+  public String getKey(final AxisID axisID, final AxisType axisType) {
+    return getKeyPrefix() + getAxisTag(axisID, axisType) + getKeyPostfix();
   }
 
-  public String getDescr() {
-    if (directiveType == DirectiveType.COPY_ARG
-        || directiveType == DirectiveType.SETUP_SET) {
-      return directiveType + "." + name;
+  /**
+   * Returns the directive string with no axis tag
+   */
+  public String toString() {
+    return getKeyPrefix() + getKeyPostfix();
+  }
+
+  /**
+   * Returns the axis tag.
+   * @param axisID
+   * @param axisType - when dual forces the use of "a" in runtime and comparam directives when axisID is FIRST
+   * @return
+   */
+  private String getAxisTag(final AxisID axisID, final AxisType axisType) {
+    if (directiveType == DirectiveType.COPY_ARG) {
+      return twoAxis && axisID == AxisID.SECOND ? COPY_ARG_B_AXIS_PREFIX : "";
     }
-    else if (directiveType == DirectiveType.RUN_TIME) {
-      return directiveType + "." + module + "..." + name;
+    if (directiveType == DirectiveType.SETUP_SET) {
+      return "";
     }
-    else if (directiveType == DirectiveType.COM_PARAM) {
-      return directiveType + "." + comfile + "..." + command + name;
+    String axisTag;
+    if (directiveType == DirectiveType.RUN_TIME) {
+      if (axisID == AxisID.SECOND) {
+        return RUN_TIME_B_AXIS_TAG;
+      }
+      if (axisType == AxisType.DUAL_AXIS && axisID == AxisID.FIRST) {
+        return RUN_TIME_A_AXIS_TAG;
+      }
+      return RUN_TIME_ANY_AXIS_TAG;
     }
-    return null;
+    if (directiveType == DirectiveType.COM_PARAM) {
+      if (axisID == AxisID.SECOND
+          || (axisType == AxisType.DUAL_AXIS && axisID == AxisID.FIRST)) {
+        return axisID.getExtension();
+      }
+      return AxisID.ONLY.getExtension();
+    }
+    return (axisID != null && axisID != AxisID.ONLY) ? (AutodocTokenizer.SEPARATOR_CHAR + axisID
+        .getExtension()) : "";
+  }
+
+  /**
+   * Creates the directive string up to the axis tag, or the whole directive string for
+   * directives with no axis tag.
+   * @return
+   */
+  private String getKeyPrefix() {
+    if (directiveType == DirectiveType.COPY_ARG) {
+      return directiveType.getKey() + AutodocTokenizer.SEPARATOR_CHAR;
+    }
+    if (directiveType == DirectiveType.SETUP_SET) {
+      return directiveType.getKey() + AutodocTokenizer.SEPARATOR_CHAR + name;
+    }
+    if (directiveType == DirectiveType.RUN_TIME) {
+      return directiveType.getKey() + AutodocTokenizer.SEPARATOR_CHAR + module
+          + AutodocTokenizer.SEPARATOR_CHAR;
+    }
+    if (directiveType == DirectiveType.COM_PARAM) {
+      return directiveType.getKey() + AutodocTokenizer.SEPARATOR_CHAR + comfile;
+    }
+    return (directiveType != null ? directiveType.getKey() : "")
+        + (module != null ? AutodocTokenizer.SEPARATOR_CHAR + module : module)
+        + (comfile != null ? AutodocTokenizer.SEPARATOR_CHAR + comfile : comfile)
+        + (command != null ? AutodocTokenizer.SEPARATOR_CHAR + command : command)
+        + (name != null ? AutodocTokenizer.SEPARATOR_CHAR + name : name);
+  }
+
+  /**
+   * Creates the directive string after the axis tag.  Returns nothing for directives with
+   * no axis tag.
+   * @return
+   */
+  private String getKeyPostfix() {
+    if (directiveType == DirectiveType.COPY_ARG) {
+      return name;
+    }
+    if (directiveType == DirectiveType.SETUP_SET) {
+      return "";
+    }
+    if (directiveType == DirectiveType.RUN_TIME) {
+      return AutodocTokenizer.SEPARATOR_CHAR + name;
+    }
+    if (directiveType == DirectiveType.COM_PARAM) {
+      return AutodocTokenizer.SEPARATOR_CHAR + command + AutodocTokenizer.SEPARATOR_CHAR
+          + name;
+    }
+    return "";
   }
 }
