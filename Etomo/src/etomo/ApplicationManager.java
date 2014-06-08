@@ -91,6 +91,7 @@ import etomo.process.ProcessState;
 import etomo.process.SystemProcessException;
 import etomo.storage.CpuAdoc;
 import etomo.storage.Directive;
+import etomo.storage.DirectiveDef;
 import etomo.storage.DirectiveFile;
 import etomo.storage.DirectiveFileCollection;
 import etomo.storage.DirectiveMap;
@@ -3055,6 +3056,17 @@ public final class ApplicationManager extends BaseManager implements
     }
   }
 
+  private void updateDirective(final DirectiveMap map, final DirectiveDef directiveDef,
+      final StringBuffer errmsg, final boolean value) {
+    Directive directive = map.get(directiveDef, null, null);
+    if (directive != null) {
+      directive.setValue(value);
+    }
+    else {
+      errmsg.append("Missing directive: " + directiveDef + ".  ");
+    }
+  }
+
   private void updateDirective(final DirectiveMap map, final String key,
       final StringBuffer errmsg, final boolean value, final boolean defaultValue) {
     Directive directive = map.get(key);
@@ -3064,6 +3076,18 @@ public final class ApplicationManager extends BaseManager implements
     }
     else {
       errmsg.append("Missing directive: " + key + ".  ");
+    }
+  }
+
+  private void updateDirective(final DirectiveMap map, final DirectiveDef directiveDef,
+      final StringBuffer errmsg, final boolean value, final boolean defaultValue) {
+    Directive directive = map.get(directiveDef, null, null);
+    if (directive != null) {
+      directive.setValue(value);
+      directive.setDefaultValue(defaultValue);
+    }
+    else {
+      errmsg.append("Missing directive: " + directiveDef + ".  ");
     }
   }
 
@@ -3227,9 +3251,9 @@ public final class ApplicationManager extends BaseManager implements
     // setupset.copyarg directvies
     String prepend = DirectiveType.SETUP_SET.toString() + AutodocTokenizer.SEPARATOR_CHAR
         + DirectiveFile.COPY_ARG_NAME + AutodocTokenizer.SEPARATOR_CHAR;
-    updateDirective(directiveMap, prepend + DirectiveFile.DUAL_NAME, errmsg,
+    updateDirective(directiveMap, DirectiveDef.DUAL, errmsg,
         metaData.getAxisType() == AxisType.DUAL_AXIS, true);
-    updateDirective(directiveMap, prepend + DirectiveFile.MONTAGE_NAME, errmsg, montage);
+    updateDirective(directiveMap, prepend + DirectiveDef.MONTAGE, errmsg, montage);
     updateDirective(directiveMap, prepend + DirectiveFile.PIXEL_NAME, errmsg,
         metaData.getPixelSize());
     updateDirective(directiveMap, prepend + DirectiveFile.GOLD_NAME, errmsg,
@@ -3377,14 +3401,14 @@ public final class ApplicationManager extends BaseManager implements
 
     // Preprocessing
     module = "Preprocessing" + AutodocTokenizer.SEPARATOR_CHAR
-        + DirectiveFile.ANY_AXIS_NAME + AutodocTokenizer.SEPARATOR_CHAR;
+        + DirectiveFile.RUN_TIME_ANY_AXIS_NAME + AutodocTokenizer.SEPARATOR_CHAR;
     updateDirective(directiveMap, prepend + module + DirectiveFile.REMOVE_XRAYS_NAME,
         errmsg, FileType.ERASER_LOG.getFile(this, curAxisID).exists());
     updateDirective(directiveMap, prepend + module + DirectiveFile.ARCHIVE_ORIGINAL_NAME,
         errmsg, FileType.ORIGINAL_RAW_STACK.getFile(this, curAxisID).exists());
     // Fiducials module
     module = DirectiveFile.FIDUCIALS_MODULE_NAME + AutodocTokenizer.SEPARATOR_CHAR
-        + DirectiveFile.ANY_AXIS_NAME + AutodocTokenizer.SEPARATOR_CHAR;
+        + DirectiveFile.RUN_TIME_ANY_AXIS_NAME + AutodocTokenizer.SEPARATOR_CHAR;
     // Coarse alignment
     updateDirective(directiveMap, prepend + module + DirectiveFile.FIDUCIALLESS_NAME,
         errmsg, metaData.isFiducialess(curAxisID));
@@ -3401,7 +3425,7 @@ public final class ApplicationManager extends BaseManager implements
     // rawBoundaryModel - cannot update
     // RAPTOR parameters
     module = DirectiveFile.RAPTOR_MODULE_NAME + AutodocTokenizer.SEPARATOR_CHAR
-        + DirectiveFile.ANY_AXIS_NAME + AutodocTokenizer.SEPARATOR_CHAR;
+        + DirectiveFile.RUN_TIME_ANY_AXIS_NAME + AutodocTokenizer.SEPARATOR_CHAR;
     metaData.getTrackRaptorUseRawStack();
     updateDirective(directiveMap,
         prepend + module + DirectiveFile.USE_ALIGNED_STACK_NAME, errmsg,
@@ -3417,7 +3441,7 @@ public final class ApplicationManager extends BaseManager implements
     // enableStretching - cannot update
     // Tomogram Positioning - Positioning module
     module = DirectiveFile.POSITIONING_MODULE_NAME + AutodocTokenizer.SEPARATOR_CHAR
-        + DirectiveFile.ANY_AXIS_NAME + AutodocTokenizer.SEPARATOR_CHAR;
+        + DirectiveFile.RUN_TIME_ANY_AXIS_NAME + AutodocTokenizer.SEPARATOR_CHAR;
     updateDirective(directiveMap, prepend + module + DirectiveFile.WHOLE_TOMOGRAM_NAME,
         errmsg, metaData.isWholeTomogramSample(curAxisID));
     updateDirective(directiveMap, prepend + module + DirectiveFile.BIN_BY_FACTOR_NAME,
@@ -3426,7 +3450,7 @@ public final class ApplicationManager extends BaseManager implements
         errmsg, metaData.getSampleThickness(curAxisID));
     // Aligned stack module
     module = DirectiveFile.ALIGNED_STACK_MODULE_NAME + AutodocTokenizer.SEPARATOR_CHAR
-        + DirectiveFile.ANY_AXIS_NAME + AutodocTokenizer.SEPARATOR_CHAR;
+        + DirectiveFile.RUN_TIME_ANY_AXIS_NAME + AutodocTokenizer.SEPARATOR_CHAR;
     // Aligned stack choices
     updateDirective(
         directiveMap,
@@ -3473,13 +3497,13 @@ public final class ApplicationManager extends BaseManager implements
         errmsg, metaData.getSizeToOutputInXandY(curAxisID));
     // CTFplotting module
     module = DirectiveFile.CTF_PLOTTING_MODULE_NAME + AutodocTokenizer.SEPARATOR_CHAR
-        + DirectiveFile.ANY_AXIS_NAME + AutodocTokenizer.SEPARATOR_CHAR;
+        + DirectiveFile.RUN_TIME_ANY_AXIS_NAME + AutodocTokenizer.SEPARATOR_CHAR;
     updateDirective(directiveMap, prepend + module
         + DirectiveFile.AUTO_FIT_RANGE_AND_STEP_NAME, errmsg,
         metaData.getStackCtfAutoFitRangeAndStep(curAxisID));
     // GoldErasing module
     module = DirectiveFile.GOLD_ERASING_MODULE_NAME + AutodocTokenizer.SEPARATOR_CHAR
-        + DirectiveFile.ANY_AXIS_NAME + AutodocTokenizer.SEPARATOR_CHAR;
+        + DirectiveFile.RUN_TIME_ANY_AXIS_NAME + AutodocTokenizer.SEPARATOR_CHAR;
     updateDirective(directiveMap, prepend + module + DirectiveFile.BINNING_NAME, errmsg,
         metaData.getStack3dFindBinning(curAxisID));
     // extraDiameter - cannot update
@@ -3487,7 +3511,7 @@ public final class ApplicationManager extends BaseManager implements
         errmsg, metaData.getStack3dFindThickness(curAxisID));
     // Reconstruction
     module = DirectiveFile.RECONSTRUCTION_MODULE_NAME + AutodocTokenizer.SEPARATOR_CHAR
-        + DirectiveFile.ANY_AXIS_NAME + AutodocTokenizer.SEPARATOR_CHAR;
+        + DirectiveFile.RUN_TIME_ANY_AXIS_NAME + AutodocTokenizer.SEPARATOR_CHAR;
     // extraThickness - cannot update
     // binnedThickness - cannot update
     updateDirective(
@@ -3511,8 +3535,8 @@ public final class ApplicationManager extends BaseManager implements
                 DialogType.TOMOGRAM_GENERATION).getButtonStateKey()));
     // Postprocessing
     // Trimvol module
-    module = "Trimvol" + AutodocTokenizer.SEPARATOR_CHAR + DirectiveFile.ANY_AXIS_NAME
-        + AutodocTokenizer.SEPARATOR_CHAR;
+    module = "Trimvol" + AutodocTokenizer.SEPARATOR_CHAR
+        + DirectiveFile.RUN_TIME_ANY_AXIS_NAME + AutodocTokenizer.SEPARATOR_CHAR;
     // reorient
     updateDirective(directiveMap, prepend + module + DirectiveFile.REORIENT_NAME, errmsg,
         TrimvolReorientation.toDirectiveValue(metaData));
