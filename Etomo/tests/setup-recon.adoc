@@ -45,7 +45,13 @@ bn.scan-header=
 	assert.tf.pixel-size=%{pixel-size}
 	assert.tf.image-rotation=%{image-rotation}
 [[]]
-tf.fiducial-diameter = %{fiducial-diameter}
+[[ifnot = zero-bead]]
+  tf.fiducial-diameter = %{fiducial-diameter}
+[[]]
+[[if = zero-bead]]
+  tf.fiducial-diameter = 0
+[[]]
+
 #check error
 [[ifnot = montage]]
 if.not.var.test-gui.return=
@@ -74,7 +80,13 @@ run.function.data-type=
   tf.pixel-size = %{pixel-size}
   tf.image-rotation = %{image-rotation}
 [[]]
-tf.fiducial-diameter = %{fiducial-diameter}
+[[ifnot = zero-bead]]
+  tf.fiducial-diameter = %{fiducial-diameter}
+[[]]
+[[if = zero-bead]]
+  tf.fiducial-diameter = 0
+[[]]
+
 bn.create-com-scripts=
 
 
