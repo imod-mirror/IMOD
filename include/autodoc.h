@@ -23,6 +23,7 @@ enum {ADOC_NO_VALUE = 0, ADOC_ONE_INT, ADOC_TWO_INTS, ADOC_THREE_INTS, ADOC_INT_
 int AdocRead(const char *filename);
 int AdocOpenImageMetadata(const char *filename, int addMdoc, int *montage,
                           int *numSect, int *sectType);
+int AdocGetImageMetaInfo(int *montage, int *numSect, int *sectType);
 int AdocNew();
 int AdocSetCurrent(int index);
 void AdocClear(int index);

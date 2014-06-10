@@ -369,7 +369,13 @@ with a default size equal to the total number of
 image z-planes that contain data.  The image cache can't be turned off,
 but the size can be changed with the
 .B -C
-option.
+option.  It is not necessary to use this option if there are piece
+coordinates either in the extended header of an MRC file or in a
+metadata autodoc (.mdoc) file created along with an MRC file by
+SerialEM (provided that the file is present in the same directory).
+The option may also be omitted if there is only a single image file and
+if piece coordinates are in a file with extension ".pl" and the same
+root name as the image file.
 .TP
 .B -P \fInx,ny\fR
 Create an internal piece list to display images from the file in a montage
@@ -381,7 +387,7 @@ pieces.  If an external piece list file is entered with the
 .B -p
 option, then this option is ignored; with this option, montage information 
 in the
-file header is ignored.
+file header or an associated metadata autodoc (.mdoc) file is ignored.
 .TP
 .B -o \fInx,ny\fR
 When creating an internal piece list with the

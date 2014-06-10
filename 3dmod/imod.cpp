@@ -72,6 +72,7 @@ ImodClipboard *ClipHandler = NULL;
 static int loopStarted = 0;
 static char *debugKeys = NULL;
 static char *windowKeys = NULL;
+static void badOption(const char *opt);
 
 void imod_usage(char *name)
 {
@@ -103,7 +104,6 @@ void imod_usage(char *name)
     "default=1).\n";
   qstr += "   -a <file name>  Load tilt angles from file.\n";
   qstr += "   -p <file name>  Load piece list file.\n";
-  qstr += "   -pm   Load piece list from .mdoc metadata file\n";
   qstr += "   -P nx,ny  Display images as montage in nx by ny array.\n";
   qstr += "   -o nx,ny  Set X and X overlaps for montage display.\n";
   qstr += "   -f    Load as frames even if image file has piece "
@@ -367,12 +367,15 @@ int main( int argc, char *argv[])
               qname = b3dGetError();
               imodError(NULL, LATIN1(qname));
             }
+            break;
           }
-          break;
+          badOption(argv[i]);
         
         case 'C':
           if (argv[i][2] == 'T')
             vi.stripOrTileCache = 1;
+          else if (strlen(argv[i]) > 2)
+            badOption(argv[i]);
 
           /* value ending in m or M is megabytes, store as minus */
           pathlen = strlen(argv[++i]);
@@ -394,22 +397,28 @@ int main( int argc, char *argv[])
               xyzwinopen = TRUE;
               break;
             }
-          if (argv[i][2] != 0x00)
+          if (argv[i][2] >= '0' && argv[i][2] <= '9')
             sscanf(argv[i], "-x%d%*c%d", &(li.xmin), &(li.xmax));
+          else if (strlen(argv[i]) > 2)
+            badOption(argv[i]);
           else
             sscanf(argv[++i], "%d%*c%d", &(li.xmin), &(li.xmax));
           break;
           
         case 'y':
-          if (argv[i][2] != 0x00)
+          if (argv[i][2] >= '0' && argv[i][2] <= '9')
             sscanf(argv[i], "-y%d%*c%d", &(li.ymin), &(li.ymax));
+          else if (strlen(argv[i]) > 2)
+            badOption(argv[i]);
           else
             sscanf(argv[++i], "%d%*c%d", &(li.ymin), &(li.ymax));
           break;
         
         case 'z':
-          if (argv[i][2] != 0x00)
+          if (argv[i][2] >= '0' && argv[i][2] <= '9')
             sscanf(argv[i], "-z%d%*c%d", &(li.zmin), &(li.zmax));
+          else if (strlen(argv[i]) > 2)
+            badOption(argv[i]);
           else
             sscanf(argv[++i], "%d%*c%d", &(li.zmin), &(li.zmax));
           break;
@@ -445,7 +454,8 @@ int main( int argc, char *argv[])
           } else if (argv[i][2] == 'z') {
             sscanf(argv[++i], "%f", &initZoom);
             setZoom = 1;
-          }
+          } else
+            badOption(argv[i]);
           break;
 
         case 'D':
@@ -474,16 +484,14 @@ int main( int argc, char *argv[])
           break;
         
         case 'p':
-          if (argv[i][2] == 'm') {
-            useMdoc = 1;
-            break;
-          }
           if (argv[i][2] == 'y') {
             vi.imagePyramid = 1;
             break;
           }
+          if (strlen(argv[i]) > 2)
+            badOption(argv[i]);
           plistfname = argv[++i];
-          plFileNames << QDir::convertSeparators(curdir->cleanPath(QString(plistfname)));
+          plFileNames << QDir::toNativeSeparators(curdir->cleanPath(QString(plistfname)));
           break;
         
         case 'a':
@@ -534,6 +542,8 @@ int main( int argc, char *argv[])
         case 'r':
           if (argv[i][2] == 'i') {
             iiRawSetInverted();
+          } else if (strlen(argv[i]) > 2) {
+            badOption(argv[i]);
           } else {
             sscanf(argv[++i], "%d,%d,%d", &nx, &ny, &nz);
             iiRawSetSize(nx, ny, nz);
@@ -575,7 +585,7 @@ int main( int argc, char *argv[])
           break;
         
         default:
-          break;
+          badOption(argv[i]);
         
         }
       } else if (!firstfile)
@@ -639,7 +649,7 @@ int main( int argc, char *argv[])
 
   /* Try to open the last file if there is one */
   if (firstfile) {
-    qname = QDir::convertSeparators(QString(argv[argcHere - 1]));
+    qname = QDir::toNativeSeparators(QString(argv[argcHere - 1]));
 
     // first check if it is directory, if so say it is last image
     QFileInfo info(qname);
@@ -738,7 +748,7 @@ int main( int argc, char *argv[])
       imodPrintStderr("Loading %s\n", Imod_imagefile);
     }
    
-    qname = QDir::convertSeparators(QString(Imod_imagefile));
+    qname = QDir::toNativeSeparators(QString(Imod_imagefile));
 
     // Check if it is directory (again)
     QFileInfo info(qname);
@@ -811,8 +821,18 @@ int main( int argc, char *argv[])
 
     } else {
 
-      /* It is a single image file - build list with this image */
+      // It is a single image file - build list with this image
       ivwMultipleFiles(&vi, &Imod_imagefile, 0, 0, anyHavePieceList);
+
+      // Then if there is no piece list entered or in image, look for a pl file
+      if (!frames && !plistfname && !anyHavePieceList) {
+        QString plname =  info.path() + QDir::separator() + info.completeBaseName() +
+          ".pl";
+        if (QFile::exists(plname)) {
+          plFileNames << plname;
+          plistfname = strdup(LATIN1(plname));
+        }
+      }
     }
   } else {
 
@@ -852,8 +872,11 @@ int main( int argc, char *argv[])
                        nframex, nframey, overx, overy);
 
     /* Or, check for piece coordinates in image header */
-    if (!vi.li->plist && !frames && vi.image->file == IIFILE_MRC) {
+    if (!vi.li->plist && !frames && 
+        (vi.image->file == IIFILE_MRC || vi.image->file == IIFILE_HDF)) {
       ivwReopen(vi.image);
+      if (QFile::exists(QString(vi.image->filename) + ".mdoc"))
+        useMdoc = 1;
       iiLoadPCoord(vi.image, useMdoc, vi.li, vi.hdr->nx, vi.hdr->ny,
                    vi.hdr->nz);
       iiClose(vi.image);
@@ -1050,6 +1073,13 @@ int main( int argc, char *argv[])
   inputRaiseWindows();
 #endif
   return qapp.exec();
+}
+
+static void badOption(const char *opt)
+{
+  imodError(NULL, "3dmod: The argument %s is not a valid option.\n"
+            "If it is a filename, put ./ in front of it", opt);
+  exit(1);
 }
 
 // Provide information about whether event loop started yet

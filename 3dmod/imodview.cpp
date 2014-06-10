@@ -2420,7 +2420,7 @@ int ivwLoadIMODifd(ImodView *vi, QStringList &plFileNames, bool &anyHavePieceLis
       }
 
       errno = 0;
-      image = iiOpen(LATIN1(QDir::convertSeparators(QString(filename))), "rb");
+      image = iiOpen(LATIN1(QDir::toNativeSeparators(QString(filename))), "rb");
       if (!image) {
         if (!xsize || !ysize) {
           imodError(NULL, "3DMOD Error: " 
@@ -2436,7 +2436,7 @@ int ivwLoadIMODifd(ImodView *vi, QStringList &plFileNames, bool &anyHavePieceLis
         image->nx = xsize;
         image->ny = ysize;
         image->nz = zsize;
-        image->filename = strdup(LATIN1(QDir::convertSeparators(QString(filename))));
+        image->filename = strdup(LATIN1(QDir::toNativeSeparators(QString(filename))));
         anyImageFail = true;
       }
 
@@ -2482,7 +2482,7 @@ int ivwLoadIMODifd(ImodView *vi, QStringList &plFileNames, bool &anyHavePieceLis
       qname = QString(&line[10]).trimmed();
       if (imgdir)
         qname = QString(imgdir) + "/" + qname;
-      plFileNames << QDir::convertSeparators(curdir->cleanPath(qname));
+      plFileNames << QDir::toNativeSeparators(curdir->cleanPath(qname));
       needVersion = 2;
       continue;
     }
@@ -2538,7 +2538,7 @@ void ivwMultipleFiles(ImodView *vi, char *argv[], int firstfile, int lastimage,
   for (i = firstfile; i <= lastimage; i++) {
     if (argv[i][0]) {
       convarg = strdup(LATIN1(curdir->cleanPath(QString(argv[i]))));
-      image = iiOpen(LATIN1(QDir::convertSeparators(QString(convarg))), "rb");
+      image = iiOpen(LATIN1(QDir::toNativeSeparators(QString(convarg))), "rb");
     } else
       image = iiOpen(argv[i], "rb");
     numVols = 1;
