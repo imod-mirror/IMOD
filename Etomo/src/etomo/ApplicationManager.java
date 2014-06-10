@@ -1326,6 +1326,10 @@ public final class ApplicationManager extends BaseManager implements
     try {
       int previewNumber = imodManager.newImod(key, axisID);
       imodManager.setWorkingDirectory(key, axisID, previewNumber, previewWorkingDir);
+      if (FileType.PIECE_LIST.exists(this, axisID, previewMetaData)) {
+        imodManager.setPieceListFileName(key, axisID, previewNumber,
+            FileType.PIECE_LIST.getFileName(this, axisID, previewMetaData));
+      }
       imodManager.open(key, axisID, previewNumber, menuOptions);
     }
     catch (AxisTypeException except) {
