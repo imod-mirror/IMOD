@@ -28,6 +28,10 @@ single-patch-tracking: dummy
 	$(IMOD_UITEST_SCRIPT)/uitest single-patch-tracking
 single-montage: dummy
 	$(IMOD_UITEST_SCRIPT)/uitest single-montage
+single-zero-bead-test-gui: dummy
+	$(IMOD_UITEST_SCRIPT)/uitest single-zero-bead-test-gui
+dual-zero-bead-test-gui: dummy
+	$(IMOD_UITEST_SCRIPT)/uitest dual-zero-bead-test-gui
 dual-montage: dummy
 	$(IMOD_UITEST_SCRIPT)/uitest dual-montage
 single-montage-test-gui: dummy
