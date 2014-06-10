@@ -12,6 +12,8 @@ run.function.is-build-with-patch-tracking=
 if.equals.var.retval.set.var.build-with-patch-tracking=true
 run.function.is-build-with-seed-b=
 if.equals.var.retval.set.var.build-with-seed-b=true
+run.function.is-make-seed-model=
+if.equals.var.retval.set.var.make-seed-model=true
 #
 run.function.test-gui=
 run.function.run-processes=
@@ -173,39 +175,42 @@ bn.advanced=
 tf.total-number=40
 if.not.var.dual-b.bn.generate-seed-model=
 if.var.dual-b.bn.add-points-to-seed-model=
-wait.process.autofidseed=done
+if.not.var.zero-bead.wait.process.autofidseed=done
+if.var.zero-bead.wait.popup.comscript-terminated=OK
 [[if = test-gui]]
   #test values
-  if.not.var.dual-b.assert.bn.generate-seed-model=on
+  if.var.make-seed-model.assert.bn.generate-seed-model=on
   if.var.dual-b.assert.bn.add-points-to-seed-model=on
   #test enabled
   assert.disabled.bn.open-sorted-3d-models=
-  assert.enabled.bn.open-clustered-/-elongated-model=
+  if.not.var.zero-bead.assert.enabled.bn.open-clustered-/-elongated-model=
   #files
   assert.exists.file=autofidseed%{axis}.com
-  assert.exists.file=autofidseed%{axis}.info
+  if.not.var.zero-bead.assert.exists.file=autofidseed%{axis}.info
   assert.exists.file=%{dataset}%{axis}.seed
   assert.exists.file=autofidseed%{axis}.dir
   assert.exists.file=autofidseed%{axis}.log
-  assert.exists.file=autofidseed%{axis}.dir/track%{axis}.com
-  assert.exists.file=autofidseed%{axis}.dir/clusterElong.mod
+  if.not.var.zero-bead.assert.exists.file=autofidseed%{axis}.dir/track%{axis}.com
+  if.not.var.zero-bead.assert.exists.file=autofidseed%{axis}.dir/clusterElong.mod
 [[]]
 run.function.test-run-initial-bead-finding-parameters=
 #test 2
 cb.select-beads-on-two-surfaces=on
 if.not.var.dual-b.bn.generate-seed-model=
 if.var.dual-b.bn.add-points-to-seed-model=
-wait.process.autofidseed=done
+if.not.var.zero-bead.wait.process.autofidseed=done
+if.var.zero-bead.wait.popup.comscript-terminated=OK
 [[if = test-gui]]
   #test enabled
-  assert.enabled.bn.open-sorted-3d-models=
+  if.not.var.zero-bead.assert.enabled.bn.open-sorted-3d-models=
   #files
-  assert.exists.file=%{dataset}%{axis}.seed~
+  if.not.var.zero-bead.assert.exists.file=%{dataset}%{axis}.seed~
   assert.exists.file=autofidseed%{axis}.log~
 [[]]
 if.not.var.dual-b.bn.generate-seed-model=
 if.var.dual-b.bn.add-points-to-seed-model=
-wait.process.autofidseed=done
+if.not.var.zero-bead.wait.process.autofidseed=done
+if.var.zero-bead.wait.popup.comscript-terminated=OK
 #3dmod
 bn.open-sorted-3d-models=
 run.function.test-run-selection-and-sorting-parameters=
@@ -355,7 +360,7 @@ assert.enabled.tf.fraction-of-peaks-to-store=
 if.var.build.return=
 [[if = test-gui]]
   #test enabled/disabled
-  assert.enabled.bn.open-initial-bead-model=
+  if.not.var.zero-bead.assert.enabled.bn.open-initial-bead-model=
 [[]]
 #3dmod
 bn.open-initial-bead-model=
@@ -413,8 +418,8 @@ cb.allow-elongated-beads-of-severity=
 if.var.build.return=
 [[if = test-gui]]
   #test enabled
-  assert.enabled.bn.open-sorted-3d-models=
-  assert.enabled.bn.open-clustered-/-elongated-model=
+  if.not.var.zero-bead.assert.enabled.bn.open-sorted-3d-models=
+  if.not.var.zero-bead.assert.enabled.bn.open-clustered-/-elongated-model=
 [[]]
 #3dmod
 bn.open-sorted-3d-models=
@@ -482,7 +487,8 @@ assert.tf.non-default-tilt-angle-groups=
 assert.tf.magnification-group-size=5
 assert.tf.non-default-magnification-groups=
 assert.tf.minimum-#-of-views-for-tilt-alignment=4
-assert.tf.unbinned-bead-diameter=%{unbinned-bead-diameter}
+if.not.var.zero-bead.assert.tf.unbinned-bead-diameter=%{unbinned-bead-diameter}
+if.var.zero-bead.assert.tf.unbinned-bead-diameter=0.0
 assert.cb.light-fiducial-markers=off
 assert.tf.minimum-beads-in-area=8
 assert.tf.minimum-beads-overlapping=5
@@ -833,4 +839,10 @@ return.var.retval=
 set.var.retval=false
 if.not.var.build-with-seed.return.var.retval=
 if.var.dual-b.set.var.retval=true
+return.var.retval=
+
+[function = is-make-seed-model]
+set.var.retval=false
+if.var.dual-b.return.var.retval=
+if.not.var.zero-bead.set.var.retval=true
 return.var.retval=
