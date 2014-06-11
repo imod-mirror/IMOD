@@ -140,8 +140,6 @@ public abstract class ConstCombineParams {
 
   protected ArrayList invalidReasons = new ArrayList();
 
-  public abstract boolean isValid();
-
   public ConstCombineParams(BaseManager manager) {
     this.manager = manager;
     patchZMin.set(0);
