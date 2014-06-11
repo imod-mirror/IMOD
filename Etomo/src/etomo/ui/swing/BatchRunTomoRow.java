@@ -10,7 +10,6 @@ import javax.swing.JPanel;
 
 import etomo.storage.DirectiveDef;
 import etomo.storage.DirectiveFileCollection;
-import etomo.type.ConstEtomoNumber;
 import etomo.type.EtomoNumber;
 import etomo.ui.BatchRunTomoTab;
 
