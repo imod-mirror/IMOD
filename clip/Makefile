@@ -6,8 +6,8 @@
 include ../configure
 
 O = $(OBJEXT)
-OBJS = clip.$(O) clip_proc.$(O) clip_transform.$(O) clip_io.$(O)\
-	correlation.$(O) fft.$(O) filter.$(O)
+OBJS = clip.$(O) processing.$(O) file_io.$(O)\
+	correlation.$(O) fft.$(O) filter.$(O) CorrectDefects.$(O)
 
 PROG = clip$(BINEXT)
 
@@ -15,7 +15,7 @@ all : $(PROG)
 
 # DNM 10/24/04: removed F77LIBS now that libifft is C
 $(PROG) : $(OBJS)
-	$(CC) -o clip $(OBJS) $(LDFLAGS)  \
+	$(CXX) -o clip $(OBJS) $(LDFLAGS)  \
 	$(LIIMOD) $(LCFSHR) $(LIFFT) $(TIFFLIBS) $(LIBS)
 
 install : $(PROG)
@@ -29,5 +29,5 @@ clean :
 	$(FIND) . -type f -name "clip" -exec rm "{}" \;
 	$(FIND) . -type f -name "clip.exe" -exec rm "{}" \;
 
-$(OBJS) : clip.h
+$(OBJS) : clip.h CorrectDefects.h
 clip.$(O) : ../.version
