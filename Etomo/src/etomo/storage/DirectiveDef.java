@@ -57,7 +57,11 @@ public final class DirectiveDef {
   public static final DirectiveDef PIXEL = new DirectiveDef(DirectiveType.COPY_ARG,
       "pixel", false);
   public static final DirectiveDef ROTATION = new DirectiveDef(DirectiveType.COPY_ARG,
-      "rotation", false);
+      "rotation", true);
+  public static final DirectiveDef SKIP = new DirectiveDef(DirectiveType.COPY_ARG,
+      "skip", true);
+  public static final DirectiveDef TWODIR = new DirectiveDef(DirectiveType.COPY_ARG,
+      "twodir", true);
   public static final DirectiveDef USE_RAW_TLT = new DirectiveDef(DirectiveType.COPY_ARG,
       "userawtlt", true);
 

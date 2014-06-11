@@ -161,11 +161,16 @@ public final class DirectiveFile {
   }
 
   /**
-   * Returns the leaf attribute defined by directiveDef.  Searches under no axis tag and
-   * and A or B axis tag.
+   * Returns the leaf (name) attribute defined by directiveDef.  For copyarg: look under
+   * the B directive when axisID is AxisID.SECOND, otherwise look under the A directive.
+   * For runtime:  look under the "any" directive tree.  If DirectiveDef.name isn't a leaf
+   * of this tree, look under "a" for AxisID.ONLY or .FIRST.  And look under "b" for
+   * AxisID.SECOND.  For comparam use a simliar algorithm to runtime:  Look for a comfile
+   * name with no postfix first.  If the name isn't a leaf of this directive tree, look
+   * under comfilea for AxisID.FIRST, and comfileb for AxisID.SECOND.
    * @param directiveDef
    * @param axisID
-   * @return
+   * @return the attribute of the directive name
    */
   public ReadOnlyAttribute getAttribute(final DirectiveDef directiveDef,
       final AxisID axisID) {
@@ -175,69 +180,85 @@ public final class DirectiveFile {
     if (attribute == null) {
       return null;
     }
-    if (type == DirectiveType.RUN_TIME) {
+    String name = directiveDef.getName(axisID);
+    // get the directive name attribute
+    if (type == DirectiveType.COPY_ARG || type == DirectiveType.SETUP_SET) {
+      attribute = attribute.getAttribute(name);
+    }
+    else if (type == DirectiveType.RUN_TIME) {
       // get module attribute
       attribute = attribute.getAttribute(directiveDef.getModule());
       if (attribute == null) {
         return null;
       }
-    }
-    else if (type == DirectiveType.COM_PARAM) {
-      // get comfile attribute
-      ReadOnlyAttribute comfileAttribute = attribute.getAttribute(directiveDef
-          .getComfile());
-      attribute = getAttribute(directiveDef
-          .getComfile(),directiveDef.getCommand());
-      String axisTag;
-      if (comfileAttribute == null) {
-        // Can't find anything with no axis tag - try a or b postfix.
-        if (axisID == AxisID.SECOND) {
-          axisTag = axisID.getExtension();
+      // try different axis attributes to get the name attribute
+      attribute = getAttribute(attribute, DirectiveDef.RUN_TIME_ANY_AXIS_TAG, name, null);
+      if (attribute == null) {
+        // Can't find name under "any" - look under the axis letter.
+        String axisTag;
+        if (axisID == AxisID.ONLY || axisID == AxisID.FIRST) {
+          axisTag = DirectiveDef.RUN_TIME_A_AXIS_TAG;
+        }
+        else if (axisID == AxisID.SECOND) {
+          axisTag = DirectiveDef.RUN_TIME_B_AXIS_TAG;
         }
         else {
-          axisTag = AxisID.FIRST.getExtension();
-        }
-        comfileAttribute = attribute.getAttribute(directiveDef.getComfile());
-        if (comfileAttribute == null) {
           return null;
         }
+        attribute = getAttribute(attribute, axisTag, name, null);
       }
-      // get command attribute
-      attribute = comfileAttribute.getAttribute(directiveDef.getCommand());
       if (attribute == null) {
         return null;
       }
     }
-    // get name attribute
-    String name = directiveDef.getName(axisID);
-    if (type == DirectiveType.RUN_TIME) {
-      // get axis and name
-      ReadOnlyAttribute axisAttribute = attribute
-          .getAttribute(DirectiveDef.RUN_TIME_ANY_AXIS_TAG);
-      if (axisAttribute != null && (attribute = axisAttribute.getAttribute(name)) != null) {
-        return attribute;
-      }
-      // Can't find anything under "any" - look under the axis letter.
-      String axisTag;
-      if (axisID == AxisID.SECOND) {
-        axisTag = DirectiveDef.RUN_TIME_B_AXIS_TAG;
-      }
-      else {
-        axisTag = DirectiveDef.RUN_TIME_A_AXIS_TAG;
-      }
-      axisAttribute = attribute.getAttribute(axisTag);
-      if (axisAttribute != null && (attribute = axisAttribute.getAttribute(name)) != null) {
-        return attribute;
+    else if (type == DirectiveType.COM_PARAM) {
+      // try different comfile postfixes to get the name attribute
+      attribute = getAttribute(attribute, directiveDef.getComfile(),
+          directiveDef.getCommand(), name);
+      if (attribute == null) {
+        String axisTag;
+        // Can't find name with no axis tag - try the a or b postfix.
+        if (axisID == AxisID.FIRST) {
+          axisTag = AxisID.FIRST.getExtension();
+        }
+        else if (axisID == AxisID.SECOND) {
+          axisTag = axisID.getExtension();
+        }
+        else {
+          return null;
+        }
+        attribute = getAttribute(attribute, directiveDef.getComfile() + axisTag,
+            directiveDef.getCommand(), name);
+        if (attribute == null) {
+          return null;
+        }
       }
     }
-    else {
-      return attribute.getAttribute(name);
-    }
-    return null;
+    return attribute;
   }
-  
-  private ReadOnlyAttribute getAttribute() {
-    
+
+  /**
+   * Get the descendant of attribute, up to three levels down.
+   * @param attribute
+   * @param name1
+   * @param name2
+   * @param name3
+   * @return
+   */
+  private ReadOnlyAttribute getAttribute(ReadOnlyAttribute attribute, final String name1,
+      final String name2, final String name3) {
+    if (attribute == null || name1 == null) {
+      return null;
+    }
+    attribute = attribute.getAttribute(name1);
+    if (attribute == null || name2 == null) {
+      return attribute;
+    }
+    attribute = attribute.getAttribute(name2);
+    if (attribute == null || name3 == null) {
+      return attribute;
+    }
+    return attribute.getAttribute(name3);
   }
 
   /**
@@ -355,15 +376,6 @@ public final class DirectiveFile {
     return parent.getAttribute(name);
   }
 
-  private String getAxisName(final AxisID axisID) {
-    if (axisID == AxisID.ONLY || axisID == AxisID.FIRST) {
-      return A_AXIS_NAME;
-    }
-    if (axisID == AxisID.SECOND) {
-      return B_AXIS_NAME;
-    }
-    return null;
-  }
 
   private ReadOnlyAttribute getParentAttribute(final DirectiveType directiveType) {
     if (directiveType == DirectiveType.COPY_ARG) {
@@ -388,23 +400,6 @@ public final class DirectiveFile {
       return false;
     }
     return toBoolean(attribute.getValue());
-  }
-
-  private boolean isValue(final DirectiveType directiveType, final String sectionName,
-      final AxisID axisID, final String name) {
-    ReadOnlyAttribute section = getAttribute(directiveType, sectionName);
-    if (section == null) {
-      return false;
-    }
-    String value = null;
-    if (containsAttribute(section, RUN_TIME_ANY_AXIS_NAME, name)) {
-      value = getValue(section, RUN_TIME_ANY_AXIS_NAME, name);
-    }
-    String axisName = getAxisName(axisID);
-    if (axisName != null && containsAttribute(section, axisName, name)) {
-      value = getValue(section, axisName, name);
-    }
-    return toBoolean(value);
   }
 
   /**
