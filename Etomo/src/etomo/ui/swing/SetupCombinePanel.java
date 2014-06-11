@@ -25,6 +25,7 @@ import etomo.type.CombinePatchSize;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstMetaData;
 import etomo.type.DialogType;
+import etomo.type.EtomoNumber;
 import etomo.type.FiducialMatch;
 import etomo.type.MatchMode;
 import etomo.type.MetaData;
@@ -531,7 +532,6 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
 
   private boolean validAutodoc = false;
   private boolean processingMethodLocked = false;
-  private boolean valid = false;
 
   /**
    * Default constructor
@@ -731,7 +731,7 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
     // updateStartCombine();
     setToolTipText();
   }
-  
+
   void removeListeners() {
     btnCreate.removeActionListener(actionListener);
     btnCombine.removeActionListener(actionListener);
@@ -759,8 +759,6 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
       lTomogramSizeWarning.setText(TOMOGRAM_SIZE_CHANGED_STRING);
     }
   }
-
-
 
   ProcessResultDisplay getCombineResultDisplay() {
     return btnCombine;
@@ -831,10 +829,6 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
 
   public boolean isParallelEnabled() {
     return cbParallelProcess.isEnabled();
-  }
-
-  public boolean isValid() {
-    return valid;
   }
 
   public boolean isUseCorrespondingPoints() {
@@ -954,8 +948,6 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
 
     pnlSolvematch.updateUseFiducialModel();
     updatePatchRegionModel();
-    // updateStartCombine();
-    valid = combineParams.isValid();
   }
 
   /**
@@ -1153,6 +1145,16 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
         run3dmodMenuOptions);
   }
 
+  public boolean isValid(final boolean sync) {
+    if (sync) {
+      tomogramCombinationDialog.synchronize(TomogramCombinationDialog.lblSetup, true);
+    }
+    EtomoNumber number = new EtomoNumber();
+    number.set(ltfXMin.getText());
+    System.out.println("A:number:" + number);
+    return number.isValid() && !number.equals(0);
+  }
+
   /**
    * Executes the action associated with command.  Deferred3dmodButton is null
    * if it comes from dialog's ActionListener.  Otherwise is comes from a
@@ -1168,6 +1170,14 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
     // Synchronize this panel with the others
     tomogramCombinationDialog.synchronize(TomogramCombinationDialog.lblSetup, true);
     if (command.equals(btnCreate.getActionCommand())) {
+      if (!isValid(false)) {
+        UIHarness.INSTANCE
+            .openMessageDialog(
+                applicationManager,
+                "The 'X axis min' value is 0 or invalid.  Please make sure that the X/Y/Z axis min/max values are set.",
+                "Missing Files", AxisID.ONLY);
+        return;
+      }
       updateTomogramSizeWarning(applicationManager.createCombineScripts(btnCreate));
       tomogramCombinationDialog.updateDisplay();
     }
