@@ -6278,7 +6278,6 @@ public final class ApplicationManager extends BaseManager implements
         }
       }
       // Fill in the dialog box params and set it to the appropriate state
-      combineParams.validate();
       tomogramCombinationDialog.setCombineParams(combineParams);
       backwardsCompatibilityCombineScriptsExist();
       // If setupcombine has been run load the com scripts, otherwise disable
@@ -6558,6 +6557,7 @@ public final class ApplicationManager extends BaseManager implements
    */
   public void doneTomogramCombinationDialog() {
     if (tomogramCombinationDialog.isValid()) {
+      System.out.println("B");
       saveTomogramCombinationDialog(tomogramCombinationDialog);
     }
     else {
@@ -6702,16 +6702,11 @@ public final class ApplicationManager extends BaseManager implements
    *          the calling dialog.
    */
   private boolean updateCombineParams(final boolean doValidation) {
+    Thread.dumpStack();
     if (tomogramCombinationDialog == null) {
       uiHarness.openMessageDialog(this,
           "Can not update combine.com without an active tomogram combination dialog",
           "Program logic error", AxisID.ONLY);
-      return false;
-    }
-    if (!tomogramCombinationDialog.isValid()) {
-      uiHarness.openMessageDialog(this,
-          "Please create the tomograms before attempting to combine them.",
-          "Missing Files", AxisID.ONLY);
       return false;
     }
     // start with existing combine params and update it from the screen
