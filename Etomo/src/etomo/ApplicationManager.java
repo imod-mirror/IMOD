@@ -6273,6 +6273,7 @@ public final class ApplicationManager extends BaseManager implements
           return;
         }
         catch (IOException except) {
+          System.out.println("A");
           uiHarness.openMessageDialog(this, except.getMessage(), "IO Error: "
               + recFileName, AxisID.ONLY);
           // Delete the dialog
@@ -6560,14 +6561,28 @@ public final class ApplicationManager extends BaseManager implements
    * Tomogram combination done method, move on to the post processing window
    */
   public void doneTomogramCombinationDialog() {
-    if (tomogramCombinationDialog.isValid()) {
-      System.out.println("B");
+    if (canCombine(false)) {
       saveTomogramCombinationDialog(tomogramCombinationDialog);
     }
     else {
       tomogramCombinationDialog.removeListeners();
       tomogramCombinationDialog = null;
     }
+  }
+
+  private boolean canCombine(final boolean popup) {
+    if (!FileType.TILT_OUTPUT.exists(this, AxisID.FIRST)
+        || !FileType.TILT_OUTPUT.exists(this, AxisID.SECOND)) {
+      String message = "Cannot combine.  One or more tomograms is missing.  Tomogram Generation should be run.";
+      if (popup) {
+        uiHarness.openMessageDialog(this, message, "Unable to Combine");
+      }
+      else {
+        System.err.println("Warning: " + message);
+      }
+      return false;
+    }
+    return true;
   }
 
   /**
@@ -6706,7 +6721,9 @@ public final class ApplicationManager extends BaseManager implements
    *          the calling dialog.
    */
   private boolean updateCombineParams(final boolean doValidation) {
-    Thread.dumpStack();
+    if(!canCombine(true)) {
+      return false;
+    }
     if (tomogramCombinationDialog == null) {
       uiHarness.openMessageDialog(this,
           "Can not update combine.com without an active tomogram combination dialog",
@@ -6743,6 +6760,7 @@ public final class ApplicationManager extends BaseManager implements
         return false;
       }
       catch (IOException except) {
+        System.out.println("B");
         uiHarness.openMessageDialog(this, except.getMessage(),
             "IO Error: " + recFileName, AxisID.ONLY);
         // Delete the dialog
@@ -7548,6 +7566,7 @@ public final class ApplicationManager extends BaseManager implements
         return;
       }
       catch (IOException except) {
+        System.out.println("C");
         uiHarness.openMessageDialog(this, except.getMessage(), "IO Error: "
             + TrimvolParam.getInputFileName(metaData.getAxisType(), metaData.getName()),
             AxisID.ONLY);
