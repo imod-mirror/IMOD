@@ -701,10 +701,6 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
     }
   }
 
-  public boolean isValid() {
-    return pnlSetup.isValid(true);
-  }
-
   /**
    * synchronizes setup panel to/from initial and final panels
    * @param currentTab
