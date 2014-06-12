@@ -25,7 +25,6 @@ import etomo.type.CombinePatchSize;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstMetaData;
 import etomo.type.DialogType;
-import etomo.type.EtomoNumber;
 import etomo.type.FiducialMatch;
 import etomo.type.MatchMode;
 import etomo.type.MetaData;
@@ -541,6 +540,16 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
     tomogramCombinationDialog = parent;
     applicationManager = appMgr;
     this.dialogType = dialogType;
+    ltfXMin.setRequired(true);
+    ltfXMax.setRequired(true);
+    ltfYMin.setRequired(true);
+    ltfYMax.setRequired(true);
+    ltfZMin.setRequired(true);
+    ltfXMin.setNumberMustBePositivee(true);
+    ltfXMax.setNumberMustBePositivee(true);
+    ltfYMin.setNumberMustBePositivee(true);
+    ltfYMax.setNumberMustBePositivee(true);
+    ltfZMin.setNumberMustBePositivee(true);
     btnCreate = (MultiLineButton) appMgr.getProcessResultDisplayFactory(AxisID.ONLY)
         .getCreateCombine();
     btnCombine = (Run3dmodButton) appMgr.getProcessResultDisplayFactory(AxisID.ONLY)
@@ -1145,16 +1154,6 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
         run3dmodMenuOptions);
   }
 
-  public boolean isValid(final boolean sync) {
-    if (sync) {
-      tomogramCombinationDialog.synchronize(TomogramCombinationDialog.lblSetup, true);
-    }
-    EtomoNumber number = new EtomoNumber();
-    number.set(ltfXMin.getText());
-    System.out.println("A:number:" + number);
-    return number.isValid() && !number.equals(0);
-  }
-
   /**
    * Executes the action associated with command.  Deferred3dmodButton is null
    * if it comes from dialog's ActionListener.  Otherwise is comes from a
@@ -1170,14 +1169,6 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
     // Synchronize this panel with the others
     tomogramCombinationDialog.synchronize(TomogramCombinationDialog.lblSetup, true);
     if (command.equals(btnCreate.getActionCommand())) {
-      if (!isValid(false)) {
-        UIHarness.INSTANCE
-            .openMessageDialog(
-                applicationManager,
-                "The 'X axis min' value is 0 or invalid.  Please make sure that the X/Y/Z axis min/max values are set.",
-                "Missing Files", AxisID.ONLY);
-        return;
-      }
       updateTomogramSizeWarning(applicationManager.createCombineScripts(btnCreate));
       tomogramCombinationDialog.updateDisplay();
     }
