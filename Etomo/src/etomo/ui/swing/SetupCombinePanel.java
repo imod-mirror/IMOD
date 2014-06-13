@@ -545,11 +545,13 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
     ltfYMin.setRequired(true);
     ltfYMax.setRequired(true);
     ltfZMin.setRequired(true);
-    ltfXMin.setNumberMustBePositivee(true);
-    ltfXMax.setNumberMustBePositivee(true);
-    ltfYMin.setNumberMustBePositivee(true);
-    ltfYMax.setNumberMustBePositivee(true);
-    ltfZMin.setNumberMustBePositivee(true);
+    ltfZMax.setRequired(true);
+    ltfXMin.setNumberMustBePositive(true);
+    ltfXMax.setNumberMustBePositive(true);
+    ltfYMin.setNumberMustBePositive(true);
+    ltfYMax.setNumberMustBePositive(true);
+    ltfZMin.setNumberMustBePositive(true);
+    ltfZMax.setNumberMustBePositive(true);
     btnCreate = (MultiLineButton) appMgr.getProcessResultDisplayFactory(AxisID.ONLY)
         .getCreateCombine();
     btnCombine = (Run3dmodButton) appMgr.getProcessResultDisplayFactory(AxisID.ONLY)
