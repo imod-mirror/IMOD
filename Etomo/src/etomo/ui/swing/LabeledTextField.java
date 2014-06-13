@@ -476,7 +476,7 @@ final class LabeledTextField implements UIComponent, SwingComponent {
     this.required = required;
   }
 
-  void setNumberMustBePositivee(final boolean input) {
+  void setNumberMustBePositive(final boolean input) {
     numberMustBePositive = input;
   }
 
