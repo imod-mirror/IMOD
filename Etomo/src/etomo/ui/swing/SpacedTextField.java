@@ -122,7 +122,7 @@ final class SpacedTextField implements UIComponent, SwingComponent {
   final String getText(final boolean doValidation) throws FieldValidationFailedException {
     String text = textField.getText();
     if (doValidation && textField.isEnabled()) {
-      text = FieldValidator.validateText(text, fieldType, this, getQuotedLabel(), false);
+      text = FieldValidator.validateText(text, fieldType, this, getQuotedLabel(), false,false);
     }
     return text;
   }
