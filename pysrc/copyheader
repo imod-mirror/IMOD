@@ -13,7 +13,7 @@ prefix = 'ERROR: ' + progname + ' - '
 #### MAIN PROGRAM  ####
 #
 # load System Libraries
-import os, sys, math
+import os, sys
 
 #
 # Setup runtime environment
@@ -42,26 +42,24 @@ if not os.path.exists(inName):
 
 # Get a full header and make sure it is MRC, and find # of extra bytes
 try:
+   if getImageFormat(inName) != 'MRC':
+      exitError('This is not an MRC file; cannot copy header')
    headLines = runcmd('header "' + inName + '"')
 except ImodpyError:
    exitFromImodError(progname)
 
 numBytes = 1024
-nonMRC = ['a TIFF', 'an HDF', 'a non-MRC']
-for fileType in nonMRC:
-   for line in headLines:
-      if 'This is ' + fileType in line:
-         exitError('This is not an MRC file; cannot copy header')
-      if 'extra bytes' in line:
-         numStart = line.find('.  ') + 2
-         if numStart > 2:
-            lsplit = line[numStart:].split()
-            try:
-               numBytes += int(lsplit[1])
-            except Exception:
-               numStart = 0
-         if numStart < 3:
-            exitError('Finding number of extra header bytes in output from header')
+for line in headLines:
+   if 'extra bytes' in line:
+      numStart = line.find('.  ') + 2
+      if numStart > 2:
+         lsplit = line[numStart:].split()
+         try:
+            numBytes += int(lsplit[1])
+         except Exception:
+            numStart = 0
+      if numStart < 3:
+         exitError('Finding number of extra header bytes in output from header')
 
 # Open and read the necessary bytes
 try:
