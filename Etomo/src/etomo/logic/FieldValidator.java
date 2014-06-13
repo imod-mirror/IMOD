@@ -128,6 +128,7 @@ public final class FieldValidator {
               + " must be greater then zero.", TITLE);
           FieldValidationFailedException fe = new FieldValidationFailedException(descr
               + ":text" + text + ",validationType+:" + validationType);
+          throw fe;
         }
       }
       else if (validationType == FieldType.ValidationType.FLOATING_POINT) {
@@ -137,6 +138,7 @@ public final class FieldValidator {
               + " must be greater then zero.", TITLE);
           FieldValidationFailedException fe = new FieldValidationFailedException(descr
               + ":text" + text + ",validationType+:" + validationType);
+          throw fe;
         }
       }
     }
