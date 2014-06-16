@@ -24,11 +24,11 @@ class DLL_IM_EX DialogFrame : public QWidget
  public:
   DialogFrame(QWidget *parent, int numButtons, const char *labels[], const char *tips[],
               bool equalSized, const char *caption, const char *fallback,
-              const char *name = 0, Qt::WFlags fl = Qt::Window);
+              const char *name = 0, Qt::WindowFlags fl = Qt::Window);
   DialogFrame(QWidget *parent, int numButtons, int numRows, const char *labels[], 
               const char *tips[], bool equalSized, bool rounded, const char *caption,
               const char *fallback, const char *name = 0,
-              Qt::WFlags fl = Qt::Window);
+              Qt::WindowFlags fl = Qt::Window);
   ~DialogFrame() {};
 
  signals:
@@ -51,7 +51,7 @@ class DLL_IM_EX DialogFrame : public QWidget
   void makeDialogFrame(QWidget *parent, int numButtons, int numRows,
                        const char *labels[], const char *tips[], bool equalSized,
                        bool rounded, const char *caption, const char *fallback,
-                       Qt::WFlags fl = Qt::Window);
+                       Qt::WindowFlags fl = Qt::Window);
   bool mEqualSized;
 };
 #endif

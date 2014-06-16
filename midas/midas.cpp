@@ -420,7 +420,7 @@ int main (int argc, char **argv)
 }
 
 
-MidasWindow::MidasWindow(bool doubleBuffer, QWidget * parent, Qt::WFlags f)
+MidasWindow::MidasWindow(bool doubleBuffer, QWidget * parent, Qt::WindowFlags f)
   : QMainWindow(parent, f)
 {
   int newWidth, newHeight, xleft, ytop;
