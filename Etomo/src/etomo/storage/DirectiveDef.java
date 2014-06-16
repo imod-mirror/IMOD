@@ -38,6 +38,12 @@ public final class DirectiveDef {
 
   public static final DirectiveDef BINNING = new DirectiveDef(DirectiveType.COPY_ARG,
       BINNING_NAME, false);
+  public static final DirectiveDef CS = new DirectiveDef(DirectiveType.COPY_ARG,
+      "Cs", false);
+  public static final DirectiveDef CTF_NOISE = new DirectiveDef(DirectiveType.COPY_ARG,
+      "ctfnoise", false);
+  public static final DirectiveDef DEFOCUS = new DirectiveDef(DirectiveType.COPY_ARG,
+      "defocus", false);
   public static final DirectiveDef DISTORT = new DirectiveDef(DirectiveType.COPY_ARG,
       "distort", false);
   public static final DirectiveDef DUAL = new DirectiveDef(DirectiveType.COPY_ARG,
@@ -64,7 +70,9 @@ public final class DirectiveDef {
       "twodir", true);
   public static final DirectiveDef USE_RAW_TLT = new DirectiveDef(DirectiveType.COPY_ARG,
       "userawtlt", true);
-
+  public static final DirectiveDef VOLTAGE = new DirectiveDef(DirectiveType.COPY_ARG,
+      "voltage", false);
+  
   // setupset
 
   public static final DirectiveDef DATASET_DIRECTORY = new DirectiveDef(
