@@ -21,6 +21,8 @@ This module provides the following functions:
   getmrcpixel(file)    - run the 'header' command on <file>
                          returns just a single pixel size, using extended header value
                          if any
+  getImageFormat(file) - runs header to determine format of <file>; returns
+                            TIFF, HDF, likeMRC, or MRC
   makeBackupFile(file)   - renames file to file~, deleting old file~
   exitFromImodError(pn, errout) - prints the error strings in errout and
                                   prepends 'ERROR: pn - ' to the last one
@@ -452,6 +454,19 @@ def getmrcpixel(file):
 
    return pixel
 
+# Gets the image format as MRC, HDF, TIFF, or likeMRC
+def getImageFormat(file):
+   """getImageFormat(file)   - runs header and returns TIFF, HDF, likeMRC, or MRC"""
+   retVals = ['TIFF', 'HDF', 'likeMRC']
+   nonMRC = ['a TIFF', 'an HDF', 'a non-MRC']
+   input = ["InputFile " + file]
+   hdrout = runcmd("header -StandardInput", input)
+   for ind in range(len(nonMRC)):
+      for line in hdrout[0:9]:
+         if 'This is ' + nonMRC[ind] in line:
+            return retVals[ind]
+   return 'MRC'
+   
 
 # Make a backup file
 def makeBackupFile(filename):
