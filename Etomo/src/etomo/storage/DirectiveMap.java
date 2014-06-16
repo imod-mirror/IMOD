@@ -4,6 +4,9 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.TreeMap;
 
+import etomo.type.AxisID;
+import etomo.type.AxisType;
+
 /**
 * <p>Description: </p>
 * 
@@ -44,6 +47,14 @@ public final class DirectiveMap {
       return null;
     }
     return map.get(key);
+  }
+
+  public Directive get(final DirectiveDef directiveDef, final AxisID axisID,
+      final AxisType axisType) {
+    if (directiveDef == null) {
+      return null;
+    }
+    return map.get(directiveDef.getKey(axisID, axisType));
   }
 
   public KeySet keySet(final DirectiveType type) {

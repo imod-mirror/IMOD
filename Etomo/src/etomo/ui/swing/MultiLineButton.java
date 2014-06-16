@@ -513,7 +513,7 @@ class MultiLineButton implements ProcessResultDisplay {
   final void setAlignmentY(float alignmentY) {
     button.setAlignmentY(alignmentY);
   }
-  
+
   /**
    * @return a label suitable for a message - in single quotes and truncated at the colon.
    */
@@ -538,10 +538,10 @@ class MultiLineButton implements ProcessResultDisplay {
    * @param container
    * @param size
    */
-  final void setSize() {
+  void setSize() {
     setSize(false);
   }
-  
+
   final void setSingleLineSize() {
     Dimension size = UIParameters.INSTANCE.getButtonSingleLineDimension();
     button.setPreferredSize(size);
@@ -555,6 +555,12 @@ class MultiLineButton implements ProcessResultDisplay {
     if (setMinimum) {
       button.setMinimumSize(size);
     }
+  }
+
+  final void setToPreferredSize() {
+    Dimension size = button.getPreferredSize();
+    button.setPreferredSize(size);
+    button.setMaximumSize(size);
   }
 
   final void setSize(Dimension size) {
