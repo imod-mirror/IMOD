@@ -713,11 +713,16 @@ public final class FileType {
     return imodManagerKey2;
   }
 
-  public File getFile(BaseManager manager, AxisID axisID) {
+  public File getFile(final BaseManager manager, final AxisID axisID) {
+    return getFile(manager, axisID, null);
+  }
+
+  private File getFile(final BaseManager manager, final AxisID axisID,
+      final BaseMetaData metadata) {
     if (manager == null || !hasFixedName(manager)) {
       return null;
     }
-    String fileName = getFileName(manager, axisID);
+    String fileName = getFileName(manager, axisID, metadata);
     if (fileName == null || fileName.equals("")) {
       return null;
     }
@@ -731,7 +736,8 @@ public final class FileType {
     if (inSubdirectory) {
       if (subdir != null) {
         return new File(
-            new File(subdir.getFileName(manager, axisID), fileName).getAbsolutePath());
+            new File(subdir.getFileName(manager, axisID, metadata), fileName)
+                .getAbsolutePath());
       }
       if ((subdirName = manager.getFileSubdirectoryName()) != null) {
         return new File(new File(new File(manager.getPropertyUserDir(), subdirName),
@@ -749,6 +755,15 @@ public final class FileType {
     return false;
   }
 
+  public boolean exists(final BaseManager manager, final AxisID axisID,
+      final BaseMetaData metaData) {
+    File file = getFile(manager, axisID, metaData);
+    if (file != null) {
+      return file.exists();
+    }
+    return false;
+  }
+
   /**
    * Return the file name, stripped of its extension.
    * @param manager
@@ -758,21 +773,26 @@ public final class FileType {
   public String getRoot(BaseManager manager, AxisID axisID) {
     // Template OK at least for now - the current template types have extra text after the
     // extension.
-    String fileName = getFileName(manager, axisID, true);
+    String fileName = getFileName(manager, axisID, true, null);
     int index = fileName.lastIndexOf('.');
     return fileName.substring(0, index);
   }
 
   public String getTemplate(final BaseManager manager, final AxisID axisID) {
-    return getFileName(manager, axisID, true);
+    return getFileName(manager, axisID, true, null);
   }
 
   public String getFileName(final BaseManager manager, final AxisID axisID) {
-    return getFileName(manager, axisID, false);
+    return getFileName(manager, axisID, false, null);
+  }
+
+  public String getFileName(final BaseManager manager, final AxisID axisID,
+      final BaseMetaData metaData) {
+    return getFileName(manager, axisID, false, metaData);
   }
 
   private String getFileName(final BaseManager manager, final AxisID axisID,
-      final boolean templateOK) {
+      final boolean templateOK, final BaseMetaData metaData) {
     if (manager == null || !hasFixedName(manager)) {
       return null;
     }
@@ -780,13 +800,16 @@ public final class FileType {
       System.err.println("Warning:  Getting the file name of template " + toString());
     }
     if (composite && (subFileType == null || extension == null)) {
-      return getChildFileType(manager).getFileName(manager, axisID, true);
+      return getChildFileType(manager).getFileName(manager, axisID, true, metaData);
     }
-    return getLeftSide(manager, axisID) + extension;
+    return getLeftSide(manager, axisID, metaData) + extension;
   }
 
-  private String getLeftSide(final BaseManager manager, final AxisID axisID) {
-    BaseMetaData metaData = manager.getBaseMetaData();
+  private String getLeftSide(final BaseManager manager, final AxisID axisID,
+      BaseMetaData metaData) {
+    if (metaData == null) {
+      metaData = manager.getBaseMetaData();
+    }
     return getLeftSide(metaData.getName(), metaData.getAxisType(), manager, axisID);
   }
 

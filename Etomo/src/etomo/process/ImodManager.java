@@ -1678,6 +1678,19 @@ public class ImodManager {
     }
   }
 
+  public void setPieceListFileName(String key, AxisID axisID, int vectorIndex,
+      String pieceListFileName) throws AxisTypeException {
+    key = getPrivateKey(key);
+    ImodState imodState = get(key, axisID, vectorIndex);
+    if (imodState == null) {
+      newImod(key, axisID);
+      imodState = get(key, axisID);
+    }
+    if (imodState != null) {
+      imodState.setPieceListFileName(pieceListFileName);
+    }
+  }
+
   public void stopRequestHandler() {
     if (requestHandler != null) {
       requestHandler.stop();
@@ -2012,7 +2025,8 @@ public class ImodManager {
   }
 
   private ImodState newErasedStack(AxisID axisID) {
-    ImodState imodState = new ImodState(manager, axisID, datasetName, "_fixed"+DatasetTool.STANDARD_DATASET_EXT);
+    ImodState imodState = new ImodState(manager, axisID, datasetName, "_fixed"
+        + DatasetTool.STANDARD_DATASET_EXT);
     return imodState;
   }
 
