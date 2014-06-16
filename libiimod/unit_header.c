@@ -852,7 +852,7 @@ void irtnbsym(int *iunit, int *numBytes) {iiuRetNumExtended(*iunit, numBytes);}
 
 /*!
  * Sets the number of bytes in the extended header of unit [iuit] ito [numBytes].
- * Fortran wrappers iiuAltNumExtended and irtnbsym.
+ * Fortran wrappers iiuAltNumExtended and ialnbsym.
  */
 void iiuAltNumExtended(int iunit, int numBytes)
 {
