@@ -3127,6 +3127,17 @@ public final class ApplicationManager extends BaseManager implements
   }
 
   private void updateDirective(final DirectiveMap map, final DirectiveDef directiveDef,
+      final StringBuffer errmsg, final ConstEtomoNumber value) {
+    Directive directive = map.get(directiveDef, null, null);
+    if (directive != null) {
+      directive.setValue(value);
+    }
+    else {
+      errmsg.append("Missing directive: " + directiveDef + ".  ");
+    }
+  }
+
+  private void updateDirective(final DirectiveMap map, final DirectiveDef directiveDef,
       final AxisID axisID, final StringBuffer errmsg, final ConstEtomoNumber value) {
     Directive directive = map.get(directiveDef, axisID, null);
     if (directive != null) {
@@ -3158,6 +3169,17 @@ public final class ApplicationManager extends BaseManager implements
     }
     else {
       errmsg.append("Missing directive: " + key + ".  ");
+    }
+  }
+
+  private void updateDirective(final DirectiveMap map, final DirectiveDef directiveDef,
+      final StringBuffer errmsg, final ConstStringParameter value) {
+    Directive directive = map.get(directiveDef, null, null);
+    if (directive != null) {
+      directive.setValue(value);
+    }
+    else {
+      errmsg.append("Missing directive: " + directiveDef + ".  ");
     }
   }
 
@@ -3341,8 +3363,6 @@ public final class ApplicationManager extends BaseManager implements
     AxisType axisType = metaData.getAxisType();
     boolean montage = metaData.getViewType() == ViewType.MONTAGE;
     // setupset.copyarg directvies
-    String prepend = DirectiveType.SETUP_SET.toString() + AutodocTokenizer.SEPARATOR_CHAR
-        + DirectiveFile.COPY_ARG_NAME + AutodocTokenizer.SEPARATOR_CHAR;
     updateDirective(directiveMap, DirectiveDef.DUAL, errmsg,
         metaData.getAxisType() == AxisType.DUAL_AXIS, true);
     updateDirective(directiveMap, DirectiveDef.MONTAGE, errmsg, montage);
@@ -3404,18 +3424,15 @@ public final class ApplicationManager extends BaseManager implements
         .getAdjustedFocusA().is());
     if (dualAxis) {
       curAxisID = AxisID.SECOND;
-      updateDirective(
-          directiveMap,
-         
-              curAxisID, DirectiveFile.FOCUS_NAME),
-          errmsg, metaData.getAdjustedFocusB().is());
+      updateDirective(directiveMap, DirectiveDef.FOCUS, curAxisID, errmsg, metaData
+          .getAdjustedFocusB().is());
     }
     curAxisID = firstAxisID;
     CtfPlotterParam ctfPlotterParam = null;
     if (comScriptMgr.loadCtfPlotter(firstAxisID, false)) {
       ctfPlotterParam = comScriptMgr.getCtfPlotterParam(firstAxisID);
       if (ctfPlotterParam != null) {
-        updateDirective(directiveMap, prepend + DirectiveFile.DEFOCUS_NAME, errmsg,
+        updateDirective(directiveMap, DirectiveDef.DEFOCUS, errmsg,
             ctfPlotterParam.getExpectedDefocus());
       }
     }
@@ -3423,18 +3440,18 @@ public final class ApplicationManager extends BaseManager implements
       CtfPhaseFlipParam ctfPhaseFlipParam = comScriptMgr
           .getCtfPhaseFlipParam(firstAxisID);
       if (ctfPhaseFlipParam != null) {
-        updateDirective(directiveMap, prepend + DirectiveFile.VOLTAGE_NAME, errmsg,
+        updateDirective(directiveMap, DirectiveDef.VOLTAGE, errmsg,
             ctfPhaseFlipParam.getVoltage());
-        updateDirective(directiveMap, prepend + DirectiveFile.CS_NAME, errmsg,
+        updateDirective(directiveMap, DirectiveDef.CS, errmsg,
             ctfPhaseFlipParam.getSphericalAberration());
       }
     }
     if (ctfPlotterParam != null) {
-      updateDirective(directiveMap, prepend + DirectiveFile.CTF_NOISE_NAME, errmsg,
+      updateDirective(directiveMap,  DirectiveDef.CTF_NOISE, errmsg,
           ctfPlotterParam.getConfigFile());
     }
     // setupset directives
-    prepend = DirectiveType.SETUP_SET.toString() + AutodocTokenizer.SEPARATOR_CHAR;
+   // prepend = DirectiveType.SETUP_SET.toString() + AutodocTokenizer.SEPARATOR_CHAR;
     updateDirective(directiveMap, prepend + DirectiveFile.SCOPE_TEMPLATE_NAME, errmsg,
         metaData.getOrigScopeTemplate());
     updateDirective(directiveMap, prepend + DirectiveFile.SYSTEM_TEMPLATE_NAME, errmsg,
