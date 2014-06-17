@@ -71,7 +71,7 @@ set.var.run_sirt=
 set.interface.Recon=
 
 [Test = dual-zero-bead-test-gui]
-set.testdir = dual-test-gui
+set.testdir = dual-zero-bead-test-gui
 set.adoc.dialog.a=recon.adoc
 set.adoc.bdialog.b=recon.adoc
 set.var.dataset = BB
