@@ -19,8 +19,11 @@ This module provides the following functions:
                          returns a 'tuple' of x,y,z,mode,px,py,pz,
                          plus ox,oy,oz,min,max,mean if doAll is True
   getmrcpixel(file)    - run the 'header' command on <file>
-                         returns just a single pixel size, using extended header value
-                         if any
+                         returns just a single pixel size, using extended header
+                         value if any
+   getMontageSize(stack, [plName]) - runs 'montagesize' on <stack>; adds piece 
+                                     list file plName if supplied and it exists; 
+                                     returns nx, ny, nz in a tuple
   getImageFormat(file) - runs header to determine format of <file>; returns
                             TIFF, HDF, likeMRC, or MRC
   makeBackupFile(file)   - renames file to file~, deleting old file~
@@ -453,6 +456,34 @@ def getmrcpixel(file):
       raise ImodpyError(errStrings)
 
    return pixel
+
+
+# Get the size of a montage by running montagesize
+def getMontageSize(stack, plName = None):
+   """getMontageSize(stack, [plName])  - runs 'montagesize' on <stack>; adds
+   piece list file plName if supplied and it exists; returns nx, ny, nz in a tuple"""
+   global errStrings
+   command = 'montagesize "' + stack + '"'
+   if plName and os.path.exists(plName):
+      command += ' "' + plName + '"'
+   sizeLines = runcmd(command)
+   try:
+      problem = 'No output returned'
+      line = sizeLines[-1]
+      ind = line.find('NZ:')
+      if ind < 0:
+         problem = 'Line with NZ: not found in output'
+         ind = -5
+      lsplit = line[ind + 3:].split()
+      problem = 'Uninterpretable output on line with NZ:'
+      rawXsize = int(lsplit[0])
+      rawYsize = int(lsplit[1])
+      zsize = int(lsplit[2])
+      return (rawXsize, rawYsize, zsize)
+   except Exception:
+      errStrings = command + ': ' + problem
+      raise ImodpyError
+
 
 # Gets the image format as MRC, HDF, TIFF, or likeMRC
 def getImageFormat(file):
