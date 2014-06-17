@@ -3165,6 +3165,19 @@ public final class ApplicationManager extends BaseManager implements
     }
   }
 
+  private void updateDirective(final DirectiveMap map, final DirectiveDef directiveDef,
+      final StringBuffer errmsg, final ConstEtomoNumber value,
+      final ConstEtomoNumber defaultValue) {
+    Directive directive = map.get(directiveDef, null, null);
+    if (directive != null) {
+      directive.setValue(value);
+      directive.setDefaultValue(defaultValue);
+    }
+    else {
+      errmsg.append("Missing directive: " + directiveDef + ".  ");
+    }
+  }
+
   private void updateDirective(final DirectiveMap map, final String key,
       final StringBuffer errmsg, final ConstStringParameter value) {
     Directive directive = map.get(key);
@@ -3322,6 +3335,18 @@ public final class ApplicationManager extends BaseManager implements
     }
   }
 
+  private void updateDirective(final DirectiveMap map, final DirectiveDef directiveDef,
+      final StringBuffer errmsg, final String value, final String defaultValue) {
+    Directive directive = map.get(directiveDef, null, null);
+    if (directive != null) {
+      directive.setValue(value);
+      directive.setDefaultValue(defaultValue);
+    }
+    else {
+      errmsg.append("Missing directive: " + directiveDef + ".  ");
+    }
+  }
+
   /**
    * Save the param file and the open dialogs and return a timestamp.  If returning null,
    * popup a dialog containing errmsg before leaving.
@@ -3451,55 +3476,46 @@ public final class ApplicationManager extends BaseManager implements
       }
     }
     if (ctfPlotterParam != null) {
-      updateDirective(directiveMap,  DirectiveDef.CTF_NOISE, errmsg,
+      updateDirective(directiveMap, DirectiveDef.CTF_NOISE, errmsg,
           ctfPlotterParam.getConfigFile());
     }
     // setupset directives
-   // prepend = DirectiveType.SETUP_SET.toString() + AutodocTokenizer.SEPARATOR_CHAR;
-    updateDirective(directiveMap, prepend + DirectiveFile.SCOPE_TEMPLATE_NAME, errmsg,
+
+    updateDirective(directiveMap, DirectiveDef.SCOPE_TEMPLATE, errmsg,
         metaData.getOrigScopeTemplate());
-    updateDirective(directiveMap, prepend + DirectiveFile.SYSTEM_TEMPLATE_NAME, errmsg,
+    updateDirective(directiveMap, DirectiveDef.SYSTEM_TEMPLATE, errmsg,
         metaData.getOrigSystemTemplate());
-    updateDirective(directiveMap, prepend + DirectiveFile.USER_TEMPLATE_NAME, errmsg,
+    updateDirective(directiveMap, DirectiveDef.USER_TEMPLATE, errmsg,
         metaData.getOrigUserTemplate());
 
     // runtime
-    prepend = DirectiveType.RUNTIME.toString() + AutodocTokenizer.SEPARATOR_CHAR;
-    String module;
+    // prepend = DirectiveType.RUNTIME.toString() + AutodocTokenizer.SEPARATOR_CHAR;
 
     // Preprocessing
-    module = "Preprocessing" + AutodocTokenizer.SEPARATOR_CHAR
-        + DirectiveFile.RUN_TIME_ANY_AXIS_NAME + AutodocTokenizer.SEPARATOR_CHAR;
-    updateDirective(directiveMap, prepend + module + DirectiveFile.REMOVE_XRAYS_NAME,
-        errmsg, FileType.ERASER_LOG.getFile(this, curAxisID).exists());
-    updateDirective(directiveMap, prepend + module + DirectiveFile.ARCHIVE_ORIGINAL_NAME,
-        errmsg, FileType.ORIGINAL_RAW_STACK.getFile(this, curAxisID).exists());
+    updateDirective(directiveMap, DirectiveDef.REMOVE_XRAYS, errmsg, FileType.ERASER_LOG
+        .getFile(this, curAxisID).exists());
+    updateDirective(directiveMap, DirectiveDef.ARCHIVE_ORIGINAL, errmsg,
+        FileType.ORIGINAL_RAW_STACK.getFile(this, curAxisID).exists());
     // Fiducials module
-    module = DirectiveFile.FIDUCIALS_MODULE_NAME + AutodocTokenizer.SEPARATOR_CHAR
-        + DirectiveFile.RUN_TIME_ANY_AXIS_NAME + AutodocTokenizer.SEPARATOR_CHAR;
     // Coarse alignment
-    updateDirective(directiveMap, prepend + module + DirectiveFile.FIDUCIALLESS_NAME,
-        errmsg, metaData.isFiducialess(curAxisID));
+    updateDirective(directiveMap, DirectiveDef.FIDUCIALLESS, errmsg,
+        metaData.isFiducialess(curAxisID));
     // Tracking choices
-    updateDirective(directiveMap, prepend + module + DirectiveFile.TRACKING_METHOD_NAME,
-        errmsg, TrackingMethod.toDirectiveValue(metaData.getTrackMethod(curAxisID)),
+    updateDirective(directiveMap, DirectiveDef.TRACKING_METHOD, errmsg,
+        TrackingMethod.toDirectiveValue(metaData.getTrackMethod(curAxisID)),
         TrackingMethod.SEED.getValue());
-    updateDirective(directiveMap, prepend + module + DirectiveFile.SEEDING_METHOD_NAME,
-        errmsg, SeedingMethod.toDirectiveValue(metaData, curAxisID),
+    updateDirective(directiveMap, DirectiveDef.SEEDING_METHOD, errmsg,
+        SeedingMethod.toDirectiveValue(metaData, curAxisID),
         SeedingMethod.MANUAL.getValue());
     // Beadtracking
     // numberOfRuns - cannot update
     // Auto seed finding
     // rawBoundaryModel - cannot update
     // RAPTOR parameters
-    module = DirectiveFile.RAPTOR_MODULE_NAME + AutodocTokenizer.SEPARATOR_CHAR
-        + DirectiveFile.RUN_TIME_ANY_AXIS_NAME + AutodocTokenizer.SEPARATOR_CHAR;
     metaData.getTrackRaptorUseRawStack();
-    updateDirective(directiveMap,
-        prepend + module + DirectiveFile.USE_ALIGNED_STACK_NAME, errmsg,
+    updateDirective(directiveMap, DirectiveDef.USE_ALIGNED_STACK, errmsg,
         !metaData.getTrackRaptorUseRawStack(), true);
-    updateDirective(directiveMap,
-        prepend + module + DirectiveFile.NUMBER_OF_MARKERS_NAME, errmsg,
+    updateDirective(directiveMap, DirectiveDef.NUMBER_OF_MARKERS, errmsg,
         metaData.getTrackRaptorMark());
     // Patch tracking
     // rawBoundaryModel - cannot update
