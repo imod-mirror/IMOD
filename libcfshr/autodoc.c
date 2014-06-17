@@ -60,6 +60,7 @@ static Autodoc *autodocs = NULL;
 static int numAutodocs = 0;
 static int curAdocInd = -1;
 static Autodoc *curAdoc = NULL;
+static char *sNameForOrdering = NULL;
 
 #define GLOBAL_NAME ADOC_GLOBAL_NAME
 #define OPEN_DELIM "["
@@ -415,6 +416,7 @@ void AdocDone()
     deleteAdoc(&autodocs[i]);
   if (autodocs)
     free(autodocs);
+  B3DFREE(sNameForOrdering);
   autodocs = NULL;
   numAutodocs = 0;
   curAdocInd = -1;
@@ -465,19 +467,78 @@ int AdocAppendSection(const char *filename)
   return 0;
 }
 
+/*!
+ * Sets the next write so that all sections in the collection with name [typeName]
+ * are output after the global section and in order by the value of their names.
+ * Returns 1 for memory error.
+ */
+int AdocOrderWriteByValue(const char *typeName)
+{
+  B3DFREE(sNameForOrdering);
+  if (!typeName)
+    return 0;
+  sNameForOrdering = strdup(typeName);
+  if (PipMemoryError(sNameForOrdering, "AdocOrderWriteByValue"))
+    return 1;
+  return 0;
+}
+
 /* Function to actually write the file or last section only */
 static int writeFile(FILE *afile, int writeAll)
 {
-  int i,j,k, ind, comInd, write, lastBlank;
+  int i,j,k, ind, comInd, write, lastBlank, useInd;
   AdocCollection *coll;
   AdocSection *sect;
+  float *ordSectValues;
+  int *ordSectInds;
+  int orderedWrite = writeAll && sNameForOrdering && curAdoc->numSections > 1;
+  float maxValue = -1.e37;
+
+  /* For ordered writing, get arrays for indexes and float values, and set up values
+     for all the sections of the given type */
+  if (orderedWrite) {
+    ordSectValues = B3DMALLOC(float, curAdoc->numSections);
+    ordSectInds = B3DMALLOC(int, curAdoc->numSections);
+    if (!ordSectInds || !ordSectValues) {
+      PipMemoryError(NULL, "AdocWrite");
+      return -1;
+    }
+    ordSectValues[0] = maxValue;
+    ordSectInds[0] = 0;
+    for (ind = 1; ind < curAdoc->numSections; ind++) {
+      i = curAdoc->collList[ind];
+      j = curAdoc->sectList[ind];
+      ordSectInds[ind] = ind;
+      coll = &curAdoc->collections[i];
+      if (!strcmp(coll->name, sNameForOrdering) && coll->sections[j].name) {
+        ordSectValues[ind] = atof(coll->sections[j].name);
+        maxValue = B3DMAX(maxValue, ordSectValues[ind]);
+      }
+    }
+
+    /* Then set up values for the rest of the sections, above the real values and in
+       the order they occur */
+    maxValue = B3DMAX(0., maxValue);
+    for (ind = 1; ind < curAdoc->numSections; ind++) {
+      i = curAdoc->collList[ind];
+      coll = &curAdoc->collections[i];
+      if (strcmp(coll->name, sNameForOrdering) || !coll->sections[j].name) {
+        maxValue += 1.;
+        ordSectValues[ind] = maxValue;
+      }
+    }
+
+    /* Sort, use the sorted indexes below */
+    rsSortIndexedFloats(ordSectValues, ordSectInds, curAdoc->numSections);
+  }
 
   /* Initialize delimiter, loop on indexes in the autodoc */
   valueDelim = defaultDelim;
   for (ind = 0; ind < curAdoc->numSections; ind++) {
     write = (writeAll || ind == curAdoc->numSections - 1) ? 1 : 0;
-    i = curAdoc->collList[ind];
-    j = curAdoc->sectList[ind];
+    useInd = orderedWrite ? ordSectInds[ind] : ind;
+    i = curAdoc->collList[useInd];
+    j = curAdoc->sectList[useInd];
     coll = &curAdoc->collections[i];
     sect = &coll->sections[j];
 
@@ -526,6 +587,10 @@ static int writeFile(FILE *afile, int writeAll)
       } else if (sect->keys[k] && write) 
         fprintf(afile, "%s %s \n", sect->keys[k], valueDelim);
     }
+  }
+  if (orderedWrite) {
+    free(ordSectInds);
+    free(ordSectValues);
   }
   return 0;
 }
@@ -714,7 +779,11 @@ int AdocFindInsertIndex(const char *typeName, int nameValue)
  * name is converted to an integer and the section is inserted so as to maintain sections
  * in order.  The collection in the receiving autodoc is created if necessary; the new
  * section may already exist or will be created if necessary; existing values with the
- * same key are overwritten.  Returns -1 for all kinds of errors.
+ * same key are overwritten.  To transfer the global data, set [typeName] to 
+ * ADOC_GLOBAL_NAME, [sectInd] to 0, and [byValue] to 0; [newName] is ignored.  Returns
+ * -1 if the originating section does not exist, -2 for incorrect index for new autodoc
+ * or [newName] NULL (unless [typeName] is ADOC_GLOBAL_NAME), -3 for failure to add a new 
+ * section, or -4 for failure to add a key-value.
  */
 int AdocTransferSection(const char *typeName, int sectInd, int toAdocInd, 
                         const char *newName, int byValue)
@@ -726,36 +795,45 @@ int AdocTransferSection(const char *typeName, int sectInd, int toAdocInd,
   /* Get the section then switch adocs */
   if (!(sect = getSection(typeName, sectInd)))
     return -1;
-  if (toAdocInd < 0 || toAdocInd == curAdocInd || toAdocInd >= numAutodocs || !newName)
+  if (toAdocInd < 0 || toAdocInd == curAdocInd || toAdocInd >= numAutodocs)
     return -2;
   AdocSetCurrent(toAdocInd);
 
-  /* If the section does not exist, add it, using insert if the collection does exist */
-  newSectInd = AdocLookupSection(typeName, newName);
-  if (newSectInd < 0) {
-    collInd = lookupCollection(curAdoc, typeName);
-    if (collInd < 0) {
-      newSectInd = 0;
-      err = AdocAddSection(typeName, newName);
-    } else {
-      newSectInd = curAdoc->collections[collInd].numSections;
-      if (byValue) {
-        nameVal = atoi(newName);
-        newSectInd = AdocFindInsertIndex(typeName, nameVal);
+  /* Set index to 0 for global section or go on to look up and/or add section */
+  if (!strcmp(typeName, GLOBAL_NAME)) {
+    newSectInd = 0;
+  } else {
+    if (!newName)
+      return -2;
+
+    /* If the section does not exist, add it, using insert if the collection does exist */
+    newSectInd = AdocLookupSection(typeName, newName);
+    if (newSectInd < 0) {
+      collInd = lookupCollection(curAdoc, typeName);
+      if (collInd < 0) {
+        newSectInd = 0;
+        err = AdocAddSection(typeName, newName);
+      } else {
+        newSectInd = curAdoc->collections[collInd].numSections;
+        if (byValue) {
+          nameVal = atoi(newName);
+          newSectInd = AdocFindInsertIndex(typeName, nameVal);
+        }
+        err = AdocInsertSection(typeName, newSectInd, newName);
       }
-      err = AdocInsertSection(typeName, newSectInd, newName);
-    }
-    if (err < 0) {
-      AdocSetCurrent(curIndSave);
-      return -3;
+      if (err < 0) {
+        AdocSetCurrent(curIndSave);
+        return -3;
+      }
     }
   }
 
-  /* Copy the key/values and their types */
-  for (ind = 0; ind < sect->numKeys && !err; ind++)
-    if (setKeyValueType(typeName, newSectInd, sect->keys[ind], sect->values[ind], 
-                        sect->types[ind]) < 0)
+  /* Copy the key/values and their types.  Skip NULL ones, which happen with HDF adoc */
+  for (ind = 0; ind < sect->numKeys && !err; ind++) {
+    if (sect->keys[ind] && sect->values[ind] && setKeyValueType
+        (typeName, newSectInd, sect->keys[ind], sect->values[ind], sect->types[ind]) < 0)
       err = -4;
+  }
   AdocSetCurrent(curIndSave);
   return err;
 }
