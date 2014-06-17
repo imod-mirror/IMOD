@@ -70,6 +70,23 @@ set.var.test-gui=
 set.var.run_sirt=
 set.interface.Recon=
 
+[Test = dual-zero-bead-test-gui]
+set.testdir = dual-zero-bead-test-gui
+set.adoc.dialog.a=recon.adoc
+set.adoc.bdialog.b=recon.adoc
+set.var.dataset = BB
+set.dataset = BB
+copy.file.a = %{dataset}a.st
+copy.file.b = %{dataset}b.st
+set.param = --autoclose3dmod
+set.param = --ignoreloc
+set.var.zero-bead=
+set.var.patch-tracking=
+set.var.dual=
+set.var.test-gui=
+set.var.run_sirt=
+set.interface.Recon=
+
 [Test = single-fidless]
 set.testdir=single-fidless
 set.adoc.dialog = recon.adoc
@@ -167,6 +184,20 @@ set.var.patch-tracking=
 set.var.run_sirt=
 set.interface.Recon=
 
+[Test = single-zero-bead-test-gui]
+set.testdir = single-zero-bead-test-gui
+set.adoc.dialog = recon.adoc
+set.var.dataset = BBa
+set.dataset = BB
+copy.file = %{dataset}.st
+set.param = --autoclose3dmod
+set.param = --ignoreloc
+set.var.zero-bead=
+set.var.single=
+set.var.test-gui=
+set.var.patch-tracking=
+set.var.run_sirt=
+set.interface.Recon=
 
 [Test = single-montage]
 set.testdir = single-montage
