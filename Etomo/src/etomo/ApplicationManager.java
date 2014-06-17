@@ -6347,7 +6347,7 @@ public final class ApplicationManager extends BaseManager implements
     }
     // FIXME do we want to be updating here break model (maybe it is saving
     // the bin by 2 state?
-    if (!updateCombineParams(true,false)) {
+    if (!updateCombineParams(false, true)) {
       return;
     }
 
@@ -6412,7 +6412,7 @@ public final class ApplicationManager extends BaseManager implements
   public void imodPatchRegionModel(Run3dmodMenuOptions menuOptions) {
     // FIXME do we want to be updating here break model
     // Get the latest combine parameters from the dialog
-    if (!updateCombineParams(true,false)) {
+    if (!updateCombineParams(false, true)) {
 
     }
     AxisID axisID;
@@ -6606,7 +6606,7 @@ public final class ApplicationManager extends BaseManager implements
       // Update the com script and metadata info from the tomogram
       // combination dialog box. Since there are multiple pages and scripts
       // associated with the postpone button get the ones that are appropriate
-      updateCombineParams(false,true);
+      updateCombineParams(false, true);
       tomogramCombinationDialog.getParameters(metaData);
       tomogramCombinationDialog.getParameters(getScreenState(AxisID.ONLY));
       if (!tomogramCombinationDialog.isChanged(state)) {
@@ -6678,7 +6678,7 @@ public final class ApplicationManager extends BaseManager implements
     sendMsgProcessStarting(processResultDisplay);
     mainPanel.startProgressBar("Creating combine scripts", AxisID.ONLY,
         ProcessName.SOLVEMATCH);
-    if (!updateCombineParams(true,false)) {
+    if (!updateCombineParams(true, false)) {
       mainPanel.stopProgressBar(AxisID.ONLY, ProcessEndState.FAILED);
       return false;
     }
@@ -6720,7 +6720,7 @@ public final class ApplicationManager extends BaseManager implements
    * @param tomogramCombinationDialog
    *          the calling dialog.
    */
-  private boolean updateCombineParams(final boolean doValidation,final boolean silent) {
+  private boolean updateCombineParams(final boolean doValidation, final boolean silent) {
     if (!canCombine(silent)) {
       return false;
     }
@@ -7166,7 +7166,7 @@ public final class ApplicationManager extends BaseManager implements
     }
     // FIXME: what are the necessary updates
     // Update the scripts from the dialog panel
-    if (!updateCombineParams(true,false)) {
+    if (!updateCombineParams(true, false)) {
       sendMsgProcessFailedToStart(processResultDisplay);
       return;
     }
@@ -7242,7 +7242,7 @@ public final class ApplicationManager extends BaseManager implements
     sendMsgProcessStarting(processResultDisplay);
     // FIXME: what are the necessary updates
     // Update the scripts from the dialog panel
-    if (!updateCombineParams(true,false)) {
+    if (!updateCombineParams(true, false)) {
       sendMsgProcessFailedToStart(processResultDisplay);
       return;
     }
@@ -7262,7 +7262,7 @@ public final class ApplicationManager extends BaseManager implements
       sendMsgProcessFailedToStart(processResultDisplay);
       return;
     }
-    if (!updateCombineParams(true,false)) {
+    if (!updateCombineParams(true, false)) {
       sendMsgProcessFailedToStart(processResultDisplay);
       return;
     }
@@ -7321,7 +7321,7 @@ public final class ApplicationManager extends BaseManager implements
       processSeries = new ProcessSeries(this, dialogType);
     }
     sendMsgProcessStarting(processResultDisplay);
-    if (!updateCombineParams(true,false)) {
+    if (!updateCombineParams(true, false)) {
       sendMsgProcessFailedToStart(processResultDisplay);
       return;
     }
@@ -7463,7 +7463,7 @@ public final class ApplicationManager extends BaseManager implements
     }
     sendMsgProcessStarting(processResultDisplay);
     CombineComscriptState combineComscriptState = updateCombineComscriptState(CombineProcessType.VOLCOMBINE);
-    if (!updateCombineParams(true,false)) {
+    if (!updateCombineParams(true, false)) {
       sendMsgProcessFailedToStart(processResultDisplay);
       return;
     }
