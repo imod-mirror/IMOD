@@ -3524,28 +3524,26 @@ public final class ApplicationManager extends BaseManager implements
     // Alignment
     // enableStretching - cannot update
     // Tomogram Positioning - Positioning module
-    module = DirectiveFile.POSITIONING_MODULE_NAME + AutodocTokenizer.SEPARATOR_CHAR
-        + DirectiveFile.RUN_TIME_ANY_AXIS_NAME + AutodocTokenizer.SEPARATOR_CHAR;
-    updateDirective(directiveMap, prepend + module + DirectiveFile.WHOLE_TOMOGRAM_NAME,
-        errmsg, metaData.isWholeTomogramSample(curAxisID));
-    updateDirective(directiveMap, prepend + module + DirectiveFile.BIN_BY_FACTOR_NAME,
-        errmsg, metaData.getPosBinning(curAxisID), 3);
-    updateDirective(directiveMap, prepend + module + DirectiveFile.THICKNESS_NAME,
-        errmsg, metaData.getSampleThickness(curAxisID));
+    updateDirective(directiveMap, DirectiveDef.WHOLE_TOMOGRAM, errmsg,
+        metaData.isWholeTomogramSample(curAxisID));
+    updateDirective(directiveMap, DirectiveDef.BIN_BY_FACTOR_FOR_POSITIONING, errmsg,
+        metaData.getPosBinning(curAxisID), 3);
+    updateDirective(directiveMap, DirectiveDef.THICKNESS_FOR_POSITIONING, errmsg,
+        metaData.getSampleThickness(curAxisID));
     // Aligned stack module
-    module = DirectiveFile.ALIGNED_STACK_MODULE_NAME + AutodocTokenizer.SEPARATOR_CHAR
-        + DirectiveFile.RUN_TIME_ANY_AXIS_NAME + AutodocTokenizer.SEPARATOR_CHAR;
+    // module = DirectiveFile.ALIGNED_STACK_MODULE_NAME + AutodocTokenizer.SEPARATOR_CHAR
+    // + DirectiveFile.RUN_TIME_ANY_AXIS_NAME + AutodocTokenizer.SEPARATOR_CHAR;
     // Aligned stack choices
     updateDirective(
         directiveMap,
-        prepend + module + "correctCTF",
+        DirectiveDef.CORRECT_CTF,
         errmsg,
         getScreenState(curAxisID).getButtonState(
             getProcessResultDisplayFactory(curAxisID).getCtfCorrection()
                 .getButtonStateKey()));
     updateDirective(
         directiveMap,
-        prepend + module + "eraseGold",
+        DirectiveDef.ERASE_GOLD,
         errmsg,
         getScreenState(curAxisID).getButtonState(
             getProcessResultDisplayFactory(curAxisID).getCcdEraserBeads()
