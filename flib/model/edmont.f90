@@ -15,7 +15,7 @@ program edmont
   integer*4 nxyz(3), mxyz(3), nxyzst(3), nxyz2(3), mxyz2(3), nx, ny, nz
   real*4 title(20), cell2(6), cell(6), delta(3), xOrigin, yOrigin, zOrigin
   !
-  character*320, allocatable :: inFile(:), filout(:), pieceFileIn(:), pieceFileOut(:)
+  character*320, allocatable :: inFile(:), outFile(:), pieceFileIn(:), pieceFileOut(:)
   !
   equivalence (nx, nxyz(1)), (ny, nxyz(2)), (nz, nxyz(3))
   character*320 modelFile
@@ -31,9 +31,9 @@ program edmont
   integer*1, allocatable :: extraIn(:), extraOut(:)
   data optimalMax/255., 32767., 4*255., 65535., 2*255., 511., 1023., 2047., 4095., &
       8191., 16383., 32767./
-  logical rescale
+  logical*4 rescale, allHaveHeaderCoords, useMdoc, outDocChanged
   integer(kind = 8) i8, numPixels
-  character dat * 9, tim * 8
+  character dat*9, tim*8
   integer*2 temp
   character*80 titlech
   integer*4 maxExtra, maxPieces, limExtra, limPiece, idim, limList
@@ -44,7 +44,7 @@ program edmont
   integer*4 numOutValues, numToGet, numOutFiles, numOutTotal, numOutEntries
   integer*4 numImageOutFiles, noutXpiece, noutYpiece, minXinc, maxXinc, minYinc
   integer*4 maxYinc, minFrame, maxFrame, knocks, ifKnock, iobj, ipt, ifMean
-  integer*4 ifFloat, ifRenumber, ifShiftXy, ibinning, maxBinning, nxBin
+  integer*4 ifFloat, ifRenumber, ifShiftXy, ibinning, maxBinning, nxBin, numberOffset
   integer*4 nxbOverlap, ixStart, nyBin, nybOverlap, iyStart, lenTemp, ilis, indSec
   real*4 fracZero, zmin, zmax, dmin2, dmax2, avg, sd, tmpMin, tmpMax, dmaxOut
   real*8 sum8, sumsq8, tsum8, tsumsq8, dmean2
@@ -54,12 +54,16 @@ program edmont
   integer*4 nbytePerSecOut, nbyteExtraOut, indXout, minSubXpiece, minSubYpiece
   integer*4 nbyteClear, nbytePerSecIn, iflagExtraIn, numPLfileOut, maxSecOut, ind
   integer*4 maxExtraOut, maxNumXpieces, maxNumYpieces, maxByteExtraIn, numByteCopy
+  integer*4 indAdocIn, indAdocOut, indSectOut, indSectIn
   character*100000 listString
+  character*10 zvalueName, globalName
 
   logical readSmallMod, notKnock
+  integer*4 AdocSetThreeIntegers, iiuFileType, b3dOutputFileType
+  integer*4 iiuRetAdocIndex, AdocLookupByNameValue, AdocTransferSection, AdocWrite
   !
   integer*4 numOptArg, numNonOptArg
-  integer*4 PipGetInteger, PipGetBoolean
+  integer*4 PipGetInteger, PipGetBoolean, PipGetLogical
   integer*4 PipGetString, PipGetTwoIntegers
   integer*4 PipGetIntegerArray, PipGetNonOptionArg
   !
@@ -93,6 +97,10 @@ program edmont
   maxXinc = 0
   minYinc = 0
   maxYinc = 0
+  numberOffset = 0
+  allHaveHeaderCoords = .true.
+  useMdoc = .false.
+  call AdocGetStandardNames(globalName, zvalueName)
 
   call PipReadOrParseOptions(options, numOptions, 'edmont', &
       'ERROR: EDMONT - ', .false., 2, 2, 1, numOptArg, &
@@ -116,6 +124,8 @@ program edmont
   call PipNumberOfEntries('SectionsToRead', numSecLists)
   if (numSecLists > numFilesIn) call exitError( &
       'THERE ARE MORE SECTION LISTS THAN INPUT FILES')
+  ierr = PipGetBoolean('NumberedFromOne', numberOffset)
+  ierr = PipGetLogical('UseMdocFiles', useMdoc)
 
   allocate(inFile(numFilesIn), pieceFileIn(numFilesIn), nlist(numFilesIn), &
       listInd(numFilesIn), stat = ierr)
@@ -145,13 +155,14 @@ program edmont
     call openAndAnalyzeFiles(inFile(ifile), pieceFileIn(ifile), mxyz, dminIn, &
         .false., mode, extraIn, limExtra, nbyteExtraIn, nbytePerSecIn, ixPcList, &
         iyPcList, izPcList, numPcList, limPiece, listz, numInZlist, minXpiece, &
-        numXpieces, mxOverlap, minYpiece, numYpieces, myOverlap)
+        numXpieces, mxOverlap, minYpiece, numYpieces, myOverlap, useMdoc)
     call iiuClose(1)
     maxExtra = max(maxExtra, nbyteExtraIn)
     maxPieces = max(maxPieces, numPcList)
     maxByteExtraIn = max(maxByteExtraIn, nbytePerSecIn)
     maxNumXpieces = max(maxNumXpieces, numXpieces)
     maxNumYpieces = max(maxNumYpieces, numYpieces)
+    if (nbyteExtraIn == 0) allHaveHeaderCoords = .false.
     !
     ! The first file with multiple pieces defines the overlap on an axis
     if (nxOverlap == -10000 .and. numXpieces > 1) nxOverlap = mxOverlap
@@ -212,6 +223,7 @@ program edmont
       !
       ! Check for legality
       do i = 1, nlist(ifile)
+        inlistTmp(listTotal + i) = inlistTmp(listTotal + i) - numberOffset
         ierr = 1
         do j = 1, numInZlist
           if (listz(j) == inlistTmp(listTotal + i)) then
@@ -235,7 +247,7 @@ program edmont
   call PipNumberOfEntries('ImageOutputFile', numImageOutFiles)
   numOutFiles = numImageOutFiles + min(1, numNonOptArg)
   if (numOutFiles == 0) call exitError('NO OUTPUT IMAGE FILE NAME ENTERED')
-  allocate(filout(numOutFiles), pieceFileOut(numOutFiles), numSecOut(numOutFiles), &
+  allocate(outFile(numOutFiles), pieceFileOut(numOutFiles), numSecOut(numOutFiles), &
       stat = ierr)
   call memoryError(ierr, 'ARRAYS FOR OUTPUT FILES')
   call PipNumberOfEntries('PieceListOutput', numPLfileOut)
@@ -273,9 +285,9 @@ program edmont
   maxSecOut = 0
   do ifile = 1, numOutFiles
     if (ifile <= numImageOutFiles) then
-      ierr = PipGetString('ImageOutputFile', filout(ifile))
+      ierr = PipGetString('ImageOutputFile', outFile(ifile))
     else
-      ierr = PipGetNonOptionArg(numNonOptArg, filout(ifile))
+      ierr = PipGetNonOptionArg(numNonOptArg, outFile(ifile))
     endif
     pieceFileOut(ifile) = ' '
     if (numPLfileOut > 0) &
@@ -292,8 +304,7 @@ program edmont
   !
   ierr = PipGetTwoIntegers('XMinAndMax', minXinc, maxXinc)
   if (PipGetTwoIntegers('XFrameMinAndMax', minFrame, maxFrame) == 0) then
-    if (ierr == 0) call exitError( &
-        'YOU CANNOT ENTER BOTH -xminmax AND -xframes')
+    if (ierr == 0) call exitError('YOU CANNOT ENTER BOTH -xminmax AND -xframes')
     if (minFrame < 1 .or. maxFrame > noutXpiece .or. &
         minFrame > maxFrame) call exitError &
         ('MINIMUM AND MAXIMUM FRAMES IN X OUT OF RANGE OR OUT OF ORDER')
@@ -303,8 +314,7 @@ program edmont
   endif
   ierr = PipGetTwoIntegers('YMinAndMax', minYinc, maxYinc)
   if (PipGetTwoIntegers('YFrameMinAndMax', minFrame, maxFrame) == 0) then
-    if (ierr == 0) call exitError( &
-        'YOU CANNOT ENTER BOTH -yminmax AND -yframes')
+    if (ierr == 0) call exitError('YOU CANNOT ENTER BOTH -yminmax AND -yframes')
     if (minFrame < 1 .or. maxFrame > noutYpiece .or. &
         minFrame > maxFrame) call exitError &
         ('MINIMUM AND MAXIMUM FRAMES IN Y OUT OF RANGE OR OUT OF ORDER')
@@ -403,7 +413,7 @@ program edmont
       call openAndAnalyzeFiles(inFile(ifile), pieceFileIn(ifile), mxyz, dminIn, &
           .false., mode, extraIn, maxExtra, nbyteExtraIn, nbytePerSecIn, ixPcList, &
           iyPcList, izPcList, numPcList, maxPieces, listz, numInZlist, &
-          minXpiece , numXpieces, mxOverlap, minYpiece, numYpieces, myOverlap)
+          minXpiece , numXpieces, mxOverlap, minYpiece, numYpieces, myOverlap, useMdoc)
 
       do ilis = 1, nlist(ifile)
         indSec = ilis + listInd(ifile) - 1
@@ -514,7 +524,7 @@ program edmont
     call openAndAnalyzeFiles(inFile(ifile), pieceFileIn(ifile), mxyz, dminIn, &
         .true., mode, extraIn, maxExtra, nbyteExtraIn, nbytePerSecIn, ixPcList, &
         iyPcList, izPcList, numPcList, maxPieces, listz, numInZlist, minXpiece , &
-        numXpieces, mxOverlap, minYpiece, numYpieces, myOverlap)
+        numXpieces, mxOverlap, minYpiece, numYpieces, myOverlap, useMdoc)
     call iiuRetSize(1, nxyz, mxyz, nxyzst)
     call iiuRetCell(1, cell)
     call iiuRetDelta(1, delta)
@@ -525,6 +535,15 @@ program edmont
     if (nbyteExtraIn > 0) then
       call iiuRetExtendedData(1, nbyteExtraIn, extraIn)
       call iiuRetExtendedType(1, nbytePerSecIn, iflagExtraIn)
+    endif
+    indAdocIn = -1;
+    if (iiuFileType(1) == 5 .or. useMdoc) then
+      indAdocIn = iiuRetAdocIndex(1, 0, 1)
+      if (indAdocIn < 0) then
+        write(*,'(/,a,a)') 'ERROR: EDMONT - COULD NOT OPEN AUTODOC INFORMATION FOR '// &
+            'INPUT FILE ', trim(inFile(ifile))
+        call exit(1)
+      endif
     endif
     !
     ! get each section in input file
@@ -659,7 +678,7 @@ program edmont
             !
             ! Create output file, transfer header from currently open
             ! file, fix it enough to get going
-            call imopen(2, filout(ifileOut), 'NEW')
+            call imopen(2, outFile(ifileOut), 'NEW')
             call iiuTransHeader(2, 1)
             call iiuAltMode(2, newMode)
             nxyz2(1) = nxBin
@@ -670,12 +689,25 @@ program edmont
             ! adjust extra header information if current file has it
             !
             nbyteExtraOut = 0
-            if (nbyteExtraIn > 0) then
+            if (nbyteExtraIn > 0 .and. allHaveHeaderCoords) then
               nbytePerSecOut = nbytePerSecIn
-              nbyteExtraOut = numSecOut(ifileOut) * maxByteExtraIn * maxNumXpieces * maxNumYpieces
+              nbyteExtraOut = numSecOut(ifileOut) * maxByteExtraIn * maxNumXpieces * &
+                  maxNumYpieces
               call iiuAltNumExtended(2, nbyteExtraOut)
               call imposn(2, 0, 0)
               indXout = 0
+            endif
+            !
+            ! Open autodoc for output file if appropriate
+            ! Transfer global data.  
+            outDocChanged = .false.
+            indAdocOut = -1
+            if ((b3dOutputFileType() == 5 .or. useMdoc) .and. indAdocIn >= 0) then
+              indAdocOut = iiuRetAdocIndex(2, 0, -1)
+              if (indAdocOut <= 0) call exitError('CANNOT GET AUTODOC INDEX FOR OUTPUT')
+              call setCurrentAdocOrExit(indAdocIn, 'INPUT')
+              if (AdocTransferSection(globalName, 1, indAdocOut, globalName, 0) .ne. 0) &
+                  call exitError('TRANSFERRING GLOBAL DATA BETWEEN AUTODOCS') 
             endif
             write(titlech, 301) floatText, dat, tim
 301         format('EDMONT: Images transferred',a18,t57,a9,2x,a8)
@@ -723,7 +755,7 @@ program edmont
             if ((ifRenumber .ne. 0 .or. ifShiftXy .ne. 0 .or. ibinning > 1 &
                 .or. pieceFileIn(ifile) .ne. ' ') &
                 .and. numByteCopy >= 6) then
-              temp = isecOut - 1
+              temp = izPieceOut(ipieceOut)
               ind = indXout + 5 - nbytePerSecOut
               if (mod(iflagExtraIn, 2) .ne. 0) ind = ind + 2
               if (ifRenumber .ne. 0 .or. pieceFileIn(ifile) .ne. ' ') &
@@ -735,6 +767,24 @@ program edmont
                 temp = iyPieceOut(ipieceOut)
                 call move(extraOut(ind-2), temp, 2)
               endif
+            endif
+          endif
+          !
+          ! Transfer an adoc section and set the piece coordinates
+          if (indAdocIn > 0 .and. indAdocOut > 0) then
+            call setCurrentAdocOrExit(indAdocIn, 'INPUT')
+            indSectIn = AdocLookupByNameValue(zvalueName, ipc - 1)
+            if (indSectIn > 0) then
+              call int_iwrite(listString, ipieceOut - 1, ierr)
+              if (AdocTransferSection(zvalueName, indSectIn, indAdocOut, listString, 1) &
+                  .ne. 0) call exitError('TRANSFERRING SECTION DATA BETWEEN AUTODOCS')
+              outDocChanged = .true.
+              call setCurrentAdocOrExit(indAdocOut, 'OUTPUT')
+              indSectOut = AdocLookupByNameValue(zvalueName, ipieceOut - 1)
+              if (indSectOut < 0 .or. AdocSetThreeIntegers(zvalueName, indSectOut,  &
+                  'PieceCoordinates', ixPieceOut(ipieceOut), iyPieceOut(ipieceOut),  &
+                  izPieceOut(ipieceOut)) .ne. 0) call exitError( &
+                  'SETTING PIECE COORDINATES IN OUTPUT AUTODOC')
             endif
           endif
         endif
@@ -773,6 +823,14 @@ program edmont
             yOrigin - ibinning * minSubYpiece * delta(2), zOrigin)
         if (nbyteExtraOut > 0) call iiuAltExtendedData(2, nbyteExtraOut, extraOut)
         dmean = dmean / ipieceOut
+
+        if (outDocChanged .and. iiuFileType(2) .ne. 5) then
+          call setCurrentAdocOrExit(indAdocOut, 'OUTPUT')
+          if (AdocWrite(trim(outFile(ifileOut))//'.mdoc') .ne.0) call exitError( &
+              'WRITING MDOC FILE FOR OUTPUT FILE')
+          call AdocClear(indAdocOut)
+        endif
+
         !
         call iwrhdr(2, title, 1, dmin, dmax, dmean)
         call iiuClose(2)
@@ -813,47 +871,71 @@ end function notKnock
 ! attempt to read piece coordinates from image header
 !
 subroutine read_pl_or_header(pieceFileIn, inFile, extraIn, maxExtra, nbyteExtraIn, &
-    nbytePerSecIn, ixPcList, iyPcList, izPcList, numPcList, limPcList)
+    nbytePerSecIn, ixPcList, iyPcList, izPcList, numPcList, limPcList, useMdoc)
   implicit none
   character*(*) pieceFileIn, inFile
   integer*1 extraIn(*)
+  logical*4 useMdoc
   integer*4 ixPcList(*), iyPcList(*), izPcList(*), maxExtra, nbyteExtraIn, numPcList
-  integer*4 nxyz(3), mxyz(3), limPcList, mode, nbytePerSecIn, iflagExtraIn
+  integer*4 nxyz(3), mxyz(3), limPcList, mode, nbytePerSecIn, iflagExtraIn, indAdoc
+  integer*4 montage, numSect, iTypeAdoc
   real*4 dminIn, dmaxin, dmeanIn
+  logical*4 useFile, useAutodoc
+  integer*4 iiuFileType, iiuRetAdocIndex, AdocGetImageMetaInfo
   !
   nbyteExtraIn = 0
-  if (pieceFileIn .ne. ' ' .and. pieceFileIn .ne. 'none') then
-    call read_piece_list(pieceFileIn, ixPcList, iyPcList, izPcList, &
-        numPcList)
-  else
-    call ialprt(.false.)
-    call imopen(4, inFile, 'RO')
-    call irdhdr(4, nxyz, mxyz, mode, dminIn, dmaxin, dmeanIn)
-    !
-    ! get extra header information if any
-    !
-    call iiuRetNumExtended(4, nbyteExtraIn)
-    if (nbyteExtraIn > 0) then
-      if (nbyteExtraIn > maxExtra) then
-        write(*,'(/,a,a,a)') 'ERROR: EDMONT - NO PIECE LIST FILE WAS'// &
-            ' GIVEN FOR INPUT FILE ', trim(inFile), &
-            ' AND THE EXTRA HEADER DATA ARE TOO LARGE FOR THE ARRAY'
-        call exit(1)
-      else
-        call iiuRetExtendedData(4, nbyteExtraIn, extraIn)
-        call iiuRetExtendedType(4, nbytePerSecIn, iflagExtraIn)
-        call get_extra_header_pieces(extraIn, nbyteExtraIn, nbytePerSecIn, &
-            iflagExtraIn, nxyz(3), ixPcList, iyPcList, izPcList, numPcList, &
-            limPcList)
-      endif
-    endif
-    if (nbyteExtraIn == 0 .or. numPcList == 0) then
-      write(*,'(/,a,a,a)') 'ERROR: EDMONT - NO PIECE LIST FILE WAS'// &
-          ' GIVEN FOR INPUT FILE ', trim(inFile), &
-          ' AND THE HEADER DOES NOT CONTAIN PIECE COORDINATES'
+  useFile = pieceFileIn .ne. ' ' .and. pieceFileIn .ne. 'none'
+  !
+  ! Use piece list as primary source if defined
+  if (useFile) then
+    call read_piece_list2(pieceFileIn, ixPcList, iyPcList, izPcList, numPcList, limPcList)
+  endif
+  !
+  ! Open file and autodoc if indicated or for HDF file
+  call ialprt(.false.)
+  call imopen(4, inFile, 'RO')
+  call irdhdr(4, nxyz, mxyz, mode, dminIn, dmaxin, dmeanIn)
+  useAutodoc = useMdoc .or. iiuFileType(4) == 5
+  if (useAutodoc) then
+    indAdoc = iiuRetAdocIndex(4, 0, 1)
+    if (indAdoc < 0) then
+      write(*,'(/,a,a)') 'ERROR: EDMONT - COULD NOT OPEN AUTODOC INFORMATION FOR '// &
+          'INPUT FILE ', trim(inFile)
       call exit(1)
     endif
+    call setCurrentAdocOrExit(indAdoc, 'INPUT')
+    if (AdocGetImageMetaInfo(montage, numSect, iTypeAdoc) == 0 .and. .not.useFile) then
+      call get_metadata_pieces(indAdoc, iTypeAdoc, nxyz(3), ixPcList, iyPcList, &
+          izPcList, limPcList, numPcList)
+    endif
+    if (iiuFileType(4) .ne. 5) call AdocClear(indAdoc)
   endif
+  !
+  ! get extra header information if any
+  !
+  call iiuRetNumExtended(4, nbyteExtraIn)
+  if (nbyteExtraIn > 0) then
+    if (nbyteExtraIn > maxExtra .and. .not.useFile) then
+      write(*,'(/,a,a,a)') 'ERROR: EDMONT - NO PIECE LIST FILE WAS GIVEN FOR INPUT '// &
+          'FILE ', trim(inFile), ' AND THE EXTRA HEADER DATA ARE TOO LARGE FOR THE ARRAY'
+      call exit(1)
+    else
+      call iiuRetExtendedType(4, nbytePerSecIn, iflagExtraIn)
+      if (useFile) then
+        if (mod(iflagExtraIn / 2, 2) == 0) nbyteExtraIn = 0
+      else
+        call iiuRetExtendedData(4, nbyteExtraIn, extraIn)
+        call get_extra_header_pieces(extraIn, nbyteExtraIn, nbytePerSecIn, iflagExtraIn, &
+            nxyz(3), ixPcList, iyPcList, izPcList, numPcList, limPcList)
+      endif
+    endif
+  endif
+  if (.not.(useFile .or. useAutodoc) .and. (nbyteExtraIn == 0 .or. numPcList == 0)) then
+    write(*,'(/,a,a,a)')'ERROR: EDMONT - NO PIECE LIST FILE WAS GIVEN FOR INPUT FILE ', &
+        trim(inFile), ' AND THE HEADER DOES NOT CONTAIN PIECE COORDINATES'
+    call exit(1)
+  endif
+  call iiuClose(4)
   return
 end subroutine read_pl_or_header
 
@@ -865,10 +947,10 @@ end subroutine read_pl_or_header
 subroutine openAndAnalyzeFiles(imageFile, pieceFile, nxyz, dmin2, printing, &
     mode, extraIn, maxExtra, nbyteExtraIn, nbytePerSecIn, ixPcList, iyPcList, &
     izPcList, numPcList, limPcList, listz, numInZlist, minXpiece , numXpieces, &
-    nxOverlap, minYpiece , numYpieces, nyOverlap)
+    nxOverlap, minYpiece, numYpieces, nyOverlap, useMdoc)
   implicit none
   character*(*) imageFile, pieceFile
-  logical*4 printing
+  logical*4 printing, useMdoc
   integer*4 nxyz(3), mode, maxExtra, nbyteExtraIn, ixPcList(*), iyPcList(*)
   integer*4 izPcList(*), numPcList, limPcList, listz(*), numInZlist, minXpiece
   integer*4 numXpieces, nxOverlap, minYpiece, numYpieces, nyOverlap
@@ -879,16 +961,14 @@ subroutine openAndAnalyzeFiles(imageFile, pieceFile, nxyz, dmin2, printing, &
   ! Read the piece data first in case there is a problem opening the
   ! same file on two channels
   call read_pl_or_header(pieceFile, imageFile, extraIn, maxExtra, nbyteExtraIn, &
-      nbytePerSecIn, ixPcList, iyPcList, izPcList, numPcList, limPcList)
+      nbytePerSecIn, ixPcList, iyPcList, izPcList, numPcList, limPcList, useMdoc)
   call ialprt(printing)
   call imopen(1, imageFile, 'RO')
   call irdhdr(1, nxyz, mxyz, mode, dmin2, dmax2, dmean2)
-  if (nbyteExtraIn == 0) call iiuRetNumExtended(1, nbyteExtraIn)
+
   call fill_listz(izPcList, numPcList, listz, numInZlist)
-  call checklist(ixPcList, numPcList, 1, nxyz(1), minXpiece , numXpieces, &
-      nxOverlap)
-  call checklist(iyPcList, numPcList, 1, nxyz(2), minYpiece , numYpieces, &
-      nyOverlap)
+  call checklist(ixPcList, numPcList, 1, nxyz(1), minXpiece , numXpieces, nxOverlap)
+  call checklist(iyPcList, numPcList, 1, nxyz(2), minYpiece , numYpieces, nyOverlap)
   return
 end subroutine openAndAnalyzeFiles
 
