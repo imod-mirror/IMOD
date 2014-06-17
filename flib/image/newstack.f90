@@ -1370,6 +1370,14 @@ program newstack
         ierr = 0
         if (useMdocFiles) ierr = -1
         indAdocOut = iiuRetAdocIndex(2, 0, ierr)
+        !
+        ! Transfer global section if either file is not HDF; itrhdr takes care of HDF->HDF
+        if ((iiuFileType(2) .ne. 5 .or. iiuFileType(1) .ne. 5) .and. indAdocOut > 0  &
+            .and. indAdocIn > 0) then
+          if (AdocSetCurrent(indAdocIn) .ne. 0) call exitError('SETTING CURRENT AUTODOC')
+          if (AdocTransferSection(globalName, 1, indAdocOut, globalName, 0) .ne. 0) &
+              call exitError('TRANSFERRING GLOBAL DATA BETWEEN AUTODOCS') 
+        endif
       endif
       !
       ! handle complex images here and skip out
