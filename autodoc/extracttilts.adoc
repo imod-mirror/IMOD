@@ -119,6 +119,18 @@ manpage = Complete name of item to extract from a metadata file or HDF file.
 The item will be extracted and printed as a string, so it can
 consist of string rather than numeric values.
 
+[Field = AttributesInHDFfile]
+short = attrib
+type = B
+usage = Output all attributes in an HDF file to a file in the autodoc format
+tooltip = 
+manpage = Output all attributes in an HDF file to a file in the autodoc
+format.  Metadata for each image will appear in sections of the file starting
+with [ZValue = #], where # is the image Z value.  Global metadata will appear
+at the beginning, and other metadata will be output in sections with different
+names. The input file must be HDF, an output file must be given, and no other
+extract options can be entered.
+
 [Field = WarnIfTiltsSuspicious]
 short = warn
 type = B
