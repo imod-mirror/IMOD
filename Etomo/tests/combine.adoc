@@ -20,6 +20,7 @@ Version = 1.2
 [[]]
 cb.parallel-processing = 1
 mb.parallel-processing = -
+format=
 bn.create-combine-scripts =
 wait.process.creating-combine-scripts = done
 assert.exists.file = combine.com
