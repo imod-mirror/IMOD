@@ -19,6 +19,7 @@ program extracttilts
   character*80, allocatable :: valString(:)
   !
   character*320 inFile, outFile, metafile, keyName
+  character*10 zvalueName, globalName
   character*40 typeText(9) /'tilt angle', ' ', 'stage position', &
       'magnification', 'intensity value', 'exposure dose', 'pixel spacing', &
       'defocus', 'exposure time'/
@@ -27,10 +28,10 @@ program extracttilts
   integer*4 maxz, iunitOut, lenText, mode, itype, ifC2, numTilts, numExtraBytes
   integer*4 numTiltOut, ifDose, ifWarn, ifAll, ifCamExp, ifDefocus, ifPixel, numFound
   integer*4 ifAddMdoc, indAdoc, iTypeAdoc, numSect, montage, ifMdoc, ifNoImage, ifKey
-  integer*4 keyValType
+  integer*4 keyValType, ifAttrib
   logical*4 mdocPrimary, hdfFile
   integer*4 AdocOpenImageMetadata, iiuFileType, iiuRetAdocIndex, AdocSetCurrent
-  integer*4 AdocGetImageMetaInfo
+  integer*4 AdocGetImageMetaInfo, AdocWrite, AdocOrderWriteByValue
   real*4 dmin, dmax, dmean
   equivalence (nz, nxyz(3))
   !
@@ -68,6 +69,7 @@ program extracttilts
   metafile = ' '
   ifKey = 0
   hdfFile = .false.
+  ifAttrib = 0
   !
   ! Pip startup: set error, parse options, check help, set flag if used
   !
@@ -91,6 +93,7 @@ program extracttilts
     ierr = PipGetBoolean('PixelSpacing', ifPixel)
     ierr = PipGetBoolean('MdocMetadataFile', ifMdoc)
     ierr = PipGetBoolean('WarnIfTiltsSuspicious', ifWarn)
+    ierr = PipGetBoolean('AttributesInHDFfile', ifAttrib)
     ifAddMdoc = PipGetString('OtherMetadataFile', metafile)
     if (ifMdoc .ne. 0 .and. metafile .ne. ' ')  &
         call exitError('YOU CANNOT ENTER BOTH -mdoc AND -other')
@@ -101,6 +104,8 @@ program extracttilts
     endif
     ierr = ifTilt + ifMag + ifStage + ifC2 + ifDose + ifDefocus + ifCamExp + ifPixel + &
         ifKey
+    if (ifAttrib > 0 .and. ierr > 0) call exitError( &
+        'YOU CANNOT SPECIFY ANYTHING TO EXTRACT WHEN WRITING ATTRIBUTES TO A FILE')
     if (ierr == 0) ifTilt = 1
     if (ierr > 1) call exitError('YOU MUST ENTER ONLY ONE OPTION FOR DATA TO EXTRACT')
     if (ifTilt .ne. 0) itype = 1
@@ -116,6 +121,13 @@ program extracttilts
     itype = 1
   endif
 
+  if (ifAttrib > 0 .and. ifNoImage .ne. 0) call exitError( &
+      'YOU MUST ENTER AN INPUT IMAGE FILE WITH -attrib')
+  if (ifAttrib > 0 .and. (ifMdoc .ne. 0 .or. metafile .ne. ' ')) call exitError( &
+      'YOU CANNOT ENTER -mdoc OR -other WITH -attrib')
+  if (ifAttrib > 0 .and. outFile == ' ') call exitError( &
+      'YOU MUST ENTER AN OUTPUT FILE TO EXTRACT ATTRIBUTES')
+
   ! Require an image unless -other is used with an mdoc file
   if (metafile == ' ' .and. ifNoImage .ne. 0) call exitError( &
       'YOU MUST ENTER EITHER AN INPUT IMAGE FILE OR A METADATA FILE WITH -other')
@@ -127,12 +139,23 @@ program extracttilts
     call irdhdr(1, nxyz, mxyz, mode, dmin, dmax, dmean)
     !
     hdfFile = iiuFileType(1) == 5
+    if (ifAttrib > 0 .and. .not.hdfFile) call exitError( &
+        'THE INPUT IMAGE FILE IS NOT AN HDF FILE; CANNOT EXTRACT ATTRIBUTES')
     if (hdfFile .and. ifAddMdoc .ne. 0) then
       indAdoc = iiuRetAdocIndex(1, 0, 0)
       if (indAdoc <= 0) call exitError('GETTING AUTODOC INDEX FOR HDF FILE')
       if (AdocSetCurrent(indAdoc) .ne. 0) call exitError( &
           'SETTING AUTODOC STRUCTURE OF HDF FILE AS CURRENT AUTODOC')
       numSect = nz
+      !
+      ! Write out autodoc and exit if requested
+      if (ifAttrib > 0) then
+        call AdocGetStandardNames(globalName, zvalueName)
+        if (AdocOrderWriteByValue(zvalueName) .ne. 0 .or. AdocWrite(outFile) .ne. 0) &
+            call exitError('WRITING AUTODOC STRUCTURE TO FILE')
+        print *,'Attributes written to ', trim(outFile)
+        call exit(0)
+      endif
       if (AdocGetImageMetaInfo(montage, numSect, iTypeAdoc) < 0 .or. numSect < nz)  &
           call exitError('THIS HDF FILE DOES NOT HAVE METADATA ABOUT EACH SECTION')
     else
@@ -185,9 +208,13 @@ program extracttilts
     endif
     if ((montage .ne. 0 .or. hdfFile) .and. (mdocPrimary .or.  &
         (indAdoc >= 0 .and. numPieces == 0))) then
+      !
+      ! Get from any HDF file in case montage flag is missing; but if there are no
+      ! pieces then move on without error
       call get_metadata_pieces(indAdoc, iTypeAdoc, nz, ixPiece, iyPiece, izPiece, &
           maxPiece, numPieces)
-      if (numPieces < nz) then
+      if (numPieces > 0) montage = 1
+      if (montage > 0 .and. numPieces < nz) then
         if (hdfFile .and. ifAddMdoc .ne. 0) call exitError('THE HDF FILE IS MARKED AS'//&
             ' A MONTAGE BUT DOES NOT HAVE PIECE COORDINATES FOR EVERY SECTION')
         if (mdocPrimary) call exitError('THE METADATA FILE DOES NOT '// &
