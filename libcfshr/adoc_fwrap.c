@@ -26,6 +26,7 @@
 #define adocclear ADOCCLEAR
 #define adocwrite ADOCWRITE
 #define adocaddsection ADOCADDSECTION
+#define adocorderwritebyvalue ADOCORDERWRITEBYVALUE
 #define adocsetkeyvalue ADOCSETKEYVALUE
 #define adocdeletekeyvalue ADOCDELETEKEYVALUE
 #define adocgetsectionname ADOCGETSECTIONNAME
@@ -62,6 +63,7 @@
 #define adocdone adocdone_
 #define adocwrite adocwrite_
 #define adocaddsection adocaddsection_
+#define adocorderwritebyvalue adocorderwritebyvalue_
 #define adocsetkeyvalue adocsetkeyvalue_
 #define adocdeletekeyvalue adocdeletekeyvalue_
 #define adocgetsectionname adocgetsectionname_
@@ -163,6 +165,17 @@ int adocaddsection(char *collName, char *name, int collSize, int nameSize)
   free(cStr);
   free(kStr);
   return (err >= 0 ? err + 1 : err);
+}
+
+int adocorderwritebyvalue(char *collName, int collSize)
+{
+  char *cStr;
+  int err;
+  if (!(cStr = adocf2cstr(collName, collSize)))
+    return -1;
+  err = AdocOrderWriteByValue(cStr);
+  free(cStr);
+  return err;
 }
 
 int adocsetkeyvalue(char *collName, int *sectInd, char *key, char *value, 

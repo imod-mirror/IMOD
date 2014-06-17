@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/16/14: Remove 6/5/14 automatic use of .pl file, since it then uses it 
+inappropriately on blended file.
+
 6/13/14: In eTomo - Reconstruction Setup, using the piece list file (when
 available) to open montaged raw stacks (In 4.7).(Bug# 1801)
 
@@ -12,7 +15,7 @@ an HDF file.
 6/6/14: Added script for copying header of MRC file.
 
 6/5/14: Made 3dmod automatically get piece coordinates from a .pl file
-with same root name as single image file entered (In 4.7).
+with same root name as single image file entered.
 
 6/5/14: Fixed Tomopitch so its output is parsable by eTomo for shift or
 thickness more than 1000 (In 4.7).
