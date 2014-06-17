@@ -30,6 +30,7 @@ void AdocClear(int index);
 void AdocDone();
 int AdocWrite(const char *filename);
 int AdocAppendSection(const char *filename);
+int AdocOrderWriteByValue(const char *typeName);
 int AdocAddSection(const char *collName, const char *name);
 int AdocInsertSection(const char *typeName, int sectInd, const char *name);
 int AdocDeleteSection(const char *typeName, int sectInd);
