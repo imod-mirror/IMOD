@@ -38,8 +38,8 @@ public final class DirectiveDef {
 
   public static final DirectiveDef BINNING = new DirectiveDef(DirectiveType.COPY_ARG,
       BINNING_NAME, false);
-  public static final DirectiveDef CS = new DirectiveDef(DirectiveType.COPY_ARG,
-      "Cs", false);
+  public static final DirectiveDef CS = new DirectiveDef(DirectiveType.COPY_ARG, "Cs",
+      false);
   public static final DirectiveDef CTF_NOISE = new DirectiveDef(DirectiveType.COPY_ARG,
       "ctfnoise", false);
   public static final DirectiveDef DEFOCUS = new DirectiveDef(DirectiveType.COPY_ARG,
@@ -72,7 +72,7 @@ public final class DirectiveDef {
       "userawtlt", true);
   public static final DirectiveDef VOLTAGE = new DirectiveDef(DirectiveType.COPY_ARG,
       "voltage", false);
-  
+
   // setupset
 
   public static final DirectiveDef DATASET_DIRECTORY = new DirectiveDef(
@@ -90,6 +90,10 @@ public final class DirectiveDef {
 
   public static final DirectiveDef BIN_BY_FACTOR_FOR_ALIGNED_STACK = new DirectiveDef(
       DirectiveType.RUN_TIME, Module.ALIGNED_STACK, BIN_BY_FACTOR_NAME);
+  public static final DirectiveDef CORRECT_CTF = new DirectiveDef(DirectiveType.RUN_TIME,
+      Module.ALIGNED_STACK, "correctCTF");
+  public static final DirectiveDef ERASE_GOLD = new DirectiveDef(DirectiveType.RUN_TIME,
+      Module.ALIGNED_STACK, "eraseGold");
   public static final DirectiveDef SIZE_IN_X_AND_Y = new DirectiveDef(
       DirectiveType.RUN_TIME, Module.ALIGNED_STACK, "sizeInXandY");
 
