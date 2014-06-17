@@ -823,16 +823,6 @@ int main( int argc, char *argv[])
 
       // It is a single image file - build list with this image
       ivwMultipleFiles(&vi, &Imod_imagefile, 0, 0, anyHavePieceList);
-
-      // Then if there is no piece list entered or in image, look for a pl file
-      if (!frames && !plistfname && !anyHavePieceList) {
-        QString plname =  info.path() + QDir::separator() + info.completeBaseName() +
-          ".pl";
-        if (QFile::exists(plname)) {
-          plFileNames << plname;
-          plistfname = strdup(LATIN1(plname));
-        }
-      }
     }
   } else {
 
