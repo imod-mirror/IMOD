@@ -3049,17 +3049,6 @@ public final class ApplicationManager extends BaseManager implements
     }
   }
 
-  private void updateDirective(final DirectiveMap map, final String key,
-      final StringBuffer errmsg, final boolean value) {
-    Directive directive = map.get(key);
-    if (directive != null) {
-      directive.setValue(value);
-    }
-    else {
-      errmsg.append("Missing directive: " + key + ".  ");
-    }
-  }
-
   private void updateDirective(final DirectiveMap map, final DirectiveDef directiveDef,
       final StringBuffer errmsg, final boolean value) {
     Directive directive = map.get(directiveDef, null, null);
@@ -3079,18 +3068,6 @@ public final class ApplicationManager extends BaseManager implements
     }
     else {
       errmsg.append("Missing directive: " + directiveDef + ".  ");
-    }
-  }
-
-  private void updateDirective(final DirectiveMap map, final String key,
-      final StringBuffer errmsg, final boolean value, final boolean defaultValue) {
-    Directive directive = map.get(key);
-    if (directive != null) {
-      directive.setValue(value);
-      directive.setDefaultValue(defaultValue);
-    }
-    else {
-      errmsg.append("Missing directive: " + key + ".  ");
     }
   }
 
@@ -3119,17 +3096,6 @@ public final class ApplicationManager extends BaseManager implements
     }
   }
 
-  private void updateDirective(final DirectiveMap map, final String key,
-      final StringBuffer errmsg, final ConstEtomoNumber value) {
-    Directive directive = map.get(key);
-    if (directive != null) {
-      directive.setValue(value);
-    }
-    else {
-      errmsg.append("Missing directive: " + key + ".  ");
-    }
-  }
-
   private void updateDirective(final DirectiveMap map, final DirectiveDef directiveDef,
       final StringBuffer errmsg, final ConstEtomoNumber value) {
     Directive directive = map.get(directiveDef, null, null);
@@ -3152,19 +3118,6 @@ public final class ApplicationManager extends BaseManager implements
     }
   }
 
-  private void updateDirective(final DirectiveMap map, final String key,
-      final StringBuffer errmsg, final ConstEtomoNumber value,
-      final ConstEtomoNumber defaultValue) {
-    Directive directive = map.get(key);
-    if (directive != null) {
-      directive.setValue(value);
-      directive.setDefaultValue(defaultValue);
-    }
-    else {
-      errmsg.append("Missing directive: " + key + ".  ");
-    }
-  }
-
   private void updateDirective(final DirectiveMap map, final DirectiveDef directiveDef,
       final StringBuffer errmsg, final ConstEtomoNumber value,
       final ConstEtomoNumber defaultValue) {
@@ -3178,17 +3131,6 @@ public final class ApplicationManager extends BaseManager implements
     }
   }
 
-  private void updateDirective(final DirectiveMap map, final String key,
-      final StringBuffer errmsg, final ConstStringParameter value) {
-    Directive directive = map.get(key);
-    if (directive != null) {
-      directive.setValue(value);
-    }
-    else {
-      errmsg.append("Missing directive: " + key + ".  ");
-    }
-  }
-
   private void updateDirective(final DirectiveMap map, final DirectiveDef directiveDef,
       final StringBuffer errmsg, final ConstStringParameter value) {
     Directive directive = map.get(directiveDef, null, null);
@@ -3197,17 +3139,6 @@ public final class ApplicationManager extends BaseManager implements
     }
     else {
       errmsg.append("Missing directive: " + directiveDef + ".  ");
-    }
-  }
-
-  private void updateDirective(final DirectiveMap map, final String key,
-      final StringBuffer errmsg, final double value) {
-    Directive directive = map.get(key);
-    if (directive != null) {
-      directive.setValue(value);
-    }
-    else {
-      errmsg.append("Missing directive: " + key + ".  ");
     }
   }
 
@@ -3222,28 +3153,6 @@ public final class ApplicationManager extends BaseManager implements
     }
   }
 
-  private void updateDirectiveDefault(final DirectiveMap map, final String key,
-      final StringBuffer errmsg, final int value) {
-    Directive directive = map.get(key);
-    if (directive != null) {
-      directive.setDefaultValue(value);
-    }
-    else {
-      errmsg.append("Missing directive: " + key + ".  ");
-    }
-  }
-
-  private void updateDirective(final DirectiveMap map, final String key,
-      final StringBuffer errmsg, final double[] value) {
-    Directive directive = map.get(key);
-    if (directive != null) {
-      directive.setValue(value);
-    }
-    else {
-      errmsg.append("Missing directive: " + key + ".  ");
-    }
-  }
-
   private void updateDirective(final DirectiveMap map, final DirectiveDef directiveDef,
       final AxisID axisID, final StringBuffer errmsg, final double[] value) {
     Directive directive = map.get(directiveDef, axisID, null);
@@ -3255,26 +3164,14 @@ public final class ApplicationManager extends BaseManager implements
     }
   }
 
-  private void updateDirective(final DirectiveMap map, final String key,
+  private void updateDirective(final DirectiveMap map, final DirectiveDef directiveDef,
       final StringBuffer errmsg, final FortranInputString value) {
-    Directive directive = map.get(key);
+    Directive directive = map.get(directiveDef, null, null);
     if (directive != null) {
       directive.setValue(value);
     }
     else {
-      errmsg.append("Missing directive: " + key + ".  ");
-    }
-  }
-
-  private void updateDirective(final DirectiveMap map, final String key,
-      final StringBuffer errmsg, final int value, final int defaultValue) {
-    Directive directive = map.get(key);
-    if (directive != null) {
-      directive.setValue(value);
-      directive.setDefaultValue(defaultValue);
-    }
-    else {
-      errmsg.append("Missing directive: " + key + ".  ");
+      errmsg.append("Missing directive: " + directiveDef + ".  ");
     }
   }
 
@@ -3287,17 +3184,6 @@ public final class ApplicationManager extends BaseManager implements
     }
     else {
       errmsg.append("Missing directive: " + directiveDef + ".  ");
-    }
-  }
-
-  private void updateDirective(final DirectiveMap map, final String key,
-      final StringBuffer errmsg, final String value) {
-    Directive directive = map.get(key);
-    if (directive != null) {
-      directive.setValue(value);
-    }
-    else {
-      errmsg.append("Missing directive: " + key + ".  ");
     }
   }
 
@@ -3320,18 +3206,6 @@ public final class ApplicationManager extends BaseManager implements
     }
     else {
       errmsg.append("Missing directive: " + directiveDef + ".  ");
-    }
-  }
-
-  private void updateDirective(final DirectiveMap map, final String key,
-      final StringBuffer errmsg, final String value, final String defaultValue) {
-    Directive directive = map.get(key);
-    if (directive != null) {
-      directive.setValue(value);
-      directive.setDefaultValue(defaultValue);
-    }
-    else {
-      errmsg.append("Missing directive: " + key + ".  ");
     }
   }
 
@@ -3531,8 +3405,6 @@ public final class ApplicationManager extends BaseManager implements
     updateDirective(directiveMap, DirectiveDef.THICKNESS_FOR_POSITIONING, errmsg,
         metaData.getSampleThickness(curAxisID));
     // Aligned stack module
-    // module = DirectiveFile.ALIGNED_STACK_MODULE_NAME + AutodocTokenizer.SEPARATOR_CHAR
-    // + DirectiveFile.RUN_TIME_ANY_AXIS_NAME + AutodocTokenizer.SEPARATOR_CHAR;
     // Aligned stack choices
     updateDirective(
         directiveMap,
@@ -3550,7 +3422,7 @@ public final class ApplicationManager extends BaseManager implements
                 .getButtonStateKey()));
     updateDirective(
         directiveMap,
-        prepend + module + "filterStack",
+        DirectiveDef.FILTER_STACK,
         errmsg,
         getScreenState(curAxisID).getButtonState(
             getProcessResultDisplayFactory(curAxisID).getFilter().getButtonStateKey()));
@@ -3571,59 +3443,44 @@ public final class ApplicationManager extends BaseManager implements
       binByFactor = param.getBinByFactor();
 
     }
-    updateDirective(directiveMap, prepend + module + "linearInterpolation", errmsg,
+    updateDirective(directiveMap, DirectiveDef.LINEAR_INTERPOLATION, errmsg,
         linearInterpolation);
-    updateDirective(directiveMap, prepend + module + DirectiveFile.BIN_BY_FACTOR_NAME,
-        errmsg, binByFactor, 1);
-    updateDirective(directiveMap, prepend + module + DirectiveFile.SIZE_IN_X_AND_Y_NAME,
-        errmsg, metaData.getSizeToOutputInXandY(curAxisID));
+    updateDirective(directiveMap, DirectiveDef.BIN_BY_FACTOR_FOR_ALIGNED_STACK, errmsg,
+        binByFactor, 1);
+    updateDirective(directiveMap, DirectiveDef.SIZE_IN_X_AND_Y, errmsg,
+        metaData.getSizeToOutputInXandY(curAxisID));
     // CTFplotting module
-    module = DirectiveFile.CTF_PLOTTING_MODULE_NAME + AutodocTokenizer.SEPARATOR_CHAR
-        + DirectiveFile.RUN_TIME_ANY_AXIS_NAME + AutodocTokenizer.SEPARATOR_CHAR;
-    updateDirective(directiveMap, prepend + module
-        + DirectiveFile.AUTO_FIT_RANGE_AND_STEP_NAME, errmsg,
+    updateDirective(directiveMap, DirectiveDef.AUTO_FIT_RANGE_AND_STEP, errmsg,
         metaData.getStackCtfAutoFitRangeAndStep(curAxisID));
     // GoldErasing module
-    module = DirectiveFile.GOLD_ERASING_MODULE_NAME + AutodocTokenizer.SEPARATOR_CHAR
-        + DirectiveFile.RUN_TIME_ANY_AXIS_NAME + AutodocTokenizer.SEPARATOR_CHAR;
-    updateDirective(directiveMap, prepend + module + DirectiveFile.BINNING_NAME, errmsg,
+    updateDirective(directiveMap, DirectiveDef.BINNING_FOR_GOLD_ERASING, errmsg,
         metaData.getStack3dFindBinning(curAxisID));
     // extraDiameter - cannot update
-    updateDirective(directiveMap, prepend + module + DirectiveFile.THICKNESS_NAME,
-        errmsg, metaData.getStack3dFindThickness(curAxisID));
+    updateDirective(directiveMap, DirectiveDef.THICKNESS_FOR_GOLD_ERASING, errmsg,
+        metaData.getStack3dFindThickness(curAxisID));
     // Reconstruction
-    module = DirectiveFile.RECONSTRUCTION_MODULE_NAME + AutodocTokenizer.SEPARATOR_CHAR
-        + DirectiveFile.RUN_TIME_ANY_AXIS_NAME + AutodocTokenizer.SEPARATOR_CHAR;
     // extraThickness - cannot update
     // binnedThickness - cannot update
     updateDirective(
         directiveMap,
-        prepend + module + DirectiveFile.USE_SIRT_NAME,
+        DirectiveDef.USE_SIRT,
         errmsg,
         getScreenState(curAxisID).getButtonState(
             getProcessResultDisplayFactory(curAxisID).getUseSirt().getButtonStateKey()));
     updateDirective(
         directiveMap,
-        prepend + module + DirectiveFile.USE_SIRT_NAME,
-        errmsg,
-        getScreenState(curAxisID).getButtonState(
-            getProcessResultDisplayFactory(curAxisID).getUseSirt().getButtonStateKey()));
-    updateDirective(
-        directiveMap,
-        prepend + module + "doBackprojAlso",
+        DirectiveDef.DO_BACKPROJ_ALSO,
         errmsg,
         getScreenState(curAxisID).getButtonState(
             getProcessResultDisplayFactory(curAxisID).getTilt(
                 DialogType.TOMOGRAM_GENERATION).getButtonStateKey()));
     // Postprocessing
     // Trimvol module
-    module = "Trimvol" + AutodocTokenizer.SEPARATOR_CHAR
-        + DirectiveFile.RUN_TIME_ANY_AXIS_NAME + AutodocTokenizer.SEPARATOR_CHAR;
+    // module = "Trimvol" + AutodocTokenizer.SEPARATOR_CHAR
+    // + DirectiveFile.RUN_TIME_ANY_AXIS_NAME + AutodocTokenizer.SEPARATOR_CHAR;
     // reorient
-    updateDirective(directiveMap, prepend + module + DirectiveFile.REORIENT_NAME, errmsg,
+    updateDirective(directiveMap, DirectiveDef.REORIENT, errmsg,
         TrimvolReorientation.toDirectiveValue(metaData));
-    updateDirectiveDefault(directiveMap, prepend + module + DirectiveFile.REORIENT_NAME,
-        errmsg, TrimvolReorientation.DEFAULT.value);
     // thickness - cannot update
     // sizeInX - cannot update
     // sizeInY - cannot update
