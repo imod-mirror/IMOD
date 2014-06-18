@@ -16,7 +16,7 @@ Because of this reversibility, it is safe to remove the original
 files with the \fB-delete\fR option.
 .P
 The program can be run repeatedly (up to 10 times), and each successive
-exclusive is similarly reversible.  This capability is achieved by
+exclusion is similarly reversible.  This capability is achieved by
 including an iteration number in the names of the ancillary files
 produced on each run.  The program searches for the info file with the
 highest number and applies the next highest number in another
