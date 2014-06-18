@@ -1370,6 +1370,14 @@ program newstack
         ierr = 0
         if (useMdocFiles) ierr = -1
         indAdocOut = iiuRetAdocIndex(2, 0, ierr)
+        !
+        ! Transfer global section if either file is not HDF; itrhdr takes care of HDF->HDF
+        if ((iiuFileType(2) .ne. 5 .or. iiuFileType(1) .ne. 5) .and. indAdocOut > 0  &
+            .and. indAdocIn > 0) then
+          call setCurrentAdocOrExit(indAdocIn, 'INPUT')
+          if (AdocTransferSection(globalName, 1, indAdocOut, globalName, 0) .ne. 0) &
+              call exitError('TRANSFERRING GLOBAL DATA BETWEEN AUTODOCS') 
+        endif
       endif
       !
       ! handle complex images here and skip out
@@ -1939,7 +1947,7 @@ program newstack
         !
         ! Transfer an adoc section
         if (indAdocIn > 0 .and. indAdocOut > 0) then
-          if (AdocSetCurrent(indAdocIn) .ne. 0) call exitError('SELECTING INPUT AUTODOC')
+          call setCurrentAdocOrExit(indAdocIn, 'INPUT')
           indSectIn = AdocLookupByNameValue(zvalueName, isecRead)
           if (indSectIn > 0) then
             call int_iwrite(listString, isecOut - 2, ierr)
@@ -1957,8 +1965,7 @@ program newstack
       !
       if (numReplace == 0 .and. isecOut > numSecOut(iOutFile)) then
         if (outDocChanged .and. iiuFileType(2) .ne. 5) then
-          if (AdocSetCurrent(indAdocOut) .ne. 0) call exitError( &
-              'SELECTING OUTPUT AUTODOC')
+          call setCurrentAdocOrExit(indAdocOut, 'OUTPUT')
           if (AdocWrite(trim(outFile(iOutFile))//'.mdoc') .ne.0) call exitError( &
               'WRITING MDOC FILE FOR OUTPUT FILE')
           call AdocClear(indAdocOut)

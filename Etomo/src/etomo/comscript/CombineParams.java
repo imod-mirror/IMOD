@@ -149,8 +149,6 @@ public class CombineParams extends ConstCombineParams implements Storable {
   private static final String MATCH_MODE_KEY = "MatchMode";
   private static final String DIALOG_MATCH_MODE_KEY = "DialogMatchMode";
 
-  private boolean valid = false;
-
   /**
    * Default constructor
    */
@@ -180,10 +178,6 @@ public class CombineParams extends ConstCombineParams implements Storable {
     tempDirectory = src.tempDirectory;
     manualCleanup = src.manualCleanup;
     transfer = src.transfer;
-  }
-  
-  public boolean isValid() {
-    return valid;
   }
 
   public void setRevisionNumber(String revNumber) {
@@ -403,14 +397,6 @@ public class CombineParams extends ConstCombineParams implements Storable {
   }
 
   /**
-   * Checks readiness of the dataset for combining.  If the X min values is 0, then there
-   * is no tomogram to combine.
-   */
-  public void validate() {
-    valid = patchXMin != 0;
-  }
-
-  /**
    *  Get the objects attributes from the properties object.
    */
   public void load(Properties props) {
@@ -531,7 +517,6 @@ public class CombineParams extends ConstCombineParams implements Storable {
    */
   public void setDefaultPatchBoundaries(String fileName)
       throws InvalidParameterException, IOException {
-
     // Get the data size limits from the image stack
     MRCHeader mrcHeader = MRCHeader.getInstance(manager.getPropertyUserDir(), fileName,
         AxisID.ONLY);
