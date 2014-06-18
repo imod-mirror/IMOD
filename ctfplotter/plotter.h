@@ -11,7 +11,7 @@
 #include <QPixmap>
 #include <QVector>
 #include <QWidget>
-
+#include <QPrinter>
 
 class QLabel;
 class QToolButton;

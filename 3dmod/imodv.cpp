@@ -458,7 +458,7 @@ static int load_models(int n, char **fname, ImodvApp *a)
   a->numMods = n;
   a->curMod = 0;
   for(i = 0; i < n; i++){
-    a->mod[i] = imodRead(LATIN1(QDir::convertSeparators(QString(fname[i]))));
+    a->mod[i] = imodRead(LATIN1(QDir::toNativeSeparators(QString(fname[i]))));
     if (!a->mod[i]){
       imodError(NULL, "Error loading %s\n", fname[i]);
       return(-1);

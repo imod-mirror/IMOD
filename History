@@ -1,7 +1,21 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/16/14: Remove 6/5/14 automatic use of .pl file, since it then uses it 
+inappropriately on blended file.
+
 6/17/14: In eTomo using the piece list file (when available) to open montaged
 raw stacks in Reconstruction and Serial Sections (In 4.7).(Bug# 1801)
+
+6/6/14: Made Extractpieces and Extracttilts take information from an
+associated .mdoc file automatically as a fallback and work with metadata in an
+HDF file also; made Extracttilts able to extract the text strings for any
+metadata in .modc or HDF file; made 3dmod able to take piece coordinates from
+an HDF file.
+
+6/6/14: Added script for copying header of MRC file.
+
+6/5/14: Made 3dmod automatically get piece coordinates from a .pl file
+with same root name as single image file entered.
 
 6/5/14: Fixed Tomopitch so its output is parsable by eTomo for shift or
 thickness more than 1000 (In 4.7).
@@ -9,10 +23,14 @@ thickness more than 1000 (In 4.7).
 6/3/14: Made 3dmod automatically look for piece coordinates in an associated
 .mdoc file and eliminated -pm option, which was not in the man page (In 4.7).
 
+5/26/14: IMOD_4-8-6
 5/21/14: Stopped Makecomfile from giving error when run with a bead size of 0
 (In 4.7).
 
 5/14/14: Fixed transparent background when saving model montage (In 4.7). 
+
+5/8/14: Added an option to Clip to specify a defect correction file for K2
+images.
 
 5/4/14: IMOD_4-7-5
 5/4/14: In eTomo fixed the icon for warning message popups (In 4.7).
@@ -21,15 +39,21 @@ thickness more than 1000 (In 4.7).
 5/1/14: Fixed ability to run certain steps on single axis datasets in a
 Windows installation without Cygwin (In 4.7).
 
-5/1/14: Fixed setting of IMOD_CALIB_DIR in by installer for Windows without
+5/1/14: Fixed setting of IMOD_CALIB_DIR by installer for Windows without
 Cygwin (In 4.7).
+
+4/30/14: IMOD_4-8-5
+4/30/14: Made Mrc2tif able to read all file types including JPEG/PNG/BMP.
 
 4/30/14: Fixed Tiltxcorr when using shift limits (In 4.7).
 
 4/27/14: Changed Squeezevol to allow odd output sizes in X and Z (In 4.7).
 
+4/16/14: IMOD_4-8-4
 4/16/14: Fixed loss of bottom and top lines in interpolation routine when
 there is 0 or 180 degree rotation (In 4.7).
+
+4/16/14: Allowed new output mode for clip flip operations except yz and rotx.
 
 4/16/14: Fixed clip flipxy when writing signed bytes (In 4.7).
 
@@ -44,10 +68,16 @@ template is used and turns off logarithmic scaling (In 4.7).
 4/9/14: Suppressed Newstack warning about truncated sections unless a lot of
 pixels were truncated (In 4.7).
 
+4/8/14: Add ability to copy a contour as its equivalent ellipse in 3dmod, and
+get report of equivalent ellipse parameters in imodinfo.
+
+4/2/14: IMOD_4-8-3
 4/2/14: Fixed pixel size and model scaling set from a TIFF file when there is
 a resolution with no units (In 4.7).
 
 4/2/14: Fixed setupstitch when there is an error reading header (In 4.7).
+
+4/1/14: Improved unit tests for the PEET interface in eTomo.(Bug# 1794)
 
 3/31/14:IMOD_4-7-3 released
 3/29/14: In eTomo - PEET, fixed the loading of a non-array selectClassID
@@ -56,6 +86,22 @@ missing parameters (In 4.7).(Bug# 1789)
 
 3/27/14: Fixed a communication problem between eTomo and 3dmod and rolled back
 previous incorrect fixes from 2/14/14 and 3/14/14 (In 4.7).(Bug# 1792)
+
+3/27/14: Fixed HDF writing, optimized chunk cache size for volume writing,
+fixed pyramid creation, made 3dmod recognize tiling in HDF file.
+
+3/24/14: IMOD_4-8-2
+3/23/14: Eliminated an input routine that reads line-by-line, which was giving
+terrible 3dmod performance on Mac laptops loading over a network.
+
+3/22/14: Programs can now read and write HDF files interchangeably with MRC
+files. Write performance is currently atrocious.  Metadata can be stored as
+well; Newstack will move metadata between an HDF file and an .mdoc file
+associated with another file type, or even between two mdoc files.  Supported
+HDF files can consist of stacks of 2D images of the same size, or files with
+multiple 3D volumes, which 3dmod will open like multiple files.  Makepyramid
+can make a multi-volume HDF file that 3dmod will recognize as an image
+pyramid.
 
 3/22/14: Fixed newstack when -fromone used with default section list (In 4.7).
 
