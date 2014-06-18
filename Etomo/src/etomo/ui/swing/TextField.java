@@ -172,7 +172,7 @@ final class TextField implements UIComponent, SwingComponent {
     String text = textField.getText();
     if (doValidation && textField.isEnabled()) {
       text = FieldValidator.validateText(text, fieldType, this, getQuotedReference()
-          + (locationDescr == null ? "" : " in " + locationDescr), required);
+          + (locationDescr == null ? "" : " in " + locationDescr), required,false);
     }
     return text;
   }

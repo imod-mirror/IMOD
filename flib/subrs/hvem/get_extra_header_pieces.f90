@@ -127,6 +127,7 @@ subroutine get_metadata_pieces(index, itype, nz, ixPiece, iyPiece, izPiece, &
   character*20 globalName, sectNames(3) /'ZValue', 'Image', 'ZValue'/
   integer*4 AdocSetCurrent, AdocGetThreeIntegers, AdocGetStandardNames
   integer*4 AdocLookupByNameValue
+  numFound= 0
   if (AdocGetStandardNames(globalName, sectNames(1)) == 0) &
       sectNames(3) = sectNames(1)
 

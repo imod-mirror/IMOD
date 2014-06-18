@@ -1,10 +1,23 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/17/14: In eTomo - Tomogram Combination, fixed problems with validation and
+handling missing tomograms (In 4.7).(Bug# 1803)
+
+6/17/14: Added script Excludeviews for reversibly removing views from a tilt
+series and saving them in another file.
+
+6/17/14: Added option to Edmont for entering sections numbered from 1; made it
+access piece list in .mdoc or HDF file; made it able to transfer metadata 
+in .mdoc or HDF files from input to output.
+
+6/17/14: Made Extracttilts able to output the metadata in an HDF file in
+autodoc format.
+
+6/17/14: In eTomo using the piece list file (when available) to open montaged
+raw stacks in Reconstruction and Serial Sections (In 4.7).(Bug# 1801)
+
 6/16/14: Remove 6/5/14 automatic use of .pl file, since it then uses it 
 inappropriately on blended file.
-
-6/13/14: In eTomo - Reconstruction Setup, using the piece list file (when
-available) to open montaged raw stacks (In 4.7).(Bug# 1801)
 
 6/6/14: Made Extractpieces and Extracttilts take information from an
 associated .mdoc file automatically as a fallback and work with metadata in an

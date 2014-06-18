@@ -489,7 +489,7 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
     pnlInitial.setDeferred3dmodButtons();
     updateDisplay();
   }
-  
+
   public void removeListeners() {
     pnlSetup.removeListeners();
     pnlInitial.removeListeners();
@@ -862,10 +862,6 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
       return tabbedPane.isEnabledAt(FINAL_INDEX);
     }
     throw new IllegalArgumentException("tabLabel=" + tabLabel);
-  }
-
-  public boolean isValid() {
-    return pnlSetup.isValid();
   }
 
   /**
