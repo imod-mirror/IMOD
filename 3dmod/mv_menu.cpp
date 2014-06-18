@@ -216,7 +216,7 @@ void imodvFileSave()
   }
 
   if (a->imod->fileName)
-    fout = fopen(LATIN1(QDir::convertSeparators(QString(a->imod->fileName))),
+    fout = fopen(LATIN1(QDir::toNativeSeparators(QString(a->imod->fileName))),
                  "wb");
 
   if (fout){
@@ -268,7 +268,7 @@ void imodvSaveModelAs()
     rename(filename, nfname1);
   }
 
-  fout = fopen(LATIN1(QDir::convertSeparators(QString(filename))), "wb");
+  fout = fopen(LATIN1(QDir::toNativeSeparators(QString(filename))), "wb");
   if (fout){
     error = writeOpenedModelFile(a, fout);
 
