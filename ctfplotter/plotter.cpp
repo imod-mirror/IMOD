@@ -10,14 +10,14 @@
 *  $Id$
 */
 
-#include <QtGui>
+#include "myapp.h"
+#include <QPrintDialog>
 
 #include <cmath>
 
 #include "fittingdialog.h"
 #include "angledialog.h"
 #include "plotter.h"
-#include "myapp.h"
 #include "ctfmain.h"
 
 #include "b3dutil.h"
