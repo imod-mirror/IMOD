@@ -1743,7 +1743,7 @@ QString b3dGetSnapshotName(const char *name, int format_type, int digits,
 
     // If file does not exist and it is the first check on previous file,
     // set file number to 0 to start from 0.  Otherwise, take this file
-    if (!QFile::exists(QDir::convertSeparators(fname))) {
+    if (!QFile::exists(QDir::toNativeSeparators(fname))) {
       if (firstCheck) {
         fileno = 0;
         firstCheck = false;
@@ -1757,7 +1757,7 @@ QString b3dGetSnapshotName(const char *name, int format_type, int digits,
 
 QString b3dShortSnapName(QString fname)
 {
-  QString sname = QDir::convertSeparators(fname);
+  QString sname = QDir::toNativeSeparators(fname);
   char sep = QDir::separator().toLatin1();
   int index = sname.lastIndexOf(sep);
   if (index > 1) {
@@ -2231,7 +2231,7 @@ static int snapshotCommon(QString fname, FILE **fout, bool openFile, int rgbmode
   // Open file if desired
   errno = 0;
   if (openFile) {
-    *fout = fopen(LATIN1(QDir::convertSeparators(fname)), "wb");
+    *fout = fopen(LATIN1(QDir::toNativeSeparators(fname)), "wb");
     if (!*fout) {
       QString qerr = "Snapshot: error opening file\n";
       if (errno)
