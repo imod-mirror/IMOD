@@ -1,7 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-6/17/14: In eTomo - Reconstruction Setup, using the piece list file (when
-available) to open montaged raw stacks (In 4.7).(Bug# 1801)
+6/17/14: In eTomo using the piece list file (when available) to open montaged
+raw stacks in Reconstruction and Serial Sections (In 4.7).(Bug# 1801)
 
 6/5/14: Fixed Tomopitch so its output is parsable by eTomo for shift or
 thickness more than 1000 (In 4.7).
