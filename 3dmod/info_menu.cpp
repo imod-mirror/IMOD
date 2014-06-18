@@ -236,7 +236,7 @@ void InfoWindow::fileWriteSlot(int item)
     qname = imodPlugGetSaveName(ImodInfoWin, "File to save as Imod:");
     if (qname.isEmpty())
       break;
-    fout =  fopen(LATIN1(QDir::convertSeparators(qname)), "wb");
+    fout =  fopen(LATIN1(QDir::toNativeSeparators(qname)), "wb");
     if (!fout)
       break;
 
@@ -253,7 +253,7 @@ void InfoWindow::fileWriteSlot(int item)
     qname = imodPlugGetSaveName(ImodInfoWin, "File to save as Wimp:");
     if (qname.isEmpty())
       break;
-    fout =  fopen(LATIN1(QDir::convertSeparators(qname)), "w");
+    fout =  fopen(LATIN1(QDir::toNativeSeparators(qname)), "w");
     if (!fout)
       break;
     imod_to_wmod(App->cvi->imod, fout, LATIN1(qname));
@@ -265,7 +265,7 @@ void InfoWindow::fileWriteSlot(int item)
     qname = imodPlugGetSaveName(ImodInfoWin, "File to save as NFF:");
     if (qname.isEmpty())
       break;
-    fout =  fopen(LATIN1(QDir::convertSeparators(qname)), "w");
+    fout =  fopen(LATIN1(QDir::toNativeSeparators(qname)), "w");
     if (!fout)
       break;
     imod_to_nff(App->cvi->imod, fout);

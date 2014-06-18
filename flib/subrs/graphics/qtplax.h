@@ -121,7 +121,7 @@ class PlaxWindow : public QWidget
   Q_OBJECT
 
  public:
-  PlaxWindow(QWidget *parent, Qt::WFlags fl = Qt::Window);
+  PlaxWindow(QWidget *parent, Qt::WindowFlags fl = Qt::Window);
   ~PlaxWindow() {};
   void lock();
   void unlock();
