@@ -12,8 +12,8 @@ operation is most useful for excluding views from a tilt series.  It
 works with montaged or single-frame images.  Information about the
 operation is kept in a file with extension ".info"; this allows the
 operation to be run in reverse to restore the original image file.
-Because of this reversibility, the default is to remove the original
-files.
+Because of this reversibility, it is safe to remove the original
+files with the \fB-delete\fR option.
 .P
 The program can be run repeatedly (up to 10 times), and each successive
 exclusive is similarly reversible.  This capability is achieved by

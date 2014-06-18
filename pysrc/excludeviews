@@ -11,14 +11,31 @@ prefix = 'ERROR: ' + progname + ' - '
 
 fileWithErr = ''
 
+# Converts a list to a series of ranges, using range output even for adjacent values
+# Handles positive and negative directions just as parselist does
+def listToRanges(vals):
+   def addRangeToLine(line, vals, indStart, indEnd):
+      if line:
+         line += ','
+      if indEnd > indStart:
+         return line + str(vals[indStart]) + '-' + str(vals[indEnd])
+      else:
+         return line + str(vals[indStart])
+      
+   indStart = 0
+   line = ''
+   direc = 0
+   for ind in range(1, len(vals)):
+      if (direc >= 0 and vals[ind] == vals[ind - 1] + 1) or \
+             (direc <= 0 and vals[ind] == vals[ind - 1] - 1):
+         direc = vals[ind] - vals[ind - 1]
+      else:
+         line = addRangeToLine(line, vals, indStart, ind - 1)
+         indStart = ind
+         direc = 0
 
-# Convert ORDERED list to string with ranges
-# From stackoverflow.com
-# "Pythonic way to convert a list of integers into a string of comma-separated ranges"
-def orderedListToRange(L):
-   G=(list(x) for _,x in groupby(L, lambda x,c=count(): next(c)-x))
-   return ",".join("-".join(map(str,(g[0],g[-1])[:len(g)])) for g in G)
-
+   return addRangeToLine(line, vals, indStart, len(vals) - 1)
+   
 
 # Functions to remove or rename a file, with a message, and saving file being acted on
 def removeFile(name):
@@ -68,9 +85,9 @@ else:
 from pip import *
 
 # Fallbacks from ../manpages/autodoc2man 3 1 excludeviews
-options = ["stack:StackName:FN:", "views:ViewsToExclude:LI:", "keep:KeepOldFiles:B:",
-"restore:RestoreFullStack:B:", "orig:OriginalStack:B:", ":PID:B:"]
-
+options = ["stack:StackName:FN:", "views:ViewsToExclude:LI:",
+           "montage:MontagedImages:B:", "delete:DeleteOldFiles:B:",
+           "restore:RestoreFullStack:B:", "orig:OriginalStack:B:", ":PID:B:"]
 
 (opts, nonopts) = PipReadOrParseOptions(sys.argv, options, progname, 1, 0, 1)
 
@@ -81,7 +98,8 @@ stackName = PipGetInOutFile('StackName', 0)
 if not stackName:
    exitError('The name of the image stack must be entered')
 excludeStr = PipGetString('ViewsToExclude', '')
-keepOld = PipGetBoolean('KeepOldFiles', 0)
+deleteOld = PipGetBoolean('DeleteOldFiles', 0)
+keepOld = 1 - deleteOld
 restore = PipGetBoolean('RestoreFullStack', 0)
 useOrig = PipGetBoolean('OriginalStack', 0)
 montage = PipGetBoolean('MontagedImages', 0)
@@ -137,7 +155,7 @@ if not montEntered:
 if excludeStr:
    excludeList = parselist(excludeStr)
    excludeList.sort()
-   excSortStr = orderedListToRange(excludeList)
+   excSortStr = listToRanges(excludeList)
    for iz in excludeList:
       if excludeList.count(iz) > 1:
          exitError('View number ' + str(iz) + ' occurs more than once in the list')
@@ -202,8 +220,8 @@ if not restore:
          writeTextFile(keptTilt, keptTiltList)
 
       # Copy the retained and excluded views
-      excSortStr = orderedListToRange(excludeList)
-      includeStr = orderedListToRange(includeList)
+      excSortStr = listToRanges(excludeList)
+      includeStr = listToRanges(includeList)
       common = [imageStr + 'InputFile ' + stackName,
                 'NumberedFromOne']
       if montage:
@@ -268,6 +286,8 @@ if not restore:
 
    writeTextFile(infoName, [fmtstr('{} {} {} {}', nz, doRawtlt, doMdoc, montage),
                             excSortStr])
+   prnstr('Operations successfully completed.  To restore full stack, enter:')
+   prnstr('   ' + progname + ' -restore ' + stackName)
    sys.exit(0)
 
 # RESTORING A FULL STACK
