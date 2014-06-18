@@ -52,8 +52,6 @@ class ArrowButton;
 #define MIDAS_VIEW_COLOR  1
 #define MIDAS_VIEW_MULTI  2
 
-#define RADIANS_PER_DEGREE 0.0174532925
-
 /* transformation types */
 #define XTYPE_XO   0  /* Use default setting == XTYPE_XF  */
 #define XTYPE_XF   1  /* section-to-section origin.       */
@@ -88,7 +86,7 @@ class MidasWindow : public QMainWindow
 
 public:
   MidasWindow(bool doubleBuffer, QWidget * parent = 0,
-              Qt::WFlags f = Qt::Window);
+              Qt::WindowFlags f = Qt::Window);
   ~MidasWindow();
 
  protected:

@@ -46,6 +46,7 @@ Etomo/jar
 Etomo/.settings
 mrc2tif/Makefile
 mrc2tif/tiff.c
+mrc2tif/iiqimage.cpp
 flib/subrs/smallmodel
 .distname
 .options
