@@ -94,6 +94,10 @@ public final class DirectiveDef {
       Module.ALIGNED_STACK, "correctCTF");
   public static final DirectiveDef ERASE_GOLD = new DirectiveDef(DirectiveType.RUN_TIME,
       Module.ALIGNED_STACK, "eraseGold");
+  public static final DirectiveDef FILTER_STACK = new DirectiveDef(
+      DirectiveType.RUN_TIME, Module.ALIGNED_STACK, "filterStack");
+  public static final DirectiveDef LINEAR_INTERPOLATION = new DirectiveDef(
+      DirectiveType.RUN_TIME, Module.ALIGNED_STACK, "linearInterpolation");
   public static final DirectiveDef SIZE_IN_X_AND_Y = new DirectiveDef(
       DirectiveType.RUN_TIME, Module.ALIGNED_STACK, "sizeInXandY");
 
@@ -119,6 +123,8 @@ public final class DirectiveDef {
   public static final DirectiveDef WHOLE_TOMOGRAM = new DirectiveDef(
       DirectiveType.RUN_TIME, Module.POSITIONING, "wholeTomogram");
 
+  public static final DirectiveDef ARCHIVE_ORIGINAL = new DirectiveDef(
+      DirectiveType.RUN_TIME, Module.PREPROCESSING, "archiveOriginal");
   public static final DirectiveDef REMOVE_XRAYS = new DirectiveDef(
       DirectiveType.RUN_TIME, Module.PREPROCESSING, "removeXrays");
 
@@ -129,9 +135,11 @@ public final class DirectiveDef {
 
   public static final DirectiveDef USE_SIRT = new DirectiveDef(DirectiveType.RUN_TIME,
       Module.RECONSTRUCTION, "useSirt");
-
-  public static final DirectiveDef ARCHIVE_ORIGINAL = new DirectiveDef(
-      DirectiveType.RUN_TIME, Module.PREPROCESSING, "archiveOriginal");
+  public static final DirectiveDef DO_BACKPROJ_ALSO = new DirectiveDef(
+      DirectiveType.RUN_TIME, Module.RECONSTRUCTION, "doBackprojAlso");
+  
+  public static final DirectiveDef REORIENT = new DirectiveDef(
+      DirectiveType.RUN_TIME, Module.TRIMVOL, "reorient");
 
   // comparam
 
