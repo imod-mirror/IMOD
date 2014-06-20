@@ -140,19 +140,18 @@ public final class DirectiveFile {
   }
 
   /**
-   * Returns the leaf (name) attribute defined by directiveDef.  For copyarg: look under
-   * the B directive when axisID is AxisID.SECOND, otherwise look under the A directive.
-   * For runtime:  look under the "any" directive tree.  If DirectiveDef.name isn't a leaf
-   * of this tree, look under "a" for AxisID.ONLY or .FIRST, and look under "b" for
-   * AxisID.SECOND.  For comparam use a simliar algorithm to runtime:  Look for a comfile
-   * name with no postfix first.  If the name isn't a leaf of this directive tree, look
-   * under comfilea for AxisID.FIRST, and comfileb for AxisID.SECOND.
+   * Returns the attribute associated with directiveDef and axisID.  For copyarg: look
+   * under the B directive when axisID is AxisID.SECOND, otherwise look under the A
+   * directive.  For runtime:  look under the "any" directive tree.  If DirectiveDef.name
+   * isn't a leaf of this tree, look under "a" for AxisID.ONLY or .FIRST, and look under
+   * "b" for AxisID.SECOND.  For comparam use a simliar algorithm to runtime:  Look for a
+   * comfile name with no postfix first.  If the name isn't a leaf of this directive tree,
+   * look under comfilea for AxisID.FIRST, and comfileb for AxisID.SECOND.
    * @param directiveDef
    * @param axisID
-   * @return the attribute of the directive name
+   * @return
    */
-  private ReadOnlyAttribute getAttribute(final DirectiveDef directiveDef,
-      final AxisID axisID) {
+  DirectiveAttribute getAttribute(final DirectiveDef directiveDef, final AxisID axisID) {
     // get parent attribute
     DirectiveType type = directiveDef.getDirectiveType();
     ReadOnlyAttribute attribute = getParentAttribute(type);
@@ -160,9 +159,11 @@ public final class DirectiveFile {
       return null;
     }
     String name = directiveDef.getName(axisID);
+    DirectiveAttribute directiveAttribute = new DirectiveAttribute(directiveDef.isBool());
     // copyarg and setupset
     if (type == DirectiveType.COPY_ARG || type == DirectiveType.SETUP_SET) {
-      return attribute.getAttribute(name);
+      directiveAttribute.setAttribute(attribute.getAttribute(name));
+      return directiveAttribute;
     }
     // runtime
     if (type == DirectiveType.RUN_TIME) {
@@ -209,7 +210,8 @@ public final class DirectiveFile {
             directiveDef.getCommand(), name);
       }
     }
-    return attribute;
+    directiveAttribute.setAttribute(attribute);
+    return directiveAttribute;
   }
 
   /**
@@ -223,7 +225,7 @@ public final class DirectiveFile {
   private ReadOnlyAttribute getAttribute(ReadOnlyAttribute attribute, final String name1,
       final String name2, final String name3) {
     if (attribute == null || name1 == null) {
-      return null;
+      return attribute;
     }
     attribute = attribute.getAttribute(name1);
     if (attribute == null || name2 == null) {
@@ -237,54 +239,55 @@ public final class DirectiveFile {
   }
 
   /**
-   * Returns true if the leaf attribute defined by directiveDef is present.
    * @param directiveDef
    * @param axisID
-   * @return
+   * @return the attribute value or null if the attribute is null
    */
-  public boolean contains(final DirectiveDef directiveDef, final AxisID axisID) {
-    return getAttribute(directiveDef, axisID) != null;
-  }
-
-  /**
-   * Returns true if the leaf attribute defined by directiveDef is present.
-   * @param directiveDef
-   * @return
-   */
-  public boolean contains(final DirectiveDef directiveDef) {
-    return getAttribute(directiveDef, null) != null;
-  }
-
-  /**
-   * Returns the value of the leaf attribute defined by directiveDef.  Returns null
-   * if the attribute is missing.  Returns an empty string if this attribute is there and
-   * it has no value.
-   * @param directiveDef
-   * @param axisID
-   * @return
-   */
-  public String getValue(final DirectiveDef directiveDef, final AxisID axisID) {
+  String getValue(final DirectiveDef directiveDef, final AxisID axisID) {
     ReadOnlyAttribute attribute = getAttribute(directiveDef, axisID);
-    if (attribute != null) {
-      String value = attribute.getValue();
-      if (value == null) {
-        return "";
-      }
-      return value;
+    if (attribute == null) {
+      return null;
     }
-    return null;
+    return attribute.getValue();
   }
 
-  public String getValue(final DirectiveDef directiveDef) {
-    return getValue(directiveDef, null);
-  }
-
-  public boolean isValue(final DirectiveDef directiveDef, final AxisID axisID) {
-    return toBoolean(getValue(directiveDef, axisID));
-  }
-
-  public boolean isValue(final DirectiveDef directiveDef) {
-    return toBoolean(getValue(directiveDef, null));
+  /**
+   * Translates the value of the attribute into a boolean.  A null attribute or value
+   * returns false.  A "0" value returns false.  A "1" returns true.  Everything else
+   * returns true.
+   * @param directiveDef
+   * @param axisID
+   * @return
+   */
+  boolean isValue(final DirectiveDef directiveDef, final AxisID axisID) {
+    boolean bool = directiveDef.isBool();
+    if (!bool) {
+      System.err.println("Warning: " + directiveDef + " is not a boolean");
+    }
+    ReadOnlyAttribute attribute = getAttribute(directiveDef, axisID);
+    if (attribute == null) {
+      return false;
+    }
+    String value = attribute.getValue();
+    if (value == null) {
+      if (bool) {
+        System.err.println("Warning: " + directiveDef
+            + " is boolean and its value should not be null");
+      }
+      return false;
+    }
+    value = value.trim();
+    if (value.equals(FALSE_VALUE)) {
+      return false;
+    }
+    if (value.equals(TRUE_VALUE)) {
+      return true;
+    }
+    if (bool) {
+      System.err.println("Warning: " + directiveDef
+          + " is boolean and its value is invalid: " + value);
+    }
+    return true;
   }
 
   private ReadOnlyAttribute getParentAttribute(final DirectiveType directiveType) {
@@ -302,27 +305,6 @@ public final class DirectiveFile {
       return comparam;
     }
     return null;
-  }
-
-  /**
-   * Returns true unless value is null or 0.  This function does not treate null as an
-   * error, so it is not necessary to check for the existance of a directive before
-   * calling it.
-   * @param value
-   * @return
-   */
-  private static boolean toBoolean(final String value) {
-    if (value == null || value.equals(FALSE_VALUE)) {
-      return false;
-    }
-    else if (value.equals(TRUE_VALUE)) {
-      return true;
-    }
-    System.err.println("Error: incorrect boolean value: " + value
-        + ".  Valid boolean values are " + FALSE_VALUE + " or " + TRUE_VALUE
-        + ".  Treating value as " + TRUE_VALUE + ".");
-    Thread.dumpStack();
-    return true;
   }
 
   static ConstEtomoNumber toNumber(final String value, EtomoNumber.Type numberType) {
@@ -353,38 +335,6 @@ public final class DirectiveFile {
     return file;
   }
 
-  /**
-   * @param doValidation has no effect.
-   * @return true
-   */
-  public boolean getTiltAngleFields(final AxisID axisID,
-      final TiltAngleSpec tiltAngleSpec, final boolean doValidation) {
-    if (tiltAngleSpec == null) {
-      return true;
-    }
-    if (contains(DirectiveDef.FIRST_INC, axisID)) {
-      tiltAngleSpec.setType(TiltAngleType.RANGE);
-      String value = getValue(DirectiveDef.FIRST_INC, axisID);
-      String[] arrayValue = null;
-      if (value != null) {
-        arrayValue = value.trim().split(FieldType.CollectionType.ARRAY.getSplitter());
-      }
-      if (arrayValue != null && arrayValue.length > 0) {
-        tiltAngleSpec.setRangeMin(arrayValue[0]);
-      }
-      if (arrayValue != null && arrayValue.length > 1) {
-        tiltAngleSpec.setRangeStep(arrayValue[1]);
-      }
-    }
-    else if (isValue(DirectiveDef.EXTRACT, axisID)) {
-      tiltAngleSpec.setType(TiltAngleType.EXTRACT);
-    }
-    else if (isValue(DirectiveDef.USE_RAW_TLT, axisID)) {
-      tiltAngleSpec.setType(TiltAngleType.FILE);
-    }
-    return true;
-  }
-
   public String toString() {
     return getFile().getAbsolutePath();
   }
@@ -394,6 +344,7 @@ public final class DirectiveFile {
     public static final Module CTF_PLOTTING = new Module("CTFplotting");
     public static final Module FIDUCIALS = new Module("Fiducials");
     public static final Module GOLD_ERASING = new Module("GoldErasing");
+    public static final Module PATCH_TRACKING = new Module("PatchTracking");
     public static final Module POSITIONING = new Module("Positioning");
     public static final Module PREPROCESSING = new Module("Preprocessing");
     public static final Module RAPTOR = new Module("RAPTOR");
@@ -415,8 +366,11 @@ public final class DirectiveFile {
     static final Comfile ALIGN = new Comfile("align");
     static final Comfile AUTOFIDSEED = new Comfile("autofidseed");
     static final Comfile ERASER = new Comfile("eraser");
+    static final Comfile SIRTSETUP = new Comfile("sirtsetup");
+    static final Comfile TILT = new Comfile("tilt");
     static final Comfile TRACK = new Comfile("track");
-
+    static final Comfile XCORR_PT = new Comfile("xcorr_pt");
+    
     private final String tag;
 
     private Comfile(final String tag) {
@@ -430,10 +384,13 @@ public final class DirectiveFile {
 
   static final class Command {
     static final Command AUTOFIDSEED = new Command("autofidseed");
-    static final Command CCDERASER = new Command("ccderaser");
     static final Command BEADTRACK = new Command("beadtrack");
+    static final Command CCDERASER = new Command("ccderaser");
+    static final Command SIRTSETUP = new Command("sirtsetup");
+    static final Command TILT = new Command("tilt");
     static final Command TILTALIGN = new Command("tiltalign");
-
+    static final Command TILTXCORR = new Command("tiltxcorr");
+    
     private final String tag;
 
     private Command(final String tag) {
