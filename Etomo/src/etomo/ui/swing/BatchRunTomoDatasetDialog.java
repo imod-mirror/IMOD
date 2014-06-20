@@ -17,6 +17,7 @@ import etomo.storage.DirectiveDef;
 import etomo.storage.DirectiveFile;
 import etomo.storage.DirectiveFileCollection;
 import etomo.type.ConstEtomoNumber;
+import etomo.type.EtomoNumber;
 import etomo.ui.FieldType;
 
 /**
@@ -90,8 +91,6 @@ final class BatchRunTomoDatasetDialog implements ActionListener {
       FieldType.INTEGER, "Thickness total (unbinned pixels): ", bgThickness);
   private final RadioTextField rtfBinnedThickness = RadioTextField.getInstance(
       FieldType.INTEGER, "Thickness total   (binned pixels): ", bgThickness);
-  private final RadioTextField rtfThicknessNm = RadioTextField.getInstance(
-      FieldType.INTEGER, "Thickness total (nm): ", bgThickness);
   private final RadioTextField rtfThicknessSpacingPlus = RadioTextField.getInstance(
       FieldType.INTEGER, "Thickness from Intergold spacing plus: ", bgThickness);
   private final LabeledTextField ltfThicknessSpacingFallback = new LabeledTextField(
@@ -213,8 +212,6 @@ final class BatchRunTomoDatasetDialog implements ActionListener {
     pnlThickness.add(Box.createRigidArea(FixedDim.x0_y2));
     pnlThickness.add(rtfBinnedThickness.getContainer());
     pnlThickness.add(Box.createRigidArea(FixedDim.x0_y2));
-    pnlThickness.add(rtfThicknessNm.getContainer());
-    pnlThickness.add(Box.createRigidArea(FixedDim.x0_y2));
     pnlThickness.add(rtfThicknessSpacingPlus.getContainer());
     pnlThickness.add(pnlThicknessSpacingFallback);
     // ThicknessSpacingFallback
@@ -242,7 +239,6 @@ final class BatchRunTomoDatasetDialog implements ActionListener {
     rbDoBackprojAlso.addActionListener(this);
     rtfThicknessPixels.addActionListener(this);
     rtfBinnedThickness.addActionListener(this);
-    rtfThicknessNm.addActionListener(this);
     rtfThicknessSpacingPlus.addActionListener(this);
   }
 
@@ -394,10 +390,6 @@ final class BatchRunTomoDatasetDialog implements ActionListener {
       rtfBinnedThickness.backup();
       changed = true;
     }
-    if (rtfThicknessNm.isDifferentFromCheckpoint(true)) {
-      rtfThicknessNm.backup();
-      changed = true;
-    }
     if (rtfThicknessSpacingPlus.isDifferentFromCheckpoint(true)) {
       rtfThicknessSpacingPlus.backup();
       changed = true;
@@ -410,13 +402,13 @@ final class BatchRunTomoDatasetDialog implements ActionListener {
   }
 
   /**
-   * Set values from the directive file collection.  Only set fields from directives that
-   * are in a least one of the directive files.
+   * Set values from the directive file collection.  Only change fields that exist in
+   * directive file collection.
    * @param directiveFileCollection
    */
   void setValues(final DirectiveFileCollection directiveFileCollection) {
     if (directiveFileCollection.contains(DirectiveDef.DISTORT)) {
-      ftfDistort.setText(directiveFileCollection.getDistortionFile());
+      ftfDistort.setText(directiveFileCollection.getValue(DirectiveDef.DISTORT));
     }
     if (directiveFileCollection.contains(DirectiveDef.GRADIENT)) {
       ftfGradient.setText(directiveFileCollection.getMagGradientFile());
@@ -452,41 +444,44 @@ final class BatchRunTomoDatasetDialog implements ActionListener {
       ltfLocalAreaTargetSize.setText(directiveFileCollection
           .getValue(DirectiveDef.LOCAL_AREA_TARGET_SIZE));
     }
-    if (directiveFileCollection.containsTargetNumberOfBeads()) {
+    if (directiveFileCollection.contains(DirectiveDef.TARGET_NUMBER_OF_BEADS)) {
       ltfTargetNumberOfBeads.setText(directiveFileCollection.getTargetNumberOfBeads());
     }
-    if (directiveFileCollection.containsSizeOfPatchesXandY()) {
+    if (directiveFileCollection.contains(DirectiveDef.SIZE_OF_PATCHES_X_AND_Y)) {
       ltfSizeOfPatchesXandY.setText(directiveFileCollection.getSizeOfPatchesXandY());
     }
-    if (directiveFileCollection.containsContourPieces()) {
+    if (directiveFileCollection.contains(DirectiveDef.CONTOUR_PIECES)) {
       lsContourPieces.setText(directiveFileCollection.getContourPieces());
     }
-    if (directiveFileCollection.containsBinByFactor()) {
-      lsBinByFactor.setText(directiveFileCollection.getBinByFactor());
+    if (directiveFileCollection.contains(DirectiveDef.BIN_BY_FACTOR_FOR_ALIGNED_STACK)) {
+      lsBinByFactor.setText(directiveFileCollection.getValue(DirectiveDef.BIN_BY_FACTOR_FOR_ALIGNED_STACK));
     }
-    if (directiveFileCollection.containscbCorrectCTF()) {
-      cbCorrectCTF.setSelected(directiveFileCollection.iscbCorrectCTF());
+    if (directiveFileCollection.contains(DirectiveDef.CORRECT_CTF)) {
+      cbCorrectCTF.setSelected(directiveFileCollection.isCorrectCTF());
     }
-    if (directiveFileCollection.containsDefocus()) {
+    if (directiveFileCollection.contains(DirectiveDef.DEFOCUS)) {
       ltfDefocus.setText(directiveFileCollection.getDefocus());
     }
-    if (directiveFileCollection.containsAutoFitRangeAndStep) {
-      ConstEtomoNumber number = directiveFileCollection.getAutoFitStep();
-      if (directiveFileCollection.getAutoFitStep().equals(0)) {
+    if (directiveFileCollection.contains(DirectiveDef.AUTO_FIT_RANGE_AND_STEP)) {
+      EtomoNumber number = new EtomoNumber(EtomoNumber.Type.DOUBLE);
+      number.set(directiveFileCollection
+          .getValue(DirectiveDef.AUTO_FIT_RANGE_AND_STEP, 1));
+      if (number.equals(0)) {
         rbFitEveryImage.setSelected(true);
       }
       else {
         rbAutoFitRangeAndStep.setSelected(true);
-        tfAutoFitRange.setText(directiveFileCollection.getAutoFitRange());
+        tfAutoFitRange.setText(directiveFileCollection.getValue(
+            DirectiveDef.AUTO_FIT_RANGE_AND_STEP, 0));
         tfAutoFitStep.setText(number);
       }
     }
     boolean useSirt = false;
-    if (directiveFileCollection.containsUseSirt()) {
+    if (directiveFileCollection.contains(DirectiveDef.USE_SIRT)) {
       useSirt = directiveFileCollection.isUseSirt();
     }
     boolean doBackprojAlso = false;
-    if (directiveFileCollection.containsDoBackprojAlso()) {
+    if (directiveFileCollection.contains(DirectiveDef.DO_BACKPROJ_ALSO)) {
       doBackprojAlso = directiveFileCollection.isDoBackprojAlso();
     }
     if (!useSirt) {
@@ -498,16 +493,16 @@ final class BatchRunTomoDatasetDialog implements ActionListener {
     else {
       rbDoBackprojAlso.setSelected(true);
     }
-    if (directiveFileCollection.containsLeaveIterations) {
+    if (directiveFileCollection.contains(DirectiveDef.LEAVE_ITERATIONS)) {
       ltfLeaveIterations.setText(directiveFileCollection.getLeaveIterations());
     }
-    if (directiveFileCollection.containsScaleToInteger()) {
+    if (directiveFileCollection.contains(DirectiveDef.SCALE_TO_INTEGER)) {
       cbScaleToInteger.setSelected(directiveFileCollection.isScaleToInteger());
     }
-    if (directiveFileCollection.containsTiltThickness()) {
+    if (directiveFileCollection.contains(DirectiveDef.THICKNESS)) {
       // ??
     }
-    if (directiveFileCollection.containsBinnedThickness()) {
+    if (directiveFileCollection.contains(DirectiveDef.BINNED_THICKNESS)) {
       String string = directiveFileCollection.getBinnedThickness();
       rtfBinnedThickness.setSelected(string != null && !string.equals(""));
       rtfBinnedThickness.setText(string);
@@ -527,7 +522,6 @@ final class BatchRunTomoDatasetDialog implements ActionListener {
         || actionCommand.equals(cbCorrectCTF.getActionCommand())
         || actionCommand.equals(rtfThicknessPixels.getActionCommand())
         || actionCommand.equals(rtfBinnedThickness.getActionCommand())
-        || actionCommand.equals(rtfThicknessNm.getActionCommand())
         || actionCommand.equals(rtfThicknessSpacingPlus.getActionCommand())
         || actionCommand.equals(rbUseSirtFalse.getActionCommand())
         || actionCommand.equals(rbUseSirtTrue.getActionCommand())
