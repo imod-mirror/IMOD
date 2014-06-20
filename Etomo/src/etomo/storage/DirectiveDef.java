@@ -37,123 +37,148 @@ public final class DirectiveDef {
   // copyarg
 
   public static final DirectiveDef BINNING = new DirectiveDef(DirectiveType.COPY_ARG,
-      BINNING_NAME, false);
+      BINNING_NAME, false, false);
   public static final DirectiveDef CS = new DirectiveDef(DirectiveType.COPY_ARG, "Cs",
-      false);
+      false, false);
   public static final DirectiveDef CTF_NOISE = new DirectiveDef(DirectiveType.COPY_ARG,
-      "ctfnoise", false);
+      "ctfnoise", false, false);
   public static final DirectiveDef DEFOCUS = new DirectiveDef(DirectiveType.COPY_ARG,
-      "defocus", false);
+      "defocus", false, false);
   public static final DirectiveDef DISTORT = new DirectiveDef(DirectiveType.COPY_ARG,
-      "distort", false);
+      "distort", false, false);
   public static final DirectiveDef DUAL = new DirectiveDef(DirectiveType.COPY_ARG,
-      "dual", false);
+      "dual", false, true);
   public static final DirectiveDef EXTRACT = new DirectiveDef(DirectiveType.COPY_ARG,
-      "extract", true);
+      "extract", true, true);
   public static final DirectiveDef FIRST_INC = new DirectiveDef(DirectiveType.COPY_ARG,
-      "firstinc", true);
+      "firstinc", true, false);
   public static final DirectiveDef FOCUS = new DirectiveDef(DirectiveType.COPY_ARG,
-      "focus", true);
+      "focus", true, true);
   public static final DirectiveDef GOLD = new DirectiveDef(DirectiveType.COPY_ARG,
-      "gold", false);
+      "gold", false, false);
   public static final DirectiveDef GRADIENT = new DirectiveDef(DirectiveType.COPY_ARG,
-      "gradient", false);
+      "gradient", false, false);
   public static final DirectiveDef MONTAGE = new DirectiveDef(DirectiveType.COPY_ARG,
-      "montage", false);
+      "montage", false, true);
   public static final DirectiveDef PIXEL = new DirectiveDef(DirectiveType.COPY_ARG,
-      "pixel", false);
+      "pixel", false, false);
   public static final DirectiveDef ROTATION = new DirectiveDef(DirectiveType.COPY_ARG,
-      "rotation", true);
+      "rotation", true, false);
   public static final DirectiveDef SKIP = new DirectiveDef(DirectiveType.COPY_ARG,
-      "skip", true);
+      "skip", true, false);
   public static final DirectiveDef TWODIR = new DirectiveDef(DirectiveType.COPY_ARG,
-      "twodir", true);
+      "twodir", true, false);
   public static final DirectiveDef USE_RAW_TLT = new DirectiveDef(DirectiveType.COPY_ARG,
-      "userawtlt", true);
+      "userawtlt", true, true);
   public static final DirectiveDef VOLTAGE = new DirectiveDef(DirectiveType.COPY_ARG,
-      "voltage", false);
+      "voltage", false, false);
 
   // setupset
 
   public static final DirectiveDef DATASET_DIRECTORY = new DirectiveDef(
-      DirectiveType.SETUP_SET, "datasetDirectory");
+      DirectiveType.SETUP_SET, "datasetDirectory", false);
   public static final DirectiveDef SCAN_HEADER = new DirectiveDef(
-      DirectiveType.SETUP_SET, "scanHeader");
+      DirectiveType.SETUP_SET, "scanHeader", true);
   public static final DirectiveDef SCOPE_TEMPLATE = new DirectiveDef(
-      DirectiveType.SETUP_SET, "scopeTemplate");
+      DirectiveType.SETUP_SET, "scopeTemplate", false);
   public static final DirectiveDef SYSTEM_TEMPLATE = new DirectiveDef(
-      DirectiveType.SETUP_SET, "systemTemplate");
+      DirectiveType.SETUP_SET, "systemTemplate", false);
   public static final DirectiveDef USER_TEMPLATE = new DirectiveDef(
-      DirectiveType.SETUP_SET, "userTemplate");
+      DirectiveType.SETUP_SET, "userTemplate", false);
 
   // runtime
 
   public static final DirectiveDef BIN_BY_FACTOR_FOR_ALIGNED_STACK = new DirectiveDef(
-      DirectiveType.RUN_TIME, Module.ALIGNED_STACK, BIN_BY_FACTOR_NAME);
+      DirectiveType.RUN_TIME, Module.ALIGNED_STACK, BIN_BY_FACTOR_NAME, false);
   public static final DirectiveDef CORRECT_CTF = new DirectiveDef(DirectiveType.RUN_TIME,
-      Module.ALIGNED_STACK, "correctCTF");
+      Module.ALIGNED_STACK, "correctCTF", true);
   public static final DirectiveDef ERASE_GOLD = new DirectiveDef(DirectiveType.RUN_TIME,
-      Module.ALIGNED_STACK, "eraseGold");
+      Module.ALIGNED_STACK, "eraseGold", false);
   public static final DirectiveDef FILTER_STACK = new DirectiveDef(
-      DirectiveType.RUN_TIME, Module.ALIGNED_STACK, "filterStack");
+      DirectiveType.RUN_TIME, Module.ALIGNED_STACK, "filterStack", true);
   public static final DirectiveDef LINEAR_INTERPOLATION = new DirectiveDef(
-      DirectiveType.RUN_TIME, Module.ALIGNED_STACK, "linearInterpolation");
+      DirectiveType.RUN_TIME, Module.ALIGNED_STACK, "linearInterpolation", true);
   public static final DirectiveDef SIZE_IN_X_AND_Y = new DirectiveDef(
-      DirectiveType.RUN_TIME, Module.ALIGNED_STACK, "sizeInXandY");
+      DirectiveType.RUN_TIME, Module.ALIGNED_STACK, "sizeInXandY", false);
 
   public static final DirectiveDef AUTO_FIT_RANGE_AND_STEP = new DirectiveDef(
-      DirectiveType.RUN_TIME, Module.CTF_PLOTTING, "autoFitRangeAndStep");
+      DirectiveType.RUN_TIME, Module.CTF_PLOTTING, "autoFitRangeAndStep", false);
 
   public static final DirectiveDef FIDUCIALLESS = new DirectiveDef(
-      DirectiveType.RUN_TIME, Module.FIDUCIALS, "fiducialless");
+      DirectiveType.RUN_TIME, Module.FIDUCIALS, "fiducialless", true);
   public static final DirectiveDef SEEDING_METHOD = new DirectiveDef(
-      DirectiveType.RUN_TIME, Module.FIDUCIALS, "seedingMethod");
+      DirectiveType.RUN_TIME, Module.FIDUCIALS, "seedingMethod", false);
   public static final DirectiveDef TRACKING_METHOD = new DirectiveDef(
-      DirectiveType.RUN_TIME, Module.FIDUCIALS, "trackingMethod");
+      DirectiveType.RUN_TIME, Module.FIDUCIALS, "trackingMethod", false);
 
   public static final DirectiveDef BINNING_FOR_GOLD_ERASING = new DirectiveDef(
-      DirectiveType.RUN_TIME, Module.GOLD_ERASING, BINNING_NAME);
+      DirectiveType.RUN_TIME, Module.GOLD_ERASING, BINNING_NAME, false);
   public static final DirectiveDef THICKNESS_FOR_GOLD_ERASING = new DirectiveDef(
-      DirectiveType.RUN_TIME, Module.GOLD_ERASING, THICKNESS_NAME);
+      DirectiveType.RUN_TIME, Module.GOLD_ERASING, THICKNESS_NAME, false);
+
+  public static final DirectiveDef CONTOUR_PIECES = new DirectiveDef(
+      DirectiveType.RUN_TIME, Module.PATCH_TRACKING, "contourPieces", false);
 
   public static final DirectiveDef BIN_BY_FACTOR_FOR_POSITIONING = new DirectiveDef(
-      DirectiveType.RUN_TIME, Module.POSITIONING, BIN_BY_FACTOR_NAME);
+      DirectiveType.RUN_TIME, Module.POSITIONING, BIN_BY_FACTOR_NAME, false);
   public static final DirectiveDef THICKNESS_FOR_POSITIONING = new DirectiveDef(
-      DirectiveType.RUN_TIME, Module.POSITIONING, THICKNESS_NAME);
+      DirectiveType.RUN_TIME, Module.POSITIONING, THICKNESS_NAME, false);
   public static final DirectiveDef WHOLE_TOMOGRAM = new DirectiveDef(
-      DirectiveType.RUN_TIME, Module.POSITIONING, "wholeTomogram");
+      DirectiveType.RUN_TIME, Module.POSITIONING, "wholeTomogram", true);
 
   public static final DirectiveDef ARCHIVE_ORIGINAL = new DirectiveDef(
-      DirectiveType.RUN_TIME, Module.PREPROCESSING, "archiveOriginal");
+      DirectiveType.RUN_TIME, Module.PREPROCESSING, "archiveOriginal", true);
   public static final DirectiveDef REMOVE_XRAYS = new DirectiveDef(
-      DirectiveType.RUN_TIME, Module.PREPROCESSING, "removeXrays");
+      DirectiveType.RUN_TIME, Module.PREPROCESSING, "removeXrays", true);
 
   public static final DirectiveDef NUMBER_OF_MARKERS = new DirectiveDef(
-      DirectiveType.RUN_TIME, Module.RAPTOR, "numberOfMarkers");
+      DirectiveType.RUN_TIME, Module.RAPTOR, "numberOfMarkers", false);
   public static final DirectiveDef USE_ALIGNED_STACK = new DirectiveDef(
-      DirectiveType.RUN_TIME, Module.RAPTOR, "useAlignedStack");
+      DirectiveType.RUN_TIME, Module.RAPTOR, "useAlignedStack", true);
 
-  public static final DirectiveDef USE_SIRT = new DirectiveDef(DirectiveType.RUN_TIME,
-      Module.RECONSTRUCTION, "useSirt");
+  public static final DirectiveDef BINNED_THICKNESS = new DirectiveDef(
+      DirectiveType.RUN_TIME, Module.RECONSTRUCTION, "binnedThickness", false);
   public static final DirectiveDef DO_BACKPROJ_ALSO = new DirectiveDef(
-      DirectiveType.RUN_TIME, Module.RECONSTRUCTION, "doBackprojAlso");
-  
-  public static final DirectiveDef REORIENT = new DirectiveDef(
-      DirectiveType.RUN_TIME, Module.TRIMVOL, "reorient");
+      DirectiveType.RUN_TIME, Module.RECONSTRUCTION, "doBackprojAlso", true);
+  public static final DirectiveDef USE_SIRT = new DirectiveDef(DirectiveType.RUN_TIME,
+      Module.RECONSTRUCTION, "useSirt", true);
+
+  public static final DirectiveDef REORIENT = new DirectiveDef(DirectiveType.RUN_TIME,
+      Module.TRIMVOL, "reorient", false);
 
   // comparam
 
   public static final DirectiveDef SURFACES_TO_ANALYZE = new DirectiveDef(
-      DirectiveType.COM_PARAM, Comfile.ALIGN, Command.TILTALIGN, "SurfacesToAnalyze");
+      DirectiveType.COM_PARAM, Comfile.ALIGN, Command.TILTALIGN, "SurfacesToAnalyze",
+      false);
 
   public static final DirectiveDef TWO_SURFACES = new DirectiveDef(
-      DirectiveType.COM_PARAM, Comfile.AUTOFIDSEED, Command.AUTOFIDSEED, "TwoSurfaces");
+      DirectiveType.COM_PARAM, Comfile.AUTOFIDSEED, Command.AUTOFIDSEED, "TwoSurfaces",
+      true);
+  public static final DirectiveDef TARGET_NUMBER_OF_BEADS = new DirectiveDef(
+      DirectiveType.COM_PARAM, Comfile.AUTOFIDSEED, Command.AUTOFIDSEED,
+      "TargetNumberOfBeads", false);
 
   public static final DirectiveDef MODEL_FILE = new DirectiveDef(DirectiveType.COM_PARAM,
-      Comfile.ERASER, Command.CCDERASER, "ModelFile");
+      Comfile.ERASER, Command.CCDERASER, "ModelFile", false);
+
+  public static final DirectiveDef LEAVE_ITERATIONS = new DirectiveDef(
+      DirectiveType.COM_PARAM, Comfile.SIRTSETUP, Command.SIRTSETUP, "LeaveIterations",
+      false);
+  public static final DirectiveDef SCALE_TO_INTEGER = new DirectiveDef(
+      DirectiveType.COM_PARAM, Comfile.SIRTSETUP, Command.SIRTSETUP, "ScaleToInteger",
+      false);
+
+  public static final DirectiveDef THICKNESS = new DirectiveDef(DirectiveType.COM_PARAM,
+      Comfile.TILT, Command.TILT, "THICKNESS", false);
 
   public static final DirectiveDef LOCAL_AREA_TARGET_SIZE = new DirectiveDef(
-      DirectiveType.COM_PARAM, Comfile.TRACK, Command.BEADTRACK, "LocalAreaTargetSize");
+      DirectiveType.COM_PARAM, Comfile.TRACK, Command.BEADTRACK, "LocalAreaTargetSize",
+      false);
+
+  public static final DirectiveDef SIZE_OF_PATCHES_X_AND_Y = new DirectiveDef(
+      DirectiveType.COM_PARAM, Comfile.XCORR_PT, Command.TILTXCORR, "SizeOfPatchesXandY",
+      false);
 
   private final DirectiveType directiveType;
   private final String module;
@@ -166,6 +191,7 @@ public final class DirectiveDef {
    * True if the directive type is runtime comparam.
    */
   private final boolean twoAxis;
+  private final boolean bool;
 
   /**
    * General constructor
@@ -177,7 +203,7 @@ public final class DirectiveDef {
    */
   private DirectiveDef(final DirectiveType directiveType, final Module module,
       final Comfile comfile, final Command command, final String name,
-      final boolean twoAxis) {
+      final boolean twoAxis, final boolean bool) {
     this.directiveType = directiveType;
     if (module != null) {
       this.module = module.toString();
@@ -199,6 +225,7 @@ public final class DirectiveDef {
     }
     this.name = name;
     this.twoAxis = twoAxis;
+    this.bool = bool;
   }
 
   /**
@@ -207,8 +234,8 @@ public final class DirectiveDef {
    * @param name
    */
   private DirectiveDef(final DirectiveType directiveType, final String name,
-      final boolean twoAxis) {
-    this(directiveType, null, null, null, name, twoAxis);
+      final boolean twoAxis, final boolean bool) {
+    this(directiveType, null, null, null, name, twoAxis, bool);
   }
 
   /**
@@ -216,8 +243,8 @@ public final class DirectiveDef {
    * @param directiveType
    * @param name
    */
-  private DirectiveDef(final DirectiveType directiveType, final String name) {
-    this(directiveType, null, null, null, name, false);
+  private DirectiveDef(final DirectiveType directiveType, final String name, boolean bool) {
+    this(directiveType, null, null, null, name, false, bool);
   }
 
   /**
@@ -227,8 +254,8 @@ public final class DirectiveDef {
    * @param name
    */
   private DirectiveDef(final DirectiveType directiveType, final Module module,
-      final String name) {
-    this(directiveType, module, null, null, name, true);
+      final String name, final boolean bool) {
+    this(directiveType, module, null, null, name, true, bool);
   }
 
   /**
@@ -239,8 +266,8 @@ public final class DirectiveDef {
    * @param name
    */
   private DirectiveDef(final DirectiveType directiveType, final Comfile comfile,
-      final Command command, final String name) {
-    this(directiveType, null, comfile, command, name, true);
+      final Command command, final String name, final boolean bool) {
+    this(directiveType, null, comfile, command, name, true, bool);
   }
 
   /**
@@ -255,6 +282,10 @@ public final class DirectiveDef {
    */
   String getModule() {
     return module;
+  }
+
+  boolean isBool() {
+    return bool;
   }
 
   /**
