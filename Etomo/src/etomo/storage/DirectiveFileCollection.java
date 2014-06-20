@@ -9,7 +9,6 @@ import java.util.Map.Entry;
 import etomo.BaseManager;
 import etomo.logic.DatasetTool;
 import etomo.logic.UserEnv;
-import etomo.storage.DirectiveFile.AttributeName;
 import etomo.storage.autodoc.ReadOnlyAttribute;
 import etomo.storage.autodoc.ReadOnlyAttributeIterator;
 import etomo.type.AxisID;
@@ -17,6 +16,7 @@ import etomo.type.DirectiveFileType;
 import etomo.type.EtomoNumber;
 import etomo.type.TiltAngleSpec;
 import etomo.type.TiltAngleType;
+import etomo.ui.FieldType;
 import etomo.ui.SetupReconInterface;
 
 /**
@@ -54,147 +54,245 @@ public class DirectiveFileCollection implements SetupReconInterface {
   public void setDebug(final boolean input) {
     debug = input;
   }
-  
 
   /**
-   * Puts the name/value pair into extra values if it isn't in copyArg.
-   * @param name
-   * @param value
+   * Checks the directive files in order from highest to lowest priority.  Returns true if
+   * the highest priority directive file that contains the directive attribute does not
+   * override it.  If none of directive files contain the directive attribute, returns
+   * true if extraValues contains it.
+   * @param directiveDef
+   * @param axisID
+   * @return
    */
-  private void setCopyArgValue(final String name, final String value) {
-    if (copyArg.getAttribute(name) == null) {
-      if (extraValues == null) {
-        extraValues = new HashMap<String, String>();
+  public boolean contains(final DirectiveDef directiveDef) {
+    for (int i = directiveFileArray.length - 1; i >= 0; i--) {
+      DirectiveFile directiveFile = directiveFileArray[i];
+      if (directiveFile == null) {
+        continue;
       }
-      if (extraValues.containsKey(name)) {
-        extraValues.remove(name);
-      }
-      extraValues.put(name, value);
+      DirectiveAttribute attribute = directiveFile.getAttribute(directiveDef, null);
+      return attribute != null && !attribute.isEmpty() && !attribute.overrides();
     }
+    return extraValues.containsKey(directiveDef.getKey(null, null));
   }
-  
 
   /**
-   * Puts the DirectiveDef+axisID/value pair into extra-values if the directive isn't in
-   * the directive file.
+   * Return the specified element of the value of the attribute in the highest priority
+   * directive file.
+   * @param directiveDef
+   * @param index - index of element in value to return
+   * @return
+   */
+  public String getValue(final DirectiveDef directiveDef, final int index) {
+    if (index < 0) {
+      return null;
+    }
+    String value = null;
+    boolean found = false;
+    for (int i = directiveFileArray.length - 1; i >= 0; i--) {
+      DirectiveFile directiveFile = directiveFileArray[i];
+      if (directiveFile == null) {
+        continue;
+      }
+      DirectiveAttribute attribute = directiveFile.getAttribute(directiveDef, null);
+      if (attribute != null && !attribute.isEmpty()) {
+        found = true;
+        if (attribute.overrides()) {
+          // highest priority directive file has overridden the directive - return null
+          return null;
+        }
+        value = attribute.getValue();
+        //The highest priority directive file takes presidence, so stop looking when the
+        //attribute is first found
+        break;
+      }
+    }
+    if (!found) {
+      //The attribute was never found
+      value = extraValues.get(directiveDef.getKey(null, null));
+    }
+    //Get the element specified by index
+    if (value != null) {
+      String divider = ",";
+      if (value.indexOf(divider) != -1) {
+        String[] array = value.split(divider);
+        if (array != null && index < array.length) {
+          return array[index];
+        }
+      }
+      return value;
+    }
+    return null;
+  }
+
+  public boolean getTiltAngleFields(final AxisID axisID,
+      final TiltAngleSpec tiltAngleSpec, final boolean doValidation) {
+    tiltAngleSpec.reset();
+    for (int i = 0; i < directiveFileArray.length; i++) {
+      if (directiveFileArray[i] != null && containsTiltAngleSpec(axisID)) {
+        directiveFileArray[i].getTiltAngleFields(axisID, tiltAngleSpec, doValidation);
+      }
+    }
+    return true;
+  }
+
+  /**
+   * @param doValidation has no effect.
+   * @return true
+   */
+  public boolean getTiltAngleFields(final AxisID axisID,
+      final TiltAngleSpec tiltAngleSpec, final boolean doValidation) {
+    if (tiltAngleSpec == null) {
+      return true;
+    }
+    if (contains(DirectiveDef.FIRST_INC, axisID)) {
+      tiltAngleSpec.setType(TiltAngleType.RANGE);
+      String value = getValue(DirectiveDef.FIRST_INC, axisID);
+      String[] arrayValue = null;
+      if (value != null) {
+        arrayValue = value.trim().split(FieldType.CollectionType.ARRAY.getSplitter());
+      }
+      if (arrayValue != null && arrayValue.length > 0) {
+        tiltAngleSpec.setRangeMin(arrayValue[0]);
+      }
+      if (arrayValue != null && arrayValue.length > 1) {
+        tiltAngleSpec.setRangeStep(arrayValue[1]);
+      }
+    }
+    else if (isValue(DirectiveDef.EXTRACT, axisID)) {
+      tiltAngleSpec.setType(TiltAngleType.EXTRACT);
+    }
+    else if (isValue(DirectiveDef.USE_RAW_TLT, axisID)) {
+      tiltAngleSpec.setType(TiltAngleType.FILE);
+    }
+    return true;
+  }
+
+  /**
+   * If the batch directive file is set and doesn't contain the directiveDef directive,
+   * puts the DirectiveDef/value pair into extraValues.
    * @param directiveDef
    * @param value
    * @param axisID
    */
-  void setValue(final DirectiveDef directiveDef, final AxisID axisID, final String value) {
-    if (!contains(directiveDef, axisID)) {
-      if (extraValues == null) {
-        extraValues = new HashMap<String, String>();
+  private void setValue(final DirectiveDef directiveDef, final AxisID axisID,
+      final String value) {
+    DirectiveFile batch = directiveFileArray[DirectiveFileType.BATCH.getIndex()];
+    if (batch != null) {
+      if (!batch.contains(directiveDef, axisID)) {
+        if (extraValues == null) {
+          extraValues = new HashMap<String, String>();
+        }
+        String key = directiveDef.getKey(axisID, null);
+        if (extraValues.containsKey(key)) {
+          extraValues.remove(key);
+        }
+        extraValues.put(key, value);
       }
-      String key = directiveDef.getKey(axisID);
-      if (extraValues.containsKey(key)) {
-        extraValues.remove(key);
-      }
-      extraValues.put(key, value);
     }
   }
-  
 
-
-  /**
-   * Puts the DirectiveDef/value pair into extra-values if the directive isn't in
-   * the directive file.
-   * @param directiveDef
-   * @param value
-   */
-  void setValue(final DirectiveDef directiveDef, final int value) {
+  private void setValue(final DirectiveDef directiveDef, final int value) {
     setValue(directiveDef, null, String.valueOf(value));
   }
 
-  boolean containsExtraValue(final DirectiveType directiveType, final String name) {
-    return directiveType == DirectiveType.COPY_ARG && extraValues != null
-        && extraValues.containsKey(name);
+  private boolean containsExtraValue(final DirectiveDef directiveDef, final AxisID axisID) {
+    return extraValues != null
+        && extraValues.containsKey(directiveDef.getKey(axisID, null));
   }
 
-  boolean containsExtraValue(final DirectiveDef directiveDef, final AxisID axisID) {
-    return extraValues != null && extraValues.containsKey(directiveDef.getKey(axisID));
-  }
-
-  String getExtraValue(final DirectiveDef directiveDef) {
-    String key = directiveDef.getKey(axisID);
-    if (extraValues != null && extraValues.containsKey(key)) {
-      return extraValues.get(key);
-    }
-    return null;
-  }
-
-  boolean containsExtraValue(final DirectiveDef directiveDef) {
+  private boolean containsExtraValue(final DirectiveDef directiveDef) {
     return containsExtraValue(directiveDef, null);
   }
 
-  String getExtraValue(final DirectiveType directiveType, final String name) {
-    if (directiveType == DirectiveType.COPY_ARG && extraValues != null) {
-      return extraValues.get(name);
+  /**
+   * Returns null if the directiveDef is not in extraValues.  Returns "" if directiveDef
+   * is there, but its value is null.  Otherwise returns the value.
+   * @param directiveDef
+   * @return
+   */
+  private String getExtraValue(final DirectiveDef directiveDef, final AxisID axisID) {
+    String key = directiveDef.getKey(axisID, null);
+    if (extraValues != null && extraValues.containsKey(key)) {
+      String value = extraValues.get(key);
+      if (value == null) {
+        return "";
+      }
+      return value;
     }
     return null;
   }
-  
+
+  private String getExtraValue(final DirectiveDef directiveDef) {
+    return getExtraValue(directiveDef, null);
+  }
 
   Iterator<Entry<String, String>> getCopyArgExtraValuesIterator() {
     return extraValues.entrySet().iterator();
   }
-  
-  public void setTwodir(final AxisID axisID, final double input) {
-    setCopyArgValue(convertAttributeName(axisID, TWODIR_NAME), Double.toString(input));
+
+  public void setBinning(final int input) {
+    setValue(DirectiveDef.BINNING, null, String.valueOf(input));
   }
 
   public void setImageRotation(final String input) {
-    setCopyArgValue(convertAttributeName(AxisID.FIRST, ROTATION_NAME), input);
+    setValue(DirectiveDef.ROTATION, AxisID.FIRST, input);
     if (isValue(DirectiveDef.DUAL)) {
-      setCopyArgValue(convertAttributeName(AxisID.SECOND, ROTATION_NAME), input);
+      setValue(DirectiveDef.ROTATION, AxisID.SECOND, input);
     }
   }
 
   public void setPixelSize(final double input) {
-    setCopyArgValue(PIXEL_NAME, Double.toString(input));
+    setValue(DirectiveDef.PIXEL, null, String.valueOf(input));
   }
 
+  public void setTwodir(final AxisID axisID, final double input) {
+    setValue(DirectiveDef.TWODIR, axisID, String.valueOf(input));
+  }
 
   /**
-   * Returns true if an attribute called name is in any of the directive files.
-   * @param parentName
-   * @param name
+   * Returns the value of the leaf attribute defined by directiveDef.  Returns null
+   * if the attribute is missing.  Returns an empty string if this attribute is there and
+   * it has no value.  If the attribute is in one of the directive files, returns the
+   * value from the highest priority file.  If the attribute is not in any of the
+   * directive files, function checks extraValues and returns the value from there if it
+   * contains the key defined by directiveDef.  Otherwise returns null.
+   * @param directiveDef
+   * @param axisID
    * @return
    */
-  private boolean containsAttribute(final DirectiveFile.AttributeName parentName,
-      final String name) {
-    for (int i = 0; i < directiveFileArray.length; i++) {
+  private String getValue(final DirectiveDef directiveDef, final AxisID axisID) {
+    for (int i = directiveFileArray.length - 1; i >= 0; i--) {
       if (directiveFileArray[i] != null
-          && directiveFileArray[i].containsAttribute(parentName, name)) {
-        return true;
+          && directiveFileArray[i].contains(directiveDef, axisID)) {
+        return directiveFileArray[i].getValue(directiveDef, axisID);
       }
     }
-    for (int i = 0; i < directiveFileArray.length; i++) {
-      if (directiveFileArray[i] != null
-          && directiveFileArray[i].containsExtraValue(parentName, name)) {
-        return true;
+    String key = directiveDef.getKey(axisID, null);
+    if (extraValues.containsKey(key)) {
+      String value = extraValues.get(key);
+      if (value == null) {
+        return "";
       }
     }
-    return false;
+    return null;
   }
 
-  private String getValue(final DirectiveFile.AttributeName parentName, final String name) {
-    String value = null;
-    for (int i = 0; i < directiveFileArray.length; i++) {
-      if (directiveFileArray[i] != null
-          && directiveFileArray[i].containsAttribute(parentName, name)) {
-        value = directiveFileArray[i].getValue(parentName, name);
-      }
-    }
-    if (value == null) {
-      for (int i = 0; i < directiveFileArray.length; i++) {
-        if (directiveFileArray[i] != null
-            && directiveFileArray[i].containsExtraValue(parentName, name)) {
-          value = directiveFileArray[i].getExtraValue(parentName, name);
-        }
-      }
-    }
-    return value;
+  private String getValue(final DirectiveDef directiveDef) {
+    return getValue(directiveDef, null);
+  }
+
+  /**
+   * Returns true unless return value of getValue is null or 0.
+   * @param value
+   * @return
+   */
+  private boolean isValue(final DirectiveDef directiveDef, final AxisID axisID) {
+    return DirectiveFile.toBoolean(getValue(directiveDef, axisID));
+  }
+
+  private boolean isValue(final DirectiveDef directiveDef) {
+    return DirectiveFile.toBoolean(getValue(directiveDef, null));
   }
 
   /**
@@ -363,17 +461,6 @@ public class DirectiveFileCollection implements SetupReconInterface {
     return getValue(DirectiveFile.AttributeName.COPY_ARG, DirectiveFile.PIXEL_NAME);
   }
 
-  public boolean getTiltAngleFields(final AxisID axisID,
-      final TiltAngleSpec tiltAngleSpec, final boolean doValidation) {
-    tiltAngleSpec.reset();
-    for (int i = 0; i < directiveFileArray.length; i++) {
-      if (directiveFileArray[i] != null && containsTiltAngleSpec(axisID)) {
-        directiveFileArray[i].getTiltAngleFields(axisID, tiltAngleSpec, doValidation);
-      }
-    }
-    return true;
-  }
-
   public boolean isAdjustedFocusSelected(final AxisID axisID) {
     return DirectiveFile.toBoolean(getValue(DirectiveFile.AttributeName.COPY_ARG,
         DirectiveFile.convertAttributeName(axisID, DirectiveFile.FOCUS_NAME)));
@@ -431,30 +518,6 @@ public class DirectiveFileCollection implements SetupReconInterface {
       setDirectiveFile(baseDirectiveFile.getScopeTemplate(), DirectiveFileType.SCOPE);
       setDirectiveFile(baseDirectiveFile.getSystemTemplate(), DirectiveFileType.SYSTEM);
       setDirectiveFile(baseDirectiveFile.getUserTemplate(), DirectiveFileType.USER);
-    }
-  }
-
-  public void setBinning(final int input) {
-    if (directiveFileArray[DirectiveFileType.BATCH.getIndex()] != null) {
-      directiveFileArray[DirectiveFileType.BATCH.getIndex()].setBinning(input);
-    }
-  }
-
-  public void setTwodir(final AxisID axisID, final double input) {
-    if (directiveFileArray[DirectiveFileType.BATCH.getIndex()] != null) {
-      directiveFileArray[DirectiveFileType.BATCH.getIndex()].setTwodir(axisID, input);
-    }
-  }
-
-  public void setImageRotation(final String input) {
-    if (directiveFileArray[DirectiveFileType.BATCH.getIndex()] != null) {
-      directiveFileArray[DirectiveFileType.BATCH.getIndex()].setImageRotation(input);
-    }
-  }
-
-  public void setPixelSize(final double input) {
-    if (directiveFileArray[DirectiveFileType.BATCH.getIndex()] != null) {
-      directiveFileArray[DirectiveFileType.BATCH.getIndex()].setPixelSize(input);
     }
   }
 
