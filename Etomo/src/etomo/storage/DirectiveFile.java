@@ -14,9 +14,6 @@ import etomo.storage.autodoc.ReadOnlyAutodoc;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.EtomoNumber;
-import etomo.type.TiltAngleSpec;
-import etomo.type.TiltAngleType;
-import etomo.ui.FieldType;
 import etomo.ui.swing.UIHarness;
 
 /**
@@ -37,8 +34,8 @@ import etomo.ui.swing.UIHarness;
 public final class DirectiveFile {
   public static final String rcsid = "$Id:$";
 
-  private static final String TRUE_VALUE = "1";
-  private static final String FALSE_VALUE = "0";
+  public static final int AUTO_FIT_RANGE_INDEX = 0;
+  public static final int AUTO_FIT_STEP_INDEX = 1;
 
   private static boolean debug = false;
 
@@ -152,155 +149,25 @@ public final class DirectiveFile {
    * @return
    */
   DirectiveAttribute getAttribute(final DirectiveDef directiveDef, final AxisID axisID) {
-    // get parent attribute
+    if (directiveDef == null) {
+      return null;
+    }
+    return DirectiveAttribute.getInstance(this, directiveDef, axisID,
+        getParentAttribute(directiveDef));
+  }
+
+  private ReadOnlyAttribute getParentAttribute(final DirectiveDef directiveDef) {
     DirectiveType type = directiveDef.getDirectiveType();
-    ReadOnlyAttribute attribute = getParentAttribute(type);
-    if (attribute == null) {
-      return null;
-    }
-    String name = directiveDef.getName(axisID);
-    DirectiveAttribute directiveAttribute = new DirectiveAttribute(directiveDef.isBool());
-    // copyarg and setupset
-    if (type == DirectiveType.COPY_ARG || type == DirectiveType.SETUP_SET) {
-      directiveAttribute.setAttribute(attribute.getAttribute(name));
-      return directiveAttribute;
-    }
-    // runtime
-    if (type == DirectiveType.RUN_TIME) {
-      // get module attribute
-      attribute = attribute.getAttribute(directiveDef.getModule());
-      if (attribute == null) {
-        return null;
-      }
-      // try different axis attributes to get to the name attribute
-      attribute = getAttribute(attribute, DirectiveDef.RUN_TIME_ANY_AXIS_TAG, name, null);
-      if (attribute == null) {
-        // Can't find name under "any" - look under the axis letter.
-        String axisTag;
-        if (axisID == AxisID.ONLY || axisID == AxisID.FIRST) {
-          axisTag = DirectiveDef.RUN_TIME_A_AXIS_TAG;
-        }
-        else if (axisID == AxisID.SECOND) {
-          axisTag = DirectiveDef.RUN_TIME_B_AXIS_TAG;
-        }
-        else {
-          return null;
-        }
-        attribute = getAttribute(attribute, axisTag, name, null);
-      }
-    }
-    // comparam
-    else if (type == DirectiveType.COM_PARAM) {
-      // try different comfile postfixes to get to the name attribute
-      attribute = getAttribute(attribute, directiveDef.getComfile(),
-          directiveDef.getCommand(), name);
-      if (attribute == null) {
-        String axisTag;
-        // Can't find name with no axis tag - try the a or b postfix.
-        if (axisID == AxisID.FIRST) {
-          axisTag = AxisID.FIRST.getExtension();
-        }
-        else if (axisID == AxisID.SECOND) {
-          axisTag = axisID.getExtension();
-        }
-        else {
-          return null;
-        }
-        attribute = getAttribute(attribute, directiveDef.getComfile() + axisTag,
-            directiveDef.getCommand(), name);
-      }
-    }
-    directiveAttribute.setAttribute(attribute);
-    return directiveAttribute;
-  }
-
-  /**
-   * Get the descendant of attribute, up to three levels down.
-   * @param attribute
-   * @param name1
-   * @param name2
-   * @param name3
-   * @return
-   */
-  private ReadOnlyAttribute getAttribute(ReadOnlyAttribute attribute, final String name1,
-      final String name2, final String name3) {
-    if (attribute == null || name1 == null) {
-      return attribute;
-    }
-    attribute = attribute.getAttribute(name1);
-    if (attribute == null || name2 == null) {
-      return attribute;
-    }
-    attribute = attribute.getAttribute(name2);
-    if (attribute == null || name3 == null) {
-      return attribute;
-    }
-    return attribute.getAttribute(name3);
-  }
-
-  /**
-   * @param directiveDef
-   * @param axisID
-   * @return the attribute value or null if the attribute is null
-   */
-  String getValue(final DirectiveDef directiveDef, final AxisID axisID) {
-    ReadOnlyAttribute attribute = getAttribute(directiveDef, axisID);
-    if (attribute == null) {
-      return null;
-    }
-    return attribute.getValue();
-  }
-
-  /**
-   * Translates the value of the attribute into a boolean.  A null attribute or value
-   * returns false.  A "0" value returns false.  A "1" returns true.  Everything else
-   * returns true.
-   * @param directiveDef
-   * @param axisID
-   * @return
-   */
-  boolean isValue(final DirectiveDef directiveDef, final AxisID axisID) {
-    boolean bool = directiveDef.isBool();
-    if (!bool) {
-      System.err.println("Warning: " + directiveDef + " is not a boolean");
-    }
-    ReadOnlyAttribute attribute = getAttribute(directiveDef, axisID);
-    if (attribute == null) {
-      return false;
-    }
-    String value = attribute.getValue();
-    if (value == null) {
-      if (bool) {
-        System.err.println("Warning: " + directiveDef
-            + " is boolean and its value should not be null");
-      }
-      return false;
-    }
-    value = value.trim();
-    if (value.equals(FALSE_VALUE)) {
-      return false;
-    }
-    if (value.equals(TRUE_VALUE)) {
-      return true;
-    }
-    if (bool) {
-      System.err.println("Warning: " + directiveDef
-          + " is boolean and its value is invalid: " + value);
-    }
-    return true;
-  }
-
-  private ReadOnlyAttribute getParentAttribute(final DirectiveType directiveType) {
-    if (directiveType == DirectiveType.COPY_ARG) {
+    if (type == DirectiveType.COPY_ARG) {
       return copyArg;
     }
-    if (directiveType == DirectiveType.SETUP_SET) {
+    if (type == DirectiveType.SETUP_SET) {
       return setupSet;
     }
-    if (directiveType == DirectiveType.RUN_TIME) {
+    if (type == DirectiveType.RUN_TIME) {
       return runtime;
     }
-    if (directiveType == DirectiveType.COM_PARAM) {
+    if (type == DirectiveType.COM_PARAM) {
       initComparam();
       return comparam;
     }
@@ -370,7 +237,7 @@ public final class DirectiveFile {
     static final Comfile TILT = new Comfile("tilt");
     static final Comfile TRACK = new Comfile("track");
     static final Comfile XCORR_PT = new Comfile("xcorr_pt");
-    
+
     private final String tag;
 
     private Comfile(final String tag) {
@@ -390,7 +257,7 @@ public final class DirectiveFile {
     static final Command TILT = new Command("tilt");
     static final Command TILTALIGN = new Command("tiltalign");
     static final Command TILTXCORR = new Command("tiltxcorr");
-    
+
     private final String tag;
 
     private Command(final String tag) {
