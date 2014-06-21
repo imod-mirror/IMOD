@@ -445,34 +445,34 @@ final class BatchRunTomoDatasetDialog implements ActionListener {
           .getValue(DirectiveDef.LOCAL_AREA_TARGET_SIZE));
     }
     if (directiveFileCollection.contains(DirectiveDef.TARGET_NUMBER_OF_BEADS)) {
-      ltfTargetNumberOfBeads.setText(directiveFileCollection.getTargetNumberOfBeads());
+      ltfTargetNumberOfBeads.setText(directiveFileCollection.getValue(DirectiveDef.TARGET_NUMBER_OF_BEADS));
     }
     if (directiveFileCollection.contains(DirectiveDef.SIZE_OF_PATCHES_X_AND_Y)) {
-      ltfSizeOfPatchesXandY.setText(directiveFileCollection.getSizeOfPatchesXandY());
+      ltfSizeOfPatchesXandY.setText(directiveFileCollection.getValue(DirectiveDef.SIZE_OF_PATCHES_X_AND_Y));
     }
     if (directiveFileCollection.contains(DirectiveDef.CONTOUR_PIECES)) {
-      lsContourPieces.setText(directiveFileCollection.getContourPieces());
+      lsContourPieces.setText(directiveFileCollection.getValue(DirectiveDef.CONTOUR_PIECES));
     }
     if (directiveFileCollection.contains(DirectiveDef.BIN_BY_FACTOR_FOR_ALIGNED_STACK)) {
       lsBinByFactor.setText(directiveFileCollection.getValue(DirectiveDef.BIN_BY_FACTOR_FOR_ALIGNED_STACK));
     }
     if (directiveFileCollection.contains(DirectiveDef.CORRECT_CTF)) {
-      cbCorrectCTF.setSelected(directiveFileCollection.isCorrectCTF());
+      cbCorrectCTF.setSelected(directiveFileCollection.isValue(DirectiveDef.CORRECT_CTF));
     }
     if (directiveFileCollection.contains(DirectiveDef.DEFOCUS)) {
-      ltfDefocus.setText(directiveFileCollection.getDefocus());
+      ltfDefocus.setText(directiveFileCollection.getValue(DirectiveDef.DEFOCUS));
     }
     if (directiveFileCollection.contains(DirectiveDef.AUTO_FIT_RANGE_AND_STEP)) {
       EtomoNumber number = new EtomoNumber(EtomoNumber.Type.DOUBLE);
       number.set(directiveFileCollection
-          .getValue(DirectiveDef.AUTO_FIT_RANGE_AND_STEP, 1));
+          .getValue(DirectiveDef.AUTO_FIT_RANGE_AND_STEP, DirectiveFile.AUTO_FIT_STEP_INDEX));
       if (number.equals(0)) {
         rbFitEveryImage.setSelected(true);
       }
       else {
         rbAutoFitRangeAndStep.setSelected(true);
         tfAutoFitRange.setText(directiveFileCollection.getValue(
-            DirectiveDef.AUTO_FIT_RANGE_AND_STEP, 0));
+            DirectiveDef.AUTO_FIT_RANGE_AND_STEP, DirectiveFile.AUTO_FIT_RANGE_INDEX));
         tfAutoFitStep.setText(number);
       }
     }
@@ -482,7 +482,7 @@ final class BatchRunTomoDatasetDialog implements ActionListener {
     }
     boolean doBackprojAlso = false;
     if (directiveFileCollection.contains(DirectiveDef.DO_BACKPROJ_ALSO)) {
-      doBackprojAlso = directiveFileCollection.isDoBackprojAlso();
+      doBackprojAlso = directiveFileCollection.isValue(DirectiveDef.DO_BACKPROJ_ALSO);
     }
     if (!useSirt) {
       rbUseSirtFalse.setSelected(true);
@@ -494,7 +494,7 @@ final class BatchRunTomoDatasetDialog implements ActionListener {
       rbDoBackprojAlso.setSelected(true);
     }
     if (directiveFileCollection.contains(DirectiveDef.LEAVE_ITERATIONS)) {
-      ltfLeaveIterations.setText(directiveFileCollection.getLeaveIterations());
+      ltfLeaveIterations.setText(directiveFileCollection.getValue(DirectiveDef.LEAVE_ITERATIONS));
     }
     if (directiveFileCollection.contains(DirectiveDef.SCALE_TO_INTEGER)) {
       cbScaleToInteger.setSelected(directiveFileCollection.isScaleToInteger());
@@ -503,7 +503,7 @@ final class BatchRunTomoDatasetDialog implements ActionListener {
       // ??
     }
     if (directiveFileCollection.contains(DirectiveDef.BINNED_THICKNESS)) {
-      String string = directiveFileCollection.getBinnedThickness();
+      String string = directiveFileCollection.getValue(DirectiveDef.BINNED_THICKNESS);
       rtfBinnedThickness.setSelected(string != null && !string.equals(""));
       rtfBinnedThickness.setText(string);
     }
