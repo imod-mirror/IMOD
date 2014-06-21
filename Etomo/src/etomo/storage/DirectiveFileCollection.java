@@ -60,6 +60,8 @@ public class DirectiveFileCollection implements SetupReconInterface {
    * the highest priority directive file that contains the directive attribute does not
    * override it.  If none of directive files contain the directive attribute, returns
    * true if extraValues contains it.
+   * Calling DirectiveAttribute.done() when the directiveAttribute will not be used again
+   * in the short term.
    * @param directiveDef
    * @param axisID
    * @return
@@ -71,9 +73,85 @@ public class DirectiveFileCollection implements SetupReconInterface {
         continue;
       }
       DirectiveAttribute attribute = directiveFile.getAttribute(directiveDef, null);
-      return attribute != null && !attribute.isEmpty() && !attribute.overrides();
+      if (attribute != null) {
+        if (attribute.overrides()) {
+          return false;
+        }
+        if (attribute.isEmpty()) {
+          continue;
+        }
+        return true;
+      }
+      else {
+        continue;
+      }
     }
     return extraValues.containsKey(directiveDef.getKey(null, null));
+  }
+
+  /**
+   * Return the value of the attribute in the highest priority directive file.  Return the
+   * attribute value from extraValues if the attribute is not present in any directive
+   * file.
+   * @param directiveDef
+   * @return
+   */
+  public String getValue(final DirectiveDef directiveDef) {
+    boolean found = false;
+    for (int i = directiveFileArray.length - 1; i >= 0; i--) {
+      DirectiveFile directiveFile = directiveFileArray[i];
+      if (directiveFile == null) {
+        continue;
+      }
+      DirectiveAttribute attribute = directiveFile.getAttribute(directiveDef, null);
+      if (attribute != null) {
+        if (!attribute.isEmpty()) {
+          found = true;
+          if (attribute.overrides()) {
+            // highest priority directive file has overridden the directive - return null
+            return null;
+          }
+          return attribute.getValue();
+        }
+      }
+    }
+    if (!found) {
+      // The attribute is not in any directive file
+      return extraValues.get(directiveDef.getKey(null, null));
+    }
+    return null;
+  }
+
+  /**
+   * Return the boolean value of the attribute in the highest priority directive file.
+   * Return the attribute value from extraValues if the attribute is not present in any
+   * directive file.
+   * @param directiveDef
+   * @return
+   */
+  public boolean isValue(final DirectiveDef directiveDef) {
+    boolean found = false;
+    for (int i = directiveFileArray.length - 1; i >= 0; i--) {
+      DirectiveFile directiveFile = directiveFileArray[i];
+      if (directiveFile == null) {
+        continue;
+      }
+      DirectiveAttribute attribute = directiveFile.getAttribute(directiveDef, null);
+      if (attribute != null && !attribute.isEmpty()) {
+        found = true;
+        if (attribute.overrides()) {
+          // highest priority directive file has overridden the directive - return null
+          return false;
+        }
+        return attribute.isValue();
+      }
+    }
+    if (!found) {
+      // The attribute is not in any directive file
+      return DirectiveAttribute
+          .toBoolean(extraValues.get(directiveDef.getKey(null, null)));
+    }
+    return false;
   }
 
   /**
@@ -87,31 +165,8 @@ public class DirectiveFileCollection implements SetupReconInterface {
     if (index < 0) {
       return null;
     }
-    String value = null;
-    boolean found = false;
-    for (int i = directiveFileArray.length - 1; i >= 0; i--) {
-      DirectiveFile directiveFile = directiveFileArray[i];
-      if (directiveFile == null) {
-        continue;
-      }
-      DirectiveAttribute attribute = directiveFile.getAttribute(directiveDef, null);
-      if (attribute != null && !attribute.isEmpty()) {
-        found = true;
-        if (attribute.overrides()) {
-          // highest priority directive file has overridden the directive - return null
-          return null;
-        }
-        value = attribute.getValue();
-        //The highest priority directive file takes presidence, so stop looking when the
-        //attribute is first found
-        break;
-      }
-    }
-    if (!found) {
-      //The attribute was never found
-      value = extraValues.get(directiveDef.getKey(null, null));
-    }
-    //Get the element specified by index
+    String value = getValue(directiveDef);
+    // Get the element specified by index
     if (value != null) {
       String divider = ",";
       if (value.indexOf(divider) != -1) {
@@ -278,10 +333,6 @@ public class DirectiveFileCollection implements SetupReconInterface {
     return null;
   }
 
-  private String getValue(final DirectiveDef directiveDef) {
-    return getValue(directiveDef, null);
-  }
-
   /**
    * Returns true unless return value of getValue is null or 0.
    * @param value
@@ -289,10 +340,6 @@ public class DirectiveFileCollection implements SetupReconInterface {
    */
   private boolean isValue(final DirectiveDef directiveDef, final AxisID axisID) {
     return DirectiveFile.toBoolean(getValue(directiveDef, axisID));
-  }
-
-  private boolean isValue(final DirectiveDef directiveDef) {
-    return DirectiveFile.toBoolean(getValue(directiveDef, null));
   }
 
   /**
