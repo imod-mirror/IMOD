@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/22/14: Allow robust alignmnet in Batchruntomo with patch tracking and
+contours cut into pieces (In 4.7).
+
 6/17/14: In eTomo - Tomogram Combination, fixed problems with validation and
 handling missing tomograms (In 4.7).(Bug# 1803)
 
