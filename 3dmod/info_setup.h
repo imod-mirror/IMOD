@@ -65,7 +65,7 @@ class InfoWindow : public QMainWindow
 
  public:
   InfoWindow(QWidget * parent = 0, const char * name = 0, 
-              Qt::WFlags f = Qt::Window) ;
+              Qt::WindowFlags f = Qt::Window) ;
   ~InfoWindow() {};
   void manageMenus();
   void keepOnTop(bool state);
