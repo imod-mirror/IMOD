@@ -1,5 +1,6 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/22/14: IMOD_4-7-6
 6/22/14: Allow robust alignmnet in Batchruntomo with patch tracking and
 contours cut into pieces (In 4.7).
 
