@@ -13,7 +13,6 @@ c       on the command line; and numNonOptArg, the number of non-option
 c       arguments.
 c       
 c       $Id$
-c       Log at end
 c       
 
       integer*4 function PipParseInput(options, numOptions, separator,
@@ -219,6 +218,8 @@ c
       end
 
 
+c       Controls whether to exit on error
+c
       subroutine PipExitOnError(ifUseStderr, message)
       implicit none
       character*(*) message
@@ -228,9 +229,10 @@ c
       return
       end
 
+
 c       Exits with error status after issuing the given message, with the
 c       prefix set by calling setExitPrefix
-
+c
       subroutine exitError(message)
       implicit none
       character*(*) message
@@ -241,6 +243,8 @@ c       prefix set by calling setExitPrefix
       end
 
 
+c       Sets prefix for exiting with error
+c
       subroutine setExitPrefix(message)
       character*(*) message
       character*32 prefix
@@ -249,10 +253,25 @@ c       prefix set by calling setExitPrefix
       return
       end
 
+
+c       Exits with allocation error message if ierr not zero
+c
       subroutine memoryError(ierr, message)
       implicit none
       integer*4 ierr
       character*(*) message
       if (ierr .ne. 0) call exitError('FAILURE TO ALLOCATE '//message)
+      return
+      end
+
+
+c       Exits with message if current Adoc cannot be set
+c
+      subroutine setCurrentAdocOrExit(indAdoc, message)
+      implicit none
+      integer*4 indAdoc, AdocSetCurrent
+      character*(*) message
+      if (AdocSetCurrent(indAdoc) .ne. 0) call exitError('SELECTING '//trim(message)//
+     &    ' AUTODOC AS CURRENT ONE')
       return
       end
