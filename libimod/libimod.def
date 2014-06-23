@@ -90,7 +90,6 @@ EXPORTS
 	imodContourNearest
 	imodContoursFromImagePoints
 	objGroupListChecksum
-	imodContourPrincipalAxis
 	PUTIMODMAXES
 	imodContourFitPlane
 	NEWIMOD
@@ -327,6 +326,7 @@ EXPORTS
 	imodReadFile
 	imodDelete
 	GETIMODSIZES
+	imodContourEquivEllipse
 	imodAutoExpand
 	WRITEIMOD
 	istoreFirstChangeIndex
