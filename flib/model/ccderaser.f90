@@ -108,26 +108,26 @@ program ccderaser
   numObjLine = 1
   numObjBound = 1
   numObjCircle = 1
-  numPixBorder = 2
-  iorder = 2
+  numPixBorder = 2      ! Default in adoc
+  iorder = 2            ! Default in adoc
   ifIncludeAdj = 1
-  critMain = 10.
-  critDiff = 10.
-  critGrow = 4.0
-  critScan = 3.0
-  radiusMax = 2.1
+  critMain = 10.      ! Default in adoc
+  critDiff = 10.      ! Default in adoc
+  critGrow = 4.0      ! Default in adoc
+  critScan = 3.0      ! Default in adoc
+  radiusMax = 2.1     ! Default in adoc
   outerRadius = 4.1
-  critGiant = 12.
-  giantRadius = 8.
-  critBigDiff = 19.
+  critGiant = 12.     ! Default in adoc
+  giantRadius = 8.    ! Default in adoc
+  critBigDiff = 19.   ! Default in adoc
   fracBigDiff = 0.25
   scanOverlap = 0.1
   ifPeakSearch = 0
-  iScanSize = 100
+  iScanSize = 100     ! Default in adoc
   ifVerbose = 0
   ifTrialMode = 0
-  numEdgePixels = 0
-  maxInDiffPatch = 2
+  numEdgePixels = 0   ! Default in adoc
+  maxInDiffPatch = 2  ! Default in adoc
   ifMerge = 0
   maxObjectsOut = 4
   numExpandIter = 0
@@ -297,14 +297,14 @@ program ccderaser
     ierr = PipGetInteger('MergePatches', ifMerge)
     ierr = PipGetInteger('MaxPixelsInDiffPatch', maxInDiffPatch)
     ierr = PipGetFloat('OuterRadius', outerRadius)
-    ierr2 = PipGetFloat('AnnulusWidth', annulusWidth)
+    ierr2 = PipGetFloat('AnnulusWidth', annulusWidth)  ! Default in adoc
     if (ierr == 0 .and. ierr2 == 0) call exitError( &
         'YOU CANNOT ENTER BOTH -outer AND -width')
     if (ierr2 == 0) outerRadius = radiusMax + annulusWidth
     ierr = PipGetFloat('ExtraLargeRadius', giantRadius)
     ierr = PipGetFloat('GiantCriterion', critGiant)
     ierr = PipGetFloat('BigDiffCriterion', critBigDiff)
-
+    
     modelOut = ' '
     ierr = PipGetString('PointModel', modelOut)
     numBetterIn = 0
