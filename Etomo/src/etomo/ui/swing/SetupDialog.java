@@ -40,6 +40,7 @@ import etomo.type.AxisID;
 import etomo.type.DataFileType;
 import etomo.type.DialogExitState;
 import etomo.type.DialogType;
+import etomo.type.EtomoNumber;
 import etomo.type.FileType;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.type.StringProperty;
@@ -304,7 +305,7 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
         .getDirectiveFileCollection();
     // Handle dual differently because the dual is the default.
     if (directiveFileCollection.contains(DirectiveDef.DUAL)) {
-      if (directiveFileCollection.isDual()) {
+      if (directiveFileCollection.isValue(DirectiveDef.DUAL)) {
         rbDualAxis.setSelected(true);
       }
       else {
@@ -314,8 +315,8 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     else {
       resetRadioButtons(rbDualAxis, rbSingleAxis);
     }
-    if (directiveFileCollection.containsMontage()) {
-      if (directiveFileCollection.isMontage()) {
+    if (directiveFileCollection.contains(DirectiveDef.MONTAGE)) {
+      if (directiveFileCollection.isValue(DirectiveDef.MONTAGE)) {
         rbMontage.setSelected(true);
       }
       else {
@@ -366,7 +367,16 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
       ftfDistortionFile.resetToCheckpoint();
     }
     if (directiveFileCollection.contains(DirectiveDef.BINNING)) {
-      spnBinning.setValue(directiveFileCollection.getIntBinning(BINNING_DEFAULT));
+      String string = directiveFileCollection.getBinning();
+      int binning = BINNING_DEFAULT;
+      if (string != null && !string.matches("\\s*")) {
+        EtomoNumber number = new EtomoNumber();
+        number.set(string);
+        if (!number.isNull()) {
+          binning = number.getInt();
+        }
+      }
+      spnBinning.setValue(binning);
     }
     else {
       spnBinning.resetToCheckpoint();
