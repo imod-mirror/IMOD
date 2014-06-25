@@ -12,8 +12,6 @@ import etomo.storage.autodoc.ReadOnlyAttributeIterator;
 import etomo.storage.autodoc.ReadOnlyAttributeList;
 import etomo.storage.autodoc.ReadOnlyAutodoc;
 import etomo.type.AxisID;
-import etomo.type.ConstEtomoNumber;
-import etomo.type.EtomoNumber;
 import etomo.ui.swing.UIHarness;
 
 /**
@@ -137,6 +135,73 @@ public final class DirectiveFile {
   }
 
   /**
+   * Returns true if the directive file contains the directive attribute and does not
+   * override it (an empty value for a non-boolean directive).
+   * @param directiveDef
+   * @param axisID
+   * @return
+   */
+  public boolean contains(final DirectiveDef directiveDef, final AxisID axisID) {
+    DirectiveAttribute attribute = getAttribute(directiveDef, null);
+    return attribute != null && !attribute.overrides() && !attribute.isEmpty();
+  }
+
+  /**
+   * Returns true if the directive file contains the directive attribute and does not
+   * override it (an empty value for a non-boolean directive).
+   * @param directiveDef
+   * @return
+   */
+  public boolean contains(final DirectiveDef directiveDef) {
+    return contains(directiveDef, null);
+  }
+
+  /**
+   * Return the value of the attribute in the directive file.
+   * @param directiveDef
+   * @param axisID
+   * @return
+   */
+  public String getValue(final DirectiveDef directiveDef, final AxisID axisID) {
+    DirectiveAttribute attribute = getAttribute(directiveDef, axisID);
+    if (attribute != null && !attribute.isEmpty()) {
+      if (attribute.overrides()) {
+        // the directive was overridden - return null
+        return null;
+      }
+      return attribute.getValue();
+    }
+    return null;
+  }
+
+  /**
+   * Return the value of the attribute in the directive file.
+   * @param directiveDef
+   * @param axisID
+   * @return
+   */
+  public String getValue(final DirectiveDef directiveDef) {
+    return getValue(directiveDef, null);
+  }
+
+  /**
+   * Return the boolean value of the attribute in the directive file.
+   * @param directiveDef
+   * @param axisID
+   * @return
+   */
+  public boolean isValue(final DirectiveDef directiveDef, final AxisID axisID) {
+    DirectiveAttribute attribute = getAttribute(directiveDef, axisID);
+    if (attribute != null && !attribute.isEmpty()) {
+      if (attribute.overrides()) {
+        return false;
+      }
+      return attribute.isValue();
+    }
+    return false;
+  }
+
+  /**
    * Returns the attribute associated with directiveDef and axisID.  For copyarg: look
    * under the B directive when axisID is AxisID.SECOND, otherwise look under the A
    * directive.  For runtime:  look under the "any" directive tree.  If DirectiveDef.name
@@ -172,15 +237,6 @@ public final class DirectiveFile {
       return comparam;
     }
     return null;
-  }
-
-  static ConstEtomoNumber toNumber(final String value, EtomoNumber.Type numberType) {
-    if (value == null) {
-      return null;
-    }
-    EtomoNumber number = new EtomoNumber(numberType);
-    number.set(value);
-    return number;
   }
 
   public static void setDebug(final boolean input) {
