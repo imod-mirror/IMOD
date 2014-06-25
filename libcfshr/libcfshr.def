@@ -26,6 +26,7 @@ EXPORTS
 	setSurfSortParam
 	sliceGetVal
 	AdocGetSectionName
+	PipReadProgDefaults
 	AdocSetIntegerArray
 	rsFastMedian
 	GAUSSJ
@@ -67,6 +68,7 @@ EXPORTS
 	arrayMinMaxMeanSd
 	b3dFwrite
 	ADOCSETFLOATARRAY
+	PIPREADPROGDEFAULTS
 	PIPGETBOOLEAN
 	sliceEdgeMean
 	AdocOrderWriteByValue
