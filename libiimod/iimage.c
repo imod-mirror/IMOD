@@ -588,14 +588,15 @@ static int findFileInList(ImodImageFile *iiFile, FILE *fp)
 }
 
 /*!
- * Manages the list of open files, volume points in {iiVolumes}, and the {fp} entry
+ * Manages the list of open files, volume pointers in {iiVolumes}, and the {fp} entry
  * after the ImodImageFile structure has been copied from [oldFile] to [newFile].  The
  * old address no longer needs to be useable.
  */
 void iiFileChangeAddress(ImodImageFile *oldFile, ImodImageFile *newFile)
 {
-  int ind;
-  removeFromOpenedList(oldFile);
+  int ind, changeList = oldFile->fp != NULL ? 1 : 0;
+  if (changeList)
+    removeFromOpenedList(oldFile);
   if (newFile->fp == (FILE *)oldFile) {
     newFile->fp = (FILE *)newFile;
     if (newFile->file == IIFILE_HDF)
@@ -605,7 +606,8 @@ void iiFileChangeAddress(ImodImageFile *oldFile, ImodImageFile *newFile)
     for (ind = 0; ind < newFile->numVolumes; ind++)
       if (newFile->iiVolumes[ind] == oldFile)
         newFile->iiVolumes[ind] = newFile;
-  addToOpenedList(newFile);
+  if (changeList)
+    addToOpenedList(newFile);
 }
 
 /*!
