@@ -60,6 +60,8 @@ public final class DirectiveDef {
       "gradient", false, false);
   public static final DirectiveDef MONTAGE = new DirectiveDef(DirectiveType.COPY_ARG,
       "montage", false, true);
+  public static final DirectiveDef NAME = new DirectiveDef(DirectiveType.COPY_ARG,
+      "name", false, false);
   public static final DirectiveDef PIXEL = new DirectiveDef(DirectiveType.COPY_ARG,
       "pixel", false, false);
   public static final DirectiveDef ROTATION = new DirectiveDef(DirectiveType.COPY_ARG,
@@ -140,6 +142,10 @@ public final class DirectiveDef {
       DirectiveType.RUN_TIME, Module.RECONSTRUCTION, "binnedThickness", false);
   public static final DirectiveDef DO_BACKPROJ_ALSO = new DirectiveDef(
       DirectiveType.RUN_TIME, Module.RECONSTRUCTION, "doBackprojAlso", true);
+  public static final DirectiveDef EXTRA_THICKNESS = new DirectiveDef(
+      DirectiveType.RUN_TIME, Module.RECONSTRUCTION, "extraThickness", false);
+  public static final DirectiveDef FALLBACK_THICKNESS = new DirectiveDef(
+      DirectiveType.RUN_TIME, Module.RECONSTRUCTION, "fallbackThickness", false);
   public static final DirectiveDef USE_SIRT = new DirectiveDef(DirectiveType.RUN_TIME,
       Module.RECONSTRUCTION, "useSirt", true);
 
@@ -321,7 +327,7 @@ public final class DirectiveDef {
    * @param axisID
    * @return
    */
-  String getName(final AxisID axisID) {
+  public String getName(final AxisID axisID) {
     if (twoAxis && directiveType == DirectiveType.COPY_ARG && axisID == AxisID.SECOND) {
       return AxisID.SECOND.getExtension() + name;
     }
@@ -336,15 +342,21 @@ public final class DirectiveDef {
    * @param axisType - when dual, forces the use of "a" in runtime and comparam directives
    * @return
    */
-  public String getKey(final AxisID axisID, final AxisType axisType) {
-    return getKeyPrefix() + getAxisTag(axisID, axisType) + getKeyPostfix();
+  public String getDirective(final AxisID axisID, final AxisType axisType) {
+    return getPrefix() + getAxisTag(axisID, axisType) + getPostfix();
+  }
+
+  public String getKey(final AxisID axisID) {
+    DirectiveName directiveName=new DirectiveName();
+    directiveName.setKey(this,axisID);
+    return directiveName.getKey();
   }
 
   /**
    * Returns the directive string with no axis tag
    */
   public String toString() {
-    return getKeyPrefix() + getKeyPostfix();
+    return getPrefix() + getPostfix();
   }
 
   /**
@@ -386,7 +398,7 @@ public final class DirectiveDef {
    * directives with no axis tag.
    * @return
    */
-  private String getKeyPrefix() {
+  private String getPrefix() {
     if (directiveType == DirectiveType.COPY_ARG) {
       return directiveType.getKey() + AutodocTokenizer.SEPARATOR_CHAR;
     }
@@ -412,7 +424,7 @@ public final class DirectiveDef {
    * no axis tag.
    * @return
    */
-  private String getKeyPostfix() {
+  private String getPostfix() {
     if (directiveType == DirectiveType.COPY_ARG) {
       return name;
     }
