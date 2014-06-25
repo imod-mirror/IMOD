@@ -3049,7 +3049,7 @@ public final class ApplicationManager extends BaseManager implements
 
   private void updateDirective(final DirectiveMap map, final DirectiveDef directiveDef,
       final StringBuffer errmsg, final boolean value) {
-    Directive directive = map.get(directiveDef, null, null);
+    Directive directive = map.get(directiveDef, null);
     if (directive != null) {
       directive.setValue(value);
     }
@@ -3060,7 +3060,7 @@ public final class ApplicationManager extends BaseManager implements
 
   private void updateDirective(final DirectiveMap map, final DirectiveDef directiveDef,
       final AxisID axisID, final StringBuffer errmsg, final boolean value) {
-    Directive directive = map.get(directiveDef, axisID, null);
+    Directive directive = map.get(directiveDef, axisID);
     if (directive != null) {
       directive.setValue(value);
     }
@@ -3071,7 +3071,7 @@ public final class ApplicationManager extends BaseManager implements
 
   private void updateDirective(final DirectiveMap map, final DirectiveDef directiveDef,
       final StringBuffer errmsg, final boolean value, final boolean defaultValue) {
-    Directive directive = map.get(directiveDef, null, null);
+    Directive directive = map.get(directiveDef, null);
     if (directive != null) {
       directive.setValue(value);
       directive.setDefaultValue(defaultValue);
@@ -3084,7 +3084,7 @@ public final class ApplicationManager extends BaseManager implements
   private void updateDirective(final DirectiveMap map, final DirectiveDef directiveDef,
       final AxisID axisID, final StringBuffer errmsg, final boolean value,
       final boolean defaultValue) {
-    Directive directive = map.get(directiveDef, axisID, null);
+    Directive directive = map.get(directiveDef, axisID);
     if (directive != null) {
       directive.setValue(value);
       directive.setDefaultValue(defaultValue);
@@ -3096,7 +3096,7 @@ public final class ApplicationManager extends BaseManager implements
 
   private void updateDirective(final DirectiveMap map, final DirectiveDef directiveDef,
       final StringBuffer errmsg, final ConstEtomoNumber value) {
-    Directive directive = map.get(directiveDef, null, null);
+    Directive directive = map.get(directiveDef, null);
     if (directive != null) {
       directive.setValue(value);
     }
@@ -3107,7 +3107,7 @@ public final class ApplicationManager extends BaseManager implements
 
   private void updateDirective(final DirectiveMap map, final DirectiveDef directiveDef,
       final AxisID axisID, final StringBuffer errmsg, final ConstEtomoNumber value) {
-    Directive directive = map.get(directiveDef, axisID, null);
+    Directive directive = map.get(directiveDef, axisID);
     if (directive != null) {
       directive.setValue(value);
     }
@@ -3119,7 +3119,7 @@ public final class ApplicationManager extends BaseManager implements
   private void updateDirective(final DirectiveMap map, final DirectiveDef directiveDef,
       final StringBuffer errmsg, final ConstEtomoNumber value,
       final ConstEtomoNumber defaultValue) {
-    Directive directive = map.get(directiveDef, null, null);
+    Directive directive = map.get(directiveDef, null);
     if (directive != null) {
       directive.setValue(value);
       directive.setDefaultValue(defaultValue);
@@ -3131,7 +3131,7 @@ public final class ApplicationManager extends BaseManager implements
 
   private void updateDirective(final DirectiveMap map, final DirectiveDef directiveDef,
       final StringBuffer errmsg, final ConstStringParameter value) {
-    Directive directive = map.get(directiveDef, null, null);
+    Directive directive = map.get(directiveDef, null);
     if (directive != null) {
       directive.setValue(value);
     }
@@ -3142,7 +3142,7 @@ public final class ApplicationManager extends BaseManager implements
 
   private void updateDirective(final DirectiveMap map, final DirectiveDef directiveDef,
       final StringBuffer errmsg, final double value) {
-    Directive directive = map.get(directiveDef.getKey(null, null));
+    Directive directive = map.get(directiveDef, null);
     if (directive != null) {
       directive.setValue(value);
     }
@@ -3153,7 +3153,7 @@ public final class ApplicationManager extends BaseManager implements
 
   private void updateDirective(final DirectiveMap map, final DirectiveDef directiveDef,
       final AxisID axisID, final StringBuffer errmsg, final double[] value) {
-    Directive directive = map.get(directiveDef, axisID, null);
+    Directive directive = map.get(directiveDef, axisID);
     if (directive != null) {
       directive.setValue(value);
     }
@@ -3164,7 +3164,7 @@ public final class ApplicationManager extends BaseManager implements
 
   private void updateDirective(final DirectiveMap map, final DirectiveDef directiveDef,
       final StringBuffer errmsg, final FortranInputString value) {
-    Directive directive = map.get(directiveDef, null, null);
+    Directive directive = map.get(directiveDef, null);
     if (directive != null) {
       directive.setValue(value);
     }
@@ -3175,7 +3175,7 @@ public final class ApplicationManager extends BaseManager implements
 
   private void updateDirective(final DirectiveMap map, final DirectiveDef directiveDef,
       final StringBuffer errmsg, final int value, final int defaultValue) {
-    Directive directive = map.get(directiveDef, null, null);
+    Directive directive = map.get(directiveDef, null);
     if (directive != null) {
       directive.setValue(value);
       directive.setDefaultValue(defaultValue);
@@ -3187,7 +3187,7 @@ public final class ApplicationManager extends BaseManager implements
 
   private void updateDirective(final DirectiveMap map, final DirectiveDef directiveDef,
       final StringBuffer errmsg, final String value) {
-    Directive directive = map.get(directiveDef, null, null);
+    Directive directive = map.get(directiveDef, null);
     if (directive != null) {
       directive.setValue(value);
     }
@@ -3198,7 +3198,7 @@ public final class ApplicationManager extends BaseManager implements
 
   private void updateDirective(final DirectiveMap map, final DirectiveDef directiveDef,
       final AxisID axisID, final StringBuffer errmsg, final String value) {
-    Directive directive = map.get(directiveDef, axisID, null);
+    Directive directive = map.get(directiveDef, axisID);
     if (directive != null) {
       directive.setValue(value);
     }
@@ -3209,7 +3209,7 @@ public final class ApplicationManager extends BaseManager implements
 
   private void updateDirective(final DirectiveMap map, final DirectiveDef directiveDef,
       final StringBuffer errmsg, final String value, final String defaultValue) {
-    Directive directive = map.get(directiveDef, null, null);
+    Directive directive = map.get(directiveDef, null);
     if (directive != null) {
       directive.setValue(value);
       directive.setDefaultValue(defaultValue);
