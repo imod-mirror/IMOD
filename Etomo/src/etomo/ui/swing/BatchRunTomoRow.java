@@ -171,10 +171,10 @@ final class BatchRunTomoRow implements Highlightable {
    */
   void setValues(final DirectiveFileCollection directiveFileCollection) {
     if (directiveFileCollection.contains(DirectiveDef.DUAL)) {
-      cbcDualAxis.setSelected(directiveFileCollection.isDual());
+      cbcDualAxis.setSelected(directiveFileCollection.isValue(DirectiveDef.DUAL));
     }
-    if (directiveFileCollection.containsMontage()) {
-      cbcMontage.setSelected(directiveFileCollection.isMontage());
+    if (directiveFileCollection.contains(DirectiveDef.MONTAGE)) {
+      cbcMontage.setSelected(directiveFileCollection.isValue(DirectiveDef.MONTAGE));
     }
     if (directiveFileCollection.contains(DirectiveDef.TWO_SURFACES)) {
       cbcTwoSurfaces.setSelected(directiveFileCollection
