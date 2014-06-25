@@ -79,9 +79,9 @@ public final class DirectiveName {
 
   public String getKeyDescription() {
     String key = getKey();
-    if (type == DirectiveType.RUNTIME) {
-      return key.replace(AutodocTokenizer.SEPARATOR_CHAR + DirectiveFile.RUN_TIME_ANY_AXIS_NAME,
-          "");
+    if (type == DirectiveType.RUN_TIME) {
+      return key.replace(AutodocTokenizer.SEPARATOR_CHAR
+          + DirectiveDef.RUN_TIME_ANY_AXIS_TAG, "");
     }
     return key;
   }
@@ -105,7 +105,7 @@ public final class DirectiveName {
       if (key.length < 2) {
         return null;
       }
-      boolean copyarg = key[1].equals(DirectiveFile.COPY_ARG_NAME);
+      boolean copyarg = DirectiveType.COPY_ARG.equals(key[1]);
       if (copyarg) {
         if (key.length > 2) {
           return key[2];
@@ -115,7 +115,7 @@ public final class DirectiveName {
         return key[1];
       }
     }
-    else if ((type == DirectiveType.COM_PARAM || type == DirectiveType.RUNTIME)
+    else if ((type == DirectiveType.COM_PARAM || type == DirectiveType.RUN_TIME)
         && key.length > PARAMETER_NAME_INDEX) {
       return key[PARAMETER_NAME_INDEX];
     }
@@ -189,9 +189,13 @@ public final class DirectiveName {
     if (input != null && !input.matches("\\s*")) {
       key = input.split("\\" + AutodocTokenizer.SEPARATOR_CHAR);
       if (key != null && key.length > TYPE_INDEX) {
-        type = DirectiveType.getInstance(key[TYPE_INDEX]);
+        type = DirectiveType.getFirstSectionInstance(key[TYPE_INDEX]);
       }
     }
+  }
+
+  void setKey(final DirectiveDef directiveDef, final AxisID axisID) {
+    setKey(directiveDef.getDirective(axisID, null));
   }
 
   /**
@@ -203,7 +207,7 @@ public final class DirectiveName {
    */
   public AxisID setKey(String input) {
     splitKey(input);
-    if (type != DirectiveType.COM_PARAM && type != DirectiveType.RUNTIME) {
+    if (type != DirectiveType.COM_PARAM && type != DirectiveType.RUN_TIME) {
       return null;
     }
     // Remove axisID from the name to create a key. Standardize the key to the Any form of
@@ -224,7 +228,7 @@ public final class DirectiveName {
         // Strip off the a or b
         key[i] = key[i].substring(0, key[i].length() - 1);
       }
-      else if (type == DirectiveType.RUNTIME
+      else if (type == DirectiveType.RUN_TIME
           && i == RUNTIME_AXIS_INDEX
           && key[i] != null
           && (key[i].equals(AxisID.FIRST.getExtension()) || key[i].equals(AxisID.SECOND
@@ -236,7 +240,7 @@ public final class DirectiveName {
           axisID = AxisID.SECOND;
         }
         // Replace with "any".
-        key[i] = DirectiveFile.RUN_TIME_ANY_AXIS_NAME;
+        key[i] = DirectiveDef.RUN_TIME_ANY_AXIS_TAG;
       }
     }
     return axisID;
@@ -248,7 +252,7 @@ public final class DirectiveName {
 
   private static boolean mayContainAxisID(final String name) {
     return name != null
-        && (name.startsWith(DirectiveType.RUNTIME.toString()
+        && (name.startsWith(DirectiveType.RUN_TIME.toString()
             + AutodocTokenizer.SEPARATOR_CHAR) || name.startsWith(DirectiveType.COM_PARAM
             .toString() + AutodocTokenizer.SEPARATOR_CHAR))
         && (name.indexOf(AxisID.FIRST.getExtension() + AutodocTokenizer.SEPARATOR_CHAR) != -1 || name
@@ -266,8 +270,8 @@ public final class DirectiveName {
     }
     // Set ext to the correct form
     String ext = "";
-    if (type == DirectiveType.RUNTIME) {
-      ext = DirectiveFile.RUN_TIME_ANY_AXIS_NAME;
+    if (type == DirectiveType.RUN_TIME) {
+      ext = DirectiveDef.RUN_TIME_ANY_AXIS_TAG;
     }
     // Create a string version of the directive name with the correct axisID string
     StringBuffer buffer = new StringBuffer();
@@ -275,7 +279,7 @@ public final class DirectiveName {
       if (type == DirectiveType.COM_PARAM && i == COM_FILE_NAME_INDEX) {
         buffer.append((i > 0 ? AutodocTokenizer.SEPARATOR_CHAR : "") + key[i] + ext);
       }
-      else if (type == DirectiveType.RUNTIME && i == RUNTIME_AXIS_INDEX) {
+      else if (type == DirectiveType.RUN_TIME && i == RUNTIME_AXIS_INDEX) {
         buffer.append((i > 0 ? AutodocTokenizer.SEPARATOR_CHAR : "") + ext);
       }
       else {
