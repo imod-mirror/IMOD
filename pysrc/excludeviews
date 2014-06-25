@@ -68,7 +68,6 @@ def checkExists(name, descrip):
 #
 # load System Libraries
 import os, sys, glob, shutil
-from itertools import count, groupby
 
 #
 # Setup runtime environment
