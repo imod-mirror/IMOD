@@ -80,7 +80,7 @@ public final class SetupReconUIHarness {
     }
     directiveFileCollection = new DirectiveFileCollection(manager, axisID);
     DirectiveFile batchDirectiveFile = DirectiveFile.getInstance(manager, axisID);
-    directiveFileCollection.setBatchDirectiveFile(batchDirectiveFile);
+    directiveFileCollection.setup(batchDirectiveFile);
     if (!doDirectiveAutomation()) {
       UIHarness.INSTANCE.exit(axisID, 1);
     }
@@ -94,15 +94,15 @@ public final class SetupReconUIHarness {
       return false;
     }
     AxisType axisType = AxisType.SINGLE_AXIS;
-    if (directiveFileCollection.isDual()) {
+    if (directiveFileCollection.isValue(DirectiveDef.DUAL)) {
       axisType = AxisType.DUAL_AXIS;
     }
     if (!DatasetTool.validateDatasetName(manager, null, axisID, new File(
-        getPropertyUserDir()), directiveFileCollection.getName(), DataFileType.RECON,
+        getPropertyUserDir()), directiveFileCollection.getValue(DirectiveDef.NAME), DataFileType.RECON,
         axisType, true)) {
       return false;
     }
-    if (directiveFileCollection.isScanHeader()) {
+    if (directiveFileCollection.isValue(DirectiveDef.SCAN_HEADER)) {
       if (!scanHeaderAction(directiveFileCollection)) {
         return false;
       }
@@ -226,7 +226,7 @@ public final class SetupReconUIHarness {
   public String getPropertyUserDir() {
     if (directiveFileCollection != null
         && directiveFileCollection.contains(DirectiveDef.DATASET_DIRECTORY)) {
-      return directiveFileCollection.getDatasetDirectory();
+      return directiveFileCollection.getValue(DirectiveDef.DATASET_DIRECTORY);
     }
     else if (expert != null) {
       File dir = expert.getDir();
@@ -623,7 +623,7 @@ public final class SetupReconUIHarness {
       catch (FortranInputSyntaxException e) {
         UIHarness.INSTANCE.openMessageDialog(manager, "Invalid directive file: "
             + directiveFile.getFile().getAbsolutePath() + ".  Invalid directive: "
-            + DirectiveDef.SIZE_IN_X_AND_Y.getDescr() + ".  " + e.getMessage(),
+            + DirectiveDef.SIZE_IN_X_AND_Y.toString() + ".  " + e.getMessage(),
             "Invalid Directive");
       }
     }
@@ -639,7 +639,7 @@ public final class SetupReconUIHarness {
       catch (FortranInputSyntaxException e) {
         UIHarness.INSTANCE.openMessageDialog(manager, "Invalid directive file: "
             + directiveFile.getFile().getAbsolutePath() + ".  Invalid directive: "
-            + DirectiveDef.AUTO_FIT_RANGE_AND_STEP.getDescr() + ".  " + e.getMessage(),
+            + DirectiveDef.AUTO_FIT_RANGE_AND_STEP.toString() + ".  " + e.getMessage(),
             "Invalid Directive");
       }
     }
