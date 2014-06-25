@@ -161,7 +161,7 @@ final class LabeledSpinner {
 
   private Number checkpointValue = null;
   private Number backupValue = null;
-  
+
   /**
    * @param spinner
    */
@@ -244,7 +244,7 @@ final class LabeledSpinner {
   void backup() {
     backupValue = getValue();
   }
-  
+
   /**
    * Resets to checkpointValue if checkpointValue has been set.  Otherwise has no effect.
    */
@@ -291,6 +291,17 @@ final class LabeledSpinner {
     }
     else {
       spinner.setValue(value.getNumber());
+    }
+  }
+
+  void setValue(final String value) {
+    if (value == null || value.matches("\\s*")) {
+      spinner.setValue(defaultValue);
+    }
+    else {
+      EtomoNumber number = new EtomoNumber();
+      number.set(value);
+      setValue(number);
     }
   }
 
