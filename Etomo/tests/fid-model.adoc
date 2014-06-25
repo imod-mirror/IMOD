@@ -498,7 +498,6 @@ assert.tf.magnification-group-size=5
 assert.tf.non-default-magnification-groups=
 assert.tf.minimum-#-of-views-for-tilt-alignment=4
 assert.tf.unbinned-bead-diameter=%{unbinned-bead-diameter}
-assert.tf.unbinned-bead-diameter=0.0
 assert.cb.light-fiducial-markers=off
 assert.tf.minimum-beads-in-area=8
 assert.tf.minimum-beads-overlapping=5
@@ -719,7 +718,7 @@ if.var.build-with-seed.return=
 rb.use-patch-tracking-to-make-fiducial-model=
 #test 1
 #build
-tf.size-of-patches=200,200
+tf.size-of-patches=%{size-of-patches}
 cb.use-boundary-model=on
 copy.file=%{dataset}%{axis}_ptbound.mod
 bn.create-boundary-model=
