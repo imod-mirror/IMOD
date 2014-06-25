@@ -315,18 +315,18 @@ final class TemplatePanel {
   void setParameters(final DirectiveFile directiveFile) {
     DirectiveDef directiveDef = DirectiveDef.SCOPE_TEMPLATE;
     if (directiveFile.contains(directiveDef)) {
-      setTemplate(directiveFile.getTemplate(directiveDef), scopeTemplateFileList,
+      setTemplate(directiveFile.getValue(directiveDef), scopeTemplateFileList,
           cmbScopeTemplate);
     }
     directiveDef = DirectiveDef.SYSTEM_TEMPLATE;
     if (directiveFile.contains(directiveDef)) {
-      setTemplate(directiveFile.getTemplate(directiveDef), systemTemplateFileList,
+      setTemplate(directiveFile.getValue(directiveDef), systemTemplateFileList,
           cmbSystemTemplate);
     }
     directiveDef = DirectiveDef.USER_TEMPLATE;
     if (directiveFile.contains(directiveDef)) {
       reloadUserTemplate();
-      setTemplate(directiveFile.getTemplate(directiveDef), userTemplateFileList, cmbUserTemplate);
+      setTemplate(directiveFile.getValue(directiveDef), userTemplateFileList, cmbUserTemplate);
     }
     refreshDirectiveFileCollection();
   }
