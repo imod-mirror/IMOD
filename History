@@ -1,5 +1,6 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/25/14: Fixed problem reading multiple files into 3dmod
 6/24/14: Changed surface analysis in Tiltalign to fit a pair of parallel
 planes instead of using two independent fits, which can give screwy angles and
 distances; also output line saying when X-tilt or slope can't be measured.
