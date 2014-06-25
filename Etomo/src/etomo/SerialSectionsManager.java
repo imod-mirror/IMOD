@@ -741,6 +741,10 @@ public final class SerialSectionsManager extends BaseManager {
 
   public void imodRaw(final AxisID axisID, final Run3dmodMenuOptions menuOptions) {
     try {
+      if (FileType.PIECE_LIST.exists(this, axisID)) {
+        imodManager.setPieceListFileName(ImodManager.RAW_STACK_KEY, axisID,
+            FileType.PIECE_LIST.getFileName(this, axisID));
+      }
       imodManager.open(ImodManager.RAW_STACK_KEY, axisID, new File(propertyUserDir,
           metaData.getStack()), menuOptions);
     }
