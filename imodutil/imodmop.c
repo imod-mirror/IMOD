@@ -625,7 +625,7 @@ int main( int argc, char *argv[])
             invert || bkgFill ? " " : "-fill 0", recnames[i], xyznames[i]);
     ix = system(comStr);
     if (ix)
-      exitError("Running xyzproj on file %d (return value %d)",
+      exitError("Running xyzproj on file %s (return value %d)",
                 recnames[i], ix);
     if (!retain)
       remove(recnames[i]);

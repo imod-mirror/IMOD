@@ -224,6 +224,7 @@ final class LabeledTextField implements UIComponent, SwingComponent {
   private String checkpointValue = null;
   private EtomoNumber nCheckpointValue = null;
   private boolean required = false;
+  private boolean numberMustBePositive = false;
 
   public String toString() {
     return "[label:" + getLabel() + "]";
@@ -475,11 +476,16 @@ final class LabeledTextField implements UIComponent, SwingComponent {
     this.required = required;
   }
 
+  void setNumberMustBePositive(final boolean input) {
+    numberMustBePositive = input;
+  }
+
   String getText(final boolean doValidation) throws FieldValidationFailedException {
     String text = textField.getText();
     if (doValidation && textField.isEnabled()) {
       text = FieldValidator.validateText(text, fieldType, this, getQuotedLabel()
-          + (locationDescr == null ? "" : " in " + locationDescr), required);
+          + (locationDescr == null ? "" : " in " + locationDescr), required,
+          numberMustBePositive);
     }
     return text;
   }

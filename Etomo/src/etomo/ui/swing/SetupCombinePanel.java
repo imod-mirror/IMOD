@@ -531,7 +531,6 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
 
   private boolean validAutodoc = false;
   private boolean processingMethodLocked = false;
-  private boolean valid = false;
 
   /**
    * Default constructor
@@ -541,6 +540,18 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
     tomogramCombinationDialog = parent;
     applicationManager = appMgr;
     this.dialogType = dialogType;
+    ltfXMin.setRequired(true);
+    ltfXMax.setRequired(true);
+    ltfYMin.setRequired(true);
+    ltfYMax.setRequired(true);
+    ltfZMin.setRequired(true);
+    ltfZMax.setRequired(true);
+    ltfXMin.setNumberMustBePositive(true);
+    ltfXMax.setNumberMustBePositive(true);
+    ltfYMin.setNumberMustBePositive(true);
+    ltfYMax.setNumberMustBePositive(true);
+    ltfZMin.setNumberMustBePositive(true);
+    ltfZMax.setNumberMustBePositive(true);
     btnCreate = (MultiLineButton) appMgr.getProcessResultDisplayFactory(AxisID.ONLY)
         .getCreateCombine();
     btnCombine = (Run3dmodButton) appMgr.getProcessResultDisplayFactory(AxisID.ONLY)
@@ -731,7 +742,7 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
     // updateStartCombine();
     setToolTipText();
   }
-  
+
   void removeListeners() {
     btnCreate.removeActionListener(actionListener);
     btnCombine.removeActionListener(actionListener);
@@ -759,8 +770,6 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
       lTomogramSizeWarning.setText(TOMOGRAM_SIZE_CHANGED_STRING);
     }
   }
-
-
 
   ProcessResultDisplay getCombineResultDisplay() {
     return btnCombine;
@@ -831,10 +840,6 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
 
   public boolean isParallelEnabled() {
     return cbParallelProcess.isEnabled();
-  }
-
-  public boolean isValid() {
-    return valid;
   }
 
   public boolean isUseCorrespondingPoints() {
@@ -954,8 +959,6 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
 
     pnlSolvematch.updateUseFiducialModel();
     updatePatchRegionModel();
-    // updateStartCombine();
-    valid = combineParams.isValid();
   }
 
   /**

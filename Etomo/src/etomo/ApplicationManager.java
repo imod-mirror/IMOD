@@ -6282,7 +6282,6 @@ public final class ApplicationManager extends BaseManager implements
         }
       }
       // Fill in the dialog box params and set it to the appropriate state
-      combineParams.validate();
       tomogramCombinationDialog.setCombineParams(combineParams);
       backwardsCompatibilityCombineScriptsExist();
       // If setupcombine has been run load the com scripts, otherwise disable
@@ -6348,7 +6347,7 @@ public final class ApplicationManager extends BaseManager implements
     }
     // FIXME do we want to be updating here break model (maybe it is saving
     // the bin by 2 state?
-    if (!updateCombineParams(true)) {
+    if (!updateCombineParams(false, true)) {
       return;
     }
 
@@ -6413,7 +6412,7 @@ public final class ApplicationManager extends BaseManager implements
   public void imodPatchRegionModel(Run3dmodMenuOptions menuOptions) {
     // FIXME do we want to be updating here break model
     // Get the latest combine parameters from the dialog
-    if (!updateCombineParams(true)) {
+    if (!updateCombineParams(false, true)) {
 
     }
     AxisID axisID;
@@ -6561,13 +6560,29 @@ public final class ApplicationManager extends BaseManager implements
    * Tomogram combination done method, move on to the post processing window
    */
   public void doneTomogramCombinationDialog() {
-    if (tomogramCombinationDialog.isValid()) {
+    if (canCombine(true)) {
       saveTomogramCombinationDialog(tomogramCombinationDialog);
     }
     else {
       tomogramCombinationDialog.removeListeners();
       tomogramCombinationDialog = null;
     }
+  }
+
+  private boolean canCombine(final boolean silent) {
+    if (!FileType.TILT_OUTPUT.exists(this, AxisID.FIRST)
+        || !FileType.TILT_OUTPUT.exists(this, AxisID.SECOND)) {
+      String message = "Cannot combine.  One or more tomograms is missing.  Tomogram Generation should be run.";
+      Thread.dumpStack();
+      if (!silent) {
+        uiHarness.openMessageDialog(this, message, "Unable to Combine");
+      }
+      else {
+        System.err.println("Warning: " + message);
+      }
+      return false;
+    }
+    return true;
   }
 
   /**
@@ -6591,7 +6606,7 @@ public final class ApplicationManager extends BaseManager implements
       // Update the com script and metadata info from the tomogram
       // combination dialog box. Since there are multiple pages and scripts
       // associated with the postpone button get the ones that are appropriate
-      updateCombineParams(false);
+      updateCombineParams(false, true);
       tomogramCombinationDialog.getParameters(metaData);
       tomogramCombinationDialog.getParameters(getScreenState(AxisID.ONLY));
       if (!tomogramCombinationDialog.isChanged(state)) {
@@ -6663,7 +6678,7 @@ public final class ApplicationManager extends BaseManager implements
     sendMsgProcessStarting(processResultDisplay);
     mainPanel.startProgressBar("Creating combine scripts", AxisID.ONLY,
         ProcessName.SOLVEMATCH);
-    if (!updateCombineParams(true)) {
+    if (!updateCombineParams(true, false)) {
       mainPanel.stopProgressBar(AxisID.ONLY, ProcessEndState.FAILED);
       return false;
     }
@@ -6705,17 +6720,14 @@ public final class ApplicationManager extends BaseManager implements
    * @param tomogramCombinationDialog
    *          the calling dialog.
    */
-  private boolean updateCombineParams(final boolean doValidation) {
+  private boolean updateCombineParams(final boolean doValidation, final boolean silent) {
+    if (!canCombine(silent)) {
+      return false;
+    }
     if (tomogramCombinationDialog == null) {
       uiHarness.openMessageDialog(this,
           "Can not update combine.com without an active tomogram combination dialog",
           "Program logic error", AxisID.ONLY);
-      return false;
-    }
-    if (!tomogramCombinationDialog.isValid()) {
-      uiHarness.openMessageDialog(this,
-          "Please create the tomograms before attempting to combine them.",
-          "Missing Files", AxisID.ONLY);
       return false;
     }
     // start with existing combine params and update it from the screen
@@ -7154,7 +7166,7 @@ public final class ApplicationManager extends BaseManager implements
     }
     // FIXME: what are the necessary updates
     // Update the scripts from the dialog panel
-    if (!updateCombineParams(true)) {
+    if (!updateCombineParams(true, false)) {
       sendMsgProcessFailedToStart(processResultDisplay);
       return;
     }
@@ -7230,7 +7242,7 @@ public final class ApplicationManager extends BaseManager implements
     sendMsgProcessStarting(processResultDisplay);
     // FIXME: what are the necessary updates
     // Update the scripts from the dialog panel
-    if (!updateCombineParams(true)) {
+    if (!updateCombineParams(true, false)) {
       sendMsgProcessFailedToStart(processResultDisplay);
       return;
     }
@@ -7250,7 +7262,7 @@ public final class ApplicationManager extends BaseManager implements
       sendMsgProcessFailedToStart(processResultDisplay);
       return;
     }
-    if (!updateCombineParams(true)) {
+    if (!updateCombineParams(true, false)) {
       sendMsgProcessFailedToStart(processResultDisplay);
       return;
     }
@@ -7309,7 +7321,7 @@ public final class ApplicationManager extends BaseManager implements
       processSeries = new ProcessSeries(this, dialogType);
     }
     sendMsgProcessStarting(processResultDisplay);
-    if (!updateCombineParams(true)) {
+    if (!updateCombineParams(true, false)) {
       sendMsgProcessFailedToStart(processResultDisplay);
       return;
     }
@@ -7451,7 +7463,7 @@ public final class ApplicationManager extends BaseManager implements
     }
     sendMsgProcessStarting(processResultDisplay);
     CombineComscriptState combineComscriptState = updateCombineComscriptState(CombineProcessType.VOLCOMBINE);
-    if (!updateCombineParams(true)) {
+    if (!updateCombineParams(true, false)) {
       sendMsgProcessFailedToStart(processResultDisplay);
       return;
     }

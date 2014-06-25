@@ -290,7 +290,7 @@ final class CheckTextField implements UIComponent, SwingComponent {
     String text = textField.getText();
     if (doValidation && textField.isEnabled()) {
       text = FieldValidator.validateText(text, fieldType, this, getQuotedLabel(),
-          required);
+          required, false);
     }
     return text;
   }

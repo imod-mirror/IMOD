@@ -40,12 +40,13 @@ public final class FieldValidator {
    * @param component
    * @param descr
    * @param required
+   * @param numberMustBePositive - if the field type is a single integer or double, must be > 0
    * @return fieldText, trimmed if validation is possible on fieldType
    * @throws FieldValidationFailedException if the validation fails
    */
   public static String validateText(final String fieldText, final FieldType fieldType,
-      final UIComponent component, final String descr, final boolean required)
-      throws FieldValidationFailedException {
+      final UIComponent component, final String descr, final boolean required,
+      final boolean numberMustBePositive) throws FieldValidationFailedException {
     if (required && (fieldText == null || fieldText.matches("\\s*"))) {
       UIHarness.INSTANCE.openMessageDialog(component, "An entry is required in " + descr
           + ".", TITLE);
@@ -89,12 +90,12 @@ public final class FieldValidator {
       // Validate integers or floating point numbers in the array or list.
       ElementListIterator iterator = elementList.iterator();
       while (iterator.hasNext()) {
-        validateText(iterator.next(), fieldType.validationType, component, descr);
+        validateText(iterator.next(), fieldType.validationType, component, descr, false);
       }
     }
     else {
       // Validate integers and floating point numbers.
-      validateText(text, fieldType.validationType, component, descr);
+      validateText(text, fieldType.validationType, component, descr, numberMustBePositive);
     }
     // Validation succeeded - return original trimmed field text.
     return fieldText.trim();
@@ -108,21 +109,37 @@ public final class FieldValidator {
    * @param validationType
    * @param component
    * @param descr
+   * @param numberMustBePositive - if the type is a numeric, must be > 0
    * @throws FieldValidationFailedException if the validation fails
    */
   private static void validateText(final String text,
       final FieldType.ValidationType validationType, final UIComponent component,
-      final String descr) throws FieldValidationFailedException {
+      final String descr, final boolean numberMustBePositive)
+      throws FieldValidationFailedException {
     // Empty fields are valid. External spaces should already have been removed
     if (text.equals("")) {
       return;
     }
     try {
       if (validationType == FieldType.ValidationType.INTEGER) {
-        Integer.parseInt(text);
+        int value = Integer.parseInt(text);
+        if (numberMustBePositive && value <= 0) {
+          UIHarness.INSTANCE.openMessageDialog(component, "The value in " + descr
+              + " must be greater then zero.", TITLE);
+          FieldValidationFailedException fe = new FieldValidationFailedException(descr
+              + ":text" + text + ",validationType+:" + validationType);
+          throw fe;
+        }
       }
       else if (validationType == FieldType.ValidationType.FLOATING_POINT) {
-        Double.parseDouble(text);
+        double value = Double.parseDouble(text);
+        if (numberMustBePositive && value <= 0) {
+          UIHarness.INSTANCE.openMessageDialog(component, "The value in " + descr
+              + " must be greater then zero.", TITLE);
+          FieldValidationFailedException fe = new FieldValidationFailedException(descr
+              + ":text" + text + ",validationType+:" + validationType);
+          throw fe;
+        }
       }
     }
     catch (NumberFormatException e) {
