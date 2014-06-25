@@ -1479,10 +1479,6 @@ def runTiltalign(taLines):
    doRobust = lookupDirective(comPrefix + 'align', 'tiltalign.RobustFitting', 0,
                               BOOL_VALUE)
 
-   # Hopefully TEMPORARY suppression of robust for patch tracking and cut up contours
-   if patchTrack and contourPieces and contourPieces > 1:
-      doRobust = 0
-      
    enableStretch = lookupDirective(runtimePrefix + 'TiltAlignment', 'enableStretching',
                                    0, BOOL_VALUE)
    if patchTrack:

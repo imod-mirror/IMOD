@@ -1,6 +1,14 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-6/17/14: In eTomo - Tomogram Combination, fixed problems with validation and
+6/24/14: Changed surface analysis in Tiltalign to fit a pair of parallel
+planes instead of using two independent fits, which can give screwy angles and
+distances; also output line saying when X-tilt or slope can't be measured.
+
+6/22/14: IMOD_4-7-6
+6/22/14: Allow robust alignmnet in Batchruntomo with patch tracking and
+contours cut into pieces (In 4.7).
+
+6/18/14: In eTomo - Tomogram Combination, fixed problems with validation and
 handling missing tomograms (In 4.7).(Bug# 1803)
 
 6/17/14: Added script Excludeviews for reversibly removing views from a tilt

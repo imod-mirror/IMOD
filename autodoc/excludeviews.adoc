@@ -38,18 +38,19 @@ not needed unless the piece coordinates are contained only in a piece list
 file.  It is also not needed when restoring a stack if there is an info file
 present.
 
-[Field = KeepOldFiles]
-short = keep
+[Field = DeleteOldFiles]
+short = delete
 type = B
-usage = Keep existing stack file(s) rather than deleting them
+usage = Delete existing stack file(s) rather than keeping them
 tooltip = 
-manpage = By default, the program will delete the redundant image and
-associated files when the operation is successfully completed.  Use this
-option to retain those files.  When excluding views, retained files will be
-named with "_allviews#" before the extension, where "#" is the iteration
-number.  When restoring a full stack, the pre-existing "_cutviews#" files will
-be retained and the previous stack file(s) will be renamed with
-"_keptviews#".
+manpage = Delete the redundant image and associated files after an operation
+is successfully completed instead of retaining them.  Specifically, after
+excluding views, the original image stack and any associated files that are
+replaced are renamed with "_allviews#" by default (where "#" is the iteration 
+number), and will be deleted with this option.  After restoring excluded
+views, the existing files are renamed with "_keptviews#" by default; whereas
+with this option, both these files and the ones for excluded views named
+with "_cutviews#" will be deleted.
 
 [Field = RestoreFullStack]
 short = restore
