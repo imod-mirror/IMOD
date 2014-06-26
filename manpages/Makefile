@@ -22,7 +22,7 @@ install : mantohtml autodoc2man
 #	echo 'Disallow: /' >> $(INSTDIR)/html/man/robots.txt
 
 autodoc2man : autodoc2man.$(O) $(AUTOOBJS)
-	$(CC) $(CFLAGS) $(LDFLAGS) -o autodoc2man autodoc2man.$(O) $(AUTOOBJS)
+	$(CC) $(CFLAGS) -o autodoc2man autodoc2man.$(O) $(AUTOOBJS) $(LDFLAGS)
 
 mantohtml : mantohtml.$(O)
 	$(CC) $(CFLAGS) -o mantohtml mantohtml.$(O) $(CLIBS)
