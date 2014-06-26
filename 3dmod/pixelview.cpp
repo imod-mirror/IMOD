@@ -159,7 +159,7 @@ void pvNewMousePosition(ImodView *vi, float x, float y, int iz)
 /*
  * The class constructor
  */
-PixelView::PixelView(QWidget *parent, const char *name, Qt::WFlags fl)
+PixelView::PixelView(QWidget *parent, const char *name, Qt::WindowFlags fl)
   : QWidget(parent, fl)
 {
   int i, j, iz = B3DNINT(App->cvi->zmouse);
