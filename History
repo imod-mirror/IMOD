@@ -1,7 +1,10 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/27/14: Added option to Alterheader to set space group and made Tilt set it
+to 1 for tomogram output, following new MRC conventions (In 4.7).
+
 6/22/14: IMOD_4-7-6
-6/22/14: Allow robust alignmnet in Batchruntomo with patch tracking and
+6/22/14: Allow robust alignment in Batchruntomo with patch tracking and
 contours cut into pieces (In 4.7).
 
 6/18/14: In eTomo - Tomogram Combination, fixed problems with validation and
