@@ -234,7 +234,7 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
     }
     // Go back to initial values
     table.setValues(directiveFileCollection);
-    Iterator<BatchRunTomoDatasetDialog>   iterator = datasetLevelDialogList.iterator();
+    Iterator<BatchRunTomoDatasetDialog> iterator = datasetLevelDialogList.iterator();
     while (iterator.hasNext()) {
       iterator.next().setValues(directiveFileCollection);
     }
@@ -242,9 +242,14 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
     // apply the setup values, starting batch directive file and template files
     // checkpoint
     if (retainUserValues) {
-      // apply saved user values
+      // apply saved user values, and delete saved user values
+      table.restoreFromBackup();
+      iterator = datasetLevelDialogList.iterator();
+      while (iterator.hasNext()) {
+        iterator.next().restoreFromBackup();
+      }
+      datasetDialog.restoreFromBackup();
     }
-    // delete saved user values
   }
 
   public void actionPerformed(final ActionEvent event) {
