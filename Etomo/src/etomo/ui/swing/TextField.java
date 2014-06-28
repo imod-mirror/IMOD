@@ -44,6 +44,7 @@ final class TextField implements UIComponent, SwingComponent {
   private Border origBorder = null;
   private String checkpointValue = null;
   private String backupValue = null;
+  private boolean fieldIsBackedUp=false;
 
   TextField(final FieldType fieldType, final String reference, final String locationDescr) {
     this.locationDescr = locationDescr;
@@ -130,6 +131,17 @@ final class TextField implements UIComponent, SwingComponent {
 
   void backup() {
     backupValue = textField.getText();
+  }
+  
+  /**
+   * If the field was backed up, make the backup value the displayed value, and turn off
+   * the back up.
+   */
+  void restoreFromBackup() {
+    if (fieldIsBackedUp) {
+      setText(backupValue);
+      fieldIsBackedUp = false;
+    }
   }
 
   /**
