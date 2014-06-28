@@ -166,6 +166,15 @@ final class BatchRunTomoRow implements Highlightable {
   }
 
   /**
+   * Move any backed up values into the field, and delete the backup.
+   */
+  void restoreFromBackup() {
+    cbcDualAxis.restoreFromBackup();
+    cbcMontage.restoreFromBackup();
+    cbcTwoSurfaces.restoreFromBackup();
+  }
+
+  /**
    * Set values from the directive file collection
    * @param directiveFileCollection
    */
