@@ -65,6 +65,7 @@ final class FileTextField2 implements FileTextFieldInterface {
   private boolean useTextAsOriginDir = false;
   private boolean turnOffFileHiding = false;
   private String checkpointValue = null;
+  private boolean fieldIsBackedUp = false;
   private String backupValue = null;
   /**
    * If origin is valid, it overrides originEtomoRunDir.
@@ -323,9 +324,23 @@ final class FileTextField2 implements FileTextFieldInterface {
   void checkpoint() {
     checkpointValue = getText();
   }
+
   void backup() {
     backupValue = getText();
+    fieldIsBackedUp = true;
   }
+
+  /**
+   * If the field was backed up, make the backup value the displayed value, and turn off
+   * the back up.
+   */
+  void restoreFromBackup() {
+    if (fieldIsBackedUp) {
+      setText(backupValue);
+      fieldIsBackedUp = false;
+    }
+  }
+
   /**
    * 
    * @param alwaysCheck - check for difference even when the field is disabled or invisible
