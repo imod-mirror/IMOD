@@ -220,6 +220,13 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable {
   }
 
   /**
+   * Move any backed up values into the field, and delete the backup.
+   */
+  void restoreFromBackup() {
+    rowList.restoreFromBackup();
+  }
+
+  /**
    * Set values from the directive file collection
    * @param directiveFileCollection
    */
@@ -374,6 +381,15 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable {
         }
       }
       return changed;
+    }
+
+    /**
+     * Move any backed up values into the field, and delete the backup.
+     */
+    void restoreFromBackup() {
+      for (int i = 0; i < list.size(); i++) {
+        list.get(i).restoreFromBackup();
+      }
     }
 
     /**
