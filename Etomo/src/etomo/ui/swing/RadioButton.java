@@ -44,7 +44,8 @@ final class RadioButton implements RadioButtonInterface {
 
   private boolean debug = false;
   private EtomoBoolean2 checkpointValue = null;
-  private EtomoBoolean2 backupValue = null;
+  private boolean backupValue = false;
+  private boolean fieldIsBackedUp = false;
   private Color origForeground = null;
 
   RadioButton(final String text) {
@@ -117,10 +118,22 @@ final class RadioButton implements RadioButtonInterface {
   }
   
   void backup() {
-    if (backupValue == null) {
-      backupValue = new EtomoBoolean2();
+    backupValue=isSelected();
+    fieldIsBackedUp=true;
+  }
+  
+  /**
+   * If the field was backed up, make the backup value the displayed value if possible,
+   * and turn off the back up.  Its impossible to turn off a radio button, so this only
+   * works if the backupValue is true.  This relies on the other radio buttons in the
+   * group also being backed up.
+   */
+  void restoreFromBackup() {
+    if (fieldIsBackedUp) {
+      if (backupValue) {
+      setSelected(true);}
+      fieldIsBackedUp = false;
     }
-    backupValue.set(isSelected());
   }
 
   boolean isCheckpointValue() {
