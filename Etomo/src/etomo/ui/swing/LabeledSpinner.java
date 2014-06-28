@@ -161,6 +161,7 @@ final class LabeledSpinner {
 
   private Number checkpointValue = null;
   private Number backupValue = null;
+  private boolean fieldIsBackedUp = false;
 
   /**
    * @param spinner
@@ -243,6 +244,18 @@ final class LabeledSpinner {
 
   void backup() {
     backupValue = getValue();
+    fieldIsBackedUp = true;
+  }
+
+  /**
+   * If the field was backed up, make the backup value the displayed value, and turn off
+   * the back up.
+   */
+  void restoreFromBackup() {
+    if (fieldIsBackedUp) {
+      spinner.setValue(backupValue);
+      fieldIsBackedUp = false;
+    }
   }
 
   /**
