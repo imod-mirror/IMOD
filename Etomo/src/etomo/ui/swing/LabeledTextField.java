@@ -223,12 +223,11 @@ final class LabeledTextField implements UIComponent, SwingComponent {
   private boolean debug = false;
   private String checkpointValue = null;
   private String backupValue = null;
-  private EtomoNumber nBackupValue = null;
+  private boolean fieldIsBackedUp = false;
   private boolean required = false;
   private Color origTextForeground = null;
   private Color origLabelForeground = null;
   private boolean numberMustBePositive = false;
-
 
   public String toString() {
     return "[label:" + getLabel() + "]";
@@ -349,11 +348,17 @@ final class LabeledTextField implements UIComponent, SwingComponent {
    */
   void backup() {
     backupValue = getText();
-    if (numericType != null) {
-      if (nBackupValue == null) {
-        nBackupValue = new EtomoNumber(numericType);
-      }
-      nBackupValue.set(backupValue);
+    fieldIsBackedUp = true;
+  }
+
+  /**
+   * If the field was backed up, make the backup value the displayed value, and turn off
+   * the back up.
+   */
+  void restoreFromBackup() {
+    if (fieldIsBackedUp) {
+      setText(backupValue);
+      fieldIsBackedUp = false;
     }
   }
 
