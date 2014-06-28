@@ -67,14 +67,7 @@ public final class DirectiveName {
    * @return the name with no axis ID
    */
   public String getKey() {
-    if (isNull()) {
-      return null;
-    }
-    StringBuffer buffer = new StringBuffer();
-    for (int i = 0; i < key.length; i++) {
-      buffer.append((i > 0 ? "." : "") + key[i]);
-    }
-    return buffer.toString();
+    return convertKeyToString(key);
   }
 
   public String getKeyDescription() {
@@ -180,33 +173,32 @@ public final class DirectiveName {
   void setKey(DirectiveDescr descr) {
     // The a and b axes are not included for comparam and runtime directives in the
     // directive.csv file, so no need to remove them.
-    splitKey(descr.getName());
+    key = splitKey(descr.getName());
+    type = getType(key);
   }
 
-  private void splitKey(String input) {
-    key = null;
-    type = null;
+  static String makeKey(final String input) {
+    String[] staticKey = splitKey(input);
+    DirectiveType staticType = getType(staticKey);
+    stripAxis(staticKey, staticType);
+    return convertKeyToString(staticKey);
+  }
+
+  private static String[] splitKey(final String input) {
     if (input != null && !input.matches("\\s*")) {
-      key = input.split("\\" + AutodocTokenizer.SEPARATOR_CHAR);
-      if (key != null && key.length > TYPE_INDEX) {
-        type = DirectiveType.getFirstSectionInstance(key[TYPE_INDEX]);
-      }
+      return input.split("\\" + AutodocTokenizer.SEPARATOR_CHAR);
     }
+    return null;
   }
 
-  void setKey(final DirectiveDef directiveDef, final AxisID axisID) {
-    setKey(directiveDef.getDirective(axisID, null));
+  private static DirectiveType getType(String[] key) {
+    if (key != null && key.length > TYPE_INDEX) {
+      return DirectiveType.getFirstSectionInstance(key[TYPE_INDEX]);
+    }
+    return null;
   }
 
-  /**
-   * Strips axis information and saves a key containing the "any" form of the directive
-   * name.  For a directive with no axis information or an "any" directive name, the key
-   * is the same as the input string, and null is returned.
-   * @param input
-   * @return the axisID that was removed from the name (or null for "any").
-   */
-  public AxisID setKey(String input) {
-    splitKey(input);
+  private static AxisID stripAxis(final String[] key, final DirectiveType type) {
     if (type != DirectiveType.COM_PARAM && type != DirectiveType.RUN_TIME) {
       return null;
     }
@@ -244,6 +236,30 @@ public final class DirectiveName {
       }
     }
     return axisID;
+  }
+
+  private static String convertKeyToString(final String[] key) {
+    if (key == null || key.length == 0) {
+      return null;
+    }
+    StringBuffer buffer = new StringBuffer();
+    for (int i = 0; i < key.length; i++) {
+      buffer.append((i > 0 ? "." : "") + key[i]);
+    }
+    return buffer.toString();
+  }
+
+  /**
+   * Strips axis information and saves a key containing the "any" form of the directive
+   * name.  For a directive with no axis information or an "any" directive name, the key
+   * is the same as the input string, and null is returned.
+   * @param input
+   * @return the axisID that was removed from the name (or null for "any").
+   */
+  public AxisID setKey(String input) {
+    key = splitKey(input);
+    type = getType(key);
+    return stripAxis(key, type);
   }
 
   private boolean isNull() {
