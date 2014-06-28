@@ -405,6 +405,41 @@ final class BatchRunTomoDatasetDialog implements ActionListener {
   }
 
   /**
+   * Move any backed up values into the field, and delete the backup.
+   */
+  void restoreFromBackup() {
+    ftfDistort.restoreFromBackup();
+    ftfGradient.restoreFromBackup();
+    cbRemoveXrays.restoreFromBackup();
+    ftfModelFile.restoreFromBackup();
+    rbTrackingMethodSeed.restoreFromBackup();
+    rbTrackingMethodRaptor.restoreFromBackup();
+    rbTrackingMethodPatchTracking.restoreFromBackup();
+    rbFiducialless.restoreFromBackup();
+    ltfGold.restoreFromBackup();
+    ltfLocalAreaTargetSize.restoreFromBackup();
+    ltfTargetNumberOfBeads.restoreFromBackup();
+    ltfSizeOfPatchesXandY.restoreFromBackup();
+    lsContourPieces.restoreFromBackup();
+    lsBinByFactor.restoreFromBackup();
+    cbCorrectCTF.restoreFromBackup();
+    ltfDefocus.restoreFromBackup();
+    rbFitEveryImage.restoreFromBackup();
+    rtfAutoFitRangeAndStep.restoreFromBackup();
+    ltfAutoFitStep.restoreFromBackup();
+    rbUseSirtFalse.restoreFromBackup();
+    rbUseSirtTrue.restoreFromBackup();
+    rbDoBackprojAlso.restoreFromBackup();
+    ltfLeaveIterations.restoreFromBackup();
+    cbScaleToInteger.restoreFromBackup();
+    rtfThickness.restoreFromBackup();
+    rtfBinnedThickness.restoreFromBackup();
+    rbDeriveThickness.restoreFromBackup();
+    tfExtraThickness.restoreFromBackup();
+    ltfFallbackThickness.restoreFromBackup();
+  }
+
+  /**
    * Set values from the directive file collection.  Only change fields that exist in
    * directive file collection.
    * @param directiveFileCollection
