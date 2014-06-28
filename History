@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/27/14: Added option to Alterheader to set space group and made Tilt set it
+to 1 for tomogram output, following new MRC conventions (In 4.7).
+
 6/25/14: Fixed problem keeping track of opened files when reading multiple
 files into 3dmod.
 
@@ -8,7 +11,7 @@ planes instead of using two independent fits, which can give screwy angles and
 distances; also output line saying when X-tilt or slope can't be measured.
 
 6/22/14: IMOD_4-7-6
-6/22/14: Allow robust alignmnet in Batchruntomo with patch tracking and
+6/22/14: Allow robust alignment in Batchruntomo with patch tracking and
 contours cut into pieces (In 4.7).
 
 6/18/14: In eTomo - Tomogram Combination, fixed problems with validation and

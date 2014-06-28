@@ -10,7 +10,7 @@
 program alterheader
   implicit none
   integer nfunc, idim, nx, ny, nz, maxextra
-  parameter (nfunc = 22)
+  parameter (nfunc = 23)
   parameter (idim = 2100, maxextra = idim * idim * 4)
   integer*4 NXYZ(3), MXYZ(3), NXYZST(3), mcrs(3), listdel(1000), iBinning(3)
   real*4 delt(3), tilt(3), TITLE(20,10), cell(6), array(idim*idim)
@@ -22,7 +22,7 @@ program alterheader
   character*9 param(nfunc)
   data param/'ORG', 'CEL', 'DAT', 'DEL', 'MAP', 'SAM', 'TLT' , 'TLT_ORIG', 'TLT_ROT', &
       'LAB', 'MMM', 'RMS', 'FIXPIXEL', 'FIXEXTRA', 'FIXMODE', 'SETMMM', 'FEIPIXEL', &
-      'INVERTORG', 'REAL', 'FFT', 'HELP', 'DONE'/
+      'INVERTORG', 'REAL', 'FFT', 'ISPG', 'HELP', 'DONE'/
   !
   !
   DATA NXYZST/0, 0, 0/
@@ -46,7 +46,7 @@ program alterheader
 30 write(*,102)
 102 format(1x,'Options: org, cel, dat, del, map, sam, tlt, ', &
       'tlt_orig, tlt_rot, lab, mmm,',/, ' rms, fixpixel, feipixel, ', &
-      'fixextra, fixmode, invertorg, setmmm, real, fft,',/,' help, OR done')
+      'fixextra, fixmode, invertorg, setmmm, real, fft,',/,' ispg, help, OR done')
   write(*,'(1x,a,$)') 'Enter option: '
   read(5, 101) funcin
 101 FORMAT(A)
@@ -59,8 +59,8 @@ program alterheader
     if (funcup == param(i)) iwhich = i
   enddo
   lastFunc = funcup
-  go to(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 16, 12, 13, 17, 18, 19, 20, 21, 22, 14, 15), &
-      iwhich
+  go to(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 16, 12, 13, 17, 18, 19, 20, 21, 22, 23, 14, &
+      15), iwhich
   print *,'Not a legal entry, try again'
   go to 30
   !
@@ -477,6 +477,20 @@ program alterheader
   write(*,221) mode, nxyz(1)
   go to 30
   !
+  ! ISPG
+23 call iiuRetSpaceGroup(2, iflags)
+  write(*,223) iflags
+223 format(' Alter space group.  Current space group:',i3, &
+      /,'New space group: ',$)
+  read(5,*) iflags
+  if (iflags < 0) then
+    print *,'Space group entry must be positive'
+    go to 30
+  endif
+  call iiuAltSpaceGroup(2, iflags)
+  go to 30
+  !
+  ! HELP
 14 write(*,201)
 201 format(/,' org = change x,y,z origin', &
       /,' cel = change cell size', &
