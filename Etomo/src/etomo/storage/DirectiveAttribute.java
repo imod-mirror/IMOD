@@ -35,15 +35,23 @@ final class DirectiveAttribute {
   private final Key key;
   private final DirectiveDef directiveDef;
   private final AxisID axisID;
+  private final AttributeMatch primaryAttribute;
+  private final AttributeMatch secondaryAttribute;
 
   private ReadOnlyAttribute parentAttribute = null;
-  private ReadOnlyAttribute attribute = null;
 
   private DirectiveAttribute(final Key key, final DirectiveDef directiveDef,
       final AxisID axisID, final ReadOnlyAttribute parentAttribute) {
     this.key = key;
     this.directiveDef = directiveDef;
     this.axisID = axisID;
+    primaryAttribute = new AttributeMatch(Match.PRIMARY);
+    if (directiveDef.hasSecondaryMatch()) {
+      secondaryAttribute = new AttributeMatch(Match.SECONDARY);
+    }
+    else {
+      secondaryAttribute = null;
+    }
   }
 
   static DirectiveAttribute getInstance(final DirectiveFile directiveFile,
@@ -61,8 +69,9 @@ final class DirectiveAttribute {
   /**
    * @return true if the directive is not boolean and the attribute value is null
    */
-  boolean overrides() {
-    loadAttribute();
+  boolean overrides(final Match match) {
+    loadAttribute(match);
+    ReadOnlyAttribute attribute = getAttribute();
     if (directiveDef == null || directiveDef.isBool() || attribute == null) {
       return false;
     }
@@ -72,16 +81,16 @@ final class DirectiveAttribute {
   /**
    * @return true if instance doesn't contain an attribute
    */
-  boolean isEmpty() {
-    loadAttribute();
+  boolean isEmpty(final Match match) {
+    loadAttribute(match);
     return attribute == null;
   }
 
   /**
    * @return the value of the attribute
    */
-  String getValue() {
-    loadAttribute();
+  String getValue(final Match match) {
+    loadAttribute(match);
     if (attribute == null) {
       return null;
     }
@@ -92,8 +101,8 @@ final class DirectiveAttribute {
   /**
    * @return the boolean value of the attribute
    */
-  boolean isValue() {
-    loadAttribute();
+  boolean isValue(final Match match) {
+    loadAttribute(match);
     if (attribute == null) {
       return false;
     }
@@ -145,104 +154,147 @@ final class DirectiveAttribute {
     }
   }
 
-  /**
-   * Loads the attribute associated with directiveDef and axisID.  This function is run
-   * once per instance.  For copyarg: look under the B directive when axisID is
-   * AxisID.SECOND, otherwise look under the A directive.  For runtime:  look under the
-   * "any" directive tree.  If DirectiveDef.name isn't a leaf of this tree, look under "a"
-   * for AxisID.ONLY or .FIRST, and look under "b" for AxisID.SECOND.  For comparam use a
-   * simliar algorithm to runtime:  Look for a comfile name with no postfix first.  If the
-   * name isn't a leaf of this directive tree, look under comfilea for AxisID.FIRST, and
-   * comfileb for AxisID.SECOND.
-   */
-  private void loadAttribute() {
-    if (parentAttribute == null || directiveDef == null) {
+  private void loadAttribute(final Match match) {
+    if (parentAttribute == null) {
       return;
     }
-    // Don't forget the set the parentAttribute to null.
-    String name = directiveDef.getName(axisID);
-    DirectiveType type = directiveDef.getDirectiveType();
-    // copyarg and setupset
-    if (type == DirectiveType.COPY_ARG || type == DirectiveType.SETUP_SET) {
-      attribute = parentAttribute.getAttribute(name);
+    if (match == Match.PRIMARY) {
+      primaryAttribute.loadAttribute(axisID, parentAttribute, directiveDef);
     }
-    // runtime
-    else if (type == DirectiveType.RUN_TIME) {
-      // get module attribute
-      ReadOnlyAttribute moduleAttribute = parentAttribute.getAttribute(directiveDef
-          .getModule());
-      if (moduleAttribute != null) {
-        // try different axis attributes to get to the name attribute
-        attribute = getAttribute(moduleAttribute, DirectiveDef.RUN_TIME_ANY_AXIS_TAG,
-            name, null);
-        if (attribute == null) {
-          // Can't find name under "any" - look under the axis letter.
-          String axisTag = null;
-          if (axisID == AxisID.ONLY || axisID == AxisID.FIRST) {
-            axisTag = DirectiveDef.RUN_TIME_A_AXIS_TAG;
-          }
-          else if (axisID == AxisID.SECOND) {
-            axisTag = DirectiveDef.RUN_TIME_B_AXIS_TAG;
-          }
-          if (axisTag != null) {
-            attribute = getAttribute(moduleAttribute, axisTag, name, null);
-          }
-        }
-      }
+    else if (match == Match.SECONDARY && secondaryAttribute != null) {
+      secondaryAttribute.loadAttribute(axisID, parentAttribute, directiveDef);
     }
-    // comparam
-    else if (type == DirectiveType.COM_PARAM) {
-      // try different comfile postfixes to get to the name attribute
-      attribute = getAttribute(parentAttribute, directiveDef.getComfile(),
-          directiveDef.getCommand(), name);
-      if (attribute == null) {
-        String axisTag = null;
-        // Can't find name with no axis tag - try the a or b postfix.
-        if (axisID == AxisID.FIRST) {
-          axisTag = AxisID.FIRST.getExtension();
-        }
-        else if (axisID == AxisID.SECOND) {
-          axisTag = axisID.getExtension();
-        }
-        if (axisTag != null) {
-          attribute = getAttribute(parentAttribute, directiveDef.getComfile() + axisTag,
-              directiveDef.getCommand(), name);
-        }
-      }
+
+    if ((primaryAttribute.attribute != null || (secondaryAttribute != null && secondaryAttribute.attribute != null))
+        && !table.containsKey(key)) {
+      // This instance may be reused - save it
+      table.put(key, this);
     }
-    // Remove the parentAttribute so this function cannot be run more then once.
-    parentAttribute = null;
-    // parentAttribute is now null - safe to run any function
-    if (attribute != null && !isEmpty() && !overrides()) {
-      //This instance is likely to be reused
-      if (!table.containsKey(key)) {
-        table.put(key, this);
-      }
+    if (primaryAttribute.loaded
+        && (secondaryAttribute == null || secondaryAttribute.loaded)) {
+      parentAttribute = null;
     }
   }
 
-  /**
-   * Get the descendant of attribute, up to three levels down.
-   * @param attribute
-   * @param name1
-   * @param name2
-   * @param name3
-   * @return
-   */
-  private ReadOnlyAttribute getAttribute(ReadOnlyAttribute attribute, final String name1,
-      final String name2, final String name3) {
-    if (attribute == null || name1 == null) {
-      return attribute;
+  private static final class AttributeMatch {
+    private final Match match;
+
+    private boolean loaded = false;
+    private ReadOnlyAttribute attribute = null;
+
+    private AttributeMatch(final Match match) {
+      this.match = match;
     }
-    attribute = attribute.getAttribute(name1);
-    if (attribute == null || name2 == null) {
-      return attribute;
+
+    private void loadAttribute(final ReadOnlyAttribute parentAttribute,
+        final DirectiveDef directiveDef, final AxisID axisID) {
+      if (loaded || parentAttribute == null || directiveDef == null) {
+        return;
+      }
+      loaded = true;
+      DirectiveType type = directiveDef.getDirectiveType();
+      String name = directiveDef.getName(match, axisID);
+      // copyarg and setupset
+      if (type == DirectiveType.COPY_ARG || type == DirectiveType.SETUP_SET) {
+        attribute = parentAttribute.getAttribute(name);
+      }
+      // runtime
+      else if (type == DirectiveType.RUN_TIME) {
+        attribute = findAttribute(parentAttribute, directiveDef.getModule(),
+            directiveDef.getAxis(match, axisID), name);
+      }
+      // comparam
+      else if (type == DirectiveType.COM_PARAM) {
+        attribute = findAttribute(parentAttribute,
+            directiveDef.getComfile(match, axisID), directiveDef.getCommand(), name);
+      }
     }
-    attribute = attribute.getAttribute(name2);
-    if (attribute == null || name3 == null) {
-      return attribute;
+
+    /**
+     * Get the three-level down descendant of an attribute.
+     * @param attribute
+     * @param name1
+     * @param name2
+     * @param name3
+     * @return
+     */
+    private ReadOnlyAttribute findAttribute(ReadOnlyAttribute attribute,
+        final String name1, final String name2, final String name3) {
+      if (attribute == null || name1 == null) {
+        return null;
+      }
+      attribute = attribute.getAttribute(name1);
+      if (attribute == null || name2 == null) {
+        return null;
+      }
+      attribute = attribute.getAttribute(name2);
+      if (attribute == null || name3 == null) {
+        return null;
+      }
+      return attribute.getAttribute(name3);
     }
-    return attribute.getAttribute(name3);
+
+    /**
+     * @return true if the directive is not boolean and the attribute value is null
+     */
+    boolean overrides(final ReadOnlyAttribute parentAttribute,
+        final DirectiveDef directiveDef, final AxisID axisID) {
+      loadAttribute(parentAttribute, directiveDef, axisID);
+      if (directiveDef == null || directiveDef.isBool() || attribute == null) {
+        return false;
+      }
+      return attribute.getValue() == null;
+    }
+
+    /**
+     * @return true if instance doesn't contain an attribute
+     */
+    boolean isEmpty(final ReadOnlyAttribute parentAttribute,
+        final DirectiveDef directiveDef, final AxisID axisID) {
+      loadAttribute(parentAttribute, directiveDef, axisID);
+      return attribute == null;
+    }
+
+    /**
+     * @return the value of the attribute
+     */
+    String getValue(final Match match) {
+      loadAttribute(match);
+      if (attribute == null) {
+        return null;
+      }
+      removeFromTable();
+      return attribute.getValue();
+    }
+
+    /**
+     * @return the boolean value of the attribute
+     */
+    boolean isValue(final Match match) {
+      loadAttribute(match);
+      if (attribute == null) {
+        return false;
+      }
+      String value = attribute.getValue();
+      if (directiveDef.isBool()) {
+        if (value == null) {
+          System.err.println("Warning: " + directiveDef
+              + " is boolean and its value should not be null");
+        }
+        else {
+          value = value.trim();
+          if (!value.equals(FALSE_VALUE) && !value.equals(TRUE_VALUE)) {
+            System.err.println("Warning: " + directiveDef
+                + " is boolean and its value is invalid: " + value);
+          }
+        }
+      }
+      else {
+        System.err.println("Warning: " + directiveDef + " is not a boolean");
+      }
+      removeFromTable();
+      return toBoolean(value);
+    }
   }
 
   private static final class Key {
@@ -268,5 +320,10 @@ final class DirectiveAttribute {
       }
       return directiveDef.toString() + axisID != null ? "," + axisID.toString() : "";
     }
+  }
+
+  static final class Match {
+    static final Match PRIMARY = new Match();
+    static final Match SECONDARY = new Match();
   }
 }
