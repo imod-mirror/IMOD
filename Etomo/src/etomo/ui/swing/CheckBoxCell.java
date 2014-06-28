@@ -33,8 +33,9 @@ final class CheckBoxCell extends InputCell implements ToggleCell {
   private String unformattedLabel = "";
   private boolean enabled = true;
   private EtomoBoolean2 checkpointValue = null;
-  private EtomoBoolean2 backupValue = null;
-  
+  private boolean backupValue = false;
+  private boolean fieldIsBackedUp = false;
+
   CheckBoxCell() {
     super();
     checkBox.setBorderPainted(true);
@@ -63,12 +64,21 @@ final class CheckBoxCell extends InputCell implements ToggleCell {
     }
     return checkpointValue == null || !checkpointValue.equals(isSelected());
   }
-  
-  void backup(){
-    if (backupValue == null) {
-      backupValue = new EtomoBoolean2();
+
+  void backup() {
+    backupValue = isSelected();
+    fieldIsBackedUp = true;
+  }
+
+  /**
+   * If the field was backed up, make the backup value the displayed value, and turn off
+   * the back up.
+   */
+  void restoreFromBackup() {
+    if (fieldIsBackedUp) {
+      setSelected(backupValue);
+      fieldIsBackedUp = false;
     }
-    backupValue.set(isSelected());
   }
 
   public void setEnabled(final boolean enabled) {
