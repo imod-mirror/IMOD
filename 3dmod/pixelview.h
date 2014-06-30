@@ -32,7 +32,7 @@ class PixelView: public QWidget
 
  public:
   PixelView(QWidget *parent, const char *name = 0, 
-	      Qt::WFlags fl = Qt::Window);
+	      Qt::WindowFlags fl = Qt::Window);
   ~PixelView() {};
   void update();
   void setButtonWidths();
