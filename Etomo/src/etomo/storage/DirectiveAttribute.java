@@ -6,8 +6,8 @@ import etomo.storage.autodoc.ReadOnlyAttribute;
 import etomo.type.AxisID;
 
 /**
-* <p>Description: Represents a directive attribute.  Contains a table of instances that are
-* likely to be accessed again.  NOT thread safe.</p>
+* <p>Description: Represents a primary directive attribute match and also a secondary one.
+* Contains a table of instances that are likely to be accessed again.  NOT thread safe.</p>
 * 
 * <p>Copyright: Copyright 2014</p>
 *
@@ -46,7 +46,7 @@ final class DirectiveAttribute {
     this.directiveDef = directiveDef;
     this.axisID = axisID;
     primaryAttribute = new AttributeMatch(Match.PRIMARY);
-    if (directiveDef.hasSecondaryMatch()) {
+    if (directiveDef.hasSecondaryMatch(axisID)) {
       secondaryAttribute = new AttributeMatch(Match.SECONDARY);
     }
     else {
@@ -67,15 +67,46 @@ final class DirectiveAttribute {
   }
 
   /**
+   * Attempt to load an attribute.  Save this instance if the load proves fruitful.
+   * @param match
+   */
+  private void loadAttribute(final Match match) {
+    if (parentAttribute == null || directiveDef == null) {
+      return;
+    }
+    if (((match == Match.PRIMARY && primaryAttribute.loadAttribute(parentAttribute,
+        directiveDef, axisID)) || ((match == Match.SECONDARY && secondaryAttribute != null))
+        && secondaryAttribute.loadAttribute(parentAttribute, directiveDef, axisID))
+        && !table.containsKey(key)) {
+      // This instance may be reused - save it
+      table.put(key, this);
+    }
+  }
+
+  private AttributeMatch getAttributeMatch(final Match match) {
+    if (match == Match.PRIMARY) {
+      return primaryAttribute;
+    }
+    else if (match == Match.SECONDARY) {
+      return secondaryAttribute;
+    }
+    return null;
+  }
+
+  /**
    * @return true if the directive is not boolean and the attribute value is null
    */
   boolean overrides(final Match match) {
     loadAttribute(match);
-    ReadOnlyAttribute attribute = getAttribute();
-    if (directiveDef == null || directiveDef.isBool() || attribute == null) {
+    AttributeMatch attribute = getAttributeMatch(match);
+    if (attribute == null || directiveDef == null || directiveDef.isBool()) {
       return false;
     }
-    return attribute.getValue() == null;
+    boolean override = attribute.getValue() == null;
+    if (override && match == Match.PRIMARY) {
+      table.remove(key);
+    }
+    return override;
   }
 
   /**
@@ -83,26 +114,29 @@ final class DirectiveAttribute {
    */
   boolean isEmpty(final Match match) {
     loadAttribute(match);
-    return attribute == null;
+    AttributeMatch attribute = getAttributeMatch(match);
+    return attribute == null || attribute.isEmpty();
   }
 
   /**
-   * @return the value of the attribute
+   * @return the value of the primary or secondary attribute
    */
   String getValue(final Match match) {
     loadAttribute(match);
+    AttributeMatch attribute = getAttributeMatch(match);
     if (attribute == null) {
       return null;
     }
-    removeFromTable();
+    table.remove(key);
     return attribute.getValue();
   }
 
   /**
-   * @return the boolean value of the attribute
+   * @return the boolean value of the primary or secondary attribute
    */
   boolean isValue(final Match match) {
     loadAttribute(match);
+    AttributeMatch attribute = getAttributeMatch(match);
     if (attribute == null) {
       return false;
     }
@@ -123,7 +157,7 @@ final class DirectiveAttribute {
     else {
       System.err.println("Warning: " + directiveDef + " is not a boolean");
     }
-    removeFromTable();
+    table.remove(key);
     return toBoolean(value);
   }
 
@@ -145,51 +179,26 @@ final class DirectiveAttribute {
     return true;
   }
 
-  /**
-   * called when the directive is unlikely to be looked at again.
-   */
-  private void removeFromTable() {
-    if (table.containsKey(key)) {
-      table.remove(key);
-    }
-  }
-
-  private void loadAttribute(final Match match) {
-    if (parentAttribute == null) {
-      return;
-    }
-    if (match == Match.PRIMARY) {
-      primaryAttribute.loadAttribute(axisID, parentAttribute, directiveDef);
-    }
-    else if (match == Match.SECONDARY && secondaryAttribute != null) {
-      secondaryAttribute.loadAttribute(axisID, parentAttribute, directiveDef);
-    }
-
-    if ((primaryAttribute.attribute != null || (secondaryAttribute != null && secondaryAttribute.attribute != null))
-        && !table.containsKey(key)) {
-      // This instance may be reused - save it
-      table.put(key, this);
-    }
-    if (primaryAttribute.loaded
-        && (secondaryAttribute == null || secondaryAttribute.loaded)) {
-      parentAttribute = null;
-    }
-  }
-
   private static final class AttributeMatch {
     private final Match match;
 
     private boolean loaded = false;
+    private boolean found = false;
     private ReadOnlyAttribute attribute = null;
 
     private AttributeMatch(final Match match) {
       this.match = match;
     }
 
-    private void loadAttribute(final ReadOnlyAttribute parentAttribute,
+    private boolean loadAttribute(final ReadOnlyAttribute parentAttribute,
         final DirectiveDef directiveDef, final AxisID axisID) {
-      if (loaded || parentAttribute == null || directiveDef == null) {
-        return;
+      if (loaded) {
+        return found;
+      }
+      loaded = true;
+      if (parentAttribute == null || directiveDef == null) {
+        found = false;
+        return found;
       }
       loaded = true;
       DirectiveType type = directiveDef.getDirectiveType();
@@ -208,6 +217,8 @@ final class DirectiveAttribute {
         attribute = findAttribute(parentAttribute,
             directiveDef.getComfile(match, axisID), directiveDef.getCommand(), name);
       }
+      found = attribute != null;
+      return found;
     }
 
     /**
@@ -247,62 +258,31 @@ final class DirectiveAttribute {
     }
 
     /**
-     * @return true if instance doesn't contain an attribute
+     * @return true if no attribute has been loaded
      */
-    boolean isEmpty(final ReadOnlyAttribute parentAttribute,
-        final DirectiveDef directiveDef, final AxisID axisID) {
-      loadAttribute(parentAttribute, directiveDef, axisID);
+    boolean isEmpty() {
       return attribute == null;
     }
 
     /**
      * @return the value of the attribute
      */
-    String getValue(final Match match) {
-      loadAttribute(match);
+    String getValue() {
       if (attribute == null) {
         return null;
       }
-      removeFromTable();
       return attribute.getValue();
-    }
-
-    /**
-     * @return the boolean value of the attribute
-     */
-    boolean isValue(final Match match) {
-      loadAttribute(match);
-      if (attribute == null) {
-        return false;
-      }
-      String value = attribute.getValue();
-      if (directiveDef.isBool()) {
-        if (value == null) {
-          System.err.println("Warning: " + directiveDef
-              + " is boolean and its value should not be null");
-        }
-        else {
-          value = value.trim();
-          if (!value.equals(FALSE_VALUE) && !value.equals(TRUE_VALUE)) {
-            System.err.println("Warning: " + directiveDef
-                + " is boolean and its value is invalid: " + value);
-          }
-        }
-      }
-      else {
-        System.err.println("Warning: " + directiveDef + " is not a boolean");
-      }
-      removeFromTable();
-      return toBoolean(value);
     }
   }
 
   private static final class Key {
+    private final DirectiveFile directiveFile;
     private final DirectiveDef directiveDef;
-    final AxisID axisID;
+    private final AxisID axisID;
 
     private Key(final DirectiveFile directiveFile, final DirectiveDef directiveDef,
         final AxisID axisID) {
+      this.directiveFile = directiveFile;
       this.directiveDef = directiveDef;
       this.axisID = axisID;
     }
@@ -318,7 +298,8 @@ final class DirectiveAttribute {
       if (directiveDef == null) {
         return super.toString();
       }
-      return directiveDef.toString() + axisID != null ? "," + axisID.toString() : "";
+      return directiveFile.toString() + directiveDef.toString() + axisID != null ? ","
+          + axisID.toString() : "";
     }
   }
 
