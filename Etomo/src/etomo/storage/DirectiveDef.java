@@ -263,7 +263,47 @@ public final class DirectiveDef {
     return directiveType;
   }
 
+  /**
+   * Load information about directive from the directive.csv file.
+   */
+  private void loadDirectiveDescr() {
+    if (directiveDescrLoaded) {
+      return;
+    }
+    directiveDescrLoaded = true;
+    Element element = DirectiveDescrFile.INSTANCE.get(getKey(null));
+    if (element != null) {
+      DirectiveValueType type = element.getValueType();
+      if (type == DirectiveValueType.BOOLEAN) {
+        bool = true;
+      }
+    }
+    if (directiveType == DirectiveType.COPY_ARG) {
+      element = DirectiveDescrFile.INSTANCE.get(getKey(AxisID.SECOND));
+      if (element != null) {
+        separateBDirective = true;
+        if (!element.isTemplate() && element.isBatch()) {
+          batchOnlyB = true;
+        }
+      }
+    }
+  }
+
+  boolean hasSecondaryMatch(final AxisID axisID) {
+    if (directiveType == DirectiveType.COPY_ARG) {
+      if (axisID == AxisID.SECOND) {
+        loadDirectiveDescr();
+        return !batchOnlyB;
+      }
+      else {
+        return false;
+      }
+    }
+    return true;
+  }
+
   boolean isBool() {
+    loadDirectiveDescr();
     return bool;
   }
 
@@ -274,17 +314,18 @@ public final class DirectiveDef {
    * @return
    */
   String getName(final Match match, final AxisID axisID) {
-    loadDirectiveDescr();
-    if (directiveType == DirectiveType.COPY_ARG && separateBDirective
-        && axisID == AxisID.SECOND) {
-      if (match == Match.PRIMARY) {
-        return COPY_ARG_B_AXIS_PREFIX + name;
-      }
-      if (match == Match.SECONDARY) {
-        if (axisID == AxisID.SECOND && !batchOnlyB) {
-          return name;
+    if (directiveType == DirectiveType.COPY_ARG && axisID == AxisID.SECOND) {
+      loadDirectiveDescr();
+      if (separateBDirective) {
+        if (match == Match.PRIMARY) {
+          return COPY_ARG_B_AXIS_PREFIX + name;
         }
-        return null;
+        if (match == Match.SECONDARY) {
+          if (axisID == AxisID.SECOND && !batchOnlyB) {
+            return name;
+          }
+          return null;
+        }
       }
     }
     return name;
@@ -348,32 +389,6 @@ public final class DirectiveDef {
     return command;
   }
 
-  /**
-   * Load information about directive from the directive.csv file.
-   */
-  private void loadDirectiveDescr() {
-    if (directiveDescrLoaded) {
-      return;
-    }
-    directiveDescrLoaded = true;
-    Element element = DirectiveDescrFile.INSTANCE.get(getKey(null));
-    if (element != null) {
-      DirectiveValueType type = element.getValueType();
-      if (type == DirectiveValueType.BOOLEAN) {
-        bool = true;
-      }
-    }
-    if (directiveType == DirectiveType.COPY_ARG) {
-      element = DirectiveDescrFile.INSTANCE.get(getKey(AxisID.SECOND));
-      if (element != null) {
-        separateBDirective = true;
-        if (!element.isTemplate() && element.isBatch()) {
-          batchOnlyB = true;
-        }
-      }
-    }
-  }
-
   public String getKey(final AxisID axisID) {
     return DirectiveName.makeKey(getDirective(axisID, null));
   }
@@ -384,7 +399,7 @@ public final class DirectiveDef {
    * @param axisID
    * @return
    */
- public String getName(final AxisID axisID) {
+  public String getName(final AxisID axisID) {
     loadDirectiveDescr();
     if (directiveType == DirectiveType.COPY_ARG && separateBDirective
         && axisID == AxisID.SECOND) {
