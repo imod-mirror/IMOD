@@ -9,6 +9,7 @@ import java.util.Map.Entry;
 import etomo.BaseManager;
 import etomo.logic.DatasetTool;
 import etomo.logic.UserEnv;
+import etomo.storage.DirectiveAttribute.Match;
 import etomo.storage.autodoc.ReadOnlyAttribute;
 import etomo.storage.autodoc.ReadOnlyAttributeIterator;
 import etomo.type.AxisID;
@@ -64,12 +65,13 @@ public class DirectiveFileCollection implements SetupReconInterface {
    * @return
    */
   public boolean contains(final DirectiveDef directiveDef, final AxisID axisID) {
+    DirectiveAttribute secondaryMatch = null;
     for (int i = directiveFileArray.length - 1; i >= 0; i--) {
       DirectiveFile directiveFile = directiveFileArray[i];
       if (directiveFile == null) {
         continue;
       }
-      DirectiveAttribute attribute = directiveFile.getAttribute(directiveDef, axisID);
+      DirectiveAttribute attribute = directiveFile.getAttribute(Match.PRIMARYdirectiveDef, axisID);
       if (attribute != null) {
         if (attribute.overrides()) {
           return false;
