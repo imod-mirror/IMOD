@@ -28,10 +28,13 @@ final class CheckBoxCell extends InputCell implements ToggleCell {
   public static final String rcsid = "$Id$";
 
   private JCheckBox checkBox = new JCheckBox();
-  //label: from JCheckBox.getText().  Updated in setLabel().  Always up to date
-  //because it is a read only field in JCheckBox.
+  // label: from JCheckBox.getText(). Updated in setLabel(). Always up to date
+  // because it is a read only field in JCheckBox.
   private String unformattedLabel = "";
   private boolean enabled = true;
+  private EtomoBoolean2 checkpointValue = null;
+  private boolean backupValue = false;
+  private boolean fieldIsBackedUp = false;
 
   CheckBoxCell() {
     super();
@@ -48,6 +51,34 @@ final class CheckBoxCell extends InputCell implements ToggleCell {
 
   UITestFieldType getFieldType() {
     return UITestFieldType.CHECK_BOX;
+  }
+
+  /**
+   * 
+   * @param alwaysCheck - check for difference even when the field is disables or invisible
+   * @return
+   */
+  boolean isDifferentFromCheckpoint(final boolean alwaysCheck) {
+    if (!alwaysCheck && (!isEnabled() || !checkBox.isVisible())) {
+      return false;
+    }
+    return checkpointValue == null || !checkpointValue.equals(isSelected());
+  }
+
+  void backup() {
+    backupValue = isSelected();
+    fieldIsBackedUp = true;
+  }
+
+  /**
+   * If the field was backed up, make the backup value the displayed value, and turn off
+   * the back up.
+   */
+  void restoreFromBackup() {
+    if (fieldIsBackedUp) {
+      setSelected(backupValue);
+      fieldIsBackedUp = false;
+    }
   }
 
   public void setEnabled(final boolean enabled) {
@@ -72,7 +103,7 @@ final class CheckBoxCell extends InputCell implements ToggleCell {
   void setValue(final String value) {
     checkBox.setSelected(new EtomoBoolean2().set(value).is());
   }
-  
+
   public boolean isEnabled() {
     return checkBox.isEnabled();
   }
