@@ -6,6 +6,8 @@ import java.io.IOException;
 
 import etomo.BaseManager;
 import etomo.EtomoDirector;
+import etomo.storage.DirectiveAttribute.AttributeMatch;
+import etomo.storage.DirectiveAttribute.Match;
 import etomo.storage.autodoc.AutodocFactory;
 import etomo.storage.autodoc.ReadOnlyAttribute;
 import etomo.storage.autodoc.ReadOnlyAttributeIterator;
@@ -134,6 +136,25 @@ public final class DirectiveFile {
     }
   }
 
+  private AttributeMatch getAttribute(final DirectiveDef directiveDef, final AxisID axisID) {
+      AttributeMatch attributeMatch = getAttribute(Match.PRIMARY,
+          directiveDef, axisID);
+      if (attributeMatch != null) {
+        if (attributeMatch.overrides()) {
+          return null;
+        }
+        return attributeMatch;
+      }
+      attributeMatch = getAttribute(Match.SECONDARY, directiveDef,
+        axisID);
+      if (attributeMatch != null) {
+        if (attributeMatch.overrides()) {
+          return null;
+        }
+        return attributeMatch;
+      }
+  }
+
   /**
    * Returns true if the directive file contains the directive attribute and does not
    * override it (an empty value for a non-boolean directive).
@@ -202,23 +223,19 @@ public final class DirectiveFile {
   }
 
   /**
-   * Returns the attribute associated with directiveDef and axisID.  For copyarg: look
-   * under the B directive when axisID is AxisID.SECOND, otherwise look under the A
-   * directive.  For runtime:  look under the "any" directive tree.  If DirectiveDef.name
-   * isn't a leaf of this tree, look under "a" for AxisID.ONLY or .FIRST, and look under
-   * "b" for AxisID.SECOND.  For comparam use a simliar algorithm to runtime:  Look for a
-   * comfile name with no postfix first.  If the name isn't a leaf of this directive tree,
-   * look under comfilea for AxisID.FIRST, and comfileb for AxisID.SECOND.
+   * Returns an attribute from this directive file that matches the parameters.
+   * @param match
    * @param directiveDef
    * @param axisID
    * @return
    */
-  DirectiveAttribute getAttribute(final DirectiveDef directiveDef, final AxisID axisID) {
+  AttributeMatch getAttribute(final Match match, final DirectiveDef directiveDef,
+      final AxisID axisID) {
     if (directiveDef == null) {
       return null;
     }
-    return DirectiveAttribute.getInstance(this, directiveDef, axisID,
-        getParentAttribute(directiveDef));
+    return DirectiveAttribute.getMatch(match, this, getParentAttribute(directiveDef),
+        directiveDef, axisID);
   }
 
   private ReadOnlyAttribute getParentAttribute(final DirectiveDef directiveDef) {
