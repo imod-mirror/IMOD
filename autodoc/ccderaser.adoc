@@ -323,7 +323,7 @@ tooltip = Run ccderaser in trial mode creating a x-ray model which can be viewed
 in 3dmod.  This will not create an output stack.
 manpage = Analyze for replacement points without writing output image file. 
 
-[Field = verbose]
+[Field = Verbose]
 short = verbose
 type = B
 usage = Print details on patches being replaced
