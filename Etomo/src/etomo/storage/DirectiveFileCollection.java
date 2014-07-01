@@ -9,6 +9,7 @@ import java.util.Map.Entry;
 import etomo.BaseManager;
 import etomo.logic.DatasetTool;
 import etomo.logic.UserEnv;
+import etomo.storage.DirectiveAttribute.AttributeMatch;
 import etomo.storage.DirectiveAttribute.Match;
 import etomo.storage.autodoc.ReadOnlyAttribute;
 import etomo.storage.autodoc.ReadOnlyAttributeIterator;
@@ -56,35 +57,67 @@ public class DirectiveFileCollection implements SetupReconInterface {
   }
 
   /**
-   * Checks the directive files in order from highest to lowest priority.  Returns true if
-   * the highest priority directive file that contains the directive attribute does not
-   * override it (an empty value for a non-boolean directive).  If none of directive files
-   * contain the directive attribute, returns true if copyArgExtraValues contains it.
+   * Returns a non-empty attributeMatch or null.  Directive files are checked in order of
+   * priority (batch to scope) and the highest priority file containing the directive, is
+   * used.  An overridden directive (no value and non-boolean) causes a null to be
+   * returned.  Two different matches are used - first the primary match, and then the
+   * secondary match.  The difference between them is how closely they match the axisID.
+   * The primary match has priority over the secondary match, even when the primary match
+   * is found in a lower priority file.  
    * @param directiveDef
    * @param axisID
    * @return
    */
-  public boolean contains(final DirectiveDef directiveDef, final AxisID axisID) {
-    DirectiveAttribute secondaryMatch = null;
+  private AttributeMatch getAttribute(final DirectiveDef directiveDef, final AxisID axisID) {
+    AttributeMatch secondaryMatch = null;
+    // Search for a primary match starting with the highest priority file.
     for (int i = directiveFileArray.length - 1; i >= 0; i--) {
       DirectiveFile directiveFile = directiveFileArray[i];
       if (directiveFile == null) {
         continue;
       }
-      DirectiveAttribute attribute = directiveFile.getAttribute(Match.PRIMARYdirectiveDef, axisID);
-      if (attribute != null) {
-        if (attribute.overrides()) {
-          return false;
+      AttributeMatch primaryMatch = directiveFile.getAttribute(Match.PRIMARY,
+          directiveDef, axisID);
+      if (primaryMatch != null) {
+        if (primaryMatch.overrides()) {
+          return null;
         }
-        if (attribute.isEmpty()) {
+        // Missing primary match - if the secondary match hasn't been set from a higher
+        // priority file, try to set it.
+        if (primaryMatch.isEmpty()
+            && (secondaryMatch == null || secondaryMatch.isEmpty())) {
+          secondaryMatch = directiveFile.getAttribute(Match.SECONDARY, directiveDef,
+              axisID);
           continue;
         }
-        return true;
-      }
-      else {
-        continue;
+        return primaryMatch;
       }
     }
+    // A primary match was not found. See if a secondary match was set.
+    if (secondaryMatch != null) {
+      if (secondaryMatch.overrides()) {
+        return null;
+      }
+      if (!secondaryMatch.isEmpty()) {
+        return secondaryMatch;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Returns true a non-empty, non-overriding directive, or an extraValue is found.
+   * @see getAttribute
+   * @param directiveDef
+   * @param axisID
+   * @return
+   */
+  public boolean contains(final DirectiveDef directiveDef, final AxisID axisID) {
+    AttributeMatch attributeMatch = getAttribute(directiveDef, axisID);
+    if (attributeMatch != null) {
+      return true;
+    }
+    // An attribute has not been found - look for an extra value.
     if (directiveDef.getDirectiveType() == DirectiveType.COPY_ARG
         && copyArgExtraValues != null) {
       return copyArgExtraValues.containsKey(directiveDef.getName(axisID));
@@ -93,10 +126,8 @@ public class DirectiveFileCollection implements SetupReconInterface {
   }
 
   /**
-   * Checks the directive files in order from highest to lowest priority.  Returns true if
-   * the highest priority directive file that contains the directive attribute does not
-   * override it (an empty value for a non-boolean directive).  If none of directive files
-   * contain the directive attribute, returns true if copyArgExtraValues contains it.
+   * Returns true a non-empty, non-overriding directive, or an extraValue is found.
+   * @see getAttribute
    * @param directiveDef
    * @return
    */
@@ -105,103 +136,40 @@ public class DirectiveFileCollection implements SetupReconInterface {
   }
 
   /**
-   * Return the value of the attribute in the highest priority directive file.  Return the
-   * attribute value from extraValues if the attribute is not present in any directive
-   * file.
+   * Returns the directive value if a non-empty, non-overriding directive, or an extraValue
+   * is found.
+   * @see getAttribute
    * @param directiveDef
    * @param axisID
    * @return
    */
   public String getValue(final DirectiveDef directiveDef, final AxisID axisID) {
-    boolean found = false;
-    for (int i = directiveFileArray.length - 1; i >= 0; i--) {
-      DirectiveFile directiveFile = directiveFileArray[i];
-      if (directiveFile == null) {
-        continue;
-      }
-      DirectiveAttribute attribute = directiveFile.getAttribute(directiveDef, axisID);
-      if (attribute != null) {
-        if (!attribute.isEmpty()) {
-          found = true;
-          if (attribute.overrides()) {
-            // highest priority directive file has overridden the directive - return null
-            return null;
-          }
-          return attribute.getValue();
-        }
-      }
+    AttributeMatch attributeMatch = getAttribute(directiveDef, axisID);
+    if (attributeMatch != null) {
+      return attributeMatch.getValue();
     }
-    if (!found) {
-      // The attribute is not in any directive file
-      if (directiveDef.getDirectiveType() == DirectiveType.COPY_ARG
-          && copyArgExtraValues != null) {
-        return copyArgExtraValues.get(directiveDef.getName(axisID));
-      }
+    // An attribute has not been found - look for an extra value.
+    if (directiveDef.getDirectiveType() == DirectiveType.COPY_ARG
+        && copyArgExtraValues != null) {
+      return copyArgExtraValues.get(directiveDef.getName(axisID));
     }
     return null;
   }
 
   /**
-   * Return the value of the attribute in the highest priority directive file.  Return the
-   * attribute value from extraValues if the attribute is not present in any directive
-   * file.
+   * Returns the directive value if a non-empty, non-overriding directive, or an extraValue
+   * is found.
+   * @see getAttribute
    * @param directiveDef
    * @return
    */
   public String getValue(final DirectiveDef directiveDef) {
     return getValue(directiveDef, null);
   }
-
+  
   /**
-   * Return the boolean value of the attribute in the highest priority directive file.
-   * Return the attribute value from extraValues if the attribute is not present in any
-   * directive file.
-   * @param directiveDef
-   * @param axisID
-   * @return
-   */
-  public boolean isValue(final DirectiveDef directiveDef, final AxisID axisID) {
-    boolean found = false;
-    for (int i = directiveFileArray.length - 1; i >= 0; i--) {
-      DirectiveFile directiveFile = directiveFileArray[i];
-      if (directiveFile == null) {
-        continue;
-      }
-      DirectiveAttribute attribute = directiveFile.getAttribute(directiveDef, axisID);
-      if (attribute != null && !attribute.isEmpty()) {
-        found = true;
-        if (attribute.overrides()) {
-          // highest priority directive file has overridden the directive - return false
-          return false;
-        }
-        return attribute.isValue();
-      }
-    }
-    if (!found) {
-      // The attribute is not in any directive file
-      if (directiveDef.getDirectiveType() == DirectiveType.COPY_ARG
-          && copyArgExtraValues != null) {
-        return DirectiveAttribute.toBoolean(copyArgExtraValues.get(directiveDef
-            .getName(axisID)));
-      }
-    }
-    return false;
-  }
-
-  /**
-   * Return the boolean value of the attribute in the highest priority directive file.
-   * Return the attribute value from extraValues if the attribute is not present in any
-   * directive file.
-   * @param directiveDef
-   * @return
-   */
-  public boolean isValue(final DirectiveDef directiveDef) {
-    return isValue(directiveDef, null);
-  }
-
-  /**
-   * Return the specified element of the value of the attribute in the highest priority
-   * directive file.
+   * Return the specified element of the directive value if a non-empty, non-overriding
+   * directive, or an extraValue is found.
    * @param directiveDef
    * @param index - index of element in value to return
    * @return
@@ -224,6 +192,41 @@ public class DirectiveFileCollection implements SetupReconInterface {
     }
     return null;
   }
+
+  /**
+   * Returns the boolean version of a directive value if a non-empty, non-overriding
+   * directive, or an extraValue is found.
+   * @see getAttribute
+   * @param directiveDef
+   * @param axisID
+   * @return
+   */
+  public boolean isValue(final DirectiveDef directiveDef, final AxisID axisID) {
+    AttributeMatch attributeMatch = getAttribute(directiveDef, axisID);
+    if (attributeMatch != null) {
+      return attributeMatch.isValue();
+    }
+    // An attribute has not been found - look for an extra value.
+    if (directiveDef.getDirectiveType() == DirectiveType.COPY_ARG
+        && copyArgExtraValues != null) {
+      return DirectiveAttribute.toBoolean(copyArgExtraValues.get(directiveDef
+          .getName(axisID)));
+    }
+    return false;
+  }
+
+  /**
+   * Returns the boolean version of a directive value if a non-empty, non-overriding
+   * directive, or an extraValue is found.
+   * @see getAttribute
+   * @param directiveDef
+   * @return
+   */
+  public boolean isValue(final DirectiveDef directiveDef) {
+    return isValue(directiveDef, null);
+  }
+
+
 
   /**
    * @param doValidation has no effect.
