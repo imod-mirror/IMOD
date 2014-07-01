@@ -49,6 +49,7 @@
 #define iiualtaxismap IIUALTAXISMAP
 #define ialmap IALMAP
 #define iiuretspacegroup IIURETSPACEGROUP
+#define iiualtspacegroup IIUALTSPACEGROUP
 #define iiuretimodflags IIURETIMODFLAGS
 #define irtimodflags IRTIMODFLAGS
 #define iiualtimodflags IIUALTIMODFLAGS
@@ -131,6 +132,7 @@
 #define iiualtaxismap iiualtaxismap_
 #define ialmap ialmap_
 #define iiuretspacegroup iiuretspacegroup_
+#define iiualtspacegroup iiualtspacegroup_
 #define iiuretimodflags iiuretimodflags_
 #define irtimodflags irtimodflags_
 #define iiualtimodflags iiualtimodflags_
@@ -779,6 +781,18 @@ void iiuRetSpaceGroup(int iunit, int *ispg)
 }
 
 void iiuretspacegroup(int *iunit, int *ispg) {iiuRetSpaceGroup(*iunit, ispg);}
+
+/*!
+ * Sets the space group entry, {ispg}, with the value in [ispg] for unit [iunit].  Fortran
+ * wrapper iiuAltSpaceGroup.
+ */
+void iiuAltSpaceGroup(int iunit, int ispg)
+{
+  MrcHeader *hdr = iiuMrcHeader(iunit, "iiuAltSpaceGroup", 1, 0);
+  hdr->ispg = ispg;
+}
+
+void iiualtspacegroup(int *iunit, int *ispg) {iiuAltSpaceGroup(*iunit, *ispg);}
 
 /*!
  * Returns number of labels for unit [iunit] in [numLabels] and returns the 80 characters
