@@ -136,23 +136,44 @@ public final class DirectiveFile {
     }
   }
 
-  private AttributeMatch getAttribute(final DirectiveDef directiveDef, final AxisID axisID) {
-      AttributeMatch attributeMatch = getAttribute(Match.PRIMARY,
-          directiveDef, axisID);
-      if (attributeMatch != null) {
-        if (attributeMatch.overrides()) {
-          return null;
-        }
-        return attributeMatch;
+  /**
+   * Returns an attribute from this directive file that matches the parameters.
+   * @param match
+   * @param directiveDef
+   * @param axisID
+   * @return
+   */
+  AttributeMatch getAttribute(final Match match, final DirectiveDef directiveDef,
+      final AxisID axisID) {
+    if (directiveDef == null) {
+      return null;
+    }
+    return DirectiveAttribute.getMatch(match, this, getParentAttribute(directiveDef),
+        directiveDef, axisID);
+  }
+
+  /**
+   * Returns the best matching AttributeMatch.
+   * @param directiveDef
+   * @param axisID
+   * @return
+   */
+  AttributeMatch getAttribute(final DirectiveDef directiveDef, final AxisID axisID) {
+    AttributeMatch attributeMatch = getAttribute(Match.PRIMARY, directiveDef, axisID);
+    if (attributeMatch != null) {
+      if (attributeMatch.isEmpty() || attributeMatch.overrides()) {
+        return null;
       }
-      attributeMatch = getAttribute(Match.SECONDARY, directiveDef,
-        axisID);
-      if (attributeMatch != null) {
-        if (attributeMatch.overrides()) {
-          return null;
-        }
-        return attributeMatch;
+      return attributeMatch;
+    }
+    attributeMatch = getAttribute(Match.SECONDARY, directiveDef, axisID);
+    if (attributeMatch != null) {
+      if (attributeMatch.isEmpty() || attributeMatch.overrides()) {
+        return null;
       }
+      return attributeMatch;
+    }
+    return null;
   }
 
   /**
@@ -163,8 +184,8 @@ public final class DirectiveFile {
    * @return
    */
   public boolean contains(final DirectiveDef directiveDef, final AxisID axisID) {
-    DirectiveAttribute attribute = getAttribute(directiveDef, null);
-    return attribute != null && !attribute.overrides() && !attribute.isEmpty();
+    AttributeMatch attribute = getAttribute(directiveDef, axisID);
+    return attribute != null;
   }
 
   /**
@@ -184,12 +205,8 @@ public final class DirectiveFile {
    * @return
    */
   public String getValue(final DirectiveDef directiveDef, final AxisID axisID) {
-    DirectiveAttribute attribute = getAttribute(directiveDef, axisID);
-    if (attribute != null && !attribute.isEmpty()) {
-      if (attribute.overrides()) {
-        // the directive was overridden - return null
-        return null;
-      }
+    AttributeMatch attribute = getAttribute(directiveDef, axisID);
+    if (attribute != null) {
       return attribute.getValue();
     }
     return null;
@@ -212,30 +229,11 @@ public final class DirectiveFile {
    * @return
    */
   public boolean isValue(final DirectiveDef directiveDef, final AxisID axisID) {
-    DirectiveAttribute attribute = getAttribute(directiveDef, axisID);
-    if (attribute != null && !attribute.isEmpty()) {
-      if (attribute.overrides()) {
-        return false;
-      }
+    AttributeMatch attribute = getAttribute(directiveDef, axisID);
+    if (attribute != null) {
       return attribute.isValue();
     }
     return false;
-  }
-
-  /**
-   * Returns an attribute from this directive file that matches the parameters.
-   * @param match
-   * @param directiveDef
-   * @param axisID
-   * @return
-   */
-  AttributeMatch getAttribute(final Match match, final DirectiveDef directiveDef,
-      final AxisID axisID) {
-    if (directiveDef == null) {
-      return null;
-    }
-    return DirectiveAttribute.getMatch(match, this, getParentAttribute(directiveDef),
-        directiveDef, axisID);
   }
 
   private ReadOnlyAttribute getParentAttribute(final DirectiveDef directiveDef) {
