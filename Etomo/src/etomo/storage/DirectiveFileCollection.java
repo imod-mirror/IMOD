@@ -166,7 +166,7 @@ public class DirectiveFileCollection implements SetupReconInterface {
   public String getValue(final DirectiveDef directiveDef) {
     return getValue(directiveDef, null);
   }
-  
+
   /**
    * Return the specified element of the directive value if a non-empty, non-overriding
    * directive, or an extraValue is found.
@@ -225,8 +225,6 @@ public class DirectiveFileCollection implements SetupReconInterface {
   public boolean isValue(final DirectiveDef directiveDef) {
     return isValue(directiveDef, null);
   }
-
-
 
   /**
    * @param doValidation has no effect.
@@ -417,7 +415,7 @@ public class DirectiveFileCollection implements SetupReconInterface {
    * @param attribute
    * @param type
    */
-  private void setDirectiveFile(final DirectiveAttribute attribute,
+  private void setDirectiveFile(final AttributeMatch attribute,
       final DirectiveFileType type) {
     if (attribute == null) {
       directiveFileArray[type.getIndex()] = null;
@@ -527,8 +525,8 @@ public class DirectiveFileCollection implements SetupReconInterface {
       // If scan header (only found in the batch directive file and is not in copyarg) is
       // true, then get values from scanning the header which aren't already in the map.
       if (directiveFileArray[DirectiveFileType.BATCH.getIndex()] != null) {
-        DirectiveAttribute attribute = directiveFileArray[DirectiveFileType.BATCH
-            .getIndex()].getAttribute(DirectiveDef.SCAN_HEADER, null);
+        AttributeMatch attribute = directiveFileArray[DirectiveFileType.BATCH.getIndex()]
+            .getAttribute(DirectiveDef.SCAN_HEADER, null);
         if (attribute.isValue()) {
           Iterator<Entry<String, String>> iterator = directiveFileCollection.copyArgExtraValues
               .entrySet().iterator();
