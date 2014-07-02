@@ -160,6 +160,8 @@ final class LabeledSpinner {
   private int maximum;
 
   private Number checkpointValue = null;
+  private Number backupValue = null;
+  private boolean fieldIsBackedUp = false;
 
   /**
    * @param spinner
@@ -240,6 +242,22 @@ final class LabeledSpinner {
     checkpointValue = getValue();
   }
 
+  void backup() {
+    backupValue = getValue();
+    fieldIsBackedUp = true;
+  }
+
+  /**
+   * If the field was backed up, make the backup value the displayed value, and turn off
+   * the back up.
+   */
+  void restoreFromBackup() {
+    if (fieldIsBackedUp) {
+      spinner.setValue(backupValue);
+      fieldIsBackedUp = false;
+    }
+  }
+
   /**
    * Resets to checkpointValue if checkpointValue has been set.  Otherwise has no effect.
    */
@@ -248,6 +266,21 @@ final class LabeledSpinner {
       return;
     }
     setValue(checkpointValue.intValue());
+  }
+
+  /**
+   * 
+   * @param alwaysCheck - check for difference even when the field is disables or invisible
+   * @return
+   */
+  boolean isDifferentFromCheckpoint(final boolean alwaysCheck) {
+    if (!alwaysCheck && (!isEnabled() || !isVisible())) {
+      return false;
+    }
+    if (checkpointValue == null) {
+      return true;
+    }
+    return !checkpointValue.equals(getValue());
   }
 
   Number getValue() {
@@ -271,6 +304,17 @@ final class LabeledSpinner {
     }
     else {
       spinner.setValue(value.getNumber());
+    }
+  }
+
+  void setValue(final String value) {
+    if (value == null || value.matches("\\s*")) {
+      spinner.setValue(defaultValue);
+    }
+    else {
+      EtomoNumber number = new EtomoNumber();
+      number.set(value);
+      setValue(number);
     }
   }
 

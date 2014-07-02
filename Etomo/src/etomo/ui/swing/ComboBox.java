@@ -54,7 +54,7 @@ final class ComboBox {
   private final JPanel pnlRoot;
   final boolean addEmptyChoice;// Causes the index to be off by one
 
-  private boolean checkpointed =false;
+  private boolean checkpointed = false;
   private int checkpointIndex = -1;
   private DebugLevel debug = EtomoDirector.INSTANCE.getArguments().getDebugLevel();
 
@@ -114,6 +114,11 @@ final class ComboBox {
       comboBox.addItem(null);
     }
     comboBox.addItem(input);
+  }
+
+  void setTemplateColor() {
+    label.setForeground(Colors.TEMPLATE);
+    comboBox.setForeground(Colors.TEMPLATE);
   }
 
   String getActionCommand() {

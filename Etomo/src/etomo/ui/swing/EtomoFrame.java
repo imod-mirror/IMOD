@@ -128,6 +128,9 @@ abstract class EtomoFrame extends AbstractFrame {
       else if (menu.equalsNewAnisotropicDiffusion(event)) {
         EtomoDirector.INSTANCE.openAnisotropicDiffusion(true, axisID);
       }
+      else if (menu.equalsNewBatchRunTomo(event)) {
+        EtomoDirector.INSTANCE.openBatchRunTomo(true, axisID);
+      }
       else if (menu.equalsNewPeet(event)) {
         if (PeetManager.isInterfaceAvailable()) {
           EtomoDirector.INSTANCE.openPeet(true, axisID);
@@ -163,7 +166,7 @@ abstract class EtomoFrame extends AbstractFrame {
       }
     }
   }
-  
+
   void close() {
     EtomoDirector.INSTANCE.closeCurrentManager(getAxisID(), false);
   }
@@ -345,6 +348,14 @@ abstract class EtomoFrame extends AbstractFrame {
     EtomoFrame otherFrame = getOtherFrame();
     if (otherFrame != null) {
       getOtherFrame().menu.setEnabledNewAnisotropicDiffusion(enable);
+    }
+  }
+
+  void setEnabledNewBatchRunTomoMenuItem(boolean enable) {
+    menu.setEnabledNewBatchRunTomo(enable);
+    EtomoFrame otherFrame = getOtherFrame();
+    if (otherFrame != null) {
+      getOtherFrame().menu.setEnabledNewBatchRunTomo(enable);
     }
   }
 
