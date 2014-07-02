@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/2/14: Added script Restrictalign for setting parameters appropriately in a
+Tiltalign command file when there are low numbers of fiducials.
+
 7/1/14: Made Ccderaser able to erase points with large differences from their
 neighbors in the border region where regular analysis is not done.
 
