@@ -613,8 +613,6 @@ subroutine calcElongation(boxTmp, nxBox, nyBox, xpeak, ypeak, elongation)
   getEdgeSD = .false.
   edgeMedian = .true.
   call edgeForCG(elongSmooth, nxBox, nyBox, ixcen, iycen, edge, edgeSD, i)
-  write(*,'(f12.1,2f8.1,4i6)')edgeSD,xpeak,ypeak,nxBox / 2 + nint(xpeak), nyBox / 2 + nint(ypeak),&
-      ixcen,iycen
   getEdgeSD = edgeSDsave
   edgeMedian = edgeMedianSave
   if (i .ne. 0 .or. ixcen <= 0 .or. ixcen > nxBox .or. iycen <= 0 .or. iycen > nyBox)  &
@@ -649,10 +647,6 @@ subroutine calcElongation(boxTmp, nxBox, nyBox, xpeak, ypeak, elongation)
     indCheck = indCheck + 1
   enddo
   if (numPos < 4) return
-    write(*,'(5f12.2)')edge,bestSum,thresh, bestSum/4 - edge, thresh - edge
-    do iy = max(1,nyBox / 2 + nint(ypeak)-5),min(nyBox,nyBox / 2 + nint(ypeak)+5)
-      write(*,'(11i7)')(nint(elongSmooth(ix,iy)-edge),ix = max(1,nxBox / 2 + nint(xpeak)-5),min(nxBox,nxBox / 2 + nint(xpeak)+5))
-    enddo
 
   ! Get the means and moments and apply the equation for elongation
   xmean = dxsum / numPos
@@ -666,7 +660,6 @@ subroutine calcElongation(boxTmp, nxBox, nyBox, xpeak, ypeak, elongation)
 
   root = sqrt(4. * dxysum**2 + (dxsqsum - dysqsum)**2)
   elongation = (dxsqsum + dysqsum + root) / (dxsqsum + dysqsum - root)
-  write(*,'(i3,3f12.3,f8.3)'),numPos,dxsqsum, dysqsum,dxysum,elongation
 
   ! This is supposedly the axis angle but it seemed flaky.  Trying to find a long axis
   ! by looking at points above threshold was problematic
