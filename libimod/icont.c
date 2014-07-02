@@ -665,7 +665,7 @@ double imodContourCenterMoment(Icont *cont, Ipoint *org, int a, int b)
   return(moment);
 }
 
-/*
+/*!
  * Computes an ellipse whose moments are the same as the area inside contour [cont],
  * which is assumed to be planar, and returns the center position in [center], the a and
  * b parameters for long and short axes in [longAxis] and [shortAxis], and the orientation

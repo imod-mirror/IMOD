@@ -1,5 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/1/14: Made Ccderaser able to erase points with large differences from their
+neighbors in the border region where regular analysis is not done.
+
+7/1/14: Changed Newstack antialiased reduction to give same image size and
+centering as binning (In 4.7).
+ 
 6/27/14: Added option to Alterheader to set space group and made Tilt set it
 to 1 for tomogram output, following new MRC conventions (In 4.7).
 
