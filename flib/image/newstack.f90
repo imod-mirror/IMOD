@@ -2353,7 +2353,10 @@ subroutine getReducedSize(nx, reduction, doShrink, nxBin, xOffset)
   integer*4 nx, nxBin, ixOffset
   real*4 reduction, xOffset
   logical doShrink
-  if (doShrink) then
+  !
+  ! For non-integer shrinkage, just cut the size, otherwise match the binned
+  ! size for consistency in tilt series processing
+  if (doShrink .and. abs(nint(reduction) - reduction) > 1.e-4) then
     nxBin = nx / reduction
     xOffset = (nx - nxBin * reduction) / 2.
   else
