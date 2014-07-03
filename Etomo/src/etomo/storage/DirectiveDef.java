@@ -309,6 +309,15 @@ public final class DirectiveDef {
 
   /**
    * Get name according to which match is being done
+   *    * <p>How well an attribute matches an axis.  Primary is the first match, secondary is
+   * the second match.</p>
+   * <p>Copyarg:</p>
+   * <p>axis = null: 1. no prefix, does not match b</p>
+   * <p>axis = only: 1. no prefix, does not match b</p>
+   * <p>axis = first: 1. no prefix, does not match b</p>
+   * <p>axis = second:</p>
+   * <p>Templatable:1. b prefix,2. no prefix</p>
+   * <p>Not templateable: 1. b prefix, does not match no prefix</p>
    * @param match
    * @param axisID
    * @return
@@ -339,6 +348,12 @@ public final class DirectiveDef {
   }
 
   /**
+   * Returns the axis tag.
+   * <p>Runtime and Comparam:</p>
+   * <p>axis = null:  1. any, 2. a, does not match b</p>
+   * <p>axis = only: 1. any, 2. a, does not match b</p>
+   * <p>axis = first: 1. a, 2. any, does not match b</p>
+   * <p>axis = second: 1. b, 2. any, does not match a</p>
    * @param match
    * @param axisID
    * @return axis name for runtime directives
@@ -361,6 +376,7 @@ public final class DirectiveDef {
   }
 
   /**
+   * @see getAxis
    * @param match
    * @param axisID
    * @return axis name for runtime directives
@@ -428,7 +444,6 @@ public final class DirectiveDef {
   }
 
   /**
-   * Returns the axis tag.
    * @param axisID
    * @param axisType - when dual forces the use of "a" in runtime and comparam directives when axisID is FIRST
    * @return
