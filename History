@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/2/14: Fixed problem with fiducial number that Batchruntomo uses to decide if
+stretching can be solved (in 4.7).
+
 7/1/14: Changed Newstack antialiased reduction to give same image size and
 centering as binning (In 4.7).
  
