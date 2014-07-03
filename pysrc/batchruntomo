@@ -1543,7 +1543,6 @@ def runTiltalign(taLines):
    if didLocalAlign or enableStretch:
 
       # are there enough fids for stretch?
-      totalFid = numBot
       numruns = 2
       if enableStretch:
          if totalFid > minTotGlblStretch and \
