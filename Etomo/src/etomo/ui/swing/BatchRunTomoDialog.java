@@ -209,7 +209,7 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
   private void msgDirectivesChanged(final boolean init) {
     boolean retainUserValues = false;
     if (!init) {
-      // see if the user has changed any values, and save values that the user has changed
+      // See if the user has changed any values (and back up the changed values).
       boolean changed = false;
       if (table.backupIfChanged()) {
         changed = true;
@@ -224,7 +224,7 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
         changed = true;
       }
       if (changed) {
-        // ask the user whether they want to keep the values they changed
+        // Ask the user whether they want to keep the values they changed.
         retainUserValues = UIHarness.INSTANCE
             .openYesNoDialog(
                 manager,
@@ -232,17 +232,27 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
                 axisID);
       }
     }
-    // Go back to initial values
+    // Apply default values
+    // TODO 1790
+    // Apply settings values
+    // TODO 1790
+    // Apply the template values
     table.setValues(directiveFileCollection);
     Iterator<BatchRunTomoDatasetDialog> iterator = datasetLevelDialogList.iterator();
     while (iterator.hasNext()) {
       iterator.next().setValues(directiveFileCollection);
     }
     datasetDialog.setValues(directiveFileCollection);
-    // apply the setup values, starting batch directive file and template files
     // checkpoint
+    table.checkpoint();
+    iterator = datasetLevelDialogList.iterator();
+    while (iterator.hasNext()) {
+      iterator.next().checkpoint();
+    }
+    datasetDialog.checkpoint();
+    // If the user wants to retain their values, apply backed up values and then delete
+    // them.
     if (retainUserValues) {
-      // apply saved user values, and delete saved user values
       table.restoreFromBackup();
       iterator = datasetLevelDialogList.iterator();
       while (iterator.hasNext()) {
