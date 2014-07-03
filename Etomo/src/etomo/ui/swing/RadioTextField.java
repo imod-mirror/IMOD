@@ -155,7 +155,7 @@ final class RadioTextField implements RadioButtonInterface {
     radioButton.backup();
     textField.backup();
   }
-  
+
   /**
    * If a field was backed up, make the backup value the displayed value, and turn off
    * the back up.  This has no effect on a radio button with a backupValue of false,
@@ -164,6 +164,11 @@ final class RadioTextField implements RadioButtonInterface {
   void restoreFromBackup() {
     radioButton.restoreFromBackup();
     textField.restoreFromBackup();
+  }
+
+  void checkpoint() {
+    radioButton.checkpoint();
+    textField.checkpoint();
   }
 
   boolean isDifferentFromCheckpoint(final boolean alwaysCheck) {
