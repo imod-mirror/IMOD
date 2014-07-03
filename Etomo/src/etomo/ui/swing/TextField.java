@@ -44,7 +44,7 @@ final class TextField implements UIComponent, SwingComponent {
   private Border origBorder = null;
   private String checkpointValue = null;
   private String backupValue = null;
-  private boolean fieldIsBackedUp=false;
+  private boolean fieldIsBackedUp = false;
 
   TextField(final FieldType fieldType, final String reference, final String locationDescr) {
     this.locationDescr = locationDescr;
@@ -132,7 +132,7 @@ final class TextField implements UIComponent, SwingComponent {
   void backup() {
     backupValue = textField.getText();
   }
-  
+
   /**
    * If the field was backed up, make the backup value the displayed value, and turn off
    * the back up.
@@ -142,6 +142,10 @@ final class TextField implements UIComponent, SwingComponent {
       setText(backupValue);
       fieldIsBackedUp = false;
     }
+  }
+
+  void checkpoint() {
+    checkpointValue = getText();
   }
 
   /**
@@ -184,7 +188,7 @@ final class TextField implements UIComponent, SwingComponent {
     String text = textField.getText();
     if (doValidation && textField.isEnabled()) {
       text = FieldValidator.validateText(text, fieldType, this, getQuotedReference()
-          + (locationDescr == null ? "" : " in " + locationDescr), required,false);
+          + (locationDescr == null ? "" : " in " + locationDescr), required, false);
     }
     return text;
   }
