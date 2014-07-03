@@ -6,10 +6,12 @@ import java.awt.Font;
 
 import javax.swing.JLabel;
 import javax.swing.JTextField;
+import javax.swing.border.Border;
 
 import etomo.EtomoDirector;
 import etomo.logic.FieldValidator;
 import etomo.storage.autodoc.AutodocTokenizer;
+import etomo.type.EtomoNumber;
 import etomo.type.UITestFieldType;
 import etomo.ui.FieldType;
 import etomo.ui.FieldValidationFailedException;
@@ -29,7 +31,7 @@ import etomo.util.Utilities;
  * 
  * @version $Revision$
  */
-final class TextField implements UIComponent ,SwingComponent{
+final class TextField implements UIComponent, SwingComponent {
   public static final String rcsid = "$Id$";
 
   private final JTextField textField = new JTextField();
@@ -39,6 +41,10 @@ final class TextField implements UIComponent ,SwingComponent{
   private final String locationDescr;
 
   private boolean required = false;
+  private Border origBorder = null;
+  private String checkpointValue = null;
+  private String backupValue = null;
+  private boolean fieldIsBackedUp = false;
 
   TextField(final FieldType fieldType, final String reference, final String locationDescr) {
     this.locationDescr = locationDescr;
@@ -61,7 +67,7 @@ final class TextField implements UIComponent ,SwingComponent{
   void setToolTipText(String text) {
     textField.setToolTipText(TooltipFormatter.INSTANCE.format(text));
   }
-  
+
   public SwingComponent getUIComponent() {
     return this;
   }
@@ -80,6 +86,87 @@ final class TextField implements UIComponent ,SwingComponent{
 
   void setEditable(boolean editable) {
     textField.setEditable(editable);
+  }
+
+  /**
+   * @param alwaysCheck - when false return false when the field is disabled or invisible
+   * @return true if text field is different from checkpoint
+   */
+  boolean isDifferentFromCheckpoint(final boolean alwaysCheck) {
+    if (!alwaysCheck && (!textField.isEnabled() || !textField.isVisible())) {
+      return false;
+    }
+    if (checkpointValue == null) {
+      return true;
+    }
+    if (checkpointValue.equals(textField.getText())) {
+      return true;
+    }
+    // Failed string comparison. Try comparing numerically
+    EtomoNumber.Type type = null;
+    if (fieldType == FieldType.FLOATING_POINT) {
+      type = EtomoNumber.Type.DOUBLE;
+    }
+    else if (fieldType == FieldType.INTEGER) {
+      type = EtomoNumber.Type.LONG;
+    }
+    if (type != null) {
+      EtomoNumber checkpointNumber = new EtomoNumber(type);
+      checkpointNumber.set(checkpointValue);
+      if (!checkpointNumber.isValid()) {
+        // Cannot compare numerically
+        return false;
+      }
+      EtomoNumber currentNumber = new EtomoNumber(type);
+      currentNumber.set(textField.getText());
+      if (!currentNumber.isValid()) {
+        // Cannot compare numerically
+        return false;
+      }
+      return !checkpointValue.equals(textField.getText());
+    }
+    // Not a number
+    return false;
+  }
+
+  void backup() {
+    backupValue = textField.getText();
+  }
+
+  /**
+   * If the field was backed up, make the backup value the displayed value, and turn off
+   * the back up.
+   */
+  void restoreFromBackup() {
+    if (fieldIsBackedUp) {
+      setText(backupValue);
+      fieldIsBackedUp = false;
+    }
+  }
+
+  void checkpoint() {
+    checkpointValue = getText();
+  }
+
+  /**
+   * Sets text field border to border param.  If border param is null, attempts to set the
+   * border back to the original border.
+   * @param border
+   */
+  void setBorder(final Border border) {
+    if (border != null) {
+      if (origBorder == null) {
+        origBorder = textField.getBorder();
+      }
+      textField.setBorder(border);
+    }
+    else {
+      textField.setBorder(origBorder);
+    }
+  }
+
+  Border getBorder() {
+    return textField.getBorder();
   }
 
   void setText(String text) {
@@ -101,7 +188,7 @@ final class TextField implements UIComponent ,SwingComponent{
     String text = textField.getText();
     if (doValidation && textField.isEnabled()) {
       text = FieldValidator.validateText(text, fieldType, this, getQuotedReference()
-          + (locationDescr == null ? "" : " in " + locationDescr), required,false);
+          + (locationDescr == null ? "" : " in " + locationDescr), required, false);
     }
     return text;
   }

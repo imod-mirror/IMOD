@@ -44,6 +44,9 @@ final class RadioButton implements RadioButtonInterface {
 
   private boolean debug = false;
   private EtomoBoolean2 checkpointValue = null;
+  private boolean backupValue = false;
+  private boolean fieldIsBackedUp = false;
+  private Color origForeground = null;
 
   RadioButton(final String text) {
     this(text, null, null);
@@ -113,12 +116,43 @@ final class RadioButton implements RadioButtonInterface {
     }
     checkpointValue.set(isSelected());
   }
+  
+  void backup() {
+    backupValue=isSelected();
+    fieldIsBackedUp=true;
+  }
+  
+  /**
+   * If the field was backed up, make the backup value the displayed value if possible,
+   * and turn off the back up.  Its impossible to turn off a radio button, so this only
+   * works if the backupValue is true.  This relies on the other radio buttons in the
+   * group also being backed up.
+   */
+  void restoreFromBackup() {
+    if (fieldIsBackedUp) {
+      if (backupValue) {
+      setSelected(true);}
+      fieldIsBackedUp = false;
+    }
+  }
 
   boolean isCheckpointValue() {
     if (checkpointValue == null) {
       return false;
     }
     return checkpointValue.is();
+  }
+  
+  /**
+   * 
+   * @param alwaysCheck - check for difference even when the field is disables or invisible
+   * @return
+   */
+  boolean isDifferentFromCheckpoint(final boolean alwaysCheck) {
+    if (!alwaysCheck && (!isEnabled() || !radioButton.isVisible())) {
+      return false;
+    }
+    return checkpointValue == null || !checkpointValue.equals(isSelected());
   }
 
   void setText(final String text) {
@@ -170,6 +204,23 @@ final class RadioButton implements RadioButtonInterface {
 
   public void setDebug(final boolean input) {
     debug = input;
+  }
+
+  void setTemplateColor(final boolean input) {
+    if (input) {
+      if (origForeground == null) {
+        origForeground = radioButton.getForeground();
+      }
+      setForeground(Colors.TEMPLATE);
+    }
+    else {
+      if (origForeground != null) {
+        setForeground(origForeground);
+      }
+      else {
+        setForeground(Color.black);
+      }
+    }
   }
 
   /**
