@@ -243,6 +243,11 @@ final class DirectiveAttribute {
     }
   }
 
+  /**
+   * <p>How well an attribute matches an axis.  Primary is the first match, secondary is
+   * the second match.</p>
+   * @see DirectiveDef
+   */
   static final class Match {
     static final Match PRIMARY = new Match("primary");
     static final Match SECONDARY = new Match("secondary");
