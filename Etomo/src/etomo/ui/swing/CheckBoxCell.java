@@ -81,6 +81,16 @@ final class CheckBoxCell extends InputCell implements ToggleCell {
     }
   }
 
+  /**
+   * Constructs savedValue (if it doesn't exist).  Saves the current setting.
+   */
+  void checkpoint() {
+    if (checkpointValue == null) {
+      checkpointValue = new EtomoBoolean2();
+    }
+    checkpointValue.set(isSelected());
+  }
+
   public void setEnabled(final boolean enabled) {
     setEditable(enabled);
   }
