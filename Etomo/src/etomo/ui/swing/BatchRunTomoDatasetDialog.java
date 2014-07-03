@@ -439,6 +439,38 @@ final class BatchRunTomoDatasetDialog implements ActionListener {
     ltfFallbackThickness.restoreFromBackup();
   }
 
+  void checkpoint() {
+    ftfDistort.checkpoint();
+    ftfGradient.checkpoint();
+    cbRemoveXrays.checkpoint();
+    ftfModelFile.checkpoint();
+    rbTrackingMethodSeed.checkpoint();
+    rbTrackingMethodRaptor.checkpoint();
+    rbTrackingMethodPatchTracking.checkpoint();
+    rbFiducialless.checkpoint();
+    ltfGold.checkpoint();
+    ltfLocalAreaTargetSize.checkpoint();
+    ltfTargetNumberOfBeads.checkpoint();
+    ltfSizeOfPatchesXandY.checkpoint();
+    lsContourPieces.checkpoint();
+    lsBinByFactor.checkpoint();
+    cbCorrectCTF.checkpoint();
+    ltfDefocus.checkpoint();
+    rbFitEveryImage.checkpoint();
+    rtfAutoFitRangeAndStep.checkpoint();
+    ltfAutoFitStep.checkpoint();
+    rbUseSirtFalse.checkpoint();
+    rbUseSirtTrue.checkpoint();
+    rbDoBackprojAlso.checkpoint();
+    ltfLeaveIterations.checkpoint();
+    cbScaleToInteger.checkpoint();
+    rtfThickness.checkpoint();
+    rtfBinnedThickness.checkpoint();
+    rbDeriveThickness.checkpoint();
+    tfExtraThickness.checkpoint();
+    ltfFallbackThickness.checkpoint();
+  }
+
   /**
    * Set values from the directive file collection.  Only change fields that exist in
    * directive file collection.
