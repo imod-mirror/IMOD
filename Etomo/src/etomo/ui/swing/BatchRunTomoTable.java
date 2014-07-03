@@ -234,6 +234,10 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable {
     rowList.setValues(directiveFileCollection);
   }
 
+  void checkpoint() {
+    rowList.checkpoint();
+  }
+
   private void updateDisplay() {
     boolean enable = rowList.size() > 0;
     boolean highlighted = rowList.isHighlighted();
@@ -399,6 +403,11 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable {
     void setValues(final DirectiveFileCollection directiveFileCollection) {
       for (int i = 0; i < list.size(); i++) {
         list.get(i).setValues(directiveFileCollection);
+      }
+    }
+    void checkpoint() {
+      for (int i = 0; i < list.size(); i++) {
+        list.get(i).checkpoint();
       }
     }
   }
