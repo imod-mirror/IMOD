@@ -174,8 +174,14 @@ final class BatchRunTomoRow implements Highlightable {
     cbcTwoSurfaces.restoreFromBackup();
   }
 
+  void checkpoint() {
+    cbcDualAxis.checkpoint();
+    cbcMontage.checkpoint();
+    cbcTwoSurfaces.checkpoint();
+  }
+
   /**
-   * Set values from the directive file collection
+   * Set values from the directive file collection - only for directive that are present.
    * @param directiveFileCollection
    */
   void setValues(final DirectiveFileCollection directiveFileCollection) {
