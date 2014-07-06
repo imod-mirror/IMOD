@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/6/14: Made Batchruntomo convert a directive for chopping up patch tracking
+contours into option to Imodchopconts instead of Tiltxcorr; fixed problem with 
+Imodchopconts testing for whether incompatible options were entered (In 4.7).
+
 7/5/14: IMOD_4-8-8
 7/5/14: Batchruntomo has changes for controlling thickness and calls
 Restrictalign to reduce variable being solved for when necessary.
