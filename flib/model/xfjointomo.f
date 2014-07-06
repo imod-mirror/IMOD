@@ -389,7 +389,7 @@ c
             endif
           else if (igap .eq. 1) then
             write(*,130)npnts,isec,limpnts
-130         format('WARNING: There are only',i2,'points across boundary',i4,
+130         format('WARNING: There are only',i2,' points across boundary',i4,
      &          '; ',i2,' are needed to solve for the selected parameters')
           endif
         enddo

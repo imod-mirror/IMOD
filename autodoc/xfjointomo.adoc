@@ -25,7 +25,7 @@ usage = Output file for list of global transforms for Finishjoin
 tooltip = 
 manpage = Output file for list of global transforms that can be supplied to 
 Finishjoin(1), adjusted for any offsets used when making the join file that 
-was modeled.  This entry is required unless not outputting transforms for every
+was modeled.  This entry is required unless outputting transforms for every
 slice, in which case it must be omitted.  If this option is not entered, the
 third non-option argument will be used.
 
