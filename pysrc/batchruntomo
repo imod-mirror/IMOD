@@ -15,7 +15,7 @@ BatInd = 3
 # Variables that need to be global, probably superfluous but here as an FYI
 global datasetDir, dualAxis, setName, scanHeader, ifMontage, defocus, pixelSize
 global fidSizeNm, fidSizePix, montFrameData, lightBeads, numSurfaces, haveAaxisAFSbound
-global rawXsize, rawYsize, zsize, fiducialless, contourPieces, coarseBinning
+global rawXsize, rawYsize, zsize, fiducialless, coarseBinning
 global xtiltNeeded, fidThickness, fidIncShift, reconThickness, didLocalAlign, madeZfactors
 global aliBinning, aliXunbinned, aliYunbinned, patchTrack, totalDelTilt, latestMessages
 global suppressAbort, absDirectiveFile, userTemplateDir, summaryMessage, logFile
@@ -1207,7 +1207,6 @@ def fidlessFileOperations(taLines):
 
 # Run tiltxcorr to do patch tracking
 def runPatchTracking():
-   global contourPieces
    contourPieces = lookupDirective(patchTrackText, 'contourPieces', 0, INT_VALUE)
    if isinstance(contourPieces, str):
       abortSet('Error converting contour pieces in directive to integer')
@@ -1244,12 +1243,16 @@ def runPatchTracking():
       comlines.append(fmtstr('OneParameterChange {}xcorr_pt{}.tiltxcorr.' +
                              'BoundaryModel={}', comPrefix, axisLet, boundaryMod))
 
+   # Convert runtime directive for contour pieces into com directive for imodchopconts
    if contourPieces and contourPieces > 1:
-      overlap = 4
-      length = (zsize + (contourPieces - 1) * overlap) // contourPieces
-      comlines.append(fmtstr('OneParameterChange {}xcorr_pt{}.tiltxcorr.' + \
-                                'LengthAndOverlap={},{}', comPrefix, axisLet,
-                             length, overlap))
+      if lookupDirective(comPrefix + 'xcorr_pt', 'imodchopconts.LengthOfPieces', 0,
+                         STRING_VALUE):
+         abortSet('Both xcorr_pt.imodchopconts.LengthOfPieces and ' +\
+                     'PatchTracking.contourPieces were entered; only one is allowed')
+         return 1
+      comlines.append(fmtstr('OneParameterChange {}xcorr_pt{}.imodchopconts.' + \
+                                'NumberOfPieces={}', comPrefix, axisLet, contourPieces))
+
    if makeAndRunOneCom(comlines, 'xcorr_pt' + axisCom,
                        'Tracking patches to make alignment model'):
       return 1
@@ -2061,9 +2064,8 @@ def trimVolume():
 # Do all the operations on an axis
 def runOneAxis():
    global xtiltNeeded, fidThickness, fidIncShift, reconThickness
-   global contourPieces, numSurfaces
+   global numSurfaces
    xtiltNeeded, fidThickness, fidIncShift, reconThickness = 0., 0., 0., 0.
-   contourPieces = 0
    
    if getAxisInitialParameters():
       return 1
