@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/6/14: Made Batchruntomo convert a directive for chopping up patch tracking
+contours into option to Imodchopconts instead of Tiltxcorr; fixed problem with 
+Imodchopconts testing for whether incompatible options were entered (In 4.7).
+
 7/2/14: Fixed problem with fiducial number that Batchruntomo uses to decide if
 stretching can be solved (in 4.7).
 
