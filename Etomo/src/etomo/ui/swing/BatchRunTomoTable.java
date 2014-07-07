@@ -18,6 +18,7 @@ import javax.swing.border.LineBorder;
 import etomo.BaseManager;
 import etomo.storage.DirectiveFileCollection;
 import etomo.storage.StackFileFilter;
+import etomo.type.UserConfiguration;
 import etomo.ui.BatchRunTomoTab;
 
 /**
@@ -234,6 +235,10 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable {
     rowList.setValues(directiveFileCollection);
   }
 
+  void setValues(final UserConfiguration userConfiguration) {
+    rowList.setValues(userConfiguration);
+  }
+
   void checkpoint() {
     rowList.checkpoint();
   }
@@ -403,6 +408,11 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable {
     void setValues(final DirectiveFileCollection directiveFileCollection) {
       for (int i = 0; i < list.size(); i++) {
         list.get(i).setValues(directiveFileCollection);
+      }
+    }
+    void setValues(final  UserConfiguration userConfiguration) {
+      for (int i = 0; i < list.size(); i++) {
+        list.get(i).setValues(userConfiguration);
       }
     }
     void checkpoint() {
