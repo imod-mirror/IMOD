@@ -27,7 +27,8 @@ each.  The actual length can be affected by the entry for \fB-overlap\fR.  If
 -1 is entered, the length will be the default for breaking up contours from
 patch tracking in eTomo, which is the Z size in the
 model divided by 5, but no less than 16.  The default if neither this option
-nor \fB-length\fR is entered is to leave contours as they are.
+nor \fB-number\fR is entered is to leave contours as they are.  This option
+cannot be entered with \fB-number\fR.
 
 [Field = MinimumOverlap]
 short = overlap
@@ -50,7 +51,7 @@ tooltip =
 manpage = This option provides an alternative way to specify how to chop up
 contours.  The maximum number of points in any contour to be processed will be
 divided by the given number to determine the number of points to require in
-each new contour.
+each new contour.  This option cannot be entered with \fB-length\fR.
 
 [Field = AssignSurfaces]
 short = surfaces
