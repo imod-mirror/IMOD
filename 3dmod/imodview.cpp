@@ -3381,6 +3381,15 @@ int ivwSetTopZapZoom(ImodView *inImodView, float inZoom, bool draw)
   return 0;
 }
 
+int ivwGetTopSlicerThickness(ImodView *inImodView, int *outThick)
+{
+  SlicerFuncs *ss = getTopSlicer();
+  if (!ss)
+    return 1;
+  *outThick = ss->mNslice;
+  return 0;
+}
+
 int ivwSetTopZapZslice(ImodView *inImodView, int inZ)
 {
   if (inZ < 0 || inZ >= App->cvi->zsize)

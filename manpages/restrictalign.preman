@@ -28,8 +28,10 @@ be turned off.  If these restrictions are sufficient, no further
 changes are made.  When there are fewer than 3 beads, the beam tilt
 solution, projection stretch, and variable X-axis tilt between two
 halves of a tilt series are turned off; all of these
-involve solving for a single variable.  Finally, the solution for one
-rotation angle is turned off with only one bead.
+involve solving for a single variable.  The solution for one
+rotation angle is turned off with only one bead.  When the ratio of
+measurements to unknowns falls below the minimum, robust fitting is
+turned off.
 .P
 The program always changes parameters so as to solve for fewer
 variables than in the current file.  If the ratio is already greater

@@ -244,6 +244,7 @@ for ind in range(len(origParam)):
 
 newRatio = measuredToUnknown(newParam)
 
+# batchruntomo looking for 'No restriction'
 if newRatio >= targetRatio:
    prnstr(progname + ': No restriction of parameters needed')
    sys.exit(0)
@@ -317,24 +318,35 @@ for orderInd in range(-1, len(order)):
    newParam = copy.deepcopy(nextParam)
    newRatio = nextRatio
 
+
 # After all that, are there any changes?  If not, exit
+robustOff = robustAlign and newRatio < minRatio
+noParamChange = False
 for ind in range(len(origParam)):
    if (not origParam[ind] and newParam[ind]) or \
           origParam[ind] and origParam[ind] != newParam[ind]:
       break
 else:     # ELSE ON FOR
-   prnstr(progname + ': No restriction of parameters needed')
-   sys.exit(0)
+   noParamChange = True
+   if not robustOff:
+      prnstr(progname + ': No restriction of parameters needed')
+      sys.exit(0)
 
 # Now that we know what to do, build up the sed command for the changes and list them
 sedcom = []
-prnstr(fmtstr('{}: Changed {} to achieve measured/unknown ratio of ~{:.1f}', progname,
+if noParamChange:
+   prnstr(fmtstr('{}: Changed {} given the measured/unknown ratio of ~{:.1f}', progname,
               comfile, newRatio))
+else:
+   prnstr(fmtstr('{}: Changed {} to achieve measured/unknown ratio of ~{:.1f}', progname,
+                 comfile, newRatio))
 if localAlign:
    prnstr('Turned off local alignments')
    sedcom.append(sedModify('LocalAlignments', 0))
-if robustAlign and newRatio < minRatio:
-   prnstr('Turned off robust alignment because ratio is so low')
+
+# batchruntomo looking for 'off robust'
+if robustOff:
+   prnstr('Turned off robust fitting because ratio is so low')
    sedcom.append(sedModify('RobustFitting', 0))
 if origParam[XSTRETCH_OPT] and not newParam[XSTRETCH_OPT]:
    prnstr('Turned off solving for X stretch')
