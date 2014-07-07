@@ -19,11 +19,13 @@ import javax.swing.event.ChangeListener;
 
 import etomo.BaseManager;
 import etomo.EtomoDirector;
+import etomo.logic.UserEnv;
 import etomo.storage.DirectiveFileCollection;
 import etomo.type.AxisID;
 import etomo.type.BatchRunTomoMetaData;
 import etomo.type.DialogType;
 import etomo.type.DirectiveFileType;
+import etomo.type.UserConfiguration;
 import etomo.ui.BatchRunTomoTab;
 import etomo.ui.FieldType;
 import etomo.util.Utilities;
@@ -67,6 +69,7 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
   private final MultiLineButton btnRun = new MultiLineButton("Run Batchruntomo");
   private final JPanel pnlRunButton = new JPanel();
   private final JPanel pnlParallelSettings = new JPanel();
+  private final UserConfiguration userConfiguration = EtomoDirector.INSTANCE.getUserConfiguration();
 
   private final FileTextField2 ftfRootName;
   private final FileTextField2 ftfInputDirectiveFile;
@@ -119,7 +122,10 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
     ftfDeliverToDirectory.setFileSelectionMode(FileChooser.DIRECTORIES_ONLY);
     btnRun.setToPreferredSize();
     tabbedPane.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
-    templatePanel.setParameters(EtomoDirector.INSTANCE.getUserConfiguration());
+    templatePanel.setParameters(userConfiguration);
+    cbUseCPUMachineList
+        .setSelected(UserEnv.isParallelProcessing(null, AxisID.ONLY, null));
+    cbUseGPUMachineList.setSelected(UserEnv.isGpuProcessing(null, AxisID.ONLY, null));
     // root panel
     pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.Y_AXIS));
     pnlRoot.setBorder(new BeveledBorder("Batchruntomo Interface").getBorder());
@@ -235,7 +241,7 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
     // Apply default values
     // TODO 1790
     // Apply settings values
-    // TODO 1790
+    table.setValues(userConfiguration);
     // Apply the template values
     table.setValues(directiveFileCollection);
     Iterator<BatchRunTomoDatasetDialog> iterator = datasetLevelDialogList.iterator();
