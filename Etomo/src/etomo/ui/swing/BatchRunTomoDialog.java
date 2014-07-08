@@ -242,7 +242,6 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
       }
     }
     // Apply default values
-    table.setDefaultValues();
     Iterator<BatchRunTomoDatasetDialog> iterator = datasetLevelDialogList.iterator();
     while (iterator.hasNext()) {
       iterator.next().setDefaultValues();
@@ -252,7 +251,7 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
     table.setValues(userConfiguration);
     // Apply the template values
     table.setValues(directiveFileCollection);
-    Iterator<BatchRunTomoDatasetDialog> iterator = datasetLevelDialogList.iterator();
+    iterator = datasetLevelDialogList.iterator();
     while (iterator.hasNext()) {
       iterator.next().setValues(directiveFileCollection);
     }
