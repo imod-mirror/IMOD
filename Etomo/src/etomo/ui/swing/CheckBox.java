@@ -169,6 +169,9 @@ final class CheckBox extends JCheckBox {
       fieldIsBackedUp = false;
     }
   }
+  
+  void setDefaultValue() {
+  }
 
   /**
    * Constructs savedValue (if it doesn't exist).  Saves the current setting.
