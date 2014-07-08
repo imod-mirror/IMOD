@@ -122,6 +122,7 @@ public final class AutodocFactory {
   public static final String XFALIGN = "xfalign";
   public static final String AUTOFIDSEED = "autofidseed";
   public static final String ETOMO = "etomo";
+  public static final String PROG_DEFAULTS = "progDefaults";
 
   private static final String TEST = "test";
   private static final String UITEST_AXIS = "uitest_axis";
@@ -163,6 +164,8 @@ public final class AutodocFactory {
       throws FileNotFoundException, IOException, LogFile.LockException {
     return getInstance(manager, name, AxisID.ONLY);
   }
+  
+
 
   public static ReadOnlyAutodoc getInstance(BaseManager manager, String name,
       AxisID axisID) throws FileNotFoundException, IOException, LogFile.LockException {
@@ -224,6 +227,8 @@ public final class AutodocFactory {
       return null;
     }
   }
+  
+  
 
   public static WritableAutodoc getMatlabInstance(BaseManager manager, File file)
       throws IOException, LogFile.LockException {
