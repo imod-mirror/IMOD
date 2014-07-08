@@ -22,6 +22,8 @@ import javax.swing.filechooser.FileFilter;
 
 import etomo.BaseManager;
 import etomo.EtomoDirector;
+import etomo.logic.DefaultFinder;
+import etomo.storage.DirectiveDef;
 import etomo.ui.FieldType;
 import etomo.util.FilePath;
 import etomo.util.Utilities;
@@ -67,6 +69,7 @@ final class FileTextField2 implements FileTextFieldInterface {
   private String checkpointValue = null;
   private boolean fieldIsBackedUp = false;
   private String backupValue = null;
+  private String defaultValue = null;
   /**
    * If origin is valid, it overrides originEtomoRunDir.
    */
@@ -76,6 +79,7 @@ final class FileTextField2 implements FileTextFieldInterface {
    * run.  Useful when a dataset location has not been set.
    */
   private boolean originEtomoRunDir = false;
+  private DirectiveDef directiveDef = null;
 
   private FileTextField2(final BaseManager manager, final String label,
       final boolean labeled, final boolean peet, final boolean alternateLayout) {
@@ -338,6 +342,22 @@ final class FileTextField2 implements FileTextFieldInterface {
     if (fieldIsBackedUp) {
       setText(backupValue);
       fieldIsBackedUp = false;
+    }
+  }
+
+  void setDirectiveDef(final DirectiveDef directiveDef) {
+    this.directiveDef = directiveDef;
+  }
+
+  void setDefaultValue() {
+    if (directiveDef == null || directiveDef.isComparam()) {
+      return;
+    }
+    if (defaultValue == null) {
+      defaultValue = DefaultFinder.INSTANCE.getDefaultValue(directiveDef);
+    }
+    if (defaultValue != null) {
+      setText(defaultValue);
     }
   }
 
