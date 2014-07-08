@@ -292,7 +292,9 @@ public final class DirectiveDef {
   boolean hasSecondaryMatch(final AxisID axisID) {
     if (directiveType == DirectiveType.COPY_ARG) {
       if (axisID == AxisID.SECOND) {
-        loadDirectiveDescr();
+        if (!directiveDescrLoaded) {
+          loadDirectiveDescr();
+        }
         return !batchOnlyB;
       }
       else {
@@ -302,8 +304,14 @@ public final class DirectiveDef {
     return true;
   }
 
+  public boolean isComparam() {
+    return directiveType == DirectiveType.COM_PARAM;
+  }
+
   boolean isBool() {
-    loadDirectiveDescr();
+    if (!directiveDescrLoaded) {
+      loadDirectiveDescr();
+    }
     return bool;
   }
 
@@ -324,7 +332,9 @@ public final class DirectiveDef {
    */
   String getName(final Match match, final AxisID axisID) {
     if (directiveType == DirectiveType.COPY_ARG && axisID == AxisID.SECOND) {
-      loadDirectiveDescr();
+      if (!directiveDescrLoaded) {
+        loadDirectiveDescr();
+      }
       if (separateBDirective) {
         if (match == Match.PRIMARY) {
           return COPY_ARG_B_AXIS_PREFIX + name;
@@ -416,7 +426,9 @@ public final class DirectiveDef {
    * @return
    */
   public String getName(final AxisID axisID) {
-    loadDirectiveDescr();
+    if (!directiveDescrLoaded) {
+      loadDirectiveDescr();
+    }
     if (directiveType == DirectiveType.COPY_ARG && separateBDirective
         && axisID == AxisID.SECOND) {
       return COPY_ARG_B_AXIS_PREFIX + name;
