@@ -115,7 +115,7 @@ final class BatchRunTomoDatasetDialog implements ActionListener {
   }
 
   private void createPanel() {
-    // init
+    // local panels
     JPanel pnlModelFile = new JPanel();
     JPanel pnlTrackingMethod = new JPanel();
     JPanel pnlGold = new JPanel();
@@ -128,8 +128,11 @@ final class BatchRunTomoDatasetDialog implements ActionListener {
     JPanel pnlDeriveThickness = new JPanel();
     JPanel pnlFallbackThickness = new JPanel();
     JPanel pnlAutoFitRangeAndStep = new JPanel();
+    //init
     ftfGradient.setPreferredWidth(272);
     btnModelFile.setToPreferredSize();
+    ftfModelFile.setDirectiveDef(DirectiveDef.MODEL_FILE);
+    //defaults
     rbUseSirtFalse.setSelected(true);
     // Dataset
     pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.Y_AXIS));
@@ -402,6 +405,38 @@ final class BatchRunTomoDatasetDialog implements ActionListener {
       changed = true;
     }
     return changed;
+  }
+  
+  void setDefaultValues() {
+    ftfDistort.setDefaultValue();
+    ftfGradient.setDefaultValue();
+    cbRemoveXrays.setDefaultValue();
+    ftfModelFile.setDefaultValue();
+    rbTrackingMethodSeed.setDefaultValue();
+    rbTrackingMethodRaptor.setDefaultValue();
+    rbTrackingMethodPatchTracking.setDefaultValue();
+    rbFiducialless.setDefaultValue();
+    ltfGold.setDefaultValue();
+    ltfLocalAreaTargetSize.setDefaultValue();
+    ltfTargetNumberOfBeads.setDefaultValue();
+    ltfSizeOfPatchesXandY.setDefaultValue();
+    lsContourPieces.setDefaultValue();
+    lsBinByFactor.setDefaultValue();
+    cbCorrectCTF.setDefaultValue();
+    ltfDefocus.setDefaultValue();
+    rbFitEveryImage.setDefaultValue();
+    rtfAutoFitRangeAndStep.setDefaultValue();
+    ltfAutoFitStep.setDefaultValue();
+    rbUseSirtFalse.setDefaultValue();
+    rbUseSirtTrue.setDefaultValue();
+    rbDoBackprojAlso.setDefaultValue();
+    ltfLeaveIterations.setDefaultValue();
+    cbScaleToInteger.setDefaultValue();
+    rtfThickness.setDefaultValue();
+    rtfBinnedThickness.setDefaultValue();
+    rbDeriveThickness.setDefaultValue();
+    tfExtraThickness.setDefaultValue();
+    ltfFallbackThickness.setDefaultValue();
   }
 
   /**
