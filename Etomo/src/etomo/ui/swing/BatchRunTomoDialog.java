@@ -69,7 +69,8 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
   private final MultiLineButton btnRun = new MultiLineButton("Run Batchruntomo");
   private final JPanel pnlRunButton = new JPanel();
   private final JPanel pnlParallelSettings = new JPanel();
-  private final UserConfiguration userConfiguration = EtomoDirector.INSTANCE.getUserConfiguration();
+  private final UserConfiguration userConfiguration = EtomoDirector.INSTANCE
+      .getUserConfiguration();
 
   private final FileTextField2 ftfRootName;
   private final FileTextField2 ftfInputDirectiveFile;
@@ -109,23 +110,25 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
   }
 
   private void createPanel() {
-    // init
+    // local panels
     JPanel pnlRootName = new JPanel();
     JPanel pnlDeliverToDirectory = new JPanel();
     JPanel pnlTemplates = new JPanel();
-    ftfRootName.setText(new File(System.getProperty("user.dir")).getAbsolutePath());
-    ltfRootName.setText(Utilities.getDateTimeStampRootName());
-    cbDeliverToDirectory.setName(DELIVER_TO_DIRECTORY_NAME);
+    // init
     templatePanel.setTemplateColor();
     ftfInputDirectiveFile.setAbsolutePath(true);
     ftfInputDirectiveFile.setFieldEditable(false);
     ftfDeliverToDirectory.setFileSelectionMode(FileChooser.DIRECTORIES_ONLY);
     btnRun.setToPreferredSize();
     tabbedPane.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
-    templatePanel.setParameters(userConfiguration);
+    // defaults
+    ftfRootName.setText(new File(System.getProperty("user.dir")).getAbsolutePath());
+    ltfRootName.setText(Utilities.getDateTimeStampRootName());
+    cbDeliverToDirectory.setName(DELIVER_TO_DIRECTORY_NAME);
     cbUseCPUMachineList
         .setSelected(UserEnv.isParallelProcessing(null, AxisID.ONLY, null));
     cbUseGPUMachineList.setSelected(UserEnv.isGpuProcessing(null, AxisID.ONLY, null));
+    templatePanel.setParameters(userConfiguration);
     // root panel
     pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.Y_AXIS));
     pnlRoot.setBorder(new BeveledBorder("Batchruntomo Interface").getBorder());
@@ -239,7 +242,12 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
       }
     }
     // Apply default values
-    // TODO 1790
+    table.setDefaultValues();
+    Iterator<BatchRunTomoDatasetDialog> iterator = datasetLevelDialogList.iterator();
+    while (iterator.hasNext()) {
+      iterator.next().setDefaultValues();
+    }
+    datasetDialog.setDefaultValues();
     // Apply settings values
     table.setValues(userConfiguration);
     // Apply the template values
