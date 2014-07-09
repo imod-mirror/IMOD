@@ -8,7 +8,9 @@ import java.io.IOException; //import java.lang.IllegalStateException;
 import java.io.StreamTokenizer;
 import java.io.FileNotFoundException;
 
+import etomo.BaseManager;
 import etomo.storage.LogFile;
+import etomo.type.AxisID;
 import etomo.ui.swing.Token;
 
 /**
@@ -125,12 +127,13 @@ public final class PrimativeTokenizer {
   public static final String rcsid = "$$Id$$";
 
   private static final String RETURN = "\r";
+  private static final String AUTODOC_DIR_ENV_VAR = "AUTODOC_DIR";
 
   private final boolean separateAlphabeticAndNumeric;
+  private final String string;
+  private final LogFile logFile;
 
-  private LogFile file = null;
   private LogFile.ReadingId readingId = null;
-  private String string = null;
   private StreamTokenizer tokenizer = null;
   private String symbols = new String("!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~");
   private String digits = new String("0123456789");
@@ -146,24 +149,63 @@ public final class PrimativeTokenizer {
   private String valueBeingBrokenUp = null;
   private int valueIndex = -1;
 
-  public PrimativeTokenizer(LogFile file, boolean debug) {
-    this.file = file;
-    this.debug = debug;
-    separateAlphabeticAndNumeric = false;
-  }
-
-  public PrimativeTokenizer(String string) {
-    this.string = string;
-    separateAlphabeticAndNumeric = false;
-  }
-
-  public static PrimativeTokenizer getNumericInstance(String string) {
-    return new PrimativeTokenizer(string, true);
-  }
-
-  private PrimativeTokenizer(String string, boolean separateAlphabeticAndNumeric) {
+  private PrimativeTokenizer(final LogFile logFile, final String string,
+      final boolean separateAlphabeticAndNumeric, final boolean debug) {
+    this.logFile = logFile;
     this.string = string;
     this.separateAlphabeticAndNumeric = separateAlphabeticAndNumeric;
+    this.debug = debug;
+  }
+
+  public static PrimativeTokenizer getDefaultInstance(final BaseManager manager,
+      final AxisID axisID, final String name, final String notFoundMessage) {
+    return new PrimativeTokenizer(getLogFile(manager, axisID, null, null, name,
+        notFoundMessage), null, false, false);
+  }
+
+  public static PrimativeTokenizer getStringInstance(final String string) {
+    return new PrimativeTokenizer(null, string, false, false);
+  }
+
+  public static PrimativeTokenizer getNumericStringInstance(final String string) {
+    return new PrimativeTokenizer(null, string, true, false);
+  }
+
+  private static LogFile getLogFile(final BaseManager manager, final AxisID axisID,
+      final File location, final String envVar, final String name,
+      final String notFoundMessage) {
+    return setAutodocFile(manager,name,axisID,envVar,notFoundMessage);
+  }
+
+  private static LogFile setAutodocFile(BaseManager manager, String name, AxisID axisID,
+      String envVariable, final String notFoundMessage) {
+    if (envVariable != null && !envVariable.matches("\\s*+")) {
+      // if envVariable is set, then it points to the only valid directory for this
+      // autodoc
+      dir = Utilities.getExistingDir(manager, envVariable, axisID, notFoundMessage);
+      if (dir == null) {
+        if (notFoundMessage == null) {
+          System.err.println("Warning:  can't open the " + name
+              + " autodoc file.\nThis autodoc should be stored in $" + envVariable
+              + ".\n");
+        }
+        return null;
+      }
+      return getAutodocFile(dir, name, notFoundMessage == null);
+    }
+    dir = Utilities.getExistingDir(manager, AUTODOC_DIR, axisID, notFoundMessage);
+    if (dir != null) {
+      return getAutodocFile(dir, name, notFoundMessage == null);
+    }
+    dir = getDir(manager, IMOD_DIR, DEFAULT_AUTODOC_DIR, axisID);
+    if (dir != null) {
+      return getAutodocFile(dir, name, notFoundMessage == null);
+    }
+    System.err.println(notFoundMessage == null ? "Warning" : "Info"
+        + ":  can't open the " + name
+        + " autodoc file.\nThis autodoc should be stored in either $" + IMOD_DIR + "/"
+        + DEFAULT_AUTODOC_DIR + " or $" + AUTODOC_DIR + ".\n");
+    return null;
   }
 
   /**
@@ -256,13 +298,13 @@ public final class PrimativeTokenizer {
             System.out.println(token);
           }
           found = true;
-          //If "\r" was found before an EOL, roll it into the EOL.  This is
-          //necessary because StreamTokenizer is not working according to its
-          //definition:  It is supposed to return both "\n" and "\r\n" as EOL, but
-          //it does not do this for "\r\n".  If this bug is fixed, then "\r\r\n"
-          //will appear as an EOL, but this is OK because this is character string
-          //that usually means that there was an error in transfering the file
-          //between Windows and Linux.
+          // If "\r" was found before an EOL, roll it into the EOL. This is
+          // necessary because StreamTokenizer is not working according to its
+          // definition: It is supposed to return both "\n" and "\r\n" as EOL, but
+          // it does not do this for "\r\n". If this bug is fixed, then "\r\r\n"
+          // will appear as an EOL, but this is OK because this is character string
+          // that usually means that there was an error in transfering the file
+          // between Windows and Linux.
           if (returnFound && whitespaceFound) {
             returnFound = false;
             whitespaceBuffer.deleteCharAt(whitespaceBuffer.length() - 1);
@@ -334,28 +376,28 @@ public final class PrimativeTokenizer {
    */
   private Token separateAlphabeticAndNumeric(Token token) {
     if (valueBeingBrokenUp == null && !token.is(Token.Type.ALPHANUM)) {
-      //Only ALPHANUM tokens are broken up.
+      // Only ALPHANUM tokens are broken up.
       return token;
     }
     if (valueBeingBrokenUp == null) {
-      //Start breaking up a token.
+      // Start breaking up a token.
       valueBeingBrokenUp = token.getValue();
       valueIndex = 0;
     }
-    //Grab an as large as possible NUMERIC or ALPHABETIC token starting at
-    //valueIndex.
+    // Grab an as large as possible NUMERIC or ALPHABETIC token starting at
+    // valueIndex.
     Token newToken = new Token();
     for (int i = valueIndex; i < valueBeingBrokenUp.length(); i++) {
       char ch = valueBeingBrokenUp.charAt(i);
       if (digits.indexOf(ch) != -1) {
-        //A NUMERIC token.
+        // A NUMERIC token.
         if (newToken.is(Token.Type.NULL)) {
-          //Start the NUMERIC token.
+          // Start the NUMERIC token.
           newToken.set(Token.Type.NUMERIC);
         }
         else if (newToken.is(Token.Type.ALPHABETIC)) {
-          //Found the end of the NUMERIC token.  Add the value to the new token
-          //and return.
+          // Found the end of the NUMERIC token. Add the value to the new token
+          // and return.
           newToken.set(valueBeingBrokenUp.substring(valueIndex, i));
           if (debug) {
             System.out.println(newToken);
@@ -364,14 +406,14 @@ public final class PrimativeTokenizer {
         }
       }
       else if (letters.indexOf(ch) != -1) {
-        //An ALPHABETIC token
+        // An ALPHABETIC token
         if (newToken.is(Token.Type.NULL)) {
-          //Start the ALPHABETIC token.
+          // Start the ALPHABETIC token.
           newToken.set(Token.Type.ALPHABETIC);
         }
         else if (newToken.is(Token.Type.NUMERIC)) {
-          //Found the end of the ALPHABETIC token.  Add the value to the new
-          //token and return.
+          // Found the end of the ALPHABETIC token. Add the value to the new
+          // token and return.
           newToken.set(valueBeingBrokenUp.substring(valueIndex, i));
           if (debug) {
             System.out.println(newToken);
@@ -380,8 +422,8 @@ public final class PrimativeTokenizer {
         }
       }
     }
-    //Found the end of the last token in valueBeingBrokenUp.  Add the value to
-    //the new token and reset valueBeingBrokenUp and valueIndex.
+    // Found the end of the last token in valueBeingBrokenUp. Add the value to
+    // the new token and reset valueBeingBrokenUp and valueIndex.
     newToken.set(valueBeingBrokenUp.substring(valueIndex, valueBeingBrokenUp.length()));
     if (debug) {
       System.out.println(newToken);
@@ -508,7 +550,7 @@ public final class PrimativeTokenizer {
         return NUMBER;
       case StreamTokenizer.TT_WORD:
         return WORD;
-      case -4://StreamTokenizer.TT_NOTHING
+      case -4:// StreamTokenizer.TT_NOTHING
         return NOTHING;
       default:
         return null;
