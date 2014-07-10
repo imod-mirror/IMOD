@@ -402,9 +402,9 @@ program tiltalign
   ! write(*, '(3(2f9.4,f8.4))') ((xyz(i, iv), i = 1, 3), iv = 1, nrealPt)
   deallocate(sprod, stat=ierr)
   !
-  ! Get the h array big enough for the solution
+  ! Get the h array big enough for the solution (and temp use later)
   maxvar = nvarSearch + 3 * nrealPt
-  maxh = (maxvar + 3) * maxvar
+  maxh = max(2 * nfileViews, (maxvar + 3) * maxvar)
   allocate(h(maxh), stat = ierr)
   call memoryError(ierr, 'ARRAY FOR H MATRIX')
   !
