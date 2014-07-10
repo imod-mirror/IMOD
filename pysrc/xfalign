@@ -93,12 +93,12 @@ from pip import *
 
 # Initializations
 tmpdir = imodTempDir()
-xcfilter = [0.01,0.05,0,0.25]
+xcfilter = [0.01,0.05,0,0.25]     # Default in adoc
 tmpxf = tmpdir + '/' + progname + '.xf.' + str(os.getpid())
 tmpRawAli = tmpdir + '/' + progname + '.st.' + str(os.getpid())
 breakList = []
 skipList = []
-limits = [0, 0, 0, 0, .1, 4]
+limits = [0, 0, 0, 0, .1, 4]      # Default in adoc
 
 # Fallbacks from ../manpages/autodoc2man 3 1 xfalign
 options = [":InputImageFile:FN:", ":OutputTransformFile:FN:", "size:SizeToAnalyze:IP:",
@@ -131,7 +131,7 @@ newsize = PipGetTwoIntegers('SizeToAnalyze', 0, 0)
 ifsize = 1 - PipGetErrNo()
 newcen = PipGetTwoIntegers('OffsetToSubarea', 0, 0)
 filterparam = PipGetFloatArray('FilterParameters', 4)
-nreduce = PipGetInteger('ReduceByBinning', 2)
+nreduce = PipGetInteger('ReduceByBinning', 2)      # Default in adoc
 ifskip = PipGetString('SkipSections', '')
 if ifskip:
    skipList = parselist(ifskip)
@@ -144,8 +144,8 @@ if ifbreak:
       exitError('Parsing the break list')
 
 ifpair = PipGetBoolean('PairedImages', 0)
-fracmatt = PipGetFloat('EdgeToIgnore', 0.05)
-nparam = PipGetInteger('ParametersToSearch', 0)
+fracmatt = PipGetFloat('EdgeToIgnore', 0.05)      # Default in adoc
+nparam = PipGetInteger('ParametersToSearch', 0)     # Default in adoc
 if nparam and (nparam < -1 or (nparam > 0 and (nparam + 3) // 5 != 1)):
    exitError('Number of parameters to search must be -1, 0, or 2-6')
 ifbilinear = PipGetBoolean('BilinearInterpolation', 0)

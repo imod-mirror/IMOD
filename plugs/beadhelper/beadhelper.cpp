@@ -2554,8 +2554,8 @@ void BeadHelper::moveContour()
   
   int lastCont = csize( obj );
   bool ok;
-  int newContIdx = QInputDialog::getInteger(this, "Move contour", "Move to:",
-                                            lastCont, 1, lastCont, 1, &ok) - 1;
+  int newContIdx = QInputDialog::getInt(this, "Move contour", "Move to:",
+                                        lastCont, 1, lastCont, 1, &ok) - 1;
   if ( ok && contIdx != newContIdx )
   {
     Icont *contCopy = imodContourDup( cont );

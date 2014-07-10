@@ -81,7 +81,7 @@ class TumblerWindow : public QMainWindow
   TumblerWindow(TumblerStruct *xtum, bool rgba, 
             bool doubleBuffer, bool enableDepth, QWidget * parent = 0,
             const char * name = 0, 
-	    Qt::WFlags f = Qt::Window) ;
+	    Qt::WindowFlags f = Qt::Window) ;
   ~TumblerWindow() {};
   void externalKeyEvent ( QKeyEvent * e, int released);
   void draw( TumblerStruct *xtum);
