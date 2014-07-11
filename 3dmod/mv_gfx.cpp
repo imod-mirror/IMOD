@@ -435,7 +435,7 @@ static int imodv_snapshot(ImodvApp *a, QString fname)
   GLint xoffset;
   char iname[80];
   char sep = QDir::separator().toLatin1();
-  QString tailname = QDir::convertSeparators(fname);
+  QString tailname = QDir::toNativeSeparators(fname);
 
   errno = 0;
   fout = fopen(LATIN1(tailname), "wb");

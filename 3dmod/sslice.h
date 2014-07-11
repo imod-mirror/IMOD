@@ -153,7 +153,8 @@ class SlicerFuncs {
   int mClassic;
   int   mCtrl;
   float  mZoom;
-  float mScaleBarSize;     /* Actual size of draw scale bar in model units */
+  int mNslice;           /* Number of slices to draw */
+  float mScaleBarSize;   /* Actual size of draw scale bar in model units */
   int    mRubberband;    /* Rubber banding flag */
   int    mStartingBand;
 
@@ -247,7 +248,6 @@ class SlicerFuncs {
   float  mBandLowHighLimits[2];
   int    mLimitNoValue;
 
-  short mNslice;       /* Number of slices to draw */
   Imat  *mMat;
   int   mFftMode;      /* Flag to do FFT of slice */
   int   mToolTime;     /* Value of time when label sent to toolbar */

@@ -84,7 +84,7 @@ static PopupEntry sPopupTable[] = {
 
 ZapWindow::ZapWindow(ZapFuncs *zap, QString timeLabel, bool panels,
                      bool rgba, bool doubleBuffer, bool enableDepth, 
-                     QWidget * parent, const char * name, Qt::WFlags f) 
+                     QWidget * parent, const char * name, Qt::WindowFlags f) 
   : QMainWindow(parent, f)
 {
   int j;
