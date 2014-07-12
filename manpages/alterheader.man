@@ -108,6 +108,9 @@ REAL - Change a mode 4 FFT file to mode 2 and double the X size.
 FFT - Change a mode 2 file to mode 4 and divide the X size by 2; this can be
 done only if the X size is two times an odd number.
 .P
+ISPG - Change the space group entry, which should be 0 for an image
+stack, 1 for an image volume, and 401 for a stack with multiple volumes.
+.P
 HELP - print a summary of these options.
 .P
 DONE - Write the modified header to the file and exit.

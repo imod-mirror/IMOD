@@ -80,6 +80,7 @@ extern "C" {
   void iiuRetAxisMap(int iunit, int *mapcrs);
   void iiuAltAxisMap(int iunit, int *mapcrs);
   void iiuRetSpaceGroup(int iunit, int *ispg);
+  void iiuAltSpaceGroup(int iunit, int ispg);
   void iiuRetImodFlags(int iunit, int *iflags, int *ifImod);
   void iiuAltImodFlags(int iunit, int iflags);
   void iiuAltSigned(int iunit, int iflags);
