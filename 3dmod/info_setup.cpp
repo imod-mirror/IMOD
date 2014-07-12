@@ -148,6 +148,7 @@ InfoWindow::InfoWindow(QWidget * parent, const char * name, Qt::WindowFlags f)
   ADD_ACTION(eObject, "&Info", EOBJECT_MENU_INFO);
   ADD_ACTION(eObject, "C&lean", EOBJECT_MENU_CLEAN);
   ADD_ACTION(eObject, "&Break by Z", EOBJECT_MENU_FIXZ);
+  ADD_ACTION(eObject, "&Fill in Z", EOBJECT_MENU_FILLIN);
   ADD_ACTION(eObject, "&Flatten", EOBJECT_MENU_FLATTEN);
   ADD_ACTION(eObject, "&Renumber...", EOBJECT_MENU_RENUMBER);
 
