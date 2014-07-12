@@ -79,7 +79,7 @@ void ChopConts::main( int argc, char *argv[])
   int breakAtColor = 0;
   int ierr, obNum, surf, numToCut, maxLen, co, lenConts, numCont, lapTotal, lapBase;
   int lapRemainder, ptBase, newCo, lastNewInd, ind, ipnt, numObjOrig, numObjTmp;
-  int numBefore, curColor, color, coNum, maxSurfOrObj, ptNum, ob, hasMinMax;
+  int numBefore, curColor, color, coNum, maxSurfOrObj, ptNum, ob, hasMinMax, lenEntered;
   float valMin, valMax;
   Istore store, *storePtr;
   DIMap::iterator iter;
@@ -148,7 +148,7 @@ void ChopConts::main( int argc, char *argv[])
   PipGetBoolean("AssignSurfaces", &mAssignSurf);
 
   // Get the length entry
-  ierr = PipGetInteger("LengthOfPieces", &lenContour);
+  lenEntered = 1 - PipGetInteger("LengthOfPieces", &lenContour);
   if (lenContour == -1)
     lenContour = B3DMAX(16, mModel->zmax / 5);
   if (lenContour <= 0)
@@ -157,7 +157,7 @@ void ChopConts::main( int argc, char *argv[])
   // Set new default of 0 for overlap if length is 1, then get overlap and process it
   if (lenContour == 1)
     minContOverlap = 0;
-  ierr = PipGetInteger("MinimumOverlap", &minContOverlap);
+  PipGetInteger("MinimumOverlap", &minContOverlap);
   if (minContOverlap == -1) {
     noOverlap = 1;
     minContOverlap = 0;
@@ -167,7 +167,7 @@ void ChopConts::main( int argc, char *argv[])
 
   // Then process number option
   if (!PipGetInteger("NumberOfPieces", &numContour)) {
-    if (!ierr)
+    if (lenEntered)
       exitError("You cannot enter both -length and -number");
     
     // Derive length for new contours

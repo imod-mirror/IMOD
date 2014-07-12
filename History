@@ -1,5 +1,35 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/11/14: Fixed inability to use patch tracking if cumulative correlation was
+checked in coarse alignment (In 4.7).
+
+7/11/14: Modified uitest to work with the new way IMOD is solving for angles.
+(Bug# 1805)
+
+7/6/14: Made Batchruntomo convert a directive for chopping up patch tracking
+contours into option to Imodchopconts instead of Tiltxcorr; fixed problem with 
+Imodchopconts testing for whether incompatible options were entered (In 4.7).
+
+7/5/14: IMOD_4-8-8
+7/5/14: Batchruntomo has changes for controlling thickness and calls
+Restrictalign to reduce variable being solved for when necessary.
+
+7/2/14: Fixed problem with fiducial number that Batchruntomo uses to decide if
+stretching can be solved (in 4.7).
+
+7/2/14: IMOD_4-8-7
+7/2/14: Added script Restrictalign for setting parameters appropriately in a
+Tiltalign command file when there are low numbers of fiducials.
+
+7/1/14: Made Ccderaser able to erase points with large differences from their
+neighbors in the border region where regular analysis is not done.
+
+7/1/14: Changed Newstack antialiased reduction to give same image size and
+centering as binning (In 4.7).
+ 
+6/27/14: Added option to Alterheader to set space group and made Tilt set it
+to 1 for tomogram output, following new MRC conventions (In 4.7).
+
 6/25/14: Fixed problem keeping track of opened files when reading multiple
 files into 3dmod.
 
@@ -8,7 +38,7 @@ planes instead of using two independent fits, which can give screwy angles and
 distances; also output line saying when X-tilt or slope can't be measured.
 
 6/22/14: IMOD_4-7-6
-6/22/14: Allow robust alignmnet in Batchruntomo with patch tracking and
+6/22/14: Allow robust alignment in Batchruntomo with patch tracking and
 contours cut into pieces (In 4.7).
 
 6/18/14: In eTomo - Tomogram Combination, fixed problems with validation and

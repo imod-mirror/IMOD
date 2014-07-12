@@ -46,7 +46,8 @@ OFFSET  SIZE DATA    NAME	Description
  80 120  4   float   amax;       Maximum pixel value.
  84 124  4   float   amean;      Mean pixel value.
 
- 88 130  4   int     ispg;       space group number (ignored by IMOD)
+ 88 130  4   int     ispg;       space group number, should be 0 for an image stack, 1
+                                 for a volume, but is mostly ignored by IMOD
  92 134  4   int     next;       number of bytes in extended header (called nsymbt in
                                    MRC standard)
  96 140  2   short   creatid;    used to be an ID number, is 0 as of IMOD 4.2.23

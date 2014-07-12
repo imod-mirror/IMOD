@@ -162,6 +162,7 @@ EXPORTS
 	iiCallingReadOrWrite
 	mrc_slice_lie
 	mrc_plist_load
+	iiuAltSpaceGroup
 	IRTDEL
 	IIUALTDATATYPE
 	tiffGetField
@@ -320,6 +321,7 @@ EXPORTS
 	IIUALTRMS
 	IALSAM
 	sliceReadFloat
+	IIUALTSPACEGROUP
 	IIUALTMODE
 	IRTSYM
 	sliceGradient

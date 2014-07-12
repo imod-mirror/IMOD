@@ -3035,6 +3035,7 @@ SUBROUTINE inputParameters()
     if (.not.projModel) then
       call ialorg(2, origx, origy, origz)
       call ialtlt(2, outilt)
+      call iiuAltSpaceGroup(2, 1)
     endif
   endif
   !
@@ -4453,7 +4454,7 @@ subroutine reprojectRec(lsStart, lsEnd, inloadstr, inloadend, DMIN, DMAX, &
     !
     ! GPU REPROJECTION: Find last slice that can be done
     do lgpuEnd = lsEnd, lsStart, -1
-      if (neededEnds(lgpuEnd) <= loadGpuEnd) then
+      if (neededEnds(lgpuEnd - indNeededBase) <= loadGpuEnd) then
         ijump = 0
         exit
       endif
