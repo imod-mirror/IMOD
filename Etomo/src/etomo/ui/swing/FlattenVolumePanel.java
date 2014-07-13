@@ -603,9 +603,9 @@ final class FlattenVolumePanel implements Run3dmodButtonContainer, WarpVolDispla
     ReadOnlyAutodoc warpVolAutodoc = null;
     try {
       flattenWarpAutodoc = AutodocFactory.getInstance(manager,
-          AutodocFactory.FLATTEN_WARP, axisID);
+          AutodocFactory.FLATTEN_WARP, axisID,false);
       warpVolAutodoc = AutodocFactory.getInstance(manager, AutodocFactory.WARP_VOL,
-          axisID);
+          axisID,false);
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();

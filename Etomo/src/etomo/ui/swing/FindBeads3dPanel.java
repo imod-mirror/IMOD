@@ -301,7 +301,7 @@ final class FindBeads3dPanel implements FindBeads3dDisplay, Expandable,
   private void setToolTipText() {
     ReadOnlyAutodoc autodoc = null;
     try {
-      autodoc = AutodocFactory.getInstance(manager, AutodocFactory.FIND_BEADS_3D, axisID);
+      autodoc = AutodocFactory.getInstance(manager, AutodocFactory.FIND_BEADS_3D, axisID,false);
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();
