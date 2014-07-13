@@ -72,6 +72,7 @@ public class EtomoDirector {
   public static final String rcsid = "$Id$";
 
   public static final String USER_CONFIG_FILE_EXT = ".etomo";
+  public static final String IMOD_DIR_ENV_VAR = "IMOD_DIR";
 
   private static final int TO_BYTES = 1024;
   public static final double MIN_AVAILABLE_MEMORY_REQUIRED = 2 * TO_BYTES * TO_BYTES;
@@ -456,9 +457,9 @@ public class EtomoDirector {
     // Get the IMOD directory so we know where to find documentation
     // Check to see if is defined on the command line first with -D
     // Otherwise check to see if we can get it from the environment
-    String imodDirectoryName = System.getProperty("IMOD_DIR");
+    String imodDirectoryName = System.getProperty(IMOD_DIR_ENV_VAR);
     if (imodDirectoryName == null) {
-      imodDirectoryName = EnvironmentVariable.INSTANCE.getValue(null, null, "IMOD_DIR",
+      imodDirectoryName = EnvironmentVariable.INSTANCE.getValue(null, null, IMOD_DIR_ENV_VAR,
           AxisID.ONLY);
       if (imodDirectoryName.equals("")) {
         String[] message = new String[3];
