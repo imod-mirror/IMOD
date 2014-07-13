@@ -4,6 +4,9 @@ import java.awt.Component;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -17,6 +20,7 @@ import etomo.storage.DirectiveDef;
 import etomo.storage.DirectiveFile;
 import etomo.storage.DirectiveFileCollection;
 import etomo.type.EtomoNumber;
+import etomo.ui.Field;
 import etomo.ui.FieldType;
 
 /**
@@ -95,6 +99,7 @@ final class BatchRunTomoDatasetDialog implements ActionListener {
   private final LabeledTextField ltfFallbackThickness = new LabeledTextField(
       FieldType.INTEGER, "with fallback: ");
   private final JLabel lFallbackThickness = new JLabel(" unbinned pixels");
+  private List<Field> fieldList = new ArrayList<Field>();
 
   private final FileTextField2 ftfDistort;
   private final FileTextField2 ftfGradient;
@@ -128,11 +133,47 @@ final class BatchRunTomoDatasetDialog implements ActionListener {
     JPanel pnlDeriveThickness = new JPanel();
     JPanel pnlFallbackThickness = new JPanel();
     JPanel pnlAutoFitRangeAndStep = new JPanel();
-    //init
+    // init
     ftfGradient.setPreferredWidth(272);
     btnModelFile.setToPreferredSize();
+    // directives
     ftfModelFile.setDirectiveDef(DirectiveDef.MODEL_FILE);
-    //defaults
+    ltfLocalAreaTargetSize.setDirectiveDef(DirectiveDef.LOCAL_AREA_TARGET_SIZE);
+    ltfTargetNumberOfBeads.setDirectiveDef(DirectiveDef.TARGET_NUMBER_OF_BEADS);
+    ltfSizeOfPatchesXandY.setDirectiveDef(DirectiveDef.SIZE_OF_PATCHES_X_AND_Y);
+    ltfLeaveIterations.setDirectiveDef(DirectiveDef.LEAVE_ITERATIONS);
+    rtfThickness.setDirectiveDef(DirectiveDef.THICKNESS);
+    // field list
+    fieldList.add(ftfDistort);
+    fieldList.add(ftfGradient);
+    fieldList.add(cbRemoveXrays);
+    fieldList.add(ftfModelFile);
+    fieldList.add(rbTrackingMethodSeed);
+    fieldList.add(rbTrackingMethodRaptor);
+    fieldList.add(rbTrackingMethodPatchTracking);
+    fieldList.add(rbFiducialless);
+    fieldList.add(ltfGold);
+    fieldList.add(ltfLocalAreaTargetSize);
+    fieldList.add(ltfTargetNumberOfBeads);
+    fieldList.add(ltfSizeOfPatchesXandY);
+    fieldList.add(lsContourPieces);
+    fieldList.add(lsBinByFactor);
+    fieldList.add(cbCorrectCTF);
+    fieldList.add(ltfDefocus);
+    fieldList.add(rbFitEveryImage);
+    fieldList.add(rtfAutoFitRangeAndStep);
+    fieldList.add(ltfAutoFitStep);
+    fieldList.add(rbUseSirtFalse);
+    fieldList.add(rbUseSirtTrue);
+    fieldList.add(rbDoBackprojAlso);
+    fieldList.add(ltfLeaveIterations);
+    fieldList.add(cbScaleToInteger);
+    fieldList.add(rtfThickness);
+    fieldList.add(rtfBinnedThickness);
+    fieldList.add(rbDeriveThickness);
+    fieldList.add(tfExtraThickness);
+    fieldList.add(ltfFallbackThickness);
+    // defaults
     rbUseSirtFalse.setSelected(true);
     // Dataset
     pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.Y_AXIS));
@@ -288,222 +329,50 @@ final class BatchRunTomoDatasetDialog implements ActionListener {
    */
   boolean backupIfChanged() {
     boolean changed = false;
-    if (ftfDistort.isDifferentFromCheckpoint(true)) {
-      ftfDistort.backup();
-      changed = true;
-    }
-    if (ftfGradient.isDifferentFromCheckpoint(true)) {
-      ftfGradient.backup();
-      changed = true;
-    }
-    if (cbRemoveXrays.isDifferentFromCheckpoint(true)) {
-      cbRemoveXrays.backup();
-      changed = true;
-    }
-    if (ftfModelFile.isDifferentFromCheckpoint(true)) {
-      ftfModelFile.backup();
-      changed = true;
-    }
-    if (rbTrackingMethodSeed.isDifferentFromCheckpoint(true)) {
-      rbTrackingMethodSeed.backup();
-      changed = true;
-    }
-    if (rbTrackingMethodRaptor.isDifferentFromCheckpoint(true)) {
-      rbTrackingMethodRaptor.backup();
-      changed = true;
-    }
-    if (rbTrackingMethodPatchTracking.isDifferentFromCheckpoint(true)) {
-      rbTrackingMethodPatchTracking.backup();
-      changed = true;
-    }
-    if (rbFiducialless.isDifferentFromCheckpoint(true)) {
-      rbFiducialless.backup();
-      changed = true;
-    }
-    if (ltfGold.isDifferentFromCheckpoint(true)) {
-      ltfGold.backup();
-      changed = true;
-    }
-    if (ltfLocalAreaTargetSize.isDifferentFromCheckpoint(true)) {
-      ltfLocalAreaTargetSize.backup();
-      changed = true;
-    }
-    if (ltfTargetNumberOfBeads.isDifferentFromCheckpoint(true)) {
-      ltfTargetNumberOfBeads.backup();
-      changed = true;
-    }
-    if (ltfSizeOfPatchesXandY.isDifferentFromCheckpoint(true)) {
-      ltfSizeOfPatchesXandY.backup();
-      changed = true;
-    }
-    if (lsContourPieces.isDifferentFromCheckpoint(true)) {
-      lsContourPieces.backup();
-      changed = true;
-    }
-    if (lsBinByFactor.isDifferentFromCheckpoint(true)) {
-      lsBinByFactor.backup();
-      changed = true;
-    }
-    if (cbCorrectCTF.isDifferentFromCheckpoint(true)) {
-      cbCorrectCTF.backup();
-      changed = true;
-    }
-    if (ltfDefocus.isDifferentFromCheckpoint(true)) {
-      ltfDefocus.backup();
-      changed = true;
-    }
-    if (rbFitEveryImage.isDifferentFromCheckpoint(true)) {
-      rbFitEveryImage.backup();
-      changed = true;
-    }
-    if (rtfAutoFitRangeAndStep.isDifferentFromCheckpoint(true)) {
-      rtfAutoFitRangeAndStep.backup();
-      changed = true;
-    }
-    if (ltfAutoFitStep.isDifferentFromCheckpoint(true)) {
-      ltfAutoFitStep.backup();
-      changed = true;
-    }
-    if (rbUseSirtFalse.isDifferentFromCheckpoint(true)) {
-      rbUseSirtFalse.backup();
-      changed = true;
-    }
-    if (rbUseSirtTrue.isDifferentFromCheckpoint(true)) {
-      rbUseSirtTrue.backup();
-      changed = true;
-    }
-    if (rbDoBackprojAlso.isDifferentFromCheckpoint(true)) {
-      rbDoBackprojAlso.backup();
-      changed = true;
-    }
-    if (ltfLeaveIterations.isDifferentFromCheckpoint(true)) {
-      ltfLeaveIterations.backup();
-      changed = true;
-    }
-    if (cbScaleToInteger.isDifferentFromCheckpoint(true)) {
-      cbScaleToInteger.backup();
-      changed = true;
-    }
-    if (rtfThickness.isDifferentFromCheckpoint(true)) {
-      rtfThickness.backup();
-      changed = true;
-    }
-    if (rtfBinnedThickness.isDifferentFromCheckpoint(true)) {
-      rtfBinnedThickness.backup();
-      changed = true;
-    }
-    if (rbDeriveThickness.isDifferentFromCheckpoint(true)) {
-      rbDeriveThickness.backup();
-      changed = true;
-    }
-    if (tfExtraThickness.isDifferentFromCheckpoint(true)) {
-      tfExtraThickness.backup();
-      changed = true;
-    }
-    if (ltfFallbackThickness.isDifferentFromCheckpoint(true)) {
-      ltfFallbackThickness.backup();
-      changed = true;
+    Iterator<Field> iterator = fieldList.iterator();
+    if (iterator != null) {
+      while (iterator.hasNext()) {
+        Field field = iterator.next();
+        if (field.isDifferentFromCheckpoint(true)) {
+          field.backup();
+          changed = true;
+        }
+      }
     }
     return changed;
   }
-  
-  void setDefaultValues() {
-    ftfDistort.setDefaultValue();
-    ftfGradient.setDefaultValue();
-    cbRemoveXrays.setDefaultValue();
-    ftfModelFile.setDefaultValue();
-    rbTrackingMethodSeed.setDefaultValue();
-    rbTrackingMethodRaptor.setDefaultValue();
-    rbTrackingMethodPatchTracking.setDefaultValue();
-    rbFiducialless.setDefaultValue();
-    ltfGold.setDefaultValue();
-    ltfLocalAreaTargetSize.setDefaultValue();
-    ltfTargetNumberOfBeads.setDefaultValue();
-    ltfSizeOfPatchesXandY.setDefaultValue();
-    lsContourPieces.setDefaultValue();
-    lsBinByFactor.setDefaultValue();
-    cbCorrectCTF.setDefaultValue();
-    ltfDefocus.setDefaultValue();
-    rbFitEveryImage.setDefaultValue();
-    rtfAutoFitRangeAndStep.setDefaultValue();
-    ltfAutoFitStep.setDefaultValue();
-    rbUseSirtFalse.setDefaultValue();
-    rbUseSirtTrue.setDefaultValue();
-    rbDoBackprojAlso.setDefaultValue();
-    ltfLeaveIterations.setDefaultValue();
-    cbScaleToInteger.setDefaultValue();
-    rtfThickness.setDefaultValue();
-    rtfBinnedThickness.setDefaultValue();
-    rbDeriveThickness.setDefaultValue();
-    tfExtraThickness.setDefaultValue();
-    ltfFallbackThickness.setDefaultValue();
+
+  /**
+   * Set the fields to their default values.
+   */
+  void useDefaultValues() {
+    Iterator<Field> iterator = fieldList.iterator();
+    if (iterator != null) {
+      while (iterator.hasNext()) {
+        iterator.next().useDefaultValue();
+      }
+    }
   }
 
   /**
    * Move any backed up values into the field, and delete the backup.
    */
   void restoreFromBackup() {
-    ftfDistort.restoreFromBackup();
-    ftfGradient.restoreFromBackup();
-    cbRemoveXrays.restoreFromBackup();
-    ftfModelFile.restoreFromBackup();
-    rbTrackingMethodSeed.restoreFromBackup();
-    rbTrackingMethodRaptor.restoreFromBackup();
-    rbTrackingMethodPatchTracking.restoreFromBackup();
-    rbFiducialless.restoreFromBackup();
-    ltfGold.restoreFromBackup();
-    ltfLocalAreaTargetSize.restoreFromBackup();
-    ltfTargetNumberOfBeads.restoreFromBackup();
-    ltfSizeOfPatchesXandY.restoreFromBackup();
-    lsContourPieces.restoreFromBackup();
-    lsBinByFactor.restoreFromBackup();
-    cbCorrectCTF.restoreFromBackup();
-    ltfDefocus.restoreFromBackup();
-    rbFitEveryImage.restoreFromBackup();
-    rtfAutoFitRangeAndStep.restoreFromBackup();
-    ltfAutoFitStep.restoreFromBackup();
-    rbUseSirtFalse.restoreFromBackup();
-    rbUseSirtTrue.restoreFromBackup();
-    rbDoBackprojAlso.restoreFromBackup();
-    ltfLeaveIterations.restoreFromBackup();
-    cbScaleToInteger.restoreFromBackup();
-    rtfThickness.restoreFromBackup();
-    rtfBinnedThickness.restoreFromBackup();
-    rbDeriveThickness.restoreFromBackup();
-    tfExtraThickness.restoreFromBackup();
-    ltfFallbackThickness.restoreFromBackup();
+    Iterator<Field> iterator = fieldList.iterator();
+    if (iterator != null) {
+      while (iterator.hasNext()) {
+        iterator.next().restoreFromBackup();
+      }
+    }
   }
 
   void checkpoint() {
-    ftfDistort.checkpoint();
-    ftfGradient.checkpoint();
-    cbRemoveXrays.checkpoint();
-    ftfModelFile.checkpoint();
-    rbTrackingMethodSeed.checkpoint();
-    rbTrackingMethodRaptor.checkpoint();
-    rbTrackingMethodPatchTracking.checkpoint();
-    rbFiducialless.checkpoint();
-    ltfGold.checkpoint();
-    ltfLocalAreaTargetSize.checkpoint();
-    ltfTargetNumberOfBeads.checkpoint();
-    ltfSizeOfPatchesXandY.checkpoint();
-    lsContourPieces.checkpoint();
-    lsBinByFactor.checkpoint();
-    cbCorrectCTF.checkpoint();
-    ltfDefocus.checkpoint();
-    rbFitEveryImage.checkpoint();
-    rtfAutoFitRangeAndStep.checkpoint();
-    ltfAutoFitStep.checkpoint();
-    rbUseSirtFalse.checkpoint();
-    rbUseSirtTrue.checkpoint();
-    rbDoBackprojAlso.checkpoint();
-    ltfLeaveIterations.checkpoint();
-    cbScaleToInteger.checkpoint();
-    rtfThickness.checkpoint();
-    rtfBinnedThickness.checkpoint();
-    rbDeriveThickness.checkpoint();
-    tfExtraThickness.checkpoint();
-    ltfFallbackThickness.checkpoint();
+    Iterator<Field> iterator = fieldList.iterator();
+    if (iterator != null) {
+      while (iterator.hasNext()) {
+        iterator.next().checkpoint();
+      }
+    }
   }
 
   /**
