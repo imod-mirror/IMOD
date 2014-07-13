@@ -41,99 +41,53 @@ public final class DirectiveFile {
 
   private final AxisID axisID;
   private final BaseManager manager;
-  private final File file;
 
+  private File file = null;
   private ReadOnlyAttribute copyArg = null;
   private ReadOnlyAttribute runtime = null;
   private ReadOnlyAttribute setupSet = null;
   private ReadOnlyAttribute comparam = null;
+  private boolean copyArgSet = false;
+  private boolean runtimeSet = false;
+  private boolean setupSetSet = false;
+  private boolean comparamSet = false;
+  private ReadOnlyAutodoc autodoc = null;
 
-  private DirectiveFile(final BaseManager manager, final AxisID axisID, final File file) {
+  public DirectiveFile(final BaseManager manager, final AxisID axisID) {
     this.manager = manager;
     this.axisID = axisID;
-    this.file = file;
   }
 
   /**
-   * @return a valid DirectiveFile instance or null if it there was an initialization
-   * failure.
+   * Returns an instance loaded with the directive from the etomo parameters.  Returns
+   * null if an autodoc could not be loaded.
    * @param manager
    * @param axisID
    * @return
    */
-  public static DirectiveFile getInstance(final BaseManager manager, final AxisID axisID) {
-    DirectiveFile instance = new DirectiveFile(manager, axisID, EtomoDirector.INSTANCE
-        .getArguments().getDirective());
-    if (!instance.init()) {
-      return null;
+  public static DirectiveFile getArgInstance(final BaseManager manager,
+      final AxisID axisID) {
+    DirectiveFile instance = new DirectiveFile(manager, axisID);
+    if (instance.setFile(EtomoDirector.INSTANCE.getArguments().getDirective())) {
+      return instance;
     }
-    return instance;
-  }
-
-  public static DirectiveFile getInstance(final BaseManager manager, final AxisID axisID,
-      final File file) {
-    DirectiveFile instance = new DirectiveFile(manager, axisID, file);
-    if (!instance.init()) {
-      return null;
-    }
-    return instance;
+    return null;
   }
 
   /**
-   * Called by getInstance.
-   * @return false if failed
+   * Returns an instance loaded with the file parameter.  Returns null if an autodoc could
+   * not be loaded.
+   * @param manager
+   * @param axisID
+   * @return
    */
-  private boolean init() {
-    try {
-      ReadOnlyAutodoc autodoc = (ReadOnlyAutodoc) AutodocFactory.getInstance(manager,
-          file, axisID);
-      setupSet = autodoc.getAttribute(DirectiveType.SETUP_SET.toString());
-      if (setupSet != null) {
-        copyArg = setupSet.getAttribute(DirectiveType.COPY_ARG.toString());
-      }
-      runtime = autodoc.getAttribute(DirectiveType.RUN_TIME.toString());
+  public static DirectiveFile getInstance(final BaseManager manager, final AxisID axisID,
+      final File file) {
+    DirectiveFile instance = new DirectiveFile(manager, axisID);
+    if (instance.setFile(file)) {
+      return instance;
     }
-    catch (FileNotFoundException e) {
-      UIHarness.INSTANCE.openMessageDialog(manager, e.getMessage(),
-          "Directive File Not Found");
-      return false;
-    }
-    catch (IOException e) {
-      UIHarness.INSTANCE.openMessageDialog(manager, e.getMessage(),
-          "Directive File Read Failure");
-      return false;
-    }
-    catch (LogFile.LockException e) {
-      e.printStackTrace();
-      UIHarness.INSTANCE.openMessageDialog(manager, e.getMessage(),
-          "Directive File Read Failure");
-      return false;
-    }
-    return true;
-  }
-
-  private void initComparam() {
-    if (comparam != null) {
-      return;
-    }
-    try {
-      ReadOnlyAutodoc autodoc = (ReadOnlyAutodoc) AutodocFactory.getInstance(manager,
-          file, axisID);
-      comparam = autodoc.getAttribute(DirectiveType.COM_PARAM.toString());
-    }
-    catch (FileNotFoundException e) {
-      UIHarness.INSTANCE.openMessageDialog(manager, e.getMessage(),
-          "Directive File Not Found");
-    }
-    catch (IOException e) {
-      UIHarness.INSTANCE.openMessageDialog(manager, e.getMessage(),
-          "Directive File Read Failure");
-    }
-    catch (LogFile.LockException e) {
-      e.printStackTrace();
-      UIHarness.INSTANCE.openMessageDialog(manager, e.getMessage(),
-          "Directive File Read Failure");
-    }
+    return null;
   }
 
   /**
@@ -236,22 +190,94 @@ public final class DirectiveFile {
     return false;
   }
 
+  /**
+   * Loads the file and opens the autodoc.  Resets the instance so that it will read from
+   * the new autodoc.  Returns true if the autodoc was opened successfully, false if the
+   * autodoc open failed.
+   * @return
+   */
+  public boolean setFile(final File directiveFile) {
+    file = directiveFile;
+    copyArgSet = false;
+    runtimeSet = false;
+    setupSetSet = false;
+    comparamSet = false;
+    copyArg = null;
+    runtime = null;
+    setupSet = null;
+    comparam = null;
+    try {
+      autodoc = (ReadOnlyAutodoc) AutodocFactory.getInstance(manager, file, axisID);
+    }
+    catch (FileNotFoundException e) {
+      UIHarness.INSTANCE.openMessageDialog(manager, e.getMessage(),
+          "Directive File Not Found");
+      return false;
+    }
+    catch (IOException e) {
+      UIHarness.INSTANCE.openMessageDialog(manager, e.getMessage(),
+          "Directive File Read Failure");
+      return false;
+    }
+    catch (LogFile.LockException e) {
+      e.printStackTrace();
+      UIHarness.INSTANCE.openMessageDialog(manager, e.getMessage(),
+          "Directive File Read Failure");
+      return false;
+    }
+    return true;
+  }
+
   private ReadOnlyAttribute getParentAttribute(final DirectiveDef directiveDef) {
-    DirectiveType type = directiveDef.getDirectiveType();
+    if (directiveDef == null) {
+      return null;
+    }
+    return getParentAttribute(directiveDef.getDirectiveType());
+  }
+
+  private ReadOnlyAttribute getParentAttribute(final DirectiveType type) {
+    ReadOnlyAttribute parentAttribute = null;
     if (type == DirectiveType.COPY_ARG) {
-      return copyArg;
+      if (!copyArgSet) {
+        copyArgSet = true;
+        setupSet = getParentAttribute(DirectiveType.SETUP_SET);
+        if (setupSet != null && autodoc != null) {
+          copyArg = setupSet.getAttribute(type.toString());
+        }
+      }
+      parentAttribute = copyArg;
     }
-    if (type == DirectiveType.SETUP_SET) {
-      return setupSet;
+    else if (type == DirectiveType.SETUP_SET) {
+      if (!setupSetSet) {
+        setupSetSet = true;
+        if (autodoc != null) {
+          setupSet = autodoc.getAttribute(type.toString());
+        }
+      }
+      parentAttribute = setupSet;
     }
-    if (type == DirectiveType.RUN_TIME) {
-      return runtime;
+    else if (type == DirectiveType.RUN_TIME) {
+      if (!runtimeSet) {
+        runtimeSet = true;
+        if (autodoc != null) {
+          runtime = autodoc.getAttribute(type.toString());
+        }
+      }
+      parentAttribute = runtime;
     }
-    if (type == DirectiveType.COM_PARAM) {
-      initComparam();
-      return comparam;
+    else if (type == DirectiveType.COM_PARAM) {
+      if (!comparamSet) {
+        comparamSet = true;
+        if (autodoc != null) {
+          comparam = autodoc.getAttribute(type.toString());
+        }
+      }
+      parentAttribute = comparam;
     }
-    return null;
+    if (comparamSet && copyArgSet && setupSetSet && runtimeSet) {
+      autodoc = null;
+    }
+    return parentAttribute;
   }
 
   public static void setDebug(final boolean input) {
@@ -274,7 +300,10 @@ public final class DirectiveFile {
   }
 
   public String toString() {
-    return getFile().getAbsolutePath();
+    if (file != null) {
+      return file.getAbsolutePath();
+    }
+    return super.toString();
   }
 
   static final class Module {
