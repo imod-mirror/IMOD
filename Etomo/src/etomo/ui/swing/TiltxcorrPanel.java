@@ -964,7 +964,7 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
 
     try {
       autodoc = AutodocFactory.getInstance(applicationManager, AutodocFactory.TILTXCORR,
-          axisID);
+          axisID, false);
       // autodoc.print();
     }
     catch (FileNotFoundException except) {
