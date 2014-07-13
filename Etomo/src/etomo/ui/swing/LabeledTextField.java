@@ -10,11 +10,14 @@ import javax.swing.event.DocumentListener;
 import javax.swing.text.Document;
 
 import etomo.EtomoDirector;
+import etomo.logic.DefaultFinder;
 import etomo.logic.FieldValidator;
+import etomo.storage.DirectiveDef;
 import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.EtomoNumber;
 import etomo.type.UITestFieldType;
+import etomo.ui.Field;
 import etomo.ui.FieldType;
 import etomo.ui.FieldValidationFailedException;
 import etomo.ui.UIComponent;
@@ -210,7 +213,7 @@ import etomo.util.Utilities;
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
  */
-final class LabeledTextField implements UIComponent, SwingComponent {
+final class LabeledTextField implements UIComponent, SwingComponent, Field {
   public static final String rcsid = "$Id$";
 
   private final JPanel panel = new JPanel();
@@ -228,6 +231,9 @@ final class LabeledTextField implements UIComponent, SwingComponent {
   private Color origTextForeground = null;
   private Color origLabelForeground = null;
   private boolean numberMustBePositive = false;
+  private DirectiveDef directiveDef = null;
+  private boolean defaultValueSearchDone = false;
+  private String defaultValue = null;
 
   public String toString() {
     return "[label:" + getLabel() + "]";
@@ -339,14 +345,14 @@ final class LabeledTextField implements UIComponent, SwingComponent {
   /**
    * Saves the current text as the checkpoint.
    */
-  void checkpoint() {
+  public void checkpoint() {
     checkpointValue = getText();
   }
 
   /**
    * Saves the current text as the checkpoint.
    */
-  void backup() {
+  public void backup() {
     backupValue = getText();
     fieldIsBackedUp = true;
   }
@@ -355,10 +361,27 @@ final class LabeledTextField implements UIComponent, SwingComponent {
    * If the field was backed up, make the backup value the displayed value, and turn off
    * the back up.
    */
-  void restoreFromBackup() {
+  public void restoreFromBackup() {
     if (fieldIsBackedUp) {
       setText(backupValue);
       fieldIsBackedUp = false;
+    }
+  }
+
+  void setDirectiveDef(final DirectiveDef directiveDef) {
+    this.directiveDef = directiveDef;
+  }
+
+  public void useDefaultValue() {
+    if (directiveDef == null || !directiveDef.isComparam()) {
+      return;
+    }
+    if (!defaultValueSearchDone) {
+      defaultValueSearchDone = true;
+      defaultValue = DefaultFinder.INSTANCE.getDefaultValue(directiveDef);
+    }
+    if (defaultValue != null) {
+      setText(defaultValue);
     }
   }
 
@@ -420,7 +443,7 @@ final class LabeledTextField implements UIComponent, SwingComponent {
    * @param alwaysCheck - when false return false when the field is disabled or invisible
    * @return true if text field is different from checkpoint
    */
-  boolean isDifferentFromCheckpoint(final boolean alwaysCheck) {
+  public boolean isDifferentFromCheckpoint(final boolean alwaysCheck) {
     if (!alwaysCheck && (!textField.isEnabled() || !textField.isVisible())) {
       return false;
     }
