@@ -7,11 +7,14 @@ import javax.swing.JCheckBox;
 import javax.swing.text.Document;
 
 import etomo.EtomoDirector;
+import etomo.logic.DefaultFinder;
+import etomo.storage.DirectiveDef;
 import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.storage.autodoc.ReadOnlySection;
 import etomo.type.EtomoAutodoc;
 import etomo.type.EtomoBoolean2;
 import etomo.type.UITestFieldType;
+import etomo.ui.Field;
 import etomo.util.Utilities;
 
 /**
@@ -110,7 +113,7 @@ import etomo.util.Utilities;
  * <p> bug# 675 Extends JCheckBox.  Names the check box using the label.
  * <p> </p>
  */
-final class CheckBox extends JCheckBox {
+final class CheckBox extends JCheckBox implements Field {
   public static final String rcsid = "$Id$";
 
   private EtomoBoolean2 checkpointValue = null;
@@ -118,6 +121,10 @@ final class CheckBox extends JCheckBox {
   private boolean backupValue = false;
   private boolean debug = false;
   private Color origForeground = null;
+  private DirectiveDef directiveDef = null;
+  private boolean defaultValueSearchDone = false;
+  private boolean defaultValueFound = false;
+  private boolean defaultValue = false;
 
   public CheckBox() {
     super();
@@ -154,7 +161,7 @@ final class CheckBox extends JCheckBox {
     }
   }
 
-  void backup() {
+  public void backup() {
     backupValue = isSelected();
     fieldIsBackedUp = true;
   }
@@ -163,20 +170,38 @@ final class CheckBox extends JCheckBox {
    * If the field was backed up, make the backup value the displayed value, and turn off
    * the back up.
    */
-  void restoreFromBackup() {
+  public void restoreFromBackup() {
     if (fieldIsBackedUp) {
       setSelected(backupValue);
       fieldIsBackedUp = false;
     }
   }
-  
-  void setDefaultValue() {
+
+  void setDirectiveDef(final DirectiveDef directiveDef) {
+    this.directiveDef = directiveDef;
+  }
+
+  public void useDefaultValue() {
+    if (directiveDef == null || !directiveDef.isComparam()) {
+      return;
+    }
+    if (!defaultValueSearchDone) {
+      defaultValueSearchDone = true;
+      String value = DefaultFinder.INSTANCE.getDefaultValue(directiveDef);
+      if (value != null) {
+        defaultValueFound = true;
+      }
+      defaultValue = DefaultFinder.toBoolean(value);
+    }
+    if (defaultValueFound) {
+      setSelected(defaultValue);
+    }
   }
 
   /**
    * Constructs savedValue (if it doesn't exist).  Saves the current setting.
    */
-  void checkpoint() {
+  public void checkpoint() {
     if (checkpointValue == null) {
       checkpointValue = new EtomoBoolean2();
     }
@@ -241,7 +266,7 @@ final class CheckBox extends JCheckBox {
    * @param alwaysCheck - check for difference even when the field is disables or invisible
    * @return
    */
-  boolean isDifferentFromCheckpoint(final boolean alwaysCheck) {
+  public boolean isDifferentFromCheckpoint(final boolean alwaysCheck) {
     if (!alwaysCheck && (!isEnabled() || !isVisible())) {
       return false;
     }
