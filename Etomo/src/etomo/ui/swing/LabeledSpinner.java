@@ -145,9 +145,10 @@ import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.EtomoNumber;
 import etomo.type.UITestFieldType;
+import etomo.ui.Field;
 import etomo.util.Utilities;
 
-final class LabeledSpinner {
+final class LabeledSpinner implements Field {
   public static final String rcsid = "$Id$";
 
   private final JPanel panel = new JPanel();
@@ -238,20 +239,23 @@ final class LabeledSpinner {
     return label.getText();
   }
 
-  void checkpoint() {
+  public void checkpoint() {
     checkpointValue = getValue();
   }
 
-  void backup() {
+  public void backup() {
     backupValue = getValue();
     fieldIsBackedUp = true;
+  }
+
+  public void useDefaultValue() {
   }
 
   /**
    * If the field was backed up, make the backup value the displayed value, and turn off
    * the back up.
    */
-  void restoreFromBackup() {
+  public void restoreFromBackup() {
     if (fieldIsBackedUp) {
       spinner.setValue(backupValue);
       fieldIsBackedUp = false;
@@ -273,7 +277,7 @@ final class LabeledSpinner {
    * @param alwaysCheck - check for difference even when the field is disables or invisible
    * @return
    */
-  boolean isDifferentFromCheckpoint(final boolean alwaysCheck) {
+  public boolean isDifferentFromCheckpoint(final boolean alwaysCheck) {
     if (!alwaysCheck && (!isEnabled() || !isVisible())) {
       return false;
     }
