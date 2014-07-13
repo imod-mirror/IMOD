@@ -21,6 +21,7 @@ import etomo.type.EnumeratedType;
 import etomo.type.EtomoAutodoc;
 import etomo.type.EtomoBoolean2;
 import etomo.type.UITestFieldType;
+import etomo.ui.Field;
 import etomo.util.Utilities;
 
 /**
@@ -36,7 +37,7 @@ import etomo.util.Utilities;
  * 
  * @version $Revision$
  */
-final class RadioButton implements RadioButtonInterface {
+final class RadioButton implements RadioButtonInterface, Field {
   public static final String rcsid = "$Id$";
 
   private final JRadioButton radioButton;
@@ -110,30 +111,34 @@ final class RadioButton implements RadioButtonInterface {
     return radioButton.getText() + ": " + (radioButton.isSelected() ? "On" : "Off");
   }
 
-  void checkpoint() {
+  public void checkpoint() {
     if (checkpointValue == null) {
       checkpointValue = new EtomoBoolean2();
     }
     checkpointValue.set(isSelected());
   }
-  
-  void backup() {
-    backupValue=isSelected();
-    fieldIsBackedUp=true;
+
+  public void backup() {
+    backupValue = isSelected();
+    fieldIsBackedUp = true;
   }
-  
+
   /**
    * If the field was backed up, make the backup value the displayed value if possible,
    * and turn off the back up.  Its impossible to turn off a radio button, so this only
    * works if the backupValue is true.  This relies on the other radio buttons in the
    * group also being backed up.
    */
-  void restoreFromBackup() {
+  public void restoreFromBackup() {
     if (fieldIsBackedUp) {
       if (backupValue) {
-      setSelected(true);}
+        setSelected(true);
+      }
       fieldIsBackedUp = false;
     }
+  }
+
+  public void useDefaultValue() {
   }
 
   boolean isCheckpointValue() {
@@ -142,13 +147,13 @@ final class RadioButton implements RadioButtonInterface {
     }
     return checkpointValue.is();
   }
-  
+
   /**
    * 
    * @param alwaysCheck - check for difference even when the field is disables or invisible
    * @return
    */
-  boolean isDifferentFromCheckpoint(final boolean alwaysCheck) {
+  public boolean isDifferentFromCheckpoint(final boolean alwaysCheck) {
     if (!alwaysCheck && (!isEnabled() || !radioButton.isVisible())) {
       return false;
     }
