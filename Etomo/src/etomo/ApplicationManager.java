@@ -587,11 +587,15 @@ public final class ApplicationManager extends BaseManager implements
         .getDirectiveFileCollection();
     DirectiveFile directiveFile = null;
     FileType template = null;
+    File file = null;
     try {
       template = FileType.LOCAL_SCOPE_TEMPLATE;
       directiveFile = directiveFileCollection.getDirectiveFile(DirectiveFileType.SCOPE);
       if (directiveFile != null) {
-        Utilities.copyFile(directiveFile.getFile(), template, this, AxisID.ONLY);
+        file = directiveFile.getFile();
+        if (file != null) {
+          Utilities.copyFile(file, template, this, AxisID.ONLY);
+        }
       }
       else {
         Utilities.deleteFileType(this, AxisID.ONLY, template);
@@ -599,7 +603,9 @@ public final class ApplicationManager extends BaseManager implements
       template = FileType.LOCAL_SYSTEM_TEMPLATE;
       directiveFile = directiveFileCollection.getDirectiveFile(DirectiveFileType.SYSTEM);
       if (directiveFile != null) {
-        Utilities.copyFile(directiveFile.getFile(), template, this, AxisID.ONLY);
+        file = directiveFile.getFile();
+        if (file != null) {
+        Utilities.copyFile(file, template, this, AxisID.ONLY);}
       }
       else {
         Utilities.deleteFileType(this, AxisID.ONLY, template);
@@ -607,7 +613,9 @@ public final class ApplicationManager extends BaseManager implements
       template = FileType.LOCAL_USER_TEMPLATE;
       directiveFile = directiveFileCollection.getDirectiveFile(DirectiveFileType.USER);
       if (directiveFile != null) {
-        Utilities.copyFile(directiveFile.getFile(), template, this, AxisID.ONLY);
+        file = directiveFile.getFile();
+        if (file != null) {
+        Utilities.copyFile(file, template, this, AxisID.ONLY);}
       }
       else {
         Utilities.deleteFileType(this, AxisID.ONLY, template);
@@ -615,7 +623,9 @@ public final class ApplicationManager extends BaseManager implements
       template = FileType.LOCAL_BATCH_DIRECTIVE_FILE;
       directiveFile = directiveFileCollection.getDirectiveFile(DirectiveFileType.BATCH);
       if (directiveFile != null) {
-        Utilities.copyFile(directiveFile.getFile(), template, this, AxisID.ONLY);
+        file = directiveFile.getFile();
+        if (file != null) {
+        Utilities.copyFile(file, template, this, AxisID.ONLY);}
       }
       else {
         Utilities.deleteFileType(this, AxisID.ONLY, template);
@@ -624,9 +634,14 @@ public final class ApplicationManager extends BaseManager implements
     catch (IOException e) {
       e.printStackTrace();
       if (directiveFile != null) {
-        uiHarness.openMessageDialog(this, "Unable to copy "
-            + directiveFile.getFile().getAbsolutePath() + " to dataset.",
-            "Unable to Copy File");
+         file = directiveFile.getFile();
+        if (file != null) {
+          uiHarness.openMessageDialog(this, "Unable to copy " + file.getAbsolutePath()
+              + " to dataset.", "Unable to Copy File");
+        }
+        else {
+          System.err.println("Warning: in copyDirectiveFiles directive file was not set.");
+        }
       }
     }
   }
