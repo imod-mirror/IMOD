@@ -350,7 +350,7 @@ public final class ParsedList {
   }
 
   private PrimativeTokenizer createTokenizer(String value) {
-    PrimativeTokenizer tokenizer = new PrimativeTokenizer(value);
+    PrimativeTokenizer tokenizer = PrimativeTokenizer.getStringInstance(value, debug);
     try {
       tokenizer.initialize();
     }
