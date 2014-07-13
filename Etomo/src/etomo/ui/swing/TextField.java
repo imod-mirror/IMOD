@@ -9,10 +9,13 @@ import javax.swing.JTextField;
 import javax.swing.border.Border;
 
 import etomo.EtomoDirector;
+import etomo.logic.DefaultFinder;
 import etomo.logic.FieldValidator;
+import etomo.storage.DirectiveDef;
 import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.type.EtomoNumber;
 import etomo.type.UITestFieldType;
+import etomo.ui.Field;
 import etomo.ui.FieldType;
 import etomo.ui.FieldValidationFailedException;
 import etomo.ui.UIComponent;
@@ -31,7 +34,7 @@ import etomo.util.Utilities;
  * 
  * @version $Revision$
  */
-final class TextField implements UIComponent, SwingComponent {
+final class TextField implements UIComponent, SwingComponent, Field {
   public static final String rcsid = "$Id$";
 
   private final JTextField textField = new JTextField();
@@ -45,6 +48,9 @@ final class TextField implements UIComponent, SwingComponent {
   private String checkpointValue = null;
   private String backupValue = null;
   private boolean fieldIsBackedUp = false;
+  private DirectiveDef directiveDef = null;
+  private boolean defaultValueSearchDone = false;
+  private String defaultValue = null;
 
   TextField(final FieldType fieldType, final String reference, final String locationDescr) {
     this.locationDescr = locationDescr;
@@ -92,7 +98,7 @@ final class TextField implements UIComponent, SwingComponent {
    * @param alwaysCheck - when false return false when the field is disabled or invisible
    * @return true if text field is different from checkpoint
    */
-  boolean isDifferentFromCheckpoint(final boolean alwaysCheck) {
+  public boolean isDifferentFromCheckpoint(final boolean alwaysCheck) {
     if (!alwaysCheck && (!textField.isEnabled() || !textField.isVisible())) {
       return false;
     }
@@ -129,7 +135,7 @@ final class TextField implements UIComponent, SwingComponent {
     return false;
   }
 
-  void backup() {
+  public void backup() {
     backupValue = textField.getText();
   }
 
@@ -137,14 +143,31 @@ final class TextField implements UIComponent, SwingComponent {
    * If the field was backed up, make the backup value the displayed value, and turn off
    * the back up.
    */
-  void restoreFromBackup() {
+  public void restoreFromBackup() {
     if (fieldIsBackedUp) {
       setText(backupValue);
       fieldIsBackedUp = false;
     }
   }
 
-  void checkpoint() {
+  void setDirectiveDef(final DirectiveDef directiveDef) {
+    this.directiveDef = directiveDef;
+  }
+
+  public void useDefaultValue() {
+    if (directiveDef == null || !directiveDef.isComparam()) {
+      return;
+    }
+    if (!defaultValueSearchDone) {
+      defaultValueSearchDone = true;
+      defaultValue = DefaultFinder.INSTANCE.getDefaultValue(directiveDef);
+    }
+    if (defaultValue != null) {
+      setText(defaultValue);
+    }
+  }
+
+  public void checkpoint() {
     checkpointValue = getText();
   }
 
