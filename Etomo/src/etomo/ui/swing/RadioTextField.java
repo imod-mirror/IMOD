@@ -9,9 +9,11 @@ import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.JPanel;
 
+import etomo.storage.DirectiveDef;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.EnumeratedType;
 import etomo.type.ParsedElement;
+import etomo.ui.Field;
 import etomo.ui.FieldType;
 import etomo.ui.FieldValidationFailedException;
 
@@ -66,7 +68,7 @@ import etomo.ui.FieldValidationFailedException;
  * <p> JTextField when the radio button is not selected.
  * <p> </p>
  */
-final class RadioTextField implements RadioButtonInterface {
+final class RadioTextField implements RadioButtonInterface, Field {
   public static final String rcsid = "$Id$";
 
   private final JPanel rootPanel = new JPanel();
@@ -151,7 +153,7 @@ final class RadioTextField implements RadioButtonInterface {
     }
   }
 
-  void backup() {
+  public void backup() {
     radioButton.backup();
     textField.backup();
   }
@@ -161,17 +163,25 @@ final class RadioTextField implements RadioButtonInterface {
    * the back up.  This has no effect on a radio button with a backupValue of false,
    * other then to turn off the backup.
    */
-  void restoreFromBackup() {
+  public void restoreFromBackup() {
     radioButton.restoreFromBackup();
     textField.restoreFromBackup();
   }
 
-  void checkpoint() {
+  void setDirectiveDef(final DirectiveDef directiveDef) {
+    textField.setDirectiveDef(directiveDef);
+  }
+
+  public void useDefaultValue() {
+    textField.useDefaultValue();
+  }
+
+  public void checkpoint() {
     radioButton.checkpoint();
     textField.checkpoint();
   }
 
-  boolean isDifferentFromCheckpoint(final boolean alwaysCheck) {
+  public boolean isDifferentFromCheckpoint(final boolean alwaysCheck) {
     return radioButton.isDifferentFromCheckpoint(alwaysCheck)
         || textField.isDifferentFromCheckpoint(alwaysCheck);
   }
