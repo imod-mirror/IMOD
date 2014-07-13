@@ -9,6 +9,7 @@ import java.io.StreamTokenizer;
 import java.io.FileNotFoundException;
 
 import etomo.BaseManager;
+import etomo.EtomoDirector;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
 import etomo.ui.swing.Token;
@@ -128,6 +129,9 @@ public final class PrimativeTokenizer {
 
   private static final String RETURN = "\r";
   private static final String AUTODOC_DIR_ENV_VAR = "AUTODOC_DIR";
+  private static final String DEFAULT_AUTODOC_DIR = "autodoc";
+
+  private static File autodocDir = null;
 
   private final boolean separateAlphabeticAndNumeric;
   private final String string;
@@ -157,55 +161,168 @@ public final class PrimativeTokenizer {
     this.debug = debug;
   }
 
-  public static PrimativeTokenizer getDefaultInstance(final BaseManager manager,
-      final AxisID axisID, final String name, final String notFoundMessage) {
-    return new PrimativeTokenizer(getLogFile(manager, axisID, null, null, name,
-        notFoundMessage), null, false, false);
+  public static PrimativeTokenizer getAutodocInstance(final String name,
+      final BaseManager manager, final AxisID axisID, final String notFoundMessage,
+      final boolean debug) {
+    if (autodocDir == null) {
+      autodocDir = getFileLocation(null, null, manager, axisID, notFoundMessage, name);
+    }
+    return new PrimativeTokenizer(getLogFile(autodocDir, name, notFoundMessage), null,
+        false, debug);
   }
 
-  public static PrimativeTokenizer getStringInstance(final String string) {
-    return new PrimativeTokenizer(null, string, false, false);
+  /**
+   * Gets an autodoc of an unknown type.  AutodocFile takes precedence over envVar,
+   * subdirName, and name.
+   * @param envVar
+   * @param subdirName
+   * @param name
+   * @param autodocFile
+   * @param manager
+   * @param axisID
+   * @param notFoundMessage
+   * @param debug
+   * @return
+   */
+  public static PrimativeTokenizer getGenericInstance(final String envVar,
+      final String subdirName, String name, final File autodocFile,
+      final BaseManager manager, final AxisID axisID, final String notFoundMessage,
+      final boolean debug) {
+    File dir = null;
+    if (autodocFile != null) {
+      dir = autodocFile.getParentFile();
+      name = autodocFile.getName();
+    }
+    else {
+      dir = getFileLocation(envVar, subdirName, manager, axisID, notFoundMessage, name);
+    }
+    return new PrimativeTokenizer(getLogFile(dir, name, notFoundMessage), null, false,
+        debug);
   }
 
-  public static PrimativeTokenizer getNumericStringInstance(final String string) {
-    return new PrimativeTokenizer(null, string, true, false);
+  public static PrimativeTokenizer getStringInstance(final String string,
+      final boolean debug) {
+    return new PrimativeTokenizer(null, string, false, debug);
   }
 
-  private static LogFile getLogFile(final BaseManager manager, final AxisID axisID,
-      final File location, final String envVar, final String name,
-      final String notFoundMessage) {
-    return setAutodocFile(manager,name,axisID,envVar,notFoundMessage);
+  public static PrimativeTokenizer getNumericStringInstance(final String string,
+      final boolean debug) {
+    return new PrimativeTokenizer(null, string, true, debug);
   }
 
-  private static LogFile setAutodocFile(BaseManager manager, String name, AxisID axisID,
-      String envVariable, final String notFoundMessage) {
-    if (envVariable != null && !envVariable.matches("\\s*+")) {
-      // if envVariable is set, then it points to the only valid directory for this
-      // autodoc
-      dir = Utilities.getExistingDir(manager, envVariable, axisID, notFoundMessage);
+  /**
+   * Return the location of the autodoc
+   * @param envVar
+   * @param subdir
+   * @param manager
+   * @param axisID
+   * @param notFoundMessage
+   * @param name
+   * @return
+   */
+  private static File getFileLocation(final String envVar, final String subdir,
+      final BaseManager manager, final AxisID axisID, final String notFoundMessage,
+      final String name) {
+    boolean findAutodocDir = envVar == null && subdir == null;
+    File dir = null;
+    if (findAutodocDir) {
+      dir = getDirectory(AUTODOC_DIR_ENV_VAR, null, manager, axisID, notFoundMessage);
       if (dir == null) {
-        if (notFoundMessage == null) {
-          System.err.println("Warning:  can't open the " + name
-              + " autodoc file.\nThis autodoc should be stored in $" + envVariable
-              + ".\n");
-        }
-        return null;
+        dir = getDirectory(EtomoDirector.IMOD_DIR_ENV_VAR, DEFAULT_AUTODOC_DIR, manager, axisID,
+            notFoundMessage);
       }
-      return getAutodocFile(dir, name, notFoundMessage == null);
     }
-    dir = Utilities.getExistingDir(manager, AUTODOC_DIR, axisID, notFoundMessage);
-    if (dir != null) {
-      return getAutodocFile(dir, name, notFoundMessage == null);
+    else {
+      dir = getDirectory(envVar, subdir, manager, axisID, notFoundMessage);
     }
-    dir = getDir(manager, IMOD_DIR, DEFAULT_AUTODOC_DIR, axisID);
-    if (dir != null) {
-      return getAutodocFile(dir, name, notFoundMessage == null);
+    if (dir == null) {
+      System.err.println(notFoundMessage == null ? "Warning" : "Info"
+          + ":  can't open the " + name + " autodoc file.\nThis autodoc was not in in $"
+          + envVar + (subdir != null ? "/" + subdir : "")
+          + (findAutodocDir ? " or $" + AUTODOC_DIR_ENV_VAR : "") + ".\n");
     }
-    System.err.println(notFoundMessage == null ? "Warning" : "Info"
-        + ":  can't open the " + name
-        + " autodoc file.\nThis autodoc should be stored in either $" + IMOD_DIR + "/"
-        + DEFAULT_AUTODOC_DIR + " or $" + AUTODOC_DIR + ".\n");
+    return dir;
+  }
+
+  /**
+   * Return the directory defined by envVar and subdir
+   * @param envVar
+   * @param subdir
+   * @param manager
+   * @param axisID
+   * @param notFoundMessage
+   * @return
+   */
+  private static File getDirectory(final String envVar, final String subdir,
+      final BaseManager manager, final AxisID axisID, final String notFoundMessage) {
+    File dir = null;
+    if (envVar != null) {
+      if (subdir == null) {
+        return Utilities.getExistingDir(manager, envVar, axisID, notFoundMessage);
+      }
+      else {
+        return getDir(manager, envVar, subdir, axisID);
+      }
+    }
     return null;
+  }
+
+  /**
+   * Gets the autodoc file as a LogFile.
+   * @param autodocDir
+   * @param autodocName
+   * @param warnIfFail - If false error messages start with "Info".
+   * @return
+   */
+  private static LogFile getLogFile(final File autodocDir, final String autodocName,
+      final String notFoundMessage) {
+    boolean warnIfFail = notFoundMessage == null;
+    if (autodocDir == null || autodocName == null) {
+      return null;
+    }
+    File file = DatasetFiles.getAutodoc(autodocDir, autodocName);
+    String errorMessageTag = warnIfFail ? "Warning" : "Info";
+    if (!file.exists()) {
+      System.err.println(errorMessageTag + ":  The autodoc file "
+          + file.getAbsolutePath() + " does not exist.");
+      return null;
+    }
+    if (file.isDirectory()) {
+      System.err.println(errorMessageTag + ":  The autodoc file "
+          + file.getAbsolutePath() + " is a directory.");
+      return null;
+    }
+    if (!file.canRead()) {
+      System.err.println(errorMessageTag + ":  Cannot read the autodoc file "
+          + file.getAbsolutePath() + ".");
+      return null;
+    }
+    try {
+      return LogFile.getInstance(file);
+    }
+    catch (LogFile.LockException e) {
+      e.printStackTrace();
+      System.err.println(errorMessageTag + ":  Cannot open the autodoc file "
+          + file.getAbsolutePath() + ".");
+      return null;
+    }
+  }
+
+  private static File getDir(BaseManager manager, String envVariable, String dirName,
+      AxisID axisID) {
+    File parentDir = Utilities.getExistingDir(manager, envVariable, axisID);
+    if (parentDir == null) {
+      return null;
+    }
+    File dir = new File(parentDir, dirName);
+    if (!Utilities.checkExistingDir(dir, envVariable)) {
+      return null;
+    }
+    return dir;
+  }
+
+  public LogFile getLogFile() {
+    return logFile;
   }
 
   /**
@@ -230,9 +347,9 @@ public final class PrimativeTokenizer {
   private void initializeStreamTokenizer() throws FileNotFoundException,
       LogFile.LockException {
     try {
-      if (file != null) {
-        File readingFile = new File(file.getAbsolutePath());
-        readingId = file.openForReading();
+      if (logFile != null) {
+        File readingFile = new File(logFile.getAbsolutePath());
+        readingId = logFile.openForReading();
         reader = new FileReader(readingFile);
       }
       else if (string != null) {
@@ -251,7 +368,7 @@ public final class PrimativeTokenizer {
     }
     catch (FileNotFoundException e) {
       if (readingId != null && !readingId.isEmpty()) {
-        file.closeRead(readingId);
+        logFile.closeRead(readingId);
       }
       throw e;
     }
@@ -288,7 +405,7 @@ public final class PrimativeTokenizer {
           }
           found = true;
           returnFound = false;
-          if (file != null) {
+          if (logFile != null) {
             closeFile();
           }
         }
@@ -505,24 +622,24 @@ public final class PrimativeTokenizer {
       }
     } while (tokenizer.ttype != StreamTokenizer.TT_EOF
         && tokenizer.ttype != streamTokenizerNothingValue);
-    if (file != null) {
+    if (logFile != null) {
       closeFile();
     }
     System.out.println();
   }
 
   private void nextToken() throws IOException {
-    if (file != null && fileClosed) {
+    if (logFile != null && fileClosed) {
       return;
     }
     tokenizer.nextToken();
   }
 
   private void closeFile() throws IOException {
-    if (file != null && readingId != null && !readingId.isEmpty()) {
+    if (logFile != null && readingId != null && !readingId.isEmpty()) {
       fileClosed = true;
       reader.close();
-      file.closeRead(readingId);
+      logFile.closeRead(readingId);
       readingId = null;
     }
   }
