@@ -398,6 +398,9 @@ public final class DatasetFiles {
   }
 
   final static String getAutodocName(String name) {
+    if (name.endsWith(AutodocFactory.EXTENSION)) {
+      return name;
+    }
     return name + AutodocFactory.EXTENSION;
   }
 
