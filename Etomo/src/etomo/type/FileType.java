@@ -94,6 +94,8 @@ import etomo.process.ImodManager;
 public final class FileType {
   public static final String rcsid = "$Id$";
 
+  public static final String COM_DIR = "com";
+
   private static final List namedFileTypeList = new Vector();
 
   // FileType instances should be placed in alphabetical order, sorted first by
@@ -173,7 +175,7 @@ public final class FileType {
   public static final FileType SIRTSETUP_COMSCRIPT = FileType.getInstance(false, true,
       "sirtsetup", ".com");
   public static final FileType SLOPPY_BLEND_COMSCRIPT = FileType.getIMODDirInstance(
-      false, false, "sloppyblend", ".com", "com");
+      false, false, "sloppyblend", ".com", COM_DIR);
   public static final FileType TILT_COMSCRIPT = FileType.getInstance(false, true, "tilt",
       ".com");
   public static final FileType TILT_FOR_SIRT_COMSCRIPT = FileType.getInstance(false,
@@ -185,7 +187,7 @@ public final class FileType {
   public static final FileType PATCH_TRACKING_COMSCRIPT = FileType.getInstance(false,
       true, "xcorr_pt", ".com");
   public static final FileType DIRECTIVES_DESCR = FileType.getIMODDirInstance(false,
-      false, "directives", ".csv", "com");
+      false, "directives", ".csv", COM_DIR);
   public static final FileType DISTORTION_CORRECTED_STACK = FileType.getInstance(true,
       true, "", ".dcst");
   public static final FileType AUTOFIDSEED_DIR = FileType.getInstance(false, true,
