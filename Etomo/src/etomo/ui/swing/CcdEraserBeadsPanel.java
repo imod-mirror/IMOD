@@ -311,7 +311,7 @@ final class CcdEraserBeadsPanel implements Run3dmodButtonContainer, CcdEraserDis
   private void setToolTipText() {
     ReadOnlyAutodoc autodoc = null;
     try {
-      autodoc = AutodocFactory.getInstance(manager, AutodocFactory.CCDERASER, axisID);
+      autodoc = AutodocFactory.getInstance(manager, AutodocFactory.CCDERASER, axisID,false);
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();
