@@ -20,6 +20,7 @@ import javax.swing.event.ChangeListener;
 import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.logic.UserEnv;
+import etomo.storage.DirectiveFile;
 import etomo.storage.DirectiveFileCollection;
 import etomo.type.AxisID;
 import etomo.type.BatchRunTomoMetaData;
@@ -80,7 +81,8 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
   private final BaseManager manager;
   private final AxisID axisID;
   private final BatchRunTomoDatasetDialog datasetDialog;
-  private final DirectiveFileCollection directiveFileCollection;
+  private final DirectiveFileCollection templateCollection;
+  private final DirectiveFile batchDirectiveFile;
 
   private BatchRunTomoTab curTab = null;
   private List<BatchRunTomoDatasetDialog> datasetLevelDialogList = new ArrayList<BatchRunTomoDatasetDialog>();
@@ -95,9 +97,10 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
         DELIVER_TO_DIRECTORY_NAME + ": ");
     table = BatchRunTomoTable.getInstance(manager);
     datasetDialog = BatchRunTomoDatasetDialog.getInstace(manager);
-    directiveFileCollection = new DirectiveFileCollection(manager, axisID);
+    templateCollection = new DirectiveFileCollection(manager, axisID);
     templatePanel = TemplatePanel.getBorderlessInstance(manager, axisID, null, null,
-        null, directiveFileCollection);
+        null, templateCollection);
+    batchDirectiveFile= new DirectiveFile(manager,axisID);
   }
 
   public static BatchRunTomoDialog getInstance(final BaseManager manager,
@@ -244,18 +247,18 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
     // Apply default values
     Iterator<BatchRunTomoDatasetDialog> iterator = datasetLevelDialogList.iterator();
     while (iterator.hasNext()) {
-      iterator.next().setDefaultValues();
+      iterator.next().useDefaultValues();
     }
-    datasetDialog.setDefaultValues();
+    datasetDialog.useDefaultValues();
     // Apply settings values
     table.setValues(userConfiguration);
     // Apply the template values
-    table.setValues(directiveFileCollection);
+    table.setValues(templateCollection);
     iterator = datasetLevelDialogList.iterator();
     while (iterator.hasNext()) {
-      iterator.next().setValues(directiveFileCollection);
+      iterator.next().setValues(templateCollection);
     }
-    datasetDialog.setValues(directiveFileCollection);
+    datasetDialog.setValues(templateCollection);
     // checkpoint
     table.checkpoint();
     iterator = datasetLevelDialogList.iterator();
@@ -301,9 +304,7 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
       }
     }
     else if (object == ftfInputDirectiveFile) {
-      directiveFileCollection.setDirectiveFile(ftfInputDirectiveFile.getFile(),
-          DirectiveFileType.BATCH);
-      templatePanel.setParameters(directiveFileCollection
+      templatePanel.setParameters(templateCollection
           .getDirectiveFile(DirectiveFileType.BATCH));
       msgDirectivesChanged(false);
     }
