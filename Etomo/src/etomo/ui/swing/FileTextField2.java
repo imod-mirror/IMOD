@@ -24,6 +24,7 @@ import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.logic.DefaultFinder;
 import etomo.storage.DirectiveDef;
+import etomo.ui.Field;
 import etomo.ui.FieldType;
 import etomo.util.FilePath;
 import etomo.util.Utilities;
@@ -43,7 +44,7 @@ import etomo.util.Utilities;
 * 
 * <p> $Log$ </p>
 */
-final class FileTextField2 implements FileTextFieldInterface {
+final class FileTextField2 implements FileTextFieldInterface, Field {
   public static final String rcsid = "$Id:$";
 
   // Assuming the field type is always non-numeric
@@ -69,6 +70,7 @@ final class FileTextField2 implements FileTextFieldInterface {
   private String checkpointValue = null;
   private boolean fieldIsBackedUp = false;
   private String backupValue = null;
+  private boolean defaultValueSearchDone = false;
   private String defaultValue = null;
   /**
    * If origin is valid, it overrides originEtomoRunDir.
@@ -325,11 +327,11 @@ final class FileTextField2 implements FileTextFieldInterface {
   /**
    * Saves the current text as the checkpoint.
    */
-  void checkpoint() {
+  public void checkpoint() {
     checkpointValue = getText();
   }
 
-  void backup() {
+  public void backup() {
     backupValue = getText();
     fieldIsBackedUp = true;
   }
@@ -338,7 +340,7 @@ final class FileTextField2 implements FileTextFieldInterface {
    * If the field was backed up, make the backup value the displayed value, and turn off
    * the back up.
    */
-  void restoreFromBackup() {
+  public void restoreFromBackup() {
     if (fieldIsBackedUp) {
       setText(backupValue);
       fieldIsBackedUp = false;
@@ -349,11 +351,12 @@ final class FileTextField2 implements FileTextFieldInterface {
     this.directiveDef = directiveDef;
   }
 
-  void setDefaultValue() {
-    if (directiveDef == null || directiveDef.isComparam()) {
+  public void useDefaultValue() {
+    if (directiveDef == null || !directiveDef.isComparam()) {
       return;
     }
-    if (defaultValue == null) {
+    if (!defaultValueSearchDone) {
+      defaultValueSearchDone = true;
       defaultValue = DefaultFinder.INSTANCE.getDefaultValue(directiveDef);
     }
     if (defaultValue != null) {
@@ -366,7 +369,7 @@ final class FileTextField2 implements FileTextFieldInterface {
    * @param alwaysCheck - check for difference even when the field is disabled or invisible
    * @return
    */
-  boolean isDifferentFromCheckpoint(final boolean alwaysCheck) {
+  public boolean isDifferentFromCheckpoint(final boolean alwaysCheck) {
     if (!alwaysCheck && (!isEnabled() || !panel.isVisible())) {
       return false;
     }
