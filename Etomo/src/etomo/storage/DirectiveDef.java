@@ -411,12 +411,16 @@ public final class DirectiveDef {
   /**
    * @return the command name element for comparam directives
    */
-  String getCommand() {
+ public String getCommand() {
     return command;
   }
 
   public String getKey(final AxisID axisID) {
     return DirectiveName.makeKey(getDirective(axisID, null));
+  }
+  
+  public String getName() {
+    return name;
   }
 
   /**
