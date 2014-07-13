@@ -178,7 +178,8 @@ public final class Arguments {
   static void printHelpMessage() {
     ReadOnlyAutodoc autodoc = null;
     try {
-      autodoc = AutodocFactory.getInstance(null, AutodocFactory.ETOMO, AxisID.ONLY);
+      autodoc = AutodocFactory
+          .getInstance(null, AutodocFactory.ETOMO, AxisID.ONLY, false);
       if (autodoc != null) {
         String dash = "-";
         if (autodoc.getAttribute(EtomoAutodoc.DOUBLE_DASH_ATTRIBUTE_NAME) != null) {
