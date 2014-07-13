@@ -521,27 +521,40 @@ public final class CopyTomoComs {
     if (metaData.isSetFEIPixelSize()) {
       command.add("fei");
     }
+    File file = null;
     if (directiveFileCollection != null) {
       DirectiveFile directiveFile = directiveFileCollection
           .getDirectiveFile(DirectiveFileType.SCOPE);
       if (directiveFile != null) {
-        command.add(CHANGE_PARAMETERS_FILE_TAG + " "
-            + directiveFile.getFile().getAbsolutePath());
+        file = directiveFile.getFile();
+        if (file != null) {
+          command.add(CHANGE_PARAMETERS_FILE_TAG + " "
+              + file.getAbsolutePath());
+        }
       }
       directiveFile = directiveFileCollection.getDirectiveFile(DirectiveFileType.SYSTEM);
       if (directiveFile != null) {
-        command.add(CHANGE_PARAMETERS_FILE_TAG + " "
-            + directiveFile.getFile().getAbsolutePath());
+        file = directiveFile.getFile();
+        if (file != null) {
+          command.add(CHANGE_PARAMETERS_FILE_TAG + " "
+              + file.getAbsolutePath());
+        }
       }
       directiveFile = directiveFileCollection.getDirectiveFile(DirectiveFileType.USER);
       if (directiveFile != null) {
-        command.add(CHANGE_PARAMETERS_FILE_TAG + " "
-            + directiveFile.getFile().getAbsolutePath());
+        file = directiveFile.getFile();
+        if (file != null) {
+          command.add(CHANGE_PARAMETERS_FILE_TAG + " "
+              + file.getAbsolutePath());
+        }
       }
       directiveFile = directiveFileCollection.getDirectiveFile(DirectiveFileType.BATCH);
       if (directiveFile != null) {
-        command.add(CHANGE_PARAMETERS_FILE_TAG + " "
-            + directiveFile.getFile().getAbsolutePath());
+        file = directiveFile.getFile();
+        if (file != null) {
+          command.add(CHANGE_PARAMETERS_FILE_TAG + " "
+              + file.getAbsolutePath());
+        }
       }
     }
     // Options removed:
