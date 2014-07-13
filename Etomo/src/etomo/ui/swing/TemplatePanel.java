@@ -313,6 +313,9 @@ final class TemplatePanel {
    * @param directiveFile
    */
   void setParameters(final DirectiveFile directiveFile) {
+    if (directiveFile == null) {
+      return;
+    }
     DirectiveDef directiveDef = DirectiveDef.SCOPE_TEMPLATE;
     if (directiveFile.contains(directiveDef)) {
       setTemplate(directiveFile.getValue(directiveDef), scopeTemplateFileList,
@@ -326,7 +329,8 @@ final class TemplatePanel {
     directiveDef = DirectiveDef.USER_TEMPLATE;
     if (directiveFile.contains(directiveDef)) {
       reloadUserTemplate();
-      setTemplate(directiveFile.getValue(directiveDef), userTemplateFileList, cmbUserTemplate);
+      setTemplate(directiveFile.getValue(directiveDef), userTemplateFileList,
+          cmbUserTemplate);
     }
     refreshDirectiveFileCollection();
   }
