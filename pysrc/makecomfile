@@ -161,6 +161,7 @@ if typeName == 'xcorr_pt':
    sedcom = [fmtstr('/^OutputFile/s/{0}.prexf/{0}{1}/', rootname, fidExt),
              fmtstr('/^InputFile/s/{0}.st/{0}.preali/', rootname),
              '/^OutputFile/a/PrealignmentTransformFile	' + rootname + '.prexg/',
+             '/^CumulativeCorrelation/d',
              '/^SearchMag/d']
 
    prefix = [baseout + axislet, 'tiltxcorr']

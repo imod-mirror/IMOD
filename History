@@ -1,5 +1,13 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/12/14: Added Object menu item to fill in Z in all contours.
+
+7/11/14: Fixed inability to use patch tracking if cumulative correlation was
+checked in coarse alignment (In 4.7).
+
+7/11/14: Modified uitest to work with the new way IMOD is solving for angles.
+(Bug# 1805)
+
 7/6/14: Made Batchruntomo convert a directive for chopping up patch tracking
 contours into option to Imodchopconts instead of Tiltxcorr; fixed problem with 
 Imodchopconts testing for whether incompatible options were entered (In 4.7).

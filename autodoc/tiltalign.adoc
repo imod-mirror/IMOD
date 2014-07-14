@@ -788,17 +788,17 @@ type = F
 usage = Step size for minimization procedure
 tooltip = A step size factor; try changing by +/-10% if solutions fail.
 manpage = This entry determines how large a step the variable metric
-minimization procedure (METRO) tries to take.  The default for is 0.5, but
-smaller values of 0.35 or even 0.25 are needed for large data sets.
+minimization procedure (METRO) tries to take.  The default is 0.25, 
+which typically works even for large data sets.
 When METRO fails for various reasons, the program will retry with several
-other, mostly smaller values of the factor.
+other nearby values of the factor.
 
 [Field = MaximumCycles]
 short = 
 type = I
-usage = Limit on number of cycles for minimization procedure (default 500)
+usage = Limit on number of cycles for minimization procedure (default 1000)
 tooltip = Limit on number of iterations to find a solution.
-manpage = Limit on number of cycles for minimization procedure (default 500).
+manpage = Limit on number of cycles for minimization procedure (default 1000).
 
 [Field = RobustFitting]
 type = B
