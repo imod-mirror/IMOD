@@ -1,6 +1,7 @@
 package etomo.ui.swing;
 
 import java.awt.Component;
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import javax.swing.BorderFactory;
@@ -24,7 +25,7 @@ import etomo.type.UITestFieldType;
  * 
  * @version $Revision$
  */
-final class CheckBoxCell extends InputCell implements ToggleCell {
+final class CheckBoxCell extends InputCell implements ToggleCell, ActionListener {
   public static final String rcsid = "$Id$";
 
   private JCheckBox checkBox = new JCheckBox();
@@ -35,6 +36,8 @@ final class CheckBoxCell extends InputCell implements ToggleCell {
   private EtomoBoolean2 checkpointValue = null;
   private boolean backupValue = false;
   private boolean fieldIsBackedUp = false;
+  private boolean useFieldHighlight = false;
+  private boolean fieldHighlightValue = false;
 
   CheckBoxCell() {
     super();
@@ -137,6 +140,30 @@ final class CheckBoxCell extends InputCell implements ToggleCell {
   private void setForeground() {
     checkBox.setForeground(Colors.CELL_FOREGROUND);
     setHtmlLabel(Colors.CELL_FOREGROUND);
+  }
+
+  void setFieldHighlightValue(final boolean value) {
+    if (!useFieldHighlight) {
+      useFieldHighlight = true;
+      checkBox.addActionListener(this);
+    }
+    fieldHighlightValue = value;
+    setFieldHighlight();
+  }
+
+  public void actionPerformed(ActionEvent e) {
+    setFieldHighlight();
+  }
+
+  void setFieldHighlight() {
+    if (useFieldHighlight) {
+      if (fieldHighlightValue == isSelected()) {
+        checkBox.setForeground(Colors.FIELD_HIGHLIGHT);
+      }
+      else {
+        checkBox.setForeground(Colors.CELL_FOREGROUND);
+      }
+    }
   }
 
   public int getHeight() {
