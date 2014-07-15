@@ -26,6 +26,7 @@ import etomo.logic.DefaultFinder;
 import etomo.storage.DirectiveDef;
 import etomo.ui.Field;
 import etomo.ui.FieldType;
+import etomo.ui.TextFieldInterface;
 import etomo.util.FilePath;
 import etomo.util.Utilities;
 
@@ -44,7 +45,8 @@ import etomo.util.Utilities;
 * 
 * <p> $Log$ </p>
 */
-final class FileTextField2 implements FileTextFieldInterface, Field {
+final class FileTextField2 implements FileTextFieldInterface, Field, ActionListener,
+    TextFieldInterface {
   public static final String rcsid = "$Id:$";
 
   // Assuming the field type is always non-numeric
@@ -67,11 +69,8 @@ final class FileTextField2 implements FileTextFieldInterface, Field {
   private boolean absolutePath = false;
   private boolean useTextAsOriginDir = false;
   private boolean turnOffFileHiding = false;
-  private String checkpointValue = null;
-  private boolean fieldIsBackedUp = false;
-  private String backupValue = null;
-  private boolean defaultValueSearchDone = false;
-  private String defaultValue = null;
+  private boolean useFieldHighlight = false;
+
   /**
    * If origin is valid, it overrides originEtomoRunDir.
    */
@@ -328,12 +327,11 @@ final class FileTextField2 implements FileTextFieldInterface, Field {
    * Saves the current text as the checkpoint.
    */
   public void checkpoint() {
-    checkpointValue = getText();
+    field.checkpoint();
   }
 
   public void backup() {
-    backupValue = getText();
-    fieldIsBackedUp = true;
+    field.backup();
   }
 
   /**
@@ -341,27 +339,27 @@ final class FileTextField2 implements FileTextFieldInterface, Field {
    * the back up.
    */
   public void restoreFromBackup() {
-    if (fieldIsBackedUp) {
-      setText(backupValue);
-      fieldIsBackedUp = false;
-    }
+    field.restoreFromBackup();
   }
 
   void setDirectiveDef(final DirectiveDef directiveDef) {
-    this.directiveDef = directiveDef;
+    field.setDirectiveDef(directiveDef);
   }
 
   public void useDefaultValue() {
-    if (directiveDef == null || !directiveDef.isComparam()) {
-      return;
+    field.useDefaultValue();
+  }
+
+  public void setFieldHighlightValue(final String value) {
+    field.setFieldHighlightValue(value);
+    if (!useFieldHighlight) {
+      useFieldHighlight = true;
+      button.addActionListener(this);
     }
-    if (!defaultValueSearchDone) {
-      defaultValueSearchDone = true;
-      defaultValue = DefaultFinder.INSTANCE.getDefaultValue(directiveDef);
-    }
-    if (defaultValue != null) {
-      setText(defaultValue);
-    }
+  }
+
+  public void actionPerformed(ActionEvent e) {
+    field.setFieldHighlight();
   }
 
   /**
@@ -370,13 +368,7 @@ final class FileTextField2 implements FileTextFieldInterface, Field {
    * @return
    */
   public boolean isDifferentFromCheckpoint(final boolean alwaysCheck) {
-    if (!alwaysCheck && (!isEnabled() || !panel.isVisible())) {
-      return false;
-    }
-    if (checkpointValue == null) {
-      return true;
-    }
-    return !checkpointValue.equals(getText());
+    return field.isDifferentFromCheckpoint(alwaysCheck);
   }
 
   /**
@@ -449,7 +441,7 @@ final class FileTextField2 implements FileTextFieldInterface, Field {
     return field.getText();
   }
 
-  void setText(final String text) {
+  public void setText(final String text) {
     field.setText(text);
   }
 
