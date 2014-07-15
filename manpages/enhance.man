@@ -67,9 +67,7 @@ Gaussian bandpass (low-pass + high-pass)
 .P
 .P
 For versions of IMOD distributed or built with FFTW, there are no
-restrictions on the image dimensions.  Otherwise, 
-image dimensions must be even and have no prime factors
-greater than 19.  
+restrictions on the image dimensions.  
 .P
 The program will accept file names either from the command line
 or as entries to the program after it is started.  If there are
