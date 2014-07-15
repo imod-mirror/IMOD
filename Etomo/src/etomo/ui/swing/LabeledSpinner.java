@@ -127,8 +127,13 @@
  */
 package etomo.ui.swing;
 
+import java.awt.Color;
 import java.awt.Container;
 import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.awt.event.MouseListener;
 
 import javax.swing.Box;
@@ -138,6 +143,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
+import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import etomo.EtomoDirector;
@@ -146,9 +152,11 @@ import etomo.type.ConstEtomoNumber;
 import etomo.type.EtomoNumber;
 import etomo.type.UITestFieldType;
 import etomo.ui.Field;
+import etomo.ui.TextFieldInterface;
 import etomo.util.Utilities;
 
-final class LabeledSpinner implements Field {
+final class LabeledSpinner implements Field, TextFieldInterface, ChangeListener,
+    FocusListener {
   public static final String rcsid = "$Id$";
 
   private final JPanel panel = new JPanel();
@@ -163,6 +171,12 @@ final class LabeledSpinner implements Field {
   private Number checkpointValue = null;
   private Number backupValue = null;
   private boolean fieldIsBackedUp = false;
+  private boolean useFieldHighlight = false;
+  private Number fieldHighlightValue = null;
+  private boolean origLabelForegroundSet = false;
+  private Color origLabelForeground = null;
+  private boolean origTextForegroundSet = false;
+  private Color origTextForeground = null;
 
   /**
    * @param spinner
@@ -262,6 +276,72 @@ final class LabeledSpinner implements Field {
     }
   }
 
+  public void setFieldHighlightValue(final String value) {
+    if (!useFieldHighlight) {
+      useFieldHighlight = true;
+      spinner.addChangeListener(this);
+      spinner.addFocusListener(this);
+    }
+    EtomoNumber number = new EtomoNumber();
+    number.set(value);
+    String errmsg = number.validate(null);
+    System.err.println(errmsg);
+    fieldHighlightValue = number.getNumber();
+    setFieldHighlight();
+  }
+
+  public void stateChanged(ChangeEvent e) {
+    setFieldHighlight();
+  }
+
+  public void focusGained(final FocusEvent event) {
+  }
+
+  public void focusLost(final FocusEvent event) {
+    setFieldHighlight();
+  }
+
+  /**
+   * If the field highlight is in use, use the field highlight color on the foreground of
+   * the text field if the value of the text field equals the field highlight value.  Save
+   * the original foreground.  If the field highlight is in use and the value of the text
+   * field does not equal the field highlight value, try to restore the original
+   * foreground - or set a foreground color similar to the original one.  Assumes that
+   * field highlight is not used when the field is disabled.
+   */
+  void setFieldHighlight() {
+    if (useFieldHighlight) {
+      Number number = getValue();
+      if ((fieldHighlightValue != null && fieldHighlightValue.equals(number))
+          || (fieldHighlightValue == null && number == null)) {
+        if (!origLabelForegroundSet) {
+          origLabelForegroundSet = true;
+          origLabelForeground = label.getForeground();
+        }
+        if (!origTextForegroundSet) {
+          origTextForegroundSet = true;
+          origTextForeground = spinner.getForeground();
+        }
+        label.setForeground(Colors.FIELD_HIGHLIGHT);
+        spinner.setForeground(Colors.FIELD_HIGHLIGHT);
+      }
+      else {
+        if (origLabelForegroundSet) {
+          label.setForeground(origLabelForeground);
+        }
+        else {
+          label.setForeground(Color.BLACK);
+        }
+        if (origTextForegroundSet) {
+          spinner.setForeground(origTextForeground);
+        }
+        else {
+          spinner.setForeground(Color.BLACK);
+        }
+      }
+    }
+  }
+
   /**
    * Resets to checkpointValue if checkpointValue has been set.  Otherwise has no effect.
    */
@@ -309,6 +389,10 @@ final class LabeledSpinner implements Field {
     else {
       spinner.setValue(value.getNumber());
     }
+  }
+
+  public void setText(final String value) {
+    setValue(value);
   }
 
   void setValue(final String value) {
