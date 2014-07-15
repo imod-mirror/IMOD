@@ -312,7 +312,8 @@ Green value; Range is (0.0 - 1.0) Default is 1.0.
 .TP
 .B -b \fIvalue\fR
 Blue value;  Range is (0.0 - 1.0) Default is 1.0.
-.TP -D \fIfile\fR
+.TP
+.B -D \fIfile\fR
 Name of defect list file produced by SerialEM, for correction of
 column, row, and point defects in images that have not had this
 correction applied.  Specifically, frames
