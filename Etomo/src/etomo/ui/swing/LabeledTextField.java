@@ -2,6 +2,8 @@ package etomo.ui.swing;
 
 import java.awt.*;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.awt.event.MouseListener;
 import java.io.File;
 
@@ -20,6 +22,7 @@ import etomo.type.UITestFieldType;
 import etomo.ui.Field;
 import etomo.ui.FieldType;
 import etomo.ui.FieldValidationFailedException;
+import etomo.ui.TextFieldInterface;
 import etomo.ui.UIComponent;
 import etomo.util.Utilities;
 
@@ -213,7 +216,8 @@ import etomo.util.Utilities;
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
  */
-final class LabeledTextField implements UIComponent, SwingComponent, Field {
+final class LabeledTextField implements UIComponent, SwingComponent, Field,
+    TextFieldInterface, FocusListener {
   public static final String rcsid = "$Id$";
 
   private final JPanel panel = new JPanel();
@@ -234,6 +238,10 @@ final class LabeledTextField implements UIComponent, SwingComponent, Field {
   private DirectiveDef directiveDef = null;
   private boolean defaultValueSearchDone = false;
   private String defaultValue = null;
+  private boolean useFieldHighlight = false;
+  private String fieldHighlightValue = null;
+  private boolean origTextForegroundSet = false;
+  private boolean origLabelForegroundSet = false;
 
   public String toString() {
     return "[label:" + getLabel() + "]";
@@ -317,31 +325,6 @@ final class LabeledTextField implements UIComponent, SwingComponent, Field {
     }
   }
 
-  void setTemplateColor(final boolean input) {
-    if (input) {
-      if (origTextForeground == null) {
-        origTextForeground = textField.getForeground();
-        origLabelForeground = label.getForeground();
-      }
-      textField.setForeground(Colors.TEMPLATE);
-      label.setForeground(Colors.TEMPLATE);
-    }
-    else {
-      if (origTextForeground != null) {
-        textField.setForeground(origTextForeground);
-      }
-      else {
-        textField.setForeground(Color.black);
-      }
-      if (origLabelForeground != null) {
-        label.setForeground(origLabelForeground);
-      }
-      else {
-        label.setForeground(Color.black);
-      }
-    }
-  }
-
   /**
    * Saves the current text as the checkpoint.
    */
@@ -421,6 +404,63 @@ final class LabeledTextField implements UIComponent, SwingComponent, Field {
       return;
     }
     setText(checkpointValue);
+  }
+
+  public void setFieldHighlightValue(final String value) {
+    if (!useFieldHighlight) {
+      useFieldHighlight = true;
+      textField.addFocusListener(this);
+    }
+    fieldHighlightValue = value;
+    setFieldHighlight();
+  }
+
+  public void focusGained(final FocusEvent event) {
+  }
+
+  public void focusLost(final FocusEvent event) {
+    setFieldHighlight();
+  }
+
+  /**
+   * If the field highlight is in use, use the field highlight color on the foreground of
+   * the text field if the value of the text field equals the field highlight value.  Save
+   * the original foreground.  If the field highlight is in use and the value of the text
+   * field does not equal the field highlight value, try to restore the original
+   * foreground - or set a foreground color similar to the original one.  Assumes that
+   * field highlight is not used when the field is disabled.
+   */
+  void setFieldHighlight() {
+    if (useFieldHighlight) {
+      String text = textField.getText();
+      if ((fieldHighlightValue != null && fieldHighlightValue.equals(text))
+          || (fieldHighlightValue == null && (text == null || text.equals("")))) {
+        if (!origLabelForegroundSet) {
+          origLabelForegroundSet = true;
+          origLabelForeground = label.getForeground();
+        }
+        if (!origTextForegroundSet) {
+          origTextForegroundSet = true;
+          origTextForeground = textField.getForeground();
+        }
+        label.setForeground(Colors.FIELD_HIGHLIGHT);
+        textField.setForeground(Colors.FIELD_HIGHLIGHT);
+      }
+      else {
+        if (origLabelForegroundSet) {
+          label.setForeground(origLabelForeground);
+        }
+        else {
+          label.setForeground(Color.BLACK);
+        }
+        if (origTextForegroundSet) {
+          textField.setForeground(origTextForeground);
+        }
+        else {
+          textField.setForeground(Color.BLACK);
+        }
+      }
+    }
   }
 
   public void addActionListener(ActionListener listener) {
@@ -581,7 +621,7 @@ final class LabeledTextField implements UIComponent, SwingComponent, Field {
     }
   }
 
-  void setText(final String text) {
+  public void setText(final String text) {
     textField.setText(text);
   }
 
