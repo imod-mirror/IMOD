@@ -159,10 +159,10 @@ final class TemplatePanel {
     cmbUserTemplate.addActionListener(listener);
   }
 
-  void setTemplateColor() {
-    cmbScopeTemplate.setTemplateColor();
-    cmbSystemTemplate.setTemplateColor();
-    cmbUserTemplate.setTemplateColor();
+  void setFieldHighlight() {
+    cmbScopeTemplate.setFieldHighlight();
+    cmbSystemTemplate.setFieldHighlight();
+    cmbUserTemplate.setFieldHighlight();
   }
 
   private void loadUserTemplate() {
