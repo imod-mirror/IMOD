@@ -66,12 +66,15 @@ public class DirectiveFileCollection implements SetupReconInterface {
    * is found in a lower priority file.  
    * @param directiveDef
    * @param axisID
+   * @param templateOnly - causes function to ignore the batch directive file
    * @return
    */
-  private AttributeMatch getAttribute(final DirectiveDef directiveDef, final AxisID axisID) {
+  private AttributeMatch getAttribute(final DirectiveDef directiveDef,
+      final AxisID axisID, final boolean templateOnly) {
     AttributeMatch secondaryMatch = null;
-    // Search for a primary match starting with the highest priority file.
-    for (int i = directiveFileArray.length - 1; i >= 0; i--) {
+    // Search for a primary match starting with the highest priority file, or the highest
+    // priority template if templateOnly is true.
+    for (int i = directiveFileArray.length - (templateOnly ? 2 : 1); i >= 0; i--) {
       DirectiveFile directiveFile = directiveFileArray[i];
       if (directiveFile == null) {
         continue;
@@ -110,12 +113,17 @@ public class DirectiveFileCollection implements SetupReconInterface {
    * @see getAttribute
    * @param directiveDef
    * @param axisID
+   * @param templateOnly - if true batch directive file and copyArgExtraValues are ignored
    * @return
    */
-  public boolean contains(final DirectiveDef directiveDef, final AxisID axisID) {
-    AttributeMatch attributeMatch = getAttribute(directiveDef, axisID);
+  private boolean contains(final DirectiveDef directiveDef, final AxisID axisID,
+      final boolean templateOnly) {
+    AttributeMatch attributeMatch = getAttribute(directiveDef, axisID, templateOnly);
     if (attributeMatch != null) {
       return true;
+    }
+    if (templateOnly) {
+      return false;
     }
     // An attribute has not been found - look for an extra value.
     if (directiveDef.getDirectiveType() == DirectiveType.COPY_ARG
@@ -125,6 +133,10 @@ public class DirectiveFileCollection implements SetupReconInterface {
     return false;
   }
 
+  public boolean contains(final DirectiveDef directiveDef, final AxisID axisID) {
+    return contains(directiveDef, axisID, false);
+  }
+
   /**
    * Returns true a non-empty, non-overriding directive, or an extraValue is found.
    * @see getAttribute
@@ -132,7 +144,11 @@ public class DirectiveFileCollection implements SetupReconInterface {
    * @return
    */
   public boolean contains(final DirectiveDef directiveDef) {
-    return contains(directiveDef, null);
+    return contains(directiveDef, null, false);
+  }
+
+  public boolean contains(final DirectiveDef directiveDef, final boolean templateOnly) {
+    return contains(directiveDef, null, templateOnly);
   }
 
   /**
@@ -143,10 +159,14 @@ public class DirectiveFileCollection implements SetupReconInterface {
    * @param axisID
    * @return
    */
-  public String getValue(final DirectiveDef directiveDef, final AxisID axisID) {
-    AttributeMatch attributeMatch = getAttribute(directiveDef, axisID);
+  private String getValue(final DirectiveDef directiveDef, final AxisID axisID,
+      final boolean templateOnly) {
+    AttributeMatch attributeMatch = getAttribute(directiveDef, axisID, templateOnly);
     if (attributeMatch != null) {
       return attributeMatch.getValue();
+    }
+    if (templateOnly) {
+      return null;
     }
     // An attribute has not been found - look for an extra value.
     if (directiveDef.getDirectiveType() == DirectiveType.COPY_ARG
@@ -154,6 +174,10 @@ public class DirectiveFileCollection implements SetupReconInterface {
       return copyArgExtraValues.get(directiveDef.getName(axisID));
     }
     return null;
+  }
+
+  public String getValue(final DirectiveDef directiveDef, final AxisID axisID) {
+    return getValue(directiveDef, axisID, false);
   }
 
   /**
@@ -164,7 +188,11 @@ public class DirectiveFileCollection implements SetupReconInterface {
    * @return
    */
   public String getValue(final DirectiveDef directiveDef) {
-    return getValue(directiveDef, null);
+    return getValue(directiveDef, null, false);
+  }
+
+  public String getValue(final DirectiveDef directiveDef, final boolean templateOnly) {
+    return getValue(directiveDef, null, templateOnly);
   }
 
   /**
@@ -199,12 +227,17 @@ public class DirectiveFileCollection implements SetupReconInterface {
    * @see getAttribute
    * @param directiveDef
    * @param axisID
+   * @param templateOnly - causes function to ignore the batch directive file and copyrgExtraValues
    * @return
    */
-  public boolean isValue(final DirectiveDef directiveDef, final AxisID axisID) {
-    AttributeMatch attributeMatch = getAttribute(directiveDef, axisID);
+  private boolean isValue(final DirectiveDef directiveDef, final AxisID axisID,
+      final boolean templateOnly) {
+    AttributeMatch attributeMatch = getAttribute(directiveDef, axisID, templateOnly);
     if (attributeMatch != null) {
       return attributeMatch.isValue();
+    }
+    if (templateOnly) {
+      return false;
     }
     // An attribute has not been found - look for an extra value.
     if (directiveDef.getDirectiveType() == DirectiveType.COPY_ARG
@@ -215,6 +248,10 @@ public class DirectiveFileCollection implements SetupReconInterface {
     return false;
   }
 
+  public boolean isValue(final DirectiveDef directiveDef, final AxisID axisID) {
+    return isValue(directiveDef, axisID, false);
+  }
+
   /**
    * Returns the boolean version of a directive value if a non-empty, non-overriding
    * directive, or an extraValue is found.
@@ -223,7 +260,11 @@ public class DirectiveFileCollection implements SetupReconInterface {
    * @return
    */
   public boolean isValue(final DirectiveDef directiveDef) {
-    return isValue(directiveDef, null);
+    return isValue(directiveDef, null, false);
+  }
+
+  public boolean isValue(final DirectiveDef directiveDef, final boolean templateOnly) {
+    return isValue(directiveDef, null, templateOnly);
   }
 
   /**
