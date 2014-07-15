@@ -2,6 +2,8 @@ package etomo.ui.swing;
 
 import java.awt.Color;
 import java.awt.Container;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 import javax.swing.JCheckBox;
 import javax.swing.text.Document;
@@ -113,18 +115,21 @@ import etomo.util.Utilities;
  * <p> bug# 675 Extends JCheckBox.  Names the check box using the label.
  * <p> </p>
  */
-final class CheckBox extends JCheckBox implements Field {
+final class CheckBox extends JCheckBox implements Field, ActionListener {
   public static final String rcsid = "$Id$";
 
   private EtomoBoolean2 checkpointValue = null;
   private boolean fieldIsBackedUp = false;
   private boolean backupValue = false;
   private boolean debug = false;
+  private boolean origForegroundSet = false;
   private Color origForeground = null;
   private DirectiveDef directiveDef = null;
   private boolean defaultValueSearchDone = false;
   private boolean defaultValueFound = false;
   private boolean defaultValue = false;
+  private boolean useFieldHighlight = false;
+  private boolean fieldHighlightValue = false;
 
   public CheckBox() {
     super();
@@ -232,15 +237,28 @@ final class CheckBox extends JCheckBox implements Field {
     debug = input;
   }
 
-  void setTemplateColor(final boolean input) {
-    if (input) {
-      if (origForeground == null) {
-        origForeground = getForeground();
-      }
-      setForeground(Colors.TEMPLATE);
+  void setFieldHighlightValue(final boolean value) {
+    if (!useFieldHighlight) {
+      useFieldHighlight = true;
+      addActionListener(this);
     }
-    else {
-      if (origForeground != null) {
+    fieldHighlightValue = value;
+    setFieldHighlight();
+  }
+
+  public void actionPerformed(ActionEvent e) {
+    setFieldHighlight();
+  }
+
+  void setFieldHighlight() {
+    if (useFieldHighlight) {
+      if (fieldHighlightValue == isSelected()) {
+        if (!origForegroundSet) {
+          origForeground = getForeground();
+        }
+        setForeground(Colors.FIELD_HIGHLIGHT);
+      }
+      else if (origForeground != null) {
         setForeground(origForeground);
       }
       else {
