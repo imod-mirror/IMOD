@@ -16,6 +16,7 @@ import javax.swing.JPanel;
 import javax.swing.border.LineBorder;
 
 import etomo.BaseManager;
+import etomo.storage.DirectiveFile;
 import etomo.storage.DirectiveFileCollection;
 import etomo.storage.StackFileFilter;
 import etomo.type.UserConfiguration;
@@ -227,12 +228,12 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable {
     rowList.restoreFromBackup();
   }
 
-  /**
-   * Set values from the directive file collection
-   * @param directiveFileCollection
-   */
   void setValues(final DirectiveFileCollection directiveFileCollection) {
     rowList.setValues(directiveFileCollection);
+  }
+
+  void setFieldHighlightValues(final DirectiveFileCollection directiveFileCollection) {
+    rowList.setFieldHighlightValues(directiveFileCollection);
   }
 
   void setValues(final UserConfiguration userConfiguration) {
@@ -401,20 +402,22 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable {
       }
     }
 
-    /**
-     * Set row values from the directive file collection
-     * @param directiveFileCollection
-     */
     void setValues(final DirectiveFileCollection directiveFileCollection) {
       for (int i = 0; i < list.size(); i++) {
         list.get(i).setValues(directiveFileCollection);
       }
     }
-    void setValues(final  UserConfiguration userConfiguration) {
+    void setFieldHighlightValues(final DirectiveFileCollection directiveFileCollection) {
+      for (int i = 0; i < list.size(); i++) {
+        list.get(i).setFieldHighlightValues(directiveFileCollection);
+      }
+    }
+    void setValues(final UserConfiguration userConfiguration) {
       for (int i = 0; i < list.size(); i++) {
         list.get(i).setValues(userConfiguration);
       }
     }
+
     void checkpoint() {
       for (int i = 0; i < list.size(); i++) {
         list.get(i).checkpoint();
