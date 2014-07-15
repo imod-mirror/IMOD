@@ -81,8 +81,7 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
   private final BaseManager manager;
   private final AxisID axisID;
   private final BatchRunTomoDatasetDialog datasetDialog;
-  private final DirectiveFileCollection templateCollection;
-  private final DirectiveFile batchDirectiveFile;
+  private final DirectiveFileCollection directiveFileCollection;
 
   private BatchRunTomoTab curTab = null;
   private List<BatchRunTomoDatasetDialog> datasetLevelDialogList = new ArrayList<BatchRunTomoDatasetDialog>();
@@ -97,10 +96,9 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
         DELIVER_TO_DIRECTORY_NAME + ": ");
     table = BatchRunTomoTable.getInstance(manager);
     datasetDialog = BatchRunTomoDatasetDialog.getInstace(manager);
-    templateCollection = new DirectiveFileCollection(manager, axisID);
+    directiveFileCollection = new DirectiveFileCollection(manager, axisID);
     templatePanel = TemplatePanel.getBorderlessInstance(manager, axisID, null, null,
-        null, templateCollection);
-    batchDirectiveFile= new DirectiveFile(manager,axisID);
+        null, directiveFileCollection);
   }
 
   public static BatchRunTomoDialog getInstance(final BaseManager manager,
@@ -118,7 +116,7 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
     JPanel pnlDeliverToDirectory = new JPanel();
     JPanel pnlTemplates = new JPanel();
     // init
-    templatePanel.setTemplateColor();
+    templatePanel.setFieldHighlight();
     ftfInputDirectiveFile.setAbsolutePath(true);
     ftfInputDirectiveFile.setFieldEditable(false);
     ftfDeliverToDirectory.setFileSelectionMode(FileChooser.DIRECTORIES_ONLY);
@@ -252,13 +250,13 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
     datasetDialog.useDefaultValues();
     // Apply settings values
     table.setValues(userConfiguration);
-    // Apply the template values
-    table.setValues(templateCollection);
+    // Apply the directive collection values
+    table.setValues(directiveFileCollection);
     iterator = datasetLevelDialogList.iterator();
     while (iterator.hasNext()) {
-      iterator.next().setValues(templateCollection);
+      iterator.next().setValues(directiveFileCollection);
     }
-    datasetDialog.setValues(templateCollection);
+    datasetDialog.setValues(directiveFileCollection);
     // checkpoint
     table.checkpoint();
     iterator = datasetLevelDialogList.iterator();
@@ -276,6 +274,13 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
       }
       datasetDialog.restoreFromBackup();
     }
+    // Set new highlight values - batch directive file must be ignored
+    table.setFieldHighlightValues(directiveFileCollection);
+    iterator = datasetLevelDialogList.iterator();
+    while (iterator.hasNext()) {
+      iterator.next().setFieldHighlightValues(directiveFileCollection);
+    }
+    datasetDialog.setFieldHighlightValues(directiveFileCollection);
   }
 
   public void actionPerformed(final ActionEvent event) {
@@ -304,7 +309,9 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
       }
     }
     else if (object == ftfInputDirectiveFile) {
-      templatePanel.setParameters(templateCollection
+      directiveFileCollection.setDirectiveFile(ftfInputDirectiveFile.getFile(),
+          DirectiveFileType.BATCH);
+      templatePanel.setParameters(directiveFileCollection
           .getDirectiveFile(DirectiveFileType.BATCH));
       msgDirectivesChanged(false);
     }
