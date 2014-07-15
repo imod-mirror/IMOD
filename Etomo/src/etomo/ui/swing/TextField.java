@@ -1,12 +1,14 @@
 package etomo.ui.swing;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 
 import javax.swing.JLabel;
 import javax.swing.JTextField;
-import javax.swing.border.Border;
 
 import etomo.EtomoDirector;
 import etomo.logic.DefaultFinder;
@@ -34,7 +36,7 @@ import etomo.util.Utilities;
  * 
  * @version $Revision$
  */
-final class TextField implements UIComponent, SwingComponent, Field {
+final class TextField implements UIComponent, SwingComponent, Field, FocusListener {
   public static final String rcsid = "$Id$";
 
   private final JTextField textField = new JTextField();
@@ -44,13 +46,16 @@ final class TextField implements UIComponent, SwingComponent, Field {
   private final String locationDescr;
 
   private boolean required = false;
-  private Border origBorder = null;
+  private boolean origForegroundSet = false;
+  private Color origForeground = null;
   private String checkpointValue = null;
   private String backupValue = null;
   private boolean fieldIsBackedUp = false;
   private DirectiveDef directiveDef = null;
   private boolean defaultValueSearchDone = false;
   private String defaultValue = null;
+  private boolean useFieldHighlight = false;
+  private String fieldHighlightValue = null;
 
   TextField(final FieldType fieldType, final String reference, final String locationDescr) {
     this.locationDescr = locationDescr;
@@ -171,25 +176,48 @@ final class TextField implements UIComponent, SwingComponent, Field {
     checkpointValue = getText();
   }
 
-  /**
-   * Sets text field border to border param.  If border param is null, attempts to set the
-   * border back to the original border.
-   * @param border
-   */
-  void setBorder(final Border border) {
-    if (border != null) {
-      if (origBorder == null) {
-        origBorder = textField.getBorder();
-      }
-      textField.setBorder(border);
+  void setFieldHighlightValue(final String value) {
+    if (!useFieldHighlight) {
+      useFieldHighlight = true;
+      textField.addFocusListener(this);
     }
-    else {
-      textField.setBorder(origBorder);
-    }
+    fieldHighlightValue = value;
+    setFieldHighlight();
   }
 
-  Border getBorder() {
-    return textField.getBorder();
+  public void focusGained(final FocusEvent event) {
+  }
+
+  public void focusLost(final FocusEvent event) {
+    setFieldHighlight();
+  }
+
+  /**
+   * If the field highlight is in use, use the field highlight color on the foreground of
+   * the text field if the value of the text field equals the field highlight value.  Save
+   * the original foreground.  If the field highlight is in use and the value of the text
+   * field does not equal the field highlight value, try to restore the original
+   * foreground - or set a foreground color similar to the original one.  Assumes that
+   * field highlight is not used when the field is disabled.
+   */
+  void setFieldHighlight() {
+    if (useFieldHighlight) {
+      String text = textField.getText();
+      if ((fieldHighlightValue != null && fieldHighlightValue.equals(text))
+          || (fieldHighlightValue == null && (text == null || text.equals("")))) {
+        if (!origForegroundSet) {
+          origForegroundSet = true;
+          origForeground = textField.getForeground();
+        }
+        textField.setForeground(Colors.FIELD_HIGHLIGHT);
+      }
+      else if (origForeground != null) {
+        textField.setForeground(origForeground);
+      }
+      else {
+        textField.setForeground(Color.BLACK);
+      }
+    }
   }
 
   void setText(String text) {
