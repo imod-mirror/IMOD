@@ -22,6 +22,7 @@ import etomo.storage.DirectiveFileCollection;
 import etomo.type.EtomoNumber;
 import etomo.ui.Field;
 import etomo.ui.FieldType;
+import etomo.ui.TextFieldInterface;
 
 /**
 * <p>Description: </p>
@@ -375,25 +376,29 @@ final class BatchRunTomoDatasetDialog implements ActionListener {
     }
   }
 
+  void setValues(final DirectiveFileCollection directiveFileCollection) {
+    setValues(directiveFileCollection, false);
+  }
+
+  void setFieldHighlightValues(final DirectiveFileCollection directiveFileCollection) {
+    setValues(directiveFileCollection, true);
+  }
+
   /**
    * Set values from the directive file collection.  Only change fields that exist in
    * directive file collection.
    * @param directiveFileCollection
    */
-  void setValues(final DirectiveFileCollection directiveFileCollection) {
-    if (directiveFileCollection.contains(DirectiveDef.DISTORT)) {
-      ftfDistort.setText(directiveFileCollection.getValue(DirectiveDef.DISTORT));
-    }
-    if (directiveFileCollection.contains(DirectiveDef.GRADIENT)) {
-      ftfGradient.setText(directiveFileCollection.getMagGradientFile());
-    }
-    if (directiveFileCollection.contains(DirectiveDef.REMOVE_XRAYS)) {
-      cbRemoveXrays.setSelected(directiveFileCollection
-          .isValue(DirectiveDef.REMOVE_XRAYS));
-    }
-    if (directiveFileCollection.contains(DirectiveDef.MODEL_FILE)) {
-      ftfModelFile.setText(directiveFileCollection.getValue(DirectiveDef.MODEL_FILE));
-    }
+  private void setValues(final DirectiveFileCollection directiveFileCollection,
+      final boolean setFieldHighlightValue) {
+    setValue(directiveFileCollection, DirectiveDef.DISTORT, setFieldHighlightValue,
+        ftfDistort);
+    setValue(directiveFileCollection, DirectiveDef.GRADIENT, setFieldHighlightValue,
+        ftfGradient);
+    setValue(directiveFileCollection, DirectiveDef.REMOVE_XRAYS, setFieldHighlightValue,
+        cbRemoveXrays);
+    setValue(directiveFileCollection, DirectiveDef.MODEL_FILE, setFieldHighlightValue,
+        ftfModelFile);
     if (directiveFileCollection.contains(DirectiveDef.TRACKING_METHOD)) {
       TrackingMethod trackingMethod = TrackingMethod.getInstance(directiveFileCollection
           .getValue(DirectiveDef.TRACKING_METHOD));
@@ -407,33 +412,20 @@ final class BatchRunTomoDatasetDialog implements ActionListener {
         rbTrackingMethodPatchTracking.setSelected(true);
       }
     }
-    if (directiveFileCollection.contains(DirectiveDef.FIDUCIALLESS)) {
-      rbFiducialless.setSelected(directiveFileCollection
-          .isValue(DirectiveDef.FIDUCIALLESS));
-    }
-    if (directiveFileCollection.contains(DirectiveDef.GOLD)) {
-      ltfGold.setText(directiveFileCollection.getFiducialDiameter(false));
-    }
-    if (directiveFileCollection.contains(DirectiveDef.LOCAL_AREA_TARGET_SIZE)) {
-      ltfLocalAreaTargetSize.setText(directiveFileCollection
-          .getValue(DirectiveDef.LOCAL_AREA_TARGET_SIZE));
-    }
-    if (directiveFileCollection.contains(DirectiveDef.TARGET_NUMBER_OF_BEADS)) {
-      ltfTargetNumberOfBeads.setText(directiveFileCollection
-          .getValue(DirectiveDef.TARGET_NUMBER_OF_BEADS));
-    }
-    if (directiveFileCollection.contains(DirectiveDef.SIZE_OF_PATCHES_X_AND_Y)) {
-      ltfSizeOfPatchesXandY.setText(directiveFileCollection
-          .getValue(DirectiveDef.SIZE_OF_PATCHES_X_AND_Y));
-    }
-    if (directiveFileCollection.contains(DirectiveDef.CONTOUR_PIECES)) {
-      lsContourPieces.setValue(directiveFileCollection
-          .getValue(DirectiveDef.CONTOUR_PIECES));
-    }
-    if (directiveFileCollection.contains(DirectiveDef.BIN_BY_FACTOR_FOR_ALIGNED_STACK)) {
-      lsBinByFactor.setValue(directiveFileCollection
-          .getValue(DirectiveDef.BIN_BY_FACTOR_FOR_ALIGNED_STACK));
-    }
+    setValue(directiveFileCollection, DirectiveDef.FIDUCIALLESS, setFieldHighlightValue,
+        rbFiducialless);
+    setValue(directiveFileCollection, DirectiveDef.LOCAL_AREA_TARGET_SIZE, setFieldHighlightValue,
+        ltfLocalAreaTargetSize);
+    setValue(directiveFileCollection, DirectiveDef.TARGET_NUMBER_OF_BEADS, setFieldHighlightValue,
+        ltfTargetNumberOfBeads);
+    setValue(directiveFileCollection, DirectiveDef.SIZE_OF_PATCHES_X_AND_Y, setFieldHighlightValue,
+        ltfSizeOfPatchesXandY);
+    setValue(directiveFileCollection, DirectiveDef.CONTOUR_PIECES, setFieldHighlightValue,
+        lsContourPieces);
+    setValue(directiveFileCollection, DirectiveDef.BIN_BY_FACTOR_FOR_ALIGNED_STACK, setFieldHighlightValue,
+        lsBinByFactor);
+    setValue(directiveFileCollection, DirectiveDef.CORRECT_CTF, setFieldHighlightValue,
+        cbCorrectCTF);
     if (directiveFileCollection.contains(DirectiveDef.CORRECT_CTF)) {
       cbCorrectCTF.setSelected(directiveFileCollection.isValue(DirectiveDef.CORRECT_CTF));
     }
@@ -507,6 +499,53 @@ final class BatchRunTomoDatasetDialog implements ActionListener {
       }
     }
     updateDisplay();
+  }
+
+  private void setValue(final DirectiveFileCollection directiveFileCollection,
+      final DirectiveDef directiveDef, final boolean setFieldHighlightValue,
+      final TextFieldInterface textField) {
+    if (directiveFileCollection.contains(directiveDef, setFieldHighlightValue)) {
+      String value = directiveFileCollection.getValue(directiveDef,
+          setFieldHighlightValue);
+      if (!setFieldHighlightValue) {
+        textField.setText(value);
+      }
+      else {
+        textField.setFieldHighlightValue(value);
+      }
+    }
+  }
+
+  private void setValue(final DirectiveFileCollection directiveFileCollection,
+      final DirectiveDef directiveDef, final boolean setFieldHighlightValue,
+      final CheckBox checkBox) {
+    if (directiveFileCollection.contains(directiveDef, setFieldHighlightValue)) {
+      boolean value = directiveFileCollection.isValue(directiveDef,
+          setFieldHighlightValue);
+      if (!setFieldHighlightValue) {
+        checkBox.setSelected(value);
+      }
+      else {
+        checkBox.setFieldHighlightValue(value);
+      }
+    }
+  }
+
+  private void setValue(final DirectiveFileCollection directiveFileCollection,
+      final DirectiveDef directiveDef, final boolean setFieldHighlightValue,
+      final RadioButton radioButton) {
+    if (directiveFileCollection.contains(directiveDef, setFieldHighlightValue)) {
+      boolean value = directiveFileCollection.isValue(directiveDef,
+          setFieldHighlightValue);
+      if (!setFieldHighlightValue) {
+        if (value) {
+          radioButton.setSelected(true);
+        }
+      }
+      else {
+        radioButton.setFieldHighlightValue(value);
+      }
+    }
   }
 
   public void actionPerformed(final ActionEvent event) {
