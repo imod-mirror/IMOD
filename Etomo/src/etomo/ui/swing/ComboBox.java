@@ -116,9 +116,9 @@ final class ComboBox {
     comboBox.addItem(input);
   }
 
-  void setTemplateColor() {
-    label.setForeground(Colors.TEMPLATE);
-    comboBox.setForeground(Colors.TEMPLATE);
+  void setFieldHighlight() {
+    label.setForeground(Colors.FIELD_HIGHLIGHT);
+    comboBox.setForeground(Colors.FIELD_HIGHLIGHT);
   }
 
   String getActionCommand() {
