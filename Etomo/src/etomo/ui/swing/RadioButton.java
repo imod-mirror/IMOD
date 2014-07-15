@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import javax.swing.AbstractButton;
@@ -37,7 +38,7 @@ import etomo.util.Utilities;
  * 
  * @version $Revision$
  */
-final class RadioButton implements RadioButtonInterface, Field {
+final class RadioButton implements RadioButtonInterface, Field, ActionListener {
   public static final String rcsid = "$Id$";
 
   private final JRadioButton radioButton;
@@ -47,7 +48,10 @@ final class RadioButton implements RadioButtonInterface, Field {
   private EtomoBoolean2 checkpointValue = null;
   private boolean backupValue = false;
   private boolean fieldIsBackedUp = false;
+  private boolean origForegroundSet = false;
   private Color origForeground = null;
+  private boolean useFieldHighlight = false;
+  private boolean fieldHighlightValue = false;
 
   RadioButton(final String text) {
     this(text, null, null);
@@ -211,19 +215,32 @@ final class RadioButton implements RadioButtonInterface, Field {
     debug = input;
   }
 
-  void setTemplateColor(final boolean input) {
-    if (input) {
-      if (origForeground == null) {
-        origForeground = radioButton.getForeground();
-      }
-      setForeground(Colors.TEMPLATE);
+  void setFieldHighlightValue(final boolean value) {
+    if (!useFieldHighlight) {
+      useFieldHighlight = true;
+      radioButton.addActionListener(this);
     }
-    else {
-      if (origForeground != null) {
-        setForeground(origForeground);
+    fieldHighlightValue = value;
+    setFieldHighlight();
+  }
+
+  public void actionPerformed(ActionEvent e) {
+    setFieldHighlight();
+  }
+
+  void setFieldHighlight() {
+    if (useFieldHighlight) {
+      if (fieldHighlightValue == isSelected()) {
+        if (!origForegroundSet) {
+          origForeground = radioButton.getForeground();
+        }
+        setForeground(Colors.FIELD_HIGHLIGHT);
+      }
+      else if (origForeground != null) {
+        radioButton.setForeground(origForeground);
       }
       else {
-        setForeground(Color.black);
+        radioButton.setForeground(Color.black);
       }
     }
   }
