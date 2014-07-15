@@ -190,6 +190,10 @@ public final class DirectiveFile {
     return false;
   }
 
+  public boolean isValue(final DirectiveDef directiveDef) {
+    return isValue(directiveDef, null);
+  }
+
   /**
    * Loads the file and opens the autodoc.  Resets the instance so that it will read from
    * the new autodoc.  Returns true if the autodoc was opened successfully, false if the
