@@ -232,8 +232,8 @@ program binvol
             call sliceWeighting(inz, zWeight)
             ioutBase = (iringPos(izOut) - 1) * nxBin * nyBin + nxBin * iyBinned + 1
             if (verbose) print *,'Adding',inz,' into',izOut,', weight',zweight, ioutBase
-            call add_into_array(array(inBase + 1), nx, numLines, array(ioutBase), nxBin, &
-                numBinLines, iredFac, zWeight)
+            call binIntoSlice(array(inBase + 1), nx, array(ioutBase), nxBin, &
+                numBinLines, iredFac(1), iredFac(2), zWeight)
           endif
           lastZadded = izOut
         enddo
@@ -277,8 +277,8 @@ program binvol
           call imposn(1, inz, iy)
           call irdsecl(1, array(inBase + 1), numLines, *99)
           call sliceWeighting(inz, zWeight)
-          call add_into_array(array(inBase + 1), nx, numLines, array, nxBin, &
-              numBinLines, iredFac, zWeight)
+          call binIntoSlice(array(inBase + 1), nx, array, nxBin, &
+              numBinLines, iredFac(1), iredFac(2), zWeight)
         enddo
         iy = iy + numLines
 
@@ -331,36 +331,3 @@ CONTAINS
   end subroutine sliceWeighting
 
 end program binvol
-
-
-subroutine add_into_array(array, nx, ny, brray, nxBin, nyBin, iredFac, zWeight)
-  implicit none
-  integer*4 iredFac(3), ixBin, iyBin, ix, iy, nx, ny, nxBin, nyBin
-  real*4 array(nx,ny), brray(nxBin,nyBin), denom, zWeight
-  denom = iredFac(1) * iredFac(2) / zWeight
-
-  if (iredFac(1) * iredFac(2) == 1) then
-    !
-    ! Parallelizing this did more harm than good
-    do iyBin = 1, nyBin
-      do ixBin = 1, nxBin
-        brray(ixBin, iyBin) = brray(ixBin, iyBin) + array(ixBin, iyBin) * zWeight
-      enddo
-    enddo
-  else
-    !$OMP PARALLEL DO &
-    !$OMP SHARED(nx, ny, nxBin, nyBin, denom, zWeight, array, brray, iredFac) &
-    !$OMP PRIVATE(ixBin, iyBin, ix, iy) &
-    !$OMP DEFAULT(NONE)
-    do iyBin = 1, nyBin
-      do ixBin = 1, nxBin
-        do ix = (ixBin - 1) * iredFac(1) + 1, ixBin * iredFac(1)
-          do iy = (iyBin - 1) * iredFac(2) + 1, iyBin * iredFac(2)
-            brray(ixBin, iyBin) = brray(ixBin, iyBin) + array(ix, iy) / denom
-          enddo
-        enddo
-      enddo
-    enddo
-  endif
-  return
-end subroutine add_into_array
