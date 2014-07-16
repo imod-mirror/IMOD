@@ -92,11 +92,13 @@ def reportImodError(abortText = None):
 # multiline messages and 2 if it should be stripped and 4 if it is not at start of a line
 def printTaggedMessages(logfile, tags):
    global latestMessages
+   printedAny = False
    latestMessages = []
    if isinstance(logfile, str):
       loglines = readTextFile(logfile, 'None', True)
       if isinstance(loglines, str):
          prnLog('WARNING: Error ' + loglines)
+         prnLog(' ')
          return
    else:
       loglines = logfile
@@ -105,6 +107,7 @@ def printTaggedMessages(logfile, tags):
    for l in loglines:
       if readingMulti:
          prnLog(l)
+         printedAny = True
          latestMessages.append(l)
          if l.strip() == '':
             readingMulti = False
@@ -120,10 +123,14 @@ def printTaggedMessages(logfile, tags):
                   prnLog(l[len(tag[0]):].lstrip())
                else:
                   prnLog(l)
+               printedAny = True
                if tag[1] & 1:
                   readingMulti = True
                break
 
+   if printedAny:
+      prnLog(' ')
+            
 
 # Look for a tag in a set of lines, and get the value after the separator
 def findTaggedValue(lines, tag, separator, valType):
@@ -747,7 +754,7 @@ def runOneProcess(comfile, single = True, usingGPU = False, message = ''):
       seconds = int(used)
       frac = int(round((used - seconds) * 10))
       
-      prnLog(fmtstr('Successfully finished {}   in {:02d}:{:02d}.{}', comfile, minutes,
+      prnLog(fmtstr('Successfully finished {}   in {:02d}:{:02d}.{}\n', comfile, minutes,
                     seconds, frac), flush=True)
    return finished < 0
 
@@ -816,9 +823,15 @@ def analyzeAlignLog(twoSurf, angleArr):
    try:
       for line in loglines:
          if '# of points' in line:
+
+            # There can be one or three of these entries, so the second one replaces
+            # numBot and the third one gives numTop
             num = getOneValueAfterToken(line, '=', INT_VALUE)
             if numBot < 0:
                numBot = num
+            elif numTop < 0:
+               numBot = num
+               numTop = 0
             else:
                numTop = num
          for ind in range(len(tags)):
@@ -834,7 +847,7 @@ def analyzeAlignLog(twoSurf, angleArr):
       if numBot >= minFidAdjustThick and numTop >= minFidAdjustThick:
          angleArr[5] -= thickShiftFrac * math.fabs(angleArr[4])
    angleArr[6] = numBot
-   angleArr[7] = numTop
+   angleArr[7] = max(0, numTop)
 
    return 0
 
@@ -1151,21 +1164,11 @@ def getAxisInitialParameters():
    
    try:
       if ifMontage:
-         sizeLines = runcmd('montagesize ' + dataName + '.st ' + dataName + '.pl')
-         line = sizeLines[len(sizeLines) - 1]
-         ind = line.find('NZ:')
-         lsplit = line[ind + 3:].split()
-         rawXsize = int(lsplit[0])
-         rawYsize = int(lsplit[1])
-         zsize = int(lsplit[2])
-         
+         (rawXsize, rawYsize, zsize) = getMontageSize(dataName + '.st ', dataName + '.pl')
       else:
          (rawXsize, rawYsize, zsize) = getmrcsize(dataName + '.st')
    except ImodpyError:
       reportImodError('Error getting size of ' + dataName + '.st')
-      return 1
-   except Exception:
-      abortSet('Error getting size of montage for ' + dataName + '.st')
       return 1
 
    return 0
@@ -1458,7 +1461,72 @@ def makeSeedAndTrack(talines):
       if missing != None and missing == 0:
          break
 
-      
+
+# Set up tiltalign command file from taLine with the changes in sedcom, then run
+# restrictalign unless skipping it and report results, then run tiltalign
+#
+def modifyRestrictAndRunAlign(comfile, sedcom, taLines, message, skipRestrict):
+   global suppressAbort
+   
+   if pysed(sedcom, taLines, comfile, retErr=True):
+      abortSet('Error modifying ' + comfile)
+      return (-1, 0)
+
+   retval = 0
+   noRobust = 0
+   if not skipRestrict:
+
+      # Get directives to modify defaults if any when running restrictalign
+      minRatio = lookupDirective(runtimePrefix + 'RestrictAlign', 'minMeasurementRatio',
+                                 0, FLOAT_VALUE)
+      targetRatio = lookupDirective(runtimePrefix + 'RestrictAlign',
+                                    'targetMeasurementRatio', 0, FLOAT_VALUE)
+      resOrder = lookupDirective(runtimePrefix + 'RestrictAlign', 'orderOfRestrictions',
+                                 0, STRING_VALUE)
+      skipBT = lookupDirective(runtimePrefix + 'RestrictAlign', 'skipBeamTiltWithOneRot',
+                               0, FLOAT_VALUE)
+
+      # Set up the input and run it
+      resInput = ['AlignCommandFile ' + comfile]
+      if minRatio:
+         resInput.append('MinMeasurementRatio ' + str(minRatio))
+      if targetRatio:
+         resInput.append('TargetMeasurementRatio ' + str(targetRatio))
+      if resOrder:
+         resInput.append('OrderOfRestrictions ' + resOrder)
+      if skipBT:
+         resInput.append('SkipBeamTiltWithOneRot 1')
+
+      prnLog('Running restrictalign to check if alignment parameters need to be ' +\
+                'restricted')
+      try:
+         resLines = runcmd('restrictalign -StandardInput', resInput)
+      except ImodpyError:
+         suppressAbort = False
+         reportImodError('Error running restrictalign to set parameters if there are ' +\
+                            'few fiducials')
+         return (-1, 0)
+      if not resLines:
+         suppressAbort = False
+         abortSet('No output received from restrictalign')
+         return (-1, 0)
+
+      # Echo all the output
+      for line in resLines:
+         prnLog(line.strip('\r\n'))
+         if 'No restriction' not in line:
+            retval = 1
+         if 'off robust' in line:
+            noRobust = 1
+      prnLog(' ')
+      if noRobust:
+         message = message.replace('with robust', 'without robust')
+         
+   if runOneProcess(comfile, message = message):
+      return (-2, noRobust)
+   return (retval, noRobust)
+
+
 # Run tiltalign in 2 or 3 stages
 def runTiltalign(taLines):
    global xtiltNeeded, fidThickness, fidIncShift, reconThickness, didLocalAlign
@@ -1468,6 +1536,8 @@ def runTiltalign(taLines):
    minSurfGlblStretch = 4
    minRatioGlblStretch = 0.125
    minSurfLocalStretch = 1.0
+   minTotSkipRestrict = 20
+   minTotToSetAngle = 4
    
    # The command file should be configured by various inputs, so let's find out some
    didLocalAlign = optionValue(taLines, 'LocalAlignments', BOOL_VALUE)
@@ -1489,7 +1559,6 @@ def runTiltalign(taLines):
    
    # first time, turn off local align and make sure stretch/skew off
    # But loop twice in case have to turn off robust fitting
-   # This is probably a really bad idea.
    for loop in (0, 1):
       robText = 'without'
       if doRobust:
@@ -1499,12 +1568,16 @@ def runTiltalign(taLines):
       suppressAbort = not loop and doRobust
       sedcom = [sedModify('SurfacesToAnalyze', numSurfaces),
                 sedModify('LocalAlignments', 0),
-                sedModify('StretchOption', 0),
+                sedModify('XStretchOption', 0),
                 sedModify('SkewOption', 0)] + \
                 sedDelAndAdd('ImagesAreBinned', coarseBinning, 'OutputTransformFile') + \
                 sedDelAndAdd('RobustFitting', doRobust, 'OutputTransformFile')
 
-      if modifyWriteAndRunCom(alignCom, sedcom, taLines, message = mess):
+      (restricted, noRobust) =  modifyRestrictAndRunAlign(alignCom, sedcom, taLines, mess,
+                                                          False)
+      if noRobust:
+         doRobust = 0
+      if restricted < 0:
          if not suppressAbort:
             return 1
          suppressAbort = False
@@ -1513,7 +1586,7 @@ def runTiltalign(taLines):
                prnLog('Trying again without robust fitting')
                doRobust = 0
                break
-         else:
+         else:    # ELSE ON FOR
             return 1
 
          continue
@@ -1540,13 +1613,16 @@ def runTiltalign(taLines):
    useMinFids = 0
    numruns = 1
    madeZfactors = False
-   if didLocalAlign:
+   if didLocalAlign and not restricted:
       localAlign = 1
       messageTags = standardTags + [('(Global)', 4), ('error local mean:', 4)]
-   if didLocalAlign or enableStretch:
+   else:
+      didLocalAlign = 0
+   if not restricted and (didLocalAlign or enableStretch):
+      if didLocalAlign:
+         numruns = 2
 
       # are there enough fids for stretch?
-      numruns = 2
       if enableStretch:
          if totalFid > minTotGlblStretch and \
                 (numSurfaces == 1 or \
@@ -1554,6 +1630,7 @@ def runTiltalign(taLines):
                         min(numBot, numTop) / float(totalFid) > minRatioGlblStretch)):
             glbStretch = 3
             madeZfactors = True
+            numruns = 2
             if didLocalAlign and numSurfaces > 1:
                mindens = minOnSurf / float(rawXsize * rawYsize)
                minInArea = mindens * nxpatch * nypatch
@@ -1580,10 +1657,13 @@ def runTiltalign(taLines):
          if not glbStretch:
             mess += 'no'
          mess += ' distortion, with'
-         if not didLocalAlign:
+         if restricted or not didLocalAlign:
             mess += 'out'
          mess += ' local alignments, ' + robText + ' robust fitting'
          suppressAbort = not loop and doRobust
+         delTilt = totalDelTilt
+         if totalFid < minTotToSetAngle:
+            delTilt = 0.
          sedcom = [sedModify('SurfacesToAnalyze', numSurfaces),
                    sedModify('LocalAlignments', localAlign),
                    sedModify('XStretchOption', glbStretch),
@@ -1592,7 +1672,7 @@ def runTiltalign(taLines):
                    sedModify('LocalSkewOption', locStretch),
                    sedModify('MinFidsTotalAndEachSurface', fmtstr('{},{}', minFidsTot,
                                                                   useMinFids)),
-                   sedModify('AngleOffset', totalDelTilt)] + \
+                   sedModify('AngleOffset', delTilt)] + \
                    sedDelAndAdd('ImagesAreBinned', coarseBinning, 'OutputTransformFile')+\
                    sedDelAndAdd('RobustFitting', doRobust, 'OutputTransformFile')
 
@@ -1600,7 +1680,9 @@ def runTiltalign(taLines):
             sedcom += sedDelAndAdd('OutputZFactorFile', dataName + '.zfac',
                                    'OutputTransformFile')
                 
-         if modifyWriteAndRunCom(alignCom, sedcom, taLines, message = mess):
+         (restricted, noRobust) =  modifyRestrictAndRunAlign \
+             (alignCom, sedcom, taLines, mess, totalFid >= minTotSkipRestrict)
+         if restricted < 0:
             if not suppressAbort:
                return 1
             suppressAbort = False
@@ -1609,7 +1691,7 @@ def runTiltalign(taLines):
                   prnLog('Trying again without robust fitting')
                   doRobust = 0
                   break
-            else:
+            else:     # ELSE ON FOR
                return 1
 
             continue
@@ -1860,25 +1942,45 @@ def modifyTiltComFile():
    if not comlines:
       return 1
 
+   # Get different variants on thickness entry and insist on only one
    thickness = lookupDirective(comPrefix + 'tilt', 'tilt.THICKNESS', 0, INT_VALUE)
    binnedThick = lookupDirective(runtimePrefix + 'Reconstruction', 'binnedThickness', 0,
                                  INT_VALUE)
+   fallbackThick = lookupDirective(runtimePrefix + 'Reconstruction', 'fallbackThickness',
+                                   0, INT_VALUE)
    if thickness and binnedThick:
       abortSet('Both tilt.THICKNESS and Reconstruction.binnedThickness were entered')
       return 1
+   if thickness and fallbackThick:
+      abortSet('Both tilt.THICKNESS and Reconstruction.fallbackThickness were entered')
+      return 1
+   if fallbackThick and binnedThick:
+      abortSet('Both Reconstruction.fallbackThickness and ' +\
+                  'Reconstruction.binnedThickness were entered')
+      return 1
+
    if binnedThick:
       thickness = aliBinning * binnedThick
 
+   # If that did not provide a thickness, set it to fallback if there is nothing from
+   # the alignment; otherwise take it from the alignment, with possible extra amount
+   # but use the fallback if this is too thin
    if not thickness:
       if not reconThickness:
-         abortSet('No thickness was specified and fiducial alignment did not give a ' + \
-                     'thickness to use')
-         return 1
-      thickness = 2 * ((int(round(reconThickness)) + 1) // 2)
-      extra = lookupDirective(runtimePrefix + 'Reconstruction', 'extraThickness', 0,
-                              INT_VALUE)
-      if extra:
-         thickness += extra
+         if fallbackThick:
+            thickness = fallbackThick
+         else:
+            abortSet('No thickness was specified and fiducial alignment did not give ' + \
+                     'a thickness to use')
+            return 1
+      else:
+         thickness = 2 * ((int(round(reconThickness)) + 1) // 2)
+         extra = lookupDirective(runtimePrefix + 'Reconstruction', 'extraThickness', 0,
+                                 INT_VALUE)
+         if extra:
+            thickness += extra
+         if fallbackThick and thickness < fallbackThick / 2:
+            thickness = fallbackThick
                   
    if ifMontage:
       fullx = montFrameData[6]
@@ -1908,8 +2010,12 @@ def modifyTiltComFile():
       sedcom.append('/^ActionIfGPUFails/d')
    if didLocalAlign:
       sedcom += sedDelAndAdd('LOCALFILE', dataName + 'local.xf', 'XTILTFILE')
+   else:
+      sedcom.append('/^LOCALFILE/d')
    if madeZfactors:
       sedcom += sedDelAndAdd('ZFACTORFILE', dataName + '.zfac', 'XTILTFILE')
+   else:
+      sedcom.append('/^ZFACTORFILE/d')
 
    # Handle change in scaling if they turned off log and did not supply a scale
    logbase = optionValue(comlines, 'LOG', FLOAT_VALUE)
@@ -2285,6 +2391,7 @@ userTemplateDir = ''
 summaryMessage = ''
 logFile = None
 finalRetVal = 0
+latestMessages = []
 direcFileErrorNames = ['scope template', 'system template', 'user template',
                        'batch directive']
 
