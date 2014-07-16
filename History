@@ -1,5 +1,13 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/16/14: Changes for Batchruntomo: make it rerun align without local
+alignments if it fails with it; add ability to detect blank views at ends of
+series; allow pre-existing defocus file to be used; make -start option apply
+to all sets being run, not just the first; add start point for CTF correction
+separate from plotting; add option to do gold erasing before CTF correction;
+add option to use existing alignment.  NUMBERS FOR -start OPTION HAVE
+CHANGED.
+
 7/15/14: Tiltalign issues warning instead of error if WeightWholeTracks is
 entered for non-patch track model (In 4.7).
 
