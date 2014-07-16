@@ -193,9 +193,6 @@ performed in the standard order.
 can be done with a single
 nominal defocus value.  Alternatively, Ctfplotter(1) can be used to find the
 defocus automatically if the "autofitRangeAndStep" directive is present.
-Currently, however, Ctfplotter(1) needs to open the plotter window, so this will
-not work if the batch process cannot access a windowing system (e.g., when
-running on a Mac or Windows machine via ssh).  
 .B Gold erasing
 can be done with
 automatic finding of beads in a tomogram, or by transforming the fiducial
