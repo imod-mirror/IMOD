@@ -122,8 +122,8 @@ void imodvHelpMenu(int item)
        VERSION_NAME,
        ", written by David Mastronarde, ",
        "James Kremer, and Quanren Xiong\n",
-       "Copyright (C)",COPYRIGHT_YEARS,"by",LAB_NAME1,"\n",LAB_NAME2,
-       "& Regents of the University of Colorado\n\n",
+       "Copyright (C)",COPYRIGHT_YEARS,"by",
+       "the Regents of the University of Colorado\n\n",
        NULL);
     break;
   }

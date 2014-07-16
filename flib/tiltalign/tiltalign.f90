@@ -263,8 +263,11 @@ program tiltalign
     ierr = PipGetInteger('MaximumCycles', maxCycles)
     ierr = PipGetBoolean('RobustFitting', ifDoRobust)
     ierr = PipGetLogical('WeightWholeTracks', robustByTrack)
-    if (ifDoRobust > 0 .and. robustByTrack .and. .not. patchTrackModel) call exitError( &
-        'Weighting whole contours can be done only with a patch track model')
+    if (ifDoRobust > 0 .and. robustByTrack .and. .not. patchTrackModel) then
+      print *, &
+          'WARNING: Weighting whole contours can be done only with a patch track model'
+      robustByTrack = .false.
+    endif
     if (PipGetTwoIntegers('MinWeightGroupSizes', minResRobust, minLocalResRobust) .ne. &
         0) then
       ! They were loaded with the point residual values, so change if track residuals

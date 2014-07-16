@@ -105,9 +105,8 @@ int imodVersion(const char *pname)
 /*! Prints copyright notice */
 void imodCopyright(void)
 {
-  char *uofc =   "the Regents of the University of Colorado";
-  printf("Copyright (C) %s by %s\n%s & %s\n", COPYRIGHT_YEARS,
-         LAB_NAME1, LAB_NAME2, uofc);
+  char *uofc =   "Regents of the University of Colorado";
+  printf("Copyright (C) %s by the %s\n", COPYRIGHT_YEARS, uofc);
   return;
 }
 

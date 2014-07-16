@@ -1,6 +1,10 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/15/14: Tiltalign issues warning instead of error if WeightWholeTracks is
+entered for non-patch track model (In 4.7).
+
 7/12/14: Added Object menu item to fill in Z in all contours.
+
 
 7/11/14: Fixed inability to use patch tracking if cumulative correlation was
 checked in coarse alignment (In 4.7).
