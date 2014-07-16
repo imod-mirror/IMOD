@@ -30,7 +30,7 @@ class LocatorWindow : public QMainWindow
 
  public:
   LocatorWindow(bool rgba, bool doubleBuffer, bool enableDepth, 
-                QWidget * parent = 0, Qt::WFlags f = Qt::Window) ;
+                QWidget * parent = 0, Qt::WindowFlags f = Qt::Window) ;
   ~LocatorWindow() {};
 
   int mCtrl;

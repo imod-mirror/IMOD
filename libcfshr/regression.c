@@ -144,13 +144,14 @@ void statmatrices(float *x, int *xsize, int *colFast, int *m, int *msize, int *n
  * Input parameters:  ^
  * [x]       - Input data matrix  ^
  * [xsize]   - Size of the fastest-progressing dimension of [x]  ^
- * [colFast] - Nonzero if the column dimension is the fastest progressing one  ^
+ * [colFast] - Nonzero if the column dimension is the fastest progressing one, i.e. if
+ * successive values in the array occur in successive columns  ^
  * [m]       - Number of columns of data for independent variables  ^
  * [ndata]   - Number of rows of data; i.e., number of separate measurements ^
  * [nbcol]   - Number of columns of data for dependent variables; i.e., number of 
  * relationships to fit  ^
  * [wgtcol]  - Column number with weighting factors if > 0, otherwise no weighting.  
- * Columns are numbered from 0. ^
+ * Columns are numbered from 0 when calling from C, or 1 calling from Fortran. ^
  * [bsize]   - Size of the fastest-progressing dimension of [b], the array/matrix to
  * receive the solutions; must be at least [m]  ^
  * [work]    - Any array for temporary use whose size must be at least 

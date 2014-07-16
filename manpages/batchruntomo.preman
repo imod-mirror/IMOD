@@ -176,14 +176,18 @@ stretching will be solved for only if there are gold fiducials on two
 surfaces, and if there are enough on the minority surface overall and relative
 to the total number.
 Stretching may be solved for in the global solution but not in the local one
-if there are too few fiducials on the minority surface per local area.  The
-fine alignment always produces an angle offset and an X-axis tilt that is
-applied when building the tomogram.  In addition, if there is gold on two
-surfaces, the distance between the gold particles provides an estimate of
+if there are too few fiducials on the minority surface per local area.
+In addition to making these decisions, Batchruntomo also calls
+the program Restrictalign(1), which will reduce the number of variables
+being solved for when in a systematic way when the number of fiducials
+is small.  The fine alignment produces an angle offset and an X-axis
+tilt that is applied when building the tomogram, unless there are too
+few gold.  In addition, if there is gold on two surfaces, the distance
+between the gold particles provides an estimate of
 thickness that can be used as the basis for the tomogram thickness.
 Otherwise, it is required to specify the thickness for the final tomogram and,
 if gold is to be erased after 3D bead finding, the thickness for the required
-tomogram. 
+tomogram.  
 .P
 .B The aligned stack 
 can have specified binning and size.  Optional modifications
@@ -202,7 +206,15 @@ out by Tiltalign(1).
 can be specified.
 .P
 A tomogram can be computed with weighted backprojection, with SIRT, or with
-both methods.  The iterations to leave can be specified for SIRT.
+both methods.  The iterations to leave can be specified for SIRT.  As
+indicated above, the thickness can be chosen automatically if there are
+gold beads on both surfaces, otherwise it must be specified with a
+directive.  The "Reconstruction.fallbackThickness" directive is the most
+useful one because it can be used to specify a thickness to be used when
+there is no thickness available from fine alignment.  The fallback
+thickness will also be used if the thickness
+from fine alignment is less than half of the fallback thickness, which
+would be the case if there are gold on only one surface.
 .P
 .B Postprocessing
 can be done with Trimvol(1), which is run if any of the "runtime.Trimvol"

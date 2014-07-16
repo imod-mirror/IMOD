@@ -1189,14 +1189,38 @@ void imodStartAutoDumpCache()
   sStartDump = 2;
 }
 
+// This is called periodically within a section load of a large image
+int imodQuitCheck(int cz)
+{
+  imod_imgcnt(NULL);
+  return 0;
+}
+
+// This is called after every section load (or within a large section load) and updates
+// the info window (but not too often), processes events to check for quit, and takes
+// care of dumping cache
 void imod_imgcnt(const char *string)
 {
   static int started = 0;
   static QTime timer;
+  static QString lastString;
+  static bool inCall = false;
+  char *freeString = NULL;
+  if (inCall)
+    return;
+  if (!string && lastString.isEmpty())
+    return;
+  inCall = true;
+  if (string) {
+    lastString = string;
+  } else {
+    string = strdup(LATIN1(lastString));
+    freeString = (char *)string;
+  }
   if (!started)
     timer.start();
-  if (started < 3 || timer.elapsed() > 100 || string[0] == '\n' || 
-      string[0] == 0x00) {
+  if (string && (started < 3 || timer.elapsed() > 100 || string[0] == '\n' || 
+                 string[0] == 0x00)) {
 
     // Callers in 3dmod should be putting their \r on the end, but the call
     // from mrcfiles has it on the front, so we need to add it to end
@@ -1207,12 +1231,14 @@ void imod_imgcnt(const char *string)
     timer.restart();
     started++;
   }
-  if (App->exiting)
+  if (App->exiting) {
+    B3DFREE(freeString);
     exit(0);
+  }
 
   // If dumping cache, do so after initial calls; get starting position for
   // next time; stop when empty string is passed
-  if (sDumpCache) {
+  if (sDumpCache && string) {
     if (!sStartDump)
       ivwDumpFileSysCache(App->cvi->image);
     ivwGetFileStartPos(App->cvi->image);
@@ -1220,5 +1246,7 @@ void imod_imgcnt(const char *string)
       sStartDump--;
     if (string[0] == 0x00)
       sDumpCache = 0;
-  }     
+  }
+  B3DFREE(freeString);
+  inCall = false;
 }
