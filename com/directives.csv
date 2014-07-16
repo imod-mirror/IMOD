@@ -48,6 +48,7 @@ comparam.eraser.ccderaser.ModelFile,Manual replacement model,File,Y,Y,SO,,Manual
 comparam.eraser.ccderaser.LineObjects,Objects with lines to remove,List,Y,Y,SO,Set this to 2 as a standard in batch,Line replacement objects,
 comparam.eraser.ccderaser.BoundaryObjects,Objects with contours around areas to erase,List,Y,Y,SO,Set this to 3 as a standard in batch,Contour replacement objects,
 comparam.eraser.ccderaser.AllSectionObjects,Objects to erase on all sections,List,Y,Y,SO,Set to 1-3 as a standard in batch,All-section replacement objects,
+runtime.Preprocessing.any.endExcludeCriterion,Exclude views from end of tilt series with SD below nearby SD times criterion,Y,Y,NE,,Criterion for excluding views at highest tilts,
 ,,,,,,,,
 Coarse alignment,,,,,,,,
 comparam.xcorr.tiltxcorr.FilterRadius2,High frequency filter cutoff,Float,Y,Y,SD,,High frequency filter cutoff radius,
