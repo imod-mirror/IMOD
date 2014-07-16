@@ -108,7 +108,7 @@ comparam.align.tiltalign.BeamTiltOption,Type of beam tilt solution (2 to search)
 comparam.align.tiltalign.FixedOrInitialBeamTilt,Fixed beam tilt value or initial value for search,Float,Y,Y,SD,,Fixed or initial value of beam tilt,
 comparam.align.tiltalign.RobustFitting,Whether to use robust fitting to downweight some points,Bool,Y,Y,SD,,Use robust fitting,
 comparam.align.tiltalign.KFactorScaling,Factor that determines how many points are downweighted,Float,Y,Y,SD,,Robust factor (< 1 downweights more),
-comparam.align.tiltalign.WeightWholeTracks,Apply weighting to entire contours from patch tracking,Bool,Y,Y,SO,Can be included only when patch tracking,Weight whole patch track contours,
+comparam.align.tiltalign.WeightWholeTracks,Apply weighting to entire contours from patch tracking,Bool,Y,Y,SO,,Weight whole patch track contours,
 runtime.TiltAlignment.any.enableStretching,Allow stretching solution if bead number permit,Bool,Y,,NE,,Solve for distortion if enough beads,
 comparam.align.tiltalign.ResidualReportCriterion,Criterion # of SDs above mean residual error to report,Float,,Y,SO,,Threshold for residual report,
 ,,,,,,,,
