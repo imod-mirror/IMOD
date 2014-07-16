@@ -524,6 +524,8 @@ program tiltalign
       call exitError(robFailMess)
   if (numRobFailed > 0) write(*,'(a,i4,a)')'WARNING: ROBUST FITTING FAILED IN ', &
       numRobFailed,' SEARCHES; NON-ROBUST RESULT WAS RESTORED'
+
+  ! Batchruntomo is looking for 'Minimum numbers of fiducials are too high'
   if (tooFewFid) call errorexit( &
       'Minimum numbers of fiducials are too high - check if '// &
       'there are enough fiducials on the minority surface', 0)
