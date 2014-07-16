@@ -63,6 +63,8 @@ extern "C" {
   /* reduce_by_binning.c */
   int reduceByBinning(void *array, int type, int nxin, int nyin, int nbin, 
                       void *brray, int keepByte, int *nxr, int *nyr);
+  void binIntoSlice(float *array, int nxDim, float *brray, int nxBin, int nyBin,
+                    int binFacX, int binFacY, float zWeight);
 
   /* filtxcorr.c */
   void XCorrSetCTF(float sigma1, float sigma2, float radius1, float radius2,
