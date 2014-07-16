@@ -7,9 +7,7 @@
 #
 # Global setup
 #
-set imod_copyright    = '1994-2012'
-set lab_name1     = 'Boulder Laboratory for 3-Dimensional'
-set lab_name2     = 'Electron Microscopy of Cells'
+set imod_copyright    = '1994-2014'
 set source_dir    = `pwd`
 set endian_dir    = include
 
@@ -302,8 +300,6 @@ cat << EOF >! $hconfigure
 #define VERSION              $imod_version
 #define VERSION_NAME "$imod_version_name"
 #define COPYRIGHT_YEARS "$imod_copyright"
-#define LAB_NAME1 "$lab_name1"
-#define LAB_NAME2 "$lab_name2"
 EOF
 
 #

@@ -1262,8 +1262,8 @@ void InfoWindow::helpSlot(int item)
        VERSION_NAME, "[", __DATE__, __TIME__, "]",
        "written by James Kremer and",
        "David Mastronarde\n",
-       "Copyright (C)",COPYRIGHT_YEARS,"by",LAB_NAME1,"\n",LAB_NAME2,
-       "& Regents of the University of Colorado\n\n",
+       "Copyright (C)",COPYRIGHT_YEARS,"by",
+       "the Regents of the University of Colorado\n\n",
        NULL);
     break;
 
