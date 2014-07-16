@@ -123,6 +123,8 @@ double imodContourLongAxis(Icont *cont, float precision, float *aspect,
 			   float *longaxis);
 double imodContourPrincipalAxis(Icont *cont);
 double imodContourCircularity(Icont *cont);
+int imodContourEquivEllipse(Icont *cont, Ipoint *center, float *longAxis, 
+                            float *shortAxis, float *angle);
 int imodContourZValue(Icont *cont);
 int imodContourFitPlane(Icont *cont, Ipoint *scale, Ipoint *norm, float *dval,
                         double *alpha, double *beta);
