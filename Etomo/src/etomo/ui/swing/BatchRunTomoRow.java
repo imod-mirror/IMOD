@@ -9,7 +9,6 @@ import javax.swing.ImageIcon;
 import javax.swing.JPanel;
 
 import etomo.storage.DirectiveDef;
-import etomo.storage.DirectiveFile;
 import etomo.storage.DirectiveFileCollection;
 import etomo.type.EtomoNumber;
 import etomo.type.UserConfiguration;
