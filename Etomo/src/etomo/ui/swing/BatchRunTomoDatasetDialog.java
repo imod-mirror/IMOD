@@ -471,19 +471,20 @@ final class BatchRunTomoDatasetDialog implements ActionListener {
       }
     }
     boolean useSirt = false;
-    if (directiveFileCollection.contains(DirectiveDef.USE_SIRT)) {
-      useSirt = directiveFileCollection.isValue(DirectiveDef.USE_SIRT);
+    if (directiveFileCollection.contains(DirectiveDef.USE_SIRT, setFieldHighlightValue)) {
+      useSirt = directiveFileCollection.isValue(DirectiveDef.USE_SIRT,
+          setFieldHighlightValue);
     }
     boolean doBackprojAlso = false;
-    if (directiveFileCollection.contains(DirectiveDef.DO_BACKPROJ_ALSO)) {
-      doBackprojAlso = directiveFileCollection.isValue(DirectiveDef.DO_BACKPROJ_ALSO);
+    if (directiveFileCollection.contains(DirectiveDef.DO_BACKPROJ_ALSO,
+        setFieldHighlightValue)) {
+      doBackprojAlso = directiveFileCollection.isValue(DirectiveDef.DO_BACKPROJ_ALSO,
+          setFieldHighlightValue);
     }
     if (!useSirt) {
+      // no default for rbUseSirtFalse
       if (!setFieldHighlightValue) {
         rbUseSirtFalse.setSelected(true);
-      }
-      else {
-        rbUseSirtFalse.setFieldHighlightValue(true);
       }
     }
     else if (!doBackprojAlso) {
@@ -509,8 +510,10 @@ final class BatchRunTomoDatasetDialog implements ActionListener {
     // 1. THICKNESS
     // 2. binnedThickness
     // 3. fallbackThickness (causes derived thickness to be checked)
+    boolean thickness = false;
     if (setValue(directiveFileCollection, DirectiveDef.THICKNESS, setFieldHighlightValue,
         rtfThickness)) {
+      thickness = true;
       if (!setFieldHighlightValue) {
         rtfThickness.setSelected(true);
       }
@@ -518,9 +521,11 @@ final class BatchRunTomoDatasetDialog implements ActionListener {
         rtfThickness.setFieldHighlightValue(true);
       }
     }
+    boolean binnedThickness = false;
     if (setValue(directiveFileCollection, DirectiveDef.BINNED_THICKNESS,
         setFieldHighlightValue, rtfBinnedThickness)) {
-      if (!rtfThickness.isSelected()) {
+      if (!thickness) {
+        binnedThickness = true;
         if (!setFieldHighlightValue) {
           rtfBinnedThickness.setSelected(true);
         }
@@ -529,15 +534,15 @@ final class BatchRunTomoDatasetDialog implements ActionListener {
         }
       }
     }
-    setValue(directiveFileCollection, DirectiveDef.EXTRA_THICKNESS,
-        setFieldHighlightValue, tfExtraThickness);
-    setValue(directiveFileCollection, DirectiveDef.FALLBACK_THICKNESS,
-        setFieldHighlightValue, ltfFallbackThickness);
-    if (!rtfThickness.isSelected() && !rtfBinnedThickness.isSelected()) {
+    boolean useFieldHighlight = setValue(directiveFileCollection,
+        DirectiveDef.EXTRA_THICKNESS, setFieldHighlightValue, tfExtraThickness)
+        || setValue(directiveFileCollection, DirectiveDef.FALLBACK_THICKNESS,
+            setFieldHighlightValue, ltfFallbackThickness);
+    if (!thickness && !binnedThickness) {
       if (!setFieldHighlightValue) {
         rbDeriveThickness.setSelected(true);
       }
-      else {
+      else if (useFieldHighlight) {
         rbDeriveThickness.setFieldHighlightValue(true);
       }
     }
