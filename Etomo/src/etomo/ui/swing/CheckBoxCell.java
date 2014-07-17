@@ -148,14 +148,14 @@ final class CheckBoxCell extends InputCell implements ToggleCell, ActionListener
       checkBox.addActionListener(this);
     }
     fieldHighlightValue = value;
-    setFieldHighlight();
+    updateFieldHighlight();
   }
 
   public void actionPerformed(ActionEvent e) {
-    setFieldHighlight();
+    updateFieldHighlight();
   }
 
-  void setFieldHighlight() {
+  void updateFieldHighlight() {
     if (useFieldHighlight) {
       if (fieldHighlightValue == isSelected()) {
         checkBox.setForeground(Colors.FIELD_HIGHLIGHT);
