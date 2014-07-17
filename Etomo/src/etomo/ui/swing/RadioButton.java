@@ -6,6 +6,7 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Enumeration;
 
 import javax.swing.AbstractButton;
 import javax.swing.ButtonGroup;
@@ -43,6 +44,7 @@ final class RadioButton implements RadioButtonInterface, Field, ActionListener {
 
   private final JRadioButton radioButton;
   private final EnumeratedType enumeratedType;
+  private final ButtonGroup group;
 
   private boolean debug = false;
   private EtomoBoolean2 checkpointValue = null;
@@ -57,11 +59,11 @@ final class RadioButton implements RadioButtonInterface, Field, ActionListener {
     this(text, null, null);
   }
 
-  RadioButton(final String text, ButtonGroup group) {
+  RadioButton(final String text, final ButtonGroup group) {
     this(text, null, group);
   }
 
-  RadioButton(ButtonGroup group) {
+  RadioButton(final ButtonGroup group) {
     this("", null, group);
   }
 
@@ -69,7 +71,9 @@ final class RadioButton implements RadioButtonInterface, Field, ActionListener {
     this(text, enumeratedType, null);
   }
 
-  RadioButton(final String text, final EnumeratedType enumeratedType, ButtonGroup group) {
+  RadioButton(final String text, final EnumeratedType enumeratedType,
+      final ButtonGroup group) {
+    this.group = group;
     radioButton = new JRadioButton(text);
     radioButton.setModel(new RadioButtonModel(this));
     setName(text);
@@ -82,7 +86,8 @@ final class RadioButton implements RadioButtonInterface, Field, ActionListener {
     }
   }
 
-  RadioButton(final EnumeratedType enumeratedType, ButtonGroup group) {
+  RadioButton(final EnumeratedType enumeratedType, final ButtonGroup group) {
+    this.group = group;
     String text = enumeratedType.getLabel();
     radioButton = new JRadioButton(text);
     radioButton.setModel(new RadioButtonModel(this));
@@ -96,8 +101,9 @@ final class RadioButton implements RadioButtonInterface, Field, ActionListener {
     }
   }
 
-  RadioButton(final EnumeratedType enumeratedType, ButtonGroup group,
+  RadioButton(final EnumeratedType enumeratedType, final ButtonGroup group,
       final String addToLabel) {
+    this.group = group;
     String text = enumeratedType.getLabel() + (addToLabel != null ? addToLabel : "");
     radioButton = new JRadioButton(text);
     radioButton.setModel(new RadioButtonModel(this));
@@ -218,23 +224,49 @@ final class RadioButton implements RadioButtonInterface, Field, ActionListener {
   void setFieldHighlightValue(final boolean value) {
     if (!useFieldHighlight) {
       useFieldHighlight = true;
-      radioButton.addActionListener(this);
+      // Radio buttons turn off when another button in the group is turned on. So listen
+      // to all of the radio buttons in the group.
+      boolean actionListenerAdded = false;
+      if (group != null) {
+        Enumeration<AbstractButton> enumeration = group.getElements();
+        if (enumeration != null) {
+          while (enumeration.hasMoreElements()) {
+            actionListenerAdded = true;
+            enumeration.nextElement().addActionListener(this);
+          }
+        }
+      }
+      if (!actionListenerAdded) {
+        radioButton.addActionListener(this);
+      }
     }
     fieldHighlightValue = value;
-    updateFieldHighlight();
+    updateFieldHighlight(isSelected());
   }
 
-  public void actionPerformed(ActionEvent e) {
-    updateFieldHighlight();
+  public void actionPerformed(final ActionEvent event) {
+    boolean selected;
+    // Radio buttons cannot be turned off directly. When another button in the group is
+    // clicked, this button will turn off if it was on. This response doesn't happen
+    // instantly, but its accurate to assume that this button is off when another button
+    // was clicked.
+    if (!event.getActionCommand().equals(radioButton.getActionCommand())) {
+      selected = false;
+    }
+    else {
+      selected = isSelected();
+    }
+    updateFieldHighlight(selected);
   }
 
-  void updateFieldHighlight() {
+  void updateFieldHighlight(final boolean isSelected) {
     if (useFieldHighlight) {
-      if (fieldHighlightValue == isSelected()) {
+      if (fieldHighlightValue == isSelected) {
         if (!origForegroundSet) {
+          origForegroundSet = true;
           origForeground = radioButton.getForeground();
         }
-        setForeground(Colors.FIELD_HIGHLIGHT);
+        radioButton.setForeground(Colors.FIELD_HIGHLIGHT);
       }
       else if (origForeground != null) {
         radioButton.setForeground(origForeground);
