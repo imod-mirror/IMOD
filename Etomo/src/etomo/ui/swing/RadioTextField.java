@@ -4,6 +4,7 @@ import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusListener;
 
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
@@ -16,6 +17,7 @@ import etomo.type.ParsedElement;
 import etomo.ui.Field;
 import etomo.ui.FieldType;
 import etomo.ui.FieldValidationFailedException;
+import etomo.ui.TextFieldInterface;
 
 /**
  * <p>Description: </p>
@@ -68,7 +70,7 @@ import etomo.ui.FieldValidationFailedException;
  * <p> JTextField when the radio button is not selected.
  * <p> </p>
  */
-final class RadioTextField implements RadioButtonInterface, Field {
+final class RadioTextField implements RadioButtonInterface, Field, TextFieldInterface {
   public static final String rcsid = "$Id$";
 
   private final JPanel rootPanel = new JPanel();
@@ -145,7 +147,7 @@ final class RadioTextField implements RadioButtonInterface, Field {
     }
   }
 
-  void setText(final String text) {
+  public void setText(final String text) {
     textField.setText(text);
     if (debug) {
       System.out.println("RadioTextField:setText:text:" + text);
@@ -174,6 +176,14 @@ final class RadioTextField implements RadioButtonInterface, Field {
 
   public void useDefaultValue() {
     textField.useDefaultValue();
+  }
+
+  public void setFieldHighlightValue(final String text) {
+    textField.setFieldHighlightValue(text);
+  }
+
+  public void setFieldHighlightValue(final boolean bool) {
+    radioButton.setFieldHighlightValue(bool);
   }
 
   public void checkpoint() {
