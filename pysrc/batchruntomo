@@ -94,7 +94,7 @@ def printTaggedMessages(logfile, tags):
    global latestMessages
    latestMessages = []
    if isinstance(logfile, str):
-      loglines = readTextFile(logfile, 'None', True)
+      loglines = readTextFile(logfile, None, True)
       if isinstance(loglines, str):
          prnLog('WARNING: Error ' + loglines)
          return
