@@ -14,13 +14,12 @@
 #include <math.h>
 #include <stdio.h>
 #include <locale.h>
-#include <QtGui>
+#include "myapp.h"
 
 #include "simplexfitting.h"
 #include "linearfitting.h"
 #include "plotter.h"
 #include "imod_assistant.h"
-#include "myapp.h"
 
 #include "b3dutil.h"
 #include "mrcfiles.h"
@@ -224,7 +223,9 @@ int main(int argc, char *argv[])
 
     // At least 4 of these are needed to make it work reliably!
     qApp->flush();
+#if QT_VERSION < 0x050000
     qApp->syncX();
+#endif
     qApp->processEvents();
     splash->repaint(0, 0, -1, -1);
 #ifdef Q_OS_MACX  

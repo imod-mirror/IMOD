@@ -29,6 +29,8 @@ cubinterp.$(O) : cubinterp.c
 	$(CC) $(CFLAGS) $(OPENMP) -c cubinterp.c
 zoomdown.$(O) : zoomdown.c
 	$(CC) $(CFLAGS) $(OPENMP) -c zoomdown.c
+reduce_by_binning.$(O) : reduce_by_binning.c
+	$(CC) $(CFLAGS) $(OPENMP) -c reduce_by_binning.c
 b3dutil.$(O) : b3dutil.c
 	$(CC) $(CFLAGS) $(OPENMP) -c b3dutil.c
 filtxcorr.$(O) : filtxcorr.c

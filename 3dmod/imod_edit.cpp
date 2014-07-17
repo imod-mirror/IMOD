@@ -351,6 +351,46 @@ void imodMoveAllContours(ImodView *vi, int obNew)
 }
 
 /*
+ * Fills in points in an open contour so that there is one on each Z slice, returns true 
+ * if any points were added
+ */
+bool imodFillInContourZ(ImodView *vi, Icont *cont, int obNum, int coNum, int &curPoint)
+{
+  int zcur, znext, zfill, first, ptb;
+  Ipoint newPt;
+  Ipoint *cur, *next;
+  first = 1;
+  for (ptb = 0; ptb < (int)cont->psize - 1; ptb++) {
+    zcur = B3DNINT(cont->pts[ptb].z);
+    znext = B3DNINT(cont->pts[ptb + 1].z);
+    zfill = zcur;
+    
+    /* find points where rounded z differs by more than one */
+    if (zcur - znext > 1)
+      zfill--;
+    else if (znext - zcur > 1)
+      zfill++;
+    if (zcur != zfill) {
+      if (first)
+        vi->undo->contourDataChg(obNum, coNum);
+      first = 0;
+      cur = &cont->pts[ptb];
+      next = &cont->pts[ptb + 1];
+      
+      /* insert one point at the next Z; the spacing from that
+         one to the next will be assessed on next iteration */
+      newPt.z = zfill;
+      newPt.x = cur->x + (next->x - cur->x) * (zfill - cur->z) / (next->z - cur->z);
+      newPt.y = cur->y + (next->y - cur->y) * (zfill - cur->z) / (next->z - cur->z);
+      imodPointAdd(cont, &newPt, ptb + 1);
+      if (ptb < curPoint)
+        curPoint++;
+    }
+  }
+  return first == 0;
+}
+
+/*
  * Looks for places where the contour crosses itself and removes the shorter part of the
  * contour in each case (but for an open contour, it always removes the part of the 
  * contour between the crossings even if it is long.)  Uses imodContourBreak so it 
