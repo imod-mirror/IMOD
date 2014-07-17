@@ -20,6 +20,7 @@ import etomo.type.UITestFieldType;
 import etomo.ui.Field;
 import etomo.ui.FieldType;
 import etomo.ui.FieldValidationFailedException;
+import etomo.ui.TextFieldInterface;
 import etomo.ui.UIComponent;
 import etomo.util.Utilities;
 
@@ -36,7 +37,8 @@ import etomo.util.Utilities;
  * 
  * @version $Revision$
  */
-final class TextField implements UIComponent, SwingComponent, Field, FocusListener {
+final class TextField implements UIComponent, SwingComponent, Field, FocusListener,
+    TextFieldInterface {
   public static final String rcsid = "$Id$";
 
   private final JTextField textField = new JTextField();
@@ -110,7 +112,7 @@ final class TextField implements UIComponent, SwingComponent, Field, FocusListen
     if (checkpointValue == null) {
       return true;
     }
-    if (checkpointValue.equals(textField.getText())) {
+    if (!checkpointValue.equals(textField.getText())) {
       return true;
     }
     // Failed string comparison. Try comparing numerically
@@ -176,20 +178,20 @@ final class TextField implements UIComponent, SwingComponent, Field, FocusListen
     checkpointValue = getText();
   }
 
-  void setFieldHighlightValue(final String value) {
+  public void setFieldHighlightValue(final String value) {
     if (!useFieldHighlight) {
       useFieldHighlight = true;
       textField.addFocusListener(this);
     }
     fieldHighlightValue = value;
-    setFieldHighlight();
+    updateFieldHighlight();
   }
 
   public void focusGained(final FocusEvent event) {
   }
 
   public void focusLost(final FocusEvent event) {
-    setFieldHighlight();
+    updateFieldHighlight();
   }
 
   /**
@@ -200,7 +202,7 @@ final class TextField implements UIComponent, SwingComponent, Field, FocusListen
    * foreground - or set a foreground color similar to the original one.  Assumes that
    * field highlight is not used when the field is disabled.
    */
-  void setFieldHighlight() {
+  void updateFieldHighlight() {
     if (useFieldHighlight) {
       String text = textField.getText();
       if ((fieldHighlightValue != null && fieldHighlightValue.equals(text))
@@ -220,7 +222,7 @@ final class TextField implements UIComponent, SwingComponent, Field, FocusListen
     }
   }
 
-  void setText(String text) {
+  public void setText(String text) {
     textField.setText(text);
   }
 
