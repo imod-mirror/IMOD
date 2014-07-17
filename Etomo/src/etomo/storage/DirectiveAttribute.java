@@ -238,8 +238,8 @@ final class DirectiveAttribute {
       if (directiveDef == null) {
         return super.toString();
       }
-      return directiveFile.toString() + directiveDef.toString() + axisID != null ? ","
-          + axisID.toString() : "" + match.toString();
+      return directiveFile.toString() + directiveDef.toString()
+          + (axisID != null ? "," + axisID.toString() : "") + match.toString();
     }
   }
 
