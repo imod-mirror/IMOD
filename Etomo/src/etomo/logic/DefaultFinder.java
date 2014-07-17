@@ -47,37 +47,20 @@ public final class DefaultFinder {
     if (!directiveDef.isComparam()) {
       return null;
     }
+    String command = directiveDef.getCommand();
+    boolean autodocLoaded = AutodocFactory.isLoaded(command);
+    ReadOnlySection commandSection = null;
     // If the autodoc has not been loaded, look for directiveDef.command in
     // progDefaults.adoc to see if the autodoc has defaults before loading it. If
     // progDefefault.adoc doesn't show any defaults for the command, return null.
-    String name = directiveDef.getName();
-    boolean autodocLoaded = AutodocFactory.isLoaded(name);
-    String command = directiveDef.getCommand();
-    ReadOnlySection commandSection = null;
     if (!autodocLoaded) {
-      if (progDefaultsAutodoc == null) {
-        try {
-          progDefaultsAutodoc = AutodocFactory
-              .getComInstance(AutodocFactory.PROG_DEFAULTS);
-          if (progDefaultsAutodoc != null) {
-            commandSection = progDefaultsAutodoc.getSection("Program", command);
-          }
-        }
-        catch (FileNotFoundException e) {
-          e.printStackTrace();
-        }
-        catch (IOException e) {
-          e.printStackTrace();
-        }
-        catch (LogFile.LockException e) {
-          e.printStackTrace();
-        }
-      }
+      commandSection = getCommandSection(command);
     }
-    // If the autodoc is already loaded, or command is present progDefaults.adoc, try to
-    // get the default from the autodoc. If it is not there, try to get it from
-    // progDefaults.
+    // If the autodoc is already loaded, or command is present in progDefaults.adoc, try
+    // to
+    // get the default from the autodoc.
     if (autodocLoaded || commandSection != null) {
+      String name = directiveDef.getName();
       try {
         ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(null, command);
         if (autodoc != null) {
@@ -105,12 +88,41 @@ public final class DefaultFinder {
       }
       // Fallback - if the default was not found in the autodoc, try to find it in
       // progDefaults.
+      if (commandSection == null) {
+        commandSection = getCommandSection(command);
+      }
       if (commandSection != null) {
         ReadOnlyAttribute attribute = commandSection.getAttribute(name);
         if (attribute != null) {
           return attribute.getValue();
         }
       }
+    }
+    return null;
+  }
+
+  /**
+   * Returns a command section in the progDefaults autodoc.
+   * @param command
+   * @return
+   */
+  private ReadOnlySection getCommandSection(final String command) {
+    try {
+      if (progDefaultsAutodoc == null) {
+        progDefaultsAutodoc = AutodocFactory.getComInstance(AutodocFactory.PROG_DEFAULTS);
+      }
+      if (progDefaultsAutodoc != null) {
+        return progDefaultsAutodoc.getSection("Program", command);
+      }
+    }
+    catch (FileNotFoundException e) {
+      e.printStackTrace();
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+    }
+    catch (LogFile.LockException e) {
+      e.printStackTrace();
     }
     return null;
   }
