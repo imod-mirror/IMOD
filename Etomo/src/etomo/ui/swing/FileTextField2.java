@@ -22,7 +22,6 @@ import javax.swing.filechooser.FileFilter;
 
 import etomo.BaseManager;
 import etomo.EtomoDirector;
-import etomo.logic.DefaultFinder;
 import etomo.storage.DirectiveDef;
 import etomo.ui.Field;
 import etomo.ui.FieldType;
