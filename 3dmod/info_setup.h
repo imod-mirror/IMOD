@@ -40,7 +40,7 @@ enum {FILE_MENU_NEW, FILE_MENU_OPEN, FILE_MENU_RELOAD, FILE_MENU_SAVE,
       EMODEL_MENU_HEADER, EMODEL_MENU_OFFSETS, EMODEL_MENU_CLEAN, 
       EOBJECT_MENU_NEW, EOBJECT_MENU_DELETE, EOBJECT_MENU_COLOR, 
       EOBJECT_MENU_TYPE, EOBJECT_MENU_INFO, EOBJECT_MENU_MOVE, 
-      EOBJECT_MENU_CLEAN, EOBJECT_MENU_FIXZ, EOBJECT_MENU_FLATTEN,
+      EOBJECT_MENU_CLEAN, EOBJECT_MENU_FIXZ, EOBJECT_MENU_FILLIN, EOBJECT_MENU_FLATTEN,
       EOBJECT_MENU_RENUMBER, EOBJECT_MENU_COMBINE,
       ESURFACE_MENU_NEW, ESURFACE_MENU_GOTO, ESURFACE_MENU_MOVE, 
       ESURFACE_MENU_DELETE,
@@ -65,7 +65,7 @@ class InfoWindow : public QMainWindow
 
  public:
   InfoWindow(QWidget * parent = 0, const char * name = 0, 
-              Qt::WFlags f = Qt::Window) ;
+              Qt::WindowFlags f = Qt::Window) ;
   ~InfoWindow() {};
   void manageMenus();
   void keepOnTop(bool state);

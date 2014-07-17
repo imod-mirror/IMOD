@@ -71,7 +71,7 @@ InfoControls *ImodInfoWidget = NULL;
 /*
  * THE CONSTRUCTOR FOR InfoWindow
  */
-InfoWindow::InfoWindow(QWidget * parent, const char * name, Qt::WFlags f)
+InfoWindow::InfoWindow(QWidget * parent, const char * name, Qt::WindowFlags f)
   : QMainWindow(parent, f)
 {
   mMinimized = false;
@@ -148,6 +148,7 @@ InfoWindow::InfoWindow(QWidget * parent, const char * name, Qt::WFlags f)
   ADD_ACTION(eObject, "&Info", EOBJECT_MENU_INFO);
   ADD_ACTION(eObject, "C&lean", EOBJECT_MENU_CLEAN);
   ADD_ACTION(eObject, "&Break by Z", EOBJECT_MENU_FIXZ);
+  ADD_ACTION(eObject, "&Fill in Z", EOBJECT_MENU_FILLIN);
   ADD_ACTION(eObject, "&Flatten", EOBJECT_MENU_FLATTEN);
   ADD_ACTION(eObject, "&Renumber...", EOBJECT_MENU_RENUMBER);
 
@@ -522,7 +523,7 @@ void InfoWindow::extract()
     commandString = slicer->rotateVolCommand();
     prin = 0;
     timeLock = slicer->mTimeLock;
-    executable = QDir::convertSeparators(QString(imodDir) + "/bin/rotatevol");
+    executable = QDir::toNativeSeparators(QString(imodDir) + "/bin/rotatevol");
   } else {
     commandString = zap->printInfo(false);
     timeLock = zap->getTimeLock();
@@ -550,14 +551,14 @@ void InfoWindow::extract()
   QStringList command = commandString.split(" ", QString::SkipEmptyParts);
   if (!rotateVol) {
     arguments << "-u";
-    command[0] = QDir::convertSeparators(QString(imodDir) + "/bin/trimvol");
+    command[0] = QDir::toNativeSeparators(QString(imodDir) + "/bin/trimvol");
     prin = 2;
   }
   for (i = 0; i < command.count(); i++)
     arguments << command[i];
     
-  arguments << QDir::convertSeparators(filePath);
-  arguments << QDir::convertSeparators(mTrimvolOutput);
+  arguments << QDir::toNativeSeparators(filePath);
+  arguments << QDir::toNativeSeparators(mTrimvolOutput);
   wprint(rotateVol ? "rotatevol " : "trimvol ");
   for (i = prin; i < arguments.count(); i++)
     wprint("%s ", LATIN1(arguments[i]));

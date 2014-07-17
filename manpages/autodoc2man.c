@@ -12,7 +12,7 @@
 
 int main(int argc , char **argv)
 {
-  int mantype, local, ierr;
+  int mantype, local;
   
   if (argc == 1) {
     fprintf(stderr, "Usage: autodoc2man output_type directories_up program_name\n"
@@ -42,11 +42,7 @@ int main(int argc , char **argv)
   return 0;
 }
 
-/* Stubs to avoid having to link with libimod */
-int imodVersion(char *pname)
-{
-  return 0;
-}
-void imodCopyright(void)
+/* Dummy function to reduce files needed in link */
+void rsSortIndexedFloats(float *x, int *index, int n)
 {
 }

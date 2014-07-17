@@ -22,4 +22,5 @@ void imodTrimContourLoops(Icont *cont, int openObj);
 bool imodContourIsPlanar(Icont *cont, int plane);
 int imodSurfaceIsPlanar(Iobj *obj, int surface, int time, int plane);
 int imodCheckSurfForNewCont(Iobj *obj, Icont *cont, int time, int plane);
+bool imodFillInContourZ(ImodView *vi, Icont *cont, int obNum, int coNum, int &curPoint);
 #endif
