@@ -20,7 +20,7 @@ import javax.swing.event.ChangeListener;
 import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.logic.UserEnv;
-import etomo.storage.DirectiveFile;
+
 import etomo.storage.DirectiveFileCollection;
 import etomo.type.AxisID;
 import etomo.type.BatchRunTomoMetaData;
