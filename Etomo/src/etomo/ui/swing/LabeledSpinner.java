@@ -287,18 +287,18 @@ final class LabeledSpinner implements Field, TextFieldInterface, ChangeListener,
     String errmsg = number.validate(null);
     System.err.println(errmsg);
     fieldHighlightValue = number.getNumber();
-    setFieldHighlight();
+    updateFieldHighlight();
   }
 
   public void stateChanged(ChangeEvent e) {
-    setFieldHighlight();
+    updateFieldHighlight();
   }
 
   public void focusGained(final FocusEvent event) {
   }
 
   public void focusLost(final FocusEvent event) {
-    setFieldHighlight();
+    updateFieldHighlight();
   }
 
   /**
@@ -309,7 +309,7 @@ final class LabeledSpinner implements Field, TextFieldInterface, ChangeListener,
    * foreground - or set a foreground color similar to the original one.  Assumes that
    * field highlight is not used when the field is disabled.
    */
-  void setFieldHighlight() {
+  void updateFieldHighlight() {
     if (useFieldHighlight) {
       Number number = getValue();
       if ((fieldHighlightValue != null && fieldHighlightValue.equals(number))
