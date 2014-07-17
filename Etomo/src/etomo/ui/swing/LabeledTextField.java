@@ -412,14 +412,14 @@ final class LabeledTextField implements UIComponent, SwingComponent, Field,
       textField.addFocusListener(this);
     }
     fieldHighlightValue = value;
-    setFieldHighlight();
+    updateFieldHighlight();
   }
 
   public void focusGained(final FocusEvent event) {
   }
 
   public void focusLost(final FocusEvent event) {
-    setFieldHighlight();
+    updateFieldHighlight();
   }
 
   /**
@@ -430,7 +430,7 @@ final class LabeledTextField implements UIComponent, SwingComponent, Field,
    * foreground - or set a foreground color similar to the original one.  Assumes that
    * field highlight is not used when the field is disabled.
    */
-  void setFieldHighlight() {
+  void updateFieldHighlight() {
     if (useFieldHighlight) {
       String text = textField.getText();
       if ((fieldHighlightValue != null && fieldHighlightValue.equals(text))
@@ -490,7 +490,7 @@ final class LabeledTextField implements UIComponent, SwingComponent, Field,
     if (checkpointValue == null) {
       return true;
     }
-    if (checkpointValue.equals(textField.getText())) {
+    if (!checkpointValue.equals(textField.getText())) {
       return true;
     }
     // Failed string comparison. Try comparing numerically

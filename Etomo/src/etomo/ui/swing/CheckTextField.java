@@ -169,7 +169,7 @@ final class CheckTextField implements UIComponent, SwingComponent {
     if (checkpointValue == null) {
       return true;
     }
-    if (checkpointValue.equals(textField.getText())) {
+    if (!checkpointValue.equals(textField.getText())) {
       return true;
     }
     // Failed string comparison. Try comparing numerically
