@@ -221,14 +221,14 @@ final class RadioButton implements RadioButtonInterface, Field, ActionListener {
       radioButton.addActionListener(this);
     }
     fieldHighlightValue = value;
-    setFieldHighlight();
+    updateFieldHighlight();
   }
 
   public void actionPerformed(ActionEvent e) {
-    setFieldHighlight();
+    updateFieldHighlight();
   }
 
-  void setFieldHighlight() {
+  void updateFieldHighlight() {
     if (useFieldHighlight) {
       if (fieldHighlightValue == isSelected()) {
         if (!origForegroundSet) {
