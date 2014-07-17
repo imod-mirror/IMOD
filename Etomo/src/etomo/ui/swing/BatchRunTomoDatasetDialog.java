@@ -403,47 +403,71 @@ final class BatchRunTomoDatasetDialog implements ActionListener {
       TrackingMethod trackingMethod = TrackingMethod.getInstance(directiveFileCollection
           .getValue(DirectiveDef.TRACKING_METHOD));
       if (trackingMethod == TrackingMethod.SEED) {
-        rbTrackingMethodSeed.setSelected(true);
+        if (!setFieldHighlightValue) {
+          rbTrackingMethodSeed.setSelected(true);
+        }
+        else {
+          rbTrackingMethodSeed.setFieldHighlightValue(true);
+        }
       }
       else if (trackingMethod == TrackingMethod.RAPTOR) {
-        rbTrackingMethodRaptor.setSelected(true);
+        if (!setFieldHighlightValue) {
+          rbTrackingMethodRaptor.setSelected(true);
+        }
+        else {
+          rbTrackingMethodRaptor.setFieldHighlightValue(true);
+        }
       }
       else if (trackingMethod == TrackingMethod.PATCH_TRACKING) {
-        rbTrackingMethodPatchTracking.setSelected(true);
+        if (!setFieldHighlightValue) {
+          rbTrackingMethodPatchTracking.setSelected(true);
+        }
+        else {
+          rbTrackingMethodPatchTracking.setFieldHighlightValue(true);
+        }
       }
     }
     setValue(directiveFileCollection, DirectiveDef.FIDUCIALLESS, setFieldHighlightValue,
         rbFiducialless);
-    setValue(directiveFileCollection, DirectiveDef.LOCAL_AREA_TARGET_SIZE, setFieldHighlightValue,
-        ltfLocalAreaTargetSize);
-    setValue(directiveFileCollection, DirectiveDef.TARGET_NUMBER_OF_BEADS, setFieldHighlightValue,
-        ltfTargetNumberOfBeads);
-    setValue(directiveFileCollection, DirectiveDef.SIZE_OF_PATCHES_X_AND_Y, setFieldHighlightValue,
-        ltfSizeOfPatchesXandY);
-    setValue(directiveFileCollection, DirectiveDef.CONTOUR_PIECES, setFieldHighlightValue,
-        lsContourPieces);
-    setValue(directiveFileCollection, DirectiveDef.BIN_BY_FACTOR_FOR_ALIGNED_STACK, setFieldHighlightValue,
-        lsBinByFactor);
+    setValue(directiveFileCollection, DirectiveDef.LOCAL_AREA_TARGET_SIZE,
+        setFieldHighlightValue, ltfLocalAreaTargetSize);
+    setValue(directiveFileCollection, DirectiveDef.TARGET_NUMBER_OF_BEADS,
+        setFieldHighlightValue, ltfTargetNumberOfBeads);
+    setValue(directiveFileCollection, DirectiveDef.SIZE_OF_PATCHES_X_AND_Y,
+        setFieldHighlightValue, ltfSizeOfPatchesXandY);
+    setValue(directiveFileCollection, DirectiveDef.CONTOUR_PIECES,
+        setFieldHighlightValue, lsContourPieces);
+    setValue(directiveFileCollection, DirectiveDef.BIN_BY_FACTOR_FOR_ALIGNED_STACK,
+        setFieldHighlightValue, lsBinByFactor);
     setValue(directiveFileCollection, DirectiveDef.CORRECT_CTF, setFieldHighlightValue,
         cbCorrectCTF);
-    if (directiveFileCollection.contains(DirectiveDef.CORRECT_CTF)) {
-      cbCorrectCTF.setSelected(directiveFileCollection.isValue(DirectiveDef.CORRECT_CTF));
-    }
-    if (directiveFileCollection.contains(DirectiveDef.DEFOCUS)) {
-      ltfDefocus.setText(directiveFileCollection.getValue(DirectiveDef.DEFOCUS));
-    }
+    setValue(directiveFileCollection, DirectiveDef.DEFOCUS, setFieldHighlightValue,
+        ltfDefocus);
     if (directiveFileCollection.contains(DirectiveDef.AUTO_FIT_RANGE_AND_STEP)) {
       EtomoNumber number = new EtomoNumber(EtomoNumber.Type.DOUBLE);
       number.set(directiveFileCollection.getValue(DirectiveDef.AUTO_FIT_RANGE_AND_STEP,
           DirectiveFile.AUTO_FIT_STEP_INDEX));
       if (number.equals(0)) {
-        rbFitEveryImage.setSelected(true);
+        if (!setFieldHighlightValue) {
+          rbFitEveryImage.setSelected(true);
+        }
+        else {
+          rbFitEveryImage.setFieldHighlightValue(true);
+        }
       }
       else {
-        rtfAutoFitRangeAndStep.setSelected(true);
-        rtfAutoFitRangeAndStep.setText(directiveFileCollection.getValue(
-            DirectiveDef.AUTO_FIT_RANGE_AND_STEP, DirectiveFile.AUTO_FIT_RANGE_INDEX));
-        ltfAutoFitStep.setText(number.toString());
+        String range = directiveFileCollection.getValue(
+            DirectiveDef.AUTO_FIT_RANGE_AND_STEP, DirectiveFile.AUTO_FIT_RANGE_INDEX);
+        if (!setFieldHighlightValue) {
+          rtfAutoFitRangeAndStep.setSelected(true);
+          rtfAutoFitRangeAndStep.setText(range);
+          ltfAutoFitStep.setText(number.toString());
+        }
+        else {
+          rtfAutoFitRangeAndStep.setFieldHighlightValue(true);
+          rtfAutoFitRangeAndStep.setFieldHighlightValue(range);
+          ltfAutoFitStep.setFieldHighlightValue(number.toString());
+        }
       }
     }
     boolean useSirt = false;
@@ -455,53 +479,72 @@ final class BatchRunTomoDatasetDialog implements ActionListener {
       doBackprojAlso = directiveFileCollection.isValue(DirectiveDef.DO_BACKPROJ_ALSO);
     }
     if (!useSirt) {
-      rbUseSirtFalse.setSelected(true);
+      if (!setFieldHighlightValue) {
+        rbUseSirtFalse.setSelected(true);
+      }
+      else {
+        rbUseSirtFalse.setFieldHighlightValue(true);
+      }
     }
     else if (!doBackprojAlso) {
-      rbUseSirtTrue.setSelected(true);
+      if (!setFieldHighlightValue) {
+        rbUseSirtTrue.setSelected(true);
+      }
+      else {
+        rbUseSirtTrue.setFieldHighlightValue(true);
+      }
     }
-    else {
+    else if (!setFieldHighlightValue) {
       rbDoBackprojAlso.setSelected(true);
     }
-    if (directiveFileCollection.contains(DirectiveDef.LEAVE_ITERATIONS)) {
-      ltfLeaveIterations.setText(directiveFileCollection
-          .getValue(DirectiveDef.LEAVE_ITERATIONS));
+    else {
+      rbDoBackprojAlso.setFieldHighlightValue(true);
     }
-    if (directiveFileCollection.contains(DirectiveDef.SCALE_TO_INTEGER)) {
-      cbScaleToInteger.setSelected(directiveFileCollection
-          .isValue(DirectiveDef.SCALE_TO_INTEGER));
-    }
+    setValue(directiveFileCollection, DirectiveDef.LEAVE_ITERATIONS,
+        setFieldHighlightValue, ltfLeaveIterations);
+    setValue(directiveFileCollection, DirectiveDef.SCALE_TO_INTEGER,
+        setFieldHighlightValue, cbScaleToInteger);
     // Derive thickness from log when thickness is not specified.
     // Priority of directives
     // 1. THICKNESS
     // 2. binnedThickness
     // 3. fallbackThickness (causes derived thickness to be checked)
-    if (directiveFileCollection.contains(DirectiveDef.THICKNESS)) {
-      rtfThickness.setSelected(true);
-      rtfThickness.setText(directiveFileCollection.getValue(DirectiveDef.THICKNESS));
-    }
-    if (directiveFileCollection.contains(DirectiveDef.BINNED_THICKNESS)) {
-      if (!rtfThickness.isSelected()) {
-        rtfBinnedThickness.setSelected(true);
+    if (setValue(directiveFileCollection, DirectiveDef.THICKNESS, setFieldHighlightValue,
+        rtfThickness)) {
+      if (!setFieldHighlightValue) {
+        rtfThickness.setSelected(true);
       }
-      rtfBinnedThickness.setText(directiveFileCollection
-          .getValue(DirectiveDef.BINNED_THICKNESS));
+      else {
+        rtfThickness.setFieldHighlightValue(true);
+      }
     }
-    if (directiveFileCollection.contains(DirectiveDef.EXTRA_THICKNESS)) {
-      tfExtraThickness.setText(directiveFileCollection
-          .getValue(DirectiveDef.EXTRA_THICKNESS));
+    if (setValue(directiveFileCollection, DirectiveDef.BINNED_THICKNESS,
+        setFieldHighlightValue, rtfBinnedThickness)) {
+      if (!rtfThickness.isSelected()) {
+        if (!setFieldHighlightValue) {
+          rtfBinnedThickness.setSelected(true);
+        }
+        else {
+          rtfBinnedThickness.setFieldHighlightValue(true);
+        }
+      }
     }
-    if (directiveFileCollection.contains(DirectiveDef.FALLBACK_THICKNESS)) {
-      ltfFallbackThickness.setText(directiveFileCollection
-          .getValue(DirectiveDef.FALLBACK_THICKNESS));
-      if (!rtfThickness.isSelected() && !rtfBinnedThickness.isSelected()) {
+    setValue(directiveFileCollection, DirectiveDef.EXTRA_THICKNESS,
+        setFieldHighlightValue, tfExtraThickness);
+    setValue(directiveFileCollection, DirectiveDef.FALLBACK_THICKNESS,
+        setFieldHighlightValue, ltfFallbackThickness);
+    if (!rtfThickness.isSelected() && !rtfBinnedThickness.isSelected()) {
+      if (!setFieldHighlightValue) {
         rbDeriveThickness.setSelected(true);
+      }
+      else {
+        rbDeriveThickness.setFieldHighlightValue(true);
       }
     }
     updateDisplay();
   }
 
-  private void setValue(final DirectiveFileCollection directiveFileCollection,
+  private boolean setValue(final DirectiveFileCollection directiveFileCollection,
       final DirectiveDef directiveDef, final boolean setFieldHighlightValue,
       final TextFieldInterface textField) {
     if (directiveFileCollection.contains(directiveDef, setFieldHighlightValue)) {
@@ -513,7 +556,9 @@ final class BatchRunTomoDatasetDialog implements ActionListener {
       else {
         textField.setFieldHighlightValue(value);
       }
+      return true;
     }
+    return false;
   }
 
   private void setValue(final DirectiveFileCollection directiveFileCollection,
