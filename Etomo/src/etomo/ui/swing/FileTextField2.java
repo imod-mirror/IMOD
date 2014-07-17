@@ -82,6 +82,10 @@ final class FileTextField2 implements FileTextFieldInterface, Field, ActionListe
   private boolean originEtomoRunDir = false;
   private DirectiveDef directiveDef = null;
 
+  public String toString() {
+    return super.toString() + ":[text:" + field.getText() + ",label:" + label.getText();
+  }
+
   private FileTextField2(final BaseManager manager, final String label,
       final boolean labeled, final boolean peet, final boolean alternateLayout) {
     if (!peet) {
@@ -359,7 +363,7 @@ final class FileTextField2 implements FileTextFieldInterface, Field, ActionListe
   }
 
   public void actionPerformed(ActionEvent e) {
-    field.setFieldHighlight();
+    field.updateFieldHighlight();
   }
 
   /**
