@@ -16,7 +16,6 @@ import javax.swing.JPanel;
 import javax.swing.border.LineBorder;
 
 import etomo.BaseManager;
-import etomo.storage.DirectiveFile;
 import etomo.storage.DirectiveFileCollection;
 import etomo.storage.StackFileFilter;
 import etomo.type.UserConfiguration;
