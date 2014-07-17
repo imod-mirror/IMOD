@@ -1,5 +1,6 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/14/14: IMOD_4-8-9
 7/16/14: Changes for Batchruntomo: make it rerun align without local
 alignments if it fails with it; add ability to detect blank views at ends of
 series; allow pre-existing defocus file to be used; make -start option apply
@@ -12,7 +13,6 @@ CHANGED.
 entered for non-patch track model (In 4.7).
 
 7/12/14: Added Object menu item to fill in Z in all contours.
-
 
 7/11/14: Fixed inability to use patch tracking if cumulative correlation was
 checked in coarse alignment (In 4.7).
