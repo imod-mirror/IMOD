@@ -1,5 +1,6 @@
 package etomo.comscript;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -72,7 +73,10 @@ public class BatchruntomoParam {
 
   public void setDirective(final DirectiveFile directiveFile) {
     if (directiveFile != null) {
-      directiveList.add(directiveFile.getFile().getAbsolutePath());
+      File file = directiveFile.getFile();
+      if (file != null) {
+        directiveList.add(directiveFile.getFile().getAbsolutePath());
+      }
     }
   }
 

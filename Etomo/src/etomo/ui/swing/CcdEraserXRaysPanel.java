@@ -495,7 +495,7 @@ final class CcdEraserXRaysPanel implements ContextMenu, Run3dmodButtonContainer,
     ReadOnlyAutodoc autodoc = null;
     try {
       autodoc = AutodocFactory.getInstance(applicationManager, AutodocFactory.CCDERASER,
-          axisID);
+          axisID,false);
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();

@@ -566,7 +566,8 @@ public final class AutoAlignmentPanel implements Run3dmodButtonContainer {
     }
     ReadOnlyAutodoc autodoc = null;
     try {
-      autodoc = AutodocFactory.getInstance(manager, AutodocFactory.XFALIGN, AxisID.ONLY);
+      autodoc = AutodocFactory.getInstance(manager, AutodocFactory.XFALIGN, AxisID.ONLY,
+          false);
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();

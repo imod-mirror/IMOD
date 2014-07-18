@@ -72,6 +72,7 @@ public final class RemotePathTest extends TestCase {
   private String sectionName = null;
   private String hostName = null;
   private String strippedHostName = null;
+  private File testDir = null;
 
   public RemotePathTest() {
     super();
@@ -403,9 +404,8 @@ public final class RemotePathTest extends TestCase {
    * @throws IOException
    */
   private File setUpTestDirectory(String testDirName) throws IOException {
-    File testDir = new File(TEST_DIR, testDirName);
+     testDir = new File(TEST_DIR, testDirName);
     setUpDirectory(testDir);
-    AutodocFactory.setAbsoluteDir(testDir.getAbsolutePath());
     AutodocFactory.resetInstance(RemotePath.AUTODOC);
     return testDir;
   }

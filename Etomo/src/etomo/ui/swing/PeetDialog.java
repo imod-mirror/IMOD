@@ -923,7 +923,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
   private void setTooltipText() {
     ReadOnlyAutodoc autodoc = null;
     try {
-      autodoc = AutodocFactory.getInstance(manager, AutodocFactory.PEET_PRM, axisID);
+      autodoc = AutodocFactory.getInstance(manager, AutodocFactory.PEET_PRM, axisID,false);
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();
