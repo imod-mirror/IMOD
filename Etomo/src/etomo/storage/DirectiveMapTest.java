@@ -89,7 +89,7 @@ public class DirectiveMapTest extends TestCase {
     catch (NoSuchElementException e) {
     }
 
-    iterator = map.keySet(DirectiveType.RUNTIME).iterator();
+    iterator = map.keySet(DirectiveType.RUN_TIME).iterator();
     try {
       iterator.next();
       fail("nothing left to retrieve");

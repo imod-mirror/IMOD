@@ -92,7 +92,7 @@ public final class IteratorParser {
    * @throws IOException
    */
   public void parse(String input, IteratorElementList iteratorElementList) {
-    //Reset parser.
+    // Reset parser.
     tokenizer = null;
     token = null;
     valid = true;
@@ -100,7 +100,7 @@ public final class IteratorParser {
     if (iteratorElementList == null) {
       this.iteratorElementList = new IteratorElementList(manager, axisID, description);
     }
-    tokenizer = PrimativeTokenizer.getNumericInstance(input);
+    tokenizer = PrimativeTokenizer.getNumericStringInstance(input, false);
     try {
       valid = false;
       tokenizer.initialize();
@@ -171,14 +171,14 @@ public final class IteratorParser {
       reportError(Token.Type.NUMERIC.toString());
       return false;
     }
-    //Found an element - save it.
+    // Found an element - save it.
     String first = token.getValue();
     nextToken();
     if (token.is(Token.Type.WHITESPACE)) {
       nextToken();
     }
     if (!token.equals(Token.Type.SYMBOL, DASH)) {
-      //Save numeric element
+      // Save numeric element
       IteratorElement element = new IteratorElement(first);
       iteratorElementList.add(element);
       return true;
@@ -191,7 +191,7 @@ public final class IteratorParser {
       reportError(Token.Type.NUMERIC.toString());
       return false;
     }
-    //Save range element
+    // Save range element
     IteratorElement element = new IteratorElement(first, token.getValue());
     iteratorElementList.add(element);
     nextToken();
@@ -254,11 +254,9 @@ public final class IteratorParser {
       e.printStackTrace();
       token = new Token();
       token.set(Token.Type.EOL);
-    }/*
-     System.out.println("\nprevPrevPrevValue="+prevPrevPrevValue);
-     System.out.println("prevPrevValue="+prevPrevValue);
-     System.out.println("prevValue="+prevValue);
-     System.out.println("token="+token);*/
+    }/* System.out.println("\nprevPrevPrevValue="+prevPrevPrevValue);
+      * System.out.println("prevPrevValue="+prevPrevValue);
+      * System.out.println("prevValue="+prevValue); System.out.println("token="+token); */
   }
 
   public boolean isValid() {

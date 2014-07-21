@@ -1071,7 +1071,7 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
     ReadOnlyAutodoc autodoc = null;
 
     try {
-      autodoc = AutodocFactory.getInstance(manager, AutodocFactory.TILT, axisID);
+      autodoc = AutodocFactory.getInstance(manager, AutodocFactory.TILT, axisID, false);
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();

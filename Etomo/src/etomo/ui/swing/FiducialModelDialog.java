@@ -1282,7 +1282,7 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
     ReadOnlyAutodoc autodoc = null;
     try {
       autodoc = AutodocFactory.getInstance(applicationManager,
-          AutodocFactory.AUTOFIDSEED, axisID);
+          AutodocFactory.AUTOFIDSEED, axisID,false);
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();
