@@ -394,6 +394,12 @@ int DLL_EX_IM getTopSlicerAngles(float angles[3], Ipoint *center, int &time);
 int DLL_EX_IM ivwGetTopSlicerZoom(ImodView *inImodView, float *outZoom);
 
 /*!
+ * Returns the thickness (number of slices summed) of the top slicer window in [outZoom].
+ * The return value is 1 if there is no slicer open.
+ */
+int DLL_EX_IM ivwGetTopSlicerThickness(ImodView *inImodView, int *outThick);
+
+/*!
  * Returns the lengths of the scale bars in the top windows of each of the different 
  * types, Zap, Slicer, XYZ, multiZ, or model view.  A -1 is returned
  * if there are no scale bars being displayed or if the particular window is not open.

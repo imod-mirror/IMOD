@@ -141,12 +141,17 @@ must contain only directives with a Y in the "Tmplt" column.
 [Field = StartingStep]
 short = start
 type = I
-usage = Step to start at for first set, or 100 plus step for second axis
+usage = Step to start processing with
 tooltip = 
-manpage = "Step to start with for first set: 0 = setup, 1 = preprocessing, 2 =
+manpage = "Step to start processing with: 0 = setup, 1 = preprocessing, 2 =
 xcorr, 3 = prealigned stack, 4 = patch tracking or seeding or RAPTOR, 5 =
-beadtrack, 6 = aligned stack, 7 = CTF correction, 8 = erase gold, 9 = filter,
-10 = reconstruction, 13 = postprocessing.  Add 100 to start with this step in
+beadtrack, 8 = aligned stack, 9 (or 10) = CTF plotting, 10 (or 11) = CTF
+correction, 11 (or 9) = erase gold, 12 = filter,
+13 = reconstruction, 18 = postprocessing.  Numbers in parentheses apply if the
+\fB-erase\fR option is entered.  Each set will start at this step unless the
+\fB-first\fR option is entered, in which case only the first set will start
+with this step and others will start from the beginning.  In the latter case,
+add 100 to start with this step in
 the second axis of a dual-axis data set."
 
 [Field = EndingStep]
@@ -155,12 +160,49 @@ type = I
 usage = Step to end with
 tooltip = 
 manpage = Step to end with in each set and axis.  Steps are numbered as
-described for -start.
+described for \fB-start\fR.
+
+[Field = StartForFirstSetOnly]
+short = first
+type = B
+usage = Skip to starting step only for the first set
+tooltip = 
+manpage = Skip to starting step only for the first set; the following sets
+will be run from the beginning.
+
+[Field = EraseBeforeCTF]
+short = erase
+type = B
+usage = Run gold erasing before CTF correction
+tooltip =
+manpage = Run gold erasing before CTF correction.  This is not the
+theoretically correct order for these operations but may be more convenient if
+manual intervention is planned.
+
+[Field = UseExistingAlignment]
+short = use
+type = B
+usage = Use existing fine alignment without rerunning Tiltalign
+tooltip =
+manpage = Use existing fine alignment without rerunning Tiltalign.
+Ordinarily, whenever the \fB-start\fR option is used and the program will be
+running any steps that involve the aligned stack or reconstruction, it reruns
+Tiltalign(1) iteratively in the usual fashion before proceeding.  This option
+can be used to keep the program from
+overwriting an alignment based on manually adjusted parameters.  It is allowed
+only when starting past step 5.
 
 [Field = ExitOnError]
 short = exit
 type = B
 usage = Exit on error instead of going on to next axis or data set
+tooltip =
+manpage =
+
+[Field = EtomoDebug]
+short = etomo
+type = I
+usage = Run etomo with the given debug level
 tooltip =
 manpage =
 
