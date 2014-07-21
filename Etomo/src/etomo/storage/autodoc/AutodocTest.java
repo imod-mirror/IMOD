@@ -9,7 +9,6 @@ import etomo.EtomoDirector;
 import etomo.process.SystemProcessException;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
-import etomo.uitest.TestRunner;
 import etomo.util.EnvironmentVariable;
 import etomo.util.InvalidParameterException;
 import etomo.util.TestUtilites;
@@ -47,7 +46,7 @@ public final class AutodocTest extends TestCase {
     testDir.mkdirs();
     manager = (BaseManager) EtomoDirector.INSTANCE.getCurrentManagerForTest();
     testsDir = new File(EnvironmentVariable.INSTANCE.getValue(manager,
-        manager.getPropertyUserDir(), TestRunner.SOURCE_ENV_VAR, AxisID.ONLY));
+        manager.getPropertyUserDir(), EtomoDirector.SOURCE_ENV_VAR, AxisID.ONLY));
   }
 
   // Vectors
