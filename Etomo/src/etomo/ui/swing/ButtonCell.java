@@ -50,6 +50,10 @@ final class ButtonCell extends InputCell {
     button.setEnabled(enable);
   }
 
+  public void setDisabledIcon(final Icon icon) {
+    button.setDisabledIcon(icon);
+  }
+
   void setToolTipText(String text) {
     button.setToolTipText(TooltipFormatter.INSTANCE.format(text));
   }
