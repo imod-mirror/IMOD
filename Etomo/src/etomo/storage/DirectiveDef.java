@@ -189,7 +189,10 @@ public final class DirectiveDef {
    */
   private boolean separateBDirective = false;
   private boolean bool = false;
-  private boolean batchOnlyB = false;
+  private boolean templateA = false;
+  private boolean templateB = false;
+  private boolean batchA = false;
+  private boolean batchB = false;
   private boolean directiveDescrLoaded = false;
 
   /**
@@ -277,15 +280,20 @@ public final class DirectiveDef {
       if (type == DirectiveValueType.BOOLEAN) {
         bool = true;
       }
+      templateA = element.isTemplate();
+      batchA = element.isBatch();
     }
     if (directiveType == DirectiveType.COPY_ARG) {
       element = DirectiveDescrFile.INSTANCE.get(getKey(AxisID.SECOND));
       if (element != null) {
         separateBDirective = true;
-        if (!element.isTemplate() && element.isBatch()) {
-          batchOnlyB = true;
-        }
+        templateB = element.isTemplate();
+        batchB = element.isBatch();
       }
+    }
+    if (!separateBDirective) {
+      templateB = templateA;
+      batchB = batchA;
     }
   }
 
@@ -295,7 +303,7 @@ public final class DirectiveDef {
         if (!directiveDescrLoaded) {
           loadDirectiveDescr();
         }
-        return !batchOnlyB;
+        return templateB || !batchB;// No secondary match for non-templatable copyarg B
       }
       else {
         return false;
@@ -313,6 +321,20 @@ public final class DirectiveDef {
       loadDirectiveDescr();
     }
     return bool;
+  }
+
+  boolean isTemplate(final AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return templateB;
+    }
+    return templateA;
+  }
+
+  boolean isBatch(final AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return batchB;
+    }
+    return batchA;
   }
 
   /**
@@ -340,7 +362,8 @@ public final class DirectiveDef {
           return COPY_ARG_B_AXIS_PREFIX + name;
         }
         if (match == Match.SECONDARY) {
-          if (axisID == AxisID.SECOND && !batchOnlyB) {
+          // No secondary match for non-templatable copyarg B
+          if (axisID == AxisID.SECOND && (templateB || !batchB)) {
             return name;
           }
           return null;
@@ -411,14 +434,14 @@ public final class DirectiveDef {
   /**
    * @return the command name element for comparam directives
    */
- public String getCommand() {
+  public String getCommand() {
     return command;
   }
 
   public String getKey(final AxisID axisID) {
     return DirectiveName.makeKey(getDirective(axisID, null));
   }
-  
+
   public String getName() {
     return name;
   }
