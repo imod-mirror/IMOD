@@ -29,7 +29,8 @@ public final class MinibuttonCell extends InputCell {
   private final Minibutton button;
 
   MinibuttonCell(final Icon icon) {
-    button = Minibutton.getSquareInstance(icon,BorderFactory.createBevelBorder(BevelBorder.RAISED));
+    button = Minibutton.getSquareInstance(icon,
+        BorderFactory.createBevelBorder(BevelBorder.RAISED));
   }
 
   Component getComponent() {
@@ -46,6 +47,10 @@ public final class MinibuttonCell extends InputCell {
 
   public void setEnabled(boolean enable) {
     button.setEnabled(enable);
+  }
+
+  public void setDisabledIcon(final Icon icon) {
+    button.setDisabledIcon(icon);
   }
 
   void setToolTipText(String text) {
