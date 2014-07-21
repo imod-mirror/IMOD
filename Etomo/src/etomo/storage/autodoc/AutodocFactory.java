@@ -265,6 +265,35 @@ public final class AutodocFactory {
   }
 
   /**
+   * Initialize one of the known autodoc instances with a generic instance.  If the known
+   * autodoc has an instance assigned to it, this overrides the old instance with the one
+   * created here.
+   * @param manager
+   * @param file
+   * @param autodocName
+   * @return
+   * @throws IOException
+   * @throws LogFile.LockException
+   */
+  public static ReadOnlyAutodoc getInstance(BaseManager manager, File file,
+      final String autodocName) throws IOException, LogFile.LockException {
+    if (file == null) {
+      throw new IllegalStateException("file is null");
+    }
+    Autodoc autodoc = new Autodoc(stripFileExtension(file));
+    try {
+      autodoc.initializeGenericInstance(manager, file, null);
+      if (autodocName != null) {
+        setInstance(autodocName, autodoc);
+      }
+      return autodoc;
+    }
+    catch (FileNotFoundException e) {
+      return null;
+    }
+  }
+
+  /**
    * open and preserve an autodoc without a type for testing
    * @param autodocFile
    * @param axisID
@@ -520,6 +549,101 @@ public final class AutodocFactory {
     }
     else if (name.equals(PROG_DEFAULTS)) {
       PROG_DEFAULTS_INSTANCE = null;
+    }
+    else {
+      throw new IllegalArgumentException("Illegal autodoc name: " + name + ".");
+    }
+  }
+  
+  /**
+   * Override an old autodoc instance with a new one
+   * @param name
+   * @param autodoc
+   */
+  private static void setInstance(String name,final Autodoc autodoc) {
+    if (name.equals(TILTXCORR)) {
+      TILTXCORR_INSTANCE = autodoc;
+    }
+    else if (name.equals(TEST)) {
+      TEST_INSTANCE = autodoc;
+    }
+    else if (name.equals(UITEST)) {
+      UITEST_INSTANCE = autodoc;
+    }
+    else if (name.equals(MTF_FILTER)) {
+      MTF_FILTER_INSTANCE = autodoc;
+    }
+    else if (name.equals(NEWSTACK)) {
+      NEWSTACK_INSTANCE = autodoc;
+    }
+    else if (name.equals(CTF_PLOTTER)) {
+      CTF_PLOTTER_INSTANCE = autodoc;
+    }
+    else if (name.equals(CTF_PHASE_FLIP)) {
+      CTF_PHASE_FLIP_INSTANCE = autodoc;
+    }
+    else if (name.equals(FLATTEN_WARP)) {
+      FLATTEN_WARP_INSTANCE = autodoc;
+    }
+    else if (name.equals(WARP_VOL)) {
+      WARP_VOL_INSTANCE = autodoc;
+    }
+    else if (name.equals(FIND_BEADS_3D)) {
+      FIND_BEADS_3D_INSTANCE = autodoc;
+    }
+    else if (name.equals(COMBINE_FFT)) {
+      COMBINE_FFT_INSTANCE = autodoc;
+    }
+    else if (name.equals(TILTALIGN)) {
+      TILTALIGN_INSTANCE = autodoc;
+    }
+    else if (name.equals(CCDERASER)) {
+      CCDERASER_INSTANCE = autodoc;
+    }
+    else if (name.equals(SOLVEMATCH)) {
+      SOLVEMATCH_INSTANCE = autodoc;
+    }
+    else if (name.equals(BEADTRACK)) {
+      BEADTRACK_INSTANCE = autodoc;
+    }
+    else if (name.equals(CPU)) {
+      CPU_INSTANCE = autodoc;
+    }
+    else if (name.equals(DENS_MATCH)) {
+      DENS_MATCH_INSTANCE = autodoc;
+    }
+    else if (name.equals(CORR_SEARCH_3D)) {
+      CORR_SEARCH_3D_INSTANCE = autodoc;
+    }
+    else if (name.equals(XFJOINTOMO)) {
+      XFJOINTOMO_INSTANCE = autodoc;
+    }
+    else if (name.equals(PEET_PRM)) {
+      PEET_PRM_INSTANCE = autodoc;
+    }
+    else if (name.equals(TILT)) {
+      TILT_INSTANCE = autodoc;
+    }
+    else if (name.equals(SIRTSETUP)) {
+      SIRTSETUP_INSTANCE = autodoc;
+    }
+    else if (name.equals(BLENDMONT)) {
+      BLENDMONT_INSTANCE = autodoc;
+    }
+    else if (name.equals(XFTOXG)) {
+      XFTOXG_INSTANCE = autodoc;
+    }
+    else if (name.equals(XFALIGN)) {
+      XFALIGN_INSTANCE = autodoc;
+    }
+    else if (name.equals(AUTOFIDSEED)) {
+      AUTOFIDSEED_INSTANCE = autodoc;
+    }
+    else if (name.equals(ETOMO)) {
+      ETOMO_INSTANCE = autodoc;
+    }
+    else if (name.equals(PROG_DEFAULTS)) {
+      PROG_DEFAULTS_INSTANCE = autodoc;
     }
     else {
       throw new IllegalArgumentException("Illegal autodoc name: " + name + ".");
