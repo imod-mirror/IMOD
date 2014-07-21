@@ -421,10 +421,10 @@ Criterion number of standard deviations above mean residual error
 .P
 "Factor", and limit on number of cycles, for the variable metric
     minimization (METRO).  "Factor" determines how large a step METRO
-    tries to take.  The default for "factor" is 0.5, but smaller
-    values of 0.35 or even 0.25 are needed for large data sets.  The
-    default # of cycles is 500.  When METRO fails for various reasons,
-    the program will retry with several other, mostly smaller values
+    tries to take.  The default for "factor" is 0.25, which typically 
+    works even for large data sets.  The
+    default # of cycles is 1000.  When METRO fails for various reasons,
+    the program will retry with several other, nearby values
     of the factor.
 .P
 IF transformations are being computed, next enter two more lines:

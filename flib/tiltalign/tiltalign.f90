@@ -49,13 +49,13 @@ program tiltalign
   !
   logical tooFewFid, useTarget, dirDone(-1:1), subSampleTracks
   logical*4 warnOnRobFail
-  integer*4 ncycle/500/
+  integer*4 maxCycles
   real*4 DTOR/0.0174532/
   !
   integer*4 numLocalRes, numSurface, iwhichOut, metroError, i, itry
   integer*4 inputAlf, mapAlfEnd, ifVarOut, ifResOut, ifXyzOut, ifLocal
   integer*4 iv, nvarSearch, nvarGeometric, index, nvarAngle, nvarScaled
-  real*4 errCrit, facm, znew, xtiltNew, scaleXY, errSum, znewInput
+  real*4 errCrit, facMetro, znew, xtiltNew, scaleXY, errSum, znewInput
   real*4 errSqsm, residErr, vwErrSum, vwErrSq, sxoz, szox, sxox, szoz
   real*4 xo, zo, xShift, zShift, rollPoints, cosTheta, sinTheta, xtmp, compInc, compAbs
   integer*4 nviewAdd, ninViewSum, ivst, ivnd, iunit2, numUnknownTot, iunit
@@ -138,6 +138,8 @@ program tiltalign
       ':SkewMapping:IAM:@:LocalSkewMapping:IAM:@:XTiltMapping:IAM:@'// &
       ':LocalXTiltMapping:IAM:@param:ParameterFile:PF:@help:usage:B:'
   !
+  maxCycles = 1000
+  facMetro = 0.25
   maxtemp = 10000
   numLocalRes = 50
   xyzFixed = .false.
@@ -250,21 +252,22 @@ program tiltalign
       minTiltView, ncompSearch, 0, mapTiltStart, mapAlfStart, mapAlfEnd, ifBTSearch, &
       tiltOrig, tiltAdd, pipinput, ninView, ninThresh, rotEntered)
   !
-  facm = 0.5
   if (pipinput) then
     errCrit = 3.0
     numSurface = 0
-    ncycle = 1000
     znewInput = 0.
     xtiltNew = 0.
     ierr = PipGetFloat('ResidualReportCriterion', errCrit)
     ierr = PipGetInteger('SurfacesToAnalyze', numSurface)
-    ierr = PipGetFloat('MetroFactor', facm)
-    ierr = PipGetInteger('MaximumCycles', ncycle)
+    ierr = PipGetFloat('MetroFactor', facMetro)
+    ierr = PipGetInteger('MaximumCycles', maxCycles)
     ierr = PipGetBoolean('RobustFitting', ifDoRobust)
     ierr = PipGetLogical('WeightWholeTracks', robustByTrack)
-    if (ifDoRobust > 0 .and. robustByTrack .and. .not. patchTrackModel) call exitError( &
-        'Weighting whole contours can be done only with a patch track model')
+    if (ifDoRobust > 0 .and. robustByTrack .and. .not. patchTrackModel) then
+      print *, &
+          'WARNING: Weighting whole contours can be done only with a patch track model'
+      robustByTrack = .false.
+    endif
     if (PipGetTwoIntegers('MinWeightGroupSizes', minResRobust, minLocalResRobust) .ne. &
         0) then
       ! They were loaded with the point residual values, so change if track residuals
@@ -300,8 +303,8 @@ program tiltalign
     read(5,*) numSurface
     !
     write(*,'(1x,a,f5.2,i5,a,$)') 'Factor for METRO, limit on # '// &
-        'of cycles [', facm, ncycle, ']: '
-    read(5,*) facm, ncycle
+        'of cycles [', facMetro, maxCycles, ']: '
+    read(5,*) facMetro, maxCycles
     !
     if (iwhichOut >= 0) then
       !
@@ -402,9 +405,9 @@ program tiltalign
   ! write(*, '(3(2f9.4,f8.4))') ((xyz(i, iv), i = 1, 3), iv = 1, nrealPt)
   deallocate(sprod, stat=ierr)
   !
-  ! Get the h array big enough for the solution
+  ! Get the h array big enough for the solution (and temp use later)
   maxvar = nvarSearch + 3 * nrealPt
-  maxh = (maxvar + 3) * maxvar
+  maxh = max(2 * nfileViews, (maxvar + 3) * maxvar)
   allocate(h(maxh), stat = ierr)
   call memoryError(ierr, 'ARRAY FOR H MATRIX')
   !
@@ -521,6 +524,8 @@ program tiltalign
       call exitError(robFailMess)
   if (numRobFailed > 0) write(*,'(a,i4,a)')'WARNING: ROBUST FITTING FAILED IN ', &
       numRobFailed,' SEARCHES; NON-ROBUST RESULT WAS RESTORED'
+
+  ! Batchruntomo is looking for 'Minimum numbers of fiducials are too high'
   if (tooFewFid) call errorexit( &
       'Minimum numbers of fiducials are too high - check if '// &
       'there are enough fiducials on the minority surface', 0)
@@ -562,11 +567,11 @@ CONTAINS
     rmsScale = scaleXY**2 / nprojpt
     metroRobust = metroError
     if (ifBTSearch == 0 .or. ifLocal > 0) then
-      call runMetro(nvarSearch, var, varErr, grad, h, ifLocal, facm, ncycle, 0, &
+      call runMetro(nvarSearch, var, varErr, grad, h, ifLocal, facMetro, maxCycles, 0, &
           rmsScale, fFinal, i, metroError, .false.)
     else
       call searchBeamTilt(beamTilt, binStepIni, binStepFinal, scanStep, &
-          nvarSearch, var, varErr, grad, h, ifLocal, facm, ncycle, &
+          nvarSearch, var, varErr, grad, h, ifLocal, facMetro, maxCycles, &
           rmsScale, fFinal, i, metroError)
     endif
     !
@@ -576,7 +581,7 @@ CONTAINS
     endif
     robFailed = .false.
     if (ifDoRobust .ne. 0 .and. metroError == metroRobust) then
-      maxTotCycles = abs(ncycle) * robustTotCycleFac
+      maxTotCycles = abs(maxCycles) * robustTotCycleFac
       numTotCycles = 0
       numOneCycle = 0
       numBelowCrit = 0
@@ -615,7 +620,7 @@ CONTAINS
         wgtPrev(1:nprojpt) = errSave(1:nprojpt)
         errSave(1:nprojpt) = weight(1:nprojpt)
         call computeWeights(indAllReal, indSave, jptSave, xyzerr)
-        call runMetro(nvarSearch, var, varErr, grad, h, 1, facm, -abs(ncycle), 1, &
+        call runMetro(nvarSearch, var, varErr, grad, h, 1, facMetro, -abs(maxCycles), 1, &
             rmsScale, fFinal, i, metroRobust, numTotCycles > 0)
         numTotCycles = numTotCycles + i
         if (i <= 1) then
@@ -698,7 +703,7 @@ CONTAINS
         print *,'Restarting non-robust search to restore original result'
         var(1:nvarSearch) = varSave(1:nvarSearch)
         robustWeights = .false.
-        call runMetro(nvarSearch, var, varErr, grad, h, ifLocal, facm, ncycle, 0, &
+        call runMetro(nvarSearch, var, varErr, grad, h, ifLocal, facMetro, maxCycles, 0, &
             rmsScale, fFinal, i, metroError, .false.)
         numRobFailed = numRobFailed + 1
       elseif (.not. robTooFew) then
@@ -1800,7 +1805,7 @@ CONTAINS
             nxp, nyp, ',  ', nrealPt, ' fiducials'
         if (minSurf > 0) write(*,'(a,i3,a,i3,a)') '    (', nbot, &
             ' on bottom and', ntop, ' on top)'
-        ncycle = -abs(ncycle)
+        maxCycles = -abs(maxCycles)
         call alignAndOutputResults()
       enddo
     enddo

@@ -47,16 +47,20 @@ subroutine find_surfaces(xyz, numRealPt, numSurface, tiltMax, &
   enddo
   call lsfit2Resid(xmat(1, 1), xmat(1, 2), xmat(1, 3), numRealPt, aSlope, bSlope, &
       bintcp, alpha, slope, resid, botExtreme, topExtreme)
-
+  !
+  ! Batchruntomo is looking for '# of points' and the number after '=' and expects
+  ! either one number for all, or 3 numbers for all, bottom, top
   do iun = 6, iunit2
-    write(iun, '(/,a,//,a,//,a,i4,a,/,a,f11.2)')' SURFACE ANALYSIS:', &
+    write(iun, '(/,a,//,a,//,a,/,a,i16,/,a,f11.2)')' SURFACE ANALYSIS:', &
         ' The following parameters are appropriate if fiducials' &
         //' are NOT on two surfaces:', &
-        ' Fit of one plane to all ', numRealPt, ' fiducials:', &
+        ' Fit of one plane to all fiducials:', &
+        ' # of points = ', numRealPt, &
         ' Mean residual =    ', resid
     if (numRealPt < 3) then
       write(iun, 99) ' Too few points to estimate tilt angle change or X-axis tilt'
 99    format(a)
+      truePlus = 0.
     else
       write(iun, '(a, f8.4)') ' Adjusted slope =      ', slope
       if (numRealPt < 4) then
