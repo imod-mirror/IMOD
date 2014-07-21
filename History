@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/21/14: In eTomo fixed a bug that made ineditable table fields editable.
+This bug can lead to problems with dataset stablility if these fields are
+modified (In 4.7).
+
 7/15/14: Tiltalign issues warning instead of error if WeightWholeTracks is
 entered for non-patch track model (In 4.7).
 
