@@ -43,6 +43,7 @@ public final class DirectiveFile {
   private final BaseManager manager;
 
   private File file = null;
+  private boolean batch = false;
   private ReadOnlyAttribute copyArg = null;
   private ReadOnlyAttribute runtime = null;
   private ReadOnlyAttribute setupSet = null;
@@ -59,8 +60,8 @@ public final class DirectiveFile {
   }
 
   /**
-   * Returns an instance loaded with the directive from the etomo parameters.  Returns
-   * null if an autodoc could not be loaded.
+   * Returns an instance loaded with the batch directive from the etomo parameters.
+   * Returns null if an autodoc could not be loaded.
    * @param manager
    * @param axisID
    * @return
@@ -68,7 +69,7 @@ public final class DirectiveFile {
   public static DirectiveFile getArgInstance(final BaseManager manager,
       final AxisID axisID) {
     DirectiveFile instance = new DirectiveFile(manager, axisID);
-    if (instance.setFile(EtomoDirector.INSTANCE.getArguments().getDirective())) {
+    if (instance.setFile(EtomoDirector.INSTANCE.getArguments().getDirective(), true)) {
       return instance;
     }
     return null;
@@ -82,9 +83,9 @@ public final class DirectiveFile {
    * @return
    */
   public static DirectiveFile getInstance(final BaseManager manager, final AxisID axisID,
-      final File file) {
+      final File file, final boolean batch) {
     DirectiveFile instance = new DirectiveFile(manager, axisID);
-    if (instance.setFile(file)) {
+    if (instance.setFile(file, batch)) {
       return instance;
     }
     return null;
@@ -200,8 +201,9 @@ public final class DirectiveFile {
    * autodoc open failed.
    * @return
    */
-  public boolean setFile(final File directiveFile) {
+  public boolean setFile(final File directiveFile, final boolean batch) {
     file = directiveFile;
+    this.batch = batch;
     copyArgSet = false;
     runtimeSet = false;
     setupSetSet = false;

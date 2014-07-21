@@ -71,10 +71,24 @@ public class DirectiveFileCollection implements SetupReconInterface {
    */
   private AttributeMatch getAttribute(final DirectiveDef directiveDef,
       final AxisID axisID, final boolean templateOnly) {
+    int start = directiveFileArray.length - 1;
+    int end = 0;
+    boolean template = directiveDef.isTemplate(axisID);
+    boolean batch = directiveDef.isBatch(axisID);
+    if (templateOnly && !template) {
+      // templateOnly set, and its batch only - nothing to do
+      return null;
+    }
+    if (templateOnly || (!batch && template)) {
+      start--;// skip batch directive file
+    }
+    if (batch && !template) {
+      end = start;// only look at batch directive file
+    }
     AttributeMatch secondaryMatch = null;
     // Search for a primary match starting with the highest priority file, or the highest
     // priority template if templateOnly is true.
-    for (int i = directiveFileArray.length - (templateOnly ? 2 : 1); i >= 0; i--) {
+    for (int i = start; i >= end; i--) {
       DirectiveFile directiveFile = directiveFileArray[i];
       if (directiveFile == null) {
         continue;
@@ -468,7 +482,7 @@ public class DirectiveFileCollection implements SetupReconInterface {
       }
       else {
         directiveFileArray[type.getIndex()] = DirectiveFile.getInstance(manager, axisID,
-            new File(absPath));
+            new File(absPath), type == DirectiveFileType.BATCH);
       }
     }
   }
@@ -485,7 +499,7 @@ public class DirectiveFileCollection implements SetupReconInterface {
     }
     else {
       directiveFileArray[type.getIndex()] = DirectiveFile.getInstance(manager, axisID,
-          file);
+          file, type == DirectiveFileType.BATCH);
     }
   }
 
