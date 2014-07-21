@@ -263,8 +263,11 @@ program tiltalign
     ierr = PipGetInteger('MaximumCycles', maxCycles)
     ierr = PipGetBoolean('RobustFitting', ifDoRobust)
     ierr = PipGetLogical('WeightWholeTracks', robustByTrack)
-    if (ifDoRobust > 0 .and. robustByTrack .and. .not. patchTrackModel) call exitError( &
-        'Weighting whole contours can be done only with a patch track model')
+    if (ifDoRobust > 0 .and. robustByTrack .and. .not. patchTrackModel) then
+      print *, &
+          'WARNING: Weighting whole contours can be done only with a patch track model'
+      robustByTrack = .false.
+    endif
     if (PipGetTwoIntegers('MinWeightGroupSizes', minResRobust, minLocalResRobust) .ne. &
         0) then
       ! They were loaded with the point residual values, so change if track residuals
@@ -521,6 +524,8 @@ program tiltalign
       call exitError(robFailMess)
   if (numRobFailed > 0) write(*,'(a,i4,a)')'WARNING: ROBUST FITTING FAILED IN ', &
       numRobFailed,' SEARCHES; NON-ROBUST RESULT WAS RESTORED'
+
+  ! Batchruntomo is looking for 'Minimum numbers of fiducials are too high'
   if (tooFewFid) call errorexit( &
       'Minimum numbers of fiducials are too high - check if '// &
       'there are enough fiducials on the minority surface', 0)

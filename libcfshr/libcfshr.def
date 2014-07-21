@@ -279,6 +279,7 @@ EXPORTS
 	ilistShift
 	sliceModeIfReal
 	AVGSD
+	binIntoSlice
 	ADDVALUETOROW
 	RSSORTFLOATS
 	AdocSetTwoIntegers
@@ -331,6 +332,7 @@ EXPORTS
 	NUMBERINLIST
 	AdocGetThreeFloats
 	checkPieceList
+	BININTOSLICE
 	PARSELISTFW
 	PIPDONE
 	AMOEBA

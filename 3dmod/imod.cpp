@@ -1001,7 +1001,7 @@ int main( int argc, char *argv[])
 
   /* Satisfy the lawyers. */
   wprint("3dmod %s Copyright %s\n"
-         "BL3DEMC & Regents of the Univ. of Colo.\n", 
+         "Regents of the Univ. of Colo.\n", 
          VERSION_NAME, COPYRIGHT_YEARS);
   imod_draw_window();
   xcramp_setlevels(App->cvi->cramp,App->cvi->black,App->cvi->white);
