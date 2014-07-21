@@ -46,6 +46,7 @@ final class BatchRunTomoRow implements Highlightable {
   private final CheckBoxCell cbcMontage = new CheckBoxCell();
   private final FieldCell fcExcludeViews = FieldCell.getEditableInstance();
   private final CheckBoxCell cbcTwoSurfaces = new CheckBoxCell();
+  private final FieldCell fcEditDataset = FieldCell.getIneditableInstance();
   private final FieldCell fcStatus = FieldCell.getIneditableInstance();
   private final CheckBoxCell cbcRun = new CheckBoxCell();
   private final ButtonCell bcEtomo = new ButtonCell(new ImageIcon(ETOMO_ICON_URL));
@@ -104,6 +105,7 @@ final class BatchRunTomoRow implements Highlightable {
     cbcMontage.remove();
     fcExcludeViews.remove();
     cbcTwoSurfaces.remove();
+    fcEditDataset.remove();
     fcStatus.remove();
     cbcRun.remove();
     bcEtomo.remove();
@@ -127,6 +129,7 @@ final class BatchRunTomoRow implements Highlightable {
         cbcMontage.add(panel, layout, constraints);
         fcExcludeViews.add(panel, layout, constraints);
         cbcTwoSurfaces.add(panel, layout, constraints);
+        fcEditDataset.add(panel, layout, constraints);
         constraints.gridwidth = GridBagConstraints.REMAINDER;
         mbc3dmod.add(panel, layout, constraints);
       }
@@ -150,10 +153,15 @@ final class BatchRunTomoRow implements Highlightable {
     cbcMontage.setHighlight(highlight);
     fcExcludeViews.setHighlight(highlight);
     cbcTwoSurfaces.setHighlight(highlight);
+    fcEditDataset.setHighlight(highlight);
   }
 
   boolean isHighlighted() {
     return hbRow.isHighlighted();
+  }
+
+  void setEditDataset() {
+    fcEditDataset.setValue(" Set");
   }
 
   /**
