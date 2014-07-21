@@ -102,6 +102,9 @@ public final class TextFieldState {
    * @return
    */
   public String convertToFieldText(final File file) {
+    if (file == null) {
+      return null;
+    }
     if (rootDir == null) {
       return convertToFieldText(file.getAbsolutePath());
     }
