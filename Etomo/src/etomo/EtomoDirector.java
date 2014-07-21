@@ -73,6 +73,7 @@ public class EtomoDirector {
 
   public static final String USER_CONFIG_FILE_EXT = ".etomo";
   public static final String IMOD_DIR_ENV_VAR = "IMOD_DIR";
+  public static final String SOURCE_ENV_VAR = "IMOD_UITEST_SOURCE";
 
   private static final int TO_BYTES = 1024;
   public static final double MIN_AVAILABLE_MEMORY_REQUIRED = 2 * TO_BYTES * TO_BYTES;
