@@ -16,6 +16,21 @@ set.var.run_sirt=
 set.var.build=
 set.interface.Recon=
 
+[Test = single-zero-bead-test-gui]
+set.testdir = single-zero-bead-test-gui
+set.adoc.dialog = recon.adoc
+set.var.dataset = BBa
+set.dataset = BB
+copy.file = %{dataset}.st
+set.param = --autoclose3dmod
+set.param = --ignoreloc
+set.var.zero-bead=
+set.var.single=
+set.var.test-gui=
+set.var.patch-tracking=
+set.var.run_sirt=
+set.interface.Recon=
+
 [Test = dual]
 set.testdir = dual
 #set.keep.testdir = dual
@@ -425,9 +440,11 @@ set.var.sample-tomogram-thickness = 200
 set.var.z-axis-min = 5
 set.var.z-axis-max = 70
 set.var.unbinned-bead-diameter = 4.95
+set.var.unbinned-bead-diameter-zero-bead = 0.0
 set.var.int-unbinned-bead-diameter = 5
 #PreProc
 set.var.maximum-radius=2.1
+set.var.maximum-radius-zero-bead=4.2
 #FidModel
 set.var.pixels-to-trim=26,26
 set.var.search-box-size=32,32
