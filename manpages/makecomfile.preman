@@ -31,7 +31,10 @@ File to run Tiltxcorr(1) with patch tracking; requires
 with "xcorr[ab].com", and
 .B -binning
 with the binning of the prealigned stack.  Inserts PrealignmentTransformFile
-and ImagesAreBinned entries and sets output to "setname.fid".
+and ImagesAreBinned entries and sets output to "setname.fid"; also
+initializes OverlapOfPatchesXandY to 0.33,0.33 and BordersInXandY to
+0.05 times the sizes in X and Y, subject to override by directives
+entered in files or with the \fB-one\fR option.
 .TP
 .B autofidseed
 File to run Autofidseed(1); inserts TrackCommandFile, MinSpacing of 0.85, and
