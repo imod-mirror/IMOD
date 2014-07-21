@@ -1,10 +1,10 @@
 package etomo.storage.autodoc;
 
 import etomo.BaseManager;
+import etomo.EtomoDirector;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
 import etomo.ui.swing.Token;
-import etomo.uitest.TestRunner;
 import etomo.util.EnvironmentVariable;
 import etomo.util.Utilities;
 
@@ -509,7 +509,7 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
   void initializeUITestInstance(BaseManager manager, String name, AxisID axisID)
       throws FileNotFoundException, IOException, LogFile.LockException {
     parser = AutodocParser.getGenericInstance(this, false, true, false,
-        TestRunner.SOURCE_ENV_VAR, null, name, manager, axisID, null, debug);
+        EtomoDirector.SOURCE_ENV_VAR, null, name, manager, axisID, null, debug);
     // To test comment out initialize and parse and uncomment runInternalTest.
     // runInternalTest(InternalTestType.STREAM_TOKENIZER, true, false);
     parser.initialize();
