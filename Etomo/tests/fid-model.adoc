@@ -554,10 +554,17 @@ if.var.build.return=
 cb.local-tracking=off
 cb.refine-center-with-sobel-filter=on
 bn.track-seed-model=
-wait.process.tracking-fiducials=done
-assert.exists.file=track%{axis}.com
-assert.exists.file=track%{axis}.log
-assert.exists.file=%{dataset}%{axis}.fid
+if.not.var.zero-bead.wait.process.tracking-fiducials=done
+[[if = zero-bead]]
+  wait.popup.comscript-terminated=OK
+  wait.process.tracking-fiducials=failed
+[[]]
+[[if = test-gui]]
+  if.var.zero-bead.return=
+  assert.exists.file=track%{axis}.com
+  assert.exists.file=track%{axis}.log
+  assert.exists.file=%{dataset}%{axis}.fid
+[[]]
 #test 4
 cb.refine-center-with-sobel-filter=off
 bn.track-seed-model=
