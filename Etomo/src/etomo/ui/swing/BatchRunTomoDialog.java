@@ -242,6 +242,8 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
                 axisID);
       }
     }
+    // clean slate
+
     // Apply default values
     Iterator<BatchRunTomoDatasetDialog> iterator = datasetLevelDialogList.iterator();
     while (iterator.hasNext()) {
