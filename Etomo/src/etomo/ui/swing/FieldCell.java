@@ -241,8 +241,13 @@ final class FieldCell extends InputCell implements ActionTarget {
   }
 
   void setEditable(boolean editable) {
-    if (state.isEditableField()) {
-      super.setEditable(editable);
+    if (editable) {
+      if (state.isEditableField()) {
+        super.setEditable(editable);
+      }
+    }
+    else {
+      super.setEditable(false);
     }
   }
 
