@@ -1,5 +1,12 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/21/14: In eTomo - Fine Alignment, changed the title of the MaximumCycles
+parameter to "Iteration limit" (In 4.7).(Bug# 1807)
+
+7/21/14: In eTomo fixed a bug that made ineditable table fields editable.
+This bug can lead to problems with dataset stablility if these fields are
+modified (In 4.7).(Bug# 1812)
+
 7/14/14: IMOD_4-8-9
 7/16/14: Changes for Batchruntomo: make it rerun align without local
 alignments if it fails with it; add ability to detect blank views at ends of
