@@ -38,7 +38,6 @@ public class DirectiveDescrFileTest extends TestCase {
     Element element = iterator.next();
     assertNotNull("file title", element);
     assertTrue("hasNext doesn't increment the iterator", iterator.hasNext());
-    element = iterator.next();
     assertTrue("file title", element.isSection());
     assertFalse("file title", element.isDirective());
     assertEquals("file title", "Batch/Template Directives", element.getName());
