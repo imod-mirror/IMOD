@@ -34,10 +34,13 @@ final class BatchRunTomoRow implements Highlightable {
 
   private static final URL IMOD_ICON_URL = ClassLoader
       .getSystemResource("images/b3dicon.png");
+  private static final URL IMOD_DISABLED_ICON_URL = ClassLoader
+      .getSystemResource("images/b3dicon-disabled.png");
   private static final URL ETOMO_ICON_URL = ClassLoader
-      .getSystemResource("images/etomo.png");
+      .getSystemResource("images/etomoicon.png");
+  private static final URL ETOMO_DISABLED_ICON_URL = ClassLoader
+      .getSystemResource("images/etomoicon-disabled.png");
 
-  private final HeaderCell hcNumber = new HeaderCell();
   private final CheckBoxCell cbcBoundaryModel = new CheckBoxCell();
   private final CheckBoxCell cbcDualAxis = new CheckBoxCell();
   private final CheckBoxCell cbcMontage = new CheckBoxCell();
@@ -53,11 +56,12 @@ final class BatchRunTomoRow implements Highlightable {
   private final GridBagConstraints constraints;
   private final HighlighterButton hbRow;
   private final FieldCell fcStack;
+  private final HeaderCell hcNumber = new HeaderCell();
 
   private BatchRunTomoRow(final String propertyUserDir, final BatchRunTomoTable table,
       final JPanel panel, final GridBagLayout layout,
       final GridBagConstraints constraints, final int number, final File stack,
-      final BatchRunTomoRow prevRow) {
+      final BatchRunTomoRow initialValueRow) {
     this.panel = panel;
     this.layout = layout;
     this.constraints = constraints;
@@ -65,10 +69,15 @@ final class BatchRunTomoRow implements Highlightable {
     hbRow = HighlighterButton.getInstance(this, table);
     fcStack = FieldCell.getExpandableInstance(null);
     fcStack.setValue(stack);
-    if (prevRow != null) {
-      cbcDualAxis.setSelected(prevRow.cbcDualAxis.isSelected());
-      cbcMontage.setSelected(prevRow.cbcMontage.isSelected());
-      cbcTwoSurfaces.setSelected(prevRow.cbcTwoSurfaces.isSelected());
+    mbc3dmod.setDisabledIcon(new ImageIcon(IMOD_DISABLED_ICON_URL));
+    bcEtomo.setDisabledIcon(new ImageIcon(ETOMO_DISABLED_ICON_URL));
+    if (initialValueRow != null) {
+      cbcDualAxis.setSelected(initialValueRow.cbcDualAxis.isSelected());
+      cbcMontage.setSelected(initialValueRow.cbcMontage.isSelected());
+      cbcTwoSurfaces.setSelected(initialValueRow.cbcTwoSurfaces.isSelected());
+    }
+    else {
+      cbcDualAxis.setSelected(true);
     }
     cbcRun.setSelected(true);
     bcEtomo.setEnabled(false);
@@ -77,9 +86,13 @@ final class BatchRunTomoRow implements Highlightable {
   static BatchRunTomoRow getInstance(final String propertyUserDir,
       final BatchRunTomoTable table, final JPanel panel, final GridBagLayout layout,
       final GridBagConstraints constraints, final int number, final File stack,
-      final BatchRunTomoRow prevRow) {
+      final BatchRunTomoRow initialValueRow) {
     return new BatchRunTomoRow(propertyUserDir, table, panel, layout, constraints,
-        number, stack, prevRow);
+        number, stack, initialValueRow);
+  }
+
+  static BatchRunTomoRow getDefaultsInstance() {
+    return new BatchRunTomoRow(null, null, null, null, null, -1, null, null);
   }
 
   void remove() {
@@ -220,8 +233,8 @@ final class BatchRunTomoRow implements Highlightable {
       final DirectiveDef directiveDef, final boolean setFieldHighlightValue,
       final CheckBoxCell cell) {
     if (directiveFileCollection.contains(directiveDef, setFieldHighlightValue)) {
-      boolean value = directiveFileCollection
-          .isValue(directiveDef, setFieldHighlightValue);
+      boolean value = directiveFileCollection.isValue(directiveDef,
+          setFieldHighlightValue);
       if (!setFieldHighlightValue) {
         cell.setSelected(value);
       }
