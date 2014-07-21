@@ -58,7 +58,7 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable {
   private final MultiLineButton btnCopy = new MultiLineButton("Copy Down");
   private final MultiLineButton btnDelete = new MultiLineButton("Delete");
   private final MultiLineButton btnEditDataset = new MultiLineButton(
-      "Set Dataset Specific Data");
+      "Set Dataset Specific Values");
   private final ExpandButton btnStack = ExpandButton.getInstance(this,
       ExpandButton.Type.MORE);
   private final HeaderCell[] hcStatus = new HeaderCell[NUM_HEADER_ROWS];
@@ -322,6 +322,8 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable {
 
     private final BatchRunTomoTable table;
 
+    private BatchRunTomoRow initialValueRow = null;
+
     private RowList(final BatchRunTomoTable table) {
       this.table = table;
     }
@@ -337,7 +339,8 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable {
           prevRow = list.get(index - 1);
         }
         BatchRunTomoRow row = BatchRunTomoRow.getInstance(manager.getPropertyUserDir(),
-            table, pnlTable, layout, constraints, index + 1, stackList[i], prevRow);
+            table, pnlTable, layout, constraints, index + 1, stackList[i],
+            (prevRow != null ? prevRow : initialValueRow));
         row.expandStack(btnStack.isExpanded());
         list.add(row);
         viewport.adjustViewport(index);
@@ -402,16 +405,26 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable {
     }
 
     void setValues(final DirectiveFileCollection directiveFileCollection) {
+      if (initialValueRow == null) {
+        initialValueRow = BatchRunTomoRow.getDefaultsInstance();
+      }
+      initialValueRow.setValues(directiveFileCollection);
       for (int i = 0; i < list.size(); i++) {
         list.get(i).setValues(directiveFileCollection);
       }
     }
+
     void setFieldHighlightValues(final DirectiveFileCollection directiveFileCollection) {
       for (int i = 0; i < list.size(); i++) {
         list.get(i).setFieldHighlightValues(directiveFileCollection);
       }
     }
+
     void setValues(final UserConfiguration userConfiguration) {
+      if (initialValueRow == null) {
+        initialValueRow = BatchRunTomoRow.getDefaultsInstance();
+      }
+      initialValueRow.setValues(userConfiguration);
       for (int i = 0; i < list.size(); i++) {
         list.get(i).setValues(userConfiguration);
       }
