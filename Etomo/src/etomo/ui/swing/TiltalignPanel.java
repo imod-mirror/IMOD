@@ -105,8 +105,8 @@ final class TiltalignPanel implements Expandable {
   private final JPanel pnlMetroFactor = new JPanel();
   private final LabeledTextField ltfMetroFactor = new LabeledTextField(
       FieldType.FLOATING_POINT, "Metro factor: ");
-  private final LabeledTextField ltfCycleLimit = new LabeledTextField(FieldType.INTEGER,
-      "Cycle limit: ");
+  private final LabeledTextField ltfMaximumCycles = new LabeledTextField(FieldType.INTEGER,
+      "Iteration limit: ");
 
   private final EtomoPanel pnlLocalParameters = new EtomoPanel();
   private final EtomoPanel pnlLocalParametersBody = new EtomoPanel();
@@ -489,7 +489,7 @@ final class TiltalignPanel implements Expandable {
       cbWeightWholeTracks.setSelected(params.isWeightWholeTracks());
     }
     ltfMetroFactor.setText(params.getMetroFactor().toString());
-    ltfCycleLimit.setText(params.getMaximumCycles().toString());
+    ltfMaximumCycles.setText(params.getMaximumCycles().toString());
 
     cbLocalAlignments.setSelected(params.getLocalAlignments().is());
     if (!params.isTargetPatchSizeXandYEmpty()) {
@@ -758,8 +758,8 @@ final class TiltalignPanel implements Expandable {
         badParameter = ltfMetroFactor.getLabel();
         params.setMetroFactor(ltfMetroFactor.getText(doValidation));
 
-        badParameter = ltfCycleLimit.getLabel();
-        params.setMaximumCycles(ltfCycleLimit.getText(doValidation));
+        badParameter = ltfMaximumCycles.getLabel();
+        params.setMaximumCycles(ltfMaximumCycles.getText(doValidation));
 
         badParameter = cbLocalAlignments.getText();
         params.setLocalAlignments(cbLocalAlignments.isSelected());
@@ -995,7 +995,7 @@ final class TiltalignPanel implements Expandable {
   void updateAdvanced(final boolean state) {
     updateAdvancedBeamTilt(state);
     ltfMetroFactor.setVisible(state);
-    ltfCycleLimit.setVisible(state);
+    ltfMaximumCycles.setVisible(state);
     ltfMagnificationReferenceView.setVisible(state);
     ltfRotationNonDefaultGroups.setVisible(state);
     ltfTiltAngleNonDefaultGroups.setVisible(state);
@@ -1244,7 +1244,7 @@ final class TiltalignPanel implements Expandable {
     pnlMetroFactor.setLayout(new BoxLayout(pnlMetroFactor, BoxLayout.X_AXIS));
     pnlMetroFactor.add(ltfMetroFactor.getContainer());
     pnlMetroFactor.add(Box.createRigidArea(FixedDim.x3_y0));
-    pnlMetroFactor.add(ltfCycleLimit.getContainer());
+    pnlMetroFactor.add(ltfMaximumCycles.getContainer());
 
     pnlGeneralBody.add(pnlMinimizationParams);
     pnlGeneralBody.add(Box.createRigidArea(FixedDim.x0_y10));
@@ -1689,7 +1689,7 @@ final class TiltalignPanel implements Expandable {
         TiltalignParam.AXIS_Z_SHIFT_KEY));
     ltfMetroFactor.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
         TiltalignParam.METRO_FACTOR_KEY));
-    ltfCycleLimit.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+    ltfMaximumCycles.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
         TiltalignParam.MAXIMUM_CYCLES_KEY));
     cbLocalAlignments.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
         TiltalignParam.LOCAL_ALIGNMENTS_KEY));
