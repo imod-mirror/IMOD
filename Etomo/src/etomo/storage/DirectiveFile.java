@@ -43,7 +43,7 @@ public final class DirectiveFile {
   private final BaseManager manager;
 
   private File file = null;
-  private boolean batch = false;
+  private boolean batchDirectiveFileType = false;
   private ReadOnlyAttribute copyArg = null;
   private ReadOnlyAttribute runtime = null;
   private ReadOnlyAttribute setupSet = null;
@@ -100,7 +100,8 @@ public final class DirectiveFile {
    */
   AttributeMatch getAttribute(final Match match, final DirectiveDef directiveDef,
       final AxisID axisID) {
-    if (directiveDef == null) {
+    if (directiveDef == null || (batchDirectiveFileType && !directiveDef.isBatch(axisID))
+        || (!batchDirectiveFileType && !directiveDef.isTemplate(axisID))) {
       return null;
     }
     return DirectiveAttribute.getMatch(match, this, getParentAttribute(directiveDef),
@@ -114,12 +115,16 @@ public final class DirectiveFile {
    * @return
    */
   AttributeMatch getAttribute(final DirectiveDef directiveDef, final AxisID axisID) {
+    if (directiveDef == null || (batchDirectiveFileType && !directiveDef.isBatch(axisID))
+        || (!batchDirectiveFileType && !directiveDef.isTemplate(axisID))) {
+      return null;
+    }
     AttributeMatch attributeMatch = getAttribute(Match.PRIMARY, directiveDef, axisID);
-    if (attributeMatch != null) {
-      if (attributeMatch.isEmpty() || attributeMatch.overrides()) {
-        return null;
-      }
-      return attributeMatch;
+    if (attributeMatch == null) {
+      return null;
+    }
+    if (attributeMatch.isEmpty() || attributeMatch.overrides()) {
+      return null;
     }
     attributeMatch = getAttribute(Match.SECONDARY, directiveDef, axisID);
     if (attributeMatch != null) {
@@ -203,7 +208,7 @@ public final class DirectiveFile {
    */
   public boolean setFile(final File directiveFile, final boolean batch) {
     file = directiveFile;
-    this.batch = batch;
+    this.batchDirectiveFileType = batch;
     copyArgSet = false;
     runtimeSet = false;
     setupSetSet = false;
