@@ -4,6 +4,7 @@ import java.awt.Component;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusListener;
 
+import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JComboBox;
@@ -119,6 +120,7 @@ final class ComboBox {
   void setFieldHighlight() {
     label.setForeground(Colors.FIELD_HIGHLIGHT);
     comboBox.setForeground(Colors.FIELD_HIGHLIGHT);
+    comboBox.setBorder(BorderFactory.createLineBorder(Colors.FIELD_HIGHLIGHT));
   }
 
   String getActionCommand() {
