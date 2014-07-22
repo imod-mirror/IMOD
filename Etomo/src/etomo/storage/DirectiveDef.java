@@ -300,9 +300,7 @@ public final class DirectiveDef {
   boolean hasSecondaryMatch(final AxisID axisID) {
     if (directiveType == DirectiveType.COPY_ARG) {
       if (axisID == AxisID.SECOND) {
-        if (!directiveDescrLoaded) {
-          loadDirectiveDescr();
-        }
+        loadDirectiveDescr();
         return templateB || !batchB;// No secondary match for non-templatable copyarg B
       }
       else {
@@ -317,13 +315,12 @@ public final class DirectiveDef {
   }
 
   boolean isBool() {
-    if (!directiveDescrLoaded) {
-      loadDirectiveDescr();
-    }
+    loadDirectiveDescr();
     return bool;
   }
 
   boolean isTemplate(final AxisID axisID) {
+    loadDirectiveDescr();
     if (axisID == AxisID.SECOND) {
       return templateB;
     }
@@ -331,6 +328,7 @@ public final class DirectiveDef {
   }
 
   boolean isBatch(final AxisID axisID) {
+    loadDirectiveDescr();
     if (axisID == AxisID.SECOND) {
       return batchB;
     }
@@ -354,9 +352,7 @@ public final class DirectiveDef {
    */
   String getName(final Match match, final AxisID axisID) {
     if (directiveType == DirectiveType.COPY_ARG && axisID == AxisID.SECOND) {
-      if (!directiveDescrLoaded) {
-        loadDirectiveDescr();
-      }
+      loadDirectiveDescr();
       if (separateBDirective) {
         if (match == Match.PRIMARY) {
           return COPY_ARG_B_AXIS_PREFIX + name;
@@ -453,9 +449,7 @@ public final class DirectiveDef {
    * @return
    */
   public String getName(final AxisID axisID) {
-    if (!directiveDescrLoaded) {
-      loadDirectiveDescr();
-    }
+    loadDirectiveDescr();
     if (directiveType == DirectiveType.COPY_ARG && separateBDirective
         && axisID == AxisID.SECOND) {
       return COPY_ARG_B_AXIS_PREFIX + name;
