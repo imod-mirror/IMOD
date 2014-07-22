@@ -568,23 +568,39 @@ if.not.var.zero-bead.wait.process.tracking-fiducials=done
 #test 4
 cb.refine-center-with-sobel-filter=off
 bn.track-seed-model=
-wait.process.tracking-fiducials=done
-assert.exists.file=track%{axis}.log~
-assert.exists.file=%{dataset}%{axis}.fid~
+if.not.var.zero-bead.wait.process.tracking-fiducials=done
+[[if = zero-bead]]
+  wait.popup.comscript-terminated=OK
+  wait.process.tracking-fiducials=failed
+[[]]
+[[if = test-gui]]
+  if.var.zero-bead.return=
+  assert.exists.file=track%{axis}.log~
+  assert.exists.file=%{dataset}%{axis}.fid~
+[[]]
 #test 5
 bn.track-with-fiducial-model-as-seed=
-wait.process.tracking-fiducials=done
-assert.exists.file=track%{axis}.com
-assert.exists.file=track%{axis}.log
-assert.exists.file=%{dataset}%{axis}.fid
+if.not.var.zero-bead.wait.process.tracking-fiducials=done
+if.var.zero-bead.wait.popup.process-failed=OK
+[[if = test-gui]]
+  if.var.zero-bead.return=
+  assert.exists.file=track%{axis}.com
+  assert.exists.file=track%{axis}.log
+  assert.exists.file=%{dataset}%{axis}.fid
+[[]]
 #test 6
 bn.track-with-fiducial-model-as-seed=
-wait.process.tracking-fiducials=done
-assert.exists.file=track%{axis}.log~
+if.not.var.zero-bead.wait.process.tracking-fiducials=done
+if.var.zero-bead.wait.popup.process-failed=OK
+[[if = test-gui]]
+  if.var.zero-bead.return=
+  assert.exists.file=track%{axis}.log~
+[[]]
 #test 7
 bn.fix-fiducial-model=
 sleep=
 [[if = test-gui]]
+  if.var.zero-bead.return=
   #Test after run
   assert.bn.track-seed-model=on
   assert.bn.track-with-fiducial-model-as-seed=on
