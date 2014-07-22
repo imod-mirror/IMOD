@@ -173,8 +173,13 @@ bn.advanced=
 tf.total-number=40
 if.not.var.dual-b.bn.generate-seed-model=
 if.var.dual-b.bn.add-points-to-seed-model=
-wait.process.autofidseed=done
+if.not.var.zero-bead.wait.process.autofidseed=done
+[[if = zero-bead]]
+  wait.popup.comscript-terminated=OK
+  wait.process.autofidseed=failed
+[[]]
 [[if = test-gui]]
+  if.var.zero-bead.return=
   #test values
   if.not.var.dual-b.assert.bn.generate-seed-model=on
   if.var.dual-b.assert.bn.add-points-to-seed-model=on
@@ -195,8 +200,13 @@ run.function.test-run-initial-bead-finding-parameters=
 cb.select-beads-on-two-surfaces=on
 if.not.var.dual-b.bn.generate-seed-model=
 if.var.dual-b.bn.add-points-to-seed-model=
-wait.process.autofidseed=done
+if.not.var.zero-bead.wait.process.autofidseed=done
+[[if = zero-bead]]
+  wait.popup.comscript-terminated=OK
+  wait.process.autofidseed=failed
+[[]]
 [[if = test-gui]]
+  if.var.zero-bead.return=
   #test enabled
   assert.enabled.bn.open-sorted-3d-models=
   #files
@@ -205,7 +215,11 @@ wait.process.autofidseed=done
 [[]]
 if.not.var.dual-b.bn.generate-seed-model=
 if.var.dual-b.bn.add-points-to-seed-model=
-wait.process.autofidseed=done
+if.not.var.zero-bead.wait.process.autofidseed=done
+[[if = zero-bead]]
+  wait.popup.comscript-terminated=OK
+  wait.process.autofidseed=failed
+[[]]
 #3dmod
 bn.open-sorted-3d-models=
 run.function.test-run-selection-and-sorting-parameters=
@@ -354,6 +368,7 @@ assert.enabled.tf.fraction-of-peaks-to-store=
 [function = test-run-initial-bead-finding-parameters]
 if.var.build.return=
 [[if = test-gui]]
+  if.var.zero-bead.return=
   #test enabled/disabled
   assert.enabled.bn.open-initial-bead-model=
 [[]]
@@ -412,6 +427,7 @@ cb.allow-elongated-beads-of-severity=
 [function = test-run-selection-and-sorting-parameters]
 if.var.build.return=
 [[if = test-gui]]
+  if.var.zero-bead.return=
   #test enabled
   assert.enabled.bn.open-sorted-3d-models=
   assert.enabled.bn.open-clustered-/-elongated-model=
@@ -482,7 +498,8 @@ assert.tf.non-default-tilt-angle-groups=
 assert.tf.magnification-group-size=5
 assert.tf.non-default-magnification-groups=
 assert.tf.minimum-#-of-views-for-tilt-alignment=4
-assert.tf.unbinned-bead-diameter=%{unbinned-bead-diameter}
+if.not.var.zero-bead.assert.tf.unbinned-bead-diameter=%{unbinned-bead-diameter}
+if.var.zero-bead.assert.tf.unbinned-bead-diameter=%{unbinned-bead-diameter-zero-bead}
 assert.cb.light-fiducial-markers=off
 assert.tf.minimum-beads-in-area=8
 assert.tf.minimum-beads-overlapping=5
@@ -518,7 +535,11 @@ mb.beadtracker=+
 #test 1
 #build
 bn.track-seed-model=
-wait.process.tracking-fiducials=done
+if.not.var.zero-bead.wait.process.tracking-fiducials=done
+[[if = zero-bead]]
+  wait.popup.comscript-terminated=OK
+  wait.process.tracking-fiducials=failed
+[[]]
 if.var.build.return=
 #test 2
 [[if = test-gui]]
@@ -533,30 +554,53 @@ if.var.build.return=
 cb.local-tracking=off
 cb.refine-center-with-sobel-filter=on
 bn.track-seed-model=
-wait.process.tracking-fiducials=done
-assert.exists.file=track%{axis}.com
-assert.exists.file=track%{axis}.log
-assert.exists.file=%{dataset}%{axis}.fid
+if.not.var.zero-bead.wait.process.tracking-fiducials=done
+[[if = zero-bead]]
+  wait.popup.comscript-terminated=OK
+  wait.process.tracking-fiducials=failed
+[[]]
+[[if = test-gui]]
+  if.var.zero-bead.return=
+  assert.exists.file=track%{axis}.com
+  assert.exists.file=track%{axis}.log
+  assert.exists.file=%{dataset}%{axis}.fid
+[[]]
 #test 4
 cb.refine-center-with-sobel-filter=off
 bn.track-seed-model=
-wait.process.tracking-fiducials=done
-assert.exists.file=track%{axis}.log~
-assert.exists.file=%{dataset}%{axis}.fid~
+if.not.var.zero-bead.wait.process.tracking-fiducials=done
+[[if = zero-bead]]
+  wait.popup.comscript-terminated=OK
+  wait.process.tracking-fiducials=failed
+[[]]
+[[if = test-gui]]
+  if.var.zero-bead.return=
+  assert.exists.file=track%{axis}.log~
+  assert.exists.file=%{dataset}%{axis}.fid~
+[[]]
 #test 5
 bn.track-with-fiducial-model-as-seed=
-wait.process.tracking-fiducials=done
-assert.exists.file=track%{axis}.com
-assert.exists.file=track%{axis}.log
-assert.exists.file=%{dataset}%{axis}.fid
+if.not.var.zero-bead.wait.process.tracking-fiducials=done
+if.var.zero-bead.wait.popup.process-failed=OK
+[[if = test-gui]]
+  if.var.zero-bead.return=
+  assert.exists.file=track%{axis}.com
+  assert.exists.file=track%{axis}.log
+  assert.exists.file=%{dataset}%{axis}.fid
+[[]]
 #test 6
 bn.track-with-fiducial-model-as-seed=
-wait.process.tracking-fiducials=done
-assert.exists.file=track%{axis}.log~
+if.not.var.zero-bead.wait.process.tracking-fiducials=done
+if.var.zero-bead.wait.popup.process-failed=OK
+[[if = test-gui]]
+  if.var.zero-bead.return=
+  assert.exists.file=track%{axis}.log~
+[[]]
 #test 7
 bn.fix-fiducial-model=
 sleep=
 [[if = test-gui]]
+  if.var.zero-bead.return=
   #Test after run
   assert.bn.track-seed-model=on
   assert.bn.track-with-fiducial-model-as-seed=on
