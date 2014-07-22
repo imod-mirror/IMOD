@@ -1386,9 +1386,9 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
 
     try {
       adocCombineFft = AutodocFactory.getInstance(applicationManager,
-          AutodocFactory.COMBINE_FFT, AxisID.ONLY);
+          AutodocFactory.COMBINE_FFT, AxisID.ONLY,false);
       adocCorrsearch3d = AutodocFactory.getInstance(applicationManager,
-          AutodocFactory.CORR_SEARCH_3D, AxisID.ONLY);
+          AutodocFactory.CORR_SEARCH_3D, AxisID.ONLY,false);
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();

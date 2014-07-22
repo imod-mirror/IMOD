@@ -67,10 +67,12 @@ public class FixedDim {
   public static final String rcsid = "$Id$";
 
   public final static Dimension x0_y0 = new Dimension(0, 0);
+  public final static Dimension x1_y0 = new Dimension(1, 0);
   public final static Dimension x2_y0 = new Dimension(2, 0);
   public final static Dimension x3_y0 = new Dimension(3, 0);
   public final static Dimension x5_y0 = new Dimension(5, 0);
   public final static Dimension x10_y0 = new Dimension(10, 0);
+  public final static Dimension x12_y0 = new Dimension(12, 0);
   public final static Dimension x15_y0 = new Dimension(15, 0);
   public final static Dimension x20_y0 = new Dimension(20, 0);
   public final static Dimension x30_y0 = new Dimension(30, 0);
@@ -88,10 +90,13 @@ public class FixedDim {
   public final static Dimension x200_y0 = new Dimension(200, 0);
   public final static Dimension x264_y0 = new Dimension(264, 0);
   public final static Dimension x272_y0 = new Dimension(272, 0);
+  public final static Dimension x0_y1 = new Dimension(0, 1);
   public final static Dimension x0_y2 = new Dimension(0, 2);
   public final static Dimension x0_y3 = new Dimension(0, 3);
   public final static Dimension x0_y5 = new Dimension(0, 5);
+  public final static Dimension x0_y6 = new Dimension(0, 6);
   public final static Dimension x0_y10 = new Dimension(0, 10);
+  public final static Dimension x0_y13 = new Dimension(0, 13);
   public final static Dimension x0_y15 = new Dimension(0, 15);
   public final static Dimension x0_y20 = new Dimension(0, 20);
   public final static Dimension x0_y23 = new Dimension(0,23);

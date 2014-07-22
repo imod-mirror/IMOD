@@ -168,7 +168,7 @@ final class RadialPanel {
     if (panelId == PanelId.SIRTSETUP) {
       ReadOnlyAutodoc autodoc = null;
       try {
-        autodoc = AutodocFactory.getInstance(manager, AutodocFactory.SIRTSETUP, axisID);
+        autodoc = AutodocFactory.getInstance(manager, AutodocFactory.SIRTSETUP, axisID,false);
       }
       catch (FileNotFoundException except) {
         except.printStackTrace();

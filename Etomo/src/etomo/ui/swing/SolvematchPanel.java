@@ -748,7 +748,7 @@ final class SolvematchPanel implements Run3dmodButtonContainer, Expandable {
     ReadOnlyAutodoc autodoc = null;
     try {
       autodoc = AutodocFactory.getInstance(applicationManager, AutodocFactory.SOLVEMATCH,
-          AxisID.ONLY);
+          AxisID.ONLY,false);
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();
