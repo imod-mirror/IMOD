@@ -158,7 +158,7 @@ public final class TestUtilites {
         // In that case unitTestData should be located here:
         // $IMOD_DIR/../Etomo/unitTestData.
         String imodDirName = EnvironmentVariable.INSTANCE.getValue(manager,
-            manager == null ? null : manager.getPropertyUserDir(), "IMOD_DIR",
+            manager == null ? null : manager.getPropertyUserDir(), EtomoDirector.IMOD_DIR_ENV_VAR,
             AxisID.ONLY);
         if (imodDirName != null && !imodDirName.matches("\\s*")) {
           unitTestData = new File(
