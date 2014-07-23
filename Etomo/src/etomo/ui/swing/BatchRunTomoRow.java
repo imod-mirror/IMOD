@@ -206,49 +206,21 @@ final class BatchRunTomoRow implements Highlightable {
    * Set values from the directive file collection - only for directives that are present.
    * @param directiveFileCollection
    */
-  void setValues(final DirectiveFileCollection directiveFileCollection) {
-    setValues(directiveFileCollection, false);
-  }
-
-  void setFieldHighlightValues(final DirectiveFileCollection directiveFileCollection) {
-    setValues(directiveFileCollection, true);
-  }
-
-  private void setValues(final DirectiveFileCollection directiveFileCollection,
-      final boolean setFieldHighlighValue) {
-    setValue(directiveFileCollection, DirectiveDef.DUAL, setFieldHighlighValue,
-        cbcDualAxis);
-    setValue(directiveFileCollection, DirectiveDef.MONTAGE, setFieldHighlighValue,
-        cbcMontage);
-    if (!setValue(directiveFileCollection, DirectiveDef.TWO_SURFACES,
-        setFieldHighlighValue, cbcTwoSurfaces)
-        && directiveFileCollection.contains(DirectiveDef.SURFACES_TO_ANALYZE,
-            setFieldHighlighValue)) {
+  private void setValues(final DirectiveFileCollection directiveFileCollection) {
+    setValue(directiveFileCollection, DirectiveDef.DUAL, cbcDualAxis);
+    setValue(directiveFileCollection, DirectiveDef.MONTAGE, cbcMontage);
+    if (!setValue(directiveFileCollection, DirectiveDef.TWO_SURFACES, cbcTwoSurfaces)
+        && directiveFileCollection.contains(DirectiveDef.SURFACES_TO_ANALYZE)) {
       EtomoNumber number = new EtomoNumber();
-      number.set(directiveFileCollection.getValue(DirectiveDef.SURFACES_TO_ANALYZE,
-          setFieldHighlighValue));
-      boolean value = number != null && number.equals(2);
-      if (!setFieldHighlighValue) {
-        cbcTwoSurfaces.setSelected(value);
-      }
-      else {
-        cbcTwoSurfaces.setFieldHighlightValue(value);
-      }
+      number.set(directiveFileCollection.getValue(DirectiveDef.SURFACES_TO_ANALYZE));
+      cbcTwoSurfaces.setSelected(number != null && number.equals(2));
     }
   }
 
   private boolean setValue(final DirectiveFileCollection directiveFileCollection,
-      final DirectiveDef directiveDef, final boolean setFieldHighlightValue,
-      final CheckBoxCell cell) {
-    if (directiveFileCollection.contains(directiveDef, setFieldHighlightValue)) {
-      boolean value = directiveFileCollection.isValue(directiveDef,
-          setFieldHighlightValue);
-      if (!setFieldHighlightValue) {
-        cell.setSelected(value);
-      }
-      else {
-        cell.setFieldHighlightValue(value);
-      }
+      final DirectiveDef directiveDef, final CheckBoxCell cell) {
+    if (directiveFileCollection.contains(directiveDef)) {
+      cell.setSelected(directiveFileCollection.isValue(directiveDef));
       return true;
     }
     return false;
