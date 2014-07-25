@@ -243,10 +243,15 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
                 axisID);
       }
     }
-    // clean slate
-
-    // Apply default values
+    // to apply values, start with a clean slate
+    table.clear();
     Iterator<BatchRunTomoDatasetDialog> iterator = datasetLevelDialogList.iterator();
+    while (iterator.hasNext()) {
+      iterator.next().clear();
+    }
+    datasetDialog.clear();
+    // Apply default values
+    iterator = datasetLevelDialogList.iterator();
     while (iterator.hasNext()) {
       iterator.next().useDefaultValues();
     }
@@ -278,7 +283,6 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
       datasetDialog.restoreFromBackup();
     }
     // Set new highlight values - batch directive file must be ignored
-    table.setFieldHighlightValues(directiveFileCollection);
     iterator = datasetLevelDialogList.iterator();
     while (iterator.hasNext()) {
       iterator.next().setFieldHighlightValues(directiveFileCollection);
