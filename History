@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/24/14: Fixed transferfid for bidirectional series and other cases with
+a separate view group option in tracka.com (In 4.7).
+
 7/21/14: In eTomo - Fine Alignment, changed the title of the MaximumCycles
 parameter to "Iteration limit" (In 4.7).(Bug# 1807)
 
