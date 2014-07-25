@@ -148,6 +148,12 @@ final class RadioButton implements RadioButtonInterface, Field, ActionListener {
     }
   }
 
+  /**
+   * No way to clear a radio button
+   */
+  public void clear() {
+  }
+
   public void useDefaultValue() {
   }
 
