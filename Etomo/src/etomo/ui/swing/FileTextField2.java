@@ -448,7 +448,7 @@ final class FileTextField2 implements FileTextFieldInterface, Field, ActionListe
     field.setText(text);
   }
 
-  void clear() {
+  public void clear() {
     field.setText("");
   }
 
