@@ -157,6 +157,10 @@ final class TextField implements UIComponent, SwingComponent, Field, FocusListen
     }
   }
 
+  public void clear() {
+    setText("");
+  }
+
   void setDirectiveDef(final DirectiveDef directiveDef) {
     this.directiveDef = directiveDef;
   }
