@@ -53,6 +53,10 @@ public final class MinibuttonCell extends InputCell {
     button.setDisabledIcon(icon);
   }
 
+  public void setPressedIcon(final Icon icon) {
+    button.setPressedIcon(icon);
+  }
+
   void setToolTipText(String text) {
     button.setToolTipText(TooltipFormatter.INSTANCE.format(text));
   }
