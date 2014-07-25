@@ -523,7 +523,7 @@ final class LabeledTextField implements UIComponent, SwingComponent, Field,
     return false;
   }
 
-  void clear() {
+  public void clear() {
     textField.setText("");
   }
 
