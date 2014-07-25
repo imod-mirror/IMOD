@@ -274,6 +274,10 @@ final class LabeledSpinner implements Field, TextFieldInterface, ChangeListener,
     }
   }
 
+  public void clear() {
+    spinner.setValue(minimum);
+  }
+
   public void setFieldHighlightValue(final String value) {
     if (!useFieldHighlight) {
       useFieldHighlight = true;
