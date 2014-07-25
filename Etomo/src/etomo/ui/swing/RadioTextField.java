@@ -168,6 +168,11 @@ final class RadioTextField implements RadioButtonInterface, Field, TextFieldInte
     radioButton.restoreFromBackup();
     textField.restoreFromBackup();
   }
+  
+  public void clear() {
+    radioButton.clear();
+    textField.clear();
+  }
 
   void setDirectiveDef(final DirectiveDef directiveDef) {
     textField.setDirectiveDef(directiveDef);
