@@ -175,7 +175,7 @@ final class BatchRunTomoDatasetDialog implements ActionListener {
     fieldList.add(tfExtraThickness);
     fieldList.add(ltfFallbackThickness);
     // defaults
-    rbUseSirtFalse.setSelected(true);
+    clear();
     // Dataset
     pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.Y_AXIS));
     pnlRoot.setBorder(new EtchedBorder("Dataset Parameters").getBorder());
@@ -374,6 +374,16 @@ final class BatchRunTomoDatasetDialog implements ActionListener {
         iterator.next().checkpoint();
       }
     }
+  }
+
+  void clear() {
+    Iterator<Field> iterator = fieldList.iterator();
+    if (iterator != null) {
+      while (iterator.hasNext()) {
+        iterator.next().clear();
+      }
+    }
+    rbUseSirtFalse.setSelected(true);
   }
 
   void setValues(final DirectiveFileCollection directiveFileCollection) {
