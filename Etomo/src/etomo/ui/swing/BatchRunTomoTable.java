@@ -66,7 +66,7 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable {
   private final HeaderCell[] hcRun = new HeaderCell[NUM_RUN_HEADER_ROWS];
   private final HeaderCell[] hcEtomo = new HeaderCell[NUM_RUN_HEADER_ROWS];
   private final MultiLineButton btnAdd = new MultiLineButton("Add Stack(s)");
-  private final MultiLineButton btnCopy = new MultiLineButton("Copy Down");
+  private final MultiLineButton btnCopyDown = new MultiLineButton("Copy Down");
   private final MultiLineButton btnDelete = new MultiLineButton("Delete");
   private final MultiLineButton btnEditDataset = new MultiLineButton(
       "Set Dataset Specific Values");
@@ -97,7 +97,7 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable {
     // init
     JPanel pnlView = new JPanel();
     btnAdd.setToPreferredSize();
-    btnCopy.setToPreferredSize();
+    btnCopyDown.setToPreferredSize();
     btnDelete.setToPreferredSize();
     btnEditDataset.setToPreferredSize();
     btnStack.setName(STACK_TITLE);
@@ -115,7 +115,7 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable {
     pnlButtons.add(Box.createHorizontalGlue());
     pnlButtons.add(btnAdd.getComponent());
     pnlButtons.add(Box.createHorizontalGlue());
-    pnlButtons.add(btnCopy.getComponent());
+    pnlButtons.add(btnCopyDown.getComponent());
     pnlButtons.add(Box.createHorizontalGlue());
     pnlButtons.add(btnDelete.getComponent());
     pnlButtons.add(Box.createHorizontalGlue());
@@ -175,7 +175,6 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable {
     hcRun[1] = new HeaderCell("Run");
     hcEtomo[0] = new HeaderCell("Open");
     hcEtomo[1] = new HeaderCell("Dataset");
-
     // remove table
     rowList.removeAll();
     pnlTable.removeAll();
@@ -255,6 +254,8 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable {
     BatchRunTomoListener listener = new BatchRunTomoListener(this);
     btnAdd.addActionListener(listener);
     btnEditDataset.addActionListener(listener);
+    btnCopyDown.addActionListener(listener);
+    btnDelete.addActionListener(listener);
   }
 
   Component getComponent() {
@@ -305,7 +306,7 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable {
   private void updateDisplay() {
     boolean enable = rowList.size() > 0;
     boolean highlighted = rowList.isHighlighted();
-    btnCopy.setEnabled(enable && highlighted);
+    btnCopyDown.setEnabled(enable && highlighted);
     btnDelete.setEnabled(enable && highlighted);
     btnEditDataset.setEnabled(enable && highlighted);
   }
@@ -348,8 +349,15 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable {
         rowList.add(stackList);
       }
     }
+    else if (actionCommand.equals(btnDelete.getActionCommand())) {
+      rowList.delete();
+      rebuildTable();
+    }
     else if (actionCommand.equals(btnEditDataset.getActionCommand())) {
       rowList.setEditDataset();
+    }
+    else if (actionCommand.equals(btnCopyDown.getActionCommand())) {
+      rowList.copyDown();
     }
   }
 
@@ -394,6 +402,7 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable {
       if (stackList == null) {
         return;
       }
+      int firstIndex = list.size();
       for (int i = 0; i < stackList.length; i++) {
         int index = list.size();
         BatchRunTomoRow prevRow = null;
@@ -405,10 +414,26 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable {
             (prevRow != null ? prevRow : initialValueRow));
         row.expandStack(btnStack.isExpanded());
         list.add(row);
-        viewport.adjustViewport(index);
         row.display(viewport, curTab);
       }
+      viewport.adjustViewport(firstIndex);
       UIHarness.INSTANCE.pack(manager);
+    }
+
+    private void delete() {
+      int index = getHighlightedIndex();
+      if (index != -1) {
+        BatchRunTomoRow row = list.get(index);
+        if (row == null) {
+          return;
+        }
+        row.remove();
+        list.remove(index);
+        viewport.adjustViewport(index);
+      }
+      for (int i = index; i < list.size(); i++) {
+        list.get(i).setNumber(i + 1);
+      }
     }
 
     private void expandStack(final boolean expanded) {
@@ -443,20 +468,27 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable {
     }
 
     private void setEditDataset() {
-      BatchRunTomoRow row = getHighlightedRow();
-      if (row != null) {
-        row.setEditDataset();
+      int index = getHighlightedIndex();
+      if (index != -1) {
+        list.get(index).setEditDataset();
       }
     }
 
-    private BatchRunTomoRow getHighlightedRow() {
+    private int getHighlightedIndex() {
       for (int i = 0; i < list.size(); i++) {
         BatchRunTomoRow row = list.get(i);
         if (row.isHighlighted()) {
-          return row;
+          return i;
         }
       }
-      return null;
+      return -1;
+    }
+
+    private void copyDown() {
+      int index = getHighlightedIndex();
+      if (index != -1 && index < list.size() - 1) {
+        list.get(index + 1).copy(list.get(index));
+      }
     }
 
     /**
