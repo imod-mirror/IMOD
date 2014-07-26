@@ -70,7 +70,7 @@ final class BatchRunTomoRow implements Highlightable {
   private BatchRunTomoRow(final String propertyUserDir, final BatchRunTomoTable table,
       final JPanel panel, final GridBagLayout layout,
       final GridBagConstraints constraints, final int number, final File stack,
-      final BatchRunTomoRow initialValueRow) {
+      final BatchRunTomoRow valueRow) {
     this.panel = panel;
     this.layout = layout;
     this.constraints = constraints;
@@ -97,11 +97,7 @@ final class BatchRunTomoRow implements Highlightable {
       bcEtomo.setPressedIcon(new ImageIcon(ETOMO_PRESSED_ICON_URL));
     }
     setDefaults();
-    if (initialValueRow != null) {
-      cbcDualAxis.setSelected(initialValueRow.cbcDualAxis.isSelected());
-      cbcMontage.setSelected(initialValueRow.cbcMontage.isSelected());
-      cbcTwoSurfaces.setSelected(initialValueRow.cbcTwoSurfaces.isSelected());
-    }
+    copy(valueRow);
     cbcRun.setSelected(true);
     bcEtomo.setEnabled(false);
   }
@@ -116,6 +112,14 @@ final class BatchRunTomoRow implements Highlightable {
 
   static BatchRunTomoRow getDefaultsInstance() {
     return new BatchRunTomoRow(null, null, null, null, null, -1, null, null);
+  }
+
+  void copy(final BatchRunTomoRow valueRow) {
+    if (valueRow != null) {
+      cbcDualAxis.setSelected(valueRow.cbcDualAxis.isSelected());
+      cbcMontage.setSelected(valueRow.cbcMontage.isSelected());
+      cbcTwoSurfaces.setSelected(valueRow.cbcTwoSurfaces.isSelected());
+    }
   }
 
   void remove() {
@@ -219,6 +223,10 @@ final class BatchRunTomoRow implements Highlightable {
     cbcMontage.clear();
     cbcTwoSurfaces.clear();
     setDefaults();
+  }
+
+  void setNumber(final int input) {
+    hcNumber.setText(input);
   }
 
   private void setDefaults() {
