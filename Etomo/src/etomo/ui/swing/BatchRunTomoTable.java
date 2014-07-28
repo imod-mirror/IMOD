@@ -352,6 +352,8 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable {
     else if (actionCommand.equals(btnDelete.getActionCommand())) {
       rowList.delete();
       rebuildTable();
+      updateDisplay();
+      UIHarness.INSTANCE.pack(manager);
     }
     else if (actionCommand.equals(btnEditDataset.getActionCommand())) {
       rowList.setEditDataset();
@@ -417,6 +419,8 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable {
         row.display(viewport, curTab);
       }
       viewport.adjustViewport(firstIndex);
+      rowList.removeAll();
+      rowList.display(viewport);
       UIHarness.INSTANCE.pack(manager);
     }
 
