@@ -95,7 +95,7 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
     ftfDeliverToDirectory = FileTextField2.getAltLayoutInstance(manager,
         DELIVER_TO_DIRECTORY_NAME + ": ");
     table = BatchRunTomoTable.getInstance(manager);
-    datasetDialog = BatchRunTomoDatasetDialog.getInstace(manager);
+    datasetDialog = BatchRunTomoDatasetDialog.getGlobalInstance(manager);
     directiveFileCollection = new DirectiveFileCollection(manager, axisID);
     templatePanel = TemplatePanel.getBorderlessInstance(manager, axisID, null, null,
         null, directiveFileCollection);
