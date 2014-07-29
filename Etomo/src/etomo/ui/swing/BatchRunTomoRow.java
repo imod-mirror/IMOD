@@ -54,7 +54,7 @@ final class BatchRunTomoRow implements Highlightable {
   private final FieldCell fcEditDataset = FieldCell.getIneditableInstance();
   private final FieldCell fcStatus = FieldCell.getIneditableInstance();
   private final CheckBoxCell cbcRun = new CheckBoxCell();
-  private final MinibuttonCell bcEtomo = new MinibuttonCell(new ImageIcon(ETOMO_ICON_URL));
+  private final MinibuttonCell mbcEtomo = new MinibuttonCell(new ImageIcon(ETOMO_ICON_URL));
   private final MinibuttonCell mbc3dmodA = new MinibuttonCell(
       new ImageIcon(IMOD_ICON_URL));
   private final MinibuttonCell mbc3dmodB = new MinibuttonCell(
@@ -91,15 +91,15 @@ final class BatchRunTomoRow implements Highlightable {
       mbc3dmodB.setPressedIcon(new ImageIcon(IMOD_PRESSED_ICON_URL));
     }
     if (ETOMO_DISABLED_ICON_URL != null) {
-      bcEtomo.setDisabledIcon(new ImageIcon(ETOMO_DISABLED_ICON_URL));
+      mbcEtomo.setDisabledIcon(new ImageIcon(ETOMO_DISABLED_ICON_URL));
     }
     if (ETOMO_PRESSED_ICON_URL != null) {
-      bcEtomo.setPressedIcon(new ImageIcon(ETOMO_PRESSED_ICON_URL));
+      mbcEtomo.setPressedIcon(new ImageIcon(ETOMO_PRESSED_ICON_URL));
     }
     setDefaults();
     copy(valueRow);
     cbcRun.setSelected(true);
-    bcEtomo.setEnabled(false);
+    mbcEtomo.setEnabled(false);
   }
 
   static BatchRunTomoRow getInstance(final String propertyUserDir,
@@ -135,7 +135,7 @@ final class BatchRunTomoRow implements Highlightable {
     fcEditDataset.remove();
     fcStatus.remove();
     cbcRun.remove();
-    bcEtomo.remove();
+    mbcEtomo.remove();
     mbc3dmodA.remove();
     mbc3dmodB.remove();
   }
@@ -167,7 +167,7 @@ final class BatchRunTomoRow implements Highlightable {
         fcStatus.add(panel, layout, constraints);
         cbcRun.add(panel, layout, constraints);
         constraints.gridwidth = GridBagConstraints.REMAINDER;
-        bcEtomo.add(panel, layout, constraints);
+        mbcEtomo.add(panel, layout, constraints);
       }
     }
   }
@@ -185,10 +185,19 @@ final class BatchRunTomoRow implements Highlightable {
     fcExcludeViewsB.setHighlight(highlight);
     cbcTwoSurfaces.setHighlight(highlight);
     fcEditDataset.setHighlight(highlight);
+    fcStatus.setHighlight(highlight);
+    cbcRun.setHighlight(highlight);
+    mbcEtomo.setHighlight(highlight);
+    mbc3dmodA.setHighlight(highlight);
+    mbc3dmodB.setHighlight(highlight);
   }
 
   boolean isHighlighted() {
     return hbRow.isHighlighted();
+  }
+
+  void selectHighlightButton() {
+    hbRow.setSelected(true);
   }
 
   void setEditDataset() {
