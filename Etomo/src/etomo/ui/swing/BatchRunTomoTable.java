@@ -81,7 +81,7 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable {
   private File currentDirectory = null;
   private BatchRunTomoTab curTab = null;
 
-  private BatchRunTomoTable(final BaseManager manager) {
+  private BatchRunTomoTable(final BaseManager manager,final ActionListener editDatasetListener) {
     this.manager = manager;
     viewport = new Viewport(this, 5, null, null, null, "BatchRunTomo");
   }
@@ -357,6 +357,7 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable {
     }
     else if (actionCommand.equals(btnEditDataset.getActionCommand())) {
       rowList.setEditDataset();
+      BatchRunTomoDatasetDialog dialog = BatchRunTomoDatasetDialog.getIndividualInstance(manager);
     }
     else if (actionCommand.equals(btnCopyDown.getActionCommand())) {
       rowList.copyDown();
@@ -438,6 +439,16 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable {
       for (int i = index; i < list.size(); i++) {
         list.get(i).setNumber(i + 1);
       }
+      // Highlight the row after the deleted row
+      highlight(index);
+      
+    }
+
+    private void highlight(final int index) {
+      if (index < 0 || index >= list.size()) {
+        return;
+      }
+      list.get(index).selectHighlightButton();
     }
 
     private void expandStack(final boolean expanded) {
