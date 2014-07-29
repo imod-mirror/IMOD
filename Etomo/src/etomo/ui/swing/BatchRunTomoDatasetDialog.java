@@ -11,7 +11,7 @@ import java.util.List;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
-import javax.swing.JLabel;
+import javax.swing.JDialog;
 import javax.swing.JPanel;
 
 import etomo.BaseManager;
@@ -98,23 +98,36 @@ final class BatchRunTomoDatasetDialog implements ActionListener {
   private final TextField tfExtraThickness = new TextField(FieldType.INTEGER,
       DERIVE_THICKNESS_LABEL, null);
   private final LabeledTextField ltfFallbackThickness = new LabeledTextField(
-      FieldType.INTEGER, "with fallback: ");
-  private final JLabel lFallbackThickness = new JLabel(" unbinned pixels");
+      FieldType.INTEGER, "with fallback (unbinned pixels): ");
   private List<Field> fieldList = new ArrayList<Field>();
 
   private final FileTextField2 ftfDistort;
   private final FileTextField2 ftfGradient;
   private final FileTextField2 ftfModelFile;
+  private final JDialog dialog;
 
-  private BatchRunTomoDatasetDialog(final BaseManager manager) {
+  private BatchRunTomoDatasetDialog(final BaseManager manager, final boolean useDialog) {
     ftfDistort = FileTextField2.getAltLayoutInstance(manager, "Image distortion file: ");
     ftfGradient = FileTextField2.getAltLayoutInstance(manager, "Mag gradient file: ");
     ftfModelFile = FileTextField2.getAltLayoutInstance(manager,
         "Manual replacement model: ");
+    if (useDialog) {
+      dialog = new JDialog();
+    }
+    else {
+      dialog = null;
+    }
   }
 
-  static BatchRunTomoDatasetDialog getInstace(final BaseManager manager) {
-    BatchRunTomoDatasetDialog instance = new BatchRunTomoDatasetDialog(manager);
+  static BatchRunTomoDatasetDialog getGlobalInstance(final BaseManager manager) {
+    BatchRunTomoDatasetDialog instance = new BatchRunTomoDatasetDialog(manager, false);
+    instance.createPanel();
+    instance.addListeners();
+    return instance;
+  }
+
+  static BatchRunTomoDatasetDialog getIndividualInstance(final BaseManager manager) {
+    BatchRunTomoDatasetDialog instance = new BatchRunTomoDatasetDialog(manager, true);
     instance.createPanel();
     instance.addListeners();
     return instance;
@@ -176,7 +189,11 @@ final class BatchRunTomoDatasetDialog implements ActionListener {
     fieldList.add(ltfFallbackThickness);
     // defaults
     setDefaults();
-    // Dataset
+    // dialog
+    if (dialog != null) {
+      dialog.add(pnlRoot);
+    }
+    // root
     pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.Y_AXIS));
     pnlRoot.setBorder(new EtchedBorder("Dataset Parameters").getBorder());
     pnlRoot.add(ftfDistort.getRootPanel());
@@ -265,12 +282,16 @@ final class BatchRunTomoDatasetDialog implements ActionListener {
     pnlFallbackThickness.setLayout(new BoxLayout(pnlFallbackThickness, BoxLayout.X_AXIS));
     pnlFallbackThickness.add(Box.createRigidArea(FixedDim.x40_y0));
     pnlFallbackThickness.add(ltfFallbackThickness.getComponent());
-    pnlFallbackThickness.add(lFallbackThickness);
     // align
     UIUtilities.alignComponentsX(pnlRoot, Component.LEFT_ALIGNMENT);
     UIUtilities.alignComponentsX(pnlReconstructionType, Component.LEFT_ALIGNMENT);
     // update
     updateDisplay();
+    // display
+    if (dialog != null) {
+      dialog.pack();
+      dialog.setVisible(true);
+    }
   }
 
   private void addListeners() {
@@ -321,7 +342,6 @@ final class BatchRunTomoDatasetDialog implements ActionListener {
     boolean deriveThickness = rbDeriveThickness.isSelected();
     tfExtraThickness.setEnabled(deriveThickness);
     ltfFallbackThickness.setEnabled(deriveThickness);
-    lFallbackThickness.setEnabled(deriveThickness);
   }
 
   /**
