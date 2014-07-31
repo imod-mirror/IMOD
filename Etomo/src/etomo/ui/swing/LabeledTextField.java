@@ -526,6 +526,17 @@ final class LabeledTextField implements UIComponent, SwingComponent, Field,
   public void clear() {
     textField.setText("");
   }
+  
+  public void copy(final Field copyFrom) {
+    if (copyFrom == null) {
+      return;
+    }
+    setText(copyFrom.getText());
+  }
+  
+  public boolean isSelected() {
+    return false;
+  }
 
   boolean equals(final String thatText) {
     String text = getText();
@@ -599,7 +610,7 @@ final class LabeledTextField implements UIComponent, SwingComponent, Field,
   /**
    * return text without validation
    */
-  String getText() {
+  public String getText() {
     return textField.getText();
   }
 
