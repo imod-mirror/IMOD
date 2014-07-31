@@ -54,66 +54,76 @@ background.  This option must be included for automatic removal of X-rays.
 [Field = PeakCriterion]
 short = peak
 type = F
+default = 10
 usage = Criterion # of SDs above local mean for erasing peak
 tooltip = Criterion # of SDs above local mean for erasing peak based on
 intensity (the default is 10 SDs).
 manpage = Criterion # of SDs above local mean for erasing peak based on
-intensity (the default is 10 SDs).
+intensity (the default is %{default} SDs).
 
 [Field = DiffCriterion]
 short = diff
 type = F
+default = 10
 usage = Criterion # of SDs above mean pixel-to-pixel difference
 tooltip = Criterion # of SDs above mean pixel-to-pixel difference for erasing a
 peak based on differences (the default is 10 SDs).
 manpage = Criterion # of SDs above mean pixel-to-pixel difference for
-erasing a peak based on differences (the default is 10 SDs)
+erasing a peak based on differences (the default is %{default} SDs)
 
 [Field = GrowCriterion]
 short = grow
 type = F
+default = 4
 usage = Criterion # of SDs above mean for adding points to peak
 tooltip = Criterion # of SDs above mean for adding points to peak (the default
 is 4 SDs).
 manpage = Criterion # of SDs above mean for adding points to peak (the
-default is 4 SDs).
+default is %{default} SDs).
 
 [Field = ScanCriterion]
 short = scan
 type = F
+default = 3
 usage = Criterion # of SDs for picking peaks in initial scan
 tooltip = Criterion # of SDs of mean of scan area for picking peaks in initial
 scan (the default is 3 SDs).
 manpage = Criterion # of SDs of mean of scan area for picking peaks in
-initial scan (the default is 3 SDs).
+initial scan (the default is %{default} SDs).
 
 [Field = MaximumRadius]
 short = radius
 type = F
+default = 2.1
 usage = Maximum radius of peak area to erase
 tooltip = Maximum radius of peak area to erase (the default is 2.1 pixels).
-manpage = Maximum radius of peak area to erase (the default is 2.1 pixels). 
+manpage = Maximum radius of peak area to erase (the default is %{default} pixels). 
 
 [Field = GiantCriterion]
 short = giant
 type = F
+default = 12
 usage = Criterion # of SDs above local mean for erasing extra-large peak
 tooltip = Criterion # of SDs above local mean for erasing extra-large peak
 based on intensity (the default is 12 SDs).
 manpage = Criterion # of SDs above local mean for erasing extra-large peak
-based on intensity (the default is 12 SDs).  Enter 0 to disable this second
+based on intensity (the default is %{default} SDs).  Enter 0 to disable this second
 stage of peak removal.
 
 [Field = ExtraLargeRadius]
 short = large
 type = F
-usage = Maximum radius of extra-large peak area to erase
-tooltip = Maximum radius of extra-large peak area to erase (the default is 8 pixels).
-manpage = Maximum radius of extra-large peak area to erase (the default is 8 pixels). 
+default = 8
+usage = Maximum radius of extra-large peak area to erase (default %{default})
+tooltip = Maximum radius of extra-large peak area to erase (the default is
+8 pixels).
+manpage = Maximum radius of extra-large peak area to erase (the default is 
+%{default} pixels). 
 
 [Field = BigDiffCriterion]
 short = big
 type = F
+default = 19
 usage = Criterion for whether extra-large peak has big enough interpixel
 differences
 tooltip = Criterion for whether an extra-large peak has big enough interpixel
@@ -122,7 +132,7 @@ manpage = An extra-large peak will be erased only if the value for
 the maximum difference between adjacent pixels, averaged over the most
 extreme one-fourth of the pixels in the patch, exceeds this criterion,
 evaluated as the number of SDs above the mean absolute difference
-between adjacent pixels in the scan area.  The default is 19.  This high a
+between adjacent pixels in the scan area.  The default is %{default}.  This high a
 value is needed to prevent gold erasure on low-noise data sets with small gold
 particles, and a lower value may be needed to make extra-large peak removal
 useful.
@@ -130,13 +140,14 @@ useful.
 [Field = MaxPixelsInDiffPatch]
 short = maxdiff
 type = I
+default = 2
 usage = Maximum number of pixels in a patch that exceeds the difference 
 criterion
 tooltip = Maximum number of pixels in a patch that exceeds the difference 
 criterion.  Larger patches will not be replaced.  The default is 2. 
 manpage = Maximum number of pixels in a patch that exceeds the difference 
 criterion.  If the number of pixels that satisfy the criteria exceed this 
-limit, none of the pixels in the patch will be replaced.  The default is 2.
+limit, none of the pixels in the patch will be replaced.  The default is %{default}.
 
 [Field = OuterRadius]
 short = outer
@@ -150,30 +161,33 @@ This option and -width are mutually exclusive.
 [Field = AnnulusWidth]
 short = width
 type = F
+default = 2.0
 usage = Width (outer - inner radius) of annulus to calculate local mean and 
 SD in
 tooltip = Width of the annulus around a peak in which to calculate local mean
 and SD (the default is 2.0 pixels).
 manpage = Difference between outer and inner radius of the annulus around a 
-peak in which to calculate local mean and SD (the default is 2.0 pixels).
+peak in which to calculate local mean and SD (the default is %{default} pixels).
 This option and -radius are mutually exclusive.
 
 [Field = XYScanSize]
 short = xyscan
 type = I
+default = 100
 usage = Size of regions to compute mean and SD in for initial scans
 tooltip = Size of regions to compute mean and SD in for initial scans (the
 default is 100 pixels).
 manpage = Size of regions to compute mean and SD in for initial scans (the
-default is 100 pixels).
+default is %{default} pixels).
 
 [Field = EdgeExclusionWidth]
 short = edge
 type = I
+default = 0
 usage = Width of area to exclude on all edges of image
 tooltip = Width of area to exclude on all edges of image in pixels (default 0).
 manpage = Width of area to exclude on all edges of image in pixels (default
-0). 
+%{default}). 
 
 [Field = PointModel]
 short = points
@@ -273,19 +287,21 @@ input model.
 [Field = BorderSize]
 short = border
 type = I
-usage = Size of border around points in patch
+default = 2
+usage = Size of border around points in patch (default %{default})
 tooltip = Size of border around points in patch, which contains the points which
 will be fit to (the default is 2 pixels).
 manpage = Size of border around points in patch, which contains the points
-which will be fit to (the default is 2 pixels)
+which will be fit to (the default is %{default} pixels)
 
 [Field = PolynomialOrder]
 short = order
 type = I
-usage = Order of polynomial to fit to border points
+usage = Order of polynomial to fit to border points (default %{default})
+default = 2
 tooltip = Order of polynomial to fit to border points (the default is 2, which
 includes terms in x, y, x**2, y**2 and x*y).
-manpage = Order of polynomial to fit to border points.  The default is 2,
+manpage = Order of polynomial to fit to border points.  The default is %{default},
 which includes terms in x, y, x**2, y**2 and x*y.  The order can be between 0
 and 3, where 0 will simply replace the pixels with the mean of the border
 points instead of fitting to them.
