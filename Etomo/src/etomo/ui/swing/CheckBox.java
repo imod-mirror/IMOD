@@ -182,6 +182,17 @@ final class CheckBox extends JCheckBox implements Field, ActionListener {
     }
   }
 
+  public void clear() {
+    setSelected(false);
+  }
+
+  public void copy(final Field copyFrom) {
+    if (copyFrom == null) {
+      return;
+    }
+    setSelected(copyFrom.isSelected());
+  }
+
   void setDirectiveDef(final DirectiveDef directiveDef) {
     this.directiveDef = directiveDef;
   }

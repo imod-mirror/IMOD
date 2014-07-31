@@ -36,21 +36,30 @@ final class BatchRunTomoRow implements Highlightable {
       .getSystemResource("images/b3dicon.png");
   private static final URL IMOD_DISABLED_ICON_URL = ClassLoader
       .getSystemResource("images/b3dicon-disabled.png");
+  private static final URL IMOD_PRESSED_ICON_URL = ClassLoader
+      .getSystemResource("images/b3dicon-pressed.png");
   private static final URL ETOMO_ICON_URL = ClassLoader
       .getSystemResource("images/etomoicon.png");
   private static final URL ETOMO_DISABLED_ICON_URL = ClassLoader
       .getSystemResource("images/etomoicon-disabled.png");
+  private static final URL ETOMO_PRESSED_ICON_URL = ClassLoader
+      .getSystemResource("images/etomoicon-pressed.png");
 
   private final CheckBoxCell cbcBoundaryModel = new CheckBoxCell();
   private final CheckBoxCell cbcDualAxis = new CheckBoxCell();
   private final CheckBoxCell cbcMontage = new CheckBoxCell();
-  private final FieldCell fcExcludeViews = FieldCell.getEditableInstance();
+  private final FieldCell fcExcludeViewsA = FieldCell.getEditableInstance();
+  private final FieldCell fcExcludeViewsB = FieldCell.getEditableInstance();
   private final CheckBoxCell cbcTwoSurfaces = new CheckBoxCell();
   private final FieldCell fcEditDataset = FieldCell.getIneditableInstance();
   private final FieldCell fcStatus = FieldCell.getIneditableInstance();
   private final CheckBoxCell cbcRun = new CheckBoxCell();
-  private final ButtonCell bcEtomo = new ButtonCell(new ImageIcon(ETOMO_ICON_URL));
-  private final MinibuttonCell mbc3dmod = new MinibuttonCell(new ImageIcon(IMOD_ICON_URL));
+  private final MinibuttonCell mbcEtomo = new MinibuttonCell(
+      new ImageIcon(ETOMO_ICON_URL));
+  private final MinibuttonCell mbc3dmodA = new MinibuttonCell(
+      new ImageIcon(IMOD_ICON_URL));
+  private final MinibuttonCell mbc3dmodB = new MinibuttonCell(
+      new ImageIcon(IMOD_ICON_URL));
 
   private final JPanel panel;
   private final GridBagLayout layout;
@@ -62,7 +71,7 @@ final class BatchRunTomoRow implements Highlightable {
   private BatchRunTomoRow(final String propertyUserDir, final BatchRunTomoTable table,
       final JPanel panel, final GridBagLayout layout,
       final GridBagConstraints constraints, final int number, final File stack,
-      final BatchRunTomoRow initialValueRow) {
+      final BatchRunTomoRow valueRow) {
     this.panel = panel;
     this.layout = layout;
     this.constraints = constraints;
@@ -70,18 +79,28 @@ final class BatchRunTomoRow implements Highlightable {
     hbRow = HighlighterButton.getInstance(this, table);
     fcStack = FieldCell.getExpandableInstance(null);
     fcStack.setValue(stack);
-    mbc3dmod.setDisabledIcon(new ImageIcon(IMOD_DISABLED_ICON_URL));
-    bcEtomo.setDisabledIcon(new ImageIcon(ETOMO_DISABLED_ICON_URL));
-    if (initialValueRow != null) {
-      cbcDualAxis.setSelected(initialValueRow.cbcDualAxis.isSelected());
-      cbcMontage.setSelected(initialValueRow.cbcMontage.isSelected());
-      cbcTwoSurfaces.setSelected(initialValueRow.cbcTwoSurfaces.isSelected());
+    if (IMOD_DISABLED_ICON_URL != null) {
+      mbc3dmodA.setDisabledIcon(new ImageIcon(IMOD_DISABLED_ICON_URL));
     }
-    else {
-      cbcDualAxis.setSelected(true);
+    if (IMOD_PRESSED_ICON_URL != null) {
+      mbc3dmodA.setPressedIcon(new ImageIcon(IMOD_PRESSED_ICON_URL));
     }
+    if (IMOD_DISABLED_ICON_URL != null) {
+      mbc3dmodB.setDisabledIcon(new ImageIcon(IMOD_DISABLED_ICON_URL));
+    }
+    if (IMOD_PRESSED_ICON_URL != null) {
+      mbc3dmodB.setPressedIcon(new ImageIcon(IMOD_PRESSED_ICON_URL));
+    }
+    if (ETOMO_DISABLED_ICON_URL != null) {
+      mbcEtomo.setDisabledIcon(new ImageIcon(ETOMO_DISABLED_ICON_URL));
+    }
+    if (ETOMO_PRESSED_ICON_URL != null) {
+      mbcEtomo.setPressedIcon(new ImageIcon(ETOMO_PRESSED_ICON_URL));
+    }
+    setDefaults();
+    copy(valueRow);
     cbcRun.setSelected(true);
-    bcEtomo.setEnabled(false);
+    mbcEtomo.setEnabled(false);
   }
 
   static BatchRunTomoRow getInstance(final String propertyUserDir,
@@ -96,6 +115,14 @@ final class BatchRunTomoRow implements Highlightable {
     return new BatchRunTomoRow(null, null, null, null, null, -1, null, null);
   }
 
+  void copy(final BatchRunTomoRow valueRow) {
+    if (valueRow != null) {
+      cbcDualAxis.setSelected(valueRow.cbcDualAxis.isSelected());
+      cbcMontage.setSelected(valueRow.cbcMontage.isSelected());
+      cbcTwoSurfaces.setSelected(valueRow.cbcTwoSurfaces.isSelected());
+    }
+  }
+
   void remove() {
     hcNumber.remove();
     hbRow.remove();
@@ -103,13 +130,15 @@ final class BatchRunTomoRow implements Highlightable {
     cbcBoundaryModel.remove();
     cbcDualAxis.remove();
     cbcMontage.remove();
-    fcExcludeViews.remove();
+    fcExcludeViewsA.remove();
+    fcExcludeViewsB.remove();
     cbcTwoSurfaces.remove();
     fcEditDataset.remove();
     fcStatus.remove();
     cbcRun.remove();
-    bcEtomo.remove();
-    mbc3dmod.remove();
+    mbcEtomo.remove();
+    mbc3dmodA.remove();
+    mbc3dmodB.remove();
   }
 
   void display(final Viewport viewport, final BatchRunTomoTab tab) {
@@ -124,20 +153,22 @@ final class BatchRunTomoRow implements Highlightable {
       fcStack.add(panel, layout, constraints);
       constraints.gridwidth = 1;
       if (tab == BatchRunTomoTab.STACKS) {
-        cbcBoundaryModel.add(panel, layout, constraints);
         cbcDualAxis.add(panel, layout, constraints);
         cbcMontage.add(panel, layout, constraints);
-        fcExcludeViews.add(panel, layout, constraints);
+        fcExcludeViewsA.add(panel, layout, constraints);
+        fcExcludeViewsB.add(panel, layout, constraints);
+        cbcBoundaryModel.add(panel, layout, constraints);
         cbcTwoSurfaces.add(panel, layout, constraints);
         fcEditDataset.add(panel, layout, constraints);
+        mbc3dmodA.add(panel, layout, constraints);
         constraints.gridwidth = GridBagConstraints.REMAINDER;
-        mbc3dmod.add(panel, layout, constraints);
+        mbc3dmodB.add(panel, layout, constraints);
       }
       else {
         fcStatus.add(panel, layout, constraints);
         cbcRun.add(panel, layout, constraints);
         constraints.gridwidth = GridBagConstraints.REMAINDER;
-        bcEtomo.add(panel, layout, constraints);
+        mbcEtomo.add(panel, layout, constraints);
       }
     }
   }
@@ -146,18 +177,29 @@ final class BatchRunTomoRow implements Highlightable {
     fcStack.expand(expanded);
   }
 
+  String getExpandedStack() {
+    return fcStack.getExpandedValue();
+  }
+
   public void highlight(final boolean highlight) {
     fcStack.setHighlight(highlight);
     cbcBoundaryModel.setHighlight(highlight);
     cbcDualAxis.setHighlight(highlight);
     cbcMontage.setHighlight(highlight);
-    fcExcludeViews.setHighlight(highlight);
+    fcExcludeViewsA.setHighlight(highlight);
+    fcExcludeViewsB.setHighlight(highlight);
     cbcTwoSurfaces.setHighlight(highlight);
     fcEditDataset.setHighlight(highlight);
+    fcStatus.setHighlight(highlight);
+    cbcRun.setHighlight(highlight);
   }
 
   boolean isHighlighted() {
     return hbRow.isHighlighted();
+  }
+
+  void selectHighlightButton() {
+    hbRow.setSelected(true);
   }
 
   void setEditDataset() {
@@ -187,6 +229,21 @@ final class BatchRunTomoRow implements Highlightable {
     return changed;
   }
 
+  void clear() {
+    cbcDualAxis.clear();
+    cbcMontage.clear();
+    cbcTwoSurfaces.clear();
+    setDefaults();
+  }
+
+  void setNumber(final int input) {
+    hcNumber.setText(input);
+  }
+
+  private void setDefaults() {
+    cbcDualAxis.setSelected(true);
+  }
+
   /**
    * Move any backed up values into the field, and delete the backup.
    */
@@ -207,48 +264,20 @@ final class BatchRunTomoRow implements Highlightable {
    * @param directiveFileCollection
    */
   void setValues(final DirectiveFileCollection directiveFileCollection) {
-    setValues(directiveFileCollection, false);
-  }
-
-  void setFieldHighlightValues(final DirectiveFileCollection directiveFileCollection) {
-    setValues(directiveFileCollection, true);
-  }
-
-  private void setValues(final DirectiveFileCollection directiveFileCollection,
-      final boolean setFieldHighlighValue) {
-    setValue(directiveFileCollection, DirectiveDef.DUAL, setFieldHighlighValue,
-        cbcDualAxis);
-    setValue(directiveFileCollection, DirectiveDef.MONTAGE, setFieldHighlighValue,
-        cbcMontage);
-    if (!setValue(directiveFileCollection, DirectiveDef.TWO_SURFACES,
-        setFieldHighlighValue, cbcTwoSurfaces)
-        && directiveFileCollection.contains(DirectiveDef.SURFACES_TO_ANALYZE,
-            setFieldHighlighValue)) {
+    setValue(directiveFileCollection, DirectiveDef.DUAL, cbcDualAxis);
+    setValue(directiveFileCollection, DirectiveDef.MONTAGE, cbcMontage);
+    if (!setValue(directiveFileCollection, DirectiveDef.TWO_SURFACES, cbcTwoSurfaces)
+        && directiveFileCollection.contains(DirectiveDef.SURFACES_TO_ANALYZE)) {
       EtomoNumber number = new EtomoNumber();
-      number.set(directiveFileCollection.getValue(DirectiveDef.SURFACES_TO_ANALYZE,
-          setFieldHighlighValue));
-      boolean value = number != null && number.equals(2);
-      if (!setFieldHighlighValue) {
-        cbcTwoSurfaces.setSelected(value);
-      }
-      else {
-        cbcTwoSurfaces.setFieldHighlightValue(value);
-      }
+      number.set(directiveFileCollection.getValue(DirectiveDef.SURFACES_TO_ANALYZE));
+      cbcTwoSurfaces.setSelected(number != null && number.equals(2));
     }
   }
 
   private boolean setValue(final DirectiveFileCollection directiveFileCollection,
-      final DirectiveDef directiveDef, final boolean setFieldHighlightValue,
-      final CheckBoxCell cell) {
-    if (directiveFileCollection.contains(directiveDef, setFieldHighlightValue)) {
-      boolean value = directiveFileCollection.isValue(directiveDef,
-          setFieldHighlightValue);
-      if (!setFieldHighlightValue) {
-        cell.setSelected(value);
-      }
-      else {
-        cell.setFieldHighlightValue(value);
-      }
+      final DirectiveDef directiveDef, final CheckBoxCell cell) {
+    if (directiveFileCollection.contains(directiveDef)) {
+      cell.setSelected(directiveFileCollection.isValue(directiveDef));
       return true;
     }
     return false;

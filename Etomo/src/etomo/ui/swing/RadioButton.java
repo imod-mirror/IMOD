@@ -148,6 +148,21 @@ final class RadioButton implements RadioButtonInterface, Field, ActionListener {
     }
   }
 
+  /**
+   * No way to clear a radio button
+   */
+  public void clear() {
+  }
+
+  public void copy(final Field copyFrom) {
+    if (copyFrom == null) {
+      return;
+    }
+    if (copyFrom.isSelected()) {
+      setSelected(true);
+    }
+  }
+
   public void useDefaultValue() {
   }
 
@@ -315,7 +330,7 @@ final class RadioButton implements RadioButtonInterface, Field, ActionListener {
   public void msgSelected() {
   }
 
-  boolean isSelected() {
+  public boolean isSelected() {
     return radioButton.isSelected();
   }
 
@@ -327,7 +342,7 @@ final class RadioButton implements RadioButtonInterface, Field, ActionListener {
     radioButton.setPreferredSize(preferredSize);
   }
 
-  String getText() {
+  public String getText() {
     return radioButton.getText();
   }
 

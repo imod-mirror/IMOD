@@ -274,6 +274,25 @@ final class LabeledSpinner implements Field, TextFieldInterface, ChangeListener,
     }
   }
 
+  public void clear() {
+    spinner.setValue(minimum);
+  }
+
+  public void copy(final Field copyFrom) {
+    if (copyFrom == null) {
+      return;
+    }
+    setText(copyFrom.getText());
+  }
+
+  public boolean isSelected() {
+    return false;
+  }
+
+  public String getText() {
+    return getValue().toString();
+  }
+
   public void setFieldHighlightValue(final String value) {
     if (!useFieldHighlight) {
       useFieldHighlight = true;

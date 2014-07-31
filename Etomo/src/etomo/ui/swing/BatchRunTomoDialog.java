@@ -5,9 +5,10 @@ import java.awt.Container;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
+import java.util.Map;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -20,7 +21,6 @@ import javax.swing.event.ChangeListener;
 import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.logic.UserEnv;
-
 import etomo.storage.DirectiveFileCollection;
 import etomo.type.AxisID;
 import etomo.type.BatchRunTomoMetaData;
@@ -72,6 +72,7 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
   private final JPanel pnlParallelSettings = new JPanel();
   private final UserConfiguration userConfiguration = EtomoDirector.INSTANCE
       .getUserConfiguration();
+  private final Map<String, BatchRunTomoDatasetDialog> datasetDialogMap = new HashMap<String, BatchRunTomoDatasetDialog>();
 
   private final FileTextField2 ftfRootName;
   private final FileTextField2 ftfInputDirectiveFile;
@@ -80,11 +81,10 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
   private final BatchRunTomoTable table;
   private final BaseManager manager;
   private final AxisID axisID;
-  private final BatchRunTomoDatasetDialog datasetDialog;
+  private final BatchRunTomoDatasetDialog globalDatasetDialog;
   private final DirectiveFileCollection directiveFileCollection;
 
   private BatchRunTomoTab curTab = null;
-  private List<BatchRunTomoDatasetDialog> datasetLevelDialogList = new ArrayList<BatchRunTomoDatasetDialog>();
 
   private BatchRunTomoDialog(final BaseManager manager, final AxisID axisID) {
     this.manager = manager;
@@ -94,8 +94,8 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
         "Starting directive file: ");
     ftfDeliverToDirectory = FileTextField2.getAltLayoutInstance(manager,
         DELIVER_TO_DIRECTORY_NAME + ": ");
-    table = BatchRunTomoTable.getInstance(manager);
-    datasetDialog = BatchRunTomoDatasetDialog.getInstace(manager);
+    table = BatchRunTomoTable.getInstance(manager, this);
+    globalDatasetDialog = BatchRunTomoDatasetDialog.getGlobalInstance(manager);
     directiveFileCollection = new DirectiveFileCollection(manager, axisID);
     templatePanel = TemplatePanel.getBorderlessInstance(manager, axisID, null, null,
         null, directiveFileCollection);
@@ -119,6 +119,7 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
     templatePanel.setFieldHighlight();
     ftfInputDirectiveFile.setAbsolutePath(true);
     ftfInputDirectiveFile.setFieldEditable(false);
+    ftfInputDirectiveFile.setOrigin(EtomoDirector.INSTANCE.getHomeDirectory());
     ftfDeliverToDirectory.setFileSelectionMode(FileChooser.DIRECTORIES_ONLY);
     btnRun.setToPreferredSize();
     tabbedPane.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
@@ -218,19 +219,21 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
    */
   private void msgDirectivesChanged(final boolean init) {
     boolean retainUserValues = false;
+    Collection<BatchRunTomoDatasetDialog> datasetLevelCollection = datasetDialogMap
+        .values();
     if (!init) {
       // See if the user has changed any values (and back up the changed values).
       boolean changed = false;
       if (table.backupIfChanged()) {
         changed = true;
       }
-      Iterator<BatchRunTomoDatasetDialog> iterator = datasetLevelDialogList.iterator();
+      Iterator<BatchRunTomoDatasetDialog> iterator = datasetLevelCollection.iterator();
       while (iterator.hasNext()) {
         if (iterator.next().backupIfChanged()) {
           changed = true;
         }
       }
-      if (datasetDialog.backupIfChanged()) {
+      if (globalDatasetDialog.backupIfChanged()) {
         changed = true;
       }
       if (changed) {
@@ -242,47 +245,51 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
                 axisID);
       }
     }
-    // clean slate
-
+    // to apply values, start with a clean slate
+    table.clear();
+    Iterator<BatchRunTomoDatasetDialog> iterator = datasetLevelCollection.iterator();
+    while (iterator.hasNext()) {
+      iterator.next().clear();
+    }
+    globalDatasetDialog.clear();
     // Apply default values
-    Iterator<BatchRunTomoDatasetDialog> iterator = datasetLevelDialogList.iterator();
+    iterator = datasetLevelCollection.iterator();
     while (iterator.hasNext()) {
       iterator.next().useDefaultValues();
     }
-    datasetDialog.useDefaultValues();
+    globalDatasetDialog.useDefaultValues();
     // Apply settings values
     table.setValues(userConfiguration);
     // Apply the directive collection values
     table.setValues(directiveFileCollection);
-    iterator = datasetLevelDialogList.iterator();
+    iterator = datasetLevelCollection.iterator();
     while (iterator.hasNext()) {
       iterator.next().setValues(directiveFileCollection);
     }
-    datasetDialog.setValues(directiveFileCollection);
+    globalDatasetDialog.setValues(directiveFileCollection);
     // checkpoint
     table.checkpoint();
-    iterator = datasetLevelDialogList.iterator();
+    iterator = datasetLevelCollection.iterator();
     while (iterator.hasNext()) {
       iterator.next().checkpoint();
     }
-    datasetDialog.checkpoint();
+    globalDatasetDialog.checkpoint();
     // If the user wants to retain their values, apply backed up values and then delete
     // them.
     if (retainUserValues) {
       table.restoreFromBackup();
-      iterator = datasetLevelDialogList.iterator();
+      iterator = datasetLevelCollection.iterator();
       while (iterator.hasNext()) {
         iterator.next().restoreFromBackup();
       }
-      datasetDialog.restoreFromBackup();
+      globalDatasetDialog.restoreFromBackup();
     }
     // Set new highlight values - batch directive file must be ignored
-    table.setFieldHighlightValues(directiveFileCollection);
-    iterator = datasetLevelDialogList.iterator();
+    iterator = datasetLevelCollection.iterator();
     while (iterator.hasNext()) {
       iterator.next().setFieldHighlightValues(directiveFileCollection);
     }
-    datasetDialog.setFieldHighlightValues(directiveFileCollection);
+    globalDatasetDialog.setFieldHighlightValues(directiveFileCollection);
   }
 
   public void actionPerformed(final ActionEvent event) {
@@ -298,6 +305,22 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
     else if (actionCommand.equals(cbDeliverToDirectory.getActionCommand())) {
       updateDisplay();
     }
+    else if (actionCommand.equals(table.getEditDatasetActionCommand())) {
+      String key = table.getHighlightedKey();
+      if (key != null) {
+        BatchRunTomoDatasetDialog dialog = datasetDialogMap.get(key);
+        if (dialog == null) {
+          dialog = BatchRunTomoDatasetDialog.getIndividualInstance(manager, key, this);
+          dialog.copy(globalDatasetDialog);
+          datasetDialogMap.put(key, dialog);
+        }
+        dialog.setVisible();
+      }
+    }
+  }
+
+  void removeDatasetDialog(final String key) {
+    datasetDialogMap.remove(key);
   }
 
   public void processResult(final Object object) {
@@ -345,7 +368,7 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
       pnlStacks.add(pnlTable);
     }
     else if (curTab == BatchRunTomoTab.DATASET) {
-      pnlTabs[curIndex].add(datasetDialog.getComponent());
+      pnlTabs[curIndex].add(globalDatasetDialog.getComponent());
     }
     else if (curTab == BatchRunTomoTab.RUN) {
       pnlTabs[curIndex].add(pnlRun);

@@ -84,6 +84,10 @@ final class CheckBoxCell extends InputCell implements ToggleCell, ActionListener
     }
   }
 
+  void clear() {
+    setSelected(false);
+  }
+
   /**
    * Constructs savedValue (if it doesn't exist).  Saves the current setting.
    */

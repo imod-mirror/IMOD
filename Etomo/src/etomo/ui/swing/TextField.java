@@ -157,6 +157,21 @@ final class TextField implements UIComponent, SwingComponent, Field, FocusListen
     }
   }
 
+  public void clear() {
+    setText("");
+  }
+
+  public void copy(final Field copyFrom) {
+    if (copyFrom == null) {
+      return;
+    }
+    setText(copyFrom.getText());
+  }
+
+  public boolean isSelected() {
+    return false;
+  }
+
   void setDirectiveDef(final DirectiveDef directiveDef) {
     this.directiveDef = directiveDef;
   }
@@ -250,7 +265,7 @@ final class TextField implements UIComponent, SwingComponent, Field, FocusListen
    * get text without validation
    * @return
    */
-  String getText() {
+  public String getText() {
     return textField.getText();
   }
 
