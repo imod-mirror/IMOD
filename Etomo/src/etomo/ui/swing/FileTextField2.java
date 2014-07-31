@@ -440,7 +440,7 @@ final class FileTextField2 implements FileTextFieldInterface, Field, ActionListe
     return fileFilter;
   }
 
-  String getText() {
+  public String getText() {
     return field.getText();
   }
 
@@ -450,6 +450,17 @@ final class FileTextField2 implements FileTextFieldInterface, Field, ActionListe
 
   public void clear() {
     field.setText("");
+  }
+
+  public void copy(final Field copyFrom) {
+    if (copyFrom == null) {
+      return;
+    }
+    setText(copyFrom.getText());
+  }
+  
+  public boolean isSelected() {
+    return false;
   }
 
   void setEnabled(final boolean enabled) {
