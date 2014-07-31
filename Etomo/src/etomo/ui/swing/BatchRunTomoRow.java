@@ -54,7 +54,8 @@ final class BatchRunTomoRow implements Highlightable {
   private final FieldCell fcEditDataset = FieldCell.getIneditableInstance();
   private final FieldCell fcStatus = FieldCell.getIneditableInstance();
   private final CheckBoxCell cbcRun = new CheckBoxCell();
-  private final MinibuttonCell mbcEtomo = new MinibuttonCell(new ImageIcon(ETOMO_ICON_URL));
+  private final MinibuttonCell mbcEtomo = new MinibuttonCell(
+      new ImageIcon(ETOMO_ICON_URL));
   private final MinibuttonCell mbc3dmodA = new MinibuttonCell(
       new ImageIcon(IMOD_ICON_URL));
   private final MinibuttonCell mbc3dmodB = new MinibuttonCell(
@@ -176,6 +177,10 @@ final class BatchRunTomoRow implements Highlightable {
     fcStack.expand(expanded);
   }
 
+  String getExpandedStack() {
+    return fcStack.getExpandedValue();
+  }
+
   public void highlight(final boolean highlight) {
     fcStack.setHighlight(highlight);
     cbcBoundaryModel.setHighlight(highlight);
@@ -187,9 +192,6 @@ final class BatchRunTomoRow implements Highlightable {
     fcEditDataset.setHighlight(highlight);
     fcStatus.setHighlight(highlight);
     cbcRun.setHighlight(highlight);
-    mbcEtomo.setHighlight(highlight);
-    mbc3dmodA.setHighlight(highlight);
-    mbc3dmodB.setHighlight(highlight);
   }
 
   boolean isHighlighted() {
