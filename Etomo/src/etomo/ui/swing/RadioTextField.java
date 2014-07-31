@@ -168,10 +168,15 @@ final class RadioTextField implements RadioButtonInterface, Field, TextFieldInte
     radioButton.restoreFromBackup();
     textField.restoreFromBackup();
   }
-  
+
   public void clear() {
     radioButton.clear();
     textField.clear();
+  }
+
+  public void copy(final Field copyFrom) {
+    radioButton.copy(copyFrom);
+    textField.copy(copyFrom);
   }
 
   void setDirectiveDef(final DirectiveDef directiveDef) {
@@ -228,7 +233,7 @@ final class RadioTextField implements RadioButtonInterface, Field, TextFieldInte
    * return text without validation
    * @return
    */
-  String getText() {
+  public String getText() {
     String text = textField.getText();
     if (text == null || text.matches("\\s*")) {
       return "";
@@ -240,7 +245,7 @@ final class RadioTextField implements RadioButtonInterface, Field, TextFieldInte
     return radioButton.getEnumeratedType();
   }
 
-  boolean isSelected() {
+  public boolean isSelected() {
     return radioButton.isSelected();
   }
 
