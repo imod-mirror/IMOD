@@ -706,7 +706,9 @@ int main( int argc, char *argv[] )
     sprintf(viewcmd, "3dmod %s", argv[argc - 1]);
     system(viewcmd);
   }
-  return(0);
+
+  // Had to switch from return(0) after converting to C++. It gave status 127 on Windows
+  exit(0);
 }
      
 /*
