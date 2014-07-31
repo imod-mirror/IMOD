@@ -36,7 +36,8 @@ import etomo.ui.BatchRunTomoTab;
 * 
 * <p> $Log$ </p>
 */
-final class BatchRunTomoTable implements Viewable, Highlightable, Expandable {
+final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
+    ActionListener {
   public static final String rcsid = "$Id:$";
 
   private static final String STACK_TITLE = "Stack";
@@ -77,17 +78,21 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable {
 
   private final BaseManager manager;
   private final Viewport viewport;
+  private final ActionListener editDatasetListener;
 
   private File currentDirectory = null;
   private BatchRunTomoTab curTab = null;
 
-  private BatchRunTomoTable(final BaseManager manager,final ActionListener editDatasetListener) {
+  private BatchRunTomoTable(final BaseManager manager,
+      final ActionListener editDatasetListener) {
     this.manager = manager;
+    this.editDatasetListener = editDatasetListener;
     viewport = new Viewport(this, 5, null, null, null, "BatchRunTomo");
   }
 
-  static BatchRunTomoTable getInstance(final BaseManager manager) {
-    BatchRunTomoTable instance = new BatchRunTomoTable(manager);
+  static BatchRunTomoTable getInstance(final BaseManager manager,
+      final ActionListener editDatasetListener) {
+    BatchRunTomoTable instance = new BatchRunTomoTable(manager, editDatasetListener);
     instance.createPanel();
     instance.addListeners();
     return instance;
@@ -251,11 +256,10 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable {
   }
 
   private void addListeners() {
-    BatchRunTomoListener listener = new BatchRunTomoListener(this);
-    btnAdd.addActionListener(listener);
-    btnEditDataset.addActionListener(listener);
-    btnCopyDown.addActionListener(listener);
-    btnDelete.addActionListener(listener);
+    btnAdd.addActionListener(this);
+    btnCopyDown.addActionListener(this);
+    btnDelete.addActionListener(this);
+    btnEditDataset.addActionListener(editDatasetListener);
   }
 
   Component getComponent() {
@@ -304,11 +308,12 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable {
   }
 
   private void updateDisplay() {
-    boolean enable = rowList.size() > 0;
-    boolean highlighted = rowList.isHighlighted();
-    btnCopyDown.setEnabled(enable && highlighted);
-    btnDelete.setEnabled(enable && highlighted);
-    btnEditDataset.setEnabled(enable && highlighted);
+    int size = rowList.size();
+    boolean enable = size > 0 && rowList.isHighlighted();
+    btnDelete.setEnabled(enable);
+    btnEditDataset.setEnabled(enable);
+    int index = rowList.getHighlightedIndex();
+    btnCopyDown.setEnabled(index != -1 && index < size - 1);
   }
 
   void msgTabChanged(final BatchRunTomoTab tab) {
@@ -330,7 +335,11 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable {
     updateDisplay();
   }
 
-  private void action(final String actionCommand) {
+  public void actionPerformed(final ActionEvent actionEvent) {
+    if (actionEvent == null) {
+      return;
+    }
+    String actionCommand = actionEvent.getActionCommand();
     if (actionCommand == null) {
       return;
     }
@@ -355,13 +364,17 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable {
       updateDisplay();
       UIHarness.INSTANCE.pack(manager);
     }
-    else if (actionCommand.equals(btnEditDataset.getActionCommand())) {
-      rowList.setEditDataset();
-      BatchRunTomoDatasetDialog dialog = BatchRunTomoDatasetDialog.getIndividualInstance(manager);
-    }
     else if (actionCommand.equals(btnCopyDown.getActionCommand())) {
       rowList.copyDown();
     }
+  }
+
+  String getEditDatasetActionCommand() {
+    return btnEditDataset.getActionCommand();
+  }
+
+  String getHighlightedKey() {
+    return rowList.getKey();
   }
 
   public void expand(final ExpandButton button) {
@@ -376,18 +389,6 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable {
 
   public int size() {
     return rowList.size();
-  }
-
-  private static final class BatchRunTomoListener implements ActionListener {
-    private final BatchRunTomoTable table;
-
-    private BatchRunTomoListener(final BatchRunTomoTable table) {
-      this.table = table;
-    }
-
-    public void actionPerformed(final ActionEvent actionEvent) {
-      table.action(actionEvent.getActionCommand());
-    }
   }
 
   private final class RowList {
@@ -423,6 +424,7 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable {
       rowList.removeAll();
       rowList.display(viewport);
       UIHarness.INSTANCE.pack(manager);
+      updateDisplay();
     }
 
     private void delete() {
@@ -439,9 +441,12 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable {
       for (int i = index; i < list.size(); i++) {
         list.get(i).setNumber(i + 1);
       }
-      // Highlight the row after the deleted row
+      // Highlight the row after the deleted row, or the previous one if at the end of the
+      // table.
+      if (index == list.size()) {
+        index--;
+      }
       highlight(index);
-      
     }
 
     private void highlight(final int index) {
@@ -497,6 +502,14 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable {
         }
       }
       return -1;
+    }
+
+    private String getKey() {
+      int index = getHighlightedIndex();
+      if (index != -1 && index < list.size()) {
+        return list.get(index).getExpandedStack();
+      }
+      return null;
     }
 
     private void copyDown() {
