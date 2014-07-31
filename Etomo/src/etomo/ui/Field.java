@@ -27,6 +27,9 @@ public interface Field {
   public void restoreFromBackup();
 
   public void checkpoint();
-  
+
   public void clear();
+  public void copy(Field copyFrom);
+  public boolean isSelected();
+  public String getText();
 }
