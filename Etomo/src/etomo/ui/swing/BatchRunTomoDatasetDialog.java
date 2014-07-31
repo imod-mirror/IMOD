@@ -19,6 +19,7 @@ import etomo.logic.TrackingMethod;
 import etomo.storage.DirectiveDef;
 import etomo.storage.DirectiveFile;
 import etomo.storage.DirectiveFileCollection;
+import etomo.type.AxisID;
 import etomo.type.EtomoNumber;
 import etomo.ui.Field;
 import etomo.ui.FieldType;
@@ -99,35 +100,46 @@ final class BatchRunTomoDatasetDialog implements ActionListener {
       DERIVE_THICKNESS_LABEL, null);
   private final LabeledTextField ltfFallbackThickness = new LabeledTextField(
       FieldType.INTEGER, "with fallback (unbinned pixels): ");
-  private List<Field> fieldList = new ArrayList<Field>();
+  private final List<Field> fieldList = new ArrayList<Field>();
 
   private final FileTextField2 ftfDistort;
   private final FileTextField2 ftfGradient;
   private final FileTextField2 ftfModelFile;
   private final JDialog dialog;
+  private final String key;
+  private final BatchRunTomoDialog datasetDialogMap;
+  private final MultiLineButton btnRevertToGlobal;
 
-  private BatchRunTomoDatasetDialog(final BaseManager manager, final boolean useDialog) {
+  private BatchRunTomoDatasetDialog(final BaseManager manager, final String key,
+      final BatchRunTomoDialog datasetDialogMap) {
     ftfDistort = FileTextField2.getAltLayoutInstance(manager, "Image distortion file: ");
     ftfGradient = FileTextField2.getAltLayoutInstance(manager, "Mag gradient file: ");
     ftfModelFile = FileTextField2.getAltLayoutInstance(manager,
         "Manual replacement model: ");
-    if (useDialog) {
-      dialog = new JDialog();
+    this.key = key;
+    this.datasetDialogMap = datasetDialogMap;
+    if (key == null) {
+      dialog = null;
+      btnRevertToGlobal = null;
     }
     else {
-      dialog = null;
+      dialog = new JDialog();
+      btnRevertToGlobal = new MultiLineButton("Revert to Global");
     }
   }
 
   static BatchRunTomoDatasetDialog getGlobalInstance(final BaseManager manager) {
-    BatchRunTomoDatasetDialog instance = new BatchRunTomoDatasetDialog(manager, false);
+    BatchRunTomoDatasetDialog instance = new BatchRunTomoDatasetDialog(manager, null,
+        null);
     instance.createPanel();
     instance.addListeners();
     return instance;
   }
 
-  static BatchRunTomoDatasetDialog getIndividualInstance(final BaseManager manager) {
-    BatchRunTomoDatasetDialog instance = new BatchRunTomoDatasetDialog(manager, true);
+  static BatchRunTomoDatasetDialog getIndividualInstance(final BaseManager manager,
+      final String key, final BatchRunTomoDialog datasetDialogMap) {
+    BatchRunTomoDatasetDialog instance = new BatchRunTomoDatasetDialog(manager, key,
+        datasetDialogMap);
     instance.createPanel();
     instance.addListeners();
     return instance;
@@ -147,9 +159,16 @@ final class BatchRunTomoDatasetDialog implements ActionListener {
     JPanel pnlDeriveThickness = new JPanel();
     JPanel pnlFallbackThickness = new JPanel();
     JPanel pnlAutoFitRangeAndStep = new JPanel();
+    JPanel pnlRevertToGlobal = null;
+    if (btnRevertToGlobal != null) {
+      pnlRevertToGlobal = new JPanel();
+    }
     // init
     ftfGradient.setPreferredWidth(272);
     btnModelFile.setToPreferredSize();
+    if (btnRevertToGlobal != null) {
+      btnRevertToGlobal.setToPreferredSize();
+    }
     // directives
     ftfModelFile.setDirectiveDef(DirectiveDef.MODEL_FILE);
     ltfLocalAreaTargetSize.setDirectiveDef(DirectiveDef.LOCAL_AREA_TARGET_SIZE);
@@ -193,6 +212,17 @@ final class BatchRunTomoDatasetDialog implements ActionListener {
     if (dialog != null) {
       dialog.add(pnlRoot);
     }
+    // title
+    if (key != null) {
+      int titleLen = 53;
+      int keyLen = key.length();
+      if (keyLen <= titleLen) {
+        dialog.setTitle(key);
+      }
+      else {
+        dialog.setTitle("..." + key.substring(keyLen - titleLen - 3));
+      }
+    }
     // root
     pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.Y_AXIS));
     pnlRoot.setBorder(new EtchedBorder("Dataset Parameters").getBorder());
@@ -214,6 +244,9 @@ final class BatchRunTomoDatasetDialog implements ActionListener {
     pnlRoot.add(pnlCorrectCTF);
     pnlRoot.add(Box.createRigidArea(FixedDim.x0_y5));
     pnlRoot.add(pnlReconstruction);
+    if (pnlRevertToGlobal != null) {
+      pnlRoot.add(pnlRevertToGlobal);
+    }
     // ModelFile
     pnlModelFile.setLayout(new BoxLayout(pnlModelFile, BoxLayout.X_AXIS));
     pnlModelFile.add(ftfModelFile.getRootPanel());
@@ -282,6 +315,12 @@ final class BatchRunTomoDatasetDialog implements ActionListener {
     pnlFallbackThickness.setLayout(new BoxLayout(pnlFallbackThickness, BoxLayout.X_AXIS));
     pnlFallbackThickness.add(Box.createRigidArea(FixedDim.x40_y0));
     pnlFallbackThickness.add(ltfFallbackThickness.getComponent());
+    // RevertToGlobal
+    if (pnlRevertToGlobal != null) {
+      pnlRevertToGlobal.setLayout(new BoxLayout(pnlRevertToGlobal, BoxLayout.X_AXIS));
+      pnlRevertToGlobal.add(Box.createHorizontalGlue());
+      pnlRevertToGlobal.add(btnRevertToGlobal.getComponent());
+    }
     // align
     UIUtilities.alignComponentsX(pnlRoot, Component.LEFT_ALIGNMENT);
     UIUtilities.alignComponentsX(pnlReconstructionType, Component.LEFT_ALIGNMENT);
@@ -290,8 +329,11 @@ final class BatchRunTomoDatasetDialog implements ActionListener {
     // display
     if (dialog != null) {
       dialog.pack();
-      dialog.setVisible(true);
     }
+  }
+
+  void setVisible() {
+    dialog.setVisible(true);
   }
 
   private void addListeners() {
@@ -309,6 +351,9 @@ final class BatchRunTomoDatasetDialog implements ActionListener {
     rtfThickness.addActionListener(this);
     rtfBinnedThickness.addActionListener(this);
     rbDeriveThickness.addActionListener(this);
+    if (btnRevertToGlobal != null) {
+      btnRevertToGlobal.addActionListener(this);
+    }
   }
 
   Component getComponent() {
@@ -404,6 +449,17 @@ final class BatchRunTomoDatasetDialog implements ActionListener {
       }
     }
     setDefaults();
+  }
+
+  void copy(final BatchRunTomoDatasetDialog copyFrom) {
+    Iterator<Field> iterator = fieldList.iterator();
+    Iterator<Field> fromIterator = copyFrom.fieldList.iterator();
+    if (iterator != null) {
+      while (iterator.hasNext()) {
+        iterator.next().copy(fromIterator.next());
+      }
+    }
+    updateDisplay();
   }
 
   private void setDefaults() {
@@ -637,7 +693,20 @@ final class BatchRunTomoDatasetDialog implements ActionListener {
     if (actionCommand == null) {
       return;
     }
-    if (actionCommand.equals(cbRemoveXrays.getActionCommand())
+    if (btnRevertToGlobal != null
+        && actionCommand.equals(btnRevertToGlobal.getActionCommand())) {
+      if (datasetDialogMap != null) {
+        if (UIHarness.INSTANCE
+            .openYesNoDialog(
+                null,
+                "Data in this window will be lost.  Revert to global dataset data for this stack?",
+                AxisID.ONLY)) {
+          datasetDialogMap.removeDatasetDialog(key);
+          dialog.setVisible(false);
+        }
+      }
+    }
+    else if (actionCommand.equals(cbRemoveXrays.getActionCommand())
         || actionCommand.equals(rbTrackingMethodSeed.getActionCommand())
         || actionCommand.equals(rbTrackingMethodRaptor.getActionCommand())
         || actionCommand.equals(rbTrackingMethodPatchTracking.getActionCommand())
