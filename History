@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/31/14: Fixed clip corr giving non-zero exit status on Windows.
+
 7/30/14: IMOD_4-7-7
 7/30/14: SWITCHED WRITING OF BYTE FILES BACK TO UNSIGNED (In 4.7).
 
