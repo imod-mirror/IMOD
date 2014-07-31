@@ -1176,7 +1176,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements Expa
     ReadOnlyAutodoc autodoc = null;
     try {
       autodoc = AutodocFactory.getInstance(applicationManager, AutodocFactory.MTF_FILTER,
-          axisID);
+          axisID,false);
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();
@@ -1209,7 +1209,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements Expa
         + "aligned stack.");
     try {
       autodoc = AutodocFactory.getInstance(applicationManager,
-          AutodocFactory.CTF_PLOTTER, axisID);
+          AutodocFactory.CTF_PLOTTER, axisID,false);
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();
@@ -1246,7 +1246,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements Expa
     btnCtfPlotter.setToolTipText("Run ctfplotter");
     try {
       autodoc = AutodocFactory.getInstance(applicationManager,
-          AutodocFactory.CTF_PHASE_FLIP, axisID);
+          AutodocFactory.CTF_PHASE_FLIP, axisID,false);
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();

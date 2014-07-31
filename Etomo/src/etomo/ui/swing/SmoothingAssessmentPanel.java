@@ -286,7 +286,7 @@ final class SmoothingAssessmentPanel implements FlattenWarpDisplay,
     btn3dmod.setToolTipText("Open model created by flattenwarp.");
     ReadOnlyAutodoc autodoc = null;
     try {
-      autodoc = AutodocFactory.getInstance(manager, AutodocFactory.FLATTEN_WARP, axisID);
+      autodoc = AutodocFactory.getInstance(manager, AutodocFactory.FLATTEN_WARP, axisID,false);
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();
