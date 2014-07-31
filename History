@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/30/14: IMOD_4-7-7
+7/30/14: SWITCHED WRITING OF BYTE FILES BACK TO UNSIGNED (In 4.7).
+
 7/24/14: Fixed transferfid for bidirectional series and other cases with
 a separate view group option in tracka.com (In 4.7).
 
