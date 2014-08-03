@@ -660,7 +660,7 @@ final class SirtPanel implements Run3dmodButtonContainer, SirtsetupDisplay, Expa
   private void setToolTipText() {
     ReadOnlyAutodoc autodoc = null;
     try {
-      autodoc = AutodocFactory.getInstance(manager, AutodocFactory.SIRTSETUP, axisID);
+      autodoc = AutodocFactory.getInstance(manager, AutodocFactory.SIRTSETUP, axisID,false);
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();

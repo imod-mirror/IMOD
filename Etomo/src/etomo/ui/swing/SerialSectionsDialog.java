@@ -737,7 +737,7 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
     ReadOnlyAutodoc autodoc = null;
     try {
       if (viewType == ViewType.MONTAGE) {
-        autodoc = AutodocFactory.getInstance(manager, AutodocFactory.BLENDMONT, axisID);
+        autodoc = AutodocFactory.getInstance(manager, AutodocFactory.BLENDMONT, axisID,false);
         cbVerySloppyMontage
             .setToolTipText("Overlaps between images vary substantially; use for "
                 + "montages taken with stage movement.");
@@ -754,7 +754,7 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
             + EtomoAutodoc.getTooltip(autodoc, BlendmontParam.FILL_VALUE_KEY));
       }
       else {
-        autodoc = AutodocFactory.getInstance(manager, AutodocFactory.NEWSTACK, axisID);
+        autodoc = AutodocFactory.getInstance(manager, AutodocFactory.NEWSTACK, axisID,false);
         spBinByFactor.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
             NewstParam.BIN_BY_FACTOR_KEY));
         cbFillWithZero.setToolTipText("Sets " + NewstParam.FILL_VALUE_KEY + " to zero.  "

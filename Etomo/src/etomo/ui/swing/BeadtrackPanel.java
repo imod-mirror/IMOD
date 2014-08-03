@@ -885,7 +885,8 @@ public final class BeadtrackPanel implements Expandable, Run3dmodButtonContainer
     String text;
     ReadOnlyAutodoc autodoc = null;
     try {
-      autodoc = AutodocFactory.getInstance(manager, AutodocFactory.BEADTRACK, axisID);
+      autodoc = AutodocFactory.getInstance(manager, AutodocFactory.BEADTRACK, axisID,
+          false);
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();
