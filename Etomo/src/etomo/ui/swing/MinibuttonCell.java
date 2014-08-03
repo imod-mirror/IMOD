@@ -1,6 +1,7 @@
 package etomo.ui.swing;
 
 import java.awt.Component;
+import java.awt.event.ActionListener;
 
 import javax.swing.BorderFactory;
 import javax.swing.Icon;
@@ -45,6 +46,10 @@ public final class MinibuttonCell extends InputCell {
     return button.getWidth();
   }
 
+  void addActionListener(final ActionListener listener) {
+    button.addActionListener(listener);
+  }
+
   public void setEnabled(boolean enable) {
     button.setEnabled(enable);
   }
@@ -61,4 +66,11 @@ public final class MinibuttonCell extends InputCell {
     button.setToolTipText(TooltipFormatter.INSTANCE.format(text));
   }
 
+  void setActionCommand(final String input) {
+    button.setActionCommand(input);
+  }
+
+  String getActionCommand() {
+    return button.getActionCommand();
+  }
 }
