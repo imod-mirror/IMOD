@@ -2,14 +2,20 @@ package etomo.ui.swing;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.File;
 import java.net.URL;
 
 import javax.swing.ImageIcon;
 import javax.swing.JPanel;
 
+import etomo.BatchRunTomoManager;
+import etomo.EtomoDirector;
+import etomo.logic.DatasetTool;
 import etomo.storage.DirectiveDef;
 import etomo.storage.DirectiveFileCollection;
+import etomo.type.AxisID;
 import etomo.type.EtomoNumber;
 import etomo.type.UserConfiguration;
 import etomo.ui.BatchRunTomoTab;
@@ -29,7 +35,8 @@ import etomo.ui.BatchRunTomoTab;
 * 
 * <p> $Log$ </p>
 */
-final class BatchRunTomoRow implements Highlightable {
+final class BatchRunTomoRow implements Highlightable, ActionListener,
+    Run3dmodButtonContainer {
   public static final String rcsid = "$Id:$";
 
   private static final URL IMOD_ICON_URL = ClassLoader
@@ -60,25 +67,31 @@ final class BatchRunTomoRow implements Highlightable {
       new ImageIcon(IMOD_ICON_URL));
   private final MinibuttonCell mbc3dmodB = new MinibuttonCell(
       new ImageIcon(IMOD_ICON_URL));
+  private final HeaderCell hcNumber = new HeaderCell();
 
   private final JPanel panel;
   private final GridBagLayout layout;
   private final GridBagConstraints constraints;
   private final HighlighterButton hbRow;
   private final FieldCell fcStack;
-  private final HeaderCell hcNumber = new HeaderCell();
+  private final BatchRunTomoManager manager;
+
+  private int imodIndexA = -1;
+  private int imodIndexB = -1;
 
   private BatchRunTomoRow(final String propertyUserDir, final BatchRunTomoTable table,
       final JPanel panel, final GridBagLayout layout,
       final GridBagConstraints constraints, final int number, final File stack,
-      final BatchRunTomoRow valueRow) {
+      final BatchRunTomoRow valueRow, final BatchRunTomoManager manager) {
     this.panel = panel;
     this.layout = layout;
     this.constraints = constraints;
+    this.manager = manager;
     hcNumber.setText(number);
     hbRow = HighlighterButton.getInstance(this, table);
     fcStack = FieldCell.getExpandableInstance(null);
     fcStack.setValue(stack);
+    // icons
     if (IMOD_DISABLED_ICON_URL != null) {
       mbc3dmodA.setDisabledIcon(new ImageIcon(IMOD_DISABLED_ICON_URL));
     }
@@ -97,6 +110,7 @@ final class BatchRunTomoRow implements Highlightable {
     if (ETOMO_PRESSED_ICON_URL != null) {
       mbcEtomo.setPressedIcon(new ImageIcon(ETOMO_PRESSED_ICON_URL));
     }
+    // init
     setDefaults();
     copy(valueRow);
     cbcRun.setSelected(true);
@@ -106,13 +120,17 @@ final class BatchRunTomoRow implements Highlightable {
   static BatchRunTomoRow getInstance(final String propertyUserDir,
       final BatchRunTomoTable table, final JPanel panel, final GridBagLayout layout,
       final GridBagConstraints constraints, final int number, final File stack,
-      final BatchRunTomoRow initialValueRow) {
-    return new BatchRunTomoRow(propertyUserDir, table, panel, layout, constraints,
-        number, stack, initialValueRow);
+      final BatchRunTomoRow valueRow, final BatchRunTomoManager manager) {
+    BatchRunTomoRow instance = new BatchRunTomoRow(propertyUserDir, table, panel, layout,
+        constraints, number, stack, valueRow, manager);
+    instance.addListeners();
+    return instance;
   }
 
   static BatchRunTomoRow getDefaultsInstance() {
-    return new BatchRunTomoRow(null, null, null, null, null, -1, null, null);
+    BatchRunTomoRow instance = new BatchRunTomoRow(null, null, null, null, null, -1,
+        null, null, null);
+    return instance;
   }
 
   void copy(final BatchRunTomoRow valueRow) {
@@ -120,6 +138,60 @@ final class BatchRunTomoRow implements Highlightable {
       cbcDualAxis.setSelected(valueRow.cbcDualAxis.isSelected());
       cbcMontage.setSelected(valueRow.cbcMontage.isSelected());
       cbcTwoSurfaces.setSelected(valueRow.cbcTwoSurfaces.isSelected());
+    }
+  }
+
+  private void addListeners() {
+    // give each listened to field an unique action command
+    mbc3dmodA.setActionCommand(((Object) mbc3dmodA).toString());
+    mbc3dmodB.setActionCommand(((Object) mbc3dmodB).toString());
+    cbcDualAxis.setActionCommand(((Object) cbcDualAxis).toString());
+    mbcEtomo.setActionCommand(((Object) mbcEtomo).toString());
+    cbcBoundaryModel.setActionCommand(((Object) cbcBoundaryModel).toString());
+    // set listeners
+    mbc3dmodA.addActionListener(this);
+    mbc3dmodB.addActionListener(this);
+    cbcDualAxis.addActionListener(this);
+    mbcEtomo.addActionListener(this);
+    cbcBoundaryModel.addActionListener(this);
+  }
+
+  public void actionPerformed(final ActionEvent event) {
+    if (event == null) {
+      return;
+    }
+    String actionCommand = event.getActionCommand();
+    if (actionCommand == null) {
+      return;
+    }
+    if (actionCommand.equals(cbcDualAxis.getActionCommand())) {
+      updateDisplay();
+    }
+    else if (actionCommand.equals(mbc3dmodA.getActionCommand())) {
+      imodIndexA = manager.imod(fcStack.getExpandedValue(),
+          cbcBoundaryModel.isSelected(), AxisID.FIRST, imodIndexA);
+    }
+    else if (actionCommand.equals(mbc3dmodB.getActionCommand())) {
+      imodIndexB = manager.imod(fcStack.getExpandedValue(),
+          cbcBoundaryModel.isSelected(), AxisID.SECOND, imodIndexB);
+    }
+    else if (actionCommand.equals(mbcEtomo.getActionCommand())) {
+      EtomoDirector.INSTANCE.openTomogram(DatasetTool.getDatasetFile(
+          fcStack.getExpandedValue(), false, AxisID.ONLY));
+    }
+    else if (actionCommand.equals(cbcBoundaryModel.getActionCommand())
+        && cbcBoundaryModel.isSelected()) {
+      manager.imodOpenModel(imodIndexA);
+      manager.imodOpenModel(imodIndexB);
+    }
+  }
+
+  void delete() {
+    if (imodIndexA != -1) {
+      manager.deleteImod(imodIndexA);
+    }
+    if (imodIndexB != -1) {
+      manager.deleteImod(imodIndexB);
     }
   }
 
@@ -139,6 +211,12 @@ final class BatchRunTomoRow implements Highlightable {
     mbcEtomo.remove();
     mbc3dmodA.remove();
     mbc3dmodB.remove();
+  }
+
+  private void updateDisplay() {
+    boolean dual = cbcDualAxis.isSelected();
+    fcExcludeViewsB.setEnabled(dual);
+    mbc3dmodB.setEnabled(dual);
   }
 
   void display(final Viewport viewport, final BatchRunTomoTab tab) {
