@@ -9,6 +9,7 @@ import javax.swing.JPopupMenu;
 
 import etomo.type.DialogType;
 import etomo.type.Run3dmodMenuOptions;
+import etomo.ui.ContextMenuTarget;
 
 /**
  * <p>Description:   Run3dmodButton extends MultiLineButton.  It creates a right
@@ -26,7 +27,7 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  */
 final class Run3dmodButton extends MultiLineButton implements ContextMenu,
-    Deferred3dmodButton {
+    Deferred3dmodButton, ContextMenuTarget {
   public static final String rcsid = "$Id$";
 
   private final JPopupMenu contextMenu = new JPopupMenu("3dmod Options");
@@ -190,6 +191,13 @@ final class Run3dmodButton extends MultiLineButton implements ContextMenu,
       menuOptions.setBinBy2(true);
     }
     action(menuOptions);
+    if (isToggleButton()) {
+      setSelected(true);
+    }
+  }
+  
+  public void menuAction(Run3dmodMenuOptions run3dmodMenuOptions) {
+    action(run3dmodMenuOptions);
     if (isToggleButton()) {
       setSelected(true);
     }
