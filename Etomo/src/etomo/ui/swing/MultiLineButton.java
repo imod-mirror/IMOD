@@ -474,7 +474,7 @@ class MultiLineButton implements ProcessResultDisplay {
     return button.getActionCommand();
   }
 
-  final Component getComponent() {
+ public final Component getComponent() {
     return button;
   }
 
@@ -606,7 +606,7 @@ class MultiLineButton implements ProcessResultDisplay {
     return button.isVisible();
   }
 
-  final boolean isEnabled() {
+ public final boolean isEnabled() {
     return button.isEnabled();
   }
 
