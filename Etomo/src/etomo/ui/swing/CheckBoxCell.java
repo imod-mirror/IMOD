@@ -133,6 +133,14 @@ final class CheckBoxCell extends InputCell implements ToggleCell, ActionListener
     checkBox.setSelected(selected);
   }
 
+  void setActionCommand(final String input) {
+    checkBox.setActionCommand(input);
+  }
+
+  String getActionCommand() {
+    return checkBox.getActionCommand();
+  }
+
   public void addActionListener(final ActionListener actionListener) {
     checkBox.addActionListener(actionListener);
   }
