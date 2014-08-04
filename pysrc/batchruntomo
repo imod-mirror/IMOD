@@ -19,7 +19,7 @@ global rawXsize, rawYsize, zsize, fiducialless, coarseBinning
 global xtiltNeeded, fidThickness, fidIncShift, reconThickness, didLocalAlign, madeZfactors
 global aliBinning, aliXunbinned, aliYunbinned, patchTrack, totalDelTilt, latestMessages
 global suppressAbort, absDirectiveFile, userTemplateDir, summaryMessage, logFile
-global finalRetVal
+global finalRetVal, correctCTF, eraseGold
 
 # Print a string to both standard out and a log file if one is defined
 def prnLog(string, end  = '\n', flush = False):
@@ -920,7 +920,7 @@ def splitAndRunTilt(comfile, message):
 
 # Test whether a step should be run
 def needStep(step):
-   return step >= startingStep and step <= endingStep
+   return step >= startingStep - 0.005 and step <= endingStep + 0.005
 
 
 # SINGLE-CALL FUNCTIONS FOR INITIAL STEPS
@@ -1916,15 +1916,15 @@ def makeAlignedStack():
 
 
 # Do optional CTF correction on aligned stack
-def CTFCorrectAlignedStack():
+def CTFPlotAlignedStack():
+   global correctCTF
 
    # Do autofitting with ctfplotter if enabled
    correctCTF = lookupDirective(runtimePrefix + 'AlignedStack', 'correctCTF', 0,
                                 BOOL_VALUE)
    autofit = lookupDirective(runtimePrefix + 'CTFplotting', 'autoFitRangeAndStep', 0,
                              STRING_VALUE)
-   focFileName = dataName + '.defocus'
-   if needStep(ctfStepNum) and correctCTF and autofit:
+   if needStep(ctfPlotStepNum) and correctCTF and autofit:
          ctfLines = readTextFileReportErr('ctfplotter' + axisCom)
          if not ctfLines:
             return 1
@@ -1933,66 +1933,67 @@ def CTFCorrectAlignedStack():
                    '/^AngleRange/d']
 
          # Make existing defocus file a backup to avoid error messages
-         makeBackupFile(focFileName)
+         makeBackupFile(dataName + '.defocus')
          if modifyWriteAndRunCom('ctfplotter_auto' + axisCom, sedcom, ctfLines,
                                  'Finding defocus for CTF correction with Ctfplotter'):
             return 1
 
-   # Do correction with ctfphaseflip
-   if needStep(ctfStepNum + 1) and correctCTF:
+   return 0
 
-      # Write the simple defocus file and use it if there is no defocus file; but if there
-      # is, make sure it is in the com file
-      simpleName = dataName + '_simple.defocus'
-      if not os.path.exists(focFileName):
-         if writeTextFileReportErr(simpleName, [fmtstr('{} {} 0. 0. {}', zsize // 2,
-                                                       zsize // 2, defocus)]):
-            return 1
-         sedcom = [sedModify('DefocusFile', simpleName)]
-      else:
-         sedcom = [sedModify('DefocusFile', focFileName)]
 
-      sedcom.append(sedModify('PixelSize', aliBinning * pixelSize))
-      
-      comfile = 'ctfcorrection' + axisCom
-      ctfLines = readTextFileReportErr(comfile)
-      if not ctfLines:
-         return 1
-      if pysed(sedcom, ctfLines, comfile, retErr=True):
-         abortSet('Error modifying ' + comfile)
-         return 1
-      if parallelCPU > 1:
-         target = 2 * parallelCPU
-         maxSlices = (zsize + target - 1) / target
-         try:
-            runcmd(fmtstr('splitcorrection -m {} {}', maxSlices, comfile))
-         except ImodpyError:
-            reportImodError('Error trying to run ctfcorrection in parallel')
-            return 1
-      
-      if runOneProcess(comfile, parallelCPU < 2,
-                       message = 'Correcting for CTF with Ctfphaseflip'):
-         return 1
+# Do correction with ctfphaseflip
+def CTFCorrectAlignedStack():
 
-      if useFileAsReplacement(dataName + '_ctfcorr.ali', dataName + '.ali', False, True):
+   # Write the simple defocus file and use it if there is no defocus file; but if there
+   # is, make sure it is in the com file
+   focFileName = dataName + '.defocus'
+   simpleName = dataName + '_simple.defocus'
+   if not os.path.exists(focFileName):
+      if writeTextFileReportErr(simpleName, [fmtstr('{} {} 0. 0. {}', zsize // 2,
+                                                    zsize // 2, defocus)]):
          return 1
+      sedcom = [sedModify('DefocusFile', simpleName)]
+   else:
+      sedcom = [sedModify('DefocusFile', focFileName)]
+
+   sedcom.append(sedModify('PixelSize', aliBinning * pixelSize))
+   
+   comfile = 'ctfcorrection' + axisCom
+   ctfLines = readTextFileReportErr(comfile)
+   if not ctfLines:
+      return 1
+   if pysed(sedcom, ctfLines, comfile, retErr=True):
+      abortSet('Error modifying ' + comfile)
+      return 1
+   if parallelCPU > 1:
+      target = 2 * parallelCPU
+      maxSlices = (zsize + target - 1) / target
+      try:
+         runcmd(fmtstr('splitcorrection -m {} {}', maxSlices, comfile))
+      except ImodpyError:
+         reportImodError('Error trying to run ctfcorrection in parallel')
+         return 1
+   
+   if runOneProcess(comfile, parallelCPU < 2,
+                    message = 'Correcting for CTF with Ctfphaseflip'):
+      return 1
+
+   if useFileAsReplacement(dataName + '_ctfcorr.ali', dataName + '.ali', False, True):
+      return 1
 
    return 0
       
 
-# Optionally erase gold with 3D method
-def eraseGoldInAlignedStack():
+# Optionally detect gold for erasing with 3D method
+def detectGoldIn3D():
+   global eraseGold
+   
    eraseGold = lookupDirective(runtimePrefix + 'AlignedStack', 'eraseGold', 0, INT_VALUE)
    if isinstance(eraseGold, str):
       abortSet('Error converting eraseGold entry to integer')
       return 1
-   if eraseGold:
-      extraDiam = lookupDirective(runtimePrefix + 'GoldErasing', 'extraDiameter', 0,
-                                  FLOAT_VALUE)
-      if not extraDiam:
-         extraDiam = 0.
 
-   if eraseGold > 1 and needStep(eraseStepNum):
+   if eraseGold > 1 and needStep(detect3DstepNum):
       binning = lookupDirective(runtimePrefix + 'GoldErasing', 'binning', 0, INT_VALUE)
       if not binning:
          binning = aliBinning
@@ -2057,15 +2058,23 @@ def eraseGoldInAlignedStack():
       comlines += laterComDirectives('findbeads3d', 'findbeads3d', 0)
       if makeAndRunOneCom(comlines, 'findbeads3d' + axisCom, 'Finding beads in tomogram'):
          return 1
-            
-      # Get the reprojection
+
+   return 0
+
+
+# Erase gold in aligned stack one way or another
+def eraseGoldInAlignedStack():
+   if eraseGold > 1:
+
+      # Get the reprojection if using 3D method
       comlines = ['InputFile tilt_3dfind' + axisCom,
                   'RootNameOfDataFiles ' + dataName]
       if makeAndRunOneCom(comlines, 'tilt_3dfind_reproject' + axisCom,
                           'Reprojecting model of beads in tomogram onto aligned stack'):
          return 1
 
-   elif eraseGold and needStep(eraseStepNum):
+   # Or transform fiducial model
+   else:
       if fiducialless:
          abortset('Cannot erase gold with fiducials after fiducialless processing')
       try:
@@ -2075,17 +2084,20 @@ def eraseGoldInAlignedStack():
          return 1
 
    # Erase the beads
-   if eraseGold and needStep(eraseStepNum):
-      comlines = ['RootNameOfDataFiles ' + dataName,
-                  'BeadSize ' + str(fidSizePix / aliBinning + extraDiam),
-                  fmtstr('OneParameterChange {}golderaser{}.ccderaser.' + \
-                            'ExpandCircleIterations=2', comPrefix, axisLet)]
-      if makeAndRunOneCom(comlines, 'golderaser' + axisCom,
-                          'Erasing beads from aligned stack'):
-         return 1
-      
-      if useFileAsReplacement(dataName + '_erase.ali', dataName + '.ali', False, True):
-         return 1
+   extraDiam = lookupDirective(runtimePrefix + 'GoldErasing', 'extraDiameter', 0,
+                               FLOAT_VALUE)
+   if not extraDiam:
+      extraDiam = 0.
+   comlines = ['RootNameOfDataFiles ' + dataName,
+               'BeadSize ' + str(fidSizePix / aliBinning + extraDiam),
+               fmtstr('OneParameterChange {}golderaser{}.ccderaser.' + \
+                         'ExpandCircleIterations=2', comPrefix, axisLet)]
+   if makeAndRunOneCom(comlines, 'golderaser' + axisCom,
+                       'Erasing beads from aligned stack'):
+      return 1
+   
+   if useFileAsReplacement(dataName + '_erase.ali', dataName + '.ali', False, True):
+      return 1
 
    return 0
 
@@ -2093,7 +2105,7 @@ def eraseGoldInAlignedStack():
 # 2D filtering, very simple operation
 def filterAlignedStack():
    if lookupDirective(runtimePrefix + 'AlignedStack', 'filterStack', 0, BOOL_VALUE) and \
-          needStep(12):
+          needStep(13):
       if runOneProcess('mtffilter' + axisCom, message =
                        '2D filtering the aligned stack with Mtffilter'):
          return 1
@@ -2473,7 +2485,7 @@ def runOneAxis():
             return 1
 
       # Tilt alignment needed if aligned stack or reconstruction being made
-      if endingStep >= 5 and startingStep <= 13 and runTiltalign(taLines):
+      if endingStep >= 5 and startingStep <= 14 and runTiltalign(taLines):
          return 1
 
       # Iterate patch tracking with angle offset now that it is known, if desired
@@ -2490,20 +2502,24 @@ def runOneAxis():
    if makeAlignedStack():
       return 1
          
-   # CTF correct it before gold erasing
-   if ctfStepNum == 9 and CTFCorrectAlignedStack():
+   # Do CTF plotter step (tests need, sets correctCTF global)
+   if CTFPlotAlignedStack():
       return 1
 
    # Set up the tilt com file now that output size is known and montage frame data set
-   if endingStep >= eraseStepNum and startingStep <= 13 and modifyTiltComFile():
+   if endingStep >= detect3DstepNum and startingStep <= 14 and modifyTiltComFile():
+      return 1
+
+   # Do 3D gold detection (tests need, sets eraseGold global)
+   if detectGoldIn3D():
+      return 1
+   
+   # Optionally CTF correct the stack
+   if needStep(ctfCorrStepNum) and correctCTF and CTFCorrectAlignedStack():
       return 1
 
    # Optionally erase gold
-   if eraseGoldInAlignedStack():
-      return 1
-
-   # Or CTF correct it after gold erasing
-   if ctfStepNum == 10 and CTFCorrectAlignedStack():
+   if needStep(eraseStepNum) and eraseGold and eraseGoldInAlignedStack():
       return 1
 
    # Optionally filter
@@ -2511,11 +2527,11 @@ def runOneAxis():
       return 1
 
    # Make the reconstruction
-   if needStep(13) and generateTomogram():
+   if needStep(14) and generateTomogram():
       return 1
 
    # Optionally run trimvol at axis level for now
-   if needStep(18) and trimVolume():
+   if needStep(finalStepNum) and trimVolume():
       return 1
 
    return 0
@@ -2548,9 +2564,9 @@ options = ["directive:DirectiveFile:FNM:", "root:RootName:FNM:",
            "single:SingleOnFirstCPU:B:", "gpus:GPUMachineList:CH:", "nice:NiceValue:I:",
            "remote:RemoteDirectory:FN:", "check:CheckFile:FN:",
            "email:EmailAddress:CH:", "validation:ValidationType:I:",
-           "start:StartingStep:I:", "end:EndingStep:I:",
-           "first:StartForFirstSetOnly:B:", "erase:EraseBeforeCTF:B:",
-           "use:UseExistingAlignment:B:", "exit:ExitOnError:B:", "etomo:EtomoDebug:I:"]
+           "start:StartingStep:F:", "end:EndingStep:F:",
+           "first:StartForFirstSetOnly:B:", "use:UseExistingAlignment:B:",
+           "exit:ExitOnError:B:", "etomo:EtomoDebug:I:"]
 
 copyPrefix = 'setupset.copyarg.'
 setupPrefix = 'setupset.'
@@ -2571,8 +2587,11 @@ suppressAbort = False
 altExtension = 'mrc'
 userTemplateDir = ''
 summaryMessage = ''
-ctfStepNum = 9
-eraseStepNum = 11
+ctfPlotStepNum = 9
+detect3DstepNum = 10
+ctfCorrStepNum = 11
+eraseStepNum = 12
+finalStepNum = 20
 logFile = None
 finalRetVal = 0
 latestMessages = []
@@ -2677,21 +2696,20 @@ if useGPU:
 niceness = PipGetInteger('NiceValue', 15)
 remoteStartDir = PipGetString('RemoteDirectory', '')
 doOneAxis = PipGetInteger('ProcessOneAxis', 0)
-startingStep = PipGetInteger('StartingStep', 0)
-endingStep = PipGetInteger('EndingStep', 10000000)
+startingStep = PipGetFloat('StartingStep', 0.)
+endingStep = PipGetFloat('EndingStep', 10000000.)
 firstStart = PipGetBoolean('StartForFirstSetOnly', 0)
 skipTiltalign = PipGetBoolean('UseExistingAlignment', 0)
 exitOnError = PipGetBoolean('ExitOnError', 0)
 etomoDebug = PipGetInteger('EtomoDebug', 0)
 useFirstCPUforSingle = PipGetBoolean('SingleOnFirstCPU',0)
-if PipGetBoolean('EraseBeforeCTF', 0):
-   eraseStepNum = 9
-   ctfStepNum = 10
 if not firstStart and startingStep > 100:
    prnstr('WARNING: Entering a starting step above 100 has no effect without ' +\
              '-first option')
-   startingStep = startingStep % 100
-if skipTiltalign and (startingStep <= 5 or (startingStep > 100 and startingStep <= 105)):
+   while startingStep > 100:
+      startingStep -= 100
+if skipTiltalign and (startingStep <= 5.005 or \
+                         (startingStep > 99.995 and startingStep <= 105.005)):
    exitError('You cannot use an existing alignment when you start before the ' +\
                 'alignment step')
    
@@ -2933,8 +2951,8 @@ for dfileInd in range(numSets):
             
       dataName = setName + axisLet
       axisCom = axisLet + '.com'
-      if startingStep > 100:
-         startingStep = startingStep % 100
+      while startingStep > 100:
+         startingStep -= 100.
          continue
       if runOneAxis():
          if firstStart:
@@ -2948,8 +2966,11 @@ for dfileInd in range(numSets):
          message = 'Completed axis ' + axisLet.upper() + ' of dataset ' + setName
       else:
          message = 'Completed dataset ' + setName
-      if endingStep < 18:
-         message += ' through step ' + str(endingStep)
+      if endingStep < finalStepNum:
+         endPrint = int(round(endingStep))
+         if math.fabs(endPrint - endingStep) > 0.005:
+            endPrint = endingStep
+         message += fmtstr(' through step {}', endPrint)
       prnLog(message)
       summaryMessage += message + '\n'
 
