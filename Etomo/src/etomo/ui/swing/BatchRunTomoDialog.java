@@ -19,6 +19,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import etomo.BaseManager;
+import etomo.BatchRunTomoManager;
 import etomo.EtomoDirector;
 import etomo.logic.UserEnv;
 import etomo.storage.DirectiveFileCollection;
@@ -86,7 +87,7 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
 
   private BatchRunTomoTab curTab = null;
 
-  private BatchRunTomoDialog(final BaseManager manager, final AxisID axisID) {
+  private BatchRunTomoDialog(final BatchRunTomoManager manager, final AxisID axisID) {
     this.manager = manager;
     this.axisID = axisID;
     ftfRootName = FileTextField2.getAltLayoutInstance(manager, "Location: ");
@@ -101,7 +102,7 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
         null, directiveFileCollection);
   }
 
-  public static BatchRunTomoDialog getInstance(final BaseManager manager,
+  public static BatchRunTomoDialog getInstance(final BatchRunTomoManager manager,
       final AxisID axisID) {
     BatchRunTomoDialog instance = new BatchRunTomoDialog(manager, axisID);
     instance.createPanel();
