@@ -8,7 +8,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 
 import etomo.type.Run3dmodMenuOptions;
-import etomo.ui.ContextMenuTarget;
+import etomo.ui.Run3dmodMenuTarget;
 
 /**
 * <p>Description: Constructs a run 3dmod context menu.  When the context menu is
@@ -34,12 +34,12 @@ final class Run3dmodMenu implements ActionListener, ContextMenu {
 
   private final JPopupMenu contextMenu = new JPopupMenu("3dmod Options");
 
-  private final ContextMenuTarget target;
+  private final Run3dmodMenuTarget target;
   private final JMenuItem startupWindow;
   private final JMenuItem binBy2;
   private final JMenuItem run3dmod;
 
-  private Run3dmodMenu(final ContextMenuTarget target, final String openString,
+  private Run3dmodMenu(final Run3dmodMenuTarget target, final String openString,
       final boolean processButton) {
     this.target = target;
     startupWindow = new MenuItem(openString + " with startup window");
@@ -52,7 +52,8 @@ final class Run3dmodMenu implements ActionListener, ContextMenu {
     }
   }
 
-  Run3dmodMenu get3dmodButtonInstance(final ContextMenuTarget button, final String descr) {
+  static Run3dmodMenu get3dmodButtonInstance(final Run3dmodMenuTarget button,
+      final String descr) {
     Run3dmodMenu instance = new Run3dmodMenu(button, descr == null ? "Open" : "Open "
         + descr, false);
     instance.createMenu();
@@ -60,7 +61,8 @@ final class Run3dmodMenu implements ActionListener, ContextMenu {
     return instance;
   }
 
-  Run3dmodMenu getProcessButtonInstance(final ContextMenuTarget button, String descr) {
+  static Run3dmodMenu getProcessButtonInstance(final Run3dmodMenuTarget button,
+      String descr) {
     if (descr == null) {
       descr = DEFAULT_DESCR;
     }
