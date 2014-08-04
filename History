@@ -1,5 +1,10 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/3/14: IMOD_4-8-10
+8/3/14: Subdivided steps in Batchruntomo so CTF plotting and 3D gold
+finding could be checked at one stopping point; eliminated option to switch
+order of steps; CHANGED NUMBERS FOR -start AND -end AGAIN.
+
 7/31/14: Fixed clip corr giving non-zero exit status on Windows.
 
 7/30/14: IMOD_4-7-7

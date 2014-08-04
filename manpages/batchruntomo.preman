@@ -222,7 +222,11 @@ created by other means).
 can be done with
 automatic finding of beads in a tomogram, or by transforming the fiducial
 model, although the latter is of limited value until a completed model is put
-out by Tiltalign(1).  
+out by Tiltalign(1).  Both the automatic finding of beads in 3D, and
+the detection of defocus, are steps that one might want to check before
+proceeding.  To allow intervention at a single stopping place, CTF
+correction and gold erasing steps are interleaved: defocus is detected,
+beads are found, CTF is corrected, then beads are erased.
 .B 2D filtering 
 can be specified.
 .P
