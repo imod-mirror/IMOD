@@ -500,9 +500,11 @@ set.var.z-axis-max = 70
 set.var.z-axis-min-patch-tracking = 8
 set.var.z-axis-max-patch-tracking = 114
 set.var.unbinned-bead-diameter = 10.56
+set.var.unbinned-bead-diameter-zero-bead =
 set.var.int-unbinned-bead-diameter = 11
 #PreProc
 set.var.maximum-radius=3.0
+set.var.maximum-radius-zero-bead=
 set.var.needs-pre-proc=
 #FidModel
 set.var.pixels-to-trim.a=98,51
