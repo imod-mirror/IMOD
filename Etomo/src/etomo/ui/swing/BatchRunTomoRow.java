@@ -17,6 +17,7 @@ import etomo.storage.DirectiveDef;
 import etomo.storage.DirectiveFileCollection;
 import etomo.type.AxisID;
 import etomo.type.EtomoNumber;
+import etomo.type.Run3dmodMenuOptions;
 import etomo.type.UserConfiguration;
 import etomo.ui.BatchRunTomoTab;
 
@@ -35,8 +36,7 @@ import etomo.ui.BatchRunTomoTab;
 * 
 * <p> $Log$ </p>
 */
-final class BatchRunTomoRow implements Highlightable, ActionListener,
-    Run3dmodButtonContainer {
+final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
   public static final String rcsid = "$Id:$";
 
   private static final URL IMOD_ICON_URL = ClassLoader
@@ -149,18 +149,21 @@ final class BatchRunTomoRow implements Highlightable, ActionListener,
     mbcEtomo.setActionCommand(((Object) mbcEtomo).toString());
     cbcBoundaryModel.setActionCommand(((Object) cbcBoundaryModel).toString());
     // set listeners
-    mbc3dmodA.addActionListener(this);
-    mbc3dmodB.addActionListener(this);
-    cbcDualAxis.addActionListener(this);
-    mbcEtomo.addActionListener(this);
-    cbcBoundaryModel.addActionListener(this);
+    ActionListener listener = new RowListener(this);
+    mbc3dmodA.addActionListener(listener);
+    mbc3dmodB.addActionListener(listener);
+    cbcDualAxis.addActionListener(listener);
+    mbcEtomo.addActionListener(listener);
+    cbcBoundaryModel.addActionListener(listener);
   }
 
-  public void actionPerformed(final ActionEvent event) {
-    if (event == null) {
-      return;
-    }
-    String actionCommand = event.getActionCommand();
+  public void action(final Run3dmodButton button,
+      final Run3dmodMenuOptions run3dmodMenuOptions) {
+    action(button.getActionCommand(), run3dmodMenuOptions);
+  }
+
+  public void action(final String actionCommand,
+      final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (actionCommand == null) {
       return;
     }
@@ -364,5 +367,17 @@ final class BatchRunTomoRow implements Highlightable, ActionListener,
   void setValues(final UserConfiguration userConfiguration) {
     cbcDualAxis.setSelected(!userConfiguration.getSingleAxis());
     cbcMontage.setSelected(userConfiguration.getMontage());
+  }
+
+  private static final class RowListener implements ActionListener {
+    private final BatchRunTomoRow row;
+
+    private RowListener(final BatchRunTomoRow row) {
+      this.row = row;
+    }
+
+    public void actionPerformed(final ActionEvent event) {
+      row.action(event.getActionCommand(), null);
+    }
   }
 }
