@@ -89,6 +89,15 @@ public final class BatchRunTomoManager extends BaseManager {
     }
   }
 
+  /**
+   * 
+   * @return the vector index of the 3dmod instance
+   */
+  public int imod(final String absStackPath, final boolean boundaryModel,
+      final AxisID axisID, int imodIndex) {
+    return imodIndex;
+  }
+
   void createMainPanel() {
     if (!EtomoDirector.INSTANCE.getArguments().isHeadless()) {
       mainPanel = new MainBatchRunTomoPanel(this);
