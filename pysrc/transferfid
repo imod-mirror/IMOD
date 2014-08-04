@@ -552,6 +552,7 @@ try:
              '?^TiltFile?d',
              '?^TiltAngles?d',
              '?^SkipViews?d',
+             '?^SeparateGroup?d',
              '?^RoundsOfTracking?s?[ 	].*? 1?',
              '?^RotationAngle?a?TiltAngles 0,0?']
    sedlines = pysed(sedcom, tracklines, None, False, '?')
