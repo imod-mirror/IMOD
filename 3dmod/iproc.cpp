@@ -75,6 +75,10 @@ static void anisoDiff_cb();
 #define NO_KERNEL_SIGMA 0.4f
 #define KERNEL_MAXSIZE 7
 
+// An enum to protect against button renumbering
+enum {APPLY_BUT = 0, MORE_BUT, LESS_BUT, DO_SAME_BUT, TOGGLE_BUT, RESET_BUT, SAVE_BUT,
+      LIST_BUT, DONE_BUT, HELP_BUT};
+
 /* The table of entries and callbacks */
 ImodIProcData proc_data[] = {
   {"FFT", fft_cb, mkFFT_cb, NULL},
@@ -90,9 +94,10 @@ ImodIProcData proc_data[] = {
 
 /* Static variables for proc structure and a slice */
 static ImodIProc sProc = {0,0,0,0,0,0,{0,0},0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-                         0,0,0};
+                          0,0,0,0};
 static IProcParam sParam = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 static Islice sSlice;
+static QString sCommand;
 
 /*
  * CALLBACK FUNCTIONS FOR THE VARIOUS FILTERS
@@ -112,27 +117,32 @@ static void edge_cb()
   case 0:
     setSliceMinMax(false);
     sliceByteEdgeSobel(&sSlice);
+    sCommand = "clip sobel";
     break;
 
   case 1:
     setSliceMinMax(false);
     sliceByteEdgePrewitt(&sSlice);
+    sCommand = "clip prewitt";
     break;
 
   case 2:
     setSliceMinMax(false);
     sliceByteEdgeLaplacian(&sSlice);
+    sCommand = "clip laplac";
     break;
 	  
   case 3:
     setSliceMinMax(false);
     sliceByteGraham(&sSlice);
+    sCommand = "clip graham";
     break;
 
   case 4:
     gs = sliceGradient(&sSlice);
     if (!gs) return;
     cpdslice(gs, ip);
+    sCommand = "clip gradient";
     break;
 
   default:
@@ -172,6 +182,7 @@ static void thresh_cb()
     sliceByteGrow(&sSlice,  (int)sSlice.max);
   if (sParam.threshShrink)
     sliceByteShrink(&sSlice,  (int)sSlice.max);
+  sCommand = "Cannot do thresholding in clip";
 }
 
 // Smoothing
@@ -188,8 +199,10 @@ static void smooth_cb()
     scaledGaussianKernel(kernel, &dim, KERNEL_MAXSIZE, sParam.kernelSigma);
     sout = slice_mat_filter(&sSlice, kernel, dim);
     sliceScaleAndFree(sout, &sSlice);
+    sCommand.sprintf("clip smooth -l %f", sParam.kernelSigma);
   } else {
     sliceByteSmooth(&sSlice);
+    sCommand = "clip smooth";
   }
 }
 
@@ -198,6 +211,7 @@ static void sharpen_cb()
 {
   setSliceMinMax(true);
   sliceByteSharpen(&sSlice);
+  sCommand = "clip sharpen";
 }
 
 // Fourier filter
@@ -206,6 +220,7 @@ static void fourFilt_cb()
   IProcParam *pp = &sParam;
   setSliceMinMax(true);
   sliceFourierFilter(&sSlice, pp->sigma1, pp->sigma2, pp->radius1, pp->radius2);
+  sCommand.sprintf("mtffilter -high %.3f -low %.3f,%.3f", pp->sigma1,  pp->radius2, pp->sigma2);
 }
 
 // FFT
@@ -222,6 +237,12 @@ static void fft_cb()
   setSliceMinMax(false);
   sProc.fftScale = sliceByteBinnedFFT(&sSlice, sParam.fftBinning, ix0, ix1, iy0, iy1,
                                      &sProc.fftXcen, &sProc.fftYcen);
+  if (sParam.fftBinning > 1)
+    sCommand = "Cannot do FFT with binning in one operation";
+  else if (sParam.fftSubset)
+    sCommand = "Cannot do FFT on subset in one operation";
+  else
+    sCommand = "clip fft -2d";
 }
 
 // Median filter
@@ -267,6 +288,7 @@ static void median_cb()
   for (j = 0; j < depth; j++)
     sliceFree(ip->medianVol.vol[j]);
   free(ip->medianVol.vol); 
+  sCommand.sprintf("clip median -%dd -n %d", sParam.median3D ? 3 : 2, sParam.medianSize);
 }
 
 // Anisotropic diffusion
@@ -295,6 +317,9 @@ static void anisoDiff_cb()
   sliceByteAnisoDiff(&sSlice, ip->andfImage, ip->andfImage2, sParam.andfStopFunc + 2,
                      sParam.andfK, sParam.andfLambda, sParam.andfIterations, 
                      &sParam.andfIterDone);
+  sCommand.sprintf("clip diffusion -cc %d -k %.5g -l %.3f -n %d", sParam.andfStopFunc + 2,
+                   sParam.andfK / sProc.vi->image->slope, sParam.andfLambda, 
+                   sParam.andfIterations);
 }
 
 // Set the min and max of the static slice to full range, or actual values
@@ -342,15 +367,18 @@ int iprocRethink(struct ViewInfo *vi)
 /* Update for changes in the system (i.e., autoapply if section changed */
 void iprocUpdate(void)
 {
-  if (!sProc.dia || !sProc.autoApply)
-    return;
-  if (sProc.vi->loadingImage || sProc.dia->mRunningProc)
+  if (!sProc.dia || sProc.vi->loadingImage || sProc.dia->mRunningProc || 
+      sProc.dia->mUseStackInd >= 0)
     return;
 
-  /* If time or section has changed, do an apply */
-  if (B3DNINT(sProc.vi->zmouse) != sProc.idataSec || 
-      sProc.vi->curTime != sProc.idataTime) 
-    sProc.dia->apply(true);
+  /* If time or section has changed, do a save or apply if option checked */
+  if (B3DNINT(sProc.vi->zmouse) != sProc.idataSec ||
+      sProc.vi->curTime != sProc.idataTime) {
+    if (sProc.autoSave)
+      sProc.dia->buttonClicked(SAVE_BUT);
+    if (sProc.autoApply)
+      sProc.dia->apply(true);
+  }
 }
 
 /* Open the processing dialog box */
@@ -366,6 +394,7 @@ int inputIProcOpen(struct ViewInfo *vi)
     if (!sProc.vi) {
       sParam.procNum = 0;
       sProc.autoApply = false;
+      sProc.autoSave = false;
       sParam.threshold = 128;
       sParam.threshGrow = false;
       sParam.threshShrink = false;
@@ -790,18 +819,21 @@ static void setUnscaledK()
 }
 
 /* THE WINDOW CLASS CONSTRUCTOR */
-static const char *buttonLabels[] = {"Apply", "More", "Toggle", "Reset", "Save", 
-                               "Done", "Help"};
+static const char *buttonLabels[] = {"Apply", "More", "Less", "Do Same", 
+                                     "Toggle", "Reset", "Save", "List", "Done", "Help"};
 static const char *buttonTips[] = {"Operate on current section (hot key A)",
-                             "Reiterate operation on current section (hot key"
-                             " B)",
-                             "Toggle between processed and original image",
-                             "Reset section to unprocessed image",
-                             "Replace section in memory with processed image",
-                             "Close dialog box", "Open help window"};
+                                   "Apply operation to current processed section (hot key"
+                                   " B)",
+                                   "Reprocess, removing one operation done with More",
+                                   "Do last sequence of operations on current section",
+                                   "Toggle between processed and original image",
+                                   "Reset section to unprocessed image",
+                                   "Replace section in memory with processed image",
+                                   "List command(s) for processing image file",
+                                   "Close dialog box", "Open help window"};
 
 IProcWindow::IProcWindow(QWidget *parent, const char *name)
-  : DialogFrame(parent, 7, 1, buttonLabels, buttonTips, false, 
+  : DialogFrame(parent, 10, 2, buttonLabels, buttonTips, false, 
                 ImodPrefs->getRoundedStyle(), " ", "", name)
 {
   int i;
@@ -822,10 +854,13 @@ IProcWindow::IProcWindow(QWidget *parent, const char *name)
   vLayout->addStretch();
   QCheckBox *check = diaCheckBox("Autoapply", this, vLayout);
   diaSetChecked(check, sProc.autoApply);
-  QObject::connect(check, SIGNAL(toggled(bool)), this,
-                   SLOT(autoApplyToggled(bool)));
-  check->setToolTip("Apply current process automatically when changing" 
-                " section");
+  QObject::connect(check, SIGNAL(toggled(bool)), this, SLOT(autoApplyToggled(bool)));
+  check->setToolTip("Apply current process automatically when changing section");
+
+  check = diaCheckBox("Autosave", this, vLayout);
+  diaSetChecked(check, sProc.autoSave);
+  QObject::connect(check, SIGNAL(toggled(bool)), this, SLOT(autoSaveToggled(bool)));
+  check->setToolTip("Save processed data in memory automatically when changing section");
 
   mStack = new QStackedWidget(this);
   hLayout->addWidget(mStack);
@@ -868,6 +903,8 @@ IProcWindow::IProcWindow(QWidget *parent, const char *name)
   connect(this, SIGNAL(actionClicked(int)), this, SLOT(buttonClicked(int)));
   connect(this, SIGNAL(actionPressed(int)), this, SLOT(buttonPressed(int)));
   setWindowTitle(imodCaption("3dmod Image Processing"));
+  mButtons[2]->setEnabled(false);
+
 }
 
 /* Action functions */
@@ -876,6 +913,12 @@ void IProcWindow::autoApplyToggled(bool state)
 {
   setFocus();
   sProc.autoApply = state;
+}
+
+void IProcWindow::autoSaveToggled(bool state)
+{
+  setFocus();
+  sProc.autoSave = state;
 }
 
 void IProcWindow::threshChanged(int which, int value, bool dragging)
@@ -1026,15 +1069,15 @@ void IProcWindow::buttonClicked(int which)
   int cz =  (int)(ip->vi->zmouse + 0.5f);
   setFocus();
 
-  if (which < 5 && ip->vi->loadingImage)
+  if (which < DONE_BUT && ip->vi->loadingImage)
     return;
 
   switch (which) {
-  case 0:  // Apply
+  case APPLY_BUT:  // Apply
     apply();
     break;
 
-  case 1:  // More
+  case MORE_BUT:  // More
     /* If this is not the same section, treat it as an Apply */
     if (cz != ip->idataSec || ip->vi->curTime != ip->idataTime) {
       apply();
@@ -1049,26 +1092,48 @@ void IProcWindow::buttonClicked(int which)
     }
     break;
 
-  case 2:  // Toggle
+  case LESS_BUT:  // Less
+    if (mParamStack.size() > 1) {
+      mParamStack.resize(mParamStack.size() - 1);
+      apply(true);
+    }
+    break;
+    
+  case DO_SAME_BUT:  // Do Same
+    if (mParamStack.size() > 0)
+      apply(true);
+    break;
+
+  case TOGGLE_BUT:  // Toggle
     if (ip->modified && cz == ip->idataSec && ip->vi->curTime == ip->idataTime)
       copyAndDisplay();
     break;
 
-  case 3: // reset
+  case RESET_BUT: // reset
     clearsec(ip);
     imodDraw(ip->vi, IMOD_DRAW_IMAGE);
     break;
 
-  case 4: // save
+  case SAVE_BUT: // save
     ip->modified = 0;
     ip->idataSec = -1;
     break;
 
-  case 5: // Done
+  case LIST_BUT: // List commands
+    if (!mCommandList.size()) {
+      wprint("\aThere are no commands in the command list\n");
+    } else {
+      wprint("IMOD commands for processing file:\n");
+      for (cz = 0; cz < mCommandList.size(); cz++)
+        wprint(" %s\n", LATIN1(mCommandList[cz]));
+    }
+    break;
+
+  case DONE_BUT: // Done
     close();
     break;
 
-  case 6: // Help
+  case HELP_BUT: // Help
     imodShowHelpPage("imageProc.html#TOP");
     break;
   }
@@ -1081,7 +1146,7 @@ void IProcWindow::buttonPressed(int which)
   ImodIProc *ip = &sProc;
   int cz =  (int)(ip->vi->zmouse + 0.5f);
 
-  if (which != 2 || !ip->modified || cz != ip->idataSec || 
+  if (which != TOGGLE_BUT || !ip->modified || cz != ip->idataSec || 
       ip->vi->curTime != ip->idataTime)
     return;
      
@@ -1101,18 +1166,23 @@ void IProcWindow::apply(bool useStack)
 
   // If using the stack, get the first param on the stack; otherwise clear out the stack
   // and put the param on it
+  // Save param so it can be restored at end to match screen state, which is not what is 
+  // being run
   if (useStack && mParamStack.size() > 0) {
+    mSavedParam = sParam;
     sParam = mParamStack[0];
     mUseStackInd = 0;
   } else {
     mParamStack.clear();
     mParamStack.push_back(sParam);
     mUseStackInd = -1;
+    mCommandList.clear();
   }
 
   /* Unconditionally restore data if modified */
   clearsec(ip);
 
+  sCommand = "";
   sParam.andfIterDone = 0;
   ip->andfDoneLabel->setText("0 done");
 
@@ -1160,6 +1230,7 @@ void IProcWindow::finishProcess()
   float xrange, yrange;
   ip->modified = 1;
   copyAndDisplay();
+  mCommandList << sCommand;
   if (ip->fftScale < 0.) {
     wprint("\aMemory error trying to do FFT!\n");
   } else if (ip->fftScale > 0.) {
@@ -1185,6 +1256,9 @@ void IProcWindow::finishProcess()
     if (mUseStackInd  < mParamStack.size()) {
       sParam = mParamStack[mUseStackInd];
       startProcess();
+    } else {
+      mUseStackInd = -1;
+      sParam = mSavedParam;
     }
   }
 }
@@ -1197,7 +1271,9 @@ void IProcWindow::timerEvent(QTimerEvent *e)
     return;
   killTimer(mTimerID);
   for (i = 0; i < mNumButtons - 1; i++)
-    mButtons[i]->setEnabled(true);
+    if (i != 2)
+      mButtons[i]->setEnabled(true);
+  mButtons[2]->setEnabled(mParamStack.size() > 1);
   delete mProcThread;
   mRunningProc = false;
   finishProcess();
@@ -1262,7 +1338,7 @@ void IProcWindow::keyPressEvent ( QKeyEvent * e )
       apply();
   } else if (e->key() == Qt::Key_B && !modkey) {
     if (!iprocBusy() && !sProc.vi->loadingImage)
-      buttonClicked(1);
+      buttonClicked(MORE_BUT);
   } else if (utilCloseKey(e))
     close();
   else

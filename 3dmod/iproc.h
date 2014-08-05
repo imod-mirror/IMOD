@@ -81,6 +81,7 @@ class IProcWindow : public DialogFrame
   IProcWindow(QWidget *parent, const char *name = NULL);
   ~IProcWindow() {};
   bool mRunningProc;
+  int mUseStackInd;
   void (*mCallback)();
   void limitFFTbinning();
   void apply(bool useStack = false);
@@ -89,6 +90,7 @@ class IProcWindow : public DialogFrame
   void buttonClicked(int which);
   void buttonPressed(int which);
   void autoApplyToggled(bool state);
+  void autoSaveToggled(bool state);
   void edgeSelected(int which);
   void filterSelected(QListWidgetItem *item);
   void filterHighlighted(int which);
@@ -123,7 +125,8 @@ class IProcWindow : public DialogFrame
   int mTimerID;
   QThread *mProcThread;
   std::vector<IProcParam> mParamStack;
-  int mUseStackInd;
+  IProcParam mSavedParam;
+  QStringList mCommandList;
 };
 
 typedef struct
@@ -139,7 +142,8 @@ typedef struct
   int           idataSec;   /* data section. */
   int           idataTime;  /* time value of section */
   int           modified;   /* flag that section data are modified */
-  bool          autoApply;  /* Apply automatically when changing ssection */
+  bool          autoApply;  /* Apply automatically when changing section */
+  bool          autoSave;   /* Save automatically when changing section */
   int           rangeLow;   /* Low and high range values when image mapped to slice */
   int           rangeHigh;
   QDoubleSpinBox *kernelSpin;
