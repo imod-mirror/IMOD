@@ -24,6 +24,7 @@
 #include <QTimerEvent>
 #include <QLabel>
 #include <QKeyEvent>
+#include <vector>
 class QStackedWidget;
 class QListWidget;
 class QVBoxLayout;
@@ -36,8 +37,31 @@ class QListWidgetItem;
 
 typedef struct ViewInfo ImodView;
 
-#ifdef QT_THREAD_SUPPORT
 #include <qthread.h>
+
+typedef struct
+{
+  int           procNum;
+  int           threshold;  /* Parameters for individual filters */
+  bool          threshGrow;
+  bool          threshShrink;
+  int           edge;
+  float         kernelSigma;
+  bool          rescaleSmooth;
+  float         radius1;
+  float         radius2;
+  float         sigma1;
+  float         sigma2;
+  int           fftBinning;
+  bool          fftSubset;
+  bool          median3D;
+  int           medianSize;
+  int           andfIterations;
+  int           andfIterDone;
+  double        andfK;
+  double        andfLambda;
+  int           andfStopFunc;
+} IProcParam;
 
 class IProcThread : public QThread
 {
@@ -48,7 +72,6 @@ class IProcThread : public QThread
  protected:
   void run();
 };
-#endif
 
 class IProcWindow : public DialogFrame
 {
@@ -60,7 +83,7 @@ class IProcWindow : public DialogFrame
   bool mRunningProc;
   void (*mCallback)();
   void limitFFTbinning();
-  void apply();
+  void apply(bool useStack = false);
 
   public slots:
   void buttonClicked(int which);
@@ -98,9 +121,9 @@ class IProcWindow : public DialogFrame
   void finishProcess();
   void manageListSize();
   int mTimerID;
-#ifdef QT_THREAD_SUPPORT
   QThread *mProcThread;
-#endif
+  std::vector<IProcParam> mParamStack;
+  int mUseStackInd;
 };
 
 typedef struct
@@ -113,26 +136,13 @@ typedef struct
   float         **andfImage2;
   Istack         medianVol;
 
-  int           idatasec;   /* data section. */
-  int           idatatime;  /* time value of section */
-  int           procnum;
+  int           idataSec;   /* data section. */
+  int           idataTime;  /* time value of section */
   int           modified;   /* flag that section data are modified */
   bool          autoApply;  /* Apply automatically when changing ssection */
   int           rangeLow;   /* Low and high range values when image mapped to slice */
   int           rangeHigh;
-  int           threshold;  /* Parameters for individual filters */
-  bool          threshGrow;
-  bool          threshShrink;
-  int           edge;
-  float         kernelSigma;
   QDoubleSpinBox *kernelSpin;
-  bool          rescaleSmooth;
-  float         radius1;
-  float         radius2;
-  float         sigma1;
-  float         sigma2;
-  int           fftBinning;
-  bool          fftSubset;
   float         fftScale;
   float         fftXrange;
   float         fftYrange;
@@ -143,20 +153,12 @@ typedef struct
   QPushButton   *freqButton;
   int           fftXcen;
   int           fftYcen;
-  bool          median3D;
-  int           medianSize;
-  int           andfIterations;
-  int           andfIterDone;
-  double        andfK;
-  double        andfLambda;
-  int           andfStopFunc;
   ToolEdit      *andfKEdit;
   ToolEdit      *andfLambdaEdit;
   QLabel        *andfScaleLabel;
   QLabel        *andfDoneLabel;
   
 } ImodIProc;
-
 
 typedef struct
 {
