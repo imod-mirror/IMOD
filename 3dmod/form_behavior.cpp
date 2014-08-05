@@ -83,7 +83,7 @@ void BehaviorForm::update()
   diaSetSpinBox(pageStepSpinBox, mPrefs->pageStep);
   diaSetChecked(autosaveEnabledBox, mPrefs->autosaveOn);
   diaSetSpinBox(autosaveSpinBox, mPrefs->autosaveInterval);
-  autosaveDirEdit->setText(QDir::convertSeparators(mPrefs->autosaveDir));
+  autosaveDirEdit->setText(QDir::toNativeSeparators(mPrefs->autosaveDir));
   diaSetChecked(imageIconifyBox, mPrefs->iconifyImageWin);
   diaSetChecked(imodDlgIconifyBox, mPrefs->iconifyImodDlg);
   diaSetChecked(imodvDlgIconifyBox, mPrefs->iconifyImodvDlg);

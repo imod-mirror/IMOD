@@ -11,13 +11,11 @@
  *  $Id$
  */
 
-#include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
 #include "iimage.h"
 #include "clip.h"
 #include "imodconfig.h"
-#include "b3dutil.h"
 
 void usage(void)
 {
@@ -92,6 +90,10 @@ void usage(void)
   fprintf(stderr, "\t[-1] Number Z values from 1 instead of 0.\n");
   fprintf(stderr, "\t[-P file] Name of piece list file for stats on a montage.\n");
   fprintf(stderr, "\t[-O #,#]  Overlaps in X and Y in displayed montage.\n");
+  fprintf(stderr, "\t[-D file] Apply defect correction using defect list in given "
+          "file.\n");
+  fprintf(stderr, "\t[-B #] Binning value to use in defect correction.\n");
+  fprintf(stderr, "\t[-S]   Scale defect list up by 2 if it is not already scaled.\n");
   fprintf(stderr, "\n");
 }
 
@@ -147,6 +149,9 @@ void default_options(ClipOptions *opt)
   opt->plname = NULL;
   opt->newXoverlap = IP_DEFAULT;
   opt->newYoverlap = IP_DEFAULT;
+  opt->readDefects = FALSE;
+  opt->binning = IP_DEFAULT;
+  opt->scaleDefects = FALSE;
 }
 
 
@@ -292,8 +297,8 @@ int main( int argc, char *argv[] )
   opt.pname = progname;
 
   /* get options */
-  for (i = 2; i < argc; i++)
-    if (argv[i][0] == '-')
+  for (i = 2; i < argc; i++) {
+    if (argv[i][0] == '-') {
       switch (argv[i][1]){
 		    
       case 'a':
@@ -420,13 +425,36 @@ int main( int argc, char *argv[] )
         sscanf(argv[++i], "%d%*c%d", &opt.newXoverlap, &opt.newYoverlap);
         break;
 
+      case 'D':
+        j = CorDefParseDefects(argv[++i], 0, opt.defects, opt.camSizeX, opt.camSizeY);
+        if (j) {
+          fprintf(stderr, "Error %s %s\n", (j == 1) ? "opening" : 
+                  "reading or parsing lines in", argv[i]);
+          exit(1);
+        }
+        opt.readDefects = TRUE;
+        break;
+
+      case 'B':
+        opt.binning = atof(argv[++i]);
+        if (opt.binning <= 0.49) {
+          fprintf(stderr, "Binning must be at least 0.5\n"); 
+          exit(1);
+        }
+        break;
+
+      case 'S':
+        opt.scaleDefects = TRUE;
+        break;
+
       default:
         fprintf(stderr, "%s: invalid option %s.\n", progname, argv[i]);
         exit(3);
       }
-    else
+    } else {
       break;
-
+    }
+  }
 
   opt.fnames  = &(argv[i]);
 
@@ -446,6 +474,17 @@ int main( int argc, char *argv[] )
     opt.infiles = argc - i - 1;
   }
 
+  // Check defect entries, flip in Y and find touching pixels
+  if (opt.readDefects) {
+    if (!opt.camSizeX || !opt.camSizeY) {
+      fprintf(stderr, "Error in clip with defect correction - Defect list file must"
+              " have CameraSizeX and CameraSizeY entries");
+      exit(1);
+    }
+    CorDefFlipDefectsInY(&opt.defects, opt.camSizeX, opt.camSizeY, 0);
+    CorDefFindTouchingPixels(opt.defects, opt.camSizeX, opt.camSizeY, 0);
+  }
+
   if (opt.x != IP_DEFAULT) {
     if (opt.cx != IP_DEFAULT || opt.ix != IP_DEFAULT) {
       fprintf(stderr, "You cannot use -x together with -cx or -ix\n");
@@ -459,7 +498,6 @@ int main( int argc, char *argv[] )
     }
   }
 
-
   /* check and load files:
    * Always at least one input file.
    */
@@ -467,11 +505,11 @@ int main( int argc, char *argv[] )
   hin.pathname = argv[i];
   if (!hin.fp){
     fprintf(stderr, "Error opening %s\n", argv[i]);
-    return(-1);
+    exit(1);
   }
   if (mrc_head_read(hin.fp, &hin)){
     fprintf(stderr, "Error reading %s\n", argv[i]);
-    return(-1);
+    exit(1);
   }
 
   /* Set output header default same as first input file. */
@@ -489,7 +527,7 @@ int main( int argc, char *argv[] )
     hin2.pathname = argv[i];
     if (!hin2.fp){
       fprintf(stderr, "Error opening %s\n", argv[i]);
-      return(-1);
+      exit(1);
     }
     if (mrc_head_read(hin2.fp, &hin2)){
       if (process == IP_INFO){
@@ -499,7 +537,7 @@ int main( int argc, char *argv[] )
         printf("**********************************************\n");
       }
       fprintf(stderr, "Error reading %s\n", argv[i]);
-      return(-1);
+      exit(1);
     }
     i++;
   }
@@ -513,12 +551,12 @@ int main( int argc, char *argv[] )
       hout.fp = iiFOpen(argv[argc - 1], "rb+");
       if (!hout.fp){
         fprintf(stderr, "Error finding %s\n", argv[argc - 1]);
-        return(-1);
+        exit(1);
       }
 
       if (mrc_head_read(hout.fp, &hout)){
         fprintf(stderr, "Error reading %s\n", argv[i]);
-        return(-1);
+        exit(1);
       }
 
     } else if (process != IP_SPLITRGB) {
@@ -537,7 +575,7 @@ int main( int argc, char *argv[] )
         
       if (!hout.fp){
         fprintf(stderr, "Error opening %s\n", argv[argc - 1]);
-        return(-1);
+        exit(1);
       }
     }
   }
@@ -631,19 +669,19 @@ int main( int argc, char *argv[] )
   case IP_MEDIAN:
     retval = clipMedian(&hin, &hout, &opt);
     break;
-  case IP_PEAK:
+    /*case IP_PEAK:
     retval = puts("peak: future function\n");
     break;
   case IP_ROTATE:
     retval = grap_rotate(&hin, &hout, &opt);
-    break;
+    break; */
   case IP_SPLITRGB:
     retval = clip_splitrgb(&hin, &opt);
     break;
   case IP_STAT:
     retval = clip_stat(&hin, &opt);
     break;
-  case IP_TRANSLATE:
+    /*case IP_TRANSLATE:
     retval = grap_trans(&hin, &hout, &opt);
     break;
   case IP_ZOOM:
@@ -652,7 +690,7 @@ int main( int argc, char *argv[] )
       retval = 1;
     }
     break;
-
+    */
   default:
     fprintf(stderr, "%s error: no process selected.\n", progname);
     retval = 1;
@@ -668,7 +706,9 @@ int main( int argc, char *argv[] )
     sprintf(viewcmd, "3dmod %s", argv[argc - 1]);
     system(viewcmd);
   }
-  return(0);
+
+  // Had to switch from return(0) after converting to C++. It gave status 127 on Windows
+  exit(0);
 }
      
 /*
