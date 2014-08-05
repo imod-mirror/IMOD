@@ -485,10 +485,9 @@ void InfoWindow::extract()
   mTrimvolProcess = NULL;
 
   // Test conditions that make extraction impossible
-  if (App->cvi->rgbStore != 0 || App->cvi->fakeImage != 0 ||
-      App->cvi->multiFileZ > 0 || App->cvi->image->file != IIFILE_MRC ||
+  if (App->cvi->rgbStore != 0 || App->cvi->fakeImage != 0 || App->cvi->multiFileZ > 0 ||
       sliceModeIfReal(mrchead->mode) < 0 || App->cvi->li->plist) {
-    wprint("\aUnable to extract - not a gray-scale, non-montaged MRC file.\n");
+    wprint("\aUnable to extract - not a gray-scale, non-montaged file.\n");
     return;
   }
   if (!imodDir) {
