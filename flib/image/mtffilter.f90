@@ -68,16 +68,19 @@
   character*8 timeStr
   character*70 titleStr
   character*80 titlech
+  integer*4 modeMap(0:16) /1, 2, 0, 0, 0, 0, 3, 0,0,0,0,0,0,0,0,0,0/
+  integer*4 modeMin(3) /0, -32768, 0/
+  integer*4 modeMax(3) /256, 32768, 65536/
   integer*4 mode, numPad, nxPad, nyPad, imUnitOut, izStart, izEnd, numZdo, kti, nsize2
   integer*4 izOutBase, nsize, indStock, numMtf, i, im, kk, ixStart, iyStart, modPrint
   real*4 dminIn, dmaxIn, dmean, dmin, dmax, arraySize, xfac, scaleFac, delta
-  real*4 ctfInvMax, radius1, sigma1, radius2, sigma2, s, demanSum, dmeanIn
+  real*4 ctfInvMax, radius1, sigma1, radius2, sigma2, s, dmeanSum, dmeanIn
   real*4 dmin2, dmax2, dmean2, atten, beta1, deltaRad, delx, dely, delz, xa, ya, za
   real*4 zaSq, yaSq, sigma1b, radius1b, base, pixSizeDelta(3)
   real*4 ampfac, ampPower, pixelSize, holeSize, voltage, focalLength, ampRadius
   real*4 wavelength
   integer*4 ind, j, ierr, indf, ix, iy, iz, izLow, izHigh, izRead, ibase, ixBase
-  integer*4 nxDim, nzPad, nyzMax, ifCut, ifPhase
+  integer*4 nxDim, nzPad, nyzMax, ifCut, ifPhase, modeOut, modeTry
   integer (kind = 8) indWork, idim
   logical fftInput, filter3d
   integer*4 niceFrame, iiuReadSection
@@ -91,11 +94,11 @@
   ! fallbacks from ../../manpages/autodoc2man -3 2  mtffilter
   !
   integer numOptions
-  parameter (numOptions = 19)
+  parameter (numOptions = 20)
   character*(40 * numOptions) options(1)
   options(1) = &
       'input:InputFile:FN:@output:OutputFile:FN:@zrange:StartingAndEndingZ:IP:@'// &
-      '3dfilter:FilterIn3D:B:@lowpass:LowPassRadiusSigma:FP:@'// &
+      'mode:ModeToOutput:I:@3dfilter:FilterIn3D:B:@lowpass:LowPassRadiusSigma:FP:@'// &
       'highpass:HighPassSigma:F:@radius1:FilterRadius1:F:@mtf:MtfFile:FN:@'// &
       'stock:StockCurve:I:@maxinv:MaximumInverse:F:@'// &
       'invrolloff:InverseRolloffRadiusSigma:FP:@xscale:XScaleFactor:F:@'// &
@@ -161,8 +164,7 @@
   if (idim > 2147483000.) &
       call exitError('PADDED VOLUME IS BIGGER THAN 2 GIGAPIXELS')
   allocate(array(idim), stat = ierr)
-  if (ierr .ne. 0) call exitError( &
-      'FAILED TO ALLOCATE MEMORY FOR IMAGE DATA')
+  if (ierr .ne. 0) call exitError('FAILED TO ALLOCATE MEMORY FOR IMAGE DATA')
 
   nyzMax = nyPad
   if (filter3d .or. fftInput) nyzMax = max(nyPad, nzPad)
@@ -275,6 +277,17 @@
 
   ! write (*,'(10f7.4)') (ctfa(j), j=1, nsize)
 
+  ! Handle output mode entry
+  modeOut = mode
+  if (PipGetInteger('ModeToOutput', modeOut) == 0) then
+    if (imUnitOut == 1) call exitError( &
+        'YOU CANNOT ENTER -mode WHEN REWRITING TO THE INPUT FILE')
+    if (fftInput) call exitError('YOU CANNOT ENTER -mode WITH AN FFT INPUT FILE')
+    if (.not.((modeOut >= 0 .and. modeOut <= 2) .or. modeOut == 6)) call exitError( &
+        'OUTPUT MODE MUST BE 0, 1, 2, or 6')
+    call iiuAltMode(imUnitOut, modeOut)
+  endif
+
   ierr = PipGetTwoFloats('InverseRolloffRadiusSigma', radius1, sigma1)
   ierr = PipGetFloat('MaximumInverse', ctfInvMax)
   ierr = PipGetFloat('DensityScaleFactor', scaleFac)
@@ -334,7 +347,7 @@
   titleStr = 'MTFFILTER: Filtered by inverse of MTF'
   if (indStock == 0 .and. outFile == ' ') titleStr = 'MTFFILTER: Frequency filtered'
   !
-  demanSum = 0.
+  dmeanSum = 0.
   dmax = -1.e10
   dmin = 1.e10
   ixStart = (nxPad - nx) / 2
@@ -394,7 +407,7 @@
       !
       dmax = max(dmax, dmax2)
       dmin = min(dmin, dmin2)
-      demanSum = demanSum + dmean2
+      dmeanSum = dmeanSum + dmean2
     enddo
   else
     !
@@ -442,14 +455,24 @@
       call iiuWriteSection(imUnitOut, array(ibase))
       dmax = max(dmax, dmax2)
       dmin = min(dmin, dmin2)
-      demanSum = demanSum + dmean2
+      dmeanSum = dmeanSum + dmean2
     enddo
   endif
   !
-  dmean = demanSum / numZdo
+  ind = modeMap(modeOut)
+  if (ind > 0) then
+    if (dmin < modeMin(ind) .or. dmax >= modeMax(ind)) then
+      modeTry = 2
+      if (dmin >= -32768 .and. dmax < 32768) modeTry = 1
+      write(*, '(a,f7.0,a,f7.0,a,i5,a,i5,a, i2)') &
+          'WARNING: MTFFILTER - THE MIN OR MAX OF THE FILTERED DATA (', dmin, ' - ', &
+          dmax, ') IS OUTSIDE THE RANGE FOR THE OUTPUT DATA MODE (', modeMin(ind), &
+          ' - ', modeMax(ind), '): USE -mode', modeTry
+    endif
+  endif
+  dmean = dmeanSum / numZdo
   call b3dDate(dateStr)
   call time(timeStr)
-  !
   !
   write(titlech, 1500) titleStr, dateStr, timeStr
   read(titlech, '(20a4)') (title(kti), kti = 1, 20)
