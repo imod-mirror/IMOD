@@ -292,7 +292,7 @@ final class FindBeads3dPanel implements FindBeads3dDisplay, Expandable,
     }
     else if (command.equals(btn3dmodFindBeads3d.getActionCommand())) {
       manager.imodFindBeads3d(axisID, run3dmodMenuOptions, null,
-          FileType.TILT_3D_FIND_OUTPUT.getImodManagerKey(manager),
+          FileType.TILT_3D_FIND_OUTPUT.getImodManagerKey(),
           FileType.FIND_BEADS_3D_OUTPUT_MODEL.getFileName(manager, axisID), null,
           dialogType);
     }
@@ -301,7 +301,8 @@ final class FindBeads3dPanel implements FindBeads3dDisplay, Expandable,
   private void setToolTipText() {
     ReadOnlyAutodoc autodoc = null;
     try {
-      autodoc = AutodocFactory.getInstance(manager, AutodocFactory.FIND_BEADS_3D, axisID);
+      autodoc = AutodocFactory.getInstance(manager, AutodocFactory.FIND_BEADS_3D, axisID,
+          false);
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();

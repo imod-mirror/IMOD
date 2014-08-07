@@ -9,6 +9,8 @@ import java.util.List;
 import etomo.BaseManager;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
+import etomo.type.AxisType;
+import etomo.type.BaseMetaData;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstIntKeyList;
 import etomo.type.EtomoBoolean2;
@@ -93,8 +95,7 @@ public final class FindBeads3dParam implements ConstFindBeads3dParam, CommandPar
       MIN_SPACING_TAG);
   private final ScriptParameter guessNumBeads = new ScriptParameter(GUESS_NUM_BEADS_TAG);
   private final ScriptParameter maxNumBeads = new ScriptParameter(MAX_NUM_BEADS_TAG);
-  private final ScriptParameter binningOfVolume = new ScriptParameter(
-     "BinningOfVolume");
+  private final ScriptParameter binningOfVolume = new ScriptParameter("BinningOfVolume");
 
   private final AxisID axisID;
   private final BaseManager manager;
@@ -130,8 +131,8 @@ public final class FindBeads3dParam implements ConstFindBeads3dParam, CommandPar
     minSpacing.parse(scriptCommand);
     guessNumBeads.parse(scriptCommand);
     maxNumBeads.parse(scriptCommand);
-    //binningOfVolume is not displayed and it is always derived from the
-    //inputFile.
+    // binningOfVolume is not displayed and it is always derived from the
+    // inputFile.
   }
 
   public void updateComScriptCommand(final ComScriptCommand scriptCommand)
@@ -269,7 +270,14 @@ public final class FindBeads3dParam implements ConstFindBeads3dParam, CommandPar
   }
 
   public String getCommandName() {
-    return FileType.FIND_BEADS_3D_COMSCRIPT.getTypeString(manager);
+    AxisType axisType = null;
+    if (manager != null) {
+      BaseMetaData metaData = manager.getBaseMetaData();
+      if (metaData != null) {
+        axisType = metaData.getAxisType();
+      }
+    }
+    return FileType.FIND_BEADS_3D_COMSCRIPT.getTypeString(axisType);
   }
 
   public File getCommandOutputFile() {

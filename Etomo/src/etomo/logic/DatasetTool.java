@@ -46,6 +46,26 @@ public final class DatasetTool {
   }
 
   /**
+   * For a file path ending in a.st, strips "a.st" and returns a file constructed from the
+   * path + a.st.  Does the same for the .mrc extension.  Otherwise returns null.
+   * @param absAStackPath
+   * @return
+   */
+  public static File getBStack(final String absAStackPath) {
+    String ext = AxisID.FIRST.getExtension() + STANDARD_DATASET_EXT;
+    if (absAStackPath.endsWith(ext)) {
+      return new File(absAStackPath.substring(0, absAStackPath.length() - ext.length())
+          + AxisID.SECOND.getExtension() + STANDARD_DATASET_EXT);
+    }
+    ext = AxisID.FIRST.getExtension() + ALTERNATE_DATASET_EXT;
+    if (absAStackPath.endsWith(ext)) {
+      return new File(absAStackPath.substring(0, absAStackPath.length() - ext.length())
+          + AxisID.SECOND.getExtension() + ALTERNATE_DATASET_EXT);
+    }
+    return null;
+  }
+
+  /**
    * Rename the inputFile if it is an .mrc file.  If this is dual axis, also rename the
    * other axis .mrc file.  If inputFile is actually a dataset name, rename the associated
    * .mrc file(s), if they exist.  if an .mrc file name was passed in, return true and set
