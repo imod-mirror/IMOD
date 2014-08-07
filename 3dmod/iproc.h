@@ -82,6 +82,7 @@ class IProcWindow : public DialogFrame
   ~IProcWindow() {};
   bool mRunningProc;
   int mUseStackInd;
+  QStringList mCommandList;
   void (*mCallback)();
   void limitFFTbinning();
   void apply(bool useStack = false);
@@ -91,6 +92,7 @@ class IProcWindow : public DialogFrame
   void buttonPressed(int which);
   void autoApplyToggled(bool state);
   void autoSaveToggled(bool state);
+  void applyThreshToggled(bool state);
   void edgeSelected(int which);
   void filterSelected(QListWidgetItem *item);
   void filterHighlighted(int which);
@@ -122,11 +124,12 @@ class IProcWindow : public DialogFrame
   void startProcess();
   void finishProcess();
   void manageListSize();
+  void newThreshSetting();
   int mTimerID;
   QThread *mProcThread;
   std::vector<IProcParam> mParamStack;
   IProcParam mSavedParam;
-  QStringList mCommandList;
+  std::vector<int> mDataModes;
 };
 
 typedef struct
@@ -144,8 +147,12 @@ typedef struct
   int           modified;   /* flag that section data are modified */
   bool          autoApply;  /* Apply automatically when changing section */
   bool          autoSave;   /* Save automatically when changing section */
+  bool          applyThreshChange;  /* Automatically apply threshold changes */
   int           rangeLow;   /* Low and high range values when image mapped to slice */
   int           rangeHigh;
+  int           inputMode;
+  int           outputMode;
+  bool          wasByte;         
   QDoubleSpinBox *kernelSpin;
   float         fftScale;
   float         fftXrange;
@@ -171,6 +178,7 @@ typedef struct
   /* function to make widget */
   void (*mkwidget)(IProcWindow *, QWidget *, QVBoxLayout *); 
   const char *label;
+  QWidget *control;
 } ImodIProcData;
 
 int inputIProcOpen(ImodView *vw);
@@ -178,5 +186,7 @@ int iprocRethink(ImodView *vw);
 bool iprocBusy(void);
 void iprocUpdate(void);
 void iprocCallWhenFree(void (*func)());
+bool iprocIsOpen();
+QStringList iprocCommandList();
 
 #endif /* BD_IPROC_H_ */
