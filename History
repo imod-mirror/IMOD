@@ -5,7 +5,7 @@ operations so that they can be reapplied easily; added buttons to remove last
 one from list, redo all operations, and list the command-line operations in the
 Info windows; added option to save modified data to memory automatically; made
 thresholding able to update continuously; added File-Process File menu item to
-apply operatons to image file or subset inside rubber band.
+apply operations to image file or subset inside rubber band.
 
 8/5/14: Allowed File-Extract in 3dmod to be run on non-MRC files (In 4.7).
 
