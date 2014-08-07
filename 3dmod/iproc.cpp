@@ -30,7 +30,6 @@
 #include <QKeyEvent>
 #include <QVBoxLayout>
 #include <QCloseEvent>
-#include <vector>
 #include "dia_qtutils.h"
 #include "tooledit.h"
 #include "multislider.h"
@@ -55,6 +54,9 @@ static int savedToImage(ImodIProc *ip);
 static void setSliceMinMax(bool actual);
 static void freeArrays(ImodIProc *ip);
 static void  setUnscaledK();
+static QString modeChangeStr(const char *modeOpt);
+static QString clipFFTtoRealStr();
+static void cannotDoFFTStr(QString &str, const char *operation);
 
 static void edge_cb();
 static void mkedge_cb(IProcWindow *win, QWidget *parent, QVBoxLayout *layout);
@@ -80,21 +82,21 @@ enum {APPLY_BUT = 0, MORE_BUT, LESS_BUT, DO_SAME_BUT, TOGGLE_BUT, RESET_BUT, SAV
       LIST_BUT, DONE_BUT, HELP_BUT};
 
 /* The table of entries and callbacks */
-ImodIProcData proc_data[] = {
-  {"FFT", fft_cb, mkFFT_cb, NULL},
-  {"Fourier filter", fourFilt_cb, mkFourFilt_cb, NULL},
-  {"smooth", smooth_cb, mkSmooth_cb, NULL},
-  {"median", median_cb, mkMedian_cb, NULL},
-  {"diffusion", anisoDiff_cb, mkAnisoDiff_cb, NULL},
-  {"edge", edge_cb, mkedge_cb, NULL},
-  {"sharpen", sharpen_cb, NULL, "Sharpen Edges."},
-  {"threshold", thresh_cb, mkthresh_cb, NULL},
-  {NULL, NULL, NULL, NULL}
+static ImodIProcData procTable[] = {
+  {"FFT", fft_cb, mkFFT_cb, NULL, NULL},
+  {"Fourier filter", fourFilt_cb, mkFourFilt_cb, NULL, NULL},
+  {"smooth", smooth_cb, mkSmooth_cb, NULL, NULL},
+  {"median", median_cb, mkMedian_cb, NULL, NULL},
+  {"diffusion", anisoDiff_cb, mkAnisoDiff_cb, NULL, NULL},
+  {"edge", edge_cb, mkedge_cb, NULL, NULL},
+  {"sharpen", sharpen_cb, NULL, "Sharpen Edges.", NULL},
+  {"threshold", thresh_cb, mkthresh_cb, NULL, NULL},
+  {NULL, NULL, NULL, NULL, NULL}
 };
 
 /* Static variables for proc structure and a slice */
 static ImodIProc sProc = {0,0,0,0,0,0,{0,0},0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-                          0,0,0,0};
+                          0,0,0,0,0,0,0,0};
 static IProcParam sParam = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 static Islice sSlice;
 static QString sCommand;
@@ -117,25 +119,37 @@ static void edge_cb()
   case 0:
     setSliceMinMax(false);
     sliceByteEdgeSobel(&sSlice);
+
+    // Three of these filters operate in clip by converting each slice to a byte
+    // so there is no need for a mode, and we set the flags appropriately for byte output
     sCommand = "clip sobel";
+    ip->outputMode = 0;
+    ip->wasByte = 1;
     break;
 
   case 1:
     setSliceMinMax(false);
     sliceByteEdgePrewitt(&sSlice);
     sCommand = "clip prewitt";
+    ip->outputMode = 0;
+    ip->wasByte = 1;
     break;
 
   case 2:
     setSliceMinMax(false);
     sliceByteEdgeLaplacian(&sSlice);
-    sCommand = "clip laplac";
+
+    // Laplacian, smooth and sharpen do convolve a kernel with all channels but need
+    // to produce mode 2 for floating point
+    sCommand = "clip laplac" + clipFFTtoRealStr();
     break;
 	  
   case 3:
     setSliceMinMax(false);
     sliceByteGraham(&sSlice);
     sCommand = "clip graham";
+    ip->outputMode = 0;
+    ip->wasByte = 1;
     break;
 
   case 4:
@@ -143,6 +157,9 @@ static void edge_cb()
     if (!gs) return;
     cpdslice(gs, ip);
     sCommand = "clip gradient";
+
+    // Some command just can't work on FFT data
+    cannotDoFFTStr(sCommand, "clip gradient");
     break;
 
   default:
@@ -199,10 +216,11 @@ static void smooth_cb()
     scaledGaussianKernel(kernel, &dim, KERNEL_MAXSIZE, sParam.kernelSigma);
     sout = slice_mat_filter(&sSlice, kernel, dim);
     sliceScaleAndFree(sout, &sSlice);
-    sCommand.sprintf("clip smooth -l %f", sParam.kernelSigma);
+    sCommand.sprintf("clip smooth -l %f%s", sParam.kernelSigma, 
+                     LATIN1(clipFFTtoRealStr()));
   } else {
     sliceByteSmooth(&sSlice);
-    sCommand = "clip smooth";
+    sCommand = "clip smooth" + clipFFTtoRealStr();
   }
 }
 
@@ -211,7 +229,7 @@ static void sharpen_cb()
 {
   setSliceMinMax(true);
   sliceByteSharpen(&sSlice);
-  sCommand = "clip sharpen";
+  sCommand = "clip sharpen" + modeChangeStr("m");
 }
 
 // Fourier filter
@@ -220,7 +238,10 @@ static void fourFilt_cb()
   IProcParam *pp = &sParam;
   setSliceMinMax(true);
   sliceFourierFilter(&sSlice, pp->sigma1, pp->sigma2, pp->radius1, pp->radius2);
-  sCommand.sprintf("mtffilter -high %.3f -low %.3f,%.3f", pp->sigma1,  pp->radius2, pp->sigma2);
+  sCommand.sprintf("mtffilter -high %.3f -low %.3f,%.3f", pp->sigma1,  pp->radius2,
+                   pp->sigma2);
+  if (sProc.inputMode != 4 && pp->sigma1 > 0.)
+    sCommand += modeChangeStr("mode");
 }
 
 // FFT
@@ -243,6 +264,7 @@ static void fft_cb()
     sCommand = "Cannot do FFT on subset in one operation";
   else
     sCommand = "clip fft -2d";
+  sProc.outputMode = 4;
 }
 
 // Median filter
@@ -288,7 +310,9 @@ static void median_cb()
   for (j = 0; j < depth; j++)
     sliceFree(ip->medianVol.vol[j]);
   free(ip->medianVol.vol); 
-  sCommand.sprintf("clip median -%dd -n %d", sParam.median3D ? 3 : 2, sParam.medianSize);
+  sCommand.sprintf("clip median -%dd -n %d", sParam.median3D ? 3 : 2,
+                   sParam.medianSize);
+  cannotDoFFTStr(sCommand, "clip median");
 }
 
 // Anisotropic diffusion
@@ -318,8 +342,9 @@ static void anisoDiff_cb()
                      sParam.andfK, sParam.andfLambda, sParam.andfIterations, 
                      &sParam.andfIterDone);
   sCommand.sprintf("clip diffusion -cc %d -k %.5g -l %.3f -n %d", sParam.andfStopFunc + 2,
-                   sParam.andfK / sProc.vi->image->slope, sParam.andfLambda, 
+                   sParam.andfK / sProc.vi->image->slope, sParam.andfLambda,
                    sParam.andfIterations);
+  cannotDoFFTStr(sCommand, "clip diffusion");
 }
 
 // Set the min and max of the static slice to full range, or actual values
@@ -336,6 +361,54 @@ static void setSliceMinMax(bool actual)
   }
 }
 
+// Figure out if there needs to be a mode change in the command string for processing
+// that produces an expanded range or results in a mean of 0
+static QString modeChangeStr(const char *modeOpt)
+{
+  QString str = "";
+  ImodIProc *ip = &sProc;
+  float amin = App->cvi->image->amin;
+  float amax = App->cvi->image->amax;
+
+  // Byte must be promoted to signed integer
+  if (ip->inputMode == 0)
+    ip->outputMode = 1;
+
+  // Complex must be converted to float (processing may not work right)
+  else if (ip->inputMode == 4)
+    ip->outputMode = 2;
+
+  // integer has to be promoted to 2 if original range is big enough for ones that
+  // expand the range, or if a mean of zero would put min/max out of range
+  else if (ip->inputMode == 1 || ip->inputMode == 6) {
+    if (!ip->wasByte && 
+        ((sParam.procNum != 1 && (amin < -10000 || amax > 10000)) || 
+         (sParam.procNum == 1 && (amin - App->cvi->image->amean < -30000
+                                  || amax - App->cvi->image->amean > 30000))))
+      ip->outputMode = 2;
+    else if (ip->inputMode == 6)
+      ip->outputMode = 1;
+  }
+  if (ip->outputMode != ip->inputMode)
+    str.sprintf(" -%s %d", modeOpt, ip->outputMode);
+  return str;
+}
+
+// Return string if regular clip operation on a FFT needs to change to float
+static QString clipFFTtoRealStr()
+{
+  if (sProc.inputMode == 4) {
+    sProc.outputMode = 2;
+    return QString(" -m 2");
+  }
+  return QString("");
+}
+
+static void cannotDoFFTStr(QString &str, const char *operation)
+{
+  if (sProc.inputMode == 4)
+    str.sprintf("Cannot run %s on FFT data", operation);
+}
 
 /* Reset and get new data buffer */
 int iprocRethink(struct ViewInfo *vi)
@@ -381,6 +454,20 @@ void iprocUpdate(void)
   }
 }
 
+/* Test whether the window is open */
+bool iprocIsOpen()
+{
+  return sProc.dia != NULL;
+}
+
+/* Return the list of commands */
+QStringList iprocCommandList()
+{
+  if (!sProc.dia)
+    return QStringList();
+  return sProc.dia->mCommandList;
+}
+
 /* Open the processing dialog box */
 int inputIProcOpen(struct ViewInfo *vi)
 {
@@ -390,11 +477,12 @@ int inputIProcOpen(struct ViewInfo *vi)
     return 1;
   }
   dataSize *= ivwGetPixelBytes(vi->rawImageStore);
-  if (!sProc.dia){
+  if (!sProc.dia) {
     if (!sProc.vi) {
       sParam.procNum = 0;
       sProc.autoApply = false;
       sProc.autoSave = false;
+      sProc.applyThreshChange = false;
       sParam.threshold = 128;
       sParam.threshGrow = false;
       sParam.threshShrink = false;
@@ -437,8 +525,9 @@ int inputIProcOpen(struct ViewInfo *vi)
     sProc.dia = new IProcWindow(imodDialogManager.parent(IMOD_DIALOG), NULL);
     imodDialogManager.add((QWidget *)sProc.dia, IMOD_DIALOG);
     adjustGeometryAndShow((QWidget *)sProc.dia, IMOD_DIALOG);
+    ImodInfoWin->manageMenus();
 
-  }else{
+  } else {
     sProc.dia->raise();
   }
   return(0);
@@ -657,12 +746,16 @@ static void mkthresh_cb(IProcWindow *win, QWidget *parent, QVBoxLayout *layout)
   QCheckBox *check = diaCheckBox("Grow thresholded area", parent, layout);
   diaSetChecked(check, sParam.threshGrow);
   QObject::connect(check, SIGNAL(toggled(bool)), win, SLOT(growChanged(bool)));
-  check->setToolTip("Apply dilation to grow area selected area ");
+  check->setToolTip("Apply dilation to grow selected area ");
   check = diaCheckBox("Shrink thresholded area", parent, layout);
   diaSetChecked(check, sParam.threshShrink);
-  QObject::connect(check, SIGNAL(toggled(bool)), win, 
-                   SLOT(shrinkChanged(bool)));
+  QObject::connect(check, SIGNAL(toggled(bool)), win, SLOT(shrinkChanged(bool)));
   check->setToolTip("Apply erosion to shrink selected area");
+
+  check = diaCheckBox("Apply changes automatically", parent, layout);
+  diaSetChecked(check, sProc.applyThreshChange);
+  QObject::connect(check, SIGNAL(toggled(bool)), win, SLOT(applyThreshToggled(bool)));
+  check->setToolTip("Apply or redo processing when a threshold setting is changed");
 }
 
 static void mkFourFilt_cb(IProcWindow *win, QWidget *parent,
@@ -820,7 +913,7 @@ static void setUnscaledK()
 
 /* THE WINDOW CLASS CONSTRUCTOR */
 static const char *buttonLabels[] = {"Apply", "More", "Less", "Do Same", 
-                                     "Toggle", "Reset", "Save", "List", "Done", "Help"};
+                                     "Toggle", "Reset", "Save", " List ", "Done", "Help"};
 static const char *buttonTips[] = {"Operate on current section (hot key A)",
                                    "Apply operation to current processed section (hot key"
                                    " B)",
@@ -841,6 +934,7 @@ IProcWindow::IProcWindow(QWidget *parent, const char *name)
   QVBoxLayout *vLayout;
   QWidget *control;
   mRunningProc = false;
+  mUseStackInd = -1;
 
   // Put an H layout inside the main layout, then fill that with the
   // List box and the widget stack
@@ -852,6 +946,7 @@ IProcWindow::IProcWindow(QWidget *parent, const char *name)
   mListBox->setSelectionMode(QAbstractItemView::SingleSelection);
 
   vLayout->addStretch();
+  vLayout->setSpacing(3);
   QCheckBox *check = diaCheckBox("Autoapply", this, vLayout);
   diaSetChecked(check, sProc.autoApply);
   QObject::connect(check, SIGNAL(toggled(bool)), this, SLOT(autoApplyToggled(bool)));
@@ -868,20 +963,20 @@ IProcWindow::IProcWindow(QWidget *parent, const char *name)
   // Put a spacer on the right to keep the list box position from changing
   hLayout->addStretch(0);
 
-  for (i = 0; (proc_data[i].name); i++) {
+  for (i = 0; (procTable[i].name); i++) {
 
     // For each item, add to list box, make a widget and give it a V layout
-    mListBox->addItem(proc_data[i].name);
+    mListBox->addItem(procTable[i].name);
     control = new QWidget(this);
     vLayout = new QVBoxLayout(control);
     vLayout->setContentsMargins(3, 3, 3, 3);
     vLayout->setSpacing(6);
 
     // Call the make widget function or just add a label
-    if (proc_data[i].mkwidget)
-      proc_data[i].mkwidget (this, control, vLayout);
+    if (procTable[i].mkwidget)
+      procTable[i].mkwidget (this, control, vLayout);
     else {
-      diaLabel(proc_data[i].label, control, vLayout);
+      diaLabel(procTable[i].label, control, vLayout);
     }
     vLayout->addStretch(0);
 
@@ -889,6 +984,7 @@ IProcWindow::IProcWindow(QWidget *parent, const char *name)
     mStack->addWidget(control);
     control->setSizePolicy(QSizePolicy(QSizePolicy::Ignored,
                                        QSizePolicy::Ignored));
+    procTable[i].control = control;
   }
 
   // Finalize list box setting and connections
@@ -921,9 +1017,16 @@ void IProcWindow::autoSaveToggled(bool state)
   sProc.autoSave = state;
 }
 
+void IProcWindow::applyThreshToggled(bool state)
+{
+  setFocus();
+  sProc.applyThreshChange = state;
+}
+
 void IProcWindow::threshChanged(int which, int value, bool dragging)
 {
   sParam.threshold = value;
+  newThreshSetting();
 }
 
 void IProcWindow::fourFiltChanged(int which, int value, bool dragging)
@@ -994,10 +1097,18 @@ void IProcWindow::reportFreqClicked()
 void IProcWindow::growChanged(bool state)
 {
   sParam.threshGrow = state;
+  newThreshSetting();
 }
 void IProcWindow::shrinkChanged(bool state)
 {
   sParam.threshShrink = state;
+  newThreshSetting();
+}
+
+void IProcWindow::newThreshSetting()
+{
+  if (sProc.applyThreshChange && !(mRunningProc || mUseStackInd >= 0))
+    apply(mParamStack.size() > 1);
 }
 
 // To switch filters, set the size policy of the current widget back to ignored
@@ -1085,7 +1196,7 @@ void IProcWindow::buttonClicked(int which)
     }
 
     /* Otherwise operate on the current data without restoring it */
-    if (proc_data[sParam.procNum].cb) {
+    if (procTable[sParam.procNum].cb) {
       mParamStack.push_back(sParam);
       mUseStackInd = -1;
       startProcess();
@@ -1095,6 +1206,8 @@ void IProcWindow::buttonClicked(int which)
   case LESS_BUT:  // Less
     if (mParamStack.size() > 1) {
       mParamStack.resize(mParamStack.size() - 1);
+      mCommandList.removeLast();
+      mDataModes.pop_back();
       apply(true);
     }
     break;
@@ -1160,29 +1273,37 @@ void IProcWindow::buttonPressed(int which)
 void IProcWindow::apply(bool useStack)
 {
   ImodIProc *ip = &sProc;
+  IProcParam *topParam;
   sliceInit(&sSlice, ip->vi->xsize, ip->vi->ysize, 0, ip->iwork);
 
   int cz =  (int)(ip->vi->zmouse + 0.5f);
 
   // If using the stack, get the first param on the stack; otherwise clear out the stack
   // and put the param on it
-  // Save param so it can be restored at end to match screen state, which is not what is 
-  // being run
   if (useStack && mParamStack.size() > 0) {
     mSavedParam = sParam;
+    topParam = &mParamStack[mParamStack.size() - 1];
+
+    // If current selection is the same operation as the last one on stack, update the
+    // stack with current params; otherwise the saved param will be restored at end 
+    // to match screen state, which is not what is being run in that case
+    if (topParam->procNum == sParam.procNum)
+      *topParam = sParam;
     sParam = mParamStack[0];
     mUseStackInd = 0;
   } else {
     mParamStack.clear();
     mParamStack.push_back(sParam);
     mUseStackInd = -1;
-    mCommandList.clear();
   }
 
   /* Unconditionally restore data if modified */
   clearsec(ip);
 
-  sCommand = "";
+  mCommandList.clear();
+  mDataModes.clear();
+  mDataModes.push_back(App->cvi->image->mode);
+  sProc.wasByte = App->cvi->image->mode == 0;
   sParam.andfIterDone = 0;
   ip->andfDoneLabel->setText("0 done");
 
@@ -1202,15 +1323,18 @@ void IProcWindow::apply(bool useStack)
   startProcess();
 }
 
+// Start one processing operation on a thread
 void IProcWindow::startProcess()
 {
   ImodIProc *ip = &sProc;
   int i;
-  if (!proc_data[sParam.procNum].cb)
+  if (!procTable[sParam.procNum].cb)
     return;
   ip->fftScale = 0.;
   ip->freqButton->setEnabled(false);
   mCallback = NULL;
+  sCommand = "";
+  ip->inputMode = ip->outputMode = mDataModes.back();
 
   // For running in a thread, set flag, disable buttons except help,
   // start timer and start thread
@@ -1223,6 +1347,7 @@ void IProcWindow::startProcess()
   mProcThread->start(QThread::LowPriority);
 }
 
+// Do needed operations when operation is finished
 void IProcWindow::finishProcess()
 {
   ImodIProc *ip = &sProc;
@@ -1231,6 +1356,7 @@ void IProcWindow::finishProcess()
   ip->modified = 1;
   copyAndDisplay();
   mCommandList << sCommand;
+  mDataModes.push_back(ip->outputMode);
   if (ip->fftScale < 0.) {
     wprint("\aMemory error trying to do FFT!\n");
   } else if (ip->fftScale > 0.) {
@@ -1297,14 +1423,20 @@ void IProcWindow::limitFFTbinning()
 
 void IProcWindow::manageListSize()
 {
-  int maxwidth = 0, width, i, height;
+  int maxwidth = 0, width, i, height, contHeight = 0, contWidth = 0;
+  imod_info_input();
   for (i = 0; i < mListBox->count(); i++) {
     width = mListBox->fontMetrics().width(mListBox->item(i)->text());
     maxwidth = B3DMAX(maxwidth, width);
+    QSize size = procTable[i].control->sizeHint();
+    contWidth = B3DMAX(contWidth, size.width());
+    contHeight = B3DMAX(contHeight, size.height());
   }
   mListBox->setFixedWidth(maxwidth + 12);
   height = (mListBox->fontMetrics().height() + 1.5) *  mListBox->count();
   mListBox->setFixedHeight(height);
+  mStack->setMinimumWidth(contWidth);
+  mStack->setMinimumHeight(contHeight);
 }
 
 void IProcWindow::changeEvent(QEvent *e)
@@ -1326,6 +1458,7 @@ void IProcWindow::closeEvent ( QCloseEvent * e )
   imodDraw(ip->vi, IMOD_DRAW_IMAGE);
   freeArrays(ip);
   ip->dia = NULL;
+  ImodInfoWin->manageMenus();
   e->accept();
 }
 
@@ -1353,5 +1486,5 @@ void IProcWindow::keyReleaseEvent ( QKeyEvent * e )
 // A very simple thread run command!
 void IProcThread::run()
 {
-  proc_data[sParam.procNum].cb();
+  procTable[sParam.procNum].cb();
 }
