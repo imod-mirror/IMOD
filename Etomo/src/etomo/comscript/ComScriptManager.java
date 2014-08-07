@@ -963,8 +963,8 @@ public final class ComScriptManager extends BaseComScriptManager {
 
     // Initialize a SirtsetupParam object from the com script command object
     SirtsetupParam param = new SirtsetupParam(appManager, axisID);
-    initialize(param, sirtsetup, FileType.SIRTSETUP_COMSCRIPT.getTypeString(appManager),
-        axisID, true, true);
+    initialize(param, sirtsetup, FileType.SIRTSETUP_COMSCRIPT.getTypeString(appManager
+        .getMetaData().getAxisType()), axisID, true, true);
     return param;
   }
 
