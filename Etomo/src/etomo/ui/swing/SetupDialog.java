@@ -239,7 +239,7 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
       if (!DatasetTool.validateDatasetName(applicationManager, null, AxisID.ONLY,
           new File(expert.getPropertyUserDir()), datasetName, DataFileType.RECON,
           expert.getAxisType(),
-          !datasetName.endsWith(FileType.RAW_STACK.getExtension(applicationManager)))) {
+          !datasetName.endsWith(FileType.RAW_STACK.getExtension(expert.getAxisType())))) {
         return false;
       }
     }
