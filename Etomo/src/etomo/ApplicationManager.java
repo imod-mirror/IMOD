@@ -605,7 +605,8 @@ public final class ApplicationManager extends BaseManager implements
       if (directiveFile != null) {
         file = directiveFile.getFile();
         if (file != null) {
-        Utilities.copyFile(file, template, this, AxisID.ONLY);}
+          Utilities.copyFile(file, template, this, AxisID.ONLY);
+        }
       }
       else {
         Utilities.deleteFileType(this, AxisID.ONLY, template);
@@ -615,7 +616,8 @@ public final class ApplicationManager extends BaseManager implements
       if (directiveFile != null) {
         file = directiveFile.getFile();
         if (file != null) {
-        Utilities.copyFile(file, template, this, AxisID.ONLY);}
+          Utilities.copyFile(file, template, this, AxisID.ONLY);
+        }
       }
       else {
         Utilities.deleteFileType(this, AxisID.ONLY, template);
@@ -625,7 +627,8 @@ public final class ApplicationManager extends BaseManager implements
       if (directiveFile != null) {
         file = directiveFile.getFile();
         if (file != null) {
-        Utilities.copyFile(file, template, this, AxisID.ONLY);}
+          Utilities.copyFile(file, template, this, AxisID.ONLY);
+        }
       }
       else {
         Utilities.deleteFileType(this, AxisID.ONLY, template);
@@ -634,13 +637,14 @@ public final class ApplicationManager extends BaseManager implements
     catch (IOException e) {
       e.printStackTrace();
       if (directiveFile != null) {
-         file = directiveFile.getFile();
+        file = directiveFile.getFile();
         if (file != null) {
           uiHarness.openMessageDialog(this, "Unable to copy " + file.getAbsolutePath()
               + " to dataset.", "Unable to Copy File");
         }
         else {
-          System.err.println("Warning: in copyDirectiveFiles directive file was not set.");
+          System.err
+              .println("Warning: in copyDirectiveFiles directive file was not set.");
         }
       }
     }
@@ -1340,9 +1344,9 @@ public final class ApplicationManager extends BaseManager implements
     try {
       int previewNumber = imodManager.newImod(key, axisID);
       imodManager.setWorkingDirectory(key, axisID, previewNumber, previewWorkingDir);
-      if (FileType.PIECE_LIST.exists(this, axisID, previewMetaData)) {
+      if (FileType.PIECE_LIST.exists(this, previewMetaData, axisID)) {
         imodManager.setPieceListFileName(key, axisID, previewNumber,
-            FileType.PIECE_LIST.getFileName(this, axisID, previewMetaData));
+            FileType.PIECE_LIST.getFileName(this, previewMetaData, axisID));
       }
       imodManager.open(key, axisID, previewNumber, menuOptions);
     }
@@ -3821,7 +3825,7 @@ public final class ApplicationManager extends BaseManager implements
    */
   public void imodViewModel(AxisID axisID, FileType modelFileType) {
     try {
-      imodManager.open(modelFileType.getImodManagerKey(this), axisID,
+      imodManager.open(modelFileType.getImodManagerKey(), axisID,
           modelFileType.getFileName(this, axisID));
     }
     catch (AxisTypeException except) {
@@ -3844,10 +3848,10 @@ public final class ApplicationManager extends BaseManager implements
     // was last used as input for tilt_3dfind.
     String key;
     if (state.isStackUsingNewstOrBlend3dFindOutput(axisID)) {
-      key = FileType.NEWST_OR_BLEND_3D_FIND_OUTPUT.getImodManagerKey(this);
+      key = FileType.NEWST_OR_BLEND_3D_FIND_OUTPUT.getImodManagerKey();
     }
     else {
-      key = FileType.ALIGNED_STACK.getImodManagerKey(this);
+      key = FileType.ALIGNED_STACK.getImodManagerKey();
     }
     try {
       File tiltFile = DatasetFiles.getTiltFile(this, axisID);
@@ -6025,7 +6029,7 @@ public final class ApplicationManager extends BaseManager implements
    */
   public void imod(FileType fileType, AxisID axisID, Run3dmodMenuOptions menuOptions) {
     try {
-      imodManager.open(fileType.getImodManagerKey(this), axisID, menuOptions);
+      imodManager.open(fileType.getImodManagerKey(), axisID, menuOptions);
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
@@ -6050,7 +6054,7 @@ public final class ApplicationManager extends BaseManager implements
   public void imod(FileType fileType, FileType modelFileType, AxisID axisID,
       Run3dmodMenuOptions menuOptions) {
     try {
-      imodManager.open(fileType.getImodManagerKey(this), axisID,
+      imodManager.open(fileType.getImodManagerKey(), axisID,
           modelFileType.getFileName(this, axisID), menuOptions);
     }
     catch (AxisTypeException except) {
@@ -6082,7 +6086,7 @@ public final class ApplicationManager extends BaseManager implements
       fileType = FileType.ALIGNED_STACK;
     }
     try {
-      imodManager.open(fileType.getImodManagerKey(this), axisID,
+      imodManager.open(fileType.getImodManagerKey(), axisID,
           FileType.CCD_ERASER_BEADS_INPUT_MODEL.getFileName(this, axisID), menuOptions);
     }
     catch (AxisTypeException except) {
@@ -6425,7 +6429,7 @@ public final class ApplicationManager extends BaseManager implements
   public void imodModel(final FileType fileType, final FileType modelFileType,
       final AxisID axisID, final Run3dmodMenuOptions menuOptions, final boolean modelMode) {
     try {
-      imodManager.open(fileType.getImodManagerKey(this), axisID,
+      imodManager.open(fileType.getImodManagerKey(), axisID,
           modelFileType.getFileName(this, axisID), modelMode, menuOptions);
     }
     catch (SystemProcessException except) {
@@ -6453,9 +6457,9 @@ public final class ApplicationManager extends BaseManager implements
     String model = FileType.AUTOFIDSEED_DIR.getFileName(this, axisID) + File.separator
         + FileType.CLUSTERED_ELONGATED_MODEL.getFile(this, axisID).getName();
     try {
-      imodManager.setOpenSurfContPoint(fileType.getImodManagerKey(this), axisID, true);
-      imodManager.setPreserveContrast(fileType.getImodManagerKey(this), axisID, true);
-      imodManager.open(fileType.getImodManagerKey(this), axisID, model, menuOptions);
+      imodManager.setOpenSurfContPoint(fileType.getImodManagerKey(), axisID, true);
+      imodManager.setPreserveContrast(fileType.getImodManagerKey(), axisID, true);
+      imodManager.open(fileType.getImodManagerKey(), axisID, model, menuOptions);
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
@@ -8936,7 +8940,7 @@ public final class ApplicationManager extends BaseManager implements
       return false;
     }
     mainPanel.startProgressBar(
-        "Using " + useFile.getName() + " as " + outputFileType.getDescription(this),
+        "Using " + useFile.getName() + " as " + outputFileType.getDescription(),
         axisID);
     if (!useFile.exists()) {
       UIHarness.INSTANCE.openMessageDialog(this, useFile.getName()
