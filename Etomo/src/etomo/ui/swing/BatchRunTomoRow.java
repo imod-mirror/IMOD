@@ -170,22 +170,28 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
     if (actionCommand.equals(cbcDualAxis.getActionCommand())) {
       updateDisplay();
     }
-    else if (actionCommand.equals(mbc3dmodA.getActionCommand())) {
-      imodIndexA = manager.imod(fcStack.getExpandedValue(),
-          cbcBoundaryModel.isSelected(), AxisID.FIRST, imodIndexA);
-    }
-    else if (actionCommand.equals(mbc3dmodB.getActionCommand())) {
-      imodIndexB = manager.imod(fcStack.getExpandedValue(),
-          cbcBoundaryModel.isSelected(), AxisID.SECOND, imodIndexB);
-    }
-    else if (actionCommand.equals(mbcEtomo.getActionCommand())) {
-      EtomoDirector.INSTANCE.openTomogram(DatasetTool.getDatasetFile(
-          fcStack.getExpandedValue(), false, AxisID.ONLY));
-    }
-    else if (actionCommand.equals(cbcBoundaryModel.getActionCommand())
-        && cbcBoundaryModel.isSelected()) {
-      manager.imodOpenModel(imodIndexA);
-      manager.imodOpenModel(imodIndexB);
+    else {
+      String datasetName = DatasetTool.getDatasetName(fcStack.getExpandedValue(),
+          cbcDualAxis.isSelected());
+      if (actionCommand.equals(mbc3dmodA.getActionCommand())) {
+        imodIndexA = manager.imod(new File(fcStack.getExpandedValue()),
+            cbcBoundaryModel.isSelected(), AxisID.FIRST, imodIndexA, run3dmodMenuOptions);
+      }
+      else if (actionCommand.equals(mbc3dmodB.getActionCommand())) {
+        imodIndexB = manager
+            .imod(DatasetTool.getBStack(fcStack.getExpandedValue()),
+                cbcBoundaryModel.isSelected(), AxisID.SECOND, imodIndexB,
+                run3dmodMenuOptions);
+      }
+      else if (actionCommand.equals(mbcEtomo.getActionCommand())) {
+        EtomoDirector.INSTANCE.openTomogram(DatasetTool.getReconDatasetFile(datasetName),
+            false, null);
+      }
+      else if (actionCommand.equals(cbcBoundaryModel.getActionCommand())
+          && cbcBoundaryModel.isSelected()) {
+        manager.imodOpenModel(imodIndexA);
+        manager.imodOpenModel(imodIndexB);
+      }
     }
   }
 
