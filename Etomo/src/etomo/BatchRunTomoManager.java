@@ -1,15 +1,23 @@
 package etomo;
 
+import java.io.File;
+import java.io.IOException;
+
 import etomo.process.BaseProcessManager;
 import etomo.process.BatchRunTomoProcessManager;
+import etomo.process.ImodManager;
+import etomo.process.SystemProcessException;
 import etomo.storage.Storable;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
+import etomo.type.AxisTypeException;
 import etomo.type.BaseMetaData;
 import etomo.type.BaseScreenState;
 import etomo.type.BatchRunTomoMetaData;
 import etomo.type.DialogType;
+import etomo.type.FileType;
 import etomo.type.InterfaceType;
+import etomo.type.Run3dmodMenuOptions;
 import etomo.ui.swing.BatchRunTomoDialog;
 import etomo.ui.swing.MainBatchRunTomoPanel;
 import etomo.ui.swing.MainPanel;
@@ -93,8 +101,34 @@ public final class BatchRunTomoManager extends BaseManager {
    * 
    * @return the vector index of the 3dmod instance
    */
-  public int imod(final String absStackPath, final boolean boundaryModel,
-      final AxisID axisID, int imodIndex) {
+  public int imod(final String datasetName, final AxisID axisID, final boolean dualAxis,
+      final File stack, int imodIndex, final boolean boundaryModel,
+      Run3dmodMenuOptions menuOptions) {
+    String key = ImodManager.BATCH_RUN_TOMO_STACK_KEY;
+    AxisType axisType = dualAxis ? AxisType.DUAL_AXIS : AxisType.SINGLE_AXIS;
+    try {
+      if (boundaryModel) {
+        imodIndex = imodManager.open(key, stack, axisID, imodIndex,
+            FileType.BATCH_RUN_TOMO_BOUNDARY_MODEL.getFileName(datasetName, axisType,
+                axisID), true, menuOptions);
+      }
+      else {
+        imodIndex = imodManager.open(key, stack, axisID, imodIndex, menuOptions);
+      }
+    }
+    catch (AxisTypeException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(this, except.getMessage(), "AxisType problem", axisID);
+    }
+    catch (SystemProcessException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(this, except.getMessage(), "Problem opening " + key,
+          axisID);
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception", axisID);
+    }
     return imodIndex;
   }
 
