@@ -430,7 +430,7 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
   public void setImageOutputFile(final FileType fileType, final String rootName,
       final AxisType axisType) {
     imageOutputFileFor3dFind = false;
-    imageOutputFile = fileType.deriveFileName(rootName, axisType, manager, axisID);
+    imageOutputFile = fileType.deriveFileName(rootName, axisType, axisID);
     imageOutputFileType = fileType;
   }
 
