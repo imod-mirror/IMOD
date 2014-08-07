@@ -24,6 +24,16 @@ tooltip =
 manpage = First and last Z values in the file to filter.  Values are
 numbered from 1 and the default is to do all sections.
 
+[Field = ModeToOutput]
+short = mode
+type = I
+usage = Storage mode of output file; 0 for byte, 1 or 6 for integer, 2 for real
+tooltip = 
+manpage = The storage mode of the output file; 0 for byte, 1 for 16-bit 
+signed integer, 6 for 16-bit unsigned integer, or 2 for 32-bit floating point.
+The default is the mode of the input file.  This entry is allowed only when
+writing to a new output file and when the input is not an FFT.
+
 [Field = FilterIn3D]
 short = 3dfilter
 type = B
