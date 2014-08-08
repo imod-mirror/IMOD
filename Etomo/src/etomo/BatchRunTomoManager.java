@@ -3,6 +3,7 @@ package etomo;
 import java.io.File;
 import java.io.IOException;
 
+import etomo.logic.DatasetTool;
 import etomo.process.BaseProcessManager;
 import etomo.process.BatchRunTomoProcessManager;
 import etomo.process.ImodManager;
@@ -98,7 +99,7 @@ public final class BatchRunTomoManager extends BaseManager {
   }
 
   /**
-   * 
+   * Open imod
    * @return the vector index of the 3dmod instance
    */
   public int imod(final String datasetName, final AxisID axisID, final boolean dualAxis,
@@ -130,6 +131,50 @@ public final class BatchRunTomoManager extends BaseManager {
       uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception", axisID);
     }
     return imodIndex;
+  }
+
+  /**
+   * Open imod model in a running imod instance
+   */
+  public void imodModel(final String datasetName, final AxisID axisID,
+      final boolean dualAxis, final File stack, final int imodIndex) {
+    if (imodIndex == -1) {
+      return;
+    }
+    String key = ImodManager.BATCH_RUN_TOMO_STACK_KEY;
+    AxisType axisType = dualAxis ? AxisType.DUAL_AXIS : AxisType.SINGLE_AXIS;
+    try {
+      imodManager.openModel(key, axisID, imodIndex,
+          FileType.BATCH_RUN_TOMO_BOUNDARY_MODEL.getFileName(datasetName, axisType,
+              axisID), true);
+    }
+    catch (AxisTypeException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(this, except.getMessage(), "AxisType problem", axisID);
+    }
+    catch (SystemProcessException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(this, except.getMessage(), "Problem opening " + key,
+          axisID);
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception", axisID);
+    }
+  }
+
+  /**
+   * Build a reconstruction dataset file from a stack file
+   * @param stackFile
+   * @param dualAxis
+   * @return
+   */
+  public File getReconDatasetFile(final File stackFile, final boolean dualAxis) {
+    if (dialog.isDeliverToDirectory()) {
+      return DatasetTool.getDatasetFile(dialog.getDeliverToDirectory(),
+          stackFile.getName(), dualAxis);
+    }
+    return DatasetTool.getDatasetFile(stackFile, dualAxis);
   }
 
   void createMainPanel() {
