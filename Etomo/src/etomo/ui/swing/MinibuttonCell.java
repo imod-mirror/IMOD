@@ -8,6 +8,7 @@ import javax.swing.Icon;
 import javax.swing.border.BevelBorder;
 
 import etomo.type.UITestFieldType;
+import etomo.ui.UIComponent;
 
 /**
 * <p>Description: </p>
@@ -24,7 +25,8 @@ import etomo.type.UITestFieldType;
 * 
 * <p> $Log$ </p>
 */
-public final class MinibuttonCell extends InputCell {
+public final class MinibuttonCell extends InputCell implements UIComponent,
+    SwingComponent {
   public static final String rcsid = "$Id:$";
 
   private final Minibutton button;
@@ -34,8 +36,12 @@ public final class MinibuttonCell extends InputCell {
         BorderFactory.createBevelBorder(BevelBorder.RAISED));
   }
 
-  Component getComponent() {
+  public Component getComponent() {
     return button;
+  }
+
+  public SwingComponent getUIComponent() {
+    return this;
   }
 
   UITestFieldType getFieldType() {
