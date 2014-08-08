@@ -44,6 +44,7 @@ import etomo.type.PeetMetaData;
 import etomo.type.SerialSectionsMetaData;
 import etomo.type.ToolType;
 import etomo.type.UserConfiguration;
+import etomo.ui.UIComponent;
 import etomo.ui.swing.MainFrame;
 import etomo.ui.swing.SettingsDialog;
 import etomo.ui.swing.UIHarness;
@@ -460,8 +461,8 @@ public class EtomoDirector {
     // Otherwise check to see if we can get it from the environment
     String imodDirectoryName = System.getProperty(IMOD_DIR_ENV_VAR);
     if (imodDirectoryName == null) {
-      imodDirectoryName = EnvironmentVariable.INSTANCE.getValue(null, null, IMOD_DIR_ENV_VAR,
-          AxisID.ONLY);
+      imodDirectoryName = EnvironmentVariable.INSTANCE.getValue(null, null,
+          IMOD_DIR_ENV_VAR, AxisID.ONLY);
       if (imodDirectoryName.equals("")) {
         String[] message = new String[3];
         message[0] = "Can not find IMOD directory!";
@@ -844,14 +845,15 @@ public class EtomoDirector {
     }
   }
 
-  public void openManager(File dataFile, boolean makeCurrent, AxisID axisID) {
+  public void openManager(final File dataFile, final boolean makeCurrent,
+      final AxisID axisID, final UIComponent uiComponent) {
     if (dataFile == null) {
       throw new IllegalStateException("null dataFile");
     }
     closeDefaultWindow(axisID);
     EtomoFileFilter etomoFileFilter = new EtomoFileFilter();
     if (etomoFileFilter.accept(dataFile)) {
-      openTomogram(dataFile, makeCurrent, axisID);
+      openTomogram(dataFile, makeCurrent, axisID, uiComponent);
       return;
     }
     JoinFileFilter joinFileFilter = new JoinFileFilter();
@@ -884,12 +886,20 @@ public class EtomoDirector {
     throw new IllegalStateException("unknown dataFile");
   }
 
-  public void openTomogram(File etomoDataFile, boolean makeCurrent, AxisID axisID) {
+  public void openTomogram(final File etomoDataFile, final boolean makeCurrent,
+      final AxisID axisID, final UIComponent uiComponent) {
     if (etomoDataFile == null) {
       openTomogram(makeCurrent, axisID);
     }
     else {
-      openTomogram(etomoDataFile.getAbsolutePath(), makeCurrent, axisID);
+      if (etomoDataFile.exists()) {
+        openTomogram(etomoDataFile.getAbsolutePath(), makeCurrent, axisID);
+      }
+      else {
+        UIHarness.INSTANCE.openMessageDialog(uiComponent,
+            "Dataset file " + etomoDataFile.getAbsolutePath() + " does not exist.",
+            "Open Dataset Failed");
+      }
     }
   }
 

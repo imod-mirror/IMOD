@@ -15,7 +15,7 @@ import javax.swing.JFileChooser;
 import javax.swing.JPanel;
 import javax.swing.border.LineBorder;
 
-import etomo.BaseManager;
+import etomo.BatchRunTomoManager;
 import etomo.storage.DirectiveFileCollection;
 import etomo.storage.StackFileFilter;
 import etomo.type.UserConfiguration;
@@ -76,21 +76,21 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
 
   private final JPanel pnlButtons = new JPanel();
 
-  private final BaseManager manager;
+  private final BatchRunTomoManager manager;
   private final Viewport viewport;
   private final ActionListener editDatasetListener;
 
   private File currentDirectory = null;
   private BatchRunTomoTab curTab = null;
 
-  private BatchRunTomoTable(final BaseManager manager,
+  private BatchRunTomoTable(final BatchRunTomoManager manager,
       final ActionListener editDatasetListener) {
     this.manager = manager;
     this.editDatasetListener = editDatasetListener;
     viewport = new Viewport(this, 5, null, null, null, "BatchRunTomo");
   }
 
-  static BatchRunTomoTable getInstance(final BaseManager manager,
+  static BatchRunTomoTable getInstance(final BatchRunTomoManager manager,
       final ActionListener editDatasetListener) {
     BatchRunTomoTable instance = new BatchRunTomoTable(manager, editDatasetListener);
     instance.createPanel();
@@ -415,7 +415,7 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
         }
         BatchRunTomoRow row = BatchRunTomoRow.getInstance(manager.getPropertyUserDir(),
             table, pnlTable, layout, constraints, index + 1, stackList[i],
-            (prevRow != null ? prevRow : initialValueRow));
+            (prevRow != null ? prevRow : initialValueRow), manager);
         row.expandStack(btnStack.isExpanded());
         list.add(row);
         row.display(viewport, curTab);
