@@ -1129,6 +1129,19 @@ public class ImodManager {
     return vectorIndex;
   }
 
+  public void openModel(String key, final AxisID axisID, int vectorIndex,
+      final String model, final boolean modelMode) throws AxisTypeException,
+      SystemProcessException, IOException {
+    key = getPrivateKey(key);
+    ImodState imodState = null;
+    if (vectorIndex != -1) {
+      imodState = get(key, axisID, vectorIndex);
+    }
+    if (imodState != null) {
+      imodState.openModel(model, modelMode);
+    }
+  }
+
   public int open(String key, final File file, final AxisID axisID, int vectorIndex,
       final Run3dmodMenuOptions menuOptions) throws AxisTypeException,
       SystemProcessException, IOException {
