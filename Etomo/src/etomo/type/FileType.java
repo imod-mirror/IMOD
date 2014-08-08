@@ -94,6 +94,8 @@ import etomo.process.ImodManager;
 public final class FileType {
   public static final String rcsid = "$Id$";
 
+  public static final String COM_DIR = "com";
+
   private static final List namedFileTypeList = new Vector();
 
   // FileType instances should be placed in alphabetical order, sorted first by
@@ -173,7 +175,7 @@ public final class FileType {
   public static final FileType SIRTSETUP_COMSCRIPT = FileType.getInstance(false, true,
       "sirtsetup", ".com");
   public static final FileType SLOPPY_BLEND_COMSCRIPT = FileType.getIMODDirInstance(
-      false, false, "sloppyblend", ".com", "com");
+      false, false, "sloppyblend", ".com", COM_DIR);
   public static final FileType TILT_COMSCRIPT = FileType.getInstance(false, true, "tilt",
       ".com");
   public static final FileType TILT_FOR_SIRT_COMSCRIPT = FileType.getInstance(false,
@@ -185,7 +187,7 @@ public final class FileType {
   public static final FileType PATCH_TRACKING_COMSCRIPT = FileType.getInstance(false,
       true, "xcorr_pt", ".com");
   public static final FileType DIRECTIVES_DESCR = FileType.getIMODDirInstance(false,
-      false, "directives", ".csv", "com");
+      false, "directives", ".csv", COM_DIR);
   public static final FileType DISTORTION_CORRECTED_STACK = FileType.getInstance(true,
       true, "", ".dcst");
   public static final FileType AUTOFIDSEED_DIR = FileType.getInstance(false, true,
@@ -504,7 +506,7 @@ public final class FileType {
     String fixedPattern = "";
     String axisPattern = "";
     String axisExtension = axisID.getExtension();
-    if (usesDataset) {
+    if (usesDataset && manager != null) {
       // If the dataset is part of the file name, then there is a fixed pattern
       if (usesAxisID) {
         fixedPattern = Pattern.quote(manager.getBaseMetaData().getName() + axisExtension);
@@ -656,10 +658,16 @@ public final class FileType {
     return false;
   }
 
+  /**
+   * If no manager is available, assumes single axis
+   * @param manager
+   * @return
+   */
   private FileType getChildFileType(final BaseManager manager) {
     if (composite) {
       if (singleFileType != null && dualFileType != null) {
-        if (manager.getBaseMetaData().getAxisType() == AxisType.DUAL_AXIS) {
+        if (manager != null
+            && manager.getBaseMetaData().getAxisType() == AxisType.DUAL_AXIS) {
           return dualFileType;
         }
         return singleFileType;
@@ -719,7 +727,7 @@ public final class FileType {
 
   private File getFile(final BaseManager manager, final AxisID axisID,
       final BaseMetaData metadata) {
-    if (manager == null || !hasFixedName(manager)) {
+    if (!hasFixedName(manager)) {
       return null;
     }
     String fileName = getFileName(manager, axisID, metadata);
@@ -739,12 +747,19 @@ public final class FileType {
             new File(subdir.getFileName(manager, axisID, metadata), fileName)
                 .getAbsolutePath());
       }
-      if ((subdirName = manager.getFileSubdirectoryName()) != null) {
+      if (manager != null && (subdirName = manager.getFileSubdirectoryName()) != null) {
         return new File(new File(new File(manager.getPropertyUserDir(), subdirName),
             fileName).getAbsolutePath());
       }
     }
-    return new File(new File(manager.getPropertyUserDir(), fileName).getAbsolutePath());
+    String dir;
+    if (manager != null) {
+      dir = manager.getPropertyUserDir();
+    }
+    else {
+      dir = EtomoDirector.INSTANCE.getOriginalUserDir();
+    }
+    return new File(new File(dir, fileName).getAbsolutePath());
   }
 
   public boolean exists(final BaseManager manager, final AxisID axisID) {
@@ -793,7 +808,7 @@ public final class FileType {
 
   private String getFileName(final BaseManager manager, final AxisID axisID,
       final boolean templateOK, final BaseMetaData metaData) {
-    if (manager == null || !hasFixedName(manager)) {
+    if (!hasFixedName(manager)) {
       return null;
     }
     if (template && !templateOK) {
@@ -807,10 +822,15 @@ public final class FileType {
 
   private String getLeftSide(final BaseManager manager, final AxisID axisID,
       BaseMetaData metaData) {
-    if (metaData == null) {
+    if (metaData == null && manager != null) {
       metaData = manager.getBaseMetaData();
     }
-    return getLeftSide(metaData.getName(), metaData.getAxisType(), manager, axisID);
+    if (metaData != null) {
+      return getLeftSide(metaData.getName(), metaData.getAxisType(), manager, axisID);
+    }
+    else {
+      return getLeftSide("", AxisType.SINGLE_AXIS, manager, axisID);
+    }
   }
 
   /**
@@ -823,7 +843,7 @@ public final class FileType {
    */
   private String getLeftSide(final String rootName, final AxisType axisType,
       final BaseManager manager, final AxisID axisID) {
-    if (manager == null || !hasFixedName(manager)) {
+    if (!hasFixedName(manager)) {
       return null;
     }
     if (composite) {

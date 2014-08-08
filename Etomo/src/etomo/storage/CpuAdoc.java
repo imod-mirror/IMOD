@@ -323,7 +323,7 @@ public class CpuAdoc {
   private ReadOnlyAutodoc getAutodoc(BaseManager manager, AxisID axisID) {
     ReadOnlyAutodoc autodoc = null;
     try {
-      autodoc = AutodocFactory.getInstance(manager, AutodocFactory.CPU, axisID);
+      autodoc = AutodocFactory.getInstance(manager, AutodocFactory.CPU, axisID,false);
     }
     catch (FileNotFoundException e) {
       e.printStackTrace();

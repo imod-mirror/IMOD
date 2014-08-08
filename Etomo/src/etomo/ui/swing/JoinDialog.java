@@ -2110,7 +2110,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer,
     ReadOnlyAutodoc autodoc = null;
     try {
       autodoc = AutodocFactory.getInstance(manager, AutodocFactory.XFJOINTOMO,
-          AxisID.ONLY);
+          AxisID.ONLY,false);
       ltfBoundariesToAnalyze.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
           XfjointomoParam.BOUNDARIES_TO_ANALYZE_KEY));
       ltfObjectsToInclude.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
