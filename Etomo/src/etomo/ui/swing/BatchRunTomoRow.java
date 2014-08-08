@@ -188,8 +188,8 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
       else if (actionCommand.equals(mbcEtomo.getActionCommand())) {
         EtomoDirector.INSTANCE.openTomogram(
             manager.getReconDatasetFile(DatasetTool.getStackFile(
-                fcStack.getExpandedValue(), AxisID.FIRST, dualAxis), dualAxis), false,
-            null);
+                fcStack.getExpandedValue(), AxisID.FIRST, dualAxis), dualAxis), true,
+            null,mbcEtomo);
       }
       else if (actionCommand.equals(cbcBoundaryModel.getActionCommand())
           && cbcBoundaryModel.isSelected()) {
