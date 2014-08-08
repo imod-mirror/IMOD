@@ -171,36 +171,39 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
       updateDisplay();
     }
     else {
-      String datasetName = DatasetTool.getDatasetName(fcStack.getExpandedValue(),
-          cbcDualAxis.isSelected());
+      boolean dualAxis = cbcDualAxis.isSelected();
+      String datasetName = DatasetTool.getDatasetName(fcStack.getContractedValue(),
+          dualAxis);
       if (actionCommand.equals(mbc3dmodA.getActionCommand())) {
-        imodIndexA = manager.imod(new File(fcStack.getExpandedValue()),
-            cbcBoundaryModel.isSelected(), AxisID.FIRST, imodIndexA, run3dmodMenuOptions);
+        imodIndexA = manager.imod(datasetName, AxisID.FIRST, dualAxis,
+            DatasetTool.getStackFile(fcStack.getExpandedValue(), AxisID.FIRST, dualAxis),
+            imodIndexA, cbcBoundaryModel.isSelected(), run3dmodMenuOptions);
       }
       else if (actionCommand.equals(mbc3dmodB.getActionCommand())) {
         imodIndexB = manager
-            .imod(DatasetTool.getBStack(fcStack.getExpandedValue()),
-                cbcBoundaryModel.isSelected(), AxisID.SECOND, imodIndexB,
-                run3dmodMenuOptions);
+            .imod(datasetName, AxisID.SECOND, dualAxis, DatasetTool.getStackFile(
+                fcStack.getExpandedValue(), AxisID.SECOND, dualAxis), imodIndexB,
+                cbcBoundaryModel.isSelected(), run3dmodMenuOptions);
       }
       else if (actionCommand.equals(mbcEtomo.getActionCommand())) {
-        EtomoDirector.INSTANCE.openTomogram(DatasetTool.getReconDatasetFile(datasetName),
-            false, null);
+        EtomoDirector.INSTANCE.openTomogram(
+            manager.getReconDatasetFile(DatasetTool.getStackFile(
+                fcStack.getExpandedValue(), AxisID.FIRST, dualAxis), dualAxis), false,
+            null);
       }
       else if (actionCommand.equals(cbcBoundaryModel.getActionCommand())
           && cbcBoundaryModel.isSelected()) {
-        manager.imodOpenModel(imodIndexA);
-        manager.imodOpenModel(imodIndexB);
+        if (imodIndexA != -1) {
+          manager.imodModel(datasetName, AxisID.FIRST, dualAxis, DatasetTool
+              .getStackFile(fcStack.getExpandedValue(), AxisID.FIRST, dualAxis),
+              imodIndexA);
+        }
+        if (imodIndexB != -1) {
+          manager.imodModel(datasetName, AxisID.SECOND, dualAxis, DatasetTool
+              .getStackFile(fcStack.getExpandedValue(), AxisID.SECOND, dualAxis),
+              imodIndexB);
+        }
       }
-    }
-  }
-
-  void delete() {
-    if (imodIndexA != -1) {
-      manager.deleteImod(imodIndexA);
-    }
-    if (imodIndexB != -1) {
-      manager.deleteImod(imodIndexB);
     }
   }
 
