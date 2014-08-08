@@ -142,7 +142,7 @@ abstract class EtomoFrame extends AbstractFrame {
       else if (menu.equalsOpen(event)) {
         File dataFile = openDataFileDialog();
         if (dataFile != null) {
-          EtomoDirector.INSTANCE.openManager(dataFile, true, axisID);
+          EtomoDirector.INSTANCE.openManager(dataFile, true, axisID, this);
         }
       }
       else if (menu.equalsExit(event)) {
@@ -225,7 +225,7 @@ abstract class EtomoFrame extends AbstractFrame {
    */
   void menuFileMRUListAction(ActionEvent event) {
     EtomoDirector.INSTANCE.openManager(new File(event.getActionCommand()), true,
-        getAxisID());
+        getAxisID(), this);
   }
 
   /**
