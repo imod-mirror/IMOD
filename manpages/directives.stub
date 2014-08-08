@@ -40,6 +40,10 @@ Notes:
   the equals sign, which means that the parameter in question is not set, even
   if it was set by an earlier directive.  In the case of a "comparam" directive, 
   an empty value will cause the parameter to be removed from the command file.
+<LI> For more details on the effects and possible values of "comparam"
+  directives, consult the man page for the specific program.  For more details
+  on the operations controlled by "runtime" directives, see
+  the <A HREF="man/batchruntomo.html">man page</A> for Batchruntomo.
 </UL>
 <LI> Directives marked with <B>Y</B> in the <B>Batch</B> column can be included in a
   batch directive file and will be acted on by Batchruntomo.

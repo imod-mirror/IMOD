@@ -184,7 +184,8 @@ int clipEdge(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
     opt->mode = (opt->process == IP_GRADIENT) ? hin->mode : MRC_MODE_BYTE;
 
   if (hin->mode != MRC_MODE_BYTE && hin->mode != MRC_MODE_SHORT && 
-      hin->mode != MRC_MODE_USHORT && hin->mode != MRC_MODE_FLOAT) {
+      hin->mode != MRC_MODE_USHORT && hin->mode != MRC_MODE_FLOAT &&
+      !(hin->mode == MRC_MODE_COMPLEX_FLOAT && opt->process != IP_GRADIENT)) {
     show_error("clip edge: only byte, integer and float modes can be used");
     return -1;
   }

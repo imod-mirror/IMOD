@@ -223,7 +223,7 @@ if PipGetBoolean('help', 0):
    one form of eTomo processing.
    If no etomo data file is specified, it searches for files in this order:
    tomogram generation (.edj), joining (.ejf), PEET (.epe), NAD (.epe),
-   generic parallel processing (.epe)
+   generic parallel processing (.epe), serial sections (.ess)
    It must be run from the data directory, but you do not need to have write
    permission in that directory if you specify an alternate writeable directory.""")
    
