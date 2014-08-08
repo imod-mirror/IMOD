@@ -109,7 +109,7 @@ public final class DatasetTool {
     if (datasetName == null) {
       return null;
     }
-    return new File(new File(parentDir, datasetName), datasetName + DataFileType.RECON);
+    return new File(new File(parentDir, datasetName), datasetName + DataFileType.RECON.extension);
   }
 
   /**
@@ -126,7 +126,7 @@ public final class DatasetTool {
     if (datasetName == null) {
       return null;
     }
-    return new File(stackFile.getParent(), datasetName + DataFileType.RECON);
+    return new File(stackFile.getParent(), datasetName + DataFileType.RECON.extension);
   }
 
   /**
