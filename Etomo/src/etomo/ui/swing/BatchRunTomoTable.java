@@ -435,7 +435,6 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
           return;
         }
         row.remove();
-        row.delete();
         list.remove(index);
         viewport.adjustViewport(index);
       }
