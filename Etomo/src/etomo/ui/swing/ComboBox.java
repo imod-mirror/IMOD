@@ -4,6 +4,7 @@ import java.awt.Component;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusListener;
 
+import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JComboBox;
@@ -54,7 +55,7 @@ final class ComboBox {
   private final JPanel pnlRoot;
   final boolean addEmptyChoice;// Causes the index to be off by one
 
-  private boolean checkpointed =false;
+  private boolean checkpointed = false;
   private int checkpointIndex = -1;
   private DebugLevel debug = EtomoDirector.INSTANCE.getArguments().getDebugLevel();
 
@@ -114,6 +115,12 @@ final class ComboBox {
       comboBox.addItem(null);
     }
     comboBox.addItem(input);
+  }
+
+  void setFieldHighlight() {
+    label.setForeground(Colors.FIELD_HIGHLIGHT);
+    comboBox.setForeground(Colors.FIELD_HIGHLIGHT);
+    comboBox.setBorder(BorderFactory.createLineBorder(Colors.FIELD_HIGHLIGHT));
   }
 
   String getActionCommand() {

@@ -160,7 +160,7 @@ public final class SetupDialogExpert {
     if (dataset != null) {
       // If the directory was set and dataset is a file (not the dataset name), pass the
       // absolute path to the dialog.
-      if (dir != null && dataset.endsWith(FileType.RAW_STACK.getExtension(manager))) {
+      if (dir != null && dataset.endsWith(FileType.RAW_STACK.getExtension())) {
         dialog.setDataset(new File(dir, dataset).getAbsolutePath());
       }
       else {

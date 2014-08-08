@@ -467,7 +467,7 @@ final class SirtPanel implements Run3dmodButtonContainer, SirtsetupDisplay, Expa
     else {
       fileType = FileType.SIRT_OUTPUT_TEMPLATE;
     }
-    String templateExt = fileType.getExtension(manager);
+    String templateExt = fileType.getExtension(manager.getBaseMetaData().getAxisType());
     if (fileNameList != null && fileNameList.length > 0) {
       fileNumberList = new int[fileNameList.length];
       for (int i = 0; i < fileNumberList.length; i++) {
@@ -660,7 +660,7 @@ final class SirtPanel implements Run3dmodButtonContainer, SirtsetupDisplay, Expa
   private void setToolTipText() {
     ReadOnlyAutodoc autodoc = null;
     try {
-      autodoc = AutodocFactory.getInstance(manager, AutodocFactory.SIRTSETUP, axisID);
+      autodoc = AutodocFactory.getInstance(manager, AutodocFactory.SIRTSETUP, axisID,false);
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();

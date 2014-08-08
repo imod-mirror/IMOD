@@ -517,7 +517,7 @@ public final class MatlabParam {
     }
     try {
       ReadOnlyAutodoc autodoc = null;
-      autodoc = (AutodocFactory.getMatlabInstance(manager, file));
+      autodoc = (AutodocFactory.getMatlabInstance(manager, file, false));
       if (autodoc == null) {
         UIHarness.INSTANCE.openMessageDialog(manager,
             "Unable to read " + file.getAbsolutePath() + ".", "File Error");
@@ -561,7 +561,7 @@ public final class MatlabParam {
     ReadOnlyAutodoc commentAutodoc = null;
     try {
       commentAutodoc = AutodocFactory.getInstance(manager, AutodocFactory.PEET_PRM,
-          AxisID.ONLY);
+          AxisID.ONLY, false);
     }
     catch (IOException e) {
       System.err.println("Problem with " + AutodocFactory.PEET_PRM
@@ -573,7 +573,7 @@ public final class MatlabParam {
           + ".adoc.\nLogFile.ReadException:  " + e.getMessage());
     }
     try {
-      WritableAutodoc autodoc = AutodocFactory.getMatlabInstance(manager, file);
+      WritableAutodoc autodoc = AutodocFactory.getMatlabInstance(manager, file, false);
       if (autodoc == null) {
         // get an empty .prm autodoc if the file doesn't exist
         autodoc = AutodocFactory.getEmptyMatlabInstance(manager, file);

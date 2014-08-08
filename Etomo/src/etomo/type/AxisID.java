@@ -110,6 +110,19 @@ public class AxisID {
     return null;
   }
 
+  public AxisID getOtherAxisID() {
+    if (this == ONLY) {
+      return null;
+    }
+    if (this == FIRST) {
+      return SECOND;
+    }
+    if (this == SECOND) {
+      return FIRST;
+    }
+    return null;
+  }
+
   public static AxisID getInstance(char extension) {
     if (FIRST_EXT_STRING.charAt(0) == extension) {
       return FIRST;
