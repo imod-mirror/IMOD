@@ -213,6 +213,14 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
   public void setParameters(final BatchRunTomoMetaData metaData) {
   }
 
+  public boolean isDeliverToDirectory() {
+    return cbDeliverToDirectory.isSelected();
+  }
+
+  public File getDeliverToDirectory() {
+    return ftfDeliverToDirectory.getFile();
+  }
+
   /**
    * Handles any changes in the selection of the starting batch directive file and the
    * template files.
