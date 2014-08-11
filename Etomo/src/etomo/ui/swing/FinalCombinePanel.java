@@ -1255,14 +1255,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
         logFileLabel, logFile, applicationManager, AxisID.ONLY);
   }
 
-  public void action(final Run3dmodButton button,
-      final Run3dmodMenuOptions run3dmodMenuOptions) {
-    buttonAction(button.getActionCommand(), button.getDeferred3dmodButton(),
-        run3dmodMenuOptions);
-  }
-
-  private void buttonAction(final String command,
-      Deferred3dmodButton deferred3dmodButton,
+  public void action(final String command, final Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     // Synchronize this panel with the others
     tomogramCombinationDialog.synchronize(TomogramCombinationDialog.lblFinal, true);
@@ -1372,7 +1365,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
     }
 
     public void actionPerformed(final ActionEvent event) {
-      listenee.buttonAction(event.getActionCommand(), null, null);
+      listenee.action(event.getActionCommand(), null, null);
     }
   }
 
@@ -1386,9 +1379,9 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
 
     try {
       adocCombineFft = AutodocFactory.getInstance(applicationManager,
-          AutodocFactory.COMBINE_FFT, AxisID.ONLY,false);
+          AutodocFactory.COMBINE_FFT, AxisID.ONLY, false);
       adocCorrsearch3d = AutodocFactory.getInstance(applicationManager,
-          AutodocFactory.CORR_SEARCH_3D, AxisID.ONLY,false);
+          AutodocFactory.CORR_SEARCH_3D, AxisID.ONLY, false);
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();

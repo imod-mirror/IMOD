@@ -431,7 +431,7 @@ final class SectionTablePanel implements ContextMenu, Expandable,
   private final MultiLineButton btnGetAngles = new MultiLineButton(
       "Get Angles from Slicer");
   private final MultiLineButton btnInvertTable = new MultiLineButton("Invert Table");
-  //first header row
+  // first header row
   private final HeaderCell header1ZOrder = new HeaderCell("Z Order");
   private final HeaderCell header1SetupSections = new HeaderCell(HEADER1_SECTIONS_LABEL,
       UIParameters.INSTANCE.getSectionsWidth());
@@ -446,7 +446,7 @@ final class SectionTablePanel implements ContextMenu, Expandable,
   private final HeaderCell header1SetupFinal = new HeaderCell("Final");
   private final HeaderCell header1JoinFinal = new HeaderCell("Final");
   private final HeaderCell header1Rotation = new HeaderCell("Rotation Angles");
-  //second header row
+  // second header row
   private final HeaderCell header2ZOrder = new HeaderCell();
   private final HeaderCell header2SetupSections = new HeaderCell();
   private final HeaderCell header2JoinSections = new HeaderCell("In Final");
@@ -459,7 +459,7 @@ final class SectionTablePanel implements ContextMenu, Expandable,
   private final HeaderCell header2SetupFinal = new HeaderCell();
   private final HeaderCell header2JoinFinal = new HeaderCell();
   private final HeaderCell header2Rotation = new HeaderCell();
-  //third header row
+  // third header row
   private final HeaderCell header3ZOrder = new HeaderCell();
   private final HeaderCell header3SetupSections = new HeaderCell();
   private final HeaderCell header3JoinSections = new HeaderCell();
@@ -479,12 +479,12 @@ final class SectionTablePanel implements ContextMenu, Expandable,
       UIParameters.INSTANCE.getNumericWidth());
   private final HeaderCell header3JoinFinalEnd = new HeaderCell("End",
       UIParameters.INSTANCE.getNumericWidth());
-  private final HeaderCell header3RotationX = new HeaderCell("X", UIParameters.INSTANCE
-      .getNumericWidth());
-  private final HeaderCell header3RotationY = new HeaderCell("Y", UIParameters.INSTANCE
-      .getNumericWidth());
-  private final HeaderCell header3RotationZ = new HeaderCell("Z", UIParameters.INSTANCE
-      .getNumericWidth());
+  private final HeaderCell header3RotationX = new HeaderCell("X",
+      UIParameters.INSTANCE.getNumericWidth());
+  private final HeaderCell header3RotationY = new HeaderCell("Y",
+      UIParameters.INSTANCE.getNumericWidth());
+  private final HeaderCell header3RotationZ = new HeaderCell("Z",
+      UIParameters.INSTANCE.getNumericWidth());
   private final RowList rowList;
   private final GridBagLayout layout = new GridBagLayout();
   private final GridBagConstraints constraints = new GridBagConstraints();
@@ -514,22 +514,22 @@ final class SectionTablePanel implements ContextMenu, Expandable,
     this.state = state;
     rowList = new RowList(manager);
     viewport = new Viewport(this, EtomoDirector.INSTANCE.getUserConfiguration()
-        .getJoinTableSize().getInt(), joinDialog.getSetupTabJComponent(), joinDialog
-        .getAlignTabJComponent(), joinDialog.getJoinTabJComponent(), "Section");
-    //create root panel
+        .getJoinTableSize().getInt(), joinDialog.getSetupTabJComponent(),
+        joinDialog.getAlignTabJComponent(), joinDialog.getJoinTabJComponent(), "Section");
+    // create root panel
     pnlBorder.setBoxLayout(BoxLayout.Y_AXIS);
     pnlBorder.setBorder(new EtchedBorder(LABEL).getBorder());
     rootPanel.add(pnlBorder.getContainer());
     pnlBorder.add(pnlTable);
     pnlViewport.setLayout(new BoxLayout(pnlViewport, BoxLayout.X_AXIS));
-    //table
+    // table
     pnlTable.setBorder(LineBorder.createBlackLineBorder());
     pnlTable.setLayout(layout);
     constraints.fill = GridBagConstraints.BOTH;
     button1ExpandSections = ExpandButton.getInstance(this, ExpandButton.Type.MORE);
     button1ExpandSections.setName(HEADER1_SECTIONS_LABEL);
     addTablePanelComponents();
-    //buttons
+    // buttons
     createButtonsPanel();
     addButtonsPanelComponents();
     addRootPanelComponents();
@@ -570,7 +570,7 @@ final class SectionTablePanel implements ContextMenu, Expandable,
   }
 
   private void addTablePanelComponents() {
-    //Table constraints
+    // Table constraints
     if (isSetupTab()) {
       addSetupTablePanelComponents();
     }
@@ -588,8 +588,8 @@ final class SectionTablePanel implements ContextMenu, Expandable,
    *
    */
   private void addSetupTablePanelComponents() {
-    //Header
-    //First row
+    // Header
+    // First row
     constraints.anchor = GridBagConstraints.CENTER;
     constraints.weightx = 0.0;
     constraints.weighty = 0.2;
@@ -608,7 +608,7 @@ final class SectionTablePanel implements ContextMenu, Expandable,
     header1SetupFinal.add(pnlTable, layout, constraints);
     constraints.gridwidth = GridBagConstraints.REMAINDER;
     header1Rotation.add(pnlTable, layout, constraints);
-    //second row
+    // second row
     constraints.weightx = 0.0;
     constraints.gridwidth = 2;
     header2ZOrder.add(pnlTable, layout, constraints);
@@ -620,7 +620,7 @@ final class SectionTablePanel implements ContextMenu, Expandable,
     header2SetupFinal.add(pnlTable, layout, constraints);
     constraints.gridwidth = GridBagConstraints.REMAINDER;
     header2Rotation.add(pnlTable, layout, constraints);
-    //Third row
+    // Third row
     constraints.weightx = 0.0;
     constraints.gridwidth = 2;
     header3ZOrder.add(pnlTable, layout, constraints);
@@ -645,8 +645,8 @@ final class SectionTablePanel implements ContextMenu, Expandable,
   }
 
   private void addAlignTablePanelComponents() {
-    //Header
-    //First row
+    // Header
+    // First row
     constraints.anchor = GridBagConstraints.CENTER;
     constraints.weightx = 0.0;
     constraints.weighty = 0.2;
@@ -665,7 +665,7 @@ final class SectionTablePanel implements ContextMenu, Expandable,
     header1ReferenceSection.add(pnlTable, layout, constraints);
     constraints.gridwidth = GridBagConstraints.REMAINDER;
     header1CurrentSection.add(pnlTable, layout, constraints);
-    //second row
+    // second row
     constraints.weightx = 0.0;
     constraints.gridwidth = 1;
     header2ZOrder.add(pnlTable, layout, constraints);
@@ -682,8 +682,8 @@ final class SectionTablePanel implements ContextMenu, Expandable,
   }
 
   private void addJoinTablePanelComponents() {
-    //Header
-    //First row
+    // Header
+    // First row
     constraints.weightx = 0.0;
     constraints.weighty = 0.2;
     constraints.gridheight = 1;
@@ -698,7 +698,7 @@ final class SectionTablePanel implements ContextMenu, Expandable,
     constraints.gridwidth = GridBagConstraints.REMAINDER;
     header1JoinFinal.add(pnlTable, layout, constraints);
     if (hasRotatedSection()) {
-      //Second row
+      // Second row
       constraints.weightx = 0.0;
       constraints.gridwidth = 2;
       header2ZOrder.add(pnlTable, layout, constraints);
@@ -710,7 +710,7 @@ final class SectionTablePanel implements ContextMenu, Expandable,
       header2JoinFinal.add(pnlTable, layout, constraints);
       header3JoinSections.setText("Orientation");
     }
-    //Third row
+    // Third row
     constraints.weightx = 0.0;
     constraints.gridwidth = 2;
     header3ZOrder.add(pnlTable, layout, constraints);
@@ -732,7 +732,7 @@ final class SectionTablePanel implements ContextMenu, Expandable,
 
   private void createButtonsPanel() {
     pnlButtons.setBoxLayout(BoxLayout.X_AXIS);
-    //first component
+    // first component
     pnlButtonsComponent1.setBoxLayout(BoxLayout.Y_AXIS);
     btnMoveSectionUp.setSize(true);
     btnMoveSectionUp.addActionListener(sectionTableActionListener);
@@ -741,7 +741,7 @@ final class SectionTablePanel implements ContextMenu, Expandable,
     btnAddSection.addActionListener(sectionTableActionListener);
     pnlButtonsComponent1.add(btnAddSection);
     UIUtilities.setButtonSizeAll(pnlButtonsComponent1.getContainer(), buttonDimension);
-    //second component
+    // second component
     pnlButtonsComponent2.setBoxLayout(BoxLayout.Y_AXIS);
     btnMoveSectionDown.setSize(true);
     btnMoveSectionDown.addActionListener(sectionTableActionListener);
@@ -749,12 +749,12 @@ final class SectionTablePanel implements ContextMenu, Expandable,
     btnDeleteSection.setSize(true);
     btnDeleteSection.addActionListener(sectionTableActionListener);
     pnlButtonsComponent2.add(btnDeleteSection);
-    //third component
+    // third component
     b3bOpen3dmod = new BinnedXY3dmodButton("Open in 3dmod", this);
     b3bOpen3dmod.addActionListener(sectionTableActionListener);
     b3bOpen3dmod
         .setSpinnerToolTipText("The binning to use when opening a section in 3dmod.");
-    //fourth component
+    // fourth component
     pnlButtonsComponent4.setBoxLayout(BoxLayout.Y_AXIS);
     btnGetAngles.setSize(true);
     btnGetAngles.addActionListener(sectionTableActionListener);
@@ -792,7 +792,7 @@ final class SectionTablePanel implements ContextMenu, Expandable,
     pnlTable.removeAll();
     addTablePanelComponents();
     SectionTableRow prevRow = null;
-    //redisplay rows and calculate chunks
+    // redisplay rows and calculate chunks
     rowList.displayCurTab(pnlTable, viewport);
   }
 
@@ -835,7 +835,7 @@ final class SectionTablePanel implements ContextMenu, Expandable,
    */
   void setMode(final int mode) {
     this.mode = mode;
-    //enable buttons that are not effected by highlighting
+    // enable buttons that are not effected by highlighting
     switch (mode) {
     case JoinDialog.SAMPLE_PRODUCED_MODE:
       btnAddSection.setEnabled(false);
@@ -1008,9 +1008,9 @@ final class SectionTablePanel implements ContextMenu, Expandable,
           "Unable to Add Section", AxisID.ONLY);
       return;
     }
-    //  Open up the file chooser in the working directory
-    FileChooser chooser = new FileChooser(lastLocation == null ? new File(manager
-        .getPropertyUserDir()) : lastLocation);
+    // Open up the file chooser in the working directory
+    FileChooser chooser = new FileChooser(lastLocation == null ? new File(
+        manager.getPropertyUserDir()) : lastLocation);
     chooser.setDialogTitle("Choose a section");
     TomogramFileFilter tomogramFilter = new TomogramFileFilter();
     chooser.setFileFilter(tomogramFilter);
@@ -1023,8 +1023,8 @@ final class SectionTablePanel implements ContextMenu, Expandable,
       if (isDuplicate(tomogram)) {
         return;
       }
-      MRCHeader header = MRCHeader.getInstance(manager.getPropertyUserDir(), tomogram
-          .getAbsolutePath(), AxisID.ONLY);
+      MRCHeader header = MRCHeader.getInstance(manager.getPropertyUserDir(),
+          tomogram.getAbsolutePath(), AxisID.ONLY);
       if (!readHeader(header)) {
         return;
       }
@@ -1032,8 +1032,8 @@ final class SectionTablePanel implements ContextMenu, Expandable,
       btnAddSection.setEnabled(false);
       btnInvertTable.setEnabled(false);
       if (header.getNRows() < header.getNSections()) {
-        //The tomogram may not be flipped
-        //Ask user if can rotate the tomogram
+        // The tomogram may not be flipped
+        // Ask user if can rotate the tomogram
         String msgFlipped[] = {
             "It looks like you didn't rotate the tomogram in Post Processing",
             "bacause the tomogram is thicker in Z then it is long in Y.", flipWarning[0],
@@ -1117,8 +1117,8 @@ final class SectionTablePanel implements ContextMenu, Expandable,
           tomogram.getAbsolutePath() + " is not a file.", "File Error", AxisID.ONLY);
       return;
     }
-    //Sections are only added in the Setup tab, so assume that the join
-    //expand button is contracted.
+    // Sections are only added in the Setup tab, so assume that the join
+    // expand button is contracted.
     int index = rowList.add(manager, this, tomogram, button1ExpandSections.isExpanded(),
         mode);
     viewport.adjustViewport(index);
@@ -1139,11 +1139,11 @@ final class SectionTablePanel implements ContextMenu, Expandable,
     if (index == -1) {
       return;
     }
-    if (!uiHarness.openYesNoDialog(manager, "Really remove "
-        + rowList.getSetupSectionText(index) + "?", AxisID.ONLY)) {
+    if (!uiHarness.openYesNoDialog(manager,
+        "Really remove " + rowList.getSetupSectionText(index) + "?", AxisID.ONLY)) {
       return;
     }
-    //  rowList.removeRows(index);
+    // rowList.removeRows(index);
     rowList.deleteSection(index);
     rowList.removeRows();
     viewport.adjustViewport(index);
@@ -1274,16 +1274,8 @@ final class SectionTablePanel implements ContextMenu, Expandable,
     return rootPanel;
   }
 
-  public void action(final Run3dmodButton button,
+  public void action(final String command, final Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
-    action(button.getActionCommand(), run3dmodMenuOptions);
-  }
-
-  /**
-   * Handle actions
-   * @param event
-   */
-  private void action(final String command, final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(btnMoveSectionUp.getActionCommand())) {
       moveSectionUp();
     }
@@ -1319,15 +1311,15 @@ final class SectionTablePanel implements ContextMenu, Expandable,
     if (rowList.size() == 0) {
       return;
     }
-    //synchronize setup columns to join columns when the user gets to the join
-    //tab or the model tab
+    // synchronize setup columns to join columns when the user gets to the join
+    // tab or the model tab
     if (curTab == JoinDialog.Tab.JOIN || curTab == JoinDialog.Tab.REJOIN
         || curTab == JoinDialog.Tab.MODEL) {
       rowList.synchronizeSetupToJoin();
-      //joinDialog.defaultSizeInXY();
+      // joinDialog.defaultSizeInXY();
     }
-    //synchronize join columns to setup columns when the users leaves the join
-    //tab
+    // synchronize join columns to setup columns when the users leaves the join
+    // tab
     else if (prevTab == JoinDialog.Tab.JOIN || prevTab == JoinDialog.Tab.REJOIN) {
       rowList.synchronizeJoinToSetup();
     }
@@ -1411,7 +1403,7 @@ final class SectionTablePanel implements ContextMenu, Expandable,
     header2ZOrder.setToolTipText(text);
     header3ZOrder.setToolTipText(text);
     btnInvertTable.setToolTipText("Reverse the order of the sections in the table.");
-  } //  //  Action listener adapters  //
+  } // // Action listener adapters //
 
   /**
    * A list of SectionTableRow classes.  Has the functionality of an array and can
@@ -1438,15 +1430,12 @@ final class SectionTablePanel implements ContextMenu, Expandable,
       return false;
     }
 
-    /*   private void display(int index, JPanel pnlTable, Viewport viewport) {
-     if (index >= 0 && index < list.size()) {
-     get(index).display(index, pnlTable, viewport);
-     }
-     }*/
+    /* private void display(int index, JPanel pnlTable, Viewport viewport) { if (index >=
+     * 0 && index < list.size()) { get(index).display(index, pnlTable, viewport); } } */
 
     private void displayCurTab(final JPanel pnlTable, final Viewport viewport) {
       SectionTableRow prevRow = null;
-      //redisplay rows and calculate chunks
+      // redisplay rows and calculate chunks
       for (int i = 0; i < list.size(); i++) {
         SectionTableRow row = get(i);
         row.setupCurTab(prevRow, list.size());
@@ -1647,7 +1636,7 @@ final class SectionTablePanel implements ContextMenu, Expandable,
       int rowNumber = 0;
       for (int i = size - 1; i >= 0; i--) {
         SectionTableRow row = get(i);
-        //place the row in its new position in the array and configure it
+        // place the row in its new position in the array and configure it
         row.setRowNumber(++rowNumber);
         row.swapBottomTop();
         newRows.add(row);
@@ -1661,7 +1650,7 @@ final class SectionTablePanel implements ContextMenu, Expandable,
         SectionTableRow row = get(i);
         ConstSectionTableRowData rowData = row.getData();
         if (!row.isValid()) {
-          success = false; //getData() failed
+          success = false; // getData() failed
         }
         metaData.setSectionTableData(new SectionTableRowData(manager, rowData));
       }
@@ -1772,7 +1761,7 @@ final class SectionTablePanel implements ContextMenu, Expandable,
     }
 
     public void actionPerformed(final ActionEvent event) {
-      adaptee.action(event.getActionCommand(), null);
+      adaptee.action(event.getActionCommand(), null, null);
     }
   }
 }

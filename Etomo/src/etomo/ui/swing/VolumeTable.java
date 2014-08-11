@@ -371,11 +371,6 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
     updateDisplay();
   }
 
-  public void action(final Run3dmodButton button,
-      final Run3dmodMenuOptions run3dmodMenuOptions) {
-    action(button.getActionCommand(), run3dmodMenuOptions);
-  }
-
   Container getContainer() {
     return rootPanel;
   }
@@ -646,7 +641,8 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
     UIHarness.INSTANCE.pack(manager);
   }
 
-  private void action(final String command, final Run3dmodMenuOptions run3dmodMenuOptions) {
+  public void action(final String command, final Deferred3dmodButton deferred3dmodButton,
+      final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(btnInsertRow.getActionCommand())) {
       insertRow();
     }
@@ -1174,7 +1170,7 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
     }
 
     public void actionPerformed(final ActionEvent event) {
-      volumeTable.action(event.getActionCommand(), null);
+      volumeTable.action(event.getActionCommand(), null, null);
     }
   }
 }

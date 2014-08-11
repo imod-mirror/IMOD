@@ -241,8 +241,7 @@ final class SmoothingAssessmentPanel implements FlattenWarpDisplay,
     }
   }
 
-  private void action(final String command,
-      final Deferred3dmodButton deferred3dmodButton,
+  public void action(final String command, final Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (panelId == PanelId.POST_FLATTEN_VOLUME) {
       if (command.equals(btnFlattenWarp.getActionCommand())) {
@@ -275,18 +274,13 @@ final class SmoothingAssessmentPanel implements FlattenWarpDisplay,
     }
   }
 
-  public void action(final Run3dmodButton button,
-      final Run3dmodMenuOptions run3dmodMenuOptions) {
-    action(button.getActionCommand(), button.getDeferred3dmodButton(),
-        run3dmodMenuOptions);
-  }
-
   void setTooltips() {
     btnFlattenWarp.setToolTipText("Run flattenwarp with different smoothing factors.");
     btn3dmod.setToolTipText("Open model created by flattenwarp.");
     ReadOnlyAutodoc autodoc = null;
     try {
-      autodoc = AutodocFactory.getInstance(manager, AutodocFactory.FLATTEN_WARP, axisID,false);
+      autodoc = AutodocFactory.getInstance(manager, AutodocFactory.FLATTEN_WARP, axisID,
+          false);
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();

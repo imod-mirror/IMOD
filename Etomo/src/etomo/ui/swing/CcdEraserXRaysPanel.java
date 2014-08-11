@@ -390,12 +390,6 @@ final class CcdEraserXRaysPanel implements ContextMenu, Run3dmodButtonContainer,
     }
   }
 
-  public void action(final Run3dmodButton button,
-      final Run3dmodMenuOptions run3dmodMenuOptions) {
-    buttonAction(button.getActionCommand(), button.getDeferred3dmodButton(),
-        run3dmodMenuOptions);
-  }
-
   /**
    * Executes the action associated with command.  Deferred3dmodButton is null
    * if it comes from CCDEraserActionListener.  Otherwise is comes from a
@@ -405,8 +399,7 @@ final class CcdEraserXRaysPanel implements ContextMenu, Run3dmodButtonContainer,
    * @param deferred3dmodButton
    * @param run3dmodMenuOptions
    */
-  private void buttonAction(String command,
-      final Deferred3dmodButton deferred3dmodButton,
+  public void action(final String command, final Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(btnFindXRays.getActionCommand())) {
       applicationManager.findXrays(axisID, btnFindXRays, null, deferred3dmodButton,
@@ -495,7 +488,7 @@ final class CcdEraserXRaysPanel implements ContextMenu, Run3dmodButtonContainer,
     ReadOnlyAutodoc autodoc = null;
     try {
       autodoc = AutodocFactory.getInstance(applicationManager, AutodocFactory.CCDERASER,
-          axisID,false);
+          axisID, false);
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();
@@ -580,7 +573,7 @@ final class CcdEraserXRaysPanel implements ContextMenu, Run3dmodButtonContainer,
     }
 
     public void actionPerformed(final ActionEvent event) {
-      adaptee.buttonAction(event.getActionCommand(), null, null);
+      adaptee.action(event.getActionCommand(), null, null);
     }
   }
 }
