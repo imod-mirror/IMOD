@@ -2,6 +2,7 @@ package etomo.ui.swing;
 
 import java.awt.Component;
 import java.awt.Container;
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -48,7 +49,7 @@ import etomo.util.Utilities;
 * <p> $Log$ </p>
 */
 public final class BatchRunTomoDialog implements ActionListener, ResultListener,
-    ChangeListener {
+    ChangeListener, Expandable {
   public static final String rcsid = "$Id:$";
 
   public static final DialogType DIALOG_TYPE = DialogType.BATCH_RUN_TOMO;
@@ -66,6 +67,7 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
   private final JPanel[] pnlTabs = new JPanel[BatchRunTomoTab.SIZE];
   private final JPanel pnlBatch = new JPanel();
   private final JPanel pnlStacks = new JPanel();
+  private final JPanel pnlDataset = new JPanel();
   private final JPanel pnlRun = new JPanel();
   private final JPanel pnlTable = new JPanel();
   private final MultiLineButton btnRun = new MultiLineButton("Run Batchruntomo");
@@ -74,6 +76,9 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
   private final UserConfiguration userConfiguration = EtomoDirector.INSTANCE
       .getUserConfiguration();
   private final Map<String, BatchRunTomoDatasetDialog> datasetDialogMap = new HashMap<String, BatchRunTomoDatasetDialog>();
+  private final Component cDatasetPaddingLeft = Box.createRigidArea(new Dimension(180,0));
+  private final Component cDatasetPaddingRight = Box.createRigidArea(new Dimension(180,0));
+  private final JPanel pnlDatasetTable = new JPanel();
 
   private final FileTextField2 ftfRootName;
   private final FileTextField2 ftfInputDirectiveFile;
@@ -156,9 +161,17 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
     pnlStacks.setLayout(new BoxLayout(pnlStacks, BoxLayout.Y_AXIS));
     pnlStacks.setBorder(BorderFactory.createEtchedBorder());
     // panel created on tab change
+    // Dataset
+    pnlDataset.setLayout(new BoxLayout(pnlDataset, BoxLayout.Y_AXIS));
+    pnlDataset.setBorder(BorderFactory.createEtchedBorder());
+    pnlDataset.add(globalDatasetDialog.getComponent());
+    pnlDataset.add(pnlDatasetTable);
     // Run
     pnlRun.setLayout(new BoxLayout(pnlRun, BoxLayout.Y_AXIS));
     pnlRun.setBorder(BorderFactory.createEtchedBorder());
+    // DatasetTable
+    pnlDatasetTable.setLayout(new BoxLayout(pnlDatasetTable, BoxLayout.X_AXIS));
+    pnlDatasetTable.add(cDatasetPaddingLeft);
     // panel created on tab change
     // Table
     pnlTable.setLayout(new BoxLayout(pnlTable, BoxLayout.Y_AXIS));
@@ -211,14 +224,6 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
   }
 
   public void setParameters(final BatchRunTomoMetaData metaData) {
-  }
-
-  public boolean isDeliverToDirectory() {
-    return cbDeliverToDirectory.isSelected();
-  }
-
-  public File getDeliverToDirectory() {
-    return ftfDeliverToDirectory.getFile();
   }
 
   /**
@@ -314,7 +319,7 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
     else if (actionCommand.equals(cbDeliverToDirectory.getActionCommand())) {
       updateDisplay();
     }
-    else if (actionCommand.equals(table.getEditDatasetActionCommand())) {
+  /*  else if (actionCommand.equals(table.getEditDatasetActionCommand())) {
       String key = table.getHighlightedKey();
       if (key != null) {
         BatchRunTomoDatasetDialog dialog = datasetDialogMap.get(key);
@@ -325,7 +330,7 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
         }
         dialog.setVisible();
       }
-    }
+    }*/
   }
 
   void removeDatasetDialog(final String key) {
@@ -351,6 +356,16 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
     }
   }
 
+  public void expand(final ExpandButton button) {
+    boolean visible = !button.isExpanded();
+    cDatasetPaddingLeft.setVisible(visible);
+    cDatasetPaddingRight.setVisible(visible);
+    UIHarness.INSTANCE.pack(manager);
+  }
+
+  public void expand(final GlobalExpandButton button) {
+  }
+
   /**
    * Handle tab change event
    */
@@ -365,6 +380,7 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
       pnlTabs[curTab.getIndex()].removeAll();
       curTab = BatchRunTomoTab.getInstance(tabbedPane.getSelectedIndex());
       curIndex = curTab.getIndex();
+      pnlDatasetTable.remove(cDatasetPaddingRight);
     }
     if (curTab == BatchRunTomoTab.BATCH) {
       pnlTabs[curIndex].add(pnlBatch);
@@ -377,7 +393,13 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
       pnlStacks.add(pnlTable);
     }
     else if (curTab == BatchRunTomoTab.DATASET) {
-      pnlTabs[curIndex].add(globalDatasetDialog.getComponent());
+      pnlTabs[curIndex].add(pnlDataset);
+      table.msgTabChanged(curTab);
+      // create panel
+      // stacks
+      pnlDatasetTable.add(pnlTable);
+      pnlDatasetTable.add(cDatasetPaddingRight);
+      UIUtilities.alignComponentsX(pnlDataset, Component.LEFT_ALIGNMENT);
     }
     else if (curTab == BatchRunTomoTab.RUN) {
       pnlTabs[curIndex].add(pnlRun);
