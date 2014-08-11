@@ -470,11 +470,15 @@ class MultiLineButton implements ProcessResultDisplay {
     button.addActionListener(actionListener);
   }
 
+  void setActionCommand(final String actionCommand) {
+    button.setActionCommand(actionCommand);
+  }
+
   final String getActionCommand() {
     return button.getActionCommand();
   }
 
- public final Component getComponent() {
+  public final Component getComponent() {
     return button;
   }
 
@@ -606,7 +610,7 @@ class MultiLineButton implements ProcessResultDisplay {
     return button.isVisible();
   }
 
- public final boolean isEnabled() {
+  public final boolean isEnabled() {
     return button.isEnabled();
   }
 
