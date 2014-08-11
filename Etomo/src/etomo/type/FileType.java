@@ -247,7 +247,7 @@ public final class FileType {
   public static final FileType PATCH_TRACKING_BOUNDARY_MODEL = FileType.getInstance(true,
       true, "_ptbound", ".mod");
   public static final FileType BATCH_RUN_TOMO_BOUNDARY_MODEL = FileType.getInstance(true,
-      true, "_rawbound", ".mod");
+      false, "_rawbound", ".mod");
   public static final FileType ALIGNED_STACK_MRC = FileType.getImodInstance(true, true,
       "_ali", ".mrc", ImodManager.ALIGNED_STACK_KEY);
   public static final FileType PREBLEND_OUTPUT_MRC = FileType.getImodInstance(true, true,
