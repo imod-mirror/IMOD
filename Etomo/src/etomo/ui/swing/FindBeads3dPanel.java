@@ -278,13 +278,7 @@ final class FindBeads3dPanel implements FindBeads3dDisplay, Expandable,
     return ltfBeadSize.getText();
   }
 
-  public void action(final Run3dmodButton button,
-      final Run3dmodMenuOptions run3dmodMenuOptions) {
-    action(button.getActionCommand(), button.getDeferred3dmodButton(),
-        run3dmodMenuOptions);
-  }
-
-  private void action(final String command, Deferred3dmodButton deferred3dmodButton,
+  public void action(final String command, final Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(btnFindBeads3d.getActionCommand())) {
       manager.findBeads3d(btnFindBeads3d, null, deferred3dmodButton, axisID,

@@ -65,6 +65,7 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
   private final int BINNING_DEFAULT = 1;
   private static final String TWODIR_LABEL_1 = "Series was bidirectional from ";
   private static final String TWODIR_LABEL_2 = " degrees";
+  private static final String VIEW_RAW_STACK_LABEL = "View Raw Image Stack";
 
   private final JPanel pnlDataParameters = new JPanel();
   // Dataset GUI objects
@@ -91,9 +92,9 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
   private final RadioButton rbMontage = new RadioButton(MONTAGE_LABEL);
 
   private final Run3dmodButton btnViewRawStackA = Run3dmodButton.get3dmodInstance(
-      "View Raw Image Stack", this);
+      VIEW_RAW_STACK_LABEL, this);
   private Run3dmodButton btnViewRawStackB = Run3dmodButton.get3dmodInstance(
-      "View Raw Image Stack", this);
+      VIEW_RAW_STACK_LABEL, this);
 
   // Image parameter objects
   private final JPanel pnlImageParams = new JPanel();
@@ -166,6 +167,9 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     createDatasetPanel();
     createDataTypePanel();
     createPerAxisInfoPanel();
+    btnViewRawStackA.setActionCommand(VIEW_RAW_STACK_LABEL + AxisID.FIRST.getExtension());
+    btnViewRawStackB
+        .setActionCommand(VIEW_RAW_STACK_LABEL + AxisID.SECOND.getExtension());
     // Relabel the postpone button
     btnPostpone.setText("Use Existing Coms");
     btnExecute.setText("Create Com Scripts");
@@ -246,12 +250,13 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     return super.buttonExecuteAction();
   }
 
-  public void action(final Run3dmodButton button,
+  public void action(final String actionCommand,
+      final Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
-    if (btnViewRawStackA == button) {
+    if (btnViewRawStackA.getActionCommand().equals(actionCommand)) {
       expert.viewRawStack(AxisID.FIRST, run3dmodMenuOptions);
     }
-    else if (btnViewRawStackB == button) {
+    else if (btnViewRawStackB.getActionCommand().equals(actionCommand)) {
       expert.viewRawStack(AxisID.SECOND, run3dmodMenuOptions);
     }
   }
@@ -404,11 +409,11 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
   }
 
   private void viewRawStackA() {
-    action(btnViewRawStackA, null);
+    action(btnViewRawStackA.getActionCommand(), null, null);
   }
 
   private void viewRawStackB() {
-    action(btnViewRawStackB, null);
+    action(btnViewRawStackB.getActionCommand(), null, null);
   }
 
   void setDataset(final String input) {

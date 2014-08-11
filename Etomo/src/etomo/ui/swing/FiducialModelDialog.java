@@ -1282,7 +1282,7 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
     ReadOnlyAutodoc autodoc = null;
     try {
       autodoc = AutodocFactory.getInstance(applicationManager,
-          AutodocFactory.AUTOFIDSEED, axisID,false);
+          AutodocFactory.AUTOFIDSEED, axisID, false);
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();
@@ -1332,15 +1332,8 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
 
   }
 
-  public void action(final Run3dmodButton button,
-      final Run3dmodMenuOptions run3dmodMenuOptions) {
-    buttonAction(button.getActionCommand(), button.getDeferred3dmodButton(),
-        run3dmodMenuOptions);
-  }
-
   // Action function for buttons
-  private void buttonAction(final String command,
-      final Deferred3dmodButton deferred3dmodButton,
+  public void action(final String command, final Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(rbMethodSeed.getActionCommand())
         || command.equals(rbMethodPatchTracking.getActionCommand())
@@ -1419,7 +1412,7 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
     }
 
     public void actionPerformed(final ActionEvent event) {
-      adaptee.buttonAction(event.getActionCommand(), null, null);
+      adaptee.action(event.getActionCommand(), null, null);
     }
   }
 

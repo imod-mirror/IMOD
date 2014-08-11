@@ -587,11 +587,6 @@ final class SirtPanel implements Run3dmodButtonContainer, SirtsetupDisplay, Expa
     UIHarness.INSTANCE.pack(axisID, manager);
   }
 
-  public void action(final Run3dmodButton button,
-      final Run3dmodMenuOptions run3dmodMenuOptions) {
-    action(button.getActionCommand(), button.getDeferred3dmodButton(),
-        run3dmodMenuOptions);
-  }
 
   private void resumeChanged() {
     boolean resume = isResume();
@@ -630,7 +625,7 @@ final class SirtPanel implements Run3dmodButtonContainer, SirtsetupDisplay, Expa
    * @param deferred3dmodButton
    * @param run3dmodMenuOptions
    */
-  private void action(final String actionCommand,
+  public void action(final String actionCommand,
       final Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (actionCommand.equals(btnSirt.getActionCommand())) {
