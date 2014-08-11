@@ -1,8 +1,7 @@
 IMOD Version 4.7.3                     Copyright Notice and Credits
 --------------------------------------------------------------------------
-Except as noted, ALL SOFTWARE LISTED IS Copyright (C) 1994-2014 by
-Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells
-("BL3DEMC") and the Regents of the University of Colorado.
+Except as noted, ALL SOFTWARE LISTED IS Copyright (C) 1994-2014 
+the Regents of the University of Colorado.
 
 All portions of IMOD, except as noted below, are open source under the
 General Public License (GPL) version 2.0.  A copy of this license is in the
@@ -18,11 +17,11 @@ EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTY OF
 MERCHANTABILITY AND WARRANTY OF FITNESS FOR A PARTICULAR PURPOSE.
 
 Programs were written by David Mastronarde, James Kremer, Rick
-Gaudette, Sue Held, and Quanren Xiong from the BL3DEMC, some based on
-work and libraries from the MRC.  We thank David Agard and Hans Chen for
-the original MRC source code, Wah Chiu for a Unix version of low-level
-MRC file routines used in the FORTRAN parts, and Chuck Robertson for
-much work on the port to Linux.
+Gaudette, Sue Held, Quanren Xiong, and John Heumann at the University 
+of Colorado, some based on work and libraries from the MRC.  We thank David
+Agard and Hans Chen for the original MRC source code, Wah Chiu for a Unix
+version of low-level MRC file routines used in the FORTRAN parts, and Chuck
+Robertson for much work on the port to Linux.
 
 The program nad_eed_3d by Achilleas Frangakis and Reiner Hegerl is
 copyright Max-Planck-Institut for Biochemistry, Martinsried, Germany.
@@ -98,10 +97,10 @@ IMOD uses HDF5 libraries which are Copyright 1998-2006 by the Board of
 Trustees of the University of Illinois and Copyright 2006-2014 by The HDF
 Group and covered by the the license in HDF5.txt.
 
-This work is supported by NIH/NIGMS grant 8P41-GM103431 to Andreas Hoenger and
-NIBIB grant EB005027 to David Mastronarde for the Boulder Laboratory for
-3-Dimensional Electron Microscopy of Cells.
-University of Colorado, Dept. of MCD Biology, 347 UCB, Boulder, CO 80309
+This work was supported in the past by NIH P41 grants from NCRR and NIGMS to
+J. Richard McIntosh and Andreas Hoenger; it is currently supported by
+NIBIB grant EB005027 to David Mastronarde.
 
 Contact:  mast at colorado dot edu
     www:  http://bio3d.colorado.edu/imod/index.html
+    University of Colorado, Dept. of MCD Biology, 347 UCB, Boulder, CO 80309
