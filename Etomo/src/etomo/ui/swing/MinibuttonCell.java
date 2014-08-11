@@ -7,7 +7,9 @@ import javax.swing.BorderFactory;
 import javax.swing.Icon;
 import javax.swing.border.BevelBorder;
 
+import etomo.type.Run3dmodMenuOptions;
 import etomo.type.UITestFieldType;
+import etomo.ui.Run3dmodMenuTarget;
 import etomo.ui.UIComponent;
 
 /**
@@ -26,14 +28,33 @@ import etomo.ui.UIComponent;
 * <p> $Log$ </p>
 */
 public final class MinibuttonCell extends InputCell implements UIComponent,
-    SwingComponent {
+    SwingComponent, Run3dmodMenuTarget {
   public static final String rcsid = "$Id:$";
 
   private final Minibutton button;
+  private final Run3dmodMenu contextMenu;
+  private final Run3dmodButtonContainer container;
 
-  MinibuttonCell(final Icon icon) {
+  private MinibuttonCell(final Icon icon, final boolean run3dmod,
+      final Run3dmodButtonContainer container) {
+    this.container = container;
     button = Minibutton.getSquareInstance(icon,
         BorderFactory.createBevelBorder(BevelBorder.RAISED));
+    if (run3dmod) {
+      contextMenu = Run3dmodMenu.get3dmodButtonInstance(this, null);
+    }
+    else {
+      contextMenu = null;
+    }
+  }
+
+  static MinibuttonCell getInstance(final Icon icon) {
+    return new MinibuttonCell(icon, false, null);
+  }
+
+  static MinibuttonCell getRun3dmodInstance(final Icon icon,
+      final Run3dmodButtonContainer container) {
+    return new MinibuttonCell(icon, true, container);
   }
 
   public Component getComponent() {
@@ -42,6 +63,12 @@ public final class MinibuttonCell extends InputCell implements UIComponent,
 
   public SwingComponent getUIComponent() {
     return this;
+  }
+
+  public void menuAction(Run3dmodMenuOptions run3dmodMenuOptions) {
+    if (container != null) {
+      container.action(getActionCommand(), null, run3dmodMenuOptions);
+    }
   }
 
   UITestFieldType getFieldType() {
@@ -58,6 +85,10 @@ public final class MinibuttonCell extends InputCell implements UIComponent,
 
   public void setEnabled(boolean enable) {
     button.setEnabled(enable);
+  }
+
+  public boolean isEnabled() {
+    return button.isEnabled();
   }
 
   public void setDisabledIcon(final Icon icon) {
