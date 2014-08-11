@@ -61,12 +61,12 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
   private final FieldCell fcEditDataset = FieldCell.getIneditableInstance();
   private final FieldCell fcStatus = FieldCell.getIneditableInstance();
   private final CheckBoxCell cbcRun = new CheckBoxCell();
-  private final MinibuttonCell mbcEtomo = new MinibuttonCell(
-      new ImageIcon(ETOMO_ICON_URL));
-  private final MinibuttonCell mbc3dmodA = new MinibuttonCell(
-      new ImageIcon(IMOD_ICON_URL));
-  private final MinibuttonCell mbc3dmodB = new MinibuttonCell(
-      new ImageIcon(IMOD_ICON_URL));
+  private final MinibuttonCell mbcEtomo = MinibuttonCell.getInstance(new ImageIcon(
+      ETOMO_ICON_URL));
+  private final MinibuttonCell mbc3dmodA = MinibuttonCell.getRun3dmodInstance(
+      new ImageIcon(IMOD_ICON_URL), this);
+  private final MinibuttonCell mbc3dmodB = MinibuttonCell.getRun3dmodInstance(
+      new ImageIcon(IMOD_ICON_URL), this);
   private final HeaderCell hcNumber = new HeaderCell();
 
   private final JPanel panel;
@@ -115,6 +115,7 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
     copy(valueRow);
     cbcRun.setSelected(true);
     mbcEtomo.setEnabled(false);
+    updateDisplay();
   }
 
   static BatchRunTomoRow getInstance(final String propertyUserDir,
@@ -157,12 +158,8 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
     cbcBoundaryModel.addActionListener(listener);
   }
 
-  public void action(final Run3dmodButton button,
-      final Run3dmodMenuOptions run3dmodMenuOptions) {
-    action(button.getActionCommand(), run3dmodMenuOptions);
-  }
-
   public void action(final String actionCommand,
+      final Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (actionCommand == null) {
       return;
@@ -172,36 +169,30 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
     }
     else {
       boolean dualAxis = cbcDualAxis.isSelected();
-      String datasetName = DatasetTool.getDatasetName(fcStack.getContractedValue(),
-          dualAxis);
       if (actionCommand.equals(mbc3dmodA.getActionCommand())) {
-        imodIndexA = manager.imod(datasetName, AxisID.FIRST, dualAxis,
+        imodIndexA = manager.imod(
             DatasetTool.getStackFile(fcStack.getExpandedValue(), AxisID.FIRST, dualAxis),
-            imodIndexA, cbcBoundaryModel.isSelected(), run3dmodMenuOptions);
+            AxisID.FIRST, imodIndexA, cbcBoundaryModel.isSelected(), dualAxis,
+            run3dmodMenuOptions);
       }
       else if (actionCommand.equals(mbc3dmodB.getActionCommand())) {
+        // The model is only opened for the A axis
         imodIndexB = manager
-            .imod(datasetName, AxisID.SECOND, dualAxis, DatasetTool.getStackFile(
-                fcStack.getExpandedValue(), AxisID.SECOND, dualAxis), imodIndexB,
-                cbcBoundaryModel.isSelected(), run3dmodMenuOptions);
+            .imod(DatasetTool.getStackFile(fcStack.getExpandedValue(), AxisID.SECOND,
+                dualAxis), AxisID.SECOND, imodIndexB, run3dmodMenuOptions);
       }
       else if (actionCommand.equals(mbcEtomo.getActionCommand())) {
         EtomoDirector.INSTANCE.openTomogram(
-            manager.getReconDatasetFile(DatasetTool.getStackFile(
+            DatasetTool.getDatasetFile(DatasetTool.getStackFile(
                 fcStack.getExpandedValue(), AxisID.FIRST, dualAxis), dualAxis), true,
-            null,mbcEtomo);
+            null, mbcEtomo);
       }
       else if (actionCommand.equals(cbcBoundaryModel.getActionCommand())
           && cbcBoundaryModel.isSelected()) {
+        // The model is only opened for the A axis
         if (imodIndexA != -1) {
-          manager.imodModel(datasetName, AxisID.FIRST, dualAxis, DatasetTool
-              .getStackFile(fcStack.getExpandedValue(), AxisID.FIRST, dualAxis),
-              imodIndexA);
-        }
-        if (imodIndexB != -1) {
-          manager.imodModel(datasetName, AxisID.SECOND, dualAxis, DatasetTool
-              .getStackFile(fcStack.getExpandedValue(), AxisID.SECOND, dualAxis),
-              imodIndexB);
+          manager.imodModel(AxisID.FIRST, imodIndexA, fcStack.getContractedValue(),
+              dualAxis);
         }
       }
     }
@@ -236,7 +227,7 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
     if (viewport.inViewport(hcNumber.getInt() - 1)) {
       constraints.gridwidth = 1;
       hcNumber.add(panel, layout, constraints);
-      if (tab == BatchRunTomoTab.STACKS) {
+      if (tab == BatchRunTomoTab.STACKS || tab == BatchRunTomoTab.DATASET) {
         hbRow.add(panel, layout, constraints);
       }
       constraints.gridwidth = 2;
@@ -249,10 +240,13 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
         fcExcludeViewsB.add(panel, layout, constraints);
         cbcBoundaryModel.add(panel, layout, constraints);
         cbcTwoSurfaces.add(panel, layout, constraints);
-        fcEditDataset.add(panel, layout, constraints);
         mbc3dmodA.add(panel, layout, constraints);
         constraints.gridwidth = GridBagConstraints.REMAINDER;
         mbc3dmodB.add(panel, layout, constraints);
+      }
+      else if (tab == BatchRunTomoTab.DATASET) {
+        constraints.gridwidth = GridBagConstraints.REMAINDER;
+        fcEditDataset.add(panel, layout, constraints);
       }
       else {
         fcStatus.add(panel, layout, constraints);
@@ -386,7 +380,7 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
     }
 
     public void actionPerformed(final ActionEvent event) {
-      row.action(event.getActionCommand(), null);
+      row.action(event.getActionCommand(), null, null);
     }
   }
 }
