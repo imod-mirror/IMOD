@@ -96,23 +96,6 @@ public final class DatasetTool {
   }
 
   /**
-   * Gets a dataset (.edf) file that is in a directory named for the dataset, under the
-   * parentDir
-   * @param parentDir
-   * @param stackName
-   * @param dualAxis
-   * @return
-   */
-  public static File getDatasetFile(final File parentDir, final String stackName,
-      final boolean dualAxis) {
-    String datasetName = getDatasetName(stackName, dualAxis);
-    if (datasetName == null) {
-      return null;
-    }
-    return new File(new File(parentDir, datasetName), datasetName + DataFileType.RECON.extension);
-  }
-
-  /**
    * Gets a dataset (.edf) file that is in the same directory as the stackFile
    * @param stackFile
    * @param dualAxis
