@@ -278,13 +278,7 @@ final class FindBeads3dPanel implements FindBeads3dDisplay, Expandable,
     return ltfBeadSize.getText();
   }
 
-  public void action(final Run3dmodButton button,
-      final Run3dmodMenuOptions run3dmodMenuOptions) {
-    action(button.getActionCommand(), button.getDeferred3dmodButton(),
-        run3dmodMenuOptions);
-  }
-
-  private void action(final String command, Deferred3dmodButton deferred3dmodButton,
+  public void action(final String command, final Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(btnFindBeads3d.getActionCommand())) {
       manager.findBeads3d(btnFindBeads3d, null, deferred3dmodButton, axisID,
@@ -292,7 +286,7 @@ final class FindBeads3dPanel implements FindBeads3dDisplay, Expandable,
     }
     else if (command.equals(btn3dmodFindBeads3d.getActionCommand())) {
       manager.imodFindBeads3d(axisID, run3dmodMenuOptions, null,
-          FileType.TILT_3D_FIND_OUTPUT.getImodManagerKey(manager),
+          FileType.TILT_3D_FIND_OUTPUT.getImodManagerKey(),
           FileType.FIND_BEADS_3D_OUTPUT_MODEL.getFileName(manager, axisID), null,
           dialogType);
     }
@@ -301,7 +295,8 @@ final class FindBeads3dPanel implements FindBeads3dDisplay, Expandable,
   private void setToolTipText() {
     ReadOnlyAutodoc autodoc = null;
     try {
-      autodoc = AutodocFactory.getInstance(manager, AutodocFactory.FIND_BEADS_3D, axisID);
+      autodoc = AutodocFactory.getInstance(manager, AutodocFactory.FIND_BEADS_3D, axisID,
+          false);
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();

@@ -905,12 +905,7 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
     return true;
   }
 
-  public void action(final Run3dmodButton button, final Run3dmodMenuOptions menuOptions) {
-    buttonAction(button.getActionCommand(), button.getDeferred3dmodButton(), menuOptions);
-  }
-
-  // Action functions for setup panel buttons
-  void buttonAction(final String actionCommand,
+  public void action(final String actionCommand,
       final Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     boolean runTiltxcorr = btnTiltxcorr != null
@@ -951,7 +946,7 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
     }
 
     public void actionPerformed(final ActionEvent event) {
-      adaptee.buttonAction(event.getActionCommand(), null, null);
+      adaptee.action(event.getActionCommand(), null, null);
     }
   }
 
@@ -964,7 +959,7 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
 
     try {
       autodoc = AutodocFactory.getInstance(applicationManager, AutodocFactory.TILTXCORR,
-          axisID);
+          axisID, false);
       // autodoc.print();
     }
     catch (FileNotFoundException except) {

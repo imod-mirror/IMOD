@@ -1,0 +1,113 @@
+package etomo.ui.swing;
+
+import java.awt.Component;
+import java.awt.event.ActionListener;
+
+import javax.swing.BorderFactory;
+import javax.swing.Icon;
+import javax.swing.border.BevelBorder;
+
+import etomo.type.Run3dmodMenuOptions;
+import etomo.type.UITestFieldType;
+import etomo.ui.Run3dmodMenuTarget;
+import etomo.ui.UIComponent;
+
+/**
+* <p>Description: </p>
+* 
+* <p>Copyright: Copyright 2014</p>
+*
+* <p>Organization:
+* Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
+* University of Colorado</p>
+* 
+* @author $Author$
+* 
+* @version $Revision$
+* 
+* <p> $Log$ </p>
+*/
+public final class MinibuttonCell extends InputCell implements UIComponent,
+    SwingComponent, Run3dmodMenuTarget {
+  public static final String rcsid = "$Id:$";
+
+  private final Minibutton button;
+  private final Run3dmodMenu contextMenu;
+  private final Run3dmodButtonContainer container;
+
+  private MinibuttonCell(final Icon icon, final boolean run3dmod,
+      final Run3dmodButtonContainer container) {
+    this.container = container;
+    button = Minibutton.getSquareInstance(icon,
+        BorderFactory.createBevelBorder(BevelBorder.RAISED));
+    if (run3dmod) {
+      contextMenu = Run3dmodMenu.get3dmodButtonInstance(this, null);
+    }
+    else {
+      contextMenu = null;
+    }
+  }
+
+  static MinibuttonCell getInstance(final Icon icon) {
+    return new MinibuttonCell(icon, false, null);
+  }
+
+  static MinibuttonCell getRun3dmodInstance(final Icon icon,
+      final Run3dmodButtonContainer container) {
+    return new MinibuttonCell(icon, true, container);
+  }
+
+  public Component getComponent() {
+    return button;
+  }
+
+  public SwingComponent getUIComponent() {
+    return this;
+  }
+
+  public void menuAction(Run3dmodMenuOptions run3dmodMenuOptions) {
+    if (container != null) {
+      container.action(getActionCommand(), null, run3dmodMenuOptions);
+    }
+  }
+
+  UITestFieldType getFieldType() {
+    return UITestFieldType.BUTTON;
+  }
+
+  int getWidth() {
+    return button.getWidth();
+  }
+
+  void addActionListener(final ActionListener listener) {
+    button.addActionListener(listener);
+  }
+
+  public void setEnabled(boolean enable) {
+    button.setEnabled(enable);
+  }
+
+  public boolean isEnabled() {
+    return button.isEnabled();
+  }
+
+  public void setDisabledIcon(final Icon icon) {
+    button.setDisabledIcon(icon);
+  }
+
+  public void setPressedIcon(final Icon icon) {
+    button.setPressedIcon(icon);
+  }
+
+  void setToolTipText(String text) {
+    button.setToolTipText(TooltipFormatter.INSTANCE.format(text));
+  }
+
+  void setActionCommand(final String input) {
+    button.setActionCommand(input);
+  }
+
+  String getActionCommand() {
+    return button.getActionCommand();
+  }
+}

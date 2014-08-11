@@ -1,16 +1,22 @@
 package etomo.ui.swing;
 
+import java.awt.Color;
 import java.awt.Container;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 import javax.swing.JCheckBox;
 import javax.swing.text.Document;
 
 import etomo.EtomoDirector;
+import etomo.logic.DefaultFinder;
+import etomo.storage.DirectiveDef;
 import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.storage.autodoc.ReadOnlySection;
 import etomo.type.EtomoAutodoc;
 import etomo.type.EtomoBoolean2;
 import etomo.type.UITestFieldType;
+import etomo.ui.Field;
 import etomo.util.Utilities;
 
 /**
@@ -109,11 +115,21 @@ import etomo.util.Utilities;
  * <p> bug# 675 Extends JCheckBox.  Names the check box using the label.
  * <p> </p>
  */
-final class CheckBox extends JCheckBox {
+final class CheckBox extends JCheckBox implements Field, ActionListener {
   public static final String rcsid = "$Id$";
 
   private EtomoBoolean2 checkpointValue = null;
+  private boolean fieldIsBackedUp = false;
+  private boolean backupValue = false;
   private boolean debug = false;
+  private boolean origForegroundSet = false;
+  private Color origForeground = null;
+  private DirectiveDef directiveDef = null;
+  private boolean defaultValueSearchDone = false;
+  private boolean defaultValueFound = false;
+  private boolean defaultValue = false;
+  private boolean useFieldHighlight = false;
+  private boolean fieldHighlightValue = false;
 
   public CheckBox() {
     super();
@@ -150,10 +166,58 @@ final class CheckBox extends JCheckBox {
     }
   }
 
+  public void backup() {
+    backupValue = isSelected();
+    fieldIsBackedUp = true;
+  }
+
+  /**
+   * If the field was backed up, make the backup value the displayed value, and turn off
+   * the back up.
+   */
+  public void restoreFromBackup() {
+    if (fieldIsBackedUp) {
+      setSelected(backupValue);
+      fieldIsBackedUp = false;
+    }
+  }
+
+  public void clear() {
+    setSelected(false);
+  }
+
+  public void copy(final Field copyFrom) {
+    if (copyFrom == null) {
+      return;
+    }
+    setSelected(copyFrom.isSelected());
+  }
+
+  void setDirectiveDef(final DirectiveDef directiveDef) {
+    this.directiveDef = directiveDef;
+  }
+
+  public void useDefaultValue() {
+    if (directiveDef == null || !directiveDef.isComparam()) {
+      return;
+    }
+    if (!defaultValueSearchDone) {
+      defaultValueSearchDone = true;
+      String value = DefaultFinder.INSTANCE.getDefaultValue(directiveDef);
+      if (value != null) {
+        defaultValueFound = true;
+      }
+      defaultValue = DefaultFinder.toBoolean(value);
+    }
+    if (defaultValueFound) {
+      setSelected(defaultValue);
+    }
+  }
+
   /**
    * Constructs savedValue (if it doesn't exist).  Saves the current setting.
    */
-  void checkpoint() {
+  public void checkpoint() {
     if (checkpointValue == null) {
       checkpointValue = new EtomoBoolean2();
     }
@@ -184,6 +248,36 @@ final class CheckBox extends JCheckBox {
     debug = input;
   }
 
+  void setFieldHighlightValue(final boolean value) {
+    if (!useFieldHighlight) {
+      useFieldHighlight = true;
+      addActionListener(this);
+    }
+    fieldHighlightValue = value;
+    updateFieldHighlight();
+  }
+
+  public void actionPerformed(ActionEvent e) {
+    updateFieldHighlight();
+  }
+
+  void updateFieldHighlight() {
+    if (useFieldHighlight) {
+      if (fieldHighlightValue == isSelected()) {
+        if (!origForegroundSet) {
+          origForeground = getForeground();
+        }
+        setForeground(Colors.FIELD_HIGHLIGHT);
+      }
+      else if (origForeground != null) {
+        setForeground(origForeground);
+      }
+      else {
+        setForeground(Color.black);
+      }
+    }
+  }
+
   /**
    * If the field is disabled or not visible then return false because its value doesn't
    * matter.  It returns true if the checkpoint has not been done; the checkpoint value is
@@ -201,7 +295,7 @@ final class CheckBox extends JCheckBox {
    * @param alwaysCheck - check for difference even when the field is disables or invisible
    * @return
    */
-  boolean isDifferentFromCheckpoint(final boolean alwaysCheck) {
+  public boolean isDifferentFromCheckpoint(final boolean alwaysCheck) {
     if (!alwaysCheck && (!isEnabled() || !isVisible())) {
       return false;
     }

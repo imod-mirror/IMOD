@@ -165,7 +165,8 @@ final class YAxisTypePanel {
   private void setTooltips() {
     ReadOnlyAutodoc autodoc = null;
     try {
-      autodoc = AutodocFactory.getInstance(manager, AutodocFactory.PEET_PRM, AxisID.ONLY);
+      autodoc = AutodocFactory.getInstance(manager, AutodocFactory.PEET_PRM, AxisID.ONLY,
+          false);
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();

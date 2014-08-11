@@ -2,6 +2,8 @@ package etomo.ui.swing;
 
 import java.awt.*;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.awt.event.MouseListener;
 import java.io.File;
 
@@ -10,13 +12,17 @@ import javax.swing.event.DocumentListener;
 import javax.swing.text.Document;
 
 import etomo.EtomoDirector;
+import etomo.logic.DefaultFinder;
 import etomo.logic.FieldValidator;
+import etomo.storage.DirectiveDef;
 import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.EtomoNumber;
 import etomo.type.UITestFieldType;
+import etomo.ui.Field;
 import etomo.ui.FieldType;
 import etomo.ui.FieldValidationFailedException;
+import etomo.ui.TextFieldInterface;
 import etomo.ui.UIComponent;
 import etomo.util.Utilities;
 
@@ -210,7 +216,8 @@ import etomo.util.Utilities;
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
  */
-final class LabeledTextField implements UIComponent, SwingComponent {
+final class LabeledTextField implements UIComponent, SwingComponent, Field,
+    TextFieldInterface, FocusListener {
   public static final String rcsid = "$Id$";
 
   private final JPanel panel = new JPanel();
@@ -222,9 +229,19 @@ final class LabeledTextField implements UIComponent, SwingComponent {
 
   private boolean debug = false;
   private String checkpointValue = null;
-  private EtomoNumber nCheckpointValue = null;
+  private String backupValue = null;
+  private boolean fieldIsBackedUp = false;
   private boolean required = false;
+  private Color origTextForeground = null;
+  private Color origLabelForeground = null;
   private boolean numberMustBePositive = false;
+  private DirectiveDef directiveDef = null;
+  private boolean defaultValueSearchDone = false;
+  private String defaultValue = null;
+  private boolean useFieldHighlight = false;
+  private String fieldHighlightValue = null;
+  private boolean origTextForegroundSet = false;
+  private boolean origLabelForegroundSet = false;
 
   public String toString() {
     return "[label:" + getLabel() + "]";
@@ -311,13 +328,43 @@ final class LabeledTextField implements UIComponent, SwingComponent {
   /**
    * Saves the current text as the checkpoint.
    */
-  void checkpoint() {
+  public void checkpoint() {
     checkpointValue = getText();
-    if (numericType != null) {
-      if (nCheckpointValue == null) {
-        nCheckpointValue = new EtomoNumber(numericType);
-      }
-      nCheckpointValue.set(checkpointValue);
+  }
+
+  /**
+   * Saves the current text as the checkpoint.
+   */
+  public void backup() {
+    backupValue = getText();
+    fieldIsBackedUp = true;
+  }
+
+  /**
+   * If the field was backed up, make the backup value the displayed value, and turn off
+   * the back up.
+   */
+  public void restoreFromBackup() {
+    if (fieldIsBackedUp) {
+      setText(backupValue);
+      fieldIsBackedUp = false;
+    }
+  }
+
+  void setDirectiveDef(final DirectiveDef directiveDef) {
+    this.directiveDef = directiveDef;
+  }
+
+  public void useDefaultValue() {
+    if (directiveDef == null || !directiveDef.isComparam()) {
+      return;
+    }
+    if (!defaultValueSearchDone) {
+      defaultValueSearchDone = true;
+      defaultValue = DefaultFinder.INSTANCE.getDefaultValue(directiveDef);
+    }
+    if (defaultValue != null) {
+      setText(defaultValue);
     }
   }
 
@@ -326,12 +373,6 @@ final class LabeledTextField implements UIComponent, SwingComponent {
    */
   void checkpoint(final int value) {
     checkpointValue = new Integer(value).toString();
-    if (numericType != null) {
-      if (nCheckpointValue == null) {
-        nCheckpointValue = new EtomoNumber(numericType);
-      }
-      nCheckpointValue.set(checkpointValue);
-    }
   }
 
   /**
@@ -339,12 +380,6 @@ final class LabeledTextField implements UIComponent, SwingComponent {
    */
   void checkpoint(final ConstEtomoNumber value) {
     checkpointValue = value.toString();
-    if (numericType != null) {
-      if (nCheckpointValue == null) {
-        nCheckpointValue = new EtomoNumber(numericType);
-      }
-      nCheckpointValue.set(checkpointValue);
-    }
   }
 
   /**
@@ -352,12 +387,6 @@ final class LabeledTextField implements UIComponent, SwingComponent {
    */
   void checkpoint(final double value) {
     checkpointValue = new Double(value).toString();
-    if (numericType != null) {
-      if (nCheckpointValue == null) {
-        nCheckpointValue = new EtomoNumber(numericType);
-      }
-      nCheckpointValue.set(checkpointValue);
-    }
   }
 
   /**
@@ -365,12 +394,6 @@ final class LabeledTextField implements UIComponent, SwingComponent {
    */
   void checkpoint(final String value) {
     checkpointValue = value;
-    if (numericType != null) {
-      if (nCheckpointValue == null) {
-        nCheckpointValue = new EtomoNumber(numericType);
-      }
-      nCheckpointValue.set(checkpointValue);
-    }
   }
 
   /**
@@ -381,6 +404,63 @@ final class LabeledTextField implements UIComponent, SwingComponent {
       return;
     }
     setText(checkpointValue);
+  }
+
+  public void setFieldHighlightValue(final String value) {
+    if (!useFieldHighlight) {
+      useFieldHighlight = true;
+      textField.addFocusListener(this);
+    }
+    fieldHighlightValue = value;
+    updateFieldHighlight();
+  }
+
+  public void focusGained(final FocusEvent event) {
+  }
+
+  public void focusLost(final FocusEvent event) {
+    updateFieldHighlight();
+  }
+
+  /**
+   * If the field highlight is in use, use the field highlight color on the foreground of
+   * the text field if the value of the text field equals the field highlight value.  Save
+   * the original foreground.  If the field highlight is in use and the value of the text
+   * field does not equal the field highlight value, try to restore the original
+   * foreground - or set a foreground color similar to the original one.  Assumes that
+   * field highlight is not used when the field is disabled.
+   */
+  void updateFieldHighlight() {
+    if (useFieldHighlight) {
+      String text = textField.getText();
+      if ((fieldHighlightValue != null && fieldHighlightValue.equals(text))
+          || (fieldHighlightValue == null && (text == null || text.equals("")))) {
+        if (!origLabelForegroundSet) {
+          origLabelForegroundSet = true;
+          origLabelForeground = label.getForeground();
+        }
+        if (!origTextForegroundSet) {
+          origTextForegroundSet = true;
+          origTextForeground = textField.getForeground();
+        }
+        label.setForeground(Colors.FIELD_HIGHLIGHT);
+        textField.setForeground(Colors.FIELD_HIGHLIGHT);
+      }
+      else {
+        if (origLabelForegroundSet) {
+          label.setForeground(origLabelForeground);
+        }
+        else {
+          label.setForeground(Color.BLACK);
+        }
+        if (origTextForegroundSet) {
+          textField.setForeground(origTextForeground);
+        }
+        else {
+          textField.setForeground(Color.BLACK);
+        }
+      }
+    }
   }
 
   public void addActionListener(ActionListener listener) {
@@ -400,25 +480,62 @@ final class LabeledTextField implements UIComponent, SwingComponent {
   }
 
   /**
-   * 
-   * @param alwaysCheck - check for difference even when the field is disables or invisible
-   * @return
+   * @param alwaysCheck - when false return false when the field is disabled or invisible
+   * @return true if text field is different from checkpoint
    */
-  boolean isDifferentFromCheckpoint(final boolean alwaysCheck) {
-    if (!alwaysCheck && (!isEnabled() || !isVisible())) {
+  public boolean isDifferentFromCheckpoint(final boolean alwaysCheck) {
+    if (!alwaysCheck && (!textField.isEnabled() || !textField.isVisible())) {
       return false;
     }
     if (checkpointValue == null) {
       return true;
     }
-    if (numericType == null) {
+    if (!checkpointValue.equals(textField.getText())) {
+      return true;
+    }
+    // Failed string comparison. Try comparing numerically
+    EtomoNumber.Type type = null;
+    if (numericType != null) {
+      type = numericType;
+    }
+    else if (fieldType == FieldType.FLOATING_POINT) {
+      type = EtomoNumber.Type.DOUBLE;
+    }
+    else if (fieldType == FieldType.INTEGER) {
+      type = EtomoNumber.Type.LONG;
+    }
+    if (type != null) {
+      EtomoNumber checkpointNumber = new EtomoNumber(type);
+      checkpointNumber.set(checkpointValue);
+      if (!checkpointNumber.isValid()) {
+        // Cannot compare numerically
+        return false;
+      }
+      EtomoNumber currentNumber = new EtomoNumber(type);
+      currentNumber.set(textField.getText());
+      if (!currentNumber.isValid()) {
+        // Cannot compare numerically
+        return false;
+      }
       return !checkpointValue.equals(textField.getText());
     }
-    return !nCheckpointValue.equals(textField.getText());
+    // Not a number
+    return false;
   }
 
-  void clear() {
+  public void clear() {
     textField.setText("");
+  }
+  
+  public void copy(final Field copyFrom) {
+    if (copyFrom == null) {
+      return;
+    }
+    setText(copyFrom.getText());
+  }
+  
+  public boolean isSelected() {
+    return false;
   }
 
   boolean equals(final String thatText) {
@@ -493,7 +610,7 @@ final class LabeledTextField implements UIComponent, SwingComponent {
   /**
    * return text without validation
    */
-  String getText() {
+  public String getText() {
     return textField.getText();
   }
 
@@ -515,7 +632,7 @@ final class LabeledTextField implements UIComponent, SwingComponent {
     }
   }
 
-  void setText(final String text) {
+  public void setText(final String text) {
     textField.setText(text);
   }
 
