@@ -101,6 +101,9 @@ final class BatchRunTomoDatasetDialog implements ActionListener {
   private final LabeledTextField ltfFallbackThickness = new LabeledTextField(
       FieldType.INTEGER, "with fallback (unbinned pixels): ");
   private final List<Field> fieldList = new ArrayList<Field>();
+  private final MultiLineButton btnOk = new MultiLineButton("OK");
+  private final MultiLineButton btnRevertToGlobal = new MultiLineButton(
+      "Revert to Global");
 
   private final FileTextField2 ftfDistort;
   private final FileTextField2 ftfGradient;
@@ -108,7 +111,6 @@ final class BatchRunTomoDatasetDialog implements ActionListener {
   private final JDialog dialog;
   private final String key;
   private final BatchRunTomoDialog datasetDialogMap;
-  private final MultiLineButton btnRevertToGlobal;
 
   private BatchRunTomoDatasetDialog(final BaseManager manager, final String key,
       final BatchRunTomoDialog datasetDialogMap) {
@@ -120,11 +122,9 @@ final class BatchRunTomoDatasetDialog implements ActionListener {
     this.datasetDialogMap = datasetDialogMap;
     if (key == null) {
       dialog = null;
-      btnRevertToGlobal = null;
     }
     else {
       dialog = new JDialog();
-      btnRevertToGlobal = new MultiLineButton("Revert to Global");
     }
   }
 
@@ -159,16 +159,15 @@ final class BatchRunTomoDatasetDialog implements ActionListener {
     JPanel pnlDeriveThickness = new JPanel();
     JPanel pnlFallbackThickness = new JPanel();
     JPanel pnlAutoFitRangeAndStep = new JPanel();
-    JPanel pnlRevertToGlobal = null;
-    if (btnRevertToGlobal != null) {
-      pnlRevertToGlobal = new JPanel();
+    JPanel pnlButtons = null;
+    if (dialog != null) {
+      pnlButtons = new JPanel();
     }
     // init
     ftfGradient.setPreferredWidth(272);
     btnModelFile.setToPreferredSize();
-    if (btnRevertToGlobal != null) {
-      btnRevertToGlobal.setToPreferredSize();
-    }
+    btnRevertToGlobal.setToPreferredSize();
+    btnOk.setToPreferredSize();
     // directives
     ftfModelFile.setDirectiveDef(DirectiveDef.MODEL_FILE);
     ltfLocalAreaTargetSize.setDirectiveDef(DirectiveDef.LOCAL_AREA_TARGET_SIZE);
@@ -244,8 +243,8 @@ final class BatchRunTomoDatasetDialog implements ActionListener {
     pnlRoot.add(pnlCorrectCTF);
     pnlRoot.add(Box.createRigidArea(FixedDim.x0_y5));
     pnlRoot.add(pnlReconstruction);
-    if (pnlRevertToGlobal != null) {
-      pnlRoot.add(pnlRevertToGlobal);
+    if (pnlButtons != null) {
+      pnlRoot.add(pnlButtons);
     }
     // ModelFile
     pnlModelFile.setLayout(new BoxLayout(pnlModelFile, BoxLayout.X_AXIS));
@@ -315,11 +314,13 @@ final class BatchRunTomoDatasetDialog implements ActionListener {
     pnlFallbackThickness.setLayout(new BoxLayout(pnlFallbackThickness, BoxLayout.X_AXIS));
     pnlFallbackThickness.add(Box.createRigidArea(FixedDim.x40_y0));
     pnlFallbackThickness.add(ltfFallbackThickness.getComponent());
-    // RevertToGlobal
-    if (pnlRevertToGlobal != null) {
-      pnlRevertToGlobal.setLayout(new BoxLayout(pnlRevertToGlobal, BoxLayout.X_AXIS));
-      pnlRevertToGlobal.add(Box.createHorizontalGlue());
-      pnlRevertToGlobal.add(btnRevertToGlobal.getComponent());
+    // buttons
+    if (pnlButtons != null) {
+      pnlButtons.setLayout(new BoxLayout(pnlButtons, BoxLayout.X_AXIS));
+      pnlButtons.add(Box.createHorizontalGlue());
+      pnlButtons.add(btnOk.getComponent());
+      pnlButtons.add(Box.createRigidArea(FixedDim.x20_y0));
+      pnlButtons.add(btnRevertToGlobal.getComponent());
     }
     // align
     UIUtilities.alignComponentsX(pnlRoot, Component.LEFT_ALIGNMENT);
@@ -351,9 +352,8 @@ final class BatchRunTomoDatasetDialog implements ActionListener {
     rtfThickness.addActionListener(this);
     rtfBinnedThickness.addActionListener(this);
     rbDeriveThickness.addActionListener(this);
-    if (btnRevertToGlobal != null) {
-      btnRevertToGlobal.addActionListener(this);
-    }
+    btnRevertToGlobal.addActionListener(this);
+    btnOk.addActionListener(this);
   }
 
   Component getComponent() {
@@ -693,8 +693,7 @@ final class BatchRunTomoDatasetDialog implements ActionListener {
     if (actionCommand == null) {
       return;
     }
-    if (btnRevertToGlobal != null
-        && actionCommand.equals(btnRevertToGlobal.getActionCommand())) {
+    if (actionCommand.equals(btnRevertToGlobal.getActionCommand())) {
       if (datasetDialogMap != null) {
         if (UIHarness.INSTANCE
             .openYesNoDialog(
@@ -705,6 +704,9 @@ final class BatchRunTomoDatasetDialog implements ActionListener {
           dialog.setVisible(false);
         }
       }
+    }
+    else if (actionCommand.equals(btnOk.getActionCommand())) {
+      dialog.setVisible(false);
     }
     else if (actionCommand.equals(cbRemoveXrays.getActionCommand())
         || actionCommand.equals(rbTrackingMethodSeed.getActionCommand())
