@@ -121,6 +121,10 @@ final class Run3dmodButton extends MultiLineButton implements Deferred3dmodButto
   void setContainer(final Run3dmodButtonContainer container) {
     this.container = container;
   }
+  
+  void setActionCommand(final String actionCommand) {
+    super.setActionCommand(actionCommand);
+  }
 
   public void menuAction(Run3dmodMenuOptions run3dmodMenuOptions) {
     action(run3dmodMenuOptions);
@@ -131,7 +135,7 @@ final class Run3dmodButton extends MultiLineButton implements Deferred3dmodButto
 
   public void action(Run3dmodMenuOptions menuOptions) {
     if (container != null) {
-      container.action(this, menuOptions);
+      container.action(getActionCommand(), getDeferred3dmodButton(), menuOptions);
     }
   }
 }
