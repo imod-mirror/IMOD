@@ -240,8 +240,6 @@ final class LabeledTextField implements UIComponent, SwingComponent, Field,
   private String defaultValue = null;
   private boolean useFieldHighlight = false;
   private String fieldHighlightValue = null;
-  private boolean origTextForegroundSet = false;
-  private boolean origLabelForegroundSet = false;
 
   public String toString() {
     return "[label:" + getLabel() + "]";
@@ -396,6 +394,13 @@ final class LabeledTextField implements UIComponent, SwingComponent, Field,
     checkpointValue = value;
   }
 
+  void checkpoint(final LabeledTextField from) {
+    if (from == null) {
+      return;
+    }
+    checkpointValue = from.checkpointValue;
+  }
+
   /**
    * Resets to checkpointValue if checkpointValue has been set.  Otherwise has no effect.
    */
@@ -413,6 +418,22 @@ final class LabeledTextField implements UIComponent, SwingComponent, Field,
     }
     fieldHighlightValue = value;
     updateFieldHighlight();
+  }
+
+  void setFieldHighlightValue(final LabeledTextField from) {
+    if (from == null) {
+      return;
+    }
+    if (from.useFieldHighlight) {
+      setFieldHighlightValue(from.fieldHighlightValue);
+    }
+    else if (useFieldHighlight) {
+      // clear field highlight
+      useFieldHighlight = false;
+      textField.removeFocusListener(this);
+      fieldHighlightValue = null;
+      updateFieldHighlight();
+    }
   }
 
   public void focusGained(final FocusEvent event) {
@@ -435,31 +456,28 @@ final class LabeledTextField implements UIComponent, SwingComponent, Field,
       String text = textField.getText();
       if ((fieldHighlightValue != null && fieldHighlightValue.equals(text))
           || (fieldHighlightValue == null && (text == null || text.equals("")))) {
-        if (!origLabelForegroundSet) {
-          origLabelForegroundSet = true;
-          origLabelForeground = label.getForeground();
-        }
-        if (!origTextForegroundSet) {
-          origTextForegroundSet = true;
+        if (origTextForeground == null) {
           origTextForeground = textField.getForeground();
+          if (origTextForeground == null) {
+            origTextForeground = Color.BLACK;
+          }
+        }
+        if (origLabelForeground == null) {
+          origLabelForeground = label.getForeground();
+          if (origLabelForeground == null) {
+            origLabelForeground = Color.BLACK;
+          }
         }
         label.setForeground(Colors.FIELD_HIGHLIGHT);
         textField.setForeground(Colors.FIELD_HIGHLIGHT);
       }
-      else {
-        if (origLabelForegroundSet) {
-          label.setForeground(origLabelForeground);
-        }
-        else {
-          label.setForeground(Color.BLACK);
-        }
-        if (origTextForegroundSet) {
-          textField.setForeground(origTextForeground);
-        }
-        else {
-          textField.setForeground(Color.BLACK);
-        }
-      }
+      return;
+    }
+    if (origTextForeground != null) {
+      textField.setForeground(origTextForeground);
+    }
+    if (origLabelForeground != null) {
+      label.setForeground(origLabelForeground);
     }
   }
 
@@ -526,14 +544,14 @@ final class LabeledTextField implements UIComponent, SwingComponent, Field,
   public void clear() {
     textField.setText("");
   }
-  
+
   public void copy(final Field copyFrom) {
     if (copyFrom == null) {
       return;
     }
     setText(copyFrom.getText());
   }
-  
+
   public boolean isSelected() {
     return false;
   }
@@ -651,6 +669,9 @@ final class LabeledTextField implements UIComponent, SwingComponent, Field,
   void setEnabled(final boolean isEnabled) {
     textField.setEnabled(isEnabled);
     label.setEnabled(isEnabled);
+    if (isEnabled) {
+      updateFieldHighlight();
+    }
   }
 
   boolean isEnabled() {
