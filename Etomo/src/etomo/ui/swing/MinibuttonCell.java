@@ -2,6 +2,7 @@ package etomo.ui.swing;
 
 import java.awt.Component;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
 
 import javax.swing.BorderFactory;
 import javax.swing.Icon;
@@ -28,7 +29,7 @@ import etomo.ui.UIComponent;
 * <p> $Log$ </p>
 */
 public final class MinibuttonCell extends InputCell implements UIComponent,
-    SwingComponent, Run3dmodMenuTarget {
+    SwingComponent, Run3dmodMenuTarget, ContextMenu {
   public static final String rcsid = "$Id:$";
 
   private final Minibutton button;
@@ -49,12 +50,20 @@ public final class MinibuttonCell extends InputCell implements UIComponent,
   }
 
   static MinibuttonCell getInstance(final Icon icon) {
-    return new MinibuttonCell(icon, false, null);
+    MinibuttonCell instance = new MinibuttonCell(icon, false, null);
+    instance.addListeners();
+    return instance;
   }
 
   static MinibuttonCell getRun3dmodInstance(final Icon icon,
       final Run3dmodButtonContainer container) {
-    return new MinibuttonCell(icon, true, container);
+    MinibuttonCell instance = new MinibuttonCell(icon, true, container);
+    instance.addListeners();
+    return instance;
+  }
+
+  private void addListeners() {
+    button.addMouseListener(new GenericMouseAdapter(this));
   }
 
   public Component getComponent() {
@@ -63,6 +72,10 @@ public final class MinibuttonCell extends InputCell implements UIComponent,
 
   public SwingComponent getUIComponent() {
     return this;
+  }
+
+  public void popUpContextMenu(MouseEvent mouseEvent) {
+    contextMenu.popUpContextMenu(mouseEvent);
   }
 
   public void menuAction(Run3dmodMenuOptions run3dmodMenuOptions) {
