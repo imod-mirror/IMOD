@@ -43,7 +43,7 @@ public class EtomoAutodoc {
   public static final char VAR_TAG = '%';
   public static final char NEW_LINE_CHAR = '^';
   private static final String TOOLTIP_ATTRIBUTE_NAME = "tooltip";
-  public static final String DOUBLE_DASH_ATTRIBUTE_NAME="DoubleDashOptions";
+  public static final String DOUBLE_DASH_ATTRIBUTE_NAME = "DoubleDashOptions";
 
   private static boolean debug = false;
 
@@ -134,7 +134,7 @@ public class EtomoAutodoc {
     if (value == null) {
       return null;
     }
-    PrimativeTokenizer tokenizer = new PrimativeTokenizer(value);
+    PrimativeTokenizer tokenizer = PrimativeTokenizer.getStringInstance(value, debug);
     StringBuffer tooltip = new StringBuffer();
     boolean removeIndentFormatting = false;
     boolean startOfLine = true;
@@ -197,7 +197,7 @@ public class EtomoAutodoc {
     if (value == null) {
       return null;
     }
-    PrimativeTokenizer tokenizer = new PrimativeTokenizer(value);
+    PrimativeTokenizer tokenizer = PrimativeTokenizer.getStringInstance(value, debug);
     ArrayList list = new ArrayList();
     StringBuffer buffer = new StringBuffer(128);
     boolean startOfLine = true;

@@ -96,9 +96,9 @@ public final class DirectiveEditorBuilder {
       int dCount = 0;
       boolean matchesType = false;
       while (descrIterator.hasNext()) {
-        descrIterator.next();
+      DirectiveDescrFile.Element element=  descrIterator.next();
         // Get the section - directives following this section are associated with it.
-        if (descrIterator.isSection()) {
+        if (element.isSection()) {
           if (section != null) {
             // Record whether any of the directives in the section match the directive
             // file type. Directives that don't match the type cannot be edited in this
@@ -108,14 +108,14 @@ public final class DirectiveEditorBuilder {
               sectionArray.remove(section);
             }
           }
-          section = new DirectiveDescrSection(descrIterator.getSectionHeader());
+          section = new DirectiveDescrSection(element.getSectionHeader());
           matchesType = false;
           dCount = 0;
           sectionArray.add(section);
         }
-        else if (descrIterator.isDirective()) {
+        else if (element.isDirective()) {
           // Get the directive
-          directive = new Directive(descrIterator.getDirectiveDescription());
+          directive = new Directive(element);
           // Only save valid directives.
           if (directive.isValid()) {
             // Check to see if this directive matches the type

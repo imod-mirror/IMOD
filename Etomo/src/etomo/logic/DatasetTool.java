@@ -45,6 +45,73 @@ public final class DatasetTool {
   private DatasetTool() {
   }
 
+  public static File getStackFile(String stackAbsPath, final AxisID axisID,
+      final boolean dualAxis) {
+    if (stackAbsPath == null) {
+      return null;
+    }
+    if (dualAxis) {
+      String ext = null;
+      if (stackAbsPath.endsWith(STANDARD_DATASET_EXT)) {
+        ext = STANDARD_DATASET_EXT;
+      }
+      else if (stackAbsPath.endsWith(ALTERNATE_DATASET_EXT)) {
+        ext = ALTERNATE_DATASET_EXT;
+      }
+      // Switch axes if the axis doesn't match axisID.
+      AxisID otherAxisID = axisID.getOtherAxisID();
+      if (ext != null && stackAbsPath.endsWith(otherAxisID.getExtension() + ext)) {
+        stackAbsPath = stackAbsPath.substring(0, stackAbsPath.length()
+            - otherAxisID.getExtension().length() - ext.length())
+            + axisID.getExtension() + ext;
+      }
+    }
+    return new File(stackAbsPath);
+  }
+
+  public static String getDatasetName(final String stackName, final boolean dualAxis) {
+    if (stackName == null) {
+      return null;
+    }
+    String ext = null;
+    if (stackName.endsWith(STANDARD_DATASET_EXT)) {
+      ext = STANDARD_DATASET_EXT;
+    }
+    else if (stackName.endsWith(ALTERNATE_DATASET_EXT)) {
+      ext = ALTERNATE_DATASET_EXT;
+    }
+    int removeChars = 0;
+    if (ext != null) {
+      removeChars = ext.length();
+    }
+    if (dualAxis && removeChars > 0) {
+      if (stackName.endsWith(AxisID.FIRST.getExtension() + ext)) {
+        removeChars += AxisID.FIRST.getExtension().length();
+      }
+      else if (stackName.endsWith(AxisID.SECOND.getExtension() + ext)) {
+        removeChars += AxisID.SECOND.getExtension().length();
+      }
+    }
+    return stackName.substring(0, stackName.length() - removeChars);
+  }
+
+  /**
+   * Gets a dataset (.edf) file that is in the same directory as the stackFile
+   * @param stackFile
+   * @param dualAxis
+   * @return
+   */
+  public static File getDatasetFile(final File stackFile, final boolean dualAxis) {
+    if (stackFile == null) {
+      return null;
+    }
+    String datasetName = getDatasetName(stackFile.getName(), dualAxis);
+    if (datasetName == null) {
+      return null;
+    }
+    return new File(stackFile.getParent(), datasetName + DataFileType.RECON.extension);
+  }
+
   /**
    * Rename the inputFile if it is an .mrc file.  If this is dual axis, also rename the
    * other axis .mrc file.  If inputFile is actually a dataset name, rename the associated

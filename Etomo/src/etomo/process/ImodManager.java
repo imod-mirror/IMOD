@@ -616,6 +616,7 @@ public class ImodManager {
   public static final String SIRT_KEY = new String("SIRT output files");
   public static final String PREBLEND_KEY = new String("Preblend output file");
   public static final String ALIGNED_STACK_KEY = new String("Aligned stack");
+  public static final String BATCH_RUN_TOMO_STACK_KEY = new String("BatchRunTomo Stack");
 
   // private keys - used with imodMap
   private static final String rawStackKey = RAW_STACK_KEY;
@@ -661,6 +662,7 @@ public class ImodManager {
   private static final String sirtKey = SIRT_KEY;
   private static final String preblendKey = PREBLEND_KEY;
   private static final String alignedStackKey = ALIGNED_STACK_KEY;
+  private static final String batchRunTomoStackKey = BATCH_RUN_TOMO_STACK_KEY;
 
   private boolean useMap = true;
   private final BaseManager manager;
@@ -1107,6 +1109,55 @@ public class ImodManager {
     if (imodState != null) {
       imodState.open(model, modelMode, menuOptions);
     }
+  }
+
+  public int open(String key, final File file, final AxisID axisID, int vectorIndex,
+      final String model, final boolean modelMode, final Run3dmodMenuOptions menuOptions)
+      throws AxisTypeException, SystemProcessException, IOException {
+    key = getPrivateKey(key);
+    ImodState imodState = null;
+    if (vectorIndex != -1) {
+      imodState = get(key, axisID, vectorIndex);
+    }
+    if (imodState == null) {
+      vectorIndex = newImod(key, axisID, file);
+      imodState = get(key, axisID, vectorIndex);
+    }
+    if (imodState != null) {
+      imodState.open(model, modelMode, menuOptions);
+    }
+    return vectorIndex;
+  }
+
+  public void openModel(String key, final AxisID axisID, int vectorIndex,
+      final String model, final boolean modelMode) throws AxisTypeException,
+      SystemProcessException, IOException {
+    key = getPrivateKey(key);
+    ImodState imodState = null;
+    if (vectorIndex != -1) {
+      imodState = get(key, axisID, vectorIndex);
+    }
+    if (imodState != null) {
+      imodState.openModel(model, modelMode);
+    }
+  }
+
+  public int open(String key, final File file, final AxisID axisID, int vectorIndex,
+      final Run3dmodMenuOptions menuOptions) throws AxisTypeException,
+      SystemProcessException, IOException {
+    key = getPrivateKey(key);
+    ImodState imodState = null;
+    if (vectorIndex != -1) {
+      imodState = get(key, axisID, vectorIndex);
+    }
+    if (imodState == null) {
+      vectorIndex = newImod(key, axisID, file);
+      imodState = get(key, axisID, vectorIndex);
+    }
+    if (imodState != null) {
+      imodState.open(menuOptions);
+    }
+    return vectorIndex;
   }
 
   /**
@@ -1919,6 +1970,9 @@ public class ImodManager {
     if (key.equals(ALIGNED_STACK_KEY) && axisID != null) {
       return newAlignedStack(axisID);
     }
+    if (key.equals(BATCH_RUN_TOMO_STACK_KEY) && axisID != null) {
+      return newBatchRunTomoStack(file);
+    }
     System.out.println("key=" + key);
     throw new IllegalArgumentException(key + " cannot be created in "
         + axisType.toString() + " with axisID=" + axisID.getExtension());
@@ -2290,6 +2344,10 @@ public class ImodManager {
   }
 
   private ImodState newFlattenInput(File file) {
+    return new ImodState(manager, file, AxisID.ONLY);
+  }
+
+  private ImodState newBatchRunTomoStack(File file) {
     return new ImodState(manager, file, AxisID.ONLY);
   }
 
