@@ -122,7 +122,6 @@ final class CheckBox extends JCheckBox implements Field, ActionListener {
   private boolean fieldIsBackedUp = false;
   private boolean backupValue = false;
   private boolean debug = false;
-  private boolean origForegroundSet = false;
   private Color origForeground = null;
   private DirectiveDef directiveDef = null;
   private boolean defaultValueSearchDone = false;
@@ -186,11 +185,15 @@ final class CheckBox extends JCheckBox implements Field, ActionListener {
     setSelected(false);
   }
 
-  public void copy(final Field copyFrom) {
-    if (copyFrom == null) {
+  /**
+   * Copy the value, checkpoint, and field highlight settings.
+   * @param copyFrom
+   */
+  public void copy(final Field from) {
+    if (from == null) {
       return;
     }
-    setSelected(copyFrom.isSelected());
+    setSelected(from.isSelected());
   }
 
   void setDirectiveDef(final DirectiveDef directiveDef) {
@@ -234,6 +237,18 @@ final class CheckBox extends JCheckBox implements Field, ActionListener {
     checkpointValue.set(value);
   }
 
+  public void checkpoint(final CheckBox from) {
+    if (from == null) {
+      return;
+    }
+    if (from.checkpointValue != null) {
+      checkpoint(from.checkpointValue.is());
+    }
+    else {
+      checkpointValue = null;
+    }
+  }
+
   /**
    * Resets to checkpointValue if checkpointValue has been set.  Otherwise has no effect.
    */
@@ -257,24 +272,48 @@ final class CheckBox extends JCheckBox implements Field, ActionListener {
     updateFieldHighlight();
   }
 
+  void setFieldHighlightValue(final CheckBox from) {
+    if (from == null) {
+      return;
+    }
+    if (from.useFieldHighlight) {
+      setFieldHighlightValue(from.fieldHighlightValue);
+    }
+    else if (useFieldHighlight) {
+      useFieldHighlight = false;
+      fieldHighlightValue = false;
+      removeActionListener(this);
+      updateFieldHighlight();
+    }
+  }
+
+  public void setEnabled(final boolean enabled) {
+    super.setEnabled(enabled);
+    if (enabled) {
+      updateFieldHighlight();
+    }
+  }
+
   public void actionPerformed(ActionEvent e) {
     updateFieldHighlight();
   }
 
   void updateFieldHighlight() {
-    if (useFieldHighlight) {
-      if (fieldHighlightValue == isSelected()) {
-        if (!origForegroundSet) {
-          origForeground = getForeground();
+    if (useFieldHighlight && fieldHighlightValue == isSelected()) {
+      if (origForeground == null) {
+        // origForeground must be set if the foreground is going to be changed
+        origForeground = getForeground();
+        if (origForeground == null) {
+          origForeground = Color.black;
         }
-        setForeground(Colors.FIELD_HIGHLIGHT);
       }
-      else if (origForeground != null) {
-        setForeground(origForeground);
-      }
-      else {
-        setForeground(Color.black);
-      }
+      setForeground(Colors.FIELD_HIGHLIGHT);
+      return;
+    }
+    if (origForeground != null) {
+      // Field highlight value currently doesn't match the field text, or field highlight
+      // was removed.
+      setForeground(origForeground);
     }
   }
 
