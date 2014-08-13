@@ -157,7 +157,7 @@ runtime.Reconstruction.any.doBackprojAlso,Whether to do BP in addition to SIRT,B
 ,,,,,,,,
 SIRT parameters,,,,,,,,
 comparam.sirtsetup.sirtsetup.LeaveIterations,Iterations to leave,List,Y,Y,SD,,List of iterations to leave,
-comparam.sirtsetup.sirtsetup.ScaleToInteger,Scaling to integer min/max,2 Int,Y,Y,SD,"Use -20000,20000",Min & max to scale to integers,
+comparam.sirtsetup.sirtsetup.ScaleToInteger,Scaling to integer min/max,2 Int,Y,Y,SD,Use -20000 20000,Min & max to scale to integers,
 comparam.sirtsetup.sirtsetup.RadiusAndSigma,Radius and sigma for radial filter,2 Float,Y,Y,SD,,Radial filter cutoff & falloff,
 ,,,,,,,,
 Postprocessing,,,,,,,,

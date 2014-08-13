@@ -19,7 +19,7 @@ UTILOBJS = b3dutil.$(O) ilist.$(O) parselist.$(O) amoeba.$(O) minimize1D.$(O) \
 	robuststat.$(O) convexbound.$(O) statfuncs.$(O) surfacesort.$(O) \
 	gaussj.$(O) find_piece_shifts.$(O) zoomdown.$(O) pctstretch.$(O) \
 	linearxforms.$(O) regression.$(O) dsyevc3.$(O) dsyevh3.$(O) dsyevq3.$(O) \
-	dsytrd3.$(O)
+	dsytrd3.$(O) multibinstat.$(O)
 
 PIPOBJS = parse_params.$(O) pip_fwrap.$(O) autodoc.$(O) adoc_fwrap.$(O)
 
