@@ -151,10 +151,11 @@ manpage = Step to start processing with:
 ^   4: patch tracking, autoseeding, or RAPTOR
 ^   5: bead tracking
 ^   8: aligned stack generation
-^   11: CTF plotting
+^   9: CTF plotting
 ^   10: 3D gold detection
 ^   11: CTF correction
-^   12: gold erasing after transforming fiducial model or projecting 3D model
+^   12: gold erasing after transforming fiducial model or 
+^       projecting 3D model
 ^   13: 2D filtering
 ^   14: reconstruction
 ^   20: postprocessing

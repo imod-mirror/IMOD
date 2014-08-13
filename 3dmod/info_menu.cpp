@@ -193,10 +193,14 @@ void InfoWindow::fileSlot(int item)
     break;
     
   case FILE_MENU_EXTRACT: /* extract */
+  case FILE_MENU_PROCESS: /* extract */
     imod_info_forbid();
     imod_info_input();
     releaseKeyboard();
-    extract();
+    if (item == FILE_MENU_EXTRACT)
+      extract();
+    else
+      processFile();
     imod_info_enable();
     break;
 

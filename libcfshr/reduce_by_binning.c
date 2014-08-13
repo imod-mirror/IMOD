@@ -432,6 +432,12 @@ void reduce_by_binning(float *array, int *nx, int *ny, int *nbin,
                   nyr);
 }
 
+/*!
+ * Bins a slice of data in [array], with X dimension [nxDim], by binning factors of 
+ * [binFacX] and [binFacY] in X and Y, and adds it into the slice in [brray] with a 
+ * weighting of [zWeight]. The number of binned pixels to produce in X and Y is given by 
+ * [nxBin] and [nyBin], and [brray] is contiguous (has X dimension [nxBin]).
+ */
 void binIntoSlice(float *array, int nxDim, float *brray, int nxBin, int nyBin,
                   int binFacX, int binFacY, float zWeight)
 {
@@ -462,6 +468,7 @@ void binIntoSlice(float *array, int nxDim, float *brray, int nxBin, int nyBin,
   }
 }
 
+/*! Fortran wrapper for @binIntoSlice. */
 void binintoslice(float *array, int *nxDim, float *brray, int *nxBin, int *nyBin,
                   int *binFacX, int *binFacY, float *zWeight)
 {

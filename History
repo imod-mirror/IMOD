@@ -1,5 +1,17 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/7/14: Changes for 3dmod image processing: Kept track of sequence of
+operations so that they can be reapplied easily; added buttons to remove last
+one from list, redo all operations, and list the command-line operations in the
+Info windows; added option to save modified data to memory automatically; made
+thresholding able to update continuously; added File-Process File menu item to
+apply operations to image file or subset inside rubber band.
+
+8/7/14: Added option to change output mode from Mtffilter, and a warning when
+output is out of range for the existing mode.
+
+8/5/14: Allowed File-Extract in 3dmod to be run on non-MRC files (In 4.7).
+
 8/3/14: IMOD_4-8-10
 8/3/14: Subdivided steps in Batchruntomo so CTF plotting and 3D gold
 finding could be checked at one stopping point; eliminated option to switch

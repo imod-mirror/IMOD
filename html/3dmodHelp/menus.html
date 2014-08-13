@@ -28,12 +28,21 @@ checked, TIFF snapshots of all image windows will be saved as 8-bit gray scale.
 <LI><B>Memory to TIF</B>:&emsp;Save entire color image from memory to TIFF
 file.
 <LI><B>Extract File...</B>:&emsp;Extract portion of current image file
-selected by the rubber band in the top Zap window, using the trimvol command
+selected by the rubber band in the top Zap window, using the Trimvol command
 that would be produced with the <B>I</B> button in that window.  If there is
 no rubber band in a Zap Window, it extracts the whole area shown in the top
 Zap window.  Rotation around X is included if the image is loaded flipped.  A single 
 slice is extracted if the <B>Lo</B> and <B>Hi</B> fields are empty; otherwise
-those fields specify the range in Z.
+those fields specify the range in Z.  If there is a rubber band in the top
+  Slicer window, the program will instead use Rotatevol to extract the portion
+  of the file selected by the rubber band.  The depth limits of the range
+  must be set with the <B>Lo</B> and <B>Hi</B> buttons.
+<LI><B>Process File...</B>:&emsp;Apply current operation(s) in the Image
+  Processing dialog to the current image file if possible.
+  If there is no Zap window with a rubber band, the whole file will be
+  processed.  Otherwise, the subarea in the rubber band will be processed, but
+  the <B>Lo</B> and <B>Hi</B> limits must be set to process more than one
+  slice. 
 <LI><B>Save Info Text...</B>:&emsp;Save the contents of the text box at the
 bottom of the Info window to a file.
 
