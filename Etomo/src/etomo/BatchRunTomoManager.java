@@ -111,6 +111,10 @@ public final class BatchRunTomoManager extends BaseManager {
    */
   public int imod(final File stack, final AxisID axisID, int imodIndex,
       final boolean boundaryModel, final boolean dualAxis, Run3dmodMenuOptions menuOptions) {
+    if (!stack.exists()) {
+      uiHarness.openMessageDialog(this,stack.getAbsolutePath()+" does not exist.","Run 3dmod failed");
+      return imodIndex;
+    }
     String key = ImodManager.BATCH_RUN_TOMO_STACK_KEY;
     AxisType axisType = dualAxis ? AxisType.DUAL_AXIS : AxisType.SINGLE_AXIS;
     String datasetName = DatasetTool.getDatasetName(stack.getName(), dualAxis);
@@ -146,6 +150,10 @@ public final class BatchRunTomoManager extends BaseManager {
    */
   public int imod(final File stack, final AxisID axisID, int imodIndex,
       Run3dmodMenuOptions menuOptions) {
+    if (!stack.exists()) {
+      uiHarness.openMessageDialog(this,stack.getAbsolutePath()+" does not exist.","Run 3dmod failed");
+      return imodIndex;
+    }
     String key = ImodManager.BATCH_RUN_TOMO_STACK_KEY;
     try {
       imodIndex = imodManager.open(key, stack, axisID, imodIndex, menuOptions);
