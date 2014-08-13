@@ -241,7 +241,7 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
       numRows += shift;
     }
     // the stacks tab rows are highlightable
-    if (curTab == BatchRunTomoTab.STACKS || curTab == BatchRunTomoTab.DATASET) {
+    if (curTab == BatchRunTomoTab.STACKS) {
       constraints.gridwidth = 2;
     }
     else {
@@ -314,6 +314,14 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
     rowList.checkpoint();
   }
 
+  void useDefaultValues() {
+    rowList.useDefaultValues();
+  }
+
+  void setFieldHighlightValues(final DirectiveFileCollection directiveFileCollection) {
+    rowList.setFieldHighlightValues(directiveFileCollection);
+  }
+
   private void updateDisplay() {
     int size = rowList.size();
     boolean enable = size > 0 && rowList.isHighlighted();
@@ -374,7 +382,7 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
     else if (actionCommand.equals(btnCopyDown.getActionCommand())) {
       rowList.copyDown();
     }
-  } 
+  }
 
   String getHighlightedKey() {
     return rowList.getKey();
@@ -438,6 +446,7 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
           return;
         }
         row.remove();
+        row.delete();
         list.remove(index);
         viewport.adjustViewport(index);
       }
@@ -559,6 +568,18 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
     private void clear() {
       for (int i = 0; i < list.size(); i++) {
         list.get(i).clear();
+      }
+    }
+
+    private void useDefaultValues() {
+      for (int i = 0; i < list.size(); i++) {
+        list.get(i).useDefaultValues();
+      }
+    }
+
+    void setFieldHighlightValues(final DirectiveFileCollection directiveFileCollection) {
+      for (int i = 0; i < list.size(); i++) {
+        list.get(i).setFieldHighlightValues(directiveFileCollection);
       }
     }
 
