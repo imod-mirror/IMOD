@@ -68,6 +68,8 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
   private final MinibuttonCell mbc3dmodB = MinibuttonCell.getRun3dmodInstance(
       new ImageIcon(IMOD_ICON_URL), this);
   private final HeaderCell hcNumber = new HeaderCell();
+  private final ButtonCell bcEditDataset = ButtonCell.getToggleInstance("Open");
+  private final ActionListener listener = new RowListener(this);
 
   private final JPanel panel;
   private final GridBagLayout layout;
@@ -78,6 +80,7 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
 
   private int imodIndexA = -1;
   private int imodIndexB = -1;
+  private BatchRunTomoDatasetDialog datasetDialog = null;
 
   private BatchRunTomoRow(final String propertyUserDir, final BatchRunTomoTable table,
       final JPanel panel, final GridBagLayout layout,
@@ -149,13 +152,14 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
     cbcDualAxis.setActionCommand(((Object) cbcDualAxis).toString());
     mbcEtomo.setActionCommand(((Object) mbcEtomo).toString());
     cbcBoundaryModel.setActionCommand(((Object) cbcBoundaryModel).toString());
+    bcEditDataset.setActionCommand(((Object) bcEditDataset).toString());
     // set listeners
-    ActionListener listener = new RowListener(this);
     mbc3dmodA.addActionListener(listener);
     mbc3dmodB.addActionListener(listener);
     cbcDualAxis.addActionListener(listener);
     mbcEtomo.addActionListener(listener);
     cbcBoundaryModel.addActionListener(listener);
+    bcEditDataset.addActionListener(listener);
   }
 
   public void action(final String actionCommand,
@@ -195,6 +199,31 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
               dualAxis);
         }
       }
+      else if (actionCommand.equals(bcEditDataset.getActionCommand())) {
+        if (datasetDialog == null) {
+          datasetDialog = BatchRunTomoDatasetDialog.getIndividualInstance(
+              manager,
+              DatasetTool.getDatasetFile(DatasetTool.getStackFile(
+                  fcStack.getExpandedValue(), AxisID.FIRST, dualAxis), dualAxis));
+          datasetDialog.addRevertToGlobalActionListener(listener);
+          fcEditDataset.setValue("   Set");
+        }
+        else {
+          datasetDialog.setVisible(true);
+          bcEditDataset.setSelected(true);
+        }
+      }
+      else if (datasetDialog != null
+          && actionCommand.equals(datasetDialog.getRevertToGlobalActionCommand())) {
+        if (UIHarness.INSTANCE
+            .openYesNoDialog(
+                manager,
+                "Data in this window will be lost.  Revert to global dataset data for this stack?",
+                AxisID.ONLY)) {
+          deleteDataset();
+        }
+      }
+
     }
   }
 
@@ -214,6 +243,20 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
     mbcEtomo.remove();
     mbc3dmodA.remove();
     mbc3dmodB.remove();
+    bcEditDataset.remove();
+  }
+
+  void delete() {
+    deleteDataset();
+  }
+
+  private void deleteDataset() {
+    if (datasetDialog != null) {
+      datasetDialog.setVisible(false);
+      datasetDialog = null;
+      bcEditDataset.setSelected(false);
+      fcEditDataset.setValue("");
+    }
   }
 
   private void updateDisplay() {
@@ -227,7 +270,7 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
     if (viewport.inViewport(hcNumber.getInt() - 1)) {
       constraints.gridwidth = 1;
       hcNumber.add(panel, layout, constraints);
-      if (tab == BatchRunTomoTab.STACKS || tab == BatchRunTomoTab.DATASET) {
+      if (tab == BatchRunTomoTab.STACKS) {
         hbRow.add(panel, layout, constraints);
       }
       constraints.gridwidth = 2;
@@ -245,6 +288,7 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
         mbc3dmodB.add(panel, layout, constraints);
       }
       else if (tab == BatchRunTomoTab.DATASET) {
+        bcEditDataset.add(panel, layout, constraints);
         constraints.gridwidth = GridBagConstraints.REMAINDER;
         fcEditDataset.add(panel, layout, constraints);
       }
@@ -310,6 +354,9 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
       cbcTwoSurfaces.backup();
       changed = true;
     }
+    if (datasetDialog != null && datasetDialog.backupIfChanged()) {
+      changed = true;
+    }
     return changed;
   }
 
@@ -318,6 +365,21 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
     cbcMontage.clear();
     cbcTwoSurfaces.clear();
     setDefaults();
+    if (datasetDialog != null) {
+      datasetDialog.clear();
+    }
+  }
+
+  void useDefaultValues() {
+    if (datasetDialog != null) {
+      datasetDialog.useDefaultValues();
+    }
+  }
+
+  void setFieldHighlightValues(final DirectiveFileCollection directiveFileCollection) {
+    if (datasetDialog != null) {
+      datasetDialog.setFieldHighlightValues(directiveFileCollection);
+    }
   }
 
   void setNumber(final int input) {
@@ -335,12 +397,18 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
     cbcDualAxis.restoreFromBackup();
     cbcMontage.restoreFromBackup();
     cbcTwoSurfaces.restoreFromBackup();
+    if (datasetDialog != null) {
+      datasetDialog.restoreFromBackup();
+    }
   }
 
   void checkpoint() {
     cbcDualAxis.checkpoint();
     cbcMontage.checkpoint();
     cbcTwoSurfaces.checkpoint();
+    if (datasetDialog != null) {
+      datasetDialog.checkpoint();
+    }
   }
 
   /**
@@ -355,6 +423,9 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
       EtomoNumber number = new EtomoNumber();
       number.set(directiveFileCollection.getValue(DirectiveDef.SURFACES_TO_ANALYZE));
       cbcTwoSurfaces.setSelected(number != null && number.equals(2));
+    }
+    if (datasetDialog != null) {
+      datasetDialog.setValues(directiveFileCollection);
     }
   }
 
