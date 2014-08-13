@@ -13,11 +13,11 @@ bn.done=
 
 [function = assert-variable-tilt-values]
 [[if = patch-tracking]]
-  assert.tf.tomogram-thickness-in-z=%{tomogram-thickness-in-z-patch-tracking}
-    assert.tf.x-axis-tilt=%{x-axis-tilt-patch-tracking}
+  assert.tf.tomogram-thickness-in-z=%{tomogram-thickness-in-z}
+  assert.tf.x-axis-tilt=%{x-axis-tilt-patch-tracking}
 [[]]
 [[ifnot = patch-tracking]]
-  if.not.var.simple-align.assert.tf.tomogram-thickness-in-z=%{tomogram-thickness-in-z}
+  if.not.var.simple-align.assert.tf.tomogram-thickness-in-z=%{tomogram-thickness-in-z-patch-tracking}
   if.var.simple-align.assert.tf.tomogram-thickness-in-z=%{z-simple-align}
   if.not.var.simple-align.assert.tf.x-axis-tilt=%{x-axis-tilt}
   if.var.simple-align.assert.tf.x-axis-tilt=%{x-axis-tilt-simple-align}
