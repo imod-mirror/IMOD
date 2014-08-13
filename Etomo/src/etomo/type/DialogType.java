@@ -114,6 +114,10 @@ public final class DialogType {
 
   public static final int TOTAL_SERIAL_SECTIONS = serialSectionsIndex + 1;
 
+  private static final int batchRunTomoIndex = 0;
+
+  public static final int TOTAL_BATCH_RUN_TOMO = batchRunTomoIndex + 1;
+
   // Storable names cannot be changed without handling the resulting backwards
   // compatibility errors.
   private static final String SETUP_RECON_NAME = "SetupRecon";
@@ -130,6 +134,7 @@ public final class DialogType {
   private static final String JOIN_NAME = "Join";
   private static final String PARALLEL_NAME = "Parallel";
   private static final String ANISOTROPIC_DIFFUSION_NAME = "AnisotropicDiffusion";
+  private static final String BATCH_RUN_TOMO_NAME = "BatchRunTomo";
   private static final String PEET_STARTUP_NAME = "PeetStart";
   private static final String PEET_NAME = "Peet";
   private static final String TOOLS_NAME = "Tools";
@@ -212,6 +217,9 @@ public final class DialogType {
   public static final DialogType DIRECTIVE_EDITOR = new DialogType(
       DataFileType.DIRECTIVE_EDITOR, 0);
 
+  public static final DialogType BATCH_RUN_TOMO = new DialogType(
+      DataFileType.BATCH_RUN_TOMO, 0);
+
   private String toString(DataFileType dataFileType, int index) {
     if (dataFileType == DataFileType.RECON) {
       switch (index) {
@@ -251,6 +259,12 @@ public final class DialogType {
         return "Parallel";
       case anisotropicDiffusionIndex:
         return "Anisotropic Diffusion";
+      }
+    }
+    else if (dataFileType == DataFileType.BATCH_RUN_TOMO) {
+      switch (index) {
+      case batchRunTomoIndex:
+        return "Batch Run Tomo";
       }
     }
     else if (dataFileType == DataFileType.PEET) {
@@ -318,6 +332,12 @@ public final class DialogType {
         return "NAD";
       }
     }
+    else if (dataFileType == DataFileType.BATCH_RUN_TOMO) {
+      switch (index) {
+      case batchRunTomoIndex:
+        return "BRT";
+      }
+    }
     else if (dataFileType == DataFileType.PEET) {
       switch (index) {
       case 0:
@@ -383,6 +403,12 @@ public final class DialogType {
         return PARALLEL_NAME;
       case anisotropicDiffusionIndex:
         return ANISOTROPIC_DIFFUSION_NAME;
+      }
+    }
+    else if (dataFileType == DataFileType.BATCH_RUN_TOMO) {
+      switch (index) {
+      case batchRunTomoIndex:
+        return BATCH_RUN_TOMO_NAME;
       }
     }
     else if (dataFileType == DataFileType.PEET) {
@@ -482,6 +508,9 @@ public final class DialogType {
     if (storableName.equals(ANISOTROPIC_DIFFUSION_NAME)) {
       return ANISOTROPIC_DIFFUSION;
     }
+    if (storableName.equals(BATCH_RUN_TOMO_NAME)) {
+      return BATCH_RUN_TOMO;
+    }
     if (storableName.equals(PEET_STARTUP_NAME)) {
       return PEET_STARTUP;
     }
@@ -519,6 +548,9 @@ public final class DialogType {
   public static DialogType getDefault(DataFileType dataFileType) {
     if (dataFileType == DataFileType.PARALLEL) {
       return PARALLEL;
+    }
+    if (dataFileType == DataFileType.BATCH_RUN_TOMO) {
+      return BATCH_RUN_TOMO;
     }
     if (dataFileType == DataFileType.PEET) {
       return PEET;

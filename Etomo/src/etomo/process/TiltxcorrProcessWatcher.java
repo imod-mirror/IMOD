@@ -38,7 +38,8 @@ public final class TiltxcorrProcessWatcher extends LogFileProcessMonitor {
   public TiltxcorrProcessWatcher(final BaseManager manager, final AxisID id,
       FileType comscriptFileType, final boolean runTiltxcorr, final boolean breakContours) {
     super(manager, id);
-    logFileBasename = comscriptFileType.getTypeString(manager);
+    logFileBasename = comscriptFileType.getTypeString(manager.getBaseMetaData()
+        .getAxisType());
     if (runTiltxcorr) {
       title = TILTXCORR_TITLE;
     }

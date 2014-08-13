@@ -88,12 +88,12 @@ final class ReprojectModelPanel implements TiltDisplay, Run3dmodButtonContainer 
   }
 
   private void createPanel() {
-    //Initialize
+    // Initialize
     btnReprojectModel.setContainer(this);
     btnReprojectModel.setDeferred3dmodButton(btn3dmodReprojectModel);
     btnReprojectModel.setSize();
     btn3dmodReprojectModel.setSize();
-    //Root panel
+    // Root panel
     pnlRoot.setBoxLayout(BoxLayout.X_AXIS);
     pnlRoot.add(btnReprojectModel.getComponent());
     pnlRoot.add(btn3dmodReprojectModel.getComponent());
@@ -102,11 +102,11 @@ final class ReprojectModelPanel implements TiltDisplay, Run3dmodButtonContainer 
   Component getComponent() {
     return pnlRoot.getContainer();
   }
-  
+
   public boolean allowTiltComSave() {
     return true;
   }
-  
+
   public void msgTiltComSaved() {
   }
 
@@ -122,21 +122,15 @@ final class ReprojectModelPanel implements TiltDisplay, Run3dmodButtonContainer 
   /**
    * Don't need parallel processing for reprojection of a model.
    */
-  public boolean getParameters(final SplittiltParam param,final boolean doValidation) {
+  public boolean getParameters(final SplittiltParam param, final boolean doValidation) {
     return false;
   }
 
-  public boolean getParameters(TiltParam param,final boolean doValidation) {
+  public boolean getParameters(TiltParam param, final boolean doValidation) {
     return true;
   }
 
-  public void action(final Run3dmodButton button,
-      final Run3dmodMenuOptions run3dmodMenuOptions) {
-    action(button.getActionCommand(), button.getDeferred3dmodButton(),
-        run3dmodMenuOptions);
-  }
-
-  private void action(final String command, Deferred3dmodButton deferred3dmodButton,
+  public void action(final String command, final Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(btnReprojectModel.getActionCommand())) {
       manager.reprojectModelAction(btnReprojectModel, null, deferred3dmodButton,
