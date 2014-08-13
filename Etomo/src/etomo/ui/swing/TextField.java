@@ -48,7 +48,6 @@ final class TextField implements UIComponent, SwingComponent, Field, FocusListen
   private final String locationDescr;
 
   private boolean required = false;
-  private boolean origForegroundSet = false;
   private Color origForeground = null;
   private String checkpointValue = null;
   private String backupValue = null;
@@ -95,6 +94,9 @@ final class TextField implements UIComponent, SwingComponent, Field, FocusListen
 
   void setEnabled(boolean enabled) {
     textField.setEnabled(enabled);
+    if (enabled) {
+      updateFieldHighlight();
+    }
   }
 
   void setEditable(boolean editable) {
@@ -193,6 +195,13 @@ final class TextField implements UIComponent, SwingComponent, Field, FocusListen
     checkpointValue = getText();
   }
 
+  void checkpoint(final TextField from) {
+    if (from == null) {
+      return;
+    }
+    checkpointValue = from.checkpointValue;
+  }
+
   public void setFieldHighlightValue(final String value) {
     if (!useFieldHighlight) {
       useFieldHighlight = true;
@@ -200,6 +209,42 @@ final class TextField implements UIComponent, SwingComponent, Field, FocusListen
     }
     fieldHighlightValue = value;
     updateFieldHighlight();
+  }
+  
+  void setFieldHighlightValue(final TextField from) {
+    if (from == null) {
+      return;
+    }
+    if (from.useFieldHighlight) {
+      setFieldHighlightValue(from.fieldHighlightValue);
+    }
+    else if (useFieldHighlight) {
+      // clear field highlight
+      useFieldHighlight = false;
+      textField.removeFocusListener(this);
+      fieldHighlightValue = null;
+      updateFieldHighlight();
+    }
+  }
+
+  String getFieldHighlightValue() {
+    if (useFieldHighlight) {
+      return fieldHighlightValue;
+    }
+    return null;
+  }
+
+  void clearFieldHighlightValue() {
+    if (useFieldHighlight) {
+      useFieldHighlight = false;
+      fieldHighlightValue = null;
+      textField.removeFocusListener(this);
+      updateFieldHighlight();
+    }
+  }
+
+  boolean isUseFieldHighlight() {
+    return useFieldHighlight;
   }
 
   public void focusGained(final FocusEvent event) {
@@ -218,22 +263,26 @@ final class TextField implements UIComponent, SwingComponent, Field, FocusListen
    * field highlight is not used when the field is disabled.
    */
   void updateFieldHighlight() {
+    if (textField.isEnabled()) {
+      return;
+    }
     if (useFieldHighlight) {
       String text = textField.getText();
       if ((fieldHighlightValue != null && fieldHighlightValue.equals(text))
           || (fieldHighlightValue == null && (text == null || text.equals("")))) {
-        if (!origForegroundSet) {
-          origForegroundSet = true;
+        if (origForeground == null) {
           origForeground = textField.getForeground();
+          if (origForeground == null) {
+            origForeground = Color.BLACK;
+          }
         }
         textField.setForeground(Colors.FIELD_HIGHLIGHT);
       }
-      else if (origForeground != null) {
-        textField.setForeground(origForeground);
-      }
-      else {
-        textField.setForeground(Color.BLACK);
-      }
+      return;
+    }
+    if (origForeground != null) {
+      // field highlight has been turned off or field highlight doesn't match
+      textField.setForeground(origForeground);
     }
   }
 
