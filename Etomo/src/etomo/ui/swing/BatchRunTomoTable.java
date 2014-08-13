@@ -41,7 +41,9 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
   public static final String rcsid = "$Id:$";
 
   private static final String STACK_TITLE = "Stack";
-  private static final int NUM_STACKS_HEADER_ROWS = 3;
+  private static final int MAX_HEADER_ROWS = 3;
+  private static final int NUM_STACKS_HEADER_ROWS = MAX_HEADER_ROWS;
+  private static final int NUM_DATASET_HEADER_ROWS = 1;
   private static final int NUM_RUN_HEADER_ROWS = 2;
 
   private final JPanel pnlRoot = new JPanel();
@@ -59,9 +61,10 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
   private final HeaderCell hcExcludeViewsB = new HeaderCell("from B");
   private final HeaderCell[] hcBoundaryModel = new HeaderCell[NUM_STACKS_HEADER_ROWS];
   private final HeaderCell[] hcTwoSurfaces = new HeaderCell[NUM_STACKS_HEADER_ROWS];
-  private final HeaderCell[] hcEditDataset = new HeaderCell[NUM_STACKS_HEADER_ROWS];
   private final HeaderCell[] hc3dmod = new HeaderCell[NUM_STACKS_HEADER_ROWS];
   private final HeaderCell hc3dmodB = new HeaderCell("B");
+  // dataset tab
+  private final HeaderCell[] hcEditDataset = new HeaderCell[NUM_DATASET_HEADER_ROWS];
   // run tab
   private final HeaderCell[] hcStatus = new HeaderCell[NUM_RUN_HEADER_ROWS];
   private final HeaderCell[] hcRun = new HeaderCell[NUM_RUN_HEADER_ROWS];
@@ -69,30 +72,24 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
   private final MultiLineButton btnAdd = new MultiLineButton("Add Stack(s)");
   private final MultiLineButton btnCopyDown = new MultiLineButton("Copy Down");
   private final MultiLineButton btnDelete = new MultiLineButton("Delete");
-  private final MultiLineButton btnEditDataset = new MultiLineButton(
-      "Set Dataset Specific Values");
-  private final ExpandButton btnStack = ExpandButton.getInstance(this,
-      ExpandButton.Type.MORE);
-
-  private final JPanel pnlButtons = new JPanel();
+  private final JPanel pnlStackButtons = new JPanel();
 
   private final BatchRunTomoManager manager;
   private final Viewport viewport;
-  private final ActionListener editDatasetListener;
+  private final ExpandButton btnStack;
 
   private File currentDirectory = null;
   private BatchRunTomoTab curTab = null;
 
-  private BatchRunTomoTable(final BatchRunTomoManager manager,
-      final ActionListener editDatasetListener) {
+  private BatchRunTomoTable(final BatchRunTomoManager manager, final Expandable expandable) {
     this.manager = manager;
-    this.editDatasetListener = editDatasetListener;
-    viewport = new Viewport(this, 5, null, null, null, "BatchRunTomo");
+    viewport = new Viewport(this, 20, null, null, null, "BatchRunTomo");
+    btnStack = ExpandButton.getInstance(this, expandable, ExpandButton.Type.MORE);
   }
 
   static BatchRunTomoTable getInstance(final BatchRunTomoManager manager,
-      final ActionListener editDatasetListener) {
-    BatchRunTomoTable instance = new BatchRunTomoTable(manager, editDatasetListener);
+      final BatchRunTomoDialog dialog) {
+    BatchRunTomoTable instance = new BatchRunTomoTable(manager, dialog);
     instance.createPanel();
     instance.addListeners();
     return instance;
@@ -104,47 +101,8 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
     btnAdd.setToPreferredSize();
     btnCopyDown.setToPreferredSize();
     btnDelete.setToPreferredSize();
-    btnEditDataset.setToPreferredSize();
     btnStack.setName(STACK_TITLE);
-    // Root
-    pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.Y_AXIS));
-    pnlRoot.add(pnlView);
-    pnlRoot.add(Box.createRigidArea(FixedDim.x0_y5));
-    pnlRoot.add(pnlButtons);
-    // View
-    pnlView.setLayout(new BoxLayout(pnlView, BoxLayout.X_AXIS));
-    pnlView.add(viewport.getPagingPanel());
-    pnlView.add(pnlTable);
-    // Buttons
-    pnlButtons.setLayout(new BoxLayout(pnlButtons, BoxLayout.X_AXIS));
-    pnlButtons.add(Box.createHorizontalGlue());
-    pnlButtons.add(btnAdd.getComponent());
-    pnlButtons.add(Box.createHorizontalGlue());
-    pnlButtons.add(btnCopyDown.getComponent());
-    pnlButtons.add(Box.createHorizontalGlue());
-    pnlButtons.add(btnDelete.getComponent());
-    pnlButtons.add(Box.createHorizontalGlue());
-    pnlButtons.add(btnEditDataset.getComponent());
-    pnlButtons.add(Box.createHorizontalGlue());
-    // Table
-    pnlTable.setLayout(layout);
-    pnlTable.setBorder(LineBorder.createBlackLineBorder());
-    // constraints
-    constraints.fill = GridBagConstraints.BOTH;
-    constraints.anchor = GridBagConstraints.CENTER;
-    constraints.gridheight = 1;
-    constraints.weighty = 1.0;
-    constraints.weightx = 1.0;
-    // align
-    UIUtilities.alignComponentsX(pnlRoot, Component.LEFT_ALIGNMENT);
-    // update
-    viewport.adjustViewport(-1);
-    updateDisplay();
-  }
-
-  private void rebuildTable() {
-    // init
-    // both tabs
+    // all table tabs
     hcNumber[0] = new HeaderCell();
     hcNumber[1] = new HeaderCell();
     hcNumber[2] = new HeaderCell("#");
@@ -167,58 +125,100 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
     hcTwoSurfaces[0] = new HeaderCell("Beads");
     hcTwoSurfaces[1] = new HeaderCell("on Two");
     hcTwoSurfaces[2] = new HeaderCell("Surfaces");
-    hcEditDataset[0] = new HeaderCell("Dataset");
-    hcEditDataset[1] = new HeaderCell("Specific");
-    hcEditDataset[2] = new HeaderCell("Values");
     hc3dmod[0] = new HeaderCell("Open");
     hc3dmod[1] = new HeaderCell("Stack");
     hc3dmod[2] = new HeaderCell("A");
-    // rub tab
+    // dataset tab
+    hcEditDataset[0] = new HeaderCell("Specific Values");
+    // run tab
     hcStatus[0] = new HeaderCell();
     hcStatus[1] = new HeaderCell("Status");
     hcRun[0] = new HeaderCell();
     hcRun[1] = new HeaderCell("Run");
     hcEtomo[0] = new HeaderCell("Open");
     hcEtomo[1] = new HeaderCell("Dataset");
+    // Root
+    pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.Y_AXIS));
+    pnlRoot.add(pnlView);
+    pnlRoot.add(Box.createRigidArea(FixedDim.x0_y5));
+    pnlRoot.add(pnlStackButtons);
+    // View
+    pnlView.setLayout(new BoxLayout(pnlView, BoxLayout.X_AXIS));
+    pnlView.add(viewport.getPagingPanel());
+    pnlView.add(pnlTable);
+    // stack Buttons
+    pnlStackButtons.setLayout(new BoxLayout(pnlStackButtons, BoxLayout.X_AXIS));
+    pnlStackButtons.add(Box.createHorizontalGlue());
+    pnlStackButtons.add(btnAdd.getComponent());
+    pnlStackButtons.add(Box.createHorizontalGlue());
+    pnlStackButtons.add(btnCopyDown.getComponent());
+    pnlStackButtons.add(Box.createHorizontalGlue());
+    pnlStackButtons.add(btnDelete.getComponent());
+    pnlStackButtons.add(Box.createHorizontalGlue());
+    // Table
+    pnlTable.setLayout(layout);
+    pnlTable.setBorder(LineBorder.createBlackLineBorder());
+    // constraints
+    constraints.fill = GridBagConstraints.BOTH;
+    constraints.anchor = GridBagConstraints.CENTER;
+    constraints.gridheight = 1;
+    constraints.weighty = 1.0;
+    // align
+    UIUtilities.alignComponentsX(pnlRoot, Component.LEFT_ALIGNMENT);
+    // update
+    viewport.adjustViewport(-1);
+    updateDisplay();
+  }
+
+  private void rebuildTable() {
     // remove table
     rowList.removeAll();
     pnlTable.removeAll();
     // header
-    int max;
+    constraints.weightx = 0.0;
+    int numRows;
     if (curTab == BatchRunTomoTab.STACKS) {
-      max = NUM_STACKS_HEADER_ROWS;
-      for (int i = 0; i < max; i++) {
-        addStandardHeaders(i, max);
+      numRows = NUM_STACKS_HEADER_ROWS;
+      for (int i = 0; i < numRows; i++) {
+        addStandardHeaders(i, numRows);
         constraints.gridwidth = 1;
         hcDualAxis[i].add(pnlTable, layout, constraints);
         hcMontage[i].add(pnlTable, layout, constraints);
         // exclude views has A and B columns
-        if (i < max - 1) {
+        if (i < numRows - 1) {
           constraints.gridwidth = 2;
         }
         hcExcludeViews[i].add(pnlTable, layout, constraints);
         constraints.gridwidth = 1;
-        if (i == max - 1) {
+        if (i == numRows - 1) {
           hcExcludeViewsB.add(pnlTable, layout, constraints);
         }
         hcBoundaryModel[i].add(pnlTable, layout, constraints);
         hcTwoSurfaces[i].add(pnlTable, layout, constraints);
-        hcEditDataset[i].add(pnlTable, layout, constraints);
-        if (i < max - 1) {
+        if (i < numRows - 1) {
           constraints.gridwidth = GridBagConstraints.REMAINDER;
         }
         hc3dmod[i].add(pnlTable, layout, constraints);
-        if (i == max - 1) {
+        if (i == numRows - 1) {
           constraints.gridwidth = GridBagConstraints.REMAINDER;
           hc3dmodB.add(pnlTable, layout, constraints);
         }
       }
     }
+    else if (curTab == BatchRunTomoTab.DATASET) {
+      numRows = NUM_DATASET_HEADER_ROWS;
+      for (int i = 0; i < numRows; i++) {
+        addStandardHeaders(i, numRows);
+        constraints.gridwidth = GridBagConstraints.REMAINDER;
+        constraints.weightx = 100.0;
+        hcEditDataset[i].add(pnlTable, layout, constraints);
+        constraints.weightx = 0.0;
+      }
+    }
     else if (curTab == BatchRunTomoTab.RUN) {
-      max = NUM_RUN_HEADER_ROWS;
-      for (int i = 0; i < max; i++) {
-        // Use the last two rows of the standard headers
-        addStandardHeaders(i + 1, max + 1);
+      numRows = NUM_RUN_HEADER_ROWS;
+      for (int i = 0; i < numRows; i++) {
+        addStandardHeaders(i, numRows);
         constraints.gridwidth = 1;
         hcStatus[i].add(pnlTable, layout, constraints);
         hcRun[i].add(pnlTable, layout, constraints);
@@ -230,10 +230,16 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
     rowList.removeAll();
     rowList.display(viewport);
     // buttons
-    pnlButtons.setVisible(curTab == BatchRunTomoTab.STACKS);
+    pnlStackButtons.setVisible(curTab == BatchRunTomoTab.STACKS);
   }
 
-  private void addStandardHeaders(final int index, final int max) {
+  private void addStandardHeaders(int index, int numRows) {
+    // Use the bottom rows of the standard headers
+    if (numRows < MAX_HEADER_ROWS) {
+      int shift = MAX_HEADER_ROWS - numRows;
+      index += shift;
+      numRows += shift;
+    }
     // the stacks tab rows are highlightable
     if (curTab == BatchRunTomoTab.STACKS) {
       constraints.gridwidth = 2;
@@ -243,14 +249,16 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
     }
     hcNumber[index].add(pnlTable, layout, constraints);
     // The stack header has a button on the bottom row
-    if (index == max - 1) {
+    if (index == numRows - 1) {
       constraints.gridwidth = 1;
     }
     else {
       constraints.gridwidth = 2;
     }
+    constraints.weightx = 10.0;
     hcStack[index].add(pnlTable, layout, constraints);
-    if (index == max - 1) {
+    constraints.weightx = 0.0;
+    if (index == numRows - 1) {
       btnStack.add(pnlTable, layout, constraints);
     }
   }
@@ -259,7 +267,6 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
     btnAdd.addActionListener(this);
     btnCopyDown.addActionListener(this);
     btnDelete.addActionListener(this);
-    btnEditDataset.addActionListener(editDatasetListener);
   }
 
   Component getComponent() {
@@ -307,17 +314,25 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
     rowList.checkpoint();
   }
 
+  void useDefaultValues() {
+    rowList.useDefaultValues();
+  }
+
+  void setFieldHighlightValues(final DirectiveFileCollection directiveFileCollection) {
+    rowList.setFieldHighlightValues(directiveFileCollection);
+  }
+
   private void updateDisplay() {
     int size = rowList.size();
     boolean enable = size > 0 && rowList.isHighlighted();
     btnDelete.setEnabled(enable);
-    btnEditDataset.setEnabled(enable);
     int index = rowList.getHighlightedIndex();
     btnCopyDown.setEnabled(index != -1 && index < size - 1);
   }
 
   void msgTabChanged(final BatchRunTomoTab tab) {
-    if (tab == BatchRunTomoTab.STACKS || tab == BatchRunTomoTab.RUN) {
+    if (tab == BatchRunTomoTab.STACKS || tab == BatchRunTomoTab.DATASET
+        || tab == BatchRunTomoTab.RUN) {
       if (tab != curTab) {
         curTab = tab;
         rebuildTable();
@@ -367,10 +382,6 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
     else if (actionCommand.equals(btnCopyDown.getActionCommand())) {
       rowList.copyDown();
     }
-  }
-
-  String getEditDatasetActionCommand() {
-    return btnEditDataset.getActionCommand();
   }
 
   String getHighlightedKey() {
@@ -435,6 +446,7 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
           return;
         }
         row.remove();
+        row.delete();
         list.remove(index);
         viewport.adjustViewport(index);
       }
@@ -556,6 +568,18 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
     private void clear() {
       for (int i = 0; i < list.size(); i++) {
         list.get(i).clear();
+      }
+    }
+
+    private void useDefaultValues() {
+      for (int i = 0; i < list.size(); i++) {
+        list.get(i).useDefaultValues();
+      }
+    }
+
+    void setFieldHighlightValues(final DirectiveFileCollection directiveFileCollection) {
+      for (int i = 0; i < list.size(); i++) {
+        list.get(i).setFieldHighlightValues(directiveFileCollection);
       }
     }
 

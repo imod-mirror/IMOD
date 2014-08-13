@@ -4,10 +4,12 @@ import java.awt.Component;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
@@ -19,7 +21,8 @@ import etomo.logic.TrackingMethod;
 import etomo.storage.DirectiveDef;
 import etomo.storage.DirectiveFile;
 import etomo.storage.DirectiveFileCollection;
-import etomo.type.AxisID;
+import etomo.type.DataFileType;
+import etomo.type.DialogType;
 import etomo.type.EtomoNumber;
 import etomo.ui.Field;
 import etomo.ui.FieldType;
@@ -40,10 +43,12 @@ import etomo.ui.TextFieldInterface;
 * 
 * <p> $Log$ </p>
 */
-final class BatchRunTomoDatasetDialog implements ActionListener {
+final class BatchRunTomoDatasetDialog implements ActionListener, Expandable {
   public static final String rcsid = "$Id:$";
 
   private static final String DERIVE_THICKNESS_LABEL = "Thickness from Intergold spacing plus: ";
+
+  private static BatchRunTomoDatasetDialog GLOBAL_INSTANCE = null;
 
   private final JPanel pnlRoot = new JPanel();
   private final CheckBox cbRemoveXrays = new CheckBox("Remove X-rays");
@@ -101,47 +106,55 @@ final class BatchRunTomoDatasetDialog implements ActionListener {
   private final LabeledTextField ltfFallbackThickness = new LabeledTextField(
       FieldType.INTEGER, "with fallback (unbinned pixels): ");
   private final List<Field> fieldList = new ArrayList<Field>();
+  private final MultiLineButton btnOk = new MultiLineButton("OK");
+  private final MultiLineButton btnRevertToGlobal = new MultiLineButton(
+      "Revert to Global");
+  private final JPanel pnlRootBody = new JPanel();
 
   private final FileTextField2 ftfDistort;
   private final FileTextField2 ftfGradient;
   private final FileTextField2 ftfModelFile;
   private final JDialog dialog;
-  private final String key;
-  private final BatchRunTomoDialog datasetDialogMap;
-  private final MultiLineButton btnRevertToGlobal;
+  private final PanelHeader phRootHeader;
+  private final BaseManager manager;
+  private final File datasetFile;
 
-  private BatchRunTomoDatasetDialog(final BaseManager manager, final String key,
-      final BatchRunTomoDialog datasetDialogMap) {
+  private BatchRunTomoDatasetDialog(final BaseManager manager, final File datasetFile,
+      final boolean global) {
+    this.manager = manager;
+    this.datasetFile = datasetFile;
     ftfDistort = FileTextField2.getAltLayoutInstance(manager, "Image distortion file: ");
     ftfGradient = FileTextField2.getAltLayoutInstance(manager, "Mag gradient file: ");
     ftfModelFile = FileTextField2.getAltLayoutInstance(manager,
         "Manual replacement model: ");
-    this.key = key;
-    this.datasetDialogMap = datasetDialogMap;
-    if (key == null) {
+
+    if (global) {
       dialog = null;
-      btnRevertToGlobal = null;
     }
     else {
       dialog = new JDialog();
-      btnRevertToGlobal = new MultiLineButton("Revert to Global");
     }
+    phRootHeader = PanelHeader.getInstance("Global Dataset Values", this,
+        DialogType.BATCH_RUN_TOMO);
   }
 
   static BatchRunTomoDatasetDialog getGlobalInstance(final BaseManager manager) {
     BatchRunTomoDatasetDialog instance = new BatchRunTomoDatasetDialog(manager, null,
-        null);
+        true);
     instance.createPanel();
     instance.addListeners();
+    GLOBAL_INSTANCE = instance;
     return instance;
   }
 
   static BatchRunTomoDatasetDialog getIndividualInstance(final BaseManager manager,
-      final String key, final BatchRunTomoDialog datasetDialogMap) {
-    BatchRunTomoDatasetDialog instance = new BatchRunTomoDatasetDialog(manager, key,
-        datasetDialogMap);
+      final File datasetFile) {
+    BatchRunTomoDatasetDialog instance = new BatchRunTomoDatasetDialog(manager,
+        datasetFile, false);
     instance.createPanel();
+    instance.copyFromGlobal();
     instance.addListeners();
+    instance.setVisible(true);
     return instance;
   }
 
@@ -159,16 +172,15 @@ final class BatchRunTomoDatasetDialog implements ActionListener {
     JPanel pnlDeriveThickness = new JPanel();
     JPanel pnlFallbackThickness = new JPanel();
     JPanel pnlAutoFitRangeAndStep = new JPanel();
-    JPanel pnlRevertToGlobal = null;
-    if (btnRevertToGlobal != null) {
-      pnlRevertToGlobal = new JPanel();
+    JPanel pnlButtons = null;
+    if (dialog != null) {
+      pnlButtons = new JPanel();
     }
     // init
     ftfGradient.setPreferredWidth(272);
     btnModelFile.setToPreferredSize();
-    if (btnRevertToGlobal != null) {
-      btnRevertToGlobal.setToPreferredSize();
-    }
+    btnRevertToGlobal.setToPreferredSize();
+    btnOk.setToPreferredSize();
     // directives
     ftfModelFile.setDirectiveDef(DirectiveDef.MODEL_FILE);
     ltfLocalAreaTargetSize.setDirectiveDef(DirectiveDef.LOCAL_AREA_TARGET_SIZE);
@@ -213,7 +225,16 @@ final class BatchRunTomoDatasetDialog implements ActionListener {
       dialog.add(pnlRoot);
     }
     // title
-    if (key != null) {
+    if (datasetFile != null) {
+      String path = datasetFile.getAbsolutePath();
+      int index = path.lastIndexOf(DataFileType.RECON.extension);
+      String key;
+      if (index != -1) {
+        key = path.substring(0, index);
+      }
+      else {
+        key = path;
+      }
       int titleLen = 53;
       int keyLen = key.length();
       if (keyLen <= titleLen) {
@@ -225,27 +246,34 @@ final class BatchRunTomoDatasetDialog implements ActionListener {
     }
     // root
     pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.Y_AXIS));
-    pnlRoot.setBorder(new EtchedBorder("Dataset Parameters").getBorder());
-    pnlRoot.add(ftfDistort.getRootPanel());
-    pnlRoot.add(ftfGradient.getRootPanel());
-    pnlRoot.add(Box.createRigidArea(FixedDim.x0_y5));
-    pnlRoot.add(cbRemoveXrays);
-    pnlRoot.add(pnlModelFile);
-    pnlRoot.add(Box.createRigidArea(FixedDim.x0_y5));
-    pnlRoot.add(pnlTrackingMethod);
-    pnlRoot.add(Box.createRigidArea(FixedDim.x0_y3));
-    pnlRoot.add(pnlGold);
-    pnlRoot.add(pnlSizeOfPatchesXandY);
-    pnlRoot.add(cbEnableStretching);
-    pnlRoot.add(cbLocalAlignments);
-    pnlRoot.add(Box.createRigidArea(FixedDim.x0_y10));
-    pnlRoot.add(pnlBinByFactor);
-    pnlRoot.add(Box.createRigidArea(FixedDim.x0_y5));
-    pnlRoot.add(pnlCorrectCTF);
-    pnlRoot.add(Box.createRigidArea(FixedDim.x0_y5));
-    pnlRoot.add(pnlReconstruction);
-    if (pnlRevertToGlobal != null) {
-      pnlRoot.add(pnlRevertToGlobal);
+    pnlRoot.setBorder(BorderFactory.createEtchedBorder());
+    if (dialog == null) {
+      pnlRoot.add(phRootHeader.getContainer());
+      pnlRoot.add(Box.createRigidArea(FixedDim.x0_y2));
+    }
+    pnlRoot.add(pnlRootBody);
+    // root body
+    pnlRootBody.setLayout(new BoxLayout(pnlRootBody, BoxLayout.Y_AXIS));
+    pnlRootBody.add(ftfDistort.getRootPanel());
+    pnlRootBody.add(ftfGradient.getRootPanel());
+    pnlRootBody.add(Box.createRigidArea(FixedDim.x0_y5));
+    pnlRootBody.add(cbRemoveXrays);
+    pnlRootBody.add(pnlModelFile);
+    pnlRootBody.add(Box.createRigidArea(FixedDim.x0_y5));
+    pnlRootBody.add(pnlTrackingMethod);
+    pnlRootBody.add(Box.createRigidArea(FixedDim.x0_y3));
+    pnlRootBody.add(pnlGold);
+    pnlRootBody.add(pnlSizeOfPatchesXandY);
+    pnlRootBody.add(cbEnableStretching);
+    pnlRootBody.add(cbLocalAlignments);
+    pnlRootBody.add(Box.createRigidArea(FixedDim.x0_y10));
+    pnlRootBody.add(pnlBinByFactor);
+    pnlRootBody.add(Box.createRigidArea(FixedDim.x0_y5));
+    pnlRootBody.add(pnlCorrectCTF);
+    pnlRootBody.add(Box.createRigidArea(FixedDim.x0_y5));
+    pnlRootBody.add(pnlReconstruction);
+    if (pnlButtons != null) {
+      pnlRootBody.add(pnlButtons);
     }
     // ModelFile
     pnlModelFile.setLayout(new BoxLayout(pnlModelFile, BoxLayout.X_AXIS));
@@ -315,11 +343,13 @@ final class BatchRunTomoDatasetDialog implements ActionListener {
     pnlFallbackThickness.setLayout(new BoxLayout(pnlFallbackThickness, BoxLayout.X_AXIS));
     pnlFallbackThickness.add(Box.createRigidArea(FixedDim.x40_y0));
     pnlFallbackThickness.add(ltfFallbackThickness.getComponent());
-    // RevertToGlobal
-    if (pnlRevertToGlobal != null) {
-      pnlRevertToGlobal.setLayout(new BoxLayout(pnlRevertToGlobal, BoxLayout.X_AXIS));
-      pnlRevertToGlobal.add(Box.createHorizontalGlue());
-      pnlRevertToGlobal.add(btnRevertToGlobal.getComponent());
+    // buttons
+    if (pnlButtons != null) {
+      pnlButtons.setLayout(new BoxLayout(pnlButtons, BoxLayout.X_AXIS));
+      pnlButtons.add(Box.createHorizontalGlue());
+      pnlButtons.add(btnOk.getComponent());
+      pnlButtons.add(Box.createRigidArea(FixedDim.x20_y0));
+      pnlButtons.add(btnRevertToGlobal.getComponent());
     }
     // align
     UIUtilities.alignComponentsX(pnlRoot, Component.LEFT_ALIGNMENT);
@@ -332,8 +362,8 @@ final class BatchRunTomoDatasetDialog implements ActionListener {
     }
   }
 
-  void setVisible() {
-    dialog.setVisible(true);
+  void setVisible(final boolean visible) {
+    dialog.setVisible(visible);
   }
 
   private void addListeners() {
@@ -351,13 +381,23 @@ final class BatchRunTomoDatasetDialog implements ActionListener {
     rtfThickness.addActionListener(this);
     rtfBinnedThickness.addActionListener(this);
     rbDeriveThickness.addActionListener(this);
-    if (btnRevertToGlobal != null) {
-      btnRevertToGlobal.addActionListener(this);
-    }
+    btnOk.addActionListener(this);
   }
 
   Component getComponent() {
     return pnlRoot;
+  }
+
+  public void expand(final ExpandButton button) {
+    if (dialog == null) {
+      // individual instance doesn't need a panel header
+      return;
+    }
+    pnlRootBody.setVisible(button.isExpanded());
+    UIHarness.INSTANCE.pack(manager);
+  }
+
+  public void expand(final GlobalExpandButton button) {
   }
 
   private void updateDisplay() {
@@ -451,15 +491,80 @@ final class BatchRunTomoDatasetDialog implements ActionListener {
     setDefaults();
   }
 
-  void copy(final BatchRunTomoDatasetDialog copyFrom) {
+  private void copyFromGlobal() {
+    if (GLOBAL_INSTANCE == null) {
+      return;
+    }
     Iterator<Field> iterator = fieldList.iterator();
-    Iterator<Field> fromIterator = copyFrom.fieldList.iterator();
+    Iterator<Field> globalIterator = GLOBAL_INSTANCE.fieldList.iterator();
     if (iterator != null) {
       while (iterator.hasNext()) {
-        iterator.next().copy(fromIterator.next());
+        iterator.next().copy(globalIterator.next());
       }
     }
     updateDisplay();
+    // set checkpoint from global
+    ftfDistort.checkpoint(GLOBAL_INSTANCE.ftfDistort);
+    cbRemoveXrays.checkpoint(GLOBAL_INSTANCE.cbRemoveXrays);
+    cbRemoveXrays.checkpoint(GLOBAL_INSTANCE.cbRemoveXrays);
+    ftfModelFile.checkpoint(GLOBAL_INSTANCE.ftfModelFile);
+    rbTrackingMethodSeed.checkpoint(GLOBAL_INSTANCE.rbTrackingMethodSeed);
+    rbTrackingMethodRaptor.checkpoint(GLOBAL_INSTANCE.rbTrackingMethodRaptor);
+    rbTrackingMethodPatchTracking
+        .checkpoint(GLOBAL_INSTANCE.rbTrackingMethodPatchTracking);
+    rbFiducialless.checkpoint(GLOBAL_INSTANCE.rbFiducialless);
+    ltfGold.checkpoint(GLOBAL_INSTANCE.ltfGold);
+    ltfLocalAreaTargetSize.checkpoint(GLOBAL_INSTANCE.ltfLocalAreaTargetSize);
+    ltfTargetNumberOfBeads.checkpoint(GLOBAL_INSTANCE.ltfTargetNumberOfBeads);
+    ltfSizeOfPatchesXandY.checkpoint(GLOBAL_INSTANCE.ltfSizeOfPatchesXandY);
+    lsContourPieces.checkpoint(GLOBAL_INSTANCE.lsContourPieces);
+    lsBinByFactor.checkpoint(GLOBAL_INSTANCE.lsBinByFactor);
+    cbCorrectCTF.checkpoint(GLOBAL_INSTANCE.cbCorrectCTF);
+    ltfDefocus.checkpoint(GLOBAL_INSTANCE.ltfDefocus);
+    rbFitEveryImage.checkpoint(GLOBAL_INSTANCE.rbFitEveryImage);
+    rtfAutoFitRangeAndStep.checkpoint(GLOBAL_INSTANCE.rtfAutoFitRangeAndStep);
+    ltfAutoFitStep.checkpoint(GLOBAL_INSTANCE.ltfAutoFitStep);
+    rbUseSirtFalse.checkpoint(GLOBAL_INSTANCE.rbUseSirtFalse);
+    rbUseSirtTrue.checkpoint(GLOBAL_INSTANCE.rbUseSirtTrue);
+    rbDoBackprojAlso.checkpoint(GLOBAL_INSTANCE.rbDoBackprojAlso);
+    ltfLeaveIterations.checkpoint(GLOBAL_INSTANCE.ltfLeaveIterations);
+    cbScaleToInteger.checkpoint(GLOBAL_INSTANCE.cbScaleToInteger);
+    rtfThickness.checkpoint(GLOBAL_INSTANCE.rtfThickness);
+    rtfBinnedThickness.checkpoint(GLOBAL_INSTANCE.rtfBinnedThickness);
+    rbDeriveThickness.checkpoint(GLOBAL_INSTANCE.rbDeriveThickness);
+    tfExtraThickness.checkpoint(GLOBAL_INSTANCE.tfExtraThickness);
+    ltfFallbackThickness.checkpoint(GLOBAL_INSTANCE.ltfFallbackThickness);
+    // set field highlight from global
+    ftfDistort.setFieldHighlightValue(GLOBAL_INSTANCE.ftfDistort);
+    cbRemoveXrays.setFieldHighlightValue(GLOBAL_INSTANCE.cbRemoveXrays);
+    cbRemoveXrays.setFieldHighlightValue(GLOBAL_INSTANCE.cbRemoveXrays);
+    ftfModelFile.setFieldHighlightValue(GLOBAL_INSTANCE.ftfModelFile);
+    rbTrackingMethodSeed.setFieldHighlightValue(GLOBAL_INSTANCE.rbTrackingMethodSeed);
+    rbTrackingMethodRaptor.setFieldHighlightValue(GLOBAL_INSTANCE.rbTrackingMethodRaptor);
+    rbTrackingMethodPatchTracking
+        .setFieldHighlightValue(GLOBAL_INSTANCE.rbTrackingMethodPatchTracking);
+    rbFiducialless.setFieldHighlightValue(GLOBAL_INSTANCE.rbFiducialless);
+    ltfGold.setFieldHighlightValue(GLOBAL_INSTANCE.ltfGold);
+    ltfLocalAreaTargetSize.setFieldHighlightValue(GLOBAL_INSTANCE.ltfLocalAreaTargetSize);
+    ltfTargetNumberOfBeads.setFieldHighlightValue(GLOBAL_INSTANCE.ltfTargetNumberOfBeads);
+    ltfSizeOfPatchesXandY.setFieldHighlightValue(GLOBAL_INSTANCE.ltfSizeOfPatchesXandY);
+    lsContourPieces.setFieldHighlightValue(GLOBAL_INSTANCE.lsContourPieces);
+    lsBinByFactor.setFieldHighlightValue(GLOBAL_INSTANCE.lsBinByFactor);
+    cbCorrectCTF.setFieldHighlightValue(GLOBAL_INSTANCE.cbCorrectCTF);
+    ltfDefocus.setFieldHighlightValue(GLOBAL_INSTANCE.ltfDefocus);
+    rbFitEveryImage.setFieldHighlightValue(GLOBAL_INSTANCE.rbFitEveryImage);
+    rtfAutoFitRangeAndStep.setFieldHighlightValue(GLOBAL_INSTANCE.rtfAutoFitRangeAndStep);
+    ltfAutoFitStep.setFieldHighlightValue(GLOBAL_INSTANCE.ltfAutoFitStep);
+    rbUseSirtFalse.setFieldHighlightValue(GLOBAL_INSTANCE.rbUseSirtFalse);
+    rbUseSirtTrue.setFieldHighlightValue(GLOBAL_INSTANCE.rbUseSirtTrue);
+    rbDoBackprojAlso.setFieldHighlightValue(GLOBAL_INSTANCE.rbDoBackprojAlso);
+    ltfLeaveIterations.setFieldHighlightValue(GLOBAL_INSTANCE.ltfLeaveIterations);
+    cbScaleToInteger.setFieldHighlightValue(GLOBAL_INSTANCE.cbScaleToInteger);
+    rtfThickness.setFieldHighlightValue(GLOBAL_INSTANCE.rtfThickness);
+    rtfBinnedThickness.setFieldHighlightValue(GLOBAL_INSTANCE.rtfBinnedThickness);
+    rbDeriveThickness.setFieldHighlightValue(GLOBAL_INSTANCE.rbDeriveThickness);
+    tfExtraThickness.setFieldHighlightValue(GLOBAL_INSTANCE.tfExtraThickness);
+    ltfFallbackThickness.setFieldHighlightValue(GLOBAL_INSTANCE.ltfFallbackThickness);
   }
 
   private void setDefaults() {
@@ -688,23 +793,24 @@ final class BatchRunTomoDatasetDialog implements ActionListener {
     }
   }
 
+  String getRevertToGlobalActionCommand() {
+    if (btnRevertToGlobal != null) {
+      return btnRevertToGlobal.getActionCommand();
+    }
+    return null;
+  }
+
+  void addRevertToGlobalActionListener(final ActionListener listener) {
+    btnRevertToGlobal.addActionListener(listener);
+  }
+
   public void actionPerformed(final ActionEvent event) {
     String actionCommand = event.getActionCommand();
     if (actionCommand == null) {
       return;
     }
-    if (btnRevertToGlobal != null
-        && actionCommand.equals(btnRevertToGlobal.getActionCommand())) {
-      if (datasetDialogMap != null) {
-        if (UIHarness.INSTANCE
-            .openYesNoDialog(
-                null,
-                "Data in this window will be lost.  Revert to global dataset data for this stack?",
-                AxisID.ONLY)) {
-          datasetDialogMap.removeDatasetDialog(key);
-          dialog.setVisible(false);
-        }
-      }
+    if (btnOk != null && actionCommand.equals(btnOk.getActionCommand())) {
+      dialog.setVisible(false);
     }
     else if (actionCommand.equals(cbRemoveXrays.getActionCommand())
         || actionCommand.equals(rbTrackingMethodSeed.getActionCommand())

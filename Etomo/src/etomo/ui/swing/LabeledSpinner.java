@@ -171,9 +171,7 @@ final class LabeledSpinner implements Field, TextFieldInterface, ChangeListener,
   private boolean fieldIsBackedUp = false;
   private boolean useFieldHighlight = false;
   private Number fieldHighlightValue = null;
-  private boolean origLabelForegroundSet = false;
   private Color origLabelForeground = null;
-  private boolean origTextForegroundSet = false;
   private Color origTextForeground = null;
 
   /**
@@ -255,6 +253,13 @@ final class LabeledSpinner implements Field, TextFieldInterface, ChangeListener,
     checkpointValue = getValue();
   }
 
+  void checkpoint(final LabeledSpinner from) {
+    if (from == null) {
+      return;
+    }
+    checkpointValue = from.checkpointValue;
+  }
+
   public void backup() {
     backupValue = getValue();
     fieldIsBackedUp = true;
@@ -307,6 +312,22 @@ final class LabeledSpinner implements Field, TextFieldInterface, ChangeListener,
     updateFieldHighlight();
   }
 
+  void setFieldHighlightValue(final LabeledSpinner from) {
+    if (from == null) {
+      return;
+    }
+    if (from.useFieldHighlight) {
+      setFieldHighlightValue(from.fieldHighlightValue.toString());
+    }
+    else if (useFieldHighlight) {
+      useFieldHighlight = false;
+      spinner.removeChangeListener(this);
+      spinner.removeFocusListener(this);
+      fieldHighlightValue = null;
+      updateFieldHighlight();
+    }
+  }
+
   public void stateChanged(ChangeEvent e) {
     updateFieldHighlight();
   }
@@ -331,31 +352,28 @@ final class LabeledSpinner implements Field, TextFieldInterface, ChangeListener,
       Number number = getValue();
       if ((fieldHighlightValue != null && fieldHighlightValue.equals(number))
           || (fieldHighlightValue == null && number == null)) {
-        if (!origLabelForegroundSet) {
-          origLabelForegroundSet = true;
-          origLabelForeground = label.getForeground();
-        }
-        if (!origTextForegroundSet) {
-          origTextForegroundSet = true;
+        if (origTextForeground == null) {
           origTextForeground = spinner.getForeground();
+          if (origTextForeground == null) {
+            origTextForeground = Color.BLACK;
+          }
+        }
+        if (origLabelForeground == null) {
+          origLabelForeground = label.getForeground();
+          if (origLabelForeground == null) {
+            origLabelForeground = Color.BLACK;
+          }
         }
         label.setForeground(Colors.FIELD_HIGHLIGHT);
         spinner.setForeground(Colors.FIELD_HIGHLIGHT);
       }
-      else {
-        if (origLabelForegroundSet) {
-          label.setForeground(origLabelForeground);
-        }
-        else {
-          label.setForeground(Color.BLACK);
-        }
-        if (origTextForegroundSet) {
-          spinner.setForeground(origTextForeground);
-        }
-        else {
-          spinner.setForeground(Color.BLACK);
-        }
-      }
+      return;
+    }
+    if (origTextForeground != null) {
+      spinner.setForeground(origTextForeground);
+    }
+    if (origLabelForeground != null) {
+      label.setForeground(origLabelForeground);
     }
   }
 
@@ -435,6 +453,9 @@ final class LabeledSpinner implements Field, TextFieldInterface, ChangeListener,
   void setEnabled(final boolean isEnabled) {
     spinner.setEnabled(isEnabled);
     label.setEnabled(isEnabled);
+    if (isEnabled) {
+      updateFieldHighlight();
+    }
   }
 
   boolean isEnabled() {

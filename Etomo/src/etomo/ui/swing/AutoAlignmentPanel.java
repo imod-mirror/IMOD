@@ -458,12 +458,8 @@ public final class AutoAlignmentPanel implements Run3dmodButtonContainer {
     btnRevertToEmpty.setEnabled(processEnded);
   }
 
-  public void action(final Run3dmodButton button,
+  public void action(final String command, final Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
-    action(button.getActionCommand(), run3dmodMenuOptions);
-  }
-
-  private void action(final String command, final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(btnInitialAutoAlignment.getActionCommand())) {
       msgProcessChange(false);
       controller.xfalignInitial(null, joinInterface);
@@ -606,7 +602,7 @@ public final class AutoAlignmentPanel implements Run3dmodButtonContainer {
     }
 
     public void actionPerformed(final ActionEvent event) {
-      panel.action(event.getActionCommand(), null);
+      panel.action(event.getActionCommand(), null, null);
     }
   }
 }

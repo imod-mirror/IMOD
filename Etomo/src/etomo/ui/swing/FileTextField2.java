@@ -68,7 +68,6 @@ final class FileTextField2 implements FileTextFieldInterface, Field, ActionListe
   private boolean absolutePath = false;
   private boolean useTextAsOriginDir = false;
   private boolean turnOffFileHiding = false;
-  private boolean useFieldHighlight = false;
 
   /**
    * If origin is valid, it overrides originEtomoRunDir.
@@ -333,6 +332,13 @@ final class FileTextField2 implements FileTextFieldInterface, Field, ActionListe
     field.checkpoint();
   }
 
+  public void checkpoint(final FileTextField2 from) {
+    if (from == null) {
+      return;
+    }
+    field.checkpoint(from.field);
+  }
+
   public void backup() {
     field.backup();
   }
@@ -354,10 +360,23 @@ final class FileTextField2 implements FileTextFieldInterface, Field, ActionListe
   }
 
   public void setFieldHighlightValue(final String value) {
-    field.setFieldHighlightValue(value);
-    if (!useFieldHighlight) {
-      useFieldHighlight = true;
+    // This class connects the button action to field highlight.
+    if (!field.isUseFieldHighlight()) {
       button.addActionListener(this);
+    }
+    field.setFieldHighlightValue(value);
+  }
+
+  void setFieldHighlightValue(final FileTextField2 from) {
+    if (from == null) {
+      return;
+    }
+    if (from.field.isUseFieldHighlight()) {
+      setFieldHighlightValue(from.field.getFieldHighlightValue());
+    }
+    else if (field.isUseFieldHighlight()) {
+      button.removeActionListener(this);
+      field.clearFieldHighlightValue();
     }
   }
 
@@ -452,13 +471,10 @@ final class FileTextField2 implements FileTextFieldInterface, Field, ActionListe
     field.setText("");
   }
 
-  public void copy(final Field copyFrom) {
-    if (copyFrom == null) {
-      return;
-    }
-    setText(copyFrom.getText());
+  public void copy(final Field from) {
+    field.copy(from);
   }
-  
+
   public boolean isSelected() {
     return false;
   }

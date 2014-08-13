@@ -1,5 +1,7 @@
 package etomo.ui.swing;
 
+import java.awt.event.MouseEvent;
+
 import etomo.type.DialogType;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.ui.Run3dmodMenuTarget;
@@ -20,7 +22,7 @@ import etomo.ui.Run3dmodMenuTarget;
  * @version $Revision$
  */
 final class Run3dmodButton extends MultiLineButton implements Deferred3dmodButton,
-    Run3dmodMenuTarget {
+    Run3dmodMenuTarget, ContextMenu {
   public static final String rcsid = "$Id$";
 
   // When the button is not a 3dmod button, then it may run 3dmod deferred; first
@@ -52,11 +54,13 @@ final class Run3dmodButton extends MultiLineButton implements Deferred3dmodButto
       final Run3dmodButtonContainer container) {
     Run3dmodButton instance = new Run3dmodButton(label, container, false, null, false,
         null);
+    instance.addListeners();
     return instance;
   }
 
   static Run3dmodButton get3dmodInstance(final String label) {
     Run3dmodButton instance = new Run3dmodButton(label, null, false, null, false, null);
+    instance.addListeners();
     return instance;
   }
 
@@ -64,6 +68,7 @@ final class Run3dmodButton extends MultiLineButton implements Deferred3dmodButto
       final DialogType dialogType) {
     Run3dmodButton instance = new Run3dmodButton(label, null, true, dialogType, false,
         null);
+    instance.addListeners();
     return instance;
   }
 
@@ -71,11 +76,13 @@ final class Run3dmodButton extends MultiLineButton implements Deferred3dmodButto
       final Run3dmodButtonContainer container) {
     Run3dmodButton instance = new Run3dmodButton(label, container, false, null, true,
         null);
+    instance.addListeners();
     return instance;
   }
 
   static Run3dmodButton getDeferred3dmodInstance(final String label) {
     Run3dmodButton instance = new Run3dmodButton(label, null, false, null, true, null);
+    instance.addListeners();
     return instance;
   }
 
@@ -83,11 +90,13 @@ final class Run3dmodButton extends MultiLineButton implements Deferred3dmodButto
       final Run3dmodButtonContainer container, String description) {
     Run3dmodButton instance = new Run3dmodButton(label, container, false, null, true,
         description);
+    instance.addListeners();
     return instance;
   }
 
   static Run3dmodButton getDeferredToggle3dmodInstance(final String label) {
     Run3dmodButton instance = new Run3dmodButton(label, null, true, null, true, null);
+    instance.addListeners();
     return instance;
   }
 
@@ -95,7 +104,12 @@ final class Run3dmodButton extends MultiLineButton implements Deferred3dmodButto
       final DialogType dialogType) {
     Run3dmodButton instance = new Run3dmodButton(label, null, true, dialogType, true,
         null);
+    instance.addListeners();
     return instance;
+  }
+
+  private void addListeners() {
+    addMouseListener(new GenericMouseAdapter(this));
   }
 
   void setDeferred3dmodButton(Deferred3dmodButton input) {
@@ -122,6 +136,14 @@ final class Run3dmodButton extends MultiLineButton implements Deferred3dmodButto
     this.container = container;
   }
 
+  void setActionCommand(final String actionCommand) {
+    super.setActionCommand(actionCommand);
+  }
+
+ public void popUpContextMenu(MouseEvent mouseEvent) {
+    run3dmodMenu.popUpContextMenu(mouseEvent);
+  }
+
   public void menuAction(Run3dmodMenuOptions run3dmodMenuOptions) {
     action(run3dmodMenuOptions);
     if (isToggleButton()) {
@@ -131,7 +153,7 @@ final class Run3dmodButton extends MultiLineButton implements Deferred3dmodButto
 
   public void action(Run3dmodMenuOptions menuOptions) {
     if (container != null) {
-      container.action(this, menuOptions);
+      container.action(getActionCommand(), getDeferred3dmodButton(), menuOptions);
     }
   }
 }

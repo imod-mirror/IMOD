@@ -27,7 +27,7 @@ import etomo.ui.Run3dmodMenuTarget;
 * 
 * <p> $Log$ </p>
 */
-final class Run3dmodMenu implements ActionListener, ContextMenu {
+final class Run3dmodMenu implements ActionListener {
   public static final String rcsid = "$Id:$";
 
   private static final String DEFAULT_DESCR = "3dmod";
@@ -80,7 +80,7 @@ final class Run3dmodMenu implements ActionListener, ContextMenu {
     contextMenu.add(binBy2);
   }
 
-  public void popUpContextMenu(MouseEvent mouseEvent) {
+  void popUpContextMenu(MouseEvent mouseEvent) {
     if (!target.isEnabled()) {
       return;
     }

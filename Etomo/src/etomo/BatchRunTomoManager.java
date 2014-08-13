@@ -99,14 +99,25 @@ public final class BatchRunTomoManager extends BaseManager {
   }
 
   /**
-   * Open imod
-   * @return the vector index of the 3dmod instance
+   * Open imod with an optional model file.
+   * @param stack - the file to open
+   * @param axisID
+   * @param imodIndex
+   * @param boundaryModel
+   * @param datasetName
+   * @param dualAxis
+   * @param menuOptions
+   * @return
    */
-  public int imod(final String datasetName, final AxisID axisID, final boolean dualAxis,
-      final File stack, int imodIndex, final boolean boundaryModel,
-      Run3dmodMenuOptions menuOptions) {
+  public int imod(final File stack, final AxisID axisID, int imodIndex,
+      final boolean boundaryModel, final boolean dualAxis, Run3dmodMenuOptions menuOptions) {
+    if (!stack.exists()) {
+      uiHarness.openMessageDialog(this,stack.getAbsolutePath()+" does not exist.","Run 3dmod failed");
+      return imodIndex;
+    }
     String key = ImodManager.BATCH_RUN_TOMO_STACK_KEY;
     AxisType axisType = dualAxis ? AxisType.DUAL_AXIS : AxisType.SINGLE_AXIS;
+    String datasetName = DatasetTool.getDatasetName(stack.getName(), dualAxis);
     try {
       if (boundaryModel) {
         imodIndex = imodManager.open(key, stack, axisID, imodIndex,
@@ -134,15 +145,46 @@ public final class BatchRunTomoManager extends BaseManager {
   }
 
   /**
+   * Open imod
+   * @return the vector index of the 3dmod instance
+   */
+  public int imod(final File stack, final AxisID axisID, int imodIndex,
+      Run3dmodMenuOptions menuOptions) {
+    if (!stack.exists()) {
+      uiHarness.openMessageDialog(this,stack.getAbsolutePath()+" does not exist.","Run 3dmod failed");
+      return imodIndex;
+    }
+    String key = ImodManager.BATCH_RUN_TOMO_STACK_KEY;
+    try {
+      imodIndex = imodManager.open(key, stack, axisID, imodIndex, menuOptions);
+    }
+    catch (AxisTypeException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(this, except.getMessage(), "AxisType problem", axisID);
+    }
+    catch (SystemProcessException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(this, except.getMessage(), "Problem opening " + key,
+          axisID);
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception", axisID);
+    }
+    return imodIndex;
+  }
+
+  /**
    * Open imod model in a running imod instance
    */
-  public void imodModel(final String datasetName, final AxisID axisID,
-      final boolean dualAxis, final File stack, final int imodIndex) {
+  public void imodModel(final AxisID axisID, final int imodIndex, final String stackName,
+      final boolean dualAxis) {
     if (imodIndex == -1) {
       return;
     }
     String key = ImodManager.BATCH_RUN_TOMO_STACK_KEY;
     AxisType axisType = dualAxis ? AxisType.DUAL_AXIS : AxisType.SINGLE_AXIS;
+    String datasetName = DatasetTool.getDatasetName(stackName, dualAxis);
     try {
       imodManager.openModel(key, axisID, imodIndex,
           FileType.BATCH_RUN_TOMO_BOUNDARY_MODEL.getFileName(datasetName, axisType,
@@ -161,20 +203,6 @@ public final class BatchRunTomoManager extends BaseManager {
       e.printStackTrace();
       uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception", axisID);
     }
-  }
-
-  /**
-   * Build a reconstruction dataset file from a stack file
-   * @param stackFile
-   * @param dualAxis
-   * @return
-   */
-  public File getReconDatasetFile(final File stackFile, final boolean dualAxis) {
-    if (dialog.isDeliverToDirectory()) {
-      return DatasetTool.getDatasetFile(dialog.getDeliverToDirectory(),
-          stackFile.getName(), dualAxis);
-    }
-    return DatasetTool.getDatasetFile(stackFile, dualAxis);
   }
 
   void createMainPanel() {

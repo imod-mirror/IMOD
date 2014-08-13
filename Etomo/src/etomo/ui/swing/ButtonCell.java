@@ -1,10 +1,13 @@
 package etomo.ui.swing;
 
 import java.awt.Component;
+import java.awt.event.ActionListener;
 
+import javax.swing.AbstractButton;
 import javax.swing.BorderFactory;
 import javax.swing.Icon;
 import javax.swing.JButton;
+import javax.swing.JToggleButton;
 import javax.swing.border.BevelBorder;
 
 import etomo.type.UITestFieldType;
@@ -27,11 +30,30 @@ import etomo.type.UITestFieldType;
 final class ButtonCell extends InputCell {
   public static final String rcsid = "$Id:$";
 
-  private final JButton button;
+  private final AbstractButton button;
 
-  ButtonCell(final Icon icon) {
-    button = new JButton(icon);
+  private ButtonCell(final Icon icon, final String title, final boolean toggle) {
+    if (!toggle) {
+      button = new JButton();
+    }
+    else {
+      button = new JToggleButton();
+    }
+    if (icon != null) {
+      button.setIcon(icon);
+    }
+    else if (title != null) {
+      button.setText(title);
+    }
     button.setBorder(BorderFactory.createBevelBorder(BevelBorder.RAISED));
+  }
+
+  static ButtonCell getInstance(final Icon icon) {
+    return new ButtonCell(icon, null, false);
+  }
+
+  static ButtonCell getToggleInstance(final String title) {
+    return new ButtonCell(null, title, true);
   }
 
   Component getComponent() {
@@ -44,6 +66,22 @@ final class ButtonCell extends InputCell {
 
   int getWidth() {
     return button.getWidth();
+  }
+
+  void setSelected(final boolean selected) {
+    button.setSelected(selected);
+  }
+
+  void setActionCommand(final String input) {
+    button.setActionCommand(input);
+  }
+
+  String getActionCommand() {
+    return button.getActionCommand();
+  }
+
+  void addActionListener(final ActionListener listener) {
+    button.addActionListener(listener);
   }
 
   public void setEnabled(boolean enable) {
