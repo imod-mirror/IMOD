@@ -19,8 +19,7 @@ public final class BatchRunTomoTab {
   public static final String rcsid = "$Id:$";
   public static final BatchRunTomoTab BATCH = new BatchRunTomoTab(0, "Batch Parameters");
   public static final BatchRunTomoTab STACKS = new BatchRunTomoTab(1, "Image Stacks");
-  public static final BatchRunTomoTab DATASET = new BatchRunTomoTab(2,
-      "Global Dataset Values");
+  public static final BatchRunTomoTab DATASET = new BatchRunTomoTab(2, "Dataset Values");
   public static final BatchRunTomoTab RUN = new BatchRunTomoTab(3, "Run");
 
   public static final int SIZE = RUN.index + 1;
