@@ -1,7 +1,8 @@
 package etomo.ui;
 
 /**
-* <p>Description: </p>
+* <p>Description: An interface to allow simple commands to be run against a group of 
+* fields.</p>
 * 
 * <p>Copyright: Copyright 2014</p>
 *
@@ -30,9 +31,12 @@ public interface Field {
 
   public void clear();
 
-  public void copy(Field copyFrom);
-
+  /**
+   * @return true if this a binary control (toggle button, radio button, checkbox) and it is selected
+   */
   public boolean isSelected();
 
   public String getText();
+  
+  public void copy(Field from);
 }
