@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/13/14: In eTomo - PEET, added a radio button for setting yaxisType to 3.
+(Bug# 1787)
+
 8/7/14: Changes for 3dmod image processing: Kept track of sequence of
 operations so that they can be reapplied easily; added buttons to remove last
 one from list, redo all operations, and list the command-line operations in the
