@@ -18,6 +18,7 @@ import javax.swing.border.LineBorder;
 import etomo.BatchRunTomoManager;
 import etomo.storage.DirectiveFileCollection;
 import etomo.storage.StackFileFilter;
+import etomo.type.AxisID;
 import etomo.type.UserConfiguration;
 import etomo.ui.BatchRunTomoTab;
 
@@ -374,10 +375,11 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
       }
     }
     else if (actionCommand.equals(btnDelete.getActionCommand())) {
-      rowList.delete();
-      rebuildTable();
-      updateDisplay();
-      UIHarness.INSTANCE.pack(manager);
+      if (rowList.delete()) {
+        rebuildTable();
+        updateDisplay();
+        UIHarness.INSTANCE.pack(manager);
+      }
     }
     else if (actionCommand.equals(btnCopyDown.getActionCommand())) {
       rowList.copyDown();
@@ -438,27 +440,36 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
       updateDisplay();
     }
 
-    private void delete() {
+    /**
+     * @return true if a row was deleted
+     */
+    private boolean delete() {
       int index = getHighlightedIndex();
       if (index != -1) {
         BatchRunTomoRow row = list.get(index);
         if (row == null) {
-          return;
+          return false;
         }
-        row.remove();
-        row.delete();
-        list.remove(index);
-        viewport.adjustViewport(index);
+        if (UIHarness.INSTANCE.openYesNoDialog(manager, "Delete the highlighted row?",
+            AxisID.ONLY)) {
+          row.remove();
+          row.delete();
+          list.remove(index);
+          viewport.adjustViewport(index);
+        }
+        for (int i = index; i < list.size(); i++) {
+          list.get(i).setNumber(i + 1);
+        }
+        // Highlight the row after the deleted row, or the previous one if at the end of
+        // the
+        // table.
+        if (index == list.size()) {
+          index--;
+        }
+        highlight(index);
+        return true;
       }
-      for (int i = index; i < list.size(); i++) {
-        list.get(i).setNumber(i + 1);
-      }
-      // Highlight the row after the deleted row, or the previous one if at the end of the
-      // table.
-      if (index == list.size()) {
-        index--;
-      }
-      highlight(index);
+      return false;
     }
 
     private void highlight(final int index) {
