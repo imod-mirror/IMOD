@@ -389,7 +389,7 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable {
   }
 
   public void expand(final ExpandButton button) {
-    if (dialog == null) {
+    if (dialog != null) {
       // individual instance doesn't need a panel header
       return;
     }
