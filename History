@@ -1,5 +1,6 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/15/14: IMOD_4-7-8
 8/15/14: Fixed bug that caused crash in Nda (In 4.7).
 
 8/5/14: Allowed File-Extract in 3dmod to be run on non-MRC files (In 4.7).
