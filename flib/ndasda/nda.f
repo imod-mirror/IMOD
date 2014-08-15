@@ -851,7 +851,7 @@ c
 c       
 c       general setup to do series of control runs and gather statistics
 c       
-319   jrgfadd=0
+319   jgrfadd=0
       if(nregion.gt.1)jgrfadd=ngraph
       write(*,'(1x,a,$)')'0 to specify integral for each graph '//
      &    'separately, 1 to use same bins for all: '
