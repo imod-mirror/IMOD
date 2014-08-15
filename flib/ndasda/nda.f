@@ -19,6 +19,8 @@ c
       end
 
       subroutine realgraphicsmain()
+      implicit none
+      integer limbins, limgraphs, limpnts, limrand, limregion, limtyp, limvert, itypall
       parameter (limgraphs=50,limbins=1001,limpnts=50000,
      &    limvert=5000,limregion=200,itypall=999)
       parameter (limtyp=50,limrand=1000)
@@ -57,6 +59,8 @@ c
      &    suminteg(limrand),sumsqinteg(limrand)
       integer*4 nbingrf(limgraphs),ifadgrf(limgraphs)
       real*4 delrgrf(limgraphs),rmingrf(limgraphs),rmaxgrf(limgraphs)
+      integer*4 nrow,ncol,irow,icol,ifbycol,nxtick, nytick
+      real*4 xgutter,ygutter,ymaxfix
       common /grfarr/nrow,ncol,irow,icol,ifbycol,nxtick, nytick,
      &    xgutter,ygutter,ymaxfix
 c       
@@ -68,6 +72,23 @@ c
       integer*4 in5
       common /nmsinput/ in5
 c       
+      real*4 area, areasum, avgden, avgint, base, baseval, boundsep, c1, c2, c3, centroid
+      real*4 countsum, delnear, delr, delsave, dens, density, dytmp, err, fracomit
+      real*4 padbound, padboundin, pctabove, power, randinteg, range, rmax
+      real*4 rmin, sdden, sdint, semden, sum, sumbin, sumsqbin, to, trueavg, x, xmax
+      real*4 xmin, xyscal, yallmax, ylotmp, ymax, ymin, zz
+      
+      integer*4 i, ib, ib1, ib2, ibavnd, ibavst, ibin, ibinnd, ibinst, ibtynd, ibtyst
+      integer*4 icont, icontbound, ierr, ifallsame, ifangdiff, ifanyplot, ifconvert
+      integer*4 ifconvex, ifdomeansd, ifdorand, iffil, ifnewconv, ifpag, ifraw, ifreally
+      integer*4 ifsample, ifscale, ifsclregion, ifshuffle, ifspec, ifusesave, ifxy, ii
+      integer*4 ilin, iobjbound, iobjboundin, iopt, iout, iplot, ir, ireg, iregst, ireturn
+      integer*4 itcr, ity, iun, iv, iwin, iwn, jgrbas, jgrf, jgrfadd, jj, jmean
+      integer*4 jsd, lastangdiff
+      integer*4 linnd, linst, maxgraph, maxtmp, nOptNeedModel, nbavg, nbins
+      integer*4 nbinsave, nchange, ndisp, ndocontrol, nextragrf, ngraph, nintot, npnts
+      integer*4 nregion, nrestrict, ntotcontrol, ntypbound, ntypes, ntypshft, nvert
+      
       in5 = 5
       ifanyplot=0
       nextragrf=0
