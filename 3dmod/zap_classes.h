@@ -58,7 +58,7 @@ class ZapWindow : public QMainWindow
  public:
   ZapWindow(ZapFuncs *zap, QString timeLabel, bool panels, bool rgba, 
             bool doubleBuffer, bool enableDepth, QWidget * parent = 0,
-            const char * name = 0, Qt::WFlags f = Qt::Window) ;
+            const char * name = 0, Qt::WindowFlags f = Qt::Window) ;
   ~ZapWindow();
   void setToggleState(int index, int state);
   void setZoomText(float zoom);
