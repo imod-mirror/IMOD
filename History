@@ -1,5 +1,6 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/15/14: IMOD_4-7-8
 8/15/14: Fixed bug that caused crash in Nda (In 4.7).
 
 8/7/14: Changes for 3dmod image processing: Kept track of sequence of
