@@ -7,7 +7,10 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -16,6 +19,7 @@ import javax.swing.JPanel;
 import javax.swing.border.LineBorder;
 
 import etomo.BatchRunTomoManager;
+import etomo.logic.DatasetTool;
 import etomo.storage.DirectiveFileCollection;
 import etomo.storage.StackFileFilter;
 import etomo.type.AxisID;
@@ -371,7 +375,12 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
         stackList = chooser.getSelectedFiles();
       }
       if (stackList != null) {
-        rowList.add(stackList);
+        // Remove matching B stacks and set dual to true for the A stack
+        List<DatasetTool.StackInfo> filteredStackList = DatasetTool
+            .removeMatchingBStacks(stackList);
+        if (!rowList.add(filteredStackList)) {
+          return;
+        }
       }
     }
     else if (actionCommand.equals(btnDelete.getActionCommand())) {
@@ -406,6 +415,7 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
 
   private final class RowList {
     private final List<BatchRunTomoRow> list = new ArrayList<BatchRunTomoRow>();
+    private final Set<String> absPathSet = new HashSet<String>();
 
     private final BatchRunTomoTable table;
 
@@ -415,29 +425,56 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
       this.table = table;
     }
 
-    private void add(final File[] stackList) {
-      if (stackList == null) {
-        return;
+    private boolean add(final List<DatasetTool.StackInfo> stackInfoList) {
+      if (stackInfoList == null) {
+        return false;
       }
       int firstIndex = list.size();
-      for (int i = 0; i < stackList.length; i++) {
-        int index = list.size();
-        BatchRunTomoRow prevRow = null;
-        if (index > 0) {
-          prevRow = list.get(index - 1);
+      Iterator<DatasetTool.StackInfo> iterator = stackInfoList.iterator();
+      boolean overridePrevRow = false;
+      boolean prevDualAxisSet = false;
+      boolean prevDualAxis = false;
+      while (iterator.hasNext()) {
+        DatasetTool.StackInfo stackInfo = iterator.next();
+        Iterator<File> stackIterator = stackInfo.iterator();
+        overridePrevRow = stackInfo.isDualAxis();
+        while (stackIterator.hasNext()) {
+          File stack = stackIterator.next();
+          String absPath = stack.getAbsolutePath();
+          if (absPathSet.contains(absPath)) {
+            UIHarness.INSTANCE.openMessageDialog(manager,
+                "The stack table already contains " + stack + ".", "Unable to Add File");
+            return false;
+          }
+          absPathSet.add(absPath);
+          int index = list.size();
+          BatchRunTomoRow prevRow = null;
+          if (index > 0) {
+            prevRow = list.get(index - 1);
+          }
+          else {
+            prevRow = initialValueRow;
+          }
+          if (overridePrevRow) {
+            if (!prevDualAxisSet) {
+              prevDualAxis = prevRow.isDualAxis();
+              prevDualAxisSet = true;
+            }
+          }
+          BatchRunTomoRow row = BatchRunTomoRow.getInstance(manager.getPropertyUserDir(),
+              table, pnlTable, layout, constraints, index + 1, stack, prevRow,
+              overridePrevRow, overridePrevRow, manager);
+          row.expandStack(btnStack.isExpanded());
+          list.add(row);
+          row.display(viewport, curTab);
         }
-        BatchRunTomoRow row = BatchRunTomoRow.getInstance(manager.getPropertyUserDir(),
-            table, pnlTable, layout, constraints, index + 1, stackList[i],
-            (prevRow != null ? prevRow : initialValueRow), manager);
-        row.expandStack(btnStack.isExpanded());
-        list.add(row);
-        row.display(viewport, curTab);
       }
       viewport.adjustViewport(firstIndex);
       rowList.removeAll();
       rowList.display(viewport);
       UIHarness.INSTANCE.pack(manager);
       updateDisplay();
+      return true;
     }
 
     /**
