@@ -77,6 +77,11 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
   private final HighlighterButton hbRow;
   private final FieldCell fcStack;
   private final BatchRunTomoManager manager;
+  // When overridePrevRow is true, overrideDualAxis will replace prevRow dual axis.
+  private final boolean overridePrevRow;
+  private final boolean overrideDualAxis;
+  // Always save prevRow dual axis in prevRowDualAxis.
+  private final boolean prevRowDualAxis;
 
   private int imodIndexA = -1;
   private int imodIndexB = -1;
@@ -85,11 +90,14 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
   private BatchRunTomoRow(final String propertyUserDir, final BatchRunTomoTable table,
       final JPanel panel, final GridBagLayout layout,
       final GridBagConstraints constraints, final int number, final File stack,
-      final BatchRunTomoRow valueRow, final BatchRunTomoManager manager) {
+      final BatchRunTomoRow prevRow, final boolean overridePrevRow,
+      final boolean overrideDualAxis, final BatchRunTomoManager manager) {
     this.panel = panel;
     this.layout = layout;
     this.constraints = constraints;
     this.manager = manager;
+    this.overridePrevRow = overridePrevRow;
+    this.overrideDualAxis = overrideDualAxis;
     hcNumber.setText(number);
     hbRow = HighlighterButton.getInstance(this, table);
     fcStack = FieldCell.getExpandableInstance(null);
@@ -115,7 +123,11 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
     }
     // init
     setDefaults();
-    copy(valueRow);
+    copy(prevRow);
+    prevRowDualAxis = cbcDualAxis.isSelected();
+    if (overridePrevRow) {
+      cbcDualAxis.setSelected(overrideDualAxis);
+    }
     cbcRun.setSelected(true);
     mbcEtomo.setEnabled(false);
     updateDisplay();
@@ -124,25 +136,30 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
   static BatchRunTomoRow getInstance(final String propertyUserDir,
       final BatchRunTomoTable table, final JPanel panel, final GridBagLayout layout,
       final GridBagConstraints constraints, final int number, final File stack,
-      final BatchRunTomoRow valueRow, final BatchRunTomoManager manager) {
+      final BatchRunTomoRow prevRow, final boolean overridePrevRow,
+      final boolean overrideDualAxis, final BatchRunTomoManager manager) {
     BatchRunTomoRow instance = new BatchRunTomoRow(propertyUserDir, table, panel, layout,
-        constraints, number, stack, valueRow, manager);
+        constraints, number, stack, prevRow, overridePrevRow, overrideDualAxis, manager);
     instance.addListeners();
     return instance;
   }
 
   static BatchRunTomoRow getDefaultsInstance() {
     BatchRunTomoRow instance = new BatchRunTomoRow(null, null, null, null, null, -1,
-        null, null, null);
+        null, null, false, false, null);
     return instance;
   }
 
-  void copy(final BatchRunTomoRow valueRow) {
-    if (valueRow != null) {
-      cbcDualAxis.setSelected(valueRow.cbcDualAxis.isSelected());
-      cbcMontage.setSelected(valueRow.cbcMontage.isSelected());
-      cbcTwoSurfaces.setSelected(valueRow.cbcTwoSurfaces.isSelected());
+  void copy(final BatchRunTomoRow prevRow) {
+    if (prevRow != null) {
+      cbcDualAxis.setSelected(prevRow.cbcDualAxis.isSelected());
+      cbcMontage.setSelected(prevRow.cbcMontage.isSelected());
+      cbcTwoSurfaces.setSelected(prevRow.cbcTwoSurfaces.isSelected());
     }
+  }
+
+  boolean isDualAxis() {
+    return cbcDualAxis.isSelected();
   }
 
   private void addListeners() {
