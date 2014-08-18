@@ -380,6 +380,11 @@ final class FileTextField2 implements FileTextFieldInterface, Field, ActionListe
     }
   }
 
+  public void clearFieldHighlightValue() {
+    button.removeActionListener(this);
+    field.clearFieldHighlightValue();
+  }
+
   public void actionPerformed(ActionEvent e) {
     field.updateFieldHighlight();
   }
