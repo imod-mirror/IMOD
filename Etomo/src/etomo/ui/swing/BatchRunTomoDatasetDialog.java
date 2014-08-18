@@ -119,6 +119,8 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable {
   private final BaseManager manager;
   private final File datasetFile;
 
+  private boolean debug = false;
+
   private BatchRunTomoDatasetDialog(final BaseManager manager, final File datasetFile,
       final boolean global) {
     this.manager = manager;
@@ -176,6 +178,9 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable {
     if (dialog != null) {
       pnlButtons = new JPanel();
     }
+    JPanel pnlRemoveXrays = new JPanel();
+    JPanel pnlEnableStretching = new JPanel();
+    JPanel pnlLocalAlignments = new JPanel();
     // init
     ftfGradient.setPreferredWidth(272);
     btnModelFile.setToPreferredSize();
@@ -202,6 +207,8 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable {
     fieldList.add(ltfTargetNumberOfBeads);
     fieldList.add(ltfSizeOfPatchesXandY);
     fieldList.add(lsContourPieces);
+    fieldList.add(cbEnableStretching);
+    fieldList.add(cbLocalAlignments);
     fieldList.add(lsBinByFactor);
     fieldList.add(cbCorrectCTF);
     fieldList.add(ltfDefocus);
@@ -256,16 +263,17 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable {
     pnlRootBody.setLayout(new BoxLayout(pnlRootBody, BoxLayout.Y_AXIS));
     pnlRootBody.add(ftfDistort.getRootPanel());
     pnlRootBody.add(ftfGradient.getRootPanel());
-    pnlRootBody.add(Box.createRigidArea(FixedDim.x0_y5));
-    pnlRootBody.add(cbRemoveXrays);
+    pnlRootBody.add(Box.createRigidArea(FixedDim.x0_y10));
+    pnlRootBody.add(pnlRemoveXrays);
     pnlRootBody.add(pnlModelFile);
     pnlRootBody.add(Box.createRigidArea(FixedDim.x0_y5));
     pnlRootBody.add(pnlTrackingMethod);
     pnlRootBody.add(Box.createRigidArea(FixedDim.x0_y3));
     pnlRootBody.add(pnlGold);
     pnlRootBody.add(pnlSizeOfPatchesXandY);
-    pnlRootBody.add(cbEnableStretching);
-    pnlRootBody.add(cbLocalAlignments);
+    pnlRootBody.add(Box.createRigidArea(FixedDim.x0_y10));
+    pnlRootBody.add(pnlEnableStretching);
+    pnlRootBody.add(pnlLocalAlignments);
     pnlRootBody.add(Box.createRigidArea(FixedDim.x0_y10));
     pnlRootBody.add(pnlBinByFactor);
     pnlRootBody.add(Box.createRigidArea(FixedDim.x0_y5));
@@ -275,6 +283,10 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable {
     if (pnlButtons != null) {
       pnlRootBody.add(pnlButtons);
     }
+    // RemoveXrays
+    pnlRemoveXrays.setLayout(new BoxLayout(pnlRemoveXrays, BoxLayout.X_AXIS));
+    pnlRemoveXrays.add(cbRemoveXrays);
+    pnlRemoveXrays.add(Box.createHorizontalGlue());
     // ModelFile
     pnlModelFile.setLayout(new BoxLayout(pnlModelFile, BoxLayout.X_AXIS));
     pnlModelFile.add(ftfModelFile.getRootPanel());
@@ -297,6 +309,14 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable {
     pnlSizeOfPatchesXandY.setLayout(new GridLayout(1, 2, 15, 0));
     pnlSizeOfPatchesXandY.add(ltfSizeOfPatchesXandY.getComponent());
     pnlSizeOfPatchesXandY.add(lsContourPieces.getContainer());
+    // EnableStretching
+    pnlEnableStretching.setLayout(new BoxLayout(pnlEnableStretching, BoxLayout.X_AXIS));
+    pnlEnableStretching.add(cbEnableStretching);
+    pnlEnableStretching.add(Box.createHorizontalGlue());
+    // LocalAlignments
+    pnlLocalAlignments.setLayout(new BoxLayout(pnlLocalAlignments, BoxLayout.X_AXIS));
+    pnlLocalAlignments.add(cbLocalAlignments);
+    pnlLocalAlignments.add(Box.createHorizontalGlue());
     // BinByFactor
     pnlBinByFactor.setLayout(new BoxLayout(pnlBinByFactor, BoxLayout.X_AXIS));
     pnlBinByFactor.add(lsBinByFactor.getContainer());
@@ -488,6 +508,12 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable {
         iterator.next().clear();
       }
     }
+    iterator = fieldList.iterator();
+    if (iterator != null) {
+      while (iterator.hasNext()) {
+        iterator.next().clearFieldHighlightValue();
+      }
+    }
     setDefaults();
   }
 
@@ -506,7 +532,6 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable {
     // set checkpoint from global
     ftfDistort.checkpoint(GLOBAL_INSTANCE.ftfDistort);
     cbRemoveXrays.checkpoint(GLOBAL_INSTANCE.cbRemoveXrays);
-    cbRemoveXrays.checkpoint(GLOBAL_INSTANCE.cbRemoveXrays);
     ftfModelFile.checkpoint(GLOBAL_INSTANCE.ftfModelFile);
     rbTrackingMethodSeed.checkpoint(GLOBAL_INSTANCE.rbTrackingMethodSeed);
     rbTrackingMethodRaptor.checkpoint(GLOBAL_INSTANCE.rbTrackingMethodRaptor);
@@ -518,6 +543,8 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable {
     ltfTargetNumberOfBeads.checkpoint(GLOBAL_INSTANCE.ltfTargetNumberOfBeads);
     ltfSizeOfPatchesXandY.checkpoint(GLOBAL_INSTANCE.ltfSizeOfPatchesXandY);
     lsContourPieces.checkpoint(GLOBAL_INSTANCE.lsContourPieces);
+    cbEnableStretching.checkpoint(GLOBAL_INSTANCE.cbEnableStretching);
+    cbLocalAlignments.checkpoint(GLOBAL_INSTANCE.cbLocalAlignments);
     lsBinByFactor.checkpoint(GLOBAL_INSTANCE.lsBinByFactor);
     cbCorrectCTF.checkpoint(GLOBAL_INSTANCE.cbCorrectCTF);
     ltfDefocus.checkpoint(GLOBAL_INSTANCE.ltfDefocus);
@@ -537,7 +564,6 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable {
     // set field highlight from global
     ftfDistort.setFieldHighlightValue(GLOBAL_INSTANCE.ftfDistort);
     cbRemoveXrays.setFieldHighlightValue(GLOBAL_INSTANCE.cbRemoveXrays);
-    cbRemoveXrays.setFieldHighlightValue(GLOBAL_INSTANCE.cbRemoveXrays);
     ftfModelFile.setFieldHighlightValue(GLOBAL_INSTANCE.ftfModelFile);
     rbTrackingMethodSeed.setFieldHighlightValue(GLOBAL_INSTANCE.rbTrackingMethodSeed);
     rbTrackingMethodRaptor.setFieldHighlightValue(GLOBAL_INSTANCE.rbTrackingMethodRaptor);
@@ -549,6 +575,8 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable {
     ltfTargetNumberOfBeads.setFieldHighlightValue(GLOBAL_INSTANCE.ltfTargetNumberOfBeads);
     ltfSizeOfPatchesXandY.setFieldHighlightValue(GLOBAL_INSTANCE.ltfSizeOfPatchesXandY);
     lsContourPieces.setFieldHighlightValue(GLOBAL_INSTANCE.lsContourPieces);
+    cbEnableStretching.setFieldHighlightValue(GLOBAL_INSTANCE.cbEnableStretching);
+    cbLocalAlignments.setFieldHighlightValue(GLOBAL_INSTANCE.cbLocalAlignments);
     lsBinByFactor.setFieldHighlightValue(GLOBAL_INSTANCE.lsBinByFactor);
     cbCorrectCTF.setFieldHighlightValue(GLOBAL_INSTANCE.cbCorrectCTF);
     ltfDefocus.setFieldHighlightValue(GLOBAL_INSTANCE.ltfDefocus);
@@ -632,6 +660,10 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable {
         setFieldHighlightValue, ltfSizeOfPatchesXandY);
     setValue(directiveFileCollection, DirectiveDef.CONTOUR_PIECES,
         setFieldHighlightValue, lsContourPieces);
+    setValue(directiveFileCollection, DirectiveDef.ENABLE_STRETCHING,
+        setFieldHighlightValue, cbEnableStretching);
+    setValue(directiveFileCollection, DirectiveDef.LOCAL_ALIGNMENTS,
+        setFieldHighlightValue, cbLocalAlignments);
     setValue(directiveFileCollection, DirectiveDef.BIN_BY_FACTOR_FOR_ALIGNED_STACK,
         setFieldHighlightValue, lsBinByFactor);
     setValue(directiveFileCollection, DirectiveDef.CORRECT_CTF, setFieldHighlightValue,
@@ -666,35 +698,45 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable {
       }
     }
     boolean useSirt = false;
+    boolean containsUseSirt = false;
     if (directiveFileCollection.contains(DirectiveDef.USE_SIRT, setFieldHighlightValue)) {
+      containsUseSirt = true;
       useSirt = directiveFileCollection.isValue(DirectiveDef.USE_SIRT,
           setFieldHighlightValue);
     }
     boolean doBackprojAlso = false;
+    boolean containsDoBackprojAlso = false;
     if (directiveFileCollection.contains(DirectiveDef.DO_BACKPROJ_ALSO,
         setFieldHighlightValue)) {
+      containsDoBackprojAlso = true;
       doBackprojAlso = directiveFileCollection.isValue(DirectiveDef.DO_BACKPROJ_ALSO,
           setFieldHighlightValue);
     }
-    if (!useSirt) {
-      // no default for rbUseSirtFalse
+    // Set values based on useSirt doBackProjAlso booleans.
+    if (useSirt && doBackprojAlso) {
       if (!setFieldHighlightValue) {
-        rbUseSirtFalse.setSelected(true);
+        rbDoBackprojAlso.setSelected(true);
+      }
+      else {
+        rbDoBackprojAlso.setFieldHighlightValue(true);
       }
     }
-    else if (!doBackprojAlso) {
+    else if (useSirt) {
       if (!setFieldHighlightValue) {
         rbUseSirtTrue.setSelected(true);
       }
       else {
         rbUseSirtTrue.setFieldHighlightValue(true);
       }
-    }
-    else if (!setFieldHighlightValue) {
-      rbDoBackprojAlso.setSelected(true);
+      if (containsDoBackprojAlso) {
+        rbDoBackprojAlso.setFieldHighlightValue(false);
+      }
     }
     else {
-      rbDoBackprojAlso.setFieldHighlightValue(true);
+      rbUseSirtFalse.setSelected(true);
+      if (containsUseSirt) {
+        rbUseSirtTrue.setFieldHighlightValue(false);
+      }
     }
     setValue(directiveFileCollection, DirectiveDef.LEAVE_ITERATIONS,
         setFieldHighlightValue, ltfLeaveIterations);
