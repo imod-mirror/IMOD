@@ -327,6 +327,14 @@ final class LabeledSpinner implements Field, TextFieldInterface, ChangeListener,
       updateFieldHighlight();
     }
   }
+  
+  public void clearFieldHighlightValue() {
+    useFieldHighlight = false;
+    spinner.removeChangeListener(this);
+    spinner.removeFocusListener(this);
+    fieldHighlightValue = null;
+    updateFieldHighlight();
+  }
 
   public void stateChanged(ChangeEvent e) {
     updateFieldHighlight();
