@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/18/14: Added options to Mtffilter to filter in 1-D and to apply an R-weighted
+filter.
+
 8/15/14: In eTomo - PEET, added a radio button for setting yaxisType to 3.
 (Bug# 1787)
 
