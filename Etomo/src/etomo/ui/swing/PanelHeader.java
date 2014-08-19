@@ -2,9 +2,11 @@ package etomo.ui.swing;
 
 import java.awt.Component;
 import java.awt.Container;
+import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 
+import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 import javax.swing.JSeparator;
@@ -181,6 +183,9 @@ final class PanelHeader implements Expandable {
     }
     else {
       btnMoreLess = null;
+    }
+    if (!advancedBasic&&!moreLess) {
+      northPanel.add(Box.createRigidArea(new Dimension(23, 0)));
     }
     // rootPanel
     rootPanel.add(northPanel);
