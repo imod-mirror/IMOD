@@ -280,11 +280,15 @@ final class CheckBox extends JCheckBox implements Field, ActionListener {
       setFieldHighlightValue(from.fieldHighlightValue);
     }
     else if (useFieldHighlight) {
-      useFieldHighlight = false;
-      fieldHighlightValue = false;
-      removeActionListener(this);
-      updateFieldHighlight();
+      clearFieldHighlightValue();
     }
+  }
+
+  public void clearFieldHighlightValue() {
+    useFieldHighlight = false;
+    fieldHighlightValue = false;
+    removeActionListener(this);
+    updateFieldHighlight();
   }
 
   public void setEnabled(final boolean enabled) {

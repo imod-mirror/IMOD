@@ -327,6 +327,7 @@ public final class DirectiveFile {
     public static final Module PREPROCESSING = new Module("Preprocessing");
     public static final Module RAPTOR = new Module("RAPTOR");
     public static final Module RECONSTRUCTION = new Module("Reconstruction");
+    public static final Module TILT_ALIGNMENT = new Module("TiltAlignment");
     public static final Module TRIMVOL = new Module("Trimvol");
 
     private final String tag;

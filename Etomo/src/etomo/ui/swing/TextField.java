@@ -210,7 +210,7 @@ final class TextField implements UIComponent, SwingComponent, Field, FocusListen
     fieldHighlightValue = value;
     updateFieldHighlight();
   }
-  
+
   void setFieldHighlightValue(final TextField from) {
     if (from == null) {
       return;
@@ -234,7 +234,7 @@ final class TextField implements UIComponent, SwingComponent, Field, FocusListen
     return null;
   }
 
-  void clearFieldHighlightValue() {
+  public void clearFieldHighlightValue() {
     if (useFieldHighlight) {
       useFieldHighlight = false;
       fieldHighlightValue = null;

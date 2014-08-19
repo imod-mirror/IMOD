@@ -261,7 +261,7 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
                 axisID);
       }
     }
-    // to apply values, start with a clean slate
+    // to apply values and highlights, start with a clean slate
     table.clear();
     datasetDialog.clear();
     // Apply default values

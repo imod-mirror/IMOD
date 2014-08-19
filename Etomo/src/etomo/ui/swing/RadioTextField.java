@@ -200,6 +200,11 @@ final class RadioTextField implements RadioButtonInterface, Field, TextFieldInte
     radioButton.setFieldHighlightValue(from.radioButton);
   }
 
+  public void clearFieldHighlightValue() {
+    textField.clearFieldHighlightValue();
+    radioButton.clearFieldHighlightValue();
+  }
+
   public void checkpoint() {
     radioButton.checkpoint();
     textField.checkpoint();

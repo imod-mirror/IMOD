@@ -30,6 +30,8 @@ public interface Field {
   public void checkpoint();
 
   public void clear();
+  
+  public void clearFieldHighlightValue();
 
   /**
    * @return true if this a binary control (toggle button, radio button, checkbox) and it is selected
