@@ -317,7 +317,7 @@ Also, a bigger work array is needed not just for doubles but also for dsysv.
  * [order] to [ndata] points whose (x,y) coordinates are in the arrays [x] and [y].
  * It returns the coefficient of x to the i power in the array [slopes] and a
  * constant term in [intcpt].  The equation fit is:  ^
- * Y = intcpt + slopes[0] * X + slopes[1] * X**2 + ...  ^
+ * Y = intcpt + slopes\[0\] * X + slopes\[1\] * X**2 + ...  ^
  * [work] is an array whose size must be at least ([order] + 1) * ([order] + 3 + [ndata]).
  * The return value is the value returned by @@multRegress@.  Note that a Fortran 
  * function polyfit in libhvem takes care of allocating [work] to the needed size and 
