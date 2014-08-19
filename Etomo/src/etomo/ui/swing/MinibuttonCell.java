@@ -51,7 +51,6 @@ public final class MinibuttonCell extends InputCell implements UIComponent,
 
   static MinibuttonCell getInstance(final Icon icon) {
     MinibuttonCell instance = new MinibuttonCell(icon, false, null);
-    instance.addListeners();
     return instance;
   }
 
@@ -63,7 +62,9 @@ public final class MinibuttonCell extends InputCell implements UIComponent,
   }
 
   private void addListeners() {
-    button.addMouseListener(new GenericMouseAdapter(this));
+    if (contextMenu != null) {
+      button.addMouseListener(new GenericMouseAdapter(this));
+    }
   }
 
   public Component getComponent() {
