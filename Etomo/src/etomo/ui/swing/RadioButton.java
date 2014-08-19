@@ -281,25 +281,29 @@ final class RadioButton implements RadioButtonInterface, Field, ActionListener {
       setFieldHighlightValue(from.fieldHighlightValue);
     }
     else if (useFieldHighlight) {
-      useFieldHighlight = false;
-      // Remove listeners from all the radio buttons in the group.
-      boolean listenerRemoved = false;
-      if (group != null) {
-        Enumeration<AbstractButton> enumeration = group.getElements();
-        if (enumeration != null) {
-          while (enumeration.hasMoreElements()) {
-            listenerRemoved = true;
-            enumeration.nextElement().removeActionListener(this);
-          }
+      clearFieldHighlightValue();
+    }
+  }
+
+  public void clearFieldHighlightValue() {
+    useFieldHighlight = false;
+    // Remove listeners from all the radio buttons in the group.
+    boolean listenerRemoved = false;
+    if (group != null) {
+      Enumeration<AbstractButton> enumeration = group.getElements();
+      if (enumeration != null) {
+        while (enumeration.hasMoreElements()) {
+          listenerRemoved = true;
+          enumeration.nextElement().removeActionListener(this);
         }
       }
-      if (!listenerRemoved) {
-        radioButton.removeActionListener(this);
-      }
-      fieldHighlightValue = false;
-      // Turn off field highlight - parameter doesn't matter since field highlight is off.
-      updateFieldHighlight(false);
     }
+    if (!listenerRemoved) {
+      radioButton.removeActionListener(this);
+    }
+    fieldHighlightValue = false;
+    // Turn off field highlight - parameter doesn't matter since field highlight is off.
+    updateFieldHighlight(false);
   }
 
   public void actionPerformed(final ActionEvent event) {
