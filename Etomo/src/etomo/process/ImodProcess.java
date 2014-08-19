@@ -1118,11 +1118,13 @@ public class ImodProcess {
   /**
    * Open a new model file
    */
-  public void openModel(String newModelName) throws IOException, SystemProcessException {
-    modelName = newModelName;
-    String[] args = new String[2];
+  public void openModel(String model, final boolean modelMode) throws IOException,
+      SystemProcessException {
+    modelName = model;
+    String[] args = new String[3];
     args[0] = MESSAGE_OPEN_MODEL;
-    args[1] = newModelName;
+    args[1] = model;
+    args[2] = MESSAGE_MODEL_MODE;
     send(args);
   }
 
