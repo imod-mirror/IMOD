@@ -428,12 +428,15 @@ final class LabeledTextField implements UIComponent, SwingComponent, Field,
       setFieldHighlightValue(from.fieldHighlightValue);
     }
     else if (useFieldHighlight) {
-      // clear field highlight
-      useFieldHighlight = false;
-      textField.removeFocusListener(this);
-      fieldHighlightValue = null;
-      updateFieldHighlight();
+      clearFieldHighlightValue();
     }
+  }
+
+  public void clearFieldHighlightValue() {
+    useFieldHighlight = false;
+    textField.removeFocusListener(this);
+    fieldHighlightValue = null;
+    updateFieldHighlight();
   }
 
   public void focusGained(final FocusEvent event) {

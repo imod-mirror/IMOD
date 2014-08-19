@@ -824,15 +824,23 @@ public class ImodManager {
     return vector.lastIndexOf(imodState);
   }
 
-  public int newImod(String key, final AxisID axisID, final File file)
-      throws AxisTypeException {
+  public int newImod(String key, AxisID axisID, final File file) throws AxisTypeException {
     Vector vector;
     ImodState imodState;
     key = getPrivateKey(key);
     vector = getVector(key, axisID);
     if (vector == null) {
       vector = newVector(key, axisID, file);
-      imodMap.put(key, vector);
+      if (axisID == null) {
+        imodMap.put(key, vector);
+      }
+      else {
+        // Correct axis
+        if (axisID == AxisID.FIRST) {
+          axisID = AxisID.ONLY;
+        }
+        imodMap.put(key + axisID.getExtension(), vector);
+      }
       return 0;
     }
     imodState = newImodState(key, axisID, file);

@@ -907,7 +907,7 @@ public final class FileType {
     if (rootName == null) {
       rootName = "";
     }
-    if (axisType == null) {
+    if (axisType == null || axisType == AxisType.NOT_SET) {
       axisType = AxisType.SINGLE_AXIS;
     }
     if (!hasFixedName(axisType)) {
