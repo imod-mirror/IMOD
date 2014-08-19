@@ -66,7 +66,7 @@ the target.  The restrictions are numbered as follows:
 ^  4: Group magnifications
 ^  5: Fix magnifications
 ^The default order is  1,4,3,2,5, which means rotations will be grouped, then
-tilt angles fixed, the magnifications grouped, then one rotation solved for,
+tilt angles fixed, then magnifications grouped, then one rotation solved for,
 then magnifications fixed.
 
 [Field = SkipBeamTiltWithOneRot]

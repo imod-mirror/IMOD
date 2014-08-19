@@ -1,7 +1,13 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-8/13/14: In eTomo - PEET, added a radio button for setting yaxisType to 3.
+8/18/14: Added options to Mtffilter to filter in 1-D and to apply an R-weighted
+filter.
+
+8/15/14: In eTomo - PEET, added a radio button for setting yaxisType to 3.
 (Bug# 1787)
+
+8/15/14: IMOD_4-7-8
+8/15/14: Fixed bug that caused crash in Nda (In 4.7).
 
 8/7/14: Changes for 3dmod image processing: Kept track of sequence of
 operations so that they can be reapplied easily; added buttons to remove last

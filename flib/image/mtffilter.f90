@@ -76,13 +76,13 @@
   real*4 dminIn, dmaxIn, dmean, dmin, dmax, arraySize, xfac, scaleFac, delta
   real*4 ctfInvMax, radius1, sigma1, radius2, sigma2, s, dmeanSum, dmeanIn
   real*4 dmin2, dmax2, dmean2, atten, beta1, deltaRad, delx, dely, delz, xa, ya, za
-  real*4 zaSq, yaSq, sigma1b, radius1b, base, pixSizeDelta(3)
+  real*4 zaSq, yaSq, sigma1b, radius1b, base, pixSizeDelta(3), radScale
   real*4 ampfac, ampPower, pixelSize, holeSize, voltage, focalLength, ampRadius
   real*4 wavelength
   integer*4 ind, j, ierr, indf, ix, iy, iz, izLow, izHigh, izRead, ibase, ixBase
   integer*4 nxDim, nzPad, nyzMax, ifCut, ifPhase, modeOut, modeTry
   integer (kind = 8) indWork, idim
-  logical fftInput, filter3d
+  logical fftInput, filter3d, oneDfilter, rWeight
   integer*4 niceFrame, iiuReadSection
   !
   logical pipInput
@@ -118,6 +118,8 @@
   xfac = 1.
   ctfInvMax = 4.
   filter3d = .false.
+  oneDfilter = .false.
+  rWeight = .false.
   !
   ! Pip startup: set error, parse options, do help output
   !
@@ -140,6 +142,13 @@
   call irdhdr(1, nxyz, mxyz, mode, dminIn, dmaxIn, dmeanIn)
   fftInput = mode == 3 .or. mode == 4
   if (.not. fftInput) ierr = PipGetLogical('FilterIn3D', filter3d)
+  ierr = PipGetLogical('OneDimensionalFilter', oneDfilter)
+  ierr = PipGetLogical('RWeightedFilter', rWeight)
+  if (rWeight) oneDfilter = .true.
+  if (oneDfilter .and. fftInput)  &
+      call exitError('YOU CANNOT DO 1-D OR R-WEIGHTED FILTERING WITH FFT INPUT DATA')
+  if (oneDfilter .and. filter3d) &
+      call exitError('YOU CANNOT SPECIFY 3-D FILTERING WITH 1-D OR R-WEIGHTED FILTERING')
   !
   ! get padded size and make sure it will fit
   !
@@ -168,6 +177,7 @@
 
   nyzMax = nyPad
   if (filter3d .or. fftInput) nyzMax = max(nyPad, nzPad)
+  if (oneDfilter) nyzMax = nxPad
   !
   imUnitOut = 1
   if (outFile .ne. ' ') then
@@ -214,6 +224,7 @@
   nsize = nsize + 1
   delta = 0.71 / arraySize
   if (fftInput .or. filter3d) delta = 0.87 / arraySize
+  if (oneDfilter) delta = 0.505 / arraySize
   !
   ! set default null mtf curve
   !
@@ -274,6 +285,8 @@
     ctfa(j) = max(0., ymtf(im) + (ymtf(im + 1) - ymtf(im)) * (s - xmtf(im)) &
         / (xmtf(im + 1) - xmtf(im)))
   enddo
+  if ((indStock .ne. 0 .or. outFile .ne. ' ') .and. rWeight) call exitError( &
+      'YOU CANNOT DO MTF FILTERING WITH AN R-WEIGHTED FILTER')
 
   ! write (*,'(10f7.4)') (ctfa(j), j=1, nsize)
 
@@ -324,16 +337,21 @@
 
   modPrint = 0.025 / delta
   s = 0.
+  radScale = delta / 0.5
+  if (radius2 > 0.) radScale = delta / min(0.5, radius2)
   print *
   print *,'The overall filter being applied is:'
   print *,'radius  multiplier'
   do j = 1, nsize
     atten = 1.
     if (s > radius1) atten = exp(beta1 * (s - radius1)**2)
-    if (ctfa(j) < 0.01) then
+    if (rWeight) then
+      ctfa(j) = (j - 1) * radScale
+      if (j == 1) ctfa(j) = 0.2 * radScale
+    else if (ctfa(j) < 0.01) then
       ctfa(j) = 1.
     else
-      ctfa(j) = 1. +atten * (min(ctfInvMax, 1. / ctfa(j)) - 1.)
+      ctfa(j) = 1. + atten * (min(ctfInvMax, 1. / ctfa(j)) - 1.)
     endif
     if (deltaRad .ne. 0) then
       indf = s / deltaRad + 1.
@@ -387,12 +405,18 @@
         !
         call taperOutPad(array, nx, ny, array, nxPad + 2, nxPad, nyPad, 0, 0.)
         !
-        ! print *,'taking fft'
-        call todfft(array, nxPad, nyPad, 0)
-        call filterPart(array, array, nxPad, nyPad, ctfa, delta)
-        !
-        ! print *,'taking back fft'
-        call todfft(array, nxPad, nyPad, 1)
+        if (oneDfilter) then
+          call odfft(array, nxPad, nyPad, 0)
+          call fftFilter1D(array, nxDim / 2, nyPad, ctfa, delta)
+          call odfft(array, nxPad, nyPad, 1)
+        else
+          ! print *,'taking fft'
+          call todfft(array, nxPad, nyPad, 0)
+          call filterPart(array, array, nxPad, nyPad, ctfa, delta)
+          !
+          ! print *,'taking back fft'
+          call todfft(array, nxPad, nyPad, 1)
+        endif
 
         ! print *,'repack, set density, write'
         call irepak(array, array, nxDim, nyPad, ixStart, ixStart + nx - 1, iyStart, &
@@ -530,6 +554,31 @@ subroutine fftFilter3D(array, nxDim, ny, nz, ctf, delta)
   return
 end subroutine fftFilter3D
 
+
+! Applies a filter to a 2-D array in the X direction only
+!
+subroutine fftFilter1D(array, nxDim, ny, ctf, delta)
+  implicit none
+  integer*4 nxDim, ny
+  real*4 ctf(*), delta
+  complex array(nxDim, ny)
+  integer*4 jx, jy, indf
+  real*4 delx, s
+  !
+  delx = 0.5 / (nxDim - 1.)
+  do jy = 1, ny
+    do jx = 1, nxDim
+      s = (jx - 1) * delx
+      indf = s / delta + 1.5
+      array(jx, jy) = array(jx, jy) * ctf(indf)
+    enddo
+  enddo
+  return
+end subroutine fftFilter1D
+
+
+! Set up the filter for phase-plate fringe correction
+!
 subroutine amplifier(cutoff, ampfac, power, ctf, nx, ny, delta, nsize)
   implicit none
   integer*4 nx, ny, nsize, i
