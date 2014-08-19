@@ -17,6 +17,7 @@ import javax.swing.JDialog;
 import javax.swing.JPanel;
 
 import etomo.BaseManager;
+import etomo.logic.SeedingMethod;
 import etomo.logic.TrackingMethod;
 import etomo.storage.DirectiveDef;
 import etomo.storage.DirectiveFile;
@@ -626,11 +627,18 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable {
       TrackingMethod trackingMethod = TrackingMethod.getInstance(directiveFileCollection
           .getValue(DirectiveDef.TRACKING_METHOD));
       if (trackingMethod == TrackingMethod.SEED) {
-        if (!setFieldHighlightValue) {
-          rbTrackingMethodSeed.setSelected(true);
-        }
-        else {
-          rbTrackingMethodSeed.setFieldHighlightValue(true);
+        if (directiveFileCollection.contains(DirectiveDef.SEEDING_METHOD)) {
+          SeedingMethod seedingMethod = SeedingMethod.getInstance(directiveFileCollection
+              .getValue(DirectiveDef.SEEDING_METHOD));
+          if (seedingMethod == SeedingMethod.AUTO_FID_SEED
+              || seedingMethod == SeedingMethod.BOTH) {
+            if (!setFieldHighlightValue) {
+              rbTrackingMethodSeed.setSelected(true);
+            }
+            else {
+              rbTrackingMethodSeed.setFieldHighlightValue(true);
+            }
+          }
         }
       }
       else if (trackingMethod == TrackingMethod.RAPTOR) {
