@@ -84,8 +84,10 @@ assert.enabled.tf.z-max=
 
 [function = assert-variable-scaling-values]
 [[if = patch-tracking]]
-  assert.tf.z-min.1=%{scaling-z-min-patch-tracking}
-  assert.tf.z-max.1=%{scaling-z-max-patch-tracking}
+  if.not.var.zero-bead.assert.tf.z-min.1=%{scaling-z-min-patch-tracking}
+  if.var.zero-bead.assert.tf.z-min.1=%{scaling-z-min-patch-tracking-zero-bead}
+  if.not.var.zero-bead.assert.tf.z-max.1=%{scaling-z-max-patch-tracking}
+  if.var.zero-bead.assert.tf.z-max.1=%{scaling-z-max-patch-tracking-zero-bead}
 [[]]
 [[ifnot = patch-tracking]]
   if.not.var.simple-align.assert.tf.z-min.1=%{scaling-z-min}
