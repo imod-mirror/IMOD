@@ -483,8 +483,10 @@ set.var.x-axis-tilt-simple-align.b=2.04
 set.var.scaling-z-min=28
 set.var.scaling-z-max=56
 set.var.scaling-z-min-patch-tracking=28
+set.var.scaling-z-min-patch-tracking-zero-bead=42
 set.var.scaling-z-min-simple-align=29
 set.var.scaling-z-max-patch-tracking=56
+set.var.scaling-z-max-patch-tracking-zero-bead=85
 set.var.scaling-z-max-simple-align=58
 set.var.z-simple-align=88
 
