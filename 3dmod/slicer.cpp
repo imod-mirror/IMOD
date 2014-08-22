@@ -674,6 +674,12 @@ void SlicerFuncs::externalDraw(ImodView *vi, int drawflag)
       mCx = vi->xmouse;
       mCy = vi->ymouse;
 
+      // Defer autoswapping and read from back buffer, needed esp. on Quadro cards
+      if (imcGetSnapshot(vi) && mMovieSnapCount && App->doublebuffer) {
+        mGlw->setBufferSwapAuto(false);
+        glReadBuffer(GL_BACK);
+      }
+
       mPending = 0;
       mGlw->updateGL();
 
@@ -682,16 +688,17 @@ void SlicerFuncs::externalDraw(ImodView *vi, int drawflag)
         if (imcGetSlicerMontage(true)) {
           montageSnapshot(imcGetSnapshot(vi));
         } else {
-
-          // Need to specify that the front buffer is read on some systems
-          glReadBuffer(GL_FRONT);
           setSnapshotLimits(&limits, limarr);
           b3dKeySnapshot("slicer", imcGetSnapshot(vi) - 1, imcGetSnapshot(vi) % 2, 
                          limits);
+          if (App->doublebuffer) 
+            mGlw->swapBuffers();
         }
-        mMovieSnapCount--;
+        if (App->doublebuffer)
+          mGlw->setBufferSwapAuto(true);
 
         /* When count expires, stop movie */
+        mMovieSnapCount--;
         if(!mMovieSnapCount) {
           imodMovieXYZT(vi, 0, 0, 0, 0);
           b3dSetMovieSnapping(false);
@@ -1473,6 +1480,10 @@ void SlicerFuncs::keyInput(QKeyEvent *event)
 
   case Qt::Key_S:
     if (shift || ctrl){
+      if (App->doublebuffer) {
+        mGlw->setBufferSwapAuto(false);
+        glReadBuffer(GL_BACK);
+      }
       if (imcGetSlicerMontage(true)) {
         montageSnapshot((ctrl ? 1 : 0) + (shift ? 2 : 0));
       } else {
@@ -1481,7 +1492,11 @@ void SlicerFuncs::keyInput(QKeyEvent *event)
         mGlw->updateGL();
         setSnapshotLimits(&limits, limarr);
         b3dKeySnapshot("slicer", shift, ctrl, limits);
+        if (App->doublebuffer) 
+          mGlw->swapBuffers();
       }
+      if (App->doublebuffer)
+        mGlw->setBufferSwapAuto(true);
     }else
       inputSaveModel(vi);
     dodraw = 0;
@@ -2433,13 +2448,7 @@ void SlicerFuncs::montageSnapshot(int snaptype)
     return;
   }
 
-  // On Quadro card (?), it is necessary to defer the autoswap for montaging
-  // It's not clear why this isn't needed for other snapshots
-  // NEED TO CHECK THIS!!!
-  if (App->doublebuffer) {
-    mGlw->setBufferSwapAuto(false);
-    glReadBuffer(GL_BACK);
-  }
+  // 8/22/14: move handling of buffer swapping to calling routines
 
   // Set up scaling
   if (imcGetScaleThicks()) {
@@ -2505,9 +2514,6 @@ void SlicerFuncs::montageSnapshot(int snaptype)
         mGlw->swapBuffers();
     }
   }
-
-  if (App->doublebuffer)
-    mGlw->setBufferSwapAuto(true);
 
   // Reset the file number to zero unless doing movie, then get name and save
   if (!mMovieSnapCount)
