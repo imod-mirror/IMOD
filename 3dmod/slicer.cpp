@@ -691,11 +691,11 @@ void SlicerFuncs::externalDraw(ImodView *vi, int drawflag)
           setSnapshotLimits(&limits, limarr);
           b3dKeySnapshot("slicer", imcGetSnapshot(vi) - 1, imcGetSnapshot(vi) % 2, 
                          limits);
-          if (App->doublebuffer) 
-            mGlw->swapBuffers();
         }
-        if (App->doublebuffer)
+        if (App->doublebuffer) {
+          mGlw->swapBuffers();
           mGlw->setBufferSwapAuto(true);
+        }
 
         /* When count expires, stop movie */
         mMovieSnapCount--;
@@ -1492,11 +1492,11 @@ void SlicerFuncs::keyInput(QKeyEvent *event)
         mGlw->updateGL();
         setSnapshotLimits(&limits, limarr);
         b3dKeySnapshot("slicer", shift, ctrl, limits);
-        if (App->doublebuffer) 
-          mGlw->swapBuffers();
       }
-      if (App->doublebuffer)
+      if (App->doublebuffer) {
+        mGlw->swapBuffers();
         mGlw->setBufferSwapAuto(true);
+      }
     }else
       inputSaveModel(vi);
     dodraw = 0;
