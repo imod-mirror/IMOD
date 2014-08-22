@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/22/14: Fixed problem with movie snapshots starting with the current image
+instead of starting one on some systems; made Slicer movies do double shots on
+ends the same as Zap ones do.
+
 8/18/14: Added options to Mtffilter to filter in 1-D and to apply an R-weighted
 filter.
 
