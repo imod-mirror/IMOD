@@ -404,8 +404,7 @@ static void zapDraw_cb(ImodView *vi, void *client, int drawflag)
 
       // Restore double buffering
       if (App->doublebuffer) {
-        if (!imcGetSnapMontage(true))
-          zap->mGfx->swapBuffers();
+        zap->mGfx->swapBuffers();
         zap->mGfx->setBufferSwapAuto(true);
       }
 
@@ -1595,11 +1594,11 @@ void ZapFuncs::keyInput(QKeyEvent *event)
         setSnapshotLimits(&limits, limarr);
         b3dKeySnapshot((char *)(mNumXpanels ? "multiz" : "zap"), shifted, 
                        ctrl, limits);
-        if (App->doublebuffer)
-          mGfx->swapBuffers();
       }
-      if (App->doublebuffer)
+      if (App->doublebuffer) {
+        mGfx->swapBuffers();
         mGfx->setBufferSwapAuto(true);
+      }
 
     }else
       inputSaveModel(vi);
