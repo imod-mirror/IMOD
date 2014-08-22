@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/22/14: Fixed problem with movie snapshots starting with the current image
+instead of starting one on some systems; made Slicer movies do double shots on
+ends the same as Zap ones do.
+
 8/15/14: IMOD_4-7-8
 8/15/14: Fixed bug that caused crash in Nda (In 4.7).
 
