@@ -391,6 +391,9 @@ static void zapDraw_cb(ImodView *vi, void *client, int drawflag)
       if (imcGetSnapMontage(true)) {
         zap->montageSnapshot(snaptype);
       } else {
+
+        // Need to specify that the front buffer is read on some systems
+        glReadBuffer(GL_FRONT);
         zap->setSnapshotLimits(&limits, limarr);
         b3dKeySnapshot((char *)(zap->mNumXpanels ? "multiz" : "zap"), 
                        snaptype - 1, snaptype % 2, limits);
