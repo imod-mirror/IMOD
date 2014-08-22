@@ -659,7 +659,9 @@ void SlicerFuncs::externalDraw(ImodView *vi, int drawflag)
 
     // Compute new position and bound it (may not be needed unless user
     // clicks a new position during movie)
-    if (factor != 0.) {
+    // Allow repeat position if nothing has changed, to duplicate ends of movie
+    if (factor != 0. || (fabs(vi->xmouse - mCx) < 1.e-5 && fabs(vi->ymouse - mCy) < 1.e-5
+                         && fabs(vi->xmouse - mCx) < 1.e-5)) {
       vi->xmouse = mCx + factor * zStep[b3dX];
       vi->ymouse = mCy + factor * zStep[b3dY];
       mCz += factor * zStep[b3dZ];
@@ -680,6 +682,9 @@ void SlicerFuncs::externalDraw(ImodView *vi, int drawflag)
         if (imcGetSlicerMontage(true)) {
           montageSnapshot(imcGetSnapshot(vi));
         } else {
+
+          // Need to specify that the front buffer is read on some systems
+          glReadBuffer(GL_FRONT);
           setSnapshotLimits(&limits, limarr);
           b3dKeySnapshot("slicer", imcGetSnapshot(vi) - 1, imcGetSnapshot(vi) % 2, 
                          limits);
