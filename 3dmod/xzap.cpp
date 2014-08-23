@@ -344,6 +344,8 @@ static void zapDraw_cb(ImodView *vi, void *client, int drawflag)
   int *limits;
   int limarr[4];
   int snaptype = imcGetSnapshot(zap->mVi);
+  bool doingSnap = snaptype && zap->mVi->zmovie && zap->mMovieSnapCount && 
+    imcGetStarterID() == zap->mCtrl;
 
   if (imodDebug('z'))
     imodPrintStderr("Zap Draw  flags %x\n", drawflag);
@@ -381,28 +383,38 @@ static void zapDraw_cb(ImodView *vi, void *client, int drawflag)
     if (!(drawflag & IMOD_DRAW_ACTIVE) && !(drawflag & IMOD_DRAW_NOSYNC))
       zap->syncImage(false);
 
-    /* DNM 1/29/03: no more worry about multiple calls */
+    // Have to defer swap and read from back buffer to prevent overlaid image on some
+    // systems (Quadro, maybe others).
+    if (doingSnap && App->doublebuffer) {
+      zap->mGfx->setBufferSwapAuto(false);
+      glReadBuffer(GL_BACK);
+    }
     zap->draw();
 
     /* DNM 3/8/01: add autosnapshot when movieing */
     // 3/8/07: make it take montages too
-    if (snaptype && zap->mVi->zmovie && 
-        zap->mMovieSnapCount && imcGetStarterID() == zap->mCtrl) {
+    if (doingSnap) {
       if (imcGetSnapMontage(true)) {
         zap->montageSnapshot(snaptype);
       } else {
-
-        // Need to specify that the front buffer is read on some systems
-        glReadBuffer(GL_FRONT);
         zap->setSnapshotLimits(&limits, limarr);
         b3dKeySnapshot((char *)(zap->mNumXpanels ? "multiz" : "zap"), 
                        snaptype - 1, snaptype % 2, limits);
       }
-      zap->mMovieSnapCount--;
+
+      // Restore double buffering
+      if (App->doublebuffer) {
+        zap->mGfx->swapBuffers();
+        zap->mGfx->setBufferSwapAuto(true);
+      }
+
       /* When count expires, stop movie */
+      zap->mMovieSnapCount--;
       if(!zap->mMovieSnapCount) {
         zap->mVi->zmovie = 0;
         b3dSetMovieSnapping(false);
+        if (imcGetSnapMontage(true))
+          zap->draw();
       }
     }
 
@@ -1568,16 +1580,26 @@ void ZapFuncs::keyInput(QKeyEvent *event)
     if (shifted || ctrl){
       mShowslice = mShowedSlice;
 
+      // Turn off double buffering and read from back buffer
+      if (App->doublebuffer) {
+        mGfx->setBufferSwapAuto(false);
+        glReadBuffer(GL_BACK);
+      }
+
       // Take a montage snapshot if selected and no rubberband is on
       if (!mRubberband && imcGetSnapMontage(true) && !mNumXpanels) {
         montageSnapshot((ctrl ? 1 : 0) + (shifted ? 2 : 0));
-        handled = 1;
-        break;
+      } else {
+        draw();
+        setSnapshotLimits(&limits, limarr);
+        b3dKeySnapshot((char *)(mNumXpanels ? "multiz" : "zap"), shifted, 
+                       ctrl, limits);
       }
-      draw();
-      setSnapshotLimits(&limits, limarr);
-      b3dKeySnapshot((char *)(mNumXpanels ? "multiz" : "zap"), shifted, 
-                     ctrl, limits);
+      if (App->doublebuffer) {
+        mGfx->swapBuffers();
+        mGfx->setBufferSwapAuto(true);
+      }
+
     }else
       inputSaveModel(vi);
     handled = 1;
@@ -4098,12 +4120,7 @@ void ZapFuncs::montageSnapshot(int snaptype)
     return;
   }
 
-  // On Quadro card (?), it is necessary to defer the autoswap for montaging
-  // It's not clear why this isn't needed for other snapshots
-  if (App->doublebuffer) {
-    mGfx->setBufferSwapAuto(false);
-    glReadBuffer(GL_BACK);
-  }
+  // 8/22/14: Move truning off autoswap to calling routines
 
   // Set up scaling
   if (imcGetScaleSizes()) {
@@ -4167,9 +4184,6 @@ void ZapFuncs::montageSnapshot(int snaptype)
         mGfx->swapBuffers();
     }
   }
-
-  if (App->doublebuffer)
-    mGfx->setBufferSwapAuto(true);
 
   // Reset the file number to zero unless doing movie, then get name and save
   if (!mMovieSnapCount)
