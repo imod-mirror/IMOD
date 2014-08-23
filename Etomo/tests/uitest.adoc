@@ -16,6 +16,21 @@ set.var.run_sirt=
 set.var.build=
 set.interface.Recon=
 
+[Test = single-zero-bead-test-gui]
+set.testdir = single-zero-bead-test-gui
+set.adoc.dialog = recon.adoc
+set.var.dataset = BBa
+set.dataset = BB
+copy.file = %{dataset}.st
+set.param = --autoclose3dmod
+set.param = --ignoreloc
+set.var.zero-bead=
+set.var.single=
+set.var.test-gui=
+set.var.patch-tracking=
+set.var.run_sirt=
+set.interface.Recon=
+
 [Test = dual]
 set.testdir = dual
 #set.keep.testdir = dual
@@ -226,22 +241,7 @@ set.var.run_sirt=
 set.var.test-gui=
 #set.var.quick=
 
-[Test = dual-montage-test-gui]
-set.testdir = dual-montage-test-gui
-#set.keep.testdir = dual-montage-test-gui
-set.adoc.dialog.a=recon.adoc
-set.adoc.bdialog.b=recon.adoc
-set.var.dataset = midzone2
-set.dataset = midzone2
-set.param = --autoclose3dmod
-set.param = --ignoreloc
-#set.param = %{dataset}.edf
-#set.param= --names
-set.var.dual=
-set.var.montage=
-set.var.test-gui=
-set.var.run_sirt=
-set.var.run-raptor=
+
 
 [Test = dual-montage-patch-tracking]
 set.testdir = dual-montage-patch-tracking
@@ -260,6 +260,23 @@ set.var.run_sirt=
 set.var.patch-tracking=
 set.var.build=
 
+[Test = dual-montage-test-gui]
+set.testdir = dual-montage-test-gui
+#set.keep.testdir = dual-montage-test-gui
+set.adoc.dialog.a=recon.adoc
+set.adoc.bdialog.b=recon.adoc
+set.var.dataset = midzone2
+set.dataset = midzone2
+set.param = --autoclose3dmod
+set.param = --ignoreloc
+#set.param = %{dataset}.edf
+#set.param= --names
+set.var.dual=
+set.var.montage=
+set.var.test-gui=
+set.var.run_sirt=
+set.var.run-raptor=
+
 [Test = dual-montage-patch-tracking-test-gui]
 set.testdir = dual-montage-patch-tracking-test-gui
 #set.keep.testdir = dual-montage-patch-tracking
@@ -273,6 +290,7 @@ set.param = --actions
 #set.param = midzone2.edf
 set.var.dual=
 set.var.montage=
+set.var.test-gui=
 set.var.run_sirt=
 set.var.patch-tracking=
 set.var.build=
@@ -425,9 +443,11 @@ set.var.sample-tomogram-thickness = 200
 set.var.z-axis-min = 5
 set.var.z-axis-max = 70
 set.var.unbinned-bead-diameter = 4.95
+set.var.unbinned-bead-diameter-zero-bead = 0.0
 set.var.int-unbinned-bead-diameter = 5
 #PreProc
 set.var.maximum-radius=2.1
+set.var.maximum-radius-zero-bead=4.2
 #FidModel
 set.var.pixels-to-trim=26,26
 set.var.search-box-size=32,32
@@ -463,8 +483,10 @@ set.var.x-axis-tilt-simple-align.b=2.04
 set.var.scaling-z-min=28
 set.var.scaling-z-max=56
 set.var.scaling-z-min-patch-tracking=28
+set.var.scaling-z-min-patch-tracking-zero-bead=42
 set.var.scaling-z-min-simple-align=29
 set.var.scaling-z-max-patch-tracking=56
+set.var.scaling-z-max-patch-tracking-zero-bead=85
 set.var.scaling-z-max-simple-align=58
 set.var.z-simple-align=88
 
@@ -481,11 +503,13 @@ set.var.sample-tomogram-thickness = 200
 set.var.z-axis-min = 5
 set.var.z-axis-max = 70
 set.var.z-axis-min-patch-tracking = 8
-set.var.z-axis-max-patch-tracking = 114
+set.var.z-axis-max-patch-tracking = 88
 set.var.unbinned-bead-diameter = 10.56
+set.var.unbinned-bead-diameter-zero-bead =
 set.var.int-unbinned-bead-diameter = 11
 #PreProc
 set.var.maximum-radius=3.0
+set.var.maximum-radius-zero-bead=
 set.var.needs-pre-proc=
 #FidModel
 set.var.pixels-to-trim.a=98,51
@@ -521,8 +545,10 @@ set.var.x-axis-tilt.a=2.03
 set.var.x-axis-tilt.b=0.21
 set.var.x-axis-tilt-simple-align.a=
 set.var.x-axis-tilt-simple-align.b=
-set.var.tomogram-thickness-in-z-patch-tracking.a=128
-set.var.tomogram-thickness-in-z-patch-tracking.b=144
+set.var.x-axis-tilt-patch-tracking.a=1.7
+set.var.x-axis-tilt-patch-tracking.b=0.32
+set.var.tomogram-thickness-in-z-patch-tracking.a=84
+set.var.tomogram-thickness-in-z-patch-tracking.b=112
 #PostProc
 set.var.scaling-z-min=32
 set.var.scaling-z-min-simple-align=
