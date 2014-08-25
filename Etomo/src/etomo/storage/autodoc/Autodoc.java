@@ -479,6 +479,17 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
     parser.initialize();
     parser.parse();
   }
+  void initializeWritableInstance(final BaseManager manager, final File file)
+      throws FileNotFoundException, IOException, LogFile.LockException {
+    parser = AutodocParser.getGenericInstance(this, false, false, false, file, manager,
+        null, null, debug);
+    // To test comment out initialize and parse and uncomment runInternalTest.
+    // runInternalTest(InternalTestType.STREAM_TOKENIZER, true, false);
+    parser.initialize();
+    parser.parse();
+  }
+  
+  
 
   /**
    * Initializes a writable peet autodoc.  Parse is not initialized
