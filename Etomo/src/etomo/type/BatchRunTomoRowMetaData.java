@@ -1,0 +1,119 @@
+package etomo.type;
+
+import java.util.Properties;
+
+/**
+* <p>Description: </p>
+* 
+* <p>Copyright: Copyright 2014</p>
+*
+* <p>Organization:
+* Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
+* University of Colorado</p>
+* 
+* @author $Author$
+* 
+* @version $Revision$
+* 
+* <p> $Log$ </p>
+*/
+public final class BatchRunTomoRowMetaData {
+  public static final String rcsid = "$Id:$";
+
+  private static final String GROUP_KEY = "row";
+  private static final String DISPLAY_KEY = "display";
+
+  private EtomoBoolean2 display = new EtomoBoolean2(DISPLAY_KEY);
+  private final StringProperty bskip = new StringProperty("bskip");
+  private EtomoBoolean2 run = new EtomoBoolean2("run");
+
+  private BatchRunTomoDatasetMetaData datasetMetaData = null;
+
+  private final String stackID;
+
+  BatchRunTomoRowMetaData(final String stackID) {
+    this.stackID = stackID;
+  }
+
+  /**
+   * This function is used to decide whether to load the instance associated with stackID. 
+   * @return
+   */
+  public static boolean isDisplay(final Properties props, String prepend,
+      final String stackID) {
+    prepend = createPrepend(prepend, stackID);
+    EtomoBoolean2 display = new EtomoBoolean2(DISPLAY_KEY);
+    display.load(props, prepend);
+    return display.is();
+  }
+
+  private static String getGroupKey(final String stackID) {
+    return GROUP_KEY + "." + stackID;
+  }
+
+  private static String createPrepend(String prepend, final String stackID) {
+    if (prepend == null || prepend.matches("\\s*")) {
+      return getGroupKey(stackID);
+    }
+    prepend = prepend.trim();
+    if (prepend.endsWith(".")) {
+      return prepend + getGroupKey(stackID);
+    }
+    return prepend + "." + getGroupKey(stackID);
+  }
+
+  private String getGroupKey() {
+    return getGroupKey(stackID);
+  }
+
+  private String createPrepend(String prepend) {
+    return createPrepend(prepend, stackID);
+  }
+
+  public void load(final Properties props, String prepend) {
+    // reset
+    bskip.reset();
+    // load
+    prepend = createPrepend(prepend);
+    bskip.load(props, prepend);
+  }
+
+  public void store(Properties props, String prepend) {
+    prepend = createPrepend(prepend);
+    bskip.store(props, prepend);
+  }
+
+  public void setDatasetDialog(final boolean input) {
+    if (input) {
+      datasetMetaData = new BatchRunTomoDatasetMetaData(stackID);
+    }
+  }
+
+  public boolean isDatasetDialog() {
+    return datasetMetaData != null;
+  }
+
+  public BatchRunTomoDatasetMetaData getDatasetMetaData() {
+    return datasetMetaData;
+  }
+
+  public void setBskip(final String input) {
+    bskip.set(input);
+  }
+
+  public String getBskip() {
+    return bskip.toString();
+  }
+
+  public void setRun(final boolean input) {
+    run.set(input);
+  }
+
+  public boolean isRun() {
+    return run.is();
+  }
+
+  boolean isDisplay() {
+    return display.is();
+  }
+}
