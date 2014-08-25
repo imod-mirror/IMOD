@@ -7,10 +7,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
+import java.util.Map.Entry;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -23,6 +22,10 @@ import etomo.logic.DatasetTool;
 import etomo.storage.DirectiveFileCollection;
 import etomo.storage.StackFileFilter;
 import etomo.type.AxisID;
+import etomo.type.BatchRunTomoMetaData;
+import etomo.type.DuplicateException;
+import etomo.type.NotLoadedException;
+import etomo.type.TableReference;
 import etomo.type.UserConfiguration;
 import etomo.ui.BatchRunTomoTab;
 
@@ -52,7 +55,6 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
   private static final int NUM_RUN_HEADER_ROWS = 2;
 
   private final JPanel pnlRoot = new JPanel();
-  private final RowList rowList = new RowList(this);
   private final JPanel pnlTable = new JPanel();
   private final GridBagLayout layout = new GridBagLayout();
   private final GridBagConstraints constraints = new GridBagConstraints();
@@ -79,6 +81,7 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
   private final MultiLineButton btnDelete = new MultiLineButton("Delete");
   private final JPanel pnlStackButtons = new JPanel();
 
+  private final RowList rowList;
   private final BatchRunTomoManager manager;
   private final Viewport viewport;
   private final ExpandButton btnStack;
@@ -86,15 +89,17 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
   private File currentDirectory = null;
   private BatchRunTomoTab curTab = null;
 
-  private BatchRunTomoTable(final BatchRunTomoManager manager, final Expandable expandable) {
+  private BatchRunTomoTable(final BatchRunTomoManager manager,
+      final Expandable expandable, final TableReference tableReference) {
     this.manager = manager;
+    rowList = new RowList(this, tableReference);
     viewport = new Viewport(this, 20, null, null, null, "BatchRunTomo");
     btnStack = ExpandButton.getInstance(this, expandable, ExpandButton.Type.MORE);
   }
 
   static BatchRunTomoTable getInstance(final BatchRunTomoManager manager,
-      final BatchRunTomoDialog dialog) {
-    BatchRunTomoTable instance = new BatchRunTomoTable(manager, dialog);
+      final BatchRunTomoDialog dialog, final TableReference tableReference) {
+    BatchRunTomoTable instance = new BatchRunTomoTable(manager, dialog, tableReference);
     instance.createPanel();
     instance.addListeners();
     return instance;
@@ -287,6 +292,18 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
     }
   }
 
+  public void setParameters(final BatchRunTomoMetaData metaData) {
+    rowList.setParameters(metaData);
+  }
+
+  public void getParameters(final BatchRunTomoMetaData metaData) {
+    rowList.getParameters(metaData);
+  }
+
+  void saveAutodocs() {
+    rowList.saveAutodocs();
+  }
+
   /**
    * Check each field to see if it has been changed from its checkpoint.  If it has
    * changed, then back up its current value.
@@ -378,9 +395,7 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
         // Remove matching B stacks and set dual to true for the A stack
         List<DatasetTool.StackInfo> filteredStackList = DatasetTool
             .removeMatchingBStacks(stackList);
-        if (!rowList.add(filteredStackList)) {
-          return;
-        }
+        rowList.add(filteredStackList);
       }
     }
     else if (actionCommand.equals(btnDelete.getActionCommand())) {
@@ -393,10 +408,6 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
     else if (actionCommand.equals(btnCopyDown.getActionCommand())) {
       rowList.copyDown();
     }
-  }
-
-  String getHighlightedKey() {
-    return rowList.getKey();
   }
 
   public void expand(final ExpandButton button) {
@@ -413,40 +424,64 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
     return rowList.size();
   }
 
-  private final class RowList {
+  private class RowList {
     private final List<BatchRunTomoRow> list = new ArrayList<BatchRunTomoRow>();
-    private final Set<String> absPathSet = new HashSet<String>();
 
+    private final TableReference tableReference;
     private final BatchRunTomoTable table;
 
     private BatchRunTomoRow initialValueRow = null;
 
-    private RowList(final BatchRunTomoTable table) {
+    private RowList(final BatchRunTomoTable table, final TableReference tableReference) {
+      this.tableReference = tableReference;
       this.table = table;
     }
 
-    private boolean add(final List<DatasetTool.StackInfo> stackInfoList) {
+    private void add(final List<DatasetTool.StackInfo> stackInfoList) {
       if (stackInfoList == null) {
-        return false;
+        return;
       }
       int firstIndex = list.size();
       Iterator<DatasetTool.StackInfo> iterator = stackInfoList.iterator();
       boolean overridePrevRow = false;
       boolean prevDualAxisSet = false;
       boolean prevDualAxis = false;
+      List<String> notAdded = new ArrayList<String>();
+      boolean fileAdded = false;
       while (iterator.hasNext()) {
         DatasetTool.StackInfo stackInfo = iterator.next();
         Iterator<File> stackIterator = stackInfo.iterator();
         overridePrevRow = stackInfo.isDualAxis();
         while (stackIterator.hasNext()) {
           File stack = stackIterator.next();
+          // See if there is an ID for this stack.
           String absPath = stack.getAbsolutePath();
-          if (absPathSet.contains(absPath)) {
-            UIHarness.INSTANCE.openMessageDialog(manager,
-                "The stack table already contains " + stack + ".", "Unable to Add File");
-            return false;
+          String stackID = tableReference.getID(absPath);
+          if (stackID != null) {
+            // Check for duplicate files
+            if (rowExists(stackID)) {
+              notAdded.add(absPath);
+              continue;
+            }
           }
-          absPathSet.add(absPath);
+          else {
+            try {
+              stackID = tableReference.put(absPath);
+            }
+            catch (DuplicateException e) {
+              e.printStackTrace();
+              continue;
+            }
+            catch(NotLoadedException e) {
+              e.printStackTrace();
+              if (!fileAdded) {
+                return;
+              }
+              else {
+                continue;
+              }
+            }
+          }
           int index = list.size();
           BatchRunTomoRow prevRow = null;
           if (index > 0) {
@@ -463,18 +498,73 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
           }
           BatchRunTomoRow row = BatchRunTomoRow.getInstance(manager.getPropertyUserDir(),
               table, pnlTable, layout, constraints, index + 1, stack, prevRow,
-              overridePrevRow, overridePrevRow, manager);
+              overridePrevRow, overridePrevRow, manager, stackID);
           row.expandStack(btnStack.isExpanded());
           list.add(row);
+          fileAdded = true;
           row.display(viewport, curTab);
         }
       }
-      viewport.adjustViewport(firstIndex);
-      rowList.removeAll();
-      rowList.display(viewport);
-      UIHarness.INSTANCE.pack(manager);
-      updateDisplay();
-      return true;
+      if (fileAdded) {
+        viewport.adjustViewport(firstIndex);
+        rowList.removeAll();
+        rowList.display(viewport);
+        UIHarness.INSTANCE.pack(manager);
+        updateDisplay();
+      }
+      // Pop up a warning if there where any duplicate files.
+      if (!notAdded.isEmpty()) {
+        StringBuffer warning = new StringBuffer();
+        warning.append("The stack table already contains ");
+        Iterator<String> i = notAdded.iterator();
+        if (i.hasNext()) {
+          warning.append(i.next());
+        }
+        while (i.hasNext()) {
+          String absPath = i.next();
+          warning.append(", " + (!i.hasNext() ? " and " : "") + absPath);
+        }
+        warning.append(".");
+        UIHarness.INSTANCE.openMessageDialog(manager, warning.toString(),
+            "Unable to Add File(s)");
+      }
+    }
+
+    private void load(BatchRunTomoMetaData metaData) {
+      int firstIndex = list.size();
+      // entry<uniqueString, ID>
+      Iterator<Entry<String, String>> iterator = tableReference.uniqueStringIDiterator();
+      boolean fileAdded = false;
+      while (iterator.hasNext()) {
+        Entry<String, String> entry = iterator.next();
+        String stackID = entry.getValue();
+        if (metaData.isDisplay(stackID)) {
+          int index = list.size();
+          BatchRunTomoRow row = BatchRunTomoRow.getInstance(manager.getPropertyUserDir(),
+              table, pnlTable, layout, constraints, index + 1, new File(entry.getKey()),
+              null, false, false, manager, stackID);
+          row.expandStack(btnStack.isExpanded());
+          list.add(row);
+          fileAdded = true;
+          row.display(viewport, curTab);
+        }
+      }
+      if (fileAdded) {
+        viewport.adjustViewport(firstIndex);
+        rowList.removeAll();
+        rowList.display(viewport);
+        UIHarness.INSTANCE.pack(manager);
+        updateDisplay();
+      }
+    }
+
+    private boolean rowExists(final String stackID) {
+      for (int i = 0; i < list.size(); i++) {
+        if (list.get(i).equalsStackID(stackID)) {
+          return true;
+        }
+      }
+      return false;
     }
 
     /**
@@ -564,14 +654,6 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
       return -1;
     }
 
-    private String getKey() {
-      int index = getHighlightedIndex();
-      if (index != -1 && index < list.size()) {
-        return list.get(index).getExpandedStack();
-      }
-      return null;
-    }
-
     private void copyDown() {
       int index = getHighlightedIndex();
       if (index != -1 && index < list.size() - 1) {
@@ -644,6 +726,25 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
     private void checkpoint() {
       for (int i = 0; i < list.size(); i++) {
         list.get(i).checkpoint();
+      }
+    }
+
+    public void setParameters(final BatchRunTomoMetaData metaData) {
+      load(metaData);
+      for (int i = 0; i < list.size(); i++) {
+        list.get(i).setParameters(metaData);
+      }
+    }
+
+    public void getParameters(final BatchRunTomoMetaData metaData) {
+      for (int i = 0; i < list.size(); i++) {
+        list.get(i).getParameters(metaData);
+      }
+    }
+
+    void saveAutodocs() {
+      for (int i = 0; i < list.size(); i++) {
+        list.get(i).saveAutodocs();
       }
     }
   }
