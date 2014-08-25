@@ -627,7 +627,7 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable {
     lsContourPieces.setValue(metaData.getContourPieces());
     ltfDefocus.setText(metaData.getDefocus());
     rtfAutoFitRangeAndStep.setSelected(metaData.isAutoFitRangeAndStep());
-    rtfAutoFitRangeAndStep.setText(metaData.getAutoFitRangeAndStep());
+    rtfAutoFitRangeAndStep.setText(metaData.getAutoFitRange());
     rbFitEveryImage.setSelected(metaData.isFitEveryImage());
     ltfAutoFitStep.setText(metaData.getAutoFitStep());
     ltfLeaveIterations.setText(metaData.getLeaveIterations());
@@ -650,7 +650,7 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable {
     metaData.setContourPieces(lsContourPieces.getValue());
     metaData.setDefocus(ltfDefocus.getText());
     metaData.setAutoFitRangeAndStep(rtfAutoFitRangeAndStep.isSelected());
-    metaData.setAutoFitRangeAndStep(rtfAutoFitRangeAndStep.getText());
+    metaData.setAutoFitRange(rtfAutoFitRangeAndStep.getText());
     metaData.setFitEveryImage(rbFitEveryImage.isSelected());
     metaData.setAutoFitStep(ltfAutoFitStep.getText());
     metaData.setLeaveIterations(ltfLeaveIterations.getText());
