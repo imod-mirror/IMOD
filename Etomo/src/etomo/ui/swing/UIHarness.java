@@ -511,6 +511,12 @@ public final class UIHarness {
     }
   }
 
+  public void updateFrame(BaseManager currentManager) {
+    if (isHead()) {
+      mainFrame.updateFrame(currentManager);
+    }
+  }
+
   public void setCurrentManager(BaseManager currentManager, UniqueKey managerKey) {
     if (isHead()) {
       mainFrame.setCurrentManager(currentManager, managerKey);
