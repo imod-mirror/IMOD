@@ -22,6 +22,7 @@ import etomo.logic.TrackingMethod;
 import etomo.storage.DirectiveDef;
 import etomo.storage.DirectiveFile;
 import etomo.storage.DirectiveFileCollection;
+import etomo.type.BatchRunTomoDatasetMetaData;
 import etomo.type.DataFileType;
 import etomo.type.DialogType;
 import etomo.type.EtomoNumber;
@@ -133,12 +134,13 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable {
 
     if (global) {
       dialog = null;
+      phRootHeader = PanelHeader.getInstance("Global Dataset Values", this,
+          DialogType.BATCH_RUN_TOMO);
     }
     else {
       dialog = new JDialog();
+      phRootHeader = null;
     }
-    phRootHeader = PanelHeader.getInstance("Global Dataset Values", this,
-        DialogType.BATCH_RUN_TOMO);
   }
 
   static BatchRunTomoDatasetDialog getGlobalInstance(final BaseManager manager) {
@@ -150,10 +152,20 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable {
     return instance;
   }
 
-  static BatchRunTomoDatasetDialog getIndividualInstance(final BaseManager manager,
+  static BatchRunTomoDatasetDialog getRowInstance(final BaseManager manager,
       final File datasetFile) {
     BatchRunTomoDatasetDialog instance = new BatchRunTomoDatasetDialog(manager,
         datasetFile, false);
+    instance.createPanel();
+    instance.copyFromGlobal();
+    instance.addListeners();
+    instance.setVisible(true);
+    return instance;
+  }
+
+  static BatchRunTomoDatasetDialog getSavedInstance(final BaseManager manager) {
+    BatchRunTomoDatasetDialog instance = new BatchRunTomoDatasetDialog(manager, null,
+        false);
     instance.createPanel();
     instance.copyFromGlobal();
     instance.addListeners();
@@ -243,12 +255,13 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable {
       else {
         key = path;
       }
-      int titleLen = 53;
+      int titleLen = 48;
       int keyLen = key.length();
       if (keyLen <= titleLen) {
         dialog.setTitle(key);
       }
       else {
+        System.out.println("A:keyLen:" + keyLen + ",titleLen:" + titleLen);
         dialog.setTitle("..." + key.substring(keyLen - titleLen - 3));
       }
     }
@@ -598,6 +611,51 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable {
 
   private void setDefaults() {
     rbUseSirtFalse.setSelected(true);
+  }
+
+  public void setParameters(final BatchRunTomoDatasetMetaData metaData) {
+    if (phRootHeader != null) {
+      phRootHeader.setButtonStates(metaData);
+    }
+    ftfModelFile.setText(metaData.getModelFile());
+    cbEnableStretching.setSelected(metaData.isEnableStretching());
+    cbLocalAlignments.setSelected(metaData.isLocalAlignments());
+    ltfGold.setText(metaData.getGold());
+    ltfTargetNumberOfBeads.setText(metaData.getTargetNumberOfBeads());
+    ltfLocalAreaTargetSize.setText(metaData.getLocalAreaTargetSize());
+    ltfSizeOfPatchesXandY.setText(metaData.getSizeOfPatchesXandY());
+    lsContourPieces.setValue(metaData.getContourPieces());
+    ltfDefocus.setText(metaData.getDefocus());
+    rtfAutoFitRangeAndStep.setSelected(metaData.isAutoFitRangeAndStep());
+    rtfAutoFitRangeAndStep.setText(metaData.getAutoFitRangeAndStep());
+    rbFitEveryImage.setSelected(metaData.isFitEveryImage());
+    ltfAutoFitStep.setText(metaData.getAutoFitStep());
+    ltfLeaveIterations.setText(metaData.getLeaveIterations());
+    cbScaleToInteger.setSelected(metaData.isScaleToInteger());
+  }
+
+  public void getParameters(final BatchRunTomoDatasetMetaData metaData) {
+    if (phRootHeader != null) {
+      phRootHeader.getButtonStates(metaData);
+    }
+    metaData.setModelFile(ftfModelFile.getFile());
+    metaData.setEnableStretching(cbEnableStretching.isSelected());
+    metaData.setLocalAlignments(cbLocalAlignments.isSelected());
+    metaData.setGold(ltfGold.getText());
+    metaData.setTargetNumberOfBeads(ltfTargetNumberOfBeads.getText());
+    metaData.setLocalAreaTargetSize(ltfLocalAreaTargetSize.getText());
+    metaData.setSizeOfPatchesXandY(ltfSizeOfPatchesXandY.getText());
+    metaData.setContourPieces(lsContourPieces.getValue());
+    metaData.setDefocus(ltfDefocus.getText());
+    metaData.setAutoFitRangeAndStep(rtfAutoFitRangeAndStep.isSelected());
+    metaData.setAutoFitRangeAndStep(rtfAutoFitRangeAndStep.getText());
+    metaData.setFitEveryImage(rbFitEveryImage.isSelected());
+    metaData.setAutoFitStep(ltfAutoFitStep.getText());
+    metaData.setLeaveIterations(ltfLeaveIterations.getText());
+    metaData.setScaleToInteger(cbScaleToInteger.isSelected());
+  }
+
+  void saveAutodoc() {
   }
 
   void setValues(final DirectiveFileCollection directiveFileCollection) {
