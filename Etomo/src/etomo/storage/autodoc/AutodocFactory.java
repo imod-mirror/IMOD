@@ -221,7 +221,21 @@ public final class AutodocFactory {
       return null;
     }
   }
-
+  public static WritableAutodoc getWritableInstance(final BaseManager manager,
+      final File file, final boolean debug) throws IOException, LogFile.LockException {
+    if (file == null) {
+      throw new IllegalStateException("file is null");
+    }
+    Autodoc autodoc = new Autodoc(stripFileExtension(file));
+    autodoc.setDebug(debug);
+    try {
+      autodoc.initializeWritableInstance(manager, file);
+      return autodoc;
+    }
+    catch (FileNotFoundException e) {
+      return null;
+    }
+  }
   private static String stripFileExtension(final File file) {
     return stripFileExtension(file.getName());
   }
