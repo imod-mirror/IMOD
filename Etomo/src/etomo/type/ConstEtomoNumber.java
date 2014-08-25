@@ -1150,6 +1150,10 @@ public abstract class ConstEtomoNumber implements Storable {
     return lt(getValue(), value);
   }
 
+  public boolean lt(String value) {
+    return lt(getValue(), newNumber(value, new StringBuffer()));
+  }
+
   public boolean ge(long value) {
     return ge(getValue(), value);
   }
