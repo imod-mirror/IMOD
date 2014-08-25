@@ -24,7 +24,7 @@ import etomo.util.DatasetFiles;
 * 
 * <p> $Log$ </p>
 */
-public final class BatchRunTomoMetaData extends BaseMetaData {
+public final class BatchRunTomoMetaData extends BaseMetaData implements HeaderMetaData {
   public static final String rcsid = "$Id:$";
 
   public static final String NEW_TITLE = "Batch Run Tomo";
