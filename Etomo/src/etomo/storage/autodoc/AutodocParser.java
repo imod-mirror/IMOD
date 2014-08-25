@@ -1,11 +1,15 @@
 package etomo.storage.autodoc;
 
+import java.io.File;
 import java.io.IOException;
 import java.lang.IllegalStateException;
 import java.io.FileNotFoundException;
 import java.util.Vector;
 
+import etomo.BaseManager;
 import etomo.storage.LogFile;
+import etomo.storage.autodoc.AutodocTokenizer.Location;
+import etomo.type.AxisID;
 import etomo.ui.swing.Token;
 
 /**
@@ -309,9 +313,9 @@ final class AutodocParser {
   private final boolean peetVariant;
 
   private AutodocTokenizer tokenizer;
-  private String name = null;
+  private final LogFile logFile;
   private int tokenIndex = 0;
-  private Autodoc autodoc = null;
+  private WriteOnlyStatementList autodoc = null;
   private Token token = null;
   private Token prevToken = null;
   private Token prevPrevToken = null;
@@ -340,17 +344,46 @@ final class AutodocParser {
 
   private boolean debug = false;
 
-  AutodocParser(final Autodoc autodoc, final boolean allowAltComment,
-      final boolean versionRequired, final boolean debug, final boolean peetVariant) {
+  private AutodocParser(final Autodoc autodoc, final boolean allowAltComment,
+      final boolean versionRequired, final boolean peetVariant, final Location location,
+      final String envVar, final String subdirName, final String name,
+      final File autodocFile, final BaseManager manager, final AxisID axisID,
+      final String notFoundMessage, final boolean debug) {
     this.debug = debug;
     this.peetVariant = peetVariant;
     if (autodoc == null) {
       throw new IllegalArgumentException("autodoc is null.");
     }
     this.autodoc = autodoc;
-    name = new String(autodoc.getName());
-    tokenizer = new AutodocTokenizer(autodoc.getAutodocFile(), allowAltComment, debug);
+    tokenizer = new AutodocTokenizer(allowAltComment, location, envVar, subdirName, name,
+        autodocFile, manager, axisID, notFoundMessage, debug);
+    logFile = tokenizer.getLogFile();
     this.versionRequired = versionRequired;
+  }
+
+  static AutodocParser getAutodocInstance(final Autodoc autodoc,
+      final boolean allowAltComment, final boolean versionRequired,
+      final boolean peetVariant, final String name, final BaseManager manager,
+      final AxisID axisID, final String notFoundMessage, final boolean debug) {
+    return new AutodocParser(autodoc, allowAltComment, versionRequired, peetVariant,
+        Location.AUTODOC, null, null, name, null, manager, axisID, notFoundMessage, debug);
+  }
+
+  static AutodocParser getGenericInstance(final Autodoc autodoc,
+      final boolean allowAltComment, final boolean versionRequired,
+      final boolean peetVariant, final String envVar, final String subdirName,
+      final String name, final BaseManager manager, final AxisID axisID,
+      final String notFoundMessage, final boolean debug) {
+    return new AutodocParser(autodoc, allowAltComment, versionRequired, peetVariant,
+        null, envVar, subdirName, name, null, manager, axisID, notFoundMessage, debug);
+  }
+
+  static AutodocParser getGenericInstance(final Autodoc autodoc,
+      final boolean allowAltComment, final boolean versionRequired,
+      final boolean peetVariant, final File autodocFile, final BaseManager manager,
+      final AxisID axisID, final String notFoundMessage, final boolean debug) {
+    return new AutodocParser(autodoc, allowAltComment, versionRequired, peetVariant,
+        null, null, null, null, autodocFile, manager, axisID, notFoundMessage, debug);
   }
 
   void initialize() throws FileNotFoundException, IOException, LogFile.LockException {
@@ -361,6 +394,31 @@ final class AutodocParser {
     return error;
   }
 
+  String getFileName() {
+    if (logFile == null) {
+      return "";
+    }
+    return logFile.getName();
+  }
+
+  boolean exists() {
+    if (logFile == null) {
+      return false;
+    }
+    return logFile.exists();
+  }
+
+  String getAbsolutePath() {
+    if (logFile == null) {
+      return "";
+    }
+    return logFile.getAbsolutePath();
+  }
+
+  LogFile getLogFile() {
+    return logFile;
+  }
+
   /**
    * Parses an autodoc file.
    * This function can be run only once per instance of the object.
@@ -368,6 +426,7 @@ final class AutodocParser {
    */
   void parse() throws IOException {
     autodoc();
+    tokenizer = null;
   }
 
   /**
@@ -1047,7 +1106,12 @@ final class AutodocParser {
     carat.append("^");
     if (!errorsFound) {
       errorsFound = true;
-      System.err.println("Errors in " + name);
+      if (logFile != null) {
+        System.err.println("Errors in " + logFile.getName());
+      }
+      else {
+        System.err.println("Errors found");
+      }
       System.err.println();
     }
     System.err.println(errorMessage);

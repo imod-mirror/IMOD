@@ -2,14 +2,17 @@ package etomo.ui.swing;
 
 import java.awt.Component;
 import java.awt.Container;
+import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 
+import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 import javax.swing.JSeparator;
 
 import etomo.type.BaseScreenState;
+import etomo.type.HeaderMetaData;
 import etomo.type.ConstPanelHeaderState;
 import etomo.type.DialogType;
 import etomo.type.PanelHeaderState;
@@ -182,6 +185,9 @@ final class PanelHeader implements Expandable {
     else {
       btnMoreLess = null;
     }
+    if (!advancedBasic&&!moreLess) {
+      northPanel.add(Box.createRigidArea(new Dimension(23, 0)));
+    }
     // rootPanel
     rootPanel.add(northPanel);
     separator.setMaximumSize(FixedDim.separator);
@@ -296,42 +302,42 @@ final class PanelHeader implements Expandable {
     }
   }
 
-  void setButtonStates(final BaseScreenState screenState) {
-    setButtonStates(screenState, true);
+  void setButtonStates(final HeaderMetaData metaData) {
+    setButtonStates(metaData, true);
   }
 
-  void setButtonStates(final BaseScreenState screenState, final boolean defaultIsOpen) {
-    if (screenState == null) {
+  void setButtonStates(final HeaderMetaData metaData, final boolean defaultIsOpen) {
+    if (metaData == null) {
       return;
     }
     if (btnOpenClose != null) {
-      btnOpenClose.setButtonState(screenState.getButtonState(
+      btnOpenClose.setButtonState(metaData.getButtonState(
           btnOpenClose.createButtonStateKey(dialogType), defaultIsOpen));
     }
     if (btnAdvancedBasic != null) {
-      btnAdvancedBasic.setButtonState(screenState.getButtonState(btnAdvancedBasic
+      btnAdvancedBasic.setButtonState(metaData.getButtonState(btnAdvancedBasic
           .createButtonStateKey(dialogType)));
     }
     if (btnMoreLess != null) {
-      btnMoreLess.setButtonState(screenState.getButtonState(btnMoreLess
+      btnMoreLess.setButtonState(metaData.getButtonState(btnMoreLess
           .createButtonStateKey(dialogType)));
     }
   }
 
-  void getButtonStates(final BaseScreenState screenState) {
-    if (screenState == null) {
+  void getButtonStates(final HeaderMetaData metaData) {
+    if (metaData == null) {
       return;
     }
     if (btnOpenClose != null) {
-      screenState.setButtonState(btnOpenClose.getButtonStateKey(),
+      metaData.setButtonState(btnOpenClose.getButtonStateKey(),
           btnOpenClose.getButtonState());
     }
     if (btnAdvancedBasic != null) {
-      screenState.setButtonState(btnAdvancedBasic.getButtonStateKey(),
+      metaData.setButtonState(btnAdvancedBasic.getButtonStateKey(),
           btnAdvancedBasic.getButtonState());
     }
     if (btnMoreLess != null) {
-      screenState.setButtonState(btnMoreLess.getButtonStateKey(),
+      metaData.setButtonState(btnMoreLess.getButtonStateKey(),
           btnMoreLess.getButtonState());
     }
   }

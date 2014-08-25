@@ -10,6 +10,7 @@ import etomo.EtomoDirector;
 import etomo.storage.AutodocFilter;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
+import etomo.type.FileType;
 
 /**
  * <p>Description: </p>
@@ -122,6 +123,7 @@ public final class AutodocFactory {
   public static final String XFALIGN = "xfalign";
   public static final String AUTOFIDSEED = "autofidseed";
   public static final String ETOMO = "etomo";
+  public static final String PROG_DEFAULTS = "progDefaults";
 
   private static final String TEST = "test";
   private static final String UITEST_AXIS = "uitest_axis";
@@ -153,6 +155,7 @@ public final class AutodocFactory {
   private static Autodoc XFALIGN_INSTANCE = null;
   private static Autodoc AUTOFIDSEED_INSTANCE = null;
   private static Autodoc ETOMO_INSTANCE = null;
+  private static Autodoc PROG_DEFAULTS_INSTANCE = null;
 
   private static final HashMap UITEST_AXIS_MAP = new HashMap();
 
@@ -161,11 +164,11 @@ public final class AutodocFactory {
 
   public static ReadOnlyAutodoc getInstance(BaseManager manager, String name)
       throws FileNotFoundException, IOException, LogFile.LockException {
-    return getInstance(manager, name, AxisID.ONLY);
+    return getInstance(manager, name, AxisID.ONLY, false);
   }
 
-  public static ReadOnlyAutodoc getInstance(BaseManager manager, String name,
-      AxisID axisID) throws FileNotFoundException, IOException, LogFile.LockException {
+  public static ReadOnlyAutodoc getComInstance(String name) throws FileNotFoundException,
+      IOException, LogFile.LockException {
     if (name == null) {
       throw new IllegalStateException("name is null");
     }
@@ -174,20 +177,14 @@ public final class AutodocFactory {
       return autodoc;
     }
     autodoc = new Autodoc(name);
-    if (name.equals(UITEST)) {
-      autodoc.initializeUITest(manager, name, axisID);
-    }
-    else if (name.equals(CPU)) {
-      autodoc.initializeCpu(manager, name, axisID);
-    }
-    else {
-      autodoc.initialize(manager, name, axisID);
-    }
+    autodoc.initializeGenericInstance(null, EtomoDirector.IMOD_DIR_ENV_VAR,
+        FileType.COM_DIR, name, AxisID.ONLY);
     return autodoc;
   }
 
-  public static ReadOnlyAutodoc getDebugInstance(BaseManager manager, String name,
-      AxisID axisID) throws FileNotFoundException, IOException, LogFile.LockException {
+  public static ReadOnlyAutodoc getInstance(final BaseManager manager, final String name,
+      final AxisID axisID, final boolean debug) throws FileNotFoundException,
+      IOException, LogFile.LockException {
     if (name == null) {
       throw new IllegalStateException("name is null");
     }
@@ -196,55 +193,54 @@ public final class AutodocFactory {
       return autodoc;
     }
     autodoc = new Autodoc(name);
-    autodoc.setDebug(true);
+    autodoc.setDebug(debug);
     if (name.equals(UITEST)) {
-      autodoc.initializeUITest(manager, name, axisID);
+      autodoc.initializeUITestInstance(manager, name, axisID);
     }
     if (name.equals(CPU)) {
-      autodoc.initializeCpu(manager, name, axisID);
+      autodoc.initializeCpuInstance(manager, name, axisID);
     }
     else {
-      autodoc.initialize(manager, name, axisID);
+      autodoc.initializeAutodocInstance(manager, name, axisID);
     }
     return autodoc;
   }
 
-  public static WritableAutodoc getMatlabDebugInstance(BaseManager manager, File file)
-      throws IOException, LogFile.LockException {
+  public static WritableAutodoc getMatlabInstance(final BaseManager manager,
+      final File file, final boolean debug) throws IOException, LogFile.LockException {
     if (file == null) {
       throw new IllegalStateException("file is null");
     }
-    Autodoc autodoc = new Autodoc(true, stripFileExtension(file));
-    autodoc.setDebug(true);
+    Autodoc autodoc = new Autodoc(stripFileExtension(file));
+    autodoc.setDebug(debug);
     try {
-      autodoc.initialize(manager, file, true, false, true, true);
+      autodoc.initializeMatlapInstance(manager, file);
       return autodoc;
     }
     catch (FileNotFoundException e) {
       return null;
     }
   }
-
-  public static WritableAutodoc getMatlabInstance(BaseManager manager, File file)
-      throws IOException, LogFile.LockException {
+  public static WritableAutodoc getWritableInstance(final BaseManager manager,
+      final File file, final boolean debug) throws IOException, LogFile.LockException {
     if (file == null) {
       throw new IllegalStateException("file is null");
     }
-    Autodoc autodoc = new Autodoc(true, stripFileExtension(file));
+    Autodoc autodoc = new Autodoc(stripFileExtension(file));
+    autodoc.setDebug(debug);
     try {
-      autodoc.initialize(manager, file, true, false, true, true);
+      autodoc.initializeWritableInstance(manager, file);
       return autodoc;
     }
     catch (FileNotFoundException e) {
       return null;
     }
   }
-
-  private static String stripFileExtension(File file) {
+  private static String stripFileExtension(final File file) {
     return stripFileExtension(file.getName());
   }
 
-  private static String stripFileExtension(String fileName) {
+  private static String stripFileExtension(final String fileName) {
     int extensionIndex = fileName.lastIndexOf('.');
     if (extensionIndex == -1) {
       return fileName;
@@ -252,14 +248,14 @@ public final class AutodocFactory {
     return fileName.substring(0, extensionIndex);
   }
 
-  public static WritableAutodoc getEmptyMatlabInstance(BaseManager manager, File file)
-      throws IOException, LogFile.LockException {
+  public static WritableAutodoc getEmptyMatlabInstance(final BaseManager manager,
+      final File file) throws IOException, LogFile.LockException {
     if (file == null) {
       throw new IllegalStateException("file is null");
     }
-    Autodoc autodoc = new Autodoc(true, stripFileExtension(file));
+    Autodoc autodoc = new Autodoc(stripFileExtension(file));
     try {
-      autodoc.initialize(manager, file, false, false, true, true);
+      autodoc.initializeEmptyMatlapInstance(manager, file);
       return autodoc;
     }
     catch (FileNotFoundException e) {
@@ -269,17 +265,12 @@ public final class AutodocFactory {
 
   public static ReadOnlyAutodoc getInstance(BaseManager manager, File file)
       throws IOException, LogFile.LockException {
-    return getInstance(manager, file, true);
-  }
-
-  public static ReadOnlyAutodoc getInstance(BaseManager manager, File file,
-      boolean versionRequired) throws IOException, LogFile.LockException {
     if (file == null) {
       throw new IllegalStateException("file is null");
     }
     Autodoc autodoc = new Autodoc(stripFileExtension(file));
     try {
-      autodoc.initialize(manager, file, true, versionRequired, false, false);
+      autodoc.initializeGenericInstance(manager, file, null);
       return autodoc;
     }
     catch (FileNotFoundException e) {
@@ -288,22 +279,27 @@ public final class AutodocFactory {
   }
 
   /**
-   * For testing initializes but doesn't parse and store data.  Call
-   * runInternalTest on the resulting instance.
+   * Initialize one of the known autodoc instances with a generic instance.  If the known
+   * autodoc has an instance assigned to it, this overrides the old instance with the one
+   * created here.
+   * @param manager
    * @param file
-   * @param storeData
+   * @param autodocName
    * @return
    * @throws IOException
-   * @throws LogFile.ReadException
+   * @throws LogFile.LockException
    */
-  public static ReadOnlyAutodoc getTestInstance(BaseManager manager, File file)
-      throws IOException, LogFile.LockException {
+  public static ReadOnlyAutodoc getInstance(BaseManager manager, File file,
+      final String autodocName) throws IOException, LogFile.LockException {
     if (file == null) {
       throw new IllegalStateException("file is null");
     }
     Autodoc autodoc = new Autodoc(stripFileExtension(file));
     try {
-      autodoc.initialize(manager, file, false, true, false, false);
+      autodoc.initializeGenericInstance(manager, file, null);
+      if (autodocName != null) {
+        setInstance(autodocName, autodoc);
+      }
       return autodoc;
     }
     catch (FileNotFoundException e) {
@@ -319,9 +315,9 @@ public final class AutodocFactory {
    * @throws FileNotFoundException
    * @throws IOException
    */
-  public static Autodoc getTestInstance(BaseManager manager, File directory,
-      String autodocFileName, AxisID axisID) throws FileNotFoundException, IOException,
-      LogFile.LockException {
+  public static Autodoc getTestInstance(final BaseManager manager, final File directory,
+      final String autodocFileName, final AxisID axisID) throws FileNotFoundException,
+      IOException, LogFile.LockException {
     if (autodocFileName == null) {
       return null;
     }
@@ -339,7 +335,7 @@ public final class AutodocFactory {
     }
     autodoc = new Autodoc(stripFileExtension(autodocFileName));
     UITEST_AXIS_MAP.put(autodocFile, autodoc);
-    autodoc.initializeUITestAxis(manager, LogFile.getInstance(autodocFile), axisID);
+    autodoc.initializeGenericInstance(manager, autodocFile, axisID);
     return autodoc;
   }
 
@@ -365,12 +361,8 @@ public final class AutodocFactory {
       System.err.println("autodoc file:" + autodocFile.getAbsolutePath());
     }
     Autodoc autodoc = new Autodoc(stripFileExtension(autodocFile.getName()));
-    autodoc.initialize(manager, LogFile.getInstance(autodocFile), axisID);
+    autodoc.initializeGenericInstance(manager, autodocFile, axisID);
     return autodoc;
-  }
-
-  public static void setAbsoluteDir(String absoluteDir) {
-    Autodoc.setAbsoluteDir(absoluteDir);
   }
 
   private static Autodoc getExistingUITestAxisAutodoc(File autodocFile) {
@@ -391,7 +383,7 @@ public final class AutodocFactory {
     throw new IllegalArgumentException("Illegal autodoc name: " + name + ".");
   }
 
-  private static Autodoc getExistingAutodoc(String name) {
+  private static Autodoc getExistingAutodoc(final String name) {
     if (name.equals(TILTXCORR)) {
       return TILTXCORR_INSTANCE;
     }
@@ -473,7 +465,14 @@ public final class AutodocFactory {
     if (name.equals(ETOMO)) {
       return ETOMO_INSTANCE;
     }
+    if (name.equals(PROG_DEFAULTS)) {
+      return PROG_DEFAULTS_INSTANCE;
+    }
     throw new IllegalArgumentException("Illegal autodoc name: " + name + ".");
+  }
+
+  public static boolean isLoaded(final String name) {
+    return getExistingAutodoc(name) != null;
   }
 
   /**
@@ -561,6 +560,104 @@ public final class AutodocFactory {
     }
     else if (name.equals(ETOMO)) {
       ETOMO_INSTANCE = null;
+    }
+    else if (name.equals(PROG_DEFAULTS)) {
+      PROG_DEFAULTS_INSTANCE = null;
+    }
+    else {
+      throw new IllegalArgumentException("Illegal autodoc name: " + name + ".");
+    }
+  }
+  
+  /**
+   * Override an old autodoc instance with a new one
+   * @param name
+   * @param autodoc
+   */
+  private static void setInstance(String name,final Autodoc autodoc) {
+    if (name.equals(TILTXCORR)) {
+      TILTXCORR_INSTANCE = autodoc;
+    }
+    else if (name.equals(TEST)) {
+      TEST_INSTANCE = autodoc;
+    }
+    else if (name.equals(UITEST)) {
+      UITEST_INSTANCE = autodoc;
+    }
+    else if (name.equals(MTF_FILTER)) {
+      MTF_FILTER_INSTANCE = autodoc;
+    }
+    else if (name.equals(NEWSTACK)) {
+      NEWSTACK_INSTANCE = autodoc;
+    }
+    else if (name.equals(CTF_PLOTTER)) {
+      CTF_PLOTTER_INSTANCE = autodoc;
+    }
+    else if (name.equals(CTF_PHASE_FLIP)) {
+      CTF_PHASE_FLIP_INSTANCE = autodoc;
+    }
+    else if (name.equals(FLATTEN_WARP)) {
+      FLATTEN_WARP_INSTANCE = autodoc;
+    }
+    else if (name.equals(WARP_VOL)) {
+      WARP_VOL_INSTANCE = autodoc;
+    }
+    else if (name.equals(FIND_BEADS_3D)) {
+      FIND_BEADS_3D_INSTANCE = autodoc;
+    }
+    else if (name.equals(COMBINE_FFT)) {
+      COMBINE_FFT_INSTANCE = autodoc;
+    }
+    else if (name.equals(TILTALIGN)) {
+      TILTALIGN_INSTANCE = autodoc;
+    }
+    else if (name.equals(CCDERASER)) {
+      CCDERASER_INSTANCE = autodoc;
+    }
+    else if (name.equals(SOLVEMATCH)) {
+      SOLVEMATCH_INSTANCE = autodoc;
+    }
+    else if (name.equals(BEADTRACK)) {
+      BEADTRACK_INSTANCE = autodoc;
+    }
+    else if (name.equals(CPU)) {
+      CPU_INSTANCE = autodoc;
+    }
+    else if (name.equals(DENS_MATCH)) {
+      DENS_MATCH_INSTANCE = autodoc;
+    }
+    else if (name.equals(CORR_SEARCH_3D)) {
+      CORR_SEARCH_3D_INSTANCE = autodoc;
+    }
+    else if (name.equals(XFJOINTOMO)) {
+      XFJOINTOMO_INSTANCE = autodoc;
+    }
+    else if (name.equals(PEET_PRM)) {
+      PEET_PRM_INSTANCE = autodoc;
+    }
+    else if (name.equals(TILT)) {
+      TILT_INSTANCE = autodoc;
+    }
+    else if (name.equals(SIRTSETUP)) {
+      SIRTSETUP_INSTANCE = autodoc;
+    }
+    else if (name.equals(BLENDMONT)) {
+      BLENDMONT_INSTANCE = autodoc;
+    }
+    else if (name.equals(XFTOXG)) {
+      XFTOXG_INSTANCE = autodoc;
+    }
+    else if (name.equals(XFALIGN)) {
+      XFALIGN_INSTANCE = autodoc;
+    }
+    else if (name.equals(AUTOFIDSEED)) {
+      AUTOFIDSEED_INSTANCE = autodoc;
+    }
+    else if (name.equals(ETOMO)) {
+      ETOMO_INSTANCE = autodoc;
+    }
+    else if (name.equals(PROG_DEFAULTS)) {
+      PROG_DEFAULTS_INSTANCE = autodoc;
     }
     else {
       throw new IllegalArgumentException("Illegal autodoc name: " + name + ".");

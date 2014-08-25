@@ -166,6 +166,15 @@ final class ExpandButton extends MultiLineButton {
     return instance;
   }
 
+  static ExpandButton getInstance(final Expandable expandable1,
+      final Expandable expandable2, ExpandButton.Type type) {
+    if (type == null) {
+      type = DEFAULT_TYPE;
+    }
+    ExpandButton instance = new ExpandButton(expandable1, expandable2, type, null);
+    return instance;
+  }
+
   static ExpandButton getGlobalInstance(final Expandable expandable1,
       ExpandButton.Type type, final GlobalExpandButton globalExpandButton) {
     if (type == null) {

@@ -127,8 +127,11 @@
  */
 package etomo.ui.swing;
 
+import java.awt.Color;
 import java.awt.Container;
 import java.awt.Dimension;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.awt.event.MouseListener;
 
 import javax.swing.Box;
@@ -138,6 +141,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
+import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import etomo.EtomoDirector;
@@ -145,9 +149,12 @@ import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.EtomoNumber;
 import etomo.type.UITestFieldType;
+import etomo.ui.Field;
+import etomo.ui.TextFieldInterface;
 import etomo.util.Utilities;
 
-final class LabeledSpinner {
+final class LabeledSpinner implements Field, TextFieldInterface, ChangeListener,
+    FocusListener {
   public static final String rcsid = "$Id$";
 
   private final JPanel panel = new JPanel();
@@ -160,6 +167,12 @@ final class LabeledSpinner {
   private int maximum;
 
   private Number checkpointValue = null;
+  private Number backupValue = null;
+  private boolean fieldIsBackedUp = false;
+  private boolean useFieldHighlight = false;
+  private Number fieldHighlightValue = null;
+  private Color origLabelForeground = null;
+  private Color origTextForeground = null;
 
   /**
    * @param spinner
@@ -236,8 +249,140 @@ final class LabeledSpinner {
     return label.getText();
   }
 
-  void checkpoint() {
+  public void checkpoint() {
     checkpointValue = getValue();
+  }
+
+  void checkpoint(final LabeledSpinner from) {
+    if (from == null) {
+      return;
+    }
+    checkpointValue = from.checkpointValue;
+  }
+
+  public void backup() {
+    backupValue = getValue();
+    fieldIsBackedUp = true;
+  }
+
+  public void useDefaultValue() {
+  }
+
+  /**
+   * If the field was backed up, make the backup value the displayed value, and turn off
+   * the back up.
+   */
+  public void restoreFromBackup() {
+    if (fieldIsBackedUp) {
+      spinner.setValue(backupValue);
+      fieldIsBackedUp = false;
+    }
+  }
+
+  public void clear() {
+    spinner.setValue(minimum);
+  }
+
+  public void copy(final Field copyFrom) {
+    if (copyFrom == null) {
+      return;
+    }
+    setText(copyFrom.getText());
+  }
+
+  public boolean isSelected() {
+    return false;
+  }
+
+  public String getText() {
+    return getValue().toString();
+  }
+
+  public void setFieldHighlightValue(final String value) {
+    if (!useFieldHighlight) {
+      useFieldHighlight = true;
+      spinner.addChangeListener(this);
+      spinner.addFocusListener(this);
+    }
+    EtomoNumber number = new EtomoNumber();
+    number.set(value);
+    String errmsg = number.validate(null);
+    System.err.println(errmsg);
+    fieldHighlightValue = number.getNumber();
+    updateFieldHighlight();
+  }
+
+  void setFieldHighlightValue(final LabeledSpinner from) {
+    if (from == null) {
+      return;
+    }
+    if (from.useFieldHighlight) {
+      setFieldHighlightValue(from.fieldHighlightValue.toString());
+    }
+    else if (useFieldHighlight) {
+      useFieldHighlight = false;
+      spinner.removeChangeListener(this);
+      spinner.removeFocusListener(this);
+      fieldHighlightValue = null;
+      updateFieldHighlight();
+    }
+  }
+  
+  public void clearFieldHighlightValue() {
+    useFieldHighlight = false;
+    spinner.removeChangeListener(this);
+    spinner.removeFocusListener(this);
+    fieldHighlightValue = null;
+    updateFieldHighlight();
+  }
+
+  public void stateChanged(ChangeEvent e) {
+    updateFieldHighlight();
+  }
+
+  public void focusGained(final FocusEvent event) {
+  }
+
+  public void focusLost(final FocusEvent event) {
+    updateFieldHighlight();
+  }
+
+  /**
+   * If the field highlight is in use, use the field highlight color on the foreground of
+   * the text field if the value of the text field equals the field highlight value.  Save
+   * the original foreground.  If the field highlight is in use and the value of the text
+   * field does not equal the field highlight value, try to restore the original
+   * foreground - or set a foreground color similar to the original one.  Assumes that
+   * field highlight is not used when the field is disabled.
+   */
+  void updateFieldHighlight() {
+    if (useFieldHighlight) {
+      Number number = getValue();
+      if ((fieldHighlightValue != null && fieldHighlightValue.equals(number))
+          || (fieldHighlightValue == null && number == null)) {
+        if (origTextForeground == null) {
+          origTextForeground = spinner.getForeground();
+          if (origTextForeground == null) {
+            origTextForeground = Color.BLACK;
+          }
+        }
+        if (origLabelForeground == null) {
+          origLabelForeground = label.getForeground();
+          if (origLabelForeground == null) {
+            origLabelForeground = Color.BLACK;
+          }
+        }
+        label.setForeground(Colors.FIELD_HIGHLIGHT);
+        spinner.setForeground(Colors.FIELD_HIGHLIGHT);
+      }
+      return;
+    }
+    if (origTextForeground != null) {
+      spinner.setForeground(origTextForeground);
+    }
+    if (origLabelForeground != null) {
+      label.setForeground(origLabelForeground);
+    }
   }
 
   /**
@@ -248,6 +393,21 @@ final class LabeledSpinner {
       return;
     }
     setValue(checkpointValue.intValue());
+  }
+
+  /**
+   * 
+   * @param alwaysCheck - check for difference even when the field is disables or invisible
+   * @return
+   */
+  public boolean isDifferentFromCheckpoint(final boolean alwaysCheck) {
+    if (!alwaysCheck && (!isEnabled() || !isVisible())) {
+      return false;
+    }
+    if (checkpointValue == null) {
+      return true;
+    }
+    return !checkpointValue.equals(getValue());
   }
 
   Number getValue() {
@@ -274,6 +434,21 @@ final class LabeledSpinner {
     }
   }
 
+  public void setText(final String value) {
+    setValue(value);
+  }
+
+  void setValue(final String value) {
+    if (value == null || value.matches("\\s*")) {
+      spinner.setValue(defaultValue);
+    }
+    else {
+      EtomoNumber number = new EtomoNumber();
+      number.set(value);
+      setValue(number);
+    }
+  }
+
   void setValue(final int value) {
     if (value == EtomoNumber.INTEGER_NULL_VALUE) {
       spinner.setValue(defaultValue);
@@ -286,6 +461,9 @@ final class LabeledSpinner {
   void setEnabled(final boolean isEnabled) {
     spinner.setEnabled(isEnabled);
     label.setEnabled(isEnabled);
+    if (isEnabled) {
+      updateFieldHighlight();
+    }
   }
 
   boolean isEnabled() {
