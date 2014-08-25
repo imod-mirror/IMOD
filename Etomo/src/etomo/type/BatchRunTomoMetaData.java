@@ -1,5 +1,11 @@
 package etomo.type;
 
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Properties;
+
+import etomo.BatchRunTomoManager;
 import etomo.ui.LogProperties;
 import etomo.util.DatasetFiles;
 
@@ -21,17 +27,30 @@ import etomo.util.DatasetFiles;
 public final class BatchRunTomoMetaData extends BaseMetaData {
   public static final String rcsid = "$Id:$";
 
-  private static final DialogType DIALOG_TYPE = DialogType.BATCH_RUN_TOMO;
-
   public static final String NEW_TITLE = "Batch Run Tomo";
-  static final String GROUP_KEY = "BatchRunTomo";
+
+  private final PanelHeaderState datasetHeaderState = new PanelHeaderState(getGroupKey()
+      + ".");
+  // Key is stackID
+  private final Map<String, BatchRunTomoRowMetaData> rowMetaDataMap = new HashMap<String, BatchRunTomoRowMetaData>();
+  // metadata for the global dataset dialog
+  private final BatchRunTomoDatasetMetaData datasetMetaData = new BatchRunTomoDatasetMetaData(
+      TableReference.getBaseID(BatchRunTomoManager.STACK_REFERENCE_PREFIX));
+
+  private final TableReference tableReference;
 
   private String rootName = null;
 
-  public BatchRunTomoMetaData(final LogProperties logProperties) {
+  public BatchRunTomoMetaData(final LogProperties logProperties,
+      final TableReference tableReference) {
     super(logProperties);
+    this.tableReference = tableReference;
     axisType = AxisType.SINGLE_AXIS;
     fileExtension = DataFileType.BATCH_RUN_TOMO.extension;
+  }
+
+  public void setName(final String rootName) {
+    this.rootName = rootName;
   }
 
   public String getDatasetName() {
@@ -61,7 +80,7 @@ public final class BatchRunTomoMetaData extends BaseMetaData {
   }
 
   String getGroupKey() {
-    return GROUP_KEY;
+    return "meta";
   }
 
   public String getName() {
@@ -69,5 +88,60 @@ public final class BatchRunTomoMetaData extends BaseMetaData {
       return NEW_TITLE;
     }
     return rootName;
+  }
+
+  /**
+   * Better quality createPrepend.  Parent createPrepend cannot be improved without
+   * breaking backwards compatibility.
+   */
+  String createPrepend(String prepend) {
+    if (prepend == null || prepend.matches("\\s*")) {
+      return getGroupKey();
+    }
+    prepend = prepend.trim();
+    if (prepend.endsWith(".")) {
+      return prepend + getGroupKey();
+    }
+    return prepend + "." + getGroupKey();
+  }
+
+  public void load(final Properties props, String prepend) {
+    super.load(props, prepend);
+    // reset
+    rowMetaDataMap.clear();
+    // load
+    prepend = createPrepend(prepend);
+    tableReference.load(props, prepend);
+    Iterator<String> iterator = tableReference.idIterator();
+    while (iterator.hasNext()) {
+      String stackID = iterator.next();
+      if (BatchRunTomoRowMetaData.isDisplay(props, prepend, stackID)) {
+        BatchRunTomoRowMetaData rowMetaData = new BatchRunTomoRowMetaData(stackID);
+        rowMetaData.load(props, prepend);
+        rowMetaDataMap.put(stackID, rowMetaData);
+      }
+    }
+  }
+
+  public void store(Properties props, String prepend) {
+    prepend = createPrepend(prepend);
+    tableReference.store(props, prepend);
+    Iterator<BatchRunTomoRowMetaData> iterator = rowMetaDataMap.values().iterator();
+    while (iterator.hasNext()) {
+      iterator.next().store(props, prepend);
+    }
+  }
+
+  public BatchRunTomoRowMetaData getRowMetaData(final String stackID) {
+    return rowMetaDataMap.get(stackID);
+  }
+
+  public BatchRunTomoDatasetMetaData getDatasetMetaData() {
+    return datasetMetaData;
+  }
+
+  public boolean isDisplay(final String stackID) {
+    BatchRunTomoRowMetaData rowMetaData = rowMetaDataMap.get(stackID);
+    return rowMetaData != null && rowMetaData.isDisplay();
   }
 }
