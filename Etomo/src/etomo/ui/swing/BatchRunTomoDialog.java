@@ -24,6 +24,7 @@ import etomo.type.AxisID;
 import etomo.type.BatchRunTomoMetaData;
 import etomo.type.DialogType;
 import etomo.type.DirectiveFileType;
+import etomo.type.TableReference;
 import etomo.type.UserConfiguration;
 import etomo.ui.BatchRunTomoTab;
 import etomo.ui.FieldType;
@@ -78,7 +79,7 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
   private final JPanel pnlDatasetTableBody = new JPanel();
   private final JPanel pnlUntitledTable = new JPanel();
 
-  private final FileTextField2 ftfRootName;
+  private final FileTextField2 ftfRootDir;
   private final FileTextField2 ftfInputDirectiveFile;
   private final TemplatePanel templatePanel;
   private final FileTextField2 ftfDeliverToDirectory;
@@ -91,15 +92,16 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
 
   private BatchRunTomoTab curTab = null;
 
-  private BatchRunTomoDialog(final BatchRunTomoManager manager, final AxisID axisID) {
+  private BatchRunTomoDialog(final BatchRunTomoManager manager, final AxisID axisID,
+      final TableReference tableReference) {
     this.manager = manager;
     this.axisID = axisID;
-    ftfRootName = FileTextField2.getAltLayoutInstance(manager, "Location: ");
+    ftfRootDir = FileTextField2.getAltLayoutInstance(manager, "Location: ");
     ftfInputDirectiveFile = FileTextField2.getAltLayoutInstance(manager,
         "Starting directive file: ");
     ftfDeliverToDirectory = FileTextField2.getAltLayoutInstance(manager,
         DELIVER_TO_DIRECTORY_NAME + ": ");
-    table = BatchRunTomoTable.getInstance(manager, this);
+    table = BatchRunTomoTable.getInstance(manager, this, tableReference);
     datasetDialog = BatchRunTomoDatasetDialog.getGlobalInstance(manager);
     directiveFileCollection = new DirectiveFileCollection(manager, axisID);
     templatePanel = TemplatePanel.getBorderlessInstance(manager, axisID, null, null,
@@ -108,8 +110,8 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
   }
 
   public static BatchRunTomoDialog getInstance(final BatchRunTomoManager manager,
-      final AxisID axisID) {
-    BatchRunTomoDialog instance = new BatchRunTomoDialog(manager, axisID);
+      final AxisID axisID, final TableReference tableReference) {
+    BatchRunTomoDialog instance = new BatchRunTomoDialog(manager, axisID, tableReference);
     instance.createPanel();
     instance.addListeners();
     instance.addtooltips();
@@ -131,7 +133,7 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
     btnRun.setToPreferredSize();
     tabbedPane.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
     // defaults
-    ftfRootName.setText(new File(System.getProperty("user.dir")).getAbsolutePath());
+    ftfRootDir.setText(new File(System.getProperty("user.dir")).getAbsolutePath());
     ltfRootName.setText(Utilities.getDateTimeStampRootName());
     cbDeliverToDirectory.setName(DELIVER_TO_DIRECTORY_NAME);
     cbUseCPUMachineList
@@ -202,7 +204,7 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
     pnlRootName.setBorder(new EtchedBorder("Batchruntomo Project Files").getBorder());
     pnlRootName.add(ltfRootName.getComponent());
     pnlRootName.add(Box.createRigidArea(FixedDim.x0_y2));
-    pnlRootName.add(ftfRootName.getRootPanel());
+    pnlRootName.add(ftfRootDir.getRootPanel());
     // Templates
     pnlTemplates.setLayout(new BoxLayout(pnlTemplates, BoxLayout.X_AXIS));
     pnlTemplates.add(templatePanel.getComponent());
@@ -216,7 +218,7 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
     UIUtilities.alignComponentsX(pnlBatch, Component.LEFT_ALIGNMENT);
     UIUtilities.alignComponentsX(pnlRoot, Component.LEFT_ALIGNMENT);
     // update
-    processResult(ftfRootName);
+    processResult(ftfRootDir);
     stateChanged(null);
     msgDirectivesChanged(true);
     updateDisplay();
@@ -234,6 +236,20 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
   }
 
   public void setParameters(final BatchRunTomoMetaData metaData) {
+    table.setParameters(metaData);
+    datasetDialog.setParameters(metaData.getDatasetMetaData());
+    phDatasetTable.setButtonStates(metaData);
+  }
+
+  public void getParameters(final BatchRunTomoMetaData metaData) {
+    table.getParameters(metaData);
+    datasetDialog.getParameters(metaData.getDatasetMetaData());
+    phDatasetTable.getButtonStates(metaData);
+  }
+
+  public void saveAutodocs() {
+    table.saveAutodocs();
+    datasetDialog.saveAutodoc();
   }
 
   /**
@@ -301,9 +317,27 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
     }
   }
 
+  public String getRootName() {
+    return ltfRootName.getText();
+  }
+
+  public boolean isRootNameEmpty() {
+    String rootName = ltfRootName.getText();
+    return rootName != null && rootName.matches("\\s*");
+  }
+
+  public File getRootDir() {
+    return ftfRootDir.getFile();
+  }
+
+  public boolean isRootDirEmpty() {
+    String rootDir = ftfRootDir.getText();
+    return rootDir != null && rootDir.matches("\\s*");
+  }
+
   public void processResult(final Object object) {
-    if (object == ftfRootName) {
-      File rootLocation = ftfRootName.getFile();
+    if (object == ftfRootDir) {
+      File rootLocation = ftfRootDir.getFile();
       if (rootLocation != null) {
         table.setCurrentDirectory(rootLocation.getAbsolutePath());
       }
