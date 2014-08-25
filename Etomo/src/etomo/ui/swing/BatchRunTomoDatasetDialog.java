@@ -632,6 +632,8 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable {
     ltfAutoFitStep.setText(metaData.getAutoFitStep());
     ltfLeaveIterations.setText(metaData.getLeaveIterations());
     cbScaleToInteger.setSelected(metaData.isScaleToInteger());
+    tfExtraThickness.setText(metaData.getExtraThickness());
+    ltfFallbackThickness.setText(metaData.getFallbackThickness());
   }
 
   public void getParameters(final BatchRunTomoDatasetMetaData metaData) {
@@ -653,6 +655,8 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable {
     metaData.setAutoFitStep(ltfAutoFitStep.getText());
     metaData.setLeaveIterations(ltfLeaveIterations.getText());
     metaData.setScaleToInteger(cbScaleToInteger.isSelected());
+    metaData.setExtraThickness(tfExtraThickness.getText());
+    metaData.setFallbackThickness(ltfFallbackThickness.getText());
   }
 
   void saveAutodoc() {
