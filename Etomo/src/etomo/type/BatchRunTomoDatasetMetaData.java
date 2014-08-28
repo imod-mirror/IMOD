@@ -18,12 +18,12 @@ import java.util.Properties;
 * 
 * <p> $Log$ </p>
 */
-public final class BatchRunTomoDatasetMetaData implements HeaderMetaDataInterface {
+public final class BatchRunTomoDatasetMetaData {
   public static final String rcsid = "$Id:$";
 
   private static final String GROUP_KEY = "dataset";
+  private static final String HEADER_KEY = "header";
 
-  private final HeaderMetaData headerMetaData = new HeaderMetaData();
   private final StringProperty modelFile = new StringProperty("ModelFile");
   private final EtomoBoolean2 enableStretching = new EtomoBoolean2("enableStretching");
   private final EtomoBoolean2 localAlignments = new EtomoBoolean2("LocalAlignments");
@@ -45,32 +45,36 @@ public final class BatchRunTomoDatasetMetaData implements HeaderMetaDataInterfac
       "autoFitStep");
   private final StringProperty leaveIterations = new StringProperty("LeaveIterations");
   private final EtomoBoolean2 scaleToInteger = new EtomoBoolean2("ScaleToInteger");
+  private final EtomoNumber thickness = new EtomoNumber("THICKNESS");
+  private final EtomoNumber binnedThickness = new EtomoNumber("binnedThickness");
   private final EtomoNumber extraThickness = new EtomoNumber("extraThickness");
   private final EtomoNumber fallbackThickness = new EtomoNumber("fallbackThickness");
 
-  private final String stackID;
+  private PanelHeaderSettings header = null;
 
-  BatchRunTomoDatasetMetaData(final String stackID) {
-    this.stackID = stackID;
+  BatchRunTomoDatasetMetaData() {
   }
 
-  private String getGroupKey() {
-    return GROUP_KEY + "." + stackID;
-  }
-
-  private String createPrepend(String prepend) {
+  public static String createPrepend(String prepend) {
     if (prepend == null || prepend.matches("\\s*")) {
-      return getGroupKey();
+      return GROUP_KEY;
     }
     prepend = prepend.trim();
     if (prepend.endsWith(".")) {
-      return prepend + getGroupKey();
+      return prepend + GROUP_KEY;
     }
-    return prepend + "." + getGroupKey();
+    return prepend + "." + GROUP_KEY;
   }
 
-  public void load(final Properties props, String prepend) {
-    // reset
+  static boolean exists(final Properties props, String prepend) {
+    prepend = createPrepend(prepend);
+    return props.containsKey(prepend);
+  }
+
+  void reset() {
+    if (header != null) {
+      header.reset();
+    }
     modelFile.reset();
     enableStretching.reset();
     localAlignments.reset();
@@ -86,10 +90,18 @@ public final class BatchRunTomoDatasetMetaData implements HeaderMetaDataInterfac
     autoFitStep.reset();
     leaveIterations.reset();
     scaleToInteger.reset();
+    thickness.reset();
+    binnedThickness.reset();
     extraThickness.reset();
     fallbackThickness.reset();
+  }
+
+  public void load(final Properties props, String prepend) {
+    // reset
+    reset();
     // load
     prepend = createPrepend(prepend);
+    header = PanelHeaderSettings.load(header, HEADER_KEY, props, prepend);
     modelFile.load(props, prepend);
     enableStretching.load(props, prepend);
     localAlignments.load(props, prepend);
@@ -105,12 +117,17 @@ public final class BatchRunTomoDatasetMetaData implements HeaderMetaDataInterfac
     autoFitStep.load(props, prepend);
     leaveIterations.load(props, prepend);
     scaleToInteger.load(props, prepend);
+    thickness.load(props, prepend);
+    binnedThickness.load(props, prepend);
     extraThickness.load(props, prepend);
     fallbackThickness.load(props, prepend);
   }
 
   public void store(Properties props, String prepend) {
     prepend = createPrepend(prepend);
+    if (header != null) {
+      header.store(props, prepend);
+    }
     modelFile.store(props, prepend);
     enableStretching.store(props, prepend);
     localAlignments.store(props, prepend);
@@ -126,8 +143,50 @@ public final class BatchRunTomoDatasetMetaData implements HeaderMetaDataInterfac
     autoFitStep.store(props, prepend);
     leaveIterations.store(props, prepend);
     scaleToInteger.store(props, prepend);
+    thickness.store(props, prepend);
+    binnedThickness.store(props, prepend);
     extraThickness.store(props, prepend);
     fallbackThickness.store(props, prepend);
+  }
+
+  public void remove(Properties props, String prepend) {
+    prepend = createPrepend(prepend);
+    if (header != null) {
+      header.remove(props, prepend);
+    }
+    modelFile.remove(props, prepend);
+    enableStretching.remove(props, prepend);
+    localAlignments.remove(props, prepend);
+    gold.remove(props, prepend);
+    targetNumberOfBeads.remove(props, prepend);
+    localAreaTargetSize.remove(props, prepend);
+    sizeOfPatchesXandY.remove(props, prepend);
+    contourPieces.remove(props, prepend);
+    defocus.remove(props, prepend);
+    autoFitRangeAndStep.remove(props, prepend);
+    autoFitRange.remove(props, prepend);
+    fitEveryImage.remove(props, prepend);
+    autoFitStep.remove(props, prepend);
+    leaveIterations.remove(props, prepend);
+    scaleToInteger.remove(props, prepend);
+    thickness.remove(props, prepend);
+    binnedThickness.remove(props, prepend);
+    extraThickness.remove(props, prepend);
+    fallbackThickness.remove(props, prepend);
+  }
+
+  public ConstPanelHeaderSettings getHeader() {
+    return header;
+  }
+
+  public void setHeader(final ConstPanelHeaderSettings input) {
+    if (input == null) {
+      return;
+    }
+    if (header == null) {
+      header = new PanelHeaderSettings(HEADER_KEY);
+    }
+    header.set(input);
   }
 
   public void setFitEveryImage(final boolean input) {
@@ -176,6 +235,22 @@ public final class BatchRunTomoDatasetMetaData implements HeaderMetaDataInterfac
 
   public String getDefocus() {
     return defocus.toString();
+  }
+
+  public void setThickness(final String input) {
+    thickness.set(input);
+  }
+
+  public String getThickness() {
+    return thickness.toString();
+  }
+
+  public void setBinnedThickness(final String input) {
+    binnedThickness.set(input);
+  }
+
+  public String getBinnedThickness() {
+    return binnedThickness.toString();
   }
 
   public void setExtraThickness(final String input) {
