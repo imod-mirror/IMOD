@@ -24,6 +24,7 @@ import etomo.type.AxisID;
 import etomo.type.BatchRunTomoMetaData;
 import etomo.type.DialogType;
 import etomo.type.DirectiveFileType;
+import etomo.type.FileType;
 import etomo.type.TableReference;
 import etomo.type.UserConfiguration;
 import etomo.ui.BatchRunTomoTab;
@@ -238,18 +239,18 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
   public void setParameters(final BatchRunTomoMetaData metaData) {
     table.setParameters(metaData);
     datasetDialog.setParameters(metaData.getDatasetMetaData());
-    phDatasetTable.setButtonStates(metaData);
+    phDatasetTable.set(metaData.getDatasetTableHeader());
   }
 
   public void getParameters(final BatchRunTomoMetaData metaData) {
     table.getParameters(metaData);
     datasetDialog.getParameters(metaData.getDatasetMetaData());
-    phDatasetTable.getButtonStates(metaData);
+    metaData.setDatasetTableHeader(phDatasetTable);
   }
 
   public void saveAutodocs() {
     table.saveAutodocs();
-    datasetDialog.saveAutodoc();
+    datasetDialog.saveAutodoc(FileType.BATCH_RUN_TOMO_GLOBAL_AUTODOC);
   }
 
   /**
