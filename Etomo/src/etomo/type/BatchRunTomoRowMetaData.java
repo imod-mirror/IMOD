@@ -25,7 +25,6 @@ public final class BatchRunTomoRowMetaData {
 
   private EtomoBoolean2 display = new EtomoBoolean2(DISPLAY_KEY);
   private final StringProperty bskip = new StringProperty("bskip");
-  private EtomoBoolean2 run = new EtomoBoolean2("run");
 
   private BatchRunTomoDatasetMetaData datasetMetaData = null;
 
@@ -72,20 +71,47 @@ public final class BatchRunTomoRowMetaData {
 
   public void load(final Properties props, String prepend) {
     // reset
+    display.reset();
     bskip.reset();
     // load
     prepend = createPrepend(prepend);
+    display.load(props, prepend);
     bskip.load(props, prepend);
+    if (BatchRunTomoDatasetMetaData.exists(props, prepend)) {
+      if (datasetMetaData == null) {
+        datasetMetaData = new BatchRunTomoDatasetMetaData();
+      }
+      datasetMetaData.load(props, prepend);
+    }
   }
 
-  public void store(Properties props, String prepend) {
+  public void store(final Properties props, String prepend) {
     prepend = createPrepend(prepend);
-    bskip.store(props, prepend);
+    display.store(props, prepend);
+    if (display.is()) {
+      bskip.store(props, prepend);
+      if (datasetMetaData != null) {
+        datasetMetaData.store(props, prepend);
+      }
+    }
+    else {
+      // remove
+      bskip.remove(props, prepend);
+      // reset
+      bskip.reset();
+      if (datasetMetaData != null) {
+        // remove
+        datasetMetaData.remove(props, prepend);
+        // reset
+        datasetMetaData.reset();
+        datasetMetaData = null;
+      }
+    }
   }
 
   public void setDatasetDialog(final boolean input) {
     if (input) {
-      datasetMetaData = new BatchRunTomoDatasetMetaData(stackID);
+      datasetMetaData = new BatchRunTomoDatasetMetaData();
     }
   }
 
@@ -94,7 +120,18 @@ public final class BatchRunTomoRowMetaData {
   }
 
   public BatchRunTomoDatasetMetaData getDatasetMetaData() {
+    if (datasetMetaData == null) {
+      datasetMetaData = new BatchRunTomoDatasetMetaData();
+    }
     return datasetMetaData;
+  }
+
+  public void setDisplay(final boolean input) {
+    display.set(input);
+  }
+
+  public boolean isDisplay() {
+    return display.is();
   }
 
   public void setBskip(final String input) {
@@ -103,17 +140,5 @@ public final class BatchRunTomoRowMetaData {
 
   public String getBskip() {
     return bskip.toString();
-  }
-
-  public void setRun(final boolean input) {
-    run.set(input);
-  }
-
-  public boolean isRun() {
-    return run.is();
-  }
-
-  boolean isDisplay() {
-    return display.is();
   }
 }
