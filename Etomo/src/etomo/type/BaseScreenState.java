@@ -21,20 +21,19 @@ import etomo.storage.Storable;
  * 
  * @version $Revision$
  */
-public class BaseScreenState implements Storable, HeaderMetaDataInterface {
+public class BaseScreenState implements Storable {
   public static final String rcsid = "$Id$";
-
   public static final String PARALLEL_HEADER_GROUP = "ParallelProcess.Header";
 
   private final PanelHeaderState parallelHeaderState = new PanelHeaderState(
       PARALLEL_HEADER_GROUP);
-  private final HeaderMetaData headerMetaData = new HeaderMetaData();
 
   protected final AxisID axisID;
   private final AxisType axisType;
   private final String group;
   private Properties localProperties = null;
-  private String localPrepend = null;// the prepend used to save to localProperties
+  private String localPrepend = null;//the prepend used to save to localProperties
+  private HashSet keys = null;
 
   public BaseScreenState(AxisID axisID, AxisType axisType) {
     if (axisID == AxisID.ONLY && axisType == AxisType.DUAL_AXIS) {
@@ -66,8 +65,22 @@ public class BaseScreenState implements Storable, HeaderMetaDataInterface {
    * @return
    */
   public final boolean getButtonState(String key, boolean defaultState) {
-    return headerMetaData
-        .getButtonState(key, defaultState, localProperties, localPrepend);
+    if (key == null) {
+      return defaultState;
+    }
+    if (keys == null) {
+      keys = new HashSet();
+    }
+    keys.add(key);
+    if (localProperties == null) {
+      return defaultState;
+    }
+    EtomoState buttonState = new EtomoState(key);
+    buttonState.load(localProperties, localPrepend);
+    if (buttonState.isNull()) {
+      return defaultState;
+    }
+    return buttonState.is();
   }
 
   /**
@@ -103,10 +116,26 @@ public class BaseScreenState implements Storable, HeaderMetaDataInterface {
    * @param props
    * @param prepend
    */
-  void store(Properties props, String prepend) {
+  protected void store(Properties props, String prepend) {
     prepend = getPrepend(prepend);
     parallelHeaderState.store(props, prepend);
-    headerMetaData.store(props, prepend, localProperties, localPrepend);
+    if (keys == null || localProperties == null) {
+      //nothing to store
+      return;
+    }
+    synchronized (this) {
+      Iterator i = keys.iterator();
+      String key = null;
+      while (i.hasNext()) {
+        key = (String) i.next();
+        //get the value from the local property using the local prepend
+        String state = localProperties.getProperty(localPrepend + '.' + key);
+        if (state != null) {
+          //store the value in props using the modified prepend parameter
+          props.setProperty(prepend + '.' + key, state);
+        }
+      }
+    }
   }
 
   public void load(Properties props) {
