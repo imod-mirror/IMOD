@@ -128,6 +128,8 @@ public final class FileType {
   // File types with a name description
   public static final FileType FIDUCIAL_3D_MODEL = FileType.getImodInstance(true, true,
       "", ".3dmod", ImodManager.FIDUCIAL_MODEL_KEY);
+  public static final FileType BATCH_RUN_TOMO_GLOBAL_AUTODOC = FileType.getInstance(true,
+      false, "", ".adoc");
   public static final FileType LOCAL_BATCH_DIRECTIVE_FILE = FileType.getInstance(false,
       false, "batchDirective", ".adoc");
   public static final FileType LOCAL_SCOPE_TEMPLATE = FileType.getInstance(false, false,
