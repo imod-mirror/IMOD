@@ -5,7 +5,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
 
-import etomo.BatchRunTomoManager;
 import etomo.ui.LogProperties;
 import etomo.util.DatasetFiles;
 
@@ -24,18 +23,17 @@ import etomo.util.DatasetFiles;
 * 
 * <p> $Log$ </p>
 */
-public final class BatchRunTomoMetaData extends BaseMetaData implements HeaderMetaData {
+public final class BatchRunTomoMetaData extends BaseMetaData {
   public static final String rcsid = "$Id:$";
 
   public static final String NEW_TITLE = "Batch Run Tomo";
 
-  private final PanelHeaderState datasetHeaderState = new PanelHeaderState(getGroupKey()
-      + ".");
   // Key is stackID
   private final Map<String, BatchRunTomoRowMetaData> rowMetaDataMap = new HashMap<String, BatchRunTomoRowMetaData>();
   // metadata for the global dataset dialog
-  private final BatchRunTomoDatasetMetaData datasetMetaData = new BatchRunTomoDatasetMetaData(
-      TableReference.getBaseID(BatchRunTomoManager.STACK_REFERENCE_PREFIX));
+  private final BatchRunTomoDatasetMetaData datasetMetaData = new BatchRunTomoDatasetMetaData();
+  private final PanelHeaderSettings datasetTableHeader = new PanelHeaderSettings(
+      "datasetTableHeader");
 
   private final TableReference tableReference;
 
@@ -94,7 +92,7 @@ public final class BatchRunTomoMetaData extends BaseMetaData implements HeaderMe
    * Better quality createPrepend.  Parent createPrepend cannot be improved without
    * breaking backwards compatibility.
    */
-  String createPrepend(String prepend) {
+  public String createPrepend(String prepend) {
     if (prepend == null || prepend.matches("\\s*")) {
       return getGroupKey();
     }
@@ -108,23 +106,28 @@ public final class BatchRunTomoMetaData extends BaseMetaData implements HeaderMe
   public void load(final Properties props, String prepend) {
     super.load(props, prepend);
     // reset
+    datasetTableHeader.reset();
     rowMetaDataMap.clear();
     // load
     prepend = createPrepend(prepend);
+    datasetTableHeader.load(props, prepend);
+    datasetMetaData.load(props, prepend);
     tableReference.load(props, prepend);
     Iterator<String> iterator = tableReference.idIterator();
     while (iterator.hasNext()) {
       String stackID = iterator.next();
       if (BatchRunTomoRowMetaData.isDisplay(props, prepend, stackID)) {
         BatchRunTomoRowMetaData rowMetaData = new BatchRunTomoRowMetaData(stackID);
-        rowMetaData.load(props, prepend);
         rowMetaDataMap.put(stackID, rowMetaData);
+        rowMetaData.load(props, prepend);
       }
     }
   }
 
   public void store(Properties props, String prepend) {
     prepend = createPrepend(prepend);
+    datasetTableHeader.store(props, prepend);
+    datasetMetaData.store(props, prepend);
     tableReference.store(props, prepend);
     Iterator<BatchRunTomoRowMetaData> iterator = rowMetaDataMap.values().iterator();
     while (iterator.hasNext()) {
@@ -133,7 +136,12 @@ public final class BatchRunTomoMetaData extends BaseMetaData implements HeaderMe
   }
 
   public BatchRunTomoRowMetaData getRowMetaData(final String stackID) {
-    return rowMetaDataMap.get(stackID);
+    BatchRunTomoRowMetaData rowMetaData = rowMetaDataMap.get(stackID);
+    if (rowMetaData == null) {
+      rowMetaData = new BatchRunTomoRowMetaData(stackID);
+      rowMetaDataMap.put(stackID, rowMetaData);
+    }
+    return rowMetaData;
   }
 
   public BatchRunTomoDatasetMetaData getDatasetMetaData() {
@@ -143,5 +151,13 @@ public final class BatchRunTomoMetaData extends BaseMetaData implements HeaderMe
   public boolean isDisplay(final String stackID) {
     BatchRunTomoRowMetaData rowMetaData = rowMetaDataMap.get(stackID);
     return rowMetaData != null && rowMetaData.isDisplay();
+  }
+
+  public ConstPanelHeaderSettings getDatasetTableHeader() {
+    return datasetTableHeader;
+  }
+
+  public void setDatasetTableHeader(final ConstPanelHeaderSettings input) {
+    datasetTableHeader.set(input);
   }
 }
