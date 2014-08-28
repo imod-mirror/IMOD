@@ -13,6 +13,9 @@ import java.util.Properties;
 * The string values may be modified.  The IDs can be used as stable keys for serializing.
 * Each instance of TableReference needs a unique prefix string for its IDs.</p>
 * 
+* <p>IMPORTANT:  The constructor parameter idPrefix value is used as a key in data files,
+* so changing its value requires backwards compatibility code to be added.</p>
+* 
 * <p>Copyright: Copyright 2014</p>
 *
 * <p>Organization:
@@ -30,7 +33,7 @@ public final class TableReference {
 
   private static final String GROUP_KEY = "ref";
   private static final String BASE_ID_NUM = "0";
-  private static final String LAST_ID_KEY = "LastID";
+  private static final String LAST_ID_KEY = "lastID";
 
   // Map<uniqueString, ID>
   private final Map<String, String> idMap = new HashMap<String, String>();
@@ -40,13 +43,9 @@ public final class TableReference {
   private boolean loaded = false;
   private EtomoNumber lastIDNum = new EtomoNumber(EtomoNumber.Type.LONG);
 
-  public TableReference(final String iDPrefix) {
-    this.idPrefix = iDPrefix;
+  public TableReference(final String idPrefix) {
+    this.idPrefix = idPrefix;
     lastIDNum.set(BASE_ID_NUM);
-  }
-
-  public static String getBaseID(final String idPrefix) {
-    return idPrefix + BASE_ID_NUM;
   }
 
   /**
