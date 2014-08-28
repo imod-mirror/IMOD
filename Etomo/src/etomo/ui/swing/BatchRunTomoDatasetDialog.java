@@ -5,6 +5,7 @@ import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -22,10 +23,14 @@ import etomo.logic.TrackingMethod;
 import etomo.storage.DirectiveDef;
 import etomo.storage.DirectiveFile;
 import etomo.storage.DirectiveFileCollection;
+import etomo.storage.LogFile;
+import etomo.storage.autodoc.AutodocFactory;
+import etomo.storage.autodoc.WritableAutodoc;
 import etomo.type.BatchRunTomoDatasetMetaData;
 import etomo.type.DataFileType;
 import etomo.type.DialogType;
 import etomo.type.EtomoNumber;
+import etomo.type.FileType;
 import etomo.ui.Field;
 import etomo.ui.FieldType;
 import etomo.ui.TextFieldInterface;
@@ -261,7 +266,6 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable {
         dialog.setTitle(key);
       }
       else {
-        System.out.println("A:keyLen:" + keyLen + ",titleLen:" + titleLen);
         dialog.setTitle("..." + key.substring(keyLen - titleLen - 3));
       }
     }
@@ -615,7 +619,7 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable {
 
   public void setParameters(final BatchRunTomoDatasetMetaData metaData) {
     if (phRootHeader != null) {
-      phRootHeader.setButtonStates(metaData);
+      phRootHeader.set(metaData.getHeader());
     }
     ftfModelFile.setText(metaData.getModelFile());
     cbEnableStretching.setSelected(metaData.isEnableStretching());
@@ -632,13 +636,15 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable {
     ltfAutoFitStep.setText(metaData.getAutoFitStep());
     ltfLeaveIterations.setText(metaData.getLeaveIterations());
     cbScaleToInteger.setSelected(metaData.isScaleToInteger());
+    rtfThickness.setText(metaData.getThickness());
+    rtfBinnedThickness.setText(metaData.getBinnedThickness());
     tfExtraThickness.setText(metaData.getExtraThickness());
     ltfFallbackThickness.setText(metaData.getFallbackThickness());
   }
 
   public void getParameters(final BatchRunTomoDatasetMetaData metaData) {
     if (phRootHeader != null) {
-      phRootHeader.getButtonStates(metaData);
+      metaData.setHeader(phRootHeader);
     }
     metaData.setModelFile(ftfModelFile.getFile());
     metaData.setEnableStretching(cbEnableStretching.isSelected());
@@ -655,11 +661,23 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable {
     metaData.setAutoFitStep(ltfAutoFitStep.getText());
     metaData.setLeaveIterations(ltfLeaveIterations.getText());
     metaData.setScaleToInteger(cbScaleToInteger.isSelected());
+    metaData.setThickness(rtfThickness.getText());
+    metaData.setBinnedThickness(rtfBinnedThickness.getText());
     metaData.setExtraThickness(tfExtraThickness.getText());
     metaData.setFallbackThickness(ltfFallbackThickness.getText());
   }
 
-  void saveAutodoc() {
+  void saveAutodoc(final FileType fileType) {
+    try {
+      WritableAutodoc autodoc = AutodocFactory.getWritableInstance(manager,
+          fileType.getFile(manager, null), false);
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+    }
+    catch (LogFile.LockException e) {
+      e.printStackTrace();
+    }
   }
 
   void setValues(final DirectiveFileCollection directiveFileCollection) {
