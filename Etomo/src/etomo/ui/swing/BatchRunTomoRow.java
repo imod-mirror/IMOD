@@ -89,6 +89,7 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
   private int imodIndexA = -1;
   private int imodIndexB = -1;
   private BatchRunTomoDatasetDialog datasetDialog = null;
+  private BatchRunTomoRowMetaData metaData = null;
 
   private BatchRunTomoRow(final String propertyUserDir, final BatchRunTomoTable table,
       final JPanel panel, final GridBagLayout layout,
@@ -237,6 +238,7 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
           bcEditDataset.setSelected(true);
         }
       }
+      //Revert to Global button in the dataset dialog
       else if (datasetDialog != null
           && actionCommand.equals(datasetDialog.getRevertToGlobalActionCommand())) {
         if (UIHarness.INSTANCE
@@ -247,7 +249,6 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
           deleteDataset();
         }
       }
-
     }
   }
 
@@ -271,6 +272,9 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
   }
 
   void delete() {
+    if (metaData != null) {
+      metaData.setDisplay(false);
+    }
     deleteDataset();
   }
 
@@ -352,8 +356,8 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
 
   public void setParameters(final BatchRunTomoMetaData metaData) {
     BatchRunTomoRowMetaData rowMetaData = metaData.getRowMetaData(stackID);
+    this.metaData = rowMetaData;
     fcbskip.setValue(rowMetaData.getBskip());
-    cbcRun.setSelected(rowMetaData.isRun());
     boolean isDatasetDialog = rowMetaData.isDatasetDialog();
     bcEditDataset.setSelected(isDatasetDialog);
     if (isDatasetDialog) {
@@ -364,8 +368,9 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
 
   public void getParameters(final BatchRunTomoMetaData metaData) {
     BatchRunTomoRowMetaData rowMetaData = metaData.getRowMetaData(stackID);
+    this.metaData = rowMetaData;
+    rowMetaData.setDisplay(true);
     rowMetaData.setBskip(fcbskip.getValue());
-    rowMetaData.setRun(cbcRun.isSelected());
     rowMetaData.setDatasetDialog(datasetDialog != null);
     if (datasetDialog != null) {
       datasetDialog.getParameters(rowMetaData.getDatasetMetaData());
