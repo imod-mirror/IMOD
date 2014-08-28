@@ -45,7 +45,7 @@ public final class BatchRunTomoManager extends BaseManager {
   public static final String rcsid = "$Id:$";
 
   private static final AxisID AXIS_ID = AxisID.ONLY;
-  public static final String STACK_REFERENCE_PREFIX = DataFileType.BATCH_RUN_TOMO.extension
+  private static final String STACK_REFERENCE_PREFIX = DataFileType.BATCH_RUN_TOMO.extension
       .substring(1);
 
   private final TableReference tableReference = new TableReference(STACK_REFERENCE_PREFIX);
@@ -102,6 +102,26 @@ public final class BatchRunTomoManager extends BaseManager {
         DialogType.BATCH_RUN_TOMO, AxisID.ONLY, null);
     if (actionMessage != null) {
       System.err.println(actionMessage);
+    }
+  }
+  
+  /**
+   * Call BaseManager.exitProgram(). Call saveDialog. Return the value of
+   * BaseManager.exitProgram(). To guarantee that etomo can always exit, catch
+   * all unrecognized Exceptions and Errors and return true.
+   */
+  public boolean exitProgram(AxisID axisID) {
+    try {
+      if (super.exitProgram(axisID)) {
+        endThreads();
+        saveParamFile();
+        return true;
+      }
+      return false;
+    }
+    catch (Throwable e) {
+      e.printStackTrace();
+      return true;
     }
   }
 
