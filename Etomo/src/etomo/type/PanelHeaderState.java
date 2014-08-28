@@ -101,7 +101,7 @@ public class PanelHeaderState implements Storable, ConstPanelHeaderState {
     moreLessState = props.getProperty(group + MORE_LESS_NAME);
   }
 
-  private void reset() {
+  public void reset() {
     openCloseState = null;
     advancedBasicState = null;
     moreLessState = null;
