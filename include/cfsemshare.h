@@ -27,6 +27,7 @@ extern "C" {
 #endif
 #endif
 
+#define MAX_MBS_SCALES 16
 
   /* parselist.c  - for parsing a list of integers */
   int *parselist (const char *line, int *nlist);
@@ -63,6 +64,8 @@ extern "C" {
   /* reduce_by_binning.c */
   int reduceByBinning(void *array, int type, int nxin, int nyin, int nbin, 
                       void *brray, int keepByte, int *nxr, int *nyr);
+  void binIntoSlice(float *array, int nxDim, float *brray, int nxBin, int nyBin,
+                    int binFacX, int binFacY, float zWeight);
 
   /* filtxcorr.c */
   void XCorrSetCTF(float sigma1, float sigma2, float radius1, float radius2,
@@ -284,6 +287,17 @@ extern "C" {
   /* minimize1D.c */
   int minimize1D(float curPosition, float curValue, float initialStep, int numScanSteps,
                  int *numCutsDone, float *brackets, float *nextPosition);
+
+  /* multibinstat */
+  int multiBinSetup(int binning[][3], int boxSize[][3], int boxSpacing[][3],
+                    int numScales, int startCoord[3], int endCoord[3], int boxStart[][3], 
+                    int numBoxes[][3], int *bufferStartInds, int *statStartInds);
+  int multiBinStats(int binning[][3], int boxSize[][3], int boxSpacing[][3], 
+                    int numScales, int startCoord[3], int endCoord[3], int boxStart[][3], 
+                    int numBoxes[][3], int *bufferStartInds, int *statStartInds, 
+                    float *buffer, float *means, float *SDs, int *funcData,
+                    int (*getSliceFunc)(int *, int *, float *));
+    
 
 #ifdef __cplusplus
 }

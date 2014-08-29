@@ -173,7 +173,7 @@ static void graphKey_cb(ImodView *vi, void *client, int released,
  */
 GraphWindow::GraphWindow(GraphStruct *graph, bool rgba,
             bool doubleBuffer, bool enableDepth, QWidget * parent,
-            const char * name, Qt::WFlags f)
+            const char * name, Qt::WindowFlags f)
   : QMainWindow(parent, f)
 {
   int j;

@@ -67,7 +67,7 @@ class GraphWindow : public QMainWindow
  public:
   GraphWindow(GraphStruct *graph, bool rgba, 
             bool doubleBuffer, bool enableDepth, QWidget * parent = 0,
-            const char * name = 0, Qt::WFlags f = Qt::Window) ;
+            const char * name = 0, Qt::WindowFlags f = Qt::Window) ;
   ~GraphWindow() {};
   void setToggleState(int index, int state);
 

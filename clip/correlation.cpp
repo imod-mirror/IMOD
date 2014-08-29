@@ -1,5 +1,5 @@
 /*
- *  correlation.c -- auto and cross correlation for clip.
+ *  correlation.cpp -- auto and cross correlation for clip.
  *
  *  Original author: James Kremer
  *  Revised by: David Mastronarde   email: mast@colorado.edu
@@ -8,22 +8,13 @@
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
- * $Id$
- * Log at end
+ *  $Id$
  */
 
-#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <limits.h>
-#include "mrcc.h"
-
 #include "clip.h"
-
-double parabolic_fit(double *outX, double *outY, double i[3][3]);
-int padfloat_volume(Istack *v, float pad);
-int clip_cor_scalevol(Istack *v);
-
 
 void corr_getmax(Islice *is, int sa, int xm, int ym, float *x, float *y)
 {
@@ -736,16 +727,3 @@ double parabolic_fit(double *outX, double *outY, double i[3][3])
   *outY = yc;
   return(p);
 }
-
-/*
-$Log$
-Revision 3.6  2005/01/17 17:09:24  mast
-Converted to new typedefs
-
-Revision 3.5  2005/01/12 22:34:28  mast
-Really fixed it this time
-
-Revision 3.4  2005/01/12 22:09:08  mast
-Fixed slice correlation, size was not passed correctly to todfft
-
-*/
