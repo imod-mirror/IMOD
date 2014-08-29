@@ -37,6 +37,12 @@ those fields specify the range in Z.  If there is a rubber band in the top
   Slicer window, the program will instead use Rotatevol to extract the portion
   of the file selected by the rubber band.  The depth limits of the range
   must be set with the <B>Lo</B> and <B>Hi</B> buttons.
+<LI><B>Process File...</B>:&emsp;Apply current operation(s) in the Image
+  Processing dialog to the current image file if possible.
+  If there is no Zap window with a rubber band, the whole file will be
+  processed.  Otherwise, the subarea in the rubber band will be processed, but
+  the <B>Lo</B> and <B>Hi</B> limits must be set to process more than one
+  slice. 
 <LI><B>Save Info Text...</B>:&emsp;Save the contents of the text box at the
 bottom of the Info window to a file.
 
@@ -72,6 +78,8 @@ bottom of the Info window to a file.
 <LI><B>Clean</B>:&emsp;Delete empty contours from object.
 <LI><B>Break by Z</B>:&emsp;Break all contours in object into separate ones by 
 Z.
+<LI><B>Fill in Z</B>:&emsp;For every contour in an open object, add point
+  at each Z level skipped by existing points.
 <LI><B>Flatten</B>:&emsp;Flatten all contours in object to lie in single Z 
 plane.
 <LI><B>Renumber...</B>:&emsp;Move the current object to a new object number.
@@ -96,7 +104,8 @@ their Z values.  Note that this operation cannot be undone.
 <LI><B>Break...</B>:&emsp;Break a contour into two contours.
 <LI><B>Join...</B>:&emsp;Join two contours together.
 <LI><B>Break by Z</B>:&emsp;Break a closed contour into separate ones by Z.
-<LI><B>Fill in Z</B>:&emsp;Add point at each Z level skipped by existing points.
+<LI><B>Fill in Z</B>:&emsp;If current contour is in an open object, add point
+  at each Z level skipped by existing points.
 <LI><B>Loopback</B>:&emsp;Add duplicate points in reverse to make a complex cap.
 <LI><B>Invert</B>:&emsp;Invert the order of points in the current contour.
 <BR>&ndash;&ndash;&ndash;&ndash;&ndash;&ndash;&ndash;

@@ -313,6 +313,45 @@ Green value; Range is (0.0 - 1.0) Default is 1.0.
 .B -b \fIvalue\fR
 Blue value;  Range is (0.0 - 1.0) Default is 1.0.
 .TP
+.B -D \fIfile\fR
+Name of defect list file produced by SerialEM, for correction of
+column, row, and point defects in images that have not had this
+correction applied.  Specifically, frames
+containing electron counts from a K2 camera that have not been software
+gain-normalized cannot be corrected validly until they have been gain
+normalized and scaled up or converted to float to represent fractional
+counts properly.  This option is thus available with the "unpack" and 
+"multiply" commands that are used to apply such gain normalization; it
+is also available with "divide", "resize", "brightness", "contrast",
+"shadow", "truncate", and "unwrap".  The defect list file has entries
+to indicate the camera size upon which the coordinates are based, and
+whether it has been scaled up by a factor of 2 to correspond to pixels
+in a super-resolution mode image.  Given these entries and the size of
+the input image, or of the gain reference image if one is being
+applied, the program decides whether to scale the coordinates up by a
+factor of 2 if the image is larger than the camera size.  It also
+deduces the effective binning of the images relative to the coordinates
+used in the file by assuming that images are not subareas of half or
+less.  These decisions on scaling and binning are usually reported by
+the program and can be overridden in rare cases by the options
+described next.  If an acquired image is a subarea of the camera area,
+then it is assumed to be centered, and correction will not work
+properly if it is not.  The \fB-ix\fR, \fB-iy\fR, \fB-cx\fR, \fB-cy\fR,
+\fB-ox\fR, and \fB-oy\fR can still be used to process subareas of the
+acquired images, and these subareas need not be centered.
+.TP
+.B -B \fIvalue\fR
+Set the assumed binning to the given value; if the defect coordinates
+have been scaled up by 2, then entries can range down to 0.5 for
+unbinned super-resolution mode.  This could be needed if the image is a
+subarea of half or less.
+.TP
+.B -S
+Scale the defect list coordinates up by a factor of 2 if the file does
+not indicate that it was already scaled up.  This could be needed at
+some time in the future if the defect list was not already scaled up
+and if the image is a subarea of half or less in super-resolution mode.
+.TP
 .B -P \fIfile\fR
 Name of piece list file, in order to have coordinates in statistics converted
 to position in a montage displayed with adjusted overlap.  The overlap in the
@@ -482,10 +521,11 @@ commands will each create a new file where each slice is the mirror
 image of the input slice around the x or y axis.  The flipz command will
 invert the order of slices (mirror around the x/y plane).
 The flipxy, flipyz, or flipzx commands will exchange x and y coordinates, y and
-z, or z and x coordinates, respectively.  
+z, or z and x coordinates, respectively,
 and also change the size of the
 output file to match (e.g., with flipyz, the sizes in y and z are exchanged).
-No input size or centering, or output size or mode options will be applied.  
+No input size or centering, or output size options will be applied.  An
+output mode can be specified except for flipyz and rotx.
 All of these options invert the handedness of the
 structures in the image file.  Use the rotx command instead of flipyz to
 reorient a volume without changing handedness.

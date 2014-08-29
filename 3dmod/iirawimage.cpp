@@ -170,7 +170,9 @@ int iiRawScan(ImodImageFile *inFile)
                    QApplication::desktop()->height() / 2 - hint.height() / 2);
       splash->show();
       qApp->flush();
+#if QT_VERSION < 0x050000
       qApp->syncX();
+#endif
       qApp->processEvents();
     }
 

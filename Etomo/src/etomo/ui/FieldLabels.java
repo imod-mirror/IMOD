@@ -39,4 +39,5 @@ public final class FieldLabels {
   public static final String FLG_ABS_VALUE_LABEL = "Use absolute value of cross-correlation";
   public static final String FLG_STRICT_SEARCH_LIMITS_LABEL = "Strict search limit checking";
   public static final String FLG_NO_REFERENCE_REFINEMENT_LABEL = "No reference refinement";
+  public static final String CSV_FILES_LABEL = "User supplied csv files";
 }

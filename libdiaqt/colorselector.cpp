@@ -52,7 +52,7 @@ static const char *buttonTips[] =
  */
 ColorSelector::ColorSelector(QWidget *parent, QString label, int red,
                              int green, int blue, int hotFlag, int hotKey,
-                             bool rounded, const char *name, Qt::WFlags fl)
+                             bool rounded, const char *name, Qt::WindowFlags fl)
   : DialogFrame(parent, 3, 1, buttonLabels, buttonTips, false, rounded, "test",
                 "test2", name, fl)
 {
