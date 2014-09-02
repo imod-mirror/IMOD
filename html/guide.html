@@ -290,39 +290,41 @@ install it.</span>&nbsp; This command will not work on Windows unless the
 			</h3>
 			<P>
 		</a>Etomo is a Java application and thus requires a Java runtime environment 
-		(JRE) with a version of 1.6 or better to be installed.&nbsp; Recent Fedora and 
-		RedHat-based systems have had usable native Java packages available or 
+		(JRE) with a version of 1.6 or better to be installed.&nbsp; Recent Fedora,
+		RedHat-based, and Ununtu systems have had usable native Java packages available or 
 		installed.&nbsp; Check your system with<br>
 		&nbsp;&nbsp; <code>&nbsp;java -version</code><br>
 		If you see Java(TM) (as on RHEL5 and RHEL6) or OpenJDK (as on Centos 5 and 
-		recent Fedora) then the installed java should work.&nbsp; Otherwise, you will 
-		need to install a Sun/Oracle version.&nbsp; Sun/Oracle's JRE version 1.6.0_20 
-		is available <a href="http://bio3d.colorado.edu/imod/java/jre-6u20-linux-i586.bin">here</a>&nbsp;for 
-		32-bit Linux and <a href="http://bio3d.colorado.edu/imod/java/jre-6u20-linux-x64.bin">
-			here</a> for 64-bit Linux.&nbsp;&nbsp;On most newer 64-bit systems you will 
-		generally need a 64-bit version.&nbsp; </p>
-		<p>On older versions of Ubuntu, the <code>sun-java6-jre</code> package available in 
+		recent Fedora) then the installed java should work.&nbsp; 
+		On older versions of Ubuntu, the <code>sun-java6-jre</code> package available in 
 			the Synaptic Package Manager seemed to work well, while <code>openjdk-6-jre</code>
 			gave display problems. On Ubuntu 11, the <code>openjdk-6-jre</code> offered by 
 			the Ubuntu Software Center seems to work well.</p>
-		<P>If you are installing a 64-bit system, modify all the commands given next 
-			appropriately.&nbsp; To install the JRE for Linux first move the <code>
-				<span style="FONT-FAMILY: monospace">jre-6u20-linux-i586.bin</span></code> file 
+		<P>If you need to install a usable Java, get the latest Java Run-time 
+			Environment from the <a href="http://java.com/en/download/manual.jsp">Java
+			download site</a>.&nbsp;
+			On most newer 64-bit systems, you will 
+		generally need a 64-bit version.&nbsp; Both <code>rpm</code>
+			and <code>.tar.gz</code> files are available; the instructions next are
+			for installing from a 64-bit <code>.tar.gz</code> file, for example 
+    <code>jre-7u67-linux-x64.tar.gz</code></p>
+			<p> To install the JRE for Linux first move the <code>
+				<span style="FONT-FAMILY: monospace">jre-7u67-linux-x64.tar.gz</span></code> file 
 			to <code>/usr/local</code>
 			<br>
 			<code>
 				<span style="FONT-FAMILY: monospace">&nbsp;&nbsp; sudo
-          mv </span></code><code><span style="FONT-FAMILY: monospace">jre-6u20-linux-i586.bin /usr/local</span></code><br></P>
-    <p>Next change your working directory to <code>/usr/local</code> and&nbsp; execute 
-	    the bin by entering<br>
+          mv </span></code><code><span style="FONT-FAMILY: monospace">jre-7u67-linux-x64.tar.gz /usr/local</span></code><br></P>
+    <p>Next change your working directory to <code>/usr/local</code> and&nbsp; unpack
+	    the file by entering<br>
 	    <span style="FONT-FAMILY: monospace"><code>&nbsp;&nbsp; cd /usr/local</code><br>
-        &nbsp;<code>&nbsp; sudo sh jre-6u20-linux-i586.bin</code></span></p>
+        &nbsp;<code>&nbsp; sudo tar -xzf jre-7u67-linux-x64.tar.gz</code></span></p>
     <p>on the command line. &nbsp;</p>
-		<p>This will install the JRE in <code>/usr/local/jre1.6.0_20</code>. &nbsp;The IMOD 
+		<p>This will install the JRE in <code>/usr/local/jre1.7.0_67</code>. &nbsp;The IMOD 
 			startup scripts will assume that the JRE is in <code>/usr/local/java</code> if 
 			java is not on your command path, so next create a link:<br>
 			<span style="FONT-FAMILY: monospace">
-				<code>&nbsp;&nbsp; sudo ln -s jre1.6.0_20 java</code></span></p>
+				<code>&nbsp;&nbsp; sudo ln -s jre1.7.0_67 java</code></span></p>
 		<p>If you upgrade to a different JRE, then you just need to change the link. 
 			&nbsp;If you wish to use a different JRE than the one pointed to by <code>/usr/local/java</code>, 
 			you must&nbsp; redefine the environment variable IMOD_JAVADIR to specify the 
@@ -332,6 +334,8 @@ install it.</span>&nbsp; This command will not work on Windows unless the
 			and <code>IMOD-linux.csh</code> scripts in <code>/etc/profile.d</code> (see&nbsp;<a href="#ImodCalib">Using 
 				the ImodCalib Directory</a>).
 		</p>
+    <p>If you enable Java in your browser and it uses this Java, you MUST keep
+    this Java updated to the latest version.</P>
 		<a name="InstallingMac">
 			<h3>1.4. Installing IMOD on a Macintosh running OS X</h3></a>
 		<P>
@@ -990,9 +994,9 @@ by executing it from the command line.</span>&nbsp; To install or upgrade IMOD t
 			formats like JPEG, PNG, and BMP,
 			and it has a dialog box and options for specifying how to read raw
 			data.</p>
-    <p>As of IMOD 4.7, programs will write MRC files in byte mode as signed by
+    <p>In early versions of IMOD 4.7, programs wrote MRC files in byte mode as signed by
     default (values of -128 to 127), which
-    is a change from previous behavior to conform with a clarification of the
+    was a change from previous behavior to conform with a clarification of the
     MRC standards.  Such files will not be read correctly by IMOD versions
     before 4.3, and you may encounter other software that has difficulty with
     signed byte files.  Two programs have command-line options to produce
@@ -1000,7 +1004,9 @@ by executing it from the command line.</span>&nbsp; To install or upgrade IMOD t
     <a href="man/newstack.html#TOP">newstack</a> (option "-byte 0")
     and  <a href="man/clip.html#TOP">clip</a> (option "-m ubyte").  In
     addition, you can make all programs write unsigned bytes by setting the
-    environment variable WRITE_MODE0_SIGNED to 0.
+    environment variable WRITE_MODE0_SIGNED to 0.&nbsp; Due to problems with
+    other software, the package reverted to writing unsigned bytes in IMOD
+    4.7.7, and the transition to signed bytes has been deferred to IMOD 4.9.
     </p>
     <p>
 			Even though IMOD programs can read multiple file types, you will
