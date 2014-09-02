@@ -19,6 +19,7 @@ import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.EtomoNumber;
 import etomo.type.UITestFieldType;
+import etomo.ui.Checkpoint;
 import etomo.ui.Field;
 import etomo.ui.FieldType;
 import etomo.ui.FieldValidationFailedException;
@@ -228,7 +229,6 @@ final class LabeledTextField implements UIComponent, SwingComponent, Field,
   private final String locationDescr;
 
   private boolean debug = false;
-  private String checkpointValue = null;
   private String backupValue = null;
   private boolean fieldIsBackedUp = false;
   private boolean required = false;
@@ -240,6 +240,7 @@ final class LabeledTextField implements UIComponent, SwingComponent, Field,
   private String defaultValue = null;
   private boolean useFieldHighlight = false;
   private String fieldHighlightValue = null;
+  private Checkpoint checkpoint = null;
 
   public String toString() {
     return "[label:" + getLabel() + "]";
@@ -327,7 +328,10 @@ final class LabeledTextField implements UIComponent, SwingComponent, Field,
    * Saves the current text as the checkpoint.
    */
   public void checkpoint() {
-    checkpointValue = getText();
+    if (checkpoint == null) {
+      checkpoint = new Checkpoint();
+    }
+    checkpoint.set(getText());
   }
 
   /**
@@ -370,45 +374,64 @@ final class LabeledTextField implements UIComponent, SwingComponent, Field,
    * Saves value as the checkpoint.
    */
   void checkpoint(final int value) {
-    checkpointValue = new Integer(value).toString();
+    if (checkpoint == null) {
+      checkpoint = new Checkpoint();
+    }
+    checkpoint.set(value);
   }
 
   /**
    * Saves value as the checkpoint.
    */
   void checkpoint(final ConstEtomoNumber value) {
-    checkpointValue = value.toString();
+    if (checkpoint == null) {
+      checkpoint = new Checkpoint();
+    }
+    checkpoint.set(value);
   }
 
   /**
    * Saves value as the checkpoint.
    */
   void checkpoint(final double value) {
-    checkpointValue = new Double(value).toString();
+    if (checkpoint == null) {
+      checkpoint = new Checkpoint();
+    }
+    checkpoint.set(value);
   }
 
   /**
    * Saves value as the checkpoint.
    */
   void checkpoint(final String value) {
-    checkpointValue = value;
+    if (checkpoint == null) {
+      checkpoint = new Checkpoint();
+    }
+    checkpoint.set(value);
   }
 
-  void checkpoint(final LabeledTextField from) {
-    if (from == null) {
-      return;
+  public void setCheckpoint(final Checkpoint input) {
+    if (input == null) {
+      if (checkpoint != null) {
+        checkpoint.reset();
+      }
     }
-    checkpointValue = from.checkpointValue;
+    else {
+      if (checkpoint == null) {
+        checkpoint = new Checkpoint();
+      }
+      checkpoint.copy(input);
+    }
   }
 
   /**
    * Resets to checkpointValue if checkpointValue has been set.  Otherwise has no effect.
    */
   void resetToCheckpoint() {
-    if (checkpointValue == null) {
+    if (checkpoint == null || !checkpoint.isSet()) {
       return;
     }
-    setText(checkpointValue);
+    setText(checkpoint.getValue());
   }
 
   public void setFieldHighlightValue(final String value) {
@@ -508,40 +531,8 @@ final class LabeledTextField implements UIComponent, SwingComponent, Field,
     if (!alwaysCheck && (!textField.isEnabled() || !textField.isVisible())) {
       return false;
     }
-    if (checkpointValue == null) {
-      return true;
-    }
-    if (!checkpointValue.equals(textField.getText())) {
-      return true;
-    }
-    // Failed string comparison. Try comparing numerically
-    EtomoNumber.Type type = null;
-    if (numericType != null) {
-      type = numericType;
-    }
-    else if (fieldType == FieldType.FLOATING_POINT) {
-      type = EtomoNumber.Type.DOUBLE;
-    }
-    else if (fieldType == FieldType.INTEGER) {
-      type = EtomoNumber.Type.LONG;
-    }
-    if (type != null) {
-      EtomoNumber checkpointNumber = new EtomoNumber(type);
-      checkpointNumber.set(checkpointValue);
-      if (!checkpointNumber.isValid()) {
-        // Cannot compare numerically
-        return false;
-      }
-      EtomoNumber currentNumber = new EtomoNumber(type);
-      currentNumber.set(textField.getText());
-      if (!currentNumber.isValid()) {
-        // Cannot compare numerically
-        return false;
-      }
-      return !checkpointValue.equals(textField.getText());
-    }
-    // Not a number
-    return false;
+    return checkpoint == null
+        || checkpoint.isDifferentFromCheckpoint(getText(), fieldType);
   }
 
   public void clear() {
@@ -601,7 +592,7 @@ final class LabeledTextField implements UIComponent, SwingComponent, Field,
     return label.getText();
   }
 
-  String getQuotedLabel() {
+  public String getQuotedLabel() {
     return Utilities.quoteLabel(label.getText());
   }
 
@@ -635,7 +626,7 @@ final class LabeledTextField implements UIComponent, SwingComponent, Field,
     return textField.getText();
   }
 
-  boolean isEmpty() {
+  public boolean isEmpty() {
     String text = textField.getText();
     return text == null || text.matches("\\s*");
   }
@@ -677,7 +668,7 @@ final class LabeledTextField implements UIComponent, SwingComponent, Field,
     }
   }
 
-  boolean isEnabled() {
+  public boolean isEnabled() {
     return (textField.isEnabled());
   }
 

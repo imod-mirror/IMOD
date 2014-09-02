@@ -23,6 +23,7 @@ import javax.swing.filechooser.FileFilter;
 import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.storage.DirectiveDef;
+import etomo.ui.Checkpoint;
 import etomo.ui.Field;
 import etomo.ui.FieldType;
 import etomo.ui.TextFieldInterface;
@@ -215,7 +216,7 @@ final class FileTextField2 implements FileTextFieldInterface, Field, ActionListe
   /**
    * @return a label suitable for a message - in single quotes and truncated at the colon.
    */
-  String getQuotedLabel() {
+public  String getQuotedLabel() {
     return Utilities.quoteLabel(label.getText());
   }
 
@@ -290,12 +291,12 @@ final class FileTextField2 implements FileTextFieldInterface, Field, ActionListe
     useTextAsOriginDir = input;
   }
 
-  boolean isEmpty() {
+ public boolean isEmpty() {
     String text = field.getText();
     return text == null || text.matches("\\s*");
   }
 
-  boolean isEnabled() {
+ public boolean isEnabled() {
     return button.isEnabled();
   }
 
@@ -332,11 +333,8 @@ final class FileTextField2 implements FileTextFieldInterface, Field, ActionListe
     field.checkpoint();
   }
 
-  public void checkpoint(final FileTextField2 from) {
-    if (from == null) {
-      return;
-    }
-    field.checkpoint(from.field);
+  public void setCheckpoint(final Checkpoint checkpoint) {
+    field.setCheckpoint(checkpoint);
   }
 
   public void backup() {

@@ -13,6 +13,7 @@ import etomo.storage.DirectiveDef;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.EnumeratedType;
 import etomo.type.ParsedElement;
+import etomo.ui.Checkpoint;
 import etomo.ui.Field;
 import etomo.ui.FieldType;
 import etomo.ui.FieldValidationFailedException;
@@ -210,12 +211,9 @@ final class RadioTextField implements RadioButtonInterface, Field, TextFieldInte
     textField.checkpoint();
   }
 
-  public void checkpoint(final RadioTextField from) {
-    if (from == null) {
-      return;
-    }
-    radioButton.checkpoint(from.radioButton);
-    textField.checkpoint(from.textField);
+  public void setCheckpoint(final Checkpoint checkpoint) {
+    radioButton.setCheckpoint(checkpoint);
+    textField.setCheckpoint(checkpoint);
   }
 
   public boolean isDifferentFromCheckpoint(final boolean alwaysCheck) {
@@ -267,7 +265,7 @@ final class RadioTextField implements RadioButtonInterface, Field, TextFieldInte
     return radioButton.isSelected();
   }
 
-  boolean isEmpty() {
+  public boolean isEmpty() {
     String text = textField.getText();
     return text == null || text.matches("\\s*");
   }
