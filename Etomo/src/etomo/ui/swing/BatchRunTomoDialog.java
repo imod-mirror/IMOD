@@ -135,7 +135,7 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
     tabbedPane.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
     // defaults
     ftfRootDir.setText(new File(System.getProperty("user.dir")).getAbsolutePath());
-    ltfRootName.setText(Utilities.getDateTimeStampRootName());
+    ltfRootName.setText("batch" + Utilities.getDateTimeStampRootName());
     cbDeliverToDirectory.setName(DELIVER_TO_DIRECTORY_NAME);
     cbUseCPUMachineList
         .setSelected(UserEnv.isParallelProcessing(null, AxisID.ONLY, null));
