@@ -158,7 +158,7 @@ public final class DirectiveDef {
       DirectiveType.COM_PARAM, Comfile.ALIGN, Command.TILTALIGN, "LocalAlignments");
   public static final DirectiveDef SURFACES_TO_ANALYZE = new DirectiveDef(
       DirectiveType.COM_PARAM, Comfile.ALIGN, Command.TILTALIGN, "SurfacesToAnalyze");
-  
+
   public static final DirectiveDef TWO_SURFACES = new DirectiveDef(
       DirectiveType.COM_PARAM, Comfile.AUTOFIDSEED, Command.AUTOFIDSEED, "TwoSurfaces");
   public static final DirectiveDef TARGET_NUMBER_OF_BEADS = new DirectiveDef(
@@ -319,7 +319,7 @@ public final class DirectiveDef {
     return directiveType == DirectiveType.COM_PARAM;
   }
 
-  boolean isBool() {
+  public boolean isBoolean() {
     loadDirectiveDescr();
     return bool;
   }
