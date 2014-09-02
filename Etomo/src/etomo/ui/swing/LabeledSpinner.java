@@ -145,11 +145,15 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import etomo.EtomoDirector;
+import etomo.logic.DefaultFinder;
+import etomo.storage.DirectiveDef;
 import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.EtomoNumber;
 import etomo.type.UITestFieldType;
+import etomo.ui.Checkpoint;
 import etomo.ui.Field;
+import etomo.ui.FieldType;
 import etomo.ui.TextFieldInterface;
 import etomo.util.Utilities;
 
@@ -166,13 +170,14 @@ final class LabeledSpinner implements Field, TextFieldInterface, ChangeListener,
   private int minimum;
   private int maximum;
 
-  private Number checkpointValue = null;
   private Number backupValue = null;
   private boolean fieldIsBackedUp = false;
   private boolean useFieldHighlight = false;
   private Number fieldHighlightValue = null;
   private Color origLabelForeground = null;
   private Color origTextForeground = null;
+  private DirectiveDef directiveDef = null;
+  private Checkpoint checkpoint = null;
 
   /**
    * @param spinner
@@ -250,14 +255,24 @@ final class LabeledSpinner implements Field, TextFieldInterface, ChangeListener,
   }
 
   public void checkpoint() {
-    checkpointValue = getValue();
+    if (checkpoint == null) {
+      checkpoint = new Checkpoint();
+    }
+    checkpoint.set(getText());
   }
 
-  void checkpoint(final LabeledSpinner from) {
-    if (from == null) {
-      return;
+  public void setCheckpoint(final Checkpoint input) {
+    if (input == null) {
+      if (checkpoint != null) {
+        checkpoint.reset();
+      }
     }
-    checkpointValue = from.checkpointValue;
+    else {
+      if (checkpoint == null) {
+        checkpoint = new Checkpoint();
+      }
+      checkpoint.copy(input);
+    }
   }
 
   public void backup() {
@@ -265,7 +280,21 @@ final class LabeledSpinner implements Field, TextFieldInterface, ChangeListener,
     fieldIsBackedUp = true;
   }
 
+  void setDirectiveDef(final DirectiveDef directiveDef) {
+    this.directiveDef = directiveDef;
+  }
+
   public void useDefaultValue() {
+    if (directiveDef == null || !directiveDef.isComparam()) {
+      return;
+    }
+    if (!defaultValueSearchDone) {
+      defaultValueSearchDone = true;
+      defaultValue = DefaultFinder.INSTANCE.getDefaultValue(directiveDef);
+    }
+    if (foundDefaultValue != null) {
+      setText(foundDefaultValue);
+    }
   }
 
   /**
@@ -327,7 +356,7 @@ final class LabeledSpinner implements Field, TextFieldInterface, ChangeListener,
       updateFieldHighlight();
     }
   }
-  
+
   public void clearFieldHighlightValue() {
     useFieldHighlight = false;
     spinner.removeChangeListener(this);
@@ -388,11 +417,11 @@ final class LabeledSpinner implements Field, TextFieldInterface, ChangeListener,
   /**
    * Resets to checkpointValue if checkpointValue has been set.  Otherwise has no effect.
    */
-  void resetToCheckpoint() {
-    if (checkpointValue == null) {
+  void resetToCheckpoint() {    
+    if (checkpoint == null || !checkpoint.isSet()) {
       return;
     }
-    setValue(checkpointValue.intValue());
+    setText(checkpoint.getValue());
   }
 
   /**
@@ -404,11 +433,11 @@ final class LabeledSpinner implements Field, TextFieldInterface, ChangeListener,
     if (!alwaysCheck && (!isEnabled() || !isVisible())) {
       return false;
     }
-    if (checkpointValue == null) {
-      return true;
-    }
-    return !checkpointValue.equals(getValue());
+    return checkpoint == null
+        || checkpoint.isDifferentFromCheckpoint(getValue(), FieldType.INTEGER);
   }
+
+
 
   Number getValue() {
     return (Number) spinner.getValue();
@@ -466,7 +495,7 @@ final class LabeledSpinner implements Field, TextFieldInterface, ChangeListener,
     }
   }
 
-  boolean isEnabled() {
+ public boolean isEnabled() {
     return (spinner.isEnabled());
   }
 

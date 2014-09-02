@@ -17,7 +17,9 @@ import etomo.storage.DirectiveDef;
 import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.type.EtomoNumber;
 import etomo.type.UITestFieldType;
+import etomo.ui.Checkpoint;
 import etomo.ui.Field;
+import etomo.ui.FieldHighlight;
 import etomo.ui.FieldType;
 import etomo.ui.FieldValidationFailedException;
 import etomo.ui.TextFieldInterface;
@@ -49,14 +51,13 @@ final class TextField implements UIComponent, SwingComponent, Field, FocusListen
 
   private boolean required = false;
   private Color origForeground = null;
-  private String checkpointValue = null;
   private String backupValue = null;
   private boolean fieldIsBackedUp = false;
   private DirectiveDef directiveDef = null;
   private boolean defaultValueSearchDone = false;
   private String defaultValue = null;
-  private boolean useFieldHighlight = false;
-  private String fieldHighlightValue = null;
+  private Checkpoint checkpoint = null;
+  private FieldHighlight fieldHighlight = null;
 
   TextField(final FieldType fieldType, final String reference, final String locationDescr) {
     this.locationDescr = locationDescr;
@@ -111,37 +112,8 @@ final class TextField implements UIComponent, SwingComponent, Field, FocusListen
     if (!alwaysCheck && (!textField.isEnabled() || !textField.isVisible())) {
       return false;
     }
-    if (checkpointValue == null) {
-      return true;
-    }
-    if (!checkpointValue.equals(textField.getText())) {
-      return true;
-    }
-    // Failed string comparison. Try comparing numerically
-    EtomoNumber.Type type = null;
-    if (fieldType == FieldType.FLOATING_POINT) {
-      type = EtomoNumber.Type.DOUBLE;
-    }
-    else if (fieldType == FieldType.INTEGER) {
-      type = EtomoNumber.Type.LONG;
-    }
-    if (type != null) {
-      EtomoNumber checkpointNumber = new EtomoNumber(type);
-      checkpointNumber.set(checkpointValue);
-      if (!checkpointNumber.isValid()) {
-        // Cannot compare numerically
-        return false;
-      }
-      EtomoNumber currentNumber = new EtomoNumber(type);
-      currentNumber.set(textField.getText());
-      if (!currentNumber.isValid()) {
-        // Cannot compare numerically
-        return false;
-      }
-      return !checkpointValue.equals(textField.getText());
-    }
-    // Not a number
-    return false;
+    return checkpoint == null
+        || checkpoint.isDifferentFromCheckpoint(getText(), fieldType);
   }
 
   public void backup() {
@@ -191,23 +163,38 @@ final class TextField implements UIComponent, SwingComponent, Field, FocusListen
     }
   }
 
+  /**
+   * Saves the current text as the checkpoint.
+   */
   public void checkpoint() {
-    checkpointValue = getText();
+    if (checkpoint == null) {
+      checkpoint = new Checkpoint();
+    }
+    checkpoint.set(getText());
   }
 
-  void checkpoint(final TextField from) {
-    if (from == null) {
-      return;
+  public void setCheckpoint(final Checkpoint input) {
+    if (input == null) {
+      if (checkpoint != null) {
+        checkpoint.reset();
+      }
     }
-    checkpointValue = from.checkpointValue;
+    else {
+      if (checkpoint == null) {
+        checkpoint = new Checkpoint();
+      }
+      checkpoint.copy(input);
+    }
   }
 
   public void setFieldHighlightValue(final String value) {
-    if (!useFieldHighlight) {
-      useFieldHighlight = true;
+    if (fieldHighlight == null) {
+      fieldHighlight = new FieldHighlight();
+    }
+    if (!fieldHighlight.isOn()) {
       textField.addFocusListener(this);
     }
-    fieldHighlightValue = value;
+    fieldHighlight.set(value);
     updateFieldHighlight();
   }
 
@@ -361,7 +348,7 @@ final class TextField implements UIComponent, SwingComponent, Field, FocusListen
     return textField.getName();
   }
 
-  boolean isEnabled() {
+  public boolean isEnabled() {
     return textField.isEnabled();
   }
 
