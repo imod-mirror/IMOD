@@ -1,5 +1,7 @@
 package etomo.ui;
 
+import etomo.storage.DirectiveDef;
+
 /**
 * <p>Description: An interface to allow simple commands to be run against a group of 
 * fields.</p>
@@ -30,7 +32,7 @@ public interface Field {
   public void checkpoint();
 
   public void clear();
-  
+
   public void clearFieldHighlightValue();
 
   /**
@@ -39,6 +41,30 @@ public interface Field {
   public boolean isSelected();
 
   public String getText();
-  
+
   public void copy(Field from);
+
+  public boolean equalsDefaultValue();
+
+  public boolean equalsFieldHighlightValue();
+
+  public DirectiveDef getDirectiveDef();
+
+  public String getQuotedLabel();
+
+  public boolean isBoolean();
+
+  public boolean isText();
+
+  public boolean isEmpty();
+
+  public boolean isEnabled();
+
+  public Checkpoint getCheckpoint();
+
+  public void setCheckpoint(Checkpoint checkpoint);
+
+  public FieldHighlight getFieldHighlight();
+
+  public void setFieldHighlight(FieldHighlight fieldHighlight);
 }
