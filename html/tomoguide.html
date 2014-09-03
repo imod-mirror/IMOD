@@ -314,11 +314,16 @@ following characters are known to give problems:
 <pre>
    ` ' &quot; ! # $ % & * ( ) { } [ ; < > / ? \ |
 </pre>
+Special or Unicode characters will also give problems.
 It appears that all of these characters can be used safely in filenames
-(although colon is not allowed in Windows):
+(although colon is not allowed in either Windows or MAC OS X):
 <pre>
 ~ @ ^ _ - = + ] , . :
 </pre>
+The directory path can contain spaces but should not contain any special
+(Unicode) characters; it is not known which of the troublesome characters
+listed above will also give problems when used in a path, so it is best to
+avoid them in paths as well.
 <P>
 If you are supplying your own file of raw tilt angles, they must be named with
 the data set name followed by ".rawtlt" (or "a.rawtlt" and "b.rawtlt" for a
