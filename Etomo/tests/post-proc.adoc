@@ -62,9 +62,11 @@ wait.process.trimming-volume = done
 [function = volume-range]
 #check values
 assert.tf.x-min=1
-assert.tf.x-max=%{size-to-output-x}
+if.not.var.patch-tracking.assert.tf.x-max=%{size-to-output-x}
+if.var.patch-tracking.assert.tf.x-max=%{size-to-output-x-patch-tracking}
 assert.tf.y-min=1
-assert.tf.y-max=%{size-to-output-y}
+if.not.var.patch-tracking.assert.tf.y-max=%{size-to-output-y}
+if.var.patch-tracking.assert.tf.y-max=%{size-to-output-y-patch-tracking}
 assert.tf.z-min=1
 [[if = patch-tracking]]
   assert.tf.z-max=%{tomogram-thickness-in-z-patch-tracking}
