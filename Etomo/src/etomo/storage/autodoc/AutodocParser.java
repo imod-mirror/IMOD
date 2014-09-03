@@ -888,7 +888,8 @@ final class AutodocParser {
     }
     testEndFunction(function, true);
     // add and return the new attribute
-    Attribute attribute = (Attribute) attributeList.addAttribute(valueLinkList.getHead());
+    Attribute attribute = (Attribute) attributeList.addAttribute(valueLinkList.getHead(),
+        lineNum);
     pair.addAttribute(attribute);
     return attribute;
   }

@@ -244,8 +244,8 @@ final class Section extends WriteOnlyStatementList implements ReadOnlySection {
     return parent.getCurrentDelimiter();
   }
 
-  WriteOnlyAttributeList addAttribute(Token name) {
-    return attributeList.addAttribute(name);
+  WriteOnlyAttributeList addAttribute(final Token name, final int lineNum) {
+    return attributeList.addAttribute(name, lineNum);
   }
 
   boolean equalsType(String type) {
