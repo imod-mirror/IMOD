@@ -21,7 +21,7 @@ This module provides the following functions:
   getmrcpixel(file)    - run the 'header' command on <file>
                          returns just a single pixel size, using extended header
                          value if any
-   getMontageSize(stack, [plName]) - runs 'montagesize' on <stack>; adds piece 
+  getMontageSize(stack, [plName]) - runs 'montagesize' on <stack>; adds piece 
                                      list file plName if supplied and it exists; 
                                      returns nx, ny, nz in a tuple
   getImageFormat(file) - runs header to determine format of <file>; returns
@@ -50,6 +50,7 @@ This module provides the following functions:
   imodNice(niceInc) - Sets niceness of process, even on Windows
   imodTempDir() - returns a temporary directory: IMOD_TEMPDIR, /usr/tmp, or /tmp
   setLibPath() - Set path variables for executing Qt programs
+  makeCurrentDirWritable() - Tries to make sure current directory is writeable on Windows
   fmtstr(string, *args) - formats a string with replacement fields
   prnstr(string, file = sys.stdout, end = '\n', flush = False) - replaces print function
 """
