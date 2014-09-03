@@ -20,6 +20,7 @@
 #include <QMouseEvent>
 #include <QKeyEvent>
 #include <QCloseEvent>
+#include "imodel.h"
 
 class QToolButton;
 class QLabel;
@@ -32,46 +33,21 @@ struct ViewInfo;
 
 int  xgraphOpen(struct ViewInfo *vi);
 
-typedef struct imod_xgraph_struct
-{
-  struct ViewInfo *vi;
-  GraphWindow   *dialog;
-  int    width, height;
-  float  zoom;
-  float *data;
-  int    dsize;
-  int    allocSize;
-  int    cpt;
-  float  cx, cy, cz; /* current location. */
-  int    co, cc, cp; /* current object, contour, point */
-  int    axis;
-  int    subStart;
-  int    locked;
-  int    highres;
-  int    nlines;
-  float  offset;
-  float  scale;
-  float  min, max;
-  float  mean;
-  int    start;
-  int    end;
-  int    ctrl;
-  int    closing;
-} GraphStruct;
-
 
 class GraphWindow : public QMainWindow
 {
   Q_OBJECT
 
  public:
-  GraphWindow(GraphStruct *graph, bool rgba, 
-            bool doubleBuffer, bool enableDepth, QWidget * parent = 0,
-            const char * name = 0, Qt::WindowFlags f = Qt::Window) ;
+  GraphWindow(struct ViewInfo *vi, bool rgba, bool doubleBuffer, bool enableDepth,
+              QWidget * parent = 0, Qt::WindowFlags f = Qt::Window) ;
   ~GraphWindow() {};
   void setToggleState(int index, int state);
-
-  GraphGL *mGLw;
+  void draw();
+  void drawAxis();
+  void drawPlot();
+  void fillData();
+  void externalKeyEvent ( QKeyEvent * e, int released);
 
   public slots:
     void zoomUp();
@@ -79,12 +55,8 @@ class GraphWindow : public QMainWindow
   void help();
   void toggleClicked(int index);
   void axisSelected(int item);
-  void xgraphDraw();
-  void xgraphDrawAxis(GraphStruct *xg);
-  void xgraphDrawPlot(GraphStruct *xg);
-  void xgraphFillData(GraphStruct *xg);
+  void exportToFile();
   void widthChanged(int value);
-  void externalKeyEvent ( QKeyEvent * e, int released);
 
  protected:
   void keyPressEvent ( QKeyEvent * e );
@@ -92,8 +64,22 @@ class GraphWindow : public QMainWindow
   
  private:
   int allocDataArray(int dsize);
+  void makeBoundaryPoint(Ipoint pt1, Ipoint pt2, int ix1, int ix2,
+                              int iy1, int iy2, Ipoint *newpt);
   
-  GraphStruct *mGraph;
+ public:
+  GraphGL *mGLw;
+  struct ViewInfo *mVi;
+  int    mWidth, mHeight;
+  float *mData;
+  float  mZoom;
+  int    mAxis;
+  int    mLocked;
+  int    mCtrl;
+  int    mStart;
+  float  mXcur, mYcur, mZcur; /* current location. */
+
+ private:
   QToolButton *mToggleButs[MAX_GRAPH_TOGGLES];
   int mToggleStates[MAX_GRAPH_TOGGLES];
   QLabel *mPlabel1;
@@ -103,6 +89,19 @@ class GraphWindow : public QMainWindow
   QLabel *mVlabel2;
   QLabel *mMeanLabel;
   QSpinBox *mWidthBox;
+  int    mDataSize;
+  int    mAllocSize;
+  int    mCenterPt;
+  int    mObjCur, mContCur, mPtCur; /* current object, contour, point */
+  int    mSubStart;
+  int    mHighRes;
+  int    mNumLines;
+  float  mOffset;
+  float  mScale;
+  float  mMin, mMax;
+  float  mMean;
+  int    mEnd;
+  int    mClosing;
 };
 
 class GraphGL : public QGLWidget
@@ -110,9 +109,9 @@ class GraphGL : public QGLWidget
   Q_OBJECT
 
  public:
-  GraphGL(GraphStruct *graph, QGLFormat format, QWidget * parent = 0);
+  GraphGL(GraphWindow *graph, QGLFormat format, QWidget * parent = 0);
   ~GraphGL() {};
-  void setxyz(GraphStruct *xg, int mx, int my);
+  void setxyz(int mx, int my);
  
 protected:
   void initializeGL() {};
@@ -121,6 +120,7 @@ protected:
   void mousePressEvent(QMouseEvent * e );
 
  private:
-  GraphStruct *mGraph;
+  GraphWindow *mGraph;
+  bool mDrawing;
 };
 #endif     // XGRAPH_H
