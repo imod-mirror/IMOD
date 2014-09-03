@@ -9,11 +9,15 @@ import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.JPanel;
 
+import etomo.storage.DirectiveDef;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.EnumeratedType;
 import etomo.type.ParsedElement;
+import etomo.ui.Checkpoint;
+import etomo.ui.Field;
 import etomo.ui.FieldType;
 import etomo.ui.FieldValidationFailedException;
+import etomo.ui.TextFieldInterface;
 
 /**
  * <p>Description: </p>
@@ -66,13 +70,13 @@ import etomo.ui.FieldValidationFailedException;
  * <p> JTextField when the radio button is not selected.
  * <p> </p>
  */
-final class RadioTextField implements RadioButtonInterface {
+final class RadioTextField implements RadioButtonInterface, Field, TextFieldInterface {
   public static final String rcsid = "$Id$";
 
   private final JPanel rootPanel = new JPanel();
   private final RadioButton radioButton;
   private final TextField textField;
-  
+
   private boolean debug = false;
 
   /**
@@ -143,16 +147,82 @@ final class RadioTextField implements RadioButtonInterface {
     }
   }
 
-  void setText(final String text) {
+  public void setText(final String text) {
     textField.setText(text);
     if (debug) {
       System.out.println("RadioTextField:setText:text:" + text);
       Thread.dumpStack();
     }
   }
-  
+
+  public void backup() {
+    radioButton.backup();
+    textField.backup();
+  }
+
+  /**
+   * If a field was backed up, make the backup value the displayed value, and turn off
+   * the back up.  This has no effect on a radio button with a backupValue of false,
+   * other then to turn off the backup.
+   */
+  public void restoreFromBackup() {
+    radioButton.restoreFromBackup();
+    textField.restoreFromBackup();
+  }
+
+  public void clear() {
+    radioButton.clear();
+    textField.clear();
+  }
+
+  public void copy(final Field copyFrom) {
+    radioButton.copy(copyFrom);
+    textField.copy(copyFrom);
+  }
+
+  void setDirectiveDef(final DirectiveDef directiveDef) {
+    textField.setDirectiveDef(directiveDef);
+  }
+
+  public void useDefaultValue() {
+    textField.useDefaultValue();
+  }
+
+  public void setFieldHighlightValue(final String text) {
+    textField.setFieldHighlightValue(text);
+  }
+
+  public void setFieldHighlightValue(final boolean bool) {
+    radioButton.setFieldHighlightValue(bool);
+  }
+
+  public void setFieldHighlightValue(final RadioTextField from) {
+    textField.setFieldHighlightValue(from.textField);
+    radioButton.setFieldHighlightValue(from.radioButton);
+  }
+
+  public void clearFieldHighlightValue() {
+    textField.clearFieldHighlightValue();
+    radioButton.clearFieldHighlightValue();
+  }
+
+  public void checkpoint() {
+    radioButton.checkpoint();
+    textField.checkpoint();
+  }
+
+  public void setCheckpoint(final Checkpoint checkpoint) {
+    radioButton.setCheckpoint(checkpoint);
+    textField.setCheckpoint(checkpoint);
+  }
+
+  public boolean isDifferentFromCheckpoint(final boolean alwaysCheck) {
+    return radioButton.isDifferentFromCheckpoint(alwaysCheck)
+        || textField.isDifferentFromCheckpoint(alwaysCheck);
+  }
+
   void setDebug(final boolean debug) {
-    this.debug=debug;
+    this.debug = debug;
   }
 
   void setText(final ConstEtomoNumber text) {
@@ -179,7 +249,7 @@ final class RadioTextField implements RadioButtonInterface {
    * return text without validation
    * @return
    */
-  String getText() {
+  public String getText() {
     String text = textField.getText();
     if (text == null || text.matches("\\s*")) {
       return "";
@@ -191,11 +261,11 @@ final class RadioTextField implements RadioButtonInterface {
     return radioButton.getEnumeratedType();
   }
 
-  boolean isSelected() {
+  public boolean isSelected() {
     return radioButton.isSelected();
   }
 
-  boolean isEmpty() {
+  public boolean isEmpty() {
     String text = textField.getText();
     return text == null || text.matches("\\s*");
   }
@@ -212,7 +282,7 @@ final class RadioTextField implements RadioButtonInterface {
   void setSelected(boolean selected) {
     radioButton.setSelected(selected);
     if (debug) {
-      System.out.println("RadioTextField:setSelected:selected:"+selected);
+      System.out.println("RadioTextField:setSelected:selected:" + selected);
     }
   }
 

@@ -22,13 +22,25 @@ public class AutodocFilter extends javax.swing.filechooser.FileFilter implements
     java.io.FileFilter {
   public static final String rcsid = "$Id$";
 
+  private final boolean excludeHidden;
+
+  public AutodocFilter() {
+    excludeHidden = false;
+  }
+
+  public AutodocFilter(final boolean excludeHidden) {
+    this.excludeHidden = excludeHidden;
+  }
+
   public boolean accept(File f) {
     if (!f.exists()) {
       System.err.println("Warning: " + f.getAbsolutePath() + " does not exist");
       return false;
     }
     if (f.isFile()) {
-      return f.getName().endsWith(AutodocFactory.EXTENSION);
+      String name = f.getName();
+      return name.endsWith(AutodocFactory.EXTENSION)
+          && (!excludeHidden || !name.startsWith("."));
     }
     return true;
   }
