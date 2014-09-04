@@ -169,7 +169,7 @@ if xtiltArr:
    xtilt = xtiltArr[0]
    
 # If GPU is used and number of procs not entered, assume 1 not 8
-if useGPU and not procEntered:
+if useGPU >= 0 and not procEntered:
    numproc = 1
 
 # Figure out if it can be done with internal SIRT
