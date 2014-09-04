@@ -54,17 +54,26 @@ public interface Field {
 
   public boolean isBoolean();
 
+  /**
+   * Returns true if the field contains any kind of text - including spinners.
+   * @return
+   */
   public boolean isText();
 
+  /**
+   * Returns true if there is a non-empty, non-whitespace value.  Boolean fields
+   * are never empty.
+   * @return
+   */
   public boolean isEmpty();
 
   public boolean isEnabled();
 
-  public Checkpoint getCheckpoint();
+  public FieldSetting getCheckpoint();
 
-  public void setCheckpoint(Checkpoint checkpoint);
+  public void setCheckpoint(FieldSetting checkpoint);
 
-  public FieldHighlight getFieldHighlight();
+  public FieldSetting getFieldHighlight();
 
-  public void setFieldHighlight(FieldHighlight fieldHighlight);
+  public void setFieldHighlight(FieldSetting fieldHighlight);
 }
