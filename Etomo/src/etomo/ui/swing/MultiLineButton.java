@@ -470,11 +470,15 @@ class MultiLineButton implements ProcessResultDisplay {
     button.addActionListener(actionListener);
   }
 
+  void setActionCommand(final String actionCommand) {
+    button.setActionCommand(actionCommand);
+  }
+
   final String getActionCommand() {
     return button.getActionCommand();
   }
 
-  final Component getComponent() {
+  public final Component getComponent() {
     return button;
   }
 
@@ -513,7 +517,7 @@ class MultiLineButton implements ProcessResultDisplay {
   final void setAlignmentY(float alignmentY) {
     button.setAlignmentY(alignmentY);
   }
-  
+
   /**
    * @return a label suitable for a message - in single quotes and truncated at the colon.
    */
@@ -538,10 +542,10 @@ class MultiLineButton implements ProcessResultDisplay {
    * @param container
    * @param size
    */
-  final void setSize() {
+  void setSize() {
     setSize(false);
   }
-  
+
   final void setSingleLineSize() {
     Dimension size = UIParameters.INSTANCE.getButtonSingleLineDimension();
     button.setPreferredSize(size);
@@ -555,6 +559,12 @@ class MultiLineButton implements ProcessResultDisplay {
     if (setMinimum) {
       button.setMinimumSize(size);
     }
+  }
+
+  final void setToPreferredSize() {
+    Dimension size = button.getPreferredSize();
+    button.setPreferredSize(size);
+    button.setMaximumSize(size);
   }
 
   final void setSize(Dimension size) {
@@ -600,7 +610,7 @@ class MultiLineButton implements ProcessResultDisplay {
     return button.isVisible();
   }
 
-  final boolean isEnabled() {
+  public final boolean isEnabled() {
     return button.isEnabled();
   }
 
