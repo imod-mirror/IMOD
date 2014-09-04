@@ -23,7 +23,7 @@ import javax.swing.filechooser.FileFilter;
 import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.storage.DirectiveDef;
-import etomo.ui.Checkpoint;
+import etomo.ui.FieldSetting;
 import etomo.ui.Field;
 import etomo.ui.FieldType;
 import etomo.ui.TextFieldInterface;
@@ -333,7 +333,7 @@ public  String getQuotedLabel() {
     field.checkpoint();
   }
 
-  public void setCheckpoint(final Checkpoint checkpoint) {
+  public void setCheckpoint(final FieldSetting checkpoint) {
     field.setCheckpoint(checkpoint);
   }
 
