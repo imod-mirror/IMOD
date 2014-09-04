@@ -1944,7 +1944,14 @@ def generateTomogram():
          return 1
 
    if doSIRT:
+      numProc = 1
+      if parallelGPU > 1:
+         numProc = parallelGPU
+      elif parallelCPU and not useGPU:
+         numProc = parallelCPU
       comlines = laterComDirectives('sirtsetup', 'sirtsetup', 0)
+      comlines.append(fmtstr('OneParameterChange {}sirtsetup{}.sirtsetup.' + \
+                                'NumberOfProcessors={}', comPrefix, axisLet, numProc))
       if makeAndRunOneCom(comlines, 'sirtsetup' + axisCom,
                           'Making command files to run SIRT'):
          return 1
