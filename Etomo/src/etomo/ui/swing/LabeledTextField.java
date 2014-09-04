@@ -19,7 +19,7 @@ import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.EtomoNumber;
 import etomo.type.UITestFieldType;
-import etomo.ui.Checkpoint;
+import etomo.ui.FieldSetting;
 import etomo.ui.Field;
 import etomo.ui.FieldType;
 import etomo.ui.FieldValidationFailedException;
@@ -240,7 +240,7 @@ final class LabeledTextField implements UIComponent, SwingComponent, Field,
   private String defaultValue = null;
   private boolean useFieldHighlight = false;
   private String fieldHighlightValue = null;
-  private Checkpoint checkpoint = null;
+  private FieldSetting checkpoint = null;
 
   public String toString() {
     return "[label:" + getLabel() + "]";
@@ -329,7 +329,7 @@ final class LabeledTextField implements UIComponent, SwingComponent, Field,
    */
   public void checkpoint() {
     if (checkpoint == null) {
-      checkpoint = new Checkpoint();
+      checkpoint = new FieldSetting();
     }
     checkpoint.set(getText());
   }
@@ -375,7 +375,7 @@ final class LabeledTextField implements UIComponent, SwingComponent, Field,
    */
   void checkpoint(final int value) {
     if (checkpoint == null) {
-      checkpoint = new Checkpoint();
+      checkpoint = new FieldSetting();
     }
     checkpoint.set(value);
   }
@@ -385,7 +385,7 @@ final class LabeledTextField implements UIComponent, SwingComponent, Field,
    */
   void checkpoint(final ConstEtomoNumber value) {
     if (checkpoint == null) {
-      checkpoint = new Checkpoint();
+      checkpoint = new FieldSetting();
     }
     checkpoint.set(value);
   }
@@ -395,7 +395,7 @@ final class LabeledTextField implements UIComponent, SwingComponent, Field,
    */
   void checkpoint(final double value) {
     if (checkpoint == null) {
-      checkpoint = new Checkpoint();
+      checkpoint = new FieldSetting();
     }
     checkpoint.set(value);
   }
@@ -405,12 +405,12 @@ final class LabeledTextField implements UIComponent, SwingComponent, Field,
    */
   void checkpoint(final String value) {
     if (checkpoint == null) {
-      checkpoint = new Checkpoint();
+      checkpoint = new FieldSetting();
     }
     checkpoint.set(value);
   }
 
-  public void setCheckpoint(final Checkpoint input) {
+  public void setCheckpoint(final FieldSetting input) {
     if (input == null) {
       if (checkpoint != null) {
         checkpoint.reset();
@@ -418,7 +418,7 @@ final class LabeledTextField implements UIComponent, SwingComponent, Field,
     }
     else {
       if (checkpoint == null) {
-        checkpoint = new Checkpoint();
+        checkpoint = new FieldSetting();
       }
       checkpoint.copy(input);
     }
