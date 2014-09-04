@@ -158,7 +158,7 @@ final class DirectiveAttribute {
      * @return true if the directive is not boolean and the attribute value is null
      */
     boolean overrides() {
-      if (directiveDef == null || directiveDef.isBool() || attribute == null) {
+      if (directiveDef == null || directiveDef.isBoolean() || attribute == null) {
         return false;
       }
       boolean override = attribute.getValue() == null;
@@ -193,7 +193,7 @@ final class DirectiveAttribute {
      */
     boolean isValue() {
       String value = getValue();
-      if (directiveDef.isBool()) {
+      if (directiveDef.isBoolean()) {
         if (value == null) {
           System.err.println("Warning: " + directiveDef
               + " is boolean and its value should not be null");
