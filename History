@@ -1,5 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/4/14: In eTomo - PEET, handling a reference without brackets in the .prm
+file.  Also added line numbers to the parsing error messages.(Bug# 1815)
+
+9/4/14: In eTomo - uitest, fixed values that where not working with changes in
+IMOD.  Added a test for a fiducial size of 0.(Bug# 1799)
+
 9/4/14: Fixed number of processors used for SIRT run from Batchruntomo (In
 4.7).
 
