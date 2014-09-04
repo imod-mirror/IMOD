@@ -929,6 +929,10 @@ int PipPrintHelp(const char *progName, int useStdErr, int inputFiles,
           brokeAtSpace = 1;
         }
 
+        /* For manpage output, insert zero-width character if line starts with . or ' */
+        if (sOutputManpage > 0 && (sname[0] == '.' || sname[0] == '\''))
+          fprintf(out, "\\&");
+
         /* Replace break point with null, print and reset pointer and count 
            Also advance past a leading space for manpage output if broke at a space */
         sname[j] = 0x00;
