@@ -263,10 +263,11 @@ public final class UIHarness {
     return true;
   }
 
-  public synchronized boolean openYesNoDialogWithDefaultNo(BaseManager manager, String message,
-      String title, AxisID axisID) {
+  public synchronized boolean openYesNoDialogWithDefaultNo(BaseManager manager,
+      String message, String title, AxisID axisID) {
     if (isHead() && !EtomoDirector.INSTANCE.isTestFailed()) {
-      return getFrame(manager).openYesNoDialogWithDefaultNo(manager, message, title, axisID);
+      return getFrame(manager).openYesNoDialogWithDefaultNo(manager, message, title,
+          axisID);
     }
     log(message, axisID);
     return true;
@@ -510,6 +511,12 @@ public final class UIHarness {
     }
   }
 
+  public void updateFrame(BaseManager currentManager) {
+    if (isHead()) {
+      mainFrame.updateFrame(currentManager);
+    }
+  }
+
   public void setCurrentManager(BaseManager currentManager, UniqueKey managerKey) {
     if (isHead()) {
       mainFrame.setCurrentManager(currentManager, managerKey);
@@ -563,6 +570,12 @@ public final class UIHarness {
   public void setEnabledNewAnisotropicDiffusionMenuItem(boolean enable) {
     if (isHead()) {
       mainFrame.setEnabledNewAnisotropicDiffusionMenuItem(enable);
+    }
+  }
+
+  public void setEnabledNewBatchRunTomoMenuItem(boolean enable) {
+    if (isHead()) {
+      mainFrame.setEnabledNewBatchRunTomoMenuItem(enable);
     }
   }
 

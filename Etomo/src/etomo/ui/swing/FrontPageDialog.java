@@ -81,6 +81,8 @@ public final class FrontPageDialog {
       .getDebugInstance(EtomoMenu.RECON_LABEL);
   private final MultiLineButton btnJoin = new MultiLineButton(EtomoMenu.JOIN_LABEL);
   private final MultiLineButton btnNad = new MultiLineButton(EtomoMenu.NAD_LABEL);
+  private final MultiLineButton btnBatchRunTomo = new MultiLineButton(
+      EtomoMenu.BATCH_RUN_TOMO_LABEL);
   private final MultiLineButton btnGeneric = new MultiLineButton(EtomoMenu.GENERIC_LABEL);
   private final MultiLineButton btnPeet = new MultiLineButton(EtomoMenu.PEET_LABEL);
   private final MultiLineButton btnSerialSections = new MultiLineButton(
@@ -112,10 +114,13 @@ public final class FrontPageDialog {
     JPanel pnlProjects = new JPanel();
     JPanel pnlToolLabel = new JPanel();
     JPanel pnlTools = new JPanel();
+    JPanel pnlAutomationLabel = new JPanel();
+    JPanel pnlAutomation = new JPanel();
     // initialize
     btnRecon.setSize();
     btnJoin.setSize();
     btnNad.setSize();
+    btnBatchRunTomo.setSize();
     btnGeneric.setSize();
     btnPeet.setSize();
     btnSerialSections.setSize();
@@ -131,6 +136,10 @@ public final class FrontPageDialog {
     pnlRoot.add(pnlToolLabel);
     pnlRoot.add(Box.createRigidArea(FixedDim.x0_y3));
     pnlRoot.add(pnlTools);
+    pnlRoot.add(Box.createRigidArea(FixedDim.x0_y10));
+    pnlRoot.add(pnlAutomationLabel);
+    pnlRoot.add(Box.createRigidArea(FixedDim.x0_y3));
+    pnlRoot.add(pnlAutomation);
     // project label
     pnlProjectLabel.setLayout(new BoxLayout(pnlProjectLabel, BoxLayout.X_AXIS));
     pnlProjectLabel.add(new JLabel("New project:"));
@@ -151,6 +160,14 @@ public final class FrontPageDialog {
     pnlTools.setLayout(new GridLayout(1, 2, 7, 7));
     pnlTools.add(btnFlattenVolume.getComponent());
     pnlTools.add(btnGpuTiltTest.getComponent());
+    // Automation label
+    pnlAutomationLabel.setLayout(new BoxLayout(pnlAutomationLabel, BoxLayout.X_AXIS));
+    pnlAutomationLabel.add(new JLabel("Automation:"));
+    pnlAutomationLabel.add(Box.createHorizontalGlue());
+    // Automation
+    pnlAutomation.setLayout(new BoxLayout(pnlAutomation, BoxLayout.X_AXIS));
+    pnlAutomation.add(btnBatchRunTomo.getComponent());
+    pnlAutomation.add(Box.createHorizontalGlue());
   }
 
   private void addListeners() {
@@ -158,6 +175,7 @@ public final class FrontPageDialog {
     btnRecon.addActionListener(actionListener);
     btnJoin.addActionListener(actionListener);
     btnNad.addActionListener(actionListener);
+    btnBatchRunTomo.addActionListener(actionListener);
     btnGeneric.addActionListener(actionListener);
     btnPeet.addActionListener(actionListener);
     btnSerialSections.addActionListener(actionListener);
@@ -179,6 +197,9 @@ public final class FrontPageDialog {
     }
     else if (actionCommand.equals(btnNad.getActionCommand())) {
       EtomoDirector.INSTANCE.openAnisotropicDiffusion(true, axisID);
+    }
+    else if (actionCommand.equals(btnBatchRunTomo.getActionCommand())) {
+      EtomoDirector.INSTANCE.openBatchRunTomo(true, axisID);
     }
     else if (actionCommand.equals(btnGeneric.getActionCommand())) {
       EtomoDirector.INSTANCE.openGenericParallel(true, axisID);
@@ -204,6 +225,8 @@ public final class FrontPageDialog {
     btnJoin.setToolTipText("Stack tomograms.");
     btnNad.setToolTipText("Run a nonlinear anisotropic diffusion process on a "
         + "tomogram.");
+    btnBatchRunTomo
+        .setToolTipText("Use batchruntomo to create or start one or more tomograms.");
     btnGeneric.setToolTipText("Run a generic parallel process.");
     btnPeet.setToolTipText("Start the interface for the PEET particle averaging "
         + "package.");

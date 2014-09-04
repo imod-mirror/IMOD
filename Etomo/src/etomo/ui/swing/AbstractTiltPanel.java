@@ -1001,7 +1001,7 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
    * @param deferred3dmodButton
    * @param run3dmodMenuOptions
    */
-  final void action(final String command, final Deferred3dmodButton deferred3dmodButton,
+ public final void action(final String command, final Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(btnTilt.getActionCommand())) {
       tiltAction(btnTilt, deferred3dmodButton, run3dmodMenuOptions,
@@ -1071,7 +1071,7 @@ abstract class AbstractTiltPanel implements Expandable, TrialTiltParent,
     ReadOnlyAutodoc autodoc = null;
 
     try {
-      autodoc = AutodocFactory.getInstance(manager, AutodocFactory.TILT, axisID);
+      autodoc = AutodocFactory.getInstance(manager, AutodocFactory.TILT, axisID, false);
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();
