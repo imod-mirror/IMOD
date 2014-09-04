@@ -13,7 +13,7 @@ import etomo.storage.DirectiveDef;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.EnumeratedType;
 import etomo.type.ParsedElement;
-import etomo.ui.Checkpoint;
+import etomo.ui.FieldSetting;
 import etomo.ui.Field;
 import etomo.ui.FieldType;
 import etomo.ui.FieldValidationFailedException;
@@ -211,7 +211,7 @@ final class RadioTextField implements RadioButtonInterface, Field, TextFieldInte
     textField.checkpoint();
   }
 
-  public void setCheckpoint(final Checkpoint checkpoint) {
+  public void setCheckpoint(final FieldSetting checkpoint) {
     radioButton.setCheckpoint(checkpoint);
     textField.setCheckpoint(checkpoint);
   }
