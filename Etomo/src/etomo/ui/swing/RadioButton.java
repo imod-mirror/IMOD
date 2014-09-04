@@ -25,7 +25,7 @@ import etomo.type.EnumeratedType;
 import etomo.type.EtomoAutodoc;
 import etomo.type.EtomoBoolean2;
 import etomo.type.UITestFieldType;
-import etomo.ui.Checkpoint;
+import etomo.ui.FieldSetting;
 import etomo.ui.Field;
 import etomo.ui.FieldHighlight;
 import etomo.util.Utilities;
@@ -54,7 +54,7 @@ final class RadioButton implements RadioButtonInterface, Field, ActionListener {
   private boolean backupValue = false;
   private boolean fieldIsBackedUp = false;
   private Color origForeground = null;
-  private Checkpoint checkpoint = null;
+  private FieldSetting checkpoint = null;
   private DirectiveDef directiveDef = null;
   private boolean defaultValueSearchDone = false;
   private boolean defaultValueFound = false;
@@ -129,19 +129,19 @@ final class RadioButton implements RadioButtonInterface, Field, ActionListener {
 
   public void checkpoint() {
     if (checkpoint == null) {
-      checkpoint = new Checkpoint();
+      checkpoint = new FieldSetting();
     }
     checkpoint.set(isSelected());
   }
 
-  public void setCheckpoint(final Checkpoint input) {
+  public void setCheckpoint(final FieldSetting input) {
     if (input == null) {
       if (checkpoint != null) {
         checkpoint.reset();
       }
     }
     else if (checkpoint == null) {
-      checkpoint = new Checkpoint();
+      checkpoint = new FieldSetting();
     }
     checkpoint.copy(input);
   }
