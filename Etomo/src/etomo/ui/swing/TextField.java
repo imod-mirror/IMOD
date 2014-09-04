@@ -17,7 +17,7 @@ import etomo.storage.DirectiveDef;
 import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.type.EtomoNumber;
 import etomo.type.UITestFieldType;
-import etomo.ui.Checkpoint;
+import etomo.ui.FieldSetting;
 import etomo.ui.Field;
 import etomo.ui.FieldHighlight;
 import etomo.ui.FieldType;
@@ -56,7 +56,7 @@ final class TextField implements UIComponent, SwingComponent, Field, FocusListen
   private DirectiveDef directiveDef = null;
   private boolean defaultValueSearchDone = false;
   private String defaultValue = null;
-  private Checkpoint checkpoint = null;
+  private FieldSetting checkpoint = null;
   private FieldHighlight fieldHighlight = null;
 
   TextField(final FieldType fieldType, final String reference, final String locationDescr) {
@@ -168,12 +168,12 @@ final class TextField implements UIComponent, SwingComponent, Field, FocusListen
    */
   public void checkpoint() {
     if (checkpoint == null) {
-      checkpoint = new Checkpoint();
+      checkpoint = new FieldSetting();
     }
     checkpoint.set(getText());
   }
 
-  public void setCheckpoint(final Checkpoint input) {
+  public void setCheckpoint(final FieldSetting input) {
     if (input == null) {
       if (checkpoint != null) {
         checkpoint.reset();
@@ -181,7 +181,7 @@ final class TextField implements UIComponent, SwingComponent, Field, FocusListen
     }
     else {
       if (checkpoint == null) {
-        checkpoint = new Checkpoint();
+        checkpoint = new FieldSetting();
       }
       checkpoint.copy(input);
     }
