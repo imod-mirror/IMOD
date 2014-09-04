@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/4/14: Fixed number of processors used for SIRT run from Batchruntomo (In
+4.7).
+
 8/28/14: IMOD_4-7-9
 8/22/14: Fixed problem with movie snapshots starting with the current image
 instead of starting one on some systems; made Slicer movies do double shots on
