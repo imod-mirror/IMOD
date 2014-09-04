@@ -78,7 +78,7 @@ short = change
 type = FNM
 usage = Name of file with directives for changing parameters
 tooltip = 
-manpage = Name of file with directives for changing parameters.  A directive
+manpage = 'Name of file with directives for changing parameters.  A directive
 has the form "comparam.comfile.process.option=value" where "comparam" is a required
 prefix for directives to be processed by Copytomocoms, "comfile" is the root
 name of the command file with optional "a" or "b", "process" is the name of a
@@ -91,16 +91,16 @@ for a dual-axis data set, a directive specific to a particular axis, such as
 that example, will always be preferred over a generic directive with no "a" or
 "b" on the command file name will.  For a single-axis data set, directives
 with a "b" are ignored and ones with an "a" or with no "a or "b" are treated
-equivalently, such that later ones override earlier ones.
+equivalently, such that later ones override earlier ones.'
 
 [Field = OneParameterChange]
 short = one
 type = CHM
 usage = One directive for changing parameters
 tooltip = 
-manpage = One directive for changing parameters, in the format 
+manpage = 'One directive for changing parameters, in the format 
 "comparam.comfile.process.option=value".
 Entries with this option are processed after change files, can override any
 standard changes or additions being imposed by the script, and later entries
-override earlier ones
+override earlier ones.'
 
