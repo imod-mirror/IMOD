@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/4/14: Fixed number of processors used for SIRT run from Batchruntomo (In
+4.7).
+
 8/30/14: IMOD_4-8-11
 8/30/14: Added button to export graph values to file from 3dmod Graph window.
 
