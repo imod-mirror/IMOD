@@ -151,7 +151,7 @@ import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.EtomoNumber;
 import etomo.type.UITestFieldType;
-import etomo.ui.Checkpoint;
+import etomo.ui.FieldSetting;
 import etomo.ui.Field;
 import etomo.ui.FieldType;
 import etomo.ui.TextFieldInterface;
@@ -177,7 +177,7 @@ final class LabeledSpinner implements Field, TextFieldInterface, ChangeListener,
   private Color origLabelForeground = null;
   private Color origTextForeground = null;
   private DirectiveDef directiveDef = null;
-  private Checkpoint checkpoint = null;
+  private FieldSetting checkpoint = null;
 
   /**
    * @param spinner
@@ -256,12 +256,12 @@ final class LabeledSpinner implements Field, TextFieldInterface, ChangeListener,
 
   public void checkpoint() {
     if (checkpoint == null) {
-      checkpoint = new Checkpoint();
+      checkpoint = new FieldSetting();
     }
     checkpoint.set(getText());
   }
 
-  public void setCheckpoint(final Checkpoint input) {
+  public void setCheckpoint(final FieldSetting input) {
     if (input == null) {
       if (checkpoint != null) {
         checkpoint.reset();
@@ -269,7 +269,7 @@ final class LabeledSpinner implements Field, TextFieldInterface, ChangeListener,
     }
     else {
       if (checkpoint == null) {
-        checkpoint = new Checkpoint();
+        checkpoint = new FieldSetting();
       }
       checkpoint.copy(input);
     }
