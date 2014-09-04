@@ -3,19 +3,6 @@
  *
  * $Id$
  *
- * $Log$
- * Revision 1.4  2010/07/07 22:38:51  mast
- * Added support for RGB images
- *
- * Revision 1.3  2010/06/26 18:01:32  mast
- * Fixed test for keepByte value
- *
- * Revision 1.2  2007/10/01 15:26:09  mast
- * *** empty log message ***
- *
- * Revision 1.1  2007/09/20 02:42:53  mast
- * Added C translation to new library
- *
  */
 
 #include "imodconfig.h"
@@ -23,12 +10,14 @@
 
 #ifdef F77FUNCAP
 #define reduce_by_binning REDUCE_BY_BINNING
+#define  binintoslice BININTOSLICE
 #else
 #ifdef G77__HACK
 #define reduce_by_binning reduce_by_binning__
 #else
 #define reduce_by_binning reduce_by_binning_
 #endif
+#define  binintoslice binintoslice_
 #endif
 
 /*!
@@ -441,4 +430,47 @@ void reduce_by_binning(float *array, int *nx, int *ny, int *nbin,
 {
   reduceByBinning(array, SLICE_MODE_FLOAT, *nx, *ny, *nbin, brray, 0, nxr, 
                   nyr);
+}
+
+/*!
+ * Bins a slice of data in [array], with X dimension [nxDim], by binning factors of 
+ * [binFacX] and [binFacY] in X and Y, and adds it into the slice in [brray] with a 
+ * weighting of [zWeight]. The number of binned pixels to produce in X and Y is given by 
+ * [nxBin] and [nyBin], and [brray] is contiguous (has X dimension [nxBin]).
+ */
+void binIntoSlice(float *array, int nxDim, float *brray, int nxBin, int nyBin,
+                  int binFacX, int binFacY, float zWeight)
+{
+  int ixBin, iyBin, ix, iy, ind;
+  float factor = zWeight / (binFacX * binFacY);
+
+  if (binFacX * binFacY == 1) {
+    
+    /* Parallelizing this did more harm than good */
+    for (iyBin = 0; iyBin < nyBin; iyBin ++) {
+      for (ixBin = 0; ixBin < nxBin; ixBin ++) {
+        ind = ixBin + nxDim * iyBin;
+        brray[ind] += array[ind] * factor;
+      }
+    }
+  } else {
+#pragma omp parallel for    \
+  shared(nxDim, nxBin, nyBin, factor, array, brray, binFacX, binFacY) \
+  private(ixBin, iyBin, ix, iy, ind)
+    for (iyBin = 0; iyBin < nyBin; iyBin ++) {
+      for (ixBin = 0; ixBin < nxBin; ixBin ++) {
+        ind = ixBin + nxBin * iyBin;
+        for (iy = iyBin * binFacY; iy < (iyBin + 1) * binFacY; iy++)
+          for (ix = ixBin * binFacX; ix < (ixBin + 1) * binFacX; ix++)
+            brray[ind] += array[ix + nxDim * iy] * factor;
+      }
+    }
+  }
+}
+
+/*! Fortran wrapper for @binIntoSlice. */
+void binintoslice(float *array, int *nxDim, float *brray, int *nxBin, int *nyBin,
+                  int *binFacX, int *binFacY, float *zWeight)
+{
+  binIntoSlice(array, *nxDim, brray, *nxBin, *nyBin, *binFacX, *binFacY, *zWeight);
 }

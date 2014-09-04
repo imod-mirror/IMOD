@@ -1,5 +1,5 @@
 /*
- *  clip_io.c -- Disk input/output for clip.
+ *  file_io.cpp -- Disk input/output for clip.
  *
  *  Original author: James Kremer
  *  Revised by: David Mastronarde   email: mast@colorado.edu
@@ -11,10 +11,7 @@
  *  $Id$
  */
 
-#include <stdlib.h>
 #include <math.h>
-#include "mrcc.h"
-#include "b3dutil.h"
 #include "clip.h"
 
 /* NOTE:

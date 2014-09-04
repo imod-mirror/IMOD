@@ -12,22 +12,17 @@ packages are a lot easier to upgrade.
 
 GENERAL NOTES
 
-IMOD was ported to version 4 of QT with Qt 4.4.3.  One feature was
-subsequently disabled conditionally to allow it to build with Qt 4.3 (colored
-error messages in the 3dmod Info window).  The help system was modified in
-IMOD 4.4.6 to use the new Assistant in Qt 4, thus allowing it to compile with
-Qt 4.7 and beyond, where the old assistant_adp is no longer available.  The
-new Assistant had problems in Qt 4.4 in Windows and Linux, and we thus moved
-to various later versions of Qt on various systems either to solve those
-specific problems or as a precautionary measure.  We now use Qt 4.7.4 for our
-Windows builds, 4.6.3 on RHEL6 Linux, 4.5.3 on RHEL5 Linux, and 4.6.4 for a
-32-bit build under Mac OS X with a carbon interface.  The 64-bit
-builds on Mac OS X use either 4.6.3 or 4.8.5 because there was a problem in key event
-processing from 4.6.4 through (at least) 4.7.4 that is gone in 4.8.5.
+IMOD was ported to version 4 of QT with Qt 4.4.3.  We have since moved to
+higher versions on all systems in order to get proper function from the new
+help system in Qt 4.  We now use Qt 4.7.4 for our Windows builds, 4.6.3 on
+RHEL6 Linux, and 4.5.3 on RHEL5 Linux.  The 64-bit builds on Mac OS X use
+4.8.5 because there was a problem in key event processing from 4.6.4 through
+(at least) 4.7.4 that is gone in 4.8.5.  As far as we know, we have used one
+function introduced in Qt 4.5 but no later features.
 
-The take home message: if you have Qt 4.3 or higher on your system already,
+The take home message: if you have Qt 4.5 or higher on your system already,
 you can safely build with that.  If you need to build Qt, it is safe to use the
-latest Qt compatible with your compilers on any architecture.
+latest Qt compatible with your compilers on any architecture, including Qt 5.
 
 Several strategies were used when building Qt.  One was to build in a local
 directory and then run "make install".  With later versions on Mac, this

@@ -1,5 +1,5 @@
 /*
- *  fft.c -- calculate fft for clip, also used by filter & correlation
+ *  fft.cpp -- calculate fft for clip, also used by filter & correlation
  *
  *  Original author: James Kremer
  *  Revised by: David Mastronarde   email: mast@colorado.edu
@@ -11,10 +11,7 @@
  *  $Id$
  */
 
-#include <stdlib.h>
 #include <string.h>
-#include "b3dutil.h"
-#include "mrcc.h"
 #include "clip.h"
 #include "cfft.h"
 

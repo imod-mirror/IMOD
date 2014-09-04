@@ -13,7 +13,7 @@
  *  $Id$
  */
 
-#include <QtGui>
+#include "myapp.h"
 #include <qlabel.h>
 #include <qfile.h>
 #include <qtoolbutton.h>
@@ -26,7 +26,6 @@
 #include "plotter.h"
 #include "fittingdialog.h"
 #include "angledialog.h"
-#include "myapp.h"
 #include "simplexfitting.h"
 #include "linearfitting.h"
 
