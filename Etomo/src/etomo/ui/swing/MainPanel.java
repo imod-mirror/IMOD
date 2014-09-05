@@ -13,7 +13,9 @@ import javax.swing.JPanel;
 import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
 
+import etomo.Arguments.DebugLevel;
 import etomo.BaseManager;
+import etomo.EtomoDirector;
 import etomo.process.ProcessState;
 import etomo.storage.DataFileFilter;
 import etomo.type.AxisID;
@@ -291,6 +293,7 @@ public abstract class MainPanel extends EtomoPanel {
   private boolean showingAxisA = true;
   boolean showingSetup = false;
   AxisType axisType = AxisType.NOT_SET;
+  private DebugLevel debugLevel = EtomoDirector.INSTANCE.getArguments().getDebugLevel();
 
   private static final int estimatedMenuHeight = 60;
   private static final int extraScreenWidthMultiplier = 2;
@@ -520,6 +523,10 @@ public abstract class MainPanel extends EtomoPanel {
    * @param axisID
    */
   public void setProgressBarValue(int value, String string, AxisID axisID) {
+    if (debugLevel.isLimited() || debugLevel.isExtraVerbose()) {
+      System.err.println("MainPanel.setProgressBarValue:value:" + value + ",string:"
+          + string);
+    }
     AxisProcessPanel axisPanel = mapBaseAxis(axisID);
     axisPanel.setProgressBarValue(value, string);
   }
