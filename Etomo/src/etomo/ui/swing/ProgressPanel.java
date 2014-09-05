@@ -335,21 +335,16 @@ public final class ProgressPanel {
    * @param string
    */
   void setValue(final int n, final String string) {
-    if (debugLevel.isLimited() || debugLevel.isExtraVerbose()) {
-      System.err.println("ProgressPanel.setValue:n:" + n + ",string:" + string);
-    }
     stopped = false;
     value = n;
     barString = string;
+    System.err.println("A:request");
     SwingUtilities.invokeLater(new SetValueAndStringLater());
   }
 
   private final class SetValueAndStringLater implements Runnable {
     public void run() {
-      if (debugLevel.isLimited() || debugLevel.isExtraVerbose()) {
-        System.err.println("ProgressPanel.SetValueAndStringLater.run:value:" + value
-            + ",barString:" + barString);
-      }
+      System.err.println("B:update:"+value);
       setProgressBarValue();
       setProgressBarString();
     }
