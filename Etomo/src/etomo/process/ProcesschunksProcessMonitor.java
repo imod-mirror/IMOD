@@ -444,7 +444,7 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
           pid = array[2].trim();
         }
       }
-      if (debugLevel.isLimited() || debugLevel.isOn()) {
+      if (debugLevel.isOn()) {
         System.err.println(line);
       }
       if (line.indexOf("imodkillgroup") == -1) {
