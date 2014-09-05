@@ -1041,7 +1041,7 @@ public class ImodProcess {
               throw (new SystemProcessException("Could not parse window ID from imod\n"));
             }
             windowID = words[3];
-            if (EtomoDirector.INSTANCE.getArguments().getDebugLevel().isLimited()) {
+            if (EtomoDirector.INSTANCE.getArguments().getDebugLevel().isExtraVerbose()) {
               System.err.println("Found windowID:" + windowID);
             }
           }
