@@ -338,13 +338,11 @@ public final class ProgressPanel {
     stopped = false;
     value = n;
     barString = string;
-    System.err.println("A:request");
     SwingUtilities.invokeLater(new SetValueAndStringLater());
   }
 
   private final class SetValueAndStringLater implements Runnable {
     public void run() {
-      System.err.println("B:update:"+value);
       setProgressBarValue();
       setProgressBarString();
     }
