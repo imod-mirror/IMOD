@@ -523,10 +523,6 @@ public abstract class MainPanel extends EtomoPanel {
    * @param axisID
    */
   public void setProgressBarValue(int value, String string, AxisID axisID) {
-    if (debugLevel.isLimited() || debugLevel.isExtraVerbose()) {
-      System.err.println("MainPanel.setProgressBarValue:value:" + value + ",string:"
-          + string);
-    }
     AxisProcessPanel axisPanel = mapBaseAxis(axisID);
     axisPanel.setProgressBarValue(value, string);
   }
