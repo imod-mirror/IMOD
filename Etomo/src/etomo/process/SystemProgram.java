@@ -448,21 +448,21 @@ public class SystemProgram implements Runnable {
       debug = Arguments.DebugLevel.getOffInstance();
     }
     started = true;
-    if (debug.isLimited()) {
+    if (debug.isExtraVerbose()) {
       System.err.println("");
       System.err.println("SystemProgram: command array: ");
       for (int i = 0; i < commandArray.length; i++) {
         System.err.println("  " + commandArray[i]);
       }
-      if (debug.isOn()) {
-        System.err.print("SystemProgram: working directory: ");
-        if (workingDirectory == null) {
-          System.err.println("null");
-          System.err.println("SystemProgram: using:  " + propertyUserDir);
-        }
-        else {
-          System.err.println(workingDirectory.getAbsoluteFile());
-        }
+    }
+    if (debug.isOn()) {
+      System.err.print("SystemProgram: working directory: ");
+      if (workingDirectory == null) {
+        System.err.println("null");
+        System.err.println("SystemProgram: using:  " + propertyUserDir);
+      }
+      else {
+        System.err.println(workingDirectory.getAbsoluteFile());
       }
     }
 
@@ -711,14 +711,14 @@ public class SystemProgram implements Runnable {
 
   private OutputBufferManager newOutputBufferManager(final BufferedReader cmdBuffer) {
     OutputBufferManager bufferManager = new OutputBufferManager(cmdBuffer);
-    bufferManager.setDebug(debug.isLimited());
+    bufferManager.setDebug(debug.isExtraVerbose());
     bufferManager.setCollectOutput(collectOutput);
     return bufferManager;
   }
 
   private OutputBufferManager newErrorBufferManager(final BufferedReader cmdBuffer) {
     OutputBufferManager bufferManager = new OutputBufferManager(cmdBuffer);
-    bufferManager.setDebug(debug.isLimited());
+    bufferManager.setDebug(debug.isExtraVerbose());
     bufferManager.setCollectOutput(collectOutput);
     return bufferManager;
   }
