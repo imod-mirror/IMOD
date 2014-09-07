@@ -236,10 +236,8 @@ final class LabeledTextField implements UIComponent, SwingComponent, Field,
   private Color origLabelForeground = null;
   private boolean numberMustBePositive = false;
   private DirectiveDef directiveDef = null;
-  private boolean defaultValueSearchDone = false;
-  private String defaultValue = null;
-  private boolean useFieldHighlight = false;
-  private String fieldHighlightValue = null;
+  private FieldSetting defaultValue = null;
+  private FieldSetting fieldHighlight = null;
   private FieldSetting checkpoint = null;
 
   public String toString() {
@@ -411,6 +409,9 @@ final class LabeledTextField implements UIComponent, SwingComponent, Field,
   }
 
   public void setCheckpoint(final FieldSetting input) {
+    while (input != null && input.isBoolean()) {
+      input = input.getNext();
+    }
     if (input == null) {
       if (checkpoint != null) {
         checkpoint.reset();
@@ -444,6 +445,9 @@ final class LabeledTextField implements UIComponent, SwingComponent, Field,
   }
 
   void setFieldHighlightValue(final LabeledTextField from) {
+    while (input != null && input.isBoolean()) {
+      input = input.getNext();
+    }
     if (from == null) {
       return;
     }

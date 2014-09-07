@@ -15,9 +15,12 @@ import etomo.type.EnumeratedType;
 import etomo.type.ParsedElement;
 import etomo.ui.FieldSetting;
 import etomo.ui.Field;
+import etomo.ui.FieldSettingBundle;
+import etomo.ui.FieldSettingInterface;
 import etomo.ui.FieldType;
 import etomo.ui.FieldValidationFailedException;
 import etomo.ui.TextFieldInterface;
+import etomo.util.Utilities;
 
 /**
  * <p>Description: </p>
@@ -78,6 +81,7 @@ final class RadioTextField implements RadioButtonInterface, Field, TextFieldInte
   private final TextField textField;
 
   private boolean debug = false;
+  private DirectiveDef directiveDef = null;
 
   /**
    * Constructs local instance, adds listener, and returns.
@@ -114,6 +118,14 @@ final class RadioTextField implements RadioButtonInterface, Field, TextFieldInte
     rootPanel.add(radioButton.getComponent());
     rootPanel.add(textField.getComponent());
     setTextFieldEnabled();
+  }
+
+  public boolean isText() {
+    return true;
+  }
+
+  public boolean isBoolean() {
+    return true;
   }
 
   void setTextPreferredWidth(final double minWidth) {
@@ -181,11 +193,20 @@ final class RadioTextField implements RadioButtonInterface, Field, TextFieldInte
   }
 
   void setDirectiveDef(final DirectiveDef directiveDef) {
-    textField.setDirectiveDef(directiveDef);
+    this.directiveDef = directiveDef;
   }
 
   public void useDefaultValue() {
+    radioButton.useDefaultValue();
     textField.useDefaultValue();
+  }
+
+  public boolean equalsDefaultValue() {
+    return radioButton.equalsDefaultValue() && textField.equalsDefaultValue();
+  }
+
+  public DirectiveDef getDirectiveDef() {
+    return directiveDef;
   }
 
   public void setFieldHighlightValue(final String text) {
@@ -196,9 +217,16 @@ final class RadioTextField implements RadioButtonInterface, Field, TextFieldInte
     radioButton.setFieldHighlightValue(bool);
   }
 
-  public void setFieldHighlightValue(final RadioTextField from) {
-    textField.setFieldHighlightValue(from.textField);
-    radioButton.setFieldHighlightValue(from.radioButton);
+  public FieldSettingInterface getFieldHighlight() {
+    FieldSettingBundle bundle = new FieldSettingBundle();
+    bundle.add(radioButton.getFieldHighlight());
+    bundle.add(textField.getFieldHighlight());
+    return bundle;
+  }
+
+  public void setFieldHighlight(final FieldSettingInterface input) {
+    radioButton.setFieldHighlight(input);
+    textField.setFieldHighlight(input);
   }
 
   public void clearFieldHighlightValue() {
@@ -206,14 +234,26 @@ final class RadioTextField implements RadioButtonInterface, Field, TextFieldInte
     radioButton.clearFieldHighlightValue();
   }
 
+  public boolean equalsFieldHighlightValue() {
+    return textField.equalsFieldHighlightValue()
+        && radioButton.equalsFieldHighlightValue();
+  }
+
   public void checkpoint() {
     radioButton.checkpoint();
     textField.checkpoint();
   }
 
-  public void setCheckpoint(final FieldSetting checkpoint) {
-    radioButton.setCheckpoint(checkpoint);
-    textField.setCheckpoint(checkpoint);
+  public void setCheckpoint(final FieldSettingInterface input) {
+    radioButton.setCheckpoint(input);
+    textField.setCheckpoint(input);
+  }
+
+  public FieldSettingInterface getCheckpoint() {
+    FieldSettingBundle bundle = new FieldSettingBundle();
+    bundle.add(radioButton.getCheckpoint());
+    bundle.add(textField.getCheckpoint());
+    return bundle;
   }
 
   public boolean isDifferentFromCheckpoint(final boolean alwaysCheck) {
@@ -231,6 +271,10 @@ final class RadioTextField implements RadioButtonInterface, Field, TextFieldInte
 
   String getLabel() {
     return radioButton.getText();
+  }
+
+  public String getQuotedLabel() {
+    return Utilities.quoteLabel(getLabel());
   }
 
   void setRequired(final boolean required) {
@@ -273,6 +317,10 @@ final class RadioTextField implements RadioButtonInterface, Field, TextFieldInte
   void setEnabled(final boolean enable) {
     radioButton.setEnabled(enable);
     setTextFieldEnabled();
+  }
+
+  public boolean isEnabled() {
+    return radioButton.isEnabled();
   }
 
   public void msgSelected() {

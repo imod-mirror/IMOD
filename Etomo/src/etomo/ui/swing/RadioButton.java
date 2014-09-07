@@ -56,10 +56,8 @@ final class RadioButton implements RadioButtonInterface, Field, ActionListener {
   private Color origForeground = null;
   private FieldSetting checkpoint = null;
   private DirectiveDef directiveDef = null;
-  private boolean defaultValueSearchDone = false;
-  private boolean defaultValueFound = false;
-  private boolean defaultValue = false;
-  private FieldHighlight fieldHighlight = null;
+  private FieldSetting defaultValue = null;
+  private FieldSetting fieldHighlight = null;
 
   RadioButton(final String text) {
     this(text, null, null);
@@ -134,7 +132,10 @@ final class RadioButton implements RadioButtonInterface, Field, ActionListener {
     checkpoint.set(isSelected());
   }
 
-  public void setCheckpoint(final FieldSetting input) {
+  public void setCheckpoint( FieldSetting input) {
+    while (input != null && !input.isBoolean()) {
+      input = input.getNext();
+    }
     if (input == null) {
       if (checkpoint != null) {
         checkpoint.reset();
@@ -273,6 +274,9 @@ final class RadioButton implements RadioButtonInterface, Field, ActionListener {
   }
 
   public void setFieldHighlight(final FieldHighlight input) {
+    while (input != null && !input.isBoolean()) {
+      input = input.getNext();
+    }
     if (input == null || !input.isOn()) {
       clearFieldHighlightValue();
     }
@@ -280,7 +284,7 @@ final class RadioButton implements RadioButtonInterface, Field, ActionListener {
       if (fieldHighlight == null) {
         fieldHighlight = new FieldHighlight();
       }
-      if (!fieldHighlight.isOn()) {
+      if (!fieldHighlight.isSet()) {
         addFieldHighlightActionListeners();
       }
       fieldHighlight.copy(input);
