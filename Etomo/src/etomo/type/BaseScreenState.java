@@ -23,7 +23,6 @@ import etomo.storage.Storable;
  */
 public class BaseScreenState implements Storable {
   public static final String rcsid = "$Id$";
-
   public static final String PARALLEL_HEADER_GROUP = "ParallelProcess.Header";
 
   private final PanelHeaderState parallelHeaderState = new PanelHeaderState(

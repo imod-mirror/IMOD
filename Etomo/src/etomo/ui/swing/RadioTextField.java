@@ -9,11 +9,18 @@ import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.JPanel;
 
+import etomo.storage.DirectiveDef;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.EnumeratedType;
 import etomo.type.ParsedElement;
+import etomo.ui.FieldSetting;
+import etomo.ui.Field;
+import etomo.ui.FieldSettingBundle;
+import etomo.ui.FieldSettingInterface;
 import etomo.ui.FieldType;
 import etomo.ui.FieldValidationFailedException;
+import etomo.ui.TextFieldInterface;
+import etomo.util.Utilities;
 
 /**
  * <p>Description: </p>
@@ -66,14 +73,15 @@ import etomo.ui.FieldValidationFailedException;
  * <p> JTextField when the radio button is not selected.
  * <p> </p>
  */
-final class RadioTextField implements RadioButtonInterface {
+final class RadioTextField implements RadioButtonInterface, Field, TextFieldInterface {
   public static final String rcsid = "$Id$";
 
   private final JPanel rootPanel = new JPanel();
   private final RadioButton radioButton;
   private final TextField textField;
-  
+
   private boolean debug = false;
+  private DirectiveDef directiveDef = null;
 
   /**
    * Constructs local instance, adds listener, and returns.
@@ -112,6 +120,14 @@ final class RadioTextField implements RadioButtonInterface {
     setTextFieldEnabled();
   }
 
+  public boolean isText() {
+    return true;
+  }
+
+  public boolean isBoolean() {
+    return true;
+  }
+
   void setTextPreferredWidth(final double minWidth) {
     Dimension prefSize = textField.getPreferredSize();
     prefSize.setSize(minWidth, prefSize.getHeight());
@@ -143,16 +159,110 @@ final class RadioTextField implements RadioButtonInterface {
     }
   }
 
-  void setText(final String text) {
+  public void setText(final String text) {
     textField.setText(text);
     if (debug) {
       System.out.println("RadioTextField:setText:text:" + text);
       Thread.dumpStack();
     }
   }
-  
+
+  public void backup() {
+    radioButton.backup();
+    textField.backup();
+  }
+
+  /**
+   * If a field was backed up, make the backup value the displayed value, and turn off
+   * the back up.  This has no effect on a radio button with a backupValue of false,
+   * other then to turn off the backup.
+   */
+  public void restoreFromBackup() {
+    radioButton.restoreFromBackup();
+    textField.restoreFromBackup();
+  }
+
+  public void clear() {
+    radioButton.clear();
+    textField.clear();
+  }
+
+  public void copy(final Field copyFrom) {
+    radioButton.copy(copyFrom);
+    textField.copy(copyFrom);
+  }
+
+  void setDirectiveDef(final DirectiveDef directiveDef) {
+    this.directiveDef = directiveDef;
+  }
+
+  public void useDefaultValue() {
+    radioButton.useDefaultValue();
+    textField.useDefaultValue();
+  }
+
+  public boolean equalsDefaultValue() {
+    return radioButton.equalsDefaultValue() && textField.equalsDefaultValue();
+  }
+
+  public DirectiveDef getDirectiveDef() {
+    return directiveDef;
+  }
+
+  public void setFieldHighlightValue(final String text) {
+    textField.setFieldHighlightValue(text);
+  }
+
+  public void setFieldHighlightValue(final boolean bool) {
+    radioButton.setFieldHighlightValue(bool);
+  }
+
+  public FieldSettingInterface getFieldHighlight() {
+    FieldSettingBundle bundle = new FieldSettingBundle();
+    bundle.add(radioButton.getFieldHighlight());
+    bundle.add(textField.getFieldHighlight());
+    return bundle;
+  }
+
+  public void setFieldHighlight(final FieldSettingInterface input) {
+    radioButton.setFieldHighlight(input);
+    textField.setFieldHighlight(input);
+  }
+
+  public void clearFieldHighlightValue() {
+    textField.clearFieldHighlightValue();
+    radioButton.clearFieldHighlightValue();
+  }
+
+  public boolean equalsFieldHighlightValue() {
+    return textField.equalsFieldHighlightValue()
+        && radioButton.equalsFieldHighlightValue();
+  }
+
+  public void checkpoint() {
+    radioButton.checkpoint();
+    textField.checkpoint();
+  }
+
+  public void setCheckpoint(final FieldSettingInterface input) {
+    radioButton.setCheckpoint(input);
+    textField.setCheckpoint(input);
+  }
+
+  public FieldSettingInterface getCheckpoint() {
+    FieldSettingBundle bundle = new FieldSettingBundle();
+    bundle.add(radioButton.getCheckpoint());
+    bundle.add(textField.getCheckpoint());
+    return bundle;
+  }
+
+  public boolean isDifferentFromCheckpoint(final boolean alwaysCheck) {
+    return radioButton.isDifferentFromCheckpoint(alwaysCheck)
+        || textField.isDifferentFromCheckpoint(alwaysCheck);
+  }
+
   void setDebug(final boolean debug) {
-    this.debug=debug;
+    this.debug = debug;
   }
 
   void setText(final ConstEtomoNumber text) {
@@ -161,6 +271,10 @@ final class RadioTextField implements RadioButtonInterface {
 
   String getLabel() {
     return radioButton.getText();
+  }
+
+  public String getQuotedLabel() {
+    return Utilities.quoteLabel(getLabel());
   }
 
   void setRequired(final boolean required) {
@@ -179,7 +293,7 @@ final class RadioTextField implements RadioButtonInterface {
    * return text without validation
    * @return
    */
-  String getText() {
+  public String getText() {
     String text = textField.getText();
     if (text == null || text.matches("\\s*")) {
       return "";
@@ -191,11 +305,11 @@ final class RadioTextField implements RadioButtonInterface {
     return radioButton.getEnumeratedType();
   }
 
-  boolean isSelected() {
+  public boolean isSelected() {
     return radioButton.isSelected();
   }
 
-  boolean isEmpty() {
+  public boolean isEmpty() {
     String text = textField.getText();
     return text == null || text.matches("\\s*");
   }
@@ -205,6 +319,10 @@ final class RadioTextField implements RadioButtonInterface {
     setTextFieldEnabled();
   }
 
+  public boolean isEnabled() {
+    return radioButton.isEnabled();
+  }
+
   public void msgSelected() {
     setTextFieldEnabled();
   }
@@ -212,7 +330,7 @@ final class RadioTextField implements RadioButtonInterface {
   void setSelected(boolean selected) {
     radioButton.setSelected(selected);
     if (debug) {
-      System.out.println("RadioTextField:setSelected:selected:"+selected);
+      System.out.println("RadioTextField:setSelected:selected:" + selected);
     }
   }
 

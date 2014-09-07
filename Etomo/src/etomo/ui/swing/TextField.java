@@ -1,18 +1,28 @@
 package etomo.ui.swing;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 
 import javax.swing.JLabel;
 import javax.swing.JTextField;
 
 import etomo.EtomoDirector;
+import etomo.logic.DefaultFinder;
 import etomo.logic.FieldValidator;
+import etomo.storage.DirectiveDef;
 import etomo.storage.autodoc.AutodocTokenizer;
+import etomo.type.EtomoNumber;
 import etomo.type.UITestFieldType;
+import etomo.ui.FieldSetting;
+import etomo.ui.Field;
+import etomo.ui.FieldSettingInterface;
 import etomo.ui.FieldType;
 import etomo.ui.FieldValidationFailedException;
+import etomo.ui.TextFieldInterface;
 import etomo.ui.UIComponent;
 import etomo.util.Utilities;
 
@@ -29,7 +39,8 @@ import etomo.util.Utilities;
  * 
  * @version $Revision$
  */
-final class TextField implements UIComponent ,SwingComponent{
+final class TextField implements UIComponent, SwingComponent, Field, FocusListener,
+    TextFieldInterface {
   public static final String rcsid = "$Id$";
 
   private final JTextField textField = new JTextField();
@@ -39,6 +50,14 @@ final class TextField implements UIComponent ,SwingComponent{
   private final String locationDescr;
 
   private boolean required = false;
+  private Color origForeground = null;
+  private String backupValue = null;
+  private boolean fieldIsBackedUp = false;
+  private DirectiveDef directiveDef = null;
+  private FieldSetting defaultValue = null;
+  private FieldSetting checkpoint = null;
+  private FieldSetting fieldHighlight = null;
+  private String label = null;
 
   TextField(final FieldType fieldType, final String reference, final String locationDescr) {
     this.locationDescr = locationDescr;
@@ -58,10 +77,18 @@ final class TextField implements UIComponent ,SwingComponent{
     textField.setMaximumSize(maxSize);
   }
 
+  public boolean isBoolean() {
+    return false;
+  }
+
+  public boolean isText() {
+    return true;
+  }
+
   void setToolTipText(String text) {
     textField.setToolTipText(TooltipFormatter.INSTANCE.format(text));
   }
-  
+
   public SwingComponent getUIComponent() {
     return this;
   }
@@ -76,13 +103,198 @@ final class TextField implements UIComponent ,SwingComponent{
 
   void setEnabled(boolean enabled) {
     textField.setEnabled(enabled);
+    if (enabled) {
+      updateFieldHighlight();
+    }
   }
 
   void setEditable(boolean editable) {
     textField.setEditable(editable);
   }
 
-  void setText(String text) {
+  /**
+   * @param alwaysCheck - when false return false when the field is disabled or invisible
+   * @return true if text field is different from checkpoint
+   */
+  public boolean isDifferentFromCheckpoint(final boolean alwaysCheck) {
+    if (!alwaysCheck && (!textField.isEnabled() || !textField.isVisible())) {
+      return false;
+    }
+    return checkpoint == null || !checkpoint.equals(getText(), fieldType);
+  }
+
+  public void backup() {
+    backupValue = textField.getText();
+  }
+
+  /**
+   * If the field was backed up, make the backup value the displayed value, and turn off
+   * the back up.
+   */
+  public void restoreFromBackup() {
+    if (fieldIsBackedUp) {
+      setText(backupValue);
+      fieldIsBackedUp = false;
+    }
+  }
+
+  public void clear() {
+    setText("");
+  }
+
+  public void copy(final Field copyFrom) {
+    if (copyFrom == null) {
+      return;
+    }
+    setText(copyFrom.getText());
+  }
+
+  public boolean isSelected() {
+    return false;
+  }
+
+  void setDirectiveDef(final DirectiveDef directiveDef) {
+    this.directiveDef = directiveDef;
+  }
+
+  public DirectiveDef getDirectiveDef() {
+    return directiveDef;
+  }
+
+  public void useDefaultValue() {
+    if (directiveDef == null || !directiveDef.isComparam()) {
+      return;
+    }
+    // only search for default value once
+    if (defaultValue == null) {
+      defaultValue = new FieldSetting();
+      String value = DefaultFinder.INSTANCE.getDefaultValue(directiveDef);
+      if (value != null) {
+        // if default value has been found, set it in the field setting
+        defaultValue.set(value);
+      }
+    }
+    if (defaultValue.isSet()) {
+      setText(defaultValue.getValue());
+    }
+  }
+
+  public boolean equalsDefaultValue() {
+    return defaultValue != null && defaultValue.equals(getText());
+  }
+
+  /**
+   * Saves the current text as the checkpoint.
+   */
+  public void checkpoint() {
+    if (checkpoint == null) {
+      checkpoint = new FieldSetting();
+    }
+    checkpoint.set(getText());
+  }
+
+  public FieldSetting getCheckpoint() {
+    return checkpoint;
+  }
+
+  public void setCheckpoint(final FieldSettingInterface input) {
+    FieldSetting setting = input.getTextSetting();
+    if (setting == null) {
+      if (checkpoint != null) {
+        checkpoint.reset();
+      }
+    }
+    else {
+      if (checkpoint == null) {
+        checkpoint = new FieldSetting();
+      }
+      checkpoint.copy(setting);
+    }
+  }
+
+  public void setFieldHighlightValue(final String value) {
+    if (fieldHighlight == null) {
+      fieldHighlight = new FieldSetting();
+    }
+    if (!fieldHighlight.isSet()) {
+      textField.addFocusListener(this);
+    }
+    fieldHighlight.set(value);
+    updateFieldHighlight();
+  }
+
+  public void setFieldHighlight(final FieldSettingInterface input) {
+    FieldSetting setting = input.getTextSetting();
+    if (setting == null || !setting.isSet()) {
+      clearFieldHighlightValue();
+    }
+    else {
+      if (fieldHighlight == null) {
+        fieldHighlight = new FieldSetting();
+      }
+      if (!fieldHighlight.isSet()) {
+        textField.addFocusListener(this);
+      }
+      fieldHighlight.copy(setting);
+      updateFieldHighlight();
+    }
+  }
+
+  public FieldSetting getFieldHighlight() {
+    return fieldHighlight;
+  }
+
+  public void clearFieldHighlightValue() {
+    if (fieldHighlight != null && fieldHighlight.isSet()) {
+      fieldHighlight.reset();
+      textField.removeFocusListener(this);
+      updateFieldHighlight();
+    }
+  }
+
+  public boolean equalsFieldHighlightValue() {
+    return fieldHighlight != null && fieldHighlight.equals(isSelected());
+  }
+
+  public void focusGained(final FocusEvent event) {
+  }
+
+  public void focusLost(final FocusEvent event) {
+    updateFieldHighlight();
+  }
+
+  /**
+   * If the field highlight is in use, use the field highlight color on the foreground of
+   * the text field if the value of the text field equals the field highlight value.  Save
+   * the original foreground.  If the field highlight is in use and the value of the text
+   * field does not equal the field highlight value, try to restore the original
+   * foreground - or set a foreground color similar to the original one.  Assumes that
+   * field highlight is not used when the field is disabled.
+   */
+  void updateFieldHighlight() {
+    if (!textField.isEnabled()) {
+      return;
+    }
+    if (fieldHighlight != null && fieldHighlight.isSet()) {
+      String text = textField.getText();
+      if (fieldHighlight.equals(text)) {
+        if (origForeground == null) {
+          origForeground = textField.getForeground();
+          if (origForeground == null) {
+            origForeground = Color.BLACK;
+          }
+        }
+        textField.setForeground(Colors.FIELD_HIGHLIGHT);
+      }
+      return;
+    }
+    if (origForeground != null) {
+      // field highlight has been turned off or field highlight doesn't match
+      textField.setForeground(origForeground);
+    }
+  }
+
+  public void setText(String text) {
     textField.setText(text);
   }
 
@@ -101,7 +313,7 @@ final class TextField implements UIComponent ,SwingComponent{
     String text = textField.getText();
     if (doValidation && textField.isEnabled()) {
       text = FieldValidator.validateText(text, fieldType, this, getQuotedReference()
-          + (locationDescr == null ? "" : " in " + locationDescr), required,false);
+          + (locationDescr == null ? "" : " in " + locationDescr), required, false);
     }
     return text;
   }
@@ -110,8 +322,13 @@ final class TextField implements UIComponent ,SwingComponent{
    * get text without validation
    * @return
    */
-  String getText() {
+  public String getText() {
     return textField.getText();
+  }
+
+  public boolean isEmpty() {
+    String text = getText();
+    return text == null || text.matches("\\s*");
   }
 
   private String getQuotedReference() {
@@ -157,7 +374,7 @@ final class TextField implements UIComponent ,SwingComponent{
     return textField.getName();
   }
 
-  boolean isEnabled() {
+  public boolean isEnabled() {
     return textField.isEnabled();
   }
 
@@ -169,7 +386,12 @@ final class TextField implements UIComponent ,SwingComponent{
     return textField.isVisible();
   }
 
+  public String getQuotedLabel() {
+    return Utilities.quoteLabel(label);
+  }
+
   private void setName(String reference) {
+    label = reference;
     String name = Utilities.convertLabelToName(reference);
     textField.setName(UITestFieldType.TEXT_FIELD.toString()
         + AutodocTokenizer.SEPARATOR_CHAR + name);

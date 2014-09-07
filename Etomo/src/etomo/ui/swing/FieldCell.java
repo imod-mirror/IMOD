@@ -152,12 +152,15 @@ final class FieldCell extends InputCell implements ActionTarget {
   public static final String rcsid = "$Id$";
 
   private final JTextField textField;
-  private final TextFieldState state;
+  private final ParsedElementType parsedElementType;
 
   private boolean inUse = true;
 
+  private TextFieldState state;
+
   private FieldCell(final boolean editable, final ParsedElementType parsedElementType,
       final String rootDir) {
+    this.parsedElementType = parsedElementType;
     state = new TextFieldState(editable, parsedElementType, rootDir);
     // construction
     textField = new JTextField();
@@ -171,6 +174,7 @@ final class FieldCell extends InputCell implements ActionTarget {
   }
 
   private FieldCell(final TextFieldState state) {
+    parsedElementType = null;
     this.state = new TextFieldState(state);
     // construction
     textField = new JTextField();
@@ -215,6 +219,10 @@ final class FieldCell extends InputCell implements ActionTarget {
     FieldCell instance = new FieldCell(true, ParsedElementType.NON_MATLAB_NUMBER, rootDir);
     instance.addListeners();
     return instance;
+  }
+
+  void setRootDir(final String input) {
+    state = new TextFieldState(isEditable(), parsedElementType, input);
   }
 
   private void addListeners() {
