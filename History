@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/7/14: Fixed 3dmod loading of subset in Z for non-cached data.
+
 9/4/14: In eTomo - PEET, handling a reference without brackets in the .prm
 file.  Also added line numbers to the parsing error messages.(Bug# 1815)
 
