@@ -939,7 +939,7 @@ unsigned char **mrc_read_byte(FILE *fin,
       (*func)(statstr);
     }
 
-    if (mrcReadZByte(hdata, li, idata[k], k)) {
+    if (mrcReadZByte(hdata, li, idata[k], k + li->zmin)) {
       mrcFreeDataMemory(idata, li->contig, zsize);
       hdata->fp = fpSave;
       return NULL;
