@@ -23,7 +23,7 @@ import javax.swing.filechooser.FileFilter;
 import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.storage.DirectiveDef;
-import etomo.ui.FieldSetting;
+import etomo.ui.TextFieldSetting;
 import etomo.ui.Field;
 import etomo.ui.FieldSettingInterface;
 import etomo.ui.FieldType;
@@ -372,8 +372,12 @@ final class FileTextField2 implements FileTextFieldInterface, Field, ActionListe
   }
 
   public void setFieldHighlight(final FieldSettingInterface input) {
+    TextFieldSetting setting =null;
+    if(input!=null) {
+      setting=input.getTextSetting();
+    }
     boolean set = field.isFieldHighlightSet();
-    field.setFieldHighlight(input);
+    field.setFieldHighlight(setting);
     if (input == null || !input.isSet()) {
       clearFieldHighlightValue();
     }
