@@ -14,16 +14,17 @@ import etomo.type.EtomoNumber;
 * 
 * @author $Author$
 * 
-* @version $Revision$
+ @version $Revision$
 * 
 * <p> $Log$ </p>
 */
-public final class FieldSetting {
+public final class FieldSetting  implements FieldSettingInterface{
   public final String rcsid = "$Id:$";
 
   private boolean set = false;
   private boolean bValue = false;
   private String sValue = null;
+  private boolean bool = false;
 
   public FieldSetting() {
   }
@@ -98,6 +99,7 @@ public final class FieldSetting {
 
   public void set(final boolean input) {
     set = true;
+    bool = true;
     bValue = input;
     sValue = null;
   }
@@ -108,6 +110,7 @@ public final class FieldSetting {
    */
   public void set(final String input) {
     set = true;
+    bool = false;
     sValue = input;
     // Ignore whitespace
     if (sValue != null) {
@@ -125,6 +128,7 @@ public final class FieldSetting {
   }
 
   public void set(final ConstEtomoNumber input) {
+    bool = false;
     if (input == null) {
       set = true;
       sValue = null;
@@ -139,13 +143,21 @@ public final class FieldSetting {
     set = false;
     bValue = false;
     sValue = null;
+    bool = false;
+    next = null;
   }
 
+  /**
+   * Does not copy the next link.
+   * @param input
+   */
   public void copy(final FieldSetting input) {
     set = input.set;
     bValue = input.bValue;
     sValue = input.sValue;
+    bool = input.bool;
   }
+  
 
   public boolean isSet() {
     return set;
@@ -157,5 +169,9 @@ public final class FieldSetting {
 
   public String getValue() {
     return sValue;
+  }
+  
+  public boolean isBoolean() {
+    return bool;
   }
 }
