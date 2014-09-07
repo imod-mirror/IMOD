@@ -151,7 +151,7 @@ import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.EtomoNumber;
 import etomo.type.UITestFieldType;
-import etomo.ui.FieldSetting;
+import etomo.ui.TextFieldSetting;
 import etomo.ui.Field;
 import etomo.ui.FieldType;
 import etomo.ui.TextFieldInterface;
@@ -173,12 +173,12 @@ final class LabeledSpinner implements Field, TextFieldInterface, ChangeListener,
   private Number backupValue = null;
   private boolean fieldIsBackedUp = false;
   private boolean useFieldHighlight = false;
-  private FieldSetting fieldHighlight = null;
+  private TextFieldSetting fieldHighlight = null;
   private Color origLabelForeground = null;
   private Color origTextForeground = null;
   private DirectiveDef directiveDef = null;
-  private FieldSetting checkpoint = null;
-  private FieldSetting defaultValueSetting = null;
+  private TextFieldSetting checkpoint = null;
+  private TextFieldSetting defaultValueSetting = null;
 
   /**
    * @param spinner
@@ -257,12 +257,12 @@ final class LabeledSpinner implements Field, TextFieldInterface, ChangeListener,
 
   public void checkpoint() {
     if (checkpoint == null) {
-      checkpoint = new FieldSetting();
+      checkpoint = new TextFieldSetting();
     }
     checkpoint.set(getText());
   }
 
-  public void setCheckpoint(final FieldSetting input) {
+  public void setCheckpoint(final TextFieldSetting input) {
     while (input != null && input.isBoolean()) {
       input = input.getNext();
     }
@@ -273,7 +273,7 @@ final class LabeledSpinner implements Field, TextFieldInterface, ChangeListener,
     }
     else {
       if (checkpoint == null) {
-        checkpoint = new FieldSetting();
+        checkpoint = new TextFieldSetting();
       }
       checkpoint.copy(input);
     }
@@ -290,6 +290,9 @@ final class LabeledSpinner implements Field, TextFieldInterface, ChangeListener,
 
   public void useDefaultValue() {
     if (directiveDef == null || !directiveDef.isComparam()) {
+      if (defaultValue != null && defaultValue.isSet()) {
+        defaultValue.reset();
+      }
       return;
     }
     if (!defaultValueSearchDone) {
