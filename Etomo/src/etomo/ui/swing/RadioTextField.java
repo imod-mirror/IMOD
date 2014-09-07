@@ -13,7 +13,6 @@ import etomo.storage.DirectiveDef;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.EnumeratedType;
 import etomo.type.ParsedElement;
-import etomo.ui.FieldSetting;
 import etomo.ui.Field;
 import etomo.ui.FieldSettingBundle;
 import etomo.ui.FieldSettingInterface;
