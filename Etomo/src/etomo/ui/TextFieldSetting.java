@@ -18,19 +18,13 @@ import etomo.type.EtomoNumber;
 * 
 * <p> $Log$ </p>
 */
-public final class FieldSetting  implements FieldSettingInterface{
+public final class TextFieldSetting implements FieldSettingInterface {
   public final String rcsid = "$Id:$";
 
   private boolean set = false;
-  private boolean bValue = false;
-  private String sValue = null;
-  private boolean bool = false;
+  private String value = null;
 
-  public FieldSetting() {
-  }
-
-  public boolean equals(final boolean input) {
-    return set && bValue == input;
+  public TextFieldSetting() {
   }
 
   public boolean equals(final String input, final FieldType fieldType) {
@@ -38,21 +32,21 @@ public final class FieldSetting  implements FieldSettingInterface{
       return false;
     }
     // Treating two nulls as equals
-    if (sValue == null && input == null) {
+    if (value == null && input == null) {
       return true;
     }
     // One is null - not equals
-    if (sValue == null || input == null) {
+    if (value == null || input == null) {
       return false;
     }
     // Ignore whitespace
     input = input.trim();
     // Strings are identical - equals
-    if (sValue.equals(input)) {
+    if (value.equals(input)) {
       return true;
     }
     // Compare as a number if both are numbers
-    if (EtomoNumber.isValid(sValue) && EtomoNumber.isValid(input)) {
+    if (EtomoNumber.isValid(value) && EtomoNumber.isValid(input)) {
       EtomoNumber.Type type = null;
       if (fieldType == FieldType.FLOATING_POINT) {
         type = EtomoNumber.Type.DOUBLE;
@@ -61,7 +55,7 @@ public final class FieldSetting  implements FieldSettingInterface{
         type = EtomoNumber.Type.LONG;
       }
       EtomoNumber nValue = new EtomoNumber(type);
-      nValue.set(sValue);
+      nValue.set(value);
       // Treating two nulls of the same type as equals
       if (nValue.isNull() && nValue.isNull(input)) {
         return true;
@@ -69,7 +63,7 @@ public final class FieldSetting  implements FieldSettingInterface{
       if (!nValue.isValid() && type == EtomoNumber.Type.LONG) {
         // User may have entered a number that does not match the field's type.
         nValue = new EtomoNumber(EtomoNumber.Type.DOUBLE);
-        nValue.set(sValue);
+        nValue.set(value);
         // Treating two nulls of the same type as equals
         if (nValue.isNull() && nValue.isNull(input)) {
           return true;
@@ -87,21 +81,14 @@ public final class FieldSetting  implements FieldSettingInterface{
       return false;
     }
     // Treating two nulls as equals
-    if (sValue == null && input == null) {
+    if (value == null && input == null) {
       return true;
     }
     // One is null - not equals
-    if (sValue == null || input == null) {
+    if (value == null || input == null) {
       return false;
     }
     return equals(input.toString(), fieldType);
-  }
-
-  public void set(final boolean input) {
-    set = true;
-    bool = true;
-    bValue = input;
-    sValue = null;
   }
 
   /**
@@ -110,13 +97,11 @@ public final class FieldSetting  implements FieldSettingInterface{
    */
   public void set(final String input) {
     set = true;
-    bool = false;
-    sValue = input;
+    value = input;
     // Ignore whitespace
-    if (sValue != null) {
-      sValue = sValue.trim();
+    if (value != null) {
+      value = value.trim();
     }
-    bValue = false;
   }
 
   public void set(final int input) {
@@ -128,11 +113,9 @@ public final class FieldSetting  implements FieldSettingInterface{
   }
 
   public void set(final ConstEtomoNumber input) {
-    bool = false;
     if (input == null) {
       set = true;
-      sValue = null;
-      bValue = false;
+      value = null;
     }
     else {
       set(input.toString());
@@ -141,37 +124,27 @@ public final class FieldSetting  implements FieldSettingInterface{
 
   public void reset() {
     set = false;
-    bValue = false;
-    sValue = null;
-    bool = false;
-    next = null;
+    value = null;
   }
 
   /**
    * Does not copy the next link.
    * @param input
    */
-  public void copy(final FieldSetting input) {
+  public void copy(final TextFieldSetting input) {
     set = input.set;
-    bValue = input.bValue;
-    sValue = input.sValue;
-    bool = input.bool;
+    value = input.value;
   }
-  
 
   public boolean isSet() {
     return set;
   }
 
-  public boolean isValue() {
-    return bValue;
+  public String getValue() {
+    return value;
   }
 
-  public String getValue() {
-    return sValue;
-  }
-  
   public boolean isBoolean() {
-    return bool;
+    return false;
   }
 }

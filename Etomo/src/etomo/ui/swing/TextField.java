@@ -17,7 +17,7 @@ import etomo.storage.DirectiveDef;
 import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.type.EtomoNumber;
 import etomo.type.UITestFieldType;
-import etomo.ui.FieldSetting;
+import etomo.ui.TextFieldSetting;
 import etomo.ui.Field;
 import etomo.ui.FieldSettingInterface;
 import etomo.ui.FieldType;
@@ -54,9 +54,9 @@ final class TextField implements UIComponent, SwingComponent, Field, FocusListen
   private String backupValue = null;
   private boolean fieldIsBackedUp = false;
   private DirectiveDef directiveDef = null;
-  private FieldSetting defaultValue = null;
-  private FieldSetting checkpoint = null;
-  private FieldSetting fieldHighlight = null;
+  private TextFieldSetting defaultValue = null;
+  private TextFieldSetting checkpoint = null;
+  private TextFieldSetting fieldHighlight = null;
   private String label = null;
 
   TextField(final FieldType fieldType, final String reference, final String locationDescr) {
@@ -163,11 +163,14 @@ final class TextField implements UIComponent, SwingComponent, Field, FocusListen
 
   public void useDefaultValue() {
     if (directiveDef == null || !directiveDef.isComparam()) {
+      if (defaultValue != null && defaultValue.isSet()) {
+        defaultValue.reset();
+      }
       return;
     }
     // only search for default value once
     if (defaultValue == null) {
-      defaultValue = new FieldSetting();
+      defaultValue =  TextFieldSetting.getTextInstance();
       String value = DefaultFinder.INSTANCE.getDefaultValue(directiveDef);
       if (value != null) {
         // if default value has been found, set it in the field setting
@@ -188,17 +191,17 @@ final class TextField implements UIComponent, SwingComponent, Field, FocusListen
    */
   public void checkpoint() {
     if (checkpoint == null) {
-      checkpoint = new FieldSetting();
+      checkpoint = TextFieldSetting.getTextInstance();
     }
     checkpoint.set(getText());
   }
 
-  public FieldSetting getCheckpoint() {
+  public TextFieldSetting getCheckpoint() {
     return checkpoint;
   }
 
   public void setCheckpoint(final FieldSettingInterface input) {
-    FieldSetting setting = input.getTextSetting();
+    TextFieldSetting setting = input.getTextSetting();
     if (setting == null) {
       if (checkpoint != null) {
         checkpoint.reset();
@@ -206,7 +209,7 @@ final class TextField implements UIComponent, SwingComponent, Field, FocusListen
     }
     else {
       if (checkpoint == null) {
-        checkpoint = new FieldSetting();
+        checkpoint = TextFieldSetting.getTextInstance();
       }
       checkpoint.copy(setting);
     }
@@ -214,7 +217,7 @@ final class TextField implements UIComponent, SwingComponent, Field, FocusListen
 
   public void setFieldHighlightValue(final String value) {
     if (fieldHighlight == null) {
-      fieldHighlight = new FieldSetting();
+      fieldHighlight = TextFieldSetting.getTextInstance();
     }
     if (!fieldHighlight.isSet()) {
       textField.addFocusListener(this);
@@ -224,13 +227,13 @@ final class TextField implements UIComponent, SwingComponent, Field, FocusListen
   }
 
   public void setFieldHighlight(final FieldSettingInterface input) {
-    FieldSetting setting = input.getTextSetting();
+    TextFieldSetting setting = input.getTextSetting();
     if (setting == null || !setting.isSet()) {
       clearFieldHighlightValue();
     }
     else {
       if (fieldHighlight == null) {
-        fieldHighlight = new FieldSetting();
+        fieldHighlight = TextFieldSetting.getTextInstance();
       }
       if (!fieldHighlight.isSet()) {
         textField.addFocusListener(this);
@@ -240,7 +243,7 @@ final class TextField implements UIComponent, SwingComponent, Field, FocusListen
     }
   }
 
-  public FieldSetting getFieldHighlight() {
+  public TextFieldSetting getFieldHighlight() {
     return fieldHighlight;
   }
 
