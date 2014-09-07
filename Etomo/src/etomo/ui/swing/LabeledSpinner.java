@@ -173,11 +173,12 @@ final class LabeledSpinner implements Field, TextFieldInterface, ChangeListener,
   private Number backupValue = null;
   private boolean fieldIsBackedUp = false;
   private boolean useFieldHighlight = false;
-  private Number fieldHighlightValue = null;
+  private FieldSetting fieldHighlight = null;
   private Color origLabelForeground = null;
   private Color origTextForeground = null;
   private DirectiveDef directiveDef = null;
   private FieldSetting checkpoint = null;
+  private FieldSetting defaultValueSetting = null;
 
   /**
    * @param spinner
@@ -262,6 +263,9 @@ final class LabeledSpinner implements Field, TextFieldInterface, ChangeListener,
   }
 
   public void setCheckpoint(final FieldSetting input) {
+    while (input != null && input.isBoolean()) {
+      input = input.getNext();
+    }
     if (input == null) {
       if (checkpoint != null) {
         checkpoint.reset();
@@ -290,7 +294,7 @@ final class LabeledSpinner implements Field, TextFieldInterface, ChangeListener,
     }
     if (!defaultValueSearchDone) {
       defaultValueSearchDone = true;
-      defaultValue = DefaultFinder.INSTANCE.getDefaultValue(directiveDef);
+      foundDefaultValue = DefaultFinder.INSTANCE.getDefaultValue(directiveDef);
     }
     if (foundDefaultValue != null) {
       setText(foundDefaultValue);
@@ -342,6 +346,9 @@ final class LabeledSpinner implements Field, TextFieldInterface, ChangeListener,
   }
 
   void setFieldHighlightValue(final LabeledSpinner from) {
+    while (input != null && input.isBoolean()) {
+      input = input.getNext();
+    }
     if (from == null) {
       return;
     }
