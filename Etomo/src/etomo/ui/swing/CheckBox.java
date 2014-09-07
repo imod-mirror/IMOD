@@ -15,7 +15,8 @@ import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.storage.autodoc.ReadOnlySection;
 import etomo.type.EtomoAutodoc;
 import etomo.type.UITestFieldType;
-import etomo.ui.FieldSetting;
+import etomo.ui.BooleanFieldSetting;
+import etomo.ui.FieldSettingInterface;
 import etomo.ui.Field;
 import etomo.util.Utilities;
 
@@ -123,9 +124,9 @@ final class CheckBox extends JCheckBox implements Field, ActionListener {
   private boolean debug = false;
   private Color origForeground = null;
   private DirectiveDef directiveDef = null;
-  private FieldSetting checkpoint = null;
-  private FieldSetting fieldHighlight = null;
-  private FieldSetting defaultValue = null;
+  private BooleanFieldSetting checkpoint = null;
+  private BooleanFieldSetting fieldHighlight = null;
+  private BooleanFieldSetting defaultValue = null;
 
   public CheckBox() {
     super();
@@ -219,11 +220,14 @@ final class CheckBox extends JCheckBox implements Field, ActionListener {
 
   public void useDefaultValue() {
     if (directiveDef == null || !directiveDef.isComparam()) {
+      if (defaultValue != null && defaultValue.isSet()) {
+        defaultValue.reset();
+      }
       return;
     }
     // only search for default value once
     if (defaultValue == null) {
-      defaultValue = new FieldSetting();
+      defaultValue = new BooleanFieldSetting();
       String value = DefaultFinder.INSTANCE.getDefaultValue(directiveDef);
       if (value != null) {
         // if default value has been found, set it in the field setting
@@ -241,23 +245,23 @@ final class CheckBox extends JCheckBox implements Field, ActionListener {
 
   public void checkpoint() {
     if (checkpoint == null) {
-      checkpoint = new FieldSetting();
+      checkpoint = new BooleanFieldSetting();
     }
     checkpoint.set(isSelected());
   }
 
   void checkpoint(final boolean value) {
     if (checkpoint == null) {
-      checkpoint = new FieldSetting();
+      checkpoint = new BooleanFieldSetting();
     }
     checkpoint.set(value);
   }
 
-  public FieldSetting getCheckpoint() {
+  public FieldSettingInterface getCheckpoint() {
     return checkpoint;
   }
 
-  public void setCheckpoint(FieldSetting input) {
+  public void setCheckpoint(BooleanFieldSetting input) {
     while (input != null && !input.isBoolean()) {
       input = input.getNext();
     }
@@ -268,7 +272,7 @@ final class CheckBox extends JCheckBox implements Field, ActionListener {
     }
     else {
       if (checkpoint == null) {
-        checkpoint = new FieldSetting();
+        checkpoint = new BooleanFieldSetting();
       }
       checkpoint.copy(input);
     }
@@ -290,7 +294,7 @@ final class CheckBox extends JCheckBox implements Field, ActionListener {
 
   void setFieldHighlightValue(final boolean value) {
     if (fieldHighlight == null) {
-      fieldHighlight = new FieldSetting();
+      fieldHighlight = new BooleanFieldSetting();
     }
     if (!fieldHighlight.isSet()) {
       addActionListener(this);
@@ -299,11 +303,11 @@ final class CheckBox extends JCheckBox implements Field, ActionListener {
     updateFieldHighlight();
   }
 
-  public FieldSetting getFieldHighlight() {
+  public BooleanFieldSetting getFieldHighlight() {
     return fieldHighlight;
   }
 
-  public void setFieldHighlight(FieldSetting input) {
+  public void setFieldHighlight(BooleanFieldSetting input) {
     while (input != null && !input.isBoolean()) {
       input = input.getNext();
     }
@@ -312,7 +316,7 @@ final class CheckBox extends JCheckBox implements Field, ActionListener {
     }
     else {
       if (fieldHighlight == null) {
-        fieldHighlight = new FieldSetting();
+        fieldHighlight = new BooleanFieldSetting();
       }
       if (!fieldHighlight.isSet()) {
         addActionListener(this);
