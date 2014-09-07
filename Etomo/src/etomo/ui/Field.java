@@ -69,11 +69,11 @@ public interface Field {
 
   public boolean isEnabled();
 
-  public FieldSetting getCheckpoint();
+  public FieldSettingInterface getCheckpoint();
 
-  public void setCheckpoint(FieldSetting checkpoint);
+  public void setCheckpoint(FieldSettingInterface checkpoint);
 
-  public FieldSetting getFieldHighlight();
+  public FieldSettingInterface getFieldHighlight();
 
-  public void setFieldHighlight(FieldSetting fieldHighlight);
+  public void setFieldHighlight(FieldSettingInterface fieldHighlight);
 }
