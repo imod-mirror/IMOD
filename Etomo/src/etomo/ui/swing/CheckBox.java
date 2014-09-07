@@ -14,7 +14,6 @@ import etomo.storage.DirectiveDef;
 import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.storage.autodoc.ReadOnlySection;
 import etomo.type.EtomoAutodoc;
-import etomo.type.EtomoBoolean2;
 import etomo.type.UITestFieldType;
 import etomo.ui.FieldSetting;
 import etomo.ui.Field;
@@ -124,11 +123,9 @@ final class CheckBox extends JCheckBox implements Field, ActionListener {
   private boolean debug = false;
   private Color origForeground = null;
   private DirectiveDef directiveDef = null;
-  private boolean defaultValueSearchDone = false;
-  private boolean defaultValueFound = false;
-  private boolean defaultValue = false;
   private FieldSetting checkpoint = null;
   private FieldSetting fieldHighlight = null;
+  private FieldSetting defaultValue = null;
 
   public CheckBox() {
     super();
@@ -142,6 +139,7 @@ final class CheckBox extends JCheckBox implements Field, ActionListener {
   public boolean isBoolean() {
     return true;
   }
+
   public boolean isText() {
     return false;
   }
@@ -223,21 +221,22 @@ final class CheckBox extends JCheckBox implements Field, ActionListener {
     if (directiveDef == null || !directiveDef.isComparam()) {
       return;
     }
-    if (!defaultValueSearchDone) {
-      defaultValueSearchDone = true;
+    // only search for default value once
+    if (defaultValue == null) {
+      defaultValue = new FieldSetting();
       String value = DefaultFinder.INSTANCE.getDefaultValue(directiveDef);
       if (value != null) {
-        defaultValueFound = true;
+        // if default value has been found, set it in the field setting
+        defaultValue.set(DefaultFinder.toBoolean(value));
       }
-      defaultValue = DefaultFinder.toBoolean(value);
     }
-    if (defaultValueFound) {
-      setSelected(defaultValue);
+    if (defaultValue.isSet()) {
+      setSelected(defaultValue.isValue());
     }
   }
 
   public boolean equalsDefaultValue() {
-    return defaultValueFound && isSelected() == defaultValue;
+    return defaultValue != null && defaultValue.equals(isSelected());
   }
 
   public void checkpoint() {
@@ -258,7 +257,10 @@ final class CheckBox extends JCheckBox implements Field, ActionListener {
     return checkpoint;
   }
 
-  public void setCheckpoint(final FieldSetting input) {
+  public void setCheckpoint(FieldSetting input) {
+    while (input != null && !input.isBoolean()) {
+      input = input.getNext();
+    }
     if (input == null) {
       if (checkpoint != null) {
         checkpoint.reset();
@@ -301,7 +303,10 @@ final class CheckBox extends JCheckBox implements Field, ActionListener {
     return fieldHighlight;
   }
 
-  public void setFieldHighlight(final FieldSetting input) {
+  public void setFieldHighlight(FieldSetting input) {
+    while (input != null && !input.isBoolean()) {
+      input = input.getNext();
+    }
     if (input == null || !input.isSet()) {
       clearFieldHighlightValue();
     }
