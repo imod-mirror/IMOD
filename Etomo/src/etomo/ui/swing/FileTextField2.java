@@ -25,6 +25,7 @@ import etomo.EtomoDirector;
 import etomo.storage.DirectiveDef;
 import etomo.ui.FieldSetting;
 import etomo.ui.Field;
+import etomo.ui.FieldSettingInterface;
 import etomo.ui.FieldType;
 import etomo.ui.TextFieldInterface;
 import etomo.util.FilePath;
@@ -216,7 +217,7 @@ final class FileTextField2 implements FileTextFieldInterface, Field, ActionListe
   /**
    * @return a label suitable for a message - in single quotes and truncated at the colon.
    */
-public  String getQuotedLabel() {
+  public String getQuotedLabel() {
     return Utilities.quoteLabel(label.getText());
   }
 
@@ -291,12 +292,12 @@ public  String getQuotedLabel() {
     useTextAsOriginDir = input;
   }
 
- public boolean isEmpty() {
+  public boolean isEmpty() {
     String text = field.getText();
     return text == null || text.matches("\\s*");
   }
 
- public boolean isEnabled() {
+  public boolean isEnabled() {
     return button.isEnabled();
   }
 
@@ -333,8 +334,13 @@ public  String getQuotedLabel() {
     field.checkpoint();
   }
 
-  public void setCheckpoint(final FieldSetting checkpoint) {
-    field.setCheckpoint(checkpoint);
+  public void setCheckpoint(final FieldSettingInterface input) {
+    if (input == null) {
+      field.setCheckpoint(null);
+    }
+    else {
+      field.setCheckpoint(input.getBooleanSetting());
+    }
   }
 
   public void backup() {
@@ -359,22 +365,20 @@ public  String getQuotedLabel() {
 
   public void setFieldHighlightValue(final String value) {
     // This class connects the button action to field highlight.
-    if (!field.isUseFieldHighlight()) {
+    if (!field.isFieldHighlightSet()) {
       button.addActionListener(this);
     }
     field.setFieldHighlightValue(value);
   }
 
-  void setFieldHighlightValue(final FileTextField2 from) {
-    if (from == null) {
-      return;
+  public void setFieldHighlight(final FieldSettingInterface input) {
+    boolean set = field.isFieldHighlightSet();
+    field.setFieldHighlight(input);
+    if (input == null || !input.isSet()) {
+      clearFieldHighlightValue();
     }
-    if (from.field.isUseFieldHighlight()) {
-      setFieldHighlightValue(from.field.getFieldHighlightValue());
-    }
-    else if (field.isUseFieldHighlight()) {
-      button.removeActionListener(this);
-      field.clearFieldHighlightValue();
+    else if (!set) {
+      button.addActionListener(this);
     }
   }
 
