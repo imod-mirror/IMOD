@@ -17,5 +17,6 @@ package etomo.ui;
 public interface FieldSettingInterface {
   public static  final String  rcsid =  "$Id:$";
   
-  FieldSetting getTextSetting();
+  TextFieldSetting getBooleanSetting();
+  TextFieldSetting getTextSetting();
 }
