@@ -312,6 +312,7 @@ int main( int argc, char *argv[])
     }
 
     // Build list of objects to do in order
+    objList.clear();
     for (ob = 0; ob < model->objsize; ob++) 
       if (numberInList(ob + 1, list, nlist, 1))
         objList.push_back(ob);
