@@ -28,6 +28,7 @@
 #include <qframe.h>
 #include <qtimer.h>
 #include <qstringlist.h>
+#include <qtextstream.h>
 //Added by qt3to4:
 #include <QTimerEvent>
 #include <QKeyEvent>
@@ -71,7 +72,7 @@ InfoControls *ImodInfoWidget = NULL;
 /*
  * THE CONSTRUCTOR FOR InfoWindow
  */
-InfoWindow::InfoWindow(QWidget * parent, const char * name, Qt::WFlags f)
+InfoWindow::InfoWindow(QWidget * parent, const char * name, Qt::WindowFlags f)
   : QMainWindow(parent, f)
 {
   mMinimized = false;
@@ -111,6 +112,7 @@ InfoWindow::InfoWindow(QWidget * parent, const char * name, Qt::WFlags f)
   //ADD_ACTION(file, "&JPEG Quality...", FILE_MENU_SNAPQUALITY);
   ADD_ACTION(file, "Memory to &TIF...", FILE_MENU_TIFF);
   ADD_ACTION(file, "E&xtract File...", FILE_MENU_EXTRACT);
+  ADD_ACTION(file, "&Process File...", FILE_MENU_PROCESS);
   ADD_ACTION(file, "Save &Info Text...", FILE_MENU_SAVEINFO);
   ADD_ACTION(file, "&Quit", FILE_MENU_QUIT);
 
@@ -148,6 +150,7 @@ InfoWindow::InfoWindow(QWidget * parent, const char * name, Qt::WFlags f)
   ADD_ACTION(eObject, "&Info", EOBJECT_MENU_INFO);
   ADD_ACTION(eObject, "C&lean", EOBJECT_MENU_CLEAN);
   ADD_ACTION(eObject, "&Break by Z", EOBJECT_MENU_FIXZ);
+  ADD_ACTION(eObject, "&Fill in Z", EOBJECT_MENU_FILLIN);
   ADD_ACTION(eObject, "&Flatten", EOBJECT_MENU_FLATTEN);
   ADD_ACTION(eObject, "&Renumber...", EOBJECT_MENU_RENUMBER);
 
@@ -436,11 +439,12 @@ void InfoWindow::manageMenus()
 {
   ImodView *vi = App->cvi;
   bool imageOK = !(vi->fakeImage || vi->rgbStore);
+  bool extractOK = imageOK && vi->multiFileZ <= 0 &&
+    vi->noReadableImage == 0 && vi->pyrCache == NULL && !vi->li->plist;
   mActions[FILE_MENU_TIFF]->setEnabled(vi->rgbStore != 0);
-  mActions[FILE_MENU_EXTRACT]->setEnabled
-    (vi->rgbStore == 0 && vi->fakeImage == 0 && vi->multiFileZ <= 0 &&
-     vi->noReadableImage == 0 && vi->pyrCache == NULL && !vi->li->plist);
+  mActions[FILE_MENU_EXTRACT]->setEnabled(extractOK);
   /*fprintf(stderr, "vi->multiFileZ=%d\n", vi->multiFileZ);*/
+  mActions[FILE_MENU_PROCESS]->setEnabled(extractOK && iprocIsOpen() && vi->xybin == 1);
   mActions[EIMAGE_MENU_FILLCACHE]->setEnabled(vi->vmSize != 0 || vi->numTimes > 0 ||
                                               vi->pyrCache != NULL);
   mActions[EIMAGE_MENU_FILLER]->setEnabled((vi->vmSize != 0 || vi->numTimes > 0) &&
@@ -521,7 +525,7 @@ void InfoWindow::extract()
     commandString = slicer->rotateVolCommand();
     prin = 0;
     timeLock = slicer->mTimeLock;
-    executable = QDir::convertSeparators(QString(imodDir) + "/bin/rotatevol");
+    executable = QDir::toNativeSeparators(QString(imodDir) + "/bin/rotatevol");
   } else {
     commandString = zap->printInfo(false);
     timeLock = zap->getTimeLock();
@@ -530,6 +534,7 @@ void InfoWindow::extract()
     return;
 
   mActions[FILE_MENU_EXTRACT]->setEnabled(false);
+  mActions[FILE_MENU_PROCESS]->setEnabled(false);
   mTrimvolType = rotateVol ? 1 : 0;
 
   // Get the output and input file names
@@ -537,26 +542,20 @@ void InfoWindow::extract()
   if (mTrimvolOutput.isEmpty())
     return;
 
-  QString filePath = App->cvi->image->filename;
-  if (timeLock)
-    filePath = App->cvi->imageList[timeLock - 1].filename;
-  if (!Imod_IFDpath.isEmpty()) {
-    QDir dir = QDir(Imod_IFDpath);
-    filePath = dir.filePath(filePath);
-  }
+  QString filePath = getAdjustedFilePath(timeLock);
 
   // Build the argument lists and print them
   QStringList command = commandString.split(" ", QString::SkipEmptyParts);
   if (!rotateVol) {
     arguments << "-u";
-    command[0] = QDir::convertSeparators(QString(imodDir) + "/bin/trimvol");
+    command[0] = QDir::toNativeSeparators(QString(imodDir) + "/bin/trimvol");
     prin = 2;
   }
   for (i = 0; i < command.count(); i++)
     arguments << command[i];
     
-  arguments << QDir::convertSeparators(filePath);
-  arguments << QDir::convertSeparators(mTrimvolOutput);
+  arguments << QDir::toNativeSeparators(filePath);
+  arguments << QDir::toNativeSeparators(mTrimvolOutput);
   wprint(rotateVol ? "rotatevol " : "trimvol ");
   for (i = prin; i < arguments.count(); i++)
     wprint("%s ", LATIN1(arguments[i]));
@@ -575,6 +574,7 @@ void InfoWindow::extract()
 void InfoWindow::trimvolExited(int exitCode, QProcess::ExitStatus exitStatus) 
 {
   mActions[FILE_MENU_EXTRACT]->setEnabled(true);
+  manageMenus();
   if (mTrimvolProcess == NULL) {
     return;
   }
@@ -584,9 +584,17 @@ void InfoWindow::trimvolExited(int exitCode, QProcess::ExitStatus exitStatus)
       while (mTrimvolProcess->canReadLine()) {
       wprint("out:\n%s\n", mTrimvolProcess->readLine().constData());
       } */
+    if (mTrimvolType > 1) {
+      QFile::remove(mProcessComRoot + "com");
+      QFile::remove(mProcessComRoot + "log");
+    }
   } else {
     mTrimvolProcess->setReadChannel(QProcess::StandardOutput);
-    wprint(mTrimvolType ? "\aRotatevol failed.\n" : "\aTrimvol failed.\n");
+    if (mTrimvolType > 1)
+      wprint("\aImage processing failed; check %s for details\n",
+             LATIN1((mProcessComRoot + "log")));
+    else 
+      wprint(mTrimvolType ? "\aRotatevol failed.\n" : "\aTrimvol failed.\n");
     while (mTrimvolProcess->canReadLine()) {
       QString out = mTrimvolProcess->readLine();
       if (out.startsWith("ERROR:")) {
@@ -595,7 +603,7 @@ void InfoWindow::trimvolExited(int exitCode, QProcess::ExitStatus exitStatus)
     }
   }
   mTrimvolProcess->setReadChannel(QProcess::StandardError);
-  while (mTrimvolProcess->canReadLine()) {
+  while (mTrimvolType < 2 && mTrimvolProcess->canReadLine()) {
     wprint("err:\n%s\n", mTrimvolProcess->readLine().constData());
   }
   delete mTrimvolProcess;
@@ -607,11 +615,133 @@ void InfoWindow::trimvolError(QProcess::ProcessError error)
 {
   if (error != QProcess::FailedToStart)
     return;
-  wprint(mTrimvolType ? "\aCould not start rotatevol - is IMOD fully installed?\n" :
-         "\aCould not start trimvol - is python on the PATH?\n");
+  if (mTrimvolType > 1) {
+    wprint("\aCould not start submfg to process image - is IMOD fully installed "
+           "and is python on the PATH?\n");
+    QFile::remove(mProcessComRoot + "com");
+  } else {
+    wprint(mTrimvolType ? "\aCould not start rotatevol - is IMOD fully installed?\n" :
+           "\aCould not start trimvol - is python on the PATH?\n");
+  }
   mActions[FILE_MENU_EXTRACT]->setEnabled(true);
-  
+  manageMenus();
   // Cannot delete the qprocess from this slot; just delete it if it runs again
+}
+
+void InfoWindow::processFile()
+{
+  MrcHeader *mrchead = (MrcHeader *)App->cvi->image->header;
+  int ind, timeLock, insideBand = 0;
+  char *imodDir = getenv("IMOD_DIR");
+  QString commandString, filePath, nextInput, executable, outFile;
+  QStringList arguments, processList;
+
+  if (sliceModeIfReal(mrchead->mode) < 0) {
+    wprint("\aUnable to process - not a gray-scale, non-montaged file.\n");
+    return;
+  }
+  if (!imodDir) {
+    wprint("\aCannot process image file; IMOD_DIR not defined.\n");
+    return;
+  }
+
+  // Get the command list and check it
+  processList = iprocCommandList();
+  if (!processList.size()) {
+    wprint("\aThere is no command list available from the processing dialog; you "
+           "must run an operation first\n");
+    return;
+  }
+  for (ind = 0; ind < processList.size(); ind++) {
+    if (processList[ind].startsWith("Cannot")) {
+      wprint("\aCannot process file; command list contains:\n %s\n", 
+             LATIN1(processList[ind]));
+      return;
+    }
+  }
+
+  // Get Zap rubberband or just use whole file; access top zap for time lock
+  ZapFuncs *zap = getTopZapWindow(true);
+  if (zap->mRubberband) {
+    commandString = zap->printInfo(false);
+    if (commandString.isEmpty())
+      return;
+    while (commandString[0] == QChar(' '))
+      commandString = commandString.mid(1);
+    timeLock = zap->getTimeLock();
+    insideBand = 1;
+  } else {
+    if (zap)
+      timeLock = zap->getTimeLock();
+    else
+      timeLock = 0;
+    if (App->cvi->li->axis == 2)
+      commandString = "clip rotx";
+  }
+
+  if (!commandString.isEmpty())
+    processList.prepend(commandString);
+  
+  // Get the output and input file names
+  mTrimvolOutput = imodPlugGetSaveName(this, "MRC File to process image into:");
+  if (mTrimvolOutput.isEmpty())
+    return;
+
+  filePath = getAdjustedFilePath(timeLock);
+  nextInput = filePath;
+  mProcessComRoot.sprintf("3dmodProcess%d.", imodGetpid());
+  QFile file(mProcessComRoot + "com");
+  if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+    wprint("\aCould not open %s for commands", LATIN1((mProcessComRoot + "com")));
+    return;
+  }
+  QTextStream stream(&file);
+
+  for (ind = 0; ind < processList.size(); ind++) {
+    if (ind < processList.size() - 1)
+      outFile.sprintf("%s.tmp%d", LATIN1(mTrimvolOutput), ind);
+    else
+      outFile = mTrimvolOutput;
+    stream << "$" << processList[ind] << " \"" << nextInput << "\" \"" << outFile << 
+      "\"\n";
+    if (ind)
+      stream << "$b3dremove \"" << nextInput << "\"\n";
+    nextInput = outFile;
+  }
+  file.close();
+
+  wprint("Processing %s - %s...\n", LATIN1(filePath), insideBand ?  
+         "volume inside rubber band" : "entire volume");
+  executable = "submfg";
+#ifdef _WIN32
+  executable += ".cmd";
+#endif
+  arguments << mProcessComRoot + "com";
+  
+  // Run the process
+  mActions[FILE_MENU_EXTRACT]->setEnabled(false);
+  mActions[FILE_MENU_PROCESS]->setEnabled(false);
+  mTrimvolType = 2;
+  mTrimvolProcess = new QProcess();
+  connect(mTrimvolProcess, SIGNAL(finished(int, QProcess::ExitStatus)), this,
+          SLOT(trimvolExited(int, QProcess::ExitStatus )));
+  connect(mTrimvolProcess, SIGNAL(error(QProcess::ProcessError)), this,
+          SLOT(trimvolError(QProcess::ProcessError )));
+  mTrimvolProcess->start(executable, arguments);
+}
+
+// Returns the current file path, at the given time if a window has a time lock,
+// and adjusted for the IFD path
+QString InfoWindow::getAdjustedFilePath(int timeLock)
+{
+ QString filePath = App->cvi->image->filename;
+  if (timeLock)
+    filePath = App->cvi->imageList[timeLock - 1].filename;
+  if (!Imod_IFDpath.isEmpty()) {
+    QDir dir = QDir(Imod_IFDpath);
+    filePath = dir.filePath(filePath);
+  }
+  return filePath;
 }
 
 // Run imodinfo to get object info
