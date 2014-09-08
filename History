@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/8/14: Added script Subtomosetup to make command files for generating
+multiple numbered subtomograms.
+
 9/8/14: Fixed imodinfo listing objects multiple times with multiple input
 files (In 4.7).
 
