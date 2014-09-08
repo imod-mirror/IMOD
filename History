@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/8/14: Fixed imodinfo listing objects multiple times with multiple input
+files (In 4.7).
+
 9/4/14: Fixed number of processors used for SIRT run from Batchruntomo (In
 4.7).
 
