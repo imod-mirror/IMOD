@@ -1126,7 +1126,7 @@ void ZapFuncs::paint()
   if (mBandChanged) {
     imodDialogManager.windowList(&objList, -1, GRAPH_WINDOW_TYPE);
     for (ob = 0; ob < objList.count(); ob++)
-      ((GraphWindow *)objList.at(ob))->xgraphDraw();
+      ((GraphWindow *)objList.at(ob))->draw();
     mBandChanged = 0;
   }
 

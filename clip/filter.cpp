@@ -1,5 +1,5 @@
 /*
- *  filter.c -- filter in freq. space for clip.
+ *  filter.cpp -- filter in freq. space for clip.
  *
  *  Author: James Kremer email: kremer@colorado.edu
  *
@@ -10,7 +10,6 @@
  *  $Id$
  */
 
-#include "mrcc.h"
 #include "clip.h"
 
 /* future: get 3d filter working
