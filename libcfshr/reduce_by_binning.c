@@ -441,7 +441,7 @@ void reduce_by_binning(float *array, int *nx, int *ny, int *nbin,
 void binIntoSlice(float *array, int nxDim, float *brray, int nxBin, int nyBin,
                   int binFacX, int binFacY, float zWeight)
 {
-  int ixBin, iyBin, ix, iy, ind;
+  int ixBin, iyBin, ix, iy, ind, ixBase, indBase;
   float factor = zWeight / (binFacX * binFacY);
 
   if (binFacX * binFacY == 1) {
@@ -456,13 +456,39 @@ void binIntoSlice(float *array, int nxDim, float *brray, int nxBin, int nyBin,
   } else {
 #pragma omp parallel for    \
   shared(nxDim, nxBin, nyBin, factor, array, brray, binFacX, binFacY) \
-  private(ixBin, iyBin, ix, iy, ind)
+  private(ixBin, iyBin, ix, iy, ind, ixBase, indBase)
     for (iyBin = 0; iyBin < nyBin; iyBin ++) {
-      for (ixBin = 0; ixBin < nxBin; ixBin ++) {
-        ind = ixBin + nxBin * iyBin;
-        for (iy = iyBin * binFacY; iy < (iyBin + 1) * binFacY; iy++)
-          for (ix = ixBin * binFacX; ix < (ixBin + 1) * binFacX; ix++)
-            brray[ind] += array[ix + nxDim * iy] * factor;
+      for (iy = iyBin * binFacY; iy < (iyBin + 1) * binFacY; iy++) {
+        ixBase = nxDim * iy;
+        indBase = nxBin * iyBin;
+        if (binFacX == 1) {
+          for (ixBin = 0; ixBin < nxBin; ixBin ++)
+            brray[ixBin + indBase] += array[ixBin + ixBase] * factor;
+
+        } else if (binFacX == 2) {
+          for (ixBin = 0; ixBin < nxBin; ixBin ++) {
+            ind = 2 * ixBin + ixBase;
+            brray[ixBin + indBase] += (array[ind] + array[ind + 1]) * factor;
+          }
+        } else if (binFacX == 3) {
+          for (ixBin = 0; ixBin < nxBin; ixBin ++) {
+            ind = 3 * ixBin + ixBase;
+            brray[ixBin + indBase] += (array[ind] + array[ind + 1] + array[ind + 2]) *
+              factor;
+          }
+        } else if (binFacX == 4) {
+          for (ixBin = 0; ixBin < nxBin; ixBin ++) {
+            ind = 4 * ixBin + ixBase;
+            brray[ixBin + indBase] += (array[ind] + array[ind + 1] + array[ind + 2] +
+                                       array[ind + 3]) * factor;
+          }
+        } else {
+          for (ixBin = 0; ixBin < nxBin; ixBin ++) {
+            ind = ixBin + indBase;
+            for (ix = ixBin * binFacX; ix < (ixBin + 1) * binFacX; ix++)
+              brray[ind] += array[ix + ixBase] * factor;
+          }
+        }
       }
     }
   }
