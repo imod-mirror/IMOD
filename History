@@ -1,5 +1,6 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/8/14: IMOD_4-8-12
 9/8/14: Changed autofidseed to create a specified temporary directory, not
 just the default one (In 4.7).
 
