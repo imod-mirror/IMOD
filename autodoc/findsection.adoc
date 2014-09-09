@@ -1,0 +1,143 @@
+Version = 1.0
+Pip = 1
+
+[Field = TomogramFile]
+short = tomo
+type = FNM
+usage = Name of image file to analyze
+tooltip = 
+manpage = 
+
+[Field = VolumeRootname]
+short = volume
+type = CH
+usage = Root name for output of mean and SD volumes at each scale
+tooltip = 
+manpage = 
+
+[Field = PointRootname]
+short = point
+type = CH
+usage = Root name for output of models with raw and smoothed points
+tooltip = 
+manpage = 
+
+[Field = SurfaceModel]
+short = surface
+type = FN
+usage = Name for output of surface model for flattening
+tooltip = 
+manpage = 
+
+[Field = TomoPitchModel]
+short = pitch
+type = FN
+usage = Name for output of boundary model for use with tomopitch
+tooltip = 
+manpage = 
+
+[Field = SeparatePitchLineFits]
+short = separate
+type = B
+usage = Fit each surface separately in making lines for tomopitch output
+tooltip = 
+manpage = 
+
+[Field = NumberOfSamples]
+short = samples
+type = I
+usage = Number of positions to sample in a single tomogram for pitch lines
+tooltip = 
+manpage = 
+
+[Field = SampleExtentInY]
+short = extent
+type = I
+usage = Approximate extent in Y analyzed at sampled positions, in unbinned pixels
+tooltip = 
+manpage = 
+
+[Field = NumberOfDefaultScales]
+short = scales
+type = I
+usage = Number of default, isotropic binnings to analyze
+tooltip = 
+manpage = 
+
+[Field = BinningInXYZ]
+short = binning
+type = ITM
+usage = 
+tooltip = 
+manpage = 
+
+[Field = SizeOfBoxesInXYZ]
+short = size
+type = ITM
+usage = 
+tooltip = 
+manpage = 
+
+[Field = SpacingInXYZ]
+short = spacing
+type = ITM
+usage = 
+tooltip = 
+manpage = 
+
+[Field = XMinAndMax]
+short = xminmax
+type = IP
+usage = Minimum and maximum X coordinate to include in analysis
+tooltip = 
+manpage = 
+
+[Field = YMinAndMax]
+short = yminmax
+type = IP
+usage = Minimum and maximum Y coordinate to include in analysis
+tooltip = 
+manpage = 
+
+[Field = ZMinAndMax]
+short = zminmax
+type = IP
+usage = Minimum and maximum Z coordinate to include in analysis
+tooltip = 
+manpage = 
+
+[Field = ThickDimensionIsY]
+short = flipped
+type = B
+usage = The thickness dimension of the reconstruction is Y, not Z
+tooltip = 
+manpage = 
+
+[Field = EdgeExtentInXYZ]
+short = edge
+type = IT
+usage = Number of pixels worth of boxes to use for edge statistics
+tooltip = 
+manpage = 
+
+[Field = CenterExtentInXYZ]
+short = center
+type = IT
+usage = Number of pixels worth of boxes to use for edge statistics
+tooltip = 
+manpage = 
+
+[Field = ControlValue]
+short = control
+type = FPM
+usage = Parameter number and value for setting algorithm control parameters
+tooltip =
+manpage = Parameter number and value for setting algorithm control parameters.
+Parameters and their numbers (and default values in parentheses) are:
+
+[Field = DebugOutput]
+short = debug
+type = I
+usage = 1 or 2 for debugging output
+tooltip =
+manpage =
