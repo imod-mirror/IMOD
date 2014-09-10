@@ -12,6 +12,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import javax.swing.Box;
+import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
@@ -20,7 +22,10 @@ import javax.swing.filechooser.FileFilter;
 
 import etomo.BaseManager;
 import etomo.EtomoDirector;
+import etomo.storage.DirectiveDef;
+import etomo.ui.Field;
 import etomo.ui.FieldType;
+import etomo.ui.TextFieldInterface;
 import etomo.util.FilePath;
 import etomo.util.Utilities;
 
@@ -39,21 +44,23 @@ import etomo.util.Utilities;
 * 
 * <p> $Log$ </p>
 */
-final class FileTextField2 implements FileTextFieldInterface {
+final class FileTextField2 implements FileTextFieldInterface, Field, ActionListener,
+    TextFieldInterface {
   public static final String rcsid = "$Id:$";
 
   // Assuming the field type is always non-numeric
   private final FieldType STRING_FIELD_TYPE = FieldType.STRING;
 
   private final JPanel panel = new JPanel();
-  private final GridBagLayout layout = new GridBagLayout();
-  private final GridBagConstraints constraints = new GridBagConstraints();
 
   private final SimpleButton button;
   private final TextField field;
   private final JLabel label;
   private final boolean labeled;
   private final BaseManager manager;
+  final boolean alternateLayout;
+  private final GridBagLayout layout;
+  private final GridBagConstraints constraints;
 
   private List<ResultListener> resultListenerList = null;
   private int fileSelectionMode = -1;
@@ -61,7 +68,7 @@ final class FileTextField2 implements FileTextFieldInterface {
   private boolean absolutePath = false;
   private boolean useTextAsOriginDir = false;
   private boolean turnOffFileHiding = false;
-  private String checkpointValue = null;
+
   /**
    * If origin is valid, it overrides originEtomoRunDir.
    */
@@ -71,9 +78,14 @@ final class FileTextField2 implements FileTextFieldInterface {
    * run.  Useful when a dataset location has not been set.
    */
   private boolean originEtomoRunDir = false;
+  private DirectiveDef directiveDef = null;
+
+  public String toString() {
+    return super.toString() + ":[text:" + field.getText() + ",label:" + label.getText();
+  }
 
   private FileTextField2(final BaseManager manager, final String label,
-      final boolean labeled, final boolean peet) {
+      final boolean labeled, final boolean peet, final boolean alternateLayout) {
     if (!peet) {
       button = new SimpleButton(new ImageIcon(
           ClassLoader.getSystemResource("images/openFile.gif")));
@@ -87,6 +99,15 @@ final class FileTextField2 implements FileTextFieldInterface {
     this.label = new JLabel(label);
     this.labeled = labeled;
     this.manager = manager;
+    this.alternateLayout = alternateLayout;
+    if (!alternateLayout) {
+      layout = new GridBagLayout();
+      constraints = new GridBagConstraints();
+    }
+    else {
+      layout = null;
+      constraints = null;
+    }
   }
 
   /**
@@ -99,7 +120,7 @@ final class FileTextField2 implements FileTextFieldInterface {
    */
   static FileTextField2 getUnlabeledPeetInstance(final BaseManager manager,
       final String name) {
-    FileTextField2 instance = new FileTextField2(manager, name, false, true);
+    FileTextField2 instance = new FileTextField2(manager, name, false, true, false);
     instance.createPanel();
     instance.addListeners();
     return instance;
@@ -114,14 +135,21 @@ final class FileTextField2 implements FileTextFieldInterface {
    * @return
    */
   static FileTextField2 getPeetInstance(final BaseManager manager, final String name) {
-    FileTextField2 instance = new FileTextField2(manager, name, true, true);
+    FileTextField2 instance = new FileTextField2(manager, name, true, true, false);
     instance.createPanel();
     instance.addListeners();
     return instance;
   }
 
   static FileTextField2 getInstance(final BaseManager manager, final String name) {
-    FileTextField2 instance = new FileTextField2(manager, name, true, false);
+    FileTextField2 instance = new FileTextField2(manager, name, true, false, false);
+    instance.createPanel();
+    instance.addListeners();
+    return instance;
+  }
+
+  static FileTextField2 getAltLayoutInstance(final BaseManager manager, final String name) {
+    FileTextField2 instance = new FileTextField2(manager, name, true, false, true);
     instance.createPanel();
     instance.addListeners();
     return instance;
@@ -134,23 +162,32 @@ final class FileTextField2 implements FileTextFieldInterface {
     button.setName(label.getText());
     button.setPreferredSize(FixedDim.folderButton);
     button.setMaximumSize(FixedDim.folderButton);
-    // panel
-    panel.setLayout(layout);
-    constraints.fill = GridBagConstraints.BOTH;
-    constraints.weightx = 0.0;
-    constraints.weighty = 0.0;
-    constraints.gridheight = 1;
-    constraints.gridwidth = 1;
-    if (labeled) {
-      layout.setConstraints(label, constraints);
-      panel.add(label);
+    if (!alternateLayout) {
+      // panel
+      panel.setLayout(layout);
+      constraints.fill = GridBagConstraints.BOTH;
+      constraints.weightx = 0.0;
+      constraints.weighty = 0.0;
+      constraints.gridheight = 1;
+      constraints.gridwidth = 1;
+      if (labeled) {
+        layout.setConstraints(label, constraints);
+        panel.add(label);
+      }
+      constraints.insets = new Insets(0, 0, 0, -1);
+      layout.setConstraints(field.getComponent(), constraints);
+      panel.add(field.getComponent());
+      constraints.insets = new Insets(0, -1, 0, 0);
+      layout.setConstraints(button, constraints);
+      panel.add(button);
     }
-    constraints.insets = new Insets(0, 0, 0, -1);
-    layout.setConstraints(field.getComponent(), constraints);
-    panel.add(field.getComponent());
-    constraints.insets = new Insets(0, -1, 0, 0);
-    layout.setConstraints(button, constraints);
-    panel.add(button);
+    else {
+      panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
+      panel.add(label);
+      panel.add(field.getComponent());
+      panel.add(button);
+      panel.add(Box.createHorizontalGlue());
+    }
   }
 
   private void addListeners() {
@@ -225,6 +262,10 @@ final class FileTextField2 implements FileTextFieldInterface {
     this.originEtomoRunDir = input;
   }
 
+  void setPreferredWidth(final double width) {
+    field.setTextPreferredWidth(width);
+  }
+
   /**
    * Sets the origin member variable which overrides the originEtomoRunDir member variable
    * and the propertyUserDir when it is a valid directory.
@@ -287,23 +328,74 @@ final class FileTextField2 implements FileTextFieldInterface {
   /**
    * Saves the current text as the checkpoint.
    */
-  void checkpoint() {
-    checkpointValue = getText();
+  public void checkpoint() {
+    field.checkpoint();
+  }
+
+  public void checkpoint(final FileTextField2 from) {
+    if (from == null) {
+      return;
+    }
+    field.checkpoint(from.field);
+  }
+
+  public void backup() {
+    field.backup();
+  }
+
+  /**
+   * If the field was backed up, make the backup value the displayed value, and turn off
+   * the back up.
+   */
+  public void restoreFromBackup() {
+    field.restoreFromBackup();
+  }
+
+  void setDirectiveDef(final DirectiveDef directiveDef) {
+    field.setDirectiveDef(directiveDef);
+  }
+
+  public void useDefaultValue() {
+    field.useDefaultValue();
+  }
+
+  public void setFieldHighlightValue(final String value) {
+    // This class connects the button action to field highlight.
+    if (!field.isUseFieldHighlight()) {
+      button.addActionListener(this);
+    }
+    field.setFieldHighlightValue(value);
+  }
+
+  void setFieldHighlightValue(final FileTextField2 from) {
+    if (from == null) {
+      return;
+    }
+    if (from.field.isUseFieldHighlight()) {
+      setFieldHighlightValue(from.field.getFieldHighlightValue());
+    }
+    else if (field.isUseFieldHighlight()) {
+      button.removeActionListener(this);
+      field.clearFieldHighlightValue();
+    }
+  }
+
+  public void clearFieldHighlightValue() {
+    button.removeActionListener(this);
+    field.clearFieldHighlightValue();
+  }
+
+  public void actionPerformed(ActionEvent e) {
+    field.updateFieldHighlight();
   }
 
   /**
    * 
-   * @param alwaysCheck - check for difference even when the field is disables or invisible
+   * @param alwaysCheck - check for difference even when the field is disabled or invisible
    * @return
    */
-  boolean isDifferentFromCheckpoint(final boolean alwaysCheck) {
-    if (!alwaysCheck && (!isEnabled() || !panel.isVisible())) {
-      return false;
-    }
-    if (checkpointValue == null) {
-      return true;
-    }
-    return !checkpointValue.equals(getText());
+  public boolean isDifferentFromCheckpoint(final boolean alwaysCheck) {
+    return field.isDifferentFromCheckpoint(alwaysCheck);
   }
 
   /**
@@ -372,21 +464,33 @@ final class FileTextField2 implements FileTextFieldInterface {
     return fileFilter;
   }
 
-  String getText() {
+  public String getText() {
     return field.getText();
   }
 
-  void setText(final String text) {
+  public void setText(final String text) {
     field.setText(text);
   }
 
-  void clear() {
+  public void clear() {
     field.setText("");
+  }
+
+  public void copy(final Field from) {
+    field.copy(from);
+  }
+
+  public boolean isSelected() {
+    return false;
   }
 
   void setEnabled(final boolean enabled) {
     field.setEnabled(enabled);
     button.setEnabled(enabled);
+  }
+
+  void setFieldEditable(final boolean editable) {
+    field.setEditable(editable);
   }
 
   void setToolTipText(String text) {

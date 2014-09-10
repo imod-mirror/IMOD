@@ -191,7 +191,7 @@ public abstract class ParsedElement {
   }
 
   final PrimativeTokenizer createTokenizer(final String value, final int lineNum) {
-    PrimativeTokenizer tokenizer = new PrimativeTokenizer(value);
+    PrimativeTokenizer tokenizer = PrimativeTokenizer.getStringInstance(value, false);
     try {
       tokenizer.initialize();
     }
