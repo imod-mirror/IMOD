@@ -278,29 +278,9 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
                 axisID);
       }
     }
-    // to apply values and highlights, start with a clean slate
-    table.clear();
-    datasetDialog.clear();
-    // Apply default values
-    table.useDefaultValues();
-    datasetDialog.useDefaultValues();
-    // Apply settings values
-    table.setValues(userConfiguration);
-    // Apply the directive collection values
-    table.setValues(directiveFileCollection);
-    datasetDialog.setValues(directiveFileCollection);
-    // checkpoint
-    table.checkpoint();
-    datasetDialog.checkpoint();
-    // If the user wants to retain their values, apply backed up values and then delete
-    // them.
-    if (retainUserValues) {
-      table.restoreFromBackup();
-      datasetDialog.restoreFromBackup();
-    }
-    // Set new highlight values - batch directive file must be ignored
-    table.setFieldHighlightValues(directiveFileCollection);
-    datasetDialog.setFieldHighlightValues(directiveFileCollection);
+    table.applyValues(userConfiguration, directiveFileCollection, retainUserValues);
+    datasetDialog.applyValues(userConfiguration, directiveFileCollection,
+        retainUserValues);
   }
 
   public void actionPerformed(final ActionEvent event) {
