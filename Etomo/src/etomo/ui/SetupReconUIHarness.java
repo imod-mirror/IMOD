@@ -30,7 +30,9 @@ import etomo.util.InvalidParameterException;
 import etomo.util.MRCHeader;
 
 /**
-* <p>Description: </p>
+* <p>Description: Class to handle the tomogram reconstruction setup, with or without a
+* front-end.  Handles headless, directive-based automation as well as an interface based
+* setup - with or without parameter-based automation.</p>
 * 
 * <p>Copyright: Copyright 2012</p>
 *
@@ -78,6 +80,7 @@ public final class SetupReconUIHarness {
       }
       return;
     }
+    // Headless automation using directives
     directiveFileCollection = new DirectiveFileCollection(manager, axisID);
     DirectiveFile batchDirectiveFile = DirectiveFile.getArgInstance(manager, axisID);
     directiveFileCollection.setup(batchDirectiveFile);
