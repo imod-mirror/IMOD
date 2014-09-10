@@ -107,7 +107,7 @@ short = check
 type = FN
 usage = File to check for quit signals
 tooltip = 
-manpage = File to check for quit signals.  The default is batchrunner###.input
+manpage = File to check for quit signals.  The default is batchruntomo.###.input
 in the directory where this program is started, where ### is the process ID.
 The file is passed to processchunks when it runs jobs, and is checked before
 and after running jobs.  Only a Q should be placed in this file.  This will

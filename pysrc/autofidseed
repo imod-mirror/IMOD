@@ -371,7 +371,7 @@ infoName = progname + infoSuffix + '.info'
 # Set root of names for temp files
 deftmpdir = progname + infoSuffix + '.dir'
 tmpdir = PipGetString('TemporaryDirectory', deftmpdir)
-if tmpdir == deftmpdir and not os.path.exists(tmpdir):
+if not os.path.exists(tmpdir):
    try:
       os.mkdir(tmpdir)
    except OSError:
