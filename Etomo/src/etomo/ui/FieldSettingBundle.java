@@ -17,23 +17,23 @@ package etomo.ui;
 */
 public final class FieldSettingBundle implements FieldSettingInterface {
   public static final String rcsid = "$Id:$";
-  
-  private FieldSettingInterface boolSetting = null;
-  private FieldSettingInterface textSetting = null;
-  
-  /**
-   * Null parameter has no effect
-   * @param setting
-   */
-  public void add(final FieldSettingInterface setting) {
-    if (setting ==null) {
-      return;
-    }
-    if (setting.isBoolean()) {
-      boolSetting = setting;
-    }
-    else {
-      textSetting = setting;
-    }
+
+  private BooleanFieldSetting boolSetting = null;
+  private TextFieldSetting textSetting = null;
+
+  public BooleanFieldSetting getBooleanSetting() {
+    return boolSetting;
+  }
+
+  public TextFieldSetting getTextSetting() {
+    return textSetting;
+  }
+
+  public void addBooleanSetting(final FieldSettingInterface input) {
+    boolSetting = input.getBooleanSetting();
+  }
+
+  public void addTextSetting(final FieldSettingInterface input) {
+    textSetting = input.getTextSetting();
   }
 }
