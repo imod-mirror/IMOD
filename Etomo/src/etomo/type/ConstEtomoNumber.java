@@ -1454,7 +1454,7 @@ public abstract class ConstEtomoNumber implements Storable {
     throw new IllegalStateException("type=" + type);
   }
 
-  boolean isNull(Number number) {
+ public static boolean isNull(Number number) {
     if (number == null) {
       return true;
     }
