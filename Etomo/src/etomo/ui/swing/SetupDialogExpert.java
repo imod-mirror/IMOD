@@ -150,7 +150,7 @@ public final class SetupDialogExpert {
   /**
    * Process command line arguments that pertain to Setup Dialog.  May can
    * functions in ApplicationManager.
-   * @return true the automation does not generate errors
+   * @return true if the automation does not generate errors
    */
   public void doAutomation() {
     Arguments arguments = EtomoDirector.INSTANCE.getArguments();
