@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 
 import etomo.BaseManager;
 import etomo.EtomoDirector;
@@ -47,24 +46,12 @@ public class DirectiveFileCollection implements SetupReconInterface {
 
   private final BaseManager manager;
   private final AxisID axisID;
-  private final AttributeMatch defaultAttributeA;
-  private final AttributeMatch defaultAttributeB;
 
   private boolean debug = false;
 
   public DirectiveFileCollection(final BaseManager manager, final AxisID axisID) {
     this.manager = manager;
     this.axisID = axisID;
-    UserConfiguration userConfiguration = EtomoDirector.INSTANCE.getUserConfiguration();
-    if (userConfiguration.getTiltAnglesRawtltFile()) {
-      defaultAttributeA = new AttributeMatch(DirectiveDef.USE_RAW_TLT, null, true);
-      defaultAttributeB = new AttributeMatch(DirectiveDef.USE_RAW_TLT, AxisID.SECOND,
-          true);
-    }
-    else {
-      defaultAttributeA = new AttributeMatch(DirectiveDef.EXTRACT, null, true);
-      defaultAttributeB = new AttributeMatch(DirectiveDef.EXTRACT, AxisID.SECOND, true);
-    }
   }
 
   public void setDebug(final boolean input) {
@@ -133,14 +120,6 @@ public class DirectiveFileCollection implements SetupReconInterface {
       if (!secondaryMatch.isEmpty()) {
         return secondaryMatch;
       }
-    }
-    if (axisID == AxisID.SECOND) {
-      if (defaultAttributeB.equals(directiveDef)) {
-        return defaultAttributeB;
-      }
-    }
-    else if (defaultAttributeA.equals(directiveDef)) {
-      return defaultAttributeA;
     }
     return null;
   }
@@ -332,6 +311,17 @@ public class DirectiveFileCollection implements SetupReconInterface {
     }
     else if (isValue(DirectiveDef.USE_RAW_TLT, axisID)) {
       tiltAngleSpec.setType(TiltAngleType.FILE);
+    }
+    else {
+      //Must set something here, so use the settings values
+      UserConfiguration userConfiguration = EtomoDirector.INSTANCE.getUserConfiguration();
+      if (userConfiguration.isTiltAnglesRawtltFile()) {
+        tiltAngleSpec.setType(TiltAngleType.FILE);
+      }
+      else {
+        //Default
+        tiltAngleSpec.setType(TiltAngleType.EXTRACT);
+      }
     }
     return true;
   }
