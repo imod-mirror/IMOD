@@ -299,10 +299,10 @@ short = tempdir
 type = FN
 usage = Path for temporary directory
 tooltip =
-manpage = Path to temporary directory.  The default is to create a directory
+manpage = Path to temporary directory.  The default is to use a directory
 in the current directory with the name autofidseed.tmp, autofidseeda.tmp, or 
 autofidseedb.tmp, depending on the ending of the root of the Beadtrack command
-file.
+file.  The directory will be created if it does not exist.
 
 [Field = LeaveTempFiles]
 short = leave

@@ -1,5 +1,15 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/8/14: IMOD_4-8-13
+9/8/14: Changed autofidseed to create a specified temporary directory, not
+just the default one (In 4.7).
+
+9/8/14: Added script Subtomosetup to make command files for generating
+multiple numbered subtomograms.
+
+9/8/14: Fixed imodinfo listing objects multiple times with multiple input
+files (In 4.7).
+
 9/7/14: Fixed 3dmod loading of subset in Z for non-cached data.
 
 9/4/14: In eTomo - PEET, handling a reference without brackets in the .prm

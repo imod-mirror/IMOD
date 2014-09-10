@@ -198,6 +198,9 @@ int multiBinStats(int binning[][3], int boxSize[][3], int boxSpacing[][3], int n
                boxSize[scl][b3dZ] - 1 >= zCur) {
           
           /* In each box, add in all the pixels in the box */
+#pragma omp parallel for    \
+  shared(numBoxes, boxSpacing, scl, boxStart, statStartInds, izBox, boxSize, means, SDs) \
+  private(iyBox, iyStart, ixBox, ixStart, boxInd, iy, bufBase, ix, pixel)
           for (iyBox = 0; iyBox < numBoxes[scl][b3dY]; iyBox++) {
             iyStart = boxStart[scl][b3dY] + boxSpacing[scl][b3dY] * iyBox;
             for (ixBox = 0; ixBox < numBoxes[scl][b3dX]; ixBox++) {
