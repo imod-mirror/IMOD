@@ -1,8 +1,5 @@
 package etomo.ui;
 
-import etomo.type.ConstEtomoNumber;
-import etomo.type.EtomoNumber;
-
 /**
 * <p>Description: </p>
 * 
@@ -27,11 +24,11 @@ public final class BooleanFieldSetting implements FieldSettingInterface {
   public BooleanFieldSetting() {
   }
   
-  BooleanFieldSetting getBooleanSetting() {
+  public BooleanFieldSetting getBooleanSetting() {
     return this;
   }
   
-  TextFieldSetting getTextSetting() {
+  public TextFieldSetting getTextSetting() {
     return null;
   }
 
@@ -64,9 +61,5 @@ public final class BooleanFieldSetting implements FieldSettingInterface {
 
   public boolean isValue() {
     return value;
-  }
-
-  public boolean isBoolean() {
-    return true;
   }
 }
