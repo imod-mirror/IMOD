@@ -238,7 +238,7 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
           bcEditDataset.setSelected(true);
         }
       }
-      //Revert to Global button in the dataset dialog
+      // Revert to Global button in the dataset dialog
       else if (datasetDialog != null
           && actionCommand.equals(datasetDialog.getRevertToGlobalActionCommand())) {
         if (UIHarness.INSTANCE
@@ -418,25 +418,35 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
     return changed;
   }
 
-  void clear() {
+  void applyValues(final UserConfiguration userConfiguration,
+      final DirectiveFileCollection directiveFileCollection,
+      final boolean retainUserValues) {
+    // to apply values and highlights, start with a clean slate
     cbcDualAxis.clear();
     cbcMontage.clear();
     cbcTwoSurfaces.clear();
     setDefaults();
-    if (datasetDialog != null) {
-      datasetDialog.clear();
+    // no default values to apply to table
+    // Apply settings values
+    setValues(userConfiguration);
+    // Apply the directive collection values
+    setValues(directiveFileCollection);
+    // checkpoint
+    cbcDualAxis.checkpoint();
+    cbcMontage.checkpoint();
+    cbcTwoSurfaces.checkpoint();
+    // If the user wants to retain their values, apply backed up values and then delete
+    // them.
+    if (retainUserValues) {
+      cbcDualAxis.restoreFromBackup();
+      cbcMontage.restoreFromBackup();
+      cbcTwoSurfaces.restoreFromBackup();
     }
-  }
-
-  void useDefaultValues() {
+    // no field highlight values to set in table
+    //Dataset dialog
     if (datasetDialog != null) {
-      datasetDialog.useDefaultValues();
-    }
-  }
-
-  void setFieldHighlightValues(final DirectiveFileCollection directiveFileCollection) {
-    if (datasetDialog != null) {
-      datasetDialog.setFieldHighlightValues(directiveFileCollection);
+      datasetDialog.applyValues(userConfiguration, directiveFileCollection,
+          retainUserValues);
     }
   }
 
@@ -446,27 +456,6 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
 
   private void setDefaults() {
     cbcDualAxis.setSelected(true);
-  }
-
-  /**
-   * Move any backed up values into the field, and delete the backup.
-   */
-  void restoreFromBackup() {
-    cbcDualAxis.restoreFromBackup();
-    cbcMontage.restoreFromBackup();
-    cbcTwoSurfaces.restoreFromBackup();
-    if (datasetDialog != null) {
-      datasetDialog.restoreFromBackup();
-    }
-  }
-
-  void checkpoint() {
-    cbcDualAxis.checkpoint();
-    cbcMontage.checkpoint();
-    cbcTwoSurfaces.checkpoint();
-    if (datasetDialog != null) {
-      datasetDialog.checkpoint();
-    }
   }
 
   /**
@@ -481,9 +470,6 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
       EtomoNumber number = new EtomoNumber();
       number.set(directiveFileCollection.getValue(DirectiveDef.SURFACES_TO_ANALYZE));
       cbcTwoSurfaces.setSelected(number != null && number.equals(2));
-    }
-    if (datasetDialog != null) {
-      datasetDialog.setValues(directiveFileCollection);
     }
   }
 
