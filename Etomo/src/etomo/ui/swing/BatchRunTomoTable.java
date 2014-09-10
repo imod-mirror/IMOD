@@ -313,35 +313,10 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
     return rowList.backupIfChanged();
   }
 
-  /**
-   * Move any backed up values into the field, and delete the backup.
-   */
-  void restoreFromBackup() {
-    rowList.restoreFromBackup();
-  }
-
-  void setValues(final DirectiveFileCollection directiveFileCollection) {
-    rowList.setValues(directiveFileCollection);
-  }
-
-  void clear() {
-    rowList.clear();
-  }
-
-  void setValues(final UserConfiguration userConfiguration) {
-    rowList.setValues(userConfiguration);
-  }
-
-  void checkpoint() {
-    rowList.checkpoint();
-  }
-
-  void useDefaultValues() {
-    rowList.useDefaultValues();
-  }
-
-  void setFieldHighlightValues(final DirectiveFileCollection directiveFileCollection) {
-    rowList.setFieldHighlightValues(directiveFileCollection);
+  void applyValues(final UserConfiguration userConfiguration,
+      final DirectiveFileCollection directiveFileCollection,
+      final boolean retainUserValues) {
+    rowList.applyValues(userConfiguration, directiveFileCollection, retainUserValues);
   }
 
   private void updateDisplay() {
@@ -472,7 +447,7 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
               e.printStackTrace();
               continue;
             }
-            catch(NotLoadedException e) {
+            catch (NotLoadedException e) {
               e.printStackTrace();
               if (!fileAdded) {
                 return;
@@ -676,56 +651,17 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
       return changed;
     }
 
-    /**
-     * Move any backed up values into the field, and delete the backup.
-     */
-    private void restoreFromBackup() {
-      for (int i = 0; i < list.size(); i++) {
-        list.get(i).restoreFromBackup();
-      }
-    }
-
-    private void setValues(final DirectiveFileCollection directiveFileCollection) {
-      if (initialValueRow == null) {
-        initialValueRow = BatchRunTomoRow.getDefaultsInstance();
-      }
-      initialValueRow.setValues(directiveFileCollection);
-      for (int i = 0; i < list.size(); i++) {
-        list.get(i).setValues(directiveFileCollection);
-      }
-    }
-
-    private void clear() {
-      for (int i = 0; i < list.size(); i++) {
-        list.get(i).clear();
-      }
-    }
-
-    private void useDefaultValues() {
-      for (int i = 0; i < list.size(); i++) {
-        list.get(i).useDefaultValues();
-      }
-    }
-
-    void setFieldHighlightValues(final DirectiveFileCollection directiveFileCollection) {
-      for (int i = 0; i < list.size(); i++) {
-        list.get(i).setFieldHighlightValues(directiveFileCollection);
-      }
-    }
-
-    private void setValues(final UserConfiguration userConfiguration) {
+    private void applyValues(final UserConfiguration userConfiguration,
+        final DirectiveFileCollection directiveFileCollection,
+        final boolean retainUserValues) {
       if (initialValueRow == null) {
         initialValueRow = BatchRunTomoRow.getDefaultsInstance();
       }
       initialValueRow.setValues(userConfiguration);
+      initialValueRow.setValues(directiveFileCollection);
       for (int i = 0; i < list.size(); i++) {
-        list.get(i).setValues(userConfiguration);
-      }
-    }
-
-    private void checkpoint() {
-      for (int i = 0; i < list.size(); i++) {
-        list.get(i).checkpoint();
+        list.get(i).applyValues(userConfiguration, directiveFileCollection,
+            retainUserValues);
       }
     }
 
