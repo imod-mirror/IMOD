@@ -24,7 +24,6 @@ import etomo.ui.Field;
 import etomo.ui.FieldSettingInterface;
 import etomo.ui.FieldType;
 import etomo.ui.FieldValidationFailedException;
-import etomo.ui.TextFieldInterface;
 import etomo.ui.UIComponent;
 import etomo.util.Utilities;
 
@@ -218,8 +217,7 @@ import etomo.util.Utilities;
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
  */
-final class LabeledTextField implements UIComponent, SwingComponent, Field,
-    TextFieldInterface, FocusListener {
+final class LabeledTextField implements UIComponent, SwingComponent, Field, FocusListener {
   public static final String rcsid = "$Id$";
 
   private final JPanel panel = new JPanel();
@@ -230,13 +228,15 @@ final class LabeledTextField implements UIComponent, SwingComponent, Field,
   private final String locationDescr;
 
   private boolean debug = false;
-  private String backupValue = null;
-  private boolean fieldIsBackedUp = false;
   private boolean required = false;
   private Color origTextForeground = null;
   private Color origLabelForeground = null;
   private boolean numberMustBePositive = false;
   private DirectiveDef directiveDef = null;
+  // Never reassign TextFieldSetting to null. If null means that they have never been
+  // used, less updating when checking the value of TextFieldSetting variables is
+  // required.
+  private TextFieldSetting backup = null;
   private TextFieldSetting defaultValue = null;
   private TextFieldSetting fieldHighlight = null;
   private TextFieldSetting checkpoint = null;
@@ -336,17 +336,19 @@ final class LabeledTextField implements UIComponent, SwingComponent, Field,
    */
   public void checkpoint() {
     if (checkpoint == null) {
-      checkpoint = new TextFieldSetting();
+      checkpoint = new TextFieldSetting(fieldType);
     }
     checkpoint.set(getText());
   }
 
   /**
-   * Saves the current text as the checkpoint.
+   * Saves the current text in backup.
    */
   public void backup() {
-    backupValue = getText();
-    fieldIsBackedUp = true;
+    if (backup == null) {
+      backup = new TextFieldSetting(fieldType);
+    }
+    backup.set(getText());
   }
 
   /**
@@ -354,9 +356,9 @@ final class LabeledTextField implements UIComponent, SwingComponent, Field,
    * the back up.
    */
   public void restoreFromBackup() {
-    if (fieldIsBackedUp) {
-      setText(backupValue);
-      fieldIsBackedUp = false;
+    if (backup != null && backup.isSet()) {
+      setText(backup.getValue());
+      backup.reset();
     }
   }
 
@@ -377,7 +379,7 @@ final class LabeledTextField implements UIComponent, SwingComponent, Field,
     }
     // only search for default value once
     if (defaultValue == null) {
-      defaultValue = TextFieldSetting.getTextInstance();
+      defaultValue = new TextFieldSetting(fieldType);
       String value = DefaultFinder.INSTANCE.getDefaultValue(directiveDef);
       if (value != null) {
         // if default value has been found, set it in the field setting
@@ -398,7 +400,7 @@ final class LabeledTextField implements UIComponent, SwingComponent, Field,
    */
   void checkpoint(final int value) {
     if (checkpoint == null) {
-      checkpoint = new TextFieldSetting();
+      checkpoint = new TextFieldSetting(fieldType);
     }
     checkpoint.set(value);
   }
@@ -408,7 +410,7 @@ final class LabeledTextField implements UIComponent, SwingComponent, Field,
    */
   void checkpoint(final ConstEtomoNumber value) {
     if (checkpoint == null) {
-      checkpoint = new TextFieldSetting();
+      checkpoint = new TextFieldSetting(fieldType);
     }
     checkpoint.set(value);
   }
@@ -418,7 +420,7 @@ final class LabeledTextField implements UIComponent, SwingComponent, Field,
    */
   void checkpoint(final double value) {
     if (checkpoint == null) {
-      checkpoint = new TextFieldSetting();
+      checkpoint = new TextFieldSetting(fieldType);
     }
     checkpoint.set(value);
   }
@@ -428,15 +430,15 @@ final class LabeledTextField implements UIComponent, SwingComponent, Field,
    */
   void checkpoint(final String value) {
     if (checkpoint == null) {
-      checkpoint = new TextFieldSetting();
+      checkpoint = new TextFieldSetting(fieldType);
     }
     checkpoint.set(value);
   }
 
   public void setCheckpoint(final FieldSettingInterface input) {
-    TextFieldSetting setting =null;
-    if(input!=null) {
-      setting=input.getTextSetting();
+    TextFieldSetting setting = null;
+    if (input != null) {
+      setting = input.getTextSetting();
     }
     if (setting == null) {
       if (checkpoint != null) {
@@ -445,7 +447,7 @@ final class LabeledTextField implements UIComponent, SwingComponent, Field,
     }
     else {
       if (checkpoint == null) {
-        checkpoint =  TextFieldSetting.getTextInstance();
+        checkpoint = new TextFieldSetting(fieldType);
       }
       checkpoint.copy(setting);
     }
@@ -465,43 +467,46 @@ final class LabeledTextField implements UIComponent, SwingComponent, Field,
     setText(checkpoint.getValue());
   }
 
-  public void setFieldHighlightValue(final String value) {
-    if (!useFieldHighlight) {
-      useFieldHighlight = true;
+  public void setFieldHighlight(final String value) {
+    if (fieldHighlight == null) {
+      fieldHighlight = new TextFieldSetting(fieldType);
       textField.addFocusListener(this);
     }
-    fieldHighlightValue = value;
+    fieldHighlight.set(value);
     updateFieldHighlight();
   }
 
-  void setFieldHighlightValue(final LabeledTextField from) {
-    while (input != null && input.isBoolean()) {
-      input = input.getNext();
+  public void setFieldHighlight(final boolean value) {
+  }
+
+  public void setFieldHighlight(final FieldSettingInterface input) {
+    TextFieldSetting setting = input.getTextSetting();
+    if (setting == null || !setting.isSet()) {
+      clearFieldHighlight();
     }
-    if (from == null) {
-      return;
-    }
-    if (from.useFieldHighlight) {
-      setFieldHighlightValue(from.fieldHighlightValue);
-    }
-    else if (useFieldHighlight) {
-      clearFieldHighlightValue();
+    else {
+      if (fieldHighlight == null) {
+        fieldHighlight = new TextFieldSetting(fieldType);
+        textField.addFocusListener(this);
+      }
+      fieldHighlight.copy(setting);
+      updateFieldHighlight();
     }
   }
 
-  public void clearFieldHighlightValue() {
-    useFieldHighlight = false;
-    textField.removeFocusListener(this);
-    fieldHighlightValue = null;
-    updateFieldHighlight();
+  public void clearFieldHighlight() {
+    if (fieldHighlight != null && fieldHighlight.isSet()) {
+      fieldHighlight.reset();
+      updateFieldHighlight();
+    }
   }
 
   public FieldSettingInterface getFieldHighlight() {
     return fieldHighlight;
   }
 
-  public boolean equalsFieldHighlightValue() {
-
+  public boolean equalsFieldHighlight() {
+    return fieldHighlight != null && fieldHighlight.equals(getText());
   }
 
   public void focusGained(final FocusEvent event) {
@@ -520,32 +525,35 @@ final class LabeledTextField implements UIComponent, SwingComponent, Field,
    * field highlight is not used when the field is disabled.
    */
   void updateFieldHighlight() {
-    if (useFieldHighlight) {
-      String text = textField.getText();
-      if ((fieldHighlightValue != null && fieldHighlightValue.equals(text))
-          || (fieldHighlightValue == null && (text == null || text.equals("")))) {
-        if (origTextForeground == null) {
-          origTextForeground = textField.getForeground();
-          if (origTextForeground == null) {
-            origTextForeground = Color.BLACK;
-          }
-        }
-        if (origLabelForeground == null) {
-          origLabelForeground = label.getForeground();
-          if (origLabelForeground == null) {
-            origLabelForeground = Color.BLACK;
-          }
-        }
-        label.setForeground(Colors.FIELD_HIGHLIGHT);
-        textField.setForeground(Colors.FIELD_HIGHLIGHT);
-      }
+    // To avoid constantly updating the foreground color, assuming that fieldHighlight is
+    // never reassigned to null
+    if (fieldHighlight == null || !textField.isEnabled()) {
       return;
     }
-    if (origTextForeground != null) {
-      textField.setForeground(origTextForeground);
+    if (fieldHighlight.isSet() && fieldHighlight.equals(textField.getText())) {
+      // save the original color
+      if (origTextForeground == null) {
+        origTextForeground = textField.getForeground();
+        if (origTextForeground == null) {
+          origTextForeground = Color.BLACK;
+        }
+      }
+      if (origLabelForeground == null) {
+        origLabelForeground = label.getForeground();
+        if (origLabelForeground == null) {
+          origLabelForeground = Color.BLACK;
+        }
+      }
+      label.setForeground(Colors.FIELD_HIGHLIGHT);
+      textField.setForeground(Colors.FIELD_HIGHLIGHT);
     }
-    if (origLabelForeground != null) {
-      label.setForeground(origLabelForeground);
+    else {
+      if (origTextForeground != null) {
+        textField.setForeground(origTextForeground);
+      }
+      if (origLabelForeground != null) {
+        label.setForeground(origLabelForeground);
+      }
     }
   }
 
@@ -573,19 +581,27 @@ final class LabeledTextField implements UIComponent, SwingComponent, Field,
     if (!alwaysCheck && (!textField.isEnabled() || !textField.isVisible())) {
       return false;
     }
-    return checkpoint == null
-        || checkpoint.isDifferentFromCheckpoint(getText(), fieldType);
+    return checkpoint == null || !checkpoint.equals(getText());
   }
 
   public void clear() {
     textField.setText("");
   }
 
-  public void copy(final Field copyFrom) {
-    if (copyFrom == null) {
-      return;
+  public void setValue(final Field input) {
+    if (input == null) {
+      clear();
     }
-    setText(copyFrom.getText());
+    else {
+      setText(input.getText());
+    }
+  }
+
+  public void setValue(final String value) {
+    setText(value);
+  }
+
+  public void setValue(final boolean value) {
   }
 
   public boolean isSelected() {

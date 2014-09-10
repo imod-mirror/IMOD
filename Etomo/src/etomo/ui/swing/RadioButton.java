@@ -23,7 +23,7 @@ import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.storage.autodoc.ReadOnlySection;
 import etomo.type.EnumeratedType;
 import etomo.type.EtomoAutodoc;
-import etomo.type.EtomoBoolean2;
+import etomo.type.UITestFieldType;
 import etomo.ui.BooleanFieldSetting;
 import etomo.ui.Field;
 import etomo.ui.FieldSettingInterface;
@@ -50,11 +50,10 @@ final class RadioButton implements RadioButtonInterface, Field, ActionListener {
   private final ButtonGroup group;
 
   private boolean debug = false;
-  private boolean backupValue = false;
-  private boolean fieldIsBackedUp = false;
   private Color origForeground = null;
-  private BooleanFieldSetting checkpoint = null;
   private DirectiveDef directiveDef = null;
+  private BooleanFieldSetting backup = null;
+  private BooleanFieldSetting checkpoint = null;
   private BooleanFieldSetting defaultValue = null;
   private BooleanFieldSetting fieldHighlight = null;
 
@@ -143,10 +142,10 @@ final class RadioButton implements RadioButtonInterface, Field, ActionListener {
     checkpoint.set(isSelected());
   }
 
-  public void setCheckpoint(FieldSettingInterface input) {
-    BooleanFieldSetting setting =null;
-    if(input!=null) {
-      setting=input.getBooleanSetting();
+  public void setCheckpoint(FieldSettingInterface settingInterface) {
+    BooleanFieldSetting setting = null;
+    if (settingInterface != null) {
+      setting = settingInterface.getBooleanSetting();
     }
     if (setting == null) {
       if (checkpoint != null) {
@@ -160,8 +159,10 @@ final class RadioButton implements RadioButtonInterface, Field, ActionListener {
   }
 
   public void backup() {
-    backupValue = isSelected();
-    fieldIsBackedUp = true;
+    if (backup == null) {
+      backup = new BooleanFieldSetting();
+    }
+    backup.set(isSelected());
   }
 
   /**
@@ -171,27 +172,32 @@ final class RadioButton implements RadioButtonInterface, Field, ActionListener {
    * group also being backed up.
    */
   public void restoreFromBackup() {
-    if (fieldIsBackedUp) {
-      if (backupValue) {
-        setSelected(true);
-      }
-      fieldIsBackedUp = false;
+    if (backup != null && backup.isSet()) {
+      setSelected(backup.isValue());
+      backup.reset();
     }
+  }
+
+  public void setValue(final Field input) {
+    if (input == null) {
+      clear();
+    }
+    else {
+      setSelected(input.isSelected());
+    }
+  }
+
+  public void setValue(final String value) {
+  }
+
+  public void setValue(final boolean value) {
+    setSelected(value);
   }
 
   /**
    * No way to clear a radio button
    */
   public void clear() {
-  }
-
-  public void copy(final Field copyFrom) {
-    if (copyFrom == null) {
-      return;
-    }
-    if (copyFrom.isSelected()) {
-      setSelected(true);
-    }
   }
 
   void setDirectiveDef(final DirectiveDef directiveDef) {
@@ -302,16 +308,14 @@ final class RadioButton implements RadioButtonInterface, Field, ActionListener {
     debug = input;
   }
 
-  public void setFieldHighlight(final FieldSettingInterface input) {
-    BooleanFieldSetting setting = input.getBooleanSetting();
+  public void setFieldHighlight(final FieldSettingInterface settingInterface) {
+    BooleanFieldSetting setting = settingInterface.getBooleanSetting();
     if (setting == null || !setting.isSet()) {
-      clearFieldHighlightValue();
+      clearFieldHighlight();
     }
     else {
       if (fieldHighlight == null) {
         fieldHighlight = new BooleanFieldSetting();
-      }
-      if (!fieldHighlight.isSet()) {
         addFieldHighlightActionListeners();
       }
       fieldHighlight.copy(setting);
@@ -337,34 +341,21 @@ final class RadioButton implements RadioButtonInterface, Field, ActionListener {
     }
   }
 
-  void setFieldHighlightValue(final boolean value) {
+  public void setFieldHighlight(final boolean value) {
     if (fieldHighlight == null) {
       fieldHighlight = new BooleanFieldSetting();
-    }
-    if (!fieldHighlight.isSet()) {
       addFieldHighlightActionListeners();
     }
     fieldHighlight.set(value);
     updateFieldHighlight(isSelected());
   }
 
-  public void clearFieldHighlightValue() {
+  public void setFieldHighlight(final String value) {
+  }
+
+  public void clearFieldHighlight() {
     if (fieldHighlight != null && fieldHighlight.isSet()) {
       fieldHighlight.reset();
-      // Remove listeners from all the radio buttons in the group.
-      boolean listenerRemoved = false;
-      if (group != null) {
-        Enumeration<AbstractButton> enumeration = group.getElements();
-        if (enumeration != null) {
-          while (enumeration.hasMoreElements()) {
-            listenerRemoved = true;
-            enumeration.nextElement().removeActionListener(this);
-          }
-        }
-      }
-      if (!listenerRemoved) {
-        radioButton.removeActionListener(this);
-      }
       // Turn off field highlight - parameter doesn't matter since field highlight is off.
       updateFieldHighlight(false);
     }
@@ -374,7 +365,7 @@ final class RadioButton implements RadioButtonInterface, Field, ActionListener {
     return fieldHighlight;
   }
 
-  public boolean equalsFieldHighlightValue() {
+  public boolean equalsFieldHighlight() {
     return fieldHighlight != null && fieldHighlight.isSet()
         && fieldHighlight.equals(isSelected());
   }
