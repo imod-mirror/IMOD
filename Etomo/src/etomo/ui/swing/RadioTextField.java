@@ -18,7 +18,6 @@ import etomo.ui.FieldSettingBundle;
 import etomo.ui.FieldSettingInterface;
 import etomo.ui.FieldType;
 import etomo.ui.FieldValidationFailedException;
-import etomo.ui.TextFieldInterface;
 import etomo.util.Utilities;
 
 /**
@@ -72,7 +71,7 @@ import etomo.util.Utilities;
  * <p> JTextField when the radio button is not selected.
  * <p> </p>
  */
-final class RadioTextField implements RadioButtonInterface, Field, TextFieldInterface {
+final class RadioTextField implements RadioButtonInterface, Field {
   public static final String rcsid = "$Id$";
 
   private final JPanel rootPanel = new JPanel();
@@ -186,9 +185,17 @@ final class RadioTextField implements RadioButtonInterface, Field, TextFieldInte
     textField.clear();
   }
 
-  public void copy(final Field copyFrom) {
-    radioButton.copy(copyFrom);
-    textField.copy(copyFrom);
+  public void setValue(final Field input) {
+    radioButton.setValue(input);
+    textField.setValue(input);
+  }
+
+  public void setValue(final String value) {
+    textField.setValue(value);
+  }
+
+  public void setValue(final boolean value) {
+    radioButton.setValue(value);
   }
 
   void setDirectiveDef(final DirectiveDef directiveDef) {
@@ -208,18 +215,18 @@ final class RadioTextField implements RadioButtonInterface, Field, TextFieldInte
     return directiveDef;
   }
 
-  public void setFieldHighlightValue(final String text) {
-    textField.setFieldHighlightValue(text);
+  public void setFieldHighlight(final String text) {
+    textField.setFieldHighlight(text);
   }
 
-  public void setFieldHighlightValue(final boolean bool) {
-    radioButton.setFieldHighlightValue(bool);
+  public void setFieldHighlight(final boolean bool) {
+    radioButton.setFieldHighlight(bool);
   }
 
   public FieldSettingInterface getFieldHighlight() {
     FieldSettingBundle bundle = new FieldSettingBundle();
-    bundle.add(radioButton.getFieldHighlight());
-    bundle.add(textField.getFieldHighlight());
+    bundle.addBooleanSetting(radioButton.getFieldHighlight());
+    bundle.addTextSetting(textField.getFieldHighlight());
     return bundle;
   }
 
@@ -228,14 +235,13 @@ final class RadioTextField implements RadioButtonInterface, Field, TextFieldInte
     textField.setFieldHighlight(input);
   }
 
-  public void clearFieldHighlightValue() {
-    textField.clearFieldHighlightValue();
-    radioButton.clearFieldHighlightValue();
+  public void clearFieldHighlight() {
+    textField.clearFieldHighlight();
+    radioButton.clearFieldHighlight();
   }
 
-  public boolean equalsFieldHighlightValue() {
-    return textField.equalsFieldHighlightValue()
-        && radioButton.equalsFieldHighlightValue();
+  public boolean equalsFieldHighlight() {
+    return textField.equalsFieldHighlight() && radioButton.equalsFieldHighlight();
   }
 
   public void checkpoint() {
@@ -250,8 +256,8 @@ final class RadioTextField implements RadioButtonInterface, Field, TextFieldInte
 
   public FieldSettingInterface getCheckpoint() {
     FieldSettingBundle bundle = new FieldSettingBundle();
-    bundle.add(radioButton.getCheckpoint());
-    bundle.add(textField.getCheckpoint());
+    bundle.addBooleanSetting(radioButton.getCheckpoint());
+    bundle.addTextSetting(textField.getCheckpoint());
     return bundle;
   }
 

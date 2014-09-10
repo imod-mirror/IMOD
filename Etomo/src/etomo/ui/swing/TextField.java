@@ -15,14 +15,12 @@ import etomo.logic.DefaultFinder;
 import etomo.logic.FieldValidator;
 import etomo.storage.DirectiveDef;
 import etomo.storage.autodoc.AutodocTokenizer;
-import etomo.type.EtomoNumber;
 import etomo.type.UITestFieldType;
 import etomo.ui.TextFieldSetting;
 import etomo.ui.Field;
 import etomo.ui.FieldSettingInterface;
 import etomo.ui.FieldType;
 import etomo.ui.FieldValidationFailedException;
-import etomo.ui.TextFieldInterface;
 import etomo.ui.UIComponent;
 import etomo.util.Utilities;
 
@@ -39,8 +37,7 @@ import etomo.util.Utilities;
  * 
  * @version $Revision$
  */
-final class TextField implements UIComponent, SwingComponent, Field, FocusListener,
-    TextFieldInterface {
+final class TextField implements UIComponent, SwingComponent, Field, FocusListener {
   public static final String rcsid = "$Id$";
 
   private final JTextField textField = new JTextField();
@@ -51,13 +48,13 @@ final class TextField implements UIComponent, SwingComponent, Field, FocusListen
 
   private boolean required = false;
   private Color origForeground = null;
-  private String backupValue = null;
-  private boolean fieldIsBackedUp = false;
   private DirectiveDef directiveDef = null;
+  // Never reassign TextFieldSetting to null. If null means that they have never been
+  // used, less updating is required.
+  private TextFieldSetting backup = null;
   private TextFieldSetting defaultValue = null;
   private TextFieldSetting checkpoint = null;
   private TextFieldSetting fieldHighlight = null;
-  private String label = null;
 
   TextField(final FieldType fieldType, final String reference, final String locationDescr) {
     this.locationDescr = locationDescr;
@@ -120,11 +117,14 @@ final class TextField implements UIComponent, SwingComponent, Field, FocusListen
     if (!alwaysCheck && (!textField.isEnabled() || !textField.isVisible())) {
       return false;
     }
-    return checkpoint == null || !checkpoint.equals(getText(), fieldType);
+    return checkpoint == null || !checkpoint.equals(getText());
   }
 
   public void backup() {
-    backupValue = textField.getText();
+    if (backup == null) {
+      backup = new TextFieldSetting(fieldType);
+    }
+    backup.set(textField.getText());
   }
 
   /**
@@ -132,21 +132,14 @@ final class TextField implements UIComponent, SwingComponent, Field, FocusListen
    * the back up.
    */
   public void restoreFromBackup() {
-    if (fieldIsBackedUp) {
-      setText(backupValue);
-      fieldIsBackedUp = false;
+    if (backup != null && backup.isSet()) {
+      setText(backup.getValue());
+      backup.reset();
     }
   }
 
   public void clear() {
     setText("");
-  }
-
-  public void copy(final Field copyFrom) {
-    if (copyFrom == null) {
-      return;
-    }
-    setText(copyFrom.getText());
   }
 
   public boolean isSelected() {
@@ -170,7 +163,7 @@ final class TextField implements UIComponent, SwingComponent, Field, FocusListen
     }
     // only search for default value once
     if (defaultValue == null) {
-      defaultValue =  TextFieldSetting.getTextInstance();
+      defaultValue = new TextFieldSetting(fieldType);
       String value = DefaultFinder.INSTANCE.getDefaultValue(directiveDef);
       if (value != null) {
         // if default value has been found, set it in the field setting
@@ -191,7 +184,7 @@ final class TextField implements UIComponent, SwingComponent, Field, FocusListen
    */
   public void checkpoint() {
     if (checkpoint == null) {
-      checkpoint = TextFieldSetting.getTextInstance();
+      checkpoint = new TextFieldSetting(fieldType);
     }
     checkpoint.set(getText());
   }
@@ -200,42 +193,29 @@ final class TextField implements UIComponent, SwingComponent, Field, FocusListen
     return checkpoint;
   }
 
-  public void setCheckpoint(final FieldSettingInterface input) {
-    TextFieldSetting setting = input.getTextSetting();
-    if (setting == null) {
+  public void setCheckpoint(final FieldSettingInterface settingInterface) {
+    TextFieldSetting setting = settingInterface.getTextSetting();
+    if (setting == null || !setting.isSet()) {
       if (checkpoint != null) {
         checkpoint.reset();
       }
     }
     else {
       if (checkpoint == null) {
-        checkpoint = TextFieldSetting.getTextInstance();
+        checkpoint = new TextFieldSetting(fieldType);
       }
       checkpoint.copy(setting);
     }
   }
 
-  public void setFieldHighlightValue(final String value) {
-    if (fieldHighlight == null) {
-      fieldHighlight = TextFieldSetting.getTextInstance();
-    }
-    if (!fieldHighlight.isSet()) {
-      textField.addFocusListener(this);
-    }
-    fieldHighlight.set(value);
-    updateFieldHighlight();
-  }
-
-  public void setFieldHighlight(final FieldSettingInterface input) {
-    TextFieldSetting setting = input.getTextSetting();
+  public void setFieldHighlight(final FieldSettingInterface settingInterface) {
+    TextFieldSetting setting = settingInterface.getTextSetting();
     if (setting == null || !setting.isSet()) {
-      clearFieldHighlightValue();
+      clearFieldHighlight();
     }
     else {
       if (fieldHighlight == null) {
-        fieldHighlight = TextFieldSetting.getTextInstance();
-      }
-      if (!fieldHighlight.isSet()) {
+        fieldHighlight = new TextFieldSetting(fieldType);
         textField.addFocusListener(this);
       }
       fieldHighlight.copy(setting);
@@ -243,20 +223,31 @@ final class TextField implements UIComponent, SwingComponent, Field, FocusListen
     }
   }
 
+  public void setFieldHighlight(final String value) {
+    if (fieldHighlight == null) {
+      fieldHighlight = new TextFieldSetting(fieldType);
+      textField.addFocusListener(this);
+    }
+    fieldHighlight.set(value);
+    updateFieldHighlight();
+  }
+
+  public void setFieldHighlight(final boolean value) {
+  }
+
   public TextFieldSetting getFieldHighlight() {
     return fieldHighlight;
   }
 
-  public void clearFieldHighlightValue() {
+  public void clearFieldHighlight() {
     if (fieldHighlight != null && fieldHighlight.isSet()) {
       fieldHighlight.reset();
-      textField.removeFocusListener(this);
       updateFieldHighlight();
     }
   }
 
-  public boolean equalsFieldHighlightValue() {
-    return fieldHighlight != null && fieldHighlight.equals(isSelected());
+  public boolean equalsFieldHighlight() {
+    return fieldHighlight != null && fieldHighlight.equals(getText());
   }
 
   public void focusGained(final FocusEvent event) {
@@ -275,23 +266,22 @@ final class TextField implements UIComponent, SwingComponent, Field, FocusListen
    * field highlight is not used when the field is disabled.
    */
   void updateFieldHighlight() {
-    if (!textField.isEnabled()) {
+    // To avoid constantly updating the foreground color, assuming that fieldHighlight is
+    // never reassigned to null
+    if (fieldHighlight == null || !textField.isEnabled()) {
       return;
     }
-    if (fieldHighlight != null && fieldHighlight.isSet()) {
-      String text = textField.getText();
-      if (fieldHighlight.equals(text)) {
+    if (fieldHighlight.isSet() && fieldHighlight.equals(textField.getText())) {
+      // save the original color
+      if (origForeground == null) {
+        origForeground = textField.getForeground();
         if (origForeground == null) {
-          origForeground = textField.getForeground();
-          if (origForeground == null) {
-            origForeground = Color.BLACK;
-          }
+          origForeground = Color.BLACK;
         }
-        textField.setForeground(Colors.FIELD_HIGHLIGHT);
       }
-      return;
+      textField.setForeground(Colors.FIELD_HIGHLIGHT);
     }
-    if (origForeground != null) {
+    else if (origForeground != null) {
       // field highlight has been turned off or field highlight doesn't match
       textField.setForeground(origForeground);
     }
@@ -299,6 +289,7 @@ final class TextField implements UIComponent, SwingComponent, Field, FocusListen
 
   public void setText(String text) {
     textField.setText(text);
+    updateFieldHighlight();
   }
 
   void setRequired(final boolean required) {
@@ -319,6 +310,22 @@ final class TextField implements UIComponent, SwingComponent, Field, FocusListen
           + (locationDescr == null ? "" : " in " + locationDescr), required, false);
     }
     return text;
+  }
+
+  public void setValue(final Field input) {
+    if (input == null) {
+      clear();
+    }
+    else {
+      setText(input.getText());
+    }
+  }
+
+  public void setValue(final String value) {
+    setText(value);
+  }
+
+  public void setValue(final boolean value) {
   }
 
   /**
@@ -390,11 +397,10 @@ final class TextField implements UIComponent, SwingComponent, Field, FocusListen
   }
 
   public String getQuotedLabel() {
-    return Utilities.quoteLabel(label);
+    return getQuotedReference();
   }
 
   private void setName(String reference) {
-    label = reference;
     String name = Utilities.convertLabelToName(reference);
     textField.setName(UITestFieldType.TEXT_FIELD.toString()
         + AutodocTokenizer.SEPARATOR_CHAR + name);
