@@ -1,4 +1,5 @@
 package etomo.ui;
+
 /**
 * <p>Description: </p>
 * 
@@ -15,8 +16,9 @@ package etomo.ui;
 * <p> $Log$ </p>
 */
 public interface FieldSettingInterface {
-  public static  final String  rcsid =  "$Id:$";
-  
-  TextFieldSetting getBooleanSetting();
-  TextFieldSetting getTextSetting();
+  public static final String rcsid = "$Id:$";
+
+  public BooleanFieldSetting getBooleanSetting();
+
+  public TextFieldSetting getTextSetting();
 }
