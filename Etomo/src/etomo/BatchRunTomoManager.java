@@ -8,17 +8,19 @@ import etomo.process.BaseProcessManager;
 import etomo.process.BatchRunTomoProcessManager;
 import etomo.process.ImodManager;
 import etomo.process.SystemProcessException;
+import etomo.storage.LogFile;
 import etomo.storage.Storable;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.AxisTypeException;
 import etomo.type.BaseMetaData;
-import etomo.type.BaseScreenState;
 import etomo.type.BatchRunTomoMetaData;
+import etomo.type.DataFileType;
 import etomo.type.DialogType;
 import etomo.type.FileType;
 import etomo.type.InterfaceType;
 import etomo.type.Run3dmodMenuOptions;
+import etomo.type.TableReference;
 import etomo.ui.swing.BatchRunTomoDialog;
 import etomo.ui.swing.MainBatchRunTomoPanel;
 import etomo.ui.swing.MainPanel;
@@ -43,9 +45,10 @@ public final class BatchRunTomoManager extends BaseManager {
   public static final String rcsid = "$Id:$";
 
   private static final AxisID AXIS_ID = AxisID.ONLY;
+  private static final String STACK_REFERENCE_PREFIX = DataFileType.BATCH_RUN_TOMO.extension
+      .substring(1);
 
-  private final BaseScreenState screenState = new BaseScreenState(AXIS_ID,
-      AxisType.SINGLE_AXIS);
+  private final TableReference tableReference = new TableReference(STACK_REFERENCE_PREFIX);
 
   private final BatchRunTomoMetaData metaData;
 
@@ -64,13 +67,16 @@ public final class BatchRunTomoManager extends BaseManager {
 
   public BatchRunTomoManager(final String paramFileName, final DialogType dialogType) {
     super();
-    metaData = new BatchRunTomoMetaData(getLogProperties());
+    metaData = new BatchRunTomoMetaData(getLogProperties(), tableReference);
     processMgr = new BatchRunTomoProcessManager(this);
     initializeUIParameters(paramFileName, AXIS_ID);
     if (!EtomoDirector.INSTANCE.getArguments().isHeadless()) {
       openProcessingPanel();
       mainPanel.setStatusBarText(paramFile, metaData, logWindow);
       openBatchRunTomoDialog();
+    }
+    if (!loadedParamFile) {
+      tableReference.setNew();
     }
   }
 
@@ -85,17 +91,85 @@ public final class BatchRunTomoManager extends BaseManager {
 
   public void openBatchRunTomoDialog() {
     if (dialog == null) {
-      dialog = BatchRunTomoDialog.getInstance(this, AXIS_ID);
+      dialog = BatchRunTomoDialog.getInstance(this, AXIS_ID, tableReference);
     }
     if (paramFile != null && metaData.isValid()) {
       dialog.setParameters(metaData);
     }
     mainPanel.showProcess(dialog.getContainer(), AXIS_ID);
+    uiHarness.updateFrame(this);
     String actionMessage = Utilities.prepareDialogActionMessage(
         DialogType.BATCH_RUN_TOMO, AxisID.ONLY, null);
     if (actionMessage != null) {
       System.err.println(actionMessage);
     }
+  }
+  
+  /**
+   * Call BaseManager.exitProgram(). Call saveDialog. Return the value of
+   * BaseManager.exitProgram(). To guarantee that etomo can always exit, catch
+   * all unrecognized Exceptions and Errors and return true.
+   */
+  public boolean exitProgram(AxisID axisID) {
+    try {
+      if (super.exitProgram(axisID)) {
+        endThreads();
+        saveParamFile();
+        return true;
+      }
+      return false;
+    }
+    catch (Throwable e) {
+      e.printStackTrace();
+      return true;
+    }
+  }
+
+  public boolean save() throws LogFile.LockException, IOException {
+    super.save();
+    mainPanel.done();
+    saveBatchRunTomoDialog();
+    return true;
+  }
+
+  private boolean saveBatchRunTomoDialog() {
+    if (dialog == null) {
+      return false;
+    }
+    if (paramFile == null) {
+      if (!setParamFile()) {
+        return false;
+      }
+    }
+    dialog.getParameters(metaData);
+    saveStorables(AXIS_ID);
+    updateBatchRunTomo();
+    dialog.saveAutodocs();
+    return true;
+  }
+
+  private void updateBatchRunTomo() {
+
+  }
+
+  public boolean isSetupDone() {
+    return dialog != null && !dialog.isRootNameEmpty() && !dialog.isRootDirEmpty();
+  }
+
+  public boolean setParamFile() {
+    if (!isSetupDone()) {
+      return false;
+    }
+    String rootName = dialog.getRootName();
+    metaData.setName(rootName);
+    paramFile = new File(dialog.getRootDir(), rootName
+        + DataFileType.BATCH_RUN_TOMO.extension);
+    if (!super.setParamFile(paramFile)) {
+      return false;
+    }
+    // Update main window information and status bar
+    mainPanel.setStatusBarText(paramFile, metaData, logWindow);
+    return true;
   }
 
   /**
@@ -112,7 +186,8 @@ public final class BatchRunTomoManager extends BaseManager {
   public int imod(final File stack, final AxisID axisID, int imodIndex,
       final boolean boundaryModel, final boolean dualAxis, Run3dmodMenuOptions menuOptions) {
     if (!stack.exists()) {
-      uiHarness.openMessageDialog(this,stack.getAbsolutePath()+" does not exist.","Run 3dmod failed");
+      uiHarness.openMessageDialog(this, stack.getAbsolutePath() + " does not exist.",
+          "Run 3dmod failed");
       return imodIndex;
     }
     String key = ImodManager.BATCH_RUN_TOMO_STACK_KEY;
@@ -151,7 +226,8 @@ public final class BatchRunTomoManager extends BaseManager {
   public int imod(final File stack, final AxisID axisID, int imodIndex,
       Run3dmodMenuOptions menuOptions) {
     if (!stack.exists()) {
-      uiHarness.openMessageDialog(this,stack.getAbsolutePath()+" does not exist.","Run 3dmod failed");
+      uiHarness.openMessageDialog(this, stack.getAbsolutePath() + " does not exist.",
+          "Run 3dmod failed");
       return imodIndex;
     }
     String key = ImodManager.BATCH_RUN_TOMO_STACK_KEY;
@@ -232,10 +308,9 @@ public final class BatchRunTomoManager extends BaseManager {
   }
 
   Storable[] getStorables(final int offset) {
-    Storable[] storables = new Storable[2 + offset];
+    Storable[] storables = new Storable[1 + offset];
     int index = offset;
     storables[index++] = metaData;
-    storables[index++] = screenState;
     return storables;
   }
 }

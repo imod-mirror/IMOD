@@ -1110,6 +1110,9 @@ public class Utilities {
    * @return
    */
   public static String quoteLabel(final String label) {
+    if (label == null) {
+      return null;
+    }
     char quote = '\'';
     return quote + stripLabel(label) + quote;
   }

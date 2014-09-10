@@ -1,4 +1,4 @@
-package etomo.ui;
+package etomo.type;
 
 /**
 * <p>Description: </p>
@@ -15,10 +15,18 @@ package etomo.ui;
 * 
 * <p> $Log$ </p>
 */
-public interface TextFieldInterface {
+public interface ConstPanelHeaderSettings {
   public static final String rcsid = "$Id:$";
 
-  public void setText(String text);
+  public boolean isAdvanced();
 
-  public void setFieldHighlightValue(String text);
+  public boolean isMore();
+
+  public boolean isOpen();
+
+  public boolean isAdvancedNull();
+
+  public boolean isOpenNull();
+
+  public boolean isMoreNull();
 }

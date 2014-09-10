@@ -14,9 +14,11 @@ import etomo.type.ConstEtomoNumber;
 import etomo.type.EnumeratedType;
 import etomo.type.ParsedElement;
 import etomo.ui.Field;
+import etomo.ui.FieldSettingBundle;
+import etomo.ui.FieldSettingInterface;
 import etomo.ui.FieldType;
 import etomo.ui.FieldValidationFailedException;
-import etomo.ui.TextFieldInterface;
+import etomo.util.Utilities;
 
 /**
  * <p>Description: </p>
@@ -69,7 +71,7 @@ import etomo.ui.TextFieldInterface;
  * <p> JTextField when the radio button is not selected.
  * <p> </p>
  */
-final class RadioTextField implements RadioButtonInterface, Field, TextFieldInterface {
+final class RadioTextField implements RadioButtonInterface, Field {
   public static final String rcsid = "$Id$";
 
   private final JPanel rootPanel = new JPanel();
@@ -77,6 +79,7 @@ final class RadioTextField implements RadioButtonInterface, Field, TextFieldInte
   private final TextField textField;
 
   private boolean debug = false;
+  private DirectiveDef directiveDef = null;
 
   /**
    * Constructs local instance, adds listener, and returns.
@@ -113,6 +116,14 @@ final class RadioTextField implements RadioButtonInterface, Field, TextFieldInte
     rootPanel.add(radioButton.getComponent());
     rootPanel.add(textField.getComponent());
     setTextFieldEnabled();
+  }
+
+  public boolean isText() {
+    return true;
+  }
+
+  public boolean isBoolean() {
+    return true;
   }
 
   void setTextPreferredWidth(final double minWidth) {
@@ -174,35 +185,63 @@ final class RadioTextField implements RadioButtonInterface, Field, TextFieldInte
     textField.clear();
   }
 
-  public void copy(final Field copyFrom) {
-    radioButton.copy(copyFrom);
-    textField.copy(copyFrom);
+  public void setValue(final Field input) {
+    radioButton.setValue(input);
+    textField.setValue(input);
+  }
+
+  public void setValue(final String value) {
+    textField.setValue(value);
+  }
+
+  public void setValue(final boolean value) {
+    radioButton.setValue(value);
   }
 
   void setDirectiveDef(final DirectiveDef directiveDef) {
-    textField.setDirectiveDef(directiveDef);
+    this.directiveDef = directiveDef;
   }
 
   public void useDefaultValue() {
+    radioButton.useDefaultValue();
     textField.useDefaultValue();
   }
 
-  public void setFieldHighlightValue(final String text) {
-    textField.setFieldHighlightValue(text);
+  public boolean equalsDefaultValue() {
+    return radioButton.equalsDefaultValue() && textField.equalsDefaultValue();
   }
 
-  public void setFieldHighlightValue(final boolean bool) {
-    radioButton.setFieldHighlightValue(bool);
+  public DirectiveDef getDirectiveDef() {
+    return directiveDef;
   }
 
-  public void setFieldHighlightValue(final RadioTextField from) {
-    textField.setFieldHighlightValue(from.textField);
-    radioButton.setFieldHighlightValue(from.radioButton);
+  public void setFieldHighlight(final String text) {
+    textField.setFieldHighlight(text);
   }
 
-  public void clearFieldHighlightValue() {
-    textField.clearFieldHighlightValue();
-    radioButton.clearFieldHighlightValue();
+  public void setFieldHighlight(final boolean bool) {
+    radioButton.setFieldHighlight(bool);
+  }
+
+  public FieldSettingInterface getFieldHighlight() {
+    FieldSettingBundle bundle = new FieldSettingBundle();
+    bundle.addBooleanSetting(radioButton.getFieldHighlight());
+    bundle.addTextSetting(textField.getFieldHighlight());
+    return bundle;
+  }
+
+  public void setFieldHighlight(final FieldSettingInterface input) {
+    radioButton.setFieldHighlight(input);
+    textField.setFieldHighlight(input);
+  }
+
+  public void clearFieldHighlight() {
+    textField.clearFieldHighlight();
+    radioButton.clearFieldHighlight();
+  }
+
+  public boolean equalsFieldHighlight() {
+    return textField.equalsFieldHighlight() && radioButton.equalsFieldHighlight();
   }
 
   public void checkpoint() {
@@ -210,12 +249,16 @@ final class RadioTextField implements RadioButtonInterface, Field, TextFieldInte
     textField.checkpoint();
   }
 
-  public void checkpoint(final RadioTextField from) {
-    if (from == null) {
-      return;
-    }
-    radioButton.checkpoint(from.radioButton);
-    textField.checkpoint(from.textField);
+  public void setCheckpoint(final FieldSettingInterface input) {
+    radioButton.setCheckpoint(input);
+    textField.setCheckpoint(input);
+  }
+
+  public FieldSettingInterface getCheckpoint() {
+    FieldSettingBundle bundle = new FieldSettingBundle();
+    bundle.addBooleanSetting(radioButton.getCheckpoint());
+    bundle.addTextSetting(textField.getCheckpoint());
+    return bundle;
   }
 
   public boolean isDifferentFromCheckpoint(final boolean alwaysCheck) {
@@ -233,6 +276,10 @@ final class RadioTextField implements RadioButtonInterface, Field, TextFieldInte
 
   String getLabel() {
     return radioButton.getText();
+  }
+
+  public String getQuotedLabel() {
+    return Utilities.quoteLabel(getLabel());
   }
 
   void setRequired(final boolean required) {
@@ -267,7 +314,7 @@ final class RadioTextField implements RadioButtonInterface, Field, TextFieldInte
     return radioButton.isSelected();
   }
 
-  boolean isEmpty() {
+  public boolean isEmpty() {
     String text = textField.getText();
     return text == null || text.matches("\\s*");
   }
@@ -275,6 +322,10 @@ final class RadioTextField implements RadioButtonInterface, Field, TextFieldInte
   void setEnabled(final boolean enable) {
     radioButton.setEnabled(enable);
     setTextFieldEnabled();
+  }
+
+  public boolean isEnabled() {
+    return radioButton.isEnabled();
   }
 
   public void msgSelected() {

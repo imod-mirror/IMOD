@@ -17,13 +17,16 @@ import javax.swing.border.Border;
 import javax.swing.event.ChangeListener;
 
 import etomo.EtomoDirector;
+import etomo.logic.DefaultFinder;
+import etomo.storage.DirectiveDef;
 import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.storage.autodoc.ReadOnlySection;
 import etomo.type.EnumeratedType;
 import etomo.type.EtomoAutodoc;
-import etomo.type.EtomoBoolean2;
 import etomo.type.UITestFieldType;
+import etomo.ui.BooleanFieldSetting;
 import etomo.ui.Field;
+import etomo.ui.FieldSettingInterface;
 import etomo.util.Utilities;
 
 /**
@@ -47,12 +50,12 @@ final class RadioButton implements RadioButtonInterface, Field, ActionListener {
   private final ButtonGroup group;
 
   private boolean debug = false;
-  private EtomoBoolean2 checkpointValue = null;
-  private boolean backupValue = false;
-  private boolean fieldIsBackedUp = false;
   private Color origForeground = null;
-  private boolean useFieldHighlight = false;
-  private boolean fieldHighlightValue = false;
+  private DirectiveDef directiveDef = null;
+  private BooleanFieldSetting backup = null;
+  private BooleanFieldSetting checkpoint = null;
+  private BooleanFieldSetting defaultValue = null;
+  private BooleanFieldSetting fieldHighlight = null;
 
   RadioButton(final String text) {
     this(text, null, null);
@@ -116,35 +119,50 @@ final class RadioButton implements RadioButtonInterface, Field, ActionListener {
     }
   }
 
+  public boolean isBoolean() {
+    return true;
+  }
+
+  public boolean isText() {
+    return false;
+  }
+
   public String toString() {
     return radioButton.getText() + ": " + (radioButton.isSelected() ? "On" : "Off");
   }
 
-  public void checkpoint() {
-    if (checkpointValue == null) {
-      checkpointValue = new EtomoBoolean2();
-    }
-    checkpointValue.set(isSelected());
+  public FieldSettingInterface getCheckpoint() {
+    return checkpoint;
   }
 
-  public void checkpoint(final RadioButton from) {
-    if (from == null) {
-      return;
+  public void checkpoint() {
+    if (checkpoint == null) {
+      checkpoint = new BooleanFieldSetting();
     }
-    if (from.checkpointValue != null) {
-      if (checkpointValue == null) {
-        checkpointValue = new EtomoBoolean2();
+    checkpoint.set(isSelected());
+  }
+
+  public void setCheckpoint(FieldSettingInterface settingInterface) {
+    BooleanFieldSetting setting = null;
+    if (settingInterface != null) {
+      setting = settingInterface.getBooleanSetting();
+    }
+    if (setting == null) {
+      if (checkpoint != null) {
+        checkpoint.reset();
       }
-      checkpointValue.set(from.checkpointValue);
     }
-    else {
-      checkpointValue = null;
+    else if (checkpoint == null) {
+      checkpoint = new BooleanFieldSetting();
     }
+    checkpoint.copy(setting);
   }
 
   public void backup() {
-    backupValue = isSelected();
-    fieldIsBackedUp = true;
+    if (backup == null) {
+      backup = new BooleanFieldSetting();
+    }
+    backup.set(isSelected());
   }
 
   /**
@@ -154,12 +172,26 @@ final class RadioButton implements RadioButtonInterface, Field, ActionListener {
    * group also being backed up.
    */
   public void restoreFromBackup() {
-    if (fieldIsBackedUp) {
-      if (backupValue) {
-        setSelected(true);
-      }
-      fieldIsBackedUp = false;
+    if (backup != null && backup.isSet()) {
+      setSelected(backup.isValue());
+      backup.reset();
     }
+  }
+
+  public void setValue(final Field input) {
+    if (input == null) {
+      clear();
+    }
+    else {
+      setSelected(input.isSelected());
+    }
+  }
+
+  public void setValue(final String value) {
+  }
+
+  public void setValue(final boolean value) {
+    setSelected(value);
   }
 
   /**
@@ -168,23 +200,45 @@ final class RadioButton implements RadioButtonInterface, Field, ActionListener {
   public void clear() {
   }
 
-  public void copy(final Field copyFrom) {
-    if (copyFrom == null) {
-      return;
-    }
-    if (copyFrom.isSelected()) {
-      setSelected(true);
-    }
+  void setDirectiveDef(final DirectiveDef directiveDef) {
+    this.directiveDef = directiveDef;
+  }
+
+  public DirectiveDef getDirectiveDef() {
+    return directiveDef;
   }
 
   public void useDefaultValue() {
+    if (directiveDef == null || !directiveDef.isComparam()) {
+      if (defaultValue != null && defaultValue.isSet()) {
+        defaultValue.reset();
+      }
+      return;
+    }
+    // only search for default value once
+    if (defaultValue == null) {
+      defaultValue = new BooleanFieldSetting();
+      String value = DefaultFinder.INSTANCE.getDefaultValue(directiveDef);
+      if (value != null) {
+        // if default value has been found, set it in the field setting
+        defaultValue.set(DefaultFinder.toBoolean(value));
+      }
+    }
+    if (defaultValue.isSet()) {
+      setSelected(defaultValue.isValue());
+    }
+  }
+
+  public boolean equalsDefaultValue() {
+    return defaultValue != null && defaultValue.isSet()
+        && defaultValue.equals(isSelected());
   }
 
   boolean isCheckpointValue() {
-    if (checkpointValue == null) {
+    if (checkpoint == null) {
       return false;
     }
-    return checkpointValue.is();
+    return checkpoint.isValue();
   }
 
   /**
@@ -196,12 +250,16 @@ final class RadioButton implements RadioButtonInterface, Field, ActionListener {
     if (!alwaysCheck && (!isEnabled() || !radioButton.isVisible())) {
       return false;
     }
-    return checkpointValue == null || !checkpointValue.equals(isSelected());
+    return checkpoint == null || !checkpoint.equals(isSelected());
   }
 
   void setText(final String text) {
     radioButton.setText(text);
     setName(text);
+  }
+
+  public String getQuotedLabel() {
+    return Utilities.quoteLabel(getText());
   }
 
   void setBorderPainted(boolean b) {
@@ -250,60 +308,66 @@ final class RadioButton implements RadioButtonInterface, Field, ActionListener {
     debug = input;
   }
 
-  void setFieldHighlightValue(final boolean value) {
-    if (!useFieldHighlight) {
-      useFieldHighlight = true;
-      // Radio buttons turn off when another button in the group is turned on. So listen
-      // to all of the radio buttons in the group.
-      boolean listenerAdded = false;
-      if (group != null) {
-        Enumeration<AbstractButton> enumeration = group.getElements();
-        if (enumeration != null) {
-          while (enumeration.hasMoreElements()) {
-            listenerAdded = true;
-            enumeration.nextElement().addActionListener(this);
-          }
-        }
+  public void setFieldHighlight(final FieldSettingInterface settingInterface) {
+    BooleanFieldSetting setting = settingInterface.getBooleanSetting();
+    if (setting == null || !setting.isSet()) {
+      clearFieldHighlight();
+    }
+    else {
+      if (fieldHighlight == null) {
+        fieldHighlight = new BooleanFieldSetting();
+        addFieldHighlightActionListeners();
       }
-      if (!listenerAdded) {
-        radioButton.addActionListener(this);
-      }
-    }
-    fieldHighlightValue = value;
-    updateFieldHighlight(isSelected());
-  }
-
-  void setFieldHighlightValue(final RadioButton from) {
-    if (from == null) {
-      return;
-    }
-    if (from.useFieldHighlight) {
-      setFieldHighlightValue(from.fieldHighlightValue);
-    }
-    else if (useFieldHighlight) {
-      clearFieldHighlightValue();
+      fieldHighlight.copy(setting);
+      updateFieldHighlight(isSelected());
     }
   }
 
-  public void clearFieldHighlightValue() {
-    useFieldHighlight = false;
-    // Remove listeners from all the radio buttons in the group.
-    boolean listenerRemoved = false;
+  private void addFieldHighlightActionListeners() {
+    // Radio buttons turn off when another button in the group is turned on. So listen
+    // to all of the radio buttons in the group.
+    boolean listenerAdded = false;
     if (group != null) {
       Enumeration<AbstractButton> enumeration = group.getElements();
       if (enumeration != null) {
         while (enumeration.hasMoreElements()) {
-          listenerRemoved = true;
-          enumeration.nextElement().removeActionListener(this);
+          listenerAdded = true;
+          enumeration.nextElement().addActionListener(this);
         }
       }
     }
-    if (!listenerRemoved) {
-      radioButton.removeActionListener(this);
+    if (!listenerAdded) {
+      radioButton.addActionListener(this);
     }
-    fieldHighlightValue = false;
-    // Turn off field highlight - parameter doesn't matter since field highlight is off.
-    updateFieldHighlight(false);
+  }
+
+  public void setFieldHighlight(final boolean value) {
+    if (fieldHighlight == null) {
+      fieldHighlight = new BooleanFieldSetting();
+      addFieldHighlightActionListeners();
+    }
+    fieldHighlight.set(value);
+    updateFieldHighlight(isSelected());
+  }
+
+  public void setFieldHighlight(final String value) {
+  }
+
+  public void clearFieldHighlight() {
+    if (fieldHighlight != null && fieldHighlight.isSet()) {
+      fieldHighlight.reset();
+      // Turn off field highlight - parameter doesn't matter since field highlight is off.
+      updateFieldHighlight(false);
+    }
+  }
+
+  public FieldSettingInterface getFieldHighlight() {
+    return fieldHighlight;
+  }
+
+  public boolean equalsFieldHighlight() {
+    return fieldHighlight != null && fieldHighlight.isSet()
+        && fieldHighlight.equals(isSelected());
   }
 
   public void actionPerformed(final ActionEvent event) {
@@ -322,7 +386,8 @@ final class RadioButton implements RadioButtonInterface, Field, ActionListener {
   }
 
   void updateFieldHighlight(final boolean isSelected) {
-    if (useFieldHighlight && fieldHighlightValue == isSelected) {
+    if (fieldHighlight != null && fieldHighlight.isSet()
+        && fieldHighlight.isValue() == isSelected) {
       if (origForeground == null) {
         origForeground = radioButton.getForeground();
         if (origForeground == null) {
@@ -379,6 +444,10 @@ final class RadioButton implements RadioButtonInterface, Field, ActionListener {
     return radioButton.isSelected();
   }
 
+  public boolean isEmpty() {
+    return false;
+  }
+
   AbstractButton getAbstractButton() {
     return radioButton;
   }
@@ -418,7 +487,7 @@ final class RadioButton implements RadioButtonInterface, Field, ActionListener {
     return radioButton.getActionCommand();
   }
 
-  boolean isEnabled() {
+  public boolean isEnabled() {
     return radioButton.isEnabled();
   }
 

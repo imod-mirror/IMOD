@@ -23,9 +23,10 @@ import javax.swing.filechooser.FileFilter;
 import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.storage.DirectiveDef;
+import etomo.ui.TextFieldSetting;
 import etomo.ui.Field;
+import etomo.ui.FieldSettingInterface;
 import etomo.ui.FieldType;
-import etomo.ui.TextFieldInterface;
 import etomo.util.FilePath;
 import etomo.util.Utilities;
 
@@ -44,8 +45,7 @@ import etomo.util.Utilities;
 * 
 * <p> $Log$ </p>
 */
-final class FileTextField2 implements FileTextFieldInterface, Field, ActionListener,
-    TextFieldInterface {
+final class FileTextField2 implements FileTextFieldInterface, Field, ActionListener {
   public static final String rcsid = "$Id:$";
 
   // Assuming the field type is always non-numeric
@@ -191,7 +191,7 @@ final class FileTextField2 implements FileTextFieldInterface, Field, ActionListe
   }
 
   private void addListeners() {
-    button.addActionListener(new FileTextField2ActionListener(this));
+    button.addActionListener(this);
   }
 
   /**
@@ -212,17 +212,25 @@ final class FileTextField2 implements FileTextFieldInterface, Field, ActionListe
     return panel;
   }
 
+  public boolean isText() {
+    return true;
+  }
+
+  public boolean isBoolean() {
+    return false;
+  }
+
   /**
    * @return a label suitable for a message - in single quotes and truncated at the colon.
    */
-  String getQuotedLabel() {
+  public String getQuotedLabel() {
     return Utilities.quoteLabel(label.getText());
   }
 
   /**
    * Opens a file chooser and notifies the result listener list.
    */
-  private void action() {
+  public void actionPerformed(ActionEvent e) {
     String filePath = getFileChooserLocation();
     JFileChooser chooser = new FileChooser(new File(filePath));
     chooser.setDialogTitle(Utilities.stripLabel(label.getText()));
@@ -290,12 +298,12 @@ final class FileTextField2 implements FileTextFieldInterface, Field, ActionListe
     useTextAsOriginDir = input;
   }
 
-  boolean isEmpty() {
+  public boolean isEmpty() {
     String text = field.getText();
     return text == null || text.matches("\\s*");
   }
 
-  boolean isEnabled() {
+  public boolean isEnabled() {
     return button.isEnabled();
   }
 
@@ -332,11 +340,17 @@ final class FileTextField2 implements FileTextFieldInterface, Field, ActionListe
     field.checkpoint();
   }
 
-  public void checkpoint(final FileTextField2 from) {
-    if (from == null) {
-      return;
+  public void setCheckpoint(final FieldSettingInterface input) {
+    if (input == null) {
+      field.setCheckpoint(null);
     }
-    field.checkpoint(from.field);
+    else {
+      field.setCheckpoint(input.getBooleanSetting());
+    }
+  }
+
+  public TextFieldSetting getCheckpoint() {
+    return field.getCheckpoint();
   }
 
   public void backup() {
@@ -351,6 +365,10 @@ final class FileTextField2 implements FileTextFieldInterface, Field, ActionListe
     field.restoreFromBackup();
   }
 
+  public DirectiveDef getDirectiveDef() {
+    return field.getDirectiveDef();
+  }
+
   void setDirectiveDef(final DirectiveDef directiveDef) {
     field.setDirectiveDef(directiveDef);
   }
@@ -359,34 +377,31 @@ final class FileTextField2 implements FileTextFieldInterface, Field, ActionListe
     field.useDefaultValue();
   }
 
-  public void setFieldHighlightValue(final String value) {
-    // This class connects the button action to field highlight.
-    if (!field.isUseFieldHighlight()) {
-      button.addActionListener(this);
-    }
-    field.setFieldHighlightValue(value);
+  public boolean equalsDefaultValue() {
+    return field.equalsDefaultValue();
   }
 
-  void setFieldHighlightValue(final FileTextField2 from) {
-    if (from == null) {
-      return;
-    }
-    if (from.field.isUseFieldHighlight()) {
-      setFieldHighlightValue(from.field.getFieldHighlightValue());
-    }
-    else if (field.isUseFieldHighlight()) {
-      button.removeActionListener(this);
-      field.clearFieldHighlightValue();
-    }
+  public TextFieldSetting getFieldHighlight() {
+    return field.getFieldHighlight();
   }
 
-  public void clearFieldHighlightValue() {
-    button.removeActionListener(this);
-    field.clearFieldHighlightValue();
+  public void setFieldHighlight(final String value) {
+    field.setFieldHighlight(value);
   }
 
-  public void actionPerformed(ActionEvent e) {
-    field.updateFieldHighlight();
+  public void setFieldHighlight(final boolean value) {
+  }
+
+  public void setFieldHighlight(final FieldSettingInterface settingInterface) {
+    field.setFieldHighlight(settingInterface);
+  }
+
+  public boolean equalsFieldHighlight() {
+    return field.equalsFieldHighlight();
+  }
+
+  public void clearFieldHighlight() {
+    field.clearFieldHighlight();
   }
 
   /**
@@ -476,8 +491,15 @@ final class FileTextField2 implements FileTextFieldInterface, Field, ActionListe
     field.setText("");
   }
 
-  public void copy(final Field from) {
-    field.copy(from);
+  public void setValue(final Field input) {
+    field.setValue(input);
+  }
+
+  public void setValue(final String input) {
+    field.setValue(input);
+  }
+
+  public void setValue(final boolean input) {
   }
 
   public boolean isSelected() {
@@ -506,17 +528,5 @@ final class FileTextField2 implements FileTextFieldInterface, Field, ActionListe
 
   void setButtonToolTipText(final String text) {
     button.setToolTipText(TooltipFormatter.INSTANCE.format(text));
-  }
-
-  private final class FileTextField2ActionListener implements ActionListener {
-    private final FileTextField2 adaptee;
-
-    private FileTextField2ActionListener(final FileTextField2 adaptee) {
-      this.adaptee = adaptee;
-    }
-
-    public void actionPerformed(final ActionEvent event) {
-      adaptee.action();
-    }
   }
 }

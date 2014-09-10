@@ -145,16 +145,18 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import etomo.EtomoDirector;
+import etomo.logic.DefaultFinder;
+import etomo.storage.DirectiveDef;
 import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.EtomoNumber;
 import etomo.type.UITestFieldType;
+import etomo.ui.FieldSettingInterface;
+import etomo.ui.TextFieldSetting;
 import etomo.ui.Field;
-import etomo.ui.TextFieldInterface;
 import etomo.util.Utilities;
 
-final class LabeledSpinner implements Field, TextFieldInterface, ChangeListener,
-    FocusListener {
+final class LabeledSpinner implements Field, ChangeListener, FocusListener {
   public static final String rcsid = "$Id$";
 
   private final JPanel panel = new JPanel();
@@ -166,13 +168,13 @@ final class LabeledSpinner implements Field, TextFieldInterface, ChangeListener,
   private int minimum;
   private int maximum;
 
-  private Number checkpointValue = null;
-  private Number backupValue = null;
-  private boolean fieldIsBackedUp = false;
-  private boolean useFieldHighlight = false;
-  private Number fieldHighlightValue = null;
   private Color origLabelForeground = null;
   private Color origTextForeground = null;
+  private DirectiveDef directiveDef = null;
+  private TextFieldSetting backup = null;
+  private TextFieldSetting defaultValueSetting = null;
+  private TextFieldSetting checkpoint = null;
+  private TextFieldSetting fieldHighlight = null;
 
   /**
    * @param spinner
@@ -229,6 +231,14 @@ final class LabeledSpinner implements Field, TextFieldInterface, ChangeListener,
     return new LabeledSpinner(spinLabel, value, minimum, maximum, stepSize, value, hgap);
   }
 
+  public boolean isText() {
+    return true;
+  }
+
+  public boolean isBoolean() {
+    return false;
+  }
+
   void setMax(final int max) {
     maximum = max;
     model.setMaximum(new Integer(max));
@@ -249,23 +259,74 @@ final class LabeledSpinner implements Field, TextFieldInterface, ChangeListener,
     return label.getText();
   }
 
-  public void checkpoint() {
-    checkpointValue = getValue();
+  public String getQuotedLabel() {
+    return Utilities.quoteLabel(getLabel());
   }
 
-  void checkpoint(final LabeledSpinner from) {
-    if (from == null) {
-      return;
+  public void checkpoint() {
+    if (checkpoint == null) {
+      checkpoint = new TextFieldSetting(EtomoNumber.Type.INTEGER);
     }
-    checkpointValue = from.checkpointValue;
+    checkpoint.set(getText());
+  }
+
+  public TextFieldSetting getCheckpoint() {
+    return checkpoint;
+  }
+
+  public void setCheckpoint(final FieldSettingInterface settingInterface) {
+    TextFieldSetting setting = settingInterface.getTextSetting();
+    if (setting == null || !setting.isSet()) {
+      if (checkpoint != null) {
+        checkpoint.reset();
+      }
+    }
+    else {
+      if (checkpoint == null) {
+        checkpoint = new TextFieldSetting(EtomoNumber.Type.INTEGER);
+      }
+      checkpoint.copy(setting);
+    }
   }
 
   public void backup() {
-    backupValue = getValue();
-    fieldIsBackedUp = true;
+    if (backup == null) {
+      backup = new TextFieldSetting(EtomoNumber.Type.INTEGER);
+    }
+    backup.set(getValue());
+  }
+
+  void setDirectiveDef(final DirectiveDef directiveDef) {
+    this.directiveDef = directiveDef;
+  }
+
+  public DirectiveDef getDirectiveDef() {
+    return directiveDef;
+  }
+
+  public boolean equalsDefaultValue() {
+    return defaultValueSetting != null && defaultValueSetting.equals(getText());
   }
 
   public void useDefaultValue() {
+    if (directiveDef == null || !directiveDef.isComparam()) {
+      if (defaultValueSetting != null && defaultValueSetting.isSet()) {
+        defaultValueSetting.reset();
+      }
+      return;
+    }
+    // only search for default value once
+    if (defaultValueSetting == null) {
+      defaultValueSetting = new TextFieldSetting(EtomoNumber.Type.INTEGER);
+      String value = DefaultFinder.INSTANCE.getDefaultValue(directiveDef);
+      if (value != null) {
+        // if default value has been found, set it in the field setting
+        defaultValueSetting.set(value);
+      }
+    }
+    if (defaultValueSetting.isSet()) {
+      setText(defaultValueSetting.getValue());
+    }
   }
 
   /**
@@ -273,9 +334,9 @@ final class LabeledSpinner implements Field, TextFieldInterface, ChangeListener,
    * the back up.
    */
   public void restoreFromBackup() {
-    if (fieldIsBackedUp) {
-      spinner.setValue(backupValue);
-      fieldIsBackedUp = false;
+    if (backup != null && backup.isSet()) {
+      setValue(backup.getValue());
+      backup.reset();
     }
   }
 
@@ -283,56 +344,74 @@ final class LabeledSpinner implements Field, TextFieldInterface, ChangeListener,
     spinner.setValue(minimum);
   }
 
-  public void copy(final Field copyFrom) {
-    if (copyFrom == null) {
-      return;
+  public void setValue(final Field input) {
+    if (input == null) {
+      clear();
     }
-    setText(copyFrom.getText());
+    else {
+      setText(input.getText());
+    }
   }
 
   public boolean isSelected() {
     return false;
   }
 
+  public boolean isEmpty() {
+    String text = getText();
+    return text == null || text.matches("\\s*");
+  }
+
   public String getText() {
     return getValue().toString();
   }
 
-  public void setFieldHighlightValue(final String value) {
-    if (!useFieldHighlight) {
-      useFieldHighlight = true;
+  public boolean equalsFieldHighlight() {
+    return fieldHighlight != null && fieldHighlight.equals(getText());
+  }
+
+  public void setFieldHighlight(final String value) {
+    if (fieldHighlight == null) {
+      fieldHighlight = new TextFieldSetting(EtomoNumber.Type.INTEGER);
       spinner.addChangeListener(this);
       spinner.addFocusListener(this);
     }
-    EtomoNumber number = new EtomoNumber();
-    number.set(value);
-    String errmsg = number.validate(null);
-    System.err.println(errmsg);
-    fieldHighlightValue = number.getNumber();
+    fieldHighlight.set(value);
     updateFieldHighlight();
   }
 
-  void setFieldHighlightValue(final LabeledSpinner from) {
-    if (from == null) {
-      return;
-    }
-    if (from.useFieldHighlight) {
-      setFieldHighlightValue(from.fieldHighlightValue.toString());
-    }
-    else if (useFieldHighlight) {
-      useFieldHighlight = false;
-      spinner.removeChangeListener(this);
-      spinner.removeFocusListener(this);
-      fieldHighlightValue = null;
+  public void setFieldHighlight(final boolean value) {
+  }
+
+  public void clearFieldHighlight() {
+    if (fieldHighlight != null && fieldHighlight.isSet()) {
+      fieldHighlight.reset();
       updateFieldHighlight();
     }
   }
-  
+
+  public TextFieldSetting getFieldHighlight() {
+    return fieldHighlight;
+  }
+
+  public void setFieldHighlight(final FieldSettingInterface settingInterface) {
+    TextFieldSetting setting = settingInterface.getTextSetting();
+    if (setting == null || !setting.isSet()) {
+      clearFieldHighlight();
+    }
+    else {
+      if (fieldHighlight == null) {
+        fieldHighlight = new TextFieldSetting(EtomoNumber.Type.INTEGER);
+        spinner.addChangeListener(this);
+        spinner.addFocusListener(this);
+      }
+      fieldHighlight.copy(setting);
+      updateFieldHighlight();
+    }
+  }
+
   public void clearFieldHighlightValue() {
-    useFieldHighlight = false;
-    spinner.removeChangeListener(this);
-    spinner.removeFocusListener(this);
-    fieldHighlightValue = null;
+    fieldHighlight.reset();
     updateFieldHighlight();
   }
 
@@ -356,32 +435,35 @@ final class LabeledSpinner implements Field, TextFieldInterface, ChangeListener,
    * field highlight is not used when the field is disabled.
    */
   void updateFieldHighlight() {
-    if (useFieldHighlight) {
-      Number number = getValue();
-      if ((fieldHighlightValue != null && fieldHighlightValue.equals(number))
-          || (fieldHighlightValue == null && number == null)) {
-        if (origTextForeground == null) {
-          origTextForeground = spinner.getForeground();
-          if (origTextForeground == null) {
-            origTextForeground = Color.BLACK;
-          }
-        }
-        if (origLabelForeground == null) {
-          origLabelForeground = label.getForeground();
-          if (origLabelForeground == null) {
-            origLabelForeground = Color.BLACK;
-          }
-        }
-        label.setForeground(Colors.FIELD_HIGHLIGHT);
-        spinner.setForeground(Colors.FIELD_HIGHLIGHT);
-      }
+    // To avoid constantly updating the foreground color, assuming that fieldHighlight is
+    // never reassigned to null
+    if (fieldHighlight == null || !isEnabled()) {
       return;
     }
-    if (origTextForeground != null) {
-      spinner.setForeground(origTextForeground);
+    if (fieldHighlight.isSet() && fieldHighlight.equals(getValue())) {
+      // save the original color
+      if (origTextForeground == null) {
+        origTextForeground = spinner.getForeground();
+        if (origTextForeground == null) {
+          origTextForeground = Color.BLACK;
+        }
+      }
+      if (origLabelForeground == null) {
+        origLabelForeground = label.getForeground();
+        if (origLabelForeground == null) {
+          origLabelForeground = Color.BLACK;
+        }
+      }
+      label.setForeground(Colors.FIELD_HIGHLIGHT);
+      spinner.setForeground(Colors.FIELD_HIGHLIGHT);
     }
-    if (origLabelForeground != null) {
-      label.setForeground(origLabelForeground);
+    else {
+      if (origTextForeground != null) {
+        spinner.setForeground(origTextForeground);
+      }
+      if (origLabelForeground != null) {
+        label.setForeground(origLabelForeground);
+      }
     }
   }
 
@@ -389,10 +471,10 @@ final class LabeledSpinner implements Field, TextFieldInterface, ChangeListener,
    * Resets to checkpointValue if checkpointValue has been set.  Otherwise has no effect.
    */
   void resetToCheckpoint() {
-    if (checkpointValue == null) {
+    if (checkpoint == null || !checkpoint.isSet()) {
       return;
     }
-    setValue(checkpointValue.intValue());
+    setText(checkpoint.getValue());
   }
 
   /**
@@ -404,10 +486,7 @@ final class LabeledSpinner implements Field, TextFieldInterface, ChangeListener,
     if (!alwaysCheck && (!isEnabled() || !isVisible())) {
       return false;
     }
-    if (checkpointValue == null) {
-      return true;
-    }
-    return !checkpointValue.equals(getValue());
+    return checkpoint == null || !checkpoint.equals(getValue());
   }
 
   Number getValue() {
@@ -438,7 +517,7 @@ final class LabeledSpinner implements Field, TextFieldInterface, ChangeListener,
     setValue(value);
   }
 
-  void setValue(final String value) {
+  public void setValue(final String value) {
     if (value == null || value.matches("\\s*")) {
       spinner.setValue(defaultValue);
     }
@@ -447,6 +526,9 @@ final class LabeledSpinner implements Field, TextFieldInterface, ChangeListener,
       number.set(value);
       setValue(number);
     }
+  }
+
+  public void setValue(final boolean value) {
   }
 
   void setValue(final int value) {
@@ -466,7 +548,7 @@ final class LabeledSpinner implements Field, TextFieldInterface, ChangeListener,
     }
   }
 
-  boolean isEnabled() {
+  public boolean isEnabled() {
     return (spinner.isEnabled());
   }
 

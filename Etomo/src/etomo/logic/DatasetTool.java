@@ -95,6 +95,7 @@ public final class DatasetTool {
       if (savedStackInfo.equalsAxisID(AxisID.SECOND)) {
         // Matching B stack(s) have been saved. Replace them with the current (A) stack
         // and set it to dual axis.
+        savedStackInfo.msgDiscardingStack();
         savedStackInfo.replaceWith(stackInfo);
         savedStackInfo.setDualAxis();
         continue;
@@ -102,6 +103,7 @@ public final class DatasetTool {
       // The saved stack(s) are matching A stacks - they need to be set to dual axis (may
       // already be on) because the current stack is a matching B stack. The matching B
       // stack does not have to be saved.
+      stackInfo.msgDiscardingStack();
       savedStackInfo.setDualAxis();
     }
     // All matching B stacks should have been eliminated and dual axis set for matching A
@@ -1019,6 +1021,48 @@ public final class DatasetTool {
       return true;
     }
 
+    private void msgDiscardingStack() {
+      int numStacks = stackList.size();
+      if (numStacks == 0) {
+        return;
+      }
+      // Use proper grammer.
+      String a;
+      String is;
+      String it;
+      String stack;
+      String It;
+      String tomogram;
+      if (numStacks == 1) {
+        // singular
+        a = "a";
+        is = "is";
+        it = "it";
+        It = "It";
+        stack = "stack";
+        tomogram = "tomogram";
+      }
+      else {
+        // plural
+        a = "";
+        is = "are";
+        it = "them";
+        It = "They";
+        stack = "stacks";
+        tomogram = "tomograms";
+      }
+      System.err.println("INFO: The following " + stack + " " + is + " assumed to be "
+          + a + " B axis " + stack + ", and part of " + a + " dual axis " + tomogram
+          + ".\n" + It + " will not be added to the table.\nTo add " + it + " to "
+          + "the table, open " + it + " separately from the corresponding A axis "
+          + stack + ".\nB axis " + stack + ": ");
+      Iterator<File> iterator = stackList.iterator();
+      while (iterator.hasNext()) {
+        System.err.println(iterator.next());
+      }
+      System.err.println();
+    }
+
     private void replaceWith(final StackInfo input) {
       stackList.clear();
       axisID = null;
@@ -1033,7 +1077,7 @@ public final class DatasetTool {
     public Iterator<File> iterator() {
       return stackList.iterator();
     }
-    
+
     public boolean isDualAxis() {
       return dualAxis;
     }

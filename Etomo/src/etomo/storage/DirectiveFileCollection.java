@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import etomo.BaseManager;
+import etomo.EtomoDirector;
 import etomo.logic.DatasetTool;
 import etomo.logic.UserEnv;
 import etomo.storage.DirectiveAttribute.AttributeMatch;
@@ -17,6 +18,7 @@ import etomo.type.AxisID;
 import etomo.type.DirectiveFileType;
 import etomo.type.TiltAngleSpec;
 import etomo.type.TiltAngleType;
+import etomo.type.UserConfiguration;
 import etomo.ui.FieldType;
 import etomo.ui.SetupReconInterface;
 
@@ -309,6 +311,17 @@ public class DirectiveFileCollection implements SetupReconInterface {
     }
     else if (isValue(DirectiveDef.USE_RAW_TLT, axisID)) {
       tiltAngleSpec.setType(TiltAngleType.FILE);
+    }
+    else {
+      //Must set something here, so use the settings values
+      UserConfiguration userConfiguration = EtomoDirector.INSTANCE.getUserConfiguration();
+      if (userConfiguration.isTiltAnglesRawtltFile()) {
+        tiltAngleSpec.setType(TiltAngleType.FILE);
+      }
+      else {
+        //Default
+        tiltAngleSpec.setType(TiltAngleType.EXTRACT);
+      }
     }
     return true;
   }

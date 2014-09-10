@@ -12,6 +12,7 @@ import javax.swing.JPanel;
 import javax.swing.JSeparator;
 
 import etomo.type.BaseScreenState;
+import etomo.type.ConstPanelHeaderSettings;
 import etomo.type.ConstPanelHeaderState;
 import etomo.type.DialogType;
 import etomo.type.PanelHeaderState;
@@ -29,7 +30,7 @@ import etomo.type.PanelHeaderState;
  * 
  * @version $Revision$
  */
-final class PanelHeader implements Expandable {
+final class PanelHeader implements Expandable, ConstPanelHeaderSettings {
   public static final String rcsid = "$Id$";
 
   private final GridBagLayout layout = new GridBagLayout();
@@ -184,7 +185,7 @@ final class PanelHeader implements Expandable {
     else {
       btnMoreLess = null;
     }
-    if (!advancedBasic&&!moreLess) {
+    if (!advancedBasic && !moreLess) {
       northPanel.add(Box.createRigidArea(new Dimension(23, 0)));
     }
     // rootPanel
@@ -238,7 +239,7 @@ final class PanelHeader implements Expandable {
     return btnOpenClose;
   }
 
-  boolean isAdvanced() {
+  public boolean isAdvanced() {
     if (btnAdvancedBasic == null) {
       return false;
     }
@@ -250,6 +251,32 @@ final class PanelHeader implements Expandable {
       return false;
     }
     return !btnMoreLess.isExpanded();
+  }
+
+  public boolean isMore() {
+    if (btnMoreLess == null) {
+      return false;
+    }
+    return btnMoreLess.isExpanded();
+  }
+
+  public boolean isOpen() {
+    if (btnOpenClose == null) {
+      return false;
+    }
+    return btnOpenClose.isExpanded();
+  }
+
+  public boolean isAdvancedNull() {
+    return btnAdvancedBasic == null;
+  }
+
+  public boolean isMoreNull() {
+    return btnMoreLess == null;
+  }
+
+  public boolean isOpenNull() {
+    return btnOpenClose == null;
   }
 
   public void expand(GlobalExpandButton button) {
@@ -281,6 +308,21 @@ final class PanelHeader implements Expandable {
     }
   }
 
+  void set(final ConstPanelHeaderSettings settings) {
+    if (settings == null) {
+      return;
+    }
+    if (btnOpenClose != null) {
+      btnOpenClose.setExpanded(settings.isOpen());
+    }
+    if (btnAdvancedBasic != null) {
+      btnAdvancedBasic.setExpanded(settings.isAdvanced());
+    }
+    if (btnMoreLess != null) {
+      btnMoreLess.setExpanded(settings.isMore());
+    }
+  }
+
   /**
    * Change the state of the buttons, which causes calls to expanded() for each
    * button for which there is a valid state.
@@ -303,6 +345,18 @@ final class PanelHeader implements Expandable {
 
   void setButtonStates(final BaseScreenState screenState) {
     setButtonStates(screenState, true);
+  }
+
+  void createButtonStateKeys() {
+    if (btnOpenClose != null) {
+      btnOpenClose.createButtonStateKey(dialogType);
+    }
+    if (btnAdvancedBasic != null) {
+      btnAdvancedBasic.createButtonStateKey(dialogType);
+    }
+    if (btnMoreLess != null) {
+      btnMoreLess.createButtonStateKey(dialogType);
+    }
   }
 
   void setButtonStates(final BaseScreenState screenState, final boolean defaultIsOpen) {

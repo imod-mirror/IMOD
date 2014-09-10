@@ -14,8 +14,9 @@ import etomo.storage.DirectiveDef;
 import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.storage.autodoc.ReadOnlySection;
 import etomo.type.EtomoAutodoc;
-import etomo.type.EtomoBoolean2;
 import etomo.type.UITestFieldType;
+import etomo.ui.BooleanFieldSetting;
+import etomo.ui.FieldSettingInterface;
 import etomo.ui.Field;
 import etomo.util.Utilities;
 
@@ -118,17 +119,14 @@ import etomo.util.Utilities;
 final class CheckBox extends JCheckBox implements Field, ActionListener {
   public static final String rcsid = "$Id$";
 
-  private EtomoBoolean2 checkpointValue = null;
-  private boolean fieldIsBackedUp = false;
-  private boolean backupValue = false;
   private boolean debug = false;
   private Color origForeground = null;
   private DirectiveDef directiveDef = null;
-  private boolean defaultValueSearchDone = false;
-  private boolean defaultValueFound = false;
-  private boolean defaultValue = false;
-  private boolean useFieldHighlight = false;
-  private boolean fieldHighlightValue = false;
+  // Field settings should not be reset to null.
+  private BooleanFieldSetting backup = null;
+  private BooleanFieldSetting defaultValue = null;
+  private BooleanFieldSetting checkpoint = null;
+  private BooleanFieldSetting fieldHighlight = null;
 
   public CheckBox() {
     super();
@@ -137,6 +135,18 @@ final class CheckBox extends JCheckBox implements Field, ActionListener {
   public CheckBox(String text) {
     super(text);
     setName(text);
+  }
+
+  public boolean isBoolean() {
+    return true;
+  }
+
+  public boolean isText() {
+    return false;
+  }
+
+  public boolean isEmpty() {
+    return false;
   }
 
   public boolean equals(final Object object) {
@@ -149,6 +159,10 @@ final class CheckBox extends JCheckBox implements Field, ActionListener {
 
   public String toString() {
     return "[text:" + getText() + "]";
+  }
+
+  public String getQuotedLabel() {
+    return Utilities.quoteLabel(getText());
   }
 
   public void setText(String text) {
@@ -166,8 +180,10 @@ final class CheckBox extends JCheckBox implements Field, ActionListener {
   }
 
   public void backup() {
-    backupValue = isSelected();
-    fieldIsBackedUp = true;
+    if (backup == null) {
+      backup = new BooleanFieldSetting();
+    }
+    backup.set(isSelected());
   }
 
   /**
@@ -175,9 +191,8 @@ final class CheckBox extends JCheckBox implements Field, ActionListener {
    * the back up.
    */
   public void restoreFromBackup() {
-    if (fieldIsBackedUp) {
-      setSelected(backupValue);
-      fieldIsBackedUp = false;
+    if (backup != null && backup.isSet()) {
+      setSelected(backup.isValue());
     }
   }
 
@@ -189,106 +204,149 @@ final class CheckBox extends JCheckBox implements Field, ActionListener {
    * Copy the value, checkpoint, and field highlight settings.
    * @param copyFrom
    */
-  public void copy(final Field from) {
-    if (from == null) {
-      return;
+  public void setValue(final Field input) {
+    if (input == null) {
+      clear();
     }
-    setSelected(from.isSelected());
+    else {
+      setSelected(input.isSelected());
+    }
+  }
+
+  public void setValue(final String value) {
+  }
+
+  public void setValue(final boolean value) {
+    setSelected(value);
   }
 
   void setDirectiveDef(final DirectiveDef directiveDef) {
     this.directiveDef = directiveDef;
+    if (defaultValue != null) {
+      defaultValue.reset();
+    }
+  }
+
+  public DirectiveDef getDirectiveDef() {
+    return directiveDef;
   }
 
   public void useDefaultValue() {
     if (directiveDef == null || !directiveDef.isComparam()) {
+      if (defaultValue != null && defaultValue.isSet()) {
+        defaultValue.reset();
+      }
       return;
     }
-    if (!defaultValueSearchDone) {
-      defaultValueSearchDone = true;
+    // only search for default value once for this directiveDef
+    if (defaultValue == null) {
+      defaultValue = new BooleanFieldSetting();
       String value = DefaultFinder.INSTANCE.getDefaultValue(directiveDef);
       if (value != null) {
-        defaultValueFound = true;
+        // if default value has been found, set it in the field setting
+        defaultValue.set(DefaultFinder.toBoolean(value));
       }
-      defaultValue = DefaultFinder.toBoolean(value);
     }
-    if (defaultValueFound) {
-      setSelected(defaultValue);
+    if (defaultValue.isSet()) {
+      setSelected(defaultValue.isValue());
     }
   }
 
-  /**
-   * Constructs savedValue (if it doesn't exist).  Saves the current setting.
-   */
+  public boolean equalsDefaultValue() {
+    return defaultValue != null && defaultValue.equals(isSelected());
+  }
+
   public void checkpoint() {
-    if (checkpointValue == null) {
-      checkpointValue = new EtomoBoolean2();
+    if (checkpoint == null) {
+      checkpoint = new BooleanFieldSetting();
     }
-    checkpointValue.set(isSelected());
+    checkpoint.set(isSelected());
   }
 
-  /**
-   * Constructs savedValue (if it doesn't exist).  Saves the value parameter.
-   */
   void checkpoint(final boolean value) {
-    if (checkpointValue == null) {
-      checkpointValue = new EtomoBoolean2();
+    if (checkpoint == null) {
+      checkpoint = new BooleanFieldSetting();
     }
-    checkpointValue.set(value);
+    checkpoint.set(value);
   }
 
-  public void checkpoint(final CheckBox from) {
-    if (from == null) {
-      return;
+  public FieldSettingInterface getCheckpoint() {
+    return checkpoint;
+  }
+
+  public void setCheckpoint(FieldSettingInterface settingInterface) {
+    BooleanFieldSetting setting = null;
+    if (settingInterface != null) {
+      setting = settingInterface.getBooleanSetting();
     }
-    if (from.checkpointValue != null) {
-      checkpoint(from.checkpointValue.is());
+    if (setting == null) {
+      if (checkpoint != null) {
+        checkpoint.reset();
+      }
     }
-    else {
-      checkpointValue = null;
+    else if (checkpoint == null) {
+      checkpoint = new BooleanFieldSetting();
     }
+    checkpoint.copy(setting);
   }
 
   /**
    * Resets to checkpointValue if checkpointValue has been set.  Otherwise has no effect.
    */
   void resetToCheckpoint() {
-    if (checkpointValue == null) {
+    if (checkpoint == null || !checkpoint.isSet()) {
       return;
     }
-    setSelected(checkpointValue.is());
+    setSelected(checkpoint.isValue());
   }
 
   void setDebug(final boolean input) {
     debug = input;
   }
 
-  void setFieldHighlightValue(final boolean value) {
-    if (!useFieldHighlight) {
-      useFieldHighlight = true;
+  public void setFieldHighlight(final boolean value) {
+    if (fieldHighlight == null) {
+      fieldHighlight = new BooleanFieldSetting();
       addActionListener(this);
     }
-    fieldHighlightValue = value;
+    fieldHighlight.set(value);
     updateFieldHighlight();
   }
 
-  void setFieldHighlightValue(final CheckBox from) {
-    if (from == null) {
-      return;
+  public void setFieldHighlight(final String value) {
+  }
+
+  public BooleanFieldSetting getFieldHighlight() {
+    return fieldHighlight;
+  }
+
+  public void setFieldHighlight(FieldSettingInterface settingInterface) {
+    BooleanFieldSetting setting = null;
+    if (settingInterface != null) {
+      setting = settingInterface.getBooleanSetting();
     }
-    if (from.useFieldHighlight) {
-      setFieldHighlightValue(from.fieldHighlightValue);
+    if (setting == null || !setting.isSet()) {
+      clearFieldHighlight();
     }
-    else if (useFieldHighlight) {
-      clearFieldHighlightValue();
+    else {
+      if (fieldHighlight == null) {
+        fieldHighlight = new BooleanFieldSetting();
+        addActionListener(this);
+      }
+      fieldHighlight.copy(setting);
+      updateFieldHighlight();
     }
   }
 
-  public void clearFieldHighlightValue() {
-    useFieldHighlight = false;
-    fieldHighlightValue = false;
-    removeActionListener(this);
-    updateFieldHighlight();
+  public void clearFieldHighlight() {
+    if (fieldHighlight != null && fieldHighlight.isSet()) {
+      fieldHighlight.reset();
+      updateFieldHighlight();
+    }
+  }
+
+  public boolean equalsFieldHighlight() {
+    return fieldHighlight != null && fieldHighlight.equals(isSelected());
   }
 
   public void setEnabled(final boolean enabled) {
@@ -302,8 +360,8 @@ final class CheckBox extends JCheckBox implements Field, ActionListener {
     updateFieldHighlight();
   }
 
-  void updateFieldHighlight() {
-    if (useFieldHighlight && fieldHighlightValue == isSelected()) {
+  private void updateFieldHighlight() {
+    if (fieldHighlight != null && fieldHighlight.equals(isSelected())) {
       if (origForeground == null) {
         // origForeground must be set if the foreground is going to be changed
         origForeground = getForeground();
@@ -342,7 +400,7 @@ final class CheckBox extends JCheckBox implements Field, ActionListener {
     if (!alwaysCheck && (!isEnabled() || !isVisible())) {
       return false;
     }
-    return checkpointValue == null || !checkpointValue.equals(isSelected());
+    return checkpoint == null || !checkpoint.equals(isSelected());
   }
 
   public void setToolTipText(String text) {

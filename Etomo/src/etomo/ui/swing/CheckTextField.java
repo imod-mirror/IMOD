@@ -169,37 +169,24 @@ final class CheckTextField implements UIComponent, SwingComponent {
     if (checkpointValue == null) {
       return true;
     }
-    if (!checkpointValue.equals(textField.getText())) {
-      return true;
-    }
-    // Failed string comparison. Try comparing numerically
+    // Compare as a number if checkpoint and text are both numbers
     EtomoNumber.Type type = null;
-    if (numericType != null) {
-      type = numericType;
-    }
-    else if (fieldType == FieldType.FLOATING_POINT) {
+    if (fieldType == FieldType.FLOATING_POINT) {
       type = EtomoNumber.Type.DOUBLE;
     }
     else if (fieldType == FieldType.INTEGER) {
       type = EtomoNumber.Type.LONG;
     }
-    if (type != null) {
-      EtomoNumber checkpointNumber = new EtomoNumber(type);
-      checkpointNumber.set(checkpointValue);
-      if (!checkpointNumber.isValid()) {
-        // Cannot compare numerically
-        return false;
-      }
+    EtomoNumber checkpointNumber = new EtomoNumber(type);
+    checkpointNumber.set(checkpointValue);
+    if (checkpointNumber.isValid()) {
       EtomoNumber currentNumber = new EtomoNumber(type);
       currentNumber.set(textField.getText());
-      if (!currentNumber.isValid()) {
-        // Cannot compare numerically
-        return false;
+      if (currentNumber.isValid()) {
+        return !checkpointNumber.equals(currentNumber);
       }
-      return !checkpointValue.equals(textField.getText());
     }
-    // Not a number
-    return false;
+    return !checkpointValue.equals(textField.getText());
   }
 
   boolean isEnabled() {
