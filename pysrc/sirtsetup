@@ -155,7 +155,7 @@ thicknessArr = optionValue(comlines, 'thickness', 1, 1)
 logbase = optionValue(comlines, 'log', 2, 1)
 xtiltArr = optionValue(comlines, 'xaxistilt', 2, 1)
 xtiltFile = optionValue(comlines, 'xtiltfile', 0, 1)
-useGPU = optionValue(comlines, 'UseGPU', 1, 1)
+useGPU = optionValue(comlines, 'UseGPU', 1, 1, numVal = 1)
 zfactors = optionValue(comlines, 'zfactorfile', 0, 1)
 localali = optionValue(comlines, 'localfile', 0, 1)
 substart = optionValue(comlines, 'subsetstart', 1, 1)
@@ -169,7 +169,7 @@ if xtiltArr:
    xtilt = xtiltArr[0]
    
 # If GPU is used and number of procs not entered, assume 1 not 8
-if useGPU and not procEntered:
+if useGPU != None and useGPU >= 0 and not procEntered:
    numproc = 1
 
 # Figure out if it can be done with internal SIRT

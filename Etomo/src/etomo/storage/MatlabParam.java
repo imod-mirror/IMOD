@@ -1234,7 +1234,17 @@ public final class MatlabParam {
     else {
       useReferenceFile = false;
       reference.parse(attribute);
-      addError(reference, errorList);
+      if (!reference.isValid()) {
+        // Reference may be a single number
+        ParsedNumber nReference = ParsedNumber.getMatlabInstance(REFERENCE_KEY);
+        nReference.parse(attribute);
+        if (nReference.isValid()) {
+          reference.addElement(nReference);
+        }
+        else {
+          addError(reference, errorList);
+        }
+      }
     }
     // particlePerCPU
     particlePerCpu.parse(autodoc.getAttribute(PARTICLE_PER_CPU_KEY));

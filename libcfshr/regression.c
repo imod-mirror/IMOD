@@ -317,7 +317,7 @@ Also, a bigger work array is needed not just for doubles but also for dsysv.
  * [order] to [ndata] points whose (x,y) coordinates are in the arrays [x] and [y].
  * It returns the coefficient of x to the i power in the array [slopes] and a
  * constant term in [intcpt].  The equation fit is:  ^
- * Y = intcpt + slopes[0] * X + slopes[1] * X**2 + ...  ^
+ * Y = intcpt + slopes\[0\] * X + slopes\[1\] * X**2 + ...  ^
  * [work] is an array whose size must be at least ([order] + 1) * ([order] + 3 + [ndata]).
  * The return value is the value returned by @@multRegress@.  Note that a Fortran 
  * function polyfit in libhvem takes care of allocating [work] to the needed size and 
@@ -354,7 +354,7 @@ int polynomialfit(float *x, float *y, int *ndata, int *order, float *slopes,
  * [order] to [ndata] points whose (x,y) coordinates are in the arrays [x] and [y].
  * It returns the coefficient of x to the i power in the array [slopes] and a
  * constant term in [intcpt].  The equation fit is:  ^
- * Y = intcpt + slopes[0] * X + slopes[1] * X**2 + ...  ^
+ * Y = intcpt + slopes\[0\] * X + slopes\[1\] * X**2 + ...  ^
  * [work] is an array whose size must be at least ([order] + 2) * [ndata] +
  * ([order] + 1) * ([order] + 3)).  ^
  * The return value is the value returned by @@multRegress@.  This function is untested.
@@ -425,7 +425,7 @@ int weightedpolyfit(float *x, float *y, float *weight, int *ndata, int *order,
  * [maxOscill]  - Maximum change in weights from one iteration to the next, even if 
  * oscillating. The iterations are terminated when the biggest change in weights between 
  * iterations is less than [maxChange], or when it is less than [maxOscill] and the 
- * biggest change across two iterations is less than [maxChange].
+ * biggest change across two iterations is less than [maxChange].  ^
  * Outputs:  ^
  * [b]       - Matrix to receive the [nbcol] sets of [m] coefficients.  Each set is 
  * placed in a column of [b], where the row dimension is the fastest progressing one ^
