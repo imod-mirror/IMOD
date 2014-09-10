@@ -3,8 +3,7 @@ package etomo.ui;
 import etomo.storage.DirectiveDef;
 
 /**
-* <p>Description: An interface to allow simple commands to be run against a group of 
-* fields.</p>
+* <p>Description: An interface to allow the generic handling of GUI fields.</p>
 * 
 * <p>Copyright: Copyright 2014</p>
 *
@@ -21,37 +20,6 @@ import etomo.storage.DirectiveDef;
 public interface Field {
   public static final String rcsid = "$Id:$";
 
-  public boolean isDifferentFromCheckpoint(boolean alwaysCheck);
-
-  public void backup();
-
-  public void useDefaultValue();
-
-  public void restoreFromBackup();
-
-  public void checkpoint();
-
-  public void clear();
-
-  public void clearFieldHighlightValue();
-
-  /**
-   * @return true if this a binary control (toggle button, radio button, checkbox) and it is selected
-   */
-  public boolean isSelected();
-
-  public String getText();
-
-  public void copy(Field from);
-
-  public boolean equalsDefaultValue();
-
-  public boolean equalsFieldHighlightValue();
-
-  public DirectiveDef getDirectiveDef();
-
-  public String getQuotedLabel();
-
   public boolean isBoolean();
 
   /**
@@ -60,20 +28,78 @@ public interface Field {
    */
   public boolean isText();
 
+  public String getQuotedLabel();
+
+  public boolean isEnabled();
+
+  /**
+   * Resets value - does not change other settings
+   */
+  public void clear();
+
+  public void setValue(Field from);
+
+  /**
+   * No effect in boolean-only fields
+   * @param text
+   */
+  public void setValue(String text);
+
+  /**
+   * No effect in text-only fields
+   * @param bool
+   */
+  public void setValue(boolean bool);
+
+  public boolean isEmpty();
+
+  /**
+   * @return true if this a binary control (toggle button, radio button, checkbox) and it is selected
+   */
+  public boolean isSelected();
+
+  public String getText();
+
   /**
    * Returns true if there is a non-empty, non-whitespace value.  Boolean fields
    * are never empty.
    * @return
    */
-  public boolean isEmpty();
 
-  public boolean isEnabled();
+  public DirectiveDef getDirectiveDef();
+
+  public void useDefaultValue();
+
+  public boolean equalsDefaultValue();
+
+  public void backup();
+
+  /**
+   * Set the value from the backup, and delete the backup.
+   */
+  public void restoreFromBackup();
+
+  public void checkpoint();
+
+  public void setCheckpoint(FieldSettingInterface input);
 
   public FieldSettingInterface getCheckpoint();
 
-  public void setCheckpoint(FieldSettingInterface checkpoint);
+  public boolean isDifferentFromCheckpoint(boolean alwaysCheck);
+
+  public void clearFieldHighlight();
+
+  public void setFieldHighlight(FieldSettingInterface input);
+
+  public void setFieldHighlight(String input);
+
+  /**
+   * No effect in text-only fields
+   * @param input
+   */
+  public void setFieldHighlight(boolean input);
 
   public FieldSettingInterface getFieldHighlight();
 
-  public void setFieldHighlight(FieldSettingInterface fieldHighlight);
+  public boolean equalsFieldHighlight();
 }
