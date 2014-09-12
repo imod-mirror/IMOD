@@ -28,7 +28,7 @@
  * array [values].  The histogram is placed in the array
  * [bins], and occupies [numBins] between [firstVal] and [lastVal].  
  * The kernel half-width is set by [h], where a triweight kernel with shape 
- * (1-(x/h)^2)^3 is added at each point.  Use 0 for a standard binned histogram.
+ * (1-(x/h)**2)**3 is added at each point.  Use 0 for a standard binned histogram.
  * Set [verbose] to 1 for a list of values, or 2 for a list of bin values.
  */
 void kernelHistogram(float *values, int numVals, float *bins, int numBins,
@@ -207,7 +207,7 @@ int scanhistogram(float *bins, int *numBins, float *firstVal, float *lastVal,
  * [firstVal], [lastVal] - Starting and ending value for histogram range ^
  * [minGuess] - If non-zero, it specifies an estimate of the minimum number of 
  * items above the dip ^
- * [verbose] - Verbose output flag, passed to @kernelHistogram
+ * [verbose] - Verbose output flag, passed to @kernelHistogram ^
  * [histDip] - Returned with the location of the dip ^
  * [peakBelow], [peakAbove] - Returned with the peak values below and above 
  * the dip ^
@@ -224,11 +224,10 @@ int findHistogramDip(float *values, int numVals, int minGuess, float *bins,
   int numCut = 4;
   float fracGuess = 0.5f;
   int i, ncum, numCrit;
-  float upperLim = 1.0;
+  float upperLim = lastVal;
 
   // Build a regular histogram first and use minGuess to find safe upper limit
-  kernelHistogram(values, numVals,
-                  bins, numBins, firstVal, lastVal, 0., verbose);
+  kernelHistogram(values, numVals, bins, numBins, firstVal, lastVal, 0., verbose);
   if (minGuess) {
     numCrit = B3DMAX(1, B3DNINT(minGuess * fracGuess));
     ncum = 0;
@@ -237,16 +236,15 @@ int findHistogramDip(float *values, int numVals, int minGuess, float *bins,
       if (ncum >= numCrit)
         break;
     }
-    upperLim = i / (numBins - 1.);
+    upperLim = firstVal + range * B3DMIN(1., i / (numBins - 1.));
   }
   
   // Seek a kernel width that gives two peaks in histogram
   for (i = 0; i < numCut; i++) {
-    kernelHistogram(values, numVals, bins, numBins, firstVal, lastVal, coarseH,
-                    verbose);
+    kernelHistogram(values, numVals, bins, numBins, firstVal, lastVal, coarseH, verbose);
 
     // Cut H if it fails or if the top peak is at 1.0
-    if (!scanHistogram(bins, numBins, firstVal, lastVal, 0., upperLim, 1,
+    if (!scanHistogram(bins, numBins, firstVal, lastVal, firstVal, upperLim, 1,
                        histDip, peakBelow, peakAbove) && 
         *peakAbove < firstVal + 0.999 * range) 
       break;
@@ -260,9 +258,8 @@ int findHistogramDip(float *values, int numVals, int minGuess, float *bins,
   
   kernelHistogram(values, numVals, bins, numBins, firstVal, lastVal, fineH,
                   verbose);
-  scanHistogram(bins, numBins, firstVal, lastVal, 
-                0.5 * (*histDip + *peakBelow), 0.5 * (*histDip + *peakAbove),
-                0, histDip, peakBelow, peakAbove);
+  scanHistogram(bins, numBins, firstVal, lastVal, 0.5 * (*histDip + *peakBelow), 
+                0.5 * (*histDip + *peakAbove), 0, histDip, peakBelow, peakAbove);
   printf("Histogram smoothed with H = %g has lowest dip at %g\n",
          fineH, *histDip);
   fflush(stdout);
@@ -274,10 +271,8 @@ int findHistogramDip(float *values, int numVals, int minGuess, float *bins,
  */
 int findhistogramdip(float *values, int *numVals, int *minGuess, float *bins,
                      int *numBins, float *firstVal, float *lastVal, 
-                     float *histDip, float *peakBelow, float *peakAbove,
-                     int *verbose)
+                     float *histDip, float *peakBelow, float *peakAbove, int *verbose)
 {
   return findHistogramDip(values, *numVals, *minGuess, bins, *numBins, 
-                          *firstVal, *lastVal, histDip, peakBelow, peakAbove,
-                          *verbose);
+                          *firstVal, *lastVal, histDip, peakBelow, peakAbove, *verbose);
 }
