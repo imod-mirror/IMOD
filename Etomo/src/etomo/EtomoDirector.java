@@ -303,6 +303,7 @@ public class EtomoDirector {
     String paramFileName = null;
     managerList = new UniqueHashedArray();
     // if no param file is found bring up Parallel manager
+    setupImodCalibDir();
     if (paramFileNameListSize == 0) {
       defaultWindow = true;
       openFrontPage(true, AxisID.ONLY);
@@ -365,26 +366,8 @@ public class EtomoDirector {
       UIHarness.INSTANCE.setTitle(null, MainFrame.ETOMO_TITLE);
     }
   }
-
-  /**
-   *  
-   */
-  private void initProgram() {
-    originalUserDir = System.getProperty("user.dir");
-    System.err.println("GraphicsEnvironment.isHeadless()="
-        + GraphicsEnvironment.isHeadless());
-    // print versions
-    System.err.println("\neTomo version:  " + ImodVersion.CURRENT_VERSION + " "
-        + VersionControl.TIME_STAMP);
-    List<String> imodInfo = VersionControl.getImodInfo(null);
-    if (imodInfo != null && imodInfo.size() > 0) {
-      System.err.println("IMOD Version: " + imodInfo.get(0));
-    }
-    String version = VersionControl.getPeetVersion();
-    if (version != null) {
-      System.err.println("PEET Version: " + VersionControl.getPeetVersion());
-    }
-    System.err.println();
+  
+  private void setupImodCalibDir() {
     // Get the IMOD calibration directory so we know where to find documentation
     // Check to see if is defined on the command line first with -D
     // Otherwise check to see if we can get it from the environment
@@ -413,6 +396,27 @@ public class EtomoDirector {
       }
     }
     IMODCalibDirectory = new File(imodCalibDirectoryName);
+  }
+
+  /**
+   *  
+   */
+  private void initProgram() {
+    originalUserDir = System.getProperty("user.dir");
+    System.err.println("GraphicsEnvironment.isHeadless()="
+        + GraphicsEnvironment.isHeadless());
+    // print versions
+    System.err.println("\neTomo version:  " + ImodVersion.CURRENT_VERSION + " "
+        + VersionControl.TIME_STAMP);
+    List<String> imodInfo = VersionControl.getImodInfo(null);
+    if (imodInfo != null && imodInfo.size() > 0) {
+      System.err.println("IMOD Version: " + imodInfo.get(0));
+    }
+    String version = VersionControl.getPeetVersion();
+    if (version != null) {
+      System.err.println("PEET Version: " + VersionControl.getPeetVersion());
+    }
+    System.err.println();
     utilityThread = new UtilityThread();
     new Thread(utilityThread).start();
     // get the java memory limit
