@@ -3,6 +3,10 @@ package etomo;
 import java.io.File;
 import java.io.IOException;
 
+import etomo.comscript.BatchRunTomoComScriptManager;
+import etomo.comscript.BatchruntomoParam;
+import etomo.comscript.BlendmontParam;
+import etomo.comscript.FortranInputSyntaxException;
 import etomo.logic.DatasetTool;
 import etomo.process.BaseProcessManager;
 import etomo.process.BatchRunTomoProcessManager;
@@ -22,8 +26,10 @@ import etomo.type.InterfaceType;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.type.TableReference;
 import etomo.ui.swing.BatchRunTomoDialog;
+import etomo.ui.swing.BlendmontDisplay;
 import etomo.ui.swing.MainBatchRunTomoPanel;
 import etomo.ui.swing.MainPanel;
+import etomo.util.InvalidParameterException;
 import etomo.util.Utilities;
 
 /**
@@ -49,6 +55,8 @@ public final class BatchRunTomoManager extends BaseManager {
       .substring(1);
 
   private final TableReference tableReference = new TableReference(STACK_REFERENCE_PREFIX);
+  private final BatchRunTomoComScriptManager comScriptManager = new BatchRunTomoComScriptManager(
+      this);
 
   private final BatchRunTomoMetaData metaData;
 
@@ -96,6 +104,12 @@ public final class BatchRunTomoManager extends BaseManager {
     if (paramFile != null && metaData.isValid()) {
       dialog.setParameters(metaData);
     }
+    if (!comScriptManager.loadBatchRunTomo(AXIS_ID, false)) {
+      BaseProcessManager.touch(FileType.BATCH_RUN_TOMO_COMSCRIPT.getFile(this, AXIS_ID)
+          .getAbsolutePath(), this);
+      comScriptManager.loadBatchRunTomo(AXIS_ID, true);
+    }
+    dialog.setParameters(comScriptManager.getBatchRunTomoParam());
     mainPanel.showProcess(dialog.getContainer(), AXIS_ID);
     uiHarness.updateFrame(this);
     String actionMessage = Utilities.prepareDialogActionMessage(
@@ -104,7 +118,7 @@ public final class BatchRunTomoManager extends BaseManager {
       System.err.println(actionMessage);
     }
   }
-  
+
   /**
    * Call BaseManager.exitProgram(). Call saveDialog. Return the value of
    * BaseManager.exitProgram(). To guarantee that etomo can always exit, catch
@@ -143,13 +157,19 @@ public final class BatchRunTomoManager extends BaseManager {
     }
     dialog.getParameters(metaData);
     saveStorables(AXIS_ID);
-    updateBatchRunTomo();
+    BatchruntomoParam param = updateBatchRunTomo(false);
     dialog.saveAutodocs();
     return true;
   }
 
-  private void updateBatchRunTomo() {
-
+  private BatchruntomoParam updateBatchRunTomo(final boolean doValidation) {
+    BatchruntomoParam param;
+    param = comScriptManager.getBatchruntomoParam();
+    if (dialog == null || !dialog.getParameters(param, doValidation)) {
+      return null;
+    }
+    comScriptManager.saveBatchruntomo(param);
+    return param;
   }
 
   public boolean isSetupDone() {
