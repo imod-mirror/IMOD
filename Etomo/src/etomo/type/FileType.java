@@ -154,6 +154,8 @@ public final class FileType {
       ".bl");
   public static final FileType AUTOFIDSEED_COMSCRIPT = FileType.getInstance(false, true,
       "autofidseed", ".com");
+  public static final FileType BATCH_RUN_TOMO_COMSCRIPT = FileType.getInstance(true,
+      false, "", ".com");
   public static final FileType BLEND_COMSCRIPT = FileType.getInstance(false, true,
       "blend", ".com");
   public static final FileType COPYTOMOCOMS_COMSCRIPT = FileType.getInstance(false,
