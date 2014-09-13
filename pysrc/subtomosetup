@@ -282,8 +282,10 @@ chunk = 1
 for ptNum in range(len(pointList)):
    comName = comRoot + fmtstr('-{:03d}', chunk) + '.com'
    chunkBase = rootName + fmtstr(numFormat, chunk)
+
+   # Use a forward slash so output is stable and tests work with Windows python
    if outDir:
-      chunkBase = os.path.join(outDir, chunkBase)
+      chunkBase = outDir + '/' + chunkBase
    chunkName = chunkBase + '.mrc'
    if reorient:
       chunkName = chunkBase + '.tmp'
