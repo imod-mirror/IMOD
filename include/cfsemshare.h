@@ -68,6 +68,7 @@ extern "C" {
                     int binFacX, int binFacY, float zWeight);
 
   /* filtxcorr.c */
+  int niceFrame(int num, int idnum, int limit);
   void XCorrSetCTF(float sigma1, float sigma2, float radius1, float radius2,
                    float *ctf, int nx, int ny, float *delta);
   void XCorrSetCTFnoScl(float sigma1, float sigma2, float radius1,
