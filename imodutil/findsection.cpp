@@ -41,52 +41,55 @@ FindSect::FindSect()
   mFitPitchSeparately = 0;
 
   // Parameters
-  // Minimun # of points for using robust fit to get pitch line on one surface
+  // 1: Minimum # of points for using robust fit to get pitch line on one surface
   mMinForRobustPitch = 6;
-  // Size of blocks in which to consolidate analyzed boxes
+  // 2: Size of blocks in which to consolidate analyzed boxes
   mScanBlockSize = 100;
 
   // findColumnMidpoint parameters
-  // Number of edge MADN's above edge median that maximum value must be to proceed
+  // 3: Number of edge MADN's above edge median that maximum value must be to proceed
   mColMaxEdgeDiffCrit = 2.;
-  // Fraction of maximum - edge difference to achieve
+  // 4: Fraction of maximum - edge difference to achieve
   mFracColMaxEdgeDiff = 0.5;
-  // Number of edge MADNs above edge to achieve as well
+  // 5: Number of edge MADNs above edge to achieve as well
   mCritEdgeMADN = 3.;
-  // Number of box medians that need to be above those criteria
+  // 6: Number of box medians that need to be above those criteria
   mNumHighInsideCrit = 3;
 
   // fitColumnBoundaries parameters
-  // Number of center MADN's below the center median for inside median to be too low
+  // 7: Number of center MADN's below the center median for inside median to be too low
   mColumnToCenMADNCrit = 5.;
-  // Fraction of inside - edge median difference that it must fall toward edge median
+  // 8: Fraction of inside - edge median difference that it must fall toward edge median
   mMaxFalloffFrac = 0.3f;
-  // Low and high limits of range of fractions of inside - edge median difference to fit
+  // 9, 10: Low and high limits of range of fractions of inside - edge median difference 
+  // to fit
   mLowFitFrac = 0.2f;
   mHighFitFrac = 0.8f;
-  // Fraction of inside - edge median difference at which to save boundary
+  // 11: Fraction of inside - edge median difference at which to save boundary
   mBoundaryFrac = 0.5f;
-  // Fraction of difference at which to estimate extra boundary distance for pitch output
+  // 12: Fraction of difference at which to estimate extra boundary distance for pitch 
+  // output
   mPitchBoundaryFrac = 0.25f;
-  // Minimum fraction of boxes in column that must yield boundaries
+  // 13: Minimum fraction of boxes in column that must yield boundaries
   mMinFracBoundsInCol = 0.5f;
 
   // checkBlockThicknesses parameters
-  // Criterion fraction of median thickness for considering block too thin
+  // 14: Criterion fraction of median thickness for considering block too thin
   mTooThinCrit = 0.5f;
-  // Drop a boundary if it is this much farther from local mean than other boundary is
+  // 15: Drop a boundary if it is this much farther from local mean than other boundary is
   mFartherFromMeanCrit = 2.;
-  // Drop a boundary if its difference from the mean is this fraction of median thickness
+  // 16: Drop a boundary if its difference from the mean is this fraction of median 
+  // thickness
   mMeanDiffThickFrac = 0.35f;
 
   // Robust fitting parameters
-  // K-factor for the weighting function
+  // 17: K-factor for the weighting function
   mKfactor = 4.68;
-  // Maximum change in weights for terminatiom
+  // 18: Maximum change in weights for terminatiom
   mMaxChange = 0.02;
-  // Maximum change in weights for terminating on an oscillation
+  // 19: Maximum change in weights for terminating on an oscillation
   mMaxOscill = 0.05;
-  // Maximum iterations
+  // 20: Maximum iterations
   mMaxIter = 30;
 }
 
@@ -135,8 +138,12 @@ void FindSect::main( int argc, char *argv[])
   float cenAreaFrac = 0.33f;
 
   // Parameters
+  // 21: Fraction that the difference between distinguishability of center from edge
+  // points must improve to adopt a higher scaling for analysis
   float cenEdgeRatioDiffCrit = 0.33f;
+  // 22: Threshold weight from robust fit for including a point in the final smoothing fit
   float wgtThresh = 0.2f;
+  // 23: Threshold weight from robust fit for counting a point as "good"
   float goodThresh = 0.6f;
 
   // Fallbacks from    ../manpages/autodoc2man 2 1 findsection
@@ -184,7 +191,7 @@ void FindSect::main( int argc, char *argv[])
   // Set the index for the thickness axis
   mThickInd = b3dZ;
   ifFlip = -1;
-  PipGetBoolean("ThickDimensionIsY", &ifFlip);
+  PipGetInteger("ThickDimensionIsY", &ifFlip);
   if (numTomos > 1 && !ifFlip)
     exitError("Multiple tomograms must have thickness in Y dimension");
   if (ifFlip > 0 || numTomos > 1 || (ifFlip < 0 && nxyz[b3dY] < nxyz[b3dZ]))
@@ -195,12 +202,29 @@ void FindSect::main( int argc, char *argv[])
   for (ind = 0; ind < ixyz; ind++) {
     PipGetTwoFloats("ControlValue", &xx, &yy);
     switch (B3DNINT(xx)) {
-      SET_CONTROL_INT(1, mMaxIter);
-
-      SET_CONTROL_FLOAT(2, mKfactor);
-      SET_CONTROL_FLOAT(3, mMaxChange);
-      SET_CONTROL_FLOAT(4, mMaxOscill);
-      SET_CONTROL_FLOAT(5, mPitchBoundaryFrac);
+      SET_CONTROL_INT(1, mMinForRobustPitch);
+      SET_CONTROL_INT(2, mScanBlockSize);
+      SET_CONTROL_FLOAT(3, mColMaxEdgeDiffCrit);
+      SET_CONTROL_FLOAT(4, mFracColMaxEdgeDiff);
+      SET_CONTROL_FLOAT(5, mCritEdgeMADN);
+      SET_CONTROL_INT(6, mNumHighInsideCrit);
+      SET_CONTROL_FLOAT(7, mColumnToCenMADNCrit);
+      SET_CONTROL_FLOAT(8, mMaxFalloffFrac);
+      SET_CONTROL_FLOAT(9, mLowFitFrac);
+      SET_CONTROL_FLOAT(10, mHighFitFrac);
+      SET_CONTROL_FLOAT(11, mBoundaryFrac);
+      SET_CONTROL_FLOAT(12, mPitchBoundaryFrac);
+      SET_CONTROL_FLOAT(13, mMinFracBoundsInCol);
+      SET_CONTROL_FLOAT(14, mTooThinCrit);
+      SET_CONTROL_FLOAT(15, mFartherFromMeanCrit);
+      SET_CONTROL_FLOAT(16, mMeanDiffThickFrac);
+      SET_CONTROL_FLOAT(17, mKfactor);
+      SET_CONTROL_FLOAT(18, mMaxChange);
+      SET_CONTROL_FLOAT(19, mMaxOscill);
+      SET_CONTROL_INT(20, mMaxIter);
+      SET_CONTROL_FLOAT(21, cenEdgeRatioDiffCrit);
+      SET_CONTROL_FLOAT(22, wgtThresh);
+      SET_CONTROL_FLOAT(23, goodThresh);
     }
   }
   PipGetInteger("DebugOutput", &mDebugOutput);
@@ -273,6 +297,29 @@ void FindSect::main( int argc, char *argv[])
     }
   }
   
+  // Get output file names and check for validity
+  PipGetString("VolumeRootname", &volRoot);
+  PipGetString("PointRootname", &pointRoot);
+  PipGetString("SurfaceModel", &surfaceName);
+  PipGetBoolean("SeparatePitchLineFits", &mFitPitchSeparately);
+  PipGetString("TomoPitchModel", &pitchName);
+  if (surfaceName && numTomos > 1)
+    exitError("You cannot output a surface model with multiple input tomograms");
+  ierr = PipGetInteger("NumberOfSamples", &numSamples);
+  if (!ierr && numTomos > 1)
+    exitError("You cannot specify sampling with multiple input tomograms");
+  if (ierr && pitchName && numTomos == 1)
+    exitError("You must specify the number of samples for a boundary model from a "
+              "single tomogram");
+  ierr = PipGetInteger("SampleExtentInY", &sampleExtent);
+  if (!ierr && numTomos > 1)
+    exitError("You cannot specify sample extent with multiple tomograms"); 
+  if (!ierr && !pitchName)
+    exitError("You cannot specify sample extent unless outputting a model for "
+              "tomopitch"); 
+
+  borderFrac = surfaceName ? 0.025f : 0.05f;
+
   // Initialize coordinate limits with a border on the other two axes; get limits
   for (ind = 0; ind < 3; ind++) {
     startCoord[ind] = ind == mThickInd ? 0 : B3DNINT(borderFrac * nxyz[ind]);
@@ -310,27 +357,6 @@ void FindSect::main( int argc, char *argv[])
   if (mDebugOutput)
     printf("Extents edge %d %d %d  center %d %d %d\n", edgeExtent[0], edgeExtent[1],
            edgeExtent[2], centerExtent[0], centerExtent[1], centerExtent[2]);
-
-  // Get output file names and check for validity
-  PipGetString("VolumeRootname", &volRoot);
-  PipGetString("PointRootname", &pointRoot);
-  PipGetString("SurfaceModel", &surfaceName);
-  PipGetBoolean("SeparatePitchLineFits", &mFitPitchSeparately);
-  PipGetString("TomoPitchModel", &pitchName);
-  if (surfaceName && numTomos > 1)
-    exitError("You cannot output a surface model with multiple input tomograms");
-  ierr = PipGetInteger("NumberOfSamples", &numSamples);
-  if (!ierr && numTomos > 1)
-    exitError("You cannot specify sampling with multiple input tomograms");
-  if (ierr && pitchName && numTomos == 1)
-    exitError("You must specify the number of samples for a boundary model from a "
-              "single tomogram");
-  ierr = PipGetInteger("SampleExtentInY", &sampleExtent);
-  if (!ierr && numTomos > 1)
-    exitError("You cannot specify sample extent with multiple tomograms"); 
-  if (!ierr && !pitchName)
-    exitError("You cannot specify sample extent unless outputting a model for "
-              "tomopitch"); 
 
   // Set up the computation
   ierr = multiBinSetup(mBinning, boxSize, mBoxSpacing, numBinnings, startCoord, endCoord,
