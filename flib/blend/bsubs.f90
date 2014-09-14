@@ -943,9 +943,9 @@ subroutine doedge(iedge, ixy, edgedone, sdcrit, devcrit, nfit, &
         endif
         ixdisp = nint(xdisp)
         iydisp = nint(ydisp)
-        write(*,'(1x,a,2i4,a,2i5)') char(ixy + ichar('W')) //' edge, pieces' &
-            , ipiecelower(jedge, ixy), ipieceupper(jedge, ixy), &
-            '  ixydisp:', ixdisp, iydisp
+        !write(*,'(1x,a,2i4,a,2i5)') char(ixy + ichar('W')) //' edge, pieces' &
+        !    , ipiecelower(jedge, ixy), ipieceupper(jedge, ixy), &
+        !    '  ixydisp:', ixdisp, iydisp
       endif
       ixdispmid = ixdisp
       iydispmid = iydisp
@@ -2047,8 +2047,8 @@ subroutine xcorrEdge(arrLower, arrUpper, ixy, xDisplace, yDisplace, legacy, inde
           nyTrim = min(4, nxyBox(2) / 8) + (nyPad - nxyBox(2)) / 2
           ccc = CCCoefficient(xeray, xdray, nxPad + 2, nxPad, nyPad, &
               xpeak(i), ypeak(i), nxTrim, nyTrim, numPixel)
-          write(*,'(i3,a,2f7.1,a,e14.7,a,i8,a,f8.5)') i, ' at ', xpeak(i), &
-              ypeak(i), ' peak =', peak(i), ' nsum = ', numPixel, ' cc =', ccc
+          !write(*,'(i3,a,2f7.1,a,e14.7,a,i8,a,f8.5)') i, ' at ', xpeak(i), &
+          !    ypeak(i), ' peak =', peak(i), ' nsum = ', numPixel, ' cc =', ccc
           if (ccc > cccMax .and. (i == 1 .or. numPixel > &
               (nxPad - 2 * nxTrim) * (nyPad - 2 * nyTrim) / 8)) then
             cccMax = ccc
@@ -2059,8 +2059,8 @@ subroutine xcorrEdge(arrLower, arrUpper, ixy, xDisplace, yDisplace, legacy, inde
 
     enddo
     i = indPeak
-    write(*,'(i3,a,2f7.1,a,e14.7,a,f8.5)') i, ' at ', xpeak(i), &
-        ypeak(i), ' peak =', peak(i), ' cc =', cccMax
+    !write(*,'(i3,a,2f7.1,a,e14.7,a,f8.5)') i, ' at ', xpeak(i), &
+    !    ypeak(i), ' peak =', peak(i), ' cc =', cccMax
     ! write(*,'(a,f10.6)') 'time after CCC', walltime() -wallstart
   endif
   call dumpEdge(xcray, nxPad + 2, nxPad, nyPad, ixy, 1)
@@ -2069,7 +2069,7 @@ subroutine xcorrEdge(arrLower, arrUpper, ixy, xDisplace, yDisplace, legacy, inde
   !
   xDisplace = nbin * (xpeak(indPeak) - numExtra(1))
   yDisplace = nbin * (ypeak(indPeak) - numExtra(2))
-  write(*,'(2f8.2,2f8.2)') xpeak(indPeak), ypeak(indPeak), xDisplace, yDisplace
+  ! write(*,'(2f8.2,2f8.2)') xpeak(indPeak), ypeak(indPeak), xDisplace, yDisplace
   if (legacy) return
   !
   ! the following is adopted largely from setgridchars
