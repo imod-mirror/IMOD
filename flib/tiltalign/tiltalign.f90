@@ -694,7 +694,7 @@ CONTAINS
           write(robFailMess,'(a,f14.6)') 'Robust fitting ended because F error '// &
               'increased to', sqrt(fFinal * rmsScale)
         else
-          write(robFailMess,'(a,i5)') 'Robust fitting ended after', numTotCycles, &
+          write(robFailMess,'(a,i5,a)') 'Robust fitting ended after', numTotCycles, &
               ' cycles without converging'
         endif
         write(*,'(/,a)')robFailMess
