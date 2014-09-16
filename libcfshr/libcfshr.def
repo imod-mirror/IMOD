@@ -75,6 +75,7 @@ EXPORTS
 	PipStartsWith
 	FINDHISTOGRAMDIP
 	ADOCSETTWOFLOATS
+	MONTXCORREDGE
 	ilistInsert
 	ADOCSETTWOINTEGERS
 	multiBinSetup
@@ -160,11 +161,13 @@ EXPORTS
 	sliceSmoothOutPad
 	PIPGETERROR
 	PIPLINKEDINDEX
+	montXCFindBinning
 	AdocSetInteger
 	RSSORTINDEXEDFLOATS
 	b3dGetError
 	AdocGetCollectionName
 	ADOCGETTWOFLOATS
+	MONTXCFINDBINNING
 	AdocGetString
 	mrc_big_seek
 	AdocLookupSection
@@ -175,6 +178,7 @@ EXPORTS
 	sumsToAvgSDdbl
 	xfMult
 	PIPSETMANPAGEOUTPUT
+	IREPAK
 	RSMADMEDIANOUTLIERS
 	normalizeColumns
 	makeLinePointers
@@ -192,6 +196,7 @@ EXPORTS
 	f2cString
 	parWrtSetCurrent
 	SAMPLEMEANSD
+	montXCIndsAndCTF
 	AdocGetNumberOfKeys
 	amatToRotmagstr
 	rssortints
@@ -208,6 +213,7 @@ EXPORTS
 	adjustPieceOverlap
 	AdocGetThreeIntegers
 	conjugateProduct
+	MONTXCBASICSIZES
 	arrayMinMaxMean
 	XCorrSetCTFnoScl
 	surfaceSort
@@ -263,6 +269,7 @@ EXPORTS
 	AdocGetNumCollections
 	sliceTaperOutPad
 	xfInvert
+	montXCorrEdge
 	addValueToRow
 	lsFit2
 	PIPNUMBEROFENTRIES
@@ -286,6 +293,7 @@ EXPORTS
 	ADDVALUETOROW
 	RSSORTFLOATS
 	AdocSetTwoIntegers
+	EXTRACTWITHBINNING
 	cblas_dcopy
 	gaussjDet
 	multRegress
@@ -390,6 +398,7 @@ EXPORTS
 	ilistPush
 	lsFit3
 	cblas_dnrm2
+	montXCBasicSizes
 	imodGetpid
 	ADOCGETTWOINTEGERS
 	sliceGetYSize
@@ -414,6 +423,7 @@ EXPORTS
 	RSTRIMMEDMEANOFSORTED
 	enableRadiusFitting
 	B3DMILLISLEEP
+	MONTXCINDSANDCTF
 	PIPEXITONERRORFW
 	setPeakFindLimits
 	sliceFree
@@ -421,6 +431,7 @@ EXPORTS
 	matrixToAngles
 	PIPPRINTHELP
 	TAPERINPADEX
+	extractWithBinning
 	anglesToMatrix
 	TAPERINPAD
 	rsSortFloats
