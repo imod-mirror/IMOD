@@ -205,7 +205,11 @@ int montxcfindbinning(int *maxBin, int *targetSize, int *indentXC, int *nxyPiece
 
 /*!
  * Performs Fourier correlations and evaluation of real-space correlations to find 
- * displacement on an edge.  Inputs:
+ * displacement on an edge.  Whether the CCC's are evaluated depends on the value of
+ * [numXcorrPeaks].  If it is 1, they are not computed, but 16 peaks are found and the 
+ * first peak is taken that does not exceed the lateral shift in [maxLongShift].  If
+ * it is greater than 1, at least 16 peaks are still found and checked against 
+ * [maxLongShift], then the CC is evaluated at the given number of peaks. Inputs:
  * [lowerIn]       - Boxed, possibly binned image extracted from lower piece ^
  * [upperIn]       - Boxed, possibly binned image extracted from upper piece ^
  * [nxyBox]        - Size of boxed input images in X and Y ^
@@ -217,7 +221,8 @@ int montxcfindbinning(int *maxBin, int *targetSize, int *indentXC, int *nxyPiece
  * [nyPad]         - Size of padded image in Y  ^
  * [lowerPad]      - Temporary array for lower padded piece ^
  * [upperPad]      - Temporary array for upper padded piece ^
- * [lowerCopy]     - Temporary array for copy of lower padded piece ^
+ * [lowerCopy]     - Temporary array for copy of lower padded piece, needed only if
+ * evaluating CCC's at multiple peaks ^
  * [numXcorrPeaks] - Number of correlation peaks to examine ^
  * [legacy]        - Non-zero to do legacy correlations ^
  * [ctf]           - Array with filter function ^
@@ -230,6 +235,7 @@ int montxcfindbinning(int *maxBin, int *targetSize, int *indentXC, int *nxyPiece
  * Outputs, functions, debugging variables:
  * [xDisplace]     - Displacement in X: amount to shift upper piece to align to lower ^
  * [yDisplace]     - Displacement in Y ^
+ * [CCC]           - Value of CCC at the chosen peak, if computed
  * [twoDfft]       - 2-D FFT function to receive array, [nxPad], [nyPad], and 0 for 
  * forward or 1 for inverse ^
  * [dumpEdge]      - If non-null, a function for writing images to file.  Its arguments
@@ -246,7 +252,7 @@ void montXCorrEdge(float *lowerIn, float *upperIn, int *nxyBox, int *nxyPiece,
                    float *lowerPad, float *upperPad, float *lowerCopy, int numXcorrPeaks,
                    int legacy, float *ctf, float delta, int *numExtra, int nbin, int ixy,
                    int maxLongShift, int weightCCC, float *xDisplace, float *yDisplace,
-                   void (*twoDfft)(float *, int *, int *, int *),
+                   float *CCC, void (*twoDfft)(float *, int *, int *, int *),
                    void (*dumpEdge)(float *, int *, int *, int *, int *, int *), 
                    char *debugStr, int debugLen, int debugLevel)
 {
@@ -314,6 +320,7 @@ void montXCorrEdge(float *lowerIn, float *upperIn, int *nxyBox, int *nxyPiece,
     xpeak[0] = numExtra[0];
     ypeak[0] = numExtra[1];
   }
+  *CCC = -1.5f;
   if (evalCCC) {
     
     /* If there was no filtering, simply pad images again */
@@ -332,7 +339,7 @@ void montXCorrEdge(float *lowerIn, float *upperIn, int *nxyBox, int *nxyPiece,
         dumpEdge(upperPad, &nxPadDim, &nxPad, &nyPad, &ixyP1, &zero);
       }
     }
-    cccMax = -10.;
+    cccMax = -1.5;
     for (i = 0; i < numXcorrPeaks; i++) {
       if (peak[i] > -1.e29) {
         
@@ -372,7 +379,7 @@ void montXCorrEdge(float *lowerIn, float *upperIn, int *nxyBox, int *nxyPiece,
               "%.5f\n", i, xpeak[i], ypeak[i], peak[i], cccMax);
       curDebugLen += strlen(&debugStr[curDebugLen]);
     }      
-
+    *CCC = (float)cccMax;
   }
   if (dumpEdge)
     dumpEdge(lowerPad, &nxPadDim, &nxPad, &nyPad, &ixyP1, &one);
@@ -394,7 +401,8 @@ void montxcorredge(float *lowerIn, float *upperIn, int *nxyBox, int *nxyPiece,
                    float *lowerPad, float *upperPad, float *lowerCopy, int *numXcorrPeaks,
                    int *legacy, float *ctf, float *delta, int *numExtra, int *nbin, 
                    int *ixy, int *maxLongShift, int *weightCCC, float *xDisplace,
-                   float *yDisplace, void (*twoDfft)(float *, int *, int *, int *),
+                   float *yDisplace, float *CCC, 
+                   void (*twoDfft)(float *, int *, int *, int *),
                    void (*dumpEdge)(float *, int *, int *, int *, int *, int *), 
                    int *debugLevel)
 {
@@ -406,7 +414,7 @@ void montxcorredge(float *lowerIn, float *upperIn, int *nxyBox, int *nxyPiece,
                 nxyOverlap, *nxSmooth, *nySmooth, *nxPad, *nyPad,
                 lowerPad, upperPad, lowerCopy, *numXcorrPeaks,
                 *legacy, ctf, *delta, numExtra, *nbin, *ixy - 1,
-                *maxLongShift, *weightCCC, xDisplace, yDisplace, 
+                *maxLongShift, *weightCCC, xDisplace, yDisplace, CCC,
                 twoDfft, dumpEdge, debugStr, debugLen, *debugLevel);
   if (*debugLevel) {
     while ((lineEnd = strchr(curDebug, '\n')) != NULL) {

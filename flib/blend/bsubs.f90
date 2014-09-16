@@ -1844,7 +1844,7 @@ subroutine xcorrEdge(arrLower, arrUpper, ixy, xDisplace, yDisplace, legacy, inde
   logical legacy
   integer*4 nxyBox(2), ind0(2), ind1(2), iDisplace(2)
   real*4 ctf(8193), rDisplace(2)
-  real*4 overFrac, delta, sdMin, delDenMin
+  real*4 overFrac, delta, sdMin, delDenMin, ccc
   integer*4 indentSD, numIter, limStep, iyx, nxPad, nyPad, indentUse
   integer*4 ixDisplace, iyDisplace, i, numExtra(2), nbin, ierr, idum
   integer*4 numSmooth, nxSmooth, nySmooth, indPeak, ifEvalCCC, ifLegacy
@@ -1899,7 +1899,8 @@ subroutine xcorrEdge(arrLower, arrUpper, ixy, xDisplace, yDisplace, legacy, inde
   ! Do the correlation
   call montXCorrEdge(brray, brray(maxbsiz / 2 + 1), nxyBox, nxyzIn, noverlap, nxSmooth, &
       nySmooth,nxPad, nyPad, xcray, xdray, xeray, numXcorrPeaks, ifLegacy, ctf, delta, &
-      numExtra, nbin, ixy, maxLongShift, 0, xDisplace, yDisplace, todfft, dumpEdge, 0)
+      numExtra, nbin, ixy, maxLongShift, 0, xDisplace, yDisplace, ccc, todfft, dumpEdge, &
+      0)
 
   if (legacy) return
   !
