@@ -55,7 +55,7 @@ void montXCBasicSizes(int ixy, int nbin,  int indentXC, int *nxyPiece, int *nxyO
                        (int)(aspectMax * nxyOverlap[ixy])) / nbin;
   numExtra[iyx] = 0;
   numExtra[ixy] = B3DMIN(2 * (B3DNINT(extraWidth * nxyBox[ixy]) / 2), 
-                         (nxyPiece[ixy] - b3dIMax(3, nbin, indentUse, nxyPiece[ixy] / 20)
+                         (nxyPiece[ixy] - b3dIMax(3, nbin, *indentUse, nxyPiece[ixy] / 20)
                           * 2) / nbin - nxyBox[ixy]);
   nxyBox[ixy] = nxyBox[ixy] + numExtra[ixy];
   *maxLongShift = B3DNINT(B3DMAX(1.9 * nxyOverlap[ixy] / nbin, 1.5 * nxyBox[ixy]));
