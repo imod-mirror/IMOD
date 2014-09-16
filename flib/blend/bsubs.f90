@@ -1938,9 +1938,9 @@ subroutine xcorrEdge(arrLower, arrUpper, ixy, xDisplace, yDisplace, legacy, inde
   ! rdispl(1) =idxmin
   ! rdispl(2) =idymin
   !
-  call bigSearch(arrLower, arrUpper, nxIn, nyIn, ind0(1), ind0(2), ind1(1), &
+  
+  call montBigSearch(arrLower, arrUpper, nxIn, nyIn, ind0(1), ind0(2), ind1(1), &
       ind1(2), rDisplace(1), rDisplace(2), sdMin, delDenMin, numIter, limStep)
-
   if (ixy == 1) then
     xDisplace = -rDisplace(1) - (nxIn - nxOverlap)
     yDisplace = -rDisplace(2)
