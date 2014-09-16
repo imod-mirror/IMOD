@@ -1,5 +1,5 @@
-/* reduce_by_binning.c: has C function redcueByBinning and wrapper for
- *  Fortran subroutine reduce_by_binning
+/* reduce_by_binning.c: has functions for extracting with or without binning, and
+ * binning into a slice.
  *
  * $Id$
  *
@@ -11,43 +11,51 @@
 #ifdef F77FUNCAP
 #define reduce_by_binning REDUCE_BY_BINNING
 #define  binintoslice BININTOSLICE
+#define extractwithbinning EXTRACTWITHBINNING
+#define irepak IREPAK
 #else
 #ifdef G77__HACK
 #define reduce_by_binning reduce_by_binning__
 #else
 #define reduce_by_binning reduce_by_binning_
 #endif
+#define extractwithbinning extractwithbinning_
+#define irepak irepak_
 #define  binintoslice binintoslice_
 #endif
 
 /*!
- * Reduces an array in size by summing pixels (binning) by the factor [nbin].
- * [array] has the input, with dimensions [nxin] by [nyin], and slice mode in
- * [type].  The slice mode can be byte, short, unsigned short, float, or RGB.
+ * Extracts a portion of an array into another array with optional summing of pixels 
+ * (binning) by the factor [nbin].  [array] has the input, with X dimension [nxDim], and 
+ * the range of coordinates to extract is given in [xStart], [xEnd], [yStart], and [yEnd]
+ * (inclusive, numbered from 0).  The slice mode is in
+ * [type], and can be byte, short, unsigned short, float, or RGB.
  * [brray] receives the output, with dimensions returned in [nxr] and [nyr].
  * The output will have the same mode as the input and will be the average of
  * binned values, except in two cases.  If the input is bytes or RGB and 
  * [keepByte] is 0, then the output will be signed short integers and will be 
  * the sum, not the average, of the binned values, and for RGB data the output
  * will be an equal sum of red, green, and blue values.  [brray] can be the 
- * same as [array], and [nxr], [nyr] can be the same variables as [nxin],
- * [nyin].  The output size is obtained by integer division of the input size 
+ * same as [array].  The output size is obtained by integer division of the input size 
  * by the binning.  If the remainder of this division is nonzero, the data are 
  * centered in the output array as nearly as possible.  Specifically, the
  * coordinates of the lower left corner of the output array are offset by 
  * ^  ((nx % nbin) / 2, (ny % nbin) / 2) ^
- * relative to the input array.  Returns 1 for an unsupported data type.
+ * relative to the input array.  Returns 1 for an unsupported data type or 2 for an
+ * input X range bigger than [nxDim].
  */
-int reduceByBinning(void *array, int type, int nxin, int nyin, int nbin, 
-                    void *brray, int keepByte, int *nxr, int *nyr)
+int extractWithBinning(void *array, int type, int nxDim, int xStart, int xEnd, int yStart,
+                       int yEnd, int nbin, void *brray, int keepByte, int *nxr, int *nyr)
 {
   int i, j;
+  int nxin = xEnd + 1 - xStart;
+  int nyin = yEnd + 1 - yStart;
   int nbinsq = nbin * nbin;
   int nxout = nxin / nbin;
   int nyout = nyin / nbin;
   int ixofs = (nxin % nbin) / 2;
   int iyofs = (nyin % nbin) / 2;
-  int sum, ix, iy, red, green, blue;
+  int sum, ix, iy, red, green, blue, pixSize;
   b3dFloat fsum;
   unsigned char *bdata = (unsigned char *)brray;
   b3dInt16 *sdata = (b3dInt16 *)brray;
@@ -62,24 +70,48 @@ int reduceByBinning(void *array, int type, int nxin, int nyin, int nbin,
       type != SLICE_MODE_USHORT && type != SLICE_MODE_FLOAT && 
       type != SLICE_MODE_RGB)
     return 1;
+  if (nxin > nxDim)
+    return 2;
 
-  if (nbin == 2 && type != SLICE_MODE_RGB) {
+  /* Get the bytes per pixel */
+  if (type == SLICE_MODE_BYTE)
+    pixSize = 1;
+  else if (type == SLICE_MODE_FLOAT)
+    pixSize = 4;
+  else if (type == SLICE_MODE_RGB)
+    pixSize = 3;
+  else
+    pixSize = 2;
+
+  /* Advance array pointer to the beginning of the data */
+  array = (void *)((unsigned char *)array + (xStart + yStart * nxDim) * pixSize);
+
+  if (nbin == 1) {
+
+    /* Binning 1: copy the data line by line */
+    for (iy = 0; iy < nyout; iy++) {
+      cline1 = ((unsigned char *)array) + pixSize * iy * nxDim;
+      for (ix = 0; ix < nxout * pixSize; ix++)
+        *bdata++ = *cline1++;
+    }
+
+  } else if (nbin == 2 && type != SLICE_MODE_RGB) {
     
     /* Binning by 2 */
     switch (type) {
     case SLICE_MODE_BYTE:
       for (iy = 0; iy < nyout; iy++) {
-        cline1 = ((unsigned char *)array) + 2 * iy * nxin;
-        cline2 = cline1 + nxin;
+        cline1 = ((unsigned char *)array) + 2 * iy * nxDim;
+        cline2 = cline1 + nxDim;
         if (keepByte) {
-          for (ix = 0;   ix < nxout; ix++) {
+          for (ix = 0; ix < nxout; ix++) {
             sum = 2 + *cline1 + *(cline1 + 1) + *cline2 + *(cline2 + 1);
             *bdata++ = (unsigned char)(sum / 4);
             cline1 += 2;
             cline2 += 2;
           }
         } else {
-          for (ix = 0;   ix < nxout; ix++) {
+          for (ix = 0; ix < nxout; ix++) {
             *sdata++ = (b3dInt16)(*cline1) + *(cline1 + 1) + *cline2 + 
               *(cline2 + 1);
             cline1 += 2;
@@ -91,9 +123,9 @@ int reduceByBinning(void *array, int type, int nxin, int nyin, int nbin,
       
     case SLICE_MODE_SHORT:
       for (iy = 0; iy < nyout; iy++) {
-        sline1 = ((b3dInt16 *)array) + 2 * iy * nxin;
-        sline2 = sline1 + nxin;
-        for (ix = 0;   ix < nxout; ix++) {
+        sline1 = ((b3dInt16 *)array) + 2 * iy * nxDim;
+        sline2 = sline1 + nxDim;
+        for (ix = 0; ix < nxout; ix++) {
           sum = 2 + *sline1 + *(sline1 + 1) + *sline2 + *(sline2 + 1);
           sline1 += 2;
           sline2 += 2;
@@ -104,9 +136,9 @@ int reduceByBinning(void *array, int type, int nxin, int nyin, int nbin,
 
     case SLICE_MODE_USHORT:
       for (iy = 0; iy < nyout; iy++) {
-        usline1 = ((b3dUInt16 *)array) + 2 * iy * nxin;
-        usline2 = usline1 + nxin;
-        for (ix = 0;   ix < nxout; ix++) {
+        usline1 = ((b3dUInt16 *)array) + 2 * iy * nxDim;
+        usline2 = usline1 + nxDim;
+        for (ix = 0; ix < nxout; ix++) {
           sum = 2 + *usline1 + *(usline1 + 1) + *usline2 + *(usline2 + 1);
           usline1 += 2;
           usline2 += 2;
@@ -117,9 +149,9 @@ int reduceByBinning(void *array, int type, int nxin, int nyin, int nbin,
 
     case SLICE_MODE_FLOAT:
       for (iy = 0; iy < nyout; iy++) {
-        fline1 = ((b3dFloat *)array) + 2 * iy * nxin;
-        fline2 = fline1 + nxin;
-        for (ix = 0;   ix < nxout; ix++) {
+        fline1 = ((b3dFloat *)array) + 2 * iy * nxDim;
+        fline2 = fline1 + nxDim;
+        for (ix = 0; ix < nxout; ix++) {
           fsum = *fline1 + *(fline1 + 1) + *fline2 + *(fline2 + 1);
           fline1 += 2;
           fline2 += 2;
@@ -135,9 +167,9 @@ int reduceByBinning(void *array, int type, int nxin, int nyin, int nbin,
     switch (type) {
     case SLICE_MODE_BYTE:
       for (iy = 0; iy < nyout; iy++) {
-        cline1 = ((unsigned char *)array) + (3 * iy + iyofs) * nxin + ixofs;
-        cline2 = cline1 + nxin;
-        cline3 = cline2 + nxin;
+        cline1 = ((unsigned char *)array) + (3 * iy + iyofs) * nxDim + ixofs;
+        cline2 = cline1 + nxDim;
+        cline3 = cline2 + nxDim;
         if (keepByte) {
           for (ix = 0; ix < nxout; ix++) {
             sum = 4 + *cline1 + *(cline1 + 1) + *(cline1 + 2) +
@@ -163,10 +195,10 @@ int reduceByBinning(void *array, int type, int nxin, int nyin, int nbin,
       
     case SLICE_MODE_SHORT:
       for (iy = 0; iy < nyout; iy++) {
-        sline1 = ((b3dInt16 *)array) + (3 * iy + iyofs) * nxin + ixofs;
-        sline2 = sline1 + nxin;
-        sline3 = sline2 + nxin;
-        for (ix = 0;   ix < nxout; ix++) {
+        sline1 = ((b3dInt16 *)array) + (3 * iy + iyofs) * nxDim + ixofs;
+        sline2 = sline1 + nxDim;
+        sline3 = sline2 + nxDim;
+        for (ix = 0; ix < nxout; ix++) {
           sum = 4 + *sline1 + *(sline1 + 1) + *(sline1 + 2) +
             *sline2 + *(sline2 + 1) + *(sline2 + 2) +
             *sline3 + *(sline3 + 1) + *(sline3 + 2);
@@ -180,10 +212,10 @@ int reduceByBinning(void *array, int type, int nxin, int nyin, int nbin,
         
     case SLICE_MODE_USHORT:
       for (iy = 0; iy < nyout; iy++) {
-        usline1 = ((b3dUInt16 *)array) + (3 * iy + iyofs) * nxin + ixofs;
-        usline2 = usline1 + nxin;
-        usline3 = usline2 + nxin;
-        for (ix = 0;   ix < nxout; ix++) {
+        usline1 = ((b3dUInt16 *)array) + (3 * iy + iyofs) * nxDim + ixofs;
+        usline2 = usline1 + nxDim;
+        usline3 = usline2 + nxDim;
+        for (ix = 0; ix < nxout; ix++) {
           sum = 4 + *usline1 + *(usline1 + 1) + *(usline1 + 2) +
             *usline2 + *(usline2 + 1) + *(usline2 + 2) +
             *usline3 + *(usline3 + 1) + *(usline3 + 2);
@@ -197,10 +229,10 @@ int reduceByBinning(void *array, int type, int nxin, int nyin, int nbin,
         
     case SLICE_MODE_FLOAT:
       for (iy = 0; iy < nyout; iy++) {
-        fline1 = ((b3dFloat *)array) + (3 * iy + iyofs) * nxin + ixofs;
-        fline2 = fline1 + nxin;
-        fline3 = fline2 + nxin;
-        for (ix = 0;   ix < nxout; ix++) {
+        fline1 = ((b3dFloat *)array) + (3 * iy + iyofs) * nxDim + ixofs;
+        fline2 = fline1 + nxDim;
+        fline3 = fline2 + nxDim;
+        for (ix = 0; ix < nxout; ix++) {
           fsum = *fline1 + *(fline1 + 1) + *(fline1 + 2) +
             *fline2 + *(fline2 + 1) + *(fline2 + 2) +
             *fline3 + *(fline3 + 1) + *(fline3 + 2);
@@ -219,10 +251,10 @@ int reduceByBinning(void *array, int type, int nxin, int nyin, int nbin,
     switch (type) {
     case SLICE_MODE_BYTE:
       for (iy = 0; iy < nyout; iy++) {
-        cline1 = ((unsigned char *)array) + (4 * iy + iyofs) * nxin + ixofs;
-        cline2 = cline1 + nxin;
-        cline3 = cline2 + nxin;
-        cline4 = cline3 + nxin;
+        cline1 = ((unsigned char *)array) + (4 * iy + iyofs) * nxDim + ixofs;
+        cline2 = cline1 + nxDim;
+        cline3 = cline2 + nxDim;
+        cline4 = cline3 + nxDim;
         if (keepByte) {
           for (ix = 0; ix < nxout; ix++) {
             sum = 8 + *cline1 + *(cline1 + 1) + *(cline1 + 2) + *(cline1 + 3) +
@@ -253,11 +285,11 @@ int reduceByBinning(void *array, int type, int nxin, int nyin, int nbin,
         
     case SLICE_MODE_SHORT:
       for (iy = 0; iy < nyout; iy++) {
-        sline1 = ((b3dInt16 *)array) + (4 * iy + iyofs) * nxin + ixofs;
-        sline2 = sline1 + nxin;
-        sline3 = sline2 + nxin;
-        sline4 = sline3 + nxin;
-        for (ix = 0;   ix < nxout; ix++) {
+        sline1 = ((b3dInt16 *)array) + (4 * iy + iyofs) * nxDim + ixofs;
+        sline2 = sline1 + nxDim;
+        sline3 = sline2 + nxDim;
+        sline4 = sline3 + nxDim;
+        for (ix = 0; ix < nxout; ix++) {
           sum = 8 +  *sline1 + *(sline1 + 1) + *(sline1 + 2) + *(sline1 + 3) +
             *sline2 + *(sline2 + 1) + *(sline2 + 2) + *(sline2 + 3) +
             *sline3 + *(sline3 + 1) + *(sline3 + 2) + *(sline3 + 3) +
@@ -273,11 +305,11 @@ int reduceByBinning(void *array, int type, int nxin, int nyin, int nbin,
         
     case SLICE_MODE_USHORT:
       for (iy = 0; iy < nyout; iy++) {
-        usline1 = ((b3dUInt16 *)array) + (4 * iy + iyofs) * nxin + ixofs;
-        usline2 = usline1 + nxin;
-        usline3 = usline2 + nxin;
-        usline4 = usline3 + nxin;
-        for (ix = 0;   ix < nxout; ix++) {
+        usline1 = ((b3dUInt16 *)array) + (4 * iy + iyofs) * nxDim + ixofs;
+        usline2 = usline1 + nxDim;
+        usline3 = usline2 + nxDim;
+        usline4 = usline3 + nxDim;
+        for (ix = 0; ix < nxout; ix++) {
           sum = 8 +  *usline1 + *(usline1 + 1) + *(usline1 + 2) + 
             *(usline1 + 3) +
             *usline2 + *(usline2 + 1) + *(usline2 + 2) + *(usline2 + 3) +
@@ -294,11 +326,11 @@ int reduceByBinning(void *array, int type, int nxin, int nyin, int nbin,
         
     case SLICE_MODE_FLOAT:
       for (iy = 0; iy < nyout; iy++) {
-        fline1 = ((b3dFloat *)array) + (4 * iy + iyofs) * nxin + ixofs;
-        fline2 = fline1 + nxin;
-        fline3 = fline2 + nxin;
-        fline4 = fline3 + nxin;
-        for (ix = 0;   ix < nxout; ix++) {
+        fline1 = ((b3dFloat *)array) + (4 * iy + iyofs) * nxDim + ixofs;
+        fline2 = fline1 + nxDim;
+        fline3 = fline2 + nxDim;
+        fline4 = fline3 + nxDim;
+        for (ix = 0; ix < nxout; ix++) {
           fsum = *fline1 + *(fline1 + 1) + *(fline1 + 2) + *(fline1 + 3) +
             *fline2 + *(fline2 + 1) + *(fline2 + 2) + *(fline2 + 3) +
             *fline3 + *(fline3 + 1) + *(fline3 + 2) + *(fline3 + 3) +
@@ -319,14 +351,14 @@ int reduceByBinning(void *array, int type, int nxin, int nyin, int nbin,
     switch (type) {
     case SLICE_MODE_BYTE:
       for (iy = 0; iy < nyout; iy++) {
-        cline1 = ((unsigned char *)array) + (nbin * iy + iyofs) * nxin + ixofs;
+        cline1 = ((unsigned char *)array) + (nbin * iy + iyofs) * nxDim + ixofs;
         for (ix = 0; ix < nxout; ix++) {
           sum = 0;
           cline2 = cline1;
           for (j = 0; j < nbin; j++) {
             for (i = 0; i < nbin; i++) 
               sum += cline2[i];
-            cline2 += nxin;
+            cline2 += nxDim;
           }
           if (keepByte)
             *bdata++ = (unsigned char)((sum + nbinsq / 2) / nbinsq);
@@ -339,14 +371,14 @@ int reduceByBinning(void *array, int type, int nxin, int nyin, int nbin,
 
     case SLICE_MODE_SHORT:
       for (iy = 0; iy < nyout; iy++) {
-        sline1 = ((b3dInt16 *)array) + (nbin * iy + iyofs) * nxin+ ixofs;
+        sline1 = ((b3dInt16 *)array) + (nbin * iy + iyofs) * nxDim+ ixofs;
         for (ix = 0; ix < nxout; ix++) {
           sum = nbinsq / 2;
           sline2 = sline1;
           for (j = 0; j < nbin; j++) {
             for (i = 0; i < nbin; i++) 
               sum += sline2[i];
-            sline2 += nxin;
+            sline2 += nxDim;
           }
           *sdata++ = sum / nbinsq;
           sline1 += nbin;
@@ -356,14 +388,14 @@ int reduceByBinning(void *array, int type, int nxin, int nyin, int nbin,
 
     case SLICE_MODE_USHORT:
       for (iy = 0; iy < nyout; iy++) {
-        usline1 = ((b3dUInt16 *)array) + (nbin * iy + iyofs) * nxin+ ixofs;
+        usline1 = ((b3dUInt16 *)array) + (nbin * iy + iyofs) * nxDim+ ixofs;
         for (ix = 0; ix < nxout; ix++) {
           sum = nbinsq / 2;
           usline2 = usline1;
           for (j = 0; j < nbin; j++) {
             for (i = 0; i < nbin; i++) 
               sum += usline2[i];
-            usline2 += nxin;
+            usline2 += nxDim;
           }
           *usdata++ = sum / nbinsq;
           usline1 += nbin;
@@ -373,14 +405,14 @@ int reduceByBinning(void *array, int type, int nxin, int nyin, int nbin,
 
     case SLICE_MODE_FLOAT:
       for (iy = 0; iy < nyout; iy++) {
-        fline1 = ((b3dFloat *)array) + (nbin * iy + iyofs) * nxin + ixofs;
+        fline1 = ((b3dFloat *)array) + (nbin * iy + iyofs) * nxDim + ixofs;
         for (ix = 0; ix < nxout; ix++) {
           fsum = 0.;
           fline2 = fline1;
           for (j = 0; j < nbin; j++) {
             for (i = 0; i < nbin; i++) 
               fsum += fline2[i];
-            fline2 += nxin;
+            fline2 += nxDim;
           }
           *fdata++ = fsum / (b3dFloat)nbinsq;
           fline1 += nbin;
@@ -390,7 +422,7 @@ int reduceByBinning(void *array, int type, int nxin, int nyin, int nbin,
 
     case SLICE_MODE_RGB:
       for (iy = 0; iy < nyout; iy++) {
-        cline1 = ((unsigned char *)array) + 3 * ((nbin * iy + iyofs) * nxin + 
+        cline1 = ((unsigned char *)array) + 3 * ((nbin * iy + iyofs) * nxDim + 
                                                  ixofs);
         for (ix = 0; ix < nxout; ix++) {
           red = green = blue = 0;
@@ -401,7 +433,7 @@ int reduceByBinning(void *array, int type, int nxin, int nyin, int nbin,
               green += cline2[3*i + 1];
               blue += cline2[3*i + 2];
             }
-            cline2 += nxin * 3;
+            cline2 += nxDim * 3;
           }
           if (keepByte) {
             *bdata++ = (unsigned char)((red + nbinsq / 2) / nbinsq);
@@ -422,7 +454,47 @@ int reduceByBinning(void *array, int type, int nxin, int nyin, int nbin,
 }
 
 /*!
- * Fortran wrapper for @reduceByBinning, called as {reduce_by_binning}.  
+ * Fortran wrapper for @extractWithBinning with floating point data
+ */
+int extractwithbinning(float *array, int *nxDim, int *xStart, int *xEnd,
+                       int *yStart, int *yEnd, int *nbin, float *brray, int *keepByte,
+                       int *nxr, int *nyr)
+{
+  return extractWithBinning(array, SLICE_MODE_FLOAT, *nxDim, *xStart, *xEnd, *yStart,
+                            *yEnd, *nbin, brray, *keepByte, nxr, nyr);
+}
+
+
+/*!
+ * Fortran wrapper for call to @extractWithBinning to simply repack a portion of a
+ * 2D array sequentially into a 1-D array.
+ */
+void irepak(void *brray, void *array, int *nxin, int *nyin, int *xStart, int *xEnd,
+            int *yStart, int *yEnd)
+{
+  int nxr, nyr;
+  extractWithBinning(array, SLICE_MODE_FLOAT, *nxin, *xStart, *xEnd, *yStart,
+                     *yEnd, 1, brray, 1, &nxr, &nyr);
+}
+
+/*!
+ * Reduces a full array in size by summing pixels (binning) by the factor [nbin].
+ * [array] has the input, with dimensions [nxin] by [nyin].  It simply calls
+ * @extractWithBinning with ranges of 0 to [nxin] - 1 and 0 to [nyin] - 1;
+ * other arguments have the same meaning as there.  [brray] can be the 
+ * same as [array], and [nxr], [nyr] can be the same variables as [nxin],
+ * [nyin].  Returns 1 for an unsupported data type.
+ */
+int reduceByBinning(void *array, int type, int nxin, int nyin, int nbin, 
+                    void *brray, int keepByte, int *nxr, int *nyr)
+{
+  return extractWithBinning(array, type, nxin, 0, nxin - 1, 0, nyin - 1, nbin, brray,
+                            keepByte, nxr, nyr);
+}
+
+/*!
+ * Fortran wrapper for @reduceByBinning with floating point data, called as 
+ * {reduce_by_binning}.  
  * Again, the output variables can safely be the same as the input variables.
  */
 void reduce_by_binning(float *array, int *nx, int *ny, int *nbin,
@@ -494,7 +566,7 @@ void binIntoSlice(float *array, int nxDim, float *brray, int nxBin, int nyBin,
   }
 }
 
-/*! Fortran wrapper for @binIntoSlice. */
+/*! Fortran wrapper for @binIntoSlice */
 void binintoslice(float *array, int *nxDim, float *brray, int *nxBin, int *nyBin,
                   int *binFacX, int *binFacY, float *zWeight)
 {
