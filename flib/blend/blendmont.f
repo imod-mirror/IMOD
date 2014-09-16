@@ -131,7 +131,7 @@ c
       integer*4 iwarpNx, iwarpNy, indWarpFile
       integer*4 imodBackupFile, parWrtInitialize, getWarpGrid, readCheckWarpFile
       integer*4 getGridParameters, findMaxGridSize, getSizeAdjustedGrid,getLinearTransform
-      integer*4 setCurrentWarpFile
+      integer*4 setCurrentWarpFile, montXCFindBinning, niceFFTlimit
       real*8 walltime, wallstart, fastcum, slowcum
 c       
       logical pipinput
@@ -851,20 +851,10 @@ c       Determine size needed for output and correlation arrays
       maxbsiz=(ifastsiz+maxbin)*maxlinelength
 c       
 c       Find binning up to limit that will get padded size down to target
-      do nbinXcorr = 1, maxXcorrBinning
-        nxyPadded = 0
-        nxyBoxed = 0
-        do ixy = 1, 2
-          call xcorrSizes(ixy, nbinXcorr, 0, i, nxybox, nExtra, ix, iy,
-     &        iz, iwant, ierr)
-          nxyPadded = max(nxyPadded, (ix + 8) * (iy + 8), (iz + 8) * (iwant+8))
-          nxyBoxed = max(nxyBoxed, (nxybox(1) + 4) * (nxybox(2) + 4))
-        enddo
-        if (nxyBoxed .lt. nxyXcorrTarget**2 .or.
-     &      nbinXcorr .eq. maxXcorrBinning) exit
-      enddo
+      nbinXcorr = montXCFindBinning(maxXcorrBinning, nxyXcorrTarget, 0, nxyzIn,
+     &    noverlap, aspectMax, extraWidth, padFrac, niceFFTlimit(), nxyPadded, nxyBoxed)
       idimc = nxyPadded
-      maxbsiz = max(maxbsiz, nxyBoxed * nbinXcorr**2)
+      maxbsiz = max(maxbsiz, 2 * nxyBoxed * nbinXcorr**2)
 c      print *,'nbinxcorr, dims',nbinXcorr,idimc,maxbsiz
       allocate(binline(maxlinelength), brray(maxbsiz), stat = ierr)
       if (ierr .ne. 0) call exitError('ALLOCATING OUTPUT LINE ARRAYS')
