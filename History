@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/16/14: Fixed Tiltalign crash when robust fitting doesn't converge (In 4.7).
+
 9/14/14: Made patch2imod able to read up to 6 extra value columns and save
 selected columns as general values in the model.
 
