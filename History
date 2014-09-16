@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/16/14: Fixed Tiltalign crash when robust fitting doesn't converge (In 4.7).
+
 9/8/14: Changed autofidseed to create a specified temporary directory, not
 just the default one (In 4.7).
 
