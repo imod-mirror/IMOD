@@ -328,6 +328,13 @@ extern "C" {
                      void (*dumpEdge)(float *, int *, int *, int *, int *, int *), 
                      char *debugStr, int debugLen, int debugLevel);
 
+  /* sdsearch */
+  void montBigSearch(float *array, float *brray, int nx, int ny, int ixBox0,
+                     int iyBox0,int ixBox1, int iyBox1, float *dxMin, float *dyMin,
+                     float *sdMin, float *ddenMin, int numIter, int limStep);
+  void montSdCalc(float *array, float *brray, int nx, int ny, int ixBox0, int iyBox0,
+                  int ixBox1, int iyBox1, float dx, float dy, float *sd, float *dden);
+
 #ifdef __cplusplus
 }
 #endif
