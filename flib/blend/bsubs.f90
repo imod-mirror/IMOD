@@ -22,7 +22,6 @@
 ! findNearestPiece
 ! DXYDGRINTERP
 ! CROSSVALUE
-! *xcorrSizes
 ! *XCORREDGE
 ! FIND_BEST_SHIFTS
 ! includeEdge
@@ -34,7 +33,6 @@
 ! getDataLimits
 ! IWRBINNED
 ! GETEXTRAINDENTS
-! IBINPAK
 ! readExclusionModel
 ! DUMPEDGE
 !
@@ -1836,51 +1834,6 @@ subroutine crossvalue(xinlong, nxpieces, nypieces, nshort, nlong)
 end subroutine crossvalue
 
 
-! Computes sizes for doing edge cross-correlation in one direction
-! ixy is 1/2 for X/Y edges, nbin is the binning, indentXC is the indent
-! from full size.  It returns indentUse with the actual indent being
-! used, nxybox with the image box size after binning, nExtra with the
-! the number of extra pixels in each dimension (from extraWidth), and
-! the padded sizes for correlation in nxpad, nypad.  The padded size
-! for filtering to compute real-space correlations is in nxCCC, nyCCC
-!
-subroutine xcorrSizes(ixy, nbin, indentXC, indentUse, nxyBox, numExtra, &
-    nxPad, nyPad, nxCCC, nyCCC, maxLongShift)
-  use blendvars
-  implicit none
-  integer*4 indentXC, ixy, nbin, indentUse, nxyBox(2), numExtra(2), nxPad, nyPad
-  integer*4 nxCCC, nyCCC, iyx, nxyBorder(2), npadCCC, niceframe, maxLongShift
-  real*4 cccPadFrac
-  cccPadFrac = 0.1
-  iyx = 3 - ixy
-  indentUse = min(indentXC, (noverlap(ixy) - 8) / 2)
-  nxyBox(ixy) = (noverlap(ixy) - indentUse * 2) / nbin
-  nxyBox(iyx) = min((nxyzIn(iyx) - max(2 * nbin, nxyzIn(ixy) / 20)), &
-      int(aspectMax * noverlap(ixy))) / nbin
-  numExtra(iyx) = 0
-  numExtra(ixy) = min(2 * (nint(extraWidth * nxyBox(ixy)) / 2), &
-      (nxyzIn(ixy) - max(nbin, indentUse, nxyzIn(ixy) / 20) * 2) / nbin - &
-      nxyBox(ixy))
-  nxyBox(ixy) = nxyBox(ixy) + numExtra(ixy)
-  maxLongShift = nint(max(1.9 * noverlap(ixy) / nbin, 1.5 * nxyBox(ixy)))
-  !
-  ! get the padded size
-  ! Limit the long dimension padding to that needed for the maximum shift
-  nxyBorder(ixy) = max(5, nint(padFrac * nxyBox(ixy)))
-  nxyBorder(iyx) = min(max(5, nint(padFrac * nxyBox(iyx))), &
-      max(5, nint(0.45 * maxLongShift)))
-  nxPad = niceframe(nxyBox(1) + 2 * nxyBorder(1), 2, 19)
-  nyPad = niceframe(nxyBox(2) + 2 * nxyBorder(2), 2, 19)
-  !
-  ! 12/28/10: these sizes are now irrelevant
-  npadCCC = max(16, nint(cccPadFrac * nxyBox(1)))
-  nxCCC = niceframe(nxyBox(1) + 2 * npadCCC, 2, 19)
-  npadCCC = max(16, nint(cccPadFrac * nxyBox(2)))
-  nyCCC = niceframe(nxyBox(2) + 2 * npadCCC, 2, 19)
-  return
-end subroutine xcorrSizes
-
-
 ! Does cross-correlation on an edge
 !
 subroutine xcorrEdge(arrLower, arrUpper, ixy, xDisplace, yDisplace, legacy, indentXC)
@@ -1892,12 +1845,13 @@ subroutine xcorrEdge(arrLower, arrUpper, ixy, xDisplace, yDisplace, legacy, inde
   integer*4 nxyBox(2), ind0(2), ind1(2), iDisplace(2)
   real*4 ctf(8193), rDisplace(2)
   real*4 overFrac, delta, sdMin, delDenMin
-  real*4 xpeak(limXcorrPeaks), ypeak(limXcorrPeaks), peak(limXcorrPeaks)
   integer*4 indentSD, numIter, limStep, iyx, nxPad, nyPad, indentUse
-  integer*4 ixDisplace, iyDisplace, i, numExtra(2), nbin, ierr, nxTrim, nyTrim
-  integer*4 numSmooth, nxSmooth, nySmooth, indPeak, nxCCC, nyCCC
-  integer*4 taperAtFill, numPixel, maxLongShift
-  real * 8 cccMax, ccc, CCCoefficient, wallTime, wallStart
+  integer*4 ixDisplace, iyDisplace, i, numExtra(2), nbin, ierr, idum
+  integer*4 numSmooth, nxSmooth, nySmooth, indPeak, ifEvalCCC, ifLegacy
+  integer*4 numPixel, maxLongShift, niceFFTlimit, ind0Upper, ind1Upper
+  integer*4 taperAtFill, extractWithBinning
+  real*8 wallTime, wallStart
+  external todfft, dumpEdge
 
   indentSD = 5                                !indent for sdsearch
   overFrac = 0.9                              !fraction of overlap to use
@@ -1910,166 +1864,43 @@ subroutine xcorrEdge(arrLower, arrUpper, ixy, xDisplace, yDisplace, legacy, inde
   ! find size and limits of box in overlap zone to cut out
   !
   iyx = 3 - ixy
-  call xcorrSizes(ixy, nbin, indentXC, indentUse, nxyBox, numExtra, &
-      nxPad, nyPad, nxCCC, nyCCC, maxLongShift)
-  indentSD = indentSD + indentUse
-  ind0(iyx) = nxyzIn(iyx) / 2 - (nbin * nxyBox(iyx)) / 2
-  ind1(iyx) = ind0(iyx) + nbin * nxyBox(iyx) - 1
-  ind0(ixy) = nxyzIn(ixy) - noverlap(ixy) + indentUse - nbin * numExtra(ixy)
-  ind1(ixy) = ind0(ixy) + nbin * nxyBox(ixy) - 1
-  !
-  ! Set up smoothing over some pixels, but no more than half of the pad
-  nxSmooth = nxyBox(1) + min(2 * numSmooth, (nxPad - nxyBox(1)) / 2)
-  nySmooth = nxyBox(2) + min(2 * numSmooth, (nyPad - nxyBox(2)) / 2)
-  ! print *,ixy, indentUse, nxybox(ixy), nxybox(iyx), ind0(iyx), ind1(iyx), &
-  ! ind0(ixy), ind1(ixy)
-  ! print *,nxpad, nypad, nxSmooth, nySmooth
+  ifLegacy = 0
+  if (legacy) ifLegacy = 1
+  ifEvalCCC = 0
+  if (numXcorrPeaks > 1 .and. .not.legacy) ifEvalCCC = 1
 
-  if (nxyBox(1) * nxyBox(2) * nbin**2 > maxbsiz .or. nxPad * nyPad > idimc .or. &
-      nxCCC * nyCCC > idimc) call &
-      exitError('CORRELATION ARRAYS WERE NOT MADE LARGE ENOUGH')
+  call montXCBasicSizes(ixy, nbin, indentXC, nxyzIn, noverlap, aspectMax, extraWidth, &
+      padFrac, niceFFTlimit(), indentUse, nxyBox, numExtra, nxPad, nyPad, maxLongShift)
+  call montXCIndsAndCTF(ixy, nxyzIn, noverlap, nxyBox, nbin, indentUse, numExtra, nxPad, &
+      nyPad, numSmooth, sigma1, sigma2, radius1, radius2, ifEvalCCC, ind0, ind1,  &
+      ind0Upper, ind1Upper, nxSmooth, nySmooth, ctf, delta)
+  !print *,ixy, indentUse, nxybox(ixy), nxybox(iyx), ind0(iyx), ind1(iyx), &
+  !    ind0(ixy), ind1(ixy)
+  !print *,nxpad, nypad, nxSmooth, nySmooth
+
+  if (nxyBox(1) * nxyBox(2) * nbin**2 > maxbsiz / 2 .or. nxPad * nyPad > idimc) &
+      call exitError('CORRELATION ARRAYS WERE NOT MADE LARGE ENOUGH')
   !
   ! get the first image, lower piece
-  !
-  call ibinPak(brray, arrLower, nxIn, nyIn, ind0(1), ind1(1), ind0(2), &
-      ind1(2), nbin)
+  ierr = extractWithBinning(arrLower, nxIn, ind0(1), ind1(1), ind0(2), ind1(2), nbin, &
+      brray, 1, i, idum)
   if (ifillTreatment == 2) &
       ierr = taperAtFill(brray, nxyBox(1), nxyBox(2), 64, 0)
-  if (nxSmooth > nxyBox(1) .and. nySmooth > nxyBox(2)) then
-    call smoothOutPad(brray, nxyBox(1), nxyBox(2), xcray, nxSmooth, nxSmooth, nySmooth)
-    call taperOutPad(xcray, nxSmooth, nySmooth, xcray, nxPad + 2, nxPad, nyPad, 0, 0.)
-  else
-    call taperOutPad(brray, nxyBox(1), nxyBox(2), xcray, nxPad + 2, nxPad, nyPad, 0, 0.)
-  endif
-  call meanzero(xcray, nxPad + 2, nxPad, nyPad)
-  call dumpEdge(xcray, nxPad + 2, nxPad, nyPad, ixy, 0)
-  call todfft(xcray, nxPad, nyPad, 0)
   !
   ! get the second image, upper piece
-  !
-  ind0(ixy) = indentUse
-  ind1(ixy) = ind0(ixy) + nbin * nxyBox(ixy) - 1
-  !
-  call ibinPak(brray, arrUpper, nxIn, nyIn, ind0(1), ind1(1), ind0(2), ind1(2), nbin)
+  ind0(ixy) = ind0Upper
+  ind1(ixy) = ind1Upper
+  !print *,'upper', ind0(ixy), ind1(ixy)
+  ierr = extractWithBinning(arrUpper, nxIn, ind0(1), ind1(1), ind0(2), ind1(2), nbin, &
+      brray(maxbsiz / 2 + 1), 1, i, idum)
   if (ifillTreatment == 2) &
       ierr = taperAtFill(brray, nxyBox(1), nxyBox(2), 64, 0)
-  if (nxSmooth > nxyBox(1) .and. nySmooth > nxyBox(2)) then
-    call smoothOutPad(brray, nxyBox(1), nxyBox(2), xdray, nxSmooth, nxSmooth, nySmooth)
-    call taperOutPad(xdray, nxSmooth, nySmooth, xdray, nxPad + 2, nxPad, nyPad, 0, 0.)
-  else
-    call taperOutPad(brray, nxyBox(1), nxyBox(2), xdray, nxPad + 2, nxPad, nyPad, 0, 0.)
-  endif
-  call meanzero(xdray, nxPad + 2, nxPad, nyPad)
-  call dumpEdge(xdray, nxPad + 2, nxPad, nyPad, ixy, 0)
-  call todfft(xdray, nxPad, nyPad, 0)
   !
-  ! Multiply all filter parameters by the binning so they are equivalent
-  ! to frequencies in unbinned images
-  !
-  call setCtfwsr(nbin * sigma1, nbin * sigma2, nbin * radius1, nbin * radius2, ctf, &
-      nxPad, nyPad, delta)
-  if (numXcorrPeaks > 1 .and. .not.legacy .and. delta .ne. 0.) then
-    !
-    ! If we are going to evaluate multiple peaks, use the square root of
-    ! this filter function and apply it to each image
-    do i = 1, 8193
-      ctf(i) = sqrt(ctf(i))
-    enddo
-    call filterPart(xcray, xcray, nxPad, nyPad, ctf, delta)
-    call filterPart(xdray, xdray, nxPad, nyPad, ctf, delta)
-    do i = 1, (nxPad + 2) * nyPad / 2
-      xeray(i) = xcray(i)
-    enddo
-  elseif (delta .ne. 0.) then
-    call filterPart(xcray, xcray, nxPad, nyPad, ctf, delta)
-  endif
-  !
-  ! multiply xcray by complex conjugate of xdray, put back in xcray
-  !
-  call conjugateProduct(xcray, xdray, nxPad, nyPad)
-  !
-  call todfft(xcray, nxPad, nyPad, 1)
-  call xcorrPeakFind(xcray, nxPad + 2, nyPad, xpeak, ypeak, peak, &
-      max(16, numXcorrPeaks))
-  ! write(*,'(a,f10.6)') 'Initial cross-corr time', walltime() -wallstart
-  !
-  ! Eliminate any peaks that shift beyond maximum along edge
-  ! leave indPeak pointing to first good peak
-  indPeak = 0
-  do i = 1, max(16, numXcorrPeaks)
-    if ((ixy == 1 .and. abs(ypeak(i)) > maxLongShift) .or. &
-        (ixy == 2 .and. abs(xpeak(i)) > maxLongShift)) then
-      peak(i) = -1.e30
-      ! print *,'eliminated', i, xpeak(i), ypeak(i)
-    elseif (indPeak == 0 .and. peak(i) > -1.e29) then
-      indPeak = i
-    endif
-  enddo
-  !
-  ! But if no peak was legal, zero out the shift
-  if (indPeak == 0) then
-    indPeak = 1
-    xpeak(1) = numExtra(1)
-    ypeak(1) = numExtra(2)
-  endif
-  if (numXcorrPeaks > 1 .and. .not.legacy) then
-    !
-    ! If there was no filtering, pad second image into xdray then get
-    ! first image again
-    if (delta == 0) then
-      call taperOutPad(brray, nxyBox(1), nxyBox(2), xdray, nxPad + 2, nxPad, nyPad, 0, 0.)
-      ind0(ixy) = nxyzIn(ixy) - noverlap(ixy) + indentUse - nbin * numExtra(ixy)
-      ind1(ixy) = ind0(ixy) + nbin * nxyBox(ixy) - 1
-      call ibinPak(brray, arrLower, nxIn, nyIn, ind0(1), ind1(1), ind0(2), ind1(2), nbin)
-      if (ifillTreatment == 2) &
-          ierr = taperAtFill(brray, nxyBox(1), nxyBox(2), 64, 0)
-      call taperOutPad(brray, nxyBox(1), nxyBox(2), xeray, nxPad + 2, nxPad, nyPad, 0, 0.)
-    else
-      !
-      ! Otherwise, back-transform the filtered images
-      call todfft(xeray, nxPad, nyPad, 1)
-      call todfft(xdray, nxPad, nyPad, 1)
-      !
-      call dumpEdge(xeray, nxPad + 2, nxPad, nyPad, ixy, 0)
-      call dumpEdge(xdray, nxPad + 2, nxPad, nyPad, ixy, 0)
-    endif
-    cccMax = -10.
-    do i = 1, numXcorrPeaks
-      if (peak(i) > -1.e29) then
-        !
-        ! Reject peak at no zero image offset from fixed pattern noise
-        if (.not. (ixy == 1 .and. &
-            abs(nxIn + nbin * (xpeak(i) - numExtra(1)) - nxOverlap) <= 3.) &
-            .or. (ixy == 2 .and. &
-            abs(nyIn + nbin * (ypeak(i) - numExtra(2)) - nyOverlap) <= 3.)) &
-            then
-          nxTrim = min(4, nxyBox(1) / 8) + (nxPad - nxyBox(1)) / 2
-          nyTrim = min(4, nxyBox(2) / 8) + (nyPad - nxyBox(2)) / 2
-          ccc = CCCoefficient(xeray, xdray, nxPad + 2, nxPad, nyPad, &
-              xpeak(i), ypeak(i), nxTrim, nyTrim, numPixel)
-          !write(*,'(i3,a,2f7.1,a,e14.7,a,i8,a,f8.5)') i, ' at ', xpeak(i), &
-          !    ypeak(i), ' peak =', peak(i), ' nsum = ', numPixel, ' cc =', ccc
-          if (ccc > cccMax .and. (i == 1 .or. numPixel > &
-              (nxPad - 2 * nxTrim) * (nyPad - 2 * nyTrim) / 8)) then
-            cccMax = ccc
-            indPeak = i
-          endif
-        endif
-      endif
+  ! Do the correlation
+  call montXCorrEdge(brray, brray(maxbsiz / 2 + 1), nxyBox, nxyzIn, noverlap, nxSmooth, &
+      nySmooth,nxPad, nyPad, xcray, xdray, xeray, numXcorrPeaks, ifLegacy, ctf, delta, &
+      numExtra, nbin, ixy, maxLongShift, 0, xDisplace, yDisplace, todfft, dumpEdge, 0)
 
-    enddo
-    i = indPeak
-    !write(*,'(i3,a,2f7.1,a,e14.7,a,f8.5)') i, ' at ', xpeak(i), &
-    !    ypeak(i), ' peak =', peak(i), ' cc =', cccMax
-    ! write(*,'(a,f10.6)') 'time after CCC', walltime() -wallstart
-  endif
-  call dumpEdge(xcray, nxPad + 2, nxPad, nyPad, ixy, 1)
-  !
-  ! return the amount to shift upper to align it to lower (verified)
-  !
-  xDisplace = nbin * (xpeak(indPeak) - numExtra(1))
-  yDisplace = nbin * (ypeak(indPeak) - numExtra(2))
-  ! write(*,'(2f8.2,2f8.2)') xpeak(indPeak), ypeak(indPeak), xDisplace, yDisplace
   if (legacy) return
   !
   ! the following is adopted largely from setgridchars
@@ -3041,39 +2872,6 @@ subroutine getExtraIndents(ipclow, ipcup, ixy, delIndent)
   endif
   return
 end subroutine getExtraIndents
-
-! IBINPAK packs a portion of ARRAY into BRRAY with binning given by
-! NBIN.  MX, MY are the dimensions of ARRAY, NX1, NX2, NY1, and NY2
-! are starting and ending indexes (numbered from 0) from which to take
-! the data
-!
-subroutine ibinpak(brray, array, mx, my, nx1, nx2, ny1, ny2, nbin)
-  implicit none
-  integer*4 mx, my, nx1, nx2, ny1, ny2, nbin
-  real*4 brray(*), array(mx, my), sum
-  integer*4 nx2adj, ny2adj, ix, iy, ipx, ipy, iout
-
-  if (nbin == 1) then
-    call irepak(brray, array, mx, my, nx1, nx2, ny1, ny2)
-    return
-  endif
-  nx2adj = nbin * ((nx2 + 1 - nx1) / nbin - 1) + nx1
-  ny2adj = nbin * ((ny2 + 1 - ny1) / nbin - 1) + ny1
-  iout = 1
-  do iy = ny1, ny2adj, nbin
-    do ix = nx1, nx2adj, nbin
-      sum = 0.
-      do ipy = 1, nbin
-        do ipx = 1, nbin
-          sum = sum + array(ipx + ix, ipy + iy)
-        enddo
-      enddo
-      brray(iout) = sum / nbin**2
-      iout = iout + 1
-    enddo
-  enddo
-  return
-end subroutine ibinpak
 
 
 ! Reads a model of edges to exclude, analyzes it and marks edges
