@@ -408,7 +408,7 @@ void montxcorredge(float *lowerIn, float *upperIn, int *nxyBox, int *nxyPiece,
                 *legacy, ctf, *delta, numExtra, *nbin, *ixy - 1,
                 *maxLongShift, *weightCCC, xDisplace, yDisplace, 
                 twoDfft, dumpEdge, debugStr, debugLen, *debugLevel);
-  if (debugLevel) {
+  if (*debugLevel) {
     while ((lineEnd = strchr(curDebug, '\n')) != NULL) {
       *lineEnd = 0x00;
       printf("%s\n", curDebug);
