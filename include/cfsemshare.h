@@ -324,7 +324,7 @@ extern "C" {
                      int numXcorrPeaks, int legacy, float *ctf, float delta,
                      int *numExtra, int nbin, int ixy,
                      int maxLongShift, int weightCCC, float *xDisplace, float *yDisplace,
-                     void (*twoDfft)(float *, int *, int *, int *),
+                     float *CCC, void (*twoDfft)(float *, int *, int *, int *),
                      void (*dumpEdge)(float *, int *, int *, int *, int *, int *), 
                      char *debugStr, int debugLen, int debugLevel);
 
