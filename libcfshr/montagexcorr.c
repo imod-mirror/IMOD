@@ -245,7 +245,7 @@ int montxcfindbinning(int *maxBin, int *targetSize, int *indentXC, int *nxyPiece
  * it should be [numXcorrPeaks] + 1 times MONTXC_MAX_DEBUG_LINE ^
  * [debugLen]      - Length of [debugLen] ^
  * [debugLevel]    - 1 for summary of selected peak and the displacement, 2 for full 
- * output about each peak ^
+ * output about each peak, 3 to include eliminated peaks ^
  */
 void montXCorrEdge(float *lowerIn, float *upperIn, int *nxyBox, int *nxyPiece, 
                    int *nxyOverlap, int nxSmooth, int nySmooth, int nxPad, int nyPad,
@@ -304,7 +304,7 @@ void montXCorrEdge(float *lowerIn, float *upperIn, int *nxyBox, int *nxyPiece,
     if ((ixy == 0 && fabs((double)ypeak[i]) > maxLongShift) ||
         (ixy == 1 && fabs((double)xpeak[i]) > maxLongShift)) {
       peak[i] = -1.e30;
-      if (debugLevel > 1 && debugLen > curDebugLen + MONTXC_MAX_DEBUG_LINE) {
+      if (debugLevel > 2 && debugLen > curDebugLen + MONTXC_MAX_DEBUG_LINE) {
         sprintf(&debugStr[curDebugLen], "Eliminated peak %d at %.1f %.1f\n", i, xpeak[i],
                 ypeak[i]);
         curDebugLen += strlen(&debugStr[curDebugLen]);
