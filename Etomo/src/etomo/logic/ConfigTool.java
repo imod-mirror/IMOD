@@ -36,7 +36,7 @@ public final class ConfigTool {
   public static File[] getScopeTemplateFiles() {
     SortedMap<String, File> map = new TreeMap<String, File>();
     File[] fileArray = new File(EtomoDirector.INSTANCE.getIMODCalibDirectory(),
-        "ScopeTemplate").listFiles(new AutodocFilter());
+        "ScopeTemplate").listFiles(new AutodocFilter(true));
     if (fileArray == null) {
       return null;
     }
@@ -60,7 +60,7 @@ public final class ConfigTool {
    */
   public static File[] getSystemTemplateFiles() {
     File[] fileArray = new File(EtomoDirector.INSTANCE.getIMODDirectory(),
-        DEFAULT_SYSTEM_TEMPLATE_DIR).listFiles(new AutodocFilter());
+        DEFAULT_SYSTEM_TEMPLATE_DIR).listFiles(new AutodocFilter(true));
     SortedMap<String, File> map = null;
     if (fileArray != null) {
       map = new TreeMap<String, File>();
@@ -69,7 +69,7 @@ public final class ConfigTool {
       }
     }
     fileArray = new File(EtomoDirector.INSTANCE.getIMODCalibDirectory(),
-        DEFAULT_SYSTEM_TEMPLATE_DIR).listFiles(new AutodocFilter());
+        DEFAULT_SYSTEM_TEMPLATE_DIR).listFiles(new AutodocFilter(true));
     if (fileArray != null) {
       if (map == null) {
         map = new TreeMap<String, File>();
