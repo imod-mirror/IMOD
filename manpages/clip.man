@@ -790,7 +790,12 @@ changed, .e.g., to preserve negative values.
 .TP
 .B threshold
 Make binary image by setting pixels above a threshold entered with
-\fB-t\fB to a high value, otherwise to a low value.  
+\fB-t\fB to a high value, otherwise to a low value.  The threshold must
+correspond to a value in the file, which is usually not the same as a
+threshold value visualized in 3dmod(1).  The Threshold panel in the
+image processing dialog in 3dmod(1) (opened with Edit-Image-Process)
+will show the value in the file corresponding to a particular threshold
+setting there.
 The default low and high values are 0 and 255.  If the \fB-s\fR
 option is given, the low and high values will be set to the minimum and
 maximum of the input image file.
