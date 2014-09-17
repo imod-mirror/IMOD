@@ -44,6 +44,7 @@ int clip_scaling(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
   double min, alpha;
   float hival, loval;
   int truncLo = 0, truncHi = 0, truncToMean = 0;
+  float threshLo = 0., threshHi = 255.;
 
   z = set_options(opt, hin, hout);
   if (z < 0)
@@ -68,6 +69,22 @@ int clip_scaling(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
     break;
   case IP_RESIZE:
     mrc_head_label(hout, "clip: resized image");
+    break;
+  case IP_THRESHOLD:
+    show_status("Threshold...\n");
+    if (opt->sano) {
+      threshLo = hin->amin;
+      threshHi = hin->amax;
+    }
+    if (opt->low != IP_DEFAULT)
+      threshLo = opt->low;
+    if (opt->high != IP_DEFAULT)
+      threshHi = opt->high;
+    if (opt->thresh == IP_DEFAULT) {
+      show_error("clip threshold: You must enter a threshold value");
+      return -1;
+    }
+    mrc_head_label(hout, "clip: thresholded");
     break;
   case IP_TRUNCATE:
     show_status("Truncate...\n");
@@ -125,7 +142,23 @@ int clip_scaling(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
         min = (double)slice->mean;
     }
       
-    if (opt->process == IP_TRUNCATE) {
+    if (opt->process == IP_THRESHOLD) {
+      for (j = 0; j < opt->iy; j++) {
+        for (i = 0; i < opt->ix; i++) {
+          sliceGetVal(slice, i, j, val);
+          for (l = 0; l < slice->csize; l++) {
+
+            // The <= makes the result the same as in 3dmod
+            if (val[l] <= opt->thresh)
+              val[l] = threshLo;
+            else
+              val[l] = threshHi;
+          }
+          slicePutVal(slice, i, j, val);
+        }
+      }
+
+    } else if (opt->process == IP_TRUNCATE) {
       for (j = 0; j < opt->iy; j++) {
         for (i = 0; i < opt->ix; i++) {
           sliceGetVal(slice, i, j, val);

@@ -104,6 +104,9 @@ Compute the standard deviation of a set of images.
 .I subtract
 Subtract one image volume from another.
 .TP
+.I threshold
+Make binary (black/white) image by applying a threshold.
+.TP
 .I truncate
 Limit pixel values at low or high end, or both.
 .TP
@@ -268,10 +271,11 @@ Regardless of the representation in the file, bytes are read into IMOD programs 
 unsigned with a range of 0 to 255.
 .TP
 .B -h \fIlevel\fR
-Has five uses: 1) Level for high pass filter. Range is (0.0 - 0.71 / pixel).
+Has many uses: 1) Level for high pass filter. Range is (0.0 - 0.71 / pixel).
 The default value is 0. 2) High level for image truncation; the default is no
 truncation.  3) Width of area analyzed in quadrant correction.  4) Upper
-limit for histogram output.  5) Threshold above
+limit for histogram output.  5) Value assigned to pixels above
+threshold when thresholding.  6) Threshold above
 which values will be truncated With 4-bit unpacking.
 .TP
 .B -k \fIvalue\fR
@@ -289,7 +293,8 @@ scaling the output values. 5) With image truncation, sets the low level for
 truncation (default is no truncation). 6) With quadrant correction, sets a
 base to be added to values for scaling.  7) Lower limit for histogram
 output.  8) When truncating values from 4-bit unpacking, sets the value to
-assign to a pixel above the truncation threshold.
+assign to a pixel above the truncation threshold.  9) When
+thresholding, sets the value assigned to pixels below threshold.
 .TP
 .B -cc \fIvalue\fR
 Specifies type of edge stopping function for diffusion: 1 for exponential
@@ -313,6 +318,9 @@ Green value; Range is (0.0 - 1.0) Default is 1.0.
 .B -b \fIvalue\fR
 Blue value;  Range is (0.0 - 1.0) Default is 1.0.
 .TP
+.B -t \fIvalue\fR
+Threshold value for thresholding.
+.TP
 .B -D \fIfile\fR
 Name of defect list file produced by SerialEM, for correction of
 column, row, and point defects in images that have not had this
@@ -323,7 +331,7 @@ normalized and scaled up or converted to float to represent fractional
 counts properly.  This option is thus available with the "unpack" and 
 "multiply" commands that are used to apply such gain normalization; it
 is also available with "divide", "resize", "brightness", "contrast",
-"shadow", "truncate", and "unwrap".  The defect list file has entries
+"shadow", "threshold", "truncate", and "unwrap".  The defect list file has entries
 to indicate the camera size upon which the coordinates are based, and
 whether it has been scaled up by a factor of 2 to correspond to pixels
 in a super-resolution mode image.  Given these entries and the size of
@@ -779,6 +787,15 @@ Subtract the second input file from the first one.  Both files must be the
 same size and mode, but standard input and output options are available.
 There is no provision for scaling, but the mode of the output can be 
 changed, .e.g., to preserve negative values.
+.TP
+.B threshold
+Make binary image by setting pixels above a threshold entered with
+\fB-t\fB to a high value, otherwise to a low value.  
+The default low and high values are 0 and 255.  If the \fB-s\fR
+option is given, the low and high values will be set to the minimum and
+maximum of the input image file.
+The low value can also be set with \fB-l\fR and the high value with \fB-h\fR.
+Standard input and output options can be used.
 .TP
 .B truncate
 Truncate pixel values at a lower or upper limit, or both.  Enter the lower
