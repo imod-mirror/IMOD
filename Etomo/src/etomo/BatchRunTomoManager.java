@@ -94,7 +94,7 @@ public final class BatchRunTomoManager extends BaseManager {
   private void openProcessingPanel() {
     mainPanel.showProcessingPanel(AxisType.SINGLE_AXIS);
     setPanel();
-    reconnect(axisProcessData.getSavedProcessData(AxisID.ONLY), AxisID.ONLY, false);
+    reconnect(axisProcessData.getSavedProcessData(AXIS_ID), AXIS_ID, false);
   }
 
   public void openBatchRunTomoDialog() {
@@ -113,7 +113,7 @@ public final class BatchRunTomoManager extends BaseManager {
     mainPanel.showProcess(dialog.getContainer(), AXIS_ID);
     uiHarness.updateFrame(this);
     String actionMessage = Utilities.prepareDialogActionMessage(
-        DialogType.BATCH_RUN_TOMO, AxisID.ONLY, null);
+        DialogType.BATCH_RUN_TOMO, AXIS_ID, null);
     if (actionMessage != null) {
       System.err.println(actionMessage);
     }
@@ -168,7 +168,7 @@ public final class BatchRunTomoManager extends BaseManager {
     if (dialog == null || !dialog.getParameters(param, doValidation)) {
       return null;
     }
-    comScriptManager.saveBatchruntomo(param);
+    comScriptManager.saveBatchRunTomo(param,AXIS_ID);
     return param;
   }
 
