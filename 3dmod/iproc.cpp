@@ -199,7 +199,12 @@ static void thresh_cb()
     sliceByteGrow(&sSlice,  (int)sSlice.max);
   if (sParam.threshShrink)
     sliceByteShrink(&sSlice,  (int)sSlice.max);
-  sCommand = "Cannot do thresholding in clip";
+  if (ip->dia->mParamStack.size() > 1)
+    sCommand = "Cannot do thresholding in clip except as first process";
+  else if (sParam.threshGrow || sParam.threshShrink)
+    sCommand = "Cannot do thresholding with grow or shrink in clip";
+  else
+    sCommand.sprintf("clip threshold -t %g", sProc.fileThreshold);
 }
 
 // Smoothing
@@ -443,6 +448,8 @@ void iprocUpdate(void)
   if (!sProc.dia || sProc.vi->loadingImage || sProc.dia->mRunningProc || 
       sProc.dia->mUseStackInd >= 0)
     return;
+
+  sProc.dia->calcFileThreshold();
 
   /* If time or section has changed, do a save or apply if option checked */
   if (B3DNINT(sProc.vi->zmouse) != sProc.idataSec ||
@@ -743,6 +750,7 @@ static void mkthresh_cb(IProcWindow *win, QWidget *parent, QVBoxLayout *layout)
   QObject::connect(slider, SIGNAL(sliderChanged(int, int, bool)), win, 
           SLOT(threshChanged(int, int, bool)));
   layout->addLayout(slider->getLayout());
+  sProc.threshFileLabel = diaLabel("   ", parent, layout);
   QCheckBox *check = diaCheckBox("Grow thresholded area", parent, layout);
   diaSetChecked(check, sParam.threshGrow);
   QObject::connect(check, SIGNAL(toggled(bool)), win, SLOT(growChanged(bool)));
@@ -986,6 +994,7 @@ IProcWindow::IProcWindow(QWidget *parent, const char *name)
                                        QSizePolicy::Ignored));
     procTable[i].control = control;
   }
+  calcFileThreshold();
 
   // Finalize list box setting and connections
   manageListSize();
@@ -1107,6 +1116,7 @@ void IProcWindow::shrinkChanged(bool state)
 
 void IProcWindow::newThreshSetting()
 {
+  calcFileThreshold();
   if (sProc.applyThreshChange && !(mRunningProc || mUseStackInd >= 0))
     apply(mParamStack.size() > 1);
 }
@@ -1419,6 +1429,29 @@ void IProcWindow::limitFFTbinning()
   if (sParam.fftBinning > limit)
     sParam.fftBinning = limit;
   diaSetSpinMMVal(ip->fftBinSpin, 1, limit, sParam.fftBinning);
+}
+
+void IProcWindow::calcFileThreshold()
+{
+  ImodView *vi = sProc.vi;
+  float range = vi->ushortStore ? 65535. : 255.;
+  float low = vi->ushortStore ? vi->rangeLow : 0.;
+  float high = vi->ushortStore ? vi->rangeHigh : 255.;
+  float temp;
+  QString str;
+  float fthresh = ((sParam.threshold + 0.5) * (high - low) / 255. + low) * 
+    (vi->image->smax - vi->image->smin) / range + vi->image->smin;
+  if (vi->image->mode != MRC_MODE_FLOAT && vi->image->mode != MRC_MODE_COMPLEX_FLOAT) {
+    temp = fthresh;
+    fthresh = floor((double)fthresh);
+    if (temp - fthresh < 1.e-6 * fthresh)
+      fthresh -= 1.;
+  }
+  if (fabs((double)fthresh - sProc.fileThreshold) > 1.e-5 * fthresh) {
+    str.sprintf("Threshold in file: %.5g", fthresh);
+    sProc.threshFileLabel->setText(str);
+    sProc.fileThreshold = fthresh;
+  }
 }
 
 void IProcWindow::manageListSize()
