@@ -84,6 +84,7 @@ EXPORTS
 	ICLAVGSD
 	ilistRemove
 	PIPGETINTEGER
+	montBigSearch
 	ADOCGETNUMBEROFSECTIONS
 	ilistNext
 	lsFit2Pred
@@ -271,6 +272,7 @@ EXPORTS
 	xfInvert
 	montXCorrEdge
 	addValueToRow
+	montSdCalc
 	lsFit2
 	PIPNUMBEROFENTRIES
 	PipGetInteger
@@ -300,6 +302,7 @@ EXPORTS
 	errFunc
 	selectZoomFilterXY
 	PIPREADSTDINIFSET
+	MONTBIGSEARCH
 	PARWRTPROPERTIES
 	imodProgName
 	b3dSetStoreError
@@ -425,6 +428,7 @@ EXPORTS
 	B3DMILLISLEEP
 	MONTXCINDSANDCTF
 	PIPEXITONERRORFW
+	MONTSDCALC
 	setPeakFindLimits
 	sliceFree
 	lsFit
