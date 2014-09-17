@@ -38,4 +38,14 @@ public final class BatchRunTomoComScriptManager extends BaseComScriptManager {
         required, false, false);
     return scriptBatchRunTomo != null;
   }
+  
+  public void saveBatchRunTomo(BatchruntomoParam param, AxisID axisID) {
+    modifyCommand(scriptBatchRunTomo, param, "batchruntomo", axisID, false, false);
+  }
+  
+  public BatchruntomoParam getBatchRunTomoParam(AxisID axisID, CommandMode mode) {
+    BatchruntomoParam param = new BatchruntomoParam(manager, axisID, mode);
+    initialize(param, scriptBatchRunTomo, "batchruntomo", axisID, false, false);
+    return param;
+  }
 }
