@@ -64,6 +64,7 @@ void usage(void)
   fprintf(stderr, "\tstandev     - Compute standard deviation for averaged images.\n");
   fprintf(stderr, "\tstats       - Print some stats on image file.\n");
   fprintf(stderr, "\tsubtract    - Subtract one image volume from another.\n");
+  fprintf(stderr, "\tthreshold   - Apply threshold to make binary image.\n");
   fprintf(stderr, "\ttruncate    - Limit image values at low or high end.\n");
   fprintf(stderr, "\tunwrap      - Undo a wraparound of integer intensity values.\n");
   fprintf(stderr, "\tunpack      - Unpack 4-bit data into bytes [& multiply by gain "
@@ -76,7 +77,7 @@ void usage(void)
   fprintf(stderr, "\t[-3d] or [-2d] treat image as 3d (default) or 2d.\n");
   fprintf(stderr, "\t[-s] Switch, [-n #] Amount; Depends on function.\n");
   fprintf(stderr, "\t[-n #] [-l #] Iterations and Gaussian sigma for smoothing.\n");
-  fprintf(stderr, "\t[-h #] [-l #] values for high/low pass filters or truncation.\n");
+  fprintf(stderr, "\t[-h #] [-l #] Values for filter, threshold, or truncate.\n");
   fprintf(stderr, "\t[-cc #] [-l #] [-k #] values for anisotropic diffusion.\n");
   fprintf(stderr, "\t[-r #] [-g #] [-b #] red, green, blue values.\n");
   fprintf(stderr, "\t[-x #,#]  [-y #,#]  starting and ending input coords.\n");
@@ -270,6 +271,8 @@ int main( int argc, char *argv[] )
     process = IP_PROJECT;
     } */
 
+  if (!strncmp( argv[1], "threshold", 3))
+    process = IP_THRESHOLD;
   if (!strncmp( argv[1], "truncate", 3))
     process = IP_TRUNCATE;
   if (!strncmp( argv[1], "unwrap", 3))
@@ -620,6 +623,7 @@ int main( int argc, char *argv[] )
   case IP_CONTRAST:
   case IP_SHADOW:
   case IP_RESIZE:
+  case IP_THRESHOLD:
   case IP_TRUNCATE:
   case IP_UNWRAP:
     retval = clip_scaling(&hin, &hout, &opt);

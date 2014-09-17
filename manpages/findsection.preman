@@ -1,0 +1,36 @@
+.na
+.nh
+.TH findsection 1 4.6.34 BL3DEMC
+.SH NAME
+findsection - Locates section boundaries in tomograms
+.SH SYNOPSIS
+findsection [options] tomogramFile(s)
+.SH DESCRIPTION
+Findsection will analyze an entire tomogram, or separate samples from a
+tomogram, to determine the boundaries of sectioned material.  It can
+create a simple model of straight lines along the top and bottom
+surfaces, suitable for use in Tomopitch(1).  It can also create a model
+with contours along the surface, suitable for use with Flattenwarp(1).
+It will also estimate the top and bottom Z levels at which half of the material is
+present, which may be useful for setting the Z limits when combining
+two tomograms.  The latter estimate, as well as this man page, are
+still under development.
+.SH OPTIONS
+Findsection uses the PIP package for input (see the manual page
+for pip(1)).  Options can be specified either as command line
+arguments (with the -) or one per line in a command file
+(without the -).  Options can be abbreviated to unique letters; the currently
+valid abbreviations for short names are shown in parentheses.
+INSERT OPTION TEXT HERE
+.TP
+.B -StandardInput
+Read parameter entries from standard input
+
+.P
+.SH HISTORY
+.nf
+Written by David Mastronarde, September 2014, to replace an earlier
+Fortran program of the same name.
+.fi
+.SH BUGS
+Email bug reports to mast@colorado.edu.

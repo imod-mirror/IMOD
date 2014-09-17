@@ -662,7 +662,7 @@ void InfoWindow::processFile()
 
   // Get Zap rubberband or just use whole file; access top zap for time lock
   ZapFuncs *zap = getTopZapWindow(true);
-  if (zap->mRubberband) {
+  if (zap->mRubberband || zap->mStartingBand) {
     commandString = zap->printInfo(false);
     if (commandString.isEmpty())
       return;
