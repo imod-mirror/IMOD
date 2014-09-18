@@ -13,30 +13,26 @@
 program findwarp
   implicit none
   include 'statsize.inc'
-  integer IDIM, LIMPATCH, LIMVERT, LIMAXIS, LIMTARG, LIMDIAG
-  parameter (IDIM = 40000, LIMPATCH = 500000, LIMVERT = 500000)
-  parameter (LIMAXIS = 1000, LIMTARG = 100, LIMDIAG = 2 * LIMAXIS)
-  real*4 fitMat(msiz,IDIM)
-  real*4 cenXYZ(LIMPATCH,3), vecXYZ(LIMPATCH,3)
-  real*4 firstAmat(3,3), firstDelta(3), a(3,3), delXYZ(3)
-  real*4 devXYZmax(3), cenLocal(3), amatTmp(3,3), delTmp(3)
-  real*4 amatSave(3,3,LIMPATCH), cenToSave(3,LIMPATCH)
-  real*4 delXYZsave(3,LIMPATCH), cenXYZsum(3), residSum(LIMPATCH)
-  logical solved(LIMPATCH), exists(LIMPATCH)
-  integer*4 nxyzVol(3), idrop(IDIM), numResid(LIMPATCH)
-  integer*4 indDropped(IDIM), numTimesDropped(IDIM)
-  real*4 dropSum(IDIM), debugXYZ(3), dxLocal, dyLocal, dzLocal
-  logical inside
-  real*4 xVerts(LIMVERT), yVerts(LIMVERT), contourZ(IDIM), cenSaveMin(3), cenSaveMax(3)
-  integer*4 indVertStart(IDIM), numVerts(IDIM)
-  integer*4 numXautoFit(LIMPATCH), numYautoFit(LIMPATCH), numZautoFit(LIMPATCH)
-  integer*4 inRowX(LIMAXIS), inRowY(LIMAXIS), inRowZ(LIMAXIS)
-  integer*4 inDiag1(0:LIMDIAG), inDiag2(0:LIMDIAG)
+  integer LIMTARG
+  parameter (LIMTARG = 100)
+  real*4 firstAmat(3,3), firstDelta(3), a(3,3), delXYZ(3), cenSaveMin(3), cenSaveMax(3)
+  real*4 devXYZmax(3), cenLocal(3), amatTmp(3,3), delTmp(3), cenXYZsum(3)
+  integer*4 nxyzVol(3)
+  real*4 debugXYZ(3), dxLocal, dyLocal, dzLocal
+  integer*4, allocatable :: indDropped(:), numTimesDropped(:), idrop(:)
+  real*4, allocatable :: xVerts(:), yVerts(:), contourZ(:), dropSum(:), fitMat(:,:)
+  integer*4, allocatable :: indVertStart(:), numVerts(:), listPositions(:,:)
+  real*4, allocatable :: amatSave(:,:,:), cenToSave(:,:), cenXYZ(:,:), vecXYZ(:,:)
+  real*4, allocatable :: delXYZsave(:,:), residSum(:), devMeanAuto(:)
+  logical, allocatable :: solved(:), exists(:)
+  integer*4, allocatable :: numXautoFit(:), numYautoFit(:), numZautoFit(:), inDiag2(:)
+  integer*4, allocatable :: inRowX(:), inRowY(:), inRowZ(:), numResid(:), inDiag1(:)
   character*320 filename, residFile
-  real*4 cenXYZin(3), vecXYZin(3), targetResid(LIMTARG), devMeanAuto(LIMPATCH)
-  integer*4 numXYZpatch(3), listPositions(LIMAXIS,3), indXYZ(3), numZpatchUse
+  real*4 cenXYZin(3), vecXYZin(3), targetResid(LIMTARG)
+  integer*4 numXYZpatch(3), indXYZ(3), numZpatchUse, limPatch, limAxis, limDiag, limFit
   integer*4 numXfit, numYfit, numZfit, numXYXfit(3), numXpatchUse, numYpatchUse
   integer*4 numXfitIn, numYfitIn, numZfitIn, numXYZfitIn(3), numXYZpatchUse(3)
+  integer*4 numXYZfit(3)
   equivalence (numXpatchTot, numXYZpatch(1)), (numYpatchTot, numXYZpatch(2)), &
       (numZpatchTot, numXYZpatch(3))
   equivalence (numXfit, numXYXfit(1)), (numYfit, numXYXfit(2)), (numZfit, numXYXfit(3))
@@ -44,24 +40,25 @@ program findwarp
       (numZpatchUse, numXYZpatchUse(3))
   equivalence (numXfitIn, numXYZfitIn(1)), (numYfitIn, numXYZfitIn(2)), &
       (numZfitIn, numXYZfitIn(3))
+  equivalence (numXfit, numXYZfit(1)), (numYfit, numXYZfit(2)), (numZfit, numXYZfit(3))
   integer*4 numData, numPosInFile, numXpatchTot, numYpatchTot, numZpatchTot, i, j, ind
-  integer*4 numConts, ierr, indY, indZ, numTarget, indTarget, intCenPos, inList, k, itmp
+  integer*4 numConts, ierr, indY, indZ, numTarget, indTarget, intCenPos, k, itmp
   integer*4 numXoffset, numYoffset, numZoffset, ifSubset, ifLocalSlabs, ifdebug
   real*4 ratioMin, ratioMax, fracDrop, probCrit, absProbCrit, elimMinResid
-  integer*4 ifauto, nauto, ix, iy, iz, indAuto
+  integer*4 ifAuto, numAuto, ix, iy, iz, indAuto, limVert, limCont
   integer*4 numLocalDone, numXexclHigh, numYexclhigh, numZexclHigh
   integer*4 ifDiddle, numXlocal, numYlocal, numZlocal, numZero, numDevSum
   integer*4 indUse, nlistDropped, numDropTot, locX, locY, locZ, lx, ly, lz, ifUse
   real*4 devMeanMin, devMeanSum, devMaxSum, devMaxMax
   real*4 dzMin, dz, devMax, devMean, devSD, discount
-  real*4 devMeanAvg, devMaxAvg, devMeanMax, determ, determMean
+  real*4 devMeanAvg, devMaxAvg, devMeanMax, determMean
   integer*4 icontMin, icont, indv, indLcl, ipntMax, maxDrop, numLowDeterm
   integer*4 ifInDrop, numDrop, ifFlip, indPatch, indLocal, icolFixed, nyDiag
   character*5 rowSlabText(2) /'rows ', 'slabs'/
   character*5 rowSlabCapText(2) /'ROWS ', 'SLABS'/
   character*1 yzText(2) /'Y', 'Z'/
   logical*4 debugHere
-  common /bigarr/ fitMat, cenXYZ, vecXYZ, amatSave, cenToSave, delXYZsave, xVerts, yVerts
+  integer*4 numberInList
   !
   logical pipInput
   integer*4 numOptArg, numNonOptArg
@@ -108,6 +105,8 @@ program findwarp
   ifLocalSlabs = 0
   residFile = ' '
   discount = 0.
+  limFit = 40000
+  numAuto = 0
   !
   call PipReadOrParseOptions(options, numOptions, 'findwarp', &
       'ERROR: FINDWARP - ', .true., 3, 1, 1, numOptArg, numNonOptArg)
@@ -121,7 +120,9 @@ program findwarp
 
   call dopen(1, filename, 'old', 'f')
   read(1,*) numData
-  if (numData > LIMPATCH) call exitError('TOO MANY PATCHES FOR ARRAYS')
+  allocate(listPositions(numData + 4,3), stat = ierr)
+  call memoryError(ierr, 'ARRAY FOR POSITION LIST')
+
   numXpatchTot = 0
   numYpatchTot = 0
   numZpatchTot = 0
@@ -129,18 +130,7 @@ program findwarp
     read(1,*) (cenXYZin(j), j = 1, 3)
     do j = 1, 3
       intCenPos = nint(cenXYZin(j))
-      inList = 0
-      k = 1
-      do while(inList == 0 .and. k <= numXYZpatch(j))
-        if (intCenPos == listPositions(k, j)) inList = k
-        k = k + 1
-      enddo
-      if (inList == 0) then
-        if (numXYZpatch(j) > LIMAXIS) then
-          write(*,'(//,a,i2)') &
-              'ERROR: FINDWARP - TOO MANY POSITIONS ALONG AXIS', j
-          call exit(1)
-        endif
+      if (numberInList(intCenPos, listPositions(1, j), numXYZpatch(j), 0) == 0) then
         numXYZpatch(j) = numXYZpatch(j) + 1
         listPositions(numXYZpatch(j), j) = intCenPos
       endif
@@ -161,10 +151,19 @@ program findwarp
     enddo
   enddo
   !
+  ! Allocate arrays based on full set of patch positions
+  limPatch = numXpatchTot * numYpatchTot * numZpatchTot + 10
+  limAxis = maxval(numXYZpatch) + 10
+  limDiag = 2 * limAxis
+  allocate(amatSave(3,3,limPatch), cenToSave(3,limPatch), delXYZsave(3,limPatch), &
+      residSum(limPatch), solved(limPatch), exists(limPatch), cenXYZ(limPatch,3), &
+      vecXYZ(limPatch,3), inRowX(limAxis), inRowY(limAxis), inRowZ(limAxis), &
+      numResid(limPatch), inDiag1(0:limDiag), inDiag2(0:limDiag), stat = ierr)
+  call memoryError(ierr, 'ARRAYS FOR PATCHES')
+  !
   numXpatchUse = numXpatchTot
   numYpatchUse = numYpatchTot
   numZpatchUse = numZpatchTot
-  numYfitIn = numYpatchUse
   print *,'Number of patches in X, Y and Z is:', numXpatchTot, numYpatchTot, numZpatchTot
   rewind(1)
   read(1,*) numData
@@ -213,8 +212,9 @@ program findwarp
   !
   numPosInFile = numData
   close(1)
+  deallocate(listPositions, stat=ierr)
   !
-  ! get patch region model
+  ! get patch region model, which should give flip value; otherwise set flip from patches
   !
   if (pipInput) then
     filename = ' '
@@ -226,27 +226,40 @@ program findwarp
   endif
   numConts = 0
   if (filename .ne. ' ') then
+    limCont = -1
+    limVert = -1
     call get_region_contours(filename, 'FINDWARP', xVerts, yVerts, numVerts, &
-        indVertStart, contourZ, numConts, ifFlip, IDIM, LIMVERT, 0)
+        indVertStart, contourZ, numConts, ifFlip, limCont, limVert, 0)
+    limVert = limVert + 10
+    limCont = limCont + 4
+    allocate(xVerts(limVert), yVerts(limVert), contourZ(limCont),  &
+        indVertStart(limCont), numVerts(limCont), stat = ierr)
+    call memoryError(ierr, 'ARRAYS FOR BOUNDARY CONTOURS')
+    call get_region_contours(filename, 'FINDWARP', xVerts, yVerts, numVerts, &
+        indVertStart, contourZ, numConts, ifFlip, limCont, limVert, 0)
   else
     ifFlip = 0
     if (numYpatchTot < numZpatchTot) ifFlip = 1
   endif
+  !
+  ! Set indexes to Y-extent (row) and thickness (slab) variables
   indY = 2
   if (ifFlip .ne. 0) indY = 3
   indZ = 5 - indY
+  numXYZfitIn(indZ) = numXYZpatchUse(indZ)
+  numXYZfit(indZ) = numXYZpatchUse(indZ)
   !
   ! aspectmax=3.
   !
 8 if (pipInput) then
-    ifauto = PipGetTwoIntegers('LocalRowsAndColumns', numXfitIn, numXYZfitIn(indY))
+    ifAuto = PipGetTwoIntegers('LocalRowsAndColumns', numXfitIn, numXYZfitIn(indY))
   else
     write(*,'(1x,a,$)') '1 to find best warping automatically, 0 '// &
         'to proceed interactively: '
-    read(5,*) ifauto
+    read(5,*) ifAuto
   endif
   !
-  if (ifauto .ne. 0) then
+  if (ifAuto .ne. 0) then
     !
     ! initialize auto 1: get target and ratio parameters
     !
@@ -300,7 +313,7 @@ program findwarp
     endif
     numXpatchUse = numXpatchTot - numXoffset - numXexclHigh
     if (numXpatchUse + numXoffset > numXpatchTot .or. numXpatchUse < 2) then
-      if (ifauto .ne. 0) call exitError( &
+      if (ifAuto .ne. 0) call exitError( &
           'ILLEGAL ENTRY FOR NUMBER OF COLUMNS TO EXCLUDE IN X')
       print *,'Illegal entry'
       numXoffset = 0
@@ -316,7 +329,7 @@ program findwarp
     endif
     numYpatchUse = numYpatchTot - numYoffset - numYexclHigh
     if (numYpatchUse + numYoffset > numYpatchTot .or. numYpatchUse < 1 ) then
-      if (ifauto .ne. 0) call exitError('ILLEGAL ENTRY FOR NUMBER OF '// &
+      if (ifAuto .ne. 0) call exitError('ILLEGAL ENTRY FOR NUMBER OF '// &
           rowSlabCapText(1 + ifFlip) //' TO EXCLUDE IN Y')
       print *,'Illegal entry'
       numYoffset = 0
@@ -332,7 +345,7 @@ program findwarp
     endif
     numZpatchUse = numZpatchTot - numZoffset - numZexclHigh
     if (numZpatchUse + numZoffset > numZpatchTot .or. numZpatchUse < 2) then
-      if (ifauto .ne. 0) call exitError( 'ILLEGAL ENTRY FOR NUMBER OF '// &
+      if (ifAuto .ne. 0) call exitError( 'ILLEGAL ENTRY FOR NUMBER OF '// &
           rowSlabCapText(2 - ifFlip) //' TO EXCLUDE IN Z')
       print *,'Illegal entry'
       numZoffset = 0
@@ -351,14 +364,14 @@ program findwarp
   endif
   !
   ! Initialize nfit for slabs before checking on slabs
-  if (pipInput .and. ifauto .ne. 0) then
+  if (pipInput .and. ifAuto .ne. 0) then
     numXYXfit(indZ) = numXYZpatchUse(indZ)
     numXYZfitIn(indZ) = numXYXfit(indZ)
   endif
   !
   ! Figure out if doing subsets of slabs but not for interactive when
   ! auto was already selected
-  if (pipInput .or. ifauto == 0) then
+  if (pipInput .or. ifAuto == 0) then
     if (numXYZpatchUse(indZ) > 2) then
       if (pipInput) then
         ifLocalSlabs = 1 - PipGetInteger('LocalSlabs', numXYXfit(indZ))
@@ -367,7 +380,7 @@ program findwarp
               call exitError('NUMBER OF LOCAL SLABS OUT OF ALLOWED RANGE')
           numXYZfitIn(indZ) = numXYXfit(indZ)
         endif
-      else if (ifauto == 0) then
+      else if (ifAuto == 0) then
         write(*,'(1x,a,a,a,a,a,$)') '0 to fit to all patches in ', yzText(2 - ifFlip), &
             ', or 1 to fit to subsets in ', yzText(2 - ifFlip), ': '
         read(5,*) ifLocalSlabs
@@ -375,31 +388,40 @@ program findwarp
     endif
   endif
 
-  if (ifauto .ne. 0) then
+  if (ifAuto .ne. 0) then
     !
     ! set up parameters for automatic finding: make list of possible
     ! nxfit, nyfit, nzfit values
     !
-    if (ifFlip .ne. 0) then
-      numYfit = min(numYfit, numYpatchUse)
-      call setAutoFits(numXpatchUse, numZpatchUse, numYpatchUse, ifLocalSlabs, numYfit, &
-          ratioMin, ratioMax, numXautoFit, numZautoFit, numYautoFit, nauto, LIMPATCH)
-    else
-      numZfit = min(numZfit, numZpatchUse)
-      call setAutoFits(numXpatchUse, numYpatchUse, numZpatchUse, ifLocalSlabs, numZfit, &
-          ratioMin, ratioMax, numXautoFit, numYautoFit, numZautoFit, nauto, LIMPATCH)
-    endif
-    if (nauto == 0) then
-      write(*,'(/,a,/,a)') 'ERROR: FINDWARP - NO FITTING PARAMETERS GIVE '// &
-          'THE REQUIRED RATIO OF', ' ERROR: MEASUREMENTS TO UNKNOWNS - '// &
-          'THERE ARE PROBABLY TOO FEW PATCHES'
-      call exit(1)
-    endif
+    indAuto = -1
+    numXYZfit(indZ) = min(numXYZfit(indZ), numXYZpatchUse(indZ))
+    do ix = 1, 2
+      if (ifFlip > 0) then
+        call setAutoFits(numXpatchUse, numZpatchUse, numYpatchUse, ifLocalSlabs, &
+            numXYZfit(indZ), ratioMin, ratioMax, numXautoFit, numZautoFit, &
+            numYautoFit, numAuto, indAuto)
+      else
+        call setAutoFits(numXpatchUse, numYpatchUse, numZpatchUse, ifLocalSlabs, &
+            numXYZfit(indZ), ratioMin, ratioMax, numXautoFit, numYautoFit, &
+            numZautoFit, numAuto, indAuto)
+      endif
+      if (numAuto == 0) then
+        write(*,'(/,a,/,a)') 'ERROR: FINDWARP - NO FITTING PARAMETERS GIVE '// &
+            'THE REQUIRED RATIO OF', ' ERROR: MEASUREMENTS TO UNKNOWNS - '// &
+            'THERE ARE PROBABLY TOO FEW PATCHES'
+        call exit(1)
+      endif
+      if (ix == 1) then
+        allocate(numXautoFit(indAuto), numYautoFit(indAuto), numZautoFit(indAuto), &
+            devMeanAuto(indAuto), stat = ierr)
+        call memoryError(ierr, 'ARRAYS FOR AUTOFITS')
+      endif
+    enddo
     !
     ! sort the list by size of area in inverted order
     !
-    do i = 1, nauto - 1
-      do j = i + 1, nauto
+    do i = 1, numAuto - 1
+      do j = i + 1, numAuto
         if (numXautoFit(i) * numYautoFit(i) * numZautoFit(i) < &
             numXautoFit(j) * numYautoFit(j) * numZautoFit(j)) then
           itmp = numXautoFit(i)
@@ -414,7 +436,7 @@ program findwarp
         endif
       enddo
     enddo
-    ! write(*,'(3i5)') (i, nfxauto(i), nfyauto(i), nfzauto(i), i=1, nauto)
+    ! write(*,'(3i5)') (i, nfxauto(i), nfyauto(i), nfzauto(i), i=1, numAuto)
     !
     ! set up for first round and skip to set up this round's patches
     !
@@ -465,7 +487,7 @@ program findwarp
   !
   ! Get the input number of local patches unless doing auto
   !
-20 if (ifauto == 0 .and. ifLocalSlabs .ne. 0) then
+20 if (ifAuto == 0 .and. ifLocalSlabs .ne. 0) then
     if (.not.pipInput) then
       if (numLocalDone == 0) then
         write(*,'(1x,a,$)') 'Number of local patches for fit in X, Y and Z: '
@@ -475,7 +497,7 @@ program findwarp
       endif
       read(5,*) numXfitIn, numYfitIn, numZfitIn
     endif
-  elseif (ifauto == 0) then
+  elseif (ifAuto == 0) then
     if (.not.pipInput) then
       if (numLocalDone == 0) then
         write(*,'(1x,a,a,a,$)') &
@@ -495,34 +517,372 @@ program findwarp
   endif
   !
   ! Loop back to earlier parameter entries on a zero entry
-  !
   if (numXfitIn == 0) go to 8
-  if (numXfitIn .ne. numXfit .or. numYfitIn .ne. numYfit .or. numZfitIn .ne. numZfit &
-      .or. numLocalDone == 0) then
-    !
-    ! Set up number of locations to fit and check entries
-    !
-    numXlocal = numXpatchUse + 1 - numXfitIn
-    numYlocal = numYpatchUse + 1 - numYfitIn
-    numZlocal = numZpatchUse + 1 - numZfitIn
-    if (numXfitIn < 2 .or. numXYZfitIn(indY) < 2 .or. numXlocal < 1 .or. numZlocal < 1 &
-        .or. numXYZfitIn(indZ) < 1 .or. numYlocal < 1) then
-      if (ifauto .ne. 0) call exitError('IMPROPER NUMBER TO INCLUDE IN FIT')
-      print *,'Illegal entry, try again'
-      go to 20
+  !
+  ! Save data and terminate on a duplicate entry
+  if (numXfitIn == numXfit .and. numYfitIn == numYfit .and. numZfitIn == numZfit .and. &
+      numLocalDone > 0) &
+      call saveAndTerminate()
+  !
+  ! Otherwise set up number of locations to fit and check entries
+  numXlocal = numXpatchUse + 1 - numXfitIn
+  numYlocal = numYpatchUse + 1 - numYfitIn
+  numZlocal = numZpatchUse + 1 - numZfitIn
+  if (numXfitIn < 2 .or. numXYZfitIn(indY) < 2 .or. numXlocal < 1 .or. numZlocal < 1 &
+      .or. numXYZfitIn(indZ) < 1 .or. numYlocal < 1) then
+    if (ifAuto .ne. 0) call exitError('IMPROPER NUMBER TO INCLUDE IN FIT')
+    print *,'Illegal entry, try again'
+    go to 20
+  endif
+  !
+  ! If arrays not allocated yet, do them to big size for interactive or current size
+  ! for auto (which will be biggest) or one-shot run from PIP
+  if (.not. allocated(fitMat)) then
+    if (pipInput) limFit = numXfitIn * numYfitIn * numZfitIn + 10
+    allocate(fitMat(msiz, limFit), indDropped(limFit), numTimesDropped(limFit), &
+        idrop(limFit), dropSum(limFit), stat = ierr)
+    call memoryError(ierr, 'ARRAYS FOR FITTING')
+  endif
+  if (numXfitIn * numYfitIn * numZfitIn > limFit) then
+    if (ifAuto .ne. 0) call exitError('TOO MANY PATCHES FOR ARRAY SIZES')
+    print *,'Too many patches for array sizes, try again'
+    go to 20
+  endif
+  numXfit = numXfitIn
+  numYfit = numYfitIn
+  numZfit = numZfitIn
+  !
+  ! Do the fits finally
+  !
+  call fitLocalPatches()
+  !
+  ! check for auto control
+  !
+  if (ifAuto .ne. 0) then
+    devMeanAvg = 10000.
+    if (numDevSum > 0) devMeanAvg = devMeanSum / numDevSum
+    devMeanMin = min(devMeanMin, devMeanAvg)
+    devMeanAuto(indAuto) = devMeanAvg
+    if (devMeanAvg <= targetResid(indTarget)) then
+      !
+      ! done: set nauto to zero to allow printing of results
+      !
+      numAuto = 0
+      write(*,107) numXfit, numYfit, numZfit
+107   format(/,'Desired residual achieved with fits to',i3,',',i3, &
+          ', and',i3,' patches in X, Y, Z',/)
+    else
+      indAuto = indAuto + 1
+      ! print *,iauto, ' Did fit to', nfitx, nfity, nfitz
+      if (indAuto > numAuto) then
+        !
+        ! See if any other criteria have been met and loop back if so
+        !
+        do j = indTarget + 1, numTarget
+          write(*,112) targetResid(j)
+          do i = 1, numAuto
+            if (devMeanAuto(i) <= targetResid(j)) then
+              indTarget = j
+              indAuto = i
+              numXfit = -100
+              numLocalDone = 0
+              go to 20
+            endif
+          enddo
+        enddo
+        !
+        ! write patch file if desired on last fit before error message
+        !
+        call outputPatchRes(residFile, numPosInFile, &
+            numXpatchTot * numYpatchTot * numZpatchTot, exists, residSum, numResid, &
+            indDropped, numTimesDropped, nlistDropped, cenXYZ, vecXYZ, LIMPATCH)
+        if (discount > 0. .and. numLocalDone > 0 .and. numDevSum == 0) &
+            call exitError('ALL FITS HAD TOO MANY ZERO VECTORS: RAISE '// &
+            '-discount FRACTION OR SET IT TO ZERO')
+        write(*,108) devMeanMin
+108     format(/,'ERROR: FINDWARP - FAILED TO FIND A WARPING WITH A ', &
+            'MEAN RESIDUAL BELOW',f9.3)
+        call exit(2)
+      endif
     endif
-    if (numXfitIn * numYfitIn * numZfitIn > IDIM) then
-      if (ifauto .ne. 0) call exitError('TOO MANY PATCHES FOR ARRAY SIZES')
-      print *,'Too many patches for array sizes, try again'
-      go to 20
+  endif
+
+  if (nlistDropped > 0 .and. numAuto == 0) then
+    write(*,105) nlistDropped, numDropTot
+105 format(i5,' separate patches eliminated as outliers a total' &
+        ,' of',i6,' times:')
+    if (nlistDropped <= 10) then
+      print *,'    patch position   # of times   mean residual'
+      do i = 1, nlistDropped
+        write(*,106) (cenXYZ(indDropped(i), j), j = 1, 3), numTimesDropped(i), &
+            dropSum(i) / numTimesDropped(i)
+106     format(3f7.0,i8,f12.2)
+      enddo
+    else
+      do i = 1, nlistDropped
+        dropSum(i) = dropSum(i) / numTimesDropped(i)
+      enddo
+      call summarizeDrops(dropSum, nlistDropped, 'mean ')
     endif
-    numXfit = numXfitIn
-    numYfit = numYfitIn
-    numZfit = numZfitIn
-  else
+    write(*,*)
+  endif
+  !
+  if (numLocalDone > 0 .and. numAuto == 0) then
+    devMeanAvg = devMeanSum / max(1, numDevSum)
+    devMaxAvg = devMaxSum / max(1, numDevSum)
+    write(*,101) devMeanAvg, devMeanMax, devMaxAvg, devMaxMax
+101 format('Mean residual has an average of',f8.3, &
+        ' and a maximum of',f8.3,/ , &
+        'Max  residual has an average of',f8.3,' and a maximum of' &
+        ,f8.3)
+    if (discount > 0.) write(*,'(/,a,i7,a,i7,a)') 'These averages are '// &
+        'based on', numDevSum, ' of', numLocalDone, ' fits'
     !
-    ! Or save data and terminate on a duplicate entry
-    !
+    ! finish up after auto fits: this call is unneeded and is just here to make it clear
+    if (ifAuto .ne. 0) call saveAndTerminate()
+  elseif (ifAuto == 0) then
+    print *,'No locations could be solved for'
+  endif
+  go to 20
+
+
+CONTAINS
+
+  ! fitLocalPatches does the fits to all the local patches 
+  !
+  subroutine fitLocalPatches()
+    logical inside
+    real*4 determ
+    devMeanSum = 0.
+    devMaxSum = 0.
+    devMaxMax = 0.
+    devMeanMax = 0.
+    nlistDropped = 0
+    numDropTot = 0
+    numLocalDone = 0
+    numDevSum = 0.
+    determMean = 0.
+    do i = 1, 3
+      cenSaveMin(i) = 1.e30
+      cenSaveMax(i) = -1.e30
+    enddo
+    do ind = 1, numXpatchTot * numYpatchTot * numZpatchTot
+      numResid(ind) = 0
+      residSum(ind) = 0
+    enddo
+
+    do locZ = 1, numZlocal
+      do locY = 1, numYlocal
+        do locX = 1, numXlocal
+          numData = 0
+          numZero = 0
+          do i = 1, 3
+            cenXYZsum(i) = 0.
+          enddo
+          !
+          ! count up number in each row in each dimension and on each
+          ! diagonal in the major dimensions
+          !
+          do i = 1, max(numXfit, numYfit, numZfit)
+            inRowX(i) = 0
+            inRowY(i) = 0
+            inRowZ(i) = 0
+          enddo
+          nyDiag = numYfit
+          if (ifFlip == 1) nyDiag = numZfit
+          !
+          ! Zero the parts of the arrays corresponding to corners, which
+          ! won't be tested
+          do i = 0, numXfit + nyDiag - 2
+            inDiag1(i) = 0
+            inDiag2(i) = 0
+          enddo
+          do lz = locZ + numZoffset, locZ + numZoffset + numZfit - 1
+            do ly = locY + numYoffset, locY + numYoffset + numYfit - 1
+              do lx = locX + numXoffset, locX + numXoffset + numXfit - 1
+                ifUse = 0
+                ind = indPatch(lx, ly, lz)
+                if (exists(ind)) ifUse = 1
+                do i = 1, 3
+                  cenXYZsum(i) = cenXYZsum(i) + cenXYZ(ind, i) - 0.5 * nxyzVol(i)
+                enddo
+                if (numConts > 0 .and. ifUse > 0) then
+                  ifUse = 0
+                  !
+                  ! find nearest contour in Z and see if patch is inside it
+                  !
+                  dzMin = 100000.
+                  do icont = 1, numConts
+                    dz = abs(cenXYZ(ind, indZ) - contourZ(icont))
+                    if (dz < dzMin) then
+                      dzMin = dz
+                      icontMin = icont
+                    endif
+                  enddo
+                  indv = indVertStart(icontMin)
+                  if (inside(xVerts(indv), yVerts(indv), numVerts(icontMin), &
+                      cenXYZ(ind, 1), cenXYZ(ind, indY))) ifUse = 1
+                endif
+                !
+                if (ifUse > 0) then
+                  numData = numData + 1
+                  if (vecXYZ(ind, 1) == 0. .and. vecXYZ(ind, 2) == 0 .and. &
+                      vecXYZ(ind, 3) == 0) numZero = numZero + 1
+                  do j = 1, 3
+                    !
+                    ! the regression requires coordinates of second volume as
+                    ! independent variables (columns 1-3), those in first
+                    ! volume as dependent variables (stored in 5-7), to
+                    ! obtain transformation to get from second to first
+                    ! volume cx+dx in second volume matches cx in first
+                    ! volume
+                    !
+                    fitMat(j + 4, numData) = cenXYZ(ind, j) - 0.5 * nxyzVol(j)
+                    fitMat(j, numData) = fitMat(j + 4, numData) + vecXYZ(ind, j)
+                  enddo
+                  !
+                  ! Solve_wo_outliers uses columns 8-17; save indexi in 18
+                  ! Add to row counts and to diagonal counts
+                  !
+                  fitMat(18, numData) = ind
+                  ix = lx + 1 - locX - numXoffset
+                  iy = ly + 1 - locY - numYoffset
+                  iz = lz + 1 - locZ - numZoffset
+                  inRowX(ix) = inRowX(ix) + 1
+                  inRowY(iy) = inRowY(iy) + 1
+                  inRowZ(iz) = inRowZ(iz) + 1
+                  if (ifFlip == 1) iy = iz
+                  iz = (ix - iy) + nyDiag - 1
+                  inDiag1(iz) = inDiag1(iz) + 1
+                  iz = ix + iy - 2
+                  inDiag2(iz) = inDiag2(iz) + 1
+                endif
+              enddo
+            enddo
+          enddo
+          indLcl = indLocal(locX, locY, locZ)
+          !
+          ! Need regular array of positions, so use the xyzsum to get
+          ! censave, not the cenloc values from the regression
+          !
+          debugHere = ifDebug .ne. 0
+          do i = 1, 3
+            cenToSave(i, indLcl) = cenXYZsum(i) / (numXfit * numYfit * numZfit)
+            cenSaveMin(i) = min(cenSaveMin(i), cenToSave(i, indLcl))
+            cenSaveMax(i) = max(cenSaveMax(i), cenToSave(i, indLcl))
+            if (debugHere) &
+                debugHere = abs(cenToSave(i, indLcl) - debugXYZ(i)) < 1.
+          enddo
+          !
+          ! solve for this location if there are at least half of the
+          ! normal number of patches present and if there are guaranteed
+          ! to be at least 3 patches in a different row from the dominant
+          ! one, even if the max are dropped from other rows
+          ! But treat thickness differently: if there are not enough data
+          ! on another layer, or if there is only one layer being fit,
+          ! then set the appropriate column as fixed in the fits
+          !
+          solved(indLcl) = numData >= numXfit * numYfit * numZfit / 2
+          maxDrop = nint(fracDrop * numData)
+          icolFixed = 0
+          do i = 1, max(numXfit, numYfit, numZfit)
+            if (debugHere) print *,'in row', i, ':', inRowX(i), inRowY(i), inRowZ(i)
+            if (ifFlip == 1) then
+              if (inRowX(i) > numData - 3 - maxDrop .or. &
+                  inRowZ(i) > numData - 3 - maxDrop) solved(indLcl) = .false.
+              if (inRowY(i) > numData - 3 - maxDrop .or. numYfit == 1) icolFixed = 2
+            else
+              if (inRowX(i) > numData - 3 - maxDrop .or. &
+                  inRowY(i) > numData - 3 - maxDrop) solved(indLcl) = .false.
+              if (inRowZ(i) > numData - 3 - maxDrop .or. numZfit == 1) icolFixed = 3
+            endif
+          enddo
+          do i = 1, numXfit + nyDiag - 3
+            if (inDiag1(i) > numData - 3 - maxDrop .or. &
+                inDiag2(i) > numData - 3 - maxDrop) solved(indLcl) = .false.
+          enddo
+          if (solved(indLcl)) then
+            call solve_wo_outliers(fitMat, numData, 3, icolFixed, maxDrop, probCrit, &
+                absProbCrit, elimMinResid, idrop, numDrop, a, delXYZ, cenLocal, &
+                devMean, devSD, devMax, ipntMax, devXYZmax)
+            !
+            if (debugHere) then
+              do i = 1, numData
+                write(*,'(8f9.2)') (fitMat(j, i), j = 1, 7)
+              enddo
+              print *,'cenloc', (cenLocal(i), i = 1, 3)
+              print *,'censave', (cenToSave(i, indLcl), i = 1, 3)
+              write(*,'(9f8.3)') ((a(i, j), i = 1, 3), j = 1, 3)
+            endif
+            !
+            ! Accumulate information about dropped points
+            !
+            do i = 1, numDrop
+              ifInDrop = 0
+              do j = 1, nlistDropped
+                if (nint(fitMat(18, idrop(i))) == indDropped(j)) then
+                  ifInDrop = 1
+                  numTimesDropped(j) = numTimesDropped(j) + 1
+                  dropSum(j) = dropSum(j) + fitMat(4, numData + i - numDrop)
+                endif
+              enddo
+              if (ifInDrop == 0 .and. ifInDrop < limFit) then
+                nlistDropped = nlistDropped + 1
+                indDropped(nlistDropped) = nint(fitMat(18, idrop(i)))
+                numTimesDropped(nlistDropped) = 1
+                dropSum(nlistDropped) = fitMat(4, numData + i - numDrop)
+              endif
+            enddo
+            numDropTot = numDropTot + numDrop
+            !
+            ! if residual output asked for, accumulate info about all resids
+            !
+            if (residFile .ne. ' ') then
+              do i = 1, numData
+                ind = nint(fitMat(18, nint(fitMat(5, i))))
+                numResid(ind) = numResid(ind) + 1
+                residSum(ind) = residSum(ind) + fitMat(4, i)
+              enddo
+            endif
+            !
+            if (discount == 0. .or. float(numZero) / numData <= discount) &
+                then
+              devMeanSum = devMeanSum + devMean
+              devMaxSum = devMaxSum + devMax
+              numDevSum = numDevSum + 1
+            endif
+            devMeanMax = max(devMeanMax, devMean)
+            devMaxMax = max(devMaxMax, devMax)
+            !
+            ! mark this location as solved and save the solution.
+            !
+            if (debugHere) write(*,'(6i4,3f8.1)') indLcl, locX, locY, locZ, numData, &
+                numDrop, (delXYZ(i), i = 1, 3)
+            do i = 1, 3
+              delXYZsave(i, indLcl) = delXYZ(i)
+              do j = 1, 3
+                amatSave(i, j, indLcl) = a(i, j)
+              enddo
+              if (debugHere) write(*,122) (a(i, j), j = 1, 3), delXYZ(i)
+122             format(3f10.6,f10.3)
+            enddo
+            numLocalDone = numLocalDone + 1
+            determMean = determMean + abs(determ(a))
+          elseif (debugHere) then
+            print *,'Not solved', numData
+          endif
+        enddo
+      enddo
+    enddo
+    determMean = determMean / max(1, numLocalDone)
+    return
+  end subroutine fitLocalPatches
+
+
+  ! saveAndTerminate saves the results (getting initial file and output file) and exits
+  !
+  subroutine saveAndTerminate()
+    real*4 determ
     if (numXlocal > 1 .or. numYlocal > 1 .or. numZlocal > 1) then
       !
       ! Eliminate locations with low determinants.  This is very
@@ -546,7 +906,7 @@ program findwarp
       if (numLowDeterm > 0) write(*,'(/,i4,a)') numLowDeterm, &
           ' fits were eliminated due to low matrix determinant'
       !
-      if (ifauto .ne. 0) write(*,*)
+      if (ifAuto .ne. 0) write(*,*)
       if (pipInput) then
         ierr = PipGetString('InitialTransformFile', filename)
       else
@@ -620,329 +980,22 @@ program findwarp
         indDropped, numTimesDropped, nlistDropped, cenXYZ, vecXYZ, LIMPATCH)
 
     call exit(0)
-  endif
-  !
-  ! Do the fits for real now
-  !
-  devMeanSum = 0.
-  devMaxSum = 0.
-  devMaxMax = 0.
-  devMeanMax = 0.
-  nlistDropped = 0
-  numDropTot = 0
-  numLocalDone = 0
-  numDevSum = 0.
-  determMean = 0.
-  do i = 1, 3
-    cenSaveMin(i) = 1.e30
-    cenSaveMax(i) = -1.e30
-  enddo
-  do ind = 1, numXpatchTot * numYpatchTot * numZpatchTot
-    numResid(ind) = 0
-    residSum(ind) = 0
-  enddo
-  if (max(numXfit, numYfit, numZfit) > LIMAXIS) call exitError( &
-      'TOO MANY POINTS IN FIT IN ONE DIMENSION FOR ARRAYS')
+  end subroutine saveAndTerminate
 
-  do locZ = 1, numZlocal
-    do locY = 1, numYlocal
-      do locX = 1, numXlocal
-        numData = 0
-        numZero = 0
-        do i = 1, 3
-          cenXYZsum(i) = 0.
-        enddo
-        !
-        ! count up number in each row in each dimension and on each
-        ! diagonal in the major dimensions
-        !
-        do i = 1, max(numXfit, numYfit, numZfit)
-          inRowX(i) = 0
-          inRowY(i) = 0
-          inRowZ(i) = 0
-        enddo
-        nyDiag = numYfit
-        if (ifFlip == 1) nyDiag = numZfit
-        !
-        ! Zero the parts of the arrays corresponding to corners, which
-        ! won't be tested
-        do i = 0, numXfit + nyDiag - 2
-          inDiag1(i) = 0
-          inDiag2(i) = 0
-        enddo
-        do lz = locZ + numZoffset, locZ + numZoffset + numZfit - 1
-          do ly = locY + numYoffset, locY + numYoffset + numYfit - 1
-            do lx = locX + numXoffset, locX + numXoffset + numXfit - 1
-              ifUse = 0
-              ind = indPatch(lx, ly, lz)
-              if (exists(ind)) ifUse = 1
-              do i = 1, 3
-                cenXYZsum(i) = cenXYZsum(i) + cenXYZ(ind, i) - 0.5 * nxyzVol(i)
-              enddo
-              if (numConts > 0 .and. ifUse > 0) then
-                ifUse = 0
-                !
-                ! find nearest contour in Z and see if patch is inside it
-                !
-                dzMin = 100000.
-                do icont = 1, numConts
-                  dz = abs(cenXYZ(ind, indZ) - contourZ(icont))
-                  if (dz < dzMin) then
-                    dzMin = dz
-                    icontMin = icont
-                  endif
-                enddo
-                indv = indVertStart(icontMin)
-                if (inside(xVerts(indv), yVerts(indv), numVerts(icontMin), &
-                    cenXYZ(ind, 1), cenXYZ(ind, indY))) ifUse = 1
-              endif
-              !
-              if (ifUse > 0) then
-                numData = numData + 1
-                if (vecXYZ(ind, 1) == 0. .and. vecXYZ(ind, 2) == 0 .and. &
-                    vecXYZ(ind, 3) == 0) numZero = numZero + 1
-                do j = 1, 3
-                  !
-                  ! the regression requires coordinates of second volume as
-                  ! independent variables (columns 1-3), those in first
-                  ! volume as dependent variables (stored in 5-7), to
-                  ! obtain transformation to get from second to first
-                  ! volume cx+dx in second volume matches cx in first
-                  ! volume
-                  !
-                  fitMat(j + 4, numData) = cenXYZ(ind, j) - 0.5 * nxyzVol(j)
-                  fitMat(j, numData) = fitMat(j + 4, numData) + vecXYZ(ind, j)
-                enddo
-                !
-                ! Solve_wo_outliers uses columns 8-17; save indexi in 18
-                ! Add to row counts and to diagonal counts
-                !
-                fitMat(18, numData) = ind
-                ix = lx + 1 - locX - numXoffset
-                iy = ly + 1 - locY - numYoffset
-                iz = lz + 1 - locZ - numZoffset
-                inRowX(ix) = inRowX(ix) + 1
-                inRowY(iy) = inRowY(iy) + 1
-                inRowZ(iz) = inRowZ(iz) + 1
-                if (ifFlip == 1) iy = iz
-                iz = (ix - iy) + nyDiag - 1
-                inDiag1(iz) = inDiag1(iz) + 1
-                iz = ix + iy - 2
-                inDiag2(iz) = inDiag2(iz) + 1
-              endif
-            enddo
-          enddo
-        enddo
-        indLcl = indLocal(locX, locY, locZ)
-        !
-        ! Need regular array of positions, so use the xyzsum to get
-        ! censave, not the cenloc values from the regression
-        !
-        debugHere = ifDebug .ne. 0
-        do i = 1, 3
-          cenToSave(i, indLcl) = cenXYZsum(i) / (numXfit * numYfit * numZfit)
-          cenSaveMin(i) = min(cenSaveMin(i), cenToSave(i, indLcl))
-          cenSaveMax(i) = max(cenSaveMax(i), cenToSave(i, indLcl))
-          if (debugHere) &
-              debugHere = abs(cenToSave(i, indLcl) - debugXYZ(i)) < 1.
-        enddo
-        !
-        ! solve for this location if there are at least half of the
-        ! normal number of patches present and if there are guaranteed
-        ! to be at least 3 patches in a different row from the dominant
-        ! one, even if the max are dropped from other rows
-        ! But treat thickness differently: if there are not enough data
-        ! on another layer, or if there is only one layer being fit,
-        ! then set the appropriate column as fixed in the fits
-        !
-        solved(indLcl) = numData >= numXfit * numYfit * numZfit / 2
-        maxDrop = nint(fracDrop * numData)
-        icolFixed = 0
-        do i = 1, max(numXfit, numYfit, numZfit)
-          if (debugHere) print *,'in row', i, ':', inRowX(i), inRowY(i), inRowZ(i)
-          if (ifFlip == 1) then
-            if (inRowX(i) > numData - 3 - maxDrop .or. &
-                inRowZ(i) > numData - 3 - maxDrop) solved(indLcl) = .false.
-            if (inRowY(i) > numData - 3 - maxDrop .or. numYfit == 1) icolFixed = 2
-          else
-            if (inRowX(i) > numData - 3 - maxDrop .or. &
-                inRowY(i) > numData - 3 - maxDrop) solved(indLcl) = .false.
-            if (inRowZ(i) > numData - 3 - maxDrop .or. numZfit == 1) icolFixed = 3
-          endif
-        enddo
-        do i = 1, numXfit + nyDiag - 3
-          if (inDiag1(i) > numData - 3 - maxDrop .or. &
-              inDiag2(i) > numData - 3 - maxDrop) solved(indLcl) = .false.
-        enddo
-        if (solved(indLcl)) then
-          call solve_wo_outliers(fitMat, numData, 3, icolFixed, maxDrop, probCrit, &
-              absProbCrit, elimMinResid, idrop, numDrop, a, delXYZ, cenLocal, &
-              devMean, devSD, devMax, ipntMax, devXYZmax)
-          !
-          if (debugHere) then
-            do i = 1, numData
-              write(*,'(8f9.2)') (fitMat(j, i), j = 1, 7)
-            enddo
-            print *,'cenloc', (cenLocal(i), i = 1, 3)
-            print *,'censave', (cenToSave(i, indLcl), i = 1, 3)
-            write(*,'(9f8.3)') ((a(i, j), i = 1, 3), j = 1, 3)
-          endif
-          !
-          ! Accumulate information about dropped points
-          !
-          do i = 1, numDrop
-            ifInDrop = 0
-            do j = 1, nlistDropped
-              if (nint(fitMat(18, idrop(i))) == indDropped(j)) then
-                ifInDrop = 1
-                numTimesDropped(j) = numTimesDropped(j) + 1
-                dropSum(j) = dropSum(j) + fitMat(4, numData + i - numDrop)
-              endif
-            enddo
-            if (ifInDrop == 0 .and. ifInDrop < IDIM) then
-              nlistDropped = nlistDropped + 1
-              indDropped(nlistDropped) = nint(fitMat(18, idrop(i)))
-              numTimesDropped(nlistDropped) = 1
-              dropSum(nlistDropped) = fitMat(4, numData + i - numDrop)
-            endif
-          enddo
-          numDropTot = numDropTot + numDrop
-          !
-          ! if residual output asked for, accumulate info about all resids
-          !
-          if (residFile .ne. ' ') then
-            do i = 1, numData
-              ind = nint(fitMat(18, nint(fitMat(5, i))))
-              numResid(ind) = numResid(ind) + 1
-              residSum(ind) = residSum(ind) + fitMat(4, i)
-            enddo
-          endif
-          !
-          if (discount == 0. .or. float(numZero) / numData <= discount) &
-              then
-            devMeanSum = devMeanSum + devMean
-            devMaxSum = devMaxSum + devMax
-            numDevSum = numDevSum + 1
-          endif
-          devMeanMax = max(devMeanMax, devMean)
-          devMaxMax = max(devMaxMax, devMax)
-          !
-          ! mark this location as solved and save the solution.
-          !
-          if (debugHere) write(*,'(6i4,3f8.1)') indLcl, locX, locY, locZ, numData, &
-              numDrop, (delXYZ(i), i = 1, 3)
-          do i = 1, 3
-            delXYZsave(i, indLcl) = delXYZ(i)
-            do j = 1, 3
-              amatSave(i, j, indLcl) = a(i, j)
-            enddo
-            if (debugHere) write(*,102) (a(i, j), j = 1, 3), delXYZ(i)
-          enddo
-          numLocalDone = numLocalDone + 1
-          determMean = determMean + abs(determ(a))
-        elseif (debugHere) then
-          print *,'Not solved', numData
-        endif
-      enddo
-    enddo
-  enddo
-  determMean = determMean / max(1, numLocalDone)
-  !
-  ! check for auto control
-  !
-  if (ifauto .ne. 0) then
-    devMeanAvg = 10000.
-    if (numDevSum > 0) devMeanAvg = devMeanSum / numDevSum
-    devMeanMin = min(devMeanMin, devMeanAvg)
-    devMeanAuto(indAuto) = devMeanAvg
-    if (devMeanAvg <= targetResid(indTarget)) then
-      !
-      ! done: set nauto to zero to allow printing of results
-      !
-      nauto = 0
-      write(*,107) numXfit, numYfit, numZfit
-107   format(/,'Desired residual achieved with fits to',i3,',',i3, &
-          ', and',i3,' patches in X, Y, Z',/)
-    else
-      indAuto = indAuto + 1
-      ! print *,iauto, ' Did fit to', nfitx, nfity, nfitz
-      if (indAuto > nauto) then
-        !
-        ! See if any other criteria have been met and loop back if so
-        !
-        do j = indTarget + 1, numTarget
-          write(*,112) targetResid(j)
-          do i = 1, nauto
-            if (devMeanAuto(i) <= targetResid(j)) then
-              indTarget = j
-              indAuto = i
-              numXfit = -100
-              numLocalDone = 0
-              go to 20
-            endif
-          enddo
-        enddo
-        !
-        ! write patch file if desired on last fit before error message
-        !
-        call outputPatchRes(residFile, numPosInFile, &
-            numXpatchTot * numYpatchTot * numZpatchTot, exists, residSum, numResid, &
-            indDropped, numTimesDropped, nlistDropped, cenXYZ, vecXYZ, LIMPATCH)
-        if (discount > 0. .and. numLocalDone > 0 .and. numDevSum == 0) &
-            call exitError('ALL FITS HAD TOO MANY ZERO VECTORS: RAISE '// &
-            '-discount FRACTION OR SET IT TO ZERO')
-        write(*,108) devMeanMin
-108     format(/,'ERROR: FINDWARP - FAILED TO FIND A WARPING WITH A ', &
-            'MEAN RESIDUAL BELOW',f9.3)
-        call exit(2)
-      endif
-    endif
-  endif
-
-  if (nlistDropped > 0 .and. nauto == 0) then
-    write(*,105) nlistDropped, numDropTot
-105 format(i5,' separate patches eliminated as outliers a total' &
-        ,' of',i6,' times:')
-    if (nlistDropped <= 10) then
-      print *,'    patch position   # of times   mean residual'
-      do i = 1, nlistDropped
-        write(*,106) (cenXYZ(indDropped(i), j), j = 1, 3), numTimesDropped(i), &
-            dropSum(i) / numTimesDropped(i)
-106     format(3f7.0,i8,f12.2)
-      enddo
-    else
-      do i = 1, nlistDropped
-        dropSum(i) = dropSum(i) / numTimesDropped(i)
-      enddo
-      call summarizeDrops(dropSum, nlistDropped, 'mean ')
-    endif
-    write(*,*)
-  endif
-  !
-  if (numLocalDone > 0 .and. nauto == 0) then
-    devMeanAvg = devMeanSum / max(1, numDevSum)
-    devMaxAvg = devMaxSum / max(1, numDevSum)
-    write(*,101) devMeanAvg, devMeanMax, devMaxAvg, devMaxMax
-101 format('Mean residual has an average of',f8.3, &
-        ' and a maximum of',f8.3,/ , &
-        'Max  residual has an average of',f8.3,' and a maximum of' &
-        ,f8.3)
-    if (discount > 0.) write(*,'(/,a,i7,a,i7,a)') 'These averages are '// &
-        'based on', numDevSum, ' of', numLocalDone, ' fits'
-  elseif (ifauto == 0) then
-    print *,'No locations could be solved for'
-  endif
-  go to 20
 end program findwarp
 
 
+! Sets up a list of number of local patches for autofits, where each one has a ratio of 
+! measured to unknown within the min and max range.  Call with limAuto <= 0 to just
+! count up the number and return a good value for limAuto
+!
 subroutine setAutoFits(numXpatchUse, numZpatchUse, numYpatchUse, ifLocalInY, numYfit, &
-    ratioMin, ratioMax, numXautoFit, numZautoFit, numYautoFit, nauto, LIMAUTO)
+    ratioMin, ratioMax, numXautoFit, numZautoFit, numYautoFit, numAuto, limAuto)
   implicit none
   integer*4 numXpatchUse, numZpatchUse, numYpatchUse, ifLocalInY, numYfit, numXautoFit(*)
-  integer*4 numZautoFit(*), numYautoFit(*), nauto, numInY, ix, iz, iy, LIMAUTO
+  integer*4 numZautoFit(*), numYautoFit(*), numAuto, numInY, ix, iz, iy, limAuto
   real*4 ratioMin, ratioMax, ratio, ratioFac
-  nauto = 0
+  numAuto = 0
   numInY = numYpatchUse
   if (ifLocalInY .ne. 0) numInY = numYfit
   ratioFac = 4.0
@@ -956,16 +1009,17 @@ subroutine setAutoFits(numXpatchUse, numZpatchUse, numYpatchUse, ifLocalInY, num
         if ((ix .ne. numXpatchUse .or. iz .ne. numZpatchUse) .and.  &
             ratio >= ratioMin .and. ratio <= ratioMax) then
           ! &                 aspect<=aspectmax) then
-          nauto = nauto + 1
-          if (nauto > LIMAUTO) call exitError( &
-              'TOO MANY POSSIBLE FITS FOR ARRAYS, REDUCE MAX RATIO')
-          numXautoFit(nauto) = ix
-          numZautoFit(nauto) = iz
-          numYautoFit(nauto) = iy
+          numAuto = numAuto + 1
+          if (limAuto > 0) then
+            numXautoFit(numAuto) = ix
+            numZautoFit(numAuto) = iz
+            numYautoFit(numAuto) = iy
+          endif
         endif
       enddo
     enddo
   enddo
+  if (limAuto <= 0) limAuto = numAuto + 10
   return
 end subroutine setAutoFits
 
