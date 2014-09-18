@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/17/14: Added a threshold command to Clip and made 3dmod image processing
+able to apply this in some cases.
+
 9/16/14: Fixed Tiltalign crash when robust fitting doesn't converge (In 4.7).
 
 9/14/14: Made patch2imod able to read up to 6 extra value columns and save
