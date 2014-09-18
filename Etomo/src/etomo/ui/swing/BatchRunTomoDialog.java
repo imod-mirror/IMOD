@@ -18,6 +18,7 @@ import javax.swing.event.ChangeListener;
 import etomo.BaseManager;
 import etomo.BatchRunTomoManager;
 import etomo.EtomoDirector;
+import etomo.comscript.BatchruntomoParam;
 import etomo.logic.UserEnv;
 import etomo.storage.DirectiveFileCollection;
 import etomo.type.AxisID;
@@ -246,6 +247,10 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
     table.getParameters(metaData);
     datasetDialog.getParameters(metaData.getDatasetMetaData());
     metaData.setDatasetTableHeader(phDatasetTable);
+  }
+  
+  public boolean getParameters(final BatchruntomoParam param,final boolean doValidation) {
+
   }
 
   public void saveAutodocs() {
