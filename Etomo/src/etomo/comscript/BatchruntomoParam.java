@@ -57,7 +57,7 @@ public class BatchruntomoParam {
     // com scripts which require the -e flag. RJG: 2003-11-06
     command.add("python");
     command.add("-u");
-    command.add(ApplicationManager.getIMODBinPath() + ProcessName.BATCHRUNTOMO);
+    command.add(BaseManager.getIMODBinPath() + ProcessName.BATCHRUNTOMO);
     command.add("-validation");
     command.add(validationType.toString());
     Iterator<String> i = directiveList.iterator();
