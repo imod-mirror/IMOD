@@ -18,9 +18,8 @@ c
 c       $Id$
 c       
       implicit none
-      include 'statsize.inc'
-      integer idim,limvert
-      parameter (idim=100000,limvert=100000)
+      integer idim,limvert,msiz
+      parameter (idim=100000,limvert=100000,msiz=20)
       real*4 xr(msiz,idim),ccc(idim)
       real*4 cx(3),dx(3),a(3,3),dxyz(3),devxyz(3)
       real*4 devxyzmax(3),cenloc(3),cxlast(3),freinp(20)
@@ -190,7 +189,7 @@ c
      &    ' in the ',char(ichar('W')+icolfix),' dimension'
 c       
       maxdrop=nint(fracdrop*ndat)
-      call solve_wo_outliers(xr,ndat,3,icolfix,maxdrop,crit,critabs,
+      call solve_wo_outliers(xr,msiz,ndat,3,icolfix,maxdrop,crit,critabs,
      &    elimmin, idrop,ndrop, a,dxyz,cenloc, devavg,devsd,devmax,
      &    ipntmax, devxyzmax)
 c       
