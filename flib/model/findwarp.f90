@@ -12,7 +12,6 @@
 !
 program findwarp
   implicit none
-  include 'statsize.inc'
   integer LIMTARG
   parameter (LIMTARG = 100)
   real*4 firstAmat(3,3), firstDelta(3), a(3,3), delXYZ(3), cenSaveMin(3), cenSaveMax(3)
@@ -45,7 +44,7 @@ program findwarp
   integer*4 numConts, ierr, indY, indZ, numTarget, indTarget, intCenPos, k, itmp
   integer*4 numXoffset, numYoffset, numZoffset, ifSubset, ifLocalSlabs, ifdebug
   real*4 ratioMin, ratioMax, fracDrop, probCrit, absProbCrit, elimMinResid
-  integer*4 ifAuto, numAuto, ix, iy, iz, indAuto, limVert, limCont
+  integer*4 ifAuto, numAuto, ix, iy, iz, indAuto, limVert, limCont, matColDim
   integer*4 numLocalDone, numXexclHigh, numYexclhigh, numZexclHigh
   integer*4 ifDiddle, numXlocal, numYlocal, numZlocal, numZero, numDevSum
   integer*4 indUse, nlistDropped, numDropTot, locX, locY, locZ, lx, ly, lz, ifUse
@@ -88,6 +87,7 @@ program findwarp
       'discount:DiscountIfZeroVectors:F:@param:ParameterFile:PF:@'// &
       'help:usage:B:'
   !
+  matColDim = 20
   numXoffset = 0
   numYoffset = 0
   numZoffset = 0
@@ -158,7 +158,8 @@ program findwarp
   allocate(amatSave(3,3,limPatch), cenToSave(3,limPatch), delXYZsave(3,limPatch), &
       residSum(limPatch), solved(limPatch), exists(limPatch), cenXYZ(limPatch,3), &
       vecXYZ(limPatch,3), inRowX(limAxis), inRowY(limAxis), inRowZ(limAxis), &
-      numResid(limPatch), inDiag1(0:limDiag), inDiag2(0:limDiag), stat = ierr)
+      numResid(limPatch), inDiag1(0:limDiag), inDiag2(0:limDiag), indDropped(limPatch), &
+      numTimesDropped(limPatch), dropSum(limPatch), stat = ierr)
   call memoryError(ierr, 'ARRAYS FOR PATCHES')
   !
   numXpatchUse = numXpatchTot
@@ -228,8 +229,8 @@ program findwarp
   if (filename .ne. ' ') then
     limCont = -1
     limVert = -1
-    call get_region_contours(filename, 'FINDWARP', xVerts, yVerts, numVerts, &
-        indVertStart, contourZ, numConts, ifFlip, limCont, limVert, 0)
+    call get_region_contours(filename, 'FINDWARP',delTmp, delTmp, ix, &
+        iy, ierr, numConts, ifFlip, limCont, limVert, 0)
     limVert = limVert + 10
     limCont = limCont + 4
     allocate(xVerts(limVert), yVerts(limVert), contourZ(limCont),  &
@@ -395,28 +396,28 @@ program findwarp
     !
     indAuto = -1
     numXYZfit(indZ) = min(numXYZfit(indZ), numXYZpatchUse(indZ))
-    do ix = 1, 2
-      if (ifFlip > 0) then
-        call setAutoFits(numXpatchUse, numZpatchUse, numYpatchUse, ifLocalSlabs, &
-            numXYZfit(indZ), ratioMin, ratioMax, numXautoFit, numZautoFit, &
-            numYautoFit, numAuto, indAuto)
-      else
-        call setAutoFits(numXpatchUse, numYpatchUse, numZpatchUse, ifLocalSlabs, &
-            numXYZfit(indZ), ratioMin, ratioMax, numXautoFit, numYautoFit, &
-            numZautoFit, numAuto, indAuto)
-      endif
-      if (numAuto == 0) then
-        write(*,'(/,a,/,a)') 'ERROR: FINDWARP - NO FITTING PARAMETERS GIVE '// &
-            'THE REQUIRED RATIO OF', ' ERROR: MEASUREMENTS TO UNKNOWNS - '// &
-            'THERE ARE PROBABLY TOO FEW PATCHES'
-        call exit(1)
-      endif
-      if (ix == 1) then
-        allocate(numXautoFit(indAuto), numYautoFit(indAuto), numZautoFit(indAuto), &
-            devMeanAuto(indAuto), stat = ierr)
-        call memoryError(ierr, 'ARRAYS FOR AUTOFITS')
-      endif
-    enddo
+    call setAutoFits(numXpatchUse, numXYZpatchUse(indY), numXYZpatchUse(indZ), &
+        ifLocalSlabs, numXYZfit(indZ), ratioMin, ratioMax, ix, iy, itmp, numAuto, &
+        indAuto)
+    if (numAuto == 0) then
+      write(*,'(/,a,/,a)') 'ERROR: FINDWARP - NO FITTING PARAMETERS GIVE '// &
+          'THE REQUIRED RATIO OF', ' ERROR: MEASUREMENTS TO UNKNOWNS - '// &
+          'THERE ARE PROBABLY TOO FEW PATCHES'
+      call exit(1)
+    endif
+    allocate(numXautoFit(indAuto), numYautoFit(indAuto), numZautoFit(indAuto), &
+        devMeanAuto(indAuto), stat = ierr)
+    call memoryError(ierr, 'ARRAYS FOR AUTOFITS')
+
+    if (ifFlip > 0) then
+      call setAutoFits(numXpatchUse, numZpatchUse, numYpatchUse, ifLocalSlabs, &
+          numXYZfit(indZ), ratioMin, ratioMax, numXautoFit, numZautoFit, &
+          numYautoFit, numAuto, indAuto)
+    else
+      call setAutoFits(numXpatchUse, numYpatchUse, numZpatchUse, ifLocalSlabs, &
+          numXYZfit(indZ), ratioMin, ratioMax, numXautoFit, numYautoFit, &
+          numZautoFit, numAuto, indAuto)
+    endif
     !
     ! sort the list by size of area in inverted order
     !
@@ -539,8 +540,7 @@ program findwarp
   ! for auto (which will be biggest) or one-shot run from PIP
   if (.not. allocated(fitMat)) then
     if (pipInput) limFit = numXfitIn * numYfitIn * numZfitIn + 10
-    allocate(fitMat(msiz, limFit), indDropped(limFit), numTimesDropped(limFit), &
-        idrop(limFit), dropSum(limFit), stat = ierr)
+    allocate(fitMat(matColDim, limFit), idrop(limFit), stat = ierr)
     call memoryError(ierr, 'ARRAYS FOR FITTING')
   endif
   if (numXfitIn * numYfitIn * numZfitIn > limFit) then
@@ -802,9 +802,9 @@ CONTAINS
                 inDiag2(i) > numData - 3 - maxDrop) solved(indLcl) = .false.
           enddo
           if (solved(indLcl)) then
-            call solve_wo_outliers(fitMat, numData, 3, icolFixed, maxDrop, probCrit, &
-                absProbCrit, elimMinResid, idrop, numDrop, a, delXYZ, cenLocal, &
-                devMean, devSD, devMax, ipntMax, devXYZmax)
+            call solve_wo_outliers(fitMat, matColDim, numData, 3, icolFixed, maxDrop, &
+                probCrit, absProbCrit, elimMinResid, idrop, numDrop, a, delXYZ, &
+                cenLocal, devMean, devSD, devMax, ipntMax, devXYZmax)
             !
             if (debugHere) then
               do i = 1, numData

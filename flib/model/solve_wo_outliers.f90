@@ -3,7 +3,8 @@
 ! SOLVE_WO_OUTLIERS solves for a fit between sets of positions in 3D
 ! and eliminates outlying position-pairs from the solution
 !
-! XMAT is the data matrix, NUMDATA is the full amount of data
+! XMAT is the data matrix, MATCOLS is its first dimension and must be at least 17.
+! NUMDATA is the full amount of data
 ! NUMCOL is the number of columns of independent variables
 ! ICOLFIXED specifies which column has insufficient variance (is fixed)
 ! and should be negative to indicate inversion in that dimension
@@ -23,18 +24,16 @@
 ! 2*(numCol + 4)), puts a cross index from the ordered data to the
 ! original row in column 5 (or numCol + 2), returns a mean residual in
 ! column 4 (numCol + 1) for the ordered data, and puts residual vector
-! components for the ordered data in columns 15 to 17 (2*(numCol + 4) +
-! 1, 2, 3) .
+! components for the ordered data in columns 15 to 17 (2*(numCol + 4) + 1, 2, 3) .
 !
-subroutine solve_wo_outliers(xMat, numData, numCol, icolFixed, maxDrop, critProb, &
-    absProbCrit, elimMin, idrop, numDrop, aMat3d, delXYZ, cenMeanLoc, devMean, devSD, &
-    devMax, ipntMax, devXYZmax)
+subroutine solve_wo_outliers(xMat, matCols, numData, numCol, icolFixed, maxDrop, &
+    critProb, absProbCrit, elimMin, idrop, numDrop, aMat3d, delXYZ, cenMeanLoc, devMean, &
+    devSD, devMax, ipntMax, devXYZmax)
   implicit none
-  include 'statsize.inc'
   integer maxErr
   parameter (maxErr = 100000)
-  integer*4 idrop(*)
-  real*4 xMat(msiz,*)
+  integer*4 idrop(*), matCols
+  real*4 xMat(matCols,*)
   real*4 aMat3d(3,*), delXYZ(3), devXYZmax(3), cenMeanLoc(3), cenTmp(3)
   integer*4 index(maxErr)
   integer*4 numData, numCol, maxDrop, numDrop, ipntMax, icolFixed
@@ -57,8 +56,8 @@ subroutine solve_wo_outliers(xMat, numData, numCol, icolFixed, maxDrop, critProb
     enddo
   enddo
 
-  call do3multr(xMat, numData, numCol, numData, icolFixed, aMat3d, delXYZ, cenMeanLoc,  &
-      devMean, devSD, devMax, ipntMax, devXYZmax)
+  call do3multr(xMat, matCols, numData, numCol, numData, icolFixed, aMat3d, delXYZ, &
+      cenMeanLoc, devMean, devSD, devMax, ipntMax, devXYZmax)
   numDrop = 0
   !
   ! If returning right away, load cross-indexes into col 5
@@ -105,8 +104,8 @@ subroutine solve_wo_outliers(xMat, numData, numCol, icolFixed, maxDrop, critProb
   ! for outliers.
   !
   do jdrop = 1, maxDrop + 1
-    call do3multr(xMat, numData, numCol, numData - jdrop, icolFixed, aMat3d, delXYZ, &
-        cenTmp, devMean, devSD, devMax, ipntMax, devXYZmax)
+    call do3multr(xMat, matCols, numData, numCol, numData - jdrop, icolFixed, aMat3d, &
+        delXYZ, cenTmp, devMean, devSD, devMax, ipntMax, devXYZmax)
     !
     ! estimate the sigma for the error distribution as the maximum of
     ! the values implied by the mean and the SD of the deviations
@@ -146,8 +145,8 @@ subroutine solve_wo_outliers(xMat, numData, numCol, icolFixed, maxDrop, critProb
   do i = 1, numDrop
     idrop(i) = index(numData + i - numDrop)
   enddo
-  call do3multr(xMat, numData, numCol, numData - numDrop, icolFixed, aMat3d, delXYZ, &
-      cenTmp, devMean, devSD, devMax, ipntMax, devXYZmax)
+  call do3multr(xMat, matCols, numData, numCol, numData - numDrop, icolFixed, aMat3d, &
+      delXYZ, cenTmp, devMean, devSD, devMax, ipntMax, devXYZmax)
   ipntMax = index(ipntMax)
   do i = 1, numData
     xMat(numCol + 2, i) = index(i)
@@ -159,26 +158,26 @@ end subroutine solve_wo_outliers
 ! DO3MULTR does the three regressions to determine a transformation
 ! matrix, or it does a search for a reduced set of parameters if
 ! ICOLFIXIN is non-zero.
-! XMAT is the data matrix, NUMDATA is the full amount of data
+! XMAT is the data matrix, MATCOLS is its first dimension
+! NUMDATA is the full amount of data
 ! NUMCOLIN is the number of columns of independent variables
 ! NUMFIT is the number of data points to use
 ! ICOLFIXIN specifies which column has insufficient variance (is fixed)
 ! and should be negative to indicate inversion in that dimension
-! A is the 3x3 matrix computed
+! AMAT3D is the 3x3 matrix computed
 ! DELXYZ has the displacements
 ! CENMEANLOC is the mean location in the dependent variables
 ! DEVMEAN, DEVSD, DEVMAX are mean, SD, and maximum deviations
 ! IPNTMAX and DEVXYZMAX given the point number and deviation in X, y, Z
 ! at which the maximum occurred
 !
-subroutine do3multr(xMat, numData, numColIn, numFit, icolFixIn, aMat3d, delXYZ, &
+subroutine do3multr(xMat, matCols, numData, numColIn, numFit, icolFixIn, aMat3d, delXYZ, &
     cenMeanLoc, devMean, devSD, devMax, ipntMax, devXYZmax)
   implicit none
-  include 'statsize.inc'
-  real*4 xMat(msiz,*), xMeans(msiz), sd(msiz)
-  real*4 ssd(msiz,msiz), b1(msiz)
+  real*4 xMat(matCols,*), xMeans(matCols), sd(matCols)
+  real*4 work(100), b1(matCols), b3(matCols, 3)
   real*4 aMat3d(3,*), delXYZ(3), devXYZ(3), devXYZmax(3), cenMeanLoc(3)
-  integer*4 numData, numColIn, numFit, ipntMax, icolFixed, icolFixIn
+  integer*4 numData, numColIn, numFit, ipntMax, icolFixed, icolFixIn, matCols
   real*4 devMean, devSD, devMax, xMeanSave(6)
   integer*4 ixyz, i, j, ipnt, numColDo, k, km
   real*4 const, devSum, devSq, devPnt, amat(2,2), funcErr
@@ -211,7 +210,31 @@ subroutine do3multr(xMat, numData, numColIn, numFit, icolFixIn, aMat3d, delXYZ, 
 
   numColDo = numColIn
   icolFixed = abs(icolFixIn)
-  if (icolFixed .ne. 0) then
+  if (icolFixed == 0) then
+    !
+    ! Simple fit, shove the data down to fill the empty spot
+    do i = 1, numFit
+      do j = numColDo + 1, numColDo + 3
+        xMat(j, i) = xMat(j + 1, i)
+      enddo
+    enddo
+    !
+    ! Do the fit and fill the matrix
+    call multRegress(xMat, matCols, 1, numColDo, numFit, 3, 0, b3, matCols, delXYZ, &
+        xMeans, sd, work)
+    do ixyz = 1, 3
+      do j = 1, numColDo
+        aMat3d(ixyz, j) = b3(j, ixyz)
+      enddo
+    enddo
+    !
+    ! restore the data
+    do i = 1, numFit
+      do j = numColDo + 3, numColDo + 1, -1
+        xMat(j + 1, i) = xMat(j, i)
+      enddo
+    enddo
+  else
     nullAxis = icolFixed
     magSign = sign(1, icolFixIn)
     !
@@ -260,35 +283,30 @@ subroutine do3multr(xMat, numData, numColIn, numFit, icolFixIn, aMat3d, delXYZ, 
         xMat(j, i) = xMat(j + 1, i)
       enddo
     enddo
-  endif
-  !
-  ! do the three multr's, moving the appropriate column of independent
-  ! var data into the one past the dependent vars
-  !
-  icol = 1
-  do ixyz = 1, 3
-    ! print *,'FIT #', ixyz
-    if (ixyz .ne. icolFixed) then
-      do i = 1, numFit
-        xMat(numColDo + 1, i) = xMat(numColIn + 1 + ixyz, i)
-        ! if (mod(i, 10) ==1) write(*,'(i4,5f9.2)') i, (xr(j, i), j=1, &
-        ! ncoldo+1)
-      enddo
-      call multRegress(xMat, msiz, 1, numColDo, numFit, 1, 0, b1, msiz, const, xMeans, &
-          sd, ssd)
-      ! print *,'ss:'
-      ! write(*,'(4f12.1)') ((ssd(i, j), j=1, 4), i=1, 4)
-      do j = 1, numColDo
-        aMat3d(icol, j) = b1(j)
-      enddo
-      ! print *,'solution:', (b1(j), j=1, ncoldo), const
-      delXYZ(ixyz) = const
-      cenMeanLoc(ixyz) = xMeans(numColDo + 1)
-      icol = icol + 1
-    endif
-  enddo
-  !
-  if (icolFixed .ne. 0) then
+    !
+    ! do the three multr's, moving the appropriate column of independent
+    ! var data into the one past the dependent vars
+    !
+    icol = 1
+    do ixyz = 1, 3
+      ! print *,'FIT #', ixyz
+      if (ixyz .ne. icolFixed) then
+        do i = 1, numFit
+          xMat(numColDo + 1, i) = xMat(numColIn + 1 + ixyz, i)
+          ! if (mod(i, 10) ==1) write(*,'(i4,5f9.2)') i, (xr(j, i), j=1, &
+          ! ncoldo+1)
+        enddo
+        call multRegress(xMat, matCols, 1, numColDo, numFit, 1, 0, b1, matCols, const, &
+            xMeans, sd, work)
+        do j = 1, numColDo
+          aMat3d(icol, j) = b1(j)
+        enddo
+        ! print *,'solution:', (b1(j), j=1, ncoldo), const
+        delXYZ(ixyz) = const
+        cenMeanLoc(ixyz) = xMeans(numColDo + 1)
+        icol = icol + 1
+      endif
+    enddo
     !
     ! restore the data
     !
@@ -380,7 +398,6 @@ subroutine do3multr(xMat, numData, numColIn, numFit, icolFixIn, aMat3d, delXYZ, 
     endif
   enddo
   call sums_to_avgsd(devSum, devSq, numFit, devMean, devSD)
-
   return
 end subroutine do3multr
 
