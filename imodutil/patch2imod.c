@@ -22,11 +22,11 @@
 #define P2I_READ_WARP       16
 #define P2I_TIMES_FOR_Z     32
 
-
+#define MAX_VALUE_COLS 6
 #define DEFAULT_SCALE 10.0
 
 static Imod *imod_from_patches(FILE *fin, float scale, int clipSize, char *name, 
-                               int flags);
+                               int flags, int valColOut[2]);
 
 static void usage(char *prog)
 {
@@ -39,8 +39,10 @@ static void usage(char *prog)
   printf("\t-n name\tAdd given name to model object\n");
   printf("\t-c #\tSet up clipping planes enclosing area of given size\n");
   printf("\t-d #\tSet flag to display values in false color in 3dmod\n");
+  printf("\t-v #[,#]\tValue column numbers (1-%d) to store as value and value2\n", 
+         MAX_VALUE_COLS);
   printf("\t-z\tIgnore zero values when using SD to limit stored maximum value\n");
-  printf("\t-l\tUse all lines in file rather than getting line count from first line\n");
+  printf("\t-l\tUse all lines in file; do not get line count from first line\n");
   printf("\t-w\tRead input file as a warping transformation file\n");
   printf("\t-t\tGive each contour a time equal to its Z value plus 1\n");
 
@@ -56,6 +58,7 @@ int main( int argc, char *argv[])
   int clipSize = 0;
   int flags = 0;
   int nxWarp, nyWarp, nzWarp, warpFlags, version, indWarp, ibin;
+  int valColOut[2] = {1, 2};
   float warpPixel;
   char *name = NULL;
 
@@ -107,6 +110,13 @@ int main( int argc, char *argv[])
         flags |= P2I_TIMES_FOR_Z;
         break;
 
+      case 'v':
+        sscanf(argv[++i], "%d,%d", &valColOut[0], &valColOut[1]);
+        if (valColOut[0] < 1 || valColOut[0] > MAX_VALUE_COLS || valColOut[1] < 1 || 
+            valColOut[1] > MAX_VALUE_COLS)
+          exitError("Value column(s) must be between 1 and %d", MAX_VALUE_COLS);
+        break;
+
       default:
         exitError("Illegal argument %s", argv[i]);
         break;
@@ -139,7 +149,7 @@ int main( int argc, char *argv[])
   fout = fopen(argv[i], "wb");
   if (!fout)
     exitError("Could not open %s", argv[i]);
-  Model = (Imod *)imod_from_patches(fin, scale, clipSize, name, flags);
+  Model = (Imod *)imod_from_patches(fin, scale, clipSize, name, flags, valColOut);
      
   imodWrite(Model, fout);
 
@@ -151,7 +161,7 @@ int main( int argc, char *argv[])
 #define MAXLINE 128
 
 static Imod *imod_from_patches(FILE *fin, float scale, int clipSize, char *name,
-                               int flags)
+                               int flags, int valColOut[2])
 {
   int noflip = flags & P2I_NO_FLIP;
   int ignoreZero = flags & P2I_IGNORE_ZERO;
@@ -160,6 +170,7 @@ static Imod *imod_from_patches(FILE *fin, float scale, int clipSize, char *name,
   int readWarp = flags & P2I_READ_WARP;
   int timesForZ = flags & P2I_TIMES_FOR_Z;
   int len, i;
+  float values[MAX_VALUE_COLS];
      
   char line[MAXLINE];
   Imod *mod;
@@ -303,9 +314,10 @@ static Imod *imod_from_patches(FILE *fin, float scale, int clipSize, char *name,
              patchcrawl3d */
           if (strchr(line, ','))
             nread = sscanf(line, "%d %d %d %f, %f, %f", &ix, &iz, &iy, &dx, &dz, &dy);
-        else
-          nread = sscanf(line, "%d %d %d %f %f %f %f %f", &ix, &iz, &iy, &dx,
-                         &dz, &dy, &value, &value2);
+          else
+            nread = sscanf(line, "%d %d %d %f %f %f %f %f %f %f %f %f", &ix, &iz, &iy, 
+                           &dx, &dz, &dy, &values[0], &values[1], &values[2], &values[3],
+                           &values[4], &values[5]);
           if (noflip) {
             itmp = iy;
             iy = iz;
@@ -333,7 +345,8 @@ static Imod *imod_from_patches(FILE *fin, float scale, int clipSize, char *name,
       if (dz != 0.)
         dzvary = 1;
 
-      if (nread > 6) {
+      if (nread >= 6 + valColOut[0]) {
+        value = values[valColOut[0] - 1];
         valmin = B3DMIN(valmin, value);
         valmax = B3DMAX(valmax, value);
         if (value || !ignoreZero) {
@@ -346,9 +359,9 @@ static Imod *imod_from_patches(FILE *fin, float scale, int clipSize, char *name,
         if (istoreInsert(&obj->store, &store))
           exitError("Could not add general storage item");
       }
-      if (nread > 7) {
+      if (nread >= 6 + valColOut[1]) {
         store2.index.i = i;
-        store2.value.f = value2;
+        store2.value.f = values[valColOut[1] - 1];
         if (istoreInsert(&obj->store, &store2))
           exitError("Could not add general storage item");
       }

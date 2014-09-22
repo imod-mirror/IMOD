@@ -31,6 +31,14 @@ time index, while all eligible contours in an object will be copied when copying
 to another object.  When copying to a time index, another option is available,
 to copy all contours in all objects from the current time index to the selected
 time index.
+<P>
+When copying to another object is selected, the checkbox <B>Make equivalent
+    ellipse</B> can be turned on to add an ellipse with the same second moments
+    as the contour instead adding a copy of the contour to the other object.
+This provides a way to visualize the equivalent ellipses whose properties are
+    reported by the "-e" option to <A><href="../man/imodinfo.html#TOP">imodinfo</A>.
+    Both the current object and the objected being copied to must be closed
+    contour objects.
 <H4>Control Buttons</H4>
 <UL>
 <LI>Push <B>Apply</B> to execute the copy operation using the current
