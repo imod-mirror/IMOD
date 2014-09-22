@@ -128,10 +128,6 @@ c        do j = 1,3
           if (i.gt.1 .and. cx(j).ne.cxlast(j)) onelayer(j)=.false.
           cxlast(j) = cx(j)
         enddo
-        if (ninp .gt. 6) then
-          haveCCC = .true.
-          ccc(i) = freinp(7)
-        endif
 
         ifuse=1
         if(ncont.gt.0)then
@@ -154,6 +150,10 @@ c
 c         
         if(ifuse.gt.0)then
           nfill=nfill+1
+          if (ninp .gt. 6) then
+            haveCCC = .true.
+            ccc(nfill) = freinp(7)
+          endif
 c	    write(*,'(3f6.0)')cx(1),cx(3),cx(2)
           do j=1,3
 c	      
