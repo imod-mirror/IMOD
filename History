@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/22/14: Fixed CCC values in reduced vector output of Refinematch if more
+restrictive boundaries are applied (In 4.7).
+
 9/16/14: Fixed Tiltalign crash when robust fitting doesn't converge (In 4.7).
 
 9/8/14: Changed autofidseed to create a specified temporary directory, not
