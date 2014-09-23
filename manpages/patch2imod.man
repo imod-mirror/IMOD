@@ -82,12 +82,15 @@ maximum value that is limited to 10 SDs above the mean.  This stored value
 determines the maximum that is shown in the model view object edit window of
 3dmod.  This option is needed when there are a very large numbers of zero values.
 .TP
-.B -v \fIcol1[,col2]\fR
-Store the given value column(s) as primary and secondary values in the
+.B -v \fIID/-col\fR
+Store the value column with the given ID number, or with the negative
+of the given column number, as the primary values in the
 model.  Value columns are numbered from 1 and there can be up to 6 of
-them.  The default is to store the first value column as primary and
-the second as secondary (corresponding to an entry of "1,2").  If only
-one number is entered, it sets just the column for the primary value.
+them.  Programs that create patch vector output files (Corrsearch3d(1),
+Refinematch(1), Findwarp(1)), now assign an ID number
+to each type of data; these ID numbers are listed in order in first
+line of the file.  The default is to store the first value column as primary
+(corresponding to an entry of "-1").
 .TP
 .B -l
 Read all lines in the file as lines with vectors.  By default, the program
