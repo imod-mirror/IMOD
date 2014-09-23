@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/23/14: Patch2imod can read up to 6 extra value columns and save them as
+general values in the model, making a selected one the primary one; and
+Imod2patch can restore all these data to a new patch file.
+
 9/22/14: Fixed CCC values in reduced vector output of Refinematch if more
 restrictive boundaries are applied (In 4.7).
 
@@ -7,9 +11,6 @@ restrictive boundaries are applied (In 4.7).
 able to apply this in some cases.
 
 9/16/14: Fixed Tiltalign crash when robust fitting doesn't converge (In 4.7).
-
-9/14/14: Made patch2imod able to read up to 6 extra value columns and save
-selected columns as general values in the model.
 
 9/8/14: IMOD_4-8-13
 9/8/14: Changed autofidseed to create a specified temporary directory, not
