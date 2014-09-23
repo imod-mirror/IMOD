@@ -12,8 +12,8 @@
 !
 program findwarp
   implicit none
-  integer LIMTARG
-  parameter (LIMTARG = 100)
+  integer LIMTARG, LIMEXTRA
+  parameter (LIMTARG = 30, LIMEXTRA = 20)
   real*4 firstAmat(3,3), firstDelta(3), a(3,3), delXYZ(3), cenSaveMin(3), cenSaveMax(3)
   real*4 devXYZmax(3), cenLocal(3), amatTmp(3,3), delTmp(3), cenXYZsum(3)
   integer*4 nxyzVol(3)
@@ -22,16 +22,19 @@ program findwarp
   real*4, allocatable :: xVerts(:), yVerts(:), contourZ(:), dropSum(:), fitMat(:,:)
   integer*4, allocatable :: indVertStart(:), numVerts(:), listPositions(:,:)
   real*4, allocatable :: amatSave(:,:,:), cenToSave(:,:), cenXYZ(:,:), vecXYZ(:,:)
-  real*4, allocatable :: delXYZsave(:,:), residSum(:), devMeanAuto(:)
+  real*4, allocatable :: delXYZsave(:,:), residSum(:), devMeanAuto(:,:)
   logical, allocatable :: solved(:), exists(:)
   integer*4, allocatable :: numXautoFit(:), numYautoFit(:), numZautoFit(:), inDiag2(:)
   integer*4, allocatable :: inRowX(:), inRowY(:), inRowZ(:), numResid(:), inDiag1(:)
-  character*320 filename, residFile
-  real*4 cenXYZin(3), vecXYZin(3), targetResid(LIMTARG)
+  real*4, allocatable :: extraVals(:,:)
+  real*4 freNum(LIMEXTRA)
+  character*320 filename, residFile, line
+  real*4 cenXYZin(3), vecXYZin(3), targetResid(LIMTARG), selectCrit(LIMTARG, LIMEXTRA)
+  integer*4 numSelectCrit, indSelect, icolSelect(LIMEXTRA), isignSelect(LIMEXTRA)
   integer*4 numXYZpatch(3), indXYZ(3), numZpatchUse, limPatch, limAxis, limDiag, limFit
   integer*4 numXfit, numYfit, numZfit, numXYXfit(3), numXpatchUse, numYpatchUse
   integer*4 numXfitIn, numYfitIn, numZfitIn, numXYZfitIn(3), numXYZpatchUse(3)
-  integer*4 numXYZfit(3)
+  integer*4 numXYZfit(3), numColSelect, numeric(LIMEXTRA), IDextra(LIMEXTRA)
   equivalence (numXpatchTot, numXYZpatch(1)), (numYpatchTot, numXYZpatch(2)), &
       (numZpatchTot, numXYZpatch(3))
   equivalence (numXfit, numXYXfit(1)), (numYfit, numXYXfit(2)), (numZfit, numXYXfit(3))
@@ -44,8 +47,8 @@ program findwarp
   integer*4 numConts, ierr, indY, indZ, numTarget, indTarget, intCenPos, k, itmp
   integer*4 numXoffset, numYoffset, numZoffset, ifSubset, ifLocalSlabs, ifdebug
   real*4 ratioMin, ratioMax, fracDrop, probCrit, absProbCrit, elimMinResid
-  integer*4 ifAuto, numAuto, ix, iy, iz, indAuto, limVert, limCont, matColDim
-  integer*4 numLocalDone, numXexclHigh, numYexclhigh, numZexclHigh
+  integer*4 ifAuto, numAuto, ix, iy, iz, indAuto, limVert, limCont, matColDim, maxExtra
+  integer*4 numLocalDone, numXexclHigh, numYexclhigh, numZexclHigh, numFields, numExtraID
   integer*4 ifDiddle, numXlocal, numYlocal, numZlocal, numZero, numDevSum
   integer*4 indUse, nlistDropped, numDropTot, locX, locY, locZ, lx, ly, lz, ifUse
   real*4 devMeanMin, devMeanSum, devMaxSum, devMaxMax
@@ -57,18 +60,18 @@ program findwarp
   character*5 rowSlabCapText(2) /'ROWS ', 'SLABS'/
   character*1 yzText(2) /'Y', 'Z'/
   logical*4 debugHere
-  integer*4 numberInList
+  integer*4 numberInList, readNumPatches
   !
   logical pipInput
   integer*4 numOptArg, numNonOptArg
   integer*4 PipGetInteger, PipGetTwoIntegers
   integer*4 PipGetString, PipGetFloat, PipGetFloatArray, PipGetTwoFloats
-  integer*4 PipGetInOutFile, PipGetThreeFloats
+  integer*4 PipGetInOutFile, PipGetThreeFloats, PipNumberOfEntries
   !
-  ! fallbacks from ../../manpages/autodoc2man -2 2  findwarp
+  ! fallbacks from ../../manpages/autodoc2man -3 2  findwarp
   !
   integer numOptions
-  parameter (numOptions = 19)
+  parameter (numOptions = 22)
   character*(40 * numOptions) options(1)
 
   indPatch(ix, iy, iz) = ix + (iy - 1) * numXpatchTot + (iz - 1) * numXpatchTot * &
@@ -81,11 +84,11 @@ program findwarp
       'residual:ResidualPatchOutput:FN:@target:TargetMeanResidual:FA:@'// &
       'measured:MeasuredRatioMinAndMax:FP:@xskip:XSkipLeftAndRight:IP:@'// &
       'yskip:YSkipLowerAndUpper:IP:@zskip:ZSkipLowerAndUpper:IP:@'// &
+      'extra:ExtraValueSelection:IPM:@select:SelectionCriteria:FAM:@'// &
       'rowcol:LocalRowsAndColumns:IP:@slabs:LocalSlabs:I:@'// &
       'maxfrac:MaxFractionToDrop:F:@minresid:MinResidualToDrop:F:@'// &
-      'prob:CriterionProbabilities:FP:@'// &
-      'discount:DiscountIfZeroVectors:F:@param:ParameterFile:PF:@'// &
-      'help:usage:B:'
+      'prob:CriterionProbabilities:FP:@discount:DiscountIfZeroVectors:F:@'// &
+      'debug:DebugAtXYZ:FT:@param:ParameterFile:PF:@help:usage:B:'
   !
   matColDim = 20
   numXoffset = 0
@@ -107,6 +110,9 @@ program findwarp
   discount = 0.
   limFit = 40000
   numAuto = 0
+  numSelectCrit = 0
+  numColSelect = 0
+  indSelect = 1
   !
   call PipReadOrParseOptions(options, numOptions, 'findwarp', &
       'ERROR: FINDWARP - ', .true., 3, 1, 1, numOptArg, numNonOptArg)
@@ -119,17 +125,22 @@ program findwarp
       call exitError('NO INPUT PATCH FILE SPECIFIED')
 
   call dopen(1, filename, 'old', 'f')
-  read(1,*) numData
+  IDextra(:) = 0
+  if (readNumPatches(1, numData, numExtraID, IDextra, LIMEXTRA) .ne. 0) call exitError &
+      ('READING FIRST LINE OF PATCH FILE')
   allocate(listPositions(numData + 4,3), stat = ierr)
   call memoryError(ierr, 'ARRAY FOR POSITION LIST')
 
   numXpatchTot = 0
   numYpatchTot = 0
   numZpatchTot = 0
+  maxExtra = 0
   do i = 1, numData
-    read(1,*) (cenXYZin(j), j = 1, 3)
+    read(1,'(a)') line
+    call frefor2(line, freNum, numeric, numFields, LIMEXTRA)
+    maxExtra = max(maxExtra, numFields - 6)
     do j = 1, 3
-      intCenPos = nint(cenXYZin(j))
+      intCenPos = nint(freNum(j))
       if (numberInList(intCenPos, listPositions(1, j), numXYZpatch(j), 0) == 0) then
         numXYZpatch(j) = numXYZpatch(j) + 1
         listPositions(numXYZpatch(j), j) = intCenPos
@@ -161,6 +172,11 @@ program findwarp
       numResid(limPatch), inDiag1(0:limDiag), inDiag2(0:limDiag), indDropped(limPatch), &
       numTimesDropped(limPatch), dropSum(limPatch), stat = ierr)
   call memoryError(ierr, 'ARRAYS FOR PATCHES')
+  if (maxExtra > 0) then
+    allocate(extraVals(maxExtra, limPatch), stat=ierr)
+    call memoryError(ierr, 'ARRAY FOR EXTRA VALUES')
+    extraVals(:,:) = 0
+  endif
   !
   numXpatchUse = numXpatchTot
   numYpatchUse = numYpatchTot
@@ -194,9 +210,10 @@ program findwarp
     ! these are center coordinates and location of the second volume
     ! relative to the first volume
     !
-    read(1,*) (cenXYZin(j), j = 1, 3), (vecXYZin(j), j = 1, 3)
+    read(1,'(a)') line
+    call frefor2(line, freNum, numeric, numFields, LIMEXTRA)
     do j = 1, 3
-      intCenPos = nint(cenXYZin(j))
+      intCenPos = nint(freNum(j))
       k = 1
       do while(k <= numXYZpatch(j) .and. intCenPos > listPositions(k, j))
         k = k + 1
@@ -206,8 +223,11 @@ program findwarp
     ind = indPatch(indXYZ(1), indXYZ(2), indXYZ(3))
     exists(ind) = .true.
     do j = 1, 3
-      cenXYZ(ind, j) = cenXYZin(j)
-      vecXYZ(ind, j) = vecXYZin(j)
+      cenXYZ(ind, j) = freNum(j)
+      vecXYZ(ind, j) = freNum(j + 3)
+    enddo
+    do j = 7, numFields
+      extraVals(j - 6, ind) = freNum(j)
     enddo
   enddo
   !
@@ -250,7 +270,24 @@ program findwarp
   numXYZfitIn(indZ) = numXYZpatchUse(indZ)
   numXYZfit(indZ) = numXYZpatchUse(indZ)
   !
+  ! Get most other PIP entries
+  if (pipInput) then
+    ierr = PipGetFloat('MaxFractionToDrop', fracDrop)
+    ierr = PipGetFloat('MinResidualToDrop', elimMinResid)
+    ierr = PipGetTwoFloats('CriterionProbabilities', probCrit, absProbCrit)
+    ierr = PipGetString('ResidualPatchOutput', residFile)
+    ierr = PipGetFloat('DiscountIfZeroVectors', discount)
+    ifDebug = 1 - PipGetThreeFloats('DebugAtXYZ', debugXYZ(1), debugXYZ(2), &
+        debugXYZ(3))
+    !
+    ! Get, translate and validate the extra selection entries
+    call getExtraSelections(icolSelect, isignSelect, numColSelect, numSelectCrit, &
+        IDextra, maxExtra, selectCrit, LIMEXTRA, LIMTARG)
+  endif
+  !
   ! aspectmax=3.
+  !
+  ! THIS POINT IS LOOPED BACK TO INTERACTIVELY TO CHANGE PARAMETERS OR GO TO AUTOFIT
   !
 8 if (pipInput) then
     ifAuto = PipGetTwoIntegers('LocalRowsAndColumns', numXfitIn, numXYZfitIn(indY))
@@ -292,13 +329,6 @@ program findwarp
         PipGetTwoIntegers('YSkipLowerAndUpper', numYoffset, numYexclhigh) + &
         PipGetTwoIntegers('ZSkipLowerAndUpper', numZoffset, numZexclHigh)
     ifSubset = 3 - ierr
-    ierr = PipGetFloat('MaxFractionToDrop', fracDrop)
-    ierr = PipGetFloat('MinResidualToDrop', elimMinResid)
-    ierr = PipGetTwoFloats('CriterionProbabilities', probCrit, absProbCrit)
-    ierr = PipGetString('ResidualPatchOutput', residFile)
-    ierr = PipGetFloat('DiscountIfZeroVectors', discount)
-    ifDebug = 1 - PipGetThreeFloats('DebugAtXYZ', debugXYZ(1), debugXYZ(2), &
-        debugXYZ(3))
   else
     write(*,'(1x,a,$)') '0 to include all positions, or 1 to '// &
         'exclude rows or columns of patches: '
@@ -406,7 +436,7 @@ program findwarp
       call exit(1)
     endif
     allocate(numXautoFit(indAuto), numYautoFit(indAuto), numZautoFit(indAuto), &
-        devMeanAuto(indAuto), stat = ierr)
+        devMeanAuto(indAuto, max(1,numSelectCrit)), stat = ierr)
     call memoryError(ierr, 'ARRAYS FOR AUTOFITS')
 
     if (ifFlip > 0) then
@@ -450,6 +480,9 @@ program findwarp
     indTarget = 1
     write(*,112) targetResid(1)
 112 format(/,'Seeking a warping with mean residual below',f9.3)
+    if (numSelectCrit > 0) write(*,132)(selectCrit(1, i), i = 1, numColSelect)
+132 format(3x,'with extra column selection criteria', 10f9.3)
+    call countExtraEliminations()
     go to 20
   endif
   !
@@ -485,6 +518,8 @@ program findwarp
       ' back and find best fit ',/, &
       '  automatically, include a different subset of patches ', &
       /,'  or specify new outlier elimination parameters',/)
+  !
+  ! THIS POINT IS LOOPED BACK TO AFTER EVERY INTERACTIVE OR AUTO FIT
   !
   ! Get the input number of local patches unless doing auto
   !
@@ -562,7 +597,7 @@ program findwarp
     devMeanAvg = 10000.
     if (numDevSum > 0) devMeanAvg = devMeanSum / numDevSum
     devMeanMin = min(devMeanMin, devMeanAvg)
-    devMeanAuto(indAuto) = devMeanAvg
+    devMeanAuto(indAuto, indSelect) = devMeanAvg
     if (devMeanAvg <= targetResid(indTarget)) then
       !
       ! done: set nauto to zero to allow printing of results
@@ -576,26 +611,43 @@ program findwarp
       ! print *,iauto, ' Did fit to', nfitx, nfity, nfitz
       if (indAuto > numAuto) then
         !
+        ! If there are multiple selection criteria, first redo all fits with the next
+        if (indSelect < numSelectCrit) then
+          indAuto = 1
+          numXfit = -100
+          numLocalDone = 0
+          indSelect = indSelect + 1
+          write(*,132)(selectCrit(indSelect, i), i = 1, numColSelect)
+          call countExtraEliminations()
+          go to 20
+        endif
+        !
         ! See if any other criteria have been met and loop back if so
         !
         do j = indTarget + 1, numTarget
           write(*,112) targetResid(j)
-          do i = 1, numAuto
-            if (devMeanAuto(i) <= targetResid(j)) then
-              indTarget = j
-              indAuto = i
-              numXfit = -100
-              numLocalDone = 0
-              go to 20
-            endif
+          lx = 1
+          ly = max(1, numSelectCrit)
+          do ix = lx, ly
+            if (numSelectCrit > 0) write(*,132)(selectCrit(ix, i), i = 1, numColSelect)
+            do i = 1, numAuto
+              if (devMeanAuto(i, ix) <= targetResid(j)) then
+                indTarget = j
+                indSelect = ix
+                indAuto = i
+                numXfit = -100
+                numLocalDone = 0
+                go to 20
+              endif
+            enddo
           enddo
         enddo
         !
         ! write patch file if desired on last fit before error message
         !
-        call outputPatchRes(residFile, numPosInFile, &
-            numXpatchTot * numYpatchTot * numZpatchTot, exists, residSum, numResid, &
-            indDropped, numTimesDropped, nlistDropped, cenXYZ, vecXYZ, LIMPATCH)
+        call outputPatchRes(residFile, numPosInFile, numXpatchTot * numYpatchTot * &
+            numZpatchTot, exists, residSum, numResid, indDropped, numTimesDropped, &
+            nlistDropped, cenXYZ, vecXYZ, limPatch, maxExtra, extraVals, IDextra)
         if (discount > 0. .and. numLocalDone > 0 .and. numDevSum == 0) &
             call exitError('ALL FITS HAD TOO MANY ZERO VECTORS: RAISE '// &
             '-discount FRACTION OR SET IT TO ZERO')
@@ -662,14 +714,10 @@ CONTAINS
     numLocalDone = 0
     numDevSum = 0.
     determMean = 0.
-    do i = 1, 3
-      cenSaveMin(i) = 1.e30
-      cenSaveMax(i) = -1.e30
-    enddo
-    do ind = 1, numXpatchTot * numYpatchTot * numZpatchTot
-      numResid(ind) = 0
-      residSum(ind) = 0
-    enddo
+    cenSaveMin(:) = 1.e30
+    cenSaveMax(:) = -1.e30
+    numResid(:) = 0
+    residSum(:) = 0.
 
     do locZ = 1, numZlocal
       do locY = 1, numYlocal
@@ -706,22 +754,16 @@ CONTAINS
                 do i = 1, 3
                   cenXYZsum(i) = cenXYZsum(i) + cenXYZ(ind, i) - 0.5 * nxyzVol(i)
                 enddo
-                if (numConts > 0 .and. ifUse > 0) then
-                  ifUse = 0
-                  !
-                  ! find nearest contour in Z and see if patch is inside it
-                  !
-                  dzMin = 100000.
-                  do icont = 1, numConts
-                    dz = abs(cenXYZ(ind, indZ) - contourZ(icont))
-                    if (dz < dzMin) then
-                      dzMin = dz
-                      icontMin = icont
-                    endif
+                if (numConts > 0 .and. ifUse > 0) call checkBoundaryConts(cenXYZ(ind, 1),&
+                    cenXYZ(ind, indY), cenXYZ(ind, indZ), ifUse, numConts, numVerts, &
+                    xVerts, yVerts, contourZ, indVertStart)
+                !
+                ! Eliminate points that do not pass selection criteria
+                if (numColSelect > 0 .and. ifUse > 0) then
+                  do i = 1, numColSelect
+                    if ((extraVals(icolSelect(i), ind) - selectCrit(indSelect, i)) * &
+                        isignSelect(i) < 0) ifUse = 0
                   enddo
-                  indv = indVertStart(icontMin)
-                  if (inside(xVerts(indv), yVerts(indv), numVerts(icontMin), &
-                      cenXYZ(ind, 1), cenXYZ(ind, indY))) ifUse = 1
                 endif
                 !
                 if (ifUse > 0) then
@@ -878,6 +920,29 @@ CONTAINS
     return
   end subroutine fitLocalPatches
 
+  !
+  ! Count up eliminations by the selection criteria
+  !
+  subroutine countExtraEliminations()
+    integer*4 numElim
+    if (numColSelect > 0) then
+      numElim = 0
+      do ind = 1, numXpatchTot * numYpatchTot * numZpatchTot
+        if (exists(ind)) then
+          ifUse = 1
+          do i = 1, numColSelect
+            if ((extraVals(icolSelect(i), ind) - selectCrit(indSelect, i)) * &
+                isignSelect(i) < 0) ifUse = 0
+          enddo
+          if (ifUse == 0) numElim = numElim + 1
+        endif
+      enddo
+      write(*,'(6x,a,i6,a,i6,a)')'which eliminates', numElim,' of', numPosInFile, &
+          ' patches'
+    endif
+    return
+  end subroutine countExtraEliminations
+
 
   ! saveAndTerminate saves the results (getting initial file and output file) and exits
   !
@@ -975,9 +1040,9 @@ CONTAINS
       close(1)
     endif
 
-    call outputPatchRes(residFile, numPosInFile,  &
-        numXpatchTot * numYpatchTot * numZpatchTot, exists, residSum, numResid, &
-        indDropped, numTimesDropped, nlistDropped, cenXYZ, vecXYZ, LIMPATCH)
+    call outputPatchRes(residFile, numPosInFile, numXpatchTot * numYpatchTot * &
+        numZpatchTot, exists, residSum, numResid, indDropped, numTimesDropped, &
+        nlistDropped, cenXYZ, vecXYZ, limPatch, maxExtra, extraVals, IDextra)
 
     call exit(0)
   end subroutine saveAndTerminate
@@ -1027,16 +1092,24 @@ end subroutine setAutoFits
 ! Output new patch file with mean residuals if requested
 !
 subroutine outputPatchRes(residFile, numPosInFile, numPatchTot, exists, residSum, &
-    numResid, indDropped, numTimesDropped, nlistDropped, cenXYZ, vecXYZ, LIMPATCH)
+    numResid, indDropped, numTimesDropped, nlistDropped, cenXYZ, vecXYZ, limPatch, &
+    maxExtra, extraVals, IDextra)
   implicit none
   character*(*) residFile
-  integer*4 numPosInFile, numPatchTot, LIMPATCH, numResid(*), ind, i, indDropped(*)
-  integer*4 numTimesDropped(*), nlistDropped
-  real*4 cenXYZ(LIMPATCH,3), vecXYZ(LIMPATCH,3), residSum(*), dist, dropFrac
+  integer*4 numPosInFile, numPatchTot, limPatch, numResid(*), ind, i, indDropped(*)
+  integer*4 numTimesDropped(*), nlistDropped, maxExtra, IDextra(*)
+  real*4 cenXYZ(limPatch,3), vecXYZ(limPatch,3), residSum(*), dist, dropFrac
+  real*4 extraVals(maxExtra, limPatch)
   logical exists(*)
+  integer*4 idResidCol/3/, idOutlierCol/4/
   if (residFile == ' ') return
   call dopen(1, residFile, 'new', 'f')
-  write(1, '(i7,a)') numPosInFile, ' positions'
+  if (maxExtra > 0) then
+    write(1, '(i7,a,20i8)') numPosInFile, ' positions', idResidCol, idOutlierCol,  &
+        (IDextra(i), i = 1, maxExtra)
+  else
+    write(1, '(i7,a,20i8)') numPosInFile, ' positions', idResidCol, idOutlierCol
+  endif
   do ind = 1, numPatchTot
     if (exists(ind)) then
       dropFrac = 0.
@@ -1047,9 +1120,14 @@ subroutine outputPatchRes(residFile, numPosInFile, numPatchTot, exists, residSum
         endif
       enddo
       dist = residSum(ind) / max(1, numResid(ind))
-      write(1, 110) (nint(cenXYZ(ind, i)), i = 1, 3), (vecXYZ(ind, i), i = 1, 3) &
-          , dist, dropFrac
-110   format(3i6,3f9.2,f10.2,f7.3)
+      if (maxExtra > 0) then
+        write(1, 110) (nint(cenXYZ(ind, i)), i = 1, 3), (vecXYZ(ind, i), i = 1, 3), &
+            dist, dropFrac, (extraVals(i, ind), i = 1, maxExtra)
+      else
+        write(1, 110) (nint(cenXYZ(ind, i)), i = 1, 3), (vecXYZ(ind, i), i = 1, 3), &
+            dist, dropFrac
+      endif
+110   format(3i6,3f9.2,f10.2,f7.3,20f12.4)
     endif
   enddo
   close(1)
