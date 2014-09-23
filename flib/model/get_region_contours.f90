@@ -1,3 +1,5 @@
+! This file has some routines shared by corrsearch3d, findwarp, and refinematch
+!
 ! GET_REGION_CONTOURS will read the MODELFILE as a small model, and
 ! extract contours.  It first determines whether the contours lie in
 ! X/Y or X/Z planes, setting IFFLIP to 1 if they are in Y/Z planes.
@@ -115,6 +117,36 @@ subroutine get_region_contours(modelFile, progname, xVerts, yVerts, numVerts, &
 end subroutine get_region_contours
 
 
+! checkBoundaryConts checks a patch center against the boundary contours by finding the
+! contour at the nearest Z level and testing whether the center is inside the contour
+!
+subroutine checkBoundaryConts(cenX, cenY, cenZ, ifUse, numConts, numVerts, &
+    xVerts, yVerts, contourZ, indVertStart)
+  implicit none
+  integer*4 ifUse, numConts, numVerts(*), indVertStart(*)
+  real*4 xVerts(*), yVerts(*), contourZ(*), cenX, cenY, cenZ
+  integer*4 icont, icontMin, indv
+  real*4 dz, dzMin
+  logical inside
+
+  ifUse = 0
+  !
+  ! find nearest contour in Z and see if patch is inside it
+  !
+  dzMin = 100000.
+  do icont = 1, numConts
+    dz = abs(cenZ - contourZ(icont))
+    if (dz < dzMin) then
+      dzMin = dz
+      icontMin = icont
+    endif
+  enddo
+  indv = indVertStart(icontMin)
+  if (inside(xVerts(indv), yVerts(indv), numVerts(icontMin), cenX, cenY)) ifUse = 1
+  return
+end subroutine checkBoundaryConts
+
+
 ! summarizeDrops outputs a summary of residuals dropped as outliers,
 ! breaking them into 10 bins from the minimum to either the maximum or
 ! 5 SDs above the mean, whichever is less.  DROPSUM has the residuals,
@@ -151,3 +183,53 @@ subroutine summarizeDrops(dropSum, numListDrop, meanText)
   enddo
   return
 end subroutine summarizeDrops
+
+
+! getExtraSelections gets specifications for selecting patches based on the values in
+! extra columns and checks them for validity
+!
+subroutine getExtraSelections(icolSelect, isignSelect, numColSelect, numSelectCrit, &
+    IDextra, maxExtra, selectCrit, limSelect, limCrit)
+  implicit none
+  integer*4 icolSelect(*), isignSelect(*), numColSelect, numSelectCrit, IDextra(*)
+  integer*4 maxExtra, limSelect, limCrit
+  real*4 selectCrit(limCrit, limSelect)
+  integer*4 ierr, ix, i
+  integer*4 PipNumberOfEntries, PipGetTwoIntegers, PipGetFloatArray
+
+  ierr = PipNumberOfEntries('ExtraValueSelection', numColSelect)
+  ierr = PipNumberOfEntries('SelectionCriteria', ix)
+  if (ix .ne. numColSelect) call exitError( &
+      'THERE MUST BE ONE -select ENTRY FOR EACH -extra ENTRY')
+  if (numColSelect > 0 .and. maxExtra == 0) call exitError( &
+      'THERE ARE NO EXTRA VALUE COLUMNS IN THE PATCH FILE')
+  if (numColSelect > limSelect) call exitError('TOO MANY SELECTIONS FOR ARRAYS')
+  do i = 1, numColSelect
+    ierr = PipGetTwoIntegers('ExtraValueSelection', icolSelect(i), isignSelect(i))
+    ix = 0
+    ierr = PipGetFloatArray('SelectionCriteria', selectCrit(1, i), ix, limCrit)
+    if (i > 1 .and. ix .ne. numSelectCrit) call exitError( &
+        'EVERY ENTRY OF -select MUST HAVE THE SAME NUMBER OF CRITERIA')
+    numSelectCrit = ix
+    if (abs(isignSelect(i)) .ne. 1) call exitError( &
+        'THE SECOND VALUE ON THE -select ENTRY MUST BE 1 OR -1')
+    if (icolSelect(i) < 0) then
+      if (icolSelect(i) > maxExtra) call exitError('THERE IS NO EXTRA VALUE COLUMN'// &
+          ' CORRESPONDING TO THE COLUMN NUMBER ENTERED WITH -extra')
+      icolSelect(i) = -icolSelect(i)
+    else
+      if (icolSelect(i) == 0) call exitError('0 IS NOT A VALUE COLUMN NUMBER OR ID #')
+      ierr = 1
+      do ix = 1, maxExtra
+        if (icolSelect(i) == IDextra(ix)) then
+          ierr = 0
+          icolSelect(i) = ix
+          exit
+        endif
+      enddo
+      if (ierr > 0) call exitError( &
+          'THERE IS NO EXTRA VALUE COLUMN WITH THE COLUMN ID # ENTERED WITH -extra')
+    endif
+  enddo
+  return
+end subroutine getExtraSelections
