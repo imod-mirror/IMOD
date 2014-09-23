@@ -19,22 +19,27 @@
 !
 program refinematch
   implicit none
-  integer IDIM, LIMVERT, MATCOLS
-  parameter (IDIM = 100000, LIMVERT = 100000, MATCOLS = 20)
-  real*4 fitMat(MATCOLS,IDIM), ccc(IDIM)
-  real*4 cx(3), dx(3), a(3,3), delXYZ(3), devXYZ(3)
-  real*4 devXYZmax(3), fitCenter(3), cxlast(3), freinp(20)
-  integer*4 nxyz(3), idrop(IDIM)
+  integer LIMEXTRA, LIMCRIT
+  parameter (LIMEXTRA = 20, LIMCRIT = 20)
+  real*4 aMat(3,3), delXYZ(3), devXYZ(3)
+  real*4 devXYZmax(3), fitCenter(3), cxlast(3), freinp(LIMEXTRA)
+  integer*4 nxyz(3), numeric(LIMEXTRA), IDextra(LIMEXTRA)
+  real*4 selectCrit(LIMCRIT, LIMEXTRA)
+  integer*4 numSelectCrit, indSelect, icolSelect(LIMEXTRA), isignSelect(LIMEXTRA)  
+  integer*4, allocatable :: idrop(:), indVert(:), numVerts(:), indToPatch(:)
+  real*4, allocatable :: fitMat(:,:), xVerts(:), yVerts(:), contourZ(:), extraVals(:,:)
+  real*4, allocatable :: cenXYZ(:,:), vecXYZ(:,:), dropRes(:)
   logical inside, oneLayer(3), haveCCC
-  real*4 xVerts(LIMVERT), yVerts(LIMVERT), contourZ(IDIM)
-  integer*4 indVert(IDIM), numVerts(IDIM)
-  character*320 filename
+  character*320 filename, line
   !
   integer*4 numConts, ierr, ifFlip, i, indY, indZ, indcur, iobj, numData, numFit
   real*4 fracDrop, cccRes
   integer*4 ifUse, icont, icontMin, j, ind, maxDrop, ndrop, ipntMax, ip, ipt, numFields
   real*4 dzMin, critProb, elimMin, absProbCrit, devMean, devSD, devMax, stopLim, dz
-  integer*4 icolFixed
+  integer*4 icolFixed, limCont, limVert, maxExtra, numExtraID, limPatch, matCols
+  integer*4 numColSelect, ipat
+  integer*4 idResidCol/2/
+  integer*4 readNumPatches
 
   logical pipInput
   integer*4 numOptArg, numNonOptArg
@@ -59,7 +64,9 @@ program refinematch
   critProb = 0.01
   elimMin = 0.5
   absProbCrit = 0.002
-  haveCCC = .false.
+  matCols = 20
+  numColSelect = 0
+  numSelectCrit = 0
   !
   call PipReadOrParseOptions(options, numOptions, 'refinematch', &
       'ERROR: REFINEMATCH - ', .true., 3, 1, 1, numOptArg, numNonOptArg)
@@ -92,8 +99,16 @@ program refinematch
 
   numConts = 0
   if (filename .ne. ' ') then
+    
+    limCont = -1
+    limVert = -1
+    call get_region_contours(filename, 'REFINEMATCH', devMean, devSD, indZ, &
+        ierr, devMax, numConts, ifFlip, limCont, limVert, 0)
+    allocate(xVerts(limVert), yVerts(limVert), contourZ(limCont), indVert(limCont),  &
+        numVerts(limCont), stat = ierr)
+    call memoryError(ierr, 'ARRAYS FOR BOUNDARY CONTOURS')
     call get_region_contours(filename, 'REFINEMATCH', xVerts, yVerts, numVerts, &
-        indVert, contourZ, numConts, ifFlip, IDIM, LIMVERT, 0)
+        indVert, contourZ, numConts, ifFlip, limCont, limVert, 0)
   else
     ifFlip = 0
     if (nxyz(2) < nxyz(3)) ifFlip = 1
@@ -102,82 +117,58 @@ program refinematch
   if (ifFlip .ne. 0) indY = 3
   indZ = 5 - indY
   !
-  read(1,*) numData
-  if (numData > IDIM) call exitError('TOO MANY POINTS FOR DATA ARRAYS')
+  IDextra(:) = 0
+  if (readNumPatches(1, numData, numExtraID, IDextra, LIMEXTRA) .ne. 0) call exitError &
+      ('READING FIRST LINE OF PATCH FILE')
+  maxExtra = 0
+  do i = 1, numData
+    read(1,'(a)') line
+    call frefor2(line, freinp, numeric, numFields, LIMEXTRA)
+    maxExtra = max(maxExtra, numFields - 6)
+  enddo
+  rewind(1)
+  read(1,'(a)') line
 
+  limPatch = numData + 10
+  allocate(fitMat(matCols, limPatch),  cenXYZ(limPatch,3), vecXYZ(limPatch,3), &
+      indToPatch(limPatch), idrop(limPatch), dropRes(nint(fracDrop * limPatch) + 10), &
+      stat = ierr)
+  call memoryError(ierr, 'ARRAYS FOR DATA MATRIX AND PATCHES')
+  if (maxExtra > 0) then
+    allocate(extraVals(maxExtra, limPatch), stat=ierr)
+    call memoryError(ierr, 'ARRAY FOR EXTRA VALUES')
+    extraVals(:,:) = 0
+  endif
+
+  if (pipInput) call getExtraSelections(icolSelect, isignSelect, numColSelect, &
+      numSelectCrit, IDextra, maxExtra, selectCrit, LIMEXTRA, LIMCRIT)
+
+  ! Read in the patch data and extra data
   do j = 1, 3
     oneLayer(j) = .true.
     cxlast(j) = 0.
   enddo
-  numFit = 0
   do i = 1, numData
-    ccc(i) = 0.
     !
     ! these are center coordinates and location of the second volume
     ! relative to the first volume
     !
-    read(1, '(a)') filename
-    call frefor(filename, freinp, numFields)
+    read(1, '(a)') line
+    call frefor2(line, freinp, numeric, numFields, LIMEXTRA)
     do j = 1, 3
-      cx(j) = freinp(j)
-      dx(j) = freinp(j + 3)
-      ! read(1,*) (cx(j), j=1, 3), (dx(j), j=1, 3)
-      ! do j = 1, 3
-      if (i > 1 .and. cx(j) .ne. cxlast(j)) oneLayer(j) = .false.
-      cxlast(j) = cx(j)
+      cenXYZ(i, j) = freinp(j)
+      vecXYZ(i, j) = freinp(j + 3)
+      if (i > 1 .and. cenXYZ(i, j) .ne. cxlast(j)) oneLayer(j) = .false.
+      cxlast(j) = cenXYZ(i, j)
     enddo
-    if (numFields > 6) then
-      haveCCC = .true.
-      ccc(i) = freinp(7)
-    endif
-
-    ifUse = 1
-    if (numConts > 0) then
-      ifUse = 0
-      !
-      ! find nearest contour in Z and see if patch is inside it
-      !
-      dzMin = 100000.
-      do icont = 1, numConts
-        dz = abs(cx(indZ) - contourZ(icont))
-        if (dz < dzMin) then
-          dzMin = dz
-          icontMin = icont
-        endif
-      enddo
-      ind = indVert(icontMin)
-      if (inside(xVerts(ind), yVerts(ind), numVerts(icontMin), cx(1), cx(indY))) &
-          ifUse = 1~/checkout/IMOD-4.7/flib/model/refinematch -pat eric5_autopatch.out -out eric5ref.xf -vol eric5a.rec -lim 0.3 -res eric5_respatch.out -red eric5_redpatch.out -reg eric5_region.mod
-    endif
-    !
-    if (ifUse > 0) then
-      numFit = numFit + 1
-      ! write(*,'(3f6.0)') cx(1), cx(3), cx(2)
-            haveCCC = .true.
-            ccc(nfill) = freinp(7)
-          endif
-      do j = 1, 3
-        !
-        ! the regression requires coordinates of second volume as
-        ! independent variables (columns 1-3), those in first volume
-        ! as dependent variables (stored in 5-7), to obtain
-        ! transformation to get from second to first volume
-        ! cx+dx in second volume matches cx in first volume
-        !
-        fitMat(j + 4, numFit) = cx(j) - 0.5 * nxyz(j)
-        fitMat(j, numFit) = fitMat(j + 4, numFit) + dx(j)
-      enddo
-    endif
+    do j = 7, numFields
+      extraVals(j - 6, i) = freinp(j)
+    enddo
   enddo
-
   close(1)
-  numData = numFit
-  if (numData < 4) call exitError('TOO FEW DATA POINTS FOR FITTING')
-  print *,numData, ' data points will be used for fit'
   !
   if (.not.pipInput) then
-    write(*,'(1x,a,$)') 'Mean residual above which to STOP and '// &
-        'exit with an error: '
+    write(*,'(1x,a,$)') 'Mean residual above which to STOP and exit with an error: '
     read(5,*) stopLim
   endif
   !
@@ -187,28 +178,76 @@ program refinematch
         'CANNOT FIT TO PATCHES THAT EXTEND IN ONLY ONE DIMENSION')
     if (oneLayer(i)) icolFixed = i
   enddo
-  if (icolFixed > 0) print *,'There is only one layer of patches', &
-      ' in the ', char(ichar('W') + icolFixed), ' dimension'
+  if (icolFixed > 0) print *,'There is only one layer of patches in the ',  &
+      char(ichar('W') + icolFixed), ' dimension'
   !
-  maxDrop = nint(fracDrop * numData)
-  call solve_wo_outliers(fitMat, MATCOLS, numData, 3, icolFixed, maxDrop, critProb, &
-      absProbCrit, elimMin, idrop, ndrop, a, delXYZ, fitCenter, devMean, devSD, devMax, &
-      ipntMax, devXYZmax)
-  !
+  ! Loop on the selection criteria
+  if (numColSelect > 0) write(*,'(i8,a,/)') numData, ' total patches in patch file'
+  do indSelect = 1, max(1, numSelectCrit)
+    if (numColSelect > 0) write(*,'(a,f9.3)') &
+        'Applying extra column selection criteria', selectCrit(indSelect, 1)
+    numFit = 0
+    do i = 1, numData
+      ifUse = 1
+      if (numConts > 0) call checkBoundaryConts(cenXYZ(i, 1), cenXYZ(i, indY),  &
+          cenXYZ(i, indZ), ifUse, numConts, numVerts, xVerts, yVerts, contourZ, indVert)
+      !
+      ! Eliminate points that do not pass selection criteria
+      if (numColSelect > 0 .and. ifUse > 0) then
+        do ind = 1, numColSelect
+          if ((extraVals(icolSelect(ind), i) - selectCrit(indSelect, ind)) * &
+              isignSelect(ind) < 0) ifUse = 0
+        enddo
+      endif
+      !
+      if (ifUse > 0) then
+        numFit = numFit + 1
+        indToPatch(numFit) = i
+        ! write(*,'(3f6.0)') cenXYZ(i, 1), cenXYZ(i, 3), cenXYZ(i, 2)
+        do j = 1, 3
+          !
+          ! the regression requires coordinates of second volume as
+          ! independent variables (columns 1-3), those in first volume
+          ! as dependent variables (stored in 5-7), to obtain
+          ! transformation to get from second to first volume
+          ! cx+dx in second volume matches cx in first volume
+          !
+          fitMat(j + 4, numFit) = cenXYZ(i, j) - 0.5 * nxyz(j)
+          fitMat(j, numFit) = fitMat(j + 4, numFit) + vecXYZ(i, j)
+        enddo
+      endif
+    enddo
+
+    if (numFit < 4) call exitError('TOO FEW DATA POINTS FOR FITTING')
+    print *,numFit, ' data points will be used for fit'
+    !
+    ! Get the solution
+    maxDrop = nint(fracDrop * numFit)
+    call solve_wo_outliers(fitMat, matCols, numFit, 3, icolFixed, maxDrop, critProb, &
+        absProbCrit, elimMin, idrop, ndrop, aMat, delXYZ, fitCenter, devMean, devSD, &
+        devMax, ipntMax, devXYZmax)
+    !
+    ! Leave the loop if pass the limit
+    if (devMean <= stopLim) then
+      exit
+    endif
+    if (indSelect < numSelectCrit) write(*,101) devMean, devMax
+  enddo
+
   if (ndrop .ne. 0) then
     write(*,104) ndrop
-104 format(i3,' patches dropped by outlier elimination:')
+104 format(/,i3,' patches dropped by outlier elimination:')
     if (ndrop <= 10) then
       print *,'    patch position     residual'
       do i = 1, ndrop
-        write(*,106) (fitMat(j, numData + i - ndrop), j = 1, 4)
+        write(*,106) (fitMat(j, numFit + i - ndrop), j = 1, 4)
 106     format(3f7.0,f9.2)
       enddo
     else
       do i = 1, ndrop
-        contourZ(i) = fitMat(4, numData + i - ndrop)
+        dropRes(i) = fitMat(4, numFit + i - ndrop)
       enddo
-      call summarizeDrops(contourZ, ndrop, ' ')
+      call summarizeDrops(dropRes, ndrop, ' ')
     endif
   endif
   !
@@ -216,39 +255,57 @@ program refinematch
 101 format(/,' Mean residual',f8.3,',  maximum',f8.3,/)
   !
   print *,'Refining transformation:'
-  write(*,102) ((a(i, j), j = 1, 3), delXYZ(i), i = 1, 3)
+  write(*,102) ((aMat(i, j), j = 1, 3), delXYZ(i), i = 1, 3)
 102 format(3f10.6,f10.3)
   !
   if (pipInput) then
     !
-    ! For patch residual output, painfully recompute the original data!
-    ! First make a proper index from original to ordered rows
-    do i = 1, numData
+    ! For patch residual, first make a proper index from original to ordered rows
+    do i = 1, numFit
       fitMat(6, nint(fitMat(5, i))) = i
     enddo
     if (PipGetString('ResidualPatchOutput', filename) == 0) then
       call dopen(1, filename, 'new', 'f')
-      write(1, '(i7,a)') numData, ' positions'
-      do i = 1, numData
-        write(1, 110) (nint(fitMat(j + 11, i) + 0.5 * nxyz(j)), j = 1, 3), &
-            ((fitMat(j, i) - fitMat(j + 4, i)), j = 8, 10), fitMat(4, nint(fitMat(6, i)))
-110     format(3i6,3f9.2,f10.2)
+      if (maxExtra > 0) then
+        write(1, 120) numFit, ' positions', idResidCol, (IDextra(i), i = 1, maxExtra)
+      else
+        write(1, 120) numFit, ' positions', idResidCol
+120     format(i7,a,20i8)
+      endif
+      do i = 1, numFit
+        ipat = indToPatch(i)
+        if (maxExtra > 0) then
+          write(1, 110) (nint(cenXYZ(ipat, j)), j = 1, 3), (vecXYZ(ipat, j), j= 1, 3), &
+              fitMat(4, nint(fitMat(6, i))), (extraVals(j, ipat), j = 1, maxExtra)
+        else
+          write(1, 110) (nint(cenXYZ(ipat, j)), j = 1, 3), (vecXYZ(ipat, j), j= 1, 3), &
+              fitMat(4, nint(fitMat(6, i)))
+110       format(3i6,3f9.2,f10.2,20f12.4)
+        endif
       enddo
       close(1)
     endif
     !
     ! For reduced vectors, put out the residual vector stored in cols 15-17
-    ! or ordered data
+    ! plus either the residual or original extra values
     if (PipGetString('ReducedVectorOutput', filename) == 0) then
       call dopen(1, filename, 'new', 'f')
-      write(1, '(i7,a)') numData, ' positions'
-      do i = 1, numData
+      if (maxExtra > 0) then
+        write(1, 120) numFit, ' positions', (IDextra(i), i = 1, maxExtra)
+      else
+        write(1, 120) numFit, ' positions', idResidCol
+      endif
+      do i = 1, numFit
         ind = nint(fitMat(6, i))
-        cccRes = fitMat(4, ind)
-        if (haveCCC) cccRes = ccc(i)
-        write(1, 111) (nint(fitMat(j + 11, i) + 0.5 * nxyz(j)), j = 1, 3), &
-            (fitMat(j, ind), j = 15, 17), cccRes
-111     format(3i6,3f9.2,f12.4)
+        ipat = indToPatch(i)
+        if (maxExtra > 0) then
+          write(1, 111) (nint(cenXYZ(ipat, j)), j = 1, 3), (fitMat(j, ind), j = 15, 17), &
+              (extraVals(j, ipat), j = 1, maxExtra)
+111       format(3i6,3f9.2,20f12.4)
+        else
+          write(1, 110) (nint(cenXYZ(ipat, j)), j = 1, 3), (fitMat(j, ind), j = 15, 17), &
+              fitMat(4, ind)
+        endif
       enddo
       close(1)
     endif
@@ -260,7 +317,7 @@ program refinematch
   endif
   if (filename .ne. ' ') then
     call dopen(1, filename, 'new', 'f')
-    write(1, 102) ((a(i, j), j = 1, 3), delXYZ(i), i = 1, 3)
+    write(1, 102) ((aMat(i, j), j = 1, 3), delXYZ(i), i = 1, 3)
     close(1)
   endif
   if (devMean > stopLim) then
