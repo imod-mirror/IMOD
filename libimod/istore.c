@@ -283,9 +283,10 @@ void istoreDump(Ilist *list)
   int i, j, dtype;
   Istore *store;
   StoreUnion *item;
-  char *types[] = {"COLOR", "FCOLOR", "TRANS", "GAP", "CONNECT", "3DWIDTH",
-                   "2DWIDTH", "SYMTYPE", "SYMSIZE", "VALUE1", "MINMAX1", 
-                   "VALUE2"};
+  char *types[] = {"COLOR", "FCOLOR", "TRANS", "GAP", "CONNECT", "3DWIDTH", "2DWIDTH", 
+                   "SYMTYPE", "SYMSIZE", "VALUE1", "MINMAX1", "VALUE2", "MINMAX2",
+                   "VALUE3", "MINMAX3", "VALUE4", "MINMAX4", "VALUE5", "MINMAX5", 
+                   "VALUE6", "MINMAX6"};
   printf(" %d items in list:\n", ilistSize(list));
   for (i = 0; i < ilistSize(list); i++) {
     store = istoreItem(list, i);
@@ -499,9 +500,12 @@ int istoreAddMinMax(Ilist **list, int type, float min, float max)
   Istore *stp;
   Istore store;
   int i;
+  if (type < GEN_STORE_MINMAX1 || type > GEN_STORE_MINMAX6 || 
+      (type - GEN_STORE_MINMAX1) % 2)
+    return 1;
   store.value.f = max;
   store.index.f = min;
-  store.type = GEN_STORE_MINMAX1;
+  store.type = type;
   store.flags = (GEN_STORE_FLOAT << 2) | GEN_STORE_FLOAT | GEN_STORE_NOINDEX;
 
   /* Look for an existing entry of the same kind and replace its values */
@@ -509,7 +513,7 @@ int istoreAddMinMax(Ilist **list, int type, float min, float max)
     stp = istoreItem(*list, i);
     if (!(stp->flags & (GEN_STORE_NOINDEX | 3)))
       break;
-    if (stp->type == GEN_STORE_MINMAX1 && stp->flags == store.flags) {
+    if (stp->type == type && stp->flags == store.flags) {
       stp->index.f = min;
       stp->value.f = max;
       return 0;
@@ -528,11 +532,26 @@ int istoreAddMinMax(Ilist **list, int type, float min, float max)
  */
 int istoreFindAddMinMax1(Iobj *obj)
 {
+  return istoreFindAddMinMax(obj, GEN_STORE_VALUE1);
+}
+
+/*!
+ * Computes the min and max values for all value items of the given type (e.g., 
+ * GEN_STORE_VALUE1) in object [obj] and its contours, and adds or updates a 
+ * corresponding GEN_STORE_MINMAX item with these * values for the object.  Returns -1 
+ * if there are no values of the given type in the object, 1 if there is an error 
+ * inserting the min/max in the object store, or 2 if the type is inappropriate.
+ */
+int istoreFindAddMinMax(Iobj *obj, int type)
+{
   Istore *store;
   Ilist *list;
   int i, co;
   float min = 1.e37;
   float max = -1.e37;
+  if (type < GEN_STORE_MINMAX1 || type > GEN_STORE_MINMAX6 || 
+      (type - GEN_STORE_MINMAX1) % 2)
+    return 1;
   for (co = -1; co < obj->contsize; co++) {
     if (co >= 0)
       list = obj->cont[co].store;
