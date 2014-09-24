@@ -549,9 +549,9 @@ int istoreFindAddMinMax(Iobj *obj, int type)
   int i, co;
   float min = 1.e37;
   float max = -1.e37;
-  if (type < GEN_STORE_MINMAX1 || type > GEN_STORE_MINMAX6 || 
-      (type - GEN_STORE_MINMAX1) % 2)
-    return 1;
+  if (type < GEN_STORE_VALUE1 || type > GEN_STORE_VALUE6 || 
+      (type - GEN_STORE_VALUE1) % 2)
+    return 2;
   for (co = -1; co < obj->contsize; co++) {
     if (co >= 0)
       list = obj->cont[co].store;
@@ -559,7 +559,7 @@ int istoreFindAddMinMax(Iobj *obj, int type)
       list = obj->store;
     for (i = 0; i < ilistSize(list); i++) {
       store = istoreItem(list, i);
-      if (store->type == GEN_STORE_VALUE1 && !(store->flags & GEN_STORE_REVERT)) {
+      if (store->type == type && !(store->flags & GEN_STORE_REVERT)) {
         min = B3DMIN(min, store->value.f);
         max = B3DMAX(max, store->value.f);
       }
@@ -567,11 +567,11 @@ int istoreFindAddMinMax(Iobj *obj, int type)
   }
   if (min > max)
     return -1;
-  return istoreAddMinMax(&obj->store, GEN_STORE_MINMAX1, min, max);
+  return istoreAddMinMax(&obj->store, type + 1, min, max);
 }
 
 /*!
- * Looks for a min/max value in the given [list] for values of a given [type]
+ * Looks for a min/max value in the given [list] of a given [type]
  * (e.g., GEN_STORE_MINMAX1).  The size of the entity containing this storage 
  * list should be provided in [size], although this entry is currently unused (e.g., 
  * {contsize} for an object store).  If a min/max entry is found, values are returned 
