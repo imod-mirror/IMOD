@@ -171,7 +171,7 @@ final class TemplatePanel {
     // selected in the combobox.
     for (int i = 0; i < templateFileList.length; i++) {
       if (templateFileList[i].getAbsolutePath().equals(templateAbsPath)) {
-        cmbTemplate.setSelectedIndex(i);
+        cmbTemplate.setSelectedIndex(i+1);
         break;
       }
     }
