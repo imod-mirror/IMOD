@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/24/14: In eTomo, fixed the system template pulldown list, which was loading
+the wrong template (In 4.7).(Bug# 1818)
+
 9/22/14: Fixed CCC values in reduced vector output of Refinematch if more
 restrictive boundaries are applied (In 4.7).
 
