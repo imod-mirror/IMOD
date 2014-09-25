@@ -29,6 +29,8 @@ cubinterp.$(O) : cubinterp.c
 	$(CC) $(CFLAGS) $(OPENMP) -c cubinterp.c
 zoomdown.$(O) : zoomdown.c
 	$(CC) $(CFLAGS) $(OPENMP) -c zoomdown.c
+histogram.$(O) : histogram.c
+	$(CC) $(CFLAGS) $(OPENMP) -c histogram.c
 multibinstat.$(O) : multibinstat.c
 	$(CC) $(CFLAGS) $(OPENMP) -c multibinstat.c
 reduce_by_binning.$(O) : reduce_by_binning.c
