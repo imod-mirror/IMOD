@@ -492,7 +492,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
       MatlabParam.InitMotlCode.RANDOM_ROTATIONS, bgInitMotl);
   private final RadioButton rbInitMotlRandomAxialRotations = new RadioButton(
       MatlabParam.InitMotlCode.RANDOM_AXIAL_ROTATIONS, bgInitMotl);
-  private final RadioButton rbInitMotlFiles = new RadioButton("User supplied csv files",
+  private final RadioButton rbInitMotlFiles = new RadioButton(FieldLabels.CSV_FILES_LABEL,
       bgInitMotl);
   private final LabeledSpinner lsDebugLevel = LabeledSpinner.getInstance(
       FieldLabels.DEBUG_LEVEL_LABEL + ": ", MatlabParam.DEBUG_LEVEL_DEFAULT,
