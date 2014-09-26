@@ -1,5 +1,6 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/25/14: IMOD_4-7-10
 9/24/14: In eTomo, fixed the system template pulldown list, which was loading
 the wrong template (In 4.7).(Bug# 1818)
 
