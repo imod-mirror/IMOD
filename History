@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/24/14: In eTomo, fixed the system template pulldown list, which was loading
+the wrong template (In 4.7).(Bug# 1818)
+
 9/23/14: Patch2imod can read up to 6 extra value columns and save them as
 general values in the model, making a selected one the primary one; and
 Imod2patch can restore all these data to a new patch file.
