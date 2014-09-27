@@ -99,11 +99,7 @@ program refinematch
 
   numConts = 0
   if (filename .ne. ' ') then
-    
-    limCont = -1
-    limVert = -1
-    call get_region_contours(filename, 'REFINEMATCH', devMean, devSD, indZ, &
-        ierr, devMax, numConts, ifFlip, limCont, limVert, 0)
+    call getContourArraySizes(filename, 0, limCont, limVert)
     allocate(xVerts(limVert), yVerts(limVert), contourZ(limCont), indVert(limCont),  &
         numVerts(limCont), stat = ierr)
     call memoryError(ierr, 'ARRAYS FOR BOUNDARY CONTOURS')
