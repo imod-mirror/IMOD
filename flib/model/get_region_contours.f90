@@ -117,6 +117,23 @@ subroutine get_region_contours(modelFile, progname, xVerts, yVerts, numVerts, &
 end subroutine get_region_contours
 
 
+! getContourArraySizes is a convenience function for getting the array sizes
+!
+subroutine getContourArraySizes(modelFile, imUnit, limCont, limVert)
+  implicit none
+  character*(*) modelFile
+  integer*4 numConts, ifFlip, limCont, limVert, imUnit, numVerts, indVert
+  real*4 dummy
+  limCont = -1
+  limVert = -1
+  call get_region_contours(modelFile, 'DUMMY', dummy, dummy, numVerts, &
+      indVert, dummy,  numConts, ifFlip, limCont, limVert, imUnit)
+  limVert = limVert + 10
+  limCont = limCont + 10
+  return
+end subroutine getContourArraySizes
+
+
 ! checkBoundaryConts checks a patch center against the boundary contours by finding the
 ! contour at the nearest Z level and testing whether the center is inside the contour
 !
