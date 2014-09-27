@@ -22,11 +22,11 @@ program findwarp
   real*4, allocatable :: xVerts(:), yVerts(:), contourZ(:), dropSum(:), fitMat(:,:)
   integer*4, allocatable :: indVertStart(:), numVerts(:), listPositions(:,:)
   real*4, allocatable :: amatSave(:,:,:), cenToSave(:,:), cenXYZ(:,:), vecXYZ(:,:)
-  real*4, allocatable :: delXYZsave(:,:), residSum(:), devMeanAuto(:,:)
+  real*4, allocatable :: delXYZsave(:,:), residSum(:), devMeanAuto(:,:), devMaxAuto(:,:)
   logical, allocatable :: solved(:), exists(:)
   integer*4, allocatable :: numXautoFit(:), numYautoFit(:), numZautoFit(:), inDiag2(:)
   integer*4, allocatable :: inRowX(:), inRowY(:), inRowZ(:), numResid(:), inDiag1(:)
-  real*4, allocatable :: extraVals(:,:)
+  real*4, allocatable :: extraVals(:,:), autoMeanPatches(:)
   real*4 freNum(LIMEXTRA)
   character*320 filename, residFile, line
   real*4 cenXYZin(3), vecXYZin(3), targetResid(LIMTARG), selectCrit(LIMTARG, LIMEXTRA)
@@ -49,18 +49,18 @@ program findwarp
   real*4 ratioMin, ratioMax, fracDrop, probCrit, absProbCrit, elimMinResid
   integer*4 ifAuto, numAuto, ix, iy, iz, indAuto, limVert, limCont, matColDim, maxExtra
   integer*4 numLocalDone, numXexclHigh, numYexclhigh, numZexclHigh, numFields, numExtraID
-  integer*4 ifDiddle, numXlocal, numYlocal, numZlocal, numZero, numDevSum
+  integer*4 ifDiddle, numXlocal, numYlocal, numZlocal, numZero, numDevSum, minExtent
   integer*4 indUse, nlistDropped, numDropTot, locX, locY, locZ, lx, ly, lz, ifUse
-  real*4 devMeanMin, devMeanSum, devMaxSum, devMaxMax
-  real*4 dzMin, dz, devMax, devMean, devSD, discount
+  real*4 devMeanMin, devMeanSum, devMaxSum, devMaxMax, patchMeanNum
+  real*4 dzMin, dz, devMax, devMean, devSD, discount, desiredMaxMax
   real*4 devMeanAvg, devMaxAvg, devMeanMax, determMean
-  integer*4 icontMin, icont, indv, indLcl, ipntMax, maxDrop, numLowDeterm
+  integer*4 icontMin, icont, indv, indLcl, ipntMax, maxDrop, numLowDeterm, maxAutoPatch
   integer*4 ifInDrop, numDrop, ifFlip, indPatch, indLocal, icolFixed, nyDiag
   character*5 rowSlabText(2) /'rows ', 'slabs'/
   character*5 rowSlabCapText(2) /'ROWS ', 'SLABS'/
   character*1 yzText(2) /'Y', 'Z'/
-  logical*4 debugHere
-  integer*4 numberInList, readNumPatches
+  logical*4 debugHere, legacyRatios
+  integer*4 numberInList, readNumPatches, imodGetEnv
   !
   logical pipInput
   integer*4 numOptArg, numNonOptArg
@@ -105,9 +105,11 @@ program findwarp
   probCrit = 0.01
   absProbCrit = 0.002
   elimMinResid = 0.5
+  desiredMaxMax = 0.
   ifLocalSlabs = 0
   residFile = ' '
   discount = 0.
+  minExtent = 2
   limFit = 40000
   numAuto = 0
   numSelectCrit = 0
@@ -130,6 +132,7 @@ program findwarp
       ('READING FIRST LINE OF PATCH FILE')
   allocate(listPositions(numData + 4,3), stat = ierr)
   call memoryError(ierr, 'ARRAY FOR POSITION LIST')
+  legacyRatios = numExtraID == 0
 
   numXpatchTot = 0
   numYpatchTot = 0
@@ -247,12 +250,7 @@ program findwarp
   endif
   numConts = 0
   if (filename .ne. ' ') then
-    limCont = -1
-    limVert = -1
-    call get_region_contours(filename, 'FINDWARP',delTmp, delTmp, ix, &
-        iy, ierr, numConts, ifFlip, limCont, limVert, 0)
-    limVert = limVert + 10
-    limCont = limCont + 4
+    call getContourArraySizes(filename, 0, limCont, limVert)
     allocate(xVerts(limVert), yVerts(limVert), contourZ(limCont),  &
         indVertStart(limCont), numVerts(limCont), stat = ierr)
     call memoryError(ierr, 'ARRAYS FOR BOUNDARY CONTOURS')
@@ -277,6 +275,15 @@ program findwarp
     ierr = PipGetTwoFloats('CriterionProbabilities', probCrit, absProbCrit)
     ierr = PipGetString('ResidualPatchOutput', residFile)
     ierr = PipGetFloat('DiscountIfZeroVectors', discount)
+    ierr = PipGetInteger('MinExtentToFit', minExtent)
+    minExtent = max(2, minExtent)
+    if (imodGetEnv('FINDWARP_LEGACY_RATIOS', line) == 0) then
+      read(line, *, iostat = ierr) ix
+      if (ierr == 0 .and. ix .ne. 0) legacyRatios = ix > 0
+    endif
+    if (PipGetInteger('LegacyRatioEvaluation', ix) == 0) then
+      if (ix .ne. 0) legacyRatios = ix > 0
+    endif
     ifDebug = 1 - PipGetThreeFloats('DebugAtXYZ', debugXYZ(1), debugXYZ(2), &
         debugXYZ(3))
     !
@@ -303,9 +310,10 @@ program findwarp
     !
     if (pipInput) then
       numTarget = 0
-      if (PipGetFloatArray('TargetMeanResidual', targetResid, numTarget, &
-          LIMTARG) > 0) call exitError( &
-          'TARGET MEAN RESIDUAL MUST BE ENTERED FOR AUTOMATIC FITS')
+      if (PipGetFloatArray('TargetMeanResidual', targetResid, numTarget, LIMTARG) > 0) &
+          call exitError('TARGET MEAN RESIDUAL MUST BE ENTERED FOR AUTOMATIC FITS')
+      desiredMaxMax = 8. * targetResid(numTarget)
+      ierr = PipGetFloat('DesiredMaxResidual', desiredMaxMax)
       ierr = PipGetTwoFloats('MeasuredRatioMinAndMax', ratioMin, ratioMax)
     else
       write(*,'(1x,a,$)') 'One or more mean residuals to achieve: '
@@ -426,48 +434,16 @@ program findwarp
     !
     indAuto = -1
     numXYZfit(indZ) = min(numXYZfit(indZ), numXYZpatchUse(indZ))
-    call setAutoFits(numXpatchUse, numXYZpatchUse(indY), numXYZpatchUse(indZ), &
-        ifLocalSlabs, numXYZfit(indZ), ratioMin, ratioMax, ix, iy, itmp, numAuto, &
-        indAuto)
-    if (numAuto == 0) then
-      write(*,'(/,a,/,a)') 'ERROR: FINDWARP - NO FITTING PARAMETERS GIVE '// &
-          'THE REQUIRED RATIO OF', ' ERROR: MEASUREMENTS TO UNKNOWNS - '// &
-          'THERE ARE PROBABLY TOO FEW PATCHES'
-      call exit(1)
-    endif
+    call setAutoFits(indAuto)
+    if (numAuto == 0) call exitError('NO FITTING PARAMETERS GIVE THE REQUIRED RATIO '// &
+        'OF MEASUREMENTS TO UNKNOWNS - THERE ARE PROBABLY TOO FEW PATCHES')
     allocate(numXautoFit(indAuto), numYautoFit(indAuto), numZautoFit(indAuto), &
-        devMeanAuto(indAuto, max(1,numSelectCrit)), stat = ierr)
+        autoMeanPatches(indAuto), devMeanAuto(indAuto, max(1,numSelectCrit)), &
+        devMaxAuto(indAuto, max(1,numSelectCrit)), stat = ierr)
     call memoryError(ierr, 'ARRAYS FOR AUTOFITS')
-
-    if (ifFlip > 0) then
-      call setAutoFits(numXpatchUse, numZpatchUse, numYpatchUse, ifLocalSlabs, &
-          numXYZfit(indZ), ratioMin, ratioMax, numXautoFit, numZautoFit, &
-          numYautoFit, numAuto, indAuto)
-    else
-      call setAutoFits(numXpatchUse, numYpatchUse, numZpatchUse, ifLocalSlabs, &
-          numXYZfit(indZ), ratioMin, ratioMax, numXautoFit, numYautoFit, &
-          numZautoFit, numAuto, indAuto)
-    endif
-    !
-    ! sort the list by size of area in inverted order
-    !
-    do i = 1, numAuto - 1
-      do j = i + 1, numAuto
-        if (numXautoFit(i) * numYautoFit(i) * numZautoFit(i) < &
-            numXautoFit(j) * numYautoFit(j) * numZautoFit(j)) then
-          itmp = numXautoFit(i)
-          numXautoFit(i) = numXautoFit(j)
-          numXautoFit(j) = itmp
-          itmp = numYautoFit(i)
-          numYautoFit(i) = numYautoFit(j)
-          numYautoFit(j) = itmp
-          itmp = numZautoFit(i)
-          numZautoFit(i) = numZautoFit(j)
-          numZautoFit(j) = itmp
-        endif
-      enddo
-    enddo
-    ! write(*,'(3i5)') (i, nfxauto(i), nfyauto(i), nfzauto(i), i=1, numAuto)
+    call setAutoFits(indAuto)
+    ! write(*,'(4i5, i6, f7.1)') (i, numXautoFit(i), numYautoFit(i), numZautoFit(i), &
+    ! numXautoFit(i) * numYautoFit(i) * numZautoFit(i), autoMeanPatches(i), i=1, numAuto)
     !
     ! set up for first round and skip to set up this round's patches
     !
@@ -550,6 +526,7 @@ program findwarp
     numXfitIn = numXautoFit(indAuto)
     numYfitIn = numYautoFit(indAuto)
     numZfitIn = numZautoFit(indAuto)
+    patchMeanNum = autoMeanPatches(indAuto)
   endif
   !
   ! Loop back to earlier parameter entries on a zero entry
@@ -572,9 +549,12 @@ program findwarp
   endif
   !
   ! If arrays not allocated yet, do them to big size for interactive or current size
-  ! for auto (which will be biggest) or one-shot run from PIP
+  ! for one-shot run from PIP or biggest size from auto setup
   if (.not. allocated(fitMat)) then
-    if (pipInput) limFit = numXfitIn * numYfitIn * numZfitIn + 10
+    if (pipInput) then
+      limFit = numXfitIn * numYfitIn * numZfitIn + 10
+      if (ifAuto .ne. 0) limFit = maxAutoPatch + 10
+    endif
     allocate(fitMat(matColDim, limFit), idrop(limFit), stat = ierr)
     call memoryError(ierr, 'ARRAYS FOR FITTING')
   endif
@@ -586,6 +566,7 @@ program findwarp
   numXfit = numXfitIn
   numYfit = numYfitIn
   numZfit = numZfitIn
+  if (ifAuto == 0) patchMeanNum = numXfit * numYfit * numZfit
   !
   ! Do the fits finally
   !
@@ -598,7 +579,9 @@ program findwarp
     if (numDevSum > 0) devMeanAvg = devMeanSum / numDevSum
     devMeanMin = min(devMeanMin, devMeanAvg)
     devMeanAuto(indAuto, indSelect) = devMeanAvg
-    if (devMeanAvg <= targetResid(indTarget)) then
+    devMaxAuto(indAuto, indSelect) = devMaxMax
+    if (devMeanAvg <= targetResid(indTarget) .and. (indSelect >= numSelectCrit .or.  &
+        desiredMaxMax <= 0. .or. devMaxMax <= desiredMaxMax)) then
       !
       ! done: set nauto to zero to allow printing of results
       !
@@ -631,7 +614,8 @@ program findwarp
           do ix = lx, ly
             if (numSelectCrit > 0) write(*,132)(selectCrit(ix, i), i = 1, numColSelect)
             do i = 1, numAuto
-              if (devMeanAuto(i, ix) <= targetResid(j)) then
+              if (devMeanAuto(i, ix) <= targetResid(j) .and. (ix == ly .or. &
+                  desiredMaxMax <= 0. .or. devMaxAuto(i, ix) <= desiredMaxMax)) then
                 indTarget = j
                 indSelect = ix
                 indAuto = i
@@ -824,7 +808,7 @@ CONTAINS
           ! on another layer, or if there is only one layer being fit,
           ! then set the appropriate column as fixed in the fits
           !
-          solved(indLcl) = numData >= numXfit * numYfit * numZfit / 2
+          solved(indLcl) = numData >= patchMeanNum / 2
           maxDrop = nint(fracDrop * numData)
           icolFixed = 0
           do i = 1, max(numXfit, numYfit, numZfit)
@@ -944,6 +928,130 @@ CONTAINS
   end subroutine countExtraEliminations
 
 
+  ! Sets up a list of number of local patches for autofits, where each one has a ratio of 
+  ! measured to unknown within the min and max range.  Call with limAuto <= 0 to just
+  ! count up the number and return a good value for limAuto
+  !
+  subroutine setAutoFits(limAuto)
+    implicit none
+    integer*4 minInXYZ(3), nxFit, nyFit, nzFit, nXYZusable(3), minLocXYZ(3), maxLocXYZ(3)
+    integer*4 limAuto, numExists, maxInXYZ(3)
+    real*4 ratio, ratioFac, ratioAvg, patchMean, rtmp, avgRelax
+    avgRelax = 0.8
+    numAuto = 0
+    maxAutoPatch = 0
+    maxInXYZ(:) = numXYZpatchUse(:)
+    minInXYZ(:) = min(numXYZpatchUse(:), minExtent)
+    minInXYZ(indZ) = numXYZpatchUse(indZ)
+    if (ifLocalSlabs .ne. 0) minInXYZ(indZ) = numXYZfit(indZ)
+    ratioFac = 4.0
+    if (numXYZpatchUse(indZ) == 1) ratioFac = 3.0
+    maxInXYZ(1) = nint(5. * ratioMax * ratioFac / (minInXYZ(2) * minInXYZ(3)))
+    maxInXYZ(2) = nint(5. * ratioMax * ratioFac / (minInXYZ(1) * minInXYZ(3)))
+    maxInXYZ(3) = nint(5. * ratioMax * ratioFac / (minInXYZ(1) * minInXYZ(2)))
+    maxInXYZ(:) = min(numXYZpatchUse(:), max(maxInXYZ(:), minInXYZ(:)))
+    do nxFit = maxInXYZ(1), minInXYZ(1), -1
+      do nyFit = maxInXYZ(2), minInXYZ(2), -1
+        do nzFit = maxInXYZ(3), minInXYZ(3), -1
+          numXlocal = numXpatchUse + 1 - nxFit
+          numYlocal = numYpatchUse + 1 - nyFit
+          numZlocal = numZpatchUse + 1 - nzFit
+          !
+          ! For legacy ratios, simply take the nominal # to fit as usable number
+          if (legacyRatios) then
+            nXYZusable(1) = nxFit
+            nXYZusable(2) = nyFit
+            nXYZusable(3) = nzFit
+            numExists = nxFit * nyFit * nzFit * numXlocal * numYlocal * numZlocal
+            avgRelax = 1.
+          else
+            !
+            ! Otherwise, loop on all local patches for this size and determine maximum
+            ! existing size in each dimension
+            nXYZusable(:) = 0
+            numExists = 0
+            do locZ = 1, numZlocal
+              do locY = 1, numYlocal
+                do locX = 1, numXlocal
+                  maxLocXYZ(:) = 0
+                  minLocXYZ(:) = numXYZpatch(:)
+                  do lz = locZ + numZoffset, locZ + numZoffset + nzFit - 1
+                    do ly = locY + numYoffset, locY + numYoffset + nyFit - 1
+                      do lx = locX + numXoffset, locX + numXoffset + nxFit - 1
+                        if (exists(indPatch(lx, ly, lz))) then
+                          numExists = numExists + 1
+                          minLocXYZ(1) = min(minLocXYZ(1), lx)
+                          maxLocXYZ(1) = max(maxLocXYZ(1), lx)
+                          minLocXYZ(2) = min(minLocXYZ(2), ly)
+                          maxLocXYZ(2) = max(maxLocXYZ(2), ly)
+                          minLocXYZ(3) = min(minLocXYZ(3), lz)
+                          maxLocXYZ(3) = max(maxLocXYZ(3), lz)
+                        endif
+                      enddo
+                    enddo
+                  enddo
+                  nXYZusable(:) = max(nXYZusable(:), maxLocXYZ(:) + 1 - minLocXYZ(:))
+                enddo
+              enddo
+            enddo
+          endif
+          !
+          ! Get the mean number of patches in each area and a ratio based on that,
+          ! plus a ratio based on the nominal patch number.  The fit is acceptable if
+          ! the nominal ratio is within limits and the average ratio is almost within
+          ! the limits; also allow larger fits where the average ratio is well within
+          ! the upper limit
+          patchMean = float(numExists) / (numXlocal * numYlocal * numZlocal) 
+          ratioAvg = patchMean / ratioFac
+          ratio = nXYZusable(1) * nXYZusable(2) * nXYZusable(3) / ratioFac
+          if ((nxFit < numXpatchUse .or. (ifFlip == 0 .and. nyFit < numYpatchUse) .or. &
+              (ifFlip .ne. 0 .and. nzFit < numZpatchUse)) .and.  &
+              ratio >= ratioMin .and. ratioAvg >= avgRelax * ratioMin .and.  &
+              (ratio <= ratioMax .or. ratioAvg <= avgRelax * ratioMax .or.  &
+              (nxFit == minInXYZ(1) .and. nyFit == minInXYZ(2) .and.  &
+              nzFit == minInXYZ(3)))) then
+            numAuto = numAuto + 1
+            if (limAuto > 0) then
+              numXautoFit(numAuto) = nxFit
+              numYautoFit(numAuto) = nyFit
+              numZautoFit(numAuto) = nzFit
+              autoMeanPatches(numAuto) = patchMean
+              maxAutoPatch = max(maxAutoPatch, nxFit * nyFit * nzFit)
+            endif
+          endif
+        enddo
+      enddo
+    enddo
+    if (limAuto <= 0) then
+      limAuto = numAuto + 10
+      return
+    endif
+    !
+    ! sort the list by size of area in inverted order
+    do i = 1, numAuto - 1
+      do j = i + 1, numAuto
+        if (autoMeanPatches(i) < autoMeanPatches(j)) then
+        !if (numXautoFit(i) * numYautoFit(i) * numZautoFit(i) < &
+        !    numXautoFit(j) * numYautoFit(j) * numZautoFit(j)) then
+          itmp = numXautoFit(i)
+          numXautoFit(i) = numXautoFit(j)
+          numXautoFit(j) = itmp
+          itmp = numYautoFit(i)
+          numYautoFit(i) = numYautoFit(j)
+          numYautoFit(j) = itmp
+          itmp = numZautoFit(i)
+          numZautoFit(i) = numZautoFit(j)
+          numZautoFit(j) = itmp
+          rtmp = autoMeanPatches(i)
+          autoMeanPatches(i) = autoMeanPatches(j)
+          autoMeanPatches(j) = rtmp
+        endif
+      enddo
+    enddo
+    return
+  end subroutine setAutoFits
+
+
   ! saveAndTerminate saves the results (getting initial file and output file) and exits
   !
   subroutine saveAndTerminate()
@@ -1049,44 +1157,6 @@ CONTAINS
 
 end program findwarp
 
-
-! Sets up a list of number of local patches for autofits, where each one has a ratio of 
-! measured to unknown within the min and max range.  Call with limAuto <= 0 to just
-! count up the number and return a good value for limAuto
-!
-subroutine setAutoFits(numXpatchUse, numZpatchUse, numYpatchUse, ifLocalInY, numYfit, &
-    ratioMin, ratioMax, numXautoFit, numZautoFit, numYautoFit, numAuto, limAuto)
-  implicit none
-  integer*4 numXpatchUse, numZpatchUse, numYpatchUse, ifLocalInY, numYfit, numXautoFit(*)
-  integer*4 numZautoFit(*), numYautoFit(*), numAuto, numInY, ix, iz, iy, limAuto
-  real*4 ratioMin, ratioMax, ratio, ratioFac
-  numAuto = 0
-  numInY = numYpatchUse
-  if (ifLocalInY .ne. 0) numInY = numYfit
-  ratioFac = 4.0
-  if (numYpatchUse == 1) ratioFac = 3.0
-  do ix = numXpatchUse, 2, -1
-    do iz = numZpatchUse , 2, -1
-      do iy = numYpatchUse, numInY, -1
-        ratio = ix * iz * iy / ratioFac
-        ! aspect = float(ix) /iz
-        ! if (aspect<1.) aspect=1./aspect
-        if ((ix .ne. numXpatchUse .or. iz .ne. numZpatchUse) .and.  &
-            ratio >= ratioMin .and. ratio <= ratioMax) then
-          ! &                 aspect<=aspectmax) then
-          numAuto = numAuto + 1
-          if (limAuto > 0) then
-            numXautoFit(numAuto) = ix
-            numZautoFit(numAuto) = iz
-            numYautoFit(numAuto) = iy
-          endif
-        endif
-      enddo
-    enddo
-  enddo
-  if (limAuto <= 0) limAuto = numAuto + 10
-  return
-end subroutine setAutoFits
 
 !
 ! Output new patch file with mean residuals if requested
