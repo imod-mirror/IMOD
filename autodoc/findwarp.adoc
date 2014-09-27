@@ -76,6 +76,17 @@ tooltip =
 manpage = The minimum and maximum ratio of measurements to unknowns to be
 allowed in the automatic fits.  The defaults are 4 and 20.
 
+[Field = LegacyRatioEvaluation]
+short = legacy
+type = I
+usage = 1 to use old ratio evaluation, -1 not to, or 0 to use for old data
+tooltip =
+manpage = This entry controls the evaluation of the ratio of measurements to
+unknowns, as described above.  The default is 0 to use the new method only when
+there are ID values for the extra columns. Enter -1 or 1 to force the use of
+the new or old method, respectively.  This entry overrides a setting of the
+FINDWARP_LEGACY_RATIOS environment variable.
+
 [Field = XSkipLeftAndRight]
 short = xskip
 type = IP
@@ -108,14 +119,11 @@ usage = Extra value ID or -column # and polarity for selecting patches based
 on criterion
 tooltip =
 manpage = Select only patches with extra value on one side of a criterion.
-The patch vector file can have additional columns of values after the
-displacements in X, Y, and Z.  These extra columns are numbered from 1, and
-they may also have ID values on the first line of the file indicating their
-type.  To include patches based on values in an extra column, enter two
+To include patches based on values in an extra column, enter two
 numbers for this option: the ID value or the negative of the extra column
-number; and 1 to select patches above the criterion or -1 to select ones below
-it.  You must also enter one or more threshold values with the \fB-select\fR
-option.
+number (numbered from 1); and 1 to select patches above the criterion or -1 to
+select ones below it.  You must also enter one or more threshold values with
+the \fB-select\fR option.
 
 [Field = SelectionCriteria]
 short = select
@@ -123,12 +131,25 @@ type = FAM
 usage = One or more criteria for selecting patches based on extra values
 tooltip =
 manpage = One or more criteria for selecting patches based on extra values.
-If multiple criteria are entered, the entire autofitting process with will
-repeated each selection criterion to try to satisfy the first residual
-criterion, then higher residual criteria will be considered.  If there are
+Multiple criteria should be entered in order of greater selectivity.
+If there are
 multiple values being selected on, this option must
 be entered the same number of times as the \fB-extra\fR option and it must
 have the same number of criteria entered each time.
+
+[Field = DesiredMaxResidual]
+short = desired
+type = F
+usage = Continue to next selection criteria if maximum residual is above this
+value
+tooltip = 
+manpage = When patches are selected based on extra values and the mean
+residual is acceptable but the maximum of
+the maximum residuals in the fits is above this value, the program will go on to
+apply the next criterion, if there is one.  It will still accept the result
+if the last maximum residual is above this target on the last criterion.  The
+default is 8 times the last residual target entered with \fB-target\fR.  Enter
+0 to disable this feature.
 
 [Field = LocalRowsAndColumns]
 short = rowcol
@@ -151,6 +172,19 @@ that dimension.  If the -rowcol option is used, then this entry specifies the
 number of slabs of patches to include in each fit.  Otherwise, the entry
 sets the minimum number of slabs of patches that will be tried in the automatic
 search for the best warping.
+
+[Field = MinExtentToFit]
+short = extent
+type = I
+usage = Minimum # of rows and columns of patches to include in each local fit
+tooltip =
+manpage = Minimum number of rows and columns of patches to include in each
+local fit.   When there are many (~10 or more) overlapping patches in the thickness
+dimension, an entry of 3 will keep the program from doing 2 by 2 or 2 by 3
+fits in the other dimensions, which would only have a single patch of overlap
+between laterally adjacent fits.  Such an entry would also be appropriate when
+the spacing between patches is unusually small, to keep the transformation
+from being solved over too small an extent.
 
 [Field = MaxFractionToDrop]
 short = maxfrac
