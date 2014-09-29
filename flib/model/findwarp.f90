@@ -56,6 +56,7 @@ program findwarp
   real*4 devMeanAvg, devMaxAvg, devMeanMax, determMean
   integer*4 icontMin, icont, indv, indLcl, ipntMax, maxDrop, numLowDeterm, maxAutoPatch
   integer*4 ifInDrop, numDrop, ifFlip, indPatch, indLocal, icolFixed, nyDiag
+  integer*4 numElimSelect
   character*5 rowSlabText(2) /'rows ', 'slabs'/
   character*5 rowSlabCapText(2) /'ROWS ', 'SLABS'/
   character*1 yzText(2) /'Y', 'Z'/
@@ -457,7 +458,7 @@ program findwarp
     write(*,112) targetResid(1)
 112 format(/,'Seeking a warping with mean residual below',f9.3)
     if (numSelectCrit > 0) write(*,132)(selectCrit(1, i), i = 1, numColSelect)
-132 format(3x,'with extra column selection criteria', 10f9.3)
+132 format(2x,'with extra column selection criteria', 10f9.3)
     call countExtraEliminations()
     go to 20
   endif
@@ -582,6 +583,9 @@ program findwarp
     devMaxAuto(indAuto, indSelect) = devMaxMax
     if (devMeanAvg <= targetResid(indTarget) .and. (indSelect >= numSelectCrit .or.  &
         desiredMaxMax <= 0. .or. devMaxMax <= desiredMaxMax)) then
+      if (numSelectCrit > 0 .and. indTarget == 1) &
+          write(*,'(4x,a,i6,a,i6,a)')'- eliminates', numElimSelect,' of', numPosInFile, &
+          ' patches'
       !
       ! done: set nauto to zero to allow printing of results
       !
@@ -593,6 +597,9 @@ program findwarp
       indAuto = indAuto + 1
       ! print *,iauto, ' Did fit to', nfitx, nfity, nfitz
       if (indAuto > numAuto) then
+        if (numSelectCrit > 0 .and. indTarget == 1) &
+            write(*,'(4x,a,i6,a,i6,a,f8.3)')'- eliminates', numElimSelect,' of',  &
+            numPosInFile, ' patches, gives best mean residual', devMeanMin
         !
         ! If there are multiple selection criteria, first redo all fits with the next
         if (indSelect < numSelectCrit) then
@@ -908,9 +915,8 @@ CONTAINS
   ! Count up eliminations by the selection criteria
   !
   subroutine countExtraEliminations()
-    integer*4 numElim
     if (numColSelect > 0) then
-      numElim = 0
+      numElimSelect = 0
       do ind = 1, numXpatchTot * numYpatchTot * numZpatchTot
         if (exists(ind)) then
           ifUse = 1
@@ -918,11 +924,9 @@ CONTAINS
             if ((extraVals(icolSelect(i), ind) - selectCrit(indSelect, i)) * &
                 isignSelect(i) < 0) ifUse = 0
           enddo
-          if (ifUse == 0) numElim = numElim + 1
+          if (ifUse == 0) numElimSelect = numElimSelect + 1
         endif
       enddo
-      write(*,'(6x,a,i6,a,i6,a)')'which eliminates', numElim,' of', numPosInFile, &
-          ' patches'
     endif
     return
   end subroutine countExtraEliminations
