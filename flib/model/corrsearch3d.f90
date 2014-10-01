@@ -260,6 +260,14 @@ program corrsearch3d
           lsdBoxSize(3, 1)) .ne. 0) &
           call exitError('BOX SIZE MUST BE ENTERED FOR LOCAL SD ANALYSIS')
       ierr = PipGetTwoFloats('EliminateByLocalSD', elimBySdType, elimBySdCrit)
+      if (2 * lsdBoxSize(1, 1) > nxPatch .or. 2 * lsdBoxSize(2, 1) > nyPatch .or.  &
+          2 * lsdBoxSize(3, 1) > nzPatch) then
+        do i = 1, 3
+          lsdBoxSize(i, 1) = min(lsdBoxSize(i, 1), nxyzPatch(i) / 2)
+        enddo
+        write(*,'(a,a,3i4)')'WARNING: BOX SIZE FOR SD ANALYSIS TOO LARGE FOR PATCHES,', &
+            ' CHANGED TO',(lsdBoxSize(i, 1), i = 1, 3)
+      endif
     endif
 
     ifAxis = 1 - PipGetFloat('AxisRotationAngle', axisRotation)
@@ -536,8 +544,8 @@ program corrsearch3d
               (nint(elimBySdType) == 1 .and. patchFracHighSD(indP) < elimBySdCrit)) then
             ifUse = 0
             numElimBySD = numElimBySD + 1
-            if (ifDebug == 2) &
-                write(*,'(3f8.1,a)')xcen, ycen, zcen,' eliminated by SD criterion'
+            if (ifDebug == 2) write(*,'(3f8.1,a,f7.4)')xcen, ycen, zcen, &
+                ' eliminated by SD criterion, frac', patchFracHighSD(indP)
           endif
         endif
         !
@@ -602,10 +610,10 @@ program corrsearch3d
     enddo
   enddo
   !
-  if (numPosTotal < 1) call exitError('NO PATCHES FIT WITHIN ALL OF THE CONSTRAINTS')
   if (numLsdBinnings > 0)  &
       write(*,'(i7,a,i7,a)') numElimBySD, ' of', numXpatch * numYpatch * numZpatch, &
       ' total possible patches eliminated by SD criterion'
+  if (numPosTotal < 1) call exitError('NO PATCHES FIT WITHIN ALL OF THE CONSTRAINTS')
   !
   ! set indexes at which to load data and compose patches
   ! Here is the padding for the B patch direct correlation
@@ -1145,7 +1153,7 @@ CONTAINS
     do ibin = 1, numLsdBinnings
       numBoxes = max(numBoxes, lsdStatStarts(ibin + 1) - lsdStatStarts(ibin))
     enddo
-    numSample = min(numBoxes, 1000 * numHistBins)
+    numSample = min(numBoxes, 2000 * numHistBins)
     ibin = max(lsdBufferStarts(numLsdBinnings + 1),  &
         numSample + max(numSample, numHistBins))
     allocate(statBuffer(ibin), statMeans(lsdStatStarts(numLsdBinnings + 1)),  &
@@ -1335,6 +1343,7 @@ CONTAINS
     ibEnd(ixyz) = ceiling(((ipEnd - lsdStartCoord(ixyz)) / float(lsdBinning(ixyz, iscl)) &
         + 1 - lsdBoxStart(ixyz, iscl) - lsdBoxSize(ixyz, iscl)) /  &
         lsdSpacing(ixyz, iscl)) + 1
+    ibEnd(ixyz) = min(numLsdBoxes(ixyz, iscl), ibEnd(ixyz))
     do while (lsdStartCoord(ixyz) + lsdBinning(ixyz, iscl) * (lsdBoxStart(ixyz, iscl) + &
         (ibEnd(ixyz) - 1) * lsdSpacing(ixyz, iscl) + lsdBoxSize(ixyz, iscl)) < ipEnd)
       ibEnd(ixyz) = ibEnd(ixyz) - 1
