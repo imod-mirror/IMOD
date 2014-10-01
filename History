@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/1/14: In eTomo - Tomogram Combination, added variables to hold matchorwarp
+parameters structurecrit and extentfit.(Bug# 1819)
+
 9/25/14: Added option to Newstack to suppress most typical output.
 
 9/25/14: IMOD_4-7-10
