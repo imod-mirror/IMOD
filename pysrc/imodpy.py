@@ -51,6 +51,9 @@ This module provides the following functions:
   imodTempDir() - returns a temporary directory: IMOD_TEMPDIR, /usr/tmp, or /tmp
   setLibPath() - Set path variables for executing Qt programs
   makeCurrentDirWritable() - Tries to make sure current directory is writeable on Windows
+  patchSizeFromEntry(patchin) - Gets 3D patch size from letter or three numbers
+  autoPatchNumber(size, lower, upper, ifZ, [densityInd]) - Computes number of patches
+                               from size and range, depending on axis and density flags
   fmtstr(string, *args) - formats a string with replacement fields
   prnstr(string, file = sys.stdout, end = '\n', flush = False) - replaces print function
 """
@@ -1035,6 +1038,42 @@ def makeCurrentDirWritable():
          errStr = writeTextFile('writetest.tmp', ['Test for writability'], True)
          cleanupFiles(['writetest.tmp'])
          return errStr
+
+
+# Two functions for managing patch size and number needed by Setupcombine and
+# Autopatchfit
+PATCHXY = (64, 80, 100, 120)
+PATCHZ = (32, 40, 50, 60)
+AUTODELPATCHXY = (80, 40)
+AUTODELPATCHZ = (30, 20)
+
+# Function to return a patch size from an entry that can be a letter or a size
+# in X, Y, Z
+def patchSizeFromEntry(patchin):
+   indpatch = 'SMLE'.find(patchin.upper())
+   err = 0
+   if indpatch >= 0 and len(patchin) == 1:
+      patchnx = patchny = PATCHXY[indpatch]
+      patchnz = PATCHZ[indpatch]
+   else:
+      psplit = patchin.split(',')
+      err = 1
+      if len(psplit) == 3:
+         try:
+            patchnx = int(psplit[0])
+            patchny = int(psplit[1])
+            patchnz = int(psplit[2])
+            err = 0
+         except ValueError:
+            err = 1
+   return (patchnx, patchny, patchnz, err)
+
+# Function to compute number of patches from size and limits
+def autoPatchNumber(size, lower, upper, ifZ, densityInd = 0):
+   delta = AUTODELPATCHXY[densityInd]
+   if ifZ:
+      delta = min(AUTODELPATCHZ[densityInd], 3 * size // 4)
+   return int(round(float(upper - lower - size) / delta + 1.))
 
 
 # Function to format a string in new format for earlier versions of python
