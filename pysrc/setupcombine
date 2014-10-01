@@ -77,7 +77,7 @@ def getSeriesSizeAndAngle(axis):
                break
 
          # Assume the middle view, but if tlt file exists, read it and find minimum angle
-         middle = len(xflines) / 2
+         middle = len(xflines) // 2
          if os.path.exists(tltname):
             tiltlines = readTextFile(tltname)
             if len(tiltlines) == len(xflines):
