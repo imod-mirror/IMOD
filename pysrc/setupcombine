@@ -515,7 +515,7 @@ sedcom = [fmtstr("s/{}/{}/g", from_srcname, fromname),
 # If either angle is there and either stack size, add angle, then stack sizes
 if reconsCentered and (aAngle or bAngle) and (nxAstack or nxBstack):
    if nxAstack or nxBstack:
-      sedcom.append(fmtstr('/^FlipYZMes/a/AxisRotationAngle	{}/', axisAngle))
+      sedcom.append(fmtstr('/^FlipYZMes/a/AxisRotationAngle	{:.2f}/', axisAngle))
    if nxAstack:
       sedcom.append(fmtstr('/^FlipYZMes/a/TiltSeriesSizeXY	{},{}/', nxAstack,
                            nyAstack))
