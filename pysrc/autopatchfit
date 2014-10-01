@@ -1,0 +1,278 @@
+#!/usr/bin/env python
+# autopatchfit - Run patchcorr and matchorwarp to achieve desired residuals
+#
+# Author: David Mastronarde
+#
+# $Id$
+#
+
+progname = 'autopatchfit'
+prefix = 'ERROR: ' + progname + ' - '
+
+patchcom = 'patchcorr.com'
+mowcom = 'matchorwarp.com'
+
+def failureLog(comName, logLines):
+   for line in logLines:
+      if 'ERROR:' in line and '-StandardInput: exited' not in line:
+         prnstr(line)
+   exitError(comName + ' failed with unrecoverable error')
+
+
+#### MAIN PROGRAM  ####
+#
+# load System Libraries
+import os, sys, math, shutil
+
+#
+# Setup runtime environment
+if os.getenv('IMOD_DIR') != None:
+   sys.path.insert(0, os.path.join(os.environ['IMOD_DIR'], 'pylib'))
+   from imodpy import *
+   addIMODbinIgnoreSIGHUP()
+else:
+   sys.stdout.write(prefix + " IMOD_DIR is not defined!\n")
+   sys.exit(1)
+
+#
+# load IMOD Libraries
+from pip import *
+from pysed import *
+
+# Fallbacks from ../manpages/autodoc2man 3 1 autopatchfit
+options = ["final:FinalPatchTypeOrXYZ:CH:", "extra:ExtraResidualTargets:CH:",
+           "high:HighDensityFinalTrial:I:", "trial:TrialMode:B:",
+           "skip:SkipFirstPatchcorr:B:"]
+
+(opts, nonopts) = PipReadOrParseOptions(sys.argv, options, progname, 1, 1, 0)
+
+# Get options
+finalSize = PipGetString('FinalPatchTypeOrXYZ', 'L')
+(nxFinal, nyFinal, nzFinal, err) = patchSizeFromEntry(finalSize)
+if err:
+   exitError('You must enter one of S, M, L, or E or sizes in X,Y,Z for ' +\
+                'the -final option')
+
+extraTarget = PipGetString('ExtraResidualTargets', '')
+highDensity = PipGetInteger('HighDensityFinalTrial', 0)
+trialMode = PipGetBoolean('TrialMode', 0)
+skipFirst = PipGetBoolean('SkipFirstPatchcorr', 0)
+
+# Get patchcorr and determine high density setting unless entered
+patchLines = readTextFile(patchcom)
+   
+if not highDensity:
+   highDensity = -1
+   initialShift = optionValue(patchLines, 'InitialShiftXYZ', FLOAT_VALUE)
+   if initialShift:
+      highDensity = 1
+
+# First manage the trial flag in matchorwarp and pull off extra targets
+mowLines = readTextFile(mowcom)
+found = 0
+for lineInd in range(len(mowLines)):
+   line = mowLines[lineInd]
+   if (not line.strip().startswith('#')) and '-warplimit' in line:
+      if extraTarget:
+         mowLines[lineInd] = mowLines[lineInd].replace(extraTarget, '')
+      if trialMode:
+         mowLines[lineInd] = mowLines[lineInd].replace('-warplimit', '-trial -warplimit')
+         found = 1
+         break
+   if not trialMode:
+      if (not line.strip().startswith('#')) and '-trial' in line:
+         mowLines[lineInd] = mowLines[lineInd].replace('-trial', '')
+
+if trialMode and not found:
+   exitError('Cannot find existing residual targets in ' + mowcom)
+
+makeBackupFile(mowcom)
+writeTextFile(mowcom, mowLines)
+
+# Make sure matchorwarp can be modified for extra target before starting
+if extraTarget:
+   found = 0
+   for lineInd in range(len(mowLines)):
+      line = mowLines[lineInd]
+      if (not line.strip().startswith('#')) and '-warplimit' in line:
+         lsplit = line.split()
+         for ind in range(len(lsplit) - 1):
+            if lsplit[ind] == '-warplimit':
+               curTarget = lsplit[ind + 1]
+               if not curTarget.endswith(extraTarget):
+                  newTarget = curTarget + ',' + extraTarget
+                  mowLines[lineInd] = line.replace(curTarget, newTarget)
+               found = 1
+               break
+
+   if not found:
+      exitError('Cannot find existing residual targets in ' + mowcom)
+
+# Figure out the maximum number of runs in advance
+nxyzPatchCur = optionValue(patchLines, 'PatchSizeXYZ', INT_VALUE, numVal = 3)
+numXYZorig = optionValue(patchLines, 'NumberOfPatchesXYZ', INT_VALUE, numVal = 3)
+xMinMax = optionValue(patchLines, 'XMinAndMax', INT_VALUE, numVal = 2)
+zMinMax = optionValue(patchLines, 'YMinAndMax', INT_VALUE, numVal = 2)
+yMinMax = optionValue(patchLines, 'ZMinAndMax', INT_VALUE, numVal = 2)
+if not nxyzPatchCur or not numXYZorig or not xMinMax or not yMinMax or not zMinMax:
+   exitError('Cannot find one of patch size, number of patches, or X, Y or Z limits in '
+             + patchcom)
+
+nxCurr = nxyzPatchCur[0]
+nyCurr = nxyzPatchCur[2]
+nzCurr = nxyzPatchCur[1]
+if nxFinal < nxCurr or nyFinal < nyCurr or nzFinal < nzCurr:
+   exitError('Final patch size cannot be smaller that current size in any dimension')
+
+if nxFinal == nxCurr and nyFinal == nyCurr and nzFinal == nzCurr:
+   maxTrials = 1
+else:
+
+   # Try to match up size with the stock ones
+   curInd = -1
+   finalInd = -1
+   for ind in range(len(PATCHXY)):
+      if nxFinal == nyFinal and nxFinal == PATCHXY[ind] and nzFinal == PATCHZ[ind]:
+         finalInd = ind
+      if nxCurr == PATCHXY[ind] and nyCurr == PATCHXY[ind] and nzCurr == PATCHZ[ind]:
+         curInd = ind
+
+   if curInd >= 0 and finalInd >= 0:
+      maxTrials = finalInd + 1 - curInd
+   else:
+
+      # If no size match, target steps of 1.25, round number of steps up so the steps
+      # will be no bigger than ~1.3
+      maxFactor = max(float(nxFinal) / nxCurr, float(nyFinal) / nyCurr, 
+                      float(nzFinal) / nzCurr)
+      numSteps = max(1, int(math.log(maxFactor) / math.log(1.25) + 0.75))
+      stepFactor = math.exp(math.log(maxFactor) / numSteps)
+      maxTrials = numSteps + 1
+      
+if highDensity > 0:
+   maxTrials += 1
+
+# Start loop on trials
+nxNew = nxCurr
+nyNew = nyCurr
+nzNew = nzCurr
+cumFactor = 1.
+zRange = zMinMax[1] + 1 - zMinMax[0]
+if numXYZorig[1] == 1:
+   nzLimit = zRange
+else:
+   nzLimit = (zRange * 3) // 2
+   
+for trial in range(maxTrials):
+   finalTrial = trial == maxTrials - 1
+   
+   # Modify to the next size or density after the first trial
+   if trial:
+      if not (highDensity > 0 and finalTrial):
+         densityInd = 0
+         if curInd >= 0 and finalInd >= 0:
+            curInd += 1
+            nxNew = nyNew = PATCHXY[curInd]
+            nzNew = PATCHZ[curInd]
+         elif trial < numSteps:
+            cumFactor *= stepFactor
+            nxNew = 2 * int(round(nxCurr * cumFactor / 2.))
+            nyNew = 2 * int(round(nyCurr * cumFactor / 2.))
+            nzNew = 2 * int(round(nzCurr * cumFactor / 2.))
+         else:
+            nxNew = nxFinal
+            nyNew = nyFinal
+            nzNew = nzFinal
+            
+         nzNew = min(nzNew, nzLimit)
+
+      else:
+         densityInd = 1
+         
+      numXnew = autoPatchNumber(nxNew, xMinMax[0], xMinMax[1], 0, densityInd)
+      numYnew = autoPatchNumber(nyNew, yMinMax[0], yMinMax[1], 0, densityInd)
+      numZnew = autoPatchNumber(nzNew, zMinMax[0], zMinMax[1], 1, densityInd)
+      if numXYZorig[1] == 1:
+         numZnew = 1
+      sedcom = [sedModify('PatchSizeXYZ', fmtstr('{},{},{}', nxNew, nzNew, nyNew)),
+                sedModify('NumberOfPatchesXYZ', fmtstr('{},{},{}', numXnew, numZnew,
+                                                       numYnew))]
+      if trial == 1:
+         makeBackupFile(patchcom)
+      pysed(sedcom, patchLines, patchcom)
+      prnstr(fmtstr('AUTOPATCHFIT - Changing to patch size {} {} {}, number {} {} {}',
+                    nxNew, nyNew, nzNew, numXnew, numYnew, numZnew))
+
+   else:
+      prnstr(fmtstr('AUTOPATCHFIT - Using initial patch size {} {} {}, number {} {} {}',
+                    nxNew, nyNew, nzNew, numXYZorig[0], numXYZorig[2], numXYZorig[1]))
+
+   # Modify matchorwarp if there are extra criteria on last round
+   if finalTrial and extraTarget:
+      writeTextFile(mowcom, mowLines)
+      prnstr(fmtstr('AUTOPATCHFIT - Adding {} to warp residual limits', extraTarget))
+
+   if trial or not skipFirst:
+      prnstr('AUTOPATCHFIT - Running ' + patchcom)
+      try:
+         runcmd('vmstopy -x -q ' + patchcom + ' patchcorr.log')
+      except ImodpyError:
+         logLines = readTextFile('patchcorr.log')
+         failureLog(patchcom, logLines)
+      
+   prnstr('AUTOPATCHFIT - Running ' + mowcom)
+   try:
+      runcmd('vmstopy -x -q ' + mowcom + ' matchorwarp.log')
+
+      # Success!  Anything to do, or just exit here?
+      logLines = readTextFile('matchorwarp.log')
+      refineRes = ''
+      warpRes = ''
+      for line in logLines:
+         if 'FOUND A GOOD' in line:
+            if 'REFINEMATCH' in line and refineRes:
+               prnstr('AUTOPATCHFIT - Refinematch found a good transformation, mean ' + \
+                         'residual ' + refineRes)
+               break
+            if 'FINDWARP' in line and warpRes:
+               prnstr('AUTOPATCHFIT - Findwarp found a good warping, mean ' + \
+                         'residual ' + warpRes)
+               break
+         if 'Mean residual' in line:
+            lsplit = line.split()
+            for token in lsplit:
+               if '.' in token:
+                  try:
+                     dummy = float(token)
+                     if 'has' in line:
+                        warpRes = token
+                     else:
+                        refineRes = token
+                  except Exception:
+                     pass
+                  break
+               
+      sys.exit(0)
+      
+   except ImodpyError:
+      logLines = readTextFile('matchorwarp.log')
+      for line in logLines:
+         if 'FINDWARP - FAILED TO FIND' in line:
+            prnstr(line.replace('ERROR: ', ''))
+            break
+      else:   # ELSE ON FOR
+         failureLog(mowcom, logLines)
+
+      # Save the current patches unless it is the last round
+      if not finalTrial:
+         patchName = fmtstr('patch_{}x{}x{}.out', nxNew, nyNew, nzNew)
+         try:
+            shutil.copyfile('patch.out', patchName)
+            prnstr('AUTOPATCHFIT - saved patch.out as ' + patchName)
+         except Exception:
+            exitError('Copying patch.out to ' + patchName)
+
+# End of loop with no success.  How to leave things?
+exitError('Could not get patch correlations with an acceptable fit')
+
+   
