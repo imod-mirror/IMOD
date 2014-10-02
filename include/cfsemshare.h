@@ -181,6 +181,7 @@ extern "C" {
   void rsMADN(float *x, int n, float median, float *tmp, float *MADN);
   void rsFastMedian(float *x, int n, float *tmp, float *median);
   void rsFastMedianInPlace(float *x, int n, float *median);
+  void rsPercentileOfSorted(float *x, int n, float fraction, float *pctile);
   void rsFastMADN(float *x, int n, float median, float *tmp, float *MADN);
   void rsMadMedianOutliers(float *x, int n, float kcrit, float *out);
   void rsTrimmedMean(float *x, int n, float gamma, float *xsort, 
