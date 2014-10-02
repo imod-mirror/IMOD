@@ -198,7 +198,7 @@ InfoWindow::InfoWindow(QWidget * parent, const char * name, Qt::WindowFlags f)
   QMenu *imageMenu = menuBar()->addMenu("&Image");
   ADD_ACTION_KEY(image, "&ZaP", IMAGE_MENU_ZAP,  Qt::Key_Z);
   ADD_ACTION(image, "M&ulti-Z", IMAGE_MENU_MULTIZ);
-  ADD_ACTION(image, "&XYZ", IMAGE_MENU_XYZ);
+  ADD_ACTION_KEY(image, "&XYZ", IMAGE_MENU_XYZ, Qt::CTRL + Qt::Key_X);
   ADD_ACTION_KEY(image, "&Slicer", IMAGE_MENU_SLICER, Qt::Key_Backslash);
   ADD_ACTION(image, "Lin&ked Slicers", IMAGE_MENU_LINKSLICE);
   ADD_ACTION_KEY(image, "&Model View", IMAGE_MENU_MODV, Qt::Key_V);
