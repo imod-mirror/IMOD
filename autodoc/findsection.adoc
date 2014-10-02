@@ -109,6 +109,19 @@ a spacing was entered, the spacing in each dimension will be set to give the
 same overlap between boxes as for the last binning for which a spacing was
 entered.
 
+[Field = BlockSize]
+short = block
+type = I
+usage = Size of block in which to consolidate analyzed boxes (unbinned pixels)
+tooltip = 
+manpage = Size of block in which to consolidate the boxes for further
+analysis, in unbinned pixels.  If this option is not entered, the program will start
+with a size of 100 pixels, or 200 if making a surface model, and then increase
+the size to get an equivalent area if there are too few boxes in one direction
+(specifically, when using multiple tomogram samples, the size generally gets
+increased to ~300).  If the option is entered, the number is used as is,
+without such an adjustment.
+
 [Field = XMinAndMax]
 short = xminmax
 type = IP
@@ -149,6 +162,27 @@ shortest dimension of Y or Z is the thickness dimension.  Multiple tomograms
 are assumed to be samples as built by Tilt(1) and must have their thickness in
 Y.
 
+[Field = AxisRotationAngle]
+short = axis
+type = F
+usage = Rotation angle from Y axis to tilt axis in raw tilt series
+tooltip =
+manpage = Rotation angle from Y axis to tilt axis in the raw tilt series,
+counterclockwise positive.  With this entry, the program will avoid analyzing
+regions outside the area that can be well-reconstructed from the
+original images.  However, the correct region is identified only if the
+aligned stack and reconstruction were centered on the original tilt series.
+
+[Field = TiltSeriesSizeXY]
+short = tilt
+type = IP
+usage = (Binned) size in X and Y of raw tilt series
+tooltip =
+manpage = Size in X and Y of raw tilt series for volume being analyzed,
+divided by the binning applied to make its aligned stack.  When \fB-axis\fR
+option is entered, this option should be entered if this size differs from
+that of the reconstruction.
+
 [Field = EdgeExtentInXYZ]
 short = edge
 type = IT
@@ -177,7 +211,6 @@ manpage = Parameter number and value for setting algorithm control parameters.
 Parameters and their numbers (and default values in parentheses) are:
 ^  1: Minimum # of points for using robust fit to get pitch line on one
 surface (6)
-^  2: Size of blocks in which to consolidate analyzed boxes (100)
 ^  21: Fraction that the difference between distinguishability of center from
 edge points must improve to adopt a higher scaling for analysis float (0.33)
 ^  22: Threshold weight from robust fit for including a point in the final
@@ -214,6 +247,11 @@ median thickness (0.35)
 ^  18: Maximum change in weights for terminatiom (0.02)
 ^  19: Maximum change in weights for terminating on an oscillation (0.05)
 ^  20: Maximum iterations (30)
+^       Parameters for estimate of Z limits for combine with Autopatchfit
+^  24: Fraction for percentile of positions included in the limits (0.10)
+^  25: Fraction for lower percentile of positions that can be partly outside
+the limits (0.01)
+^  26: Number of pixels outside the limits the latter positions can be (20)
 
 [Field = VolumeRootname]
 short = volume
