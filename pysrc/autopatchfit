@@ -213,15 +213,16 @@ for trial in range(maxTrials):
       prnstr(fmtstr('AUTOPATCHFIT - Adding {} to warp residual limits', extraTarget))
 
    if trial or not skipFirst:
-      prnstr('AUTOPATCHFIT - Running ' + patchcom)
+      prnstr('AUTOPATCHFIT - Running ' + patchcom, flush = True)
       try:
          runcmd('vmstopy -x -q ' + patchcom + ' patchcorr.log')
       except ImodpyError:
          logLines = readTextFile('patchcorr.log')
          failureLog(patchcom, logLines)
       
-   prnstr('AUTOPATCHFIT - Running ' + mowcom)
+   prnstr('AUTOPATCHFIT - Running ' + mowcom, flush = True)
    try:
+      makeBackupFile('matchorwarp.log')
       runcmd('vmstopy -x -q ' + mowcom + ' matchorwarp.log')
 
       # Success!  Anything to do, or just exit here?
@@ -267,10 +268,11 @@ for trial in range(maxTrials):
       if not finalTrial:
          patchName = fmtstr('patch_{}x{}x{}.out', nxNew, nyNew, nzNew)
          try:
-            shutil.copyfile('patch.out', patchName)
-            prnstr('AUTOPATCHFIT - saved patch.out as ' + patchName)
-         except Exception:
-            exitError('Copying patch.out to ' + patchName)
+            makeBackupFile(patchName)
+            os.rename('patch.out', patchName)
+            prnstr('AUTOPATCHFIT - Renamed patch.out as ' + patchName)
+         except OSError:
+            exitError('Renaming patch.out to ' + patchName)
 
 # End of loop with no success.  How to leave things?
 exitError('Could not get patch correlations with an acceptable fit')
