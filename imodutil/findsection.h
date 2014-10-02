@@ -22,7 +22,8 @@ public:
   void fitColumnBoundaries(int startX, int endX, int startY, int endY, float *boundary);
   void dumpPointModel(float *boundaries, int numPts,
                       const char *filename, MrcHeader *inHeader);
-  void makeSurfaceModel(float *boundaries, const char *filename, MrcHeader *inHeader);
+  void makeSurfaceModel(float *boundaries, const char *filename, MrcHeader *inHeader,
+                        int *nxyz);
   int addToPitchModel(Imod *imod, float *boundaries, int yStart, int yEnd, int time);
   void checkBlockThicknesses();
   void setupBlocks(int numBoxes, int sclInd, int ixyz);
