@@ -1272,16 +1272,25 @@ CONTAINS
     endif
     !
     ! Now evaluate each patch, find mean SD of blocks in patch and fraction of blocks
-    ! above the structure criterion
+    ! above the structure criterion.  Yes, this was actually good up to 10 threads
+    wallStart = wallTime()
+    ierr = numOMPthreads(10)
+
+    !$OMP PARALLEL DO NUM_THREADS(ierr) &
+    !$OMP& SHARED(numZpatch, izDelta, nzPatch, numYpatch, iyDelta, nyPatch, numXpatch)&
+    !$OMP& SHARED(ixDelta, nxPatch, patchMeanStruct, patchFracHighSD, lsdStatStarts)&
+    !$OMP& SHARED(ibinBest, numLsdBoxes, statSDs, boxStructCrit, izStart,iyStart,ixStart)&
+    !$OMP& PRIVATE(izPatch, iz0, iyPatch, iy0, ixPatch, ix0, ibStart, ibEnd, numBoxes)&
+    !$OMP& PRIVATE(ix, iy, iz, i, indP)
     do izPatch = 1, numZpatch
       iz0 = izStart + (izPatch - 1) * izDelta
-      call findBoxesInsidePatch(3, iz0, iz0 + nzPatch - 1)
+      call findBoxesInsidePatch(3, iz0, iz0 + nzPatch - 1, ibStart(3), ibEnd(3))
       do iyPatch = 1, numYpatch
         iy0 = iyStart + (iyPatch - 1) * iyDelta
-        call findBoxesInsidePatch(2, iy0, iy0 + nyPatch - 1)
+        call findBoxesInsidePatch(2, iy0, iy0 + nyPatch - 1, ibStart(2), ibEnd(2))
         do ixPatch = 1, numXpatch
           ix0 = ixStart + (ixPatch - 1) * ixDelta
-          call findBoxesInsidePatch(1, ix0, ix0 + nxPatch - 1)
+          call findBoxesInsidePatch(1, ix0, ix0 + nxPatch - 1, ibStart(1), ibEnd(1))
           indP = indPatch(ixPatch, iyPatch, izPatch)
           numBoxes = 0
           patchMeanStruct(indP) = 0.;
@@ -1308,6 +1317,8 @@ CONTAINS
         enddo
       enddo
     enddo
+    !$OMP END PARALLEL DO
+    if (ifDebug > 0) write(*,'(a,f9.3)') ' patch structure time', wallTime() - wallStart
   end subroutine analyzeLocalSDs
 
 
@@ -1331,22 +1342,22 @@ CONTAINS
   ! findBoxesInsidePatch finds the box numbers in a patch whose starting and ending
   ! coordinates are in ipStart, ipEnd, and puts the range of boxes in ibStart, ibEnd
   !
-  subroutine findBoxesInsidePatch(ixyz, ipStart, ipEnd)
-    integer*4 iscl, ixyz, ipStart, ipEnd
+  subroutine findBoxesInsidePatch(ixyz, ipStart, ipEnd, ibStart, ibEnd)
+    integer*4 iscl, ixyz, ipStart, ipEnd, ibStart, ibEnd
     iscl = ibinBest
-    ibStart(ixyz) = ((ipStart - lsdStartCoord(ixyz)) / float(lsdBinning(ixyz, iscl)) -  &
+    ibStart = ((ipStart - lsdStartCoord(ixyz)) / float(lsdBinning(ixyz, iscl)) -  &
         lsdBoxStart(ixyz, iscl)) / lsdSpacing(ixyz, iscl) + 1
     do while (lsdStartCoord(ixyz) + lsdBinning(ixyz, iscl) * (lsdBoxStart(ixyz, iscl) + &
-        (ibStart(ixyz) - 1) * lsdSpacing(ixyz, iscl)) < ipStart)
-      ibStart(ixyz) = ibStart(ixyz) + 1
+        (ibStart - 1) * lsdSpacing(ixyz, iscl)) < ipStart)
+      ibStart = ibStart + 1
     enddo
-    ibEnd(ixyz) = ceiling(((ipEnd - lsdStartCoord(ixyz)) / float(lsdBinning(ixyz, iscl)) &
+    ibEnd = ceiling(((ipEnd - lsdStartCoord(ixyz)) / float(lsdBinning(ixyz, iscl)) &
         + 1 - lsdBoxStart(ixyz, iscl) - lsdBoxSize(ixyz, iscl)) /  &
         lsdSpacing(ixyz, iscl)) + 1
-    ibEnd(ixyz) = min(numLsdBoxes(ixyz, iscl), ibEnd(ixyz))
+    ibEnd = min(numLsdBoxes(ixyz, iscl), ibEnd)
     do while (lsdStartCoord(ixyz) + lsdBinning(ixyz, iscl) * (lsdBoxStart(ixyz, iscl) + &
-        (ibEnd(ixyz) - 1) * lsdSpacing(ixyz, iscl) + lsdBoxSize(ixyz, iscl)) < ipEnd)
-      ibEnd(ixyz) = ibEnd(ixyz) - 1
+        (ibEnd - 1) * lsdSpacing(ixyz, iscl) + lsdBoxSize(ixyz, iscl)) < ipEnd)
+      ibEnd = ibEnd - 1
     enddo
     return
   end subroutine findBoxesInsidePatch
@@ -1693,7 +1704,7 @@ subroutine kernelSmooth(array, brray, nxDim, nx, ny, nz, isize, sigma, numThread
   implicit none
   integer*4 nx, nxDim, ny, nz, ix, iy, iz, i, j, k, isize, mid, less, numThreads
   real*4 array(nxDim, ny, nz), brray(nxDim, ny, nz), sigma
-  real*4 w(5,5,5), wsum, sizeRatio
+  real*4 w(5,5,5), wsum
   !
   ! Make up the gaussian kernel
   !
@@ -1760,7 +1771,7 @@ end subroutine kernelSmooth
 ! than adding everything into one output pixel at a time
 subroutine smoothOnePlane(array, brray, nxDim, nx, ny, iz, isize, w)
   implicit none
-  integer*4 nx, nxDim, ny, ix, iy, iz, i, j, k, isize, mid
+  integer*4 nx, nxDim, ny, iy, iz, j, k, isize, mid
   real*4 array(nxDim, ny, *), brray(nxDim, ny, *)
   real*4 w(5,5,5)
   mid = (isize + 1) / 2
@@ -1982,14 +1993,9 @@ subroutine loadVol(iunit, array, nxDim, nyDim, ix0, ix1, iy0, iy1, iz0, iz1)
   implicit none
   integer*4 nxDim, nyDim, ix0, ix1, iy0, iy1, iz0, iz1, iunit, indZ, iz
   real*4 array(nxDim,nyDim,*)
-  real*8 wallTime, wallStart, wallAll, wallNow, wallCum, wallAllSt, wallSeek
   !
   ! print *,iunit, nxdim, nydim, ix0, ix1, iy0, iy1, iz0, iz1
   indZ = 0
-  wallStart = wallTime()
-  wallAllSt = wallStart
-  wallCum = 0.
-  wallSeek =0.
   do iz = iz0, iz1
     indZ = indZ + 1
     call imposn(iunit, iz, 0)
@@ -2012,7 +2018,7 @@ subroutine extractPatch(buffer, nxLoad, nyLoad, nzLoad, loadX0, loadY0, loadZ0, 
   integer*4 nxLoad, nyLoad, nzLoad, loadX0, loadY0, loadZ0, ix0, iy0
   integer*4 iz0, nxPatch, nyPatch, nzPatch
   real*4 buffer(nxLoad,nyLoad,nzLoad), array(nxPatch,nyPatch,nzPatch), scale
-  integer*4 iz, iy, ix, indz
+  integer*4 iz, iy, ix
   !
   ix = ix0 - loadX0
   iy = iy0 - loadY0
@@ -2031,7 +2037,6 @@ subroutine volMeanZero(array, nxDim, nx, ny, nz)
   integer*4 nxDim, nx, ny, nz
   real*4 array(nxDim,ny,nz)
   real*8 arsum
-  integer*4 i, j, k
   real*4 dmean
   arsum = sum(array(1:nx, 1:ny, 1:nz))
   dmean = arsum / (nx * ny * nz)
