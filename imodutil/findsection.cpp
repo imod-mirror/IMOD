@@ -356,7 +356,7 @@ void FindSect::main( int argc, char *argv[])
   nySeries = nxyz[yInd];
   ierr = PipGetTwoIntegers("TiltSeriesSizeXY", &nxSeries, &nySeries);
   ifReconArea = 1 - PipGetFloat("AxisRotationAngle", &axisRotation);
-  if (!ierr and !ifReconArea)
+  if (!ierr && !ifReconArea)
     exitError("Axis rotation angle must also be entered with tilt series size");
   if (ifReconArea) {
     tiltXvert[0] = nxyz[b3dX] / 2. - nxSeries / 2.;
