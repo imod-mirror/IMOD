@@ -1648,6 +1648,14 @@ void ZapFuncs::keyInput(QKeyEvent *event)
     handled = 1;
     break;
 
+  case Qt::Key_K:
+    if (!shifted && !ctrl) {
+      stateToggled(ZAP_TOGGLE_CENTER, 1 - mKeepcentered);
+      mQtWindow->setToggleState(ZAP_TOGGLE_CENTER, mKeepcentered);
+      handled = 1;
+    }
+    break;
+
   case Qt::Key_Q:
     ix = (mGfx->mapFromGlobal(QCursor::pos())).x();
     iy = (mGfx->mapFromGlobal(QCursor::pos())).y();

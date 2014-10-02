@@ -283,7 +283,7 @@ void imodContCopyUpdate(void)
 
 
 static const char *buttonLabels[] = {"Apply", "Done", "Help"};
-static const char *buttonTips[] = {"Copy the selected contours (hot key K)",
+static const char *buttonTips[] = {"Copy the selected contours (hot key Shift+K)",
                              "Close dialog box", "Open help box"};
 
 ContourCopy::ContourCopy(QWidget *parent, const char *name)
