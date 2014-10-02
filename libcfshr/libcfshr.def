@@ -474,6 +474,7 @@ EXPORTS
 	ADJUSTPIECEOVERLAP
 	cblas_daxpy
 	selectZoomFilter
+	rsPercentileOfSorted
 	dsyevc3
 	PIPGETSTRING
 	GAUSSJDET
