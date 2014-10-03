@@ -1,5 +1,23 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/2/14: IMOD_4-8-14
+10/2/14: Corrsearch3d can now compute a measure of local structure and use it
+to eliminate patches from consideration, which allows it to work without a
+boundary model or tight Z limits.  It also takes options that allow it to
+eliminate patches outside the area that can be reconstructed well. Refinematch
+and Findwarp can try to fit after eliminating patches with a series of
+criteria for these local structure values. A new script, Autopatchfind, runs
+patchcorr and matchorwarp repeatedly with increasing patch size or density to 
+achieve a criterion mean residual.  Setupcombine was adpated to these new
+capabilities.
+
+10/2/14: Added new version of Findsection that analyzes surfaces of a plastic
+section and can output a model for tomopitch, a model for flattening, and
+estimates of Z limits for trimming and combine.
+
+10/2/14: In 3dmod, added Ctrl-X hot key to open XYZ, added K to toggle
+centering in Zap, switched contour copy key from K to Shift+K.
+
 10/1/14: In eTomo - Tomogram Combination, added variables to hold matchorwarp
 parameters structurecrit and extentfit.(Bug# 1819)
 
