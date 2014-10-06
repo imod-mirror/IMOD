@@ -306,65 +306,70 @@ be adjusted dynamically.
 Most of these hot keys, and many others, are available in a menu that pops up
 when you right-click over any of the Slicer toolbars.
 <UL>
-<BR><B>-/=</B> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<LI><B>-/=</B> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 Decrease/Increase zoom (also, <B>Keypad +</B> increases zoom)
-<BR><B>_/+</B> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<LI><B>_/+</B> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 Decrease/Increase displayed image thickness
-<BR><B>9/0</B> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<LI><B>9/0</B> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 Decrease/Increase displayed model thickness
-<BR><B>L</B> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<LI><B>L</B> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 Show slice in ZaP and XYZ windows
-<BR><B>K</B> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<LI><B>K</B> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 Toggle keeping slice centered on current point (classic mode)
-<BR><B>Shift+B</B> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<LI><B>Shift+B</B> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 Toggle the rubber band on or off
-<BR><B>Shift+R</B> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<LI><B>Shift+R</B> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 Resize the window to the area enclosed in the rubber band and turn off the band
-<BR><B>Ctrl+Shift+R</B> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<LI><B>Ctrl+Shift+R</B> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 Resize and center the area enclosed in the rubber band to fill the window in
 one dimension.
-<BR><B>S</B> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<LI><B>S</B> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 Save model to file
 <LI><B>Ctrl+S</B>, <B>Shift+S</B> or <B>Ctrl+Shift+S</B> saves the Slicer window,
 or the area inside the rubber band, into a TIFF file, a file in the primary
 non-TIFF format, or a file in the second non-TIFF format
-<BR><B>X/Y/Z</B> &nbsp;&nbsp;&nbsp;&nbsp;
+<LI><B>X/Y/Z</B> &nbsp;&nbsp;&nbsp;&nbsp;
 Align current and previous model points along X, Y or Z axis
-<BR><B>Shift+X/Shift+Y/Shift+Z</B> &nbsp;&nbsp;&nbsp;
+<LI><B>Shift+X/Shift+Y/Shift+Z</B> &nbsp;&nbsp;&nbsp;
 Align first and last points of contour along X, Y or Z axis
-<BR><B>Shift+W</B> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<LI><B>Shift+W</B> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 Change X and Y angles so that the current contour is flat in the slice.
-<BR><B>Q</B> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<LI><B>Q</B> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 Report distance in 3D between the current model or image point and the point under
 the mouse cursor.  The current image point is used in Movie Mode or if there
 is no current model point.  If the current point appears in a
 bright color, it is on the plane being displayed, and the distance corresponds
 to a line length in the plane of the image.
+</UL>
 <P>
 <B>Numeric Keypad:</B> 
 <BR>With no Shift key and with <B>Sh</B> ("Shift lock") not on, manipulate the
 X, Y, or Z angles:
-<BR><B>4/6 (Left/Right)</B> &nbsp;&nbsp;
+<UL>
+<LI><B>4/6 (Left/Right)</B> &nbsp;&nbsp;
 Decrease/Increase last adjusted angle by 0.1 degree
-<BR><B>2/8 (Down/Up)</B> &nbsp;&nbsp;&nbsp;
+<LI><B>2/8 (Down/Up)</B> &nbsp;&nbsp;&nbsp;
 Decrease/Increase last adjusted angle by 0.5 degree
-<BR><B>1/3 (End/PgDn)</B> &nbsp;&nbsp;
+<LI><B>1/3 (End/PgDn)</B> &nbsp;&nbsp;
 Decrease/Increase last adjusted angle by 15 degrees
-<BR><B>0 (Insert)</B> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<LI><B>0 (Insert)</B> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 Set last adjusted angle to 0
+</UL>
 <P>
 With Shift key down or <B>Sh</B> on, rotate volume:
-<BR><B>4/6 (Left/Right)</B> &nbsp;&nbsp;
+<UL>
+<LI><B>4/6 (Left/Right)</B> &nbsp;&nbsp;
 Rotate volume around Y axis in plane of viewed slice
-<BR><B>2/8 (Down/Up)</B> &nbsp;&nbsp;&nbsp;
+<LI><B>2/8 (Down/Up)</B> &nbsp;&nbsp;&nbsp;
 Rotate volume around X axis in plane of viewed slice
-<BR><B>9/3 (PgUp/PgDn)</B> &nbsp;
+<LI><B>9/3 (PgUp/PgDn)</B> &nbsp;
 Rotate in plane of displayed slice
-<BR><B>&lt;/&gt;</B>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<LI><B>&lt;/&gt;</B>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 &nbsp; &nbsp;
 Decrease/Increase increment for these rotations; the increment can be 0.1,
 0.3, 1, 3, 10, 30 or 90 degrees and it starts at 1 degree.  With <B>Sh</B> on,
 <B>,/.</B> also change the increment.
+</UL>
 
 <A NAME = "RubberBand"><H3>Using the Rubber Band</H3></A>
 The rubber band is used to enclse a rectangular area just as in the Zap
@@ -401,6 +406,7 @@ window, although it has fewer uses in the Slicer.
   based on the area defined in the most recently active window.  If
   there is both a Zap and a Slicer with rubber bands, File - Extract File runs
   an operation as specified by the band in the most recently active window.
+</UL>
 <A NAME = "ModelingTilted"><H3>Modeling Tilted Contours to be Meshed</H3></A>
 It is possible to mesh contours that have been modeled at an oblique
 orientation in the slicer, provided that all of the contours in a surface are
@@ -475,7 +481,7 @@ as well in the Appearances tab of the 3dmod Preferences dialog.
 divided by the number of processors,
 with the result that it reduces the quality at a higher number of voxels when
 there are more processors.
-</OL>
+</UL>
 In general, whenever performance is an issue, it is advisable to keep the
 size of the slicer window to just what is needed to examine the area of
 interest.
