@@ -20,7 +20,7 @@ public final class ParallelProcessPanel extends AxisProcessPanel {
   public static final String rcsid = "$Id$";
 
   ParallelProcessPanel(ParallelManager manager) {
-    super(AxisID.ONLY, manager, true);
+    super(AxisID.ONLY, manager, true,true);
     createProcessControlPanel();
     showBothAxis();
     initializePanels();
