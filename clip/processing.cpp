@@ -2656,7 +2656,7 @@ int histogramPeaksAndDip(MrcHeader *hin, ClipOptions *opt)
     iz = opt->secs[k];
     slice = sliceReadSubm(hin, iz, 'z', opt->ix, opt->iy, (int)opt->cx, (int)opt->cy);
     if (!slice){
-      printf("ERROR: CLIP - reading slice %d", iz + izAdd);
+      printf("ERROR: CLIP - reading %s %d", opt->fromOne ? "view" : "slice", iz + izAdd);
       return(-1);
     }
 
@@ -2716,9 +2716,9 @@ int histogramPeaksAndDip(MrcHeader *hin, ClipOptions *opt)
       ind = findHistogramDip(sample, numSample, 0, bins, KERNEL_HIST_BINS, firstVal,
                              lastVal, &histDip, &peakBelow, &peakAbove, 0);
       if (asVol)
-        printf("All slices: ");
+        printf("All %ss: ", opt->fromOne ? "view" : "slice");
       else
-        printf("Slice %d: ", iz + izAdd);
+        printf("%s %d: ", opt->fromOne ? "View" : "Slice", iz + izAdd);
       if (ind) {
         printf("no histogram dip could be found\n");
       } else {
