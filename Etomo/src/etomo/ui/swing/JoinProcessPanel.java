@@ -64,7 +64,7 @@ public class JoinProcessPanel extends AxisProcessPanel {
    * @param axis
    */
   public JoinProcessPanel(JoinManager joinManager, AxisID axis) {
-    super(axis, joinManager, true);
+    super(axis, joinManager, true,true);
     createProcessControlPanel();
     showBothAxis();
     initializePanels();
