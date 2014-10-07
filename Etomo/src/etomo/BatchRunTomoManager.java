@@ -5,8 +5,6 @@ import java.io.IOException;
 
 import etomo.comscript.BatchRunTomoComScriptManager;
 import etomo.comscript.BatchruntomoParam;
-import etomo.comscript.BlendmontParam;
-import etomo.comscript.FortranInputSyntaxException;
 import etomo.logic.DatasetTool;
 import etomo.process.BaseProcessManager;
 import etomo.process.BatchRunTomoProcessManager;
@@ -18,6 +16,7 @@ import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.AxisTypeException;
 import etomo.type.BaseMetaData;
+import etomo.type.BaseScreenState;
 import etomo.type.BatchRunTomoMetaData;
 import etomo.type.DataFileType;
 import etomo.type.DialogType;
@@ -26,10 +25,9 @@ import etomo.type.InterfaceType;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.type.TableReference;
 import etomo.ui.swing.BatchRunTomoDialog;
-import etomo.ui.swing.BlendmontDisplay;
 import etomo.ui.swing.MainBatchRunTomoPanel;
 import etomo.ui.swing.MainPanel;
-import etomo.util.InvalidParameterException;
+import etomo.ui.swing.ParallelPanel;
 import etomo.util.Utilities;
 
 /**
@@ -57,6 +55,8 @@ public final class BatchRunTomoManager extends BaseManager {
   private final TableReference tableReference = new TableReference(STACK_REFERENCE_PREFIX);
   private final BatchRunTomoComScriptManager comScriptManager = new BatchRunTomoComScriptManager(
       this);
+  private final BaseScreenState screenState = new BaseScreenState(AXIS_ID,
+      AxisType.SINGLE_AXIS);
 
   private final BatchRunTomoMetaData metaData;
 
@@ -109,7 +109,8 @@ public final class BatchRunTomoManager extends BaseManager {
           .getAbsolutePath(), this);
       comScriptManager.loadBatchRunTomo(AXIS_ID, true);
     }
-    dialog.setParameters(comScriptManager.getBatchRunTomoParam());
+    dialog.setParameters(comScriptManager.getBatchRunTomoParam(AXIS_ID,
+        BatchruntomoParam.Mode.BATCH));
     mainPanel.showProcess(dialog.getContainer(), AXIS_ID);
     uiHarness.updateFrame(this);
     String actionMessage = Utilities.prepareDialogActionMessage(
@@ -139,6 +140,16 @@ public final class BatchRunTomoManager extends BaseManager {
     }
   }
 
+  public void pack() {
+    if (dialog != null) {
+      dialog.pack();
+    }
+  }
+
+  public BaseScreenState getBaseScreenState(final AxisID axisID) {
+    return screenState;
+  }
+
   public boolean save() throws LogFile.LockException, IOException {
     super.save();
     mainPanel.done();
@@ -157,19 +168,30 @@ public final class BatchRunTomoManager extends BaseManager {
     }
     dialog.getParameters(metaData);
     saveStorables(AXIS_ID);
-    BatchruntomoParam param = updateBatchRunTomo(false);
+    BatchruntomoParam param = updateBatchRunTomo();
     dialog.saveAutodocs();
     return true;
   }
 
-  private BatchruntomoParam updateBatchRunTomo(final boolean doValidation) {
-    BatchruntomoParam param;
-    param = comScriptManager.getBatchruntomoParam();
-    if (dialog == null || !dialog.getParameters(param, doValidation)) {
+  private BatchruntomoParam updateBatchRunTomo() {
+    BatchruntomoParam param = comScriptManager.getBatchRunTomoParam(AXIS_ID,
+        BatchruntomoParam.Mode.BATCH);
+    if (dialog == null) {
       return null;
     }
-    comScriptManager.saveBatchRunTomo(param,AXIS_ID);
-    return param;
+    dialog.getParameters(param);
+    ParallelPanel parallelPanel = getMainPanel().getParallelPanel(AXIS_ID);
+    if (parallelPanel != null) {
+      if (!parallelPanel.getParameters(param)) {
+        return null;
+      }
+    }
+    getPropertyUserDir();
+    comScriptManager.saveBatchRunTomo(param, AXIS_ID);
+    if (param.isValid()) {
+      return param;
+    }
+    return null;
   }
 
   public boolean isSetupDone() {
