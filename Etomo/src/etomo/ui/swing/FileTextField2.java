@@ -2,6 +2,7 @@ package etomo.ui.swing;
 
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.FontMetrics;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -79,6 +80,7 @@ final class FileTextField2 implements FileTextFieldInterface, Field, ActionListe
    */
   private boolean originEtomoRunDir = false;
   private DirectiveDef directiveDef = null;
+  private FontMetrics fontMetrics = null;
 
   public String toString() {
     return super.toString() + ":[text:" + field.getText() + ",label:" + label.getText();
@@ -188,6 +190,14 @@ final class FileTextField2 implements FileTextFieldInterface, Field, ActionListe
       panel.add(button);
       panel.add(Box.createHorizontalGlue());
     }
+  }
+
+  int getPreferredWidth() {
+    if (fontMetrics == null) {
+      fontMetrics = UIUtilities.getFontMetrics(label);
+    }
+    return UIUtilities.getPreferredWidth(label, label.getText(), fontMetrics)
+        + field.getPreferredWidth() + button.getPreferredWidth();
   }
 
   private void addListeners() {
