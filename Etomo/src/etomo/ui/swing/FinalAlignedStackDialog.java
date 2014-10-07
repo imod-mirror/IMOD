@@ -1089,6 +1089,10 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements Expa
     return ProcessingMethod.LOCAL_CPU;
   }
 
+  public ProcessingMethod getSecondaryProcessingMethod() {
+    return null;
+  }
+
   private void changeTab() {
     Tab prevTab = curTab;
     curTab = Tab.getInstance(tabbedPane.getSelectedIndex());
