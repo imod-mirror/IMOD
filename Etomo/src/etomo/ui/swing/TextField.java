@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.FontMetrics;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 
@@ -55,6 +56,8 @@ final class TextField implements UIComponent, SwingComponent, Field, FocusListen
   private TextFieldSetting defaultValue = null;
   private TextFieldSetting checkpoint = null;
   private TextFieldSetting fieldHighlight = null;
+  private FontMetrics fontMetrics = null;
+  private Dimension fixedSize = null;
 
   TextField(final FieldType fieldType, final String reference, final String locationDescr) {
     this.locationDescr = locationDescr;
@@ -72,6 +75,17 @@ final class TextField implements UIComponent, SwingComponent, Field, FocusListen
       maxSize.setSize(maxSize.getWidth(), 2 * textField.getFont().getSize());
     }
     textField.setMaximumSize(maxSize);
+  }
+
+  int getPreferredWidth() {
+    if (fixedSize != null) {
+      return fixedSize.width;
+    }
+    int width = 0;
+    if (fontMetrics == null) {
+      fontMetrics = UIUtilities.getFontMetrics(textField);
+    }
+    return UIUtilities.getPreferredWidth(textField.getText(), fontMetrics);
   }
 
   public boolean isBoolean() {
@@ -364,6 +378,7 @@ final class TextField implements UIComponent, SwingComponent, Field, FocusListen
   }
 
   void setTextPreferredSize(Dimension size) {
+    fixedSize = size;
     textField.setPreferredSize(size);
     textField.setMaximumSize(size);
   }
