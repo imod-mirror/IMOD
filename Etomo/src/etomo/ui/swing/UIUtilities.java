@@ -84,12 +84,16 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
+import java.awt.FontMetrics;
+import java.awt.Graphics;
 import java.awt.Toolkit;
 
 import javax.swing.AbstractButton;
 import javax.swing.Box;
+import javax.swing.Icon;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.UIManager;
 import javax.swing.plaf.ColorUIResource;
 import javax.swing.text.JTextComponent;
@@ -102,6 +106,74 @@ public class UIUtilities {
   private static Dimension screenSize = null;
 
   private UIUtilities() {
+  }
+
+  static FontMetrics getFontMetrics(final AbstractButton button) {
+    FontMetrics fontMetrics = null;
+    Graphics graphics = button.getGraphics();
+    if (graphics != null) {
+      fontMetrics = graphics.getFontMetrics(button.getFont());
+    }
+    if (fontMetrics == null) {
+      return button.getFontMetrics(button.getFont());
+    }
+    return fontMetrics;
+  }
+
+  static FontMetrics getFontMetrics(final JComponent component) {
+    FontMetrics fontMetrics = null;
+    Graphics graphics = component.getGraphics();
+    if (graphics != null) {
+      fontMetrics = graphics.getFontMetrics(component.getFont());
+    }
+    if (fontMetrics == null) {
+      return component.getFontMetrics(component.getFont());
+    }
+    return fontMetrics;
+  }
+
+  static int getPreferredWidth(final AbstractButton button, final String text,
+      final FontMetrics fontMetrics) {
+    int width = 0;
+    Icon icon = button.getIcon();
+    if (icon != null) {
+      width += icon.getIconWidth();
+    }
+    if (text != null && !text.equals("")) {
+      if (icon != null) {
+        width += button.getIconTextGap();
+      }
+      if (fontMetrics != null) {
+        width += fontMetrics.stringWidth(text);
+      }
+    }
+    return width;
+  }
+
+  static int getPreferredWidth(final JLabel label, final String text,
+      final FontMetrics fontMetrics) {
+    int width = 0;
+    Icon icon = label.getIcon();
+    if (icon != null) {
+      width += icon.getIconWidth();
+    }
+    if (text != null && !text.equals("")) {
+      if (icon != null) {
+        width += label.getIconTextGap();
+      }
+      if (fontMetrics != null) {
+        width += fontMetrics.stringWidth(text);
+      }
+    }
+    return width;
+  }
+
+  static int getPreferredWidth(final String text, final FontMetrics fontMetrics) {
+    int width = 0;
+    if (fontMetrics != null && text != null && !text.equals("")) {
+      width += fontMetrics.stringWidth(text);
+    }
+    return width;
   }
 
   /**
