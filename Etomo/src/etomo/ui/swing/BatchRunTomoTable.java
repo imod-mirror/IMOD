@@ -18,6 +18,7 @@ import javax.swing.JPanel;
 import javax.swing.border.LineBorder;
 
 import etomo.BatchRunTomoManager;
+import etomo.comscript.BatchruntomoParam;
 import etomo.logic.DatasetTool;
 import etomo.storage.DirectiveFileCollection;
 import etomo.storage.StackFileFilter;
@@ -28,6 +29,7 @@ import etomo.type.NotLoadedException;
 import etomo.type.TableReference;
 import etomo.type.UserConfiguration;
 import etomo.ui.BatchRunTomoTab;
+import etomo.ui.PreferredTableSize;
 
 /**
 * <p>Description: </p>
@@ -85,6 +87,8 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
   private final BatchRunTomoManager manager;
   private final Viewport viewport;
   private final ExpandButton btnStack;
+  private final PreferredTableSize preferredTableSize = new PreferredTableSize(
+      DatasetColumn.TOTAL);
 
   private File currentDirectory = null;
   private BatchRunTomoTab curTab = null;
@@ -147,6 +151,10 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
     hcRun[1] = new HeaderCell("Run");
     hcEtomo[0] = new HeaderCell("Open");
     hcEtomo[1] = new HeaderCell("Dataset");
+    // preferred width of the dataset view
+    preferredTableSize.addColumn(DatasetColumn.NUMBER.index, hcNumber[2]);
+    preferredTableSize.addColumn(DatasetColumn.STACK.index, hcStack[2], btnStack);
+    preferredTableSize.addColumn(DatasetColumn.EDIT_DATASET.index, hcEditDataset[0]);
     // Root
     pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.Y_AXIS));
     pnlRoot.add(pnlView);
@@ -178,6 +186,10 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
     // update
     viewport.adjustViewport(-1);
     updateDisplay();
+  }
+
+  int getPreferredWidth() {
+    return preferredTableSize.getPreferredWidth();
   }
 
   private void rebuildTable() {
@@ -257,6 +269,7 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
     else {
       constraints.gridwidth = 1;
     }
+    int newPreferredWidth = 0;
     hcNumber[index].add(pnlTable, layout, constraints);
     // The stack header has a button on the bottom row
     if (index == numRows - 1) {
@@ -266,7 +279,13 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
       constraints.gridwidth = 2;
     }
     constraints.weightx = 10.0;
+    int width = 0;
     hcStack[index].add(pnlTable, layout, constraints);
+    if (curTab == BatchRunTomoTab.DATASET) {
+      // Save the maximum width of the stack column - this is the minimum width of the
+      // stack in each row.
+      width = hcStack[index].getPreferredWidth();
+    }
     constraints.weightx = 0.0;
     if (index == numRows - 1) {
       btnStack.add(pnlTable, layout, constraints);
@@ -298,6 +317,10 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
 
   public void getParameters(final BatchRunTomoMetaData metaData) {
     rowList.getParameters(metaData);
+  }
+
+  public void getParameters(final BatchruntomoParam param) {
+    rowList.getParameters(param);
   }
 
   void saveAutodocs() {
@@ -399,6 +422,23 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
     return rowList.size();
   }
 
+  static final class DatasetColumn {
+    static final DatasetColumn NUMBER = new DatasetColumn(0);
+    static final DatasetColumn STACK = new DatasetColumn(1);
+    static final DatasetColumn EDIT_DATASET = new DatasetColumn(2);
+
+    static final int TOTAL = 3;
+    private final int index;
+
+    private DatasetColumn(final int index) {
+      this.index = index;
+    }
+
+    int getIndex() {
+      return index;
+    }
+  }
+
   private class RowList {
     private final List<BatchRunTomoRow> list = new ArrayList<BatchRunTomoRow>();
 
@@ -473,7 +513,7 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
           }
           BatchRunTomoRow row = BatchRunTomoRow.getInstance(manager.getPropertyUserDir(),
               table, pnlTable, layout, constraints, index + 1, stack, prevRow,
-              overridePrevRow, overridePrevRow, manager, stackID);
+              overridePrevRow, overridePrevRow, manager, stackID, preferredTableSize);
           row.expandStack(btnStack.isExpanded());
           list.add(row);
           fileAdded = true;
@@ -517,7 +557,7 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
           int index = list.size();
           BatchRunTomoRow row = BatchRunTomoRow.getInstance(manager.getPropertyUserDir(),
               table, pnlTable, layout, constraints, index + 1, new File(entry.getKey()),
-              null, false, false, manager, stackID);
+              null, false, false, manager, stackID, preferredTableSize);
           row.expandStack(btnStack.isExpanded());
           list.add(row);
           fileAdded = true;
@@ -675,6 +715,12 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
     public void getParameters(final BatchRunTomoMetaData metaData) {
       for (int i = 0; i < list.size(); i++) {
         list.get(i).getParameters(metaData);
+      }
+    }
+
+    public void getParameters(final BatchruntomoParam param) {
+      for (int i = 0; i < list.size(); i++) {
+        list.get(i).getParameters(param);
       }
     }
 
