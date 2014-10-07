@@ -12,6 +12,7 @@ import javax.swing.JPanel;
 
 import etomo.BatchRunTomoManager;
 import etomo.EtomoDirector;
+import etomo.comscript.BatchruntomoParam;
 import etomo.logic.DatasetTool;
 import etomo.storage.DirectiveDef;
 import etomo.storage.DirectiveFileCollection;
@@ -22,6 +23,7 @@ import etomo.type.EtomoNumber;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.type.UserConfiguration;
 import etomo.ui.BatchRunTomoTab;
+import etomo.ui.PreferredTableSize;
 
 /**
 * <p>Description: </p>
@@ -85,6 +87,7 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
   // Always save prevRow dual axis in prevRowDualAxis.
   private final boolean prevRowDualAxis;
   private final String stackID;
+  private final PreferredTableSize preferredTableSize;
 
   private int imodIndexA = -1;
   private int imodIndexB = -1;
@@ -96,7 +99,7 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
       final GridBagConstraints constraints, final int number, final File stack,
       final BatchRunTomoRow prevRow, final boolean overridePrevRow,
       final boolean overrideDualAxis, final BatchRunTomoManager manager,
-      final String stackID) {
+      final String stackID, final PreferredTableSize preferredTableSize) {
     this.panel = panel;
     this.layout = layout;
     this.constraints = constraints;
@@ -104,6 +107,7 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
     this.overridePrevRow = overridePrevRow;
     this.overrideDualAxis = overrideDualAxis;
     this.stackID = stackID;
+    this.preferredTableSize = preferredTableSize;
     hcNumber.setText(number);
     hbRow = HighlighterButton.getInstance(this, table);
     fcStack = FieldCell.getExpandableInstance(null);
@@ -127,6 +131,16 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
     if (ETOMO_PRESSED_ICON_URL != null) {
       mbcEtomo.setPressedIcon(new ImageIcon(ETOMO_PRESSED_ICON_URL));
     }
+    // preferred width
+    if (preferredTableSize != null) {
+      preferredTableSize.addColumn(BatchRunTomoTable.DatasetColumn.NUMBER.getIndex(),
+          hcNumber);
+      preferredTableSize.addColumn(BatchRunTomoTable.DatasetColumn.STACK.getIndex(),
+          fcStack);
+      preferredTableSize.addColumn(
+          BatchRunTomoTable.DatasetColumn.EDIT_DATASET.getIndex(), bcEditDataset,
+          fcEditDataset);
+    }
     // init
     setDefaults();
     copy(prevRow);
@@ -144,17 +158,17 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
       final GridBagConstraints constraints, final int number, final File stack,
       final BatchRunTomoRow prevRow, final boolean overridePrevRow,
       final boolean overrideDualAxis, final BatchRunTomoManager manager,
-      final String stackID) {
+      final String stackID, final PreferredTableSize datasetWidth) {
     BatchRunTomoRow instance = new BatchRunTomoRow(propertyUserDir, table, panel, layout,
         constraints, number, stack, prevRow, overridePrevRow, overrideDualAxis, manager,
-        stackID);
+        stackID, datasetWidth);
     instance.addListeners();
     return instance;
   }
 
   static BatchRunTomoRow getDefaultsInstance() {
     BatchRunTomoRow instance = new BatchRunTomoRow(null, null, null, null, null, -1,
-        null, null, false, false, null, null);
+        null, null, false, false, null, null, null);
     return instance;
   }
 
@@ -377,6 +391,15 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
     }
   }
 
+  public void getParameters(final BatchruntomoParam param) {
+    File stack = new File(fcStack.getExpandedValue());
+    String rootName = DatasetTool.getDatasetName(stack.getName(),
+        cbcDualAxis.isSelected());
+    param.addDirectiveFile(rootName + ".adoc");
+    param.addRootName(rootName);
+    param.addCurrentLocation(stack.getParent());
+  }
+
   void saveAutodocs() {
   }
 
@@ -443,7 +466,7 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
       cbcTwoSurfaces.restoreFromBackup();
     }
     // no field highlight values to set in table
-    //Dataset dialog
+    // Dataset dialog
     if (datasetDialog != null) {
       datasetDialog.applyValues(userConfiguration, directiveFileCollection,
           retainUserValues);
