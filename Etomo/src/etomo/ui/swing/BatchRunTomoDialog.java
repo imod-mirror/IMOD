@@ -2,7 +2,6 @@ package etomo.ui.swing;
 
 import java.awt.Component;
 import java.awt.Container;
-import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -10,6 +9,7 @@ import java.io.File;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.ButtonGroup;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.event.ChangeEvent;
@@ -18,6 +18,7 @@ import javax.swing.event.ChangeListener;
 import etomo.BaseManager;
 import etomo.BatchRunTomoManager;
 import etomo.EtomoDirector;
+import etomo.ProcessingMethodMediator;
 import etomo.comscript.BatchruntomoParam;
 import etomo.logic.UserEnv;
 import etomo.storage.DirectiveFileCollection;
@@ -26,6 +27,7 @@ import etomo.type.BatchRunTomoMetaData;
 import etomo.type.DialogType;
 import etomo.type.DirectiveFileType;
 import etomo.type.FileType;
+import etomo.type.ProcessingMethod;
 import etomo.type.TableReference;
 import etomo.type.UserConfiguration;
 import etomo.ui.BatchRunTomoTab;
@@ -33,7 +35,7 @@ import etomo.ui.FieldType;
 import etomo.util.Utilities;
 
 /**
-* <p>Description: </p>
+* <p>Description: Interface for batchruntomo.</p>
 * 
 * <p>Copyright: Copyright 2013</p>
 *
@@ -48,7 +50,7 @@ import etomo.util.Utilities;
 * <p> $Log$ </p>
 */
 public final class BatchRunTomoDialog implements ActionListener, ResultListener,
-    ChangeListener, Expandable {
+    ChangeListener, Expandable, ProcessInterface {
   public static final String rcsid = "$Id:$";
 
   public static final DialogType DIALOG_TYPE = DialogType.BATCH_RUN_TOMO;
@@ -58,10 +60,16 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
   private final LabeledTextField ltfRootName = new LabeledTextField(FieldType.STRING,
       "Batchruntomo root name: ");
   private final CheckBox cbDeliverToDirectory = new CheckBox();
-  private final LabeledTextField ltfEmailAddress = new LabeledTextField(FieldType.STRING,
-      "Email notification: ");
-  private final CheckBox cbUseCPUMachineList = new CheckBox("Parallel processing");
-  private final CheckBox cbUseGPUMachineList = new CheckBox("GPU");
+  private final CheckTextField ctfEmailAddress = CheckTextField.getInstance(
+      FieldType.STRING, "Email notification: ");
+  private final CheckBox cbCPUMachineList = new CheckBox("Use multiple CPUs");
+  private final ButtonGroup bgGPUMachineList = new ButtonGroup();
+  private final RadioButton rbGPUMachineListOff = new RadioButton("No GPU",
+      bgGPUMachineList);
+  private final RadioButton rbGPUMachineListLocal = new RadioButton("Local GPU",
+      bgGPUMachineList);
+  private final RadioButton rbGPUMachineList = new RadioButton("Parallel GPUs",
+      bgGPUMachineList);
   private final TabbedPane tabbedPane = new TabbedPane();
   private final JPanel[] pnlTabs = new JPanel[BatchRunTomoTab.SIZE];
   private final JPanel pnlBatch = new JPanel();
@@ -74,10 +82,6 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
   private final JPanel pnlParallelSettings = new JPanel();
   private final UserConfiguration userConfiguration = EtomoDirector.INSTANCE
       .getUserConfiguration();
-  private final Component cDatasetPaddingLeft = Box
-      .createRigidArea(new Dimension(180, 0));
-  private final Component cDatasetPaddingRight = Box
-      .createRigidArea(new Dimension(180, 0));
   private final JPanel pnlDatasetTableBody = new JPanel();
   private final JPanel pnlUntitledTable = new JPanel();
 
@@ -91,8 +95,11 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
   private final BatchRunTomoDatasetDialog datasetDialog;
   private final DirectiveFileCollection directiveFileCollection;
   private final PanelHeader phDatasetTable;
+  private final ProcessingMethodMediator mediator;
 
   private BatchRunTomoTab curTab = null;
+  private Component cDatasetPaddingLeft = null;
+  private Component cDatasetPaddingRight = null;
 
   private BatchRunTomoDialog(final BatchRunTomoManager manager, final AxisID axisID,
       final TableReference tableReference) {
@@ -103,12 +110,15 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
         "Starting directive file: ");
     ftfDeliverToDirectory = FileTextField2.getAltLayoutInstance(manager,
         DELIVER_TO_DIRECTORY_NAME + ": ");
-    table = BatchRunTomoTable.getInstance(manager, this, tableReference);
+    table = BatchRunTomoTable.getInstance(manager, this, tableReference
+        );
     datasetDialog = BatchRunTomoDatasetDialog.getGlobalInstance(manager);
     directiveFileCollection = new DirectiveFileCollection(manager, axisID);
     templatePanel = TemplatePanel.getBorderlessInstance(manager, axisID, null, null,
         null, directiveFileCollection);
     phDatasetTable = PanelHeader.getInstance("Datasets", this, DialogType.BATCH_RUN_TOMO);
+    mediator = manager.getProcessingMethodMediator(axisID);
+    mediator.register(this);
   }
 
   public static BatchRunTomoDialog getInstance(final BatchRunTomoManager manager,
@@ -138,9 +148,8 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
     ftfRootDir.setText(new File(System.getProperty("user.dir")).getAbsolutePath());
     ltfRootName.setText("batch" + Utilities.getDateTimeStampRootName());
     cbDeliverToDirectory.setName(DELIVER_TO_DIRECTORY_NAME);
-    cbUseCPUMachineList
-        .setSelected(UserEnv.isParallelProcessing(null, AxisID.ONLY, null));
-    cbUseGPUMachineList.setSelected(UserEnv.isGpuProcessing(null, AxisID.ONLY, null));
+    cbCPUMachineList.setSelected(UserEnv.isParallelProcessing(null, AxisID.ONLY, null));
+    rbGPUMachineListLocal.setSelected(UserEnv.isGpuProcessing(null, AxisID.ONLY, null));
     templatePanel.setParameters(userConfiguration);
     // root panel
     pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.Y_AXIS));
@@ -182,9 +191,6 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
     pnlDatasetTable.add(pnlDatasetTableBody);
     // DatasetTableBody
     pnlDatasetTableBody.setLayout(new BoxLayout(pnlDatasetTableBody, BoxLayout.X_AXIS));
-    pnlDatasetTableBody.add(cDatasetPaddingLeft);
-    pnlDatasetTableBody.add(pnlUntitledTable);
-    pnlDatasetTableBody.add(cDatasetPaddingRight);
     // panel created on tab change
     // Table
     pnlTable.setLayout(new BoxLayout(pnlTable, BoxLayout.Y_AXIS));
@@ -199,8 +205,10 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
     // ParallelSettings
     pnlParallelSettings.setLayout(new BoxLayout(pnlParallelSettings, BoxLayout.Y_AXIS));
     pnlParallelSettings.setBorder(new EtchedBorder("Run Actions").getBorder());
-    pnlParallelSettings.add(cbUseCPUMachineList);
-    pnlParallelSettings.add(cbUseGPUMachineList);
+    pnlParallelSettings.add(cbCPUMachineList);
+    pnlParallelSettings.add(rbGPUMachineListOff.getComponent());
+    pnlParallelSettings.add(rbGPUMachineListLocal.getComponent());
+    pnlParallelSettings.add(rbGPUMachineList.getComponent());
     // RootName
     pnlRootName.setLayout(new BoxLayout(pnlRootName, BoxLayout.Y_AXIS));
     pnlRootName.setBorder(new EtchedBorder("Batchruntomo Project Files").getBorder());
@@ -224,12 +232,17 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
     stateChanged(null);
     msgDirectivesChanged(true);
     updateDisplay();
+    mediator.setMethod(this, getProcessingMethod());
   }
 
   private void addListeners() {
     cbDeliverToDirectory.addActionListener(this);
-    ftfInputDirectiveFile.addResultListener(this);
     templatePanel.addActionListener(this);
+    cbCPUMachineList.addActionListener(this);
+    rbGPUMachineListOff.addActionListener(this);
+    rbGPUMachineListLocal.addActionListener(this);
+    rbGPUMachineList.addActionListener(this);
+    ftfInputDirectiveFile.addResultListener(this);
     tabbedPane.addChangeListener(this);
   }
 
@@ -248,9 +261,43 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
     datasetDialog.getParameters(metaData.getDatasetMetaData());
     metaData.setDatasetTableHeader(phDatasetTable);
   }
-  
-  public boolean getParameters(final BatchruntomoParam param,final boolean doValidation) {
 
+  public void setParameters(final BatchruntomoParam param) {
+    cbDeliverToDirectory.setSelected(!param.isDeliverToDirectoryNull());
+    if (cbDeliverToDirectory.isSelected()) {
+      ftfDeliverToDirectory.setText(param.getDeliverToDirectory());
+    }
+    ctfEmailAddress.setSelected(!param.isEmailAddressNull());
+    if (ctfEmailAddress.isSelected()) {
+      ctfEmailAddress.setText(param.getEmailAddress());
+    }
+    cbCPUMachineList.setSelected(!param.isCpuMachineListNull());
+    if (param.isGpuMachineListNull()) {
+      rbGPUMachineListOff.setSelected(true);
+    }
+    else if (param.gpuMachineListEquals("1")) {
+      rbGPUMachineListLocal.setSelected(true);
+    }
+    else {
+      rbGPUMachineList.setSelected(true);
+    }
+  }
+
+  public void getParameters(final BatchruntomoParam param) {
+    if (cbDeliverToDirectory.isSelected()) {
+      param.setDeliverToDirectory(ftfDeliverToDirectory.getFile());
+    }
+    else {
+      param.resetDeliverToDirectory();
+    }
+    if (ctfEmailAddress.isSelected()) {
+      param.setEmailAddress(ctfEmailAddress.getText());
+    }
+    else {
+      param.resetEmailAddress();
+    }
+
+    table.getParameters(param);
   }
 
   public void saveAutodocs() {
@@ -301,6 +348,64 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
     else if (actionCommand.equals(cbDeliverToDirectory.getActionCommand())) {
       updateDisplay();
     }
+    else if (actionCommand.equals(cbCPUMachineList.getActionCommand())
+        || actionCommand.equals(rbGPUMachineListOff.getActionCommand())
+        || actionCommand.equals(rbGPUMachineListLocal.getActionCommand())
+        || actionCommand.equals(rbGPUMachineList.getActionCommand())) {
+      mediator.setMethod(this, getProcessingMethod(), getSecondaryProcessingMethod());
+    }
+  }
+
+  /**
+   * Returns one of the two possible methods.  Always returns a processing method.
+   */
+  public ProcessingMethod getProcessingMethod() {
+    if (curTab != BatchRunTomoTab.RUN) {
+      return ProcessingMethod.DEFAULT;
+    }
+    if (cbCPUMachineList.isSelected()) {
+      return ProcessingMethod.PP_CPU;
+    }
+    if (rbGPUMachineList.isSelected()) {
+      return ProcessingMethod.PP_GPU;
+    }
+    if (rbGPUMachineListLocal.isSelected()) {
+      return ProcessingMethod.LOCAL_GPU;
+    }
+    return ProcessingMethod.DEFAULT;
+  }
+
+  /**
+   * Returns a processing method when there are two non-default methods in force,
+   * otherwise returns null.
+   */
+  public ProcessingMethod getSecondaryProcessingMethod() {
+    if (curTab != BatchRunTomoTab.RUN) {
+      return null;
+    }
+    if (!cbCPUMachineList.isSelected()) {
+      // Only one non-default processing method in force
+      return null;
+    }
+    if (rbGPUMachineList.isSelected()) {
+      return ProcessingMethod.PP_GPU;
+    }
+    if (rbGPUMachineListLocal.isSelected()) {
+      return ProcessingMethod.LOCAL_GPU;
+    }
+    return null;
+  }
+
+  /**
+   * No effect because queue is not available
+   */
+  public void disableGpu(final boolean disable) {
+  }
+
+  /**
+   * No effect because the processing method is not used for running processes by etomo.
+   */
+  public void lockProcessingMethod(boolean lock) {
   }
 
   public String getRootName() {
@@ -347,10 +452,28 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
     }
     else {
       // handle table stack column more/less button
-      cDatasetPaddingLeft.setVisible(!expanded);
-      cDatasetPaddingRight.setVisible(!expanded);
     }
     UIHarness.INSTANCE.pack(manager);
+  }
+
+  public void pack() {
+    // Prevent the table from expanding horizontally
+    if (curTab == BatchRunTomoTab.DATASET) {
+      pnlDatasetTableBody.removeAll();
+      int datasetWidth = datasetDialog.getPreferredWidth();
+      int tableWidth = table.getPreferredWidth();
+      if (datasetWidth != 0 && tableWidth != 0 && datasetWidth > tableWidth) {
+        int padding = (datasetWidth - tableWidth) / 2;
+        cDatasetPaddingLeft = Box.createHorizontalStrut(padding);
+        cDatasetPaddingRight = Box.createHorizontalStrut(padding);
+        pnlDatasetTableBody.add(cDatasetPaddingLeft);
+        pnlDatasetTableBody.add(pnlUntitledTable);
+        pnlDatasetTableBody.add(cDatasetPaddingRight);
+      }
+      else {
+        pnlDatasetTableBody.add(pnlUntitledTable);
+      }
+    }
   }
 
   public void expand(final GlobalExpandButton button) {
@@ -394,7 +517,7 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
       pnlRun.removeAll();
       pnlRun.add(pnlParallelSettings);
       pnlRun.add(Box.createRigidArea(FixedDim.x0_y5));
-      pnlRun.add(ltfEmailAddress.getComponent());
+      pnlRun.add(ctfEmailAddress.getComponent());
       pnlRun.add(Box.createRigidArea(FixedDim.x0_y10));
       pnlRun.add(pnlTable);
       pnlRun.add(Box.createRigidArea(FixedDim.x0_y10));
@@ -403,6 +526,7 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
       pnlTable.add(table.getComponent());
       UIUtilities.alignComponentsX(pnlRun, Component.LEFT_ALIGNMENT);
     }
+    mediator.setMethod(this, getProcessingMethod(), getSecondaryProcessingMethod());
     UIHarness.INSTANCE.pack(axisID, manager);
   }
 
