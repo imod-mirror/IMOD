@@ -54,7 +54,7 @@ Calculate a bandpass filter.
 Flip an image by x y or z.
 .TP
 .I histogram
-Print histogram of values.
+Print histogram of values or analyze for bimodal distribution.
 .TP
 .I joinrgb
 Join images from 3 byte files into one RGB file.
@@ -564,8 +564,10 @@ file is not an mrc file.
 .TP
 .B histogram
 Print a histogram of pixel values from the selected region of selected
-slices.  This function operates differently depending on the type of data.
-For byte, integer, or RGB data, a full histogram is built of all
+slices, or analyze for a bimodal distribution of values (with the
+\fB-s\fR option).  The basic histogram function operates differently
+depending on the type of data. For byte, integer, or RGB data, a full
+histogram is built of all
 values.  For byte or RGB data, counts are then printed for all values between the
 min and the max values encountered.  For integer data, counts are combined
 into bins, if necessary, to give around 256 bins.  For floating point or
@@ -585,6 +587,17 @@ data).  Only values with the given limits are counted in the histogram; values
 outside the range are ignored.  With integer-valued data, the last bin may
 have fewer counts because it represents a smaller range of values than the
 rest.
+.br
+With the \fB-s\fR option, the program will instead analyze kernel (smoothed)
+histograms of a sample of the image data (up to 1,000,000 pixels),
+looking for two peaks in such a histogram.  If successful, it will
+report the intensity of the two peak values and of the lowest point (dip)
+between them, as well as the fraction of pixels below the value of the
+dip.
+The \fB-l\fR, \fB-h\fR, and \fB-n\fR have no effect and will cause an
+error if used.  With the \fB-2d\fR option, the program will analyze
+each input slice separately; otherwise it will analyze the full range
+of the input volume in one histogram.
 .TP
 .B joinrgb
 Combine 3 input files containing red, green, and blue information into one 
@@ -790,7 +803,7 @@ changed, .e.g., to preserve negative values.
 .TP
 .B threshold
 Make binary image by setting pixels above a threshold entered with
-\fB-t\fB to a high value, otherwise to a low value.  The threshold must
+\fB-t\fR to a high value, otherwise to a low value.  The threshold must
 correspond to a value in the file, which is usually not the same as a
 threshold value visualized in 3dmod(1).  The Threshold panel in the
 image processing dialog in 3dmod(1) (opened with Edit-Image-Process)
