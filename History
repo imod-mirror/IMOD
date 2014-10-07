@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/7/14: Clip histogram with -s option will analyze for bimodal distribution
+of values and report fraction with low values.
+
 10/2/14: IMOD_4-8-14
 10/2/14: Corrsearch3d can now compute a measure of local structure and use it
 to eliminate patches from consideration, which allows it to work without a
