@@ -104,7 +104,7 @@ public class PatchcorrProcessWatcher extends LogFileProcessMonitor {
       IOException {
     String line;
     while ((line = readLogFileLine()) != null) {
-      if (!line.trim().endsWith("positions")) {
+      if (line.trim().indexOf("positions") == -1) {
         currentSection++;
       }
       lastLineRead = line;
@@ -126,7 +126,7 @@ public class PatchcorrProcessWatcher extends LogFileProcessMonitor {
     while (!foundNSections) {
       Thread.sleep(UPDATE_PERIOD);
       String line = readLogFileLine();
-      if (line != null && line.trim().endsWith("positions")) {
+      if (line != null && line.trim().indexOf("positions") != -1) {
         line = line.trim();
         String[] strings = line.split("\\s+");
         nSections = Integer.parseInt(strings[0]);

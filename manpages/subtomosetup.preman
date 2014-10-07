@@ -1,0 +1,104 @@
+.na
+.nh
+.TH subtomosetup 1 4.8.7 BL3DEMC
+.SH NAME
+subtomosetup \- Sets up command files for reconstructing multiple subvolumes
+.SH SYNOPSIS
+subtomosetup  options
+.SH DESCRIPTION
+Subtomosetup creates a set of command files for directly reconstructing multiple
+numbered subvolumes from an aligned tilt series.  Its main use is to allow
+subtomogram alignment and averaging to be done on unbinned data after
+selecting particle positions on a binned-down tomogram, without having
+to build a full unbinned tomogram.  Note that if the unbinned tomogram
+already exists, the program Boxstartend(1) can be used to extract
+subvolumes from it.
+.P
+The program allows considerable flexibility as long as several
+restrictions are followed.
+  1) The program must be run from the dataset reconstruction directory.
+  2) The raw tilt series stack must still be present.
+  3) The new aligned stack must already be made at the desired size and
+binning.
+  4) The tomogram on which points were selected for reconstruction must
+be available and entered with the \fB-volume\fR option, although it
+need not be in the current directory.
+  7) The tilt series alignment, tomogram positioning parameters, the
+X-axis tilt, and the tilt angle offset in the Tomogram Generation panel
+of eTomo must not be changed between the binned tomogram and subvolume
+reconstructions.
+  5) If you apply any processing to that volume outside of eTomo, the
+header entries for pixel spacing, origin, and tilt angles must be
+preserved in the file entered with the \fB-volume\fR option.  If you need to
+trim some more, use Trimvol(1); if you need to bin, use Binvol(1).  
+  6) If you need to apply other software that does not preserve these
+header entries, follow these procedures: Make sure that the file
+analyzed has the same dimensions as the IMOD-based file from which it
+was derived.  Enter the name of the IMOD-based file instead of the
+analyzed file with the \fB-volume\fR option.  Supply a point coordinate
+file instead of a model file for the \fR-center\fR option (use
+Model2Point(1) with the \fB-float\fR option to make such a file).
+Other alternatives are to
+load a model onto the IMOD-based file with the \fB-m\fR option and save
+it again, or to run Imodtrans(1) on a model with the \fB-image\fR
+option and the name of the IMOD-based files, and use
+the resulting model.
+.P
+You are free to make an aligned stack from a centered subarea or
+an over-sized area and to change this area between the binned and
+subvolume reconstructions.  You can apply any trimming options in the
+Post-processing panel in eTomo.  Note that the subvolumes will be
+reoriented the same way that the binned tomogram were.
+.P
+Subtomosetup generates command files named with the root name of the
+Tilt command file ("tilt" by default) plus "-sub-001.com", etc.  Each
+command file will produce a subtomogram named "rootname-N.mrc" where
+"rootname" is the dataset root name, and "N" is the same number as on
+the command file, 
+but with enough leading zeros so that all files have the same number of
+digits and will list in order.  If a position is too close to the top
+or bottom of the Y-extent that can be reconstructed from the current
+aligned stack, the particle will be skipped, but output files will
+still be numbered sequentially.  For positions not quite so close to
+the limits in Y, a command file will be made to generate a subvolume
+with up to 1/6 of the extent blank in that direction.
+.P
+The command files can be run with
+Subm(1), Processchunks(1), or the generic parallel processing interface
+in eTomo.  For example
+   subm tilt-sub*.com
+.br
+to run all files in sequence, or
+   processchunks 8 tilt-sub
+.br
+to run in parallel on 8 processors, as can also be done in the eTomo
+interface.  A GPU will be used if specified in the original command
+file.  The eTomo interface can be used to run on multiple GPUs located
+on different machines, but to run on multiple GPUs in one machine,
+processchunks must be run directly, such as with
+   processchunks -G localhost:1:2:3
+
+.SH OPTIONS
+Subtomosetup uses the PIP package for input (see the manual page
+for pip(1)).  Options can be specified either as command line
+arguments (with the -) or one per line in a command file
+(without the -).  Options can be abbreviated to unique letters; the currently
+valid abbreviations for short names are shown in parentheses.
+INSERT OPTION TEXT HERE
+.TP
+.B -StandardInput
+Read parameter entries from standard input
+
+.SH FILES
+All temporary files are removed by each command file as it runs, and
+command and log files except 
+"-finish.log" file are removed by the "-finish.com" file.
+.SH AUTHOR
+.nf
+David Mastronarde
+.fi
+.SH SEE ALSO
+tilt(1), subm(1), processchunks(1), boxstartend(1), trimvol(1),
+binvol(1), model2point(1), imodtrans(1)
+.SH BUGS
+Email bug reports to mast@colorado.edu.

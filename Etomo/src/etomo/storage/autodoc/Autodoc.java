@@ -179,8 +179,8 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
     return currentDelimiter;
   }
 
-  WriteOnlyAttributeList addAttribute(Token name) {
-    return attributeList.addAttribute(name);
+  WriteOnlyAttributeList addAttribute(final Token name, final int lineNum) {
+    return attributeList.addAttribute(name, lineNum);
   }
 
   public void write() throws LogFile.LockException, IOException {
@@ -198,14 +198,18 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
     autodocFile.closeWriter(writerId);
   }
 
+  public void addNameValuePair(final String name, final String value) {
+    addNameValuePair(name, value, 0);
+  }
+
   /**
    * add a name/value pair with a name containing one attribute
    */
-  public void addNameValuePair(String name, String value) {
+  public void addNameValuePair(final String name, final String value, final int lineNum) {
     // add attribute
     Token nameToken = new Token();
     nameToken.set(Token.Type.ANYTHING, name);
-    attributeList.addAttribute(nameToken);
+    attributeList.addAttribute(nameToken, lineNum);
     // add value to attribute
     Attribute attribute = attributeList.getAttribute(name);
     Token valueToken = new Token();
