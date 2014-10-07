@@ -122,8 +122,8 @@ void imodvHelpMenu(int item)
        VERSION_NAME,
        ", written by David Mastronarde, ",
        "James Kremer, and Quanren Xiong\n",
-       "Copyright (C)",COPYRIGHT_YEARS,"by",LAB_NAME1,"\n",LAB_NAME2,
-       "& Regents of the University of Colorado\n\n",
+       "Copyright (C)",COPYRIGHT_YEARS,"by",
+       "the Regents of the University of Colorado\n\n",
        NULL);
     break;
   }
@@ -216,7 +216,7 @@ void imodvFileSave()
   }
 
   if (a->imod->fileName)
-    fout = fopen(LATIN1(QDir::convertSeparators(QString(a->imod->fileName))),
+    fout = fopen(LATIN1(QDir::toNativeSeparators(QString(a->imod->fileName))),
                  "wb");
 
   if (fout){
@@ -268,7 +268,7 @@ void imodvSaveModelAs()
     rename(filename, nfname1);
   }
 
-  fout = fopen(LATIN1(QDir::convertSeparators(QString(filename))), "wb");
+  fout = fopen(LATIN1(QDir::toNativeSeparators(QString(filename))), "wb");
   if (fout){
     error = writeOpenedModelFile(a, fout);
 

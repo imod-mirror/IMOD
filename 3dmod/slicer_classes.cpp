@@ -116,7 +116,7 @@ static PopupEntry sPopupTable[] = {
  */
 SlicerWindow::SlicerWindow(SlicerFuncs *funcs, float maxAngles[], QString timeLabel,
                            bool rgba, bool doubleBuffer, bool enableDepth, 
-                           QWidget * parent, Qt::WFlags f) 
+                           QWidget * parent, Qt::WindowFlags f) 
   : QMainWindow(parent, f)
 {
   int j;

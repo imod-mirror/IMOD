@@ -44,6 +44,8 @@ public interface WritableAutodoc extends ReadOnlyAutodoc {
 
   public void addNameValuePair(String name, String value);
 
+  public void addNameValuePair(String name, String value, int lineNum);
+
   public WritableAttribute getWritableAttribute(String name);
 
   public void write() throws LogFile.LockException, IOException;
