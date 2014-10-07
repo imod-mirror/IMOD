@@ -2472,6 +2472,7 @@ int clipHistogram(MrcHeader *hin, ClipOptions *opt)
         }
       }
     }
+    sliceFree(slice);
   }
 
   // Find first and last bin with counts
