@@ -1,6 +1,7 @@
 package etomo.ui.swing;
 
 import java.awt.Component;
+import java.awt.FontMetrics;
 import java.awt.event.ActionListener;
 
 import javax.swing.AbstractButton;
@@ -11,6 +12,7 @@ import javax.swing.JToggleButton;
 import javax.swing.border.BevelBorder;
 
 import etomo.type.UITestFieldType;
+import etomo.ui.TableComponent;
 
 /**
 * <p>Description: </p>
@@ -27,10 +29,12 @@ import etomo.type.UITestFieldType;
 * 
 * <p> $Log$ </p>
 */
-final class ButtonCell extends InputCell {
+final class ButtonCell extends InputCell implements TableComponent {
   public static final String rcsid = "$Id:$";
 
   private final AbstractButton button;
+
+  private FontMetrics fontMetrics = null;
 
   private ButtonCell(final Icon icon, final String title, final boolean toggle) {
     if (!toggle) {
@@ -58,6 +62,13 @@ final class ButtonCell extends InputCell {
 
   Component getComponent() {
     return button;
+  }
+
+ public int getPreferredWidth() {
+    if (fontMetrics == null) {
+      fontMetrics = UIUtilities.getFontMetrics(button);
+    }
+    return UIUtilities.getPreferredWidth(button, button.getText(), fontMetrics);
   }
 
   UITestFieldType getFieldType() {
