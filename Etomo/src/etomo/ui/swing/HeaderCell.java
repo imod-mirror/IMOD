@@ -3,6 +3,7 @@ package etomo.ui.swing;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.FontMetrics;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionListener;
@@ -21,6 +22,7 @@ import etomo.EtomoDirector;
 import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.type.EtomoNumber;
 import etomo.type.UITestFieldType;
+import etomo.ui.TableComponent;
 import etomo.util.Utilities;
 
 /**
@@ -36,7 +38,7 @@ import etomo.util.Utilities;
  * 
  * @version $Revision$
  */
-final class HeaderCell implements Cell {
+final class HeaderCell implements Cell, TableComponent {
   public static final String rcsid = "$Id$";
 
   private static final ColorUIResource background = new ColorUIResource(204, 204, 204);
@@ -55,6 +57,7 @@ final class HeaderCell implements Cell {
   private List children = null;
   private String tableHeader = null;
   private HeaderCell rowHeader = null, columnHeader = null;
+  private FontMetrics fontMetrics = null;
 
   public String toString() {
     return text;
@@ -174,11 +177,25 @@ final class HeaderCell implements Cell {
     cell.addActionListener(actionListener);
   }
 
-  HeaderCell add(JPanel panel, GridBagLayout layout, GridBagConstraints constraints) {
+  /**
+   * Adds the cell to the panel, and returns the preferred width
+   * @param panel
+   * @param layout
+   * @param constraints
+   * @return preferred width
+   */
+  void add(JPanel panel, GridBagLayout layout, GridBagConstraints constraints) {
     layout.setConstraints((Component) cell, constraints);
     panel.add((Component) cell);
     jpanelContainer = panel;
-    return this;
+  }
+
+public  int getPreferredWidth() {
+    int width = 0;
+    if (fontMetrics == null) {
+      fontMetrics = UIUtilities.getFontMetrics(cell);
+    }
+    return UIUtilities.getPreferredWidth(cell, getText(), fontMetrics);
   }
 
   void remove() {
@@ -215,7 +232,7 @@ final class HeaderCell implements Cell {
       }
     }
   }
-  
+
   void setForeground(final Color color) {
     cell.setForeground(color);
   }
