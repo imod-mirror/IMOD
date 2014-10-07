@@ -38,18 +38,24 @@ public final class PreferredTableSize {
   }
 
   public void addColumn(final int index, final TableComponent component) {
-    if (columnList != null && index < columnList.length) {
+    if (component != null && columnList != null && index >= 0
+        && index < columnList.length) {
       columnList[index].add(component);
     }
   }
 
   public void addColumn(final int index, final TableComponent component1,
       final TableComponent component2) {
-    if (columnList != null && index < columnList.length) {
-      ComponentList componentList = new ComponentList();
-      componentList.add(component1);
-      componentList.add(component2);
-      columnList[index].add(componentList);
+    if (columnList != null && index >= 0 && index < columnList.length) {
+      if (component1 != null && component2 != null) {
+        columnList[index].add(component1, component2);
+      }
+      else if (component1 != null) {
+        columnList[index].add(component1);
+      }
+      else if (component2 != null) {
+        columnList[index].add(component2);
+      }
     }
   }
 
@@ -74,8 +80,15 @@ public final class PreferredTableSize {
     private Column() {
     }
 
-    public void add(final TableComponent component) {
+    private void add(final TableComponent component) {
       list.add(component);
+    }
+
+    private void add(final TableComponent component1, final TableComponent component2) {
+      ComponentList componentList = new ComponentList();
+      componentList.add(component1);
+      componentList.add(component2);
+      list.add(componentList);
     }
 
     /**
