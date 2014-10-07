@@ -2487,9 +2487,13 @@ int clipHistogram(MrcHeader *hin, ClipOptions *opt)
   int floatVals = FALSE;
   float delta, histMin, histMax, val;
   set_input_options(opt, hin);
+
+  if (opt->sano)
+    return histogramPeaksAndDip(hin, opt);
+
   switch (hin->mode) {
 
-    // For integer types, set up to  plac ecounts in bins without scaling
+    // For integer types, set up to  place counts in bins without scaling
   case MRC_MODE_BYTE:
   case MRC_MODE_RGB:
     numBins = 256;
@@ -2534,7 +2538,7 @@ int clipHistogram(MrcHeader *hin, ClipOptions *opt)
     iz = opt->secs[k];
     slice = sliceReadSubm(hin, iz, 'z', opt->ix, opt->iy, (int)opt->cx, (int)opt->cy);
     if (!slice){
-      show_error("clip histogram - error reading slice %f", iz);
+      show_error("clip histogram - error reading slice %d", iz);
       return(-1);
     }
 
@@ -2605,7 +2609,7 @@ int clipHistogram(MrcHeader *hin, ClipOptions *opt)
       combine = B3DMAX(1, combine);
     }
 
-    // COmbine and print bins
+    // Combine and print bins
     if (combine > 1) {
       printf("Bin midpoint   counts    (bin interval is %d)\n", combine);
       numBins = ((maxBin + 1 - minBin) + combine - 1) / combine;
@@ -2622,6 +2626,111 @@ int clipHistogram(MrcHeader *hin, ClipOptions *opt)
       for (ind = minBin; ind <= maxBin; ind++)
         printf("%6d %8d\n", ind - offset, bins[ind]);
     }
+  }
+  return 0;
+}
+
+/*
+ * Completely different histogram analysis for peaks, dip, and fraction below dip
+ */
+int histogramPeaksAndDip(MrcHeader *hin, ClipOptions *opt)
+{
+#define KERNEL_HIST_BINS 1000
+  float *sample = NULL;
+  float bins[KERNEL_HIST_BINS];
+  size_t fullSize;
+  Islice *slice;
+  int i, j, k, iz, ind, numSample, interval, sampleSize, numBelow;
+  float firstVal, lastVal, peakBelow, peakAbove, histDip;
+  int izAdd = opt->fromOne ? 1 : 0;
+  bool wrap, asVol = opt->dim == 3;
+
+  if (opt->low != IP_DEFAULT || opt->high != IP_DEFAULT || opt->val != IP_DEFAULT) {
+    printf("ERROR: CLIP - The -n, -l, and -h options have no effect when doing a "
+           "histogram with -s\n");
+    return (-1);
+  }
+
+  // Loop through the slices
+  for (k = 0; k < opt->nofsecs; k++) {
+    iz = opt->secs[k];
+    slice = sliceReadSubm(hin, iz, 'z', opt->ix, opt->iy, (int)opt->cx, (int)opt->cy);
+    if (!slice){
+      printf("ERROR: CLIP - reading slice %d", iz + izAdd);
+      return(-1);
+    }
+
+    // Set up array and sampling the first time, for sampling the entire volume or
+    // each slice one at a time
+    if (!k) {
+      fullSize = (size_t)slice->xsize * slice->ysize * (asVol ? opt->nofsecs : 1);
+      sampleSize = B3DMIN(1000000, fullSize);
+      sample = B3DMALLOC(float, sampleSize);
+      if (!sample) {
+        printf("ERROR: CLIP - getting memory for pixel sample for histogram\n");
+        return (-1);
+      }
+      interval = B3DMAX(1, (fullSize + sampleSize - 1) / sampleSize);
+      numSample = fullSize / interval;
+    }
+
+    // Prepare for the next histogram, zeroing out the sample indexes
+    if (!k || !asVol) {
+      i = 0;
+      j = 0;
+      ind = 0;
+      lastVal = -1.e37;
+      firstVal = 1.e37;
+    }
+    
+    // Step through the slice at the interval, adding pixels to the sample
+    wrap = false;
+    while (ind < numSample && !wrap) {
+      sample[ind] = sliceGetPixelMagnitude(slice, i, j);
+      lastVal = B3DMAX(lastVal, sample[ind]);
+      firstVal = B3DMIN(firstVal, sample[ind]);
+      ind++;
+      i += interval;
+
+      // When X overflows, increment Y until X gets back into range.
+      while (i >= slice->xsize) {
+        i -= slice->xsize;
+        j++;
+
+        // Just wrap Y around if necessary and set flag that it did to stop loop
+        if (j >= slice->ysize) {
+          j = 0;
+          wrap = true;
+        }
+      }
+    }
+
+    // Time to do a histogram.  Trim the extremes, this is essential
+    if (!asVol || k == opt->nofsecs - 1) {
+      if (numSample > 4000) {
+        ind = (int)(0.0005 * numSample);
+        firstVal = percentileFloat(ind + 1, sample, numSample);
+        lastVal = percentileFloat(numSample - ind, sample, numSample);
+      }
+          
+      ind = findHistogramDip(sample, numSample, 0, bins, KERNEL_HIST_BINS, firstVal,
+                             lastVal, &histDip, &peakBelow, &peakAbove, 0);
+      if (asVol)
+        printf("All slices: ");
+      else
+        printf("Slice %d: ", iz + izAdd);
+      if (ind) {
+        printf("no histogram dip could be found\n");
+      } else {
+        numBelow = 0;
+        for (ind = 0; ind < numSample; ind++)
+          if (sample[ind] < histDip)
+            numBelow++;
+        printf("peaks at %.5g and %.5g  dip at %.5g  fraction below dip = "
+               "%.4f\n", peakBelow, peakAbove, histDip, (float)numBelow / numSample);
+      }
+    }
+    sliceFree(slice);
   }
   return 0;
 }
