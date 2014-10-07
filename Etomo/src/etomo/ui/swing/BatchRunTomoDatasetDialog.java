@@ -37,7 +37,8 @@ import etomo.ui.Field;
 import etomo.ui.FieldType;
 
 /**
-* <p>Description: </p>
+* <p>Description: Contains parameters that are dataset values.  Can be used for all
+* datasets and individual ones. </p>
 * 
 * <p>Copyright: Copyright 2014</p>
 *
@@ -118,6 +119,7 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable {
   private final MultiLineButton btnRevertToGlobal = new MultiLineButton(
       "Revert to Global");
   private final JPanel pnlRootBody = new JPanel();
+  private final Spacer spaceModelFile = new Spacer(FixedDim.x5_y0);
 
   private final FileTextField2 ftfDistort;
   private final FileTextField2 ftfGradient;
@@ -341,7 +343,7 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable {
     // ModelFile
     pnlModelFile.setLayout(new BoxLayout(pnlModelFile, BoxLayout.X_AXIS));
     pnlModelFile.add(ftfModelFile.getRootPanel());
-    pnlModelFile.add(Box.createRigidArea(FixedDim.x5_y0));
+    pnlModelFile.add(spaceModelFile.getComponent());
     pnlModelFile.add(btnModelFile.getComponent());
     pnlModelFile.add(Box.createHorizontalGlue());
     // TrackingMethod
@@ -431,6 +433,11 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable {
     if (dialog != null) {
       dialog.pack();
     }
+  }
+
+  int getPreferredWidth() {
+    return ftfModelFile.getPreferredWidth() + spaceModelFile.getPreferredWidth()
+        + btnModelFile.getPreferredWidth();
   }
 
   void setVisible(final boolean visible) {
@@ -746,21 +753,16 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable {
    * @return true if field is savable
    */
   private boolean saveAutodoc(final Field field, final WritableAutodoc autodoc) {
-    System.out.println("A:field:"+field);
     // Don't add directive values that are equal to default values, or directive
     // values that already exists in one of the templates. Values from templates
     // are used as field highlight values. See needInAutodoc.
     DirectiveDef directiveDef = field.getDirectiveDef();
     if (directiveDef != null) {
-      System.out.println("B");
       String directive = directiveDef.getDirective(null, null);
       if (field.isEnabled()) {
-        System.out.println("C");
         if (directiveDef.isBoolean() && field.isBoolean() && field.isSelected()) {
-          System.out.println("D");
           // checkboxes and radio buttons
           if (needInAutodoc(field)) {
-            System.out.println("E");
             autodoc.addNameValuePair(directiveDef.getDirective(null, null), "1");
           }
           return true;
