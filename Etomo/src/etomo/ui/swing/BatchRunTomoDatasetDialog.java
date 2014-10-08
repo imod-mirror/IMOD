@@ -558,13 +558,14 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable {
     iterator = fieldList.iterator();
     if (iterator != null) {
       while (iterator.hasNext()) {
+        Field field = iterator.next();
         // checkpoint
-        iterator.next().checkpoint();
+        field.checkpoint();
         // If the user wants to retain their values, apply backed up values and then
         // delete
         // them.
         if (retainUserValues) {
-          iterator.next().restoreFromBackup();
+          field.restoreFromBackup();
         }
       }
     }
