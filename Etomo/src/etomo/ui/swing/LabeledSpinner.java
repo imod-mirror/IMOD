@@ -395,7 +395,10 @@ final class LabeledSpinner implements Field, ChangeListener, FocusListener {
   }
 
   public void setFieldHighlight(final FieldSettingInterface settingInterface) {
-    TextFieldSetting setting = settingInterface.getTextSetting();
+    TextFieldSetting setting = null;
+    if (settingInterface != null) {
+      setting = settingInterface.getTextSetting();
+    }
     if (setting == null || !setting.isSet()) {
       clearFieldHighlight();
     }
