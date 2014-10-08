@@ -22,6 +22,17 @@ come from the image display.
 <LI> The <B>lock</B> button will prevent the graph from being redraw
 even if the image point or other settings change.  Thus, one can open
 several graph windows and display different positions in them.
+<LI> The <B>export to file</B> button will allow you to save the currently graphed
+  values to a text file.  Enter the name of the file after pushing the
+  button.  The file will contain two columns of values: first, 
+  the X-coordinate of the
+  graph, which will correspond to position along a selected axis or along a
+  contour; second, the graphed value, which will be based on the loaded image data
+  or the data in the file, depending on the state of the high-resolution
+  button.  A subset of values constrained by a rubber band can be saved, but
+  all computed values will be saved, not just the ones that fit in the graph
+  display.  The X-coordinate is not adjusted for binning if data are loaded
+  binned.
 <LI> The <B>selector box</B> lets you pick which axis to display, or whether
 to graph along a contour or show a histogram of values.  The graph
 along a contour is based on pixel values measured at 1-pixel intervals along
