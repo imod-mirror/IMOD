@@ -355,7 +355,7 @@ final class FileTextField2 implements FileTextFieldInterface, Field, ActionListe
       field.setCheckpoint(null);
     }
     else {
-      field.setCheckpoint(input.getBooleanSetting());
+      field.setCheckpoint(input.getTextSetting());
     }
   }
 
