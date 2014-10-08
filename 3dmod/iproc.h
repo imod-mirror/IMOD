@@ -110,6 +110,7 @@ class IProcWindow : public DialogFrame
   void andfFuncClicked(int val);
   void andfKEntered();
   void reportFreqClicked();
+  void calcFileThreshold();
 
  protected:
   void closeEvent ( QCloseEvent * e );
@@ -127,9 +128,10 @@ class IProcWindow : public DialogFrame
   void newThreshSetting();
   int mTimerID;
   QThread *mProcThread;
-  std::vector<IProcParam> mParamStack;
   IProcParam mSavedParam;
   std::vector<int> mDataModes;
+ public:
+  std::vector<IProcParam> mParamStack;
 };
 
 typedef struct
@@ -148,6 +150,8 @@ typedef struct
   bool          autoApply;  /* Apply automatically when changing section */
   bool          autoSave;   /* Save automatically when changing section */
   bool          applyThreshChange;  /* Automatically apply threshold changes */
+  float         fileThreshold;      /* Threshold value in file */
+  QLabel        *threshFileLabel;
   int           rangeLow;   /* Low and high range values when image mapped to slice */
   int           rangeHigh;
   int           inputMode;

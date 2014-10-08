@@ -24,7 +24,7 @@ enum {IP_NONE = 0, IP_ADD, IP_AVERAGE, IP_VARIANCE, IP_STANDEV, IP_BRIGHTNESS, I
       IP_GRAHAM, IP_INFO, IP_JOINRGB, IP_LAPLACIAN, IP_MEDIAN, IP_PEAK,
       IP_PREWITT, IP_UNWRAP, IP_QUADRANT, IP_UNPACK, IP_HISTOGRAM, 
       IP_PROJECT, IP_RESIZE, IP_ROTATE, IP_SHADOW, IP_SHARPEN, IP_SMOOTH,
-      IP_SOBEL, IP_SPLITRGB, IP_STAT, IP_TRANSLATE, IP_ZOOM, IP_TRUNCATE};
+      IP_SOBEL, IP_SPLITRGB, IP_STAT, IP_TRANSLATE, IP_ZOOM, IP_TRUNCATE, IP_THRESHOLD};
 
 
 #define IP_DEFAULT -99999
@@ -109,6 +109,7 @@ int clip_get_stat3d(Istack *v,
 		    int *rx, int *ry, int *rz);
 int clip_stat(MrcHeader *hin, ClipOptions *opt);
 int clipHistogram(MrcHeader *hin, ClipOptions *opt);
+int histogramPeaksAndDip(MrcHeader *hin, ClipOptions *opt);
 int clip_convolve(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt);
 int clipMedian(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt);
 int clipDiffusion(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt);

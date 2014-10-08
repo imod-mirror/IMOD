@@ -265,7 +265,6 @@ EXPORTS
 	sliceByteAdd
 	mrc_slice_putvol
 	sliceMirror
-	niceFrame
 	iiReadPoint
 	IMCLOSE
 	mrcReadYFloat
