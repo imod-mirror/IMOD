@@ -682,6 +682,10 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
     return ProcessingMethod.LOCAL_CPU;
   }
 
+  public ProcessingMethod getSecondaryProcessingMethod() {
+    return null;
+  }
+
   /**
    * This is an unusual situation.  In the combine dialog it is possible to
    * start a parallel process from a tab where the parallel processing table

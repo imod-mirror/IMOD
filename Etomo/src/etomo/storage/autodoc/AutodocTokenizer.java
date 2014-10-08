@@ -1,10 +1,13 @@
 package etomo.storage.autodoc;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.IllegalStateException;
 
+import etomo.BaseManager;
 import etomo.storage.LogFile;
+import etomo.type.AxisID;
 import etomo.ui.swing.Token;
 import etomo.util.PrimativeTokenizer;
 
@@ -169,10 +172,20 @@ public final class AutodocTokenizer {
   private boolean debug = false;
   private boolean lookAhead = false;
 
-  AutodocTokenizer(LogFile file, boolean allowAltComment, boolean debug) {
+  AutodocTokenizer(final boolean allowAltComment, final Location location,
+      final String envVar, final String subdirName, final String name,
+      final File autodocFile, final BaseManager manager, final AxisID axisID,
+      final String notFoundMessage, final boolean debug) {
     this.allowAltComment = allowAltComment;
     this.debug = debug;
-    primativeTokenizer = new PrimativeTokenizer(file, debug);
+    if (location == Location.AUTODOC) {
+      primativeTokenizer = PrimativeTokenizer.getAutodocInstance(name, manager, axisID,
+          notFoundMessage, debug);
+    }
+    else {
+      primativeTokenizer = PrimativeTokenizer.getGenericInstance(envVar, subdirName,
+          name, autodocFile, manager, axisID, notFoundMessage, debug);
+    }
     if (allowAltComment) {
       restrictedSymbols.append(ALT_COMMENT_CHAR);
     }
@@ -187,6 +200,10 @@ public final class AutodocTokenizer {
 
   void initialize() throws FileNotFoundException, IOException, LogFile.LockException {
     primativeTokenizer.initialize();
+  }
+
+  LogFile getLogFile() {
+    return primativeTokenizer.getLogFile();
   }
 
   Token getToken() {
@@ -464,4 +481,7 @@ public final class AutodocTokenizer {
     }
   }
 
+  static final class Location {
+    static final Location AUTODOC = new Location();
+  }
 }

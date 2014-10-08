@@ -803,7 +803,8 @@ public final class BeadtrackPanel implements Expandable, Run3dmodButtonContainer
     return panelBeadtrackX;
   }
 
-  void buttonAction(String command, Run3dmodMenuOptions run3dmodMenuOptions) {
+  public void action(final String command, final Deferred3dmodButton deferred3dmodButton,
+      final Run3dmodMenuOptions run3dmodMenuOptions) {
     try {
       if (command.equals(btnTrack.getActionCommand())) {
         manager.fiducialModelTrack(axisID, btnTrack, null, dialogType, this);
@@ -837,11 +838,6 @@ public final class BeadtrackPanel implements Expandable, Run3dmodButtonContainer
     catch (FieldValidationFailedException e) {
       return;
     }
-  }
-
-  public void action(final Run3dmodButton button,
-      final Run3dmodMenuOptions run3dmodMenuOptions) {
-    buttonAction(button.getActionCommand(), run3dmodMenuOptions);
   }
 
   private void setEnabled() {
@@ -885,7 +881,8 @@ public final class BeadtrackPanel implements Expandable, Run3dmodButtonContainer
     String text;
     ReadOnlyAutodoc autodoc = null;
     try {
-      autodoc = AutodocFactory.getInstance(manager, AutodocFactory.BEADTRACK, axisID);
+      autodoc = AutodocFactory.getInstance(manager, AutodocFactory.BEADTRACK, axisID,
+          false);
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();
@@ -979,7 +976,7 @@ public final class BeadtrackPanel implements Expandable, Run3dmodButtonContainer
     }
 
     public void actionPerformed(final ActionEvent event) {
-      adaptee.buttonAction(event.getActionCommand(), null);
+      adaptee.action(event.getActionCommand(), null, null);
     }
   }
 

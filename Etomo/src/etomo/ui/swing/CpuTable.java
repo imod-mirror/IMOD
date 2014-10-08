@@ -56,10 +56,19 @@ class CpuTable extends ProcessorTable {
 
   private final boolean usersColumn;
 
-  CpuTable(final BaseManager manager, final ParallelPanel parent, final AxisID axisID) {
-    super(manager, parent, axisID, false);
+  CpuTable(final BaseManager manager, final ParallelPanel parent, final AxisID axisID,
+      final boolean runnable) {
+    super(manager, parent, axisID, false, runnable);
     usersColumn = CpuAdoc.INSTANCE.isUsersColumn(manager, axisID,
         manager.getPropertyUserDir());
+  }
+
+  boolean isCpuTable() {
+    return true;
+  }
+
+  boolean isGpuTable() {
+    return false;
   }
 
   String getStorePrepend() {
@@ -100,51 +109,72 @@ class CpuTable extends ProcessorTable {
   }
 
   final void addHeader1Load(final JPanel tablePanel, final GridBagLayout layout,
-      final GridBagConstraints constraints) {
+      final GridBagConstraints constraints, final ColumnName lastColumnName) {
     if (Utilities.isWindowsOS()) {
-      constraints.gridwidth = 1;
+      if (lastColumnName == ColumnName.LOAD) {
+        constraints.gridwidth = GridBagConstraints.REMAINDER;
+      }
+      else {
+        constraints.gridwidth = 1;
+      }
       header1CPUUsage.add(tablePanel, layout, constraints);
     }
     else {
-      constraints.gridwidth = 2;
+      if (lastColumnName == ColumnName.LOAD) {
+        constraints.gridwidth = GridBagConstraints.REMAINDER;
+      }
+      else {
+        constraints.gridwidth = 2;
+      }
       header1Load.add(tablePanel, layout, constraints);
       constraints.gridwidth = 1;
     }
   }
 
   final void addHeader1Users(final JPanel tablePanel, final GridBagLayout layout,
-      final GridBagConstraints constraints) {
+      final GridBagConstraints constraints, final ColumnName lastColumnName) {
     if (Utilities.isWindowsOS()) {
       return;
     }
-    if (usersColumn) {
-      header1Users.add(tablePanel, layout, constraints);
+    if (lastColumnName == ColumnName.USERS) {
+      constraints.gridwidth = GridBagConstraints.REMAINDER;
     }
+    header1Users.add(tablePanel, layout, constraints);
   }
 
   final void addHeader2Load(final JPanel tablePanel, final GridBagLayout layout,
-      final GridBagConstraints constraints) {
+      final GridBagConstraints constraints, final ColumnName lastColumnName) {
     if (Utilities.isWindowsOS()) {
+      if (lastColumnName == ColumnName.LOAD) {
+        constraints.gridwidth = GridBagConstraints.REMAINDER;
+      }
       header2CPUUsage.add(tablePanel, layout, constraints);
     }
     else {
       header2Load1.add(tablePanel, layout, constraints);
+      if (lastColumnName == ColumnName.LOAD) {
+        constraints.gridwidth = GridBagConstraints.REMAINDER;
+      }
       header2Load5.add(tablePanel, layout, constraints);
     }
   }
 
   final void addHeader2Users(final JPanel tablePanel, final GridBagLayout layout,
-      final GridBagConstraints constraints) {
+      final GridBagConstraints constraints, final ColumnName lastColumnName) {
     if (Utilities.isWindowsOS()) {
       return;
     }
-    if (usersColumn) {
-      header2Users.add(tablePanel, layout, constraints);
+    if (lastColumnName == ColumnName.USERS) {
+      constraints.gridwidth = GridBagConstraints.REMAINDER;
     }
+    header2Users.add(tablePanel, layout, constraints);
   }
 
-  final boolean useUsersColumn() {
-    return usersColumn;
+  final boolean useColumn(final ColumnName columnName) {
+    if (columnName == ColumnName.USERS) {
+      return usersColumn && !isSecondary();
+    }
+    return super.useColumn(columnName);
   }
 
   final IntermittentCommand getIntermittentCommand(final String computer) {

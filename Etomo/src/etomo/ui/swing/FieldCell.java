@@ -1,6 +1,7 @@
 package etomo.ui.swing;
 
 import java.awt.Component;
+import java.awt.FontMetrics;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.io.File;
@@ -13,6 +14,7 @@ import etomo.type.ConstEtomoNumber;
 import etomo.type.EtomoNumber;
 import etomo.type.ParsedElementType;
 import etomo.type.UITestFieldType;
+import etomo.ui.TableComponent;
 
 /**
  * <p>Description: </p>
@@ -148,16 +150,20 @@ import etomo.type.UITestFieldType;
  * <p> field is disabled).
  * <p> </p>
  */
-final class FieldCell extends InputCell implements ActionTarget {
+final class FieldCell extends InputCell implements ActionTarget,TableComponent {
   public static final String rcsid = "$Id$";
 
   private final JTextField textField;
-  private final TextFieldState state;
+  private final ParsedElementType parsedElementType;
 
   private boolean inUse = true;
+  private FontMetrics fontMetrics = null;
+
+  private TextFieldState state;
 
   private FieldCell(final boolean editable, final ParsedElementType parsedElementType,
       final String rootDir) {
+    this.parsedElementType = parsedElementType;
     state = new TextFieldState(editable, parsedElementType, rootDir);
     // construction
     textField = new JTextField();
@@ -171,6 +177,7 @@ final class FieldCell extends InputCell implements ActionTarget {
   }
 
   private FieldCell(final TextFieldState state) {
+    parsedElementType = null;
     this.state = new TextFieldState(state);
     // construction
     textField = new JTextField();
@@ -217,12 +224,23 @@ final class FieldCell extends InputCell implements ActionTarget {
     return instance;
   }
 
+  void setRootDir(final String input) {
+    state = new TextFieldState(isEditable(), parsedElementType, input);
+  }
+
   private void addListeners() {
     textField.addFocusListener(new TextFieldFocusListener(textField));
   }
 
   public String toString() {
     return textField.getText();
+  }
+
+ public int getPreferredWidth() {
+    if (fontMetrics == null) {
+      fontMetrics = UIUtilities.getFontMetrics(textField);
+    }
+    return UIUtilities.getPreferredWidth(textField.getText(), fontMetrics);
   }
 
   public void setEnabled(boolean enable) {
