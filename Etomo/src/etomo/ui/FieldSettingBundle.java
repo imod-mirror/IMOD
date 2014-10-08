@@ -30,10 +30,20 @@ public final class FieldSettingBundle implements FieldSettingInterface {
   }
 
   public void addBooleanSetting(final FieldSettingInterface input) {
-    boolSetting = input.getBooleanSetting();
+    if (input != null) {
+      boolSetting = input.getBooleanSetting();
+    }
+    else {
+      boolSetting = null;
+    }
   }
 
   public void addTextSetting(final FieldSettingInterface input) {
-    textSetting = input.getTextSetting();
+    if (input != null) {
+      textSetting = input.getTextSetting();
+    }
+    else {
+      textSetting = null;
+    }
   }
 }
