@@ -23,6 +23,8 @@
 #define findhistogramdip findhistogramdip_
 #endif
 
+#define MAX_HIST_THREADS 8
+
 /*!
  * Computes a standard or kernel histogram from the [numVals] values in the 
  * array [values].  The histogram is placed in the array
@@ -35,31 +37,90 @@ void kernelHistogram(float *values, int numVals, float *bins, int numBins,
                      float firstVal, float lastVal, float h, int verbose)
 {
   float dxbin, delta, val;
-  int i, j, ist, ind;
+  int i, j, ist, ind, optimal = 1, threadNum, numThreads = 1;
+  double *tempBins[MAX_HIST_THREADS];
+
+  /* For kernel histogram, get an optimal and actual number of threads */
+  if (h != 0.) {
+    optimal = numVals / 10000;
+    B3DCLAMP(optimal, 1, MAX_HIST_THREADS);
+    numThreads = numOMPthreads(optimal);
+    if (optimal > 1) {
+
+      /* As long as there SHOULD be threads, set up separate bins in doubles, and if 
+         any allocation fails, just drop back to summing into the float bins */
+      for (j = 0; j < numThreads; j++) {
+        tempBins[j] = B3DMALLOC(double, numBins);
+        if (!tempBins[j]) {
+          for (i = 0; i < j; i++)
+            free(tempBins[i]);
+          optimal = 1;
+          break;
+        }
+        for (i = 0; i < numBins; i++)
+          tempBins[j][i] = 0.;
+      }
+    }
+  }
+
   dxbin = (lastVal - firstVal) / numBins;
   for (i = 0; i < numBins; i++)
     bins[i] = 0.;
-  for (j = 0; j < numVals; j++) {
-    val = values[j];
 
-    if (verbose == 1)
-      printf("Value: %.4f\n", val);
-    if (h) {
+  /* For large numbers, add into one or more arrays of doubles to maintain precision in
+     the floating additions */
+  if (optimal > 1) {
+
+#pragma omp parallel for num_threads(numThreads)                        \
+  shared(numVals, values, verbose, h, firstVal, dxbin, numBins, tempBins) \
+  private(j, threadNum, val, ist, ind, delta, i)
+    for (j = 0; j < numVals; j++) {
+      threadNum = b3dOMPthreadNum();
+      val = values[j];
+
+      if (verbose == 1)
+        printf("Value: %.4f\n", val);
       ist = (int)ceil((double)(val - h - firstVal) / dxbin);
       ind = (int)floor((double)(val + h - firstVal) / dxbin);
       ist = B3DMAX(0, ist);
       ind = B3DMIN(numBins - 1, ind);
       for (i = ist; i <= ind; i++) {
         delta = (val - firstVal - i * dxbin) / h;
-        bins[i] += (float)pow(1. - delta * delta, 3.);
+        tempBins[threadNum][i] += (float)pow(1. - delta * delta, 3.);
       }
-    } else {
-      ist = (int)floor((double)(val - firstVal) / dxbin);
-      if (ist >= 0 && ist < numBins)
-        bins[ist]++;
-      else if (ist == numBins && val - lastVal < 0.001 * dxbin)
-        bins[numBins - 1]++;
     }
+
+    /* Collect results and free temporary arrays */
+    for (j = 0; j < numThreads; j++) {
+      for (i = 0; i < numBins; i++)
+        bins[i] += tempBins[j][i];
+      free(tempBins[j]);
+    }
+  } else {
+    
+    /* No threads, add into original array; sorry for duplicate code! */
+    for (j = 0; j < numVals; j++) {
+      val = values[j];
+      
+      if (verbose == 1)
+        printf("Value: %.4f\n", val);
+      if (h) {
+        ist = (int)ceil((double)(val - h - firstVal) / dxbin);
+        ind = (int)floor((double)(val + h - firstVal) / dxbin);
+        ist = B3DMAX(0, ist);
+        ind = B3DMIN(numBins - 1, ind);
+        for (i = ist; i <= ind; i++) {
+          delta = (val - firstVal - i * dxbin) / h;
+          bins[i] += (float)pow(1. - delta * delta, 3.);
+        }
+      } else {
+        ist = (int)floor((double)(val - firstVal) / dxbin);
+        if (ist >= 0 && ist < numBins)
+          bins[ist]++;
+        else if (ist == numBins && val - lastVal < 0.001 * dxbin)
+          bins[numBins - 1]++;
+      }
+    }   
   }   
   if (verbose == 2)
     for (i = 0; i < numBins; i++)

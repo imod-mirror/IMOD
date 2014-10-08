@@ -62,7 +62,7 @@ program newstack
   real*4 tiltAngles(LIMGRADSEC), dmagPerMicron(LIMGRADSEC), rotPerMicron(LIMGRADSEC)
   !
   logical rescale, blankOutput, adjustOrigin, hasWarp, fillTmp, fillNeeded, stripExtra
-  logical readShrunk, numberedFromOne, twoDirections, useMdocFiles, outDocChanged
+  logical readShrunk, numberedFromOne, twoDirections, useMdocFiles, outDocChanged, quiet
   character dat*9, timeStr*8, tempExt*9
   logical nbytes_and_flags
   character*80 titlech
@@ -767,6 +767,7 @@ program newstack
     ierr = PipGetString('GradientFile', magGradFile)
     ierr = PipGetLogical('AdjustOrigin', adjustOrigin)
     ierr = PipGetTwoIntegers('TaperAtFill', numTaper, insideTaper)
+    ierr = PipGetLogical('QuietOutput', quiet)
     !
     ! Memory limits
     limEntered = 1 - PipGetTwoIntegers('TestLimits', ierr, lenTemp)
@@ -847,7 +848,7 @@ program newstack
             'THERE MUST BE ONLY ONE OUTPUT FILE TO USE -replace')
         if (if3dVolumes > 0) call exitError( &
             'YOU CANNOT USE -3d OR -chunk WITH -replace')
-        call ialprt(.true.)
+        if (.not. quiet) call ialprt(.true.)
         call iiAllowMultiVolume(0)
         call imopen(2, outFile(1), 'OLD')
         call irdhdr(2, nxyz2, mxyz2, modeOld, dmin, dmax, dmean)
@@ -1096,7 +1097,7 @@ program newstack
   isecOut = 1
   isecReplace = 1
   iOutFile = 1
-  call ialprt(.true.)
+  if (.not. quiet) call ialprt(.true.)
   call time(timeStr)
   call b3dDate(dat)
   numTruncLow = 0
@@ -1917,12 +1918,12 @@ program newstack
       endif
       !
       dmean2 = dmean2 / (float(nxOut) * nyOut)
-      if (ifHeaderOut == 0) print *, &
-          'section   input min&max       output min&max  &  mean'
-      ifHeaderOut = 1
-      write(*,'(i6,5f10.2)') isec - 1, tmpMin, tmpMax, dmin2, dmax2, &
-          dmean2
-
+      if (.not. quiet) then
+        if (ifHeaderOut == 0) print *, &
+            'section   input min&max       output min&max  &  mean'
+        ifHeaderOut = 1
+        write(*,'(i6,5f10.2)') isec - 1, tmpMin, tmpMax, dmin2, dmax2, dmean2
+      endif
       !
 80    isecOut = isecOut + 1
       dmin = min(dmin, dmin2)

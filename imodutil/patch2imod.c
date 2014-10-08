@@ -3,8 +3,7 @@
  *
  *  Author: David Mastronarde  email: mast@colorado.edu
  *
- *  Copyright (C) 1995-2004 by Boulder Laboratory for 3-Dimensional Electron
- *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
+ *  Copyright (C) 1995-2014 by the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  */
@@ -26,7 +25,7 @@
 #define DEFAULT_SCALE 10.0
 
 static Imod *imod_from_patches(FILE *fin, float scale, int clipSize, char *name, 
-                               int flags, int valColOut[2]);
+                               int flags, int valColOut);
 
 static void usage(char *prog)
 {
@@ -58,7 +57,7 @@ int main( int argc, char *argv[])
   int clipSize = 0;
   int flags = 0;
   int nxWarp, nyWarp, nzWarp, warpFlags, version, indWarp, ibin;
-  int valColOut[2] = {1, 2};
+  int valColOut = -1;
   float warpPixel;
   char *name = NULL;
 
@@ -111,10 +110,10 @@ int main( int argc, char *argv[])
         break;
 
       case 'v':
-        sscanf(argv[++i], "%d,%d", &valColOut[0], &valColOut[1]);
-        if (valColOut[0] < 1 || valColOut[0] > MAX_VALUE_COLS || valColOut[1] < 1 || 
-            valColOut[1] > MAX_VALUE_COLS)
-          exitError("Value column(s) must be between 1 and %d", MAX_VALUE_COLS);
+        valColOut = atoi(argv[++i]);
+        if (!valColOut || valColOut < -MAX_VALUE_COLS)
+          exitError("Value column # or ID must be positive and between -1 and -%d", 
+                    MAX_VALUE_COLS);
         break;
 
       default:
@@ -125,9 +124,12 @@ int main( int argc, char *argv[])
       break;
   }
   if (i > (argc - 2)) {
-    printf("ERROR: patch2imod - Wrong # of arguments");
+    printf("ERROR: patch2imod - Wrong # of arguments\n");
     usage(progname);
   }
+
+  if ((flags & P2I_COUNT_LINES) && valColOut > 0)
+    exitError("You cannot enter a column ID if there is no first line with data count");
 
   if (flags & P2I_READ_WARP) {
     indWarp = readWarpFile(argv[i++], &nxWarp, &nyWarp, &nzWarp, &ibin, &warpPixel,
@@ -161,7 +163,7 @@ int main( int argc, char *argv[])
 #define MAXLINE 128
 
 static Imod *imod_from_patches(FILE *fin, float scale, int clipSize, char *name,
-                               int flags, int valColOut[2])
+                               int flags, int valColOut)
 {
   int noflip = flags & P2I_NO_FLIP;
   int ignoreZero = flags & P2I_IGNORE_ZERO;
@@ -169,31 +171,39 @@ static Imod *imod_from_patches(FILE *fin, float scale, int clipSize, char *name,
   int displayValues = flags & P2I_DISPLAY_VALUES;
   int readWarp = flags & P2I_READ_WARP;
   int timesForZ = flags & P2I_TIMES_FOR_Z;
-  int len, i;
+  int len, i, valueIDs[MAX_VALUE_COLS], valTypeMap[MAX_VALUE_COLS];
+  int orderedIDs[MAX_VALUE_COLS];
   float values[MAX_VALUE_COLS];
      
   char line[MAXLINE];
+  char *str, *token, *endptr;
   Imod *mod;
   Iobj *obj;
-  Istore store, store2;
+  Istore store;
   Ipoint *pts;
-  int ix, iy, iz, itmp;
-  int nxWarp, nyWarp, ifControl, nxGrid, nyGrid, numControl, maxProd, izWarp;
+  int ix, iy, iz, itmp, ind, numValIDs;
+  long longVal;
+  int nxWarp, nyWarp, ifControl, nxGrid, nyGrid, numControl, maxProd, izWarp, pat;
   float xStart, yStart, xInterval, yInterval;
   int xmin, ymin, zmin, xmax, ymax, zmax;
-  float dx, dy, dz, xx, yy, value, value2, valmin, valmax, tmp;
-  double valsum, sumsq, valsd, sdmax;
+  float dx, dy, dz, xx, yy, value, tmp;
+  float valMin[MAX_VALUE_COLS], valMax[MAX_VALUE_COLS];
+  double valSum[MAX_VALUE_COLS], valSqSum[MAX_VALUE_COLS];
+  int numVals[MAX_VALUE_COLS];
+  double valsd, sdmax;
   float *xVector, *yVector, *xControl, *yControl;
   float *dxGrid = NULL, *dyGrid = NULL;
   int residuals = 0;
-  int nvals = 0;
   int dzvary = 0;
   int npatch = 0;
   int nzWarp = 1;
   int nread = 0;
   int contBase = 0;
+  int maxValCols = 0;
 
   if (readWarp) {
+
+    /* Read in warping file */
     getWarpFileSize(&nxWarp, &nyWarp, &nzWarp, &ifControl);
     maxProd = 0;
     for (iz = 0; iz < nzWarp; iz++) {
@@ -213,6 +223,8 @@ static Imod *imod_from_patches(FILE *fin, float scale, int clipSize, char *name,
         exitError("getting memory for warping grids");
     }
   } else if (countLines) {
+
+    /* Count the lines in the file to get # of patches */
     while (1) {
       ix = fgetline(fin,line,MAXLINE);
       if (ix > 2)
@@ -224,14 +236,67 @@ static Imod *imod_from_patches(FILE *fin, float scale, int clipSize, char *name,
       exitError("No usable lines in the file");
     rewind(fin);
   } else {
+
+    /* Parse the first line for the # of patches and up to 6 value IDs */
+    /* Any number of non-integer entries is skipped here */
     fgetline(fin,line,MAXLINE);
-    sscanf(line, "%d", &npatch);
+    if (strstr(line, "residuals") != NULL)
+      residuals = 1;
+    str = line;
+    ind = 0;
+    numValIDs = 0;
+    for (ind = 0; ; ind++) {
+      token = strtok(str, " ");
+      if (!token)
+        break;
+      str = NULL;
+      longVal = strtol(token, &endptr, 10);
+      if (token[0] != 0x00 && *endptr == 0x00) {
+        if (!ind)
+          npatch = longVal;
+        else if (numValIDs < MAX_VALUE_COLS)
+          valueIDs[numValIDs++] = longVal;
+      } else if (!ind)
+        exitError("Converting the first item on the first line to get number of patches");
+    }
+
     if (npatch < 1)
       exitError("Implausible number of patches = %d.", npatch);
 
-    if (strstr(line, "residuals") != NULL)
-      residuals = 1;
+    /* Convert the valColOut ID or -# to a column index */
+    if (valColOut < 0) {
+      valColOut = -valColOut - 1;
+    } else {
+      for (ind = 0; ind < numValIDs; ind++) {
+        if (valueIDs[ind] == valColOut) {
+          printf("The value with ID %d is in extra column %d\n", valColOut, ind + 1);
+          valColOut = ind;
+          break;
+        }
+      }
+      if (ind == numValIDs)
+        exitError("There is no value column ID # corresponding to the entered ID #");
+    }
+    /*printf("# vla ID %d %d %d %d\n", numValIDs, valueIDs[0],valueIDs[1],valueIDs[2]);*/
+
+    /* Make the lists of ordered types IDs and map from column to type */
+    orderedIDs[0] = valueIDs[valColOut];
+    valTypeMap[valColOut] = 0;
+    ind = 0;
+    for (i = 1; i < MAX_VALUE_COLS; i++) {
+      if (ind == valColOut)
+        ind++;
+      orderedIDs[i] = valueIDs[ind++];
+    }
+    ind = 1;
+    for (i = 0; i < MAX_VALUE_COLS; i++) {
+      if (i == valColOut)
+        continue;
+      valTypeMap[i] = ind++;
+    }
   }
+  /* printf("type map %d %d %d %d %d %d\n", valTypeMap[0], valTypeMap[1], valTypeMap[2],
+            valTypeMap[3], valTypeMap[4], valTypeMap[5]); */
 
   mod = imodNew();     
   if (!mod)
@@ -252,13 +317,15 @@ static Imod *imod_from_patches(FILE *fin, float scale, int clipSize, char *name,
   mod->pixsize = scale;
   xmin = ymin= zmin = 1000000;
   xmax = ymax = zmax = -1000000;
-  valmin = 1.e30;
-  valmax = -valmin;
+  for (i = 0; i < MAX_VALUE_COLS; i++) {
+    valMin[i] = 1.e30;
+    valMax[i] = -1.e30;
+    numVals[i] = 0;
+    valSum[i] = 0.;
+    valSqSum[i] = 0.;
+  }
   dz = 0.;
-  store.type = GEN_STORE_VALUE1;
   store.flags = GEN_STORE_FLOAT << 2;
-  store2.type = GEN_STORE_VALUE2;
-  store2.flags = GEN_STORE_FLOAT << 2;
 
   for (izWarp = 0; izWarp < nzWarp; izWarp++) {
     if (readWarp) {
@@ -275,34 +342,34 @@ static Imod *imod_from_patches(FILE *fin, float scale, int clipSize, char *name,
       }
     }
 
-    for (i = 0; i < npatch; i++) {
+    for (pat = 0; pat < npatch; pat++) {
       pts = (Ipoint *)malloc(2 * sizeof(Ipoint));
       if (!pts)
         exitError("Could not get new point array");
 
-      obj->cont[i + contBase].pts = pts;
-      obj->cont[i + contBase].psize = 2;
+      obj->cont[pat + contBase].pts = pts;
+      obj->cont[pat + contBase].psize = 2;
       if (timesForZ)
-        obj->cont[i + contBase].time = B3DMAX(1, iz + 1);
+        obj->cont[pat + contBase].time = B3DMAX(1, iz + 1);
       if (readWarp) {
         if (ifControl) {
-          xx = xControl[i];
-          yy = yControl[i];
-          dx = -xVector[i];
-          dy = -yVector[i];
+          xx = xControl[pat];
+          yy = yControl[pat];
+          dx = -xVector[pat];
+          dy = -yVector[pat];
         } else {
-          ix = i % nxGrid;
-          iy = i / nxGrid;
+          ix = pat % nxGrid;
+          iy = pat / nxGrid;
           xx = xStart + ix * xInterval;
           yy = yStart + iy * yInterval;
-          dx = -dxGrid[i];
-          dy = -dyGrid[i];
+          dx = -dxGrid[pat];
+          dy = -dyGrid[pat];
         }
       } else {
 
         len = fgetline(fin,line, MAXLINE);
         if (len < 3)
-          exitError("Error reading file at line %d.", i + 1);
+          exitError("Error reading file at line %d.", pat + 1);
         
         /* DNM 7/26/02: read in residuals as real coordinates, without a 
            flip */
@@ -345,30 +412,29 @@ static Imod *imod_from_patches(FILE *fin, float scale, int clipSize, char *name,
       if (dz != 0.)
         dzvary = 1;
 
-      if (nread >= 6 + valColOut[0]) {
-        value = values[valColOut[0] - 1];
-        valmin = B3DMIN(valmin, value);
-        valmax = B3DMAX(valmax, value);
+      maxValCols = B3DMAX(maxValCols, nread - 6);
+      for (i = 0; i < nread - 6; i++) {
+        ind = valTypeMap[i];
+        value = values[i];
+        valMin[ind] = B3DMIN(valMin[ind], value);
+        valMax[ind] = B3DMAX(valMax[ind], value);
+        store.type = GEN_STORE_VALUE1 + 2 * ind;
         if (value || !ignoreZero) {
-          nvals++;
-          valsum += value;
-          sumsq += value * value;
+          numVals[ind]++;
+          valSum[ind] += value;
+          valSqSum[ind] += value * value;
         }
-        store.index.i = i;
+        store.index.i = pat;
         store.value.f = value;
         if (istoreInsert(&obj->store, &store))
-          exitError("Could not add general storage item");
-      }
-      if (nread >= 6 + valColOut[1]) {
-        store2.index.i = i;
-        store2.value.f = values[valColOut[1] - 1];
-        if (istoreInsert(&obj->store, &store2))
           exitError("Could not add general storage item");
       }
     }
     contBase += npatch;
   }
-     
+  /* printf("mvc %d %d %d %d %d %d %d\n", maxValCols, numVals[0], numVals[1], numVals[2], 
+     numVals[3], numVals[4], numVals[5]); */
+  
   if (residuals) {
     obj->symflags = IOBJ_SYMF_ARROW;
     obj->symbol = IOBJ_SYM_NONE;
@@ -409,17 +475,24 @@ static Imod *imod_from_patches(FILE *fin, float scale, int clipSize, char *name,
   obj->flags |= IMOD_OBJFLAG_THICK_CONT | IMOD_OBJFLAG_MCOLOR;
   if (displayValues)
     obj->flags |= IMOD_OBJFLAG_USE_VALUE;
-  if (nvals) {
-    if (nvals > 10) {
-      valsd = (sumsq - valsum * valsum / nvals) / (nvals - 1);
-      if (valsd > 0) {
-        sdmax = valsum / nvals + 10. * sqrt(valsd);
-        valmax = B3DMIN(valmax, sdmax);
+  if (maxValCols) {
+    maxValCols = B3DMAX(maxValCols, valColOut);
+    obj->extra[IOBJ_EXSIZE - 1] = maxValCols;
+  }
+  for (i = 0; i < maxValCols; i++) {
+    obj->extra[IOBJ_EXSIZE - 2 - i] = orderedIDs[i];
+    if (numVals[i]) {
+      if (numVals[i] > 10) {
+        valsd = (valSqSum[i] - valSum[i] * valSum[i] / numVals[i]) / (numVals[i] - 1);
+        if (valsd > 0) {
+          sdmax = valSum[i] / numVals[i] + 10. * sqrt(valsd);
+          valMax[i] = B3DMIN(valMax[i], sdmax);
+        }
       }
-    }
 
-    if (istoreAddMinMax(&obj->store, GEN_STORE_MINMAX1, valmin, valmax))
-      exitError("Could not add general storage item");
+      if (istoreAddMinMax(&obj->store, GEN_STORE_MINMAX1 + 2 * i, valMin[i], valMax[i]))
+        exitError("Could not add general storage item");
+    }
   }
 
   if (name)

@@ -109,6 +109,7 @@ int clip_get_stat3d(Istack *v,
 		    int *rx, int *ry, int *rz);
 int clip_stat(MrcHeader *hin, ClipOptions *opt);
 int clipHistogram(MrcHeader *hin, ClipOptions *opt);
+int histogramPeaksAndDip(MrcHeader *hin, ClipOptions *opt);
 int clip_convolve(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt);
 int clipMedian(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt);
 int clipDiffusion(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt);

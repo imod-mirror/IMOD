@@ -11,10 +11,40 @@ tomogram, to determine the boundaries of sectioned material.  It can
 create a simple model of straight lines along the top and bottom
 surfaces, suitable for use in Tomopitch(1).  It can also create a model
 with contours along the surface, suitable for use with Flattenwarp(1).
-It will also estimate the top and bottom Z levels at which half of the material is
+It will also estimate the top and bottom Z levels at which various
+amounts of the material are
 present, which may be useful for setting the Z limits when combining
-two tomograms.  The latter estimate, as well as this man page, are
-still under development.
+two tomograms or when trimming a tomogram.  This man page is
+still under construction.
+.P
+The detection of surfaces begins with an analysis of the standard
+deviation of image intensity in an array of overlapping boxes.  This
+analysis is done simultaneously at a number of scales or binnings.  The
+motivation for this multi-scale analysis is to find and use the scale
+at which structure is most distinct from background noise.  Although
+the options provide complete control over binning in each dimension,
+only isotropic binning makes sense from the standpoint of noise
+suppression.  However, that does not mean that the boxes themselves
+need to be cubes; instead, they can be very thin in the thickness
+dimension to provide the maximum resolution for detecting the section
+boundary. The boxes also do not need to contain the same number of
+binned pixels, as long as they are big enough to contain enough pixels
+for a good estimate of SD at the highest binning.  It thus works to
+have boxes occupy about the same volume at the different scales, so
+this happens by default.  An overlap of 50% between boxes is also a
+default, so overlap need not be specified.  In short, the two important
+entries that are needed are the number of scales to analyze and the
+unbinned box size.  Four scales are appropriate unless data are already
+binned.  Box sizes of 32x32x1 or bigger are useful.
+.P
+After SD is measured in each box, the program measures the median and
+the normalized median absolute deviation (MADN) of SD in two regions: a
+central region where SD appears to be high (which varies in depth
+across the area), and thin regions near the top and bottom in the depth
+dimension.  The number of boxes, median, and MADN of each regions are
+shown for each scaling in a table.  On the far right of the table is a
+measure of how distinct the central region is from the edge at that
+scaling; these numbers are used to pick the best scaling.
 .SH OPTIONS
 Findsection uses the PIP package for input (see the manual page
 for pip(1)).  Options can be specified either as command line
