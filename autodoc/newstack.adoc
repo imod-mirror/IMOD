@@ -614,6 +614,13 @@ manpage = To test the code for reading in and binning images in chunks,
 enter limits for the total size of the working array, and for the size of 
 the array used for binning.  The sizes are the number of 4-byte elements.
 
+[Field = QuietOutput]
+short = quiet
+type = B
+usage = Suppress image file opening and min/max/mean output
+tooltip = 
+manpage = 
+
 [Field = VerboseOutput]
 short = verbose
 type = I

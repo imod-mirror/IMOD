@@ -95,7 +95,8 @@ only if the section being left has been filtered.
 <B>Autosave:</B> If this is checked, the program will automatically save the
 modified data into program memory when the section is changed.  <I>Use this
 feature with caution.</I>  There is no protection against filtering the same
-section twice if you reverse directions.  
+section twice if you reverse directions.  Moreover, you need to wait until you
+see a processed slice before moving to the next slice.
 </UL>
 <P>
 <A NAME = "FFT"><H4>Fourier Transforms</H4></A>
@@ -225,12 +226,23 @@ same as the operations by the same name in
 <P>
 <A NAME = "Threshold"><H4>Threshold</H4></A>
 This filter will convert an image to black and white for intensities below and
-above the threshold selected by the slider.  <B>Grow thresholded area</B> will
+above the threshold selected by the slider.  Below the slider, a text line
+will show the corresponding threshold value that could be applied to the
+image file, for example with "clip threshold".  <B>Grow thresholded area</B> will
 increase the white area by about a pixel on all sides, and <B>Shrink
   thresholded area</B> will decrease it by about a pixel.  These two options
 can be used together to achieve some smoothing of the thresholded
 area.  <B>Apply changes automatically</B> will make the image be reprocessed
 after every change in the threshold value, which is more convenient than
-pressing <B>Do Same</B> repeatedly.
+pressing <B>Do Same</B> repeatedly.  If your image data are loaded as integers
+(there are 4 sliders in the <A HREF="infowin.html#TOP">Information
+  window</A>), turn off the <B>Float</B> button there to prevent the Low and
+High sliders from being changed, which will result in a gray image.
+<P>
+Although thresholding can done in <A HREF = "../man/clip.html#TOP">Clip</A>,
+the grow and shrink operations are not available there.  Also, because other
+filter operations make it difficult to relate the threshold to a value in a file,
+it is possible to include thresholding when processing the file with the File-Process
+menu item only if thresholding is the first operation.
 <P>
 <A HREF="index.html#TOP">Help Index<A>

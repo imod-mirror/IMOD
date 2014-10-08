@@ -195,6 +195,7 @@ EXPORTS
 	imodRead
 	imodPointPlaneEdge
 	imodObjectClip
+	istoreFindAddMinMax
 	imodPointNormalize
 	istorePointIsGap
 	imodContourGetPoints

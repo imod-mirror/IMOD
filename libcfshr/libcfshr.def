@@ -75,6 +75,7 @@ EXPORTS
 	PipStartsWith
 	FINDHISTOGRAMDIP
 	ADOCSETTWOFLOATS
+	MONTXCORREDGE
 	ilistInsert
 	ADOCSETTWOINTEGERS
 	multiBinSetup
@@ -83,6 +84,7 @@ EXPORTS
 	ICLAVGSD
 	ilistRemove
 	PIPGETINTEGER
+	montBigSearch
 	ADOCGETNUMBEROFSECTIONS
 	ilistNext
 	lsFit2Pred
@@ -160,11 +162,13 @@ EXPORTS
 	sliceSmoothOutPad
 	PIPGETERROR
 	PIPLINKEDINDEX
+	montXCFindBinning
 	AdocSetInteger
 	RSSORTINDEXEDFLOATS
 	b3dGetError
 	AdocGetCollectionName
 	ADOCGETTWOFLOATS
+	MONTXCFINDBINNING
 	AdocGetString
 	mrc_big_seek
 	AdocLookupSection
@@ -175,6 +179,7 @@ EXPORTS
 	sumsToAvgSDdbl
 	xfMult
 	PIPSETMANPAGEOUTPUT
+	IREPAK
 	RSMADMEDIANOUTLIERS
 	normalizeColumns
 	makeLinePointers
@@ -192,6 +197,7 @@ EXPORTS
 	f2cString
 	parWrtSetCurrent
 	SAMPLEMEANSD
+	montXCIndsAndCTF
 	AdocGetNumberOfKeys
 	amatToRotmagstr
 	rssortints
@@ -208,6 +214,7 @@ EXPORTS
 	adjustPieceOverlap
 	AdocGetThreeIntegers
 	conjugateProduct
+	MONTXCBASICSIZES
 	arrayMinMaxMean
 	XCorrSetCTFnoScl
 	surfaceSort
@@ -263,7 +270,9 @@ EXPORTS
 	AdocGetNumCollections
 	sliceTaperOutPad
 	xfInvert
+	montXCorrEdge
 	addValueToRow
+	montSdCalc
 	lsFit2
 	PIPNUMBEROFENTRIES
 	PipGetInteger
@@ -281,16 +290,19 @@ EXPORTS
 	ilistShift
 	sliceModeIfReal
 	AVGSD
+	NICEFRAME
 	binIntoSlice
 	ADDVALUETOROW
 	RSSORTFLOATS
 	AdocSetTwoIntegers
+	EXTRACTWITHBINNING
 	cblas_dcopy
 	gaussjDet
 	multRegress
 	errFunc
 	selectZoomFilterXY
 	PIPREADSTDINIFSET
+	MONTBIGSEARCH
 	PARWRTPROPERTIES
 	imodProgName
 	b3dSetStoreError
@@ -316,6 +328,7 @@ EXPORTS
 	LSFIT2PRED
 	ADOCSETKEYVALUE
 	amoeba
+	niceFrame
 	SETCTFWSR
 	B3DOUTPUTFILETYPE
 	ADOCGETSECTIONNAME
@@ -388,6 +401,7 @@ EXPORTS
 	ilistPush
 	lsFit3
 	cblas_dnrm2
+	montXCBasicSizes
 	imodGetpid
 	ADOCGETTWOINTEGERS
 	sliceGetYSize
@@ -412,13 +426,16 @@ EXPORTS
 	RSTRIMMEDMEANOFSORTED
 	enableRadiusFitting
 	B3DMILLISLEEP
+	MONTXCINDSANDCTF
 	PIPEXITONERRORFW
+	MONTSDCALC
 	setPeakFindLimits
 	sliceFree
 	lsFit
 	matrixToAngles
 	PIPPRINTHELP
 	TAPERINPADEX
+	extractWithBinning
 	anglesToMatrix
 	TAPERINPAD
 	rsSortFloats
@@ -457,6 +474,7 @@ EXPORTS
 	ADJUSTPIECEOVERLAP
 	cblas_daxpy
 	selectZoomFilter
+	rsPercentileOfSorted
 	dsyevc3
 	PIPGETSTRING
 	GAUSSJDET

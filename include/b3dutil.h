@@ -12,6 +12,7 @@
 #define B3DUTIL_H
 
 #include <stdio.h>
+#include <math.h>
 
 /* Include this since this include file was split off from here */
 #include "cfsemshare.h"

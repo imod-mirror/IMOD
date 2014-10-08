@@ -61,7 +61,8 @@ static const char *toggleTips[] = {
   "Toggle between regular and high-resolution (interpolated) image",
   "Lock window at current section unless section is changed in this window",
   "Toggle between centering when model point nears edge and keeping model"
-  " point centered\nIn movie mode, toggle on and off to center current image point",
+  " point centered\nIn movie mode, toggle on and off to center current image point (hot"
+  " key K)",
   "Toggle between inserting points after or before current point (hot key I)",
   "Toggle rubberband on or off (resize with first mouse, move with second; hot key "
   "Shift+B)",
@@ -72,6 +73,7 @@ static const char *toggleTips[] = {
 static PopupEntry sPopupTable[] = {
   {"Toggle automatic section advance", Qt::Key_Z, 0, 1, 0},
   {"Toggle modeling direction", Qt::Key_I, 0, 0, 0},
+  {"Toggle centering mode", Qt::Key_K, 0, 0, 0},
   {"Print area information, raise Info window", Qt::Key_I, 0, 1, 0},
   {"Toggle rubber band", Qt::Key_B, 0, 1, 0},
   {"Report distance from current point to cursor", Qt::Key_Q, 0, 0, 0},
