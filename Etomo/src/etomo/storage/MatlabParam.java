@@ -1234,7 +1234,17 @@ public final class MatlabParam {
     else {
       useReferenceFile = false;
       reference.parse(attribute);
-      addError(reference, errorList);
+      if (!reference.isValid()) {
+        // Reference may be a single number
+        ParsedNumber nReference = ParsedNumber.getMatlabInstance(REFERENCE_KEY);
+        nReference.parse(attribute);
+        if (nReference.isValid()) {
+          reference.addElement(nReference);
+        }
+        else {
+          addError(reference, errorList);
+        }
+      }
     }
     // particlePerCPU
     particlePerCpu.parse(autodoc.getAttribute(PARTICLE_PER_CPU_KEY));
@@ -2199,6 +2209,8 @@ public final class MatlabParam {
         new EtomoNumber().set(1), FieldLabels.YAXIS_TYPE_PARTICLE_MODEL_LABEL);
     public static final YAxisType CONTOUR = new YAxisType(new EtomoNumber().set(2),
         FieldLabels.YAXIS_TYPE_CONTOUR_LABEL);
+    public static final YAxisType CSV_FILES = new YAxisType(new EtomoNumber().set(3),
+        FieldLabels.CSV_FILES_LABEL);
     public static final YAxisType DEFAULT = Y_AXIS;
 
     public static final String KEY = "yaxisType";
@@ -2244,6 +2256,9 @@ public final class MatlabParam {
       }
       if (CONTOUR.value.equals(value)) {
         return CONTOUR;
+      }
+      if (CSV_FILES.value.equals(value)) {
+        return CSV_FILES;
       }
       UIHarness.INSTANCE.openProblemValueMessageDialog(component, "Unknown", KEY, null,
           FieldLabels.YAXIS_TYPE_LABEL, value, DEFAULT.value.toString(), DEFAULT.label);
