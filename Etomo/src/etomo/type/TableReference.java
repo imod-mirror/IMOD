@@ -202,7 +202,7 @@ public final class TableReference {
     }
     System.err.println("Loading  " + prepend + "."
         + "properties.  All properties with IDs greater then " + lastID
-        + "will not be loaded, and may overwritten.");
+        + " will not be loaded, and may be overwritten.");
     // loading prepend.ID = uniqueString
     for (long idNum = 1; idNum <= lastIDNum.getLong(); idNum++) {
       String id = idPrefix + idNum;

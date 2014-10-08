@@ -1,6 +1,7 @@
 package etomo.ui.swing;
 
 import java.awt.Component;
+import java.awt.FontMetrics;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.io.File;
@@ -13,6 +14,7 @@ import etomo.type.ConstEtomoNumber;
 import etomo.type.EtomoNumber;
 import etomo.type.ParsedElementType;
 import etomo.type.UITestFieldType;
+import etomo.ui.TableComponent;
 
 /**
  * <p>Description: </p>
@@ -148,13 +150,14 @@ import etomo.type.UITestFieldType;
  * <p> field is disabled).
  * <p> </p>
  */
-final class FieldCell extends InputCell implements ActionTarget {
+final class FieldCell extends InputCell implements ActionTarget,TableComponent {
   public static final String rcsid = "$Id$";
 
   private final JTextField textField;
   private final ParsedElementType parsedElementType;
 
   private boolean inUse = true;
+  private FontMetrics fontMetrics = null;
 
   private TextFieldState state;
 
@@ -231,6 +234,13 @@ final class FieldCell extends InputCell implements ActionTarget {
 
   public String toString() {
     return textField.getText();
+  }
+
+ public int getPreferredWidth() {
+    if (fontMetrics == null) {
+      fontMetrics = UIUtilities.getFontMetrics(textField);
+    }
+    return UIUtilities.getPreferredWidth(textField.getText(), fontMetrics);
   }
 
   public void setEnabled(boolean enable) {

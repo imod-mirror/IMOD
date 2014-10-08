@@ -82,9 +82,15 @@ final class PanelHeaderSettings implements ConstPanelHeaderSettings {
   }
 
   public void reset() {
-    open.reset();
-    advanced.reset();
-    more.reset();
+    if (open != null) {
+      open.reset();
+    }
+    if (advanced != null) {
+      advanced.reset();
+    }
+    if (advanced != null) {
+      more.reset();
+    }
   }
 
   public void set(final ConstPanelHeaderSettings input) {

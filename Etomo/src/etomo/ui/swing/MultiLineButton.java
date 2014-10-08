@@ -20,6 +20,7 @@ import etomo.util.Utilities;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.FontMetrics;
 import java.awt.Insets;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseListener;
@@ -256,6 +257,7 @@ class MultiLineButton implements ProcessResultDisplay {
   private Color buttonHighlightForeground = null;
   private boolean debug = false;
   private String unformattedLabel = null;
+  private FontMetrics fontMetrics = null;
 
   public void dumpState() {
     System.err.print("[toggleButton:" + toggleButton + ",stateKey:" + stateKey
@@ -274,6 +276,20 @@ class MultiLineButton implements ProcessResultDisplay {
 
   static MultiLineButton getDebugInstance(String label) {
     return new MultiLineButton(label, false, null, true);
+  }
+
+  int getPreferredWidth() {
+    if (fontMetrics == null) {
+      fontMetrics = UIUtilities.getFontMetrics(button);
+    }
+    return UIUtilities.getPreferredWidth(button, unformattedLabel, fontMetrics);
+  }
+
+  int getPreferredWidth(final String text) {
+    if (fontMetrics == null) {
+      fontMetrics = UIUtilities.getFontMetrics(button);
+    }
+    return UIUtilities.getPreferredWidth(button, text, fontMetrics);
   }
 
   int getWidth() {

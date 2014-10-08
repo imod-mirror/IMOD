@@ -410,13 +410,14 @@ public final class ApplicationManager extends BaseManager implements
   }
 
   BatchruntomoParam updateBatchruntomo(final boolean directiveDrivenAutomation,
-      final DirectiveFile directiveFile) {
+      final DirectiveFile directiveFile, final AxisID axisID) {
     if (directiveFile == null) {
       return null;
     }
-    BatchruntomoParam param = new BatchruntomoParam(this);
+    BatchruntomoParam param = new BatchruntomoParam(this, axisID,
+        BatchruntomoParam.Mode.VALIDATION);
     param.setValidationType(directiveDrivenAutomation);
-    param.setDirective(directiveFile);
+    param.addDirectiveFile(directiveFile);
     if (param.isValid()) {
       return param;
     }
@@ -488,7 +489,8 @@ public final class ApplicationManager extends BaseManager implements
             && !EtomoDirector.INSTANCE.getArguments().isFromBRT()) {
           // Etomo is responsible for running the validation of the directive files.
           BatchruntomoParam param = updateBatchruntomo(true, setupReconUIHarness
-              .getDirectiveFileCollection().getDirectiveFile(DirectiveFileType.BATCH));
+              .getDirectiveFileCollection().getDirectiveFile(DirectiveFileType.BATCH),
+              AxisID.ONLY);
           if (param != null && !processMgr.batchruntomo(AxisID.ONLY, param)) {
             return false;
           }
@@ -496,17 +498,20 @@ public final class ApplicationManager extends BaseManager implements
         else if (!setupReconUIHarness.isDirectiveDrivenAutomation()) {
           // Run validation for each template
           BatchruntomoParam param = updateBatchruntomo(false, setupReconUIHarness
-              .getDirectiveFileCollection().getDirectiveFile(DirectiveFileType.SCOPE));
+              .getDirectiveFileCollection().getDirectiveFile(DirectiveFileType.SCOPE),
+              AxisID.ONLY);
           if (param != null && !processMgr.batchruntomo(AxisID.ONLY, param)) {
             return false;
           }
           param = updateBatchruntomo(false, setupReconUIHarness
-              .getDirectiveFileCollection().getDirectiveFile(DirectiveFileType.SYSTEM));
+              .getDirectiveFileCollection().getDirectiveFile(DirectiveFileType.SYSTEM),
+              AxisID.ONLY);
           if (param != null && !processMgr.batchruntomo(AxisID.ONLY, param)) {
             return false;
           }
           param = updateBatchruntomo(false, setupReconUIHarness
-              .getDirectiveFileCollection().getDirectiveFile(DirectiveFileType.USER));
+              .getDirectiveFileCollection().getDirectiveFile(DirectiveFileType.USER),
+              AxisID.ONLY);
           if (param != null && !processMgr.batchruntomo(AxisID.ONLY, param)) {
             return false;
           }
@@ -8940,8 +8945,7 @@ public final class ApplicationManager extends BaseManager implements
       return false;
     }
     mainPanel.startProgressBar(
-        "Using " + useFile.getName() + " as " + outputFileType.getDescription(),
-        axisID);
+        "Using " + useFile.getName() + " as " + outputFileType.getDescription(), axisID);
     if (!useFile.exists()) {
       UIHarness.INSTANCE.openMessageDialog(this, useFile.getName()
           + " doesn't exist.  Press " + runButtonLabel + " to create this file.",

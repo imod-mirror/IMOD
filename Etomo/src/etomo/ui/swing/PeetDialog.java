@@ -569,6 +569,10 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     return ProcessingMethod.LOCAL_CPU;
   }
 
+  public ProcessingMethod getSecondaryProcessingMethod() {
+    return null;
+  }
+
   public void disableGpu(final boolean disable) {
   }
 

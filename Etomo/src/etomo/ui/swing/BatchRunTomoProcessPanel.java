@@ -22,7 +22,7 @@ final class BatchRunTomoProcessPanel extends AxisProcessPanel {
   public static final String rcsid = "$Id:$";
   
   BatchRunTomoProcessPanel(final BaseManager manager) {
-    super(AxisID.ONLY, manager, true);
+    super(AxisID.ONLY, manager, true,false);
     createProcessControlPanel();
     showBothAxis();
     initializePanels();

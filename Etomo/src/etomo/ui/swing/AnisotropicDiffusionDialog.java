@@ -360,6 +360,10 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
     return ProcessingMethod.PP_CPU;
   }
 
+  public ProcessingMethod getSecondaryProcessingMethod() {
+    return null;
+  }
+
   public void disableGpu(final boolean disable) {
   }
 

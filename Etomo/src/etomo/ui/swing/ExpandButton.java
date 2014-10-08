@@ -15,6 +15,7 @@ import etomo.EtomoDirector;
 import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.type.DialogType;
 import etomo.type.UITestFieldType;
+import etomo.ui.TableComponent;
 import etomo.util.Utilities;
 
 /**
@@ -145,7 +146,7 @@ import etomo.util.Utilities;
  * <p> tells the component it is displayed on when it has been pressed.
  * <p> </p>
  */
-final class ExpandButton extends MultiLineButton {
+final class ExpandButton extends MultiLineButton implements TableComponent {
   public static final String rcsid = "$Id$";
 
   private static final Type DEFAULT_TYPE = Type.MORE;
@@ -313,6 +314,10 @@ final class ExpandButton extends MultiLineButton {
     }
   }
 
+public  int getPreferredWidth() {
+    return getPreferredWidth(type.getUnformattedText(expanded));
+  }
+
   void add(final JPanel panel, final GridBagLayout layout,
       final GridBagConstraints constraints) {
     double oldWeightx = constraints.weightx;
@@ -421,6 +426,19 @@ final class ExpandButton extends MultiLineButton {
       this.contractedState = contractedState;
       this.contractedSymbol = contractedSymbol;
       this.contractedToolTip = contractedToolTip;
+    }
+
+    private String getUnformattedText(final boolean expanded) {
+      if (this == MORE) {
+        if (expanded) {
+          return "<";
+        }
+        return ">";
+      }
+      if (expanded) {
+        return expandedSymbol;
+      }
+      return contractedSymbol;
     }
 
     private static boolean isExpandedSymbol(String symbol) {

@@ -22,7 +22,7 @@ final class DirectiveEditorProcessPanel extends AxisProcessPanel{
   public static final String rcsid = "$Id:$";
 
   DirectiveEditorProcessPanel(DirectiveEditorManager manager) {
-    super(AxisID.ONLY, manager, true);
+    super(AxisID.ONLY, manager, true,true);
     createProcessControlPanel();
     showBothAxis();
     initializePanels();
