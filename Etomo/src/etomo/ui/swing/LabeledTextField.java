@@ -479,8 +479,11 @@ final class LabeledTextField implements UIComponent, SwingComponent, Field, Focu
   public void setFieldHighlight(final boolean value) {
   }
 
-  public void setFieldHighlight(final FieldSettingInterface input) {
-    TextFieldSetting setting = input.getTextSetting();
+  public void setFieldHighlight(final FieldSettingInterface settingInterface) {
+    TextFieldSetting setting = null;
+    if (settingInterface != null) {
+      setting = settingInterface.getTextSetting();
+    }
     if (setting == null || !setting.isSet()) {
       clearFieldHighlight();
     }
