@@ -208,7 +208,10 @@ final class TextField implements UIComponent, SwingComponent, Field, FocusListen
   }
 
   public void setCheckpoint(final FieldSettingInterface settingInterface) {
-    TextFieldSetting setting = settingInterface.getTextSetting();
+    TextFieldSetting setting = null;
+    if (settingInterface != null) {
+      setting = settingInterface.getTextSetting();
+    }
     if (setting == null || !setting.isSet()) {
       if (checkpoint != null) {
         checkpoint.reset();
@@ -223,7 +226,10 @@ final class TextField implements UIComponent, SwingComponent, Field, FocusListen
   }
 
   public void setFieldHighlight(final FieldSettingInterface settingInterface) {
-    TextFieldSetting setting = settingInterface.getTextSetting();
+    TextFieldSetting setting = null;
+    if (settingInterface != null) {
+      setting = settingInterface.getTextSetting();
+    }
     if (setting == null || !setting.isSet()) {
       clearFieldHighlight();
     }
