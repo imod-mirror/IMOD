@@ -9,7 +9,6 @@ import java.io.IOException;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
-import javax.swing.JPanel;
 
 import etomo.BaseManager;
 import etomo.storage.LogFile;
@@ -63,7 +62,9 @@ final class YAxisTypePanel {
   private final RadioButton rbYAxisTypeParticleModel = new RadioButton(
       MatlabParam.YAxisType.PARTICLE_MODEL, bgYAxisType);
   private final RadioButton rbYAxisTypeContour = new RadioButton(
-      MatlabParam.YAxisType.CONTOUR, bgYAxisType, ":  ");
+      MatlabParam.YAxisType.CONTOUR, bgYAxisType);
+  private final RadioButton rbYAxisTypeCsvFiles = new RadioButton(
+      MatlabParam.YAxisType.CSV_FILES, bgYAxisType);
 
   private final YAxisTypeParent parent;
   private final BaseManager manager;
@@ -87,11 +88,11 @@ final class YAxisTypePanel {
     rbYAxisTypeYAxis.addActionListener(actionListener);
     rbYAxisTypeParticleModel.addActionListener(actionListener);
     rbYAxisTypeContour.addActionListener(actionListener);
+    rbYAxisTypeCsvFiles.addActionListener(actionListener);
   }
 
   private void createPanel() {
     // local panels
-    JPanel pnlYAxisContour = new JPanel();
     SpacedPanel pnlYaxisType = SpacedPanel.getInstance();
     pnlRoot.setBoxLayout(BoxLayout.X_AXIS);
     pnlRoot.setBorder(new EtchedBorder(FieldLabels.YAXIS_TYPE_LABEL).getBorder());
@@ -102,11 +103,9 @@ final class YAxisTypePanel {
     pnlYaxisType.setComponentAlignmentX(Component.LEFT_ALIGNMENT);
     pnlYaxisType.add(rbYAxisTypeYAxis);
     pnlYaxisType.add(rbYAxisTypeParticleModel);
-    pnlYaxisType.add(pnlYAxisContour);
-    pnlYaxisType.add(Box.createRigidArea(FixedDim.x0_y23));
-    // YaxisContour
-    pnlYAxisContour.setLayout(new BoxLayout(pnlYAxisContour, BoxLayout.X_AXIS));
-    pnlYAxisContour.add(rbYAxisTypeContour.getComponent());
+    pnlYaxisType.add(rbYAxisTypeContour.getComponent());
+    pnlYaxisType.add(rbYAxisTypeCsvFiles.getComponent());
+    pnlYaxisType.add(Box.createRigidArea(FixedDim.x0_y1));
   }
 
   Component getComponent() {
@@ -135,6 +134,9 @@ final class YAxisTypePanel {
     else if (yaxisType == MatlabParam.YAxisType.CONTOUR) {
       rbYAxisTypeContour.setSelected(true);
     }
+    else if (yaxisType == MatlabParam.YAxisType.CSV_FILES) {
+      rbYAxisTypeCsvFiles.setSelected(true);
+    }
   }
 
   void getParameters(final MatlabParam matlabParam) {
@@ -151,13 +153,15 @@ final class YAxisTypePanel {
     rbYAxisTypeYAxis.setSelected(false);
     rbYAxisTypeParticleModel.setSelected(false);
     rbYAxisTypeContour.setSelected(false);
+    rbYAxisTypeCsvFiles.setSelected(false);
   }
 
   private void action(final String actionCommand,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (actionCommand.equals(rbYAxisTypeYAxis.getActionCommand())
         || actionCommand.equals(rbYAxisTypeParticleModel.getActionCommand())
-        || actionCommand.equals(rbYAxisTypeContour.getActionCommand())) {
+        || actionCommand.equals(rbYAxisTypeContour.getActionCommand())
+        || actionCommand.equals(rbYAxisTypeCsvFiles.getActionCommand())) {
       parent.updateDisplay();
     }
   }
@@ -181,6 +185,7 @@ final class YAxisTypePanel {
     rbYAxisTypeYAxis.setToolTipText(section);
     rbYAxisTypeParticleModel.setToolTipText(section);
     rbYAxisTypeContour.setToolTipText(section);
+    rbYAxisTypeCsvFiles.setToolTipText("Read particle rotation axes from file(s) [fnOutput]_Tom[n]_RotAxes.csv");
   }
 
   private static final class YAxisTypeActionListener implements ActionListener {

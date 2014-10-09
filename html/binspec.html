@@ -29,7 +29,7 @@ The end of the file is marked by an end of data marker, (IEOF = 0x49454f46).
 The Model structure data is 232 bytes long and contains the following data.
 A lot of this data is used by the 3dmod program to retain user settings.
 <pre>
-Length Type Name          Description
+Length Type Name           Description
 -----------------------------------------------------------------------------
 128    char  name          Name of model file.
 
@@ -37,14 +37,14 @@ Length Type Name          Description
 4      int   ymax          set to the image dimensions.
 4      int   zmax
 
-4      int  objsize       Number of objects in model.
+4      int  objsize        Number of objects in model.
 
-4      uint flags         Model flags  (IMODF_FLAG...)
-                           Bit 12 on : multiple clip planes are possible
-                           Bit 13 on : mat1 and mat3 are stored as bytes
-                           Bit 14 on : otrans has image origin values
-                           Bit 15 on : current tilt angles are stored correctly
-                           Bit 16 on : model last viewed on Y/Z flipped image
+4      uint flags          Model flags  (IMODF_FLAG...)
+                             Bit 12 on : multiple clip planes are possible
+                             Bit 13 on : mat1 and mat3 are stored as bytes
+                             Bit 14 on : otrans has image origin values
+                             Bit 15 on : current tilt angles are stored correctly
+                             Bit 16 on : model last viewed on Y/Z flipped image
 4      int   drawmode      1 to draw model, -1 not to
 4      int   mousemode     Mouse editing mode. (0=movie,1=model)
 
@@ -136,7 +136,7 @@ Length Type  Name       Description
 
 1      uchar symbol       Point Draw symbol in 2D, default is 1.
                              0 = circle, 1 = none, 2 = square, 3 = triangle,
-	                     4 = star.
+                             4 = star.
 1      uchar symsize      Size of 2D symbol; radius in pixels.
 1      uchar linewidth2   Linewidth in 2-D view.
 1      uchar linewidth    Linewidth in 3-D view.
@@ -184,7 +184,7 @@ Length    Type         Name    Description
 4         int          vsize   # of elements in vert array (# of triple floats)
 4         int          lsize   # of elements in list array (indexes).
 4         uint         flag    Bit 16 on  : normals have magnitudes.
-                	       Bits 20-23 are resolution : 0 for high, 
+                               Bits 20-23 are resolution : 0 for high, 
                                   1 for lower resolution, etc.
 2         short        time    Contains a time index or 0
 2         short        surf    Contains a surface number or 0
@@ -198,13 +198,13 @@ vertex/normal pairs; i.e. vertex, normal, vertex, normal...  The
 <code>list</code> array has a list of indices into the <code>vert</code>
 array plus negative index values with following meanings:
 <pre>
-	-1   end of list array                
-	-20  next item on list is normal vector.
-	-21  begin polygon with vertices and vertex indices only
-        -22  end polygon
-	-23  begin vertex,normal polygon pairs with normal,vertex indices
-	-24  begin large convex polygon with normals.
-	-25  begin vertex,normal polygon pairs with vertex indices
+  -1   end of list array                
+  -20  next item on list is normal vector.
+  -21  begin polygon with vertices and vertex indices only
+  -22  end polygon
+  -23  begin vertex,normal polygon pairs with normal,vertex indices
+  -24  begin large convex polygon with normals.
+  -25  begin vertex,normal polygon pairs with vertex indices
 
 </pre>
 Currently, meshes in model files consist only of polygons with vertex, normal
@@ -458,10 +458,10 @@ Currently there are 187 bytes per object view, as follows:
 1     uchar     clips.plane  Current clip plane
 12    float * 3 clips.normal Normal for first clipping plane
 12    float * 3 clips.point  Point value for first clipping plane
-1     uchar 	ambient      Ambient property.  (see above)
-1     uchar 	diffuse      Diffuse property.  (see above)
-1     uchar 	specular     Specular property.  (see above)
-1     uchar 	shininess    Shininess exponent in specular term.  (see above)
+1     uchar     ambient      Ambient property.  (see above)
+1     uchar     diffuse      Diffuse property.  (see above)
+1     uchar     specular     Specular property.  (see above)
+1     uchar     shininess    Shininess exponent in specular term.  (see above)
 1     uchar     fillred      Fill color red.
 1     uchar     fillgreen    Fill color green.
 1     uchar     fillblue     Fill color blue.

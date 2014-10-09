@@ -69,6 +69,35 @@ the desired size in X, Y, and Z.  The sizes available by letter are S for
 small (64x32x64), M for medium (80x40x80), L for large (100x50x100), or E for
 extra large (120x60x120).
 
+[Field = AutoPatchFinalSize]
+short = autopatch
+type = CH
+usage = Final patch size for Autopatchfit (S, M, L, E or size in X, Y, Z)
+tooltip =
+manpage = Enter a final patch size for doing automated patch correlation and
+fitting with Autopatchfit(1).  The size can be either a letter to indicate the
+size as for the \fB-patchsize\fR option (S, M, L, or E), or three numbers for
+the desired size in X, Y, and Z.  The final size may not be smaller than the
+initial patch size in any dimension.  Including this option will cause several
+changes. Corrsearch3d(1) will use kernel filtering with a default
+sigma of 1.45, will analyze local standard deviation and output two measures of
+structure in the patch output file, and will eliminate patches with a
+structure measure of less than 0.5.  Patches will be more numerous and denser
+in X and Y, and usually in Z as well.  In Findwarp(1), fitting will be over a
+minimum of 3 patches in X and Y, and thresholds of 0.5,0.57, and 0.65
+in the measure of structure are applied successively to eliminate patches at
+each residual criterion.  The command file "combine.com" will contain a goto
+statement to run Autopatchfit(1) after "matchvol1.com" instead of
+"patchcorr.com" then "matchorwarp.com".
+
+[Field = ExtraResidualTargets]
+short = extra
+type = CH
+usage = Extra target residual values for final trial of Autopatchfit
+tooltip =
+manpage = This option can be used to provide extra target residual values to
+be be used by Autopatchfit(1) on its final trial.
+
 [Field = XLowerAndUpper]
 short = xlimits
 type = IP
@@ -92,8 +121,10 @@ short = zlimits
 type = IP
 usage = Lower and upper coordinate limits of patches in Z
 tooltip =
-manpage = Lower and upper coordinate limits of patches in Z.  There is no
-default; these limits must be entered.
+manpage = Lower and upper coordinate limits of patches in Z.  If the
+\fB-autopatch\fR option is entered, the default is the full range in Z (which is
+actually the Y dimension of the tomogram).  If not, there is no default and
+these limits must be entered.
 
 [Field = PatchRegionModel]
 short = regionmod
