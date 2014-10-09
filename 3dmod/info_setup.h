@@ -32,7 +32,7 @@ extern int ImodForbidLevel;
 
 enum {FILE_MENU_NEW, FILE_MENU_OPEN, FILE_MENU_RELOAD, FILE_MENU_SAVE,
       FILE_MENU_SAVEAS, FILE_MENU_SNAPDIR, FILE_MENU_SNAPGRAY, 
-      FILE_MENU_MOVIEMONT, FILE_MENU_TIFF, FILE_MENU_EXTRACT, 
+      FILE_MENU_MOVIEMONT, FILE_MENU_TIFF, FILE_MENU_EXTRACT, FILE_MENU_PROCESS,
       FILE_MENU_SAVEINFO, FILE_MENU_QUIT,
       FWRITE_MENU_IMOD, FWRITE_MENU_WIMP, FWRITE_MENU_NFF, FWRITE_MENU_SYNU,
       EDIT_MENU_GRAIN, EDIT_MENU_ANGLES, EDIT_MENU_SCALEBAR,
@@ -40,7 +40,7 @@ enum {FILE_MENU_NEW, FILE_MENU_OPEN, FILE_MENU_RELOAD, FILE_MENU_SAVE,
       EMODEL_MENU_HEADER, EMODEL_MENU_OFFSETS, EMODEL_MENU_CLEAN, 
       EOBJECT_MENU_NEW, EOBJECT_MENU_DELETE, EOBJECT_MENU_COLOR, 
       EOBJECT_MENU_TYPE, EOBJECT_MENU_INFO, EOBJECT_MENU_MOVE, 
-      EOBJECT_MENU_CLEAN, EOBJECT_MENU_FIXZ, EOBJECT_MENU_FLATTEN,
+      EOBJECT_MENU_CLEAN, EOBJECT_MENU_FIXZ, EOBJECT_MENU_FILLIN, EOBJECT_MENU_FLATTEN,
       EOBJECT_MENU_RENUMBER, EOBJECT_MENU_COMBINE,
       ESURFACE_MENU_NEW, ESURFACE_MENU_GOTO, ESURFACE_MENU_MOVE, 
       ESURFACE_MENU_DELETE,
@@ -65,7 +65,7 @@ class InfoWindow : public QMainWindow
 
  public:
   InfoWindow(QWidget * parent = 0, const char * name = 0, 
-              Qt::WFlags f = Qt::Window) ;
+              Qt::WindowFlags f = Qt::Window) ;
   ~InfoWindow() {};
   void manageMenus();
   void keepOnTop(bool state);
@@ -76,6 +76,7 @@ class InfoWindow : public QMainWindow
   void resizeToHeight(int newHeight);
   int getResizedHeight() {return mResizedHeight;};
   void doOrSetupMove(int x, int y);
+  QString getAdjustedFilePath(int timeLock);
 
   public slots:
   void fileSlot(int item);
@@ -105,6 +106,7 @@ class InfoWindow : public QMainWindow
 
  private:
   void extract();
+  void processFile();
   void objectInfo();
   QAction *mActions[LAST_MENU_ID];
   QTextEdit *mStatusEdit;
@@ -115,6 +117,7 @@ class InfoWindow : public QMainWindow
   int mOldFontHeight;
   QProcess *mTrimvolProcess;
   QString mTrimvolOutput;
+  QString mProcessComRoot;
   int mTrimvolType;
   QProcess *mImodinfoProcess;
   int mResizedHeight;
