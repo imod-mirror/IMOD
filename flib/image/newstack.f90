@@ -29,7 +29,7 @@ program newstack
   character*320 tempName, temp_filename, seriesExt
   character*100000 listString
   character*6 convFormat
-  character*10 convNum
+  character*10 convNum, zvalueName, globalName
   equivalence (nx, nxyz(1)), (ny, nxyz(2)), (nz, nxyz(3))
   !
   data nxyzst/0, 0, 0/
@@ -57,12 +57,13 @@ program newstack
   integer*4, allocatable :: lineUse(:), listReplace(:), idfUse(:), nControl(:)
   real*4, allocatable :: xcen(:), ycen(:), secMean(:), f(:,:,:)
   real*4, allocatable :: tmpDx(:,:), tmpDy(:,:), fieldDx(:,:), fieldDy(:,:)
+  integer*4, allocatable :: listVolumes(:)
 
   real*4 tiltAngles(LIMGRADSEC), dmagPerMicron(LIMGRADSEC), rotPerMicron(LIMGRADSEC)
   !
   logical rescale, blankOutput, adjustOrigin, hasWarp, fillTmp, fillNeeded, stripExtra
-  logical readShrunk, numberedFromOne, twoDirections
-  character dat * 9, timeStr * 8, tempExt * 9
+  logical readShrunk, numberedFromOne, twoDirections, useMdocFiles, outDocChanged, quiet
+  character dat*9, timeStr*8, tempExt*9
   logical nbytes_and_flags
   character*80 titlech
   integer*4 inUnit, numInFiles, listTotal, numOutTot, numOutFiles, nxOut, nyOut, lmGrid
@@ -82,45 +83,49 @@ program newstack
   integer*4 ix1, ix2, nByteCopy, nByteClear, ifLinear, limEntered, insideTaper, indFile
   real*4 constAdd, densOutMin, dens, tmin2, tmax2, tmean2, avgSec, enteredSD, enteredMean
   integer*4 numInputFiles, numSecLists, numOutputFiles, numToGet, maxNxGrid, maxNyGrid
-  integer*4 numOutValues, numOutEntries, ierr, ierr2, i, kti, iy, ind
-  integer*4 maxFieldY, inputBinning, nxFirst, nyFirst, nxBin, nyBin
-  integer*4 lenTemp, ierr3, applyFirst, numTaper, numberOffset, numExclude
-  integer*4 ifOnePerFile, ifUseFill, listIncrement, indOut, ifMeanSdEntered
+  integer*4 numOutValues, numOutEntries, ierr, ierr2, i, kti, iy, ind, numSecTrunc
+  integer*4 maxFieldY, inputBinning, nxFirst, nyFirst, nxBin, nyBin, indGlobalAdoc
+  integer*4 lenTemp, ierr3, applyFirst, numTaper, numberOffset, numExclude, ifChunkIn
+  integer*4 ifOnePerFile, ifUseFill, listIncrement, indOut, ifMeanSdEntered, nzChunkIn
   integer*4 numReplace, isecReplace, modeOld, loadYoffset, loadBaseInd, listAlloc
-  integer*4 indFilter, linesShrink, numAllSec, maxNumXF, nxMax, nyMax, ifControl
-  integer*4 indFiltTemp, ifFiltSet, ifShrink, numSecTrunc
+  integer*4 indFilter, linesShrink, numAllSec, maxNumXF, nxMax, nyMax, ifControl, nzChunk
+  integer*4 indFiltTemp, ifFiltSet, ifShrink, numVolRead, if3dVolumes, nxTile, nyTile
+  integer*4 indAdocIn, indAdocOut, indSectIn, needClose1, needClose2, nxTileIn, nyTileIn
   real*4 rxOffset, ryOffset
   real*4 fieldMaxY, rotateAngle, expandFactor, fillVal, shrinkFactor
   real*8 dsum, dsumSq, tsum, tsumSq, wallStart, wallTime, loadTime, saveTime
   real*8 rotTime
   real*4 cosd, sind
   integer*4 taperAtFill, selectZoomFilter, zoomFiltInterp, numberInList
-  integer*4 readCheckWarpFile
-  integer*4 getLinearTransform, findMaxGridSize, getSizeAdjustedGrid
+  integer*4 readCheckWarpFile, AdocLookupByNameValue, AdocTransferSection, AdocSetCurrent
+  integer*4 iiuRetAdocIndex, iiuVolumeOpen, iiuAltChunkSizes, AdocWrite
+  integer*4 getLinearTransform, findMaxGridSize, getSizeAdjustedGrid, iiuFileType
+  integer*4 setOutputTypeFromString, b3dOutputFileType, AdocSetInteger, iiuWriteGlobalAdoc
   character*320 concat
   !
   logical pipinput
   integer*4 numOptArg, numNonOptArg
-  integer*4 PipGetInteger, PipGetBoolean, PipGetLogical
+  integer*4 PipGetInteger, PipGetBoolean, PipGetLogical, PipGetThreeIntegers
   integer*4 PipGetString, PipGetTwoIntegers, PipGetFloatArray, PipGetFloat
   integer*4 PipGetIntegerArray, PipGetNonOptionArg, PipGetTwoFloats
   !
   ! fallbacks from ../../manpages/autodoc2man -3 2  newstack
   !
   integer numOptions
-  parameter (numOptions = 47)
+  parameter (numOptions = 52)
   character*(40 * numOptions) options(1)
   options(1) = &
       'input:InputFile:FNM:@output:OutputFile:FNM:@fileinlist:FileOfInputs:FN:@'// &
       'fileoutlist:FileOfOutputs:FN:@split:SplitStartingNumber:I:@'// &
-      'append:AppendExtension:CH:@secs:SectionsToRead:LIM:@'// &
-      'fromone:NumberedFromOne:B:@exclude:ExcludeSections:LI:@'// &
-      'twodir:TwoDirectionTiltSeries:B:@skip:SkipSectionIncrement:I:@'// &
-      'numout:NumberToOutput:IAM:@replace:ReplaceSections:LI:@blank:BlankOutput:B:@'// &
-      'offset:OffsetsInXandY:FAM:@applyfirst:ApplyOffsetsFirst:B:@'// &
-      'xform:TransformFile:FN:@uselines:UseTransformLines:LIM:@'// &
-      'onexform:OneTransformPerFile:B:@rotate:RotateByAngle:F:@'// &
-      'expand:ExpandByFactor:F:@shrink:ShrinkByFactor:F:@'// &
+      'append:AppendExtension:CH:@format:FormatOfOutputFile:CH:@'// &
+      'volumes:VolumesToRead:LI:@3d:Store3DVolumes:I:@chunk:ChunkSizesInXYZ:IT:@'// &
+      'mdoc:UseMdocFiles:B:@secs:SectionsToRead:LIM:@fromone:NumberedFromOne:B:@'// &
+      'exclude:ExcludeSections:LI:@twodir:TwoDirectionTiltSeries:B:@'// &
+      'skip:SkipSectionIncrement:I:@numout:NumberToOutput:IAM:@'// &
+      'replace:ReplaceSections:LI:@blank:BlankOutput:B:@offset:OffsetsInXandY:FAM:@'// &
+      'applyfirst:ApplyOffsetsFirst:B:@xform:TransformFile:FN:@'// &
+      'uselines:UseTransformLines:LIM:@onexform:OneTransformPerFile:B:@'// &
+      'rotate:RotateByAngle:F:@expand:ExpandByFactor:F:@shrink:ShrinkByFactor:F:@'// &
       'antialias:AntialiasFilter:I:@bin:BinByFactor:I:@distort:DistortionField:FN:@'// &
       'imagebinned:ImagesAreBinned:I:@fields:UseFields:LIM:@'// &
       'gradient:GradientFile:FN:@origin:AdjustOrigin:B:@'// &
@@ -196,10 +201,17 @@ program newstack
   numberOffset = 0
   numExclude = 0
   numSecTrunc = 0
+  numVolRead = 0
+  if3dVolumes = 0
+  nxTile = 0
+  nyTile = 0
+  nzChunk = 1
+  useMdocFiles = .false.
   !
   ! Preliminary allocation of array
   allocate(array(limToAlloc), stat = ierr)
   call memoryError(ierr, 'ALLOCATING MAIN ARRAY')
+  call AdocGetStandardNames(globalName, zvalueName)
   !
   ! read in list of input files
   !
@@ -254,9 +266,32 @@ program newstack
   endif
   listTotal = 0
   numAllSec = 0
-  allocate(inFile(numInFiles), nlist(numInFiles), listInd(numInFiles),   &
-      lineTmp(numInFiles), scaleFacs(numInFiles), scaleConsts(numInFiles),  stat = ierr)
+  allocate(inFile(numInFiles), nlist(numInFiles), listInd(numInFiles),  &
+      lineTmp(numInFiles), scaleFacs(numInFiles), scaleConsts(numInFiles),  &
+      listVolumes(numInFiles), stat = ierr)
   call memoryError(ierr, 'ARRAYS FOR INPUT FILES')
+  !
+  ! Get HDF and volume related options
+  if (pipInput) then
+    if (PipGetString('FormatOfOutputFile', listString) .eq. 0) then
+      ierr = setOutputTypeFromString(listString)
+      if (ierr == -5) &
+          call exitError('HDF files are not supported by this IMOD package')
+      if (ierr < 0) call exitError('Unrecognized entry for output file format')
+    endif
+    if (PipGetString('VolumesToRead', listString) .eq. 0) then
+      call parseList2(listString, inList, numVolRead, LIMSEC)
+      numVolRead = min(numVolRead, numInFiles)
+      listVolumes(1:numVolRead) = inList(1:numVolRead)
+    endif
+    ifChunkIn = 1 - PipGetThreeIntegers('ChunkSizesInXYZ', nxTile, nyTile, nzChunk)
+    if (ifChunkIn > 0) if3dVolumes = 1
+    ierr = PipGetInteger('Store3DVolumes', if3dVolumes)
+    if (ifChunkIn > 0 .and. if3dVolumes < 0) call exitError( &
+        'YOU CANNOT ENTER CHUNK SIZES AND FORBID VOLUME OUTPUT WITH -3d -1')
+    if (if3dVolumes > 0) call overrideOutputType(5)
+    ierr = PipGetLogical('UseMdocFiles', useMdocFiles)
+  endif
   !
   nxMax = 0
   nyMax = 0
@@ -285,7 +320,7 @@ program newstack
     !
     ! open file to make sure it exists and get default section list
     !
-    call imopen(1, inFile(indFile), 'RO')
+    call openInputFile(indFile)
     call irdhdr(1, nxyz, mxyz, mode, dmin2, dmax2, dmean2)
     if (mode == 16) call exitError('CANNOT WORK DIRECTLY WITH COLOR DATA'// &
         ' (MODE 16); USE COLORNEWST INSTEAD')
@@ -293,8 +328,21 @@ program newstack
       nxFirst = nx
       nyFirst = ny
       call irtdel(1, deltafirst)
+      !
+      ! Retain first input file volume structure in output if already doing HDF unless 
+      ! user said not  to; adopt its chunk sizes unless user entered them
+      call iiuRetChunkSizes(1, nxTileIn, nyTileIn, nzChunkIn)
+      if (nzChunkIn > 0 .and. b3dOutputFileType() == 5) then
+        if (if3dVolumes == 0) if3dVolumes = 1
+        if (ifChunkIn == 0 .and. if3dVolumes > 0) then
+          nxTile = nxTileIn
+          nyTile = nyTileIn
+          nzChunk = nzChunkIn
+        endif
+      endif
     endif
     call imclose(1)
+    if (needClose1 > 0) call imclose(needClose1)
     nxMax = max(nx, nxMax)
     nyMax = max(ny, nyMax)
     nlist(indFile) = nz
@@ -719,6 +767,7 @@ program newstack
     ierr = PipGetString('GradientFile', magGradFile)
     ierr = PipGetLogical('AdjustOrigin', adjustOrigin)
     ierr = PipGetTwoIntegers('TaperAtFill', numTaper, insideTaper)
+    ierr = PipGetLogical('QuietOutput', quiet)
     !
     ! Memory limits
     limEntered = 1 - PipGetTwoIntegers('TestLimits', ierr, lenTemp)
@@ -797,7 +846,10 @@ program newstack
         ! print *,'replacing', (listReplace(i), i = 1, numReplace)
         if (numOutFiles > 1) call exitError( &
             'THERE MUST BE ONLY ONE OUTPUT FILE TO USE -replace')
-        call ialprt(.true.)
+        if (if3dVolumes > 0) call exitError( &
+            'YOU CANNOT USE -3d OR -chunk WITH -replace')
+        if (.not. quiet) call ialprt(.true.)
+        call iiAllowMultiVolume(0)
         call imopen(2, outFile(1), 'OLD')
         call irdhdr(2, nxyz2, mxyz2, modeOld, dmin, dmax, dmean)
         call ialprt(.false.)
@@ -949,7 +1001,7 @@ program newstack
       !
     if (ifMean .ne. 0 .and. ifMeanSdEntered == 0) then
       do iFile = 1, numInFiles
-        call imopen(1, inFile(iFile), 'RO')
+        call openInputFile(iFile)
         call irdhdr(1, nxyz, mxyz, mode, dmin2, dmax2, dmean2)
         !
         ! get the binned size to read
@@ -993,6 +1045,7 @@ program newstack
           endif
         enddo
         call imclose(1)
+        if (needClose1 > 0) call imclose(needClose1)
       enddo
       !
       ! for shift to mean, figure out new mean, min and max and whether
@@ -1044,7 +1097,7 @@ program newstack
   isecOut = 1
   isecReplace = 1
   iOutFile = 1
-  call ialprt(.true.)
+  if (.not. quiet) call ialprt(.true.)
   call time(timeStr)
   call b3dDate(dat)
   numTruncLow = 0
@@ -1052,7 +1105,7 @@ program newstack
   ifHeaderOut = 0
   ifTempOpen = 0
   do iFile = 1, numInFiles
-    call imopen(1, inFile(iFile), 'RO')
+    call openInputFile(iFile)
     call irdhdr(1, nxyz, mxyz, mode, dminIn, dmaxIn, dmeanIn)
     call irtsiz(1, nxyz, mxyz, nxyzst)
     call irtcel(1, cell)
@@ -1090,6 +1143,9 @@ program newstack
       if (.not.nbytes_and_flags(nByteExtraIn, iFlagExtraIn)) &
           nByteExtraIn = 4 * (nByteExtraIn + iFlagExtraIn)
     endif
+    ierr = 0
+    if (useMdocFiles) ierr = 1
+    indAdocIn = iiuRetAdocIndex(1, 0, ierr)
     !
     ! get each section in input file
     !
@@ -1166,10 +1222,47 @@ program newstack
       ! then see if need to open an output file
       if (numReplace == 0 .and. isecOut == 1) then
         !
-        ! Create output file, transfer header from currently open file,
-        ! fix it
+        ! Create output file, transfer header from currently open file, fix it
         !
-        call imopen(2, outFile(iOutFile), 'NEW')
+        if (if3dVolumes > 1) then
+          call iiAllowMultiVolume(1)
+          call imopen(12, outFile(iOutFile), 'OLD')
+          if (iiuVolumeOpen(2, 12, -1) .ne. 0) call exitError( &
+              'OPENING NEW VOLUME IN EXISTING FILE')
+          needClose2 = 12
+          call iiAllowMultiVolume(0)
+          if (if3dVolumes == 3) then
+            indGlobalAdoc = iiuRetAdocIndex(12, 1, 0)
+            if (indGlobalAdoc >= 0) then
+              if (AdocSetCurrent(indGlobalAdoc) .ne. 0) then
+                indGlobalAdoc = -1
+              else if (AdocSetInteger(globalName, 1, 'image_pyramid', 1) .ne. 0) then
+                indGlobalAdoc = -1
+              else if (iiuWriteGlobalAdoc(12) .ne. 0) then
+                indGlobalAdoc = -1
+              endif
+            endif
+            if (indGlobalAdoc < 0) call exitError( &
+                'SETTING image_pyramid ATTRIBUTE IN GLOBAL SECTION OF HDF FILE')
+          endif
+        else
+          call imopen(2, outFile(iOutFile), 'NEW')
+          needClose2 = 0
+        endif
+        if (if3dVolumes > 0) then
+          nxTileIn = nxTile
+          nyTileIn = nyTile
+          nzChunkIn = nzChunk
+          call iiBestTileSize(nxOut, nxTileIn, ierr, 1)
+          call iiBestTileSize(nyOut, nyTileIn, ierr, 1)
+          call iiBestTileSize(numSecOut(iOutFile), nzChunkIn, ierr, 1)
+          if (iiuAltChunkSizes(2, nxTileIn, nyTileIn, nzChunkIn) .ne. 0) call exitError( &
+              'SETTING CHUNK SIZES IN NEW VOLUME')
+          if (nxTileIn .ne. nxOut .or. nyTileIn .ne. nyOut .or. nzChunkIn .ne.  &
+              numSecOut(iOutFile)) write(*,'(a,i7,a,i7,a,i4)')'Actual chunk size: ', &
+              nxTileIn,' by', nyTileIn, ' by', nzChunkIn
+        endif
+
         call itrhdr(2, 1)
         call ialmod(2, newMode)
         !
@@ -1253,7 +1346,8 @@ program newstack
         ! adjust extra header information if currently open file has it
         !
         nByteSymOut = 0
-        if (nByteSymIn > 0 .and. .not.stripExtra) then
+        outDocChanged = .false.
+        if (nByteSymIn > 0 .and. .not.stripExtra .and. b3dOutputFileType() == 2) then
           nByteExtraOut = nByteExtraIn
           nByteSymOut = numSecOut(iOutFile) * nByteExtraOut
           if (maxExtraOut > 0 .and. nByteSymOut > maxExtraOut) then
@@ -1272,6 +1366,18 @@ program newstack
           indExtraOut = 0
         else
           call ialnbsym(2, 0)
+        endif
+
+        ierr = 0
+        if (useMdocFiles) ierr = -1
+        indAdocOut = iiuRetAdocIndex(2, 0, ierr)
+        !
+        ! Transfer global section if either file is not HDF; itrhdr takes care of HDF->HDF
+        if ((iiuFileType(2) .ne. 5 .or. iiuFileType(1) .ne. 5) .and. indAdocOut > 0  &
+            .and. indAdocIn > 0) then
+          call setCurrentAdocOrExit(indAdocIn, 'INPUT')
+          if (AdocTransferSection(globalName, 1, indAdocOut, globalName, 0) .ne. 0) &
+              call exitError('TRANSFERRING GLOBAL DATA BETWEEN AUTODOCS') 
         endif
       endif
       !
@@ -1812,12 +1918,12 @@ program newstack
       endif
       !
       dmean2 = dmean2 / (float(nxOut) * nyOut)
-      if (ifHeaderOut == 0) print *, &
-          'section   input min&max       output min&max  &  mean'
-      ifHeaderOut = 1
-      write(*,'(i6,5f10.2)') isec - 1, tmpMin, tmpMax, dmin2, dmax2, &
-          dmean2
-
+      if (.not. quiet) then
+        if (ifHeaderOut == 0) print *, &
+            'section   input min&max       output min&max  &  mean'
+        ifHeaderOut = 1
+        write(*,'(i6,5f10.2)') isec - 1, tmpMin, tmpMax, dmin2, dmax2, dmean2
+      endif
       !
 80    isecOut = isecOut + 1
       dmin = min(dmin, dmin2)
@@ -1839,6 +1945,18 @@ program newstack
             extraOut(indExtraOut) = 0
           enddo
         endif
+        !
+        ! Transfer an adoc section
+        if (indAdocIn > 0 .and. indAdocOut > 0) then
+          call setCurrentAdocOrExit(indAdocIn, 'INPUT')
+          indSectIn = AdocLookupByNameValue(zvalueName, isecRead)
+          if (indSectIn > 0) then
+            call int_iwrite(listString, isecOut - 2, ierr)
+            if (AdocTransferSection(zvalueName, indSectIn, indAdocOut, listString, 1) &
+                .ne. 0) call exitError('TRANSFERRING SECTION DATA BETWEEN AUTODOCS')
+            outDocChanged = .true.
+          endif
+        endif
       else if (isecReplace < listTotal) then
         isecReplace = isecReplace + 1
         isecOut = listReplace(isecReplace) + 1
@@ -1847,16 +1965,24 @@ program newstack
       ! see if need to close stack file
       !
       if (numReplace == 0 .and. isecOut > numSecOut(iOutFile)) then
+        if (outDocChanged .and. iiuFileType(2) .ne. 5) then
+          call setCurrentAdocOrExit(indAdocOut, 'OUTPUT')
+          if (AdocWrite(trim(outFile(iOutFile))//'.mdoc') .ne.0) call exitError( &
+              'WRITING MDOC FILE FOR OUTPUT FILE')
+          call AdocClear(indAdocOut)
+        endif
         if (nByteSymOut > 0) call ialsym(2, nByteSymOut, extraOut)
         dmean = dmean / numSecOut(iOutFile)
         call iwrhdr(2, title, 1, dmin, dmax, dmean)
         call imclose(2)
+        if (needClose2 > 0) call imClose(needClose2)
         isecOut = 1
         iOutFile = iOutFile + 1
       endif
       isec = isec + 1
     enddo
     call imclose(1)
+    if (needClose1 > 0) call imClose(needClose1)
   enddo
   if (numReplace > 0) then
     call iwrhdr(2, title, -1, dmin, dmax, dmean)
@@ -2128,6 +2254,24 @@ CONTAINS
     return
   end subroutine findScaleFactors
 
+  subroutine openInputFile(indInFile)
+    integer*4 indInFile
+    if (indInFile <= numVolRead) then
+      call iiAllowMultiVolume(1)
+      if (listVolumes(indInFile) > 1) then
+        call imopen(11, inFile(indInFile), 'RO')
+        if (iiuVolumeOpen(1, 11, listVolumes(indInFile) - 1) .ne. 0)  &
+            call exitError('OPENING VOLUME IN MULTI_VOLUME FILE')
+        needClose1 = 11
+      else
+        call imopen(1, inFile(indInFile), 'RO')
+        needClose1 = 0
+      endif
+    else
+      call iiAllowMultiVolume(0)
+      call imopen(1, inFile(indInFile), 'RO')
+    endif
+  end subroutine openInputFile
 
 end program newstack
 

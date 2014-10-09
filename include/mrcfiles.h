@@ -348,6 +348,8 @@ int  iiPlistLoadF(FILE *fin, IloadInfo *li, int nx, int ny, int nz);
 int  iiPlistLoad(const char *filename, IloadInfo *li, int nx, int ny, int nz);
 int iiPlistFromMetadata(const char *filename, int addMdoc, IloadInfo *li, int nx, 
                         int ny, int nz);
+int iiPlistFromAutodoc(int adocIndex, int clearOnDone,  IloadInfo *li, int nx, int ny, 
+                       int nz, int montage, int numSect, int sectType);
 void mrc_liso(MrcHeader *hdata, IloadInfo *li);
 int mrc_fix_li(IloadInfo *li, int nx, int ny, int nz);
 int get_loadinfo(MrcHeader *hdata, IloadInfo *li);

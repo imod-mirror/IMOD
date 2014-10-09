@@ -48,11 +48,11 @@ final class AttributeList implements ReadOnlyAttributeList {
    * @param name
    * @return
    */
-  WriteOnlyAttributeList addAttribute(Token name) {
+  WriteOnlyAttributeList addAttribute(final Token name, final int lineNum) {
     String key = Attribute.getKey(name);
     Attribute attribute = map.get(Attribute.getKey(name));
     if (attribute == null) {
-      attribute = new Attribute(parent, name);
+      attribute = new Attribute(parent, name, lineNum);
       map.put(key, attribute);
       list.add(attribute);
     }
