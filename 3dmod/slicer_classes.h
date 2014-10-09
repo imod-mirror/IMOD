@@ -55,7 +55,7 @@ class SlicerWindow : public QMainWindow
  public:
   SlicerWindow(SlicerFuncs *funcs, float maxAngles[], QString timeLabel,
                bool rgba, bool doubleBuffer, bool enableDepth, 
-               QWidget * parent = 0, Qt::WFlags f = Qt::Window) ;
+               QWidget * parent = 0, Qt::WindowFlags f = Qt::Window) ;
   ~SlicerWindow() {};
   void setToggleState(int index, int state);
   void setZoomText(float zoom);
@@ -187,7 +187,7 @@ class HotWidget : public QWidget
 {
   Q_OBJECT
  public:
-  HotWidget( QWidget * parent = 0, Qt::WFlags fl = Qt::Window) 
+  HotWidget( QWidget * parent = 0, Qt::WindowFlags fl = Qt::Window) 
     : QWidget(parent, fl) { };
   ~HotWidget() {}
 
