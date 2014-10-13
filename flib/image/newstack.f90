@@ -207,6 +207,7 @@ program newstack
   nyTile = 0
   nzChunk = 1
   useMdocFiles = .false.
+  quiet = .false.
   !
   ! Preliminary allocation of array
   allocate(array(limToAlloc), stat = ierr)
