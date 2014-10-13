@@ -583,6 +583,9 @@ int main( int argc, char *argv[])
         case 'L':
           useStdin = true;
           break;
+
+        case 'O':
+          break;
         
         default:
           badOption(argv[i]);

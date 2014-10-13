@@ -1,5 +1,18 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/12/14: IMOD_4-8-16
+10/12/14: Fixed uninitialized quiet option in Newstack.
+
+10/10/14: Fixed -O option to 3dmod, broken in 4.8.7.
+
+10/9/14: IMOD_4-8-15
+10/9/14: Fixed two-sided display of meshes in models built on flipped
+tomograms before IMOD 4.7 (In 4.7).
+
+10/8/14: Made the self-installing package script update python.exe in Cygwin
+bin if it exists but no longer matches the python link target, added script
+for executable installer to call to make or update python.exe (In 4.7).
+
 10/7/14: Clip histogram with -s option will analyze for bimodal distribution
 of values and report fraction with low values.
 

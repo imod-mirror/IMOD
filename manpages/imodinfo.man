@@ -135,7 +135,11 @@ mesh is available, the cylinder surface area is omitted from the report.
 .TP
 .B -p
 Print point size information, including a summary of mean radius, and the
-implied total surface area and volume of scattered points.  Note that the
+implied total surface area and volume of scattered points.  There will
+be a size output for every point in any contour that has
+points with non-zero size.  If there is a default point size for the
+object, that size will be listed when there is no size defined for an
+individual point.  These sizes will be in the model units.  Note that the
 ascii model output will also show point sizes in pixels for each point that
 has one defined.
 .TP

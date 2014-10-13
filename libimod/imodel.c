@@ -1567,10 +1567,11 @@ void imodInvertZ(Imod *imod)
   Iobj  *obj;
   Icont *cont;
   Imesh *mesh;
+  int *mlist;
   int    ob, co, pt, i;
   float zconst = imod->zmax - 1.;
   
-  /* Invert ocontours and meshes */
+  /* Invert contours and meshes */
   for (ob = 0; ob < imod->objsize; ob++) {
     obj = &(imod->obj[ob]);
     for (co = 0; co < obj->contsize; co++) {
@@ -1585,6 +1586,39 @@ void imodInvertZ(Imod *imod)
       for (pt = 0; pt < mesh->vsize; pt += 2) {
         mesh->vert[pt].z = zconst - mesh->vert[pt].z;
         mesh->vert[pt + 1].z = -mesh->vert[pt + 1].z;
+      }
+
+      /* Inverting a triangle changes the order of vertices and makes the normal point the
+         wrong way, so have to rearrange triangle indices too */
+      mlist = mesh->list;
+      for (i = 0; i < mesh->lsize; i++) {
+        switch(mlist[i]) {
+
+          /* Swap first two indexes for vertex and normal for old meshes */
+        case IMOD_MESH_BGNPOLYNORM:
+          i++;
+          while (mlist[i] != IMOD_MESH_ENDPOLY) {
+            pt = mlist[i];
+            mlist[i] = mlist[i + 1];
+            mlist[i + 1] = pt;
+            pt = mlist[i + 3];
+            mlist[i + 3] = mlist[i + 4];
+            mlist[i + 4] = pt;
+            i += 6;
+          }
+          break;
+
+          /* Swap first two indexes of the three for new meshes */
+        case IMOD_MESH_BGNPOLYNORM2:
+          i++;
+          while (mlist[i] != IMOD_MESH_ENDPOLY) {
+            pt = mlist[i];
+            mlist[i] = mlist[i + 1];
+            mlist[i + 1] = pt;
+            i += 3;
+          }
+          break;
+        }
       }
     }
   }

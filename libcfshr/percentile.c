@@ -18,14 +18,18 @@
 
 /* 
  * Routines for selecting item number s (numbered from 1) out of num items
- * Based on a pascal program apparently from Handbook of Data Structures and 
- * Algorithms, by Gonnet and Baeza-Yates 
+ * Based on a pascal program apparently from Handbook of Algorithms and Data Structures,
+ * by Gonnet and Baeza-Yates.
+ * 10/13/14: Algorithm is highly pathological for finding an extreme percentile when
+ * there are many identical values at that extreme.  Inverting the order of operations
+ * for low percentiles solves the problem.
  */
 
 /*!
  * Selects item number [s] (numbered from 1) out of [num] items in the array
  * [r], where items are considered in order from low to high.  [r] is partially
- * rearranged while finding the item.
+ * rearranged while finding the item.  The algorithm runs in linear time and is faster
+ * than sorting the array first.
  */
 float percentileFloat(int s, float *r, int num)
 {
@@ -38,21 +42,43 @@ float percentileFloat(int s, float *r, int num)
     i = lo;
     j = up;
     temp = r[s];
-    r[s] = r[lo];
-    r[lo] = temp;
-    while (i < j) {
-      while (r[j] > temp)
-        j--;
-      r[i] = r[j];
-      while (i < j && r[i] <= temp)
-        i++;
-      r[j] = r[i];
+    if (s > num / 2) {
+
+      /* Operations for high percentiles */
+      r[s] = r[lo];
+      r[lo] = temp;
+      while (i < j) {
+        while (r[j] > temp)
+          j--;
+        r[i] = r[j];
+        while (i < j && r[i] <= temp)
+          i++;
+        r[j] = r[i];
+      }
+      r[i] = temp;
+      if (s < i)
+        up = i - 1;
+      else
+        lo = i + 1;
+    } else {
+
+      /* Operations for low percentiles */
+      r[s] = r[up];
+      r[up] = temp;
+      while (i < j) {
+        while (r[i] < temp)
+          i++;
+        r[j] = r[i];
+        while (i < j && r[j] >= temp)
+          j--;
+        r[i] = r[j];
+      }
+      r[j] = temp;
+      if (s > j)
+        lo = j + 1;
+      else
+        up = j - 1;
     }
-    r[i] = temp;
-    if (s < i)
-      up = i - 1;
-    else
-      lo = i + 1;
   }
 
   return r[s];
@@ -80,21 +106,39 @@ int percentileInt(int s, int *r, int num)
     i = lo;
     j = up;
     temp = r[s];
-    r[s] = r[lo];
-    r[lo] = temp;
-    while (i < j) {
-      while (r[j] > temp)
-        j--;
-      r[i] = r[j];
-      while (i < j && r[i] <= temp)
-        i++;
-      r[j] = r[i];
+    if (s > num / 2) {
+      r[s] = r[lo];
+      r[lo] = temp;
+      while (i < j) {
+        while (r[j] > temp)
+          j--;
+        r[i] = r[j];
+        while (i < j && r[i] <= temp)
+          i++;
+        r[j] = r[i];
+      }
+      r[i] = temp;
+      if (s < i)
+        up = i - 1;
+      else
+        lo = i + 1;
+    } else {
+      r[s] = r[up];
+      r[up] = temp;
+      while (i < j) {
+        while (r[i] < temp)
+          i++;
+        r[j] = r[i];
+        while (i < j && r[j] >= temp)
+          j--;
+        r[i] = r[j];
+      }
+      r[j] = temp;
+      if (s > j)
+        lo = j + 1;
+      else
+        up = j - 1;
     }
-    r[i] = temp;
-    if (s < i)
-      up = i - 1;
-    else
-      lo = i + 1;
   }
 
   return r[s];
