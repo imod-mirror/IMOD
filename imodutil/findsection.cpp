@@ -652,7 +652,8 @@ void FindSect::main( int argc, char *argv[])
         }
       }
       if (numStat < 10)
-        exitError("Too few boxes in center sample");
+        exitError("Too few boxes in center sample where boundaries of section could "
+                  "be detected");
       cenDenMeans[scl] = meanSum / numStat;
 
       rsFastMedian(mBuffer, numStat, &mBuffer[numStat], &mCenMedians[scl]);
@@ -858,6 +859,13 @@ void FindSect::main( int argc, char *argv[])
           size = B3DMAX(1, B3DNINT((float)sampleExtent / size));
         } else {
           size = 1;
+        }
+
+        // Limit number of samples if needed
+        if (numYblocks / size < numSamples) {
+          numSamples = numYblocks / size;
+          printf("WARNING: With a block size of %d, there can be only %d samples\n",
+                 mScanBlockSize, numSamples);
         }
 
         // Indent by one block if there is enough extra stuff
