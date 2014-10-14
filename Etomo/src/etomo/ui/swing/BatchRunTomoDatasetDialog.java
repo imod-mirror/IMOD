@@ -18,6 +18,7 @@ import javax.swing.JDialog;
 import javax.swing.JPanel;
 
 import etomo.BaseManager;
+import etomo.logic.ConfigTool;
 import etomo.logic.SeedingMethod;
 import etomo.logic.TrackingMethod;
 import etomo.process.BaseProcessManager;
@@ -207,6 +208,8 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable {
     btnModelFile.setToPreferredSize();
     btnRevertToGlobal.setToPreferredSize();
     btnOk.setToPreferredSize();
+    ftfDistort.setOrigin(ConfigTool.getDistortionDir(manager, null));
+    ftfGradient.setOrigin(ConfigTool.getDistortionDir(manager, null));
     // Set directive defs where there is a one-to-one correspondence between field and
     // directive. The directive def is used for setting the default in comparam
     // directives, and saving fields to autodoc files.
