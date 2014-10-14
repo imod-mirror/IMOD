@@ -135,13 +135,12 @@ public final class BatchRunTomoManager extends BaseManager {
     if (paramFile != null && metaData.isValid()) {
       dialog.setParameters(metaData);
     }
-    if (!comScriptManager.loadBatchRunTomo(AXIS_ID, false)) {
-      BaseProcessManager.touch(FileType.BATCH_RUN_TOMO_COMSCRIPT.getFile(this, AXIS_ID)
-          .getAbsolutePath(), this);
-      comScriptManager.loadBatchRunTomo(AXIS_ID, true);
+    //Don't load if this is a new dataset
+    if (paramFile != null) {
+      comScriptManager.loadBatchRunTomo(AXIS_ID);
+      dialog.setParameters(comScriptManager.getBatchRunTomoParam(AXIS_ID,
+          BatchruntomoParam.Mode.BATCH));
     }
-    dialog.setParameters(comScriptManager.getBatchRunTomoParam(AXIS_ID,
-        BatchruntomoParam.Mode.BATCH));
     mainPanel.showProcess(dialog.getContainer(), AXIS_ID);
     uiHarness.updateFrame(this);
     String actionMessage = Utilities.prepareDialogActionMessage(
@@ -192,10 +191,8 @@ public final class BatchRunTomoManager extends BaseManager {
     if (dialog == null) {
       return false;
     }
-    if (paramFile == null) {
-      if (!setParamFile()) {
-        return false;
-      }
+    if (paramFile == null && !setParamFile()) {
+      return false;
     }
     dialog.getParameters(metaData);
     saveStorables(AXIS_ID);
@@ -205,6 +202,11 @@ public final class BatchRunTomoManager extends BaseManager {
   }
 
   private BatchruntomoParam updateBatchRunTomo() {
+    if (!comScriptManager.isBatchRunTomoLoaded()) {
+      BaseProcessManager.touch(FileType.BATCH_RUN_TOMO_COMSCRIPT.getFile(this, AXIS_ID)
+          .getAbsolutePath(), this);
+      comScriptManager.loadBatchRunTomo(AXIS_ID);
+    }
     BatchruntomoParam param = comScriptManager.getBatchRunTomoParam(AXIS_ID,
         BatchruntomoParam.Mode.BATCH);
     if (dialog == null) {
@@ -212,12 +214,9 @@ public final class BatchRunTomoManager extends BaseManager {
     }
     dialog.getParameters(param);
     ParallelPanel parallelPanel = getMainPanel().getParallelPanel(AXIS_ID);
-    if (parallelPanel != null) {
-      if (!parallelPanel.getParameters(param)) {
-        return null;
-      }
+    if (parallelPanel != null && !parallelPanel.getParameters(param)) {
+      return null;
     }
-    getPropertyUserDir();
     comScriptManager.saveBatchRunTomo(param, AXIS_ID);
     if (param.isValid()) {
       return param;
