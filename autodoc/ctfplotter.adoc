@@ -1,0 +1,267 @@
+Version = 1.0
+Pip = 1
+
+[Field = InputStack]
+short = input
+type = FN
+usage = Input stack whose defocus will be estimated
+tooltip =
+manpage = Input stack whose defocus will be estimated.
+
+[Field = AngleFile]
+short = angleFn
+type = FN
+usage = File containing tilt angles for the input stack
+tooltip =
+manpage = File containing tilt angles for the input stack.  Each line of this
+file is the tilt angle for a view of the input stack.  The angles are listed
+in order starting from view 1.
+
+[Field = InvertTiltAngles]
+short = invert
+type = B
+usage = Invert the sign of the tilt angles
+tooltip =
+manpage = Invert the sign of the tilt angles to compensate for a left-handed 
+coordinate system in the microscope.  When the sign of the tilt angles and 
+the value of the tilt axis rotation angle are such that reconstructions are
+generated with inverted handedness, then this option is needed to keep power 
+spectra for off-center tiles from being shifted in the wrong direction.  One
+way to assess this need is to examine the images in a stack aligned for
+reconstruction, with the tilt axis vertical.  At positive tilt angles, the
+right side of the images should be more underfocused than the left side; if
+not, then this option is needed.
+
+[Field = OffsetToAdd]
+short = offset
+type = F
+usage = Add this value to the data in the input stack
+tooltip =
+manpage = The program must analyze data values where 0 corresponds to no
+electrons recorded.  Use this option to specify a value to add to your input
+stack that will make values positive and proportional to recorded electrons.
+The value will not be added to noise files; they are required to be positive.
+The program automatically sets this value to 32768 if it recognizes a file from
+FEI data acquisition software with a minimum below 0, or if the minimum and
+mean of a non-FEI file are sufficiently negative.
+
+[Field = ConfigFile]
+short = config
+type = FN
+usage = File with a list of noise files used to estimate the noise
+tooltip = 
+manpage = The configure file specifies the noise files used to estimate the
+noise floor, one file per line.  The files can be specified with either
+absolute paths or with paths relative to the location of the configure file
+itself.
+
+[Field = DefocusFile]
+short = defFn
+type = FN
+usage = File to store found defocuses
+tooltip = 
+manpage = File to store found defocuses.  Each entry in the file will consist
+of the starting and ending view number of the range of views being fit to
+(numbered from 1), the starting and ending angle of the tilt angle range being
+fit to, and the defocus value in nanometers (underfocus positive).  When the
+program writes a new defocus file, it puts a version number (currently 2) at
+the end of the first line.  If this file already exists when the program
+starts, it will be read in and the results displayed in a table in the Angle
+Range and Tile Selection dialog. The previous version will become a backup
+file (with ~ added to its name) when new results are saved to this file.  If
+you supply an initial defocus file with more than line, be sure to use the
+exact angles from the tilt angle file specified with -angleFn; do not round to
+one decimal place.  Alternatively, add the number "2" as an extra value at the
+end of the first line of the file; this will prevent the program from thinking
+that the view numbers might be off by one.
+
+[Field = AxisAngle]
+short = aAngle
+type = F
+usage = Specifies how much the tilt axis deviates from vertical (Y axis)
+tooltip =
+manpage = Specifies how much the tilt axis deviates from vertical (Y axis). 
+This angle is in degrees.  It follows the right hand rule and 
+counter-clockwise is positive. 
+
+[Field = PSResolution]
+short = psRes
+type = I
+usage = The number of points over which CTF will be computed (default 101)
+tooltip =
+manpage = The number of points over which CTF will be computed.  The Nyquist 
+frequency is divided into equal intervals delineated by these points.  The default
+is 101.
+
+[Field = TileSize]
+short = tileSize
+type = I
+usage = The tile size each strip will be tessellated into (default 256)
+tooltip =
+manpage = The tile size each strip will be tessellated into.  The size is in
+pixels and the tiles are square.  Each view is first divided into strips 
+that are considered to have constant defocus.  The deafult is 256.
+
+[Field = Voltage]
+short = volt
+type = I
+usage = Microscope voltage in kV 
+tooltip =
+manpage = Microscope voltage in kV.
+
+[Field = MaxCacheSize ]
+short = cache
+type = I
+usage = cache size for tile power spectra in megabytes
+tooltip =
+manpage = To speed up computation, ctfplotter uses a cache to hold the
+rotationally averaged power spectra of individual tiles at 20 times the final
+power spectrum resolution.  This option controls the cache size.  The default
+value is 1000 megabytes, which should be enough for all slices in a 4Kx4K tilt
+series with the default tile size.
+
+[Field = SphericalAberration]
+short = cs
+type = F
+usage = Microscope spherical aberration in millimeters
+tooltip =
+manpage = Microscope spherical aberration in millimeters.  A value of 0 can be
+entered; it will be made slightly larger to prevent division by 0 in the CTF
+equations.
+
+[Field = DefocusTol]
+short = defTol
+type = I
+usage = Defocus tolerance in nanometers defining the center strips (default 200)
+tooltip =
+manpage = Defocus tolerance in nanometers defining the center strips.  The
+center strips are taken from the 
+central region of a view that has defocus difference less than this tolerance.
+These kind of center strips from all views within AngleRange 
+are considered to have a constant defocus and are used to compute the initial
+CTF after being further tessellated into tiles.  The default is 200.
+
+[Field = PixelSize]
+short = pixelSize
+type = F
+usage = Image pixel size in nanometers
+tooltip =
+manpage = Image pixel size in nanometers.
+
+[Field = AmplitudeContrast]
+short = ampContrast
+type = F
+usage = The fraction of amplitude contrast (default 0.07)
+tooltip =
+manpage = The fraction of amplitude contrast. For Cryo-EM, 
+it should be between 0.07 and 0.14.  The default is 0.07.
+
+[Field = ExpectedDefocus]
+short = expDef
+type = F
+usage = Expected defocus at the tilt axis in nanometers.
+tooltip = Expected defocus at the tilt axis in microns, with a positive
+value for underfocus
+manpage = Expected defocus at the tilt axis in nanometers, with a positive
+value for underfocus.  The frequency of the first zero of the CTF curve 
+is first computed based on this expected defocus.  The segments of the CTF
+curve of the input stack around that frequency are selected to be fitted.
+
+[Field = LeftDefTol]
+short = leftTol 
+type = F
+usage = Defocus tolerance in nm for strips to the left of center (default 2000)
+tooltip =
+manpage = Defocus tolerance in nanometers for strips to the left of 
+the center strip.  When non-center strips are included in the average, strips
+to the left of center are included if their defocus difference is less than 
+the given value.  The default is 2000.
+
+[Field = RightDefTol]
+short = rightTol
+type = F
+usage = Defocus tolerance in nm for strips to the right of center (default 2000)
+tooltip =
+manpage = Defocus tolerance in nanometers for strips to the right of 
+the center strip.  When non-center strips are included in the average, strips
+to the right of center are included if their defocus difference is less than 
+the given value.  The default is 2000.
+
+[Field = AngleRange]
+short = range
+type = FP
+usage = Starting and ending tilt angles for initial analysis or autofitting
+tooltip =
+manpage = When the -autoFit option is not entered, this entry sets the starting
+and ending tilt angles for the initial analysis and is a required entry.  Views with a
+tilt angle within this range are used to compute the CTF curve.  When -autoFit
+is entered, this entry sets the extent over which steps will be taken in autofitting.
+
+[Field = AutoFitRangeAndStep]
+short = autoFit
+type = FP
+usage = Range of angles and step between ranges for initial autofitting
+tooltip =
+manpage = Do initial autofitting over the whole tilt series with the given
+range of angles and step size between ranges.  A value of zero for the step
+will make it fit to each single image separately, regardless of the value for
+the range.  This autofitting differs from that invoked through the Angles
+dialog in several respects: 1) All tiles will be used for fits; the "All
+tiles" radio button will be selected at the end. 2) Three fitting iterations
+will be done, with the expected defocus used the first time and the current
+defocus estimate used for the next two iterations.  3) The size of the range
+is determined by the parameter entered here, not by the starting and ending
+angles entered with the -range option.
+
+[Field = FrequencyRangeToFit]
+short = frequency
+type = FP
+usage = Starting and ending frequencies of range to fit in power spectrum
+tooltip =
+manpage = Starting and ending frequencies of range to fit in power spectrum.
+The two values will be used to set the "X1 starts" and "X2 ends" fields in the
+fitting dialog.
+
+[Field = VaryExponentInFit]
+short = vary
+type = B
+usage = Vary exponent of CTF function when fitting a CTF-like curve
+tooltip =
+manpage = 
+
+[Field = SaveAndExit]
+short = save
+type = B
+usage = Save defocus values to file and exit after autofitting
+tooltip =
+manpage = Save defocus values to file and exit after autofitting.  The program
+will not ask for confirmation before removing existing entries in the defocus
+table.
+
+[Field = DebugLevel ]
+short = debug
+type = I
+usage = 0-3, debug level, 3 means printing all messages
+tooltip =
+manpage = Debug level, 0-3. 0: quiet.  1: user messages.  2: cache, tile
+iteration messages.  3: additional fitting messages. The default is 1.
+
+[Field = Parameter]
+short = param
+type = PF 
+usage = Read parameter entries from file
+tooltip = 
+manpage = Read parameter entries from this file.
+
+[Field = FocalPairDefocusOffset]
+short = fpOffset
+type = F
+usage = Defocus offset in nanometers for a focal pair of aligned stacks
+tooltip = 
+manpage = Normally, ctfplotter processes a single stack whose name is
+given by InputStack. It can optionally process a pair of stacks with
+identical til angles and mutually aligned projections, taken with a
+constant defocus offset between them. If, for example, InputStack is 
+myData.st, one could place a stack with 6 um underfocus in myData_1.st and
+a stack with 2.175 um underfocus in myData_2.st and specify an
+ExpectedDefocus of 6000 and a FocalPairDefocusOffset of -3825.
