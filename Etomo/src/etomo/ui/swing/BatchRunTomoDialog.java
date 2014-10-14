@@ -15,7 +15,6 @@ import javax.swing.JTabbedPane;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import etomo.BaseManager;
 import etomo.BatchRunTomoManager;
 import etomo.EtomoDirector;
 import etomo.ProcessingMethodMediator;
@@ -90,7 +89,7 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
   private final TemplatePanel templatePanel;
   private final FileTextField2 ftfDeliverToDirectory;
   private final BatchRunTomoTable table;
-  private final BaseManager manager;
+  private final BatchRunTomoManager manager;
   private final AxisID axisID;
   private final BatchRunTomoDatasetDialog datasetDialog;
   private final DirectiveFileCollection directiveFileCollection;
@@ -110,8 +109,7 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
         "Starting directive file: ");
     ftfDeliverToDirectory = FileTextField2.getAltLayoutInstance(manager,
         DELIVER_TO_DIRECTORY_NAME + ": ");
-    table = BatchRunTomoTable.getInstance(manager, this, tableReference
-        );
+    table = BatchRunTomoTable.getInstance(manager, this, tableReference);
     datasetDialog = BatchRunTomoDatasetDialog.getGlobalInstance(manager);
     directiveFileCollection = new DirectiveFileCollection(manager, axisID);
     templatePanel = TemplatePanel.getBorderlessInstance(manager, axisID, null, null,
@@ -141,12 +139,15 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
     ftfInputDirectiveFile.setAbsolutePath(true);
     ftfInputDirectiveFile.setFieldEditable(false);
     ftfInputDirectiveFile.setOrigin(EtomoDirector.INSTANCE.getHomeDirectory());
+    ftfDeliverToDirectory.setAbsolutePath(true);
     ftfDeliverToDirectory.setFileSelectionMode(FileChooser.DIRECTORIES_ONLY);
+    ltfRootName.setText("batch" + Utilities.getDateTimeStampRootName());
     btnRun.setToPreferredSize();
     tabbedPane.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
     // defaults
+    ftfRootDir.setAbsolutePath(true);
     ftfRootDir.setText(new File(System.getProperty("user.dir")).getAbsolutePath());
-    ltfRootName.setText("batch" + Utilities.getDateTimeStampRootName());
+    ftfRootDir.setFileSelectionMode(FileChooser.DIRECTORIES_ONLY);
     cbDeliverToDirectory.setName(DELIVER_TO_DIRECTORY_NAME);
     cbCPUMachineList.setSelected(UserEnv.isParallelProcessing(null, AxisID.ONLY, null));
     rbGPUMachineListLocal.setSelected(UserEnv.isGpuProcessing(null, AxisID.ONLY, null));
@@ -251,12 +252,23 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
   }
 
   public void setParameters(final BatchRunTomoMetaData metaData) {
+    if (!metaData.isRootNameNull()) {
+      ltfRootName.setText(metaData.getRootName());
+      ltfRootName.setEditable(false);
+      ftfRootDir.setText(manager.getPropertyUserDir());
+      ftfRootDir.setEditable(false);
+    }
     table.setParameters(metaData);
     datasetDialog.setParameters(metaData.getDatasetMetaData());
     phDatasetTable.set(metaData.getDatasetTableHeader());
   }
 
   public void getParameters(final BatchRunTomoMetaData metaData) {
+    if (ltfRootName.isEditable()) {
+      ltfRootName.setEditable(false);
+      ftfRootDir.setEditable(false);
+      manager.setNewParamFile(ftfRootDir.getFile(), ltfRootName.getText());
+    }
     table.getParameters(metaData);
     datasetDialog.getParameters(metaData.getDatasetMetaData());
     metaData.setDatasetTableHeader(phDatasetTable);
@@ -281,6 +293,7 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
     else {
       rbGPUMachineList.setSelected(true);
     }
+    updateDisplay();
   }
 
   public void getParameters(final BatchruntomoParam param) {
@@ -290,13 +303,21 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
     else {
       param.resetDeliverToDirectory();
     }
+    if (!cbCPUMachineList.isSelected()) {
+      param.setCPUMachineList(BatchruntomoParam.MACHINE_LIST_LOCAL_VALUE);
+    }
+    if (rbGPUMachineListOff.isSelected()) {
+      param.resetGPUMachineList();
+    }
+    else if (rbGPUMachineListLocal.isSelected()) {
+      param.setGPUMachineList(BatchruntomoParam.MACHINE_LIST_LOCAL_VALUE);
+    }
     if (ctfEmailAddress.isSelected()) {
       param.setEmailAddress(ctfEmailAddress.getText());
     }
     else {
       param.resetEmailAddress();
     }
-
     table.getParameters(param);
   }
 
