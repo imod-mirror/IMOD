@@ -1515,7 +1515,7 @@ void SlicerFuncs::keyInput(QKeyEvent *event)
   case Qt::Key_X:
   case Qt::Key_Y:
   case Qt::Key_Z:
-    if (ctrl && (keysym == Qt::Key_Z || keysym == Qt::Key_Y)) {
+    if (ctrl && (keysym == Qt::Key_Z || keysym == Qt::Key_Y || keysym == Qt::Key_X)) {
       handled = 0;
     } else {
       cont = imodContourGet(vi->imod);
