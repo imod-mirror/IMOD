@@ -734,7 +734,7 @@ public final class UserConfiguration implements Storable {
     return userTemplateAbsPath.toString();
   }
 
-  public boolean getTiltAnglesRawtltFile() {
+  public boolean isTiltAnglesRawtltFile() {
     if (tiltAnglesRawtltFile == null) {
       return false;
     }

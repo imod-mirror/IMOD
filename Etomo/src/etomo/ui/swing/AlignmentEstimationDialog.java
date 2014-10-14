@@ -522,13 +522,9 @@ public final class AlignmentEstimationDialog extends ProcessDialog implements
     UIHarness.INSTANCE.pack(axisID, applicationManager);
   }
 
-  public void action(final Run3dmodButton button,
-      final Run3dmodMenuOptions run3dmodMenuOptions) {
-    buttonAction(button.getActionCommand(), run3dmodMenuOptions);
-  }
-
   // Event handler for panel buttons
-  void buttonAction(String command, final Run3dmodMenuOptions run3dmodMenuOptions) {
+  public void action(String command, final Deferred3dmodButton deferred3dmodButton,
+      final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(btnComputeAlignment.getActionCommand())) {
       applicationManager.fineAlignment(axisID, btnComputeAlignment, null);
     }
@@ -555,7 +551,7 @@ public final class AlignmentEstimationDialog extends ProcessDialog implements
     }
 
     public void actionPerformed(ActionEvent event) {
-      adaptee.buttonAction(event.getActionCommand(), null);
+      adaptee.action(event.getActionCommand(), null, null);
     }
   }
 
