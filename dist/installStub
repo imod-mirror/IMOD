@@ -216,15 +216,25 @@ if ($extract == 1) then
 endif
 
 # Fix python link in recent Cygwin distributions
-if ($test == 0 && $os == windows && (! -e /bin/python.exe)) then
-    echo " "
-    if (-l /bin/python) then
-        echo "The Cygwin link to python will not work for IMOD"
-        echo "Making a copy of its target that is an actual /bin/python.exe"
-        \cp -Lf /bin/python /bin/python.exe
-    else
-        echo "You must have Python installed in Cygwin to run this installer"
-        set test = 1
+if ($test == 0 && $os == windows) then
+    if (-e /bin/python.exe && -l /bin/python) then
+        diff -q /bin/python.exe /bin/python >& /dev/null
+        if ($status) then
+            echo " "
+            echo "The copy of python in /bin/python.exe appears to be out of date"
+            echo "Making a new copy of the current python to /bin/python.exe"
+            \cp -Lf /bin/python /bin/python.exe
+        endif
+    else if (! -e /bin/python.exe) then
+        echo " "
+        if (-l /bin/python) then
+            echo "The Cygwin link to python will not work for IMOD"
+            echo "Making a copy of its target that is an actual /bin/python.exe"
+            \cp -Lf /bin/python /bin/python.exe
+        else
+            echo "You must have Python installed in Cygwin to run this installer"
+            set test = 1
+        endif
     endif
 endif
 if ($os == windows) setenv PATH "/bin:$PATH"
