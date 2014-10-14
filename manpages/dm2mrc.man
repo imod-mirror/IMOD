@@ -72,12 +72,16 @@ in inverted order, and slices inside of stack files will also be read in
 inverted order.  This option will preserve handedness if the images being
 stacked are serial images as a block face was cut
 and are in the same orientation as views looking down on the block.
+.TP
+.B -t \fIdir\fR
+Use the given directory for temporary files.  By default, temporary
+files are written to the directory where the output file is being placed. 
 .SH AUTHOR
 David Mastronarde
 .SH SEE ALSO
 raw2mrc(2), newstack(2)
 .SH BUGS
-The program has been written to handle common examples generated on
-a small subset of Digital Micrograph versions, so it might fail with
+The program has been written by inpecting examples of a variety of 
+Digital Micrograph files, so it might fail with
 files outside the range of this experience.
 Email reports of problems to mast@colorado.edu.
