@@ -42,6 +42,7 @@ public class BatchruntomoParam implements CommandParam {
   private static final String CURRENT_LOCATION_TAG = "CurrentLocation";
   private static final String CPU_MACHINE_LIST_TAG = "CPUMachineList";
   private static final String GPU_MACHINE_LIST_TAG = "GPUMachineList";
+  public static final String MACHINE_LIST_LOCAL_VALUE = "1";
 
   private final List<String> command = new ArrayList<String>();
   private final EtomoNumber validationType = new EtomoNumber();
@@ -99,33 +100,9 @@ public class BatchruntomoParam implements CommandParam {
   public void updateComScriptCommand(final ComScriptCommand scriptCommand)
       throws BadComScriptException {
     scriptCommand.useKeywordValue();
-    // Delete multi-entry
-    scriptCommand.deleteKeyAll(DIRECTIVE_FILE_TAG);
-    scriptCommand.deleteKeyAll(ROOT_NAME_TAG);
-    scriptCommand.deleteKeyAll(CURRENT_LOCATION_TAG);
-    // update
-    Iterator<String> iterator = directiveFileList.iterator();
-    String value;
-    while (iterator.hasNext()) {
-      value = iterator.next();
-      if (value != null && !value.matches("\\s*")) {
-        scriptCommand.setValue(DIRECTIVE_FILE_TAG, value);
-      }
-    }
-    iterator = rootNameList.iterator();
-    while (iterator.hasNext()) {
-      value = iterator.next();
-      if (value != null && !value.matches("\\s*")) {
-        scriptCommand.setValue(ROOT_NAME_TAG, value);
-      }
-    }
-    iterator = currentLocationList.iterator();
-    while (iterator.hasNext()) {
-      value = iterator.next();
-      if (value != null && !value.matches("\\s*")) {
-        scriptCommand.setValue(CURRENT_LOCATION_TAG, value);
-      }
-    }
+    scriptCommand.setValues(DIRECTIVE_FILE_TAG, directiveFileList);
+    scriptCommand.setValues(ROOT_NAME_TAG, rootNameList);
+    scriptCommand.setValues(CURRENT_LOCATION_TAG, currentLocationList);
     deliverToDirectory.updateComScript(scriptCommand);
     if (cpuMachineList != null && cpuMachineList.length() > 0) {
       scriptCommand.setValue(CPU_MACHINE_LIST_TAG, cpuMachineList.toString());
@@ -236,6 +213,16 @@ public class BatchruntomoParam implements CommandParam {
 
   public void addCurrentLocation(final String input) {
     currentLocationList.add(input);
+  }
+
+  public void setCPUMachineList(final String input) {
+    cpuMachineList = new StringBuffer();
+    cpuMachineList.append(input);
+  }
+
+  public void setGPUMachineList(final String input) {
+    gpuMachineList = new StringBuffer();
+    gpuMachineList.append(input);
   }
 
   public void setEmailAddress(final String input) {
