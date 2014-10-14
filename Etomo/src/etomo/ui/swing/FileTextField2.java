@@ -521,6 +521,11 @@ final class FileTextField2 implements FileTextFieldInterface, Field, ActionListe
     button.setEnabled(enabled);
   }
 
+  void setEditable(final boolean editable) {
+    field.setEditable(editable);
+    button.setEnabled(editable);
+  }
+
   void setFieldEditable(final boolean editable) {
     field.setEditable(editable);
   }

@@ -28,6 +28,7 @@ public final class BatchRunTomoMetaData extends BaseMetaData {
 
   public static final String NEW_TITLE = "Batch Run Tomo";
 
+  private StringProperty rootName = new StringProperty("RootName");
   // Key is stackID
   private final Map<String, BatchRunTomoRowMetaData> rowMetaDataMap = new HashMap<String, BatchRunTomoRowMetaData>();
   // metadata for the global dataset dialog
@@ -36,8 +37,6 @@ public final class BatchRunTomoMetaData extends BaseMetaData {
       "datasetTableHeader");
 
   private final TableReference tableReference;
-
-  private String rootName = null;
 
   public BatchRunTomoMetaData(final LogProperties logProperties,
       final TableReference tableReference) {
@@ -48,15 +47,31 @@ public final class BatchRunTomoMetaData extends BaseMetaData {
   }
 
   public void setName(final String rootName) {
-    this.rootName = rootName;
+    this.rootName.set(rootName);
+  }
+
+  public boolean isRootNameNull() {
+    return rootName.isEmpty();
   }
 
   public String getDatasetName() {
-    return rootName;
+    return rootName.toString();
+  }
+
+  public String getRootName() {
+    return rootName.toString();
+  }
+
+  public void setRootName(final String input) {
+    rootName.set(input);
   }
 
   public boolean isValid() {
     return validate() == null;
+  }
+
+  public static String getNewFileTitle() {
+    return NEW_TITLE;
   }
 
   /**
@@ -74,7 +89,7 @@ public final class BatchRunTomoMetaData extends BaseMetaData {
     if (rootName == null) {
       return null;
     }
-    return DatasetFiles.getBatchRunTomoDataFileName(rootName);
+    return DatasetFiles.getBatchRunTomoDataFileName(rootName.toString());
   }
 
   String getGroupKey() {
@@ -85,7 +100,7 @@ public final class BatchRunTomoMetaData extends BaseMetaData {
     if (rootName == null) {
       return NEW_TITLE;
     }
-    return rootName;
+    return rootName.toString();
   }
 
   /**
@@ -106,10 +121,12 @@ public final class BatchRunTomoMetaData extends BaseMetaData {
   public void load(final Properties props, String prepend) {
     super.load(props, prepend);
     // reset
+    rootName.reset();
     datasetTableHeader.reset();
     rowMetaDataMap.clear();
     // load
     prepend = createPrepend(prepend);
+    rootName.load(props, prepend);
     datasetTableHeader.load(props, prepend);
     datasetMetaData.load(props, prepend);
     tableReference.load(props, prepend);
@@ -126,6 +143,7 @@ public final class BatchRunTomoMetaData extends BaseMetaData {
 
   public void store(Properties props, String prepend) {
     prepend = createPrepend(prepend);
+    rootName.store(props, prepend);
     datasetTableHeader.store(props, prepend);
     datasetMetaData.store(props, prepend);
     tableReference.store(props, prepend);

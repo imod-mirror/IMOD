@@ -22,12 +22,14 @@ import etomo.type.DataFileType;
 import etomo.type.DialogType;
 import etomo.type.FileType;
 import etomo.type.InterfaceType;
+import etomo.type.MetaData;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.type.TableReference;
 import etomo.ui.swing.BatchRunTomoDialog;
 import etomo.ui.swing.MainBatchRunTomoPanel;
 import etomo.ui.swing.MainPanel;
 import etomo.ui.swing.ParallelPanel;
+import etomo.ui.swing.UIHarness;
 import etomo.util.Utilities;
 
 /**
@@ -86,6 +88,35 @@ public final class BatchRunTomoManager extends BaseManager {
     if (!loadedParamFile) {
       tableReference.setNew();
     }
+  }
+
+  public boolean setNewParamFile(final File rootDir, final String rootName) {
+    if (loadedParamFile) {
+      return true;
+    }
+    // set paramFile and propertyUserDir
+    String rootDirPath = rootDir.getAbsolutePath();
+    if (rootDirPath.endsWith(" ")) {
+      uiHarness.openMessageDialog(this, "The directory, " + rootDirPath
+          + ", cannot be used because it ends with a space.", "Unusable Directory Name",
+          AxisID.ONLY);
+      return false;
+    }
+    propertyUserDir = rootDirPath;
+    System.err.println("propertyUserDir: " + propertyUserDir);
+    metaData.setRootName(rootName);
+    String errorMessage = metaData.validate();
+    if (errorMessage != null) {
+      UIHarness.INSTANCE.openMessageDialog(this, errorMessage,
+          "Batchruntomo Dialog error", AXIS_ID);
+      return false;
+    }
+    if (!setParamFile(new File(propertyUserDir, metaData.getMetaDataFileName()))) {
+      return false;
+    }
+    EtomoDirector.INSTANCE.renameCurrentManager(metaData.getRootName());
+    mainPanel.setStatusBarText(paramFile, metaData, logWindow);
+    return true;
   }
 
   /**
@@ -209,7 +240,12 @@ public final class BatchRunTomoManager extends BaseManager {
     if (!super.setParamFile(paramFile)) {
       return false;
     }
+    if (!paramFile.exists()) {
+      BaseProcessManager.touch(paramFile.getAbsolutePath(), this);
+    }
+    initializeUIParameters(paramFile, AxisID.ONLY, false);
     // Update main window information and status bar
+    EtomoDirector.INSTANCE.renameCurrentManager(metaData.getName());
     mainPanel.setStatusBarText(paramFile, metaData, logWindow);
     return true;
   }
@@ -346,6 +382,9 @@ public final class BatchRunTomoManager extends BaseManager {
   }
 
   public String getName() {
+    if (metaData == null) {
+      return MetaData.getNewFileTitle();
+    }
     return metaData.getName();
   }
 

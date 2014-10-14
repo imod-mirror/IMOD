@@ -761,7 +761,12 @@ public class EtomoDirector {
       manager = new BatchRunTomoManager(batchRunTomoFileName);
       UIHarness.INSTANCE.setEnabledNewBatchRunTomoMenuItem(false);
     }
-    return setManager(manager, makeCurrent);
+    ManagerKey key = setManager(manager, makeCurrent);
+    if (!manager.isValid()) {
+      closeCurrentManager(AxisID.ONLY, false);
+      return null;
+    }
+    return key;
   }
 
   private ManagerKey openPeet(String peetFileName, boolean makeCurrent, AxisID axisID) {
