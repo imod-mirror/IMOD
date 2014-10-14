@@ -45,18 +45,17 @@ public final class PostProcessingDialog extends ProcessDialog implements Context
   private Tab curTab = Tab.DEFAULT;
   private final FlattenVolumePanel flattenVolumePanel;
   private final SqueezeVolPanel squeezeVolPanel;
-  private final boolean lockDialog;
 
-  private PostProcessingDialog(final ApplicationManager appMgr, final boolean lockDialog) {
+  private PostProcessingDialog(final ApplicationManager appMgr,
+      final boolean trimvolInputFileMissing) {
     super(appMgr, AxisID.ONLY, DialogType.POST_PROCESSING);
-    this.lockDialog = lockDialog;
-    flattenVolumePanel = FlattenVolumePanel.getPostInstance(appMgr, axisID, dialogType,
-        lockDialog);
-    squeezeVolPanel = SqueezeVolPanel.getInstance(appMgr, axisID, dialogType, lockDialog);
+    flattenVolumePanel = FlattenVolumePanel.getPostInstance(appMgr, axisID, dialogType);
+    squeezeVolPanel = SqueezeVolPanel.getInstance(appMgr, axisID, dialogType);
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     rootPanel.setBorder(new BeveledBorder("Post Processing").getBorder());
     rootPanel.add(tabbedPane);
-    trimvolPanel = new TrimvolPanel(applicationManager, axisID, dialogType, lockDialog);
+    trimvolPanel = new TrimvolPanel(applicationManager, axisID, dialogType,
+        trimvolInputFileMissing);
     JPanel trimvolRoot = new JPanel();
     tabbedPane.addTab("Trim vol", trimvolRoot);
     trimvolRoot.add(trimvolPanel.getContainer());
@@ -70,8 +69,9 @@ public final class PostProcessingDialog extends ProcessDialog implements Context
   }
 
   public static PostProcessingDialog getInstance(final ApplicationManager manager,
-      final boolean lockDialog) {
-    PostProcessingDialog instance = new PostProcessingDialog(manager, lockDialog);
+      final boolean trimvolInputFileMissing) {
+    PostProcessingDialog instance = new PostProcessingDialog(manager,
+        trimvolInputFileMissing);
     instance.addListeners();
     instance.tabbedPane.setSelectedIndex(Tab.DEFAULT.toInt());
     return instance;
@@ -114,31 +114,19 @@ public final class PostProcessingDialog extends ProcessDialog implements Context
    * @param squeezevolParam
    */
   public void setParameters(ConstSqueezevolParam squeezevolParam) {
-    if (lockDialog) {
-      return;
-    }
     squeezeVolPanel.setParameters(squeezevolParam);
   }
 
   public void setParameters(ReconScreenState screenState) {
-    if (lockDialog) {
-      return;
-    }
     trimvolPanel.setParameters(screenState);
     squeezeVolPanel.setParameters(screenState);
   }
 
   public void setParameters(final TrimvolParam param) {
-    if (lockDialog) {
-      return;
-    }
     trimvolPanel.setParameters(param);
   }
 
   public void setParameters(final ConstMetaData metaData, final boolean dialogExists) {
-    if (lockDialog) {
-      return;
-    }
     trimvolPanel.setParameters(metaData, dialogExists);
     flattenVolumePanel.setParameters(metaData);
     squeezeVolPanel.setParameters(metaData);
@@ -154,9 +142,6 @@ public final class PostProcessingDialog extends ProcessDialog implements Context
   }
 
   public void getParameters(final MetaData metaData) {
-    if (lockDialog) {
-      return;
-    }
     trimvolPanel.getParameters(metaData);
     flattenVolumePanel.getParameters(metaData);
     squeezeVolPanel.getParameters(metaData);
@@ -164,23 +149,14 @@ public final class PostProcessingDialog extends ProcessDialog implements Context
   }
 
   public void getParametersForTrimvol(final MetaData metaData) {
-    if (lockDialog) {
-      return;
-    }
     trimvolPanel.getParametersForTrimvol(metaData);
   }
 
   public boolean getParameters(WarpVolParam param, final boolean doValidation) {
-    if (lockDialog) {
-      return true;
-    }
     return flattenVolumePanel.getParameters(param, doValidation);
   }
 
   public void setParameters(ConstWarpVolParam param) {
-    if (lockDialog) {
-      return;
-    }
     flattenVolumePanel.setParameters(param);
   }
 
@@ -189,9 +165,6 @@ public final class PostProcessingDialog extends ProcessDialog implements Context
    * @param squeezevolParam
    */
   public boolean getParameters(SqueezevolParam squeezevolParam, final boolean doValidation) {
-    if (lockDialog) {
-      return true;
-    }
     return squeezeVolPanel.getParameters(squeezevolParam, doValidation);
   }
 
@@ -200,9 +173,6 @@ public final class PostProcessingDialog extends ProcessDialog implements Context
    * @param trimvolParam
    */
   public boolean getParameters(final TrimvolParam trimvolParam, final boolean doValidation) {
-    if (lockDialog) {
-      return true;
-    }
     return trimvolPanel.getParameters(trimvolParam, doValidation);
   }
 
