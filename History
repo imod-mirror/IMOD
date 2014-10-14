@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/14/16: Batchruntomo can now exclude images at the end of the series with
+large dark regions, do tomogram positioning for plastic sections, combine
+dual-axis tomograms, and trim to section limits for plastic sections.
+
 10/14/14: Made dm2mrc write temporary files to output file directory and added
 option to set a directory for these files (In 4.7).
 
