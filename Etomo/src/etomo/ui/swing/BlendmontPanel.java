@@ -58,7 +58,7 @@ final class BlendmontPanel extends NewstackOrBlendmontPanel implements Expandabl
    * @param deferred3dmodButton
    * @param run3dmodMenuOptions
    */
-  void action(final String command, final Deferred3dmodButton deferred3dmodButton,
+ public void action(final String command, final Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(getRunProcessButtonActionCommand())) {
       manager.blend(getRunProcessResultDisplay(), null, deferred3dmodButton, axisID,

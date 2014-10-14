@@ -1,6 +1,7 @@
 package etomo.ui.swing;
 
 import java.awt.Component;
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import javax.swing.BorderFactory;
@@ -24,14 +25,19 @@ import etomo.type.UITestFieldType;
  * 
  * @version $Revision$
  */
-final class CheckBoxCell extends InputCell implements ToggleCell {
+final class CheckBoxCell extends InputCell implements ToggleCell, ActionListener {
   public static final String rcsid = "$Id$";
 
   private JCheckBox checkBox = new JCheckBox();
-  //label: from JCheckBox.getText().  Updated in setLabel().  Always up to date
-  //because it is a read only field in JCheckBox.
+  // label: from JCheckBox.getText(). Updated in setLabel(). Always up to date
+  // because it is a read only field in JCheckBox.
   private String unformattedLabel = "";
   private boolean enabled = true;
+  private EtomoBoolean2 checkpointValue = null;
+  private boolean backupValue = false;
+  private boolean fieldIsBackedUp = false;
+  private boolean useFieldHighlight = false;
+  private boolean fieldHighlightValue = false;
 
   CheckBoxCell() {
     super();
@@ -48,6 +54,48 @@ final class CheckBoxCell extends InputCell implements ToggleCell {
 
   UITestFieldType getFieldType() {
     return UITestFieldType.CHECK_BOX;
+  }
+
+  /**
+   * 
+   * @param alwaysCheck - check for difference even when the field is disables or invisible
+   * @return
+   */
+  boolean isDifferentFromCheckpoint(final boolean alwaysCheck) {
+    if (!alwaysCheck && (!isEnabled() || !checkBox.isVisible())) {
+      return false;
+    }
+    return checkpointValue == null || !checkpointValue.equals(isSelected());
+  }
+
+  void backup() {
+    backupValue = isSelected();
+    fieldIsBackedUp = true;
+  }
+
+  /**
+   * If the field was backed up, make the backup value the displayed value, and turn off
+   * the back up.
+   */
+  void restoreFromBackup() {
+    if (fieldIsBackedUp) {
+      setSelected(backupValue);
+      fieldIsBackedUp = false;
+    }
+  }
+
+  void clear() {
+    setSelected(false);
+  }
+
+  /**
+   * Constructs savedValue (if it doesn't exist).  Saves the current setting.
+   */
+  void checkpoint() {
+    if (checkpointValue == null) {
+      checkpointValue = new EtomoBoolean2();
+    }
+    checkpointValue.set(isSelected());
   }
 
   public void setEnabled(final boolean enabled) {
@@ -72,7 +120,7 @@ final class CheckBoxCell extends InputCell implements ToggleCell {
   void setValue(final String value) {
     checkBox.setSelected(new EtomoBoolean2().set(value).is());
   }
-  
+
   public boolean isEnabled() {
     return checkBox.isEnabled();
   }
@@ -83,6 +131,14 @@ final class CheckBoxCell extends InputCell implements ToggleCell {
 
   public void setSelected(final boolean selected) {
     checkBox.setSelected(selected);
+  }
+
+  void setActionCommand(final String input) {
+    checkBox.setActionCommand(input);
+  }
+
+  String getActionCommand() {
+    return checkBox.getActionCommand();
   }
 
   public void addActionListener(final ActionListener actionListener) {
@@ -96,6 +152,30 @@ final class CheckBoxCell extends InputCell implements ToggleCell {
   private void setForeground() {
     checkBox.setForeground(Colors.CELL_FOREGROUND);
     setHtmlLabel(Colors.CELL_FOREGROUND);
+  }
+
+  void setFieldHighlightValue(final boolean value) {
+    if (!useFieldHighlight) {
+      useFieldHighlight = true;
+      checkBox.addActionListener(this);
+    }
+    fieldHighlightValue = value;
+    updateFieldHighlight();
+  }
+
+  public void actionPerformed(ActionEvent e) {
+    updateFieldHighlight();
+  }
+
+  void updateFieldHighlight() {
+    if (useFieldHighlight) {
+      if (fieldHighlightValue == isSelected()) {
+        checkBox.setForeground(Colors.FIELD_HIGHLIGHT);
+      }
+      else {
+        checkBox.setForeground(Colors.CELL_FOREGROUND);
+      }
+    }
   }
 
   public int getHeight() {

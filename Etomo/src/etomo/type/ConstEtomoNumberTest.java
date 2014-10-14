@@ -865,35 +865,35 @@ public final class ConstEtomoNumberTest extends TestCase {
     EtomoNumber test = new EtomoNumber(EtomoNumber.Type.LONG);
     //test: null
     ///test: NaN is always null
-    assertTrue(test.isNull(new Double(Double.NaN)));
-    assertTrue(test.isNull(new Double(Float.NaN)));
-    assertTrue(test.isNull(new Float(Double.NaN)));
-    assertTrue(test.isNull(new Float(Float.NaN)));
+    assertTrue(EtomoNumber.isNull(new Double(Double.NaN)));
+    assertTrue(EtomoNumber.isNull(new Double(Float.NaN)));
+    assertTrue(EtomoNumber.isNull(new Float(Double.NaN)));
+    assertTrue(EtomoNumber.isNull(new Float(Float.NaN)));
     ///test other null values
-    assertTrue(test.isNull(new Long(EtomoNumber.LONG_NULL_VALUE)));
-    assertTrue(test.isNull(new Integer(EtomoNumber.INTEGER_NULL_VALUE)));
-    assertTrue(test.isNull(new Short(Short.MIN_VALUE)));
-    assertTrue(test.isNull(new Byte(Byte.MIN_VALUE)));
+    assertTrue(EtomoNumber.isNull(new Long(EtomoNumber.LONG_NULL_VALUE)));
+    assertTrue(EtomoNumber.isNull(new Integer(EtomoNumber.INTEGER_NULL_VALUE)));
+    assertTrue(EtomoNumber.isNull(new Short(Short.MIN_VALUE)));
+    assertTrue(EtomoNumber.isNull(new Byte(Byte.MIN_VALUE)));
     //test: other null values are relative to their type
     ///double
-    assertFalse(test.isNull(new Double(EtomoNumber.LONG_NULL_VALUE)));
-    assertFalse(test.isNull(new Double(EtomoNumber.INTEGER_NULL_VALUE)));
-    assertFalse(test.isNull(new Double(Short.MIN_VALUE)));
-    assertFalse(test.isNull(new Double(Byte.MIN_VALUE)));
+    assertFalse(EtomoNumber.isNull(new Double(EtomoNumber.LONG_NULL_VALUE)));
+    assertFalse(EtomoNumber.isNull(new Double(EtomoNumber.INTEGER_NULL_VALUE)));
+    assertFalse(EtomoNumber.isNull(new Double(Short.MIN_VALUE)));
+    assertFalse(EtomoNumber.isNull(new Double(Byte.MIN_VALUE)));
     ///float
-    assertFalse(test.isNull(new Float(EtomoNumber.LONG_NULL_VALUE)));
-    assertFalse(test.isNull(new Float(EtomoNumber.INTEGER_NULL_VALUE)));
-    assertFalse(test.isNull(new Float(Short.MIN_VALUE)));
-    assertFalse(test.isNull(new Float(Byte.MIN_VALUE)));
+    assertFalse(EtomoNumber.isNull(new Float(EtomoNumber.LONG_NULL_VALUE)));
+    assertFalse(EtomoNumber.isNull(new Float(EtomoNumber.INTEGER_NULL_VALUE)));
+    assertFalse(EtomoNumber.isNull(new Float(Short.MIN_VALUE)));
+    assertFalse(EtomoNumber.isNull(new Float(Byte.MIN_VALUE)));
     ///long
-    assertFalse(test.isNull(new Long(EtomoNumber.INTEGER_NULL_VALUE)));
-    assertFalse(test.isNull(new Long(Short.MIN_VALUE)));
-    assertFalse(test.isNull(new Long(Byte.MIN_VALUE)));
+    assertFalse(EtomoNumber.isNull(new Long(EtomoNumber.INTEGER_NULL_VALUE)));
+    assertFalse(EtomoNumber.isNull(new Long(Short.MIN_VALUE)));
+    assertFalse(EtomoNumber.isNull(new Long(Byte.MIN_VALUE)));
     ///integer
-    assertFalse(test.isNull(new Integer(Short.MIN_VALUE)));
-    assertFalse(test.isNull(new Integer(Byte.MIN_VALUE)));
+    assertFalse(EtomoNumber.isNull(new Integer(Short.MIN_VALUE)));
+    assertFalse(EtomoNumber.isNull(new Integer(Byte.MIN_VALUE)));
     ///short
-    assertFalse(test.isNull(new Short(Byte.MIN_VALUE)));
+    assertFalse(EtomoNumber.isNull(new Short(Byte.MIN_VALUE)));
     test.internalTest();
   }
 

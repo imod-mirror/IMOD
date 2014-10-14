@@ -2,6 +2,7 @@ package etomo.comscript;
 
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Vector;
 
 /**
@@ -74,10 +75,10 @@ import java.util.Vector;
 public class ComScriptCommand {
   public static final String rcsid = "$Id$";
 
-  //Case insensitive when finding keywords
+  // Case insensitive when finding keywords
   private final boolean caseInsensitive;
-  //Use a space instead of \t - tab doesn't work when tilt.com to create samples
-  //in tomo pos.
+  // Use a space instead of \t - tab doesn't work when tilt.com to create samples
+  // in tomo pos.
   private final String divider;
 
   private boolean keywordValuePairs = false;
@@ -126,7 +127,7 @@ public class ComScriptCommand {
    * @param a String array containing the header comments for the command.
    */
   public void setHeaderComments(String[] headerComments) {
-    //  make a defensive copy of the array
+    // make a defensive copy of the array
     this.headerComments = new String[headerComments.length];
     for (int i = 0; i < headerComments.length; i++) {
       this.headerComments[i] = headerComments[i];
@@ -152,7 +153,7 @@ public class ComScriptCommand {
     if (headerComments == null) {
       return null;
     }
-    //  make a defensive copy of the array
+    // make a defensive copy of the array
     String[] safeArray = new String[headerComments.length];
     for (int i = 0; i < headerComments.length; i++) {
       safeArray[i] = headerComments[i];
@@ -190,7 +191,7 @@ public class ComScriptCommand {
       keywordValuePairs = true;
     }
     else {
-      //  make a defensive copy of the array
+      // make a defensive copy of the array
       commandLineArgs = new String[args.length];
       for (int i = 0; i < args.length; i++) {
         commandLineArgs[i] = args[i];
@@ -236,7 +237,7 @@ public class ComScriptCommand {
     if (commandLineArgs == null) {
       return null;
     }
-    //  make a defensive copy of the array
+    // make a defensive copy of the array
     String[] safeArray = new String[commandLineArgs.length];
     for (int i = 0; i < commandLineArgs.length; i++) {
       safeArray[i] = commandLineArgs[i];
@@ -277,7 +278,7 @@ public class ComScriptCommand {
    * @param inputArg a ComScriptInputArg containing the input line and comments
    */
   public void setInputArgument(int index, ComScriptInputArg inputArg) {
-    //  create a defensive copy of the input argument object
+    // create a defensive copy of the input argument object
     stdinArgs.set(index, new ComScriptInputArg(inputArg));
   }
 
@@ -287,10 +288,10 @@ public class ComScriptCommand {
    * arguments
    */
   public void setInputArguments(ComScriptInputArg[] inputArgs) {
-    //  Clear the current list
+    // Clear the current list
     stdinArgs.clear();
 
-    //  create a defensive copy of the input argument object
+    // create a defensive copy of the input argument object
     for (int i = 0; i < inputArgs.length; i++) {
       stdinArgs.add(new ComScriptInputArg(inputArgs[i]));
     }
@@ -420,6 +421,20 @@ public class ComScriptCommand {
       inputArg = new ComScriptInputArg();
       stdinArgs.add(inputArg);
       inputArg.setArgument(keyword + divider + values[i]);
+    }
+  }
+
+  public void setValues(String keyword, List<String> values) {
+    deleteKeyAll(keyword);
+    if (values == null || values.isEmpty()) {
+      return;
+    }
+    Iterator<String> iterator = values.iterator();
+    ComScriptInputArg inputArg;
+    while (iterator.hasNext()) {
+      inputArg = new ComScriptInputArg();
+      stdinArgs.add(inputArg);
+      inputArg.setArgument(keyword + divider + iterator.next());
     }
   }
 

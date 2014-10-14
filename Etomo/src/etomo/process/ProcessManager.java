@@ -1147,7 +1147,7 @@ public class ProcessManager extends BaseProcessManager {
   }
 
   public boolean batchruntomo(final AxisID axisID, final BatchruntomoParam param) {
-    if (!param.setup()) {
+    if (!param.setupValidationCommand()) {
       return false;
     }
     int exitValue = param.run();
