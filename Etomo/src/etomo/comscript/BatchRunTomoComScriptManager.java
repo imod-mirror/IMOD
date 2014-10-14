@@ -32,18 +32,22 @@ public final class BatchRunTomoComScriptManager extends BaseComScriptManager {
     this.manager = manager;
   }
 
-  public boolean loadBatchRunTomo(final AxisID axisID,final boolean required) {
+  public void loadBatchRunTomo(final AxisID axisID) {
     scriptBatchRunTomo = loadComScript(
         FileType.BATCH_RUN_TOMO_COMSCRIPT.getFileName(manager, axisID), axisID, true,
-        required, false, false);
+        true, false, false);
+  }
+
+  public boolean isBatchRunTomoLoaded() {
     return scriptBatchRunTomo != null;
   }
-  
-  public void saveBatchRunTomo(final BatchruntomoParam param,final  AxisID axisID) {
+
+  public void saveBatchRunTomo(final BatchruntomoParam param, final AxisID axisID) {
     modifyCommand(scriptBatchRunTomo, param, "batchruntomo", axisID, false, false);
   }
-  
-  public BatchruntomoParam getBatchRunTomoParam(final AxisID axisID,final  CommandMode mode) {
+
+  public BatchruntomoParam getBatchRunTomoParam(final AxisID axisID,
+      final CommandMode mode) {
     BatchruntomoParam param = new BatchruntomoParam(manager, axisID, mode);
     initialize(param, scriptBatchRunTomo, "batchruntomo", axisID, false, false);
     return param;
