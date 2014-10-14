@@ -26,10 +26,10 @@ usage = Name of IMOD model or text file with centers of subvolumes (required)
 tooltip =
 manpage = Name of an IMOD model file or a point coordinate file with the center
 positions of the desired subvolumes.  A point coordinate file should have one
-point per line, with its X, Y, and Z coordinates.  These coordinates
-should correspond to pixels in the full file specified with \fB-volume\fR,
-where the first pixel in any dimension spans coordinates from 0 to 1.
-This option is required.
+point per line, with its X, Y, and Z coordinates separated by spaces, not
+commas.  These coordinates should correspond to pixels in the full file
+specified with \fB-volume\fR, where the first pixel in any dimension spans
+coordinates from 0 to 1. This option is required. 
 
 [Field = ObjectsToUse]
 short = objects
