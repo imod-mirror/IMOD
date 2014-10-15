@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/15/14: Fixed INVERTORG in Alterheader (In 4.7).
+
 10/14/14: Made dm2mrc write temporary files to output file directory and added
 option to set a directory for these files (In 4.7).
 
