@@ -67,6 +67,7 @@ class SlicerWindow : public QMainWindow
   void setLowHighValidity(int which, int state);
   void enableLowHighButtons(int enable);
   void manageAutoLink(int newState);
+  void manageBandSize(int xsize, int ysize, int action);
 
   SlicerGL *mGLw;
   SlicerCube *mCube;
@@ -136,6 +137,8 @@ class SlicerWindow : public QMainWindow
   int mLowHighStates[2];
   QAction *mLowHighActions[2];
   int mBreakBeforeAngBar;
+  QLabel *mBandSizeLabel;
+  QAction *mBandSizeAction;
 };
 
 class SlicerGL : public QGLWidget

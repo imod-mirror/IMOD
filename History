@@ -1,6 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-10/14/16: Batchruntomo can now exclude images at the end of the series with
+10/14/14: Added rubber band size to Slicer toolbar when size is being changed.
+
+10/14/14: Batchruntomo can now exclude images at the end of the series with
 large dark regions, do tomogram positioning for plastic sections, combine
 dual-axis tomograms, and trim to section limits for plastic sections.
 
