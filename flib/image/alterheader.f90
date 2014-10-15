@@ -443,7 +443,7 @@ program alterheader
   go to 30
   !
   ! INVERTORG  - invert the sign of the origin
-20 call ialorg(2, origx, origy, origz)
+20 call irtorg(2, origx, origy, origz)
   origx = -origx
   origy = -origy
   origz = -origz
