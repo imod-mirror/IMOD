@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/15/14: Fixed INVERTORG in Alterheader (In 4.7).
+
 10/14/14: Added rubber band size to Slicer toolbar when size is being changed.
 
 10/14/14: Batchruntomo can now exclude images at the end of the series with
