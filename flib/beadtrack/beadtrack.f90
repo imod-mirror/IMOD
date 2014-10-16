@@ -295,7 +295,10 @@ program beadtrack
       call errorExit ('NO INPUT SEED MODEL FILE SPECIFIED', 0)
   !
   exist = readSmallMod(modelFile)
-  if (.not.exist) call errorExit('READING SEED MODEL FILE', 0)
+  if (.not.exist) then
+    call imodOpenError(listString)
+    call errorExit('READING SEED MODEL FILE: '//trim(listString), 0)
+  endif
   if (n_point == 0 .or. max_mod_obj == 0) &
       call errorExit('INPUT SEED MODEL IS EMPTY', 0)
   !
