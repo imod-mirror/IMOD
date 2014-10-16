@@ -549,7 +549,7 @@ void iiuretimodflags(int *iunit, int *iflags, int *ifImod)
 void irtimodflags(int *iunit, int *iflags, int *ifImod)
 { iiuRetImodFlags(*iunit, iflags, ifImod);}
 
-/*
+/*!
  * Sets the {imodFlags} component to [iflags] for unit [iunit].  Fortran wrappers 
  * iiuAltImodFlags and ialimodflags
  */
@@ -562,7 +562,7 @@ void iiuAltImodFlags(int iunit, int iflags)
 void iiualtimodflags(int *iunit, int *iflags) {iiuAltImodFlags(*iunit, *iflags);}
 void ialimodflags(int *iunit, int *iflags) {iiuAltImodFlags(*iunit, *iflags);}
 
-/*
+/*!
  * Sets flag for whether to write bytes as signed (transient {byteSigned} member) to 
  * value of [iflags] for unit [iunit].  Fortran wrappers iiuAltSigned and ialsigned.
  */
