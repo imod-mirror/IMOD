@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/15/14: In eTomo - Post Processing, removed the lock from the flatten and
+squeeze panels that was active when the sum.rec or _full.rec file was missing.
+This state should only affect the trimvol panel (In 4.7).(Bug# 1820)
+
 10/15/14: Added information from the autodoc file to all autodoc tooltips (In
 4.7).(Bug# 1811)
 
