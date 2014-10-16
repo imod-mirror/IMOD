@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/16/14: Added more detail to error message when Beadtrack or Tiltalign
+cannot read model.
+
 10/15/14: Made alterheader take command-line arguments with PIP.
 
 10/15/14: Fixed INVERTORG in Alterheader (In 4.7).
