@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/15/14: Added information from the autodoc file to all autodoc tooltips (In
+4.7).(Bug# 1811)
+
 10/15/14: Fixed INVERTORG in Alterheader (In 4.7).
 
 10/14/14: Made dm2mrc write temporary files to output file directory and added
