@@ -16,7 +16,7 @@ PROGS = clonemodel$(E) clonevolume$(E) imodauto$(E) imod-dist$(E) \
  imod2rib$(E) imod2vrml$(E) imod2vrml2$(E) imod2obj$(E) pickbestseed$(E) \
  imod2meta$(E) wmod2imod$(E) imodjoin$(E) imodextract$(E) \
  imodsetvalues$(E) imodsortsurf$(E) imodexplode$(E) patch2imod$(E) \
- imod2patch$(E) echo2$(E) imodfillin$(E) imodcurvature$(E) \
+ imod2patch$(E) echo2$(E) imodfillin$(E) imodcurvature$(E) findsection$(E) \
  imodfindbeads$(E) point2model$(E) flattenwarp$(E) slashmasksort$(E) \
  slashfindspheres$(E) joinwarp2model$(E) imodchopconts$(E) $(IMODWINCPU)
 
@@ -27,6 +27,9 @@ clonemodel$(E) : clonemodel.$(O)
 
 clonevolume$(E) : clonevolume.$(O)
 	$(CC) -o clonevolume clonevolume.$(O) $(LDFLAGS) $(IILIBS) $(CLIBS)
+
+findsection$(E) : findsection.$(O)
+	$(CXX) -o findsection findsection.$(O) $(LDFLAGS) $(IILIBS) $(CLIBS)
 
 imodinfo$(E) : imodinfo.$(O)
 	$(CXX) -o imodinfo imodinfo.$(O) $(LDFLAGS) $(MODLIBS) $(CLIBS)

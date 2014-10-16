@@ -68,6 +68,7 @@ Notes:
 <LI> <B>NES</B>: Will not (yet) have any effect if running in eTomo, but optionally
   saved into a directive file by eTomo.
 </UL> 
+<LI> "BRT default" refers to a default value applied by Batchruntomo.
 </OL>
 </BODY>
 </HTML>
