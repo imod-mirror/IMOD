@@ -144,21 +144,28 @@ type = F
 usage = Step to start processing with
 tooltip = 
 manpage = Step to start processing with: 
-^   0: setup
-^   1: preprocessing
-^   2: cross-correlation alignment
-^   3: prealigned stack
-^   4: patch tracking, autoseeding, or RAPTOR
-^   5: bead tracking
-^   8: aligned stack generation
+^   0: Setup
+^   1: Preprocessing
+^   2: Cross-correlation alignment
+^   3: Prealigned stack
+^   4: Patch tracking, autoseeding, or RAPTOR
+^   5: Bead tracking
+^   7: Positioning
+^   8: Aligned stack generation
 ^   9: CTF plotting
 ^   10: 3D gold detection
 ^   11: CTF correction
-^   12: gold erasing after transforming fiducial model or 
+^   12: Gold erasing after transforming fiducial model or 
 ^       projecting 3D model
 ^   13: 2D filtering
-^   14: reconstruction
-^   20: postprocessing
+^   14: Reconstruction
+^   14.5: Postprocessing on a/b axis reconstruction
+^   15: Combine setup
+^   16: Solvematch
+^   17: Initial matchvol
+^   18: Autopatchfind
+^   19: Volcombine
+^   20: Postprocessing
 ^   Each set will start at this step unless the
 \fB-first\fR option is entered, in which case only the first set will start
 with this step and others will start from the beginning.  In the latter case,
