@@ -176,11 +176,12 @@ final class YAxisTypePanel {
     catch (LogFile.LockException e) {
       e.printStackTrace();
     }
+    String autodocName = autodoc.getAutodocName();
     ReadOnlySection section = autodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME,
         MatlabParam.YAxisType.KEY);
-    rbYAxisTypeYAxis.setToolTipText(section);
-    rbYAxisTypeParticleModel.setToolTipText(section);
-    rbYAxisTypeContour.setToolTipText(section);
+    rbYAxisTypeYAxis.setToolTipText(autodocName, section);
+    rbYAxisTypeParticleModel.setToolTipText(autodocName, section);
+    rbYAxisTypeContour.setToolTipText(autodocName, section);
   }
 
   private static final class YAxisTypeActionListener implements ActionListener {
