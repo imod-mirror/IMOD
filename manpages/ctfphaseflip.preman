@@ -1,0 +1,53 @@
+.na
+.nh
+.TH ctfphaseflip 1 3.10.18 BL3DEMC
+.SH NAME
+ctfphaseflip \- correct tilt series for microscope CTF by phase flipping 
+.SH SYNOPSIS
+ctfphaseflip  options
+.SH DESCRIPTION
+This program will correct the CTF of an input tilt series by simple phase
+flipping.  The user can select a subset of projection views of the input tilt
+series to correct and
+can specify a defocus value for each selected view through a text defocus
+file.
+The output file of ctfplotter(1) is usually used as the defocus file.
+
+Ctfphaseflip corrects each view strip by strip.  A strip is defined as an image
+region whose defocus difference is less than a user specified value, but the
+width is also limited to 256 pixels.
+
+It can be run in a parallel mode similiar to the Tilt(1) program by setting the
+TotalViews option.  The script Splitcorrection(1) can be used to prepare 
+command files for running the program in parallel.
+
+A sample command file for running the program with "subm" can be found in the
+IMOD/com directory (ctfcorrection.com).
+
+.SH OPTIONS
+Ctfphaseflip uses the PIP package for input (see the manual page
+for pip(1)).  Options can be specified either as command line
+arguments (with the -) or one per line in a command file
+(without the -).  Options can be abbreviated to unique letters; the currently
+valid abbreviations for short names are shown in parentheses.
+INSERT OPTION TEXT HERE
+.TP
+.B -StandardInput
+Read parameter entries from standard input
+
+.SH AUTHOR
+.nf
+Quanren Xiong
+.fi
+.SH SEE ALSO
+ctfplotter(1)
+.SH BUGS
+Prior to IMOD 4.0.29, Ctfplotter had a bug in which the view numbers written
+to the defocus file were numbered from 0, not 1.  When Ctfphaseflip reads in
+the defocus file, it will do its best to detect this situation
+and adjust all the view numbers up by 1.  If it does detect an inconsistency
+between view numbers and angular ranges, it will issue a warning.
+In general, the difference in CTF correction from having view numbers off by 1
+was insignificant.
+.P
+Email bug reports to mast@colorado.edu.
