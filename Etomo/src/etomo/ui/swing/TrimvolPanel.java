@@ -297,18 +297,18 @@ public final class TrimvolPanel implements Run3dmodButtonContainer, RubberbandCo
   private final RubberbandPanel pnlScaleRubberband;
   private final AxisID axisID;
   private final DialogType dialogType;
-  private final boolean lockPanel;
+  private final boolean trimvolInputFileMissing;
 
   /**
    * Default constructor
    */
   public TrimvolPanel(final ApplicationManager appMgr, final AxisID axisID,
-      final DialogType dialogType, final boolean lockPanel) {
+      final DialogType dialogType, final boolean trimvolInputFileMissing) {
     this.dialogType = dialogType;
     this.axisID = axisID;
-    this.lockPanel = lockPanel;
+    this.trimvolInputFileMissing = trimvolInputFileMissing;
     applicationManager = appMgr;
-    volumeRangePanel = VolumeRangePanel.getInstance(lockPanel);
+    volumeRangePanel = VolumeRangePanel.getInstance(trimvolInputFileMissing);
     // panels
     pnlScaleRubberband = RubberbandPanel.getNoButtonInstance(appMgr, this,
         ImodManager.COMBINED_TOMOGRAM_KEY, "Scaling from sub-area:",
@@ -316,14 +316,14 @@ public final class TrimvolPanel implements Run3dmodButtonContainer, RubberbandCo
         "Minimum X coordinate on the left side to analyze for contrast range.",
         "Maximum X coordinate on the right side to analyze for contrast range.",
         "The lower Y coordinate to analyze for contrast range.",
-        "The upper Y coordinate to analyze for contrast range.", lockPanel);
+        "The upper Y coordinate to analyze for contrast range.", trimvolInputFileMissing);
     btnTrimvol = (Run3dmodButton) appMgr.getProcessResultDisplayFactory(AxisID.ONLY)
         .getTrimVolume();
     btnTrimvol.setContainer(this);
     btnTrimvol.setDeferred3dmodButton(btnImodTrim);
 
     // init
-    btnTrimvol.setEnabled(!lockPanel);
+    btnTrimvol.setEnabled(!trimvolInputFileMissing);
 
     // Set the button sizes
     btnImodFull.setSize();
@@ -443,7 +443,7 @@ public final class TrimvolPanel implements Run3dmodButtonContainer, RubberbandCo
   }
 
   void setParameters(final TrimvolParam param) {
-    if (lockPanel) {
+    if (trimvolInputFileMissing) {
       return;
     }
     // volumeRangePanel.setParameters(param);
@@ -476,7 +476,7 @@ public final class TrimvolPanel implements Run3dmodButtonContainer, RubberbandCo
    * @param trimvolParam
    */
   void setParameters(final ConstMetaData metaData, final boolean dialogExists) {
-    if (!dialogExists || lockPanel) {
+    if (!dialogExists || trimvolInputFileMissing) {
       // TrimvolParam can calculate the initial values, while metaData would have nothing
       // from this panel if the dialog hadn't been created yet.
       return;
@@ -528,7 +528,7 @@ public final class TrimvolPanel implements Run3dmodButtonContainer, RubberbandCo
   }
 
   public void getParameters(final MetaData metaData) {
-    if (lockPanel) {
+    if (trimvolInputFileMissing) {
       return;
     }
     volumeRangePanel.getParameters(metaData);
@@ -545,7 +545,7 @@ public final class TrimvolPanel implements Run3dmodButtonContainer, RubberbandCo
   }
 
   void getParametersForTrimvol(final MetaData metaData) {
-    if (lockPanel) {
+    if (trimvolInputFileMissing) {
       return;
     }
     volumeRangePanel.getParametersForTrimvol(metaData);
@@ -558,7 +558,7 @@ public final class TrimvolPanel implements Run3dmodButtonContainer, RubberbandCo
    * @param trimvolParam
    */
   public boolean getParameters(TrimvolParam trimvolParam, final boolean doValidation) {
-    if (lockPanel) {
+    if (trimvolInputFileMissing) {
       return true;
     }
     try {
@@ -631,7 +631,7 @@ public final class TrimvolPanel implements Run3dmodButtonContainer, RubberbandCo
   }
 
   public void setParameters(ReconScreenState screenState) {
-    if (lockPanel) {
+    if (trimvolInputFileMissing) {
       return;
     }
     btnTrimvol.setButtonState(screenState.getButtonState(btnTrimvol.getButtonStateKey()));
