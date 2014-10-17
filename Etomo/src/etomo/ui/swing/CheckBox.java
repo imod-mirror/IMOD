@@ -212,8 +212,9 @@ final class CheckBox extends JCheckBox {
     super.setToolTipText(TooltipFormatter.INSTANCE.format(text));
   }
 
-  public void setToolTipText(final ReadOnlySection section, final String enumValue) {
-    setToolTipText(EtomoAutodoc.getTooltip(section, enumValue));
+  public void setToolTipText(final String autodocName, final ReadOnlySection section,
+      final String enumValue) {
+    setToolTipText(EtomoAutodoc.getTooltip(autodocName, section, enumValue));
   }
 
   void printInfo() {

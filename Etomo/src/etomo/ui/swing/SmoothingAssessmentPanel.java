@@ -88,12 +88,10 @@ final class SmoothingAssessmentPanel implements FlattenWarpDisplay,
   private final SmoothingAssessmentParent parent;
   private final DialogType dialogType;
   private final PanelId panelId;
-  private final boolean lockPanel;
 
   private SmoothingAssessmentPanel(final ApplicationManager manager, final AxisID axisID,
       final DialogType dialogType, final PanelId panelId,
-      final SmoothingAssessmentParent parent, final boolean lockPanel) {
-    this.lockPanel = lockPanel;
+      final SmoothingAssessmentParent parent) {
     this.manager = manager;
     applicationManager = manager;
     toolsManager = null;
@@ -109,7 +107,6 @@ final class SmoothingAssessmentPanel implements FlattenWarpDisplay,
   private SmoothingAssessmentPanel(final ToolsManager manager, final AxisID axisID,
       final DialogType dialogType, final PanelId panelId,
       final SmoothingAssessmentParent parent) {
-    lockPanel = false;
     this.manager = manager;
     applicationManager = null;
     toolsManager = manager;
@@ -123,9 +120,9 @@ final class SmoothingAssessmentPanel implements FlattenWarpDisplay,
 
   static SmoothingAssessmentPanel getPostInstance(final ApplicationManager manager,
       final AxisID axisID, final DialogType dialogType, final PanelId panelId,
-      final SmoothingAssessmentParent parent, final boolean lockPanel) {
+      final SmoothingAssessmentParent parent) {
     SmoothingAssessmentPanel instance = new SmoothingAssessmentPanel(manager, axisID,
-        dialogType, panelId, parent, lockPanel);
+        dialogType, panelId, parent);
     instance.createPanel();
     instance.setTooltips();
     instance.addListeners();
@@ -157,7 +154,6 @@ final class SmoothingAssessmentPanel implements FlattenWarpDisplay,
     btnFlattenWarp.setSize();
     btnFlattenWarp.setContainer(this);
     btnFlattenWarp.setDeferred3dmodButton(btn3dmod);
-    btnFlattenWarp.setEnabled(!lockPanel);
     btn3dmod.setSize();
     ltfLambdaForSmoothing
         .setText(FlattenWarpParam.LAMBDA_FOR_SMOOTHING_ASSESSMENT_DEFAULT);
@@ -181,18 +177,12 @@ final class SmoothingAssessmentPanel implements FlattenWarpDisplay,
   }
 
   void setParameters(final ConstMetaData metaData) {
-    if (lockPanel) {
-      return;
-    }
     if (!metaData.isLambdaForSmoothingListEmpty()) {
       ltfLambdaForSmoothing.setText(metaData.getLambdaForSmoothingList());
     }
   }
 
   void getParameters(final MetaData metaData) {
-    if (lockPanel) {
-      return;
-    }
     metaData.setLambdaForSmoothingList(ltfLambdaForSmoothing.getText());
   }
 
@@ -206,9 +196,6 @@ final class SmoothingAssessmentPanel implements FlattenWarpDisplay,
   }
 
   public boolean getParameters(final FlattenWarpParam param, final boolean doValidation) {
-    if (lockPanel) {
-      return true;
-    }
     try {
       String errorMessage = param.setLambdaForSmoothing(ltfLambdaForSmoothing
           .getText(doValidation));
