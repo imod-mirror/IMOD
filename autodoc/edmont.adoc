@@ -36,6 +36,24 @@ manpage = File for list of coordinates of pieces in output image file.  This
 entry may be omitted if the coordinates are being placed in the image header,
 but is required if there are input piece list files.
 
+[Field = UseMdocFiles]
+short = mdoc
+type = B
+usage = Copy metadata from .mdoc files associated with input files, if any
+tooltip =
+manpage = This option allows data about each image section in metadata autodoc
+(.mdoc) files to be transferred and managed much as data in the extended
+header of an MRC file are.  With it selected, the program will search for a
+matching .mdoc file for each input file that is not HDF, and create a
+matching .mdoc file for each output file that is not HDF.  (A matching file is
+one with .mdoc appended to the image filename, as SerialEM creates).  Metadata
+about each image slice in ZValue sections will be transferred between autodocs
+and the ZValue will be renumbered appropriately.  Thus, data can be
+transferred from one .mdoc to another, if input and output files are MRC; from
+an .mdoc into the attributes of an HDF file if input is MRC and output is HDF;
+or from HDF attributes into an .mdoc if input is HDF and output is MRC.  When
+input and output are both HDF, attributes are transferred automatically.
+
 [Field = SectionsToRead]
 short = secs
 type = LIM
@@ -49,6 +67,14 @@ one will be applied to the respective input file.  If no list is entered for
 a file, all sections will be read.  Note that montages can have missing
 sections, and a list that includes such missing sections will generate an
 error.
+
+[Field = NumberedFromOne]
+short = fromone
+type = B
+usage = Section numbers are entered numbered from 1, not 0
+tooltip = 
+manpage = With this option section numbers entered with the -secs
+option are numbered from 1 instead of 0.
 
 [Field = NumberToOutput]
 short = numout

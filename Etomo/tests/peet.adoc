@@ -94,7 +94,7 @@ bn.up=
   assert.disabled.tf.volume-table-1-initial=
   assert.disabled.bn.volume-table-1-initial=
 [[]]
-rb.user-supplied-csv-files=
+rb.user-supplied-csv-files.1=
 bn.volume-table-1-initial=
 wait.file-chooser.initial-motl=%{dataset}-a-initMOTL.csv
 bn.volume-table-2-initial=
@@ -301,23 +301,25 @@ rb.none=
 assert.rb.tomogram-y-axis=on
 assert.rb.particle-model-points=off
 assert.rb.end-points-of-contour=off
+assert.rb.user-supplied-csv-files=off
 #check enabled/disabled
 assert.enabled.rb.tomogram-y-axis=
 assert.enabled.rb.particle-model-points=
 assert.enabled.rb.end-points-of-contour=
+assert.enabled.rb.user-supplied-csv-files=
 
 
 [function = initial-motive-list]
 #check value
 assert.rb.set-all-angles-to-0=off
 assert.rb.align-particle-y-axes=off
-assert.rb.user-supplied-csv-files=on
+assert.rb.user-supplied-csv-files.1=on
 assert.rb.uniform-random-rotations=off
 assert.rb.random-axial-rotations=off
 #check enable/disabled
 assert.enabled.rb.set-all-angles-to-0=
 assert.enabled.rb.align-particle-y-axes=
-assert.enabled.rb.user-supplied-csv-files=
+assert.enabled.rb.user-supplied-csv-files.1=
 assert.enabled.rb.uniform-random-rotations=
 assert.enabled.rb.random-axial-rotations=
 
@@ -616,18 +618,21 @@ rb.align-particle-y-axes=
 save=
 assert.contains.file=%{dataset}.prm|initMOTL = 2
 #use files is tested in volume-table-check-prm
-rb.user-supplied-csv-files=
+rb.user-supplied-csv-files.1=
 save=
 assert.contains.file=%{dataset}.prm|initMOTL = {'%{dataset}-a-initMOTL.csv', '%{dataset}-b-initMOTL.csv', '%{dataset}-a-initMOTL.csv'}
 #test uniform random rotations
 rb.uniform-random-rotations=
+assert.rb.user-supplied-csv-files.1=off
+assert.rb.uniform-random-rotations=on
 save=
+sleep=
 assert.contains.file=%{dataset}.prm|initMOTL = 3
 #test uniform random rotations
 rb.random-axial-rotations=
 save=
 assert.contains.file=%{dataset}.prm|initMOTL = 4
-rb.user-supplied-csv-files=
+rb.user-supplied-csv-files.1=
 
 
 [function = particle-y-axis-check-prm]
@@ -640,6 +645,9 @@ assert.contains.file=%{dataset}.prm|yaxisType = 1
 rb.end-points-of-contour=
 save=
 assert.contains.file=%{dataset}.prm|yaxisType = 2
+rb.user-supplied-csv-files=
+save=
+assert.contains.file=%{dataset}.prm|yaxisType = 3
 rb.tomogram-y-axis=
 
 
