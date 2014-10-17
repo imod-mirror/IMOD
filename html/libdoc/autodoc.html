@@ -4,9 +4,13 @@
 <H2  align="center">Autodoc Module</H2>
 The autodoc module contains functions for reading from and writing to autodoc
 type files, with named sections and key-value pairs within sections.  There is
-a Fortran wrapper for every function listed here, with the same calling
-conventions.  The only exception is that indices are numbered from 1 instead of
-0.
+a Fortran wrapper for almost every function listed here, with the same calling
+conventions.  The only difference is that indices are numbered from 1 instead of
+0, including returned indices.  However, error codes returned to Fortran are
+not shifted up and are as listed below.  There are no wrappers yet for
+@AdocAppendSection, @AdocInsertSection, @AdocDeleteSection,
+@AdocGetNumCollections, @AdocGetCollectionName, @AdocGetNumberOfKeys,
+@AdocGetKeyByIndex, and @AdocGetValTypeAndSize.
 <P>
 The basic unit of organization in the autodoc file is the section, which
 starts with a line of the form:
@@ -36,7 +40,14 @@ key-value pairs defined.
 Every autodoc structure is initialized with a section for global data stored 
 at the start of the file, before any actual sections are defined.  These data
 are accessed by calls with a <B>typeName</B> of "PreData" and a <B>sectInd</B>
-of 0.
+of 0.  C programs should use ADOC_GLOBAL_NAME, which is defined as "PreData";
+Fortran programs should call
+<BR>
+integer*4 AdocGetStandardNames(globalName, zvalueName)
+<BR>
+to fetch this string and also the important string ADOC_ZVALUE_STRING, which is
+defined as "ZValue".  That function returns -1 if a string does not fit into
+the supplied character argument.
 <P>
 Header to include: autodoc.h
 <P>
