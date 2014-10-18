@@ -33,6 +33,11 @@ cutoff radius (with -cutoff) or parameters of the phase plate imaging (with
 -phase).  It cannot be used together with the low-pass and high-pass
 filter options.
 .P
+The program can also apply a filter in one dimension, in the
+X-direction only, and specifically can apply an R-weighted 1-D filter such
+as is used in back-projection.  This R-weighted filter cannot be used
+together with inverse MTF filtering.
+.P
 Simply multiplying by the inverse of an MTF would amplify noise too much,
 so the inverse MTF filter is shaped by three parameters.  The first
 and most important is the maximum inverse value, which limits how high the
@@ -61,10 +66,12 @@ pair per line.  The program has one built-in curve in which the MTF
 crosses 0.5 at 0.117/pixel.  This curve can be adjusted by scaling its axis,
 which will make it approximately correct for other situations.
 .P
-To apply only low-pass and high-pass filters, omit the -mtf and -stock
-options; to apply only an inverse filter, omit the -lowpass and other
+To apply only low-pass and high-pass filters, omit the \fB-mtf\fR and 
+\fB-stock\fR
+options; to apply only an inverse filter, omit the \fB-lowpass\fR and other
 options for general filtering.  Similarly, to apply only a low-frequency
-amplifier filter, omit the -mtf and -stock other general filter options.
+amplifier filter, omit the \fB-mtf\fR, \fB-stock\fR, and other general
+filter options.
 .P
 If the input file is a real image, then without the "-3d" option the program
 will take the FFT of each section, apply the filter, take the inverse FFT,
