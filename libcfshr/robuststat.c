@@ -206,6 +206,27 @@ void rsfastmedian(float *x, int *n, float *xjumble, float *median)
 }
 
 /*!
+ * Computes the percentile of the [n] sorted values in [x] indicated by [fraction], with 
+ * interpolation between between adjacent values, and returns the result in [pctile].
+ */
+void rsPercentileOfSorted(float *x, int n, float fraction, float *pctile)
+{
+
+  /* If each value is though to occupy a "bin" of space along a range of values,
+     the center of each value represents a fractional position along the full range
+     of (index + 0.5)/n.  At least, this works for median */
+  float realInd = n * fraction - 0.5;
+  int lowerInd = (int)floor((double)realInd);
+  float f = realInd - lowerInd;
+  if (lowerInd < 0)
+    *pctile = x[0];
+  else if (lowerInd >= n - 1)
+    *pctile = x[n - 1];
+  else
+    *pctile = (1. - f) * x[lowerInd] + f * x[lowerInd + 1];
+}
+
+/*!
  * Computes the normalized median absolute deviation from the median for the
  * [n] values in [x], using the value already computed for the median in 
  * [median].  The result is returned in [MADN], and [tmp] is returned with

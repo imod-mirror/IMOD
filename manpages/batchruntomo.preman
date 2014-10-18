@@ -110,9 +110,10 @@ scope template, system template, user template, and batch directive file, and
 entries later in this sequence override ones that appeared earlier.
 Batchruntomo reads the template files and uses their
 contents along with those of the directive file to determine the values for
-parameters.  It also passes all four files to eTomo for it to use when setting
+parameters.  It also passes whatever template files exist, plus the
+batch file, to eTomo for it to use when setting
 arguments for calling Copytomocoms(1), and 
-eTomo passes all four files on to Copytomocoms(1) to use for setting parameters.
+eTomo passes the files on to Copytomocoms(1) to use for setting parameters.
 Batchruntomo passes them to Makecomfile(1) to use similarly when
 making optional command files.
 .P
@@ -142,6 +143,28 @@ when there is a GUI for setting up batch directives.  If the manual
 replacement model is located elsewhere, it will be copied to the dataset and
 renamed to the standard name for such models, so that the model can be opened
 and added to when running in eTomo.
+.P
+.B Detection of blank images and images with large dark regions
+at the highest tilt angles can be done before further processing by
+including the preprocessing directive "endExcludeCriterion" with a
+fractional value such as 0.5.  (The directive is ignored for montaged
+tilt series.)  The program will look at the standard
+deviation (SD)
+of images at each end of the
+tilt series and find ones whose SD is less that the criterion times
+the mean SD of the five adjacent less-tilted images.  
+Up to three images
+can be excluded on each end of the series by this analysis.  The
+program will then do a histogram analysis with Clip(1) to see whether
+the intensity distribution has two peaks and how much of the area falls
+in the lower peak.  A view is excluded if intensity at the lower peak is less than 0.17
+times that at the upper peak and more than 0.33 of the pixels are in
+the lower peak (these defaults can be modified with "darkExcludeRatio"
+and "darkExcludeFraction" directives).  Views can be eliminated up to 6
+tilts from either end in this way, but with either analysis, only
+consecutive views will be eliminated.  View
+skipping/exclusion lists will be added or adjusted in xcorr.com,
+track.com, align.com, and tilt.com.  
 .P
 .B Coarse alignment
 is always performed.  The binning of a prealigned stack can
@@ -176,43 +199,98 @@ stretching will be solved for only if there are gold fiducials on two
 surfaces, and if there are enough on the minority surface overall and relative
 to the total number.
 Stretching may be solved for in the global solution but not in the local one
-if there are too few fiducials on the minority surface per local area.  The
-fine alignment always produces an angle offset and an X-axis tilt that is
-applied when building the tomogram.  In addition, if there is gold on two
-surfaces, the distance between the gold particles provides an estimate of
-thickness that can be used as the basis for the tomogram thickness.
-Otherwise, it is required to specify the thickness for the final tomogram and,
-if gold is to be erased after 3D bead finding, the thickness for the required
-tomogram. 
+if there are too few fiducials on the minority surface per local area.
+In addition to making these decisions, Batchruntomo also calls
+the program Restrictalign(1), which will reduce the number of variables
+being solved for when in a systematic way when the number of fiducials
+is small.  The fine alignment produces an angle offset and an X-axis
+tilt that is applied when building the tomogram, unless there are too
+few gold.  In addition, if there is gold on two surfaces, the distance
+between the gold particles provides an estimate of
+thickness that can be used as one basis for the tomogram thickness.
+Otherwise, if gold is to be erased after 3D bead finding, the thickness
+for the required tomogram must be specified.
+.P
+.B Tomogram positioning
+can be done for plastic sections only, with a binned-down whole
+tomogram for now, if the "sampleType" directive is present with a value
+of 1.  If there is no positioning "binByFactor" directive, 
+the program will pick a binning up to 4 that brings the binned size
+under 512 in its largest dimension.  If there is no positioning
+"thickness" directive,
+the program will pick a thickness based on the largest dimension: 250
+if size under 512, 400 if size under 1024, 500 if size under 2048, and
+600 otherwise.  The program will run Findsection(1) and try to make a
+model for Tomopitch(1) with 5 pairs of sample lines.
 .P
 .B The aligned stack 
 can have specified binning and size.  Optional modifications
 of the aligned stack are
-performed in the standard order.
+performed in the standard order, or with gold erasing first if the
+\fB-erase\fR option is entered.
 .B CTF correction 
 can be done with a single
 nominal defocus value.  Alternatively, Ctfplotter(1) can be used to find the
-defocus automatically if the "autofitRangeAndStep" directive is present.
+defocus automatically if the "autofitRangeAndStep" directive is
+present.  When Ctfphaseflip(1) is run, it will use a "setname.defocus"
+file if it is present; otherwise it will use a "setname_simple.defocus"
+file created with the nominal defocus from the
+"setupset.copyarg.defocus" directive.  (The "setname.defocus" file could
+derive from manual or automatic running of Ctfplotter(1), or could be
+created by other means).
 .B Gold erasing
 can be done with
 automatic finding of beads in a tomogram, or by transforming the fiducial
 model, although the latter is of limited value until a completed model is put
-out by Tiltalign(1).  
+out by Tiltalign(1).  Both the automatic finding of beads in 3D, and
+the detection of defocus, are steps that one might want to check before
+proceeding.  To allow intervention at a single stopping place, CTF
+correction and gold erasing steps are interleaved: defocus is detected,
+beads are found, CTF is corrected, then beads are erased.
 .B 2D filtering 
 can be specified.
 .P
-A tomogram can be computed with weighted backprojection, with SIRT, or with
+.B The tomogram 
+can be computed with weighted backprojection, with SIRT, or with
 both methods.  The iterations to leave can be specified for SIRT.
+The thickness can be chosen automatically if there are
+gold beads on both surfaces or if tomogram positioning was done,
+otherwise it must be specified with a directive.  The
+"Reconstruction.fallbackThickness" directive is the most
+useful one because it can be used to specify a thickness to be used when
+there is no thickness available from either fine alignment or
+positioning.  The fallback thickness will also be used if the thickness
+from either is less than half of the fallback thickness, which
+would be the case if there are gold on only one surface and no 
+positioning was done.
+.P
+.B Tomogram combination
+for a dual-axis dataset is currently possible only for datasets with a
+fiducial alignment; it will proceed automatically in that case.  The program first uses
+Findsection(1) to find the Z limits.  The patch correlations and
+fitting are done with Autopatchfit(1); by default, it will try medium to
+extra-large patches and add target residual values of 0.4,0.45 for
+Findwarp(1) on the final trial.  There are "runtime.Combine" directives
+to control this behavior and to set a few other parameters for tomogram
+combination.  If both SIRT and back-projection reconstructions are
+available, the latter will be combined unless the combine
+"doSIRTifBoth" directive specifies otherwise.
 .P
 .B Postprocessing
 can be done with Trimvol(1), which is run if any of the "runtime.Trimvol"
-directives are present.  For a single axis data set, the output file will have
-the usual final name, setname.rec.  For a dual-axis data set, for now, the
-output file will be named with "_trim.rec".  If only SIRT was used to make the
-reconstruction, the result on the final iteration will be used.
+directives are present.  Findsection(1) will be used to find the
+section limits if the "findSecAddThickness" directive is present.  The
+output file for a final reconstruction will have the usual name,
+setname.rec.  For a dual-axis data set, it is possible
+to trim one or both of the single axis reconstructions; here the
+output file will be named with "_trim.rec".  If both SIRT and
+back-projection were used, the postprocessing "doSIRTifBoth" directive controls
+whether to trim one or both reconstructions; in the latter case the
+file for the back-projection will be named "_BP.rec".  Whenever a SIRT 
+reconstruction is trimmed, the result on the final iteration will be used.
 By default, the trimmed volume will be reoriented by
-rotating around X.  The entire volume will be used unless the "thickness",
-"sizeInX", or "sizeInY" directive is present.  
+rotating around X.  The entire volume will be used unless the
+"findSecAddThickness", "thickness", "sizeInX", or "sizeInY" directive is present.  
 If one of the "scaleFrom" directives is present, the volume will be scaled to
 bytes.  If "scaleFromX" or "scaleFromY" is not present, the area used for
 scaling in X or Y
@@ -220,6 +298,35 @@ will be the Trimvol default of 80% of the range; if "scaleFromZ" is not
 present, the central one-third of slices will be used.  All of these size
 and scaling directives may be specified either as a number of pixels, or as a
 fraction between 0.02 and 1.
+
+.SS Stopping and Restarting
+The \fB-start\fR and \fB-end\fR options allow datasets to be started
+and stopped at chosen steps in the sequence.  
+If you are setting up a situation where parameters are being changed
+before restarting in an existing dataset, you should experiment to
+make sure the changes have the desired effect and are not overridden.
+Here are some general guidelines on that point:
+.br
+1) Changes in "comparam" directives will generally have no effect
+once a command file is created, because they are processed generically
+during command file creation.  In most cases, creation occurs during
+tomogram setup, but some files are created with
+Makecomfile(1) just when needed, so it would be possible to change
+"comparam" directives for a file still to be created.
+.br
+2) Changes in "setupset" directives will also generally have no effect
+because they are interpreted during setup; the use of the defocus value
+mentioned above is an exception.
+.br
+3) Changes in "runtime" directives will generally have the desired
+effect.
+.br
+4) Changes in parameters in the command files will generally have the
+desired effect, unless that parameter is managed by Batchruntomo on the
+basis of "runtime" directives and other information.  The biggest
+example of this is the treatment of "align.com" when Tiltalign(1) is
+rerun; the \fB-use\fR option is provided specifically to avoid
+rerunning Tiltalign(1).
 
 .SH OPTIONS
 Batchruntomo uses the PIP package for input (see the manual page for pip(1)).
