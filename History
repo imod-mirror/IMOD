@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/17/14: In eTomo - Setup Tomogram, added INFO messages about pixel spacing
+to the project log (in 4.7).(Bug# 1824)
+
 10/17/14: Added a call to fixCygPython.sh to IMOD installer (in 4.7).
 (Bug# 1821)
 
