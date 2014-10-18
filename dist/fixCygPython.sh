@@ -12,11 +12,6 @@ if [[ -e /bin/python.exe && -h /bin/python ]] ; then
         echo "The copy of python in /bin/python.exe appears to be out of date"
         echo "Making a new copy of the current python to /bin/python.exe"
         doCopy=1
-        cp -Lf /bin/python /bin/python.exe
-        if [ $? -ne 0 ] ; then 
-            echo "This copy command gave an error"
-            exit 1
-        fi
     fi
 elif [[ ! -e /bin/python.exe ]] ; then
 
@@ -30,7 +25,7 @@ elif [[ ! -e /bin/python.exe ]] ; then
         exit 1
     fi
 fi
-if [ doCopy == 1 ] ; then
+if [ $doCopy -eq 1 ] ; then
     cp -Lf /bin/python /bin/python.exe
     if [ $? -ne 0 ] ; then 
         echo "There was an error copying to /bin/python.exe"
