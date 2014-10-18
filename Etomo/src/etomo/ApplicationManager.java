@@ -7,7 +7,6 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.Iterator;
 import java.util.List;
 
 import etomo.comscript.ArchiveorigParam;
@@ -521,15 +520,10 @@ public final class ApplicationManager extends BaseManager implements
         }
         // Send a specific INFO: message to the project log
         if (messages.isInfo()) {
-          List<String> infoMessages = messages.getInfoList("Setting logarithm offset");
+          List<String> infoMessages = messages.getInfoList(new String[] {
+              "Setting logarithm offset", "Pixel spacing" });
           if (infoMessages != null && infoMessages.size() != 0) {
             logMessage(infoMessages, "Copytomocoms", AxisID.ONLY);
-          }
-          infoMessages = messages.getInfoList("Pixel spacing was set in FEI");
-          if (infoMessages != null && infoMessages.size() != 0) {
-            for (Iterator<String> i = infoMessages.iterator(); i.hasNext();) {
-              System.err.println(i.next());
-            }
           }
         }
         // Create the .rawtlt file if the angle type is range. This makes it

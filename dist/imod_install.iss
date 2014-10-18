@@ -1,3 +1,9 @@
+;How to compile:
+;Examples:
+;Win32 with no CUDA:
+;"\Program Files\Inno Setup 5\ISCC.exe" /dImodVersion=4.7.10 imod_install.iss
+
+
 [Setup]
 AppPublisher=BL3DEMC, University of Colorado
 AppPublisherURL=http://bio3d.colorado.edu/imod/
@@ -40,6 +46,7 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Files]
 ;Must be hard coded.
+Source: "fixCygPython.sh"; DestDir: "{app}"; Flags: ignoreversion
 Source: installIMOD; DestDir: "{app}"; Flags: deleteafterinstall ignoreversion
 #ifdef Win64
 #ifdef Cuda
@@ -67,6 +74,7 @@ Root: HKCU; Subkey: "Environment"; ValueType: string; ValueName: "IMOD_DIR"; Val
 
 [Run]
 Filename: "{cmd}"; Parameters: "/C move {code:getQuotedAppDir}\installIMOD.log {code:getQuotedAppDir}\IMOD"; WorkingDir: "{app}"; StatusMsg: "Moving installIMOD.log to IMOD..."; Check: (not isFailed)
+Filename: "{cmd}"; Parameters: "/C move {code:getQuotedAppDir}\fixCygPython.sh {code:getQuotedAppDir}\IMOD"; WorkingDir: "{app}"; StatusMsg: "Moving fixCygPython.sh to IMOD..."; Check: (not isFailed)
 
 
 [Code]
@@ -81,6 +89,7 @@ var
   
 function setupCygwin(const rootKey: Integer; const cygwinKeyName: String; const pathName: String): Boolean;
 //If a installation of Cygwin that contains Python is found, set global variables and return true.
+//Runs fixCygPython if the "python" link exists
 var
   path: String;
   bin: String;
@@ -91,7 +100,7 @@ begin
     if DirExists(path) then begin
       bin := AddBackslash(path) + 'bin';
       if DirExists(bin) then begin
-        if fileExists(bin + '\python.exe') then begin
+        if fileExists(bin + '\python.exe') or fileExists(bin + '\python') then begin
           AppDir := AddBackslash(path) + 'usr\local';
           CygwinDir := path;
           PythonDir := bin;
@@ -252,6 +261,10 @@ begin
 #else
   outputBaseFilename := 'imod_{#ImodVersion}_win'
 #endif
+  if Cygwin and fileExists(PythonDir + '\python') then begin
+    Exec(PythonDir + '\bash.exe',ExpandConstant('{app}')+'\fixCygPython.sh',PythonDir,SW_SHOW,ewWaitUntilTerminated,returnCode)
+    MsgBox('fixCygPython result code:' + IntToStr(returnCode), mbInformation, MB_OK);
+  end;
   command := '/C PATH=' + PythonDir + ';%PATH% && echo Installing IMOD.......... && python installIMOD -yes ' + skip + outputBaseFilename + '.tar.gz > installIMOD.log 2>&1';
   if Exec(ExpandConstant('{cmd}'), command, ExpandConstant('{app}'), SW_SHOW, ewWaitUntilTerminated, returnCode) then begin
     if returnCode <> 0 then begin
