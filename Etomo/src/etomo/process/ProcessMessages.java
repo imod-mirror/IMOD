@@ -333,7 +333,7 @@ public final class ProcessMessages {
    * @param matchString
    * @return
    */
-  public List<String> getInfoList(final String matchString) {
+  public List<String> getInfoList(final String[] matchStringArray) {
     if (!isInfo()) {
       return null;
     }
@@ -341,8 +341,11 @@ public final class ProcessMessages {
     Iterator<String> i = infoList.iterator();
     while (i.hasNext()) {
       String message = i.next();
-      if (message.indexOf(matchString) != -1) {
-        matches.add(message);
+      for (int j = 0; j < matchStringArray.length; j++) {
+        if (message.indexOf(matchStringArray[j]) != -1) {
+          matches.add(message);
+          break;
+        }
       }
     }
     if (matches.size() != 0) {
