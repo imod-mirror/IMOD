@@ -47,7 +47,10 @@ subroutine input_model(imodObj, imodCont, numProjPt,  iwhichOut, xcen, ycen, xde
     read(5, '(a)') modelFile
   endif
   exist = readSmallMod(modelFile)
-  if (.not.exist) call errorExit('READING MODEL FILE', 0)
+  if (.not.exist) then
+    call imodOpenError(listString)
+    call errorExit('READING MODEL FILE: '//trim(listString), 0)
+  endif
   ierr = getModelName(listString)
   patchTrackModel = listString == 'Patch Tracking Model'
   !
