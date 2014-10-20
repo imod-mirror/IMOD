@@ -93,6 +93,7 @@ function setupCygwin(const rootKey: Integer; const cygwinKeyName: String; const 
 var
   path: String;
   bin: String;
+  ResultCode: Integer;
 begin
   Result := False;
   if RegQueryStringValue(rootKey, cygwinKeyName, pathName, path) and (path <> '') then begin
@@ -101,6 +102,8 @@ begin
       bin := AddBackslash(path) + 'bin';
       if DirExists(bin) then begin
         if fileExists(bin + '\python.exe') or fileExists(bin + '\python') then begin
+          Exec(bin + '\bash.exe','fixCygPython.sh','bin',SW_SHOW,ewWaitUntilTerminated,ResultCode)
+        end;
           AppDir := AddBackslash(path) + 'usr\local';
           CygwinDir := path;
           PythonDir := bin;
