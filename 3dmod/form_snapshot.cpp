@@ -8,7 +8,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  * 
  * $Id$
- * Log at end
  */
 
 #include "form_snapshot.h"
@@ -97,7 +96,7 @@ void SnapshotForm::showOtherFormats(int item)
   QStringList formats = ImodPrefs->snapFormatList();
   QString second = ImodPrefs->snapFormat2(&formats[item]);
   QString label;
-  label.sprintf("%s-S gives TIFF, %s-Shift-S ", CTRL_STRING,
+  label.sprintf("%s+S gives TIFF, %s-Shift+S ", CTRL_STRING,
                              CTRL_STRING);
   if (second != "")
     label += "gives " + second;
@@ -105,9 +104,3 @@ void SnapshotForm::showOtherFormats(int item)
     label += "will not work";
   otherFormatsLabel->setText(label);
 }
-
-/*
-
-$Log$
-
-*/

@@ -32,7 +32,7 @@
  * the [m] solution vectors while [a] is reduced to a unit matrix.  It is 
  * called the same from C and Fortran, but the matrices must be in row-major 
  * order in both cases.  Specifically, in C, the matrices are indexed as 
- * A[row][column] and in Fortran they are indexed as A(column,row). ^
+ * A\[row\]\[column\] and in Fortran they are indexed as A(column,row). ^
  * The maximum value of [n] is 2000 but better and faster approaches should be 
  * used long before reaching that point.  The routine returns -1 if [n] exceeds
  * this value and 1 if the A matrix is singular.
