@@ -65,6 +65,7 @@ int main(int argc, char *argv[])
 
   sprintf(prefix, "\nERROR: %s - ", progname);
   setExitPrefix(prefix);
+  iiAddCheckFunction(iiQImageCheck);
 
   for (iarg = 1; iarg < argc - 1 ; iarg++){
     if (argv[iarg][0] == '-'){
