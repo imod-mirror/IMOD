@@ -356,6 +356,9 @@ program beadtrack
     if (PipGetString('SkipViews', listString) == 0) call parseList2 &
         (listString, izExclude, numExclude, maxView)
     ierr = PipGetFloat('RotationAngle', rotStart)
+    !
+    ! nview needs to be set for this routine to check the groups properly
+    nview = nviewAll
     call inputSeparateGroups(ngsep, nsepInGrpIn, ivsepIn, listString)
   else
     !
