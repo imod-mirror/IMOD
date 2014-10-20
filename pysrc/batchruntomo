@@ -1859,7 +1859,7 @@ def runTiltalign(taLines):
 
    # If skipping align, get a few more values from com file, analyze log
    if skipTiltalign:
-      glbStretch = optionValue(taLines, 'XStretchOption', INT_VALUE)
+      glbStretch = optionValue(taLines, 'XStretchOption', INT_VALUE, numVal = 1)
       madeZfactors = glbStretch != None and glbStretch > 0
       angleArr = [0., 0., 0., 0., 0., 0., 0, 0]
       if analyzeAlignLog(numSurfaces > 1, angleArr):
@@ -3366,12 +3366,12 @@ startingDir = os.getcwd()
 cpuList = PipGetString('CPUMachineList', '')
 parallelCPU = 0
 mostCPUs = 0
+topCPUmachine = '1'
 if cpuList != '':
    try:
       parallelCPU = int(cpuList)
       if parallelCPU < 2 or parallelCPU > 128:
          exitError('A number of cores entered with -cpus must be between 2 and 128')
-      topCPUmachine = '1'
    except ValueError:
       for machine in cpuList.split(','):
          msplit = machine.split('#')
