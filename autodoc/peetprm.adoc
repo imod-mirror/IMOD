@@ -85,9 +85,12 @@ comment = specifies the particle's Y axis.
 ^1: particle model points determine the particle Y axis.
 ^2: end points of the contour containing the particle determine the
 ^   particle Y axis.
+^3: user-defined Y axes.
 enum.0.tooltip = Use volume's Y axis as the particle Y axis.
 enum.1.tooltip = Use vector between neighboring model points as the particle Y axis.
 enum.2.tooltip = Use end points of the contour containing the particle as the particle
+Y axis.
+enum.3.tooltip = Y axes will be read from <fnOutput>_Tom<n>_RotAxes.csv in the project directory or <volName>_RotAxes.csv in the volume directory.
 Y axis.
 
 [Field = particlePerCPU]

@@ -342,7 +342,7 @@ bool ImodClipboard::executeMessage()
 
   // Number of arguments required - for backward compatibility, going to
   // model mode does not require one but should have one
-  int requiredArgs[] = {0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 5, 5, 0, 2, 4, 4, 3, 1, 1};
+  int requiredArgs[] = {0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 5, 5, 0, 2, 4, 4, 3, 1, 1, 0};
   int numArgs = sMessageStrings.count();
 
   // Loop on the actions in the list; set arg to numArgs to break loop
@@ -409,7 +409,7 @@ bool ImodClipboard::executeMessage()
                                 sMessageAction == MESSAGE_OPEN_KEEP_BW, false);
         if(returnValue == IMOD_IO_SUCCESS) {
           wprint("%s loaded.\n", 
-                 LATIN1(QDir::convertSeparators(QString(Imod_filename))));
+                 LATIN1(QDir::toNativeSeparators(QString(Imod_filename))));
 
         }
         else if(returnValue == IMOD_IO_SAVE_ERROR) {
@@ -427,7 +427,7 @@ bool ImodClipboard::executeMessage()
           if(returnValue == IMOD_IO_SUCCESS) {
         
             wprint("New model %s created.\n", 
-                   LATIN1(QDir::convertSeparators(QString(Imod_filename))));
+                   LATIN1(QDir::toNativeSeparators(QString(Imod_filename))));
           }
           else {
             wprint("Could not create a new model %s.\n", 
@@ -618,6 +618,11 @@ bool ImodClipboard::executeMessage()
           imodvOpenSelectedWindows(LATIN1(sMessageStrings[arg + 1]));
         ImodInfoWin->openSelectedWindows(LATIN1(sMessageStrings[++arg]),
                                          ImodvClosed ? 0 : 1);
+        break;
+
+      case MESSAGE_MODEL_CHANGED:
+        imodPrintStderr("Model changed: %d\n", (imod && imod_model_changed(imod)) ? 1 : 
+                        0);
         break;
 
       case MESSAGE_PLUGIN_EXECUTE:
