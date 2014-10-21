@@ -195,6 +195,7 @@ public final class BatchRunTomoManager extends BaseManager {
       return false;
     }
     dialog.getParameters(metaData);
+    dialog.saveAutodocs();
     saveStorables(AXIS_ID);
     BatchruntomoParam param = updateBatchRunTomo();
     dialog.saveAutodocs();
