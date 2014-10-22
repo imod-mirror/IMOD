@@ -191,6 +191,14 @@ allows you to examine the transformed volume after the operation is
 completed.  The default is to remove the temporary directory and its contents
 when the combine operation completes.
 
+[Field = InfoOnPatchSizes]
+short = info
+type = B
+usage = List the 4 patch sizes specified by S, M, L, and E and exit
+tooltip =
+manpage = List the 4 patch sizes specified by S, M, L, and E and exit.  No
+other options will have any effect.
+
 [Field = usage]
 short = help
 type = B
