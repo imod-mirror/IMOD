@@ -661,3 +661,11 @@ goto.frame.pnl.manager-frame =
   mn.test-gpu=
 [[]]
 goto.frame.pnl.manager-frame =
+
+
+[interface = Batch]
+[[open = interface]]
+  pnl.main-frame=
+  bn.batch-tomograms=
+[[]]
+
