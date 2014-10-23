@@ -726,7 +726,7 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
 
     void saveAutodocs() {
       for (int i = 0; i < list.size(); i++) {
-        list.get(i).saveAutodocs();
+        list.get(i).saveAutodoc();
       }
     }
   }
