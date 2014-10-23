@@ -295,7 +295,10 @@ program beadtrack
       call errorExit ('NO INPUT SEED MODEL FILE SPECIFIED', 0)
   !
   exist = readSmallMod(modelFile)
-  if (.not.exist) call errorExit('READING SEED MODEL FILE', 0)
+  if (.not.exist) then
+    call imodOpenError(listString)
+    call errorExit('READING SEED MODEL FILE: '//trim(listString), 0)
+  endif
   if (n_point == 0 .or. max_mod_obj == 0) &
       call errorExit('INPUT SEED MODEL IS EMPTY', 0)
   !
@@ -356,6 +359,9 @@ program beadtrack
     if (PipGetString('SkipViews', listString) == 0) call parseList2 &
         (listString, izExclude, numExclude, maxView)
     ierr = PipGetFloat('RotationAngle', rotStart)
+    !
+    ! nview needs to be set for this routine to check the groups properly
+    nview = nviewAll
     call inputSeparateGroups(ngsep, nsepInGrpIn, ivsepIn, listString)
   else
     !

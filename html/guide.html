@@ -476,14 +476,14 @@ install it.</span>&nbsp; This command will not work on Windows unless the
 	    to <a href="#SettingUpNoCygwin"> Setting Up a Windows PC and Installing
 			IMOD without Cygwin</a></p>
     <p>This section deals with installing Cygwin.  We have 
-			provided both a <a href="http://bio3d.colorado.edu/imod/windows/cygwinForIMOD0310.exe">
-				Cygwin package</a> and a <a href="http://bio3d.colorado.edu/imod/windows/cygwin_installer_0310.exe">
-				Cygwin installer</a> (from March 2010) to make this process simpler and 
-			more predictable.&nbsp; This installation will occupy ~100 MB, all located 
+			provided both a <a href="http://bio3d.colorado.edu/imod/windows/cygwinForIMOD1014.exe">
+				Cygwin package</a> and a <a href="http://bio3d.colorado.edu/imod/windows/cygwin_installer_1014.exe">
+				Cygwin installer</a> (from October 2014) to make this process simpler and 
+			more predictable.&nbsp; This installation will occupy ~220 MB, all located 
 			under a single directory that can be removed easily.&nbsp; The installation 
 			will also create icons on the desktop and in the Start Menu, and make several 
 			simple entries to the Windows registry.&nbsp; To satisfy the terms of the 
-			Cygwin open source license, we also provide the <a href="http://bio3d.colorado.edu/imod/openSource/cygwinSource0310.zip">
+			Cygwin open source license, we also provide the <a href="http://bio3d.colorado.edu/imod/openSource/cygwinSource1014.zip">
 				source code</a> matching the binaries in our package.</p>
 		<p>
 			Installing Cygwin creates a Unix-like directory tree (including directories <code>bin</code>,
@@ -503,7 +503,8 @@ install it.</span>&nbsp; This command will not work on Windows unless the
 		<p>
 			Our Cygwin packages also include a superior terminal window called <code>mintty</code>
 			and a lightweight text editor, <code>nano</code> (derived from <code>pico</code>
-			and similar to the editor in the <code>pine</code> email program).&nbsp; We 
+			and similar to the editor in the <code>pine</code> email program).&nbsp;
+			The latest package also includes the <code>vi</code> editor.  We 
 			used to include <code>rxvt</code> and have now switched to <code>mintty</code> because 
 			it has a better interface and because <code>rxvt</code> is no longer supported 
 			and has developed problems in this Cygwin release. The primary advantage of the <code>
@@ -518,7 +519,7 @@ install it.</span>&nbsp; This command will not work on Windows unless the
 			Cygwin installation will work best if you are logged in as a user with 
 			Administrative privileges.</p>
 		<p>
-			Use our <a href="http://bio3d.colorado.edu/imod/windows/cygwin_installer_0310.exe">installer</a>
+			Use our <a href="http://bio3d.colorado.edu/imod/windows/cygwin_installer_1014.exe">installer</a>
 			for a fresh installation of Cygwin. &nbsp;It performs all the steps described 
 			below. &nbsp;Simply click on it; it will unpack itself and launch the Cygwin 
 			setup program as well as show a page with some instructions. &nbsp;Note the 
@@ -556,7 +557,7 @@ install it.</span>&nbsp; This command will not work on Windows unless the
 			download site</a>.&nbsp; Click on the file and take the defaults to install Java. 
 			When you are done, you can delete any Java icons from your desktop.</p>
 		<p>
-			You can use our simpler <a href="http://bio3d.colorado.edu/imod/windows/cygwinForIMOD0310.exe">
+			You can use our simpler <a href="http://bio3d.colorado.edu/imod/windows/cygwinForIMOD1014.exe">
 				Cygwin package</a> instead to install Cygwin, but then you would have to do 
 			all the steps described below yourself. &nbsp;You can also use this package to 
 			upgrade a previous Cygwin installation. &nbsp;The rest of this section has 
@@ -643,20 +644,23 @@ Python category.&nbsp; In addition, there must be a Python executable named
 			of creating such an executable, but if you upgrade Cygwin without re-installing 
 			IMOD, you should do the following:<ol>
 				<li>
-					In a terminal window, enter
+					In a terminal window, first try entering
+          <br>
+          &nbsp;&nbsp; <code>/usr/local/IMOD/fixCygPython.sh</code>.
+          <br>
+        <li>
+          If this command does not work (the script was not present before
+          IMOD 4.7.11), next enter
 					<br>
 					&nbsp;&nbsp; <code>ls /bin/python*</code>
 					<br>
 					to see if there is a <code>python.exe</code>
-				<li>
-					If there is not, copy <code>python2.7.exe</code> (or whatever numbered 
+        <li>
+          If there is not, or if it is older than the numbered executable in
+					the listing, then copy <code>python2.7.exe</code> (or whatever numbered 
 					executable shows up in the listing) with<br>
 					&nbsp;&nbsp; <code>cp /bin/python2.7.exe /bin/python.exe</code></li>
 			</ol>
-      If you upgrade Cygwin and you DO reinstall IMOD, it will fail if there is
-      an old <code>python.exe</code> from Python 2.6.  In that case, you can
-      just remove <code>python.exe</code> and run the installer again, or you
-      can do the copy just described.
 			<a name="InstallingWindows">
 				<h3>1.6. Installing IMOD on a Windows PC with Cygwin</h3>
 			</a>

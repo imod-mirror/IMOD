@@ -388,6 +388,7 @@ EXPORTS
 	imodContourGetBBox
 	imodLabelNew
 	imodObjectInsertContour
+	IMODOPENERROR
 	imodLabelItemAdd
 	imodel_mesh_add
 	GETIMODSURFACES

@@ -45,7 +45,8 @@ options = ['s::B:Treat unsigned data as signed (use if < 32768)',
            'r::B:Reduce (divide by 2) unsigned 16-bit data or 32-bit integer data',
            'u::B:Save unsigned data in unsigned 16-bit file mode',
            'c::B:Convert 32-bit integer data to 16-bit integers instead of floats',
-           'i::B:Stack images in inverted order in Z']
+           'i::B:Stack images in inverted order in Z',
+           't::CH:Directory in which to store temporary files']
 
 
 PipExitOnError(False, prefix)
@@ -83,6 +84,11 @@ if signopt > 1:
 if PipGetBoolean('i', 0):
    invertStack = '-iz'
 
+# Write temp files to directory of output files, or to user's choice
+nfiles = numNonOpts - 1
+outfile = PipGetNonOptionArg(nfiles)
+tempDir = os.path.dirname(outfile)
+tempDir = PipGetString('t', tempDir)
    
 # Spaces in filenames will be taken care of by quoting all the non-option args
 
@@ -106,7 +112,6 @@ zPixelOpt = ''
 
 # Read all files
 prnstr('Scanning files...')
-nfiles = numNonOpts - 1
 for num in range(nfiles):
    argnum = num
    if invertStack:
@@ -252,7 +257,6 @@ for num in range(end):
    types.append(type)
 
 # make a backup file if output exists
-outfile = PipGetNonOptionArg(nfiles)
 if os.path.exists(outfile):
    prnstr(fmtstr('Output file {0} already exists - saving it as {0}~', outfile))
    makeBackupFile(outfile)
@@ -280,7 +284,9 @@ try:
       if invertStack:
          argnum = nfiles - 1 - i
       fname = PipGetNonOptionArg(argnum)
-      outtmp = fname + pid
+      outtmp = os.path.basename(fname) + pid
+      if tempDir:
+         outtmp = tempDir + '/' + outtmp
       tmplist.append(outtmp)
       rawcom = fmtstr('raw2mrc -f -o {} {} -t {} -x {} -y {} -z {} {} {} {} {} {} ' + \
                          '"{}" "{}"', offsets[i], swap, types[i], xsizes[i], ysizes[i],

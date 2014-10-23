@@ -24,7 +24,7 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  */
-public class EtomoAutodoc {
+public final class EtomoAutodoc {
   public static final String rcsid = "$Id$";
 
   public static final String HEADER_SECTION_NAME = "SectionHeader";
@@ -50,7 +50,7 @@ public class EtomoAutodoc {
   private EtomoAutodoc() {
   }
 
-  public static String getTooltip(ReadOnlySection section) {
+  public static String getTooltip(final String autodocName, final ReadOnlySection section) {
     if (section == null) {
       if (debug) {
         System.out.println("EtomoAutodoc.getTooltip:section is null");
@@ -59,70 +59,53 @@ public class EtomoAutodoc {
     }
     String text = null;
     ReadOnlyAttribute attribute = section.getAttribute(TOOLTIP_ATTRIBUTE_NAME);
-    if (attribute != null) {
-      text = removeFormatting(attribute.getMultiLineValue());
-      if (text != null) {
-        return text;
-      }
+    if (attribute == null || (text = attribute.getMultiLineValue()) == null) {
+      attribute = section.getAttribute(USAGE_ATTRIBUTE_NAME);
     }
-    attribute = section.getAttribute(USAGE_ATTRIBUTE_NAME);
-    if (attribute != null) {
-      text = removeFormatting(attribute.getMultiLineValue());
-      if (text != null) {
-        return text;
-      }
+    if (attribute == null || (text = attribute.getMultiLineValue()) == null) {
+      attribute = section.getAttribute(COMMENT_KEY);
     }
-    attribute = section.getAttribute(COMMENT_KEY);
-    if (attribute != null) {
-      text = removeFormatting(attribute.getMultiLineValue());
-      if (text != null) {
-        return text;
-      }
+    if (attribute == null || (text = attribute.getMultiLineValue()) == null) {
+      attribute = section.getAttribute(MANPAGE_ATTRIBUTE_NAME);
     }
-    attribute = section.getAttribute(MANPAGE_ATTRIBUTE_NAME);
-    if (attribute != null) {
-      return removeFormatting(attribute.getMultiLineValue());
+    if (text != null) {
+      text = removeFormatting(text.trim());
+      String source = "(" + autodocName + ":  " + section.getName() + ")";
+      if (text.endsWith(".")) {
+        return text.substring(0, text.length() - 1) + " " + source + ".";
+      }
+      return text + " " + source + ".";
     }
     return null;
   }
 
-  public static String getTooltip(ReadOnlyAutodoc autodoc, String fieldName) {
-    if (autodoc == null || fieldName == null) {
-      return null;
-    }
-    boolean autodocDebug = autodoc.isDebug();
-    if (debug && !autodocDebug) {
-      autodoc.setDebug(true);
-    }
-    String tooltip = getTooltip(autodoc.getSection(FIELD_SECTION_NAME, fieldName));
-    if (debug) {
-      if (!autodocDebug) {
-        autodoc.setDebug(false);
-      }
-    }
-    if (tooltip == null) {
-      return null;
-    }
-    tooltip = tooltip.trim();
-    String source = "(" + autodoc.getAutodocName() + ":  " + fieldName + ")";
-    if (tooltip.endsWith(".")) {
-      return tooltip.substring(0, tooltip.length() - 1) + " " + source + ".";
-    }
-    return tooltip + " " + source + ".";
-  }
-
-  public static String getTooltip(ReadOnlySection section, String enumValueName) {
+  public static String getTooltip(final String autodocName,
+      final ReadOnlySection section, final String enumValueName) {
     try {
       String enumTooltip = section.getAttribute("enum").getAttribute(enumValueName)
           .getAttribute(TOOLTIP_ATTRIBUTE_NAME).getMultiLineValue();
-      if (enumTooltip == null) {
-        return getTooltip(section);
+      if (enumTooltip != null) {
+        enumTooltip = removeFormatting(enumTooltip.trim());
+        String source = "(" + autodocName + ":  " + section.getName() + " "
+            + enumValueName + ")";
+        if (enumTooltip.endsWith(".")) {
+          return enumTooltip.substring(0, enumTooltip.length() - 1) + " " + source + ".";
+        }
+        return enumTooltip + " " + source + ".";
       }
-      return removeFormatting(enumTooltip);
+      return getTooltip(autodocName, section);
     }
     catch (NullPointerException e) {
-      return getTooltip(section);
+      return getTooltip(autodocName, section);
     }
+  }
+
+  public static String getTooltip(final ReadOnlyAutodoc autodoc, final String fieldName) {
+    if (autodoc == null || fieldName == null) {
+      return null;
+    }
+    return getTooltip(autodoc.getAutodocName(),
+        autodoc.getSection(FIELD_SECTION_NAME, fieldName));
   }
 
   /**
@@ -130,7 +113,7 @@ public class EtomoAutodoc {
    * @param value
    * @return
    */
-  public static String removeFormatting(String value) {
+  public static String removeFormatting(final String value) {
     if (value == null) {
       return null;
     }
@@ -193,7 +176,7 @@ public class EtomoAutodoc {
    * @param value
    * @return
    */
-  public static String[] format(String value) {
+  public static String[] format(final String value) {
     if (value == null) {
       return null;
     }
@@ -262,11 +245,12 @@ public class EtomoAutodoc {
     return (String[]) list.toArray(new String[list.size()]);
   }
 
-  public static String getTooltip(ReadOnlySection section, int enumValueName) {
-    return getTooltip(section, Integer.toString(enumValueName));
+  public static String getTooltip(final String autodocName,
+      final ReadOnlySection section, final int enumValueName) {
+    return getTooltip(autodocName, section, Integer.toString(enumValueName));
   }
 
-  public static void setDebug(boolean debug) {
+  public static void setDebug(final boolean debug) {
     EtomoAutodoc.debug = debug;
   }
 }

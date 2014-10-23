@@ -939,29 +939,30 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     catch (LogFile.LockException e) {
       e.printStackTrace();
     }
+    String autodocName = autodoc.getAutodocName();
     pnlInitMotl.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
         MatlabParam.InitMotlCode.KEY));
     ReadOnlySection section = autodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME,
         MatlabParam.InitMotlCode.KEY);
-    rbInitMotlZero.setToolTipText(section);
-    rbInitAlignParticleYAxes.setToolTipText(section);
-    rbInitMotlRandomRotations.setToolTipText(section);
-    rbInitMotlRandomAxialRotations.setToolTipText(section);
+    rbInitMotlZero.setToolTipText(autodocName, section);
+    rbInitAlignParticleYAxes.setToolTipText(autodocName, section);
+    rbInitMotlRandomRotations.setToolTipText(autodocName, section);
+    rbInitMotlRandomAxialRotations.setToolTipText(autodocName, section);
 
     section = autodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME,
         MatlabParam.REF_FLAG_ALL_TOM_KEY);
-    cbRefFlagAllTom.setToolTipText(section, "0");
+    cbRefFlagAllTom.setToolTipText(autodocName, section, "0");
 
     section = autodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME,
         MatlabParam.LST_FLAG_ALL_TOM_KEY);
-    cbLstFlagAllTom.setToolTipText(section, "0");
+    cbLstFlagAllTom.setToolTipText(autodocName, section, "0");
 
     cbflgAlignAverages.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
         MatlabParam.FLG_ALIGN_AVERAGES_KEY));
 
     section = autodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME,
         MatlabParam.FLG_ABS_VALUE_KEY);
-    cbFlgAbsValue.setToolTipText(section, "1");
+    cbFlgAbsValue.setToolTipText(autodocName, section, "1");
     cbFlgNoReferenceRefinement.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
         MatlabParam.FLG_NO_REFERENCE_REFINEMENT_KEY));
 
