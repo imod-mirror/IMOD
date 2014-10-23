@@ -5,6 +5,7 @@ import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.io.IOException;
 import java.net.URL;
 
 import javax.swing.ImageIcon;
@@ -14,8 +15,12 @@ import etomo.BatchRunTomoManager;
 import etomo.EtomoDirector;
 import etomo.comscript.BatchruntomoParam;
 import etomo.logic.DatasetTool;
+import etomo.process.BaseProcessManager;
 import etomo.storage.DirectiveDef;
 import etomo.storage.DirectiveFileCollection;
+import etomo.storage.LogFile;
+import etomo.storage.autodoc.AutodocFactory;
+import etomo.storage.autodoc.WritableAutodoc;
 import etomo.type.AxisID;
 import etomo.type.BatchRunTomoMetaData;
 import etomo.type.BatchRunTomoRowMetaData;
@@ -400,7 +405,32 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
     param.addCurrentLocation(stack.getParent());
   }
 
-  void saveAutodocs() {
+  private String getDirectiveFileName() {
+    String rootName = DatasetTool.getDatasetName(
+        new File(fcStack.getExpandedValue()).getName(), cbcDualAxis.isSelected());
+    return rootName + ".adoc";
+  }
+
+  void saveAutodoc() {
+    File stack = new File(fcStack.getExpandedValue());
+    File file = new File(manager.getPropertyUserDir(), manager.getName() + "_"
+        + DatasetTool.getDatasetName(stack.getName(), cbcDualAxis.isSelected()) + ".adoc");
+    if (!file.exists()) {
+      BaseProcessManager.touch(file.getAbsolutePath(), manager);
+    }
+    try {
+      WritableAutodoc autodoc = AutodocFactory.getWritableInstance(manager, file, false);
+      if (datasetDialog != null) {
+        datasetDialog.saveAutodoc(autodoc);
+      }
+      autodoc.write();
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+    }
+    catch (LogFile.LockException e) {
+      e.printStackTrace();
+    }
   }
 
   boolean isHighlighted() {
