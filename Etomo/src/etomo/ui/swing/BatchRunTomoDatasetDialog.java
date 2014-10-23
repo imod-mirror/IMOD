@@ -658,8 +658,22 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable {
       BaseProcessManager.touch(fileType.getFile(manager, null).getAbsolutePath(), null);
     }
     try {
-      WritableAutodoc autodoc = AutodocFactory.getWritableInstance(manager,
-          fileType.getFile(manager, null), false);
+      saveAutodoc(AutodocFactory.getWritableInstance(manager,
+          fileType.getFile(manager, null), false));
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+    }
+    catch (LogFile.LockException e) {
+      e.printStackTrace();
+    }
+  }
+
+  void saveAutodoc(final WritableAutodoc autodoc) {
+    if (autodoc == null) {
+      return;
+    }
+    try {
       saveAutodoc(ftfDistort, autodoc);
       saveAutodoc(ftfGradient, autodoc);
       saveAutodoc(cbRemoveXrays, autodoc);
@@ -730,6 +744,7 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable {
       saveAutodoc(ltfFallbackThickness, autodoc);
       saveAutodoc(rtfThickness, autodoc);
       saveAutodoc(rtfBinnedThickness, autodoc);
+      autodoc.write();
     }
     catch (IOException e) {
       e.printStackTrace();
