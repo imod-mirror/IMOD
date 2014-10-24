@@ -311,7 +311,7 @@ else:
    numRunsPerChunk = max(numRunsPerChunk, minRuns)
    numChunks = max(minChunks, numPts // numRunsPerChunk)
 
-numRunsPerChunk = (numPts + numChunks - 1) / numChunks
+numRunsPerChunk = (numPts + numChunks - 1) // numChunks
 
 # Loop on chunks
 chunk = 1
