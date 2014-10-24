@@ -764,8 +764,8 @@ program tiltxcorr
   !
   ! Set up tapering, save unbinned values for taper and shift limit
   !
-  nxTaper = max(5, min(100, nint(0.1 * nxUse)))
-  nyTaper = max(5, min(100, nint(0.1 * nyUse)))
+  nxTaper = max(5, nint(0.1 * nxUse))
+  nyTaper = max(5, nint(0.1 * nyUse))
   if (pipinput) then
     ierr = PipGetTwoIntegers('TapersInXandY', nxTaper, nyTaper)
   else
