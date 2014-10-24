@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/23/14: Changed Subtomosetup to put multiple runs in each command file.
+
 10/17/14: IMOD_4-7-11
 10/17/14: In eTomo - Setup Tomogram, added INFO messages about pixel spacing
 to the project log (In 4.7).(Bug# 1824)
