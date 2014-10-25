@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/24/14: Stopped Imodauto contouring of exact values from always doing
+contours around vales equal to the file maximum (In 4.7).
+
 10/24/14: Removed 100-pixel limit on 10% tapering in Tiltxcorr (In 4.7).
 
 10/17/14: IMOD_4-7-11
