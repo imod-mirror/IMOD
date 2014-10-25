@@ -122,6 +122,7 @@ final class Attribute extends WriteOnlyAttributeList implements WritableAttribut
   private final WriteOnlyAttributeList parent;
   private final Token name;
   private final String key;
+  private final int lineNum;
 
   /**
    * An attribute can occur more then once.  When occurrences is less then 1,
@@ -142,10 +143,11 @@ final class Attribute extends WriteOnlyAttributeList implements WritableAttribut
   private AttributeList children = null;
 
   Attribute(WriteOnlyAttributeList parent,
-  /* WriteOnlyNameValuePairList nameValuePairList, */Token name) {
+  /* WriteOnlyNameValuePairList nameValuePairList, */Token name, final int lineNum) {
     this.parent = parent;
     // this.nameValuePairList = nameValuePairList;
     this.name = name;
+    this.lineNum = lineNum;
     key = name.getKey();
   }
 
@@ -154,6 +156,10 @@ final class Attribute extends WriteOnlyAttributeList implements WritableAttribut
    */
   boolean isGlobal() {
     return parent.isGlobal();
+  }
+
+  public int getLineNum() {
+    return lineNum;
   }
 
   /**
@@ -194,13 +200,13 @@ final class Attribute extends WriteOnlyAttributeList implements WritableAttribut
     return Token.convertToKey(name);
   }
 
-  /*boolean equalsName(String name) { if (name == null) { return false; } return
+  /* boolean equalsName(String name) { if (name == null) { return false; } return
    * key.equals(Token.convertToKey(name)); } */
-  WriteOnlyAttributeList addAttribute(Token name) {
+  WriteOnlyAttributeList addAttribute(final Token name, final int lineNum) {
     if (children == null) {
       children = new AttributeList(this/* , nameValuePairList */);
     }
-    return children.addAttribute(name);
+    return children.addAttribute(name, lineNum);
   }
 
   synchronized void addNameValuePair(NameValuePair nameValuePair) {

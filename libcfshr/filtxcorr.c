@@ -29,6 +29,7 @@
 #define applykernelfilter APPLYKERNELFILTER
 #define wrapfftslice WRAPFFTSLICE
 #define setpeakfindlimits SETPEAKFINDLIMITS
+#define niceframe NICEFRAME
 #else
 #define setctfwsr setctfwsr_
 #define setctfnoscl setctfnoscl_
@@ -45,10 +46,42 @@
 #define applykernelfilter applykernelfilter_
 #define wrapfftslice wrapfftslice_
 #define setpeakfindlimits setpeakfindlimits_
+#define niceframe niceframe_
 #endif
 
 static float peakHalfWidth(float *array, int ixPeak, int iyPeak, int nx, int ny, int delx,
                            int dely);
+
+
+/*!
+ * Returns [num] if it is even and has no prime factor greater than [limit],
+ * or makes the number even and adds [idnum] until it reaches a value with this
+ * property.  Use a values of 2 for [idnum] and call @@libifft.html#niceFFTlimit@ to
+ * obtain an optimal value of [limit] for taking the FFT with the current IMOD package.
+ * This value is 15 when linked with FFTW (because higher values use slower algorithms)
+ * and 19 with the old IMOD FFT routines (an absolute limit in that case).
+ */
+int niceFrame(int num, int idnum, int limit)
+{
+  int numin, numtmp, ifac;
+  numin = 2 * ((num + 1) / 2);
+  do {
+    numtmp = numin;
+    for (ifac = 2; ifac <= limit; ifac++)
+      while (numtmp % ifac == 0)
+        numtmp = numtmp / ifac;
+    
+    if (numtmp > 1)
+      numin += idnum;
+  } while (numtmp > 1);
+  return numin;
+}
+
+/*! Fortran wrapper for @niceFrame */
+int niceframe(int *num, int *idnum, int *limit)
+{
+  return niceFrame(*num, *idnum, *limit);
+}
 
 /*!
  * Takes the filter parameters [sigma1], [sigma2], [radius1], and [radius2] and
