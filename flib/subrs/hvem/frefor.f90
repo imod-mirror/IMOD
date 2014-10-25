@@ -39,7 +39,7 @@ end subroutine frefor2
 
 ! !
 ! Reads numeric values from a character string in [card], returns the values in [xnum]
-! and the number of values in [numFields].  If [ifCheckNumeric] is 0, [numeric[ is not
+! and the number of values in [numFields].  If [ifCheckNumeric] is 0, [numeric] is not
 ! accessed and it prints a warning and stops reading values if a non-numeric value is
 ! found in a field.  If [ifCheckNumeric] is 1, it returns 1 in the array [numeric] if
 ! there is a numeric value in the respective field, or 0 if not.  Reads up to [limNum]
