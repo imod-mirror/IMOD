@@ -830,6 +830,8 @@ program beadtrack
     ix = 2 * numRounds * maxArea
     if (splitFirstRound) ix = ix + 2 * maxArea
     deallocate(xxtmp, yytmp)
+    if (allocated(iareaSeq)) deallocate(iareaSeq, ninObjList, indObjList, areaDist, &
+        ivSeqStr, ivSeqEnd, listSeq)
     allocate(iareaSeq(maxArea), ninObjList(maxArea), indObjList(maxArea), &
         areaDist(maxArea), ivSeqStr(ix), ivSeqEnd(ix), listSeq(ix), xxtmp(2 * maxArea), &
         yytmp(3 * maxArea), stat = ierr)
