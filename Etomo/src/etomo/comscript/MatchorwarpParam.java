@@ -49,9 +49,7 @@ import java.util.ArrayList;
 
 public class MatchorwarpParam extends ConstMatchorwarpParam implements CommandParam {
   /* (non-Javadoc)
-   * @see 
-   * etomo.comscript.CommandParam#initialize(etomo.comscript.ComScriptCommand)
-   */
+   * @see etomo.comscript.CommandParam#initialize(etomo.comscript.ComScriptCommand) */
   public void parseComScriptCommand(ComScriptCommand scriptCommand)
       throws BadComScriptException, FortranInputSyntaxException,
       InvalidParameterException {
@@ -149,13 +147,23 @@ public class MatchorwarpParam extends ConstMatchorwarpParam implements CommandPa
       if (cmdLineArgs[i].startsWith("-tr")) {
         trial = true;
       }
+
+      if (cmdLineArgs[i].startsWith("-st")) {
+        i++;
+        structurecrit = cmdLineArgs[i];
+      }
+
+      if (cmdLineArgs[i].startsWith("-e")) {
+        i++;
+        extentfit = cmdLineArgs[i];
+      }
     }
 
     inputFile = cmdLineArgs[cmdLineArgs.length - 2];
     outputFile = cmdLineArgs[cmdLineArgs.length - 1];
 
-    //Backwards compatibility (before 3.8.25):
-    //Update so that the user can look at the .resid file.
+    // Backwards compatibility (before 3.8.25):
+    // Update so that the user can look at the .resid file.
     if (residualFile == null && vectormodel == null && clipsize.isNull()) {
       residualFile = RESIDUAL_FILE_DEFAULT;
       vectormodel = VECTOR_MODEL_DEFAULT;
@@ -164,9 +172,7 @@ public class MatchorwarpParam extends ConstMatchorwarpParam implements CommandPa
   }
 
   /* (non-Javadoc)
-   * @see etomo.comscript.CommandParam#updateComScript 
-   * (etomo.comscript.ComScriptCommand)
-   */
+   * @see etomo.comscript.CommandParam#updateComScript (etomo.comscript.ComScriptCommand) */
   public void updateComScriptCommand(ComScriptCommand scriptCommand)
       throws BadComScriptException {
 
@@ -263,6 +269,16 @@ public class MatchorwarpParam extends ConstMatchorwarpParam implements CommandPa
 
     if (trial) {
       cmdLineArgs.add("-trial");
+    }
+
+    if (!structurecrit.equals("")) {
+      cmdLineArgs.add("-structurecrit");
+      cmdLineArgs.add(structurecrit);
+    }
+
+    if (!extentfit.equals("")) {
+      cmdLineArgs.add("-extentfit");
+      cmdLineArgs.add(extentfit);
     }
 
     cmdLineArgs.add(inputFile);
@@ -456,5 +472,7 @@ public class MatchorwarpParam extends ConstMatchorwarpParam implements CommandPa
     inputFile = "";
     outputFile = "";
     useLinearInterpolation = false;
+    structurecrit = "";
+    extentfit="";
   }
 }
