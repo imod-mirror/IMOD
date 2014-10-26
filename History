@@ -1,5 +1,6 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/25/14: IMOD_4-7-12
 10/25/14: Fixed Beadtrack failure if it has to reduce local area target size
 (In 4.7).
 
