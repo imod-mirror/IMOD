@@ -19,8 +19,13 @@ This module provides the following functions:
                          returns a 'tuple' of x,y,z,mode,px,py,pz,
                          plus ox,oy,oz,min,max,mean if doAll is True
   getmrcpixel(file)    - run the 'header' command on <file>
-                         returns just a single pixel size, using extended header value
-                         if any
+                         returns just a single pixel size, using extended header
+                         value if any
+  getMontageSize(stack, [plName]) - runs 'montagesize' on <stack>; adds piece 
+                                     list file plName if supplied and it exists; 
+                                     returns nx, ny, nz in a tuple
+  getImageFormat(file) - runs header to determine format of <file>; returns
+                            TIFF, HDF, likeMRC, or MRC
   makeBackupFile(file)   - renames file to file~, deleting old file~
   exitFromImodError(pn, errout) - prints the error strings in errout and
                                   prepends 'ERROR: pn - ' to the last one
@@ -45,6 +50,10 @@ This module provides the following functions:
   imodNice(niceInc) - Sets niceness of process, even on Windows
   imodTempDir() - returns a temporary directory: IMOD_TEMPDIR, /usr/tmp, or /tmp
   setLibPath() - Set path variables for executing Qt programs
+  makeCurrentDirWritable() - Tries to make sure current directory is writeable on Windows
+  patchSizeFromEntry(patchin) - Gets 3D patch size from letter or three numbers
+  autoPatchNumber(size, lower, upper, ifZ, [densityInd]) - Computes number of patches
+                               from size and range, depending on axis and density flags
   fmtstr(string, *args) - formats a string with replacement fields
   prnstr(string, file = sys.stdout, end = '\n', flush = False) - replaces print function
 """
@@ -452,6 +461,47 @@ def getmrcpixel(file):
 
    return pixel
 
+
+# Get the size of a montage by running montagesize
+def getMontageSize(stack, plName = None):
+   """getMontageSize(stack, [plName])  - runs 'montagesize' on <stack>; adds
+   piece list file plName if supplied and it exists; returns nx, ny, nz in a tuple"""
+   global errStrings
+   command = 'montagesize "' + stack + '"'
+   if plName and os.path.exists(plName):
+      command += ' "' + plName + '"'
+   sizeLines = runcmd(command)
+   try:
+      problem = 'No output returned'
+      line = sizeLines[-1]
+      ind = line.find('NZ:')
+      if ind < 0:
+         problem = 'Line with NZ: not found in output'
+         ind = -5
+      lsplit = line[ind + 3:].split()
+      problem = 'Uninterpretable output on line with NZ:'
+      rawXsize = int(lsplit[0])
+      rawYsize = int(lsplit[1])
+      zsize = int(lsplit[2])
+      return (rawXsize, rawYsize, zsize)
+   except Exception:
+      errStrings = command + ': ' + problem
+      raise ImodpyError
+
+
+# Gets the image format as MRC, HDF, TIFF, or likeMRC
+def getImageFormat(file):
+   """getImageFormat(file)   - runs header and returns TIFF, HDF, likeMRC, or MRC"""
+   retVals = ['TIFF', 'HDF', 'likeMRC']
+   nonMRC = ['a TIFF', 'an HDF', 'a non-MRC']
+   input = ["InputFile " + file]
+   hdrout = runcmd("header -StandardInput", input)
+   for ind in range(len(nonMRC)):
+      for line in hdrout[0:9]:
+         if 'This is ' + nonMRC[ind] in line:
+            return retVals[ind]
+   return 'MRC'
+   
 
 # Make a backup file
 def makeBackupFile(filename):
@@ -988,6 +1038,42 @@ def makeCurrentDirWritable():
          errStr = writeTextFile('writetest.tmp', ['Test for writability'], True)
          cleanupFiles(['writetest.tmp'])
          return errStr
+
+
+# Two functions for managing patch size and number needed by Setupcombine and
+# Autopatchfit
+PATCHXY = (64, 80, 100, 120)
+PATCHZ = (32, 40, 50, 60)
+AUTODELPATCHXY = (80, 40)
+AUTODELPATCHZ = (30, 20)
+
+# Function to return a patch size from an entry that can be a letter or a size
+# in X, Y, Z
+def patchSizeFromEntry(patchin):
+   indpatch = 'SMLE'.find(patchin.upper())
+   err = 0
+   if indpatch >= 0 and len(patchin) == 1:
+      patchnx = patchny = PATCHXY[indpatch]
+      patchnz = PATCHZ[indpatch]
+   else:
+      psplit = patchin.split(',')
+      err = 1
+      if len(psplit) == 3:
+         try:
+            patchnx = int(psplit[0])
+            patchny = int(psplit[1])
+            patchnz = int(psplit[2])
+            err = 0
+         except ValueError:
+            err = 1
+   return (patchnx, patchny, patchnz, err)
+
+# Function to compute number of patches from size and limits
+def autoPatchNumber(size, lower, upper, ifZ, densityInd = 0):
+   delta = AUTODELPATCHXY[densityInd]
+   if ifZ:
+      delta = min(AUTODELPATCHZ[densityInd], 3 * size // 4)
+   return int(round(float(upper - lower - size) / delta + 1.))
 
 
 # Function to format a string in new format for earlier versions of python
