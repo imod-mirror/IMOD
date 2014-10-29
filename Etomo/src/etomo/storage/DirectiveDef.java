@@ -117,6 +117,8 @@ public final class DirectiveDef {
 
   public static final DirectiveDef CONTOUR_PIECES = new DirectiveDef(
       DirectiveType.RUN_TIME, Module.PATCH_TRACKING, "contourPieces");
+  public static final DirectiveDef RAW_BOUNDARY_MODEL_FOR_PATCH_TRACKING = new DirectiveDef(
+      DirectiveType.RUN_TIME, Module.PATCH_TRACKING, "rawBoundaryModel");
 
   public static final DirectiveDef BIN_BY_FACTOR_FOR_POSITIONING = new DirectiveDef(
       DirectiveType.RUN_TIME, Module.POSITIONING, BIN_BY_FACTOR_NAME);
@@ -145,6 +147,9 @@ public final class DirectiveDef {
       DirectiveType.RUN_TIME, Module.RECONSTRUCTION, "fallbackThickness");
   public static final DirectiveDef USE_SIRT = new DirectiveDef(DirectiveType.RUN_TIME,
       Module.RECONSTRUCTION, "useSirt");
+
+  public static final DirectiveDef RAW_BOUNDARY_MODEL_FOR_SEED_FINDING = new DirectiveDef(
+      DirectiveType.RUN_TIME, Module.SEED_FINDING, "rawBoundaryModel");
 
   public static final DirectiveDef ENABLE_STRETCHING = new DirectiveDef(
       DirectiveType.RUN_TIME, Module.TILT_ALIGNMENT, "enableStretching");
@@ -410,7 +415,6 @@ public final class DirectiveDef {
   }
 
   /**
-   * @see getAxis
    * @param match
    * @param axisID
    * @return axis name for runtime directives
@@ -449,7 +453,6 @@ public final class DirectiveDef {
 
   /**
    * Get name according to which match is being done
-   * @param match
    * @param axisID
    * @return
    */
