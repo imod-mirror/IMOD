@@ -31,25 +31,128 @@ program alterheader
   real*4 dmin, dmax, dmean, origx, origy, origz, v1, v2
   real*4 dmins, dmaxs, sd, rms, pixel
   real*8 dmeans, sums, sumsqs, totn, tsum, sumsq
-  integer*4 maxLines, numChunks, iChunk, numLines, iflags, ifImod
-  logical*4 nbytes_and_flags, noBinning
+  integer*4 maxLines, numChunks, iChunk, numLines, iflags, ifImod, ierr
+  integer*4 numOptArg, numNonOptArg, indPipOpt
+  logical*4 nbytes_and_flags, noBinning, pipInput
+  integer*4 PipGetString, PipGetFloat, PipNumberOfEntries, PipGetNonOptionArg
+  integer*4 PipGetThreeFloats, PipGetThreeIntegers, PipGetBoolean, PipGetInteger
+
+  ! fallbacks from ../../manpages/autodoc2man -3 2  alterheader
+  !
+  integer numOptions
+  parameter (numOptions = 20)
+  character*(40 * numOptions) options(1)
+  options(1) = &
+      'org:Origin:FT:@cel:CellSize:FT:@del:PixelSize:FT:@map:MapIndexes:IT:@'// &
+      'sam:SampleSize:IT:@tlt:TiltCurrent:FT:@firsttlt:TiltOriginal:FT:@'// &
+      'rottlt:RotateTilt:FT:@mmm:MinMaxMean:B:@rms:RootMeanSquare:B:@'// &
+      'fixpixel:FixPixel:B:@feipixel:FeiPixel:I:@extrafix:FixExtra:B:@'// &
+      'modefix:FixMode:B:@invertorg:InvertOrigin:B:@setmmm:SetMinMaxMean:FT:@'// &
+      'real:RealMode:B:@fft:ComplexMode:B:@ispg:SpaceGroup:I:@help:usage:B:'
+
+  call PipReadOrParseOptions(options, numOptions, 'alterheader', 'ERROR: ALTERHEADER -', &
+      .true., 1, 1, 0, numOptArg, numNonOptArg)
+  pipInput = numOptArg > 0
   !
   ! Read in input file
   !
-  call getinout(1, filin, filin)
+  if (pipInput) then
+    if (numNonOptArg == 0) call exitError('Image filename must be entered')
+    ierr = PipGetNonOptionArg(1, filin)
+    indPipOpt = 0
+  else
+    call getinout(1, filin, filin)
+  endif
   !
   call ialbrief(0)
   CALL IMOPEN(2, FILIN, 'OLD')
   call irdhdr(2, nxyz, mxyz, mode, dmin, dmax, dmean)
   !
-  print *,'If you make a mistake, interrupt with Ctrl-C instead of exiting with DONE'
-30 write(*,102)
+  if (.not. pipInput) print *, &
+      'If you make a mistake, interrupt with Ctrl-C instead of exiting with DONE'
+30 if (pipInput) then
+    ifOK = 0
+    indPipOpt = indPipOpt + 1
+    if (indPipOpt == 1) then
+      if (PipGetThreeFloats('Origin', origx, origy, origz) == 0) go to 1
+    endif
+    if (indPipOpt == 2) then
+      call iiuRetCell(2, cell)
+      if (PipGetThreeFloats('CellSize', cell(1), cell(2), cell(3)) == 0) go to 2
+    endif
+    if (indPipOpt == 3) then
+      if (PipGetThreeFloats('PixelSize', delt(1), delt(2), delt(3)) == 0) go to 4
+    endif
+    if (indPipOpt == 4) then
+      if (PipGetThreeIntegers('MapIndexes', mcrs(1), mcrs(2), mcrs(3)) == 0) go to 5
+    endif
+    if (indPipOpt == 5) then
+      if (PipGetThreeIntegers('SampleSize', mxyz(1), mxyz(2), mxyz(3)) == 0) go to 6
+    endif
+    if (indPipOpt == 6) then
+      if (PipGetThreeFloats('TiltCurrent', tilt(1), tilt(2), tilt(3)) == 0) go to 7
+    endif
+    if (indPipOpt == 7) then
+      if (PipGetThreeFloats('TiltOriginal', tilt(1), tilt(2), tilt(3)) == 0) go to 8
+    endif
+    if (indPipOpt == 8) then
+      if (PipGetThreeFloats('RotateTilt', tilt(1), tilt(2), tilt(3)) == 0) go to 9
+    endif
+    if (indPipOpt == 9) then
+      ierr = PipGetBoolean('MinMaxMean', ifOK)
+      if (ifOK > 0) go to 11
+    endif
+    if (indPipOpt == 10) then
+      ierr = PipGetBoolean('RootMeanSquare', ifOK)
+      if (ifOK > 0) go to 16
+    endif
+    if (indPipOpt == 11) then
+      ierr = PipGetBoolean('FixPixel', ifOK)
+      if (ifOK > 0) go to 12
+    endif
+    if (indPipOpt == 12) then
+      if (PipGetInteger('FeiPixel', ifOK) == 0) then
+        if (ifOK <= 0) ifOK = -1
+        go to 19
+      endif
+    endif
+    if (indPipOpt == 13) then
+      ierr = PipGetBoolean('FixExtra', ifOK)
+      if (ifOK > 0) go to 13
+    endif
+    if (indPipOpt == 14) then
+      ierr = PipGetBoolean('FixMode', ifOK)
+      if (ifOK > 0) go to 17
+    endif
+    if (indPipOpt == 15) then
+      ierr = PipGetBoolean('InvertOrigin', ifOK)
+      if (ifOK > 0) go to 20
+    endif
+    if (indPipOpt == 16) then
+      if (PipGetThreeFloats('SetMinMaxMean', dmin, dmax, dmean) == 0) go to 18
+    endif
+    if (indPipOpt == 17) then
+      ierr = PipGetBoolean('RealMode', ifOK)
+      if (ifOK > 0) go to 21
+    endif
+    if (indPipOpt == 18) then
+      ierr = PipGetBoolean('ComplexMode', ifOK)
+      if (ifOK > 0) go to 22
+    endif
+    if (indPipOpt == 19) then
+      if (PipGetInteger('SpaceGroup', iflags) == 0) go to 23
+    endif
+    if (indPipOpt == 20) go to 15
+    go to 30
+  else
+    write(*,102)
 102 format(1x,'Options: org, cel, dat, del, map, sam, tlt, ', &
       'tlt_orig, tlt_rot, lab, mmm,',/, ' rms, fixpixel, feipixel, ', &
       'fixextra, fixmode, invertorg, setmmm, real, fft,',/,' ispg, help, OR done')
-  write(*,'(1x,a,$)') 'Enter option: '
-  read(5, 101) funcin
+    write(*,'(1x,a,$)') 'Enter option: '
+    read(5, 101) funcin
 101 FORMAT(A)
+  endif
   !
   ! Exit if a -1 is received after feipixel, it means there was no pixel available
   if (funcin == '-1' .and. lastFunc == 'FEIPIXEL') call exit(0)
@@ -66,26 +169,31 @@ program alterheader
   !
   ! ORIGIN
   !
-1 call irtorg(2, origx, origy, origz)
-  write(*,111) origx, origy, origz
+1 if (.not. pipInput) then
+    call iiuRetOrigin(2, origx, origy, origz)
+    write(*,111) origx, origy, origz
 111 format(' Alter origin.  The origin is the offset FROM the', &
-      ' first point in the image',/,' file TO the center of', &
-      ' the coordinate system, expressed in true coordinates.', &
-      /,' Current x, y, z:',3g11.4,/,'New x, y, z: ',$)
-  read(5,*) origx, origy, origz
-  call ialorg(2, origx, origy, origz)
+        ' first point in the image',/,' file TO the center of', &
+        ' the coordinate system, expressed in true coordinates.', &
+        /,' Current x, y, z:',3g11.4,/,'New x, y, z: ',$)
+    read(5,*) origx, origy, origz
+  endif
+  call iiuAltOrigin(2, origx, origy, origz)
   go to 30
   !
   ! CELL
   !
-2 call irtcel(2, cell)
-  write(*,112) (cell(i), i = 1, 6)
+2 if (.not. pipInput) then
+    call iiuRetCell(2, cell)
+    write(*,112) (cell(i), i = 1, 6)
 112 format(' Alter cell.  Current size and angles:',/,3g11.4,3f9.3, &
-      /,'New size and angles: ',$)
-  read(5,*) (cell(i), i = 1, 6)
+        /,'New size and angles: ',$)
+    read(5, *) (cell(i), i = 1, 6)
+  endif
   if (cell(1) > 0 .and. cell(2) > 0 .and. cell(3) > 0) then
-    call ialcel(2, cell)
+    call iiuAltCell(2, cell)
   else
+    if (pipInput) call exitError('The values for the cell entry must positive')
     print *,'No good, cell(1-3) must be positive'
   endif
   go to 30
@@ -145,37 +253,42 @@ program alterheader
   !
   ! DELTA
   !
-4 call irtdel(2, delt)
-  call irtsam(2, mxyz)
-  call irtcel(2, cell)
+4 call iiuRetSample(2, mxyz)
+  call iiuRetCell(2, cell)
   !
   ! DNM 12/25/00: this used to call ialdel, which set mxyz to 1, 1, 1
   ! and cell size to the desired deltas; decided to change it to
   ! preserve mxyz instead
   !
-  write(*,114) (delt(i), i = 1, 3)
+  if (.not. pipInput) then
+    call iiuRetDelta(2, delt)
+    write(*,114) (delt(i), i = 1, 3)
 114 format(' Alter delta - changes cell sizes to achieve desired', &
-      ' pixel spacing',/,' Current delta x, y, z:',3G11.4, &
-      /,'New delta x, y, z: ',$)
-  read(5,*) (delt(i), i = 1, 3)
+        ' pixel spacing',/,' Current delta x, y, z:',3G11.4, &
+        /,'New delta x, y, z: ',$)
+    read(5, *) (delt(i), i = 1, 3)
+  endif
   if (delt(1) > 0 .and. delt(2) > 0 .and. delt(3) > 0) then
     ! call ialdel(2, delt)
     do i = 1, 3
       cell(i) = mxyz(i) * delt(i)
     enddo
-    call ialcel(2, cell)
+    call iiuAltCell(2, cell)
   else
+    if (pipInput) call exitError('The values for the delta entry must positive')
     print *,'No good, must be positive'
   endif
   go to 30
   !
   ! MAPPING
   !
-5 call irtmap(2, mcrs)
-  write(*,115) (mcrs(i), i = 1, 3)
+5 if (.not. pipInput) then
+    call iiuRetAxisMap(2, mcrs)
+    write(*,115) (mcrs(i), i = 1, 3)
 115 format(' Alter mapping.  Current mapping constants:',3i3,/ &
-      ,'New constants: ',$)
-  read(5,*) (mcrs(i), i = 1, 3)
+        ,'New constants: ',$)
+    read(5, *) (mcrs(i), i = 1, 3)
+  endif
   n1 = 0
   n2 = 0
   n3 = 0
@@ -185,57 +298,68 @@ program alterheader
     if (mcrs(i) == 3) n3 = n3 + 1
   enddo
   if (n1 == 1 .and. n2 == 1 .and. n3 == 1) then
-    call ialmap(2, mcrs)
+    call iiuAltAxisMap(2, mcrs)
   else
-    print *,'No good, must be permutation of 1, 2, 3'
+    if (pipInput) call exitError( &
+        'The values for the map entry must be a permutation of 1, 2, 3')
+    print *,'No good, must be a permutation of 1, 2, 3'
   endif
   go to 30
   !
   ! SAMPLING
   !
-6 call irtsam(2, mxyz)
-  write(*,116) (mxyz(i), i = 1, 3)
+6 if (.not. pipInput) then
+    call iiuRetSample(2, mxyz)
+    write(*,116) (mxyz(i), i = 1, 3)
 116 format(' Alter sampling (mxyz).  Current x, y, z:',3i5,/ &
-      ,'New x, y, z: ',$)
-  read(5,*) (mxyz(i), i = 1, 3)
+        ,'New x, y, z: ',$)
+    read(5,*) (mxyz(i), i = 1, 3)
+  endif
   if (mxyz(1) > 0 .and. mxyz(2) > 0 .and. mxyz(3) > 0) then
-    call ialsam(2, mxyz)
+    call iiuAltSample(2, mxyz)
   else
+    if (pipInput) call exitError('The values for the sample entry must positive')
     print *,'No good, must be positive'
   endif
   go to 30
   !
   ! TILT - current angles
   !
-7 call irttlt(2, tilt)
-  write(*,117) (tilt(i), i = 1, 3)
+7 if (.not. pipInput) then
+    call iiuRetTilt(2, tilt)
+    write(*,117) (tilt(i), i = 1, 3)
 117 format(' Alter current tilt angles.  Current angles:',6f6.1, &
-      /,'New current angles: ',$)
-  read(5,*) (tilt(i), i = 1, 3)
-  call ialtlt(2, tilt)
+        /,'New current angles: ',$)
+    read(5,*) (tilt(i), i = 1, 3)
+  endif
+  call iiuAltTilt(2, tilt)
   go to 30
   !
   ! TILT_ORIG - original angles
   !
-8 call irttlt_orig(2, tilt)
-  write(*,118) (tilt(i), i = 1, 3)
+8  if (.not. pipInput) then
+    call iiuRetTiltOrig(2, tilt)
+    write(*,118) (tilt(i), i = 1, 3)
 118 format(' Alter original tilt angles.  Current angles:',6f6.1, &
-      /,'New original angles: ',$)
-  read(5,*) (tilt(i), i = 1, 3)
-  call ialtlt_orig(2, tilt)
+        /,'New original angles: ',$)
+    read(5,*) (tilt(i), i = 1, 3)
+  endif
+  call iiuAltTiltOrig(2, tilt)
   go to 30
   !
   ! TILT_ROT - rotate current angles
   !
-9 write(*,119)
+9 if (.not. pipInput) then
+    write(*,119)
 119 format(' Rotate current tilt angles.', /,'Angles to rotate by: ',$)
-  read(5,*) (tilt(i), i = 1, 3)
-  call ialtlt_rot(2, tilt)
+    read(5,*) (tilt(i), i = 1, 3)
+  endif
+  call iiuAltTiltRot(2, tilt)
   go to 30
   !
   ! LAB - delete selected labels or add one
   !
-10 call irtlab(2, title, ntitle)
+10 call iiuRetLabels(2, title, ntitle)
   write(*,'(a,/)') ' Delete labels or add one label.  Current labels are:'
   write(*,'(i3,1x,19a4)') (i, (title(j, i), j = 1, 19), i = 1, ntitle)
   write(*,'(/,a,a,/,a,a)') 'To delete labels, enter numbers of labels to delete ', &
@@ -280,7 +404,7 @@ program alterheader
   endif
   write(*,'(/,1x,a,$)') '1 to confirm changing to this label list, 0 not to: '
   read(5,*) ifok
-  if (ifok .ne. 0) call iallab(2, title, newtitle)
+  if (ifok .ne. 0) call iiuAltLabels(2, title, newtitle)
   go to 30
   !
   ! MMM - recompute min/max/mean
@@ -311,14 +435,14 @@ program alterheader
   dmeans = tsum / totn
   rms = sqrt((sumsq - totn * dmeans**2) / totn)
   dmean = dmeans
-  call ialrms(2, rms)
+  call iiuAltRMS(2, rms)
   if (iwhich == 12) write(*,162) rms
 162 format(' New RMS value = ', g13.5)
   go to 30
   !
   ! RMS - first inform of current RMS value
   !
-16 call irtrms(2, rms)
+16 call iiuRetRMS(2, rms)
   write(*,161) rms
 161 format(' Current RMS value = ', g13.5)
   go to 11
@@ -326,12 +450,12 @@ program alterheader
 12 write(*,122)
 122 format(' Changing sample and cell sizes to match image size, ' &
       ,/,' which will make pixel spacing be 1.0 1.0 1.0.')
-  call irtcel(2, cell)
+  call iiuRetCell(2, cell)
   cell(1) = nx
   cell(2) = ny
   cell(3) = nz
-  call ialcel(2, cell)
-  call ialsam(2, nxyz)
+  call iiuAltCell(2, cell)
+  call iiuAltSample(2, nxyz)
   go to 30
   !
   ! FIXPIECES - Remove flag for piece coordinates from header
@@ -339,22 +463,24 @@ program alterheader
 13 write(*,123)
 123 format(' Marking header as not containing any piece coordinates.',/, &
         ' This will make other extended header data inaccessible')
-  call irtsymtyp(2, nbytex, iflag)
+  call iiuRetExtendedType(2, nbytex, iflag)
   if (mod(iflag / 2, 2) > 0) iflag = iflag - 2
-  call ialsymtyp(2, nbytex, iflag)
+  call iiuAltExtendedType(2, nbytex, iflag)
   go to 30
   !
   ! FIXMODE - change between 1 and 6
   !
 17 if (mode .ne. 6 .and. mode .ne. 1) then
-    print *,'Only mode 6 can be changed to mode 1, or 1 to 6'
+    filin = 'Only mode 6 can be changed to mode 1, or 1 to 6'
+    if (pipInput) call exitError(filin)
+    print *, filin
     go to 30
   endif
   !
   mode = 7 - mode
   write(*,1124) mode
 1124 format(/,'Changing mode to',i2)
-  call ialmod(2, mode)
+  call iiuAltMode(2, mode)
   if (dmax > 32767 .and. mode == 1) write(*,124) dmax
 124 format(/,'The file maximum is', f12.1, ' and numbers bigger than', &
       ' 32767 will not be',/, &
@@ -365,14 +491,16 @@ program alterheader
   go to 30
   !
   ! SETMMM - set the min, max, mean
-18 write(*,218) dmin, dmax, dmean
+18 if (.not. pipInput) then
+    write(*,218) dmin, dmax, dmean
 218 format(' Alter min/max/mean.  Current values:',6g15.5, &
-      /,'New min, max, mean: ',$)
-  read(5,*) dmin, dmax, dmean
+        /,'New min, max, mean: ',$)
+    read(5,*) dmin, dmax, dmean
+  endif
   go to 30
   !
   ! FEIPIXEL - use the pixel size in extra header to set pixel spacing
-19 call irtnbsym(2, nbsym)
+19 call iiuRetNumExtended(2, nbsym)
   if (nbsym <= 0) then
     print *,'No extended header information in this file'
     go to 30
@@ -381,8 +509,8 @@ program alterheader
     print *,'Extended header data too large for array'
     go to 30
   endif
-  call irtsym(2, nbsym, array)
-  call irtsymtyp(2, numInt, numReal)
+  call iiuRetExtendedData(2, nbsym, array)
+  call iiuRetExtendedType(2, numInt, numReal)
   if (nbytes_and_flags(numInt, numReal)) then
     print *,'The extended header is not in Agard/FEI format'
     go to 30
@@ -396,8 +524,8 @@ program alterheader
     print *,'Pixel size in extended header is not a usable value:', pixel
     go to 30
   endif
-  call irtdel(2, delt)
-  call irtImodFlags(2, iflags, ifImod)
+  call iiuRetDelta(2, delt)
+  call iiuRetImodFlags(2, iflags, ifImod)
   noBinning = iand(iflags, 2) .ne. 0
   do i = 1, 3
     iBinning(i) = nint(delt(i))
@@ -408,10 +536,15 @@ program alterheader
     iBinning(1:3) = 1
     if (iand(iflags, 2) .ne. 0) write(*,2194)
 2194 format(/,'The pixel size has already been transferred to the standard pixel spacing')
+
     write(*,219) pixel
-219 format('Pixel size in extended header is',g11.4,' Angstroms',/, 'Enter', &
-        ' 1 to set the pixel spacing to this value, 0 not to, -1 to abort: ',$)
-    read(5,*) ifok
+219 format('Pixel size in extended header is',g11.4,' Angstroms')
+    if (.not. pipInput) then
+      write(*, 2195)
+2195  format(/, &
+          'Enter 1 to set the pixel spacing to this value, 0 not to, -1 to abort: ',$)
+      read(5,*) ifok
+    endif
     if (ifok < 0) then
       if (iand(iflags, 2) .ne. 0) then
         write(*,2194)
@@ -426,65 +559,75 @@ program alterheader
   else
     write(*,2191) pixel
     if (iBinning(1) > 1) write(*,2192) iBinning(1)
-    write(*,2193) pixel * iBinning(1)
 2191 format('Pixel size in extended header is',g11.4,' Angstroms')
 2192 format('  but the data ', 'seem to have been binned by',i2)
-2193 format('Enter 1 to set the pixel spacing to', g11.4,', 0 not to: ',$)
-    read(5,*) ifok
+    if (.not. pipInput) then
+      write(*,2193) pixel * iBinning(1)
+2193  format('Enter 1 or -1 to set the pixel spacing to', g11.4,', 0 not to: ',$)
+      read(5,*) ifok
+    endif
   endif
   if (ifok == 0) go to 30
 
   iflags = ior(iflags, 2)
-  call ialImodFlags(2, iflags)
-  call irtsam(2, mxyz)
-  call irtcel(2, cell)
+  call iiuAltImodFlags(2, iflags)
+  call iiuRetSample(2, mxyz)
+  call iiuRetCell(2, cell)
   cell(1:3) = mxyz(1:3) * pixel * iBinning(1:3)
-  call ialcel(2, cell)
+  call iiuAltCell(2, cell)
   go to 30
   !
   ! INVERTORG  - invert the sign of the origin
-20 call ialorg(2, origx, origy, origz)
+20 call iiuRetOrigin(2, origx, origy, origz)
   origx = -origx
   origy = -origy
   origz = -origz
   write(*,120) origx, origy, origz
 120 format('Inverting sign of origin: new origin = ',3g13.6)
-  call ialorg(2, origx, origy, origz)
+  call iiuAltOrigin(2, origx, origy, origz)
   go to 30
   !
   ! REAL: make an FFT real
 21 if (mode .ne. 4) then
-    print *,'Must be mode 4 to change file to real'
+    filin = 'Must be mode 4 to change file to real'
+    if (pipInput) call exitError(filin)
+    print *,filin
     go to 30
   endif
-  call ialmod(2, 2)
+  call iiuAltMode(2, 2)
   mode = 2
   nxyz(1) = nxyz(1) * 2
-  call ialsiz(2, nxyz, nxyzst)
+  call iiuAltSize(2, nxyz, nxyzst)
   write(*,221) mode, nxyz(1)
 221 format('Changing mode to ',i1,' and X size to ',i6)
   go to 30
   !
   ! FFT: restore a real file
 22 if (mode .ne. 2 .or. mod(nx, 2) .ne. 0) then
-    print *,'Must be mode 2 and NX must be even to change file to fft'
+    filin = 'Must be mode 2 and NX must be even to change file to fft'
+    if (pipInput) call exitError(filin)
+    print *, filin
     go to 30
   endif
-  call ialmod(2, 4)
+  call iiuAltMode(2, 4)
   mode = 4
   nxyz(1) = nxyz(1) / 2
-  call ialsiz(2, nxyz, nxyzst)
+  call iiuAltSize(2, nxyz, nxyzst)
   write(*,221) mode, nxyz(1)
   go to 30
   !
   ! ISPG
-23 call iiuRetSpaceGroup(2, iflags)
-  write(*,223) iflags
+23  if (.not. pipInput) then
+    call iiuRetSpaceGroup(2, iflags)
+    write(*,223) iflags
 223 format(' Alter space group.  Current space group:',i3, &
-      /,'New space group: ',$)
-  read(5,*) iflags
+        /,'New space group: ',$)
+    read(5,*) iflags
+  endif
   if (iflags < 0) then
-    print *,'Space group entry must be positive'
+    filin = 'Space group entry must be positive'
+    if (pipInput) call exitError(filin)
+    print *, filin
     go to 30
   endif
   call iiuAltSpaceGroup(2, iflags)

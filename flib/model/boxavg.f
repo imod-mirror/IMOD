@@ -11,18 +11,16 @@ c       David Mastronarde 4/26/89
 *       
       implicit none 
       include 'smallmodel.inc'
-      integer idim,idimbox,limpnt,limpcl,limsec,limobj
-      parameter (idim=8200*8200,idimbox=512*512)
+      integer limpnt,limpcl,limsec,limobj
       parameter (limpnt=200000,limpcl=50000,limsec=10000,limobj=10000)
       integer*4 NX,NY,NZ, nx3, ny3
 C       
       integer*4 NXYZ(3),MXYZ(3),NXYZST(3),NXYZ2(3),MXYZ2(3)
-      real*4 ARRAY(idim),BRRAY(idimbox),TITLE(20),CELL2(6)
-      real*4 crray(idimbox),drray(idimbox)
-      common /bigarr/array,brray,crray,drray
+      real*4 TITLE(20),CELL2(6)
+      real*4, allocatable :: array(:), brray(:), crray(:), drray(:)
 C       
       integer*4 ixpclist(limpcl),iypclist(limpcl),izpclist(limpcl)
-      CHARACTER*160 FILIN,FILOUT,filpoint,plfile
+      CHARACTER*320 FILIN,FILOUT,filpoint,plfile
       character*9 dat
       character*8 tim
       character*80 titlech
@@ -38,7 +36,7 @@ C
       integer*4 nxbox, nybox,npclist, nobjUse, iffill, iobj, imodobj,imodcont
       integer*4 ifuse,i,ibase,ipt,ipnt, ixtm,iytm, iztm, nzlist, j, notonlist
       real*4 DMIN2,DMAX2,DMEAN2, delta(3), dxbest, dybest
-      integer*4 list, izpnt, ipass, nadded, margin, maxshift, iz, jpoint
+      integer*4 list, izpnt, ipass, nadded, margin, maxshift, iz, jpoint, idim,idimbox
       integer*4 kx, ky, kz, ixnew, iynew, ifsplit, npnts, kti, ix, iy
       real*4 amat(2,2), edge, bias, fill, DMIN,DMAX,DMEAN
       integer*4 ipxtmp, ipytmp, nobjTot
@@ -93,7 +91,7 @@ c
 c       Open file, check size
       CALL IMOPEN(1,FILIN,'RO')
       CALL IRDHDR(1,NXYZ,MXYZ,MODE,DMIN2,DMAX2,DMEAN2)
-      IF (nx*ny .gt.idim) call exitError('INPUT IMAGE TOO LARGE FOR ARRAY')
+      idim = nx * ny
 c       
 c       open model in partial mode
       call imodPartialMode(1)
@@ -114,8 +112,10 @@ c       Define box size and offsets to edges
       iylo = -nybox / 2
       iyhi = nybox + iylo - 1
 c
-      if (nxbox*nybox.gt.idimbox) call exitError('BOX TOO LARGE FOR ARRAYS')
       if (nxbox .lt. 4 .or. nybox .lt. 4) call exitError('BOX SIZE TOO SMALL')
+      idimbox = nxbox*nybox
+      allocate(ARRAY(idim), BRRAY(idimbox), crray(idimbox), drray(idimbox), stat = ierr)
+      call memoryError(ierr, 'ARRAYS FOR IMAGE AND BOXES')
 c       
 c       Get other options
       newmode = mode

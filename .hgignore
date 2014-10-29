@@ -285,3 +285,6 @@ raptor/MarkersCorrespond
 raptor/RAPTOR
 sendevent/imodsendevent
 sourcedoc/sourcedoc
+
+Etomo/.idea/*
+Etomo/Etomo.iml

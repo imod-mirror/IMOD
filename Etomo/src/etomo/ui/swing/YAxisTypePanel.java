@@ -181,11 +181,12 @@ final class YAxisTypePanel {
     catch (LogFile.LockException e) {
       e.printStackTrace();
     }
+    String autodocName = autodoc.getAutodocName();
     ReadOnlySection section = autodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME,
         MatlabParam.YAxisType.KEY);
-    rbYAxisTypeYAxis.setToolTipText(section);
-    rbYAxisTypeParticleModel.setToolTipText(section);
-    rbYAxisTypeContour.setToolTipText(section);
+    rbYAxisTypeYAxis.setToolTipText(autodocName, section);
+    rbYAxisTypeParticleModel.setToolTipText(autodocName, section);
+    rbYAxisTypeContour.setToolTipText(autodocName, section);
     rbYAxisTypeCsvFiles.setToolTipText("Read particle rotation axes from file(s) [fnOutput]_Tom[n]_RotAxes.csv");
   }
 

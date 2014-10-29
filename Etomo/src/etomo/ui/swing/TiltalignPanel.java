@@ -105,8 +105,8 @@ final class TiltalignPanel implements Expandable {
   private final JPanel pnlMetroFactor = new JPanel();
   private final LabeledTextField ltfMetroFactor = new LabeledTextField(
       FieldType.FLOATING_POINT, "Metro factor: ");
-  private final LabeledTextField ltfMaximumCycles = new LabeledTextField(FieldType.INTEGER,
-      "Iteration limit: ");
+  private final LabeledTextField ltfMaximumCycles = new LabeledTextField(
+      FieldType.INTEGER, "Iteration limit: ");
 
   private final EtomoPanel pnlLocalParameters = new EtomoPanel();
   private final EtomoPanel pnlLocalParametersBody = new EtomoPanel();
@@ -1239,7 +1239,7 @@ final class TiltalignPanel implements Expandable {
     pnlRobustFitting.setLayout(new BoxLayout(pnlRobustFitting, BoxLayout.X_AXIS));
     pnlRobustFitting.add(ctfRobustFittingAndKFactorScaling.getRootComponent());
     pnlRobustFitting.add(cbWeightWholeTracks);
-   // pnlWeightWholeTracks.add(Box.createHorizontalGlue());
+    // pnlWeightWholeTracks.add(Box.createHorizontalGlue());
 
     pnlMetroFactor.setLayout(new BoxLayout(pnlMetroFactor, BoxLayout.X_AXIS));
     pnlMetroFactor.add(ltfMetroFactor.getContainer());
@@ -1664,6 +1664,7 @@ final class TiltalignPanel implements Expandable {
     catch (LogFile.LockException e) {
       e.printStackTrace();
     }
+    String autodocName = autodoc.getAutodocName();
     // General tab
     ltfExcludeList.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
         TiltalignParam.EXCLUDE_LIST_KEY));
@@ -1672,16 +1673,19 @@ final class TiltalignPanel implements Expandable {
     section = autodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME,
         TiltalignParam.RESIDUAL_REPORT_CRITERION_KEY);
     if (section != null) {
-      ltfResidualThreshold.setToolTipText(EtomoAutodoc.getTooltip(section));
-      rbResidAllViews.setToolTipText(EtomoAutodoc.getTooltip(section, "all"));
-      rbResidNeighboring.setToolTipText(EtomoAutodoc.getTooltip(section, "neighboring"));
+      ltfResidualThreshold.setToolTipText(EtomoAutodoc.getTooltip(autodocName, section));
+      rbResidAllViews
+          .setToolTipText(EtomoAutodoc.getTooltip(autodocName, section, "all"));
+      rbResidNeighboring.setToolTipText(EtomoAutodoc.getTooltip(autodocName, section,
+          "neighboring"));
     }
     section = autodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME,
         TiltalignParam.SURFACES_TO_ANALYZE_KEY);
     if (section != null) {
-      rbSingleFiducialSurface.setToolTipText(EtomoAutodoc.getTooltip(section, "1")
-          + "  Use if fiducials are on one surface or distributed in Z.");
-      rbDualFiducialSurfaces.setToolTipText(EtomoAutodoc.getTooltip(section, "2"));
+      rbSingleFiducialSurface.setToolTipText(EtomoAutodoc.getTooltip(autodocName,
+          section, "1") + "  Use if fiducials are on one surface or distributed in Z.");
+      rbDualFiducialSurfaces.setToolTipText(EtomoAutodoc.getTooltip(autodocName, section,
+          "2"));
     }
     ltfTiltAngleOffset.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
         TiltalignParam.ANGLE_OFFSET_KEY));
@@ -1713,11 +1717,11 @@ final class TiltalignPanel implements Expandable {
     section = autodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME,
         TiltalignParam.TILT_OPTION_KEY);
     if (section != null) {
-      rbTiltAngleFixed.setToolTipText(EtomoAutodoc.getTooltip(section,
+      rbTiltAngleFixed.setToolTipText(EtomoAutodoc.getTooltip(autodocName, section,
           TiltalignParam.FIXED_OPTION));
-      rbTiltAngleAll.setToolTipText(EtomoAutodoc.getTooltip(section,
+      rbTiltAngleAll.setToolTipText(EtomoAutodoc.getTooltip(autodocName, section,
           TiltalignParam.TILT_ALL_OPTION));
-      rbTiltAngleAutomap.setToolTipText(EtomoAutodoc.getTooltip(section,
+      rbTiltAngleAutomap.setToolTipText(EtomoAutodoc.getTooltip(autodocName, section,
           TiltalignParam.TILT_AUTOMAPPED_OPTION));
     }
     ltfTiltAngleGroupSize.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
@@ -1728,11 +1732,11 @@ final class TiltalignPanel implements Expandable {
     section = autodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME,
         TiltalignParam.MAG_OPTION_KEY);
     if (section != null) {
-      rbMagnificationFixed.setToolTipText(EtomoAutodoc.getTooltip(section,
+      rbMagnificationFixed.setToolTipText(EtomoAutodoc.getTooltip(autodocName, section,
           TiltalignParam.FIXED_OPTION));
-      rbMagnificationAll.setToolTipText(EtomoAutodoc.getTooltip(section,
+      rbMagnificationAll.setToolTipText(EtomoAutodoc.getTooltip(autodocName, section,
           TiltalignParam.ALL_OPTION));
-      rbMagnificationAutomap.setToolTipText(EtomoAutodoc.getTooltip(section,
+      rbMagnificationAutomap.setToolTipText(EtomoAutodoc.getTooltip(autodocName, section,
           TiltalignParam.AUTOMAPPED_OPTION));
     }
     ltfMagnificationReferenceView.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
@@ -1745,13 +1749,13 @@ final class TiltalignPanel implements Expandable {
     section = autodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME,
         TiltalignParam.ROT_OPTION_KEY);
     if (section != null) {
-      rbRotationNone.setToolTipText(EtomoAutodoc.getTooltip(section,
+      rbRotationNone.setToolTipText(EtomoAutodoc.getTooltip(autodocName, section,
           TiltalignParam.NONE_OPTION));
-      rbRotationAll.setToolTipText(EtomoAutodoc.getTooltip(section,
+      rbRotationAll.setToolTipText(EtomoAutodoc.getTooltip(autodocName, section,
           TiltalignParam.ALL_OPTION));
-      rbRotationAutomap.setToolTipText(EtomoAutodoc.getTooltip(section,
+      rbRotationAutomap.setToolTipText(EtomoAutodoc.getTooltip(autodocName, section,
           TiltalignParam.AUTOMAPPED_OPTION));
-      rbRotationOne.setToolTipText(EtomoAutodoc.getTooltip(section,
+      rbRotationOne.setToolTipText(EtomoAutodoc.getTooltip(autodocName, section,
           TiltalignParam.SINGLE_OPTION));
     }
     ltfRotationAngle.setToolTipText(EtomoAutodoc.getTooltip(autodoc,

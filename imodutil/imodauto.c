@@ -80,7 +80,7 @@ int main(int argc, char *argv[])
   Iobj *boundObj = NULL;
   int nearestBound = 1;
   int boundObjNum = -1;
-  double ht = 255.0, lt = 0.0;
+  double ht = 256.0, lt = 0.0;
   double shave = 0.0;
   double tol = 0.0;
   int exact = -2;

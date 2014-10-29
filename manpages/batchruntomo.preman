@@ -144,18 +144,27 @@ replacement model is located elsewhere, it will be copied to the dataset and
 renamed to the standard name for such models, so that the model can be opened
 and added to when running in eTomo.
 .P
-.B Detection of blank images
-at the highest tilt angles in can be done before further processing by
+.B Detection of blank images and images with large dark regions
+at the highest tilt angles can be done before further processing by
 including the preprocessing directive "endExcludeCriterion" with a
 fractional value such as 0.5.  (The directive is ignored for montaged
 tilt series.)  The program will look at the standard
 deviation (SD)
 of images at each end of the
 tilt series and find ones whose SD is less that the criterion times
-the mean SD of the five adjacent less-tilted images.  View
+the mean SD of the five adjacent less-tilted images.  
+Up to three images
+can be excluded on each end of the series by this analysis.  The
+program will then do a histogram analysis with Clip(1) to see whether
+the intensity distribution has two peaks and how much of the area falls
+in the lower peak.  A view is excluded if intensity at the lower peak is less than 0.17
+times that at the upper peak and more than 0.33 of the pixels are in
+the lower peak (these defaults can be modified with "darkExcludeRatio"
+and "darkExcludeFraction" directives).  Views can be eliminated up to 6
+tilts from either end in this way, but with either analysis, only
+consecutive views will be eliminated.  View
 skipping/exclusion lists will be added or adjusted in xcorr.com,
-track.com, align.com, and tilt.com.  Up to three images
-can be excluded on each end of the series in this way.  
+track.com, align.com, and tilt.com.  
 .P
 .B Coarse alignment
 is always performed.  The binning of a prealigned stack can
@@ -198,10 +207,21 @@ is small.  The fine alignment produces an angle offset and an X-axis
 tilt that is applied when building the tomogram, unless there are too
 few gold.  In addition, if there is gold on two surfaces, the distance
 between the gold particles provides an estimate of
-thickness that can be used as the basis for the tomogram thickness.
-Otherwise, it is required to specify the thickness for the final tomogram and,
-if gold is to be erased after 3D bead finding, the thickness for the required
-tomogram.  
+thickness that can be used as one basis for the tomogram thickness.
+Otherwise, if gold is to be erased after 3D bead finding, the thickness
+for the required tomogram must be specified.
+.P
+.B Tomogram positioning
+can be done for plastic sections only, with a binned-down whole
+tomogram for now, if the "sampleType" directive is present with a value
+of 1.  If there is no positioning "binByFactor" directive, 
+the program will pick a binning up to 4 that brings the binned size
+under 512 in its largest dimension.  If there is no positioning
+"thickness" directive,
+the program will pick a thickness based on the largest dimension: 250
+if size under 512, 400 if size under 1024, 500 if size under 2048, and
+600 otherwise.  The program will run Findsection(1) and try to make a
+model for Tomopitch(1) with 5 pairs of sample lines.
 .P
 .B The aligned stack 
 can have specified binning and size.  Optional modifications
@@ -232,25 +252,45 @@ can be specified.
 .P
 .B The tomogram 
 can be computed with weighted backprojection, with SIRT, or with
-both methods.  The iterations to leave can be specified for SIRT.  As
-indicated above, the thickness can be chosen automatically if there are
-gold beads on both surfaces, otherwise it must be specified with a
-directive.  The "Reconstruction.fallbackThickness" directive is the most
+both methods.  The iterations to leave can be specified for SIRT.
+The thickness can be chosen automatically if there are
+gold beads on both surfaces or if tomogram positioning was done,
+otherwise it must be specified with a directive.  The
+"Reconstruction.fallbackThickness" directive is the most
 useful one because it can be used to specify a thickness to be used when
-there is no thickness available from fine alignment.  The fallback
-thickness will also be used if the thickness
-from fine alignment is less than half of the fallback thickness, which
-would be the case if there are gold on only one surface.
+there is no thickness available from either fine alignment or
+positioning.  The fallback thickness will also be used if the thickness
+from either is less than half of the fallback thickness, which
+would be the case if there are gold on only one surface and no 
+positioning was done.
+.P
+.B Tomogram combination
+for a dual-axis dataset is currently possible only for datasets with a
+fiducial alignment; it will proceed automatically in that case.  The program first uses
+Findsection(1) to find the Z limits.  The patch correlations and
+fitting are done with Autopatchfit(1); by default, it will try medium to
+extra-large patches and add target residual values of 0.4,0.45 for
+Findwarp(1) on the final trial.  There are "runtime.Combine" directives
+to control this behavior and to set a few other parameters for tomogram
+combination.  If both SIRT and back-projection reconstructions are
+available, the latter will be combined unless the combine
+"doSIRTifBoth" directive specifies otherwise.
 .P
 .B Postprocessing
 can be done with Trimvol(1), which is run if any of the "runtime.Trimvol"
-directives are present.  For a single axis data set, the output file will have
-the usual final name, setname.rec.  For a dual-axis data set, for now, the
-output file will be named with "_trim.rec".  If only SIRT was used to make the
-reconstruction, the result on the final iteration will be used.
+directives are present.  Findsection(1) will be used to find the
+section limits if the "findSecAddThickness" directive is present.  The
+output file for a final reconstruction will have the usual name,
+setname.rec.  For a dual-axis data set, it is possible
+to trim one or both of the single axis reconstructions; here the
+output file will be named with "_trim.rec".  If both SIRT and
+back-projection were used, the postprocessing "doSIRTifBoth" directive controls
+whether to trim one or both reconstructions; in the latter case the
+file for the back-projection will be named "_BP.rec".  Whenever a SIRT 
+reconstruction is trimmed, the result on the final iteration will be used.
 By default, the trimmed volume will be reoriented by
-rotating around X.  The entire volume will be used unless the "thickness",
-"sizeInX", or "sizeInY" directive is present.  
+rotating around X.  The entire volume will be used unless the
+"findSecAddThickness", "thickness", "sizeInX", or "sizeInY" directive is present.  
 If one of the "scaleFrom" directives is present, the volume will be scaled to
 bytes.  If "scaleFromX" or "scaleFromY" is not present, the area used for
 scaling in X or Y

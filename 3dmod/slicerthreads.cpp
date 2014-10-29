@@ -786,11 +786,13 @@ static void fillArraySegment(int jstart, int jlimit)
 
           /* DNM & RJG 2/12/03: remove floor calls - they are dog-slow only
              Pentium 4 below 2.6 GHz... */
+          // DNM 10/29/14:  Floors still cost a little, but the test on x/y instead of
+          // xi/yi costs nothing
           xi = (int)x;
           yi = (int)y;
           zi = (int)(z + 0.5);
                     
-          if (xi >= 0 && xi < sXsize && yi >= 0 && yi < sYsize &&
+          if (x >= 0. && xi < sXsize && y >= 0. && yi < sYsize &&
               z > -0.5 && zi < sZsize) {
             val = (*ivwFastGetValue)(xi, yi, zi);
 
@@ -873,7 +875,7 @@ static void fillArraySegment(int jstart, int jlimit)
           yi = (int)y;
           zi = (int)(z + 0.5);
                     
-          if (xi >= 0 && xi < sXsize && yi >= 0 && yi < sYsize &&
+          if (x >= 0. && xi < sXsize && y >= 0. && yi < sYsize &&
               z > -0.5 && zi < sZsize)
             val = (*ivwFastGetValue)(xi, yi, zi);
           else
@@ -936,7 +938,7 @@ static void fillArraySegment(int jstart, int jlimit)
           yi = (int)y;
           zi = (int)(z + 0.5);
                     
-          if (xi >= 0 && xi < sXsize && yi >= 0 && yi < sYsize &&
+          if (x >= 0. && xi < sXsize && y >= 0. && yi < sYsize &&
               z > -0.5 && zi < sZsize)
             val = (*ivwFastGetValue)(xi, yi, zi);
           else

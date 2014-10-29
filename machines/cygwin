@@ -548,7 +548,11 @@ if ($compiler == intel) then
         set fortbin = `which ifort | sed '/\/[^\/]*$/s///'`
         echo "DLLSOURCEDIR$dllnum = $fortbin" >> $configure
         set dllstocopy2 = "libifcoremd libifportmd libmmd"
-        if ($openmp == true) set dllstocopy2 = "$dllstocopy2 libguide40"
+        if ($iclversion > 10) then    
+            if ($openmp == true) set dllstocopy2 = "$dllstocopy2 libiomp5md"
+        else
+            if ($openmp == true) set dllstocopy2 = "$dllstocopy2 libguide40"
+        endif
         echo "DLLSTOCOPY$dllnum = $dllstocopy2" >> $configure
         @ dllnum++
 

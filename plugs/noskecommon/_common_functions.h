@@ -924,7 +924,10 @@ vector<type> vector_concat( vector<type> &v1, vector<type> &v2 )
 //-------------
 //-- Sorts given vector in ascending order, starting with
 //-- the elment at the index startIdx
-
+// DNM: 10/17/14: Originally there was a note that "vector sort did not work on OSX"
+// and there was a bubble sort for Mac.  This was changed to a heap sort with a comment
+// that it was untested in rev 21891 8/6/12.  It did not work, and now the vector sort
+// on Mac seems fine on 10.6 and 10.8.  So this was removed.
 template <typename type>
 inline vector<type> vector_sort( vector<type> v, int startIdx, int endIdx )
 {
@@ -933,40 +936,8 @@ inline vector<type> vector_sort( vector<type> v, int startIdx, int endIdx )
   if( endIdx > (int)v.size()-1 )
     endIdx = (int)v.size()-1;
 
-#if defined (__APPLE__)
-        // NOTE: For some reason the "sort( )" command doesn't work on OSX, so
-        //       I've had to write my own heap sort (RECENTLY MODIFIED SO NOT CHECKED)
-  
-  int n;                  // current last element on heap
-  for(n=startIdx; n<=endIdx; n++)  //## build heap by doing a "siftup" on each new element:
-  {
-    int i=n;       // the newest element added to heap
-    int p=(n-startIdx)/2;     // its parent
-    for( ; p>=0 && v[p] < v[i]; i=p, p=(i-startIdx)/2 )    // while bigger than parent: swap
-      swap( v[i], v[p] );
-  }
-  for(n=endIdx; n>=startIdx; )    //## deconstruct heap by moving max element to the end and doing a "siftdown":
-  {
-    swap( v[startIdx], v[n--] );  // move max element to the end
-    int i = startIdx;             // current element to "siftdown"
-    int c = i+1;                  // first child of current element
-    for(; c<=endIdx; i=c, c=(c-startIdx)*2)
-    {
-      if( c+1<=endIdx && v[c] < v[c+1] )  // if other child is bigger: use this child
-        c++;
-      if( v[c] < v[i] )                   // if node is bigger than parent: stop
-        break;
-      swap( v[c], v[i] );                 // else swap with child and continue
-    }
-  }
-  return v;
-	
-#else
-  
   sort( v.begin()+startIdx, v.begin()+endIdx );
   return v;
-  
-#endif
 
 }
 
@@ -976,18 +947,9 @@ inline vector<type> vector_sort( vector<type> v, int startIdx, int endIdx )
 template <typename type>
 vector<type> vector_sort( vector<type> v )
 {
-#if defined (__APPLE__)
-  
-  return vector_sort( v, 0, (int)v.size()-1 );
-  
-#else
-  
   vector<type> returnVec = v;
   sort( returnVec.begin(), returnVec.end() );
   return returnVec;
-  
-#endif
-
 }
 
 
