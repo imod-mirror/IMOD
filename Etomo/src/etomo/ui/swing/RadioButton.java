@@ -418,13 +418,13 @@ final class RadioButton implements RadioButtonInterface, Field, ActionListener {
    * Sets a tooltip from a section using the enumeratedType, if it exists.
    * @param section
    */
-  void setToolTipText(ReadOnlySection section) {
+  void setToolTipText(final String autodocName, final ReadOnlySection section) {
     String text;
     if (enumeratedType == null) {
-      text = EtomoAutodoc.getTooltip(section);
+      text = EtomoAutodoc.getTooltip(autodocName, section);
     }
     else {
-      text = EtomoAutodoc.getTooltip(section, enumeratedType.toString());
+      text = EtomoAutodoc.getTooltip(autodocName, section, enumeratedType.toString());
     }
     setToolTipText(text);
   }

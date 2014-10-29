@@ -16,6 +16,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
+#include <sys/stat.h>
 #include "imodel.h"
 
 /* These values should match max_obj_num and max_pt in model.inc */
@@ -34,6 +35,16 @@
 #define FWRAP_ERROR_NO_VALUE      -8
 #define FWRAP_ERROR_STRING_LEN    -9
 #define FWRAP_ERROR_FROM_CALL     -10
+#define FWRAP_ERROR_OPENING_FILE  -11
+#define FWRAP_ERROR_READING_FILE  -12
+
+/* Move this number when an error is added */
+#define FWRAP_PAST_ERRORS         -13
+
+static char *sErrorStrings[] = 
+  {"FILE DOES NOT EXIST", "FILE IS NOT AN IMOD MODEL", "", "MODEL HAS NO OBJECTS", "",
+   "", "FAILURE TO ALLOCATE MEMORY", "", "", "", "FILE EXISTS BUT CANNOT BE OPENED",
+   "ERROR READING/PROCESSING MODEL FILE"};
 
 #define NO_VALUE_PUT           -9999.
 
@@ -44,6 +55,7 @@
 #define deleteimod   DELETEIMOD
 #define deleteiobj   DELETEIOBJ
 #define getimod      GETIMOD
+#define imodopenerror IMODOPENERROR
 #define putimod      PUTIMOD
 #define openimoddata OPENIMODDATA
 #define getimodhead  GETIMODHEAD
@@ -104,6 +116,7 @@
 #define deleteimod   deleteimod_
 #define deleteiobj   deleteiobj_
 #define getimod      getimod_
+#define imodopenerror imodopenerror_
 #define putimod      putimod_
 #define openimoddata openimoddata_
 #define getimodhead  getimodhead_
@@ -214,6 +227,7 @@ static int sMaxValues = 0;
 static ValueStruct *sValuesPut = NULL;
 static NameStruct *sNamesPut = NULL;
 static int sNumNamesPut = 0;
+static int sLastOpenError = 0;
 
 /* Convenience pointers assigned by checkAssignObject... */
 static Iobj *sObj;
@@ -363,31 +377,42 @@ int openimoddata(char *fname, int fsize)
   Ipoint pnt;
   FILE *fin;
   char *cfilename;
+  struct stat buf;
+  int err;
 
+  sLastOpenError = FWRAP_ERROR_MEMORY;
   model = imodNew();
   if (!model)
-    return(-1);
+    return(FWRAP_ERROR_MEMORY);
 
   cfilename = f2cString(fname, fsize);
   if (!cfilename)
     return FWRAP_ERROR_MEMORY;
 
+  sLastOpenError = FWRAP_NOERROR;
   fin = fopen(cfilename, "rb");
-
+  if (!fin) {
+    if (stat(cfilename, &buf))
+      sLastOpenError = FWRAP_ERROR_BAD_FILENAME;
+    else
+      sLastOpenError = FWRAP_ERROR_OPENING_FILE;
+  }
   free(cfilename);
-
-  if (!fin)
-    return(FWRAP_ERROR_BAD_FILENAME);
+  if (sLastOpenError)
+    return(sLastOpenError);
 
   model->file = fin;
-  if (imodReadFile( model)) {
-    fclose(fin);
-    return(FWRAP_ERROR_FILE_NOT_IMOD);
-  }
+  err = imodReadFile( model);
   fclose(fin);
+  if (err) {
+    sLastOpenError = err == -2 ? FWRAP_ERROR_FILE_NOT_IMOD : FWRAP_ERROR_READING_FILE;
+    return(sLastOpenError);
+  }
 
-  if (!model->objsize)
+  if (!model->objsize) {
+    sLastOpenError = FWRAP_ERROR_NO_OBJECTS;
     return(FWRAP_ERROR_NO_OBJECTS);
+  }
 
   /* DNM: need to delete model to avoid memory leak */
   deleteFimod();
@@ -427,6 +452,16 @@ int openimoddata(char *fname, int fsize)
   }
   
   return FWRAP_NOERROR;
+}
+
+/*!
+ * Returns an error string from the last error opening a model into [errlen]
+ */
+void imodopenerror(char *error, int errlen)
+{
+  if (sLastOpenError > -1|| sLastOpenError <= FWRAP_PAST_ERRORS)
+    return c2fString("", error, errlen);
+  return c2fString(sErrorStrings[-1 - sLastOpenError], error, errlen);
 }
 
 /*!

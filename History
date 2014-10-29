@@ -1,5 +1,45 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/25/14: IMOD_4-7-12
+10/25/14: Fixed Beadtrack failure if it has to reduce local area target size
+(In 4.7).
+
+10/24/14: Stopped Imodauto contouring of exact values from always doing
+contours around vales equal to the file maximum (In 4.7).
+
+10/24/14: Removed 100-pixel limit on 10% tapering in Tiltxcorr (In 4.7).
+
+10/23/14: Changed Subtomosetup to put multiple runs in each command file.
+
+10/17/14: IMOD_4-7-11
+10/17/14: In eTomo - Setup Tomogram, added INFO messages about pixel spacing
+to the project log (In 4.7).(Bug# 1824)
+
+10/17/14: Added a call to fixCygPython.sh to IMOD installer so it takes care
+of the Python link just as the self-installing file does (In 4.7).(Bug# 1821)
+
+10/16/14: Fixed Interpolator for Mac (In 4.7).
+
+10/16/14: Added more detail to error message when Beadtrack or Tiltalign
+cannot read model.
+
+10/15/14: In eTomo - Post Processing, removed the lock from the flatten and
+squeeze panels that was active when the sum.rec or _full.rec file was missing.
+This state should only affect the trimvol panel (In 4.7).(Bug# 1820)
+
+10/15/14: Added information from the autodoc file to all autodoc tooltips (In
+4.7).(Bug# 1811)
+
+10/15/14: Made alterheader take command-line arguments with PIP.
+
+10/15/14: Fixed INVERTORG in Alterheader (In 4.7).
+
+10/14/14: Added rubber band size to Slicer toolbar when size is being changed.
+
+10/14/14: Batchruntomo can now exclude images at the end of the series with
+large dark regions, do tomogram positioning for plastic sections, combine
+dual-axis tomograms, and trim to section limits for plastic sections.
+
 10/14/14: Made dm2mrc write temporary files to output file directory and added
 option to set a directory for these files (In 4.7).
 

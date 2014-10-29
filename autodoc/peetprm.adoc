@@ -1,4 +1,4 @@
-Version = 1.3
+Version = 1.4
 
 [Field = fnVolume]
 comment = The file names of tomograms
@@ -269,3 +269,8 @@ comment = OBSOLETE. No longer supported.
 
 [Field = meanFill]
 comment = OBSOLETE. No longer supported.
+
+[Field = cylinderHeight]
+comment = A non-negative number specifying the height in voxels of the
+cylindrical mask.
+tooltip = The height in voxels of the cylindrical mask

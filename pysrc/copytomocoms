@@ -389,7 +389,10 @@ for iaxis in range(naxis):
                if 'not being' in alterOut[lastind]:
                   warnout += alterOut[max(0, lastind - 1)].rstrip() + '\n'
                warnout += alterOut[lastind].rstrip()
-               warning(warnout)
+               if 'has already been transferred' in alterOut[max(0, lastind - 1)]:
+                  printInfo(warnout)
+               else:
+                  warning(warnout)
             else:
                printInfo('Pixel spacing was set in FEI file ' + stackname + \
                             ' from value in extended header')

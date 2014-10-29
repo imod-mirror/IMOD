@@ -752,21 +752,22 @@ final class SolvematchPanel implements Run3dmodButtonContainer, Expandable {
     catch (LogFile.LockException except) {
       except.printStackTrace();
     }
+    String autodocName = autodoc.getAutodocName();
     section = autodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME,
         SolvematchParam.SURFACE_OR_USE_MODELS);
     cbUseCorrespondingPoints
         .setToolTipText("Check to use the points in A and B in the transferfid log file.  "
             + "Leave unchecked to use transferfid.coord.");
     if (section != null) {
-      rbBothSides.setToolTipText(EtomoAutodoc.getTooltip(section,
+      rbBothSides.setToolTipText(EtomoAutodoc.getTooltip(autodocName, section,
           SolvematchParam.BOTH_SIDES_OPTION));
-      rbOneSide.setToolTipText(EtomoAutodoc.getTooltip(section,
+      rbOneSide.setToolTipText(EtomoAutodoc.getTooltip(autodocName, section,
           SolvematchParam.ONE_SIDE_OPTION));
-      rbOneSideInverted.setToolTipText(EtomoAutodoc.getTooltip(section,
+      rbOneSideInverted.setToolTipText(EtomoAutodoc.getTooltip(autodocName, section,
           SolvematchParam.ONE_SIDE_INVERTED_OPTION));
-      rbUseModel.setToolTipText(EtomoAutodoc.getTooltip(section,
+      rbUseModel.setToolTipText(EtomoAutodoc.getTooltip(autodocName, section,
           SolvematchParam.USE_MODEL_OPTION));
-      rbUseModelOnly.setToolTipText(EtomoAutodoc.getTooltip(section,
+      rbUseModelOnly.setToolTipText(EtomoAutodoc.getTooltip(autodocName, section,
           SolvematchParam.USE_MODEL_ONLY_OPTION));
       if (initialPanel) {
         btnRestart
