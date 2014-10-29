@@ -23,25 +23,25 @@ import etomo.ui.FieldType;
 import etomo.ui.SetupReconInterface;
 
 /**
-* <p>Description: </p>
-* 
-* <p>Copyright: Copyright 2012</p>
-*
-* <p>Organization:
-* Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
-* University of Colorado</p>
-* 
-* @author $Author$
-* 
-* @version $Revision$
-* 
-* <p> $Log$ </p>
-*/
-public class DirectiveFileCollection implements SetupReconInterface {
+ * <p>Description: </p>
+ * <p/>
+ * <p>Copyright: Copyright 2012</p>
+ * <p/>
+ * <p>Organization:
+ * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
+ * University of Colorado</p>
+ *
+ * @author $Author$
+ * @version $Revision$
+ *          <p/>
+ *          <p> $Log$ </p>
+ */
+public class DirectiveFileCollection
+    implements SetupReconInterface, DirectiveFileInterface {
   public static final String rcsid = "$Id:$";
 
-  private final DirectiveFile[] directiveFileArray = new DirectiveFile[] { null, null,
-      null, null };
+  private final DirectiveFile[] directiveFileArray =
+      new DirectiveFile[]{null, null, null, null};
   private Map<String, String> copyArgExtraValues = null;
 
   private final BaseManager manager;
@@ -65,7 +65,8 @@ public class DirectiveFileCollection implements SetupReconInterface {
    * returned.  Two different matches are used - first the primary match, and then the
    * secondary match.  The difference between them is how closely they match the axisID.
    * The primary match has priority over the secondary match, even when the primary match
-   * is found in a lower priority file.  
+   * is found in a lower priority file.
+   *
    * @param directiveDef
    * @param axisID
    * @param templateOnly - causes function to ignore the batch directive file
@@ -95,18 +96,18 @@ public class DirectiveFileCollection implements SetupReconInterface {
       if (directiveFile == null) {
         continue;
       }
-      AttributeMatch primaryMatch = directiveFile.getAttribute(Match.PRIMARY,
-          directiveDef, axisID);
+      AttributeMatch primaryMatch =
+          directiveFile.getAttribute(Match.PRIMARY, directiveDef, axisID);
       if (primaryMatch != null) {
         if (primaryMatch.overrides()) {
           return null;
         }
         // Missing primary match - if the secondary match hasn't been set from a higher
         // priority file, try to set it.
-        if (primaryMatch.isEmpty()
-            && (secondaryMatch == null || secondaryMatch.isEmpty())) {
-          secondaryMatch = directiveFile.getAttribute(Match.SECONDARY, directiveDef,
-              axisID);
+        if (primaryMatch.isEmpty() &&
+            (secondaryMatch == null || secondaryMatch.isEmpty())) {
+          secondaryMatch =
+              directiveFile.getAttribute(Match.SECONDARY, directiveDef, axisID);
           continue;
         }
         return primaryMatch;
@@ -126,11 +127,12 @@ public class DirectiveFileCollection implements SetupReconInterface {
 
   /**
    * Returns true a non-empty, non-overriding directive, or an extraValue is found.
-   * @see getAttribute
+   *
    * @param directiveDef
    * @param axisID
    * @param templateOnly - if true batch directive file and copyArgExtraValues are ignored
    * @return
+   * @see getAttribute
    */
   private boolean contains(final DirectiveDef directiveDef, final AxisID axisID,
       final boolean templateOnly) {
@@ -142,8 +144,8 @@ public class DirectiveFileCollection implements SetupReconInterface {
       return false;
     }
     // An attribute has not been found - look for an extra value.
-    if (directiveDef.getDirectiveType() == DirectiveType.COPY_ARG
-        && copyArgExtraValues != null) {
+    if (directiveDef.getDirectiveType() == DirectiveType.COPY_ARG &&
+        copyArgExtraValues != null) {
       return copyArgExtraValues.containsKey(directiveDef.getName(axisID));
     }
     return false;
@@ -155,9 +157,10 @@ public class DirectiveFileCollection implements SetupReconInterface {
 
   /**
    * Returns true a non-empty, non-overriding directive, or an extraValue is found.
-   * @see getAttribute
+   *
    * @param directiveDef
    * @return
+   * @see getAttribute
    */
   public boolean contains(final DirectiveDef directiveDef) {
     return contains(directiveDef, null, false);
@@ -168,12 +171,14 @@ public class DirectiveFileCollection implements SetupReconInterface {
   }
 
   /**
-   * Returns the directive value if a non-empty, non-overriding directive, or an extraValue
+   * Returns the directive value if a non-empty, non-overriding directive,
+   * or an extraValue
    * is found.
-   * @see getAttribute
+   *
    * @param directiveDef
    * @param axisID
    * @return
+   * @see getAttribute
    */
   private String getValue(final DirectiveDef directiveDef, final AxisID axisID,
       final boolean templateOnly) {
@@ -185,8 +190,8 @@ public class DirectiveFileCollection implements SetupReconInterface {
       return null;
     }
     // An attribute has not been found - look for an extra value.
-    if (directiveDef.getDirectiveType() == DirectiveType.COPY_ARG
-        && copyArgExtraValues != null) {
+    if (directiveDef.getDirectiveType() == DirectiveType.COPY_ARG &&
+        copyArgExtraValues != null) {
       return copyArgExtraValues.get(directiveDef.getName(axisID));
     }
     return null;
@@ -197,11 +202,13 @@ public class DirectiveFileCollection implements SetupReconInterface {
   }
 
   /**
-   * Returns the directive value if a non-empty, non-overriding directive, or an extraValue
+   * Returns the directive value if a non-empty, non-overriding directive,
+   * or an extraValue
    * is found.
-   * @see getAttribute
+   *
    * @param directiveDef
    * @return
+   * @see getAttribute
    */
   public String getValue(final DirectiveDef directiveDef) {
     return getValue(directiveDef, null, false);
@@ -214,8 +221,9 @@ public class DirectiveFileCollection implements SetupReconInterface {
   /**
    * Return the specified element of the directive value if a non-empty, non-overriding
    * directive, or an extraValue is found.
+   *
    * @param directiveDef
-   * @param index - index of element in value to return
+   * @param index        - index of element in value to return
    * @return
    */
   public String getValue(final DirectiveDef directiveDef, final int index) {
@@ -240,11 +248,13 @@ public class DirectiveFileCollection implements SetupReconInterface {
   /**
    * Returns the boolean version of a directive value if a non-empty, non-overriding
    * directive, or an extraValue is found.
-   * @see getAttribute
+   *
    * @param directiveDef
    * @param axisID
-   * @param templateOnly - causes function to ignore the batch directive file and copyrgExtraValues
+   * @param templateOnly - causes function to ignore the batch directive file and
+   *                     copyrgExtraValues
    * @return
+   * @see getAttribute
    */
   private boolean isValue(final DirectiveDef directiveDef, final AxisID axisID,
       final boolean templateOnly) {
@@ -256,10 +266,10 @@ public class DirectiveFileCollection implements SetupReconInterface {
       return false;
     }
     // An attribute has not been found - look for an extra value.
-    if (directiveDef.getDirectiveType() == DirectiveType.COPY_ARG
-        && copyArgExtraValues != null) {
-      return DirectiveAttribute.toBoolean(copyArgExtraValues.get(directiveDef
-          .getName(axisID)));
+    if (directiveDef.getDirectiveType() == DirectiveType.COPY_ARG &&
+        copyArgExtraValues != null) {
+      return DirectiveAttribute
+          .toBoolean(copyArgExtraValues.get(directiveDef.getName(axisID)));
     }
     return false;
   }
@@ -271,9 +281,10 @@ public class DirectiveFileCollection implements SetupReconInterface {
   /**
    * Returns the boolean version of a directive value if a non-empty, non-overriding
    * directive, or an extraValue is found.
-   * @see getAttribute
+   *
    * @param directiveDef
    * @return
+   * @see getAttribute
    */
   public boolean isValue(final DirectiveDef directiveDef) {
     return isValue(directiveDef, null, false);
@@ -328,6 +339,7 @@ public class DirectiveFileCollection implements SetupReconInterface {
 
   /**
    * Puts the DirectiveDef/value pair into extraValues.
+   *
    * @param directiveDef
    * @param axisID
    * @param value
@@ -362,9 +374,9 @@ public class DirectiveFileCollection implements SetupReconInterface {
   }
 
   public boolean containsTiltAngleSpec(final AxisID axisID) {
-    return contains(DirectiveDef.FIRST_INC, axisID)
-        || contains(DirectiveDef.USE_RAW_TLT, axisID)
-        || contains(DirectiveDef.EXTRACT, axisID);
+    return contains(DirectiveDef.FIRST_INC, axisID) ||
+        contains(DirectiveDef.USE_RAW_TLT, axisID) ||
+        contains(DirectiveDef.EXTRACT, axisID);
   }
 
   public String getBackupDirectory() {
@@ -461,13 +473,13 @@ public class DirectiveFileCollection implements SetupReconInterface {
   /**
    * Sets the batch directive file, and then sets the template files from the the batch
    * directive file.
+   *
    * @param batchDirectiveFile
    */
   public void setup(final DirectiveFile batchDirectiveFile) {
     directiveFileArray[DirectiveFileType.BATCH.getIndex()] = batchDirectiveFile;
     if (batchDirectiveFile != null) {
-      setDirectiveFile(
-          batchDirectiveFile.getAttribute(DirectiveDef.SCOPE_TEMPLATE, null),
+      setDirectiveFile(batchDirectiveFile.getAttribute(DirectiveDef.SCOPE_TEMPLATE, null),
           DirectiveFileType.SCOPE);
       setDirectiveFile(
           batchDirectiveFile.getAttribute(DirectiveDef.SYSTEM_TEMPLATE, null),
@@ -480,6 +492,7 @@ public class DirectiveFileCollection implements SetupReconInterface {
   /**
    * Sets a directive file.  No directive file other then the one being set is changed by
    * this function.
+   *
    * @param attribute
    * @param type
    */
@@ -494,8 +507,9 @@ public class DirectiveFileCollection implements SetupReconInterface {
         directiveFileArray[type.getIndex()] = null;
       }
       else {
-        directiveFileArray[type.getIndex()] = DirectiveFile.getInstance(manager, axisID,
-            new File(absPath), type == DirectiveFileType.BATCH);
+        directiveFileArray[type.getIndex()] = DirectiveFile
+            .getInstance(manager, axisID, new File(absPath),
+                type == DirectiveFileType.BATCH);
       }
     }
   }
@@ -503,6 +517,7 @@ public class DirectiveFileCollection implements SetupReconInterface {
   /**
    * Sets a directive file.  No directive file other then the one being set is changed by
    * this function.
+   *
    * @param file
    * @param type
    */
@@ -511,8 +526,8 @@ public class DirectiveFileCollection implements SetupReconInterface {
       directiveFileArray[type.getIndex()] = null;
     }
     else {
-      directiveFileArray[type.getIndex()] = DirectiveFile.getInstance(manager, axisID,
-          file, type == DirectiveFileType.BATCH);
+      directiveFileArray[type.getIndex()] = DirectiveFile
+          .getInstance(manager, axisID, file, type == DirectiveFileType.BATCH);
     }
   }
 
@@ -531,6 +546,7 @@ public class DirectiveFileCollection implements SetupReconInterface {
    * blank values cause the name/value pair to be removed from the entry set.  The
    * name/value pair will be re-added afterwards if a pair with a non-blank value is
    * encountered.
+   *
    * @return
    */
   public CopyArgEntrySet getCopyArgEntrySet() {
@@ -551,6 +567,7 @@ public class DirectiveFileCollection implements SetupReconInterface {
 
     /**
      * This function should not return null.
+     *
      * @return initialized instance
      */
     private static CopyArgEntrySet getInstance(
@@ -568,6 +585,7 @@ public class DirectiveFileCollection implements SetupReconInterface {
      * file if scan header is in the map and is set to "1".  Only load pairs with names
      * that are not already in the map, because the directive files all override scan
      * header.
+     *
      * @param directiveFileArray
      */
     private void init(final DirectiveFile[] directiveFileArray) {
@@ -596,8 +614,8 @@ public class DirectiveFileCollection implements SetupReconInterface {
         AttributeMatch attribute = directiveFileArray[DirectiveFileType.BATCH.getIndex()]
             .getAttribute(DirectiveDef.SCAN_HEADER, null);
         if (attribute.isValue()) {
-          Iterator<Entry<String, String>> iterator = directiveFileCollection.copyArgExtraValues
-              .entrySet().iterator();
+          Iterator<Entry<String, String>> iterator =
+              directiveFileCollection.copyArgExtraValues.entrySet().iterator();
           while (iterator.hasNext()) {
             Entry<String, String> entry = iterator.next();
             String name = entry.getKey();

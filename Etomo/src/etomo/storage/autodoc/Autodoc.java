@@ -17,7 +17,7 @@ import java.util.List;
 
 /**
  * <p>Description:  Data storage for an autodoc file.
- * 
+ * <p/>
  * Versions:
  * 1.0
  * 1.1:  Added the break character "^".  When a value is formatted, the "^" is
@@ -30,60 +30,58 @@ import java.util.List;
  * name as a key.  When attributes of the same parentage are retrieved as an
  * ordered list, each duplicate attribute, and their different values, will be
  * included in the list.
- * 
+ * <p/>
  * The break character is no longer being handled by autodoc.  It is now considered
  * a "flavor" of autodoc.
- * 
+ * <p/>
  * 1.3:  Fixed handling duplicate attribute names (see 1.2).  The rule for
  * autodoc is that is keeps the last value.  So it needs to keep acting like it
  * is doing this even though it is actually keeping  all the values.
- * 
+ * <p/>
  * To Use:
- * 
+ * <p/>
  * Set up environment variables:  make sure that either the AUTODOC_DIR or
  * IMOD_DIR/autodoc points to an autodoc directory (AUTODOC_DIR) is checked
  * first.  An autodoc file can also be placed in the current working directory.
- * 
+ * <p/>
  * Call Autodoc.get(String) with the constant refering to the autodoc file you wish to
  * load.
- * 
+ * <p/>
  * Use the get... and next... functions to retrieve sections and attributes.
- * 
- * 
+ * <p/>
+ * <p/>
  * To Test:
  * Call the print() function to print everything in the autodoc.
  * Test the parser of the autodoc file by modifying the code.  Set testMode to
  * true.  Uncomment the test function you wish to use.
- * 
- * 
+ * <p/>
+ * <p/>
  * Possible Upgrades:
- * 
+ * <p/>
  * Required:  The Autodoc file names need to be added to this object.
- * 
+ * <p/>
  * The ability to open an unknown autodoc file.
- * 
+ * <p/>
  * Make testing accessible without modifying the code.
- * 
+ * <p/>
  * After parsing is finished the Autodoc should be readOnly.  Allow Autodoc to be
- * set to ReadOnly. 
- * 
+ * set to ReadOnly.
+ * <p/>
  * </p>
- *
+ * <p/>
  * <p>Copyright: Copyright 2002 - 2005</p>
- *
+ * <p/>
  * <p>Organization:
  * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
  * University of Colorado</p>
  *
  * @author $$Author$$
- *
  * @version $$Revision$$
- * 
  * @notthreadsafe
- *
  */
 final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
-  public static final String rcsid = "$$Id$$";
+  public static final String rcsid =
+      "$$Id$$";
 
   /**
    * The autodoc file name, excluding the extension.
@@ -200,6 +198,7 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
   /**
    * Removes a simple (single attribute) name/value pair.  Removes the occurrance
    * of the attribute in the name/value pair.
+   *
    * @Return the previous statement in statementList
    */
   public WritableStatement removeNameValuePair(String name) {
@@ -215,6 +214,7 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
 
   /**
    * Removes a statement.
+   *
    * @Return the previous statement in statementList
    */
   public WritableStatement removeStatement(WritableStatement statement) {
@@ -349,12 +349,13 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
    * sectionName.  The elements in each list is using section type and attribute
    * name.  Each list is saved in attributeValuesCache.  If a saved list is
    * requested, then the cached HashMap is returned.
+   *
    * @param sectionType
    * @param attributeName
    * @return
    */
   private HashMap getAttributeValues(String sectionType, String attributeName,
-      boolean multiLine) {
+                                     boolean multiLine) {
     if (sectionType == null || attributeName == null) {
       return null;
     }
@@ -366,8 +367,8 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
       try {
         String sectionName = section.getName();
         if (multiLine) {
-          attributeValues.put(sectionName, section.getAttribute(attributeName)
-              .getMultiLineValue());
+          attributeValues
+              .put(sectionName, section.getAttribute(attributeName).getMultiLineValue());
         }
         else {
           attributeValues
@@ -436,7 +437,7 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
   }
 
   private File getDir(BaseManager manager, String envVariable, String dirName,
-      AxisID axisID) {
+                      AxisID axisID) {
     File parentDir = Utilities.getExistingDir(manager, envVariable, axisID);
     if (parentDir == null) {
       return null;
@@ -449,10 +450,12 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
   }
 
   void initializeGenericInstance(final BaseManager manager, final String envVar,
-      final String subdirName, final String name, final AxisID axisID)
+                                 final String subdirName, final String name,
+                                 final AxisID axisID)
       throws FileNotFoundException, IOException, LogFile.LockException {
-    parser = AutodocParser.getGenericInstance(this, false, true, false, envVar,
-        subdirName, name, manager, axisID, null, debug);
+    parser = AutodocParser
+        .getGenericInstance(this, false, true, false, envVar, subdirName, name, manager,
+            axisID, null, debug);
     // To test comment out initialize and parse and uncomment runInternalTest.
     // runInternalTest(InternalTestType.STREAM_TOKENIZER, true, false);
     parser.initialize();
@@ -460,10 +463,11 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
   }
 
   void initializeGenericInstance(final BaseManager manager, final File autodocFile,
-      final AxisID axisID) throws FileNotFoundException, IOException,
-      LogFile.LockException {
-    parser = AutodocParser.getGenericInstance(this, false, true, false, autodocFile,
-        manager, axisID, null, debug);
+                                 final AxisID axisID)
+      throws FileNotFoundException, IOException, LogFile.LockException {
+    parser = AutodocParser
+        .getGenericInstance(this, false, true, false, autodocFile, manager, axisID, null,
+            debug);
     // To test comment out initialize and parse and uncomment runInternalTest.
     // runInternalTest(InternalTestType.STREAM_TOKENIZER, true, false);
     parser.initialize();
@@ -476,27 +480,35 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
 
   void initializeMatlapInstance(final BaseManager manager, final File file)
       throws FileNotFoundException, IOException, LogFile.LockException {
-    parser = AutodocParser.getGenericInstance(this, true, false, true, file, manager,
-        null, null, debug);
+    parser = AutodocParser
+        .getGenericInstance(this, true, false, true, file, manager, null, null, debug);
     // To test comment out initialize and parse and uncomment runInternalTest.
     // runInternalTest(InternalTestType.STREAM_TOKENIZER, true, false);
     parser.initialize();
     parser.parse();
   }
+
   void initializeWritableInstance(final BaseManager manager, final File file)
       throws FileNotFoundException, IOException, LogFile.LockException {
-    parser = AutodocParser.getGenericInstance(this, false, false, false, file, manager,
-        null, null, debug);
+    this.writable = true;
+    parser = AutodocParser
+        .getGenericInstance(this, false, false, false, file, manager, null, null, debug);
     // To test comment out initialize and parse and uncomment runInternalTest.
     // runInternalTest(InternalTestType.STREAM_TOKENIZER, true, false);
     parser.initialize();
     parser.parse();
   }
-  
-  
+
+  void initializeEmptyWritableInstance(BaseManager manager, File file)
+      throws FileNotFoundException, IOException, LogFile.LockException {
+    this.writable = true;
+    parser = AutodocParser
+        .getGenericInstance(this, false, false, false, file, manager, null, null, debug);
+  }
 
   /**
    * Initializes a writable peet autodoc.  Parse is not initialized
+   *
    * @param manager
    * @param file
    * @param versionRequired
@@ -507,14 +519,14 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
   void initializeEmptyMatlapInstance(BaseManager manager, File file)
       throws FileNotFoundException, IOException, LogFile.LockException {
     this.writable = true;
-    parser = AutodocParser.getGenericInstance(this, true, false, true, file, manager,
-        null, null, debug);
+    parser = AutodocParser
+        .getGenericInstance(this, true, false, true, file, manager, null, null, debug);
   }
 
   void initializeAutodocInstance(BaseManager manager, String name, AxisID axisID)
       throws FileNotFoundException, IOException, LogFile.LockException {
-    parser = AutodocParser.getAutodocInstance(this, false, true, false, name, manager,
-        axisID, null, debug);
+    parser = AutodocParser
+        .getAutodocInstance(this, false, true, false, name, manager, axisID, null, debug);
     // To test comment out initialize and parse and uncomment runInternalTest.
     // runInternalTest(InternalTestType.STREAM_TOKENIZER, true, false);
     parser.initialize();
@@ -523,8 +535,9 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
 
   void initializeUITestInstance(BaseManager manager, String name, AxisID axisID)
       throws FileNotFoundException, IOException, LogFile.LockException {
-    parser = AutodocParser.getGenericInstance(this, false, true, false,
-        EtomoDirector.SOURCE_ENV_VAR, null, name, manager, axisID, null, debug);
+    parser = AutodocParser
+        .getGenericInstance(this, false, true, false, EtomoDirector.SOURCE_ENV_VAR, null,
+            name, manager, axisID, null, debug);
     // To test comment out initialize and parse and uncomment runInternalTest.
     // runInternalTest(InternalTestType.STREAM_TOKENIZER, true, false);
     parser.initialize();
@@ -533,12 +546,13 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
 
   void initializeCpuInstance(BaseManager manager, String name, AxisID axisID)
       throws FileNotFoundException, IOException, LogFile.LockException {
-    parser = AutodocParser.getGenericInstance(this, false, true, false,
-        EnvironmentVariable.CALIB_DIR, null, name, manager, axisID,
-        "Info:  No local calibration information is available.  There is no "
-            + "cpu.adoc file.  Parallel processing on multiple machines will not "
-            + "be available unless it has been enabled in the eTomo Settings "
-            + "dialog (under the Options menu).", debug);
+    parser = AutodocParser
+        .getGenericInstance(this, false, true, false, EnvironmentVariable.CALIB_DIR, null,
+            name, manager, axisID,
+            "Info:  No local calibration information is available.  There is no " +
+                "cpu.adoc file.  Parallel processing on multiple machines will not " +
+                "be available unless it has been enabled in the eTomo Settings " +
+                "dialog (under the Options menu).", debug);
     // To test comment out initialize and parse and uncomment runInternalTest.
     // runInternalTest(InternalTestType.STREAM_TOKENIZER, true, false);
     parser.initialize();
@@ -547,6 +561,7 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
 
   /**
    * Initializes parser and prints parsing data instead of storing it.
+   *
    * @param type
    * @param showTokens
    * @param showDetails
@@ -554,7 +569,8 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
    * @throws LogFile.ReadException
    */
   public void runInternalTest(InternalTestType type, boolean showTokens,
-      boolean showDetails) throws IOException, LogFile.LockException {
+                              boolean showDetails)
+      throws IOException, LogFile.LockException {
     System.out.println("runInternalTest");
     if (type == InternalTestType.STREAM_TOKENIZER) {
       parser.testStreamTokenizer(showTokens, showDetails);
@@ -597,7 +613,8 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
  *<p> $bug# 1417 Renamed etomo.ui to etomo.ui.swing.
  *<p> $
  *<p> $Revision 1.36  2010/05/28 18:48:29  sueh
- *<p> $bug# 1360 In initializeCpu changed the error message for a missing ImodCalib directory
+ *<p> $bug# 1360 In initializeCpu changed the error message for a missing ImodCalib
+ * directory
  *<p> $to mention setting up parallel processing using Settings dialog.
  *<p> $
  *<p> $Revision 1.35  2010/05/20 23:50:59  sueh
@@ -654,7 +671,9 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
  *<p> $bug# 964 Added debug member variable.
  *<p> $
  *<p> $Revision 1.19  2007/04/11 21:59:21  sueh
- *<p> $bug# 964 Added removeNameValuePair(String name):  removes a name/value pair with a simple (one-attribute) name.  Added removeStatement(WritableStatement):  removes the passed-in Statement.
+ *<p> $bug# 964 Added removeNameValuePair(String name):  removes a name/value pair with
+ *  a simple (one-attribute) name.  Added removeStatement(WritableStatement):  removes
+ *  the passed-in Statement.
  *<p> $
  *<p> $Revision 1.18  2007/04/09 20:18:48  sueh
  *<p> $bug# 964 Moved the value to the associated name/value pair.  Changed
