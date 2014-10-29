@@ -51,17 +51,23 @@ Post-processing panel in eTomo.  Note that the subvolumes will be
 reoriented the same way that the binned tomogram were.
 .P
 Subtomosetup generates command files named with the root name of the
-Tilt command file ("tilt" by default) plus "-sub-001.com", etc.  Each
-command file will produce a subtomogram named "rootname-N.mrc" where
-"rootname" is the dataset root name, and "N" is the same number as on
-the command file, 
+Tilt command file ("tilt" by default) plus "-sub-001.com", etc.  By
+default, each
+command file will produce ten subtomograms named "rootname-N.mrc" where
+"rootname" is the dataset root name, and "N" is a number that increases
+sequentially for all subvolumes computed,
 but with enough leading zeros so that all files have the same number of
 digits and will list in order.  If a position is too close to the top
 or bottom of the Y-extent that can be reconstructed from the current
 aligned stack, the particle will be skipped, but output files will
 still be numbered sequentially.  For positions not quite so close to
-the limits in Y, a command file will be made to generate a subvolume
+the limits in Y, a Tilt(1) run will be included to generate a subvolume
 with up to 1/6 of the extent blank in that direction.
+.P
+Multiple Tilt(1) runs are put in each command file in order to reduce
+the overhead in starting and monitoring commands, and to reduce the
+number of .com and .log files in the directory.  The division of runs
+into jobs can be controlled by the \fB-proc\fR and \fB-runs\fR options.
 .P
 The command files can be run with
 Subm(1), Processchunks(1), or the generic parallel processing interface

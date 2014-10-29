@@ -294,10 +294,9 @@ the image dimensions up to 20 pixels.
 short = taper
 type = IP
 usage = Number of pixels to taper images in X and in Y
-tooltip = Pixels to taper in X, and in Y; the default is 10% of the image size
-up to 100 pixels.
+tooltip = Pixels to taper in X, and in Y; the default is 10% of the image size.
 manpage = Number of pixels to taper images in X and in Y.  The default
-is 10% of the image dimensions up to 100 pixels.
+is 10% of the image dimensions.
 
 [Field = StartingEndingViews]
 short = views

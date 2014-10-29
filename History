@@ -1,5 +1,16 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/25/14: IMOD_4-7-12
+10/25/14: Fixed Beadtrack failure if it has to reduce local area target size
+(In 4.7).
+
+10/24/14: Stopped Imodauto contouring of exact values from always doing
+contours around vales equal to the file maximum (In 4.7).
+
+10/24/14: Removed 100-pixel limit on 10% tapering in Tiltxcorr (In 4.7).
+
+10/23/14: Changed Subtomosetup to put multiple runs in each command file.
+
 10/17/14: IMOD_4-7-11
 10/17/14: In eTomo - Setup Tomogram, added INFO messages about pixel spacing
 to the project log (In 4.7).(Bug# 1824)
