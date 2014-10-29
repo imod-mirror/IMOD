@@ -214,6 +214,13 @@ options = ["name:RootName:FN:", "atob:MatchAtoB:B:", "tolist:ToVolPointList:LI:"
 (numOpts, numNonOpts) = PipReadOrParseOptions(sys.argv, options, progname, 1, \
                                               0, 0)
 
+ifInfo = PipGetBoolean('InfoOnPatchSizes', 0)
+if ifInfo:
+   for size in ('S', 'M', 'L', 'E'):
+      (patchnx, patchny, patchnz, err) = patchSizeFromEntry(size)
+      prnstr(fmtstr('{}:  {}  {}  {}', size, patchnx, patchny, patchnz))
+   sys.exit(1)
+
 # Get options
 rootname = PipGetString("RootName", "")
 if not rootname:

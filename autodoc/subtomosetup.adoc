@@ -86,6 +86,24 @@ twice the Y dimension.  If the program makes a wrong assumption or insists
 that this option be used, enter a 0 for no reorientation, 1 for swapping of Y
 and Z, or -1 for rotation around X.
 
+[Field = ProcessorNumber]
+short = proc
+type = I
+usage = Number of processors that the jobs will be run on
+tooltip =
+manpage = Number of processors that the jobs will be run on.  The program will
+divide the jobs into 10 command files (chunks) per processor if this results in fewer than
+1000 chunks, or with fewer chunks per processor, down to 5, in an attempt to
+keep the number of chunks under 1000.
 
+[Field = RunsPerChunk]
+short = runs
+type = I
+usage = Number of Tilt runs per command file
+tooltip =
+manpage = Number of Tilt runs per command file (chunk).  The program will
+create chunks with this number of runs, or with more runs to keep the total
+number of chunks under 100,000.  This option cannot be entered with
+\fB-proc\fR.  The default is 10.
 
 

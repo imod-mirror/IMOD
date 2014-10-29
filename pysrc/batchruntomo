@@ -2749,16 +2749,11 @@ def setupCombine():
       return 1
 
    # Now try to modify the edf file.  Z limits are fatal.  First word -> batchruntomo
-   sedcom = edfDelAndAdd('ReconstructionState.Combine.ScriptsCreated', 'true') + \
-       edfDelAndAdd('ReconstructionState.Combine.MatchMode', edfMatch) + \
-       edfDelAndAdd('Setup.Combine.MatchMode', edfMatch) + \
-       edfDelAndAdd('Setup.Combine.FiducialMatch', edfSurf)
-   if patchSize == 'S':
-       sedcom += edfDelAndAdd('Setup.Combine.PatchSize', 'Small')
-   elif patchSize == 'M':
-       sedcom += edfDelAndAdd('Setup.Combine.PatchSize', 'Medium')
-   elif patchSize == 'L':
-       sedcom += edfDelAndAdd('Setup.Combine.PatchSize', 'Large')
+   sedcom = edfDelAndAdd('batchruntomo.Combine.MatchMode', edfMatch) + \
+       edfDelAndAdd('batchruntomo.Combine.FiducialMatch', edfSurf) + \
+       edfDelAndAdd('batchruntomo.Combine.PatchSize', patchSize) + \
+       edfDelAndAdd('batchruntomo.Combine.FinalPatchSize', finalPatchSize) + \
+       edfDelAndAdd('batchruntomo.Combine.ExtraResidualTargets', extraTargets)
 
    edfFile = setName + '.edf'
    makeBackupFile(edfFile)
