@@ -3,20 +3,19 @@ package etomo.ui;
 import etomo.storage.DirectiveDef;
 
 /**
-* <p>Description: An interface to allow the generic handling of GUI fields.</p>
-* 
-* <p>Copyright: Copyright 2014</p>
-*
-* <p>Organization:
-* Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
-* University of Colorado</p>
-* 
-* @author $Author$
-* 
-* @version $Revision$
-* 
-* <p> $Log$ </p>
-*/
+ * <p>Description: An interface to allow the generic handling of GUI fields.</p>
+ * <p/>
+ * <p>Copyright: Copyright 2014</p>
+ * <p/>
+ * <p>Organization:
+ * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
+ * University of Colorado</p>
+ *
+ * @author $Author$
+ * @version $Revision$
+ *          <p/>
+ *          <p> $Log$ </p>
+ */
 public interface Field {
   public static final String rcsid = "$Id:$";
 
@@ -24,6 +23,7 @@ public interface Field {
 
   /**
    * Returns true if the field contains any kind of text - including spinners.
+   *
    * @return
    */
   public boolean isText();
@@ -41,20 +41,23 @@ public interface Field {
 
   /**
    * No effect in boolean-only fields
+   *
    * @param text
    */
   public void setValue(String text);
 
   /**
    * No effect in text-only fields
-   * @param bool
+   *
+   * @param bool boolean value
    */
   public void setValue(boolean bool);
 
   public boolean isEmpty();
 
   /**
-   * @return true if this a binary control (toggle button, radio button, checkbox) and it is selected
+   * @return true if this a binary control (toggle button, radio button,
+   * checkbox) and it is selected
    */
   public boolean isSelected();
 
@@ -63,11 +66,16 @@ public interface Field {
   /**
    * Returns true if there is a non-empty, non-whitespace value.  Boolean fields
    * are never empty.
+   *
    * @return
    */
 
   public DirectiveDef getDirectiveDef();
 
+  /**
+   * Use DefaultFinder to find and set a default value.  DefaultFinder requires
+   * DirectiveDef, and only works for comparam directives.
+   */
   public void useDefaultValue();
 
   public boolean equalsDefaultValue();
@@ -95,6 +103,7 @@ public interface Field {
 
   /**
    * No effect in text-only fields
+   *
    * @param input
    */
   public void setFieldHighlight(boolean input);
