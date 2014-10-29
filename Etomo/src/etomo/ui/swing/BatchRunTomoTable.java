@@ -32,22 +32,21 @@ import etomo.ui.BatchRunTomoTab;
 import etomo.ui.PreferredTableSize;
 
 /**
-* <p>Description: </p>
-* 
-* <p>Copyright: Copyright 2013</p>
-*
-* <p>Organization:
-* Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
-* University of Colorado</p>
-* 
-* @author $Author$
-* 
-* @version $Revision$
-* 
-* <p> $Log$ </p>
-*/
-final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
-    ActionListener {
+ * <p>Description: </p>
+ * <p/>
+ * <p>Copyright: Copyright 2013</p>
+ * <p/>
+ * <p>Organization:
+ * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
+ * University of Colorado</p>
+ *
+ * @author $Author$
+ * @version $Revision$
+ *          <p/>
+ *          <p> $Log$ </p>
+ */
+final class BatchRunTomoTable
+    implements Viewable, Highlightable, Expandable, ActionListener {
   public static final String rcsid = "$Id:$";
 
   private static final String STACK_TITLE = "Stack";
@@ -87,8 +86,8 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
   private final BatchRunTomoManager manager;
   private final Viewport viewport;
   private final ExpandButton btnStack;
-  private final PreferredTableSize preferredTableSize = new PreferredTableSize(
-      DatasetColumn.TOTAL);
+  private final PreferredTableSize preferredTableSize =
+      new PreferredTableSize(DatasetColumn.TOTAL);
 
   private File currentDirectory = null;
   private BatchRunTomoTab curTab = null;
@@ -327,9 +326,14 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
     rowList.saveAutodocs();
   }
 
+  void loadAutodocs() {
+    rowList.loadAutodocs();
+  }
+
   /**
    * Check each field to see if it has been changed from its checkpoint.  If it has
    * changed, then back up its current value.
+   *
    * @return true if any field has been changed from its checkpoint
    */
   boolean backupIfChanged() {
@@ -351,8 +355,8 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
   }
 
   void msgTabChanged(final BatchRunTomoTab tab) {
-    if (tab == BatchRunTomoTab.STACKS || tab == BatchRunTomoTab.DATASET
-        || tab == BatchRunTomoTab.RUN) {
+    if (tab == BatchRunTomoTab.STACKS || tab == BatchRunTomoTab.DATASET ||
+        tab == BatchRunTomoTab.RUN) {
       if (tab != curTab) {
         curTab = tab;
         rebuildTable();
@@ -391,8 +395,8 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
       }
       if (stackList != null) {
         // Remove matching B stacks and set dual to true for the A stack
-        List<DatasetTool.StackInfo> filteredStackList = DatasetTool
-            .removeMatchingBStacks(stackList);
+        List<DatasetTool.StackInfo> filteredStackList =
+            DatasetTool.removeMatchingBStacks(stackList);
         rowList.add(filteredStackList);
       }
     }
@@ -511,9 +515,10 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
               prevDualAxisSet = true;
             }
           }
-          BatchRunTomoRow row = BatchRunTomoRow.getInstance(manager.getPropertyUserDir(),
-              table, pnlTable, layout, constraints, index + 1, stack, prevRow,
-              overridePrevRow, overridePrevRow, manager, stackID, preferredTableSize);
+          BatchRunTomoRow row = BatchRunTomoRow
+              .getInstance(table, pnlTable, layout, constraints, index + 1, stack,
+                  prevRow, overridePrevRow, overridePrevRow, manager, stackID,
+                  preferredTableSize);
           row.expandStack(btnStack.isExpanded());
           list.add(row);
           fileAdded = true;
@@ -529,7 +534,7 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
       }
       // Pop up a warning if there where any duplicate files.
       if (!notAdded.isEmpty()) {
-        StringBuffer warning = new StringBuffer();
+        StringBuilder warning = new StringBuilder();
         warning.append("The stack table already contains ");
         Iterator<String> i = notAdded.iterator();
         if (i.hasNext()) {
@@ -537,11 +542,13 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
         }
         while (i.hasNext()) {
           String absPath = i.next();
-          warning.append(", " + (!i.hasNext() ? " and " : "") + absPath);
+          warning.append(", ");
+          warning.append((!i.hasNext() ? " and " : ""));
+          warning.append(absPath);
         }
         warning.append(".");
-        UIHarness.INSTANCE.openMessageDialog(manager, warning.toString(),
-            "Unable to Add File(s)");
+        UIHarness.INSTANCE
+            .openMessageDialog(manager, warning.toString(), "Unable to Add File(s)");
       }
     }
 
@@ -555,9 +562,10 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
         String stackID = entry.getValue();
         if (metaData.isDisplay(stackID)) {
           int index = list.size();
-          BatchRunTomoRow row = BatchRunTomoRow.getInstance(manager.getPropertyUserDir(),
-              table, pnlTable, layout, constraints, index + 1, new File(entry.getKey()),
-              null, false, false, manager, stackID, preferredTableSize);
+          BatchRunTomoRow row = BatchRunTomoRow
+              .getInstance(table, pnlTable, layout, constraints, index + 1,
+                  new File(entry.getKey()), null, false, false, manager, stackID,
+                  preferredTableSize);
           row.expandStack(btnStack.isExpanded());
           list.add(row);
           fileAdded = true;
@@ -592,8 +600,8 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
         if (row == null) {
           return false;
         }
-        if (UIHarness.INSTANCE.openYesNoDialog(manager, "Delete the highlighted row?",
-            AxisID.ONLY)) {
+        if (UIHarness.INSTANCE
+            .openYesNoDialog(manager, "Delete the highlighted row?", AxisID.ONLY)) {
           row.remove();
           row.delete();
           list.remove(index);
@@ -652,13 +660,6 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
       return false;
     }
 
-    private void setEditDataset() {
-      int index = getHighlightedIndex();
-      if (index != -1) {
-        list.get(index).setEditDataset();
-      }
-    }
-
     private int getHighlightedIndex() {
       for (int i = 0; i < list.size(); i++) {
         BatchRunTomoRow row = list.get(i);
@@ -679,6 +680,7 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
     /**
      * Check each field to see if it has been changed from its checkpoint.  If it has
      * changed, then back up its current value.
+     *
      * @return true if any field has been changed from its checkpoint
      */
     private boolean backupIfChanged() {
@@ -700,8 +702,8 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
       initialValueRow.setValues(userConfiguration);
       initialValueRow.setValues(directiveFileCollection);
       for (int i = 0; i < list.size(); i++) {
-        list.get(i).applyValues(userConfiguration, directiveFileCollection,
-            retainUserValues);
+        list.get(i)
+            .applyValues(userConfiguration, directiveFileCollection, retainUserValues);
       }
     }
 
@@ -727,6 +729,12 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
     void saveAutodocs() {
       for (int i = 0; i < list.size(); i++) {
         list.get(i).saveAutodoc();
+      }
+    }
+
+    void loadAutodocs() {
+      for (int i = 0; i < list.size(); i++) {
+        list.get(i).loadAutodoc();
       }
     }
   }
