@@ -3,20 +3,19 @@ package etomo.type;
 import java.util.Properties;
 
 /**
-* <p>Description: </p>
-* 
-* <p>Copyright: Copyright 2014</p>
-*
-* <p>Organization:
-* Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
-* University of Colorado</p>
-* 
-* @author $Author$
-* 
-* @version $Revision$
-* 
-* <p> $Log$ </p>
-*/
+ * <p>Description: </p>
+ * <p/>
+ * <p>Copyright: Copyright 2014</p>
+ * <p/>
+ * <p>Organization:
+ * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
+ * University of Colorado</p>
+ *
+ * @author $Author$
+ * @version $Revision$
+ *          <p/>
+ *          <p> $Log$ </p>
+ */
 public final class BatchRunTomoRowMetaData {
   public static final String rcsid = "$Id:$";
 
@@ -35,7 +34,8 @@ public final class BatchRunTomoRowMetaData {
   }
 
   /**
-   * This function is used to decide whether to load the instance associated with stackID. 
+   * This function is used to decide whether to load the instance associated with stackID.
+   *
    * @return
    */
   public static boolean isDisplay(final Properties props, String prepend,
@@ -110,8 +110,11 @@ public final class BatchRunTomoRowMetaData {
   }
 
   public void setDatasetDialog(final boolean input) {
-    if (input) {
+    if (input && datasetMetaData == null) {
       datasetMetaData = new BatchRunTomoDatasetMetaData();
+    }
+    if (datasetMetaData != null) {
+      datasetMetaData.setDataset(input);
     }
   }
 

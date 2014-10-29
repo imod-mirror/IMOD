@@ -4,45 +4,45 @@ import java.io.File;
 import java.util.Properties;
 
 /**
-* <p>Description: </p>
-* 
-* <p>Copyright: Copyright 2014</p>
-*
-* <p>Organization:
-* Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
-* University of Colorado</p>
-* 
-* @author $Author$
-* 
-* @version $Revision$
-* 
-* <p> $Log$ </p>
-*/
+ * <p>Description: </p>
+ * <p/>
+ * <p>Copyright: Copyright 2014</p>
+ * <p/>
+ * <p>Organization:
+ * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
+ * University of Colorado</p>
+ *
+ * @author $Author$
+ * @version $Revision$
+ *          <p/>
+ *          <p> $Log$ </p>
+ */
 public final class BatchRunTomoDatasetMetaData {
   public static final String rcsid = "$Id:$";
 
   private static final String GROUP_KEY = "dataset";
   private static final String HEADER_KEY = "header";
 
+  private final EtomoBoolean2 dataset = new EtomoBoolean2();
   private final StringProperty modelFile = new StringProperty("ModelFile");
   private final EtomoBoolean2 enableStretching = new EtomoBoolean2("enableStretching");
   private final EtomoBoolean2 localAlignments = new EtomoBoolean2("LocalAlignments");
   private final EtomoNumber gold = new EtomoNumber(EtomoNumber.Type.DOUBLE, "gold");
-  private final EtomoNumber targetNumberOfBeads = new EtomoNumber(
-      EtomoNumber.Type.INTEGER, "TargetNumberOfBeads");
-  private final StringProperty localAreaTargetSize = new StringProperty(
-      "LocalAreaTargetSize");
-  private final StringProperty sizeOfPatchesXandY = new StringProperty(
-      "SizeOfPatchesXandY");
+  private final EtomoNumber targetNumberOfBeads =
+      new EtomoNumber(EtomoNumber.Type.INTEGER, "TargetNumberOfBeads");
+  private final StringProperty localAreaTargetSize =
+      new StringProperty("LocalAreaTargetSize");
+  private final StringProperty sizeOfPatchesXandY =
+      new StringProperty("SizeOfPatchesXandY");
   private final EtomoNumber contourPieces = new EtomoNumber("contourPieces");
   private final StringProperty defocus = new StringProperty("defocus");
-  private final EtomoBoolean2 autoFitRangeAndStep = new EtomoBoolean2(
-      "autoFitRangeAndStep");
-  private final EtomoNumber autoFitRange = new EtomoNumber(EtomoNumber.Type.DOUBLE,
-      "autoFitRange");
+  private final EtomoBoolean2 autoFitRangeAndStep =
+      new EtomoBoolean2("autoFitRangeAndStep");
+  private final EtomoNumber autoFitRange =
+      new EtomoNumber(EtomoNumber.Type.DOUBLE, "autoFitRange");
   private final EtomoBoolean2 fitEveryImage = new EtomoBoolean2("fitEveryImage");
-  private final EtomoNumber autoFitStep = new EtomoNumber(EtomoNumber.Type.DOUBLE,
-      "autoFitStep");
+  private final EtomoNumber autoFitStep =
+      new EtomoNumber(EtomoNumber.Type.DOUBLE, "autoFitStep");
   private final StringProperty leaveIterations = new StringProperty("LeaveIterations");
   private final EtomoBoolean2 scaleToInteger = new EtomoBoolean2("ScaleToInteger");
   private final EtomoNumber thickness = new EtomoNumber("THICKNESS");
@@ -53,6 +53,7 @@ public final class BatchRunTomoDatasetMetaData {
   private PanelHeaderSettings header = null;
 
   BatchRunTomoDatasetMetaData() {
+    dataset.set(true);
   }
 
   public static String createPrepend(String prepend) {
@@ -68,10 +69,13 @@ public final class BatchRunTomoDatasetMetaData {
 
   static boolean exists(final Properties props, String prepend) {
     prepend = createPrepend(prepend);
-    return props.containsKey(prepend);
+    EtomoBoolean2 bool = new EtomoBoolean2();
+    bool.set(props.getProperty(prepend));
+    return bool.is();
   }
 
   void reset() {
+    dataset.reset();
     if (header != null) {
       header.reset();
     }
@@ -101,6 +105,10 @@ public final class BatchRunTomoDatasetMetaData {
     reset();
     // load
     prepend = createPrepend(prepend);
+    dataset.set(props.getProperty(prepend));
+    if (!dataset.is()) {
+      return;
+    }
     header = PanelHeaderSettings.load(header, HEADER_KEY, props, prepend);
     modelFile.load(props, prepend);
     enableStretching.load(props, prepend);
@@ -124,29 +132,35 @@ public final class BatchRunTomoDatasetMetaData {
   }
 
   public void store(Properties props, String prepend) {
-    prepend = createPrepend(prepend);
-    if (header != null) {
-      header.store(props, prepend);
+    if (!dataset.is()) {
+      remove(props, prepend);
     }
-    modelFile.store(props, prepend);
-    enableStretching.store(props, prepend);
-    localAlignments.store(props, prepend);
-    gold.store(props, prepend);
-    targetNumberOfBeads.store(props, prepend);
-    localAreaTargetSize.store(props, prepend);
-    sizeOfPatchesXandY.store(props, prepend);
-    contourPieces.store(props, prepend);
-    defocus.store(props, prepend);
-    autoFitRangeAndStep.store(props, prepend);
-    autoFitRange.store(props, prepend);
-    fitEveryImage.store(props, prepend);
-    autoFitStep.store(props, prepend);
-    leaveIterations.store(props, prepend);
-    scaleToInteger.store(props, prepend);
-    thickness.store(props, prepend);
-    binnedThickness.store(props, prepend);
-    extraThickness.store(props, prepend);
-    fallbackThickness.store(props, prepend);
+    else {
+      prepend = createPrepend(prepend);
+      if (header != null) {
+        header.store(props, prepend);
+      }
+      props.setProperty(prepend, dataset.toString());
+      modelFile.store(props, prepend);
+      enableStretching.store(props, prepend);
+      localAlignments.store(props, prepend);
+      gold.store(props, prepend);
+      targetNumberOfBeads.store(props, prepend);
+      localAreaTargetSize.store(props, prepend);
+      sizeOfPatchesXandY.store(props, prepend);
+      contourPieces.store(props, prepend);
+      defocus.store(props, prepend);
+      autoFitRangeAndStep.store(props, prepend);
+      autoFitRange.store(props, prepend);
+      fitEveryImage.store(props, prepend);
+      autoFitStep.store(props, prepend);
+      leaveIterations.store(props, prepend);
+      scaleToInteger.store(props, prepend);
+      thickness.store(props, prepend);
+      binnedThickness.store(props, prepend);
+      extraThickness.store(props, prepend);
+      fallbackThickness.store(props, prepend);
+    }
   }
 
   public void remove(Properties props, String prepend) {
@@ -154,6 +168,7 @@ public final class BatchRunTomoDatasetMetaData {
     if (header != null) {
       header.remove(props, prepend);
     }
+    props.remove(prepend);
     modelFile.remove(props, prepend);
     enableStretching.remove(props, prepend);
     localAlignments.remove(props, prepend);
@@ -187,6 +202,10 @@ public final class BatchRunTomoDatasetMetaData {
       header = new PanelHeaderSettings(HEADER_KEY);
     }
     header.set(input);
+  }
+
+  public void setDataset(final boolean input) {
+    dataset.set(input);
   }
 
   public void setFitEveryImage(final boolean input) {
