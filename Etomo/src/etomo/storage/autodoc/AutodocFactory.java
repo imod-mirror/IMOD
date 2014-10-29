@@ -14,85 +14,86 @@ import etomo.type.FileType;
 
 /**
  * <p>Description: </p>
- * 
+ * <p/>
  * <p>Copyright: Copyright 2006</p>
- *
+ * <p/>
  * <p>Organization:
  * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
  * University of Colorado</p>
- * 
+ *
  * @author $Author$
- * 
  * @version $Revision$
- * 
- * <p> $Log$
- * <p> Revision 1.19  2011/02/18 22:51:44  sueh
- * <p> bug# 1437 Reformatting.
- * <p>
- * <p> Revision 1.18  2010/03/05 03:58:58  sueh
- * <p> bug# 1319 Added the tilt autodoc.
- * <p>
- * <p> Revision 1.17  2010/02/17 04:49:43  sueh
- * <p> bug# 1301 Using the manager instead of the manager key do pop up
- * <p> messages.
- * <p>
- * <p> Revision 1.16  2009/09/01 03:18:16  sueh
- * <p> bug# 1222
- * <p>
- * <p> Revision 1.15  2009/06/05 02:01:14  sueh
- * <p> bug# 1219 Added FLATTEN_WARP, FLATTEN_WARP_INSTANCE,
- * <p> WARP_VOL, and WARP_VOL_INSTANCE.
- * <p>
- * <p> Revision 1.14  2009/03/17 00:45:53  sueh
- * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
- * <p>
- * <p> Revision 1.13  2009/03/09 17:27:54  sueh
- * <p> bug# 1199 Added a getInstance function that takes a File and doesn't
- * <p> require a version.
- * <p>
- * <p> Revision 1.12  2009/02/04 23:30:00  sueh
- * <p> bug# 1158 Changed id and exceptions classes in LogFile.
- * <p>
- * <p> Revision 1.11  2009/01/20 19:33:30  sueh
- * <p> bug# 1102 In getInstance(String,AxisID) added else to if name equals CPU.
- * <p>
- * <p> Revision 1.10  2008/10/27 18:35:26  sueh
- * <p> bug# 1141 Added ctfplotter and ctfcorrection
- * <p>
- * <p> Revision 1.9  2008/05/30 21:23:42  sueh
- * <p> bug# 1102 Added writable.  Will be used to limit functionality of non-
- * <p> matlab autodocs to original autodoc definition.
- * <p>
- * <p> Revision 1.8  2008/01/31 20:24:49  sueh
- * <p> bug# 1055 throwing a FileException when LogFile.getInstance fails.
- * <p>
- * <p> Revision 1.7  2007/08/16 16:31:55  sueh
- * <p> bug# 1035 Added NEWSTACK.
- * <p>
- * <p> Revision 1.6  2007/06/07 21:31:52  sueh
- * <p> bug# 1012 Added function getMatlabDebugInstance.
- * <p>
- * <p> Revision 1.5  2007/04/13 18:42:59  sueh
- * <p> bug# 964 Added getDebugInstance(String, AxisID).
- * <p>
- * <p> Revision 1.4  2007/03/26 23:33:52  sueh
- * <p> bug# 964 Added getInstance(String name) which opens an n'ton autodoc with
- * <p> AxisID.ONLY.
- * <p>
- * <p> Revision 1.3  2007/03/26 18:36:41  sueh
- * <p> bug# 964 Made Version optional so that it is not necessary in matlab param files.
- * <p>
- * <p> Revision 1.2  2007/03/23 20:32:07  sueh
- * <p> bug# 964 Added PEET_PRM - an autodoc which contains Feld sections that
- * <p> represent the fields that may be used in the PEET .prm file.
- * <p>
- * <p> Revision 1.1  2007/03/21 18:14:50  sueh
- * <p> bug# 964 Limiting access to autodoc classes by using ReadOnly interfaces.
- * <p> Added AutodocFactory to create Autodoc instances.
- * <p> </p>
+ *          <p/>
+ *          <p> $Log$
+ *          <p> Revision 1.19  2011/02/18 22:51:44  sueh
+ *          <p> bug# 1437 Reformatting.
+ *          <p>
+ *          <p> Revision 1.18  2010/03/05 03:58:58  sueh
+ *          <p> bug# 1319 Added the tilt autodoc.
+ *          <p>
+ *          <p> Revision 1.17  2010/02/17 04:49:43  sueh
+ *          <p> bug# 1301 Using the manager instead of the manager key do pop up
+ *          <p> messages.
+ *          <p>
+ *          <p> Revision 1.16  2009/09/01 03:18:16  sueh
+ *          <p> bug# 1222
+ *          <p>
+ *          <p> Revision 1.15  2009/06/05 02:01:14  sueh
+ *          <p> bug# 1219 Added FLATTEN_WARP, FLATTEN_WARP_INSTANCE,
+ *          <p> WARP_VOL, and WARP_VOL_INSTANCE.
+ *          <p>
+ *          <p> Revision 1.14  2009/03/17 00:45:53  sueh
+ *          <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
+ *          <p>
+ *          <p> Revision 1.13  2009/03/09 17:27:54  sueh
+ *          <p> bug# 1199 Added a getInstance function that takes a File and doesn't
+ *          <p> require a version.
+ *          <p>
+ *          <p> Revision 1.12  2009/02/04 23:30:00  sueh
+ *          <p> bug# 1158 Changed id and exceptions classes in LogFile.
+ *          <p>
+ *          <p> Revision 1.11  2009/01/20 19:33:30  sueh
+ *          <p> bug# 1102 In getInstance(String,AxisID) added else to if name equals CPU.
+ *          <p>
+ *          <p> Revision 1.10  2008/10/27 18:35:26  sueh
+ *          <p> bug# 1141 Added ctfplotter and ctfcorrection
+ *          <p>
+ *          <p> Revision 1.9  2008/05/30 21:23:42  sueh
+ *          <p> bug# 1102 Added writable.  Will be used to limit functionality of non-
+ *          <p> matlab autodocs to original autodoc definition.
+ *          <p>
+ *          <p> Revision 1.8  2008/01/31 20:24:49  sueh
+ *          <p> bug# 1055 throwing a FileException when LogFile.getInstance fails.
+ *          <p>
+ *          <p> Revision 1.7  2007/08/16 16:31:55  sueh
+ *          <p> bug# 1035 Added NEWSTACK.
+ *          <p>
+ *          <p> Revision 1.6  2007/06/07 21:31:52  sueh
+ *          <p> bug# 1012 Added function getMatlabDebugInstance.
+ *          <p>
+ *          <p> Revision 1.5  2007/04/13 18:42:59  sueh
+ *          <p> bug# 964 Added getDebugInstance(String, AxisID).
+ *          <p>
+ *          <p> Revision 1.4  2007/03/26 23:33:52  sueh
+ *          <p> bug# 964 Added getInstance(String name) which opens an n'ton autodoc with
+ *          <p> AxisID.ONLY.
+ *          <p>
+ *          <p> Revision 1.3  2007/03/26 18:36:41  sueh
+ *          <p> bug# 964 Made Version optional so that it is not necessary in matlab
+ *          param files.
+ *          <p>
+ *          <p> Revision 1.2  2007/03/23 20:32:07  sueh
+ *          <p> bug# 964 Added PEET_PRM - an autodoc which contains Feld sections that
+ *          <p> represent the fields that may be used in the PEET .prm file.
+ *          <p>
+ *          <p> Revision 1.1  2007/03/21 18:14:50  sueh
+ *          <p> bug# 964 Limiting access to autodoc classes by using ReadOnly interfaces.
+ *          <p> Added AutodocFactory to create Autodoc instances.
+ *          <p> </p>
  */
 public final class AutodocFactory {
-  public static final String rcsid = "$Id$";
+  public static final String rcsid =
+      "$Id$";
 
   public static final String EXTENSION = ".adoc";
 
@@ -167,8 +168,8 @@ public final class AutodocFactory {
     return getInstance(manager, name, AxisID.ONLY, false);
   }
 
-  public static ReadOnlyAutodoc getComInstance(String name) throws FileNotFoundException,
-      IOException, LogFile.LockException {
+  public static ReadOnlyAutodoc getComInstance(String name)
+      throws FileNotFoundException, IOException, LogFile.LockException {
     if (name == null) {
       throw new IllegalStateException("name is null");
     }
@@ -177,14 +178,15 @@ public final class AutodocFactory {
       return autodoc;
     }
     autodoc = new Autodoc(name);
-    autodoc.initializeGenericInstance(null, EtomoDirector.IMOD_DIR_ENV_VAR,
-        FileType.COM_DIR, name, AxisID.ONLY);
+    autodoc
+        .initializeGenericInstance(null, EtomoDirector.IMOD_DIR_ENV_VAR, FileType.COM_DIR,
+            name, AxisID.ONLY);
     return autodoc;
   }
 
   public static ReadOnlyAutodoc getInstance(final BaseManager manager, final String name,
-      final AxisID axisID, final boolean debug) throws FileNotFoundException,
-      IOException, LogFile.LockException {
+      final AxisID axisID, final boolean debug)
+      throws FileNotFoundException, IOException, LogFile.LockException {
     if (name == null) {
       throw new IllegalStateException("name is null");
     }
@@ -221,13 +223,13 @@ public final class AutodocFactory {
       return null;
     }
   }
+
   public static WritableAutodoc getWritableInstance(final BaseManager manager,
-      final File file, final boolean debug) throws IOException, LogFile.LockException {
+      final File file) throws IOException, LogFile.LockException {
     if (file == null) {
       throw new IllegalStateException("file is null");
     }
     Autodoc autodoc = new Autodoc(stripFileExtension(file));
-    autodoc.setDebug(debug);
     try {
       autodoc.initializeWritableInstance(manager, file);
       return autodoc;
@@ -236,6 +238,22 @@ public final class AutodocFactory {
       return null;
     }
   }
+
+  public static WritableAutodoc getEmptyWritableInstance(final BaseManager manager,
+      final File file) throws IOException, LogFile.LockException {
+    if (file == null) {
+      throw new IllegalStateException("file is null");
+    }
+    Autodoc autodoc = new Autodoc(stripFileExtension(file));
+    try {
+      autodoc.initializeEmptyWritableInstance(manager, file);
+      return autodoc;
+    }
+    catch (FileNotFoundException e) {
+      return null;
+    }
+  }
+
   private static String stripFileExtension(final File file) {
     return stripFileExtension(file.getName());
   }
@@ -282,6 +300,7 @@ public final class AutodocFactory {
    * Initialize one of the known autodoc instances with a generic instance.  If the known
    * autodoc has an instance assigned to it, this overrides the old instance with the one
    * created here.
+   *
    * @param manager
    * @param file
    * @param autodocName
@@ -309,6 +328,7 @@ public final class AutodocFactory {
 
   /**
    * open and preserve an autodoc without a type for testing
+   *
    * @param autodocFile
    * @param axisID
    * @return
@@ -316,8 +336,8 @@ public final class AutodocFactory {
    * @throws IOException
    */
   public static Autodoc getTestInstance(final BaseManager manager, final File directory,
-      final String autodocFileName, final AxisID axisID) throws FileNotFoundException,
-      IOException, LogFile.LockException {
+      final String autodocFileName, final AxisID axisID)
+      throws FileNotFoundException, IOException, LogFile.LockException {
     if (autodocFileName == null) {
       return null;
     }
@@ -341,6 +361,7 @@ public final class AutodocFactory {
 
   /**
    * open and return an autodoc without a type.
+   *
    * @param autodocFile
    * @param axisID
    * @return
@@ -348,8 +369,8 @@ public final class AutodocFactory {
    * @throws IOException
    */
   public static Autodoc getInstance(final BaseManager manager, final File autodocFile,
-      final AxisID axisID) throws FileNotFoundException, IOException,
-      LogFile.LockException {
+      final AxisID axisID)
+      throws FileNotFoundException, IOException, LogFile.LockException {
     if (autodocFile == null) {
       return null;
     }
@@ -477,6 +498,7 @@ public final class AutodocFactory {
 
   /**
    * for testing
+   *
    * @param name
    */
   public static void resetInstance(String name) {
@@ -568,13 +590,14 @@ public final class AutodocFactory {
       throw new IllegalArgumentException("Illegal autodoc name: " + name + ".");
     }
   }
-  
+
   /**
    * Override an old autodoc instance with a new one
+   *
    * @param name
    * @param autodoc
    */
-  private static void setInstance(String name,final Autodoc autodoc) {
+  private static void setInstance(String name, final Autodoc autodoc) {
     if (name.equals(TILTXCORR)) {
       TILTXCORR_INSTANCE = autodoc;
     }
