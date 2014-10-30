@@ -2578,7 +2578,9 @@ positive).
 You can use
 <A HREF = "man/ctfplotter.html#TOP">Ctfplotter</A> to estimate the defocus of the
 tilt series; this program requires a set of noise image files for the camera
-being used. 
+being used.  It analyzes the original tilt series, not the aligned stack,
+because the interpolations (and possible binning) applied to the aligned stack
+would affect the power spectra being analyzed.
 It allows you to estimate a single value of defocus for the whole
 tilt series or several defocus values that apply over different ranges of tilt
 angles.  At the end, you 
