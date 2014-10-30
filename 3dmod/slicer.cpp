@@ -1515,7 +1515,7 @@ void SlicerFuncs::keyInput(QKeyEvent *event)
   case Qt::Key_X:
   case Qt::Key_Y:
   case Qt::Key_Z:
-    if (ctrl && (keysym == Qt::Key_Z || keysym == Qt::Key_Y)) {
+    if (ctrl && (keysym == Qt::Key_Z || keysym == Qt::Key_Y || keysym == Qt::Key_X)) {
       handled = 0;
     } else {
       cont = imodContourGet(vi->imod);
@@ -1799,6 +1799,9 @@ void SlicerFuncs::mousePress(QMouseEvent *event)
     } else {
       sBut1downt.start();
       mFirstDrag = 1;
+      if (mRubberband)
+        mQtWindow->manageBandSize(mRbMouseX1 - mRbMouseX0 - 1, 
+                                  mRbMouseY1 - mRbMouseY0 - 1, 1);
     } 
   }
 
@@ -1822,11 +1825,14 @@ void SlicerFuncs::mouseRelease(QMouseEvent *event)
       mDragBand = 0;
       mDrawingArrow = false;
       setCursor(mMousemode);
+      mQtWindow->manageBandSize(0, 0, 0);
     } else if (sMousePanning) {
       sMousePanning = 0;
       drawSelfAndLinked();
     } else
       attachPoint(event->x(), event->y(), event->modifiers() & Qt::ControlModifier);
+    if (mFirstDrag && mRubberband)
+      mQtWindow->manageBandSize(0, 0, 0);
     mFirstDrag = 0;
   }
   if (event->button() == ImodPrefs->actualButton(2) && mMoveBand) {
@@ -1851,6 +1857,7 @@ void SlicerFuncs::mouseMove(QMouseEvent *event)
   Imod *imod = mVi->imod;
   Ipoint scale = {1., 1., 1.};
   int cumdx, cumdy;
+  QString str;
   int cumthresh = 6 * 6;
   bool addingPoints, checkNewPos;
   double transFac = mZoom < 4. ? 1. / mZoom : 0.25;
@@ -1934,6 +1941,8 @@ void SlicerFuncs::mouseMove(QMouseEvent *event)
       mDragBand = 1;
       mBandChanged = 1;
       setCursor(mMousemode);
+      mQtWindow->manageBandSize(mRbMouseX1 - mRbMouseX0 - 1, 
+                                mRbMouseY1 - mRbMouseY0 - 1, 1);
       draw();
       return;
 
@@ -1966,6 +1975,8 @@ void SlicerFuncs::mouseMove(QMouseEvent *event)
         mBandChanged = 1;
         checkBandLowHighLimits(trueLimits);
       }
+      mQtWindow->manageBandSize(mRbMouseX1 - mRbMouseX0 - 1, mRbMouseY1 - mRbMouseY0 - 1,
+                                -1);
       draw();
 
       // Pan with button 1 if not classic mode
