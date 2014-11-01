@@ -177,13 +177,14 @@ public final class ParsedNumber extends ParsedElement {
       setMissingAttribute();
       return;
     }
-    PrimativeTokenizer tokenizer = createTokenizer(attribute.getValue());
+    PrimativeTokenizer tokenizer = createTokenizer(attribute.getValue(),
+        attribute.getLineNum());
     try {
-      parse(tokenizer.next(), tokenizer);
+      parse(tokenizer.next(), tokenizer, attribute.getLineNum());
     }
     catch (IOException e) {
       e.printStackTrace();
-      fail(e.getMessage());
+      fail(e.getMessage(), attribute.getLineNum());
     }
   }
 
@@ -299,14 +300,14 @@ public final class ParsedNumber extends ParsedElement {
   public void moveElement(int fromIndex, int toIndex) {
   }
 
-  public void setRawString(String number) {
+  public void setRawString(final String number, final int lineNum) {
     if (!number.equals("NaN")) {
       rawNumber.set(number);
     }
     else {
       rawNumber.reset();
     }
-    setFailed(!rawNumber.isValid(), rawNumber.getInvalidReason());
+    setFailed(!rawNumber.isValid(), rawNumber.getInvalidReason(), lineNum);
   }
 
   void setRawString(BaseManager manager, String number, String fieldDescription) {
@@ -324,7 +325,7 @@ public final class ParsedNumber extends ParsedElement {
     }
   }
 
-  public String validate() {
+  public String validate(final int lineNum) {
     if (!rawNumber.isValid()) {
       String invalidReason = rawNumber.getInvalidReason();
       if (invalidReason == null) {
@@ -332,7 +333,7 @@ public final class ParsedNumber extends ParsedElement {
       }
       return (descr != null ? descr : "") + ": " + invalidReason;
     }
-    return getFailedMessage();
+    return getFailedMessage(lineNum);
   }
 
   void setRawString(double number) {
@@ -350,11 +351,11 @@ public final class ParsedNumber extends ParsedElement {
     rawNumber.set(number);
   }
 
-  void setRawString(int index, String string) {
+  void setRawString(final int index, final String string, final int lineNum) {
     if (index != 0) {
       return;
     }
-    setRawString(string);
+    setRawString(string, lineNum);
   }
 
   boolean isPositive() {
@@ -442,7 +443,7 @@ public final class ParsedNumber extends ParsedElement {
    * parse the number including delimiters
    * @return the token that is current when the array is parsed
    */
-  Token parse(Token token, PrimativeTokenizer tokenizer) {
+  Token parse(Token token, final PrimativeTokenizer tokenizer, final int lineNum) {
     rawNumber.reset();
     resetFailed();
     if (token == null) {
@@ -473,7 +474,7 @@ public final class ParsedNumber extends ParsedElement {
       if (token != null && token.is(Token.Type.WHITESPACE)) {
         token = tokenizer.next();
       }
-      token = parseElement(token, tokenizer);
+      token = parseElement(token, tokenizer, lineNum);
       if (debug) {
         System.out.println("ParsedNumber.parse:rawNumber=" + rawNumber);
       }
@@ -486,7 +487,8 @@ public final class ParsedNumber extends ParsedElement {
           token = tokenizer.next();
         }
         if (token == null) {
-          fail("End of value.  Closing delimiter, " + closeSymbol + ", was not found.");
+          fail("End of value.  Closing delimiter, " + closeSymbol + ", was not found.",
+              lineNum);
           return token;
         }
         // If the number is not in an array, it may have delimiters
@@ -495,19 +497,20 @@ public final class ParsedNumber extends ParsedElement {
           token = tokenizer.next();
         }
         else {
-          fail("Closing delimiter, " + closeSymbol + ", was not found.");
+          fail("Closing delimiter, " + closeSymbol + ", was not found.", lineNum);
           return token;
         }
       }
     }
     catch (IOException e) {
       e.printStackTrace();
-      fail(e.getMessage());
+      fail(e.getMessage(), lineNum);
     }
     return token;
   }
 
-  private Token parseElement(Token token, PrimativeTokenizer tokenizer) {
+  private Token parseElement(Token token, final PrimativeTokenizer tokenizer,
+      final int lineNum) {
     if (token == null) {
       return null;
     }
@@ -531,7 +534,7 @@ public final class ParsedNumber extends ParsedElement {
       }
       catch (IOException e) {
         e.printStackTrace();
-        fail(e.getMessage());
+        fail(e.getMessage(), lineNum);
       }
     }
     String string = buffer.toString();
