@@ -11,6 +11,7 @@ import etomo.storage.AutodocFilter;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
 import etomo.type.FileType;
+import etomo.util.Utilities;
 
 /**
  * <p>Description: </p>
@@ -180,7 +181,7 @@ public final class AutodocFactory {
     autodoc = new Autodoc(name);
     autodoc
         .initializeGenericInstance(null, EtomoDirector.IMOD_DIR_ENV_VAR, FileType.COM_DIR,
-            name, AxisID.ONLY);
+            name, AxisID.ONLY, false);
     return autodoc;
   }
 
@@ -263,7 +264,8 @@ public final class AutodocFactory {
     if (extensionIndex == -1) {
       return fileName;
     }
-    return fileName.substring(0, extensionIndex);
+    String retval= fileName.substring(0, extensionIndex);
+    return retval;
   }
 
   public static WritableAutodoc getEmptyMatlabInstance(final BaseManager manager,
@@ -281,14 +283,14 @@ public final class AutodocFactory {
     }
   }
 
-  public static ReadOnlyAutodoc getInstance(BaseManager manager, File file)
+  public static ReadOnlyAutodoc getInstance(BaseManager manager, File file, final boolean writable)
       throws IOException, LogFile.LockException {
     if (file == null) {
       throw new IllegalStateException("file is null");
     }
     Autodoc autodoc = new Autodoc(stripFileExtension(file));
     try {
-      autodoc.initializeGenericInstance(manager, file, null);
+      autodoc.initializeGenericInstance(manager, file, null, writable);
       return autodoc;
     }
     catch (FileNotFoundException e) {
@@ -309,13 +311,13 @@ public final class AutodocFactory {
    * @throws LogFile.LockException
    */
   public static ReadOnlyAutodoc getInstance(BaseManager manager, File file,
-      final String autodocName) throws IOException, LogFile.LockException {
+      final String autodocName, final boolean writable) throws IOException, LogFile.LockException {
     if (file == null) {
       throw new IllegalStateException("file is null");
     }
     Autodoc autodoc = new Autodoc(stripFileExtension(file));
     try {
-      autodoc.initializeGenericInstance(manager, file, null);
+      autodoc.initializeGenericInstance(manager, file, null, writable);
       if (autodocName != null) {
         setInstance(autodocName, autodoc);
       }
@@ -329,7 +331,6 @@ public final class AutodocFactory {
   /**
    * open and preserve an autodoc without a type for testing
    *
-   * @param autodocFile
    * @param axisID
    * @return
    * @throws FileNotFoundException
@@ -355,7 +356,7 @@ public final class AutodocFactory {
     }
     autodoc = new Autodoc(stripFileExtension(autodocFileName));
     UITEST_AXIS_MAP.put(autodocFile, autodoc);
-    autodoc.initializeGenericInstance(manager, autodocFile, axisID);
+    autodoc.initializeGenericInstance(manager, autodocFile, axisID, false);
     return autodoc;
   }
 
@@ -369,7 +370,7 @@ public final class AutodocFactory {
    * @throws IOException
    */
   public static Autodoc getInstance(final BaseManager manager, final File autodocFile,
-      final AxisID axisID)
+      final AxisID axisID, final boolean writable)
       throws FileNotFoundException, IOException, LogFile.LockException {
     if (autodocFile == null) {
       return null;
@@ -382,7 +383,7 @@ public final class AutodocFactory {
       System.err.println("autodoc file:" + autodocFile.getAbsolutePath());
     }
     Autodoc autodoc = new Autodoc(stripFileExtension(autodocFile.getName()));
-    autodoc.initializeGenericInstance(manager, autodocFile, axisID);
+    autodoc.initializeGenericInstance(manager, autodocFile, axisID, writable);
     return autodoc;
   }
 
