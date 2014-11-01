@@ -200,7 +200,7 @@ public final class DirectiveEditorBuilder {
       fileTypeExists[type.getIndex()] = true;
       try {
         ReadOnlyStatementList statementList = AutodocFactory.getInstance(manager,
-            directiveFile);
+            directiveFile, false);
         if (statementList != null) {
           StatementLocation location = statementList.getStatementLocation();
           ReadOnlyStatement statement = null;
@@ -293,7 +293,6 @@ public final class DirectiveEditorBuilder {
    * Handles cases where a setupset directive has a default value that is stored in a
    * .com file.
    * @param commandMap
-   * @param errmsg
    */
   private void setSpecialCaseDefaultValues(Map<String, String> commandMap) {
     DirectiveName fromDirectiveName = new DirectiveName();
@@ -321,7 +320,6 @@ public final class DirectiveEditorBuilder {
    * @param commandMap - list of values
    * @param fromDirectiveName - key to commandMap
    * @param toDirectiveName - key to DirectiveMap
-   * @param axisID - the value belongs to a specific axis
    */
   private void setDefaultDirectiveValue(final Map<String, String> commandMap,
       final DirectiveName fromDirectiveName, final DirectiveName toDirectiveName) {
@@ -348,7 +346,6 @@ public final class DirectiveEditorBuilder {
    * from directiveMap.  Places the value in the directive.
    * @param commandMap - list of values
    * @param directiveName - key
-   * @param axisID - the value belongs to a specific axis
    * @param isDefaultValue - the value is a default value
    */
   private void setDirectiveValue(final Map<String, String> commandMap,
