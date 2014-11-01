@@ -42,10 +42,7 @@ import etomo.util.Utilities;
  * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
  * University of Colorado</p>
  *
- * @author $Author$
- * @version $Revision$
- *          <p/>
- *          <p> $Log$ </p>
+ * @version $Revision$ $Date: $ $Author$ $State: $
  */
 public final class BatchRunTomoManager extends BaseManager {
   public static final String rcsid = "$Id:$";
@@ -133,16 +130,17 @@ public final class BatchRunTomoManager extends BaseManager {
     if (dialog == null) {
       dialog = BatchRunTomoDialog.getInstance(this, AXIS_ID, tableReference);
     }
-    if (paramFile != null && metaData.isValid()) {
-      dialog.setParameters(metaData);
-    }
     //Don't load if this is a new dataset
     if (paramFile != null) {
+      if (metaData.isValid()) {
+        dialog.setParameters(metaData);
+      }
       comScriptManager.loadBatchRunTomo(AXIS_ID);
       dialog.setParameters(
           comScriptManager.getBatchRunTomoParam(AXIS_ID, BatchruntomoParam.Mode.BATCH));
+      dialog.loadAutodocs();
     }
-    dialog.loadAutodocs();
+    dialog.endInit(paramFile != null);
     mainPanel.showProcess(dialog.getContainer(), AXIS_ID);
     uiHarness.updateFrame(this);
     String actionMessage =
@@ -193,9 +191,18 @@ public final class BatchRunTomoManager extends BaseManager {
     if (dialog == null) {
       return false;
     }
-    if (paramFile == null && !setParamFile()) {
-      return false;
+    if (paramFile == null) {
+      //Set the param file
+      if (dialog.isParamFileModifiable() &&
+          setNewParamFile(dialog.getRootDir(), dialog.getRootName())) {
+        dialog.msgParamFileSet();
+      }
+      else {
+        //setting the param file failed
+        return false;
+      }
     }
+    dialog.getUserConfigurationParameters();
     dialog.getParameters(metaData);
     dialog.saveAutodocs();
     saveStorables(AXIS_ID);
@@ -259,14 +266,13 @@ public final class BatchRunTomoManager extends BaseManager {
    * @param axisID
    * @param imodIndex
    * @param boundaryModel
-   * @param datasetName
    * @param dualAxis
    * @param menuOptions
    * @return
    */
   public int imod(final File stack, final AxisID axisID, int imodIndex,
-                  final boolean boundaryModel, final boolean dualAxis,
-                  Run3dmodMenuOptions menuOptions) {
+      final boolean boundaryModel, final boolean dualAxis,
+      Run3dmodMenuOptions menuOptions) {
     if (!stack.exists()) {
       uiHarness.openMessageDialog(this, stack.getAbsolutePath() + " does not exist.",
           "Run 3dmod failed");
@@ -276,8 +282,7 @@ public final class BatchRunTomoManager extends BaseManager {
     try {
       if (boundaryModel) {
         imodIndex = imodManager.open(key, stack, axisID, imodIndex,
-            BatchTool.getBoundaryModelName(stack.getName(), dualAxis), true,
-            menuOptions);
+            BatchTool.getBoundaryModelName(stack.getName(), dualAxis), true, menuOptions);
       }
       else {
         imodIndex = imodManager.open(key, stack, axisID, imodIndex, menuOptions);
@@ -305,7 +310,7 @@ public final class BatchRunTomoManager extends BaseManager {
    * @return the vector index of the 3dmod instance
    */
   public int imod(final File stack, final AxisID axisID, int imodIndex,
-                  Run3dmodMenuOptions menuOptions) {
+      Run3dmodMenuOptions menuOptions) {
     if (!stack.exists()) {
       uiHarness.openMessageDialog(this, stack.getAbsolutePath() + " does not exist.",
           "Run 3dmod failed");
@@ -335,7 +340,7 @@ public final class BatchRunTomoManager extends BaseManager {
    * Open imod model in a running imod instance
    */
   public void imodModel(final AxisID axisID, final int imodIndex, final String stackName,
-                        final boolean dualAxis) {
+      final boolean dualAxis) {
     if (imodIndex == -1) {
       return;
     }
@@ -344,7 +349,7 @@ public final class BatchRunTomoManager extends BaseManager {
     String datasetName = DatasetTool.getDatasetName(stackName, dualAxis);
     try {
       imodManager.openModel(key, axisID, imodIndex, FileType.BATCH_RUN_TOMO_BOUNDARY_MODEL
-              .getFileName(datasetName, axisType, axisID), true);
+          .getFileName(datasetName, axisType, axisID), true);
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
