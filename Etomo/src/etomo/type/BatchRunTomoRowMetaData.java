@@ -1,9 +1,12 @@
 package etomo.type;
 
+import etomo.ui.BooleanFieldSetting;
+import etomo.ui.FieldSettingInterface;
+
 import java.util.Properties;
 
 /**
- * <p>Description: </p>
+ * <p>Description: Meta data for a row of the BatchRunTomo Interface table.</p>
  * <p/>
  * <p>Copyright: Copyright 2014</p>
  * <p/>
@@ -13,11 +16,10 @@ import java.util.Properties;
  *
  * @author $Author$
  * @version $Revision$
- *          <p/>
- *          <p> $Log$ </p>
  */
 public final class BatchRunTomoRowMetaData {
-  public static final String rcsid = "$Id:$";
+  public static final String rcsid =
+      "$Id$";
 
   private static final String GROUP_KEY = "row";
   private static final String DISPLAY_KEY = "display";
@@ -73,7 +75,6 @@ public final class BatchRunTomoRowMetaData {
     // reset
     display.reset();
     bskip.reset();
-    // load
     prepend = createPrepend(prepend);
     display.load(props, prepend);
     bskip.load(props, prepend);
