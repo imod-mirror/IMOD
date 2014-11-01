@@ -99,17 +99,17 @@ public abstract class ParsedElement {
 
   public abstract boolean equals(int number);
 
-  abstract void setRawString(String number);
+  abstract void setRawString(String number, int lineNum);
 
   abstract ParsedElement getElement(int index);
 
   abstract void setRawString(int index, double number);
 
-  abstract void setRawString(int index, String string);
+  abstract void setRawString(int index, String string, int lineNum);
 
-  public abstract String validate();
+  abstract String validate(int lineNum);
 
-  abstract Token parse(Token token, PrimativeTokenizer tokenizer);
+  abstract Token parse(Token token, PrimativeTokenizer tokenizer, int lineNum);
 
   abstract int size();
 
@@ -126,6 +126,22 @@ public abstract class ParsedElement {
   abstract boolean ge(int number);
 
   abstract void clear();
+
+  public final void setRawString(String number) {
+    setRawString(number, 0);
+  }
+
+  public final void setRawString(int index, String string) {
+    setRawString(index, string, 0);
+  }
+
+  public final boolean isValid() {
+    return validate() == null;
+  }
+
+  public final String validate() {
+    return validate(0);
+  }
 
   ParsedElement(final String descr) {
     this.descr = descr;
@@ -174,25 +190,26 @@ public abstract class ParsedElement {
     return true;
   }
 
-  final PrimativeTokenizer createTokenizer(final String value) {
+  final PrimativeTokenizer createTokenizer(final String value, final int lineNum) {
     PrimativeTokenizer tokenizer = new PrimativeTokenizer(value);
     try {
       tokenizer.initialize();
     }
     catch (IOException e) {
       e.printStackTrace();
-      fail(e.getMessage());
+      fail(e.getMessage(), lineNum);
     }
     catch (LogFile.LockException e) {
       e.printStackTrace();
-      fail(e.getMessage());
+      fail(e.getMessage(), lineNum);
     }
     return tokenizer;
   }
 
-  final void fail(final String message) {
+  final void fail(final String message, final int lineNum) {
     failed = true;
-    failedMessage = (descr != null ? descr : "") + ": " + message;
+    failedMessage = (descr != null ? descr : "") + ": " + message
+        + (lineNum > 0 ? "  Line# " + lineNum : "");
   }
 
   public final boolean isMissingAttribute() {
@@ -208,10 +225,11 @@ public abstract class ParsedElement {
     failedMessage = null;
   }
 
-  final void setFailed(final boolean failed, final String failedMessage) {
+  final void setFailed(final boolean failed, final String failedMessage, final int lineNum) {
     this.failed = failed;
     if (failed) {
-      this.failedMessage = (descr != null ? descr : "") + ": " + failedMessage;
+      this.failedMessage = (descr != null ? descr : "") + ": " + failedMessage
+          + (lineNum > 0 ? "  Line# " + lineNum : "");
     }
     else {
       this.failedMessage = null;
@@ -226,12 +244,13 @@ public abstract class ParsedElement {
    * Returns null if not failed, otherwise returns a string.
    * @return
    */
-  final String getFailedMessage() {
+  final String getFailedMessage(final int lineNum) {
     if (!failed) {
       return null;
     }
     if (failedMessage == null) {
-      return (descr != null ? descr : "") + ": Unable to parse.";
+      return (descr != null ? descr : "") + ": Unable to parse."
+          + (lineNum > 0 ? "  Line# " + lineNum : "");
     }
     return failedMessage;
   }
