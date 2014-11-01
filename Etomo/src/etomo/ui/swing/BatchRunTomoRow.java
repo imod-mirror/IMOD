@@ -26,6 +26,7 @@ import etomo.storage.autodoc.WritableAutodoc;
 import etomo.type.*;
 import etomo.ui.BatchRunTomoTab;
 import etomo.ui.PreferredTableSize;
+import etomo.util.Utilities;
 
 /**
  * <p>Description: </p>
@@ -36,10 +37,7 @@ import etomo.ui.PreferredTableSize;
  * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
  * University of Colorado</p>
  *
- * @author $Author$
- * @version $Revision$
- *          <p/>
- *          <p> $Log$ </p>
+ * @version $Revision$ $Date: $ $Author$ $State: $
  */
 final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
   public static final String rcsid =
@@ -60,7 +58,7 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
   private static final String EDIT_DATASET_VALUE = "   Set";
 
   private final CheckBoxCell cbcBoundaryModel = new CheckBoxCell();
-  private final CheckBoxCell cbcDualAxis = new CheckBoxCell();
+  private final CheckBoxCell cbcDual = new CheckBoxCell();
   private final CheckBoxCell cbcMontage = new CheckBoxCell();
   private final FieldCell fcSkip = FieldCell.getEditableInstance();
   private final FieldCell fcbskip = FieldCell.getEditableInstance();
@@ -94,7 +92,7 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
   private BatchRunTomoRow(final BatchRunTomoTable table, final JPanel panel,
       final GridBagLayout layout, final GridBagConstraints constraints, final int number,
       final File stack, final BatchRunTomoRow prevRow, final boolean overridePrevRow,
-      final boolean overrideDualAxis, final BatchRunTomoManager manager,
+      final boolean overrideDual, final BatchRunTomoManager manager,
       final String stackID, final PreferredTableSize preferredTableSize) {
     this.panel = panel;
     this.layout = layout;
@@ -137,14 +135,14 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
     // init
     setDefaults();
     copy(prevRow);
-    // When overridePrevRow is true, overrideDualAxis will replace prevRow dual axis.
+    // When overridePrevRow is true, overrideDual will replace prevRow dual axis.
     if (overridePrevRow) {
-      cbcDualAxis.setSelected(overrideDualAxis);
+      cbcDual.setSelected(overrideDual);
     }
     cbcRun.setSelected(true);
     mbcEtomo.setEnabled(false);
     //directives
-    cbcDualAxis.setDirectiveDef(DirectiveDef.DUAL);
+    cbcDual.setDirectiveDef(DirectiveDef.DUAL);
     cbcMontage.setDirectiveDef(DirectiveDef.MONTAGE);
     fcSkip.setDirectiveDef(DirectiveDef.SKIP);
     fcbskip.setDirectiveDef(DirectiveDef.SKIP);
@@ -155,11 +153,11 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
   static BatchRunTomoRow getInstance(final BatchRunTomoTable table, final JPanel panel,
       final GridBagLayout layout, final GridBagConstraints constraints, final int number,
       final File stack, final BatchRunTomoRow prevRow, final boolean overridePrevRow,
-      final boolean overrideDualAxis, final BatchRunTomoManager manager,
+      final boolean overrideDual, final BatchRunTomoManager manager,
       final String stackID, final PreferredTableSize datasetWidth) {
     BatchRunTomoRow instance =
         new BatchRunTomoRow(table, panel, layout, constraints, number, stack, prevRow,
-            overridePrevRow, overrideDualAxis, manager, stackID, datasetWidth);
+            overridePrevRow, overrideDual, manager, stackID, datasetWidth);
     instance.addListeners();
     return instance;
   }
@@ -171,28 +169,28 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
 
   void copy(final BatchRunTomoRow prevRow) {
     if (prevRow != null) {
-      cbcDualAxis.setSelected(prevRow.cbcDualAxis.isSelected());
+      cbcDual.setSelected(prevRow.cbcDual.isSelected());
       cbcMontage.setSelected(prevRow.cbcMontage.isSelected());
       cbcTwoSurfaces.setSelected(prevRow.cbcTwoSurfaces.isSelected());
     }
   }
 
-  boolean isDualAxis() {
-    return cbcDualAxis.isSelected();
+  boolean isDual() {
+    return cbcDual.isSelected();
   }
 
   private void addListeners() {
     // give each listened to field an unique action command
     mbc3dmodA.setActionCommand(mbc3dmodA.toString());
     mbc3dmodB.setActionCommand(mbc3dmodB.toString());
-    cbcDualAxis.setActionCommand(cbcDualAxis.toString());
+    cbcDual.setActionCommand(cbcDual.toString());
     mbcEtomo.setActionCommand(mbcEtomo.toString());
     cbcBoundaryModel.setActionCommand(cbcBoundaryModel.toString());
     bcEditDataset.setActionCommand(bcEditDataset.toString());
     // set listeners
     mbc3dmodA.addActionListener(listener);
     mbc3dmodB.addActionListener(listener);
-    cbcDualAxis.addActionListener(listener);
+    cbcDual.addActionListener(listener);
     mbcEtomo.addActionListener(listener);
     cbcBoundaryModel.addActionListener(listener);
     bcEditDataset.addActionListener(listener);
@@ -204,42 +202,42 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
     if (actionCommand == null) {
       return;
     }
-    if (actionCommand.equals(cbcDualAxis.getActionCommand())) {
+    if (actionCommand.equals(cbcDual.getActionCommand())) {
       updateDisplay();
     }
     else {
-      boolean dualAxis = cbcDualAxis.isSelected();
+      boolean dual = cbcDual.isSelected();
       if (actionCommand.equals(mbc3dmodA.getActionCommand())) {
         imodIndexA = manager.imod(
-            DatasetTool.getStackFile(fcStack.getExpandedValue(), AxisID.FIRST, dualAxis),
-            AxisID.FIRST, imodIndexA, cbcBoundaryModel.isSelected(), dualAxis,
+            DatasetTool.getStackFile(fcStack.getExpandedValue(), AxisID.FIRST, dual),
+            AxisID.FIRST, imodIndexA, cbcBoundaryModel.isSelected(), dual,
             run3dmodMenuOptions);
       }
       else if (actionCommand.equals(mbc3dmodB.getActionCommand())) {
         // The model is only opened for the A axis
         imodIndexB = manager.imod(
-            DatasetTool.getStackFile(fcStack.getExpandedValue(), AxisID.SECOND, dualAxis),
+            DatasetTool.getStackFile(fcStack.getExpandedValue(), AxisID.SECOND, dual),
             AxisID.SECOND, imodIndexB, run3dmodMenuOptions);
       }
       else if (actionCommand.equals(mbcEtomo.getActionCommand())) {
         EtomoDirector.INSTANCE.openTomogram(DatasetTool.getDatasetFile(
-            DatasetTool.getStackFile(fcStack.getExpandedValue(), AxisID.FIRST, dualAxis),
-            dualAxis), true, null, mbcEtomo);
+            DatasetTool.getStackFile(fcStack.getExpandedValue(), AxisID.FIRST, dual),
+            dual), true, null, mbcEtomo);
       }
       else if (actionCommand.equals(cbcBoundaryModel.getActionCommand()) &&
           cbcBoundaryModel.isSelected()) {
         // The model is only opened for the A axis
         if (imodIndexA != -1) {
           manager.imodModel(AxisID.FIRST, imodIndexA, fcStack.getContractedValue(),
-              dualAxis);
+              dual);
         }
       }
       else if (actionCommand.equals(bcEditDataset.getActionCommand())) {
         if (datasetDialog == null) {
           datasetDialog = BatchRunTomoDatasetDialog.getRowInstance(manager, DatasetTool
               .getDatasetFile(DatasetTool
-                      .getStackFile(fcStack.getExpandedValue(), AxisID.FIRST, dualAxis),
-                  dualAxis), this);
+                      .getStackFile(fcStack.getExpandedValue(), AxisID.FIRST, dual),
+                  dual), this);
           fcEditDataset.setValue("   Set");
         }
         else {
@@ -255,7 +253,7 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
     hbRow.remove();
     fcStack.remove();
     cbcBoundaryModel.remove();
-    cbcDualAxis.remove();
+    cbcDual.remove();
     cbcMontage.remove();
     fcSkip.remove();
     fcbskip.remove();
@@ -286,7 +284,7 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
   }
 
   private void updateDisplay() {
-    boolean dual = cbcDualAxis.isSelected();
+    boolean dual = cbcDual.isSelected();
     fcbskip.setEnabled(dual);
     mbc3dmodB.setEnabled(dual);
   }
@@ -303,7 +301,7 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
       fcStack.add(panel, layout, constraints);
       constraints.gridwidth = 1;
       if (tab == BatchRunTomoTab.STACKS) {
-        cbcDualAxis.add(panel, layout, constraints);
+        cbcDual.add(panel, layout, constraints);
         cbcMontage.add(panel, layout, constraints);
         fcSkip.add(panel, layout, constraints);
         fcbskip.add(panel, layout, constraints);
@@ -334,7 +332,7 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
   public void highlight(final boolean highlight) {
     fcStack.setHighlight(highlight);
     cbcBoundaryModel.setHighlight(highlight);
-    cbcDualAxis.setHighlight(highlight);
+    cbcDual.setHighlight(highlight);
     cbcMontage.setHighlight(highlight);
     fcSkip.setHighlight(highlight);
     fcbskip.setHighlight(highlight);
@@ -381,14 +379,14 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
     File stack = new File(fcStack.getExpandedValue());
     param.addDirectiveFile(getBatchDirectiveFileName());
     param.addRootName(
-        DatasetTool.getDatasetName(stack.getName(), cbcDualAxis.isSelected()));
+        DatasetTool.getDatasetName(stack.getName(), cbcDual.isSelected()));
     param.addCurrentLocation(stack.getParent());
   }
 
   private String getBatchDirectiveFileName() {
     return manager.getName() + "_" +
         DatasetTool
-            .getDatasetName(fcStack.getContractedValue(), cbcDualAxis.isSelected()) +
+            .getDatasetName(fcStack.getContractedValue(), cbcDual.isSelected()) +
         ".adoc";
   }
 
@@ -418,15 +416,14 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
       if (file.exists()) {
         LogFile.getInstance(file).backup();
       }
-      BaseProcessManager.touch(file.getAbsolutePath(), manager);
-      WritableAutodoc autodoc = AutodocFactory.getWritableInstance(manager, file);
-      BatchTool.saveAutodoc(cbcDualAxis, autodoc);
+      WritableAutodoc autodoc = AutodocFactory.getEmptyWritableInstance(manager, file);
+      BatchTool.saveAutodoc(cbcDual, autodoc);
       BatchTool.saveAutodoc(cbcMontage, autodoc);
       BatchTool.saveAutodoc(fcSkip, autodoc);
       BatchTool.saveAutodoc(fcbskip, AxisID.SECOND, AxisType.DUAL_AXIS, autodoc);
       if (cbcBoundaryModel.isSelected() && BatchTool.needInAutodoc(cbcBoundaryModel)) {
         String boundaryModelName = BatchTool
-            .getBoundaryModelName(fcStack.getContractedValue(), cbcDualAxis.isSelected());
+            .getBoundaryModelName(fcStack.getContractedValue(), cbcDual.isSelected());
         autodoc.addNameValuePair(
             DirectiveDef.RAW_BOUNDARY_MODEL_FOR_SEED_FINDING.getDirective(null, null),
             boundaryModelName);
@@ -471,8 +468,8 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
    */
   boolean backupIfChanged() {
     boolean changed = false;
-    if (cbcDualAxis.isDifferentFromCheckpoint(true)) {
-      cbcDualAxis.backup();
+    if (cbcDual.isDifferentFromCheckpoint(true)) {
+      cbcDual.backup();
       changed = true;
 
     }
@@ -494,7 +491,7 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
       final DirectiveFileCollection directiveFileCollection,
       final boolean retainUserValues) {
     // to apply values and highlights, start with a clean slate
-    cbcDualAxis.clear();
+    cbcDual.clear();
     cbcMontage.clear();
     cbcTwoSurfaces.clear();
     setDefaults();
@@ -503,14 +500,14 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
     setValues(userConfiguration);
     // Apply the directive collection values
     setValues(directiveFileCollection);
-    // checkpoint
-    cbcDualAxis.checkpoint();
+    // checkpoint template/starting batch
+    cbcDual.checkpoint();
     cbcMontage.checkpoint();
     cbcTwoSurfaces.checkpoint();
     // If the user wants to retain their values, apply backed up values and then delete
     // them.
     if (retainUserValues) {
-      cbcDualAxis.restoreFromBackup();
+      cbcDual.restoreFromBackup();
       cbcMontage.restoreFromBackup();
       cbcTwoSurfaces.restoreFromBackup();
     }
@@ -526,7 +523,7 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
   }
 
   private void setDefaults() {
-    cbcDualAxis.setSelected(true);
+    cbcDual.setSelected(true);
   }
 
   /**
@@ -536,7 +533,7 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
    *                       or a single directive file
    */
   void setValues(final DirectiveFileInterface directiveFiles) {
-    setValue(directiveFiles, DirectiveDef.DUAL, cbcDualAxis);
+    setValue(directiveFiles, DirectiveDef.DUAL, cbcDual);
     setValue(directiveFiles, DirectiveDef.MONTAGE, cbcMontage);
     if (!setValue(directiveFiles, DirectiveDef.TWO_SURFACES, cbcTwoSurfaces) &&
         directiveFiles.contains(DirectiveDef.SURFACES_TO_ANALYZE)) {
@@ -556,7 +553,7 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
   }
 
   void setValues(final UserConfiguration userConfiguration) {
-    cbcDualAxis.setSelected(!userConfiguration.getSingleAxis());
+    cbcDual.setSelected(!userConfiguration.getSingleAxis());
     cbcMontage.setSelected(userConfiguration.getMontage());
   }
 
