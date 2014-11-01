@@ -58,7 +58,7 @@ public final class AutodocTest extends TestCase {
     }
     ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, TestUtilites.INSTANCE
         .copyTestFile(AutodocTests.TEST_ROOT_DIR.getAbsolutePath(), TEST_DIR_NAME,
-            "simple.adoc"));
+            "simple.adoc"), false);
     // only use with getTestInstance
     // autodoc.runInternalTest(AutodocFactory.InternalTestType.PARSER,false,false);
     // only use with getInstance
@@ -186,7 +186,7 @@ public final class AutodocTest extends TestCase {
     }
     ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, TestUtilites.INSTANCE
         .copyTestFile(AutodocTests.TEST_ROOT_DIR.getAbsolutePath(), TEST_DIR_NAME,
-            "cpu.adoc"));
+            "cpu.adoc"), false);
     assertFalse(autodoc.isError());
   }
 
@@ -216,7 +216,7 @@ public final class AutodocTest extends TestCase {
     if (!file.exists() || !file.canRead()) {
       file = new File(new File(new File("."), "tests"), fileName);
     }
-    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, file);
+    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, file, false);
     // The file come from ./tests, so the working directory should be the default for
     // tests run from eclipse.
     assertFalse(autodoc.isError());
@@ -229,7 +229,7 @@ public final class AutodocTest extends TestCase {
     if (!file.exists() || !file.canRead()) {
       file = new File(new File(new File("."), "tests"), fileName);
     }
-    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, file);
+    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, file, false);
     assertFalse(autodoc.isError());
   }
 
@@ -242,7 +242,7 @@ public final class AutodocTest extends TestCase {
     if (!file.exists() || !file.canRead()) {
       file = new File(new File(new File("."), "tests"), fileName);
     }
-    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, file);
+    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, file, false);
     assertFalse(autodoc.isError());
   }
 
@@ -253,7 +253,7 @@ public final class AutodocTest extends TestCase {
     if (!file.exists() || !file.canRead()) {
       file = new File(new File(new File("."), "tests"), fileName);
     }
-    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, file);
+    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, file, false);
     assertFalse(autodoc.isError());
   }
 
@@ -264,7 +264,7 @@ public final class AutodocTest extends TestCase {
     if (!file.exists() || !file.canRead()) {
       file = new File(new File(new File("."), "tests"), fileName);
     }
-    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, file);
+    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, file, false);
     assertFalse(autodoc.isError());
   }
 
@@ -275,7 +275,7 @@ public final class AutodocTest extends TestCase {
     if (!file.exists() || !file.canRead()) {
       file = new File(new File(new File("."), "tests"), fileName);
     }
-    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, file);
+    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, file, false);
     assertFalse(autodoc.isError());
   }
 
@@ -286,7 +286,7 @@ public final class AutodocTest extends TestCase {
     if (!file.exists() || !file.canRead()) {
       file = new File(new File(new File("."), "tests"), fileName);
     }
-    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, file);
+    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, file, false);
     assertFalse(autodoc.isError());
   }
 
@@ -297,7 +297,7 @@ public final class AutodocTest extends TestCase {
     if (!file.exists() || !file.canRead()) {
       file = new File(new File(new File("."), "tests"), fileName);
     }
-    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, file);
+    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, file, false);
     // only use with getTestInstance
     // autodoc.runInternalTest(AutodocFactory.InternalTestType.PARSER,false,false);
     // only use with getInstance
@@ -312,7 +312,7 @@ public final class AutodocTest extends TestCase {
     if (!file.exists() || !file.canRead()) {
       file = new File(new File(new File("."), "tests"), fileName);
     }
-    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, file);
+    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, file, false);
     assertFalse(autodoc.isError());
   }
 
@@ -323,7 +323,7 @@ public final class AutodocTest extends TestCase {
     if (!file.exists() || !file.canRead()) {
       file = new File(new File(new File("."), "tests"), fileName);
     }
-    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, file);
+    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, file, false);
     assertFalse(autodoc.isError());
   }
 
@@ -334,7 +334,7 @@ public final class AutodocTest extends TestCase {
     if (!file.exists() || !file.canRead()) {
       file = new File(new File(new File("."), "tests"), fileName);
     }
-    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, file);
+    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, file, false);
     assertFalse(autodoc.isError());
   }
 
@@ -345,7 +345,7 @@ public final class AutodocTest extends TestCase {
     if (!file.exists() || !file.canRead()) {
       file = new File(new File(new File("."), "tests"), fileName);
     }
-    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, file);
+    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, file, false);
     assertFalse(autodoc.isError());
   }
 
@@ -356,7 +356,7 @@ public final class AutodocTest extends TestCase {
     if (!file.exists() || !file.canRead()) {
       file = new File(new File(new File("."), "tests"), fileName);
     }
-    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, file);
+    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, file, false);
     assertFalse(autodoc.isError());
   }
 
@@ -367,7 +367,7 @@ public final class AutodocTest extends TestCase {
     if (!file.exists() || !file.canRead()) {
       file = new File(new File(new File("."), "tests"), fileName);
     }
-    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, file);
+    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, file, false);
     assertFalse(autodoc.isError());
   }
 
@@ -380,7 +380,7 @@ public final class AutodocTest extends TestCase {
     if (!file.exists() || !file.canRead()) {
       file = new File(new File(new File("."), "tests"), fileName);
     }
-    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, file);
+    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, file, false);
     assertFalse(autodoc.isError());
   }
 
@@ -391,7 +391,7 @@ public final class AutodocTest extends TestCase {
     if (!file.exists() || !file.canRead()) {
       file = new File(new File(new File("."), "tests"), fileName);
     }
-    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, file);
+    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, file, false);
     assertFalse(autodoc.isError());
   }
 
@@ -402,7 +402,7 @@ public final class AutodocTest extends TestCase {
     if (!file.exists() || !file.canRead()) {
       file = new File(new File(new File("."), "tests"), fileName);
     }
-    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, file);
+    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, file, false);
     assertFalse(autodoc.isError());
   }
 
@@ -413,7 +413,7 @@ public final class AutodocTest extends TestCase {
     if (!file.exists() || !file.canRead()) {
       file = new File(new File(new File("."), "tests"), fileName);
     }
-    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, file);
+    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, file, false);
     assertFalse(autodoc.isError());
   }
 
@@ -424,7 +424,7 @@ public final class AutodocTest extends TestCase {
     if (!file.exists() || !file.canRead()) {
       file = new File(new File(new File("."), "tests"), fileName);
     }
-    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, file);
+    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, file, false);
     assertFalse(autodoc.isError());
   }
 }
