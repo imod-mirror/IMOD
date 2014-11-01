@@ -40,10 +40,7 @@ import etomo.ui.PreferredTableSize;
  * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
  * University of Colorado</p>
  *
- * @author $Author$
- * @version $Revision$
- *          <p/>
- *          <p> $Log$ </p>
+ * @version $Revision$ $Date: $ $Author$ $State: $
  */
 final class BatchRunTomoTable
     implements Viewable, Highlightable, Expandable, ActionListener {
@@ -63,7 +60,7 @@ final class BatchRunTomoTable
   private final HeaderCell[] hcNumber = new HeaderCell[NUM_STACKS_HEADER_ROWS];
   private final HeaderCell[] hcStack = new HeaderCell[NUM_STACKS_HEADER_ROWS];
   // stacks tab
-  private final HeaderCell[] hcDualAxis = new HeaderCell[NUM_STACKS_HEADER_ROWS];
+  private final HeaderCell[] hcDual = new HeaderCell[NUM_STACKS_HEADER_ROWS];
   private final HeaderCell[] hcMontage = new HeaderCell[NUM_STACKS_HEADER_ROWS];
   private final HeaderCell[] hcExcludeViews = new HeaderCell[NUM_STACKS_HEADER_ROWS];
   private final HeaderCell hcExcludeViewsB = new HeaderCell("from B");
@@ -123,9 +120,9 @@ final class BatchRunTomoTable
     hcStack[1] = new HeaderCell();
     hcStack[2] = new HeaderCell(STACK_TITLE);
     // stacks tab
-    hcDualAxis[0] = new HeaderCell();
-    hcDualAxis[1] = new HeaderCell("Dual");
-    hcDualAxis[2] = new HeaderCell("Axis");
+    hcDual[0] = new HeaderCell();
+    hcDual[1] = new HeaderCell("Dual");
+    hcDual[2] = new HeaderCell("Axis");
     hcMontage[0] = new HeaderCell();
     hcMontage[1] = new HeaderCell();
     hcMontage[2] = new HeaderCell("Montage");
@@ -203,7 +200,7 @@ final class BatchRunTomoTable
       for (int i = 0; i < numRows; i++) {
         addStandardHeaders(i, numRows);
         constraints.gridwidth = 1;
-        hcDualAxis[i].add(pnlTable, layout, constraints);
+        hcDual[i].add(pnlTable, layout, constraints);
         hcMontage[i].add(pnlTable, layout, constraints);
         // exclude views has A and B columns
         if (i < numRows - 1) {
@@ -463,8 +460,8 @@ final class BatchRunTomoTable
       int firstIndex = list.size();
       Iterator<DatasetTool.StackInfo> iterator = stackInfoList.iterator();
       boolean overridePrevRow = false;
-      boolean prevDualAxisSet = false;
-      boolean prevDualAxis = false;
+      boolean prevDualSet = false;
+      boolean prevDual = false;
       List<String> notAdded = new ArrayList<String>();
       boolean fileAdded = false;
       while (iterator.hasNext()) {
@@ -510,9 +507,9 @@ final class BatchRunTomoTable
             prevRow = initialValueRow;
           }
           if (overridePrevRow) {
-            if (!prevDualAxisSet) {
-              prevDualAxis = prevRow.isDualAxis();
-              prevDualAxisSet = true;
+            if (!prevDualSet) {
+              prevDual = prevRow.isDual();
+              prevDualSet = true;
             }
           }
           BatchRunTomoRow row = BatchRunTomoRow
@@ -707,32 +704,32 @@ final class BatchRunTomoTable
       }
     }
 
-    public void setParameters(final BatchRunTomoMetaData metaData) {
+    private void setParameters(final BatchRunTomoMetaData metaData) {
       load(metaData);
       for (int i = 0; i < list.size(); i++) {
         list.get(i).setParameters(metaData);
       }
     }
 
-    public void getParameters(final BatchRunTomoMetaData metaData) {
+    private void getParameters(final BatchRunTomoMetaData metaData) {
       for (int i = 0; i < list.size(); i++) {
         list.get(i).getParameters(metaData);
       }
     }
 
-    public void getParameters(final BatchruntomoParam param) {
+    private void getParameters(final BatchruntomoParam param) {
       for (int i = 0; i < list.size(); i++) {
         list.get(i).getParameters(param);
       }
     }
 
-    void saveAutodocs() {
+    private void saveAutodocs() {
       for (int i = 0; i < list.size(); i++) {
         list.get(i).saveAutodoc();
       }
     }
 
-    void loadAutodocs() {
+    private void loadAutodocs() {
       for (int i = 0; i < list.size(); i++) {
         list.get(i).loadAutodoc();
       }
