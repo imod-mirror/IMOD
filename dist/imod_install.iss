@@ -263,7 +263,6 @@ begin
 #endif
   if Cygwin and fileExists(PythonDir + '\python') then begin
     Exec(PythonDir + '\bash.exe',ExpandConstant('{app}')+'\fixCygPython.sh',PythonDir,SW_SHOW,ewWaitUntilTerminated,returnCode)
-    MsgBox('fixCygPython result code:' + IntToStr(returnCode), mbInformation, MB_OK);
   end;
   command := '/C PATH=' + PythonDir + ';%PATH% && echo Installing IMOD.......... && python installIMOD -yes ' + skip + outputBaseFilename + '.tar.gz > installIMOD.log 2>&1';
   if Exec(ExpandConstant('{cmd}'), command, ExpandConstant('{app}'), SW_SHOW, ewWaitUntilTerminated, returnCode) then begin
