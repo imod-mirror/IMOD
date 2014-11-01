@@ -1,33 +1,41 @@
 package etomo.ui;
 
+import etomo.type.EtomoBoolean2;
+
+import java.util.Properties;
+
 /**
-* <p>Description: </p>
-* 
-* <p>Copyright: Copyright 2014</p>
-*
-* <p>Organization:
-* Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
-* University of Colorado</p>
-* 
-* @author $Author$
-* 
- @version $Revision:$
-* 
-* <p> $Log$ </p>
-*/
+ * <p>Description: Three state boolean setting (not set, on, and off).  NOT thread-safe.
+ * .</p>
+ * <p/>
+ * <p>Copyright: Copyright 2014</p>
+ * <p/>
+ * <p>Organization:
+ * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
+ * University of Colorado</p>
+ *
+ * @author $Author$
+ * @version $Revision$
+ */
 public final class BooleanFieldSetting implements FieldSettingInterface {
-  public final String rcsid = "$Id:$";
+  public static final String rcsid =
+      "$Id$";
 
   private boolean set = false;
   private boolean value = false;
 
   public BooleanFieldSetting() {
   }
-  
+
+  public boolean isBoolean() {
+    return true;
+  }
+  public boolean isText(){return false;}
+
   public BooleanFieldSetting getBooleanSetting() {
     return this;
   }
-  
+
   public TextFieldSetting getTextSetting() {
     return null;
   }
@@ -46,13 +54,17 @@ public final class BooleanFieldSetting implements FieldSettingInterface {
     value = false;
   }
 
-  /**
-   * Does not copy the next link.
-   * @param input
-   */
-  public void copy(final BooleanFieldSetting input) {
-    set = input.set;
-    value = input.value;
+  public void copy(final FieldSettingInterface input) {
+    BooleanFieldSetting setting = null;
+    if (input != null) {
+      setting = input.getBooleanSetting();
+    }
+    if (setting != null) {
+      set = setting.isSet();
+      value = setting.isValue();
+      return;
+    }
+    reset();
   }
 
   public boolean isSet() {
