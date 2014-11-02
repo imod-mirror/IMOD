@@ -96,11 +96,14 @@ final class TemplatePanel {
   static TemplatePanel getBorderlessInstance(final BaseManager manager,
       final AxisID axisID, final TemplateActionListener listener, final String title,
       final SettingsDialog settings,
-      final DirectiveFileCollection directiveFileCollection) {
+      final DirectiveFileCollection directiveFileCollection,
+      final boolean delayListeners) {
     TemplatePanel instance = new TemplatePanel(manager, axisID, listener, settings, false,
         directiveFileCollection);
     instance.createPanel(title);
-    instance.addListeners();
+    if (!delayListeners) {
+      instance.addListeners();
+    }
     return instance;
   }
 
@@ -151,7 +154,7 @@ final class TemplatePanel {
     pnlRoot.add(Box.createRigidArea(FixedDim.x0_y2));
   }
 
-  private void addListeners() {
+  void addListeners() {
     addActionListener(listener);
     cmbUserTemplate.addFocusListener(new TemplateFocusListener(this));
   }
