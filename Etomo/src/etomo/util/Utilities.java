@@ -1296,7 +1296,7 @@ public class Utilities {
     if (!timestamp) {
       return;
     }
-    StringBuffer buffer = new StringBuffer("TIMESTAMP: ");
+    StringBuilder buffer = new StringBuilder("TIMESTAMP: ");
     if (process != null) {
       buffer.append(process + " ");
     }
