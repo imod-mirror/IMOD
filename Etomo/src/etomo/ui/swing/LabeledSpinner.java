@@ -1,16 +1,16 @@
 /**
  * <p>Description: </p>
- * 
+ *
  * <p>Copyright: Copyright (c) 2002, 2003</p>
  *
  *<p>Organization:
  * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
  * University of Colorado</p>
- * 
+ *
  * @author $Author$
- * 
+ *
  * @version $Revision$
- * 
+ *
  * <p> $Log$
  * <p> Revision 1.1  2010/11/13 16:07:34  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
@@ -157,7 +157,8 @@ import etomo.ui.Field;
 import etomo.util.Utilities;
 
 final class LabeledSpinner implements Field, ChangeListener, FocusListener {
-  public static final String rcsid = "$Id$";
+  public static final String rcsid =
+      "$Id$";
 
   private final JPanel panel = new JPanel();
   private final JLabel label = new JLabel();
@@ -187,11 +188,11 @@ final class LabeledSpinner implements Field, ChangeListener, FocusListener {
     model = new SpinnerNumberModel(value, minimum, maximum, stepSize);
     // set name
     String name = Utilities.convertLabelToName(spinLabel);
-    spinner.setName(UITestFieldType.SPINNER.toString() + AutodocTokenizer.SEPARATOR_CHAR
-        + name);
+    spinner.setName(
+        UITestFieldType.SPINNER.toString() + AutodocTokenizer.SEPARATOR_CHAR + name);
     if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
-      System.out.println(spinner.getName() + ' ' + AutodocTokenizer.DEFAULT_DELIMITER
-          + ' ');
+      System.out
+          .println(spinner.getName() + ' ' + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
     }
     // set label
     label.setText(spinLabel);
@@ -244,7 +245,8 @@ final class LabeledSpinner implements Field, ChangeListener, FocusListener {
     model.setMaximum(new Integer(max));
   }
 
-  void setModel(final int value, final int minimum, final int maximum, final int stepSize) {
+  void setModel(final int value, final int minimum, final int maximum,
+      final int stepSize) {
     this.minimum = minimum;
     this.maximum = maximum;
     model = new SpinnerNumberModel(value, minimum, maximum, stepSize);
@@ -274,18 +276,15 @@ final class LabeledSpinner implements Field, ChangeListener, FocusListener {
     return checkpoint;
   }
 
-  public void setCheckpoint(final FieldSettingInterface settingInterface) {
-    TextFieldSetting setting = settingInterface.getTextSetting();
-    if (setting == null || !setting.isSet()) {
-      if (checkpoint != null) {
-        checkpoint.reset();
-      }
-    }
-    else {
+  public void setCheckpoint(final FieldSettingInterface input) {
+    if (input != null && input.isText() && input.isSet()) {
       if (checkpoint == null) {
         checkpoint = new TextFieldSetting(EtomoNumber.Type.INTEGER);
       }
-      checkpoint.copy(setting);
+      checkpoint.copy(input);
+    }
+    else if (checkpoint != null) {
+      checkpoint.reset();
     }
   }
 
@@ -481,8 +480,8 @@ final class LabeledSpinner implements Field, ChangeListener, FocusListener {
   }
 
   /**
-   * 
-   * @param alwaysCheck - check for difference even when the field is disables or invisible
+   * @param alwaysCheck - check for difference even when the field is disables or
+   *                    invisible
    * @return
    */
   public boolean isDifferentFromCheckpoint(final boolean alwaysCheck) {
@@ -579,6 +578,7 @@ final class LabeledSpinner implements Field, ChangeListener, FocusListener {
 
   /**
    * Set the absolute preferred size of the text field
+   *
    * @param size
    */
   void setTextPreferredSize(final Dimension size) {
@@ -587,6 +587,7 @@ final class LabeledSpinner implements Field, ChangeListener, FocusListener {
 
   /**
    * Set the absolute maximum size of the text field
+   *
    * @param size
    */
   void setTextMaxmimumSize(final Dimension size) {
@@ -602,6 +603,7 @@ final class LabeledSpinner implements Field, ChangeListener, FocusListener {
 
   /**
    * Set the absolute maximum size of the panel
+   *
    * @param size
    */
   void setMaximumSize(final Dimension size) {
