@@ -3,23 +3,24 @@ package etomo.ui;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.EtomoNumber;
 
+import javax.xml.soap.Text;
+import java.util.Properties;
+
 /**
-* <p>Description: </p>
-* 
-* <p>Copyright: Copyright 2014</p>
-*
-* <p>Organization:
-* Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
-* University of Colorado</p>
-* 
-* @author $Author$
-* 
- @version $Revision$
-* 
-* <p> $Log$ </p>
-*/
+ * <p>Description: Text setting that can be turned on and off.  Not thread safe.</p>
+ * <p/>
+ * <p>Copyright: Copyright 2014</p>
+ * <p/>
+ * <p>Organization:
+ * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
+ * University of Colorado</p>
+ *
+ * @author $Author$
+ * @version $Revision$
+ */
 public final class TextFieldSetting implements FieldSettingInterface {
-  public final String rcsid = "$Id:$";
+  public static final String rcsid =
+      "$Id$";
 
   private boolean set = false;
   private String value = null;
@@ -33,6 +34,11 @@ public final class TextFieldSetting implements FieldSettingInterface {
   public TextFieldSetting(final EtomoNumber.Type type) {
     this.type = type;
   }
+
+  public boolean isBoolean() {
+    return false;
+  }
+  public boolean isText(){return true;}
 
   public TextFieldSetting getTextSetting() {
     return this;
@@ -117,6 +123,7 @@ public final class TextFieldSetting implements FieldSettingInterface {
    * Returns a valid etomoNumber or null.  The type with be from the parameter, unless the
    * string has a decimal point and type is long or integer.  In that case the type will
    * be double.
+   *
    * @param string
    * @return
    */
@@ -138,6 +145,7 @@ public final class TextFieldSetting implements FieldSettingInterface {
 
   /**
    * Sets checkoint (trims whitespace).
+   *
    * @param input
    */
   public void set(final String input) {
@@ -182,13 +190,17 @@ public final class TextFieldSetting implements FieldSettingInterface {
     value = null;
   }
 
-  /**
-   * Does not copy the next link.
-   * @param input
-   */
-  public void copy(final TextFieldSetting input) {
-    set = input.set;
-    value = input.value;
+  public void copy(final FieldSettingInterface input) {
+    TextFieldSetting setting = null;
+    if (input != null) {
+      setting = input.getTextSetting();
+    }
+    if (setting != null) {
+      set = setting.isSet();
+      value = setting.getValue();
+      return;
+    }
+    reset();
   }
 
   public boolean isSet() {
@@ -199,3 +211,4 @@ public final class TextFieldSetting implements FieldSettingInterface {
     return value;
   }
 }
+
