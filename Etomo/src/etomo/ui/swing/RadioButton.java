@@ -308,21 +308,17 @@ final class RadioButton implements RadioButtonInterface, Field, ActionListener {
     debug = input;
   }
 
-  public void setFieldHighlight(final FieldSettingInterface settingInterface) {
-    BooleanFieldSetting setting = null;
-    if (settingInterface != null) {
-      setting = settingInterface.getBooleanSetting();
-    }
-    if (setting == null || !setting.isSet()) {
-      clearFieldHighlight();
-    }
-    else {
+  public void setFieldHighlight(FieldSettingInterface input) {
+    if (input != null && input.isBoolean() && input.isSet()) {
       if (fieldHighlight == null) {
         fieldHighlight = new BooleanFieldSetting();
         addFieldHighlightActionListeners();
       }
-      fieldHighlight.copy(setting);
+      fieldHighlight.copy(input);
       updateFieldHighlight(isSelected());
+    }
+    else if (input == null || !input.isSet()) {
+      clearFieldHighlight();
     }
   }
 
