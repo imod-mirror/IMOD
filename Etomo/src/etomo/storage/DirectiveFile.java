@@ -270,7 +270,7 @@ public final class DirectiveFile implements DirectiveFileInterface {
     setupSet = null;
     comparam = null;
     try {
-      autodoc = (ReadOnlyAutodoc) AutodocFactory.getInstance(manager, file, axisID);
+      autodoc = (ReadOnlyAutodoc) AutodocFactory.getInstance(manager, file, axisID, false);
     }
     catch (FileNotFoundException e) {
       UIHarness.INSTANCE

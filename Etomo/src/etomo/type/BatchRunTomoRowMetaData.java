@@ -1,28 +1,27 @@
 package etomo.type;
 
+import etomo.ui.BooleanFieldSetting;
+import etomo.ui.FieldSettingInterface;
+
 import java.util.Properties;
 
 /**
- * <p>Description: </p>
+ * <p>Description: Meta data for a row of the BatchRunTomo Interface table.</p>
  * <p/>
  * <p>Copyright: Copyright 2014</p>
  * <p/>
  * <p>Organization:
  * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
  * University of Colorado</p>
- *
- * @author $Author$
- * @version $Revision$
- *          <p/>
- *          <p> $Log$ </p>
+
+ * @version $Revision: $Id$
  */
 public final class BatchRunTomoRowMetaData {
-  public static final String rcsid = "$Id:$";
-
   private static final String GROUP_KEY = "row";
   private static final String DISPLAY_KEY = "display";
 
   private EtomoBoolean2 display = new EtomoBoolean2(DISPLAY_KEY);
+  private EtomoBoolean2 dual = new EtomoBoolean2("dual");
   private final StringProperty bskip = new StringProperty("bskip");
 
   private BatchRunTomoDatasetMetaData datasetMetaData = null;
@@ -72,10 +71,11 @@ public final class BatchRunTomoRowMetaData {
   public void load(final Properties props, String prepend) {
     // reset
     display.reset();
+    dual.reset();
     bskip.reset();
-    // load
     prepend = createPrepend(prepend);
     display.load(props, prepend);
+    dual.load(props, prepend);
     bskip.load(props, prepend);
     if (BatchRunTomoDatasetMetaData.exists(props, prepend)) {
       if (datasetMetaData == null) {
@@ -89,6 +89,7 @@ public final class BatchRunTomoRowMetaData {
     prepend = createPrepend(prepend);
     display.store(props, prepend);
     if (display.is()) {
+      dual.store(props, prepend);
       bskip.store(props, prepend);
       if (datasetMetaData != null) {
         datasetMetaData.store(props, prepend);
@@ -96,8 +97,10 @@ public final class BatchRunTomoRowMetaData {
     }
     else {
       // remove
+      dual.remove(props, prepend);
       bskip.remove(props, prepend);
       // reset
+      dual.reset();
       bskip.reset();
       if (datasetMetaData != null) {
         // remove
@@ -135,6 +138,14 @@ public final class BatchRunTomoRowMetaData {
 
   public boolean isDisplay() {
     return display.is();
+  }
+
+  public void setDual(final boolean input) {
+    dual.set(input);
+  }
+
+  public boolean isDual() {
+    return dual.is();
   }
 
   public void setBskip(final String input) {

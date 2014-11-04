@@ -20,112 +20,116 @@ import etomo.ui.swing.Token;
  * possible alphanumeric string), SYMBOL (a character matching one of the
  * following: !"#$%&'()*+,-./:;<=>?@[\]^_`{|}~).  Everything else is called
  * WHITESPACE and returned as the largest possible string.
- * 
+ * <p/>
  * To Use:
  * construct with a file.
  * call initialize().
  * call next() to get the next token, until the end of file is reached.
- * 
+ * <p/>
  * Testing:
  * Do not call initialize() when testing.
  * Call test() to test this class.
  * Call testStreamTokenizer() to test the StreamTokenizer.
- * 
- * 
+ * <p/>
+ * <p/>
  * Possible Upgrades:
  * The StreamTokenizer could be initialized differently and/or the set of symbols
  * could be overridden.
- * 
+ * <p/>
  * New functions:
  * initialize(StreamTokenizer)
  * initialize(StreamTokenizer, String symbols)
  * initialize(String symbols)
- * 
+ * <p/>
  * </p>
- *
+ * <p/>
  * <p>Copyright: Copyright 2002 - 2006</p>
- *
+ * <p/>
  * <p>Organization:
  * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
  * University of Colorado</p>
  *
  * @author $$Author$$
- *
  * @version $$Revision$$
- *
- * <p> $$Log$
- * <p> $Revision 1.15  2010/11/13 16:08:59  sueh
- * <p> $bug# 1417 Renamed etomo.ui to etomo.ui.swing.
- * <p> $
- * <p> $Revision 1.14  2009/09/05 00:06:14  sueh
- * <p> $bug# 1256 Added separateAlphabeticAndNumeric() to divide ALPHANUM
- * <p> $tokens into ALPHABETIC and NUMERIC tokens without changing the next()
- * <p> $function.
- * <p> $
- * <p> $Revision 1.13  2009/02/04 23:38:24  sueh
- * <p> $bug# 1158 Changed id and exception classes in LogFile.
- * <p> $
- * <p> $Revision 1.12  2007/06/07 21:34:12  sueh
- * <p> $bug# 1012 Passing debug in constructor.  In initializeStreamTokenizer
- * <p> $catching FileNotFoundException so that the file can be closed.
- * <p> $
- * <p> $Revision 1.11  2007/05/14 22:29:26  sueh
- * <p> $bug# 964 Handling \r\n.
- * <p> $
- * <p> $Revision 1.10  2007/05/14 22:26:59  sueh
- * <p> $bug# 964 Handling \r\n.
- * <p> $
- * <p> $Revision 1.9  2007/05/14 17:35:34  sueh
- * <p> $bug# 964 The "\r" is not being recognized as part of the EOL by Java
- * <p> $StreamTokenizer.  Alternatively the peetPrm.adoc has line endings with
- * <p> $"\r\r\n" when in Reggae, but that doesn't seem to be true.  Handing this
- * <p> $by rolling any "\r" found before an EOL token into the EOL token.
- * <p> $
- * <p> $Revision 1.8  2007/04/09 22:01:10  sueh
- * <p> $bug# 964 InitializeStreamTokenizer:  handling a null string be creating a string
- * <p> $reader on an empty string.
- * <p> $
- * <p> $Revision 1.7  2007/04/09 21:26:07  sueh
- * <p> $bug# 964 Made class final.
- * <p> $
- * <p> $Revision 1.6  2007/03/23 20:45:55  sueh
- * <p> $bug# 964 In initializeStreamTokenizer:  handling NullPointerException.
- * <p> $
- * <p> $Revision 1.5  2007/03/08 22:06:35  sueh
- * <p> $bug# 964 Improved the StreamTokenizer test.  Prevent infinite loop by checking
- * <p> $for the private StreamTokenizer.TT_NOTHING value.
- * <p> $
- * <p> $Revision 1.4  2007/03/01 01:47:50  sueh
- * <p> $bug# 964 Using LogFile instead of file, since some autodoc will be writeable.
- * <p> $
- * <p> $Revision 1.3  2006/06/14 00:45:24  sueh
- * <p> $bug# 852 Renamed Token.set(Token) copy() to make it clear that it is doing a
- * <p> $deep copy.
- * <p> $
- * <p> $Revision 1.2  2006/05/01 21:22:20  sueh
- * <p> $bug# 854
- * <p> $
- * <p> $Revision 1.1  2006/04/06 20:34:40  sueh
- * <p> $Moved PrimativeTokenizer to util.
- * <p> $
- * <p> $Revision 1.5  2006/01/12 17:18:26  sueh
- * <p> $bug# 798 Moved the autodoc classes to etomo.storage.autodoc.
- * <p> $
- * <p> $Revision 1.4  2006/01/11 22:25:28  sueh
- * <p> $bug# 675 Added the ability to tokenize a String.
- * <p> $
- * <p> $Revision 1.3  2003/12/31 01:29:48  sueh
- * <p> $bug# 372 added doc
- * <p> $
- * <p> $Revision 1.2  2003/12/23 21:34:17  sueh
- * <p> $bug# 372 Reformatting.  Fixing test function.
- * <p> $
- * <p> $Revision 1.1  2003/12/22 23:50:52  sueh
- * <p> $bug# 372 creates primative tokens
- * <p> $$ </p>
+ *          <p/>
+ *          <p> $$Log$
+ *          <p> $Revision 1.15  2010/11/13 16:08:59  sueh
+ *          <p> $bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ *          <p> $
+ *          <p> $Revision 1.14  2009/09/05 00:06:14  sueh
+ *          <p> $bug# 1256 Added separateAlphabeticAndNumeric() to divide ALPHANUM
+ *          <p> $tokens into ALPHABETIC and NUMERIC tokens without changing the next()
+ *          <p> $function.
+ *          <p> $
+ *          <p> $Revision 1.13  2009/02/04 23:38:24  sueh
+ *          <p> $bug# 1158 Changed id and exception classes in LogFile.
+ *          <p> $
+ *          <p> $Revision 1.12  2007/06/07 21:34:12  sueh
+ *          <p> $bug# 1012 Passing debug in constructor.  In initializeStreamTokenizer
+ *          <p> $catching FileNotFoundException so that the file can be closed.
+ *          <p> $
+ *          <p> $Revision 1.11  2007/05/14 22:29:26  sueh
+ *          <p> $bug# 964 Handling \r\n.
+ *          <p> $
+ *          <p> $Revision 1.10  2007/05/14 22:26:59  sueh
+ *          <p> $bug# 964 Handling \r\n.
+ *          <p> $
+ *          <p> $Revision 1.9  2007/05/14 17:35:34  sueh
+ *          <p> $bug# 964 The "\r" is not being recognized as part of the EOL by Java
+ *          <p> $StreamTokenizer.  Alternatively the peetPrm.adoc has line endings with
+ *          <p> $"\r\r\n" when in Reggae, but that doesn't seem to be true.  Handing this
+ *          <p> $by rolling any "\r" found before an EOL token into the EOL token.
+ *          <p> $
+ *          <p> $Revision 1.8  2007/04/09 22:01:10  sueh
+ *          <p> $bug# 964 InitializeStreamTokenizer:  handling a null string be
+ *          creating a string
+ *          <p> $reader on an empty string.
+ *          <p> $
+ *          <p> $Revision 1.7  2007/04/09 21:26:07  sueh
+ *          <p> $bug# 964 Made class final.
+ *          <p> $
+ *          <p> $Revision 1.6  2007/03/23 20:45:55  sueh
+ *          <p> $bug# 964 In initializeStreamTokenizer:  handling NullPointerException.
+ *          <p> $
+ *          <p> $Revision 1.5  2007/03/08 22:06:35  sueh
+ *          <p> $bug# 964 Improved the StreamTokenizer test.  Prevent infinite loop by
+ *          checking
+ *          <p> $for the private StreamTokenizer.TT_NOTHING value.
+ *          <p> $
+ *          <p> $Revision 1.4  2007/03/01 01:47:50  sueh
+ *          <p> $bug# 964 Using LogFile instead of file, since some autodoc will be
+ *          writeable.
+ *          <p> $
+ *          <p> $Revision 1.3  2006/06/14 00:45:24  sueh
+ *          <p> $bug# 852 Renamed Token.set(Token) copy() to make it clear that it is
+ *          doing a
+ *          <p> $deep copy.
+ *          <p> $
+ *          <p> $Revision 1.2  2006/05/01 21:22:20  sueh
+ *          <p> $bug# 854
+ *          <p> $
+ *          <p> $Revision 1.1  2006/04/06 20:34:40  sueh
+ *          <p> $Moved PrimativeTokenizer to util.
+ *          <p> $
+ *          <p> $Revision 1.5  2006/01/12 17:18:26  sueh
+ *          <p> $bug# 798 Moved the autodoc classes to etomo.storage.autodoc.
+ *          <p> $
+ *          <p> $Revision 1.4  2006/01/11 22:25:28  sueh
+ *          <p> $bug# 675 Added the ability to tokenize a String.
+ *          <p> $
+ *          <p> $Revision 1.3  2003/12/31 01:29:48  sueh
+ *          <p> $bug# 372 added doc
+ *          <p> $
+ *          <p> $Revision 1.2  2003/12/23 21:34:17  sueh
+ *          <p> $bug# 372 Reformatting.  Fixing test function.
+ *          <p> $
+ *          <p> $Revision 1.1  2003/12/22 23:50:52  sueh
+ *          <p> $bug# 372 creates primative tokens
+ *          <p> $$ </p>
  */
 public final class PrimativeTokenizer {
-  public static final String rcsid = "$$Id$$";
+  public static final String rcsid =
+      "$$Id$$";
 
   private static final String RETURN = "\r";
   private static final String AUTODOC_DIR_ENV_VAR = "AUTODOC_DIR";
@@ -141,8 +145,8 @@ public final class PrimativeTokenizer {
   private StreamTokenizer tokenizer = null;
   private String symbols = new String("!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~");
   private String digits = new String("0123456789");
-  private String letters = new String(
-      "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ");
+  private String letters =
+      new String("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ");
   private Token token = new Token();
   private boolean nextTokenFound = false;
   private Token nextToken = new Token();
@@ -167,13 +171,14 @@ public final class PrimativeTokenizer {
     if (autodocDir == null) {
       autodocDir = getFileLocation(null, null, manager, axisID, notFoundMessage, name);
     }
-    return new PrimativeTokenizer(getLogFile(autodocDir, name, notFoundMessage), null,
-        false, debug);
+    return new PrimativeTokenizer(getLogFile(autodocDir, name, notFoundMessage, false),
+        null, false, debug);
   }
 
   /**
    * Gets an autodoc of an unknown type.  AutodocFile takes precedence over envVar,
    * subdirName, and name.
+   *
    * @param envVar
    * @param subdirName
    * @param name
@@ -187,7 +192,7 @@ public final class PrimativeTokenizer {
   public static PrimativeTokenizer getGenericInstance(final String envVar,
       final String subdirName, String name, final File autodocFile,
       final BaseManager manager, final AxisID axisID, final String notFoundMessage,
-      final boolean debug) {
+      final boolean debug, final boolean writable) {
     File dir = null;
     if (autodocFile != null) {
       dir = autodocFile.getParentFile();
@@ -196,8 +201,8 @@ public final class PrimativeTokenizer {
     else {
       dir = getFileLocation(envVar, subdirName, manager, axisID, notFoundMessage, name);
     }
-    return new PrimativeTokenizer(getLogFile(dir, name, notFoundMessage), null, false,
-        debug);
+    return new PrimativeTokenizer(getLogFile(dir, name, notFoundMessage, writable), null,
+        false, debug);
   }
 
   public static PrimativeTokenizer getStringInstance(final String string,
@@ -212,6 +217,7 @@ public final class PrimativeTokenizer {
 
   /**
    * Return the location of the autodoc
+   *
    * @param envVar
    * @param subdir
    * @param manager
@@ -228,24 +234,26 @@ public final class PrimativeTokenizer {
     if (findAutodocDir) {
       dir = getDirectory(AUTODOC_DIR_ENV_VAR, null, manager, axisID, notFoundMessage);
       if (dir == null) {
-        dir = getDirectory(EtomoDirector.IMOD_DIR_ENV_VAR, DEFAULT_AUTODOC_DIR, manager, axisID,
-            notFoundMessage);
+        dir = getDirectory(EtomoDirector.IMOD_DIR_ENV_VAR, DEFAULT_AUTODOC_DIR, manager,
+            axisID, notFoundMessage);
       }
     }
     else {
       dir = getDirectory(envVar, subdir, manager, axisID, notFoundMessage);
     }
     if (dir == null) {
-      System.err.println(notFoundMessage == null ? "Warning" : "Info"
-          + ":  can't open the " + name + " autodoc file.\nThis autodoc was not in in $"
-          + envVar + (subdir != null ? "/" + subdir : "")
-          + (findAutodocDir ? " or $" + AUTODOC_DIR_ENV_VAR : "") + ".\n");
+      System.err.println(
+          notFoundMessage == null ? "Warning" : "Info" + ":  can't open the " + name +
+              " autodoc file.\nThis autodoc was not in in $" + envVar +
+              (subdir != null ? "/" + subdir : "") +
+              (findAutodocDir ? " or $" + AUTODOC_DIR_ENV_VAR : "") + ".\n");
     }
     return dir;
   }
 
   /**
    * Return the directory defined by envVar and subdir
+   *
    * @param envVar
    * @param subdir
    * @param manager
@@ -269,41 +277,57 @@ public final class PrimativeTokenizer {
 
   /**
    * Gets the autodoc file as a LogFile.
+   *
    * @param autodocDir
    * @param autodocName
-   * @param warnIfFail - If false error messages start with "Info".
    * @return
    */
   private static LogFile getLogFile(final File autodocDir, final String autodocName,
-      final String notFoundMessage) {
+      final String notFoundMessage, final boolean writable) {
     boolean warnIfFail = notFoundMessage == null;
     if (autodocDir == null || autodocName == null) {
       return null;
     }
     File file = DatasetFiles.getAutodoc(autodocDir, autodocName);
     String errorMessageTag = warnIfFail ? "Warning" : "Info";
-    if (!file.exists()) {
-      System.err.println(errorMessageTag + ":  The autodoc file "
-          + file.getAbsolutePath() + " does not exist.");
-      return null;
+    boolean exists = file.exists();
+    if (!writable) {
+      if (!exists) {
+        System.err
+            .println(errorMessageTag + ":  The autodoc file " + file.getAbsolutePath() +
+                " does not exist.");
+        return null;
+      }
+      if (!file.canRead()) {
+        System.err.println(errorMessageTag + ":  Cannot read the autodoc file " +
+            file.getAbsolutePath() +
+            ".");
+        return null;
+      }
+    }
+    else {
+      if (exists && !file.canWrite()) {
+        System.err.println(errorMessageTag + ":  Cannot write the autodoc file " +
+            file.getAbsolutePath() +
+            ".");
+        return null;
+      }
     }
     if (file.isDirectory()) {
-      System.err.println(errorMessageTag + ":  The autodoc file "
-          + file.getAbsolutePath() + " is a directory.");
+      System.err
+          .println(errorMessageTag + ":  The autodoc file " + file.getAbsolutePath() +
+              " is a directory.");
       return null;
     }
-    if (!file.canRead()) {
-      System.err.println(errorMessageTag + ":  Cannot read the autodoc file "
-          + file.getAbsolutePath() + ".");
-      return null;
-    }
+
     try {
       return LogFile.getInstance(file);
     }
     catch (LogFile.LockException e) {
       e.printStackTrace();
-      System.err.println(errorMessageTag + ":  Cannot open the autodoc file "
-          + file.getAbsolutePath() + ".");
+      System.err.println(
+          errorMessageTag + ":  Cannot open the autodoc file " + file.getAbsolutePath() +
+              ".");
       return null;
     }
   }
@@ -334,18 +358,18 @@ public final class PrimativeTokenizer {
 
   /**
    * Must be called before the first call to next().
-   * 
+   *
    * @throws FileNotFoundException
    * @throws IOException
    */
-  public void initialize() throws FileNotFoundException, IOException,
-      LogFile.LockException {
+  public void initialize()
+      throws FileNotFoundException, IOException, LogFile.LockException {
     initializeStreamTokenizer();
     nextToken();
   }
 
-  private void initializeStreamTokenizer() throws FileNotFoundException,
-      LogFile.LockException {
+  private void initializeStreamTokenizer()
+      throws FileNotFoundException, LogFile.LockException {
     try {
       if (logFile != null) {
         File readingFile = new File(logFile.getAbsolutePath());
@@ -376,6 +400,7 @@ public final class PrimativeTokenizer {
 
   /**
    * Tokenizes a file.
+   *
    * @return the next token found.
    * @throws IOException
    */
@@ -489,6 +514,7 @@ public final class PrimativeTokenizer {
    * Take an ALPHANUM token and break it up.  Called multiple times.
    * ValueBeingBrokenUp and valueIndex are preserve outside the function and
    * managed inside the function.
+   *
    * @return
    */
   private Token separateAlphabeticAndNumeric(Token token) {
@@ -560,6 +586,7 @@ public final class PrimativeTokenizer {
 
   /**
    * Tests this object.  Prints result to System.out.
+   *
    * @param tokens If true, prints each token.  If false, prints the text.
    * @throws IOException
    */
@@ -582,11 +609,12 @@ public final class PrimativeTokenizer {
 
   /**
    * Tests the StreamTokenizer.  Prints result to System.out.
+   *
    * @param tokens If true, prints each token.  If false, prints the text.
    * @throws IOException
    */
-  public void testStreamTokenizer(boolean tokens, boolean details) throws IOException,
-      LogFile.LockException {
+  public void testStreamTokenizer(boolean tokens, boolean details)
+      throws IOException, LogFile.LockException {
     initializeStreamTokenizer();
     do {
       nextToken();
@@ -595,12 +623,13 @@ public final class PrimativeTokenizer {
         if (details) {
           TokenType tokenType = TokenType.getInstance(tokenizer.ttype);
           if (tokenType == null) {
-            System.out.println(", " + ((char) tokenizer.ttype) + ",sval="
-                + tokenizer.sval + ",nval=" + tokenizer.nval);
+            System.out.println(
+                ", " + ((char) tokenizer.ttype) + ",sval=" + tokenizer.sval + ",nval=" +
+                    tokenizer.nval);
           }
           else {
-            System.out.println(", " + TokenType.getInstance(tokenizer.ttype) + ",sval="
-                + tokenizer.sval + ",nval=" + tokenizer.nval);
+            System.out.println(", " + TokenType.getInstance(tokenizer.ttype) + ",sval=" +
+                tokenizer.sval + ",nval=" + tokenizer.nval);
           }
         }
         else {
@@ -620,8 +649,8 @@ public final class PrimativeTokenizer {
           }
         }
       }
-    } while (tokenizer.ttype != StreamTokenizer.TT_EOF
-        && tokenizer.ttype != streamTokenizerNothingValue);
+    } while (tokenizer.ttype != StreamTokenizer.TT_EOF &&
+        tokenizer.ttype != streamTokenizerNothingValue);
     if (logFile != null) {
       closeFile();
     }
@@ -659,18 +688,18 @@ public final class PrimativeTokenizer {
 
     private static TokenType getInstance(int ttype) {
       switch (ttype) {
-      case StreamTokenizer.TT_EOF:
-        return EOF;
-      case StreamTokenizer.TT_EOL:
-        return EOL;
-      case StreamTokenizer.TT_NUMBER:
-        return NUMBER;
-      case StreamTokenizer.TT_WORD:
-        return WORD;
-      case -4:// StreamTokenizer.TT_NOTHING
-        return NOTHING;
-      default:
-        return null;
+        case StreamTokenizer.TT_EOF:
+          return EOF;
+        case StreamTokenizer.TT_EOL:
+          return EOL;
+        case StreamTokenizer.TT_NUMBER:
+          return NUMBER;
+        case StreamTokenizer.TT_WORD:
+          return WORD;
+        case -4:// StreamTokenizer.TT_NOTHING
+          return NOTHING;
+        default:
+          return null;
       }
     }
 

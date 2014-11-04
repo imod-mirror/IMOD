@@ -42,14 +42,10 @@ import etomo.ui.UIComponent;
  *
  * @author $Author$
  * @version $Revision$
- *          <p/>
- *          <p> $Log$ </p>
+ * @id $Id$
  */
 final class BatchRunTomoDatasetDialog
     implements ActionListener, Expandable, UIComponent, SwingComponent {
-  public static final String rcsid =
-      "$Id$";
-
   private static final String DERIVE_THICKNESS_LABEL =
       "Thickness from Intergold spacing plus: ";
 
@@ -957,26 +953,8 @@ final class BatchRunTomoDatasetDialog
         }
       }
     }
-    else if (actionCommand.equals(cbRemoveXrays.getActionCommand()) ||
-        actionCommand.equals(rbTrackingMethodSeed.getActionCommand()) ||
-        actionCommand.equals(rbTrackingMethodRaptor.getActionCommand()) ||
-        actionCommand.equals(rbTrackingMethodPatchTracking.getActionCommand()) ||
-        actionCommand.equals(rbFiducialless.getActionCommand()) ||
-        actionCommand.equals(cbCorrectCTF.getActionCommand()) ||
-        actionCommand.equals(rtfAutoFitRangeAndStep.getActionCommand()) ||
-        actionCommand.equals(rbFitEveryImage.getActionCommand()) ||
-        actionCommand.equals(rtfThickness.getActionCommand()) ||
-        actionCommand.equals(rtfBinnedThickness.getActionCommand()) ||
-        actionCommand.equals(rbDeriveThickness.getActionCommand()) ||
-        actionCommand.equals(rbUseSirtFalse.getActionCommand()) ||
-        actionCommand.equals(rbUseSirtTrue.getActionCommand()) ||
-        actionCommand.equals(rbDoBackprojAlso.getActionCommand())) {
-      updateDisplay();
-    }
-    // sanity check
     else {
-      Thread.dumpStack();
-      System.err.println("ERROR: Unknown account command:" + actionCommand);
+      updateDisplay();
     }
   }
 }

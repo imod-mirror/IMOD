@@ -181,7 +181,7 @@ public final class RemotePathTest extends TestCase {
     try {
       autodoc = AutodocFactory.getInstance(
           EtomoDirector.INSTANCE.getCurrentManagerForTest(), getTestFile(testDirName),
-          RemotePath.AUTODOC);
+          RemotePath.AUTODOC, false);
     }
     catch (IOException e) {
       e.printStackTrace();
@@ -239,7 +239,7 @@ public final class RemotePathTest extends TestCase {
     try {
       autodoc = AutodocFactory.getInstance(
           EtomoDirector.INSTANCE.getCurrentManagerForTest(), getTestFile(testDirName),
-          RemotePath.AUTODOC);
+          RemotePath.AUTODOC, false);
     }
     catch (IOException e) {
       e.printStackTrace();
@@ -303,7 +303,7 @@ public final class RemotePathTest extends TestCase {
     try {
       autodoc = AutodocFactory.getInstance(
           EtomoDirector.INSTANCE.getCurrentManagerForTest(), getTestFile(testDirName),
-          RemotePath.AUTODOC);
+          RemotePath.AUTODOC, false);
     }
     catch (IOException e) {
       e.printStackTrace();
