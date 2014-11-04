@@ -51,8 +51,9 @@ final class QueueTable extends ProcessorTable {
   private HeaderCell[] header2LoadArray = null;
   private ButtonGroup buttonGroup = null;
 
-  QueueTable(final BaseManager manager, final ParallelPanel parent, final AxisID axisID) {
-    super(manager, parent, axisID, true);
+  QueueTable(final BaseManager manager, final ParallelPanel parent, final AxisID axisID,
+      final boolean runnable) {
+    super(manager, parent, axisID, true, runnable);
   }
 
   String getStorePrepend() {
@@ -125,33 +126,47 @@ final class QueueTable extends ProcessorTable {
   }
 
   void addHeader1Load(final JPanel tablePanel, final GridBagLayout layout,
-      final GridBagConstraints constraints) {
+      final GridBagConstraints constraints, final ColumnName lastColumnName) {
     constraints.gridwidth = 1;
     createHeader1LoadArray();
     for (int i = 0; i < header1LoadArray.length; i++) {
+      if (lastColumnName == ColumnName.LOAD && i == header1LoadArray.length - 1) {
+        constraints.gridwidth = GridBagConstraints.REMAINDER;
+      }
       header1LoadArray[i].add(tablePanel, layout, constraints);
     }
   }
 
   void addHeader1Users(final JPanel tablePanel, final GridBagLayout layout,
-      final GridBagConstraints constraints) {
+      final GridBagConstraints constraints, final ColumnName lastColumnName) {
     // The users column contains a load value, so it can't be used when
     // displaying queues.
   }
 
   void addHeader2Load(final JPanel tablePanel, final GridBagLayout layout,
-      final GridBagConstraints constraints) {
+      final GridBagConstraints constraints, final ColumnName lastColumnName) {
     createHeader2LoadArray();
     for (int i = 0; i < header2LoadArray.length; i++) {
+      if (lastColumnName == ColumnName.LOAD && i == header2LoadArray.length - 1) {
+        constraints.gridwidth = GridBagConstraints.REMAINDER;
+      }
       header2LoadArray[i].add(tablePanel, layout, constraints);
     }
   }
 
   void addHeader2Users(final JPanel tablePanel, final GridBagLayout layout,
-      final GridBagConstraints constraints) {
+      final GridBagConstraints constraints, final ColumnName lastColumnName) {
   }
 
   boolean useUsersColumn() {
+    return false;
+  }
+
+  boolean isCpuTable() {
+    return false;
+  }
+
+  boolean isGpuTable() {
     return false;
   }
 

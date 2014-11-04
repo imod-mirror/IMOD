@@ -1,0 +1,582 @@
+package etomo.ui.swing;
+
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.File;
+import java.io.IOException;
+
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.ButtonGroup;
+import javax.swing.JPanel;
+import javax.swing.JTabbedPane;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+
+import etomo.BaseManager;
+import etomo.BatchRunTomoManager;
+import etomo.EtomoDirector;
+import etomo.ProcessingMethodMediator;
+import etomo.comscript.BatchruntomoParam;
+import etomo.logic.UserEnv;
+import etomo.process.BaseProcessManager;
+import etomo.storage.DirectiveFile;
+import etomo.storage.DirectiveFileCollection;
+import etomo.storage.LogFile;
+import etomo.storage.autodoc.AutodocFactory;
+import etomo.storage.autodoc.WritableAutodoc;
+import etomo.type.AxisID;
+import etomo.type.BatchRunTomoMetaData;
+import etomo.type.DialogType;
+import etomo.type.DirectiveFileType;
+import etomo.type.FileType;
+import etomo.type.ProcessingMethod;
+import etomo.type.TableReference;
+import etomo.type.UserConfiguration;
+import etomo.ui.BatchRunTomoTab;
+import etomo.ui.FieldType;
+import etomo.util.Utilities;
+
+/**
+ * <p>Description: Interface for batchruntomo.</p>
+ * <p/>
+ * <p>Copyright: Copyright 2013</p>
+ * <p/>
+ * <p>Organization:
+ * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
+ * University of Colorado</p>
+ *
+ * @author $Author$
+ * @version $Revision$
+ *          <p/>
+ *          <p> $Log$ </p>
+ */
+public final class BatchRunTomoDialog
+    implements ActionListener, ResultListener, ChangeListener, Expandable,
+    ProcessInterface {
+  public static final String rcsid = "$Id:$";
+
+  private static final String DELIVER_TO_DIRECTORY_NAME = "Move datasets to";
+
+  private final JPanel pnlRoot = new JPanel();
+  private final LabeledTextField ltfRootName =
+      new LabeledTextField(FieldType.STRING, "Batchruntomo root name: ");
+  private final CheckBox cbDeliverToDirectory = new CheckBox();
+  private final CheckTextField ctfEmailAddress =
+      CheckTextField.getInstance(FieldType.STRING, "Email notification: ");
+  private final CheckBox cbCPUMachineList = new CheckBox("Use multiple CPUs");
+  private final ButtonGroup bgGPUMachineList = new ButtonGroup();
+  private final RadioButton rbGPUMachineListOff =
+      new RadioButton("No GPU", bgGPUMachineList);
+  private final RadioButton rbGPUMachineListLocal =
+      new RadioButton("Local GPU", bgGPUMachineList);
+  private final RadioButton rbGPUMachineList =
+      new RadioButton("Parallel GPUs", bgGPUMachineList);
+  private final TabbedPane tabbedPane = new TabbedPane();
+  private final JPanel[] pnlTabs = new JPanel[BatchRunTomoTab.SIZE];
+  private final JPanel pnlBatch = new JPanel();
+  private final JPanel pnlStacks = new JPanel();
+  private final JPanel pnlDataset = new JPanel();
+  private final JPanel pnlRun = new JPanel();
+  private final JPanel pnlTable = new JPanel();
+  private final MultiLineButton btnRun = new MultiLineButton("Run Batchruntomo");
+  private final JPanel pnlRunButton = new JPanel();
+  private final JPanel pnlParallelSettings = new JPanel();
+  private final UserConfiguration userConfiguration =
+      EtomoDirector.INSTANCE.getUserConfiguration();
+  private final JPanel pnlDatasetTableBody = new JPanel();
+  private final JPanel pnlUntitledTable = new JPanel();
+
+  private final FileTextField2 ftfRootDir;
+  private final FileTextField2 ftfInputDirectiveFile;
+  private final TemplatePanel templatePanel;
+  private final FileTextField2 ftfDeliverToDirectory;
+  private final BatchRunTomoTable table;
+  private final BatchRunTomoManager manager;
+  private final AxisID axisID;
+  private final BatchRunTomoDatasetDialog datasetDialog;
+  private final DirectiveFileCollection directiveFileCollection;
+  private final PanelHeader phDatasetTable;
+  private final ProcessingMethodMediator mediator;
+
+  private BatchRunTomoTab curTab = null;
+
+  private BatchRunTomoDialog(final BatchRunTomoManager manager, final AxisID axisID,
+      final TableReference tableReference) {
+    this.manager = manager;
+    this.axisID = axisID;
+    ftfRootDir = FileTextField2.getAltLayoutInstance(manager, "Location: ");
+    ftfInputDirectiveFile =
+        FileTextField2.getAltLayoutInstance(manager, "Starting directive file: ");
+    ftfDeliverToDirectory =
+        FileTextField2.getAltLayoutInstance(manager, DELIVER_TO_DIRECTORY_NAME + ": ");
+    table = BatchRunTomoTable.getInstance(manager, this, tableReference);
+    datasetDialog = BatchRunTomoDatasetDialog.getGlobalInstance(manager);
+    directiveFileCollection = new DirectiveFileCollection(manager, axisID);
+    templatePanel = TemplatePanel.getBorderlessInstance(manager, axisID, null, null, null,
+        directiveFileCollection);
+    phDatasetTable = PanelHeader.getInstance("Datasets", this, DialogType.BATCH_RUN_TOMO);
+    mediator = manager.getProcessingMethodMediator(axisID);
+    mediator.register(this);
+  }
+
+  public static BatchRunTomoDialog getInstance(final BatchRunTomoManager manager,
+      final AxisID axisID, final TableReference tableReference) {
+    BatchRunTomoDialog instance = new BatchRunTomoDialog(manager, axisID, tableReference);
+    instance.createPanel();
+    instance.addListeners();
+    return instance;
+  }
+
+  private void createPanel() {
+    // local panels
+    JPanel pnlRootName = new JPanel();
+    JPanel pnlDeliverToDirectory = new JPanel();
+    JPanel pnlTemplates = new JPanel();
+    JPanel pnlDatasetTable = new JPanel();
+    // init
+    templatePanel.setFieldHighlight();
+    ftfInputDirectiveFile.setAbsolutePath(true);
+    ftfInputDirectiveFile.setFieldEditable(false);
+    ftfInputDirectiveFile.setOrigin(EtomoDirector.INSTANCE.getHomeDirectory());
+    ftfDeliverToDirectory.setAbsolutePath(true);
+    ftfDeliverToDirectory.setFileSelectionMode(FileChooser.DIRECTORIES_ONLY);
+    ltfRootName.setText("batch" + Utilities.getDateTimeStampRootName());
+    btnRun.setToPreferredSize();
+    tabbedPane.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
+    // defaults
+    ftfRootDir.setAbsolutePath(true);
+    ftfRootDir.setText(new File(System.getProperty("user.dir")).getAbsolutePath());
+    ftfRootDir.setFileSelectionMode(FileChooser.DIRECTORIES_ONLY);
+    cbDeliverToDirectory.setName(DELIVER_TO_DIRECTORY_NAME);
+    cbCPUMachineList.setSelected(UserEnv.isParallelProcessing(null, AxisID.ONLY, null));
+    rbGPUMachineListLocal.setSelected(UserEnv.isGpuProcessing(null, AxisID.ONLY, null));
+    templatePanel.setParameters(userConfiguration);
+    // root panel
+    pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.Y_AXIS));
+    pnlRoot.setBorder(new BeveledBorder("Batchruntomo Interface").getBorder());
+    pnlRoot.add(tabbedPane);
+    // tabbedPane
+    for (int i = 0; i < BatchRunTomoTab.SIZE; i++) {
+      pnlTabs[i] = new JPanel();
+      BatchRunTomoTab tab = BatchRunTomoTab.getInstance(i);
+      tabbedPane.addTab(tab.getTitle(), pnlTabs[i]);
+    }
+    // Batch
+    pnlBatch.setLayout(new BoxLayout(pnlBatch, BoxLayout.Y_AXIS));
+    pnlBatch.setBorder(new EtchedBorder("Batch Setup Parameters").getBorder());
+    pnlBatch.add(pnlDeliverToDirectory);
+    pnlBatch.add(Box.createRigidArea(FixedDim.x0_y20));
+    pnlBatch.add(ftfInputDirectiveFile.getRootPanel());
+    pnlBatch.add(Box.createRigidArea(FixedDim.x0_y6));
+    pnlBatch.add(pnlTemplates);
+    pnlBatch.add(Box.createRigidArea(FixedDim.x0_y15));
+    pnlBatch.add(pnlRootName);
+    // Stacks
+    pnlStacks.setLayout(new BoxLayout(pnlStacks, BoxLayout.Y_AXIS));
+    pnlStacks.setBorder(BorderFactory.createEtchedBorder());
+    // panel created on tab change
+    // Dataset
+    pnlDataset.setLayout(new BoxLayout(pnlDataset, BoxLayout.Y_AXIS));
+    pnlDataset.setBorder(BorderFactory.createEtchedBorder());
+    pnlDataset.add(datasetDialog.getComponent());
+    pnlDataset.add(pnlDatasetTable);
+    // Run
+    pnlRun.setLayout(new BoxLayout(pnlRun, BoxLayout.Y_AXIS));
+    pnlRun.setBorder(BorderFactory.createEtchedBorder());
+    // DatasetTable
+    pnlDatasetTable.setLayout(new BoxLayout(pnlDatasetTable, BoxLayout.Y_AXIS));
+    pnlDatasetTable.setBorder(BorderFactory.createEtchedBorder());
+    pnlDatasetTable.add(phDatasetTable.getContainer());
+    pnlDatasetTable.add(Box.createRigidArea(FixedDim.x0_y2));
+    pnlDatasetTable.add(pnlDatasetTableBody);
+    // DatasetTableBody
+    pnlDatasetTableBody.setLayout(new BoxLayout(pnlDatasetTableBody, BoxLayout.X_AXIS));
+    // panel created on tab change
+    // Table
+    pnlTable.setLayout(new BoxLayout(pnlTable, BoxLayout.Y_AXIS));
+    pnlTable.setBorder(new EtchedBorder("Datasets").getBorder());
+    // UntitledTable
+    pnlUntitledTable.setLayout(new BoxLayout(pnlUntitledTable, BoxLayout.Y_AXIS));
+    // RunButton
+    pnlRunButton.setLayout(new BoxLayout(pnlRunButton, BoxLayout.X_AXIS));
+    pnlRunButton.add(Box.createHorizontalGlue());
+    pnlRunButton.add(btnRun.getComponent());
+    pnlRunButton.add(Box.createHorizontalGlue());
+    // ParallelSettings
+    pnlParallelSettings.setLayout(new BoxLayout(pnlParallelSettings, BoxLayout.Y_AXIS));
+    pnlParallelSettings.setBorder(new EtchedBorder("Run Actions").getBorder());
+    pnlParallelSettings.add(cbCPUMachineList);
+    pnlParallelSettings.add(rbGPUMachineListOff.getComponent());
+    pnlParallelSettings.add(rbGPUMachineListLocal.getComponent());
+    pnlParallelSettings.add(rbGPUMachineList.getComponent());
+    // RootName
+    pnlRootName.setLayout(new BoxLayout(pnlRootName, BoxLayout.Y_AXIS));
+    pnlRootName.setBorder(new EtchedBorder("Batchruntomo Project Files").getBorder());
+    pnlRootName.add(ltfRootName.getComponent());
+    pnlRootName.add(Box.createRigidArea(FixedDim.x0_y2));
+    pnlRootName.add(ftfRootDir.getRootPanel());
+    // Templates
+    pnlTemplates.setLayout(new BoxLayout(pnlTemplates, BoxLayout.X_AXIS));
+    pnlTemplates.add(templatePanel.getComponent());
+    pnlTemplates.add(Box.createHorizontalGlue());
+    // DeliverToDirectory
+    pnlDeliverToDirectory
+        .setLayout(new BoxLayout(pnlDeliverToDirectory, BoxLayout.X_AXIS));
+    pnlDeliverToDirectory.add(cbDeliverToDirectory);
+    pnlDeliverToDirectory.add(ftfDeliverToDirectory.getRootPanel());
+    // align
+    UIUtilities.alignComponentsX(pnlBatch, Component.LEFT_ALIGNMENT);
+    UIUtilities.alignComponentsX(pnlRoot, Component.LEFT_ALIGNMENT);
+    // update
+    processResult(ftfRootDir);
+    stateChanged(null);
+    msgDirectivesChanged(true);
+    updateDisplay();
+    mediator.setMethod(this, getProcessingMethod());
+  }
+
+  private void addListeners() {
+    cbDeliverToDirectory.addActionListener(this);
+    templatePanel.addActionListener(this);
+    cbCPUMachineList.addActionListener(this);
+    rbGPUMachineListOff.addActionListener(this);
+    rbGPUMachineListLocal.addActionListener(this);
+    rbGPUMachineList.addActionListener(this);
+    ftfInputDirectiveFile.addResultListener(this);
+    tabbedPane.addChangeListener(this);
+  }
+
+  public Container getContainer() {
+    return pnlRoot;
+  }
+
+  public void setParameters(final BatchRunTomoMetaData metaData) {
+    if (!metaData.isRootNameNull()) {
+      ltfRootName.setText(metaData.getRootName());
+      ltfRootName.setEditable(false);
+      ftfRootDir.setText(manager.getPropertyUserDir());
+      ftfRootDir.setEditable(false);
+    }
+    table.setParameters(metaData);
+    datasetDialog.setParameters(metaData.getDatasetMetaData());
+    phDatasetTable.set(metaData.getDatasetTableHeader());
+  }
+
+  public void getParameters(final BatchRunTomoMetaData metaData) {
+    if (ltfRootName.isEditable()) {
+      ltfRootName.setEditable(false);
+      ftfRootDir.setEditable(false);
+      manager.setNewParamFile(ftfRootDir.getFile(), ltfRootName.getText());
+    }
+    table.getParameters(metaData);
+    datasetDialog.getParameters(metaData.getDatasetMetaData());
+    metaData.setDatasetTableHeader(phDatasetTable);
+  }
+
+  public void setParameters(final BatchruntomoParam param) {
+    cbDeliverToDirectory.setSelected(!param.isDeliverToDirectoryNull());
+    if (cbDeliverToDirectory.isSelected()) {
+      ftfDeliverToDirectory.setText(param.getDeliverToDirectory());
+    }
+    ctfEmailAddress.setSelected(!param.isEmailAddressNull());
+    if (ctfEmailAddress.isSelected()) {
+      ctfEmailAddress.setText(param.getEmailAddress());
+    }
+    cbCPUMachineList.setSelected(!param.isCpuMachineListNull());
+    if (param.isGpuMachineListNull()) {
+      rbGPUMachineListOff.setSelected(true);
+    }
+    else if (param.gpuMachineListEquals("1")) {
+      rbGPUMachineListLocal.setSelected(true);
+    }
+    else {
+      rbGPUMachineList.setSelected(true);
+    }
+    updateDisplay();
+  }
+
+  public void getParameters(final BatchruntomoParam param) {
+    if (cbDeliverToDirectory.isSelected()) {
+      param.setDeliverToDirectory(ftfDeliverToDirectory.getFile());
+    }
+    else {
+      param.resetDeliverToDirectory();
+    }
+    if (!cbCPUMachineList.isSelected()) {
+      param.setCPUMachineList(BatchruntomoParam.MACHINE_LIST_LOCAL_VALUE);
+    }
+    if (rbGPUMachineListOff.isSelected()) {
+      param.resetGPUMachineList();
+    }
+    else if (rbGPUMachineListLocal.isSelected()) {
+      param.setGPUMachineList(BatchruntomoParam.MACHINE_LIST_LOCAL_VALUE);
+    }
+    if (ctfEmailAddress.isSelected()) {
+      param.setEmailAddress(ctfEmailAddress.getText());
+    }
+    else {
+      param.resetEmailAddress();
+    }
+    table.getParameters(param);
+  }
+
+  public void loadAutodocs() {
+    //load global autodoc
+    DirectiveFile directiveFile = DirectiveFile.getInstance(manager, axisID,
+        FileType.BATCH_RUN_TOMO_GLOBAL_AUTODOC.getFile(manager, axisID), true);
+    templatePanel.setParameters(directiveFile);
+    datasetDialog.setValues(directiveFile);
+    //load dataset autodocs
+    table.loadAutodocs();
+  }
+
+  public void saveAutodocs() {
+    //save global autodoc
+    FileType globalAutodocType = FileType.BATCH_RUN_TOMO_GLOBAL_AUTODOC;
+    File globalFile = globalAutodocType.getFile(manager, null);
+    try {
+      if (globalFile.exists()) {
+        LogFile.getInstance(globalFile).backup();
+      }
+      BaseProcessManager.touch(globalFile.getAbsolutePath(), manager);
+      WritableAutodoc autodoc = AutodocFactory.getWritableInstance(manager, globalFile);
+      templatePanel.saveAutodoc(autodoc);
+      datasetDialog.saveAutodoc(autodoc);
+      autodoc.write();
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+    }
+    catch (LogFile.LockException e) {
+      e.printStackTrace();
+    }
+    //save dataset autodocs
+    table.saveAutodocs();
+  }
+
+  /**
+   * Handles any changes in the selection of the starting batch directive file and the
+   * template files.
+   *
+   * @param init - true when this function is called during the creation of the dialog.
+   */
+  private void msgDirectivesChanged(final boolean init) {
+    boolean retainUserValues = false;
+    if (!init) {
+      // See if the user has changed any values (and back up the changed values).
+      boolean changed = false;
+      if (table.backupIfChanged()) {
+        changed = true;
+      }
+      if (datasetDialog.backupIfChanged()) {
+        changed = true;
+      }
+      if (changed) {
+        // Ask the user whether they want to keep the values they changed.
+        retainUserValues = UIHarness.INSTANCE.openYesNoDialog(manager,
+            "New batch directive/template values will be applied.  Keep your changed " +
+                "values?", axisID);
+      }
+    }
+    table.applyValues(userConfiguration, directiveFileCollection, retainUserValues);
+    datasetDialog.applyValues(directiveFileCollection, retainUserValues);
+  }
+
+  public void actionPerformed(final ActionEvent event) {
+    String actionCommand = event.getActionCommand();
+    if (actionCommand == null) {
+      return;
+    }
+    if (templatePanel.equalsActionCommand(actionCommand)) {
+      // refresh the shared directive file collection
+      templatePanel.refreshDirectiveFileCollection();
+      msgDirectivesChanged(false);
+    }
+    else if (actionCommand.equals(cbDeliverToDirectory.getActionCommand())) {
+      updateDisplay();
+    }
+    else if (actionCommand.equals(cbCPUMachineList.getActionCommand()) ||
+        actionCommand.equals(rbGPUMachineListOff.getActionCommand()) ||
+        actionCommand.equals(rbGPUMachineListLocal.getActionCommand()) ||
+        actionCommand.equals(rbGPUMachineList.getActionCommand())) {
+      mediator.setMethod(this, getProcessingMethod(), getSecondaryProcessingMethod());
+    }
+  }
+
+  /**
+   * Returns one of the two possible methods.  Always returns a processing method.
+   */
+  public ProcessingMethod getProcessingMethod() {
+    if (curTab != BatchRunTomoTab.RUN) {
+      return ProcessingMethod.DEFAULT;
+    }
+    if (cbCPUMachineList.isSelected()) {
+      return ProcessingMethod.PP_CPU;
+    }
+    if (rbGPUMachineList.isSelected()) {
+      return ProcessingMethod.PP_GPU;
+    }
+    if (rbGPUMachineListLocal.isSelected()) {
+      return ProcessingMethod.LOCAL_GPU;
+    }
+    return ProcessingMethod.DEFAULT;
+  }
+
+  /**
+   * Returns a processing method when there are two non-default methods in force,
+   * otherwise returns null.
+   */
+  public ProcessingMethod getSecondaryProcessingMethod() {
+    if (curTab != BatchRunTomoTab.RUN) {
+      return null;
+    }
+    if (!cbCPUMachineList.isSelected()) {
+      // Only one non-default processing method in force
+      return null;
+    }
+    if (rbGPUMachineList.isSelected()) {
+      return ProcessingMethod.PP_GPU;
+    }
+    if (rbGPUMachineListLocal.isSelected()) {
+      return ProcessingMethod.LOCAL_GPU;
+    }
+    return null;
+  }
+
+  /**
+   * No effect because queue is not available
+   */
+  public void disableGpu(final boolean disable) {
+  }
+
+  /**
+   * No effect because the processing method is not used for running processes by etomo.
+   */
+  public void lockProcessingMethod(boolean lock) {
+  }
+
+  public String getRootName() {
+    return ltfRootName.getText();
+  }
+
+  public boolean isRootNameEmpty() {
+    String rootName = ltfRootName.getText();
+    return rootName != null && rootName.matches("\\s*");
+  }
+
+  public File getRootDir() {
+    return ftfRootDir.getFile();
+  }
+
+  public boolean isRootDirEmpty() {
+    String rootDir = ftfRootDir.getText();
+    return rootDir != null && rootDir.matches("\\s*");
+  }
+
+  public void processResult(final Object object) {
+    if (object == ftfRootDir) {
+      File rootLocation = ftfRootDir.getFile();
+      if (rootLocation != null) {
+        table.setCurrentDirectory(rootLocation.getAbsolutePath());
+      }
+      else {
+        table.setCurrentDirectory(null);
+      }
+    }
+    else if (object == ftfInputDirectiveFile) {
+      directiveFileCollection
+          .setDirectiveFile(ftfInputDirectiveFile.getFile(), DirectiveFileType.BATCH);
+      templatePanel.setParameters(
+          directiveFileCollection.getDirectiveFile(DirectiveFileType.BATCH));
+      msgDirectivesChanged(false);
+    }
+  }
+
+  public void expand(final ExpandButton button) {
+    boolean expanded = button.isExpanded();
+    if (button == phDatasetTable.getOpenCloseButton()) {
+      pnlDatasetTableBody.setVisible(expanded);
+    }
+    UIHarness.INSTANCE.pack(manager);
+  }
+
+  public void pack() {
+    // Prevent the table from expanding horizontally
+    if (curTab == BatchRunTomoTab.DATASET) {
+      pnlDatasetTableBody.removeAll();
+      int datasetWidth = datasetDialog.getPreferredWidth();
+      int tableWidth = table.getPreferredWidth();
+      if (datasetWidth != 0 && tableWidth != 0 && datasetWidth > tableWidth) {
+        int padding = (datasetWidth - tableWidth) / 2;
+        pnlDatasetTableBody.add(Box.createHorizontalStrut(padding));
+        pnlDatasetTableBody.add(pnlUntitledTable);
+        pnlDatasetTableBody.add(Box.createHorizontalStrut(padding));
+      }
+      else {
+        pnlDatasetTableBody.add(pnlUntitledTable);
+      }
+    }
+  }
+
+  public void expand(final GlobalExpandButton button) {
+  }
+
+  /**
+   * Handle tab change event
+   */
+  public void stateChanged(final ChangeEvent event) {
+    int curIndex;
+    if (curTab == null) {
+      tabbedPane.setSelectedIndex(BatchRunTomoTab.DEFAULT.getIndex());
+      curTab = BatchRunTomoTab.DEFAULT;
+      curIndex = curTab.getIndex();
+    }
+    else {
+      pnlTabs[curTab.getIndex()].removeAll();
+      curTab = BatchRunTomoTab.getInstance(tabbedPane.getSelectedIndex());
+      curIndex = curTab.getIndex();
+      pnlTable.removeAll();
+      pnlUntitledTable.removeAll();
+    }
+    if (curTab == BatchRunTomoTab.BATCH) {
+      pnlTabs[curIndex].add(pnlBatch);
+    }
+    else if (curTab == BatchRunTomoTab.STACKS) {
+      pnlTabs[curIndex].add(pnlStacks);
+      table.msgTabChanged(curTab);
+      pnlStacks.add(pnlTable);
+      pnlTable.add(table.getComponent());
+    }
+    else if (curTab == BatchRunTomoTab.DATASET) {
+      pnlTabs[curIndex].add(pnlDataset);
+      table.msgTabChanged(curTab);
+      pnlUntitledTable.add(table.getComponent());
+      UIUtilities.alignComponentsX(pnlDataset, Component.LEFT_ALIGNMENT);
+    }
+    else if (curTab == BatchRunTomoTab.RUN) {
+      pnlTabs[curIndex].add(pnlRun);
+      table.msgTabChanged(curTab);
+      pnlRun.removeAll();
+      pnlRun.add(pnlParallelSettings);
+      pnlRun.add(Box.createRigidArea(FixedDim.x0_y5));
+      pnlRun.add(ctfEmailAddress.getComponent());
+      pnlRun.add(Box.createRigidArea(FixedDim.x0_y10));
+      pnlRun.add(pnlTable);
+      pnlRun.add(Box.createRigidArea(FixedDim.x0_y10));
+      pnlRun.add(pnlRunButton);
+      pnlRun.add(Box.createRigidArea(FixedDim.x0_y5));
+      pnlTable.add(table.getComponent());
+      UIUtilities.alignComponentsX(pnlRun, Component.LEFT_ALIGNMENT);
+    }
+    mediator.setMethod(this, getProcessingMethod(), getSecondaryProcessingMethod());
+    UIHarness.INSTANCE.pack(axisID, manager);
+  }
+
+  private void updateDisplay() {
+    ftfDeliverToDirectory.setEnabled(cbDeliverToDirectory.isSelected());
+  }
+}

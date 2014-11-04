@@ -160,6 +160,7 @@ public final class ProcessingMethodMediator {
     // process interface and the parallel panel.
     setInterfaceMethod(processInterface.getProcessingMethod());
     setInterfaceMethod(processInterface.getProcessingMethod());
+    setSecondaryInterfaceMethod(processInterface.getSecondaryProcessingMethod());
   }
 
   /**
@@ -179,6 +180,7 @@ public final class ProcessingMethodMediator {
     }
     if (parallelPanel != null) {
       parallelPanel.setProcessingMethod(ProcessingMethod.DEFAULT);
+      parallelPanel.setSecondaryProcessingMethod(null);
     }
   }
 
@@ -275,6 +277,12 @@ public final class ProcessingMethodMediator {
     }
   }
 
+  private void setSecondaryInterfaceMethod(ProcessingMethod method) {
+    if (parallelPanel != null) {
+      parallelPanel.setSecondaryProcessingMethod(method);
+    }
+  }
+
   /**
    * Tell the parallel panel about the change in ProcessInterface method.
    * @param origin
@@ -287,6 +295,17 @@ public final class ProcessingMethodMediator {
       return;
     }
     setInterfaceMethod(method);
+  }
+
+  public void setMethod(final ProcessInterface origin, final ProcessingMethod method,
+      final ProcessingMethod secondaryMethod) {
+    // Ignore an unregistered process interface
+    // Don't change processing method while reconnect process exists
+    if (origin != processInterface || reconnectProcess != null) {
+      return;
+    }
+    setInterfaceMethod(method);
+    setSecondaryInterfaceMethod(secondaryMethod);
   }
 
   /**
@@ -332,6 +351,12 @@ public final class ProcessingMethodMediator {
   public ProcessingMethod getRunMethodForProcessInterface(
       final ProcessingMethod processInterfaceMethod) {
     if (parallelPanel != null) {
+      if (!parallelPanel.isRunnable()) {
+        // If the parallel panel is not runnable, then this mediator is primarily being
+        // used to set processing method parameters, not actually run a process. When the
+        // run method is asked for, send the default.
+        return ProcessingMethod.DEFAULT;
+      }
       ProcessingMethod parallelPanelMethod = parallelPanel.getProcessingMethod();
       if (!processInterfaceMethod.isLocal()
           && parallelPanelMethod == ProcessingMethod.QUEUE) {

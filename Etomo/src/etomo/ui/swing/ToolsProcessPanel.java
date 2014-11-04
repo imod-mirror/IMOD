@@ -31,7 +31,7 @@ public final class ToolsProcessPanel extends AxisProcessPanel {
   public static final String rcsid = "$Id$";
 
   ToolsProcessPanel(ToolsManager manager) {
-    super(AxisID.ONLY, manager, true);
+    super(AxisID.ONLY, manager, true,true);
     createProcessControlPanel();
     showBothAxis();
     initializePanels();

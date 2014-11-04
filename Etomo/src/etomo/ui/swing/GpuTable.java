@@ -32,8 +32,8 @@ final class GpuTable extends CpuTable {
 
   private static final String PREPEND = "ProcessorTable.Gpu";
 
-  GpuTable(final BaseManager manager, final ParallelPanel parent, final AxisID axisID) {
-    super(manager, parent, axisID);
+  GpuTable(final BaseManager manager, final ParallelPanel parent, final AxisID axisID,final boolean runnable) {
+    super(manager, parent, axisID,runnable);
   }
 
   String getheader1NumberCPUsTitle() {
