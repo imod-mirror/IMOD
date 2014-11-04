@@ -1,10 +1,10 @@
 package etomo.comscript;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import etomo.ApplicationManager;
 import etomo.BaseManager;
 import etomo.process.ProcessMessages;
 import etomo.process.SystemProgram;
@@ -12,6 +12,10 @@ import etomo.storage.DirectiveFile;
 import etomo.type.AxisID;
 import etomo.type.EtomoNumber;
 import etomo.type.ProcessName;
+import etomo.type.StringParameter;
+import etomo.ui.swing.UIHarness;
+import etomo.util.RemotePath;
+import etomo.util.RemotePath.InvalidMountRuleException;
 
 /**
 * <p>Description: </p>
@@ -28,27 +32,228 @@ import etomo.type.ProcessName;
 * 
 * <p> $Log$ </p>
 */
-public class BatchruntomoParam {
+public class BatchruntomoParam implements CommandParam {
   public static final String rcsid = "$Id:$";
 
   private static final int VALIDATION_TYPE_BATCH_DIRECTIVE = 1;
   private static final int VALIDATION_TYPE_TEMPLATE = 2;
+  private static final String DIRECTIVE_FILE_TAG = "DirectiveFile";
+  private static final String ROOT_NAME_TAG = "RootName";
+  private static final String CURRENT_LOCATION_TAG = "CurrentLocation";
+  private static final String CPU_MACHINE_LIST_TAG = "CPUMachineList";
+  private static final String GPU_MACHINE_LIST_TAG = "GPUMachineList";
+  public static final String MACHINE_LIST_LOCAL_VALUE = "1";
 
   private final List<String> command = new ArrayList<String>();
   private final EtomoNumber validationType = new EtomoNumber();
-  private final List<String> directiveList = new ArrayList<String>();
+  private final List<String> directiveFileList = new ArrayList<String>();
+  private final List<String> rootNameList = new ArrayList<String>();
+  private final List<String> currentLocationList = new ArrayList<String>();
+  private final StringParameter deliverToDirectory = new StringParameter(
+      "DeliverToDirectory");
+  private final StringParameter niceValue = new StringParameter("NiceValue");
+  private final StringParameter emailAddress = new StringParameter("EmailAddress");
 
   private final BaseManager manager;
+  private final AxisID axisID;
+  private final CommandMode mode;
 
   private StringBuffer commandLine = null;
   private SystemProgram batchruntomo = null;
   private int exitValue = -1;
+  private boolean valid = true;
+  private StringBuffer cpuMachineList = null;
+  private StringBuffer gpuMachineList = null;
 
-  public BatchruntomoParam(BaseManager manager) {
+  public BatchruntomoParam(final BaseManager manager, final AxisID axisID,
+      final CommandMode mode) {
     this.manager = manager;
+    this.axisID = axisID;
+    this.mode = mode;
   }
 
-  public boolean setup() {
+  public void parseComScriptCommand(final ComScriptCommand scriptCommand)
+      throws BadComScriptException, InvalidParameterException,
+      FortranInputSyntaxException {
+    // reset
+    directiveFileList.clear();
+    rootNameList.clear();
+    currentLocationList.clear();
+    deliverToDirectory.reset();
+    cpuMachineList = null;
+    gpuMachineList = null;
+    niceValue.reset();
+    emailAddress.reset();
+    // parse
+    // directiveFile: based on .ebt file properties
+    // rootName: based on .ebt file properties
+    // currentLocation: based on .ebt file properties
+    deliverToDirectory.parse(scriptCommand);
+    cpuMachineList = new StringBuffer();
+    cpuMachineList.append(scriptCommand.getValue(CPU_MACHINE_LIST_TAG));
+    gpuMachineList = new StringBuffer();
+    gpuMachineList.append(scriptCommand.getValue(GPU_MACHINE_LIST_TAG));
+    niceValue.parse(scriptCommand);
+    emailAddress.parse(scriptCommand);
+  }
+
+  public void updateComScriptCommand(final ComScriptCommand scriptCommand)
+      throws BadComScriptException {
+    scriptCommand.useKeywordValue();
+    scriptCommand.setValues(DIRECTIVE_FILE_TAG, directiveFileList);
+    scriptCommand.setValues(ROOT_NAME_TAG, rootNameList);
+    scriptCommand.setValues(CURRENT_LOCATION_TAG, currentLocationList);
+    deliverToDirectory.updateComScript(scriptCommand);
+    if (cpuMachineList != null && cpuMachineList.length() > 0) {
+      scriptCommand.setValue(CPU_MACHINE_LIST_TAG, cpuMachineList.toString());
+    }
+    if (gpuMachineList != null && gpuMachineList.length() > 0) {
+      scriptCommand.setValue(GPU_MACHINE_LIST_TAG, cpuMachineList.toString());
+    }
+    niceValue.updateComScript(scriptCommand);
+    String remoteDirectory = null;
+    try {
+      remoteDirectory = RemotePath.INSTANCE.getRemotePath(manager,
+          manager.getPropertyUserDir(), axisID);
+      valid = true;
+    }
+    catch (InvalidMountRuleException e) {
+      UIHarness.INSTANCE.openMessageDialog(manager, "ERROR:  Remote path error.  "
+          + "Unabled to run batchruntomo" + ".\n\n" + e.getMessage(),
+          "Batchruntomo Error", axisID);
+      valid = false;
+    }
+    if (remoteDirectory != null) {
+      scriptCommand.setValue("", remoteDirectory);
+    }
+  }
+
+  public void initializeDefaults() {
+  }
+
+  /**
+   * @param directiveFile - absolute path of directive file
+   */
+  public void addDirectiveFile(final String directiveFile) {
+    if (directiveFile != null && !directiveFile.matches("\\s*")) {
+      directiveFileList.add(directiveFile);
+    }
+  }
+
+  public void resetCPUMachineList() {
+    cpuMachineList = null;
+  }
+
+  public void addCPUMachine(final String machine, final int number) {
+    if (machine != null && !machine.matches("\\s*") && number > 0) {
+      boolean first = false;
+      if (cpuMachineList == null) {
+        cpuMachineList = new StringBuffer();
+        first = true;
+      }
+      if (!first) {
+        cpuMachineList.append(",");
+      }
+      cpuMachineList.append(machine + "#" + number);
+    }
+  }
+
+  public void resetGPUMachineList() {
+    gpuMachineList = null;
+  }
+
+  public void addGPUMachine(final String machine, final int number,
+      final String[] deviceArray) {
+    if (machine != null && !machine.matches("\\s*") && number > 0) {
+      boolean first = false;
+      if (gpuMachineList == null) {
+        gpuMachineList = new StringBuffer();
+        first = true;
+      }
+      if (!first) {
+        gpuMachineList.append(",");
+      }
+      gpuMachineList.append(machine);
+      for (int i = 0; i < number; i++) {
+        gpuMachineList.append(":" + deviceArray[i]);
+      }
+    }
+  }
+
+  public void setNiceValue(final Number input) {
+    if (input == null) {
+      niceValue.reset();
+    }
+    else {
+      niceValue.set(input.toString());
+    }
+  }
+
+  public boolean isDeliverToDirectoryNull() {
+    return deliverToDirectory.isEmpty();
+  }
+
+  public String getDeliverToDirectory() {
+    return deliverToDirectory.toString();
+  }
+
+  public void setDeliverToDirectory(final File input) {
+    if (input != null) {
+      deliverToDirectory.set(input.getAbsolutePath());
+    }
+  }
+
+  public void resetDeliverToDirectory() {
+    deliverToDirectory.reset();
+  }
+
+  public void addRootName(final String input) {
+    rootNameList.add(input);
+  }
+
+  public void addCurrentLocation(final String input) {
+    currentLocationList.add(input);
+  }
+
+  public void setCPUMachineList(final String input) {
+    cpuMachineList = new StringBuffer();
+    cpuMachineList.append(input);
+  }
+
+  public void setGPUMachineList(final String input) {
+    gpuMachineList = new StringBuffer();
+    gpuMachineList.append(input);
+  }
+
+  public void setEmailAddress(final String input) {
+    emailAddress.set(input);
+  }
+
+  public void resetEmailAddress() {
+    emailAddress.reset();
+  }
+
+  public boolean isEmailAddressNull() {
+    return emailAddress.isEmpty();
+  }
+
+  public String getEmailAddress() {
+    return emailAddress.toString();
+  }
+
+  public boolean isGpuMachineListNull() {
+    return gpuMachineList == null || gpuMachineList.length() == 0;
+  }
+
+  public boolean gpuMachineListEquals(final String input) {
+    return gpuMachineList != null && gpuMachineList.toString().equals(input);
+  }
+
+  public boolean isCpuMachineListNull() {
+    return cpuMachineList == null || cpuMachineList.length() == 0;
+  }
+
+  public boolean setupValidationCommand() {
     // Create a new SystemProgram object for copytomocom, set the
     // working directory and stdin array.
     // Do not use the -e flag for tcsh since David's scripts handle the failure
@@ -56,10 +261,10 @@ public class BatchruntomoParam {
     // com scripts which require the -e flag. RJG: 2003-11-06
     command.add("python");
     command.add("-u");
-    command.add(ApplicationManager.getIMODBinPath() + ProcessName.BATCHRUNTOMO);
+    command.add(BaseManager.getIMODBinPath() + ProcessName.BATCHRUNTOMO);
     command.add("-validation");
     command.add(validationType.toString());
-    Iterator<String> i = directiveList.iterator();
+    Iterator<String> i = directiveFileList.iterator();
     while (i.hasNext()) {
       command.add("-directive");
       command.add(i.next());
@@ -70,15 +275,21 @@ public class BatchruntomoParam {
     return true;
   }
 
-  public void setDirective(final DirectiveFile directiveFile) {
+  public void addDirectiveFile(final DirectiveFile directiveFile) {
     if (directiveFile != null) {
-      directiveList.add(directiveFile.getFile().getAbsolutePath());
+      File file = directiveFile.getFile();
+      if (file != null) {
+        directiveFileList.add(directiveFile.getFile().getAbsolutePath());
+      }
     }
   }
 
   public boolean isValid() {
-    return (validationType.equals(VALIDATION_TYPE_BATCH_DIRECTIVE) || validationType
-        .equals(VALIDATION_TYPE_TEMPLATE)) && !directiveList.isEmpty();
+    if (mode == Mode.VALIDATION) {
+      return (validationType.equals(VALIDATION_TYPE_BATCH_DIRECTIVE) || validationType
+          .equals(VALIDATION_TYPE_TEMPLATE)) && !directiveFileList.isEmpty();
+    }
+    return valid;
   }
 
   public void setValidationType(final boolean directiveDrivenAutomation) {
@@ -151,5 +362,13 @@ public class BatchruntomoParam {
       return null;
     }
     return batchruntomo.getProcessMessages();
+  }
+
+  public static final class Mode implements CommandMode {
+    public static final Mode VALIDATION = new Mode();
+    public static final Mode BATCH = new Mode();
+
+    private Mode() {
+    }
   }
 }

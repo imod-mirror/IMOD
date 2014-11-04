@@ -117,7 +117,7 @@ public final class EtomoAutodoc {
     if (value == null) {
       return null;
     }
-    PrimativeTokenizer tokenizer = new PrimativeTokenizer(value);
+    PrimativeTokenizer tokenizer = PrimativeTokenizer.getStringInstance(value, debug);
     StringBuffer tooltip = new StringBuffer();
     boolean removeIndentFormatting = false;
     boolean startOfLine = true;
@@ -180,7 +180,7 @@ public final class EtomoAutodoc {
     if (value == null) {
       return null;
     }
-    PrimativeTokenizer tokenizer = new PrimativeTokenizer(value);
+    PrimativeTokenizer tokenizer = PrimativeTokenizer.getStringInstance(value, debug);
     ArrayList list = new ArrayList();
     StringBuffer buffer = new StringBuffer(128);
     boolean startOfLine = true;
