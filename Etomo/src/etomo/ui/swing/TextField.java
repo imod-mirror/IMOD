@@ -27,19 +27,19 @@ import etomo.util.Utilities;
 
 /**
  * <p>Description: </p>
- * 
+ * <p/>
  * <p>Copyright: Copyright 2006</p>
- *
+ * <p/>
  * <p>Organization:
  * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
  * University of Colorado</p>
- * 
+ *
  * @author $Author$
- * 
  * @version $Revision$
  */
 final class TextField implements UIComponent, SwingComponent, Field, FocusListener {
-  public static final String rcsid = "$Id$";
+  public static final String rcsid =
+      "$Id$";
 
   private final JTextField textField = new JTextField();
 
@@ -59,7 +59,8 @@ final class TextField implements UIComponent, SwingComponent, Field, FocusListen
   private FontMetrics fontMetrics = null;
   private Dimension fixedSize = null;
 
-  TextField(final FieldType fieldType, final String reference, final String locationDescr) {
+  TextField(final FieldType fieldType, final String reference,
+      final String locationDescr) {
     this.locationDescr = locationDescr;
     this.fieldType = fieldType;
     this.reference = reference;
@@ -207,39 +208,29 @@ final class TextField implements UIComponent, SwingComponent, Field, FocusListen
     return checkpoint;
   }
 
-  public void setCheckpoint(final FieldSettingInterface settingInterface) {
-    TextFieldSetting setting = null;
-    if (settingInterface != null) {
-      setting = settingInterface.getTextSetting();
-    }
-    if (setting == null || !setting.isSet()) {
-      if (checkpoint != null) {
-        checkpoint.reset();
-      }
-    }
-    else {
+  public void setCheckpoint(final FieldSettingInterface input) {
+    if (input != null && input.isText() && input.isSet()) {
       if (checkpoint == null) {
         checkpoint = new TextFieldSetting(fieldType);
       }
-      checkpoint.copy(setting);
+      checkpoint.copy(input);
+    }
+    else if (checkpoint != null) {
+      checkpoint.reset();
     }
   }
 
-  public void setFieldHighlight(final FieldSettingInterface settingInterface) {
-    TextFieldSetting setting = null;
-    if (settingInterface != null) {
-      setting = settingInterface.getTextSetting();
-    }
-    if (setting == null || !setting.isSet()) {
-      clearFieldHighlight();
-    }
-    else {
+  public void setFieldHighlight(final FieldSettingInterface input) {
+    if (input != null && input.isText() && input.isSet()) {
       if (fieldHighlight == null) {
         fieldHighlight = new TextFieldSetting(fieldType);
         textField.addFocusListener(this);
       }
-      fieldHighlight.copy(setting);
+      fieldHighlight.copy(input);
       updateFieldHighlight();
+    }
+   else if (input == null || !input.isSet()) {
+      clearFieldHighlight();
     }
   }
 
@@ -319,6 +310,7 @@ final class TextField implements UIComponent, SwingComponent, Field, FocusListen
   /**
    * Validates and returns text in text field.  Should never throw a
    * FieldValidationFailedException when doValidation is false.
+   *
    * @param doValidation
    * @return
    * @throws FieldValidationFailedException
@@ -326,8 +318,9 @@ final class TextField implements UIComponent, SwingComponent, Field, FocusListen
   String getText(final boolean doValidation) throws FieldValidationFailedException {
     String text = textField.getText();
     if (doValidation && textField.isEnabled()) {
-      text = FieldValidator.validateText(text, fieldType, this, getQuotedReference()
-          + (locationDescr == null ? "" : " in " + locationDescr), required, false);
+      text = FieldValidator.validateText(text, fieldType, this,
+          getQuotedReference() + (locationDescr == null ? "" : " in " + locationDescr),
+          required, false);
     }
     return text;
   }
@@ -350,6 +343,7 @@ final class TextField implements UIComponent, SwingComponent, Field, FocusListen
 
   /**
    * get text without validation
+   *
    * @return
    */
   public String getText() {
@@ -423,8 +417,8 @@ final class TextField implements UIComponent, SwingComponent, Field, FocusListen
 
   private void setName(String reference) {
     String name = Utilities.convertLabelToName(reference);
-    textField.setName(UITestFieldType.TEXT_FIELD.toString()
-        + AutodocTokenizer.SEPARATOR_CHAR + name);
+    textField.setName(
+        UITestFieldType.TEXT_FIELD.toString() + AutodocTokenizer.SEPARATOR_CHAR + name);
     if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
       System.out.println(getName() + ' ' + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
     }

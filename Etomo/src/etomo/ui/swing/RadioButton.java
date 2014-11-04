@@ -31,19 +31,19 @@ import etomo.util.Utilities;
 
 /**
  * <p>Description: </p>
- * 
+ * <p/>
  * <p>Copyright: Copyright (c) 2005</p>
- *
+ * <p/>
  * <p>Organization:
  * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
  * University of Colorado</p>
- * 
+ *
  * @author $Author$
- * 
  * @version $Revision$
  */
 final class RadioButton implements RadioButtonInterface, Field, ActionListener {
-  public static final String rcsid = "$Id$";
+  public static final String rcsid =
+      "$Id$";
 
   private final JRadioButton radioButton;
   private final EnumeratedType enumeratedType;
@@ -142,20 +142,16 @@ final class RadioButton implements RadioButtonInterface, Field, ActionListener {
     checkpoint.set(isSelected());
   }
 
-  public void setCheckpoint(FieldSettingInterface settingInterface) {
-    BooleanFieldSetting setting = null;
-    if (settingInterface != null) {
-      setting = settingInterface.getBooleanSetting();
-    }
-    if (setting == null) {
-      if (checkpoint != null) {
-        checkpoint.reset();
+  public void setCheckpoint(FieldSettingInterface input) {
+    if (input != null && input.isBoolean() && input.isSet()) {
+      if (checkpoint == null) {
+        checkpoint = new BooleanFieldSetting();
       }
+      checkpoint.copy(input);
     }
-    else if (checkpoint == null) {
-      checkpoint = new BooleanFieldSetting();
+    else if (checkpoint != null) {
+      checkpoint.reset();
     }
-    checkpoint.copy(setting);
   }
 
   public void backup() {
@@ -230,8 +226,8 @@ final class RadioButton implements RadioButtonInterface, Field, ActionListener {
   }
 
   public boolean equalsDefaultValue() {
-    return defaultValue != null && defaultValue.isSet()
-        && defaultValue.equals(isSelected());
+    return defaultValue != null && defaultValue.isSet() &&
+        defaultValue.equals(isSelected());
   }
 
   public boolean equalsDefaultValue(final boolean input) {
@@ -246,8 +242,8 @@ final class RadioButton implements RadioButtonInterface, Field, ActionListener {
   }
 
   /**
-   * 
-   * @param alwaysCheck - check for difference even when the field is disables or invisible
+   * @param alwaysCheck - check for difference even when the field is disables or
+   *                    invisible
    * @return
    */
   public boolean isDifferentFromCheckpoint(final boolean alwaysCheck) {
@@ -296,11 +292,11 @@ final class RadioButton implements RadioButtonInterface, Field, ActionListener {
 
   void setName(final String text) {
     String name = Utilities.convertLabelToName(text);
-    radioButton.setName(UITestFieldType.RADIO_BUTTON.toString()
-        + AutodocTokenizer.SEPARATOR_CHAR + name);
+    radioButton.setName(
+        UITestFieldType.RADIO_BUTTON.toString() + AutodocTokenizer.SEPARATOR_CHAR + name);
     if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
-      System.out.println(radioButton.getName() + ' ' + AutodocTokenizer.DEFAULT_DELIMITER
-          + ' ');
+      System.out.println(
+          radioButton.getName() + ' ' + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
     }
   }
 
@@ -312,21 +308,17 @@ final class RadioButton implements RadioButtonInterface, Field, ActionListener {
     debug = input;
   }
 
-  public void setFieldHighlight(final FieldSettingInterface settingInterface) {
-    BooleanFieldSetting setting = null;
-    if (settingInterface != null) {
-      setting = settingInterface.getBooleanSetting();
-    }
-    if (setting == null || !setting.isSet()) {
-      clearFieldHighlight();
-    }
-    else {
+  public void setFieldHighlight(FieldSettingInterface input) {
+    if (input != null && input.isBoolean() && input.isSet()) {
       if (fieldHighlight == null) {
         fieldHighlight = new BooleanFieldSetting();
         addFieldHighlightActionListeners();
       }
-      fieldHighlight.copy(setting);
+      fieldHighlight.copy(input);
       updateFieldHighlight(isSelected());
+    }
+    else if (input == null || !input.isSet()) {
+      clearFieldHighlight();
     }
   }
 
@@ -373,13 +365,13 @@ final class RadioButton implements RadioButtonInterface, Field, ActionListener {
   }
 
   public boolean equalsFieldHighlight() {
-    return fieldHighlight != null && fieldHighlight.isSet()
-        && fieldHighlight.equals(isSelected());
+    return fieldHighlight != null && fieldHighlight.isSet() &&
+        fieldHighlight.equals(isSelected());
   }
 
   boolean equalsFieldHighlight(final boolean input) {
-    return fieldHighlight != null && fieldHighlight.isSet()
-        && fieldHighlight.equals(input);
+    return fieldHighlight != null && fieldHighlight.isSet() &&
+        fieldHighlight.equals(input);
   }
 
   public void actionPerformed(final ActionEvent event) {
@@ -398,8 +390,8 @@ final class RadioButton implements RadioButtonInterface, Field, ActionListener {
   }
 
   void updateFieldHighlight(final boolean isSelected) {
-    if (fieldHighlight != null && fieldHighlight.isSet()
-        && fieldHighlight.isValue() == isSelected) {
+    if (fieldHighlight != null && fieldHighlight.isSet() &&
+        fieldHighlight.isValue() == isSelected) {
       if (origForeground == null) {
         origForeground = radioButton.getForeground();
         if (origForeground == null) {
@@ -416,6 +408,7 @@ final class RadioButton implements RadioButtonInterface, Field, ActionListener {
 
   /**
    * Sets a tooltip from a section using the enumeratedType, if it exists.
+   *
    * @param section
    */
   void setToolTipText(final String autodocName, final ReadOnlySection section) {

@@ -115,20 +115,16 @@ final class CheckBoxCell extends InputCell implements ToggleCell, ActionListener
     checkpoint.set(isSelected());
   }
 
-  public void setCheckpoint(FieldSettingInterface settingInterface) {
-    BooleanFieldSetting setting = null;
-    if (settingInterface != null) {
-      setting = settingInterface.getBooleanSetting();
-    }
-    if (setting == null) {
-      if (checkpoint != null) {
-        checkpoint.reset();
+  public void setCheckpoint(FieldSettingInterface input) {
+    if (input != null && input.isSet() && input.isBoolean()) {
+      if (checkpoint == null) {
+        checkpoint = new BooleanFieldSetting();
       }
+      checkpoint.copy(input);
     }
-    else if (checkpoint == null) {
-      checkpoint = new BooleanFieldSetting();
+    else if (checkpoint != null) {
+      checkpoint.reset();
     }
-    checkpoint.copy(setting);
   }
 
   public FieldSettingInterface getCheckpoint() {
@@ -233,21 +229,17 @@ final class CheckBoxCell extends InputCell implements ToggleCell, ActionListener
   public void setFieldHighlight(final String value) {
   }
 
-  public void setFieldHighlight(final FieldSettingInterface settingInterface) {
-    BooleanFieldSetting setting = null;
-    if (settingInterface != null) {
-      setting = settingInterface.getBooleanSetting();
-    }
-    if (setting == null || !setting.isSet()) {
-      clearFieldHighlight();
-    }
-    else {
+  public void setFieldHighlight(FieldSettingInterface input) {
+    if (input != null && input.isSet() && input.isBoolean()) {
       if (fieldHighlight == null) {
         fieldHighlight = new BooleanFieldSetting();
         checkBox.addActionListener(this);
       }
-      fieldHighlight.copy(setting);
+      fieldHighlight.copy(input);
       updateFieldHighlight();
+    }
+    else if (input == null || !input.isSet()) {
+      clearFieldHighlight();
     }
   }
 

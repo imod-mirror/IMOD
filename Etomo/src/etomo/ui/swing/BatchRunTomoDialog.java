@@ -49,10 +49,7 @@ import etomo.util.Utilities;
  * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
  * University of Colorado</p>
  *
- * @author $Author$
- * @version $Revision$
- *          <p/>
- *          <p> $Log$ </p>
+ * @version $Revision$ $Date: $ $Author$ $State: $
  */
 public final class BatchRunTomoDialog
     implements ActionListener, ResultListener, ChangeListener, Expandable,
@@ -116,8 +113,9 @@ public final class BatchRunTomoDialog
     table = BatchRunTomoTable.getInstance(manager, this, tableReference);
     datasetDialog = BatchRunTomoDatasetDialog.getGlobalInstance(manager);
     directiveFileCollection = new DirectiveFileCollection(manager, axisID);
-    templatePanel = TemplatePanel.getBorderlessInstance(manager, axisID, null, null, null,
-        directiveFileCollection);
+    templatePanel = TemplatePanel
+        .getBorderlessInstance(manager, axisID, null, null, null, directiveFileCollection,
+            true);
     phDatasetTable = PanelHeader.getInstance("Datasets", this, DialogType.BATCH_RUN_TOMO);
     mediator = manager.getProcessingMethodMediator(axisID);
     mediator.register(this);
@@ -127,7 +125,6 @@ public final class BatchRunTomoDialog
       final AxisID axisID, final TableReference tableReference) {
     BatchRunTomoDialog instance = new BatchRunTomoDialog(manager, axisID, tableReference);
     instance.createPanel();
-    instance.addListeners();
     return instance;
   }
 
@@ -155,6 +152,10 @@ public final class BatchRunTomoDialog
     cbCPUMachineList.setSelected(UserEnv.isParallelProcessing(null, AxisID.ONLY, null));
     rbGPUMachineListLocal.setSelected(UserEnv.isGpuProcessing(null, AxisID.ONLY, null));
     templatePanel.setParameters(userConfiguration);
+    if (!userConfiguration.isEmailAddressNull()) {
+      ctfEmailAddress.setSelected(true);
+      ctfEmailAddress.setText(userConfiguration.getEmailAddress());
+    }
     // root panel
     pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.Y_AXIS));
     pnlRoot.setBorder(new BeveledBorder("Batchruntomo Interface").getBorder());
@@ -234,12 +235,12 @@ public final class BatchRunTomoDialog
     // update
     processResult(ftfRootDir);
     stateChanged(null);
-    msgDirectivesChanged(true);
     updateDisplay();
     mediator.setMethod(this, getProcessingMethod());
   }
 
   private void addListeners() {
+    templatePanel.addListeners();
     cbDeliverToDirectory.addActionListener(this);
     templatePanel.addActionListener(this);
     cbCPUMachineList.addActionListener(this);
@@ -248,6 +249,13 @@ public final class BatchRunTomoDialog
     rbGPUMachineList.addActionListener(this);
     ftfInputDirectiveFile.addResultListener(this);
     tabbedPane.addChangeListener(this);
+  }
+
+  public void endInit(final boolean existingProject) {
+    if (!existingProject) {
+      msgDirectivesChanged(true);
+    }
+    addListeners();
   }
 
   public Container getContainer() {
@@ -266,12 +274,25 @@ public final class BatchRunTomoDialog
     phDatasetTable.set(metaData.getDatasetTableHeader());
   }
 
-  public void getParameters(final BatchRunTomoMetaData metaData) {
-    if (ltfRootName.isEditable()) {
-      ltfRootName.setEditable(false);
-      ftfRootDir.setEditable(false);
-      manager.setNewParamFile(ftfRootDir.getFile(), ltfRootName.getText());
+  public boolean isParamFileModifiable(){
+    return ltfRootName.isEditable();
+  }
+
+  public void msgParamFileSet() {
+    ltfRootName.setEditable(false);
+    ftfRootDir.setEditable(false);
+  }
+
+  public void getUserConfigurationParameters(){
+    if (ctfEmailAddress.isSelected()) {
+      userConfiguration.setEmailAddress(ctfEmailAddress.getText());
     }
+    else {
+      userConfiguration.resetEmailAddress();
+    }
+  }
+
+  public void getParameters(final BatchRunTomoMetaData metaData) {
     table.getParameters(metaData);
     datasetDialog.getParameters(metaData.getDatasetMetaData());
     metaData.setDatasetTableHeader(phDatasetTable);
@@ -342,8 +363,8 @@ public final class BatchRunTomoDialog
       if (globalFile.exists()) {
         LogFile.getInstance(globalFile).backup();
       }
-      BaseProcessManager.touch(globalFile.getAbsolutePath(), manager);
-      WritableAutodoc autodoc = AutodocFactory.getWritableInstance(manager, globalFile);
+      WritableAutodoc autodoc =
+          AutodocFactory.getEmptyWritableInstance(manager, globalFile);
       templatePanel.saveAutodoc(autodoc);
       datasetDialog.saveAutodoc(autodoc);
       autodoc.write();

@@ -1,25 +1,32 @@
 package etomo.ui;
 
 /**
-* <p>Description: </p>
-* 
-* <p>Copyright: Copyright 2014</p>
-*
-* <p>Organization:
-* Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
-* University of Colorado</p>
-* 
-* @author $Author$
-* 
-* @version $Revision$
-* 
-* <p> $Log$ </p>
-*/
+ * <p>Description: Holds a boolean setting and a text setting.  Both are optional.</p>
+ * <p/>
+ * <p>Copyright: Copyright 2014</p>
+ * <p/>
+ * <p>Organization:
+ * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
+ * University of Colorado</p>
+ *
+ * @version $Revision$ $Date: $ $Author$ $State: $
+ */
 public final class FieldSettingBundle implements FieldSettingInterface {
-  public static final String rcsid = "$Id:$";
-
   private BooleanFieldSetting boolSetting = null;
   private TextFieldSetting textSetting = null;
+
+  public boolean isBoolean() {
+    return boolSetting != null;
+  }
+
+  public boolean isText() {
+    return textSetting != null;
+  }
+
+  public boolean isSet() {
+    return (boolSetting != null && boolSetting.isSet()) ||
+        (textSetting != null && textSetting.isSet());
+  }
 
   public BooleanFieldSetting getBooleanSetting() {
     return boolSetting;
