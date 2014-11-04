@@ -35,7 +35,7 @@ public final class TableReference {
   private static final String BASE_ID_NUM = "0";
   private static final String LAST_ID_KEY = "lastID";
 
-  // Map<uniqueString, ID>
+  // Map<uniqueString, ID> example: file-path, ID
   private final Map<String, String> idMap = new HashMap<String, String>();
 
   private final String idPrefix;
