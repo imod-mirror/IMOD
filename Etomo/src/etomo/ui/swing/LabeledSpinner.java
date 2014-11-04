@@ -393,22 +393,18 @@ final class LabeledSpinner implements Field, ChangeListener, FocusListener {
     return fieldHighlight;
   }
 
-  public void setFieldHighlight(final FieldSettingInterface settingInterface) {
-    TextFieldSetting setting = null;
-    if (settingInterface != null) {
-      setting = settingInterface.getTextSetting();
-    }
-    if (setting == null || !setting.isSet()) {
-      clearFieldHighlight();
-    }
-    else {
+  public void setFieldHighlight(final FieldSettingInterface input) {
+    if (input != null && input.isText() && input.isSet()) {
       if (fieldHighlight == null) {
         fieldHighlight = new TextFieldSetting(EtomoNumber.Type.INTEGER);
         spinner.addChangeListener(this);
         spinner.addFocusListener(this);
       }
-      fieldHighlight.copy(setting);
+      fieldHighlight.copy(input);
       updateFieldHighlight();
+    }
+    else if (input == null || !input.isSet()) {
+      clearFieldHighlight();
     }
   }
 
