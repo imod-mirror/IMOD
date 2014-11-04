@@ -93,7 +93,6 @@ function setupCygwin(const rootKey: Integer; const cygwinKeyName: String; const 
 var
   path: String;
   bin: String;
-  ResultCode: Integer;
 begin
   Result := False;
   if RegQueryStringValue(rootKey, cygwinKeyName, pathName, path) and (path <> '') then begin
@@ -102,8 +101,6 @@ begin
       bin := AddBackslash(path) + 'bin';
       if DirExists(bin) then begin
         if fileExists(bin + '\python.exe') or fileExists(bin + '\python') then begin
-          Exec(bin + '\bash.exe','fixCygPython.sh','bin',SW_SHOW,ewWaitUntilTerminated,ResultCode)
-        end;
           AppDir := AddBackslash(path) + 'usr\local';
           CygwinDir := path;
           PythonDir := bin;
@@ -266,7 +263,6 @@ begin
 #endif
   if Cygwin and fileExists(PythonDir + '\python') then begin
     Exec(PythonDir + '\bash.exe',ExpandConstant('{app}')+'\fixCygPython.sh',PythonDir,SW_SHOW,ewWaitUntilTerminated,returnCode)
-    MsgBox('fixCygPython result code:' + IntToStr(returnCode), mbInformation, MB_OK);
   end;
   command := '/C PATH=' + PythonDir + ';%PATH% && echo Installing IMOD.......... && python installIMOD -yes ' + skip + outputBaseFilename + '.tar.gz > installIMOD.log 2>&1';
   if Exec(ExpandConstant('{cmd}'), command, ExpandConstant('{app}'), SW_SHOW, ewWaitUntilTerminated, returnCode) then begin

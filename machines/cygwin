@@ -77,6 +77,10 @@ if ($compiler == intel) then
     icl >&! icl.tmp
     set iclnum = `sed -n  -e '/\./s// /g' -e '/[[:cntrl:]]/s///g' -e '/Version/s/.*Version \([0-9 ]*\).*/\1/p' icl.tmp`
     set iclbuild = `sed -n  -e '/[[:cntrl:]]/s///g' -e '/Build/s/.*Build \([0-9]*\).*/\1/p' icl.tmp`
+
+    # If we are running the 32-bit compiler on a 64-bit system, set as 32-bit
+    grep -q IA-32 icl.tmp
+    if ($status == 0 && $m64bit == true) set m64bit = false
     \rm -f icl.tmp
     @ iclversion = 7
     @ subversion = 0
