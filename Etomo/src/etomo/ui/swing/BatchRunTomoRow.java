@@ -16,33 +16,35 @@ import etomo.EtomoDirector;
 import etomo.comscript.BatchruntomoParam;
 import etomo.logic.BatchTool;
 import etomo.logic.DatasetTool;
-import etomo.logic.SeedingMethod;
-import etomo.logic.TrackingMethod;
-import etomo.process.BaseProcessManager;
-import etomo.process.ProcessManager;
-import etomo.storage.*;
+import etomo.storage.DirectiveDef;
+import etomo.storage.DirectiveFile;
+import etomo.storage.DirectiveFileCollection;
+import etomo.storage.DirectiveFileInterface;
+import etomo.storage.LogFile;
 import etomo.storage.autodoc.AutodocFactory;
 import etomo.storage.autodoc.WritableAutodoc;
-import etomo.type.*;
+import etomo.type.AxisID;
+import etomo.type.AxisType;
+import etomo.type.BatchRunTomoMetaData;
+import etomo.type.BatchRunTomoRowMetaData;
+import etomo.type.EtomoNumber;
+import etomo.type.Run3dmodMenuOptions;
+import etomo.type.UserConfiguration;
 import etomo.ui.BatchRunTomoTab;
 import etomo.ui.PreferredTableSize;
-import etomo.util.Utilities;
 
 /**
- * <p>Description: </p>
+ * <p>Description: A row of the BatchRunTomo table.</p>
  * <p/>
- * <p>Copyright: Copyright 2013</p>
+ * <p>Copyright: Copyright 2014</p>
  * <p/>
  * <p>Organization:
  * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
  * University of Colorado</p>
  *
- * @version $Revision$ $Date: $ $Author$ $State: $
+ * @version $Revision$ $Id$
  */
 final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
-  public static final String rcsid =
-      "$Id$";
-
   private static final URL IMOD_ICON_URL =
       ClassLoader.getSystemResource("images/b3dicon.png");
   private static final URL IMOD_DISABLED_ICON_URL =
@@ -349,6 +351,7 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
   public void setParameters(final BatchRunTomoMetaData metaData) {
     BatchRunTomoRowMetaData rowMetaData = metaData.getRowMetaData(stackID);
     this.metaData = rowMetaData;
+    cbcDual.setValue(rowMetaData.isDual());
     fcbskip.setValue(rowMetaData.getBskip());
     boolean isDatasetDialog = rowMetaData.isDatasetDialog();
     bcEditDataset.setSelected(isDatasetDialog);
@@ -368,6 +371,7 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
     BatchRunTomoRowMetaData rowMetaData = metaData.getRowMetaData(stackID);
     this.metaData = rowMetaData;
     rowMetaData.setDisplay(true);
+    rowMetaData.setDual(cbcDual.isSelected());
     rowMetaData.setBskip(fcbskip.getValue());
     rowMetaData.setDatasetDialog(datasetDialog != null);
     if (datasetDialog != null) {
@@ -552,7 +556,8 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
     return false;
   }
 
-  void setValues(final UserConfiguration userConfiguration) {
+  void setValues(final UserConfiguration
+      userConfiguration) {
     cbcDual.setSelected(!userConfiguration.getSingleAxis());
     cbcMontage.setSelected(userConfiguration.getMontage());
   }
