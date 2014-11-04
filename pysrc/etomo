@@ -149,8 +149,8 @@ if cygbin and not os.path.exists(os.path.join(cygbin, 'python.exe')):
       prnstr('There must be a python.exe in the Cygwin bin in order to use etomo')
       pythlist = glob.glob(os.path.join(cygbin, 'python?.?.exe'))
       if len(pythlist) > 0:
-         prnstr('You should remove the Cygwin link (' + cygbin + '\python) and')
-         prnstr('   copy ' + pythlist[0] + ' to ' + cygbin + '\python.exe')
+         prnstr('You should run this command in a Cygwin terminal:')
+         prnstr('   cp ' + pythlist[0] + ' ' + cygbin + '/python.exe')
       else:
          prnstr('It does not work to have a Cygwin link from python to python2.x.exe')
    else:
