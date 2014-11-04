@@ -20,11 +20,10 @@ import etomo.storage.autodoc.AutodocTokenizer;
 public final class DirectiveType {
   public static final String rcsid = "$Id:$";
 
-  public static final DirectiveType SETUP_SET = new DirectiveType(
-      DirectiveFile.SETUP_SET_NAME);
-  public static final DirectiveType RUNTIME = new DirectiveType(
-      DirectiveFile.RUNTIME_NAME);
+  public static final DirectiveType SETUP_SET = new DirectiveType("setupset");
+  public static final DirectiveType RUN_TIME = new DirectiveType("runtime");
   public static final DirectiveType COM_PARAM = new DirectiveType("comparam");
+  public static final DirectiveType COPY_ARG = new DirectiveType("copyarg");
 
   private final String tag;
 
@@ -36,7 +35,7 @@ public final class DirectiveType {
    * @param input - directive name or first part of the name
    * @return the instance matching the first section of input
    */
-  static DirectiveType getInstance(String input) {
+  static DirectiveType getFirstSectionInstance(String input) {
     if (input == null) {
       return null;
     }
@@ -51,8 +50,8 @@ public final class DirectiveType {
     if (SETUP_SET.equals(input)) {
       return SETUP_SET;
     }
-    if (RUNTIME.equals(input)) {
-      return RUNTIME;
+    if (RUN_TIME.equals(input)) {
+      return RUN_TIME;
     }
     if (COM_PARAM.equals(input)) {
       return COM_PARAM;
@@ -77,6 +76,13 @@ public final class DirectiveType {
     }
     input = input.trim();
     return input.equals(this.tag);
+  }
+
+  public String getKey() {
+    if (this == COPY_ARG) {
+      return SETUP_SET.tag + AutodocTokenizer.SEPARATOR_CHAR + tag;
+    }
+    return tag;
   }
 
   public String toString() {

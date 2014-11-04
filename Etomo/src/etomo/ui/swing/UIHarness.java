@@ -24,19 +24,19 @@ import etomo.util.UniqueKey;
  * functions from SubFrame.  Must not generate any headless exceptions when JUnit
  * is running.  Logs the text of all dialog messages to etomo_test.log when
  * --test is used on the command line.</p>
- * 
+ * <p/>
  * <p>Copyright: Copyright (c) 2005</p>
- *
- *<p>Organization:
+ * <p/>
+ * <p>Organization:
  * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
  * University of Colorado</p>
- * 
+ *
  * @author $Author$
- * 
  * @version $Revision$
  */
 public final class UIHarness {
-  public static final String rcsid = "$Id$";
+  public static final String rcsid =
+      "$Id$";
 
   private static final String LOG_TAG = "LOG";
 
@@ -67,6 +67,7 @@ public final class UIHarness {
 
   /**
    * Open a message dialog
+   *
    * @param message
    * @param title
    */
@@ -92,6 +93,7 @@ public final class UIHarness {
 
   /**
    * Open a message dialog
+   *
    * @param message
    * @param title
    */
@@ -99,8 +101,8 @@ public final class UIHarness {
       final UIComponent uiComponent, final String message, final String title,
       final AxisID axisID) {
     if (isHead() && !EtomoDirector.INSTANCE.isTestFailed()) {
-      getFrame(manager).displayMessage(manager, getComponent(uiComponent), message,
-          title, axisID);
+      getFrame(manager)
+          .displayMessage(manager, getComponent(uiComponent), message, title, axisID);
     }
     else {
       log(message, title, axisID);
@@ -118,31 +120,35 @@ public final class UIHarness {
     }
   }
 
+  public synchronized boolean openYesNoDialog(final UIComponent uiComponent,
+      String message) {
+    if (isHead() && !EtomoDirector.INSTANCE.isTestFailed()) {
+      return getFrame(null)
+          .displayYesNoMessage(null, getComponent(uiComponent), message, null);
+    }
+    log(message, (AxisID) null);
+    return true;
+  }
+
   public void openProblemValueMessageDialog(final UIComponent uiComponent,
       final String problem, final String paramName, final String paramDescr,
       final String fieldLabel, final String problemValue, final String replacementValue,
       final String replacementValueDescr) {
-    openWarningMessageDialog(uiComponent, problem
-        + " '"
-        + paramName
-        + "' parameter "
-        + (paramDescr != null ? paramDescr : "")
-        + " value '"
-        + problemValue
-        + "'."
-        + (replacementValue != null ? "  The " + problem.toLowerCase()
-            + " value will be replaced with "
-            + (replacementValueDescr != null ? "'" + replacementValueDescr + "': " : "")
-            + " '" + replacementValue + "'." : "")
-        + (fieldLabel != null ? "  See the '" + fieldLabel + "' field." : ""), problem
-        + " Value");
+    openWarningMessageDialog(uiComponent, problem + " '" + paramName + "' parameter " +
+            (paramDescr != null ? paramDescr : "") + " value '" + problemValue + "'." +
+            (replacementValue != null ?
+                "  The " + problem.toLowerCase() + " value will be replaced with " +
+                    (replacementValueDescr != null ? "'" + replacementValueDescr + "': " :
+                        "") + " '" + replacementValue + "'." : "") +
+            (fieldLabel != null ? "  See the '" + fieldLabel + "' field." : ""),
+        problem + " Value");
   }
 
   private synchronized void openWarningMessageDialog(final UIComponent uiComponent,
       final String message, final String title) {
     if (isHead() && !EtomoDirector.INSTANCE.isTestFailed()) {
-      getFrame(null).displayWarningMessage(null, getComponent(uiComponent), message,
-          title, null);
+      getFrame(null)
+          .displayWarningMessage(null, getComponent(uiComponent), message, title, null);
     }
     else {
       log(message, title, null);
@@ -172,7 +178,8 @@ public final class UIHarness {
 
   /**
    * open one dialog and display all error messages in messages.
-   * @param messages
+   *
+   * @param message
    * @param title
    */
   public synchronized void openErrorMessageDialog(BaseManager manager,
@@ -187,6 +194,7 @@ public final class UIHarness {
 
   /**
    * open one dialog and display all warning messages in messages.
+   *
    * @param messages
    * @param title
    */
@@ -202,6 +210,7 @@ public final class UIHarness {
 
   /**
    * Open a message dialog
+   *
    * @param message
    * @param title
    */
@@ -217,6 +226,7 @@ public final class UIHarness {
 
   /**
    * Open a message dialog
+   *
    * @param message
    * @param title
    */
@@ -234,8 +244,8 @@ public final class UIHarness {
       String message, AxisID axisID) {
     EtomoBoolean2 retval = null;
     if (isHead() && !EtomoDirector.INSTANCE.isTestFailed()) {
-      int dialogRetValue = getFrame(manager).displayYesNoCancelMessage(manager, message,
-          axisID);
+      int dialogRetValue =
+          getFrame(manager).displayYesNoCancelMessage(manager, message, axisID);
       if (dialogRetValue == JOptionPane.CANCEL_OPTION) {
         return null;
       }
@@ -263,10 +273,11 @@ public final class UIHarness {
     return true;
   }
 
-  public synchronized boolean openYesNoDialogWithDefaultNo(BaseManager manager, String message,
-      String title, AxisID axisID) {
+  public synchronized boolean openYesNoDialogWithDefaultNo(BaseManager manager,
+      String message, String title, AxisID axisID) {
     if (isHead() && !EtomoDirector.INSTANCE.isTestFailed()) {
-      return getFrame(manager).openYesNoDialogWithDefaultNo(manager, message, title, axisID);
+      return getFrame(manager)
+          .openYesNoDialogWithDefaultNo(manager, message, title, axisID);
     }
     log(message, axisID);
     return true;
@@ -479,6 +490,7 @@ public final class UIHarness {
   /**
    * Returns the existing file chooser.  Everything in the file chooser is reset except
    * current directory.
+   *
    * @return a file chooser if the application has a GUI, otherwise null
    */
   public JFileChooser getFileChooser() {
@@ -510,6 +522,12 @@ public final class UIHarness {
     }
   }
 
+  public void updateFrame(BaseManager currentManager) {
+    if (isHead()) {
+      mainFrame.updateFrame(currentManager);
+    }
+  }
+
   public void setCurrentManager(BaseManager currentManager, UniqueKey managerKey) {
     if (isHead()) {
       mainFrame.setCurrentManager(currentManager, managerKey);
@@ -533,6 +551,7 @@ public final class UIHarness {
   /**
    * If there is a head, tells mainFrame to select a window menu item base on
    * currentManagerKey.
+   *
    * @param currentManagerKey
    * @param newWindow
    */
@@ -563,6 +582,12 @@ public final class UIHarness {
   public void setEnabledNewAnisotropicDiffusionMenuItem(boolean enable) {
     if (isHead()) {
       mainFrame.setEnabledNewAnisotropicDiffusionMenuItem(enable);
+    }
+  }
+
+  public void setEnabledNewBatchRunTomoMenuItem(boolean enable) {
+    if (isHead()) {
+      mainFrame.setEnabledNewBatchRunTomoMenuItem(enable);
     }
   }
 
@@ -611,7 +636,6 @@ public final class UIHarness {
 
   /**
    * Initialize if necessary.  Instantiate mainFrame if headless is false.
-   *
    */
   public void createMainFrame() {
     if (!initialized) {
@@ -641,6 +665,7 @@ public final class UIHarness {
 
   /**
    * Initialize if necessary.
+   *
    * @return True, if mainFrame is not equal to null.
    */
   private boolean isHead() {
@@ -652,7 +677,6 @@ public final class UIHarness {
 
   /**
    * Initialize headless, testLog, and logWriter.
-   *
    */
   private void initialize() {
     initialized = true;
@@ -662,6 +686,7 @@ public final class UIHarness {
 
   /**
    * Log the parameters in testLog with logWriter.
+   *
    * @param function
    * @param message
    * @param axisID
@@ -672,6 +697,7 @@ public final class UIHarness {
 
   /**
    * Log the parameters in testLog with logWriter.
+   *
    * @param function
    * @param message
    * @param title
@@ -683,6 +709,7 @@ public final class UIHarness {
 
   /**
    * Log the parameters in testLog with logWriter.
+   *
    * @param function
    * @param message
    * @param title
@@ -711,6 +738,7 @@ public final class UIHarness {
 
   /**
    * Log the parameters in testLog with logWriter.
+   *
    * @param function
    * @param message
    * @param axisID
@@ -721,6 +749,7 @@ public final class UIHarness {
 
   /**
    * Log the parameters in testLog with logWriter.
+   *
    * @param function
    * @param message
    * @param title
@@ -738,8 +767,8 @@ public final class UIHarness {
   }
 
   private void logHeader(final String title, final AxisID axisID) {
-    System.err.println(LOG_TAG + ": " + (title == null ? "" : title)
-        + (axisID == null || axisID == AxisID.ONLY ? "" : "(" + axisID + ")") + ":");
+    System.err.println(LOG_TAG + ": " + (title == null ? "" : title) +
+        (axisID == null || axisID == AxisID.ONLY ? "" : "(" + axisID + ")") + ":");
   }
 }
 /**

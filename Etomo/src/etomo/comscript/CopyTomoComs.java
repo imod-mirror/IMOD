@@ -243,6 +243,7 @@ import etomo.ApplicationManager;
 import etomo.EtomoDirector;
 import etomo.process.ProcessMessages;
 import etomo.process.SystemProgram;
+import etomo.storage.DirectiveDef;
 import etomo.storage.DirectiveFile;
 import etomo.storage.DirectiveFileCollection;
 import etomo.type.AxisID;
@@ -375,10 +376,11 @@ public final class CopyTomoComs {
       boolean montage = false;
       boolean gradient = false;
       // Dataset name
-      overrideParameter(commandMap, DirectiveFile.NAME_NAME, metaData.getDatasetName());
+      overrideParameter(commandMap, DirectiveDef.NAME.getName(null),
+          metaData.getDatasetName());
       // View type: single or montaged
       if (metaData.getViewType() == ViewType.MONTAGE) {
-        overrideParameter(commandMap, DirectiveFile.MONTAGE_NAME, "1");
+        overrideParameter(commandMap, DirectiveDef.MONTAGE.getName(null), "1");
         montage = true;
       }
       // Backup directory
@@ -391,47 +393,50 @@ public final class CopyTomoComs {
         overrideParameter(commandMap, "film", "1");
       }
       // Pixel size
-      overrideParameter(commandMap, DirectiveFile.PIXEL_NAME,
+      overrideParameter(commandMap, DirectiveDef.PIXEL.getName(null),
           String.valueOf(metaData.getPixelSize()));
       // Fiducial diameter
-      overrideParameter(commandMap, DirectiveFile.GOLD_NAME,
+      overrideParameter(commandMap, DirectiveDef.GOLD.getName(null),
           String.valueOf(metaData.getFiducialDiameter()));
       // Image rotation
       ConstEtomoNumber n = metaData.getImageRotation(AxisID.FIRST);
       if (!n.isNull()) {
-        overrideParameter(commandMap, DirectiveFile.ROTATION_NAME, n.toString());
+        overrideParameter(commandMap, DirectiveDef.ROTATION.getName(AxisID.FIRST),
+            n.toString());
       }
       // A first tilt angle and tilt angle incriment
       if (metaData.getTiltAngleSpecA().getType() == TiltAngleType.RANGE) {
         overrideParameter(
             commandMap,
-            DirectiveFile.FIRST_INC_NAME,
+            DirectiveDef.FIRST_INC.getName(AxisID.FIRST),
             String.valueOf(metaData.getTiltAngleSpecA().getRangeMin()) + ","
                 + String.valueOf(metaData.getTiltAngleSpecA().getRangeStep()));
       }
       // Use an existing rawtilt file (this assumes that one is there and has
       // not been deleted by checkTiltAngleFiles()
       else if (metaData.getTiltAngleSpecA().getType() == TiltAngleType.FILE) {
-        overrideParameter(commandMap, DirectiveFile.USE_RAW_TLT_NAME, "1");
+        overrideParameter(commandMap, DirectiveDef.USE_RAW_TLT.getName(AxisID.FIRST), "1");
       }
       // Extract the tilt angle data from the stack
       else if (metaData.getTiltAngleSpecA().getType() == TiltAngleType.EXTRACT) {
-        overrideParameter(commandMap, DirectiveFile.EXTRACT_NAME, "1");
+        overrideParameter(commandMap, DirectiveDef.EXTRACT.getName(AxisID.FIRST), "1");
       }
       // List of views to exclude from processing
       String excludeProjections = metaData.getExcludeProjectionsA();
       if (!excludeProjections.equals("")) {
-        overrideParameter(commandMap, DirectiveFile.SKIP_NAME, excludeProjections);
+        overrideParameter(commandMap, DirectiveDef.SKIP.getName(AxisID.FIRST),
+            excludeProjections);
       }
       if (metaData.isTwodir(AxisID.FIRST)) {
-        overrideParameter(commandMap, DirectiveFile.TWODIR_NAME,
+        overrideParameter(commandMap, DirectiveDef.TWODIR.getName(AxisID.FIRST),
             metaData.getTwodir(AxisID.FIRST));
       }
       if (!voltage.isNull()) {
-        overrideParameter(commandMap, DirectiveFile.VOLTAGE_NAME, voltage.toString());
+        overrideParameter(commandMap, DirectiveDef.VOLTAGE.getName(null),
+            voltage.toString());
       }
       if (!sphericalAberration.isNull()) {
-        overrideParameter(commandMap, DirectiveFile.CS_NAME,
+        overrideParameter(commandMap, DirectiveDef.CS.getName(null),
             sphericalAberration.toString());
       }
       // Only create ctf files.
@@ -441,31 +446,31 @@ public final class CopyTomoComs {
       // Undistort images with the given .idf file
       String distortionFile = metaData.getDistortionFile();
       if (!distortionFile.equals("")) {
-        overrideParameter(commandMap, DirectiveFile.DISTORT_NAME, distortionFile);
+        overrideParameter(commandMap, DirectiveDef.DISTORT.getName(null), distortionFile);
       }
       // Binning of raw stacks (needed to undistort if ambiguous)
-      overrideParameter(commandMap, DirectiveFile.BINNING_NAME,
+      overrideParameter(commandMap, DirectiveDef.BINNING.getName(null),
           String.valueOf(metaData.getBinning()));
       // Mag gradients correction file
       String magGradientFile = metaData.getMagGradientFile();
       if (!magGradientFile.equals("")) {
-        overrideParameter(commandMap, DirectiveFile.GRADIENT_NAME, magGradientFile);
+        overrideParameter(commandMap, DirectiveDef.GRADIENT.getName(null),
+            magGradientFile);
         gradient = true;
         // It is only necessary to know if the focus was adjusted between montages
         // if a mag gradients correction file is being used.
         if (montage && metaData.getAdjustedFocusA().is()) {
-          overrideParameter(commandMap, DirectiveFile.FOCUS_NAME, "1");
+          overrideParameter(commandMap, DirectiveDef.FOCUS.getName(AxisID.FIRST), "1");
         }
       }
 
       // Axis type: single or dual
       if (metaData.getAxisType() == AxisType.DUAL_AXIS) {
-        overrideParameter(commandMap, DirectiveFile.DUAL_NAME, "1");
+        overrideParameter(commandMap, DirectiveDef.DUAL.getName(null), "1");
         // There is only one image rotation value in setup dialog and it is used to set
         // both image rotation values. Use the directive file B image rotation if it
         // exists.
-        String key = DirectiveFile.convertAttributeName(AxisID.SECOND,
-            DirectiveFile.ROTATION_NAME);
+        String key = DirectiveDef.ROTATION.getName(AxisID.SECOND);
         if (!commandMap.containsKey(key)) {
           n = metaData.getImageRotation(AxisID.SECOND);
           if (!n.isNull()) {
@@ -476,37 +481,31 @@ public final class CopyTomoComs {
         if (metaData.getTiltAngleSpecB().getType() == TiltAngleType.RANGE) {
           overrideParameter(
               commandMap,
-              DirectiveFile.convertAttributeName(AxisID.SECOND,
-                  DirectiveFile.FIRST_INC_NAME),
+              DirectiveDef.FIRST_INC.getName(AxisID.SECOND),
               String.valueOf(metaData.getTiltAngleSpecB().getRangeMin()) + ","
                   + String.valueOf(metaData.getTiltAngleSpecB().getRangeStep()));
         }
         // Take tilt angle from a .rawtlt file - B
         else if (metaData.getTiltAngleSpecB().getType() == TiltAngleType.FILE) {
-          overrideParameter(commandMap, DirectiveFile.convertAttributeName(AxisID.SECOND,
-              DirectiveFile.USE_RAW_TLT_NAME), "1");
+          overrideParameter(commandMap, DirectiveDef.USE_RAW_TLT.getName(AxisID.SECOND),
+              "1");
         }
         // Extract the tilt angle data from the stack - B
         else if (metaData.getTiltAngleSpecB().getType() == TiltAngleType.EXTRACT) {
-          overrideParameter(commandMap, DirectiveFile.convertAttributeName(AxisID.SECOND,
-              DirectiveFile.EXTRACT_NAME), "1");
+          overrideParameter(commandMap, DirectiveDef.EXTRACT.getName(AxisID.SECOND), "1");
         }
         // List of views to exclude from processing - B
         excludeProjections = metaData.getExcludeProjectionsB();
         if (!excludeProjections.equals("")) {
-          overrideParameter(commandMap,
-              DirectiveFile.convertAttributeName(AxisID.SECOND, DirectiveFile.SKIP_NAME),
+          overrideParameter(commandMap, DirectiveDef.SKIP.getName(AxisID.SECOND),
               excludeProjections);
         }
         if (metaData.isTwodir(AxisID.SECOND)) {
-          overrideParameter(commandMap, DirectiveFile.convertAttributeName(AxisID.SECOND,
-              DirectiveFile.TWODIR_NAME), metaData.getTwodir(AxisID.SECOND));
+          overrideParameter(commandMap, DirectiveDef.TWODIR.getName(AxisID.SECOND),
+              metaData.getTwodir(AxisID.SECOND));
         }
         if (montage && gradient && metaData.getAdjustedFocusB().is()) {
-          overrideParameter(
-              commandMap,
-              DirectiveFile.convertAttributeName(AxisID.SECOND, DirectiveFile.FOCUS_NAME),
-              "1");
+          overrideParameter(commandMap, DirectiveDef.FOCUS.getName(AxisID.SECOND), "1");
         }
       }
     }
@@ -522,27 +521,40 @@ public final class CopyTomoComs {
     if (metaData.isSetFEIPixelSize()) {
       command.add("fei");
     }
+    File file = null;
     if (directiveFileCollection != null) {
       DirectiveFile directiveFile = directiveFileCollection
           .getDirectiveFile(DirectiveFileType.SCOPE);
       if (directiveFile != null) {
-        command.add(CHANGE_PARAMETERS_FILE_TAG + " "
-            + directiveFile.getFile().getAbsolutePath());
+        file = directiveFile.getFile();
+        if (file != null) {
+          command.add(CHANGE_PARAMETERS_FILE_TAG + " "
+              + file.getAbsolutePath());
+        }
       }
       directiveFile = directiveFileCollection.getDirectiveFile(DirectiveFileType.SYSTEM);
       if (directiveFile != null) {
-        command.add(CHANGE_PARAMETERS_FILE_TAG + " "
-            + directiveFile.getFile().getAbsolutePath());
+        file = directiveFile.getFile();
+        if (file != null) {
+          command.add(CHANGE_PARAMETERS_FILE_TAG + " "
+              + file.getAbsolutePath());
+        }
       }
       directiveFile = directiveFileCollection.getDirectiveFile(DirectiveFileType.USER);
       if (directiveFile != null) {
-        command.add(CHANGE_PARAMETERS_FILE_TAG + " "
-            + directiveFile.getFile().getAbsolutePath());
+        file = directiveFile.getFile();
+        if (file != null) {
+          command.add(CHANGE_PARAMETERS_FILE_TAG + " "
+              + file.getAbsolutePath());
+        }
       }
       directiveFile = directiveFileCollection.getDirectiveFile(DirectiveFileType.BATCH);
       if (directiveFile != null) {
-        command.add(CHANGE_PARAMETERS_FILE_TAG + " "
-            + directiveFile.getFile().getAbsolutePath());
+        file = directiveFile.getFile();
+        if (file != null) {
+          command.add(CHANGE_PARAMETERS_FILE_TAG + " "
+              + file.getAbsolutePath());
+        }
       }
     }
     // Options removed:
