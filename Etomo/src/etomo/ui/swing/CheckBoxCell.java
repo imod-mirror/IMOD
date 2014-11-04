@@ -229,21 +229,17 @@ final class CheckBoxCell extends InputCell implements ToggleCell, ActionListener
   public void setFieldHighlight(final String value) {
   }
 
-  public void setFieldHighlight(final FieldSettingInterface settingInterface) {
-    BooleanFieldSetting setting = null;
-    if (settingInterface != null) {
-      setting = settingInterface.getBooleanSetting();
-    }
-    if (setting == null || !setting.isSet()) {
-      clearFieldHighlight();
-    }
-    else {
+  public void setFieldHighlight(FieldSettingInterface input) {
+    if (input != null && input.isSet() && input.isBoolean()) {
       if (fieldHighlight == null) {
         fieldHighlight = new BooleanFieldSetting();
         checkBox.addActionListener(this);
       }
-      fieldHighlight.copy(setting);
+      fieldHighlight.copy(input);
       updateFieldHighlight();
+    }
+    else if (input == null || !input.isSet()) {
+      clearFieldHighlight();
     }
   }
 
