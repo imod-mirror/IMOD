@@ -322,21 +322,17 @@ final class CheckBox extends JCheckBox implements Field, ActionListener {
     return fieldHighlight;
   }
 
-  public void setFieldHighlight(FieldSettingInterface settingInterface) {
-    BooleanFieldSetting setting = null;
-    if (settingInterface != null) {
-      setting = settingInterface.getBooleanSetting();
-    }
-    if (setting == null || !setting.isSet()) {
-      clearFieldHighlight();
-    }
-    else {
+  public void setFieldHighlight(FieldSettingInterface input) {
+    if (input != null && input.isBoolean() && input.isSet()) {
       if (fieldHighlight == null) {
         fieldHighlight = new BooleanFieldSetting();
         addActionListener(this);
       }
-      fieldHighlight.copy(setting);
+      fieldHighlight.copy(input);
       updateFieldHighlight();
+    }
+    else if (input == null || !input.isSet()) {
+      clearFieldHighlight();
     }
   }
 
