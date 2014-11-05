@@ -274,7 +274,7 @@ public final class BatchRunTomoDialog
     phDatasetTable.set(metaData.getDatasetTableHeader());
   }
 
-  public boolean isParamFileModifiable(){
+  public boolean isParamFileModifiable() {
     return ltfRootName.isEditable();
   }
 
@@ -283,7 +283,7 @@ public final class BatchRunTomoDialog
     ftfRootDir.setEditable(false);
   }
 
-  public void getUserConfigurationParameters(){
+  public void getUserConfigurationParameters() {
     if (ctfEmailAddress.isSelected()) {
       userConfiguration.setEmailAddress(ctfEmailAddress.getText());
     }
@@ -484,18 +484,8 @@ public final class BatchRunTomoDialog
     return ltfRootName.getText();
   }
 
-  public boolean isRootNameEmpty() {
-    String rootName = ltfRootName.getText();
-    return rootName != null && rootName.matches("\\s*");
-  }
-
   public File getRootDir() {
     return ftfRootDir.getFile();
-  }
-
-  public boolean isRootDirEmpty() {
-    String rootDir = ftfRootDir.getText();
-    return rootDir != null && rootDir.matches("\\s*");
   }
 
   public void processResult(final Object object) {
