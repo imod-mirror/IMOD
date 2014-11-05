@@ -84,7 +84,7 @@ public final class BatchRunTomoDialog
       EtomoDirector.INSTANCE.getUserConfiguration();
   private final JPanel pnlDatasetTableBody = new JPanel();
   private final JPanel pnlUntitledTable = new JPanel();
-
+//
   private final FileTextField2 ftfRootDir;
   private final FileTextField2 ftfInputDirectiveFile;
   private final TemplatePanel templatePanel;
