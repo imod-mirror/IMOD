@@ -50,7 +50,7 @@ import etomo.util.Utilities;
  * University of Colorado</p>
  *
  * @version $Date$ $Revision$
- * @version $Id:$
+ * @version $Id:sueh $
  */
 public final class BatchRunTomoDialog
     implements ActionListener, ResultListener, ChangeListener, Expandable,
