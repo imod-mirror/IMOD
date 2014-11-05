@@ -34,7 +34,7 @@ import etomo.ui.swing.UIHarness;
 import etomo.util.Utilities;
 
 /**
- * <p>Description: </p>
+ * <p>Description: Manager for the interface for batchruntomo.</p>
  * <p/>
  * <p>Copyright: Copyright 2013</p>
  * <p/>
@@ -42,11 +42,9 @@ import etomo.util.Utilities;
  * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
  * University of Colorado</p>
  *
- * @version $Revision$ $Date: $ $Author$ $State: $
+ * @version $Revision$ $Id$
  */
 public final class BatchRunTomoManager extends BaseManager {
-  public static final String rcsid = "$Id:$";
-
   private static final AxisID AXIS_ID = AxisID.ONLY;
   private static final String STACK_REFERENCE_PREFIX =
       DataFileType.BATCH_RUN_TOMO.extension.substring(1);
@@ -60,7 +58,7 @@ public final class BatchRunTomoManager extends BaseManager {
 
   private final BatchRunTomoMetaData metaData;
 
-  private BatchRunTomoProcessManager processMgr;
+  private final BatchRunTomoProcessManager processMgr;
   private MainBatchRunTomoPanel mainPanel;
 
   private BatchRunTomoDialog dialog = null;
@@ -235,10 +233,13 @@ public final class BatchRunTomoManager extends BaseManager {
   }
 
   public boolean isSetupDone() {
-    return dialog != null && !dialog.isRootNameEmpty() && !dialog.isRootDirEmpty();
+    return dialog != null && !dialog.isParamFileModifiable();
   }
 
   public boolean setParamFile() {
+    if (loadedParamFile) {
+      return true;
+    }
     if (!isSetupDone()) {
       return false;
     }
