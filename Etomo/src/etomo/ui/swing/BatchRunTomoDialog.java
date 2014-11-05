@@ -49,7 +49,7 @@ import etomo.util.Utilities;
  * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
  * University of Colorado</p>
  *
- * @version $Revision$ $Date: $ $Author$ $State: $
+ * @version $Date$ $Revision$
  */
 public final class BatchRunTomoDialog
     implements ActionListener, ResultListener, ChangeListener, Expandable,
@@ -361,7 +361,7 @@ public final class BatchRunTomoDialog
     File globalFile = globalAutodocType.getFile(manager, null);
     try {
       if (globalFile.exists()) {
-        LogFile.getInstance(globalFile).backup();
+        Utilities.deleteFile(globalFile,manager,axisID);
       }
       WritableAutodoc autodoc =
           AutodocFactory.getEmptyWritableInstance(manager, globalFile);
