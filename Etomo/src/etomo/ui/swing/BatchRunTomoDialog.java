@@ -49,8 +49,7 @@ import etomo.util.Utilities;
  * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
  * University of Colorado</p>
  *
- * @version $Date$ $Revision$
- * @version $Id:sueh $
+ * @version $Date$ $Revision$ $Id:$
  */
 public final class BatchRunTomoDialog
     implements ActionListener, ResultListener, ChangeListener, Expandable,
