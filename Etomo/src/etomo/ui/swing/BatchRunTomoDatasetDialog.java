@@ -40,9 +40,7 @@ import etomo.ui.UIComponent;
  * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
  * University of Colorado</p>
  *
- * @author $Author$
- * @version $Revision$
- * @id $Id$
+ * @version $Date$ $Revision$
  */
 final class BatchRunTomoDatasetDialog
     implements ActionListener, Expandable, UIComponent, SwingComponent {
@@ -122,8 +120,6 @@ final class BatchRunTomoDatasetDialog
   private final BaseManager manager;
   private final File datasetFile;
   private final BatchRunTomoRow row;
-
-  private boolean debug = false;
 
   private BatchRunTomoDatasetDialog(final BaseManager manager, final File datasetFile,
       final boolean global, final BatchRunTomoRow row) {
@@ -862,7 +858,7 @@ final class BatchRunTomoDatasetDialog
     }
     else {
       rbUseSirtFalse.setSelected(true);
-      if (containsUseSirt) {
+      if (containsUseSirt && setFieldHighlightValue) {
         rbUseSirtTrue.setFieldHighlight(false);
       }
     }
