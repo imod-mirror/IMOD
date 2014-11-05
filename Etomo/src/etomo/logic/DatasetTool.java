@@ -3,6 +3,11 @@ package etomo.logic;
 import java.io.File;
 import java.io.IOException;
 import java.security.InvalidAlgorithmParameterException;
+import java.util.ArrayList;
+import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 import etomo.BaseManager;
 import etomo.storage.DataFileFilter;
@@ -43,6 +48,155 @@ public final class DatasetTool {
   private static final String MESSAGE_TITLE = "Invalid Dataset Directory";
 
   private DatasetTool() {
+  }
+
+  public static List<StackInfo> removeMatchingBStacks(final File[] stackList) {
+    if (stackList == null) {
+      return null;
+    }
+    // filteredStackList will be returned.
+    List<StackInfo> filteredStackList = new ArrayList<StackInfo>();
+    // dualStackMap is used for storing stacks ending in A or B, and filtering out the
+    // matching B stacks.
+    Map<String, StackInfo> dualStackMap = new Hashtable<String, StackInfo>();
+    // Add non-dual axis stacks to the filtered stack list. Filter out matching B stacks.
+    for (int i = 0; i < stackList.length; i++) {
+      if (stackList[i] == null) {
+        continue;
+      }
+      StackInfo stackInfo = new StackInfo(stackList[i]);
+      // Don't place stacks without A or B in dualStackMap.
+      if (!stackInfo.isDualAxisID()) {
+        // Doesn't have an axisID extension - can't have a matching B stack - no need to
+        // filter.
+        filteredStackList.add(stackInfo);
+        continue;
+      }
+      // Look for the current stack in dualStackMap.
+      String key = stackInfo.getKey();
+      if (!dualStackMap.containsKey(key)) {
+        // No matching stack - can save the current stack in dualStackMap
+        dualStackMap.put(key, stackInfo);
+        continue;
+      }
+      // Found a matching stack - check for a matching B stack
+      StackInfo savedStackInfo = dualStackMap.get(key);
+      if (savedStackInfo.equalsAxisID(stackInfo)) {
+        // The current stack has the same axisID as the saved stack (must have a different
+        // extension) - add it.
+        if (!savedStackInfo.addStack(stackInfo)) {
+          // shouldn't happen
+          dualStackMap.put(key, stackInfo);
+        }
+        continue;
+      }
+      // The new stack has a different axisID from the saved stack - one must be the B
+      // stack.
+      if (savedStackInfo.equalsAxisID(AxisID.SECOND)) {
+        // Matching B stack(s) have been saved. Replace them with the current (A) stack
+        // and set it to dual axis.
+        savedStackInfo.msgDiscardingStack();
+        savedStackInfo.replaceWith(stackInfo);
+        savedStackInfo.setDualAxis();
+        continue;
+      }
+      // The saved stack(s) are matching A stacks - they need to be set to dual axis (may
+      // already be on) because the current stack is a matching B stack. The matching B
+      // stack does not have to be saved.
+      stackInfo.msgDiscardingStack();
+      savedStackInfo.setDualAxis();
+    }
+    // All matching B stacks should have been eliminated and dual axis set for matching A
+    // stacks. Add the dual axisID stacks to the filtered stack list.
+    filteredStackList.addAll(dualStackMap.values());
+    return filteredStackList;
+  }
+
+  private static AxisID getAxisID(final String fileName) {
+    if (fileName.endsWith(AxisID.FIRST.getExtension() + STANDARD_DATASET_EXT)
+        || fileName.endsWith(AxisID.FIRST.getExtension() + ALTERNATE_DATASET_EXT)) {
+      return AxisID.FIRST;
+    }
+    if (fileName.endsWith(AxisID.SECOND.getExtension() + STANDARD_DATASET_EXT)
+        || fileName.endsWith(AxisID.SECOND.getExtension() + ALTERNATE_DATASET_EXT)) {
+      return AxisID.SECOND;
+    }
+    return AxisID.ONLY;
+  }
+
+  /**
+   * If dualAxis is true, get the stack that matches axisID.  Otherwise return a file
+   * made of stackAbsPath.
+   * @param stackAbsPath
+   * @param axisID
+   * @param dualAxis
+   * @return
+   */
+  public static File getStackFile(String stackAbsPath, final AxisID axisID,
+      final boolean dualAxis) {
+    if (stackAbsPath == null) {
+      return null;
+    }
+    if (dualAxis) {
+      String ext = null;
+      if (stackAbsPath.endsWith(STANDARD_DATASET_EXT)) {
+        ext = STANDARD_DATASET_EXT;
+      }
+      else if (stackAbsPath.endsWith(ALTERNATE_DATASET_EXT)) {
+        ext = ALTERNATE_DATASET_EXT;
+      }
+      // Switch axes if the axis doesn't match axisID.
+      AxisID otherAxisID = axisID.getOtherAxisID();
+      if (ext != null && stackAbsPath.endsWith(otherAxisID.getExtension() + ext)) {
+        stackAbsPath = stackAbsPath.substring(0, stackAbsPath.length()
+            - otherAxisID.getExtension().length() - ext.length())
+            + axisID.getExtension() + ext;
+      }
+    }
+    return new File(stackAbsPath);
+  }
+
+  public static String getDatasetName(final String stackName, final boolean dualAxis) {
+    if (stackName == null) {
+      return null;
+    }
+    String ext = null;
+    if (stackName.endsWith(STANDARD_DATASET_EXT)) {
+      ext = STANDARD_DATASET_EXT;
+    }
+    else if (stackName.endsWith(ALTERNATE_DATASET_EXT)) {
+      ext = ALTERNATE_DATASET_EXT;
+    }
+    int removeChars = 0;
+    if (ext != null) {
+      removeChars = ext.length();
+    }
+    if (dualAxis && removeChars > 0) {
+      if (stackName.endsWith(AxisID.FIRST.getExtension() + ext)) {
+        removeChars += AxisID.FIRST.getExtension().length();
+      }
+      else if (stackName.endsWith(AxisID.SECOND.getExtension() + ext)) {
+        removeChars += AxisID.SECOND.getExtension().length();
+      }
+    }
+    return stackName.substring(0, stackName.length() - removeChars);
+  }
+
+  /**
+   * Gets a dataset (.edf) file that is in the same directory as the stackFile
+   * @param stackFile
+   * @param dualAxis
+   * @return
+   */
+  public static File getDatasetFile(final File stackFile, final boolean dualAxis) {
+    if (stackFile == null) {
+      return null;
+    }
+    String datasetName = getDatasetName(stackFile.getName(), dualAxis);
+    if (datasetName == null) {
+      return null;
+    }
+    return new File(stackFile.getParent(), datasetName + DataFileType.RECON.extension);
   }
 
   /**
@@ -797,5 +951,162 @@ public final class DatasetTool {
       return " in Axis B.";
     }
     return null;
+  }
+
+  /**
+   * Stores stack files with the same root name, path, and axisID.
+   * @author sueh
+   *
+   */
+  public static final class StackInfo {
+    private final List<File> stackList = new ArrayList<File>();
+
+    private AxisID axisID = null;
+    private String key = null;
+    private boolean dualAxis = false;
+
+    private StackInfo(final File stack) {
+      if (stack != null) {
+        stackList.add(stack);
+      }
+    }
+
+    private boolean isDualAxisID() {
+      setAxisID();
+      if (axisID != null) {
+        return axisID == AxisID.FIRST || axisID == AxisID.SECOND;
+      }
+      return false;
+    }
+
+    private String getKey() {
+      setKey();
+      return key;
+    }
+
+    private boolean equalsAxisID(final StackInfo stackInfo) {
+      setAxisID();
+      stackInfo.setAxisID();
+      return axisID == stackInfo.axisID;
+    }
+
+    private boolean equalsAxisID(final AxisID axisID) {
+      setAxisID();
+      return this.axisID == axisID;
+    }
+
+    /**
+     * The stack can only be added if the axisID and key are the same.
+     * @return true if the stack was added
+     */
+    private boolean addStack(final StackInfo input) {
+      setAxisID();
+      input.setAxisID();
+      if (axisID != input.axisID) {
+        System.out.println("Warning: AxisID's are different: " + toString() + ",input:"
+            + input);
+        Thread.dumpStack();
+        return false;
+      }
+      setKey();
+      input.setKey();
+      if (((key == null || input.key == null) && (key != null || input.key != null))
+          || !key.equals(input.key)) {
+        System.out.println("Warning: keys are different: " + toString() + ",input:"
+            + input);
+        Thread.dumpStack();
+        return false;
+      }
+      stackList.addAll(input.stackList);
+      return true;
+    }
+
+    private void msgDiscardingStack() {
+      int numStacks = stackList.size();
+      if (numStacks == 0) {
+        return;
+      }
+      // Use proper grammer.
+      String a;
+      String is;
+      String it;
+      String stack;
+      String It;
+      String tomogram;
+      if (numStacks == 1) {
+        // singular
+        a = "a";
+        is = "is";
+        it = "it";
+        It = "It";
+        stack = "stack";
+        tomogram = "tomogram";
+      }
+      else {
+        // plural
+        a = "";
+        is = "are";
+        it = "them";
+        It = "They";
+        stack = "stacks";
+        tomogram = "tomograms";
+      }
+      System.err.println("INFO: The following " + stack + " " + is + " assumed to be "
+          + a + " B axis " + stack + ", and part of " + a + " dual axis " + tomogram
+          + ".\n" + It + " will not be added to the table.\nTo add " + it + " to "
+          + "the table, open " + it + " separately from the corresponding A axis "
+          + stack + ".\nB axis " + stack + ": ");
+      Iterator<File> iterator = stackList.iterator();
+      while (iterator.hasNext()) {
+        System.err.println(iterator.next());
+      }
+      System.err.println();
+    }
+
+    private void replaceWith(final StackInfo input) {
+      stackList.clear();
+      axisID = null;
+      key = null;
+      stackList.addAll(input.stackList);
+    }
+
+    private void setDualAxis() {
+      dualAxis = true;
+    }
+
+    public Iterator<File> iterator() {
+      return stackList.iterator();
+    }
+
+    public boolean isDualAxis() {
+      return dualAxis;
+    }
+
+    public String toString() {
+      return "[stackList:" + stackList + ",axisID:" + axisID + ",key:" + key + "]";
+    }
+
+    private void setAxisID() {
+      if (axisID == null) {
+        if (stackList.size() > 0) {
+          axisID = getAxisID(stackList.get(0).getName());
+        }
+      }
+    }
+
+    private void setKey() {
+      if (key == null) {
+        File datasetFile = null;
+        if (stackList.size() > 0) {
+          datasetFile = getDatasetFile(stackList.get(0), isDualAxisID());
+        }
+        if (datasetFile != null) {
+          key = datasetFile.getAbsolutePath();
+        }
+        else {
+          key = null;
+        }
+      }
+    }
   }
 }

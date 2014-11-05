@@ -1,16 +1,16 @@
 /**
  * <p>Description: </p>
- * 
+ *
  * <p>Copyright: Copyright (c) 2002, 2003</p>
  *
  *<p>Organization:
  * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
  * University of Colorado</p>
- * 
+ *
  * @author $Author$
- * 
+ *
  * @version $Revision$
- * 
+ *
  * <p> $Log$
  * <p> Revision 1.1  2010/11/13 16:07:34  sueh
  * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
@@ -127,8 +127,11 @@
  */
 package etomo.ui.swing;
 
+import java.awt.Color;
 import java.awt.Container;
 import java.awt.Dimension;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.awt.event.MouseListener;
 
 import javax.swing.Box;
@@ -138,17 +141,24 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
+import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import etomo.EtomoDirector;
+import etomo.logic.DefaultFinder;
+import etomo.storage.DirectiveDef;
 import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.EtomoNumber;
 import etomo.type.UITestFieldType;
+import etomo.ui.FieldSettingInterface;
+import etomo.ui.TextFieldSetting;
+import etomo.ui.Field;
 import etomo.util.Utilities;
 
-final class LabeledSpinner {
-  public static final String rcsid = "$Id$";
+final class LabeledSpinner implements Field, ChangeListener, FocusListener {
+  public static final String rcsid =
+      "$Id$";
 
   private final JPanel panel = new JPanel();
   private final JLabel label = new JLabel();
@@ -159,7 +169,13 @@ final class LabeledSpinner {
   private int minimum;
   private int maximum;
 
-  private Number checkpointValue = null;
+  private Color origLabelForeground = null;
+  private Color origTextForeground = null;
+  private DirectiveDef directiveDef = null;
+  private TextFieldSetting backup = null;
+  private TextFieldSetting defaultValueSetting = null;
+  private TextFieldSetting checkpoint = null;
+  private TextFieldSetting fieldHighlight = null;
 
   /**
    * @param spinner
@@ -172,11 +188,11 @@ final class LabeledSpinner {
     model = new SpinnerNumberModel(value, minimum, maximum, stepSize);
     // set name
     String name = Utilities.convertLabelToName(spinLabel);
-    spinner.setName(UITestFieldType.SPINNER.toString() + AutodocTokenizer.SEPARATOR_CHAR
-        + name);
+    spinner.setName(
+        UITestFieldType.SPINNER.toString() + AutodocTokenizer.SEPARATOR_CHAR + name);
     if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
-      System.out.println(spinner.getName() + ' ' + AutodocTokenizer.DEFAULT_DELIMITER
-          + ' ');
+      System.out
+          .println(spinner.getName() + ' ' + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
     }
     // set label
     label.setText(spinLabel);
@@ -216,12 +232,21 @@ final class LabeledSpinner {
     return new LabeledSpinner(spinLabel, value, minimum, maximum, stepSize, value, hgap);
   }
 
+  public boolean isText() {
+    return true;
+  }
+
+  public boolean isBoolean() {
+    return false;
+  }
+
   void setMax(final int max) {
     maximum = max;
     model.setMaximum(new Integer(max));
   }
 
-  void setModel(final int value, final int minimum, final int maximum, final int stepSize) {
+  void setModel(final int value, final int minimum, final int maximum,
+      final int stepSize) {
     this.minimum = minimum;
     this.maximum = maximum;
     model = new SpinnerNumberModel(value, minimum, maximum, stepSize);
@@ -236,18 +261,230 @@ final class LabeledSpinner {
     return label.getText();
   }
 
-  void checkpoint() {
-    checkpointValue = getValue();
+  public String getQuotedLabel() {
+    return Utilities.quoteLabel(getLabel());
+  }
+
+  public void checkpoint() {
+    if (checkpoint == null) {
+      checkpoint = new TextFieldSetting(EtomoNumber.Type.INTEGER);
+    }
+    checkpoint.set(getText());
+  }
+
+  public TextFieldSetting getCheckpoint() {
+    return checkpoint;
+  }
+
+  public void setCheckpoint(final FieldSettingInterface input) {
+    if (input != null && input.isText() && input.isSet()) {
+      if (checkpoint == null) {
+        checkpoint = new TextFieldSetting(EtomoNumber.Type.INTEGER);
+      }
+      checkpoint.copy(input);
+    }
+    else if (checkpoint != null) {
+      checkpoint.reset();
+    }
+  }
+
+  public void backup() {
+    if (backup == null) {
+      backup = new TextFieldSetting(EtomoNumber.Type.INTEGER);
+    }
+    backup.set(getValue());
+  }
+
+  void setDirectiveDef(final DirectiveDef directiveDef) {
+    this.directiveDef = directiveDef;
+  }
+
+  public DirectiveDef getDirectiveDef() {
+    return directiveDef;
+  }
+
+  public boolean equalsDefaultValue() {
+    return defaultValueSetting != null && defaultValueSetting.equals(getText());
+  }
+
+  public void useDefaultValue() {
+    if (directiveDef == null || !directiveDef.isComparam()) {
+      if (defaultValueSetting != null && defaultValueSetting.isSet()) {
+        defaultValueSetting.reset();
+      }
+      return;
+    }
+    // only search for default value once
+    if (defaultValueSetting == null) {
+      defaultValueSetting = new TextFieldSetting(EtomoNumber.Type.INTEGER);
+      String value = DefaultFinder.INSTANCE.getDefaultValue(directiveDef);
+      if (value != null) {
+        // if default value has been found, set it in the field setting
+        defaultValueSetting.set(value);
+      }
+    }
+    if (defaultValueSetting.isSet()) {
+      setText(defaultValueSetting.getValue());
+    }
+  }
+
+  /**
+   * If the field was backed up, make the backup value the displayed value, and turn off
+   * the back up.
+   */
+  public void restoreFromBackup() {
+    if (backup != null && backup.isSet()) {
+      setValue(backup.getValue());
+      backup.reset();
+    }
+  }
+
+  public void clear() {
+    spinner.setValue(minimum);
+  }
+
+  public void setValue(final Field input) {
+    if (input == null) {
+      clear();
+    }
+    else {
+      setText(input.getText());
+    }
+  }
+
+  public boolean isSelected() {
+    return false;
+  }
+
+  public boolean isEmpty() {
+    String text = getText();
+    return text == null || text.matches("\\s*");
+  }
+
+  public String getText() {
+    return getValue().toString();
+  }
+
+  public boolean equalsFieldHighlight() {
+    return fieldHighlight != null && fieldHighlight.equals(getText());
+  }
+
+  public void setFieldHighlight(final String value) {
+    if (fieldHighlight == null) {
+      fieldHighlight = new TextFieldSetting(EtomoNumber.Type.INTEGER);
+      spinner.addChangeListener(this);
+      spinner.addFocusListener(this);
+    }
+    fieldHighlight.set(value);
+    updateFieldHighlight();
+  }
+
+  public void setFieldHighlight(final boolean value) {
+  }
+
+  public void clearFieldHighlight() {
+    if (fieldHighlight != null && fieldHighlight.isSet()) {
+      fieldHighlight.reset();
+      updateFieldHighlight();
+    }
+  }
+
+  public TextFieldSetting getFieldHighlight() {
+    return fieldHighlight;
+  }
+
+  public void setFieldHighlight(final FieldSettingInterface input) {
+    if (input != null && input.isText() && input.isSet()) {
+      if (fieldHighlight == null) {
+        fieldHighlight = new TextFieldSetting(EtomoNumber.Type.INTEGER);
+        spinner.addChangeListener(this);
+        spinner.addFocusListener(this);
+      }
+      fieldHighlight.copy(input);
+      updateFieldHighlight();
+    }
+    else if (input == null || !input.isSet()) {
+      clearFieldHighlight();
+    }
+  }
+
+  public void clearFieldHighlightValue() {
+    fieldHighlight.reset();
+    updateFieldHighlight();
+  }
+
+  public void stateChanged(ChangeEvent e) {
+    updateFieldHighlight();
+  }
+
+  public void focusGained(final FocusEvent event) {
+  }
+
+  public void focusLost(final FocusEvent event) {
+    updateFieldHighlight();
+  }
+
+  /**
+   * If the field highlight is in use, use the field highlight color on the foreground of
+   * the text field if the value of the text field equals the field highlight value.  Save
+   * the original foreground.  If the field highlight is in use and the value of the text
+   * field does not equal the field highlight value, try to restore the original
+   * foreground - or set a foreground color similar to the original one.  Assumes that
+   * field highlight is not used when the field is disabled.
+   */
+  void updateFieldHighlight() {
+    // To avoid constantly updating the foreground color, assuming that fieldHighlight is
+    // never reassigned to null
+    if (fieldHighlight == null || !isEnabled()) {
+      return;
+    }
+    if (fieldHighlight.isSet() && fieldHighlight.equals(getValue())) {
+      // save the original color
+      if (origTextForeground == null) {
+        origTextForeground = spinner.getForeground();
+        if (origTextForeground == null) {
+          origTextForeground = Color.BLACK;
+        }
+      }
+      if (origLabelForeground == null) {
+        origLabelForeground = label.getForeground();
+        if (origLabelForeground == null) {
+          origLabelForeground = Color.BLACK;
+        }
+      }
+      label.setForeground(Colors.FIELD_HIGHLIGHT);
+      spinner.setForeground(Colors.FIELD_HIGHLIGHT);
+    }
+    else {
+      if (origTextForeground != null) {
+        spinner.setForeground(origTextForeground);
+      }
+      if (origLabelForeground != null) {
+        label.setForeground(origLabelForeground);
+      }
+    }
   }
 
   /**
    * Resets to checkpointValue if checkpointValue has been set.  Otherwise has no effect.
    */
   void resetToCheckpoint() {
-    if (checkpointValue == null) {
+    if (checkpoint == null || !checkpoint.isSet()) {
       return;
     }
-    setValue(checkpointValue.intValue());
+    setText(checkpoint.getValue());
+  }
+
+  /**
+   * @param alwaysCheck - check for difference even when the field is disables or
+   *                    invisible
+   * @return
+   */
+  public boolean isDifferentFromCheckpoint(final boolean alwaysCheck) {
+    if (!alwaysCheck && (!isEnabled() || !isVisible())) {
+      return false;
+    }
+    return checkpoint == null || !checkpoint.equals(getValue());
   }
 
   Number getValue() {
@@ -274,6 +511,24 @@ final class LabeledSpinner {
     }
   }
 
+  public void setText(final String value) {
+    setValue(value);
+  }
+
+  public void setValue(final String value) {
+    if (value == null || value.matches("\\s*")) {
+      spinner.setValue(defaultValue);
+    }
+    else {
+      EtomoNumber number = new EtomoNumber();
+      number.set(value);
+      setValue(number);
+    }
+  }
+
+  public void setValue(final boolean value) {
+  }
+
   void setValue(final int value) {
     if (value == EtomoNumber.INTEGER_NULL_VALUE) {
       spinner.setValue(defaultValue);
@@ -286,9 +541,12 @@ final class LabeledSpinner {
   void setEnabled(final boolean isEnabled) {
     spinner.setEnabled(isEnabled);
     label.setEnabled(isEnabled);
+    if (isEnabled) {
+      updateFieldHighlight();
+    }
   }
 
-  boolean isEnabled() {
+  public boolean isEnabled() {
     return (spinner.isEnabled());
   }
 
@@ -316,6 +574,7 @@ final class LabeledSpinner {
 
   /**
    * Set the absolute preferred size of the text field
+   *
    * @param size
    */
   void setTextPreferredSize(final Dimension size) {
@@ -324,6 +583,7 @@ final class LabeledSpinner {
 
   /**
    * Set the absolute maximum size of the text field
+   *
    * @param size
    */
   void setTextMaxmimumSize(final Dimension size) {
@@ -339,6 +599,7 @@ final class LabeledSpinner {
 
   /**
    * Set the absolute maximum size of the panel
+   *
    * @param size
    */
   void setMaximumSize(final Dimension size) {

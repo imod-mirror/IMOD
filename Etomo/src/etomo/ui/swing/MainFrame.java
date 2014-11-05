@@ -547,6 +547,10 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
     return FrameType.Main;
   }
 
+  void updateFrame(BaseManager currentManager) {
+    setEnabled(currentManager);
+  }
+
   void setCurrentManager(BaseManager currentManager, UniqueKey managerKey,
       boolean newWindow) {
     // Hide log window from previous manager

@@ -335,6 +335,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import etomo.ApplicationManager;
@@ -510,14 +511,16 @@ public class Utilities {
     if (!EtomoDirector.INSTANCE.getArguments().isActions()) {
       return null;
     }
-    return ACTION_TAG + "Renamed " + from.getName() + " to " + to.getName();
+    return ACTION_TAG + "Renamed " + (from != null ? from.getName() : "") + " to "
+        + (to != null ? to.getName() : "");
   }
 
   public static String prepareCopyActionMessage(final File from, final File to) {
     if (!EtomoDirector.INSTANCE.getArguments().isActions()) {
       return null;
     }
-    return ACTION_TAG + "Copied " + from.getName() + " to " + to.getName();
+    return ACTION_TAG + "Copied " + (from != null ? from.getName() : "") + " to "
+        + (to != null ? to.getName() : "");
   }
 
   /**
@@ -961,6 +964,11 @@ public class Utilities {
    * Copy a file using the fastest method available.
    */
   public static void copyFile(File source, File destination) throws IOException {
+    if (source == null) {
+      System.err.println("Warning:  Unable to copyFile - source is null:  source"
+          + source + ",destination:" + destination);
+      return;
+    }
     if (source != null && source.equals(destination)) {
       System.err.println("Warning:Can't copy a file to itself:source:" + source
           + ",destination:" + destination);
@@ -1102,6 +1110,9 @@ public class Utilities {
    * @return
    */
   public static String quoteLabel(final String label) {
+    if (label == null) {
+      return null;
+    }
     char quote = '\'';
     return quote + stripLabel(label) + quote;
   }
@@ -1285,7 +1296,7 @@ public class Utilities {
     if (!timestamp) {
       return;
     }
-    StringBuffer buffer = new StringBuffer("TIMESTAMP: ");
+    StringBuilder buffer = new StringBuilder("TIMESTAMP: ");
     if (process != null) {
       buffer.append(process + " ");
     }
@@ -1340,6 +1351,10 @@ public class Utilities {
   public static String getDateTimeStamp(final boolean includeMs) {
     Date date = new Date();
     return date.toString() + (includeMs ? ", " + date.getTime() % 1000 + " ms" : "");
+  }
+
+  public static String getDateTimeStampRootName() {
+    return new SimpleDateFormat("ddMMMyy-HHmm").format(new Date());
   }
 
   public static String getDateTimeStamp() {
@@ -1506,7 +1521,7 @@ public class Utilities {
     }
     // Place the label into a tokenizer
     String name = label.trim().toLowerCase();
-    PrimativeTokenizer tokenizer = new PrimativeTokenizer(name);
+    PrimativeTokenizer tokenizer = PrimativeTokenizer.getStringInstance(name, debug);
     StringBuffer buffer = new StringBuffer();
     Token token = null;
     boolean firstToken = true;
@@ -1574,7 +1589,7 @@ public class Utilities {
     if (name.length() == 0) {
       return "-";
     }
-    tokenizer = new PrimativeTokenizer(name);
+    tokenizer = PrimativeTokenizer.getStringInstance(name, false);
     buffer = new StringBuffer();
     try {
       tokenizer.initialize();

@@ -207,7 +207,7 @@ public class TomogramProcessPanel extends AxisProcessPanel {
    * @param axis
    */
   public TomogramProcessPanel(ApplicationManager appManager, AxisID axis) {
-    super(axis, appManager, true);
+    super(axis, appManager, true,true);
     applicationManager = (ApplicationManager) manager;
     // Create the process control panel
     createProcessControlPanel();
