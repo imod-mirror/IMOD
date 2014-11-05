@@ -50,12 +50,11 @@ import etomo.util.Utilities;
  * University of Colorado</p>
  *
  * @version $Date$ $Revision$
+ * @version $Id:$
  */
 public final class BatchRunTomoDialog
     implements ActionListener, ResultListener, ChangeListener, Expandable,
     ProcessInterface {
-  public static final String rcsid = "$Id:$";
-
   private static final String DELIVER_TO_DIRECTORY_NAME = "Move datasets to";
 
   private final JPanel pnlRoot = new JPanel();
