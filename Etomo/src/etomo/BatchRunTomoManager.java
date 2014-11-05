@@ -42,7 +42,7 @@ import etomo.util.Utilities;
  * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
  * University of Colorado</p>
  *
- * @version $Revision$ $Id$
+ * @version $Revision$ $Date$
  */
 public final class BatchRunTomoManager extends BaseManager {
   private static final AxisID AXIS_ID = AxisID.ONLY;
