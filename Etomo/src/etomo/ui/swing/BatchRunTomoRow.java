@@ -32,17 +32,16 @@ import etomo.type.Run3dmodMenuOptions;
 import etomo.type.UserConfiguration;
 import etomo.ui.BatchRunTomoTab;
 import etomo.ui.PreferredTableSize;
+import etomo.util.Utilities;
 
 /**
  * <p>Description: A row of the BatchRunTomo table.</p>
  * <p/>
- * <p>Copyright: Copyright 2014</p>
+ * <p>Copyright: Copyright 2014 by the Regents of the University of Colorado</p>
  * <p/>
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
- * University of Colorado</p>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * @version $Revision$ $Id$
+ * @version $Date$ $Revision$
  */
 final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
   private static final URL IMOD_ICON_URL =
@@ -418,7 +417,7 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
     File file = new File(manager.getPropertyUserDir(), getBatchDirectiveFileName());
     try {
       if (file.exists()) {
-        LogFile.getInstance(file).backup();
+        Utilities.deleteFile(file, manager, null);
       }
       WritableAutodoc autodoc = AutodocFactory.getEmptyWritableInstance(manager, file);
       BatchTool.saveAutodoc(cbcDual, autodoc);
