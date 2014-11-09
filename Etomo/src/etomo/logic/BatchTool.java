@@ -26,15 +26,18 @@ public final class BatchTool {
       "$Id$";
 
   /**
-   * If the field highlight value is set, it is set to a value coming from a template.  So
-   * if the field highlight value is equals to the current value, then the field is not
-   * needed in the autodoc because it does not change the value of the directive.
+   * The field highlight value comes from a template.  The default value comes from the
+   * corresponding comscript autodoc default attribute.  A set field highlight overrides
+   * a default value, since the template value overrides the default comscript value.
    *
    * @param field - GUI field
-   * @return true if the field does not match its default or its field highlight value
+   * @return true if the field's current value is not the same as what would be obtained from the templates/default value.
    */
   public static boolean needInAutodoc(final Field field) {
-    return !field.equalsDefaultValue() && !field.equalsFieldHighlight();
+    if (field.isFieldHighlightSet()) {
+      return !field.equalsFieldHighlight();
+    }
+    return !field.equalsDefaultValue();
   }
 
   /**
@@ -61,8 +64,7 @@ public final class BatchTool {
    * @return true if field is savable
    */
   public static boolean saveAutodoc(final Field field, final AxisID axisID,
-                                    final AxisType axisType,
-                                    final WritableAutodoc autodoc) {
+      final AxisType axisType, final WritableAutodoc autodoc) {
     // Don't add directive values that are equal to default values, or directive
     // values that already exists in one of the templates. Values from templates
     // are used as field highlight values. See needInAutodoc.
