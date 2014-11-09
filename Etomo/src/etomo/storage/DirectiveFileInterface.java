@@ -3,14 +3,11 @@ package etomo.storage;
 /**
  * <p>Description: Interface for DirectiveFile and DirectiveFileCollection.</p>
  * <p/>
- * <p>Copyright: Copyright 2014</p>
+ * <p>Copyright: Copyright 2014 by the Regents of the University of Colorado</p>
  * <p/>
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
- * University of Colorado</p>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * @author $Author$
- * @version $Revision$
+ * @version $Id$
  */
 public interface DirectiveFileInterface {
 
@@ -20,11 +17,11 @@ public interface DirectiveFileInterface {
 
   public String getValue(DirectiveDef directiveDef, int index);
 
-  public String getValue(DirectiveDef directiveDef, boolean templateOnly);
+  public String getValue(DirectiveDef directiveDef, boolean templatesOnly);
 
-  public boolean contains(DirectiveDef directiveDef, boolean templateOnly);
+  public boolean contains(DirectiveDef directiveDef, boolean templatesOnly);
 
-  public boolean isValue(DirectiveDef directiveDef, boolean templateOnly);
+  public boolean isValue(DirectiveDef directiveDef, boolean templatesOnly);
 
   public boolean isValue(DirectiveDef directiveDef);
 
