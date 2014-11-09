@@ -25,16 +25,11 @@ import etomo.ui.SetupReconInterface;
 /**
  * <p>Description: </p>
  * <p/>
- * <p>Copyright: Copyright 2012</p>
+ * <p>Copyright: Copyright 2012 - 2014 by the Regents of the University of Colorado</p>
  * <p/>
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
- * University of Colorado</p>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * @author $Author$
- * @version $Revision$
- *          <p/>
- *          <p> $Log$ </p>
+ * @version $Id$
  */
 public class DirectiveFileCollection
     implements SetupReconInterface, DirectiveFileInterface {
@@ -69,20 +64,20 @@ public class DirectiveFileCollection
    *
    * @param directiveDef
    * @param axisID
-   * @param templateOnly - causes function to ignore the batch directive file
+   * @param templatesOnly - causes function to ignore the batch directive file
    * @return
    */
   private AttributeMatch getAttribute(final DirectiveDef directiveDef,
-      final AxisID axisID, final boolean templateOnly) {
+      final AxisID axisID, final boolean templatesOnly) {
     int start = directiveFileArray.length - 1;
     int end = 0;
     boolean template = directiveDef.isTemplate(axisID);
     boolean batch = directiveDef.isBatch(axisID);
-    if (templateOnly && !template) {
+    if (templatesOnly && !template) {
       // templateOnly set, and its batch only - nothing to do
       return null;
     }
-    if (templateOnly || (!batch && template)) {
+    if (templatesOnly || (!batch && template)) {
       start--;// skip batch directive file
     }
     if (batch && !template) {
@@ -126,24 +121,24 @@ public class DirectiveFileCollection
   }
 
   /**
-   * Returns true a non-empty, non-overriding directive, or an extraValue is found.
+   * Returns true if a non-empty, non-overriding directive, or an extraValue is found.
    *
    * @param directiveDef
    * @param axisID
-   * @param templateOnly - if true batch directive file and copyArgExtraValues are ignored
+   * @param templatesOnly - if true, batch directive file and copyArgExtraValues are ignored
    * @return
-   * @see getAttribute
    */
   private boolean contains(final DirectiveDef directiveDef, final AxisID axisID,
-      final boolean templateOnly) {
-    AttributeMatch attributeMatch = getAttribute(directiveDef, axisID, templateOnly);
+      final boolean templatesOnly) {
+    AttributeMatch attributeMatch = getAttribute(directiveDef, axisID, templatesOnly);
     if (attributeMatch != null) {
       return true;
     }
-    if (templateOnly) {
+    if (templatesOnly) {
       return false;
     }
-    // An attribute has not been found - look for an extra value.
+    // An attribute has not been found - look for an extra value - these are associated
+    // with the directive file.
     if (directiveDef.getDirectiveType() == DirectiveType.COPY_ARG &&
         copyArgExtraValues != null) {
       return copyArgExtraValues.containsKey(directiveDef.getName(axisID));
@@ -160,14 +155,13 @@ public class DirectiveFileCollection
    *
    * @param directiveDef
    * @return
-   * @see getAttribute
    */
   public boolean contains(final DirectiveDef directiveDef) {
     return contains(directiveDef, null, false);
   }
 
-  public boolean contains(final DirectiveDef directiveDef, final boolean templateOnly) {
-    return contains(directiveDef, null, templateOnly);
+  public boolean contains(final DirectiveDef directiveDef, final boolean templatesOnly) {
+    return contains(directiveDef, null, templatesOnly);
   }
 
   /**
@@ -178,15 +172,14 @@ public class DirectiveFileCollection
    * @param directiveDef
    * @param axisID
    * @return
-   * @see getAttribute
    */
   private String getValue(final DirectiveDef directiveDef, final AxisID axisID,
-      final boolean templateOnly) {
-    AttributeMatch attributeMatch = getAttribute(directiveDef, axisID, templateOnly);
+      final boolean templatesOnly) {
+    AttributeMatch attributeMatch = getAttribute(directiveDef, axisID, templatesOnly);
     if (attributeMatch != null) {
       return attributeMatch.getValue();
     }
-    if (templateOnly) {
+    if (templatesOnly) {
       return null;
     }
     // An attribute has not been found - look for an extra value.
@@ -208,7 +201,6 @@ public class DirectiveFileCollection
    *
    * @param directiveDef
    * @return
-   * @see getAttribute
    */
   public String getValue(final DirectiveDef directiveDef) {
     return getValue(directiveDef, null, false);
@@ -254,7 +246,6 @@ public class DirectiveFileCollection
    * @param templateOnly - causes function to ignore the batch directive file and
    *                     copyrgExtraValues
    * @return
-   * @see getAttribute
    */
   private boolean isValue(final DirectiveDef directiveDef, final AxisID axisID,
       final boolean templateOnly) {
@@ -284,7 +275,6 @@ public class DirectiveFileCollection
    *
    * @param directiveDef
    * @return
-   * @see getAttribute
    */
   public boolean isValue(final DirectiveDef directiveDef) {
     return isValue(directiveDef, null, false);
