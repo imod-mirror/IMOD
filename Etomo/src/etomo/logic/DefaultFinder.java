@@ -13,18 +13,12 @@ import etomo.type.EtomoAutodoc;
 
 /**
 * <p>Description: </p>
-* 
-* <p>Copyright: Copyright 2014</p>
 *
-* <p>Organization:
-* Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
-* University of Colorado</p>
-* 
-* @author $Author$
-* 
-* @version $Revision$
-* 
-* <p> $Log$ </p>
+ * <p>Copyright: Copyright 2014 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
+ *
+ * @version $Id$
 */
 public final class DefaultFinder {
   public static final String rcsid = "$Id:$";
@@ -125,32 +119,5 @@ public final class DefaultFinder {
       e.printStackTrace();
     }
     return null;
-  }
-
-  /**
-   * Converts a default value to boolean.
-   * @param value
-   * @return
-   */
-  public static boolean toBoolean(String value) {
-    if (value == null) {
-      return false;
-    }
-    value = value.trim();
-    if (value.equals("")) {
-      // Generally the presence of a boolean name signifies that it is true.
-      return true;
-    }
-    if (value.equals(1) || value.compareToIgnoreCase("t") == 0
-        || value.compareToIgnoreCase("true") == 0 || value.compareToIgnoreCase("y") == 0
-        || value.compareToIgnoreCase("yes") == 0) {
-      return true;
-    }
-    if (value.equals(0) || value.compareToIgnoreCase("f") == 0
-        || value.compareToIgnoreCase("false") == 0 || value.compareToIgnoreCase("n") == 0
-        || value.compareToIgnoreCase("no") == 0) {
-      return false;
-    }
-    return false;
   }
 }
