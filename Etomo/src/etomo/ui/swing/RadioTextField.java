@@ -22,58 +22,52 @@ import etomo.util.Utilities;
 
 /**
  * <p>Description: </p>
- * 
- * <p>Copyright: Copyright 2006</p>
+ * <p/>
+ * <p>Copyright: Copyright 2006 - 2014 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
- * University of Colorado</p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
- * 
- * <p> $Log$
- * <p> Revision 1.1  2010/11/13 16:07:34  sueh
- * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
- * <p>
- * <p> Revision 1.10  2010/03/03 05:06:31  sueh
- * <p> bug# 1311 Changed TextField.setSize to setPreferredSize.
- * <p>
- * <p> Revision 1.9  2009/11/20 17:31:49  sueh
- * <p> bug# 1282 Changed validate to handle the name prefixes.
- * <p>
- * <p> Revision 1.8  2009/09/01 03:18:25  sueh
- * <p> bug# 1222
- * <p>
- * <p> Revision 1.7  2009/02/19 01:45:50  sueh
- * <p> bug# 1178 In setToolTipText stop formatting tooltip twice.
- * <p>
- * <p> Revision 1.6  2009/02/19 01:44:19  sueh
- * <p> bug# 1178 In setToolTipText stop formatting tooltip twice.
- * <p>
- * <p> Revision 1.5  2008/11/20 01:46:57  sueh
- * <p> bug# 1147 Commented out code that was not in use.
- * <p>
- * <p> Revision 1.4  2007/04/13 20:38:46  sueh
- * <p> bug# 964Added EnumeratedType, which is the interface for enumeration types.
- * <p>
- * <p> Revision 1.3  2007/03/30 23:52:28  sueh
- * <p> bug# 964 Switched from JTextField to etomo.ui.TextField, which names itself.
- * <p>
- * <p> Revision 1.2  2007/03/07 21:13:18  sueh
- * <p> bug# 981 Turned RadioButton into a wrapper rather then a child of JRadioButton,
- * <p> because it is getting more complicated.  Added radioValue - a way to assign an
- * <p> integer value to each radio button in a group.
- * <p>
- * <p> Revision 1.1  2007/03/03 01:05:57  sueh
- * <p> bug# 973 Class combining a RadioButton and JTextField.  Turns off the
- * <p> JTextField when the radio button is not selected.
- * <p> </p>
+ * @version $Id$
+ *          <p/>
+ *          <p> $Log$
+ *          <p> Revision 1.1  2010/11/13 16:07:34  sueh
+ *          <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ *          <p>
+ *          <p> Revision 1.10  2010/03/03 05:06:31  sueh
+ *          <p> bug# 1311 Changed TextField.setSize to setPreferredSize.
+ *          <p>
+ *          <p> Revision 1.9  2009/11/20 17:31:49  sueh
+ *          <p> bug# 1282 Changed validate to handle the name prefixes.
+ *          <p>
+ *          <p> Revision 1.8  2009/09/01 03:18:25  sueh
+ *          <p> bug# 1222
+ *          <p>
+ *          <p> Revision 1.7  2009/02/19 01:45:50  sueh
+ *          <p> bug# 1178 In setToolTipText stop formatting tooltip twice.
+ *          <p>
+ *          <p> Revision 1.6  2009/02/19 01:44:19  sueh
+ *          <p> bug# 1178 In setToolTipText stop formatting tooltip twice.
+ *          <p>
+ *          <p> Revision 1.5  2008/11/20 01:46:57  sueh
+ *          <p> bug# 1147 Commented out code that was not in use.
+ *          <p>
+ *          <p> Revision 1.4  2007/04/13 20:38:46  sueh
+ *          <p> bug# 964Added EnumeratedType, which is the interface for enumeration types.
+ *          <p>
+ *          <p> Revision 1.3  2007/03/30 23:52:28  sueh
+ *          <p> bug# 964 Switched from JTextField to etomo.ui.TextField, which names itself.
+ *          <p>
+ *          <p> Revision 1.2  2007/03/07 21:13:18  sueh
+ *          <p> bug# 981 Turned RadioButton into a wrapper rather then a child of JRadioButton,
+ *          <p> because it is getting more complicated.  Added radioValue - a way to assign an
+ *          <p> integer value to each radio button in a group.
+ *          <p>
+ *          <p> Revision 1.1  2007/03/03 01:05:57  sueh
+ *          <p> bug# 973 Class combining a RadioButton and JTextField.  Turns off the
+ *          <p> JTextField when the radio button is not selected.
+ *          <p> </p>
  */
 final class RadioTextField implements RadioButtonInterface, Field {
-  public static final String rcsid = "$Id$";
-
   private final JPanel rootPanel = new JPanel();
   private final RadioButton radioButton;
   private final TextField textField;
@@ -83,6 +77,7 @@ final class RadioTextField implements RadioButtonInterface, Field {
 
   /**
    * Constructs local instance, adds listener, and returns.
+   *
    * @param label
    * @param group
    * @return
@@ -96,8 +91,8 @@ final class RadioTextField implements RadioButtonInterface, Field {
 
   static RadioTextField getInstance(final FieldType fieldType, final String label,
       final ButtonGroup group, String locationDescr) {
-    RadioTextField radioTextField = new RadioTextField(fieldType, label, group,
-        locationDescr);
+    RadioTextField radioTextField =
+        new RadioTextField(fieldType, label, group, locationDescr);
     radioTextField.addListeners();
     return radioTextField;
   }
@@ -215,6 +210,10 @@ final class RadioTextField implements RadioButtonInterface, Field {
     return directiveDef;
   }
 
+  public boolean isFieldHighlightSet() {
+    return radioButton.isFieldHighlightSet() || textField.isFieldHighlightSet();
+  }
+
   public void setFieldHighlight(final String text) {
     textField.setFieldHighlight(text);
   }
@@ -262,8 +261,8 @@ final class RadioTextField implements RadioButtonInterface, Field {
   }
 
   public boolean isDifferentFromCheckpoint(final boolean alwaysCheck) {
-    return radioButton.isDifferentFromCheckpoint(alwaysCheck)
-        || textField.isDifferentFromCheckpoint(alwaysCheck);
+    return radioButton.isDifferentFromCheckpoint(alwaysCheck) ||
+        textField.isDifferentFromCheckpoint(alwaysCheck);
   }
 
   void setDebug(final boolean debug) {
@@ -296,6 +295,7 @@ final class RadioTextField implements RadioButtonInterface, Field {
 
   /**
    * return text without validation
+   *
    * @return
    */
   public String getText() {

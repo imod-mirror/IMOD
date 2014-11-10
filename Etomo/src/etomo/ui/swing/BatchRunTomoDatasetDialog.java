@@ -26,6 +26,7 @@ import etomo.storage.*;
 import etomo.storage.autodoc.AutodocFactory;
 import etomo.storage.autodoc.WritableAutodoc;
 import etomo.type.*;
+import etomo.ui.BooleanFieldSetting;
 import etomo.ui.Field;
 import etomo.ui.FieldType;
 import etomo.ui.UIComponent;
@@ -34,18 +35,17 @@ import etomo.ui.UIComponent;
  * <p>Description: Contains parameters that are dataset values.  Can be used for all
  * datasets and individual ones. </p>
  * <p/>
- * <p>Copyright: Copyright 2014</p>
+ * <p>Copyright: Copyright 2014 by the Regents of the University of Colorado</p>
  * <p/>
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
- * University of Colorado</p>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * @version $Date$ $Revision$
+ * @version $Id$
  */
 final class BatchRunTomoDatasetDialog
     implements ActionListener, Expandable, UIComponent, SwingComponent {
   private static final String DERIVE_THICKNESS_LABEL =
       "Thickness from Intergold spacing plus: ";
+  private static final String LENGTH_OF_PIECES_DEFAULT = "-1";
 
   private static BatchRunTomoDatasetDialog GLOBAL_INSTANCE = null;
 
@@ -72,8 +72,7 @@ final class BatchRunTomoDatasetDialog
       new LabeledTextField(FieldType.INTEGER, "Target number of beads: ");
   private final LabeledTextField ltfSizeOfPatchesXandY =
       new LabeledTextField(FieldType.INTEGER_PAIR, "Patch tracking size: ");
-  private final LabeledSpinner lsContourPieces =
-      LabeledSpinner.getInstance("Break contours into pieces: ", 1, 1, 10, 1);
+  private final CheckBox cbLengthOfPieces = new CheckBox("Break contours into pieces: ");
   private final LabeledSpinner lsBinByFactor =
       LabeledSpinner.getInstance("Aligned stack binning: ", 1, 1, 8, 1);
   private final CheckBox cbCorrectCTF = new CheckBox("Correct CTF");
@@ -120,6 +119,8 @@ final class BatchRunTomoDatasetDialog
   private final BaseManager manager;
   private final File datasetFile;
   private final BatchRunTomoRow row;
+
+  private String lengthOfPieces = LENGTH_OF_PIECES_DEFAULT;
 
   private BatchRunTomoDatasetDialog(final BaseManager manager, final File datasetFile,
       final boolean global, final BatchRunTomoRow row) {
@@ -226,7 +227,7 @@ final class BatchRunTomoDatasetDialog
     ltfLocalAreaTargetSize.setDirectiveDef(DirectiveDef.LOCAL_AREA_TARGET_SIZE);
     ltfTargetNumberOfBeads.setDirectiveDef(DirectiveDef.TARGET_NUMBER_OF_BEADS);
     ltfSizeOfPatchesXandY.setDirectiveDef(DirectiveDef.SIZE_OF_PATCHES_X_AND_Y);
-    lsContourPieces.setDirectiveDef(DirectiveDef.CONTOUR_PIECES);
+    cbLengthOfPieces.setDirectiveDef(DirectiveDef.LENGTH_OF_PIECES);
     cbEnableStretching.setDirectiveDef(DirectiveDef.ENABLE_STRETCHING);
     cbLocalAlignments.setDirectiveDef(DirectiveDef.LOCAL_ALIGNMENTS);
     lsBinByFactor.setDirectiveDef(DirectiveDef.BIN_BY_FACTOR_FOR_ALIGNED_STACK);
@@ -259,7 +260,7 @@ final class BatchRunTomoDatasetDialog
     fieldList.add(ltfLocalAreaTargetSize);
     fieldList.add(ltfTargetNumberOfBeads);
     fieldList.add(ltfSizeOfPatchesXandY);
-    fieldList.add(lsContourPieces);
+    fieldList.add(cbLengthOfPieces);
     fieldList.add(cbEnableStretching);
     fieldList.add(cbLocalAlignments);
     fieldList.add(lsBinByFactor);
@@ -363,7 +364,7 @@ final class BatchRunTomoDatasetDialog
     // SizeOfPatchesXandY
     pnlSizeOfPatchesXandY.setLayout(new GridLayout(1, 2, 15, 0));
     pnlSizeOfPatchesXandY.add(ltfSizeOfPatchesXandY.getComponent());
-    pnlSizeOfPatchesXandY.add(lsContourPieces.getContainer());
+    pnlSizeOfPatchesXandY.add(cbLengthOfPieces);
     // EnableStretching
     pnlEnableStretching.setLayout(new BoxLayout(pnlEnableStretching, BoxLayout.X_AXIS));
     pnlEnableStretching.add(cbEnableStretching);
@@ -499,7 +500,7 @@ final class BatchRunTomoDatasetDialog
     ltfLocalAreaTargetSize.setEnabled(beadTracking);
     boolean patchTracking = rbTrackingMethodPatchTracking.isSelected();
     ltfSizeOfPatchesXandY.setEnabled(patchTracking);
-    lsContourPieces.setEnabled(patchTracking);
+    cbLengthOfPieces.setEnabled(patchTracking);
     boolean ctf = cbCorrectCTF.isSelected();
     ltfDefocus.setEnabled(ctf);
     rtfAutoFitRangeAndStep.setEnabled(ctf);
@@ -552,7 +553,8 @@ final class BatchRunTomoDatasetDialog
     setDefaults();
     len = fieldList.size();
     for (int i = 0; i < len; i++) {
-      fieldList.get(i).useDefaultValue();
+      fieldList.get(i).
+          useDefaultValue();
     }
     // No settings values to apply
     // Apply the directive collection values
@@ -607,7 +609,7 @@ final class BatchRunTomoDatasetDialog
     ltfTargetNumberOfBeads.setText(metaData.getTargetNumberOfBeads());
     ltfLocalAreaTargetSize.setText(metaData.getLocalAreaTargetSize());
     ltfSizeOfPatchesXandY.setText(metaData.getSizeOfPatchesXandY());
-    lsContourPieces.setValue(metaData.getContourPieces());
+    cbLengthOfPieces.setSelected(metaData.isLengthOfPieces());
     ltfDefocus.setText(metaData.getDefocus());
     rtfAutoFitRangeAndStep.setSelected(metaData.isAutoFitRangeAndStep());
     rtfAutoFitRangeAndStep.setText(metaData.getAutoFitRange());
@@ -632,7 +634,7 @@ final class BatchRunTomoDatasetDialog
     metaData.setTargetNumberOfBeads(ltfTargetNumberOfBeads.getText());
     metaData.setLocalAreaTargetSize(ltfLocalAreaTargetSize.getText());
     metaData.setSizeOfPatchesXandY(ltfSizeOfPatchesXandY.getText());
-    metaData.setContourPieces(lsContourPieces.getValue());
+    metaData.setLengthOfPieces(cbLengthOfPieces.isSelected());
     metaData.setDefocus(ltfDefocus.getText());
     metaData.setAutoFitRangeAndStep(rtfAutoFitRangeAndStep.isSelected());
     metaData.setAutoFitRange(rtfAutoFitRangeAndStep.getText());
@@ -688,13 +690,28 @@ final class BatchRunTomoDatasetDialog
     BatchTool.saveAutodoc(ltfLocalAreaTargetSize, autodoc);
     BatchTool.saveAutodoc(ltfTargetNumberOfBeads, autodoc);
     BatchTool.saveAutodoc(ltfSizeOfPatchesXandY, autodoc);
-    BatchTool.saveAutodoc(lsContourPieces, autodoc);
+    if (cbLengthOfPieces.isSelected()) {
+      boolean add = true;
+      if (cbLengthOfPieces.isFieldHighlightSet()) {
+        add = !cbLengthOfPieces.equalsFieldHighlight(lengthOfPieces);
+      }
+      else {
+        add = !cbLengthOfPieces.equalsDefaultValue(lengthOfPieces);
+      }
+      if (add) {
+        autodoc
+            .addNameValuePair(cbLengthOfPieces.getDirectiveDef().getDirective(null, null),
+                lengthOfPieces);
+      }
+    }
     BatchTool.saveAutodoc(cbEnableStretching, autodoc);
     BatchTool.saveAutodoc(cbLocalAlignments, autodoc);
     BatchTool.saveAutodoc(lsBinByFactor, autodoc);
     BatchTool.saveAutodoc(cbCorrectCTF, autodoc);
     BatchTool.saveAutodoc(ltfDefocus, autodoc);
-    if (rtfAutoFitRangeAndStep.isSelected()) {
+    if (rtfAutoFitRangeAndStep.isSelected())
+
+    {
       if (rbTrackingMethodSeed.isEnabled() &&
           BatchTool.needInAutodoc(rbTrackingMethodSeed)) {
         autodoc.addNameValuePair(
@@ -702,18 +719,27 @@ final class BatchRunTomoDatasetDialog
             rtfAutoFitRangeAndStep.getText() + "," + ltfAutoFitStep.getText());
       }
     }
-    else if (rbFitEveryImage.isSelected()) {
+
+    else if (rbFitEveryImage.isSelected())
+
+    {
       if (rbFitEveryImage.isEnabled() && BatchTool.needInAutodoc(rbFitEveryImage)) {
         autodoc.addNameValuePair(
             DirectiveDef.AUTO_FIT_RANGE_AND_STEP.getDirective(null, null), "0,0");
       }
     }
-    if (rbUseSirtFalse.isSelected()) {
+
+    if (rbUseSirtFalse.isSelected())
+
+    {
       if (rbUseSirtFalse.isEnabled() && BatchTool.needInAutodoc(rbUseSirtFalse)) {
         autodoc.addNameValuePair(DirectiveDef.USE_SIRT.getDirective(null, null), "0");
       }
     }
-    else if (!BatchTool.saveAutodoc(rbUseSirtTrue, autodoc)) {
+
+    else if (!BatchTool.saveAutodoc(rbUseSirtTrue, autodoc))
+
+    {
       if (BatchTool.saveAutodoc(rbDoBackprojAlso, autodoc)) {
         // Don't add useSirt if it is the default or in the templates
         if (!rbUseSirtTrue.equalsFieldHighlight(true) &&
@@ -722,6 +748,7 @@ final class BatchRunTomoDatasetDialog
         }
       }
     }
+
     BatchTool.saveAutodoc(ltfLeaveIterations, autodoc);
     BatchTool.saveAutodoc(cbScaleToInteger, autodoc);
     BatchTool.saveAutodoc(tfExtraThickness, autodoc);
@@ -750,11 +777,12 @@ final class BatchRunTomoDatasetDialog
     setValue(ftfGradient, directiveFiles, setFieldHighlightValue);
     setValue(cbRemoveXrays, directiveFiles, setFieldHighlightValue);
     setValue(ftfModelFile, directiveFiles, setFieldHighlightValue);
-    if (directiveFiles.contains(DirectiveDef.TRACKING_METHOD)) {
+    if (directiveFiles.contains(DirectiveDef.TRACKING_METHOD, setFieldHighlightValue)) {
       TrackingMethod trackingMethod = TrackingMethod
           .getInstance(directiveFiles.getValue(DirectiveDef.TRACKING_METHOD));
       if (trackingMethod == TrackingMethod.SEED) {
-        if (directiveFiles.contains(DirectiveDef.SEEDING_METHOD)) {
+        if (directiveFiles
+            .contains(DirectiveDef.SEEDING_METHOD, setFieldHighlightValue)) {
           SeedingMethod seedingMethod = SeedingMethod
               .getInstance(directiveFiles.getValue(DirectiveDef.SEEDING_METHOD));
           if (seedingMethod == SeedingMethod.AUTO_FID_SEED ||
@@ -790,13 +818,34 @@ final class BatchRunTomoDatasetDialog
     setValue(ltfLocalAreaTargetSize, directiveFiles, setFieldHighlightValue);
     setValue(ltfTargetNumberOfBeads, directiveFiles, setFieldHighlightValue);
     setValue(ltfSizeOfPatchesXandY, directiveFiles, setFieldHighlightValue);
-    setValue(lsContourPieces, directiveFiles, setFieldHighlightValue);
+    //LengthOfPieces is an integer directive, but it is being placed in a checkbox.  The
+    //real text value should be saved.  If it is from the starting batch directive, it
+    //must be added to the autodoc.
+    if (directiveFiles
+        .contains(cbLengthOfPieces.getDirectiveDef(), setFieldHighlightValue)) {
+      //LengthOfPieces exists and is not overridden.
+      lengthOfPieces = directiveFiles
+          .getValue(cbLengthOfPieces.getDirectiveDef(), setFieldHighlightValue);
+      if (!setFieldHighlightValue) {
+        cbLengthOfPieces.setSelected(BooleanFieldSetting.stringToBoolean(lengthOfPieces));
+      }
+      else {
+        cbLengthOfPieces.setFieldHighlight(lengthOfPieces);
+      }
+      //Make sure that lengthOfPieces has a value.  This may never happen
+      //because an integer directive without a value is overriding matching directives in
+      //previous templates, and will cause contains() to return false.
+      if (lengthOfPieces == null) {
+        lengthOfPieces = LENGTH_OF_PIECES_DEFAULT;
+      }
+    }
     setValue(cbEnableStretching, directiveFiles, setFieldHighlightValue);
     setValue(cbLocalAlignments, directiveFiles, setFieldHighlightValue);
     setValue(lsBinByFactor, directiveFiles, setFieldHighlightValue);
     setValue(cbCorrectCTF, directiveFiles, setFieldHighlightValue);
     setValue(ltfDefocus, directiveFiles, setFieldHighlightValue);
-    if (directiveFiles.contains(DirectiveDef.AUTO_FIT_RANGE_AND_STEP)) {
+    if (directiveFiles
+        .contains(DirectiveDef.AUTO_FIT_RANGE_AND_STEP, setFieldHighlightValue)) {
       EtomoNumber step = new EtomoNumber(EtomoNumber.Type.DOUBLE);
       step.set(directiveFiles.getValue(DirectiveDef.AUTO_FIT_RANGE_AND_STEP,
           DirectiveFile.AUTO_FIT_STEP_INDEX));

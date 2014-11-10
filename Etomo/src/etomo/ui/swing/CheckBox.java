@@ -21,17 +21,13 @@ import etomo.ui.Field;
 import etomo.util.Utilities;
 
 /**
- * <p>Description: A self-naming check box.  Implements StateChangeSource with its state
- * equal to whether it has changed since it was checkpointed.</p>
+ * <p>Description: A self-naming check box.</p>
  * <p/>
- * <p>Copyright: Copyright (c) 2005</p>
+ * <p>Copyright: Copyright 2005 - 2014 by the Regents of the University of Colorado</p>
  * <p/>
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
- * University of Colorado</p>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * @author $Author$
- * @version $Revision$
+ * @version $Id$
  *          <p/>
  *          <p> $Log$
  *          <p> Revision 1.4  2011/04/25 23:30:53  sueh
@@ -250,7 +246,7 @@ final class CheckBox extends JCheckBox implements Field, ActionListener {
       String value = DefaultFinder.INSTANCE.getDefaultValue(directiveDef);
       if (value != null) {
         // if default value has been found, set it in the field setting
-        defaultValue.set(DefaultFinder.toBoolean(value));
+        defaultValue.set(value);
       }
     }
     if (defaultValue.isSet()) {
@@ -260,6 +256,10 @@ final class CheckBox extends JCheckBox implements Field, ActionListener {
 
   public boolean equalsDefaultValue() {
     return defaultValue != null && defaultValue.equals(isSelected());
+  }
+
+  public boolean equalsDefaultValue(final String value) {
+    return defaultValue != null && defaultValue.equals(value);
   }
 
   public void checkpoint() {
@@ -280,15 +280,12 @@ final class CheckBox extends JCheckBox implements Field, ActionListener {
     return checkpoint;
   }
 
-  public void setCheckpoint(FieldSettingInterface input) {
-    if (input != null && input.isBoolean() && input.isSet()) {
-      if (checkpoint == null) {
-        checkpoint = new BooleanFieldSetting();
-      }
-      checkpoint.copy(input);
+  public void setCheckpoint(final FieldSettingInterface input) {
+    if (checkpoint == null && input != null && input.isSet() && input.isBoolean()) {
+      checkpoint = new BooleanFieldSetting();
     }
-    else if (checkpoint != null) {
-      checkpoint.reset();
+    if (checkpoint != null) {
+      checkpoint.copy(input);
     }
   }
 
@@ -315,7 +312,15 @@ final class CheckBox extends JCheckBox implements Field, ActionListener {
     updateFieldHighlight();
   }
 
-  public void setFieldHighlight(final String value) {
+  public void setFieldHighlight(final String input) {
+    if (fieldHighlight == null && input != null) {
+      fieldHighlight = new BooleanFieldSetting();
+      addActionListener(this);
+    }
+    if (fieldHighlight != null) {
+      fieldHighlight.set(input);
+      updateFieldHighlight();
+    }
   }
 
   public BooleanFieldSetting getFieldHighlight() {
@@ -323,16 +328,13 @@ final class CheckBox extends JCheckBox implements Field, ActionListener {
   }
 
   public void setFieldHighlight(FieldSettingInterface input) {
-    if (input != null && input.isBoolean() && input.isSet()) {
-      if (fieldHighlight == null) {
-        fieldHighlight = new BooleanFieldSetting();
-        addActionListener(this);
-      }
+    if (fieldHighlight == null && input != null && input.isSet() && input.isBoolean()) {
+      fieldHighlight = new BooleanFieldSetting();
+      addActionListener(this);
+    }
+    if (fieldHighlight != null) {
       fieldHighlight.copy(input);
       updateFieldHighlight();
-    }
-    else if (input == null || !input.isSet()) {
-      clearFieldHighlight();
     }
   }
 
@@ -343,8 +345,16 @@ final class CheckBox extends JCheckBox implements Field, ActionListener {
     }
   }
 
+  public boolean isFieldHighlightSet() {
+    return fieldHighlight != null && fieldHighlight.isSet();
+  }
+
   public boolean equalsFieldHighlight() {
     return fieldHighlight != null && fieldHighlight.equals(isSelected());
+  }
+
+  public boolean equalsFieldHighlight(final String value) {
+    return fieldHighlight != null && fieldHighlight.equals(value);
   }
 
   public void setEnabled(final boolean enabled) {
@@ -429,87 +439,3 @@ final class CheckBox extends JCheckBox implements Field, ActionListener {
     }
   }
 }
-/**
- * <p> $Log$
- * <p> Revision 1.4  2011/04/25 23:30:53  sueh
- * <p> bug# 1416 Implemented StateChangeActionSource.  Added equals(Object) and equals
- * (Document) so
- * <p> StateChangedReporter can find instances of this class.
- * <p>
- * <p> Revision 1.3  2011/04/04 17:17:19  sueh
- * <p> bug# 1416 Added savedValue, checkpoint, isChanged.
- * <p>
- * <p> Revision 1.2  2011/02/22 18:04:56  sueh
- * <p> bug# 1437 Reformatting.
- * <p>
- * <p> Revision 1.1  2010/11/13 16:07:34  sueh
- * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
- * <p>
- * <p> Revision 1.19  2010/03/05 04:02:01  sueh
- * <p> bug# 1319 Added a constructor with no label string.
- * <p>
- * <p> Revision 1.18  2009/11/20 17:02:08  sueh
- * <p> bug# 1282 Added prefixes to all of the field names, so that the fields that
- * <p> are actually abstract buttons (radio buttons, etc) won't be activated by a
- * <p> "bn." field command.
- * <p>
- * <p> Revision 1.17  2009/04/13 22:55:46  sueh
- * <p> Removed newstuff.
- * <p>
- * <p> Revision 1.16  2009/02/27 03:50:23  sueh
- * <p> bug# 1172 Added experimental automation recording background color
- * <p> (newstuff only).
- * <p>
- * <p> Revision 1.15  2009/01/20 19:49:28  sueh
- * <p> bug# 1102 Changed this UITestField to UITestFieldType.
- * <p>
- * <p> Revision 1.14  2008/10/27 20:30:26  sueh
- * <p> bug# 1141 Added printinfo (debugging tool).
- * <p>
- * <p> Revision 1.13  2008/05/30 22:31:35  sueh
- * <p> bug# 1102 Isolating the etomo.uitest package so it is not need for
- * <p> running EtomoDirector.
- * <p>
- * <p> Revision 1.12  2008/05/30 21:28:02  sueh
- * <p> bug# 1102 Moved uitest classes to etomo.uitest.
- * <p>
- * <p> Revision 1.11  2007/12/26 22:22:42  sueh
- * <p> bug# 1052 Moved argument handling from EtomoDirector to a separate class.
- * <p>
- * <p> Revision 1.10  2007/09/07 00:26:17  sueh
- * <p> bug# 989 Using a public INSTANCE to refer to the EtomoDirector singleton
- * <p> instead of getInstance and createInstance.
- * <p>
- * <p> Revision 1.9  2007/02/09 00:47:40  sueh
- * <p> bug# 962 Made TooltipFormatter a singleton and moved its use to low-level ui
- * <p> classes.
- * <p>
- * <p> Revision 1.8  2007/02/05 23:34:30  sueh
- * <p> bug# 962 Removed commented out functions.
- * <p>
- * <p> Revision 1.7  2006/05/16 21:35:17  sueh
- * <p> bug# 856 Changing the name whenever the label is changed so that its easy to
- * <p> see what the name is.
- * <p>
- * <p> Revision 1.6  2006/04/25 19:12:23  sueh
- * <p> bug# 787 Added UITestField, an enum style class which contains the
- * <p> fields found in uitestaxis.adoc files.
- * <p>
- * <p> Revision 1.5  2006/04/06 20:15:51  sueh
- * <p> bug# 808 Moved the function convertLabelToName from UIUtilities to
- * <p> util.Utilities.
- * <p>
- * <p> Revision 1.4  2006/01/12 17:08:14  sueh
- * <p> bug# 798 Moved the autodoc classes to etomo.storage.autodoc.
- * <p>
- * <p> Revision 1.3  2006/01/11 21:58:46  sueh
- * <p> bug# 675 corrected print name functionality
- * <p>
- * <p> Revision 1.2  2006/01/04 20:23:29  sueh
- * <p> bug# 675 For printing the name:  putting the type first and making the type
- * <p> as constant.
- * <p>
- * <p> Revision 1.1  2006/01/03 23:30:46  sueh
- * <p> bug# 675 Extends JCheckBox.  Names the check box using the label.
- * <p> </p>
- */

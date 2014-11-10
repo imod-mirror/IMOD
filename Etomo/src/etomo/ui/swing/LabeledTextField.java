@@ -31,13 +31,11 @@ import etomo.util.Utilities;
  * <p>Description: A self-naming, labeled text field.  Implements StateChangeSource with
  * its state equal to whether it has changed since it was checkpointed.</p>
  * <p/>
- * <p>Copyright: Copyright (c) 2002</p>
+ * <p>Copyright: Copyright 2002 - 2014 by the Regents of the University of Colorado</p>
  * <p/>
- * <p>Organization: Boulder Laboratory for 3D Fine Structure,
- * University of Colorado</p>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * @author $Author$
- * @version $Revision$
+ * @version $Id$
  *          <p/>
  *          <p> $Log$
  *          <p> Revision 1.5  2011/04/25 23:36:21  sueh
@@ -218,9 +216,6 @@ import etomo.util.Utilities;
  */
 final class LabeledTextField
     implements UIComponent, SwingComponent, Field, FocusListener {
-  public static final String rcsid =
-      "$Id$";
-
   private final JPanel panel = new JPanel();
   private final JLabel label = new JLabel();
   private final JTextField textField = new JTextField();
@@ -437,14 +432,11 @@ final class LabeledTextField
   }
 
   public void setCheckpoint(final FieldSettingInterface input) {
-    if (input != null && input.isText() && input.isSet()) {
-      if (checkpoint == null) {
-        checkpoint = new TextFieldSetting(fieldType);
-      }
-      checkpoint.copy(input);
+    if (checkpoint == null && input != null && input.isSet() && input.isText()) {
+      checkpoint = new TextFieldSetting(fieldType);
     }
-    else if (checkpoint != null) {
-      checkpoint.reset();
+    if (checkpoint != null) {
+      checkpoint.copy(input);
     }
   }
 
@@ -462,6 +454,10 @@ final class LabeledTextField
     setText(checkpoint.getValue());
   }
 
+  public boolean isFieldHighlightSet() {
+    return fieldHighlight != null && fieldHighlight.isSet();
+  }
+
   public void setFieldHighlight(final String value) {
     if (fieldHighlight == null) {
       fieldHighlight = new TextFieldSetting(fieldType);
@@ -475,16 +471,13 @@ final class LabeledTextField
   }
 
   public void setFieldHighlight(final FieldSettingInterface input) {
-    if (input != null && input.isText() && input.isSet()) {
-      if (fieldHighlight == null) {
-        fieldHighlight = new TextFieldSetting(fieldType);
-        textField.addFocusListener(this);
-      }
+    if (fieldHighlight == null && input != null && input.isSet() && input.isText()) {
+      fieldHighlight = new TextFieldSetting(fieldType);
+      textField.addFocusListener(this);
+    }
+    if (fieldHighlight != null) {
       fieldHighlight.copy(input);
       updateFieldHighlight();
-    }
-    else if (input == null || !input.isSet()) {
-      clearFieldHighlight();
     }
   }
 

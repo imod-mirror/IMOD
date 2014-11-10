@@ -36,13 +36,11 @@ import etomo.util.Utilities;
 /**
  * <p>Description: Manager for the interface for batchruntomo.</p>
  * <p/>
- * <p>Copyright: Copyright 2013</p>
+ * <p>Copyright: Copyright 2014 by the Regents of the University of Colorado</p>
  * <p/>
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
- * University of Colorado</p>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * @version $Date$ $Revision$
+ * @version $Id$
  */
 public final class BatchRunTomoManager extends BaseManager {
   private static final AxisID AXIS_ID = AxisID.ONLY;
@@ -179,6 +177,7 @@ public final class BatchRunTomoManager extends BaseManager {
   }
 
   public boolean save() throws LogFile.LockException, IOException {
+    Utilities.timestamp("save","start");
     super.save();
     mainPanel.done();
     saveBatchRunTomoDialog();
@@ -205,6 +204,7 @@ public final class BatchRunTomoManager extends BaseManager {
     dialog.saveAutodocs();
     saveStorables(AXIS_ID);
     BatchruntomoParam param = updateBatchRunTomo();
+    Utilities.timestamp("save","end");
     return true;
   }
 

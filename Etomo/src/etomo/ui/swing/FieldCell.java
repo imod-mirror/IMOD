@@ -24,14 +24,11 @@ import etomo.util.Utilities;
 /**
  * <p>Description: </p>
  * <p/>
- * <p>Copyright: Copyright (c) 2002, 2003, 2004</p>
+ * <p>Copyright: Copyright 2002 - 2014 by the Regents of the University of Colorado</p>
  * <p/>
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
- * University of Colorado</p>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * @author $Author$
- * @version $Revision$
+ * @version $Id$
  *          <p/>
  *          <p> $Log$
  *          <p> Revision 1.1  2010/11/13 16:07:34  sueh
@@ -162,9 +159,6 @@ import etomo.util.Utilities;
  *          <p> </p>
  */
 final class FieldCell extends InputCell implements ActionTarget, TableComponent, Field {
-  public static final String rcsid =
-      "$Id$";
-
   private final JTextField textField;
   private final ParsedElementType parsedElementType;
 
@@ -175,7 +169,7 @@ final class FieldCell extends InputCell implements ActionTarget, TableComponent,
   private TextFieldState state;
 
   private FieldCell(final boolean editable, final ParsedElementType parsedElementType,
-                    final String rootDir) {
+      final String rootDir) {
     this.parsedElementType = parsedElementType;
     state = new TextFieldState(editable, parsedElementType, rootDir);
     // construction
@@ -338,6 +332,10 @@ final class FieldCell extends InputCell implements ActionTarget, TableComponent,
 
   public void useDefaultValue() {
     System.err.println("Warning: Default value has not been implemented in FieldCell.");
+  }
+
+  public boolean isFieldHighlightSet() {
+    return false;
   }
 
   public void clearFieldHighlight() {

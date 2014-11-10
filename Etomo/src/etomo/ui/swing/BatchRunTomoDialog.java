@@ -49,13 +49,11 @@ import etomo.util.Utilities;
  * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
  * University of Colorado</p>
  *
- * @version $Date$ $Revision$
+ * @version $Id$
  */
 public final class BatchRunTomoDialog
     implements ActionListener, ResultListener, ChangeListener, Expandable,
     ProcessInterface {
-  public static final String rcsid = "$Id:$";
-
   private static final String DELIVER_TO_DIRECTORY_NAME = "Move datasets to";
 
   private final JPanel pnlRoot = new JPanel();
@@ -86,7 +84,7 @@ public final class BatchRunTomoDialog
       EtomoDirector.INSTANCE.getUserConfiguration();
   private final JPanel pnlDatasetTableBody = new JPanel();
   private final JPanel pnlUntitledTable = new JPanel();
-
+//
   private final FileTextField2 ftfRootDir;
   private final FileTextField2 ftfInputDirectiveFile;
   private final TemplatePanel templatePanel;
