@@ -28,19 +28,13 @@ import etomo.util.Utilities;
 /**
  * <p>Description: </p>
  * <p/>
- * <p>Copyright: Copyright 2006</p>
+ * <p>Copyright: Copyright 2006 - 2014 by the Regents of the University of Colorado</p>
  * <p/>
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
- * University of Colorado</p>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * @author $Author$
- * @version $Revision$
+ * @version $Id$
  */
 final class TextField implements UIComponent, SwingComponent, Field, FocusListener {
-  public static final String rcsid =
-      "$Id$";
-
   private final JTextField textField = new JTextField();
 
   private final FieldType fieldType;
@@ -209,28 +203,26 @@ final class TextField implements UIComponent, SwingComponent, Field, FocusListen
   }
 
   public void setCheckpoint(final FieldSettingInterface input) {
-    if (input != null && input.isText() && input.isSet()) {
-      if (checkpoint == null) {
-        checkpoint = new TextFieldSetting(fieldType);
-      }
-      checkpoint.copy(input);
+    if (checkpoint == null && input != null && input.isSet() && input.isText()) {
+      checkpoint = new TextFieldSetting(fieldType);
     }
-    else if (checkpoint != null) {
-      checkpoint.reset();
+    if (checkpoint != null) {
+      checkpoint.copy(input);
     }
   }
 
+  public boolean isFieldHighlightSet() {
+    return fieldHighlight != null && fieldHighlight.isSet();
+  }
+
   public void setFieldHighlight(final FieldSettingInterface input) {
-    if (input != null && input.isText() && input.isSet()) {
-      if (fieldHighlight == null) {
-        fieldHighlight = new TextFieldSetting(fieldType);
-        textField.addFocusListener(this);
-      }
+    if (fieldHighlight == null && input != null && input.isSet() && input.isText()) {
+      fieldHighlight = new TextFieldSetting(fieldType);
+      textField.addFocusListener(this);
+    }
+    if (fieldHighlight != null) {
       fieldHighlight.copy(input);
       updateFieldHighlight();
-    }
-   else if (input == null || !input.isSet()) {
-      clearFieldHighlight();
     }
   }
 

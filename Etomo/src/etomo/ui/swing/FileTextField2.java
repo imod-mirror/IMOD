@@ -32,20 +32,14 @@ import etomo.util.FilePath;
 import etomo.util.Utilities;
 
 /**
-* <p>Description: Like FileTextField but handles relative paths</p>
-* 
-* <p>Copyright: Copyright 2011</p>
-*
-* <p>Organization:
-* Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
-* University of Colorado</p>
-* 
-* @author $Author$
-* 
-* @version $Revision$
-* 
-* <p> $Log$ </p>
-*/
+ * <p>Description: Like FileTextField but handles relative paths</p>
+ * <p/>
+ * <p>Copyright: Copyright 2011 - 2014 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
+ *
+ * @version $Id$
+ */
 final class FileTextField2 implements FileTextFieldInterface, Field, ActionListener {
   public static final String rcsid = "$Id:$";
 
@@ -89,12 +83,12 @@ final class FileTextField2 implements FileTextFieldInterface, Field, ActionListe
   private FileTextField2(final BaseManager manager, final String label,
       final boolean labeled, final boolean peet, final boolean alternateLayout) {
     if (!peet) {
-      button = new SimpleButton(new ImageIcon(
-          ClassLoader.getSystemResource("images/openFile.gif")));
+      button = new SimpleButton(
+          new ImageIcon(ClassLoader.getSystemResource("images/openFile.gif")));
     }
     else {
-      button = new SimpleButton(new ImageIcon(
-          ClassLoader.getSystemResource("images/openFilePeet.png")));
+      button = new SimpleButton(
+          new ImageIcon(ClassLoader.getSystemResource("images/openFilePeet.png")));
     }
     button.setName(label);
     field = new TextField(STRING_FIELD_TYPE, label, null);
@@ -116,6 +110,7 @@ final class FileTextField2 implements FileTextFieldInterface, Field, ActionListe
    * Get an unlabeled instance with a PEET-style button.  The starting directory for the
    * file chooser and the origin of relative files is the manager's property user
    * directory.
+   *
    * @param manager
    * @param name
    * @return
@@ -132,6 +127,7 @@ final class FileTextField2 implements FileTextFieldInterface, Field, ActionListe
    * Get a labeled instance with a PEET-style button.  The starting directory for the
    * file chooser and the origin of relative files is the manager's property user
    * directory.
+   *
    * @param manager
    * @param name
    * @return
@@ -150,7 +146,8 @@ final class FileTextField2 implements FileTextFieldInterface, Field, ActionListe
     return instance;
   }
 
-  static FileTextField2 getAltLayoutInstance(final BaseManager manager, final String name) {
+  static FileTextField2 getAltLayoutInstance(final BaseManager manager,
+      final String name) {
     FileTextField2 instance = new FileTextField2(manager, name, true, false, true);
     instance.createPanel();
     instance.addListeners();
@@ -159,8 +156,9 @@ final class FileTextField2 implements FileTextFieldInterface, Field, ActionListe
 
   private void createPanel() {
     // init
-    field.setTextPreferredSize(new Dimension(250 * (int) Math.round(UIParameters.INSTANCE
-        .getFontSizeAdjustment()), FixedDim.folderButton.height));
+    field.setTextPreferredSize(new Dimension(
+        250 * (int) Math.round(UIParameters.INSTANCE.getFontSizeAdjustment()),
+        FixedDim.folderButton.height));
     button.setName(label.getText());
     button.setPreferredSize(FixedDim.folderButton);
     button.setMaximumSize(FixedDim.folderButton);
@@ -196,8 +194,8 @@ final class FileTextField2 implements FileTextFieldInterface, Field, ActionListe
     if (fontMetrics == null) {
       fontMetrics = UIUtilities.getFontMetrics(label);
     }
-    return UIUtilities.getPreferredWidth(label, label.getText(), fontMetrics)
-        + field.getPreferredWidth() + button.getPreferredWidth();
+    return UIUtilities.getPreferredWidth(label, label.getText(), fontMetrics) +
+        field.getPreferredWidth() + button.getPreferredWidth();
   }
 
   private void addListeners() {
@@ -206,6 +204,7 @@ final class FileTextField2 implements FileTextFieldInterface, Field, ActionListe
 
   /**
    * Adds a result listener to a list of result listeners.  A null listener has no effect.
+   *
    * @param listener
    */
   void addResultListener(final ResultListener listener) {
@@ -266,6 +265,7 @@ final class FileTextField2 implements FileTextFieldInterface, Field, ActionListe
 
   /**
    * Sets field width with font adjustment.
+   *
    * @param width
    */
   void setAdjustedFieldWidth(final double width) {
@@ -287,6 +287,7 @@ final class FileTextField2 implements FileTextFieldInterface, Field, ActionListe
   /**
    * Sets the origin member variable which overrides the originEtomoRunDir member variable
    * and the propertyUserDir when it is a valid directory.
+   *
    * @return
    */
   void setOrigin(final File input) {
@@ -302,6 +303,7 @@ final class FileTextField2 implements FileTextFieldInterface, Field, ActionListe
   /**
    * If useTextAsOriginDir is true, the text in the text field with be where the file
    * chooser opens, if the text field contains a directory.
+   *
    * @param input
    */
   void setUseTextAsOriginDir(final boolean input) {
@@ -351,12 +353,7 @@ final class FileTextField2 implements FileTextFieldInterface, Field, ActionListe
   }
 
   public void setCheckpoint(final FieldSettingInterface input) {
-    if (input == null) {
-      field.setCheckpoint(null);
-    }
-    else {
-      field.setCheckpoint(input.getTextSetting());
-    }
+    field.setCheckpoint(input);
   }
 
   public TextFieldSetting getCheckpoint() {
@@ -391,6 +388,10 @@ final class FileTextField2 implements FileTextFieldInterface, Field, ActionListe
     return field.equalsDefaultValue();
   }
 
+  public boolean isFieldHighlightSet() {
+    return field.isFieldHighlightSet();
+  }
+
   public TextFieldSetting getFieldHighlight() {
     return field.getFieldHighlight();
   }
@@ -415,7 +416,6 @@ final class FileTextField2 implements FileTextFieldInterface, Field, ActionListe
   }
 
   /**
-   * 
    * @param alwaysCheck - check for difference even when the field is disabled or invisible
    * @return
    */
@@ -425,6 +425,7 @@ final class FileTextField2 implements FileTextFieldInterface, Field, ActionListe
 
   /**
    * Gets the origin directory.
+   *
    * @return
    */
   private String getOriginDir() {
@@ -448,11 +449,12 @@ final class FileTextField2 implements FileTextFieldInterface, Field, ActionListe
   }
 
   /**
-   * Adds the text of the file path to the field.  The file path will be either absolute 
-   * or relative depending on the member variable absolutePath.  The directory will be set 
-   * to propertyUserDir, unless the member variable originEtomoRunDir is true.  The 
-   * directory will be used as the origin when building a relative file, or when building 
+   * Adds the text of the file path to the field.  The file path will be either absolute
+   * or relative depending on the member variable absolutePath.  The directory will be set
+   * to propertyUserDir, unless the member variable originEtomoRunDir is true.  The
+   * directory will be used as the origin when building a relative file, or when building
    * an absolute file out of a relative file.
+   *
    * @param file
    */
   public void setFile(final File file) {
@@ -466,11 +468,12 @@ final class FileTextField2 implements FileTextFieldInterface, Field, ActionListe
 
   /**
    * Sets the file selection mode to be used in the file chooser.
+   *
    * @param input
    */
   void setFileSelectionMode(final int input) {
-    if (input != FileChooser.FILES_ONLY && input != FileChooser.DIRECTORIES_ONLY
-        && input != FileChooser.FILES_AND_DIRECTORIES) {
+    if (input != FileChooser.FILES_ONLY && input != FileChooser.DIRECTORIES_ONLY &&
+        input != FileChooser.FILES_AND_DIRECTORIES) {
       System.err.println("WARNING: Incorrect file chooser file selection mode: " + input);
       return;
     }

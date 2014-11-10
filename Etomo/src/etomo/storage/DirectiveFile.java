@@ -19,16 +19,11 @@ import etomo.ui.swing.UIHarness;
 /**
  * <p>Description: </p>
  * <p/>
- * <p>Copyright: Copyright 2012</p>
+ * <p>Copyright: Copyright 2012 - 2014 by the Regents of the University of Colorado</p>
  * <p/>
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
- * University of Colorado</p>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * @author $Author$
- * @version $Revision$
- *          <p/>
- *          <p> $Log$ </p>
+ * @version $Id$
  */
 public final class DirectiveFile implements DirectiveFileInterface {
   public static final String rcsid = "$Id:$";
@@ -270,7 +265,8 @@ public final class DirectiveFile implements DirectiveFileInterface {
     setupSet = null;
     comparam = null;
     try {
-      autodoc = (ReadOnlyAutodoc) AutodocFactory.getInstance(manager, file, axisID, false);
+      autodoc =
+          (ReadOnlyAutodoc) AutodocFactory.getInstance(manager, file, axisID, false);
     }
     catch (FileNotFoundException e) {
       UIHarness.INSTANCE
@@ -418,6 +414,7 @@ public final class DirectiveFile implements DirectiveFileInterface {
     static final Command AUTOFIDSEED = new Command("autofidseed");
     static final Command BEADTRACK = new Command("beadtrack");
     static final Command CCDERASER = new Command("ccderaser");
+    static final Command IMODCHOPCONTS = new Command("imodchopconts");
     static final Command SIRTSETUP = new Command("sirtsetup");
     static final Command TILT = new Command("tilt");
     static final Command TILTALIGN = new Command("tiltalign");

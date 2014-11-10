@@ -6,16 +6,11 @@ import java.util.Properties;
 /**
  * <p>Description: </p>
  * <p/>
- * <p>Copyright: Copyright 2014</p>
+ * <p>Copyright: Copyright 2014 by the Regents of the University of Colorado</p>
  * <p/>
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
- * University of Colorado</p>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * @author $Author$
- * @version $Revision$
- *          <p/>
- *          <p> $Log$ </p>
+ * @version $Id$
  */
 public final class BatchRunTomoDatasetMetaData {
   public static final String rcsid = "$Id:$";
@@ -34,7 +29,7 @@ public final class BatchRunTomoDatasetMetaData {
       new StringProperty("LocalAreaTargetSize");
   private final StringProperty sizeOfPatchesXandY =
       new StringProperty("SizeOfPatchesXandY");
-  private final EtomoNumber contourPieces = new EtomoNumber("contourPieces");
+  private final EtomoBoolean2 lengthOfPieces = new EtomoBoolean2("LengthOfPieces");
   private final StringProperty defocus = new StringProperty("defocus");
   private final EtomoBoolean2 autoFitRangeAndStep =
       new EtomoBoolean2("autoFitRangeAndStep");
@@ -86,7 +81,7 @@ public final class BatchRunTomoDatasetMetaData {
     targetNumberOfBeads.reset();
     localAreaTargetSize.reset();
     sizeOfPatchesXandY.reset();
-    contourPieces.reset();
+    lengthOfPieces.reset();
     defocus.reset();
     autoFitRangeAndStep.reset();
     autoFitRange.reset();
@@ -117,7 +112,7 @@ public final class BatchRunTomoDatasetMetaData {
     targetNumberOfBeads.load(props, prepend);
     localAreaTargetSize.load(props, prepend);
     sizeOfPatchesXandY.load(props, prepend);
-    contourPieces.load(props, prepend);
+    lengthOfPieces.load(props, prepend);
     defocus.load(props, prepend);
     autoFitRangeAndStep.load(props, prepend);
     autoFitRange.load(props, prepend);
@@ -148,7 +143,7 @@ public final class BatchRunTomoDatasetMetaData {
       targetNumberOfBeads.store(props, prepend);
       localAreaTargetSize.store(props, prepend);
       sizeOfPatchesXandY.store(props, prepend);
-      contourPieces.store(props, prepend);
+      lengthOfPieces.store(props, prepend);
       defocus.store(props, prepend);
       autoFitRangeAndStep.store(props, prepend);
       autoFitRange.store(props, prepend);
@@ -176,7 +171,7 @@ public final class BatchRunTomoDatasetMetaData {
     targetNumberOfBeads.remove(props, prepend);
     localAreaTargetSize.remove(props, prepend);
     sizeOfPatchesXandY.remove(props, prepend);
-    contourPieces.remove(props, prepend);
+    lengthOfPieces.remove(props, prepend);
     defocus.remove(props, prepend);
     autoFitRangeAndStep.remove(props, prepend);
     autoFitRange.remove(props, prepend);
@@ -240,12 +235,12 @@ public final class BatchRunTomoDatasetMetaData {
     return autoFitStep.toString();
   }
 
-  public void setContourPieces(final Number input) {
-    contourPieces.set(input);
+  public void setLengthOfPieces(final boolean input) {
+    lengthOfPieces.set(input);
   }
 
-  public String getContourPieces() {
-    return contourPieces.toString();
+  public boolean isLengthOfPieces() {
+    return lengthOfPieces.is();
   }
 
   public void setDefocus(final String input) {

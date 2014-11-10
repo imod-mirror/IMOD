@@ -21,19 +21,13 @@ import etomo.util.Utilities;
 /**
  * <p>Description: </p>
  * <p/>
- * <p>Copyright: Copyright (c) 2005</p>
+ * <p>Copyright: Copyright 2005 - 2014 by the Regents of the University of Colorado</p>
  * <p/>
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
- * University of Colorado</p>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * @author $Author$
- * @version $Revision$
+ * @version $Id$
  */
 final class CheckBoxCell extends InputCell implements ToggleCell, ActionListener, Field {
-  public static final String rcsid =
-      "$Id$";
-
   private final JCheckBox checkBox = new JCheckBox();
   // label: from JCheckBox.getText(). Updated in setLabel(). Always up to date
   // because it is a read only field in JCheckBox.
@@ -116,14 +110,11 @@ final class CheckBoxCell extends InputCell implements ToggleCell, ActionListener
   }
 
   public void setCheckpoint(FieldSettingInterface input) {
-    if (input != null && input.isSet() && input.isBoolean()) {
-      if (checkpoint == null) {
-        checkpoint = new BooleanFieldSetting();
-      }
-      checkpoint.copy(input);
+    if (checkpoint == null && input != null && input.isSet() && input.isBoolean()) {
+      checkpoint = new BooleanFieldSetting();
     }
-    else if (checkpoint != null) {
-      checkpoint.reset();
+    if (checkpoint != null) {
+      checkpoint.copy(input);
     }
   }
 
@@ -217,6 +208,10 @@ final class CheckBoxCell extends InputCell implements ToggleCell, ActionListener
     return directiveDef;
   }
 
+  public boolean isFieldHighlightSet() {
+    return fieldHighlight != null && fieldHighlight.isSet();
+  }
+
   public void setFieldHighlight(final boolean value) {
     if (fieldHighlight == null) {
       fieldHighlight = new BooleanFieldSetting();
@@ -230,16 +225,13 @@ final class CheckBoxCell extends InputCell implements ToggleCell, ActionListener
   }
 
   public void setFieldHighlight(FieldSettingInterface input) {
-    if (input != null && input.isSet() && input.isBoolean()) {
-      if (fieldHighlight == null) {
-        fieldHighlight = new BooleanFieldSetting();
-        checkBox.addActionListener(this);
-      }
+    if (fieldHighlight == null && input != null && input.isSet() && input.isBoolean()) {
+      fieldHighlight = new BooleanFieldSetting();
+      checkBox.addActionListener(this);
+    }
+    if (fieldHighlight != null) {
       fieldHighlight.copy(input);
       updateFieldHighlight();
-    }
-    else if (input == null || !input.isSet()) {
-      clearFieldHighlight();
     }
   }
 
