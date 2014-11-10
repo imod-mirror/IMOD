@@ -5,20 +5,13 @@ import etomo.storage.DirectiveDef;
 /**
  * <p>Description: An interface to allow the generic handling of GUI fields.</p>
  * <p/>
- * <p>Copyright: Copyright 2014</p>
+ * <p>Copyright: Copyright 2012 - 2014 by the Regents of the University of Colorado</p>
  * <p/>
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
- * University of Colorado</p>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * @author $Author$
- * @version $Revision$
- *          <p/>
- *          <p> $Log$ </p>
+ * @version $Id$
  */
 public interface Field {
-  public static final String rcsid = "$Id:$";
-
   public boolean isBoolean();
 
   /**
@@ -94,6 +87,8 @@ public interface Field {
   public FieldSettingInterface getCheckpoint();
 
   public boolean isDifferentFromCheckpoint(boolean alwaysCheck);
+
+  public boolean isFieldHighlightSet();
 
   public void clearFieldHighlight();
 
