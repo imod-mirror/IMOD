@@ -7,25 +7,25 @@ import javax.xml.soap.Text;
 import java.util.Properties;
 
 /**
- * <p>Description: Text setting that can be turned on and off.  Not thread safe.</p>
+ * <p>Description: Text setting that can be turned on and off.  Not thread safe.  A null
+ * value can be a valid setting.  The set member variable is turned on when set() is
+ * called.</p>
  * <p/>
- * <p>Copyright: Copyright 2014</p>
+ * <p>Copyright: Copyright 2014 by the Regents of the University of Colorado</p>
  * <p/>
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
- * University of Colorado</p>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * @author $Author$
- * @version $Revision$
+ * @version $Id$
  */
 public final class TextFieldSetting implements FieldSettingInterface {
-  public static final String rcsid =
-      "$Id$";
-
   private boolean set = false;
   private String value = null;
 
   private final EtomoNumber.Type type;
+
+   TextFieldSetting() {
+    type = null;
+  }
 
   public TextFieldSetting(final FieldType fieldType) {
     type = fieldType.getEtomoNumberType();
@@ -38,7 +38,10 @@ public final class TextFieldSetting implements FieldSettingInterface {
   public boolean isBoolean() {
     return false;
   }
-  public boolean isText(){return true;}
+
+  public boolean isText() {
+    return true;
+  }
 
   public TextFieldSetting getTextSetting() {
     return this;
@@ -190,17 +193,20 @@ public final class TextFieldSetting implements FieldSettingInterface {
     value = null;
   }
 
+  /**
+   * Resets and then copies member variables
+   * @param input
+   */
   public void copy(final FieldSettingInterface input) {
+    reset();
     TextFieldSetting setting = null;
     if (input != null) {
       setting = input.getTextSetting();
     }
     if (setting != null) {
-      set = setting.isSet();
-      value = setting.getValue();
-      return;
+      set = setting.set;
+      value = setting.value;
     }
-    reset();
   }
 
   public boolean isSet() {
