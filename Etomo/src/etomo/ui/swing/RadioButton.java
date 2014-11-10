@@ -32,19 +32,13 @@ import etomo.util.Utilities;
 /**
  * <p>Description: </p>
  * <p/>
- * <p>Copyright: Copyright (c) 2005</p>
+ * <p>Copyright: Copyright 2005 - 2014 by the Regents of the University of Colorado</p>
  * <p/>
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
- * University of Colorado</p>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * @author $Author$
- * @version $Revision$
+ * @version $Id$
  */
 final class RadioButton implements RadioButtonInterface, Field, ActionListener {
-  public static final String rcsid =
-      "$Id$";
-
   private final JRadioButton radioButton;
   private final EnumeratedType enumeratedType;
   private final ButtonGroup group;
@@ -143,14 +137,11 @@ final class RadioButton implements RadioButtonInterface, Field, ActionListener {
   }
 
   public void setCheckpoint(FieldSettingInterface input) {
-    if (input != null && input.isBoolean() && input.isSet()) {
-      if (checkpoint == null) {
-        checkpoint = new BooleanFieldSetting();
-      }
-      checkpoint.copy(input);
+    if (checkpoint == null && input != null && input.isSet() && input.isBoolean()) {
+      checkpoint = new BooleanFieldSetting();
     }
-    else if (checkpoint != null) {
-      checkpoint.reset();
+    if (checkpoint != null) {
+      checkpoint.copy(input);
     }
   }
 
@@ -217,7 +208,7 @@ final class RadioButton implements RadioButtonInterface, Field, ActionListener {
       String value = DefaultFinder.INSTANCE.getDefaultValue(directiveDef);
       if (value != null) {
         // if default value has been found, set it in the field setting
-        defaultValue.set(DefaultFinder.toBoolean(value));
+        defaultValue.set(value);
       }
     }
     if (defaultValue.isSet()) {
@@ -308,17 +299,18 @@ final class RadioButton implements RadioButtonInterface, Field, ActionListener {
     debug = input;
   }
 
+  public boolean isFieldHighlightSet() {
+    return fieldHighlight != null && fieldHighlight.isSet();
+  }
+
   public void setFieldHighlight(FieldSettingInterface input) {
-    if (input != null && input.isBoolean() && input.isSet()) {
-      if (fieldHighlight == null) {
-        fieldHighlight = new BooleanFieldSetting();
-        addFieldHighlightActionListeners();
-      }
+    if (fieldHighlight == null && input != null && input.isSet() && input.isBoolean()) {
+      fieldHighlight = new BooleanFieldSetting();
+      addFieldHighlightActionListeners();
+    }
+    if (fieldHighlight != null) {
       fieldHighlight.copy(input);
       updateFieldHighlight(isSelected());
-    }
-    else if (input == null || !input.isSet()) {
-      clearFieldHighlight();
     }
   }
 
