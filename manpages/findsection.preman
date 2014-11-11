@@ -45,6 +45,38 @@ dimension.  The number of boxes, median, and MADN of each regions are
 shown for each scaling in a table.  On the far right of the table is a
 measure of how distinct the central region is from the edge at that
 scaling; these numbers are used to pick the best scaling.
+.P
+Further analysis is done by grouping columns of the overlapping boxes
+into blocks, ideally consisting of about 
+25 boxes in X and Y.  The extent of a block in
+unbinned pixels is controlled by the \fB-block\fR option, which has
+situation-dependent defaults.  In a block, the median of the SD
+values is determined at each Z level; this median is
+insensitive to the presence of gold particles outside the section as
+long as the gold does not contribute to too many boxes.  The Z-levels at which the SD
+falls off the fastest are taken as the boundaries of the section at
+the X/Y location of the block.
+.P
+The collection of boundary points on each surface is then smoothed with a local robust
+regression; this smoothing can thus eliminate aberrant points arising
+either from gold outside the section or a small hole in density at
+the surface.  The smoothed points are used directly if a boundary model
+is being created.  To make a model for tomopitch when there are
+multiple (sample) tomograms, the program fits a
+pair of lines to the points on the two surfaces for each sample
+tomogram.  When there is a single tomogram, the program fits a pair of
+lines at a specified number of locations in Y; the fitted points may
+extend over more than one block in Y.  In either case, the lines are
+then spread apart so that they contain all of the points, with a small
+margin added based on how fast density falls at the surface.
+.P
+Regardless of whether there is a model output, when given a single
+tomogram, the program computes the median Z value at each surface, teh
+Z values that contain all boundaries, and Z limits suitable for
+automatic patch fitting with Autopatchfit(1).  By default, the latter limits will
+contain at least 90% of the boundary points and the limits plus or
+minus 20 pixels will contain at least 99% of the
+points.
 .SH OPTIONS
 Findsection uses the PIP package for input (see the manual page
 for pip(1)).  Options can be specified either as command line
