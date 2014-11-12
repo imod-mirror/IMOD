@@ -43,11 +43,9 @@ import etomo.util.Utilities;
 /**
  * <p>Description: Interface for batchruntomo.</p>
  * <p/>
- * <p>Copyright: Copyright 2013</p>
+ * <p>Copyright: Copyright 2014 by the Regents of the University of Colorado</p>
  * <p/>
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
- * University of Colorado</p>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
  * @version $Id$
  */
@@ -84,7 +82,7 @@ public final class BatchRunTomoDialog
       EtomoDirector.INSTANCE.getUserConfiguration();
   private final JPanel pnlDatasetTableBody = new JPanel();
   private final JPanel pnlUntitledTable = new JPanel();
-//
+  //
   private final FileTextField2 ftfRootDir;
   private final FileTextField2 ftfInputDirectiveFile;
   private final TemplatePanel templatePanel;
@@ -149,11 +147,6 @@ public final class BatchRunTomoDialog
     cbDeliverToDirectory.setName(DELIVER_TO_DIRECTORY_NAME);
     cbCPUMachineList.setSelected(UserEnv.isParallelProcessing(null, AxisID.ONLY, null));
     rbGPUMachineListLocal.setSelected(UserEnv.isGpuProcessing(null, AxisID.ONLY, null));
-    templatePanel.setParameters(userConfiguration);
-    if (!userConfiguration.isEmailAddressNull()) {
-      ctfEmailAddress.setSelected(true);
-      ctfEmailAddress.setText(userConfiguration.getEmailAddress());
-    }
     // root panel
     pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.Y_AXIS));
     pnlRoot.setBorder(new BeveledBorder("Batchruntomo Interface").getBorder());
@@ -237,7 +230,7 @@ public final class BatchRunTomoDialog
     mediator.setMethod(this, getProcessingMethod());
   }
 
-  private void addListeners() {
+  public void addListeners() {
     templatePanel.addListeners();
     cbDeliverToDirectory.addActionListener(this);
     templatePanel.addActionListener(this);
@@ -247,13 +240,6 @@ public final class BatchRunTomoDialog
     rbGPUMachineList.addActionListener(this);
     ftfInputDirectiveFile.addResultListener(this);
     tabbedPane.addChangeListener(this);
-  }
-
-  public void endInit(final boolean existingProject) {
-    if (!existingProject) {
-      msgDirectivesChanged(true);
-    }
-    addListeners();
   }
 
   public Container getContainer() {
@@ -267,6 +253,8 @@ public final class BatchRunTomoDialog
       ftfRootDir.setText(manager.getPropertyUserDir());
       ftfRootDir.setEditable(false);
     }
+    ftfDeliverToDirectory.setText(metaData.getDeliverToDirectory());
+    ftfInputDirectiveFile.setText(metaData.getInputDirectiveFile());
     table.setParameters(metaData);
     datasetDialog.setParameters(metaData.getDatasetMetaData());
     phDatasetTable.set(metaData.getDatasetTableHeader());
@@ -276,21 +264,29 @@ public final class BatchRunTomoDialog
     return ltfRootName.isEditable();
   }
 
+  public boolean isParamFileEmpty() {
+    return ltfRootName.isEmpty() || ftfRootDir.isEmpty();
+  }
+
   public void msgParamFileSet() {
     ltfRootName.setEditable(false);
     ftfRootDir.setEditable(false);
   }
 
-  public void getUserConfigurationParameters() {
-    if (ctfEmailAddress.isSelected()) {
-      userConfiguration.setEmailAddress(ctfEmailAddress.getText());
-    }
-    else {
-      userConfiguration.resetEmailAddress();
-    }
+  public void getParameters(final UserConfiguration userConfiguration) {
+    userConfiguration.setUseEmailAddress(ctfEmailAddress.isSelected());
+    userConfiguration.setEmailAddress(ctfEmailAddress.getText());
+  }
+
+  public void setParameters(final UserConfiguration userConfiguration) {
+    templatePanel.setParameters(userConfiguration);
+    ctfEmailAddress.setSelected(userConfiguration.isUseEmailAddress());
+    ctfEmailAddress.setText(userConfiguration.getEmailAddress());
   }
 
   public void getParameters(final BatchRunTomoMetaData metaData) {
+    metaData.setDeliverToDirectory(ftfDeliverToDirectory.getFile());
+    metaData.setInputDirectiveFile(ftfInputDirectiveFile.getFile());
     table.getParameters(metaData);
     datasetDialog.getParameters(metaData.getDatasetMetaData());
     metaData.setDatasetTableHeader(phDatasetTable);
@@ -300,10 +296,6 @@ public final class BatchRunTomoDialog
     cbDeliverToDirectory.setSelected(!param.isDeliverToDirectoryNull());
     if (cbDeliverToDirectory.isSelected()) {
       ftfDeliverToDirectory.setText(param.getDeliverToDirectory());
-    }
-    ctfEmailAddress.setSelected(!param.isEmailAddressNull());
-    if (ctfEmailAddress.isSelected()) {
-      ctfEmailAddress.setText(param.getEmailAddress());
     }
     cbCPUMachineList.setSelected(!param.isCpuMachineListNull());
     if (param.isGpuMachineListNull()) {
@@ -359,7 +351,7 @@ public final class BatchRunTomoDialog
     File globalFile = globalAutodocType.getFile(manager, null);
     try {
       if (globalFile.exists()) {
-        Utilities.deleteFile(globalFile,manager,axisID);
+        Utilities.deleteFile(globalFile, manager, axisID);
       }
       WritableAutodoc autodoc =
           AutodocFactory.getEmptyWritableInstance(manager, globalFile);
@@ -374,7 +366,7 @@ public final class BatchRunTomoDialog
       e.printStackTrace();
     }
     //save dataset autodocs
-    table.saveAutodocs();
+    table.saveAutodocs(templatePanel);
   }
 
   /**
@@ -383,8 +375,7 @@ public final class BatchRunTomoDialog
    *
    * @param init - true when this function is called during the creation of the dialog.
    */
-  private void msgDirectivesChanged(final boolean init) {
-    boolean retainUserValues = false;
+  public void msgDirectivesChanged(final boolean init, boolean retainUserValues) {
     if (!init) {
       // See if the user has changed any values (and back up the changed values).
       boolean changed = false;
@@ -401,7 +392,7 @@ public final class BatchRunTomoDialog
                 "values?", axisID);
       }
     }
-    table.applyValues(userConfiguration, directiveFileCollection, retainUserValues);
+    table.applyValues(directiveFileCollection, retainUserValues);
     datasetDialog.applyValues(directiveFileCollection, retainUserValues);
   }
 
@@ -413,7 +404,7 @@ public final class BatchRunTomoDialog
     if (templatePanel.equalsActionCommand(actionCommand)) {
       // refresh the shared directive file collection
       templatePanel.refreshDirectiveFileCollection();
-      msgDirectivesChanged(false);
+      msgDirectivesChanged(false, false);
     }
     else if (actionCommand.equals(cbDeliverToDirectory.getActionCommand())) {
       updateDisplay();
@@ -501,7 +492,7 @@ public final class BatchRunTomoDialog
           .setDirectiveFile(ftfInputDirectiveFile.getFile(), DirectiveFileType.BATCH);
       templatePanel.setParameters(
           directiveFileCollection.getDirectiveFile(DirectiveFileType.BATCH));
-      msgDirectivesChanged(false);
+      msgDirectivesChanged(false, false);
     }
   }
 
