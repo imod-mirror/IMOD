@@ -14,16 +14,13 @@ import etomo.type.FileType;
 import etomo.util.Utilities;
 
 /**
- * <p>Description: </p>
+ * <p>Description: Creates Autodoc classes.</p>
  * <p/>
- * <p>Copyright: Copyright 2006</p>
+ * <p>Copyright: Copyright 2006 = 2014 by the Regents of the University of Colorado</p>
  * <p/>
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
- * University of Colorado</p>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * @author $Author$
- * @version $Revision$
+ * @version $Id$
  *          <p/>
  *          <p> $Log$
  *          <p> Revision 1.19  2011/02/18 22:51:44  sueh
@@ -93,9 +90,6 @@ import etomo.util.Utilities;
  *          <p> </p>
  */
 public final class AutodocFactory {
-  public static final String rcsid =
-      "$Id$";
-
   public static final String EXTENSION = ".adoc";
 
   public static final String VERSION = "1.2";
@@ -126,6 +120,7 @@ public final class AutodocFactory {
   public static final String AUTOFIDSEED = "autofidseed";
   public static final String ETOMO = "etomo";
   public static final String PROG_DEFAULTS = "progDefaults";
+  public static final String IMODCHOPCONTS = "imodchopconts";
 
   private static final String TEST = "test";
   private static final String UITEST_AXIS = "uitest_axis";
@@ -158,6 +153,7 @@ public final class AutodocFactory {
   private static Autodoc AUTOFIDSEED_INSTANCE = null;
   private static Autodoc ETOMO_INSTANCE = null;
   private static Autodoc PROG_DEFAULTS_INSTANCE = null;
+  private static Autodoc IMODCHOPCONTS_INSTANCE = null;
 
   private static final HashMap UITEST_AXIS_MAP = new HashMap();
 
@@ -264,7 +260,7 @@ public final class AutodocFactory {
     if (extensionIndex == -1) {
       return fileName;
     }
-    String retval= fileName.substring(0, extensionIndex);
+    String retval = fileName.substring(0, extensionIndex);
     return retval;
   }
 
@@ -283,8 +279,8 @@ public final class AutodocFactory {
     }
   }
 
-  public static ReadOnlyAutodoc getInstance(BaseManager manager, File file, final boolean writable)
-      throws IOException, LogFile.LockException {
+  public static ReadOnlyAutodoc getInstance(BaseManager manager, File file,
+      final boolean writable) throws IOException, LogFile.LockException {
     if (file == null) {
       throw new IllegalStateException("file is null");
     }
@@ -311,7 +307,8 @@ public final class AutodocFactory {
    * @throws LogFile.LockException
    */
   public static ReadOnlyAutodoc getInstance(BaseManager manager, File file,
-      final String autodocName, final boolean writable) throws IOException, LogFile.LockException {
+      final String autodocName, final boolean writable)
+      throws IOException, LogFile.LockException {
     if (file == null) {
       throw new IllegalStateException("file is null");
     }
@@ -490,6 +487,9 @@ public final class AutodocFactory {
     if (name.equals(PROG_DEFAULTS)) {
       return PROG_DEFAULTS_INSTANCE;
     }
+    if (name.equals(IMODCHOPCONTS)) {
+      return IMODCHOPCONTS_INSTANCE;
+    }
     throw new IllegalArgumentException("Illegal autodoc name: " + name + ".");
   }
 
@@ -587,6 +587,9 @@ public final class AutodocFactory {
     else if (name.equals(PROG_DEFAULTS)) {
       PROG_DEFAULTS_INSTANCE = null;
     }
+    else if (name.equals(IMODCHOPCONTS)) {
+      IMODCHOPCONTS_INSTANCE = null;
+    }
     else {
       throw new IllegalArgumentException("Illegal autodoc name: " + name + ".");
     }
@@ -682,6 +685,9 @@ public final class AutodocFactory {
     }
     else if (name.equals(PROG_DEFAULTS)) {
       PROG_DEFAULTS_INSTANCE = autodoc;
+    }
+    else if (name.equals(IMODCHOPCONTS)) {
+      IMODCHOPCONTS_INSTANCE = autodoc;
     }
     else {
       throw new IllegalArgumentException("Illegal autodoc name: " + name + ".");
