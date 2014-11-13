@@ -126,17 +126,18 @@ public final class BatchRunTomoManager extends BaseManager {
     if (dialog == null) {
       dialog = BatchRunTomoDialog.getInstance(this, AXIS_ID, tableReference);
     }
-    //Don't load if this is a new dataset
+    dialog.setParameters(userConfig);
+    //Don't load data from files if this is a new dataset
     if (paramFile != null) {
       if (metaData.isValid()) {
         dialog.setParameters(metaData);
       }
       comScriptManager.loadBatchRunTomo(AXIS_ID);
-      dialog.setParameters(
-          comScriptManager.getBatchRunTomoParam(AXIS_ID, BatchruntomoParam.Mode.BATCH));
+      dialog.setParameters(comScriptManager.getBatchRunTomoParam(AXIS_ID, false));
       dialog.loadAutodocs();
     }
-    dialog.endInit(paramFile != null);
+    dialog.msgDirectivesChanged(paramFile == null, paramFile != null);
+    dialog.addListeners();
     mainPanel.showProcess(dialog.getContainer(), AXIS_ID);
     uiHarness.updateFrame(this);
     String actionMessage =
@@ -177,14 +178,30 @@ public final class BatchRunTomoManager extends BaseManager {
   }
 
   public boolean save() throws LogFile.LockException, IOException {
-    Utilities.timestamp("save","start");
+    Utilities.timestamp("save", "start");
     super.save();
     mainPanel.done();
-    saveBatchRunTomoDialog();
+    saveBatchRunTomoDialog(false);
     return true;
   }
 
-  private boolean saveBatchRunTomoDialog() {
+  public void run() {
+    Utilities.timestamp("save for run", "start");
+    try {
+      super.save();
+      if (!saveBatchRunTomoDialog(true)) {
+        return;
+      }
+    }
+    catch (LogFile.LockException e) {
+      e.printStackTrace();
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
+
+  private boolean saveBatchRunTomoDialog(final boolean doValidation) {
     if (dialog == null) {
       return false;
     }
@@ -199,16 +216,19 @@ public final class BatchRunTomoManager extends BaseManager {
         return false;
       }
     }
-    dialog.getUserConfigurationParameters();
+    dialog.getParameters(userConfig);
     dialog.getParameters(metaData);
     dialog.saveAutodocs();
     saveStorables(AXIS_ID);
-    BatchruntomoParam param = updateBatchRunTomo();
-    Utilities.timestamp("save","end");
-    return true;
+    savePreferences(AXIS_ID, userConfig);
+    if (updateBatchRunTomo(doValidation) != null) {
+      Utilities.timestamp("save", "end");
+      return true;
+    }
+    return false;
   }
 
-  private BatchruntomoParam updateBatchRunTomo() {
+  private BatchruntomoParam updateBatchRunTomo(final boolean doValidation) {
     if (!comScriptManager.isBatchRunTomoLoaded()) {
       BaseProcessManager.touch(
           FileType.BATCH_RUN_TOMO_COMSCRIPT.getFile(this, AXIS_ID).getAbsolutePath(),
@@ -216,7 +236,7 @@ public final class BatchRunTomoManager extends BaseManager {
       comScriptManager.loadBatchRunTomo(AXIS_ID);
     }
     BatchruntomoParam param =
-        comScriptManager.getBatchRunTomoParam(AXIS_ID, BatchruntomoParam.Mode.BATCH);
+        comScriptManager.getBatchRunTomoParam(AXIS_ID, doValidation);
     if (dialog == null) {
       return null;
     }
@@ -226,22 +246,19 @@ public final class BatchRunTomoManager extends BaseManager {
       return null;
     }
     comScriptManager.saveBatchRunTomo(param, AXIS_ID);
-    if (param.isValid()) {
-      return param;
+    if (!param.isValid()) {
+      return null;
     }
-    return null;
+    return param;
   }
 
   public boolean isSetupDone() {
-    return dialog != null && !dialog.isParamFileModifiable();
+    return dialog != null && !dialog.isParamFileEmpty();
   }
 
   public boolean setParamFile() {
     if (loadedParamFile) {
       return true;
-    }
-    if (!isSetupDone()) {
-      return false;
     }
     String rootName = dialog.getRootName();
     metaData.setName(rootName);
