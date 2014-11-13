@@ -13,9 +13,9 @@ import etomo.storage.LogFile;
 import etomo.storage.Node;
 import etomo.storage.autodoc.AutodocFactory;
 import etomo.storage.autodoc.AutodocTokenizer;
+import etomo.storage.autodoc.ReadOnlyAutodoc;
 import etomo.type.AxisID;
 import etomo.util.RemotePath.InvalidMountRuleException;
-
 import junit.framework.TestCase;
 
 /**
@@ -39,26 +39,26 @@ public final class RemotePathTest extends TestCase {
   private static final File TEST_DIR = new File(UtilTests.TEST_ROOT_DIR, "RemotePath");
   private static final String TEST_FILE_NAME = DatasetFiles
       .getAutodocName(RemotePath.AUTODOC);
-  //end of each local path
+  // end of each local path
   private static final String PATH = "/dir/embedded space dir";
-  //path to test failure to find rule
+  // path to test failure to find rule
   private static final String UNKNOWN_LOCAL_PATH = "/unknown/var/automount/home" + PATH;
-  //rule indices
-  private static final int MOUNT_NAME_RULE0 = 0;//remote has %mountname
-  private static final int MOUNT_NAME_RULE1 = 1;//remote has %mountname
-  private static final int MOUNT_NAME_RULE2 = 2;//remote has %mountname
-  private static final int SPECIFIC_RULE = 3;//local is /private/var/automount/home
-  private static final int LESS_SPECIFIC_RULE = 4;//local is /private/var/automount
-  private static final int GENERAL_RULE = 5;//local is /private/var
-  //local rules
+  // rule indices
+  private static final int MOUNT_NAME_RULE0 = 0;// remote has %mountname
+  private static final int MOUNT_NAME_RULE1 = 1;// remote has %mountname
+  private static final int MOUNT_NAME_RULE2 = 2;// remote has %mountname
+  private static final int SPECIFIC_RULE = 3;// local is /private/var/automount/home
+  private static final int LESS_SPECIFIC_RULE = 4;// local is /private/var/automount
+  private static final int GENERAL_RULE = 5;// local is /private/var
+  // local rules
   private static final String[] LOCAL_MOUNT_RULES = { "/localscratcha", "/localscratchb",
       "/localscratch", "/private/var/automount/home", "/private/var/automount",
       "/private/var" };
-  //start and end strings for remote rules using %mountname
+  // start and end strings for remote rules using %mountname
   private static final String[] START_REMOTE_MOUNT_NAME_RULES = { "/scratch/", "/",
       "/scratch/" };
   private static final String[] END_REMOTE_MOUNT_NAME_RULES = { "", "", "/scratch" };
-  //remote rules
+  // remote rules
   private static final String[] REMOTE_MOUNT_RULES = {
       START_REMOTE_MOUNT_NAME_RULES[MOUNT_NAME_RULE0] + RemotePath.MOUNT_NAME_TAG
           + END_REMOTE_MOUNT_NAME_RULES[MOUNT_NAME_RULE0],
@@ -72,6 +72,7 @@ public final class RemotePathTest extends TestCase {
   private String sectionName = null;
   private String hostName = null;
   private String strippedHostName = null;
+  private File testDir = null;
 
   public RemotePathTest() {
     super();
@@ -124,50 +125,50 @@ public final class RemotePathTest extends TestCase {
       return;
     }
     if (globalRules) {
-      //add global rules
-      //always add the third mount name rule here, if there are global rules
+      // add global rules
+      // always add the third mount name rule here, if there are global rules
       if (!sectionRules) {
-        //add the first two mount name rules here, if there are no sections
-        //the specific rule should be checked before the general rule
+        // add the first two mount name rules here, if there are no sections
+        // the specific rule should be checked before the general rule
         addMountRule(bufferedWriter, MOUNT_NAME_RULE0, ruleNumber++);
         addMountRule(bufferedWriter, MOUNT_NAME_RULE1, ruleNumber++);
       }
-      //always add the third mountname rule here, if there are global rules
+      // always add the third mountname rule here, if there are global rules
       addMountRule(bufferedWriter, MOUNT_NAME_RULE2, ruleNumber++);
       if (!sectionRules) {
-        //add the specific mount rules here, if there are no sections
-        //the specific rule should be checked before the general rule
+        // add the specific mount rules here, if there are no sections
+        // the specific rule should be checked before the general rule
         addMountRule(bufferedWriter, SPECIFIC_RULE, ruleNumber++);
         addMountRule(bufferedWriter, LESS_SPECIFIC_RULE, ruleNumber++);
       }
-      //always add the general mount rule here, if there are global rules
+      // always add the general mount rule here, if there are global rules
       addMountRule(bufferedWriter, GENERAL_RULE, ruleNumber++);
     }
     if (section && sectionRules) {
       addSection(bufferedWriter, computerName, fullSectionName, useMountName);
     }
-    //add section level rules
+    // add section level rules
     if (sectionRules) {
       ruleNumber = ruleStartNumber;
-      //always add the first two mount name rules here, if sectionRules is true
-      //this tests whether the section rules are applied before the global rules
+      // always add the first two mount name rules here, if sectionRules is true
+      // this tests whether the section rules are applied before the global rules
       addMountRule(bufferedWriter, MOUNT_NAME_RULE0, ruleNumber++);
       addMountRule(bufferedWriter, MOUNT_NAME_RULE1, ruleNumber++);
       if (!globalRules) {
-        //add the third mount name rule to the section, if there are no global
-        //rules
+        // add the third mount name rule to the section, if there are no global
+        // rules
         addMountRule(bufferedWriter, MOUNT_NAME_RULE2, ruleNumber++);
       }
-      //always add the specific rule to the section, if sectionRules is true
-      //this tests whether the section rules are applied before the global rules
+      // always add the specific rule to the section, if sectionRules is true
+      // this tests whether the section rules are applied before the global rules
       addMountRule(bufferedWriter, SPECIFIC_RULE, ruleNumber++);
       addMountRule(bufferedWriter, LESS_SPECIFIC_RULE, ruleNumber++);
       if (!globalRules) {
-        //add the general mount rule to the section, if there are no global rules
+        // add the general mount rule to the section, if there are no global rules
         addMountRule(bufferedWriter, GENERAL_RULE, ruleNumber++);
       }
     }
-    //add the section here, if there are no section level rules
+    // add the section here, if there are no section level rules
     if (section && !sectionRules) {
       addSection(bufferedWriter, computerName, fullSectionName, useMountName);
     }
@@ -175,6 +176,21 @@ public final class RemotePathTest extends TestCase {
       addSection(bufferedWriter, REMOTE_SECTION_NAME);
     }
     bufferedWriter.close();
+    // Open the autodoc so it is pointing to the test autodoc instead of the real one.
+    ReadOnlyAutodoc autodoc;
+    try {
+      autodoc = AutodocFactory.getInstance(
+          EtomoDirector.INSTANCE.getCurrentManagerForTest(), getTestFile(testDirName),
+          RemotePath.AUTODOC, false);
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+      return;
+    }
+    catch (LogFile.LockException e) {
+      e.printStackTrace();
+      return;
+    }
   }
 
   /**
@@ -209,15 +225,30 @@ public final class RemotePathTest extends TestCase {
     if (bufferedWriter == null) {
       return;
     }
-    //add global mount rule
+    // add global mount rule
     addMountRule(bufferedWriter, MOUNT_NAME_RULE2, 1);
-    //start section
+    // start section
     addSection(bufferedWriter, true, false, false);
-    //add override of global mount rule
+    // add override of global mount rule
     addMountRule(bufferedWriter, MOUNT_NAME_RULE2, 1, LOCAL_MOUNT_RULES, RemotePath.LOCAL);
     addMountRule(bufferedWriter, MOUNT_NAME_RULE2, 1, LOCAL_MOUNT_RULES,
         RemotePath.REMOTE);
     bufferedWriter.close();
+    // Open the autodoc so it is pointing to the test autodoc instead of the real one.
+    ReadOnlyAutodoc autodoc;
+    try {
+      autodoc = AutodocFactory.getInstance(
+          EtomoDirector.INSTANCE.getCurrentManagerForTest(), getTestFile(testDirName),
+          RemotePath.AUTODOC, false);
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+      return;
+    }
+    catch (LogFile.LockException e) {
+      e.printStackTrace();
+      return;
+    }
   }
 
   /**
@@ -233,32 +264,32 @@ public final class RemotePathTest extends TestCase {
     if (bufferedWriter == null) {
       return;
     }
-    //should fail - local rule must exist
+    // should fail - local rule must exist
     int index = MOUNT_NAME_RULE0;
     addMountRule(bufferedWriter, index, index + 1, REMOTE_MOUNT_RULES, RemotePath.REMOTE);
-    //should fail - remote rule must exist
+    // should fail - remote rule must exist
     index = MOUNT_NAME_RULE1;
     addMountRule(bufferedWriter, index, index + 1, LOCAL_MOUNT_RULES, RemotePath.LOCAL);
-    //should fail - local rule must not have an empty value
+    // should fail - local rule must not have an empty value
     index = MOUNT_NAME_RULE2;
     bufferedWriter.write(RemotePath.MOUNT_RULE + '.' + String.valueOf(index + 1) + '.'
         + RemotePath.LOCAL + ' ' + AutodocTokenizer.DEFAULT_DELIMITER);
     bufferedWriter.newLine();
     addMountRule(bufferedWriter, index, index + 1, REMOTE_MOUNT_RULES, RemotePath.REMOTE);
-    //should fail - remote rule must not have an empty value
+    // should fail - remote rule must not have an empty value
     index = SPECIFIC_RULE;
     addMountRule(bufferedWriter, index, index + 1, LOCAL_MOUNT_RULES, RemotePath.LOCAL);
     bufferedWriter.write(RemotePath.MOUNT_RULE + '.' + String.valueOf(index + 1) + '.'
         + RemotePath.REMOTE + ' ' + AutodocTokenizer.DEFAULT_DELIMITER);
     bufferedWriter.newLine();
-    //should fail - local rule must be an absolute path
+    // should fail - local rule must be an absolute path
     index = LESS_SPECIFIC_RULE;
     bufferedWriter.write(RemotePath.MOUNT_RULE + '.' + String.valueOf(index + 1) + '.'
         + RemotePath.LOCAL + ' ' + AutodocTokenizer.DEFAULT_DELIMITER + ' '
         + LOCAL_MOUNT_RULES[index].substring(1));
     bufferedWriter.newLine();
     addMountRule(bufferedWriter, index, index + 1, REMOTE_MOUNT_RULES, RemotePath.REMOTE);
-    //should fail - remote rule must be an absolute path
+    // should fail - remote rule must be an absolute path
     index = GENERAL_RULE;
     addMountRule(bufferedWriter, index, index + 1, LOCAL_MOUNT_RULES, RemotePath.LOCAL);
     bufferedWriter.write(RemotePath.MOUNT_RULE + '.' + String.valueOf(index + 1) + '.'
@@ -267,6 +298,21 @@ public final class RemotePathTest extends TestCase {
     bufferedWriter.newLine();
     addSection(bufferedWriter, true, false, false);
     bufferedWriter.close();
+    // Open the autodoc so it is pointing to the test autodoc instead of the real one.
+    ReadOnlyAutodoc autodoc;
+    try {
+      autodoc = AutodocFactory.getInstance(
+          EtomoDirector.INSTANCE.getCurrentManagerForTest(), getTestFile(testDirName),
+          RemotePath.AUTODOC, false);
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+      return;
+    }
+    catch (LogFile.LockException e) {
+      e.printStackTrace();
+      return;
+    }
   }
 
   /**
@@ -283,9 +329,9 @@ public final class RemotePathTest extends TestCase {
    */
   private void addMountRule(BufferedWriter bufferedWriter, int index, int ruleOrder)
       throws IOException {
-    //add local mount rule
+    // add local mount rule
     addMountRule(bufferedWriter, index, ruleOrder, LOCAL_MOUNT_RULES, RemotePath.LOCAL);
-    //add remote mount rule
+    // add remote mount rule
     addMountRule(bufferedWriter, index, ruleOrder, REMOTE_MOUNT_RULES, RemotePath.REMOTE);
   }
 
@@ -334,7 +380,7 @@ public final class RemotePathTest extends TestCase {
    */
   private void addSection(BufferedWriter bufferedWriter, boolean computerName,
       boolean fullSectionName, boolean useMountName) throws IOException {
-    //set the section name
+    // set the section name
     if (computerName) {
       if (fullSectionName) {
         sectionName = hostName;
@@ -346,21 +392,21 @@ public final class RemotePathTest extends TestCase {
     else {
       sectionName = Node.LOCAL_HOST_NAME;
     }
-    //write the section
+    // write the section
     addSection(bufferedWriter, sectionName);
     if (!useMountName) {
       return;
     }
-    //set the mount name
+    // set the mount name
     String mountName = strippedHostName;
-    //write the mount name
+    // write the mount name
     bufferedWriter.write(RemotePath.MOUNT_NAME + ' ' + AutodocTokenizer.DEFAULT_DELIMITER
         + ' ' + mountName);
     bufferedWriter.newLine();
   }
 
   private void getHostName() {
-    //set the hostname
+    // set the hostname
     hostName = RemotePath.INSTANCE.getHostName_test(MANAGER, AxisID.ONLY);
     strippedHostName = hostName.substring(0, hostName.indexOf('.'));
   }
@@ -403,10 +449,8 @@ public final class RemotePathTest extends TestCase {
    * @throws IOException
    */
   private File setUpTestDirectory(String testDirName) throws IOException {
-    File testDir = new File(TEST_DIR, testDirName);
+    testDir = new File(TEST_DIR, testDirName);
     setUpDirectory(testDir);
-    AutodocFactory.setAbsoluteDir(testDir.getAbsolutePath());
-    AutodocFactory.resetInstance(RemotePath.AUTODOC);
     return testDir;
   }
 
@@ -420,15 +464,17 @@ public final class RemotePathTest extends TestCase {
    */
   private BufferedWriter setUpTestFile(String testDirName) throws IOException,
       LogFile.LockException {
-    File testDir = setUpTestDirectory(testDirName);
-    File testFile = new File(testDir, TEST_FILE_NAME);
+    File testFile = getTestFile(testDirName);
     testFile.delete();
     return new BufferedWriter(new FileWriter(testFile));
   }
 
+  private File getTestFile(final String testDirName) throws IOException {
+    return new File(setUpTestDirectory(testDirName), TEST_FILE_NAME);
+  }
+
   private void deleteTestFile(String testDirName) throws IOException {
-    File testDir = setUpTestDirectory(testDirName);
-    File testFile = new File(testDir, TEST_FILE_NAME);
+    File testFile = getTestFile(testDirName);
     testFile.delete();
   }
 
@@ -473,6 +519,7 @@ public final class RemotePathTest extends TestCase {
       return;
     }
     setUpTestDirectory("test_getRemotePath_noAutodoc");
+    AutodocFactory.resetInstance(RemotePath.AUTODOC);
     assertNoRulesLoaded();
   }
 
@@ -525,7 +572,7 @@ public final class RemotePathTest extends TestCase {
       return;
     }
     writeNewFile("test_getRemotePath_unknownPath", true, false, true, true, false, false);
-    //check general rule
+    // check general rule
     assertNull(RemotePath.INSTANCE
         .getRemotePath(MANAGER, UNKNOWN_LOCAL_PATH, AxisID.ONLY));
     assertRulesLoaded();
@@ -593,22 +640,24 @@ public final class RemotePathTest extends TestCase {
     assertEquals(RemotePath.INSTANCE.getRemotePath(MANAGER,
         LOCAL_MOUNT_RULES[GENERAL_RULE] + PATH, AxisID.ONLY),
         REMOTE_MOUNT_RULES[GENERAL_RULE] + PATH);
-    assertEquals(RemotePath.INSTANCE.getRemotePath(MANAGER,
-        LOCAL_MOUNT_RULES[GENERAL_RULE] + "10" + PATH, AxisID.ONLY),
-        REMOTE_MOUNT_RULES[GENERAL_RULE] + "10" + PATH);
+    assertEquals(
+        RemotePath.INSTANCE.getRemotePath(MANAGER, LOCAL_MOUNT_RULES[GENERAL_RULE] + "10"
+            + PATH, AxisID.ONLY), REMOTE_MOUNT_RULES[GENERAL_RULE] + "10" + PATH);
     assertRulesLoaded();
-    assertEquals(RemotePath.INSTANCE.getRemotePath(MANAGER,
-        LOCAL_MOUNT_RULES[LESS_SPECIFIC_RULE] + PATH, AxisID.ONLY),
-        REMOTE_MOUNT_RULES[LESS_SPECIFIC_RULE] + PATH);
-    assertEquals(RemotePath.INSTANCE.getRemotePath(MANAGER,
-        LOCAL_MOUNT_RULES[LESS_SPECIFIC_RULE] + "100" + PATH, AxisID.ONLY),
-        REMOTE_MOUNT_RULES[LESS_SPECIFIC_RULE] + "100" + PATH);
-    assertEquals(RemotePath.INSTANCE.getRemotePath(MANAGER,
-        LOCAL_MOUNT_RULES[SPECIFIC_RULE] + PATH, AxisID.ONLY),
-        REMOTE_MOUNT_RULES[SPECIFIC_RULE] + PATH);
-    assertEquals(RemotePath.INSTANCE.getRemotePath(MANAGER,
-        LOCAL_MOUNT_RULES[SPECIFIC_RULE] + "1000" + PATH, AxisID.ONLY),
-        REMOTE_MOUNT_RULES[SPECIFIC_RULE] + "1000" + PATH);
+    assertEquals(
+        RemotePath.INSTANCE.getRemotePath(MANAGER, LOCAL_MOUNT_RULES[LESS_SPECIFIC_RULE]
+            + PATH, AxisID.ONLY), REMOTE_MOUNT_RULES[LESS_SPECIFIC_RULE] + PATH);
+    assertEquals(
+        RemotePath.INSTANCE.getRemotePath(MANAGER, LOCAL_MOUNT_RULES[LESS_SPECIFIC_RULE]
+            + "100" + PATH, AxisID.ONLY), REMOTE_MOUNT_RULES[LESS_SPECIFIC_RULE] + "100"
+            + PATH);
+    assertEquals(
+        RemotePath.INSTANCE.getRemotePath(MANAGER, LOCAL_MOUNT_RULES[SPECIFIC_RULE]
+            + PATH, AxisID.ONLY), REMOTE_MOUNT_RULES[SPECIFIC_RULE] + PATH);
+    assertEquals(
+        RemotePath.INSTANCE.getRemotePath(MANAGER, LOCAL_MOUNT_RULES[SPECIFIC_RULE]
+            + "1000" + PATH, AxisID.ONLY), REMOTE_MOUNT_RULES[SPECIFIC_RULE] + "1000"
+            + PATH);
   }
 
   /**
@@ -624,30 +673,31 @@ public final class RemotePathTest extends TestCase {
    * @param mountName - expected mountName
    */
   private void assertMountNameFound(String mountName) throws InvalidMountRuleException {
-    assertEquals(RemotePath.INSTANCE.getRemotePath(MANAGER,
-        LOCAL_MOUNT_RULES[MOUNT_NAME_RULE0] + PATH, AxisID.ONLY),
-        START_REMOTE_MOUNT_NAME_RULES[MOUNT_NAME_RULE0] + mountName
-            + END_REMOTE_MOUNT_NAME_RULES[MOUNT_NAME_RULE0] + PATH);
-    assertEquals(RemotePath.INSTANCE.getRemotePath(MANAGER,
-        LOCAL_MOUNT_RULES[MOUNT_NAME_RULE0] + "10" + PATH, AxisID.ONLY),
-        START_REMOTE_MOUNT_NAME_RULES[MOUNT_NAME_RULE0] + mountName
-            + END_REMOTE_MOUNT_NAME_RULES[MOUNT_NAME_RULE0] + "10" + PATH);
+    assertEquals(
+        RemotePath.INSTANCE.getRemotePath(MANAGER, LOCAL_MOUNT_RULES[MOUNT_NAME_RULE0]
+            + PATH, AxisID.ONLY), START_REMOTE_MOUNT_NAME_RULES[MOUNT_NAME_RULE0]
+            + mountName + END_REMOTE_MOUNT_NAME_RULES[MOUNT_NAME_RULE0] + PATH);
+    assertEquals(
+        RemotePath.INSTANCE.getRemotePath(MANAGER, LOCAL_MOUNT_RULES[MOUNT_NAME_RULE0]
+            + "10" + PATH, AxisID.ONLY), START_REMOTE_MOUNT_NAME_RULES[MOUNT_NAME_RULE0]
+            + mountName + END_REMOTE_MOUNT_NAME_RULES[MOUNT_NAME_RULE0] + "10" + PATH);
 
-    assertEquals(RemotePath.INSTANCE.getRemotePath(MANAGER,
-        LOCAL_MOUNT_RULES[MOUNT_NAME_RULE1] + PATH, AxisID.ONLY),
-        START_REMOTE_MOUNT_NAME_RULES[MOUNT_NAME_RULE1] + mountName
-            + END_REMOTE_MOUNT_NAME_RULES[MOUNT_NAME_RULE1] + PATH);
-    assertEquals(RemotePath.INSTANCE.getRemotePath(MANAGER,
-        LOCAL_MOUNT_RULES[MOUNT_NAME_RULE1] + "100" + PATH, AxisID.ONLY),
-        START_REMOTE_MOUNT_NAME_RULES[MOUNT_NAME_RULE1] + mountName
-            + END_REMOTE_MOUNT_NAME_RULES[MOUNT_NAME_RULE1] + "100" + PATH);
+    assertEquals(
+        RemotePath.INSTANCE.getRemotePath(MANAGER, LOCAL_MOUNT_RULES[MOUNT_NAME_RULE1]
+            + PATH, AxisID.ONLY), START_REMOTE_MOUNT_NAME_RULES[MOUNT_NAME_RULE1]
+            + mountName + END_REMOTE_MOUNT_NAME_RULES[MOUNT_NAME_RULE1] + PATH);
+    assertEquals(
+        RemotePath.INSTANCE.getRemotePath(MANAGER, LOCAL_MOUNT_RULES[MOUNT_NAME_RULE1]
+            + "100" + PATH, AxisID.ONLY), START_REMOTE_MOUNT_NAME_RULES[MOUNT_NAME_RULE1]
+            + mountName + END_REMOTE_MOUNT_NAME_RULES[MOUNT_NAME_RULE1] + "100" + PATH);
 
-    assertEquals(RemotePath.INSTANCE.getRemotePath(MANAGER,
-        LOCAL_MOUNT_RULES[MOUNT_NAME_RULE2] + PATH, AxisID.ONLY),
-        START_REMOTE_MOUNT_NAME_RULES[MOUNT_NAME_RULE2] + mountName
-            + END_REMOTE_MOUNT_NAME_RULES[MOUNT_NAME_RULE2] + PATH);
-    assertEquals(RemotePath.INSTANCE.getRemotePath(MANAGER,
-        LOCAL_MOUNT_RULES[MOUNT_NAME_RULE2] + "1000" + PATH, AxisID.ONLY),
+    assertEquals(
+        RemotePath.INSTANCE.getRemotePath(MANAGER, LOCAL_MOUNT_RULES[MOUNT_NAME_RULE2]
+            + PATH, AxisID.ONLY), START_REMOTE_MOUNT_NAME_RULES[MOUNT_NAME_RULE2]
+            + mountName + END_REMOTE_MOUNT_NAME_RULES[MOUNT_NAME_RULE2] + PATH);
+    assertEquals(
+        RemotePath.INSTANCE.getRemotePath(MANAGER, LOCAL_MOUNT_RULES[MOUNT_NAME_RULE2]
+            + "1000" + PATH, AxisID.ONLY),
         START_REMOTE_MOUNT_NAME_RULES[MOUNT_NAME_RULE2] + mountName
             + END_REMOTE_MOUNT_NAME_RULES[MOUNT_NAME_RULE2] + "1000" + PATH);
   }
@@ -840,12 +890,13 @@ public final class RemotePathTest extends TestCase {
       return;
     }
     writeNewOverrideFile("test_getRemotePath_overrideMountRule");
-    assertEquals(RemotePath.INSTANCE.getRemotePath(MANAGER,
-        LOCAL_MOUNT_RULES[MOUNT_NAME_RULE2] + PATH, AxisID.ONLY),
-        LOCAL_MOUNT_RULES[MOUNT_NAME_RULE2] + PATH);
-    assertEquals(RemotePath.INSTANCE.getRemotePath(MANAGER,
-        LOCAL_MOUNT_RULES[MOUNT_NAME_RULE2] + "10" + PATH, AxisID.ONLY),
-        LOCAL_MOUNT_RULES[MOUNT_NAME_RULE2] + "10" + PATH);
+    assertEquals(
+        RemotePath.INSTANCE.getRemotePath(MANAGER, LOCAL_MOUNT_RULES[MOUNT_NAME_RULE2]
+            + PATH, AxisID.ONLY), LOCAL_MOUNT_RULES[MOUNT_NAME_RULE2] + PATH);
+    assertEquals(
+        RemotePath.INSTANCE.getRemotePath(MANAGER, LOCAL_MOUNT_RULES[MOUNT_NAME_RULE2]
+            + "10" + PATH, AxisID.ONLY), LOCAL_MOUNT_RULES[MOUNT_NAME_RULE2] + "10"
+            + PATH);
   }
 
   /**

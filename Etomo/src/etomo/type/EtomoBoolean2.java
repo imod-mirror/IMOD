@@ -185,8 +185,8 @@ public class EtomoBoolean2 extends ScriptParameter {
    * @param prepend
    * @return etomoBoolean2
    */
-  public static EtomoBoolean2 load(EtomoBoolean2 instance, String name, Properties props,
-      String prepend) {
+  public static EtomoBoolean2 load(EtomoBoolean2 instance, final String name,
+      final Properties props, final String prepend) {
     String key = null;
     if (prepend == null || prepend.matches("\\s*")) {
       key = name;
@@ -206,6 +206,20 @@ public class EtomoBoolean2 extends ScriptParameter {
     }
     instance.set(value);
     return instance;
+  }
+
+  public static void remove(final String name, final Properties props, final String prepend) {
+    String key = null;
+    if (prepend == null || prepend.matches("\\s*")) {
+      key = name;
+    }
+    else if (prepend.endsWith(".")) {
+      key = prepend + name;
+    }
+    else {
+      key = prepend + '.' + name;
+    }
+    props.remove(key);
   }
 
   public static boolean equals(EtomoBoolean2 instance1, EtomoBoolean2 instance2) {
@@ -390,7 +404,7 @@ public class EtomoBoolean2 extends ScriptParameter {
    * "0".
    */
   protected Number newNumber(String value, StringBuffer invalidBuffer) {
-    //Convert from character string to integer value
+    // Convert from character string to integer value
     String trimmedValue = value.trim().toLowerCase();
     if (falseString != null && trimmedValue.equals(falseString)) {
       return newNumber(falseValue);

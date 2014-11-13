@@ -351,7 +351,7 @@ public final class ParsedList {
   }
 
   private PrimativeTokenizer createTokenizer(final String value, final int lineNum) {
-    PrimativeTokenizer tokenizer = new PrimativeTokenizer(value);
+    PrimativeTokenizer tokenizer = PrimativeTokenizer.getStringInstance(value, debug);
     try {
       tokenizer.initialize();
     }
