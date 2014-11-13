@@ -1,5 +1,6 @@
 package etomo.type;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -9,32 +10,30 @@ import etomo.ui.LogProperties;
 import etomo.util.DatasetFiles;
 
 /**
-* <p>Description: </p>
-* 
-* <p>Copyright: Copyright 2013</p>
-*
-* <p>Organization:
-* Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
-* University of Colorado</p>
-* 
-* @author $Author$
-* 
-* @version $Revision$
-* 
-* <p> $Log$ </p>
-*/
+ * <p>Description: Main dialog for the batchruntomo interface.</p>
+ * <p/>
+ * <p>Copyright: Copyright 2014 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
+ *
+ * @version $Id$
+ */
 public final class BatchRunTomoMetaData extends BaseMetaData {
   public static final String rcsid = "$Id:$";
 
   public static final String NEW_TITLE = "Batch Run Tomo";
 
   private StringProperty rootName = new StringProperty("RootName");
+  private StringProperty deliverToDirectory = new StringProperty("DeliverToDirectory");
+  private StringProperty inputDirectiveFile = new StringProperty("InputDirectiveFile");
   // Key is stackID
-  private final Map<String, BatchRunTomoRowMetaData> rowMetaDataMap = new HashMap<String, BatchRunTomoRowMetaData>();
+  private final Map<String, BatchRunTomoRowMetaData> rowMetaDataMap =
+      new HashMap<String, BatchRunTomoRowMetaData>();
   // metadata for the global dataset dialog
-  private final BatchRunTomoDatasetMetaData datasetMetaData = new BatchRunTomoDatasetMetaData();
-  private final PanelHeaderSettings datasetTableHeader = new PanelHeaderSettings(
-      "datasetTableHeader");
+  private final BatchRunTomoDatasetMetaData datasetMetaData =
+      new BatchRunTomoDatasetMetaData();
+  private final PanelHeaderSettings datasetTableHeader =
+      new PanelHeaderSettings("datasetTableHeader");
 
   private final TableReference tableReference;
 
@@ -76,6 +75,7 @@ public final class BatchRunTomoMetaData extends BaseMetaData {
 
   /**
    * returns null if valid
+   *
    * @return error message if invalid
    */
   public String validate() {
@@ -122,11 +122,15 @@ public final class BatchRunTomoMetaData extends BaseMetaData {
     super.load(props, prepend);
     // reset
     rootName.reset();
+    deliverToDirectory.reset();
+    inputDirectiveFile.reset();
     datasetTableHeader.reset();
     rowMetaDataMap.clear();
     // load
     prepend = createPrepend(prepend);
     rootName.load(props, prepend);
+    deliverToDirectory.load(props, prepend);
+    inputDirectiveFile.load(props, prepend);
     datasetTableHeader.load(props, prepend);
     datasetMetaData.load(props, prepend);
     tableReference.load(props, prepend);
@@ -144,6 +148,8 @@ public final class BatchRunTomoMetaData extends BaseMetaData {
   public void store(Properties props, String prepend) {
     prepend = createPrepend(prepend);
     rootName.store(props, prepend);
+    deliverToDirectory.store(props, prepend);
+    inputDirectiveFile.store(props, prepend);
     datasetTableHeader.store(props, prepend);
     datasetMetaData.store(props, prepend);
     tableReference.store(props, prepend);
@@ -177,5 +183,31 @@ public final class BatchRunTomoMetaData extends BaseMetaData {
 
   public void setDatasetTableHeader(final ConstPanelHeaderSettings input) {
     datasetTableHeader.set(input);
+  }
+
+  public String getDeliverToDirectory() {
+    return deliverToDirectory.toString();
+  }
+
+  public void setDeliverToDirectory(final File input) {
+    if (input != null) {
+      deliverToDirectory.set(input.getAbsolutePath());
+    }
+    else {
+      deliverToDirectory.reset();
+    }
+  }
+
+  public String getInputDirectiveFile() {
+    return inputDirectiveFile.toString();
+  }
+
+  public void setInputDirectiveFile(final File input) {
+    if (input != null) {
+      inputDirectiveFile.set(input.getAbsolutePath());
+    }
+    else {
+      inputDirectiveFile.reset();
+    }
   }
 }
