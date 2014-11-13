@@ -163,7 +163,11 @@ final class CheckBox extends JCheckBox implements Field, ActionListener {
   }
 
   public String getQuotedLabel() {
-    return Utilities.quoteLabel(getText());
+    String label = getText();
+    if (label ==null||label.matches("\\s*")){
+      label = getName();
+    }
+    return Utilities.quoteLabel(label);
   }
 
   public void setText(String text) {

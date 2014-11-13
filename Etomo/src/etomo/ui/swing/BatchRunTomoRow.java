@@ -93,8 +93,8 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
   private BatchRunTomoRow(final BatchRunTomoTable table, final JPanel panel,
       final GridBagLayout layout, final GridBagConstraints constraints, final int number,
       final File stack, final BatchRunTomoRow prevRow, final boolean overridePrevRow,
-      final boolean overrideDual, final BatchRunTomoManager manager,
-      final String stackID, final PreferredTableSize preferredTableSize) {
+      final boolean overrideDual, final BatchRunTomoManager manager, final String stackID,
+      final PreferredTableSize preferredTableSize) {
     this.panel = panel;
     this.layout = layout;
     this.constraints = constraints;
@@ -154,8 +154,8 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
   static BatchRunTomoRow getInstance(final BatchRunTomoTable table, final JPanel panel,
       final GridBagLayout layout, final GridBagConstraints constraints, final int number,
       final File stack, final BatchRunTomoRow prevRow, final boolean overridePrevRow,
-      final boolean overrideDual, final BatchRunTomoManager manager,
-      final String stackID, final PreferredTableSize datasetWidth) {
+      final boolean overrideDual, final BatchRunTomoManager manager, final String stackID,
+      final PreferredTableSize datasetWidth) {
     BatchRunTomoRow instance =
         new BatchRunTomoRow(table, panel, layout, constraints, number, stack, prevRow,
             overridePrevRow, overrideDual, manager, stackID, datasetWidth);
@@ -229,8 +229,7 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
           cbcBoundaryModel.isSelected()) {
         // The model is only opened for the A axis
         if (imodIndexA != -1) {
-          manager.imodModel(AxisID.FIRST, imodIndexA, fcStack.getContractedValue(),
-              dual);
+          manager.imodModel(AxisID.FIRST, imodIndexA, fcStack.getContractedValue(), dual);
         }
       }
       else if (actionCommand.equals(bcEditDataset.getActionCommand())) {
@@ -378,18 +377,25 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
     }
   }
 
-  public void getParameters(final BatchruntomoParam param) {
-    File stack = new File(fcStack.getExpandedValue());
+  public void getParameters(final BatchruntomoParam param,
+      final boolean deliverToDirectory, final StringBuilder errMsg) {
+    if (!cbcRun.isSelected()) {
+      return;
+    }
     param.addDirectiveFile(getBatchDirectiveFileName());
-    param.addRootName(
-        DatasetTool.getDatasetName(stack.getName(), cbcDual.isSelected()));
-    param.addCurrentLocation(stack.getParent());
+    File stack = new File(fcStack.getExpandedValue());
+    String rootName = DatasetTool.getDatasetName(stack.getName(), cbcDual.isSelected());
+    if (!param.addRootName(rootName, deliverToDirectory, errMsg)) {
+      errMsg.append(": " + rootName + ".  ");
+    }
+    if (!param.addCurrentLocation(stack.getParent(), !deliverToDirectory, errMsg)) {
+      errMsg.append(": " + stack.getAbsolutePath() + ".  ");
+    }
   }
 
   private String getBatchDirectiveFileName() {
     return manager.getName() + "_" +
-        DatasetTool
-            .getDatasetName(fcStack.getContractedValue(), cbcDual.isSelected()) +
+        DatasetTool.getDatasetName(fcStack.getContractedValue(), cbcDual.isSelected()) +
         ".adoc";
   }
 
@@ -413,8 +419,9 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
     }
   }
 
-  void saveAutodoc() {
-    File file = new File(manager.getPropertyUserDir(), getBatchDirectiveFileName());
+  void saveAutodoc(final TemplatePanel templatePanel) {
+    File stack = new File(fcStack.getExpandedValue());
+    File file = new File(stack.getParent(), getBatchDirectiveFileName());
     try {
       if (file.exists()) {
         Utilities.deleteFile(file, manager, null);
@@ -425,8 +432,8 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
       BatchTool.saveAutodoc(fcSkip, autodoc);
       BatchTool.saveAutodoc(fcbskip, AxisID.SECOND, AxisType.DUAL_AXIS, autodoc);
       if (cbcBoundaryModel.isSelected() && BatchTool.needInAutodoc(cbcBoundaryModel)) {
-        String boundaryModelName = BatchTool
-            .getBoundaryModelName(fcStack.getContractedValue(), cbcDual.isSelected());
+        String boundaryModelName =
+            BatchTool.getBoundaryModelName(stack.getName(), cbcDual.isSelected());
         autodoc.addNameValuePair(
             DirectiveDef.RAW_BOUNDARY_MODEL_FOR_SEED_FINDING.getDirective(null, null),
             boundaryModelName);
@@ -435,6 +442,9 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
             boundaryModelName);
       }
       BatchTool.saveAutodoc(cbcTwoSurfaces, autodoc);
+      if (templatePanel != null) {
+        templatePanel.saveAutodoc(autodoc);
+      }
       if (datasetDialog != null) {
         datasetDialog.saveAutodoc(autodoc);
       }
@@ -490,9 +500,9 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
     return changed;
   }
 
-  void applyValues(final UserConfiguration userConfiguration,
-      final DirectiveFileCollection directiveFileCollection,
-      final boolean retainUserValues) {
+  void applyValues(final boolean retainUserValues,
+      final UserConfiguration userConfiguration,
+      final DirectiveFileCollection directiveFileCollection) {
     // to apply values and highlights, start with a clean slate
     cbcDual.clear();
     cbcMontage.clear();
@@ -513,11 +523,12 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
       cbcDual.restoreFromBackup();
       cbcMontage.restoreFromBackup();
       cbcTwoSurfaces.restoreFromBackup();
+      updateDisplay();
     }
     // no field highlight values to set in table
     // Dataset dialog
     if (datasetDialog != null) {
-      datasetDialog.applyValues(directiveFileCollection, retainUserValues);
+      datasetDialog.applyValues(retainUserValues, directiveFileCollection);
     }
   }
 
@@ -555,8 +566,7 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
     return false;
   }
 
-  void setValues(final UserConfiguration
-      userConfiguration) {
+  void setValues(final UserConfiguration userConfiguration) {
     cbcDual.setSelected(!userConfiguration.getSingleAxis());
     cbcMontage.setSelected(userConfiguration.getMontage());
   }

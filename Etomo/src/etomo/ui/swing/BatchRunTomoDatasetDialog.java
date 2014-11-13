@@ -72,7 +72,7 @@ final class BatchRunTomoDatasetDialog
       new LabeledTextField(FieldType.INTEGER, "Target number of beads: ");
   private final LabeledTextField ltfSizeOfPatchesXandY =
       new LabeledTextField(FieldType.INTEGER_PAIR, "Patch tracking size: ");
-  private final CheckBox cbLengthOfPieces = new CheckBox("Break contours into pieces: ");
+  private final CheckBox cbLengthOfPieces = new CheckBox("Break contours into pieces");
   private final LabeledSpinner lsBinByFactor =
       LabeledSpinner.getInstance("Aligned stack binning: ", 1, 1, 8, 1);
   private final CheckBox cbCorrectCTF = new CheckBox("Correct CTF");
@@ -540,8 +540,8 @@ final class BatchRunTomoDatasetDialog
    * @param retainUserValues        - put the backed-up values back after values have
    *                                been applied
    */
-  void applyValues(final DirectiveFileCollection directiveFileCollection,
-      final boolean retainUserValues) {
+  void applyValues(final boolean retainUserValues,
+      final DirectiveFileCollection directiveFileCollection) {
     // to apply values and highlights, start with a clean slate
     int len = fieldList.size();
     for (int i = 0; i < len; i++) {
@@ -690,7 +690,7 @@ final class BatchRunTomoDatasetDialog
     BatchTool.saveAutodoc(ltfLocalAreaTargetSize, autodoc);
     BatchTool.saveAutodoc(ltfTargetNumberOfBeads, autodoc);
     BatchTool.saveAutodoc(ltfSizeOfPatchesXandY, autodoc);
-    if (cbLengthOfPieces.isSelected()) {
+    if (cbLengthOfPieces.isEnabled() && cbLengthOfPieces.isSelected()) {
       boolean add = true;
       if (cbLengthOfPieces.isFieldHighlightSet()) {
         add = !cbLengthOfPieces.equalsFieldHighlight(lengthOfPieces);
@@ -824,19 +824,20 @@ final class BatchRunTomoDatasetDialog
     if (directiveFiles
         .contains(cbLengthOfPieces.getDirectiveDef(), setFieldHighlightValue)) {
       //LengthOfPieces exists and is not overridden.
-      lengthOfPieces = directiveFiles
+      String value = directiveFiles
           .getValue(cbLengthOfPieces.getDirectiveDef(), setFieldHighlightValue);
       if (!setFieldHighlightValue) {
-        cbLengthOfPieces.setSelected(BooleanFieldSetting.stringToBoolean(lengthOfPieces));
+        cbLengthOfPieces.setSelected(BooleanFieldSetting.stringToBoolean(value));
+        lengthOfPieces = value;
+        //Make sure that lengthOfPieces has a value.  This may never happen
+        //because an integer directive without a value is overriding matching directives in
+        //previous templates, and will cause contains() to return false.
+        if (lengthOfPieces == null) {
+          lengthOfPieces = LENGTH_OF_PIECES_DEFAULT;
+        }
       }
       else {
-        cbLengthOfPieces.setFieldHighlight(lengthOfPieces);
-      }
-      //Make sure that lengthOfPieces has a value.  This may never happen
-      //because an integer directive without a value is overriding matching directives in
-      //previous templates, and will cause contains() to return false.
-      if (lengthOfPieces == null) {
-        lengthOfPieces = LENGTH_OF_PIECES_DEFAULT;
+        cbLengthOfPieces.setFieldHighlight(value);
       }
     }
     setValue(cbEnableStretching, directiveFiles, setFieldHighlightValue);

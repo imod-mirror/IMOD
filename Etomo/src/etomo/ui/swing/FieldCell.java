@@ -19,6 +19,7 @@ import etomo.ui.Field;
 import etomo.ui.FieldSettingInterface;
 import etomo.ui.TableComponent;
 import etomo.ui.TextFieldSetting;
+import etomo.ui.UIComponent;
 import etomo.util.Utilities;
 
 /**
@@ -158,7 +159,8 @@ import etomo.util.Utilities;
  *          <p> field is disabled).
  *          <p> </p>
  */
-final class FieldCell extends InputCell implements ActionTarget, TableComponent, Field {
+final class FieldCell extends InputCell
+    implements ActionTarget, TableComponent, Field, UIComponent, SwingComponent {
   private final JTextField textField;
   private final ParsedElementType parsedElementType;
 
@@ -246,6 +248,10 @@ final class FieldCell extends InputCell implements ActionTarget, TableComponent,
 
   private void addListeners() {
     textField.addFocusListener(new TextFieldFocusListener(textField));
+  }
+
+  public SwingComponent getUIComponent() {
+    return this;
   }
 
   public String toString() {
@@ -362,7 +368,7 @@ final class FieldCell extends InputCell implements ActionTarget, TableComponent,
 
   }
 
-  Component getComponent() {
+  public Component getComponent() {
     return textField;
   }
 

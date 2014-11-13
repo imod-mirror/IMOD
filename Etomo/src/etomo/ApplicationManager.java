@@ -189,22 +189,14 @@ import etomo.util.Utilities;
  * </p>
  * 
  * <p>
- * Copyright: Copyright (c) 2002 - 2006
- * </p>
- * 
- * <p>
- * Organization: Boulder Laboratory for 3-Dimensional Electron Microscopy of
- * Cells (BL3DEMC), University of Colorado
- * </p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
+ * <p>Copyright: Copyright 2002 - 2014 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
+ *
+ * @version $Id$
  */
 public final class ApplicationManager extends BaseManager implements
     ContinuousListenerTarget {
-  public static final String rcsid = "$Id$";
-
   // Process dialog references
   private SetupDialogExpert setupDialogExpert = null;
   private PreProcessingDialog preProcDialogA = null;
@@ -413,8 +405,7 @@ public final class ApplicationManager extends BaseManager implements
     if (directiveFile == null) {
       return null;
     }
-    BatchruntomoParam param = new BatchruntomoParam(this, axisID,
-        BatchruntomoParam.Mode.VALIDATION);
+    BatchruntomoParam param =  BatchruntomoParam.getValidationInstance(this, axisID);
     param.setValidationType(directiveDrivenAutomation);
     param.addDirectiveFile(directiveFile);
     if (param.isValid()) {

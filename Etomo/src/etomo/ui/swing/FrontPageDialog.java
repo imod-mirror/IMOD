@@ -18,16 +18,12 @@ import etomo.type.ToolType;
 /**
  * <p>Description: </p>
  * 
- * <p>Copyright: Copyright 2010</p>
+ * <p>Copyright: Copyright 2010 - 2014 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
- * University of Colorado</p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
- * 
+ * @version $Id$
+ *
  * <p> $Log$
  * <p> Revision 1.2  2011/02/03 06:22:16  sueh
  * <p> bug# 1422 Control of the processing method has been centralized in the
@@ -74,8 +70,6 @@ import etomo.type.ToolType;
  */
 
 public final class FrontPageDialog {
-  public static final String rcsid = "$Id$";
-
   private final JPanel pnlRoot = new JPanel();
   private final MultiLineButton btnRecon = MultiLineButton
       .getDebugInstance(EtomoMenu.RECON_LABEL);
@@ -114,8 +108,6 @@ public final class FrontPageDialog {
     JPanel pnlProjects = new JPanel();
     JPanel pnlToolLabel = new JPanel();
     JPanel pnlTools = new JPanel();
-    JPanel pnlAutomationLabel = new JPanel();
-    JPanel pnlAutomation = new JPanel();
     // initialize
     btnRecon.setSize();
     btnJoin.setSize();
@@ -136,22 +128,19 @@ public final class FrontPageDialog {
     pnlRoot.add(pnlToolLabel);
     pnlRoot.add(Box.createRigidArea(FixedDim.x0_y3));
     pnlRoot.add(pnlTools);
-    pnlRoot.add(Box.createRigidArea(FixedDim.x0_y10));
-    pnlRoot.add(pnlAutomationLabel);
-    pnlRoot.add(Box.createRigidArea(FixedDim.x0_y3));
-    pnlRoot.add(pnlAutomation);
     // project label
     pnlProjectLabel.setLayout(new BoxLayout(pnlProjectLabel, BoxLayout.X_AXIS));
     pnlProjectLabel.add(new JLabel("New project:"));
     pnlProjectLabel.add(Box.createHorizontalGlue());
     // projects
-    pnlProjects.setLayout(new GridLayout(3, 2, 7, 7));
+    pnlProjects.setLayout(new GridLayout(4, 2, 7, 7));
     pnlProjects.add(btnRecon.getComponent());
     pnlProjects.add(btnJoin.getComponent());
     pnlProjects.add(btnPeet.getComponent());
     pnlProjects.add(btnSerialSections.getComponent());
     pnlProjects.add(btnNad.getComponent());
     pnlProjects.add(btnGeneric.getComponent());
+    pnlProjects.add(btnBatchRunTomo.getComponent());
     // tool label
     pnlToolLabel.setLayout(new BoxLayout(pnlToolLabel, BoxLayout.X_AXIS));
     pnlToolLabel.add(new JLabel("Tools:"));
@@ -160,14 +149,6 @@ public final class FrontPageDialog {
     pnlTools.setLayout(new GridLayout(1, 2, 7, 7));
     pnlTools.add(btnFlattenVolume.getComponent());
     pnlTools.add(btnGpuTiltTest.getComponent());
-    // Automation label
-    pnlAutomationLabel.setLayout(new BoxLayout(pnlAutomationLabel, BoxLayout.X_AXIS));
-    pnlAutomationLabel.add(new JLabel("Automation:"));
-    pnlAutomationLabel.add(Box.createHorizontalGlue());
-    // Automation
-    pnlAutomation.setLayout(new BoxLayout(pnlAutomation, BoxLayout.X_AXIS));
-    pnlAutomation.add(btnBatchRunTomo.getComponent());
-    pnlAutomation.add(Box.createHorizontalGlue());
   }
 
   private void addListeners() {

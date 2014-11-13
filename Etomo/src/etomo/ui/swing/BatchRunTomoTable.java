@@ -18,6 +18,7 @@ import javax.swing.JPanel;
 import javax.swing.border.LineBorder;
 
 import etomo.BatchRunTomoManager;
+import etomo.EtomoDirector;
 import etomo.comscript.BatchruntomoParam;
 import etomo.logic.DatasetTool;
 import etomo.storage.DirectiveFileCollection;
@@ -34,13 +35,11 @@ import etomo.ui.PreferredTableSize;
 /**
  * <p>Description: </p>
  * <p/>
- * <p>Copyright: Copyright 2013</p>
+ * <p>Copyright: Copyright 2014 by the Regents of the University of Colorado</p>
  * <p/>
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
- * University of Colorado</p>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * @version $Revision$ $Date: $ $Author$ $State: $
+ * @version $Date$ $Revision$
  */
 final class BatchRunTomoTable
     implements Viewable, Highlightable, Expandable, ActionListener {
@@ -315,12 +314,13 @@ final class BatchRunTomoTable
     rowList.getParameters(metaData);
   }
 
-  public void getParameters(final BatchruntomoParam param) {
-    rowList.getParameters(param);
+  public void getParameters(final BatchruntomoParam param,
+      final boolean deliverToDirectory,final StringBuilder errMsg) {
+    rowList.getParameters(param, deliverToDirectory, errMsg);
   }
 
-  void saveAutodocs() {
-    rowList.saveAutodocs();
+  void saveAutodocs(final TemplatePanel templatePanel) {
+    rowList.saveAutodocs(templatePanel);
   }
 
   void loadAutodocs() {
@@ -337,10 +337,9 @@ final class BatchRunTomoTable
     return rowList.backupIfChanged();
   }
 
-  void applyValues(final UserConfiguration userConfiguration,
-      final DirectiveFileCollection directiveFileCollection,
-      final boolean retainUserValues) {
-    rowList.applyValues(userConfiguration, directiveFileCollection, retainUserValues);
+  void applyValues(final boolean retainUserValues,
+      final DirectiveFileCollection directiveFileCollection) {
+    rowList.applyValues(retainUserValues, directiveFileCollection);
   }
 
   private void updateDisplay() {
@@ -690,17 +689,17 @@ final class BatchRunTomoTable
       return changed;
     }
 
-    private void applyValues(final UserConfiguration userConfiguration,
-        final DirectiveFileCollection directiveFileCollection,
-        final boolean retainUserValues) {
+    private void applyValues(final boolean retainUserValues,
+        final DirectiveFileCollection directiveFileCollection) {
       if (initialValueRow == null) {
         initialValueRow = BatchRunTomoRow.getDefaultsInstance();
       }
+      UserConfiguration userConfiguration = EtomoDirector.INSTANCE.getUserConfiguration();
       initialValueRow.setValues(userConfiguration);
       initialValueRow.setValues(directiveFileCollection);
       for (int i = 0; i < list.size(); i++) {
         list.get(i)
-            .applyValues(userConfiguration, directiveFileCollection, retainUserValues);
+            .applyValues(retainUserValues, userConfiguration, directiveFileCollection);
       }
     }
 
@@ -717,15 +716,16 @@ final class BatchRunTomoTable
       }
     }
 
-    private void getParameters(final BatchruntomoParam param) {
+    private void getParameters(final BatchruntomoParam param,
+        final boolean deliverToDirectory, final StringBuilder errMsg) {
       for (int i = 0; i < list.size(); i++) {
-        list.get(i).getParameters(param);
+        list.get(i).getParameters(param, deliverToDirectory, errMsg);
       }
     }
 
-    private void saveAutodocs() {
+    private void saveAutodocs(final TemplatePanel templatePanel) {
       for (int i = 0; i < list.size(); i++) {
-        list.get(i).saveAutodoc();
+        list.get(i).saveAutodoc(templatePanel);
       }
     }
 

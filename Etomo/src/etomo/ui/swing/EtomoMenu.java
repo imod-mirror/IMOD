@@ -29,19 +29,13 @@ import etomo.util.Utilities;
 /**
  * <p>Description: </p>
  * 
- * <p>Copyright: Copyright (c) 2005</p>
+ * <p>Copyright: Copyright 2005 - 2014 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- *<p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
- * University of Colorado</p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
+ * @version $Id$
  */
 final class EtomoMenu {
-  public static final String rcsid = "$Id$";
-
   static final String RECON_LABEL = "Build Tomogram";
   static final String JOIN_LABEL = "Join Serial Tomograms";
   static final String GENERIC_LABEL = "Generic Parallel Process";
@@ -204,7 +198,6 @@ final class EtomoMenu {
         menuNew.add(menuSerialSections);
         menuNew.add(menuNewAnisotropicDiffusion);
         menuNew.add(menuNewGenericParallel);
-        menuNew.addSeparator();
         menuNew.add(menuNewBatchRunTomo);
         // template menu
         menuTemplate.add(menuSaveScope);
