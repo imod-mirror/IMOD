@@ -540,8 +540,8 @@ final class BatchRunTomoDatasetDialog
    * @param retainUserValues        - put the backed-up values back after values have
    *                                been applied
    */
-  void applyValues(final DirectiveFileCollection directiveFileCollection,
-      final boolean retainUserValues) {
+  void applyValues(final boolean retainUserValues,
+      final DirectiveFileCollection directiveFileCollection) {
     // to apply values and highlights, start with a clean slate
     int len = fieldList.size();
     for (int i = 0; i < len; i++) {
