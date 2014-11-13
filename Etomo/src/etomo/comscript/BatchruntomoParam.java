@@ -2,8 +2,10 @@ package etomo.comscript;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import etomo.BaseManager;
 import etomo.process.ProcessMessages;
@@ -13,25 +15,20 @@ import etomo.type.AxisID;
 import etomo.type.EtomoNumber;
 import etomo.type.ProcessName;
 import etomo.type.StringParameter;
+import etomo.ui.UIComponent;
 import etomo.ui.swing.UIHarness;
 import etomo.util.RemotePath;
 import etomo.util.RemotePath.InvalidMountRuleException;
 
 /**
-* <p>Description: </p>
-* 
-* <p>Copyright: Copyright 2012</p>
-*
-* <p>Organization:
-* Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
-* University of Colorado</p>
-* 
-* @author $Author$
-* 
-* @version $Revision$
-* 
-* <p> $Log$ </p>
-*/
+ * <p>Description: </p>
+ * <p/>
+ * <p>Copyright: Copyright 2012 - 2014 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
+ *
+ * @version $Id$
+ */
 public class BatchruntomoParam implements CommandParam {
   public static final String rcsid = "$Id:$";
 
@@ -49,14 +46,15 @@ public class BatchruntomoParam implements CommandParam {
   private final List<String> directiveFileList = new ArrayList<String>();
   private final List<String> rootNameList = new ArrayList<String>();
   private final List<String> currentLocationList = new ArrayList<String>();
-  private final StringParameter deliverToDirectory = new StringParameter(
-      "DeliverToDirectory");
+  private final StringParameter deliverToDirectory =
+      new StringParameter("DeliverToDirectory");
   private final StringParameter niceValue = new StringParameter("NiceValue");
   private final StringParameter emailAddress = new StringParameter("EmailAddress");
 
   private final BaseManager manager;
   private final AxisID axisID;
   private final CommandMode mode;
+  private final boolean doValidation;
 
   private StringBuffer commandLine = null;
   private SystemProgram batchruntomo = null;
@@ -64,12 +62,26 @@ public class BatchruntomoParam implements CommandParam {
   private boolean valid = true;
   private StringBuffer cpuMachineList = null;
   private StringBuffer gpuMachineList = null;
+  private Set<String> currentLocationValidationSet = null;
+  private Set<String> rootNameValidationSet = null;
 
-  public BatchruntomoParam(final BaseManager manager, final AxisID axisID,
-      final CommandMode mode) {
+  private BatchruntomoParam(final BaseManager manager, final AxisID axisID,
+      final CommandMode mode, final boolean doValidation) {
     this.manager = manager;
     this.axisID = axisID;
     this.mode = mode;
+    this.doValidation = doValidation;
+
+  }
+
+  public static BatchruntomoParam getInstance(final BaseManager manager,
+      final AxisID axisID, final boolean doValidation) {
+    return new BatchruntomoParam(manager, axisID, Mode.BATCH, doValidation);
+  }
+
+  public static BatchruntomoParam getValidationInstance(final BaseManager manager,
+      final AxisID axisID) {
+    return new BatchruntomoParam(manager, axisID, Mode.VALIDATION, false);
   }
 
   public void parseComScriptCommand(final ComScriptCommand scriptCommand)
@@ -113,14 +125,13 @@ public class BatchruntomoParam implements CommandParam {
     niceValue.updateComScript(scriptCommand);
     String remoteDirectory = null;
     try {
-      remoteDirectory = RemotePath.INSTANCE.getRemotePath(manager,
-          manager.getPropertyUserDir(), axisID);
-      valid = true;
+      remoteDirectory = RemotePath.INSTANCE
+          .getRemotePath(manager, manager.getPropertyUserDir(), axisID);
     }
     catch (InvalidMountRuleException e) {
-      UIHarness.INSTANCE.openMessageDialog(manager, "ERROR:  Remote path error.  "
-          + "Unabled to run batchruntomo" + ".\n\n" + e.getMessage(),
-          "Batchruntomo Error", axisID);
+      UIHarness.INSTANCE.openMessageDialog(manager,
+          "ERROR:  Remote path error.  " + "Unabled to run batchruntomo" + ".\n\n" +
+              e.getMessage(), "Batchruntomo Error", axisID);
       valid = false;
     }
     if (remoteDirectory != null) {
@@ -207,12 +218,54 @@ public class BatchruntomoParam implements CommandParam {
     deliverToDirectory.reset();
   }
 
-  public void addRootName(final String input) {
+  public boolean addRootName(final String input, final boolean enforceUniqueness,
+      final StringBuilder errMsg) {
+    boolean retval = true;
+    if (doValidation && enforceUniqueness) {
+      if (rootNameValidationSet == null) {
+        rootNameValidationSet = new HashSet<String>();
+      }
+      if (rootNameValidationSet.contains(input)) {
+        valid = false;
+        retval = false;
+        if (errMsg != null) {
+          errMsg.append("Dataset root name must be unique");
+        }
+      }
+      else {
+        rootNameValidationSet.add(input);
+      }
+    }
     rootNameList.add(input);
+    return retval;
   }
 
-  public void addCurrentLocation(final String input) {
+  /**
+   * @param input
+   * @param enforceUniqueness
+   * @param errMsg will be used if it is not null
+   * @return
+   */
+  public boolean addCurrentLocation(final String input, final boolean enforceUniqueness,
+      final StringBuilder errMsg) {
+    boolean retval = true;
+    if (doValidation && enforceUniqueness) {
+      if (currentLocationValidationSet == null) {
+        currentLocationValidationSet = new HashSet<String>();
+      }
+      if (currentLocationValidationSet.contains(input)) {
+        valid = false;
+        retval = false;
+        if (errMsg != null) {
+          errMsg.append("Dataset location must be unique");
+        }
+      }
+      else {
+        currentLocationValidationSet.add(input);
+      }
+    }
     currentLocationList.add(input);
+    return retval;
   }
 
   public void setCPUMachineList(final String input) {
@@ -269,8 +322,8 @@ public class BatchruntomoParam implements CommandParam {
       command.add("-directive");
       command.add(i.next());
     }
-    batchruntomo = new SystemProgram(manager, manager.getPropertyUserDir(), command,
-        AxisID.ONLY);
+    batchruntomo =
+        new SystemProgram(manager, manager.getPropertyUserDir(), command, AxisID.ONLY);
     batchruntomo.setMessagePrependTag("Beginning to process template file");
     return true;
   }
@@ -286,8 +339,9 @@ public class BatchruntomoParam implements CommandParam {
 
   public boolean isValid() {
     if (mode == Mode.VALIDATION) {
-      return (validationType.equals(VALIDATION_TYPE_BATCH_DIRECTIVE) || validationType
-          .equals(VALIDATION_TYPE_TEMPLATE)) && !directiveFileList.isEmpty();
+      return (validationType.equals(VALIDATION_TYPE_BATCH_DIRECTIVE) ||
+          validationType.equals(VALIDATION_TYPE_TEMPLATE)) &&
+          !directiveFileList.isEmpty();
     }
     return valid;
   }
@@ -303,7 +357,7 @@ public class BatchruntomoParam implements CommandParam {
 
   /**
    * Return the current command line string
-   * 
+   *
    * @return
    */
   public String getCommandLine() {
@@ -315,9 +369,9 @@ public class BatchruntomoParam implements CommandParam {
 
   /**
    * Execute the copytomocoms script
-   * 
+   *
    * @return @throws
-   *         IOException
+   * IOException
    */
   public int run() {
     if (batchruntomo == null) {
@@ -347,7 +401,7 @@ public class BatchruntomoParam implements CommandParam {
 
   public String[] getStdError() {
     if (batchruntomo == null) {
-      return new String[] { "ERROR: Batchruntomo is null." };
+      return new String[]{"ERROR: Batchruntomo is null."};
     }
     return batchruntomo.getStdError();
   }
@@ -355,6 +409,7 @@ public class BatchruntomoParam implements CommandParam {
   /**
    * returns a String array of warnings - one warning per element
    * make sure that warnings get into the error log
+   *
    * @return
    */
   public ProcessMessages getProcessMessages() {
@@ -364,9 +419,9 @@ public class BatchruntomoParam implements CommandParam {
     return batchruntomo.getProcessMessages();
   }
 
-  public static final class Mode implements CommandMode {
-    public static final Mode VALIDATION = new Mode();
-    public static final Mode BATCH = new Mode();
+  private static final class Mode implements CommandMode {
+    private static final Mode VALIDATION = new Mode();
+    private static final Mode BATCH = new Mode();
 
     private Mode() {
     }
