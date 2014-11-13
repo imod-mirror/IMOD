@@ -70,7 +70,7 @@ final class CheckBoxCell extends InputCell implements ToggleCell, ActionListener
   /**
    * @param alwaysCheck - check for difference even when the field is disables or
    *                    invisible
-   * @return true if different from checkpoint
+   * @return true if different from checkpoint or checkpoint is null
    */
   public boolean isDifferentFromCheckpoint(final boolean alwaysCheck) {
     if (!alwaysCheck && (!isEnabled() || !checkBox.isVisible())) {
