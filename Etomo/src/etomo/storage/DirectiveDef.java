@@ -115,8 +115,6 @@ public final class DirectiveDef {
   public static final DirectiveDef THICKNESS_FOR_GOLD_ERASING =
       new DirectiveDef(DirectiveType.RUN_TIME, Module.GOLD_ERASING, THICKNESS_NAME);
 
-  public static final DirectiveDef CONTOUR_PIECES =
-      new DirectiveDef(DirectiveType.RUN_TIME, Module.PATCH_TRACKING, "contourPieces");
   public static final DirectiveDef RAW_BOUNDARY_MODEL_FOR_PATCH_TRACKING =
       new DirectiveDef(DirectiveType.RUN_TIME, Module.PATCH_TRACKING, "rawBoundaryModel");
 
