@@ -1,18 +1,22 @@
 package etomo.storage.autodoc;
 
+import java.io.File;
 import java.io.IOException;
 import java.lang.IllegalStateException;
 import java.io.FileNotFoundException;
 import java.util.Vector;
 
+import etomo.BaseManager;
 import etomo.storage.LogFile;
+import etomo.storage.autodoc.AutodocTokenizer.Location;
+import etomo.type.AxisID;
 import etomo.ui.swing.Token;
 
 /**
  * <p>Description:
  * Parses an autodoc file.  Finds and saves autodoc elements in an Autodoc
  * object.
- * 
+ * </p><p>
  * AutodocParser is not case sensitive.  It stores all text in the original case.
  * It retains the original whitespace, except for end of line.  It substitute one
  * space for each end of line character in a multi-line value.  Comments and
@@ -21,12 +25,13 @@ import etomo.ui.swing.Token;
  * pairs.  When there are duplicate attributes in a section, retrieving the
  * value from the tree structure retrieves the last value.  It is extremely
  * important to keep the language definition up to date.
- *
+ * </p>
+ * <pre>
  * To Use:
  * Construct the class with an Autodoc.
  * Run initialize().
  * Run parse().
- * 
+ *
  * Testing:
  * Do not call initialize() when testing.
  * Call test() to test this class.
@@ -37,9 +42,9 @@ import etomo.ui.swing.Token;
  *
  *
  * Language Definition:
- * 
+ *
  * Valid Autodoc Tokens:
- * 
+ *
  * Special Character Tokens:
  * OPEN => [
  * CLOSE => ]
@@ -49,8 +54,8 @@ import etomo.ui.swing.Token;
  * BREAK => ^ (formatting character - ignored except in valueline at startline)
  * COMMENT => # (and % when defined)
  * QUOTE " | ' | `
- * 
- * 
+ *
+ *
  * Other Tokens:
  * EOL => end of line
  * EOF => end of file
@@ -79,239 +84,238 @@ import etomo.ui.swing.Token;
  * & => and
  * ^ => beginning of the line
  * ! => not
- * 
+ *
  * Preprocessor flags:
  * DelimiterInLine
- * 
+ *
  * Definition:
- * 
+ *
  * Autodoc => { emptyLine | comment | pair | section } EOF
- * 
- * section => !emptyLine DelimiterInLine OPEN sectionHeader CLOSE -WHITESPACE- ( EOL | EOF ) 
+ *
+ * section => !emptyLine DelimiterInLine OPEN sectionHeader CLOSE -WHITESPACE- ( EOL | EOF )
  *            { emptyLine | comment | pair | subsection }
- *            
- * 
+ *
+ *
  * sectionHeader => sectionType -WHITESPACE- DELIMITER -WHITESPACE- sectionName -WHITESPACE-
- *                  
+ *
  * sectionType => ( WORD | KEYWORD )
- * 
+ *
  * sectionName => [ \CLOSE & SUBCLOSE & WHITESPACE & EOL & EOF\ ]
- *               
+ *
  * subsection => !emptyLine DelimiterInLine SUBOPEN sectionHeader SUBCLOSE -WHITESPACE- ( EOL | EOF )
  *               { emptyLine | comment | pair }
  *               subsectionClose
- *               
+ *
  * subsectionClose => !emptyLine !DelimiterInLine SUBOPEN -WHITESPACE- SUBCLOSE (EOL | EOF )
- *               
+ *
  * pair => !emptyLine DelimiterInLine name -WHITESPACE- DELIMITER -WHITESPACE- -QUOTE#- value
- *         
+ *
  * name => base-attribute { SEPARATOR attribute }
- *         
+ *
  * base-attribute => ( WORD | KEYWORD | QUOTE ) -attribute-
- * 
+ *
  * attribute => [ WORD | KEYWORD | COMMENT | QUOTE ]
- * 
+ *
  * value => { \EOL & EOF\ } ( EOL | EOF ) { (!quoted & valueline ) | ( quoted & ( quotedValueLine | #QUOTE ) ) }
- *  
+ *
  * valueLine => !emptyLine !DelimiterInLine !comment { \DELIMITER & SUBOPEN & EOL & EOF\ } ( EOL | EOF )
- * 
+ *
  * quotedValueLine => !emptyLine { \EOL & EOF\ } #QUOTE -WHITESPACE- ( EOL | EOF )
- *               
+ *
  * comment => !emptyLine COMMENT { \EOL\ } ( EOL | EOF )
- * 
+ *
  * emptyLine => ^ -WHITESPACE- ( EOL | EOF )
- * 
+ *
  * !emptyLine => ^ -WHITESPACE- ( \EOL & EOF\ )
- * 
- * 
+ *
+ *
  * PEET variant:
  * No quoted strings in the PEET variant.
- * 
+ *
  * pair => !emptyLine DelimiterInLine name -WHITESPACE- DELIMITER -WHITESPACE- value
  *
  *
  * Non-embedded EOL and WHITESPACE are stripped from values.
  * Optional WHITESPACE is ignored in other elements.
- *               
+ *
  * Required pairs:
  * Top level attributes (meta data):  Version and Pip.
- * 
+ *
  * Flags:
  * The KeyValueDelimiter attribute changes the delimiter string for subsequent
  * lines.  It can be used as often as needed and placed anywhere in the autodoc
  * file.  The value of a KeyValueDelimiter must be one line
- * 
+ *
  * Preprocessor:
  * Sets flags decribing the current line: delimiterInLine and line number.
- * 
+ *
  * Postprocessor:
  * Checks for required elements.
- * 
- * </p>
- * 
+ * </pre>
+ * <p/>
  * <p>Copyright: Copyright 2002 - 2006</p>
- *
+ * <p/>
  * <p>Organization:
  * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
  * University of Colorado</p>
  *
  * @author $$Author$$
- *
  * @version $$Revision$$
- *
- * <p> $$Log$
- * <p> $Revision 1.23  2010/11/13 16:05:36  sueh
- * <p> $bug# 1417 Renamed etomo.ui to etomo.ui.swing.
- * <p> $
- * <p> $Revision 1.22  2009/03/09 17:30:25  sueh
- * <p> $bug# 1199 Updated comments to show that the last value of duplicate
- * <p> $attributes is retrieved as the default.  Also got rid of the keyword
- * <p> $"CommandLanguage", which was never used and is unnecessary since
- * <p> $autodocs are always stored in both a tree structure and sequentially.
- * <p> $
- * <p> $Revision 1.21  2009/02/04 23:30:00  sueh
- * <p> $bug# 1158 Changed id and exceptions classes in LogFile.
- * <p> $
- * <p> $Revision 1.20  2009/01/20 19:34:21  sueh
- * <p> $bug# 1102 Fixed bug - not allowing whitespace after subsection header close.
- * <p> $
- * <p> $Revision 1.19  2008/05/30 21:24:27  sueh
- * <p> $bug# 1102 In autodoc() setting commandLanguage boolean.
- * <p> $
- * <p> $Revision 1.18  2007/08/01 22:44:20  sueh
- * <p> $bug# 985 Moved look-ahead to tokenizer for subsection recognition.  Fixed bugs
- * <p> $in subsection recognition.
- * <p> $
- * <p> $Revision 1.17  2007/06/07 21:32:20  sueh
- * <p> $bug# Passing debug in constructor all the time.
- * <p> $
- * <p> $Revision 1.16  2007/04/13 18:44:17  sueh
- * <p> $bug# 964 Fixed a recent bug in delimiter change:  AutodocTokenizer wasn't
- * <p> $being told about the change.
- * <p> $
- * <p> $Revision 1.15  2007/04/11 22:00:38  sueh
- * <p> $bug# 964 Fixed a bug in emptyLine() where the EOF was being treated as an
- * <p> $empty line.
- * <p> $
- * <p> $Revision 1.14  2007/04/09 20:31:48  sueh
- * <p> $bug# 964 Moved the value to the associated name/value pair.  Changed
- * <p> $the Vector member variable from values to nameValuePairList.  Associated the
- * <p> $last attribute in each name/value pair with the name value pair.  This is the
- * <p> $attribute which used to contain the value.  The name/value pair also contained
- * <p> $the value; so it was duplicated.  This made it difficult to add a value to an
- * <p> $existing attribute.  GetValue() gets the value from the associated name/value
- * <p> $pair.  Also removed the old nameValuePairList member variable, because it
- * <p> $wasn't being used for anything.
- * <p> $
- * <p> $Revision 1.13  2007/03/26 18:36:50  sueh
- * <p> $bug# 964 Made Version optional so that it is not necessary in matlab param files.
- * <p> $
- * <p> $Revision 1.12  2007/03/23 20:32:58  sueh
- * <p> $bug# 964 Adding an entry to NameValuePairList which represents the change in
- * <p> $delimiter.
- * <p> $
- * <p> $Revision 1.11  2007/03/21 18:15:41  sueh
- * <p> $bug# 964 Removed mutable boolean.  Access-level will be controlled by the
- * <p> $interfaces.
- * <p> $
- * <p> $Revision 1.10  2007/03/15 21:45:55  sueh
- * <p> $bug# 964 Clarifying the code to show that the same value instance is saved to
- * <p> $both attribute and name/value pair.
- * <p> $
- * <p> $Revision 1.9  2007/03/08 21:55:06  sueh
- * <p> $bug# 964 Save name/value pairs in the parser instead of saving them from the
- * <p> $Attribute.  This is necessary because the name/value pair must be placed in the
- * <p> $autodoc or section as soon as they are found to preserve the original order of the
- * <p> $autodoc file.  Also save the comment as early as possible, though this isn't such
- * <p> $as big deal because comments are one line long.
- * <p> $
- * <p> $Revision 1.8  2007/03/07 21:06:23  sueh
- * <p> $bug# 964 Fixed printing.  Fixed attributes:  the base attribute cannot contain a
- * <p> $comment character, but the other attributes can.  This is necessary for the
- * <p> $uitest autodoc flavor.
- * <p> $
- * <p> $Revision 1.7  2007/03/01 01:18:39  sueh
- * <p> $bug# 964 Saving comments and empty lines in autodoc data structure.  Replaced
- * <p> $startLine(), startLineDelimiter(), and startLineWithOutDelimiter() with emptyLine()
- * <p> $and isBeginningOfLine().
- * <p> $
- * <p> $Revision 1.6  2006/06/22 22:08:09  sueh
- * <p> $bug# 852 Added subsection(), subsectionClose(), lookAhead(), and
- * <p> $lookAheadAhead().
- * <p> $
- * <p> $Revision 1.5  2006/06/14 21:22:06  sueh
- * <p> $bug# 852 Moving the call the processMetaData() to value().  Passing the first
- * <p> $line of the value to processMetaData to handle DelimiterKeyValue.
- * <p> $
- * <p> $Revision 1.4  2006/06/14 00:22:19  sueh
- * <p> $bug# 852 Rewrote the autodoc language definitions to make them simpler and
- * <p> $easier to understand.  Fixed an incorrect definition in Attribute.  Added a
- * <p> $definition for sub-sections.  Rewrote the parser to conform to the new definitions.
- * <p> $Added LinkList inner class to handle elements made of multiple Tokens.
- * <p> $Removes all the preprocessor flags except for delimiterInLine.  Handling
- * <p> $BREAK in the parser instead of the preprocessor.  Fixed the internal test
- * <p> $print statements so that they are clearer.
- * <p> $
- * <p> $Revision 1.3  2006/06/05 18:05:47  sueh
- * <p> $bug# 766 Removed commented out print statements.
- * <p> $
- * <p> $Revision 1.2  2006/05/01 21:16:57  sueh
- * <p> $bug# 854
- * <p> $
- * <p> $Revision 1.1  2006/01/12 17:02:37  sueh
- * <p> $bug# 798 Moved the autodoc classes to etomo.storage.autodoc.
- * <p> $
- * <p> $Revision 1.10  2006/01/11 21:57:36  sueh
- * <p> $bug# 675 Replaced AttributeCollection with WriteOnlyAttributeMap.
- * <p> $
- * <p> $Revision 1.9  2005/11/10 18:15:22  sueh
- * <p> $bug# 733 Changed the missing meta data warning to a single line warning.
- * <p> $
- * <p> $Revision 1.8  2005/09/21 16:36:58  sueh
- * <p> $bug# 532 Changed Autodoc.getFile() to getAutodocFile().
- * <p> $
- * <p> $Revision 1.7  2005/09/01 17:59:47  sueh
- * <p> $bug# 532 Allow a comment inside a section.  Changed the language
- * <p> $definition and section().
- * <p> $
- * <p> $Revision 1.6  2005/02/15 19:51:54  sueh
- * <p> $bug# 602 Preprocessor:  Converting BREAK token to WORD when it is
- * <p> $not at the beginning of a line.  Converting the spaces following a BREAK
- * <p> $to an INDENT.
- * <p> $Parcer:  Saving BREAKS and INDENTS.  In value(), ignoring
- * <p> $WHITESPACE that preceeds a BREAK.
- * <p> $
- * <p> $Revision 1.5  2004/01/01 00:45:17  sueh
- * <p> $bug# 372 correcting interface name
- * <p> $
- * <p> $Revision 1.4  2003/12/31 17:47:41  sueh
- * <p> $bug# 372 add doc, get file from Autodoc
- * <p> $
- * <p> $Revision 1.3  2003/12/31 01:27:04  sueh
- * <p> $bug# 372 save recognized data, testing, delimiter change on
- * <p> $the fly, checking for meta data
- * <p> $
- * <p> $Revision 1.2  2003/12/23 21:32:25  sueh
- * <p> $bug# 372 Reformating.  Creating parser.  Test function for
- * <p> $preprocessor.  Fixing preprocessor.
- * <p> $
- * <p> $Revision 1.1  2003/12/22 23:48:50  sueh
- * <p> $bug# 372 parser and preprocessor for autodoc files.  Stores
- * <p> $autodoc data.
- * <p> $$ </p>
+ *          <p/>
+ *          <p> $$Log$
+ *          <p> $Revision 1.23  2010/11/13 16:05:36  sueh
+ *          <p> $bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ *          <p> $
+ *          <p> $Revision 1.22  2009/03/09 17:30:25  sueh
+ *          <p> $bug# 1199 Updated comments to show that the last value of duplicate
+ *          <p> $attributes is retrieved as the default.  Also got rid of the keyword
+ *          <p> $"CommandLanguage", which was never used and is unnecessary since
+ *          <p> $autodocs are always stored in both a tree structure and sequentially.
+ *          <p> $
+ *          <p> $Revision 1.21  2009/02/04 23:30:00  sueh
+ *          <p> $bug# 1158 Changed id and exceptions classes in LogFile.
+ *          <p> $
+ *          <p> $Revision 1.20  2009/01/20 19:34:21  sueh
+ *          <p> $bug# 1102 Fixed bug - not allowing whitespace after subsection header close.
+ *          <p> $
+ *          <p> $Revision 1.19  2008/05/30 21:24:27  sueh
+ *          <p> $bug# 1102 In autodoc() setting commandLanguage boolean.
+ *          <p> $
+ *          <p> $Revision 1.18  2007/08/01 22:44:20  sueh
+ *          <p> $bug# 985 Moved look-ahead to tokenizer for subsection recognition.  Fixed bugs
+ *          <p> $in subsection recognition.
+ *          <p> $
+ *          <p> $Revision 1.17  2007/06/07 21:32:20  sueh
+ *          <p> $bug# Passing debug in constructor all the time.
+ *          <p> $
+ *          <p> $Revision 1.16  2007/04/13 18:44:17  sueh
+ *          <p> $bug# 964 Fixed a recent bug in delimiter change:  AutodocTokenizer wasn't
+ *          <p> $being told about the change.
+ *          <p> $
+ *          <p> $Revision 1.15  2007/04/11 22:00:38  sueh
+ *          <p> $bug# 964 Fixed a bug in emptyLine() where the EOF was being treated as an
+ *          <p> $empty line.
+ *          <p> $
+ *          <p> $Revision 1.14  2007/04/09 20:31:48  sueh
+ *          <p> $bug# 964 Moved the value to the associated name/value pair.  Changed
+ *          <p> $the Vector member variable from values to nameValuePairList.  Associated the
+ *          <p> $last attribute in each name/value pair with the name value pair.  This is the
+ *          <p> $attribute which used to contain the value.  The name/value pair also contained
+ *          <p> $the value; so it was duplicated.  This made it difficult to add a value to an
+ *          <p> $existing attribute.  GetValue() gets the value from the associated name/value
+ *          <p> $pair.  Also removed the old nameValuePairList member variable, because it
+ *          <p> $wasn't being used for anything.
+ *          <p> $
+ *          <p> $Revision 1.13  2007/03/26 18:36:50  sueh
+ *          <p> $bug# 964 Made Version optional so that it is not necessary in matlab param files.
+ *          <p> $
+ *          <p> $Revision 1.12  2007/03/23 20:32:58  sueh
+ *          <p> $bug# 964 Adding an entry to NameValuePairList which represents the change in
+ *          <p> $delimiter.
+ *          <p> $
+ *          <p> $Revision 1.11  2007/03/21 18:15:41  sueh
+ *          <p> $bug# 964 Removed mutable boolean.  Access-level will be controlled by the
+ *          <p> $interfaces.
+ *          <p> $
+ *          <p> $Revision 1.10  2007/03/15 21:45:55  sueh
+ *          <p> $bug# 964 Clarifying the code to show that the same value instance is saved to
+ *          <p> $both attribute and name/value pair.
+ *          <p> $
+ *          <p> $Revision 1.9  2007/03/08 21:55:06  sueh
+ *          <p> $bug# 964 Save name/value pairs in the parser instead of saving them from the
+ *          <p> $Attribute.  This is necessary because the name/value pair must be placed in the
+ *          <p> $autodoc or section as soon as they are found to preserve the original order of the
+ *          <p> $autodoc file.  Also save the comment as early as possible, though this isn't such
+ *          <p> $as big deal because comments are one line long.
+ *          <p> $
+ *          <p> $Revision 1.8  2007/03/07 21:06:23  sueh
+ *          <p> $bug# 964 Fixed printing.  Fixed attributes:  the base attribute cannot contain a
+ *          <p> $comment character, but the other attributes can.  This is necessary for the
+ *          <p> $uitest autodoc flavor.
+ *          <p> $
+ *          <p> $Revision 1.7  2007/03/01 01:18:39  sueh
+ *          <p> $bug# 964 Saving comments and empty lines in autodoc data structure.  Replaced
+ *          <p> $startLine(), startLineDelimiter(), and startLineWithOutDelimiter() with emptyLine()
+ *          <p> $and isBeginningOfLine().
+ *          <p> $
+ *          <p> $Revision 1.6  2006/06/22 22:08:09  sueh
+ *          <p> $bug# 852 Added subsection(), subsectionClose(), lookAhead(), and
+ *          <p> $lookAheadAhead().
+ *          <p> $
+ *          <p> $Revision 1.5  2006/06/14 21:22:06  sueh
+ *          <p> $bug# 852 Moving the call the processMetaData() to value().  Passing the first
+ *          <p> $line of the value to processMetaData to handle DelimiterKeyValue.
+ *          <p> $
+ *          <p> $Revision 1.4  2006/06/14 00:22:19  sueh
+ *          <p> $bug# 852 Rewrote the autodoc language definitions to make them simpler and
+ *          <p> $easier to understand.  Fixed an incorrect definition in Attribute.  Added a
+ *          <p> $definition for sub-sections.  Rewrote the parser to conform to the new definitions.
+ *          <p> $Added LinkList inner class to handle elements made of multiple Tokens.
+ *          <p> $Removes all the preprocessor flags except for delimiterInLine.  Handling
+ *          <p> $BREAK in the parser instead of the preprocessor.  Fixed the internal test
+ *          <p> $print statements so that they are clearer.
+ *          <p> $
+ *          <p> $Revision 1.3  2006/06/05 18:05:47  sueh
+ *          <p> $bug# 766 Removed commented out print statements.
+ *          <p> $
+ *          <p> $Revision 1.2  2006/05/01 21:16:57  sueh
+ *          <p> $bug# 854
+ *          <p> $
+ *          <p> $Revision 1.1  2006/01/12 17:02:37  sueh
+ *          <p> $bug# 798 Moved the autodoc classes to etomo.storage.autodoc.
+ *          <p> $
+ *          <p> $Revision 1.10  2006/01/11 21:57:36  sueh
+ *          <p> $bug# 675 Replaced AttributeCollection with WriteOnlyAttributeMap.
+ *          <p> $
+ *          <p> $Revision 1.9  2005/11/10 18:15:22  sueh
+ *          <p> $bug# 733 Changed the missing meta data warning to a single line warning.
+ *          <p> $
+ *          <p> $Revision 1.8  2005/09/21 16:36:58  sueh
+ *          <p> $bug# 532 Changed Autodoc.getFile() to getAutodocFile().
+ *          <p> $
+ *          <p> $Revision 1.7  2005/09/01 17:59:47  sueh
+ *          <p> $bug# 532 Allow a comment inside a section.  Changed the language
+ *          <p> $definition and section().
+ *          <p> $
+ *          <p> $Revision 1.6  2005/02/15 19:51:54  sueh
+ *          <p> $bug# 602 Preprocessor:  Converting BREAK token to WORD when it is
+ *          <p> $not at the beginning of a line.  Converting the spaces following a BREAK
+ *          <p> $to an INDENT.
+ *          <p> $Parcer:  Saving BREAKS and INDENTS.  In value(), ignoring
+ *          <p> $WHITESPACE that preceeds a BREAK.
+ *          <p> $
+ *          <p> $Revision 1.5  2004/01/01 00:45:17  sueh
+ *          <p> $bug# 372 correcting interface name
+ *          <p> $
+ *          <p> $Revision 1.4  2003/12/31 17:47:41  sueh
+ *          <p> $bug# 372 add doc, get file from Autodoc
+ *          <p> $
+ *          <p> $Revision 1.3  2003/12/31 01:27:04  sueh
+ *          <p> $bug# 372 save recognized data, testing, delimiter change on
+ *          <p> $the fly, checking for meta data
+ *          <p> $
+ *          <p> $Revision 1.2  2003/12/23 21:32:25  sueh
+ *          <p> $bug# 372 Reformating.  Creating parser.  Test function for
+ *          <p> $preprocessor.  Fixing preprocessor.
+ *          <p> $
+ *          <p> $Revision 1.1  2003/12/22 23:48:50  sueh
+ *          <p> $bug# 372 parser and preprocessor for autodoc files.  Stores
+ *          <p> $autodoc data.
+ *          <p> $$ </p>
  */
 
 final class AutodocParser {
-  public static final String rcsid = "$$Id$$";
+  public static final String rcsid =
+      "$$Id$$";
 
   private final Vector line = new Vector();
 
   private final boolean peetVariant;
 
   private AutodocTokenizer tokenizer;
-  private String name = null;
+  private final LogFile logFile;
   private int tokenIndex = 0;
-  private Autodoc autodoc = null;
+  private WriteOnlyStatementList autodoc = null;
   private Token token = null;
   private Token prevToken = null;
   private Token prevPrevToken = null;
@@ -340,17 +344,49 @@ final class AutodocParser {
 
   private boolean debug = false;
 
-  AutodocParser(final Autodoc autodoc, final boolean allowAltComment,
-      final boolean versionRequired, final boolean debug, final boolean peetVariant) {
+  private AutodocParser(final Autodoc autodoc, final boolean allowAltComment,
+      final boolean versionRequired, final boolean peetVariant, final Location location,
+      final String envVar, final String subdirName, final String name,
+      final File autodocFile, final BaseManager manager, final AxisID axisID,
+      final String notFoundMessage, final boolean debug, final boolean writable) {
     this.debug = debug;
     this.peetVariant = peetVariant;
     if (autodoc == null) {
       throw new IllegalArgumentException("autodoc is null.");
     }
     this.autodoc = autodoc;
-    name = new String(autodoc.getName());
-    tokenizer = new AutodocTokenizer(autodoc.getAutodocFile(), allowAltComment, debug);
+    tokenizer = new AutodocTokenizer(allowAltComment, location, envVar, subdirName, name,
+        autodocFile, manager, axisID, notFoundMessage, debug, writable);
+    logFile = tokenizer.getLogFile();
     this.versionRequired = versionRequired;
+  }
+
+  static AutodocParser getAutodocInstance(final Autodoc autodoc,
+      final boolean allowAltComment, final boolean versionRequired,
+      final boolean peetVariant, final String name, final BaseManager manager,
+      final AxisID axisID, final String notFoundMessage, final boolean debug) {
+    return new AutodocParser(autodoc, allowAltComment, versionRequired, peetVariant,
+        Location.AUTODOC, null, null, name, null, manager, axisID, notFoundMessage, debug,
+        false);
+  }
+
+  static AutodocParser getGenericInstance(final Autodoc autodoc,
+      final boolean allowAltComment, final boolean versionRequired,
+      final boolean peetVariant, final String envVar, final String subdirName,
+      final String name, final BaseManager manager, final AxisID axisID,
+      final String notFoundMessage, final boolean debug, final boolean writable) {
+    return new AutodocParser(autodoc, allowAltComment, versionRequired, peetVariant, null,
+        envVar, subdirName, name, null, manager, axisID, notFoundMessage, debug,
+        writable);
+  }
+
+  static AutodocParser getGenericInstance(final Autodoc autodoc,
+      final boolean allowAltComment, final boolean versionRequired,
+      final boolean peetVariant, final File autodocFile, final BaseManager manager,
+      final AxisID axisID, final String notFoundMessage, final boolean debug,
+      final boolean writable) {
+    return new AutodocParser(autodoc, allowAltComment, versionRequired, peetVariant, null,
+        null, null, null, autodocFile, manager, axisID, notFoundMessage, debug, writable);
   }
 
   void initialize() throws FileNotFoundException, IOException, LogFile.LockException {
@@ -361,20 +397,48 @@ final class AutodocParser {
     return error;
   }
 
+  String getFileName() {
+    if (logFile == null) {
+      return "";
+    }
+    return logFile.getName();
+  }
+
+  boolean exists() {
+    if (logFile == null) {
+      return false;
+    }
+    return logFile.exists();
+  }
+
+  String getAbsolutePath() {
+    if (logFile == null) {
+      return "";
+    }
+    return logFile.getAbsolutePath();
+  }
+
+  LogFile getLogFile() {
+    return logFile;
+  }
+
   /**
    * Parses an autodoc file.
    * This function can be run only once per instance of the object.
+   *
    * @throws IOException
    */
   void parse() throws IOException {
     autodoc();
+    tokenizer = null;
   }
 
   /**
    * Autodoc => { emptyLine | comment | pair | section } EOF
-   * 
+   * <p/>
    * Parses an autodoc file.
    * This function can be run only once per instance of the object.
+   *
    * @throws IOException
    */
   private void autodoc() throws IOException {
@@ -391,13 +455,14 @@ final class AutodocParser {
     postprocess();
   }
 
-  /** 
+  /**
    * emptyLine => ^ -WHITESPACE- ( EOL | EOF )
-   * 
+   * <p/>
    * !emptyLine => ^ -WHITESPACE-
-   * 
+   * <p/>
    * Eats up an empty line, starting from the beginning of the line.  Writes the
    * empty line to the autodoc, section, or subsection is in.
+   *
    * @return true if line is empty, false if line is not empty
    * @throws IOException
    */
@@ -423,8 +488,9 @@ final class AutodocParser {
 
   /**
    * comment => !emptyLine COMMENT { \EOL\ } ( EOL | EOF )
-   * 
+   * <p/>
    * Parses a comment.
+   *
    * @return true if comment found
    * @throws IOException
    */
@@ -450,10 +516,11 @@ final class AutodocParser {
   }
 
   /**
-   * section => !emptyLine DelimiterInLine OPEN sectionHeader CLOSE -WHITESPACE- ( EOL | EOF ) 
-   *            { emptyLine | comment | pair | subsection }
-   *            
+   * section => !emptyLine DelimiterInLine OPEN sectionHeader CLOSE -WHITESPACE- ( EOL | EOF )
+   * { emptyLine | comment | pair | subsection }
+   * <p/>
    * Parses a section.
+   *
    * @return true if section found
    * @throws IOException
    */
@@ -474,16 +541,16 @@ final class AutodocParser {
     }
     if (matchToken(Token.Type.CLOSE) == null) {
       // bad section
-      reportError("A section header must end with \"" + AutodocTokenizer.CLOSE_CHAR
-          + "\".");
+      reportError(
+          "A section header must end with \"" + AutodocTokenizer.CLOSE_CHAR + "\".");
       testEndFunction("section", false);
       return false;
     }
     matchToken(Token.Type.WHITESPACE);
     if (matchToken(Token.Type.EOL) == null && matchToken(Token.Type.EOF) == null) {
       // bad section
-      reportError("A section header must end with \"" + AutodocTokenizer.CLOSE_CHAR
-          + "\".");
+      reportError(
+          "A section header must end with \"" + AutodocTokenizer.CLOSE_CHAR + "\".");
       testEndFunction("section", false);
       return false;
     }
@@ -510,9 +577,10 @@ final class AutodocParser {
 
   /**
    * subsection => !emptyLine DelimiterInLine SUBOPEN sectionHeader SUBCLOSE ( EOL | EOF )
-   *               { emptyLine | comment | pair }
-   *               subsectionClose
+   * { emptyLine | comment | pair }
+   * subsectionClose
    * Parses a subsection
+   *
    * @return
    * @throws IOException
    */
@@ -535,16 +603,16 @@ final class AutodocParser {
     }
     if (matchToken(Token.Type.SUBCLOSE) == null) {
       // bad subsection
-      reportError("A subsection header must end with \"" + AutodocTokenizer.CLOSE_CHAR
-          + AutodocTokenizer.CLOSE_CHAR + "\".");
+      reportError("A subsection header must end with \"" + AutodocTokenizer.CLOSE_CHAR +
+          AutodocTokenizer.CLOSE_CHAR + "\".");
       testEndFunction("subsection", false);
       return false;
     }
     matchToken(Token.Type.WHITESPACE);
     if (matchToken(Token.Type.EOL) == null && matchToken(Token.Type.EOF) == null) {
       // bad section
-      reportError("A section header must end with \"" + AutodocTokenizer.CLOSE_CHAR
-          + AutodocTokenizer.CLOSE_CHAR + "\".");
+      reportError("A section header must end with \"" + AutodocTokenizer.CLOSE_CHAR +
+          AutodocTokenizer.CLOSE_CHAR + "\".");
       testEndFunction("section", false);
       return false;
     }
@@ -569,7 +637,8 @@ final class AutodocParser {
   }
 
   /**
-   ** subsectionClose -> !emptyLine !DelimiterInLine SUBOPEN -WHITESPACE- SUBCLOSE (EOL | EOF )
+   * * subsectionClose -> !emptyLine !DelimiterInLine SUBOPEN -WHITESPACE- SUBCLOSE (EOL | EOF )
+   *
    * @return
    */
   private boolean subsectionClose(WriteOnlyStatementList subsection) throws IOException {
@@ -584,17 +653,18 @@ final class AutodocParser {
     // eat up SUBCLOSE
     if (matchToken(Token.Type.SUBCLOSE) == null) {
       // bad subsection
-      reportError("A subsection close must have the format \""
-          + AutodocTokenizer.OPEN_CHAR + AutodocTokenizer.OPEN_CHAR
-          + AutodocTokenizer.CLOSE_CHAR + AutodocTokenizer.CLOSE_CHAR + "\".");
+      reportError(
+          "A subsection close must have the format \"" + AutodocTokenizer.OPEN_CHAR +
+              AutodocTokenizer.OPEN_CHAR + AutodocTokenizer.CLOSE_CHAR +
+              AutodocTokenizer.CLOSE_CHAR + "\".");
       testEndFunction("subsectionClose", false);
       return false;
     }
     matchToken(Token.Type.WHITESPACE);
     if (matchToken(Token.Type.EOL) == null && matchToken(Token.Type.EOF) == null) {
       // bad subsection
-      reportError("A section header must end with \"" + AutodocTokenizer.CLOSE_CHAR
-          + AutodocTokenizer.CLOSE_CHAR + "\".");
+      reportError("A section header must end with \"" + AutodocTokenizer.CLOSE_CHAR +
+          AutodocTokenizer.CLOSE_CHAR + "\".");
       testEndFunction("section", false);
       return false;
     }
@@ -605,6 +675,7 @@ final class AutodocParser {
   /**
    * calls nextToken() and returns the matched token, if token is tokenType.
    * If token is not tokenType, returns null and does not call nextToken().
+   *
    * @param tokenType
    * @return the matched token if token matches, otherwise null
    */
@@ -619,7 +690,7 @@ final class AutodocParser {
 
   /**
    * sectionHeader => sectionType -WHITESPACE- DELIMITER -WHITESPACE- sectionName -WHITESPACE-
-   * 
+   *
    * @return a Section if sectionHeader found, otherwise return null
    * @throws IOException
    */
@@ -638,8 +709,8 @@ final class AutodocParser {
     matchToken(Token.Type.WHITESPACE);
     if (matchToken(Token.Type.DELIMITER) == null) {
       // bad section header
-      reportError("A section header must contain a delimiter (\""
-          + tokenizer.getDelimiterString() + "\").");
+      reportError("A section header must contain a delimiter (\"" +
+          tokenizer.getDelimiterString() + "\").");
       testEndFunction("sectionHeader", false);
       return null;
     }
@@ -660,7 +731,7 @@ final class AutodocParser {
 
   /**
    * sectionType => ( WORD | KEYWORD )
-   * 
+   *
    * @return section type or null
    */
   private Token sectionType() throws IOException {
@@ -677,7 +748,7 @@ final class AutodocParser {
 
   /**
    * sectionName => [ \CLOSE & SUBCLOSE & WHITESPACE & EOL & EOF\ ]
-   * 
+   *
    * @return section name or null
    */
   private LinkList sectionName() throws IOException {
@@ -685,9 +756,9 @@ final class AutodocParser {
     // section name may contain multiple tokens
     LinkList nameLinkList = new LinkList(token);
     // link the section name together
-    while (!token.is(Token.Type.CLOSE) && !token.is(Token.Type.SUBCLOSE)
-        && !token.is(Token.Type.WHITESPACE) && !token.is(Token.Type.EOL)
-        && !token.is(Token.Type.EOF)) {
+    while (!token.is(Token.Type.CLOSE) && !token.is(Token.Type.SUBCLOSE) &&
+        !token.is(Token.Type.WHITESPACE) && !token.is(Token.Type.EOL) &&
+        !token.is(Token.Type.EOF)) {
       nameLinkList.append(token);
       nextToken();
     }
@@ -703,18 +774,18 @@ final class AutodocParser {
 
   /**
    * pair => !emptyLine DelimiterInLine name -WHITESPACE- DELIMITER -WHITESPACE- -QUOTE#- value
-   *
+   * <p/>
    * PEET variant:
    * pair => !emptyLine DelimiterInLine name -WHITESPACE- DELIMITER -WHITESPACE- value
-   *         
+   * <p/>
    * Adds an attribute tree to the attribute map.
+   *
    * @throws IOException
    */
   private boolean pair(WriteOnlyStatementList list) throws IOException {
-    if (emptyLine(list)
-        || !delimiterInLine
-        || (!token.is(Token.Type.WORD) && !token.is(Token.Type.KEYWORD) && !token
-            .is(Token.Type.QUOTE))) {
+    if (emptyLine(list) || !delimiterInLine ||
+        (!token.is(Token.Type.WORD) && !token.is(Token.Type.KEYWORD) &&
+            !token.is(Token.Type.QUOTE))) {
       // not a pair
       return false;
     }
@@ -741,7 +812,7 @@ final class AutodocParser {
 
   /**
    * name => base-attribute { SEPARATOR attribute }
-   * 
+   *
    * @throws IOException
    */
   private Attribute name(WriteOnlyStatementList list, NameValuePair pair)
@@ -758,8 +829,9 @@ final class AutodocParser {
       attribute = attribute(attribute, pair);
       if (attribute == null) {
         // bad name
-        reportError("Attribute must follow separator (\""
-            + AutodocTokenizer.SEPARATOR_CHAR + "\")" + ".");
+        reportError(
+            "Attribute must follow separator (\"" + AutodocTokenizer.SEPARATOR_CHAR +
+                "\")" + ".");
         testEndFunction("name", false);
       }
     }
@@ -769,19 +841,21 @@ final class AutodocParser {
 
   /**
    * base-attribute => ( WORD | KEYWORD | QUOTE ) -attribute-
-   * 
+   * <p/>
    * Adds the base attribute to an attribute list and a name/value pair.
+   *
    * @return Attribute or null
    */
-  private Attribute baseAttribute(WriteOnlyAttributeList attributeList, NameValuePair pair)
-      throws IOException {
+  private Attribute baseAttribute(WriteOnlyAttributeList attributeList,
+      NameValuePair pair) throws IOException {
     return buildAttribute(attributeList, pair, true);
   }
 
   /**
    * attribute => [ WORD | KEYWORD | COMMENT | QUOTE ]
-   * 
+   * <p/>
    * Adds attributes to an attribute list and a name/value pair.
+   *
    * @return Attribute or null
    */
   private Attribute attribute(WriteOnlyAttributeList attributeList, NameValuePair pair)
@@ -791,6 +865,7 @@ final class AutodocParser {
 
   /**
    * Builds base-attribute and attribute
+   *
    * @param attributeList
    * @param pair
    * @param base
@@ -809,8 +884,8 @@ final class AutodocParser {
     if (base) {
       testStartFunction(function);
     }
-    if (!token.is(Token.Type.WORD) && !token.is(Token.Type.KEYWORD)
-        && !token.is(Token.Type.QUOTE) && (base || !token.is(Token.Type.COMMENT))) {
+    if (!token.is(Token.Type.WORD) && !token.is(Token.Type.KEYWORD) &&
+        !token.is(Token.Type.QUOTE) && (base || !token.is(Token.Type.COMMENT))) {
       if (base) {
         testEndFunction("base-attribute", false);
       }
@@ -822,23 +897,24 @@ final class AutodocParser {
     LinkList valueLinkList = new LinkList(token);
     valueLinkList.append(token);
     nextToken();
-    while (token.is(Token.Type.WORD) || token.is(Token.Type.KEYWORD)
-        || token.is(Token.Type.QUOTE) || token.is(Token.Type.COMMENT)) {
+    while (token.is(Token.Type.WORD) || token.is(Token.Type.KEYWORD) ||
+        token.is(Token.Type.QUOTE) || token.is(Token.Type.COMMENT)) {
       valueLinkList.append(token);
       nextToken();
     }
     testEndFunction(function, true);
     // add and return the new attribute
-    Attribute attribute = (Attribute) attributeList.addAttribute(valueLinkList.getHead(),
-        lineNum);
+    Attribute attribute =
+        (Attribute) attributeList.addAttribute(valueLinkList.getHead(), lineNum);
     pair.addAttribute(attribute);
     return attribute;
   }
 
   /**
    * value => { \EOL & EOF\ } ( EOL | EOF ) { (!quoted & valueline ) | ( quoted & ( quotedValueLine | #QUOTE ) ) }
-   * 
+   * <p/>
    * sets the value in the attribute, if the value exists
+   *
    * @throws IOException
    */
   private void value(WriteOnlyStatementList parent, Attribute attribute,
@@ -890,16 +966,16 @@ final class AutodocParser {
       }
     }
     // Strip non-embedded EOL, EOF, and WHITESPACE at the start and end of the value
-    while (valueLinkList.size() > 0
-        && (valueLinkList.isFirstElement(Token.Type.WHITESPACE)
-            || valueLinkList.isFirstElement(Token.Type.EOL) || valueLinkList
-              .isFirstElement(Token.Type.EOF))) {
+    while (valueLinkList.size() > 0 &&
+        (valueLinkList.isFirstElement(Token.Type.WHITESPACE) ||
+            valueLinkList.isFirstElement(Token.Type.EOL) ||
+            valueLinkList.isFirstElement(Token.Type.EOF))) {
       valueLinkList.dropFirstElement();
     }
-    while (valueLinkList.size() > 0
-        && (valueLinkList.isLastElement(Token.Type.WHITESPACE)
-            || valueLinkList.isLastElement(Token.Type.EOL) || valueLinkList
-              .isLastElement(Token.Type.EOF))) {
+    while (valueLinkList.size() > 0 &&
+        (valueLinkList.isLastElement(Token.Type.WHITESPACE) ||
+            valueLinkList.isLastElement(Token.Type.EOL) ||
+            valueLinkList.isLastElement(Token.Type.EOF))) {
       valueLinkList.dropLastElement();
     }
     // Remove the closing quote
@@ -916,30 +992,31 @@ final class AutodocParser {
 
   /**
    * valueLine =>  !emptyLine !DelimiterInLine !comment { \DELIMITER & SUBOPEN & EOL & EOF\ } ( EOL | EOF )
-   *              
+   * <p/>
    * Adds to the end of a value link list
    * returns the new end of the link list
+   *
    * @throws IOException
    */
   private boolean valueLine(WriteOnlyStatementList parent, LinkList valueLinkList)
       throws IOException {
-    if (emptyLine(parent) || delimiterInLine || token.is(Token.Type.COMMENT)
-        || token.is(Token.Type.EOL) || token.is(Token.Type.EOF)
-        || token.is(Token.Type.SUBOPEN)) {
+    if (emptyLine(parent) || delimiterInLine || token.is(Token.Type.COMMENT) ||
+        token.is(Token.Type.EOL) || token.is(Token.Type.EOF) ||
+        token.is(Token.Type.SUBOPEN)) {
       // not a value line
       return false;
     }
     testStartFunction("valueLine");
-    while (!token.is(Token.Type.DELIMITER) && !token.is(Token.Type.EOL)
-        && !token.is(Token.Type.EOF)) {
+    while (!token.is(Token.Type.DELIMITER) && !token.is(Token.Type.EOL) &&
+        !token.is(Token.Type.EOF)) {
       // add the token to the value link list
       valueLinkList.append(token);
       nextToken();
     }
     if (token.is(Token.Type.DELIMITER)) {// really bad error - preprocessor is wrong
       // bad value line
-      reportError("A value line cannot contain the delimiter string (\""
-          + tokenizer.getDelimiterString() + "\").");
+      reportError("A value line cannot contain the delimiter string (\"" +
+          tokenizer.getDelimiterString() + "\").");
       testEndFunction("valueLine", false);
       return false;
     }
@@ -954,9 +1031,10 @@ final class AutodocParser {
 
   /**
    * quotedValueLine => !emptyLine { \EOL & EOF\ } #QUOTE -WHITESPACE- ( EOL | EOF )
-   *              
+   * <p/>
    * Adds to the end of a value link list
    * returns the new end of the link list
+   *
    * @param closeQuote quote to match - must not be null
    * @throws IOException
    */
@@ -968,8 +1046,8 @@ final class AutodocParser {
     }
     if (emptyLine(parent) || token.is(Token.Type.EOL)) {
       // illegal empty line inside a quoted value
-      reportError("An empty line cannot be embedded in a quoted value (\""
-          + closeQuote.getChar() + "\").");
+      reportError("An empty line cannot be embedded in a quoted value (\"" +
+          closeQuote.getChar() + "\").");
       return false;
     }
     if (token.is(Token.Type.EOF)) {
@@ -1048,7 +1126,12 @@ final class AutodocParser {
     carat.append("^");
     if (!errorsFound) {
       errorsFound = true;
-      System.err.println("Errors in " + name);
+      if (logFile != null) {
+        System.err.println("Errors in " + logFile.getName());
+      }
+      else {
+        System.err.println("Errors found");
+      }
       System.err.println();
     }
     System.err.println(errorMessage);
@@ -1081,8 +1164,9 @@ final class AutodocParser {
     token = (Token) line.get(tokenIndex);
     tokenIndex++;
     if (detailedTest) {
-      System.err.println(tokenIndex + ":" + token + ",delimiterInLine=" + delimiterInLine
-          + ":" + tokenizer.getDelimiterString());
+      System.err.println(
+          tokenIndex + ":" + token + ",delimiterInLine=" + delimiterInLine + ":" +
+              tokenizer.getDelimiterString());
     }
   }
 
@@ -1128,8 +1212,8 @@ final class AutodocParser {
   }
 
   private boolean isDelimiterChange(Attribute attribute) {
-    if (attribute.getNameToken().equals(Token.Type.KEYWORD,
-        AutodocTokenizer.DELIMITER_KEYWORD)) {
+    if (attribute.getNameToken()
+        .equals(Token.Type.KEYWORD, AutodocTokenizer.DELIMITER_KEYWORD)) {
       return true;
     }
     return false;
@@ -1141,8 +1225,8 @@ final class AutodocParser {
     }
   }
 
-  void testStreamTokenizer(boolean tokens, boolean details) throws IOException,
-      LogFile.LockException {
+  void testStreamTokenizer(boolean tokens, boolean details)
+      throws IOException, LogFile.LockException {
     tokenizer.testStreamTokenizer(tokens, details);
   }
 
@@ -1174,8 +1258,7 @@ final class AutodocParser {
   }
 
   /**
-   * 
-   * @param tokens: display tokens rather then text.
+   * @param tokens:  display tokens rather then text.
    * @param details: display more information and throw an exception as the
    *                 first error.
    * @throws IOException

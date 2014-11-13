@@ -94,6 +94,8 @@ import etomo.process.ImodManager;
 public final class FileType {
   public static final String rcsid = "$Id$";
 
+  public static final String COM_DIR = "com";
+
   private static final List namedFileTypeList = new Vector();
 
   // FileType instances should be placed in alphabetical order, sorted first by
@@ -126,6 +128,8 @@ public final class FileType {
   // File types with a name description
   public static final FileType FIDUCIAL_3D_MODEL = FileType.getImodInstance(true, true,
       "", ".3dmod", ImodManager.FIDUCIAL_MODEL_KEY);
+  public static final FileType BATCH_RUN_TOMO_GLOBAL_AUTODOC = FileType.getInstance(true,
+      false, "", ".adoc");
   public static final FileType LOCAL_BATCH_DIRECTIVE_FILE = FileType.getInstance(false,
       false, "batchDirective", ".adoc");
   public static final FileType LOCAL_SCOPE_TEMPLATE = FileType.getInstance(false, false,
@@ -150,6 +154,8 @@ public final class FileType {
       ".bl");
   public static final FileType AUTOFIDSEED_COMSCRIPT = FileType.getInstance(false, true,
       "autofidseed", ".com");
+  public static final FileType BATCH_RUN_TOMO_COMSCRIPT = FileType.getInstance(true,
+      false, "", ".com");
   public static final FileType BLEND_COMSCRIPT = FileType.getInstance(false, true,
       "blend", ".com");
   public static final FileType COPYTOMOCOMS_COMSCRIPT = FileType.getInstance(false,
@@ -173,7 +179,7 @@ public final class FileType {
   public static final FileType SIRTSETUP_COMSCRIPT = FileType.getInstance(false, true,
       "sirtsetup", ".com");
   public static final FileType SLOPPY_BLEND_COMSCRIPT = FileType.getIMODDirInstance(
-      false, false, "sloppyblend", ".com", "com");
+      false, false, "sloppyblend", ".com", COM_DIR);
   public static final FileType TILT_COMSCRIPT = FileType.getInstance(false, true, "tilt",
       ".com");
   public static final FileType TILT_FOR_SIRT_COMSCRIPT = FileType.getInstance(false,
@@ -185,7 +191,7 @@ public final class FileType {
   public static final FileType PATCH_TRACKING_COMSCRIPT = FileType.getInstance(false,
       true, "xcorr_pt", ".com");
   public static final FileType DIRECTIVES_DESCR = FileType.getIMODDirInstance(false,
-      false, "directives", ".csv", "com");
+      false, "directives", ".csv", COM_DIR);
   public static final FileType DISTORTION_CORRECTED_STACK = FileType.getInstance(true,
       true, "", ".dcst");
   public static final FileType AUTOFIDSEED_DIR = FileType.getInstance(false, true,
@@ -244,6 +250,8 @@ public final class FileType {
       false, "patch_vector_ccc", ".mod", ImodManager.PATCH_VECTOR_CCC_MODEL_KEY);
   public static final FileType PATCH_TRACKING_BOUNDARY_MODEL = FileType.getInstance(true,
       true, "_ptbound", ".mod");
+  public static final FileType BATCH_RUN_TOMO_BOUNDARY_MODEL = FileType.getInstance(true,
+      false, "_rawbound", ".mod");
   public static final FileType ALIGNED_STACK_MRC = FileType.getImodInstance(true, true,
       "_ali", ".mrc", ImodManager.ALIGNED_STACK_KEY);
   public static final FileType PREBLEND_OUTPUT_MRC = FileType.getImodInstance(true, true,
@@ -469,12 +477,12 @@ public final class FileType {
    * @param extension
    * @return
    */
-  public static FileType getInstance(final BaseManager manager, boolean usesDataset,
+  public static FileType getInstance(final AxisType axisType, boolean usesDataset,
       boolean usesAxisID, String typeString, String extension) {
     Iterator iterator = namedFileTypeList.iterator();
     while (iterator.hasNext()) {
       FileType fileType = (FileType) iterator.next();
-      if (fileType.equals(manager, usesDataset, usesAxisID, typeString, extension)) {
+      if (fileType.equals(axisType, usesDataset, usesAxisID, typeString, extension)) {
         if (fileType.parentFileType != null) {
           // This is a child file type which is not valid by itself
           return fileType.parentFileType;
@@ -504,7 +512,7 @@ public final class FileType {
     String fixedPattern = "";
     String axisPattern = "";
     String axisExtension = axisID.getExtension();
-    if (usesDataset) {
+    if (usesDataset && manager != null) {
       // If the dataset is part of the file name, then there is a fixed pattern
       if (usesAxisID) {
         fixedPattern = Pattern.quote(manager.getBaseMetaData().getName() + axisExtension);
@@ -523,11 +531,15 @@ public final class FileType {
       axisPattern = Pattern.quote(axisExtension);
     }
     Iterator iterator = namedFileTypeList.iterator();
+    AxisType axisType = null;
+    if (manager != null) {
+      axisType = manager.getBaseMetaData().getAxisType();
+    }
     while (iterator.hasNext()) {
       FileType fileType = (FileType) iterator.next();
       // Ignore child file types. Return a file type that equals patterns and booleans.
       if (fileType.parentFileType == null
-          && fileType.equals(manager, fileName, usesDataset, usesAxisID, fixedPattern,
+          && fileType.equals(axisType, fileName, usesDataset, usesAxisID, fixedPattern,
               axisPattern)) {
         return fileType;
       }
@@ -544,19 +556,19 @@ public final class FileType {
    * @param axisPattern
    * @return
    */
-  private boolean equals(final BaseManager manager, final String fileName,
+  private boolean equals(final AxisType axisType, final String fileName,
       final boolean usesDataset, final boolean usesAxisID, final String fixedPattern,
       final String axisPattern) {
     if (composite) {
       // Handle type files which are based on another file type but have their own
       // extension.
       if (subFileType != null && extension != null) {
-        return subFileType.equals(manager, fileName, usesDataset, usesAxisID,
+        return subFileType.equals(axisType, fileName, usesDataset, usesAxisID,
             fixedPattern, axisPattern, Pattern.quote(extension));
       }
       // Handle file types with single and dual file types instead of descriptions.
-      return getChildFileType(manager).equals(manager, fileName, usesDataset, usesAxisID,
-          fixedPattern, axisPattern);
+      return getChildFileType(axisType).equals(axisType, fileName, usesDataset,
+          usesAxisID, fixedPattern, axisPattern);
     }
     return usesDataset == this.usesDataset
         && usesAxisID == this.usesAxisID
@@ -574,19 +586,19 @@ public final class FileType {
    * @param extensionPattern
    * @return
    */
-  private boolean equals(final BaseManager manager, final String fileName,
+  private boolean equals(final AxisType axisType, final String fileName,
       final boolean usesDataset, final boolean usesAxisID, final String fixedPattern,
       final String axisPattern, final String extensionPattern) {
     if (composite) {
       // Handle type files which are based on another file type but have their own
       // extension.
       if (subFileType != null) {
-        return subFileType.equals(manager, fileName, usesDataset, usesAxisID,
+        return subFileType.equals(axisType, fileName, usesDataset, usesAxisID,
             fixedPattern, axisPattern, extensionPattern);
       }
       // Handle file types with single and dual file types instead of descriptions.
-      return getChildFileType(manager).equals(manager, fileName, usesDataset, usesAxisID,
-          fixedPattern, axisPattern, extensionPattern);
+      return getChildFileType(axisType).equals(axisType, fileName, usesDataset,
+          usesAxisID, fixedPattern, axisPattern, extensionPattern);
     }
     return usesDataset == this.usesDataset
         && usesAxisID == this.usesAxisID
@@ -600,8 +612,8 @@ public final class FileType {
    * @param fileType
    * @return
    */
-  public boolean equals(final BaseManager manager, final FileType fileType) {
-    return equals(manager, fileType.usesDataset, fileType.usesAxisID,
+  public boolean equals(final AxisType axisType, final FileType fileType) {
+    return equals(axisType, fileType.usesDataset, fileType.usesAxisID,
         fileType.typeString, fileType.extension);
   }
 
@@ -613,17 +625,17 @@ public final class FileType {
    * @param extension
    * @return
    */
-  private boolean equals(final BaseManager manager, final boolean usesDataset,
+  private boolean equals(final AxisType axisType, final boolean usesDataset,
       final boolean usesAxisID, final String typeString, final String extension) {
     if (composite) {
       // Handle type files which are based on another file type but have their own
       // extension.
       if (subFileType != null && this.extension != null) {
         return this.extension.equals(extension)
-            && subFileType.equals(manager, usesDataset, usesAxisID, typeString);
+            && subFileType.equals(axisType, usesDataset, usesAxisID, typeString);
       }
       // Handle file types with single and dual file types instead of descriptions.
-      return getChildFileType(manager).equals(manager, usesDataset, usesAxisID,
+      return getChildFileType(axisType).equals(axisType, usesDataset, usesAxisID,
           typeString, extension);
     }
     return this.usesDataset == usesDataset && this.usesAxisID == usesAxisID
@@ -638,15 +650,15 @@ public final class FileType {
    * @param typeString
    * @return
    */
-  private boolean equals(final BaseManager manager, final boolean usesDataset,
+  private boolean equals(final AxisType axisType, final boolean usesDataset,
       final boolean usesAxisID, final String typeString) {
     if (composite) {
       // Handle type files which are based on another file type
       if (subFileType != null) {
-        return subFileType.equals(manager, usesDataset, usesAxisID, typeString);
+        return subFileType.equals(axisType, usesDataset, usesAxisID, typeString);
       }
       // Handle file types with single and dual file types instead of descriptions.
-      return getChildFileType(manager).equals(manager, usesDataset, usesAxisID,
+      return getChildFileType(axisType).equals(axisType, usesDataset, usesAxisID,
           typeString);
     }
     if (this.usesDataset == usesDataset && this.usesAxisID == usesAxisID
@@ -656,10 +668,15 @@ public final class FileType {
     return false;
   }
 
-  private FileType getChildFileType(final BaseManager manager) {
+  /**
+   * If no manager is available, assumes single axis
+   * @param manager
+   * @return
+   */
+  private FileType getChildFileType(final AxisType axisType) {
     if (composite) {
       if (singleFileType != null && dualFileType != null) {
-        if (manager.getBaseMetaData().getAxisType() == AxisType.DUAL_AXIS) {
+        if (axisType == AxisType.DUAL_AXIS) {
           return dualFileType;
         }
         return singleFileType;
@@ -671,12 +688,12 @@ public final class FileType {
     return this;
   }
 
-  public boolean hasFixedName(final BaseManager manager) {
+  public boolean hasFixedName(final AxisType axisType) {
     if (composite) {
       if (subFileType != null && extension != null) {
-        return !extension.equals("") || subFileType.hasFixedName(manager);
+        return !extension.equals("") || subFileType.hasFixedName(axisType);
       }
-      return getChildFileType(manager).hasFixedName(manager);
+      return getChildFileType(axisType).hasFixedName(axisType);
     }
     return usesAxisID || usesDataset || !extension.equals("") || !typeString.equals("");
   }
@@ -685,7 +702,7 @@ public final class FileType {
     return inSubdirectory;
   }
 
-  public String getDescription(final BaseManager manager) {
+  public String getDescription() {
     if (description != null) {
       return description;
     }
@@ -695,34 +712,66 @@ public final class FileType {
     return "";
   }
 
-  public String getExtension(final BaseManager manager) {
+  public String getExtension(final AxisType axisType) {
     if (composite) {
       if (subFileType != null && extension != null) {
         return extension;
       }
-      return getChildFileType(manager).getExtension(manager);
+      return getChildFileType(axisType).getExtension(axisType);
     }
     return extension;
   }
 
-  public String getImodManagerKey(final BaseManager manager) {
+  public String getImodManagerKey() {
     return imodManagerKey;
   }
 
-  public String getImodManagerKey2(final BaseManager manager) {
+  public String getImodManagerKey2() {
     return imodManagerKey2;
   }
 
   public File getFile(final BaseManager manager, final AxisID axisID) {
-    return getFile(manager, axisID, null);
+    return getFile(manager, null, null, null, axisID, null, null);
   }
 
-  private File getFile(final BaseManager manager, final AxisID axisID,
-      final BaseMetaData metadata) {
-    if (manager == null || !hasFixedName(manager)) {
+  /**
+   * Pass in either, manager, metaData, or rootName and axisType.  If manager is null,
+   * pass in propertyUserDir and fileSubdirectoryName if necessary.
+   * @param manager
+   * @param metaData
+   * @param rootName
+   * @param axisType
+   * @param axisID
+   * @param propertyUserDir
+   * @param fileSubdirectoryName
+   * @return
+   */
+  private File getFile(final BaseManager manager, BaseMetaData metaData, String rootName,
+      AxisType axisType, final AxisID axisID, String propertyUserDir,
+      String fileSubdirectoryName) {
+    if (metaData == null && manager != null) {
+      metaData = manager.getBaseMetaData();
+    }
+    if (axisType == null) {
+      if (metaData != null) {
+        axisType = metaData.getAxisType();
+      }
+      else {
+        axisType = AxisType.SINGLE_AXIS;
+      }
+    }
+    if (rootName == null) {
+      if (metaData != null) {
+        rootName = metaData.getName();
+      }
+      else {
+        rootName = "";
+      }
+    }
+    if (!hasFixedName(axisType)) {
       return null;
     }
-    String fileName = getFileName(manager, axisID, metadata);
+    String fileName = getFileName(manager, metaData, rootName, axisType, axisID, false);
     if (fileName == null || fileName.equals("")) {
       return null;
     }
@@ -733,31 +782,40 @@ public final class FileType {
       return new File(new File(new File(EtomoDirector.INSTANCE.getIMODDirectory(),
           inImodSubdirectory), fileName).getAbsolutePath());
     }
+    if (propertyUserDir == null && manager != null) {
+      propertyUserDir = manager.getPropertyUserDir();
+    }
     if (inSubdirectory) {
-      if (subdir != null) {
-        return new File(
-            new File(subdir.getFileName(manager, axisID, metadata), fileName)
-                .getAbsolutePath());
+      if (fileSubdirectoryName == null && manager != null) {
+        fileSubdirectoryName = manager.getFileSubdirectoryName();
       }
-      if ((subdirName = manager.getFileSubdirectoryName()) != null) {
-        return new File(new File(new File(manager.getPropertyUserDir(), subdirName),
+      if (subdir != null) {
+        return new File(new File(subdir.getFileName(manager, metaData, rootName,
+            axisType, axisID, false), fileName).getAbsolutePath());
+      }
+      if (manager != null && fileSubdirectoryName != null) {
+        return new File(new File(new File(propertyUserDir, fileSubdirectoryName),
             fileName).getAbsolutePath());
       }
     }
-    return new File(new File(manager.getPropertyUserDir(), fileName).getAbsolutePath());
+    String dir = propertyUserDir;
+    if (propertyUserDir == null) {
+      dir = EtomoDirector.INSTANCE.getOriginalUserDir();
+    }
+    return new File(new File(dir, fileName).getAbsolutePath());
   }
 
   public boolean exists(final BaseManager manager, final AxisID axisID) {
-    File file = getFile(manager, axisID);
+    File file = getFile(manager, null, null, null, axisID, null, null);
     if (file != null) {
       return file.exists();
     }
     return false;
   }
 
-  public boolean exists(final BaseManager manager, final AxisID axisID,
-      final BaseMetaData metaData) {
-    File file = getFile(manager, axisID, metaData);
+  public boolean exists(final BaseManager manager, final BaseMetaData metaData,
+      final AxisID axisID) {
+    File file = getFile(manager, null, null, null, axisID, null, null);
     if (file != null) {
       return file.exists();
     }
@@ -773,44 +831,72 @@ public final class FileType {
   public String getRoot(BaseManager manager, AxisID axisID) {
     // Template OK at least for now - the current template types have extra text after the
     // extension.
-    String fileName = getFileName(manager, axisID, true, null);
+    String fileName = getFileName(manager, null, null, null, axisID, true);
     int index = fileName.lastIndexOf('.');
     return fileName.substring(0, index);
   }
 
   public String getTemplate(final BaseManager manager, final AxisID axisID) {
-    return getFileName(manager, axisID, true, null);
+    return getFileName(manager, null, null, null, axisID, true);
   }
 
   public String getFileName(final BaseManager manager, final AxisID axisID) {
-    return getFileName(manager, axisID, false, null);
+    return getFileName(manager, null, null, null, axisID, false);
   }
 
-  public String getFileName(final BaseManager manager, final AxisID axisID,
-      final BaseMetaData metaData) {
-    return getFileName(manager, axisID, false, metaData);
+  public String getFileName(final BaseManager manager, final BaseMetaData metaData,
+      final AxisID axisID) {
+    return getFileName(manager, metaData, null, null, axisID, false);
   }
 
-  private String getFileName(final BaseManager manager, final AxisID axisID,
-      final boolean templateOK, final BaseMetaData metaData) {
-    if (manager == null || !hasFixedName(manager)) {
+  public String getFileName(final String rootName, final AxisType axisType,
+      final AxisID axisID) {
+    return getFileName(null, null, rootName, axisType, axisID, false);
+  }
+
+  /**
+   * Pass in either manager, metaData, or rootName and axisType
+   * @param manager
+   * @param metaData
+   * @param rootName
+   * @param axisType
+   * @param axisID
+   * @param templateOK
+   * @return
+   */
+  private String getFileName(final BaseManager manager, BaseMetaData metaData,
+      String rootName, AxisType axisType, final AxisID axisID, final boolean templateOK) {
+    if (metaData == null && manager != null) {
+      metaData = manager.getBaseMetaData();
+    }
+    if (axisType == null) {
+      if (metaData != null) {
+        axisType = metaData.getAxisType();
+      }
+      else {
+        axisType = AxisType.SINGLE_AXIS;
+      }
+    }
+    if (rootName == null) {
+      if (metaData != null) {
+        rootName = metaData.getName();
+      }
+      else {
+        rootName = "";
+      }
+    }
+    if (!hasFixedName(axisType)) {
       return null;
     }
     if (template && !templateOK) {
       System.err.println("Warning:  Getting the file name of template " + toString());
     }
     if (composite && (subFileType == null || extension == null)) {
-      return getChildFileType(manager).getFileName(manager, axisID, true, metaData);
+      return getChildFileType(axisType).getFileName(manager, metaData, rootName,
+          axisType, axisID, true);
     }
-    return getLeftSide(manager, axisID, metaData) + extension;
-  }
 
-  private String getLeftSide(final BaseManager manager, final AxisID axisID,
-      BaseMetaData metaData) {
-    if (metaData == null) {
-      metaData = manager.getBaseMetaData();
-    }
-    return getLeftSide(metaData.getName(), metaData.getAxisType(), manager, axisID);
+    return getLeftSide(rootName, axisType, axisID) + extension;
   }
 
   /**
@@ -821,13 +907,18 @@ public final class FileType {
    * @param axisID
    * @return
    */
-  private String getLeftSide(final String rootName, final AxisType axisType,
-      final BaseManager manager, final AxisID axisID) {
-    if (manager == null || !hasFixedName(manager)) {
+  private String getLeftSide(String rootName, AxisType axisType, final AxisID axisID) {
+    if (rootName == null) {
+      rootName = "";
+    }
+    if (axisType == null || axisType == AxisType.NOT_SET) {
+      axisType = AxisType.SINGLE_AXIS;
+    }
+    if (!hasFixedName(axisType)) {
       return null;
     }
     if (composite) {
-      return getChildFileType(manager).getLeftSide(rootName, axisType, manager, axisID);
+      return getChildFileType(axisType).getLeftSide(rootName, axisType, axisID);
     }
     if (!usesDataset && !usesAxisID) {
       // Example: flatten.com
@@ -853,12 +944,11 @@ public final class FileType {
    * @param rootName
    * @param axisType
    * @param axisID
-   * @param manager
    * @return
    */
   public String deriveFileName(final String rootName, final AxisType axisType,
-      final BaseManager manager, final AxisID axisID) {
-    return getLeftSide(rootName, axisType, manager, axisID) + getExtension(manager);
+      final AxisID axisID) {
+    return getLeftSide(rootName, axisType, axisID) + getExtension(axisType);
   }
 
   /**
@@ -867,9 +957,9 @@ public final class FileType {
    * for tilta.com is "tilt", and the type string for tilt.com is "tilt".
    * @return
    */
-  public String getTypeString(final BaseManager manager) {
+  public String getTypeString(final AxisType axisType) {
     if (composite) {
-      return getChildFileType(manager).getTypeString(manager);
+      return getChildFileType(axisType).getTypeString(axisType);
     }
     return typeString;
   }

@@ -1,9 +1,11 @@
 package etomo.ui.swing;
 
 import java.awt.Component;
+import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.io.File;
+import java.io.IOException;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -11,27 +13,34 @@ import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 
 import etomo.BaseManager;
+import etomo.logic.BatchTool;
 import etomo.logic.ConfigTool;
+import etomo.process.BaseProcessManager;
+import etomo.storage.DirectiveDef;
+import etomo.storage.DirectiveFile;
 import etomo.storage.DirectiveFileCollection;
+import etomo.storage.LogFile;
+import etomo.storage.autodoc.AutodocFactory;
+import etomo.storage.autodoc.WritableAutodoc;
 import etomo.type.AxisID;
 import etomo.type.DirectiveFileType;
+import etomo.type.FileType;
 import etomo.type.UserConfiguration;
 
 /**
-* <p>Description: </p>
-* 
-* <p>Copyright: Copyright 2013</p>
-*
-* <p>Organization:
-* Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
-* University of Colorado</p>
-* 
-* @author $Author$
-* 
-* @version $Revision$
-* 
-* <p> $Log$ </p>
-*/
+ * <p>Description: </p>
+ * <p/>
+ * <p>Copyright: Copyright 2013</p>
+ * <p/>
+ * <p>Organization:
+ * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
+ * University of Colorado</p>
+ *
+ * @author $Author$
+ * @version $Revision$
+ *          <p/>
+ *          <p> $Log$ </p>
+ */
 final class TemplatePanel {
   public static final String rcsid = "$Id:$";
 
@@ -40,10 +49,10 @@ final class TemplatePanel {
   private static final String SELECT_OPTION2 = " available)";
 
   private final JPanel pnlRoot = new JPanel();
-  private final ComboBox cmbScopeTemplate = ComboBox
-      .getInstance("Scope template:", false);
-  private final ComboBox cmbSystemTemplate = ComboBox.getInstance("System template:",
-      false);
+  private final ComboBox cmbScopeTemplate =
+      ComboBox.getInstance("Scope template:", false);
+  private final ComboBox cmbSystemTemplate =
+      ComboBox.getInstance("System template:", false);
   private final ComboBox cmbUserTemplate = ComboBox.getInstance("User template:", false);
 
   private final TemplateActionListener listener;
@@ -51,6 +60,7 @@ final class TemplatePanel {
   private final AxisID axisID;
   final SettingsDialog settings;
   private final DirectiveFileCollection directiveFileCollection;
+  private final boolean drawBorder;
 
   private File[] scopeTemplateFileList = null;
   private File[] systemTemplateFileList = null;
@@ -58,20 +68,42 @@ final class TemplatePanel {
   private File newUserTemplateDir = null;
 
   private TemplatePanel(final BaseManager manager, final AxisID axisID,
-      final TemplateActionListener listener, final SettingsDialog settings) {
+      final TemplateActionListener listener, final SettingsDialog settings,
+      final boolean drawBorder, final DirectiveFileCollection directiveFileCollection) {
     this.listener = listener;
     this.manager = manager;
     this.axisID = axisID;
     this.settings = settings;
-    directiveFileCollection = new DirectiveFileCollection(manager, axisID);
+    this.drawBorder = drawBorder;
+    if (directiveFileCollection == null) {
+      this.directiveFileCollection = new DirectiveFileCollection(manager, axisID);
+    }
+    else {
+      this.directiveFileCollection = directiveFileCollection;
+    }
   }
 
   static TemplatePanel getInstance(final BaseManager manager, final AxisID axisID,
       final TemplateActionListener listener, final String title,
       final SettingsDialog settings) {
-    TemplatePanel instance = new TemplatePanel(manager, axisID, listener, settings);
+    TemplatePanel instance =
+        new TemplatePanel(manager, axisID, listener, settings, true, null);
     instance.createPanel(title);
     instance.addListeners();
+    return instance;
+  }
+
+  static TemplatePanel getBorderlessInstance(final BaseManager manager,
+      final AxisID axisID, final TemplateActionListener listener, final String title,
+      final SettingsDialog settings,
+      final DirectiveFileCollection directiveFileCollection,
+      final boolean delayListeners) {
+    TemplatePanel instance = new TemplatePanel(manager, axisID, listener, settings, false,
+        directiveFileCollection);
+    instance.createPanel(title);
+    if (!delayListeners) {
+      instance.addListeners();
+    }
     return instance;
   }
 
@@ -79,8 +111,8 @@ final class TemplatePanel {
     // init
     scopeTemplateFileList = ConfigTool.getScopeTemplateFiles();
     if (scopeTemplateFileList != null && scopeTemplateFileList.length > 0) {
-      cmbScopeTemplate.addItem(SELECT_OPTION1 + scopeTemplateFileList.length
-          + SELECT_OPTION2);
+      cmbScopeTemplate
+          .addItem(SELECT_OPTION1 + scopeTemplateFileList.length + SELECT_OPTION2);
       for (int i = 0; i < scopeTemplateFileList.length; i++) {
         cmbScopeTemplate.addItem(scopeTemplateFileList[i].getName());
       }
@@ -92,8 +124,8 @@ final class TemplatePanel {
     cmbScopeTemplate.setSelectedIndex(0);
     systemTemplateFileList = ConfigTool.getSystemTemplateFiles();
     if (systemTemplateFileList != null && systemTemplateFileList.length > 0) {
-      cmbSystemTemplate.addItem(SELECT_OPTION1 + systemTemplateFileList.length
-          + SELECT_OPTION2);
+      cmbSystemTemplate
+          .addItem(SELECT_OPTION1 + systemTemplateFileList.length + SELECT_OPTION2);
       for (int i = 0; i < systemTemplateFileList.length; i++) {
         cmbSystemTemplate.addItem(systemTemplateFileList[i].getName());
       }
@@ -105,11 +137,13 @@ final class TemplatePanel {
     cmbSystemTemplate.setSelectedIndex(0);
     loadUserTemplate();
     pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.Y_AXIS));
-    if (title != null) {
-      pnlRoot.setBorder(new EtchedBorder(title).getBorder());
-    }
-    else {
-      pnlRoot.setBorder(BorderFactory.createEtchedBorder());
+    if (drawBorder) {
+      if (title != null) {
+        pnlRoot.setBorder(new EtchedBorder(title).getBorder());
+      }
+      else {
+        pnlRoot.setBorder(BorderFactory.createEtchedBorder());
+      }
     }
     pnlRoot.add(Box.createRigidArea(FixedDim.x0_y2));
     pnlRoot.add(cmbScopeTemplate.getComponent());
@@ -120,15 +154,43 @@ final class TemplatePanel {
     pnlRoot.add(Box.createRigidArea(FixedDim.x0_y2));
   }
 
-  private void addListeners() {
-    cmbScopeTemplate.addActionListener(listener);
-    cmbSystemTemplate.addActionListener(listener);
-    cmbUserTemplate.addActionListener(listener);
+  void addListeners() {
+    addActionListener(listener);
     cmbUserTemplate.addFocusListener(new TemplateFocusListener(this));
   }
 
   Component getComponent() {
     return pnlRoot;
+  }
+
+  void addActionListener(final ActionListener listener) {
+    cmbScopeTemplate.addActionListener(listener);
+    cmbSystemTemplate.addActionListener(listener);
+    cmbUserTemplate.addActionListener(listener);
+  }
+
+  void saveAutodoc(final WritableAutodoc autodoc) {
+    File templateFile = getScopeTemplateFile();
+    if (templateFile != null) {
+      autodoc.addNameValuePair(DirectiveDef.SCOPE_TEMPLATE.getDirective(null, null),
+          templateFile.getAbsolutePath());
+    }
+    templateFile = getSystemTemplateFile();
+    if (templateFile != null) {
+      autodoc.addNameValuePair(DirectiveDef.SYSTEM_TEMPLATE.getDirective(null, null),
+          templateFile.getAbsolutePath());
+    }
+    templateFile = getUserTemplateFile();
+    if (templateFile != null) {
+      autodoc.addNameValuePair(DirectiveDef.USER_TEMPLATE.getDirective(null, null),
+          templateFile.getAbsolutePath());
+    }
+  }
+
+  void setFieldHighlight() {
+    cmbScopeTemplate.setFieldHighlight();
+    cmbSystemTemplate.setFieldHighlight();
+    cmbUserTemplate.setFieldHighlight();
   }
 
   private void loadUserTemplate() {
@@ -138,8 +200,8 @@ final class TemplatePanel {
     // default user template, the user template will not be loaded.
     userTemplateFileList = ConfigTool.getUserTemplateFiles(newUserTemplateDir);
     if (userTemplateFileList != null && userTemplateFileList.length > 0) {
-      cmbUserTemplate.addItem(SELECT_OPTION1 + userTemplateFileList.length
-          + SELECT_OPTION2);
+      cmbUserTemplate
+          .addItem(SELECT_OPTION1 + userTemplateFileList.length + SELECT_OPTION2);
       cmbUserTemplate.setComboBoxEnabled(true);
       for (int i = 0; i < userTemplateFileList.length; i++) {
         cmbUserTemplate.addItem(userTemplateFileList[i].getName());
@@ -152,7 +214,8 @@ final class TemplatePanel {
     cmbUserTemplate.setSelectedIndex(0);
   }
 
-  private File getTemplateFile(final ComboBox cmbTemplate, final File[] templateFileList) {
+  private File getTemplateFile(final ComboBox cmbTemplate,
+      final File[] templateFileList) {
     if (cmbTemplate.isEnabled()) {
       int i = cmbTemplate.getSelectedIndex() - 1;
       if (i != -1 && templateFileList != null) {
@@ -162,25 +225,38 @@ final class TemplatePanel {
     return null;
   }
 
-  private void setTemplate(final String templateAbsPath, final File[] templateFileList,
+  /**
+   * Choose the combobox element that matches template
+   *
+   * @param template         - either an absolute file path or a file name with no path
+   *                         (imodhelp)
+   * @param templateFileList
+   * @param cmbTemplate
+   */
+  private void setTemplate(final String template, final File[] templateFileList,
       final ComboBox cmbTemplate) {
-    if (templateFileList == null) {
+    if (templateFileList == null || template == null) {
       return;
     }
-    // If templateAbsPath doesn't match something in templateFileList, nothing will be
+    boolean absPath = false;
+    if (template.indexOf(File.separator) != -1) {
+      absPath = true;
+    }
+    // If template doesn't match something in templateFileList, nothing will be
     // selected in the combobox.
     for (int i = 0; i < templateFileList.length; i++) {
-      if (templateFileList[i].getAbsolutePath().equals(templateAbsPath)) {
-        cmbTemplate.setSelectedIndex(i+1);
+      if ((absPath && templateFileList[i].getAbsolutePath().equals(template)) ||
+          (!absPath && templateFileList[i].getName().equals(template))) {
+        cmbTemplate.setSelectedIndex(i + 1);
         break;
       }
     }
   }
 
   boolean equalsActionCommand(final String actionCommand) {
-    return actionCommand.equals(cmbScopeTemplate.getActionCommand())
-        || actionCommand.equals(cmbSystemTemplate.getActionCommand())
-        || actionCommand.equals(cmbUserTemplate.getActionCommand());
+    return actionCommand.equals(cmbScopeTemplate.getActionCommand()) ||
+        actionCommand.equals(cmbSystemTemplate.getActionCommand()) ||
+        actionCommand.equals(cmbUserTemplate.getActionCommand());
   }
 
   void getParameters(final UserConfiguration userConfig) {
@@ -191,16 +267,26 @@ final class TemplatePanel {
 
   /**
    * Refresh the directive file collection and return it.
+   *
    * @return
    */
   DirectiveFileCollection getDirectiveFileCollection() {
-    directiveFileCollection.setDirectiveFile(getScopeTemplateFile(),
-        DirectiveFileType.SCOPE);
-    directiveFileCollection.setDirectiveFile(getSystemTemplateFile(),
-        DirectiveFileType.SYSTEM);
-    directiveFileCollection.setDirectiveFile(getUserTemplateFile(),
-        DirectiveFileType.USER);
+    refreshDirectiveFileCollection();
     return directiveFileCollection;
+  }
+
+  /**
+   * Refresh the directive file collection and return it.
+   *
+   * @return
+   */
+  void refreshDirectiveFileCollection() {
+    directiveFileCollection
+        .setDirectiveFile(getScopeTemplateFile(), DirectiveFileType.SCOPE);
+    directiveFileCollection
+        .setDirectiveFile(getSystemTemplateFile(), DirectiveFileType.SYSTEM);
+    directiveFileCollection
+        .setDirectiveFile(getUserTemplateFile(), DirectiveFileType.USER);
   }
 
   private File getScopeTemplateFile() {
@@ -216,7 +302,14 @@ final class TemplatePanel {
   }
 
   private void focusGained() {
-    // Only listening to user template combobox
+    // Only need to listen to user template combobox
+    reloadUserTemplate();
+  }
+
+  /**
+   * Updates the user template combobox. It may need to change if settings are modified.
+   */
+  private void reloadUserTemplate() {
     if (settings != null && !settings.equalsUserTemplateDir(newUserTemplateDir)) {
       // If a new user template directory has been entered, reload the user template combo
       // box.
@@ -226,9 +319,9 @@ final class TemplatePanel {
   }
 
   boolean isAppearanceSettingChanged(final UserConfiguration userConfig) {
-    if (!userConfig.equalsScopeTemplate(getScopeTemplateFile())
-        || !userConfig.equalsSystemTemplate(getSystemTemplateFile())
-        || !userConfig.equalsUserTemplate(getUserTemplateFile())) {
+    if (!userConfig.equalsScopeTemplate(getScopeTemplateFile()) ||
+        !userConfig.equalsSystemTemplate(getSystemTemplateFile()) ||
+        !userConfig.equalsUserTemplate(getUserTemplateFile())) {
       return true;
     }
     return false;
@@ -245,6 +338,35 @@ final class TemplatePanel {
     if (userConfig.isUserTemplateSet()) {
       setTemplate(userConfig.getUserTemplate(), userTemplateFileList, cmbUserTemplate);
     }
+  }
+
+  /**
+   * Set the template file if the entry exists in the directiveFile, otherwise don't
+   * change it.
+   *
+   * @param directiveFile
+   */
+  void setParameters(final DirectiveFile directiveFile) {
+    if (directiveFile == null) {
+      return;
+    }
+    DirectiveDef directiveDef = DirectiveDef.SCOPE_TEMPLATE;
+    if (directiveFile.contains(directiveDef)) {
+      setTemplate(directiveFile.getValue(directiveDef), scopeTemplateFileList,
+          cmbScopeTemplate);
+    }
+    directiveDef = DirectiveDef.SYSTEM_TEMPLATE;
+    if (directiveFile.contains(directiveDef)) {
+      setTemplate(directiveFile.getValue(directiveDef), systemTemplateFileList,
+          cmbSystemTemplate);
+    }
+    directiveDef = DirectiveDef.USER_TEMPLATE;
+    if (directiveFile.contains(directiveDef)) {
+      reloadUserTemplate();
+      setTemplate(directiveFile.getValue(directiveDef), userTemplateFileList,
+          cmbUserTemplate);
+    }
+    refreshDirectiveFileCollection();
   }
 
   private static final class TemplateFocusListener implements FocusListener {

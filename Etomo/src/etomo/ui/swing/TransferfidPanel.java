@@ -139,10 +139,6 @@ final class TransferfidPanel implements Expandable, Run3dmodButtonContainer {
     return instance;
   }
 
-  public void action(Run3dmodButton button, Run3dmodMenuOptions menuOptions) {
-    action(button.getActionCommand(), button.getDeferred3dmodButton(), menuOptions);
-  }
-
   /**
    * Executes the action associated with command.  Deferred3dmodButton is null
    * if it comes from the dialog's ActionListener.  Otherwise is comes from a
@@ -152,7 +148,7 @@ final class TransferfidPanel implements Expandable, Run3dmodButtonContainer {
    * @param deferred3dmodButton
    * @param run3dmodMenuOptions
    */
-  private void action(final String command, Deferred3dmodButton deferred3dmodButton,
+  public void action(final String command, Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(buttonTransferfid.getActionCommand())) {
       manager.transferfid(axisID, buttonTransferfid, null, deferred3dmodButton,
