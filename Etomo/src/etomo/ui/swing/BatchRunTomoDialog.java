@@ -238,6 +238,7 @@ public final class BatchRunTomoDialog
     rbGPUMachineListOff.addActionListener(this);
     rbGPUMachineListLocal.addActionListener(this);
     rbGPUMachineList.addActionListener(this);
+    btnRun.addActionListener(this);
     ftfInputDirectiveFile.addResultListener(this);
     tabbedPane.addChangeListener(this);
   }
@@ -332,7 +333,29 @@ public final class BatchRunTomoDialog
     else {
       param.resetEmailAddress();
     }
-    table.getParameters(param);
+    StringBuilder errMsg = new StringBuilder();
+    boolean deliverToDirectory = cbDeliverToDirectory.isSelected();
+    table.getParameters(param, deliverToDirectory, errMsg);
+    if (errMsg.length() > 0) {
+      if (deliverToDirectory) {
+        errMsg.append("\n\nEither change the name of the associated stacks, or go to the " +
+            BatchRunTomoTab.BATCH.getQuotedLabel() +
+            " tab and uncheck the " +
+            ftfDeliverToDirectory.getQuotedLabel() +
+            " check box.  Each dataset will be placed in the current location of its stack " +
+            "file.");
+      }
+      else {
+        errMsg.append("\n\nEither move these stacks, or go to the " +
+            BatchRunTomoTab.BATCH.getQuotedLabel() +
+            " tab and select a directory in the " +
+            ftfDeliverToDirectory.getQuotedLabel() +
+            " field.  Each dataset will be placed in its own directory under the directory " +
+            "in this field.");
+      }
+      UIHarness.INSTANCE.openMessageDialog(manager, errMsg.toString(),
+          "Datasets Cannot Share a Directory");
+    }
   }
 
   public void loadAutodocs() {
@@ -385,15 +408,15 @@ public final class BatchRunTomoDialog
       if (datasetDialog.backupIfChanged()) {
         changed = true;
       }
-      if (changed) {
+      if (!retainUserValues && changed) {
         // Ask the user whether they want to keep the values they changed.
         retainUserValues = UIHarness.INSTANCE.openYesNoDialog(manager,
             "New batch directive/template values will be applied.  Keep your changed " +
                 "values?", axisID);
       }
     }
-    table.applyValues(directiveFileCollection, retainUserValues);
-    datasetDialog.applyValues(directiveFileCollection, retainUserValues);
+    table.applyValues(retainUserValues, directiveFileCollection);
+    datasetDialog.applyValues(retainUserValues, directiveFileCollection);
   }
 
   public void actionPerformed(final ActionEvent event) {
@@ -406,14 +429,17 @@ public final class BatchRunTomoDialog
       templatePanel.refreshDirectiveFileCollection();
       msgDirectivesChanged(false, false);
     }
-    else if (actionCommand.equals(cbDeliverToDirectory.getActionCommand())) {
-      updateDisplay();
+    else if (actionCommand.equals(btnRun.getActionCommand())) {
+      manager.run();
     }
     else if (actionCommand.equals(cbCPUMachineList.getActionCommand()) ||
         actionCommand.equals(rbGPUMachineListOff.getActionCommand()) ||
         actionCommand.equals(rbGPUMachineListLocal.getActionCommand()) ||
         actionCommand.equals(rbGPUMachineList.getActionCommand())) {
       mediator.setMethod(this, getProcessingMethod(), getSecondaryProcessingMethod());
+    }
+    else {
+      updateDisplay();
     }
   }
 
