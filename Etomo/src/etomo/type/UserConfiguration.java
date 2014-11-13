@@ -10,12 +10,11 @@ import java.util.*;
 /**
  * <p>Description: </p>
  * <p/>
- * <p>Copyright: Copyright (c) 2002</p>
+ * <p>Copyright: Copyright 2002 - 2014 by the Regents of the University of Colorado</p>
  * <p/>
- * <p>Organization: Boulder Laboratory for 3D Fine Structure,
- * University of Colorado</p>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * @version $Revision$ $Date: $ $Author$ $State: $
+ * @version $Id$
  *          <p/>
  *          <p> $Log$
  *          <p> Revision 3.15  2011/02/22 05:54:56  sueh
@@ -127,8 +126,8 @@ public final class UserConfiguration implements Storable {
       new StringProperty(DEFAULTS_KEY + ".SystemTemplate", true);
   private final StringProperty userTemplateAbsPath =
       new StringProperty(DEFAULTS_KEY + ".UserTemplate", true);
-  private final StringProperty emailAddress =
-      new StringProperty(DEFAULTS_KEY + ".EmailAddress", true);
+  private final StringProperty emailAddress = new StringProperty("EmailAddress", true);
+  private final EtomoBoolean2 useEmailAddress = new EtomoBoolean2("EmailAddress.Use");
 
   private boolean nativeLookAndFeel = false;
   private boolean advancedDialogs = false;
@@ -222,6 +221,7 @@ public final class UserConfiguration implements Storable {
     systemTemplateAbsPath.store(props, prepend);
     userTemplateAbsPath.store(props, prepend);
     emailAddress.store(props, prepend);
+    useEmailAddress.store(props, prepend);
 
     props.setProperty(group + "MainWindowWidth", String.valueOf(mainWindowWidth));
     props.setProperty(group + "MainWindowHeight", String.valueOf(mainWindowHeight));
@@ -375,6 +375,7 @@ public final class UserConfiguration implements Storable {
     systemTemplateAbsPath.load(props, prepend);
     userTemplateAbsPath.load(props, prepend);
     emailAddress.load(props, prepend);
+    useEmailAddress.load(props, prepend);
   }
 
   /**
@@ -861,8 +862,12 @@ public final class UserConfiguration implements Storable {
     tiltAnglesRawtltFile.set(input);
   }
 
-  public boolean isEmailAddressNull() {
-    return emailAddress.isEmpty();
+  public boolean isUseEmailAddress() {
+    return useEmailAddress.is();
+  }
+
+  public void setUseEmailAddress(final boolean input) {
+    useEmailAddress.set(input);
   }
 
   public String getEmailAddress() {
@@ -871,9 +876,5 @@ public final class UserConfiguration implements Storable {
 
   public void setEmailAddress(final String input) {
     emailAddress.set(input);
-  }
-
-  public void resetEmailAddress() {
-    emailAddress.reset();
   }
 }
