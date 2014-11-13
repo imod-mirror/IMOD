@@ -6,23 +6,15 @@ import etomo.type.AxisID;
 import etomo.type.FileType;
 
 /**
-* <p>Description: </p>
-* 
-* <p>Copyright: Copyright 2014</p>
-*
-* <p>Organization:
-* Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
-* University of Colorado</p>
-* 
-* @author $Author$
-* 
-* @version $Revision$
-* 
-* <p> $Log$ </p>
-*/
+ * <p>Description: </p>
+ * <p/>
+ * <p>Copyright: Copyright 2014 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
+ *
+ * @version $Id$
+ */
 public final class BatchRunTomoComScriptManager extends BaseComScriptManager {
-  public static final String rcsid = "$Id:$";
-
   private final BaseManager manager;
 
   private ComScript scriptBatchRunTomo = null;
@@ -33,9 +25,9 @@ public final class BatchRunTomoComScriptManager extends BaseComScriptManager {
   }
 
   public void loadBatchRunTomo(final AxisID axisID) {
-    scriptBatchRunTomo = loadComScript(
-        FileType.BATCH_RUN_TOMO_COMSCRIPT.getFileName(manager, axisID), axisID, true,
-        true, false, false);
+    scriptBatchRunTomo =
+        loadComScript(FileType.BATCH_RUN_TOMO_COMSCRIPT.getFileName(manager, axisID),
+            axisID, true, true, false, false);
   }
 
   public boolean isBatchRunTomoLoaded() {
@@ -47,8 +39,9 @@ public final class BatchRunTomoComScriptManager extends BaseComScriptManager {
   }
 
   public BatchruntomoParam getBatchRunTomoParam(final AxisID axisID,
-      final CommandMode mode) {
-    BatchruntomoParam param = new BatchruntomoParam(manager, axisID, mode);
+      final boolean doValidation) {
+    BatchruntomoParam param =
+        BatchruntomoParam.getInstance(manager, axisID, doValidation);
     initialize(param, scriptBatchRunTomo, "batchruntomo", axisID, false, false);
     return param;
   }
