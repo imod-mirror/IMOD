@@ -3,9 +3,6 @@ package etomo.ui;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.EtomoNumber;
 
-import javax.xml.soap.Text;
-import java.util.Properties;
-
 /**
  * <p>Description: Text setting that can be turned on and off.  Not thread safe.  A null
  * value can be a valid setting.  The set member variable is turned on when set() is
