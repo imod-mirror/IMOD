@@ -17,34 +17,28 @@ import etomo.type.ConstEtomoVersion;
 import etomo.util.Utilities;
 
 /**
-* <p>Description: </p>
-* 
-* <p>Copyright: Copyright 2010</p>
-*
-* <p>Organization:
-* Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
-* University of Colorado</p>
-* 
-* @author $Author$
-* 
-* @version $Revision$
-* 
-* <p> $Log$
-* <p> Revision 1.3  2011/07/18 22:44:44  sueh
-* <p> Bug# 1515 Removed isSelectOnlyRow - no longer needed.
-* <p>
-* <p> Revision 1.2  2011/02/22 18:07:08  sueh
-* <p> bug# 1437 Reformatting.
-* <p>
-* <p> Revision 1.1  2011/02/03 06:13:39  sueh
-* <p> bug# 1422 Child of ProcessorTable that makes a ProcessorTable display
-* <p> CPUs.
-* <p> </p>
-*/
+ * <p>Description: </p>
+ * <p/>
+ * <p>Copyright: Copyright 2010 - 2014 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
+ *
+ * @version $Id$
+ *          <p/>
+ *          <p> $Log$
+ *          <p> Revision 1.3  2011/07/18 22:44:44  sueh
+ *          <p> Bug# 1515 Removed isSelectOnlyRow - no longer needed.
+ *          <p>
+ *          <p> Revision 1.2  2011/02/22 18:07:08  sueh
+ *          <p> bug# 1437 Reformatting.
+ *          <p>
+ *          <p> Revision 1.1  2011/02/03 06:13:39  sueh
+ *          <p> bug# 1422 Child of ProcessorTable that makes a ProcessorTable display
+ *          <p> CPUs.
+ *          <p> </p>
+ */
 class CpuTable extends ProcessorTable {
-  public static final String rcsid = "$Id$";
-
-  private final String PREPEND = "ProcessorTable.Cpu";
+  private final String PREPEND = ".Cpu";
 
   private final HeaderCell header1Load = new HeaderCell("Load Average");
   private final HeaderCell header1CPUUsage = new HeaderCell("CPU Usage");
@@ -59,8 +53,8 @@ class CpuTable extends ProcessorTable {
   CpuTable(final BaseManager manager, final ParallelPanel parent, final AxisID axisID,
       final boolean runnable) {
     super(manager, parent, axisID, false, runnable);
-    usersColumn = CpuAdoc.INSTANCE.isUsersColumn(manager, axisID,
-        manager.getPropertyUserDir());
+    usersColumn =
+        CpuAdoc.INSTANCE.isUsersColumn(manager, axisID, manager.getPropertyUserDir());
   }
 
   boolean isCpuTable() {
@@ -72,12 +66,12 @@ class CpuTable extends ProcessorTable {
   }
 
   String getStorePrepend() {
-    return PREPEND;
+    return getGroupKey() + PREPEND;
   }
 
   String getLoadPrepend(ConstEtomoVersion version) {
     if (version.ge("1.1")) {
-      return PREPEND;
+      return getGroupKey() + PREPEND;
     }
     return "ProcessorTable";
   }
@@ -96,8 +90,8 @@ class CpuTable extends ProcessorTable {
 
   ProcessorTableRow createProcessorTableRow(final ProcessorTable processorTable,
       final Node node, final int numRowsInTable) {
-    return ProcessorTableRow.getComputerInstance(processorTable, node, node.getNumber(),
-        numRowsInTable);
+    return ProcessorTableRow
+        .getComputerInstance(processorTable, node, node.getNumber(), numRowsInTable);
   }
 
   String getHeader1ComputerText() {
@@ -183,8 +177,8 @@ class CpuTable extends ProcessorTable {
 
   final void setHeaderLoadToolTipText() {
     if (Utilities.isWindowsOS()) {
-      header1CPUUsage
-          .setToolTipText("The CPU usage (0 to number of CPUs) averaged over one second.");
+      header1CPUUsage.setToolTipText(
+          "The CPU usage (0 to number of CPUs) averaged over one second.");
     }
     else {
       header1Load.setToolTipText("Represents how busy each computer is.");

@@ -35,20 +35,14 @@ import etomo.util.HashedArray;
 
 /**
  * <p>Description: </p>
- * 
- * <p>Copyright: Copyright (c) 2005 - 2010</p>
  *
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
- * University of Colorado</p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
+ * <p>Copyright: Copyright 2005 - 2014 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
+ *
+ * @version $Id$
  */
 public final class ParallelPanel implements Expandable, Storable {
-  public static final String rcsid = "$Id$";
-
   private static final String STORE_PREPEND = "ProcessorTable";
 
   private static final String TITLE = "Parallel Processing";
@@ -664,11 +658,12 @@ public final class ParallelPanel implements Expandable, Storable {
    * Get parameters for batchruntomo.  Batchruntomo does not run with parallel processing.
    * This gets parameters used by batchruntomo.
    * @param param
-   * @param doValidation
    * @return
    */
   public boolean getParameters(final BatchruntomoParam param) {
     param.setNiceValue(sNice.getValue());
+    param.resetCPUMachineList();
+    param.resetGPUMachineList();
     currentTable.getParameters(param);
     if (secondaryTable != null) {
       secondaryTable.getParameters(param);

@@ -41,7 +41,7 @@ import etomo.util.Utilities;
  * <p/>
  * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * @version $Date$ $Revision$
+ * @version $Id$
  */
 final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
   private static final URL IMOD_ICON_URL =
@@ -351,6 +351,7 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
     this.metaData = rowMetaData;
     cbcDual.setValue(rowMetaData.isDual());
     fcbskip.setValue(rowMetaData.getBskip());
+    cbcRun.setValue(rowMetaData.isRun());
     boolean isDatasetDialog = rowMetaData.isDatasetDialog();
     bcEditDataset.setSelected(isDatasetDialog);
     if (isDatasetDialog) {
@@ -371,6 +372,7 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
     rowMetaData.setDisplay(true);
     rowMetaData.setDual(cbcDual.isSelected());
     rowMetaData.setBskip(fcbskip.getValue());
+    rowMetaData.setRun(cbcRun.isSelected());
     rowMetaData.setDatasetDialog(datasetDialog != null);
     if (datasetDialog != null) {
       datasetDialog.getParameters(rowMetaData.getDatasetMetaData());
@@ -401,7 +403,8 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
 
   void loadAutodoc() {
     DirectiveFile directiveFile = DirectiveFile.getInstance(manager, null,
-        new File(manager.getPropertyUserDir(), getBatchDirectiveFileName()), true);
+        new File(new File(fcStack.getExpandedValue()).getParent(),
+            getBatchDirectiveFileName()), true);
     setValues(directiveFile);
     DirectiveDef directiveDef = DirectiveDef.SKIP;
     if (directiveFile.contains(directiveDef)) {
