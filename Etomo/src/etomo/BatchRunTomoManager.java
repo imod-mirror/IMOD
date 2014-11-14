@@ -10,6 +10,7 @@ import etomo.logic.DatasetTool;
 import etomo.process.BaseProcessManager;
 import etomo.process.BatchRunTomoProcessManager;
 import etomo.process.ImodManager;
+import etomo.process.ProcessState;
 import etomo.process.SystemProcessException;
 import etomo.storage.LogFile;
 import etomo.storage.Storable;
@@ -24,6 +25,8 @@ import etomo.type.DialogType;
 import etomo.type.FileType;
 import etomo.type.InterfaceType;
 import etomo.type.MetaData;
+import etomo.type.ProcessEndState;
+import etomo.type.ProcessName;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.type.TableReference;
 import etomo.ui.swing.BatchRunTomoDialog;
@@ -127,8 +130,12 @@ public final class BatchRunTomoManager extends BaseManager {
       dialog = BatchRunTomoDialog.getInstance(this, AXIS_ID, tableReference);
     }
     dialog.setParameters(userConfig);
+    boolean useProgressBar = false;
     //Don't load data from files if this is a new dataset
     if (paramFile != null) {
+      uiHarness.INSTANCE.pack(AXIS_ID,this);
+      useProgressBar = true;
+      mainPanel.startProgressBar("Loading Files", AXIS_ID);
       if (metaData.isValid()) {
         dialog.setParameters(metaData);
       }
@@ -144,6 +151,9 @@ public final class BatchRunTomoManager extends BaseManager {
         Utilities.prepareDialogActionMessage(DialogType.BATCH_RUN_TOMO, AXIS_ID, null);
     if (actionMessage != null) {
       System.err.println(actionMessage);
+    }
+    if (useProgressBar) {
+      mainPanel.stopProgressBar(AXIS_ID);
     }
   }
 
@@ -178,27 +188,34 @@ public final class BatchRunTomoManager extends BaseManager {
   }
 
   public boolean save() throws LogFile.LockException, IOException {
+    mainPanel.startProgressBar("Saving Files", AXIS_ID);
     Utilities.timestamp("save", "start");
     super.save();
     mainPanel.done();
     saveBatchRunTomoDialog(false);
+    mainPanel.stopProgressBar(AXIS_ID);
     return true;
   }
 
   public void run() {
+    mainPanel.startProgressBar("Saving Files for Run", AXIS_ID);
     Utilities.timestamp("save for run", "start");
+    ProcessEndState processEndState = ProcessEndState.DONE;
     try {
       super.save();
       if (!saveBatchRunTomoDialog(true)) {
-        return;
+        processEndState = ProcessEndState.FAILED;
       }
     }
     catch (LogFile.LockException e) {
       e.printStackTrace();
+      processEndState = ProcessEndState.FAILED;
     }
     catch (IOException e) {
       e.printStackTrace();
+      processEndState = ProcessEndState.FAILED;
     }
+    mainPanel.stopProgressBar(AXIS_ID, processEndState);
   }
 
   private boolean saveBatchRunTomoDialog(final boolean doValidation) {
