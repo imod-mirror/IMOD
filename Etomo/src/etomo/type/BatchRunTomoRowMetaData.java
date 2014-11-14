@@ -8,13 +8,11 @@ import java.util.Properties;
 /**
  * <p>Description: Meta data for a row of the BatchRunTomo Interface table.</p>
  * <p/>
- * <p>Copyright: Copyright 2014</p>
+ * <p>Copyright: Copyright 2014 by the Regents of the University of Colorado</p>
  * <p/>
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
- * University of Colorado</p>
-
- * @version $Revision: $Id$
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
+ *
+ * @version $Id$
  */
 public final class BatchRunTomoRowMetaData {
   private static final String GROUP_KEY = "row";
@@ -23,6 +21,7 @@ public final class BatchRunTomoRowMetaData {
   private EtomoBoolean2 display = new EtomoBoolean2(DISPLAY_KEY);
   private EtomoBoolean2 dual = new EtomoBoolean2("dual");
   private final StringProperty bskip = new StringProperty("bskip");
+  private final EtomoBoolean2 run = new EtomoBoolean2("Run");
 
   private BatchRunTomoDatasetMetaData datasetMetaData = null;
 
@@ -73,10 +72,12 @@ public final class BatchRunTomoRowMetaData {
     display.reset();
     dual.reset();
     bskip.reset();
+    run.reset();
     prepend = createPrepend(prepend);
     display.load(props, prepend);
     dual.load(props, prepend);
     bskip.load(props, prepend);
+    run.load(props, prepend);
     if (BatchRunTomoDatasetMetaData.exists(props, prepend)) {
       if (datasetMetaData == null) {
         datasetMetaData = new BatchRunTomoDatasetMetaData();
@@ -91,6 +92,7 @@ public final class BatchRunTomoRowMetaData {
     if (display.is()) {
       dual.store(props, prepend);
       bskip.store(props, prepend);
+      run.store(props, prepend);
       if (datasetMetaData != null) {
         datasetMetaData.store(props, prepend);
       }
@@ -99,9 +101,11 @@ public final class BatchRunTomoRowMetaData {
       // remove
       dual.remove(props, prepend);
       bskip.remove(props, prepend);
+      run.remove(props,prepend);
       // reset
       dual.reset();
       bskip.reset();
+      run.reset();
       if (datasetMetaData != null) {
         // remove
         datasetMetaData.remove(props, prepend);
@@ -154,5 +158,13 @@ public final class BatchRunTomoRowMetaData {
 
   public String getBskip() {
     return bskip.toString();
+  }
+
+  public void setRun(final boolean input) {
+    run.set(input);
+  }
+
+  public boolean isRun() {
+    return run.is();
   }
 }
