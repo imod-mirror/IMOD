@@ -41,7 +41,7 @@ import etomo.util.Utilities;
  * <p/>
  * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * @version $Date$ $Revision$
+ * @version $Id$
  */
 final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
   private static final URL IMOD_ICON_URL =
