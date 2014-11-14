@@ -7,33 +7,36 @@ import etomo.type.AxisID;
 import etomo.type.ConstEtomoVersion;
 
 /**
-* <p>Description: </p>
-* 
-* <p>Copyright: Copyright 2010</p>
-*
-* <p>Organization:
-* Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
-* University of Colorado</p>
-* 
-* @author $Author$
-* 
-* @version $Revision$
-* 
-* <p> $Log$
-* <p> Revision 1.2  2011/02/22 18:11:51  sueh
-* <p> bug# 1437 Reformatting.
-* <p>
-* <p> Revision 1.1  2011/02/03 06:13:08  sueh
-* <p> bug# 1422 Child of CpuTable that makes a ProcessorTable display GPUs.
-* <p> </p>
-*/
+ * <p>Description: </p>
+ * <p/>
+ * <p>Copyright: Copyright 2010 - 2014 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
+ *
+ * @version $Id$
+ *          <p/>
+ *          <p> $Log$
+ *          <p> Revision 1.2  2011/02/22 18:11:51  sueh
+ *          <p> bug# 1437 Reformatting.
+ *          <p>
+ *          <p> Revision 1.1  2011/02/03 06:13:08  sueh
+ *          <p> bug# 1422 Child of CpuTable that makes a ProcessorTable display GPUs.
+ *          <p> </p>
+ */
 final class GpuTable extends CpuTable {
-  public static final String rcsid = "$Id$";
+  private static final String PREPEND = ".Gpu";
 
-  private static final String PREPEND = "ProcessorTable.Gpu";
+  GpuTable(final BaseManager manager, final ParallelPanel parent, final AxisID axisID,
+      final boolean runnable) {
+    super(manager, parent, axisID, runnable);
+  }
 
-  GpuTable(final BaseManager manager, final ParallelPanel parent, final AxisID axisID,final boolean runnable) {
-    super(manager, parent, axisID,runnable);
+  boolean isCpuTable() {
+    return false;
+  }
+
+  boolean isGpuTable() {
+    return true;
   }
 
   String getheader1NumberCPUsTitle() {
@@ -41,11 +44,11 @@ final class GpuTable extends CpuTable {
   }
 
   String getStorePrepend() {
-    return PREPEND;
+    return getGroupKey() + PREPEND;
   }
 
   String getLoadPrepend(ConstEtomoVersion version) {
-    return PREPEND;
+    return getGroupKey() + PREPEND;
   }
 
   String getHeader1ComputerText() {
@@ -60,8 +63,8 @@ final class GpuTable extends CpuTable {
     if (!node.isGpu()) {
       return true;
     }
-    if (node.isGpuLocal()
-        && !node.isLocalHost(manager, axisID, manager.getPropertyUserDir())) {
+    if (node.isGpuLocal() &&
+        !node.isLocalHost(manager, axisID, manager.getPropertyUserDir())) {
       return true;
     }
     return false;
@@ -80,8 +83,8 @@ final class GpuTable extends CpuTable {
 
   ProcessorTableRow createProcessorTableRow(final ProcessorTable processorTable,
       final Node node, final int numRowsInTable) {
-    return ProcessorTableRow.getComputerInstance(processorTable, node,
-        node.getGpuNumber(), numRowsInTable);
+    return ProcessorTableRow
+        .getComputerInstance(processorTable, node, node.getGpuNumber(), numRowsInTable);
   }
 
   void initRow(ProcessorTableRow row) {
