@@ -5,7 +5,6 @@ import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -44,7 +43,7 @@ import etomo.ui.UIComponent;
 final class BatchRunTomoDatasetDialog
     implements ActionListener, Expandable, UIComponent, SwingComponent {
   private static final String DERIVE_THICKNESS_LABEL =
-      "Thickness from Intergold spacing plus: ";
+      "Thickness from calculated value plus: ";
   private static final String LENGTH_OF_PIECES_DEFAULT = "-1";
 
   private static BatchRunTomoDatasetDialog GLOBAL_INSTANCE = null;
