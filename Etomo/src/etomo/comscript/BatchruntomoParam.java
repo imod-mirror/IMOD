@@ -60,8 +60,8 @@ public class BatchruntomoParam implements CommandParam {
   private SystemProgram batchruntomo = null;
   private int exitValue = -1;
   private boolean valid = true;
-  private StringBuffer cpuMachineList = null;
-  private StringBuffer gpuMachineList = null;
+  private StringBuilder cpuMachineList = null;
+  private StringBuilder gpuMachineList = null;
   private Set<String> currentLocationValidationSet = null;
   private Set<String> rootNameValidationSet = null;
 
@@ -101,9 +101,9 @@ public class BatchruntomoParam implements CommandParam {
     // rootName: based on .ebt file properties
     // currentLocation: based on .ebt file properties
     deliverToDirectory.parse(scriptCommand);
-    cpuMachineList = new StringBuffer();
+    cpuMachineList = new StringBuilder();
     cpuMachineList.append(scriptCommand.getValue(CPU_MACHINE_LIST_TAG));
-    gpuMachineList = new StringBuffer();
+    gpuMachineList = new StringBuilder();
     gpuMachineList.append(scriptCommand.getValue(GPU_MACHINE_LIST_TAG));
     niceValue.parse(scriptCommand);
     emailAddress.parse(scriptCommand);
@@ -120,7 +120,7 @@ public class BatchruntomoParam implements CommandParam {
       scriptCommand.setValue(CPU_MACHINE_LIST_TAG, cpuMachineList.toString());
     }
     if (gpuMachineList != null && gpuMachineList.length() > 0) {
-      scriptCommand.setValue(GPU_MACHINE_LIST_TAG, cpuMachineList.toString());
+      scriptCommand.setValue(GPU_MACHINE_LIST_TAG, gpuMachineList.toString());
     }
     niceValue.updateComScript(scriptCommand);
     String remoteDirectory = null;
@@ -159,7 +159,7 @@ public class BatchruntomoParam implements CommandParam {
     if (machine != null && !machine.matches("\\s*") && number > 0) {
       boolean first = false;
       if (cpuMachineList == null) {
-        cpuMachineList = new StringBuffer();
+        cpuMachineList = new StringBuilder();
         first = true;
       }
       if (!first) {
@@ -178,15 +178,20 @@ public class BatchruntomoParam implements CommandParam {
     if (machine != null && !machine.matches("\\s*") && number > 0) {
       boolean first = false;
       if (gpuMachineList == null) {
-        gpuMachineList = new StringBuffer();
+        gpuMachineList = new StringBuilder();
         first = true;
       }
       if (!first) {
         gpuMachineList.append(",");
       }
       gpuMachineList.append(machine);
-      for (int i = 0; i < number; i++) {
-        gpuMachineList.append(":" + deviceArray[i]);
+      if (deviceArray == null) {
+        gpuMachineList.append(":1");
+      }
+      else {
+        for (int i = 0; i < number; i++) {
+          gpuMachineList.append(":" + deviceArray[i]);
+        }
       }
     }
   }
@@ -243,7 +248,7 @@ public class BatchruntomoParam implements CommandParam {
   /**
    * @param input
    * @param enforceUniqueness
-   * @param errMsg will be used if it is not null
+   * @param errMsg            will be used if it is not null
    * @return
    */
   public boolean addCurrentLocation(final String input, final boolean enforceUniqueness,
@@ -269,12 +274,12 @@ public class BatchruntomoParam implements CommandParam {
   }
 
   public void setCPUMachineList(final String input) {
-    cpuMachineList = new StringBuffer();
+    cpuMachineList = new StringBuilder();
     cpuMachineList.append(input);
   }
 
   public void setGPUMachineList(final String input) {
-    gpuMachineList = new StringBuffer();
+    gpuMachineList = new StringBuilder();
     gpuMachineList.append(input);
   }
 
@@ -284,14 +289,6 @@ public class BatchruntomoParam implements CommandParam {
 
   public void resetEmailAddress() {
     emailAddress.reset();
-  }
-
-  public boolean isEmailAddressNull() {
-    return emailAddress.isEmpty();
-  }
-
-  public String getEmailAddress() {
-    return emailAddress.toString();
   }
 
   public boolean isGpuMachineListNull() {
