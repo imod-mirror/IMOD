@@ -30,20 +30,17 @@ import etomo.type.ConstEtomoVersion;
 
 /**
  * <p>Description: </p>
- * 
- * <p>Copyright: Copyright (c) 2005</p>
+ * <p/>
+ * <p>Copyright: Copyright 2005 - 2014 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
- * University of Colorado</p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
+ * @version $Id$
  */
-abstract class ProcessorTable implements Storable, ParallelProgressDisplay, LoadDisplay,
-    Viewable {
-  public static final String rcsid = "$Id$";
+abstract class ProcessorTable
+    implements Storable, ParallelProgressDisplay, LoadDisplay, Viewable {
+  private static final String RUNNABLE_KEY = "ProcessorTable";
+  private static final String RESOURCE_KEY = "ProcessorResourceTable";
 
   private final JPanel rootPanel = new JPanel();
   private JPanel tablePanel;
@@ -70,9 +67,9 @@ abstract class ProcessorTable implements Storable, ParallelProgressDisplay, Load
   private final HeaderCell header2Failure = new HeaderCell("Reason");
 
   private final RowList rowList = new RowList();
-  private final Viewport viewport = new Viewport(this, EtomoDirector.INSTANCE
-      .getUserConfiguration().getParallelTableSize().getInt(), null, null, null,
-      "Processor");
+  private final Viewport viewport = new Viewport(this,
+      EtomoDirector.INSTANCE.getUserConfiguration().getParallelTableSize().getInt(), null,
+      null, null, "Processor");
   private final ParallelPanel parent;
   final AxisID axisID;
   final BaseManager manager;
@@ -184,10 +181,10 @@ abstract class ProcessorTable implements Storable, ParallelProgressDisplay, Load
   }
 
   private void initTable() {
-    speedUnits = CpuAdoc.INSTANCE.getSpeedUnits(manager, axisID,
-        manager.getPropertyUserDir());
-    memoryUnits = CpuAdoc.INSTANCE.getMemoryUnits(manager, axisID,
-        manager.getPropertyUserDir());
+    speedUnits =
+        CpuAdoc.INSTANCE.getSpeedUnits(manager, axisID, manager.getPropertyUserDir());
+    memoryUnits =
+        CpuAdoc.INSTANCE.getMemoryUnits(manager, axisID, manager.getPropertyUserDir());
     // loop through the nodes
     // loop on nodes
     int size = getSize();
@@ -196,9 +193,9 @@ abstract class ProcessorTable implements Storable, ParallelProgressDisplay, Load
       Node node = getNode(i);
       // exclude any node with the "exclude-interface" attribute set to the
       // current interface
-      if (node != null && !node.isExcludedInterface(manager.getInterfaceType())
-          && (!node.isExcludedUser(System.getProperty("user.name")))
-          && !isExcludeNode(node)) {
+      if (node != null && !node.isExcludedInterface(manager.getInterfaceType()) &&
+          (!node.isExcludedUser(System.getProperty("user.name"))) &&
+          !isExcludeNode(node)) {
         if (enableNumberColumn(node)) {
           numberColumn = true;
         }
@@ -352,8 +349,8 @@ abstract class ProcessorTable implements Storable, ParallelProgressDisplay, Load
     }
     // add rows to the table
     viewport.msgViewableChanged();
-    rowList.display(expanded, viewport, lastColumnName, useNumberUsed, useNumber,
-        useLoad, useUsers, useType, useSpeed, useMemory, useOs, useRun);
+    rowList.display(expanded, viewport, lastColumnName, useNumberUsed, useNumber, useLoad,
+        useUsers, useType, useSpeed, useMemory, useOs, useRun);
   }
 
   private boolean add(final HeaderCell cell, final ColumnName columnName,
@@ -445,6 +442,7 @@ abstract class ProcessorTable implements Storable, ParallelProgressDisplay, Load
 
   /**
    * Returns true if columnName should be displayed
+   *
    * @param columnName
    * @return
    */
@@ -525,8 +523,6 @@ abstract class ProcessorTable implements Storable, ParallelProgressDisplay, Load
   }
 
   void getParameters(final BatchruntomoParam param) {
-    param.resetCPUMachineList();
-    param.resetGPUMachineList();
     rowList.getParameters(param);
   }
 
@@ -572,9 +568,9 @@ abstract class ProcessorTable implements Storable, ParallelProgressDisplay, Load
   }
 
   String getHelpMessage() {
-    return "Click on check boxes in the " + header1Computer.getText()
-        + " column and use the spinner in the " + header1NumberCPUs.getText() + " "
-        + header2NumberCPUsUsed.getText() + " column where available.";
+    return "Click on check boxes in the " + header1Computer.getText() +
+        " column and use the spinner in the " + header1NumberCPUs.getText() + " " +
+        header2NumberCPUsUsed.getText() + " column where available.";
   }
 
   public void startLoad() {
@@ -649,12 +645,19 @@ abstract class ProcessorTable implements Storable, ParallelProgressDisplay, Load
    */
   public void msgStartingProcess(final String computer, final String failureReason1,
       String failureReason2) {
-    ((ProcessorTableRow) rowList.get(computer)).clearFailureReason(failureReason1,
-        failureReason2);
+    ((ProcessorTableRow) rowList.get(computer))
+        .clearFailureReason(failureReason1, failureReason2);
   }
 
   void clearFailureReason(final boolean selectedComputers) {
     rowList.clearFailureReason(selectedComputers);
+  }
+
+  String getGroupKey() {
+    if (runnable) {
+      return RUNNABLE_KEY;
+    }
+    return RESOURCE_KEY;
   }
 
   public void store(final Properties props) {
@@ -673,7 +676,7 @@ abstract class ProcessorTable implements Storable, ParallelProgressDisplay, Load
   }
 
   /**
-   *  Get the objects attributes from the properties object.
+   * Get the objects attributes from the properties object.
    */
   public final void load(final Properties props) {
     load(props, "");
@@ -764,6 +767,7 @@ abstract class ProcessorTable implements Storable, ParallelProgressDisplay, Load
 
     /**
      * Changes the selected computers and CPUs to match computerMap.
+     *
      * @param computerMap
      */
     private void setComputerMap(final Map<String, String> computerMap) {
