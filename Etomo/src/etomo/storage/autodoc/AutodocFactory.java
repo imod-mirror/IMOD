@@ -11,7 +11,6 @@ import etomo.storage.AutodocFilter;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
 import etomo.type.FileType;
-import etomo.util.Utilities;
 
 /**
  * <p>Description: Creates Autodoc classes.</p>

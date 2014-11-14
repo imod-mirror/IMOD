@@ -2,7 +2,6 @@ package etomo.ui;
 
 import etomo.logic.DefaultFinder;
 import etomo.type.EtomoBoolean2;
-import sun.management.snmp.jvminstr.JvmThreadInstanceEntryImpl;
 
 import java.util.Properties;
 
