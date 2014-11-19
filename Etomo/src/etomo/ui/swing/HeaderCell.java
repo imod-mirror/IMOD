@@ -23,29 +23,24 @@ import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.type.EtomoNumber;
 import etomo.type.UITestFieldType;
 import etomo.ui.TableComponent;
+import etomo.ui.UIComponent;
 import etomo.util.Utilities;
 
 /**
  * <p>Description: </p>
- * 
- * <p>Copyright: Copyright (c) 2002 - 2005</p>
+ * <p/>
+ * <p>Copyright: Copyright 2002 - 2014 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
- * University of Colorado</p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
+ * @version $Id$
  */
-final class HeaderCell implements Cell, TableComponent {
-  public static final String rcsid = "$Id$";
-
+final class HeaderCell implements Cell, TableComponent, UIComponent, SwingComponent {
   private static final ColorUIResource background = new ColorUIResource(204, 204, 204);
-  private static final ColorUIResource greyout = Colors.subtractColor(Colors.BACKGROUND,
-      background);
-  private static final ColorUIResource warningBackground = Colors.subtractColor(
-      Colors.WARNING_BACKGROUND, greyout);
+  private static final ColorUIResource greyout =
+      Colors.subtractColor(Colors.BACKGROUND, background);
+  private static final ColorUIResource warningBackground =
+      Colors.subtractColor(Colors.WARNING_BACKGROUND, greyout);
 
   private final UITestFieldType uiTestFieldType;
 
@@ -125,7 +120,11 @@ final class HeaderCell implements Cell, TableComponent {
     return new HeaderCell(text, width, false, true);
   }
 
-  Component getComponent() {
+  public SwingComponent getUIComponent() {
+    return this;
+  }
+
+  public Component getComponent() {
     return (Component) cell;
   }
 
@@ -179,6 +178,7 @@ final class HeaderCell implements Cell, TableComponent {
 
   /**
    * Adds the cell to the panel, and returns the preferred width
+   *
    * @param panel
    * @param layout
    * @param constraints
@@ -190,7 +190,7 @@ final class HeaderCell implements Cell, TableComponent {
     jpanelContainer = panel;
   }
 
-public  int getPreferredWidth() {
+  public int getPreferredWidth() {
     int width = 0;
     if (fontMetrics == null) {
       fontMetrics = UIUtilities.getFontMetrics(cell);
@@ -273,14 +273,15 @@ public  int getPreferredWidth() {
       name = Utilities.convertLabelToName(text);
     }
     else {
-      name = Utilities.convertLabelToName(tableHeader,
-          rowHeader != null ? rowHeader.getText() : null,
-          columnHeader != null ? columnHeader.getText() : null);
+      name = Utilities
+          .convertLabelToName(tableHeader, rowHeader != null ? rowHeader.getText() : null,
+              columnHeader != null ? columnHeader.getText() : null);
     }
     getComponent().setName(prefix + name);
     if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
-      System.out.println(uiTestFieldType.toString() + AutodocTokenizer.SEPARATOR_CHAR
-          + name + ' ' + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
+      System.out.println(
+          uiTestFieldType.toString() + AutodocTokenizer.SEPARATOR_CHAR + name + ' ' +
+              AutodocTokenizer.DEFAULT_DELIMITER + ' ');
     }
   }
 
