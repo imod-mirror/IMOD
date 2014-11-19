@@ -281,7 +281,8 @@ to assess the positions of the patches, and 3 to do Fourier correlations at
 all positions, plus direct correlation searches wherever possible.  In the 
 latter case each line of the patch output file will have the results from the
 Fourier correlation, followed by the results from direct correlation, ending
-with a 3D distance between the two results.
+with a 3D distance between the two results.  Add 20 for histogram output from
+findHistogramDip.
 
 [Field = ParameterFile]
 short = param
