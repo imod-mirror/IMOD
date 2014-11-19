@@ -93,7 +93,7 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
   private BatchRunTomoRow(final BatchRunTomoTable table, final JPanel panel,
       final GridBagLayout layout, final GridBagConstraints constraints, final int number,
       final File stack, final BatchRunTomoRow prevRow, final boolean overridePrevRow,
-      final boolean overrideDual, final BatchRunTomoManager manager, final String stackID,
+      final boolean dual, final BatchRunTomoManager manager, final String stackID,
       final PreferredTableSize preferredTableSize) {
     this.panel = panel;
     this.layout = layout;
@@ -138,7 +138,7 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
     copy(prevRow);
     // When overridePrevRow is true, overrideDual will replace prevRow dual axis.
     if (overridePrevRow) {
-      cbcDual.setSelected(overrideDual);
+      cbcDual.setSelected(dual);
     }
     cbcRun.setSelected(true);
     mbcEtomo.setEnabled(false);
@@ -154,11 +154,11 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
   static BatchRunTomoRow getInstance(final BatchRunTomoTable table, final JPanel panel,
       final GridBagLayout layout, final GridBagConstraints constraints, final int number,
       final File stack, final BatchRunTomoRow prevRow, final boolean overridePrevRow,
-      final boolean overrideDual, final BatchRunTomoManager manager, final String stackID,
+      final boolean dual, final BatchRunTomoManager manager, final String stackID,
       final PreferredTableSize datasetWidth) {
     BatchRunTomoRow instance =
         new BatchRunTomoRow(table, panel, layout, constraints, number, stack, prevRow,
-            overridePrevRow, overrideDual, manager, stackID, datasetWidth);
+            overridePrevRow, dual, manager, stackID, datasetWidth);
     instance.addListeners();
     return instance;
   }
