@@ -73,7 +73,7 @@ program corrsearch3d
   integer*4 nxLoadB, nyLoadb, nzLoadB, ixB0, ixB1, iyB0, iyB1, izB0, izB1
   integer*4 ixMin, ixMax, iyMin, iyMax, izMin, izMax, ifShiftIn, numAdjacentLook
   integer*4 nxXCpad, nyXCpad, nzXCpad, nxXCbord, nyXCbord, nzXCbord, niceLim
-  integer*4 num3CorrThreads, numSmoothThreads, numCCCthreads
+  integer*4 num3CorrThreads, numSmoothThreads, numCCCthreads, ifHistVerbose
   real*4 aSource(3,3), dxyzSource(3), dxNew, dyNew, dzNew, peak, wsumAdjacent, wsumNear
   real*4 dxSum, dySum, dzSum, err, perPos, dxAdjacent, dyAdjacent, dzAdjacent, zmodCen
   real*4 dxSumNear, dySumNear, dzSumNear, dxNear, dyNear, dzNear, distSq, distNear
@@ -304,6 +304,11 @@ program corrsearch3d
         ' source for the image file being aligned: '
     read(5,*) nbordSourceXlow, nbordSourceXhigh, nbordSourceZlow, nbordSourceZhigh
   endif
+  ifHistVerbose = 0;
+  do while (ifDebug >= 10)
+    ifHistVerbose = ifHistVerbose + 1
+    ifDebug = ifDebug - 10
+  enddo
   !
   ! If there is no initial shift entered, enforce centered transform
   ! by setting initial shift to half the difference in size
@@ -1223,7 +1228,7 @@ CONTAINS
       wallStart = wallTime()
       if (findHistogramDip(statBuffer, numSample, 0, statBuffer(numSample + 1),  &
           numHistBins, histStart, histEnd, histDip(ibin),  &
-          peakBelow(ibin), peakAbove(ibin), 0) .ne. 0) then
+          peakBelow(ibin), peakAbove(ibin), ifHistVerbose) .ne. 0) then
         histDip(ibin) = -1
       else
         useFallback = .false.

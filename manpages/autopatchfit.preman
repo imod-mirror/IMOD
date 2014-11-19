@@ -30,7 +30,7 @@ here is that the initial shift is a sign of high warping between the
 tomograms, which may be fit better with much denser patches.  This
 default behavior can be modified with the 
 \fB-high\fR option.
-.B
+.P
 If the starting and final patch sizes match two of the stock sizes represented
 by the letters S, M, L, and E, the program will step through these
 fixed sizes.  Otherwise, it will increase patch size in each dimension by the same factor

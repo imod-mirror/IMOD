@@ -1219,7 +1219,7 @@ def scanSetupDirectives():
    source = direcFileErrorNames
 
    batDirec = allDirectives[BatInd]
-   scanHeader = scanHeadText in batDirec
+   scanHeader = scanHeadText in batDirec and batDirec[scanHeadText][0] == '1'
    ifMontage = False
    dualAxis = False
    pixelSize, fidSizeNm, fidSizePix = 0., 0., 0.
@@ -3309,6 +3309,7 @@ handlingMessages = ['autofidseed', 'transferfid', 'track', 'align', 'solvematch'
 standardTags = [('ERROR:', 0), ('WARNING:', 0)]
 
 (opts, nonopts) = PipReadOrParseOptions(sys.argv, options, progname, 1, 1, 0)
+os.environ['PIP_PRINT_ENTRIES'] = '0'
 
 # Get the directive file names
 numByArg = PipNumberOfEntries('DirectiveFile')
@@ -3692,6 +3693,7 @@ for dfileInd in range(numSets):
       axisInd = 2
       dataName = setName
       runCombine()
+      prnLog('Completed dataset ' + setName)
       
    closeLogFile()
 
