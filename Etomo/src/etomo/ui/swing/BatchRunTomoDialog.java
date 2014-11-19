@@ -302,7 +302,7 @@ public final class BatchRunTomoDialog
     if (param.isGpuMachineListNull()) {
       rbGPUMachineListOff.setSelected(true);
     }
-    else if (param.gpuMachineListEquals("1")) {
+    else if (param.gpuMachineListEquals(BatchruntomoParam.MACHINE_LIST_LOCAL_VALUE)) {
       rbGPUMachineListLocal.setSelected(true);
     }
     else {
