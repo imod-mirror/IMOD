@@ -39,7 +39,7 @@ import etomo.ui.PreferredTableSize;
  * <p/>
  * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * @version $Date$ $Revision$
+ * @version $Id$
  */
 final class BatchRunTomoTable
     implements Viewable, Highlightable, Expandable, ActionListener {
@@ -315,7 +315,7 @@ final class BatchRunTomoTable
   }
 
   public void getParameters(final BatchruntomoParam param,
-      final boolean deliverToDirectory,final StringBuilder errMsg) {
+      final boolean deliverToDirectory, final StringBuilder errMsg) {
     rowList.getParameters(param, deliverToDirectory, errMsg);
   }
 
@@ -392,7 +392,7 @@ final class BatchRunTomoTable
       if (stackList != null) {
         // Remove matching B stacks and set dual to true for the A stack
         List<DatasetTool.StackInfo> filteredStackList =
-            DatasetTool.removeMatchingBStacks(stackList);
+            DatasetTool.removeMatchingBStacks(hcStack[0], stackList);
         rowList.add(filteredStackList);
       }
     }
@@ -457,21 +457,22 @@ final class BatchRunTomoTable
         return;
       }
       int firstIndex = list.size();
-      Iterator<DatasetTool.StackInfo> iterator = stackInfoList.iterator();
       boolean overridePrevRow = false;
-      boolean prevDualSet = false;
-      boolean prevDual = false;
+      boolean dual = false;
       List<String> notAdded = new ArrayList<String>();
       boolean fileAdded = false;
-      while (iterator.hasNext()) {
-        DatasetTool.StackInfo stackInfo = iterator.next();
-        Iterator<File> stackIterator = stackInfo.iterator();
-        overridePrevRow = stackInfo.isDualAxis();
-        while (stackIterator.hasNext()) {
-          File stack = stackIterator.next();
+      int stackInfoLen = stackInfoList.size();
+      for (int i = 0; i < stackInfoLen; i++) {
+        DatasetTool.StackInfo stackInfo = stackInfoList.get(i);
+        File stack = stackInfo.getStack();
+        if (stack != null) {
           // See if there is an ID for this stack.
           String absPath = stack.getAbsolutePath();
           String stackID = tableReference.getID(absPath);
+          //Do not allow the same stack name with a different extension.
+          if (stackID == null) {
+            stackID = tableReference.getID(DatasetTool.switchExtension(absPath));
+          }
           if (stackID != null) {
             // Check for duplicate files
             if (rowExists(stackID)) {
@@ -497,6 +498,7 @@ final class BatchRunTomoTable
               }
             }
           }
+          //Put settings from the previous row.
           int index = list.size();
           BatchRunTomoRow prevRow = null;
           if (index > 0) {
@@ -505,16 +507,13 @@ final class BatchRunTomoTable
           else {
             prevRow = initialValueRow;
           }
-          if (overridePrevRow) {
-            if (!prevDualSet) {
-              prevDual = prevRow.isDual();
-              prevDualSet = true;
-            }
-          }
+          //Decide how to set the "dual" checkbox.
+          dual = stackInfo.isMatched();
+          overridePrevRow = dual || stackInfo.isSingleAxis();
+          //Add the row.
           BatchRunTomoRow row = BatchRunTomoRow
               .getInstance(table, pnlTable, layout, constraints, index + 1, stack,
-                  prevRow, overridePrevRow, overridePrevRow, manager, stackID,
-                  preferredTableSize);
+                  prevRow, overridePrevRow, dual, manager, stackID, preferredTableSize);
           row.expandStack(btnStack.isExpanded());
           list.add(row);
           fileAdded = true;
@@ -531,7 +530,7 @@ final class BatchRunTomoTable
       // Pop up a warning if there where any duplicate files.
       if (!notAdded.isEmpty()) {
         StringBuilder warning = new StringBuilder();
-        warning.append("The stack table already contains ");
+        warning.append("The stack table already contains file(s) that match ");
         Iterator<String> i = notAdded.iterator();
         if (i.hasNext()) {
           warning.append(i.next());
