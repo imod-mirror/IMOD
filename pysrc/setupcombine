@@ -219,7 +219,7 @@ if ifInfo:
    for size in ('S', 'M', 'L', 'E'):
       (patchnx, patchny, patchnz, err) = patchSizeFromEntry(size)
       prnstr(fmtstr('{}:  {}  {}  {}', size, patchnx, patchny, patchnz))
-   sys.exit(1)
+   sys.exit(0)
 
 # Get options
 rootname = PipGetString("RootName", "")
