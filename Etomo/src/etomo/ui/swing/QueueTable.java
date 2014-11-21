@@ -7,6 +7,7 @@ import javax.swing.ButtonGroup;
 import javax.swing.JPanel;
 
 import etomo.BaseManager;
+import etomo.comscript.BatchruntomoParam;
 import etomo.comscript.IntermittentCommand;
 import etomo.comscript.ProcesschunksParam;
 import etomo.comscript.QueuechunkParam;
@@ -15,6 +16,7 @@ import etomo.storage.Network;
 import etomo.storage.Node;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoVersion;
+import etomo.type.ProcessingMethod;
 
 /**
  * <p>Description: </p>
@@ -167,6 +169,13 @@ final class QueueTable extends ProcessorTable {
     }
     param.setQueue(queue);
     super.getParameters(param);
+  }
+
+  void getParameters(final ProcessingMethod method, final BatchruntomoParam param) {
+    if (method == ProcessingMethod.PP_CPU) {
+      param.resetCPUMachineList();
+      getParameters(param);
+    }
   }
 
   IntermittentCommand getIntermittentCommand(final String computer) {
