@@ -7,6 +7,7 @@ import javax.swing.ButtonGroup;
 import javax.swing.JPanel;
 
 import etomo.BaseManager;
+import etomo.comscript.BatchruntomoParam;
 import etomo.comscript.IntermittentCommand;
 import etomo.comscript.LoadAverageParam;
 import etomo.storage.CpuAdoc;
@@ -14,6 +15,7 @@ import etomo.storage.Network;
 import etomo.storage.Node;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoVersion;
+import etomo.type.ProcessingMethod;
 import etomo.util.Utilities;
 
 /**
@@ -78,6 +80,13 @@ class CpuTable extends ProcessorTable {
 
   final int getSize() {
     return Network.getNumComputers(manager, axisID, manager.getPropertyUserDir());
+  }
+
+  void getParameters(final ProcessingMethod method, final BatchruntomoParam param) {
+    if (method == ProcessingMethod.PP_CPU) {
+      param.resetCPUMachineList();
+      getParameters(param);
+    }
   }
 
   final ButtonGroup getButtonGroup() {
