@@ -145,8 +145,9 @@ public final class BatchRunTomoDialog
     ftfRootDir.setText(new File(System.getProperty("user.dir")).getAbsolutePath());
     ftfRootDir.setFileSelectionMode(FileChooser.DIRECTORIES_ONLY);
     cbDeliverToDirectory.setName(DELIVER_TO_DIRECTORY_NAME);
-    cbCPUMachineList.setSelected(UserEnv.isParallelProcessing(null, AxisID.ONLY, null));
-    rbGPUMachineListLocal.setSelected(UserEnv.isGpuProcessing(null, AxisID.ONLY, null));
+    //Make sure that the machine lists from the batchruntomo .com file get loaded.
+    cbCPUMachineList.setSelected(true);
+    rbGPUMachineList.setSelected(true);
     // root panel
     pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.Y_AXIS));
     pnlRoot.setBorder(new BeveledBorder("Batchruntomo Interface").getBorder());
@@ -279,6 +280,14 @@ public final class BatchRunTomoDialog
     userConfiguration.setEmailAddress(ctfEmailAddress.getText());
   }
 
+  /**
+   * Get environment parameters.
+   */
+  public void getParameters(){
+    cbCPUMachineList.setSelected(UserEnv.isParallelProcessing(null, AxisID.ONLY, null));
+    rbGPUMachineListLocal.setSelected(UserEnv.isGpuProcessing(null, AxisID.ONLY, null));
+  }
+
   public void setParameters(final UserConfiguration userConfiguration) {
     templatePanel.setParameters(userConfiguration);
     ctfEmailAddress.setSelected(userConfiguration.isUseEmailAddress());
@@ -338,12 +347,13 @@ public final class BatchRunTomoDialog
     table.getParameters(param, deliverToDirectory, errMsg);
     if (errMsg.length() > 0) {
       if (deliverToDirectory) {
-        errMsg.append("\n\nEither change the name of the associated stacks, or go to the " +
-            BatchRunTomoTab.BATCH.getQuotedLabel() +
-            " tab and uncheck the " +
-            ftfDeliverToDirectory.getQuotedLabel() +
-            " check box.  Each dataset will be placed in the current location of its stack " +
-            "file.");
+        errMsg
+            .append("\n\nEither change the name of the associated stacks, or go to the " +
+                BatchRunTomoTab.BATCH.getQuotedLabel() +
+                " tab and uncheck the " +
+                ftfDeliverToDirectory.getQuotedLabel() +
+                " check box.  Each dataset will be placed in the current location of its stack " +
+                "file.");
       }
       else {
         errMsg.append("\n\nEither move these stacks, or go to the " +
@@ -436,7 +446,8 @@ public final class BatchRunTomoDialog
         actionCommand.equals(rbGPUMachineListOff.getActionCommand()) ||
         actionCommand.equals(rbGPUMachineListLocal.getActionCommand()) ||
         actionCommand.equals(rbGPUMachineList.getActionCommand())) {
-      mediator.setMethod(this, getProcessingMethod(), getSecondaryProcessingMethod());
+      mediator.setMethod(this, getProcessingMethod(), getSecondaryProcessingMethod(),
+          curTab == BatchRunTomoTab.RUN);
     }
     else {
       updateDisplay();
@@ -447,9 +458,6 @@ public final class BatchRunTomoDialog
    * Returns one of the two possible methods.  Always returns a processing method.
    */
   public ProcessingMethod getProcessingMethod() {
-    if (curTab != BatchRunTomoTab.RUN) {
-      return ProcessingMethod.DEFAULT;
-    }
     if (cbCPUMachineList.isSelected()) {
       return ProcessingMethod.PP_CPU;
     }
@@ -467,18 +475,14 @@ public final class BatchRunTomoDialog
    * otherwise returns null.
    */
   public ProcessingMethod getSecondaryProcessingMethod() {
-    if (curTab != BatchRunTomoTab.RUN) {
-      return null;
-    }
-    if (!cbCPUMachineList.isSelected()) {
-      // Only one non-default processing method in force
-      return null;
-    }
-    if (rbGPUMachineList.isSelected()) {
-      return ProcessingMethod.PP_GPU;
-    }
-    if (rbGPUMachineListLocal.isSelected()) {
-      return ProcessingMethod.LOCAL_GPU;
+    if (cbCPUMachineList.isSelected()) {
+      // two non-default processing methods are in force
+      if (rbGPUMachineList.isSelected()) {
+        return ProcessingMethod.PP_GPU;
+      }
+      if (rbGPUMachineListLocal.isSelected()) {
+        return ProcessingMethod.LOCAL_GPU;
+      }
     }
     return null;
   }
@@ -598,7 +602,8 @@ public final class BatchRunTomoDialog
       pnlTable.add(table.getComponent());
       UIUtilities.alignComponentsX(pnlRun, Component.LEFT_ALIGNMENT);
     }
-    mediator.setMethod(this, getProcessingMethod(), getSecondaryProcessingMethod());
+    mediator.setMethod(this, getProcessingMethod(), getSecondaryProcessingMethod(),
+        curTab == BatchRunTomoTab.RUN);
     UIHarness.INSTANCE.pack(axisID, manager);
   }
 
