@@ -9,32 +9,29 @@ import etomo.ui.swing.ParallelProgressDisplay;
 import etomo.ui.swing.ProcessInterface;
 
 /**
-* <p>Description: Coordinates the actions involving the AxisProcessPanel, the
-* ParallelPanel, the current dialog, and the reconnect process, if it is
-* running.  The only state this class has is know what has registered with it.
-* It relies on its registered class to remember their state when necessary.</p>
-* 
-* <p>Copyright: Copyright 2010</p>
-*
-* <p>Organization:
-* Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
-* University of Colorado</p>
-* 
-* @author $Author$
-* 
-* @version $Revision$
-* 
-* <p> $Log$
-* <p> Revision 1.2  2011/02/10 03:33:08  sueh
-* <p> bug# 1437 Reformatting.
-* <p>
-* <p> Revision 1.1  2011/02/03 05:54:15  sueh
-* <p> bug# 1422 Class that coordinates information about the current parallel
-* <p> processing method.
-* <p> </p>
-*/
+ * <p>Description: Coordinates the actions involving the AxisProcessPanel, the
+ * ParallelPanel, the current dialog, and the reconnect process, if it is
+ * running.  The only state this class has is know what has registered with it.
+ * It relies on its registered class to remember their state when necessary.</p>
+ * <p/>
+ * <p>Copyright: Copyright 2010 - 2014 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
+ *
+ * @version $Id$
+ *          <p/>
+ *          <p> $Log$
+ *          <p> Revision 1.2  2011/02/10 03:33:08  sueh
+ *          <p> bug# 1437 Reformatting.
+ *          <p>
+ *          <p> Revision 1.1  2011/02/03 05:54:15  sueh
+ *          <p> bug# 1422 Class that coordinates information about the current parallel
+ *          <p> processing method.
+ *          <p> </p>
+ */
 public final class ProcessingMethodMediator {
-  public static final String rcsid = "$Id$";
+  public static final String rcsid =
+      "$Id$";
 
   /**
    * reconnectProcess: Only one.  May or may not register before a dialog is
@@ -73,6 +70,7 @@ public final class ProcessingMethodMediator {
   /**
    * ReconnectProcess prevents processInterface and parallelPanel from changing
    * processing method.
+   *
    * @param reconnectProcess
    */
   public synchronized void register(final ReconnectProcess reconnectProcess) {
@@ -109,6 +107,7 @@ public final class ProcessingMethodMediator {
 
   /**
    * Releases control of reconnectProcess and reinstates the dialog method.
+   *
    * @param origin
    */
   public synchronized void deregister(final ReconnectProcess origin) {
@@ -144,6 +143,7 @@ public final class ProcessingMethodMediator {
   /**
    * Sets the interface processing method.  When another processInterface is
    * register, the new one replaces it.
+   *
    * @param processInterface
    */
   public synchronized void register(final ProcessInterface processInterface) {
@@ -167,6 +167,7 @@ public final class ProcessingMethodMediator {
    * Sets the default interface processing method.  To prevent the parallel
    * panel from blinking on and off, only call this function when another
    * interface isn't immediately available to replace it (helps with tabbing).
+   *
    * @param origin
    */
   public synchronized void deregister(final ProcessInterface origin) {
@@ -188,6 +189,7 @@ public final class ProcessingMethodMediator {
    * Prevents axisProcessPanel from hiding the parallel panel while a parallel
    * process is running.  When a parallel process is done, reinstates the
    * normal display.
+   *
    * @param parallelPanel
    * @param running
    */
@@ -258,6 +260,7 @@ public final class ProcessingMethodMediator {
    * The the method from processInterface in axisProcessPanel and
    * parallelPanel.  Also disable GPU in processInterface if the queue check
    * box is checked.
+   *
    * @param method - method from processInterface.
    */
   private void setInterfaceMethod(ProcessingMethod method) {
@@ -285,6 +288,7 @@ public final class ProcessingMethodMediator {
 
   /**
    * Tell the parallel panel about the change in ProcessInterface method.
+   *
    * @param origin
    * @param method
    */
@@ -298,7 +302,7 @@ public final class ProcessingMethodMediator {
   }
 
   public void setMethod(final ProcessInterface origin, final ProcessingMethod method,
-      final ProcessingMethod secondaryMethod) {
+      final ProcessingMethod secondaryMethod, final boolean visible) {
     // Ignore an unregistered process interface
     // Don't change processing method while reconnect process exists
     if (origin != processInterface || reconnectProcess != null) {
@@ -306,10 +310,12 @@ public final class ProcessingMethodMediator {
     }
     setInterfaceMethod(method);
     setSecondaryInterfaceMethod(secondaryMethod);
+    parallelPanel.setVisible(visible);
   }
 
   /**
    * Tell the processInterface when to disable the GPU check box.
+   *
    * @param origin
    * @param method
    */
@@ -325,6 +331,7 @@ public final class ProcessingMethodMediator {
 
   /**
    * Get the processing method for resume and for turning off queue check box.
+   *
    * @param parallelPanelMethod - may be null
    * @return
    */
@@ -332,8 +339,24 @@ public final class ProcessingMethodMediator {
       final ProcessingMethod parallelPanelMethod) {
     if (processInterface != null) {
       ProcessingMethod processInterfaceMethod = processInterface.getProcessingMethod();
-      if (!processInterfaceMethod.isLocal()
-          && parallelPanelMethod == ProcessingMethod.QUEUE) {
+      if (!processInterfaceMethod.isLocal() &&
+          parallelPanelMethod == ProcessingMethod.QUEUE) {
+        return parallelPanelMethod;
+      }
+      return processInterfaceMethod;
+    }
+    // OK to return the correct method during a reconnect because the resume button has no
+    // effect and the parallel panel method is locked.
+    return parallelPanelMethod;
+  }
+
+  public ProcessingMethod getSecondaryRunMethodForParallelPanel(
+      final ProcessingMethod parallelPanelMethod) {
+    if (processInterface != null) {
+      ProcessingMethod processInterfaceMethod =
+          processInterface.getSecondaryProcessingMethod();
+      if (!processInterfaceMethod.isLocal() &&
+          parallelPanelMethod == ProcessingMethod.QUEUE) {
         return parallelPanelMethod;
       }
       return processInterfaceMethod;
@@ -345,6 +368,7 @@ public final class ProcessingMethodMediator {
 
   /**
    * Get the processing method for running a process from the interface.
+   *
    * @param processInterfaceMethod
    * @return
    */
@@ -358,8 +382,8 @@ public final class ProcessingMethodMediator {
         return ProcessingMethod.DEFAULT;
       }
       ProcessingMethod parallelPanelMethod = parallelPanel.getProcessingMethod();
-      if (!processInterfaceMethod.isLocal()
-          && parallelPanelMethod == ProcessingMethod.QUEUE) {
+      if (!processInterfaceMethod.isLocal() &&
+          parallelPanelMethod == ProcessingMethod.QUEUE) {
         return parallelPanelMethod;
       }
     }
@@ -380,6 +404,7 @@ public final class ProcessingMethodMediator {
    * parallelPanel if it has already been displayed.  Displaying parallePanel
    * should already have been taken care of by the register classes.  Does not
    * change anything.
+   *
    * @return ParallelProgressDisplay or null if not available
    */
   public ParallelProgressDisplay getParallelProgressDisplay() {
