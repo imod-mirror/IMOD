@@ -129,18 +129,26 @@ public final class BatchRunTomoManager extends BaseManager {
     if (dialog == null) {
       dialog = BatchRunTomoDialog.getInstance(this, AXIS_ID, tableReference);
     }
-    dialog.setParameters(userConfig);
+    comScriptManager.loadBatchRunTomo(AXIS_ID);
+    BatchruntomoParam param = comScriptManager.getBatchRunTomoParam(AXIS_ID, false);
     boolean useProgressBar = false;
-    //Don't load data from files if this is a new dataset
     if (paramFile != null) {
-      uiHarness.INSTANCE.pack(AXIS_ID,this);
       useProgressBar = true;
       mainPanel.startProgressBar("Loading Files", AXIS_ID);
+      //Load all parallel panel values - both tables must be open for this to happen.
+      ParallelPanel parallelPanel = getMainPanel().getParallelPanel(AXIS_ID);
+      if (parallelPanel != null) {
+        parallelPanel.setParameters(param);
+      }
+    }
+    //Load the UserEnv settings.
+    dialog.getParameters();
+    dialog.setParameters(userConfig);
+    if (paramFile != null) {
       if (metaData.isValid()) {
         dialog.setParameters(metaData);
       }
-      comScriptManager.loadBatchRunTomo(AXIS_ID);
-      dialog.setParameters(comScriptManager.getBatchRunTomoParam(AXIS_ID, false));
+      dialog.setParameters(param);
       dialog.loadAutodocs();
     }
     dialog.msgDirectivesChanged(paramFile == null, paramFile != null);
