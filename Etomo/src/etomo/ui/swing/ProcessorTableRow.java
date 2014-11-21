@@ -17,25 +17,20 @@ import etomo.storage.Node;
 import etomo.storage.Storable;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.EtomoNumber;
+import etomo.type.ProcessingMethod;
 import etomo.ui.swing.ProcessorTable.ColumnName;
 import etomo.util.Utilities;
 
 /**
  * <p>Description: </p>
- * 
- * <p>Copyright: Copyright (c) 2005</p>
+ * <p/>
+ * <p>Copyright: Copyright 2005 - 2014 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
- * University of Colorado</p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
+ * @version $Id$
  */
 final class ProcessorTableRow implements Storable {
-  public static final String rcsid = "$Id$";
-
   private static final String STORE_SELECTED = "Selected";
   private static final String STORE_CPUS_SELECTED = "CPUsSelected";
   private static final int DEFAULT_CPUS_SELECTED = 1;
@@ -102,8 +97,8 @@ final class ProcessorTableRow implements Storable {
 
   static ProcessorTableRow getComputerInstance(final ProcessorTable table,
       final Node node, final int numCpus, final int numRowsInTable) {
-    ProcessorTableRow instance = new ProcessorTableRow(table, node, numCpus, false, null,
-        0, numRowsInTable);
+    ProcessorTableRow instance =
+        new ProcessorTableRow(table, node, numCpus, false, null, 0, numRowsInTable);
     instance.initRow();
     return instance;
   }
@@ -111,8 +106,9 @@ final class ProcessorTableRow implements Storable {
   static ProcessorTableRow getQueueInstance(final ProcessorTable table, final Node node,
       final int numCpus, final ButtonGroup buttonGroup, final int loadArraySize,
       final int numRowsInTable) {
-    ProcessorTableRow instance = new ProcessorTableRow(table, node, numCpus, true,
-        buttonGroup, loadArraySize, numRowsInTable);
+    ProcessorTableRow instance =
+        new ProcessorTableRow(table, node, numCpus, true, buttonGroup, loadArraySize,
+            numRowsInTable);
     instance.initRow();
     return instance;
   }
@@ -145,7 +141,7 @@ final class ProcessorTableRow implements Storable {
   }
 
   /**
-   *  Get the objects attributes from the properties object.
+   * Get the objects attributes from the properties object.
    */
   public void load(Properties props) {
     load(props, "");
@@ -163,12 +159,13 @@ final class ProcessorTableRow implements Storable {
       prepend += "." + cellComputer.getLabel();
     }
     group = prepend + ".";
-    boolean selected = Boolean
-        .valueOf(props.getProperty(group + STORE_SELECTED, "false")).booleanValue();
+    boolean selected = Boolean.valueOf(props.getProperty(group + STORE_SELECTED, "false"))
+        .booleanValue();
     setSelected(selected);
     if (numCpus > 1 && isSelected() && cellCPUsSelected != null) {
-      ((SpinnerCell) cellCPUsSelected).setValue(Integer.parseInt(props.getProperty(group
-          + STORE_CPUS_SELECTED, Integer.toString(DEFAULT_CPUS_SELECTED))));
+      ((SpinnerCell) cellCPUsSelected).setValue(Integer.parseInt(props
+          .getProperty(group + STORE_CPUS_SELECTED,
+              Integer.toString(DEFAULT_CPUS_SELECTED))));
     }
   }
 
@@ -248,8 +245,8 @@ final class ProcessorTableRow implements Storable {
     constraints.weightx = 0.0;
     add(cellCPUsSelected, useNumberUsed, ColumnName.NUMBER_USED, lastColumnName, panel,
         layout, constraints);
-    add(cellNumberCpus, useNumber, ColumnName.NUMBER, lastColumnName, panel,
-        layout, constraints);
+    add(cellNumberCpus, useNumber, ColumnName.NUMBER, lastColumnName, panel, layout,
+        constraints);
     if (useLoad) {
       if (Utilities.isWindowsOS()) {
         if (lastColumnName == ColumnName.LOAD) {
@@ -275,16 +272,15 @@ final class ProcessorTableRow implements Storable {
         }
       }
     }
-    add(cellUsers, useUsers, ColumnName.USERS, lastColumnName, panel,
-        layout, constraints);
-    add(cellCPUType, useType, ColumnName.TYPE, lastColumnName, panel,
-        layout, constraints);
-    add(cellSpeed, useSpeed, ColumnName.SPEED, lastColumnName, panel,
-        layout, constraints);
-    add(cellMemory, useMemory, ColumnName.MEMORY, lastColumnName, panel,
-        layout, constraints);
-    add(cellOS, useOs, ColumnName.OS, lastColumnName, panel,
-        layout, constraints);
+    add(cellUsers, useUsers, ColumnName.USERS, lastColumnName, panel, layout,
+        constraints);
+    add(cellCPUType, useType, ColumnName.TYPE, lastColumnName, panel, layout,
+        constraints);
+    add(cellSpeed, useSpeed, ColumnName.SPEED, lastColumnName, panel, layout,
+        constraints);
+    add(cellMemory, useMemory, ColumnName.MEMORY, lastColumnName, panel, layout,
+        constraints);
+    add(cellOS, useOs, ColumnName.OS, lastColumnName, panel, layout, constraints);
     if (useRun) {
       cellRestarts.add(panel, layout, constraints);
       cellSuccesses.add(panel, layout, constraints);
@@ -314,8 +310,8 @@ final class ProcessorTableRow implements Storable {
   final void msgDropped(String reason) {
     setSelected(false);
     cellFailureReason.setValue(reason);
-    cellFailureReason
-        .setToolTipText("This computer was dropped from the current distributed process.");
+    cellFailureReason.setToolTipText(
+        "This computer was dropped from the current distributed process.");
   }
 
   public void setSelected(boolean selected) {
@@ -338,6 +334,10 @@ final class ProcessorTableRow implements Storable {
     else {
       ((SpinnerCell) cellCPUsSelected).setValue(Integer.parseInt(cpusSelected));
     }
+  }
+
+  public void setParameters() {
+    cellComputer.setSelected(false);
   }
 
   private void updateSelected(boolean selected) {
@@ -508,7 +508,8 @@ final class ProcessorTableRow implements Storable {
    */
   final void clearFailureReason(String failureReason1, String failureReason2) {
     String value = cellFailureReason.getValue();
-    if (value == null || (!value.equals(failureReason1) && !value.equals(failureReason2))) {
+    if (value == null ||
+        (!value.equals(failureReason1) && !value.equals(failureReason2))) {
       return;
     }
     clearFailureReason();
