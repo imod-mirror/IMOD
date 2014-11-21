@@ -2,12 +2,15 @@ package etomo.comscript;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import etomo.BaseManager;
+import etomo.logic.DatasetTool;
 import etomo.process.ProcessMessages;
 import etomo.process.SystemProgram;
 import etomo.storage.DirectiveFile;
@@ -40,6 +43,8 @@ public class BatchruntomoParam implements CommandParam {
   private static final String CPU_MACHINE_LIST_TAG = "CPUMachineList";
   private static final String GPU_MACHINE_LIST_TAG = "GPUMachineList";
   public static final String MACHINE_LIST_LOCAL_VALUE = "1";
+  private static final String CPU_MACHINE_LIST_DIVIDER = "#";
+  private static final String GPU_MACHINE_LIST_DIVIDER = ":";
 
   private final List<String> command = new ArrayList<String>();
   private final EtomoNumber validationType = new EtomoNumber();
@@ -165,8 +170,80 @@ public class BatchruntomoParam implements CommandParam {
       if (!first) {
         cpuMachineList.append(",");
       }
-      cpuMachineList.append(machine + "#" + number);
+      cpuMachineList.append(machine + CPU_MACHINE_LIST_DIVIDER + number);
     }
+  }
+
+  public Map<String, String> getCPUMachineMap() {
+    if (cpuMachineList != null) {
+      return convertToMachineMap(cpuMachineList,false);
+    }
+    return null;
+  }
+
+  public Map<String, String> getGPUMachineMap() {
+    if (gpuMachineList != null) {
+      return convertToMachineMap(gpuMachineList,true);
+    }
+    return null;
+  }
+
+  /**
+   * Convert a CPU or GPU machine list string to a map containing computer and # of PUs.
+   * Returns null if this is not a parallel processing list.
+   * @param machineList
+   * @param gpu
+   * @return
+   */
+  private static Map<String, String> convertToMachineMap(final StringBuilder machineList,
+      final boolean gpu) {
+    if (machineList != null && machineList.length() > 0) {
+      String list = machineList.toString();
+      if (!list.equals(MACHINE_LIST_LOCAL_VALUE)) {
+        String[] machineArray = machineList.toString().split(",");
+        if (machineArray != null && machineArray.length > 0) {
+          Map<String, String> machineMap = new HashMap<String, String>();
+          String divider = null;
+          for (int i = 0; i < machineArray.length; i++) {
+            String[] machine = null;
+            //Try to set the divider.  Each element will use the same, or no divider.
+            if (divider != null) {
+              machine = machineArray[i].split(divider);
+            }
+            else if (machineArray[i].indexOf(CPU_MACHINE_LIST_DIVIDER) != -1) {
+              divider = CPU_MACHINE_LIST_DIVIDER;
+              machine = machineArray[i].split(divider);
+            }
+            else if (machineArray[i].indexOf(GPU_MACHINE_LIST_DIVIDER) != -1) {
+              divider = GPU_MACHINE_LIST_DIVIDER;
+              machine = machineArray[i].split(divider);
+            }
+            if (machine == null) {
+              machineMap.put(machineArray[i], "1");
+            }
+            else {
+              if (machine != null && machine.length > 1) {
+                if (gpu) {
+                  //for gpu put in the number of gpu ids.
+                  //frodo:2,sam:1:2
+                  machineMap.put(machine[0], Integer.toString(machine.length-1));
+                }
+                else {
+                  //for cpu, there should be only one number - the number of CPUs.
+                  //frodo#4,sam#4
+                  machineMap.put(machine[0], machine[1]);
+                }
+              }
+              else {
+                machineMap.put(machine[i], "1");
+              }
+            }
+          }
+          return machineMap;
+        }
+      }
+    }
+    return null;
   }
 
   public void resetGPUMachineList() {
@@ -185,12 +262,9 @@ public class BatchruntomoParam implements CommandParam {
         gpuMachineList.append(",");
       }
       gpuMachineList.append(machine);
-      if (deviceArray == null) {
-        gpuMachineList.append(":1");
-      }
-      else {
+      if (deviceArray != null) {
         for (int i = 0; i < number; i++) {
-          gpuMachineList.append(":" + deviceArray[i]);
+          gpuMachineList.append(GPU_MACHINE_LIST_DIVIDER + deviceArray[i]);
         }
       }
     }
@@ -203,6 +277,10 @@ public class BatchruntomoParam implements CommandParam {
     else {
       niceValue.set(input.toString());
     }
+  }
+
+  public String getNiceValue() {
+    return niceValue.toString();
   }
 
   public boolean isDeliverToDirectoryNull() {
