@@ -45,6 +45,10 @@ public final class BatchRunTomoTab {
     return DEFAULT;
   }
 
+  public String toString() {
+    return title;
+  }
+
   public String getTitle() {
     return title;
   }
