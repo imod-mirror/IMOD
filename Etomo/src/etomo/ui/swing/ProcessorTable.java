@@ -27,6 +27,7 @@ import etomo.storage.Storable;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstEtomoVersion;
+import etomo.type.ProcessingMethod;
 
 /**
  * <p>Description: </p>
@@ -130,6 +131,8 @@ abstract class ProcessorTable
   abstract boolean isCpuTable();
 
   abstract boolean isGpuTable();
+
+  abstract void getParameters(ProcessingMethod method, BatchruntomoParam param);
 
   ProcessorTable(final BaseManager manager, final ParallelPanel parent,
       final AxisID axisID, final boolean displayQueues, final boolean runnable) {
@@ -524,6 +527,14 @@ abstract class ProcessorTable
 
   void getParameters(final BatchruntomoParam param) {
     rowList.getParameters(param);
+  }
+
+  void setParameters(final BatchruntomoParam param) {
+    setComputerMap(getMachineMap(param));
+  }
+
+  Map<String, String> getMachineMap(final BatchruntomoParam param) {
+    return param.getCPUMachineMap();
   }
 
   String getFirstSelectedComputer() {

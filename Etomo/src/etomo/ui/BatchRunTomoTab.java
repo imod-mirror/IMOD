@@ -12,8 +12,8 @@ import etomo.util.Utilities;
  * @version $Id$
  */
 public final class BatchRunTomoTab {
-  public static final BatchRunTomoTab BATCH = new BatchRunTomoTab(0, "Batch Parameters");
-  public static final BatchRunTomoTab STACKS = new BatchRunTomoTab(1, "Image Stacks");
+  public static final BatchRunTomoTab BATCH = new BatchRunTomoTab(0, "Batch Setup");
+  public static final BatchRunTomoTab STACKS = new BatchRunTomoTab(1, "Stacks");
   public static final BatchRunTomoTab DATASET = new BatchRunTomoTab(2, "Dataset Values");
   public static final BatchRunTomoTab RUN = new BatchRunTomoTab(3, "Run");
 
@@ -43,6 +43,10 @@ public final class BatchRunTomoTab {
       return RUN;
     }
     return DEFAULT;
+  }
+
+  public String toString() {
+    return title;
   }
 
   public String getTitle() {

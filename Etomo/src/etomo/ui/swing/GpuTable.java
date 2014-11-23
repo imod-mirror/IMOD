@@ -1,10 +1,14 @@
 package etomo.ui.swing;
 
 import etomo.BaseManager;
+import etomo.comscript.BatchruntomoParam;
 import etomo.comscript.ProcesschunksParam;
 import etomo.storage.Node;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoVersion;
+import etomo.type.ProcessingMethod;
+
+import java.util.Map;
 
 /**
  * <p>Description: </p>
@@ -70,9 +74,20 @@ final class GpuTable extends CpuTable {
     return false;
   }
 
+  Map<String, String> getMachineMap(final BatchruntomoParam param){
+    return param.getGPUMachineMap();
+  }
+
   void getParameters(final ProcesschunksParam param) {
     param.setGpuProcessing(true);
     super.getParameters(param);
+  }
+
+  void getParameters(final ProcessingMethod method, final BatchruntomoParam param) {
+    if (method == ProcessingMethod.PP_GPU) {
+      param.resetGPUMachineList();
+      getParameters(param);
+    }
   }
 
   boolean enableNumberColumn(final Node node) {
