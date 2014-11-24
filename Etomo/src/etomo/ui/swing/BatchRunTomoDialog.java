@@ -21,11 +21,13 @@ import etomo.BatchRunTomoManager;
 import etomo.EtomoDirector;
 import etomo.ProcessingMethodMediator;
 import etomo.comscript.BatchruntomoParam;
+import etomo.logic.BatchTool;
 import etomo.logic.UserEnv;
 import etomo.process.BaseProcessManager;
 import etomo.storage.DirectiveFile;
 import etomo.storage.DirectiveFileCollection;
 import etomo.storage.LogFile;
+import etomo.storage.autodoc.Autodoc;
 import etomo.storage.autodoc.AutodocFactory;
 import etomo.storage.autodoc.WritableAutodoc;
 import etomo.type.AxisID;
@@ -283,7 +285,7 @@ public final class BatchRunTomoDialog
   /**
    * Get environment parameters.
    */
-  public void getParameters(){
+  public void getParameters() {
     cbCPUMachineList.setSelected(UserEnv.isParallelProcessing(null, AxisID.ONLY, null));
     rbGPUMachineListLocal.setSelected(UserEnv.isGpuProcessing(null, AxisID.ONLY, null));
   }
@@ -379,6 +381,9 @@ public final class BatchRunTomoDialog
   }
 
   public void saveAutodocs() {
+    Autodoc mergedAutodoc = BatchTool
+        .mergeDirectiveFiles(manager, ftfInputDirectiveFile.getFile(),
+            templatePanel.getFiles());
     //save global autodoc
     FileType globalAutodocType = FileType.BATCH_RUN_TOMO_GLOBAL_AUTODOC;
     File globalFile = globalAutodocType.getFile(manager, null);
