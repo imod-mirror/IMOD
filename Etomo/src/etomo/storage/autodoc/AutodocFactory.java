@@ -15,7 +15,7 @@ import etomo.type.FileType;
 /**
  * <p>Description: Creates Autodoc classes.</p>
  * <p/>
- * <p>Copyright: Copyright 2006 = 2014 by the Regents of the University of Colorado</p>
+ * <p>Copyright: Copyright 2006 - 2014 by the Regents of the University of Colorado</p>
  * <p/>
  * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
@@ -380,6 +380,126 @@ public final class AutodocFactory {
     }
     Autodoc autodoc = new Autodoc(stripFileExtension(autodocFile.getName()));
     autodoc.initializeGenericInstance(manager, autodocFile, axisID, writable);
+    return autodoc;
+  }
+
+  /**
+   * Merges two autodocs.  The second autodoc will be merged into the first autodoc.  A
+   * writable instance of the first autodoc, with the second one merged into it will be
+   * returned.
+   *
+   * @param manager
+   * @param axisID
+   * @param autodocFile
+   * @param mergeAutodocFile
+   * @return
+   * @throws FileNotFoundException
+   * @throws IOException
+   * @throws LogFile.LockException
+   */
+  public static Autodoc merge(final BaseManager manager, final AxisID axisID,
+      final File autodocFile, final File mergeAutodocFile)
+      throws FileNotFoundException, IOException, LogFile.LockException {
+    if (autodocFile == null && mergeAutodocFile == null) {
+      return null;
+    }
+    Autodoc autodoc;
+    if (autodocFile != null) {
+      autodoc = new Autodoc(stripFileExtension(autodocFile.getName()));
+      autodoc.initializeGenericInstance(manager, autodocFile, axisID, true);
+    }
+    else {
+      //If the autodoc file is missing, just return a writable instance of the merge autodoc.
+      autodoc = new Autodoc(stripFileExtension(mergeAutodocFile.getName()));
+      autodoc.initializeGenericInstance(manager, mergeAutodocFile, axisID, true);
+    }
+    Autodoc mergeAutodoc = null;
+    if (mergeAutodocFile != null) {
+      mergeAutodoc = new Autodoc(stripFileExtension(mergeAutodocFile.getName()));
+      mergeAutodoc.initializeGenericInstance(manager, mergeAutodocFile, axisID, false);
+    }
+    if (autodoc != null && mergeAutodoc != null) {
+      autodoc.merge(mergeAutodoc);
+    }
+    return autodoc;
+  }
+
+  /**
+   * Merges two autodocs.  The second autodoc will be merged into the first autodoc.  A
+   * writable instance of the first autodoc, with the second one merged into it will be
+   * returned.
+   *
+   * @param manager
+   * @param axisID
+   * @param autodoc
+   * @param mergeAutodocFile
+   * @return
+   * @throws FileNotFoundException
+   * @throws IOException
+   * @throws LogFile.LockException
+   */
+  public static Autodoc merge(final BaseManager manager, final AxisID axisID,
+      Autodoc autodoc, final File mergeAutodocFile)
+      throws FileNotFoundException, IOException, LogFile.LockException {
+    if (autodoc == null && mergeAutodocFile == null) {
+      return null;
+    }
+    if (autodoc == null) {
+      //If the autodoc file is missing, just return a writable instance of the merge autodoc.
+      autodoc = new Autodoc(stripFileExtension(mergeAutodocFile.getName()));
+      autodoc.initializeGenericInstance(manager, mergeAutodocFile, axisID, true);
+    }
+    Autodoc mergeAutodoc = null;
+    if (mergeAutodocFile != null) {
+      mergeAutodoc = new Autodoc(stripFileExtension(mergeAutodocFile.getName()));
+      mergeAutodoc.initializeGenericInstance(manager, mergeAutodocFile, axisID, false);
+    }
+    if (autodoc != null && mergeAutodoc != null) {
+      autodoc.merge(mergeAutodoc);
+    }
+    return autodoc;
+  }
+
+  /**
+   * Subtract one autodoc from another.  The second autodoc will be subtracted from the
+   * first autodoc.  A writable instance of the first autodoc, with the second one
+   * subtracted from it will be returned.
+   *
+   * @param autodoc
+   * @param subtractAutodoc
+   * @return
+   * @throws FileNotFoundException
+   * @throws IOException
+   * @throws LogFile.LockException
+   */
+  public static Autodoc subtract(Autodoc autodoc, final Autodoc subtractAutodoc)
+      throws IOException, LogFile.LockException {
+    if (autodoc != null && subtractAutodoc != null) {
+      autodoc.subtract(subtractAutodoc);
+    }
+    return autodoc;
+  }
+
+  /**
+   * return writable autodoc
+   *
+   * @param manager
+   * @param axisID
+   * @param autodocFile
+   * @return
+   * @throws FileNotFoundException
+   * @throws IOException
+   * @throws LogFile.LockException
+   */
+  public static Autodoc getInstance(final BaseManager manager, final AxisID axisID,
+      final File autodocFile)
+      throws FileNotFoundException, IOException, LogFile.LockException {
+    if (autodocFile == null) {
+      return null;
+    }
+    Autodoc autodoc;
+    autodoc = new Autodoc(stripFileExtension(autodocFile.getName()));
+    autodoc.initializeGenericInstance(manager, autodocFile, axisID, true);
     return autodoc;
   }
 
