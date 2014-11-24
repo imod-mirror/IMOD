@@ -1,29 +1,82 @@
 package etomo.logic;
 
+import etomo.BaseManager;
 import etomo.storage.DirectiveDef;
+import etomo.storage.LogFile;
+import etomo.storage.autodoc.Autodoc;
+import etomo.storage.autodoc.AutodocFactory;
 import etomo.storage.autodoc.WritableAutodoc;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.FileType;
 import etomo.ui.Field;
 
+import java.io.File;
+import java.io.IOException;
+
 /**
  * <p>Description: Shared functions for the BatchRunTomo interface.</p>
  * <p/>
- * <p>Copyright: Copyright 2014</p>
+ * <p>Copyright: Copyright 2014 by the Regents of the University of Colorado</p>
  * <p/>
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
- * University of Colorado</p>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * @author $Author$
- * @version $Revision$
- *          <p/>
- *          <p> $Log$ </p>
+ * @version $Id$
  */
 public final class BatchTool {
-  public static final String rcsid =
-      "$Id$";
+  /**
+   * Merges the default batchruntomo autodoc into the input directive file.  Merges the
+   * three template files together.  Subtracts the template merge from the batch merge and
+   * returns the result.
+   *
+   * @param manager
+   * @param inputDirectiveFile
+   * @param templateFiles      will be merged in order
+   * @return
+   */
+  public static Autodoc mergeDirectiveFiles(final BaseManager manager,
+      final File inputDirectiveFile, final File userFile, final File[] templateFiles) {
+    Autodoc totalBatch = null;
+    Autodoc totalTemplate = null;
+    try {
+      totalBatch = AutodocFactory.merge(manager, AxisID.ONLY, inputDirectiveFile,
+          new File("/home/sueh/defaultBatchruntomo.adoc"));
+      //Subtract template files if there is something to subtract them from.
+      if (totalBatch != null && templateFiles != null && templateFiles.length > 0) {
+        if (templateFiles.length == 1) {
+          totalTemplate =
+              AutodocFactory.getInstance(manager, AxisID.ONLY, templateFiles[0]);
+        }
+        else {
+          totalTemplate = AutodocFactory
+              .merge(manager, AxisID.ONLY, templateFiles[0], templateFiles[1]);
+          for (int i = 2; i < templateFiles.length; i++) {
+            totalTemplate = AutodocFactory
+                .merge(manager, AxisID.ONLY, totalTemplate, templateFiles[i]);
+          }
+        }
+      }
+    }
+    catch (LogFile.LockException e) {
+      e.printStackTrace();
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+    }
+    //Subtract the templates from the batch file merge
+    try {
+      if (totalBatch != null && totalTemplate != null) {
+        return AutodocFactory.subtract(totalBatch, totalTemplate);
+      }
+    }
+    catch (LogFile.LockException e) {
+      e.printStackTrace();
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+    }
+    return totalBatch;
+  }
 
   /**
    * The field highlight value comes from a template.  The default value comes from the
