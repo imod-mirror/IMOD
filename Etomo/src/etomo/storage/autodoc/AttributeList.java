@@ -15,20 +15,14 @@ import etomo.ui.swing.Token;
  * If the name of a name/value pair contains multiple attributes, then each
  * attribute, except for the last one, will also contain an AttributeList called
  * children.  So Autodocs and sections each contain a tree structure of Attributes.</p>
- * 
- * <p>Copyright: Copyright (c) 2005</p>
+ * <p/>
+ * <p>Copyright: Copyright 2005 - 2014 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
- * University of Colorado</p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
+ * @version $Id$
  */
 final class AttributeList implements ReadOnlyAttributeList {
-  public static final String rcsid = "$Id$";
-
   private final WriteOnlyAttributeList parent;
 
   /**
@@ -43,8 +37,48 @@ final class AttributeList implements ReadOnlyAttributeList {
     this.parent = parent;
   }
 
+  void merge(final AttributeList mergeAttributeList) {
+    if (mergeAttributeList == null) {
+      return;
+    }
+    int mergeLen = mergeAttributeList.list.size();
+    for (int i = 0; i < mergeLen; i++) {
+      Attribute mergeAttribute = mergeAttributeList.list.get(i);
+      String key = mergeAttribute.getKey();
+      if (!map.containsKey(key)) {
+        //Graft merge attribute on to this attribute list
+        list.add(mergeAttribute);
+        map.put(key, mergeAttribute);
+      }
+    }
+  }
+
+  void subtract(final AttributeList subtractAttributeList) {
+    if (subtractAttributeList == null) {
+      return;
+    }
+    int subtractLen = subtractAttributeList.list.size();
+    for (int i = 0; i < subtractLen; i++) {
+      Attribute subtractAttribute = subtractAttributeList.list.get(i);
+      String key = subtractAttribute.getKey();
+      Attribute attribute = map.get(key);
+      if (attribute != null) {
+        String name = attribute.getName();
+        String subtractName = subtractAttribute.getName();
+        if ((name == null && subtractName == null) ||
+            (name != null && subtractName != null &&
+                name.trim().equals(subtractName.trim()))) {
+          //Remove identical attribute
+          list.remove(attribute);
+          map.remove(key);
+        }
+      }
+    }
+  }
+
   /**
    * Adds a new attribute, or increments an existing one
+   *
    * @param name
    * @return
    */
@@ -84,6 +118,7 @@ final class AttributeList implements ReadOnlyAttributeList {
 
   /**
    * Returns the first attribute which exists.
+   *
    * @return
    */
   ReadOnlyAttribute getFirstAttribute() {
