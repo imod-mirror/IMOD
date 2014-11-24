@@ -67,22 +67,14 @@ import java.util.List;
  * After parsing is finished the Autodoc should be readOnly.  Allow Autodoc to be
  * set to ReadOnly.
  * <p/>
- * </p>
+ * <p>Copyright: Copyright 2002 - 2014 by the Regents of the University of Colorado</p>
  * <p/>
- * <p>Copyright: Copyright 2002 - 2005</p>
- * <p/>
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
- * University of Colorado</p>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * @author $$Author$$
- * @version $$Revision$$
+ * @version $Id$
  * @notthreadsafe
  */
-final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
-  public static final String rcsid =
-      "$$Id$$";
-
+public final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
   /**
    * The autodoc file name, excluding the extension.
    */
@@ -91,8 +83,8 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
   private AutodocParser parser = null;
 
   // data
-  private final List sectionList = new ArrayList();
-  private final HashMap sectionMap = new HashMap();
+  private final List<Section> sectionList = new ArrayList<Section>();
+  private final HashMap<String, Section> sectionMap = new HashMap<String, Section>();
   private final List statementList = new ArrayList();
   private final AttributeList attributeList;
   private String currentDelimiter = AutodocTokenizer.DEFAULT_DELIMITER;
@@ -104,6 +96,38 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
     attributeList = new AttributeList(this);
   }
 
+  /**
+   * Add name/value pairs from the merge autodoc global section to this autodoc's global
+   * section, where the name in the merge autodoc name/value pair does not exist in this
+   * autodoc.  Regular sections are not merged.
+   *
+   * @param mergeAutodoc
+   */
+  public void merge(final Autodoc mergeAutodoc) {
+    if (mergeAutodoc == null) {
+      return;
+    }
+    attributeList.merge(mergeAutodoc.attributeList);
+    if (sectionList.size() > 0 || mergeAutodoc.sectionList.size() > 0) {
+      System.err.println(
+          "Warning: Non-global sections found.  Merge only effects the global section.");
+    }
+  }
+
+  /**
+   *
+   * @param subtractAutodoc
+   */
+  public void subtract(final Autodoc subtractAutodoc) {
+    if (subtractAutodoc == null) {
+      return;
+    }
+    attributeList.subtract(subtractAutodoc.attributeList);
+    if (sectionList.size() > 0 || subtractAutodoc.sectionList.size() > 0) {
+      System.err.println(
+          "Warning: Non-global sections found.  Subtract only effects the global section.");
+    }
+  }
   public void setDebug() {
     debug = true;
   }
