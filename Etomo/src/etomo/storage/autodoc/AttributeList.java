@@ -46,7 +46,7 @@ final class AttributeList implements ReadOnlyAttributeList {
       Attribute mergeAttribute = mergeAttributeList.list.get(i);
       String key = mergeAttribute.getKey();
       if (!map.containsKey(key)) {
-        //Graft merge attribute on to this attribute list
+        // Graft merge attribute on to this attribute list
         list.add(mergeAttribute);
         map.put(key, mergeAttribute);
       }
@@ -65,13 +65,32 @@ final class AttributeList implements ReadOnlyAttributeList {
       if (attribute != null) {
         String name = attribute.getName();
         String subtractName = subtractAttribute.getName();
-        if ((name == null && subtractName == null) ||
-            (name != null && subtractName != null &&
-                name.trim().equals(subtractName.trim()))) {
-          //Remove identical attribute
+        if ((name == null && subtractName == null)
+            || (name != null && subtractName != null && name.trim().equals(
+                subtractName.trim()))) {
+          // Remove identical attribute
           list.remove(attribute);
           map.remove(key);
         }
+      }
+    }
+  }
+
+  void deepCopy(final AttributeList fromAttributeList) {
+    if (fromAttributeList == null) {
+      return;
+    }
+    int fromLen = fromAttributeList.list.size();
+    for (int i = 0; i < fromLen; i++) {
+      Attribute fromAttribute = fromAttributeList.list.get(i);
+      String key =fromAttribute.getKey();
+      String name = fromAttribute.getName();
+      String value = fromAttribute.getValue();
+      if (map.containsKey(fromAttribute.getKey())) {
+        map.get(key).setValue(value);
+      }
+      else {
+        addNameValuePair(name,value);
       }
     }
   }
