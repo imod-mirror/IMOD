@@ -10,7 +10,6 @@ import java.util.Map;
 import java.util.Set;
 
 import etomo.BaseManager;
-import etomo.logic.DatasetTool;
 import etomo.process.ProcessMessages;
 import etomo.process.SystemProgram;
 import etomo.storage.DirectiveFile;
@@ -18,7 +17,6 @@ import etomo.type.AxisID;
 import etomo.type.EtomoNumber;
 import etomo.type.ProcessName;
 import etomo.type.StringParameter;
-import etomo.ui.UIComponent;
 import etomo.ui.swing.UIHarness;
 import etomo.util.RemotePath;
 import etomo.util.RemotePath.InvalidMountRuleException;
