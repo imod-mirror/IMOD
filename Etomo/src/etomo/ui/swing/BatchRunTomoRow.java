@@ -21,6 +21,7 @@ import etomo.storage.DirectiveFile;
 import etomo.storage.DirectiveFileCollection;
 import etomo.storage.DirectiveFileInterface;
 import etomo.storage.LogFile;
+import etomo.storage.autodoc.Autodoc;
 import etomo.storage.autodoc.AutodocFactory;
 import etomo.storage.autodoc.WritableAutodoc;
 import etomo.type.AxisID;
@@ -422,14 +423,15 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
     }
   }
 
-  void saveAutodoc(final TemplatePanel templatePanel) {
+  void saveAutodoc(final Autodoc startingAutodoc,final TemplatePanel templatePanel) {
     File stack = new File(fcStack.getExpandedValue());
     File file = new File(stack.getParent(), getBatchDirectiveFileName());
     try {
       if (file.exists()) {
         Utilities.deleteFile(file, manager, null);
       }
-      WritableAutodoc autodoc = AutodocFactory.getEmptyWritableInstance(manager, file);
+      Autodoc autodoc = AutodocFactory.getWritableAutodocInstance(manager, file);
+      autodoc.deepCopy(startingAutodoc);
       BatchTool.saveAutodoc(cbcDual, autodoc);
       BatchTool.saveAutodoc(cbcMontage, autodoc);
       BatchTool.saveAutodoc(fcSkip, autodoc);
