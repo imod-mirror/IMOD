@@ -23,6 +23,7 @@ import etomo.comscript.BatchruntomoParam;
 import etomo.logic.DatasetTool;
 import etomo.storage.DirectiveFileCollection;
 import etomo.storage.StackFileFilter;
+import etomo.storage.autodoc.Autodoc;
 import etomo.type.AxisID;
 import etomo.type.BatchRunTomoMetaData;
 import etomo.type.DuplicateException;
@@ -319,8 +320,8 @@ final class BatchRunTomoTable
     rowList.getParameters(param, deliverToDirectory, errMsg);
   }
 
-  void saveAutodocs(final TemplatePanel templatePanel) {
-    rowList.saveAutodocs(templatePanel);
+  void saveAutodocs(final Autodoc startingAutodoc,final TemplatePanel templatePanel) {
+    rowList.saveAutodocs(startingAutodoc,templatePanel);
   }
 
   void loadAutodocs() {
@@ -722,9 +723,9 @@ final class BatchRunTomoTable
       }
     }
 
-    private void saveAutodocs(final TemplatePanel templatePanel) {
+    private void saveAutodocs(final Autodoc startingAutodoc,final TemplatePanel templatePanel) {
       for (int i = 0; i < list.size(); i++) {
-        list.get(i).saveAutodoc(templatePanel);
+        list.get(i).saveAutodoc(startingAutodoc,templatePanel);
       }
     }
 
