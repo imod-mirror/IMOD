@@ -5,7 +5,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.io.File;
-import java.io.IOException;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -13,18 +12,13 @@ import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 
 import etomo.BaseManager;
-import etomo.logic.BatchTool;
 import etomo.logic.ConfigTool;
-import etomo.process.BaseProcessManager;
 import etomo.storage.DirectiveDef;
 import etomo.storage.DirectiveFile;
 import etomo.storage.DirectiveFileCollection;
-import etomo.storage.LogFile;
-import etomo.storage.autodoc.AutodocFactory;
 import etomo.storage.autodoc.WritableAutodoc;
 import etomo.type.AxisID;
 import etomo.type.DirectiveFileType;
-import etomo.type.FileType;
 import etomo.type.UserConfiguration;
 
 /**
@@ -47,6 +41,7 @@ final class TemplatePanel {
   private static String EMPTY_OPTION = "None available";
   private static String SELECT_OPTION1 = "No selection (";
   private static final String SELECT_OPTION2 = " available)";
+  private static final int NUM_TEMPLATES = 3;
 
   private final JPanel pnlRoot = new JPanel();
   private final ComboBox cmbScopeTemplate =
@@ -287,6 +282,15 @@ final class TemplatePanel {
         .setDirectiveFile(getSystemTemplateFile(), DirectiveFileType.SYSTEM);
     directiveFileCollection
         .setDirectiveFile(getUserTemplateFile(), DirectiveFileType.USER);
+  }
+  
+  File[] getFiles() {
+    File[] files = new File[NUM_TEMPLATES];
+    int i =0;
+    files[i++]=getScopeTemplateFile();
+    files[i++]=getSystemTemplateFile();
+    files[i++]=getUserTemplateFile();
+    return files;
   }
 
   private File getScopeTemplateFile() {
