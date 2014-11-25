@@ -1,10 +1,5 @@
 package etomo.ui;
 
-import etomo.logic.DefaultFinder;
-import etomo.type.EtomoBoolean2;
-
-import java.util.Properties;
-
 /**
  * <p>Description: Three state boolean setting (not set, on, and off).  NOT thread-safe.
  * The set member variable is turned on when set() is called.  Handles string values by
