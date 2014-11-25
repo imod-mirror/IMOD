@@ -9,7 +9,6 @@ import javax.swing.JCheckBox;
 import javax.swing.event.ChangeListener;
 import javax.swing.plaf.ColorUIResource;
 
-import etomo.logic.DefaultFinder;
 import etomo.storage.DirectiveDef;
 import etomo.type.EtomoBoolean2;
 import etomo.type.UITestFieldType;

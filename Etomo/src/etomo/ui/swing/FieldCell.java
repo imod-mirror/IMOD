@@ -18,9 +18,7 @@ import etomo.type.UITestFieldType;
 import etomo.ui.Field;
 import etomo.ui.FieldSettingInterface;
 import etomo.ui.TableComponent;
-import etomo.ui.TextFieldSetting;
 import etomo.ui.UIComponent;
-import etomo.util.Utilities;
 
 /**
  * <p>Description: </p>
