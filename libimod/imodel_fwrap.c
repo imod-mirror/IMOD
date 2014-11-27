@@ -1814,6 +1814,8 @@ int putimageref(float *delta, float *origin)
   iref->ctrans.x = origin[0];
   iref->ctrans.y = origin[1];
   iref->ctrans.z = origin[2];
+  iref->otrans = iref->ctrans;
+  sImod->flags |= IMODF_OTRANS_ORIGIN;
   return FWRAP_NOERROR;
 }
 
