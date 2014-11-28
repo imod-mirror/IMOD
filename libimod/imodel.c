@@ -1508,14 +1508,14 @@ void imodRot90X(Imod *imod, int toNative)
 
   /* Set up the constants and multipliers from getting between Y and Z */
   if (toNative) {
-    yconst = 0.;
+    yconst = -0.5;
     yfac = 1.;
-    zconst = imod->zmax - 1.;
+    zconst = imod->zmax - 0.5;
     zfac = -1.;
   } else {
-    zconst = 0.;
+    zconst = 0.5;
     zfac = 1.;
-    yconst = imod->ymax - 1.;
+    yconst = imod->ymax - 0.5;
     yfac = -1.;
   }
   
@@ -1728,6 +1728,13 @@ int imodTransFromRefImage(Imod *imod, IrefImage *iref, Ipoint binScale)
   if (!mat || !matClip || !matNorm)
     return 1;
 
+  /* Model coordinates range from -0.5 to nz - 0.5 when pixels are considered to
+     have thickness in Z, so adjust up by 0.5, apply operations, adjust back down */
+  pnt.x = 0.;
+  pnt.y = 0.;
+  pnt.z = 0.5;
+  imodMatTrans(mat, &pnt);
+  
   imodMatScale(mat, &iref->oscale);
   pnt.x = 1. / iref->oscale.x;
   pnt.y = 1. / iref->oscale.y;
@@ -1773,6 +1780,10 @@ int imodTransFromRefImage(Imod *imod, IrefImage *iref, Ipoint binScale)
   pnt.y = 1. / (iref->cscale.y * binScale.y);
   pnt.z = 1. / (iref->cscale.z * binScale.z);
   imodMatScale(mat, &pnt);
+  pnt.x = 0.;
+  pnt.y = 0.;
+  pnt.z = -0.5;
+  imodMatTrans(mat, &pnt);
 
   /* Mesh normals scaling does not need to include the binning scale because
    they already include Z-scaling and the model display will be adjusted to
