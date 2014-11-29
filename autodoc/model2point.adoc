@@ -57,6 +57,18 @@ usage = Output object and contour numbers starting from 0 instead of 1
 tooltip = 
 manpage = 
 
+[Field = ZCoordinatesFromZero]
+short = zcoord
+type = B
+usage = Output Z coordinates starting from 0 instead of -0.5
+tooltip = 
+manpage = Output Z coordinates that are 0 instead of -0.5 at the bottom
+of the volume.  In IMOD models, integer Z values are defined as being located in the
+middle of a pixel in Z, which makes model coordinates range from -0.5 to NZ -
+0.5 for a volume of NZ slices.  With this option, the point coordinates will
+be shifted so that they range from 0 to NZ, i.e., so that their fractional
+parts actually correspond to their fractional positions within the pixels in Z.
+
 [Field = ValuesInLastColumn]
 short = values
 type = I
