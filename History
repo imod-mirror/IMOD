@@ -1,5 +1,12 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/28/14: Various fixes related to model Z coordinates starting at -0.5
+instead of 0: fixed half-pixel error when rotating model by 90 degrees; fixed
+Findbeads3d to put out Z coordinates starting at -0.5; fixed Tilt to reproject
+models other than those from FIndbead3d correctly; added options to
+Model2point and Point2model for working with point coordinates that have Z
+starting at 0; clarified in documentation.
+
 10/25/14: IMOD_4-7-12
 10/25/14: Fixed Beadtrack failure if it has to reduce local area target size
 (In 4.7).
