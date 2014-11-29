@@ -8,14 +8,14 @@
 !
 program findbeads3d
   implicit none
-  integer maxPiece, maxArray, limHisto
-  parameter (maxPiece = 400, maxArray = 200000000)
+  integer maxPiece, limHisto
+  parameter (maxPiece = 400)
   parameter (limHisto = 10000)
   integer*4 lenPiece(maxPiece,3), ind0(maxPiece,3), ind1(maxPiece,3)
-  integer*4 nx, ny, nz, nxyz(3), nxCorr, nyCorr, nzCorr, limPeak
+  integer*4 nx, ny, nz, nxyz(3), nxCorr, nyCorr, nzCorr, limPeak, maxArray
   equivalence (nx, nxyz(1)), (ny, nxyz(2)), (nz, nxyz(3))
   integer*4, allocatable :: indPeak(:), indCorr(:)
-  real*4, allocatable :: peakVal(:), peakPos(:,:), corrVal(:), corrPos(:, :)
+  real*4, allocatable :: peakVal(:), peakPos(:,:), corrVal(:), corrPos(:, :), array(:)
   real*4 origin(3), delta(3), histo(limHisto)
   integer*4 mxyz(3), mode, maxShift, i, index, loopCorr, numLook
   integer*4 nsum, nxOverlap, nyOverlap, nzOverlap, ierr, maxVol
@@ -27,7 +27,7 @@ program findbeads3d
   ! integer*4 iy, iz
   integer*4 ix, ixPiece, iyPiece, izPiece, minInside, maxXsize
   integer*4 ixPeak, iyPeak, izPeak, numSave, ix0, ix1, iy0, iy1, iz0, iz1
-  integer*4 numPass, minGuess, iVerbose, ibinning
+  integer*4 numPass, minGuess, iVerbose, ibinning, num3CorrThreads
   real*4 sumXoffset, sumYoffset, sumZoffset, storeThresh, beadSize, degToRad
   real*4 histDip, peakBelow, peakAbove, dxAdjacent, dyAdjacent, dzAdjacent, avgThresh
   real*4 peakRelMin, sepMin, blackThresh, findCorr, aboveAvg, aboveSD
@@ -35,9 +35,6 @@ program findbeads3d
   logical loaded, yElongated, lightBeads, found, cleanBoth
   character*320 imageFile, modelFile, firstFile, tiltFile
   integer*4 findHistogramDip
-
-  real*4 array(maxArray)
-  common / bigarr / array
   !
   integer*4 numOptArg, numNonOptArg
   integer*4 PipGetInteger, PipGetLogical
@@ -79,6 +76,7 @@ program findbeads3d
   iVerbose = 0
   minGuess = 0
   ibinning = 1
+  maxArray = 200000000
   !
   ! Pip startup: set error, parse options, do help output
   !
@@ -159,6 +157,11 @@ program findbeads3d
     nyCorr = nzCorr
     nzCorr = nxCorr
   endif
+  num3CorrThreads = max(1, min(8, nint(2 * (nxCorr * nyCorr * nzCorr / 32000.)**0.45)))
+
+  maxArray = min(maxArray, (nx + 4) * (ny + 4) * (nz + 4) + nxCorr * nyCorr * nzCorr)
+  allocate(array(maxArray), stat = ierr)
+  call memoryError(ierr, 'ARRAY FOR IMAGE DATA')
   maxVol = maxArray - nxCorr * nyCorr * nzCorr
   !
   ! Given correlation dimensions, set up the overlaps and minimum sizes
@@ -394,11 +397,10 @@ program findbeads3d
                     lenPiece(iyPiece, 2), lenPiece(izPiece, 3), xpeak, &
                     ypeak, zpeak)
               else
-                call find_best_corr(array(maxVol + 1), nxCorr, &
-                    nyCorr, nzCorr, array, lenPiece(ixPiece, 1), &
-                    lenPiece(iyPiece, 2), lenPiece(izPiece, 3), ixStart, &
-                    ixEnd, iyStart, iyEnd, izStart, izEnd, xpeak, &
-                    ypeak, zpeak, maxShift, found, peakCorr)
+                call find_best_corr(array(maxVol + 1), nxCorr, nyCorr, nzCorr, array, &
+                    lenPiece(ixPiece, 1), lenPiece(iyPiece, 2), lenPiece(izPiece, 3), &
+                    ixStart, ixEnd, iyStart, iyEnd, izStart, izEnd, xpeak, ypeak, zpeak, &
+                    maxShift, found, peakCorr, num3CorrThreads)
                 if (found) then
                   call addToSortedList(indCorr, corrVal, numCorrs, &
                       maxPeaks, peakRelMin, peakCorr, index)
@@ -997,10 +999,10 @@ end subroutine peakEdgeMean
 !
 subroutine find_best_corr(array, nxa, nya, nza, brray, nxb, nyb, nzb, &
     ixStart, ixEnd, iyStart, iyEnd, izStart, izEnd, dxAdjacent, dyAdjacent, &
-    dzAdjacent, maxShift, found, peakCorr)
+    dzAdjacent, maxShift, found, peakCorr, numThreads)
   implicit none
 
-  integer*4 nxa, nxb, nya, nyb, nza, nzb
+  integer*4 nxa, nxb, nya, nyb, nza, nzb, numThreads
   real*4 array(nxa,nya,nza), brray(nxb,nyb,nzb), peakCorr
   real*8 corrs(-1:1,-1:1,-1:1), corrTmp(-2:2,-2:2,-2:2)
   real*8 corrMax
@@ -1058,7 +1060,7 @@ subroutine find_best_corr(array, nxa, nya, nza, brray, nxb, nyb, nzb, &
       idzCorr = idzGlobal + idz - nza / 2
       call threecorrs(array, nxa, nya, brray, nxb, nyb, 0, nxa - 1, &
           0, nya - 1, 0, nza - 1, idxCorr, idyCorr, idzCorr, &
-          corrs(-1, idy, idz), corrs(0, idy, idz), corrs(1, idy, idz))
+          corrs(-1, idy, idz), corrs(0, idy, idz), corrs(1, idy, idz), numThreads)
       done(-1, idy, idz) = .true.
       done(0, idy, idz) = .true.
       done(1, idy, idz) = .true.
@@ -1170,16 +1172,20 @@ end subroutine find_best_corr
 ! IDX-1), CORR2 (for IDX), and CORR3 (for IDX+1) .
 !
 subroutine threecorrs(array, nxa, nya, brray, nxb, nyb, ix0, ix1, &
-    iy0, iy1, iz0, iz1, idx, idy, idz, corr1, corr2, corr3)
+    iy0, iy1, iz0, iz1, idx, idy, idz, corr1, corr2, corr3, numThreads)
   implicit none
   real*4 array(*), brray(*)
   ! real*4 first, prev
   real*8 sum1, sum2, sum3, corr1, corr2, corr3
-  integer*4 ix0, ix1, iy0, iy1, iz0, iz1, idx, idy, idz, nxa, nxb, nya, nyb
+  integer*4 ix0, ix1, iy0, iy1, iz0, iz1, idx, idy, idz, nxa, nxb, nya, nyb, numThreads
   integer*4 iz, izb, iy, iyb, indBaseA, indDelB, ix, ixb, nsum
   sum1 = 0.
   sum2 = 0.
   sum3 = 0.
+
+  !$OMP PARALLEL DO NUM_THREADS(numThreads) REDUCTION (+ : sum1, sum2, sum3) &
+  !$OMP& SHARED(iz0, iz1, idz, iy0, iy1, idy, nxA, nyA, nxB, nyB, ix0, ix1, array, brray)&
+  !$OMP& PRIVATE(iz, izB, iy, iyb, indBaseA, indDelB, ix, ixB)
   do iz = iz0, iz1
     izb = iz + idz
     do iy = iy0, iy1
@@ -1197,6 +1203,7 @@ subroutine threecorrs(array, nxa, nya, brray, nxb, nyb, ix0, ix1, &
       enddo
     enddo
   enddo
+  !$OMP END PARALLEL DO
   nsum = (iz1 + 1 - iz0) * (iy1 + 1 - iy0) * (ix1 + 1 - ix0)
   corr1 = sum1 / nsum
   corr2 = sum2 / nsum
@@ -1257,6 +1264,7 @@ subroutine writePeakModel(firstFile, indPeak, peakVal, peakPos, &
     do j = 1, 3
       p_coord(j, i) = peakPos(ind(j), indPeak(i))
     enddo
+    p_coord(3, i) = p_coord(3, i) - 0.5
     ierr = putContValue(1, iobj, peak)
     object(i) = i
   enddo
@@ -1265,6 +1273,7 @@ subroutine writePeakModel(firstFile, indPeak, peakVal, peakPos, &
       nint(255. * (blackThresh - peakMin) / peakMax - peakMin)))
   ierr = putValBlackWhite(1, iobj, 255)
   ierr = putImageRef(delta, origin)
+  call putImodObjName(1, '3D bead positions')
   call scale_model(1)
   call write_wmod(firstFile)
   return
