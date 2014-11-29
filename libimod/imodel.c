@@ -4,8 +4,7 @@
  *  Original author: James Kremer
  *  Revised by: David Mastronarde   email: mast@colorado.edu
  *
- *  Copyright (C) 1995-2005 by Boulder Laboratory for 3-Dimensional Electron
- *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
+ *  Copyright (C) 1995-2014 by the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  * 
  * $Id$
@@ -49,7 +48,7 @@ int imodDefault(Imod *model)
   char *newmodname = "IMOD-NewModel";
 
   model->objsize  = 0;
-  model->flags = IMODF_NEW_TO_3DMOD;
+  model->flags = IMODF_NEW_TO_3DMOD | IMODF_Z_FROM_MINUSPT5;
   for (i = 0; i < 13; i++)
     model->name[i] = newmodname[i];
   model->name[i]    = 0x00;

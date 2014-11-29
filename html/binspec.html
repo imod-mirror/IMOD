@@ -5,23 +5,33 @@ IMOD Binary Model File Format.
 <body>
 <A NAME = "TOP"></A>
 <H1>IMOD Binary File Format. Version 1,  Revision 2</H1>
-
+<p>
 The IMOD binary file format is similar to the IFF format standard in
 that it uses chunk id's for data headings. Each chunk id is 4 bytes
 long and is defined as a string of 4 characters.
 This is the format used by IMOD Version 2.0 and onward.
-The format is backwards compatible with IMOD 1.2.
 All numbers are stored in big-endian format regardless of 
 machine architecture.  In the descriptions of flags below, 
 bits are numbered from 0.
 
 
 <H3>The File Header</H3>
-
+<p>
 All binary model files begin with a 8 byte ID followed by a 232 byte header.
 The ID format begins with the IMOD file id, (IMOD = 0x494d4f44)
 followed by the 4 byte version id, (V1.2 =  0x56312e32).
 The end of the file is marked by an end of data marker, (IEOF = 0x49454f46).
+
+<H3>Model Coordinate Conventions</H3>
+<p>
+Models are generally stored with pixel coordinates rather than coordinates
+scaled by the pixel size.  3dmod always stores a model with coordinates based
+upon the volume it is displayed on, or relative to the subset loaded when the
+full volume is not loaded.  Coordinates range from 0 to NX in X and 0 to
+NY in Y, but from -0.5 to NZ - 0.5 in Z (NX, NY, NZ being the size of volume
+loaded).  The offset of 0.5 in Z occurs because integer coordinates are used
+for points drawn on X/Y slices, even though such points are displayed in the
+middle of the pixel in Z when viewed in X/Z or Y/Z slices.
 
 <HR>
 <H3>The Model Data Structure</H3>
@@ -40,11 +50,14 @@ Length Type Name           Description
 4      int  objsize        Number of objects in model.
 
 4      uint flags          Model flags  (IMODF_FLAG...)
+                             Bit 10 on : Z coordinates start from -0.5
+                             Bit 11 on : Model has not been written by 3dmod yet
                              Bit 12 on : multiple clip planes are possible
                              Bit 13 on : mat1 and mat3 are stored as bytes
                              Bit 14 on : otrans has image origin values
                              Bit 15 on : current tilt angles are stored correctly
-                             Bit 16 on : model last viewed on Y/Z flipped image
+                             Bit 16 on : model last viewed on Y/Z flipped or
+                                         rotated image
 4      int   drawmode      1 to draw model, -1 not to
 4      int   mousemode     Mouse editing mode. (0=movie,1=model)
 
