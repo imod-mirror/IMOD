@@ -228,6 +228,7 @@ EXPORTS
 	imodObjectSortSurf
 	DELETEIMOD
 	PUTSYMSIZE
+	GETZFROMMINUSPT5
 	imeshParamsDup
 	imodMatTrans
 	objGroupDelete
