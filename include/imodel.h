@@ -4,8 +4,7 @@
  *  Original author: James Kremer
  *  Revised by: David Mastronarde   email: mast@colorado.edu
  *
- *  Copyright (C) 1995-2004 by Boulder Laboratory for 3-Dimensional Electron
- *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
+ *  Copyright (C) 1995-2014 by the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  *  $Id$
@@ -118,6 +117,7 @@
 #define IMODF_MAT1_IS_BYTES (1l << 13)  /* mat1 and mat3 are stored as bytes */
 #define IMODF_MULTIPLE_CLIP (1l << 12)  /* multiple clip planes possible */
 #define IMODF_NEW_TO_3DMOD  (1l << 11)  /* Model has not been written by 3dmod yet */
+#define IMODF_Z_FROM_MINUSPT5 (1l << 10) /* Z coordinate of bottom of volume is -0.5 */
 
 /* autocontouring flags */
 #define AUTOX_BLANK 0
