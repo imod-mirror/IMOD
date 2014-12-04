@@ -21,6 +21,7 @@ import etomo.logic.ConfigTool;
 import etomo.logic.SeedingMethod;
 import etomo.logic.TrackingMethod;
 import etomo.storage.*;
+import etomo.storage.autodoc.Autodoc;
 import etomo.storage.autodoc.WritableAutodoc;
 import etomo.type.*;
 import etomo.ui.BooleanFieldSetting;
@@ -655,38 +656,38 @@ final class BatchRunTomoDatasetDialog
     if (autodoc == null) {
       return;
     }
-    BatchTool.saveAutodoc(ftfDistort, autodoc);
-    BatchTool.saveAutodoc(ftfGradient, autodoc);
-    BatchTool.saveAutodoc(cbRemoveXrays, autodoc);
-    BatchTool.saveAutodoc(ftfModelFile, autodoc);
+    BatchTool.saveFieldToAutodoc(ftfDistort, autodoc);
+    BatchTool.saveFieldToAutodoc(ftfGradient, autodoc);
+    BatchTool.saveFieldToAutodoc(cbRemoveXrays, autodoc);
+    BatchTool.saveFieldToAutodoc(ftfModelFile, autodoc);
     if (rbTrackingMethodSeed.isSelected()) {
       if (rbTrackingMethodSeed.isEnabled() &&
           BatchTool.needInAutodoc(rbTrackingMethodSeed)) {
-        autodoc.addNameValuePair(DirectiveDef.TRACKING_METHOD.getDirective(null, null),
+        autodoc.addNameValuePairAttribute(DirectiveDef.TRACKING_METHOD.getDirective(null, null),
             TrackingMethod.SEED.getValue().toString());
-        autodoc.addNameValuePair(DirectiveDef.SEEDING_METHOD.getDirective(null, null),
+        autodoc.addNameValuePairAttribute(DirectiveDef.SEEDING_METHOD.getDirective(null, null),
             SeedingMethod.BOTH.getValue());
       }
     }
     else if (rbTrackingMethodRaptor.isSelected()) {
       if (rbTrackingMethodRaptor.isEnabled() &&
           BatchTool.needInAutodoc(rbTrackingMethodRaptor)) {
-        autodoc.addNameValuePair(DirectiveDef.TRACKING_METHOD.getDirective(null, null),
+        autodoc.addNameValuePairAttribute(DirectiveDef.TRACKING_METHOD.getDirective(null, null),
             TrackingMethod.RAPTOR.getValue().toString());
       }
     }
     else if (rbTrackingMethodPatchTracking.isEnabled() &&
         rbTrackingMethodPatchTracking.isSelected()) {
       if (BatchTool.needInAutodoc(rbTrackingMethodPatchTracking)) {
-        autodoc.addNameValuePair(DirectiveDef.TRACKING_METHOD.getDirective(null, null),
+        autodoc.addNameValuePairAttribute(DirectiveDef.TRACKING_METHOD.getDirective(null, null),
             TrackingMethod.PATCH_TRACKING.getValue().toString());
       }
     }
-    BatchTool.saveAutodoc(rbFiducialless, autodoc);
-    BatchTool.saveAutodoc(ltfGold, autodoc);
-    BatchTool.saveAutodoc(ltfLocalAreaTargetSize, autodoc);
-    BatchTool.saveAutodoc(ltfTargetNumberOfBeads, autodoc);
-    BatchTool.saveAutodoc(ltfSizeOfPatchesXandY, autodoc);
+    BatchTool.saveFieldToAutodoc(rbFiducialless, autodoc);
+    BatchTool.saveFieldToAutodoc(ltfGold, autodoc);
+    BatchTool.saveFieldToAutodoc(ltfLocalAreaTargetSize, autodoc);
+    BatchTool.saveFieldToAutodoc(ltfTargetNumberOfBeads, autodoc);
+    BatchTool.saveFieldToAutodoc(ltfSizeOfPatchesXandY, autodoc);
     if (cbLengthOfPieces.isEnabled() && cbLengthOfPieces.isSelected()) {
       boolean add = true;
       if (cbLengthOfPieces.isFieldHighlightSet()) {
@@ -697,61 +698,49 @@ final class BatchRunTomoDatasetDialog
       }
       if (add) {
         autodoc
-            .addNameValuePair(cbLengthOfPieces.getDirectiveDef().getDirective(null, null),
+            .addNameValuePairAttribute(cbLengthOfPieces.getDirectiveDef().getDirective(null, null),
                 lengthOfPieces);
       }
     }
-    BatchTool.saveAutodoc(cbEnableStretching, autodoc);
-    BatchTool.saveAutodoc(cbLocalAlignments, autodoc);
-    BatchTool.saveAutodoc(lsBinByFactor, autodoc);
-    BatchTool.saveAutodoc(cbCorrectCTF, autodoc);
-    BatchTool.saveAutodoc(ltfDefocus, autodoc);
-    if (rtfAutoFitRangeAndStep.isSelected())
-
-    {
+    BatchTool.saveFieldToAutodoc(cbEnableStretching, autodoc);
+    BatchTool.saveFieldToAutodoc(cbLocalAlignments, autodoc);
+    BatchTool.saveFieldToAutodoc(lsBinByFactor, autodoc);
+    BatchTool.saveFieldToAutodoc(cbCorrectCTF, autodoc);
+    BatchTool.saveFieldToAutodoc(ltfDefocus, autodoc);
+    if (rtfAutoFitRangeAndStep.isSelected()) {
       if (rbTrackingMethodSeed.isEnabled() &&
           BatchTool.needInAutodoc(rbTrackingMethodSeed)) {
-        autodoc.addNameValuePair(
+        autodoc.addNameValuePairAttribute(
             DirectiveDef.AUTO_FIT_RANGE_AND_STEP.getDirective(null, null),
             rtfAutoFitRangeAndStep.getText() + "," + ltfAutoFitStep.getText());
       }
     }
-
-    else if (rbFitEveryImage.isSelected())
-
-    {
+    else if (rbFitEveryImage.isSelected()) {
       if (rbFitEveryImage.isEnabled() && BatchTool.needInAutodoc(rbFitEveryImage)) {
-        autodoc.addNameValuePair(
+        autodoc.addNameValuePairAttribute(
             DirectiveDef.AUTO_FIT_RANGE_AND_STEP.getDirective(null, null), "0,0");
       }
     }
-
-    if (rbUseSirtFalse.isSelected())
-
-    {
+    if (rbUseSirtFalse.isSelected()) {
       if (rbUseSirtFalse.isEnabled() && BatchTool.needInAutodoc(rbUseSirtFalse)) {
-        autodoc.addNameValuePair(DirectiveDef.USE_SIRT.getDirective(null, null), "0");
+        autodoc.addNameValuePairAttribute(DirectiveDef.USE_SIRT.getDirective(null, null), "0");
       }
     }
-
-    else if (!BatchTool.saveAutodoc(rbUseSirtTrue, autodoc))
-
-    {
-      if (BatchTool.saveAutodoc(rbDoBackprojAlso, autodoc)) {
+    else if (!BatchTool.saveFieldToAutodoc(rbUseSirtTrue, autodoc)) {
+      if (BatchTool.saveFieldToAutodoc(rbDoBackprojAlso, autodoc)) {
         // Don't add useSirt if it is the default or in the templates
         if (!rbUseSirtTrue.equalsFieldHighlight(true) &&
             !rbUseSirtTrue.equalsDefaultValue(true)) {
-          autodoc.addNameValuePair(DirectiveDef.USE_SIRT.getDirective(null, null), "1");
+          autodoc.addNameValuePairAttribute(DirectiveDef.USE_SIRT.getDirective(null, null), "1");
         }
       }
     }
-
-    BatchTool.saveAutodoc(ltfLeaveIterations, autodoc);
-    BatchTool.saveAutodoc(cbScaleToInteger, autodoc);
-    BatchTool.saveAutodoc(tfExtraThickness, autodoc);
-    BatchTool.saveAutodoc(ltfFallbackThickness, autodoc);
-    BatchTool.saveAutodoc(rtfThickness, autodoc);
-    BatchTool.saveAutodoc(rtfBinnedThickness, autodoc);
+    BatchTool.saveFieldToAutodoc(ltfLeaveIterations, autodoc);
+    BatchTool.saveFieldToAutodoc(cbScaleToInteger, autodoc);
+    BatchTool.saveFieldToAutodoc(tfExtraThickness, autodoc);
+    BatchTool.saveFieldToAutodoc(ltfFallbackThickness, autodoc);
+    BatchTool.saveFieldToAutodoc(rtfThickness, autodoc);
+    BatchTool.saveFieldToAutodoc(rtfBinnedThickness, autodoc);
   }
 
   void setValues(final DirectiveFileInterface directiveFiles) {
