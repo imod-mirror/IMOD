@@ -39,7 +39,7 @@ public final class BatchTool {
     Autodoc totalBatch = null;
     Autodoc totalTemplate = null;
     try {
-      totalBatch = AutodocFactory.merge(manager, inputDirectiveFile, new File(
+      totalBatch = AutodocFactory.mergeGlobal(manager, inputDirectiveFile, new File(
           "/home/sueh/defaultBatchruntomo.adoc"));
       // Subtract template files if there is something to subtract them from.
       if (totalBatch != null && templateFiles != null && templateFiles.length > 0) {
@@ -48,12 +48,12 @@ public final class BatchTool {
               templateFiles[0]);
         }
         else {
-          totalTemplate = AutodocFactory.merge(manager,
+          totalTemplate = AutodocFactory.mergeGlobal(manager,
               templateFiles[templateFiles.length - 1],
               templateFiles[templateFiles.length - 2]);
           for (int i = templateFiles.length - 3; i >= 0; i--) {
             totalTemplate = AutodocFactory
-                .merge(manager, totalTemplate, templateFiles[i]);
+                .mergeGlobal(manager, totalTemplate, templateFiles[i]);
           }
         }
       }
@@ -67,7 +67,7 @@ public final class BatchTool {
     // Subtract the templates from the batch file merge
     try {
       if (totalBatch != null && totalTemplate != null) {
-        return AutodocFactory.subtract(totalBatch, totalTemplate);
+        return AutodocFactory.subtractGlobal(totalBatch, totalTemplate);
       }
     }
     catch (LogFile.LockException e) {
@@ -101,12 +101,12 @@ public final class BatchTool {
    * @param autodoc
    * @return
    */
-  public static boolean saveAutodoc(final Field field, final WritableAutodoc autodoc) {
-    return saveAutodoc(field, null, null, autodoc);
+  public static boolean saveFieldToAutodoc(final Field field, final WritableAutodoc autodoc) {
+    return saveFieldToAutodoc(field, null, null, autodoc);
   }
 
   /**
-   * Saves the field to the autodoc.  Returns if true if the field can be saved in the
+   * Adds the field to the autodoc.  Returns if true if the field can be saved in the
    * autodoc.  If the field is not needed in the autodoc because it is set to default or
    * the same is a template value, it won't be saved, but this function will still return
    * true.
@@ -117,7 +117,7 @@ public final class BatchTool {
    * @param axisType axis type of dataset (optional for axis A)
    * @return true if field is savable
    */
-  public static boolean saveAutodoc(final Field field, final AxisID axisID,
+  public static boolean saveFieldToAutodoc(final Field field, final AxisID axisID,
       final AxisType axisType, final WritableAutodoc autodoc) {
     // Don't add directive values that are equal to default values, or directive
     // values that already exists in one of the templates. Values from templates
@@ -128,7 +128,8 @@ public final class BatchTool {
         if (directiveDef.isBoolean() && field.isBoolean() && field.isSelected()) {
           // checkboxes and radio buttons
           if (needInAutodoc(field)) {
-            autodoc.setNameValuePair(directiveDef.getDirective(axisID, axisType), "1");
+            autodoc.addNameValuePairAttribute(directiveDef.getDirective(axisID, axisType),
+                "1");
           }
           return true;
         }
@@ -136,15 +137,15 @@ public final class BatchTool {
           if (!field.isBoolean() && !field.isEmpty()) {
             // text fields, file text fields, and spinners
             if (needInAutodoc(field)) {
-              autodoc.setNameValuePair(directiveDef.getDirective(axisID, axisType),
-                  field.getText());
+              autodoc.addNameValuePairAttribute(
+                  directiveDef.getDirective(axisID, axisType), field.getText());
             }
             return true;
           }
           else if (field.isBoolean() && field.isSelected()) {
             // radio text fields and checkbox text fields
             if (needInAutodoc(field)) {
-              autodoc.setNameValuePair(directiveDef.getDirective(axisID, axisType),
+              autodoc.addNameValuePairAttribute(directiveDef.getDirective(axisID, axisType),
                   field.getText());
             }
             return true;
@@ -160,7 +161,8 @@ public final class BatchTool {
   }
 
   public static String getBoundaryModelName(final String stack, final boolean dualAxis) {
-    return FileType.BATCH_RUN_TOMO_BOUNDARY_MODEL.getFileName(DatasetTool.getDatasetName(
-        stack, dualAxis), dualAxis ? AxisType.DUAL_AXIS : AxisType.SINGLE_AXIS, null);
+    return FileType.BATCH_RUN_TOMO_BOUNDARY_MODEL.getFileName(
+        DatasetTool.getDatasetName(stack, dualAxis),
+        dualAxis ? AxisType.DUAL_AXIS : AxisType.SINGLE_AXIS, null);
   }
 }
