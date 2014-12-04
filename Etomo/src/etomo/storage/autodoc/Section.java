@@ -157,6 +157,13 @@ final class Section extends WriteOnlyStatementList implements ReadOnlySection {
         + ",\nattributeList=" + attributeList + "]";
   }
 
+  void graft(final Statement statement) {
+    if (statement == null) {
+      return;
+    }
+    statementList.add(new GraftedStatement(getMostRecentStatement(), statement));
+  }
+
   public String getString() {
     StringBuffer buffer = new StringBuffer();
     buffer.append(AutodocTokenizer.OPEN_CHAR);
