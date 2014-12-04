@@ -82,7 +82,7 @@ public final class BooleanFieldSetting implements FieldSettingInterface {
   public void set(String input) {
     set = true;
     value = stringToBoolean(input);
-    if (textSetting != null) {
+    if (textSetting == null) {
       textSetting = new TextFieldSetting();
     }
     textSetting.set(input);
