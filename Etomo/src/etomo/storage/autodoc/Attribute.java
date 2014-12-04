@@ -9,15 +9,11 @@ import etomo.ui.swing.Token;
 /**
  * <p>Description:</p>
  *
- * <p>Copyright: Copyright 2002, 2003</p>
+ * <p>Copyright: Copyright 2002 - 2014 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
- * University of Colorado</p>
- *
- * @author $$Author$$
- *
- * @version $$Revision$$
+ * @version $Id$
  *
  * <p> $$Log$
  * <p> $Revision 1.15  2010/11/13 16:05:36  sueh
@@ -117,8 +113,6 @@ import etomo.ui.swing.Token;
  */
 
 final class Attribute extends WriteOnlyAttributeList implements WritableAttribute {
-  public static final String rcsid = "$$Id$$";
-
   private final WriteOnlyAttributeList parent;
   private final Token name;
   private final String key;
@@ -149,6 +143,10 @@ final class Attribute extends WriteOnlyAttributeList implements WritableAttribut
     this.name = name;
     this.lineNum = lineNum;
     key = name.getKey();
+  }
+
+  String getKey(){
+    return key;
   }
 
   /**
