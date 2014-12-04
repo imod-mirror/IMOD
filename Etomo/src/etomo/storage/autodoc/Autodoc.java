@@ -98,8 +98,12 @@ public final class Autodoc extends WriteOnlyStatementList implements WritableAut
 
   /**
    * Add names and value to this autodoc global section from the merge autodoc's global
-   * section, where the names do not exist in this autodoc's global section.  The merge
-   * autodoc is unchanged.
+   * section, where the names do not exist in this autodoc's global section.  To merge,
+   * parts of mergeAutodoc will be linked to this instance (an alternative to doing a deep
+   * copy).
+   *
+   * Side effects:  While this function does not directly change mergeAutodoc, it creates
+   * a situation where mergeAutodoc will be changed later.  See subtractGlobal.
    *
    * @param mergeAutodoc
    */
@@ -122,8 +126,10 @@ public final class Autodoc extends WriteOnlyStatementList implements WritableAut
 
   /**
    * Removes name/value pairs from the global section in this autodoc when an identical
-   * name/value pair is found in the global section of the subtract autodoc.  The subtract
-   * autodoc will be modified by remove calls, and must be reopened to be used again.
+   * name/value pair is found in the global section of the subtract autodoc.
+   *
+   * Side effects:  This function removes elements from this instance.  Any autodoc that
+   * was merged into this instance may be changed.
    *
    * @param subtractAutodoc
    */
