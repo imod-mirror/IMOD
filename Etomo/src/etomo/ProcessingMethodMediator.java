@@ -355,7 +355,7 @@ public final class ProcessingMethodMediator {
     if (processInterface != null) {
       ProcessingMethod processInterfaceMethod =
           processInterface.getSecondaryProcessingMethod();
-      if (!processInterfaceMethod.isLocal() &&
+      if (processInterfaceMethod != null && !processInterfaceMethod.isLocal() &&
           parallelPanelMethod == ProcessingMethod.QUEUE) {
         return parallelPanelMethod;
       }

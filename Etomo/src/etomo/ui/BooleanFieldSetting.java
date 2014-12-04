@@ -1,10 +1,5 @@
 package etomo.ui;
 
-import etomo.logic.DefaultFinder;
-import etomo.type.EtomoBoolean2;
-
-import java.util.Properties;
-
 /**
  * <p>Description: Three state boolean setting (not set, on, and off).  NOT thread-safe.
  * The set member variable is turned on when set() is called.  Handles string values by
@@ -87,7 +82,7 @@ public final class BooleanFieldSetting implements FieldSettingInterface {
   public void set(String input) {
     set = true;
     value = stringToBoolean(input);
-    if (textSetting != null) {
+    if (textSetting == null) {
       textSetting = new TextFieldSetting();
     }
     textSetting.set(input);

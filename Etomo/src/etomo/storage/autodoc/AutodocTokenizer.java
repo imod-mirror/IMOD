@@ -59,14 +59,11 @@ import etomo.util.PrimativeTokenizer;
  * strings matching keyword constants are ignored.
  * </p>
  * <p/>
- * <p>Copyright: Copyright 2002 - 2006</p>
+ * <p>Copyright: Copyright 2002 - 2014 by the Regents of the University of Colorado</p>
  * <p/>
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
- * University of Colorado</p>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * @author $$Author$$
- * @version $$Revision$$
+ * @version $Id$
  *          <p/>
  *          <p> $$Log$
  *          <p> $Revision 1.14  2010/11/13 16:05:36  sueh
@@ -142,13 +139,10 @@ import etomo.util.PrimativeTokenizer;
  *          <p> $$ </p>
  */
 public final class AutodocTokenizer {
-  public static final String rcsid =
-      "$$Id$$";
-
   // special characters
   public static final char COMMENT_CHAR = '#';
   public static final char ALT_COMMENT_CHAR = '%';
-  public static final char SEPARATOR_CHAR = '.';
+  public static final String SEPARATOR_CHAR = ".";
   public static final Character OPEN_CHAR = new Character('[');
   public static final Character CLOSE_CHAR = new Character(']');
   public static final String DEFAULT_DELIMITER = "=";
