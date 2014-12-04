@@ -164,8 +164,8 @@ public final class AutodocFactory {
     return getInstance(manager, name, AxisID.ONLY, false);
   }
 
-  public static ReadOnlyAutodoc getComInstance(String name) throws FileNotFoundException,
-      IOException, LogFile.LockException {
+  public static ReadOnlyAutodoc getComInstance(String name)
+      throws FileNotFoundException, IOException, LogFile.LockException {
     if (name == null) {
       throw new IllegalStateException("name is null");
     }
@@ -174,14 +174,15 @@ public final class AutodocFactory {
       return autodoc;
     }
     autodoc = new Autodoc(name);
-    autodoc.initializeGenericInstance(null, EtomoDirector.IMOD_DIR_ENV_VAR,
-        FileType.COM_DIR, name, AxisID.ONLY, false);
+    autodoc
+        .initializeGenericInstance(null, EtomoDirector.IMOD_DIR_ENV_VAR, FileType.COM_DIR,
+            name, AxisID.ONLY, false);
     return autodoc;
   }
 
   public static ReadOnlyAutodoc getInstance(final BaseManager manager, final String name,
-      final AxisID axisID, final boolean debug) throws FileNotFoundException,
-      IOException, LogFile.LockException {
+      final AxisID axisID, final boolean debug)
+      throws FileNotFoundException, IOException, LogFile.LockException {
     if (name == null) {
       throw new IllegalStateException("name is null");
     }
@@ -305,8 +306,8 @@ public final class AutodocFactory {
    * @throws LogFile.LockException
    */
   public static ReadOnlyAutodoc getInstance(BaseManager manager, File file,
-      final String autodocName, final boolean writable) throws IOException,
-      LogFile.LockException {
+      final String autodocName, final boolean writable)
+      throws IOException, LogFile.LockException {
     if (file == null) {
       throw new IllegalStateException("file is null");
     }
@@ -332,8 +333,8 @@ public final class AutodocFactory {
    * @throws IOException
    */
   public static Autodoc getTestInstance(final BaseManager manager, final File directory,
-      final String autodocFileName, final AxisID axisID) throws FileNotFoundException,
-      IOException, LogFile.LockException {
+      final String autodocFileName, final AxisID axisID)
+      throws FileNotFoundException, IOException, LogFile.LockException {
     if (autodocFileName == null) {
       return null;
     }
@@ -365,8 +366,8 @@ public final class AutodocFactory {
    * @throws IOException
    */
   public static Autodoc getInstance(final BaseManager manager, final File autodocFile,
-      final AxisID axisID, final boolean writable) throws FileNotFoundException,
-      IOException, LogFile.LockException {
+      final AxisID axisID, final boolean writable)
+      throws FileNotFoundException, IOException, LogFile.LockException {
     if (autodocFile == null) {
       return null;
     }
@@ -388,17 +389,14 @@ public final class AutodocFactory {
    * returned.
    *
    * @param manager
-   * @param axisID
    * @param autodocFile
    * @param mergeAutodocFile
    * @return
-   * @throws FileNotFoundException
    * @throws IOException
    * @throws LogFile.LockException
    */
-  public static Autodoc merge(final BaseManager manager, final File autodocFile,
-      final File mergeAutodocFile) throws FileNotFoundException, IOException,
-      LogFile.LockException {
+  public static Autodoc mergeGlobal(final BaseManager manager, final File autodocFile,
+      final File mergeAutodocFile) throws IOException, LogFile.LockException {
     if (autodocFile == null && mergeAutodocFile == null) {
       return null;
     }
@@ -416,11 +414,11 @@ public final class AutodocFactory {
     Autodoc mergeAutodoc = null;
     if (mergeAutodocFile != null) {
       mergeAutodoc = new Autodoc(stripFileExtension(mergeAutodocFile.getName()));
-      mergeAutodoc.initializeGenericInstance(manager, mergeAutodocFile, AxisID.ONLY,
-          false);
+      mergeAutodoc
+          .initializeGenericInstance(manager, mergeAutodocFile, AxisID.ONLY, false);
     }
     if (autodoc != null && mergeAutodoc != null) {
-      autodoc.merge(mergeAutodoc);
+      autodoc.mergeGlobal(mergeAutodoc);
     }
     return autodoc;
   }
@@ -431,17 +429,15 @@ public final class AutodocFactory {
    * returned.
    *
    * @param manager
-   * @param axisID
    * @param autodoc
    * @param mergeAutodocFile
    * @return
-   * @throws FileNotFoundException
    * @throws IOException
    * @throws LogFile.LockException
    */
-  public static Autodoc merge(final BaseManager manager, Autodoc autodoc,
-      final File mergeAutodocFile) throws FileNotFoundException, IOException,
-      LogFile.LockException {
+  public static Autodoc mergeGlobal(final BaseManager manager, Autodoc autodoc,
+      final File mergeAutodocFile)
+      throws  IOException, LogFile.LockException {
     if (autodoc == null && mergeAutodocFile == null) {
       return null;
     }
@@ -454,11 +450,11 @@ public final class AutodocFactory {
     Autodoc mergeAutodoc = null;
     if (mergeAutodocFile != null) {
       mergeAutodoc = new Autodoc(stripFileExtension(mergeAutodocFile.getName()));
-      mergeAutodoc.initializeGenericInstance(manager, mergeAutodocFile, AxisID.ONLY,
-          false);
+      mergeAutodoc
+          .initializeGenericInstance(manager, mergeAutodocFile, AxisID.ONLY, false);
     }
     if (autodoc != null && mergeAutodoc != null) {
-      autodoc.merge(mergeAutodoc);
+      autodoc.mergeGlobal(mergeAutodoc);
     }
     return autodoc;
   }
@@ -471,14 +467,13 @@ public final class AutodocFactory {
    * @param autodoc
    * @param subtractAutodoc
    * @return
-   * @throws FileNotFoundException
    * @throws IOException
    * @throws LogFile.LockException
    */
-  public static Autodoc subtract(Autodoc autodoc, final Autodoc subtractAutodoc)
+  public static Autodoc subtractGlobal(Autodoc autodoc, final Autodoc subtractAutodoc)
       throws IOException, LogFile.LockException {
     if (autodoc != null && subtractAutodoc != null) {
-      autodoc.subtract(subtractAutodoc);
+      autodoc.subtractGlobal(subtractAutodoc);
     }
     return autodoc;
   }
@@ -487,16 +482,14 @@ public final class AutodocFactory {
    * return writable autodoc
    *
    * @param manager
-   * @param axisID
    * @param autodocFile
    * @return
-   * @throws FileNotFoundException
    * @throws IOException
    * @throws LogFile.LockException
    */
   public static Autodoc getWritableAutodocInstance(final BaseManager manager,
-      final File autodocFile) throws FileNotFoundException, IOException,
-      LogFile.LockException {
+      final File autodocFile)
+      throws  IOException, LogFile.LockException {
     if (autodocFile == null) {
       return null;
     }
