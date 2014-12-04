@@ -24,20 +24,13 @@ import etomo.type.UserConfiguration;
 /**
  * <p>Description: </p>
  * <p/>
- * <p>Copyright: Copyright 2013</p>
+ * <p>Copyright: Copyright 2013 - 2014 by the Regents of the University of Colorado</p>
  * <p/>
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
- * University of Colorado</p>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * @author $Author$
- * @version $Revision$
- *          <p/>
- *          <p> $Log$ </p>
+ * @version $Id$
  */
 final class TemplatePanel {
-  public static final String rcsid = "$Id:$";
-
   private static String EMPTY_OPTION = "None available";
   private static String SELECT_OPTION1 = "No selection (";
   private static final String SELECT_OPTION2 = " available)";
@@ -167,17 +160,17 @@ final class TemplatePanel {
   void saveAutodoc(final WritableAutodoc autodoc) {
     File templateFile = getScopeTemplateFile();
     if (templateFile != null) {
-      autodoc.addNameValuePair(DirectiveDef.SCOPE_TEMPLATE.getDirective(null, null),
+      autodoc.addNameValuePairAttribute(DirectiveDef.SCOPE_TEMPLATE.getDirective(null, null),
           templateFile.getAbsolutePath());
     }
     templateFile = getSystemTemplateFile();
     if (templateFile != null) {
-      autodoc.addNameValuePair(DirectiveDef.SYSTEM_TEMPLATE.getDirective(null, null),
+      autodoc.addNameValuePairAttribute(DirectiveDef.SYSTEM_TEMPLATE.getDirective(null, null),
           templateFile.getAbsolutePath());
     }
     templateFile = getUserTemplateFile();
     if (templateFile != null) {
-      autodoc.addNameValuePair(DirectiveDef.USER_TEMPLATE.getDirective(null, null),
+      autodoc.addNameValuePairAttribute(DirectiveDef.USER_TEMPLATE.getDirective(null, null),
           templateFile.getAbsolutePath());
     }
   }
