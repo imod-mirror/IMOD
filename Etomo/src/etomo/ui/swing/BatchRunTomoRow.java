@@ -21,6 +21,7 @@ import etomo.storage.DirectiveFile;
 import etomo.storage.DirectiveFileCollection;
 import etomo.storage.DirectiveFileInterface;
 import etomo.storage.LogFile;
+import etomo.storage.autodoc.Autodoc;
 import etomo.storage.autodoc.AutodocFactory;
 import etomo.storage.autodoc.WritableAutodoc;
 import etomo.type.AxisID;
@@ -422,29 +423,29 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
     }
   }
 
-  void saveAutodoc(final TemplatePanel templatePanel) {
+  void saveAutodoc(final TemplatePanel templatePanel, final Autodoc baseAutodoc) {
     File stack = new File(fcStack.getExpandedValue());
     File file = new File(stack.getParent(), getBatchDirectiveFileName());
     try {
       if (file.exists()) {
         Utilities.deleteFile(file, manager, null);
       }
-      WritableAutodoc autodoc = AutodocFactory.getEmptyWritableInstance(manager, file);
-      BatchTool.saveAutodoc(cbcDual, autodoc);
-      BatchTool.saveAutodoc(cbcMontage, autodoc);
-      BatchTool.saveAutodoc(fcSkip, autodoc);
-      BatchTool.saveAutodoc(fcbskip, AxisID.SECOND, AxisType.DUAL_AXIS, autodoc);
+      Autodoc autodoc = AutodocFactory.getWritableAutodocInstance(manager, file);
+      BatchTool.saveFieldToAutodoc(cbcDual, autodoc);
+      BatchTool.saveFieldToAutodoc(cbcMontage, autodoc);
+      BatchTool.saveFieldToAutodoc(fcSkip, autodoc);
+      BatchTool.saveFieldToAutodoc(fcbskip, AxisID.SECOND, AxisType.DUAL_AXIS, autodoc);
       if (cbcBoundaryModel.isSelected() && BatchTool.needInAutodoc(cbcBoundaryModel)) {
         String boundaryModelName =
             BatchTool.getBoundaryModelName(stack.getName(), cbcDual.isSelected());
-        autodoc.addNameValuePair(
+        autodoc.addNameValuePairAttribute(
             DirectiveDef.RAW_BOUNDARY_MODEL_FOR_SEED_FINDING.getDirective(null, null),
             boundaryModelName);
-        autodoc.addNameValuePair(
+        autodoc.addNameValuePairAttribute(
             DirectiveDef.RAW_BOUNDARY_MODEL_FOR_PATCH_TRACKING.getDirective(null, null),
             boundaryModelName);
       }
-      BatchTool.saveAutodoc(cbcTwoSurfaces, autodoc);
+      BatchTool.saveFieldToAutodoc(cbcTwoSurfaces, autodoc);
       if (templatePanel != null) {
         templatePanel.saveAutodoc(autodoc);
       }
@@ -458,6 +459,7 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
           globalDatasetDialog.saveAutodoc(autodoc);
         }
       }
+      autodoc.mergeGlobal(baseAutodoc);
       autodoc.write();
     }
     catch (IOException e) {

@@ -1,8 +1,5 @@
 package etomo.type;
 
-import etomo.ui.BooleanFieldSetting;
-import etomo.ui.FieldSettingInterface;
-
 import java.util.Properties;
 
 /**

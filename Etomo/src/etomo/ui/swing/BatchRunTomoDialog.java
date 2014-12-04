@@ -16,14 +16,12 @@ import javax.swing.JTabbedPane;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import etomo.BaseManager;
 import etomo.BatchRunTomoManager;
 import etomo.EtomoDirector;
 import etomo.ProcessingMethodMediator;
 import etomo.comscript.BatchruntomoParam;
 import etomo.logic.BatchTool;
 import etomo.logic.UserEnv;
-import etomo.process.BaseProcessManager;
 import etomo.storage.DirectiveFile;
 import etomo.storage.DirectiveFileCollection;
 import etomo.storage.LogFile;
@@ -147,7 +145,7 @@ public final class BatchRunTomoDialog
     ftfRootDir.setText(new File(System.getProperty("user.dir")).getAbsolutePath());
     ftfRootDir.setFileSelectionMode(FileChooser.DIRECTORIES_ONLY);
     cbDeliverToDirectory.setName(DELIVER_TO_DIRECTORY_NAME);
-    //Make sure that the machine lists from the batchruntomo .com file get loaded.
+    // Make sure that the machine lists from the batchruntomo .com file get loaded.
     cbCPUMachineList.setSelected(true);
     rbGPUMachineList.setSelected(true);
     // root panel
@@ -351,8 +349,7 @@ public final class BatchRunTomoDialog
       if (deliverToDirectory) {
         errMsg
             .append("\n\nEither change the name of the associated stacks, or go to the " +
-                BatchRunTomoTab.BATCH.getQuotedLabel() +
-                " tab and uncheck the " +
+                BatchRunTomoTab.BATCH.getQuotedLabel() + " tab and uncheck the " +
                 ftfDeliverToDirectory.getQuotedLabel() +
                 " check box.  Each dataset will be placed in the current location of its stack " +
                 "file.");
@@ -371,28 +368,23 @@ public final class BatchRunTomoDialog
   }
 
   public void loadAutodocs() {
-    //load global autodoc
+    // load global autodoc
     DirectiveFile directiveFile = DirectiveFile.getInstance(manager, axisID,
         FileType.BATCH_RUN_TOMO_GLOBAL_AUTODOC.getFile(manager, axisID), true);
     templatePanel.setParameters(directiveFile);
     datasetDialog.setValues(directiveFile);
-    //load dataset autodocs
+    // load dataset autodocs
     table.loadAutodocs();
   }
 
   public void saveAutodocs() {
-    Autodoc mergedAutodoc = BatchTool
-        .mergeDirectiveFiles(manager, ftfInputDirectiveFile.getFile(),
-            templatePanel.getFiles());
-    //save global autodoc
-    FileType globalAutodocType = FileType.BATCH_RUN_TOMO_GLOBAL_AUTODOC;
-    File globalFile = globalAutodocType.getFile(manager, null);
+    // save global autodoc
+    File globalFile = FileType.BATCH_RUN_TOMO_GLOBAL_AUTODOC.getFile(manager, null);
     try {
       if (globalFile.exists()) {
         Utilities.deleteFile(globalFile, manager, axisID);
       }
-      WritableAutodoc autodoc =
-          AutodocFactory.getEmptyWritableInstance(manager, globalFile);
+      Autodoc autodoc = AutodocFactory.getWritableAutodocInstance(manager, globalFile);
       templatePanel.saveAutodoc(autodoc);
       datasetDialog.saveAutodoc(autodoc);
       autodoc.write();
@@ -403,8 +395,11 @@ public final class BatchRunTomoDialog
     catch (LogFile.LockException e) {
       e.printStackTrace();
     }
-    //save dataset autodocs
-    table.saveAutodocs(templatePanel);
+    // save dataset autodocs with the starting batch and default batch directive files
+    // merged in.
+    table.saveAutodocs(templatePanel, BatchTool
+        .mergeDirectiveFiles(manager, ftfInputDirectiveFile.getFile(),
+            templatePanel.getFiles()));
   }
 
   /**

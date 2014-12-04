@@ -17,7 +17,6 @@ import etomo.storage.Node;
 import etomo.storage.Storable;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.EtomoNumber;
-import etomo.type.ProcessingMethod;
 import etomo.ui.swing.ProcessorTable.ColumnName;
 import etomo.util.Utilities;
 
