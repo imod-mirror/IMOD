@@ -64,6 +64,7 @@ static char *sErrorStrings[] =
 #define putimageref  PUTIMAGEREF
 #define getimodmaxes GETIMODMAXES
 #define putimodmaxes PUTIMODMAXES
+#define getzfromminuspt5 GETZFROMMINUSPT5
 #define getimodscat  GETIMODSCAT
 #define getimodclip  GETIMODCLIP
 #define putimodscat  PUTIMODSCAT
@@ -125,6 +126,7 @@ static char *sErrorStrings[] =
 #define putimageref  putimageref_
 #define getimodmaxes getimodmaxes_
 #define putimodmaxes putimodmaxes_
+#define getzfromminuspt5 getzfromminuspt5_
 #define getimodclip  getimodclip_
 #define getimodscat  getimodscat_
 #define putimodscat  putimodscat_
@@ -1721,6 +1723,17 @@ int getimodmaxes(int *xmax, int *ymax, int *zmax)
 }
 
 /*!
+ * Returns 1 if the model flag is set that Z coordinates start at -0.5, or negative
+ * if there is no open model.
+ */
+int getzfromminuspt5()
+{
+  if (!sImod)
+    return(FWRAP_ERROR_NO_MODEL);
+  return (sImod->flags & IMODF_Z_FROM_MINUSPT5) ? 1 : 0;
+}
+  
+/*!
  * Returns header values: pixel size in microns in [um], Z-scale in [zscale],
  * offsets to get from model coordinates to full volume index coordinates in
  * [xoffset], [yoffset], [zoffset], and [ifflip] nonzero if Y/Z are flipped.
@@ -1814,6 +1827,11 @@ int putimageref(float *delta, float *origin)
   iref->ctrans.x = origin[0];
   iref->ctrans.y = origin[1];
   iref->ctrans.z = origin[2];
+  iref->otrans = iref->ctrans;
+  iref->crot.x = 0.;
+  iref->crot.y = 0.;
+  iref->crot.z = 0.;
+  sImod->flags |= IMODF_OTRANS_ORIGIN;
   return FWRAP_NOERROR;
 }
 

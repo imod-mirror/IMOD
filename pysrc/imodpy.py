@@ -40,6 +40,8 @@ This module provides the following functions:
   completeAndCheckComFile(comfile) - returns complete com file name and root
   cleanChunkFiles(rootname[, logOnly]) - cleans up log and com files from chunks
   cleanupFiles(files) - Removes a list of files with multiple trials if it fails
+  extractProgramEntries(comLines, progName, startKey) - extract entries to a program
+                                                        from command file lines
   getCygpath(windows, path) - Returns path, or Windows path if windows is not None
   cygwinPath(path)          - Returns path, or a Cygwin path if running in Cygwin
 
@@ -847,7 +849,28 @@ def cleanupFiles(files):
 
       if numToDo:
          time.sleep(retryWait)
-               
+
+
+# Extract the entries to a program from the lines of a command file, looking for a line
+# that runs progName and also contains startKey
+def extractProgramEntries(comLines, progName, startKey):
+   startline = -1
+   endline = len(comLines)
+
+   # Find the line that runs the program, then look for a following command
+   for i in range(endline):
+      line = comLines[i].strip()
+      if line.startswith('$'):
+         if startline > 0:
+            endline = i
+            break
+         if progName in line and startKey in line:
+            startline = i + 1
+
+   if startline < 0:
+      return None
+   return comLines[startline:endline]
+
 
 # Returns the Windows path for path using cygpath -m if windows is not None
 def getCygpath(windows, path):
