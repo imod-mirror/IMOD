@@ -14,7 +14,7 @@ be used to run a single command file on a remote machine.
 
 .SS Command Files
 The command
-files should be in the format runnable with Vmstocsh(1) (e.g., using subm)
+files should be in the format runnable with Vmstopy(1) (e.g., using subm)
 and be named like files produced by Chunksetup(1).  Specifically, the files
 for processing individual components should be named
 rootname-001.com, rootname-002.com, etc., where "rootname" is the root name
@@ -45,6 +45,16 @@ to completion in parallel, then rootname-010-sync.com will be run alone on the
 first machine, then 11 to 19 will be run in parallel, then
 rootname-020-sync.com will be run alone, then all remaining files will be run
 in parallel.
+
+If there are more than 999 chunks, the files can be numbered with 3
+digits below 1000, 4 digits for 1000 to 9999, and 5 digits for 10000 and
+above.  Alternatively, all files can be given the same number of
+digits, e.g., "0001" to "4567".  The program will not run more than
+99,999 chunks.  Large numbers of chunks will use a lot of resources both
+within processchunks and in the filesystem, so it is desirable to keep
+the number of chunks under 10000 if possible.  Using more than 99,999
+chunks would probably incur an excessive amount of overhead, but this
+capability could be added if truly needed.
 
 To run any single command file on a remote machine, simply use the
 .B -s
