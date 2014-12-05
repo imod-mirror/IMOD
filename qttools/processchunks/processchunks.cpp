@@ -1014,6 +1014,10 @@ void Processchunks::setupComFileJobs() {
     if (mCurrentDir.exists(startComFile)) {
       comFileArray.append(startComFile);
     }
+    if (mCurrentDir.exists(mRootName + QString("-100000.com")) ||
+        mCurrentDir.exists(mRootName + QString("-100000-sync.com"))) {
+      exitError("Cannot process more than 99999 chunks");
+    }
     //Add numeric com files
     mCurrentDir.setSorting(QDir::Name);
     mCurrentDir.setFilter(QDir::Files);
