@@ -378,6 +378,9 @@ public final class BatchRunTomoDialog
   }
 
   public void saveAutodocs() {
+    Autodoc graftedBaseAutodoc = BatchTool
+        .graftDirectiveFiles(manager, ftfInputDirectiveFile.getFile(),
+            templatePanel.getFiles());
     // save global autodoc
     File globalFile = FileType.BATCH_RUN_TOMO_GLOBAL_AUTODOC.getFile(manager, null);
     try {
@@ -387,6 +390,9 @@ public final class BatchRunTomoDialog
       Autodoc autodoc = AutodocFactory.getWritableAutodocInstance(manager, globalFile);
       templatePanel.saveAutodoc(autodoc);
       datasetDialog.saveAutodoc(autodoc);
+      autodoc.graftMergeGlobal(graftedBaseAutodoc);
+      // Warning: After merging DO NOT write to autodoc because the grafted areas will be
+      // shared with other autodocs.
       autodoc.write();
     }
     catch (IOException e) {
@@ -396,10 +402,8 @@ public final class BatchRunTomoDialog
       e.printStackTrace();
     }
     // save dataset autodocs with the starting batch and default batch directive files
-    // merged in.
-    table.saveAutodocs(templatePanel, BatchTool
-        .mergeDirectiveFiles(manager, ftfInputDirectiveFile.getFile(),
-            templatePanel.getFiles()));
+    // grafted on.
+    table.saveAutodocs(templatePanel, graftedBaseAutodoc);
   }
 
   /**
