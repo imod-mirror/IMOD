@@ -320,8 +320,8 @@ final class BatchRunTomoTable
     rowList.getParameters(param, deliverToDirectory, errMsg);
   }
 
-  void saveAutodocs(final TemplatePanel templatePanel, final Autodoc baseAutodoc) {
-    rowList.saveAutodocs(templatePanel, baseAutodoc);
+  void saveAutodocs(final TemplatePanel templatePanel, final Autodoc graftedBaseAutodoc) {
+    rowList.saveAutodocs(templatePanel, graftedBaseAutodoc);
   }
 
   void loadAutodocs() {
@@ -724,9 +724,9 @@ final class BatchRunTomoTable
     }
 
     private void saveAutodocs(final TemplatePanel templatePanel,
-        final Autodoc baseAutodoc) {
+        final Autodoc graftedBaseAutodoc) {
       for (int i = 0; i < list.size(); i++) {
-        list.get(i).saveAutodoc(templatePanel, baseAutodoc);
+        list.get(i).saveAutodoc(templatePanel, graftedBaseAutodoc);
       }
     }
 
