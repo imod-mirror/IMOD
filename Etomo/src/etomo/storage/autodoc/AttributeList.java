@@ -39,12 +39,12 @@ final class AttributeList implements ReadOnlyAttributeList {
   }
 
   /**
-   * Adds names and values to this instance from the merge attribute list, where the names
+   * Grafts names and values to this instance from the merge attribute list, where the names
    * do not exist in this instance.
    *
    * @param mergeAttributeList
    */
-  void merge(final AttributeList mergeAttributeList,
+  void graftMerge(final AttributeList mergeAttributeList,
       final WriteOnlyStatementList parent) {
     if (mergeAttributeList == null) {
       return;
@@ -56,7 +56,7 @@ final class AttributeList implements ReadOnlyAttributeList {
         String key = mergeAttribute.getKey();
         Attribute attribute = map.get(key);
         if (attribute!=null) {
-          attribute.merge(mergeAttribute, parent);
+          attribute.graftMerge(mergeAttribute, parent);
         }
         else {
           // Graft merge attribute on to this attribute list

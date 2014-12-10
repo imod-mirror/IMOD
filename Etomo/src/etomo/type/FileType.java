@@ -19,16 +19,12 @@ import etomo.process.ImodManager;
  * descriptions are stored in a list.  Units test are used to prevent name
  * collisions of these files.</p>
  * 
- * <p>Copyright: Copyright 2008 - 2010</p>
+ * <p>Copyright: Copyright 2008 - 2014 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
- * University of Colorado</p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
- * 
+ * @version $Id$
+ *
  * <p> $Log$
  * <p> Revision 1.14  2011/06/30 00:20:23  sueh
  * <p> Bug# 1502 In getFileName removed Thread.dumpStack call.
@@ -92,8 +88,6 @@ import etomo.process.ImodManager;
  * <p> </p>
  */
 public final class FileType {
-  public static final String rcsid = "$Id$";
-
   public static final String COM_DIR = "com";
 
   private static final List namedFileTypeList = new Vector();
@@ -130,6 +124,8 @@ public final class FileType {
       "", ".3dmod", ImodManager.FIDUCIAL_MODEL_KEY);
   public static final FileType BATCH_RUN_TOMO_GLOBAL_AUTODOC = FileType.getInstance(true,
       false, "", ".adoc");
+  public static final FileType DEFAULT_BATCH_RUN_TOMO_AUTODOC = FileType.getIMODDirInstance(
+      false, false, "batchDefaults", ".adoc", COM_DIR);
   public static final FileType LOCAL_BATCH_DIRECTIVE_FILE = FileType.getInstance(false,
       false, "batchDirective", ".adoc");
   public static final FileType LOCAL_SCOPE_TEMPLATE = FileType.getInstance(false, false,

@@ -146,13 +146,13 @@ final class Attribute extends WriteOnlyAttributeList implements WritableAttribut
   }
 
   /**
-   * Adds names and values to this instance from the merge attribute, when the names are
+   * Grafts names and values to this instance from the merge attribute, when the names are
    * not found in this instance.
    *
    * @param mergeAttribute
    * @param parent         location of statement list
    */
-  void merge(final Attribute mergeAttribute, final WriteOnlyStatementList parent) {
+  void graftMerge(final Attribute mergeAttribute, final WriteOnlyStatementList parent) {
     if (mergeAttribute == null) {
       return;
     }
@@ -173,7 +173,7 @@ final class Attribute extends WriteOnlyAttributeList implements WritableAttribut
         }
         else {
           //This attribute does exist so far, continue to attempt to merge
-          children.merge(mergeAttribute.children, parent);
+          children.graftMerge(mergeAttribute.children, parent);
         }
       }
     }

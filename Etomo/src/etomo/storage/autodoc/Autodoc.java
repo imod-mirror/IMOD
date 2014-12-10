@@ -103,15 +103,21 @@ public final class Autodoc extends WriteOnlyStatementList implements WritableAut
    * copy).
    *
    * Side effects:  While this function does not directly change mergeAutodoc, it creates
-   * a situation where mergeAutodoc will be changed later.  See subtractGlobal.
+   * a situation where mergeAutodoc will be changed later because deep copies are not used.
+   * See subtractGlobal.
+   *
+   * After running graftMergeGlobal, assume that all autodocs that ran graftMergeGlobal or
+   * where passed to graftMergeGlobal are linked together and cannot be modified without
+   * sided effects.  Therefore if more then one autodoc must preserved after the merge,
+   * this function should be called after all modifications.
    *
    * @param mergeAutodoc
    */
-  public void mergeGlobal(final Autodoc mergeAutodoc) {
+  public void graftMergeGlobal(final Autodoc mergeAutodoc) {
     if (mergeAutodoc == null || mergeAutodoc.attributeList == null) {
       return;
     }
-    attributeList.merge(mergeAutodoc.attributeList, this);
+    attributeList.graftMerge(mergeAutodoc.attributeList, this);
     if (sectionList.size() > 0 || mergeAutodoc.sectionList.size() > 0) {
       System.err.println("Info: Non-global sections will not be merged.");
     }
@@ -129,7 +135,7 @@ public final class Autodoc extends WriteOnlyStatementList implements WritableAut
    * name/value pair is found in the global section of the subtract autodoc.
    *
    * Side effects:  This function removes elements from this instance.  Any autodoc that
-   * was merged into this instance may be changed.
+   * was graft-merged into this instance may be changed.  See graftMergeGlobal.
    *
    * @param subtractAutodoc
    */
