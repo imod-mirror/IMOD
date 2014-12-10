@@ -663,23 +663,27 @@ final class BatchRunTomoDatasetDialog
     if (rbTrackingMethodSeed.isSelected()) {
       if (rbTrackingMethodSeed.isEnabled() &&
           BatchTool.needInAutodoc(rbTrackingMethodSeed)) {
-        autodoc.addNameValuePairAttribute(DirectiveDef.TRACKING_METHOD.getDirective(null, null),
+        autodoc.addNameValuePairAttribute(
+            DirectiveDef.TRACKING_METHOD.getDirective(null, null),
             TrackingMethod.SEED.getValue().toString());
-        autodoc.addNameValuePairAttribute(DirectiveDef.SEEDING_METHOD.getDirective(null, null),
+        autodoc.addNameValuePairAttribute(
+            DirectiveDef.SEEDING_METHOD.getDirective(null, null),
             SeedingMethod.BOTH.getValue());
       }
     }
     else if (rbTrackingMethodRaptor.isSelected()) {
       if (rbTrackingMethodRaptor.isEnabled() &&
           BatchTool.needInAutodoc(rbTrackingMethodRaptor)) {
-        autodoc.addNameValuePairAttribute(DirectiveDef.TRACKING_METHOD.getDirective(null, null),
+        autodoc.addNameValuePairAttribute(
+            DirectiveDef.TRACKING_METHOD.getDirective(null, null),
             TrackingMethod.RAPTOR.getValue().toString());
       }
     }
     else if (rbTrackingMethodPatchTracking.isEnabled() &&
         rbTrackingMethodPatchTracking.isSelected()) {
       if (BatchTool.needInAutodoc(rbTrackingMethodPatchTracking)) {
-        autodoc.addNameValuePairAttribute(DirectiveDef.TRACKING_METHOD.getDirective(null, null),
+        autodoc.addNameValuePairAttribute(
+            DirectiveDef.TRACKING_METHOD.getDirective(null, null),
             TrackingMethod.PATCH_TRACKING.getValue().toString());
       }
     }
@@ -697,9 +701,8 @@ final class BatchRunTomoDatasetDialog
         add = !cbLengthOfPieces.equalsDefaultValue(lengthOfPieces);
       }
       if (add) {
-        autodoc
-            .addNameValuePairAttribute(cbLengthOfPieces.getDirectiveDef().getDirective(null, null),
-                lengthOfPieces);
+        autodoc.addNameValuePairAttribute(
+            cbLengthOfPieces.getDirectiveDef().getDirective(null, null), lengthOfPieces);
       }
     }
     BatchTool.saveFieldToAutodoc(cbEnableStretching, autodoc);
@@ -723,7 +726,8 @@ final class BatchRunTomoDatasetDialog
     }
     if (rbUseSirtFalse.isSelected()) {
       if (rbUseSirtFalse.isEnabled() && BatchTool.needInAutodoc(rbUseSirtFalse)) {
-        autodoc.addNameValuePairAttribute(DirectiveDef.USE_SIRT.getDirective(null, null), "0");
+        autodoc.addNameValuePairAttribute(DirectiveDef.USE_SIRT.getDirective(null, null),
+            "0");
       }
     }
     else if (!BatchTool.saveFieldToAutodoc(rbUseSirtTrue, autodoc)) {
@@ -731,7 +735,9 @@ final class BatchRunTomoDatasetDialog
         // Don't add useSirt if it is the default or in the templates
         if (!rbUseSirtTrue.equalsFieldHighlight(true) &&
             !rbUseSirtTrue.equalsDefaultValue(true)) {
-          autodoc.addNameValuePairAttribute(DirectiveDef.USE_SIRT.getDirective(null, null), "1");
+          autodoc
+              .addNameValuePairAttribute(DirectiveDef.USE_SIRT.getDirective(null, null),
+                  "1");
         }
       }
     }
@@ -889,15 +895,17 @@ final class BatchRunTomoDatasetDialog
         rbUseSirtTrue.setFieldHighlight(true);
       }
       if (containsDoBackprojAlso) {
+        //doBackprojAlso is set to false
         rbDoBackprojAlso.setFieldHighlight(false);
       }
     }
-    else {
+    else if (!setFieldHighlightValue) {
       rbUseSirtFalse.setSelected(true);
-      if (containsUseSirt && setFieldHighlightValue) {
-        rbUseSirtTrue.setFieldHighlight(false);
-      }
     }
+    else if (containsUseSirt) {
+      rbUseSirtTrue.setFieldHighlight(false);
+    }
+
     setValue(ltfLeaveIterations, directiveFiles, setFieldHighlightValue);
     setValue(cbScaleToInteger, directiveFiles, setFieldHighlightValue);
     // Derive thickness from log when thickness is not specified.

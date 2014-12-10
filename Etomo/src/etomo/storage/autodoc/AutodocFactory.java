@@ -384,9 +384,11 @@ public final class AutodocFactory {
   }
 
   /**
-   * Merges two autodocs.  The second autodoc will be merged into the first autodoc.  A
-   * writable instance of the first autodoc, with the second one merged into it will be
-   * returned.
+   * Simulates a merge by grafting two autodocs together.  The grafted areas in the merge
+   * autodoc will be changed when they are changed in the first autodoc.  A writable
+   * instance of the first autodoc, with the second one merged into it will be returned.
+   * The files are not effected, so that merge autodoc can be reread into a fresh Autodoc
+   * instance.  The merge autodoc instance is local and is discarded.
    *
    * @param manager
    * @param autodocFile
@@ -395,7 +397,7 @@ public final class AutodocFactory {
    * @throws IOException
    * @throws LogFile.LockException
    */
-  public static Autodoc mergeGlobal(final BaseManager manager, final File autodocFile,
+  public static Autodoc graftMergeGlobal(final BaseManager manager, final File autodocFile,
       final File mergeAutodocFile) throws IOException, LogFile.LockException {
     if (autodocFile == null && mergeAutodocFile == null) {
       return null;
@@ -418,15 +420,17 @@ public final class AutodocFactory {
           .initializeGenericInstance(manager, mergeAutodocFile, AxisID.ONLY, false);
     }
     if (autodoc != null && mergeAutodoc != null) {
-      autodoc.mergeGlobal(mergeAutodoc);
+      autodoc.graftMergeGlobal(mergeAutodoc);
     }
     return autodoc;
   }
 
   /**
-   * Merges two autodocs.  The second autodoc will be merged into the first autodoc.  A
-   * writable instance of the first autodoc, with the second one merged into it will be
-   * returned.
+   * Simulates a merge by grafting two autodocs together.  The grafted areas in the merge
+   * autodoc will be changed when they are changed in the first autodoc.  A writable
+   * instance of the first autodoc, with the second one merged into it will be returned.
+   * The files are not effected, so that merge autodoc can be reread into a fresh Autodoc
+   * instance.  The merge autodoc instance is local and is discarded.
    *
    * @param manager
    * @param autodoc
@@ -435,7 +439,7 @@ public final class AutodocFactory {
    * @throws IOException
    * @throws LogFile.LockException
    */
-  public static Autodoc mergeGlobal(final BaseManager manager, Autodoc autodoc,
+  public static Autodoc graftMergeGlobal(final BaseManager manager, Autodoc autodoc,
       final File mergeAutodocFile)
       throws  IOException, LogFile.LockException {
     if (autodoc == null && mergeAutodocFile == null) {
@@ -454,7 +458,7 @@ public final class AutodocFactory {
           .initializeGenericInstance(manager, mergeAutodocFile, AxisID.ONLY, false);
     }
     if (autodoc != null && mergeAutodoc != null) {
-      autodoc.mergeGlobal(mergeAutodoc);
+      autodoc.graftMergeGlobal(mergeAutodoc);
     }
     return autodoc;
   }

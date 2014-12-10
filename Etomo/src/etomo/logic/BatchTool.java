@@ -34,26 +34,43 @@ public final class BatchTool {
    * @param templateFiles      standard order: scope to user
    * @return
    */
-  public static Autodoc mergeDirectiveFiles(final BaseManager manager,
+  public static Autodoc graftDirectiveFiles(final BaseManager manager,
       final File inputDirectiveFile, final File[] templateFiles) {
+    File batchDefault =
+        FileType.DEFAULT_BATCH_RUN_TOMO_AUTODOC.getFile(manager, AxisID.ONLY);
+    boolean batchDefaultExists = batchDefault.exists();
+    boolean inputDirectiveFileSet =
+        inputDirectiveFile != null && !inputDirectiveFile.exists();
+    if (!inputDirectiveFileSet && !batchDefaultExists) {
+      return null;
+    }
     Autodoc totalBatch = null;
     Autodoc totalTemplate = null;
     try {
-      totalBatch = AutodocFactory.mergeGlobal(manager, inputDirectiveFile, new File(
-          "/home/sueh/defaultBatchruntomo.adoc"));
+      if (!inputDirectiveFileSet) {
+        totalBatch = AutodocFactory.getWritableAutodocInstance(manager, batchDefault);
+      }
+      else if (!batchDefaultExists) {
+        totalBatch =
+            AutodocFactory.getWritableAutodocInstance(manager, inputDirectiveFile);
+      }
+      else {
+        totalBatch =
+            AutodocFactory.graftMergeGlobal(manager, inputDirectiveFile, batchDefault);
+      }
       // Subtract template files if there is something to subtract them from.
       if (totalBatch != null && templateFiles != null && templateFiles.length > 0) {
         if (templateFiles.length == 1) {
-          totalTemplate = AutodocFactory.getWritableAutodocInstance(manager,
-              templateFiles[0]);
+          totalTemplate =
+              AutodocFactory.getWritableAutodocInstance(manager, templateFiles[0]);
         }
         else {
-          totalTemplate = AutodocFactory.mergeGlobal(manager,
-              templateFiles[templateFiles.length - 1],
-              templateFiles[templateFiles.length - 2]);
+          totalTemplate = AutodocFactory
+              .graftMergeGlobal(manager, templateFiles[templateFiles.length - 1],
+                  templateFiles[templateFiles.length - 2]);
           for (int i = templateFiles.length - 3; i >= 0; i--) {
-            totalTemplate = AutodocFactory
-                .mergeGlobal(manager, totalTemplate, templateFiles[i]);
+            totalTemplate =
+                AutodocFactory.graftMergeGlobal(manager, totalTemplate, templateFiles[i]);
           }
         }
       }
@@ -101,7 +118,8 @@ public final class BatchTool {
    * @param autodoc
    * @return
    */
-  public static boolean saveFieldToAutodoc(final Field field, final WritableAutodoc autodoc) {
+  public static boolean saveFieldToAutodoc(final Field field,
+      final WritableAutodoc autodoc) {
     return saveFieldToAutodoc(field, null, null, autodoc);
   }
 
@@ -137,16 +155,18 @@ public final class BatchTool {
           if (!field.isBoolean() && !field.isEmpty()) {
             // text fields, file text fields, and spinners
             if (needInAutodoc(field)) {
-              autodoc.addNameValuePairAttribute(
-                  directiveDef.getDirective(axisID, axisType), field.getText());
+              autodoc
+                  .addNameValuePairAttribute(directiveDef.getDirective(axisID, axisType),
+                      field.getText());
             }
             return true;
           }
           else if (field.isBoolean() && field.isSelected()) {
             // radio text fields and checkbox text fields
             if (needInAutodoc(field)) {
-              autodoc.addNameValuePairAttribute(directiveDef.getDirective(axisID, axisType),
-                  field.getText());
+              autodoc
+                  .addNameValuePairAttribute(directiveDef.getDirective(axisID, axisType),
+                      field.getText());
             }
             return true;
           }
@@ -161,8 +181,8 @@ public final class BatchTool {
   }
 
   public static String getBoundaryModelName(final String stack, final boolean dualAxis) {
-    return FileType.BATCH_RUN_TOMO_BOUNDARY_MODEL.getFileName(
-        DatasetTool.getDatasetName(stack, dualAxis),
-        dualAxis ? AxisType.DUAL_AXIS : AxisType.SINGLE_AXIS, null);
+    return FileType.BATCH_RUN_TOMO_BOUNDARY_MODEL
+        .getFileName(DatasetTool.getDatasetName(stack, dualAxis),
+            dualAxis ? AxisType.DUAL_AXIS : AxisType.SINGLE_AXIS, null);
   }
 }

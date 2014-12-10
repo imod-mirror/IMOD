@@ -385,8 +385,8 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
     if (!cbcRun.isSelected()) {
       return;
     }
-    param.addDirectiveFile(getBatchDirectiveFileName());
     File stack = new File(fcStack.getExpandedValue());
+    param.addDirectiveFile(new File(stack, getBatchDirectiveFileName()));
     String rootName = DatasetTool.getDatasetName(stack.getName(), cbcDual.isSelected());
     if (!param.addRootName(rootName, deliverToDirectory, errMsg)) {
       errMsg.append(": " + rootName + ".  ");
@@ -423,7 +423,7 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
     }
   }
 
-  void saveAutodoc(final TemplatePanel templatePanel, final Autodoc baseAutodoc) {
+  void saveAutodoc(final TemplatePanel templatePanel, final Autodoc graftedBaseAutodoc) {
     File stack = new File(fcStack.getExpandedValue());
     File file = new File(stack.getParent(), getBatchDirectiveFileName());
     try {
@@ -459,7 +459,9 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
           globalDatasetDialog.saveAutodoc(autodoc);
         }
       }
-      autodoc.mergeGlobal(baseAutodoc);
+      autodoc.graftMergeGlobal(graftedBaseAutodoc);
+      // Warning: After merging DO NOT write to autodoc because the grafted areas are
+      // being shared with other autodocs.
       autodoc.write();
     }
     catch (IOException e) {
