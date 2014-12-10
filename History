@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/4/14: Made Processchunks give an error with more than 100,000 chunks.
+
 11/28/14: Various fixes related to model Z coordinates starting at -0.5
 instead of 0: fixed half-pixel error when rotating model by 90 degrees; fixed
 Findbeads3d to put out Z coordinates starting at -0.5; fixed Tilt to reproject
