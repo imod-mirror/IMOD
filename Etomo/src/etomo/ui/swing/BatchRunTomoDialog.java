@@ -22,6 +22,7 @@ import etomo.ProcessingMethodMediator;
 import etomo.comscript.BatchruntomoParam;
 import etomo.logic.BatchTool;
 import etomo.logic.UserEnv;
+import etomo.storage.AutodocFilter;
 import etomo.storage.DirectiveFile;
 import etomo.storage.DirectiveFileCollection;
 import etomo.storage.LogFile;
@@ -134,16 +135,18 @@ public final class BatchRunTomoDialog
     templatePanel.setFieldHighlight();
     ftfInputDirectiveFile.setAbsolutePath(true);
     ftfInputDirectiveFile.setFieldEditable(false);
-    ftfInputDirectiveFile.setOrigin(EtomoDirector.INSTANCE.getHomeDirectory());
+    ftfInputDirectiveFile.setFileFilter(new AutodocFilter());
     ftfDeliverToDirectory.setAbsolutePath(true);
     ftfDeliverToDirectory.setFileSelectionMode(FileChooser.DIRECTORIES_ONLY);
     ltfRootName.setText("batch" + Utilities.getDateTimeStampRootName());
     btnRun.setToPreferredSize();
     tabbedPane.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
-    // defaults
     ftfRootDir.setAbsolutePath(true);
-    ftfRootDir.setText(new File(System.getProperty("user.dir")).getAbsolutePath());
     ftfRootDir.setFileSelectionMode(FileChooser.DIRECTORIES_ONLY);
+    // defaults
+    ftfRootDir.setText(new File(System.getProperty("user.dir")).getAbsolutePath());
+    ftfInputDirectiveFile.setOrigin(ftfRootDir.getFile());
+    ftfInputDirectiveFile.setOriginReference(ftfRootDir);
     cbDeliverToDirectory.setName(DELIVER_TO_DIRECTORY_NAME);
     // Make sure that the machine lists from the batchruntomo .com file get loaded.
     cbCPUMachineList.setSelected(true);
@@ -285,7 +288,12 @@ public final class BatchRunTomoDialog
    */
   public void getParameters() {
     cbCPUMachineList.setSelected(UserEnv.isParallelProcessing(null, AxisID.ONLY, null));
-    rbGPUMachineListLocal.setSelected(UserEnv.isGpuProcessing(null, AxisID.ONLY, null));
+    if (UserEnv.isGpuProcessing(null, AxisID.ONLY, null)) {
+      rbGPUMachineListLocal.setSelected(true);
+    }
+    else {
+      rbGPUMachineListOff.setSelected(true);
+    }
   }
 
   public void setParameters(final UserConfiguration userConfiguration) {

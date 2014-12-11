@@ -41,8 +41,6 @@ import etomo.util.Utilities;
  * @version $Id$
  */
 final class FileTextField2 implements FileTextFieldInterface, Field, ActionListener {
-  public static final String rcsid = "$Id:$";
-
   // Assuming the field type is always non-numeric
   private final FieldType STRING_FIELD_TYPE = FieldType.STRING;
 
@@ -63,7 +61,10 @@ final class FileTextField2 implements FileTextFieldInterface, Field, ActionListe
   private boolean absolutePath = false;
   private boolean useTextAsOriginDir = false;
   private boolean turnOffFileHiding = false;
-
+  /**
+   * originReference overrides origin
+   */
+  private FileTextField2 originReference = null;
   /**
    * If origin is valid, it overrides originEtomoRunDir.
    */
@@ -301,6 +302,17 @@ final class FileTextField2 implements FileTextFieldInterface, Field, ActionListe
   }
 
   /**
+   * Sets the originReference member variable, which is first choice for where the file
+   * chooser should open.  It is checked each time the file chooser opens.  If
+   * originReference is null or empty, the fallback is the origin member variable.
+   *
+   * @param input
+   */
+  void setOriginReference(final FileTextField2 input) {
+    originReference = input;
+  }
+
+  /**
    * If useTextAsOriginDir is true, the text in the text field with be where the file
    * chooser opens, if the text field contains a directory.
    *
@@ -429,6 +441,17 @@ final class FileTextField2 implements FileTextFieldInterface, Field, ActionListe
    * @return
    */
   private String getOriginDir() {
+    if (originReference != null && !originReference.isEmpty()) {
+      File dir = originReference.getFile();
+      if (dir != null) {
+        if (dir.isDirectory()) {
+          return dir.getAbsolutePath();
+        }
+        else {
+          return dir.getParent();
+        }
+      }
+    }
     if (origin != null && origin.exists() && origin.isDirectory()) {
       return origin.getAbsolutePath();
     }
