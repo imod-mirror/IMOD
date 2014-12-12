@@ -129,6 +129,7 @@ public class BatchruntomoParam implements CommandParam {
       scriptCommand.setValue(GPU_MACHINE_LIST_TAG, gpuMachineList.toString());
     }
     niceValue.updateComScript(scriptCommand);
+    emailAddress.updateComScript(scriptCommand);
     String remoteDirectory = null;
     try {
       remoteDirectory = RemotePath.INSTANCE
@@ -375,12 +376,20 @@ public class BatchruntomoParam implements CommandParam {
     gpuMachineList.append(input);
   }
 
+  public boolean isEmailAddressNull() {
+    return emailAddress.isEmpty();
+  }
+
   public void setEmailAddress(final String input) {
     emailAddress.set(input);
   }
 
   public void resetEmailAddress() {
     emailAddress.reset();
+  }
+
+  public String getEmailAddress() {
+    return emailAddress.toString();
   }
 
   public boolean isGpuMachineListNull() {
