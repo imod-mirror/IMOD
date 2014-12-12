@@ -252,6 +252,7 @@ abstract class ProcessorTable
     if (input != secondary) {
       secondary = input;
       build();
+      rowList.setSelectedError();
       UIHarness.INSTANCE.pack(axisID, manager);
     }
   }
@@ -795,6 +796,12 @@ abstract class ProcessorTable
           row.setSelected(true);
           row.setCPUsSelected(computerMap.get(key));
         }
+      }
+    }
+
+    private void setSelectedError() {
+      for (int i = 0; i < list.size(); i++) {
+        get(i).setSelectedError();
       }
     }
 
