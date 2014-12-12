@@ -325,6 +325,10 @@ public final class BatchRunTomoDialog
     else {
       rbGPUMachineList.setSelected(true);
     }
+    if(!param.isEmailAddressNull()) {
+      ctfEmailAddress.setSelected(true);
+      ctfEmailAddress.setText(param.getEmailAddress());
+    }
     updateDisplay();
   }
 
