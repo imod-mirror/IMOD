@@ -345,7 +345,11 @@ final class ProcessorTableRow implements Storable {
     table.msgCPUsSelectedChanged();
   }
 
-  private void setSelectedError() {
+  void setSelectedError() {
+    if (table.isSecondary()) {
+      cellComputer.setWarning(false);
+      return;
+    }
     boolean noloadAverage;
     if (displayQueues) {
       noloadAverage = cellLoadArray[0].isEmpty() || cellLoadArray[0].equals("NA");

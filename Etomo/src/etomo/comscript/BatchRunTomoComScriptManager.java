@@ -29,7 +29,11 @@ public final class BatchRunTomoComScriptManager extends BaseComScriptManager {
         loadComScript(FileType.BATCH_RUN_TOMO_COMSCRIPT.getFileName(manager, axisID),
             axisID, true, true, false, false);
   }
-
+  public void loadBatchRunTomo(final AxisID axisID,final String rootName) {
+    scriptBatchRunTomo =
+        loadComScript(FileType.BATCH_RUN_TOMO_COMSCRIPT.getFileName(rootName, axisID),
+            axisID, true, true, false, false);
+  }
   public boolean isBatchRunTomoLoaded() {
     return scriptBatchRunTomo != null;
   }
