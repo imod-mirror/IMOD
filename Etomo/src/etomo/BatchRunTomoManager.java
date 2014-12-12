@@ -127,7 +127,7 @@ public final class BatchRunTomoManager extends BaseManager {
     if (dialog == null) {
       dialog = BatchRunTomoDialog.getInstance(this, AXIS_ID, tableReference);
     }
-    comScriptManager.loadBatchRunTomo(AXIS_ID);
+    comScriptManager.loadBatchRunTomo(AXIS_ID, dialog.getRootName());
     BatchruntomoParam param = comScriptManager.getBatchRunTomoParam(AXIS_ID, false);
     boolean useProgressBar = false;
     if (paramFile != null) {
@@ -242,13 +242,11 @@ public final class BatchRunTomoManager extends BaseManager {
     dialog.getParameters(userConfig);
     dialog.getParameters(metaData);
     dialog.saveAutodocs();
+    updateBatchRunTomo(doValidation);
     saveStorables(AXIS_ID);
     savePreferences(AXIS_ID, userConfig);
-    if (updateBatchRunTomo(doValidation) != null) {
-      Utilities.timestamp("save", "end");
-      return true;
-    }
-    return false;
+    Utilities.timestamp("save", "end");
+    return true;
   }
 
   private BatchruntomoParam updateBatchRunTomo(final boolean doValidation) {
