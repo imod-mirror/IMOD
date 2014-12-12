@@ -200,12 +200,15 @@ final class BatchRunTomoDatasetDialog
     JPanel pnlEnableStretching = new JPanel();
     JPanel pnlLocalAlignments = new JPanel();
     // init
-    ftfGradient.setPreferredWidth(272);
     btnModelFile.setToPreferredSize();
     btnRevertToGlobal.setToPreferredSize();
     btnOk.setToPreferredSize();
     ftfDistort.setOrigin(ConfigTool.getDistortionDir(manager, null));
+    ftfDistort.setAbsolutePath(true);
+    ftfGradient.setPreferredWidth(272);
     ftfGradient.setOrigin(ConfigTool.getDistortionDir(manager, null));
+    ftfGradient.setAbsolutePath(true);
+    ftfModelFile.setAbsolutePath(true);
     // Set directive defs where there is a one-to-one correspondence between field and
     // directive. The directive def is used for setting the default in comparam
     // directives, and saving fields to autodoc files.
