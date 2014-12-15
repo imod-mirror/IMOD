@@ -135,6 +135,7 @@ program ccderaser
   limPcList = 10000
   newXoverlap = 0
   newYoverlap = 0
+  modelOut = ' '
   call b3dDate(dat)
   call time(tim)
   !
@@ -305,7 +306,6 @@ program ccderaser
     ierr = PipGetFloat('GiantCriterion', critGiant)
     ierr = PipGetFloat('BigDiffCriterion', critBigDiff)
 
-    modelOut = ' '
     ierr = PipGetString('PointModel', modelOut)
     numBetterIn = 0
     ierr = PipGetFloatArray('BetterRadius', betterIn, numBetterIn, limObj)
