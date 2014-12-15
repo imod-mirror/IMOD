@@ -60,6 +60,18 @@ usage = Objects and contours are numbered from 0 instead of 1
 tooltip = 
 manpage = 
 
+[Field = ZCoordinatesFromZero]
+short = zcoord
+type = B
+usage = Z coordinates of points start at 0 instead of -0.5
+tooltip = 
+manpage = Z coordinates of points are 0 instead of -0.5 at the bottom of
+the volume.  In IMOD models, integer Z values are defined as being located in the
+middle of a pixel in Z, which makes model coordinates range from -0.5 to NZ -
+0.5 for a volume of NZ slices.  Use this option if the point coordinates
+range from 0 to NZ instead, i.e., if the fractional part of a Z coordinate
+corresponds to its fractional position within a pixel in Z.
+
 [Field = ValuesInLastColumn]
 short = values
 type = I

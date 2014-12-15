@@ -27,13 +27,21 @@ package etomo.storage.autodoc;
 * <p> </p>
 */
 public interface ReadOnlyAttribute {
-  public static  final String  rcsid =  "$Id$";
-  
+  public static final String rcsid = "$Id$";
+
   public String getValue();
+
   public String getMultiLineValue();
+
   public ReadOnlyAttribute getAttribute(String name);
+
   public Attribute getAttribute(int name);
+
   public String getName();
+
   public String toString();
+
   public ReadOnlyAttributeList getChildren();
+
+  public int getLineNum();
 }
