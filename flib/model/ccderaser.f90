@@ -100,7 +100,7 @@ program ccderaser
       'circle:CircleObjects:LI:@better:BetterRadius:FA:@'// &
       'expand:ExpandCircleIterations:I:@merge:MergePatches:B:@border:BorderSize:I:@'// &
       'order:PolynomialOrder:I:@exclude:ExcludeAdjacent:B:@trial:TrialMode:B:@'// &
-      'verbose:verbose:B:@PID:ProcessID:B:@param:ParameterFile:PF:@help:usage:B:'
+      'verbose:Verbose:B:@PID:ProcessID:B:@param:ParameterFile:PF:@help:usage:B:'
   !
   ! Set all defaults here
   !
@@ -108,26 +108,26 @@ program ccderaser
   numObjLine = 1
   numObjBound = 1
   numObjCircle = 1
-  numPixBorder = 2
-  iorder = 2
+  numPixBorder = 2      ! Default in adoc
+  iorder = 2            ! Default in adoc
   ifIncludeAdj = 1
-  critMain = 10.
-  critDiff = 10.
-  critGrow = 4.0
-  critScan = 3.0
-  radiusMax = 2.1
+  critMain = 10.      ! Default in adoc
+  critDiff = 10.      ! Default in adoc
+  critGrow = 4.0      ! Default in adoc
+  critScan = 3.0      ! Default in adoc
+  radiusMax = 2.1     ! Default in adoc
   outerRadius = 4.1
-  critGiant = 12.
-  giantRadius = 8.
-  critBigDiff = 19.
+  critGiant = 12.     ! Default in adoc
+  giantRadius = 8.    ! Default in adoc
+  critBigDiff = 19.   ! Default in adoc
   fracBigDiff = 0.25
   scanOverlap = 0.1
   ifPeakSearch = 0
-  iScanSize = 100
+  iScanSize = 100     ! Default in adoc
   ifVerbose = 0
   ifTrialMode = 0
-  numEdgePixels = 0
-  maxInDiffPatch = 2
+  numEdgePixels = 0   ! Default in adoc
+  maxInDiffPatch = 2  ! Default in adoc
   ifMerge = 0
   maxObjectsOut = 4
   numExpandIter = 0
@@ -298,14 +298,14 @@ program ccderaser
     ierr = PipGetInteger('MergePatches', ifMerge)
     ierr = PipGetInteger('MaxPixelsInDiffPatch', maxInDiffPatch)
     ierr = PipGetFloat('OuterRadius', outerRadius)
-    ierr2 = PipGetFloat('AnnulusWidth', annulusWidth)
+    ierr2 = PipGetFloat('AnnulusWidth', annulusWidth)  ! Default in adoc
     if (ierr == 0 .and. ierr2 == 0) call exitError( &
         'YOU CANNOT ENTER BOTH -outer AND -width')
     if (ierr2 == 0) outerRadius = radiusMax + annulusWidth
     ierr = PipGetFloat('ExtraLargeRadius', giantRadius)
     ierr = PipGetFloat('GiantCriterion', critGiant)
     ierr = PipGetFloat('BigDiffCriterion', critBigDiff)
-
+    
     ierr = PipGetString('PointModel', modelOut)
     numBetterIn = 0
     ierr = PipGetFloatArray('BetterRadius', betterIn, numBetterIn, limObj)
@@ -864,6 +864,16 @@ program ccderaser
   enddo
   !
   tmean = tsum / nz
+  if (mode == 1) then
+    tmin = max(-32768., tmin)
+    tmax = min(32767., tmax)
+  else if (mode == 6) then
+    tmin = max(0., tmin)
+    tmax = min(65535., tmax)
+  else if (mode == 0) then
+    tmin = max(0., tmin)
+    tmax = min(255., tmax)
+  endif
   write(titlech, 109) dat, tim
   read(titlech, '(20a4)') (title(kti), kti = 1, 20)
 109 format('CCDERASER: Bad points replaced with interpolated values' &
@@ -947,11 +957,11 @@ subroutine searchPeaks(array, diffArr, izSect, numPatch, numPixels, numPtOut, &
   integer*4 numPtOut, numPatchOut
   integer*4 numPtSave, numPatchSave
   integer*4 numScanX, numScanY, nxScan, nyScan, iScanY, iScanX, iyStart
-  integer*4 iyEnd, ixStart, ixEnd, jx, jxs, jxn, jy, jys, jyn, ix, iy
+  integer*4 iyEnd, ixStart, ixEnd, jx, jxs, jxn, jy, jys, jyn, ix, iy, numEdgeFix(4)
   real*4 dmin, dmax, psum, sumsq, scanAvg, scanSd, polarity, scanCrit
-  integer*4 ixPeak, iyPeak, numSum, numInPatch, numPatch, numPixels
+  integer*4 ixPeak, iyPeak, numSum, numInPatch, numPatch, numPixels, numDiffAvg
   real*4 radMaxSq, growCrit, sdDiff, absDiffAvg, absDiffSd
-  real*4 pixDiff, diffAvg, diffSd, diffCrit
+  real*4 pixDiff, diffAvg, diffSd, diffCrit, diffAvgSum, diffSdMax
   logical movedPeak, storePatch, onList, aboveCrit
   integer*4 numInList, ixList(LIMLIST), iyList(LIMLIST), lookingAt, i, j, ip
   integer*4 minDistSq, maxDistSq, iDistSq, ixOffset, iyOffset
@@ -962,6 +972,9 @@ subroutine searchPeaks(array, diffArr, izSect, numPatch, numPixels, numPtOut, &
   numPixels = 0
   nxUse = nx - 2 * numEdgePixels
   nyUse = ny - 2 * numEdgePixels
+  diffSdMax = 0.
+  numDiffAvg = 0
+  diffAvgSum = 0.
   !
   ! set up extent of scan regions
   !
@@ -1224,8 +1237,26 @@ subroutine searchPeaks(array, diffArr, izSect, numPatch, numPixels, numPtOut, &
           endif
         enddo
       enddo
-
+      !
+      ! End of patch.  Accumulate current difference averages/Sd's
+      diffAvgSum = diffAvgSum + diffAvg
+      numDiffAvg = numDiffAvg + 1
+      diffSdMax = max(diffSdMax, diffSd)
     enddo
+  enddo
+  !
+  ! Now clean out the borders, iterating for an edge if anything was replaced on the
+  ! previous round
+  diffAvg = diffAvgSum / numDiffAvg
+  diffCrit = critDiff * diffSdMax
+  numEdgeFix(1:4) = 1
+  do iScanX = 1, 4
+    if (numEdgeFix(1) > 0) call cleanEdgeForDiffs(1, numPixBorder, 1, ny, numEdgeFix(1))
+    if (numEdgeFix(2) > 0) call cleanEdgeForDiffs(nx + 1 - numPixBorder, nx, 1, ny, &
+        numEdgeFix(2))
+    if (numEdgeFix(3) > 0) call cleanEdgeForDiffs(1, nx, 1, numPixBorder, numEdgeFix(3))
+    if (numEdgeFix(4) > 0) call cleanEdgeForDiffs(1, nx, ny + 1 - numPixBorder, ny, &
+        numEdgeFix(4))
   enddo
   return
 
@@ -1413,6 +1444,93 @@ CONTAINS
     return
   end subroutine cleanAreaRecomputeDiffs
 
+
+  ! cleanEdgeForDiffs does a simple scan for pixel differences above maximum possible
+  ! criterion in one border region and returns the count of replaced pixels
+  !
+  subroutine cleanEdgeForDiffs(ixLeft, ixRight, iyBot, iyTop, numReplace)
+    integer*4 ixLeft, ixRight, iyBot, iyTop, numReplace, nxEdge, nyEdge, numHigh
+    real*4 edgeDiff(ixRight + 1 - ixLeft, iyTop + 1 - iyBot)
+    nxEdge = ixRight + 1 - ixLeft
+    nyEdge = iyTop + 1 - iyBot
+    numReplace = 0
+    !
+    ! Compute and save differences and check if any are high
+    numHigh = 0
+    do iy = iyBot, iyTop
+      do ix = ixLeft, ixRight
+        call neighborMeanWithTests()
+        pixDiff = array(ix, iy) - psum
+        edgeDiff(ix + 1 - ixLeft, iy + 1 - iyBot) = pixDiff
+        if (abs(pixDiff - diffAvg) > diffCrit) numHigh = numHigh + 1
+      enddo
+    enddo
+    !
+    ! Done if none are high; otherwise scan again and replace a pixel if it is the
+    ! highest difference of its neighbors
+    if (numHigh == 0) return
+    do iy = iyBot, iyTop
+      do ix = ixLeft, ixRight
+        pixDiff = edgeDiff(ix + 1 - ixLeft, iy + 1 - iyBot)
+        if (abs(pixDiff - diffAvg) > diffCrit) then
+          jxn = ix + 1 - ixLeft
+          jyn = iy + 1 - iyBot
+          pixDiff = abs(pixDiff)
+          if (pixDiff >= abs(edgeDiff(max(1, jxn - 1), jyn)) .and. &
+              pixDiff >= abs(edgeDiff(max(1, jxn - 1), max(1, jyn - 1))) .and. &
+              pixDiff >= abs(edgeDiff(max(1, jxn - 1), min(nyEdge, jyn + 1))) .and. &
+              pixDiff >= abs(edgeDiff(min(nxEdge, jxn + 1), jyn)) .and. &
+              pixDiff >= abs(edgeDiff(min(nxEdge, jxn + 1), max(1, jyn - 1))) .and. &
+              pixDiff >= abs(edgeDiff(min(nxEdge, jxn + 1), min(nyEdge, jyn + 1))) .and. &
+              pixDiff >= abs(edgeDiff(jxn, max(1, jyn - 1))) .and. &
+              pixDiff >= abs(edgeDiff(jxn, min(nyEdge, jyn + 1)))) then
+            call neighborMeanWithTests()
+            !
+            ! report if verbose and replace
+            if (ifVerbose > 0) write (*,134) iScanX, ix, iy, array(ix, iy), pixDiff, psum
+134         format(/,'Border peak on scan',i2, ' at',2i6,' = ',f8.0,', diff =',f8.0,  &
+                ', mean =', f8.0)
+            array(ix, iy) = psum
+            numReplace = numReplace + 1
+            numPatch = numPatch + 1
+            numPixels = numPixels + 1
+            if (numPatchOut < LIMPATCHOUT - 1 .and. numPtOut < LIMPTOUT - 1) then
+              numPatchOut = numPatchOut + 1
+              numPtOut = numPtOut + 1
+              indPatch(numPatchOut + 1) = numPtOut + 1
+              ixOut(numPtOut) = ix
+              iyOut(numPtOut) = iy
+              izOut(numPtOut) = izSect
+              sdDiff = abs(pixDiff - diffAvg) / diffSdMax
+              exceedCrit(numPatchOut) = sdDiff - critDiff
+            endif
+          endif
+        endif
+      enddo
+    enddo
+  end subroutine cleanEdgeForDiffs
+
+
+  ! neighborMeanWithTests computes the mean of neighboring pixels for pixels in the
+  ! border region
+  !
+  subroutine neighborMeanWithTests()
+    numSum = -1
+    psum = -array(ix, iy)
+    do jy = iy - 1, iy + 1
+      if (jy >= 1 .and. jy <= ny) then
+        do jx = ix -1, ix + 1
+          if (jx >= 1 .and. jx <= nx) then
+            numSum = numSum + 1
+            psum = psum + array(jx, jy)
+          endif
+        enddo
+      endif
+    enddo
+    psum = psum / numSum
+    return
+  end subroutine neighborMeanWithTests
+    
 end subroutine searchPeaks
 
 

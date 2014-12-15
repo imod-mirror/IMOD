@@ -194,18 +194,8 @@ if not os.path.exists(tracka):
    exitError('Cannot find ' + tracka + ' command file')
 tracklines = readTextFile(tracka)
 
-# find beadtrack command line then end of input
-startline = -1
-for i in range(len(tracklines)):
-   line = tracklines[i].strip()
-   if line.startswith('$') and line.find('beadtrack') >=0 and line.find('-Standard') > 0:
-      startline = i + 1
-   elif startline > 0 and line.startswith('$'):
-      endline = i
-
-tracklines = tracklines[startline:endline]
-
-if startline < 0:
+tracklines = extractProgramEntries(tracklines, 'beadtrack', '-Standard')
+if tracklines == None:
    exitError('Old version of ' + tracka + ' cannot be used; convert it by opening ' +\
              'and closing the fiducial tracking panel in etomo')
 

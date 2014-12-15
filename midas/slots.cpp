@@ -583,13 +583,13 @@ void MidasSlots::slotHelpmenu(int item)
     break;
   case HELP_MENU_ABOUT: /* About */
     dia_vasmsg("Midas version",
-	       MIDAS_VERSION_STRING,
-	       "\n",
-	       "Copyright (C)",COPYRIGHT_YEARS,"by",LAB_NAME1,"\n",
-	       LAB_NAME2,"and Regents of the University of",
-	       "Colorado\n",
-	       "Written by James Kremer and David Mastronarde.\n",
-	       NULL);
+               MIDAS_VERSION_STRING,
+               "\n",
+               "Copyright (C)",COPYRIGHT_YEARS,"by",
+               "the Regents of the University of",
+               "Colorado\n",
+               "Written by James Kremer and David Mastronarde.\n",
+               NULL);
     break;
   }
 }
