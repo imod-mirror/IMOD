@@ -317,6 +317,7 @@ final class BatchRunTomoTable
 
   public void getParameters(final BatchruntomoParam param,
       final boolean deliverToDirectory, final StringBuilder errMsg) {
+    param.errorCheck();
     rowList.getParameters(param, deliverToDirectory, errMsg);
   }
 
