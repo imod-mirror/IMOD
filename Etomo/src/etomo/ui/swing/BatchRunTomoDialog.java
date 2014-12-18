@@ -138,7 +138,6 @@ public final class BatchRunTomoDialog
     ftfInputDirectiveFile.setFileFilter(new AutodocFilter());
     ftfDeliverToDirectory.setAbsolutePath(true);
     ftfDeliverToDirectory.setFileSelectionMode(FileChooser.DIRECTORIES_ONLY);
-    ltfRootName.setText("batch" + Utilities.getDateTimeStampRootName());
     btnRun.setToPreferredSize();
     tabbedPane.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
     ftfRootDir.setAbsolutePath(true);
@@ -257,12 +256,15 @@ public final class BatchRunTomoDialog
       ltfRootName.setEditable(false);
       ftfRootDir.setText(manager.getPropertyUserDir());
       ftfRootDir.setEditable(false);
+      ftfDeliverToDirectory.setText(metaData.getDeliverToDirectory());
+      ftfInputDirectiveFile.setText(metaData.getInputDirectiveFile());
+      table.setParameters(metaData);
+      datasetDialog.setParameters(metaData.getDatasetMetaData());
+      phDatasetTable.set(metaData.getDatasetTableHeader());
     }
-    ftfDeliverToDirectory.setText(metaData.getDeliverToDirectory());
-    ftfInputDirectiveFile.setText(metaData.getInputDirectiveFile());
-    table.setParameters(metaData);
-    datasetDialog.setParameters(metaData.getDatasetMetaData());
-    phDatasetTable.set(metaData.getDatasetTableHeader());
+    else {
+      ltfRootName.setText("batch" + Utilities.getDateTimeStampRootName());
+    }
   }
 
   public boolean isParamFileModifiable() {
@@ -312,7 +314,7 @@ public final class BatchRunTomoDialog
 
   public void setParameters(final BatchruntomoParam param) {
     cbDeliverToDirectory.setSelected(!param.isDeliverToDirectoryNull());
-    if (cbDeliverToDirectory.isSelected()) {
+     if (cbDeliverToDirectory.isSelected()) {
       ftfDeliverToDirectory.setText(param.getDeliverToDirectory());
     }
     cbCPUMachineList.setSelected(!param.isCpuMachineListNull());
