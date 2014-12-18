@@ -127,6 +127,7 @@ public final class BatchRunTomoManager extends BaseManager {
     if (dialog == null) {
       dialog = BatchRunTomoDialog.getInstance(this, AXIS_ID, tableReference);
     }
+    dialog.setParameters(metaData);
     comScriptManager.loadBatchRunTomo(AXIS_ID, dialog.getRootName());
     BatchruntomoParam param = comScriptManager.getBatchRunTomoParam(AXIS_ID, false);
     boolean useProgressBar = false;
@@ -143,9 +144,6 @@ public final class BatchRunTomoManager extends BaseManager {
     dialog.getParameters();
     dialog.setParameters(userConfig);
     if (paramFile != null) {
-      if (metaData.isValid()) {
-        dialog.setParameters(metaData);
-      }
       dialog.setParameters(param);
       dialog.loadAutodocs();
     }
