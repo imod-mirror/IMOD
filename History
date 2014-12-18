@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/16/14: Add option to Sirtsetup to set numnber of chunks per processor.
+
 12/4/14: Made Processchunks give an error with more than 100,000 chunks.
 
 11/28/14: Various fixes related to model Z coordinates starting at -0.5
