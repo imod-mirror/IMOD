@@ -61,6 +61,7 @@ public class BatchruntomoParam implements CommandParam {
   private StringBuilder gpuMachineList = null;
   private Set<String> currentLocationValidationSet = null;
   private Set<String> rootNameValidationSet = null;
+  private Set<String> requiredFilesValidationSet = null;
 
   private BatchruntomoParam(final BaseManager manager, final AxisID axisID,
       final CommandMode mode, final boolean doValidation) {
@@ -305,8 +306,17 @@ public class BatchruntomoParam implements CommandParam {
     deliverToDirectory.reset();
   }
 
+  public void errorCheck() {
+    if (rootNameValidationSet != null) {
+      rootNameValidationSet.clear();
+    }
+    if (requiredFilesValidationSet != null) {
+      requiredFilesValidationSet.clear();
+    }
+  }
+
   public boolean addRootName(final String input, final boolean enforceUniqueness,
-      final StringBuilder errMsg) {
+      final boolean dual, final StringBuilder errMsg) {
     if (mode != Mode.BATCH) {
       System.err.println(
           "Warning: attempting to set a root name in a non-batch mode batchruntomo command");
@@ -321,15 +331,40 @@ public class BatchruntomoParam implements CommandParam {
         valid = false;
         retval = false;
         if (errMsg != null) {
-          errMsg.append("Dataset root name must be unique");
+          errMsg.append("Dataset root name must be unique: " + input + ".  ");
         }
       }
       else {
         rootNameValidationSet.add(input);
       }
+      //Make sure that file(s) denoted by the root name are not used more then once.
+      //Keep retval off if it has been turned off.
+      if (!dual) {
+        retval = validateRequiredFile(input, errMsg) && retval;
+      }
+      else {
+        retval =
+            validateRequiredFile(input + AxisID.FIRST.getExtension(), errMsg) && retval;
+        retval =
+            validateRequiredFile(input + AxisID.SECOND.getExtension(), errMsg) && retval;
+      }
     }
     interleavedParameters[InterleavedIndex.ROOT_NAME.index].add(input);
     return retval;
+  }
+
+  private boolean validateRequiredFile(final String input, final StringBuilder errMsg) {
+    if (requiredFilesValidationSet == null) {
+      requiredFilesValidationSet = new HashSet<String>();
+    }
+    if (requiredFilesValidationSet.contains(input)) {
+      if (errMsg != null) {
+        errMsg.append("The " + input + " file is used in more then one dataset.  ");
+      }
+      return false;
+    }
+    requiredFilesValidationSet.add(input);
+    return true;
   }
 
   /**
@@ -342,7 +377,7 @@ public class BatchruntomoParam implements CommandParam {
       final StringBuilder errMsg) {
     if (mode != Mode.BATCH) {
       System.err.println(
-          "Warning: attempting to set a current locaiton in a non-batch mode batchruntomo command");
+          "Warning: attempting to set a current location in a non-batch mode batchruntomo command");
       return false;
     }
 
