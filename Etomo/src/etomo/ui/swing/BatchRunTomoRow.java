@@ -388,9 +388,7 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
     File stack = new File(fcStack.getExpandedValue());
     param.addDirectiveFile(new File(stack, getBatchDirectiveFileName()));
     String rootName = DatasetTool.getDatasetName(stack.getName(), cbcDual.isSelected());
-    if (!param.addRootName(rootName, deliverToDirectory, errMsg)) {
-      errMsg.append(": " + rootName + ".  ");
-    }
+    param.addRootName(rootName, deliverToDirectory, cbcDual.isSelected(), errMsg);
     if (!param.addCurrentLocation(stack.getParent(), !deliverToDirectory, errMsg)) {
       errMsg.append(": " + stack.getAbsolutePath() + ".  ");
     }
