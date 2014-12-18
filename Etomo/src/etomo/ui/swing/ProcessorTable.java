@@ -14,6 +14,7 @@ import javax.swing.border.LineBorder;
 
 import etomo.BaseManager;
 import etomo.EtomoDirector;
+import etomo.comscript.BatchruntomoParam;
 import etomo.comscript.IntermittentCommand;
 import etomo.comscript.ProcesschunksParam;
 import etomo.process.LoadAverageMonitor;
@@ -26,23 +27,21 @@ import etomo.storage.Storable;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstEtomoVersion;
+import etomo.type.ProcessingMethod;
 
 /**
  * <p>Description: </p>
- * 
- * <p>Copyright: Copyright (c) 2005</p>
+ * <p/>
+ * <p>Copyright: Copyright 2005 - 2014 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
- * University of Colorado</p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
+ * @version $Id$
  */
-abstract class ProcessorTable implements Storable, ParallelProgressDisplay, LoadDisplay,
-    Viewable {
-  public static final String rcsid = "$Id$";
+abstract class ProcessorTable
+    implements Storable, ParallelProgressDisplay, LoadDisplay, Viewable {
+  private static final String RUNNABLE_KEY = "ProcessorTable";
+  private static final String RESOURCE_KEY = "ProcessorResourceTable";
 
   private final JPanel rootPanel = new JPanel();
   private JPanel tablePanel;
@@ -69,13 +68,14 @@ abstract class ProcessorTable implements Storable, ParallelProgressDisplay, Load
   private final HeaderCell header2Failure = new HeaderCell("Reason");
 
   private final RowList rowList = new RowList();
-  private final Viewport viewport = new Viewport(this, EtomoDirector.INSTANCE
-      .getUserConfiguration().getParallelTableSize().getInt(), null, null, null,
-      "Processor");
+  private final Viewport viewport = new Viewport(this,
+      EtomoDirector.INSTANCE.getUserConfiguration().getParallelTableSize().getInt(), null,
+      null, null, "Processor");
   private final ParallelPanel parent;
   final AxisID axisID;
   final BaseManager manager;
   private final LoadMonitor loadMonitor;
+  private final boolean runnable;
 
   private boolean numberColumn = false;
   private boolean typeColumn = false;
@@ -87,6 +87,7 @@ abstract class ProcessorTable implements Storable, ParallelProgressDisplay, Load
   private boolean scrolling = false;
   private boolean expanded = false;
   private boolean stopped = true;
+  private boolean secondary = false;
 
   abstract int getSize();
 
@@ -98,18 +99,16 @@ abstract class ProcessorTable implements Storable, ParallelProgressDisplay, Load
   abstract String getHeader1ComputerText();
 
   abstract void addHeader1Load(JPanel tablePanel, GridBagLayout layout,
-      GridBagConstraints constraints);
+      GridBagConstraints constraints, ColumnName lastColumnName);
 
   abstract void addHeader1Users(JPanel tablePanel, GridBagLayout layout,
-      GridBagConstraints constraints);
+      GridBagConstraints constraints, ColumnName lastColumnName);
 
   abstract void addHeader2Load(JPanel tablePanel, GridBagLayout layout,
-      GridBagConstraints constraints);
+      GridBagConstraints constraints, ColumnName lastColumnName);
 
   abstract void addHeader2Users(JPanel tablePanel, GridBagLayout layout,
-      GridBagConstraints constraints);
-
-  abstract boolean useUsersColumn();
+      GridBagConstraints constraints, ColumnName lastColumnName);
 
   abstract IntermittentCommand getIntermittentCommand(String computer);
 
@@ -129,11 +128,18 @@ abstract class ProcessorTable implements Storable, ParallelProgressDisplay, Load
 
   abstract String getNoCpusSelectedErrorMessage();
 
+  abstract boolean isCpuTable();
+
+  abstract boolean isGpuTable();
+
+  abstract void getParameters(ProcessingMethod method, BatchruntomoParam param);
+
   ProcessorTable(final BaseManager manager, final ParallelPanel parent,
-      final AxisID axisID, final boolean displayQueues) {
+      final AxisID axisID, final boolean displayQueues, final boolean runnable) {
     this.manager = manager;
     this.parent = parent;
     this.axisID = axisID;
+    this.runnable = runnable;
     header1NumberCPUs = new HeaderCell(getheader1NumberCPUsTitle());
     if (displayQueues) {
       loadMonitor = new QueuechunkLoadMonitor(this, axisID, manager);
@@ -178,10 +184,10 @@ abstract class ProcessorTable implements Storable, ParallelProgressDisplay, Load
   }
 
   private void initTable() {
-    speedUnits = CpuAdoc.INSTANCE.getSpeedUnits(manager, axisID,
-        manager.getPropertyUserDir());
-    memoryUnits = CpuAdoc.INSTANCE.getMemoryUnits(manager, axisID,
-        manager.getPropertyUserDir());
+    speedUnits =
+        CpuAdoc.INSTANCE.getSpeedUnits(manager, axisID, manager.getPropertyUserDir());
+    memoryUnits =
+        CpuAdoc.INSTANCE.getMemoryUnits(manager, axisID, manager.getPropertyUserDir());
     // loop through the nodes
     // loop on nodes
     int size = getSize();
@@ -190,9 +196,9 @@ abstract class ProcessorTable implements Storable, ParallelProgressDisplay, Load
       Node node = getNode(i);
       // exclude any node with the "exclude-interface" attribute set to the
       // current interface
-      if (node != null && !node.isExcludedInterface(manager.getInterfaceType())
-          && (!node.isExcludedUser(System.getProperty("user.name")))
-          && !isExcludeNode(node)) {
+      if (node != null && !node.isExcludedInterface(manager.getInterfaceType()) &&
+          (!node.isExcludedUser(System.getProperty("user.name"))) &&
+          !isExcludeNode(node)) {
         if (enableNumberColumn(node)) {
           numberColumn = true;
         }
@@ -242,6 +248,15 @@ abstract class ProcessorTable implements Storable, ParallelProgressDisplay, Load
     UIHarness.INSTANCE.pack(axisID, manager);
   }
 
+  void setSecondary(final boolean input) {
+    if (input != secondary) {
+      secondary = input;
+      build();
+      rowList.setSelectedError();
+      UIHarness.INSTANCE.pack(axisID, manager);
+    }
+  }
+
   private void buildTable() {
     tablePanel = new JPanel();
     layout = new GridBagLayout();
@@ -258,28 +273,54 @@ abstract class ProcessorTable implements Storable, ParallelProgressDisplay, Load
     constraints.gridheight = 1;
     constraints.gridwidth = 1;
     header1Computer.add(tablePanel, layout, constraints);
-    if (numberColumn && expanded) {
-      constraints.gridwidth = 2;
+    ColumnName lastColumnName = getLastColumnName();
+    ColumnName columnName = ColumnName.NUMBER_USED;
+    boolean useNumberUsed = useColumn(columnName);
+    boolean useNumber = useColumn(ColumnName.NUMBER);
+    if (useNumberUsed) {
+      if (lastColumnName == columnName) {
+        constraints.gridwidth = GridBagConstraints.REMAINDER;
+      }
+      else if (useNumber) {
+        constraints.gridwidth = 2;
+      }
+      header1NumberCPUs.add(tablePanel, layout, constraints);
     }
-    header1NumberCPUs.add(tablePanel, layout, constraints);
-    addHeader1Load(tablePanel, layout, constraints);
-    addHeader1Users(tablePanel, layout, constraints);
-    if (useTypeColumn()) {
+    columnName = ColumnName.LOAD;
+    boolean useLoad = useColumn(columnName);
+    if (useLoad) {
+      addHeader1Load(tablePanel, layout, constraints, lastColumnName);
+    }
+    columnName = ColumnName.USERS;
+    boolean useUsers = useColumn(columnName);
+    if (useUsers) {
+      if (lastColumnName == columnName) {
+        constraints.gridwidth = GridBagConstraints.REMAINDER;
+      }
+      addHeader1Users(tablePanel, layout, constraints, lastColumnName);
+    }
+    columnName = ColumnName.TYPE;
+    boolean useType = useColumn(columnName);
+    if (useType) {
+      if (lastColumnName == columnName) {
+        constraints.gridwidth = GridBagConstraints.REMAINDER;
+      }
       header1CPUType.add(tablePanel, layout, constraints);
     }
-    if (useSpeedColumn()) {
-      header1Speed.add(tablePanel, layout, constraints);
+    columnName = ColumnName.SPEED;
+    boolean useSpeed = add(header1Speed, ColumnName.SPEED, lastColumnName);
+    boolean useMemory = add(header1RAM, ColumnName.MEMORY, lastColumnName);
+    boolean useOs = add(header1OS, ColumnName.OS, lastColumnName);
+    columnName = ColumnName.RUN;
+    boolean useRun = useColumn(columnName);
+    if (useRun) {
+      header1Restarts.add(tablePanel, layout, constraints);
+      header1Finished.add(tablePanel, layout, constraints);
+      if (lastColumnName == columnName) {
+        constraints.gridwidth = GridBagConstraints.REMAINDER;
+      }
+      header1Failure.add(tablePanel, layout, constraints);
     }
-    if (useMemoryColumn()) {
-      header1RAM.add(tablePanel, layout, constraints);
-    }
-    if (useOSColumn()) {
-      header1OS.add(tablePanel, layout, constraints);
-    }
-    header1Restarts.add(tablePanel, layout, constraints);
-    header1Finished.add(tablePanel, layout, constraints);
-    constraints.gridwidth = GridBagConstraints.REMAINDER;
-    header1Failure.add(tablePanel, layout, constraints);
     // header row 2
     constraints.anchor = GridBagConstraints.CENTER;
     constraints.weightx = 0.0;
@@ -287,31 +328,55 @@ abstract class ProcessorTable implements Storable, ParallelProgressDisplay, Load
     constraints.gridheight = 1;
     constraints.gridwidth = 1;
     header2Computer.add(tablePanel, layout, constraints);
-    header2NumberCPUsUsed.add(tablePanel, layout, constraints);
-    if (useNumberColumn()) {
-      header2NumberCPUsMax.add(tablePanel, layout, constraints);
+    add(header2NumberCPUsUsed, useNumberUsed, ColumnName.NUMBER_USED, lastColumnName);
+    add(header2NumberCPUsMax, useNumber, ColumnName.NUMBER, lastColumnName);
+    if (useLoad) {
+      addHeader2Load(tablePanel, layout, constraints, lastColumnName);
     }
-    addHeader2Load(tablePanel, layout, constraints);
-    addHeader2Users(tablePanel, layout, constraints);
-    if (useTypeColumn()) {
-      header2CPUType.add(tablePanel, layout, constraints);
+    if (useUsers) {
+      if (lastColumnName == ColumnName.USERS) {
+        constraints.gridwidth = GridBagConstraints.REMAINDER;
+      }
+      addHeader2Users(tablePanel, layout, constraints, lastColumnName);
     }
-    if (useSpeedColumn()) {
-      header2Speed.add(tablePanel, layout, constraints);
+    add(header2CPUType, useType, ColumnName.TYPE, lastColumnName);
+    add(header2Speed, useSpeed, ColumnName.SPEED, lastColumnName);
+    add(header2RAM, useMemory, ColumnName.MEMORY, lastColumnName);
+    add(header2OS, useOs, ColumnName.OS, lastColumnName);
+    if (useRun) {
+      header2Restarts.add(tablePanel, layout, constraints);
+      header2Finished.add(tablePanel, layout, constraints);
+      if (lastColumnName == ColumnName.RUN) {
+        constraints.gridwidth = GridBagConstraints.REMAINDER;
+      }
+      header2Failure.add(tablePanel, layout, constraints);
     }
-    if (useMemoryColumn()) {
-      header2RAM.add(tablePanel, layout, constraints);
-    }
-    if (useOSColumn()) {
-      header2OS.add(tablePanel, layout, constraints);
-    }
-    header2Restarts.add(tablePanel, layout, constraints);
-    header2Finished.add(tablePanel, layout, constraints);
-    constraints.gridwidth = GridBagConstraints.REMAINDER;
-    header2Failure.add(tablePanel, layout, constraints);
     // add rows to the table
     viewport.msgViewableChanged();
-    rowList.display(expanded, viewport);
+    rowList.display(expanded, viewport, lastColumnName, useNumberUsed, useNumber, useLoad,
+        useUsers, useType, useSpeed, useMemory, useOs, useRun);
+  }
+
+  private boolean add(final HeaderCell cell, final ColumnName columnName,
+      final ColumnName lastColumnName) {
+    boolean use = useColumn(columnName);
+    if (use) {
+      if (lastColumnName == columnName) {
+        constraints.gridwidth = GridBagConstraints.REMAINDER;
+      }
+      cell.add(tablePanel, layout, constraints);
+    }
+    return use;
+  }
+
+  private void add(final HeaderCell cell, final boolean use, final ColumnName columnName,
+      final ColumnName lastColumnName) {
+    if (use) {
+      if (lastColumnName == columnName) {
+        constraints.gridwidth = GridBagConstraints.REMAINDER;
+      }
+      cell.add(tablePanel, layout, constraints);
+    }
   }
 
   Container getContainer() {
@@ -339,7 +404,12 @@ abstract class ProcessorTable implements Storable, ParallelProgressDisplay, Load
   }
 
   void msgCPUsSelectedChanged() {
-    parent.setCPUsSelected(getCPUsSelected());
+    if (!secondary) {
+      parent.setCPUsSelected(getCPUsSelected());
+    }
+    else {
+      parent.setSecondaryCPUsSelected(getCPUsSelected());
+    }
   }
 
   public void msgEndingProcess() {
@@ -366,24 +436,82 @@ abstract class ProcessorTable implements Storable, ParallelProgressDisplay, Load
     loadMonitor.restart();
   }
 
-  boolean useNumberColumn() {
-    return numberColumn && expanded;
+  boolean isSecondary() {
+    return secondary;
   }
 
-  boolean useTypeColumn() {
-    return typeColumn && expanded;
+  boolean isRunnable() {
+    return runnable;
   }
 
-  boolean useSpeedColumn() {
-    return speedColumn && expanded;
+  /**
+   * Returns true if columnName should be displayed
+   *
+   * @param columnName
+   * @return
+   */
+  boolean useColumn(final ColumnName columnName) {
+    if (columnName == ColumnName.NUMBER_USED) {
+      return true;
+    }
+    if (columnName == ColumnName.LOAD) {
+      return !secondary;
+    }
+    if (columnName == ColumnName.RUN) {
+      return runnable;
+    }
+    if (expanded) {
+      if (columnName == ColumnName.NUMBER) {
+        return numberColumn;
+      }
+      if (!secondary) {
+        if (columnName == ColumnName.TYPE) {
+          return typeColumn;
+        }
+        if (columnName == ColumnName.SPEED) {
+          return speedColumn;
+        }
+        if (columnName == ColumnName.MEMORY) {
+          return memoryColumn;
+        }
+        if (columnName == ColumnName.OS) {
+          return osColumn;
+        }
+      }
+    }
+    // doesn't handle usersColumn
+    return false;
   }
 
-  boolean useMemoryColumn() {
-    return memoryColumn && expanded;
-  }
-
-  boolean useOSColumn() {
-    return osColumn && expanded;
+  /**
+   * @return the column that would be last, if that column was used.
+   */
+  ColumnName getLastColumnName() {
+    if (!runnable) {
+      if (secondary) {
+        if (!useColumn(ColumnName.NUMBER)) {
+          return ColumnName.NUMBER_USED;
+        }
+        return ColumnName.NUMBER;
+      }
+      if (!expanded && !useColumn(ColumnName.USERS)) {
+        return ColumnName.LOAD;
+      }
+      if (!osColumn) {
+        if (!memoryColumn) {
+          if (!speedColumn) {
+            if (!typeColumn) {
+              return ColumnName.USERS;
+            }
+            return ColumnName.TYPE;
+          }
+          return ColumnName.SPEED;
+        }
+        return ColumnName.MEMORY;
+      }
+      return ColumnName.OS;
+    }
+    return ColumnName.RUN;
   }
 
   int getFirstSelectedIndex() {
@@ -396,6 +524,18 @@ abstract class ProcessorTable implements Storable, ParallelProgressDisplay, Load
 
   void getParameters(final ProcesschunksParam param) {
     rowList.getParameters(param);
+  }
+
+  void getParameters(final BatchruntomoParam param) {
+    rowList.getParameters(param);
+  }
+
+  void setParameters(final BatchruntomoParam param) {
+    setComputerMap(getMachineMap(param));
+  }
+
+  Map<String, String> getMachineMap(final BatchruntomoParam param) {
+    return param.getCPUMachineMap();
   }
 
   String getFirstSelectedComputer() {
@@ -440,12 +580,16 @@ abstract class ProcessorTable implements Storable, ParallelProgressDisplay, Load
   }
 
   String getHelpMessage() {
-    return "Click on check boxes in the " + header1Computer.getText()
-        + " column and use the spinner in the " + header1NumberCPUs.getText() + " "
-        + header2NumberCPUsUsed.getText() + " column where available.";
+    return "Click on check boxes in the " + header1Computer.getText() +
+        " column and use the spinner in the " + header1NumberCPUs.getText() + " " +
+        header2NumberCPUsUsed.getText() + " column where available.";
   }
 
   public void startLoad() {
+    if (secondary) {
+      // The secondary table should not also run the load
+      return;
+    }
     stopped = false;
     for (int i = 0; i < rowList.size(); i++) {
       manager.startLoad(getIntermittentCommand(i), loadMonitor);
@@ -457,14 +601,6 @@ abstract class ProcessorTable implements Storable, ParallelProgressDisplay, Load
     String computer = row.getComputer();
     return getIntermittentCommand(computer);
   }
-
-  /**
-   * sets parallelProcessMonitor with a monitor which is monitoring a parallel
-   * process associated with this ParallelProgressDisplay
-   * @param ParallelProcessMonitor
-   */
-  /* public void setParallelProcessMonitor( final ParallelProcessMonitor
-   * parallelProcessMonitor) { parent.setParallelProcessMonitor(parallelProcessMonitor); } */
 
   public void endLoad() {
     stopped = true;
@@ -521,12 +657,19 @@ abstract class ProcessorTable implements Storable, ParallelProgressDisplay, Load
    */
   public void msgStartingProcess(final String computer, final String failureReason1,
       String failureReason2) {
-    ((ProcessorTableRow) rowList.get(computer)).clearFailureReason(failureReason1,
-        failureReason2);
+    ((ProcessorTableRow) rowList.get(computer))
+        .clearFailureReason(failureReason1, failureReason2);
   }
 
   void clearFailureReason(final boolean selectedComputers) {
     rowList.clearFailureReason(selectedComputers);
+  }
+
+  String getGroupKey() {
+    if (runnable) {
+      return RUNNABLE_KEY;
+    }
+    return RESOURCE_KEY;
   }
 
   public void store(final Properties props) {
@@ -545,7 +688,7 @@ abstract class ProcessorTable implements Storable, ParallelProgressDisplay, Load
   }
 
   /**
-   *  Get the objects attributes from the properties object.
+   * Get the objects attributes from the properties object.
    */
   public final void load(final Properties props) {
     load(props, "");
@@ -611,6 +754,21 @@ abstract class ProcessorTable implements Storable, ParallelProgressDisplay, Load
     header2Failure.setToolTipText(text);
   }
 
+  static final class ColumnName {
+    static final ColumnName NUMBER_USED = new ColumnName();
+    static final ColumnName NUMBER = new ColumnName();
+    static final ColumnName LOAD = new ColumnName();
+    static final ColumnName TYPE = new ColumnName();
+    static final ColumnName SPEED = new ColumnName();
+    static final ColumnName MEMORY = new ColumnName();
+    static final ColumnName OS = new ColumnName();
+    static final ColumnName RUN = new ColumnName();
+    static final ColumnName USERS = new ColumnName();
+
+    private ColumnName() {
+    }
+  }
+
   private static final class RowList {
     private final List list = new ArrayList();
     // Contracted index for use when the table is not expanded..
@@ -621,6 +779,7 @@ abstract class ProcessorTable implements Storable, ParallelProgressDisplay, Load
 
     /**
      * Changes the selected computers and CPUs to match computerMap.
+     *
      * @param computerMap
      */
     private void setComputerMap(final Map<String, String> computerMap) {
@@ -640,11 +799,21 @@ abstract class ProcessorTable implements Storable, ParallelProgressDisplay, Load
       }
     }
 
+    private void setSelectedError() {
+      for (int i = 0; i < list.size(); i++) {
+        get(i).setSelectedError();
+      }
+    }
+
     private void add(final ProcessorTableRow row) {
       list.add(row);
     }
 
-    private void display(final boolean expanded, final Viewport viewport) {
+    private void display(final boolean expanded, final Viewport viewport,
+        final ColumnName lastColumnName, final boolean useNumberUsed,
+        final boolean useNumber, final boolean useLoad, final boolean useUsers,
+        final boolean useType, final boolean useSpeed, final boolean useMemory,
+        final boolean useOs, final boolean useRun) {
       for (int i = 0; i < size(expanded); i++) {
         ProcessorTableRow row;
         if (expanded) {
@@ -654,8 +823,8 @@ abstract class ProcessorTable implements Storable, ParallelProgressDisplay, Load
           row = (ProcessorTableRow) contractedIndex.get(i);
         }
         row.deleteRow();
-        row.setColumns();
-        row.display(i, viewport);
+        row.display(i, viewport, lastColumnName, useNumberUsed, useNumber, useLoad,
+            useUsers, useType, useSpeed, useMemory, useOs, useRun);
       }
     }
 
@@ -700,6 +869,12 @@ abstract class ProcessorTable implements Storable, ParallelProgressDisplay, Load
     }
 
     private void getParameters(final ProcesschunksParam param) {
+      for (int i = 0; i < size(); i++) {
+        get(i).getParameters(param);
+      }
+    }
+
+    private void getParameters(final BatchruntomoParam param) {
       for (int i = 0; i < size(); i++) {
         get(i).getParameters(param);
       }

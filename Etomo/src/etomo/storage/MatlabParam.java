@@ -39,20 +39,14 @@ import etomo.util.DatasetFiles;
  * prmParser doesn't like:
  * dPhi = {:}
  * szVol = [, , ]
- * outsideMaskRadius = 
- * 
+ * outsideMaskRadius =
  * </p>
- * 
- * <p>Copyright: Copyright 2006</p>
+ * <p>Copyright: Copyright 2006 - 2014 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
- * University of Colorado</p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
- * 
+ * @version $Id$
+ *
  * <p> $Log$
  * <p> Revision 1.48  2011/05/19 16:30:40  sueh
  * <p> bug# 1473 Added resetVolumeList.
@@ -316,8 +310,6 @@ import etomo.util.DatasetFiles;
  * <p> </p>
  */
 public final class MatlabParam {
-  public static final String rcsid = "$Id$";
-
   public static final String REFERENCE_KEY = "reference";
   public static final int REFERENCE_FLG_FAIR_REFERENCE_GROUPS_DEFAULT = 10;
   public static final int REFERENCE_FLG_FAIR_REFERENCE_PARTICLES_DEFAULT = 10;
@@ -517,7 +509,7 @@ public final class MatlabParam {
     }
     try {
       ReadOnlyAutodoc autodoc = null;
-      autodoc = (AutodocFactory.getMatlabInstance(manager, file));
+      autodoc = (AutodocFactory.getMatlabInstance(manager, file, false));
       if (autodoc == null) {
         UIHarness.INSTANCE.openMessageDialog(manager,
             "Unable to read " + file.getAbsolutePath() + ".", "File Error");
@@ -561,7 +553,7 @@ public final class MatlabParam {
     ReadOnlyAutodoc commentAutodoc = null;
     try {
       commentAutodoc = AutodocFactory.getInstance(manager, AutodocFactory.PEET_PRM,
-          AxisID.ONLY);
+          AxisID.ONLY, false);
     }
     catch (IOException e) {
       System.err.println("Problem with " + AutodocFactory.PEET_PRM
@@ -573,7 +565,7 @@ public final class MatlabParam {
           + ".adoc.\nLogFile.ReadException:  " + e.getMessage());
     }
     try {
-      WritableAutodoc autodoc = AutodocFactory.getMatlabInstance(manager, file);
+      WritableAutodoc autodoc = AutodocFactory.getMatlabInstance(manager, file, false);
       if (autodoc == null) {
         // get an empty .prm autodoc if the file doesn't exist
         autodoc = AutodocFactory.getEmptyMatlabInstance(manager, file);
@@ -1027,7 +1019,6 @@ public final class MatlabParam {
    * LowCutoff is only set once, so it is placed in all the Iteration instances
    * If the Iteration instances haven't been created yet, it should be add to them
    * from lowCutoff when they are.
-   * @param input
    */
   public void setLowCutoff(final String cutoff, final String sigma) {
     lowCutoff = cutoff;
@@ -1918,8 +1909,6 @@ public final class MatlabParam {
    * Gets the attribute.  If the attribute doesn't exist, it adds the attribute.
    * Adds or changes the value of the attribute.
    * @param autodoc
-   * @param attributeName
-   * @param attributeValue
    */
   private void setNameValuePairValue(BaseManager manager, final WritableAutodoc autodoc,
       final String name, final String value, final Map commentMap) {
@@ -1946,8 +1935,6 @@ public final class MatlabParam {
    * Adds or updates a name/value pair.  If adding, also trys to add a new-line
    * and comment.
    * @param autodoc
-   * @param attributeName
-   * @param attributeValue
    * @param commentAttribute
    */
   private void setNameValuePair(BaseManager manager, final WritableAutodoc autodoc,
@@ -2001,7 +1988,7 @@ public final class MatlabParam {
         }
       }
       // Add the attribute and name/value pair
-      autodoc.addNameValuePair(attributeName, attributeValue);
+      autodoc.addNameValuePairAttribute(attributeName, attributeValue);
     }
     else {
       // If atttribute does exist, change its value

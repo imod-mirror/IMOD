@@ -31,6 +31,7 @@ import javax.swing.filechooser.FileFilter;
 import etomo.ApplicationManager;
 import etomo.logic.ConfigTool;
 import etomo.logic.DatasetTool;
+import etomo.storage.DirectiveDef;
 import etomo.storage.DirectiveFileCollection;
 import etomo.storage.MagGradientFileFilter;
 import etomo.storage.StackFileFilter;
@@ -39,6 +40,7 @@ import etomo.type.AxisID;
 import etomo.type.DataFileType;
 import etomo.type.DialogExitState;
 import etomo.type.DialogType;
+import etomo.type.EtomoNumber;
 import etomo.type.FileType;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.type.StringProperty;
@@ -63,6 +65,7 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
   private final int BINNING_DEFAULT = 1;
   private static final String TWODIR_LABEL_1 = "Series was bidirectional from ";
   private static final String TWODIR_LABEL_2 = " degrees";
+  private static final String VIEW_RAW_STACK_LABEL = "View Raw Image Stack";
 
   private final JPanel pnlDataParameters = new JPanel();
   // Dataset GUI objects
@@ -89,9 +92,9 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
   private final RadioButton rbMontage = new RadioButton(MONTAGE_LABEL);
 
   private final Run3dmodButton btnViewRawStackA = Run3dmodButton.get3dmodInstance(
-      "View Raw Image Stack", this);
+      VIEW_RAW_STACK_LABEL, this);
   private Run3dmodButton btnViewRawStackB = Run3dmodButton.get3dmodInstance(
-      "View Raw Image Stack", this);
+      VIEW_RAW_STACK_LABEL, this);
 
   // Image parameter objects
   private final JPanel pnlImageParams = new JPanel();
@@ -164,6 +167,9 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     createDatasetPanel();
     createDataTypePanel();
     createPerAxisInfoPanel();
+    btnViewRawStackA.setActionCommand(VIEW_RAW_STACK_LABEL + AxisID.FIRST.getExtension());
+    btnViewRawStackB
+        .setActionCommand(VIEW_RAW_STACK_LABEL + AxisID.SECOND.getExtension());
     // Relabel the postpone button
     btnPostpone.setText("Use Existing Coms");
     btnExecute.setText("Create Com Scripts");
@@ -237,19 +243,20 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
       if (!DatasetTool.validateDatasetName(applicationManager, null, AxisID.ONLY,
           new File(expert.getPropertyUserDir()), datasetName, DataFileType.RECON,
           expert.getAxisType(),
-          !datasetName.endsWith(FileType.RAW_STACK.getExtension(applicationManager)))) {
+          !datasetName.endsWith(FileType.RAW_STACK.getExtension(expert.getAxisType())))) {
         return false;
       }
     }
     return super.buttonExecuteAction();
   }
 
-  public void action(final Run3dmodButton button,
+  public void action(final String actionCommand,
+      final Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
-    if (btnViewRawStackA == button) {
+    if (btnViewRawStackA.getActionCommand().equals(actionCommand)) {
       expert.viewRawStack(AxisID.FIRST, run3dmodMenuOptions);
     }
-    else if (btnViewRawStackB == button) {
+    else if (btnViewRawStackB.getActionCommand().equals(actionCommand)) {
       expert.viewRawStack(AxisID.SECOND, run3dmodMenuOptions);
     }
   }
@@ -302,8 +309,8 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     DirectiveFileCollection directiveFileCollection = templatePanel
         .getDirectiveFileCollection();
     // Handle dual differently because the dual is the default.
-    if (directiveFileCollection.containsDual()) {
-      if (directiveFileCollection.isDual()) {
+    if (directiveFileCollection.contains(DirectiveDef.DUAL)) {
+      if (directiveFileCollection.isValue(DirectiveDef.DUAL)) {
         rbDualAxis.setSelected(true);
       }
       else {
@@ -313,8 +320,8 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     else {
       resetRadioButtons(rbDualAxis, rbSingleAxis);
     }
-    if (directiveFileCollection.containsMontage()) {
-      if (directiveFileCollection.isMontage()) {
+    if (directiveFileCollection.contains(DirectiveDef.MONTAGE)) {
+      if (directiveFileCollection.isValue(DirectiveDef.MONTAGE)) {
         rbMontage.setSelected(true);
       }
       else {
@@ -324,7 +331,7 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     else {
       resetRadioButtons(rbSingleView, rbMontage);
     }
-    if (directiveFileCollection.containsPixel()) {
+    if (directiveFileCollection.contains(DirectiveDef.PIXEL)) {
       ltfPixelSize.setText(directiveFileCollection.getPixelSize(false));
     }
     else {
@@ -344,13 +351,13 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     else {
       ctfBtwodir.resetToCheckpoint();
     }
-    if (directiveFileCollection.containsGold()) {
+    if (directiveFileCollection.contains(DirectiveDef.GOLD)) {
       ltfFiducialDiameter.setText(directiveFileCollection.getFiducialDiameter(false));
     }
     else {
       ltfFiducialDiameter.resetToCheckpoint();
     }
-    if (directiveFileCollection.containsRotation()) {
+    if (directiveFileCollection.contains(DirectiveDef.ROTATION)) {
       ltfImageRotation.setText(directiveFileCollection.getImageRotation(AxisID.FIRST,
           false));
     }
@@ -358,32 +365,41 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
       ltfImageRotation.resetToCheckpoint();
     }
     expert.updateTiltAnglePanelTemplateValues(directiveFileCollection);
-    if (directiveFileCollection.containsDistort()) {
+    if (directiveFileCollection.contains(DirectiveDef.DISTORT)) {
       ftfDistortionFile.setText(directiveFileCollection.getDistortionFile());
     }
     else {
       ftfDistortionFile.resetToCheckpoint();
     }
-    if (directiveFileCollection.containsBinning()) {
-      spnBinning.setValue(directiveFileCollection.getIntBinning(BINNING_DEFAULT));
+    if (directiveFileCollection.contains(DirectiveDef.BINNING)) {
+      String string = directiveFileCollection.getBinning();
+      int binning = BINNING_DEFAULT;
+      if (string != null && !string.matches("\\s*")) {
+        EtomoNumber number = new EtomoNumber();
+        number.set(string);
+        if (!number.isNull()) {
+          binning = number.getInt();
+        }
+      }
+      spnBinning.setValue(binning);
     }
     else {
       spnBinning.resetToCheckpoint();
     }
-    if (directiveFileCollection.containsGradient()) {
+    if (directiveFileCollection.contains(DirectiveDef.GRADIENT)) {
       ftfMagGradientFile.setText(directiveFileCollection.getMagGradientFile());
     }
     else {
       ftfMagGradientFile.resetToCheckpoint();
     }
-    if (directiveFileCollection.containsFocus(AxisID.FIRST)) {
+    if (directiveFileCollection.contains(DirectiveDef.FOCUS, AxisID.FIRST)) {
       cbAdjustedFocusA.setSelected(directiveFileCollection
           .isAdjustedFocusSelected(AxisID.FIRST));
     }
     else {
       cbAdjustedFocusA.resetToCheckpoint();
     }
-    if (directiveFileCollection.containsFocus(AxisID.SECOND)) {
+    if (directiveFileCollection.contains(DirectiveDef.FOCUS, AxisID.SECOND)) {
       cbAdjustedFocusB.setSelected(directiveFileCollection
           .isAdjustedFocusSelected(AxisID.SECOND));
     }
@@ -393,11 +409,11 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
   }
 
   private void viewRawStackA() {
-    action(btnViewRawStackA, null);
+    action(btnViewRawStackA.getActionCommand(), null, null);
   }
 
   private void viewRawStackB() {
-    action(btnViewRawStackB, null);
+    action(btnViewRawStackB.getActionCommand(), null, null);
   }
 
   void setDataset(final String input) {

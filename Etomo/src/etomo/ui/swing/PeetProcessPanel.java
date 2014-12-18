@@ -34,7 +34,7 @@ public class PeetProcessPanel extends AxisProcessPanel {
   public static final String rcsid = "$Id$";
 
   PeetProcessPanel(BaseManager manager) {
-    super(AxisID.ONLY, manager, false);
+    super(AxisID.ONLY, manager, false,true);
     createProcessControlPanel();
     initializePanels();
   }

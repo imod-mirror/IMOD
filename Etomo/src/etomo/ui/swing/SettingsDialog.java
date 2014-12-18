@@ -222,7 +222,7 @@ public final class SettingsDialog extends JDialog {
     cbMontage.setSelected(userConfig.getMontage());
     cbNoParallelProcessing.setSelected(userConfig.getNoParallelProcessing());
     cbGpuProcessingDefault.setSelected(userConfig.getGpuProcessingDefault());
-    cbTiltAnglesRawtltFile.setSelected(userConfig.getTiltAnglesRawtltFile());
+    cbTiltAnglesRawtltFile.setSelected(userConfig.isTiltAnglesRawtltFile());
     cbSwapYAndZ.setSelected(userConfig.getSwapYAndZ());
     cbSetFEIPixelSize.setSelected(userConfig.isSetFEIPixelSize());
     cbParallelProcessing.setSelected(userConfig.isParallelProcessing());
@@ -313,7 +313,7 @@ public final class SettingsDialog extends JDialog {
         || userConfig.getMontage() != cbMontage.isSelected()
         || userConfig.getNoParallelProcessing() != cbNoParallelProcessing.isSelected()
         || userConfig.getGpuProcessingDefault() != cbGpuProcessingDefault.isSelected()
-        || userConfig.getTiltAnglesRawtltFile() != cbTiltAnglesRawtltFile.isSelected()
+        || userConfig.isTiltAnglesRawtltFile() != cbTiltAnglesRawtltFile.isSelected()
         || userConfig.getSwapYAndZ() != cbSwapYAndZ.isSelected()
         || userConfig.isSetFEIPixelSize() != cbSetFEIPixelSize.isSelected()
         || userConfig.getFontSize() != Integer.parseInt(ltfFontSize.getText())
