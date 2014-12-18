@@ -271,6 +271,24 @@ comment = OBSOLETE. No longer supported.
 comment = OBSOLETE. No longer supported.
 
 [Field = cylinderHeight]
-comment = A non-negative number specifying the height in voxels of the
-cylindrical mask.
-tooltip = The height in voxels of the cylindrical mask
+comment = The height in voxels of the cylindrical mask. Blank or NaN 
+^will be treated as infinity, and the cylinder will span the entire volume.
+
+[Field = flgRandomize]
+comment = If 1 (default = 0), select particles for averaging randomly, 
+^rather than by cross-correlation.
+
+[Field = maskBlurStdDev]
+comment = Blur the mask by convolution with a Gaussian having this 
+^standard deviation (in voxels). If omitted or NaN (the default), the 
+^mask will be binary. After blurring, the mask edge will be spread 
+^over approximately 2.5 standard deviations on either side of 
+^the original edge location. 
+
+[Field = flgVolNamesAreTemplates]
+comment = If 1 (default = 0), file names in the volume table (i.e. 
+^volume, model, initial motive list, and wedge mask files names) may be 
+^templates to be expanded rather than individual filenames. For example, 
+^"vol1-10.mrc", would be expanded by PEET to [vol1.mrc, vol2.mrc, 
+^... vol10.mrc]. Any filename ending in 2 numbers separated by a dash 
+^('-') and, optionally, follwed by a suffix, will be considered a template.
