@@ -181,7 +181,7 @@ public class ComScriptCommand {
    * Set the command line arguments for the script command.
    *
    * @param args a String array containing the command line arguments for the command
-   *          .
+   *             .
    */
   public void setCommandLineArgs(String[] args) {
     if (args.length == 1 && (args[0].equals("-StandardInput") ||
@@ -215,7 +215,7 @@ public class ComScriptCommand {
    * Append addition arguments onto the command line argument list.
    *
    * @param append a String array containing the additional command line arguments to
-   *          be added.
+   *               be added.
    */
   public void appendCommandLineArgs(String[] append) {
     String[] existingArgs = commandLineArgs;
@@ -259,7 +259,7 @@ public class ComScriptCommand {
    * Append to the input argument to the input argument list
    *
    * @param inputArg a ComScriptInputArg which is copied into the internal input
-   *          argument list.
+   *                 argument list.
    */
   public void appendInputArgument(ComScriptInputArg inputArg) {
     stdinArgs.add(new ComScriptInputArg(inputArg));
@@ -451,7 +451,7 @@ public class ComScriptCommand {
     int maxArrayLen = Math.max(keywordArray.length, valuesArray.length);
     int maxValuesLen = 1;
     if (valuesArray != null && valuesArray.length > 0 && valuesArray[0] != null) {
-      maxValuesLen = valuesArray[0].size();
+      maxValuesLen = Math.max(maxValuesLen, valuesArray[0].size());
     }
     // Interleave arguments - order is the first element from each parameter, then the
     // second from each, and so on
