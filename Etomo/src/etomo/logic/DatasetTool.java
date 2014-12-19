@@ -43,10 +43,10 @@ public final class DatasetTool {
 
   public static String switchExtension(final String file) {
     if (file.endsWith(STANDARD_DATASET_EXT)) {
-      return file.substring(0,file.lastIndexOf(".")) + ALTERNATE_DATASET_EXT;
+      return file.substring(0, file.lastIndexOf(".")) + ALTERNATE_DATASET_EXT;
     }
     if (file.endsWith(ALTERNATE_DATASET_EXT)) {
-      return file.substring(0,file.lastIndexOf(".")) + STANDARD_DATASET_EXT;
+      return file.substring(0, file.lastIndexOf(".")) + STANDARD_DATASET_EXT;
     }
     return file;
   }
@@ -472,6 +472,9 @@ public final class DatasetTool {
     }
     else if (dataFileType == null) {
       errorMessage = "No data file type specified";
+    }
+    else if (inputFileRoot == null) {
+      errorMessage = "Missing dataset name.";
     }
     // Check for embedded spaces
     else if (inputFileRoot.matches("\\s*\\S+\\s+\\S+(\\s+\\S+)*\\s*")) {
