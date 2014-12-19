@@ -104,6 +104,12 @@ public class BatchruntomoParam implements CommandParam {
     gpuMachineList = null;
     niceValue.reset();
     emailAddress.reset();
+    if (rootNameValidationSet != null) {
+      rootNameValidationSet.clear();
+    }
+    if (requiredFilesValidationSet != null) {
+      requiredFilesValidationSet.clear();
+    }
     // parse
     // rootName: based on .ebt file properties
     // currentLocation: based on .ebt file properties
@@ -306,14 +312,6 @@ public class BatchruntomoParam implements CommandParam {
     deliverToDirectory.reset();
   }
 
-  public void errorCheck() {
-    if (rootNameValidationSet != null) {
-      rootNameValidationSet.clear();
-    }
-    if (requiredFilesValidationSet != null) {
-      requiredFilesValidationSet.clear();
-    }
-  }
 
   public boolean addRootName(final String input, final boolean enforceUniqueness,
       final boolean dual, final StringBuilder errMsg) {
