@@ -1158,11 +1158,12 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     pnlOptionalLeft.add(cbFlgNoReferenceRefinement);
     pnlOptionalLeft.add(cbFlgRandomize);
     // optional right
-    pnlOptionalRight.setLayout(new GridLayout(4, 1, 0, 5));
+    pnlOptionalRight.setLayout(new GridLayout(5, 1, 0, 5));
     pnlOptionalRight.add(lsParticlePerCPU.getContainer());
     pnlOptionalRight.add(lsDebugLevel.getContainer());
     pnlOptionalRight.add(pnlLowCutoff);
     pnlOptionalRight.add(ltfSelectClassID.getContainer());
+    pnlOptionalRight.add(Box.createVerticalGlue());
     // low cutoff
     pnlLowCutoff.setLayout(new BoxLayout(pnlLowCutoff, BoxLayout.X_AXIS));
     pnlLowCutoff.add(ltfLowCutoff.getContainer());
