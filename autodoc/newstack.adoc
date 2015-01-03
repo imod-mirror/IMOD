@@ -252,7 +252,11 @@ manpage = X and Y center offsets for each section.  This is an offset to the
 center of the area from which image will be taken, so a positive offset in X
 will move images to the left.  If images are being binned, the entry should be
 in unbinned pixels.  Enter one X,Y pair to apply a single offset to
-all sections.
+all sections.  If other transformations are being applied to the sections,
+these offsets will generally be combined with those operations, and
+non-integer offsets are meaningful.  Otherwise, the nearest integer offset
+will generally be applied, except when the \fI-phase\fR option is used to
+apply the offsets in Fourier space.
 
 [Field = ApplyOffsetsFirst]
 short = applyfirst
@@ -292,6 +296,21 @@ the second file, etc., in which case the transform file must have at least one
 line per input file.  Otherwise, -uselines can be used to specify which
 transform to apply for each file, in which case at least one line must be
 specified per input file.
+
+[Field = PhaseShiftFFT]
+short = phase
+type = B
+usage = Shift images by changing phase in Fourier space instead of interpolating
+tooltip = 
+manpage = Shift images by taking a Fourier transform, changing phases
+appropriately, and taking an inverse Fourier transform, rather than by
+interpolating in real space.  In principle, this method preserves high
+frequencies better than interpolation does.  The method can be used only if
+images are just being shifted, not rotated, scaled, warped, or undistorted.
+The shifts can be specified in two ways: with the \fI-offset\fR option, or as
+linear transforms that contain only shifts.  This option can be used together
+with either \fI-bin\fR or \fI-shrink\fR, but not both, because the data are
+scaled down when read in.
 
 [Field = RotateByAngle]
 short = rotate
