@@ -355,7 +355,7 @@ int main(int argc, char *argv[])
         stripEnd = stripBegin + stripPixelNum - 1;
         stripStride = interPixelNum;
       } else {
-        stripStride = nx - (stripPixelNum + 1) / 2 - (stripBegin + stripEnd) / 2;
+        stripStride = (nx - stripPixelNum) - stripBegin;
         stripBegin = nx - stripPixelNum;
         stripEnd = nx - 1;
         finished = true;
