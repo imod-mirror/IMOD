@@ -36,19 +36,20 @@ int main(int argc, char *argv[])
 {
   // Fallbacks from   ../manpages/autodoc2man 2 1 ctfplotter
   int numOptArgs, numNonOptArgs;
-  int numOptions = 22;
+  int numOptions = 28;
   const char *options[] = {
-    "input:InputStack:FN:", "angleFn:AngleFile:FN:",
-    "invert:InvertTiltAngles:B:", "offset:OffsetToAdd:F:",
-    "config:ConfigFile:FN:", "defFn:DefocusFile:FN:", "aAngle:AxisAngle:F:",
-    "psRes:PSResolution:I:", "tileSize:TileSize:I:", "volt:Voltage:I:",
-    "cache:MaxCacheSize :I:", "cs:SphericalAberration:F:",
+    "input:InputStack:FN:", "angleFn:AngleFile:FN:", "invert:InvertTiltAngles:B:",
+    "offset:OffsetToAdd:F:", "config:ConfigFile:FN:", "defFn:DefocusFile:FN:",
+    "aAngle:AxisAngle:F:", "psRes:PSResolution:I:", "tileSize:TileSize:I:",
+    "volt:Voltage:I:", "cache:MaxCacheSize :I:", "cs:SphericalAberration:F:",
     "defTol:DefocusTol:I:", "pixelSize:PixelSize:F:",
     "ampContrast:AmplitudeContrast:F:", "expDef:ExpectedDefocus:F:",
-    "leftTol:LeftDefTol:F:", "rightTol:RightDefTol:F:", "range:AngleRange:FP:",
-    "debug:DebugLevel :I:", "param:Parameter:PF:",
-    "fpOffset:FocalPairDefocusOffset:F"
-  };
+    "fpOffset:FocalPairDefocusOffset:F:", "leftTol:LeftDefTol:F:",
+    "rightTol:RightDefTol:F:", "range:AngleRange:FP:",
+    "autoFit:AutoFitRangeAndStep:FP:", "frequency:FrequencyRangeToFit:FP:",
+    "extra:ExtraZerosToFit:F:", "vary:VaryExponentInFit:B:",
+    "baseline:BaselineFittingOrder:I:", "save:SaveAndExit:B:", "debug:DebugLevel:I:",
+    "param:ParameterFile:PF:"};
 
   bool focalPairProcessing = false;
   char *cfgFn, *stackFn, *angleFn, *defFn;
@@ -57,8 +58,8 @@ int main(int argc, char *argv[])
   float defocusTol, pixelSize, lowAngle, highAngle, autoRange, autoStep;
   float autoFromAngle, autoToAngle, x1Start, x2End;
   float expectedDef, fpdz, leftDefTol, rightDefTol;
-  float ampContrast, cs, dataOffset = 0.0;
-  int invertAngles = 0, ifOffset = 0, saveAndExit = 0, varyExp = 0;
+  float ampContrast, cs, dataOffset = 0.0, extraZerosFit = 0.0;
+  int invertAngles = 0, ifOffset = 0, saveAndExit = 0, varyExp = 0, baselineOrder = 0;
   QString noiseCfgDir, noiseFile;
   SliceCache *cache, *cache2;
   MrcHeader *header;
@@ -149,6 +150,10 @@ int main(int argc, char *argv[])
     focalPairProcessing = true;
     printf("Fitting 2 tilt series with a defocus offset of %g nm\n", fpdz);
   }
+  PipGetInteger("BaselineFittingOrder", &baselineOrder);
+  B3DCLAMP(baselineOrder, 0, 4);
+  PipGetFloat("ExtraZerosToFit", &extraZerosFit);
+  extraZerosFit = B3DMAX(extraZerosFit, 0.);
 
   double *rAvg = (double *)malloc(nDim * sizeof(double));
   if (!rAvg)
@@ -179,7 +184,7 @@ int main(int argc, char *argv[])
             (int)nDim, hyperRes, (double)defocusTol, tileSize,
             (double)tiltAxisAngle, -90.0, 90.0, (double)expectedDef,
             (double)leftDefTol, (double)rightDefTol, cacheSize, invertAngles,
-            focalPairProcessing, (double)fpdz);
+            focalPairProcessing, (double)fpdz, baselineOrder);
   setlocale(LC_NUMERIC, "C");
 
   //set the angle range for noise PS computing;
@@ -270,21 +275,29 @@ int main(int argc, char *argv[])
       noiseFile = noiseCfgDir + noiseFile;
     app.setSlice((const char *)noiseFile.toLatin1(), NULL, SLICE_CACHE_PRIMARY);
     app.computeInitPS(true);
+    double meanPower = 0.;
+
+    // Smooth the noise PS
+    if (app.smoothNoisePS())
+      printf("WARNING: Computational error smoothing noise power spectrum %d\n", 
+             noiseFileCounter + 1);
     currPS = app.getPS();
     //for(i=0;i<nDim;i++) noisePs[noiseFileCounter][i]=*(currPS+i);
-    for (i = 0; i < nDim; i++)
+    for (i = 0; i < nDim; i++) {
       noisePs[noiseFileCounter * nDim + i] = currPS[i];
+      if (i)
+        meanPower += currPS[i] / (nDim - 1.);
+    }
     noiseMean[noiseFileCounter] = app.getStackMean();
     if (noiseMean[noiseFileCounter] < 0.)
       exitError("The mean of noise file %d is negative.  All noise files must have "
                 "positive means, with 0 mean corresponding to 0 exposure",
                 noiseFileCounter + 1);
-    noiseFileCounter++;
-  }
-  for (i = 0; i < noiseFileCounter; i++) {
     if (debugLevel >= 1)
-      printf("noiseMean[%d]=%f\n", i, noiseMean[i]);
-    index[i] = i;
+      printf("noiseMean[%d]=%f   mean power=%g\n", noiseFileCounter, 
+             noiseMean[noiseFileCounter], meanPower);
+    index[noiseFileCounter] = noiseFileCounter;
+    noiseFileCounter++;
   }
   fflush(stdout);
 
@@ -386,17 +399,19 @@ int main(int argc, char *argv[])
   if (app.defocusFinder.getExpDefocus() <= 0)
     exitError("Invalid expected defocus, it must be >0");
 
-  // Switch to calling routine for zero, scale correctly, go back only 12
+  // Switch to calling routine for zero, scale correctly, go back at most 12, and limit
+  // it for higher defocus
   double firstZero, secondZero;
-  app.defocusFinder.getTwoZeros(app.defocusFinder.getExpDefocus(), firstZero,
-                                secondZero);
-  int secZeroIndex = B3DMIN(nDim - 1, B3DNINT(secondZero * (nDim - 1)));
+  app.defocusFinder.getTwoZeros(app.defocusFinder.getExpDefocus(), firstZero, secondZero);
+  int secZeroIndex = B3DMIN(nDim - 1, B3DNINT((secondZero + extraZerosFit * 
+                                               (secondZero - firstZero)) * (nDim - 1)));
   int firstZeroIndex = B3DMIN(secZeroIndex - 3, B3DNINT(firstZero * (nDim - 1)));
+  int backFromZero = B3DMAX(6, B3DMIN(12, (4 * firstZeroIndex) / 10));
   if (ifFreqRange) {
     app.setX1Range(B3DNINT(2. * x1Start * (nDim - 1)), firstZeroIndex - 1);
     app.setX2Range(firstZeroIndex + 1, B3DNINT(2. * x2End * (nDim - 1)));
   } else {
-    app.setX1Range(firstZeroIndex - 12, firstZeroIndex - 1);
+    app.setX1Range(firstZeroIndex - backFromZero, firstZeroIndex - 1);
     app.setX2Range(firstZeroIndex + 1, secZeroIndex);
   }
   app.simplexEngine = new SimplexFitting(nDim, &app);
