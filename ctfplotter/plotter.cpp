@@ -589,7 +589,7 @@ void Plotter::drawGrid(QPainter *painter, bool onScreen)
 void Plotter::drawCurves(QPainter *painter)
 {
   static const QColor colorForIds[6] = {
-    Qt::red, Qt::green, Qt::blue, Qt::cyan, Qt::magenta, Qt::yellow
+    Qt::magenta, Qt::green, Qt::blue, Qt::red, Qt::cyan, Qt::yellow
   };
   PlotSettings settings = mZoomStack[mCurZoom];
   QRect rect(Margin, Margin,
