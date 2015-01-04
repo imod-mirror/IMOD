@@ -105,6 +105,7 @@ public final class BatchRunTomoDialog
     ftfRootDir = FileTextField2.getAltLayoutInstance(manager, "Location: ");
     ftfInputDirectiveFile =
         FileTextField2.getAltLayoutInstance(manager, "Starting directive file: ");
+    ftfInputDirectiveFile.checkpoint();
     ftfDeliverToDirectory =
         FileTextField2.getAltLayoutInstance(manager, DELIVER_TO_DIRECTORY_NAME + ": ");
     table = BatchRunTomoTable.getInstance(manager, this, tableReference);
@@ -258,6 +259,7 @@ public final class BatchRunTomoDialog
       ftfRootDir.setEditable(false);
       ftfDeliverToDirectory.setText(metaData.getDeliverToDirectory());
       ftfInputDirectiveFile.setText(metaData.getInputDirectiveFile());
+      ftfInputDirectiveFile.checkpoint();
       table.setParameters(metaData);
       datasetDialog.setParameters(metaData.getDatasetMetaData());
       phDatasetTable.set(metaData.getDatasetTableHeader());
@@ -298,8 +300,11 @@ public final class BatchRunTomoDialog
     }
   }
 
-  public void setParameters(final UserConfiguration userConfiguration) {
-    templatePanel.setParameters(userConfiguration);
+  public void setParameters(final UserConfiguration userConfiguration,
+      final boolean newDataset) {
+    if (newDataset) {
+      templatePanel.setParameters(userConfiguration);
+    }
     ctfEmailAddress.setSelected(userConfiguration.isUseEmailAddress());
     ctfEmailAddress.setText(userConfiguration.getEmailAddress());
   }
@@ -314,7 +319,7 @@ public final class BatchRunTomoDialog
 
   public void setParameters(final BatchruntomoParam param) {
     cbDeliverToDirectory.setSelected(!param.isDeliverToDirectoryNull());
-     if (cbDeliverToDirectory.isSelected()) {
+    if (cbDeliverToDirectory.isSelected()) {
       ftfDeliverToDirectory.setText(param.getDeliverToDirectory());
     }
     cbCPUMachineList.setSelected(!param.isCpuMachineListNull());
@@ -327,7 +332,7 @@ public final class BatchRunTomoDialog
     else {
       rbGPUMachineList.setSelected(true);
     }
-    if(!param.isEmailAddressNull()) {
+    if (!param.isEmailAddressNull()) {
       ctfEmailAddress.setSelected(true);
       ctfEmailAddress.setText(param.getEmailAddress());
     }
@@ -535,11 +540,16 @@ public final class BatchRunTomoDialog
         table.setCurrentDirectory(null);
       }
     }
-    else if (object == ftfInputDirectiveFile) {
+    else if (object == ftfInputDirectiveFile &&
+        ftfInputDirectiveFile.isDifferentFromCheckpoint(false)) {
+      ftfInputDirectiveFile.checkpoint();
       directiveFileCollection
           .setDirectiveFile(ftfInputDirectiveFile.getFile(), DirectiveFileType.BATCH);
+      templatePanel.activateActions(false);
+      templatePanel.clear();
       templatePanel.setParameters(
           directiveFileCollection.getDirectiveFile(DirectiveFileType.BATCH));
+      templatePanel.activateActions(true);
       msgDirectivesChanged(false, false);
     }
   }
