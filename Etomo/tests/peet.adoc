@@ -71,6 +71,10 @@ format=
 
 
 [function = volume-table]
+[[if = test-gui]]
+  #value
+  assert.cb.file-names-are-templates=off
+[[]]
 #check empty table error
 run.function.setup-test-run-error=
 bn.insert=
@@ -149,7 +153,11 @@ wait.file-chooser.initial-motl=%{dataset}-a-initMOTL.csv
   #values
   assert.rb.particle=on
   assert.tf.particle=
+  cb.file-names-are-templates=off
   assert.sp.in-volume=1
+  cb.file-names-are-templates=on
+  assert.tf.in-volume=
+  cb.file-names-are-templates=off
   assert.rb.user-supplied-file=off
   assert.tf.user-supplied-file=
   assert.rb.multiparticle-reference-with=off
@@ -158,6 +166,9 @@ wait.file-chooser.initial-motl=%{dataset}-a-initMOTL.csv
   assert.enabled.rb.particle=
   assert.enabled.tf.particle=
   assert.enabled.sp.in-volume=
+  cb.file-names-are-templates=on
+  assert.enabled.tf.in-volume=
+  cb.file-names-are-templates=off
   assert.enabled.rb.user-supplied-file=
   assert.disabled.tf.user-supplied-file=
   assert.enabled.rb.multiparticle-reference-with=
@@ -171,6 +182,9 @@ tf.particle=2
   rb.user-supplied-file=
   assert.disabled.tf.particle=
   assert.disabled.sp.in-volume=
+  cb.file-names-are-templates=on
+  assert.disabled.tf.in-volume=
+  cb.file-names-are-templates=off
   assert.enabled.rb.user-supplied-file=
   assert.enabled.tf.user-supplied-file=
   rb.multiparticle-reference-with=
@@ -186,6 +200,9 @@ tf.particle=2
   rb.particle=
   assert.enabled.tf.particle=
   assert.enabled.sp.in-volume=
+  cb.file-names-are-templates=on
+  assert.enabled.tf.in-volume=
+  cb.file-names-are-templates=off
   assert.disabled.cbb.multiparticle-reference-with=
 [[]]
 
@@ -245,23 +262,26 @@ if.not.var.test-gui.return=
 assert.rb.none=on
 assert.rb.sphere=off
 assert.rb.cylinder=off
+assert.tf.height=
 assert.rb.user-supplied-binary-file=off
 assert.tf.user-supplied-binary-file=
 assert.tf.inner-radius=
 assert.tf.outer-radius=
+assert.tf.blur-mask-by=
 assert.cb.manual-cylinder-orientation=off
-
 assert.tf.z-rotation=
 assert.tf.y-rotation=
 #check enabled/disabled
 assert.enabled.rb.none=
 assert.enabled.rb.sphere=
 assert.enabled.rb.cylinder=
+assert.disabled.tf.height=
 assert.enabled.rb.user-supplied-binary-file=
 assert.disabled.tf.user-supplied-binary-file=
 assert.disabled.bn.user-supplied-binary-file=
 assert.disabled.tf.inner-radius=
 assert.disabled.tf.outer-radius=
+assert.disabled.tf.blur-mask-by=
 assert.disabled.cb.manual-cylinder-orientation=
 assert.disabled.tf.z-rotation=
 assert.disabled.tf.y-rotation=
@@ -269,11 +289,14 @@ assert.disabled.tf.y-rotation=
 rb.sphere=
 assert.enabled.tf.inner-radius=
 assert.enabled.tf.outer-radius=
-assert.enabled.cb.manual-cylinder-orientation=
+assert.enabled.tf.blur-mask-by=
+assert.disabled.cb.manual-cylinder-orientation=
 #check enabled/disabled - cylinder
 rb.cylinder=
+assert.enabled.tf.height=
 assert.enabled.tf.inner-radius=
 assert.enabled.tf.outer-radius=
+assert.enabled.tf.blur-mask-by=
 assert.enabled.cb.manual-cylinder-orientation=
 #check enabled/disabled - manual cylinder orientation
 cb.manual-cylinder-orientation=on
@@ -477,6 +500,7 @@ assert.cb.use-absolute-value-of-cross-correlation=on
 assert.cb.save-individual-aligned-particles=off
 assert.cb.strict-search-limit-checking=off
 assert.cb.no-reference-refinement=off
+assert.cb.randomized-particle-selection=off
 assert.sp.particles-per-cpu=20
 assert.sp.debug-level=3
 assert.tf.low-frequency-cutoff=0

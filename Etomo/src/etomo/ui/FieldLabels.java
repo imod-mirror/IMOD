@@ -40,4 +40,6 @@ public final class FieldLabels {
   public static final String FLG_STRICT_SEARCH_LIMITS_LABEL = "Strict search limit checking";
   public static final String FLG_NO_REFERENCE_REFINEMENT_LABEL = "No reference refinement";
   public static final String CSV_FILES_LABEL = "User supplied csv files";
+  public static final String FLG_RANDOMIZE_LABEL = "Randomized particle selection";
+  public static final String FLG_VOL_NAMES_ARE_TEMPLATES_LABEL = "File names are templates";
 }
