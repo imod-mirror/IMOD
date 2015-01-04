@@ -2769,8 +2769,8 @@ static int ivwProcessImageList(ImodView *vi)
     // See if mirroring of an FFT is needed: Not forbidden by option 
     // (MRC complex float odd size not reliable, eliminated 7/16/13)
     // Set flags and increase the nx
-    if (!i && (image->file == IIFILE_MRC || image->file == IIFILE_RAW || 
-               image->file == IIFILE_HDF) && image->format == IIFORMAT_COMPLEX && 
+    if ((image->file == IIFILE_MRC || image->file == IIFILE_RAW ||
+         image->file == IIFILE_HDF) && image->format == IIFORMAT_COMPLEX && 
         image->type == IITYPE_FLOAT && vi->li->mirrorFFT >= 0) {
       image->mirrorFFT = 1;
       if (image->file == IIFILE_MRC) {

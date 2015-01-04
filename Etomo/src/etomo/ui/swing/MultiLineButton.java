@@ -576,6 +576,12 @@ class MultiLineButton implements ProcessResultDisplay {
       button.setMinimumSize(size);
     }
   }
+  
+  final void setToPreferredSize() {
+    Dimension size = button.getPreferredSize();
+    button.setPreferredSize(size);
+    button.setMaximumSize(size);
+  }
 
   final void setToPreferredSize() {
     Dimension size = button.getPreferredSize();

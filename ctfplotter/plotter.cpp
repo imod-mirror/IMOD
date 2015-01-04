@@ -479,6 +479,15 @@ void Plotter::keyPressEvent(QKeyEvent *event)
     mZoomStack[mCurZoom].scroll(0, +1);
     refreshPixmap();
     break;
+  case Qt::Key_0:
+  case Qt::Key_1:
+  case Qt::Key_2:
+  case Qt::Key_3:
+  case Qt::Key_4:
+    mApp->setBaselineOrder(event->key() - Qt::Key_0);
+    if (mFittingDia)
+      mFittingDia->setBaselineOrder(event->key() - Qt::Key_0);
+    break;
   default:
     QWidget::keyPressEvent(event);
   }

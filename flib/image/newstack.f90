@@ -63,6 +63,7 @@ program newstack
   !
   logical rescale, blankOutput, adjustOrigin, hasWarp, fillTmp, fillNeeded, stripExtra
   logical readShrunk, numberedFromOne, twoDirections, useMdocFiles, outDocChanged, quiet
+  logical*4 phaseShift
   character dat*9, timeStr*8, tempExt*9
   logical nbytes_and_flags
   character*80 titlech
@@ -91,14 +92,15 @@ program newstack
   integer*4 indFilter, linesShrink, numAllSec, maxNumXF, nxMax, nyMax, ifControl, nzChunk
   integer*4 indFiltTemp, ifFiltSet, ifShrink, numVolRead, if3dVolumes, nxTile, nyTile
   integer*4 indAdocIn, indAdocOut, indSectIn, needClose1, needClose2, nxTileIn, nyTileIn
-  real*4 rxOffset, ryOffset
+  integer*4 nxFSpad, nyFSpad, maxFSpad, minFSpad, nxDimNeed, nyDimNeed
+  real*4 rxOffset, ryOffset, fsPadFrac
   real*4 fieldMaxY, rotateAngle, expandFactor, fillVal, shrinkFactor
   real*8 dsum, dsumSq, tsum, tsumSq, wallStart, wallTime, loadTime, saveTime
   real*8 rotTime
   real*4 cosd, sind
-  integer*4 taperAtFill, selectZoomFilter, zoomFiltInterp, numberInList
+  integer*4 taperAtFill, selectZoomFilter, zoomFiltInterp, numberInList, niceFFTlimit
   integer*4 readCheckWarpFile, AdocLookupByNameValue, AdocTransferSection, AdocSetCurrent
-  integer*4 iiuRetAdocIndex, iiuVolumeOpen, iiuAltChunkSizes, AdocWrite
+  integer*4 iiuRetAdocIndex, iiuVolumeOpen, iiuAltChunkSizes, AdocWrite, niceFrame
   integer*4 getLinearTransform, findMaxGridSize, getSizeAdjustedGrid, iiuFileType
   integer*4 setOutputTypeFromString, b3dOutputFileType, AdocSetInteger, iiuWriteGlobalAdoc
   character*320 concat
@@ -208,6 +210,12 @@ program newstack
   nzChunk = 1
   useMdocFiles = .false.
   quiet = .false.
+  phaseShift = .false.
+  maxFSpad = 100
+  minFSpad = 10
+  fsPadFrac = 0.1
+  nxFSpad = 0
+  nyFSpad = 0
   !
   ! Preliminary allocation of array
   allocate(array(limToAlloc), stat = ierr)
@@ -598,6 +606,9 @@ program newstack
     if (ix1 .ne. 0 .and. ifLinear .ne. 0) call exitError( &
         'YOU CANNOT ENTER BOTH -linear AND -nearest')
     if (ix1 .ne. 0) ifLinear = -1
+    ierr = PipGetLogical('PhaseShiftFFT', phaseShift)
+    if (phaseShift .and. ifLinear .ne. 0) call exitError( &
+        'YOU CANNOT ENTER -phase WITH -linear OR -nearest')
   else
     write(*,'(1x,a,$)') '1 or 2 to transform images with cubic or' &
         //' linear interpolation, 0 not to: '
@@ -676,7 +687,7 @@ program newstack
         'Specified # of transform lines does not match # of sections')
   endif
   !
-  ! find out if root beer float or what
+  ! find out if float or other density modification
   !
   fracZero = 0.
   ifMean = 0
@@ -838,6 +849,29 @@ program newstack
         expandFactor = 1. / shrinkFactor
       endif
       if (iVerbose > 0) print *,'Shrinking; readShrunk ', readShrunk
+    endif
+    !
+    ! Check validity of phase shifting now that all requested actions are processed
+    if (phaseShift) then
+      if (rotateAngle .ne. 0. .or. expandFactor .ne. 0. .or. idfFile .ne. ' ' .or. &
+          magGradFile .ne. ' ' .or. ifWarping .ne. 0)  &
+          call exitError('YOU CANNOT USE -phase WITH -rotate, -expand, -distort, '// &
+          '-gradient, OR WARPING, OR WITH -shrink UNLESS IT IS THE ONLY OTHER OPERATION')
+      if (applyFirst) call exitError('YOU CANNOT USE -phase WITH -applyfirst')
+      !
+      ! Check transforms and convert to xcen/ycen shifts
+      if (ifXform .ne. 0) then
+        tmpMax = .01 / max(nx, ny)
+        do i = 1, listTotal
+          lnu = lineUse(i) + 1
+          if (abs(f(1, 1, lnu) - 1.) > tmpMax .or. abs(f(2, 2, lnu) - 1.) > tmpMax .or. &
+              abs(f(2, 1, lnu)) > tmpMax .or. abs(f(1, 2, lnu)) > tmpMax) call exitError(&
+              'TRANSFORMS MUST CONTAIN ONLY SHIFTS (FIRST FOUR TERMS MUST BE 1 0 0 1)')
+          xcen(i) = xcen(i) - f(1, 3, lnu)
+          ycen(i) = ycen(i) - f(2, 3, lnu)
+        enddo
+        ifXform = 0
+      endif
     endif
     !
     ! Section replacement
@@ -1123,7 +1157,7 @@ program newstack
     call irtnbsym(1, nByteSymIn)
     if (nByteSymIn > 0) then
       !
-      ! Deallocate array if it was allocated an is not big enough
+      ! Deallocate array if it was allocated and is not big enough
       if (maxExtraIn > 0 .and. nByteSymIn > maxExtraIn) then
         deallocate(extraIn, stat = ierr)
         maxExtraIn = 0
@@ -1554,6 +1588,16 @@ program newstack
       call linesNeededForOutput(0, nyOut - 1, needYfirst, needYlast, fillNeeded)
       nyNeeded = needYlast + 1 - needYfirst
       !
+      ! Get padded input size for phase shifting
+      if (phaseShift) then
+        nxFSpad = niceFrame(min(maxFSpad, max(minFSpad, nint(fsPadFrac * nxBin))) + &
+            nxBin, 2, niceFFTlimit())
+        nyFSpad = niceFrame(min(maxFSpad, max(minFSpad, nint(fsPadFrac * nyNeeded))) + &
+            nyNeeded, 2, niceFFTlimit())
+      endif
+      nxDimNeed = max(nxBin, nxFSpad + 2)
+      nyDimNeed = max(nyNeeded, nyFSpad + 1)
+      !
       ! Now that needed input and output size is finally known, make sure memory is
       ! enough
       call reallocateIfNeeded()
@@ -1563,11 +1607,18 @@ program newstack
       ! entire input image will fit
       !
       numChunks = 0
-      if (idimInOut / nxBin > nyNeeded) then
-        linesLeft = (idimInOut - nxBin * nyNeeded) / nxOut
+      if (idimInOut / nxDimNeed > nyDimNeed) then
+        linesLeft = (idimInOut - nxDimNeed * nyDimNeed) / nxOut
         numChunks = (nyOut + linesLeft - 1) / linesLeft
         if (iVerbose > 0) print *,'linesleft', linesLeft, '  nchunk', numChunks
       endif
+      if (numChunks > 1 .and. numTaper > 0) &
+          call exitError('CANNOT TAPER OUTPUT IMAGE - IT DOES NOT '// &
+          'FIT COMPLETELY IN MEMORY')
+      if (numChunks > 1 .and. phaseShift) &
+          call exitError('CANNOT APPLY FOURIER SHIFT - INPUT AND OUTPUT IMAGES DO NOT '//&
+          'FIT COMPLETELY IN MEMORY')
+
       if (numChunks == 1 .or. (numChunks > 0 .and. numChunks <= maxChunks .and. &
           .not.rescale)) then
         !
@@ -1584,7 +1635,7 @@ program newstack
           lineInSt(iChunk) = needYfirst
           numLinesIn(iChunk) = nyNeeded
         enddo
-        maxin = nyNeeded
+        maxin = nyDimNeed
         ifOutChunk = 1
       else
         !
@@ -1635,9 +1686,6 @@ program newstack
           print *,i, lineInSt(i), numLinesIn(i), lineOutSt(i), numLinesOut(i)
         enddo
       endif
-      if (numChunks > 1 .and. numTaper > 0) &
-          call exitError('CANNOT TAPER OUTPUT IMAGE - IT DOES NOT '// &
-          'FIT COMPLETELY IN MEMORY')
       !
       ! open temp file if one is needed
       !
@@ -1654,7 +1702,7 @@ program newstack
         ifTempOpen = 1
       endif
       !
-      iBufOutBase = int(maxin, kind = 8) * nxBin + 1
+      iBufOutBase = int(maxin, kind = 8) * nxDimNeed + 1
       !
       ! get the mean of section from previous scan, or a new scan
       !
@@ -1779,15 +1827,32 @@ program newstack
           ! otherwise repack array into output space nxOut by nyOut, with
           ! offset as specified, using the special repack routine
           !
+          ! But first Apply phase shift in FFT
+          if (phaseShift) then
+            wallStart = wallTime()
+            call taperOutPad(array, nxBin, numYload, array, nxFSpad + 2, nxFSpad, &
+                nyFSpad, 1, dmeanSec)
+            call todfft(array, nxFSpad, nyFSpad, 0)
+            dx = nint(xcen(isec)) - xcen(isec)
+            dy = nint(ycen(isec)) - ycen(isec)
+            call fourierShiftImage(array, nxFSpad, nyFSpad, dx, dy,  &
+                array(1 + (nxFSpad + 2) * nyFSpad))
+            call todfft(array, nxFSpad, nyFSpad, 1)
+            rotTime = rotTime + wallTime() - wallStart
+          endif
+          !
+          ! Then repack, adjusting starting coordinates for padded array
           ix1 = nxBin / 2 - nxOut / 2 + nint(xcen(isec))
+          if (phaseShift) ix1 = ix1 + (nxFSpad - nxBin) / 2
           ix2 = ix1 + nxOut - 1
           !
           iyBase = nyBin / 2 - nyOut / 2 + nint(ycen(isec))
           iy1 = iyBase + lineOutSt(iChunk) - loadYstart
+          if (phaseShift) iy1 = iy1 + (nyFSpad - numYload) / 2
           iy2 = iy1 + numYchunk - 1
           !
-          call irepak2(array(iChunkBase), array, nxBin, numYload, ix1, ix2, iy1, &
-              iy2, dmeanSec)
+          call irepak2(array(iChunkBase), array, nxDimNeed, max(numYload, nyFSpad), ix1, &
+              ix2, iy1, iy2, dmeanSec)
           if (iVerbose > 0) print *,'did repack'
         endif
         if (numTaper > 0) then
@@ -2021,6 +2086,8 @@ CONTAINS
           int(min(int(MAXTEMP, kind=8), int(nx, kind=8) * ny)))
       if (iBinning > 1) needTemp = nx * iBinning
       needDim = int(nxBin, kind = 8) * nyNeeded
+      if (phaseShift .and. nxFSpad > 0)  &
+          needDim = int(nxFSpad + 2, kind = 8) * (nyFSpad + 1)
       if (nxOut > 0 .and. nyOut > 0) &
           needDim = needDim + int(nxOut, kind = 8) * nyOut
       if (needDim > defLimit) needDim = defLimit

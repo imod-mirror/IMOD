@@ -100,7 +100,8 @@ extern "C" {
                          float *mat, int kdim);
   void wrapFFTslice(float *array, float *tmpArray, int nx, int ny, int direction);
   int indicesForFFTwrap(int ny, int direction, int *iyOut, int *iyLow, int *iyHigh);
-
+  void fourierShiftImage(float *fft, int nxPad, int nyPad, float dx, float dy,
+                         float *temp);
 
   /* taperpad.c */
   void sliceTaperOutPad(void *array, int type, int nxbox, int nybox, 

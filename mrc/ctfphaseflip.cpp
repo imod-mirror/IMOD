@@ -30,6 +30,10 @@
 
 using namespace std;
 
+static double firstZeroShift(double defocus, double angle, int extent,
+                             double ampContrast, double Cs, double pixelSize,
+                             double voltage);
+
 int main(int argc, char *argv[])
 {
   int numOptArgs, numNonOptArgs;
@@ -49,11 +53,15 @@ int main(int argc, char *argv[])
   char *boundFn = NULL;
   int volt, iWidth, defocusTol, ii, ierr;
   float pixelSize, cs, ampContrast, stripDefocus;
-  int startingView, endingView, startingTotal, endingTotal, defVersion;
+  int startingView, endingView, startingTotal, endingTotal, defVersion, maxWidth;
   bool isSingleRun = false;
   int invertAngles = 0;
-  int maxStripWidth = 256;
-  double angleSign;
+  int maxStripWidth = 0;
+  int minStripWidth = 128;
+  int minWidthToScaleInterp = 256;   // The former maximum strip width
+  float minZeroShift = 0.6f;
+  double angleSign, zeroShift;
+  bool maxWasEntered, scaleInterp;
   float minAngle, maxAngle;
   float *tiltAngles = NULL;
   float *xShifts = NULL;
@@ -76,8 +84,11 @@ int main(int argc, char *argv[])
   //  exitError("No AxisAngle specified");
   if (PipGetInteger("DefocusTol", &defocusTol))
     exitError("No DefocusTol specified");
-  if (PipGetInteger("InterpolationWidth", &iWidth))
-    exitError("No interpolationWidth specified");
+  if (PipGetInteger("InterpolationWidth", &iWidth) || !iWidth)
+    exitError("No InterpolationWidth specified, or 0 value entered");
+  scaleInterp = iWidth > 0;
+  if (!scaleInterp)
+    iWidth = -iWidth;
   if (PipGetFloat("PixelSize", &pixelSize))
     exitError("No PixelSize specified");
   if (PipGetInteger("Voltage", &volt))
@@ -93,7 +104,6 @@ int main(int argc, char *argv[])
     exitError("OutputFileName is not specified");
   PipGetString("BoundaryInfoFile", &boundFn);
   PipGetString("TransformFile", &xformFn);
-  PipGetInteger("MaximumStripWidth", &maxStripWidth);
   PipGetBoolean("InvertTiltAngles", &invertAngles);
   angleSign = invertAngles ? -1. : 1.;
 
@@ -118,9 +128,11 @@ int main(int argc, char *argv[])
   /* read header */
   if (mrc_head_read(fpStack, &header))
     exitError("reading header of input file %s",  stackFn);
-
-  if (mrc_head_read(fpStack, &outHeader))
-    exitError("reading header of input file %s",  stackFn);
+  outHeader = header;
+  maxWasEntered = PipGetInteger("MaximumStripWidth", &maxStripWidth) == 0;
+  if (!maxWasEntered)
+    maxStripWidth = header.nx / 2;
+  maxStripWidth = 2 * (maxStripWidth / 2);
 
   xShifts = B3DMALLOC(float, header.nz);
   if (!xShifts)
@@ -170,8 +182,8 @@ int main(int argc, char *argv[])
                  "with phase flipping only");
 
   if ((startingView == -1 && endingView == -1) || isSingleRun) {
-    if (!isSingleRun && b3dOutputFileType() == IIFILE_TIFF)
-      exitError("Cannot do parallel writing to a TIFF output file");
+    if (!isSingleRun && b3dOutputFileType() != OUTPUT_TYPE_MRC)
+      exitError("Cannot do parallel writing to a TIFF or HDF output file");
     imodBackupFile(outFn);
     foutput = iiFOpen(outFn, "wb");
   } else
@@ -279,7 +291,7 @@ int main(int argc, char *argv[])
   Islice *outSlice;
 
   // Pad the extent in Y if necessary
-  ny = niceFrame(nyfile, 2, 19);
+  ny = niceFrame(nyfile, 2, niceFFTlimit());
   yoff = (ny - nyfile) / 2;
   int currK = 0;
   if (!isSingleRun)
@@ -316,24 +328,50 @@ int main(int argc, char *argv[])
 
     currAngle = currAngle * MY_PI / 180.0;
     if (fabs(currAngle) > MIN_ANGLE) {
-      stripPixelNum = fabs(defocusTol / tan(currAngle)) / pixelSize;
+      stripPixelNum = 2 * ((int)(fabs(defocusTol / tan(currAngle)) / pixelSize) / 2);
     } else {
       stripPixelNum = nx;
     }
     if (stripPixelNum > nx)
       stripPixelNum = nx;
+    
+    // If the defocus tolerance allows a width bigger than the basic amount, and no 
+    // specific maximum width was entered, find the first maximum width that gives
+    // sufficient zero shift across the whole width of a strip to eliminate rings at the
+    // zeros
+    maxWidth = maxStripWidth;
+    if (!maxWasEntered && stripPixelNum > minWidthToScaleInterp) {
+      maxWidth = minWidthToScaleInterp;
+      zeroShift = 0.5 * maxWidth * firstZeroShift(defocus[k - 1], currAngle, maxWidth, 
+                                            ampContrast, cs, pixelSize, volt);
+      while (maxWidth < maxStripWidth && 
+             zeroShift < (1. - fabs(tan(currAngle))) * minZeroShift) {
+        maxWidth += 2;
+        zeroShift = 0.5 * maxWidth * firstZeroShift(defocus[k - 1], currAngle, maxWidth, 
+                                                    ampContrast, cs, pixelSize, volt);
+     }
+    }
 
-    stripPixelNum = niceFrame(stripPixelNum, 2 , 19);
-    B3DCLAMP(stripPixelNum, 128, maxStripWidth);
+    // Limit the strip width then get it to a nice size
+    B3DCLAMP(stripPixelNum, minStripWidth, maxWidth);
+    stripPixelNum = niceFrame(stripPixelNum, 2 , niceFFTlimit());
+    zeroShift = 0.5 * stripPixelNum * firstZeroShift
+      (defocus[k - 1], currAngle, stripPixelNum, ampContrast, cs, pixelSize, volt);
 
+    // Scale the spacing between strips if width is bigger than the basic amount
     interPixelNum = iWidth;
+    if (iWidth > 1 && scaleInterp && stripPixelNum > minWidthToScaleInterp)
+      interPixelNum = (stripPixelNum * iWidth) / minWidthToScaleInterp;
 
     //interPixelNum must be less than stripPixelNum/2;
     if (interPixelNum >= stripPixelNum / 2)
-      exitError("interPixelNum is bigger than stripPixleNum/2 ");
+      exitError("Interpolation width is too high, must be less than %d", 
+                minStripWidth / 2);
 
-    printf("stripPixelNum=%d interPixelNum=%d \n", stripPixelNum,
-           interPixelNum);
+    printf("stripPixelNum=%d interPixelNum=%d zeroShift=%f inter-strip shift=%f\n", 
+           stripPixelNum, interPixelNum, zeroShift, firstZeroShift
+           (defocus[k - 1], currAngle, interPixelNum, ampContrast, cs, pixelSize, volt));
+
     //Allocate 2 strips, even and odd strip;
     int stripXdim = stripPixelNum + 2;
     float *strip = (float *)malloc(2 * ny * stripXdim * sizeof(float));
@@ -355,7 +393,7 @@ int main(int argc, char *argv[])
         stripEnd = stripBegin + stripPixelNum - 1;
         stripStride = interPixelNum;
       } else {
-        stripStride = nx - (stripPixelNum + 1) / 2 - (stripBegin + stripEnd) / 2;
+        stripStride = (nx - stripPixelNum) - stripBegin;
         stripBegin = nx - stripPixelNum;
         stripEnd = nx - 1;
         finished = true;
@@ -374,7 +412,7 @@ int main(int argc, char *argv[])
                       stripPixelNum + 2, stripPixelNum, ny, 9, 9);
       todfft(curStrip, &stripPixelNum, &ny, &dir);
 
-      //fipping the phase;
+      // flipping the phase;
       for (fy = 0; fy < ny; fy++) {
         fyy = fy;
         if (fy > ny / 2)
@@ -401,6 +439,7 @@ int main(int argc, char *argv[])
             restoredArray[row * nx + column] =
               curStrip[(row + yoff) * stripXdim + column];
         //printf("column=1 ... %d \n", halfStrip);
+        finished = stripEnd == nx - 1;
       } else {
         for (row = 0; row < nyfile; row++)
           for (column = stripMid - stripStride + 1; column < stripMid + 1; column++) {
@@ -413,8 +452,7 @@ int main(int argc, char *argv[])
                                         halfStrip + stripDist[0]])
               / (float)stripStride;
           }
-        // printf("column=%d ... %d \n", stripMid-
-        // stripStride+1+1, stripMid+1 );
+        //printf("column=%d ... %d \n", stripMid- stripStride+1+1, stripMid+1 );
       }
 
       if (finished) { //last strip
@@ -464,4 +502,27 @@ int main(int argc, char *argv[])
   iiFClose(foutput);
   iiFClose(fpStack);
   free(defocus);
+}
+
+/*
+ * Computes the shift in the first zero across an extent in pixels, given focus in 
+ * microns, tilt angle in radianm and the basic parameters of the CTF
+ */
+static double firstZeroShift(double defocus, double angle, int extent,
+                             double ampContrast, double Cs, double pixelSize,
+                             double voltage)
+{
+  double delz, theta, firstZero, focus;
+  double wavelength = 1.241 / sqrt(voltage * (voltage +  1022.0));
+  double CsOne = sqrt(Cs * wavelength); // deltaZ=-deltaZ'/mCs1;  In microns
+  double CsTwo = sqrt(sqrt(1000000.0 * Cs / wavelength)); //theta=theta'*mCs2;
+  double ampAngle = 2. * atan(ampContrast / sqrt(1. - ampContrast * ampContrast)) / MY_PI;
+  focus = defocus - 0.5 * extent * tan(angle) * pixelSize / 1000.;
+  delz = focus / CsOne;
+  theta = sqrt(delz - sqrt(B3DMAX(0., delz * delz + ampAngle - 2.)));
+  firstZero = theta * pixelSize * 2.0 / (wavelength * CsTwo);
+  focus = defocus + 0.5 * extent * tan(angle) * pixelSize / 1000.;
+  delz = focus / CsOne;
+  theta = sqrt(delz - sqrt(B3DMAX(0., delz * delz + ampAngle - 2.)));
+  return fabs(firstZero - theta * pixelSize * 2.0 / (wavelength * CsTwo));
 }
