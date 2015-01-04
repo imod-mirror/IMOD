@@ -30,6 +30,7 @@
 #define wrapfftslice WRAPFFTSLICE
 #define setpeakfindlimits SETPEAKFINDLIMITS
 #define niceframe NICEFRAME
+#define fouriershiftimage FOURIERSHIFTIMAGE
 #else
 #define setctfwsr setctfwsr_
 #define setctfnoscl setctfnoscl_
@@ -47,6 +48,7 @@
 #define wrapfftslice wrapfftslice_
 #define setpeakfindlimits setpeakfindlimits_
 #define niceframe niceframe_
+#define fouriershiftimage fouriershiftimage_
 #endif
 
 static float peakHalfWidth(float *array, int ixPeak, int iyPeak, int nx, int ny, int delx,
@@ -961,4 +963,58 @@ int indicesForFFTwrap(int ny, int direction, int *iyOut, int *iyLow, int *iyHigh
   *iyLow = 1;
   *iyHigh = *iyLow + nyHalf;
   return 1;
+}
+
+/*!
+ * Applies a phase shift to the Fourier transfor in [fft] to produce a shift of [dx] and 
+ * [dy] in the corresponding real-space image.  The size of the image is given in [nxPad],
+ * [nyPad] and the X-dimension of [fft] is assumed to be [nyPad] + 2.  [temp] is a 
+ * temporary array that must be dimensioned to at least [nyPad] + 2.
+ */
+void fourierShiftImage(float *fft, int nxPad, int nyPad, float dx, float dy, float *temp)
+{
+  int nxFFT = nxPad / 2 + 1;
+  int nxDim = nxPad + 2;
+  int ind, ix, iy;
+  float freq, ycos, ysin, phre, phim, tmpre;
+  float *fftLine;
+  double arg;
+  float pi = 3.141593;
+
+  /* Precompute the terms for frequencies in X */
+  for (ix = 0; ix < nxFFT; ix++) {
+    ind = 2 * ix;
+    freq = 0.5 * ix / (nxFFT - 1.);
+    arg = -2. * pi * freq * dx;
+    temp[ind] = (float)cos(arg);
+    temp[ind + 1] = (float)sin(arg);
+  }
+
+  /* Loop on lines */
+  for (iy = 0; iy < nyPad; iy++) {
+    fftLine = fft + iy * nxDim;
+    freq = iy / (float)nyPad;
+    if (freq > 0.5)
+      freq = freq - 1.;
+    arg = -2. * pi * freq * dy;
+    ycos = (float)cos(arg);
+    ysin = (float)sin(arg);
+    for (ix = 0; ix < nxFFT; ix++) {
+      ind = 2 * ix;
+      
+      // Get complex product of X and Y phase shift then multiply by the FFT pixel
+      phre = temp[ind] * ycos - temp[ind + 1] * ysin;
+      phim = temp[ind + 1] * ycos + temp[ind] * ysin;
+      tmpre = fftLine[ind];
+      fftLine[ind] = phre * tmpre - phim * fftLine[ind + 1];
+      fftLine[ind + 1] = phim * tmpre + phre * fftLine[ind + 1];
+    }
+  }
+}
+
+/*! Fortran wrapper for @@fourierShiftImage@. */
+void fouriershiftimage(float *fft, int *nxPad, int *nyPad, float *dx, float *dy,
+                       float *temp)
+{
+  fourierShiftImage(fft, *nxPad, *nyPad, *dx, *dy, temp);
 }

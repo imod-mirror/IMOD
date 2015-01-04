@@ -47,15 +47,11 @@ import etomo.util.Utilities;
 /**
  * <p>Description: </p>
  * 
- * <p>Copyright: Copyright 2006</p>
+ * <p>Copyright: Copyright 2006 - 2014 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
- * University of Colorado</p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
+ * @version $Id$
  * 
  * <p> $Log$
  * <p> Revision 1.11  2011/09/01 04:27:17  sueh
@@ -432,8 +428,6 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     Run3dmodButtonContainer, FileContainer, ReferenceParent,
     MissingWedgeCompensationParent, IterationParent, MaskingParent, YAxisTypeParent,
     SphericalSamplingForThetaAndPsiParent, ProcessInterface, UIComponent, SwingComponent {
-  public static final String rcsid = "$Id$";
-
   public static final String FN_OUTPUT_LABEL = "Root name for output";
   public static final String DIRECTORY_LABEL = "Directory";
   public static final String RUN_LABEL = "Run";
@@ -445,11 +439,13 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
   private static final String LST_THRESHOLD_START_TITLE = "Start";
   private static final String LST_THRESHOLD_INCREMENT_TITLE = "Incr.";
   private static final String LST_THRESHOLD_END_TITLE = "End";
-  private static final String LST_THRESHOLD_ADDITIONAL_NUMBERS_TITLE = "Additional numbers";
+  private static final String LST_THRESHOLD_ADDITIONAL_NUMBERS_TITLE =
+      "Additional numbers";
   private static final String LST_THRESHOLDS_LABEL = "Number of Particles to Average";
   private static final String SETUP_TAB_LABEL = "Setup";
   private static final String RUN_TAB_LABEL = "Run";
-  private static final String ALIGNED_BASE_NAME_LABEL = "Save individual aligned particles";
+  private static final String ALIGNED_BASE_NAME_LABEL =
+      "Save individual aligned particles";
   private static final String PARTICLE_PER_CPU_LABEL = "Particles per CPU";
 
   private final EtomoPanel rootPanel = new EtomoPanel();
@@ -492,8 +488,8 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
       MatlabParam.InitMotlCode.RANDOM_ROTATIONS, bgInitMotl);
   private final RadioButton rbInitMotlRandomAxialRotations = new RadioButton(
       MatlabParam.InitMotlCode.RANDOM_AXIAL_ROTATIONS, bgInitMotl);
-  private final RadioButton rbInitMotlFiles = new RadioButton(FieldLabels.CSV_FILES_LABEL,
-      bgInitMotl);
+  private final RadioButton rbInitMotlFiles = new RadioButton(
+      FieldLabels.CSV_FILES_LABEL, bgInitMotl);
   private final LabeledSpinner lsDebugLevel = LabeledSpinner.getInstance(
       FieldLabels.DEBUG_LEVEL_LABEL + ": ", MatlabParam.DEBUG_LEVEL_DEFAULT,
       MatlabParam.DEBUG_LEVEL_MIN, MatlabParam.DEBUG_LEVEL_MAX, 1, 59);
@@ -511,6 +507,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
   private final CheckBox cbFlgAbsValue = new CheckBox(FieldLabels.FLG_ABS_VALUE_LABEL);
   private final LabeledTextField ltfSelectClassID = new LabeledTextField(
       FieldType.INTEGER, "Average only members of classes: ");
+  private final CheckBox cbFlgRandomize = new CheckBox(FieldLabels.FLG_RANDOMIZE_LABEL);
 
   private final SphericalSamplingForThetaAndPsiPanel sphericalSamplingForThetaAndPsiPanel;
   private final YAxisTypePanel yAxisTypePanel;
@@ -536,8 +533,8 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     maskingPanel = MaskingPanel.getInstance(manager, this);
     yAxisTypePanel = YAxisTypePanel.getInstance(manager, this);
     fixPathsPanel = FixPathsPanel.getInstance(this, manager, axisID, DIALOG_TYPE);
-    sphericalSamplingForThetaAndPsiPanel = SphericalSamplingForThetaAndPsiPanel
-        .getInstance(manager, this);
+    sphericalSamplingForThetaAndPsiPanel =
+        SphericalSamplingForThetaAndPsiPanel.getInstance(manager, this);
     volumeTable = VolumeTable.getInstance(manager, this);
     iterationTable = IterationTable.getInstance(manager, this);
     // panels
@@ -573,11 +570,8 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     return null;
   }
 
-  public void disableGpu(final boolean disable) {
-  }
 
-  public void lockProcessingMethod(final boolean lock) {
-  }
+  public void lockProcessingMethod(final boolean lock) {}
 
   public Component getFocusComponent() {
     return pnlSetup.getContainer();
@@ -618,8 +612,9 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
   public void popUpContextMenu(MouseEvent mouseEvent) {
     String[] manPagelabel = { "Processchunks", "3dmod" };
     String[] manPage = { "processchunks.html", "3dmod.html" };
-    ContextPopup contextPopup = new ContextPopup(rootPanel, mouseEvent, manPagelabel,
-        manPage, true, manager, axisID);
+    ContextPopup contextPopup =
+        new ContextPopup(rootPanel, mouseEvent, manPagelabel, manPage, true, manager,
+            axisID);
   }
 
   public void pack() {
@@ -672,7 +667,8 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
    * @param choosePathEveryRow
    * @return false if the user cancels the file selector, otherwise true
    */
-  public boolean fixIncorrectPath(FileTextFieldInterface fileTextField, boolean choosePath) {
+  public boolean
+      fixIncorrectPath(FileTextFieldInterface fileTextField, boolean choosePath) {
     File newFile = null;
     while (newFile == null || !newFile.exists()) {
       // Have the user choose the location of the file if they haven't chosen
@@ -706,8 +702,8 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
   }
 
   JFileChooser getFileChooserInstance() {
-    return new FileChooser(lastLocation == null ? new File(manager.getPropertyUserDir())
-        : lastLocation);
+    return new FileChooser(
+        lastLocation == null ? new File(manager.getPropertyUserDir()) : lastLocation);
   }
 
   void setLastLocation(File input) {
@@ -804,6 +800,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     }
     cbFlgStrictSearchLimits.setSelected(matlabParam.isFlgStrictSearchLimits());
     cbFlgNoReferenceRefinement.setSelected(matlabParam.isFlgNoReferenceRefinement());
+    cbFlgRandomize.setSelected(matlabParam.isFlgRandomize());
     ltfLowCutoff.setText(matlabParam.getLowCutoffCutoff());
     ltfLowCutoffSigma.setText(matlabParam.getLowCutoffSigma());
     lsDebugLevel.setValue(matlabParam.getDebugLevel());
@@ -862,6 +859,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
       }
       matlabParam.setFlgStrictSearchLimits(cbFlgStrictSearchLimits.isSelected());
       matlabParam.setFlgNoReferenceRefinement(cbFlgNoReferenceRefinement.isSelected());
+      matlabParam.setFlgRandomize(cbFlgRandomize.isSelected());
       matlabParam.setLowCutoff(ltfLowCutoff.getText(doValidation),
           ltfLowCutoffSigma.getText(doValidation));
       matlabParam.setDebugLevel(lsDebugLevel.getValue());
@@ -901,6 +899,10 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
 
   public boolean isReferenceParticleSelected() {
     return referencePanel.isReferenceParticleSelected();
+  }
+  
+  public boolean isFlgVolNamesAreTemplates() {
+    return volumeTable.isFlgVolNamesAreTemplates();
   }
 
   public String getFnOutput(final boolean doValidation)
@@ -942,29 +944,34 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     String autodocName = autodoc.getAutodocName();
     pnlInitMotl.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
         MatlabParam.InitMotlCode.KEY));
-    ReadOnlySection section = autodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME,
-        MatlabParam.InitMotlCode.KEY);
+    ReadOnlySection section =
+        autodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME, MatlabParam.InitMotlCode.KEY);
     rbInitMotlZero.setToolTipText(autodocName, section);
     rbInitAlignParticleYAxes.setToolTipText(autodocName, section);
     rbInitMotlRandomRotations.setToolTipText(autodocName, section);
     rbInitMotlRandomAxialRotations.setToolTipText(autodocName, section);
 
-    section = autodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME,
-        MatlabParam.REF_FLAG_ALL_TOM_KEY);
+    section =
+        autodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME,
+            MatlabParam.REF_FLAG_ALL_TOM_KEY);
     cbRefFlagAllTom.setToolTipText(autodocName, section, "0");
 
-    section = autodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME,
-        MatlabParam.LST_FLAG_ALL_TOM_KEY);
+    section =
+        autodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME,
+            MatlabParam.LST_FLAG_ALL_TOM_KEY);
     cbLstFlagAllTom.setToolTipText(autodocName, section, "0");
 
     cbflgAlignAverages.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
         MatlabParam.FLG_ALIGN_AVERAGES_KEY));
 
-    section = autodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME,
-        MatlabParam.FLG_ABS_VALUE_KEY);
+    section =
+        autodoc
+            .getSection(EtomoAutodoc.FIELD_SECTION_NAME, MatlabParam.FLG_ABS_VALUE_KEY);
     cbFlgAbsValue.setToolTipText(autodocName, section, "1");
     cbFlgNoReferenceRefinement.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
         MatlabParam.FLG_NO_REFERENCE_REFINEMENT_KEY));
+    cbFlgRandomize.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+        MatlabParam.FLG_RANDOMIZE_KEY));
 
     ltfDirectory.setToolTipText("The directory which will contain the parameter and "
         + "project files, logs, intermediate files, and results. Data files "
@@ -993,10 +1000,11 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
             + "width of the low frequency filter.");
     lsDebugLevel.setToolTipText("Larger numbers result in more debug information in the "
         + "log files.");
-    String tooltip = "Start, Incr, and End determine the numbers of particles in an "
-        + "arithmetic sequence for which averages will be created.  I.e. "
-        + "averages will be created containing Start particles, Start + Incr, "
-        + "and so on up to End.";
+    String tooltip =
+        "Start, Incr, and End determine the numbers of particles in an "
+            + "arithmetic sequence for which averages will be created.  I.e. "
+            + "averages will be created containing Start particles, Start + Incr, "
+            + "and so on up to End.";
     ltfLstThresholdsStart.setToolTipText(tooltip);
     ltfLstThresholdsIncrement.setToolTipText(tooltip);
     ltfLstThresholdsEnd.setToolTipText(tooltip);
@@ -1152,12 +1160,14 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     pnlOptionalLeft.add(cbAlignedBaseName);
     pnlOptionalLeft.add(cbFlgStrictSearchLimits);
     pnlOptionalLeft.add(cbFlgNoReferenceRefinement);
+    pnlOptionalLeft.add(cbFlgRandomize);
     // optional right
-    pnlOptionalRight.setLayout(new GridLayout(4, 1, 0, 5));
+    pnlOptionalRight.setLayout(new GridLayout(5, 1, 0, 5));
     pnlOptionalRight.add(lsParticlePerCPU.getContainer());
     pnlOptionalRight.add(lsDebugLevel.getContainer());
     pnlOptionalRight.add(pnlLowCutoff);
     pnlOptionalRight.add(ltfSelectClassID.getContainer());
+    pnlOptionalRight.add(Box.createVerticalGlue());
     // low cutoff
     pnlLowCutoff.setLayout(new BoxLayout(pnlLowCutoff, BoxLayout.X_AXIS));
     pnlLowCutoff.add(ltfLowCutoff.getContainer());
@@ -1178,6 +1188,10 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
 
   public void action(final String actionCommand,
       final Deferred3dmodButton deferred3dmodButton,
+  void msgFlgVolNamesAreTemplates(final boolean on) {
+    referencePanel.msgFlgVolNamesAreTemplates(on);
+  }
+
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (actionCommand.equals(btnRun.getActionCommand())) {
       if (validateRun()) {
@@ -1220,8 +1234,8 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
       return false;
     }
     // Validate volume table
-    String errorMessage = volumeTable.validateRun(missingWedgeCompensationPanel
-        .isTiltRangeRequired());
+    String errorMessage =
+        volumeTable.validateRun(missingWedgeCompensationPanel.isTiltRangeRequired());
     if (errorMessage != null) {
       gotoSetupTab();
       UIHarness.INSTANCE.openMessageDialog(manager, errorMessage, "Entry Error");
