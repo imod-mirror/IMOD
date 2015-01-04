@@ -54,6 +54,7 @@ final class TemplatePanel {
   private File[] systemTemplateFileList = null;
   private File[] userTemplateFileList = null;
   private File newUserTemplateDir = null;
+  private boolean actionsActive = true;
 
   private TemplatePanel(final BaseManager manager, final AxisID axisID,
       final TemplateActionListener listener, final SettingsDialog settings,
@@ -160,18 +161,21 @@ final class TemplatePanel {
   void saveAutodoc(final WritableAutodoc autodoc) {
     File templateFile = getScopeTemplateFile();
     if (templateFile != null) {
-      autodoc.addNameValuePairAttribute(DirectiveDef.SCOPE_TEMPLATE.getDirective(null, null),
-          templateFile.getAbsolutePath());
+      autodoc
+          .addNameValuePairAttribute(DirectiveDef.SCOPE_TEMPLATE.getDirective(null, null),
+              templateFile.getAbsolutePath());
     }
     templateFile = getSystemTemplateFile();
     if (templateFile != null) {
-      autodoc.addNameValuePairAttribute(DirectiveDef.SYSTEM_TEMPLATE.getDirective(null, null),
+      autodoc.addNameValuePairAttribute(
+          DirectiveDef.SYSTEM_TEMPLATE.getDirective(null, null),
           templateFile.getAbsolutePath());
     }
     templateFile = getUserTemplateFile();
     if (templateFile != null) {
-      autodoc.addNameValuePairAttribute(DirectiveDef.USER_TEMPLATE.getDirective(null, null),
-          templateFile.getAbsolutePath());
+      autodoc
+          .addNameValuePairAttribute(DirectiveDef.USER_TEMPLATE.getDirective(null, null),
+              templateFile.getAbsolutePath());
     }
   }
 
@@ -241,7 +245,25 @@ final class TemplatePanel {
     }
   }
 
+  void clear() {
+    cmbScopeTemplate.setSelectedIndex(0);
+    cmbSystemTemplate.setSelectedIndex(0);
+    cmbUserTemplate.setSelectedIndex(0);
+  }
+
+  /**
+   * When input is false, indirectly inactivates actions by preventing the recognition of
+   * action commands.
+   * @param input
+   */
+  void activateActions(final boolean input) {
+    actionsActive = input;
+  }
+
   boolean equalsActionCommand(final String actionCommand) {
+    if (!actionsActive) {
+      return false;
+    }
     return actionCommand.equals(cmbScopeTemplate.getActionCommand()) ||
         actionCommand.equals(cmbSystemTemplate.getActionCommand()) ||
         actionCommand.equals(cmbUserTemplate.getActionCommand());
@@ -276,13 +298,13 @@ final class TemplatePanel {
     directiveFileCollection
         .setDirectiveFile(getUserTemplateFile(), DirectiveFileType.USER);
   }
-  
+
   File[] getFiles() {
     File[] files = new File[NUM_TEMPLATES];
-    int i =0;
-    files[i++]=getScopeTemplateFile();
-    files[i++]=getSystemTemplateFile();
-    files[i++]=getUserTemplateFile();
+    int i = 0;
+    files[i++] = getScopeTemplateFile();
+    files[i++] = getSystemTemplateFile();
+    files[i++] = getUserTemplateFile();
     return files;
   }
 
