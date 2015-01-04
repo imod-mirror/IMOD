@@ -21,6 +21,7 @@ import javax.swing.plaf.FontUIResource;
 import etomo.logic.VersionControl;
 import etomo.process.IntermittentBackgroundProcess;
 import etomo.process.ProcessRestarter;
+import etomo.storage.BatchRunTomoFileFilter;
 import etomo.storage.EtomoFileFilter;
 import etomo.storage.JoinFileFilter;
 import etomo.storage.LogFile;
@@ -29,6 +30,7 @@ import etomo.storage.ParameterStore;
 import etomo.storage.PeetFileFilter;
 import etomo.storage.SerialSectionsFileFilter;
 import etomo.type.AxisID;
+import etomo.type.BatchRunTomoMetaData;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.DataFileType;
 import etomo.type.DialogType;
@@ -42,6 +44,7 @@ import etomo.type.PeetMetaData;
 import etomo.type.SerialSectionsMetaData;
 import etomo.type.ToolType;
 import etomo.type.UserConfiguration;
+import etomo.ui.UIComponent;
 import etomo.ui.swing.MainFrame;
 import etomo.ui.swing.SettingsDialog;
 import etomo.ui.swing.UIHarness;
@@ -70,6 +73,8 @@ public class EtomoDirector {
   public static final String rcsid = "$Id$";
 
   public static final String USER_CONFIG_FILE_EXT = ".etomo";
+  public static final String IMOD_DIR_ENV_VAR = "IMOD_DIR";
+  public static final String SOURCE_ENV_VAR = "IMOD_UITEST_SOURCE";
 
   private static final int TO_BYTES = 1024;
   public static final double MIN_AVAILABLE_MEMORY_REQUIRED = 2 * TO_BYTES * TO_BYTES;
@@ -298,6 +303,7 @@ public class EtomoDirector {
     String paramFileName = null;
     managerList = new UniqueHashedArray();
     // if no param file is found bring up Parallel manager
+    setupImodCalibDir();
     if (paramFileNameListSize == 0) {
       defaultWindow = true;
       openFrontPage(true, AxisID.ONLY);
@@ -316,6 +322,9 @@ public class EtomoDirector {
         }
         else if (paramFileName.endsWith(DataFileType.PARALLEL.extension)) {
           managerKey = openParallel(paramFileName, false, AxisID.ONLY);
+        }
+        else if (paramFileName.endsWith(DataFileType.BATCH_RUN_TOMO.extension)) {
+          managerKey = openBatchRunTomo(paramFileName, false, AxisID.ONLY);
         }
         else if (paramFileName.endsWith(DataFileType.PEET.extension)) {
           managerKey = openPeet(paramFileName, false, AxisID.ONLY);
@@ -357,26 +366,8 @@ public class EtomoDirector {
       UIHarness.INSTANCE.setTitle(null, MainFrame.ETOMO_TITLE);
     }
   }
-
-  /**
-   *  
-   */
-  private void initProgram() {
-    originalUserDir = System.getProperty("user.dir");
-    System.err.println("GraphicsEnvironment.isHeadless()="
-        + GraphicsEnvironment.isHeadless());
-    // print versions
-    System.err.println("\neTomo version:  " + ImodVersion.CURRENT_VERSION + " "
-        + VersionControl.TIME_STAMP);
-    List<String> imodInfo = VersionControl.getImodInfo(null);
-    if (imodInfo != null && imodInfo.size() > 0) {
-      System.err.println("IMOD Version: " + imodInfo.get(0));
-    }
-    String version = VersionControl.getPeetVersion();
-    if (version != null) {
-      System.err.println("PEET Version: " + VersionControl.getPeetVersion());
-    }
-    System.err.println();
+  
+  private void setupImodCalibDir() {
     // Get the IMOD calibration directory so we know where to find documentation
     // Check to see if is defined on the command line first with -D
     // Otherwise check to see if we can get it from the environment
@@ -405,6 +396,27 @@ public class EtomoDirector {
       }
     }
     IMODCalibDirectory = new File(imodCalibDirectoryName);
+  }
+
+  /**
+   *  
+   */
+  private void initProgram() {
+    originalUserDir = System.getProperty("user.dir");
+    System.err.println("GraphicsEnvironment.isHeadless()="
+        + GraphicsEnvironment.isHeadless());
+    // print versions
+    System.err.println("\neTomo version:  " + ImodVersion.CURRENT_VERSION + " "
+        + VersionControl.TIME_STAMP);
+    List<String> imodInfo = VersionControl.getImodInfo(null);
+    if (imodInfo != null && imodInfo.size() > 0) {
+      System.err.println("IMOD Version: " + imodInfo.get(0));
+    }
+    String version = VersionControl.getPeetVersion();
+    if (version != null) {
+      System.err.println("PEET Version: " + VersionControl.getPeetVersion());
+    }
+    System.err.println();
     utilityThread = new UtilityThread();
     new Thread(utilityThread).start();
     // get the java memory limit
@@ -451,10 +463,10 @@ public class EtomoDirector {
     // Get the IMOD directory so we know where to find documentation
     // Check to see if is defined on the command line first with -D
     // Otherwise check to see if we can get it from the environment
-    String imodDirectoryName = System.getProperty("IMOD_DIR");
+    String imodDirectoryName = System.getProperty(IMOD_DIR_ENV_VAR);
     if (imodDirectoryName == null) {
-      imodDirectoryName = EnvironmentVariable.INSTANCE.getValue(null, null, "IMOD_DIR",
-          AxisID.ONLY);
+      imodDirectoryName = EnvironmentVariable.INSTANCE.getValue(null, null,
+          IMOD_DIR_ENV_VAR, AxisID.ONLY);
       if (imodDirectoryName.equals("")) {
         String[] message = new String[3];
         message[0] = "Can not find IMOD directory!";
@@ -621,6 +633,11 @@ public class EtomoDirector {
         axisID);
   }
 
+  public ManagerKey openBatchRunTomo(boolean makeCurrent, AxisID axisID) {
+    closeDefaultWindow(axisID);
+    return openBatchRunTomo((String) null, makeCurrent, axisID);
+  }
+
   /**
    * Build, save, and display a ToolsManager instance.
    * @param dialogType may not be null
@@ -677,6 +694,14 @@ public class EtomoDirector {
     return openParallel(etomoParallelFile.getAbsolutePath(), makeCurrent, axisID);
   }
 
+  private ManagerKey openBatchRunTomo(File etomoBatchRunTomoFile, boolean makeCurrent,
+      AxisID axisID) {
+    if (etomoBatchRunTomoFile == null) {
+      return openBatchRunTomo(makeCurrent, axisID);
+    }
+    return openBatchRunTomo(etomoBatchRunTomoFile.getAbsolutePath(), makeCurrent, axisID);
+  }
+
   private ManagerKey openPeet(File etomoPeetFile, boolean makeCurrent, AxisID axisID) {
     if (etomoPeetFile == null) {
       return openPeet(makeCurrent, axisID);
@@ -724,6 +749,24 @@ public class EtomoDirector {
       manager = new ParallelManager(parallelFileName);
     }
     return setManager(manager, makeCurrent);
+  }
+
+  private ManagerKey openBatchRunTomo(String batchRunTomoFileName, boolean makeCurrent,
+      AxisID axisID) {
+    BatchRunTomoManager manager;
+    if (batchRunTomoFileName == null) {
+      manager = new BatchRunTomoManager();
+    }
+    else {
+      manager = new BatchRunTomoManager(batchRunTomoFileName);
+      UIHarness.INSTANCE.setEnabledNewBatchRunTomoMenuItem(false);
+    }
+    ManagerKey key = setManager(manager, makeCurrent);
+    if (!manager.isValid()) {
+      closeCurrentManager(AxisID.ONLY, false);
+      return null;
+    }
+    return key;
   }
 
   private ManagerKey openPeet(String peetFileName, boolean makeCurrent, AxisID axisID) {
@@ -811,14 +854,15 @@ public class EtomoDirector {
     }
   }
 
-  public void openManager(File dataFile, boolean makeCurrent, AxisID axisID) {
+  public void openManager(final File dataFile, final boolean makeCurrent,
+      final AxisID axisID, final UIComponent uiComponent) {
     if (dataFile == null) {
       throw new IllegalStateException("null dataFile");
     }
     closeDefaultWindow(axisID);
     EtomoFileFilter etomoFileFilter = new EtomoFileFilter();
     if (etomoFileFilter.accept(dataFile)) {
-      openTomogram(dataFile, makeCurrent, axisID);
+      openTomogram(dataFile, makeCurrent, axisID, uiComponent);
       return;
     }
     JoinFileFilter joinFileFilter = new JoinFileFilter();
@@ -829,6 +873,11 @@ public class EtomoDirector {
     ParallelFileFilter parallelFileFilter = new ParallelFileFilter();
     if (parallelFileFilter.accept(dataFile)) {
       openParallel(dataFile, makeCurrent, axisID);
+      return;
+    }
+    BatchRunTomoFileFilter batchRunTomoFileFilter = new BatchRunTomoFileFilter();
+    if (batchRunTomoFileFilter.accept(dataFile)) {
+      openBatchRunTomo(dataFile, makeCurrent, axisID);
       return;
     }
     PeetFileFilter peetFileFilter = new PeetFileFilter();
@@ -846,12 +895,20 @@ public class EtomoDirector {
     throw new IllegalStateException("unknown dataFile");
   }
 
-  public void openTomogram(File etomoDataFile, boolean makeCurrent, AxisID axisID) {
+  public void openTomogram(final File etomoDataFile, final boolean makeCurrent,
+      final AxisID axisID, final UIComponent uiComponent) {
     if (etomoDataFile == null) {
       openTomogram(makeCurrent, axisID);
     }
     else {
-      openTomogram(etomoDataFile.getAbsolutePath(), makeCurrent, axisID);
+      if (etomoDataFile.exists()) {
+        openTomogram(etomoDataFile.getAbsolutePath(), makeCurrent, axisID);
+      }
+      else {
+        UIHarness.INSTANCE.openMessageDialog(uiComponent,
+            "Dataset file " + etomoDataFile.getAbsolutePath() + " does not exist.",
+            "Open Dataset Failed");
+      }
     }
   }
 
@@ -900,6 +957,9 @@ public class EtomoDirector {
     }
     else if (key.getName().equals(ParallelMetaData.NEW_ANISOTROPIC_DIFFUSION_TITLE)) {
       UIHarness.INSTANCE.setEnabledNewAnisotropicDiffusionMenuItem(true);
+    }
+    else if (key.getName().equals(BatchRunTomoMetaData.NEW_TITLE)) {
+      UIHarness.INSTANCE.setEnabledNewBatchRunTomoMenuItem(true);
     }
     else if (key.getName().equals(PeetMetaData.NEW_TITLE)) {
       UIHarness.INSTANCE.setEnabledNewPeetMenuItem(true);

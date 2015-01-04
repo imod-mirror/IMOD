@@ -1,5 +1,8 @@
 package etomo.storage.autodoc;
 
+import etomo.ui.swing.Token;
+
+import javax.lang.model.element.Name;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -7,28 +10,20 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import etomo.ui.swing.Token;
-
 /**
  * <p>Description: The Autodoc and each Section contain an AttributeList which holds
  * the attributes with the first attribute in each of their name/value pairs.
  * If the name of a name/value pair contains multiple attributes, then each
  * attribute, except for the last one, will also contain an AttributeList called
  * children.  So Autodocs and sections each contain a tree structure of Attributes.</p>
- * 
- * <p>Copyright: Copyright (c) 2005</p>
+ * <p/>
+ * <p>Copyright: Copyright 2005 - 2014 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
- * University of Colorado</p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
+ * @version $Id$
  */
 final class AttributeList implements ReadOnlyAttributeList {
-  public static final String rcsid = "$Id$";
-
   private final WriteOnlyAttributeList parent;
 
   /**
@@ -44,13 +39,81 @@ final class AttributeList implements ReadOnlyAttributeList {
   }
 
   /**
+   * Grafts names and values to this instance from the merge attribute list, where the names
+   * do not exist in this instance.
+   *
+   * @param mergeAttributeList
+   */
+  void graftMerge(final AttributeList mergeAttributeList,
+      final WriteOnlyStatementList parent) {
+    if (mergeAttributeList == null) {
+      return;
+    }
+    int mergeLen = mergeAttributeList.list.size();
+    for (int i = 0; i < mergeLen; i++) {
+      Attribute mergeAttribute = mergeAttributeList.list.get(i);
+      if (mergeAttribute.exists()) {
+        String key = mergeAttribute.getKey();
+        Attribute attribute = map.get(key);
+        if (attribute!=null) {
+          attribute.graftMerge(mergeAttribute, parent);
+        }
+        else {
+          // Graft merge attribute on to this attribute list
+          list.add(mergeAttribute);
+          map.put(key, mergeAttribute);
+          mergeAttribute.graftStatements(parent);
+        }
+      }
+    }
+  }
+
+  /**
+   * Graft statements belonging to this instance onto parent
+   * @param parent
+   */
+  void graftStatements(final WriteOnlyStatementList parent) {
+    if (parent == null) {
+      return;
+    }
+    int len = list.size();
+    for (int i = 0; i < len; i++) {
+      list.get(i).graftStatements(parent);
+    }
+  }
+
+  /**
+   * Removes name/value pairs from this instance when an identical name/value pair is
+   * found in the subtract attribute list.
+   *
+   * @param subtractAttributeList
+   */
+  void subtract(final AttributeList subtractAttributeList) {
+    if (subtractAttributeList == null) {
+      return;
+    }
+    int subtractLen = subtractAttributeList.list.size();
+    for (int i = 0; i < subtractLen; i++) {
+      Attribute subtractAttribute = subtractAttributeList.list.get(i);
+      if (subtractAttribute != null) {
+        //Get the matching attribute
+        Attribute attribute = map.get(subtractAttribute.getKey());
+        if (attribute != null) {
+          attribute.subtract(subtractAttribute);
+        }
+      }
+    }
+  }
+
+  /**
    * Adds a new attribute, or increments an existing one
+   *
    * @param name
    * @return
    */
-  WriteOnlyAttributeList addAttribute(final Token name, final int lineNum) {
+  Attribute addAttribute(final Token name, final int lineNum) {
     String key = Attribute.getKey(name);
-    Attribute attribute = map.get(Attribute.getKey(name));
+    Attribute attribute = map.get(key);
     if (attribute == null) {
       attribute = new Attribute(parent, name, lineNum);
       map.put(key, attribute);
@@ -61,6 +124,58 @@ final class AttributeList implements ReadOnlyAttributeList {
       attribute.add();
     }
     return attribute;
+  }
+
+  /**
+   * Adds a multi-level name/value pair.  Adds all attributes and the name/value pair with
+   * the last attribute.
+   *
+   * @param index   points to attribute name for this instance
+   * @param name
+   * @param lineNum
+   */
+  void addAttribute(int index, final String[] name, final int lineNum, final String value,
+      final NameValuePair nameValuePair) {
+    if (name == null || index >= name.length) {
+      return;
+    }
+    //Find the next valid attribute name
+    if (index < 0) {
+      index = 0;
+    }
+    int curIndex = -1;
+    int nextIndex = -1;
+    for (int i = index; i < name.length; i++) {
+      if (name[i] != null && !name[i].matches("\\s*")) {
+        if (curIndex == -1) {
+          curIndex = i;
+        }
+        else if (nextIndex == -1) {
+          nextIndex = i;
+          break;
+        }
+      }
+    }
+    if (curIndex == -1) {
+      //no valid attribute names left
+      return;
+    }
+    //Get or create the attribute
+    Token nameToken = new Token();
+    nameToken.set(Token.Type.ANYTHING, name[curIndex]);
+    Attribute attribute = addAttribute(nameToken, lineNum);
+    //Add each attribute to the name/value pair
+    nameValuePair.addAttribute(attribute);
+    if (nextIndex == -1) {
+      //Added the value when the last attribute is added
+      Token valueToken = new Token();
+      valueToken.set(Token.Type.ANYTHING, value);
+      nameValuePair.addValue(valueToken);
+    }
+    else {
+      //Add the next attributes
+      attribute.addAttribute(nextIndex, name, lineNum, value, nameValuePair);
+    }
   }
 
   Attribute getAttribute(String name) {
@@ -84,6 +199,7 @@ final class AttributeList implements ReadOnlyAttributeList {
 
   /**
    * Returns the first attribute which exists.
+   *
    * @return
    */
   ReadOnlyAttribute getFirstAttribute() {
