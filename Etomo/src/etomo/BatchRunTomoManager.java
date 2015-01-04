@@ -142,7 +142,7 @@ public final class BatchRunTomoManager extends BaseManager {
     }
     //Load the UserEnv settings.
     dialog.getParameters();
-    dialog.setParameters(userConfig);
+    dialog.setParameters(userConfig, paramFile == null);
     if (paramFile != null) {
       dialog.setParameters(param);
       dialog.loadAutodocs();
