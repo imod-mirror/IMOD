@@ -153,6 +153,7 @@ EXPORTS
 	sliceCreate
 	PARWRTFINDREGION
 	MEANZERO
+	fourierShiftImage
 	MULTIBINSTATS
 	rsTrimmedMeanOfSorted
 	WEIGHTEDPOLYFIT
@@ -269,6 +270,7 @@ EXPORTS
 	XCORRPEAKFINDWIDTH
 	AdocGetNumCollections
 	sliceTaperOutPad
+	FOURIERSHIFTIMAGE
 	xfInvert
 	montXCorrEdge
 	addValueToRow
