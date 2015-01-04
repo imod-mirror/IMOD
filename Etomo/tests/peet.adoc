@@ -73,7 +73,7 @@ format=
 [function = volume-table]
 [[if = test-gui]]
   #value
-  assert.cb.file-names-are-templates=on
+  assert.cb.file-names-are-templates=off
 [[]]
 #check empty table error
 run.function.setup-test-run-error=
