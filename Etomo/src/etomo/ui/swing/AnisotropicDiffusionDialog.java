@@ -360,6 +360,10 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
     return ProcessingMethod.PP_CPU;
   }
 
+  public ProcessingMethod getSecondaryProcessingMethod() {
+    return null;
+  }
+
   public void disableGpu(final boolean disable) {
   }
 
@@ -399,12 +403,6 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
     return rootPanel.getContainer();
   }
 
-  public void action(final Run3dmodButton button,
-      final Run3dmodMenuOptions run3dmodMenuOptions) {
-    action(button.getActionCommand(), button.getDeferred3dmodButton(),
-        run3dmodMenuOptions);
-  }
-
   public void getInitialParameters(final ParallelMetaData metaData) {
     metaData.setRootName(ftfVolume.getFileName());
     metaData.setVolume(ftfVolume.getFileAbsolutePath());
@@ -419,9 +417,9 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
     metaData.setTestIterationList(ltfTestIterationList.getText());
     filterFullVolumePanel.getParameters(metaData);
   }
-  
- public void getParametersForTrimvol(final ParallelMetaData metaData) {
-   pnlTestVolumeRubberband.getParametersForTrimvol(metaData);
+
+  public void getParametersForTrimvol(final ParallelMetaData metaData) {
+    pnlTestVolumeRubberband.getParametersForTrimvol(metaData);
   }
 
   public Number getMemoryPerChunk() {
@@ -563,7 +561,7 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
     return cbLoadWithFlipping.isSelected();
   }
 
-  private void action(final String command, Deferred3dmodButton deferred3dmodButton,
+  public void action(final String command, Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(btnExtractTestVolume.getActionCommand())) {
       if (!initSubdir()) {

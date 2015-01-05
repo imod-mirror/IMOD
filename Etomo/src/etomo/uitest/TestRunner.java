@@ -86,7 +86,6 @@ import etomo.util.Utilities;
 public final class TestRunner extends JFCTestCase implements VariableList {
   public static final String rcsid = "$Id$";
 
-  private static final String SOURCE_ENV_VAR = "IMOD_UITEST_SOURCE";
   private static final String[] IMAGE_FILE_EXT_ARRAY = { ".3dmod", ".ali", ".erase",
       ".fid", ".mod", ".resmod", ".seed", DatasetTool.STANDARD_DATASET_EXT, ".matmod",
       ".rec" };
@@ -138,7 +137,7 @@ public final class TestRunner extends JFCTestCase implements VariableList {
     // parameterList.add(Arguments.DEBUG_TAG);
     // get uitest.adoc
     ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(null, AutodocFactory.UITEST,
-        AxisID.ONLY);
+        AxisID.ONLY,false);
     if (autodoc == null) {
       fail("Missing autodoc: " + AutodocFactory.UITEST);
       return;
@@ -172,8 +171,8 @@ public final class TestRunner extends JFCTestCase implements VariableList {
           if (subjectType == UITestSubjectType.ADOC) {
             // Create an autodoc tester for each autodoc in the Test section. The
             // they appear is the order in which they start running.
-            File dir = Utilities.getExistingDir(null, SOURCE_ENV_VAR, AxisID.ONLY);
-            System.err.println(SOURCE_ENV_VAR + ": " + dir.getAbsolutePath());
+            File dir = Utilities.getExistingDir(null, EtomoDirector.SOURCE_ENV_VAR, AxisID.ONLY);
+            System.err.println(EtomoDirector.SOURCE_ENV_VAR + ": " + dir.getAbsolutePath());
             AxisID axisID = subject.getAxisID();
             // Get the sectionType
             String sectionType = subject.getName();
@@ -453,7 +452,7 @@ public final class TestRunner extends JFCTestCase implements VariableList {
   }
 
   private static String getIMODBinPath() {
-    return EnvironmentVariable.INSTANCE.getValue(null, null, "IMOD_DIR", AxisID.ONLY)
+    return EnvironmentVariable.INSTANCE.getValue(null, null, EtomoDirector.IMOD_DIR_ENV_VAR, AxisID.ONLY)
         + File.separator + "bin" + File.separator;
   }
 
