@@ -2,7 +2,6 @@ package etomo.storage.autodoc;
 
 import etomo.ui.swing.Token;
 
-import javax.lang.model.element.Name;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
