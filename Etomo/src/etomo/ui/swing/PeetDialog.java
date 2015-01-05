@@ -570,7 +570,6 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     return null;
   }
 
-
   public void lockProcessingMethod(final boolean lock) {}
 
   public Component getFocusComponent() {
@@ -900,7 +899,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
   public boolean isReferenceParticleSelected() {
     return referencePanel.isReferenceParticleSelected();
   }
-  
+
   public boolean isFlgVolNamesAreTemplates() {
     return volumeTable.isFlgVolNamesAreTemplates();
   }
@@ -929,8 +928,8 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
   private void setTooltipText() {
     ReadOnlyAutodoc autodoc = null;
     try {
-      autodoc = AutodocFactory.getInstance(manager, AutodocFactory.PEET_PRM, axisID,
-          false);
+      autodoc =
+          AutodocFactory.getInstance(manager, AutodocFactory.PEET_PRM, axisID, false);
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();
@@ -1186,12 +1185,14 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     pnlButton.add(Box.createRigidArea(FixedDim.x30_y0));
   }
 
-  public void action(final String actionCommand,
-      final Deferred3dmodButton deferred3dmodButton,
   void msgFlgVolNamesAreTemplates(final boolean on) {
     referencePanel.msgFlgVolNamesAreTemplates(on);
   }
+  
+  public void disableGpu(final boolean input) {}
 
+  public void action(final String actionCommand,
+      final Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (actionCommand.equals(btnRun.getActionCommand())) {
       if (validateRun()) {
