@@ -1,4 +1,5 @@
 package etomo.type;
+
 /**
 * <p>Description: </p>
 * 
@@ -25,22 +26,23 @@ package etomo.type;
 * <p> </p>
 */
 public final class InterfaceType {
-  public static  final String  rcsid =  "$Id$";
-  
+  public static final String rcsid = "$Id$";
+
   public static final InterfaceType RECON = new InterfaceType("recon");
   public static final InterfaceType JOIN = new InterfaceType("join");
   public static final InterfaceType PP = new InterfaceType("pp");
+  public static final InterfaceType BATCH_RUN_TOMO = new InterfaceType("batchRunTomo");
   public static final InterfaceType PEET = new InterfaceType("peet");
   public static final InterfaceType TOOLS = new InterfaceType("tools");
   public static final InterfaceType FRONT_PAGE = new InterfaceType("frontPage");
   public static final InterfaceType SERIAL_SECTIONS = new InterfaceType("serialSections");
-  
+
   private final String name;
-  
+
   private InterfaceType(String name) {
     this.name = name;
   }
-  
+
   public static InterfaceType getInstance(String name) {
     if (name == null) {
       return null;
@@ -54,13 +56,16 @@ public final class InterfaceType {
     if (name.equals(PP.name)) {
       return PP;
     }
+    if (name.equals(BATCH_RUN_TOMO.name)) {
+      return BATCH_RUN_TOMO;
+    }
     if (name.equals(PEET.name)) {
       return PEET;
     }
     return null;
   }
-  
+
   public boolean equals(InterfaceType interfaceType) {
-    return this==interfaceType;
+    return this == interfaceType;
   }
 }

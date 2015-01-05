@@ -566,7 +566,9 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     return ProcessingMethod.LOCAL_CPU;
   }
 
-  public void disableGpu(final boolean disable) {}
+  public ProcessingMethod getSecondaryProcessingMethod() {
+    return null;
+  }
 
   public void lockProcessingMethod(final boolean lock) {}
 
@@ -897,7 +899,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
   public boolean isReferenceParticleSelected() {
     return referencePanel.isReferenceParticleSelected();
   }
-  
+
   public boolean isFlgVolNamesAreTemplates() {
     return volumeTable.isFlgVolNamesAreTemplates();
   }
@@ -926,7 +928,8 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
   private void setTooltipText() {
     ReadOnlyAutodoc autodoc = null;
     try {
-      autodoc = AutodocFactory.getInstance(manager, AutodocFactory.PEET_PRM, axisID);
+      autodoc =
+          AutodocFactory.getInstance(manager, AutodocFactory.PEET_PRM, axisID, false);
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();
@@ -1182,16 +1185,14 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     pnlButton.add(Box.createRigidArea(FixedDim.x30_y0));
   }
 
-  public void action(final Run3dmodButton button,
-      final Run3dmodMenuOptions run3dmodMenuOptions) {
-    action(button.getActionCommand(), run3dmodMenuOptions);
-  }
-
   void msgFlgVolNamesAreTemplates(final boolean on) {
     referencePanel.msgFlgVolNamesAreTemplates(on);
   }
+  
+  public void disableGpu(final boolean input) {}
 
-  private void action(final String actionCommand,
+  public void action(final String actionCommand,
+      final Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (actionCommand.equals(btnRun.getActionCommand())) {
       if (validateRun()) {
@@ -1367,7 +1368,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     }
 
     public void actionPerformed(final ActionEvent event) {
-      peetDialog.action(event.getActionCommand(), null);
+      peetDialog.action(event.getActionCommand(), null, null);
     }
   }
 
