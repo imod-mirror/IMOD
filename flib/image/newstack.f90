@@ -857,7 +857,7 @@ program newstack
           magGradFile .ne. ' ' .or. ifWarping .ne. 0)  &
           call exitError('YOU CANNOT USE -phase WITH -rotate, -expand, -distort, '// &
           '-gradient, OR WARPING, OR WITH -shrink UNLESS IT IS THE ONLY OTHER OPERATION')
-      if (applyFirst) call exitError('YOU CANNOT USE -phase WITH -applyfirst')
+      if (applyFirst .ne. 0) call exitError('YOU CANNOT USE -phase WITH -applyfirst')
       !
       ! Check transforms and convert to xcen/ycen shifts
       if (ifXform .ne. 0) then
