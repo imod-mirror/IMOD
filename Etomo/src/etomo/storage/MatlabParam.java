@@ -309,7 +309,6 @@ import etomo.util.DatasetFiles;
  * <p> </p>
  */
 public final class MatlabParam {
-
   public static final String REFERENCE_KEY = "reference";
   public static final int REFERENCE_FLG_FAIR_REFERENCE_GROUPS_DEFAULT = 10;
   public static final int REFERENCE_FLG_FAIR_REFERENCE_PARTICLES_DEFAULT = 10;
@@ -568,7 +567,7 @@ public final class MatlabParam {
     ReadOnlyAutodoc commentAutodoc = null;
     try {
       commentAutodoc =
-          AutodocFactory.getInstance(manager, AutodocFactory.PEET_PRM, AxisID.ONLY);
+          AutodocFactory.getInstance(manager, AutodocFactory.PEET_PRM, AxisID.ONLY, false);
     }
     catch (IOException e) {
       System.err.println("Problem with " + AutodocFactory.PEET_PRM
