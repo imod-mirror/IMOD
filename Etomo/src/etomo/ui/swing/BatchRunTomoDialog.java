@@ -28,7 +28,6 @@ import etomo.storage.DirectiveFileCollection;
 import etomo.storage.LogFile;
 import etomo.storage.autodoc.Autodoc;
 import etomo.storage.autodoc.AutodocFactory;
-import etomo.storage.autodoc.WritableAutodoc;
 import etomo.type.AxisID;
 import etomo.type.BatchRunTomoMetaData;
 import etomo.type.DialogType;
@@ -277,7 +276,7 @@ public final class BatchRunTomoDialog
     return ltfRootName.isEmpty() || ftfRootDir.isEmpty();
   }
 
-  public void msgParamFileSet() {
+  public void disableDatasetFields() {
     ltfRootName.setEditable(false);
     ftfRootDir.setEditable(false);
   }

@@ -23,7 +23,6 @@ import etomo.storage.DirectiveFileInterface;
 import etomo.storage.LogFile;
 import etomo.storage.autodoc.Autodoc;
 import etomo.storage.autodoc.AutodocFactory;
-import etomo.storage.autodoc.WritableAutodoc;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.BatchRunTomoMetaData;

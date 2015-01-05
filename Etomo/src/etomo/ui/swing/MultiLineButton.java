@@ -34,15 +34,10 @@ import java.lang.String;
  * This prevents the text from changing color when the button is disabled, so
  * this class controls the text color on enable/disable.</p>
  *
- * <p>Copyright: Copyright 2002 - 2006</p>
+ * <p>Copyright: Copyright 2002 - 2014 by the Regents of the University of Colorado</p>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
- * Univeristy of Colorado</p>
- *
- * @author $Author$
- *
- * @version $Revision$
+ * @version $Id$
  *
  * <p> $Log$
  * <p> Revision 1.4  2011/04/04 17:21:11  sueh
@@ -240,8 +235,6 @@ import java.lang.String;
  * <p> </p>
  */
 class MultiLineButton implements ProcessResultDisplay {
-  public static final String rcsid = "$$Id$$";
-
   public static final String ENABLED_TEXT_COLOR_PROPERTY = "Button.foreground";
   public static final String DISABLED_TEXT_COLOR_PROPERTY = "Button.disabledText";
 
@@ -577,12 +570,6 @@ class MultiLineButton implements ProcessResultDisplay {
     }
   }
   
-  final void setToPreferredSize() {
-    Dimension size = button.getPreferredSize();
-    button.setPreferredSize(size);
-    button.setMaximumSize(size);
-  }
-
   final void setToPreferredSize() {
     Dimension size = button.getPreferredSize();
     button.setPreferredSize(size);
