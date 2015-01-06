@@ -26,19 +26,13 @@ import etomo.util.Utilities;
 /**
  * <p>Description: </p>
  * 
- * <p>Copyright: Copyright (c) 2005</p>
+ * <p>Copyright: Copyright 2005 - 2014 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
- * University of Colorado</p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
+ * @version $Id$
  */
 final class RadioButton implements RadioButtonInterface {
-  public static final String rcsid = "$Id$";
-
   private final JRadioButton radioButton;
   private final EnumeratedType enumeratedType;
 
@@ -179,7 +173,7 @@ final class RadioButton implements RadioButtonInterface {
   void setToolTipText(final String autodocName, final ReadOnlySection section) {
     String text;
     if (enumeratedType == null) {
-      text = EtomoAutodoc.getTooltip(autodocName, section);
+      text = EtomoAutodoc.getTooltip(autodocName, section, true);
     }
     else {
       text = EtomoAutodoc.getTooltip(autodocName, section, enumeratedType.toString());
@@ -207,8 +201,7 @@ final class RadioButton implements RadioButtonInterface {
     radioButton.setSelected(selected);
   }
 
-  public void msgSelected() {
-  }
+  public void msgSelected() {}
 
   boolean isSelected() {
     return radioButton.isSelected();
