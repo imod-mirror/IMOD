@@ -65,9 +65,11 @@ processors.  If you do not enter this attribute, a single processor is assumed.
 .TP
 .B gpu\fR[\fB.local\fR]\fB = 1
 This attribute means that the GPU (graphics processing unit) of a video card installed in
-this computer is available for running compatible IMOD processes.  If the \fBlocal\fR
+this computer is available for running compatible IMOD processes.  In
+fact, any value besides 1 also indicates that there is a GPU, so the
+entry needs to be commented out or removed to make a GPU unavailable.  If the \fBlocal\fR
 modifier is used, then the GPU is only available to an eTomo that is being run on this
-computer.  Only video cards with CUDA can be used in this way.
+computer.  Only video cards with CUDA can be used in this way.  
 
 .TP
 .B gpu.device = \fIGPU#\fR[\fB,\fIGPU#\fR...]
