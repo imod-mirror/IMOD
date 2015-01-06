@@ -142,16 +142,17 @@ public final class ParsedQuotedString extends ParsedElement {
       setMissingAttribute();
       return;
     }
-    PrimativeTokenizer tokenizer = createTokenizer(attribute.getValue());
+    PrimativeTokenizer tokenizer = createTokenizer(attribute.getValue(),
+        attribute.getLineNum());
     StringBuffer buffer = new StringBuffer();
     Token token = null;
     try {
       token = tokenizer.next();
-      parse(token, tokenizer);
+      parse(token, tokenizer, attribute.getLineNum());
     }
     catch (IOException e) {
       e.printStackTrace();
-      fail(e.getMessage());
+      fail(e.getMessage(), attribute.getLineNum());
     }
   }
 
@@ -170,7 +171,7 @@ public final class ParsedQuotedString extends ParsedElement {
     return new ParsedQuotedString(debug, descr).getRawString();
   }
 
-  void setRawString(int index, String string) {
+  void setRawString(final int index, final String string, final int lineNum) {
     if (index != 0) {
       return;
     }
@@ -200,7 +201,7 @@ public final class ParsedQuotedString extends ParsedElement {
     }
   }
 
-  public void setRawString(String string) {
+  public void setRawString(final String string, final int lineNum) {
     rawString = string;
   }
 
@@ -237,14 +238,14 @@ public final class ParsedQuotedString extends ParsedElement {
     rawString = String.valueOf(number);
   }
 
-  public String validate() {
+  public String validate(final int lineNum) {
     if (isFailed()) {
-      return getFailedMessage();
+      return getFailedMessage(lineNum);
     }
     return null;
   }
 
-  Token parse(Token token, PrimativeTokenizer tokenizer) {
+  Token parse(Token token, final PrimativeTokenizer tokenizer, final int lineNum) {
     if (token == null) {
       return token;
     }
@@ -253,24 +254,24 @@ public final class ParsedQuotedString extends ParsedElement {
         token = tokenizer.next();
       }
       if (token == null || !token.equals(Token.Type.SYMBOL, DELIMITER_SYMBOL.charValue())) {
-        fail("Missing delimiter: '" + DELIMITER_SYMBOL + "'");
+        fail("Missing delimiter: '" + DELIMITER_SYMBOL + "'", lineNum);
         return token;
       }
       token = tokenizer.next();
       // everything within DELIMITER symbols is part of the rawString.
-      token = parseElement(token, tokenizer);
+      token = parseElement(token, tokenizer, lineNum);
       if (isFailed()) {
         return token;
       }
       if (token == null || !token.equals(Token.Type.SYMBOL, DELIMITER_SYMBOL.charValue())) {
-        fail("Missing delimiter: '" + DELIMITER_SYMBOL + "'");
+        fail("Missing delimiter: '" + DELIMITER_SYMBOL + "'", lineNum);
         return token;
       }
       token = tokenizer.next();
     }
     catch (IOException e) {
       e.printStackTrace();
-      fail(e.getMessage());
+      fail(e.getMessage(), lineNum);
     }
     return token;
   }
@@ -320,7 +321,8 @@ public final class ParsedQuotedString extends ParsedElement {
     return 1;
   }
 
-  private Token parseElement(Token token, PrimativeTokenizer tokenizer) {
+  private Token parseElement(Token token, final PrimativeTokenizer tokenizer,
+      final int lineNum) {
     rawString = "";
     resetFailed();
     if (token == null) {
@@ -339,7 +341,7 @@ public final class ParsedQuotedString extends ParsedElement {
       }
       catch (IOException e) {
         e.printStackTrace();
-        fail(e.getMessage());
+        fail(e.getMessage(), lineNum);
       }
     }
     rawString = buffer.toString();

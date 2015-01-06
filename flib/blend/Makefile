@@ -11,7 +11,7 @@ LDFLG    = $(LDFFLAGS)
 PROGS = blendmont$(E) reducemont$(E)
 
 BLOBJS = blendmont.$(O) bsubs.$(O) edgesubs.$(O) shuffler.$(O) smoothgrid.$(O)\
- sdsearch.$(O) sdcalc.$(O) setoverlap.$(O) blendvars.$(O)
+ setoverlap.$(O) blendvars.$(O)
 
 REDOBJS = reducemont.$(O) shuffler.$(O) setoverlap.$(O) blendvars.$(O)
 

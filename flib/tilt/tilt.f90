@@ -5297,8 +5297,9 @@ subroutine projectModel(filout, delta, nvorig)
   include 'model.inc90'
   character*(*) filout
   real*4 delta(3), orig(3)
+  character*120 objName
   integer*4 nvorig, ibase, numPt, iobj, ipt, ip1, iv, nv
-  real*4 value, rj, ri, rlslice, zz, yy, zpart, xproj, yproj
+  real*4 value, rj, ri, rlslice, zz, yy, zpart, xproj, yproj, zOffset
   integer*4 j, lslice, imodobj, imodcont, ierr, size
   real*4 fj, fls, f11, f12, f21, f22, xf11, xz11, yf11, yz11
   real*4 xf21, xz21, yf21, yz21, xf12, xz12, yf12, yz12, xf22, xz22, yf22
@@ -5306,11 +5307,21 @@ subroutine projectModel(filout, delta, nvorig)
   real*4, allocatable :: values(:), coords(:,:)
   integer*4, allocatable :: mapnv(:)
   integer*4 getContValue, putImageRef, putContValue, putImodFlag
-  integer*4 getScatSize, putScatSize, putImodMaxes
+  integer*4 getScatSize, putScatSize, putImodMaxes, getImodObjName, getZFromMinusPt5
   !
   call irtorg(1, orig(1), orig(2), orig(3))
   call scale_model(0)
   if (getScatSize(1, size) .ne. 0) size = 5
+  !
+  ! Models are defined as having Z coordinates ranging from -0.5 to NZ - 0.5 so Z
+  ! will need to be shifted up by 1 to get to pixel index coordinates
+  ! But in old beadtrack models, Z started at 0 so the offset needs to be only 0.5
+  ! Recognize old beadtrack model by lack of flag AND original object name so that
+  ! other old models will work
+  zOffset = 1.0
+  if (getZFromMinusPt5() == 0 .and. getImodObjName(1, objName) == 0) then
+    if (objName(1:8) == 'Wimp no.') zOffset = 0.5
+  endif
   allocate(values(n_point), coords(3, n_point), mapnv(limView), stat = j)
   if (j .ne. 0) call exitError('ALLOCATING ARRAYS FOR REPROJECTING MODEL')
   !
@@ -5358,11 +5369,11 @@ subroutine projectModel(filout, delta, nvorig)
     ! Get real pixel coordinates in tomogram file
     rj = coords(1, ipt) + 0.5
     ri = coords(2, ipt) + 0.5
-    rlslice = coords(3, ipt) + 0.5
+    rlslice = coords(3, ipt) + zOffset
     !
-    ! This may never be tesed but seems simple enough
+    ! This may never be tested but seems simple enough
     if (.not.perpendicular) then
-      ri = coords(3, ipt) + 0.5
+      ri = coords(3, ipt) + zOffset
       rlslice = coords(2, ipt) + 0.5
     endif
     !
