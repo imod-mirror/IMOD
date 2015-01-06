@@ -4,6 +4,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Map;
 
+import etomo.Arguments.DebugLevel;
 import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.ProcessingMethodMediator;
@@ -40,7 +41,7 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
 
   private static final String TITLE = "Processchunks";
   static final String SUCCESS_TAG = "Finished reassembling";
-  private static boolean debug = false;
+  private static DebugLevel debugLevel = null;
   private final EtomoNumber nChunks = new EtomoNumber();
   private final EtomoNumber chunksFinished = new EtomoNumber();
   private final String rootName;
@@ -98,7 +99,7 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
     messages = ProcessMessages.getInstanceForParallelProcessing(manager,
         multiLineMessages);
     mediator = manager.getProcessingMethodMediator(axisID);
-    debug = EtomoDirector.INSTANCE.getArguments().isDebug();
+    debugLevel = EtomoDirector.INSTANCE.getArguments().getDebugLevel();
   }
 
   public static ProcesschunksProcessMonitor getReconnectInstance(
@@ -443,7 +444,7 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
           pid = array[2].trim();
         }
       }
-      if (debug) {
+      if (debugLevel.isOn()) {
         System.err.println(line);
       }
       if (line.indexOf("imodkillgroup") == -1) {

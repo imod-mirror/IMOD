@@ -3,6 +3,7 @@ c
 c       FINDEDGEFUNC
 c       SETGRIDCHARS
 c       LOCALMEAN
+c       SDINTSCAN
 c
 c       $Id$
 c       Log at end of file
@@ -136,7 +137,7 @@ c               now do the real search
 c               
               nsteps=4
               limstep=6
-              call bigsearch(array,brray,nx,ny,ixbox0,iybox0,ixbox1
+              call montBigSearch(array,brray,nx,ny,ixbox0,iybox0,ixbox1
      &            ,iybox1,dxgr,dygr, sdgrid(ixgrid,iygrid),ddengrid(
      &            ixgrid,iygrid),nsteps,limstep)
               dxgrid(ixgrid,iygrid)=dxgr-idxbase
@@ -278,20 +279,43 @@ c
       return
       end
 
+c       SDINTSCAN compares images in two arrays ARRAY and BRRAY (dimensioned
+c       NX,NY, with image dimensions NX by NY), scanning over a matrix of
+c       integral displacements between the two images and finding the
+c       displacement with the minimum standard deviation of the pixel-by-
+c       pixel difference.  I[XY]BOX[01] defines the array index limits of
+c       the box to be compared in ARRAY.  ID[XY][01] define the lower and
+c       upper limits of the X and Y displacements from this position in
+c       BRRAY.  The routine returns the minimum standard deviation SDMIN,
+c       the displacement IDXMIN, IDYMIN at which this minimum occurs, and the
+c       mean image difference (B minus A) at that position, DDENMIN.
 c       
-c       $Log$
-c       Revision 3.5  2010/09/23 04:59:10  mast
-c       Made it go along short dimension in inner loop
-c
-c       Revision 3.4  2007/04/10 15:50:33  mast
-c       Modified setgridchars to take data limits in the long dimension
+      subroutine sdintscan(array,brray,nx,ny,ixbox0,iybox0,ixbox1,
+     &    iybox1 ,idx0,idy0,idx1,idy1,sdmin,ddenmin,idxmin,idymin)
 c       
-c       Revision 3.3  2005/08/22 16:17:56  mast
-c       Bad message in last checkin
+      real*4 array(nx,ny),brray(nx,ny)
 c       
-c       Revision 3.2  2005/08/22 16:15:59  mast
-c       Prevented negative extents when distortion limits size of field
-c       
-c       Revision 3.1  2003/12/12 20:46:48  mast
-c       Split off from bsubs.f for finddistort to use
-c       
+      sdmin=1.e10
+c       sdmax=0.
+      do idy=idy0,idy1
+        do idx=idx0,idx1
+          call montSdCalc(array,brray,nx,ny,ixbox0,iybox0,ixbox1,
+     &        iybox1 ,float(idx),float(idy),sd,dden)
+          if(sd.lt.sdmin)then
+            sdmin=sd
+            idxmin=idx
+            idymin=idy
+            ddenmin=dden
+c             write(*,101)idx,idy,sd,' *'
+c101         format(2i4,f10.4,a)
+          else
+c             write(*,101)idx,idy,sd,' '
+          endif
+c           sdmax=max(sdmax,sd)
+        enddo
+      enddo
+c       ratio=1.0
+c       if(sdmax.gt.0.)ratio=sdmin/sdmax
+c       write(*,'(f7.4)')ratio
+      return
+      end

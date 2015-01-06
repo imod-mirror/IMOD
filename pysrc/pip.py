@@ -29,6 +29,9 @@ LOOKUP_AMBIGUOUS = -2
 OPTFILE_DIR = "autodoc"
 OPTFILE_EXT = "adoc"
 OPTDIR_VARIABLE = "AUTODOC_DIR"
+DEFAULTS_FILE = "progDefaults.adoc"
+DEFAULTS_DIR = "com"
+DEFAULT_SUB_STR = "%{default}"
 PRINTENTRY_VARIABLE = "PIP_PRINT_ENTRIES"
 OPEN_DELIM = "["
 CLOSE_DELIM = "]"
@@ -57,6 +60,7 @@ class pipOption:
       self.type = ''
       self.helpString = ''
       self.format = ''
+      self.defaultVal = ''
       self.values = []
       self.multiple = 0
       self.count = 0
@@ -320,7 +324,7 @@ def PipGetString(option, string):
    retval = GetNextValueString(option)
    if pipErrno < 0:
       return None
-   if pipErrno > 0:
+   if pipErrno == 1:
       return string
    return retval
 
@@ -357,7 +361,7 @@ def PipGetInteger(option, val):
    retval = PipGetIntegerArray(option, num)
    if (pipErrno < 0):
       return None
-   if (pipErrno > 0):
+   if (pipErrno == 1):
       return val
    return retval[0]
 
@@ -367,7 +371,7 @@ def PipGetFloat(option, val):
    retval = PipGetFloatArray(option, num)
    if (pipErrno < 0):
       return None
-   if (pipErrno > 0):
+   if (pipErrno == 1):
       return val
    return retval[0]
 
@@ -380,7 +384,7 @@ def PipGetTwoIntegers(option, val1, val2):
    retval = PipGetIntegerArray(option, num)
    if (pipErrno < 0):
       return None
-   if (pipErrno > 0):
+   if (pipErrno == 1):
       return (val1, val2)
    return (retval[0], retval[1])
 
@@ -390,7 +394,7 @@ def PipGetTwoFloats(option, val1, val2):
    retval = PipGetFloatArray(option, num)
    if (pipErrno < 0):
       return None
-   if (pipErrno > 0):
+   if (pipErrno == 1):
       return (val1, val2)
    return (retval[0], retval[1])
 
@@ -403,7 +407,7 @@ def PipGetThreeIntegers(option, val1, val2, val3):
    retval = PipGetIntegerArray(option, num)
    if (pipErrno < 0):
       return None
-   if (pipErrno > 0):
+   if (pipErrno == 1):
       return (val1, val2, val3)
    return (retval[0], retval[1], retval[2])
 
@@ -413,7 +417,7 @@ def PipGetThreeFloats(option, val1, val2, val3):
    retval = PipGetFloatArray(option, num)
    if (pipErrno < 0):
       return None
-   if (pipErrno > 0):
+   if (pipErrno == 1):
       return (val1, val2, val3)
    return (retval[0], retval[1], retval[2])
 
@@ -515,6 +519,8 @@ def PipPrintHelp(progName, useStdErr, inputFiles, outputFiles):
       # Print help string, breaking up line as needed
       if len(sOptTable[i].helpString):
          sname = sOptTable[i].helpString
+         if sOptTable[i].defaultVal:
+            sname = sname.replace(DEFAULT_SUB_STR, sOptTable[i].defaultVal);
          optLen = len(sname)
          newLinePt = sname.find('\n')
          while (optLen > helplim or newLinePt >= 0):
@@ -687,7 +693,7 @@ def PipOpenInstalledAdoc(progName):
       try:
          # print "Looking for file " + bigStr
          optFile = open(bigStr, "r")
-      except:
+      except IOError:
          optFile = None
 
    if (not optFile):
@@ -698,7 +704,7 @@ def PipOpenInstalledAdoc(progName):
          try:
             #print "Looking for file " + bigStr
             optFile = open(bigStr, "r")
-         except:
+         except IOError:
             optFile = None
 
    return optFile
@@ -728,7 +734,7 @@ def PipReadOptionFile(progName, helpLevel, localDir):
          try:
             # print "Looking for file " + bigStr
             optFile = open(bigStr, "r")
-         except:
+         except IOError:
             optFile = None
 
    
@@ -738,7 +744,7 @@ def PipReadOptionFile(progName, helpLevel, localDir):
       try:
          # print "Looking for file " + bigStr
          optFile = open(bigStr, "r")
-      except:
+      except IOError:
          optFile = None
 
       if (not optFile):
@@ -753,9 +759,11 @@ def PipReadOptionFile(progName, helpLevel, localDir):
    numOpts = 0
    optList = []
    formatList = []
+   defaultList = []
    longName = shortName = type = ''
    helpStr = ['','','']
    formatStr = ''
+   defaultStr = ''
    readingOpt = 0
    inQuoteIndex = -1
    
@@ -816,11 +824,13 @@ def PipReadOptionFile(progName, helpLevel, localDir):
                   helpStr[helpInd]
          optList.append(optStr)
          formatList.append(formatStr)
+         defaultList.append(defaultStr)
 
          # Clean up 
          longName = shortName = type = ''
          helpStr = ['','','']
          formatStr = ''
+         defaultStr = ''
          readingOpt = 0
 
       if (lineLen == -3):
@@ -868,6 +878,9 @@ def PipReadOptionFile(progName, helpLevel, localDir):
             retval = CheckKeyword(textStr, "format", 0)
             if retval[0]:
                (formatStr, lastInd, inQuoteIndex) = retval
+            retval = CheckKeyword(textStr, "default", 0)
+            if retval[0]:
+               (defaultStr, lastInd, inQuoteIndex) = retval
 
             # Check for usage if at help level 1 or if we haven't got
             # either of the other strings yet
@@ -926,6 +939,7 @@ def PipReadOptionFile(progName, helpLevel, localDir):
       if err:
          return err
       sOptTable[sNextOption - 1].format = formatList[i]
+      sOptTable[sNextOption - 1].defaultVal = defaultList[i]
 
    return 0
                               
@@ -994,6 +1008,46 @@ def PipReadOrParseOptions(argv, options, progName, minArgs, numInFiles,
       PipPrintHelp(progName, 0, numInFiles, numOutFiles)
       sys.exit(0)
 
+   if not ierr:
+      return (numOptArgs, numNonOptArgs)
+
+   # If no autodoc found, open the master list of program defaults
+   try:
+      pipDir = os.getenv('IMOD_DIR')
+      if not pipDir:
+         return (numOptArgs, numNonOptArgs)
+      defFile = open(pipDir + PATH_SEPARATOR + DEFAULTS_DIR + PATH_SEPARATOR +
+                     DEFAULTS_FILE, 'r')
+
+      # Read lines, determine when enter and leave the program section, add lines
+      # to dictionary
+      progMatch = re.compile('\[\s*Program\s*=\s*' + progName + '\s*\]')
+      inProg = False
+      defDict = {}
+      while True:
+         line = defFile.readline()
+         if not line:
+            break
+         line = line.strip()
+         if progMatch.search(line):
+            if inProg:
+               break
+            inProg = True
+         elif inProg:
+            lsplit = line.split('=')
+            if len(lsplit) == 2:
+                defDict[lsplit[0].strip()] = lsplit[1].strip()
+
+      defFile.close()
+
+      # Look up each option in dictionary and assign default if found
+      for ind in range(sNumOptions):
+         if sOptTable[ind].longName in defDict:
+            sOptTable[ind].defaultVal = defDict[sOptTable[ind].longName]
+      
+   except IOError:
+      pass
+   
    return (numOptArgs, numNonOptArgs)
 
 
@@ -1156,9 +1210,13 @@ def OptionLineOfValues(option, valType, numToGet):
    
    # Get string  and save pointer to it for error messages
    strPtr = GetNextValueString(option)
-   if pipErrno:
+   if pipErrno and pipErrno != 2:
       return None
-   return PipGetLineOfValues(option, strPtr, valType, numToGet)
+   saveErrno = pipErrno
+   retval = PipGetLineOfValues(option, strPtr, valType, numToGet)
+   if not pipErrno:
+      pipErrno = saveErrno
+   return retval
 
 
 # Parses a line of values from the string in [strPtr] and returns them as an
@@ -1264,18 +1322,22 @@ def PipGetLineOfValues(option, strPtr, valType, numToGet):
 
 
 # Get a pointer to the value string for the given option.
-# Return < 0 if the option is invalid, 1 if the option was not entered.
+# Return < 0 if the option is invalid, 1 if the option was not entered, or 2 if it was
+# not entered and there is a default being returned
 # If the option allows multiple values, advance the multiple counter
 #
 def GetNextValueString(option):
    global sOptTable, sNonOptInd, pipErrno
    pipErrno = 0
    err = LookupOption(option, sNonOptInd + 1)
-   optp = sOptTable[err]
    if (err < 0):
       pipErrno =  err
       return None
+   optp = sOptTable[err]
    if (not optp.count):
+      if optp.defaultVal:
+         pipErrno = 2
+         return optp.defaultVal
       pipErrno =  1
       return None
 
