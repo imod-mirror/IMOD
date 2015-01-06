@@ -897,7 +897,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
   public boolean isReferenceParticleSelected() {
     return referencePanel.isReferenceParticleSelected();
   }
-  
+
   public boolean isFlgVolNamesAreTemplates() {
     return volumeTable.isFlgVolNamesAreTemplates();
   }
@@ -939,7 +939,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     }
     String autodocName = autodoc.getAutodocName();
     pnlInitMotl.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-        MatlabParam.InitMotlCode.KEY));
+        MatlabParam.InitMotlCode.KEY, false));
     ReadOnlySection section =
         autodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME, MatlabParam.InitMotlCode.KEY);
     rbInitMotlZero.setToolTipText(autodocName, section);
@@ -958,16 +958,16 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     cbLstFlagAllTom.setToolTipText(autodocName, section, "0");
 
     cbflgAlignAverages.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-        MatlabParam.FLG_ALIGN_AVERAGES_KEY));
+        MatlabParam.FLG_ALIGN_AVERAGES_KEY, false));
 
     section =
         autodoc
             .getSection(EtomoAutodoc.FIELD_SECTION_NAME, MatlabParam.FLG_ABS_VALUE_KEY);
     cbFlgAbsValue.setToolTipText(autodocName, section, "1");
     cbFlgNoReferenceRefinement.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-        MatlabParam.FLG_NO_REFERENCE_REFINEMENT_KEY));
+        MatlabParam.FLG_NO_REFERENCE_REFINEMENT_KEY, false));
     cbFlgRandomize.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-        MatlabParam.FLG_RANDOMIZE_KEY));
+        MatlabParam.FLG_RANDOMIZE_KEY, false));
 
     ltfDirectory.setToolTipText("The directory which will contain the parameter and "
         + "project files, logs, intermediate files, and results. Data files "
