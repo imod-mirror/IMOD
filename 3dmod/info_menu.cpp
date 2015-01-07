@@ -193,10 +193,14 @@ void InfoWindow::fileSlot(int item)
     break;
     
   case FILE_MENU_EXTRACT: /* extract */
+  case FILE_MENU_PROCESS: /* extract */
     imod_info_forbid();
     imod_info_input();
     releaseKeyboard();
-    extract();
+    if (item == FILE_MENU_EXTRACT)
+      extract();
+    else
+      processFile();
     imod_info_enable();
     break;
 
@@ -236,7 +240,7 @@ void InfoWindow::fileWriteSlot(int item)
     qname = imodPlugGetSaveName(ImodInfoWin, "File to save as Imod:");
     if (qname.isEmpty())
       break;
-    fout =  fopen(LATIN1(QDir::convertSeparators(qname)), "wb");
+    fout =  fopen(LATIN1(QDir::toNativeSeparators(qname)), "wb");
     if (!fout)
       break;
 
@@ -253,7 +257,7 @@ void InfoWindow::fileWriteSlot(int item)
     qname = imodPlugGetSaveName(ImodInfoWin, "File to save as Wimp:");
     if (qname.isEmpty())
       break;
-    fout =  fopen(LATIN1(QDir::convertSeparators(qname)), "w");
+    fout =  fopen(LATIN1(QDir::toNativeSeparators(qname)), "w");
     if (!fout)
       break;
     imod_to_wmod(App->cvi->imod, fout, LATIN1(qname));
@@ -265,7 +269,7 @@ void InfoWindow::fileWriteSlot(int item)
     qname = imodPlugGetSaveName(ImodInfoWin, "File to save as NFF:");
     if (qname.isEmpty())
       break;
-    fout =  fopen(LATIN1(QDir::convertSeparators(qname)), "w");
+    fout =  fopen(LATIN1(QDir::toNativeSeparators(qname)), "w");
     if (!fout)
       break;
     imod_to_nff(App->cvi->imod, fout);
@@ -393,7 +397,7 @@ void InfoWindow::editObjectSlot(int item)
 {
   Iobj *obj;
   Icont *cont;
-  int ob,co,pt, coind, obOld, obNew, ndone, num, minOb, maxOb;
+  int ob, co, pt, curPt, coInd, obOld, obNew, ndone, num, minOb, maxOb;
   int cosave, ptsave;
   QString qstr;
   const char *objtype;
@@ -403,6 +407,7 @@ void InfoWindow::editObjectSlot(int item)
   static int lastCombine = 0;
   static int lastFixz = 0;
   static int lastFlatten = 0;
+  static int lastFillin = 0;
   int *lastp;
   bool fixz;
 
@@ -634,12 +639,12 @@ void InfoWindow::editObjectSlot(int item)
         break;
     }
     ndone = 0;
-    for (coind = obj->contsize - 1; coind >= 0; coind--) {
-      cont = &obj->cont[coind];
+    for (coInd = obj->contsize - 1; coInd >= 0; coInd--) {
+      cont = &obj->cont[coInd];
       if (cont->psize && fixz) 
-        ndone += imodContourBreakByZ(vi, obj, ob, coind);
+        ndone += imodContourBreakByZ(vi, obj, ob, coInd);
       else if (cont->psize) {
-        vi->undo->contourDataChg(ob, coind);
+        vi->undo->contourDataChg(ob, coInd);
         imodContourFlatten(cont);
         ndone++;
       }
@@ -649,6 +654,35 @@ void InfoWindow::editObjectSlot(int item)
     if (ndone)
       vi->undo->finishUnit();
     imodSelectionListClear(vi);
+    imodDraw(vi, IMOD_DRAW_MOD);
+    break;
+
+  case EOBJECT_MENU_FILLIN:  // Fill in Z for all contours in object
+    if (iobjClose(obj->flags) || iobjScat(obj->flags)){
+      wprint("\aError: Only Open contours can be filled in by Z\n");
+      break;
+    }
+    imodGetIndex(imod, &ob, &co, &curPt);
+    if (lastFillin < 2) {
+      qstr.sprintf("Are you sure you want to fill in Z in all the contours of"
+                   "object %d?", ob + 1);
+      lastFillin = dia_ask_forever(LATIN1(qstr));
+      if (!lastFillin)
+        break;
+    }
+    num = 0;
+    for (coInd = 0; coInd < obj->contsize; coInd++) {
+      cont = &obj->cont[coInd];
+      if (!cont->psize)
+        continue;
+      pt = coInd == co ? curPt : -1;
+      if (imodFillInContourZ(vi, cont, ob, coInd, pt))
+        num++;
+      curPt = coInd == co ? pt : curPt;
+    }
+    imodSetIndex(imod, ob, co, curPt);
+    wprint("Added points to %d of %d contours\n", num, obj->contsize);
+    vi->undo->finishUnit();
     imodDraw(vi, IMOD_DRAW_MOD);
     break;
 
@@ -950,40 +984,7 @@ void InfoWindow::editContourSlot(int item)
       break;
     }
     imodGetIndex(imod, &ob, &co, &pt);
-    for (ptb = 0; ptb < (int)cont->psize - 1; ptb++) {
-      int zcur, znext, zfill, first;
-      Ipoint newPt;
-      Ipoint *cur, *next;
-      zcur = (int)(floor(cont->pts[ptb].z + 0.5));
-      znext = (int)(floor(cont->pts[ptb + 1].z + 0.5));
-      zfill = zcur;
-      first = 1;
-
-      /* find points where rounded z differs by more than one */
-      if (zcur - znext > 1)
-        zfill--;
-      else if (znext - zcur > 1)
-        zfill++;
-      if (zcur != zfill) {
-        if (first)
-          vi->undo->contourDataChg();
-        first = 0;
-        cur = &cont->pts[ptb];
-        next = &cont->pts[ptb + 1];
-
-        /* insert one point at the next Z; the spacing from that
-           one to the next will be assessed on next iteration */
-        newPt.z = zfill;
-        newPt.x = cur->x + (next->x - cur->x) * (zfill - cur->z) /
-          (next->z - cur->z);
-        newPt.y = cur->y + (next->y - cur->y) * (zfill - cur->z) /
-          (next->z - cur->z);
-        imodPointAdd(cont, &newPt, ptb + 1);
-        if (ptb < pt)
-          pt++;
-      }
-    }
-
+    imodFillInContourZ(vi, cont, ob, co, pt);
     imodSetIndex(imod, ob, co, pt);
     vi->undo->finishUnit();
     imodDraw(vi, IMOD_DRAW_MOD);
@@ -1265,8 +1266,8 @@ void InfoWindow::helpSlot(int item)
        VERSION_NAME, "[", __DATE__, __TIME__, "]",
        "written by James Kremer and",
        "David Mastronarde\n",
-       "Copyright (C)",COPYRIGHT_YEARS,"by",LAB_NAME1,"\n",LAB_NAME2,
-       "& Regents of the University of Colorado\n\n",
+       "Copyright (C)",COPYRIGHT_YEARS,"by",
+       "the Regents of the University of Colorado\n\n",
        NULL);
     break;
 

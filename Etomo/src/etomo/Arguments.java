@@ -459,9 +459,10 @@ public final class Arguments {
           // (debugLevel).
           if (i < args.length - 1 && !args[i + 1].startsWith("--")) {
             try {
-              debugLevel = DebugLevel
-                  .getInstance(Math.abs(Integer.parseInt(args[i + 1])));
-              if (debugLevel == DebugLevel.OFF) {
+              debugLevel = DebugLevel.getInstance(Integer.parseInt(args[i + 1]));
+              // The limited debug level allows debug to be used for specific prints, when
+              // everything else acts like debug is off.
+              if (debugLevel == DebugLevel.OFF || debugLevel == DebugLevel.LIMITED) {
                 debug = false;
               }
               i++;
@@ -749,12 +750,12 @@ public final class Arguments {
   }
 
   public static final class DebugLevel {
-    public static final DebugLevel OFF = new DebugLevel(0);
-    private static final DebugLevel LIMITED = new DebugLevel(-1);
-    public static final DebugLevel STANDARD = new DebugLevel(1);
+    private static final DebugLevel OFF = new DebugLevel(0);//No debug
+    private static final DebugLevel LIMITED = new DebugLevel(-1);//No debug except for limited level debugging
+    private static final DebugLevel STANDARD = new DebugLevel(1);//same as debug without an argument
     private static final DebugLevel EXTRA = new DebugLevel(2);
     private static final DebugLevel VERBOSE = new DebugLevel(3);
-    public static final DebugLevel EXTRA_VERBOSE = new DebugLevel(4);
+    private static final DebugLevel EXTRA_VERBOSE = new DebugLevel(4);
 
     private static final DebugLevel DEFAULT = STANDARD;
 
@@ -786,17 +787,16 @@ public final class Arguments {
       return DEFAULT;
     }
 
-    public boolean isOn() {
-      return this != OFF;
+    public static DebugLevel getOffInstance() {
+      return OFF;
     }
 
-    /**
-     * Same as isOn, except that it excludes LIMITED.
-     * @return
-     */
-    public boolean isStandard() {
-      return this == STANDARD || this == EXTRA || this == VERBOSE
-          || this == EXTRA_VERBOSE;
+    public boolean isLimited() {
+      return this == LIMITED;
+    }
+
+    public boolean isOn() {
+      return this != OFF && this != LIMITED;
     }
 
     public boolean isExtra() {
@@ -809,6 +809,28 @@ public final class Arguments {
 
     public boolean isExtraVerbose() {
       return this == EXTRA_VERBOSE;
+    }
+
+    public String toString() {
+      if (this == OFF) {
+        return "off";
+      }
+      if (this == LIMITED) {
+        return "limited";
+      }
+      if (this == STANDARD) {
+        return "standard";
+      }
+      if (this == EXTRA) {
+        return "extra";
+      }
+      if (this == VERBOSE) {
+        return "verbose";
+      }
+      if (this == EXTRA_VERBOSE) {
+        return "extraVerbose";
+      }
+      return "unknown";
     }
   }
 }
