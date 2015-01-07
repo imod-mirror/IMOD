@@ -37,13 +37,13 @@ import etomo.util.DatasetFiles;
  */
 public class ConstMatchorwarpParam {
   public static final String rcsid = "$Id$";
-  
+
   protected static final String RESIDUAL_FILE_KEY = "-residualfile";
   protected static final String VECTOR_MODEL_KEY = "-vectormodel";
   protected static final String RESIDUAL_FILE_DEFAULT = "patch.resid";
   protected static final String VECTOR_MODEL_DEFAULT = DatasetFiles.PATCH_VECTOR_MODEL;
   protected static final int CLIP_SIZE_DEFAULT = 600;
-  
+
   protected String size = "";
   protected double refineLimit;
   protected String residualFile = null;
@@ -66,11 +66,12 @@ public class ConstMatchorwarpParam {
   protected String inputFile = "";
   protected String outputFile = "";
   protected boolean useLinearInterpolation = false;
-  
+  String structurecrit = "";
+  String extentfit = "";
+
   public ConstMatchorwarpParam() {
   }
 
-  
   /**
    * @return String
    */
@@ -84,7 +85,7 @@ public class ConstMatchorwarpParam {
   public String getModelFile() {
     return modelFile;
   }
-  
+
   public boolean isUseModelFile() {
     return !ParamUtilities.isEmpty(modelFile);
   }
@@ -165,6 +166,7 @@ public class ConstMatchorwarpParam {
   public int getZUpperExclude() {
     return zUpperExclude;
   }
+
   /**
    * @return String
    */
@@ -185,6 +187,7 @@ public class ConstMatchorwarpParam {
   public boolean isTrial() {
     return trial;
   }
+
   /**
    * @return boolean
    */
@@ -198,11 +201,11 @@ public class ConstMatchorwarpParam {
   public String getRefineFile() {
     return refineFile;
   }
-  
+
   public boolean isUseLinearInterpolation() {
     return useLinearInterpolation;
   }
-  
+
   /**
    * Return the default patch region model file name
    * @return String
@@ -212,4 +215,3 @@ public class ConstMatchorwarpParam {
   }
 
 }
-
