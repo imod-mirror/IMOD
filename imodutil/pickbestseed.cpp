@@ -14,19 +14,13 @@
 #include <string.h>
 #include <math.h>
 #include <vector>
+#include "cppdefs.h"
 #include "imodel.h"
-#include "b3dutil.h"
 #include "parse_params.h"
-#include <iostream>
-using namespace std;
 #include "pickbestseed.h"
 
 #define PI 3.141593
 #define MAXLINE 1000
-#define DEG2RAD 0.0174532925
-
-#define SET_CONTROL_FLOAT(a,b) case a: b = yy ; cout << #b << " set to " << yy << endl ; break
-#define SET_CONTROL_INT(a,b) case a: b = B3DNINT(yy) ; cout << #b << " set to " << B3DNINT(yy) << endl ; break
 
 /*
  * The shortest main in the West
@@ -1355,12 +1349,12 @@ void PickSeeds::analyzeElongation(int maxConts, int which, float *edgeSDs)
   int numInGroup, minForGroups = 50;
   int minToTest = 10;
   bool testByGroup;
-  double cosElong = cos(DEG2RAD * mElongComboAngle);
-  double sinElong = sin(DEG2RAD * mElongComboAngle);
-  double cosEdge = cos(DEG2RAD * mEdgeComboAngle);
-  double sinEdge = sin(DEG2RAD * mEdgeComboAngle);
-  double cosNorm = cos(DEG2RAD * mNormComboAngle);
-  double sinNorm = sin(DEG2RAD * mNormComboAngle);
+  double cosElong = cos(RADIANS_PER_DEGREE * mElongComboAngle);
+  double sinElong = sin(RADIANS_PER_DEGREE * mElongComboAngle);
+  double cosEdge = cos(RADIANS_PER_DEGREE * mEdgeComboAngle);
+  double sinEdge = sin(RADIANS_PER_DEGREE * mEdgeComboAngle);
+  double cosNorm = cos(RADIANS_PER_DEGREE * mNormComboAngle);
+  double sinNorm = sin(RADIANS_PER_DEGREE * mNormComboAngle);
 
   if (!elongs) {
     elongs = B3DMALLOC(float, maxConts);
