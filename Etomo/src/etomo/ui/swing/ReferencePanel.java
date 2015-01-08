@@ -34,15 +34,11 @@ import etomo.util.FilePath;
 /**
  * <p>Description: </p>
  * 
- * <p>Copyright: Copyright 2009</p>
+ * <p>Copyright: Copyright 2009 - 2014 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
- * University of Colorado</p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
+ * @version $Id$
  * 
  * <p> $Log$
  * <p> Revision 1.1  2010/11/13 16:07:34  sueh
@@ -65,9 +61,6 @@ import etomo.util.FilePath;
  * <p> </p>
  */
 final class ReferencePanel implements UIComponent, SwingComponent {
-  public static final String rcsid =
-      "$Id$";
-
   private static final String TITLE = "Reference";
   private static final String REFERENCE_FILE_LABEL = "User supplied file: ";
   private static final String MULTIPARTICLE_BUTTON_LABEL =
@@ -365,7 +358,7 @@ final class ReferencePanel implements UIComponent, SwingComponent {
     ftfFile.setToolTipText("The name of the file containing the MRC volume to use "
         + "as the reference.");
     rbMultiparticle.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-        MatlabParam.FLG_FAIR_REFERENCE_KEY));
+        MatlabParam.FLG_FAIR_REFERENCE_KEY, false));
     cmbMultiparticle
         .setToolTipText("Number of particles to be used to generate a multi-particle "
             + "reference.");
