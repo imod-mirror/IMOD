@@ -114,6 +114,10 @@ public final class ParallelDialog implements AbstractParallelDialog, ProcessInte
     return ProcessingMethod.PP_CPU;
   }
 
+  public ProcessingMethod getSecondaryProcessingMethod() {
+    return null;
+  }
+
   public void disableGpu(final boolean disable) {
   }
 

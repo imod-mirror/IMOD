@@ -71,7 +71,8 @@ public class DataFileFilter extends javax.swing.filechooser.FileFilter implement
         && !f.getAbsolutePath().endsWith(DataFileType.JOIN.extension)
         && !f.getAbsolutePath().endsWith(DataFileType.PARALLEL.extension)
         && !f.getAbsolutePath().endsWith(DataFileType.PEET.extension)
-        && !f.getAbsolutePath().endsWith(DataFileType.SERIAL_SECTIONS.extension)) {
+        && !f.getAbsolutePath().endsWith(DataFileType.SERIAL_SECTIONS.extension)
+        && !f.getAbsolutePath().endsWith(DataFileType.BATCH_RUN_TOMO.extension)) {
       return false;
     }
     return true;
@@ -84,6 +85,6 @@ public class DataFileFilter extends javax.swing.filechooser.FileFilter implement
     return "Data file (" + DataFileType.RECON.extension + ", "
         + DataFileType.JOIN.extension + ", " + DataFileType.PARALLEL.extension + ", "
         + DataFileType.PEET.extension + ", " + DataFileType.SERIAL_SECTIONS.extension
-        + ")";
+        + ", " + DataFileType.BATCH_RUN_TOMO + ")";
   }
 }
