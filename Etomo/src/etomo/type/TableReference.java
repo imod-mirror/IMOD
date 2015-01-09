@@ -16,15 +16,11 @@ import java.util.Properties;
 * <p>IMPORTANT:  The constructor parameter idPrefix value is used as a key in data files,
 * so changing its value requires backwards compatibility code to be added.</p>
 * 
-* <p>Copyright: Copyright 2014</p>
+* <p>Copyright: Copyright 2014 by the Regents of the University of Colorado</p>
+* <p/>
+* <p>Organization: Dept. of MCD Biology, University of Colorado</p>
 *
-* <p>Organization:
-* Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
-* University of Colorado</p>
-* 
-* @author $Author$
-* 
-* @version $Revision$
+* @version $Id$
 * 
 * <p> $Log$ </p>
 */
@@ -37,6 +33,8 @@ public final class TableReference {
 
   // Map<uniqueString, ID> example: file-path, ID
   private final Map<String, String> idMap = new HashMap<String, String>();
+  // Map<ID, uniqueString> example: ID, file-path
+  private final Map<String, String> uniqueStringMap = new HashMap<String, String>();
 
   private final String idPrefix;
 
@@ -55,9 +53,14 @@ public final class TableReference {
   public String getID(final String uniqueString) {
     return idMap.get(uniqueString);
   }
+  
+  public String getUniqueString(final String id) {
+    return uniqueStringMap.get(id);
+  }
 
   /**
    * Generates an ID and adds it as the value to idMap, with uniqueString as the key.
+   * Add the uniqueString to unqueStringMap, with the ID as the key.
    * @param uniqueString - string to associate with generated ID
    * @return - the generated ID
    * @throws DuplicateException if uniqueString in this instance
@@ -72,9 +75,10 @@ public final class TableReference {
       throw new DuplicateException("String is already associated with an ID:  "
           + uniqueString);
     }
-    String value = nextID();
-    idMap.put(uniqueString, value);
-    return value;
+    String id = nextID();
+    idMap.put(uniqueString, id);
+    uniqueStringMap.put(id, uniqueString);
+    return id;
   }
 
   Iterator<String> idIterator() {
@@ -175,6 +179,7 @@ public final class TableReference {
     loaded = false;
     lastIDNum.reset();
     idMap.clear();
+    uniqueStringMap.clear();
     // load
     prepend = createPrepend(prepend);
     String lastID = props.getProperty(getLastIDKey(prepend));
@@ -212,6 +217,7 @@ public final class TableReference {
       if (uniqueString != null) {
         if (!idMap.containsKey(uniqueString)) {
           idMap.put(uniqueString, id);
+          uniqueStringMap.put(id, uniqueString);
         }
         else {
           System.err.println("ERROR: duplicate string, " + uniqueString + ", under "

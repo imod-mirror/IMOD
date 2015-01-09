@@ -1,9 +1,7 @@
 package etomo.type;
 
 import java.io.File;
-import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Properties;
 
 import etomo.ui.LogProperties;
@@ -27,13 +25,13 @@ public final class BatchRunTomoMetaData extends BaseMetaData {
   private StringProperty deliverToDirectory = new StringProperty("DeliverToDirectory");
   private StringProperty inputDirectiveFile = new StringProperty("InputDirectiveFile");
   // Key is stackID
-  private final Map<String, BatchRunTomoRowMetaData> rowMetaDataMap =
-      new HashMap<String, BatchRunTomoRowMetaData>();
+  private final OrderedHashMap<String,BatchRunTomoRowMetaData> rowMetaDataMap =
+      new OrderedHashMap<String,BatchRunTomoRowMetaData>();
   // metadata for the global dataset dialog
   private final BatchRunTomoDatasetMetaData datasetMetaData =
       new BatchRunTomoDatasetMetaData();
-  private final PanelHeaderSettings datasetTableHeader =
-      new PanelHeaderSettings("datasetTableHeader");
+  private final PanelHeaderSettings datasetTableHeader = new PanelHeaderSettings(
+      "datasetTableHeader");
 
   private final TableReference tableReference;
 
@@ -137,10 +135,10 @@ public final class BatchRunTomoMetaData extends BaseMetaData {
     Iterator<String> iterator = tableReference.idIterator();
     while (iterator.hasNext()) {
       String stackID = iterator.next();
-      if (BatchRunTomoRowMetaData.isDisplay(props, prepend, stackID)) {
+      if (!BatchRunTomoRowMetaData.isRowNumberNull(props, prepend, stackID)) {
         BatchRunTomoRowMetaData rowMetaData = new BatchRunTomoRowMetaData(stackID);
-        rowMetaDataMap.put(stackID, rowMetaData);
         rowMetaData.load(props, prepend);
+        rowMetaDataMap.put(rowMetaData.getRowNumber(), stackID, rowMetaData);
       }
     }
   }
@@ -159,6 +157,17 @@ public final class BatchRunTomoMetaData extends BaseMetaData {
     }
   }
 
+  public OrderedHashMap.ReadOnlyArray<BatchRunTomoRowMetaData> getOrderedRows() {
+    return rowMetaDataMap.orderedValues();
+  }
+
+  /**
+   * Gets the rowMetaData for this stackID.  If it doesn't exist, create it and add it to
+   * the map.  Do not add the ordinal at this point.  The order of the rows only matters
+   * when they are being loaded into the table.
+   * @param stackID
+   * @return
+   */
   public BatchRunTomoRowMetaData getRowMetaData(final String stackID) {
     BatchRunTomoRowMetaData rowMetaData = rowMetaDataMap.get(stackID);
     if (rowMetaData == null) {
@@ -172,9 +181,9 @@ public final class BatchRunTomoMetaData extends BaseMetaData {
     return datasetMetaData;
   }
 
-  public boolean isDisplay(final String stackID) {
+  public boolean isRowNumberNull(final String stackID) {
     BatchRunTomoRowMetaData rowMetaData = rowMetaDataMap.get(stackID);
-    return rowMetaData != null && rowMetaData.isDisplay();
+    return rowMetaData == null || rowMetaData.isRowNumberNull();
   }
 
   public ConstPanelHeaderSettings getDatasetTableHeader() {

@@ -269,7 +269,7 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
 
   void delete() {
     if (metaData != null) {
-      metaData.setDisplay(false);
+      metaData.setRowNumber(null);
     }
     deleteDataset();
   }
@@ -369,7 +369,7 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
   public void getParameters(final BatchRunTomoMetaData metaData) {
     BatchRunTomoRowMetaData rowMetaData = metaData.getRowMetaData(stackID);
     this.metaData = rowMetaData;
-    rowMetaData.setDisplay(true);
+    rowMetaData.setRowNumber(hcNumber.getText());
     rowMetaData.setDual(cbcDual.isSelected());
     rowMetaData.setBskip(fcbskip.getValue());
     rowMetaData.setRun(cbcRun.isSelected());
@@ -385,7 +385,7 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
       return;
     }
     File stack = new File(fcStack.getExpandedValue());
-    param.addDirectiveFile(new File(stack, getBatchDirectiveFileName()));
+    param.addDirectiveFile(new File(stack.getParent(), getBatchDirectiveFileName()));
     String rootName = DatasetTool.getDatasetName(stack.getName(), cbcDual.isSelected());
     param.addRootName(rootName, deliverToDirectory, cbcDual.isSelected(), errMsg);
     if (!param.addCurrentLocation(stack.getParent(), !deliverToDirectory, errMsg)) {

@@ -441,7 +441,7 @@ void SimplexFitting::fitBaseline(double *average, double *baseline, int order)
         (mNumBase > 0 && ind - indLast >= tailInterval))
       addBasePoint(ind, boxAvg, indLast, rawMin, rawMax);
   }
-  order = B3DMIN(order, mNumBase / 2 - 1);
+  order = B3DMAX(0, B3DMIN(order, mNumBase / 2 - 1));
 
   // Assign weights proportional to inverse of point spacing; give first point extra
   // weight
@@ -595,4 +595,3 @@ void SimplexFitting::funkBase(float *param, float *fValue)
     mMinErr = err;
   }
 }
-
