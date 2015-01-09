@@ -34,6 +34,16 @@ When each volume is placed in a separate file, the origin of each output
 file is adjusted for its position in the input volume, so that a model built
 on an extracted file should display at the correct position in the full
 volume, and vice versa.
+.P
+Image data is simply extracted, not interpolated to be exactly centered
+on the modeled point.  If the box size is even in a given dimension,
+then the extracted image would need to be shifted by round(C) - C to
+be centered in that dimension, where C is the coordinate in that
+dimension and "round" means rounding to the nearest integer.  If the box
+size is odd, the needed shift is round(C + 0.5) - (C + 0.5).
+.P
+Blank images are put out for points far enough outside the image area;
+no points are skipped.
 .SH OPTIONS
 Boxstartend uses the PIP package for input (see the manual page for pip(1))
 and can also still take input interactively.  The following options can be

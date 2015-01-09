@@ -471,13 +471,13 @@ final class MaskingPanel implements UIComponent, SwingComponent {
     catch (LogFile.LockException except) {
       except.printStackTrace();
     }
-    String tooltip = EtomoAutodoc.getTooltip(autodoc, "maskModelPts");
+    String tooltip = EtomoAutodoc.getTooltip(autodoc, "maskModelPts", false);
     ltfZRotation.setToolTipText(tooltip);
     ltfYRotation.setToolTipText(tooltip);
     ltfCylinderHeight.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-        MatlabParam.CYLINDER_HEIGHT_KEY));
+        MatlabParam.CYLINDER_HEIGHT_KEY, false));
     ltfMaskBlurStdDev.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-        MatlabParam.MASK_BLUR_STD_DEV_KEY));
+        MatlabParam.MASK_BLUR_STD_DEV_KEY, false));
     rbMaskTypeNone.setToolTipText("No reference masking");
     rbMaskTypeFile.setToolTipText("Mask the reference using a specified file");
     rbMaskTypeSphere
