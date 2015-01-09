@@ -429,9 +429,9 @@ public final class MatlabParam {
   private final ParsedArray maskModelPts = ParsedArray.getMatlabInstance(
       EtomoNumber.Type.DOUBLE, MASK_MODEL_PTS_KEY);
   private final ParsedNumber insideMaskRadius = ParsedNumber
-      .getMatlabInstance(INSIDE_MASK_RADIUS_KEY);
+      .getMatlabInstance(EtomoNumber.Type.DOUBLE,INSIDE_MASK_RADIUS_KEY);
   private final ParsedNumber outsideMaskRadius = ParsedNumber
-      .getMatlabInstance(OUTSIDE_MASK_RADIUS_KEY);
+      .getMatlabInstance(EtomoNumber.Type.DOUBLE,OUTSIDE_MASK_RADIUS_KEY);
   private final ParsedNumber nWeightGroup = ParsedNumber
       .getMatlabInstance(N_WEIGHT_GROUP_KEY);
   private final ParsedNumber flgRemoveDuplicates = ParsedNumber
@@ -447,9 +447,9 @@ public final class MatlabParam {
   private final ParsedNumber flgRandomize = ParsedNumber
       .getMatlabInstance(FLG_RANDOMIZE_KEY);
   private final ParsedNumber cylinderHeight = ParsedNumber
-      .getMatlabInstance(CYLINDER_HEIGHT_KEY);
+      .getMatlabInstance(EtomoNumber.Type.DOUBLE,CYLINDER_HEIGHT_KEY);
   private final ParsedNumber maskBlurStdDev = ParsedNumber
-      .getMatlabInstance(MASK_BLUR_STD_DEV_KEY);
+      .getMatlabInstance(EtomoNumber.Type.DOUBLE,MASK_BLUR_STD_DEV_KEY);
   private final ParsedNumber flgVolNamesAreTemplates = ParsedNumber
       .getMatlabInstance(FLG_VOL_NAMES_ARE_TEMPLATES_KEY);
   /**

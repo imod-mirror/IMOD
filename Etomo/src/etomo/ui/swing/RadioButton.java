@@ -31,7 +31,6 @@ import etomo.util.Utilities;
 
 /**
  * <p>Description: </p>
- * <p/>
  * <p>Copyright: Copyright 2005 - 2014 by the Regents of the University of Colorado</p>
  * <p/>
  * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
@@ -406,7 +405,7 @@ final class RadioButton implements RadioButtonInterface, Field, ActionListener {
   void setToolTipText(final String autodocName, final ReadOnlySection section) {
     String text;
     if (enumeratedType == null) {
-      text = EtomoAutodoc.getTooltip(autodocName, section);
+      text = EtomoAutodoc.getTooltip(autodocName, section, true);
     }
     else {
       text = EtomoAutodoc.getTooltip(autodocName, section, enumeratedType.toString());
@@ -434,8 +433,7 @@ final class RadioButton implements RadioButtonInterface, Field, ActionListener {
     radioButton.setSelected(selected);
   }
 
-  public void msgSelected() {
-  }
+  public void msgSelected() {}
 
   public boolean isSelected() {
     return radioButton.isSelected();

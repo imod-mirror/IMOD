@@ -504,9 +504,9 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
     // buttons - bottom
     pnlBottomButtons.setLayout(new BoxLayout(pnlBottomButtons, BoxLayout.X_AXIS));
     pnlBottomButtons.add(cbFlgVolNamesAreTemplates);
-    pnlBottomButtons.add(Box.createRigidArea(FixedDim.x30_y0));
+    pnlBottomButtons.add(Box.createHorizontalGlue());
     pnlBottomButtons.add(r3bVolume.getComponent());
-    pnlBottomButtons.add(Box.createRigidArea(FixedDim.x30_y0));
+    pnlBottomButtons.add(Box.createHorizontalGlue());
     pnlBottomButtons.add(btnReadTiltFile.getComponent());
     pnlBottomButtons.add(Box.createHorizontalGlue());
     // Table and side buttons
@@ -719,9 +719,9 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
     catch (LogFile.LockException except) {
       except.printStackTrace();
     }
-    String tooltip = EtomoAutodoc.getTooltip(autodoc, "maskModelPts");
+    String tooltip = EtomoAutodoc.getTooltip(autodoc, "maskModelPts", false);
     cbFlgVolNamesAreTemplates.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-        MatlabParam.FLG_VOL_NAMES_ARE_TEMPLATES_KEY));
+        MatlabParam.FLG_VOL_NAMES_ARE_TEMPLATES_KEY, false));
     btnInsertRow.setToolTipText("Add a new row to the table.");
     btnReadTiltFile.setToolTipText("Fill in the tilt range for the highlighted row by "
         + "selecting a file with tilt angles.");
