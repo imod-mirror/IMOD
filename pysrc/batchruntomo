@@ -19,7 +19,7 @@ global rawXsize, rawYsize, zsize, fiducialless, coarseBinning
 global xtiltNeeded, fidThickness, fidIncShift, reconThickness, didLocalAlign, madeZfactors
 global aliBinning, aliXunbinned, aliYunbinned, patchTrack, totalDelTilt, latestMessages
 global suppressAbort, absDirectiveFile, userTemplateDir, summaryMessage, logFile
-global finalRetVal
+global finalRetVal, correctCTF, eraseGold, axisLet, axisNum
 
 # Print a string to both standard out and a log file if one is defined
 def prnLog(string, end  = '\n', flush = False):
@@ -62,11 +62,13 @@ def abortSet(errString):
       return
    abortStr = ['ABORT SET: ', 'ABORT AXIS: ', 'ABORT AXIS AND SET: ']
    prnLog(abortStr[axisNum] + errString, flush = True)
-   if dualAxis and axisLet:
+   if dualAxis and axisNum:
       message = 'Batchruntomo aborted axis ' + axisLet.upper() + ' of'
+   elif dualAxis:
+      message = 'Batchruntomo aborted combine of'
    else:
       message = 'Batchruntomo aborted'
-   message += 'dataset ' + setName + ' after error:\n' + errString + '\n'
+   message += ' dataset ' + setName + ' after error:\n' + errString + '\n'
    sendEmail('Batchruntomo error on ' + setName, message)
    summaryMessage += message
    finalRetVal += 1
@@ -87,16 +89,27 @@ def reportImodError(abortText = None):
       abortSet(abortText)
 
 
+# Test whether a value returned by lookupDirective is a string and abort with message
+def testDirectiveValue(val, directive, dtype):
+   if isinstance(val, str):
+      abortSet('An error occurred converting the value of the directive ' + directive + \
+                  ' to a ', + dtype)
+      return 1
+   return 0
+
+
 # Print lines starting with tags in a log file.  Tags is an array of duples, the first
 # element of each is the tag itself, the second is the sum of 1 if it is used for
 # multiline messages and 2 if it should be stripped and 4 if it is not at start of a line
 def printTaggedMessages(logfile, tags):
    global latestMessages
+   printedAny = False
    latestMessages = []
    if isinstance(logfile, str):
       loglines = readTextFile(logfile, None, True)
       if isinstance(loglines, str):
          prnLog('WARNING: Error ' + loglines)
+         prnLog(' ')
          return
    else:
       loglines = logfile
@@ -105,6 +118,7 @@ def printTaggedMessages(logfile, tags):
    for l in loglines:
       if readingMulti:
          prnLog(l)
+         printedAny = True
          latestMessages.append(l)
          if l.strip() == '':
             readingMulti = False
@@ -120,10 +134,14 @@ def printTaggedMessages(logfile, tags):
                   prnLog(l[len(tag[0]):].lstrip())
                else:
                   prnLog(l)
+               printedAny = True
                if tag[1] & 1:
                   readingMulti = True
                break
 
+   if printedAny:
+      prnLog(' ')
+            
 
 # Look for a tag in a set of lines, and get the value after the separator
 def findTaggedValue(lines, tag, separator, valType):
@@ -578,7 +596,8 @@ def checkForQuit():
 
       
 # Runs a com file or com chunks using processchunks
-def runOneProcess(comfile, single = True, usingGPU = False, message = ''):
+def runOneProcess(comfile, single = True, usingGPU = False, message = '',
+                  useMostCPUs = False):
    if (single or 'sirt' not in comfile) and not os.path.exists(comfile):
       abortSet('Command file ' + comfile + ' does not exist')
       return 1
@@ -599,8 +618,11 @@ def runOneProcess(comfile, single = True, usingGPU = False, message = ''):
       mess = message + ' (running ' + comfile
    else:
       mess = 'Running ' + comfile
+
    if single:
-      if not useFirstCPUforSingle:
+      if useMostCPUs:
+         machines = topCPUmachine
+      elif not useFirstCPUforSingle:
          machines = '1'
       comArray += ['-s', '-e', '1']
       comuse = comfile
@@ -614,6 +636,8 @@ def runOneProcess(comfile, single = True, usingGPU = False, message = ''):
       mess += ' using GPU'
    if message:
       mess += ')'
+   if not machines:
+      machines = '1'
    comArray += [machines, comuse]
 
    # Run the process detached
@@ -747,7 +771,7 @@ def runOneProcess(comfile, single = True, usingGPU = False, message = ''):
       seconds = int(used)
       frac = int(round((used - seconds) * 10))
       
-      prnLog(fmtstr('Successfully finished {}   in {:02d}:{:02d}.{}', comfile, minutes,
+      prnLog(fmtstr('Successfully finished {}   in {:02d}:{:02d}.{}\n', comfile, minutes,
                     seconds, frac), flush=True)
    return finished < 0
 
@@ -816,9 +840,15 @@ def analyzeAlignLog(twoSurf, angleArr):
    try:
       for line in loglines:
          if '# of points' in line:
+
+            # There can be one or three of these entries, so the second one replaces
+            # numBot and the third one gives numTop
             num = getOneValueAfterToken(line, '=', INT_VALUE)
             if numBot < 0:
                numBot = num
+            elif numTop < 0:
+               numBot = num
+               numTop = 0
             else:
                numTop = num
          for ind in range(len(tags)):
@@ -834,7 +864,7 @@ def analyzeAlignLog(twoSurf, angleArr):
       if numBot >= minFidAdjustThick and numTop >= minFidAdjustThick:
          angleArr[5] -= thickShiftFrac * math.fabs(angleArr[4])
    angleArr[6] = numBot
-   angleArr[7] = numTop
+   angleArr[7] = max(0, numTop)
 
    return 0
 
@@ -905,9 +935,119 @@ def splitAndRunTilt(comfile, message):
    return runOneProcess(comfile, numProc == 0, useGPU, message = message)
 
 
+# Run findsection on a file, produce a tomopitch model or fill array with Z limits
+def runFindSection(filename, numScales, boxSize, pitchMod = None, topBots = None,
+                   block = None):
+   limitKeys = ['Median Z values', 'autopatchfit combine', 'Absolute limits']
+   comRoot = 'findsection_tmp.'
+   comLines = ['$findsection -StandardInput',
+               'TomogramFile ' + filename,
+               'NumberOfDefaultScales ' + str(numScales),
+               fmtstr('SizeOfBoxesInXYZ {0},1,{0}', boxSize)]
+   if pitchMod:
+      comLines.append('TomoPitchModel ' + pitchMod)
+      comLines.append('NumberOfSamples 5')
+      if block:
+         comLines.append('BlockSize ' + str(block))
+   if writeTextFileReportErr(comRoot + 'com', comLines):
+      return 1
+   mess = 'Finding Z limits of the material in the tomogram'
+   if pitchMod:
+      mess = 'Getting a model for tomogram positioning'
+   if runOneProcess(comRoot + 'com', message = mess):
+      return 1
+   if topBots:
+      loglines = readTextFileReportErr(comRoot + 'log')
+      if not loglines:
+         return 1
+      for line in loglines:
+         for ind in (0, 1, 2):
+            if limitKeys[ind].lower() in line.lower():
+               lsplit = line.split()
+               try:
+                  topBots[2 * ind] = int(lsplit[-2])
+                  topBots[2 * ind + 1] = int(lsplit[-1])
+               except Exception:
+                  abortSet('Error converting Z limits in: ' + line)
+                  return 1
+
+   return 0
+
+
+# Parse a log from tomopitch to get the thickness, angles, and Z shift
+def parseTomopitchLog(angleArr):
+   pitchFile = 'tomopitch' + axisLet + '.log'
+   tags = ['x-tilted  lines', 'X axis tilt -', 'Angle offset -', 'Z shift -']
+
+   if not lookupDirective(runtimePrefix + 'Positioning', 'sampleType', 0, INT_VALUE):
+      return 1
+   if not os.path.exists(pitchFile):
+      return 1
+   pitchLines = readTextFileReportErr(pitchFile)
+   if not pitchLines:
+      return -1
+
+   for line in pitchLines:
+      if 'ERROR: ' in line:
+         return 2
+      for ind in range(4):
+         if tags[ind] in line:
+            lsplit = line.split()
+            try:
+               if ind:
+                  angleArr[ind] = float(lsplit[-1])
+               else:
+                  angleArr[ind] = int(lsplit[-1])
+            except ValueError:
+               abortSet('Error converting tomopitch output of ' + \
+                           tags[ind].replace(' -', '') + ' to a number')
+               return -1
+
+   return 0
+
+
+# Look up whether SIRT and both were done, and compose the name of the SIRT rec from
+# the leave iterations directive.  Return a name of None if SIRT was not done or an
+# integer 1 if it was but the name can't be made
+def getSIRTrecName(recRoot):
+   doSIRT = lookupDirective(runtimePrefix + 'Reconstruction', 'useSirt', 0, BOOL_VALUE)
+   doBPalso = lookupDirective(runtimePrefix + 'Reconstruction', 'doBackprojAlso', 0,
+                              BOOL_VALUE)
+   doBoth = doSIRT and doBPalso
+   recName = None
+   if doSIRT:
+      leaveList = lookupDirective(comPrefix + 'sirtsetup', 'sirtsetup.LeaveIterations', 0,
+                                  STRING_VALUE)
+      if leaveList:
+         lsplit = leaveList.replace('-',',').split(',')
+         lastOne = lsplit[-1:][0]
+         if len(lastOne) < 2:
+            lastOne = '0' + lastOne
+         recName = recRoot + '.srec' + lastOne
+      else:
+         recName = 1
+
+   return (doSIRT, doBoth, recName)
+
+
+# Run clip stats on raw or fixed stack
+def runClipStats(command, stackSuffix, descrip):
+   comfile = dataName + stackSuffix + '.st.stats.com'
+   if writeTextFileReportErr(comfile, [command]):
+      return None
+   err = runOneProcess(comfile, message = 'Getting statistics for ' + descrip + ' stack')
+   cleanupFiles([comfile])
+   if err:
+      return None
+
+   # Extract the summary lines
+   clipLines = readTextFileReportErr(dataName + stackSuffix + '.st.stats.log')
+   return clipLines
+
+
 # Test whether a step should be run
 def needStep(step):
-   return step >= startingStep and step <= endingStep
+   return step >= startingStep - 0.005 and step <= endingStep + 0.005
 
 
 # SINGLE-CALL FUNCTIONS FOR INITIAL STEPS
@@ -1079,7 +1219,7 @@ def scanSetupDirectives():
    source = direcFileErrorNames
 
    batDirec = allDirectives[BatInd]
-   scanHeader = scanHeadText in batDirec
+   scanHeader = scanHeadText in batDirec and batDirec[scanHeadText][0] == '1'
    ifMontage = False
    dualAxis = False
    pixelSize, fidSizeNm, fidSizePix = 0., 0., 0.
@@ -1151,27 +1291,190 @@ def getAxisInitialParameters():
    
    try:
       if ifMontage:
-         sizeLines = runcmd('montagesize ' + dataName + '.st ' + dataName + '.pl')
-         line = sizeLines[len(sizeLines) - 1]
-         ind = line.find('NZ:')
-         lsplit = line[ind + 3:].split()
-         rawXsize = int(lsplit[0])
-         rawYsize = int(lsplit[1])
-         zsize = int(lsplit[2])
-         
+         (rawXsize, rawYsize, zsize) = getMontageSize(dataName + '.st ', dataName + '.pl')
       else:
          (rawXsize, rawYsize, zsize) = getmrcsize(dataName + '.st')
    except ImodpyError:
       reportImodError('Error getting size of ' + dataName + '.st')
       return 1
-   except Exception:
-      abortSet('Error getting size of montage for ' + dataName + '.st')
-      return 1
 
    return 0
 
 
-# SINGLE-CALL FUNCTIONS FOR PROCESSING STEPS
+# SINGLE-CALL FUNCTIONS FOR PROCESSING STEPS AND A FEW HELPERS FOR THEM
+
+# Look at SDs of images and exclude views (mean not used because base unknown)
+def analyzeSDsAdjustExcludes(clipLines):
+   numAverage = 5
+   maxExclude = 3
+   crit = lookupDirective(runtimePrefix + 'Preprocessing', 'endExcludeCriterion', 0,
+                          FLOAT_VALUE)
+   if testDirectiveValue(crit, 'Preprocessing.endExcludeCriterion', 'float'):
+      return 1
+   if crit <= 0.:
+      return 0
+
+   prnLog('Analyzing image SDs to see if views should be excluded at ends of series')
+
+   # If there are no incoming lines from fixed stack, run on raw stack
+   if not clipLines:
+      clipLines = runClipStats('$clip stat ' + dataName + '.st', '', 'raw')
+      if not clipLines:
+         return 1
+
+   # Extract the sds as second to last number
+   sds = []
+   for line in clipLines:
+      if 'mean' in line or '-----' in line:
+         continue
+      if 'all' in line:
+         break;
+      lsplit = line.split()
+      try:
+         sds.append(float(lsplit[-1]))
+      except Exception:
+         abortSet('Error converting standard deviation to float in clip stats output')
+         return 1
+
+   if len(sds) < numAverage + 2 + 2 * maxExclude:
+      return 0
+
+   # Find out if there should be dark region analysis too
+   darkRatio = lookupDirective(runtimePrefix + 'Preprocessing', 'darkExcludeRatio',
+                               0, FLOAT_VALUE)
+   darkFraction = lookupDirective(runtimePrefix + 'Preprocessing', 'darkExcludeFraction',
+                                  0, FLOAT_VALUE)
+   if testDirectiveValue(darkRatio, 'Preprocessing.darkExcludeRatio', 'float') or \
+          testDirectiveValue(darkFraction, 'Preprocessing.darkExcludeFraction', 'float'):
+      return 1
+   if darkRatio == None:
+      darkRatio = dfltDarkExcludeRatio
+   if not darkFraction:
+      darkFraction = dfltDarkExcludeFraction
+
+   # Run histogram analysis if ratio is positive
+   if darkRatio > 0.:
+      numHist = min(zsize, 4 * maxExclude)
+      clipcom = fmtstr('$clip hist -2d -s -iz 0-{},{}-{} {}.st', numHist / 2 - 1,
+                       zsize - numHist / 2, zsize - 1, dataName)
+      comfile = 'cliphist' + axisLet + '.com'
+      if writeTextFileReportErr(comfile, [clipcom]):
+         return 1
+      if runOneProcess(comfile, message = 'Analyzing histograms for large dark areas'):
+         return 1
+      cleanupFiles([comfile])
+      histLines = readTextFileReportErr('cliphist' + axisLet + '.log')
+      if not histLines:
+         return 1
+
+      # Find which ones pass the criteria and add to list
+      darkExcludes = []
+      for line in histLines:
+         if line.startswith('Slice ') and 'no histogram dip' not in line:
+            
+            lsplit = line.split()
+            try:
+               zval = int(lsplit[1].replace(':', ''))
+               lowPeak = float(lsplit[4])
+               highPeak = float(lsplit[6])
+               fraction = float(lsplit[-1])
+            except Exception:
+               abortSet('Error converting output from clip hist')
+               return 1
+            if lowPeak < darkRatio * highPeak and fraction > darkFraction:
+               darkExcludes.append(zval)
+
+   # Look for low images at ends of series
+   excludes = []
+   baseInd = 0
+   baseView = 1
+   for direc in (1, -1):
+
+      # use varying indentations before computing the mean; get the mean
+      for indent in range(2, maxExclude + 2):
+         goodMean = 0.
+         for ind in range(numAverage):
+            goodMean += sds[baseInd + direc * (ind + indent)] / numAverage
+
+         # See how many consecutive views are below the criterion; stop at first above
+         numLow = 0
+         for ind in range(indent):
+            if sds[baseInd + direc * ind] < crit * goodMean:
+               numLow += 1
+            else:
+               break
+
+         # Done if found any and there is one not below criterion (to be conservative)
+         if numLow and numLow < indent:
+            for ind in range(numLow):
+               excludes.append(baseView + direc * ind)
+            break
+
+      # If looking for dark regions too, now look from the first non-excluded one for
+      # consecutive ones that would be excluded on that basis
+      if darkRatio > 0.:
+         for ind in range(numLow, 2 * maxExclude):
+            view = baseView + direc * ind
+            if view - 1 in darkExcludes:
+               excludes.append(view)
+            else:
+               break
+
+      # Set up to repeat on ending views
+      baseInd = -1
+      baseView = len(sds)
+
+   if not len(excludes):
+      prnLog('No views have low SDs or dark regions near end of series')
+      return 0
+   
+   # Get existing skip list
+   skipLet = ''
+   if axisLet == 'b':
+      skipLet = 'b'
+   directive = copyPrefix + skipLet + 'skip'
+   excludes.sort()
+   if directive in allDirectives[BatInd]:
+      userExcludes = allDirectives[BatInd][directive][0]
+      message = 'Added these views to existing list of views to skip: '
+      numAdd = 0
+      userList = parselist(userExcludes)
+      for view in excludes:
+         if view not in userList:
+            userExcludes += ',' + str(view)
+            message += ' ' + str(view)
+            numAdd += 1
+      if not numAdd:
+         prnLog('Views with low SDs were already in the list of views to skip')
+         return 0
+
+   else:
+      userExcludes = ''
+      message = 'These views have low SDs or dark regions and will be skipped: '
+      comma = ''
+      for view in excludes:
+         userExcludes += comma + str(view)
+         comma = ','
+         message += ' ' + str(view)
+
+   prnLog(message)
+
+   # Modify all four com files
+   for (comRoot, option, afterOpt) in [('xcorr', 'SkipViews', 'RotationAngle'),
+                                       ('track', 'SkipViews', 'RotationAngle'),
+                                       ('align', 'ExcludeList', 'RotationAngle'),
+                                       ('tilt', 'EXCLUDELIST2', 'XTILTFILE')]:
+      comfile = comRoot + axisCom
+      sedcom = sedDelAndAdd(option, userExcludes, afterOpt)
+      inLines = readTextFileReportErr(comfile)
+      if not inLines:
+         return 1
+      if pysed(sedcom, inLines, comfile, retErr=True):
+         abortSet('Error modifying ' + comfile)
+         return 1
+      
+   return 0
+
 
 # Operations needed when using fiducialless alignment for final alignment
 def fidlessFileOperations(taLines):
@@ -1458,7 +1761,72 @@ def makeSeedAndTrack(talines):
       if missing != None and missing == 0:
          break
 
-      
+
+# Set up tiltalign command file from taLine with the changes in sedcom, then run
+# restrictalign unless skipping it and report results, then run tiltalign
+#
+def modifyRestrictAndRunAlign(comfile, sedcom, taLines, message, skipRestrict):
+   global suppressAbort
+   
+   if pysed(sedcom, taLines, comfile, retErr=True):
+      abortSet('Error modifying ' + comfile)
+      return (-1, 0)
+
+   retval = 0
+   noRobust = 0
+   if not skipRestrict:
+
+      # Get directives to modify defaults if any when running restrictalign
+      minRatio = lookupDirective(runtimePrefix + 'RestrictAlign', 'minMeasurementRatio',
+                                 0, FLOAT_VALUE)
+      targetRatio = lookupDirective(runtimePrefix + 'RestrictAlign',
+                                    'targetMeasurementRatio', 0, FLOAT_VALUE)
+      resOrder = lookupDirective(runtimePrefix + 'RestrictAlign', 'orderOfRestrictions',
+                                 0, STRING_VALUE)
+      skipBT = lookupDirective(runtimePrefix + 'RestrictAlign', 'skipBeamTiltWithOneRot',
+                               0, FLOAT_VALUE)
+
+      # Set up the input and run it
+      resInput = ['AlignCommandFile ' + comfile]
+      if minRatio:
+         resInput.append('MinMeasurementRatio ' + str(minRatio))
+      if targetRatio:
+         resInput.append('TargetMeasurementRatio ' + str(targetRatio))
+      if resOrder:
+         resInput.append('OrderOfRestrictions ' + resOrder)
+      if skipBT:
+         resInput.append('SkipBeamTiltWithOneRot 1')
+
+      prnLog('Running restrictalign to check if alignment parameters need to be ' +\
+                'restricted')
+      try:
+         resLines = runcmd('restrictalign -StandardInput', resInput)
+      except ImodpyError:
+         suppressAbort = False
+         reportImodError('Error running restrictalign to set parameters if there are ' +\
+                            'few fiducials')
+         return (-1, 0)
+      if not resLines:
+         suppressAbort = False
+         abortSet('No output received from restrictalign')
+         return (-1, 0)
+
+      # Echo all the output
+      for line in resLines:
+         prnLog(line.strip('\r\n'))
+         if 'No restriction' not in line:
+            retval = 1
+         if 'off robust' in line:
+            noRobust = 1
+      prnLog(' ')
+      if noRobust:
+         message = message.replace('with robust', 'without robust')
+         
+   if runOneProcess(comfile, message = message):
+      return (-2, noRobust)
+   return (retval, noRobust)
+
+
 # Run tiltalign in 2 or 3 stages
 def runTiltalign(taLines):
    global xtiltNeeded, fidThickness, fidIncShift, reconThickness, didLocalAlign
@@ -1468,6 +1836,8 @@ def runTiltalign(taLines):
    minSurfGlblStretch = 4
    minRatioGlblStretch = 0.125
    minSurfLocalStretch = 1.0
+   minTotSkipRestrict = 20
+   minTotToSetAngle = 4
    
    # The command file should be configured by various inputs, so let's find out some
    didLocalAlign = optionValue(taLines, 'LocalAlignments', BOOL_VALUE)
@@ -1486,10 +1856,20 @@ def runTiltalign(taLines):
                                    0, BOOL_VALUE)
    if patchTrack:
       enableStretch = False
+
+   # If skipping align, get a few more values from com file, analyze log
+   if skipTiltalign:
+      glbStretch = optionValue(taLines, 'XStretchOption', INT_VALUE, numVal = 1)
+      madeZfactors = glbStretch != None and glbStretch > 0
+      angleArr = [0., 0., 0., 0., 0., 0., 0, 0]
+      if analyzeAlignLog(numSurfaces > 1, angleArr):
+         return 1
+      (totalDelTilt, xtiltNeeded, fidThickness, fidIncShift, fidTotalShift, \
+          reconThickness, numBot, numTop) = angleArr
+      return 0
    
    # first time, turn off local align and make sure stretch/skew off
    # But loop twice in case have to turn off robust fitting
-   # This is probably a really bad idea.
    for loop in (0, 1):
       robText = 'without'
       if doRobust:
@@ -1499,12 +1879,16 @@ def runTiltalign(taLines):
       suppressAbort = not loop and doRobust
       sedcom = [sedModify('SurfacesToAnalyze', numSurfaces),
                 sedModify('LocalAlignments', 0),
-                sedModify('StretchOption', 0),
+                sedModify('XStretchOption', 0),
                 sedModify('SkewOption', 0)] + \
                 sedDelAndAdd('ImagesAreBinned', coarseBinning, 'OutputTransformFile') + \
                 sedDelAndAdd('RobustFitting', doRobust, 'OutputTransformFile')
 
-      if modifyWriteAndRunCom(alignCom, sedcom, taLines, message = mess):
+      (restricted, noRobust) =  modifyRestrictAndRunAlign(alignCom, sedcom, taLines, mess,
+                                                          False)
+      if noRobust:
+         doRobust = 0
+      if restricted < 0:
          if not suppressAbort:
             return 1
          suppressAbort = False
@@ -1513,7 +1897,7 @@ def runTiltalign(taLines):
                prnLog('Trying again without robust fitting')
                doRobust = 0
                break
-         else:
+         else:    # ELSE ON FOR
             return 1
 
          continue
@@ -1540,13 +1924,16 @@ def runTiltalign(taLines):
    useMinFids = 0
    numruns = 1
    madeZfactors = False
-   if didLocalAlign:
+   if didLocalAlign and not restricted:
       localAlign = 1
       messageTags = standardTags + [('(Global)', 4), ('error local mean:', 4)]
-   if didLocalAlign or enableStretch:
+   else:
+      didLocalAlign = 0
+   if not restricted and (didLocalAlign or enableStretch):
+      if didLocalAlign:
+         numruns = 2
 
       # are there enough fids for stretch?
-      numruns = 2
       if enableStretch:
          if totalFid > minTotGlblStretch and \
                 (numSurfaces == 1 or \
@@ -1554,6 +1941,7 @@ def runTiltalign(taLines):
                         min(numBot, numTop) / float(totalFid) > minRatioGlblStretch)):
             glbStretch = 3
             madeZfactors = True
+            numruns = 2
             if didLocalAlign and numSurfaces > 1:
                mindens = minOnSurf / float(rawXsize * rawYsize)
                minInArea = mindens * nxpatch * nypatch
@@ -1570,9 +1958,9 @@ def runTiltalign(taLines):
             
    
    # Just run alignment once or twice more.  Again, if robust gives a problem, try it
-   # without.
+   # without; and this time if local alignments failed, drop that out too
    for run in range(numruns):
-      for loop in (0, 1):
+      for loop in (0, 2):
          robText = 'without'
          if doRobust:
             robText = 'with'
@@ -1580,10 +1968,13 @@ def runTiltalign(taLines):
          if not glbStretch:
             mess += 'no'
          mess += ' distortion, with'
-         if not didLocalAlign:
+         if restricted or not didLocalAlign:
             mess += 'out'
          mess += ' local alignments, ' + robText + ' robust fitting'
          suppressAbort = not loop and doRobust
+         delTilt = totalDelTilt
+         if totalFid < minTotToSetAngle:
+            delTilt = 0.
          sedcom = [sedModify('SurfacesToAnalyze', numSurfaces),
                    sedModify('LocalAlignments', localAlign),
                    sedModify('XStretchOption', glbStretch),
@@ -1592,7 +1983,7 @@ def runTiltalign(taLines):
                    sedModify('LocalSkewOption', locStretch),
                    sedModify('MinFidsTotalAndEachSurface', fmtstr('{},{}', minFidsTot,
                                                                   useMinFids)),
-                   sedModify('AngleOffset', totalDelTilt)] + \
+                   sedModify('AngleOffset', delTilt)] + \
                    sedDelAndAdd('ImagesAreBinned', coarseBinning, 'OutputTransformFile')+\
                    sedDelAndAdd('RobustFitting', doRobust, 'OutputTransformFile')
 
@@ -1600,7 +1991,9 @@ def runTiltalign(taLines):
             sedcom += sedDelAndAdd('OutputZFactorFile', dataName + '.zfac',
                                    'OutputTransformFile')
                 
-         if modifyWriteAndRunCom(alignCom, sedcom, taLines, message = mess):
+         (restricted, noRobust) =  modifyRestrictAndRunAlign \
+             (alignCom, sedcom, taLines, mess, totalFid >= minTotSkipRestrict)
+         if restricted < 0:
             if not suppressAbort:
                return 1
             suppressAbort = False
@@ -1609,7 +2002,12 @@ def runTiltalign(taLines):
                   prnLog('Trying again without robust fitting')
                   doRobust = 0
                   break
-            else:
+               if 'Minimum numbers of fiducials are too high' in line:
+                  prnLog('Trying again without local alignments')
+                  didLocalAlign = 0
+                  localAlign = 0
+                  break
+            else:     # ELSE ON FOR
                return 1
 
             continue
@@ -1626,14 +2024,23 @@ def runTiltalign(taLines):
    return 0
      
 
-# Make the aligned stack and do optional operations on it
-def makeAndCTFCorrectAlignedStack():
+# Make the aligned stack
+def makeAlignedStack(positionBinning):
    global aliBinning, aliXunbinned, aliYunbinned
    alipre = runtimePrefix + 'AlignedStack'
-   correctCTF = lookupDirective(alipre, 'correctCTF', 0, BOOL_VALUE)
-   aliBinning = lookupDirective(alipre, 'binByFactor', 0, INT_VALUE)
+   if positionBinning:
+      aliBinning = positionBinning
+      outsizeText = ''
+      mess = 'Making binned aligned stack for whole tomogram positioning'
+
+   else:
+      aliBinning = lookupDirective(alipre, 'binByFactor', 0, INT_VALUE)
+      if testDirectiveValue(aliBinning, 'AlignedStack.binByFactor', 'integer'):
+         return 1
+      outsizeText = lookupDirective(alipre, 'sizeInXandY', 0, STRING_VALUE)
+      mess = 'Making final aligned stack'
+      
    linear = lookupDirective(alipre, 'linearInterpolation', 0, BOOL_VALUE)
-   outsizeText = lookupDirective(alipre, 'sizeInXandY', 0, STRING_VALUE)
    aliXunbinned = rawXsize
    aliYunbinned = rawYsize
    if not aliBinning:
@@ -1676,15 +2083,23 @@ def makeAndCTFCorrectAlignedStack():
       
 
    sedcom += sedDelAndAdd('BinByFactor', aliBinning, 'TransformFile')
-   if needStep(6) and modifyWriteAndRunCom(comRoot + axisCom, sedcom, message =
-                                           'Making final aligned stack'):
+   if (positionBinning or needStep(8)) and \
+          modifyWriteAndRunCom(comRoot + axisCom, sedcom, message = mess):
       return 1
 
-   if needStep(7) and correctCTF:
+   return 0
+   
 
-      autofit = lookupDirective(runtimePrefix + 'CTFplotting', 'autoFitRangeAndStep', 0,
-                                STRING_VALUE)
-      if autofit:
+# Do optional CTF correction on aligned stack
+def CTFPlotAlignedStack():
+   global correctCTF
+
+   # Do autofitting with ctfplotter if enabled
+   correctCTF = lookupDirective(runtimePrefix + 'AlignedStack', 'correctCTF', 0,
+                                BOOL_VALUE)
+   autofit = lookupDirective(runtimePrefix + 'CTFplotting', 'autoFitRangeAndStep', 0,
+                             STRING_VALUE)
+   if needStep(ctfPlotStepNum) and correctCTF and autofit:
          ctfLines = readTextFileReportErr('ctfplotter' + axisCom)
          if not ctfLines:
             return 1
@@ -1697,56 +2112,63 @@ def makeAndCTFCorrectAlignedStack():
          if modifyWriteAndRunCom('ctfplotter_auto' + axisCom, sedcom, ctfLines,
                                  'Finding defocus for CTF correction with Ctfplotter'):
             return 1
-         sedcom = []
 
-      else:
-         if writeTextFileReportErr(dataName + '_simple.defocus',
-                                   [fmtstr('{} {} 0. 0. {}', zsize // 2, zsize // 2,
-                                           defocus)]):
-            return 1
-         sedcom = [sedModify('DefocusFile', dataName + '_simple.defocus')]
+   return 0
 
-      sedcom.append(sedModify('PixelSize', aliBinning * pixelSize))
-      
-      comfile = 'ctfcorrection' + axisCom
-      ctfLines = readTextFileReportErr(comfile)
-      if not ctfLines:
-         return 1
-      if pysed(sedcom, ctfLines, comfile, retErr=True):
-         abortSet('Error modifying ' + comfile)
-         return 1
-      if parallelCPU > 1:
-         target = 2 * parallelCPU
-         maxSlices = (zsize + target - 1) / target
-         try:
-            runcmd(fmtstr('splitcorrection -m {} {}', maxSlices, comfile))
-         except ImodpyError:
-            reportImodError('Error trying to run ctfcorrection in parallel')
-            return 1
-      
-      if runOneProcess(comfile, parallelCPU < 2,
-                       message = 'Correcting for CTF with Ctfphaseflip'):
-         return 1
 
-      if useFileAsReplacement(dataName + '_ctfcorr.ali', dataName + '.ali', False, True):
+# Do correction with ctfphaseflip
+def CTFCorrectAlignedStack():
+
+   # Write the simple defocus file and use it if there is no defocus file; but if there
+   # is, make sure it is in the com file
+   focFileName = dataName + '.defocus'
+   simpleName = dataName + '_simple.defocus'
+   if not os.path.exists(focFileName):
+      if writeTextFileReportErr(simpleName, [fmtstr('{} {} 0. 0. {}', zsize // 2,
+                                                    zsize // 2, defocus)]):
          return 1
+      sedcom = [sedModify('DefocusFile', simpleName)]
+   else:
+      sedcom = [sedModify('DefocusFile', focFileName)]
+
+   sedcom.append(sedModify('PixelSize', aliBinning * pixelSize))
+   
+   comfile = 'ctfcorrection' + axisCom
+   ctfLines = readTextFileReportErr(comfile)
+   if not ctfLines:
+      return 1
+   if pysed(sedcom, ctfLines, comfile, retErr=True):
+      abortSet('Error modifying ' + comfile)
+      return 1
+   if parallelCPU > 1:
+      target = 2 * parallelCPU
+      maxSlices = (zsize + target - 1) / target
+      try:
+         runcmd(fmtstr('splitcorrection -m {} {}', maxSlices, comfile))
+      except ImodpyError:
+         reportImodError('Error trying to run ctfcorrection in parallel')
+         return 1
+   
+   if runOneProcess(comfile, parallelCPU < 2,
+                    message = 'Correcting for CTF with Ctfphaseflip'):
+      return 1
+
+   if useFileAsReplacement(dataName + '_ctfcorr.ali', dataName + '.ali', False, True):
+      return 1
 
    return 0
       
 
-# Optionally erase gold with 3D method and do 2D filtering
-def eraseGoldFilterAlignedStack():
+# Optionally detect gold for erasing with 3D method
+def detectGoldIn3D():
+   global eraseGold
+   
    eraseGold = lookupDirective(runtimePrefix + 'AlignedStack', 'eraseGold', 0, INT_VALUE)
    if isinstance(eraseGold, str):
       abortSet('Error converting eraseGold entry to integer')
       return 1
-   if eraseGold:
-      extraDiam = lookupDirective(runtimePrefix + 'GoldErasing', 'extraDiameter', 0,
-                                  FLOAT_VALUE)
-      if not extraDiam:
-         extraDiam = 0.
 
-   if eraseGold > 1 and needStep(8):
+   if eraseGold > 1 and needStep(detect3DstepNum):
       binning = lookupDirective(runtimePrefix + 'GoldErasing', 'binning', 0, INT_VALUE)
       if not binning:
          binning = aliBinning
@@ -1774,7 +2196,8 @@ def eraseGoldFilterAlignedStack():
          thickness = lookupDirective(runtimePrefix + 'GoldErasing', 'thickness', 0,
                                      INT_VALUE)
          if not thickness:
-            abortSet('Reconstruction Thickness must be supplied for 3D gold finding')
+            abortSet('A GoldErasing.thickness directive must be supplied for 3D gold ' + \
+                        'finding')
             return 1
 
       # Get the com file
@@ -1811,15 +2234,23 @@ def eraseGoldFilterAlignedStack():
       comlines += laterComDirectives('findbeads3d', 'findbeads3d', 0)
       if makeAndRunOneCom(comlines, 'findbeads3d' + axisCom, 'Finding beads in tomogram'):
          return 1
-            
-      # Get the reprojection
+
+   return 0
+
+
+# Erase gold in aligned stack one way or another
+def eraseGoldInAlignedStack():
+   if eraseGold > 1:
+
+      # Get the reprojection if using 3D method
       comlines = ['InputFile tilt_3dfind' + axisCom,
                   'RootNameOfDataFiles ' + dataName]
       if makeAndRunOneCom(comlines, 'tilt_3dfind_reproject' + axisCom,
                           'Reprojecting model of beads in tomogram onto aligned stack'):
          return 1
 
-   elif eraseGold and needStep(8):
+   # Or transform fiducial model
+   else:
       if fiducialless:
          abortset('Cannot erase gold with fiducials after fiducialless processing')
       try:
@@ -1829,21 +2260,28 @@ def eraseGoldFilterAlignedStack():
          return 1
 
    # Erase the beads
-   if eraseGold and needStep(8):
-      comlines = ['RootNameOfDataFiles ' + dataName,
-                  'BeadSize ' + str(fidSizePix / aliBinning + extraDiam),
-                  fmtstr('OneParameterChange {}golderaser{}.ccderaser.' + \
-                            'ExpandCircleIterations=2', comPrefix, axisLet)]
-      if makeAndRunOneCom(comlines, 'golderaser' + axisCom,
-                          'Erasing beads from aligned stack'):
-         return 1
-      
-      if useFileAsReplacement(dataName + '_erase.ali', dataName + '.ali', False, True):
-         return 1
-      
-   # 2D filtering, very simple
+   extraDiam = lookupDirective(runtimePrefix + 'GoldErasing', 'extraDiameter', 0,
+                               FLOAT_VALUE)
+   if not extraDiam:
+      extraDiam = 0.
+   comlines = ['RootNameOfDataFiles ' + dataName,
+               'BeadSize ' + str(fidSizePix / aliBinning + extraDiam),
+               fmtstr('OneParameterChange {}golderaser{}.ccderaser.' + \
+                         'ExpandCircleIterations=2', comPrefix, axisLet)]
+   if makeAndRunOneCom(comlines, 'golderaser' + axisCom,
+                       'Erasing beads from aligned stack'):
+      return 1
+   
+   if useFileAsReplacement(dataName + '_erase.ali', dataName + '.ali', False, True):
+      return 1
+
+   return 0
+
+
+# 2D filtering, very simple operation
+def filterAlignedStack():
    if lookupDirective(runtimePrefix + 'AlignedStack', 'filterStack', 0, BOOL_VALUE) and \
-          needStep(9):
+          needStep(13):
       if runOneProcess('mtffilter' + axisCom, message =
                        '2D filtering the aligned stack with Mtffilter'):
          return 1
@@ -1854,31 +2292,76 @@ def eraseGoldFilterAlignedStack():
 
 
 # Change many entries in tilt.com for the current situation
-def modifyTiltComFile():
+def modifyTiltComFile(sampleThickness):
+   global xtiltNeeded
+   
    comfile = 'tilt' + axisCom
    comlines = readTextFileReportErr(comfile)
    if not comlines:
       return 1
 
-   thickness = lookupDirective(comPrefix + 'tilt', 'tilt.THICKNESS', 0, INT_VALUE)
-   binnedThick = lookupDirective(runtimePrefix + 'Reconstruction', 'binnedThickness', 0,
-                                 INT_VALUE)
-   if thickness and binnedThick:
-      abortSet('Both tilt.THICKNESS and Reconstruction.binnedThickness were entered')
-      return 1
-   if binnedThick:
-      thickness = aliBinning * binnedThick
+   if sampleThickness:
+      thickness = sampleThickness
 
-   if not thickness:
-      if not reconThickness:
-         abortSet('No thickness was specified and fiducial alignment did not give a ' + \
-                     'thickness to use')
+   else:
+      
+      # Get different variants on thickness entry and insist on only one
+      thickness = lookupDirective(comPrefix + 'tilt', 'tilt.THICKNESS', 0, INT_VALUE)
+      binnedThick = lookupDirective(runtimePrefix + 'Reconstruction', 'binnedThickness',
+                                    0, INT_VALUE)
+      fallbackThick = lookupDirective(runtimePrefix + 'Reconstruction',
+                                      'fallbackThickness', 0, INT_VALUE)
+      if thickness and binnedThick:
+         abortSet('Both tilt.THICKNESS and Reconstruction.binnedThickness were entered')
          return 1
-      thickness = 2 * ((int(round(reconThickness)) + 1) // 2)
-      extra = lookupDirective(runtimePrefix + 'Reconstruction', 'extraThickness', 0,
-                              INT_VALUE)
-      if extra:
-         thickness += extra
+      if thickness and fallbackThick:
+         abortSet('Both tilt.THICKNESS and Reconstruction.fallbackThickness were entered')
+         return 1
+      if fallbackThick and binnedThick:
+         abortSet('Both Reconstruction.fallbackThickness and ' +\
+                     'Reconstruction.binnedThickness were entered')
+         return 1
+
+      if binnedThick:
+         thickness = aliBinning * binnedThick
+
+      # If that did not provide a thickness, set it to fallback if there is nothing from
+      # the alignment; otherwise take it from the alignment, with possible extra amount
+      # but use the fallback if this is too thin
+      if not thickness:
+
+         # First look for a thickness from tomopitch
+         # Parse this log afresh; results from align log are already in globals
+         angleArr = [0, 0., 0., 0.]
+         err = parseTomopitchLog(angleArr)
+         if err < 0:
+            return 1
+         if not err:
+            thickness = angleArr[0]
+            xtiltNeeded = angleArr[1]
+
+         # Or use the align thickness if no positioning available
+         elif reconThickness:
+            thickness = 2 * ((int(round(reconThickness)) + 1) // 2)
+
+         # In either case, add the extra thickness if defined
+         if thickness:
+            extra = lookupDirective(runtimePrefix + 'Reconstruction', 'extraThickness', 0,
+                                    INT_VALUE)
+            if testDirectiveValue(extra, 'Reconstruction.extraThickness', 'integer'):
+               return 1
+            if extra:
+               thickness += extra
+               
+         # In any of these cases, fallback rules if thickness is too low or not set
+         if fallbackThick and thickness < fallbackThick / 2:
+            thickness = fallbackThick
+
+         if not thickness:
+            abortSet('No thickness was specified and neither fiducial alignment nor ' + \
+                        'positioning gave a thickness to use')
+            return 1
+
                   
    if ifMontage:
       fullx = montFrameData[6]
@@ -1908,8 +2391,12 @@ def modifyTiltComFile():
       sedcom.append('/^ActionIfGPUFails/d')
    if didLocalAlign:
       sedcom += sedDelAndAdd('LOCALFILE', dataName + 'local.xf', 'XTILTFILE')
+   else:
+      sedcom.append('/^LOCALFILE/d')
    if madeZfactors:
       sedcom += sedDelAndAdd('ZFACTORFILE', dataName + '.zfac', 'XTILTFILE')
+   else:
+      sedcom.append('/^ZFACTORFILE/d')
 
    # Handle change in scaling if they turned off log and did not supply a scale
    logbase = optionValue(comlines, 'LOG', FLOAT_VALUE)
@@ -1962,18 +2449,448 @@ def generateTomogram():
    return 0
 
 
+# Run positioning (with whole tomogram for now)
+def positionTomogram():
+   numScales = [4, 2, 2, 1]
+   boxSizes = [32, 20, 16, 12]
+   blockSizes = [100, 60, 48, 36]
+   sampleType = lookupDirective(runtimePrefix + 'Positioning', 'sampleType', 0, INT_VALUE)
+   if testDirectiveValue(sampleType, 'Positioning.sampleType', 'integer'):
+      return 1
+   if sampleType > 1:
+      prnLog('The directive Positioning.sampleType can only be 1 to do positioning')
+      return 0
+   if not sampleType:
+      return 0
+
+   # Get binning and make aligned stack
+   size = max(rawXsize, rawYsize)
+   aliBinning = lookupDirective(runtimePrefix + 'Positioning', 'binByFactor', 0,
+                                INT_VALUE)
+   if testDirectiveValue(aliBinning, 'Positioning.binByFactor', 'integer'):
+      return 1
+   if not aliBinning:
+      for bin in (1, 2, 3, 4):
+         if size / bin < positionBinningTarget or bin == 4:
+            aliBinning = bin
+            prnLog('Binning for positioning tomogram set to ' + str(aliBinning))
+            break
+      
+   if makeAlignedStack(aliBinning):
+      return 1
+
+   # Get thickness and make tomogram
+   thickness = lookupDirective(runtimePrefix + 'Positioning', 'thickness', 0, INT_VALUE)
+   if testDirectiveValue(thickness, 'Positioning.thickness', 'integer'):
+      return 1
+   if not thickness:
+      for ind in range(len(dfltPosThicknesses) - 1, -1, -1):
+         if size > sizesForPosThicknesses[ind]:
+            thickness = dfltPosThicknesses[ind]
+            prnLog('Thickness for positioning tomogram set to ' + str(thickness))
+            break
+         
+   if modifyTiltComFile(thickness) or \
+          splitAndRunTilt('tilt' + axisCom, 'Making tomogram for positioning'):
+      return 1
+
+   # Run findsection to get the model
+   if runFindSection(dataName + '.rec', numScales[aliBinning - 1],
+                     boxSizes[aliBinning - 1], pitchMod = 'tomopitch' + axisLet + '.mod',
+                     block = blockSizes[aliBinning - 1]):
+      prnLog('Finding the section for positioning did not work; proceeding if possible')
+      return 0
+
+   # Get existing Z shift, angle offset, and X tilt
+   tiltLines = readTextFileReportErr('tilt' + axisCom)
+   if not tiltLines:
+      return 1
+   zShiftOrig = 0.
+   angleOffsetOrig = 0.
+   if fiducialless:
+      zShiftArr = optionValue(tiltLines, 'SHIFT', FLOAT_VALUE, numVal = 2)
+      if zShiftArr and len(zShiftArr) > 1:
+         zShiftOrig = zShiftArr[1]
+      offset = optionValue(tiltLines, 'OFFSET', FLOAT_VALUE, numVal = 1)
+
+   else:
+      alignLines = readTextFileReportErr('align' + axisCom)
+      if not alignLines:
+         return 1
+      zShift = optionValue(alignLines, 'AxisZShift', FLOAT_VALUE, numVal = 1)
+      if zShift:
+         zShiftOrig = zShift
+      offset = optionValue(alignLines, 'AngleOffset', FLOAT_VALUE, numVal = 1)
+
+   if offset:
+      angleOffsetOrig = offset
+   xtiltOrig = 0.
+   xtilt = optionValue(tiltLines, 'XAXISTILT', FLOAT_VALUE, numVal = 1)
+   if xtilt:
+      xtiltOrig = xtilt
+
+   # Modify tomopitch and run it
+   sedcom = sedDelAndAdd('ScaleFactor', aliBinning, 'ModelFile') + \
+       sedDelAndAdd('AngleOffsetOld', angleOffsetOrig, 'ModelFile') + \
+       sedDelAndAdd('ZShiftOld', zShiftOrig, 'ModelFile') + \
+       sedDelAndAdd('XAxisTiltOld', xtiltOrig, 'ModelFile')
+   if modifyWriteAndRunCom('tomopitch' + axisCom, sedcom,
+                           message = 'Finding angles and thickness'): 
+      return 1
+
+   # Parse this log
+   angleArr = [0, 0., 0., 0.]
+   err = parseTomopitchLog(angleArr)
+   if err < 0:
+      return 1
+   (thickness, xtilt, offset, zShift) = angleArr
+   if err or not thickness:
+      prnLog('Tomopitch did not produce a good result; proceeding if possible')
+      return 0
+   
+   # Write tilt.com with the X-axis tilt and shift/angle offset for fidless
+   prnLog(fmtstr('Positioning gave thickness {}, X-axis tilt {:.2f}, angle offset ' + \
+                    '{:.2f}, Z shift {:.1f}', thickness, xtilt, offset, zShift))
+   sedcom = [sedModify('XAXISTILT', xtilt), 
+             sedModify('THICKNESS', thickness)]
+   if fiducialless:
+      sedcom += sedDelAndAdd('OFFSET', offset, 'OutputFile') + \
+          sedDelAndAdd('SHIFT', '0. ' + str(zShift), 'OutputFile')
+   if pysed(sedcom, tiltLines, 'tilt' + axisCom, retErr=True):
+      abortSet('Error modifying tilt' + axisCom)
+      return 1
+
+   # Write align.com with Z shift and offset and run it
+   if not fiducialless:
+      sedcom = [sedModify('AxisZShift', zShift),
+                sedModify('AngleOffset', offset)]
+      if modifyWriteAndRunCom('align' + axisCom, sedcom, alignLines,
+                              'Doing final alignment with new position'): 
+         return 1
+
+   return 0
+      
+
+# COMBINE FUNCTIONS
+#
+# Get the final patch size and extra targets for autopatchfid
+def getAutoPatchfitParams():
+   extraTargets = lookupDirective(combinePrefix, 'extraTargets', 0, STRING_VALUE)
+   finalPatchSize = lookupDirective(combinePrefix, 'finalPatchSize', 0, STRING_VALUE)
+   if not extraTargets:
+      extraTargets = dfltExtraWarpTargets
+   if not finalPatchSize:
+      finalPatchSize = dfltFinalPatchSize
+   return (finalPatchSize, extraTargets)
+
+
+# Generate two sed commands for adding an edf file entry, deleting if necessary
+def edfDelAndAdd(option, value, delim = '/'):
+   return [fmtstr('{0}{1}={0}d', delim, option),
+           fmtstr('{0}{1}{0}a{0}{2}={3}{0}', delim, 'Setup.DatasetName=', option, value)]
+
+
+# Analyze the tomogram for Z limits and run setupcombine
+def setupCombine():
+   global axisLet, axisNum
+   topBotInd = 2
+   patchSize = 'M'
+   
+   # Make sure preconditions exist  For now, sign of running transferfid is required
+   if not os.path.exists('transferfid.coord'):
+      return -1
+
+   # Get the right files in place if SIRT is involved
+   useSIRTifBoth = lookupDirective(combinePrefix, 'doSIRTifBoth', 0, INT_VALUE)
+   if testDirectiveValue(useSIRTifBoth, 'Combine.doSIRTifBoth', 'integer'):
+      return 1
+   recRoot = setName + 'a'
+   for axisNum in (1, 2):
+      recName = recRoot + '.rec'
+      (doSIRT, doBoth, SIRTname) = getSIRTrecName(recRoot)
+      useSIRT = doSIRT and (useSIRTifBoth or not doBoth)
+      if useSIRT:
+         SIRTexists = os.path.exists(SIRTname)
+         recExists = os.path.exists(recName)
+         bpName = recRoot + '_BP.rec'
+         if recExists and not SIRTexists:
+            prnLog('The file ' + recName + ' exists and the SIRT reconstruction ' + \
+                      SIRTname + ' does not; assuming it was already renamed')
+         elif not SIRTexists:
+            abortSet('Neither the SIRT reconstruction ' + SIRTname + ' nor the file ' + \
+                        recName + ' exist; cannot proceed')
+            return 1
+         else:
+            if recExists and doBoth:
+               if useFileAsReplacement(recName, bpName, False, True):
+                  return 1
+               prnLog('Renamed back-projection reconstruction ' + recName + ' to ' + \
+                         bpName)
+            if useFileAsReplacement(SIRTname, recName, False, True):
+               return 1
+            prnLog('Renamed SIRT reconstruction ' + SIRTname + ' to ' + recName)
+
+      recRoot = setName + 'b'
+
+   axisNum = 0
+
+   # Get the directives and use the defaults if none
+   matchAtoBratio = lookupDirective(combinePrefix, 'matchAtoBThickRatio', 0, FLOAT_VALUE)
+   if testDirectiveValue(matchAtoBratio, 'Combine.matchAtoBThickRatio', 'float'):
+      return 1
+   if not matchAtoBratio:
+      matchAtoBratio = dfltMatchAtoBratio
+   numScales = lookupDirective(combinePrefix, 'findSecNumScales', 0, INT_VALUE)
+   if testDirectiveValue(numScales, 'Combine.findSecNumScales', 'integer'):
+      return 1
+   if not numScales:
+      numScales = dfltCombineNumScales
+   boxSize = lookupDirective(combinePrefix, 'findSecBoxSize', 0, INT_VALUE)
+   if testDirectiveValue(boxSize, 'Combine.findSecBoxSize', 'integer'):
+      return 1
+   if not boxSize:
+      boxSize = dfltCombineBoxSize
+
+   # Need to find limits in A unless match ratio is very high
+   needFindA = matchAtoBratio < 4.
+   if needFindA:
+      topBotA = 6 * [0]
+      if runFindSection(setName + 'a.rec', numScales, boxSize, topBots = topBotA):
+         return 1
+      zRangeA = topBotA[topBotInd + 1] - topBotA[topBotInd]
+      if zRangeA < 4:
+         abortSet('Findsection failed to find a useful a Z range in A tomogram')
+
+   # Need to find limits in B unless match ratio is very low
+   needFindB = matchAtoBratio > 0.25
+   if needFindB:
+      topBotB = 6 * [0]
+      if runFindSection(setName + 'b.rec', numScales, boxSize, topBots = topBotB):
+         return 1
+      zRangeB = topBotB[topBotInd + 1] - topBotB[topBotInd]
+      if zRangeB < 4:
+         abortSet('Findsection failed to find a useful a Z range in B tomogram')
+
+   # Match A to B if ratio was very high or B is sufficiently smaller
+   matchAtoB = not needFindA or (needFindB and zRangeB <= matchAtoBratio * zRangeA)
+   edfMatch = 'B_to_A'
+   if matchAtoB:
+      topBotA = topBotB
+      edfMatch = 'A_to_B'
+      
+   # Determine number of surfaces, make sure 2 is still OK
+   # If in doubt, just set to 1 and see what happens
+   numSurf = numSurfaces
+   if numSurf > 1:
+   
+      # Do the appropriate axis of align log
+      if matchAtoB:
+         axisLet = 'b'
+      angleArr = [0., 0., 0., 0., 0., 0., 0, 0]
+      if analyzeAlignLog(numSurfaces > 1, angleArr):
+         return 1
+      axisLet = 'a'
+      (totalDelTilt, xtiltNeeded, fidThickness, fidIncShift, fidTotalShift, \
+          reconThickness, numBot, numTop) = angleArr
+      if fidThickness < (topBotA[topBotInd + 1] - topBotA[topBotInd]) / 2:
+         numSurf = 1
+         mess = 'because fiducial extent is much smaller than Z range'
+      else:
+         fallbackThick = lookupDirective(runtimePrefix + 'Reconstruction',
+                                         'fallbackThickness', 0, INT_VALUE)
+         if isinstance(fallbackThick, int) and fallbackThick < reconThickness / 2:
+            numSurf = 1
+            mess = 'because fiducial extent is much smaller than fallback thickness'
+
+      if numSurf == 1:
+         prnLog('Setting number of surfaces for Solvematch to 1 ' + mess)
+
+   edfSurf = 'BothSides'
+   if numSurf == 1:
+      edfSurf = 'OneSide'
+      
+   # Get the rest of the combine setup directives
+   # TODO: what if there is a blank directive to cancel extra targets?
+   patchIn = lookupDirective(combinePrefix, 'patchSize', 0, STRING_VALUE)
+   if patchIn:
+      patchSize = patchIn
+   (finalPatchSize, extraTargets) = getAutoPatchfitParams()
+   
+   wedgeFrac = lookupDirective(combinePrefix, 'wedgeReduction', 0, FLOAT_VALUE)
+   lowRadius = lookupDirective(combinePrefix, 'lowFromBothRadius', 0, FLOAT_VALUE)
+   if testDirectiveValue(wedgeFrac, 'Combine.wedgeReduction', 'float') or \
+          testDirectiveValue(lowRadius, 'Combine.lowFromBothRadius', 'float'):
+      return 1
+   comLines = ['RootName ' + setName,
+               'TransferPointFile transferfid.coord',
+               'SurfaceModelType ' + str(numSurf),
+               fmtstr('ZLowerAndUpper {},{}', topBotA[topBotInd], topBotA[topBotInd + 1]),
+               'PatchTypeOrXYZ ' + patchSize,
+               'AutoPatchFinalSize ' + finalPatchSize,
+               'ExtraResidualTargets ' + extraTargets]
+   if scopeTmplText in allDirectives[BatInd]:
+      comLines.append('ChangeParametersFile ' + allDirectives[BatInd][scopeTmplText][0])
+   if sysTmplText in allDirectives[BatInd]:
+      comLines.append('ChangeParametersFile ' + allDirectives[BatInd][sysTmplText][0])
+   if userTmplText in allDirectives[BatInd]:
+      comLines.append('ChangeParametersFile ' + allDirectives[BatInd][userTmplText][0])
+      comLines.append('ChangeParametersFile ' + absDirectiveFile)
+   if matchAtoB:
+      comLines.append('MatchAtoB 1')
+   if wedgeFrac:
+      comLines.append('WedgeReductionFraction ' + str(wedgeFrac))
+   if lowRadius:
+      comLines.append('LowFromBothRadius ' + str(lowRadius))
+
+   try:
+      runcmd('setupcombine -StandardInput', comLines, 'stdout')
+   except ImodpyError:
+      reportImodError('Error running setupcombine')
+      return 1
+
+   # Now try to modify the edf file.  Z limits are fatal.  First word -> batchruntomo
+   sedcom = edfDelAndAdd('batchruntomo.Combine.MatchMode', edfMatch) + \
+       edfDelAndAdd('batchruntomo.Combine.FiducialMatch', edfSurf) + \
+       edfDelAndAdd('batchruntomo.Combine.PatchSize', patchSize) + \
+       edfDelAndAdd('batchruntomo.Combine.FinalPatchSize', finalPatchSize) + \
+       edfDelAndAdd('batchruntomo.Combine.ExtraResidualTargets', extraTargets)
+
+   edfFile = setName + '.edf'
+   makeBackupFile(edfFile)
+   if pysed(sedcom, edfFile + '~', edfFile, retErr = True):
+      abortSet('Error modifying ' + edfFile)
+      return 1
+
+   # Finally, modify matchvol1.com to preserve a larger B volume size
+   # The transposed ny,nz match setupcombine usage for better or worse
+   try:
+      (nxa, nza, nya) = getmrcsize(setName + 'a.rec')
+      (nxb, nzb, nyb) = getmrcsize(setName + 'b.rec')
+
+   except ImodpyError:
+      reportImodError('Error getting sizes of axis rec files')
+      return 1
+
+   sedcom = [sedModify('OutputSizeXYZ', fmtstr('{} {} {}', nxa, max(nza, nzb), nya))]
+   if pysed(sedcom, 'matchvol1.com', 'matchvol1.com', retErr = True):
+      abortSet('Error modifying matchvol1.com')
+      return 1
+      
+   return 0
+
+
+# Run solvematch and make needed modifications if there is a center shift
+def initialCombineMatch():
+   global suppressAbort
+   suppressAbort = False   
+   err = runOneProcess('solvematch.com', message = 'Getting initial alignment between ' +\
+                          'volumes')
+   suppressAbort = True
+   printTaggedMessages('solvematch.log', standardTags +
+                       [('Mean residual', 4), ('Scaling along', 0), ('Local fits', 0),
+                        ('Average mean', 4)])
+   if not err:
+      return 0
+   initShift = []
+   shiftLimit = 0
+   logLines = readTextFileReportErr('solvematch.log')
+   if not logLines:
+      return 1
+
+   # If there was an error, try to find initial shift as well as center shift
+   for line in logLines:
+      if 'InitialShiftXYZ' in line and 'needs' in line:
+         lsplit = line.split()
+         try:
+            for ind in (0, 1, 2):
+               initShift.append(int(lsplit[-3 + ind]))
+         except Exception:
+            abortSet('Error trying to get initial shift from :' + line)
+      if 'CenterShiftLimit' in line and 'avoid stopping' in line:
+         lsplit = line.split()
+         try:
+            shiftLimit = int(lsplit[-1])
+         except ValueError:
+            pass
+
+      # If error line is found that says it's OK, modify patchcorr.com
+      if 'ERROR:' in line and 'INITIAL SHIFT' in line and 'SOLUTION IS OK' in line:
+         if initShift:
+            prnLog(fmtstr('Setting initial shift for Corrsearch3d to {} {} {}',
+                          initShift[0], initShift[2], initShift[1]))
+            sedcm = sedDelAndAdd('InitialShiftXYZ', fmtstr('{},{},{}', initShift[0],
+                                                           initShift[1], initShift[2]),
+                                 'FlipYZMessages')
+            if pysed(sedcm, 'patchcorr.com', 'patchcorr.com', retErr = True):
+               abortSet('Error modifying patchcorr.com')
+               return 1
+
+            # If that succeeded, modify solvematch with shift limit
+            if shiftLimit:
+               if pysed([sedModify('CenterShiftLimit', shiftLimit)], 'solvematch.com',
+                        'solvematch.com', retErr = True):
+                  abortSet('Error modifying solvematch.com with new shift limit')
+                  return 1
+            return 0
+
+         abortSet('Initial shift is required to go on, but was not found in ' +\
+                     'solvematch.log')
+         return 1
+
+   abortSet('Error getting initial alignment between volumes')
+   return 1
+   
+
+# Run matchvol, autopatchfit, and volcombine
+def alignAndCombineAxes():
+   if needStep(17) and runOneProcess('matchvol1.com', useMostCPUs = True,
+                                     message = 'Making initial matching volume'):
+      return 1
+
+   if needStep(18):
+      (finalPatchSize, extraTargets) = getAutoPatchfitParams()
+      comLines = ['$autopatchfit -StandardInput',
+                  'FinalPatchTypeOrXYZ ' + finalPatchSize]
+      if extraTargets:
+         comLines.append('ExtraResidualTargets ' + extraTargets)
+      if writeTextFileReportErr('autopatchfit.com', comLines):
+         return 1
+      err = runOneProcess('autopatchfit.com', message = 'Doing patch correlation ' +\
+                             'and fitting to local patches', useMostCPUs = True)
+      printTaggedMessages('autopatchfit.log', standardTags +
+                          [('Using ', 4), ('Changing ', 4), ('Adding ', 4),
+                           ('FINDWARP -', 0), ('found a good', 4)])
+      if err:
+         abortSet('Cannot align the two tomograms')
+         return 1
+
+   if needStep(19) and runOneProcess('volcombine.com', 
+                                     message = 'Combining the two volumes'):
+      return 1
+      
+
 # Run trimvol if ANY of the directives are present
 def trimVolume():
+   trimPrefix = runtimePrefix + 'Trimvol'
    sizeKeys = ('sizeInX', 'sizeInY', 'thickness', 'scaleFromX', 'scaleFromY', 
-               'scaleFromZ')
-   if lookupDirective(runtimePrefix + 'Trimvol', 'reorient', 0, INT_VALUE) == None:
+               'scaleFromZ', 'findSecAddThickness')
+   if lookupDirective(trimPrefix, 'reorient', 0, INT_VALUE) == None:
       for key in sizeKeys:
-         if lookupDirective(runtimePrefix + 'Trimvol', key, 0, FLOAT_VALUE) != None:
+         if lookupDirective(trimPrefix, key, 0, FLOAT_VALUE) != None:
             break
       else:    # ELSE ON FOR
          return 0
 
-   reorient = lookupDirective(runtimePrefix + 'Trimvol', 'reorient', 0, INT_VALUE)
+   if axisNum > 0 and not lookupDirective(trimPrefix, 'doAorBofDualAxis', 0, BOOL_VALUE):
+      return 0
+
+   useFindSec = lookupDirective(trimPrefix, 'findSecAddThickness', 0, FLOAT_VALUE) != None
+   if lookupDirective(trimPrefix, 'thickness', 0, FLOAT_VALUE) != None and useFindSec:
+      abortSet('Cannot use both Trimvol.findSecAddThickness and Trimvol.thickness' + \
+                  ' directives')
+      return 1
+      
+   reorient = lookupDirective(trimPrefix, 'reorient', 0, INT_VALUE)
    if reorient == None:
       reorient = 2
    if isinstance(reorient, str) or reorient < 0 or reorient > 2:
@@ -1982,46 +2899,54 @@ def trimVolume():
    
    # Figure out what volume to trim and get its size
    recRoot = dataName
-   trimName = dataName + '_trim.rec'
-   if not dualAxis:
+   trimNames = [dataName + '.rec']
+   if dualAxis and axisNum > 0:
+      trimNames = [dataName + '_trim.rec']
+   elif dualAxis:
+      recRoot = 'sum'
+   else:
       recRoot = dataName + '_full'
-      trimName = dataName + '.rec'
-   recName = recRoot + '.rec'
-   doSIRT = lookupDirective(runtimePrefix + 'Reconstruction', 'useSirt', 0, BOOL_VALUE)
-   doBPalso = lookupDirective(runtimePrefix + 'Reconstruction', 'doBackprojAlso', 0,
-                              BOOL_VALUE)
-   if doSIRT and not doBPalso:
-      leaveList = lookupDirective(comPrefix + 'sirtsetup', 'sirtsetup.LeaveIterations', 0,
-                                  STRING_VALUE)
-      if not leaveList:
-         abortSet('Cannot trim SIRT output, cannot find LeaveIterations directive')
-         return 1
-      lsplit = leaveList.replace('-',',').split(',')
-      lastOne = lsplit[-1:][0]
-      if len(lastOne) < 2:
-         lastOne = '0' + lastOne
-      recName = recRoot + '.srec' + lastOne
+   recNames = [recRoot + '.rec']
 
-   if not os.path.exists(recName):
-      abortSet('The file to be trimmed, ' + recName + ', does not exist')
-      return 1
+   if not dualAxis or axisNum > 0:
+      (doSIRT, doBoth, SIRTname) = getSIRTrecName(recRoot)
+      if doSIRT:
+         useSIRT = True
+         if doBoth:
+            trimBoth = lookupDirective(trimPrefix, 'doSIRTifBoth', 0, INT_VALUE)
+            if testDirectiveValue(trimBoth, 'Trimvol.doSIRTifBoth', 'integer'):
+               return 1
+            useSIRT = trimBoth > 0
+
+         if useSIRT:
+            if not SIRTname:
+               abortSet('Cannot trim SIRT output, cannot find LeaveIterations directive')
+               return 1
+
+            recNames = [SIRTname]
+            if doBoth and trimBoth > 1:
+               recNames.append(recRoot + '.rec')
+               trimNames.append(trimNames[0][0:-4] + '_BP.rec')
+
+   for name in recNames:
+      if not os.path.exists(name):
+         abortSet('The file to be trimmed, ' + name + ', does not exist')
+         return 1
    try:
-      (nxrec, nzrec, nyrec) = getmrcsize(recName)
+      (nxrec, nzrec, nyrec) = getmrcsize(recNames[0])
    except ImodpyError:
       reportImodError('Could not get size of volume to trim')
       return 1
    
    # Determine size parameters, convert fractions, and check them
    sizesScales = []
-   baseVals = (nxrec, nyrec, nzrec, nxrec, nyrec, nzrec)
+   baseVals = (nxrec, nyrec, nzrec, nxrec, nyrec, nzrec, nzrec)
    for key in sizeKeys:
-      val = lookupDirective(runtimePrefix + 'Trimvol', key, 0, FLOAT_VALUE)
-      if isinstance(val, str):
-         abortSet('An error occurred converting the value in the "Trimvol.' + key + \
-                  '" directive to a float')
+      val = lookupDirective(trimPrefix, key, 0, FLOAT_VALUE)
+      if testDirectiveValue(val, 'Trimvol.' + key, 'float'):
          return 1
       size = None
-      if val:
+      if val != None:
          base = baseVals[len(sizesScales)]
          lowLim = 40
          if len(sizesScales) % 3 == 2:
@@ -2029,13 +2954,25 @@ def trimVolume():
          size = int(round(val))
          if size <= 1.:
             size = int(round(val * base))
-         if val < 0.02 or size < lowLim or size > base:
+         if (len(sizesScales) < 6 and (val < 0.02 or size < lowLim or size > base)) or \
+                (len(sizesScales) == 6 and (size < 0 or size > base)):
             abortSet('The size specified by the "Trimvol.' + key + \
                      '" directive is out of the allowed range')
             return 1
       
       sizesScales.append(size)
-         
+
+   # Run findsection on the BP file if any
+   if useFindSec:
+      zLimits = 6 * [0]
+      if runFindSection(recNames[-1], 4, 32, topBots = zLimits):
+         return 1
+      if zLimits[5] - zLimits[4] <= 0:
+         abortSet('Findsection on ' + recNames[-1] + \
+                     ' did not find limits for the section')
+         return 1
+
+   # Set up size options in command
    trimcom = '$trimvol -f'
    if reorient == 1:
       trimcom += ' -yz'
@@ -2047,7 +2984,10 @@ def trimVolume():
       trimcom += ' -ny ' + str(sizesScales[1])
    if sizesScales[2]:
       trimcom += ' -nz ' + str(sizesScales[2])
-
+   if useFindSec:
+      trimcom += fmtstr(' -z {},{}', max(1, zLimits[4] - sizesScales[6]),
+                        min(nzrec, zLimits[5] + sizesScales[6]))
+      
    # If any scaling is specified, add options.  Set default for Z, leave others at
       # trimvol defaults
    if sizesScales[3] or sizesScales[4] or sizesScales[5]:
@@ -2059,12 +2999,16 @@ def trimVolume():
             end = start + sizesScales[ind] - 1
             trimcom += fmtstr(' -s{} {},{}', chr(ord('x') + ind - 3), start, end)
 
-   trimcom += ' ' + recName + ' ' + trimName
-   prnLog('Running trimvol on ' + recName + ' to create ' + trimName, flush=True)
-   if writeTextFileReportErr('trimvol' + axisCom, [trimcom]):
-      return 1
-   if runOneProcess('trimvol' + axisCom):
-      return 1
+   # Do one or two volumes
+   for ind in range(len(recNames)):
+      prnLog('Running trimvol on ' + recNames[ind] + ' to create ' + trimNames[ind],
+             flush=True)
+      if writeTextFileReportErr('trimvol' + axisCom,
+                                [trimcom + ' ' + recNames[ind] + ' ' + trimNames[ind]]):
+         return 1
+      if runOneProcess('trimvol' + axisCom):
+         return 1
+      
    return 0
 
 
@@ -2073,6 +3017,7 @@ def runOneAxis():
    global xtiltNeeded, fidThickness, fidIncShift, reconThickness
    global numSurfaces
    xtiltNeeded, fidThickness, fidIncShift, reconThickness = 0., 0., 0., 0.
+   clipLines = []
    
    if getAxisInitialParameters():
       return 1
@@ -2116,16 +3061,11 @@ def runOneAxis():
          montOpt = '-P ' + dataName + '.pl -O -10,-10 '
       command = fmtstr('$clip stats {} -10,-10 -n 2.5 -l {} {}', montOpt, length,
                        dataName + '_fixed.st')
-      comfile = dataName + '_fixed.st.stats.com'
-      if writeTextFileReportErr(comfile, [command]):
-         return 1
-      err = runOneProcess(comfile, message = 'Getting statistics for fixed stack')
-      cleanupFiles([comfile])
-      if err:
-         return 1
 
-      # Extract the summary lines
-      clipLines = readTextFileReportErr(dataName + '_fixed.st.stats.log')
+      # Run clip and extract the summary lines
+      clipLines = runClipStats(command, '_fixed', 'fixed')
+      if not clipLines:
+         return 1
       prnLog(' ')
       for line in clipLines:
          if 'all' in line or 'extreme' in line:
@@ -2165,6 +3105,10 @@ def runOneAxis():
          if err:
             return 1
 
+   # Possibly a stopgap: look for low-count views at end of series and exclude them
+   if not ifMontage and needStep(1) and analyzeSDsAdjustExcludes(clipLines):
+      return 1
+         
    # coarse alignment
    if needStep(2) and runOneProcess('xcorr' + axisCom, message = 'Finding coarse ' + \
                                        'alignment by cross-correlation with Tiltxcorr'):
@@ -2205,8 +3149,8 @@ def runOneAxis():
          if makeSeedAndTrack(taLines):
             return 1
 
-      # Tilt alignment
-      if endingStep >= 5 and startingStep < 13 and runTiltalign(taLines):
+      # Tilt alignment needed if aligned stack or reconstruction being made
+      if endingStep >= 5 and startingStep <= 14 and runTiltalign(taLines):
          return 1
 
       # Iterate patch tracking with angle offset now that it is known, if desired
@@ -2219,27 +3163,68 @@ def runOneAxis():
          if (runTiltalign(taLines)):
             return 1
 
-   # Make aligned stack and CTF correct it
-   if makeAndCTFCorrectAlignedStack():
+   # Positioning
+   if needStep(7) and positionTomogram():
+      return 1
+   
+   # Make aligned stack
+   if makeAlignedStack(0):
+      return 1
+         
+   # Do CTF plotter step (tests need, sets correctCTF global)
+   if CTFPlotAlignedStack():
       return 1
 
    # Set up the tilt com file now that output size is known and montage frame data set
-   if endingStep >= 8 and startingStep < 13 and modifyTiltComFile():
+   if endingStep >= detect3DstepNum and startingStep <= 14 and modifyTiltComFile(0):
       return 1
 
-   # Optionally erase gold and filter
-   if eraseGoldFilterAlignedStack():
+   # Do 3D gold detection (tests need, sets eraseGold global)
+   if detectGoldIn3D():
+      return 1
+   
+   # Optionally CTF correct the stack
+   if needStep(ctfCorrStepNum) and correctCTF and CTFCorrectAlignedStack():
+      return 1
+
+   # Optionally erase gold
+   if needStep(eraseStepNum) and eraseGold and eraseGoldInAlignedStack():
+      return 1
+
+   # Optionally filter
+   if filterAlignedStack():
       return 1
 
    # Make the reconstruction
-   if needStep(10) and generateTomogram():
+   if needStep(14) and generateTomogram():
       return 1
 
-   # Optionally run trimvol at axis level for now
-   if needStep(13) and trimVolume():
+   # Run trimvol on full data set or at axis level if directive for it
+   if ((not dualAxis and needStep(finalStepNum)) or (dualAxis and needStep(14.5))) and \
+          trimVolume():
       return 1
 
    return 0
+
+
+# Or run the steps for combine, return on error or when done
+def runCombine():
+   if needStep(15):
+      err = setupCombine()
+      if err < 0:
+         prnLog('Tomogram combination can be done only after fiducial autoseed ' + \
+                   'and track; ending this dataset')
+      if err:
+         return
+
+   if needStep(16) and initialCombineMatch():
+      return
+
+   if alignAndCombineAxes():
+      return
+
+   if needStep(finalStepNum):
+      trimVolume()
 
    
 #### MAIN PROGRAM  ####
@@ -2269,7 +3254,9 @@ options = ["directive:DirectiveFile:FNM:", "root:RootName:FNM:",
            "single:SingleOnFirstCPU:B:", "gpus:GPUMachineList:CH:", "nice:NiceValue:I:",
            "remote:RemoteDirectory:FN:", "check:CheckFile:FN:",
            "email:EmailAddress:CH:", "validation:ValidationType:I:",
-           "start:StartingStep:I:", "end:EndingStep:I:", "exit:ExitOnError:B:"]
+           "start:StartingStep:F:", "end:EndingStep:F:",
+           "first:StartForFirstSetOnly:B:", "use:UseExistingAlignment:B:",
+           "exit:ExitOnError:B:", "etomo:EtomoDebug:I:"]
 
 copyPrefix = 'setupset.copyarg.'
 setupPrefix = 'setupset.'
@@ -2283,6 +3270,7 @@ rootNameText = copyPrefix + 'name'
 scanHeadText = setupPrefix + 'scanHeader'
 patchTrackText = runtimePrefix + 'PatchTracking'
 autoSeedText = runtimePrefix + 'SeedFinding'
+combinePrefix = runtimePrefix + 'Combine'
 setupBname = 'laterbsetup.com'
 localBatchCopy = 'batchDirective.adoc'
 montFrameData = 10 * [0]
@@ -2290,16 +3278,38 @@ suppressAbort = False
 altExtension = 'mrc'
 userTemplateDir = ''
 summaryMessage = ''
+ctfPlotStepNum = 9
+detect3DstepNum = 10
+ctfCorrStepNum = 11
+eraseStepNum = 12
+finalStepNum = 20
+
+# Defaults
+dfltDarkExcludeFraction = 0.33
+dfltDarkExcludeRatio = 0.17
+dfltMatchAtoBratio = 0.9
+dfltCombineNumScales = 4
+dfltCombineBoxSize = 32
+dfltSampleThickness = 500
+positionBinningTarget = 512
+dfltPosThicknesses = (250, 400, 500, 600)
+sizesForPosThicknesses = (0, 512, 1024, 2048)
+dfltExtraWarpTargets = '0.4,0.45'
+dfltFinalPatchSize = 'E'
+
 logFile = None
 finalRetVal = 0
+latestMessages = []
 direcFileErrorNames = ['scope template', 'system template', 'user template',
                        'batch directive']
 
 # List of coms where the runner is handling messages, and the standard tags for messages
-handlingMessages = ['autofidseed', 'transferfid', 'track', 'align']
+handlingMessages = ['autofidseed', 'transferfid', 'track', 'align', 'solvematch',
+                    'autopatchfit']
 standardTags = [('ERROR:', 0), ('WARNING:', 0)]
 
 (opts, nonopts) = PipReadOrParseOptions(sys.argv, options, progname, 1, 1, 0)
+os.environ['PIP_PRINT_ENTRIES'] = '0'
 
 # Get the directive file names
 numByArg = PipNumberOfEntries('DirectiveFile')
@@ -2351,6 +3361,8 @@ startingDir = os.getcwd()
 # the values after # if any, set flag for parallel processing = # of cores
 cpuList = PipGetString('CPUMachineList', '')
 parallelCPU = 0
+mostCPUs = 0
+topCPUmachine = '1'
 if cpuList != '':
    try:
       parallelCPU = int(cpuList)
@@ -2362,15 +3374,18 @@ if cpuList != '':
          if len(msplit) > 2:
             exitError('A machine name cannot be followed by two # signs')
          if len(msplit) < 2:
-            parallelCPU += 1
+            numCPU = 1
          else:
             try:
                numCPU = int(msplit[1])
                if numCPU < 2:
                   exitError('The value after # is less than 2 in ' + machine)
-               parallelCPU += numCPU
             except ValueError:
                exitError('Failed to convert value after # to integer in ' + machine)
+         parallelCPU += numCPU
+         if numCPU > mostCPUs:
+            mostCPUs = numCPU
+            topCPUmachine = msplit[0]
 
 # For GPU's, set useGPU if entered, insist a number is 1, and set flag for parallel GPU
 # if there is an actual machine list to number of GPUs, adding up entries 
@@ -2393,10 +3408,23 @@ if useGPU:
 niceness = PipGetInteger('NiceValue', 15)
 remoteStartDir = PipGetString('RemoteDirectory', '')
 doOneAxis = PipGetInteger('ProcessOneAxis', 0)
-startingStep = PipGetInteger('StartingStep', 0)
-endingStep = PipGetInteger('EndingStep', 10000000)
+startingStep = PipGetFloat('StartingStep', 0.)
+endingStep = PipGetFloat('EndingStep', 10000000.)
+firstStart = PipGetBoolean('StartForFirstSetOnly', 0)
+skipTiltalign = PipGetBoolean('UseExistingAlignment', 0)
 exitOnError = PipGetBoolean('ExitOnError', 0)
+etomoDebug = PipGetInteger('EtomoDebug', 0)
 useFirstCPUforSingle = PipGetBoolean('SingleOnFirstCPU',0)
+if not firstStart and startingStep > 100:
+   prnstr('WARNING: Entering a starting step above 100 has no effect without ' +\
+             '-first option')
+   while startingStep > 100:
+      startingStep -= 100
+if skipTiltalign and (startingStep <= 5.005 or \
+                         (startingStep > 99.995 and startingStep <= 105.005)):
+   exitError('You cannot use an existing alignment when you start before the ' +\
+                'alignment step')
+   
 validation = PipGetInteger('ValidationType', 0)
 remoteDataDir = ''
 emailAddress = PipGetString('EmailAddress', '')
@@ -2552,6 +3580,8 @@ for dfileInd in range(numSets):
       errlog = ''
       try:
          comline = 'etomo --fromBRT --directive "' + absDirectiveFile + '"'
+         if etomoDebug:
+            comline += ' --debug ' + str(etomoDebug)
          if parallelCPU > 1:
             comline += ' --cpus "' + cpuList + '"'
          if gpuList != '':
@@ -2633,20 +3663,38 @@ for dfileInd in range(numSets):
             
       dataName = setName + axisLet
       axisCom = axisLet + '.com'
-      if startingStep > 100:
-         startingStep -= 100
+      while startingStep > 100:
+         startingStep -= 100.
          continue
       if runOneAxis():
-         startingStep = 0
+         if firstStart:
+            startingStep = 0
+            skipTiltalign = 0
          continue
-      startingStep = 0
+      if firstStart:
+         startingStep = 0
+         skipTiltalign = 0
       if dualAxis:
          message = 'Completed axis ' + axisLet.upper() + ' of dataset ' + setName
       else:
          message = 'Completed dataset ' + setName
+      if endingStep < finalStepNum:
+         endPrint = int(round(endingStep))
+         if math.fabs(endPrint - endingStep) > 0.005:
+            endPrint = endingStep
+         message += fmtstr(' through step {}', endPrint)
       prnLog(message)
       summaryMessage += message + '\n'
 
+   # Try to combine dual axis dataset
+   if dualAxis:
+      axisNum = 0
+      axisLet = 'a'
+      axisInd = 2
+      dataName = setName
+      runCombine()
+      prnLog('Completed dataset ' + setName)
+      
    closeLogFile()
 
 sendEmail('Batchruntomo finished all data sets', summaryMessage)
