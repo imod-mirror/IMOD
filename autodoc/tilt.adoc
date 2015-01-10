@@ -38,6 +38,51 @@ tomogram.  The model header will be set so that the model will display
 properly on both the aligned stack used to generate the tomogram and on
 aligned stacks at other binnings.
 
+[Field = AngleOutputFile]
+type = FN
+usage = Output file for projection angles when projecting model
+tooltip =
+manpage = Output file in which to write projection angles when
+reprojecting a model.  The output contains one line per point in the projected
+model, with contour number, point number, view number (all numbered from 1),
+X-axis tilt, tilt angle, and rotation in the plane of the projection
+image, (all in degrees).  At the end of the line will be either a 0 or, if
+the \fI-DefocusFile\fR option is entered, the defocus in nanometers.  The
+rotation will be relative to the aligned projection image (and zero if there
+are no local alignments) unless a
+file of alignment transforms is entered with the AlignTransformFile option.
+In that case, the rotation will be relative to the raw tilt series image.  The
+angles have the same meaning and order as in the Tiltalign(1) alignment model:
+the specimen is tilted around X, then tilted around Y, then rotated around Z
+in order for its projection to match the image in the aligned stack, where
+angles are counterclockwise positive looking down each axis from the positive
+direction.
+
+[Field = AlignTransformFile]
+type = FN
+usage = Transforms applied to align images, used for getting projection angles
+tooltip =
+manpage = File of linear transformations used to align the projection images.
+When making an output file with projection angles, this file is needed to
+produce rotation angles relative to the unaligned projection images.
+
+[Field = DefocusFile]
+type = FN
+usage = File of defocus values in nm for each view
+tooltip =
+manpage = File with defocus values in nanometers (underfocus positive) for
+each view, one per line.  When making an output file with projection angles, 
+this entry allows the program to include the defocus at each position as well.
+
+[Field = PixelForDefocus]
+type = FP
+usage = Pixel size for computing defocus, and 1 to invert angles or 0 not to
+tooltip =
+manpage = Pixel size for computing defocus when making a file of projection
+angles, and 1 to invert tilt angles for this computation or 0 not to.  The
+default is to use the pixel size of the input projections and assume no
+inversion.
+
 [Field = BaseRecFile]
 type = FN
 usage = Previous reconstruction file to add to or subtract from

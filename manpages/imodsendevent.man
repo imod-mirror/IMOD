@@ -23,7 +23,8 @@ in seconds.  The default is 5.
 .TP
 .B -D
 Debug mode.  The program will log what it sends by placing on the clipboard
-and all changes that it detects on the clipboard.
+and all changes that it detects on the clipboard.  Reports are to
+stadard error.
 .SH COMMANDS TO 3DMOD
 Currently, 3dmod will accept the following commands:
    1  Open model file (follow with file name); this raises all windows
@@ -78,6 +79,7 @@ Currently, 3dmod will accept the following commands:
         off or 1 to turn it on
   19  Open a set of dialog windows.  Follow with one or more key
         letters just as for the -E options to 3dmod and 3dmodv.
+  20  Report whether the model has unsaved changes.
 
 Bead Fixer accepts the following commands:
    1  Open a Tiltalign log file if one is not open yet, or reread 
