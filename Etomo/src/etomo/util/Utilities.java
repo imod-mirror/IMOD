@@ -1,328 +1,3 @@
-/**
- * <p>Description: A class containing utility methods.</p>
- *
- * <p>Copyright: Copyright (c) 2002, 2003</p>
- *
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
- * University of Colorado</p>
- *
- * @author $$Author$$
- *
- * @version $$Revision$
- *
- * <p> $$Log$
- * <p> $Revision 3.80  2011/06/28 20:02:20  sueh
- * <p> $Removed test print from isWindowsOS.
- * <p> $
- * <p> $Revision 3.79  2011/06/28 16:57:11  sueh
- * <p> $In windowsOS added print statement during test.
- * <p> $
- * <p> $Revision 3.78  2011/06/28 02:34:00  sueh
- * <p> $Bug# 1501 Corrected error message.
- * <p> $
- * <p> $Revision 3.77  2011/02/22 21:54:38  sueh
- * <p> $bug# 1437 Reformatting.
- * <p> $
- * <p> $Revision 3.76  2010/11/13 16:08:59  sueh
- * <p> $bug# 1417 Renamed etomo.ui to etomo.ui.swing.
- * <p> $
- * <p> $Revision 3.75  2010/05/20 23:55:19  sueh
- * <p> $bug# 1360 Adding new versions off checkExistingDir and getExistingDir
- * <p> $that allow a custom failure message.
- * <p> $
- * <p> $Revision 3.74  2010/04/28 16:51:17  sueh
- * <p> $bug# 1344 Added backFile.
- * <p> $
- * <p> $Revision 3.73  2010/04/09 15:46:52  sueh
- * <p> $bug# 1353 Removed null pointer exception problem in getFile(String,String).
- * <p> $
- * <p> $Revision 3.72  2010/03/12 04:28:30  sueh
- * <p> $bug# 1325 Added deleteFileType.
- * <p> $
- * <p> $Revision 3.71  2010/03/09 22:09:12  sueh
- * <p> $bug# 1325 Added getStackBinning.
- * <p> $
- * <p> $Revision 3.70  2010/02/26 20:38:42  sueh
- * <p> $Changing the complex popup titles are making it hard to complete the
- * <p> $uitests.
- * <p> $
- * <p> $Revision 3.69  2010/02/23 20:32:47  sueh
- * <p> $Removed unnecessary stack trace print in rename.
- * <p> $
- * <p> $Revision 3.68  2010/02/17 05:05:58  sueh
- * <p> $bug# 1301 Using manager instead of manager key for popping up
- * <p> $messages.
- * <p> $
- * <p> $Revision 3.67  2009/09/02 22:47:07  sueh
- * <p> $bug# 1254 Added isValidStack.
- * <p> $
- * <p> $Revision 3.66  2009/06/10 17:28:44  sueh
- * <p> $bug# 1202 Corrected comment.
- * <p> $
- * <p> $Revision 3.65  2009/03/17 00:46:43  sueh
- * <p> $bug# 1186 Pass managerKey to everything that pops up a dialog.
- * <p> $
- * <p> $Revision 3.64  2009/02/27 03:54:54  sueh
- * <p> $bug# 1188 Removed unnecessary Java version check.
- * <p> $
- * <p> $Revision 3.63  2009/02/04 23:38:03  sueh
- * <p> $bug# 1158 Added getDataTimeStamp.
- * <p> $
- * <p> $Revision 3.62  2009/01/20 20:34:32  sueh
- * <p> $bug# 1102 Changed convertLabelToName(String,ProcessName) to
- * <p> $convertLabelToName(String,String,String).
- * <p> $
- * <p> $Revision 3.61  2008/12/10 18:35:02  sueh
- * <p> $bug# 1162 Added dateTimeStamp and managerStamp.
- * <p> $
- * <p> $Revision 3.60  2008/12/02 21:25:47  sueh
- * <p> $bug# 1157 Removed unecessary rounding functions breakAndTrim, covertToScienticNotation, and round.
- * <p> $
- * <p> $Revision 3.59  2008/05/13 23:09:34  sueh
- * <p> $bug# 847 Removed unnecessary print statement.
- * <p> $
- * <p> $Revision 3.58  2008/04/02 02:29:07  sueh
- * <p> $bug# 1095 In getExistingDir simplified matches calls.
- * <p> $
- * <p> $Revision 3.57  2008/03/06 00:28:40  sueh
- * <p> $Fixed Easter Egg.
- * <p> $
- * <p> $Revision 3.56  2008/02/01 01:40:55  sueh
- * <p> $bug# 1075 Fixed Easter egg.
- * <p> $
- * <p> $Revision 3.55  2008/02/01 01:37:41  sueh
- * <p> $bug# 1075 Easter egg.
- * <p> $
- * <p> $Revision 3.54  2007/12/26 22:42:14  sueh
- * <p> $bug# 1052 Moved argument handling from EtomoDirector to a separate class.
- * <p> $
- * <p> $Revision 3.53  2007/09/07 00:31:37  sueh
- * <p> $bug# 989 Using a public INSTANCE to refer to the EtomoDirector singleton
- * <p> $instead of getInstance and createInstance.
- * <p> $
- * <p> $Revision 3.52  2007/03/01 01:48:23  sueh
- * <p> $bug# 964 Added LogFile to Autodoc.
- * <p> $
- * <p> $Revision 3.51  2006/10/24 23:35:40  sueh
- * <p> $bug# 947, bug# 948
- * <p> $
- * <p> $Revision 3.50  2006/08/18 23:26:31  sueh
- * <p> $bug# 852 convertLabelToName:  keeping the leading dash
- * <p> $
- * <p> $Revision 3.49  2006/07/04 18:15:28  sueh
- * <p> $bug# 897 renameFile():  Tell user to close 3dmod in Windows.
- * <p> $
- * <p> $Revision 3.48  2006/06/30 16:30:54  sueh
- * <p> $bug# 883 Replaced getEnvironmentVariable() with EnvironmentVariable, a class
- * <p> $to get and store environment variables.
- * <p> $
- * <p> $Revision 3.47  2006/06/14 00:47:26  sueh
- * <p> $bug# 852 Changed the int type to an inner Type claass.
- * <p> $
- * <p> $Revision 3.46  2006/06/07 20:38:56  sueh
- * <p> $bug# 766 Added isMacOS().
- * <p> $
- * <p> $Revision 3.45  2006/05/22 22:53:12  sueh
- * <p> $bug# 577 Placed commands in a String[] rather then a String.
- * <p> $
- * <p> $Revision 3.44  2006/04/28 21:13:14  sueh
- * <p> $bug# 787 ConvertLabelToName:  when there is nothing in the string
- * <p> $except for characters to be stripped, return "-".  This makes the expand
- * <p> $button work.
- * <p> $
- * <p> $Revision 3.43  2006/04/25 19:42:03  sueh
- * <p> $bug# 787 Made getTimestamp() public.
- * <p> $
- * <p> $Revision 3.42  2006/04/07 23:32:57  sueh
- * <p> $bug# 846 Changing the background colors for java 1.5.
- * <p> $
- * <p> $Revision 3.41  2006/04/06 20:34:58  sueh
- * <p> $bug# 808 Moved the function convertLabelToName from UIUtilities to
- * <p> $util.Utilities.
- * <p> $
- * <p> $Revision 3.40  2006/03/20 18:10:07  sueh
- * <p> $bug# 835 Added getName (a convenience function) to the managers.
- * <p> $
- * <p> $Revision 3.39  2006/02/16 16:56:59  sueh
- * <p> $bug# 796 Windows:  in getEnvironmentVariable(), handle missing
- * <p> $environment variable.
- * <p> $
- * <p> $Revision 3.38  2006/01/06 21:41:34  sueh
- * <p> $bug# 793 Fixed getDir(String, AxisID) so it returns null when the environment
- * <p> $variable isn't set.
- * <p> $
- * <p> $Revision 3.37  2006/01/04 00:34:31  sueh
- * <p> $bug# 675 Making class more independent from EtomoDirector.
- * <p> $
- * <p> $Revision 3.36  2005/12/09 20:40:30  sueh
- * <p> $bug#776 added findMessageAndOpenDialog                                                                                                                                                                    bug#
- * <p> $
- * <p> $Revision 3.35  2005/12/05 21:58:35  sueh
- * <p> $bug# 674 Added comments to the new functions.
- * <p> $
- * <p> $Revision 3.34  2005/12/05 21:41:17  sueh
- * <p> $bug# 674 Added round(), convertToScientificNotation(), and
- * <p> $breakAndTrim().
- * <p> $
- * <p> $Revision 3.33  2005/11/29 22:54:26  sueh
- * <p> $Removed print statement.
- * <p> $
- * <p> $Revision 3.32  2005/11/21 22:04:07  sueh
- * <p> $bug# 733 In isWindowOS(), only call System.getProperty("os.name") one
- * <p> $time per application instance.
- * <p> $
- * <p> $Revision 3.31  2005/11/21 18:17:25  sueh
- * <p> $bug# 733 problem with unit tests in windows.
- * <p> $
- * <p> $Revision 3.30  2005/09/14 20:27:17  sueh
- * <p> $bug# 532 Added timestamp(void).
- * <p> $
- * <p> $Revision 3.29  2005/09/13 00:38:44  sueh
- * <p> $bug# 532 call isDebug() in isTimestamp().
- * <p> $
- * <p> $Revision 3.28  2005/09/13 00:28:36  sueh
- * <p> $Prevent logging timestamp unless either the debug or timestamp option is
- * <p> $on.
- * <p> $
- * <p> $Revision 3.27  2005/09/09 21:48:44  sueh
- * <p> $bug# 532 Handling null from stderr and stdout.
- * <p> $
- * <p> $Revision 3.26  2005/08/27 22:44:21  sueh
- * <p> $bug# 532 In Utilities.timestamp() change the int status to String status,
- * <p> $since it doesn't have to be compared.
- * <p> $
- * <p> $Revision 3.25  2005/08/24 22:41:03  sueh
- * <p> $bug# 715 Added a version of timestamp() which uses ProcessName.
- * <p> $
- * <p> $Revision 3.24  2005/07/29 00:56:32  sueh
- * <p> $bug# 709 Going to EtomoDirector to get the current manager is unreliable
- * <p> $because the current manager changes when the user changes the tab.
- * <p> $Passing the manager where its needed.
- * <p> $
- * <p> $Revision 3.23  2005/06/21 20:34:03  sueh
- * <p> $bug# 522 Changed getFile(String) to handle absolute filenames from
- * <p> $windows which contain the drive letter.
- * <p> $
- * <p> $Revision 3.22  2005/06/21 00:56:52  sueh
- * <p> $bug# 522 Added isWindowsOS().  Added getFile(AxisID, String extension),
- * <p> $Added getFile(String filename).
- * <p> $
- * <p> $Revision 3.21  2005/06/20 17:09:31  sueh
- * <p> $bug# 522 Added isSelfTest().
- * <p> $
- * <p> $Revision 3.20  2005/06/17 20:02:21  sueh
- * <p> $bug# 685 Added timestamp functions for ComScript and File types.
- * <p> $Added code to the main timestamp function to strip the path from a file
- * <p> $name.  These changes reduces the amount of timestamp related code
- * <p> $being executed when debug is off.
- * <p> $
- * <p> $Revision 3.19  2005/06/17 19:18:04  sueh
- * <p> $bug# 685 Put all timestamp functionality into one function.  Added
- * <p> $buttonTimestamp to provide an interface to the main timestamp function.
- * <p> $
- * <p> $Revision 3.18  2005/06/17 17:49:18  sueh
- * <p> $bug# 685 Added getTimestamp() and setStartTime() to get a relative
- * <p> $timestamp.
- * <p> $
- * <p> $Revision 3.17  2005/06/17 16:48:07  sueh
- * <p> $bug# 685 Changed timestamp to milliseconds number.
- * <p> $
- * <p> $Revision 3.16  2005/06/17 00:36:01  sueh
- * <p> $bug# 685 Added timestamp functions and isDebug().
- * <p> $
- * <p> $Revision 3.15  2005/05/31 23:12:11  sueh
- * <p> $bug# 667 Changed EtomoDirector.getCurrentMetaData() to
- * <p> $getCurrentName().
- * <p> $
- * <p> $Revision 3.14  2005/05/26 21:09:44  rickg
- * <p> $Print out file name with error dialog
- * <p> $
- * <p> $Revision 3.13  2005/05/18 22:49:50  sueh
- * <p> $bug# 662 Changed Utilities.fileExists() to get metaData from
- * <p> $EtomoDirector, instead of receiving it as a parameter.  Moved getFile()
- * <p> $from ApplicationManager to this class.
- * <p> $
- * <p> $Revision 3.12  2005/04/25 21:44:27  sueh
- * <p> $bug# 615 Passing the axis where a command originates to the message
- * <p> $functions so that the message will be popped up in the correct window.
- * <p> $This requires adding AxisID to many objects.
- * <p> $
- * <p> $Revision 3.11  2004/11/20 00:15:34  sueh
- * <p> $bug# 520 merging Etomo_3-4-6_JOIN branch to head.
- * <p> $
- * <p> $Revision 3.10.2.6  2004/11/15 22:26:49  sueh
- * <p> $bug# 520 Moved all of file validation to Utilities so that is called be called
- * <p> $from other places.
- * <p> $
- * <p> $Revision 3.10.2.5  2004/10/29 01:23:27  sueh
- * <p> $bug# 520 Added isValidFile().
- * <p> $
- * <p> $Revision 3.10.2.4  2004/10/28 17:09:38  sueh
- * <p> $bug# 520 Adding mostRecentFile.
- * <p> $
- * <p> $Revision 3.10.2.3  2004/10/11 02:29:06  sueh
- * <p> $bug# 520 Using a variable called propertyUserDir instead of the "user.dir"
- * <p> $property.  This property would need a different value for each manager.
- * <p> $This variable can be retrieved from the manager if the object knows its
- * <p> $manager.  Otherwise it can retrieve it from the current manager using the
- * <p> $EtomoDirector singleton.  If there is no current manager, EtomoDirector
- * <p> $gets the value from the "user.dir" property.
- * <p> $
- * <p> $Revision 3.10.2.2  2004/10/08 16:41:57  sueh
- * <p> $bug# 520 Since EtomoDirector is a singleton, made all functions and
- * <p> $member variables non-static.
- * <p> $
- * <p> $Revision 3.10.2.1  2004/09/03 21:19:31  sueh
- * <p> $bug# 520 calling functions from EtomoDirector instead of
- * <p> $ApplicationManager
- * <p> $
- * <p> $Revision 3.10  2004/08/06 23:11:30  sueh
- * <p> $bug# 508 added a writeFile() function, which writes an array
- * <p> $of strings to a file.  If newFile is true, it will call Utilities.renameFile(),
- * <p> $and then write the strings to a new, empty file.
- * <p> $
- * <p> $Revision 3.9  2004/07/16 23:01:27  sueh
- * <p> $bug# 501 sending System.out prints only when debug is set
- * <p> $
- * <p> $Revision 3.8  2004/07/13 17:26:50  sueh
- * <p> $bug# 429 make fix global
- * <p> $
- * <p> $Revision 3.7  2004/04/28 19:57:30  rickg
- * <p> $bug #429 Created file rename function to handle windows bug
- * <p> $
- * <p> $Revision 3.6  2004/04/26 23:32:13  rickg
- * <p> $Checked for null buffers, because nio does work on 2.4 kernels
- * <p> $not on 2.6 kernel yet
- * <p> $
- * <p> $Revision 3.5  2004/04/26 23:19:20  rickg
- * <p> $Added buffering to the non nio file copy
- * <p> $
- * <p> $Revision 3.4  2004/04/22 23:23:04  rickg
- * <p> $Added copyFile
- * <p> $Modified calling parameter in fileExists
- * <p> $
- * <p> $Revision 3.3  2004/04/08 19:12:10  rickg
- * <p> $Added millisToMinAndSecs method
- * <p> $
- * <p> $Revision 3.2  2003/12/05 01:24:23  sueh
- * <p> $bug242 moved getEnvironmentVariable() to Utilities
- * <p> $
- * <p> $Revision 3.1  2003/11/27 00:05:28  rickg
- * <p> $Added debugPrint static method
- * <p> $
- * <p> $Revision 3.0  2003/11/07 23:19:01  rickg
- * <p> $Version 1.0.0
- * <p> $
- * <p> $Revision 1.2  2003/10/10 23:17:01  sueh
- * <p> $bug251 removing marks
- * <p> $
- * <p> $Revision 1.1  2003/10/07 22:43:13  sueh
- * <p> $bug251 moved transferfid from fine alignment dialog
- * <p> $to fiducial model dialog
- * <p> $$</p>
- */
-
 package etomo.util;
 
 import java.io.BufferedInputStream;
@@ -335,6 +10,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import etomo.ApplicationManager;
@@ -352,6 +28,326 @@ import etomo.ui.swing.Token;
 import etomo.ui.swing.UIHarness;
 import etomo.comscript.ComScript;
 
+/**
+ * <p>Description: A class containing utility methods.</p>
+ * <p/>
+ * <p>Copyright: Copyright 2002 to 2014 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
+ *
+ * @version $Date$ $Revision$
+ *          <p/>
+ *          <p> $$Log$
+ *          <p> $Revision 3.80  2011/06/28 20:02:20  sueh
+ *          <p> $Removed test print from isWindowsOS.
+ *          <p> $
+ *          <p> $Revision 3.79  2011/06/28 16:57:11  sueh
+ *          <p> $In windowsOS added print statement during test.
+ *          <p> $
+ *          <p> $Revision 3.78  2011/06/28 02:34:00  sueh
+ *          <p> $Bug# 1501 Corrected error message.
+ *          <p> $
+ *          <p> $Revision 3.77  2011/02/22 21:54:38  sueh
+ *          <p> $bug# 1437 Reformatting.
+ *          <p> $
+ *          <p> $Revision 3.76  2010/11/13 16:08:59  sueh
+ *          <p> $bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ *          <p> $
+ *          <p> $Revision 3.75  2010/05/20 23:55:19  sueh
+ *          <p> $bug# 1360 Adding new versions off checkExistingDir and getExistingDir
+ *          <p> $that allow a custom failure message.
+ *          <p> $
+ *          <p> $Revision 3.74  2010/04/28 16:51:17  sueh
+ *          <p> $bug# 1344 Added backFile.
+ *          <p> $
+ *          <p> $Revision 3.73  2010/04/09 15:46:52  sueh
+ *          <p> $bug# 1353 Removed null pointer exception problem in getFile(String,String).
+ *          <p> $
+ *          <p> $Revision 3.72  2010/03/12 04:28:30  sueh
+ *          <p> $bug# 1325 Added deleteFileType.
+ *          <p> $
+ *          <p> $Revision 3.71  2010/03/09 22:09:12  sueh
+ *          <p> $bug# 1325 Added getStackBinning.
+ *          <p> $
+ *          <p> $Revision 3.70  2010/02/26 20:38:42  sueh
+ *          <p> $Changing the complex popup titles are making it hard to complete the
+ *          <p> $uitests.
+ *          <p> $
+ *          <p> $Revision 3.69  2010/02/23 20:32:47  sueh
+ *          <p> $Removed unnecessary stack trace print in rename.
+ *          <p> $
+ *          <p> $Revision 3.68  2010/02/17 05:05:58  sueh
+ *          <p> $bug# 1301 Using manager instead of manager key for popping up
+ *          <p> $messages.
+ *          <p> $
+ *          <p> $Revision 3.67  2009/09/02 22:47:07  sueh
+ *          <p> $bug# 1254 Added isValidStack.
+ *          <p> $
+ *          <p> $Revision 3.66  2009/06/10 17:28:44  sueh
+ *          <p> $bug# 1202 Corrected comment.
+ *          <p> $
+ *          <p> $Revision 3.65  2009/03/17 00:46:43  sueh
+ *          <p> $bug# 1186 Pass managerKey to everything that pops up a dialog.
+ *          <p> $
+ *          <p> $Revision 3.64  2009/02/27 03:54:54  sueh
+ *          <p> $bug# 1188 Removed unnecessary Java version check.
+ *          <p> $
+ *          <p> $Revision 3.63  2009/02/04 23:38:03  sueh
+ *          <p> $bug# 1158 Added getDataTimeStamp.
+ *          <p> $
+ *          <p> $Revision 3.62  2009/01/20 20:34:32  sueh
+ *          <p> $bug# 1102 Changed convertLabelToName(String,ProcessName) to
+ *          <p> $convertLabelToName(String,String,String).
+ *          <p> $
+ *          <p> $Revision 3.61  2008/12/10 18:35:02  sueh
+ *          <p> $bug# 1162 Added dateTimeStamp and managerStamp.
+ *          <p> $
+ *          <p> $Revision 3.60  2008/12/02 21:25:47  sueh
+ *          <p> $bug# 1157 Removed unecessary rounding functions breakAndTrim, covertToScienticNotation, and round.
+ *          <p> $
+ *          <p> $Revision 3.59  2008/05/13 23:09:34  sueh
+ *          <p> $bug# 847 Removed unnecessary print statement.
+ *          <p> $
+ *          <p> $Revision 3.58  2008/04/02 02:29:07  sueh
+ *          <p> $bug# 1095 In getExistingDir simplified matches calls.
+ *          <p> $
+ *          <p> $Revision 3.57  2008/03/06 00:28:40  sueh
+ *          <p> $Fixed Easter Egg.
+ *          <p> $
+ *          <p> $Revision 3.56  2008/02/01 01:40:55  sueh
+ *          <p> $bug# 1075 Fixed Easter egg.
+ *          <p> $
+ *          <p> $Revision 3.55  2008/02/01 01:37:41  sueh
+ *          <p> $bug# 1075 Easter egg.
+ *          <p> $
+ *          <p> $Revision 3.54  2007/12/26 22:42:14  sueh
+ *          <p> $bug# 1052 Moved argument handling from EtomoDirector to a separate class.
+ *          <p> $
+ *          <p> $Revision 3.53  2007/09/07 00:31:37  sueh
+ *          <p> $bug# 989 Using a public INSTANCE to refer to the EtomoDirector singleton
+ *          <p> $instead of getInstance and createInstance.
+ *          <p> $
+ *          <p> $Revision 3.52  2007/03/01 01:48:23  sueh
+ *          <p> $bug# 964 Added LogFile to Autodoc.
+ *          <p> $
+ *          <p> $Revision 3.51  2006/10/24 23:35:40  sueh
+ *          <p> $bug# 947, bug# 948
+ *          <p> $
+ *          <p> $Revision 3.50  2006/08/18 23:26:31  sueh
+ *          <p> $bug# 852 convertLabelToName:  keeping the leading dash
+ *          <p> $
+ *          <p> $Revision 3.49  2006/07/04 18:15:28  sueh
+ *          <p> $bug# 897 renameFile():  Tell user to close 3dmod in Windows.
+ *          <p> $
+ *          <p> $Revision 3.48  2006/06/30 16:30:54  sueh
+ *          <p> $bug# 883 Replaced getEnvironmentVariable() with EnvironmentVariable, a class
+ *          <p> $to get and store environment variables.
+ *          <p> $
+ *          <p> $Revision 3.47  2006/06/14 00:47:26  sueh
+ *          <p> $bug# 852 Changed the int type to an inner Type claass.
+ *          <p> $
+ *          <p> $Revision 3.46  2006/06/07 20:38:56  sueh
+ *          <p> $bug# 766 Added isMacOS().
+ *          <p> $
+ *          <p> $Revision 3.45  2006/05/22 22:53:12  sueh
+ *          <p> $bug# 577 Placed commands in a String[] rather then a String.
+ *          <p> $
+ *          <p> $Revision 3.44  2006/04/28 21:13:14  sueh
+ *          <p> $bug# 787 ConvertLabelToName:  when there is nothing in the string
+ *          <p> $except for characters to be stripped, return "-".  This makes the expand
+ *          <p> $button work.
+ *          <p> $
+ *          <p> $Revision 3.43  2006/04/25 19:42:03  sueh
+ *          <p> $bug# 787 Made getTimestamp() public.
+ *          <p> $
+ *          <p> $Revision 3.42  2006/04/07 23:32:57  sueh
+ *          <p> $bug# 846 Changing the background colors for java 1.5.
+ *          <p> $
+ *          <p> $Revision 3.41  2006/04/06 20:34:58  sueh
+ *          <p> $bug# 808 Moved the function convertLabelToName from UIUtilities to
+ *          <p> $util.Utilities.
+ *          <p> $
+ *          <p> $Revision 3.40  2006/03/20 18:10:07  sueh
+ *          <p> $bug# 835 Added getName (a convenience function) to the managers.
+ *          <p> $
+ *          <p> $Revision 3.39  2006/02/16 16:56:59  sueh
+ *          <p> $bug# 796 Windows:  in getEnvironmentVariable(), handle missing
+ *          <p> $environment variable.
+ *          <p> $
+ *          <p> $Revision 3.38  2006/01/06 21:41:34  sueh
+ *          <p> $bug# 793 Fixed getDir(String, AxisID) so it returns null when the environment
+ *          <p> $variable isn't set.
+ *          <p> $
+ *          <p> $Revision 3.37  2006/01/04 00:34:31  sueh
+ *          <p> $bug# 675 Making class more independent from EtomoDirector.
+ *          <p> $
+ *          <p> $Revision 3.36  2005/12/09 20:40:30  sueh
+ *          <p> $bug#776 added findMessageAndOpenDialog                                                                                                                                                                    bug#
+ *          <p> $
+ *          <p> $Revision 3.35  2005/12/05 21:58:35  sueh
+ *          <p> $bug# 674 Added comments to the new functions.
+ *          <p> $
+ *          <p> $Revision 3.34  2005/12/05 21:41:17  sueh
+ *          <p> $bug# 674 Added round(), convertToScientificNotation(), and
+ *          <p> $breakAndTrim().
+ *          <p> $
+ *          <p> $Revision 3.33  2005/11/29 22:54:26  sueh
+ *          <p> $Removed print statement.
+ *          <p> $
+ *          <p> $Revision 3.32  2005/11/21 22:04:07  sueh
+ *          <p> $bug# 733 In isWindowOS(), only call System.getProperty("os.name") one
+ *          <p> $time per application instance.
+ *          <p> $
+ *          <p> $Revision 3.31  2005/11/21 18:17:25  sueh
+ *          <p> $bug# 733 problem with unit tests in windows.
+ *          <p> $
+ *          <p> $Revision 3.30  2005/09/14 20:27:17  sueh
+ *          <p> $bug# 532 Added timestamp(void).
+ *          <p> $
+ *          <p> $Revision 3.29  2005/09/13 00:38:44  sueh
+ *          <p> $bug# 532 call isDebug() in isTimestamp().
+ *          <p> $
+ *          <p> $Revision 3.28  2005/09/13 00:28:36  sueh
+ *          <p> $Prevent logging timestamp unless either the debug or timestamp option is
+ *          <p> $on.
+ *          <p> $
+ *          <p> $Revision 3.27  2005/09/09 21:48:44  sueh
+ *          <p> $bug# 532 Handling null from stderr and stdout.
+ *          <p> $
+ *          <p> $Revision 3.26  2005/08/27 22:44:21  sueh
+ *          <p> $bug# 532 In Utilities.timestamp() change the int status to String status,
+ *          <p> $since it doesn't have to be compared.
+ *          <p> $
+ *          <p> $Revision 3.25  2005/08/24 22:41:03  sueh
+ *          <p> $bug# 715 Added a version of timestamp() which uses ProcessName.
+ *          <p> $
+ *          <p> $Revision 3.24  2005/07/29 00:56:32  sueh
+ *          <p> $bug# 709 Going to EtomoDirector to get the current manager is unreliable
+ *          <p> $because the current manager changes when the user changes the tab.
+ *          <p> $Passing the manager where its needed.
+ *          <p> $
+ *          <p> $Revision 3.23  2005/06/21 20:34:03  sueh
+ *          <p> $bug# 522 Changed getFile(String) to handle absolute filenames from
+ *          <p> $windows which contain the drive letter.
+ *          <p> $
+ *          <p> $Revision 3.22  2005/06/21 00:56:52  sueh
+ *          <p> $bug# 522 Added isWindowsOS().  Added getFile(AxisID, String extension),
+ *          <p> $Added getFile(String filename).
+ *          <p> $
+ *          <p> $Revision 3.21  2005/06/20 17:09:31  sueh
+ *          <p> $bug# 522 Added isSelfTest().
+ *          <p> $
+ *          <p> $Revision 3.20  2005/06/17 20:02:21  sueh
+ *          <p> $bug# 685 Added timestamp functions for ComScript and File types.
+ *          <p> $Added code to the main timestamp function to strip the path from a file
+ *          <p> $name.  These changes reduces the amount of timestamp related code
+ *          <p> $being executed when debug is off.
+ *          <p> $
+ *          <p> $Revision 3.19  2005/06/17 19:18:04  sueh
+ *          <p> $bug# 685 Put all timestamp functionality into one function.  Added
+ *          <p> $buttonTimestamp to provide an interface to the main timestamp function.
+ *          <p> $
+ *          <p> $Revision 3.18  2005/06/17 17:49:18  sueh
+ *          <p> $bug# 685 Added getTimestamp() and setStartTime() to get a relative
+ *          <p> $timestamp.
+ *          <p> $
+ *          <p> $Revision 3.17  2005/06/17 16:48:07  sueh
+ *          <p> $bug# 685 Changed timestamp to milliseconds number.
+ *          <p> $
+ *          <p> $Revision 3.16  2005/06/17 00:36:01  sueh
+ *          <p> $bug# 685 Added timestamp functions and isDebug().
+ *          <p> $
+ *          <p> $Revision 3.15  2005/05/31 23:12:11  sueh
+ *          <p> $bug# 667 Changed EtomoDirector.getCurrentMetaData() to
+ *          <p> $getCurrentName().
+ *          <p> $
+ *          <p> $Revision 3.14  2005/05/26 21:09:44  rickg
+ *          <p> $Print out file name with error dialog
+ *          <p> $
+ *          <p> $Revision 3.13  2005/05/18 22:49:50  sueh
+ *          <p> $bug# 662 Changed Utilities.fileExists() to get metaData from
+ *          <p> $EtomoDirector, instead of receiving it as a parameter.  Moved getFile()
+ *          <p> $from ApplicationManager to this class.
+ *          <p> $
+ *          <p> $Revision 3.12  2005/04/25 21:44:27  sueh
+ *          <p> $bug# 615 Passing the axis where a command originates to the message
+ *          <p> $functions so that the message will be popped up in the correct window.
+ *          <p> $This requires adding AxisID to many objects.
+ *          <p> $
+ *          <p> $Revision 3.11  2004/11/20 00:15:34  sueh
+ *          <p> $bug# 520 merging Etomo_3-4-6_JOIN branch to head.
+ *          <p> $
+ *          <p> $Revision 3.10.2.6  2004/11/15 22:26:49  sueh
+ *          <p> $bug# 520 Moved all of file validation to Utilities so that is called be called
+ *          <p> $from other places.
+ *          <p> $
+ *          <p> $Revision 3.10.2.5  2004/10/29 01:23:27  sueh
+ *          <p> $bug# 520 Added isValidFile().
+ *          <p> $
+ *          <p> $Revision 3.10.2.4  2004/10/28 17:09:38  sueh
+ *          <p> $bug# 520 Adding mostRecentFile.
+ *          <p> $
+ *          <p> $Revision 3.10.2.3  2004/10/11 02:29:06  sueh
+ *          <p> $bug# 520 Using a variable called propertyUserDir instead of the "user.dir"
+ *          <p> $property.  This property would need a different value for each manager.
+ *          <p> $This variable can be retrieved from the manager if the object knows its
+ *          <p> $manager.  Otherwise it can retrieve it from the current manager using the
+ *          <p> $EtomoDirector singleton.  If there is no current manager, EtomoDirector
+ *          <p> $gets the value from the "user.dir" property.
+ *          <p> $
+ *          <p> $Revision 3.10.2.2  2004/10/08 16:41:57  sueh
+ *          <p> $bug# 520 Since EtomoDirector is a singleton, made all functions and
+ *          <p> $member variables non-static.
+ *          <p> $
+ *          <p> $Revision 3.10.2.1  2004/09/03 21:19:31  sueh
+ *          <p> $bug# 520 calling functions from EtomoDirector instead of
+ *          <p> $ApplicationManager
+ *          <p> $
+ *          <p> $Revision 3.10  2004/08/06 23:11:30  sueh
+ *          <p> $bug# 508 added a writeFile() function, which writes an array
+ *          <p> $of strings to a file.  If newFile is true, it will call Utilities.renameFile(),
+ *          <p> $and then write the strings to a new, empty file.
+ *          <p> $
+ *          <p> $Revision 3.9  2004/07/16 23:01:27  sueh
+ *          <p> $bug# 501 sending System.out prints only when debug is set
+ *          <p> $
+ *          <p> $Revision 3.8  2004/07/13 17:26:50  sueh
+ *          <p> $bug# 429 make fix global
+ *          <p> $
+ *          <p> $Revision 3.7  2004/04/28 19:57:30  rickg
+ *          <p> $bug #429 Created file rename function to handle windows bug
+ *          <p> $
+ *          <p> $Revision 3.6  2004/04/26 23:32:13  rickg
+ *          <p> $Checked for null buffers, because nio does work on 2.4 kernels
+ *          <p> $not on 2.6 kernel yet
+ *          <p> $
+ *          <p> $Revision 3.5  2004/04/26 23:19:20  rickg
+ *          <p> $Added buffering to the non nio file copy
+ *          <p> $
+ *          <p> $Revision 3.4  2004/04/22 23:23:04  rickg
+ *          <p> $Added copyFile
+ *          <p> $Modified calling parameter in fileExists
+ *          <p> $
+ *          <p> $Revision 3.3  2004/04/08 19:12:10  rickg
+ *          <p> $Added millisToMinAndSecs method
+ *          <p> $
+ *          <p> $Revision 3.2  2003/12/05 01:24:23  sueh
+ *          <p> $bug242 moved getEnvironmentVariable() to Utilities
+ *          <p> $
+ *          <p> $Revision 3.1  2003/11/27 00:05:28  rickg
+ *          <p> $Added debugPrint static method
+ *          <p> $
+ *          <p> $Revision 3.0  2003/11/07 23:19:01  rickg
+ *          <p> $Version 1.0.0
+ *          <p> $
+ *          <p> $Revision 1.2  2003/10/10 23:17:01  sueh
+ *          <p> $bug251 removing marks
+ *          <p> $
+ *          <p> $Revision 1.1  2003/10/07 22:43:13  sueh
+ *          <p> $bug251 moved transferfid from fine alignment dialog
+ *          <p> $to fiducial model dialog
+ *          <p> $$</p>
+ */
 public class Utilities {
   public static final String ACTION_TAG = "Etomo Action: ";
 
@@ -379,7 +375,8 @@ public class Utilities {
    * Returns an element from a comma-divided list stored in a string.  Returns null if the
    * requested element does not exist.  The element's leading and trailing whitespace will
    * be removed from the return value.
-   * @param list - comma-divided list
+   *
+   * @param list  - comma-divided list
    * @param index - index of the element
    * @return
    */
@@ -395,6 +392,7 @@ public class Utilities {
 
   /**
    * Convert milliseconds into a string of the format Minutes:Seconds
+   *
    * @param milliseconds
    * @return
    */
@@ -412,14 +410,15 @@ public class Utilities {
 
   /**
    * Check see if the particular dataset file exists
+   *
    * @param metaData
    * @param extension
    * @param axisID
    * @return true if the file exist
    */
   public static boolean fileExists(BaseManager manager, String extension, AxisID axisID) {
-    File file = new File(manager.getPropertyUserDir(), manager.getBaseMetaData()
-        .getName() + axisID.getExtension() + extension);
+    File file = new File(manager.getPropertyUserDir(),
+        manager.getBaseMetaData().getName() + axisID.getExtension() + extension);
     if (file.exists()) {
       return true;
     }
@@ -429,27 +428,29 @@ public class Utilities {
   /**
    * Creates a file name and a file.  If the file doesn't exist and mustExist is
    * true, it complains and returns null, otherwise it returns the file.
+   *
    * @param mustExist
    * @param axisID
    * @param extension
-   * @param fileType A string used in the error dialog
+   * @param fileType  A string used in the error dialog
    * @return
    */
   public static File getFile(BaseManager manager, boolean mustExist, AxisID axisID,
       String extension, String fileDescription) {
-    File file = new File(manager.getPropertyUserDir(), manager.getName()
-        + axisID.getExtension() + extension);
+    File file = new File(manager.getPropertyUserDir(),
+        manager.getName() + axisID.getExtension() + extension);
     if (!file.exists() && mustExist) {
-      UIHarness.INSTANCE.openMessageDialog(manager, "The " + fileDescription + " file: "
-          + file.getAbsolutePath() + " doesn't exist.", "Missing File", axisID);
+      UIHarness.INSTANCE.openMessageDialog(manager,
+          "The " + fileDescription + " file: " + file.getAbsolutePath() +
+              " doesn't exist.", "Missing File", axisID);
       return null;
     }
     return file;
   }
 
   public static File getFile(BaseManager manager, AxisID axisID, String extension) {
-    File file = new File(manager.getPropertyUserDir(), manager.getName()
-        + axisID.getExtension() + extension);
+    File file = new File(manager.getPropertyUserDir(),
+        manager.getName() + axisID.getExtension() + extension);
     return file;
   }
 
@@ -467,8 +468,8 @@ public class Utilities {
     }
     if (isWindowsOS()) {
       int driveIndex = filename.indexOf(':');
-      if (driveIndex != -1 && driveIndex < filename.length() - 1
-          && filename.charAt(driveIndex + 1) == File.separatorChar) {
+      if (driveIndex != -1 && driveIndex < filename.length() - 1 &&
+          filename.charAt(driveIndex + 1) == File.separatorChar) {
         return new File(filename);
       }
     }
@@ -477,14 +478,15 @@ public class Utilities {
 
   /**
    * Returns false if MRCHeader throws an exception when it reads file.
+   *
    * @param file
    * @param manager
    * @param axisID
    * @return
    */
   public static boolean isValidStack(File file, BaseManager manager, AxisID axisID) {
-    MRCHeader header = MRCHeader.getInstance(manager.getPropertyUserDir(),
-        file.getName(), axisID);
+    MRCHeader header =
+        MRCHeader.getInstance(manager.getPropertyUserDir(), file.getName(), axisID);
     boolean validMrcFile = false;
     try {
       header.read(manager);
@@ -510,19 +512,22 @@ public class Utilities {
     if (!EtomoDirector.INSTANCE.getArguments().isActions()) {
       return null;
     }
-    return ACTION_TAG + "Renamed " + from.getName() + " to " + to.getName();
+    return ACTION_TAG + "Renamed " + (from != null ? from.getName() : "") + " to " +
+        (to != null ? to.getName() : "");
   }
 
   public static String prepareCopyActionMessage(final File from, final File to) {
     if (!EtomoDirector.INSTANCE.getArguments().isActions()) {
       return null;
     }
-    return ACTION_TAG + "Copied " + from.getName() + " to " + to.getName();
+    return ACTION_TAG + "Copied " + (from != null ? from.getName() : "") + " to " +
+        (to != null ? to.getName() : "");
   }
 
   /**
    * Returns the command action message.  Returns null if the --actions parameter was not
    * set, or the commandAction string is null.
+   *
    * @param commandAction
    * @return
    */
@@ -539,12 +544,11 @@ public class Utilities {
       return null;
     }
     String command = commandArray[0].trim();
-    if ((commandArray.length == 1 && (command.equals("env") || command.equals("hostname") || (command
-        .equals("tcsh") && (stdInput == null || stdInput.length == 0))))
-        || command.endsWith("ssh")
-        || command.equals("ps")
-        || command.endsWith("3dmod")
-        || command.endsWith("imodsendevent")) {
+    if ((commandArray.length == 1 &&
+        (command.equals("env") || command.equals("hostname") ||
+            (command.equals("tcsh") && (stdInput == null || stdInput.length == 0)))) ||
+        command.endsWith("ssh") || command.equals("ps") || command.endsWith("3dmod") ||
+        command.endsWith("imodsendevent")) {
       return null;
     }
     int commandLength = 1;
@@ -591,9 +595,8 @@ public class Utilities {
       if (param.endsWith("alignlog")) {
         showDash = true;
       }
-      if (!showDash
-          && (param.startsWith("-") || (isWindowsOS() && param.length() == 2 && param
-              .startsWith("/")))) {
+      if (!showDash && (param.startsWith("-") ||
+          (isWindowsOS() && param.length() == 2 && param.startsWith("/")))) {
         continue;
       }
       if (i >= commandLength) {
@@ -707,10 +710,10 @@ public class Utilities {
       return null;
     }
     commandLine = commandLine.trim();
-    if (commandLine.equals("env") || commandLine.equals("hostname")
-        || commandLine.indexOf("ssh") != -1 || commandLine.indexOf("ps") != -1
-        || commandLine.indexOf("3dmod") != -1
-        || commandLine.indexOf("imodsendevent") != -1) {
+    if (commandLine.equals("env") || commandLine.equals("hostname") ||
+        commandLine.indexOf("ssh") != -1 || commandLine.indexOf("ps") != -1 ||
+        commandLine.indexOf("3dmod") != -1 ||
+        commandLine.indexOf("imodsendevent") != -1) {
       return null;
     }
     return commandLine;
@@ -719,6 +722,7 @@ public class Utilities {
   /**
    * Returns an action messages if this functionality is turned on and the dialog type has
    * changed.
+   *
    * @param dialogType
    * @param axisID
    * @param oldDialogType
@@ -726,8 +730,8 @@ public class Utilities {
    */
   public static String prepareDialogActionMessage(final DialogType dialogType,
       final AxisID axisID, final DialogType oldDialogType) {
-    if (!EtomoDirector.INSTANCE.getArguments().isActions() || dialogType == null
-        || dialogType == oldDialogType) {
+    if (!EtomoDirector.INSTANCE.getArguments().isActions() || dialogType == null ||
+        dialogType == oldDialogType) {
       return null;
     }
     String axis = "";
@@ -742,7 +746,8 @@ public class Utilities {
    * function.  If the destination file exists, fail.
    * This need serious work arounds because of the random failure bugs on
    * windows.  See sun java bugs: 4017593, 4017593, 4042592
-   * @param source - file to be moved
+   *
+   * @param source      - file to be moved
    * @param destination - new file for source file
    * @throws IOException
    */
@@ -753,15 +758,15 @@ public class Utilities {
       return false;
     }
     if (!source.exists()) {
-      System.err.println("WARNING: unable to rename - " + source.getName()
-          + " does not exist.");
+      System.err.println(
+          "WARNING: unable to rename - " + source.getName() + " does not exist.");
       return false;
     }
     // If the destination exists, exit
     if (destination.exists()) {
       UIHarness.INSTANCE.openMessageDialog(manager,
-          "Unable to rename " + source.getName() + " to " + destination.getName()
-              + " because the target file already exists.", "Rename Failed", axisID);
+          "Unable to rename " + source.getName() + " to " + destination.getName() +
+              " because the target file already exists.", "Rename Failed", axisID);
       return false;
     }
     // Rename the existing log file
@@ -782,8 +787,9 @@ public class Utilities {
           System.err.println(destination.getAbsolutePath() + " does not exist");
         }
         System.err.println("Unable to rename file to: " + destination.getAbsolutePath());
-        StringBuffer message = new StringBuffer("Unable to rename "
-            + source.getAbsolutePath() + " to " + destination.getAbsolutePath());
+        StringBuffer message =
+            new StringBuffer("Unable to rename " + source.getAbsolutePath() + " to " +
+                destination.getAbsolutePath());
         if (isWindowsOS()) {
           message.append("\nIf either of these files is open in 3dmod, close 3dmod.");
         }
@@ -800,7 +806,8 @@ public class Utilities {
    * Rename a file working around the Windows bug
    * This need serious work arounds because of the random failure bugs on
    * windows.  See sun java bugs: 4017593, 4017593, 4042592
-   * @param source - file to be moved
+   *
+   * @param source      - file to be moved
    * @param destination - new file for source file
    */
   public static void renameFile(File source, File destination) throws IOException {
@@ -813,8 +820,8 @@ public class Utilities {
       // TODO implement interactive Bug# 1696
       Utilities.debugPrint(destination.getAbsolutePath() + " exists, deleting");
       if (!destination.delete()) {
-        System.err.println("Unable to delete destination file: "
-            + destination.getAbsolutePath());
+        System.err.println(
+            "Unable to delete destination file: " + destination.getAbsolutePath());
         if (destination.exists()) {
           System.err.println(destination.getAbsolutePath() + " still exists!");
         }
@@ -843,8 +850,9 @@ public class Utilities {
           System.err.println(destination.getAbsolutePath() + " does not exist");
         }
         System.err.println("Unable to rename file to: " + destination.getAbsolutePath());
-        StringBuffer message = new StringBuffer("Unable to rename "
-            + source.getAbsolutePath() + " to " + destination.getAbsolutePath());
+        StringBuffer message =
+            new StringBuffer("Unable to rename " + source.getAbsolutePath() + " to " +
+                destination.getAbsolutePath());
         if (isWindowsOS()) {
           message.append("\nIf either of these files is open in 3dmod, close 3dmod.");
         }
@@ -904,6 +912,7 @@ public class Utilities {
 
   /**
    * Returns the FileType corresponding to the most recent file in propertyUserDir.
+   *
    * @param manager
    * @param axisID
    * @param fileTypes
@@ -918,8 +927,8 @@ public class Utilities {
     int mostRecentIndex = -1;
     File file = null;
     long mostRecentFileTime = 0;
-    if (defaultIndex >= 0 && defaultIndex < fileTypes.length
-        && fileTypes[defaultIndex] != null) {
+    if (defaultIndex >= 0 && defaultIndex < fileTypes.length &&
+        fileTypes[defaultIndex] != null) {
       mostRecentIndex = defaultIndex;
       file = fileTypes[mostRecentIndex].getFile(manager, axisID);
       if (file != null && file.exists()) {
@@ -961,9 +970,16 @@ public class Utilities {
    * Copy a file using the fastest method available.
    */
   public static void copyFile(File source, File destination) throws IOException {
+    if (source == null) {
+      System.err
+          .println("Warning:  Unable to copyFile - source is null:  source" + source +
+              ",destination:" + destination);
+      return;
+    }
     if (source != null && source.equals(destination)) {
-      System.err.println("Warning:Can't copy a file to itself:source:" + source
-          + ",destination:" + destination);
+      System.err.println(
+          "Warning:Can't copy a file to itself:source:" + source + ",destination:" +
+              destination);
       return;
     }
     // Try using the nio method but if it fails fall back to BufferedFileReader/
@@ -987,8 +1003,9 @@ public class Utilities {
       sourceBuffer = new BufferedInputStream(sourceStream);
       destBuffer = new BufferedOutputStream(destStream);
       int byteIn;
-      while ((byteIn = sourceBuffer.read()) != -1)
+      while ((byteIn = sourceBuffer.read()) != -1) {
         destBuffer.write(byteIn);
+      }
     }
 
     // TODO: does each object need to be closed indivudually
@@ -1032,27 +1049,31 @@ public class Utilities {
 
   public static boolean deleteFileType(BaseManager manager, AxisID axisID,
       FileType fileType) {
-    File file = new File(manager.getPropertyUserDir(), fileType.getFileName(manager,
-        axisID));
+    return deleteFile(
+        new File(manager.getPropertyUserDir(), fileType.getFileName(manager, axisID)),
+        manager, axisID);
+  }
+
+  public static boolean deleteFile(final File file, final BaseManager manager, final AxisID axisID) {
     if (file.isFile()) {
       if (file.exists()) {
         if (!file.delete()) {
-          StringBuffer message = new StringBuffer("Unable to delete file: "
-              + file.getAbsolutePath());
+          StringBuffer message =
+              new StringBuffer("Unable to delete file: " + file.getAbsolutePath());
           if (Utilities.isWindowsOS()) {
             message.append("\nIf this file is open in 3dmod, close 3dmod.");
           }
-          UIHarness.INSTANCE.openMessageDialog(manager, message.toString(),
-              "Can not delete file", axisID);
+          UIHarness.INSTANCE
+              .openMessageDialog(manager, message.toString(), "Can not delete file",
+                  axisID);
           return false;
         }
       }
     }
     else if (file.isDirectory()) {
       SystemProgram remove = new SystemProgram(manager, manager.getPropertyUserDir(),
-          new String[] { "python", "-u",
-              ApplicationManager.getIMODBinPath() + "b3dremove", "-r",
-              file.getAbsolutePath() }, axisID);
+          new String[]{"python", "-u", ApplicationManager.getIMODBinPath() + "b3dremove",
+              "-r", file.getAbsolutePath()}, axisID);
       remove.run();
       if (file.exists()) {
         UIHarness.INSTANCE.openMessageDialog(manager, "Cannot delete the directory",
@@ -1084,6 +1105,7 @@ public class Utilities {
 
   /**
    * Strips the last colon (and anything following it) and returns it.
+   *
    * @param string
    * @return
    */
@@ -1098,10 +1120,14 @@ public class Utilities {
   /**
    * Strips the last colon (and anything following it) and returns the string in single
    * quotes.
+   *
    * @param string
    * @return
    */
   public static String quoteLabel(final String label) {
+    if (label == null) {
+      return null;
+    }
     char quote = '\'';
     return quote + stripLabel(label) + quote;
   }
@@ -1124,7 +1150,6 @@ public class Utilities {
   }
 
   /**
-   * 
    * @param file
    * @param strings
    * @throws IOException
@@ -1152,6 +1177,7 @@ public class Utilities {
 
   /**
    * validates a file and appends failure reason to invalidReason
+   *
    * @param file
    * @param invalidReason - must not be null
    * @param exists
@@ -1201,6 +1227,7 @@ public class Utilities {
 
   /**
    * Print timestamp in error log
+   *
    * @param command
    */
   public static void buttonTimestamp(String command) {
@@ -1209,6 +1236,7 @@ public class Utilities {
 
   /**
    * Print timestamp in error log
+   *
    * @param command
    * @param container
    */
@@ -1218,6 +1246,7 @@ public class Utilities {
 
   /**
    * Print timestamp in error log
+   *
    * @param process
    * @param container
    * @param status
@@ -1238,6 +1267,7 @@ public class Utilities {
 
   /**
    * Print timestamp in error log
+   *
    * @param process
    * @param command
    * @param container
@@ -1253,6 +1283,7 @@ public class Utilities {
 
   /**
    * Print timestamp in error log
+   *
    * @param process
    * @param command
    * @param container
@@ -1275,17 +1306,18 @@ public class Utilities {
 
   /**
    * Print timestamp in error log
+   *
    * @param process
    * @param command
    * @param container
-   * @param status 0 = started, 1 = finished, -1 = failed, or -100 = null
+   * @param status    0 = started, 1 = finished, -1 = failed, or -100 = null
    */
   public static void timestamp(String process, String command, String container,
       String status) {
     if (!timestamp) {
       return;
     }
-    StringBuffer buffer = new StringBuffer("TIMESTAMP: ");
+    StringBuilder buffer = new StringBuilder("TIMESTAMP: ");
     if (process != null) {
       buffer.append(process + " ");
     }
@@ -1340,6 +1372,10 @@ public class Utilities {
   public static String getDateTimeStamp(final boolean includeMs) {
     Date date = new Date();
     return date.toString() + (includeMs ? ", " + date.getTime() % 1000 + " ms" : "");
+  }
+
+  public static String getDateTimeStampRootName() {
+    return new SimpleDateFormat("MMMdd-HHmmss").format(new Date());
   }
 
   public static String getDateTimeStamp() {
@@ -1401,8 +1437,8 @@ public class Utilities {
     if (envVariable == null || envVariable.matches("\\s*")) {
       return null;
     }
-    String dirName = EnvironmentVariable.INSTANCE.getValue(manager, null, envVariable,
-        axisID);
+    String dirName =
+        EnvironmentVariable.INSTANCE.getValue(manager, null, envVariable, axisID);
     if (dirName == null || dirName.matches("\\s*")) {
       return null;
     }
@@ -1418,8 +1454,8 @@ public class Utilities {
     if (envVariable == null || envVariable.matches("\\s*")) {
       return null;
     }
-    String dirName = EnvironmentVariable.INSTANCE.getValue(manager, null, envVariable,
-        axisID);
+    String dirName =
+        EnvironmentVariable.INSTANCE.getValue(manager, null, envVariable, axisID);
     if (dirName == null || dirName.matches("\\s*")) {
       return null;
     }
@@ -1441,18 +1477,21 @@ public class Utilities {
 
   public static final boolean checkExistingDir(File dir, String envVariable) {
     if (!dir.exists()) {
-      System.err.println("Warning:  " + dir.getAbsolutePath() + " does not exist.  See $"
-          + envVariable + ".");
+      System.err.println(
+          "Warning:  " + dir.getAbsolutePath() + " does not exist.  See $" + envVariable +
+              ".");
       return false;
     }
     if (!dir.isDirectory()) {
-      System.err.println("Warning:  " + dir.getAbsolutePath()
-          + " is not a directory.  See $" + envVariable + ".");
+      System.err
+          .println("Warning:  " + dir.getAbsolutePath() + " is not a directory.  See $" +
+              envVariable + ".");
       return false;
     }
     if (!dir.canRead()) {
-      System.err.println("Warning:  cannot read " + dir.getAbsolutePath() + ".  See $"
-          + envVariable + ".");
+      System.err.println(
+          "Warning:  cannot read " + dir.getAbsolutePath() + ".  See $" + envVariable +
+              ".");
       return false;
     }
     return true;
@@ -1494,9 +1533,10 @@ public class Utilities {
    * Explanatory strings (stuff in parenthesis), punctuation (colons), and html
    * (anything in angle brackets) are removed.  It also removes anything after a
    * colon because there probably shouldn't be anything after a colon.
-   * 
+   * <p/>
    * The returned string is not guaranteed to be unique in the UI panel or
    * dialog.
+   *
    * @param label
    * @return
    */
@@ -1506,7 +1546,7 @@ public class Utilities {
     }
     // Place the label into a tokenizer
     String name = label.trim().toLowerCase();
-    PrimativeTokenizer tokenizer = new PrimativeTokenizer(name);
+    PrimativeTokenizer tokenizer = PrimativeTokenizer.getStringInstance(name, debug);
     StringBuffer buffer = new StringBuffer();
     Token token = null;
     boolean firstToken = true;
@@ -1574,7 +1614,7 @@ public class Utilities {
     if (name.length() == 0) {
       return "-";
     }
-    tokenizer = new PrimativeTokenizer(name);
+    tokenizer = PrimativeTokenizer.getStringInstance(name, false);
     buffer = new StringBuffer();
     try {
       tokenizer.initialize();
@@ -1610,6 +1650,7 @@ public class Utilities {
   /**
    * Function calculates the binning from the stack's pixel spacing and
    * the raw stack's pixel spacing.
+   *
    * @return binning (default 1)
    */
   public static int getStackBinning(BaseManager manager, AxisID axisID,

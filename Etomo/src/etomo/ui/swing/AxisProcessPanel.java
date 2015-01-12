@@ -301,6 +301,11 @@ public abstract class AxisProcessPanel implements ContextMenu {
   private boolean processingMethodLocked = false;
 
   private final boolean popupChunkWarnings;
+  /**
+   * False if parallel processing tables can be displayed, but parallel processing is not
+   * used to run processes for the interface.
+   */
+  private final boolean runnableParallel;
 
   // Progress panel
   final ProgressPanel progressPanel;
@@ -332,11 +337,12 @@ public abstract class AxisProcessPanel implements ContextMenu {
    * @param appManager
    * @param axis
    */
-  AxisProcessPanel(AxisID axis, BaseManager manager, boolean popupChunkWarnings) {
+  AxisProcessPanel(AxisID axis, BaseManager manager, boolean popupChunkWarnings,final boolean runnableParallel) {
     progressPanel = ProgressPanel.getInstance("No process", manager, axis);
     axisID = axis;
     this.manager = manager;
     this.popupChunkWarnings = popupChunkWarnings;
+    this.runnableParallel=runnableParallel;
     // Create the status panel
     actionListener = new KillButtonActionListener(this);
     buttonKillProcess.addActionListener(actionListener);
@@ -431,7 +437,7 @@ public abstract class AxisProcessPanel implements ContextMenu {
       if (parallelPanel == null) {
         parallelPanel = ParallelPanel.getInstance(manager, axisID, manager
             .getBaseScreenState(axisID).getParallelHeaderState(), this,
-            popupChunkWarnings);
+            popupChunkWarnings,runnableParallel);
         parallelStatusPanel.add(Box.createRigidArea(FixedDim.x5_y0));
         parallelStatusPanel.add(parallelPanel.getContainer());
       }

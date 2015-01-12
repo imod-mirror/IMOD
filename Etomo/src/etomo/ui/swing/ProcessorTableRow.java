@@ -11,29 +11,25 @@ import javax.swing.JPanel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import etomo.comscript.BatchruntomoParam;
 import etomo.comscript.ProcesschunksParam;
 import etomo.storage.Node;
 import etomo.storage.Storable;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.EtomoNumber;
+import etomo.ui.swing.ProcessorTable.ColumnName;
 import etomo.util.Utilities;
 
 /**
  * <p>Description: </p>
- * 
- * <p>Copyright: Copyright (c) 2005</p>
+ * <p/>
+ * <p>Copyright: Copyright 2005 - 2014 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
- * University of Colorado</p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
+ * @version $Id$
  */
 final class ProcessorTableRow implements Storable {
-  public static final String rcsid = "$Id$";
-
   private static final String STORE_SELECTED = "Selected";
   private static final String STORE_CPUS_SELECTED = "CPUsSelected";
   private static final int DEFAULT_CPUS_SELECTED = 1;
@@ -58,7 +54,7 @@ final class ProcessorTableRow implements Storable {
    */
   private final ToggleCell cellComputer;
   private final FieldCell[] cellLoadArray;
-  private final String[] deviceArray;
+  private final String[] gpuDeviceArray;
 
   private ProcessorTable table = null;
   private InputCell cellCPUsSelected = null;
@@ -69,12 +65,6 @@ final class ProcessorTableRow implements Storable {
   private String memory = null;
   private String os = null;
   private boolean rowInitialized = false;
-  private boolean numberColumn = false;
-  private boolean typeColumn = false;
-  private boolean speedColumn = false;
-  private boolean memoryColumn = false;
-  private boolean osColumn = false;
-  private boolean usersColumn = false;
   private boolean displayed = false;
   private boolean loadWarning = true;
 
@@ -88,7 +78,7 @@ final class ProcessorTableRow implements Storable {
     this.numCpus = numCpus;
     speed = node.getSpeed();
     memory = node.getMemory();
-    deviceArray= node.getGpuDeviceArray();
+    gpuDeviceArray = node.getGpuDeviceArray();
     os = node.getOs();
     this.displayQueues = displayQueues;
     if (displayQueues) {
@@ -106,8 +96,8 @@ final class ProcessorTableRow implements Storable {
 
   static ProcessorTableRow getComputerInstance(final ProcessorTable table,
       final Node node, final int numCpus, final int numRowsInTable) {
-    ProcessorTableRow instance = new ProcessorTableRow(table, node, numCpus, false, null,
-        0, numRowsInTable);
+    ProcessorTableRow instance =
+        new ProcessorTableRow(table, node, numCpus, false, null, 0, numRowsInTable);
     instance.initRow();
     return instance;
   }
@@ -115,8 +105,9 @@ final class ProcessorTableRow implements Storable {
   static ProcessorTableRow getQueueInstance(final ProcessorTable table, final Node node,
       final int numCpus, final ButtonGroup buttonGroup, final int loadArraySize,
       final int numRowsInTable) {
-    ProcessorTableRow instance = new ProcessorTableRow(table, node, numCpus, true,
-        buttonGroup, loadArraySize, numRowsInTable);
+    ProcessorTableRow instance =
+        new ProcessorTableRow(table, node, numCpus, true, buttonGroup, loadArraySize,
+            numRowsInTable);
     instance.initRow();
     return instance;
   }
@@ -149,7 +140,7 @@ final class ProcessorTableRow implements Storable {
   }
 
   /**
-   *  Get the objects attributes from the properties object.
+   * Get the objects attributes from the properties object.
    */
   public void load(Properties props) {
     load(props, "");
@@ -167,12 +158,13 @@ final class ProcessorTableRow implements Storable {
       prepend += "." + cellComputer.getLabel();
     }
     group = prepend + ".";
-    boolean selected = Boolean
-        .valueOf(props.getProperty(group + STORE_SELECTED, "false")).booleanValue();
+    boolean selected = Boolean.valueOf(props.getProperty(group + STORE_SELECTED, "false"))
+        .booleanValue();
     setSelected(selected);
     if (numCpus > 1 && isSelected() && cellCPUsSelected != null) {
-      ((SpinnerCell) cellCPUsSelected).setValue(Integer.parseInt(props.getProperty(group
-          + STORE_CPUS_SELECTED, Integer.toString(DEFAULT_CPUS_SELECTED))));
+      ((SpinnerCell) cellCPUsSelected).setValue(Integer.parseInt(props
+          .getProperty(group + STORE_CPUS_SELECTED,
+              Integer.toString(DEFAULT_CPUS_SELECTED))));
     }
   }
 
@@ -212,30 +204,6 @@ final class ProcessorTableRow implements Storable {
     cellLoad5.setWarning(false);
   }
 
-  void setNumberColumn(boolean numberColumn) {
-    this.numberColumn = numberColumn;
-  }
-
-  void setTypeColumn(boolean typeColumn) {
-    this.typeColumn = typeColumn;
-  }
-
-  void setSpeedColumn(boolean speedColumn) {
-    this.speedColumn = speedColumn;
-  }
-
-  void setMemoryColumn(boolean memoryColumn) {
-    this.memoryColumn = memoryColumn;
-  }
-
-  void setOSColumn(boolean osColumn) {
-    this.osColumn = osColumn;
-  }
-
-  void setUsersColumn(boolean usersColumn) {
-    this.usersColumn = usersColumn;
-  }
-
   boolean isDisplayed() {
     return displayed;
   }
@@ -244,16 +212,21 @@ final class ProcessorTableRow implements Storable {
     displayed = false;
   }
 
-  void setColumns() {
-    setNumberColumn(table.useNumberColumn());
-    setTypeColumn(table.useTypeColumn());
-    setSpeedColumn(table.useSpeedColumn());
-    setMemoryColumn(table.useMemoryColumn());
-    setOSColumn(table.useOSColumn());
-    setUsersColumn(table.useUsersColumn());
+  private void add(final InputCell cell, final boolean use, final ColumnName columnName,
+      final ColumnName lastColumnName, final JPanel panel, final GridBagLayout layout,
+      final GridBagConstraints constraints) {
+    if (use) {
+      if (lastColumnName == columnName) {
+        constraints.gridwidth = GridBagConstraints.REMAINDER;
+      }
+      cell.add(panel, layout, constraints);
+    }
   }
 
-  void display(int index, Viewport viewport) {
+  void display(int index, Viewport viewport, final ColumnName lastColumnName,
+      final boolean useNumberUsed, final boolean useNumber, final boolean useLoad,
+      final boolean useUsers, final boolean useType, final boolean useSpeed,
+      final boolean useMemory, final boolean useOs, final boolean useRun) {
     displayed = true;
     if (!viewport.inViewport(index)) {
       return;
@@ -269,43 +242,52 @@ final class ProcessorTableRow implements Storable {
     constraints.gridwidth = 1;
     cellComputer.add(panel, layout, constraints);
     constraints.weightx = 0.0;
-    cellCPUsSelected.add(panel, layout, constraints);
-    if (numberColumn) {
-      cellNumberCpus.add(panel, layout, constraints);
-    }
-    if (Utilities.isWindowsOS()) {
-      cellCPUUsage.add(panel, layout, constraints);
-    }
-    else {
-      if (displayQueues) {
-        for (int i = 0; i < cellLoadArray.length; i++) {
-          cellLoadArray[i].add(panel, layout, constraints);
+    add(cellCPUsSelected, useNumberUsed, ColumnName.NUMBER_USED, lastColumnName, panel,
+        layout, constraints);
+    add(cellNumberCpus, useNumber, ColumnName.NUMBER, lastColumnName, panel, layout,
+        constraints);
+    if (useLoad) {
+      if (Utilities.isWindowsOS()) {
+        if (lastColumnName == ColumnName.LOAD) {
+          constraints.gridwidth = GridBagConstraints.REMAINDER;
         }
+        cellCPUUsage.add(panel, layout, constraints);
       }
       else {
-        cellLoad1.add(panel, layout, constraints);
-        cellLoad5.add(panel, layout, constraints);
-        if (usersColumn) {
-          cellUsers.add(panel, layout, constraints);
+        if (displayQueues) {
+          for (int i = 0; i < cellLoadArray.length; i++) {
+            if (lastColumnName == ColumnName.LOAD && i == cellLoadArray.length - 1) {
+              constraints.gridwidth = GridBagConstraints.REMAINDER;
+            }
+            cellLoadArray[i].add(panel, layout, constraints);
+          }
+        }
+        else {
+          cellLoad1.add(panel, layout, constraints);
+          if (lastColumnName == ColumnName.LOAD) {
+            constraints.gridwidth = GridBagConstraints.REMAINDER;
+          }
+          cellLoad5.add(panel, layout, constraints);
         }
       }
     }
-    if (typeColumn) {
-      cellCPUType.add(panel, layout, constraints);
+    add(cellUsers, useUsers, ColumnName.USERS, lastColumnName, panel, layout,
+        constraints);
+    add(cellCPUType, useType, ColumnName.TYPE, lastColumnName, panel, layout,
+        constraints);
+    add(cellSpeed, useSpeed, ColumnName.SPEED, lastColumnName, panel, layout,
+        constraints);
+    add(cellMemory, useMemory, ColumnName.MEMORY, lastColumnName, panel, layout,
+        constraints);
+    add(cellOS, useOs, ColumnName.OS, lastColumnName, panel, layout, constraints);
+    if (useRun) {
+      cellRestarts.add(panel, layout, constraints);
+      cellSuccesses.add(panel, layout, constraints);
+      if (lastColumnName == ColumnName.RUN) {
+        constraints.gridwidth = GridBagConstraints.REMAINDER;
+      }
+      cellFailureReason.add(panel, layout, constraints);
     }
-    if (speedColumn) {
-      cellSpeed.add(panel, layout, constraints);
-    }
-    if (memoryColumn) {
-      cellMemory.add(panel, layout, constraints);
-    }
-    if (osColumn) {
-      cellOS.add(panel, layout, constraints);
-    }
-    cellRestarts.add(panel, layout, constraints);
-    cellSuccesses.add(panel, layout, constraints);
-    constraints.gridwidth = GridBagConstraints.REMAINDER;
-    cellFailureReason.add(panel, layout, constraints);
   }
 
   void performAction() {
@@ -327,8 +309,8 @@ final class ProcessorTableRow implements Storable {
   final void msgDropped(String reason) {
     setSelected(false);
     cellFailureReason.setValue(reason);
-    cellFailureReason
-        .setToolTipText("This computer was dropped from the current distributed process.");
+    cellFailureReason.setToolTipText(
+        "This computer was dropped from the current distributed process.");
   }
 
   public void setSelected(boolean selected) {
@@ -353,13 +335,21 @@ final class ProcessorTableRow implements Storable {
     }
   }
 
+  public void setParameters() {
+    cellComputer.setSelected(false);
+  }
+
   private void updateSelected(boolean selected) {
     cellCPUsSelected.setEnabled(selected);
     setSelectedError();
     table.msgCPUsSelectedChanged();
   }
 
-  private void setSelectedError() {
+  void setSelectedError() {
+    if (table.isSecondary()) {
+      cellComputer.setWarning(false);
+      return;
+    }
     boolean noloadAverage;
     if (displayQueues) {
       noloadAverage = cellLoadArray[0].isEmpty() || cellLoadArray[0].equals("NA");
@@ -377,10 +367,22 @@ final class ProcessorTableRow implements Storable {
     return cellComputer.isSelected();
   }
 
-  final void getParameters(ProcesschunksParam param) {
+  final void getParameters(final ProcesschunksParam param) {
     int numCpus = getCPUsSelected();
     if (!displayQueues && numCpus > 0) {
-      param.addMachineName(cellComputer.getLabel(), numCpus, deviceArray);
+      param.addMachineName(cellComputer.getLabel(), numCpus, gpuDeviceArray);
+    }
+  }
+
+  final void getParameters(final BatchruntomoParam param) {
+    int numCpus = getCPUsSelected();
+    if (numCpus > 0) {
+      if (table.isCpuTable()) {
+        param.addCPUMachine(cellComputer.getLabel(), numCpus);
+      }
+      else if (table.isGpuTable()) {
+        param.addGPUMachine(cellComputer.getLabel(), numCpus, gpuDeviceArray);
+      }
     }
   }
 
@@ -449,7 +451,7 @@ final class ProcessorTableRow implements Storable {
     setLoad(cellLoad1, load1, numberCpus);
     setLoad(cellLoad5, load5, numberCpus);
     cellComputer.setWarning(false);
-    if (usersColumn) {
+    if (table.useColumn(ColumnName.USERS)) {
       cellUsers.setValue(users);
       cellUsers.setToolTipText(usersTooltip);
     }
@@ -509,7 +511,8 @@ final class ProcessorTableRow implements Storable {
    */
   final void clearFailureReason(String failureReason1, String failureReason2) {
     String value = cellFailureReason.getValue();
-    if (value == null || (!value.equals(failureReason1) && !value.equals(failureReason2))) {
+    if (value == null ||
+        (!value.equals(failureReason1) && !value.equals(failureReason2))) {
       return;
     }
     clearFailureReason();
@@ -534,16 +537,6 @@ final class ProcessorTableRow implements Storable {
   final String getComputer() {
     return cellComputer.getLabel();
   }
-
-  /* final int getWidth() { int width = 0; width += cellComputer.getWidth(); width +=
-   * cellCPUsSelected.getWidth(); if (numberColumn) { width += cellNumberCpus.getWidth();
-   * } if (Utilities.isWindowsOS()) { width += cellCPUUsage.getWidth(); } else { width +=
-   * cellLoad1.getWidth(); width += cellLoad5.getWidth(); if (usersColumn) { width +=
-   * cellUsers.getWidth(); } } if (typeColumn) { width += cellCPUType.getWidth(); } if
-   * (speedColumn) { width += cellSpeed.getWidth(); } if (memoryColumn) { width +=
-   * cellMemory.getWidth(); } if (osColumn) { width += cellOS.getWidth(); } width +=
-   * cellRestarts.getWidth(); width += cellSuccesses.getWidth(); width +=
-   * cellFailureReason.getWidth(); return width + 3; } */
 
   private class ProcessorTableRowActionListener implements ActionListener {
     ProcessorTableRow adaptee;
