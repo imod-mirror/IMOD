@@ -393,9 +393,9 @@ disables this type of missing wedge compensation.
 
 <p>
 <b>Number of Tilt Axes</b> determines how missing tomographic regions are
-specified. If <b>1</b> is selected, PEET will automatically generate a 
+specified. If <b>1</b> is selected, PEET will automatically generate  
 single-tilt-axis missing wedges corresponding to the tilt ranges in
-the volume table. If <b>2 or more</b> is selected, PEET will to read
+the volume table. If <b>2 or more</b> is selected, PEET will read
 binary missing wedge masks from the files whose names are specified under
 <b>Missing Wedge Mask</b>. For dual- or multi-tilt axis tomograms, program
 multiTiltMask can be used to generate the necessary mask file(s).
@@ -473,8 +473,8 @@ With this option, Phi represents twisting around the contour axis;
 Theta represents bending or turning in the X-Y plane, and Psi
 represents dipping in Z.&nbsp;  This option is most useful when
 particles lie along continuous contours, e.g. along a filament such as a
-microtubule.&nbsp;  When using this option, be sure to model eacj
-filament in a separate contours.</p>
+microtubule.&nbsp;  When using this option, be sure to model each
+filament in a separate contour.</p>
 
 <p><b>End points of contour</b> is similar to <b>Particle model points</b>,
 except that the vector between the first and the last points in the contour
@@ -787,11 +787,12 @@ Processing Table, press <b>Run</b> to start processing.&nbsp;
 At this point, eTomo will write the parameter file and run the PEET 
 program prmParser, producing a series of command (.com) files which
 will be executed by processchunks to carry out the requested computations.&nbsp; 
-During processing status will be indicated by progress bar at the top of the page.
+During processing, status will be indicated by progress bar at the top of the page.
 Additional status information may be obtained from the messages in the optionally visible log window,
 as well as from the Parallel processing section.&nbsp; Note that once a run has been started
 it is permissible to close the eTomo gui if desired;&nbsp; if the same project is later
-opened in a new eTomo window, it will reconnect to any processes still running and 
+opened in a new eTomo window <i>on the same system from which it was originally run</i>, 
+it will reconnect to any processes still running and 
 update the status accordingly.&nbsp; 
 </p>
 
