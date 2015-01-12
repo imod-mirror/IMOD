@@ -858,6 +858,8 @@ static int findBoundaryConts(int z, Iobj *boundObj, int nearestBound, Ilist *con
   ilistTruncate(contList, 0);
   minDiff = 100000000;
   for (co = 0; co < boundObj->contsize; co++) {
+    if (boundObj->cont[co].psize < 3)
+      continue;
     zcont = B3DNINT(boundObj->cont[co].pts->z);
     diff = zcont - z;
     if ((diff < 0 && -diff < minDiff) || (diff >= 0 && diff < minDiff)) {
@@ -868,6 +870,8 @@ static int findBoundaryConts(int z, Iobj *boundObj, int nearestBound, Ilist *con
   if (!nearestBound && minDiff > 0)
     return 0;
   for (co = 0; co < boundObj->contsize; co++) {
+    if (boundObj->cont[co].psize < 3)
+      continue;
     zcont = B3DNINT(boundObj->cont[co].pts->z);
     if (zmin == zcont) {
       if (ilistAppend(contList, &co))
