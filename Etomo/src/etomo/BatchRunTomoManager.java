@@ -5,7 +5,6 @@ import java.io.IOException;
 
 import etomo.comscript.BatchRunTomoComScriptManager;
 import etomo.comscript.BatchruntomoParam;
-import etomo.logic.BatchTool;
 import etomo.logic.DatasetTool;
 import etomo.process.BaseProcessManager;
 import etomo.process.BatchRunTomoProcessManager;
@@ -37,7 +36,7 @@ import etomo.util.Utilities;
 /**
  * <p>Description: Manager for the interface for batchruntomo.</p>
  * <p/>
- * <p>Copyright: Copyright 2014 by the Regents of the University of Colorado</p>
+ * <p>Copyright: Copyright 2014 - 2015 by the Regents of the University of Colorado</p>
  * <p/>
  * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
@@ -46,14 +45,14 @@ import etomo.util.Utilities;
 public final class BatchRunTomoManager extends BaseManager {
   private static final AxisID AXIS_ID = AxisID.ONLY;
   private static final String STACK_REFERENCE_PREFIX =
-      DataFileType.BATCH_RUN_TOMO.extension.substring(1);
+    DataFileType.BATCH_RUN_TOMO.extension.substring(1);
 
   private final TableReference tableReference =
-      new TableReference(STACK_REFERENCE_PREFIX);
+    new TableReference(STACK_REFERENCE_PREFIX);
   private final BatchRunTomoComScriptManager comScriptManager =
-      new BatchRunTomoComScriptManager(this);
+    new BatchRunTomoComScriptManager(this);
   private final BaseScreenState screenState = new BaseScreenState(AXIS_ID,
-      AxisType.SINGLE_AXIS);
+    AxisType.SINGLE_AXIS);
 
   private final BatchRunTomoMetaData metaData;
 
@@ -93,8 +92,8 @@ public final class BatchRunTomoManager extends BaseManager {
     String rootDirPath = rootDir.getAbsolutePath();
     if (rootDirPath.endsWith(" ")) {
       uiHarness.openMessageDialog(this, "The directory, " + rootDirPath
-          + ", cannot be used because it ends with a space.", "Unusable Directory Name",
-          AxisID.ONLY);
+        + ", cannot be used because it ends with a space.", "Unusable Directory Name",
+        AxisID.ONLY);
       return false;
     }
     propertyUserDir = rootDirPath;
@@ -103,7 +102,7 @@ public final class BatchRunTomoManager extends BaseManager {
     String errorMessage = metaData.validate();
     if (errorMessage != null) {
       UIHarness.INSTANCE.openMessageDialog(this, errorMessage,
-          "Batchruntomo Dialog error", AXIS_ID);
+        "Batchruntomo Dialog error", AXIS_ID);
       return false;
     }
     if (!setParamFile(new File(propertyUserDir, metaData.getMetaDataFileName()))) {
@@ -128,10 +127,11 @@ public final class BatchRunTomoManager extends BaseManager {
       dialog = BatchRunTomoDialog.getInstance(this, AXIS_ID, tableReference);
     }
     dialog.setParameters(metaData);
-    comScriptManager.loadBatchRunTomo(AXIS_ID, dialog.getRootName());
-    BatchruntomoParam param = comScriptManager.getBatchRunTomoParam(AXIS_ID, false);
     boolean useProgressBar = false;
+    BatchruntomoParam param = null;
     if (paramFile != null) {
+      comScriptManager.loadBatchRunTomo(AXIS_ID, dialog.getRootName());
+      param = comScriptManager.getBatchRunTomoParam(AXIS_ID, false);
       useProgressBar = true;
       mainPanel.startProgressBar("Loading Files", AXIS_ID);
       // Load all parallel panel values - both tables must be open for this to happen.
@@ -148,11 +148,11 @@ public final class BatchRunTomoManager extends BaseManager {
       dialog.loadAutodocs();
     }
     dialog.msgDirectivesChanged(paramFile == null, paramFile != null);
-    dialog.addListeners();
+    dialog.msgLoadDone();
     mainPanel.showProcess(dialog.getContainer(), AXIS_ID);
     uiHarness.updateFrame(this);
     String actionMessage =
-        Utilities.prepareDialogActionMessage(DialogType.BATCH_RUN_TOMO, AXIS_ID, null);
+      Utilities.prepareDialogActionMessage(DialogType.BATCH_RUN_TOMO, AXIS_ID, null);
     if (actionMessage != null) {
       System.err.println(actionMessage);
     }
@@ -227,8 +227,8 @@ public final class BatchRunTomoManager extends BaseManager {
       return false;
     }
     if (paramFile == null
-        && (!dialog.isParamFileModifiable() || !setNewParamFile(dialog.getRootDir(),
-            dialog.getRootName()))) {
+      && (!dialog.isParamFileModifiable() || !setNewParamFile(dialog.getRootDir(), dialog
+        .getRootName()))) {
       // setting the param file failed
       return false;
     }
@@ -246,11 +246,11 @@ public final class BatchRunTomoManager extends BaseManager {
   private BatchruntomoParam updateBatchRunTomo(final boolean doValidation) {
     if (!comScriptManager.isBatchRunTomoLoaded()) {
       BaseProcessManager.touch(FileType.BATCH_RUN_TOMO_COMSCRIPT.getFile(this, AXIS_ID)
-          .getAbsolutePath(), this);
+        .getAbsolutePath(), this);
       comScriptManager.loadBatchRunTomo(AXIS_ID);
     }
     BatchruntomoParam param =
-        comScriptManager.getBatchRunTomoParam(AXIS_ID, doValidation);
+      comScriptManager.getBatchRunTomoParam(AXIS_ID, doValidation);
     if (dialog == null) {
       return null;
     }
@@ -277,7 +277,7 @@ public final class BatchRunTomoManager extends BaseManager {
     String rootName = dialog.getRootName();
     metaData.setName(rootName);
     paramFile =
-        new File(dialog.getRootDir(), rootName + DataFileType.BATCH_RUN_TOMO.extension);
+      new File(dialog.getRootDir(), rootName + DataFileType.BATCH_RUN_TOMO.extension);
     if (!super.setParamFile(paramFile)) {
       return false;
     }
@@ -302,58 +302,18 @@ public final class BatchRunTomoManager extends BaseManager {
    * @param menuOptions
    * @return
    */
-  public int
-      imod(final File stack, final AxisID axisID, int imodIndex,
-          final boolean boundaryModel, final boolean dualAxis,
-          Run3dmodMenuOptions menuOptions) {
-    if (!stack.exists()) {
-      uiHarness.openMessageDialog(this, stack.getAbsolutePath() + " does not exist.",
-          "Run 3dmod failed");
-      return imodIndex;
-    }
-    String key = ImodManager.BATCH_RUN_TOMO_STACK_KEY;
-    try {
-      if (boundaryModel) {
-        imodIndex =
-            imodManager.open(key, stack, axisID, imodIndex,
-                BatchTool.getBoundaryModelName(stack.getName(), dualAxis), true,
-                menuOptions);
-      }
-      else {
-        imodIndex = imodManager.open(key, stack, axisID, imodIndex, menuOptions);
-      }
-    }
-    catch (AxisTypeException except) {
-      except.printStackTrace();
-      uiHarness.openMessageDialog(this, except.getMessage(), "AxisType problem", axisID);
-    }
-    catch (SystemProcessException except) {
-      except.printStackTrace();
-      uiHarness.openMessageDialog(this, except.getMessage(), "Problem opening " + key,
-          axisID);
-    }
-    catch (IOException e) {
-      e.printStackTrace();
-      uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception", axisID);
-    }
-    return imodIndex;
-  }
-
-  /**
-   * Open imod
-   *
-   * @return the vector index of the 3dmod instance
-   */
   public int imod(final File stack, final AxisID axisID, int imodIndex,
-      Run3dmodMenuOptions menuOptions) {
+    final File modelFile, final boolean dualAxis, Run3dmodMenuOptions menuOptions) {
     if (!stack.exists()) {
       uiHarness.openMessageDialog(this, stack.getAbsolutePath() + " does not exist.",
-          "Run 3dmod failed");
+        "Run 3dmod failed");
       return imodIndex;
     }
     String key = ImodManager.BATCH_RUN_TOMO_STACK_KEY;
     try {
-      imodIndex = imodManager.open(key, stack, axisID, imodIndex, menuOptions);
+      imodIndex =
+        imodManager.open(key, stack, axisID, imodIndex, modelFile, modelFile != null,
+          menuOptions);
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
@@ -362,7 +322,7 @@ public final class BatchRunTomoManager extends BaseManager {
     catch (SystemProcessException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog(this, except.getMessage(), "Problem opening " + key,
-          axisID);
+        axisID);
     }
     catch (IOException e) {
       e.printStackTrace();
@@ -375,17 +335,16 @@ public final class BatchRunTomoManager extends BaseManager {
    * Open imod model in a running imod instance
    */
   public void imodModel(final AxisID axisID, final int imodIndex, final String stackName,
-      final boolean dualAxis) {
-    if (imodIndex == -1) {
+    final FileType modelFile, final boolean dualAxis) {
+    if (imodIndex == -1 || modelFile == null) {
       return;
     }
     String key = ImodManager.BATCH_RUN_TOMO_STACK_KEY;
     AxisType axisType = dualAxis ? AxisType.DUAL_AXIS : AxisType.SINGLE_AXIS;
     String datasetName = DatasetTool.getDatasetName(stackName, dualAxis);
     try {
-      imodManager.openModel(key, axisID, imodIndex,
-          FileType.BATCH_RUN_TOMO_BOUNDARY_MODEL.getFileName(datasetName, axisType,
-              axisID), true);
+      imodManager.openModel(key, axisID, imodIndex, modelFile.getFileName(datasetName,
+        axisType, axisID), true);
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
@@ -394,7 +353,7 @@ public final class BatchRunTomoManager extends BaseManager {
     catch (SystemProcessException except) {
       except.printStackTrace();
       uiHarness.openMessageDialog(this, except.getMessage(), "Problem opening " + key,
-          axisID);
+        axisID);
     }
     catch (IOException e) {
       e.printStackTrace();

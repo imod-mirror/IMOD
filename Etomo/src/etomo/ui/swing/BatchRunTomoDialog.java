@@ -43,31 +43,30 @@ import etomo.util.Utilities;
 /**
  * <p>Description: Interface for batchruntomo.</p>
  * <p/>
- * <p>Copyright: Copyright 2014 by the Regents of the University of Colorado</p>
+ * <p>Copyright: Copyright 2014 - 2015 by the Regents of the University of Colorado</p>
  * <p/>
  * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
  * @version $Id$
  */
-public final class BatchRunTomoDialog
-    implements ActionListener, ResultListener, ChangeListener, Expandable,
-    ProcessInterface {
+public final class BatchRunTomoDialog implements ActionListener, ResultListener,
+    ChangeListener, Expandable, ProcessInterface {
   private static final String DELIVER_TO_DIRECTORY_NAME = "Move datasets to";
 
   private final JPanel pnlRoot = new JPanel();
-  private final LabeledTextField ltfRootName =
-      new LabeledTextField(FieldType.STRING, "Batchruntomo root name: ");
+  private final LabeledTextField ltfRootName = new LabeledTextField(FieldType.STRING,
+      "Batchruntomo root name: ");
   private final CheckBox cbDeliverToDirectory = new CheckBox();
-  private final CheckTextField ctfEmailAddress =
-      CheckTextField.getInstance(FieldType.STRING, "Email notification: ");
+  private final CheckTextField ctfEmailAddress = CheckTextField.getInstance(
+      FieldType.STRING, "Email notification: ");
   private final CheckBox cbCPUMachineList = new CheckBox("Use multiple CPUs");
   private final ButtonGroup bgGPUMachineList = new ButtonGroup();
-  private final RadioButton rbGPUMachineListOff =
-      new RadioButton("No GPU", bgGPUMachineList);
-  private final RadioButton rbGPUMachineListLocal =
-      new RadioButton("Local GPU", bgGPUMachineList);
-  private final RadioButton rbGPUMachineList =
-      new RadioButton("Parallel GPUs", bgGPUMachineList);
+  private final RadioButton rbGPUMachineListOff = new RadioButton("No GPU",
+      bgGPUMachineList);
+  private final RadioButton rbGPUMachineListLocal = new RadioButton("Local GPU",
+      bgGPUMachineList);
+  private final RadioButton rbGPUMachineList = new RadioButton("Parallel GPUs",
+      bgGPUMachineList);
   private final TabbedPane tabbedPane = new TabbedPane();
   private final JPanel[] pnlTabs = new JPanel[BatchRunTomoTab.SIZE];
   private final JPanel pnlBatch = new JPanel();
@@ -78,8 +77,8 @@ public final class BatchRunTomoDialog
   private final MultiLineButton btnRun = new MultiLineButton("Run Batchruntomo");
   private final JPanel pnlRunButton = new JPanel();
   private final JPanel pnlParallelSettings = new JPanel();
-  private final UserConfiguration userConfiguration =
-      EtomoDirector.INSTANCE.getUserConfiguration();
+  private final UserConfiguration userConfiguration = EtomoDirector.INSTANCE
+      .getUserConfiguration();
   private final JPanel pnlDatasetTableBody = new JPanel();
   private final JPanel pnlUntitledTable = new JPanel();
   //
@@ -108,11 +107,11 @@ public final class BatchRunTomoDialog
     ftfDeliverToDirectory =
         FileTextField2.getAltLayoutInstance(manager, DELIVER_TO_DIRECTORY_NAME + ": ");
     table = BatchRunTomoTable.getInstance(manager, this, tableReference);
-    datasetDialog = BatchRunTomoDatasetDialog.getGlobalInstance(manager);
+    datasetDialog = BatchRunTomoDatasetDialog.getGlobalInstance(manager, this);
     directiveFileCollection = new DirectiveFileCollection(manager, axisID);
-    templatePanel = TemplatePanel
-        .getBorderlessInstance(manager, axisID, null, null, null, directiveFileCollection,
-            true);
+    templatePanel =
+        TemplatePanel.getBorderlessInstance(manager, axisID, null, null, null,
+            directiveFileCollection, true);
     phDatasetTable = PanelHeader.getInstance("Datasets", this, DialogType.BATCH_RUN_TOMO);
     mediator = manager.getProcessingMethodMediator(axisID);
     mediator.register(this);
@@ -233,7 +232,7 @@ public final class BatchRunTomoDialog
     mediator.setMethod(this, getProcessingMethod());
   }
 
-  public void addListeners() {
+  private void addListeners() {
     templatePanel.addListeners();
     cbDeliverToDirectory.addActionListener(this);
     templatePanel.addActionListener(this);
@@ -244,10 +243,15 @@ public final class BatchRunTomoDialog
     btnRun.addActionListener(this);
     ftfInputDirectiveFile.addResultListener(this);
     tabbedPane.addChangeListener(this);
+    table.setTableListener(datasetDialog);
   }
 
   public Container getContainer() {
     return pnlRoot;
+  }
+
+  public void msgLoadDone() {
+    addListeners();
   }
 
   public void setParameters(final BatchRunTomoMetaData metaData) {
@@ -366,19 +370,21 @@ public final class BatchRunTomoDialog
     if (errMsg.length() > 0) {
       if (deliverToDirectory) {
         errMsg
-            .append("\n\nEither change the name of the associated stacks, or go to the " +
-                BatchRunTomoTab.BATCH.getQuotedLabel() + " tab and uncheck the " +
-                ftfDeliverToDirectory.getQuotedLabel() +
-                " check box.  Each dataset will be placed in the current location of its stack " +
-                "file.");
+            .append("\n\nEither change the name of the associated stacks, or go to the "
+                + BatchRunTomoTab.BATCH.getQuotedLabel()
+                + " tab and uncheck the "
+                + ftfDeliverToDirectory.getQuotedLabel()
+                + " check box.  Each dataset will be placed in the current location of its stack "
+                + "file.");
       }
       else {
-        errMsg.append("\n\nEither move these stacks, or go to the " +
-            BatchRunTomoTab.BATCH.getQuotedLabel() +
-            " tab and select a directory in the " +
-            ftfDeliverToDirectory.getQuotedLabel() +
-            " field.  Each dataset will be placed in its own directory under the directory " +
-            "in this field.");
+        errMsg
+            .append("\n\nEither move these stacks, or go to the "
+                + BatchRunTomoTab.BATCH.getQuotedLabel()
+                + " tab and select a directory in the "
+                + ftfDeliverToDirectory.getQuotedLabel()
+                + " field.  Each dataset will be placed in its own directory under the directory "
+                + "in this field.");
       }
       UIHarness.INSTANCE.openMessageDialog(manager, errMsg.toString(),
           "Datasets Cannot Share a Directory");
@@ -387,8 +393,9 @@ public final class BatchRunTomoDialog
 
   public void loadAutodocs() {
     // load global autodoc
-    DirectiveFile directiveFile = DirectiveFile.getInstance(manager, axisID,
-        FileType.BATCH_RUN_TOMO_GLOBAL_AUTODOC.getFile(manager, axisID), true);
+    DirectiveFile directiveFile =
+        DirectiveFile.getInstance(manager, axisID,
+            FileType.BATCH_RUN_TOMO_GLOBAL_AUTODOC.getFile(manager, axisID), true);
     templatePanel.setParameters(directiveFile);
     datasetDialog.setValues(directiveFile);
     // load dataset autodocs
@@ -396,8 +403,8 @@ public final class BatchRunTomoDialog
   }
 
   public void saveAutodocs() {
-    Autodoc graftedBaseAutodoc = BatchTool
-        .graftDirectiveFiles(manager, ftfInputDirectiveFile.getFile(),
+    Autodoc graftedBaseAutodoc =
+        BatchTool.graftDirectiveFiles(manager, ftfInputDirectiveFile.getFile(),
             templatePanel.getFiles());
     // save global autodoc
     File globalFile = FileType.BATCH_RUN_TOMO_GLOBAL_AUTODOC.getFile(manager, null);
@@ -424,6 +431,10 @@ public final class BatchRunTomoDialog
     table.saveAutodocs(templatePanel, graftedBaseAutodoc);
   }
 
+  BatchRunTomoRow getFirstRow() {
+    return table.getFirstRow();
+  }
+
   /**
    * Handles any changes in the selection of the starting batch directive file and the
    * template files.
@@ -442,9 +453,10 @@ public final class BatchRunTomoDialog
       }
       if (!retainUserValues && changed) {
         // Ask the user whether they want to keep the values they changed.
-        retainUserValues = UIHarness.INSTANCE.openYesNoDialog(manager,
-            "New batch directive/template values will be applied.  Keep your changed " +
-                "values?", axisID);
+        retainUserValues =
+            UIHarness.INSTANCE.openYesNoDialog(manager,
+                "New batch directive/template values will be applied.  Keep your changed "
+                    + "values?", axisID);
       }
     }
     table.applyValues(retainUserValues, directiveFileCollection);
@@ -464,10 +476,10 @@ public final class BatchRunTomoDialog
     else if (actionCommand.equals(btnRun.getActionCommand())) {
       manager.run();
     }
-    else if (actionCommand.equals(cbCPUMachineList.getActionCommand()) ||
-        actionCommand.equals(rbGPUMachineListOff.getActionCommand()) ||
-        actionCommand.equals(rbGPUMachineListLocal.getActionCommand()) ||
-        actionCommand.equals(rbGPUMachineList.getActionCommand())) {
+    else if (actionCommand.equals(cbCPUMachineList.getActionCommand())
+        || actionCommand.equals(rbGPUMachineListOff.getActionCommand())
+        || actionCommand.equals(rbGPUMachineListLocal.getActionCommand())
+        || actionCommand.equals(rbGPUMachineList.getActionCommand())) {
       mediator.setMethod(this, getProcessingMethod(), getSecondaryProcessingMethod(),
           curTab == BatchRunTomoTab.RUN);
     }
@@ -512,14 +524,12 @@ public final class BatchRunTomoDialog
   /**
    * No effect because queue is not available
    */
-  public void disableGpu(final boolean disable) {
-  }
+  public void disableGpu(final boolean disable) {}
 
   /**
    * No effect because the processing method is not used for running processes by etomo.
    */
-  public void lockProcessingMethod(boolean lock) {
-  }
+  public void lockProcessingMethod(boolean lock) {}
 
   public String getRootName() {
     return ltfRootName.getText();
@@ -539,15 +549,15 @@ public final class BatchRunTomoDialog
         table.setCurrentDirectory(null);
       }
     }
-    else if (object == ftfInputDirectiveFile &&
-        ftfInputDirectiveFile.isDifferentFromCheckpoint(false)) {
+    else if (object == ftfInputDirectiveFile
+        && ftfInputDirectiveFile.isDifferentFromCheckpoint(false)) {
       ftfInputDirectiveFile.checkpoint();
-      directiveFileCollection
-          .setDirectiveFile(ftfInputDirectiveFile.getFile(), DirectiveFileType.BATCH);
+      directiveFileCollection.setDirectiveFile(ftfInputDirectiveFile.getFile(),
+          DirectiveFileType.BATCH);
       templatePanel.activateActions(false);
       templatePanel.clear();
-      templatePanel.setParameters(
-          directiveFileCollection.getDirectiveFile(DirectiveFileType.BATCH));
+      templatePanel.setParameters(directiveFileCollection
+          .getDirectiveFile(DirectiveFileType.BATCH));
       templatePanel.activateActions(true);
       msgDirectivesChanged(false, false);
     }
@@ -579,8 +589,7 @@ public final class BatchRunTomoDialog
     }
   }
 
-  public void expand(final GlobalExpandButton button) {
-  }
+  public void expand(final GlobalExpandButton button) {}
 
   /**
    * Handle tab change event
