@@ -34,15 +34,11 @@ import etomo.util.FilePath;
 /**
  * <p>Description: </p>
  * 
- * <p>Copyright: Copyright 2009</p>
+ * <p>Copyright: Copyright 2009 - 2014 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
- * University of Colorado</p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
+ * @version $Id$
  * 
  * <p> $Log$
  * <p> Revision 1.1  2010/11/13 16:07:34  sueh
@@ -65,12 +61,10 @@ import etomo.util.FilePath;
  * <p> </p>
  */
 final class ReferencePanel implements UIComponent, SwingComponent {
-  public static final String rcsid = "$Id$";
-
   private static final String TITLE = "Reference";
   private static final String REFERENCE_FILE_LABEL = "User supplied file: ";
-  private static final String MULTIPARTICLE_BUTTON_LABEL = FieldLabels.FLG_FAIR_REFERENCE_LABEL
-      + " with";
+  private static final String MULTIPARTICLE_BUTTON_LABEL =
+      FieldLabels.FLG_FAIR_REFERENCE_LABEL + " with";
   private static final String VOLUME_LABEL = "In Volume";
 
   private final EtomoPanel pnlRoot = new EtomoPanel();
@@ -85,6 +79,8 @@ final class ReferencePanel implements UIComponent, SwingComponent {
   private final ComboBox cmbMultiparticle = ComboBox
       .getUnlabeledInstance(MULTIPARTICLE_BUTTON_LABEL);
   private final JLabel lMultiparticle = new JLabel("particles");
+  private final LabeledTextField ltfVolume = new LabeledTextField(FieldType.INTEGER,
+      VOLUME_LABEL + ": ");
 
   private final ReferenceParent parent;
   private final BaseManager manager;
@@ -129,7 +125,7 @@ final class ReferencePanel implements UIComponent, SwingComponent {
     pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.Y_AXIS));
     pnlRoot.add(pnlBorder);
     pnlRoot.add(Box.createRigidArea(new Dimension(0, 8)));
-    //border
+    // border
     pnlBorder.setLayout(new BoxLayout(pnlBorder, BoxLayout.Y_AXIS));
     pnlBorder.setBorder(new EtchedBorder(TITLE).getBorder());
     pnlBorder.add(pnlParticle);
@@ -141,6 +137,7 @@ final class ReferencePanel implements UIComponent, SwingComponent {
     pnlParticle.add(rtfParticle.getContainer());
     pnlParticle.add(Box.createRigidArea(FixedDim.x10_y0));
     pnlParticle.add(sVolume.getContainer());
+    pnlParticle.add(ltfVolume.getContainer());
     pnlParticle.add(Box.createRigidArea(FixedDim.x130_y0));
     // file panel
     pnlFile.setLayout(new BoxLayout(pnlFile, BoxLayout.X_AXIS));
@@ -287,6 +284,11 @@ final class ReferencePanel implements UIComponent, SwingComponent {
     return rtfParticle.isSelected();
   }
 
+  void msgFlgVolNamesAreTemplates(final boolean on) {
+    sVolume.setVisible(!on);
+    ltfVolume.setVisible(on);
+  }
+
   private void action(final String actionCommand) {
     if (actionCommand.equals(rtfParticle.getActionCommand())
         || actionCommand.equals(rbFile.getActionCommand())
@@ -321,10 +323,12 @@ final class ReferencePanel implements UIComponent, SwingComponent {
   void updateDisplay() {
     rtfParticle.setEnabled(parent.getVolumeTableSize() > 0);
     sVolume.setEnabled(rtfParticle.isSelected());
+    ltfVolume.setEnabled(rtfParticle.isSelected());
     sVolume.setMax(parent.getVolumeTableSize());
     ftfFile.setEnabled(rbFile.isSelected());
     cmbMultiparticle.setComboBoxEnabled(rbMultiparticle.isSelected());
     lMultiparticle.setEnabled(rbMultiparticle.isSelected());
+    msgFlgVolNamesAreTemplates(parent.isFlgVolNamesAreTemplates());
   }
 
   /**
@@ -354,7 +358,7 @@ final class ReferencePanel implements UIComponent, SwingComponent {
     ftfFile.setToolTipText("The name of the file containing the MRC volume to use "
         + "as the reference.");
     rbMultiparticle.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-        MatlabParam.FLG_FAIR_REFERENCE_KEY));
+        MatlabParam.FLG_FAIR_REFERENCE_KEY, false));
     cmbMultiparticle
         .setToolTipText("Number of particles to be used to generate a multi-particle "
             + "reference.");
