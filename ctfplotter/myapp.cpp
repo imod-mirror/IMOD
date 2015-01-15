@@ -989,6 +989,7 @@ int MyApp::autoFitToRanges(float minAngle, float maxAngle, float rangeSize,
   double defTol, axisAngle, leftTol, rightTol;
   double trueStep, minDel, maxDel, mid, minMid, maxMid, loAngle, hiAngle;
   bool tolOk = true;
+  bool removeAll = false;
   if (mPlotter) {
     tolOk = mPlotter->mAngleDia->getTileTolerances(defTol, tSize, axisAngle, leftTol, 
                                                    rightTol);
@@ -1015,6 +1016,11 @@ int MyApp::autoFitToRanges(float minAngle, float maxAngle, float rangeSize,
       rangeSize = maxAngle - minAngle;
     minDel = minAngle + 0.25 * rangeSize;
     maxDel = maxAngle - 0.25 * rangeSize;
+    if (minAngle < mMinAngle + eps && maxAngle > mMaxAngle - eps) {
+      minDel = mMinAngle - eps;
+      maxDel = mMaxAngle + eps;
+      removeAll = true;
+    }
   } else {
     numSteps = 0;
     for (i = 0; i < mNzz; i++) {
@@ -1027,7 +1033,8 @@ int MyApp::autoFitToRanges(float minAngle, float maxAngle, float rangeSize,
     if (numSteps) {
       minDel = mSortedAngles[sortInd] - eps;
       maxDel = mSortedAngles[sortInd + numSteps - 1] + eps;
-    }
+    } 
+    removeAll = numSteps == mNzz;
   }
 
   if (!numSteps)
@@ -1053,9 +1060,13 @@ int MyApp::autoFitToRanges(float minAngle, float maxAngle, float rangeSize,
       i = QMessageBox::Yes;
     } else {
       QString str;
-      str.sprintf("Do you want to remove existing defocus values listed in the \n"
-                  "table with midpoint tilt angles from %.2f to %.2f degrees?", minMid,
-                  maxMid);
+      if (removeAll)
+        str = "You are autofitting to the entire range.\nDo you want to remove all "
+          "existing defocus values listed in the table?";
+      else
+        str.sprintf("Do you want to remove existing defocus values listed in the \n"
+                    "table with midpoint tilt angles from %.2f to %.2f degrees?", minMid,
+                    maxMid);
       i = QMessageBox::question(NULL, QString("Ctfplotter"), str,
                                 QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel,
                                 QMessageBox::Yes);
