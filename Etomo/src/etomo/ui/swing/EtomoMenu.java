@@ -29,7 +29,7 @@ import etomo.util.Utilities;
 /**
  * <p>Description: </p>
  * 
- * <p>Copyright: Copyright 2005 - 2014 by the Regents of the University of Colorado</p>
+ * <p>Copyright: Copyright 2005 - 2015 by the Regents of the University of Colorado</p>
  * <p/>
  * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
@@ -116,7 +116,7 @@ final class EtomoMenu {
   private final JMenuItem menuEtomoGuide = new MenuItem("Etomo Users Guide",
       KeyEvent.VK_E);
   private final JMenuItem menuJoinGuide = new MenuItem("Join Users Guide", KeyEvent.VK_J);
-  private final JMenuItem menuPeetGuide = new MenuItem("Peet Users Guide", KeyEvent.VK_P);
+  private final JMenuItem menuPeetGuide = new MenuItem("PEET Users Guide", KeyEvent.VK_P);
   private final JMenuItem peetHelpItem = new MenuItem("PEET Help");
   private final JMenuItem menuHelpAbout = new MenuItem("About", KeyEvent.VK_A);
 
