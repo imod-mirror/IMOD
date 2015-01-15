@@ -80,7 +80,7 @@ import os, sys, itertools
 #
 # Setup runtime environment
 if os.getenv('IMOD_DIR') != None:
-   sys.path.append(os.path.join(os.environ['IMOD_DIR'], 'pylib'))
+   sys.path.insert(0, os.path.join(os.environ['IMOD_DIR'], 'pylib'))
    from imodpy import *
    addIMODbinIgnoreSIGHUP()
 else:
