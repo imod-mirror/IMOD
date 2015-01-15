@@ -24,7 +24,9 @@ Read parameter entries from standard input
 
 .SH FILES
 The program assumes the existence of several files with the given root name,
-especially "rootname".info and "rootname".xf.
+especially "rootname".info and "rootname".xf.  The final transformation
+file is named "rootname".tomoxg, regardless of whether refining
+transformations are done.
 .SH AUTHOR
 David Mastronarde  <mast@colorado.edu>
 .SH SEE ALSO
