@@ -28,6 +28,7 @@ import etomo.type.AxisType;
 import etomo.type.BatchRunTomoMetaData;
 import etomo.type.BatchRunTomoRowMetaData;
 import etomo.type.EtomoNumber;
+import etomo.type.FileType;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.type.UserConfiguration;
 import etomo.ui.BatchRunTomoTab;
@@ -37,25 +38,25 @@ import etomo.util.Utilities;
 /**
  * <p>Description: A row of the BatchRunTomo table.</p>
  * <p/>
- * <p>Copyright: Copyright 2014 by the Regents of the University of Colorado</p>
+ * <p>Copyright: Copyright 2014 - 2015 by the Regents of the University of Colorado</p>
  * <p/>
  * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
  * @version $Id$
  */
 final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
-  private static final URL IMOD_ICON_URL =
-      ClassLoader.getSystemResource("images/b3dicon.png");
-  private static final URL IMOD_DISABLED_ICON_URL =
-      ClassLoader.getSystemResource("images/b3dicon-disabled.png");
-  private static final URL IMOD_PRESSED_ICON_URL =
-      ClassLoader.getSystemResource("images/b3dicon-pressed.png");
-  private static final URL ETOMO_ICON_URL =
-      ClassLoader.getSystemResource("images/etomoicon.png");
-  private static final URL ETOMO_DISABLED_ICON_URL =
-      ClassLoader.getSystemResource("images/etomoicon-disabled.png");
-  private static final URL ETOMO_PRESSED_ICON_URL =
-      ClassLoader.getSystemResource("images/etomoicon-pressed.png");
+  private static final URL IMOD_ICON_URL = ClassLoader
+    .getSystemResource("images/b3dicon.png");
+  private static final URL IMOD_DISABLED_ICON_URL = ClassLoader
+    .getSystemResource("images/b3dicon-disabled.png");
+  private static final URL IMOD_PRESSED_ICON_URL = ClassLoader
+    .getSystemResource("images/b3dicon-pressed.png");
+  private static final URL ETOMO_ICON_URL = ClassLoader
+    .getSystemResource("images/etomoicon.png");
+  private static final URL ETOMO_DISABLED_ICON_URL = ClassLoader
+    .getSystemResource("images/etomoicon-disabled.png");
+  private static final URL ETOMO_PRESSED_ICON_URL = ClassLoader
+    .getSystemResource("images/etomoicon-pressed.png");
   private static final String EDIT_DATASET_VALUE = "   Set";
 
   private final CheckBoxCell cbcBoundaryModel = new CheckBoxCell();
@@ -67,12 +68,12 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
   private final FieldCell fcEditDataset = FieldCell.getIneditableInstance();
   private final FieldCell fcStatus = FieldCell.getIneditableInstance();
   private final CheckBoxCell cbcRun = new CheckBoxCell();
-  private final MinibuttonCell mbcEtomo =
-      MinibuttonCell.getInstance(new ImageIcon(ETOMO_ICON_URL));
-  private final MinibuttonCell mbc3dmodA =
-      MinibuttonCell.getRun3dmodInstance(new ImageIcon(IMOD_ICON_URL), this);
-  private final MinibuttonCell mbc3dmodB =
-      MinibuttonCell.getRun3dmodInstance(new ImageIcon(IMOD_ICON_URL), this);
+  private final MinibuttonCell mbcEtomo = MinibuttonCell.getInstance(new ImageIcon(
+    ETOMO_ICON_URL));
+  private final MinibuttonCell mbc3dmodA = MinibuttonCell.getRun3dmodInstance(
+    new ImageIcon(IMOD_ICON_URL), this);
+  private final MinibuttonCell mbc3dmodB = MinibuttonCell.getRun3dmodInstance(
+    new ImageIcon(IMOD_ICON_URL), this);
   private final HeaderCell hcNumber = new HeaderCell();
   private final ButtonCell bcEditDataset = ButtonCell.getToggleInstance("Open");
   private final ActionListener listener = new RowListener(this);
@@ -91,10 +92,10 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
   private BatchRunTomoRowMetaData metaData = null;
 
   private BatchRunTomoRow(final BatchRunTomoTable table, final JPanel panel,
-      final GridBagLayout layout, final GridBagConstraints constraints, final int number,
-      final File stack, final BatchRunTomoRow prevRow, final boolean overridePrevRow,
-      final boolean dual, final BatchRunTomoManager manager, final String stackID,
-      final PreferredTableSize preferredTableSize) {
+    final GridBagLayout layout, final GridBagConstraints constraints, final int number,
+    final File stack, final BatchRunTomoRow prevRow, final boolean overridePrevRow,
+    final boolean dual, final BatchRunTomoManager manager, final String stackID,
+    final PreferredTableSize preferredTableSize) {
     this.panel = panel;
     this.layout = layout;
     this.constraints = constraints;
@@ -125,13 +126,12 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
     }
     // preferred width
     if (preferredTableSize != null) {
-      preferredTableSize
-          .addColumn(BatchRunTomoTable.DatasetColumn.NUMBER.getIndex(), hcNumber);
-      preferredTableSize
-          .addColumn(BatchRunTomoTable.DatasetColumn.STACK.getIndex(), fcStack);
-      preferredTableSize
-          .addColumn(BatchRunTomoTable.DatasetColumn.EDIT_DATASET.getIndex(),
-              bcEditDataset, fcEditDataset);
+      preferredTableSize.addColumn(BatchRunTomoTable.DatasetColumn.NUMBER.getIndex(),
+        hcNumber);
+      preferredTableSize.addColumn(BatchRunTomoTable.DatasetColumn.STACK.getIndex(),
+        fcStack);
+      preferredTableSize.addColumn(BatchRunTomoTable.DatasetColumn.EDIT_DATASET
+        .getIndex(), bcEditDataset, fcEditDataset);
     }
     // init
     setDefaults();
@@ -142,7 +142,7 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
     }
     cbcRun.setSelected(true);
     mbcEtomo.setEnabled(false);
-    //directives
+    // directives
     cbcDual.setDirectiveDef(DirectiveDef.DUAL);
     cbcMontage.setDirectiveDef(DirectiveDef.MONTAGE);
     fcSkip.setDirectiveDef(DirectiveDef.SKIP);
@@ -152,20 +152,20 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
   }
 
   static BatchRunTomoRow getInstance(final BatchRunTomoTable table, final JPanel panel,
-      final GridBagLayout layout, final GridBagConstraints constraints, final int number,
-      final File stack, final BatchRunTomoRow prevRow, final boolean overridePrevRow,
-      final boolean dual, final BatchRunTomoManager manager, final String stackID,
-      final PreferredTableSize datasetWidth) {
+    final GridBagLayout layout, final GridBagConstraints constraints, final int number,
+    final File stack, final BatchRunTomoRow prevRow, final boolean overridePrevRow,
+    final boolean dual, final BatchRunTomoManager manager, final String stackID,
+    final PreferredTableSize datasetWidth) {
     BatchRunTomoRow instance =
-        new BatchRunTomoRow(table, panel, layout, constraints, number, stack, prevRow,
-            overridePrevRow, dual, manager, stackID, datasetWidth);
+      new BatchRunTomoRow(table, panel, layout, constraints, number, stack, prevRow,
+        overridePrevRow, dual, manager, stackID, datasetWidth);
     instance.addListeners();
     return instance;
   }
 
   static BatchRunTomoRow getDefaultsInstance() {
-    return new BatchRunTomoRow(null, null, null, null, -1, null, null, false, false, null,
-        null, null);
+    return new BatchRunTomoRow(null, null, null, null, -1, null, null, false, false,
+      null, null, null);
   }
 
   void copy(final BatchRunTomoRow prevRow) {
@@ -197,9 +197,80 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
     bcEditDataset.addActionListener(listener);
   }
 
+  /**
+   * Opens 3dmod on the A axis
+   * @param modelFileType
+   * @return the file created from modelFileType
+   */
+  File imod(final FileType modelFileType) {
+    return imod(modelFileType, AxisID.FIRST, cbcDual.isSelected(), null);
+  }
+
+  /**
+   * Opens 3dmod on the A axis
+   * @param modelFile
+   */
+  void imod(final File modelFile) {
+    imod(modelFile, AxisID.FIRST, cbcDual.isSelected(), null);
+  }
+
+  /**
+   * Opens 3dmod.
+   * @param modelFileType
+   * @param axisID
+   * @param dual
+   * @param run3dmodMenuOptions
+   * @return the file created from modelFileType
+   */
+  private File imod(final FileType modelFileType, final AxisID axisID,
+    final boolean dual, final Run3dmodMenuOptions run3dmodMenuOptions) {
+    File stack = new File(fcStack.getExpandedValue());
+    if (modelFileType != null) {
+      File modelFile =
+        new File(stack.getParentFile(), BatchTool.getModelFileName(modelFileType, stack
+          .getName(), dual));
+      imod(modelFile, axisID, dual, null);
+      return modelFile;
+    }
+    // No model is required
+    imod(axisID, dual, run3dmodMenuOptions);
+    return null;
+  }
+
+  /**
+   * Opens 3dmod without a model.
+   * @param axisID
+   * @param dual
+   * @param run3dmodMenuOptions
+   */
+  private void imod(final AxisID axisID, final boolean dual,
+    final Run3dmodMenuOptions run3dmodMenuOptions) {
+    imod((File) null, axisID, dual, run3dmodMenuOptions);
+  }
+
+  /**
+   * Opens 3dmod, with a model if modelFile is set.
+   * @param modelFile
+   * @param axisID
+   * @param dual
+   * @param run3dmodMenuOptions
+   */
+  private void imod(final File modelFile, final AxisID axisID, final boolean dual,
+    final Run3dmodMenuOptions run3dmodMenuOptions) {
+    File stackFile = DatasetTool.getStackFile(fcStack.getExpandedValue(), axisID, dual);
+    if (axisID == AxisID.SECOND) {
+      imodIndexB =
+        manager.imod(stackFile, axisID, imodIndexB, modelFile, dual, run3dmodMenuOptions);
+    }
+    else {
+      imodIndexA =
+        manager.imod(stackFile, axisID, imodIndexA, modelFile, dual, run3dmodMenuOptions);
+    }
+  }
+
   public void action(final String actionCommand,
-      final Deferred3dmodButton deferred3dmodButton,
-      final Run3dmodMenuOptions run3dmodMenuOptions) {
+    final Deferred3dmodButton deferred3dmodButton,
+    final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (actionCommand == null) {
       return;
     }
@@ -209,35 +280,35 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
     else {
       boolean dual = cbcDual.isSelected();
       if (actionCommand.equals(mbc3dmodA.getActionCommand())) {
-        imodIndexA = manager.imod(
-            DatasetTool.getStackFile(fcStack.getExpandedValue(), AxisID.FIRST, dual),
-            AxisID.FIRST, imodIndexA, cbcBoundaryModel.isSelected(), dual,
-            run3dmodMenuOptions);
+        FileType modelFile = null;
+        if (cbcBoundaryModel.isSelected()) {
+          modelFile = FileType.BATCH_RUN_TOMO_BOUNDARY_MODEL;
+        }
+        imod(modelFile, AxisID.FIRST, dual, run3dmodMenuOptions);
       }
       else if (actionCommand.equals(mbc3dmodB.getActionCommand())) {
         // The model is only opened for the A axis
-        imodIndexB = manager.imod(
-            DatasetTool.getStackFile(fcStack.getExpandedValue(), AxisID.SECOND, dual),
-            AxisID.SECOND, imodIndexB, run3dmodMenuOptions);
+        imod(AxisID.SECOND, dual, run3dmodMenuOptions);
       }
       else if (actionCommand.equals(mbcEtomo.getActionCommand())) {
-        EtomoDirector.INSTANCE.openTomogram(DatasetTool.getDatasetFile(
-            DatasetTool.getStackFile(fcStack.getExpandedValue(), AxisID.FIRST, dual),
-            dual), true, null, mbcEtomo);
+        EtomoDirector.INSTANCE.openTomogram(DatasetTool.getDatasetFile(DatasetTool
+          .getStackFile(fcStack.getExpandedValue(), AxisID.FIRST, dual), dual), true,
+          null, mbcEtomo);
       }
-      else if (actionCommand.equals(cbcBoundaryModel.getActionCommand()) &&
-          cbcBoundaryModel.isSelected()) {
+      else if (actionCommand.equals(cbcBoundaryModel.getActionCommand())
+        && cbcBoundaryModel.isSelected()) {
         // The model is only opened for the A axis
         if (imodIndexA != -1) {
-          manager.imodModel(AxisID.FIRST, imodIndexA, fcStack.getContractedValue(), dual);
+          manager.imodModel(AxisID.FIRST, imodIndexA, fcStack.getContractedValue(),
+            FileType.BATCH_RUN_TOMO_BOUNDARY_MODEL, dual);
         }
       }
       else if (actionCommand.equals(bcEditDataset.getActionCommand())) {
         if (datasetDialog == null) {
-          datasetDialog = BatchRunTomoDatasetDialog.getRowInstance(manager, DatasetTool
-              .getDatasetFile(DatasetTool
-                      .getStackFile(fcStack.getExpandedValue(), AxisID.FIRST, dual),
-                  dual), this);
+          datasetDialog =
+            BatchRunTomoDatasetDialog.getRowInstance(manager, DatasetTool.getDatasetFile(
+              DatasetTool.getStackFile(fcStack.getExpandedValue(), AxisID.FIRST, dual),
+              dual), this);
           fcEditDataset.setValue("   Set");
         }
         else {
@@ -361,7 +432,7 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
       fcEditDataset.setValue();
     }
     if (isDatasetDialog) {
-      datasetDialog = BatchRunTomoDatasetDialog.getSavedInstance(manager, this);
+      datasetDialog = BatchRunTomoDatasetDialog.getSavedRowInstance(manager, this);
       datasetDialog.setParameters(rowMetaData.getDatasetMetaData());
     }
   }
@@ -380,7 +451,7 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
   }
 
   public void getParameters(final BatchruntomoParam param,
-      final boolean deliverToDirectory, final StringBuilder errMsg) {
+    final boolean deliverToDirectory, final StringBuilder errMsg) {
     if (!cbcRun.isSelected()) {
       return;
     }
@@ -394,15 +465,15 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
   }
 
   private String getBatchDirectiveFileName() {
-    return manager.getName() + "_" +
-        DatasetTool.getDatasetName(fcStack.getContractedValue(), cbcDual.isSelected()) +
-        ".adoc";
+    return manager.getName() + "_"
+      + DatasetTool.getDatasetName(fcStack.getContractedValue(), cbcDual.isSelected())
+      + ".adoc";
   }
 
   void loadAutodoc() {
-    DirectiveFile directiveFile = DirectiveFile.getInstance(manager, null,
-        new File(new File(fcStack.getExpandedValue()).getParent(),
-            getBatchDirectiveFileName()), true);
+    DirectiveFile directiveFile =
+      DirectiveFile.getInstance(manager, null, new File(new File(fcStack
+        .getExpandedValue()).getParent(), getBatchDirectiveFileName()), true);
     setValues(directiveFile);
     DirectiveDef directiveDef = DirectiveDef.SKIP;
     if (directiveFile.contains(directiveDef)) {
@@ -411,8 +482,8 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
     if (directiveFile.contains(directiveDef, AxisID.SECOND)) {
       fcbskip.setValue(directiveFile.getValue(directiveDef, AxisID.SECOND));
     }
-    if (directiveFile.containsValue(DirectiveDef.RAW_BOUNDARY_MODEL_FOR_SEED_FINDING) ||
-        directiveFile.containsValue(DirectiveDef.RAW_BOUNDARY_MODEL_FOR_PATCH_TRACKING)) {
+    if (directiveFile.containsValue(DirectiveDef.RAW_BOUNDARY_MODEL_FOR_SEED_FINDING)
+      || directiveFile.containsValue(DirectiveDef.RAW_BOUNDARY_MODEL_FOR_PATCH_TRACKING)) {
       cbcBoundaryModel.setSelected(true);
     }
     if (datasetDialog != null) {
@@ -434,13 +505,14 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
       BatchTool.saveFieldToAutodoc(fcbskip, AxisID.SECOND, AxisType.DUAL_AXIS, autodoc);
       if (cbcBoundaryModel.isSelected() && BatchTool.needInAutodoc(cbcBoundaryModel)) {
         String boundaryModelName =
-            BatchTool.getBoundaryModelName(stack.getName(), cbcDual.isSelected());
+          BatchTool.getModelFileName(FileType.BATCH_RUN_TOMO_BOUNDARY_MODEL, stack
+            .getName(), cbcDual.isSelected());
         autodoc.addNameValuePairAttribute(
-            DirectiveDef.RAW_BOUNDARY_MODEL_FOR_SEED_FINDING.getDirective(null, null),
-            boundaryModelName);
+          DirectiveDef.RAW_BOUNDARY_MODEL_FOR_SEED_FINDING.getDirective(null, null),
+          boundaryModelName);
         autodoc.addNameValuePairAttribute(
-            DirectiveDef.RAW_BOUNDARY_MODEL_FOR_PATCH_TRACKING.getDirective(null, null),
-            boundaryModelName);
+          DirectiveDef.RAW_BOUNDARY_MODEL_FOR_PATCH_TRACKING.getDirective(null, null),
+          boundaryModelName);
       }
       BatchTool.saveFieldToAutodoc(cbcTwoSurfaces, autodoc);
       if (templatePanel != null) {
@@ -451,7 +523,7 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
       }
       else {
         BatchRunTomoDatasetDialog globalDatasetDialog =
-            BatchRunTomoDatasetDialog.getGlobalInstance();
+          BatchRunTomoDatasetDialog.getGlobalInstance();
         if (globalDatasetDialog != null) {
           globalDatasetDialog.saveAutodoc(autodoc);
         }
@@ -505,8 +577,8 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
   }
 
   void applyValues(final boolean retainUserValues,
-      final UserConfiguration userConfiguration,
-      final DirectiveFileCollection directiveFileCollection) {
+    final UserConfiguration userConfiguration,
+    final DirectiveFileCollection directiveFileCollection) {
     // to apply values and highlights, start with a clean slate
     cbcDual.clear();
     cbcMontage.clear();
@@ -553,8 +625,8 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
   void setValues(final DirectiveFileInterface directiveFiles) {
     setValue(directiveFiles, DirectiveDef.DUAL, cbcDual);
     setValue(directiveFiles, DirectiveDef.MONTAGE, cbcMontage);
-    if (!setValue(directiveFiles, DirectiveDef.TWO_SURFACES, cbcTwoSurfaces) &&
-        directiveFiles.contains(DirectiveDef.SURFACES_TO_ANALYZE)) {
+    if (!setValue(directiveFiles, DirectiveDef.TWO_SURFACES, cbcTwoSurfaces)
+      && directiveFiles.contains(DirectiveDef.SURFACES_TO_ANALYZE)) {
       EtomoNumber number = new EtomoNumber();
       number.set(directiveFiles.getValue(DirectiveDef.SURFACES_TO_ANALYZE));
       cbcTwoSurfaces.setSelected(number.equals(2));
@@ -562,7 +634,7 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
   }
 
   private boolean setValue(final DirectiveFileInterface directiveFiles,
-      final DirectiveDef directiveDef, final CheckBoxCell cell) {
+    final DirectiveDef directiveDef, final CheckBoxCell cell) {
     if (directiveFiles.contains(directiveDef)) {
       cell.setSelected(directiveFiles.isValue(directiveDef));
       return true;
