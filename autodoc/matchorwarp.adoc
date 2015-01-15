@@ -37,6 +37,26 @@ tooltip =
 manpage = A list of mean residuals that Warpvol(1) will attempt to achieve
 automatically.  Values should be in increasing order and separated by commas.
 
+[Field = structurecrit]
+type = CH
+usage = Criterion values for selecting patches based on a structure measure
+tooltip =
+manpage = A list of one or more criterion values for selecting patches based
+on a measure of structure contained in the patch file.  Both Refinematch(1)
+and Findwarp(1) will be run with these limits for selecting patches with the
+structure value greater than the criterion.  In Findwarp(1), each criterion
+will be applied at a mean residual limit before going on to the next residual
+limit.  The measure of structure will be the fraction of analyzed boxes within
+a patch with a standard deviation indicative of a strong structure, which is
+saved in the patch file by Corrsearch3d(1) as an extra column with ID 5.
+
+[Field = extentfit]
+type = FN
+usage = Minimum number of rows and columns of patches in local fits 
+tooltip =
+manpage = Minimum number of rows and columns of patches to include in each
+local fit in Findwarp(1).
+
 [Field = modelfile]
 type = FN
 usage = Model file defining patches to include

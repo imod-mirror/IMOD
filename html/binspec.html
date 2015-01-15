@@ -5,23 +5,33 @@ IMOD Binary Model File Format.
 <body>
 <A NAME = "TOP"></A>
 <H1>IMOD Binary File Format. Version 1,  Revision 2</H1>
-
+<p>
 The IMOD binary file format is similar to the IFF format standard in
 that it uses chunk id's for data headings. Each chunk id is 4 bytes
 long and is defined as a string of 4 characters.
 This is the format used by IMOD Version 2.0 and onward.
-The format is backwards compatible with IMOD 1.2.
 All numbers are stored in big-endian format regardless of 
 machine architecture.  In the descriptions of flags below, 
 bits are numbered from 0.
 
 
 <H3>The File Header</H3>
-
+<p>
 All binary model files begin with a 8 byte ID followed by a 232 byte header.
 The ID format begins with the IMOD file id, (IMOD = 0x494d4f44)
 followed by the 4 byte version id, (V1.2 =  0x56312e32).
 The end of the file is marked by an end of data marker, (IEOF = 0x49454f46).
+
+<H3>Model Coordinate Conventions</H3>
+<p>
+Models are generally stored with pixel coordinates rather than coordinates
+scaled by the pixel size.  3dmod always stores a model with coordinates based
+upon the volume it is displayed on, or relative to the subset loaded when the
+full volume is not loaded.  Coordinates range from 0 to NX in X and 0 to
+NY in Y, but from -0.5 to NZ - 0.5 in Z (NX, NY, NZ being the size of volume
+loaded).  The offset of 0.5 in Z occurs because integer coordinates are used
+for points drawn on X/Y slices, even though such points are displayed in the
+middle of the pixel in Z when viewed in X/Z or Y/Z slices.
 
 <HR>
 <H3>The Model Data Structure</H3>
@@ -29,7 +39,7 @@ The end of the file is marked by an end of data marker, (IEOF = 0x49454f46).
 The Model structure data is 232 bytes long and contains the following data.
 A lot of this data is used by the 3dmod program to retain user settings.
 <pre>
-Length Type Name          Description
+Length Type Name           Description
 -----------------------------------------------------------------------------
 128    char  name          Name of model file.
 
@@ -37,14 +47,17 @@ Length Type Name          Description
 4      int   ymax          set to the image dimensions.
 4      int   zmax
 
-4      int  objsize       Number of objects in model.
+4      int  objsize        Number of objects in model.
 
-4      uint flags         Model flags  (IMODF_FLAG...)
-                           Bit 12 on : multiple clip planes are possible
-                           Bit 13 on : mat1 and mat3 are stored as bytes
-                           Bit 14 on : otrans has image origin values
-                           Bit 15 on : current tilt angles are stored correctly
-                           Bit 16 on : model last viewed on Y/Z flipped image
+4      uint flags          Model flags  (IMODF_FLAG...)
+                             Bit 10 on : Z coordinates start from -0.5
+                             Bit 11 on : Model has not been written by 3dmod yet
+                             Bit 12 on : multiple clip planes are possible
+                             Bit 13 on : mat1 and mat3 are stored as bytes
+                             Bit 14 on : otrans has image origin values
+                             Bit 15 on : current tilt angles are stored correctly
+                             Bit 16 on : model last viewed on Y/Z flipped or
+                                         rotated image
 4      int   drawmode      1 to draw model, -1 not to
 4      int   mousemode     Mouse editing mode. (0=movie,1=model)
 
@@ -136,7 +149,7 @@ Length Type  Name       Description
 
 1      uchar symbol       Point Draw symbol in 2D, default is 1.
                              0 = circle, 1 = none, 2 = square, 3 = triangle,
-	                     4 = star.
+                             4 = star.
 1      uchar symsize      Size of 2D symbol; radius in pixels.
 1      uchar linewidth2   Linewidth in 2-D view.
 1      uchar linewidth    Linewidth in 3-D view.
@@ -184,7 +197,7 @@ Length    Type         Name    Description
 4         int          vsize   # of elements in vert array (# of triple floats)
 4         int          lsize   # of elements in list array (indexes).
 4         uint         flag    Bit 16 on  : normals have magnitudes.
-                	       Bits 20-23 are resolution : 0 for high, 
+                               Bits 20-23 are resolution : 0 for high, 
                                   1 for lower resolution, etc.
 2         short        time    Contains a time index or 0
 2         short        surf    Contains a surface number or 0
@@ -198,13 +211,13 @@ vertex/normal pairs; i.e. vertex, normal, vertex, normal...  The
 <code>list</code> array has a list of indices into the <code>vert</code>
 array plus negative index values with following meanings:
 <pre>
-	-1   end of list array                
-	-20  next item on list is normal vector.
-	-21  begin polygon with vertices and vertex indices only
-        -22  end polygon
-	-23  begin vertex,normal polygon pairs with normal,vertex indices
-	-24  begin large convex polygon with normals.
-	-25  begin vertex,normal polygon pairs with vertex indices
+  -1   end of list array                
+  -20  next item on list is normal vector.
+  -21  begin polygon with vertices and vertex indices only
+  -22  end polygon
+  -23  begin vertex,normal polygon pairs with normal,vertex indices
+  -24  begin large convex polygon with normals.
+  -25  begin vertex,normal polygon pairs with vertex indices
 
 </pre>
 Currently, meshes in model files consist only of polygons with vertex, normal
@@ -458,10 +471,10 @@ Currently there are 187 bytes per object view, as follows:
 1     uchar     clips.plane  Current clip plane
 12    float * 3 clips.normal Normal for first clipping plane
 12    float * 3 clips.point  Point value for first clipping plane
-1     uchar 	ambient      Ambient property.  (see above)
-1     uchar 	diffuse      Diffuse property.  (see above)
-1     uchar 	specular     Specular property.  (see above)
-1     uchar 	shininess    Shininess exponent in specular term.  (see above)
+1     uchar     ambient      Ambient property.  (see above)
+1     uchar     diffuse      Diffuse property.  (see above)
+1     uchar     specular     Specular property.  (see above)
+1     uchar     shininess    Shininess exponent in specular term.  (see above)
 1     uchar     fillred      Fill color red.
 1     uchar     fillgreen    Fill color green.
 1     uchar     fillblue     Fill color blue.

@@ -90,7 +90,6 @@ EXPORTS
 	imodContourNearest
 	imodContoursFromImagePoints
 	objGroupListChecksum
-	imodContourPrincipalAxis
 	PUTIMODMAXES
 	imodContourFitPlane
 	NEWIMOD
@@ -196,6 +195,7 @@ EXPORTS
 	imodRead
 	imodPointPlaneEdge
 	imodObjectClip
+	istoreFindAddMinMax
 	imodPointNormalize
 	istorePointIsGap
 	imodContourGetPoints
@@ -228,6 +228,7 @@ EXPORTS
 	imodObjectSortSurf
 	DELETEIMOD
 	PUTSYMSIZE
+	GETZFROMMINUSPT5
 	imeshParamsDup
 	imodMatTrans
 	objGroupDelete
@@ -327,6 +328,7 @@ EXPORTS
 	imodReadFile
 	imodDelete
 	GETIMODSIZES
+	imodContourEquivEllipse
 	imodAutoExpand
 	WRITEIMOD
 	istoreFirstChangeIndex
@@ -387,6 +389,7 @@ EXPORTS
 	imodContourGetBBox
 	imodLabelNew
 	imodObjectInsertContour
+	IMODOPENERROR
 	imodLabelItemAdd
 	imodel_mesh_add
 	GETIMODSURFACES
