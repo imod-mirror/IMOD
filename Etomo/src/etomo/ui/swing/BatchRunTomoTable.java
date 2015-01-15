@@ -7,6 +7,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.EventObject;
 import java.util.Iterator;
 import java.util.List;
 
@@ -33,11 +34,12 @@ import etomo.type.TableReference;
 import etomo.type.UserConfiguration;
 import etomo.ui.BatchRunTomoTab;
 import etomo.ui.PreferredTableSize;
+import etomo.ui.TableListener;
 
 /**
  * <p>Description: </p>
  * <p/>
- * <p>Copyright: Copyright 2014 by the Regents of the University of Colorado</p>
+ * <p>Copyright: Copyright 2014 - 2015 by the Regents of the University of Colorado</p>
  * <p/>
  * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
@@ -299,6 +301,15 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
     return pnlRoot;
   }
 
+  /**
+   * Currently only have room for one table listener.  This can be changed by changing
+   * how table listeners are stored.
+   * @param tableListener
+   */
+  void setTableListener(final TableListener tableListener) {
+    rowList.setTableListener(tableListener);
+  }
+
   void setCurrentDirectory(final String currentAbsolutePath) {
     if (currentAbsolutePath != null) {
       currentDirectory = new File(currentAbsolutePath);
@@ -327,6 +338,10 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
 
   void loadAutodocs() {
     rowList.loadAutodocs();
+  }
+
+  BatchRunTomoRow getFirstRow() {
+    return rowList.getFirstRow();
   }
 
   /**
@@ -447,10 +462,18 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
     private final BatchRunTomoTable table;
 
     private BatchRunTomoRow initialValueRow = null;
+    // Currently only one table listener is required
+    private TableListener tableListener = null;
+    private EventObject eventObject = null;
 
     private RowList(final BatchRunTomoTable table, final TableReference tableReference) {
       this.tableReference = tableReference;
       this.table = table;
+    }
+
+    private void setTableListener(final TableListener tableListener) {
+      this.tableListener = tableListener;
+      eventObject = new EventObject(table);
     }
 
     private void add(final List<DatasetTool.StackInfo> stackInfoList) {
@@ -520,6 +543,9 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
           list.add(row);
           fileAdded = true;
           row.display(viewport, curTab);
+          if (tableListener != null && i == 0 && firstIndex == 0) {
+            tableListener.firstRowAdded(eventObject);
+          }
         }
       }
       if (fileAdded) {
@@ -567,6 +593,9 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
           list.add(row);
           fileAdded = true;
           row.display(viewport, curTab);
+          if (tableListener != null && i == 0 && firstIndex == 0) {
+            tableListener.firstRowAdded(eventObject);
+          }
         }
       }
       if (fileAdded) {
@@ -576,6 +605,13 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
         UIHarness.INSTANCE.pack(manager);
         updateDisplay();
       }
+    }
+
+    private BatchRunTomoRow getFirstRow() {
+      if (!list.isEmpty()) {
+        return list.get(0);
+      }
+      return null;
     }
 
     private boolean rowExists(final String stackID) {
@@ -614,6 +650,9 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
           index--;
         }
         highlight(index);
+        if (tableListener != null && list.isEmpty()) {
+          tableListener.lastRowDeleted(eventObject);
+        }
         return true;
       }
       return false;
