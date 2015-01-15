@@ -34,7 +34,7 @@ import etomo.util.FilePath;
  * <p>
  * Description:
  * </p>
- * Copyright: Copyright 2009 - 2014 by the Regents of the University of Colorado
+ * Copyright: Copyright 2009 - 2015 by the Regents of the University of Colorado
  * </p>
  * Organization: Dept. of MCD Biology, University of Colorado
  * </p>
@@ -87,9 +87,9 @@ final class MaskingPanel implements UIComponent, SwingComponent {
       MatlabParam.MaskType.CYLINDER, bgMaskType);
   private final FileTextField2 ftfMaskTypeFile;
   private final LabeledTextField ltfInsideMaskRadius = new LabeledTextField(
-      FieldType.INTEGER, INSIDE_MASK_RADIUS_LABEL, PeetDialog.SETUP_LOCATION_DESCR);
+      FieldType.FLOATING_POINT, INSIDE_MASK_RADIUS_LABEL, PeetDialog.SETUP_LOCATION_DESCR);
   private final LabeledTextField ltfOutsideMaskRadius = new LabeledTextField(
-      FieldType.INTEGER, OUTSIDE_MASK_RADIUS_LABEL, PeetDialog.SETUP_LOCATION_DESCR);
+      FieldType.FLOATING_POINT, OUTSIDE_MASK_RADIUS_LABEL, PeetDialog.SETUP_LOCATION_DESCR);
   private final LabeledTextField ltfZRotation = new LabeledTextField(
       FieldType.FLOATING_POINT, "Z Rotation: ", PeetDialog.SETUP_LOCATION_DESCR);
   private final LabeledTextField ltfYRotation = new LabeledTextField(
@@ -97,9 +97,9 @@ final class MaskingPanel implements UIComponent, SwingComponent {
   private final CheckBox cbCylinderOrientation = new CheckBox(
       "Manual Cylinder Orientation");
   private final LabeledTextField ltfCylinderHeight = new LabeledTextField(
-      FieldType.INTEGER, "Height: ", PeetDialog.SETUP_LOCATION_DESCR);
+      FieldType.FLOATING_POINT, "Height: ", PeetDialog.SETUP_LOCATION_DESCR);
   private final LabeledTextField ltfMaskBlurStdDev = new LabeledTextField(
-      FieldType.INTEGER, "Blur mask by: ", PeetDialog.SETUP_LOCATION_DESCR);
+      FieldType.FLOATING_POINT, "Blur mask by: ", PeetDialog.SETUP_LOCATION_DESCR);
 
   private final MaskingParent parent;
   private final BaseManager manager;
