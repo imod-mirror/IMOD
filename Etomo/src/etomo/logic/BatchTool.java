@@ -65,8 +65,9 @@ public final class BatchTool {
               AutodocFactory.getWritableAutodocInstance(manager, templateFiles[0]);
         }
         else {
-          totalTemplate = AutodocFactory
-              .graftMergeGlobal(manager, templateFiles[templateFiles.length - 1],
+          totalTemplate =
+              AutodocFactory.graftMergeGlobal(manager,
+                  templateFiles[templateFiles.length - 1],
                   templateFiles[templateFiles.length - 2]);
           for (int i = templateFiles.length - 3; i >= 0; i--) {
             totalTemplate =
@@ -146,8 +147,8 @@ public final class BatchTool {
         if (directiveDef.isBoolean() && field.isBoolean() && field.isSelected()) {
           // checkboxes and radio buttons
           if (needInAutodoc(field)) {
-            autodoc.addNameValuePairAttribute(directiveDef.getDirective(axisID, axisType),
-                "1");
+            autodoc.addNameValuePairAttribute(
+                directiveDef.getDirective(axisID, axisType), "1");
           }
           return true;
         }
@@ -155,18 +156,16 @@ public final class BatchTool {
           if (!field.isBoolean() && !field.isEmpty()) {
             // text fields, file text fields, and spinners
             if (needInAutodoc(field)) {
-              autodoc
-                  .addNameValuePairAttribute(directiveDef.getDirective(axisID, axisType),
-                      field.getText());
+              autodoc.addNameValuePairAttribute(
+                  directiveDef.getDirective(axisID, axisType), field.getText());
             }
             return true;
           }
           else if (field.isBoolean() && field.isSelected()) {
             // radio text fields and checkbox text fields
             if (needInAutodoc(field)) {
-              autodoc
-                  .addNameValuePairAttribute(directiveDef.getDirective(axisID, axisType),
-                      field.getText());
+              autodoc.addNameValuePairAttribute(
+                  directiveDef.getDirective(axisID, axisType), field.getText());
             }
             return true;
           }
@@ -180,9 +179,12 @@ public final class BatchTool {
     return false;
   }
 
-  public static String getBoundaryModelName(final String stack, final boolean dualAxis) {
-    return FileType.BATCH_RUN_TOMO_BOUNDARY_MODEL
-        .getFileName(DatasetTool.getDatasetName(stack, dualAxis),
-            dualAxis ? AxisType.DUAL_AXIS : AxisType.SINGLE_AXIS, null);
+  public static String getModelFileName(final FileType fileType, final String stack,
+      final boolean dualAxis) {
+    if (fileType != null) {
+      return fileType.getFileName(DatasetTool.getDatasetName(stack, dualAxis),
+          dualAxis ? AxisType.DUAL_AXIS : AxisType.SINGLE_AXIS, null);
+    }
+    return null;
   }
 }
