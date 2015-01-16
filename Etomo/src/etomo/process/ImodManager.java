@@ -1146,8 +1146,13 @@ public class ImodManager {
       vectorIndex = newImod(key, axisID, file);
       imodState = get(key, axisID, vectorIndex);
     }
-    if (imodState != null && modelFile != null) {
-      imodState.open(modelFile.getAbsolutePath(), modelMode, menuOptions);
+    if (imodState != null) {
+      if (modelFile != null) {
+        imodState.open(modelFile.getAbsolutePath(), modelMode, menuOptions);
+      }
+      else {
+        imodState.open(menuOptions);
+      }
     }
     return vectorIndex;
   }
