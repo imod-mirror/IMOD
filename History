@@ -1,11 +1,12 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/15/15: IMOD_4-8-18
 1/14/15: Made Ctfplotter delete all existing values in table when autofitting
 to whole range, not just ones with midpoints bracketed by the new midpoints.
 
-1/11/15: IMOD 4-8-17
+1/11/15: IMOD_4-8-17
 1/10/15: Various PEET interface changes for working with single-particle
-volumes and wih masks.
+volumes and with masks.
 
 1/10/15: Fixed bug in Imodauto if there are empty boundary contours (In 4.7).
 
