@@ -336,7 +336,7 @@ final class NewstackAndBlendmontParamPanel implements FiducialessParams {
   private void setToolTipText() {
     ReadOnlyAutodoc autodoc = null;
     try {
-      autodoc = AutodocFactory.getInstance(manager, AutodocFactory.NEWSTACK, axisID);
+      autodoc = AutodocFactory.getInstance(manager, AutodocFactory.NEWSTACK, axisID,false);
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();

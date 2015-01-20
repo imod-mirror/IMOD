@@ -275,14 +275,7 @@ final class CcdEraserBeadsPanel implements Run3dmodButtonContainer, CcdEraserDis
     return true;
   }
 
-  public void action(final Run3dmodButton button,
-      final Run3dmodMenuOptions run3dmodMenuOptions) {
-    action(button.getActionCommand(), button.getDeferred3dmodButton(),
-        run3dmodMenuOptions);
-  }
-
-  private void action(final String command,
-      final Deferred3dmodButton deferred3dmodButton,
+  public void action(final String command, final Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(btnCcdEraser.getActionCommand())) {
       manager.goldEraser(btnCcdEraser, null, deferred3dmodButton, run3dmodMenuOptions,
@@ -311,7 +304,8 @@ final class CcdEraserBeadsPanel implements Run3dmodButtonContainer, CcdEraserDis
   private void setToolTipText() {
     ReadOnlyAutodoc autodoc = null;
     try {
-      autodoc = AutodocFactory.getInstance(manager, AutodocFactory.CCDERASER, axisID);
+      autodoc = AutodocFactory.getInstance(manager, AutodocFactory.CCDERASER, axisID,
+          false);
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();

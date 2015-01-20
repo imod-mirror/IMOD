@@ -300,7 +300,7 @@ final class IterationTable implements Highlightable {
   private void setToolTipText() {
     ReadOnlyAutodoc autodoc = null;
     try {
-      autodoc = AutodocFactory.getInstance(manager, AutodocFactory.PEET_PRM, AxisID.ONLY);
+      autodoc = AutodocFactory.getInstance(manager, AutodocFactory.PEET_PRM, AxisID.ONLY,false);
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();

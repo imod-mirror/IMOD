@@ -41,6 +41,7 @@ final class EtomoMenu {
   static final String GENERIC_LABEL = "Generic Parallel Process";
   static final String NAD_LABEL = "Nonlinear Anisotropic "
       + (Utilities.isAprilFools() ? "Delusion" : "Diffusion");
+  static final String BATCH_RUN_TOMO_LABEL = "Batch Tomograms";
   static final String PEET_LABEL = "Subvolume Averaging (PEET)";
   static final String FLATTEN_VOLUME_LABEL = "Flatten Volume";
   static final String GPU_TILT_TEST_LABEL = "Test GPU";
@@ -74,6 +75,8 @@ final class EtomoMenu {
       KeyEvent.VK_R);
   private final JMenuItem menuNewAnisotropicDiffusion = new MenuItem(NAD_LABEL,
       KeyEvent.VK_D);
+  private final JMenuItem menuNewBatchRunTomo = new MenuItem(BATCH_RUN_TOMO_LABEL,
+      KeyEvent.VK_H);
   private final JMenuItem menuNewGenericParallel = new MenuItem(GENERIC_LABEL,
       KeyEvent.VK_G);
 
@@ -195,6 +198,7 @@ final class EtomoMenu {
         menuNew.add(menuSerialSections);
         menuNew.add(menuNewAnisotropicDiffusion);
         menuNew.add(menuNewGenericParallel);
+        menuNew.add(menuNewBatchRunTomo);
         // template menu
         menuTemplate.add(menuSaveScope);
         menuTemplate.add(menuSaveSystem);
@@ -292,6 +296,7 @@ final class EtomoMenu {
         menuNewJoin.addActionListener(fileActionListener);
         menuNewGenericParallel.addActionListener(fileActionListener);
         menuNewAnisotropicDiffusion.addActionListener(fileActionListener);
+        menuNewBatchRunTomo.addActionListener(fileActionListener);
         menuNewPeet.addActionListener(fileActionListener);
         menuSerialSections.addActionListener(fileActionListener);
         menuOpen.addActionListener(fileActionListener);
@@ -371,6 +376,7 @@ final class EtomoMenu {
     menuNewGenericParallel.setEnabled(mainFrameMenu.menuNewGenericParallel.isEnabled());
     menuNewAnisotropicDiffusion.setEnabled(mainFrameMenu.menuNewAnisotropicDiffusion
         .isEnabled());
+    menuNewBatchRunTomo.setEnabled(mainFrameMenu.menuNewBatchRunTomo.isEnabled());
     menuNewPeet.setEnabled(mainFrameMenu.menuNewPeet.isEnabled());
     menuSerialSections.setEnabled(mainFrameMenu.menuSerialSections.isEnabled());
     menuSaveAs.setEnabled(mainFrameMenu.menuSaveAs.isEnabled());
@@ -533,6 +539,10 @@ final class EtomoMenu {
     menuNewAnisotropicDiffusion.setEnabled(enable);
   }
 
+  void setEnabledNewBatchRunTomo(final boolean enable) {
+    menuNewBatchRunTomo.setEnabled(enable);
+  }
+
   void setEnabledNewPeet(final boolean enable) {
     menuNewPeet.setEnabled(enable);
   }
@@ -555,6 +565,10 @@ final class EtomoMenu {
 
   boolean equalsNewAnisotropicDiffusion(final ActionEvent event) {
     return equals(menuNewAnisotropicDiffusion, event);
+  }
+
+  boolean equalsNewBatchRunTomo(final ActionEvent event) {
+    return equals(menuNewBatchRunTomo, event);
   }
 
   boolean equalsNewPeet(final ActionEvent event) {

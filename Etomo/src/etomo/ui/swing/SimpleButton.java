@@ -1,5 +1,7 @@
 package etomo.ui.swing;
 
+import java.awt.FontMetrics;
+
 import javax.swing.Icon;
 import javax.swing.JButton;
 
@@ -37,6 +39,8 @@ import etomo.util.Utilities;
 final class SimpleButton extends JButton {
   public static final String rcsid = "$Id$";
 
+  private FontMetrics fontMetrics = null;
+
   public SimpleButton() {
     super();
   }
@@ -49,6 +53,15 @@ final class SimpleButton extends JButton {
   public SimpleButton(Icon icon) {
     super(icon);
   }
+
+  int getPreferredWidth() {
+    int width = 0;
+    if (fontMetrics == null) {
+      fontMetrics = UIUtilities.getFontMetrics(this);
+    }
+    return UIUtilities.getPreferredWidth(this, getText(), fontMetrics);
+  }
+
 
   public void setText(String text) {
     super.setText(text);

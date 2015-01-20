@@ -1656,7 +1656,7 @@ final class TiltalignPanel implements Expandable {
     ReadOnlySection section;
     ReadOnlyAutodoc autodoc = null;
     try {
-      autodoc = AutodocFactory.getInstance(appMgr, AutodocFactory.TILTALIGN, axisID);
+      autodoc = AutodocFactory.getInstance(appMgr, AutodocFactory.TILTALIGN, axisID,false);
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();
