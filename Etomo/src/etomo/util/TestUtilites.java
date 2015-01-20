@@ -1,16 +1,22 @@
+package etomo.util;
+
+import java.io.File;
+
+import etomo.BaseManager;
+import etomo.EtomoDirector;
+import etomo.process.SystemProcessException;
+import etomo.process.SystemProgram;
+import etomo.type.AxisID;
+
 /**
  * <p>Description: This class prodives utility functions for working unit,
  * functional and integration testing.</p>
  * 
- * <p>Copyright: Copyright (c) 2002, 2003</p>
+ * <p>Copyright: Copyright 2002 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- *<p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
- * University of Colorado</p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
+ * @version $Id$
  * 
  * <p> $Log$
  * <p> Revision 1.26  2011/02/22 21:54:38  sueh
@@ -116,27 +122,13 @@
  * <p> Initial revision
  * <p> </p>
  */
-
-package etomo.util;
-
-import java.io.File;
-
-import etomo.BaseManager;
-import etomo.EtomoDirector;
-import etomo.process.SystemProcessException;
-import etomo.process.SystemProgram;
-import etomo.type.AxisID;
-
 public final class TestUtilites {
-  public static final String rcsid = "$Id$";
-
   public static final TestUtilites INSTANCE = new TestUtilites();
 
   private File unitTestData = null;
   private boolean unitTestDataSet = false;
 
-  private TestUtilites() {
-  }
+  private TestUtilites() {}
 
   /**
    * Attempts to set unitTestData, if the attempt hasn't been made before.
@@ -152,17 +144,41 @@ public final class TestUtilites {
       }
       unitTestDataSet = true;
       unitTestData = new File("unitTestData");
+      System.err.println("TestUtilites:initUnitTestData:unitTestData:" + unitTestData);
       if (!unitTestData.exists() || !unitTestData.isDirectory()) {
+        System.err.println("TestUtilites:initUnitTestData:unitTestData does not exist");
         BaseManager manager = EtomoDirector.INSTANCE.getCurrentManagerForTest();
         // If IMOD_UNIT_TEST_DATA is not set, assume that this is the build unit test.
         // In that case unitTestData should be located here:
         // $IMOD_DIR/../Etomo/unitTestData.
-        String imodDirName = EnvironmentVariable.INSTANCE.getValue(manager,
-            manager == null ? null : manager.getPropertyUserDir(), EtomoDirector.IMOD_DIR_ENV_VAR,
-            AxisID.ONLY);
+        String imodDirName =
+          EnvironmentVariable.INSTANCE.getValue(manager, manager == null ? null : manager
+            .getPropertyUserDir(), EtomoDirector.IMOD_DIR_ENV_VAR, AxisID.ONLY);
+        System.err.println("TestUtilites:initUnitTestData:imodDirName:" + imodDirName);
         if (imodDirName != null && !imodDirName.matches("\\s*")) {
-          unitTestData = new File(
-              new File(new File(imodDirName).getParentFile(), "Etomo"), "unitTestData");
+          unitTestData =
+            new File(new File(new File(imodDirName).getParentFile(), "Etomo"),
+              "unitTestData");
+          System.err
+            .println("TestUtilites:initUnitTestData:unitTestData:" + unitTestData);
+        }
+      }
+      if (!unitTestData.exists() || !unitTestData.isDirectory()) {
+        System.err.println("TestUtilites:initUnitTestData:unitTestData does not exist");
+        BaseManager manager = EtomoDirector.INSTANCE.getCurrentManagerForTest();
+        // If IMOD_UNIT_TEST_DATA is not set, assume that this is the build unit test.
+        // In that case unitTestData should be located here:
+        // $IMOD_DIR/../Etomo/unitTestData.
+        String imodDirName =
+          EnvironmentVariable.INSTANCE.getValue(manager, manager == null ? null : manager
+            .getPropertyUserDir(), EtomoDirector.IMOD_DIR_ENV_VAR, AxisID.ONLY);
+        System.err.println("TestUtilites:initUnitTestData:imodDirName:" + imodDirName);
+        if (imodDirName != null && !imodDirName.matches("\\s*")) {
+          unitTestData =
+            new File(new File(new File(imodDirName).getParentFile(), "build/IMOD/Etomo"),
+              "unitTestData");
+          System.err
+            .println("TestUtilites:initUnitTestData:unitTestData:" + unitTestData);
         }
       }
     }
@@ -183,7 +199,7 @@ public final class TestUtilites {
    * @throws SystemProcessException
    */
   public File copyTestFile(String testRootAbsolutePath, String testDirName,
-      String testFileName) throws SystemProcessException {
+    String testFileName) throws SystemProcessException {
     initUnitTestData();
     File unitTestDataFile = new File(unitTestData, testFileName);
     File testDir = new File(testRootAbsolutePath, testDirName);
@@ -192,7 +208,7 @@ public final class TestUtilites {
       // delete existing test dir file
       if (testDirFile.exists() && !testDirFile.delete()) {
         throw new SystemProcessException("Cannot delete testDirFile: "
-            + testDirFile.getAbsolutePath());
+          + testDirFile.getAbsolutePath());
       }
       // copy data file from unitTestData to test directory
       String[] copyCommand = new String[4];
@@ -201,8 +217,9 @@ public final class TestUtilites {
       copyCommand[2] = unitTestDataFile.getAbsolutePath();
       copyCommand[3] = testDir.getAbsolutePath();
       BaseManager manager = EtomoDirector.INSTANCE.getCurrentManagerForTest();
-      SystemProgram copy = new SystemProgram(manager, manager == null ? null
-          : manager.getPropertyUserDir(), copyCommand, AxisID.ONLY);
+      SystemProgram copy =
+        new SystemProgram(manager, manager == null ? null : manager.getPropertyUserDir(),
+          copyCommand, AxisID.ONLY);
       copy.run();
       return testDirFile;
     }
