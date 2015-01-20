@@ -74,7 +74,7 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
   private final JPanel pnlDataset = new JPanel();
   private final JPanel pnlRun = new JPanel();
   private final JPanel pnlTable = new JPanel();
-  private final MultiLineButton btnRun = new MultiLineButton("Run Batchruntomo");
+  private final MultiLineButton btnRun = new MultiLineButton("Save Batch Files");
   private final JPanel pnlRunButton = new JPanel();
   private final JPanel pnlParallelSettings = new JPanel();
   private final UserConfiguration userConfiguration = EtomoDirector.INSTANCE
