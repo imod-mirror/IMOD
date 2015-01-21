@@ -364,6 +364,9 @@ public class DirectiveFileCollection implements SetupReconInterface,
 
   public void initTiltAngleFields(final AxisID axisID, final TiltAngleSpec tiltAngleSpec,
     final UserConfiguration userConfiguration) {
+    if (copyArgExtraValues == null) {
+      copyArgExtraValues = new HashMap<String, String>();
+    }
     if (!copyArgExtraValues.containsKey(DirectiveDef.USE_RAW_TLT.getName(axisID))
       && tiltAngleSpec.getType() == TiltAngleType.FILE
       || userConfiguration.isTiltAnglesRawtltFile()) {
