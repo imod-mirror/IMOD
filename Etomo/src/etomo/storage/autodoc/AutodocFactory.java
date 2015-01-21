@@ -154,6 +154,8 @@ public final class AutodocFactory {
 
   private static final HashMap UITEST_AXIS_MAP = new HashMap();
 
+  private static String replacementDir = null;
+
   private AutodocFactory() {}
 
   public static ReadOnlyAutodoc getInstance(BaseManager manager, String name)
@@ -378,6 +380,14 @@ public final class AutodocFactory {
     Autodoc autodoc = new Autodoc(stripFileExtension(autodocFile.getName()));
     autodoc.initializeGenericInstance(manager, autodocFile, axisID, writable);
     return autodoc;
+  }
+
+  public static void setReplacementDir(final String input) {
+    replacementDir = input;
+  }
+
+  public static String getReplacementDir() {
+    return replacementDir;
   }
 
   /**
