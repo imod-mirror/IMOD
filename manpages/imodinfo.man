@@ -149,7 +149,7 @@ Print ratio of length to area for closed contours.
 .B -e
 Print properties of equivalent ellipses for closed contours.  The
 equivalent ellipse is the one with the same second moments as the area
-enclosed by a contour.  If limits are entered with \fB-x\bR, \fB-y\bR,
+enclosed by a contour.  If limits are entered with \fB-x\fR, \fB-y\fR,
 or \fB-z\fR, only contours with center coordinates within the limits are
 in reported.  Only the X and Y coordinates of the points are
 considered when computing these ellipses.  For each contour, the values
