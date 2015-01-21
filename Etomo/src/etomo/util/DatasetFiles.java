@@ -398,10 +398,10 @@ public final class DatasetFiles {
   }
 
   final static String getAutodocName(String name) {
-    if (name.endsWith(AutodocFactory.EXTENSION)) {
+    if (AutodocFactory.endsWithAutodocExtension(name)) {
       return name;
     }
-    return name + AutodocFactory.EXTENSION;
+    return name + AutodocFactory.Extension.DEFAULT;
   }
 
   public static File getShellScript(BaseManager manager, String commandName, AxisID axisID) {

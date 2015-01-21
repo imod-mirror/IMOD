@@ -28,14 +28,12 @@ import etomo.util.Utilities;
 /**
  * <p>Description: </p>
  * 
- * <p>Copyright: Copyright 2006</p>
+ * <p>Copyright: Copyright 2006 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
- * University of Colorado</p>
- * 
- * @author $Author$
- * 
+ * @version $Id$
+
  * @version $Revision$
  * 
  * <p> $Log$
@@ -631,7 +629,7 @@ public final class Arguments {
         errorMessageList.add("Missing " + DIRECTIVE_TAG + " parameter value.");
       }
       else {
-        if (!fDirective.getName().endsWith(AutodocFactory.EXTENSION)) {
+        if (!fDirective.getName().endsWith(AutodocFactory.Extension.DEFAULT.toString())) {
           errorMessageList.add(DIRECTIVE_TAG + " parameter value, "
               + fDirective.getAbsolutePath() + ", has the wrong extension.");
         }

@@ -15,7 +15,7 @@ import etomo.type.FileType;
 /**
  * <p>Description: Creates Autodoc classes.</p>
  * <p/>
- * <p>Copyright: Copyright 2006 - 2014 by the Regents of the University of Colorado</p>
+ * <p>Copyright: Copyright 2006 - 2015 by the Regents of the University of Colorado</p>
  * <p/>
  * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
@@ -89,8 +89,6 @@ import etomo.type.FileType;
  *          <p> </p>
  */
 public final class AutodocFactory {
-  public static final String EXTENSION = ".adoc";
-
   public static final String VERSION = "1.2";
   public static final String TILTXCORR = "tiltxcorr";
   public static final String MTF_FILTER = "mtffilter";
@@ -156,16 +154,15 @@ public final class AutodocFactory {
 
   private static final HashMap UITEST_AXIS_MAP = new HashMap();
 
-  private AutodocFactory() {
-  }
+  private AutodocFactory() {}
 
   public static ReadOnlyAutodoc getInstance(BaseManager manager, String name)
-      throws FileNotFoundException, IOException, LogFile.LockException {
+    throws FileNotFoundException, IOException, LogFile.LockException {
     return getInstance(manager, name, AxisID.ONLY, false);
   }
 
-  public static ReadOnlyAutodoc getComInstance(String name)
-      throws FileNotFoundException, IOException, LogFile.LockException {
+  public static ReadOnlyAutodoc getComInstance(String name) throws FileNotFoundException,
+    IOException, LogFile.LockException {
     if (name == null) {
       throw new IllegalStateException("name is null");
     }
@@ -174,15 +171,14 @@ public final class AutodocFactory {
       return autodoc;
     }
     autodoc = new Autodoc(name);
-    autodoc
-        .initializeGenericInstance(null, EtomoDirector.IMOD_DIR_ENV_VAR, FileType.COM_DIR,
-            name, AxisID.ONLY, false);
+    autodoc.initializeGenericInstance(null, EtomoDirector.IMOD_DIR_ENV_VAR,
+      FileType.COM_DIR, name, AxisID.ONLY, false);
     return autodoc;
   }
 
   public static ReadOnlyAutodoc getInstance(final BaseManager manager, final String name,
-      final AxisID axisID, final boolean debug)
-      throws FileNotFoundException, IOException, LogFile.LockException {
+    final AxisID axisID, final boolean debug) throws FileNotFoundException, IOException,
+    LogFile.LockException {
     if (name == null) {
       throw new IllegalStateException("name is null");
     }
@@ -205,7 +201,7 @@ public final class AutodocFactory {
   }
 
   public static WritableAutodoc getMatlabInstance(final BaseManager manager,
-      final File file, final boolean debug) throws IOException, LogFile.LockException {
+    final File file, final boolean debug) throws IOException, LogFile.LockException {
     if (file == null) {
       throw new IllegalStateException("file is null");
     }
@@ -216,12 +212,13 @@ public final class AutodocFactory {
       return autodoc;
     }
     catch (FileNotFoundException e) {
+      e.printStackTrace();
       return null;
     }
   }
 
   public static WritableAutodoc getWritableInstance(final BaseManager manager,
-      final File file) throws IOException, LogFile.LockException {
+    final File file) throws IOException, LogFile.LockException {
     if (file == null) {
       throw new IllegalStateException("file is null");
     }
@@ -236,7 +233,7 @@ public final class AutodocFactory {
   }
 
   public static WritableAutodoc getEmptyWritableInstance(final BaseManager manager,
-      final File file) throws IOException, LogFile.LockException {
+    final File file) throws IOException, LogFile.LockException {
     if (file == null) {
       throw new IllegalStateException("file is null");
     }
@@ -264,7 +261,7 @@ public final class AutodocFactory {
   }
 
   public static WritableAutodoc getEmptyMatlabInstance(final BaseManager manager,
-      final File file) throws IOException, LogFile.LockException {
+    final File file) throws IOException, LogFile.LockException {
     if (file == null) {
       throw new IllegalStateException("file is null");
     }
@@ -279,7 +276,7 @@ public final class AutodocFactory {
   }
 
   public static ReadOnlyAutodoc getInstance(BaseManager manager, File file,
-      final boolean writable) throws IOException, LogFile.LockException {
+    final boolean writable) throws IOException, LogFile.LockException {
     if (file == null) {
       throw new IllegalStateException("file is null");
     }
@@ -306,8 +303,8 @@ public final class AutodocFactory {
    * @throws LogFile.LockException
    */
   public static ReadOnlyAutodoc getInstance(BaseManager manager, File file,
-      final String autodocName, final boolean writable)
-      throws IOException, LogFile.LockException {
+    final String autodocName, final boolean writable) throws IOException,
+    LogFile.LockException {
     if (file == null) {
       throw new IllegalStateException("file is null");
     }
@@ -333,8 +330,8 @@ public final class AutodocFactory {
    * @throws IOException
    */
   public static Autodoc getTestInstance(final BaseManager manager, final File directory,
-      final String autodocFileName, final AxisID axisID)
-      throws FileNotFoundException, IOException, LogFile.LockException {
+    final String autodocFileName, final AxisID axisID) throws FileNotFoundException,
+    IOException, LogFile.LockException {
     if (autodocFileName == null) {
       return null;
     }
@@ -366,8 +363,8 @@ public final class AutodocFactory {
    * @throws IOException
    */
   public static Autodoc getInstance(final BaseManager manager, final File autodocFile,
-      final AxisID axisID, final boolean writable)
-      throws FileNotFoundException, IOException, LogFile.LockException {
+    final AxisID axisID, final boolean writable) throws FileNotFoundException,
+    IOException, LogFile.LockException {
     if (autodocFile == null) {
       return null;
     }
@@ -397,8 +394,9 @@ public final class AutodocFactory {
    * @throws IOException
    * @throws LogFile.LockException
    */
-  public static Autodoc graftMergeGlobal(final BaseManager manager, final File autodocFile,
-      final File mergeAutodocFile) throws IOException, LogFile.LockException {
+  public static Autodoc graftMergeGlobal(final BaseManager manager,
+    final File autodocFile, final File mergeAutodocFile) throws IOException,
+    LogFile.LockException {
     if (autodocFile == null && mergeAutodocFile == null) {
       return null;
     }
@@ -416,8 +414,8 @@ public final class AutodocFactory {
     Autodoc mergeAutodoc = null;
     if (mergeAutodocFile != null) {
       mergeAutodoc = new Autodoc(stripFileExtension(mergeAutodocFile.getName()));
-      mergeAutodoc
-          .initializeGenericInstance(manager, mergeAutodocFile, AxisID.ONLY, false);
+      mergeAutodoc.initializeGenericInstance(manager, mergeAutodocFile, AxisID.ONLY,
+        false);
     }
     if (autodoc != null && mergeAutodoc != null) {
       autodoc.graftMergeGlobal(mergeAutodoc);
@@ -440,8 +438,7 @@ public final class AutodocFactory {
    * @throws LogFile.LockException
    */
   public static Autodoc graftMergeGlobal(final BaseManager manager, Autodoc autodoc,
-      final File mergeAutodocFile)
-      throws  IOException, LogFile.LockException {
+    final File mergeAutodocFile) throws IOException, LogFile.LockException {
     if (autodoc == null && mergeAutodocFile == null) {
       return null;
     }
@@ -454,8 +451,8 @@ public final class AutodocFactory {
     Autodoc mergeAutodoc = null;
     if (mergeAutodocFile != null) {
       mergeAutodoc = new Autodoc(stripFileExtension(mergeAutodocFile.getName()));
-      mergeAutodoc
-          .initializeGenericInstance(manager, mergeAutodocFile, AxisID.ONLY, false);
+      mergeAutodoc.initializeGenericInstance(manager, mergeAutodocFile, AxisID.ONLY,
+        false);
     }
     if (autodoc != null && mergeAutodoc != null) {
       autodoc.graftMergeGlobal(mergeAutodoc);
@@ -475,7 +472,7 @@ public final class AutodocFactory {
    * @throws LogFile.LockException
    */
   public static Autodoc subtractGlobal(Autodoc autodoc, final Autodoc subtractAutodoc)
-      throws IOException, LogFile.LockException {
+    throws IOException, LogFile.LockException {
     if (autodoc != null && subtractAutodoc != null) {
       autodoc.subtractGlobal(subtractAutodoc);
     }
@@ -492,8 +489,7 @@ public final class AutodocFactory {
    * @throws LogFile.LockException
    */
   public static Autodoc getWritableAutodocInstance(final BaseManager manager,
-      final File autodocFile)
-      throws  IOException, LogFile.LockException {
+    final File autodocFile) throws IOException, LogFile.LockException {
     if (autodocFile == null) {
       return null;
     }
@@ -810,6 +806,29 @@ public final class AutodocFactory {
     }
     else {
       throw new IllegalArgumentException("Illegal autodoc name: " + name + ".");
+    }
+  }
+
+  public static boolean endsWithAutodocExtension(final String path) {
+    if (path == null) {
+      return false;
+    }
+    return path.endsWith(Extension.DEFAULT.extension)
+      || path.endsWith(Extension.MATLAB.extension);
+  }
+
+  public static final class Extension {
+    public static final Extension DEFAULT = new Extension(".adoc");
+    private static final Extension MATLAB = new Extension(".prm");
+
+    private final String extension;
+
+    private Extension(final String extension) {
+      this.extension = extension;
+    }
+
+    public String toString() {
+      return extension;
     }
   }
 }
