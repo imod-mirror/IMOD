@@ -451,6 +451,8 @@ public final class RemotePathTest extends TestCase {
   private File setUpTestDirectory(String testDirName) throws IOException {
     testDir = new File(TEST_DIR, testDirName);
     setUpDirectory(testDir);
+    AutodocFactory.setReplacementDir(testDir.getAbsolutePath());
+    AutodocFactory.resetInstance(RemotePath.AUTODOC);
     return testDir;
   }
 
