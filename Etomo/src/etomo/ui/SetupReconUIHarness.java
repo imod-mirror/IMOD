@@ -90,6 +90,7 @@ public final class SetupReconUIHarness {
     if (directiveFileCollection == null) {
       return false;
     }
+    initializeFields(manager.getConstMetaData(), EtomoDirector.INSTANCE.getUserConfiguration());
     AxisType axisType = AxisType.SINGLE_AXIS;
     if (directiveFileCollection.isValue(DirectiveDef.DUAL)) {
       axisType = AxisType.DUAL_AXIS;
