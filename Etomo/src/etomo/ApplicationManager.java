@@ -269,6 +269,7 @@ public final class ApplicationManager extends BaseManager implements
         openSetupDialog();
       }
     }
+    setupReconUIHarness.initializeFields((ConstMetaData) metaData, userConfig);
   }
 
   public void doAutomation() {
@@ -386,7 +387,6 @@ public final class ApplicationManager extends BaseManager implements
       Utilities.timestamp("new", "SetupDialog", Utilities.STARTED_STATUS);
       setupDialogExpert = setupReconUIHarness.getSetupDialogExpert();
       Utilities.timestamp("new", "SetupDialog", Utilities.FINISHED_STATUS);
-      setupReconUIHarness.initializeFields((ConstMetaData) metaData, userConfig);
     }
     mainPanel.openSetupPanel(setupDialogExpert);
     if (!GraphicsEnvironment.isHeadless()) {
