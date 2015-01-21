@@ -11,6 +11,7 @@ import java.io.FileNotFoundException;
 import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.storage.LogFile;
+import etomo.storage.autodoc.AutodocFactory;
 import etomo.type.AxisID;
 import etomo.ui.swing.Token;
 
@@ -43,14 +44,11 @@ import etomo.ui.swing.Token;
  * <p/>
  * </p>
  * <p/>
- * <p>Copyright: Copyright 2002 - 2006</p>
+ * <p>Copyright: Copyright 2002 - 2015 by the Regents of the University of Colorado</p>
  * <p/>
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
- * University of Colorado</p>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * @author $$Author$$
- * @version $$Revision$$
+ * @version $Id$
  *          <p/>
  *          <p> $$Log$
  *          <p> $Revision 1.15  2010/11/13 16:08:59  sueh
@@ -129,7 +127,7 @@ import etomo.ui.swing.Token;
  */
 public final class PrimativeTokenizer {
   public static final String rcsid =
-      "$$Id$$";
+    "$$Id$$";
 
   private static final String RETURN = "\r";
   private static final String AUTODOC_DIR_ENV_VAR = "AUTODOC_DIR";
@@ -145,8 +143,8 @@ public final class PrimativeTokenizer {
   private StreamTokenizer tokenizer = null;
   private String symbols = new String("!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~");
   private String digits = new String("0123456789");
-  private String letters =
-      new String("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ");
+  private String letters = new String(
+    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ");
   private Token token = new Token();
   private boolean nextTokenFound = false;
   private Token nextToken = new Token();
@@ -158,7 +156,7 @@ public final class PrimativeTokenizer {
   private int valueIndex = -1;
 
   private PrimativeTokenizer(final LogFile logFile, final String string,
-      final boolean separateAlphabeticAndNumeric, final boolean debug) {
+    final boolean separateAlphabeticAndNumeric, final boolean debug) {
     this.logFile = logFile;
     this.string = string;
     this.separateAlphabeticAndNumeric = separateAlphabeticAndNumeric;
@@ -166,13 +164,13 @@ public final class PrimativeTokenizer {
   }
 
   public static PrimativeTokenizer getAutodocInstance(final String name,
-      final BaseManager manager, final AxisID axisID, final String notFoundMessage,
-      final boolean debug) {
+    final BaseManager manager, final AxisID axisID, final String notFoundMessage,
+    final boolean debug) {
     if (autodocDir == null) {
       autodocDir = getFileLocation(null, null, manager, axisID, notFoundMessage, name);
     }
     return new PrimativeTokenizer(getLogFile(autodocDir, name, notFoundMessage, false),
-        null, false, debug);
+      null, false, debug);
   }
 
   /**
@@ -190,9 +188,9 @@ public final class PrimativeTokenizer {
    * @return
    */
   public static PrimativeTokenizer getGenericInstance(final String envVar,
-      final String subdirName, String name, final File autodocFile,
-      final BaseManager manager, final AxisID axisID, final String notFoundMessage,
-      final boolean debug, final boolean writable) {
+    final String subdirName, String name, final File autodocFile,
+    final BaseManager manager, final AxisID axisID, final String notFoundMessage,
+    final boolean debug, final boolean writable) {
     File dir = null;
     if (autodocFile != null) {
       dir = autodocFile.getParentFile();
@@ -202,16 +200,16 @@ public final class PrimativeTokenizer {
       dir = getFileLocation(envVar, subdirName, manager, axisID, notFoundMessage, name);
     }
     return new PrimativeTokenizer(getLogFile(dir, name, notFoundMessage, writable), null,
-        false, debug);
+      false, debug);
   }
 
   public static PrimativeTokenizer getStringInstance(final String string,
-      final boolean debug) {
+    final boolean debug) {
     return new PrimativeTokenizer(null, string, false, debug);
   }
 
   public static PrimativeTokenizer getNumericStringInstance(final String string,
-      final boolean debug) {
+    final boolean debug) {
     return new PrimativeTokenizer(null, string, true, debug);
   }
 
@@ -227,14 +225,15 @@ public final class PrimativeTokenizer {
    * @return
    */
   private static File getFileLocation(final String envVar, final String subdir,
-      final BaseManager manager, final AxisID axisID, final String notFoundMessage,
-      final String name) {
+    final BaseManager manager, final AxisID axisID, final String notFoundMessage,
+    final String name) {
     boolean findAutodocDir = envVar == null && subdir == null;
     File dir = null;
     if (findAutodocDir) {
       dir = getDirectory(AUTODOC_DIR_ENV_VAR, null, manager, axisID, notFoundMessage);
       if (dir == null) {
-        dir = getDirectory(EtomoDirector.IMOD_DIR_ENV_VAR, DEFAULT_AUTODOC_DIR, manager,
+        dir =
+          getDirectory(EtomoDirector.IMOD_DIR_ENV_VAR, DEFAULT_AUTODOC_DIR, manager,
             axisID, notFoundMessage);
       }
     }
@@ -242,11 +241,10 @@ public final class PrimativeTokenizer {
       dir = getDirectory(envVar, subdir, manager, axisID, notFoundMessage);
     }
     if (dir == null) {
-      System.err.println(
-          notFoundMessage == null ? "Warning" : "Info" + ":  can't open the " + name +
-              " autodoc file.\nThis autodoc was not in in $" + envVar +
-              (subdir != null ? "/" + subdir : "") +
-              (findAutodocDir ? " or $" + AUTODOC_DIR_ENV_VAR : "") + ".\n");
+      System.err.println(notFoundMessage == null ? "Warning" : "Info"
+        + ":  can't open the " + name + " autodoc file.\nThis autodoc was not in in $"
+        + envVar + (subdir != null ? "/" + subdir : "")
+        + (findAutodocDir ? " or $" + AUTODOC_DIR_ENV_VAR : "") + ".\n");
     }
     return dir;
   }
@@ -262,15 +260,20 @@ public final class PrimativeTokenizer {
    * @return
    */
   private static File getDirectory(final String envVar, final String subdir,
-      final BaseManager manager, final AxisID axisID, final String notFoundMessage) {
+    final BaseManager manager, final AxisID axisID, final String notFoundMessage) {
     File dir = null;
+    String replacementDir = AutodocFactory.getReplacementDir();
+    if (replacementDir != null) {
+      if (subdir == null) {
+        return new File(replacementDir);
+      }
+      return new File(new File(replacementDir), subdir);
+    }
     if (envVar != null) {
       if (subdir == null) {
         return Utilities.getExistingDir(manager, envVar, axisID, notFoundMessage);
       }
-      else {
-        return getDir(manager, envVar, subdir, axisID);
-      }
+      return getDir(manager, envVar, subdir, axisID);
     }
     return null;
   }
@@ -283,7 +286,7 @@ public final class PrimativeTokenizer {
    * @return
    */
   private static LogFile getLogFile(final File autodocDir, final String autodocName,
-      final String notFoundMessage, final boolean writable) {
+    final String notFoundMessage, final boolean writable) {
     boolean warnIfFail = notFoundMessage == null;
     if (autodocDir == null || autodocName == null) {
       return null;
@@ -293,30 +296,26 @@ public final class PrimativeTokenizer {
     boolean exists = file.exists();
     if (!writable) {
       if (!exists) {
-        System.err
-            .println(errorMessageTag + ":  The autodoc file " + file.getAbsolutePath() +
-                " does not exist.");
+        System.err.println(errorMessageTag + ":  The autodoc file "
+          + file.getAbsolutePath() + " does not exist.");
         return null;
       }
       if (!file.canRead()) {
-        System.err.println(errorMessageTag + ":  Cannot read the autodoc file " +
-            file.getAbsolutePath() +
-            ".");
+        System.err.println(errorMessageTag + ":  Cannot read the autodoc file "
+          + file.getAbsolutePath() + ".");
         return null;
       }
     }
     else {
       if (exists && !file.canWrite()) {
-        System.err.println(errorMessageTag + ":  Cannot write the autodoc file " +
-            file.getAbsolutePath() +
-            ".");
+        System.err.println(errorMessageTag + ":  Cannot write the autodoc file "
+          + file.getAbsolutePath() + ".");
         return null;
       }
     }
     if (file.isDirectory()) {
-      System.err
-          .println(errorMessageTag + ":  The autodoc file " + file.getAbsolutePath() +
-              " is a directory.");
+      System.err.println(errorMessageTag + ":  The autodoc file "
+        + file.getAbsolutePath() + " is a directory.");
       return null;
     }
 
@@ -325,15 +324,14 @@ public final class PrimativeTokenizer {
     }
     catch (LogFile.LockException e) {
       e.printStackTrace();
-      System.err.println(
-          errorMessageTag + ":  Cannot open the autodoc file " + file.getAbsolutePath() +
-              ".");
+      System.err.println(errorMessageTag + ":  Cannot open the autodoc file "
+        + file.getAbsolutePath() + ".");
       return null;
     }
   }
 
   private static File getDir(BaseManager manager, String envVariable, String dirName,
-      AxisID axisID) {
+    AxisID axisID) {
     File parentDir = Utilities.getExistingDir(manager, envVariable, axisID);
     if (parentDir == null) {
       return null;
@@ -362,14 +360,14 @@ public final class PrimativeTokenizer {
    * @throws FileNotFoundException
    * @throws IOException
    */
-  public void initialize()
-      throws FileNotFoundException, IOException, LogFile.LockException {
+  public void initialize() throws FileNotFoundException, IOException,
+    LogFile.LockException {
     initializeStreamTokenizer();
     nextToken();
   }
 
-  private void initializeStreamTokenizer()
-      throws FileNotFoundException, LogFile.LockException {
+  private void initializeStreamTokenizer() throws FileNotFoundException,
+    LogFile.LockException {
     try {
       if (logFile != null) {
         File readingFile = new File(logFile.getAbsolutePath());
@@ -604,7 +602,8 @@ public final class PrimativeTokenizer {
       else if (!token.is(Token.Type.EOF)) {
         System.out.print(token.getValue());
       }
-    } while (!token.is(Token.Type.EOF));
+    }
+    while (!token.is(Token.Type.EOF));
   }
 
   /**
@@ -613,8 +612,8 @@ public final class PrimativeTokenizer {
    * @param tokens If true, prints each token.  If false, prints the text.
    * @throws IOException
    */
-  public void testStreamTokenizer(boolean tokens, boolean details)
-      throws IOException, LogFile.LockException {
+  public void testStreamTokenizer(boolean tokens, boolean details) throws IOException,
+    LogFile.LockException {
     initializeStreamTokenizer();
     do {
       nextToken();
@@ -623,13 +622,12 @@ public final class PrimativeTokenizer {
         if (details) {
           TokenType tokenType = TokenType.getInstance(tokenizer.ttype);
           if (tokenType == null) {
-            System.out.println(
-                ", " + ((char) tokenizer.ttype) + ",sval=" + tokenizer.sval + ",nval=" +
-                    tokenizer.nval);
+            System.out.println(", " + ((char) tokenizer.ttype) + ",sval="
+              + tokenizer.sval + ",nval=" + tokenizer.nval);
           }
           else {
-            System.out.println(", " + TokenType.getInstance(tokenizer.ttype) + ",sval=" +
-                tokenizer.sval + ",nval=" + tokenizer.nval);
+            System.out.println(", " + TokenType.getInstance(tokenizer.ttype) + ",sval="
+              + tokenizer.sval + ",nval=" + tokenizer.nval);
           }
         }
         else {
@@ -649,8 +647,9 @@ public final class PrimativeTokenizer {
           }
         }
       }
-    } while (tokenizer.ttype != StreamTokenizer.TT_EOF &&
-        tokenizer.ttype != streamTokenizerNothingValue);
+    }
+    while (tokenizer.ttype != StreamTokenizer.TT_EOF
+      && tokenizer.ttype != streamTokenizerNothingValue);
     if (logFile != null) {
       closeFile();
     }
