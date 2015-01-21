@@ -362,25 +362,36 @@ public class DirectiveFileCollection implements SetupReconInterface,
     setCopyArgValue(DirectiveDef.TWODIR, axisID, String.valueOf(input));
   }
 
+  /**
+   * Add tilt angle directives to copyArgExtraValues.  Behaves as an init function by only
+   * adding directives that are not in the collection.  Can be called at any time without
+   * overriding other settings.
+   * @param axisID
+   * @param tiltAngleSpec
+   * @param userConfiguration
+   */
   public void initTiltAngleFields(final AxisID axisID, final TiltAngleSpec tiltAngleSpec,
     final UserConfiguration userConfiguration) {
     if (copyArgExtraValues == null) {
       copyArgExtraValues = new HashMap<String, String>();
     }
-    if (!copyArgExtraValues.containsKey(DirectiveDef.USE_RAW_TLT.getName(axisID))
-      && tiltAngleSpec.getType() == TiltAngleType.FILE
+    if (tiltAngleSpec.getType() == TiltAngleType.FILE
       || userConfiguration.isTiltAnglesRawtltFile()) {
-      setCopyArgValue(DirectiveDef.USE_RAW_TLT, axisID, TRUE);
+      if (!copyArgExtraValues.containsKey(DirectiveDef.USE_RAW_TLT.getName(axisID))) {
+        setCopyArgValue(DirectiveDef.USE_RAW_TLT, axisID, TRUE);
+      }
     }
-    else if (!copyArgExtraValues.containsKey(DirectiveDef.EXTRACT.getName(axisID))
-      && tiltAngleSpec.getType() == TiltAngleType.EXTRACT) {
-      setCopyArgValue(DirectiveDef.EXTRACT, axisID, TRUE);
+    else if (tiltAngleSpec.getType() == TiltAngleType.EXTRACT) {
+      if (!copyArgExtraValues.containsKey(DirectiveDef.EXTRACT.getName(axisID))) {
+        setCopyArgValue(DirectiveDef.EXTRACT, axisID, TRUE);
+      }
     }
-    else if (!copyArgExtraValues.containsKey(DirectiveDef.FIRST_INC.getName(axisID))
-      && tiltAngleSpec.getType() == TiltAngleType.RANGE) {
-      setCopyArgValue(DirectiveDef.FIRST_INC, axisID, String.valueOf(tiltAngleSpec
-        .getRangeMin())
-        + ", " + String.valueOf(tiltAngleSpec.getRangeStep()));
+    else if (tiltAngleSpec.getType() == TiltAngleType.RANGE) {
+      if (!copyArgExtraValues.containsKey(DirectiveDef.FIRST_INC.getName(axisID))) {
+        setCopyArgValue(DirectiveDef.FIRST_INC, axisID, String.valueOf(tiltAngleSpec
+          .getRangeMin())
+          + ", " + String.valueOf(tiltAngleSpec.getRangeStep()));
+      }
     }
   }
 
