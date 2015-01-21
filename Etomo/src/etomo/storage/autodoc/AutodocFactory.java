@@ -382,6 +382,11 @@ public final class AutodocFactory {
     return autodoc;
   }
 
+  /**
+   * Causes all autodocs that don't already exist, and whose location comes from an
+   * environment variable to be opened in the replacement directory instead of the
+   * location specified by the environment variable.
+   */
   public static void setReplacementDir(final String input) {
     replacementDir = input;
   }
