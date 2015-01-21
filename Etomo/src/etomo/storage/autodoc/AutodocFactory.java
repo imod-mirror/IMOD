@@ -154,6 +154,8 @@ public final class AutodocFactory {
 
   private static final HashMap UITEST_AXIS_MAP = new HashMap();
 
+  private static String replacementDir = null;
+
   private AutodocFactory() {}
 
   public static ReadOnlyAutodoc getInstance(BaseManager manager, String name)
@@ -378,6 +380,19 @@ public final class AutodocFactory {
     Autodoc autodoc = new Autodoc(stripFileExtension(autodocFile.getName()));
     autodoc.initializeGenericInstance(manager, autodocFile, axisID, writable);
     return autodoc;
+  }
+
+  /**
+   * Causes all autodocs that don't already exist, and whose location comes from an
+   * environment variable to be opened in the replacement directory instead of the
+   * location specified by the environment variable.
+   */
+  public static void setReplacementDir(final String input) {
+    replacementDir = input;
+  }
+
+  public static String getReplacementDir() {
+    return replacementDir;
   }
 
   /**
