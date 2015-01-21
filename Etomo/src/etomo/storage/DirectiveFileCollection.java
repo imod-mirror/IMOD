@@ -615,21 +615,16 @@ public class DirectiveFileCollection implements SetupReconInterface,
           }
         }
       }
-      // If scan header (only found in the batch directive file and is not in copyarg) is
-      // true, then get values from scanning the header which aren't already in the map.
-      if (directiveFileArray[DirectiveFileType.BATCH.getIndex()] != null) {
-        AttributeMatch attribute =
-          directiveFileArray[DirectiveFileType.BATCH.getIndex()].getAttribute(
-            DirectiveDef.SCAN_HEADER, null);
-        if (attribute != null && attribute.isValue()) {
-          Iterator<Entry<String, String>> iterator =
-            directiveFileCollection.copyArgExtraValues.entrySet().iterator();
-          while (iterator.hasNext()) {
-            Entry<String, String> entry = iterator.next();
-            String name = entry.getKey();
-            if (!pairMap.containsKey(name)) {
-              pairMap.put(name, entry.getValue());
-            }
+      // Get values from the .etomo file and scanning the header which aren't already in
+      // the map.
+      if (directiveFileCollection.copyArgExtraValues != null) {
+        Iterator<Entry<String, String>> iterator =
+          directiveFileCollection.copyArgExtraValues.entrySet().iterator();
+        while (iterator.hasNext()) {
+          Entry<String, String> entry = iterator.next();
+          String name = entry.getKey();
+          if (!pairMap.containsKey(name)) {
+            pairMap.put(name, entry.getValue());
           }
         }
       }
