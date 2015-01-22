@@ -203,14 +203,13 @@ public final class AutodocFactory {
   }
 
   public static WritableAutodoc getMatlabInstance(final BaseManager manager,
-    final File file, final boolean debug) throws IOException, LogFile.LockException {
+    final File file, final boolean writable) throws IOException, LogFile.LockException {
     if (file == null) {
       throw new IllegalStateException("file is null");
     }
     Autodoc autodoc = new Autodoc(stripFileExtension(file));
-    autodoc.setDebug(debug);
     try {
-      autodoc.initializeMatlapInstance(manager, file);
+      autodoc.initializeMatlabInstance(manager, file,writable);
       return autodoc;
     }
     catch (FileNotFoundException e) {
