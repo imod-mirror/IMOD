@@ -25,18 +25,17 @@ import etomo.ui.SetupReconInterface;
 /**
  * <p>Description: </p>
  * <p/>
- * <p>Copyright: Copyright 2012 - 2014 by the Regents of the University of Colorado</p>
+ * <p>Copyright: Copyright 2012 - 2015 by the Regents of the University of Colorado</p>
  * <p/>
  * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
  * @version $Id$
  */
-public class DirectiveFileCollection
-    implements SetupReconInterface, DirectiveFileInterface {
-  public static final String rcsid = "$Id:$";
-
-  private final DirectiveFile[] directiveFileArray =
-      new DirectiveFile[]{null, null, null, null};
+public class DirectiveFileCollection implements SetupReconInterface,
+  DirectiveFileInterface {
+  private static final String TRUE = "1";
+  private final DirectiveFile[] directiveFileArray = new DirectiveFile[] { null, null,
+    null, null };
   private Map<String, String> copyArgExtraValues = null;
 
   private final BaseManager manager;
@@ -68,7 +67,7 @@ public class DirectiveFileCollection
    * @return
    */
   private AttributeMatch getAttribute(final DirectiveDef directiveDef,
-      final AxisID axisID, final boolean templatesOnly) {
+    final AxisID axisID, final boolean templatesOnly) {
     int start = directiveFileArray.length - 1;
     int end = 0;
     boolean template = directiveDef.isTemplate(axisID);
@@ -92,17 +91,17 @@ public class DirectiveFileCollection
         continue;
       }
       AttributeMatch primaryMatch =
-          directiveFile.getAttribute(Match.PRIMARY, directiveDef, axisID);
+        directiveFile.getAttribute(Match.PRIMARY, directiveDef, axisID);
       if (primaryMatch != null) {
         if (primaryMatch.overrides()) {
           return null;
         }
         // Missing primary match - if the secondary match hasn't been set from a higher
         // priority file, try to set it.
-        if (primaryMatch.isEmpty() &&
-            (secondaryMatch == null || secondaryMatch.isEmpty())) {
+        if (primaryMatch.isEmpty()
+          && (secondaryMatch == null || secondaryMatch.isEmpty())) {
           secondaryMatch =
-              directiveFile.getAttribute(Match.SECONDARY, directiveDef, axisID);
+            directiveFile.getAttribute(Match.SECONDARY, directiveDef, axisID);
           continue;
         }
         return primaryMatch;
@@ -129,7 +128,7 @@ public class DirectiveFileCollection
    * @return
    */
   private boolean contains(final DirectiveDef directiveDef, final AxisID axisID,
-      final boolean templatesOnly) {
+    final boolean templatesOnly) {
     AttributeMatch attributeMatch = getAttribute(directiveDef, axisID, templatesOnly);
     if (attributeMatch != null) {
       return true;
@@ -139,8 +138,8 @@ public class DirectiveFileCollection
     }
     // An attribute has not been found - look for an extra value - these are associated
     // with the directive file.
-    if (directiveDef.getDirectiveType() == DirectiveType.COPY_ARG &&
-        copyArgExtraValues != null) {
+    if (directiveDef.getDirectiveType() == DirectiveType.COPY_ARG
+      && copyArgExtraValues != null) {
       return copyArgExtraValues.containsKey(directiveDef.getName(axisID));
     }
     return false;
@@ -174,7 +173,7 @@ public class DirectiveFileCollection
    * @return
    */
   private String getValue(final DirectiveDef directiveDef, final AxisID axisID,
-      final boolean templatesOnly) {
+    final boolean templatesOnly) {
     AttributeMatch attributeMatch = getAttribute(directiveDef, axisID, templatesOnly);
     if (attributeMatch != null) {
       return attributeMatch.getValue();
@@ -183,8 +182,8 @@ public class DirectiveFileCollection
       return null;
     }
     // An attribute has not been found - look for an extra value.
-    if (directiveDef.getDirectiveType() == DirectiveType.COPY_ARG &&
-        copyArgExtraValues != null) {
+    if (directiveDef.getDirectiveType() == DirectiveType.COPY_ARG
+      && copyArgExtraValues != null) {
       return copyArgExtraValues.get(directiveDef.getName(axisID));
     }
     return null;
@@ -248,7 +247,7 @@ public class DirectiveFileCollection
    * @return
    */
   private boolean isValue(final DirectiveDef directiveDef, final AxisID axisID,
-      final boolean templateOnly) {
+    final boolean templateOnly) {
     AttributeMatch attributeMatch = getAttribute(directiveDef, axisID, templateOnly);
     if (attributeMatch != null) {
       return attributeMatch.isValue();
@@ -257,10 +256,10 @@ public class DirectiveFileCollection
       return false;
     }
     // An attribute has not been found - look for an extra value.
-    if (directiveDef.getDirectiveType() == DirectiveType.COPY_ARG &&
-        copyArgExtraValues != null) {
-      return DirectiveAttribute
-          .toBoolean(copyArgExtraValues.get(directiveDef.getName(axisID)));
+    if (directiveDef.getDirectiveType() == DirectiveType.COPY_ARG
+      && copyArgExtraValues != null) {
+      return DirectiveAttribute.toBoolean(copyArgExtraValues.get(directiveDef
+        .getName(axisID)));
     }
     return false;
   }
@@ -289,7 +288,7 @@ public class DirectiveFileCollection
    * @return true
    */
   public boolean getTiltAngleFields(final AxisID axisID,
-      final TiltAngleSpec tiltAngleSpec, final boolean doValidation) {
+    final TiltAngleSpec tiltAngleSpec, final boolean doValidation) {
     if (tiltAngleSpec == null) {
       return true;
     }
@@ -314,13 +313,13 @@ public class DirectiveFileCollection
       tiltAngleSpec.setType(TiltAngleType.FILE);
     }
     else {
-      //Must set something here, so use the settings values
+      // Must set something here, so use the settings values
       UserConfiguration userConfiguration = EtomoDirector.INSTANCE.getUserConfiguration();
       if (userConfiguration.isTiltAnglesRawtltFile()) {
         tiltAngleSpec.setType(TiltAngleType.FILE);
       }
       else {
-        //Default
+        // Default
         tiltAngleSpec.setType(TiltAngleType.EXTRACT);
       }
     }
@@ -335,7 +334,7 @@ public class DirectiveFileCollection
    * @param value
    */
   private void setCopyArgValue(final DirectiveDef directiveDef, final AxisID axisID,
-      final String value) {
+    final String value) {
     if (directiveDef != null) {
       if (copyArgExtraValues == null) {
         copyArgExtraValues = new HashMap<String, String>();
@@ -363,10 +362,43 @@ public class DirectiveFileCollection
     setCopyArgValue(DirectiveDef.TWODIR, axisID, String.valueOf(input));
   }
 
+  /**
+   * Add tilt angle directives to copyArgExtraValues.  Behaves as an init function by only
+   * adding directives that are not in the collection.  Can be called at any time without
+   * overriding other settings.
+   * @param axisID
+   * @param tiltAngleSpec
+   * @param userConfiguration
+   */
+  public void initTiltAngleFields(final AxisID axisID, final TiltAngleSpec tiltAngleSpec,
+    final UserConfiguration userConfiguration) {
+    if (copyArgExtraValues == null) {
+      copyArgExtraValues = new HashMap<String, String>();
+    }
+    if (tiltAngleSpec.getType() == TiltAngleType.FILE
+      || userConfiguration.isTiltAnglesRawtltFile()) {
+      if (!copyArgExtraValues.containsKey(DirectiveDef.USE_RAW_TLT.getName(axisID))) {
+        setCopyArgValue(DirectiveDef.USE_RAW_TLT, axisID, TRUE);
+      }
+    }
+    else if (tiltAngleSpec.getType() == TiltAngleType.EXTRACT) {
+      if (!copyArgExtraValues.containsKey(DirectiveDef.EXTRACT.getName(axisID))) {
+        setCopyArgValue(DirectiveDef.EXTRACT, axisID, TRUE);
+      }
+    }
+    else if (tiltAngleSpec.getType() == TiltAngleType.RANGE) {
+      if (!copyArgExtraValues.containsKey(DirectiveDef.FIRST_INC.getName(axisID))) {
+        setCopyArgValue(DirectiveDef.FIRST_INC, axisID, String.valueOf(tiltAngleSpec
+          .getRangeMin())
+          + ", " + String.valueOf(tiltAngleSpec.getRangeStep()));
+      }
+    }
+  }
+
   public boolean containsTiltAngleSpec(final AxisID axisID) {
-    return contains(DirectiveDef.FIRST_INC, axisID) ||
-        contains(DirectiveDef.USE_RAW_TLT, axisID) ||
-        contains(DirectiveDef.EXTRACT, axisID);
+    return contains(DirectiveDef.FIRST_INC, axisID)
+      || contains(DirectiveDef.USE_RAW_TLT, axisID)
+      || contains(DirectiveDef.EXTRACT, axisID);
   }
 
   public String getBackupDirectory() {
@@ -469,13 +501,13 @@ public class DirectiveFileCollection
   public void setup(final DirectiveFile batchDirectiveFile) {
     directiveFileArray[DirectiveFileType.BATCH.getIndex()] = batchDirectiveFile;
     if (batchDirectiveFile != null) {
-      setDirectiveFile(batchDirectiveFile.getAttribute(DirectiveDef.SCOPE_TEMPLATE, null),
-          DirectiveFileType.SCOPE);
       setDirectiveFile(
-          batchDirectiveFile.getAttribute(DirectiveDef.SYSTEM_TEMPLATE, null),
-          DirectiveFileType.SYSTEM);
+        batchDirectiveFile.getAttribute(DirectiveDef.SCOPE_TEMPLATE, null),
+        DirectiveFileType.SCOPE);
+      setDirectiveFile(batchDirectiveFile
+        .getAttribute(DirectiveDef.SYSTEM_TEMPLATE, null), DirectiveFileType.SYSTEM);
       setDirectiveFile(batchDirectiveFile.getAttribute(DirectiveDef.USER_TEMPLATE, null),
-          DirectiveFileType.USER);
+        DirectiveFileType.USER);
     }
   }
 
@@ -487,7 +519,7 @@ public class DirectiveFileCollection
    * @param type
    */
   private void setDirectiveFile(final AttributeMatch attribute,
-      final DirectiveFileType type) {
+    final DirectiveFileType type) {
     if (attribute == null) {
       directiveFileArray[type.getIndex()] = null;
     }
@@ -497,9 +529,9 @@ public class DirectiveFileCollection
         directiveFileArray[type.getIndex()] = null;
       }
       else {
-        directiveFileArray[type.getIndex()] = DirectiveFile
-            .getInstance(manager, axisID, new File(absPath),
-                type == DirectiveFileType.BATCH);
+        directiveFileArray[type.getIndex()] =
+          DirectiveFile.getInstance(manager, axisID, new File(absPath),
+            type == DirectiveFileType.BATCH);
       }
     }
   }
@@ -516,8 +548,8 @@ public class DirectiveFileCollection
       directiveFileArray[type.getIndex()] = null;
     }
     else {
-      directiveFileArray[type.getIndex()] = DirectiveFile
-          .getInstance(manager, axisID, file, type == DirectiveFileType.BATCH);
+      directiveFileArray[type.getIndex()] =
+        DirectiveFile.getInstance(manager, axisID, file, type == DirectiveFileType.BATCH);
     }
   }
 
@@ -525,9 +557,8 @@ public class DirectiveFileCollection
     TiltAngleSpec tiltAngleSpec = new TiltAngleSpec();
     getTiltAngleFields(axisID, tiltAngleSpec, false);
     return DatasetTool.validateTiltAngle(manager, AxisID.ONLY, errorTitle, axisID,
-        tiltAngleSpec.getType() == TiltAngleType.RANGE,
-        String.valueOf(tiltAngleSpec.getRangeMin()),
-        String.valueOf(tiltAngleSpec.getRangeStep()));
+      tiltAngleSpec.getType() == TiltAngleType.RANGE, String.valueOf(tiltAngleSpec
+        .getRangeMin()), String.valueOf(tiltAngleSpec.getRangeStep()));
   }
 
   /**
@@ -561,7 +592,7 @@ public class DirectiveFileCollection
      * @return initialized instance
      */
     private static CopyArgEntrySet getInstance(
-        final DirectiveFileCollection directiveFileCollection) {
+      final DirectiveFileCollection directiveFileCollection) {
       CopyArgEntrySet instance = new CopyArgEntrySet(directiveFileCollection);
       instance.init(directiveFileCollection.directiveFileArray);
       return instance;
@@ -598,20 +629,16 @@ public class DirectiveFileCollection
           }
         }
       }
-      // If scan header (only found in the batch directive file and is not in copyarg) is
-      // true, then get values from scanning the header which aren't already in the map.
-      if (directiveFileArray[DirectiveFileType.BATCH.getIndex()] != null) {
-        AttributeMatch attribute = directiveFileArray[DirectiveFileType.BATCH.getIndex()]
-            .getAttribute(DirectiveDef.SCAN_HEADER, null);
-        if (attribute.isValue()) {
-          Iterator<Entry<String, String>> iterator =
-              directiveFileCollection.copyArgExtraValues.entrySet().iterator();
-          while (iterator.hasNext()) {
-            Entry<String, String> entry = iterator.next();
-            String name = entry.getKey();
-            if (!pairMap.containsKey(name)) {
-              pairMap.put(name, entry.getValue());
-            }
+      // Get values from the .etomo file and scanning the header which aren't already in
+      // the map.
+      if (directiveFileCollection.copyArgExtraValues != null) {
+        Iterator<Entry<String, String>> iterator =
+          directiveFileCollection.copyArgExtraValues.entrySet().iterator();
+        while (iterator.hasNext()) {
+          Entry<String, String> entry = iterator.next();
+          String name = entry.getKey();
+          if (!pairMap.containsKey(name)) {
+            pairMap.put(name, entry.getValue());
           }
         }
       }
