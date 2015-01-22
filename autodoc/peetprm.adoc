@@ -13,7 +13,7 @@ comment = A code specifying how to construct the initial motive list:
 ^1: Use the particle and reference model points to initialize
 ^   rotation around the particle z axis
 ^
-^2: Use the particle and refernce model points to initialize
+^2: Use the particle and reference model points to initialize
 ^   rotation around the particle x and z axes
 ^
 ^3: Uniform random rotations
