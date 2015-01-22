@@ -67,7 +67,7 @@ import java.util.List;
  * After parsing is finished the Autodoc should be readOnly.  Allow Autodoc to be
  * set to ReadOnly.
  * <p/>
- * <p>Copyright: Copyright 2002 - 2014 by the Regents of the University of Colorado</p>
+ * <p>Copyright: Copyright 2002 - 2015 by the Regents of the University of Colorado</p>
  * <p/>
  * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
@@ -540,8 +540,9 @@ public final class Autodoc extends WriteOnlyStatementList implements WritableAut
     return debug;
   }
 
-  void initializeMatlapInstance(final BaseManager manager, final File file)
+  void initializeMatlabInstance(final BaseManager manager, final File file,final boolean writable)
       throws FileNotFoundException, IOException, LogFile.LockException {
+    this.writable=writable;
     parser = AutodocParser
         .getGenericInstance(this, true, false, true, file, manager, null, null, debug,
             true);
@@ -553,7 +554,7 @@ public final class Autodoc extends WriteOnlyStatementList implements WritableAut
 
   void initializeWritableInstance(final BaseManager manager, final File file)
       throws FileNotFoundException, IOException, LogFile.LockException {
-    this.writable = true;
+    writable = true;
     parser = AutodocParser
         .getGenericInstance(this, false, false, false, file, manager, null, null, debug,
             true);
