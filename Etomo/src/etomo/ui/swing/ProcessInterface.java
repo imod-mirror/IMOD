@@ -49,6 +49,8 @@ public interface ProcessInterface {
    */
   public ProcessingMethod getProcessingMethod();
 
+  public ProcessingMethod getSecondaryProcessingMethod();
+
   /**
    * When lock is true,disable check boxes that can change the processing
    * method.  When lock is false, enable these check boxes.
