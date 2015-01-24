@@ -267,7 +267,7 @@ end
 # Set common flags if doing CUDA
 if ($?CUDA_DIR) then
     set nvcc_flags = '-I"'"$CUDA_DIR"'/include" -I../../include'
-    set cuda_arch_opts = 'arch sm_10 -maxrregcount 32'
+    set cuda_arch_opts = '-arch sm_10 -maxrregcount 32'
     set cudalibs = "-L$CUDA_DIR/lib -lcudart -lcufft"
 endif
 
