@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/19/15: Preliminary version of batch processing interface added to eTomo.
+
 1/15/15: IMOD_4-8-18
 1/14/15: Made Ctfplotter delete all existing values in table when autofitting
 to whole range, not just ones with midpoints bracketed by the new midpoints.
@@ -34,8 +36,8 @@ Ctfphaseflip (In 4.7).
   Made the default power for the CTF-like curve be 1.5
   Applied more constraints in the CTF-like fitting to prevent bad fits.
   Improved initial scaling of display.
-  Added command-line options for setting the baseline fitting order to
-  extend the initial the fitting range beyond the second zero.
+  Added command-line options for setting the baseline fitting order and to
+  extend the initial fitting range beyond the second zero.
 
 1/3/15: Added script imoduntar for listing or untarring a file, to use on
 Windows without Cygwin.
@@ -59,7 +61,7 @@ starting at 0; clarified in documentation.
 (In 4.7).
 
 10/24/14: Stopped Imodauto contouring of exact values from always doing
-contours around vales equal to the file maximum (In 4.7).
+contours around values equal to the file maximum (In 4.7).
 
 10/24/14: Removed 100-pixel limit on 10% tapering in Tiltxcorr (In 4.7).
 
