@@ -577,7 +577,10 @@ if ($compiler == intel) then
         set cufft = `cd "$cudabin" ; ls cufft*.dll | sed -e '/[[:cntrl:]]/s///g' -e '/[^ ]*emu[^ ]*/s///g' -e '/.dll/s///g'`
         if ($#cudart > 1) set cudart = `echo $cudart | sed -e '/[^ ]*'"$sed3264"'[^ ]*/s///g'`
         if ($#cufft > 1) set cufft = `echo $cufft | sed -e '/[^ ]*'"$sed3264"'[^ ]*/s///g'`
-        set nvcc_flags = "$nvcc_flags -O2"
+        set cudavers = `nvcc --version | sed -n -e '/[[:cntrl:]]/s///g' -e '/[,.]/s// /g' -e '/^.*release/s///p'`
+        @ cudamajor = $cudavers[1]
+        if ($cudamajor > 4) set cuda_arch_opts = '-arch sm_12'
+        set nvcc_flags = "$cuda_arch_opts $nvcc_flags -O2"
         set cudalibs = '-LIBPATH:"'"$cudalib"'" cudart.lib cufft.lib'
         echo "DLLSOURCEDIR$dllnum = $cudabin" >> $configure
         echo "DLLSTOCOPY$dllnum = $cudart $cufft" >> $configure
