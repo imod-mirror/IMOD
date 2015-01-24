@@ -349,10 +349,11 @@ endif
 if ($?CUDA_DIR) then
     set cudavers = `nvcc --version | sed -n -e '/[,.]/s// /g' -e '/^.*release/s///p'`
     @ cudamajor = $cudavers[1]
+    if ($cudamajor > 4) set cuda_arch_opts = '-arch sm_12'
     if ($cudamajor > 2) then
-        set nvcc_flags = "$nvcc_flags -m64 -DUNIX -Xcompiler -fno-strict-aliasing -O3"
+        set nvcc_flags = "$cuda_arch_opts $nvcc_flags -m64 -DUNIX -Xcompiler -fno-strict-aliasing -O3"
     else
-        set nvcc_flags = "$nvcc_flags -DUNIX -Xcompiler -fno-strict-aliasing -O3 --host-compilation C"
+        set nvcc_flags = "$cuda_arch_opts $nvcc_flags -DUNIX -Xcompiler -fno-strict-aliasing -O3 --host-compilation C"
     endif
     set cudalibs = "-L$CUDA_DIR/lib -Wl,-rpath,/usr/local/cuda/lib -lcudart -lcufft -ltlshook"
     if ($m64bit == true) set cudalibs = "$cudalibs -lstdc++"
