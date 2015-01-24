@@ -33,12 +33,13 @@ from pip import *
 clipsize = ''
 
 # Fallbacks from ../manpages/autodoc2man 3 1 matchorwarp
-options = [":InputVolume:FN:", ":OutputVolume:FN:", ":size:CH:", ":patchfile:FN:",
-           ":modelfile:FN:", ":refinelimit:F:", ":warplimit:CH:", ":solvefile:FN:",
-           ":refinefile:FN:", ":inversefile:FN:", ":warpfile:FN:", ":residualfile:FN:",
-           ":vectormodel:FN:", ":clipsize:I:", ":tempdir:FN:", ":xlowerexclude:I:",
-           ":xupperexclude:I:", ":ylowerexclude:I:", ":yupperexclude:I:",
-           ":zlowerexclude:I:", ":zupperexclude:I:", ":linear:I:", ":trial:B:"]
+options = [":InputVolume:FN:", ":OutputVolume:FN:", ":size:CH:", ":refinelimit:F:",
+           ":warplimit:CH:", ":structurecrit:CH:", ":extentfit:FN:", ":modelfile:FN:",
+           ":patchfile:FN:", ":solvefile:FN:", ":refinefile:FN:", ":inversefile:FN:",
+           ":warpfile:FN:", ":residualfile:FN:", ":vectormodel:FN:", ":clipsize:I:",
+           ":tempdir:FN:", ":xlowerexclude:I:", ":xupperexclude:I:",
+           ":ylowerexclude:I:", ":yupperexclude:I:", ":zlowerexclude:I:",
+           ":zupperexclude:I:", ":linear:B:", ":trial:B:"]
 
 (numOpts, numNonOpts) = PipReadOrParseOptions(sys.argv, options, progname, 3, 1, 1)
 
@@ -71,6 +72,7 @@ if not PipGetErrNo():
    clipsize = '-c ' + str(clipin)
 refinelimit = PipGetFloat('refinelimit', 0.3)
 warplimit = PipGetString('warplimit', '0.2,0.27,0.35')
+structCrit = PipGetString('structurecrit', '')
 
 tempdir = PipGetString('tempdir', '')
 linear = PipGetBoolean('linear', 0)
@@ -82,6 +84,7 @@ yupper = PipGetInteger('yupperexclude', 0)
 zlower = PipGetInteger('zlowerexclude', 0)
 zupper = PipGetInteger('zupperexclude', 0)
 trial = PipGetBoolean('trial', 0)
+extent = PipGetInteger('extentfit', 0)
 
 if not os.path.exists(recfile):
    exitError('Input volume ' + recfile + ' does not exist')
@@ -116,6 +119,9 @@ if residualfile:
    findbase.append('ResidualPatchOutput ' + residualfile)
 if modelfile:
    findbase.append('RegionModel ' + modelfile)
+if structCrit:
+   findbase.append('ExtraValueSelection 5,1')
+   findbase.append('SelectionCriteria ' + structCrit)
 
 # Setup base lines for warpvol/matchvol
 volbase = ['InputFile ' + recfile,
@@ -195,7 +201,9 @@ try:
       comlines.append(fmtstr('YSkipLowerAndUpper {},{}', ylower, yupper))
    if zlower or zupper:
       comlines.append(fmtstr('ZSkipLowerAndUpper {},{}', zlower, zupper))
-
+   if extent:
+      comlines.append('MinExtentToFit ' + str(extent))
+      
    try:
       runcmd('findwarp -StandardInput', comlines, 'stdout')
       savestat = 0

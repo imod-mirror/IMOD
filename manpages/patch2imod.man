@@ -30,9 +30,11 @@ panel in the model view Object Edit window and selecting "Show stored values".
 The color display can be manipulated and subsets of vectors can be selected.
 .P
 If the patch file contains a column of numbers after the correlation
-coefficient or residual values, these will
-also be stored in the model but cannot be visualized.  They will be
-output to a new patch file by imod2patch(1). 
+coefficient or residual values, these will also be stored as secondary
+values in the model but cannot be visualized.  They will be
+output to a new patch file by imod2patch(1).  In fact, there can be up
+to six columns of numbers, and any two can be chosen to be stored in
+the model file with the \fB-v\fR option.
 .P
 One can also
 read the model in on top of a tomogram; by default it is marked as flipped so
@@ -79,6 +81,16 @@ computes the actual maximum value and the mean and SD, and then stores a
 maximum value that is limited to 10 SDs above the mean.  This stored value
 determines the maximum that is shown in the model view object edit window of
 3dmod.  This option is needed when there are a very large numbers of zero values.
+.TP
+.B -v \fIID/-col\fR
+Store the value column with the given ID number, or with the negative
+of the given column number, as the primary values in the
+model.  Value columns are numbered from 1 and there can be up to 6 of
+them.  Programs that create patch vector output files (Corrsearch3d(1),
+Refinematch(1), Findwarp(1)), now assign an ID number
+to each type of data; these ID numbers are listed in order in first
+line of the file.  The default is to store the first value column as primary
+(corresponding to an entry of "-1").
 .TP
 .B -l
 Read all lines in the file as lines with vectors.  By default, the program

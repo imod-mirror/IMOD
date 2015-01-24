@@ -190,6 +190,7 @@ ignored:
 \fBlong\fR     Long option name
 \fBtype\fR     Type of option; see table above
 \fBformat\fR   String shown after the option in usage or manpage output
+\fBdefault\fR  Default value returned when no option is entered
 \fBusage\fR    Help string for usage output
 \fBtooltip\fR  Help string for tooltip
 \fBmanpage\fR  Help string for manual page
@@ -227,6 +228,13 @@ the \fB^\fR will be retained, so that lines can be indented in a man page.
 
 Lines containing only white space, and lines with \fB#\fR as the first
 non-white space, are ignored.
+
+If a default value is supplied with the \fBdefault\fR entry, help
+strings can contain \fB%{default}\fR, which will be substituted with 
+the default value.  Do not change delimiters from = when using default
+values, because then these entries will not be recognized by the script
+that creates a fallback list of default settings, which is used when an
+autodoc cannot be found.  Defaults cannot be set for boolean options.
 
 In a \fBSectionHeader\fR section, keywords besides \fBusage\fR and 
 \fBmanpage\fR are ignored.  Help strings will be output without indentation;
@@ -595,9 +603,10 @@ character*N \fIstring\fB        [Returned argument]
 .fi
 
 This function returns the value of the given option as a string in the
-argument \fIstring\fR.  The return value is 1 if the user did not enter this
-option.  When called from C and a string is returned, the string is allocated
-with malloc() and should be freed with free().
+argument \fIstring\fR.  The return value is 1 or 2 if the user did not enter this
+option (2 if a default value from autodoc was returned).  When called from C and a
+string is returned, the string is allocated with malloc() and should be
+freed with free().
 
 
 .ft B
@@ -617,8 +626,8 @@ real*4 \fIval\fB                [Returned argument]
 .fi
 
 These functions returns a single integer or floating point value for the given
-option in the argument \fIval\fR.  The return value is 1 if the user did not
-enter this option.
+option in the argument \fIval\fR.  The return value is 1 or 2 if the user did not
+enter this option (2 if a default value from autodoc was returned).
 
 
 .ft B
@@ -640,7 +649,8 @@ real*4 \fIval1, val2\fB             [Returned arguments]
 
 These functions returns two integers or two floats for the given
 option in the arguments \fIval1\fR and \fIval2\fR.
-The return value is 1 if the user did not enter this option.
+The return value is 1 or 2 if the user did not
+enter this option (2 if a default value from autodoc was returned).
 
 
 .ft B
@@ -664,7 +674,8 @@ real*4 \fIval1, val2, val3\fB             [Returned arguments]
 
 These functions returns three integers or three floats for the given
 option in the arguments \fIval1\fR, \fIval2\fR, and \fIval2\fR.
-The return value is 1 if the user did not enter this option.
+The return value is 1 or 2 if the user did not
+enter this option (2 if a default value from autodoc was returned).
 
 
 .ft B
@@ -724,8 +735,8 @@ given option.  The argument \fInumToGet\fR should be set to the number of
 values to be retrieved, or to 0 if a variable number of entries is allowed.
 In the latter case, the functions will return the number of values in
 \fInumToGet\fR.  The size of \fIarray\fR should be specified in
-\fIarraySize\fR.  The return value is 1 if the user did not enter the given
-option.
+\fIarraySize\fR.  The return value is 1 or 2 if the user did not enter the given
+option (2 if a default value from autodoc was returned).
 
 .nf
 .ft B
@@ -984,7 +995,7 @@ Functions for Getting Values:
 .br
 .fi
 When an option is not entered, the function returns the supplied
-argument value(s).
+argument value(s), or a default value if one is defined in an autodoc.
 .nf
 .ft B
 

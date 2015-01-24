@@ -65,6 +65,38 @@ usage = Starting and ending Z coordinates of region to take patches from
 tooltip = 
 manpage = 
 
+[Field = TiltSeriesSizeXY]
+short = tilt
+type = IP
+usage = (Binned) size in X and Y of raw tilt series for volume being aligned to
+tooltip =
+manpage = Size in X and Y of raw tilt series for volume being aligned to,
+divided by the binning applied to make its aligned stack.  With this entry plus the
+\fB-axis\fR option with the rotation angle of the tilt axis, the program will
+eliminate patches outside the area that can be well-reconstructed from the
+original images.  This will avoid the need for a boundary model just to
+delineate well-reconstructed areas.  However, the method works only if the
+aligned stack and reconstruction were centered on the original tilt series.
+
+[Field = BTiltSeriesSizeXY]
+short = btilt
+type = IP
+usage = (Binned) size in X and Y of raw tilt series for volume being aligned
+tooltip =
+manpage =  Size in X and Y of raw tilt series for volume being aligned,
+divided by the binning applied to make its aligned stack.  This entry allows
+the program to eliminate patches outside the region that can be
+well-reconstructed in the second volume.
+
+[Field = AxisRotationAngle]
+short = axis
+type = F
+usage = Rotation angle from Y axis to tilt axis in raw tilt series
+tooltip =
+manpage = Rotation angle from Y axis to tilt axis in the raw tilt series,
+counterclockwise positive.  This entry is required with the \fB-tilt\fB or
+\fB-btilt\fR options.
+
 [Field = TapersInXYZ]
 short = taper
 type = IT
@@ -159,6 +191,40 @@ tooltip =
 manpage = Model file with contours enclosing areas in the original source
 volume for the file being aligned that are suitable for correlation.
 
+[Field = LocalSDNumBinnings]
+short = binnings
+type = I
+usage = Number of binnings at which to analyze local SD
+tooltip = 
+manpage = Number of binnings at which to analyze the local standard deviation
+of pixel values.  See above for details.  An entry of 4 is appropriate unless
+the data are already binned.
+
+[Field = BoxSizeForLocalSD]
+short = box
+type = IT
+usage = Box size in X, Y, and Z for analyzing local SD
+tooltip = 
+manpage = Box size in X, Y, and Z for analyzing local standard deviation, in
+unbinned pixels.  For the binnings higher than 1, the number of binned pixels
+analyzed will be the entered number divided by the binning, so the box needs
+to be big enough to still have enough pixels for a reliable SD estimate at hte
+highest binning.  It should be thinner in the thickness dimension since that
+is the dimension where there are the most transitions between structure and
+non-structure.  It needs to be wide enough to span small variations in
+structure so that the SD estimate itself does not vary so much from one box to
+the next.  A size of 32 laterally and 8 in thickness is effective.
+
+[Field = EliminateByLocalSD]
+short = elim
+type = FP
+usage = 2 or 1 to eliminate patch by mean SD or by fraction of high boxes; and criterion
+tooltip = 
+manpage = This option enables patches to be eliminated after the analysis of
+local SD.  Enter 2 numbers: 1 to use the fraction of boxes with high SD values
+or 2 to use the relative mean SD value of the patch; and the threshold value
+required to retain the patch.
+
 [Field = KernelSigma]
 short = kernel
 type = F
@@ -215,7 +281,8 @@ to assess the positions of the patches, and 3 to do Fourier correlations at
 all positions, plus direct correlation searches wherever possible.  In the 
 latter case each line of the patch output file will have the results from the
 Fourier correlation, followed by the results from direct correlation, ending
-with a 3D distance between the two results.
+with a 3D distance between the two results.  Add 20 for histogram output from
+findHistogramDip.
 
 [Field = ParameterFile]
 short = param
