@@ -359,7 +359,7 @@ if ($?CUDA_DIR) then
     set cudadlls = "libcudart libcufft libcuda"
     #
     # We don't know if this is present in 5 or not
-    if ($cudamajor > 5) then
+    if ($cudamajor < 6) then
         set cudalibs = "$cudalibs -ltlshook"
         set cudadlls = "$cudadlls libtlshook"
     endif
