@@ -1,10 +1,13 @@
 package etomo.storage.autodoc;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.IllegalStateException;
 
+import etomo.BaseManager;
 import etomo.storage.LogFile;
+import etomo.type.AxisID;
 import etomo.ui.swing.Token;
 import etomo.util.PrimativeTokenizer;
 
@@ -14,18 +17,18 @@ import etomo.util.PrimativeTokenizer;
  * following tokens:  EOF, EOL, WHITESPACE, COMMENT, SEPARATOR, OPEN, CLOSE,
  * DELIMITER, WORD, and KEYWORD.  It is not case sensitive, but it does preserve
  * original case and whitespace.
- * 
+ * <p/>
  * To Use:
  * construct with a file.
  * call initialize().
  * call next() to get the next token, until the end of file is reached.
- * 
+ * <p/>
  * Testing:
  * Do not call initialize() when testing.
  * Call test() to test this class.
  * Call testPrimativeTokenizer() to test the PrimativeTokenizer.
  * Call testStreamTokenizer() to test the StreamTokenizer.
- *
+ * <p/>
  * Current token characters and strings:
  * COMMENT:  #
  * ALT_COMMENT:  %
@@ -35,116 +38,111 @@ import etomo.util.PrimativeTokenizer;
  * QUOTE: " or ' or `
  * Default DELIMITER:  =
  * Keywords:  Version, Pip, KeyValueDelimiter
- * 
+ * <p/>
  * Tokenizing Rules:
- * 
+ * <p/>
  * Currently the COMMENT, SEPARATOR, OPEN, CLOSE, QUOTE, and symbols must be single
  * character.
- * 
+ * <p/>
  * The delimiter may contain multiple characters.  It may not contain symbols
  * used by other tokens.
- * 
+ * <p/>
  * COMMENT, SEPARATOR, OPEN, CLOSE, DELIMITER, QUOTE, and BREAK should not contain
  * alphanumeric or whitespace characters.
- * 
+ * <p/>
  * WHITESPACE, EOL, and EOF are defined in PrimativeTokenizer.
- * 
+ * <p/>
  * A WORD is the longest possible set of characters that are alphanumeric and
  * unmatched symbols, and do not match the current delimiter string.
- * 
+ * <p/>
  * A KEYWORD is a word that completely matches a keyword constant.  Embedded
  * strings matching keyword constants are ignored.
- </p>
+ * </p>
+ * <p/>
+ * <p>Copyright: Copyright 2002 - 2014 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * <p>Copyright: Copyright 2002 - 2006</p>
- *
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
- * University of Colorado</p>
- *
- * @author $$Author$$
- *
- * @version $$Revision$$
- *
- * <p> $$Log$
- * <p> $Revision 1.14  2010/11/13 16:05:36  sueh
- * <p> $bug# 1417 Renamed etomo.ui to etomo.ui.swing.
- * <p> $
- * <p> $Revision 1.13  2009/03/09 17:30:54  sueh
- * <p> $bug# 1199 Got rid of the keyword "CommandLanguage", which was
- * <p> $never used.
- * <p> $
- * <p> $Revision 1.12  2009/02/04 23:30:00  sueh
- * <p> $bug# 1158 Changed id and exceptions classes in LogFile.
- * <p> $
- * <p> $Revision 1.11  2008/05/30 21:24:57  sueh
- * <p> $bug# 1102 Added command language keyword.
- * <p> $
- * <p> $Revision 1.10  2007/08/01 22:41:51  sueh
- * <p> $bug# 985 Made [[ and ]] into tokens.  Added findLookAheadToken and
- * <p> $matchWithLookAhead to find OPEN, SUBOPEN, CLOSE, and SUBCLOSE.
- * <p> $removed OPEN and CLOSE from findSimpleToken.  Changed the type of
- * <p> $OPEN_CHAR and CLOSE_CHAR to Character to make is easier to convert
- * <p> $them to strings.
- * <p> $
- * <p> $Revision 1.9  2007/06/07 21:32:40  sueh
- * <p> $bug# 1012 Passing debug in constructor.
- * <p> $
- * <p> $Revision 1.8  2007/04/13 18:44:28  sueh
- * <p> $bug# 964 Added debug member variable.
- * <p> $
- * <p> $Revision 1.7  2007/03/08 21:57:14  sueh
- * <p> $bug# 964 Improved the StreamTokenizer test.
- * <p> $
- * <p> $Revision 1.6  2007/03/01 01:19:17  sueh
- * <p> $bug# 964 Added LogFile to PrimativeTokenizer.
- * <p> $
- * <p> $Revision 1.5  2006/06/14 21:24:16  sueh
- * <p> $bug# 852 Fixed findDelimiter():  was creating it with a char, which is interpretated
- * <p> $as int size.
- * <p> $
- * <p> $Revision 1.4  2006/06/14 00:32:28  sueh
- * <p> $bug# 852 Added some comments.  Simplified findDelimiter().
- * <p> $
- * <p> $Revision 1.3  2006/05/01 21:17:15  sueh
- * <p> $bug# 854
- * <p> $
- * <p> $Revision 1.2  2006/04/06 20:08:58  sueh
- * <p> $Moved PrimativeTokenizer to util.
- * <p> $
- * <p> $Revision 1.1  2006/01/12 17:02:49  sueh
- * <p> $bug# 798 Moved the autodoc classes to etomo.storage.autodoc.
- * <p> $
- * <p> $Revision 1.7  2005/11/10 18:16:10  sueh
- * <p> $bug# 733 Changed defaultDelimiter to DEFAULT_DELIMITER
- * <p> $
- * <p> $Revision 1.6  2005/02/21 23:03:22  sueh
- * <p> $update comment.
- * <p> $
- * <p> $Revision 1.5  2005/02/15 19:53:12  sueh
- * <p> $bug# 602 Tokenizing BREAK.  "^" is now a matched character.
- * <p> $
- * <p> $Revision 1.4  2003/12/31 17:48:07  sueh
- * <p> $bug# 372 change doc
- * <p> $
- * <p> $Revision 1.3  2003/12/31 01:28:30  sueh
- * <p> $bug# 372 simplified next() function, fixed delimiter bugs,
- * <p> $added doc
- * <p> $
- * <p> $Revision 1.2  2003/12/23 21:33:08  sueh
- * <p> $bug# 372 Reformating.
- * <p> $
- * <p> $Revision 1.1  2003/12/22 23:49:28  sueh
- * <p> $bug# 372 creates tokens for AutodocParser
- * <p> $$ </p>
+ * @version $Id$
+ *          <p/>
+ *          <p> $$Log$
+ *          <p> $Revision 1.14  2010/11/13 16:05:36  sueh
+ *          <p> $bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ *          <p> $
+ *          <p> $Revision 1.13  2009/03/09 17:30:54  sueh
+ *          <p> $bug# 1199 Got rid of the keyword "CommandLanguage", which was
+ *          <p> $never used.
+ *          <p> $
+ *          <p> $Revision 1.12  2009/02/04 23:30:00  sueh
+ *          <p> $bug# 1158 Changed id and exceptions classes in LogFile.
+ *          <p> $
+ *          <p> $Revision 1.11  2008/05/30 21:24:57  sueh
+ *          <p> $bug# 1102 Added command language keyword.
+ *          <p> $
+ *          <p> $Revision 1.10  2007/08/01 22:41:51  sueh
+ *          <p> $bug# 985 Made [[ and ]] into tokens.  Added findLookAheadToken and
+ *          <p> $matchWithLookAhead to find OPEN, SUBOPEN, CLOSE, and SUBCLOSE.
+ *          <p> $removed OPEN and CLOSE from findSimpleToken.  Changed the type of
+ *          <p> $OPEN_CHAR and CLOSE_CHAR to Character to make is easier to convert
+ *          <p> $them to strings.
+ *          <p> $
+ *          <p> $Revision 1.9  2007/06/07 21:32:40  sueh
+ *          <p> $bug# 1012 Passing debug in constructor.
+ *          <p> $
+ *          <p> $Revision 1.8  2007/04/13 18:44:28  sueh
+ *          <p> $bug# 964 Added debug member variable.
+ *          <p> $
+ *          <p> $Revision 1.7  2007/03/08 21:57:14  sueh
+ *          <p> $bug# 964 Improved the StreamTokenizer test.
+ *          <p> $
+ *          <p> $Revision 1.6  2007/03/01 01:19:17  sueh
+ *          <p> $bug# 964 Added LogFile to PrimativeTokenizer.
+ *          <p> $
+ *          <p> $Revision 1.5  2006/06/14 21:24:16  sueh
+ *          <p> $bug# 852 Fixed findDelimiter():  was creating it with a char,
+ *          which is interpretated
+ *          <p> $as int size.
+ *          <p> $
+ *          <p> $Revision 1.4  2006/06/14 00:32:28  sueh
+ *          <p> $bug# 852 Added some comments.  Simplified findDelimiter().
+ *          <p> $
+ *          <p> $Revision 1.3  2006/05/01 21:17:15  sueh
+ *          <p> $bug# 854
+ *          <p> $
+ *          <p> $Revision 1.2  2006/04/06 20:08:58  sueh
+ *          <p> $Moved PrimativeTokenizer to util.
+ *          <p> $
+ *          <p> $Revision 1.1  2006/01/12 17:02:49  sueh
+ *          <p> $bug# 798 Moved the autodoc classes to etomo.storage.autodoc.
+ *          <p> $
+ *          <p> $Revision 1.7  2005/11/10 18:16:10  sueh
+ *          <p> $bug# 733 Changed defaultDelimiter to DEFAULT_DELIMITER
+ *          <p> $
+ *          <p> $Revision 1.6  2005/02/21 23:03:22  sueh
+ *          <p> $update comment.
+ *          <p> $
+ *          <p> $Revision 1.5  2005/02/15 19:53:12  sueh
+ *          <p> $bug# 602 Tokenizing BREAK.  "^" is now a matched character.
+ *          <p> $
+ *          <p> $Revision 1.4  2003/12/31 17:48:07  sueh
+ *          <p> $bug# 372 change doc
+ *          <p> $
+ *          <p> $Revision 1.3  2003/12/31 01:28:30  sueh
+ *          <p> $bug# 372 simplified next() function, fixed delimiter bugs,
+ *          <p> $added doc
+ *          <p> $
+ *          <p> $Revision 1.2  2003/12/23 21:33:08  sueh
+ *          <p> $bug# 372 Reformating.
+ *          <p> $
+ *          <p> $Revision 1.1  2003/12/22 23:49:28  sueh
+ *          <p> $bug# 372 creates tokens for AutodocParser
+ *          <p> $$ </p>
  */
 public final class AutodocTokenizer {
-  public static final String rcsid = "$$Id$$";
-
   // special characters
   public static final char COMMENT_CHAR = '#';
   public static final char ALT_COMMENT_CHAR = '%';
-  public static final char SEPARATOR_CHAR = '.';
+  public static final String SEPARATOR_CHAR = ".";
   public static final Character OPEN_CHAR = new Character('[');
   public static final Character CLOSE_CHAR = new Character(']');
   public static final String DEFAULT_DELIMITER = "=";
@@ -152,11 +150,11 @@ public final class AutodocTokenizer {
   static final String VERSION_KEYWORD = "Version";
   static final String PIP_KEYWORD = "Pip";
   static final String DELIMITER_KEYWORD = "KeyValueDelimiter";
-  private static final char[] QUOTE_LIST = new char[] { '"', '\'', '`' };
+  private static final char[] QUOTE_LIST = new char[]{'"', '\'', '`'};
 
   private final boolean allowAltComment;
-  private final StringBuffer restrictedSymbols = new StringBuffer(COMMENT_CHAR
-      + SEPARATOR_CHAR + OPEN_CHAR.charValue() + CLOSE_CHAR.charValue());
+  private final StringBuffer restrictedSymbols = new StringBuffer(
+      COMMENT_CHAR + SEPARATOR_CHAR + OPEN_CHAR.charValue() + CLOSE_CHAR.charValue());
 
   private String delimiterString = DEFAULT_DELIMITER;
   private PrimativeTokenizer primativeTokenizer = null;
@@ -169,10 +167,21 @@ public final class AutodocTokenizer {
   private boolean debug = false;
   private boolean lookAhead = false;
 
-  AutodocTokenizer(LogFile file, boolean allowAltComment, boolean debug) {
+  AutodocTokenizer(final boolean allowAltComment, final Location location,
+      final String envVar, final String subdirName, final String name,
+      final File autodocFile, final BaseManager manager, final AxisID axisID,
+      final String notFoundMessage, final boolean debug, final boolean writable) {
     this.allowAltComment = allowAltComment;
     this.debug = debug;
-    primativeTokenizer = new PrimativeTokenizer(file, debug);
+    if (location == Location.AUTODOC) {
+      primativeTokenizer = PrimativeTokenizer
+          .getAutodocInstance(name, manager, axisID, notFoundMessage, debug);
+    }
+    else {
+      primativeTokenizer = PrimativeTokenizer
+          .getGenericInstance(envVar, subdirName, name, autodocFile, manager, axisID,
+              notFoundMessage, debug, writable);
+    }
     if (allowAltComment) {
       restrictedSymbols.append(ALT_COMMENT_CHAR);
     }
@@ -187,6 +196,10 @@ public final class AutodocTokenizer {
 
   void initialize() throws FileNotFoundException, IOException, LogFile.LockException {
     primativeTokenizer.initialize();
+  }
+
+  LogFile getLogFile() {
+    return primativeTokenizer.getLogFile();
   }
 
   Token getToken() {
@@ -250,8 +263,8 @@ public final class AutodocTokenizer {
     primativeTokenizer.test(tokens);
   }
 
-  void testStreamTokenizer(boolean tokens, boolean details) throws IOException,
-      LogFile.LockException {
+  void testStreamTokenizer(boolean tokens, boolean details)
+      throws IOException, LogFile.LockException {
     primativeTokenizer.testStreamTokenizer(tokens, details);
   }
 
@@ -292,18 +305,19 @@ public final class AutodocTokenizer {
   /**
    * Recognizes primative tokens that are also used by autodoc.
    * Makes one-character tokens out of primative SYMBOL tokens.
+   *
    * @return
    */
   private boolean findSimpleToken() {
-    if (primativeToken.is(Token.Type.EOF) || primativeToken.is(Token.Type.EOL)
-        || primativeToken.is(Token.Type.WHITESPACE)) {
+    if (primativeToken.is(Token.Type.EOF) || primativeToken.is(Token.Type.EOL) ||
+        primativeToken.is(Token.Type.WHITESPACE)) {
       token.copy(primativeToken);
     }
     else if (primativeToken.equals(Token.Type.SYMBOL, COMMENT_CHAR)) {
       token.set(Token.Type.COMMENT, COMMENT_CHAR);
     }
-    else if (allowAltComment
-        && primativeToken.equals(Token.Type.SYMBOL, ALT_COMMENT_CHAR)) {
+    else if (allowAltComment &&
+        primativeToken.equals(Token.Type.SYMBOL, ALT_COMMENT_CHAR)) {
       token.set(Token.Type.COMMENT, ALT_COMMENT_CHAR);
     }
     else if (primativeToken.equals(Token.Type.SYMBOL, SEPARATOR_CHAR)) {
@@ -348,6 +362,7 @@ public final class AutodocTokenizer {
   /**
    * Looks ahead to match a type and character.  If the match fails, set
    * lookAhead to true.
+   *
    * @param matchType
    * @param matchChar
    * @return
@@ -368,6 +383,7 @@ public final class AutodocTokenizer {
    * Assumes that findSimpleToken() has already been called
    * The delimiter string can only contain symbols that are not found by
    * findSimpleToken() and findLookAheadToken().
+   *
    * @return
    * @throws IOException
    */
@@ -378,8 +394,8 @@ public final class AutodocTokenizer {
     boolean success = false;
     char symbol = primativeToken.getChar();
     // attempt to build a delimiter that matches delimiterString
-    while (!success && primativeToken.is(Token.Type.SYMBOL) && index < length
-        && delimiterString.charAt(index) == symbol) {
+    while (!success && primativeToken.is(Token.Type.SYMBOL) && index < length &&
+        delimiterString.charAt(index) == symbol) {
       if (delimiterBuffer == null) {
         delimiterBuffer = new StringBuffer();
       }
@@ -457,11 +473,14 @@ public final class AutodocTokenizer {
    */
   private void findKeyword() {
     if (token.is(Token.Type.WORD)) {
-      if (token.equals(VERSION_KEYWORD) || token.equals(PIP_KEYWORD)
-          || token.equals(DELIMITER_KEYWORD)) {
+      if (token.equals(VERSION_KEYWORD) || token.equals(PIP_KEYWORD) ||
+          token.equals(DELIMITER_KEYWORD)) {
         token.set(Token.Type.KEYWORD);
       }
     }
   }
 
+  static final class Location {
+    static final Location AUTODOC = new Location();
+  }
 }
