@@ -589,7 +589,8 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer,
   private final BoundaryTable boundaryTable;
   private boolean refiningJoin = false;
   private SpacedPanel pnlTransformations = null;
-  private final TransformChooserPanel tcModel =  TransformChooserPanel.getJoinModelInstance();
+  private final TransformChooserPanel tcModel = TransformChooserPanel
+      .getJoinModelInstance();
   private final LabeledTextField ltfBoundariesToAnalyze = new LabeledTextField(
       FieldType.INTEGER_LIST, "Boundaries to analyze: ");
   private final LabeledTextField ltfObjectsToInclude = new LabeledTextField(
@@ -1736,7 +1737,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer,
    * Handle actions
    * @param event
    */
-  private void action(final String command, Deferred3dmodButton deferred3dmodButton,
+  public void action(final String command, final Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     try {
       if (command.equals(btnMakeSamples.getActionCommand())) {
@@ -1999,12 +2000,6 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer,
     refiningJoin = DatasetFiles.getModeledJoinFile(manager).exists();
   }
 
-  public void action(final Run3dmodButton button,
-      final Run3dmodMenuOptions run3dmodMenuOptions) {
-    action(button.getActionCommand(), button.getDeferred3dmodButton(),
-        run3dmodMenuOptions);
-  }
-
   protected void workingDirAction() {
     // Open up the file chooser in the current working directory
     JFileChooser chooser = new FileChooser(new File(manager.getPropertyUserDir()));
@@ -2110,7 +2105,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer,
     ReadOnlyAutodoc autodoc = null;
     try {
       autodoc = AutodocFactory.getInstance(manager, AutodocFactory.XFJOINTOMO,
-          AxisID.ONLY);
+          AxisID.ONLY, false);
       ltfBoundariesToAnalyze.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
           XfjointomoParam.BOUNDARIES_TO_ANALYZE_KEY));
       ltfObjectsToInclude.setToolTipText(EtomoAutodoc.getTooltip(autodoc,

@@ -12,6 +12,7 @@
                 <section title="Serial Joining Tutorial" ref="./JoinTutorial.html#TOP"></section>
                 <section title="Tomography Guide" ref="./tomoguide.html#TOP"></section>
                 <section title="Tomography Extra Topics" ref="./tomoExtra.html#TOP"></section>
+                <section title="Batch Reconstruction Guide" ref="./batchGuide.html#TOP"></section>
                 <section title="Joining Serial Tomograms" ref="./tomojoin.html#TOP"></section>
                 <section title="Guide to CTF Plotter" ref="./ctfHelp/ctfguide.html#TOP"></section>
                 <section title="Aligning Serial Sections" ref="./serialalign.html#TOP"></section>
@@ -98,6 +99,7 @@ INSERT LIBRARY PAGES
         <files>
             <file>3dmodguide.html</file>
             <file>asciispec.html</file>
+            <file>batchGuide.html</file>
             <file>binspec.html</file>
             <file>etomoTutorial.html</file>
             <file>guide.html</file>

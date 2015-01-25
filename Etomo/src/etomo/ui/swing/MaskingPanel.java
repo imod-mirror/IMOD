@@ -1,6 +1,7 @@
 package etomo.ui.swing;
 
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.FileNotFoundException;
@@ -30,39 +31,45 @@ import etomo.ui.UIComponent;
 import etomo.util.FilePath;
 
 /**
- * <p>Description: </p>
- * 
- * <p>Copyright: Copyright 2009</p>
- *
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
- * University of Colorado</p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
- * 
- * <p> $Log$
- * <p> Revision 1.2  2011/02/22 18:15:17  sueh
- * <p> bug# 1437 Reformatting.
  * <p>
- * <p> Revision 1.1  2010/11/13 16:07:34  sueh
- * <p> bug# 1417 Renamed etomo.ui to etomo.ui.swing.
- * <p>
- * <p> Revision 1.3  2010/01/13 21:56:08  sueh
- * <p> bug# 1298 Passing parametersOnly to
- * <p> CylinderOrientationPanel.setParameters functions.
- * <p>
- * <p> Revision 1.2  2009/12/23 02:25:32  sueh
- * <p> bug# 1296 Stop taking tooltips from peetprm.adoc.
- * <p>
- * <p> Revision 1.1  2009/12/08 02:47:07  sueh
- * <p> bug# 1286 Factored MaskingPanel out of PeetDialog.
- * <p> </p>
+ * Description:
+ * </p>
+ * Copyright: Copyright 2009 - 2015 by the Regents of the University of Colorado
+ * </p>
+ * Organization: Dept. of MCD Biology, University of Colorado
+ * </p>
+ * @version $Id$
+ *          <p>
+ *          $Log$
+ *          <p>
+ *          Revision 1.2 2011/02/22 18:15:17 sueh
+ *          <p>
+ *          bug# 1437 Reformatting.
+ *          <p>
+ *          <p>
+ *          Revision 1.1 2010/11/13 16:07:34 sueh
+ *          <p>
+ *          bug# 1417 Renamed etomo.ui to etomo.ui.swing.
+ *          <p>
+ *          <p>
+ *          Revision 1.3 2010/01/13 21:56:08 sueh
+ *          <p>
+ *          bug# 1298 Passing parametersOnly to
+ *          <p>
+ *          CylinderOrientationPanel.setParameters functions.
+ *          <p>
+ *          <p>
+ *          Revision 1.2 2009/12/23 02:25:32 sueh
+ *          <p>
+ *          bug# 1296 Stop taking tooltips from peetprm.adoc.
+ *          <p>
+ *          <p>
+ *          Revision 1.1 2009/12/08 02:47:07 sueh
+ *          <p>
+ *          bug# 1286 Factored MaskingPanel out of PeetDialog.
+ *          </p>
  */
 final class MaskingPanel implements UIComponent, SwingComponent {
-  public static final String rcsid = "$Id$";
-
   private static final String INSIDE_MASK_RADIUS_LABEL = "Inner radius: ";
   private static final String OUTSIDE_MASK_RADIUS_LABEL = "Outer radius: ";
   public static final String MAST_TYPE_LABEL = "Masking";
@@ -80,15 +87,19 @@ final class MaskingPanel implements UIComponent, SwingComponent {
       MatlabParam.MaskType.CYLINDER, bgMaskType);
   private final FileTextField2 ftfMaskTypeFile;
   private final LabeledTextField ltfInsideMaskRadius = new LabeledTextField(
-      FieldType.INTEGER, INSIDE_MASK_RADIUS_LABEL, PeetDialog.SETUP_LOCATION_DESCR);
+      FieldType.FLOATING_POINT, INSIDE_MASK_RADIUS_LABEL, PeetDialog.SETUP_LOCATION_DESCR);
   private final LabeledTextField ltfOutsideMaskRadius = new LabeledTextField(
-      FieldType.INTEGER, OUTSIDE_MASK_RADIUS_LABEL, PeetDialog.SETUP_LOCATION_DESCR);
+      FieldType.FLOATING_POINT, OUTSIDE_MASK_RADIUS_LABEL, PeetDialog.SETUP_LOCATION_DESCR);
   private final LabeledTextField ltfZRotation = new LabeledTextField(
       FieldType.FLOATING_POINT, "Z Rotation: ", PeetDialog.SETUP_LOCATION_DESCR);
   private final LabeledTextField ltfYRotation = new LabeledTextField(
       FieldType.FLOATING_POINT, "Y Rotation: ", PeetDialog.SETUP_LOCATION_DESCR);
   private final CheckBox cbCylinderOrientation = new CheckBox(
       "Manual Cylinder Orientation");
+  private final LabeledTextField ltfCylinderHeight = new LabeledTextField(
+      FieldType.FLOATING_POINT, "Height: ", PeetDialog.SETUP_LOCATION_DESCR);
+  private final LabeledTextField ltfMaskBlurStdDev = new LabeledTextField(
+      FieldType.FLOATING_POINT, "Blur mask by: ", PeetDialog.SETUP_LOCATION_DESCR);
 
   private final MaskingParent parent;
   private final BaseManager manager;
@@ -96,8 +107,8 @@ final class MaskingPanel implements UIComponent, SwingComponent {
   private MaskingPanel(BaseManager manager, MaskingParent parent) {
     this.manager = manager;
     this.parent = parent;
-    ftfMaskTypeFile = FileTextField2.getUnlabeledPeetInstance(manager,
-        MAST_TYPE_FILE_LABEL);
+    ftfMaskTypeFile =
+        FileTextField2.getUnlabeledPeetInstance(manager, MAST_TYPE_FILE_LABEL);
   }
 
   static MaskingPanel getInstance(BaseManager manager, MaskingParent parent) {
@@ -118,8 +129,10 @@ final class MaskingPanel implements UIComponent, SwingComponent {
   }
 
   private void createPanel() {
-    //init
+    // init
     ftfMaskTypeFile.setFileFilter(new VolumeFileFilter());
+    ltfCylinderHeight.setNumberMustBePositive(true);
+    ltfMaskBlurStdDev.setPreferredWidth(80);
     // local panels
     JPanel pnlMaskType = new JPanel();
     JPanel pnlMaskVolumeRadii = new JPanel();
@@ -133,6 +146,7 @@ final class MaskingPanel implements UIComponent, SwingComponent {
     JPanel pnlCylinderRotation = new JPanel();
     JPanel pnlCylinderOrientationCheckBox = new JPanel();
     JPanel pnlCylinderOrientationX = new JPanel();
+    JPanel pnlMaskBlurStdDev = new JPanel();
     // initalization
     ftfMaskTypeFile.setAdjustedFieldWidth(190);
     // root panel
@@ -148,9 +162,9 @@ final class MaskingPanel implements UIComponent, SwingComponent {
     pnlMaskType.add(pnlFile);
     // SphereCylinder
     pnlSphereCylinder.setLayout(new BoxLayout(pnlSphereCylinder, BoxLayout.Y_AXIS));
-    pnlSphereCylinder.setBorder(new EtchedBorder("Sphere / Cylinder Properties")
-        .getBorder());
     pnlSphereCylinder.add(pnlRadius);
+    pnlSphereCylinder.add(Box.createRigidArea(FixedDim.x0_y2));
+    pnlSphereCylinder.add(pnlMaskBlurStdDev);
     pnlSphereCylinder.add(Box.createRigidArea(FixedDim.x0_y5));
     pnlSphereCylinder.add(pnlCylinderOrientationX);
     pnlSphereCylinder.add(Box.createRigidArea(FixedDim.x0_y3));
@@ -168,6 +182,8 @@ final class MaskingPanel implements UIComponent, SwingComponent {
     pnlMaskTypeCylinder.setLayout(new BoxLayout(pnlMaskTypeCylinder, BoxLayout.X_AXIS));
     pnlMaskTypeCylinder.setAlignmentX(Box.RIGHT_ALIGNMENT);
     pnlMaskTypeCylinder.add(rbMaskTypeCylinder.getComponent());
+    pnlMaskTypeCylinder.add(Box.createRigidArea(FixedDim.x50_y0));
+    pnlMaskTypeCylinder.add(ltfCylinderHeight.getComponent());
     pnlMaskTypeCylinder.add(Box.createHorizontalGlue());
     // File
     pnlFile.setLayout(new BoxLayout(pnlFile, BoxLayout.X_AXIS));
@@ -181,6 +197,11 @@ final class MaskingPanel implements UIComponent, SwingComponent {
     pnlRadius.add(Box.createRigidArea(FixedDim.x40_y0));
     pnlRadius.add(ltfOutsideMaskRadius.getContainer());
     pnlRadius.add(Box.createRigidArea(FixedDim.x40_y0));
+    // MaskBlurStdDev
+    pnlMaskBlurStdDev.setLayout(new BoxLayout(pnlMaskBlurStdDev, BoxLayout.X_AXIS));
+    pnlMaskBlurStdDev.add(Box.createRigidArea(new Dimension(4, 0)));
+    pnlMaskBlurStdDev.add(ltfMaskBlurStdDev.getComponent());
+    pnlMaskBlurStdDev.add(Box.createHorizontalGlue());
     // CylinderOrientationX
     pnlCylinderOrientationX.setLayout(new BoxLayout(pnlCylinderOrientationX,
         BoxLayout.X_AXIS));
@@ -218,27 +239,30 @@ final class MaskingPanel implements UIComponent, SwingComponent {
   }
 
   /**
-   * Called by the parent updateDisplay().  Enabled/disables fields.  Calls
+   * Called by the parent updateDisplay(). Enabled/disables fields. Calls
    * updateDisplay() in subordinate panels.
    */
   void updateDisplay() {
     ftfMaskTypeFile.setEnabled(rbMaskTypeFile.isSelected());
-    boolean sphereCylinder = rbMaskTypeSphere.isSelected()
-        || rbMaskTypeCylinder.isSelected();
+    ltfMaskBlurStdDev.setEnabled(!rbMaskTypeNone.isSelected());
+    boolean cylinder = rbMaskTypeCylinder.isSelected();
+    cbCylinderOrientation.setEnabled(cylinder);
+    ltfCylinderHeight.setEnabled(cylinder);
+    boolean cylinderOrientation = cylinder && cbCylinderOrientation.isSelected();
+    ltfZRotation.setEnabled(cylinderOrientation);
+    ltfYRotation.setEnabled(cylinderOrientation);
+    boolean sphereCylinder = cylinder || rbMaskTypeSphere.isSelected();
     ltfInsideMaskRadius.setEnabled(sphereCylinder);
     ltfOutsideMaskRadius.setEnabled(sphereCylinder);
-    cbCylinderOrientation.setEnabled(sphereCylinder);
-    boolean cylinder = cbCylinderOrientation.isEnabled()
-        && cbCylinderOrientation.isSelected();
-    ltfZRotation.setEnabled(cylinder);
-    ltfYRotation.setEnabled(cylinder);
   }
 
   /**
-   * Make the copied path relative to this dataset, preserving the location of the files
-   * that the old dataset was using.  So if the file was in the original dataset
-   * directory, the new path will point (with a relative path if possible) to the file in
-   * the original dataset directory.  If the file path is absolute, don't change it.
+   * Make the copied path relative to this dataset, preserving the location of
+   * the files that the old dataset was using. So if the file was in the
+   * original dataset directory, the new path will point (with a relative path
+   * if possible) to the file in the original dataset directory. If the file
+   * path is absolute, don't change it.
+   * 
    * @param rootOfCopiedFilePaths
    */
   void convertCopiedPaths(final String origDatasetDir) {
@@ -255,8 +279,9 @@ final class MaskingPanel implements UIComponent, SwingComponent {
 
   /**
    * If ftfMaskTypeVolume has an invalid path, call
-   * ReferenceParent.fixIncorrectPath(FileTextField,boolean).  Returns true to
-   * keep fixing paths.  Returns false to stop fixing paths.
+   * ReferenceParent.fixIncorrectPath(FileTextField,boolean). Returns true to
+   * keep fixing paths. Returns false to stop fixing paths.
+   * 
    * @param choosePathEveryRow
    * @return
    */
@@ -272,14 +297,17 @@ final class MaskingPanel implements UIComponent, SwingComponent {
     metaData.setMaskModelPtsYRotation(ltfYRotation.getText());
     metaData.setMaskTypeVolume(ftfMaskTypeFile.getText());
     metaData.setManualCylinderOrientation(cbCylinderOrientation.isSelected());
+    metaData.setCylinderHeight(ltfCylinderHeight.getText());
+    metaData.setMaskBlurStdDev(ltfMaskBlurStdDev.getText());
   }
 
   /**
    * Set parameters from metaData and then overwrite them with parameters from
-   * MatlabParamFile.  This allows inactive data to appear on the screen but
-   * allows MatlabParamFile's active data to override active metaData.  So if
+   * MatlabParamFile. This allows inactive data to appear on the screen but
+   * allows MatlabParamFile's active data to override active metaData. So if
    * the user changes the .prm file, the active data on the screen will be
    * correct.
+   * 
    * @param metaData
    */
   public void setParameters(final ConstPeetMetaData metaData) {
@@ -287,18 +315,20 @@ final class MaskingPanel implements UIComponent, SwingComponent {
     ltfZRotation.setText(metaData.getMaskModelPtsZRotation());
     ltfYRotation.setText(metaData.getMaskModelPtsYRotation());
     cbCylinderOrientation.setSelected(metaData.isManualCylinderOrientation());
+    ltfCylinderHeight.setText(metaData.getCylinderHeight());
+    ltfMaskBlurStdDev.setText(metaData.getMaskBlurStdDev());
   }
 
   /**
-   * Load data from MatlabParamFile.  Load only active data after the meta data
-   * has been loaded.
-   * Do not rely on whether fields are enabled to make decisions in this
-   * function; updateDisplay may not have been run with data in the screen.
-   * When looking at the settings of dialog fields, make sure that they have
-   * already been loaded in THIS function.  This is sometimes the first data-
-   * loading function to be run.
+   * Load data from MatlabParamFile. Load only active data after the meta data
+   * has been loaded. Do not rely on whether fields are enabled to make
+   * decisions in this function; updateDisplay may not have been run with data
+   * in the screen. When looking at the settings of dialog fields, make sure
+   * that they have already been loaded in THIS function. This is sometimes
+   * the first data- loading function to be run.
+   * 
    * @param matlabParamFile
-   * @param paramatersOnly 
+   * @param paramatersOnly
    */
   public void setParameters(final MatlabParam matlabParam) {
     String maskTypeValue = matlabParam.getMaskType();
@@ -306,15 +336,19 @@ final class MaskingPanel implements UIComponent, SwingComponent {
     if (maskType == MatlabParam.MaskType.NONE) {
       rbMaskTypeNone.setSelected(true);
     }
-    else if (maskType == MatlabParam.MaskType.VOLUME) {
-      rbMaskTypeFile.setSelected(true);
-      ftfMaskTypeFile.setText(maskTypeValue);
-    }
-    else if (maskType == MatlabParam.MaskType.SPHERE) {
-      rbMaskTypeSphere.setSelected(true);
-    }
-    else if (maskType == MatlabParam.MaskType.CYLINDER) {
-      rbMaskTypeCylinder.setSelected(true);
+    else {
+      ltfMaskBlurStdDev.setText(matlabParam.getMaskBlurStdDev());
+      if (maskType == MatlabParam.MaskType.VOLUME) {
+        rbMaskTypeFile.setSelected(true);
+        ftfMaskTypeFile.setText(maskTypeValue);
+      }
+      else if (maskType == MatlabParam.MaskType.SPHERE) {
+        rbMaskTypeSphere.setSelected(true);
+      }
+      else if (maskType == MatlabParam.MaskType.CYLINDER) {
+        rbMaskTypeCylinder.setSelected(true);
+        ltfCylinderHeight.setText(matlabParam.getCylinderHeight());
+      }
     }
     if (!matlabParam.isMaskModelPtsEmpty()) {
       cbCylinderOrientation.setSelected(true);
@@ -334,6 +368,13 @@ final class MaskingPanel implements UIComponent, SwingComponent {
         matlabParam
             .setMaskType(((RadioButton.RadioButtonModel) bgMaskType.getSelection())
                 .getEnumeratedType());
+        if (!rbMaskTypeNone.isSelected()) {
+          matlabParam.setMaskBlurStdDev(ltfMaskBlurStdDev.getText(doValidation));
+
+        }
+        if (rbMaskTypeCylinder.isSelected()) {
+          matlabParam.setCylinderHeight(ltfCylinderHeight.getText(doValidation));
+        }
       }
       if (cbCylinderOrientation.isEnabled() && cbCylinderOrientation.isSelected()) {
         matlabParam.setMaskModelPts(ltfZRotation.getText(doValidation),
@@ -357,6 +398,7 @@ final class MaskingPanel implements UIComponent, SwingComponent {
 
   /**
    * Validate for running.
+   * 
    * @return null if valid, error message if invalid.
    */
   String validateRun() {
@@ -418,7 +460,7 @@ final class MaskingPanel implements UIComponent, SwingComponent {
   private void setTooltips() {
     ReadOnlyAutodoc autodoc = null;
     try {
-      autodoc = AutodocFactory.getInstance(manager, AutodocFactory.PEET_PRM, AxisID.ONLY);
+      autodoc = AutodocFactory.getInstance(manager, AutodocFactory.PEET_PRM, AxisID.ONLY,false);
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();
@@ -429,9 +471,13 @@ final class MaskingPanel implements UIComponent, SwingComponent {
     catch (LogFile.LockException except) {
       except.printStackTrace();
     }
-    String tooltip = EtomoAutodoc.getTooltip(autodoc, "maskModelPts");
+    String tooltip = EtomoAutodoc.getTooltip(autodoc, "maskModelPts", false);
     ltfZRotation.setToolTipText(tooltip);
     ltfYRotation.setToolTipText(tooltip);
+    ltfCylinderHeight.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+        MatlabParam.CYLINDER_HEIGHT_KEY, false));
+    ltfMaskBlurStdDev.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+        MatlabParam.MASK_BLUR_STD_DEV_KEY, false));
     rbMaskTypeNone.setToolTipText("No reference masking");
     rbMaskTypeFile.setToolTipText("Mask the reference using a specified file");
     rbMaskTypeSphere
