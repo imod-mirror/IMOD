@@ -530,7 +530,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer,
   private static final String REFINE_JOIN_TEXT = "Refine Join";
   private static final String OPEN_IN_3DMOD = "Open in 3dmod";
 
-  private static Dimension dimSpinner = UIParameters.INSTANCE.getSpinnerDimension();
+  private static Dimension dimSpinner = UIParameters.getInstance().getSpinnerDimension();
 
   private JPanel rootPanel;
   private TabbedPane tabPane;
@@ -825,11 +825,11 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer,
     // control gap text fields with checkbox
     boolean enable = cbGap.isSelected();
     ltfGapStart.setEnabled(enable);
-    ltfGapStart.setTextPreferredWidth(UIParameters.INSTANCE.getIntegerWidth());
+    ltfGapStart.setTextPreferredWidth(UIParameters.getInstance().getIntegerWidth());
     ltfGapEnd.setEnabled(enable);
-    ltfGapEnd.setTextPreferredWidth(UIParameters.INSTANCE.getIntegerWidth());
+    ltfGapEnd.setTextPreferredWidth(UIParameters.getInstance().getIntegerWidth());
     ltfGapInc.setEnabled(enable);
-    ltfGapInc.setTextPreferredWidth(UIParameters.INSTANCE.getIntegerWidth());
+    ltfGapInc.setTextPreferredWidth(UIParameters.getInstance().getIntegerWidth());
     // .join file must exist before it can be opened
     enable = DatasetFiles.getJoinFile(false, manager).exists();
     b3bOpenRejoinWithModel.setEnabled(enable);
@@ -2003,7 +2003,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer,
   protected void workingDirAction() {
     // Open up the file chooser in the current working directory
     JFileChooser chooser = new FileChooser(new File(manager.getPropertyUserDir()));
-    chooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
+    chooser.setPreferredSize(UIParameters.getInstance().getFileChooserDimension());
     chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
     int returnVal = chooser.showOpenDialog(rootPanel);
     if (returnVal == JFileChooser.APPROVE_OPTION) {
@@ -2022,7 +2022,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer,
     JFileChooser chooser = new FileChooser(new File(manager.getPropertyUserDir()));
     ModelFileFilter modelFilter = new ModelFileFilter();
     chooser.setFileFilter(modelFilter);
-    chooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
+    chooser.setPreferredSize(UIParameters.getInstance().getFileChooserDimension());
     int returnVal = chooser.showOpenDialog(ftfModelFile.getContainer());
     if (returnVal == JFileChooser.APPROVE_OPTION) {
       File modelFile = chooser.getSelectedFile();
