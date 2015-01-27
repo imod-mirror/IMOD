@@ -749,7 +749,7 @@ final class LabeledTextField
 
   void setPreferredWidth(final int width) {
     Dimension dim = textField.getPreferredSize();
-    dim.width = width * (int) Math.round(UIParameters.INSTANCE.getFontSizeAdjustment());
+    dim.width = width * (int) Math.round(UIParameters.getInstance().getFontSizeAdjustment());
     textField.setPreferredSize(dim);
     textField.setMaximumSize(dim);
   }
