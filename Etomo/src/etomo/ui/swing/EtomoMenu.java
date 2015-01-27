@@ -40,7 +40,7 @@ final class EtomoMenu {
   static final String JOIN_LABEL = "Join Serial Tomograms";
   static final String GENERIC_LABEL = "Generic Parallel Process";
   static final String NAD_LABEL = "Nonlinear Anisotropic "
-      + (Utilities.isAprilFools() ? "Delusion" : "Diffusion");
+    + (Utilities.isAprilFools() ? "Delusion" : "Diffusion");
   static final String BATCH_RUN_TOMO_LABEL = "Batch Tomograms";
   static final String PEET_LABEL = "Subvolume Averaging (PEET)";
   static final String FLATTEN_VOLUME_LABEL = "Flatten Volume";
@@ -61,10 +61,10 @@ final class EtomoMenu {
   private final JMenuItem menuCancel = new MenuItem("Cancel");
   private final JMenuItem menuExit = new MenuItem("Exit", KeyEvent.VK_X);
   private final JMenuItem menuTomosnapshot = new MenuItem("Run Tomosnapshot",
-      KeyEvent.VK_T);
+    KeyEvent.VK_T);
   private final JMenuItem[] menuMRUList = new MenuItem[nMRUFileMax];
   private final JMenuItem menuExportBatch = new MenuItem("Export Batch Directive File",
-      KeyEvent.VK_B);
+    KeyEvent.VK_B);
   private final JMenu menuTemplate = new Menu("Templates");
 
   private final JMenu menuNew = new Menu("New");
@@ -72,57 +72,60 @@ final class EtomoMenu {
   private final JMenuItem menuNewJoin = new MenuItem(JOIN_LABEL, KeyEvent.VK_J);
   private final JMenuItem menuNewPeet = new MenuItem(PEET_LABEL, KeyEvent.VK_P);
   private final JMenuItem menuSerialSections = new MenuItem(SERIAL_SECTIONS_LABEL,
-      KeyEvent.VK_R);
+    KeyEvent.VK_R);
   private final JMenuItem menuNewAnisotropicDiffusion = new MenuItem(NAD_LABEL,
-      KeyEvent.VK_D);
+    KeyEvent.VK_D);
   private final JMenuItem menuNewBatchRunTomo = new MenuItem(BATCH_RUN_TOMO_LABEL,
-      KeyEvent.VK_H);
+    KeyEvent.VK_H);
   private final JMenuItem menuNewGenericParallel = new MenuItem(GENERIC_LABEL,
-      KeyEvent.VK_G);
+    KeyEvent.VK_G);
 
   private final JMenuItem menuSaveScope = new MenuItem("Save Scope Template",
-      KeyEvent.VK_C);
+    KeyEvent.VK_C);
   private final JMenuItem menuSaveSystem = new MenuItem("Save System Template",
-      KeyEvent.VK_Y);
-  private final JMenuItem menuSaveUser = new MenuItem("Save User Template", KeyEvent.VK_U);
+    KeyEvent.VK_Y);
+  private final JMenuItem menuSaveUser =
+    new MenuItem("Save User Template", KeyEvent.VK_U);
 
   private final JMenu menuTools = new Menu("Tools");
   private final JMenuItem menuFlattenVolume = new MenuItem(FLATTEN_VOLUME_LABEL,
-      KeyEvent.VK_F);
+    KeyEvent.VK_F);
   private final JMenuItem menuGpuTiltTest = new MenuItem(GPU_TILT_TEST_LABEL,
-      KeyEvent.VK_U);
+    KeyEvent.VK_U);
 
   private final JMenu menuView = new Menu("View");
   private final JMenuItem menuLogWindow = new MenuItem("Show/Hide Log Window",
-      KeyEvent.VK_L);
+    KeyEvent.VK_L);
   private final JMenuItem menuAxisA = new MenuItem("Axis A", KeyEvent.VK_A);
   private final JMenuItem menuAxisB = new MenuItem(TomogramProcessPanel.AXIS_B_LABEL,
-      KeyEvent.VK_B);
+    KeyEvent.VK_B);
   private final JMenuItem menuAxisBoth = new MenuItem("Both Axes", KeyEvent.VK_2);
   private final JMenuItem menuFitWindow = new MenuItem("Fit Window", KeyEvent.VK_F);
 
   private final JMenu menuOptions = new Menu("Options");
   private final JMenuItem menuSettings = new MenuItem("Settings", KeyEvent.VK_S);
   private final JCheckBoxMenuItem menu3dmodStartupWindow = new CheckBoxMenuItem(
-      "Open 3dmod with Startup Window");
+    "Open 3dmod with Startup Window");
   private final JCheckBoxMenuItem menu3dmodBinBy2 = new CheckBoxMenuItem(
-      "Open 3dmod Binned by 2");
+    "Open 3dmod Binned by 2");
 
   private final JMenu menuHelp = new Menu("Help");
   private final JMenuItem menuTomoGuide = new MenuItem("Tomography Guide", KeyEvent.VK_T);
   private final JMenuItem menuImodGuide = new MenuItem("Imod Users Guide", KeyEvent.VK_I);
   private final JMenuItem menu3dmodGuide = new MenuItem("3dmod Users Guide",
-      KeyEvent.VK_3);
+    KeyEvent.VK_3);
   private final JMenuItem menuEtomoGuide = new MenuItem("Etomo Users Guide",
-      KeyEvent.VK_E);
+    KeyEvent.VK_E);
   private final JMenuItem menuJoinGuide = new MenuItem("Join Users Guide", KeyEvent.VK_J);
   private final JMenuItem menuPeetGuide = new MenuItem("PEET Users Guide", KeyEvent.VK_P);
+  private final JMenuItem menuBatchGuide = new MenuItem(
+    "Batchruntomo Interface Users Guide", KeyEvent.VK_B);
   private final JMenuItem peetHelpItem = new MenuItem("PEET Help");
   private final JMenuItem menuHelpAbout = new MenuItem("About", KeyEvent.VK_A);
 
   private final boolean peetAvailable = EnvironmentVariable.INSTANCE.exists(null,
-      EtomoDirector.INSTANCE.getOriginalUserDir(), EnvironmentVariable.PARTICLE_DIR,
-      AxisID.ONLY);
+    EtomoDirector.INSTANCE.getOriginalUserDir(), EnvironmentVariable.PARTICLE_DIR,
+    AxisID.ONLY);
 
   private final AbstractFrame frame;
 
@@ -148,7 +151,7 @@ final class EtomoMenu {
   }
 
   private void createPanel(final AbstractFrame frame, final boolean dataset,
-      final boolean savable) {
+    final boolean savable) {
     // init
     // Mnemonics for the main menu bar
     menuTools.setMnemonic(KeyEvent.VK_T);
@@ -161,9 +164,9 @@ final class EtomoMenu {
     }
     // Accelerators
     menuSettings.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S,
-        ActionEvent.CTRL_MASK));
+      ActionEvent.CTRL_MASK));
     menuFitWindow.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F,
-        ActionEvent.CTRL_MASK));
+      ActionEvent.CTRL_MASK));
     if (dataset || savable) {
       // Mnemonics for the main menu bar
       menuFile.setMnemonic(KeyEvent.VK_F);
@@ -171,13 +174,13 @@ final class EtomoMenu {
         menuTemplate.setMnemonic(KeyEvent.VK_M);
         // Accelerators
         menuAxisA.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_A,
-            ActionEvent.CTRL_MASK));
+          ActionEvent.CTRL_MASK));
         menuAxisB.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_B,
-            ActionEvent.CTRL_MASK));
+          ActionEvent.CTRL_MASK));
         menuAxisBoth.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_2,
-            ActionEvent.CTRL_MASK));
+          ActionEvent.CTRL_MASK));
         menuLogWindow.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_L,
-            ActionEvent.CTRL_MASK));
+          ActionEvent.CTRL_MASK));
       }
     }
     // Options menu
@@ -256,11 +259,12 @@ final class EtomoMenu {
       menuHelp.add(menuPeetGuide);
       menuHelp.add(peetHelpItem);
     }
+    menuHelp.add(menuBatchGuide);
     menuHelp.add(menuHelpAbout);
   }
 
   private void addListeners(final AbstractFrame frame, final boolean dataset,
-      final boolean savable) {
+    final boolean savable) {
     // Bind the menu items to their listeners
     ToolsActionListener toolsActionListener = new ToolsActionListener(frame);
     menuFlattenVolume.addActionListener(toolsActionListener);
@@ -282,6 +286,7 @@ final class EtomoMenu {
       menuPeetGuide.addActionListener(helpActionListener);
       peetHelpItem.addActionListener(helpActionListener);
     }
+    menuBatchGuide.addActionListener(helpActionListener);
     menuHelpAbout.addActionListener(helpActionListener);
 
     if (dataset || savable) {
@@ -315,8 +320,8 @@ final class EtomoMenu {
         menu3dmodStartupWindow.addActionListener(optionsActionListener);
         menu3dmodBinBy2.addActionListener(optionsActionListener);
         // Initialize all of the MRU file menu items
-        FileMRUListActionListener fileMRUListActionListener = new FileMRUListActionListener(
-            frame);
+        FileMRUListActionListener fileMRUListActionListener =
+          new FileMRUListActionListener(frame);
         for (int i = 0; i < nMRUFileMax; i++) {
           menuMRUList[i] = new MenuItem();
           menuMRUList[i].addActionListener(fileMRUListActionListener);
@@ -353,7 +358,8 @@ final class EtomoMenu {
       menuSave.setEnabled(currentManager.isSetupDone());
       menuSaveAs.setEnabled(currentManager.canChangeParamFileName());
       menuClose.setEnabled(true);
-      boolean dualAxis = currentManager.getBaseMetaData().getAxisType() == AxisType.DUAL_AXIS;
+      boolean dualAxis =
+        currentManager.getBaseMetaData().getAxisType() == AxisType.DUAL_AXIS;
       menuAxisA.setEnabled(dualAxis);
       menuAxisB.setEnabled(dualAxis);
       menuAxisBoth.setEnabled(dualAxis);
@@ -375,7 +381,7 @@ final class EtomoMenu {
     menuNewJoin.setEnabled(mainFrameMenu.menuNewJoin.isEnabled());
     menuNewGenericParallel.setEnabled(mainFrameMenu.menuNewGenericParallel.isEnabled());
     menuNewAnisotropicDiffusion.setEnabled(mainFrameMenu.menuNewAnisotropicDiffusion
-        .isEnabled());
+      .isEnabled());
     menuNewBatchRunTomo.setEnabled(mainFrameMenu.menuNewBatchRunTomo.isEnabled());
     menuNewPeet.setEnabled(mainFrameMenu.menuNewPeet.isEnabled());
     menuSerialSections.setEnabled(mainFrameMenu.menuSerialSections.isEnabled());
@@ -441,12 +447,12 @@ final class EtomoMenu {
    * @param event
    */
   public void menuHelpAction(final BaseManager manager, final AxisID axisID,
-      final JFrame frame, final ActionEvent event) {
+    final JFrame frame, final ActionEvent event) {
     // Get the URL to the IMOD html directory
     String imodURL = "";
     try {
-      imodURL = EtomoDirector.INSTANCE.getIMODDirectory().toURI().toURL().toString()
-          + "/html/";
+      imodURL =
+        EtomoDirector.INSTANCE.getIMODDirectory().toURI().toURL().toString() + "/html/";
     }
     catch (MalformedURLException except) {
       except.printStackTrace();
@@ -457,8 +463,10 @@ final class EtomoMenu {
 
     if (equalsTomoGuide(event)) {
       // TODO
-      /* HTMLPageWindow manpage = new HTMLPageWindow(); manpage.openURL(imodURL +
-       * "tomoguide.html"); manpage.setVisible(true); */
+      /*
+       * HTMLPageWindow manpage = new HTMLPageWindow(); manpage.openURL(imodURL +
+       * "tomoguide.html"); manpage.setVisible(true);
+       */
       ImodqtassistProcess.INSTANCE.open(manager, "tomoguide.html" + TOP_ANCHOR, axisID);
     }
 
@@ -481,11 +489,14 @@ final class EtomoMenu {
     if (equalsPeetGuide(event)) {
       ImodqtassistProcess.INSTANCE.open(manager, "PEETmanual.html" + TOP_ANCHOR, axisID);
     }
+    if (equalsBatchGuide(event)) {
+      ImodqtassistProcess.INSTANCE.open(manager, "batchGuide.html" + TOP_ANCHOR, axisID);
+    }
     if (equalsPeetHelp(event)) {
       BaseProcessManager.startSystemProgramThread(
-          new String[] { new File(new File(new File(EnvironmentVariable.INSTANCE
-              .getValue(null, null, EnvironmentVariable.PARTICLE_DIR, null)), "bin"),
-              "PEETHelp").getAbsolutePath() }, axisID, manager);
+        new String[] { new File(new File(new File(EnvironmentVariable.INSTANCE.getValue(
+          null, null, EnvironmentVariable.PARTICLE_DIR, null)), "bin"), "PEETHelp")
+          .getAbsolutePath() }, axisID, manager);
     }
     if (equalsHelpAbout(event)) {
       MainFrame_AboutBox dlg = new MainFrame_AboutBox(frame, axisID);
@@ -493,7 +504,7 @@ final class EtomoMenu {
       Dimension frmSize = frame.getSize();
       Point loc = frame.getLocation();
       dlg.setLocation((frmSize.width - dlgSize.width) / 2 + loc.x,
-          (frmSize.height - dlgSize.height) / 2 + loc.y);
+        (frmSize.height - dlgSize.height) / 2 + loc.y);
       dlg.setModal(true);
       dlg.setVisible(true);
     }
@@ -659,6 +670,10 @@ final class EtomoMenu {
     return equals(menuPeetGuide, event);
   }
 
+  boolean equalsBatchGuide(final ActionEvent event) {
+    return equals(menuBatchGuide, event);
+  }
+
   boolean equalsPeetHelp(final ActionEvent event) {
     return equals(peetHelpItem, event);
   }
@@ -669,7 +684,7 @@ final class EtomoMenu {
 
   boolean equalsDirectiveFileEditor(final ActionEvent event) {
     return equals(menuSaveScope, event) || equals(menuSaveSystem, event)
-        || equals(menuSaveUser, event) || equals(menuExportBatch, event);
+      || equals(menuSaveUser, event) || equals(menuExportBatch, event);
   }
 
   DirectiveFileType getDirectiveFileType(final ActionEvent event) {

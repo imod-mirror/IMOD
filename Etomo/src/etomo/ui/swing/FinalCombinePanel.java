@@ -596,7 +596,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
     pnlPatchsizeButtons.add(Box.createRigidArea(FixedDim.x0_y5));
     pnlPatchsizeButtons.add(btnPatchsizeDecrease.getComponent());
     UIUtilities.setButtonSizeAll(pnlPatchsizeButtons,
-        UIParameters.INSTANCE.getButtonDimension());
+        UIParameters.getInstance().getButtonDimension());
 
     pnlPatchsizeEdit.setLayout(new BoxLayout(pnlPatchsizeEdit, BoxLayout.Y_AXIS));
 
@@ -686,7 +686,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
     pnlMatchorwarpButtons.add(btnMatchorwarpTrial.getComponent());
     pnlMatchorwarpButtons.add(Box.createHorizontalGlue());
     UIUtilities.setButtonSizeAll(pnlMatchorwarpButtons,
-        UIParameters.INSTANCE.getButtonDimension());
+        UIParameters.getInstance().getButtonDimension());
 
     pnlMatchorwarpBody.add(pnlMatchorwarpButtons);
     pnlMatchorwarpBody.add(Box.createRigidArea(FixedDim.x0_y5));
@@ -720,7 +720,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
     cbNoVolcombine.setAlignmentX(Component.CENTER_ALIGNMENT);
     btnVolcombineRestart.setAlignmentX(Component.CENTER_ALIGNMENT);
     UIUtilities.setButtonSizeAll(pnlVolcombineBody,
-        UIParameters.INSTANCE.getButtonDimension());
+        UIParameters.getInstance().getButtonDimension());
     UIUtilities.alignComponentsX(pnlVolcombineBody, Component.CENTER_ALIGNMENT);
 
     pnlVolcombine.setLayout(new BoxLayout(pnlVolcombine, BoxLayout.Y_AXIS));
@@ -741,7 +741,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
     pnlButton.add(Box.createHorizontalGlue());
     pnlButton.add(btnImodCombined.getComponent());
     pnlButton.add(Box.createHorizontalGlue());
-    UIUtilities.setButtonSizeAll(pnlButton, UIParameters.INSTANCE.getButtonDimension());
+    UIUtilities.setButtonSizeAll(pnlButton, UIParameters.getInstance().getButtonDimension());
 
     // Root panel layout
     pnlRoot.add(pnlPatchRegionModel);

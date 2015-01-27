@@ -158,7 +158,7 @@ final class FileTextField2 implements FileTextFieldInterface, Field, ActionListe
   private void createPanel() {
     // init
     field.setTextPreferredSize(new Dimension(
-        250 * (int) Math.round(UIParameters.INSTANCE.getFontSizeAdjustment()),
+        250 * (int) Math.round(UIParameters.getInstance().getFontSizeAdjustment()),
         FixedDim.folderButton.height));
     button.setName(label.getText());
     button.setPreferredSize(FixedDim.folderButton);
@@ -251,7 +251,7 @@ final class FileTextField2 implements FileTextFieldInterface, Field, ActionListe
       chooser.setFileFilter(fileFilter);
     }
     chooser.setFileHidingEnabled(!turnOffFileHiding);
-    chooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
+    chooser.setPreferredSize(UIParameters.getInstance().getFileChooserDimension());
     int returnVal = chooser.showOpenDialog(panel);
     if (returnVal == JFileChooser.APPROVE_OPTION) {
       setFile(chooser.getSelectedFile());
@@ -270,7 +270,7 @@ final class FileTextField2 implements FileTextFieldInterface, Field, ActionListe
    * @param width
    */
   void setAdjustedFieldWidth(final double width) {
-    field.setTextPreferredWidth(width * UIParameters.INSTANCE.getFontSizeAdjustment());
+    field.setTextPreferredWidth(width * UIParameters.getInstance().getFontSizeAdjustment());
   }
 
   void setAbsolutePath(final boolean input) {

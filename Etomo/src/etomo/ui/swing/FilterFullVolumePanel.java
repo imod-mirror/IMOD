@@ -106,7 +106,7 @@ final class FilterFullVolumePanel implements Run3dmodButtonContainer {
 
   private void createPanel() {
     // initialization
-    ltfKValue.setTextPreferredWidth(UIParameters.INSTANCE.getFourDigitWidth());
+    ltfKValue.setTextPreferredWidth(UIParameters.getInstance().getFourDigitWidth());
     btnRunFilterFullVolume.setSize();
     btnViewFilteredVolume.setSize();
     btnCleanup.setSize();

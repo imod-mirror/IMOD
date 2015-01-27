@@ -305,7 +305,7 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
     pnlVaryingK.setComponentAlignmentX(Component.CENTER_ALIGNMENT);
     SpacedPanel pnlVaryingKFields = SpacedPanel.getInstance();
     pnlVaryingKFields.setBoxLayout(BoxLayout.X_AXIS);
-    ltfTestKValueList.setTextPreferredWidth(UIParameters.INSTANCE.getListWidth());
+    ltfTestKValueList.setTextPreferredWidth(UIParameters.getInstance().getListWidth());
     pnlVaryingKFields.add(ltfTestKValueList);
     pnlVaryingKFields.add(spTestIteration);
     pnlVaryingK.add(pnlVaryingKFields);
@@ -329,7 +329,7 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
     SpacedPanel pnlVaryingIterationFields = SpacedPanel.getInstance();
     pnlVaryingIterationFields.setBoxLayout(BoxLayout.X_AXIS);
     pnlVaryingIterationFields.add(ltfTestKValue);
-    ltfTestIterationList.setTextPreferredWidth(UIParameters.INSTANCE.getListWidth());
+    ltfTestIterationList.setTextPreferredWidth(UIParameters.getInstance().getListWidth());
     pnlVaryingIterationFields.add(ltfTestIterationList);
     pnlVaryingIteration.add(pnlVaryingIterationFields);
     SpacedPanel pnlVaryingIterationButtons = SpacedPanel.getInstance();
@@ -606,7 +606,7 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
   private void openVolume() {
     File volume = null;
     JFileChooser chooser = new FileChooser(new File(manager.getPropertyUserDir()));
-    chooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
+    chooser.setPreferredSize(UIParameters.getInstance().getFileChooserDimension());
     chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
     chooser.setFileFilter(new TomogramFileFilter());
     int returnVal = chooser.showOpenDialog(rootPanel.getContainer());

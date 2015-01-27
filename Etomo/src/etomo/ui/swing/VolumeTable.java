@@ -251,9 +251,9 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
   private final HeaderCell header2FnModParticle = new HeaderCell();
   private final HeaderCell header2InitMotlFile = new HeaderCell(INIT_MOTL_FILE_HEADER2);
   private final HeaderCell header2TiltRangeStart = new HeaderCell("Min",
-      UIParameters.INSTANCE.getNumericWidth());
+      UIParameters.getInstance().getNumericWidth());
   private final HeaderCell header2TiltRangeEnd = new HeaderCell("Max",
-      UIParameters.INSTANCE.getNumericWidth());
+      UIParameters.getInstance().getNumericWidth());
   private final HeaderCell header2TiltRangeMultiAxes = new HeaderCell(
       TILT_RANGE_MULTI_AXES_HEADER2_LABEL);
 
@@ -785,7 +785,7 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
     // Add the default file filter (tilt log)
     TiltLogFileFilter tiltLogFileFilter = new TiltLogFileFilter();
     chooser.addChoosableFileFilter(tiltLogFileFilter);
-    chooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
+    chooser.setPreferredSize(UIParameters.getInstance().getFileChooserDimension());
     chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
     int returnVal = chooser.showOpenDialog(rootPanel);
     if (returnVal == JFileChooser.APPROVE_OPTION) {

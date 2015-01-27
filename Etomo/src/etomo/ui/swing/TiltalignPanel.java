@@ -1147,9 +1147,9 @@ final class TiltalignPanel implements Expandable {
    */
   private void createRadioBox(final JPanel panel, final ButtonGroup group,
       RadioButton[] items, int width) {
-    int radioButtonHeight = (int) (18 * UIParameters.INSTANCE.getFontSizeAdjustment());
+    int radioButtonHeight = (int) (18 * UIParameters.getInstance().getFontSizeAdjustment());
     Dimension radioButtonItemSize =
-        new Dimension((int) (width * UIParameters.INSTANCE.getFontSizeAdjustment()),
+        new Dimension((int) (width * UIParameters.getInstance().getFontSizeAdjustment()),
             radioButtonHeight);
 
     // Add the items to the group and to the panel
@@ -1255,7 +1255,7 @@ final class TiltalignPanel implements Expandable {
     pnlGeneralBody.add(Box.createRigidArea(FixedDim.x0_y10));
 
     // local alignment
-    ltfMinLocalFiducials.setTextPreferredWidth(60 * UIParameters.INSTANCE
+    ltfMinLocalFiducials.setTextPreferredWidth(60 * UIParameters.getInstance()
         .getFontSizeAdjustment());
     pnlLocalParameters.setLayout(new BoxLayout(pnlLocalParameters, BoxLayout.Y_AXIS));
     pnlLocalParameters.setBorder(new EtchedBorder("Local Alignment Parameters")
@@ -1335,9 +1335,9 @@ final class TiltalignPanel implements Expandable {
     JPanel pnlRBDistortion = new JPanel();
     pnlRBDistortion.setLayout(new BoxLayout(pnlRBDistortion, BoxLayout.Y_AXIS));
     createRadioBox(pnlRBDistortion, bgDistortionSolution, items);
-    ltfXstretchNonDefaultGroups.setTextPreferredWidth(UIParameters.INSTANCE
+    ltfXstretchNonDefaultGroups.setTextPreferredWidth(UIParameters.getInstance()
         .getIntegerTripletWidth());
-    ltfXstretchGroupSize.setTextPreferredWidth(UIParameters.INSTANCE.getFourDigitWidth());
+    ltfXstretchGroupSize.setTextPreferredWidth(UIParameters.getInstance().getFourDigitWidth());
     createVariablePanel(pnlDistortionSolution, pnlRBDistortion, ltfXstretchGroupSize,
         ltfXstretchNonDefaultGroups, ltfSkewGroupSize, ltfSkewNonDefaultGroups, null,
         "Distortion Solution Type", null);
@@ -1418,9 +1418,9 @@ final class TiltalignPanel implements Expandable {
     JPanel pnlRBLocalDistortion = new JPanel();
     pnlRBLocalDistortion.setLayout(new BoxLayout(pnlRBLocalDistortion, BoxLayout.Y_AXIS));
     createRadioBox(pnlRBLocalDistortion, bgLocalDistortionSolution, items);
-    ltfLocalXstretchNonDefaultGroups.setTextPreferredWidth(UIParameters.INSTANCE
+    ltfLocalXstretchNonDefaultGroups.setTextPreferredWidth(UIParameters.getInstance()
         .getIntegerTripletWidth());
-    ltfLocalXstretchGroupSize.setTextPreferredWidth(UIParameters.INSTANCE
+    ltfLocalXstretchGroupSize.setTextPreferredWidth(UIParameters.getInstance()
         .getFourDigitWidth());
     createVariablePanel(pnlLocalDistortionSolution, pnlRBLocalDistortion,
         ltfLocalXstretchGroupSize, ltfLocalXstretchNonDefaultGroups,

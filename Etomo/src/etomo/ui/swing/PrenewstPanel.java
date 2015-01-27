@@ -228,7 +228,7 @@ final class PrenewstPanel implements ContextMenu, Expandable, Run3dmodButtonCont
     // Construct the binning spinner
     spinBinning = LabeledSpinner.getInstance("Coarse aligned image stack binning ", 1, 1,
         8, 1);
-    spinBinning.setTextMaxmimumSize(UIParameters.INSTANCE.getSpinnerDimension());
+    spinBinning.setTextMaxmimumSize(UIParameters.getInstance().getSpinnerDimension());
     JPanel pnlBinning = new JPanel();
     pnlBinning.setLayout(new BoxLayout(pnlBinning, BoxLayout.X_AXIS));
     pnlBinning.setAlignmentX(Box.CENTER_ALIGNMENT);

@@ -452,7 +452,7 @@ abstract class EtomoFrame extends AbstractFrame {
     chooser.setFileFilter(fileFilter);
     chooser.setDialogTitle("Save " + fileFilter.getDescription());
     chooser.setDialogType(JFileChooser.SAVE_DIALOG);
-    chooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
+    chooser.setPreferredSize(UIParameters.getInstance().getFileChooserDimension());
     chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
     File[] edfFiles = workingDir.listFiles(fileFilter);
     if (edfFiles.length == 0) {
@@ -515,7 +515,7 @@ abstract class EtomoFrame extends AbstractFrame {
     DataFileFilter fileFilter = new DataFileFilter();
     chooser.setFileFilter(fileFilter);
     chooser.setDialogTitle("Open " + fileFilter.getDescription());
-    chooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
+    chooser.setPreferredSize(UIParameters.getInstance().getFileChooserDimension());
     chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
     int returnVal = chooser.showOpenDialog(this);
     if (returnVal == JFileChooser.APPROVE_OPTION) {

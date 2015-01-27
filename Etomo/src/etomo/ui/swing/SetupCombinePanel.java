@@ -719,7 +719,7 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
     pnlButton.add(Box.createHorizontalGlue());
     pnlButton.add(btnCombine.getComponent());
     pnlButton.add(Box.createHorizontalGlue());
-    UIUtilities.setButtonSizeAll(pnlButton, UIParameters.INSTANCE.getButtonDimension());
+    UIUtilities.setButtonSizeAll(pnlButton, UIParameters.getInstance().getButtonDimension());
 
     pnlToSelector.setAlignmentX(Component.CENTER_ALIGNMENT);
     pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.Y_AXIS));
