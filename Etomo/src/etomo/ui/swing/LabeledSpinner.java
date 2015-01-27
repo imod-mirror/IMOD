@@ -584,7 +584,7 @@ final class LabeledSpinner implements Field, ChangeListener, FocusListener {
 
   void setPreferredWidth(final int width) {
     Dimension dim = spinner.getPreferredSize();
-    dim.width = width * (int) Math.round(UIParameters.INSTANCE.getFontSizeAdjustment());
+    dim.width = width * (int) Math.round(UIParameters.getInstance().getFontSizeAdjustment());
     spinner.setPreferredSize(dim);
     spinner.setMaximumSize(dim);
   }
