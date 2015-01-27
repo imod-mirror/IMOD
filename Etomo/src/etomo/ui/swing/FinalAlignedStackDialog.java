@@ -1009,7 +1009,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements Expa
 
   private void chooseConfigFile(FileTextField fileTextField) {
     JFileChooser chooser = new FileChooser(expert.getConfigDir());
-    chooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
+    chooser.setPreferredSize(UIParameters.getInstance().getFileChooserDimension());
     chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
     int returnVal = chooser.showOpenDialog(rootPanel);
     if (returnVal == JFileChooser.APPROVE_OPTION) {
