@@ -185,7 +185,7 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     UIUtilities.alignComponentsX(rootPanel, Component.CENTER_ALIGNMENT);
 
     // Resize the standard panel buttons
-    UIUtilities.setButtonSizeAll(pnlExitButtons, UIParameters.INSTANCE
+    UIUtilities.setButtonSizeAll(pnlExitButtons, UIParameters.getInstance()
       .getButtonDimension());
     if (!calibrationAvailable) {
       updateAdvanced(btnAdvanced.isExpanded());
@@ -896,8 +896,8 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
 
     // Datatype subpnls: DataSource AxisType Viewtype
     Dimension dimDataTypePref =
-      new Dimension((int) (150 * UIParameters.INSTANCE.getFontSizeAdjustment()),
-        (int) (80 * UIParameters.INSTANCE.getFontSizeAdjustment()));
+      new Dimension((int) (150 * UIParameters.getInstance().getFontSizeAdjustment()),
+        (int) (80 * UIParameters.getInstance().getFontSizeAdjustment()));
 
     ButtonGroup bgAxisType = new ButtonGroup();
     bgAxisType.add(rbSingleAxis.getAbstractButton());
@@ -929,7 +929,7 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     ltfFiducialDiameter.setColumns(5);
     ltfImageRotation.setColumns(5);
     btnScanHeader.setSize();
-    spnBinning.setTextMaxmimumSize(UIParameters.INSTANCE.getSpinnerDimension());
+    spnBinning.setTextMaxmimumSize(UIParameters.getInstance().getSpinnerDimension());
 
     pnlStackInfo.setLayout(new BoxLayout(pnlStackInfo, BoxLayout.X_AXIS));
     btnScanHeader.setAlignmentY(Component.CENTER_ALIGNMENT);
