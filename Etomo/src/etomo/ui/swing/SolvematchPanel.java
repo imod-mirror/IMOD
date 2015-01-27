@@ -301,7 +301,7 @@ final class SolvematchPanel implements Run3dmodButtonContainer, Expandable {
     pnlImodMatchModels.add(cbBinBy2);
     pnlImodMatchModels.add(btnImodMatchModels.getComponent());
     UIUtilities.setButtonSizeAll(pnlImodMatchModels,
-        UIParameters.INSTANCE.getButtonDimension());
+        UIParameters.getInstance().getButtonDimension());
 
     pnlFiducialSelect.setLayout(new BoxLayout(pnlFiducialSelect, BoxLayout.X_AXIS));
     UIUtilities.addWithSpace(pnlFiducialSelect, opnlFiducialRadio, FixedDim.x20_y0);
