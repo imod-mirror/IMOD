@@ -254,9 +254,9 @@ class MultiLineButton implements ProcessResultDisplay {
 
   public void dumpState() {
     System.err.print("[toggleButton:" + toggleButton + ",stateKey:" + stateKey
-        + ",\nmanualName:" + manualName + ",buttonForeground:" + buttonForeground
-        + ",\nbuttonHighlightForeground:" + buttonHighlightForeground + ",debug:" + debug
-        + ",\nunformattedLabel:" + unformattedLabel + "]");
+      + ",\nmanualName:" + manualName + ",buttonForeground:" + buttonForeground
+      + ",\nbuttonHighlightForeground:" + buttonHighlightForeground + ",debug:" + debug
+      + ",\nunformattedLabel:" + unformattedLabel + "]");
   }
 
   MultiLineButton() {
@@ -323,10 +323,9 @@ class MultiLineButton implements ProcessResultDisplay {
     if (buttonForeground == null) {
       buttonForeground = button.getForeground();
       // creating a readable foreground highlight color
-      buttonHighlightForeground = Colors.subtractColor(
-          Colors.HIGHLIGHT_BACKGROUND,
-          UIUtilities.divideColor(
-              Colors.subtractColor(new Color(255, 255, 255), buttonForeground), 2));
+      buttonHighlightForeground =
+        Colors.subtractColor(Colors.HIGHLIGHT_BACKGROUND, UIUtilities.divideColor(Colors
+          .subtractColor(new Color(255, 255, 255), buttonForeground), 2));
     }
     if (highlight) {
       button.setForeground(buttonHighlightForeground);
@@ -340,7 +339,8 @@ class MultiLineButton implements ProcessResultDisplay {
     return new MultiLineButton(null, true, null, false);
   }
 
-  static final MultiLineButton getToggleButtonInstance(String label, DialogType dialogType) {
+  static final MultiLineButton
+    getToggleButtonInstance(String label, DialogType dialogType) {
     return new MultiLineButton(label, true, dialogType, false);
   }
 
@@ -413,7 +413,7 @@ class MultiLineButton implements ProcessResultDisplay {
   void setName(String label) {
     String name = Utilities.convertLabelToName(label);
     button.setName(UITestFieldType.BUTTON.toString() + AutodocTokenizer.SEPARATOR_CHAR
-        + name);
+      + name);
     if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
       System.out.println(getName() + ' ' + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
     }
@@ -556,20 +556,24 @@ class MultiLineButton implements ProcessResultDisplay {
   }
 
   final void setSingleLineSize() {
-    Dimension size = UIParameters.INSTANCE.getButtonSingleLineDimension();
+    Dimension size = UIParameters.getInstance(fontMetrics).getButtonSingleLineDimension();
     button.setPreferredSize(size);
     button.setMaximumSize(size);
   }
 
   final void setSize(boolean setMinimum) {
-    Dimension size = UIParameters.INSTANCE.getButtonDimension();
+    FontMetrics fontMetrics = null;
+    if (UIParameters.needButtonFontMetrics()) {
+      fontMetrics = UIUtilities.getFontMetrics(button);
+    }
+    Dimension size = UIParameters.getInstance(fontMetrics).getButtonDimension();
     button.setPreferredSize(size);
     button.setMaximumSize(size);
     if (setMinimum) {
       button.setMinimumSize(size);
     }
   }
-  
+
   final void setToPreferredSize() {
     Dimension size = button.getPreferredSize();
     button.setPreferredSize(size);

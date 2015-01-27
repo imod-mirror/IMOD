@@ -417,8 +417,8 @@ public class TomogramProcessPanel extends AxisProcessPanel {
      * buttonSize.getHeight(); }
      * System.out.println("buttonWidth="+buttonWidth+",buttonHeight="+buttonHeight);
      * button.setSize(buttonWidth, buttonHeight); */
-    button.setPreferredSize(UIParameters.INSTANCE.getAxisButtonDimension());
-    button.setMaximumSize(UIParameters.INSTANCE.getAxisButtonDimension());
+    button.setPreferredSize(UIParameters.getInstance().getAxisButtonDimension());
+    button.setMaximumSize(UIParameters.getInstance().getAxisButtonDimension());
     button.setToolTipText(tooltip);
   }
 

@@ -150,7 +150,7 @@ final class CcdEraserXRaysPanel implements ContextMenu, Run3dmodButtonContainer,
     pnlXRayButtons.add(btnViewXRayModel.getComponent());
     pnlXRayButtons.add(Box.createHorizontalGlue());
     UIUtilities.setButtonSizeAll(pnlXRayButtons,
-        UIParameters.INSTANCE.getButtonDimension());
+        UIParameters.getInstance().getButtonDimension());
 
     UIUtilities.addWithYSpace(pnlXRayReplacement, pnlXRayButtons);
 
@@ -174,7 +174,7 @@ final class CcdEraserXRaysPanel implements ContextMenu, Run3dmodButtonContainer,
     pnlManualButtons.add(btnCreateModel.getComponent());
     pnlManualButtons.add(Box.createHorizontalGlue());
     UIUtilities.setButtonSizeAll(pnlManualButtons,
-        UIParameters.INSTANCE.getButtonDimension());
+        UIParameters.getInstance().getButtonDimension());
     UIUtilities.addWithYSpace(pnlManualReplacementBody, pnlManualButtons);
 
     pnlManualReplacementCheckBox.setLayout(new BoxLayout(pnlManualReplacementCheckBox,
@@ -212,9 +212,9 @@ final class CcdEraserXRaysPanel implements ContextMenu, Run3dmodButtonContainer,
     pnlClipStats.add(Box.createHorizontalGlue());
     pnlEraseButtons.add(pnlErase);
     pnlEraseButtons.add(pnlClipStats);
-    UIUtilities.setButtonSizeAll(pnlErase, UIParameters.INSTANCE.getButtonDimension());
+    UIUtilities.setButtonSizeAll(pnlErase, UIParameters.getInstance().getButtonDimension());
     UIUtilities
-        .setButtonSizeAll(pnlClipStats, UIParameters.INSTANCE.getButtonDimension());
+        .setButtonSizeAll(pnlClipStats, UIParameters.getInstance().getButtonDimension());
 
     UIUtilities.addWithYSpace(pnlCCDEraser, pnlEraseButtons);
 

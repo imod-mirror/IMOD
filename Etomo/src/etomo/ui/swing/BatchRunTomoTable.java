@@ -400,7 +400,7 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
       chooser.setDialogTitle("Select a stack for each dataset");
       chooser.setFileFilter(new StackFileFilter());
       chooser.setMultiSelectionEnabled(true);
-      chooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
+      chooser.setPreferredSize(UIParameters.getInstance().getFileChooserDimension());
       int returnVal = chooser.showOpenDialog(btnAdd.getComponent());
       File[] stackList = null;
       if (returnVal == JFileChooser.APPROVE_OPTION) {

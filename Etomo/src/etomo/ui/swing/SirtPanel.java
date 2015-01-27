@@ -520,7 +520,7 @@ final class SirtPanel implements Run3dmodButtonContainer, SirtsetupDisplay, Expa
         .listFiles((FilenameFilter) sirtOutputFileFilter);
     if (fileList == null || fileList.length != 1) {
       JFileChooser chooser = new FileChooser(new File(manager.getPropertyUserDir()));
-      chooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
+      chooser.setPreferredSize(UIParameters.getInstance().getFileChooserDimension());
       chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
       chooser.setMultiSelectionEnabled(true);
       chooser.setFileFilter(sirtOutputFileFilter);
@@ -554,7 +554,7 @@ final class SirtPanel implements Run3dmodButtonContainer, SirtsetupDisplay, Expa
       return;
     }
     JFileChooser chooser = new FileChooser(new File(manager.getPropertyUserDir()));
-    chooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
+    chooser.setPreferredSize(UIParameters.getInstance().getFileChooserDimension());
     chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
     chooser.setFileFilter(sirtOutputFileFilter);
     int returnVal = chooser.showOpenDialog(pnlRoot);

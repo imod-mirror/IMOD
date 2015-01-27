@@ -414,7 +414,7 @@ final class TomogramPositioningDialog extends ProcessDialog implements ContextMe
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     btnExecute.setText("Done");
     // Construct the binning spinner
-    spinBinning.setTextMaxmimumSize(UIParameters.INSTANCE.getSpinnerDimension());
+    spinBinning.setTextMaxmimumSize(UIParameters.getInstance().getSpinnerDimension());
 
     // Create the primary panels
     JPanel pnlWholeTomogram = new JPanel();
@@ -465,7 +465,7 @@ final class TomogramPositioningDialog extends ProcessDialog implements ContextMe
     pnlPosition.add(pnlTiltParameters.getContainer());
 
     UIUtilities.alignComponentsX(pnlPosition, Component.CENTER_ALIGNMENT);
-    UIUtilities.setButtonSizeAll(pnlPosition, UIParameters.INSTANCE.getButtonDimension());
+    UIUtilities.setButtonSizeAll(pnlPosition, UIParameters.getInstance().getButtonDimension());
 
     // Create dialog content pane
     rootPanel.add(pnlPosition);

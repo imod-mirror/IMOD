@@ -196,12 +196,12 @@ public final class ParallelPanel implements Expandable, Storable {
     // rootPanel
     rootPanel.add(header);
     rootPanel.add(bodyPanel.getContainer());
-    ltfChunksFinished.setTextPreferredWidth(UIParameters.INSTANCE.getFourDigitWidth());
+    ltfChunksFinished.setTextPreferredWidth(UIParameters.getInstance().getFourDigitWidth());
     ltfChunksFinished.setEditable(false);
-    ltfCPUsSelected.setTextPreferredWidth(UIParameters.INSTANCE.getFourDigitWidth());
+    ltfCPUsSelected.setTextPreferredWidth(UIParameters.getInstance().getFourDigitWidth());
     ltfCPUsSelected.setEditable(false);
     ltfSecondaryCPUsSelected
-        .setTextPreferredWidth(UIParameters.INSTANCE.getFourDigitWidth());
+        .setTextPreferredWidth(UIParameters.getInstance().getFourDigitWidth());
     ltfSecondaryCPUsSelected.setEditable(false);
     if (btnPause != null) {
       btnPause.setEnabled(false);

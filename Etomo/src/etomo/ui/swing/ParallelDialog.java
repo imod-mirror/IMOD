@@ -83,7 +83,7 @@ public final class ParallelDialog implements AbstractParallelDialog, ProcessInte
     constraints.gridheight = 1;
     constraints.gridwidth = 1;
     ltfProcessName.setTextPreferredSize(new Dimension(125 * (int) Math
-        .round(UIParameters.INSTANCE.getFontSizeAdjustment()),
+        .round(UIParameters.getInstance().getFontSizeAdjustment()),
         FixedDim.folderButton.height));
     constraints.insets = new Insets(0, 0, 0, -1);
     layout.setConstraints(ltfProcessName.getContainer(), constraints);

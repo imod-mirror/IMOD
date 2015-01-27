@@ -171,27 +171,27 @@ final class IterationTable implements Highlightable {
   private final HeaderCell header2DTheta = new HeaderCell(FieldLabels.D_THETA_LABEL);
   private final HeaderCell header2DPsi = new HeaderCell(FieldLabels.D_PSI_LABEL);
   private final HeaderCell header3DPhiMax = new HeaderCell(MAX_HEADER3,
-      UIParameters.INSTANCE.getNumericWidth());
+      UIParameters.getInstance().getNumericWidth());
   private final HeaderCell header3DPhiIncrement = new HeaderCell(INCR_HEADER3,
-      UIParameters.INSTANCE.getNumericWidth());
+      UIParameters.getInstance().getNumericWidth());
   private final HeaderCell header3DThetaMax = new HeaderCell(MAX_HEADER3,
-      UIParameters.INSTANCE.getNumericWidth());
+      UIParameters.getInstance().getNumericWidth());
   private final HeaderCell header3DThetaIncrement = new HeaderCell(INCR_HEADER3,
-      UIParameters.INSTANCE.getNumericWidth());
+      UIParameters.getInstance().getNumericWidth());
   private final HeaderCell header3DPsiMax = new HeaderCell(MAX_HEADER3,
-      UIParameters.INSTANCE.getNumericWidth());
+      UIParameters.getInstance().getNumericWidth());
   private final HeaderCell header3DPsiIncrement = new HeaderCell(INCR_HEADER3,
-      UIParameters.INSTANCE.getNumericWidth());
+      UIParameters.getInstance().getNumericWidth());
   private final HeaderCell header1SearchRadius = new HeaderCell(SEARCH_RADIUS_HEADER1);
   private final HeaderCell header2SearchRadius = new HeaderCell(SEARCH_RADIUS_HEADER2);
   private final HeaderCell header3SearchRadius = new HeaderCell(
-      UIParameters.INSTANCE.getIntegerTripletWidth());
+      UIParameters.getInstance().getIntegerTripletWidth());
   private final HeaderCell header1Cutoff = new HeaderCell(CUTOFF_HEADER1);
   private final HeaderCell header2Cutoff = new HeaderCell(CUTOFF_HEADER2);
   private final HeaderCell header3HiCutoff = new HeaderCell(HI_CUTOFF_HEADER3,
-      UIParameters.INSTANCE.getWideNumericWidth());
+      UIParameters.getInstance().getWideNumericWidth());
   private final HeaderCell header3LowCutoff = new HeaderCell(LOW_CUTOFF_HEADER3,
-      UIParameters.INSTANCE.getWideNumericWidth());
+      UIParameters.getInstance().getWideNumericWidth());
   private final HeaderCell header1RefThreshold = new HeaderCell(REF_THRESHOLD_HEADER1);
   private final HeaderCell header2RefThreshold = new HeaderCell(REF_THRESHOLD_HEADER2);
   private final HeaderCell header3RefThreshold = new HeaderCell();
