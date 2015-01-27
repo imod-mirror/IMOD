@@ -1058,7 +1058,7 @@ public class EtomoDirector {
     setUIFont(userConfig.getFontFamily(), userConfig.getFontSize());
     setLookAndFeel(userConfig.getNativeLookAndFeel());
     isAdvanced = userConfig.getAdvancedDialogs();
-    UIParameters.INSTANCE.setFontSize(userConfig.getFontSize());
+    UIParameters.createInstance(userConfig.getFontSize());
     // CpuAdoc.INSTANCE.setUserConfig(userConfig.getParallelProcessing(), userConfig
     // .getCpus());
   }
