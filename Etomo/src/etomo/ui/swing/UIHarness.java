@@ -497,7 +497,7 @@ public final class UIHarness {
     if (isHead()) {
       if (fileChooser == null) {
         fileChooser = new FileChooser(null);
-        fileChooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
+        fileChooser.setPreferredSize(UIParameters.getInstance().getFileChooserDimension());
       }
       else {
         // restore to defaults
