@@ -38,8 +38,8 @@ import etomo.type.ProcessingMethod;
  *
  * @version $Id$
  */
-abstract class ProcessorTable
-    implements Storable, ParallelProgressDisplay, LoadDisplay, Viewable {
+abstract class ProcessorTable implements Storable, ParallelProgressDisplay, LoadDisplay,
+  Viewable {
   private static final String RUNNABLE_KEY = "ProcessorTable";
   private static final String RESOURCE_KEY = "ProcessorResourceTable";
 
@@ -68,9 +68,9 @@ abstract class ProcessorTable
   private final HeaderCell header2Failure = new HeaderCell("Reason");
 
   private final RowList rowList = new RowList();
-  private final Viewport viewport = new Viewport(this,
-      EtomoDirector.INSTANCE.getUserConfiguration().getParallelTableSize().getInt(), null,
-      null, null, "Processor");
+  private final Viewport viewport = new Viewport(this, EtomoDirector.INSTANCE
+    .getUserConfiguration().getParallelTableSize().getInt(), null, null, null,
+    "Processor");
   private final ParallelPanel parent;
   final AxisID axisID;
   final BaseManager manager;
@@ -94,21 +94,21 @@ abstract class ProcessorTable
   abstract Node getNode(int index);
 
   abstract ProcessorTableRow createProcessorTableRow(ProcessorTable processorTable,
-      Node node, int numRowsInTable);
+    Node node, int numRowsInTable);
 
   abstract String getHeader1ComputerText();
 
   abstract void addHeader1Load(JPanel tablePanel, GridBagLayout layout,
-      GridBagConstraints constraints, ColumnName lastColumnName);
+    GridBagConstraints constraints, ColumnName lastColumnName);
 
   abstract void addHeader1Users(JPanel tablePanel, GridBagLayout layout,
-      GridBagConstraints constraints, ColumnName lastColumnName);
+    GridBagConstraints constraints, ColumnName lastColumnName);
 
   abstract void addHeader2Load(JPanel tablePanel, GridBagLayout layout,
-      GridBagConstraints constraints, ColumnName lastColumnName);
+    GridBagConstraints constraints, ColumnName lastColumnName);
 
   abstract void addHeader2Users(JPanel tablePanel, GridBagLayout layout,
-      GridBagConstraints constraints, ColumnName lastColumnName);
+    GridBagConstraints constraints, ColumnName lastColumnName);
 
   abstract IntermittentCommand getIntermittentCommand(String computer);
 
@@ -135,7 +135,7 @@ abstract class ProcessorTable
   abstract void getParameters(ProcessingMethod method, BatchruntomoParam param);
 
   ProcessorTable(final BaseManager manager, final ParallelPanel parent,
-      final AxisID axisID, final boolean displayQueues, final boolean runnable) {
+    final AxisID axisID, final boolean displayQueues, final boolean runnable) {
     this.manager = manager;
     this.parent = parent;
     this.axisID = axisID;
@@ -185,9 +185,9 @@ abstract class ProcessorTable
 
   private void initTable() {
     speedUnits =
-        CpuAdoc.INSTANCE.getSpeedUnits(manager, axisID, manager.getPropertyUserDir());
+      CpuAdoc.INSTANCE.getSpeedUnits(manager, axisID, manager.getPropertyUserDir());
     memoryUnits =
-        CpuAdoc.INSTANCE.getMemoryUnits(manager, axisID, manager.getPropertyUserDir());
+      CpuAdoc.INSTANCE.getMemoryUnits(manager, axisID, manager.getPropertyUserDir());
     // loop through the nodes
     // loop on nodes
     int size = getSize();
@@ -196,9 +196,9 @@ abstract class ProcessorTable
       Node node = getNode(i);
       // exclude any node with the "exclude-interface" attribute set to the
       // current interface
-      if (node != null && !node.isExcludedInterface(manager.getInterfaceType()) &&
-          (!node.isExcludedUser(System.getProperty("user.name"))) &&
-          !isExcludeNode(node)) {
+      if (node != null && !node.isExcludedInterface(manager.getInterfaceType())
+        && (!node.isExcludedUser(System.getProperty("user.name")))
+        && !isExcludeNode(node)) {
         if (enableNumberColumn(node)) {
           numberColumn = true;
         }
@@ -353,12 +353,12 @@ abstract class ProcessorTable
     }
     // add rows to the table
     viewport.msgViewableChanged();
-    rowList.display(expanded, viewport, lastColumnName, useNumberUsed, useNumber, useLoad,
-        useUsers, useType, useSpeed, useMemory, useOs, useRun);
+    rowList.display(expanded, viewport, lastColumnName, useNumberUsed, useNumber,
+      useLoad, useUsers, useType, useSpeed, useMemory, useOs, useRun);
   }
 
   private boolean add(final HeaderCell cell, final ColumnName columnName,
-      final ColumnName lastColumnName) {
+    final ColumnName lastColumnName) {
     boolean use = useColumn(columnName);
     if (use) {
       if (lastColumnName == columnName) {
@@ -370,7 +370,7 @@ abstract class ProcessorTable
   }
 
   private void add(final HeaderCell cell, final boolean use, final ColumnName columnName,
-      final ColumnName lastColumnName) {
+    final ColumnName lastColumnName) {
     if (use) {
       if (lastColumnName == columnName) {
         constraints.gridwidth = GridBagConstraints.REMAINDER;
@@ -501,7 +501,12 @@ abstract class ProcessorTable
         if (!memoryColumn) {
           if (!speedColumn) {
             if (!typeColumn) {
-              return ColumnName.USERS;
+              if (runnable) {
+                return ColumnName.USERS;
+              }
+              else {
+                return ColumnName.LOAD;
+              }
             }
             return ColumnName.TYPE;
           }
@@ -580,9 +585,9 @@ abstract class ProcessorTable
   }
 
   String getHelpMessage() {
-    return "Click on check boxes in the " + header1Computer.getText() +
-        " column and use the spinner in the " + header1NumberCPUs.getText() + " " +
-        header2NumberCPUsUsed.getText() + " column where available.";
+    return "Click on check boxes in the " + header1Computer.getText()
+      + " column and use the spinner in the " + header1NumberCPUs.getText() + " "
+      + header2NumberCPUsUsed.getText() + " column where available.";
   }
 
   public void startLoad() {
@@ -621,9 +626,9 @@ abstract class ProcessorTable
   }
 
   public void setLoad(final String computer, final double load1, final double load5,
-      final int users, final String usersTooltip) {
+    final int users, final String usersTooltip) {
     ((ProcessorTableRow) rowList.get(computer))
-        .setLoad(load1, load5, users, usersTooltip);
+      .setLoad(load1, load5, users, usersTooltip);
   }
 
   public void setLoad(final String computer, final String[] loadArray) {
@@ -631,7 +636,7 @@ abstract class ProcessorTable
   }
 
   public void setCPUUsage(final String computer, final double cpuUsage,
-      final ConstEtomoNumber numberOfProcessors) {
+    final ConstEtomoNumber numberOfProcessors) {
     ((ProcessorTableRow) rowList.get(computer)).setCPUUsage(cpuUsage, numberOfProcessors);
   }
 
@@ -641,7 +646,7 @@ abstract class ProcessorTable
    * possible that the computer may still be available.
    */
   public void msgLoadFailed(final String computer, final String reason,
-      final String tooltip) {
+    final String tooltip) {
     ((ProcessorTableRow) rowList.get(computer)).clearLoad(reason, tooltip);
   }
 
@@ -656,9 +661,9 @@ abstract class ProcessorTable
    * failure reason.
    */
   public void msgStartingProcess(final String computer, final String failureReason1,
-      String failureReason2) {
-    ((ProcessorTableRow) rowList.get(computer))
-        .clearFailureReason(failureReason1, failureReason2);
+    String failureReason2) {
+    ((ProcessorTableRow) rowList.get(computer)).clearFailureReason(failureReason1,
+      failureReason2);
   }
 
   void clearFailureReason(final boolean selectedComputers) {
@@ -719,7 +724,7 @@ abstract class ProcessorTable
     header2NumberCPUsUsed.setToolTipText(text);
     if (numberColumn) {
       header2NumberCPUsMax
-          .setToolTipText("The maximum number of CPUs available on each computer.");
+        .setToolTipText("The maximum number of CPUs available on each computer.");
     }
     setHeaderLoadToolTipText();
     setHeaderUsersToolTipText();
@@ -765,7 +770,37 @@ abstract class ProcessorTable
     static final ColumnName RUN = new ColumnName();
     static final ColumnName USERS = new ColumnName();
 
-    private ColumnName() {
+    private ColumnName() {}
+
+    public String toString() {
+      if (this == NUMBER_USED) {
+        return "NUMBER_USED";
+      }
+      if (this == NUMBER) {
+        return "NUMBER";
+      }
+      if (this == LOAD) {
+        return "LOAD";
+      }
+      if (this == TYPE) {
+        return "TYPE";
+      }
+      if (this == SPEED) {
+        return "SPEED";
+      }
+      if (this == MEMORY) {
+        return "MEMORY";
+      }
+      if (this == OS) {
+        return "OS";
+      }
+      if (this == RUN) {
+        return "RUN";
+      }
+      if (this == USERS) {
+        return "USERS";
+      }
+      return null;
     }
   }
 
@@ -774,8 +809,7 @@ abstract class ProcessorTable
     // Contracted index for use when the table is not expanded..
     private final List contractedIndex = new ArrayList();
 
-    private RowList() {
-    }
+    private RowList() {}
 
     /**
      * Changes the selected computers and CPUs to match computerMap.
@@ -810,10 +844,10 @@ abstract class ProcessorTable
     }
 
     private void display(final boolean expanded, final Viewport viewport,
-        final ColumnName lastColumnName, final boolean useNumberUsed,
-        final boolean useNumber, final boolean useLoad, final boolean useUsers,
-        final boolean useType, final boolean useSpeed, final boolean useMemory,
-        final boolean useOs, final boolean useRun) {
+      final ColumnName lastColumnName, final boolean useNumberUsed,
+      final boolean useNumber, final boolean useLoad, final boolean useUsers,
+      final boolean useType, final boolean useSpeed, final boolean useMemory,
+      final boolean useOs, final boolean useRun) {
       for (int i = 0; i < size(expanded); i++) {
         ProcessorTableRow row;
         if (expanded) {
@@ -824,7 +858,7 @@ abstract class ProcessorTable
         }
         row.deleteRow();
         row.display(i, viewport, lastColumnName, useNumberUsed, useNumber, useLoad,
-            useUsers, useType, useSpeed, useMemory, useOs, useRun);
+          useUsers, useType, useSpeed, useMemory, useOs, useRun);
       }
     }
 
