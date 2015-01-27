@@ -522,7 +522,7 @@ final class FlattenVolumePanel implements Run3dmodButtonContainer, WarpVolDispla
   private void inputFileAction() {
     // Open up the file chooser in the current working directory
     JFileChooser chooser = new FileChooser(new File(manager.getPropertyUserDir()));
-    chooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
+    chooser.setPreferredSize(UIParameters.getInstance().getFileChooserDimension());
     chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
     chooser.setFileFilter(new TomogramFileFilter());
     int returnVal = chooser.showOpenDialog(pnlRoot.getContainer());
