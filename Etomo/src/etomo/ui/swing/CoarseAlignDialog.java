@@ -371,7 +371,7 @@ public final class CoarseAlignDialog extends ProcessDialog implements ContextMen
     // Set the alignment and size of the UI objects
     UIUtilities.alignComponentsX(pnlCoarseAlign, Component.CENTER_ALIGNMENT);
     UIUtilities.setButtonSizeAll(pnlCoarseAlign,
-        UIParameters.INSTANCE.getButtonDimension());
+        UIParameters.getInstance().getButtonDimension());
 
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     UIUtilities.addWithSpace(rootPanel, pnlCoarseAlign, FixedDim.x0_y10);
