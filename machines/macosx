@@ -358,14 +358,22 @@ endif
 if ($?CUDA_DIR) then
     set cudavers = `nvcc --version | sed -n -e '/[,.]/s// /g' -e '/^.*release/s///p'`
     @ cudamajor = $cudavers[1]
+    if ($cudamajor > 4) set cuda_arch_opts = '-arch sm_12'
     if ($cudamajor > 2) then
-        set nvcc_flags = "$nvcc_flags -m64 -DUNIX -Xcompiler -fno-strict-aliasing -O3"
+        set nvcc_flags = "$cuda_arch_opts $nvcc_flags -m64 -DUNIX -Xcompiler -fno-strict-aliasing -O3"
     else
-        set nvcc_flags = "$nvcc_flags -DUNIX -Xcompiler -fno-strict-aliasing -O3 --host-compilation C"
+        set nvcc_flags = "$cuda_arch_opts $nvcc_flags -DUNIX -Xcompiler -fno-strict-aliasing -O3 --host-compilation C"
     endif
-    set cudalibs = "-L$CUDA_DIR/lib -Wl,-rpath,/usr/local/cuda/lib -lcudart -lcufft -ltlshook"
+    set cudalibs = "-L$CUDA_DIR/lib -Wl,-rpath,/usr/local/cuda/lib -lcudart -lcufft"
+    set cudadlls = "libcudart libcufft libcuda"
+    #
+    # We don't know if this is present in 5 or not
+    if ($cudamajor < 6) then
+        set cudalibs = "$cudalibs -ltlshook"
+        set cudadlls = "$cudadlls libtlshook"
+    endif
     if ($m64bit == true) set cudalibs = "$cudalibs -lstdc++"
-    echo "DLLSTOCOPY$dllnum = libcudart libcufft libtlshook libcuda" >> $configure
+    echo "DLLSTOCOPY$dllnum = $cudadlls" >> $configure
     echo "DLLSOURCEDIR$dllnum = $CUDA_DIR/lib" >> $configure
     @ dllnum++
 endif
