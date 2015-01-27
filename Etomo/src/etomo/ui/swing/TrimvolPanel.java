@@ -340,8 +340,8 @@ public final class TrimvolPanel implements Run3dmodButtonContainer, RubberbandCo
 
     pnlScaleSection.setLayout(new BoxLayout(pnlScaleSection, BoxLayout.X_AXIS));
     pnlScaleSection.add(rbScaleSection.getComponent());
-    ltfSectionScaleMin.setTextPreferredWidth(UIParameters.INSTANCE.getFourDigitWidth());
-    ltfSectionScaleMax.setTextPreferredWidth(UIParameters.INSTANCE.getFourDigitWidth());
+    ltfSectionScaleMin.setTextPreferredWidth(UIParameters.getInstance().getFourDigitWidth());
+    ltfSectionScaleMax.setTextPreferredWidth(UIParameters.getInstance().getFourDigitWidth());
     pnlScaleSection.add(ltfSectionScaleMin.getContainer());
     pnlScaleSection.add(ltfSectionScaleMax.getContainer());
 
