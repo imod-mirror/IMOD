@@ -22,7 +22,7 @@ public final class SerialSectionsProcessPanel extends AxisProcessPanel {
   public static  final String  rcsid =  "$Id:$";
   
   SerialSectionsProcessPanel(BaseManager manager) {
-    super(AxisID.ONLY, manager, false);
+    super(AxisID.ONLY, manager, false,true);
     createProcessControlPanel();
     initializePanels();
   }

@@ -14,6 +14,7 @@
 #include <math.h>
 #include <string.h>
 #include "imodel.h"
+#include "b3dutil.h"
 
 /*!
  * Creates one new contour and initializes it to default values.  Returns NULL
@@ -443,6 +444,24 @@ double imodel_contour_length(Icont *cont)
 
 }
 
+/* If contour is already a scan, return it; otherwise get scan contour */
+static Icont *makeOrReturnScanContour(Icont *cont)
+{
+  if (!cont || (cont->flags & ICONT_SCANLINE))
+    return cont;
+  if (!cont->psize)
+    return NULL;
+  return imodel_contour_scan(cont);
+}
+
+/* Delete scan contour if made one was made from cont */
+static void cleanupScanContour(Icont *cont, Icont *scont)
+{
+  if (!(cont->flags & ICONT_SCANLINE))
+    imodContourDelete(scont);
+}
+
+
 /*!
  * Returns a moment of the contour [cont] relative to the origin, where the 
  * order of the moment is [a] in X and [b] in Y.  It computes the sum
@@ -452,49 +471,40 @@ double imodel_contour_length(Icont *cont)
  */
 double imodContourMoment(Icont *cont, int a, int b)
 {
-  Icont *scont;
-  int i, j, pt;
+  Icont *scont = makeOrReturnScanContour(cont);
+  int j, pt;
   int bline, eline;
   double moment = 0.0;
   double powia;
 
-  /* If contour is already a scan, use it; otherwise get scan contour */
-  if (cont->flags & ICONT_SCANLINE)
-    scont = cont;
-  else {
-    scont = imodel_contour_scan(cont);
-    if (!scont) 
-      return 0.0;
-  }
+  if (!scont) 
+    return 0.0;
 
   for(pt = 0; pt < scont->psize; pt+=2){
-    i = scont->pts[pt].y + 0.5f;
-    bline = scont->pts[pt].x + 0.5f;
-    eline = scont->pts[pt + 1].x + 0.5f;
-    powia = pow((double)i, (double)a);
+    bline = B3DNINT(scont->pts[pt].x);
+    eline = B3DNINT(scont->pts[pt + 1].x);
+    powia = pow((double)scont->pts[pt].y, (double)a);
     if (b == 0) 
       for(j = bline; j < eline; j++)
         moment += powia;
     else if (b == 1)
       for(j = bline; j < eline; j++)
-        moment += powia * j;
+        moment += powia * (j + 0.5);
     else
       for(j = bline; j < eline; j++){
-        moment += powia * pow((double)j, (double)b);
+        moment += powia * pow(j + 0.5, (double)b);
       }
   }
 
-  /* Delete scan contour if made one */
-  if (!(cont->flags & ICONT_SCANLINE))
-    imodContourDelete(scont);
+  cleanupScanContour(cont, scont);
   return(moment);
 }
 
 /*!
- * Computes the center of mass of contour [cont] and returns the result in 
- * [rpt].  The contour is assumed to lie in the X/Y plane.  Returns 0 for
- * success, -1 for an error, or 0 if the [cont] is NULL
- * or has no points, in which case [rpt] is 0,0,0.
+ * Computes the center of mass of contour [cont] and returns the result in [rpt].  The 
+ * contour is assumed to lie in the X/Y plane.  Returns 0 for success, -1 for an error,
+ * or 0 if the [cont] is NULL or has no points, in which case [rpt] is 0,0,0.
+ * [cont] can be a scan contour; if not, temporary scan contour is made.
  */
 int imodContourCenterOfMass(Icont *cont, Ipoint *rpt)
 {
@@ -502,23 +512,27 @@ int imodContourCenterOfMass(Icont *cont, Ipoint *rpt)
   Icont *scont;
 
   rpt->x = rpt->y = rpt->z = 0.0f;
-  if (!cont) return(0);
-  if (!cont->psize) return(0);
+  if (!cont || !cont->psize)
+    return(0);
 
   /* 3/26/01, per Lambert Zijp's suggestion, make scan contour once before
      getting moments */
-  scont = imodel_contour_scan(cont);
-  if (!scont) return(-1);
+  scont = makeOrReturnScanContour(cont);
+  if (!scont)
+    return(-1);
 
   M00 = imodContourMoment(scont, 0, 0);
   M01 = imodContourMoment(scont, 0, 1);
   M10 = imodContourMoment(scont, 1, 0);
-  imodContourDelete(scont);
-  if (M00 == 0.0) return(-1);
+  if (M00 == 0.0)  {
+    cleanupScanContour(cont, scont);
+    return(-1);
+  }
 
-  rpt->x = M01/M00;
-  rpt->y = M10/M00;
+  rpt->x = M01 / M00;
+  rpt->y = M10 / M00;
   rpt->z = cont->pts->z;
+  cleanupScanContour(cont, scont);
   return(0);
 }
 
@@ -624,31 +638,102 @@ int imodel_contour_centroid(Icont *icont, Ipoint *rcp,
 
 /*!
  * Returns the moment of contour [cont] of order [a] in X and order [b] in Y,
- * relative to the point [org].  Computes (x-org->x)**a * (y-yorg->y)**b over
- * all pixels inside the contour.  Returns 0 for error.  Unused.
+ * relative to the point [org].  Computes (x - org->x)**a * (y - org->y)**b over
+ * all pixels inside the contour.  [cont] can already be a scan contour; if not, a 
+ * temporary scan contour is generated.  Returns 0 for error.
  */
 double imodContourCenterMoment(Icont *cont, Ipoint *org, int a, int b)
 {
-  Icont *scont = imodel_contour_scan(cont);
-  int i, j, pt;
+  Icont *scont = makeOrReturnScanContour(cont);
+  int j, pt;
   int bline, eline;
-  double moment = 0.0;
-     
+  double powia, moment = 0.0;
+
   if (!scont) 
     return 0.0;
      
-  for(pt = 0; pt < scont->psize; pt+=2){
-    i = scont->pts[pt].y + 0.5f - org->x;
-    bline = scont->pts[pt].x + 0.5f - org->y;
-    eline = scont->pts[pt + 1].x + 0.5f - org->y;
-    for(j = bline; j < eline; j++){
-      moment += pow(i, a) * pow(j, b);
+  for (pt = 0; pt < scont->psize; pt+=2) {
+    powia = pow(scont->pts[pt].y - org->y, (double)a);
+    bline = B3DNINT(scont->pts[pt].x - org->x);
+    eline = B3DNINT(scont->pts[pt + 1].x - org->x);
+    for (j = bline; j < eline; j++) {
+      moment += powia * pow(j + 0.5, (double)b);
     }
   }
-  imodContourDelete(scont);
+
+  cleanupScanContour(cont, scont);
   return(moment);
 }
 
+/*!
+ * Computes an ellipse whose moments are the same as the area inside contour [cont],
+ * which is assumed to be planar, and returns the center position in [center], the a and
+ * b parameters for long and short axes in [longAxis] and [shortAxis], and the orientation
+ * of the long axis, in degrees between 0 and 180, in [angle].  Returns 1 for error, 
+ * including having a contour with less than 3 points.  Although [cont] can already be a 
+ * scan contour, accuracy will be higher if it is not, because a scan contour is created
+ * after scaling the contour up by a factor of 4.
+ */
+int imodContourEquivEllipse(Icont *cont, Ipoint *center, float *longAxis, 
+                            float *shortAxis, float *angle)
+{
+  Icont *scont;
+  double M11, M02, M20, lambda1, lambda2, discr;
+  double pi4inv = 4. / 3.1415927;
+  float scale = 1.;
+  Icont *bigCont = cont;
+  int pt, err;
+
+  if (!cont || cont->psize < 3)
+    return 1;
+    
+  if (!(cont->flags & ICONT_SCANLINE)) {
+    bigCont = imodContourDup(cont);
+    scale = 4.;
+    if (!bigCont)
+      return 1;
+    for (pt = 0; pt < bigCont->psize; pt++) {
+      bigCont->pts[pt].x *= scale;
+      bigCont->pts[pt].y *= scale;
+    }
+  }
+  scont = makeOrReturnScanContour(bigCont);
+  if (!scont) 
+    return 1;
+  err = imodContourCenterOfMass(scont, center);
+  if (!err) {
+    M11 = imodContourCenterMoment(scont, center, 1, 1);
+    M20 = imodContourCenterMoment(scont, center, 2, 0);
+    M02 = imodContourCenterMoment(scont, center, 0, 2);
+  }
+  cleanupScanContour(cont, scont);
+  if (!(cont->flags & ICONT_SCANLINE))
+    imodContourDelete(bigCont);
+  if (err)
+    return 1;
+
+  if (!M11 || !M20 || !M02)
+    return 1;
+  discr = sqrt(4. * M11 * M11 + (M02 - M20) * (M02 - M20));
+  lambda1 = (M02 + M20 + discr) / 2.;
+  lambda2 = (M02 + M20 - discr) / 2.;
+  *angle = (float)(atan2(M11, lambda1 - M20) / RADIANS_PER_DEGREE);
+  if (*angle < 0.)
+    *angle += 180.;
+  
+  *longAxis = (float)exp((log(pi4inv * pi4inv / lambda2) + 3. * log(lambda1)) / 8.);
+  *shortAxis = (float)pow(pi4inv * lambda2 / *longAxis, 0.3333333);
+  center->x /= scale;
+  center->y /= scale;
+  *longAxis /= scale;
+  *shortAxis /= scale;
+  center->z = 0;
+  for (pt = 0; pt < cont->psize; pt++)
+    center->z += cont->pts[pt].z / cont->psize;
+  /* printf("x  %f y %f long %f short %f  angle %f\n", center->x, center->y, *longAxis,
+   *shortAxis, *angle); */
+  return 0;
+}
 
 /*!
  * Returns the circularity of a closed contour, based on perimeter squared to
@@ -664,36 +749,6 @@ double imodContourCircularity(Icont *cont)
   double a = imodel_contour_area(cont);
   if (a == 0.0) return(1000.0);
   return( (c*c)/(12.56637062*a));
-}
-
-/* used by ill-fated Principal Axis */
-static double icont_alldist(Icont *cont, Ipoint *a, Ipoint *b)
-{
-  int pt, x, xs, xe;
-  double dist = 0.0;
-  Ipoint point;
-  Ipoint ln;
-     
-  ln.x = b->y - a->y;
-  ln.y = a->x - b->x;
-  ln.z = (-ln.y * a->y) - (ln.x + a->x);
-
-  if (cont->flags & ICONT_SCANLINE) {
-    for(pt = 0; pt < cont->psize-1; pt+=2){
-      point.y = cont->pts[pt].y;
-      xs = cont->pts[pt].x;
-      xe = cont->pts[pt+1].x;
-      for(x = xs; x < xe; x++){
-        point.x = x;
-        dist += imodPointLineDistance(&ln, &point);
-      }
-    }
-  }else{
-    for(pt = 0; pt < cont->psize; pt++)
-      dist += imodPointLineDistance(&ln, &cont->pts[pt]);
-  }
-
-  return(dist);
 }
 
 /*!
@@ -780,65 +835,6 @@ double imodContourLongAxis(Icont *cont, float precision, float *aspect,
   return (minangle);
 }
 
-/* Measure the principal axis.
- * Returns the angle to the principal axis in radians.
- * THIS CODE DOESN'T WORK
- */
-double imodContourPrincipalAxis(Icont *cont)
-{
-  Ipoint center, *pafit;
-  Icont *fcont;
-  Icont *lcont = imodContourNew();
-  double tdist = 0;
-  double dist;
-  int pt;
-
-  if (imodContourBad(cont, 1)) return 0.0;
-     
-  if (cont->psize == 2){
-    center.x = cont->pts[1].x - cont->pts[0].x;
-    center.y = cont->pts[1].y - cont->pts[0].y;
-    return(imodPoint2DAngle(&center));
-  }
-
-  if (!lcont) return -0.0;
-
-  imodContourCenterOfMass(cont, &center);
-     
-  /*     fcont = imodContourDup(cont); */
-
-  /*     imodContourFill(fcont); */
-  /*     fcont = imodel_contour_scan(cont);  */
-  fcont = imodContourFill(cont);
-  fcont->time = 0;
-  for(pt = 0; pt < fcont->psize; pt++){
-    if (fcont->pts[pt].y >= center.y)
-      imodPointAppend(lcont, &fcont->pts[pt]);
-  }
-
-  /*     imodContourDelete(fcont);  */
-  /*     fcont = imodel_contour_scan(cont);  */
-  if (!lcont->pts){
-    return(0.0);
-  }
-  tdist  = icont_alldist(fcont, &center, lcont->pts);
-  pafit  = lcont->pts;
-
-  for(pt = 1; pt < lcont->psize; pt++){
-    dist = icont_alldist(fcont, &center, &lcont->pts[pt]);
-    if (dist < tdist){
-      tdist = dist;
-      pafit = &lcont->pts[pt];
-    }
-  }
-     
-  center.x = pafit->x - center.x;
-  center.y = pafit->y - center.y;
-  imodContourDelete(fcont);
-  imodContourDelete(lcont);
-
-  return(imodPoint2DAngle(&center));
-}
 
 /*!
  * Fits a plane to the contour [cont], where points are scaled by [scale].

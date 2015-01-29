@@ -65,7 +65,7 @@ import javax.swing.UIManager;
 public class ButtonHelper {
   public static final String rcsid = "$$Id$$";
 
-  static final Dimension MULTI_LINE_BUTTON_DIM = UIParameters.INSTANCE
+  static final Dimension MULTI_LINE_BUTTON_DIM = UIParameters.getInstance()
       .getButtonDimension();
 
   public static String format(String text) {
