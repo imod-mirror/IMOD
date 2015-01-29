@@ -2020,8 +2020,8 @@ SUBROUTINE inputParameters()
   real*4, allocatable :: packLocal(:,:), angReproj(:)
   integer*4 mode, newangles, iftiltfile, nvuse, nvexcl, numNeedEval
   real*4 delang, compfac, globalpha, xoffset, scalelocal, rrmax, rfall, xoffAdj
-  integer*4 irmax, ifall, ncompress, nxfull, nyfull, ixsubset, iysubset
-  integer*4 kti, indbase, ipos, idtype, lens
+  integer*4 irmax, ifall, ncompress, nxfull, nyfull, ixsubset, iysubset, ixSubsetIn
+  integer*4 kti, indbase, ipos, idtype, lens, nxFullIn
   integer*4 nd1, nd2, nv, numSlices, indi, i, iex, nvorig, iv
   real*4 vd1, vd2, dtheta, theta, thetanv
   integer*4 nxprj2, ninp, nexclist, j, ind, nument
@@ -2247,9 +2247,9 @@ SUBROUTINE inputParameters()
   nxWarp = 0
   nyWarp = 0
   scalelocal = 0.
-  nxfull = 0
+  nxFullIn = 0
   nyfull = 0
-  ixsubset = 0
+  ixSubsetIn = 0
   iysubset = 0
   ithickBP = 10
   imageBinned = 1
@@ -2568,8 +2568,8 @@ SUBROUTINE inputParameters()
   !
   if (PipGetFloat('LOCALSCALE', scalelocal) == 0) write(6, 2501) scalelocal
   !
-  ierr = PipGetTwoIntegers('FULLIMAGE', nxfull, nyfull)
-  if (PipGetTwoIntegers('SUBSETSTART', ixsubset, iysubset) == 0) &
+  ierr = PipGetTwoIntegers('FULLIMAGE', nxFullIn, nyfull)
+  if (PipGetTwoIntegers('SUBSETSTART', ixsubsetIn, iysubset) == 0) &
       ifSubsetIn = 1
   !
   nfields = 0
@@ -2672,8 +2672,8 @@ SUBROUTINE inputParameters()
       'Cannot do local alignments with non-consecutive slices')
   if (minTotSlice > 0 .and. idelSlice .ne. 1) call exitError( &
       'Cannot do chunk writing with non-consecutive slices')
-  if (nxfull == 0 .and. nyfull == 0 .and. &
-      (ixsubset .ne. 0 .or. iysubset .ne. 0)) call exitError( &
+  if (nxFullIn == 0 .and. nyfull == 0 .and. &
+      (ixSubsetIn .ne. 0 .or. iysubset .ne. 0)) call exitError( &
       'YOU MUST ENTER THE FULL IMAGE SIZE IF YOU HAVE A SUBSET')
   if (.not.perpendicular .and. minTotSlice > 0) call exitError( &
       'Cannot do chunk writing with parallel slices')
@@ -2697,9 +2697,9 @@ SUBROUTINE inputParameters()
     endif
     if (ifThickIn .ne. 0) ithickBP = ithickBP / imageBinned
     axisXoffset = axisXoffset / imageBinned
-    nxfull = (nxfull + imageBinned - 1) / imageBinned
+    nxfull = (nxFullIn + imageBinned - 1) / imageBinned
     nyfull = (nyfull + imageBinned - 1) / imageBinned
-    ixsubset = ixsubset / imageBinned
+    ixsubset = ixSubsetIn / imageBinned
     iysubset = iysubset / imageBinned
     xoffset = xoffset / imageBinned
     yOffset = yOffset / imageBinned
@@ -3259,15 +3259,22 @@ SUBROUTINE inputParameters()
   ! Allow the full size to be less than the aligned stack, with a negative
   ! subset start
   !
-  if (nxfull == 0) nxfull = nprojXyz(1)
+  if (nxfull == 0) then
+    nxfull = nprojXyz(1)
+    nxFullIn = nprojXyz(1) * imageBinned
+  endif
   if (nyfull == 0) nyfull = nprojXyz(2)
   xcenIn = nxfull / 2. +0.5 - ixsubset
   centerSlice = nyfull / 2. +0.5 - iysubset
-  xoffAdj = xoffset - (nprojXyz(1) / 2 + ixsubset - nxfull / 2)
+  xoffAdj = xoffset - ((nprojXyz(1) * imageBinned - nxFullIn) / 2 + ixSubsetIn)
   xcenOut = iwidth / 2 + 0.5 + axisXoffset + xoffAdj
   ycenOut = ithickBP / 2 + 0.5 + yOffset
-  if (numSIRTiter > 0 .and. abs(xoffAdj + axisXoffset) > 0.1) call exitError( &
-      'CANNOT DO SIRT WITH A TILT AXIS OFFSET FROM CENTER OF INPUT IMAGES')
+  if (numSIRTiter > 0 .and. abs(xoffAdj + axisXoffset) > 0.1) then
+    if (mod(nprojXyz(1), 2) > 0) call exitError( &
+        'CANNOT DO INTERNAL SIRT WITH AN ODD INPUT SIZE IN X')
+    call exitError( &
+        'CANNOT DO INTERNAL SIRT WITH A TILT AXIS OFFSET FROM CENTER OF INPUT IMAGES')
+  endif
   !
   ! if doing warping, convert the angles to radians and set sign
   ! Also cancel the z factors if global entry was not made
