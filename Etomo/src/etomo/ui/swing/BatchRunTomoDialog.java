@@ -37,6 +37,7 @@ import etomo.type.ProcessingMethod;
 import etomo.type.TableReference;
 import etomo.type.UserConfiguration;
 import etomo.ui.BatchRunTomoTab;
+import etomo.ui.FieldDisplayer;
 import etomo.ui.FieldType;
 import etomo.util.Utilities;
 
@@ -50,23 +51,23 @@ import etomo.util.Utilities;
  * @version $Id$
  */
 public final class BatchRunTomoDialog implements ActionListener, ResultListener,
-    ChangeListener, Expandable, ProcessInterface {
+  ChangeListener, Expandable, ProcessInterface {
   private static final String DELIVER_TO_DIRECTORY_NAME = "Move datasets to";
 
   private final JPanel pnlRoot = new JPanel();
   private final LabeledTextField ltfRootName = new LabeledTextField(FieldType.STRING,
-      "Batchruntomo root name: ");
+    "Batchruntomo root name: ");
   private final CheckBox cbDeliverToDirectory = new CheckBox();
   private final CheckTextField ctfEmailAddress = CheckTextField.getInstance(
-      FieldType.STRING, "Email notification: ");
+    FieldType.STRING, "Email notification: ");
   private final CheckBox cbCPUMachineList = new CheckBox("Use multiple CPUs");
   private final ButtonGroup bgGPUMachineList = new ButtonGroup();
   private final RadioButton rbGPUMachineListOff = new RadioButton("No GPU",
-      bgGPUMachineList);
+    bgGPUMachineList);
   private final RadioButton rbGPUMachineListLocal = new RadioButton("Local GPU",
-      bgGPUMachineList);
+    bgGPUMachineList);
   private final RadioButton rbGPUMachineList = new RadioButton("Parallel GPUs",
-      bgGPUMachineList);
+    bgGPUMachineList);
   private final TabbedPane tabbedPane = new TabbedPane();
   private final JPanel[] pnlTabs = new JPanel[BatchRunTomoTab.SIZE];
   private final JPanel pnlBatch = new JPanel();
@@ -78,10 +79,12 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
   private final JPanel pnlRunButton = new JPanel();
   private final JPanel pnlParallelSettings = new JPanel();
   private final UserConfiguration userConfiguration = EtomoDirector.INSTANCE
-      .getUserConfiguration();
+    .getUserConfiguration();
   private final JPanel pnlDatasetTableBody = new JPanel();
   private final JPanel pnlUntitledTable = new JPanel();
-  //
+  private final DatasetFieldDisplayer datasetFieldDisplayer = new DatasetFieldDisplayer(
+    this);
+
   private final FileTextField2 ftfRootDir;
   private final FileTextField2 ftfInputDirectiveFile;
   private final TemplatePanel templatePanel;
@@ -97,28 +100,28 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
   private BatchRunTomoTab curTab = null;
 
   private BatchRunTomoDialog(final BatchRunTomoManager manager, final AxisID axisID,
-      final TableReference tableReference) {
+    final TableReference tableReference) {
     this.manager = manager;
     this.axisID = axisID;
     ftfRootDir = FileTextField2.getAltLayoutInstance(manager, "Location: ");
     ftfInputDirectiveFile =
-        FileTextField2.getAltLayoutInstance(manager, "Starting directive file: ");
+      FileTextField2.getAltLayoutInstance(manager, "Starting directive file: ");
     ftfInputDirectiveFile.checkpoint();
     ftfDeliverToDirectory =
-        FileTextField2.getAltLayoutInstance(manager, DELIVER_TO_DIRECTORY_NAME + ": ");
+      FileTextField2.getAltLayoutInstance(manager, DELIVER_TO_DIRECTORY_NAME + ": ");
     table = BatchRunTomoTable.getInstance(manager, this, tableReference);
     datasetDialog = BatchRunTomoDatasetDialog.getGlobalInstance(manager, this);
     directiveFileCollection = new DirectiveFileCollection(manager, axisID);
     templatePanel =
-        TemplatePanel.getBorderlessInstance(manager, axisID, null, null, null,
-            directiveFileCollection, true);
+      TemplatePanel.getBorderlessInstance(manager, axisID, null, null, null,
+        directiveFileCollection, true);
     phDatasetTable = PanelHeader.getInstance("Datasets", this, DialogType.BATCH_RUN_TOMO);
     mediator = manager.getProcessingMethodMediator(axisID);
     mediator.register(this);
   }
 
   public static BatchRunTomoDialog getInstance(final BatchRunTomoManager manager,
-      final AxisID axisID, final TableReference tableReference) {
+    final AxisID axisID, final TableReference tableReference) {
     BatchRunTomoDialog instance = new BatchRunTomoDialog(manager, axisID, tableReference);
     instance.createPanel();
     return instance;
@@ -219,7 +222,7 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
     pnlTemplates.add(Box.createHorizontalGlue());
     // DeliverToDirectory
     pnlDeliverToDirectory
-        .setLayout(new BoxLayout(pnlDeliverToDirectory, BoxLayout.X_AXIS));
+      .setLayout(new BoxLayout(pnlDeliverToDirectory, BoxLayout.X_AXIS));
     pnlDeliverToDirectory.add(cbDeliverToDirectory);
     pnlDeliverToDirectory.add(ftfDeliverToDirectory.getRootPanel());
     // align
@@ -304,7 +307,7 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
   }
 
   public void setParameters(final UserConfiguration userConfiguration,
-      final boolean newDataset) {
+    final boolean newDataset) {
     if (newDataset) {
       templatePanel.setParameters(userConfiguration);
     }
@@ -370,42 +373,42 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
     if (errMsg.length() > 0) {
       if (deliverToDirectory) {
         errMsg
-            .append("\n\nEither change the name of the associated stacks, or go to the "
-                + BatchRunTomoTab.BATCH.getQuotedLabel()
-                + " tab and uncheck the "
-                + ftfDeliverToDirectory.getQuotedLabel()
-                + " check box.  Each dataset will be placed in the current location of its stack "
-                + "file.");
+          .append("\n\nEither change the name of the associated stacks, or go to the "
+            + BatchRunTomoTab.BATCH.getQuotedLabel()
+            + " tab and uncheck the "
+            + ftfDeliverToDirectory.getQuotedLabel()
+            + " check box.  Each dataset will be placed in the current location of its stack "
+            + "file.");
       }
       else {
         errMsg
-            .append("\n\nEither move these stacks, or go to the "
-                + BatchRunTomoTab.BATCH.getQuotedLabel()
-                + " tab and select a directory in the "
-                + ftfDeliverToDirectory.getQuotedLabel()
-                + " field.  Each dataset will be placed in its own directory under the directory "
-                + "in this field.");
+          .append("\n\nEither move these stacks, or go to the "
+            + BatchRunTomoTab.BATCH.getQuotedLabel()
+            + " tab and select a directory in the "
+            + ftfDeliverToDirectory.getQuotedLabel()
+            + " field.  Each dataset will be placed in its own directory under the directory "
+            + "in this field.");
       }
       UIHarness.INSTANCE.openMessageDialog(manager, errMsg.toString(),
-          "Datasets Cannot Share a Directory");
+        "Datasets Cannot Share a Directory");
     }
   }
 
   public void loadAutodocs() {
     // load global autodoc
     DirectiveFile directiveFile =
-        DirectiveFile.getInstance(manager, axisID,
-            FileType.BATCH_RUN_TOMO_GLOBAL_AUTODOC.getFile(manager, axisID), true);
+      DirectiveFile.getInstance(manager, axisID, FileType.BATCH_RUN_TOMO_GLOBAL_AUTODOC
+        .getFile(manager, axisID), true);
     templatePanel.setParameters(directiveFile);
     datasetDialog.setValues(directiveFile);
     // load dataset autodocs
     table.loadAutodocs();
   }
 
-  public void saveAutodocs() {
+  public boolean saveAutodocs(final boolean doValidation) {
     Autodoc graftedBaseAutodoc =
-        BatchTool.graftDirectiveFiles(manager, ftfInputDirectiveFile.getFile(),
-            templatePanel.getFiles());
+      BatchTool.graftDirectiveFiles(manager, ftfInputDirectiveFile.getFile(),
+        templatePanel.getFiles());
     // save global autodoc
     File globalFile = FileType.BATCH_RUN_TOMO_GLOBAL_AUTODOC.getFile(manager, null);
     try {
@@ -414,7 +417,9 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
       }
       Autodoc autodoc = AutodocFactory.getWritableAutodocInstance(manager, globalFile);
       templatePanel.saveAutodoc(autodoc);
-      datasetDialog.saveAutodoc(autodoc);
+      if (!datasetDialog.saveAutodoc(autodoc, doValidation, datasetFieldDisplayer)) {
+        return false;
+      }
       autodoc.graftMergeGlobal(graftedBaseAutodoc);
       // Warning: After merging DO NOT write to autodoc because the grafted areas will be
       // shared with other autodocs.
@@ -428,7 +433,7 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
     }
     // save dataset autodocs with the starting batch and default batch directive files
     // grafted on.
-    table.saveAutodocs(templatePanel, graftedBaseAutodoc);
+    return table.saveAutodocs(templatePanel, graftedBaseAutodoc, doValidation);
   }
 
   BatchRunTomoRow getFirstRow() {
@@ -454,9 +459,9 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
       if (!retainUserValues && changed) {
         // Ask the user whether they want to keep the values they changed.
         retainUserValues =
-            UIHarness.INSTANCE.openYesNoDialog(manager,
-                "New batch directive/template values will be applied.  Keep your changed "
-                    + "values?", axisID);
+          UIHarness.INSTANCE.openYesNoDialog(manager,
+            "New batch directive/template values will be applied.  Keep your changed "
+              + "values?", axisID);
       }
     }
     table.applyValues(retainUserValues, directiveFileCollection);
@@ -477,11 +482,11 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
       manager.run();
     }
     else if (actionCommand.equals(cbCPUMachineList.getActionCommand())
-        || actionCommand.equals(rbGPUMachineListOff.getActionCommand())
-        || actionCommand.equals(rbGPUMachineListLocal.getActionCommand())
-        || actionCommand.equals(rbGPUMachineList.getActionCommand())) {
+      || actionCommand.equals(rbGPUMachineListOff.getActionCommand())
+      || actionCommand.equals(rbGPUMachineListLocal.getActionCommand())
+      || actionCommand.equals(rbGPUMachineList.getActionCommand())) {
       mediator.setMethod(this, getProcessingMethod(), getSecondaryProcessingMethod(),
-          curTab == BatchRunTomoTab.RUN);
+        curTab == BatchRunTomoTab.RUN);
     }
     else {
       updateDisplay();
@@ -550,14 +555,14 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
       }
     }
     else if (object == ftfInputDirectiveFile
-        && ftfInputDirectiveFile.isDifferentFromCheckpoint(false)) {
+      && ftfInputDirectiveFile.isDifferentFromCheckpoint(false)) {
       ftfInputDirectiveFile.checkpoint();
       directiveFileCollection.setDirectiveFile(ftfInputDirectiveFile.getFile(),
-          DirectiveFileType.BATCH);
+        DirectiveFileType.BATCH);
       templatePanel.activateActions(false);
       templatePanel.clear();
       templatePanel.setParameters(directiveFileCollection
-          .getDirectiveFile(DirectiveFileType.BATCH));
+        .getDirectiveFile(DirectiveFileType.BATCH));
       templatePanel.activateActions(true);
       msgDirectivesChanged(false, false);
     }
@@ -590,6 +595,15 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
   }
 
   public void expand(final GlobalExpandButton button) {}
+
+  /**
+   * Displays the dataset tab, if it is not displayed.
+   */
+  private void displayDataset() {
+    if (curTab != BatchRunTomoTab.DATASET) {
+      tabbedPane.setSelectedIndex(BatchRunTomoTab.DATASET.getIndex());
+    }
+  }
 
   /**
    * Handle tab change event
@@ -639,11 +653,23 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
       UIUtilities.alignComponentsX(pnlRun, Component.LEFT_ALIGNMENT);
     }
     mediator.setMethod(this, getProcessingMethod(), getSecondaryProcessingMethod(),
-        curTab == BatchRunTomoTab.RUN);
+      curTab == BatchRunTomoTab.RUN);
     UIHarness.INSTANCE.pack(axisID, manager);
   }
 
   private void updateDisplay() {
     ftfDeliverToDirectory.setEnabled(cbDeliverToDirectory.isSelected());
+  }
+
+  private static final class DatasetFieldDisplayer implements FieldDisplayer {
+    final BatchRunTomoDialog displayer;
+
+    private DatasetFieldDisplayer(final BatchRunTomoDialog displayer) {
+      this.displayer = displayer;
+    }
+
+    public void display() {
+      displayer.displayDataset();
+    }
   }
 }
