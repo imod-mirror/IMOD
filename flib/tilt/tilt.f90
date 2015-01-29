@@ -2686,8 +2686,10 @@ SUBROUTINE inputParameters()
       nViewsReproj > 0)) call exitError('You cannot do SIRT '// &
       'with entries for angles/views to reproject')
   !
-  ! outScale dimensions down by binning then report them
+  ! Scale dimensions down by binning then report them
   !
+  ixSubset = ixSubsetIn
+  nxFull = nxFullIn
   if (imageBinned > 1) then
     if (ifSliceIn .ne. 0 .and. (minTotSlice <= 0 .or. isliceStart > 0)) then
       isliceStart = max(1, min(nprojXyz(2), &
