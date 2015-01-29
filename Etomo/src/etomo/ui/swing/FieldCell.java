@@ -16,14 +16,16 @@ import etomo.type.EtomoNumber;
 import etomo.type.ParsedElementType;
 import etomo.type.UITestFieldType;
 import etomo.ui.Field;
+import etomo.ui.FieldDisplayer;
 import etomo.ui.FieldSettingInterface;
+import etomo.ui.FieldValidationFailedException;
 import etomo.ui.TableComponent;
 import etomo.ui.UIComponent;
 
 /**
  * <p>Description: </p>
  * <p/>
- * <p>Copyright: Copyright 2002 - 2014 by the Regents of the University of Colorado</p>
+ * <p>Copyright: Copyright 2002 - 2015 by the Regents of the University of Colorado</p>
  * <p/>
  * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
@@ -157,8 +159,8 @@ import etomo.ui.UIComponent;
  *          <p> field is disabled).
  *          <p> </p>
  */
-final class FieldCell extends InputCell
-    implements ActionTarget, TableComponent, Field, UIComponent, SwingComponent {
+final class FieldCell extends InputCell implements ActionTarget, TableComponent, Field,
+  UIComponent, SwingComponent {
   private final JTextField textField;
   private final ParsedElementType parsedElementType;
 
@@ -169,7 +171,7 @@ final class FieldCell extends InputCell
   private TextFieldState state;
 
   private FieldCell(final boolean editable, final ParsedElementType parsedElementType,
-      final String rootDir) {
+    final String rootDir) {
     this.parsedElementType = parsedElementType;
     state = new TextFieldState(editable, parsedElementType, rootDir);
     // construction
@@ -227,7 +229,7 @@ final class FieldCell extends InputCell
 
   static FieldCell getExpandableInstance(String rootDir) {
     FieldCell instance =
-        new FieldCell(true, ParsedElementType.NON_MATLAB_NUMBER, rootDir);
+      new FieldCell(true, ParsedElementType.NON_MATLAB_NUMBER, rootDir);
     instance.addListeners();
     return instance;
   }
@@ -311,8 +313,7 @@ final class FieldCell extends InputCell
     System.err.println("Warning: Backup has not been implemented in FieldCell.");
   }
 
-  public void restoreFromBackup() {
-  }
+  public void restoreFromBackup() {}
 
   public void checkpoint() {
     System.err.println("Warning: Checkpoint has not been implemented in FieldCell.");
@@ -354,8 +355,7 @@ final class FieldCell extends InputCell
     return null;
   }
 
-  public void setFieldHighlight(final boolean value) {
-  }
+  public void setFieldHighlight(final boolean value) {}
 
   public void setFieldHighlight(final FieldSettingInterface settingInterface) {
     System.err.println("Warning: Field highlight has not been implemented in FieldCell.");
@@ -395,8 +395,7 @@ final class FieldCell extends InputCell
     }
   }
 
-  public void setValue(final boolean value) {
-  }
+  public void setValue(final boolean value) {}
 
   String getContractedValue() {
     return state.convertToContractedString(textField.getText());
@@ -458,6 +457,18 @@ final class FieldCell extends InputCell
   }
 
   String getValue() {
+    return textField.getText();
+  }
+
+  public boolean isRequired() {
+    return false;
+  }
+
+  /**
+   * Field validation is currently not available for this class.
+   */
+  public String getText(final boolean doValidation, final FieldDisplayer fieldDisplayer)
+    throws FieldValidationFailedException {
     return textField.getText();
   }
 
