@@ -14,6 +14,7 @@ import etomo.type.ConstEtomoNumber;
 import etomo.type.EnumeratedType;
 import etomo.type.ParsedElement;
 import etomo.ui.Field;
+import etomo.ui.FieldDisplayer;
 import etomo.ui.FieldSettingBundle;
 import etomo.ui.FieldSettingInterface;
 import etomo.ui.FieldType;
@@ -23,7 +24,7 @@ import etomo.util.Utilities;
 /**
  * <p>Description: </p>
  * <p/>
- * <p>Copyright: Copyright 2006 - 2014 by the Regents of the University of Colorado</p>
+ * <p>Copyright: Copyright 2006 - 2015 by the Regents of the University of Colorado</p>
  * <p/>
  * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
@@ -83,22 +84,22 @@ final class RadioTextField implements RadioButtonInterface, Field {
    * @return
    */
   static RadioTextField getInstance(final FieldType fieldType, final String label,
-      final ButtonGroup group) {
+    final ButtonGroup group) {
     RadioTextField radioTextField = new RadioTextField(fieldType, label, group, null);
     radioTextField.addListeners();
     return radioTextField;
   }
 
   static RadioTextField getInstance(final FieldType fieldType, final String label,
-      final ButtonGroup group, String locationDescr) {
+    final ButtonGroup group, String locationDescr) {
     RadioTextField radioTextField =
-        new RadioTextField(fieldType, label, group, locationDescr);
+      new RadioTextField(fieldType, label, group, locationDescr);
     radioTextField.addListeners();
     return radioTextField;
   }
 
   private RadioTextField(final FieldType fieldType, final String label,
-      final ButtonGroup group, final String locationDescr) {
+    final ButtonGroup group, final String locationDescr) {
     radioButton = new RadioButton(label);
     textField = new TextField(fieldType, label, locationDescr);
     init(group);
@@ -261,8 +262,8 @@ final class RadioTextField implements RadioButtonInterface, Field {
   }
 
   public boolean isDifferentFromCheckpoint(final boolean alwaysCheck) {
-    return radioButton.isDifferentFromCheckpoint(alwaysCheck) ||
-        textField.isDifferentFromCheckpoint(alwaysCheck);
+    return radioButton.isDifferentFromCheckpoint(alwaysCheck)
+      || textField.isDifferentFromCheckpoint(alwaysCheck);
   }
 
   void setDebug(final boolean debug) {
@@ -286,7 +287,16 @@ final class RadioTextField implements RadioButtonInterface, Field {
   }
 
   String getText(final boolean doValidation) throws FieldValidationFailedException {
-    String text = textField.getText(doValidation);
+    return getText(doValidation, null);
+  }
+
+  public boolean isRequired() {
+    return textField.isRequired();
+  }
+
+  public String getText(final boolean doValidation, final FieldDisplayer fieldDisplayer)
+    throws FieldValidationFailedException {
+    String text = textField.getText(doValidation, fieldDisplayer);
     if (text == null || text.matches("\\s*")) {
       return "";
     }
