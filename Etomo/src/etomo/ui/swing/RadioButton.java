@@ -26,12 +26,14 @@ import etomo.type.EtomoAutodoc;
 import etomo.type.UITestFieldType;
 import etomo.ui.BooleanFieldSetting;
 import etomo.ui.Field;
+import etomo.ui.FieldDisplayer;
 import etomo.ui.FieldSettingInterface;
+import etomo.ui.FieldValidationFailedException;
 import etomo.util.Utilities;
 
 /**
  * <p>Description: </p>
- * <p>Copyright: Copyright 2005 - 2014 by the Regents of the University of Colorado</p>
+ * <p>Copyright: Copyright 2005 - 2015 by the Regents of the University of Colorado</p>
  * <p/>
  * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
@@ -67,7 +69,7 @@ final class RadioButton implements RadioButtonInterface, Field, ActionListener {
   }
 
   RadioButton(final String text, final EnumeratedType enumeratedType,
-      final ButtonGroup group) {
+    final ButtonGroup group) {
     this.group = group;
     radioButton = new JRadioButton(text);
     radioButton.setModel(new RadioButtonModel(this));
@@ -97,7 +99,7 @@ final class RadioButton implements RadioButtonInterface, Field, ActionListener {
   }
 
   RadioButton(final EnumeratedType enumeratedType, final ButtonGroup group,
-      final String addToLabel) {
+    final String addToLabel) {
     this.group = group;
     String text = enumeratedType.getLabel() + (addToLabel != null ? addToLabel : "");
     radioButton = new JRadioButton(text);
@@ -173,8 +175,7 @@ final class RadioButton implements RadioButtonInterface, Field, ActionListener {
     }
   }
 
-  public void setValue(final String value) {
-  }
+  public void setValue(final String value) {}
 
   public void setValue(final boolean value) {
     setSelected(value);
@@ -183,8 +184,7 @@ final class RadioButton implements RadioButtonInterface, Field, ActionListener {
   /**
    * No way to clear a radio button
    */
-  public void clear() {
-  }
+  public void clear() {}
 
   void setDirectiveDef(final DirectiveDef directiveDef) {
     this.directiveDef = directiveDef;
@@ -216,8 +216,8 @@ final class RadioButton implements RadioButtonInterface, Field, ActionListener {
   }
 
   public boolean equalsDefaultValue() {
-    return defaultValue != null && defaultValue.isSet() &&
-        defaultValue.equals(isSelected());
+    return defaultValue != null && defaultValue.isSet()
+      && defaultValue.equals(isSelected());
   }
 
   public boolean equalsDefaultValue(final boolean input) {
@@ -282,11 +282,11 @@ final class RadioButton implements RadioButtonInterface, Field, ActionListener {
 
   void setName(final String text) {
     String name = Utilities.convertLabelToName(text);
-    radioButton.setName(
-        UITestFieldType.RADIO_BUTTON.toString() + AutodocTokenizer.SEPARATOR_CHAR + name);
+    radioButton.setName(UITestFieldType.RADIO_BUTTON.toString()
+      + AutodocTokenizer.SEPARATOR_CHAR + name);
     if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
-      System.out.println(
-          radioButton.getName() + ' ' + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
+      System.out.println(radioButton.getName() + ' ' + AutodocTokenizer.DEFAULT_DELIMITER
+        + ' ');
     }
   }
 
@@ -340,8 +340,7 @@ final class RadioButton implements RadioButtonInterface, Field, ActionListener {
     updateFieldHighlight(isSelected());
   }
 
-  public void setFieldHighlight(final String value) {
-  }
+  public void setFieldHighlight(final String value) {}
 
   public void clearFieldHighlight() {
     if (fieldHighlight != null && fieldHighlight.isSet()) {
@@ -356,13 +355,13 @@ final class RadioButton implements RadioButtonInterface, Field, ActionListener {
   }
 
   public boolean equalsFieldHighlight() {
-    return fieldHighlight != null && fieldHighlight.isSet() &&
-        fieldHighlight.equals(isSelected());
+    return fieldHighlight != null && fieldHighlight.isSet()
+      && fieldHighlight.equals(isSelected());
   }
 
   boolean equalsFieldHighlight(final boolean input) {
-    return fieldHighlight != null && fieldHighlight.isSet() &&
-        fieldHighlight.equals(input);
+    return fieldHighlight != null && fieldHighlight.isSet()
+      && fieldHighlight.equals(input);
   }
 
   public void actionPerformed(final ActionEvent event) {
@@ -381,8 +380,8 @@ final class RadioButton implements RadioButtonInterface, Field, ActionListener {
   }
 
   void updateFieldHighlight(final boolean isSelected) {
-    if (fieldHighlight != null && fieldHighlight.isSet() &&
-        fieldHighlight.isValue() == isSelected) {
+    if (fieldHighlight != null && fieldHighlight.isSet()
+      && fieldHighlight.isValue() == isSelected) {
       if (origForeground == null) {
         origForeground = radioButton.getForeground();
         if (origForeground == null) {
@@ -449,6 +448,18 @@ final class RadioButton implements RadioButtonInterface, Field, ActionListener {
 
   void setPreferredSize(final Dimension preferredSize) {
     radioButton.setPreferredSize(preferredSize);
+  }
+
+  public boolean isRequired() {
+    return false;
+  }
+
+  /**
+   * Returns button label.  No validation available.
+   */
+  public String getText(final boolean doValidation, final FieldDisplayer fieldDisplayer)
+    throws FieldValidationFailedException {
+    return radioButton.getText();
   }
 
   public String getText() {

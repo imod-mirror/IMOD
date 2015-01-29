@@ -33,7 +33,9 @@ import etomo.type.EtomoNumber;
 import etomo.type.FileType;
 import etomo.ui.BooleanFieldSetting;
 import etomo.ui.Field;
+import etomo.ui.FieldDisplayer;
 import etomo.ui.FieldType;
+import etomo.ui.FieldValidationFailedException;
 import etomo.ui.TableListener;
 import etomo.ui.UIComponent;
 
@@ -48,9 +50,9 @@ import etomo.ui.UIComponent;
  * @version $Id$
  */
 final class BatchRunTomoDatasetDialog implements ActionListener, Expandable, UIComponent,
-    SwingComponent, TableListener {
+  SwingComponent, TableListener, FieldDisplayer {
   private static final String DERIVE_THICKNESS_LABEL =
-      "Thickness from calculated value plus: ";
+    "Thickness from calculated value plus: ";
   private static final String LENGTH_OF_PIECES_DEFAULT = "-1";
 
   private static BatchRunTomoDatasetDialog GLOBAL_INSTANCE = null;
@@ -58,68 +60,67 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable, UIC
   private final JPanel pnlRoot = new JPanel();
   private final CheckBox cbRemoveXrays = new CheckBox("Remove X-rays");
   private final CheckBox cbEnableStretching = new CheckBox(
-      "Enable distortion (stretching) in alignment");
+    "Enable distortion (stretching) in alignment");
   private final CheckBox cbLocalAlignments = new CheckBox("Use local alignments");
   private final MultiLineButton btnModelFile = new MultiLineButton("Make in 3dmod");
   private final ButtonGroup bgTrackingMethod = new ButtonGroup();
   private final RadioButton rbTrackingMethodSeed = new RadioButton("Autoseed and track",
-      TrackingMethod.SEED, bgTrackingMethod);
+    TrackingMethod.SEED, bgTrackingMethod);
   private final RadioButton rbTrackingMethodRaptor = new RadioButton("Raptor and track",
-      TrackingMethod.RAPTOR, bgTrackingMethod);
+    TrackingMethod.RAPTOR, bgTrackingMethod);
   private final RadioButton rbTrackingMethodPatchTracking = new RadioButton(
-      "Patch tracking", TrackingMethod.PATCH_TRACKING, bgTrackingMethod);
+    "Patch tracking", TrackingMethod.PATCH_TRACKING, bgTrackingMethod);
   private final RadioButton rbFiducialless = new RadioButton("Fiducialless",
-      TrackingMethod.PATCH_TRACKING, bgTrackingMethod);
+    TrackingMethod.PATCH_TRACKING, bgTrackingMethod);
   private final LabeledTextField ltfGold = new LabeledTextField(FieldType.FLOATING_POINT,
-      "Bead size (nm): ");
-  private final LabeledTextField ltfLocalAreaTargetSize = new LabeledTextField(
-      FieldType.INTEGER_PAIR, "Local tracking area size: ");
+    "Bead size (nm): ");
   private final LabeledTextField ltfTargetNumberOfBeads = new LabeledTextField(
-      FieldType.INTEGER, "Target number of beads: ");
+    FieldType.INTEGER, "Target number of beads: ");
   private final LabeledTextField ltfSizeOfPatchesXandY = new LabeledTextField(
-      FieldType.INTEGER_PAIR, "Patch tracking size: ");
+    FieldType.INTEGER_PAIR, "Patch tracking size: ");
   private final CheckBox cbLengthOfPieces = new CheckBox("Break contours into pieces");
   private final LabeledSpinner lsBinByFactor = LabeledSpinner.getInstance(
-      "Aligned stack binning: ", 1, 1, 8, 1);
+    "Aligned stack binning: ", 1, 1, 8, 1);
   private final CheckBox cbCorrectCTF = new CheckBox("Correct CTF");
   private final LabeledTextField ltfDefocus = new LabeledTextField(
-      FieldType.INTEGER_PAIR, "Defocus: ");
+    FieldType.FLOATING_POINT, "Defocus: ");
   private final ButtonGroup bgAutofit = new ButtonGroup();
   private final RadioButton rbFitEveryImage = new RadioButton("Fit every image",
-      bgAutofit);
+    bgAutofit);
   private final RadioTextField rtfAutoFitRangeAndStep = RadioTextField.getInstance(
-      FieldType.FLOATING_POINT, "Autofit range ", bgAutofit);
+    FieldType.FLOATING_POINT, "Autofit range ", bgAutofit);
   private final LabeledTextField ltfAutoFitStep = new LabeledTextField(
-      FieldType.FLOATING_POINT, " and step ");
+    FieldType.FLOATING_POINT, " and step ");
   private final ButtonGroup bgUseSirt = new ButtonGroup();
   private final RadioButton rbUseSirtFalse =
-      new RadioButton("Back-projection", bgUseSirt);
+    new RadioButton("Back-projection", bgUseSirt);
   private final RadioButton rbUseSirtTrue = new RadioButton("SIRT", bgUseSirt);
   private final RadioButton rbDoBackprojAlso = new RadioButton("Both", bgUseSirt);
   private final LabeledTextField ltfLeaveIterations = new LabeledTextField(
-      FieldType.STRING, "Leave iterations: ");
+    FieldType.STRING, "Leave iterations: ");
   private final CheckBox cbScaleToInteger = new CheckBox("Scale to integers");
   private final ButtonGroup bgThickness = new ButtonGroup();
   private final RadioTextField rtfThickness = RadioTextField.getInstance(
-      FieldType.INTEGER, "Thickness total (unbinned pixels): ", bgThickness);
+    FieldType.INTEGER, "Thickness total (unbinned pixels): ", bgThickness);
   private final RadioTextField rtfBinnedThickness = RadioTextField.getInstance(
-      FieldType.INTEGER, "Thickness total   (binned pixels): ", bgThickness);
+    FieldType.INTEGER, "Thickness total (binned pixels): ", bgThickness);
   private final RadioButton rbDeriveThickness = new RadioButton(DERIVE_THICKNESS_LABEL,
-      bgThickness);
+    bgThickness);
   private final TextField tfExtraThickness = new TextField(FieldType.INTEGER,
-      DERIVE_THICKNESS_LABEL, null);
+    DERIVE_THICKNESS_LABEL, null);
   private final LabeledTextField ltfFallbackThickness = new LabeledTextField(
-      FieldType.INTEGER, "with fallback (unbinned pixels): ");
+    FieldType.INTEGER, "with fallback (unbinned pixels): ");
   private final List<Field> fieldList = new ArrayList<Field>();
   private final MultiLineButton btnOk = new MultiLineButton("OK");
   private final MultiLineButton btnRevertToGlobal = new MultiLineButton(
-      "Revert to Global");
+    "Revert to Global");
   private final JPanel pnlRootBody = new JPanel();
   private final Spacer spaceModelFile = new Spacer(FixedDim.x5_y0);
 
   private final FileTextField2 ftfDistort;
   private final FileTextField2 ftfGradient;
   private final FileTextField2 ftfModelFile;
+  // Not used in global instance
   private final JDialog dialog;
   private final PanelHeader phRootHeader;
   private final BaseManager manager;
@@ -132,8 +133,8 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable, UIC
   private boolean emptyTable;
 
   private BatchRunTomoDatasetDialog(final BaseManager manager, final File datasetFile,
-      final boolean global, final BatchRunTomoRow row, final boolean emptyTable,
-      final BatchRunTomoDialog parent) {
+    final boolean global, final BatchRunTomoRow row, final boolean emptyTable,
+    final BatchRunTomoDialog parent) {
     this.manager = manager;
     this.datasetFile = datasetFile;
     this.row = row;
@@ -142,13 +143,12 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable, UIC
     ftfDistort = FileTextField2.getAltLayoutInstance(manager, "Image distortion file: ");
     ftfGradient = FileTextField2.getAltLayoutInstance(manager, "Mag gradient file: ");
     ftfModelFile =
-        FileTextField2.getAltLayoutInstance(manager, "Manual replacement model: ");
+      FileTextField2.getAltLayoutInstance(manager, "Manual replacement model: ");
 
     if (global) {
       dialog = null;
       phRootHeader =
-          PanelHeader.getInstance("Global Dataset Values", this,
-              DialogType.BATCH_RUN_TOMO);
+        PanelHeader.getInstance("Global Dataset Values", this, DialogType.BATCH_RUN_TOMO);
     }
     else {
       dialog = new JDialog();
@@ -157,12 +157,12 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable, UIC
   }
 
   static BatchRunTomoDatasetDialog getGlobalInstance(final BaseManager manager,
-      final BatchRunTomoDialog parent) {
+    final BatchRunTomoDialog parent) {
     if (GLOBAL_INSTANCE != null) {
       return GLOBAL_INSTANCE;
     }
     BatchRunTomoDatasetDialog instance =
-        new BatchRunTomoDatasetDialog(manager, null, true, null, true, parent);
+      new BatchRunTomoDatasetDialog(manager, null, true, null, true, parent);
     instance.createPanel();
     instance.addListeners();
     GLOBAL_INSTANCE = instance;
@@ -174,9 +174,9 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable, UIC
   }
 
   static BatchRunTomoDatasetDialog getRowInstance(final BaseManager manager,
-      final File datasetFile, final BatchRunTomoRow row) {
+    final File datasetFile, final BatchRunTomoRow row) {
     BatchRunTomoDatasetDialog instance =
-        new BatchRunTomoDatasetDialog(manager, datasetFile, false, row, false, null);
+      new BatchRunTomoDatasetDialog(manager, datasetFile, false, row, false, null);
     instance.createPanel();
     instance.copyFromGlobal();
     instance.addListeners();
@@ -185,9 +185,9 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable, UIC
   }
 
   static BatchRunTomoDatasetDialog getSavedRowInstance(final BaseManager manager,
-      final BatchRunTomoRow row) {
+    final BatchRunTomoRow row) {
     BatchRunTomoDatasetDialog instance =
-        new BatchRunTomoDatasetDialog(manager, null, false, row, false, null);
+      new BatchRunTomoDatasetDialog(manager, null, false, row, false, null);
     instance.createPanel();
     instance.copyFromGlobal();
     instance.addListeners();
@@ -225,6 +225,16 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable, UIC
     ftfGradient.setOrigin(ConfigTool.getDistortionDir(manager, null));
     ftfGradient.setAbsolutePath(true);
     ftfModelFile.setAbsolutePath(true);
+    rtfAutoFitRangeAndStep.setRequired(true);
+    ltfAutoFitStep.setRequired(true);
+    ltfDefocus.setRequired(true);
+    ltfGold.setRequired(true);
+    ltfTargetNumberOfBeads.setRequired(true);
+    ltfSizeOfPatchesXandY.setRequired(true);
+    ltfLeaveIterations.setRequired(true);
+    ltfFallbackThickness.setRequired(true);
+    rtfThickness.setRequired(true);
+    rtfBinnedThickness.setRequired(true);
     // Set directive defs where there is a one-to-one correspondence between field and
     // directive. The directive def is used for setting the default in comparam
     // directives, and saving fields to autodoc files.
@@ -241,7 +251,6 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable, UIC
     rbTrackingMethodPatchTracking.setDirectiveDef(DirectiveDef.TRACKING_METHOD);
     rbFiducialless.setDirectiveDef(DirectiveDef.FIDUCIALLESS);
     ltfGold.setDirectiveDef(DirectiveDef.GOLD);
-    ltfLocalAreaTargetSize.setDirectiveDef(DirectiveDef.LOCAL_AREA_TARGET_SIZE);
     ltfTargetNumberOfBeads.setDirectiveDef(DirectiveDef.TARGET_NUMBER_OF_BEADS);
     ltfSizeOfPatchesXandY.setDirectiveDef(DirectiveDef.SIZE_OF_PATCHES_X_AND_Y);
     cbLengthOfPieces.setDirectiveDef(DirectiveDef.LENGTH_OF_PIECES);
@@ -274,7 +283,6 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable, UIC
     fieldList.add(rbTrackingMethodPatchTracking);
     fieldList.add(rbFiducialless);
     fieldList.add(ltfGold);
-    fieldList.add(ltfLocalAreaTargetSize);
     fieldList.add(ltfTargetNumberOfBeads);
     fieldList.add(ltfSizeOfPatchesXandY);
     fieldList.add(cbLengthOfPieces);
@@ -374,10 +382,9 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable, UIC
     pnlTrackingMethod.add(rbTrackingMethodRaptor.getComponent());
     pnlTrackingMethod.add(rbFiducialless.getComponent());
     // Gold
-    pnlGold.setLayout(new GridLayout(2, 2, 15, 0));
+    pnlGold.setLayout(new GridLayout(1, 2, 15, 0));
     pnlGold.add(ltfGold.getComponent());
     pnlGold.add(ltfTargetNumberOfBeads.getComponent());
-    pnlGold.add(ltfLocalAreaTargetSize.getComponent());
     // SizeOfPatchesXandY
     pnlSizeOfPatchesXandY.setLayout(new GridLayout(1, 2, 15, 0));
     pnlSizeOfPatchesXandY.add(ltfSizeOfPatchesXandY.getComponent());
@@ -402,7 +409,7 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable, UIC
     pnlCorrectCTF.add(rbFitEveryImage.getComponent());
     // AutoFitRangeAndStep
     pnlAutoFitRangeAndStep.setLayout(new BoxLayout(pnlAutoFitRangeAndStep,
-        BoxLayout.X_AXIS));
+      BoxLayout.X_AXIS));
     pnlAutoFitRangeAndStep.add(rtfAutoFitRangeAndStep.getContainer());
     pnlAutoFitRangeAndStep.add(ltfAutoFitStep.getComponent());
     // Reconstruction
@@ -413,7 +420,7 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable, UIC
     pnlReconstruction.add(pnlThickness);
     // ReconstructionType
     pnlReconstructionType
-        .setLayout(new BoxLayout(pnlReconstructionType, BoxLayout.Y_AXIS));
+      .setLayout(new BoxLayout(pnlReconstructionType, BoxLayout.Y_AXIS));
     pnlReconstructionType.add(rbUseSirtFalse.getComponent());
     pnlReconstructionType.add(rbUseSirtTrue.getComponent());
     pnlReconstructionType.add(rbDoBackprojAlso.getComponent());
@@ -457,7 +464,7 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable, UIC
 
   int getPreferredWidth() {
     return ftfModelFile.getPreferredWidth() + spaceModelFile.getPreferredWidth()
-        + btnModelFile.getPreferredWidth();
+      + btnModelFile.getPreferredWidth();
   }
 
   void setVisible(final boolean visible) {
@@ -513,10 +520,9 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable, UIC
     cbEnableStretching.setEnabled(!fiducialless);
     cbLocalAlignments.setEnabled(!fiducialless);
     boolean beadTracking =
-        rbTrackingMethodSeed.isSelected() || rbTrackingMethodRaptor.isSelected();
+      rbTrackingMethodSeed.isSelected() || rbTrackingMethodRaptor.isSelected();
     ltfGold.setEnabled(beadTracking);
     ltfTargetNumberOfBeads.setEnabled(beadTracking);
-    ltfLocalAreaTargetSize.setEnabled(beadTracking);
     boolean patchTracking = rbTrackingMethodPatchTracking.isSelected();
     ltfSizeOfPatchesXandY.setEnabled(patchTracking);
     cbLengthOfPieces.setEnabled(patchTracking);
@@ -560,7 +566,7 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable, UIC
    *                                been applied
    */
   void applyValues(final boolean retainUserValues,
-      final DirectiveFileCollection directiveFileCollection) {
+    final DirectiveFileCollection directiveFileCollection) {
     // to apply values and highlights, start with a clean slate
     int len = fieldList.size();
     for (int i = 0; i < len; i++) {
@@ -614,6 +620,7 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable, UIC
 
   private void setDefaults() {
     rbUseSirtFalse.setSelected(true);
+    rtfAutoFitRangeAndStep.setSelected(true);
   }
 
   public void setParameters(final BatchRunTomoDatasetMetaData metaData) {
@@ -625,7 +632,6 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable, UIC
     cbLocalAlignments.setSelected(metaData.isLocalAlignments());
     ltfGold.setText(metaData.getGold());
     ltfTargetNumberOfBeads.setText(metaData.getTargetNumberOfBeads());
-    ltfLocalAreaTargetSize.setText(metaData.getLocalAreaTargetSize());
     ltfSizeOfPatchesXandY.setText(metaData.getSizeOfPatchesXandY());
     cbLengthOfPieces.setSelected(metaData.isLengthOfPieces());
     ltfDefocus.setText(metaData.getDefocus());
@@ -650,7 +656,6 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable, UIC
     metaData.setLocalAlignments(cbLocalAlignments.isSelected());
     metaData.setGold(ltfGold.getText());
     metaData.setTargetNumberOfBeads(ltfTargetNumberOfBeads.getText());
-    metaData.setLocalAreaTargetSize(ltfLocalAreaTargetSize.getText());
     metaData.setSizeOfPatchesXandY(ltfSizeOfPatchesXandY.getText());
     metaData.setLengthOfPieces(cbLengthOfPieces.isSelected());
     metaData.setDefocus(ltfDefocus.getText());
@@ -666,104 +671,125 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable, UIC
     metaData.setFallbackThickness(ltfFallbackThickness.getText());
   }
 
+  public void display() {
+    if (dialog != null && !dialog.isVisible()) {
+      dialog.setVisible(true);
+    }
+  }
+
   /**
    * Set values from the directive file collection.  Only change fields that exist in
    * directive file collection.
    *
    * @param autodoc - a writable autodoc
    */
-  void saveAutodoc(final WritableAutodoc autodoc) {
+  boolean saveAutodoc(final WritableAutodoc autodoc, final boolean doValidation,
+    FieldDisplayer fieldDisplayer) {
     if (autodoc == null) {
-      return;
+      return true;
     }
-    BatchTool.saveFieldToAutodoc(ftfDistort, autodoc);
-    BatchTool.saveFieldToAutodoc(ftfGradient, autodoc);
-    BatchTool.saveFieldToAutodoc(cbRemoveXrays, autodoc);
-    BatchTool.saveFieldToAutodoc(ftfModelFile, autodoc);
-    if (rbTrackingMethodSeed.isSelected()) {
-      if (rbTrackingMethodSeed.isEnabled()
+    if (fieldDisplayer == null && dialog != null) {
+      // This instance is in its own frame. To display it, set it to visible.
+      fieldDisplayer = this;
+    }
+    try {
+      BatchTool.saveFieldToAutodoc(ftfDistort, autodoc, doValidation, fieldDisplayer);
+      BatchTool.saveFieldToAutodoc(ftfGradient, autodoc, doValidation, fieldDisplayer);
+      BatchTool.saveFieldToAutodoc(cbRemoveXrays, autodoc);
+      BatchTool.saveFieldToAutodoc(ftfModelFile, autodoc, doValidation, fieldDisplayer);
+      if (rbTrackingMethodSeed.isSelected()) {
+        if (rbTrackingMethodSeed.isEnabled()
           && BatchTool.needInAutodoc(rbTrackingMethodSeed)) {
-        autodoc.addNameValuePairAttribute(DirectiveDef.TRACKING_METHOD.getDirective(null,
-            null), TrackingMethod.SEED.getValue().toString());
-        autodoc.addNameValuePairAttribute(
-            DirectiveDef.SEEDING_METHOD.getDirective(null, null),
-            SeedingMethod.BOTH.getValue());
-      }
-    }
-    else if (rbTrackingMethodRaptor.isSelected()) {
-      if (rbTrackingMethodRaptor.isEnabled()
-          && BatchTool.needInAutodoc(rbTrackingMethodRaptor)) {
-        autodoc.addNameValuePairAttribute(DirectiveDef.TRACKING_METHOD.getDirective(null,
-            null), TrackingMethod.RAPTOR.getValue().toString());
-      }
-    }
-    else if (rbTrackingMethodPatchTracking.isEnabled()
-        && rbTrackingMethodPatchTracking.isSelected()) {
-      if (BatchTool.needInAutodoc(rbTrackingMethodPatchTracking)) {
-        autodoc.addNameValuePairAttribute(
-            DirectiveDef.TRACKING_METHOD.getDirective(null, null),
-            TrackingMethod.PATCH_TRACKING.getValue().toString());
-      }
-    }
-    BatchTool.saveFieldToAutodoc(rbFiducialless, autodoc);
-    BatchTool.saveFieldToAutodoc(ltfGold, autodoc);
-    BatchTool.saveFieldToAutodoc(ltfLocalAreaTargetSize, autodoc);
-    BatchTool.saveFieldToAutodoc(ltfTargetNumberOfBeads, autodoc);
-    BatchTool.saveFieldToAutodoc(ltfSizeOfPatchesXandY, autodoc);
-    if (cbLengthOfPieces.isEnabled() && cbLengthOfPieces.isSelected()) {
-      boolean add = true;
-      if (cbLengthOfPieces.isFieldHighlightSet()) {
-        add = !cbLengthOfPieces.equalsFieldHighlight(lengthOfPieces);
-      }
-      else {
-        add = !cbLengthOfPieces.equalsDefaultValue(lengthOfPieces);
-      }
-      if (add) {
-        autodoc.addNameValuePairAttribute(cbLengthOfPieces.getDirectiveDef()
-            .getDirective(null, null), lengthOfPieces);
-      }
-    }
-    BatchTool.saveFieldToAutodoc(cbEnableStretching, autodoc);
-    BatchTool.saveFieldToAutodoc(cbLocalAlignments, autodoc);
-    BatchTool.saveFieldToAutodoc(lsBinByFactor, autodoc);
-    BatchTool.saveFieldToAutodoc(cbCorrectCTF, autodoc);
-    BatchTool.saveFieldToAutodoc(ltfDefocus, autodoc);
-    if (rtfAutoFitRangeAndStep.isSelected()) {
-      if (rbTrackingMethodSeed.isEnabled()
-          && BatchTool.needInAutodoc(rbTrackingMethodSeed)) {
-        autodoc.addNameValuePairAttribute(
-            DirectiveDef.AUTO_FIT_RANGE_AND_STEP.getDirective(null, null),
-            rtfAutoFitRangeAndStep.getText() + "," + ltfAutoFitStep.getText());
-      }
-    }
-    else if (rbFitEveryImage.isSelected()) {
-      if (rbFitEveryImage.isEnabled() && BatchTool.needInAutodoc(rbFitEveryImage)) {
-        autodoc.addNameValuePairAttribute(
-            DirectiveDef.AUTO_FIT_RANGE_AND_STEP.getDirective(null, null), "0,0");
-      }
-    }
-    if (rbUseSirtFalse.isSelected()) {
-      if (rbUseSirtFalse.isEnabled() && BatchTool.needInAutodoc(rbUseSirtFalse)) {
-        autodoc.addNameValuePairAttribute(DirectiveDef.USE_SIRT.getDirective(null, null),
-            "0");
-      }
-    }
-    else if (!BatchTool.saveFieldToAutodoc(rbUseSirtTrue, autodoc)) {
-      if (BatchTool.saveFieldToAutodoc(rbDoBackprojAlso, autodoc)) {
-        // Don't add useSirt if it is the default or in the templates
-        if (!rbUseSirtTrue.equalsFieldHighlight(true)
-            && !rbUseSirtTrue.equalsDefaultValue(true)) {
-          autodoc.addNameValuePairAttribute(
-              DirectiveDef.USE_SIRT.getDirective(null, null), "1");
+          autodoc.addNameValuePairAttribute(DirectiveDef.TRACKING_METHOD.getDirective(
+            null, null), TrackingMethod.SEED.getValue().toString());
+          autodoc.addNameValuePairAttribute(DirectiveDef.SEEDING_METHOD.getDirective(
+            null, null), SeedingMethod.BOTH.getValue());
         }
       }
+      else if (rbTrackingMethodRaptor.isSelected()) {
+        if (rbTrackingMethodRaptor.isEnabled()
+          && BatchTool.needInAutodoc(rbTrackingMethodRaptor)) {
+          autodoc.addNameValuePairAttribute(DirectiveDef.TRACKING_METHOD.getDirective(
+            null, null), TrackingMethod.RAPTOR.getValue().toString());
+        }
+      }
+      else if (rbTrackingMethodPatchTracking.isEnabled()
+        && rbTrackingMethodPatchTracking.isSelected()) {
+        if (BatchTool.needInAutodoc(rbTrackingMethodPatchTracking)) {
+          autodoc.addNameValuePairAttribute(DirectiveDef.TRACKING_METHOD.getDirective(
+            null, null), TrackingMethod.PATCH_TRACKING.getValue().toString());
+        }
+      }
+      BatchTool.saveFieldToAutodoc(rbFiducialless, autodoc);
+      BatchTool.saveFieldToAutodoc(ltfGold, autodoc, doValidation, fieldDisplayer);
+      BatchTool.saveFieldToAutodoc(ltfTargetNumberOfBeads, autodoc, doValidation,
+        fieldDisplayer);
+      BatchTool.saveFieldToAutodoc(ltfSizeOfPatchesXandY, autodoc, doValidation,
+        fieldDisplayer);
+      if (cbLengthOfPieces.isEnabled() && cbLengthOfPieces.isSelected()) {
+        boolean add = true;
+        if (cbLengthOfPieces.isFieldHighlightSet()) {
+          add = !cbLengthOfPieces.equalsFieldHighlight(lengthOfPieces);
+        }
+        else {
+          add = !cbLengthOfPieces.equalsDefaultValue(lengthOfPieces);
+        }
+        if (add) {
+          autodoc.addNameValuePairAttribute(cbLengthOfPieces.getDirectiveDef()
+            .getDirective(null, null), lengthOfPieces);
+        }
+      }
+      BatchTool.saveFieldToAutodoc(cbEnableStretching, autodoc);
+      BatchTool.saveFieldToAutodoc(cbLocalAlignments, autodoc);
+      BatchTool.saveFieldToAutodoc(lsBinByFactor, autodoc);
+      BatchTool.saveFieldToAutodoc(cbCorrectCTF, autodoc);
+      BatchTool.saveFieldToAutodoc(ltfDefocus, autodoc, doValidation, fieldDisplayer);
+      if (rtfAutoFitRangeAndStep.isSelected()) {
+        if (rbTrackingMethodSeed.isEnabled()
+          && BatchTool.needInAutodoc(rbTrackingMethodSeed)) {
+          autodoc.addNameValuePairAttribute(DirectiveDef.AUTO_FIT_RANGE_AND_STEP
+            .getDirective(null, null), rtfAutoFitRangeAndStep.getText(doValidation,
+            fieldDisplayer)
+            + "," + ltfAutoFitStep.getText(doValidation, fieldDisplayer));
+        }
+      }
+      else if (rbFitEveryImage.isSelected()) {
+        if (rbFitEveryImage.isEnabled() && BatchTool.needInAutodoc(rbFitEveryImage)) {
+          autodoc.addNameValuePairAttribute(DirectiveDef.AUTO_FIT_RANGE_AND_STEP
+            .getDirective(null, null), "0,0");
+        }
+      }
+      if (rbUseSirtFalse.isSelected()) {
+        if (rbUseSirtFalse.isEnabled() && BatchTool.needInAutodoc(rbUseSirtFalse)) {
+          autodoc.addNameValuePairAttribute(DirectiveDef.USE_SIRT
+            .getDirective(null, null), "0");
+        }
+      }
+      else if (!BatchTool.saveFieldToAutodoc(rbUseSirtTrue, autodoc)) {
+        if (BatchTool.saveFieldToAutodoc(rbDoBackprojAlso, autodoc)) {
+          // Don't add useSirt if it is the default or in the templates
+          if (!rbUseSirtTrue.equalsFieldHighlight(true)
+            && !rbUseSirtTrue.equalsDefaultValue(true)) {
+            autodoc.addNameValuePairAttribute(DirectiveDef.USE_SIRT.getDirective(null,
+              null), "1");
+          }
+        }
+      }
+      BatchTool.saveFieldToAutodoc(ltfLeaveIterations, autodoc, doValidation,
+        fieldDisplayer);
+      BatchTool.saveFieldToAutodoc(cbScaleToInteger, autodoc);
+      BatchTool.saveFieldToAutodoc(tfExtraThickness, autodoc, doValidation,
+        fieldDisplayer);
+      BatchTool.saveFieldToAutodoc(ltfFallbackThickness, autodoc, doValidation,
+        fieldDisplayer);
+      BatchTool.saveFieldToAutodoc(rtfThickness, autodoc, doValidation, fieldDisplayer);
+      BatchTool.saveFieldToAutodoc(rtfBinnedThickness, autodoc, doValidation,
+        fieldDisplayer);
+      return true;
     }
-    BatchTool.saveFieldToAutodoc(ltfLeaveIterations, autodoc);
-    BatchTool.saveFieldToAutodoc(cbScaleToInteger, autodoc);
-    BatchTool.saveFieldToAutodoc(tfExtraThickness, autodoc);
-    BatchTool.saveFieldToAutodoc(ltfFallbackThickness, autodoc);
-    BatchTool.saveFieldToAutodoc(rtfThickness, autodoc);
-    BatchTool.saveFieldToAutodoc(rtfBinnedThickness, autodoc);
+    catch (FieldValidationFailedException e) {
+      return false;
+    }
   }
 
   void setValues(final DirectiveFileInterface directiveFiles) {
@@ -781,22 +807,21 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable, UIC
    * @param directiveFiles - templates and base directive file, or a single directive file
    */
   private void setValues(final DirectiveFileInterface directiveFiles,
-      final boolean setFieldHighlightValue) {
+    final boolean setFieldHighlightValue) {
     setValue(ftfDistort, directiveFiles, setFieldHighlightValue);
     setValue(ftfGradient, directiveFiles, setFieldHighlightValue);
     setValue(cbRemoveXrays, directiveFiles, setFieldHighlightValue);
     setValue(ftfModelFile, directiveFiles, setFieldHighlightValue);
     if (directiveFiles.contains(DirectiveDef.TRACKING_METHOD, setFieldHighlightValue)) {
       TrackingMethod trackingMethod =
-          TrackingMethod.getInstance(directiveFiles
-              .getValue(DirectiveDef.TRACKING_METHOD));
+        TrackingMethod.getInstance(directiveFiles.getValue(DirectiveDef.TRACKING_METHOD));
       if (trackingMethod == TrackingMethod.SEED) {
         if (directiveFiles.contains(DirectiveDef.SEEDING_METHOD, setFieldHighlightValue)) {
           SeedingMethod seedingMethod =
-              SeedingMethod.getInstance(directiveFiles
-                  .getValue(DirectiveDef.SEEDING_METHOD));
+            SeedingMethod.getInstance(directiveFiles
+              .getValue(DirectiveDef.SEEDING_METHOD));
           if (seedingMethod == SeedingMethod.AUTO_FID_SEED
-              || seedingMethod == SeedingMethod.BOTH) {
+            || seedingMethod == SeedingMethod.BOTH) {
             if (!setFieldHighlightValue) {
               rbTrackingMethodSeed.setSelected(true);
             }
@@ -825,18 +850,17 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable, UIC
     }
     setValue(rbFiducialless, directiveFiles, setFieldHighlightValue);
     setValue(ltfGold, directiveFiles, setFieldHighlightValue);
-    setValue(ltfLocalAreaTargetSize, directiveFiles, setFieldHighlightValue);
     setValue(ltfTargetNumberOfBeads, directiveFiles, setFieldHighlightValue);
     setValue(ltfSizeOfPatchesXandY, directiveFiles, setFieldHighlightValue);
     // LengthOfPieces is an integer directive, but it is being placed in a checkbox. The
     // real text value should be saved. If it is from the starting batch directive, it
     // must be added to the autodoc.
     if (directiveFiles.contains(cbLengthOfPieces.getDirectiveDef(),
-        setFieldHighlightValue)) {
+      setFieldHighlightValue)) {
       // LengthOfPieces exists and is not overridden.
       String value =
-          directiveFiles.getValue(cbLengthOfPieces.getDirectiveDef(),
-              setFieldHighlightValue);
+        directiveFiles.getValue(cbLengthOfPieces.getDirectiveDef(),
+          setFieldHighlightValue);
       if (!setFieldHighlightValue) {
         cbLengthOfPieces.setSelected(BooleanFieldSetting.stringToBoolean(value));
         lengthOfPieces = value;
@@ -858,10 +882,10 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable, UIC
     setValue(cbCorrectCTF, directiveFiles, setFieldHighlightValue);
     setValue(ltfDefocus, directiveFiles, setFieldHighlightValue);
     if (directiveFiles.contains(DirectiveDef.AUTO_FIT_RANGE_AND_STEP,
-        setFieldHighlightValue)) {
+      setFieldHighlightValue)) {
       EtomoNumber step = new EtomoNumber(EtomoNumber.Type.DOUBLE);
       step.set(directiveFiles.getValue(DirectiveDef.AUTO_FIT_RANGE_AND_STEP,
-          DirectiveFile.AUTO_FIT_STEP_INDEX));
+        DirectiveFile.AUTO_FIT_STEP_INDEX));
       if (step.equals(0)) {
         if (!setFieldHighlightValue) {
           rbFitEveryImage.setSelected(true);
@@ -872,8 +896,8 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable, UIC
       }
       else {
         String range =
-            directiveFiles.getValue(DirectiveDef.AUTO_FIT_RANGE_AND_STEP,
-                DirectiveFile.AUTO_FIT_RANGE_INDEX);
+          directiveFiles.getValue(DirectiveDef.AUTO_FIT_RANGE_AND_STEP,
+            DirectiveFile.AUTO_FIT_RANGE_INDEX);
         if (!setFieldHighlightValue) {
           rtfAutoFitRangeAndStep.setSelected(true);
           rtfAutoFitRangeAndStep.setText(range);
@@ -897,7 +921,7 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable, UIC
     if (directiveFiles.contains(DirectiveDef.DO_BACKPROJ_ALSO, setFieldHighlightValue)) {
       containsDoBackprojAlso = true;
       doBackprojAlso =
-          directiveFiles.isValue(DirectiveDef.DO_BACKPROJ_ALSO, setFieldHighlightValue);
+        directiveFiles.isValue(DirectiveDef.DO_BACKPROJ_ALSO, setFieldHighlightValue);
     }
     // Set values based on useSirt doBackProjAlso booleans.
     if (useSirt && doBackprojAlso) {
@@ -935,11 +959,11 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable, UIC
     // 2. binnedThickness
     // 3. fallbackThickness (causes derived thickness to be checked)
     boolean fallbackThickness =
-        setValue(ltfFallbackThickness, directiveFiles, setFieldHighlightValue);
+      setValue(ltfFallbackThickness, directiveFiles, setFieldHighlightValue);
     boolean extraThickness =
-        setValue(tfExtraThickness, directiveFiles, setFieldHighlightValue);
+      setValue(tfExtraThickness, directiveFiles, setFieldHighlightValue);
     boolean binnedThickness =
-        setValue(rtfBinnedThickness, directiveFiles, setFieldHighlightValue);
+      setValue(rtfBinnedThickness, directiveFiles, setFieldHighlightValue);
     boolean thickness = setValue(rtfThickness, directiveFiles, setFieldHighlightValue);
     // Make sure the derive thickness radio button is checked or its the field highlight
     // is set.
@@ -955,7 +979,7 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable, UIC
   }
 
   private boolean setValue(final Field field,
-      final DirectiveFileInterface directiveFiles, final boolean setFieldHighlightValue) {
+    final DirectiveFileInterface directiveFiles, final boolean setFieldHighlightValue) {
     DirectiveDef directiveDef = field.getDirectiveDef();
     if (directiveFiles.contains(directiveDef, setFieldHighlightValue)) {
       if (field.isText()) {
@@ -977,7 +1001,7 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable, UIC
   }
 
   private void setValue(final Field field, final String value,
-      final boolean setFieldHighlightValue) {
+    final boolean setFieldHighlightValue) {
     if (!setFieldHighlightValue) {
       field.setValue(value);
     }
@@ -987,7 +1011,7 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable, UIC
   }
 
   private void setValue(final Field field, final boolean value,
-      final boolean setFieldHighlightValue) {
+    final boolean setFieldHighlightValue) {
     if (!setFieldHighlightValue) {
       field.setValue(value);
     }
@@ -1015,9 +1039,9 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable, UIC
       dialog.setVisible(false);
     }
     else if (actionCommand.equals(btnRevertToGlobal.getActionCommand())) {
-      if (UIHarness.INSTANCE.openYesNoDialog(this,
-          "Data in this window will be lost.  Revert to global dataset data for this "
-              + "stack?")) {
+      if (UIHarness.INSTANCE.openYesNoDialog(manager, this,
+        "Data in this window will be lost.  Revert to global dataset data for this "
+          + "stack?")) {
         dialog.setVisible(false);
         if (row != null) {
           row.deleteDataset();

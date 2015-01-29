@@ -17,6 +17,7 @@ import etomo.logic.FieldValidator;
 import etomo.storage.DirectiveDef;
 import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.type.UITestFieldType;
+import etomo.ui.FieldDisplayer;
 import etomo.ui.TextFieldSetting;
 import etomo.ui.Field;
 import etomo.ui.FieldSettingInterface;
@@ -28,7 +29,7 @@ import etomo.util.Utilities;
 /**
  * <p>Description: </p>
  * <p/>
- * <p>Copyright: Copyright 2006 - 2014 by the Regents of the University of Colorado</p>
+ * <p>Copyright: Copyright 2006 - 2015 by the Regents of the University of Colorado</p>
  * <p/>
  * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
@@ -53,8 +54,7 @@ final class TextField implements UIComponent, SwingComponent, Field, FocusListen
   private FontMetrics fontMetrics = null;
   private Dimension fixedSize = null;
 
-  TextField(final FieldType fieldType, final String reference,
-      final String locationDescr) {
+  TextField(final FieldType fieldType, final String reference, final String locationDescr) {
     this.locationDescr = locationDescr;
     this.fieldType = fieldType;
     this.reference = reference;
@@ -235,8 +235,7 @@ final class TextField implements UIComponent, SwingComponent, Field, FocusListen
     updateFieldHighlight();
   }
 
-  public void setFieldHighlight(final boolean value) {
-  }
+  public void setFieldHighlight(final boolean value) {}
 
   public TextFieldSetting getFieldHighlight() {
     return fieldHighlight;
@@ -253,8 +252,7 @@ final class TextField implements UIComponent, SwingComponent, Field, FocusListen
     return fieldHighlight != null && fieldHighlight.equals(getText());
   }
 
-  public void focusGained(final FocusEvent event) {
-  }
+  public void focusGained(final FocusEvent event) {}
 
   public void focusLost(final FocusEvent event) {
     updateFieldHighlight();
@@ -299,6 +297,14 @@ final class TextField implements UIComponent, SwingComponent, Field, FocusListen
     this.required = required;
   }
 
+  String getText(final boolean doValidation) throws FieldValidationFailedException {
+    return getText(doValidation, null);
+  }
+
+  public boolean isRequired() {
+    return required && textField.isEnabled();
+  }
+
   /**
    * Validates and returns text in text field.  Should never throw a
    * FieldValidationFailedException when doValidation is false.
@@ -307,12 +313,14 @@ final class TextField implements UIComponent, SwingComponent, Field, FocusListen
    * @return
    * @throws FieldValidationFailedException
    */
-  String getText(final boolean doValidation) throws FieldValidationFailedException {
+  public String getText(final boolean doValidation, final FieldDisplayer fieldDisplayer)
+    throws FieldValidationFailedException {
     String text = textField.getText();
     if (doValidation && textField.isEnabled()) {
-      text = FieldValidator.validateText(text, fieldType, this,
-          getQuotedReference() + (locationDescr == null ? "" : " in " + locationDescr),
-          required, false);
+      text =
+        FieldValidator.validateText(text, fieldType, this, getQuotedReference()
+          + (locationDescr == null ? "" : " in " + locationDescr), required, false,
+          fieldDisplayer);
     }
     return text;
   }
@@ -330,8 +338,7 @@ final class TextField implements UIComponent, SwingComponent, Field, FocusListen
     setText(value);
   }
 
-  public void setValue(final boolean value) {
-  }
+  public void setValue(final boolean value) {}
 
   /**
    * get text without validation
@@ -409,8 +416,8 @@ final class TextField implements UIComponent, SwingComponent, Field, FocusListen
 
   private void setName(String reference) {
     String name = Utilities.convertLabelToName(reference);
-    textField.setName(
-        UITestFieldType.TEXT_FIELD.toString() + AutodocTokenizer.SEPARATOR_CHAR + name);
+    textField.setName(UITestFieldType.TEXT_FIELD.toString()
+      + AutodocTokenizer.SEPARATOR_CHAR + name);
     if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
       System.out.println(getName() + ' ' + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
     }

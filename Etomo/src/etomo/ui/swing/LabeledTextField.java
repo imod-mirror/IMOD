@@ -19,6 +19,7 @@ import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.EtomoNumber;
 import etomo.type.UITestFieldType;
+import etomo.ui.FieldDisplayer;
 import etomo.ui.TextFieldSetting;
 import etomo.ui.Field;
 import etomo.ui.FieldSettingInterface;
@@ -31,7 +32,7 @@ import etomo.util.Utilities;
  * <p>Description: A self-naming, labeled text field.  Implements StateChangeSource with
  * its state equal to whether it has changed since it was checkpointed.</p>
  * <p/>
- * <p>Copyright: Copyright 2002 - 2014 by the Regents of the University of Colorado</p>
+ * <p>Copyright: Copyright 2002 - 2015 by the Regents of the University of Colorado</p>
  * <p/>
  * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
@@ -214,8 +215,7 @@ import etomo.util.Utilities;
  *          <p> Initial CVS entry, basic functionality not including combining
  *          <p> </p>
  */
-final class LabeledTextField
-    implements UIComponent, SwingComponent, Field, FocusListener {
+final class LabeledTextField implements UIComponent, SwingComponent, Field, FocusListener {
   private final JPanel panel = new JPanel();
   private final JLabel label = new JLabel();
   private final JTextField textField = new JTextField();
@@ -254,7 +254,7 @@ final class LabeledTextField
   }
 
   private LabeledTextField(final FieldType fieldType, final String tfLabel,
-      final EtomoNumber.Type numericType, final int hgap, final String locationDescr) {
+    final EtomoNumber.Type numericType, final int hgap, final String locationDescr) {
     this.locationDescr = locationDescr;
     this.fieldType = fieldType;
     this.numericType = numericType;
@@ -288,7 +288,7 @@ final class LabeledTextField
   }
 
   LabeledTextField(final FieldType fieldType, final String tfLabel,
-      final String locationDescr) {
+    final String locationDescr) {
     this(fieldType, tfLabel, null, 0, locationDescr);
   }
 
@@ -297,7 +297,7 @@ final class LabeledTextField
   }
 
   static LabeledTextField getNumericInstance(final String tfLabel,
-      final EtomoNumber.Type numericType) {
+    final EtomoNumber.Type numericType) {
     FieldType fieldType = FieldType.INTEGER;
     if (numericType == EtomoNumber.Type.DOUBLE) {
       fieldType = FieldType.FLOATING_POINT;
@@ -319,11 +319,11 @@ final class LabeledTextField
 
   private void setName(final String tfLabel) {
     String name = Utilities.convertLabelToName(tfLabel);
-    textField.setName(
-        UITestFieldType.TEXT_FIELD.toString() + AutodocTokenizer.SEPARATOR_CHAR + name);
+    textField.setName(UITestFieldType.TEXT_FIELD.toString()
+      + AutodocTokenizer.SEPARATOR_CHAR + name);
     if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
-      System.out
-          .println(textField.getName() + ' ' + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
+      System.out.println(textField.getName() + ' ' + AutodocTokenizer.DEFAULT_DELIMITER
+        + ' ');
     }
   }
 
@@ -467,8 +467,7 @@ final class LabeledTextField
     updateFieldHighlight();
   }
 
-  public void setFieldHighlight(final boolean value) {
-  }
+  public void setFieldHighlight(final boolean value) {}
 
   public void setFieldHighlight(final FieldSettingInterface input) {
     if (fieldHighlight == null && input != null && input.isSet() && input.isText()) {
@@ -496,8 +495,7 @@ final class LabeledTextField
     return fieldHighlight != null && fieldHighlight.equals(getText());
   }
 
-  public void focusGained(final FocusEvent event) {
-  }
+  public void focusGained(final FocusEvent event) {}
 
   public void focusLost(final FocusEvent event) {
     updateFieldHighlight();
@@ -589,8 +587,7 @@ final class LabeledTextField
     setText(value);
   }
 
-  public void setValue(final boolean value) {
-  }
+  public void setValue(final boolean value) {}
 
   public boolean isSelected() {
     return false;
@@ -656,11 +653,21 @@ final class LabeledTextField
   }
 
   String getText(final boolean doValidation) throws FieldValidationFailedException {
+    return getText(doValidation, null);
+  }
+
+  public boolean isRequired() {
+    return required && textField.isEnabled();
+  }
+
+  public String getText(final boolean doValidation, final FieldDisplayer fieldDisplayer)
+    throws FieldValidationFailedException {
     String text = textField.getText();
     if (doValidation && textField.isEnabled()) {
-      text = FieldValidator.validateText(text, fieldType, this,
-          getQuotedLabel() + (locationDescr == null ? "" : " in " + locationDescr),
-          required, numberMustBePositive);
+      text =
+        FieldValidator.validateText(text, fieldType, this, getQuotedLabel()
+          + (locationDescr == null ? "" : " in " + locationDescr), required,
+          numberMustBePositive, fieldDisplayer);
     }
     return text;
   }
@@ -749,7 +756,8 @@ final class LabeledTextField
 
   void setPreferredWidth(final int width) {
     Dimension dim = textField.getPreferredSize();
-    dim.width = width * (int) Math.round(UIParameters.getInstance().getFontSizeAdjustment());
+    dim.width =
+      width * (int) Math.round(UIParameters.getInstance().getFontSizeAdjustment());
     textField.setPreferredSize(dim);
     textField.setMaximumSize(dim);
   }
