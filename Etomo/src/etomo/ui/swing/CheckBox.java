@@ -16,14 +16,16 @@ import etomo.storage.autodoc.ReadOnlySection;
 import etomo.type.EtomoAutodoc;
 import etomo.type.UITestFieldType;
 import etomo.ui.BooleanFieldSetting;
+import etomo.ui.FieldDisplayer;
 import etomo.ui.FieldSettingInterface;
 import etomo.ui.Field;
+import etomo.ui.FieldValidationFailedException;
 import etomo.util.Utilities;
 
 /**
  * <p>Description: A self-naming check box.</p>
  * <p/>
- * <p>Copyright: Copyright 2005 - 2014 by the Regents of the University of Colorado</p>
+ * <p>Copyright: Copyright 2005 - 2015 by the Regents of the University of Colorado</p>
  * <p/>
  * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
@@ -117,9 +119,6 @@ import etomo.util.Utilities;
  *          <p> </p>
  */
 final class CheckBox extends JCheckBox implements Field, ActionListener {
-  public static final String rcsid =
-      "$Id$";
-
   private boolean debug = false;
   private Color origForeground = null;
   private DirectiveDef directiveDef = null;
@@ -158,13 +157,26 @@ final class CheckBox extends JCheckBox implements Field, ActionListener {
     return false;
   }
 
+  public boolean isRequired() {
+    return false;
+  }
+
+  /**
+   * Validation is not available for the label.
+   * @return checkbox label
+   */
+  public String getText(final boolean doValidation, final FieldDisplayer fieldDisplayer)
+    throws FieldValidationFailedException {
+    return getText();
+  }
+
   public String toString() {
     return "[text:" + getText() + "]";
   }
 
   public String getQuotedLabel() {
     String label = getText();
-    if (label ==null||label.matches("\\s*")){
+    if (label == null || label.matches("\\s*")) {
       label = getName();
     }
     return Utilities.quoteLabel(label);
@@ -177,8 +189,8 @@ final class CheckBox extends JCheckBox implements Field, ActionListener {
 
   public void setName(String text) {
     String name = Utilities.convertLabelToName(text);
-    super.setName(
-        UITestFieldType.CHECK_BOX.toString() + AutodocTokenizer.SEPARATOR_CHAR + name);
+    super.setName(UITestFieldType.CHECK_BOX.toString() + AutodocTokenizer.SEPARATOR_CHAR
+      + name);
     if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
       System.out.println(getName() + ' ' + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
     }
@@ -219,8 +231,7 @@ final class CheckBox extends JCheckBox implements Field, ActionListener {
     }
   }
 
-  public void setValue(final String value) {
-  }
+  public void setValue(final String value) {}
 
   public void setValue(final boolean value) {
     setSelected(value);
@@ -421,7 +432,7 @@ final class CheckBox extends JCheckBox implements Field, ActionListener {
   }
 
   public void setToolTipText(final String autodocName, final ReadOnlySection section,
-      final String enumValue) {
+    final String enumValue) {
     setToolTipText(EtomoAutodoc.getTooltip(autodocName, section, enumValue));
   }
 
