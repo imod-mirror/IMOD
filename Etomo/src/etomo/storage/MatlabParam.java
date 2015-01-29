@@ -1453,8 +1453,8 @@ public final class MatlabParam {
         }
       }
       if (!ok) {
-        UIHarness.INSTANCE.openProblemValueMessageDialog(component, "Unknown", paramName,
-          null, fieldLabel, number.getRawString(), replacementValueIndex != -1
+        UIHarness.INSTANCE.openProblemValueMessageDialog(manager, component, "Unknown",
+          paramName, null, fieldLabel, number.getRawString(), replacementValueIndex != -1
             && replacementValueIndex < expectedValues.length ? String
             .valueOf(expectedValues[replacementValueIndex]) : null, null);
       }
@@ -1499,8 +1499,9 @@ public final class MatlabParam {
       }
     }
     if (!ok) {
-      UIHarness.INSTANCE.openProblemValueMessageDialog(component, "Out of range",
-        paramName, null, fieldLabel, number.getRawString(), replacementValue, null);
+      UIHarness.INSTANCE.openProblemValueMessageDialog(manager, component,
+        "Out of range", paramName, null, fieldLabel, number.getRawString(),
+        replacementValue, null);
       if (replacementValue != null) {
         number.setRawString(replacementValue);
       }
@@ -2129,8 +2130,9 @@ public final class MatlabParam {
       if (RANDOM_AXIAL_ROTATIONS.value.equals(value)) {
         return RANDOM_AXIAL_ROTATIONS;
       }
-      UIHarness.INSTANCE.openProblemValueMessageDialog(component, "Unknown", KEY, null,
-        FieldLabels.INIT_MOTL_LABEL, value, DEFAULT.value.toString(), DEFAULT.label);
+      UIHarness.INSTANCE
+        .openProblemValueMessageDialog(null, component, "Unknown", KEY, null,
+          FieldLabels.INIT_MOTL_LABEL, value, DEFAULT.value.toString(), DEFAULT.label);
       return DEFAULT;
     }
 
@@ -2256,8 +2258,8 @@ public final class MatlabParam {
       if (HALF.value.equals(value)) {
         return HALF;
       }
-      UIHarness.INSTANCE.openProblemValueMessageDialog(component, "Unknown", KEY, null,
-        FieldLabels.SAMPLE_SPHERE_LABEL, value, DEFAULT.value, null);
+      UIHarness.INSTANCE.openProblemValueMessageDialog(null, component, "Unknown", KEY,
+        null, FieldLabels.SAMPLE_SPHERE_LABEL, value, DEFAULT.value, null);
       return DEFAULT;
     }
   }
@@ -2320,8 +2322,9 @@ public final class MatlabParam {
       if (CSV_FILES.value.equals(value)) {
         return CSV_FILES;
       }
-      UIHarness.INSTANCE.openProblemValueMessageDialog(component, "Unknown", KEY, null,
-        FieldLabels.YAXIS_TYPE_LABEL, value, DEFAULT.value.toString(), DEFAULT.label);
+      UIHarness.INSTANCE.openProblemValueMessageDialog(null, component, "Unknown", KEY,
+        null, FieldLabels.YAXIS_TYPE_LABEL, value, DEFAULT.value.toString(),
+        DEFAULT.label);
       return DEFAULT;
     }
   }
@@ -2538,8 +2541,8 @@ public final class MatlabParam {
       BigDecimal bdStart = new BigDecimal(start.getRawString());
       BigDecimal bdEnd = new BigDecimal(end.getRawString());
       if (bdStart.multiply(new BigDecimal(-1)).compareTo(bdEnd) != 0) {
-        UIHarness.INSTANCE.openProblemValueMessageDialog(component, "Incorrect", key,
-          "start", label, bdStart.toString(), bdEnd.multiply(new BigDecimal(-1))
+        UIHarness.INSTANCE.openProblemValueMessageDialog(null, component, "Incorrect",
+          key, "start", label, bdStart.toString(), bdEnd.multiply(new BigDecimal(-1))
             .toString(), "-end");
       }
     }
