@@ -414,7 +414,7 @@ final class TomogramPositioningDialog extends ProcessDialog implements ContextMe
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     btnExecute.setText("Done");
     // Construct the binning spinner
-    spinBinning.setTextMaxmimumSize(UIParameters.INSTANCE.getSpinnerDimension());
+    spinBinning.setTextMaxmimumSize(UIParameters.getInstance().getSpinnerDimension());
 
     // Create the primary panels
     JPanel pnlWholeTomogram = new JPanel();
@@ -465,7 +465,7 @@ final class TomogramPositioningDialog extends ProcessDialog implements ContextMe
     pnlPosition.add(pnlTiltParameters.getContainer());
 
     UIUtilities.alignComponentsX(pnlPosition, Component.CENTER_ALIGNMENT);
-    UIUtilities.setButtonSizeAll(pnlPosition, UIParameters.INSTANCE.getButtonDimension());
+    UIUtilities.setButtonSizeAll(pnlPosition, UIParameters.getInstance().getButtonDimension());
 
     // Create dialog content pane
     rootPanel.add(pnlPosition);
@@ -726,12 +726,6 @@ final class TomogramPositioningDialog extends ProcessDialog implements ContextMe
         logFileLabel, logFile, applicationManager, axisID);
   }
 
-  public void action(final Run3dmodButton button,
-      final Run3dmodMenuOptions run3dmodMenuOptions) {
-    buttonAction(button.getActionCommand(), button.getDeferred3dmodButton(),
-        run3dmodMenuOptions);
-  }
-
   /**
    * Executes the action associated with command.  Deferred3dmodButton is null
    * if it comes from the dialog's ActionListener.  Otherwise is comes from a
@@ -741,8 +735,7 @@ final class TomogramPositioningDialog extends ProcessDialog implements ContextMe
    * @param deferred3dmodButton
    * @param run3dmodMenuOptions
    */
-  private void buttonAction(final String command,
-      final Deferred3dmodButton deferred3dmodButton,
+  public void action(final String command, final Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(btnSample.getActionCommand())) {
       expert.sampleAction(btnSample, null, deferred3dmodButton, run3dmodMenuOptions);
@@ -832,7 +825,7 @@ final class TomogramPositioningDialog extends ProcessDialog implements ContextMe
     }
 
     public void actionPerformed(final ActionEvent event) {
-      adaptee.buttonAction(event.getActionCommand(), null, null);
+      adaptee.action(event.getActionCommand(), null, null);
     }
   }
 

@@ -50,10 +50,7 @@ public class FileTypeTest extends TestCase {
 
   public void testForFileNameCollisions() {
     Iterator iterator = FileType.iterator();
-    FrontPageManager manager = (FrontPageManager) EtomoDirector.INSTANCE
-        .getCurrentManagerForTest();
-    FrontPageMetaData metaData = manager.getMetaData();
-    metaData.setAxisType(AxisType.DUAL_AXIS);
+    AxisType axisType = AxisType.DUAL_AXIS;
     while (iterator.hasNext()) {
       Iterator comparisonIterator = FileType.iterator();
       while (comparisonIterator.hasNext()) {
@@ -61,11 +58,11 @@ public class FileTypeTest extends TestCase {
         FileType comparisonFileType = (FileType) comparisonIterator.next();
         if (fileType != comparisonFileType) {
           assertFalse("File name collison: " + fileType + " is the same as "
-              + comparisonFileType, fileType.equals(manager, comparisonFileType));
+              + comparisonFileType, fileType.equals(axisType, comparisonFileType));
         }
       }
     }
-    metaData.setAxisType(AxisType.SINGLE_AXIS);
+    axisType = AxisType.SINGLE_AXIS;
     while (iterator.hasNext()) {
       Iterator comparisonIterator = FileType.iterator();
       while (comparisonIterator.hasNext()) {
@@ -73,58 +70,55 @@ public class FileTypeTest extends TestCase {
         FileType comparisonFileType = (FileType) comparisonIterator.next();
         if (fileType != comparisonFileType) {
           assertFalse("File name collison: " + fileType + " is the same as "
-              + comparisonFileType, fileType.equals(manager, comparisonFileType));
+              + comparisonFileType, fileType.equals(axisType, comparisonFileType));
         }
       }
     }
   }
 
   public void testGetInstanceFromNameDescription() {
-    FrontPageManager manager = (FrontPageManager) EtomoDirector.INSTANCE
-        .getCurrentManagerForTest();
-    FrontPageMetaData metaData = manager.getMetaData();
-    metaData.setAxisType(AxisType.DUAL_AXIS);
+    AxisType axisType = AxisType.DUAL_AXIS;
     assertEquals("getInstance(boolean,boolean,string,string) failed",
         FileType.FIDUCIAL_3D_MODEL,
-        FileType.getInstance(manager, true, true, "", ".3dmod"));
+        FileType.getInstance(axisType, true, true, "", ".3dmod"));
     assertEquals("getInstance(boolean,boolean,string,string) failed",
         FileType.FLATTEN_TOOL_OUTPUT,
-        FileType.getInstance(manager, true, false, "", ".flat"));
+        FileType.getInstance(axisType, true, false, "", ".flat"));
     assertEquals("getInstance(boolean,boolean,string,string) failed",
         FileType.NEWST_OR_BLEND_3D_FIND_OUTPUT,
-        FileType.getInstance(manager, true, true, "_3dfind", ".ali"));
+        FileType.getInstance(axisType, true, true, "_3dfind", ".ali"));
     assertEquals("getInstance(boolean,boolean,string,string) failed",
         FileType.FLATTEN_WARP_INPUT_MODEL,
-        FileType.getInstance(manager, true, false, "_flat", ".mod"));
+        FileType.getInstance(axisType, true, false, "_flat", ".mod"));
     assertEquals("getInstance(boolean,boolean,string,string) failed",
         FileType.FIND_BEADS_3D_COMSCRIPT,
-        FileType.getInstance(manager, false, true, "findbeads3d", ".com"));
+        FileType.getInstance(axisType, false, true, "findbeads3d", ".com"));
     assertEquals("getInstance(boolean,boolean,string,string) failed",
-        FileType.TILT_OUTPUT, FileType.getInstance(manager, true, true, "", ".rec"));
-    assertEquals("getInstance(boolean,boolean,string,string) failed",
-        FileType.SIRT_SCALED_OUTPUT_TEMPLATE,
-        FileType.getInstance(manager, true, true, "", ".sint"));
-    assertEquals("getInstance(boolean,boolean,string,string) failed",
-        FileType.SIRT_OUTPUT_TEMPLATE,
-        FileType.getInstance(manager, true, true, "", ".srec"));
-    assertEquals("getInstance(boolean,boolean,string,string) failed",
-        FileType.TILT_FOR_SIRT_COMSCRIPT,
-        FileType.getInstance(manager, false, true, "tilt", "_for_sirt.com"));
-    metaData.setAxisType(AxisType.SINGLE_AXIS);
-    assertEquals("getInstance(boolean,boolean,string,string) failed",
-        FileType.TILT_OUTPUT, FileType.getInstance(manager, true, true, "_full", ".rec"));
+        FileType.TILT_OUTPUT, FileType.getInstance(axisType, true, true, "", ".rec"));
     assertEquals("getInstance(boolean,boolean,string,string) failed",
         FileType.SIRT_SCALED_OUTPUT_TEMPLATE,
-        FileType.getInstance(manager, true, true, "_full", ".sint"));
+        FileType.getInstance(axisType, true, true, "", ".sint"));
     assertEquals("getInstance(boolean,boolean,string,string) failed",
         FileType.SIRT_OUTPUT_TEMPLATE,
-        FileType.getInstance(manager, true, true, "_full", ".srec"));
+        FileType.getInstance(axisType, true, true, "", ".srec"));
     assertEquals("getInstance(boolean,boolean,string,string) failed",
         FileType.TILT_FOR_SIRT_COMSCRIPT,
-        FileType.getInstance(manager, false, true, "tilt", "_for_sirt.com"));
+        FileType.getInstance(axisType, false, true, "tilt", "_for_sirt.com"));
+    axisType = AxisType.SINGLE_AXIS;
+    assertEquals("getInstance(boolean,boolean,string,string) failed",
+        FileType.TILT_OUTPUT, FileType.getInstance(axisType, true, true, "_full", ".rec"));
+    assertEquals("getInstance(boolean,boolean,string,string) failed",
+        FileType.SIRT_SCALED_OUTPUT_TEMPLATE,
+        FileType.getInstance(axisType, true, true, "_full", ".sint"));
+    assertEquals("getInstance(boolean,boolean,string,string) failed",
+        FileType.SIRT_OUTPUT_TEMPLATE,
+        FileType.getInstance(axisType, true, true, "_full", ".srec"));
+    assertEquals("getInstance(boolean,boolean,string,string) failed",
+        FileType.TILT_FOR_SIRT_COMSCRIPT,
+        FileType.getInstance(axisType, false, true, "tilt", "_for_sirt.com"));
     assertEquals("should find an imod file based on the description",
         FileType.SLOPPY_BLEND_COMSCRIPT,
-        FileType.getInstance(manager, false, false, "sloppyblend", ".com"));
+        FileType.getInstance(axisType, false, false, "sloppyblend", ".com"));
   }
 
   public void testGetInstanceFromFileName() {
@@ -235,443 +229,220 @@ public class FileTypeTest extends TestCase {
   }
 
   public void testGetImodManagerKey() {
-    FrontPageManager manager = (FrontPageManager) EtomoDirector.INSTANCE
-        .getCurrentManagerForTest();
-    FrontPageMetaData metaData = manager.getMetaData();
-    metaData.setAxisType(AxisType.DUAL_AXIS);
     assertSame("getImodManagerKey did not return the correct ImodManager key",
-        FileType.FIDUCIAL_3D_MODEL.getImodManagerKey(manager),
+        FileType.FIDUCIAL_3D_MODEL.getImodManagerKey(),
         ImodManager.FIDUCIAL_MODEL_KEY);
     assertSame("getImodManagerKey did not return the correct ImodManager key",
-        FileType.ALIGNED_STACK.getImodManagerKey(manager), ImodManager.FINE_ALIGNED_KEY);
+        FileType.ALIGNED_STACK.getImodManagerKey(), ImodManager.FINE_ALIGNED_KEY);
     assertNull("getImodManagerKey did not return null",
-        FileType.XCORR_BLEND_OUTPUT.getImodManagerKey(manager));
+        FileType.XCORR_BLEND_OUTPUT.getImodManagerKey());
     assertNull("getImodManagerKey did not return null",
-        FileType.DISTORTION_CORRECTED_STACK.getImodManagerKey(manager));
+        FileType.DISTORTION_CORRECTED_STACK.getImodManagerKey());
     assertNull("getImodManagerKey did not return null",
-        FileType.FIDUCIAL_MODEL.getImodManagerKey(manager));
+        FileType.FIDUCIAL_MODEL.getImodManagerKey());
     assertSame("getImodManagerKey did not return the correct ImodManager key",
-        FileType.FLATTEN_TOOL_OUTPUT.getImodManagerKey(manager),
+        FileType.FLATTEN_TOOL_OUTPUT.getImodManagerKey(),
         ImodManager.FLATTEN_TOOL_OUTPUT_KEY);
     assertSame("getImodManagerKey did not return the correct ImodManager key",
-        FileType.JOIN.getImodManagerKey(manager), ImodManager.JOIN_KEY);
+        FileType.JOIN.getImodManagerKey(), ImodManager.JOIN_KEY);
     assertSame("getImodManagerKey did not return the correct ImodManager key",
-        FileType.ANISOTROPIC_DIFFUSION_OUTPUT.getImodManagerKey(manager),
+        FileType.ANISOTROPIC_DIFFUSION_OUTPUT.getImodManagerKey(),
         ImodManager.ANISOTROPIC_DIFFUSION_VOLUME_KEY);
     assertSame("getImodManagerKey did not return the correct ImodManager key",
-        FileType.PREALIGNED_STACK.getImodManagerKey(manager),
+        FileType.PREALIGNED_STACK.getImodManagerKey(),
         ImodManager.COARSE_ALIGNED_KEY);
     assertNull("getImodManagerKey did not return null",
-        FileType.RAW_TILT_ANGLES.getImodManagerKey(manager));
+        FileType.RAW_TILT_ANGLES.getImodManagerKey());
     assertSame("getImodManagerKey did not return the correct ImodManager key",
-        FileType.TRIM_VOL_OUTPUT.getImodManagerKey(manager),
+        FileType.TRIM_VOL_OUTPUT.getImodManagerKey(),
         ImodManager.TRIMMED_VOLUME_KEY);
     assertSame("getImodManagerKey did not return the correct ImodManager key",
-        FileType.JOIN_SAMPLE_AVERAGES.getImodManagerKey(manager),
+        FileType.JOIN_SAMPLE_AVERAGES.getImodManagerKey(),
         ImodManager.JOIN_SAMPLE_AVERAGES_KEY);
     assertSame("getImodManagerKey did not return the correct ImodManager key",
-        FileType.JOIN_SAMPLE.getImodManagerKey(manager), ImodManager.JOIN_SAMPLES_KEY);
+        FileType.JOIN_SAMPLE.getImodManagerKey(), ImodManager.JOIN_SAMPLES_KEY);
     assertSame("getImodManagerKey did not return the correct ImodManager key",
-        FileType.SQUEEZE_VOL_OUTPUT.getImodManagerKey(manager),
+        FileType.SQUEEZE_VOL_OUTPUT.getImodManagerKey(),
         ImodManager.SQUEEZED_VOLUME_KEY);
     assertSame("getImodManagerKey did not return the correct ImodManager key",
-        FileType.RAW_STACK.getImodManagerKey(manager), ImodManager.RAW_STACK_KEY);
+        FileType.RAW_STACK.getImodManagerKey(), ImodManager.RAW_STACK_KEY);
     assertSame("getImodManagerKey did not return the correct ImodManager key",
-        FileType.NEWST_OR_BLEND_3D_FIND_OUTPUT.getImodManagerKey(manager),
+        FileType.NEWST_OR_BLEND_3D_FIND_OUTPUT.getImodManagerKey(),
         ImodManager.FINE_ALIGNED_3D_FIND_KEY);
     assertNull("getImodManagerKey did not return null",
-        FileType.FIND_BEADS_3D_OUTPUT_MODEL.getImodManagerKey(manager));
+        FileType.FIND_BEADS_3D_OUTPUT_MODEL.getImodManagerKey());
     assertSame("getImodManagerKey did not return the correct ImodManager key",
-        FileType.TILT_3D_FIND_OUTPUT.getImodManagerKey(manager),
+        FileType.TILT_3D_FIND_OUTPUT.getImodManagerKey(),
         ImodManager.FULL_VOLUME_3D_FIND_KEY);
     assertSame("getImodManagerKey did not return the correct ImodManager key",
-        FileType.SMOOTHING_ASSESSMENT_OUTPUT_MODEL.getImodManagerKey(manager),
+        FileType.SMOOTHING_ASSESSMENT_OUTPUT_MODEL.getImodManagerKey(),
         ImodManager.SMOOTHING_ASSESSMENT_KEY);
     assertSame("getImodManagerKey did not return the correct ImodManager key",
-        FileType.CTF_CORRECTED_STACK.getImodManagerKey(manager),
+        FileType.CTF_CORRECTED_STACK.getImodManagerKey(),
         ImodManager.CTF_CORRECTION_KEY);
     assertSame("getImodManagerKey did not return the correct ImodManager key",
-        FileType.ERASED_BEADS_STACK.getImodManagerKey(manager),
+        FileType.ERASED_BEADS_STACK.getImodManagerKey(),
         ImodManager.ERASED_FIDUCIALS_KEY);
     assertNull("getImodManagerKey did not return null",
-        FileType.CCD_ERASER_BEADS_INPUT_MODEL.getImodManagerKey(manager));
+        FileType.CCD_ERASER_BEADS_INPUT_MODEL.getImodManagerKey());
     assertSame("getImodManagerKey did not return the correct ImodManager key",
-        FileType.MTF_FILTERED_STACK.getImodManagerKey(manager),
+        FileType.MTF_FILTERED_STACK.getImodManagerKey(),
         ImodManager.MTF_FILTER_KEY);
     assertSame("getImodManagerKey did not return the correct ImodManager key",
-        FileType.FIXED_XRAYS_STACK.getImodManagerKey(manager),
+        FileType.FIXED_XRAYS_STACK.getImodManagerKey(),
         ImodManager.ERASED_STACK_KEY);
     assertNull("getImodManagerKey did not return null",
-        FileType.FLATTEN_WARP_INPUT_MODEL.getImodManagerKey(manager));
+        FileType.FLATTEN_WARP_INPUT_MODEL.getImodManagerKey());
     assertSame("getImodManagerKey did not return the correct ImodManager key",
-        FileType.FLATTEN_OUTPUT.getImodManagerKey(manager), ImodManager.FLAT_VOLUME_KEY);
+        FileType.FLATTEN_OUTPUT.getImodManagerKey(), ImodManager.FLAT_VOLUME_KEY);
     assertNull("getImodManagerKey did not return null",
-        FileType.FLATTEN_TOOL_COMSCRIPT.getImodManagerKey(manager));
+        FileType.FLATTEN_TOOL_COMSCRIPT.getImodManagerKey());
     assertSame("getImodManagerKey did not return the correct ImodManager key",
-        FileType.MODELED_JOIN.getImodManagerKey(manager), ImodManager.MODELED_JOIN_KEY);
+        FileType.MODELED_JOIN.getImodManagerKey(), ImodManager.MODELED_JOIN_KEY);
     assertNull("getImodManagerKey did not return null",
-        FileType.ORIGINAL_RAW_STACK.getImodManagerKey(manager));
+        FileType.ORIGINAL_RAW_STACK.getImodManagerKey());
     assertNull("getImodManagerKey did not return null",
-        FileType.PATCH_TRACKING_BOUNDARY_MODEL.getImodManagerKey(manager));
+        FileType.PATCH_TRACKING_BOUNDARY_MODEL.getImodManagerKey());
     assertSame("getImodManagerKey did not return the correct ImodManager key",
-        FileType.TRANSFORMED_REFINING_MODEL.getImodManagerKey(manager),
+        FileType.TRANSFORMED_REFINING_MODEL.getImodManagerKey(),
         ImodManager.TRANSFORMED_MODEL_KEY);
     assertSame("getImodManagerKey did not return the correct ImodManager key",
-        FileType.TRIAL_JOIN.getImodManagerKey(manager), ImodManager.TRIAL_JOIN_KEY);
+        FileType.TRIAL_JOIN.getImodManagerKey(), ImodManager.TRIAL_JOIN_KEY);
     assertNull("getImodManagerKey did not return null",
-        FileType.CTF_CORRECTION_COMSCRIPT.getImodManagerKey(manager));
+        FileType.CTF_CORRECTION_COMSCRIPT.getImodManagerKey());
     assertNull("getImodManagerKey did not return null",
-        FileType.FIND_BEADS_3D_COMSCRIPT.getImodManagerKey(manager));
+        FileType.FIND_BEADS_3D_COMSCRIPT.getImodManagerKey());
     assertNull("getImodManagerKey did not return null",
-        FileType.FLATTEN_COMSCRIPT.getImodManagerKey(manager));
+        FileType.FLATTEN_COMSCRIPT.getImodManagerKey());
     assertNull("getImodManagerKey did not return null",
-        FileType.MTF_FILTER_COMSCRIPT.getImodManagerKey(manager));
+        FileType.MTF_FILTER_COMSCRIPT.getImodManagerKey());
     assertSame("getImodManagerKey did not return the correct ImodManager key",
-        FileType.PATCH_VECTOR_MODEL.getImodManagerKey(manager),
+        FileType.PATCH_VECTOR_MODEL.getImodManagerKey(),
         ImodManager.PATCH_VECTOR_MODEL_KEY);
     assertSame("getImodManagerKey did not return the correct ImodManager key",
-        FileType.PATCH_VECTOR_CCC_MODEL.getImodManagerKey(manager),
+        FileType.PATCH_VECTOR_CCC_MODEL.getImodManagerKey(),
         ImodManager.PATCH_VECTOR_CCC_MODEL_KEY);
     assertNull("getImodManagerKey did not return null",
-        FileType.SIRTSETUP_COMSCRIPT.getImodManagerKey(manager));
+        FileType.SIRTSETUP_COMSCRIPT.getImodManagerKey());
     assertSame("getImodManagerKey did not return the correct ImodManager key",
-        FileType.COMBINED_VOLUME.getImodManagerKey(manager),
+        FileType.COMBINED_VOLUME.getImodManagerKey(),
         ImodManager.COMBINED_TOMOGRAM_KEY);
     assertSame("getImodManagerKey did not return the correct ImodManager key",
-        FileType.NAD_TEST_INPUT.getImodManagerKey(manager), ImodManager.TEST_VOLUME_KEY);
+        FileType.NAD_TEST_INPUT.getImodManagerKey(), ImodManager.TEST_VOLUME_KEY);
     assertNull("getImodManagerKey did not return null",
-        FileType.TILT_COMSCRIPT.getImodManagerKey(manager));
+        FileType.TILT_COMSCRIPT.getImodManagerKey());
     assertSame("getImodManagerKey did not return the correct ImodManager key",
-        FileType.TILT_OUTPUT.getImodManagerKey(manager), ImodManager.FULL_VOLUME_KEY);
+        FileType.TILT_OUTPUT.getImodManagerKey(), ImodManager.FULL_VOLUME_KEY);
     assertSame("getImodManagerKey did not return the correct ImodManager key",
-        FileType.SIRT_SCALED_OUTPUT_TEMPLATE.getImodManagerKey(manager),
+        FileType.SIRT_SCALED_OUTPUT_TEMPLATE.getImodManagerKey(),
         ImodManager.SIRT_KEY);
     assertSame("getImodManagerKey did not return the correct ImodManager key",
-        FileType.SIRT_OUTPUT_TEMPLATE.getImodManagerKey(manager), ImodManager.SIRT_KEY);
+        FileType.SIRT_OUTPUT_TEMPLATE.getImodManagerKey(), ImodManager.SIRT_KEY);
     assertNull("getImodManagerKey did not return null",
-        FileType.CROSS_CORRELATION_COMSCRIPT.getImodManagerKey(manager));
+        FileType.CROSS_CORRELATION_COMSCRIPT.getImodManagerKey());
     assertNull("getImodManagerKey did not return null",
-        FileType.PATCH_TRACKING_COMSCRIPT.getImodManagerKey(manager));
+        FileType.PATCH_TRACKING_COMSCRIPT.getImodManagerKey());
     assertNull("getImodManagerKey did not return null",
-        FileType.TILT_FOR_SIRT_COMSCRIPT.getImodManagerKey(manager));
-
-    metaData.setAxisType(AxisType.SINGLE_AXIS);
-    assertSame("getImodManagerKey did not return the correct ImodManager key",
-        FileType.FIDUCIAL_3D_MODEL.getImodManagerKey(manager),
-        ImodManager.FIDUCIAL_MODEL_KEY);
-    assertSame("getImodManagerKey did not return the correct ImodManager key",
-        FileType.ALIGNED_STACK.getImodManagerKey(manager), ImodManager.FINE_ALIGNED_KEY);
-    assertNull("getImodManagerKey did not return null",
-        FileType.XCORR_BLEND_OUTPUT.getImodManagerKey(manager));
-    assertNull("getImodManagerKey did not return null",
-        FileType.DISTORTION_CORRECTED_STACK.getImodManagerKey(manager));
-    assertNull("getImodManagerKey did not return null",
-        FileType.FIDUCIAL_MODEL.getImodManagerKey(manager));
-    assertSame("getImodManagerKey did not return the correct ImodManager key",
-        FileType.FLATTEN_TOOL_OUTPUT.getImodManagerKey(manager),
-        ImodManager.FLATTEN_TOOL_OUTPUT_KEY);
-    assertSame("getImodManagerKey did not return the correct ImodManager key",
-        FileType.JOIN.getImodManagerKey(manager), ImodManager.JOIN_KEY);
-    assertSame("getImodManagerKey did not return the correct ImodManager key",
-        FileType.ANISOTROPIC_DIFFUSION_OUTPUT.getImodManagerKey(manager),
-        ImodManager.ANISOTROPIC_DIFFUSION_VOLUME_KEY);
-    assertSame("getImodManagerKey did not return the correct ImodManager key",
-        FileType.PREALIGNED_STACK.getImodManagerKey(manager),
-        ImodManager.COARSE_ALIGNED_KEY);
-    assertNull("getImodManagerKey did not return null",
-        FileType.RAW_TILT_ANGLES.getImodManagerKey(manager));
-    assertSame("getImodManagerKey did not return the correct ImodManager key",
-        FileType.TRIM_VOL_OUTPUT.getImodManagerKey(manager),
-        ImodManager.TRIMMED_VOLUME_KEY);
-    assertSame("getImodManagerKey did not return the correct ImodManager key",
-        FileType.JOIN_SAMPLE_AVERAGES.getImodManagerKey(manager),
-        ImodManager.JOIN_SAMPLE_AVERAGES_KEY);
-    assertSame("getImodManagerKey did not return the correct ImodManager key",
-        FileType.JOIN_SAMPLE.getImodManagerKey(manager), ImodManager.JOIN_SAMPLES_KEY);
-    assertSame("getImodManagerKey did not return the correct ImodManager key",
-        FileType.SQUEEZE_VOL_OUTPUT.getImodManagerKey(manager),
-        ImodManager.SQUEEZED_VOLUME_KEY);
-    assertSame("getImodManagerKey did not return the correct ImodManager key",
-        FileType.RAW_STACK.getImodManagerKey(manager), ImodManager.RAW_STACK_KEY);
-    assertSame("getImodManagerKey did not return the correct ImodManager key",
-        FileType.NEWST_OR_BLEND_3D_FIND_OUTPUT.getImodManagerKey(manager),
-        ImodManager.FINE_ALIGNED_3D_FIND_KEY);
-    assertNull("getImodManagerKey did not return null",
-        FileType.FIND_BEADS_3D_OUTPUT_MODEL.getImodManagerKey(manager));
-    assertSame("getImodManagerKey did not return the correct ImodManager key",
-        FileType.TILT_3D_FIND_OUTPUT.getImodManagerKey(manager),
-        ImodManager.FULL_VOLUME_3D_FIND_KEY);
-    assertSame("getImodManagerKey did not return the correct ImodManager key",
-        FileType.SMOOTHING_ASSESSMENT_OUTPUT_MODEL.getImodManagerKey(manager),
-        ImodManager.SMOOTHING_ASSESSMENT_KEY);
-    assertSame("getImodManagerKey did not return the correct ImodManager key",
-        FileType.CTF_CORRECTED_STACK.getImodManagerKey(manager),
-        ImodManager.CTF_CORRECTION_KEY);
-    assertSame("getImodManagerKey did not return the correct ImodManager key",
-        FileType.ERASED_BEADS_STACK.getImodManagerKey(manager),
-        ImodManager.ERASED_FIDUCIALS_KEY);
-    assertNull("getImodManagerKey did not return null",
-        FileType.CCD_ERASER_BEADS_INPUT_MODEL.getImodManagerKey(manager));
-    assertSame("getImodManagerKey did not return the correct ImodManager key",
-        FileType.MTF_FILTERED_STACK.getImodManagerKey(manager),
-        ImodManager.MTF_FILTER_KEY);
-    assertSame("getImodManagerKey did not return the correct ImodManager key",
-        FileType.FIXED_XRAYS_STACK.getImodManagerKey(manager),
-        ImodManager.ERASED_STACK_KEY);
-    assertNull("getImodManagerKey did not return null",
-        FileType.FLATTEN_WARP_INPUT_MODEL.getImodManagerKey(manager));
-    assertSame("getImodManagerKey did not return the correct ImodManager key",
-        FileType.FLATTEN_OUTPUT.getImodManagerKey(manager), ImodManager.FLAT_VOLUME_KEY);
-    assertNull("getImodManagerKey did not return null",
-        FileType.FLATTEN_TOOL_COMSCRIPT.getImodManagerKey(manager));
-    assertSame("getImodManagerKey did not return the correct ImodManager key",
-        FileType.MODELED_JOIN.getImodManagerKey(manager), ImodManager.MODELED_JOIN_KEY);
-    assertNull("getImodManagerKey did not return null",
-        FileType.ORIGINAL_RAW_STACK.getImodManagerKey(manager));
-    assertNull("getImodManagerKey did not return null",
-        FileType.PATCH_TRACKING_BOUNDARY_MODEL.getImodManagerKey(manager));
-    assertSame("getImodManagerKey did not return the correct ImodManager key",
-        FileType.TRANSFORMED_REFINING_MODEL.getImodManagerKey(manager),
-        ImodManager.TRANSFORMED_MODEL_KEY);
-    assertSame("getImodManagerKey did not return the correct ImodManager key",
-        FileType.TRIAL_JOIN.getImodManagerKey(manager), ImodManager.TRIAL_JOIN_KEY);
-    assertNull("getImodManagerKey did not return null",
-        FileType.CTF_CORRECTION_COMSCRIPT.getImodManagerKey(manager));
-    assertNull("getImodManagerKey did not return null",
-        FileType.FIND_BEADS_3D_COMSCRIPT.getImodManagerKey(manager));
-    assertNull("getImodManagerKey did not return null",
-        FileType.FLATTEN_COMSCRIPT.getImodManagerKey(manager));
-    assertNull("getImodManagerKey did not return null",
-        FileType.MTF_FILTER_COMSCRIPT.getImodManagerKey(manager));
-    assertSame("getImodManagerKey did not return the correct ImodManager key",
-        FileType.PATCH_VECTOR_MODEL.getImodManagerKey(manager),
-        ImodManager.PATCH_VECTOR_MODEL_KEY);
-    assertSame("getImodManagerKey did not return the correct ImodManager key",
-        FileType.PATCH_VECTOR_CCC_MODEL.getImodManagerKey(manager),
-        ImodManager.PATCH_VECTOR_CCC_MODEL_KEY);
-    assertNull("getImodManagerKey did not return null",
-        FileType.SIRTSETUP_COMSCRIPT.getImodManagerKey(manager));
-    assertSame("getImodManagerKey did not return the correct ImodManager key",
-        FileType.COMBINED_VOLUME.getImodManagerKey(manager),
-        ImodManager.COMBINED_TOMOGRAM_KEY);
-    assertSame("getImodManagerKey did not return the correct ImodManager key",
-        FileType.NAD_TEST_INPUT.getImodManagerKey(manager), ImodManager.TEST_VOLUME_KEY);
-    assertNull("getImodManagerKey did not return null",
-        FileType.TILT_COMSCRIPT.getImodManagerKey(manager));
-    assertSame("getImodManagerKey did not return the correct ImodManager key",
-        FileType.TILT_OUTPUT.getImodManagerKey(manager), ImodManager.FULL_VOLUME_KEY);
-    assertSame("getImodManagerKey did not return the correct ImodManager key",
-        FileType.SIRT_SCALED_OUTPUT_TEMPLATE.getImodManagerKey(manager),
-        ImodManager.SIRT_KEY);
-    assertSame("getImodManagerKey did not return the correct ImodManager key",
-        FileType.SIRT_OUTPUT_TEMPLATE.getImodManagerKey(manager), ImodManager.SIRT_KEY);
-    assertNull("getImodManagerKey did not return null",
-        FileType.CROSS_CORRELATION_COMSCRIPT.getImodManagerKey(manager));
-    assertNull("getImodManagerKey did not return null",
-        FileType.PATCH_TRACKING_COMSCRIPT.getImodManagerKey(manager));
-    assertNull("getImodManagerKey did not return null",
-        FileType.TILT_FOR_SIRT_COMSCRIPT.getImodManagerKey(manager));
+        FileType.TILT_FOR_SIRT_COMSCRIPT.getImodManagerKey());
   }
 
   public void testGetImodManagerKey2() {
-    FrontPageManager manager = (FrontPageManager) EtomoDirector.INSTANCE
-        .getCurrentManagerForTest();
-    FrontPageMetaData metaData = manager.getMetaData();
-    metaData.setAxisType(AxisType.DUAL_AXIS);
     assertNull("getImodManagerKey2 did not return null",
-        FileType.FIDUCIAL_3D_MODEL.getImodManagerKey2(manager));
+        FileType.FIDUCIAL_3D_MODEL.getImodManagerKey2());
     assertNull("getImodManagerKey2 did not return null",
-        FileType.ALIGNED_STACK.getImodManagerKey2(manager));
+        FileType.ALIGNED_STACK.getImodManagerKey2());
     assertNull("getImodManagerKey2 did not return null",
-        FileType.XCORR_BLEND_OUTPUT.getImodManagerKey2(manager));
+        FileType.XCORR_BLEND_OUTPUT.getImodManagerKey2());
     assertNull("getImodManagerKey2 did not return null",
-        FileType.DISTORTION_CORRECTED_STACK.getImodManagerKey2(manager));
+        FileType.DISTORTION_CORRECTED_STACK.getImodManagerKey2());
     assertNull("getImodManagerKey2 did not return null",
-        FileType.FIDUCIAL_MODEL.getImodManagerKey2(manager));
+        FileType.FIDUCIAL_MODEL.getImodManagerKey2());
     assertNull("getImodManagerKey2 did not return null",
-        FileType.FLATTEN_TOOL_OUTPUT.getImodManagerKey2(manager));
+        FileType.FLATTEN_TOOL_OUTPUT.getImodManagerKey2());
     assertNull("getImodManagerKey2 did not return null",
-        FileType.JOIN.getImodManagerKey2(manager));
+        FileType.JOIN.getImodManagerKey2());
     assertNull("getImodManagerKey2 did not return null",
-        FileType.ANISOTROPIC_DIFFUSION_OUTPUT.getImodManagerKey2(manager));
+        FileType.ANISOTROPIC_DIFFUSION_OUTPUT.getImodManagerKey2());
     assertNull("getImodManagerKey2 did not return null",
-        FileType.PREALIGNED_STACK.getImodManagerKey2(manager));
+        FileType.PREALIGNED_STACK.getImodManagerKey2());
     assertNull("getImodManagerKey2 did not return null",
-        FileType.RAW_TILT_ANGLES.getImodManagerKey2(manager));
+        FileType.RAW_TILT_ANGLES.getImodManagerKey2());
     assertNull("getImodManagerKey2 did not return null",
-        FileType.TRIM_VOL_OUTPUT.getImodManagerKey2(manager));
+        FileType.TRIM_VOL_OUTPUT.getImodManagerKey2());
     assertNull("getImodManagerKey2 did not return null",
-        FileType.JOIN_SAMPLE_AVERAGES.getImodManagerKey2(manager));
+        FileType.JOIN_SAMPLE_AVERAGES.getImodManagerKey2());
     assertNull("getImodManagerKey2 did not return null",
-        FileType.JOIN_SAMPLE.getImodManagerKey2(manager));
+        FileType.JOIN_SAMPLE.getImodManagerKey2());
     assertNull("getImodManagerKey2 did not return null",
-        FileType.SQUEEZE_VOL_OUTPUT.getImodManagerKey2(manager));
+        FileType.SQUEEZE_VOL_OUTPUT.getImodManagerKey2());
     assertSame("getImodManagerKey2 did not return the correct ImodManager key",
-        FileType.RAW_STACK.getImodManagerKey2(manager), ImodManager.PREVIEW_KEY);
+        FileType.RAW_STACK.getImodManagerKey2(), ImodManager.PREVIEW_KEY);
     assertNull("getImodManagerKey2 did not return null",
-        FileType.NEWST_OR_BLEND_3D_FIND_OUTPUT.getImodManagerKey2(manager));
+        FileType.NEWST_OR_BLEND_3D_FIND_OUTPUT.getImodManagerKey2());
     assertNull("getImodManagerKey2 did not return null",
-        FileType.FIND_BEADS_3D_OUTPUT_MODEL.getImodManagerKey2(manager));
+        FileType.FIND_BEADS_3D_OUTPUT_MODEL.getImodManagerKey2());
     assertNull("getImodManagerKey2 did not return null",
-        FileType.TILT_3D_FIND_OUTPUT.getImodManagerKey2(manager));
+        FileType.TILT_3D_FIND_OUTPUT.getImodManagerKey2());
     assertNull("getImodManagerKey2 did not return null",
-        FileType.SMOOTHING_ASSESSMENT_OUTPUT_MODEL.getImodManagerKey2(manager));
+        FileType.SMOOTHING_ASSESSMENT_OUTPUT_MODEL.getImodManagerKey2());
     assertNull("getImodManagerKey2 did not return null",
-        FileType.CTF_CORRECTED_STACK.getImodManagerKey2(manager));
+        FileType.CTF_CORRECTED_STACK.getImodManagerKey2());
     assertNull("getImodManagerKey2 did not return null",
-        FileType.ERASED_BEADS_STACK.getImodManagerKey2(manager));
+        FileType.ERASED_BEADS_STACK.getImodManagerKey2());
     assertNull("getImodManagerKey2 did not return null",
-        FileType.CCD_ERASER_BEADS_INPUT_MODEL.getImodManagerKey2(manager));
+        FileType.CCD_ERASER_BEADS_INPUT_MODEL.getImodManagerKey2());
     assertNull("getImodManagerKey2 did not return null",
-        FileType.MTF_FILTERED_STACK.getImodManagerKey2(manager));
+        FileType.MTF_FILTERED_STACK.getImodManagerKey2());
     assertNull("getImodManagerKey2 did not return null",
-        FileType.FIXED_XRAYS_STACK.getImodManagerKey2(manager));
+        FileType.FIXED_XRAYS_STACK.getImodManagerKey2());
     assertNull("getImodManagerKey2 did not return null",
-        FileType.FLATTEN_WARP_INPUT_MODEL.getImodManagerKey2(manager));
+        FileType.FLATTEN_WARP_INPUT_MODEL.getImodManagerKey2());
     assertNull("getImodManagerKey2 did not return null",
-        FileType.FLATTEN_OUTPUT.getImodManagerKey2(manager));
+        FileType.FLATTEN_OUTPUT.getImodManagerKey2());
     assertNull("getImodManagerKey2 did not return null",
-        FileType.FLATTEN_TOOL_COMSCRIPT.getImodManagerKey2(manager));
+        FileType.FLATTEN_TOOL_COMSCRIPT.getImodManagerKey2());
     assertNull("getImodManagerKey2 did not return null",
-        FileType.MODELED_JOIN.getImodManagerKey2(manager));
+        FileType.MODELED_JOIN.getImodManagerKey2());
     assertNull("getImodManagerKey2 did not return null",
-        FileType.ORIGINAL_RAW_STACK.getImodManagerKey2(manager));
+        FileType.ORIGINAL_RAW_STACK.getImodManagerKey2());
     assertNull("getImodManagerKey2 did not return null",
-        FileType.PATCH_TRACKING_BOUNDARY_MODEL.getImodManagerKey2(manager));
+        FileType.PATCH_TRACKING_BOUNDARY_MODEL.getImodManagerKey2());
     assertNull("getImodManagerKey2 did not return null",
-        FileType.TRANSFORMED_REFINING_MODEL.getImodManagerKey2(manager));
+        FileType.TRANSFORMED_REFINING_MODEL.getImodManagerKey2());
     assertNull("getImodManagerKey2 did not return null",
-        FileType.TRIAL_JOIN.getImodManagerKey2(manager));
+        FileType.TRIAL_JOIN.getImodManagerKey2());
     assertNull("getImodManagerKey2 did not return null",
-        FileType.CTF_CORRECTION_COMSCRIPT.getImodManagerKey2(manager));
+        FileType.CTF_CORRECTION_COMSCRIPT.getImodManagerKey2());
     assertNull("getImodManagerKey2 did not return null",
-        FileType.FIND_BEADS_3D_COMSCRIPT.getImodManagerKey2(manager));
+        FileType.FIND_BEADS_3D_COMSCRIPT.getImodManagerKey2());
     assertNull("getImodManagerKey2 did not return null",
-        FileType.FLATTEN_COMSCRIPT.getImodManagerKey2(manager));
+        FileType.FLATTEN_COMSCRIPT.getImodManagerKey2());
     assertNull("getImodManagerKey2 did not return null",
-        FileType.MTF_FILTER_COMSCRIPT.getImodManagerKey2(manager));
+        FileType.MTF_FILTER_COMSCRIPT.getImodManagerKey2());
     assertNull("getImodManagerKey2 did not return null",
-        FileType.PATCH_VECTOR_MODEL.getImodManagerKey2(manager));
+        FileType.PATCH_VECTOR_MODEL.getImodManagerKey2());
     assertNull("getImodManagerKey2 did not return null",
-        FileType.PATCH_VECTOR_CCC_MODEL.getImodManagerKey2(manager));
+        FileType.PATCH_VECTOR_CCC_MODEL.getImodManagerKey2());
     assertNull("getImodManagerKey2 did not return null",
-        FileType.SIRTSETUP_COMSCRIPT.getImodManagerKey2(manager));
+        FileType.SIRTSETUP_COMSCRIPT.getImodManagerKey2());
     assertNull("getImodManagerKey2 did not return null",
-        FileType.COMBINED_VOLUME.getImodManagerKey2(manager));
+        FileType.COMBINED_VOLUME.getImodManagerKey2());
     assertNull("getImodManagerKey2 did not return null",
-        FileType.NAD_TEST_INPUT.getImodManagerKey2(manager));
+        FileType.NAD_TEST_INPUT.getImodManagerKey2());
     assertNull("getImodManagerKey2 did not return null",
-        FileType.TILT_COMSCRIPT.getImodManagerKey2(manager));
+        FileType.TILT_COMSCRIPT.getImodManagerKey2());
     assertNull("getImodManagerKey2 did not return null",
-        FileType.TILT_OUTPUT.getImodManagerKey2(manager));
+        FileType.TILT_OUTPUT.getImodManagerKey2());
     assertNull("getImodManagerKey2 did not return null",
-        FileType.SIRT_SCALED_OUTPUT_TEMPLATE.getImodManagerKey2(manager));
+        FileType.SIRT_SCALED_OUTPUT_TEMPLATE.getImodManagerKey2());
     assertNull("getImodManagerKey2 did not return null",
-        FileType.SIRT_OUTPUT_TEMPLATE.getImodManagerKey2(manager));
+        FileType.SIRT_OUTPUT_TEMPLATE.getImodManagerKey2());
     assertNull("getImodManagerKey2 did not return null",
-        FileType.CROSS_CORRELATION_COMSCRIPT.getImodManagerKey2(manager));
+        FileType.CROSS_CORRELATION_COMSCRIPT.getImodManagerKey2());
     assertNull("getImodManagerKey2 did not return null",
-        FileType.PATCH_TRACKING_COMSCRIPT.getImodManagerKey2(manager));
+        FileType.PATCH_TRACKING_COMSCRIPT.getImodManagerKey2());
     assertNull("getImodManagerKey2 did not return null",
-        FileType.TILT_FOR_SIRT_COMSCRIPT.getImodManagerKey2(manager));
-
-    metaData.setAxisType(AxisType.SINGLE_AXIS);
-    assertNull("getImodManagerKey2 did not return null",
-        FileType.FIDUCIAL_3D_MODEL.getImodManagerKey2(manager));
-    assertNull("getImodManagerKey2 did not return null",
-        FileType.ALIGNED_STACK.getImodManagerKey2(manager));
-    assertNull("getImodManagerKey2 did not return null",
-        FileType.XCORR_BLEND_OUTPUT.getImodManagerKey2(manager));
-    assertNull("getImodManagerKey2 did not return null",
-        FileType.DISTORTION_CORRECTED_STACK.getImodManagerKey2(manager));
-    assertNull("getImodManagerKey2 did not return null",
-        FileType.FIDUCIAL_MODEL.getImodManagerKey2(manager));
-    assertNull("getImodManagerKey2 did not return null",
-        FileType.FLATTEN_TOOL_OUTPUT.getImodManagerKey2(manager));
-    assertNull("getImodManagerKey2 did not return null",
-        FileType.JOIN.getImodManagerKey2(manager));
-    assertNull("getImodManagerKey2 did not return null",
-        FileType.ANISOTROPIC_DIFFUSION_OUTPUT.getImodManagerKey2(manager));
-    assertNull("getImodManagerKey2 did not return null",
-        FileType.PREALIGNED_STACK.getImodManagerKey2(manager));
-    assertNull("getImodManagerKey2 did not return null",
-        FileType.RAW_TILT_ANGLES.getImodManagerKey2(manager));
-    assertNull("getImodManagerKey2 did not return null",
-        FileType.TRIM_VOL_OUTPUT.getImodManagerKey2(manager));
-    assertNull("getImodManagerKey2 did not return null",
-        FileType.JOIN_SAMPLE_AVERAGES.getImodManagerKey2(manager));
-    assertNull("getImodManagerKey2 did not return null",
-        FileType.JOIN_SAMPLE.getImodManagerKey2(manager));
-    assertNull("getImodManagerKey2 did not return null",
-        FileType.SQUEEZE_VOL_OUTPUT.getImodManagerKey2(manager));
-    assertSame("getImodManagerKey2 did not return the correct ImodManager key",
-        FileType.RAW_STACK.getImodManagerKey2(manager), ImodManager.PREVIEW_KEY);
-    assertNull("getImodManagerKey2 did not return null",
-        FileType.NEWST_OR_BLEND_3D_FIND_OUTPUT.getImodManagerKey2(manager));
-    assertNull("getImodManagerKey2 did not return null",
-        FileType.FIND_BEADS_3D_OUTPUT_MODEL.getImodManagerKey2(manager));
-    assertNull("getImodManagerKey2 did not return null",
-        FileType.TILT_3D_FIND_OUTPUT.getImodManagerKey2(manager));
-    assertNull("getImodManagerKey2 did not return null",
-        FileType.SMOOTHING_ASSESSMENT_OUTPUT_MODEL.getImodManagerKey2(manager));
-    assertNull("getImodManagerKey2 did not return null",
-        FileType.CTF_CORRECTED_STACK.getImodManagerKey2(manager));
-    assertNull("getImodManagerKey2 did not return null",
-        FileType.ERASED_BEADS_STACK.getImodManagerKey2(manager));
-    assertNull("getImodManagerKey2 did not return null",
-        FileType.CCD_ERASER_BEADS_INPUT_MODEL.getImodManagerKey2(manager));
-    assertNull("getImodManagerKey2 did not return null",
-        FileType.MTF_FILTERED_STACK.getImodManagerKey2(manager));
-    assertNull("getImodManagerKey2 did not return null",
-        FileType.FIXED_XRAYS_STACK.getImodManagerKey2(manager));
-    assertNull("getImodManagerKey2 did not return null",
-        FileType.FLATTEN_WARP_INPUT_MODEL.getImodManagerKey2(manager));
-    assertNull("getImodManagerKey2 did not return null",
-        FileType.FLATTEN_OUTPUT.getImodManagerKey2(manager));
-    assertNull("getImodManagerKey2 did not return null",
-        FileType.FLATTEN_TOOL_COMSCRIPT.getImodManagerKey2(manager));
-    assertNull("getImodManagerKey2 did not return null",
-        FileType.MODELED_JOIN.getImodManagerKey2(manager));
-    assertNull("getImodManagerKey2 did not return null",
-        FileType.ORIGINAL_RAW_STACK.getImodManagerKey2(manager));
-    assertNull("getImodManagerKey2 did not return null",
-        FileType.PATCH_TRACKING_BOUNDARY_MODEL.getImodManagerKey2(manager));
-    assertNull("getImodManagerKey2 did not return null",
-        FileType.TRANSFORMED_REFINING_MODEL.getImodManagerKey2(manager));
-    assertNull("getImodManagerKey2 did not return null",
-        FileType.TRIAL_JOIN.getImodManagerKey2(manager));
-    assertNull("getImodManagerKey2 did not return null",
-        FileType.CTF_CORRECTION_COMSCRIPT.getImodManagerKey2(manager));
-    assertNull("getImodManagerKey2 did not return null",
-        FileType.FIND_BEADS_3D_COMSCRIPT.getImodManagerKey2(manager));
-    assertNull("getImodManagerKey2 did not return null",
-        FileType.FLATTEN_COMSCRIPT.getImodManagerKey2(manager));
-    assertNull("getImodManagerKey2 did not return null",
-        FileType.MTF_FILTER_COMSCRIPT.getImodManagerKey2(manager));
-    assertNull("getImodManagerKey2 did not return null",
-        FileType.PATCH_VECTOR_MODEL.getImodManagerKey2(manager));
-    assertNull("getImodManagerKey2 did not return null",
-        FileType.PATCH_VECTOR_CCC_MODEL.getImodManagerKey2(manager));
-    assertNull("getImodManagerKey2 did not return null",
-        FileType.SIRTSETUP_COMSCRIPT.getImodManagerKey2(manager));
-    assertNull("getImodManagerKey2 did not return null",
-        FileType.COMBINED_VOLUME.getImodManagerKey2(manager));
-    assertNull("getImodManagerKey2 did not return null",
-        FileType.NAD_TEST_INPUT.getImodManagerKey2(manager));
-    assertNull("getImodManagerKey2 did not return null",
-        FileType.TILT_COMSCRIPT.getImodManagerKey2(manager));
-    assertNull("getImodManagerKey2 did not return null",
-        FileType.TILT_OUTPUT.getImodManagerKey2(manager));
-    assertNull("getImodManagerKey2 did not return null",
-        FileType.SIRT_SCALED_OUTPUT_TEMPLATE.getImodManagerKey2(manager));
-    assertNull("getImodManagerKey2 did not return null",
-        FileType.SIRT_OUTPUT_TEMPLATE.getImodManagerKey2(manager));
-    assertNull("getImodManagerKey2 did not return null",
-        FileType.CROSS_CORRELATION_COMSCRIPT.getImodManagerKey2(manager));
-    assertNull("getImodManagerKey2 did not return null",
-        FileType.PATCH_TRACKING_COMSCRIPT.getImodManagerKey2(manager));
-    assertNull("getImodManagerKey2 did not return null",
-        FileType.TILT_FOR_SIRT_COMSCRIPT.getImodManagerKey2(manager));
+        FileType.TILT_FOR_SIRT_COMSCRIPT.getImodManagerKey2());
   }
 
   public void testGetFileName() {

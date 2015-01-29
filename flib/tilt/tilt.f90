@@ -120,7 +120,7 @@ program tilt
     !
     ! Allocate maskEdges array and prepare fixed maskEdges
     allocate(ixUnmaskedSE(2, ithickBP), stat = ierr)
-    if (ierr .ne. 0) call exitError('ALLOCATING MASK ARRAY')
+    call memoryError(ierr, 'MASK ARRAY')
     if (ifAlpha == 0 .or. .not.maskEdges) call maskPrep(isliceStart)
   endif
   if (debug) print *,'slicen', centerSlice, ', imap', indOutSlice, ', nbase', indLoadBase
@@ -1999,43 +1999,44 @@ SUBROUTINE inputParameters()
 
   use tiltvars
   implicit none
-  integer limnum
-  parameter (limnum = 100)
+  integer LIMNUM
+  parameter (LIMNUM = 100)
   !
-  integer*4 MPXYZ(3), NOXYZ(3), nrxyz(3), nsxyz(3), maxNeeds(limnum)
-  real*4 outilt(3), cell(6), dtor
-  data outilt/90., 0., 0./
+  integer*4 mpxyz(3), noutXyz(3), nrecXyz(3), nvsXyz(3), maxNeeds(LIMNUM)
+  real*4 outHdrTilt(3), cell(6), degToRad
+  data outHdrTilt/90., 0., 0./
   data cell/0., 0., 0., 90., 90., 90./
-  DATA DTOR/0.0174532/
-  CHARACTER DAT * 9, TIM * 8
+  data degToRad/0.0174533/
+  character dat * 9, tim * 8
   real*4 delta(3)
   character*80 titlech
   !
-  Character*1024 card
-  CHARACTER*320 FILIN, FILOUT, recfile, basefile, boundfile, vertBoundFile, vertOutFile
-  integer*4 nfields, inum(limnum)
-  real*4 XNUM(limnum)
+  character*1024 card
+  character*320 inputFile, outputFile, recFile, baseFile, boundFile, vertBoundFile
+  character*320 vertOutFile, angleOutput, transformFile, defocusFile
+  integer*4 nfields, inum(LIMNUM)
+  real*4 xnum(LIMNUM)
   !
-  integer*4, allocatable :: ivexcl(:), ivreprj(:)
+  integer*4, allocatable :: ivExclude(:), ivReproj(:)
   real*4, allocatable :: packLocal(:,:), angReproj(:)
-  integer*4 mode, newangles, iftiltfile, nvuse, nvexcl, numNeedEval
-  real*4 delang, compfac, globalpha, xoffset, scalelocal, rrmax, rfall, xoffAdj
-  integer*4 irmax, ifall, ncompress, nxfull, nyfull, ixsubset, iysubset, ixSubsetIn
-  integer*4 kti, indbase, ipos, idtype, lens, nxFullIn
-  integer*4 nd1, nd2, nv, numSlices, indi, i, iex, nvorig, iv
-  real*4 vd1, vd2, dtheta, theta, thetanv
-  integer*4 nxprj2, ninp, nexclist, j, ind, nument
-  integer*4 npadtmp, nprpad, ifZfac, localZfacs
+  integer*4 mode, newAngles, ifTiltFile, numViewUse, numViewExclude, numNeedEval
+  real*4 delAngle, compFactor, globalAlpha, xOffset, scaleLocal, radMax, radFall, xoffAdj
+  integer*4 iradMax, iradFall, numCompress, nxfull, nyFull, ixSubset, iySubset, ixSubsetIn
+  integer*4 kti, indBase, ipos, idType, lens, nxFullIn
+  integer*4 nd1, nd2, nv, numSlices, indi, i, iex, numViewOrig, iv
+  real*4 vd1, vd2, delTheta, theta, thetaView
+  integer*4 nxProjPad, numInput, numExcludeList, j, ind, numEnt
+  integer*4 numPadTmp, nprojPad, ifZfactors, localZfacs
   integer*4 ifThickIn, ifSliceIn, ifWidthIn, imageBinned, ifSubsetIn, ierr
-  real*4 pixelLocal, dmint, dmaxt, dmeant, frac, origx, origy, origz
-  real*4 gpuMemoryFrac, gpuMemory
+  real*4 pixelLocal, dminTmp, dmaxTmp, dmeanTmp, frac, originX, originY, originZ
+  real*4 gpuMemoryFrac, gpuMemory, pixForDefocus, focusInvert
   integer*4 nViewsReproj, iwideReproj, k, ind1, ind2, ifExpWeight
-  integer*4 minMemory, nGPU, iactGpuFailOption, iactGpuFailEnviron
-  integer*4 ifGpuByEnviron, indDelta, ifexit
+  integer*4 minMemory, indGPU, iactGpuFailOption, iactGpuFailEnviron
+  integer*4 ifGpuByEnviron, indDelta, ifExit
   logical*4 adjustOrigin, projModel, readw_or_imod
-  integer*4 niceframe, parWrtInitialize, gpuAvailable, imodGetEnv, parWrtSetCurrent
+  integer*4 niceFrame, parWrtInitialize, gpuAvailable, imodGetEnv, parWrtSetCurrent
   integer*4 gpuAllocArrays, allocateArray, gpuLoadLocals, gpuLoadFilter, niceFFTlimit
-  real*8 wallTime, wallstart
+  real*8 wallTime, wallStart
   !
   integer*4 numOptArg, numNonOptArg
   integer*4 PipGetInteger, PipGetBoolean, PipGetLogical, PipGetTwoFloats
@@ -2043,37 +2044,35 @@ SUBROUTINE inputParameters()
   integer*4 PipGetInOutFile, PipGetIntegerArray, PipNumberOfEntries
   integer*4 PipGetThreeFloats
   !
-  ! fallbacks from ../../manpages/autodoc2man -2 2  tilt
+  ! fallbacks from ../../manpages/autodoc2man -3 2  tilt
   !
   integer numOptions
-  parameter (numOptions = 62)
+  parameter (numOptions = 70)
   character*(40 * numOptions) options(1)
   options(1) = &
       'input:InputProjections:FN:@output:OutputFile:FN:@'// &
-      'recfile:RecFileToReproject:FN:@:ProjectModel:FN:@'// &
-      ':BaseRecFile:FN:@:ActionIfGPUFails:IP:@:AdjustOrigin:B:@'// &
-      ':ANGLES:FAM:@:BaseNumViews:I:@:BoundaryInfoFile:FN:@'// &
-      ':COMPFRACTION:F:@:COMPRESS:FAM:@:ConstrainSign:I:@:COSINTERP:IA:@'// &
-      ':DENSWEIGHT:FA:@:DONE:B:@:EXCLUDELIST2:LIM:@'// &
-      ':FlatFilterFraction:F:@:FBPINTERP:I:@:FULLIMAGE:IP:@'// &
-      ':IMAGEBINNED:I:@:INCLUDE:LIM:@:LOCALFILE:FN:@:LOCALSCALE:F:@'// &
-      ':LOG:F:@:MASK:I:@:MinMaxMean:IT:@:MODE:I:@:OFFSET:FA:@'// &
-      ':PARALLEL:B:@:PERPENDICULAR:B:@:RADIAL:FP:@:REPLICATE:FPM:@'// &
-      ':REPROJECT:FAM:@:SCALE:FP:@:SHIFT:FA:@:SIRTIterations:I:@'// &
-      ':SIRTSubtraction:B:@:SLICE:FA:@:StartingIteration:I:@'// &
-      ':SUBSETSTART:IP:@:SubtractFromBase:LI:@:THICKNESS:I:@'// &
-      ':TILTFILE:FN:@:TITLE:CH:@:TOTALSLICES:IP:@:UseGPU:I:@'// &
-      ':ViewsToReproject:LI:@:WeightAngleFile:FN:@:WeightFile:FN:@'// &
-      ':WIDTH:I:@:XAXISTILT:F:@xminmax:XMinAndMaxReproj:IP:@'// &
-      ':XTILTFILE:FN:@:XTILTINTERP:I:@yminmax:YMinAndMaxReproj:IP:@'// &
-      ':ZFACTORFILE:FN:@zminmax:ZMinAndMaxReproj:IP:@'// &
-      'debug:DebugOutput:B:@internal:InternalSIRTSlices:IP:@'// &
-      'param:ParameterFile:PF:@help:usage:B:'
+      'recfile:RecFileToReproject:FN:@:ProjectModel:FN:@:AngleOutputFile:FN:@'// &
+      ':AlignTransformFile:FN:@:DefocusFile:FN:@:PixelForDefocus:FP:@'// &
+      ':BaseRecFile:FN:@:ActionIfGPUFails:IP:@:AdjustOrigin:B:@:ANGLES:FAM:@'// &
+      ':BaseNumViews:I:@:BoundaryInfoFile:FN:@:COMPFRACTION:F:@:COMPRESS:FAM:@'// &
+      ':ConstrainSign:I:@:COSINTERP:IA:@:DENSWEIGHT:FA:@:DONE:B:@:EXCLUDELIST2:LIM:@'// &
+      ':FlatFilterFraction:F:@:FBPINTERP:I:@:FULLIMAGE:IP:@:IMAGEBINNED:I:@'// &
+      ':INCLUDE:LIM:@:LOCALFILE:FN:@:LOCALSCALE:F:@:LOG:F:@:MASK:I:@:MinMaxMean:IT:@'// &
+      ':MODE:I:@:OFFSET:FA:@:PARALLEL:B:@:PERPENDICULAR:B:@:RADIAL:FP:@'// &
+      ':REPLICATE:FPM:@:REPROJECT:FAM:@:RotateBy90:B:@:SCALE:FP:@:SHIFT:FA:@'// &
+      ':SIRTIterations:I:@:SIRTSubtraction:B:@:SLICE:IA:@:StartingIteration:I:@'// &
+      ':SUBSETSTART:IP:@:SubtractFromBase:LI:@:THICKNESS:I:@:TILTFILE:FN:@:TITLE:CH:@'// &
+      ':TOTALSLICES:IP:@:UseGPU:I:@:ViewsToReproject:LI:@:VertBoundaryFile:FN:@'// &
+      ':VertSliceOutputFile:FN:@:VertForSIRTInput:B:@:WeightAngleFile:FN:@'// &
+      ':WeightFile:FN:@:WIDTH:I:@:XAXISTILT:F:@xminmax:XMinAndMaxReproj:IP:@'// &
+      ':XTILTFILE:FN:@:XTILTINTERP:I:@yminmax:YMinAndMaxReproj:IP:@:ZFACTORFILE:FN:@'// &
+      'zminmax:ZMinAndMaxReproj:IP:@debug:DebugOutput:B:@'// &
+      'internal:InternalSIRTSlices:IP:@param:ParameterFile:PF:@help:usage:B:'
   !
   recReproj = .false.
   nViewsReproj = 0
   useGPU = .false.
-  nGPU = -1;
+  indGPU = -1;
   numGpuPlanes = 0
   numSIRTiter = 0
   sirtFromZero = .false.
@@ -2081,8 +2080,11 @@ SUBROUTINE inputParameters()
   projSubtraction = .false.
   vertSirtInput = .false.
   saveVertSlices = .false.
+  angleOutput = ' '
   flatFrac = 0.
   iterForReport = 0
+  focusInvert = 0.
+  defocusFile = ' '
   !
   ! Minimum array size to allocate, desired number of slices to allocate
   ! for if it exceeds that minimum size
@@ -2096,9 +2098,9 @@ SUBROUTINE inputParameters()
   call PipReadOrParseOptions(options, numOptions, 'tilt', &
       'ERROR: TILT - ', .false., 0, 1, 1, numOptArg, numNonOptArg)
 
-  if (PipGetInOutFile('InputProjections', 1, ' ', filin) .ne. 0) &
+  if (PipGetInOutFile('InputProjections', 1, ' ', inputFile) .ne. 0) &
       call exitError('NO INPUT FILE WITH PROJECTIONS SPECIFIED')
-  if (PipGetInOutFile('OutputFile', 2, ' ', filout) .ne. 0) &
+  if (PipGetInOutFile('OutputFile', 2, ' ', outputFile) .ne. 0) &
       call exitError('NO OUTPUT FILE SPECIFIED')
   !
   ! Allocate array a little bit for temp use
@@ -2108,54 +2110,59 @@ SUBROUTINE inputParameters()
   ierr = PipGetLogical('DebugOutput', debug)
   !
   ! Open input projection file
-  CALL IMOPEN(1, FILIN, 'RO')
-  CALL IRDHDR(1, nprojXyz, MPXYZ, MODE, dminIn, dmaxIn, dmeanIn)
-  call irtdat(1, idtype, lens, nd1, nd2, vd1, vd2)
+  call imOpen(1, inputFile, 'RO')
+  call irdhdr(1, nprojXyz, mpxyz, mode, dminIn, dmaxIn, dmeanIn)
+  call iiuRetDataType(1, idType, lens, nd1, nd2, vd1, vd2)
   numViews = nprojXyz(3)
   limView = numViews + 10
   allocate(sinBeta(limView), cosBeta(limView), sinAlpha(limView), cosAlpha(limView),  &
       alpha(limView), angles(limView), xzfac(limView), yzfac(limView),  &
       compress(limView), nxStretched(limView), indStretchLine(limView),  &
       stretchOffset(limView), exposeWeight(limView), mapUsedView(limView), &
-      iviewSubtract(limView), wgtAngles(limView), ivexcl(limView), &
-      ivreprj(limView), stat = ierr)
+      iviewSubtract(limView), wgtAngles(limView), ivExclude(limView), &
+      ivReproj(limView), stat = ierr)
   call memoryError(ierr, 'ARRAYS FOR VARIABLES PER VIEW')
   !
   ! The approximate implicit scaling caused by the default radial filter
   filterScale = nprojXyz(1) / 2.2
   !
-  newangles = 0
-  iftiltfile = 0
+  newAngles = 0
+  ifTiltFile = 0
   !
-  ! Get model file to project
-  projModel = PipGetString('ProjectModel', recfile) == 0
-  if (projModel .and. .not.readw_or_imod(recfile)) call exitError( &
-      'READING MODEL FILE TO REPROJECT')
+  ! Get model file to project and other optional files
+  projModel = PipGetString('ProjectModel', recFile) == 0
+  if (projModel) then
+    if (.not.readw_or_imod(recFile)) call exitError('READING MODEL FILE TO REPROJECT')
+    ierr = PipGetString('AngleOutputFile', angleOutput)
+    ierr = PipGetString('AlignTransformFile', transformFile)
+    ierr = PipGetString('DefocusFile', defocusFile)
+    ierr = PipGetTwoFloats('PixelForDefocus', pixForDefocus, focusInvert)
+  endif
   !
   ! Get entries for reprojection from rec file
   ierr = PipGetInteger('SIRTIterations', numSIRTiter)
-  if (PipGetString('RecFileToReproject', recfile) == 0) then
+  if (PipGetString('RecFileToReproject', recFile) == 0) then
     if (projModel) call exitError( &
         'YOU CANNOT USE -RecFileToReproject with -ProjectModel')
     projMean = dmeanIn
-    call IMOPEN(3, recfile, 'RO')
-    CALL IRDHDR(3, NRXYZ, MPXYZ, MODE, dminIn, dmaxIn, dmeanIn)
+    call imOpen(3, recFile, 'RO')
+    call irdhdr(3, nrecXyz, mpxyz, mode, dminIn, dmaxIn, dmeanIn)
     if (numSIRTiter <= 0) then
       recReproj = .true.
       minXreproj = 0
       minYreproj = 0
       minZreproj = 0
-      maxXreproj = nrxyz(1) - 1
-      maxYreproj = nrxyz(2) - 1
-      maxZreproj = nrxyz(3) - 1
+      maxXreproj = nrecXyz(1) - 1
+      maxYreproj = nrecXyz(2) - 1
+      maxZreproj = nrecXyz(3) - 1
       ierr = PipGetTwoIntegers('XMinAndMaxReproj', minXreproj, maxXreproj)
       ierr = PipGetTwoIntegers('YMinAndMaxReproj', minYreproj, maxYreproj)
       ierr = PipGetTwoIntegers('ZMinAndMaxReproj', minZreproj, maxZreproj)
       if (minXreproj < 0 .or. minYreproj < 0 .or. maxXreproj >= &
-          nrxyz(1) .or. maxYreproj >= nrxyz(2)) call exitError( &
+          nrecXyz(1) .or. maxYreproj >= nrecXyz(2)) call exitError( &
           'Min or Max X, or Y coordinate to project is out of range')
       if (PipGetString('ViewsToReproj', card) == 0) then
-        call parselist(card, ivreprj, nViewsReproj)
+        call parseList(card, ivReproj, nViewsReproj)
         if (nViewsReproj > limView) call exitError( &
             'TOO MANY VIEWS IN LIST TO REPROJECT FOR ARRAYS')
       endif
@@ -2175,10 +2182,10 @@ SUBROUTINE inputParameters()
   endif
 
   if (.not. recReproj .and. .not.projModel .and. numSIRTiter <= 0 .and. &
-      PipGetString('BaseRecFile', basefile) == 0) then
+      PipGetString('BaseRecFile', baseFile) == 0) then
     readBaseRec = .true.
     if (PipGetString('SubtractFromBase', card) == 0) then
-      call parselist(card, iviewSubtract, numViewSubtract)
+      call parseList(card, iviewSubtract, numViewSubtract)
       if (numViewSubtract > limView) call exitError( &
           'TOO MANY VIEWS IN LIST TO SUBTRACT FOR ARRAYS')
       if (numViewSubtract == 1 .and. iviewSubtract(1) < 0) then
@@ -2189,8 +2196,8 @@ SUBROUTINE inputParameters()
     if (.not. recSubtraction .and. &
         PipGetInteger('BaseNumViews', numViewBase) .ne. 0) call exitError( &
         'YOU MUST ENTER -BaseNumViews with -BaseRecFile')
-    call imopen(3, basefile, 'RO')
-    call irdhdr(3, NRXYZ, MPXYZ, MODE, dmint, dmaxt, dmeant)
+    call imOpen(3, baseFile, 'RO')
+    call irdhdr(3, nrecXyz, mpxyz, mode, dminTmp, dmaxTmp, dmeanTmp)
   endif
   !
   !-------------------------------------------------------------
@@ -2203,26 +2210,26 @@ SUBROUTINE inputParameters()
   !...... and has the same number of columns.
   iwidth = nprojXyz(1)
   !...... Default is no maskEdges and extra pixels to maskEdges is 0
-  maskEdges = .FALSE.
+  maskEdges = .false.
   numExtraMaskPix = 0
   !...... Default is no scaling of output map
   outAdd = 0.
   outScale = 1.
   !...... Default is no offset or rotation
-  DELANG = 0.
+  delAngle = 0.
   !...... Default is output mode 2
   newMode = 2
   !...... Start with no list of views to use or exclude
-  nvuse = 0
-  nvexcl = 0
+  numViewUse = 0
+  numViewExclude = 0
   !...... Default is no logarithms
   ifLog = 0
   !...... Default radial weighting parameters - no filtering
-  irmax = nprojXyz(1) / 2 + 1
-  ifall = 0
+  iradMax = nprojXyz(1) / 2 + 1
+  iradFall = 0
   !...... Default overall and individual compression of 1; no alpha tilt
-  ncompress = 0
-  compfac = 1.
+  numCompress = 0
+  compFactor = 1.
   do nv = 1, numViews
     compress(nv) = 1.
     alpha(nv) = 0.
@@ -2231,8 +2238,8 @@ SUBROUTINE inputParameters()
     exposeWeight(nv) = 1.
   enddo
   ifAlpha = 0
-  globalpha = 0.
-  ifZfac = 0
+  globalAlpha = 0.
+  ifZfactors = 0
   !
   !...... Default weighting by density of adjacent views
   numTiltIncWgt = 2
@@ -2241,16 +2248,16 @@ SUBROUTINE inputParameters()
   enddo
   numWgtAngles = 0
   !
-  xoffset = 0
+  xOffset = 0
   yOffset = 0
   axisXoffset = 0.
   nxWarp = 0
   nyWarp = 0
-  scalelocal = 0.
+  scaleLocal = 0.
   nxFullIn = 0
-  nyfull = 0
+  nyFull = 0
   ixSubsetIn = 0
-  iysubset = 0
+  iySubset = 0
   ithickBP = 10
   imageBinned = 1
   ifThickIn = 0
@@ -2269,7 +2276,7 @@ SUBROUTINE inputParameters()
   rotateBy90 = .false.
   reprojBP = .false.
   numReproj = 0
-  adjustorigin = .false.
+  adjustOrigin = .false.
   numViewSubtract = 0
   iactGpuFailOption = 0
   iactGpuFailEnviron = 0
@@ -2280,8 +2287,8 @@ SUBROUTINE inputParameters()
   vertBoundFile = ' '
   !
   !...... Default title
-  CALL b3dDATE(DAT)
-  CALL TIME(TIM)
+  call b3dDate(dat)
+  call time(tim)
   !
   write(titlech, 49) 'Tomographic reconstruction', dat, tim
   if (recReproj) write(titlech, 49) 'Reprojection from tomogram', dat, tim
@@ -2290,17 +2297,17 @@ SUBROUTINE inputParameters()
   !
 
   if (PipGetString('TITLE', card) == 0) then
-    write(titlech, 49) CARD(1:50), DAT, TIM
+    write(titlech, 49) card(1:50), dat, tim
     read(titlech, '(20a4)') (title(kti), kti = 1, 20)
-    WRITE(6, 101) title
+    write(6, 101) title
   endif
   !
   nfields = 0
-  if (PipGetIntegerArray('SLICE', inum, nfields, limnum) == 0) then
-    if (NFIELDS / 2 .NE. 1) &
+  if (PipGetIntegerArray('SLICE', inum, nfields, LIMNUM) == 0) then
+    if (nfields / 2 .ne. 1) &
         call exitError('Wrong number of fields on SLICE line')
-    isliceStart = INUM(1) + 1
-    isliceEnd = INUM(2) + 1
+    isliceStart = inum(1) + 1
+    isliceEnd = inum(2) + 1
     if (nfields > 2) idelSlice = inum(3)
     if (idelSlice <= 0) call exitError( &
         'Negative slice increments are not allowed')
@@ -2310,30 +2317,30 @@ SUBROUTINE inputParameters()
   if (PipGetInteger('THICKNESS', ithickBP) == 0) ifThickIn = 1
   !
   if (PipGetInteger('MASK', numExtraMaskPix) == 0) then
-    maskEdges = .TRUE.
+    maskEdges = .true.
     numExtraMaskPix = max(-nprojXyz(1) / 50, min(nprojXyz(1) / 50, numExtraMaskPix))
-    WRITE(6, 401) numExtraMaskPix
+    write(6, 401) numExtraMaskPix
   endif
   !
 
-  if (PipGetTwoFloats('RADIAL', rrmax, rfall) == 0) then
-    irmax = rrmax
-    ifall = rfall
-    if (irmax == 0) irmax = nprojXyz(1) * rrmax
-    if (ifall == 0) ifall = nprojXyz(1) * rfall
-    WRITE(6, 501) IRMAX, IFALL
+  if (PipGetTwoFloats('RADIAL', radMax, radFall) == 0) then
+    iradMax = radMax
+    iradFall = radFall
+    if (iradMax == 0) iradMax = nprojXyz(1) * radMax
+    if (iradFall == 0) iradFall = nprojXyz(1) * radFall
+    write(6, 501) iradMax, iradFall
   endif
   !
   nfields = 0
-  if (PipGetFloatArray('OFFSET', xnum, nfields, limnum) == 0) then
-    if (NFIELDS == 0 .OR. NFIELDS >= 3) &
+  if (PipGetFloatArray('OFFSET', xnum, nfields, LIMNUM) == 0) then
+    if (nfields == 0 .or. nfields >= 3) &
         call exitError('Wrong number of fields on OFFSET line')
-    if (NFIELDS == 2) axisXoffset = XNUM(2)
-    DELANG = XNUM(1)
+    if (nfields == 2) axisXoffset = xnum(2)
+    delAngle = xnum(1)
   endif
   !
   if (PipGetTwoFloats('SCALE', outAdd, outScale) == 0) &
-      WRITE(6, 701) outAdd, outScale
+      write(6, 701) outAdd, outScale
   !
   iv = PipGetLogical('PERPENDICULAR', perpendicular)
   j = PipGetLogical('RotateBy90', rotateBy90)
@@ -2344,11 +2351,11 @@ SUBROUTINE inputParameters()
       call exitError('YOU CAN SELECT ONLY ONE OF PERPENDICULAR, PARALLEL, AND RotateBy90')
   if (i > 0 .or. rotateBy90) perpendicular = .false.
   if (perpendicular) then
-    WRITE(6, 801)
+    write(6, 801)
   elseif (rotateBy90) then
-    WRITE(6, 902)
+    write(6, 902)
   else
-    WRITE(6, 901)
+    write(6, 901)
   endif
   !
   if (PipGetInteger('MODE', newMode) == 0) then
@@ -2357,32 +2364,33 @@ SUBROUTINE inputParameters()
     write(6, 1001) newMode
   endif
   !
-  ierr = PipNumberOfEntries('INCLUDE', nument)
-  do j = 1, nument
+  ierr = PipNumberOfEntries('INCLUDE', numEnt)
+  do j = 1, numEnt
     ierr = PipGetString('INCLUDE', card)
-    call parselist(card, mapUsedView(nvuse + 1), nexclist)
-    if (nvuse + nexclist > limView) call exitError('TOO MANY INCLUDED VIEWS FOR ARRAYS')
-    do i = nvuse + 1, nvuse + nexclist
+    call parseList(card, mapUsedView(numViewUse + 1), numExcludeList)
+    if (numViewUse + numExcludeList > limView) call exitError( &
+        'TOO MANY INCLUDED VIEWS FOR ARRAYS')
+    do i = numViewUse + 1, numViewUse + numExcludeList
       if (mapUsedView(i) < 1 .or. mapUsedView(i) > numViews) call exitError( &
           'Illegal view number in INCLUDE list')
     enddo
-    nvuse = nvuse + nexclist
+    numViewUse = numViewUse + numExcludeList
   enddo
   !
-  ierr = PipNumberOfEntries('EXCLUDELIST2', nument)
-  do j = 1, nument
+  ierr = PipNumberOfEntries('EXCLUDELIST2', numEnt)
+  do j = 1, numEnt
     ierr = PipGetString('EXCLUDELIST2', card)
-    call parselist(card, ivexcl(nvexcl + 1), nexclist)
-    if (nvexcl + nexclist > limView) call exitError( &
+    call parseList(card, ivExclude(numViewExclude + 1), numExcludeList)
+    if (numViewExclude + numExcludeList > limView) call exitError( &
         'TOO MANY EXCLUDED VIEWS FOR ARRAYS')
-    do i = nvexcl + 1, nvexcl + nexclist
-      if (ivexcl(i) < 1 .or. ivexcl(i) > numViews) call exitError( &
+    do i = numViewExclude + 1, numViewExclude + numExcludeList
+      if (ivExclude(i) < 1 .or. ivExclude(i) > numViews) call exitError( &
           'Illegal view number in EXCLUDE list')
     enddo
-    nvexcl = nvexcl + nexclist
+    numViewExclude = numViewExclude + numExcludeList
   enddo
   !
-  if (nvuse > 0 .and. nvexcl > 0) call exitError( &
+  if (numViewUse > 0 .and. numViewExclude > 0) call exitError( &
       'Illegal to have both INCLUDE and EXCLUDE entries')
   !
   if (PipGetFloat('LOG', baseForLog) == 0) then
@@ -2392,27 +2400,27 @@ SUBROUTINE inputParameters()
   !
   ! Removed replications
   !
-  ierr = PipNumberOfEntries('ANGLES', nument)
-  do j = 1, nument
+  ierr = PipNumberOfEntries('ANGLES', numEnt)
+  do j = 1, numEnt
     nfields = 0
-    ierr = PipGetFloatArray('ANGLES',  angles(newangles + 1), nfields, &
-        limView - newangles)
-    newangles = newangles + nfields
+    ierr = PipGetFloatArray('ANGLES',  angles(newAngles + 1), nfields, &
+        limView - newAngles)
+    newAngles = newAngles + nfields
   enddo
   !
-  ierr = PipNumberOfEntries('COMPRESS', nument)
-  do j = 1, nument
+  ierr = PipNumberOfEntries('COMPRESS', numEnt)
+  do j = 1, numEnt
     nfields = 0
-    ierr = PipGetFloatArray('COMPRESS',  angles(ncompress + 1), nfields, &
-        limView - ncompress)
-    ncompress = ncompress + nfields
+    ierr = PipGetFloatArray('COMPRESS',  angles(numCompress + 1), nfields, &
+        limView - numCompress)
+    numCompress = numCompress + nfields
   enddo
   !
-  if (PipGetFloat('COMPFRACTION', compfac) == 0) &
-      write(6, 1701) compfac
+  if (PipGetFloat('COMPFRACTION', compFactor) == 0) &
+      write(6, 1701) compFactor
   !
   nfields = 0
-  if (PipGetFloatArray('DENSWEIGHT', xnum, nfields, limnum) == 0) then
+  if (PipGetFloatArray('DENSWEIGHT', xnum, nfields, LIMNUM) == 0) then
     numTiltIncWgt = nint(xnum(1))
     if (numTiltIncWgt > 0) then
       do i = 1, numTiltIncWgt
@@ -2435,16 +2443,16 @@ SUBROUTINE inputParameters()
     call dopen(3, card, 'ro', 'f')
     read(3,*,err = 2411, end = 2411) (angles(i), i = 1, numViews)
     close(3)
-    iftiltfile = 1
+    ifTiltFile = 1
   endif
   !
   if (PipGetInteger('WIDTH', iwidth) == 0)  ifWidthIn = 1
   !
   nfields = 0
-  if (PipGetFloatArray('SHIFT', xnum, nfields, limnum) == 0) then
+  if (PipGetFloatArray('SHIFT', xnum, nfields, LIMNUM) == 0) then
     if ((nfields + 1) / 2 .ne. 1) &
         call exitError('Wrong number of fields on SHIFT line')
-    xoffset = xnum(1)
+    xOffset = xnum(1)
     if (nfields == 2) yOffset = xnum(2)
   endif
   !
@@ -2470,17 +2478,17 @@ SUBROUTINE inputParameters()
   boundFile = ' '
   ierr = PipGetString('BoundaryInfoFile', boundFile)
   !
-  if (PipGetFloat('XAXISTILT', globalpha) == 0) then
-    write(6, 2301) globalpha
-    if (abs(globalpha) > 1.e-5 .and. ifAlpha == 0) ifAlpha = 1
+  if (PipGetFloat('XAXISTILT', globalAlpha) == 0) then
+    write(6, 2301) globalAlpha
+    if (abs(globalAlpha) > 1.e-5 .and. ifAlpha == 0) ifAlpha = 1
   endif
   !
   ! REPROJECT entry must be read in before local alignments
   ! violates original unless a blank entry is allowed
-  ierr = PipNumberOfEntries('REPROJECT', nument)
-  do j = 1, nument
+  ierr = PipNumberOfEntries('REPROJECT', numEnt)
+  do j = 1, numEnt
     nfields = 0
-    ierr = PipGetFloatArray('REPROJECT',  xnum, nfields, limnum)
+    ierr = PipGetFloatArray('REPROJECT',  xnum, nfields, LIMNUM)
     if (nfields == 0) then
       nfields = 1
       xnum(1) = 0.
@@ -2491,7 +2499,7 @@ SUBROUTINE inputParameters()
       numReproj = numReproj + 1
       angReproj(numReproj) = xnum(i)
     enddo
-    if (j == 1) WRITE(6, 3101)
+    if (j == 1) write(6, 3101)
     reprojBP = .not.recReproj
   enddo
   !
@@ -2499,13 +2507,13 @@ SUBROUTINE inputParameters()
     call dopen(3, card, 'ro', 'f')
     read(3, '(a)', err = 2410, end = 2410) titlech
     ! read(3,*) nxWarp, nyWarp, ixStartWarp, iyStartWarp, idelXwarp, idelYwarp
-    call frefor(titlech, xnum, ninp)
+    call frefor(titlech, xnum, numInput)
     ifDelAlpha = 0
-    if (ninp > 6) ifDelAlpha = nint(xnum(7))
+    if (numInput > 6) ifDelAlpha = nint(xnum(7))
     pixelLocal = 0.
-    if (ninp > 7) pixelLocal = xnum(8)
+    if (numInput > 7) pixelLocal = xnum(8)
     localZfacs = 0
-    if (ninp > 8) localZfacs = xnum(9)
+    if (numInput > 8) localZfacs = xnum(9)
     nxWarp = nint(xnum(1))
     nyWarp = nint(xnum(2))
     ixStartWarp = nint(xnum(3))
@@ -2530,50 +2538,49 @@ SUBROUTINE inputParameters()
     allocate(indWarp(numWarpPos), delAlpha(ipos), cWarpBeta(limWarp), &
         sWarpBeta(limWarp), cWarpAlpha(limWarp), sWarpAlpha(limWarp), fwarp(2, 3, ipos), &
         delBeta(ipos), warpXZfac(ipos), warpYZfac(ipos), stat = ierr)
-    if (ierr .ne. 0) call exitError( &
-        'ALLOCATING ARRAYS FOR LOCAL ALIGNMENT DATA')
-    indbase = 0
+    call memoryError(ierr, 'ARRAYS FOR LOCAL ALIGNMENT DATA')
+    indBase = 0
     do ipos = 1, nxWarp * nyWarp
-      indWarp(ipos) = indbase
-      read(3,*,err = 2410, end = 2410) (delBeta(i), i = indbase + 1, indbase + numViews)
+      indWarp(ipos) = indBase
+      read(3,*,err = 2410, end = 2410) (delBeta(i), i = indBase + 1, indBase + numViews)
       if (ifDelAlpha > 0) then
-        read(3,*,err = 2410, end = 2410) (delAlpha(i), i = indbase + 1, indbase + &
+        read(3,*,err = 2410, end = 2410) (delAlpha(i), i = indBase + 1, indBase + &
             numViews)
       else
-        do i = indbase + 1, indbase + numViews
+        do i = indBase + 1, indBase + numViews
           delAlpha(i) = 0.
         enddo
       endif
       !
       ! Set z factors to zero, read in if supplied, then negate them
       !
-      do i = indbase + 1, indbase + numViews
+      do i = indBase + 1, indBase + numViews
         warpXZfac(i) = 0.
         warpYZfac(i) = 0.
       enddo
       if (localZfacs > 0) read(3,*,err = 2410, end = 2410) (warpXZfac(i), &
-          warpYZfac(i), i = indbase + 1, indbase + numViews)
-      do i = indbase + 1, indbase + numViews
+          warpYZfac(i), i = indBase + 1, indBase + numViews)
+      do i = indBase + 1, indBase + numViews
         warpXZfac(i) = -warpXZfac(i)
         warpYZfac(i) = -warpYZfac(i)
       enddo
       do i = 1, numViews
-        call xfread(3, fwarp(1, 1, i + indbase), 2410, 2410)
+        call xfread(3, fwarp(1, 1, i + indBase), 2410, 2410)
       enddo
-      indbase = indbase + indDelta
+      indBase = indBase + indDelta
     enddo
     close(3)
     write(6, 2401)
   endif
   !
-  if (PipGetFloat('LOCALSCALE', scalelocal) == 0) write(6, 2501) scalelocal
+  if (PipGetFloat('LOCALSCALE', scaleLocal) == 0) write(6, 2501) scaleLocal
   !
-  ierr = PipGetTwoIntegers('FULLIMAGE', nxFullIn, nyfull)
-  if (PipGetTwoIntegers('SUBSETSTART', ixsubsetIn, iysubset) == 0) &
+  ierr = PipGetTwoIntegers('FULLIMAGE', nxFullIn, nyFull)
+  if (PipGetTwoIntegers('SUBSETSTART', ixSubsetIn, iySubset) == 0) &
       ifSubsetIn = 1
   !
   nfields = 0
-  if (PipGetIntegerArray('COSINTERP', inum, nfields, limnum) == 0) then
+  if (PipGetIntegerArray('COSINTERP', inum, nfields, LIMNUM) == 0) then
     interpOrdStretch = inum(1)
     if (nfields > 1) interpFacStretch = inum(2)
     interpOrdStretch = max(0, min(3, interpOrdStretch))
@@ -2596,13 +2603,13 @@ SUBROUTINE inputParameters()
   endif
   !
   ! Read environment variable first, then override by entry
-  if (imodGetEnv('IMOD_USE_GPU', card) == 0) read(card,*) nGPU
-  ifGpuByEnviron = PipGetInteger('UseGPU', nGPU)
+  if (imodGetEnv('IMOD_USE_GPU', card) == 0) read(card,*) indGPU
+  ifGpuByEnviron = PipGetInteger('UseGPU', indGPU)
   if (imodGetEnv('IMOD_USE_GPU2', card) == 0) then
-    read(card,*) nGPU
+    read(card,*) indGPU
     ifGpuByEnviron = 1
   endif
-  useGPU = nGPU >= 0
+  useGPU = indGPU >= 0
   ierr = PipGetTwoIntegers('ActionIfGPUFails', iactGpuFailOption, &
       iactGpuFailEnviron)
   !
@@ -2610,7 +2617,7 @@ SUBROUTINE inputParameters()
     call dopen(3, card, 'ro', 'f')
     read(3,*,err = 2413, end = 2413) (xzfac(i), yzfac(i), i = 1, numViews)
     close(3)
-    ifZfac = 1
+    ifZfactors = 1
     write(6, 3201)
   endif
   !
@@ -2642,9 +2649,9 @@ SUBROUTINE inputParameters()
 314 do i = 1, numWgtAngles - 1
       do j = i + 1, numWgtAngles
         if (wgtAngles(i) > wgtAngles(j)) then
-          dmint = wgtAngles(i)
+          dminTmp = wgtAngles(i)
           wgtAngles(i) = wgtAngles(j)
-          wgtAngles(j) = dmint
+          wgtAngles(j) = dminTmp
         endif
       enddo
     enddo
@@ -2653,8 +2660,7 @@ SUBROUTINE inputParameters()
   ! SIRT-related options
   ierr = PipGetInteger('ConstrainSign', isignConstraint)
   !
-  ierr = PipGetTwoIntegers('InternalSIRTSlices', ifOutSirtProj, &
-      ifOutSirtRec)
+  ierr = PipGetTwoIntegers('InternalSIRTSlices', ifOutSirtProj, ifOutSirtRec)
   if (numSIRTiter > 0 .or. recSubtraction) &
       ierr = PipGetInteger('StartingIteration', iterForReport)
   ierr = PipGetLogical('VertForSIRTInput', vertSirtInput)
@@ -2665,15 +2671,15 @@ SUBROUTINE inputParameters()
   !
   ! END OF OPTION READING
   !
-  WRITE(6, 48)
+  write(6, 48)
   if (ifAlpha .ne. 0 .and. idelSlice .ne. 1) call exitError( &
       'Cannot do X axis tilt with non-consecutive slices')
   if (nxWarp .ne. 0 .and. idelSlice .ne. 1) call exitError( &
       'Cannot do local alignments with non-consecutive slices')
   if (minTotSlice > 0 .and. idelSlice .ne. 1) call exitError( &
       'Cannot do chunk writing with non-consecutive slices')
-  if (nxFullIn == 0 .and. nyfull == 0 .and. &
-      (ixSubsetIn .ne. 0 .or. iysubset .ne. 0)) call exitError( &
+  if (nxFullIn == 0 .and. nyFull == 0 .and. &
+      (ixSubsetIn .ne. 0 .or. iySubset .ne. 0)) call exitError( &
       'YOU MUST ENTER THE FULL IMAGE SIZE IF YOU HAVE A SUBSET')
   if (.not.perpendicular .and. minTotSlice > 0) call exitError( &
       'Cannot do chunk writing with parallel slices')
@@ -2697,11 +2703,11 @@ SUBROUTINE inputParameters()
     endif
     if (ifThickIn .ne. 0) ithickBP = ithickBP / imageBinned
     axisXoffset = axisXoffset / imageBinned
-    nxfull = (nxFullIn + imageBinned - 1) / imageBinned
-    nyfull = (nyfull + imageBinned - 1) / imageBinned
-    ixsubset = ixSubsetIn / imageBinned
-    iysubset = iysubset / imageBinned
-    xoffset = xoffset / imageBinned
+    nxFull = (nxFullIn + imageBinned - 1) / imageBinned
+    nyFull = (nyFull + imageBinned - 1) / imageBinned
+    ixSubset = ixSubsetIn / imageBinned
+    iySubset = iySubset / imageBinned
+    xOffset = xOffset / imageBinned
     yOffset = yOffset / imageBinned
     if (ifWidthIn .ne. 0) iwidth = iwidth / imageBinned
     if (minTotSlice >= 0 .and. .not. recReproj) then
@@ -2719,50 +2725,50 @@ SUBROUTINE inputParameters()
   if (ifLog == 0) effectiveScale = outScale * (0.011 * nprojXyz(1) + 6) / 2.
   !
   if (recReproj) then
-    if (debug) print *,minTotSlice, maxTotSlice, minZreproj, maxZreproj, nrxyz(3)
+    if (debug) print *,minTotSlice, maxTotSlice, minZreproj, maxZreproj, nrecXyz(3)
     if ((minTotSlice <= 0 .and. (minZreproj <= 0 .or. maxZreproj > &
-        nrxyz(3))) .or. (minTotSlice >= 0 .and. &
-        maxTotSlice > nrxyz(3))) call exitError( &
+        nrecXyz(3))) .or. (minTotSlice >= 0 .and. &
+        maxTotSlice > nrecXyz(3))) call exitError( &
         'Min or Max Z coordinate to project is out of range')
 
     if (.not.perpendicular) call exitError( &
         'Cannot reproject from reconstruction output with PARALLEL')
     if (idelSlice .ne. 1) call exitError( &
         'Cannot reproject from reconstruction with a slice increment')
-    if (iwidth .ne. nrxyz(1) .or. isliceEnd + 1 - isliceStart .ne. nrxyz(3) .or. &
-        ithickBP .ne. nrxyz(2)) call exitError( &
+    if (iwidth .ne. nrecXyz(1) .or. isliceEnd + 1 - isliceStart .ne. nrecXyz(3) .or. &
+        ithickBP .ne. nrecXyz(2)) call exitError( &
         'Dimensions of rec file do not match expected values')
   else
     !
     ! Check conditions of SIRT (would slice increment work?)
     if (numSIRTiter > 0) then
       if (.not.perpendicular .or. idelSlice .ne. 1 .or. &
-          xoffset .ne. 0.) call exitError('Cannot do SIRT with PARALLEL'// &
+          xOffset .ne. 0.) call exitError('Cannot do SIRT with PARALLEL'// &
           ' output, slice increment, or X shifts')
-      if (nxWarp .ne. 0 .or. ifzfac .ne. 0 .or. ifAlpha > 1 .or. &
+      if (nxWarp .ne. 0 .or. ifZfactors .ne. 0 .or. ifAlpha > 1 .or. &
           (ifAlpha == 1 .and. interpOrdXtilt == 0)) &
           call exitError('Cannot do SIRT with  local alignments, Z '// &
           'factors, or variable or old-style X tilt')
-      if (iwidth .ne. nxProj .or. (.not. sirtFromZero .and. (iwidth .ne. nrxyz(1) .or. &
-          (ithickBP .ne. nrxyz(2) .and. .not.vertSirtInput) .or. nrxyz(3) .ne. nyProj))) &
-          call exitError( 'For SIRT, sizes of input projections, rec '// &
-          'file, and width/thickness entries must match')
+      if (iwidth .ne. nxProj .or. (.not. sirtFromZero .and. (iwidth .ne. nrecXyz(1) .or. &
+          (ithickBP .ne. nrecXyz(2) .and. .not.vertSirtInput) .or.  &
+          nrecXyz(3) .ne. nyProj))) call exitError( 'For SIRT, sizes of '// &
+          'input projections, rec file, and width/thickness entries must match')
       write(6, 3501) numSIRTiter
       interpFacStretch = 0
     endif
-    if (ifSliceIn .ne. 0) WRITE(6, 201) isliceStart, isliceEnd, idelSlice
-    if (ifThickIn .ne. 0) WRITE(6, 301) ithickBP
-    if (delang .ne. 0. .or. axisXoffset .ne. 0.) WRITE(6, 601) DELANG, axisXoffset
-    if (nxfull .ne. 0 .or. nyfull .ne. 0) write(6, 2601) nxfull, nyfull
-    if (ifSubsetIn .ne. 0) write(6, 2701) ixsubset, iysubset
-    if (ifWidthIn .ne. 0) WRITE(6, 2001) iwidth
-    if (xoffset .ne. 0 .or. yOffset .ne. 0) WRITE(6, 2101) yOffset, xoffset
+    if (ifSliceIn .ne. 0) write(6, 201) isliceStart, isliceEnd, idelSlice
+    if (ifThickIn .ne. 0) write(6, 301) ithickBP
+    if (delAngle .ne. 0. .or. axisXoffset .ne. 0.) write(6, 601) delAngle, axisXoffset
+    if (nxFull .ne. 0 .or. nyFull .ne. 0) write(6, 2601) nxFull, nyFull
+    if (ifSubsetIn .ne. 0) write(6, 2701) ixSubset, iySubset
+    if (ifWidthIn .ne. 0) write(6, 2001) iwidth
+    if (xOffset .ne. 0 .or. yOffset .ne. 0) write(6, 2101) yOffset, xOffset
     if (minTotSlice > 0) write(6, 3401) minTotSlice, maxTotSlice
   endif
   !
   ! If NEWANGLES is 0, get angles from file header.  Otherwise check if angles OK
   !
-  if (newangles == 0 .and. iftiltfile == 0) then
+  if (newAngles == 0 .and. ifTiltFile == 0) then
     !
     ! Tilt information is stored in stack header. Read into angles
     ! array. All sections are assumed to be equally spaced. If not,
@@ -2773,75 +2779,70 @@ SUBROUTINE inputParameters()
     !
     ! call irtdat(1, idtype, lens, nd1, nd2, vd1, vd2)
     !
-    if (idtype .ne. 1) call exitError( ' Not tilt data.')
+    if (idType .ne. 1) call exitError( ' Not tilt data.')
     !
     if (nd1 .ne. 2) call exitError(' Tilt axis not along Y.')
     !
-    dtheta = vd1
+    delTheta = vd1
     theta = vd2
     !
-    DO NV = 1, numViews
-      angles(NV) = theta
-      theta = theta + dtheta
+    do nv = 1, numViews
+      angles(nv) = theta
+      theta = theta + delTheta
     enddo
     !
   else
-    if (iftiltfile == 1 .and. newangles .ne. 0) then
-      call exitError( &
-          'Tried to enter angles with both ANGLES and TILTFILE')
-    elseif (iftiltfile == 1) then
+    if (ifTiltFile == 1 .and. newAngles .ne. 0) then
+      call exitError('Tried to enter angles with both ANGLES and TILTFILE')
+    elseif (ifTiltFile == 1) then
       write(6,*) ' Tilt angles were entered from a tilt file'
-    elseif (newangles == numViews) then
+    elseif (newAngles == numViews) then
       write(6,*) ' Tilt angles were entered with ANGLES card(s)'
     else
-      call exitError('If using ANGLES, a value must be '// &
-          'entered for each view')
+      call exitError('If using ANGLES, a value must be entered for each view')
     endif
   endif
   !
-  if (ncompress > 0) then
-    if (ncompress == numViews) then
-      write(6,*) &
-          ' Compression values were entered with COMPRESS card(s)'
+  if (numCompress > 0) then
+    if (numCompress == numViews) then
+      write(6,*) ' Compression values were entered with COMPRESS card(s)'
     else
-      call exitError('If using COMPRESS, a value must be '// &
-          'entered for each view')
+      call exitError('If using COMPRESS, a value must be entered for each view')
     endif
     do nv = 1, numViews
-      compress(nv) = 1. +(compress(nv) - 1.) / compfac
+      compress(nv) = 1. +(compress(nv) - 1.) / compFactor
     enddo
   endif
   !
-  if (globalpha .ne. 0.) then
+  if (globalAlpha .ne. 0.) then
     do iv = 1, numViews
-      alpha(iv) = alpha(iv) - globalpha
+      alpha(iv) = alpha(iv) - globalAlpha
     enddo
   endif
   !
   if (ifExpWeight .ne. 0) then
-    if (ifLog == 0) write(6,*) &
-        ' Weighting factors were entered from a file'
+    if (ifLog == 0) write(6,*)' Weighting factors were entered from a file'
     if (ifLog .ne. 0) write(6,*) ' Weighting factors were entered '// &
         'but will be ignored because log is being taken'
   endif
   !
   ! if no INCLUDE cards, set up map to views, excluding any specified by
   ! EXCLUDE cards
-  if (nvuse == 0) then
+  if (numViewUse == 0) then
     do i = 1, numViews
       ierr = 0
-      do iex = 1, nvexcl
-        if (i == ivexcl(iex)) ierr = 1
+      do iex = 1, numViewExclude
+        if (i == ivExclude(iex)) ierr = 1
       enddo
       if (ierr == 0) then
-        nvuse = nvuse + 1
-        mapUsedView(nvuse) = i
+        numViewUse = numViewUse + 1
+        mapUsedView(numViewUse) = i
       endif
     enddo
   endif
   !
   ! Replace angles at +/-90 with 89.95 etc
-  do i = 1, nvuse
+  do i = 1, numViewUse
     j = mapUsedView(i)
     if (abs(abs(angles(j)) - 90.) < 0.05) &
         angles(j) = sign(90. - sign(0.05, 90 - abs(angles(j))), angles(j))
@@ -2850,7 +2851,7 @@ SUBROUTINE inputParameters()
   ! If reprojecting from rec and no angles entered, copy angles in original
   ! order
   if (recReproj .and. numReproj == 0) then
-    if (nViewsReproj == 1 .and. ivreprj(1) == 0) then
+    if (nViewsReproj == 1 .and. ivReproj(1) == 0) then
       numReproj = numViews
       do i = 1, numViews
         angReproj(i) = angles(i)
@@ -2858,16 +2859,16 @@ SUBROUTINE inputParameters()
     else if (nViewsReproj > 0) then
       numReproj = nViewsReproj
       do i = 1, numReproj
-        if (ivreprj(i) < 1 .or. ivreprj(i) > numViews) call exitError( &
+        if (ivReproj(i) < 1 .or. ivReproj(i) > numViews) call exitError( &
             'View number to reproject is out of range')
-        angReproj(i) = angles(ivreprj(i))
+        angReproj(i) = angles(ivReproj(i))
       enddo
     else
       !
       ! For default set of included views, order them by view number by
       ! first ordering the mapUsedView array by view number.
-      do i = 1, nvuse-1
-        do j = i + 1, nvuse
+      do i = 1, numViewUse-1
+        do j = i + 1, numViewUse
           if (mapUsedView(i) > mapUsedView(j)) then
             indi = mapUsedView(i)
             mapUsedView(i) = mapUsedView(j)
@@ -2875,16 +2876,16 @@ SUBROUTINE inputParameters()
           endif
         enddo
       enddo
-      numReproj = nvuse
-      do i = 1, nvuse
+      numReproj = numViewUse
+      do i = 1, numViewUse
         angReproj(i) = angles(mapUsedView(i))
       enddo
     endif
   endif
   !
   ! order the MAPUSE array by angle
-  do i = 1, nvuse-1
-    do j = i + 1, nvuse
+  do i = 1, numViewUse-1
+    do j = i + 1, numViewUse
       indi = mapUsedView(i)
       if (angles(indi) > angles(mapUsedView(j))) then
         mapUsedView(i) = mapUsedView(j)
@@ -2898,8 +2899,8 @@ SUBROUTINE inputParameters()
   ! in which the reprojections are needed internally
   ! Also adjust the recon mean for a fill value
   if (numSIRTiter > 0) then
-    numReproj = nvuse
-    do i = 1, nvuse
+    numReproj = numViewUse
+    do i = 1, numViewUse
       angReproj(i) = angles(mapUsedView(i))
     enddo
     outAdd = outAdd / filterScale
@@ -2910,15 +2911,15 @@ SUBROUTINE inputParameters()
     allocate(cosReproj(numReproj), sinReproj(numReproj), stat = ierr)
     call memoryError(ierr, 'ARRAYS FOR REPROJECTION SINES/COSINES')
     do i = 1, numReproj
-      cosReproj(i) = cos(dtor * angReproj(i))
-      sinReproj(i) = sin(dtor * angReproj(i))
+      cosReproj(i) = cos(degToRad * angReproj(i))
+      sinReproj(i) = sin(degToRad * angReproj(i))
     enddo
   endif
 
   !
   ! Open output map file
-  call irtdel(1, delta)
-  call irtorg(1, origx, origy, origz)
+  call iiuRetDelta(1, delta)
+  call iiuRetOrigin(1, originX, originY, originZ)
   if (.not. recReproj) then
     if ((minTotSlice <= 0 .and. (isliceStart < 1 .or. isliceEnd < 1)) &
         .or. isliceStart > nprojXyz(2) .or. isliceEnd > nprojXyz(2)) call exitError( &
@@ -2932,31 +2933,32 @@ SUBROUTINE inputParameters()
       allocate(projLine(iwidth), stat = ierr)
       call memoryError(ierr, 'ARRAY FOR PROJECTION LINE')
     endif
+    if (defocusFile .ne. ' ' .and. pixForDefocus == 0.) pixForDefocus = delta(1) / 10.
     !
     ! DNM 7/27/02: transfer pixel sizes depending on orientation of output
     !
-    NOXYZ(1) = iwidth
+    noutXyz(1) = iwidth
     cell(1) = iwidth * delta(1)
     if (perpendicular) then
-      NOXYZ(2) = ithickBP
-      NOXYZ(3) = NUMSLICES
+      noutXyz(2) = ithickBP
+      noutXyz(3) = numSlices
       cell(2) = ithickBP * delta(1)
       cell(3) = numSlices * idelSlice * delta(2)
-    ELSE
-      NOXYZ(2) = NUMSLICES
-      NOXYZ(3) = ithickBP
+    else
+      noutXyz(2) = numSlices
+      noutXyz(3) = ithickBP
       cell(3) = ithickBP * delta(1)
       cell(2) = numSlices * idelSlice * delta(2)
-    END IF
+    END if
     if (reprojBP) then
-      NOXYZ(2) = NUMSLICES
-      NOXYZ(3) = numReproj
+      noutXyz(2) = numSlices
+      noutXyz(3) = numReproj
       cell(2) = numSlices * idelSlice * delta(2)
       cell(3) = delta(1) * numReproj
       j = iwidth * numReproj
       allocate(xRayStart(j), yRayStart(j), numPixInRay(j), maxRayPixels(numReproj),  &
           stat = ierr)
-      if (ierr .ne. 0) call exitError('ALLOCATING ARRAYS FOR PROJECTION RAY DATA')
+      call memoryError(ierr, 'ARRAYS FOR PROJECTION RAY DATA')
       do i = 1, numReproj
         j = (i - 1) * iwidth + 1
         !
@@ -2968,26 +2970,25 @@ SUBROUTINE inputParameters()
   else
     !
     ! recReproj stuff
-    noxyz(1) = maxXreproj + 1 - minXreproj
-    noxyz(2) = maxZreproj + 1 - minZreproj
+    noutXyz(1) = maxXreproj + 1 - minXreproj
+    noutXyz(2) = maxZreproj + 1 - minZreproj
     ithickReproj = maxYreproj + 1 - minYreproj
-    noxyz(3) = numReproj
+    noutXyz(3) = numReproj
     if (minTotSlice > 0 .and. minZreproj < 1) &
-        noxyz(2) = maxTotSlice + 1 - minTotSlice
-    if (noxyz(1) < 1 .or. noxyz(2) < 1 .or. ithickReproj < 1) &
-        call exitError('Min and max limits for output are reversed for '// &
-        'X, Y, or Z')
-    cell(1) = noxyz(1) * delta(1)
-    cell(2) = noxyz(2) * delta(1)
+        noutXyz(2) = maxTotSlice + 1 - minTotSlice
+    if (noutXyz(1) < 1 .or. noutXyz(2) < 1 .or. ithickReproj < 1) &
+        call exitError('Min and max limits for output are reversed for X, Y, or Z')
+    cell(1) = noutXyz(1) * delta(1)
+    cell(2) = noutXyz(2) * delta(1)
     cell(3) = delta(1) * numReproj
-    if (projSubtraction .and. (noxyz(1) .ne. nxProj .or. maxZreproj > &
-        nyProj .or. noxyz(3) .ne. nprojXyz(3))) call exitError('OUTPUT SIZE'// &
+    if (projSubtraction .and. (noutXyz(1) .ne. nxProj .or. maxZreproj > &
+        nyProj .or. noutXyz(3) .ne. nprojXyz(3))) call exitError('OUTPUT SIZE'// &
         ' MUST MATCH ORIGINAL PROJECTION FILE SIZE FOR SIRT SUBTRACTION')
   endif
   !
   ! Check compatibility of base rec file
-  if ((readBaseRec .and. .not. recReproj) .and. (nrxyz(1) .ne. iwidth .or. &
-      nrxyz(2) .ne. ithickBP .or. nrxyz(3) < isliceEnd)) call exitError( &
+  if ((readBaseRec .and. .not. recReproj) .and. (nrecXyz(1) .ne. iwidth .or. &
+      nrecXyz(2) .ne. ithickBP .or. nrecXyz(3) < isliceEnd)) call exitError( &
       'BASE REC FILE IS NOT THE SAME SIZE AS OUTPUT FILE')
   !
   ! open old file if in chunk mode and there is real starting slice
@@ -2996,70 +2997,70 @@ SUBROUTINE inputParameters()
   if (.not.projModel) then
     if (minTotSlice > 0 .and. ((.not.recReproj .and. isliceStart > 0) .or. &
         (recReproj .and. minZreproj > 0))) then
-      CALL IMOPEN(2, FILOUT, 'OLD')
-      CALL IRDHDR(2, NOXYZ, MPXYZ, newMode, dmint, dmaxt, dmeant)
+      call imOpen(2, outputFile, 'OLD')
+      call irdhdr(2, noutXyz, mpxyz, newMode, dminTmp, dmaxTmp, dmeanTmp)
     else
-      CALL IMOPEN(2, FILOUT, 'NEW')
-      CALL ICRHDR(2, NOXYZ, NOXYZ, newMode, title, 0)
+      call imOpen(2, outputFile, 'NEW')
+      call iiuCreateHeader(2, noutXyz, noutXyz, newMode, title, 0)
       ! print *,'created', NOXYZ
     endif
-    CALL ITRLAB(2, 1)
-    call ialcel(2, cell)
+    call iiuTransLabels(2, 1)
+    call iiuAltCell(2, cell)
   endif
   !
   ! if doing perpendicular slices, set up header info to make coordinates
   ! congruent with those of tilt series
   !
   if (recReproj) then
-    call ialorg(2, 0., 0., 0.)
-    outilt(1) = 0.
-    call ialtlt(2, outilt)
+    call iiuAltOrigin(2, 0., 0., 0.)
+    outHdrTilt(1) = 0.
+    call iiuAltTilt(2, outHdrTilt)
   else if (perpendicular) then
-    outilt(1) = 90
+    outHdrTilt(1) = 90
     if (adjustOrigin) then
       !
       ! Full adjustment if requested
-      origx = origx  - delta(1) * (nprojXyz(1) / 2 - iwidth / 2 - xoffset)
-      origz = origy - delta(1) * float(max(0, isliceStart - 1))
+      originX = originX  - delta(1) * (nprojXyz(1) / 2 - iwidth / 2 - xOffset)
+      originZ = originY - delta(1) * float(max(0, isliceStart - 1))
       if (minTotSlice > 0 .and. isliceStart <= 0) &
-          origz = origy - delta(1) * (minTotSlice-1)
-      origy = delta(1) * (ithickBP / 2 + yOffset)
+          originZ = originY - delta(1) * (minTotSlice-1)
+      originY = delta(1) * (ithickBP / 2 + yOffset)
     else
       !
       ! Legacy origin.  All kinds of wrong.
-      origx = cell(1) / 2. +axisXoffset
-      origy = cell(2) / 2.
-      origz = -float(max(0, isliceStart - 1))
+      originX = cell(1) / 2. +axisXoffset
+      originY = cell(2) / 2.
+      originZ = -float(max(0, isliceStart - 1))
     endif
 
     if (.not.projModel) then
-      call ialorg(2, origx, origy, origz)
-      call ialtlt(2, outilt)
+      call iiuAltOrigin(2, originX, originY, originZ)
+      call iiuAltTilt(2, outHdrTilt)
       call iiuAltSpaceGroup(2, 1)
     endif
   endif
   !
   ! Initialize parallel writing routines if bound file entered
-  ierr = parWrtInitialize(boundFile, 7, noxyz(1), noxyz(2), noxyz(3))
+  ierr = parWrtInitialize(boundFile, 7, noutXyz(1), noutXyz(2), noutXyz(3))
   if (ierr .ne. 0) then
-    write(*,'(a,i3)') 'ERROR: TILT - INITIALIZING PARALLEL WRITE '// &
-        'BOUNDARY FILE, ERROR', ierr
+    write(*,'(a,i3)') 'ERROR: TILT - INITIALIZING PARALLEL WRITE BOUNDARY FILE, ERROR', &
+        ierr
     call exit(1)
   endif
   !
   ! chunk mode starter run: write header and exit
   !
-  ifexit = 0
+  ifExit = 0
   if (.not.projModel) then
     if (minTotSlice > 0 .and. ((.not.recReproj .and. isliceStart <= 0) .or. &
         (recReproj .and. minZreproj <= 0))) then
-      CALL IWRHDR(2, title, 1, dminIn, dmaxIn, dmeanIn)
-      CALL IMCLOSE(2)
-      ifexit = 1
+      call iiuWriteHeader(2, title, 1, dminIn, dmaxIn, dmeanIn)
+      call iiuClose(2)
+      ifExit = 1
     elseif (minTotSlice > 0 .and. .not.recReproj) then
       call parWrtPosn(2, isliceStart - minTotSlice, 0)
       if (readBaseRec .and. .not. recReproj) &
-          call imposn(3, isliceStart - minTotSlice, 0)
+          call iiuSetPosition(3, isliceStart - minTotSlice, 0)
     endif
   endif
   !
@@ -3085,23 +3086,19 @@ SUBROUTINE inputParameters()
           call lookupAngle(angReproj(iv), angles, numViews, ind1, ind2, frac)
           ind1 = ind1 + indWarp(i)
           ind2 = ind2 + indWarp(i)
-          delBeta(indbase + iv) = (1. -frac) * delBeta(ind1) + &
-              frac * delBeta(ind2)
-          delAlpha(indbase + iv) = (1. -frac) * delAlpha(ind1) + &
-              frac * delAlpha(ind2)
-          warpXZfac(indbase + iv) = (1. -frac) * warpXZfac(ind1) + &
-              frac * warpXZfac(ind2)
-          warpYZfac(indbase + iv) = (1. -frac) * warpYZfac(ind1) + &
-              frac * warpYZfac(ind2)
+          delBeta(indBase + iv) = (1. -frac) * delBeta(ind1) + frac * delBeta(ind2)
+          delAlpha(indBase + iv) = (1. -frac) * delAlpha(ind1) + frac * delAlpha(ind2)
+          warpXZfac(indBase + iv) = (1. -frac) * warpXZfac(ind1) + frac * warpXZfac(ind2)
+          warpYZfac(indBase + iv) = (1. -frac) * warpYZfac(ind1) + frac * warpYZfac(ind2)
           do j = 1, 2
             do k = 1, 3
-              fwarp(j, k, indbase + iv) = (1. -frac) * fwarp(j, k, ind1) + &
+              fwarp(j, k, indBase + iv) = (1. -frac) * fwarp(j, k, ind1) + &
                   frac * fwarp(j, k, ind2)
             enddo
           enddo
         enddo
         do iv = 1, numReproj
-          ind1 = indbase + iv
+          ind1 = indBase + iv
           ind2 = indWarp(i) + iv
           delBeta(ind2) = delBeta(ind1)
           delAlpha(ind2) = delAlpha(ind1)
@@ -3117,8 +3114,8 @@ SUBROUTINE inputParameters()
     endif
     !
     ! Replace the mapUsedView array
-    nvuse = numReproj
-    do i = 1, nvuse
+    numViewUse = numReproj
+    do i = 1, numViewUse
       mapUsedView(i) = i
     enddo
   else
@@ -3127,7 +3124,7 @@ SUBROUTINE inputParameters()
     ! Negate the z factors since things are upside down here
     ! Note that local data is not packed but always referenced by mapUsedView
     !
-    do i = 1, nvuse
+    do i = 1, numViewUse
       sinBeta(i) = angles(mapUsedView(i))
       cosBeta(i) = compress(mapUsedView(i))
       sinAlpha(i) = alpha(mapUsedView(i))
@@ -3136,7 +3133,7 @@ SUBROUTINE inputParameters()
       array(i + numViews) = exposeWeight(mapUsedView(i))
     enddo
   endif
-  do i = 1, nvuse
+  do i = 1, numViewUse
     angles(i) = sinBeta(i)
     compress(i) = cosBeta(i)
     alpha(i) = sinAlpha(i)
@@ -3144,11 +3141,11 @@ SUBROUTINE inputParameters()
     yzfac(i) = -array(i)
     exposeWeight(i) = array(i + numViews)
   enddo
-  nvorig = numViews
-  numViews = nvuse
+  numViewOrig = numViews
+  numViews = numViewUse
   !
-  WRITE(6, 51) (angles(NV), NV = 1, numViews)
-  WRITE(6, 52)
+  write(6, 51) (angles(nv), nv = 1, numViews)
+  write(6, 52)
   !
   ! Turn off cosine stretch for high angles
   if (angles(1) < -80. .or. angles(numViews) > 80.) then
@@ -3159,11 +3156,11 @@ SUBROUTINE inputParameters()
   !
   ! Set up trig tables -  Then convert angles to radians
   !
-  DO  iV = 1, numViews
-    thetanv = angles(IV) + DELANG
-    if (thetanv > 180.) thetanv = thetanv - 360.
-    if (thetanv <= -180.) thetanv = thetanv + 360.
-    cosBeta(iv) = COS(thetanv * DTOR)
+  do  iv = 1, numViews
+    thetaView = angles(iv) + delAngle
+    if (thetaView > 180.) thetaView = thetaView - 360.
+    if (thetaView <= -180.) thetaView = thetaView + 360.
+    cosBeta(iv) = cos(thetaView * degToRad)
     !
     ! Keep cosine from going to zero so it can be divided by
     if (abs(cosBeta(iv)) < 1.e-6) cosBeta(iv) = sign(1.e-6, cosBeta(iv))
@@ -3173,17 +3170,17 @@ SUBROUTINE inputParameters()
     ! viewed from  the negative Y axis
     ! Take the negative of alpha because the entered value is the amount
     ! that the specimen is tilted and we need to rotate by negative of that
-    sinBeta(iv) = -SIN(thetanv * DTOR)
-    cosAlpha(iv) = cos(alpha(iv) * dtor)
-    sinAlpha(iv) = -sin(alpha(iv) * dtor)
-    angles(iv) = -dtor * (angles(iv) + delang)
+    sinBeta(iv) = -sin(thetaView * degToRad)
+    cosAlpha(iv) = cos(alpha(iv) * degToRad)
+    sinAlpha(iv) = -sin(alpha(iv) * degToRad)
+    angles(iv) = -degToRad * (angles(iv) + delAngle)
   enddo
   !
   ! If there are weighting angles, convert those the same way, otherwise
   ! copy the main angles to weighting angles
   if (numWgtAngles > 0) then
     do iv = 1, numWgtAngles
-      wgtAngles(iv) = -dtor * (wgtAngles(iv) + delang)
+      wgtAngles(iv) = -degToRad * (wgtAngles(iv) + delAngle)
     enddo
   else
     numWgtAngles = numViews
@@ -3196,11 +3193,11 @@ SUBROUTINE inputParameters()
   ! and interpolate output planes: adjust thickness that needs to
   ! be computed, and find number of vertical planes that are needed
   !
-  if (ifZfac > 0 .and. ifAlpha == 0) ifAlpha = 1
+  if (ifZfactors > 0 .and. ifAlpha == 0) ifAlpha = 1
   ithickOut = ithickBP
   ycenModProj = ithickBP / 2 + 0.5 + yOffset
   if (ifAlpha == 1 .and. nxWarp == 0 .and. interpOrdXtilt > 0 .and. &
-      ifZfac == 0 .and. .not.recReproj) then
+      ifZfactors == 0 .and. .not.recReproj) then
     ifAlpha = -1
     ithickOut = ithickBP
     ithickBP = ithickBP / cosAlpha(1) + 4.5
@@ -3210,7 +3207,7 @@ SUBROUTINE inputParameters()
       saveVertSlices = vertOutFile .ne. ' '
       if (.not.sirtFromZero .and. .not.vertSirtInput) &
           numReadNeed = ithickBP * abs(sinAlpha(1)) + 4.
-      if (.not.sirtFromZero .and. vertSirtInput .and. ithickBP .ne. nrxyz(2)) &
+      if (.not.sirtFromZero .and. vertSirtInput .and. ithickBP .ne. nrecXyz(2)) &
           call exitError( &
           'THICKNESS OF VERTICAL SLICE INPUT FILE DOES NOT MATCH NEEDED THICKNESS')
     endif
@@ -3222,17 +3219,17 @@ SUBROUTINE inputParameters()
   ! Now that we know vertical slices, open or set up output file for them under SIRT
   if (numSIRTiter > 0 .and. saveVertSlices) then
     if (minTotSlice > 0 .and. isliceStart > 0) then
-      CALL IMOPEN(6, vertOutFile, 'OLD')
-      CALL IRDHDR(6, nsxyz, MPXYZ, newMode, dmint, dmaxt, dmeant)
+      call imOpen(6, vertOutFile, 'OLD')
+      call irdhdr(6, nvsXyz, mpxyz, newMode, dminTmp, dmaxTmp, dmeanTmp)
     else
-      nsxyz = noxyz
-      nsxyz(2) = ithickBP
-      CALL IMOPEN(6, vertOutFile, 'NEW')
-      CALL ICRHDR(6, nsxyz, nsxyz, 2, title, 0)
+      nvsXyz = noutXyz
+      nvsXyz(2) = ithickBP
+      call imOpen(6, vertOutFile, 'NEW')
+      call iiuCreateHeader(6, nvsXyz, nvsXyz, 2, title, 0)
     endif
     !
     ! Initialize parallel writing if vertical bound file
-    ierr = parWrtInitialize(vertBoundFile, 8, nsxyz(1), nsxyz(2), nsxyz(3))
+    ierr = parWrtInitialize(vertBoundFile, 8, nvsXyz(1), nvsXyz(2), nvsXyz(3))
     if (ierr .ne. 0) then
       write(*,'(a,i3)') 'ERROR: TILT - INITIALIZING PARALLEL WRITE '// &
           'BOUNDARY FILE FOR VERTICAL SLICES, ERROR', ierr
@@ -3240,9 +3237,9 @@ SUBROUTINE inputParameters()
     endif
     !
     ! chunk mode: either write header, or set up to write correct location
-    if (ifexit .ne. 0) then
-      CALL IWRHDR(6, title, 0, dminIn, dmaxIn, dmeanIn)
-      CALL IMCLOSE(6)
+    if (ifExit .ne. 0) then
+      call iiuWriteHeader(6, title, 0, dminIn, dmaxIn, dmeanIn)
+      call iiuClose(6)
     elseif (minTotSlice > 0) then
       call parWrtPosn(6, isliceStart - minTotSlice, 0)
     endif
@@ -3250,7 +3247,7 @@ SUBROUTINE inputParameters()
   endif
 
 
-  if (ifexit .ne. 0) then
+  if (ifExit .ne. 0) then
     print *,'Exiting after setting up output file for chunk writing'
     call exit(0)
   endif
@@ -3259,13 +3256,13 @@ SUBROUTINE inputParameters()
   ! Allow the full size to be less than the aligned stack, with a negative
   ! subset start
   !
-  if (nxfull == 0) then
-    nxfull = nprojXyz(1)
+  if (nxFull == 0) then
+    nxFull = nprojXyz(1)
     nxFullIn = nprojXyz(1) * imageBinned
   endif
-  if (nyfull == 0) nyfull = nprojXyz(2)
-  xcenIn = nxfull / 2. +0.5 - ixsubset
-  centerSlice = nyfull / 2. +0.5 - iysubset
+  if (nyFull == 0) nyFull = nprojXyz(2)
+  xcenIn = nxFull / 2. + 0.5 - ixSubset
+  centerSlice = nyFull / 2. + 0.5 - iySubset
   xoffAdj = xoffset - ((nprojXyz(1) * imageBinned - nxFullIn) / 2 + ixSubsetIn)
   xcenOut = iwidth / 2 + 0.5 + axisXoffset + xoffAdj
   ycenOut = ithickBP / 2 + 0.5 + yOffset
@@ -3280,17 +3277,17 @@ SUBROUTINE inputParameters()
   ! Also cancel the z factors if global entry was not made
   !
   if (nxWarp > 0) then
-    do i = 1, nvorig * nxWarp * nyWarp
-      delBeta(i) = -dtor * delBeta(i)
+    do i = 1, numViewOrig * nxWarp * nyWarp
+      delBeta(i) = -degToRad * delBeta(i)
     enddo
     do iv = 1, numViews
       do i = 1, nxWarp * nyWarp
         ind = indWarp(i) + mapUsedView(iv)
         cWarpBeta(ind) = cos(angles(iv) + delBeta(ind))
         sWarpBeta(ind) = sin(angles(iv) + delBeta(ind))
-        cWarpAlpha(ind) = cos(dtor * (alpha(iv) + delAlpha(ind)))
-        sWarpAlpha(ind) = -sin(dtor * (alpha(iv) + delAlpha(ind)))
-        if (ifZfac == 0) then
+        cWarpAlpha(ind) = cos(degToRad * (alpha(iv) + delAlpha(ind)))
+        sWarpAlpha(ind) = -sin(degToRad * (alpha(iv) + delAlpha(ind)))
+        if (ifZfactors == 0) then
           warpXZfac(ind) = 0.
           warpYZfac(ind) = 0.
         endif
@@ -3299,11 +3296,11 @@ SUBROUTINE inputParameters()
     !
     ! See if local outScale was entered; if not see if it can be set from
     ! pixel size and local align pixel size
-    if (scalelocal <= 0.) then
-      scalelocal = 1.
+    if (scaleLocal <= 0.) then
+      scaleLocal = 1.
       if (pixelLocal > 0) then
-        scalelocal = pixelLocal / delta(1)
-        if (abs(scalelocal - 1.) > 0.001) write(6, 53) scaleLocal
+        scaleLocal = pixelLocal / delta(1)
+        if (abs(scaleLocal - 1.) > 0.001) write(6, 53) scaleLocal
       endif
     endif
     !
@@ -3311,16 +3308,16 @@ SUBROUTINE inputParameters()
     ! shrunk relative to the local alignment solution
     ! 10/16/04: fixed to use mapUsedView to outScale used views properly
     !
-    if (scalelocal .ne. 1.) then
-      ixStartWarp = nint(ixStartWarp * scalelocal)
-      iyStartWarp = nint(iyStartWarp * scalelocal)
-      idelXwarp = nint(idelXwarp * scalelocal)
-      idelYwarp = nint(idelYwarp * scalelocal)
+    if (scaleLocal .ne. 1.) then
+      ixStartWarp = nint(ixStartWarp * scaleLocal)
+      iyStartWarp = nint(iyStartWarp * scaleLocal)
+      idelXwarp = nint(idelXwarp * scaleLocal)
+      idelYwarp = nint(idelYwarp * scaleLocal)
       do iv = 1, numViews
         do i = 1, nxWarp * nyWarp
           ind = indWarp(i) + mapUsedView(iv)
-          fwarp(1, 3, ind) = fwarp(1, 3, ind) * scalelocal
-          fwarp(2, 3, ind) = fwarp(2, 3, ind) * scalelocal
+          fwarp(1, 3, ind) = fwarp(1, 3, ind) * scaleLocal
+          fwarp(2, 3, ind) = fwarp(2, 3, ind) * scaleLocal
         enddo
       enddo
     endif
@@ -3328,15 +3325,16 @@ SUBROUTINE inputParameters()
     ! if the input data is a subset in X or Y, subtract starting
     ! coordinates from ixStartWarp and iyStartWarp
     !
-    ixStartWarp = ixStartWarp - ixsubset
-    iyStartWarp = iyStartWarp - iysubset
+    ixStartWarp = ixStartWarp - ixSubset
+    iyStartWarp = iyStartWarp - iySubset
   endif
   !
   ! Done with array in its small form and with angReproj
-  deallocate(array, angReproj, ivexcl, ivreprj, stat = ierr)
+  deallocate(array, angReproj, ivExclude, ivReproj, stat = ierr)
   !
   ! Here is the place to project model points and exit
-  if (projModel) call projectModel(filout, delta, nvorig)
+  if (projModel) call projectModel(outputFile, angleOutput, transformFile, delta, &
+      numViewOrig, defocusFile, pixForDefocus, focusInvert)
   !
   ! If reprojecting, set the pointers and return
   if (recReproj) then
@@ -3345,7 +3343,7 @@ SUBROUTINE inputParameters()
     maxXload = maxXreproj
     if (nxWarp .ne. 0) then
       minXload = max(1, minXload - 100)
-      maxXload = min(nrxyz(1), maxXload + 100)
+      maxXload = min(nrecXyz(1), maxXload + 100)
     endif
     iwideReproj = maxXload + 1 - minXload
     isliceSizeBP = iwideReproj * ithickReproj
@@ -3362,12 +3360,12 @@ SUBROUTINE inputParameters()
     ! additional offset.  But the line number here is the line # in the
     ! reconstruction so we only need to adjust Y by the original starting
     ! line.  Also replace the slice limits.
-    xprojOffset = minXreproj - 1 + nprojXyz(1) / 2 - iwidth / 2 - xoffset
+    xprojOffset = minXreproj - 1 + nprojXyz(1) / 2 - iwidth / 2 - xOffset
     yprojOffset = isliceStart - 1
     isliceStart = minZreproj
     isliceEnd = maxZreproj
-    iwidth = noxyz(1)
-    nyProj = nrxyz(3)
+    iwidth = noutXyz(1)
+    nyProj = nrecXyz(3)
     dmeanIn = (dmeanIn / outScale - outAdd) / filterScale
     indLoadBase = 1
     ipExtraSize = 0
@@ -3380,18 +3378,16 @@ SUBROUTINE inputParameters()
         call exitError('THE MAIN ARRAY CANNOT BE ALLOCATED LARGE ENOUGH'// &
         ' TO REPROJECT A SINGLE Y VALUE')
     allocate(reprojLines(iwidth * numPlanes), stat = ierr)
-    if (ierr .ne. 0) &
-        call exitError('FAILED TO ALLOCATE ARRAY FOR REPROJECTED LINES')
+    call memoryError(ierr, 'ARRAY FOR REPROJECTED LINES')
     !
     if (projSubtraction) then
       allocate(origLines(iwidth * numPlanes), stat = ierr)
-      if (ierr .ne. 0) &
-          call exitError('FAILED TO ALLOCATE ARRAY FOR ORIGINAL LINES')
+      call memoryError(ierr, 'ARRAY FOR ORIGINAL LINES')
     endif
     if (useGPU) then
       ind = 0
       if (debug) ind = 1
-      if (useGPU) useGPU = gpuAvailable(nGPU, gpuMemory, ind) .ne. 0
+      if (useGPU) useGPU = gpuAvailable(indGPU, gpuMemory, ind) .ne. 0
       ind = maxNeeds(1) * inPlaneSize + iwidth * numPlanes
       iex = iwidth * numPlanes
       kti = 0
@@ -3425,8 +3421,7 @@ SUBROUTINE inputParameters()
       kti = iwideReproj * numPlanes
       allocate(warpDelz(numWarpDelz * max(1, numGpuPlanes)), xprojfs(kti), &
           xprojzs(kti), yprojfs(kti), yprojzs(kti), stat = ierr)
-      if (ierr .ne. 0) call exitError( &
-          'ALLOCATING LOCAL PROJECTION FACTOR OR warpDelz ARRAYS')
+      call memoryError(ierr, 'LOCAL PROJECTION FACTOR OR warpDelz ARRAYS')
     endif
     return
   endif
@@ -3435,8 +3430,7 @@ SUBROUTINE inputParameters()
   if (nxWarp .ne. 0) then
     allocate(xprojfs(iwidth), xprojzs(iwidth), yprojfs(iwidth), &
         yprojzs(iwidth), stat = ierr)
-    if (ierr .ne. 0) call exitError( &
-        'ALLOCATING ARRAYS FOR LOCAL PROJECTION FACTORS')
+    call memoryError(ierr, 'ARRAYS FOR LOCAL PROJECTION FACTORS')
   endif
   !
   ! If reading base, figure out total views being added and adjust scales
@@ -3464,23 +3458,23 @@ SUBROUTINE inputParameters()
   if (debug) print *,(maxNeeds(i), i = 1, numNeedEval)
   if (iterForReport > 0) then
     allocate(reportVals(3, max(1, numSIRTiter)), stat = ierr)
-    if (ierr .ne. 0) call exitError('ALLOCATING REPORT VALUE ARRAY')
+    call memoryError(ierr, 'REPORT VALUE ARRAY')
     reportVals(1:3, 1:max(1, numSIRTiter)) = 0.
   endif
   !
   ! 12/13/09: removed fast backprojection code
   !
   ! Set up padding: 10% of X size or minimum of 16, max of 50
-  npadtmp = min(50, 2 * max(8, nprojXyz(1) / 20))
+  numPadTmp = min(50, 2 * max(8, nprojXyz(1) / 20))
   ! npadtmp = 2 * nprojXyz(1)
-  nprpad = niceframe(2 * ((nprojXyz(1) + npadtmp) / 2), 2, niceFFTlimit())
-  numPad = nprpad - nprojXyz(1)
+  nprojPad = niceFrame(2 * ((nprojXyz(1) + numPadTmp) / 2), 2, niceFFTlimit())
+  numPad = nprojPad - nprojXyz(1)
   !
   ! Set up defaults for plane size and start of planes of input data
   isliceSizeBP = iwidth * ithickBP
   ipExtraSize = 0
-  NXPRJ2 = nxProj + 2 + numPad
-  inPlaneSize = NXPRJ2 * numViews
+  nxProjPad = nxProj + 2 + numPad
+  inPlaneSize = nxProjPad * numViews
   indOutSlice = inPlaneSize + 1
   indLoadBase = indOutSlice + isliceSizeBP
   if (numSIRTiter > 0) then
@@ -3489,20 +3483,20 @@ SUBROUTINE inputParameters()
     ireadBase = indLoadBase
     indWorkPlane = indLoadBase + isliceSizeBP
     indLoadBase = indWorkPlane + inPlaneSize
-    nsxyz(1) = iwidth
-    nsxyz(2) = isliceEnd + 1 - isliceStart
-    nsxyz(3) = numViews
+    nvsXyz(1) = iwidth
+    nvsXyz(2) = isliceEnd + 1 - isliceStart
+    nvsXyz(3) = numViews
     if (ifOutSirtProj > 0) then
-      call imopen(4, 'sirttst.prj', 'NEW')
-      call icrhdr(4, nsxyz, nsxyz, 2, title, 0)
-      CALL IWRHDR(4, title, 0, -1.e6, 1.e6, 0.)
+      call imOpen(4, 'sirttst.prj', 'NEW')
+      call iiuCreateHeader(4, nvsXyz, nvsXyz, 2, title, 0)
+      call iiuWriteHeader(4, title, 0, -1.e6, 1.e6, 0.)
     endif
-    nsxyz(2) = ithickBP
-    nsxyz(3) = isliceEnd + 1 - isliceStart
+    nvsXyz(2) = ithickBP
+    nvsXyz(3) = isliceEnd + 1 - isliceStart
     if (ifOutSirtRec > 0) then
-      call imopen(5, 'sirttst.drec', 'NEW')
-      call icrhdr(5, nsxyz, nsxyz, 2, title, 0)
-      CALL IWRHDR(5, title, 0, -1.e6, 1.e6, 0.)
+      call imOpen(5, 'sirttst.drec', 'NEW')
+      call iiuCreateHeader(5, nvsXyz, nvsXyz, 2, title, 0)
+      call iiuWriteHeader(5, title, 0, -1.e6, 1.e6, 0.)
     endif
   endif
   maxStack = 0
@@ -3511,10 +3505,10 @@ SUBROUTINE inputParameters()
   if (useGPU) then
     ind = 0
     if (debug) ind = 1
-    wallstart = wallTime()
-    useGPU = gpuAvailable(nGPU, gpuMemory, ind) .ne. 0
+    wallStart = wallTime()
+    useGPU = gpuAvailable(indGPU, gpuMemory, ind) .ne. 0
     if (debug) write(*,'(a,f8.4)') 'Time to test if GPU available: ', &
-        wallTime() - wallstart
+        wallTime() - wallStart
     if (useGPU) then
       !
       ! Basic need is input planes for reconstructing one slice plus 2
@@ -3567,7 +3561,7 @@ SUBROUTINE inputParameters()
       ycenOut = ithickBP / 2 + 0.5 + yOffset
       indLoadBase = indOutSlice + isliceSizeBP
       ipExtraSize = 0
-      inPlaneSize = nxprj2 * numViews
+      inPlaneSize = nxProjPad * numViews
       write(*,63)
 63    format(/,'Failed to allocate an array big enough ', &
           'to use new-style X-axis tilting')
@@ -3589,7 +3583,7 @@ SUBROUTINE inputParameters()
     ipExtraSize = inPlaneSize
     if (allocateArray(maxNeeds, numNeedEval, 1, minMemory) == 0) then
       ipExtraSize = 0
-      inPlaneSize = nxprj2 * numViews
+      inPlaneSize = nxProjPad * numViews
       interpFacStretch = 0
       write(*,62)
 62    format(/,'Failed to allocate an array big enough ', &
@@ -3606,11 +3600,11 @@ SUBROUTINE inputParameters()
   !
   ! Set up radial weighting
   if (numSIRTiter > 0 .and. .not.sirtFromZero) flatFrac = 2.
-  CALL RADWT(IRMAX, IFALL, 1)
+  call radwt(iradMax, iradFall, 1)
   if (sirtFromZero) then
     frac = zeroWeight
     flatFrac = 2.
-    CALL RADWT(IRMAX, IFALL, 2)
+    call radwt(iradMax, iradFall, 2)
     zeroWeight = frac
   endif
   !
@@ -3620,30 +3614,30 @@ SUBROUTINE inputParameters()
     ind = ind + 4 * numViews * iwidth + 12 * numWarpPos * numViews
     call packLocalData()
   endif
-  wallstart = wallTime()
+  wallStart = wallTime()
   if (useGPU) then
     if (ifAlpha <= 0 .and. nxWarp == 0) then
       iv = 0
       j = 1
       if (numSIRTiter > 0) iv = numViews
       if (sirtFromZero) j = 2
-      useGPU = gpuAllocArrays(iwidth, ithickBP, nxprj2, numViews, 1, numViews, 0, &
+      useGPU = gpuAllocArrays(iwidth, ithickBP, nxProjPad, numViews, 1, numViews, 0, &
           0, j, iv, 1, 1) == 0
     else
-      call allocateGpuPlanes(ind, nxWarp * nyWarp, 0, 1, ithickBP, nxprj2, numViews)
+      call allocateGpuPlanes(ind, nxWarp * nyWarp, 0, 1, ithickBP, nxProjPad, numViews)
     endif
     if (debug .and. useGPU) write(*,'(a,f8.4)') 'Time to allocate on GPU: ', &
-        wallTime() - wallstart
+        wallTime() - wallStart
 
     ! print *,useGPU
-    wallstart = wallTime()
+    wallStart = wallTime()
     if (useGPU) useGPU = gpuLoadFilter(array) == 0
     ! print *,useGPU
     if (useGPU .and. nxWarp .ne. 0) &
         useGPU = gpuLoadLocals(packLocal, nxWarp * nyWarp) == 0
     ! print *,useGPU
     if (debug .and. useGPU) write(*,'(a,f8.4)') 'Time to load filter/locals on GPU: ', &
-        wallTime() - wallstart
+        wallTime() - wallStart
     if (useGPU) then
       print *,'Using GPU for backprojection'
     else
@@ -3656,7 +3650,7 @@ SUBROUTINE inputParameters()
 
   ! print *,interpFacStretch, ipExtraSize, ifAlpha, numVertNeeded
   !
-  RETURN
+  return
   !
 2410 call exitError('READING LOCAL TILT ALIGNMENT DATA FROM FILE')
 2411 call exitError('READING TILT ANGLES FROM FILE')
@@ -3666,64 +3660,51 @@ SUBROUTINE inputParameters()
 2415 call exitError('READING ANGLES FOR WEIGHTING FROM FILE')
   !
   !
-48 FORMAT(//,1X,78('-'))
-49 FORMAT('TILT: ',a,t57,A9,2X,A8)
-51 FORMAT(/' Projection angles:'//(8F9.2))
-52 FORMAT(//,1X,78('-'))
-53 format(/,'Scaling of local alignments by ',f8.3, &
-      ' determined from pixel sizes')
-101 FORMAT(/' Title:    ',20A4)
-201 FORMAT(/' Rows',I5,' to',I5,', (at intervals of',i4,') of the' &
+48 format(/,/,1xx,78('-'))
+49 format('TILT: ',a,t57,a9,2xx,a8)
+51 format(/,' Projection angles:',//,(8f9.2))
+52 format(/,/,1xx,78('-'))
+53 format(/,'Scaling of local alignments by ',f8.3, ' determined from pixel sizes')
+101 format(/,' Title:    ',20a4)
+201 format(/,' Rows',i5,' to',i5,', (at intervals of',i4,') of the' &
       ,' projection planes will be reconstructed.')
-301 FORMAT(/' Thickness of reconstructed slice is',I5, &
-      ' pixels.')
-401 FORMAT(/' Mask applied to edges of output slices with',i5, &
-      ' extra pixels masked')
-501 FORMAT(/' Radial weighting function parameters IRMAX =',I5, &
-      '  IWIDE =',I5)
-601 FORMAT(/' Output map rotated by',F6.1,' degrees about tilt axis', &
-      ' with respect to tilt origin' / &
-      ' Tilt axis displaced by',F9.2,' pixels from centre' &
-      ,' of projection')
-701 FORMAT(/' Output map densities incremented by',F8.2, &
-      ' and then multiplied by',F8.2)
-801 FORMAT(/' Output map is sectioned perpendicular to the ' &
-      ,'tilt axis')
-901 FORMAT(/' Output map is sectioned parallel to the' &
+301 format(/,' Thickness of reconstructed slice is',i5, ' pixels.')
+401 format(/,' Mask applied to edges of output slices with',i5, ' extra pixels masked')
+501 format(/,' Radial weighting function parameters IRMAX =',i5, '  IWIDE =',i5)
+601 format(/,' Output map rotated by',f6.1,' degrees about tilt axis', &
+      ' with respect to tilt origin', /, ' Tilt axis displaced by',f9.2, &
+      ' pixels from centre of projection')
+701 format(/,' Output map densities incremented by',f8.2, ' and then multiplied by',f8.2)
+801 format(/,' Output map is sectioned perpendicular to the ' ,'tilt axis')
+901 format(/,' Output map is sectioned parallel to the' &
       ,' zero tilt projection, inverting handedness')
-902 FORMAT(/' Output map is sectioned parallel to the' &
+902 format(/,' Output map is sectioned parallel to the' &
       ,' zero tilt projection, retaining handedness')
-1001 format(/' Data mode of output file is',i3)
-1301 format(/' Taking logarithm of input data plus',f10.3)
-1701 format(/' Compression was confined to',f6.3, &
+1001 format(/,' Data mode of output file is',i3)
+1301 format(/,' Taking logarithm of input data plus',f10.3)
+1701 format(/,' Compression was confined to',f6.3, &
       ' of the distance over which it was measured')
-1801 format(/' Weighting by tilt density computed to distance of' &
+1801 format(/,' Weighting by tilt density computed to distance of' &
       ,i3,' views',/,'  weighting factors:',(10f6.3))
-1802 format(/' No weighting by tilt density')
+1802 format(/,' No weighting by tilt density')
 2001 format(/,' Width of reconstruction is',i6,' pixels')
-2101 format(/,' Output slice shifted up',f7.1,' and to right',f7.1, &
-      ' pixels')
+2101 format(/,' Output slice shifted up',f7.1,' and to right',f7.1, ' pixels')
 2201 format(/,' Alpha tilting to be applied with angles from file')
 2202 format(/,' Constant alpha tilt of',f6.1,' to be applied based on ', &
-      'angles from file')
+         'angles from file')
 2301 format(/,' Global alpha tilt of',f6.1,' will be applied')
 2401 format(/,' Local tilt alignment information read from file')
 2501 format(/,' Local alignment positions and shifts reduced by',f7.4)
-2601 format(/,' Full aligned stack will be assumed to be',i6,' by', &
-      i6,' pixels')
-2701 format(/,' Aligned stack will be assumed to be a subset ', &
-      'starting at',2i6)
-2801 format(/,' Cosine stretching, if any, will have interpolation', &
-      ' order', i2,', sampling factor',i2)
-3001 format(/,' X-tilting with vertical slices, if any, will have ', &
-      'interpolation order', i2)
+2601 format(/,' Full aligned stack will be assumed to be',i6,' by', i6,' pixels')
+2701 format(/,' Aligned stack will be assumed to be a subset starting at',2i6)
+2801 format(/,' Cosine stretching, if any, will have interpolation order', i2, &
+         ', sampling factor',i2)
+3001 format(/,' X-tilting with vertical slices, if any, will have interpolation order', &
+         i2)
 3101 format(/,' Output will be one or more reprojections')
-3201 format(/,' Z-dependent shifts to be applied with factors from file' &
-      )
-3301 format(/,' Dimensions and coordinates will be scaled down by a ', &
-      'factor of ',i2)
-3401 format(/,' Computed slices are part of a total volume from slice', &
-      i6,' to',i6)
+3201 format(/,' Z-dependent shifts to be applied with factors from file')
+3301 format(/,' Dimensions and coordinates will be scaled down by a factor of ',i2)
+3401 format(/,' Computed slices are part of a total volume from slice', i6,' to',i6)
 3501 format(/,i4,' iterations of SIRT algorithm will be done')
 
 CONTAINS
@@ -4210,7 +4191,7 @@ subroutine setNeededSlices(maxNeeds, numEval)
   indNeededBase = lsmin - 1
   numNeedSE = lsmax - indNeededBase
   allocate(neededStarts(numNeedSE), neededEnds(numNeedSE), stat = ierr)
-  if (ierr .ne. 0) call exitError('ALLOCATING ARRAYS needStarts/needEnds')
+  call memoryError(ierr, 'ARRAYS needStarts/needEnds')
 
   do itry = lsmin, lsmax
 
@@ -5298,63 +5279,109 @@ end subroutine writeReprojLines
 
 ! Projects model points onto the included views
 !
-subroutine projectModel(filout, delta, nvorig)
+subroutine projectModel(outModel, outAngles, transformFile, delta, numViewsOrig,  &
+    defocusFile, pixForDefocus, focusInvert)
   use tiltvars
   implicit none
   include 'model.inc90'
-  character*(*) filout
-  real*4 delta(3), orig(3)
-  integer*4 nvorig, ibase, numPt, iobj, ipt, ip1, iv, nv
-  real*4 value, rj, ri, rlslice, zz, yy, zpart, xproj, yproj
-  integer*4 j, lslice, imodobj, imodcont, ierr, size
+  character*(*) outModel, outAngles, transformFile, defocusFile
+  real*4 delta(3), origin(3), pixForDefocus, focusInvert
+  character*120 objName
+  integer*4 numViewsOrig, ibase, numPoints, iobj, ipt, ip1, iv, nfv, numXfs
+  real*4 oneVal, rlJ, rlI, rlSlice, zz, yy, zpart, xproj, yproj, zOffset
+  integer*4 j, lslice, imodObj, imodCont, ierr, size
   real*4 fj, fls, f11, f12, f21, f22, xf11, xz11, yf11, yz11
   real*4 xf21, xz21, yf21, yz21, xf12, xz12, yf12, yz12, xf22, xz22, yf22
-  real*4 yz22, xprojf, xprojz, yprojf, yprojz
-  real*4, allocatable :: values(:), coords(:,:)
-  integer*4, allocatable :: mapnv(:)
+  real*4 yz22, xprojf, xprojz, yprojf, yprojz, degToRad, ptDefocus, betaInv
+  real*4 fjlMat(2,2), f1234(4), gamma, stretch, strPhi, smag, gammaSum, betaSum, alphaSum
+  integer*4 ind1234(4), jInc, lsInc, ic
+  equivalence (fjlMat(1, 1), f11), (fjlMat(1, 2), f12), (fjlMat(2, 1), f21),  &
+      (fjlMat(2, 2), f22)
+  data degToRad/0.0174533/
+  real*4, allocatable :: values(:), coords(:,:), alixf(:,:,:), aliRot(:), defocus(:)
+  integer*4, allocatable :: mapFileToView(:)
   integer*4 getContValue, putImageRef, putContValue, putImodFlag
-  integer*4 getScatSize, putScatSize, putImodMaxes
+  integer*4 getScatSize, putScatSize, putImodMaxes, getImodObjName, getZFromMinusPt5
   !
-  call irtorg(1, orig(1), orig(2), orig(3))
+  call iiuRetOrigin(1, origin(1), origin(2), origin(3))
   call scale_model(0)
   if (getScatSize(1, size) .ne. 0) size = 5
-  allocate(values(n_point), coords(3, n_point), mapnv(limView), stat = j)
-  if (j .ne. 0) call exitError('ALLOCATING ARRAYS FOR REPROJECTING MODEL')
+  !
+  ! Models are defined as having Z coordinates ranging from -0.5 to NZ - 0.5 so Z
+  ! will need to be shifted up by 1 to get to pixel index coordinates
+  ! But in old beadtrack models, Z started at 0 so the offset needs to be only 0.5
+  ! Recognize old beadtrack model by lack of flag AND original object name so that
+  ! other old models will work
+  zOffset = 1.0
+  if (getZFromMinusPt5() == 0 .and. getImodObjName(1, objName) == 0) then
+    if (objName(1:8) == 'Wimp no.') zOffset = 0.5
+  endif
+  j = numViewsOrig + 10
+  allocate(values(n_point), coords(3, n_point), mapFileToView(limView),  &
+      alixf(2, 3, j), aliRot(j), defocus(j), stat = ierr)
+  call memoryError(ierr, 'ARRAYS FOR REPROJECTING MODEL')
+  if (outAngles .ne. ' ') then
+    call dopen(12, outAngles, 'new', 'f')
+    if (transformFile .ne. ' ') then
+      call dopen(13, transformFile, 'old', 'f')
+      call xfrdall2(13, alixf, numXfs, numViewsOrig + 10, j)
+      close(13)
+      if (numXfs > numViewsOrig) write(*,'(/,a)') &
+          'WARNING: TILT - MORE ALIGNMENT TRANSFORMS THAN VIEWS IN INPUT STACK'
+      if (j == 2) call exitError('READING FILE OF ALIGNMENT TRANSFORMS')
+      if (numXfs < numViewsOrig) call exitError( &
+          'FEWER ALIGNMENT TRANSFORMS THAN VIEWS IN INPUT STACK')
+      do j = 1, numViewsOrig
+        call amat_to_rotmagstr(alixf(1, 1, j), aliRot(j), smag, stretch, strPhi)
+      enddo
+    endif
+    !
+    if (defocusFile .ne. ' ') then
+      call dopen(13, defocusFile, 'old', 'f')
+      read(13,*,err = 98, end = 98) (defocus(j), j = 1, numViewsOrig)
+      close(13)
+      if (focusInvert == 0) then
+        focusInvert = 1.
+      else
+        focusInvert = -1.
+      endif
+    endif
+  endif
   !
   ! get each point and its contour value into the arrays
-  numPt = 0
+  numPoints = 0
   do iobj = 1, max_mod_obj
-    call objtocont(iobj, obj_color, imodobj, imodcont)
-    if (getContValue(imodobj, imodcont, value) .ne. 0) value = -1.
+    call objToCont(iobj, obj_color, imodObj, imodCont)
+    if (getContValue(imodObj, imodCont, oneVal) .ne. 0) oneVal = -1.
     ibase = ibase_obj(iobj)
     do ipt = 1, npt_in_obj(iobj)
-      numPt = numPt + 1
-      values(numPt) = value
+      numPoints = numPoints + 1
+      values(numPoints) = oneVal
       ip1 = abs(object(ipt + ibase))
-      coords(1, numPt) = p_coord(1, ip1)
-      coords(2, numPt) = p_coord(2, ip1)
-      coords(3, numPt) = p_coord(3, ip1)
+      coords(1, numPoints) = p_coord(1, ip1)
+      coords(2, numPoints) = p_coord(2, ip1)
+      coords(3, numPoints) = p_coord(3, ip1)
     enddo
   enddo
   !
   ! Start a new model
-  call newimod()
+  call newImod()
   n_point = 0
   iobj = 0
-  if (putImageRef(delta, orig) .ne. 0 .or. putImodMaxes(nprojXyz(1), nprojXyz(2),  &
+  if (putImageRef(delta, origin) .ne. 0 .or. putImodMaxes(nprojXyz(1), nprojXyz(2),  &
       nprojXyz(3)) .ne. 0) call exitError( &
       'Putting image reference or maximum size information in output model')
   !
   ! Build a map from views in file to ordered views in program
-  do nv = 1, nvorig
-    mapnv(nv) = 0
+  do nfv = 1, numViewsOrig
+    mapFileToView(nfv) = 0
   enddo
-  do nv = 1, numViews
-    mapnv(mapUsedView(nv)) = nv
+  do iv = 1, numViews
+    mapFileToView(mapUsedView(iv)) = iv
   enddo
   !
   ! Loop on the points, start new contour for each
-  do ipt = 1, numPt
+  do ipt = 1, numPoints
     iobj = iobj + 1
     obj_color(1, iobj) = 1
     obj_color(2, iobj) = 255
@@ -5363,34 +5390,34 @@ subroutine projectModel(filout, delta, nvorig)
     npt_in_obj(iobj) = 0
     !
     ! Get real pixel coordinates in tomogram file
-    rj = coords(1, ipt) + 0.5
-    ri = coords(2, ipt) + 0.5
-    rlslice = coords(3, ipt) + 0.5
+    rlJ = coords(1, ipt) + 0.5
+    rlI = coords(2, ipt) + 0.5
+    rlSlice = coords(3, ipt) + zOffset
     !
-    ! This may never be tesed but seems simple enough
+    ! This may never be tested but seems simple enough
     if (.not.perpendicular) then
-      ri = coords(3, ipt) + 0.5
-      rlslice = coords(2, ipt) + 0.5
+      rlI = coords(3, ipt) + zOffset
+      rlSlice = coords(2, ipt) + 0.5
     endif
     !
     ! Loop on the views in the file
-    do nv = 1, nvorig
-      iv = mapnv(nv)
+    do nfv = 1, numViewsOrig
+      iv = mapFileToView(nfv)
       if (iv > 0) then
-        zz = (ri - ycenModProj) * compress(iv)
-        yy = rlslice - centerSlice
+        zz = (rlI - ycenModProj) * compress(iv)
+        yy = rlSlice - centerSlice
         if (nxWarp == 0) then
           zpart = yy * sinAlpha(iv) * sinBeta(iv) + zz * (cosAlpha(iv) * sinBeta(iv) +  &
               xzfac(iv)) + xcenIn + axisXoffset
           yproj = yy * cosAlpha(iv) - zz * (sinAlpha(iv) - yzfac(iv)) + centerSlice
-          xproj = zpart + (rj - xcenOut) * cosBeta(iv)
+          xproj = zpart + (rlJ - xcenOut) * cosBeta(iv)
         else
           !
           ! local alignments
-          j = rj
-          fj = rj - j
-          lslice = rlslice
-          fls = rlslice - lslice
+          j = rlJ
+          fj = rlJ - j
+          lslice = rlSlice
+          fls = rlSlice - lslice
           f11 = (1. -fj) * (1. -fls)
           f12 = (1. -fj) * fls
           f21 = fj * (1. -fls)
@@ -5405,6 +5432,49 @@ subroutine projectModel(filout, delta, nvorig)
           yprojz = f11 * yz11 + f12 * yz12 + f21 * yz21 + f22 * yz22
           xproj = xprojf + zz * xprojz
           yproj = yprojf + zz * yprojz
+          !
+        endif
+        if (outAngles .ne. ' ') then
+          betaSum = 0.
+          alphaSum = 0.
+          gammaSum = 0.
+          if (nxWarp == 0) then
+            alphaSum = alpha(iv)
+            betaSum = -angles(iv) / degToRad
+          else
+            do jInc = 1, 2
+              do lsInc = 1, 2
+                call local_factors(nint(j + jInc - 1 - xcenOut + xcenIn + axisXoffset), &
+                    lslice + lsInc - 1,  nfv, ind1234(1), ind1234(2), &
+                    ind1234(3), ind1234(4), f1234(1), f1234(2), f1234(3), f1234(4))
+                f1234(1:4) = f1234(1:4) * fjlMat(jInc, lsInc)
+                do ic = 1, 4
+                  call amat_to_rotmagstr(fwarp(1, 1, ind1234(ic)), gamma, smag, &
+                      stretch, strPhi)
+                  !
+                  ! alpha was left as degrees and with its native sign, with the negative
+                  ! taken when taking the sin; but tilt angle and delBeta were converted
+                  ! to radians and made negative
+                  ! The transform has the amount image needs to be rotated; need
+                  ! negative for rotation of specimen
+                  alphaSum = alphaSum + f1234(ic) * (alpha(iv) + delAlpha(ind1234(ic)))
+                  betaSum = betaSum - f1234(ic) *  (angles(iv) + delBeta(ind1234(ic))) / &
+                      degToRad
+                  gammaSum = gammaSum - f1234(ic) * gamma
+                enddo
+              enddo
+            enddo
+          endif
+          if (transformFile .ne. ' ') gammaSum = gammaSum - aliRot(nfv)
+          ptDefocus = 0.
+          if (defocusFile .ne. ' ') then
+            yy = (yproj - centerSlice) * tan(alphaSum * degToRad)
+            betaInv = focusInvert * betaSum * degToRad
+            ptDefocus = defocus(nfv) - ((xproj - xcenIn) - yy * sin(betaInv)) * &
+                tan(betaInv) + yy * cos(betaInv)
+          endif
+          write(12, '(3i6,3f9.3,f10.0)') iobj, iv, nfv, alphaSum, betaSum, gammaSum,  &
+              ptDefocus
         endif
         !
         ! Store model coordinates
@@ -5415,7 +5485,7 @@ subroutine projectModel(filout, delta, nvorig)
         object(n_point) = n_point
         p_coord(1, n_point) = xproj - 0.5
         p_coord(2, n_point) = yproj - 0.5
-        p_coord(3, n_point) = nv - 1.
+        p_coord(3, n_point) = nfv - 1.
       endif
     enddo
   enddo
@@ -5429,7 +5499,9 @@ subroutine projectModel(filout, delta, nvorig)
   ierr = putImodFlag(1, 9)
   ierr = putScatSize(1, size)
   call scale_model(1)
-  call write_wmod(filout)
+  call write_wmod(outModel)
   print *,n_point, ' points written to output model'
+  if (outAngles .ne. ' ') close(12)
   call exit(0)
+98 call exitError('READING FILE OF DEFOCUS VALUES')
 end subroutine projectModel

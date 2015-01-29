@@ -65,12 +65,6 @@ struct GridDomain {
   int neighbors[9];
 };
 
-//#define PRINT1(a,b) printf(#b" = %"#a"\n", b);
-#define PRINT1(a) cout << #a << " = " << a << endl
-#define PRINT2(a,b) cout << #a << " = " << a << ",  " #b << " = " << b << endl
-#define PRINT3(a,b,c) cout << #a << " = " << a << ",  " #b << " = " << b << ",  " #c << " = " << c << endl
-#define PRINT4(a,b,c,d) cout << #a << " = " << a << ",  " #b << " = " << b << ",  " #c << " = " << c << ",  " #d << " = " << d << endl
-
 class PickSeeds
 {
  public:

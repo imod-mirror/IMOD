@@ -81,6 +81,7 @@ public final class Colors {
       120);
   static final Color AVAILABLE_BACKGROUND = new ColorUIResource(224, 240, 255);
   static final Color AVAILABLE_BORDER = new ColorUIResource(153, 204, 255);
+  static final Color FIELD_HIGHLIGHT = new Color(0,0,185);
   private static final int BACKGROUND_ADJUSTMENT = 20;
 
   private static Color backgroundA = null;

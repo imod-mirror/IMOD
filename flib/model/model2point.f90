@@ -15,8 +15,8 @@ program model2point
   character*320 modelfile, pointfile
   logical*4 printObj, printCont, floating, scaled
   integer*4 ierr, iobject, ninobj, ipt, ipnt, modObj, modCont, npnts, numOffset, ifValues
-  logical exist, readw_or_imod, getModelObjectRange
-  real*4 genVal, fillVal
+  logical exist, readw_or_imod, getModelObjectRange, zFromZero
+  real*4 genVal, fillVal, zOffset
   integer*4 nobjTot, imodObj, getImodObjSize, getContValue, getPointValue
   !
   include 'model.inc90'
@@ -28,13 +28,13 @@ program model2point
   ! fallbacks from ../../manpages/autodoc2man -3 2  model2point
   !
   integer numOptions
-  parameter (numOptions = 10)
+  parameter (numOptions = 11)
   character*(40 * numOptions) options(1)
   options(1) = &
       'input:InputFile:FN:@output:OutputFile:FN:@float:FloatingPoint:B:@'// &
       'scaled:ScaledCoordinates:B:@object:ObjectAndContour:B:@contour:Contour:B:@'// &
-      'zero:NumberedFromZero:B:@values:ValuesInLastColumn:I:@fill:FillValue:F:@'// &
-      'help:usage:B:'
+      'zero:NumberedFromZero:B:@zcoord:ZCoordinatesFromZero:B:@'// &
+      'values:ValuesInLastColumn:I:@fill:FillValue:F:@help:usage:B:'
   !
   printObj = .false.
   printCont = .false.
@@ -43,6 +43,8 @@ program model2point
   numOffset = 0
   fillVal = 0.
   ifValues = 0
+  zFromZero = .false.
+  zOffset = 0.
   !
   ! Pip startup: set error, parse options, check help, set flag if used
   !
@@ -68,6 +70,10 @@ program model2point
   ierr = PipGetBoolean('NumberedFromZero', numOffset)
   ierr = PipGetInteger('ValuesInLastColumn', ifValues)
   ierr = PipGetFloat('FillValue', fillVal)
+  ierr = PipGetLogical('ZCoordinatesFromZero', zFromZero)
+  if (zFromZero .and. .not. floating) call exitError( &
+      'YOU MUST OUTPUT FLOATING POINT VALUES TO HAVE Z COORDINATES STARTING AT 0') 
+  if (zFromZero) zOffset = 0.5
   !
   ! scan through all objects to get points
   !
@@ -100,13 +106,15 @@ program model2point
                 else
                   if (getPointValue(modObj, modCont, ipt, genVal) .ne. 0) genVal = fillVal
                 endif
-                write(1, 105) p_coord(1, ipnt), p_coord(2, ipnt), p_coord(3, ipnt), genVal
+                write(1, 105) p_coord(1, ipnt), p_coord(2, ipnt),  &
+                    p_coord(3, ipnt) + zOffset, genVal
               else
-                write(1, 104) p_coord(1, ipnt), p_coord(2, ipnt), p_coord(3, ipnt)
+                write(1, 104) p_coord(1, ipnt), p_coord(2, ipnt), p_coord(3, ipnt) +  &
+                    zOffset
               endif
             else
               write(1, 102) nint(p_coord(1, ipnt)), nint(p_coord(2, ipnt)), &
-                  nint(p_coord(3, ipnt))
+                  nint(p_coord(3, ipnt) + zOffset)
             endif
             npnts = npnts + 1
           endif

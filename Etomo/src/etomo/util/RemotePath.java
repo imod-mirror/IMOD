@@ -362,7 +362,7 @@ public final class RemotePath {
 
     ReadOnlyAutodoc autodoc;
     try {
-      autodoc = AutodocFactory.getInstance(manager, AUTODOC, axisID);
+      autodoc = AutodocFactory.getInstance(manager, AUTODOC, axisID,false);
     }
     catch (IOException e) {
       e.printStackTrace();
