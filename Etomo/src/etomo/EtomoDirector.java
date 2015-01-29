@@ -901,8 +901,9 @@ public class EtomoDirector {
         openTomogram(etomoDataFile.getAbsolutePath(), makeCurrent, axisID);
       }
       else {
-        UIHarness.INSTANCE.openMessageDialog(uiComponent, "Dataset file "
-          + etomoDataFile.getAbsolutePath() + " does not exist.", "Open Dataset Failed");
+        UIHarness.INSTANCE.openMessageDialog(null, uiComponent, "Dataset file "
+          + etomoDataFile.getAbsolutePath() + " does not exist.", "Open Dataset Failed",
+          (AxisID) null);
       }
     }
   }
