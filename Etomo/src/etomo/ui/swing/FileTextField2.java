@@ -24,6 +24,8 @@ import javax.swing.filechooser.FileFilter;
 import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.storage.DirectiveDef;
+import etomo.ui.FieldDisplayer;
+import etomo.ui.FieldValidationFailedException;
 import etomo.ui.TextFieldSetting;
 import etomo.ui.Field;
 import etomo.ui.FieldSettingInterface;
@@ -82,14 +84,16 @@ final class FileTextField2 implements FileTextFieldInterface, Field, ActionListe
   }
 
   private FileTextField2(final BaseManager manager, final String label,
-      final boolean labeled, final boolean peet, final boolean alternateLayout) {
+    final boolean labeled, final boolean peet, final boolean alternateLayout) {
     if (!peet) {
-      button = new SimpleButton(
-          new ImageIcon(ClassLoader.getSystemResource("images/openFile.gif")));
+      button =
+        new SimpleButton(new ImageIcon(ClassLoader
+          .getSystemResource("images/openFile.gif")));
     }
     else {
-      button = new SimpleButton(
-          new ImageIcon(ClassLoader.getSystemResource("images/openFilePeet.png")));
+      button =
+        new SimpleButton(new ImageIcon(ClassLoader
+          .getSystemResource("images/openFilePeet.png")));
     }
     button.setName(label);
     field = new TextField(STRING_FIELD_TYPE, label, null);
@@ -117,7 +121,7 @@ final class FileTextField2 implements FileTextFieldInterface, Field, ActionListe
    * @return
    */
   static FileTextField2 getUnlabeledPeetInstance(final BaseManager manager,
-      final String name) {
+    final String name) {
     FileTextField2 instance = new FileTextField2(manager, name, false, true, false);
     instance.createPanel();
     instance.addListeners();
@@ -147,8 +151,8 @@ final class FileTextField2 implements FileTextFieldInterface, Field, ActionListe
     return instance;
   }
 
-  static FileTextField2 getAltLayoutInstance(final BaseManager manager,
-      final String name) {
+  static FileTextField2
+    getAltLayoutInstance(final BaseManager manager, final String name) {
     FileTextField2 instance = new FileTextField2(manager, name, true, false, true);
     instance.createPanel();
     instance.addListeners();
@@ -157,9 +161,8 @@ final class FileTextField2 implements FileTextFieldInterface, Field, ActionListe
 
   private void createPanel() {
     // init
-    field.setTextPreferredSize(new Dimension(
-        250 * (int) Math.round(UIParameters.getInstance().getFontSizeAdjustment()),
-        FixedDim.folderButton.height));
+    field.setTextPreferredSize(new Dimension(250 * (int) Math.round(UIParameters
+      .getInstance().getFontSizeAdjustment()), FixedDim.folderButton.height));
     button.setName(label.getText());
     button.setPreferredSize(FixedDim.folderButton);
     button.setMaximumSize(FixedDim.folderButton);
@@ -195,8 +198,8 @@ final class FileTextField2 implements FileTextFieldInterface, Field, ActionListe
     if (fontMetrics == null) {
       fontMetrics = UIUtilities.getFontMetrics(label);
     }
-    return UIUtilities.getPreferredWidth(label, label.getText(), fontMetrics) +
-        field.getPreferredWidth() + button.getPreferredWidth();
+    return UIUtilities.getPreferredWidth(label, label.getText(), fontMetrics)
+      + field.getPreferredWidth() + button.getPreferredWidth();
   }
 
   private void addListeners() {
@@ -270,7 +273,8 @@ final class FileTextField2 implements FileTextFieldInterface, Field, ActionListe
    * @param width
    */
   void setAdjustedFieldWidth(final double width) {
-    field.setTextPreferredWidth(width * UIParameters.getInstance().getFontSizeAdjustment());
+    field.setTextPreferredWidth(width
+      * UIParameters.getInstance().getFontSizeAdjustment());
   }
 
   void setAbsolutePath(final boolean input) {
@@ -412,8 +416,7 @@ final class FileTextField2 implements FileTextFieldInterface, Field, ActionListe
     field.setFieldHighlight(value);
   }
 
-  public void setFieldHighlight(final boolean value) {
-  }
+  public void setFieldHighlight(final boolean value) {}
 
   public void setFieldHighlight(final FieldSettingInterface settingInterface) {
     field.setFieldHighlight(settingInterface);
@@ -495,8 +498,8 @@ final class FileTextField2 implements FileTextFieldInterface, Field, ActionListe
    * @param input
    */
   void setFileSelectionMode(final int input) {
-    if (input != FileChooser.FILES_ONLY && input != FileChooser.DIRECTORIES_ONLY &&
-        input != FileChooser.FILES_AND_DIRECTORIES) {
+    if (input != FileChooser.FILES_ONLY && input != FileChooser.DIRECTORIES_ONLY
+      && input != FileChooser.FILES_AND_DIRECTORIES) {
       System.err.println("WARNING: Incorrect file chooser file selection mode: " + input);
       return;
     }
@@ -513,6 +516,15 @@ final class FileTextField2 implements FileTextFieldInterface, Field, ActionListe
 
   public FileFilter getFileFilter() {
     return fileFilter;
+  }
+
+  public boolean isRequired() {
+    return field.isRequired();
+  }
+
+  public String getText(final boolean doValidation, final FieldDisplayer fieldDisplayer)
+    throws FieldValidationFailedException {
+    return field.getText(doValidation, fieldDisplayer);
   }
 
   public String getText() {
@@ -535,8 +547,7 @@ final class FileTextField2 implements FileTextFieldInterface, Field, ActionListe
     field.setValue(input);
   }
 
-  public void setValue(final boolean input) {
-  }
+  public void setValue(final boolean input) {}
 
   public boolean isSelected() {
     return false;
