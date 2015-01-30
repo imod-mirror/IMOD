@@ -7,6 +7,7 @@ import javax.swing.ButtonGroup;
 import javax.swing.JPanel;
 
 import etomo.BaseManager;
+import etomo.comscript.BatchruntomoParam;
 import etomo.comscript.IntermittentCommand;
 import etomo.comscript.ProcesschunksParam;
 import etomo.comscript.QueuechunkParam;
@@ -15,52 +16,48 @@ import etomo.storage.Network;
 import etomo.storage.Node;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoVersion;
+import etomo.type.ProcessingMethod;
 
 /**
-* <p>Description: </p>
-* 
-* <p>Copyright: Copyright 2010</p>
-*
-* <p>Organization:
-* Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
-* University of Colorado</p>
-* 
-* @author $Author$
-* 
-* @version $Revision$
-* 
-* <p> $Log$
-* <p> Revision 1.3  2011/07/18 22:44:59  sueh
-* <p> Bug# 1515 Removed isSelectOnlyRow - no longer needed.
-* <p>
-* <p> Revision 1.2  2011/02/22 18:20:39  sueh
-* <p> bug# 1437 Reformatting.
-* <p>
-* <p> Revision 1.1  2011/02/03 06:17:02  sueh
-* <p> bug# 1422 Child of ProcessorTable that makes a ProcessorTable display
-* <p> queues.
-* <p> </p>
-*/
+ * <p>Description: </p>
+ * <p/>
+ * <p>Copyright: Copyright 2010 - 2014 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
+ *
+ * @version $Id$
+ *          <p/>
+ *          <p> $Log$
+ *          <p> Revision 1.3  2011/07/18 22:44:59  sueh
+ *          <p> Bug# 1515 Removed isSelectOnlyRow - no longer needed.
+ *          <p>
+ *          <p> Revision 1.2  2011/02/22 18:20:39  sueh
+ *          <p> bug# 1437 Reformatting.
+ *          <p>
+ *          <p> Revision 1.1  2011/02/03 06:17:02  sueh
+ *          <p> bug# 1422 Child of ProcessorTable that makes a ProcessorTable display
+ *          <p> queues.
+ *          <p> </p>
+ */
 
 final class QueueTable extends ProcessorTable {
-  public static final String rcsid = "$Id$";
-
-  private static final String PREPEND = "ProcessorTable.Queue";
+  private static final String PREPEND = ".Queue";
 
   private HeaderCell[] header1LoadArray = null;
   private HeaderCell[] header2LoadArray = null;
   private ButtonGroup buttonGroup = null;
 
-  QueueTable(final BaseManager manager, final ParallelPanel parent, final AxisID axisID) {
-    super(manager, parent, axisID, true);
+  QueueTable(final BaseManager manager, final ParallelPanel parent, final AxisID axisID,
+      final boolean runnable) {
+    super(manager, parent, axisID, true, runnable);
   }
 
   String getStorePrepend() {
-    return PREPEND;
+    return getGroupKey() + PREPEND;
   }
 
   String getLoadPrepend(ConstEtomoVersion version) {
-    return PREPEND;
+    return getGroupKey() + PREPEND;
   }
 
   private void createHeader1LoadArray() {
@@ -68,8 +65,8 @@ final class QueueTable extends ProcessorTable {
       return;
     }
     String[] loadUnitsArray = null;
-    loadUnitsArray = CpuAdoc.INSTANCE.getLoadUnits(manager, axisID,
-        manager.getPropertyUserDir());
+    loadUnitsArray =
+        CpuAdoc.INSTANCE.getLoadUnits(manager, axisID, manager.getPropertyUserDir());
     if (loadUnitsArray.length == 0) {
       header1LoadArray = new HeaderCell[1];
       header1LoadArray[0] = new HeaderCell("Load");
@@ -105,15 +102,10 @@ final class QueueTable extends ProcessorTable {
   ProcessorTableRow createProcessorTableRow(final ProcessorTable processorTable,
       final Node node, final int numRowsInTable) {
     return ProcessorTableRow
-        .getQueueInstance(
-            processorTable,
-            node,
-            node.getNumber(),
-            buttonGroup,
-            Math.max(
-                1,
-                CpuAdoc.INSTANCE.getLoadUnits(manager, axisID,
-                    manager.getPropertyUserDir()).length), numRowsInTable);
+        .getQueueInstance(processorTable, node, node.getNumber(), buttonGroup, Math.max(1,
+                CpuAdoc.INSTANCE
+                    .getLoadUnits(manager, axisID, manager.getPropertyUserDir()).length),
+            numRowsInTable);
   }
 
   String getHeader1ComputerText() {
@@ -125,33 +117,47 @@ final class QueueTable extends ProcessorTable {
   }
 
   void addHeader1Load(final JPanel tablePanel, final GridBagLayout layout,
-      final GridBagConstraints constraints) {
+      final GridBagConstraints constraints, final ColumnName lastColumnName) {
     constraints.gridwidth = 1;
     createHeader1LoadArray();
     for (int i = 0; i < header1LoadArray.length; i++) {
+      if (lastColumnName == ColumnName.LOAD && i == header1LoadArray.length - 1) {
+        constraints.gridwidth = GridBagConstraints.REMAINDER;
+      }
       header1LoadArray[i].add(tablePanel, layout, constraints);
     }
   }
 
   void addHeader1Users(final JPanel tablePanel, final GridBagLayout layout,
-      final GridBagConstraints constraints) {
+      final GridBagConstraints constraints, final ColumnName lastColumnName) {
     // The users column contains a load value, so it can't be used when
     // displaying queues.
   }
 
   void addHeader2Load(final JPanel tablePanel, final GridBagLayout layout,
-      final GridBagConstraints constraints) {
+      final GridBagConstraints constraints, final ColumnName lastColumnName) {
     createHeader2LoadArray();
     for (int i = 0; i < header2LoadArray.length; i++) {
+      if (lastColumnName == ColumnName.LOAD && i == header2LoadArray.length - 1) {
+        constraints.gridwidth = GridBagConstraints.REMAINDER;
+      }
       header2LoadArray[i].add(tablePanel, layout, constraints);
     }
   }
 
   void addHeader2Users(final JPanel tablePanel, final GridBagLayout layout,
-      final GridBagConstraints constraints) {
+      final GridBagConstraints constraints, final ColumnName lastColumnName) {
   }
 
   boolean useUsersColumn() {
+    return false;
+  }
+
+  boolean isCpuTable() {
+    return false;
+  }
+
+  boolean isGpuTable() {
     return false;
   }
 
@@ -163,6 +169,13 @@ final class QueueTable extends ProcessorTable {
     }
     param.setQueue(queue);
     super.getParameters(param);
+  }
+
+  void getParameters(final ProcessingMethod method, final BatchruntomoParam param) {
+    if (method == ProcessingMethod.PP_CPU) {
+      param.resetCPUMachineList();
+      getParameters(param);
+    }
   }
 
   IntermittentCommand getIntermittentCommand(final String computer) {

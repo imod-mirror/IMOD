@@ -8,10 +8,9 @@ c
 c       $Id$
 c       
       implicit none
-      include 'statsize.inc'
       include 'model.inc'
-      integer idim
-      parameter (idim=10000)
+      integer idim,msiz
+      parameter (idim=10000,msiz=20)
       real*4 xr(msiz,idim)
       real*4 pnta(3,idim),pntb(3,idim),a(3,4),dxyz(3),devxyz(3)
       real*4 devxyzmax(3),orig(3,2),ptrot(3),cenloc(3),aloc(3,4),dxyzloc(3)
@@ -625,7 +624,7 @@ c
       distmin=0.
 c       
       do while(ndat-nmodpt.lt.min(npnta,npntb).and.distmin.lt.addcrit)
-        call do3multr(xr,ndat,ncolfit,ndat,icolfix,a,dxyz,cenloc,
+        call do3multr(xr,msiz,ndat,ncolfit,ndat,icolfix,a,dxyz,cenloc,
      &      devavg,devsd, devmax,ipntmax, devxyzmax)
         distmin=1.e10
 c         
@@ -709,7 +708,7 @@ c       write(*,105)((xr(i,j),i=1,4),(xr(i,j),i=1+iofs,3+iofs),j=1,ndat)
       crit=0.01
       elimmin=3.
       critabs=0.002
-      call solve_wo_outliers(xr,ndat,ncolfit,icolfix,maxdrop,crit,critabs,
+      call solve_wo_outliers(xr,msiz,ndat,ncolfit,icolfix,maxdrop,crit,critabs,
      &    elimmin, idrop,ndrop, a,dxyz,cenloc, devavg,devsd,devmax,
      &    ipntmax, devxyzmax)
 c       
@@ -908,7 +907,7 @@ c               write(*,'(6f8.1)')(xr(i,j),i=1,3), (xr(i,j),i=5,7)
 c               enddo
               maxdrop=nint(0.1*ndat)
               if (ndat .le. 6) maxdrop = 0
-              call solve_wo_outliers(xr,ndat,ncolfit,icolfix,maxdrop,crit,
+              call solve_wo_outliers(xr,msiz,ndat,ncolfit,icolfix,maxdrop,crit,
      &            critabs, elimmin, idrop,ndrop, aloc,dxyzloc,cenloc,
      &            devavgLoc, devsd,devmaxLoc, ipntmax, devxyzmax)
 c               print *,xcen,ycen,size,ndat,devavgloc,devmaxloc

@@ -43,8 +43,8 @@ static void findLowestThree(float val, int ind, float *lowest, float *second,
  * [edgeStep]: Stride between X and Y edges at the same edge index in the edge
  * arrays [dxedge, dyedge, pieceLower, pieceUpper, ifskipEdge].  If the arrays
  * are accessed in Fortran as array(edge,ixy), then this value is the first 
- * dimension of the array.  If they are accessed in C as array[edge][ixy] or
- * array[2*edge+ixy] then the value is 1. ^
+ * dimension of the array.  If they are accessed in C as array\[edge\]\[ixy\] or
+ * array\[2*edge+ixy\] then the value is 1. ^
  * [dxyvar]: array into which the piece shifts in X and Y are returned for
  * each piece in the variable list^
  * [varStep]: Stride between X and Y shifts for a given piece in [dxyvar]; as

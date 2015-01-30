@@ -27,6 +27,7 @@ extern "C" {
 #endif
 #endif
 
+#define MAX_MBS_SCALES 16
 
   /* parselist.c  - for parsing a list of integers */
   int *parselist (const char *line, int *nlist);
@@ -61,10 +62,16 @@ extern "C" {
                  float scale, float dmean, int linear);
 
   /* reduce_by_binning.c */
+  int extractWithBinning(void *array, int type, int nxDim, int xStart, int xEnd,
+                         int yStart, int yEnd, int nbin, void *brray, int keepByte, 
+                         int *nxr, int *nyr);
   int reduceByBinning(void *array, int type, int nxin, int nyin, int nbin, 
                       void *brray, int keepByte, int *nxr, int *nyr);
+  void binIntoSlice(float *array, int nxDim, float *brray, int nxBin, int nyBin,
+                    int binFacX, int binFacY, float zWeight);
 
   /* filtxcorr.c */
+  int niceFrame(int num, int idnum, int limit);
   void XCorrSetCTF(float sigma1, float sigma2, float radius1, float radius2,
                    float *ctf, int nx, int ny, float *delta);
   void XCorrSetCTFnoScl(float sigma1, float sigma2, float radius1,
@@ -93,7 +100,8 @@ extern "C" {
                          float *mat, int kdim);
   void wrapFFTslice(float *array, float *tmpArray, int nx, int ny, int direction);
   int indicesForFFTwrap(int ny, int direction, int *iyOut, int *iyLow, int *iyHigh);
-
+  void fourierShiftImage(float *fft, int nxPad, int nyPad, float dx, float dy,
+                         float *temp);
 
   /* taperpad.c */
   void sliceTaperOutPad(void *array, int type, int nxbox, int nybox, 
@@ -174,6 +182,7 @@ extern "C" {
   void rsMADN(float *x, int n, float median, float *tmp, float *MADN);
   void rsFastMedian(float *x, int n, float *tmp, float *median);
   void rsFastMedianInPlace(float *x, int n, float *median);
+  void rsPercentileOfSorted(float *x, int n, float fraction, float *pctile);
   void rsFastMADN(float *x, int n, float median, float *tmp, float *MADN);
   void rsMadMedianOutliers(float *x, int n, float kcrit, float *out);
   void rsTrimmedMean(float *x, int n, float gamma, float *xsort, 
@@ -284,6 +293,49 @@ extern "C" {
   /* minimize1D.c */
   int minimize1D(float curPosition, float curValue, float initialStep, int numScanSteps,
                  int *numCutsDone, float *brackets, float *nextPosition);
+
+  /* multibinstat */
+  int multiBinSetup(int binning[][3], int boxSize[][3], int boxSpacing[][3],
+                    int numScales, int startCoord[3], int endCoord[3], int boxStart[][3], 
+                    int numBoxes[][3], int *bufferStartInds, int *statStartInds);
+  int multiBinStats(int binning[][3], int boxSize[][3], int boxSpacing[][3], 
+                    int numScales, int startCoord[3], int endCoord[3], int boxStart[][3], 
+                    int numBoxes[][3], int *bufferStartInds, int *statStartInds, 
+                    float *buffer, float *means, float *SDs, int *funcData,
+                    int (*getSliceFunc)(int *, int *, float *));
+
+  /* montagexcorr */
+#define MONTXC_MAX_PEAKS  30
+#define MONTXC_MAX_DEBUG_LINE 90
+  void montXCBasicSizes(int ixy, int nbin,  int indentXC, int *nxyPiece, int *nxyOverlap, 
+                        float aspectMax, float extraWidth, float padFrac, int niceLimit,
+                        int *indentUse, int *nxyBox, int *numExtra, int *nxPad, 
+                        int *nyPad, int *maxLongShift);
+  void montXCIndsAndCTF(int ixy, int *nxyPiece, int *nxyOverlap, int *nxyBox, int nbin, 
+                        int indentUse, int *numExtra, int nxPad, int nyPad, int numSmooth,
+                        float sigma1, float sigma2, float radius1, float radius2, 
+                        int evalCCC, int *ind0Lower, int *ind1Lower, int *ind0Upper,
+                        int *ind1Upper, int *nxSmooth, int *nySmooth, float *ctf,
+                        float *delta);
+  int montXCFindBinning(int maxBin, int targetSize, int indentXC, int *nxyPiece,
+                        int *nxyOverlap, float aspectMax, float extraWidth, float padFrac,
+                        int niceLimit, int *numPaddedPix, int *numBoxedPix);
+  void montXCorrEdge(float *lowerIn, float *upperIn, int *nxyBox, int *nxyPiece, 
+                     int *nxyOverlap, int nxSmooth, int nySmooth, int nxPad, int nyPad,
+                     float *lowerPad, float *upperPad, float *lowerCopy,
+                     int numXcorrPeaks, int legacy, float *ctf, float delta,
+                     int *numExtra, int nbin, int ixy,
+                     int maxLongShift, int weightCCC, float *xDisplace, float *yDisplace,
+                     float *CCC, void (*twoDfft)(float *, int *, int *, int *),
+                     void (*dumpEdge)(float *, int *, int *, int *, int *, int *), 
+                     char *debugStr, int debugLen, int debugLevel);
+
+  /* sdsearch */
+  void montBigSearch(float *array, float *brray, int nx, int ny, int ixBox0,
+                     int iyBox0,int ixBox1, int iyBox1, float *dxMin, float *dyMin,
+                     float *sdMin, float *ddenMin, int numIter, int limStep);
+  void montSdCalc(float *array, float *brray, int nx, int ny, int ixBox0, int iyBox0,
+                  int ixBox1, int iyBox1, float dx, float dy, float *sd, float *dden);
 
 #ifdef __cplusplus
 }

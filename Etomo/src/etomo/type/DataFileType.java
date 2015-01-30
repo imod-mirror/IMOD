@@ -22,6 +22,7 @@ public final class DataFileType {
       DatasetTool.STANDARD_DATASET_EXT);
   public static final DataFileType JOIN = new DataFileType(".ejf", false, null);
   public static final DataFileType PARALLEL = new DataFileType(".epp", false, null);
+  public static final DataFileType BATCH_RUN_TOMO = new DataFileType(".ebt", false, null);
   public static final DataFileType PEET = new DataFileType(".epe", false, null);
   public static final DataFileType SERIAL_SECTIONS = new DataFileType(".ess", false, null);
   public static final DataFileType TOOLS = new DataFileType(null, false, null);
@@ -69,6 +70,9 @@ public final class DataFileType {
     if (ext.equals(PARALLEL.extension)) {
       return PARALLEL;
     }
+    if (ext.equals(BATCH_RUN_TOMO.extension)) {
+      return BATCH_RUN_TOMO;
+    }
     if (ext.equals(PEET.extension)) {
       return PEET;
     }
@@ -87,6 +91,9 @@ public final class DataFileType {
     }
     if (this == PARALLEL) {
       return "Parallel";
+    }
+    if (this == BATCH_RUN_TOMO) {
+      return "Batch Run Tomo";
     }
     if (this == PEET) {
       return "PEET";

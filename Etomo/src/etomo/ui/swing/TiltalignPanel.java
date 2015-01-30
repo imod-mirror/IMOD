@@ -37,25 +37,21 @@ import etomo.ui.FieldValidationFailedException;
 /**
  * <p>Description: </p>
  *
- * <p>Copyright: Copyright (c) 2002</p>
+ * <p>Copyright: Copyright 2002 - 2014 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * <p>Organization: Boulder Laboratory for 3D Fine Structure,
- * University of Colorado</p>
- *
- * @author $Author$
- *
- * @version $Revision$
- *
+ * @version $Id$
  */
-
 final class TiltalignPanel implements Expandable {
-  public static final String rcsid = "$Id$";
-
-  private static final String MIN_LOCAL_PATCH_SIZE_LABEL = "Min. local patch size or overlap factor (x,y): ";
-  private static final String MIN_LOCAL_PATCH_SIZE_OVERLAP_ONLY_LABEL = "Overlap factor (x,y): ";
+  private static final String MIN_LOCAL_PATCH_SIZE_LABEL =
+      "Min. local patch size or overlap factor (x,y): ";
+  private static final String MIN_LOCAL_PATCH_SIZE_OVERLAP_ONLY_LABEL =
+      "Overlap factor (x,y): ";
   private final AxisID axisID;
 
-  /* // TODO need recomended default for all sub groups see (align.com) private final int
+  /*
+   * // TODO need recomended default for all sub groups see (align.com) private final int
    * defaultTiltAngleType = 5; private final int defaultTiltAngleGroupSize = 5; private
    * final int defaultMagnificationType = 3; private final int defaultDistortionType = 2;
    * private final int defaultXstretchType = 3; private final int defaultXstretchGroupSize
@@ -67,7 +63,8 @@ final class TiltalignPanel implements Expandable {
    * defaultLocalMagnificationGroupSize = 7; private final int defaultLocalDistortionType
    * = 2; private final int defaultLocalXstretchType = 3; private final int
    * defaultLocalXstretchGroupSize = 7; private final int defaultLocalSkewType = 3;
-   * private final int defaultLocalSkewGroupSize = 11; */
+   * private final int defaultLocalSkewGroupSize = 11;
+   */
 
   private final TabbedPane tabPane = new TabbedPane();
 
@@ -193,8 +190,8 @@ final class TiltalignPanel implements Expandable {
 
   private final LabeledTextField ltfLocalTiltAngleGroupSize = new LabeledTextField(
       FieldType.INTEGER, "Group size: ");
-  private final LabeledTextField ltfLocalTiltAngleNonDefaultGroups = new LabeledTextField(
-      FieldType.INTEGER_TRIPLE, "Non-default grouping: ");
+  private final LabeledTextField ltfLocalTiltAngleNonDefaultGroups =
+      new LabeledTextField(FieldType.INTEGER_TRIPLE, "Non-default grouping: ");
 
   // Local magnfication pane
   private final EtomoPanel pnlLocalMagnificationSolution = new EtomoPanel();
@@ -202,8 +199,8 @@ final class TiltalignPanel implements Expandable {
 
   private final LabeledTextField ltfLocalMagnificationGroupSize = new LabeledTextField(
       FieldType.INTEGER, "Group size: ");
-  private final LabeledTextField ltfLocalMagnificationNonDefaultGroups = new LabeledTextField(
-      FieldType.INTEGER_TRIPLE, "Non-default grouping: ");
+  private final LabeledTextField ltfLocalMagnificationNonDefaultGroups =
+      new LabeledTextField(FieldType.INTEGER_TRIPLE, "Non-default grouping: ");
 
   // Local distortion pane
   private final EtomoPanel pnlLocalDistortionSolution = new EtomoPanel();
@@ -262,8 +259,9 @@ final class TiltalignPanel implements Expandable {
     this.appMgr = appMgr;
     axisID = axis;
     tabPane.setBorder(new EtchedBorder("Tiltalign Parameters").getBorder());
-    phBeamTilt = PanelHeader.getAdvancedBasicOnlyInstance("Beam Tilt", this,
-        DialogType.FINE_ALIGNMENT, globalAdvancedButton, true);
+    phBeamTilt =
+        PanelHeader.getAdvancedBasicOnlyInstance("Beam Tilt", this,
+            DialogType.FINE_ALIGNMENT, globalAdvancedButton, true);
     globalAdvancedButton.register(this);
     // Create the tabs
     createGeneralTab();
@@ -280,7 +278,8 @@ final class TiltalignPanel implements Expandable {
    */
   static TiltalignPanel getInstance(final AxisID axis, final ApplicationManager appMgr,
       GlobalExpandButton globalAdvancedButton) {
-    TiltalignPanel tiltalignPanel = new TiltalignPanel(axis, appMgr, globalAdvancedButton);
+    TiltalignPanel tiltalignPanel =
+        new TiltalignPanel(axis, appMgr, globalAdvancedButton);
     tiltalignPanel.addListeners();
     return tiltalignPanel;
   }
@@ -303,8 +302,8 @@ final class TiltalignPanel implements Expandable {
     rbTiltAngleFixed.addActionListener(tiltAngleRadioListener);
     rbTiltAngleAll.addActionListener(tiltAngleRadioListener);
     rbTiltAngleAutomap.addActionListener(tiltAngleRadioListener);
-    MagnificationRadioListener magnificationRadioListener = new MagnificationRadioListener(
-        this);
+    MagnificationRadioListener magnificationRadioListener =
+        new MagnificationRadioListener(this);
     rbMagnificationFixed.addActionListener(magnificationRadioListener);
     rbMagnificationAll.addActionListener(magnificationRadioListener);
     rbMagnificationAutomap.addActionListener(magnificationRadioListener);
@@ -312,17 +311,17 @@ final class TiltalignPanel implements Expandable {
     rbDistortionDisabled.addActionListener(distortionRadioListener);
     rbDistortionFullSolution.addActionListener(distortionRadioListener);
     rbDistortionSkew.addActionListener(distortionRadioListener);
-    LocalRotationCheckListener localRotationCheckListener = new LocalRotationCheckListener(
-        this);
+    LocalRotationCheckListener localRotationCheckListener =
+        new LocalRotationCheckListener(this);
     cbLocalRotation.addActionListener(localRotationCheckListener);
-    LocalTiltAngleCheckListener localTiltAngleCheckListener = new LocalTiltAngleCheckListener(
-        this);
+    LocalTiltAngleCheckListener localTiltAngleCheckListener =
+        new LocalTiltAngleCheckListener(this);
     cbLocalTiltAngle.addActionListener(localTiltAngleCheckListener);
-    LocalMagnificationCheckListener localMagnificationCheckListener = new LocalMagnificationCheckListener(
-        this);
+    LocalMagnificationCheckListener localMagnificationCheckListener =
+        new LocalMagnificationCheckListener(this);
     cbLocalMagnification.addActionListener(localMagnificationCheckListener);
-    LocalDistortionRadioListener localDistortionRadioListener = new LocalDistortionRadioListener(
-        this);
+    LocalDistortionRadioListener localDistortionRadioListener =
+        new LocalDistortionRadioListener(this);
     rbLocalDistortionDisabled.addActionListener(localDistortionRadioListener);
     rbLocalDistortionFullSolution.addActionListener(localDistortionRadioListener);
     rbLocalDistortionSkew.addActionListener(localDistortionRadioListener);
@@ -369,8 +368,9 @@ final class TiltalignPanel implements Expandable {
     boolean keepEnabled = rbRotationAll.isSelected();
     // Group and solve rotations: disable if full or skew AND solve beam tilt
     // selected.
-    boolean disable = (rbDistortionFullSolution.isSelected() || rbDistortionSkew
-        .isSelected()) && rbSolveForBeamTilt.isSelected();
+    boolean disable =
+        (rbDistortionFullSolution.isSelected() || rbDistortionSkew.isSelected())
+            && rbSolveForBeamTilt.isSelected();
     rbRotationAll.setEnabled(keepEnabled || !disable);
     // Group Rotations:
     keepEnabled = rbRotationAutomap.isSelected();
@@ -380,8 +380,9 @@ final class TiltalignPanel implements Expandable {
     keepEnabled = rbDistortionFullSolution.isSelected();
     // Full and skew: disabled if All rotations or Group rotations AND solve beam
     // tilt is on
-    disable = (rbRotationAll.isSelected() || rbRotationAutomap.isSelected())
-        && rbSolveForBeamTilt.isSelected();
+    disable =
+        (rbRotationAll.isSelected() || rbRotationAutomap.isSelected())
+            && rbSolveForBeamTilt.isSelected();
     rbDistortionFullSolution.setEnabled(keepEnabled || !disable);
     // Distortion: Skew only:
     keepEnabled = rbDistortionSkew.isSelected();
@@ -391,8 +392,9 @@ final class TiltalignPanel implements Expandable {
     keepEnabled = rbSolveForBeamTilt.isSelected();
     // Solve for beam tilt: disable if All rotations or Group rotations AND Full or
     // Skew distortion selected.
-    disable = (rbRotationAll.isSelected() || rbRotationAutomap.isSelected())
-        && (rbDistortionFullSolution.isSelected() || rbDistortionSkew.isSelected());
+    disable =
+        (rbRotationAll.isSelected() || rbRotationAutomap.isSelected())
+            && (rbDistortionFullSolution.isSelected() || rbDistortionSkew.isSelected());
     rbSolveForBeamTilt.setEnabled(keepEnabled || !disable);
     cbWeightWholeTracks.setEnabled(patchTracking
         && ctfRobustFittingAndKFactorScaling.isSelected());
@@ -555,14 +557,16 @@ final class TiltalignPanel implements Expandable {
     ltfRotationNonDefaultGroups.setText(params.getRotNondefaultGroup());
 
     // Compression solution parameters
-    /* ltfCompressionReferenceView.setText( params.getCompressionSolutionReferenceView());
+    /*
+     * ltfCompressionReferenceView.setText( params.getCompressionSolutionReferenceView());
      * solutionType = params.getCompressionSolutionType(); if (solutionType == 1) {
      * rbCompressionAll.setSelected(true); } if (solutionType == 3) {
      * rbCompressionAutomapLinear.setSelected(true); } if (solutionType == 4) {
      * rbCompressionAutomapFixed.setSelected(true); } if (solutionType > 2) {
      * ltfCompressionGroupSize.setText(params.getCompressionSolutionGroupSize());
      * ltfCompressionAdditionalGroups.setText(
-     * params.getCompressionSolutionAdditionalGroups()); } */
+     * params.getCompressionSolutionAdditionalGroups()); }
+     */
     // Global distortion solution type
     int xStretchSolutionType = params.getXStretchOption().getInt();
     int skewSolutionType = params.getSkewOption().getInt();
@@ -1085,8 +1089,8 @@ final class TiltalignPanel implements Expandable {
     boolean xStretchState = rbDistortionFullSolution.isSelected();
     ltfXstretchGroupSize.setEnabled(xStretchState);
     ltfXstretchNonDefaultGroups.setEnabled(xStretchState);
-    boolean skewState = rbDistortionFullSolution.isSelected()
-        || rbDistortionSkew.isSelected();
+    boolean skewState =
+        rbDistortionFullSolution.isSelected() || rbDistortionSkew.isSelected();
     ltfSkewGroupSize.setEnabled(skewState);
     ltfSkewNonDefaultGroups.setEnabled(skewState);
   }
@@ -1113,8 +1117,8 @@ final class TiltalignPanel implements Expandable {
     boolean xStretchState = rbLocalDistortionFullSolution.isSelected();
     ltfLocalXstretchGroupSize.setEnabled(xStretchState);
     ltfLocalXstretchNonDefaultGroups.setEnabled(xStretchState);
-    boolean skewState = rbLocalDistortionSkew.isSelected()
-        || rbLocalDistortionFullSolution.isSelected();
+    boolean skewState =
+        rbLocalDistortionSkew.isSelected() || rbLocalDistortionFullSolution.isSelected();
     ltfLocalSkewGroupSize.setEnabled(skewState);
     ltfLocalSkewNonDefaultGroups.setEnabled(skewState);
   }
@@ -1143,9 +1147,10 @@ final class TiltalignPanel implements Expandable {
    */
   private void createRadioBox(final JPanel panel, final ButtonGroup group,
       RadioButton[] items, int width) {
-    int radioButtonHeight = (int) (18 * UIParameters.INSTANCE.getFontSizeAdjustment());
-    Dimension radioButtonItemSize = new Dimension(
-        (int) (width * UIParameters.INSTANCE.getFontSizeAdjustment()), radioButtonHeight);
+    int radioButtonHeight = (int) (18 * UIParameters.getInstance().getFontSizeAdjustment());
+    Dimension radioButtonItemSize =
+        new Dimension((int) (width * UIParameters.getInstance().getFontSizeAdjustment()),
+            radioButtonHeight);
 
     // Add the items to the group and to the panel
     for (int i = 0; i < items.length; i++) {
@@ -1250,7 +1255,7 @@ final class TiltalignPanel implements Expandable {
     pnlGeneralBody.add(Box.createRigidArea(FixedDim.x0_y10));
 
     // local alignment
-    ltfMinLocalFiducials.setTextPreferredWidth(60 * UIParameters.INSTANCE
+    ltfMinLocalFiducials.setTextPreferredWidth(60 * UIParameters.getInstance()
         .getFontSizeAdjustment());
     pnlLocalParameters.setLayout(new BoxLayout(pnlLocalParameters, BoxLayout.Y_AXIS));
     pnlLocalParameters.setBorder(new EtchedBorder("Local Alignment Parameters")
@@ -1330,9 +1335,9 @@ final class TiltalignPanel implements Expandable {
     JPanel pnlRBDistortion = new JPanel();
     pnlRBDistortion.setLayout(new BoxLayout(pnlRBDistortion, BoxLayout.Y_AXIS));
     createRadioBox(pnlRBDistortion, bgDistortionSolution, items);
-    ltfXstretchNonDefaultGroups.setTextPreferredWidth(UIParameters.INSTANCE
+    ltfXstretchNonDefaultGroups.setTextPreferredWidth(UIParameters.getInstance()
         .getIntegerTripletWidth());
-    ltfXstretchGroupSize.setTextPreferredWidth(UIParameters.INSTANCE.getFourDigitWidth());
+    ltfXstretchGroupSize.setTextPreferredWidth(UIParameters.getInstance().getFourDigitWidth());
     createVariablePanel(pnlDistortionSolution, pnlRBDistortion, ltfXstretchGroupSize,
         ltfXstretchNonDefaultGroups, ltfSkewGroupSize, ltfSkewNonDefaultGroups, null,
         "Distortion Solution Type", null);
@@ -1413,9 +1418,9 @@ final class TiltalignPanel implements Expandable {
     JPanel pnlRBLocalDistortion = new JPanel();
     pnlRBLocalDistortion.setLayout(new BoxLayout(pnlRBLocalDistortion, BoxLayout.Y_AXIS));
     createRadioBox(pnlRBLocalDistortion, bgLocalDistortionSolution, items);
-    ltfLocalXstretchNonDefaultGroups.setTextPreferredWidth(UIParameters.INSTANCE
+    ltfLocalXstretchNonDefaultGroups.setTextPreferredWidth(UIParameters.getInstance()
         .getIntegerTripletWidth());
-    ltfLocalXstretchGroupSize.setTextPreferredWidth(UIParameters.INSTANCE
+    ltfLocalXstretchGroupSize.setTextPreferredWidth(UIParameters.getInstance()
         .getFourDigitWidth());
     createVariablePanel(pnlLocalDistortionSolution, pnlRBLocalDistortion,
         ltfLocalXstretchGroupSize, ltfLocalXstretchNonDefaultGroups,
@@ -1521,8 +1526,7 @@ final class TiltalignPanel implements Expandable {
       panel = adaptee;
     }
 
-    public void actionPerformed(final ActionEvent event) {
-    }
+    public void actionPerformed(final ActionEvent event) {}
   }
 
   private static final class FiducialRadioListener implements ActionListener {
@@ -1532,8 +1536,7 @@ final class TiltalignPanel implements Expandable {
       panel = adaptee;
     }
 
-    public void actionPerformed(final ActionEvent event) {
-    }
+    public void actionPerformed(final ActionEvent event) {}
   }
 
   private static final class TiltAngleRadioListener implements ActionListener {
@@ -1653,7 +1656,7 @@ final class TiltalignPanel implements Expandable {
     ReadOnlySection section;
     ReadOnlyAutodoc autodoc = null;
     try {
-      autodoc = AutodocFactory.getInstance(appMgr, AutodocFactory.TILTALIGN, axisID);
+      autodoc = AutodocFactory.getInstance(appMgr, AutodocFactory.TILTALIGN, axisID,false);
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();
@@ -1670,17 +1673,20 @@ final class TiltalignPanel implements Expandable {
         TiltalignParam.EXCLUDE_LIST_KEY));
     ltfSeparateViewGroups.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
         TiltalignParam.SEPARATE_GROUP_KEY));
-    section = autodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME,
-        TiltalignParam.RESIDUAL_REPORT_CRITERION_KEY);
+    section =
+        autodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME,
+            TiltalignParam.RESIDUAL_REPORT_CRITERION_KEY);
     if (section != null) {
-      ltfResidualThreshold.setToolTipText(EtomoAutodoc.getTooltip(autodocName, section));
+      ltfResidualThreshold.setToolTipText(EtomoAutodoc.getTooltip(autodocName, section,
+          true));
       rbResidAllViews
           .setToolTipText(EtomoAutodoc.getTooltip(autodocName, section, "all"));
       rbResidNeighboring.setToolTipText(EtomoAutodoc.getTooltip(autodocName, section,
           "neighboring"));
     }
-    section = autodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME,
-        TiltalignParam.SURFACES_TO_ANALYZE_KEY);
+    section =
+        autodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME,
+            TiltalignParam.SURFACES_TO_ANALYZE_KEY);
     if (section != null) {
       rbSingleFiducialSurface.setToolTipText(EtomoAutodoc.getTooltip(autodocName,
           section, "1") + "  Use if fiducials are on one surface or distributed in Z.");
@@ -1714,8 +1720,9 @@ final class TiltalignPanel implements Expandable {
     cbWeightWholeTracks.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
         TiltalignParam.WEIGHT_WHOLE_TRACKS_KEY));
     // Global variables
-    section = autodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME,
-        TiltalignParam.TILT_OPTION_KEY);
+    section =
+        autodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME,
+            TiltalignParam.TILT_OPTION_KEY);
     if (section != null) {
       rbTiltAngleFixed.setToolTipText(EtomoAutodoc.getTooltip(autodocName, section,
           TiltalignParam.FIXED_OPTION));
@@ -1729,8 +1736,9 @@ final class TiltalignPanel implements Expandable {
     ltfTiltAngleNonDefaultGroups.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
         TiltalignParam.TILT_NONDEFAULT_GROUP_KEY));
 
-    section = autodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME,
-        TiltalignParam.MAG_OPTION_KEY);
+    section =
+        autodoc
+            .getSection(EtomoAutodoc.FIELD_SECTION_NAME, TiltalignParam.MAG_OPTION_KEY);
     if (section != null) {
       rbMagnificationFixed.setToolTipText(EtomoAutodoc.getTooltip(autodocName, section,
           TiltalignParam.FIXED_OPTION));
@@ -1746,8 +1754,9 @@ final class TiltalignPanel implements Expandable {
     ltfMagnificationNonDefaultGroups.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
         TiltalignParam.MAG_NONDEFAULT_GROUP_KEY));
 
-    section = autodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME,
-        TiltalignParam.ROT_OPTION_KEY);
+    section =
+        autodoc
+            .getSection(EtomoAutodoc.FIELD_SECTION_NAME, TiltalignParam.ROT_OPTION_KEY);
     if (section != null) {
       rbRotationNone.setToolTipText(EtomoAutodoc.getTooltip(autodocName, section,
           TiltalignParam.NONE_OPTION));
@@ -1873,14 +1882,14 @@ final class TiltalignPanel implements Expandable {
      */
     private static Tab getInstance(int index) {
       switch (index) {
-      case GENERAL_INDEX:
-        return GENERAL;
-      case GLOBAL_VARIABLES_INDEX:
-        return GLOBAL_VARIABLES;
-      case LOCAL_VARIABLES_INDEX:
-        return LOCAL_VARIABLES;
-      default:
-        return GENERAL;
+        case GENERAL_INDEX:
+          return GENERAL;
+        case GLOBAL_VARIABLES_INDEX:
+          return GLOBAL_VARIABLES;
+        case LOCAL_VARIABLES_INDEX:
+          return LOCAL_VARIABLES;
+        default:
+          return GENERAL;
       }
     }
 
