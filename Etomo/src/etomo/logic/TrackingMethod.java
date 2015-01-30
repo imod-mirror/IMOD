@@ -44,13 +44,13 @@ public final class TrackingMethod implements EnumeratedType {
     if (string == null) {
       return null;
     }
-    if (SEED.string.equals(string)) {
+    if (SEED.string.equals(string) || SEED.value.equals(string)) {
       return SEED;
     }
-    if (PATCH_TRACKING.string.equals(string)) {
+    if (PATCH_TRACKING.string.equals(string) || PATCH_TRACKING.value.equals(string)) {
       return PATCH_TRACKING;
     }
-    if (RAPTOR.string.equals(string)) {
+    if (RAPTOR.string.equals(string) || RAPTOR.value.equals(string)) {
       return RAPTOR;
     }
     return null;

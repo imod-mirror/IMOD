@@ -7,6 +7,11 @@
 #define MYAPP_H
 
 #include <QObject>
+#include <QtGui>
+#if QT_VERSION >= 0x050000
+#include <QtWidgets>
+#endif
+
 #include "defocusfinder.h"
 #include "iimage.h"
 #include "slicecache.h"
@@ -67,7 +72,9 @@ class MyApp : public QObject
     void computeInitPS(bool noisePS);  
     int autoFitToRanges(float minAngle, float maxAngle, float rangeSize, 
                         float rangeStep, int numIter);
+    int smoothNoisePS();
     void setNoiseForMean(double mean);
+    double getStartingDefocusAndZeros(double &zero1, double &zero2);
     void setNumNoiseFiles(int num) {mNumNoiseFiles = num;};
     void setNoiseIndexes(int *indexes) {mNoiseIndexes = indexes;};
     void setNoiseMeans(double *means) {mNoiseMeans = means;};
@@ -85,6 +92,7 @@ class MyApp : public QObject
     int getX2Method(){return mX2MethodIndex;}
     int getZeroFitMethod(){return mZeroFitMethod;}
     int getPolynomialOrder(){return mPolynomialOrder;}
+    int getBaselineOrder(){return mBaselineOrder;}
     int getDefocusOption(){return mDefocusOption;};
     bool getVaryCtfPowerInFit(){return mVaryCtfPowerInFit;}
     float *getTiltAngles() {return &mTiltAngles[0];};
@@ -108,7 +116,7 @@ class MyApp : public QObject
           double focusTol, int tSize, double tAxisAngle, double lAngle,
           double hAngle, double expDefocus, double leftTol, 
           double rightTol, int maxCacheSize, int invertAngles,
-          bool doFocalPairProcessing, double fpdz);
+          bool doFocalPairProcessing, double fpdz, int baselineOrder);
     ~MyApp();
 
  public slots:
@@ -124,6 +132,7 @@ class MyApp : public QObject
     void setVaryCtfPowerInFit(bool value){mVaryCtfPowerInFit=value;}
     void setDefOption(int index){mDefocusOption=index;}
     void setInitTileOption(int index);
+    void setBaselineOrder(int order);
     int getInitTileOption(){return mInitialTileOption;}
     void scaleAndAddStrip(
       double *psSum, double *stripAvg, int *stripCounter, int counter,
@@ -185,6 +194,7 @@ class MyApp : public QObject
     int mX1Idx2;
     int mX2Idx1;
     int mX2Idx2;
+    int mBaselineOrder;
     int mEndingSlice;
     int mStartingSlice;
     int mNumSlicesDone;

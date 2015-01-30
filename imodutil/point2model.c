@@ -29,11 +29,12 @@ int main( int argc, char *argv[])
   Istore store;
   FILE *infp;
   char line[1024];
-  int open = 0, zsort = 0, scat = 0, numPerCont = 0, fromZero = 0;
+  int open = 0, zsort = 0, scat = 0, numPerCont = 0, fromZero = 0, zFromZero = 0;
   int err, nvals, nread, ob, co, lineNum, after, needcont, i, numOffset, linelen;
   int numPts = 0, numConts = 0, numObjs = 0;
   int sphere = 0, circle = 0;
   float tst1, tst2, xx, yy, zz, value;
+  float zOffset = 0.;
   int numColors = 0;
   int numNames = 0;
   int hasValues = 0;
@@ -52,12 +53,13 @@ int main( int argc, char *argv[])
   int numOptArgs, numNonOptArgs;
 
   /* Fallbacks from    ../manpages/autodoc2man 2 1 point2model  */
-  int numOptions = 15;
+  int numOptions = 16;
   const char *options[] = {
     "input:InputFile:FN:", "output:OutputFile:FN:", "open:OpenContours:B:",
     "scat:ScatteredPoints:B:", "number:PointsPerContour:I:", "planar:PlanarContours:B:",
-    "zero:NumberedFromZero:B:", "values:ValuesInLastColumn:I:", "circle:CircleSize:I:",
-    "sphere:SphereRadius:I:", "color:ColorOfObject:ITM:", "name:NameOfObject:CHM:",
+    "zero:NumberedFromZero:B:", "zcoord:ZCoordinatesFromZero:B:",
+    "values:ValuesInLastColumn:I:", "circle:CircleSize:I:", "sphere:SphereRadius:I:",
+    "color:ColorOfObject:ITM:", "name:NameOfObject:CHM:",
     "image:ImageForCoordinates:FN:", "pixel:PixelSpacingOfImage:FT:",
     "origin:OriginOfImage:FT:"};
 
@@ -96,6 +98,9 @@ int main( int argc, char *argv[])
   err = PipGetBoolean("ScatteredPoints", &scat);
   err = PipGetBoolean("PlanarContours", &zsort);
   err = PipGetInteger("ValuesInLastColumn", &hasValues);
+  err = PipGetBoolean("ZCoordinatesFromZero", &zFromZero);
+  if (zFromZero)
+    zOffset = 0.5;
   B3DCLAMP(hasValues, -1, 1);
   if (hasValues < 0) {
     hasValues = 1;
@@ -206,6 +211,7 @@ int main( int argc, char *argv[])
       co -= numOffset;
       ob -= numOffset;
     }
+    zz -= zOffset;
     lineNum++;
 
     // Skip line with no values

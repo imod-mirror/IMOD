@@ -596,7 +596,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
     pnlPatchsizeButtons.add(Box.createRigidArea(FixedDim.x0_y5));
     pnlPatchsizeButtons.add(btnPatchsizeDecrease.getComponent());
     UIUtilities.setButtonSizeAll(pnlPatchsizeButtons,
-        UIParameters.INSTANCE.getButtonDimension());
+        UIParameters.getInstance().getButtonDimension());
 
     pnlPatchsizeEdit.setLayout(new BoxLayout(pnlPatchsizeEdit, BoxLayout.Y_AXIS));
 
@@ -686,7 +686,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
     pnlMatchorwarpButtons.add(btnMatchorwarpTrial.getComponent());
     pnlMatchorwarpButtons.add(Box.createHorizontalGlue());
     UIUtilities.setButtonSizeAll(pnlMatchorwarpButtons,
-        UIParameters.INSTANCE.getButtonDimension());
+        UIParameters.getInstance().getButtonDimension());
 
     pnlMatchorwarpBody.add(pnlMatchorwarpButtons);
     pnlMatchorwarpBody.add(Box.createRigidArea(FixedDim.x0_y5));
@@ -720,7 +720,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
     cbNoVolcombine.setAlignmentX(Component.CENTER_ALIGNMENT);
     btnVolcombineRestart.setAlignmentX(Component.CENTER_ALIGNMENT);
     UIUtilities.setButtonSizeAll(pnlVolcombineBody,
-        UIParameters.INSTANCE.getButtonDimension());
+        UIParameters.getInstance().getButtonDimension());
     UIUtilities.alignComponentsX(pnlVolcombineBody, Component.CENTER_ALIGNMENT);
 
     pnlVolcombine.setLayout(new BoxLayout(pnlVolcombine, BoxLayout.Y_AXIS));
@@ -741,7 +741,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
     pnlButton.add(Box.createHorizontalGlue());
     pnlButton.add(btnImodCombined.getComponent());
     pnlButton.add(Box.createHorizontalGlue());
-    UIUtilities.setButtonSizeAll(pnlButton, UIParameters.INSTANCE.getButtonDimension());
+    UIUtilities.setButtonSizeAll(pnlButton, UIParameters.getInstance().getButtonDimension());
 
     // Root panel layout
     pnlRoot.add(pnlPatchRegionModel);
@@ -1255,14 +1255,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
         logFileLabel, logFile, applicationManager, AxisID.ONLY);
   }
 
-  public void action(final Run3dmodButton button,
-      final Run3dmodMenuOptions run3dmodMenuOptions) {
-    buttonAction(button.getActionCommand(), button.getDeferred3dmodButton(),
-        run3dmodMenuOptions);
-  }
-
-  private void buttonAction(final String command,
-      Deferred3dmodButton deferred3dmodButton,
+  public void action(final String command, final Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     // Synchronize this panel with the others
     tomogramCombinationDialog.synchronize(TomogramCombinationDialog.lblFinal, true);
@@ -1372,7 +1365,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
     }
 
     public void actionPerformed(final ActionEvent event) {
-      listenee.buttonAction(event.getActionCommand(), null, null);
+      listenee.action(event.getActionCommand(), null, null);
     }
   }
 
@@ -1386,9 +1379,9 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
 
     try {
       adocCombineFft = AutodocFactory.getInstance(applicationManager,
-          AutodocFactory.COMBINE_FFT, AxisID.ONLY);
+          AutodocFactory.COMBINE_FFT, AxisID.ONLY, false);
       adocCorrsearch3d = AutodocFactory.getInstance(applicationManager,
-          AutodocFactory.CORR_SEARCH_3D, AxisID.ONLY);
+          AutodocFactory.CORR_SEARCH_3D, AxisID.ONLY, false);
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();

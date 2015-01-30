@@ -56,9 +56,10 @@ program boxstartend
   integer*4 indLeft, indRight, indBot, indTop, indZlo, indZhi, indZ, indg, izAtStart
   integer*4 indar, ipc, ixpc, iypc, ipcXstart, ipcYstart, ipcXend, ipcYend, kti, jnd
   integer*4 newYpiece, newXpiece, indX, indY, iz, nyPixBox, nzPixBox, npixBot, npixTop
-  integer*4 numTaper, insideTaper, indZfirst, indZlast, izLoad, nzFileOut
+  integer*4 numTaper, insideTaper, indZfirst, indZlast, izLoad, nzFileOut, maxPixels
   real*4 tmean, dmean2, xyScale, zScale, xofs, yofs, zofs, atten, atten2
-  logical*4 backXform, needXYtaper
+  real*4 tlfMin, tlfMax, tlfMean
+  logical*4 backXform, needXYtaper, localMeanFill, needFill
   integer*4 getImodObjSize, getImodFlags, getImodHead, taperAtFill
   logical*4 readSmallMod, getModelObjectList
   !
@@ -243,9 +244,9 @@ program boxstartend
     if (PipGetTwoIntegers('TaperAtFill', numTaper, insideTaper) .eq. 0) then
       if (insideTaper < 0 .or. insideTaper > 1)  &
           call exitError('VALUE FOR WHETHER TO TAPER INSIDE MUST BE 0 OR 1')
-      if (numTaper < 0 .or. numTaper > min(numPixBox, nyPixBox, nzPixBox) - 2) &
-          call exitError('NUMBER OF PIXELS TO TAPER MUST BE POSITIVE AND LESS '// &
-          'THAN THE SMALLEST BOX DIMENSION')
+      if (numTaper <= 0 .or. (numTaper > min(numPixBox, nyPixBox, nzPixBox) - 2) .and. &
+           nzPixBox > 1) call exitError('NUMBER OF PIXELS TO TAPER MUST BE POSITIVE '// &
+           'AND LESS THAN THE SMALLEST BOX DIMENSION')
     endif
   else
     write(*,'(1x,a,$)') 'Clip out starts (0) or ends (1) or all points (-1): '
@@ -301,6 +302,7 @@ program boxstartend
       read(5, 50) rootName
     endif
   endif
+  localMeanFill = pieceFile .eq. ' ' .and. nzBefore == 0 .and. nzAfter == 0
 
   if (ifSeries .ne. 0) then
     ifAverage = 0
@@ -452,9 +454,9 @@ program boxstartend
             ! zero out the box
             !
             needXYtaper = numTaper > 0
-            do iy = 1, numPixSq
-              brray(iy + ibBase) = dmean
-            enddo
+            needFill = .true.
+            maxPixels = 0
+            if (.not. localMeanFill) call fillIfNeeded(dmean)
             !
             ! loop on pieces, find intersection with each piece
             !
@@ -470,17 +472,30 @@ program boxstartend
                   !
                   ! if it intersects, read in intersecting part,
                   !
+                  maxPixels = max((ipcXend + 1 - ipcXstart) * (ipcYend + 1 - ipcYstart), &
+                      maxPixels)
                   call imposn(1, ipc - 1, 0)
-                  call irdpas(1, array(iaBase + 1), numPixBox, nyPixBox,  &
-                      ipcXstart - ixpc, ipcXend - ixpc, ipcYstart - iypc,  &
+                  call irdpas(1, array(iaBase + 1), numPixBox, nyPixBox, &
+                      ipcXstart - ixpc, ipcXend - ixpc, ipcYstart - iypc, &
                       ipcYend - iypc,*99)
                   !
                   ! cancel tapering if the whole area is filled, record last image that
                   ! has data and first one if not set yet
                   if (ipcXend + 1 - ipcXstart .eq. numPixBox .and.  &
-                      ipcYend + 1 - ipcYstart .eq. nyPixBox) needXYtaper = .false.
+                      ipcYend + 1 - ipcYstart .eq. nyPixBox) then
+                    needXYtaper = .false.
+                    needFill = .false.
+                  endif
                   indZlast = indZ
                   if (indZfirst < 0) indZfirst = indZ
+                  !
+                  ! Get mean and fill array if needed
+                  if (needFill) then
+                    call iclden(array(iaBase + 1), numPixBox, nyPixBox, 1,  &
+                        ipcXend + 1 - ipcXstart, 1, ipcYend + 1 - ipcYstart, tlfMin, &
+                        tlfMax, tlfMean)
+                    call fillIfNeeded(tlfMean)
+                  endif
                   !
                   ! move it into appropriate part of array
                   do iy = 1, ipcYend + 1 - ipcYstart
@@ -495,10 +510,11 @@ program boxstartend
             enddo
             !
             ! Taper if called for and one box didn't fill it
-            if (needXYtaper) then
+            if (needXYtaper .and. maxPixels > numPixBox * nyPixBox / 5) then
               if (taperAtFill(brray(ibBase + 1), numPixBox, nyPixBox, numtaper, &
                   insideTaper) .ne. 0) call exitError('MEMORY ERROR TAPERING SLICE')
             endif
+            call fillIfNeeded(dmean)
             !
             ! write piece list and slice
             !
@@ -666,4 +682,18 @@ program boxstartend
   print *,numFile, ' points boxed out'
   call exit(0)
 99 call exitError('READING FILE')
+
+CONTAINS
+
+  ! Fill the box array if it is still needed and set flag false
+  subroutine fillIfNeeded(fillVal)
+    real*4 fillVal
+    if (needFill) then
+      do iy = 1, numPixSq
+        brray(iy + ibBase) = dmean
+      enddo
+    endif
+    needFill = .false.
+    return
+  end subroutine fillIfNeeded
 end program boxstartend
