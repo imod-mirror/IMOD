@@ -969,11 +969,21 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
       sizeToOutputInXandY.set(0, header.getNRows());
     }
     if (binning != 1 && !sizeToOutputInXandY.isDefault()
-        && !sizeToOutputInXandY.isEmpty()) {
-      int iSize = sizeToOutputInXandY.getInt(0);
-      sizeToOutputInXandY.set(0, (int) iSize / binning);
-      iSize = sizeToOutputInXandY.getInt(1);
-      sizeToOutputInXandY.set(1, (int) iSize / binning);
+      && !sizeToOutputInXandY.isEmpty()) {
+      for (int ixy = 0; ixy < 2; ixy++) {
+        int iSize = sizeToOutputInXandY.getInt(ixy);
+        int iBinSize = iSize / binning;
+
+        // If the odd/evenness is preserved, newstack increases by 2 when remainder > 1
+        // Otherwise it increases size by 1 to preserve odd/evenness
+        if (iSize % 2 == iBinSize % 2) {
+          if (iSize % binning > 1)
+            iBinSize += 2;
+        } else {
+          iBinSize += 1;
+        }
+        sizeToOutputInXandY.set(ixy, iBinSize);
+      }
     }
     if (validate && description != null) {
       if (!userSizeToOutputInXandY.isNull(0) && userSizeToOutputInXandY.isNull(1)) {
