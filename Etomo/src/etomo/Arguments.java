@@ -85,8 +85,6 @@ import etomo.util.Utilities;
  * <p> </p>
  */
 public final class Arguments {
-  public static final String rcsid = "$Id$";
-
   public static final String NAMES_TAG = "--names";
   public static final String SELFTEST_TAG = "--selftest";
   public static final String TEST_TAG = "--test";
@@ -170,14 +168,13 @@ public final class Arguments {
 
   private final EtomoNumber enFiducial = new EtomoNumber(EtomoNumber.Type.DOUBLE);
 
-  Arguments() {
-  }
+  Arguments() {}
 
   static void printHelpMessage() {
     ReadOnlyAutodoc autodoc = null;
     try {
-      autodoc = AutodocFactory
-          .getInstance(null, AutodocFactory.ETOMO, AxisID.ONLY, false);
+      autodoc =
+        AutodocFactory.getInstance(null, AutodocFactory.ETOMO, AxisID.ONLY, false);
       if (autodoc != null) {
         String dash = "-";
         if (autodoc.getAttribute(EtomoAutodoc.DOUBLE_DASH_ATTRIBUTE_NAME) != null) {
@@ -194,7 +191,7 @@ public final class Arguments {
             sectionType = section.getType();
             if (sectionType.equals(EtomoAutodoc.HEADER_SECTION_NAME)) {
               if ((attribute = section.getAttribute(EtomoAutodoc.USAGE_ATTRIBUTE_NAME)) != null
-                  && (attributeValue = attribute.getValue()) != null) {
+                && (attributeValue = attribute.getValue()) != null) {
                 // Print section header
                 System.out.println("\n" + attributeValue);
               }
@@ -204,7 +201,7 @@ public final class Arguments {
               System.out.print(dash + section.getName());
               // Look for short parameter name
               if ((attribute = section.getAttribute(EtomoAutodoc.SHORT_ATTRIBUTE_NAME)) != null
-                  && (attributeValue = attribute.getValue()) != null) {
+                && (attributeValue = attribute.getValue()) != null) {
                 System.out.print(" OR " + dash + attributeValue);
                 if (section.getName().equals("help")) {
                   if (dash.equals("--")) {
@@ -217,12 +214,12 @@ public final class Arguments {
               }
               // Look for value description
               if ((attribute = section.getAttribute(EtomoAutodoc.FORMAT_ATTRIBUTE_NAME)) != null
-                  && (attributeValue = attribute.getValue()) != null) {
+                && (attributeValue = attribute.getValue()) != null) {
                 System.out.println("   " + stripManpageFormatting(attributeValue));
               }
-              else if ((attribute = section
-                  .getAttribute(EtomoAutodoc.TYPE_ATTRIBUTE_NAME)) != null
-                  && (attributeValue = attribute.getValue()) != null) {
+              else if ((attribute =
+                section.getAttribute(EtomoAutodoc.TYPE_ATTRIBUTE_NAME)) != null
+                && (attributeValue = attribute.getValue()) != null) {
                 if (attributeValue.equals(EtomoAutodoc.BOOLEAN_TYPE)) {
                   System.out.println();
                 }
@@ -235,12 +232,12 @@ public final class Arguments {
               }
               // Look for parameter description
               if ((attribute = section.getAttribute(EtomoAutodoc.USAGE_ATTRIBUTE_NAME)) != null
-                  && (attributeValue = attribute.getValue()) != null) {
+                && (attributeValue = attribute.getValue()) != null) {
                 System.out.println("     " + attributeValue);
               }
-              else if ((attribute = section
-                  .getAttribute(EtomoAutodoc.MANPAGE_ATTRIBUTE_NAME)) != null
-                  && (attributeValue = attribute.getValue()) != null) {
+              else if ((attribute =
+                section.getAttribute(EtomoAutodoc.MANPAGE_ATTRIBUTE_NAME)) != null
+                && (attributeValue = attribute.getValue()) != null) {
                 System.out.println("     " + stripManpageFormatting(attributeValue));
               }
             }
@@ -264,8 +261,8 @@ public final class Arguments {
   private static String stripManpageFormatting(final String input) {
     if (input.indexOf("\\f") != -1) {
       String regexp = "\\\\f";
-      return input.replaceAll(regexp + "B", "").replaceAll(regexp + "I", "")
-          .replaceAll(regexp + "R", "");
+      return input.replaceAll(regexp + "B", "").replaceAll(regexp + "I", "").replaceAll(
+        regexp + "R", "");
     }
     return input;
   }
@@ -410,7 +407,7 @@ public final class Arguments {
         if (paramFileNameList.size() > 0) {
           // File name arguments can only be at the end of the command.
           errorMessageList.add("WARNING:  unknown argument(s), "
-              + paramFileNameList.toString() + ", ignored.");
+            + paramFileNameList.toString() + ", ignored.");
           paramFileNameList.clear();
         }
         boolean tagFound = false;
@@ -466,8 +463,7 @@ public final class Arguments {
               }
               i++;
             }
-            catch (NumberFormatException e) {
-            }
+            catch (NumberFormatException e) {}
           }
         }
         else if (args[i].equals(TIMESTAMP_TAG)) {
@@ -602,25 +598,25 @@ public final class Arguments {
       File file = new File(i.next());
       if (!file.exists()) {
         errorMessageList.add("File parameter, " + file.getAbsolutePath()
-            + ", does not exist.");
+          + ", does not exist.");
       }
       else {
         if (!file.canRead()) {
           errorMessageList.add("File parameter, " + file.getAbsolutePath()
-              + ", is not readable.");
+            + ", is not readable.");
         }
         if (file.isDirectory()) {
           errorMessageList.add("File parameter, " + file.getAbsolutePath()
-              + ", is a directory.");
+            + ", is a directory.");
         }
         if (!file.canWrite()) {
           errorMessageList.add("File parameter, " + file.getAbsolutePath()
-              + ", is not writable.");
+            + ", is not writable.");
         }
         DataFileFilter fileFilter = new DataFileFilter();
         if (!fileFilter.accept(file)) {
           errorMessageList.add("File parameter, " + file.getAbsolutePath()
-              + ", is not a " + fileFilter.getDescription() + ".");
+            + ", is not a " + fileFilter.getDescription() + ".");
         }
       }
     }
@@ -631,27 +627,27 @@ public final class Arguments {
       else {
         if (!fDirective.getName().endsWith(AutodocFactory.Extension.DEFAULT.toString())) {
           errorMessageList.add(DIRECTIVE_TAG + " parameter value, "
-              + fDirective.getAbsolutePath() + ", has the wrong extension.");
+            + fDirective.getAbsolutePath() + ", has the wrong extension.");
         }
         if (!fDirective.exists()) {
           errorMessageList.add(DIRECTIVE_TAG + " parameter value, "
-              + fDirective.getAbsolutePath() + ", does not exist.");
+            + fDirective.getAbsolutePath() + ", does not exist.");
         }
         else {
           if (!fDirective.canRead()) {
             errorMessageList.add(DIRECTIVE_TAG + " parameter value, "
-                + fDirective.getAbsolutePath() + ", is not readable.");
+              + fDirective.getAbsolutePath() + ", is not readable.");
           }
           if (fDirective.isDirectory()) {
             errorMessageList.add(DIRECTIVE_TAG + " parameter value, "
-                + fDirective.getAbsolutePath() + ", is a directory.");
+              + fDirective.getAbsolutePath() + ", is a directory.");
           }
         }
       }
       if (axis || dataset || dir || fiducial || frame) {
         warningMessageList.add("The parameters: " + AXIS_TAG + ", " + DATASET_TAG + ", "
-            + DIR_TAG + ", " + FIDUCIAL_TAG + ", and " + FRAME_TAG + " are ignored when "
-            + DIRECTIVE_TAG + " is used.");
+          + DIR_TAG + ", " + FIDUCIAL_TAG + ", and " + FRAME_TAG + " are ignored when "
+          + DIRECTIVE_TAG + " is used.");
       }
     }
     if (axis && atAxis == null) {
@@ -666,20 +662,20 @@ public final class Arguments {
       }
       else if (!fDir.exists()) {
         errorMessageList.add(DIR_TAG + " parameter value, " + fDir.getAbsolutePath()
-            + ", does not exist.");
+          + ", does not exist.");
       }
       else {
         if (!fDir.canRead()) {
           errorMessageList.add(DIR_TAG + " parameter value, " + fDir.getAbsolutePath()
-              + ", is not readable.");
+            + ", is not readable.");
         }
         if (!fDir.isDirectory()) {
           errorMessageList.add(DIR_TAG + " parameter value, " + fDir.getAbsolutePath()
-              + ", is not a directory.");
+            + ", is not a directory.");
         }
         if (!fDir.canWrite()) {
           errorMessageList.add(DIR_TAG + " parameter value, " + fDir.getAbsolutePath()
-              + ", is not writable.");
+            + ", is not writable.");
         }
       }
     }
@@ -691,12 +687,12 @@ public final class Arguments {
         }
         else {
           errorMessageList.add(FIDUCIAL_TAG + " parameter value is an invalid number: "
-              + errorMessage);
+            + errorMessage);
         }
       }
       else if (enFiducial.isNegative()) {
         errorMessageList.add(FIDUCIAL_TAG + " parameter value, " + enFiducial
-            + ", cannot be negative.");
+          + ", cannot be negative.");
       }
     }
     if (frame && vtFrame == null) {
@@ -706,13 +702,13 @@ public final class Arguments {
       String title = "Parameter Error";
       String message = "Error in the parameter list:";
       if (errorMessageList.size() == 1) {
-        UIHarness.INSTANCE.openMessageDialog(component,
-            message + "\n" + errorMessageList.get(0), title);
+        UIHarness.INSTANCE.openMessageDialog(null, component, message + "\n"
+          + errorMessageList.get(0), title, (AxisID) null);
       }
       else {
         errorMessageList.add(0, message);
-        UIHarness.INSTANCE.openMessageDialog(component,
-            errorMessageList.toArray(new String[errorMessageList.size()]), title);
+        UIHarness.INSTANCE.openMessageDialog(null, component, errorMessageList
+          .toArray(new String[errorMessageList.size()]), title);
       }
       return false;
     }
@@ -720,13 +716,13 @@ public final class Arguments {
       String title = "Parameter Warning";
       String message = "Parameter Warning:";
       if (warningMessageList.size() == 1) {
-        UIHarness.INSTANCE.openMessageDialog(component, message + "\n"
-            + warningMessageList.get(0), title);
+        UIHarness.INSTANCE.openMessageDialog(null, component, message + "\n"
+          + warningMessageList.get(0), title, (AxisID) null);
       }
       else {
         warningMessageList.add(0, message);
-        UIHarness.INSTANCE.openMessageDialog(component,
-            warningMessageList.toArray(new String[warningMessageList.size()]), title);
+        UIHarness.INSTANCE.openMessageDialog(null, component, warningMessageList
+          .toArray(new String[warningMessageList.size()]), title);
       }
     }
     return true;
@@ -749,9 +745,12 @@ public final class Arguments {
   }
 
   public static final class DebugLevel {
-    private static final DebugLevel OFF = new DebugLevel(0);//No debug
-    private static final DebugLevel LIMITED = new DebugLevel(-1);//No debug except for limited level debugging
-    private static final DebugLevel STANDARD = new DebugLevel(1);//same as debug without an argument
+    private static final DebugLevel OFF = new DebugLevel(0);// No debug
+    private static final DebugLevel LIMITED = new DebugLevel(-1);// No debug except for
+                                                                 // limited level
+                                                                 // debugging
+    private static final DebugLevel STANDARD = new DebugLevel(1);// same as debug without
+                                                                 // an argument
     private static final DebugLevel EXTRA = new DebugLevel(2);
     private static final DebugLevel VERBOSE = new DebugLevel(3);
     private static final DebugLevel EXTRA_VERBOSE = new DebugLevel(4);

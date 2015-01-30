@@ -14,13 +14,15 @@ import etomo.type.EtomoBoolean2;
 import etomo.type.UITestFieldType;
 import etomo.ui.BooleanFieldSetting;
 import etomo.ui.Field;
+import etomo.ui.FieldDisplayer;
 import etomo.ui.FieldSettingInterface;
+import etomo.ui.FieldValidationFailedException;
 import etomo.util.Utilities;
 
 /**
  * <p>Description: </p>
  * <p/>
- * <p>Copyright: Copyright 2005 - 2014 by the Regents of the University of Colorado</p>
+ * <p>Copyright: Copyright 2005 - 2015 by the Regents of the University of Colorado</p>
  * <p/>
  * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
@@ -131,13 +133,25 @@ final class CheckBoxCell extends InputCell implements ToggleCell, ActionListener
   }
 
   private void setHtmlLabel(final ColorUIResource color) {
-    checkBox.setText(
-        "<html><P style=\"font-weight:normal; color:rgb(" + color.getRed() + "," +
-            color.getGreen() + "," + color.getBlue() + ")\">" + unformattedLabel +
-            "</style>");
+    checkBox.setText("<html><P style=\"font-weight:normal; color:rgb(" + color.getRed()
+      + "," + color.getGreen() + "," + color.getBlue() + ")\">" + unformattedLabel
+      + "</style>");
   }
 
   public String getLabel() {
+    return unformattedLabel;
+  }
+
+  public boolean isRequired() {
+    return false;
+  }
+
+  /**
+   * The checkbox label is not validated.
+   * @return label
+   */
+  public String getText(final boolean doValidation, final FieldDisplayer fieldDisplayer)
+    throws FieldValidationFailedException {
     return unformattedLabel;
   }
 
@@ -220,8 +234,7 @@ final class CheckBoxCell extends InputCell implements ToggleCell, ActionListener
     updateFieldHighlight();
   }
 
-  public void setFieldHighlight(final String value) {
-  }
+  public void setFieldHighlight(final String value) {}
 
   public void setFieldHighlight(FieldSettingInterface input) {
     if (fieldHighlight == null && input != null && input.isSet() && input.isBoolean()) {
@@ -235,8 +248,8 @@ final class CheckBoxCell extends InputCell implements ToggleCell, ActionListener
   }
 
   public boolean equalsFieldHighlight() {
-    return fieldHighlight != null && fieldHighlight.isSet() &&
-        fieldHighlight.equals(isSelected());
+    return fieldHighlight != null && fieldHighlight.isSet()
+      && fieldHighlight.equals(isSelected());
   }
 
   public void clearFieldHighlight() {
@@ -275,8 +288,8 @@ final class CheckBoxCell extends InputCell implements ToggleCell, ActionListener
   }
 
   public int getHeight() {
-    return checkBox.getHeight() + checkBox.getBorder().getBorderInsets(checkBox).bottom -
-        1;
+    return checkBox.getHeight() + checkBox.getBorder().getBorderInsets(checkBox).bottom
+      - 1;
   }
 
   public int getWidth() {

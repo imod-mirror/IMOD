@@ -235,7 +235,9 @@ public final class BatchRunTomoManager extends BaseManager {
     dialog.disableDatasetFields();
     dialog.getParameters(userConfig);
     dialog.getParameters(metaData);
-    dialog.saveAutodocs();
+    if (!dialog.saveAutodocs(doValidation)) {
+      return false;
+    }
     updateBatchRunTomo(doValidation);
     saveStorables(AXIS_ID);
     savePreferences(AXIS_ID, userConfig);

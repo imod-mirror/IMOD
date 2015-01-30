@@ -24,7 +24,9 @@ import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.EtomoNumber;
 import etomo.type.UITestFieldType;
+import etomo.ui.FieldDisplayer;
 import etomo.ui.FieldSettingInterface;
+import etomo.ui.FieldValidationFailedException;
 import etomo.ui.TextFieldSetting;
 import etomo.ui.Field;
 import etomo.util.Utilities;
@@ -32,7 +34,7 @@ import etomo.util.Utilities;
 /**
  * <p>Description: A spinner widget with a label.</p>
  * <p/>
- * <p>Copyright: Copyright 2002 - 2014 by the Regents of the University of Colorado</p>
+ * <p>Copyright: Copyright 2002 - 2015 by the Regents of the University of Colorado</p>
  * <p/>
  * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
@@ -171,18 +173,18 @@ final class LabeledSpinner implements Field, ChangeListener, FocusListener {
   private TextFieldSetting fieldHighlight = null;
 
   private LabeledSpinner(final String spinLabel, int value, int minimum, int maximum,
-      int stepSize, final int defaultValue, final int hgap) {
+    int stepSize, final int defaultValue, final int hgap) {
     this.defaultValue = new Integer(defaultValue);
     this.minimum = minimum;
     this.maximum = maximum;
     model = new SpinnerNumberModel(value, minimum, maximum, stepSize);
     // set name
     String name = Utilities.convertLabelToName(spinLabel);
-    spinner.setName(
-        UITestFieldType.SPINNER.toString() + AutodocTokenizer.SEPARATOR_CHAR + name);
+    spinner.setName(UITestFieldType.SPINNER.toString() + AutodocTokenizer.SEPARATOR_CHAR
+      + name);
     if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
-      System.out
-          .println(spinner.getName() + ' ' + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
+      System.out.println(spinner.getName() + ' ' + AutodocTokenizer.DEFAULT_DELIMITER
+        + ' ');
     }
     // set label
     label.setText(spinLabel);
@@ -207,18 +209,18 @@ final class LabeledSpinner implements Field, ChangeListener, FocusListener {
   }
 
   static LabeledSpinner getDefaultedInstance(final String spinLabel, final int value,
-      final int minimum, final int maximum, final int stepSize, final int defaultValue) {
+    final int minimum, final int maximum, final int stepSize, final int defaultValue) {
     return new LabeledSpinner(spinLabel, value, minimum, maximum, stepSize, defaultValue,
-        0);
+      0);
   }
 
   static LabeledSpinner getInstance(final String spinLabel, final int value,
-      final int minimum, final int maximum, final int stepSize) {
+    final int minimum, final int maximum, final int stepSize) {
     return new LabeledSpinner(spinLabel, value, minimum, maximum, stepSize, value, 0);
   }
 
   static LabeledSpinner getInstance(final String spinLabel, final int value,
-      final int minimum, final int maximum, final int stepSize, final int hgap) {
+    final int minimum, final int maximum, final int stepSize, final int hgap) {
     return new LabeledSpinner(spinLabel, value, minimum, maximum, stepSize, value, hgap);
   }
 
@@ -235,8 +237,8 @@ final class LabeledSpinner implements Field, ChangeListener, FocusListener {
     model.setMaximum(new Integer(max));
   }
 
-  void setModel(final int value, final int minimum, final int maximum,
-      final int stepSize) {
+  void
+    setModel(final int value, final int minimum, final int maximum, final int stepSize) {
     this.minimum = minimum;
     this.maximum = maximum;
     model = new SpinnerNumberModel(value, minimum, maximum, stepSize);
@@ -348,6 +350,18 @@ final class LabeledSpinner implements Field, ChangeListener, FocusListener {
     return text == null || text.matches("\\s*");
   }
 
+  public boolean isRequired() {
+    return false;
+  }
+
+  /**
+   * No validation available for spinner.
+   */
+  public String getText(final boolean doValidation, final FieldDisplayer fieldDisplayer)
+    throws FieldValidationFailedException {
+    return getValue().toString();
+  }
+
   public String getText() {
     return getValue().toString();
   }
@@ -374,8 +388,7 @@ final class LabeledSpinner implements Field, ChangeListener, FocusListener {
     updateFieldHighlight();
   }
 
-  public void setFieldHighlight(final boolean value) {
-  }
+  public void setFieldHighlight(final boolean value) {}
 
   public void clearFieldHighlight() {
     if (fieldHighlight != null && fieldHighlight.isSet()) {
@@ -409,8 +422,7 @@ final class LabeledSpinner implements Field, ChangeListener, FocusListener {
     updateFieldHighlight();
   }
 
-  public void focusGained(final FocusEvent event) {
-  }
+  public void focusGained(final FocusEvent event) {}
 
   public void focusLost(final FocusEvent event) {
     updateFieldHighlight();
@@ -518,8 +530,7 @@ final class LabeledSpinner implements Field, ChangeListener, FocusListener {
     }
   }
 
-  public void setValue(final boolean value) {
-  }
+  public void setValue(final boolean value) {}
 
   void setValue(final int value) {
     if (value == EtomoNumber.INTEGER_NULL_VALUE) {
@@ -584,7 +595,8 @@ final class LabeledSpinner implements Field, ChangeListener, FocusListener {
 
   void setPreferredWidth(final int width) {
     Dimension dim = spinner.getPreferredSize();
-    dim.width = width * (int) Math.round(UIParameters.getInstance().getFontSizeAdjustment());
+    dim.width =
+      width * (int) Math.round(UIParameters.getInstance().getFontSizeAdjustment());
     spinner.setPreferredSize(dim);
     spinner.setMaximumSize(dim);
   }

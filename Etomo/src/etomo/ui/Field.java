@@ -5,7 +5,7 @@ import etomo.storage.DirectiveDef;
 /**
  * <p>Description: An interface to allow the generic handling of GUI fields.</p>
  * <p/>
- * <p>Copyright: Copyright 2012 - 2014 by the Regents of the University of Colorado</p>
+ * <p>Copyright: Copyright 2012 - 2015 by the Regents of the University of Colorado</p>
  * <p/>
  * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
@@ -54,7 +54,15 @@ public interface Field {
    */
   public boolean isSelected();
 
+  /**
+   * @return true if the field must currently contain text (not required when disabled)
+   */
+  public boolean isRequired();
+
   public String getText();
+
+  public String getText(boolean doValidation, FieldDisplayer fieldDisplayer)
+    throws FieldValidationFailedException;
 
   /**
    * Returns true if there is a non-empty, non-whitespace value.  Boolean fields

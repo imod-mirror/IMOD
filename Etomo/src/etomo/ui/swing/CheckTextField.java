@@ -26,15 +26,11 @@ import etomo.util.Utilities;
  * when the check box is checked.  Implements StateChangeSource with its state equal to
  * whether it has changed since it was checkpointed.</p>
  * 
- * <p>Copyright: Copyright 2010</p>
+ * <p>Copyright: Copyright 2010 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
- * University of Colorado</p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
+ * @version $Id$
  * 
  * <p> $Log$
  * <p> Revision 1.6  2011/05/03 03:13:51  sueh
@@ -65,8 +61,6 @@ import etomo.util.Utilities;
  * <p> </p>
  */
 final class CheckTextField implements UIComponent, SwingComponent {
-  public static final String rcsid = "$Id$";
-
   private final JPanel pnlRoot = new JPanel();
   private final CheckBox checkBox;
   private final JTextField textField = new JTextField();
@@ -78,7 +72,7 @@ final class CheckTextField implements UIComponent, SwingComponent {
   private boolean required = false;
 
   private CheckTextField(final FieldType fieldType, final String label,
-      final EtomoNumber.Type numericType) {
+    final EtomoNumber.Type numericType) {
     this.label = label;
     this.numericType = numericType;
     this.fieldType = fieldType;
@@ -95,7 +89,7 @@ final class CheckTextField implements UIComponent, SwingComponent {
   }
 
   static CheckTextField getNumericInstance(final FieldType fieldType,
-      final String tfLabel, final EtomoNumber.Type numericType) {
+    final String tfLabel, final EtomoNumber.Type numericType) {
     CheckTextField instance = new CheckTextField(fieldType, tfLabel, numericType);
     instance.createPanel();
     instance.updateDisplay();
@@ -115,10 +109,10 @@ final class CheckTextField implements UIComponent, SwingComponent {
     checkBox.setText(label);
     String name = Utilities.convertLabelToName(label);
     textField.setName(UITestFieldType.TEXT_FIELD.toString()
-        + AutodocTokenizer.SEPARATOR_CHAR + name);
+      + AutodocTokenizer.SEPARATOR_CHAR + name);
     if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
       System.out.println(textField.getName() + ' ' + AutodocTokenizer.DEFAULT_DELIMITER
-          + ' ');
+        + ' ');
     }
   }
 
@@ -163,7 +157,7 @@ final class CheckTextField implements UIComponent, SwingComponent {
     // Check the text field.
     // Disabled or invisible fields cause this function to return false.
     if (!checkBox.isEnabled() || !checkBox.isSelected() || !textField.isEnabled()
-        || !textField.isVisible()) {
+      || !textField.isVisible()) {
       return false;
     }
     if (checkpointValue == null) {
@@ -281,8 +275,9 @@ final class CheckTextField implements UIComponent, SwingComponent {
   String getText(final boolean doValidation) throws FieldValidationFailedException {
     String text = textField.getText();
     if (doValidation && textField.isEnabled()) {
-      text = FieldValidator.validateText(text, fieldType, this, getQuotedLabel(),
-          required, false);
+      text =
+        FieldValidator.validateText(text, fieldType, this, getQuotedLabel(), required,
+          false, null);
     }
     return text;
   }

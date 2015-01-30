@@ -46,7 +46,7 @@ import etomo.ui.TableListener;
  * @version $Id$
  */
 final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
-    ActionListener {
+  ActionListener {
   public static final String rcsid = "$Id:$";
 
   private static final String STACK_TITLE = "Stack";
@@ -87,13 +87,13 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
   private final Viewport viewport;
   private final ExpandButton btnStack;
   private final PreferredTableSize preferredTableSize = new PreferredTableSize(
-      DatasetColumn.TOTAL);
+    DatasetColumn.TOTAL);
 
   private File currentDirectory = null;
   private BatchRunTomoTab curTab = null;
 
   private BatchRunTomoTable(final BatchRunTomoManager manager,
-      final Expandable expandable, final TableReference tableReference) {
+    final Expandable expandable, final TableReference tableReference) {
     this.manager = manager;
     rowList = new RowList(this, tableReference);
     viewport = new Viewport(this, 20, null, null, null, "BatchRunTomo");
@@ -101,7 +101,7 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
   }
 
   static BatchRunTomoTable getInstance(final BatchRunTomoManager manager,
-      final BatchRunTomoDialog dialog, final TableReference tableReference) {
+    final BatchRunTomoDialog dialog, final TableReference tableReference) {
     BatchRunTomoTable instance = new BatchRunTomoTable(manager, dialog, tableReference);
     instance.createPanel();
     instance.addListeners();
@@ -328,12 +328,13 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
   }
 
   public void getParameters(final BatchruntomoParam param,
-      final boolean deliverToDirectory, final StringBuilder errMsg) {
+    final boolean deliverToDirectory, final StringBuilder errMsg) {
     rowList.getParameters(param, deliverToDirectory, errMsg);
   }
 
-  void saveAutodocs(final TemplatePanel templatePanel, final Autodoc graftedBaseAutodoc) {
-    rowList.saveAutodocs(templatePanel, graftedBaseAutodoc);
+  boolean saveAutodocs(final TemplatePanel templatePanel,
+    final Autodoc graftedBaseAutodoc, final boolean doValidation) {
+    return rowList.saveAutodocs(templatePanel, graftedBaseAutodoc, doValidation);
   }
 
   void loadAutodocs() {
@@ -355,7 +356,7 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
   }
 
   void applyValues(final boolean retainUserValues,
-      final DirectiveFileCollection directiveFileCollection) {
+    final DirectiveFileCollection directiveFileCollection) {
     rowList.applyValues(retainUserValues, directiveFileCollection);
   }
 
@@ -369,7 +370,7 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
 
   void msgTabChanged(final BatchRunTomoTab tab) {
     if (tab == BatchRunTomoTab.STACKS || tab == BatchRunTomoTab.DATASET
-        || tab == BatchRunTomoTab.RUN) {
+      || tab == BatchRunTomoTab.RUN) {
       if (tab != curTab) {
         curTab = tab;
         rebuildTable();
@@ -409,7 +410,7 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
       if (stackList != null) {
         // Remove matching B stacks and set dual to true for the A stack
         List<DatasetTool.StackInfo> filteredStackList =
-            DatasetTool.removeMatchingBStacks(hcStack[0], stackList);
+          DatasetTool.removeMatchingBStacks(hcStack[0], stackList);
         rowList.add(filteredStackList);
       }
     }
@@ -536,9 +537,9 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
           overridePrevRow = dual || stackInfo.isSingleAxis();
           // Add the row.
           BatchRunTomoRow row =
-              BatchRunTomoRow.getInstance(table, pnlTable, layout, constraints,
-                  index + 1, stack, prevRow, overridePrevRow, dual, manager, stackID,
-                  preferredTableSize);
+            BatchRunTomoRow
+              .getInstance(table, pnlTable, layout, constraints, index + 1, stack,
+                prevRow, overridePrevRow, dual, manager, stackID, preferredTableSize);
           row.expandStack(btnStack.isExpanded());
           list.add(row);
           fileAdded = true;
@@ -571,14 +572,14 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
         }
         warning.append(".");
         UIHarness.INSTANCE.openMessageDialog(manager, warning.toString(),
-            "Unable to Add File(s)");
+          "Unable to Add File(s)");
       }
     }
 
     private void load(BatchRunTomoMetaData metaData) {
       int firstIndex = list.size();
       OrderedHashMap.ReadOnlyArray<BatchRunTomoRowMetaData> array =
-          metaData.getOrderedRows();
+        metaData.getOrderedRows();
       boolean fileAdded = false;
       for (int i = 0; i < array.size(); i++) {
         BatchRunTomoRowMetaData rowMetaData = array.get(i);
@@ -586,9 +587,9 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
           int index = list.size();
           String stackID = rowMetaData.getStackID();
           BatchRunTomoRow row =
-              BatchRunTomoRow.getInstance(table, pnlTable, layout, constraints,
-                  index + 1, new File(tableReference.getUniqueString(stackID)), null,
-                  false, false, manager, stackID, preferredTableSize);
+            BatchRunTomoRow.getInstance(table, pnlTable, layout, constraints, index + 1,
+              new File(tableReference.getUniqueString(stackID)), null, false, false,
+              manager, stackID, preferredTableSize);
           row.expandStack(btnStack.isExpanded());
           list.add(row);
           fileAdded = true;
@@ -634,7 +635,7 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
           return false;
         }
         if (UIHarness.INSTANCE.openYesNoDialog(manager, "Delete the highlighted row?",
-            AxisID.ONLY)) {
+          AxisID.ONLY)) {
           row.remove();
           row.delete();
           list.remove(index);
@@ -730,7 +731,7 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
     }
 
     private void applyValues(final boolean retainUserValues,
-        final DirectiveFileCollection directiveFileCollection) {
+      final DirectiveFileCollection directiveFileCollection) {
       if (initialValueRow == null) {
         initialValueRow = BatchRunTomoRow.getDefaultsInstance();
       }
@@ -739,7 +740,7 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
       initialValueRow.setValues(directiveFileCollection);
       for (int i = 0; i < list.size(); i++) {
         list.get(i).applyValues(retainUserValues, userConfiguration,
-            directiveFileCollection);
+          directiveFileCollection);
       }
     }
 
@@ -757,17 +758,20 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
     }
 
     private void getParameters(final BatchruntomoParam param,
-        final boolean deliverToDirectory, final StringBuilder errMsg) {
+      final boolean deliverToDirectory, final StringBuilder errMsg) {
       for (int i = 0; i < list.size(); i++) {
         list.get(i).getParameters(param, deliverToDirectory, errMsg);
       }
     }
 
-    private void saveAutodocs(final TemplatePanel templatePanel,
-        final Autodoc graftedBaseAutodoc) {
+    private boolean saveAutodocs(final TemplatePanel templatePanel,
+      final Autodoc graftedBaseAutodoc, final boolean doValidation) {
       for (int i = 0; i < list.size(); i++) {
-        list.get(i).saveAutodoc(templatePanel, graftedBaseAutodoc);
+        if (!list.get(i).saveAutodoc(templatePanel, graftedBaseAutodoc, doValidation)) {
+          return false;
+        }
       }
+      return true;
     }
 
     private void loadAutodocs() {

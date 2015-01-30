@@ -491,7 +491,8 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
     }
   }
 
-  void saveAutodoc(final TemplatePanel templatePanel, final Autodoc graftedBaseAutodoc) {
+  boolean saveAutodoc(final TemplatePanel templatePanel,
+    final Autodoc graftedBaseAutodoc, final boolean doValidation) {
     File stack = new File(fcStack.getExpandedValue());
     File file = new File(stack.getParent(), getBatchDirectiveFileName());
     try {
@@ -519,13 +520,18 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
         templatePanel.saveAutodoc(autodoc);
       }
       if (datasetDialog != null) {
-        datasetDialog.saveAutodoc(autodoc);
+        if (!datasetDialog.saveAutodoc(autodoc, doValidation, null)) {
+          return false;
+        }
       }
       else {
         BatchRunTomoDatasetDialog globalDatasetDialog =
           BatchRunTomoDatasetDialog.getGlobalInstance();
         if (globalDatasetDialog != null) {
-          globalDatasetDialog.saveAutodoc(autodoc);
+          //The global is validated when the main .adoc file is saved
+          if (!globalDatasetDialog.saveAutodoc(autodoc, false, null)) {
+            return false;
+          }
         }
       }
       autodoc.graftMergeGlobal(graftedBaseAutodoc);
@@ -539,6 +545,7 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
     catch (LogFile.LockException e) {
       e.printStackTrace();
     }
+    return true;
   }
 
   boolean isHighlighted() {
