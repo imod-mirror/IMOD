@@ -744,13 +744,19 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable, UIC
       BatchTool.saveFieldToAutodoc(lsBinByFactor, autodoc);
       BatchTool.saveFieldToAutodoc(cbCorrectCTF, autodoc);
       BatchTool.saveFieldToAutodoc(ltfDefocus, autodoc, doValidation, fieldDisplayer);
-      if (rtfAutoFitRangeAndStep.isSelected()) {
+      if (rtfAutoFitRangeAndStep.isEnabled() && rtfAutoFitRangeAndStep.isSelected()) {
         if (rbTrackingMethodSeed.isEnabled()
           && BatchTool.needInAutodoc(rbTrackingMethodSeed)) {
+          //Make sure that this will save properly when it is empty and not validated
+          String step = ltfAutoFitStep.getText(doValidation, fieldDisplayer);
+          String separator = "";
+          if (step != null && !step.matches("\\s*")) {
+            separator = ",";
+          }
           autodoc.addNameValuePairAttribute(DirectiveDef.AUTO_FIT_RANGE_AND_STEP
             .getDirective(null, null), rtfAutoFitRangeAndStep.getText(doValidation,
             fieldDisplayer)
-            + "," + ltfAutoFitStep.getText(doValidation, fieldDisplayer));
+            + separator + step);
         }
       }
       else if (rbFitEveryImage.isSelected()) {

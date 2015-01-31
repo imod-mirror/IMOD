@@ -231,7 +231,9 @@ public class DirectiveFileCollection implements SetupReconInterface,
           return array[index];
         }
       }
-      return value;
+      if (index == 0) {
+        return value;
+      }
     }
     return null;
   }
