@@ -209,7 +209,7 @@ public final class AutodocFactory {
     }
     Autodoc autodoc = new Autodoc(stripFileExtension(file));
     try {
-      autodoc.initializeMatlabInstance(manager, file,writable);
+      autodoc.initializeMatlabInstance(manager, file, writable);
       return autodoc;
     }
     catch (FileNotFoundException e) {
@@ -366,7 +366,7 @@ public final class AutodocFactory {
   public static Autodoc getInstance(final BaseManager manager, final File autodocFile,
     final AxisID axisID, final boolean writable) throws FileNotFoundException,
     IOException, LogFile.LockException {
-    if (autodocFile == null) {
+    if (autodocFile == null || !autodocFile.exists()) {
       return null;
     }
     AutodocFilter filter = new AutodocFilter();
