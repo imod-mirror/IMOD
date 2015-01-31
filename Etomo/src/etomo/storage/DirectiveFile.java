@@ -19,7 +19,7 @@ import etomo.ui.swing.UIHarness;
 /**
  * <p>Description: </p>
  * <p/>
- * <p>Copyright: Copyright 2012 - 2014 by the Regents of the University of Colorado</p>
+ * <p>Copyright: Copyright 2012 - 2015 by the Regents of the University of Colorado</p>
  * <p/>
  * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
@@ -61,7 +61,7 @@ public final class DirectiveFile implements DirectiveFileInterface {
    * @return
    */
   public static DirectiveFile getArgInstance(final BaseManager manager,
-      final AxisID axisID) {
+    final AxisID axisID) {
     DirectiveFile instance = new DirectiveFile(manager, axisID);
     if (instance.setFile(EtomoDirector.INSTANCE.getArguments().getDirective(), true)) {
       return instance;
@@ -78,7 +78,7 @@ public final class DirectiveFile implements DirectiveFileInterface {
    * @return
    */
   public static DirectiveFile getInstance(final BaseManager manager, final AxisID axisID,
-      final File file, final boolean batch) {
+    final File file, final boolean batch) {
     DirectiveFile instance = new DirectiveFile(manager, axisID);
     if (instance.setFile(file, batch)) {
       return instance;
@@ -95,14 +95,13 @@ public final class DirectiveFile implements DirectiveFileInterface {
    * @return
    */
   AttributeMatch getAttribute(final Match match, final DirectiveDef directiveDef,
-      final AxisID axisID) {
-    if (directiveDef == null ||
-        (batchDirectiveFileType && !directiveDef.isBatch(axisID)) ||
-        (!batchDirectiveFileType && !directiveDef.isTemplate(axisID))) {
+    final AxisID axisID) {
+    if (directiveDef == null || (batchDirectiveFileType && !directiveDef.isBatch(axisID))
+      || (!batchDirectiveFileType && !directiveDef.isTemplate(axisID))) {
       return null;
     }
-    return DirectiveAttribute
-        .getMatch(match, this, getParentAttribute(directiveDef), directiveDef, axisID);
+    return DirectiveAttribute.getMatch(match, this, getParentAttribute(directiveDef),
+      directiveDef, axisID);
   }
 
   /**
@@ -113,9 +112,8 @@ public final class DirectiveFile implements DirectiveFileInterface {
    * @return
    */
   AttributeMatch getAttribute(final DirectiveDef directiveDef, final AxisID axisID) {
-    if (directiveDef == null ||
-        (batchDirectiveFileType && !directiveDef.isBatch(axisID)) ||
-        (!batchDirectiveFileType && !directiveDef.isTemplate(axisID))) {
+    if (directiveDef == null || (batchDirectiveFileType && !directiveDef.isBatch(axisID))
+      || (!batchDirectiveFileType && !directiveDef.isTemplate(axisID))) {
       return null;
     }
     AttributeMatch attributeMatch = getAttribute(Match.PRIMARY, directiveDef, axisID);
@@ -169,7 +167,7 @@ public final class DirectiveFile implements DirectiveFileInterface {
   }
 
   public boolean contains(final DirectiveDef directiveDef, final boolean templateOnly) {
-    //template/batch issues are already being handled in getAttribute
+    // template/batch issues are already being handled in getAttribute
     return contains(directiveDef, null);
   }
 
@@ -199,7 +197,7 @@ public final class DirectiveFile implements DirectiveFileInterface {
   }
 
   public String getValue(final DirectiveDef directiveDef, final boolean templateOnly) {
-    //template/batch issues are already being handled in getAttribute
+    // template/batch issues are already being handled in getAttribute
     return getValue(directiveDef, null);
   }
 
@@ -217,7 +215,9 @@ public final class DirectiveFile implements DirectiveFileInterface {
           return array[index];
         }
       }
-      return value;
+      if (index == 0) {
+        return value;
+      }
     }
     return null;
   }
@@ -242,7 +242,7 @@ public final class DirectiveFile implements DirectiveFileInterface {
   }
 
   public boolean isValue(final DirectiveDef directiveDef, final boolean templateOnly) {
-    //template/batch issues are already being handled in getAttribute
+    // template/batch issues are already being handled in getAttribute
     return isValue(directiveDef, null);
   }
 
@@ -266,22 +266,22 @@ public final class DirectiveFile implements DirectiveFileInterface {
     comparam = null;
     try {
       autodoc =
-          (ReadOnlyAutodoc) AutodocFactory.getInstance(manager, file, axisID, false);
+        (ReadOnlyAutodoc) AutodocFactory.getInstance(manager, file, axisID, false);
     }
     catch (FileNotFoundException e) {
-      UIHarness.INSTANCE
-          .openMessageDialog(manager, e.getMessage(), "Directive File Not Found");
+      UIHarness.INSTANCE.openMessageDialog(manager, e.getMessage(),
+        "Directive File Not Found");
       return false;
     }
     catch (IOException e) {
-      UIHarness.INSTANCE
-          .openMessageDialog(manager, e.getMessage(), "Directive File Read Failure");
+      UIHarness.INSTANCE.openMessageDialog(manager, e.getMessage(),
+        "Directive File Read Failure");
       return false;
     }
     catch (LogFile.LockException e) {
       e.printStackTrace();
-      UIHarness.INSTANCE
-          .openMessageDialog(manager, e.getMessage(), "Directive File Read Failure");
+      UIHarness.INSTANCE.openMessageDialog(manager, e.getMessage(),
+        "Directive File Read Failure");
       return false;
     }
     return true;
