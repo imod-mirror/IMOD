@@ -647,12 +647,6 @@ abstract class AbstractFrame extends JFrame implements UIComponent, SwingCompone
         .getComponentOrientation());
 
     JDialog dialog = pane.createDialog(parentComponent, title);
-
-    pane.selectInitialValue();
-    String name = Utilities.convertLabelToName(title);
-    pane.setName(name);
-    printName(name, optionLabels, title, message);
-    Object selectedValue = pane.getValue();
     // A popup with a parent component and no axis is most likely be connected to a field.
     // The popup appears to center itself over the center of the field. Raise the popup so
     // it is just above the field. Don't use a y that is off the monitor, as this may be a
@@ -664,8 +658,14 @@ abstract class AbstractFrame extends JFrame implements UIComponent, SwingCompone
           location.y);
       dialog.setLocation(location);
     }
+    pane.selectInitialValue();
+    String name = Utilities.convertLabelToName(title);
+    pane.setName(name);
+    printName(name, optionLabels, title, message);
     dialog.setVisible(true);
     dialog.dispose();
+
+    Object selectedValue = pane.getValue();
 
     if (selectedValue == null) {
       return JOptionPane.CLOSED_OPTION;
