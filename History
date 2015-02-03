@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/1/15: Fixed robust fitting with whole contours that aren't cut into pieces 
+(In 4.7).
+
 1/29/15: Fixed problems with running SIRT with binned K2 data by making eTomo
 put out an even size for binned stack and by improving Tilt's evaluation of
 whether the tilt axis is centered (In 4.7).
