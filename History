@@ -1,6 +1,6 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-2/2/15: IMOD_4-8-20
+2/2/15: IMOD_4-8-21
 2/1/15: Fixed robust fitting with whole contours that aren't cut into pieces 
 (In 4.7).
 
