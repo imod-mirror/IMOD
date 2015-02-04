@@ -50,11 +50,11 @@ public final class BatchTool {
     Autodoc totalTemplate = null;
     try {
       if (!inputDirectiveFileSet) {
-        totalBatch = AutodocFactory.getWritableAutodocInstance(manager, batchDefault);
+        totalBatch = AutodocFactory.getAutodocInstance(manager, batchDefault);
       }
       else if (!batchDefaultExists) {
         totalBatch =
-          AutodocFactory.getWritableAutodocInstance(manager, inputDirectiveFile);
+          AutodocFactory.getAutodocInstance(manager, inputDirectiveFile);
       }
       else {
         totalBatch =
@@ -64,7 +64,7 @@ public final class BatchTool {
       if (totalBatch != null && templateFiles != null && templateFiles.length > 0) {
         if (templateFiles.length == 1) {
           totalTemplate =
-            AutodocFactory.getWritableAutodocInstance(manager, templateFiles[0]);
+            AutodocFactory.getAutodocInstance(manager, templateFiles[0]);
         }
         else {
           totalTemplate =
