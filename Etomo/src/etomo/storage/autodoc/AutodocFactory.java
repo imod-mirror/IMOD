@@ -513,6 +513,17 @@ public final class AutodocFactory {
     return autodoc;
   }
 
+  public static Autodoc getAutodocInstance(final BaseManager manager,
+    final File autodocFile) throws IOException, LogFile.LockException {
+    if (autodocFile == null) {
+      return null;
+    }
+    Autodoc autodoc;
+    autodoc = new Autodoc(stripFileExtension(autodocFile.getName()));
+    autodoc.initializeGenericInstance(manager, autodocFile, AxisID.ONLY, false);
+    return autodoc;
+  }
+
   private static Autodoc getExistingUITestAxisAutodoc(File autodocFile) {
     if (UITEST_AXIS_MAP == null) {
       return null;
