@@ -119,7 +119,7 @@ final class EtomoMenu {
   private final JMenuItem menuJoinGuide = new MenuItem("Join Users Guide", KeyEvent.VK_J);
   private final JMenuItem menuPeetGuide = new MenuItem("PEET Users Guide", KeyEvent.VK_P);
   private final JMenuItem menuBatchGuide = new MenuItem(
-    "Batchruntomo Interface Users Guide", KeyEvent.VK_B);
+    "Batch Interface Guide", KeyEvent.VK_B);
   private final JMenuItem peetHelpItem = new MenuItem("PEET Help");
   private final JMenuItem menuHelpAbout = new MenuItem("About", KeyEvent.VK_A);
 

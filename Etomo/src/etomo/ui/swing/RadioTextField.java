@@ -206,7 +206,9 @@ final class RadioTextField implements RadioButtonInterface, Field {
   public boolean equalsDefaultValue() {
     return radioButton.equalsDefaultValue() && textField.equalsDefaultValue();
   }
-
+  public boolean equalsDefaultValue(final String value) {
+    return radioButton.equalsDefaultValue(value) && textField.equalsDefaultValue(value);
+  }
   public DirectiveDef getDirectiveDef() {
     return directiveDef;
   }
@@ -242,6 +244,11 @@ final class RadioTextField implements RadioButtonInterface, Field {
 
   public boolean equalsFieldHighlight() {
     return textField.equalsFieldHighlight() && radioButton.equalsFieldHighlight();
+  }
+
+  public boolean equalsFieldHighlight(final String value) {
+    return textField.equalsFieldHighlight(value)
+      && radioButton.equalsFieldHighlight(value);
   }
 
   public void checkpoint() {

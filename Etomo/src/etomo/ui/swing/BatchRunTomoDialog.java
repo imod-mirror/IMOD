@@ -84,6 +84,8 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
   private final JPanel pnlUntitledTable = new JPanel();
   private final DatasetFieldDisplayer datasetFieldDisplayer = new DatasetFieldDisplayer(
     this);
+  private final StacksFieldDisplayer stacksFieldDisplayer =
+    new StacksFieldDisplayer(this);
 
   private final FileTextField2 ftfRootDir;
   private final FileTextField2 ftfInputDirectiveFile;
@@ -433,7 +435,9 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
     }
     // save dataset autodocs with the starting batch and default batch directive files
     // grafted on.
-    return table.saveAutodocs(templatePanel, graftedBaseAutodoc, doValidation);
+    return table.saveAutodocs(templatePanel, graftedBaseAutodoc, doValidation,
+      (cbDeliverToDirectory.isSelected() ? ftfDeliverToDirectory.getFile() : null),
+      stacksFieldDisplayer);
   }
 
   BatchRunTomoRow getFirstRow() {
@@ -606,6 +610,15 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
   }
 
   /**
+  * Displays the stack tab, if it is not displayed.
+  */
+  private void displayStacks() {
+    if (curTab != BatchRunTomoTab.STACKS) {
+      tabbedPane.setSelectedIndex(BatchRunTomoTab.STACKS.getIndex());
+    }
+  }
+
+  /**
    * Handle tab change event
    */
   public void stateChanged(final ChangeEvent event) {
@@ -670,6 +683,18 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
 
     public void display() {
       displayer.displayDataset();
+    }
+  }
+
+  private static final class StacksFieldDisplayer implements FieldDisplayer {
+    final BatchRunTomoDialog displayer;
+
+    private StacksFieldDisplayer(final BatchRunTomoDialog displayer) {
+      this.displayer = displayer;
+    }
+
+    public void display() {
+      displayer.displayStacks();
     }
   }
 }
