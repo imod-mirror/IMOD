@@ -53,8 +53,7 @@ public final class BatchTool {
         totalBatch = AutodocFactory.getAutodocInstance(manager, batchDefault);
       }
       else if (!batchDefaultExists) {
-        totalBatch =
-          AutodocFactory.getAutodocInstance(manager, inputDirectiveFile);
+        totalBatch = AutodocFactory.getAutodocInstance(manager, inputDirectiveFile);
       }
       else {
         totalBatch =
@@ -63,8 +62,7 @@ public final class BatchTool {
       // Subtract template files if there is something to subtract them from.
       if (totalBatch != null && templateFiles != null && templateFiles.length > 0) {
         if (templateFiles.length == 1) {
-          totalTemplate =
-            AutodocFactory.getAutodocInstance(manager, templateFiles[0]);
+          totalTemplate = AutodocFactory.getAutodocInstance(manager, templateFiles[0]);
         }
         else {
           totalTemplate =
@@ -112,6 +110,22 @@ public final class BatchTool {
       return !field.equalsFieldHighlight();
     }
     return !field.equalsDefaultValue();
+  }
+
+  /**
+   * The field highlight value comes from a template.  The default value comes from the
+   * corresponding comscript autodoc default attribute.  A set field highlight overrides
+   * a default value, since the template value overrides the default comscript value.
+   *
+   * @param field - GUI field
+   * @param value - value field would be saved with
+   * @return true if value is not the same as what would be obtained from the templates/default value.
+   */
+  public static boolean needInAutodoc(final Field field, final String value) {
+    if (field.isFieldHighlightSet()) {
+      return !field.equalsFieldHighlight(value);
+    }
+    return !field.equalsDefaultValue(value);
   }
 
   /**
