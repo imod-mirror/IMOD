@@ -335,6 +335,10 @@ final class FieldCell extends InputCell implements ActionTarget, TableComponent,
     return false;
   }
 
+  public boolean equalsDefaultValue(final String value) {
+    return false;
+  }
+
   public void useDefaultValue() {
     System.err.println("Warning: Default value has not been implemented in FieldCell.");
   }
@@ -348,6 +352,10 @@ final class FieldCell extends InputCell implements ActionTarget, TableComponent,
   }
 
   public boolean equalsFieldHighlight() {
+    return false;
+  }
+
+  public boolean equalsFieldHighlight(final String value) {
     return false;
   }
 
