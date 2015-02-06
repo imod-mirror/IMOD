@@ -81,6 +81,8 @@ public interface Field {
 
   public boolean equalsDefaultValue();
 
+  public boolean equalsDefaultValue(final String value);
+
   public void backup();
 
   /**
@@ -114,4 +116,6 @@ public interface Field {
   public FieldSettingInterface getFieldHighlight();
 
   public boolean equalsFieldHighlight();
+
+  public boolean equalsFieldHighlight(final String value);
 }
