@@ -32,6 +32,7 @@ import etomo.type.FileType;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.type.UserConfiguration;
 import etomo.ui.BatchRunTomoTab;
+import etomo.ui.FieldDisplayer;
 import etomo.ui.PreferredTableSize;
 import etomo.util.Utilities;
 
@@ -492,9 +493,11 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
   }
 
   boolean saveAutodoc(final TemplatePanel templatePanel,
-    final Autodoc graftedBaseAutodoc, final boolean doValidation) {
+    final Autodoc graftedBaseAutodoc, final boolean doValidation,
+    final File deliverToDirectory, final FieldDisplayer fieldDisplayer) {
     File stack = new File(fcStack.getExpandedValue());
-    File file = new File(stack.getParent(), getBatchDirectiveFileName());
+    File originalLocation = stack.getParentFile();
+    File file = new File(originalLocation, getBatchDirectiveFileName());
     try {
       if (file.exists()) {
         Utilities.deleteFile(file, manager, null);
@@ -504,16 +507,29 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
       BatchTool.saveFieldToAutodoc(cbcMontage, autodoc);
       BatchTool.saveFieldToAutodoc(fcSkip, autodoc);
       BatchTool.saveFieldToAutodoc(fcbskip, AxisID.SECOND, AxisType.DUAL_AXIS, autodoc);
-      if (cbcBoundaryModel.isSelected() && BatchTool.needInAutodoc(cbcBoundaryModel)) {
+      if (cbcBoundaryModel.isSelected()) {
         String boundaryModelName =
           BatchTool.getModelFileName(FileType.BATCH_RUN_TOMO_BOUNDARY_MODEL, stack
             .getName(), cbcDual.isSelected());
-        autodoc.addNameValuePairAttribute(
-          DirectiveDef.RAW_BOUNDARY_MODEL_FOR_SEED_FINDING.getDirective(null, null),
-          boundaryModelName);
-        autodoc.addNameValuePairAttribute(
-          DirectiveDef.RAW_BOUNDARY_MODEL_FOR_PATCH_TRACKING.getDirective(null, null),
-          boundaryModelName);
+        //Validation: make sure the boundary model file exists
+        if (doValidation
+          && !new File(originalLocation, boundaryModelName).exists()
+          && (deliverToDirectory == null || !(new File(new File(deliverToDirectory,
+            DatasetTool.getDatasetName(stack.getName(), cbcDual.isSelected())),
+            boundaryModelName)).exists())) {
+          UIHarness.INSTANCE.openMessageDialog(manager, cbcBoundaryModel, "Row# "
+            + hcNumber.getText() + ":  Missing boundary model file - "
+            + boundaryModelName, "Missing File", fieldDisplayer);
+          return false;
+        }
+        if (BatchTool.needInAutodoc(cbcBoundaryModel)) {
+          autodoc.addNameValuePairAttribute(
+            DirectiveDef.RAW_BOUNDARY_MODEL_FOR_SEED_FINDING.getDirective(null, null),
+            boundaryModelName);
+          autodoc.addNameValuePairAttribute(
+            DirectiveDef.RAW_BOUNDARY_MODEL_FOR_PATCH_TRACKING.getDirective(null, null),
+            boundaryModelName);
+        }
       }
       BatchTool.saveFieldToAutodoc(cbcTwoSurfaces, autodoc);
       if (templatePanel != null) {
@@ -528,7 +544,7 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
         BatchRunTomoDatasetDialog globalDatasetDialog =
           BatchRunTomoDatasetDialog.getGlobalInstance();
         if (globalDatasetDialog != null) {
-          //The global is validated when the main .adoc file is saved
+          // The global is validated when the main .adoc file is saved
           if (!globalDatasetDialog.saveAutodoc(autodoc, false, null)) {
             return false;
           }
