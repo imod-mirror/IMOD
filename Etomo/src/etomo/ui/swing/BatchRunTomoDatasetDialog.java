@@ -54,6 +54,7 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable, UIC
   private static final String DERIVE_THICKNESS_LABEL =
     "Thickness from calculated value plus: ";
   private static final String LENGTH_OF_PIECES_DEFAULT = "-1";
+  private static final String GOLD_DEFAULT = "0";
 
   private static BatchRunTomoDatasetDialog GLOBAL_INSTANCE = null;
 
@@ -721,7 +722,14 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable, UIC
         }
       }
       BatchTool.saveFieldToAutodoc(rbFiducialless, autodoc);
-      BatchTool.saveFieldToAutodoc(ltfGold, autodoc, doValidation, fieldDisplayer);
+      if (ltfGold.isEnabled()) {
+        BatchTool.saveFieldToAutodoc(ltfGold, autodoc, doValidation, fieldDisplayer);
+      }
+      //Gold must have some value.  If the field is disabled, use 0.
+      else if (BatchTool.needInAutodoc(ltfGold, GOLD_DEFAULT)) {
+        autodoc.addNameValuePairAttribute(DirectiveDef.GOLD.getDirective(null, null),
+          GOLD_DEFAULT);
+      }
       BatchTool.saveFieldToAutodoc(ltfTargetNumberOfBeads, autodoc, doValidation,
         fieldDisplayer);
       BatchTool.saveFieldToAutodoc(ltfSizeOfPatchesXandY, autodoc, doValidation,
@@ -747,7 +755,7 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable, UIC
       if (rtfAutoFitRangeAndStep.isEnabled() && rtfAutoFitRangeAndStep.isSelected()) {
         if (rbTrackingMethodSeed.isEnabled()
           && BatchTool.needInAutodoc(rbTrackingMethodSeed)) {
-          //Make sure that this will save properly when it is empty and not validated
+          // Make sure that this will save properly when it is empty and not validated
           String step = ltfAutoFitStep.getText(doValidation, fieldDisplayer);
           String separator = "";
           if (step != null && !step.matches("\\s*")) {
@@ -872,8 +880,7 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable, UIC
         lengthOfPieces = value;
         // Make sure that lengthOfPieces has a value. This may never happen
         // because an integer directive without a value is overriding matching directives
-        // in
-        // previous templates, and will cause contains() to return false.
+        // in previous templates, and will cause contains() to return false.
         if (lengthOfPieces == null) {
           lengthOfPieces = LENGTH_OF_PIECES_DEFAULT;
         }
