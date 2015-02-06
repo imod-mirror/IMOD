@@ -647,15 +647,16 @@ abstract class AbstractFrame extends JFrame implements UIComponent, SwingCompone
         .getComponentOrientation());
 
     JDialog dialog = pane.createDialog(parentComponent, title);
-    // A popup with a parent component and no axis is most likely be connected to a field.
-    // The popup appears to center itself over the center of the field. Raise the popup so
-    // it is just above the field. Don't use a y that is off the monitor, as this may be a
-    // problem in some operating systems.
+    // A popup with a parent component and no axis is most likely connected to a field.
+    // In RedHat the popup appears to center itself over the center of the field. Raise
+    // the popup so it is a few pixels above the field. If the new location is off the
+    // monitor (negative y), set it to the top of monitor.
     if (parentComponent != null && axisID == null) {
       Point location = dialog.getLocation();
-      location.y -=
-        Math.min((parentComponent.getHeight() / 2) + (dialog.getHeight() / 2) + 1,
-          location.y);
+      location.y -= (parentComponent.getHeight() / 2) + (dialog.getHeight() / 2) + 8;
+      if (location.y < 0) {
+        location.y = 0;
+      }
       dialog.setLocation(location);
     }
     pane.selectInitialValue();
