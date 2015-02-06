@@ -391,6 +391,10 @@ final class LabeledTextField implements UIComponent, SwingComponent, Field, Focu
     return defaultValue != null && defaultValue.isSet() && defaultValue.equals(getText());
   }
 
+  public boolean equalsDefaultValue(final String value) {
+    return defaultValue != null && defaultValue.isSet() && defaultValue.equals(value);
+  }
+
   /**
    * Saves value as the checkpoint.
    */
@@ -492,7 +496,13 @@ final class LabeledTextField implements UIComponent, SwingComponent, Field, Focu
   }
 
   public boolean equalsFieldHighlight() {
-    return fieldHighlight != null && fieldHighlight.equals(getText());
+    return fieldHighlight != null && fieldHighlight.isSet()
+      && fieldHighlight.equals(getText());
+  }
+
+  public boolean equalsFieldHighlight(final String value) {
+    return fieldHighlight != null && fieldHighlight.isSet()
+      && fieldHighlight.equals(value);
   }
 
   public void focusGained(final FocusEvent event) {}
