@@ -367,6 +367,7 @@ public final class DirectiveFile implements DirectiveFileInterface {
 
   static final class Module {
     public static final Module ALIGNED_STACK = new Module("AlignedStack");
+    public static final Module COMBINE = new Module("Combine");
     public static final Module CTF_PLOTTING = new Module("CTFplotting");
     public static final Module FIDUCIALS = new Module("Fiducials");
     public static final Module GOLD_ERASING = new Module("GoldErasing");
