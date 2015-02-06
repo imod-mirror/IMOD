@@ -293,7 +293,13 @@ final class LabeledSpinner implements Field, ChangeListener, FocusListener {
   }
 
   public boolean equalsDefaultValue() {
-    return defaultValueSetting != null && defaultValueSetting.equals(getText());
+    return defaultValueSetting != null && defaultValueSetting.isSet()
+      && defaultValueSetting.equals(getText());
+  }
+
+  public boolean equalsDefaultValue(final String value) {
+    return defaultValueSetting != null && defaultValueSetting.isSet()
+      && defaultValueSetting.equals(value);
   }
 
   public void useDefaultValue() {
@@ -372,6 +378,10 @@ final class LabeledSpinner implements Field, ChangeListener, FocusListener {
 
   public boolean equalsFieldHighlight() {
     return fieldHighlight != null && fieldHighlight.equals(getText());
+  }
+
+  public boolean equalsFieldHighlight(final String value) {
+    return fieldHighlight != null && fieldHighlight.equals(value);
   }
 
   /**
