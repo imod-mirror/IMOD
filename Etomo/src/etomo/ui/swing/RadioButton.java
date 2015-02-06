@@ -219,7 +219,10 @@ final class RadioButton implements RadioButtonInterface, Field, ActionListener {
     return defaultValue != null && defaultValue.isSet()
       && defaultValue.equals(isSelected());
   }
-
+  public boolean equalsDefaultValue(final String  value) {
+    return defaultValue != null && defaultValue.isSet()
+      && defaultValue.equals(value !=null&&!value.matches("\\s*"));
+  }
   public boolean equalsDefaultValue(final boolean input) {
     return defaultValue != null && defaultValue.isSet() && defaultValue.equals(input);
   }
@@ -357,6 +360,11 @@ final class RadioButton implements RadioButtonInterface, Field, ActionListener {
   public boolean equalsFieldHighlight() {
     return fieldHighlight != null && fieldHighlight.isSet()
       && fieldHighlight.equals(isSelected());
+  }
+
+  public boolean equalsFieldHighlight(final String value) {
+    return fieldHighlight != null && fieldHighlight.isSet()
+      && fieldHighlight.equals(value != null && !value.matches("\\s*"));
   }
 
   boolean equalsFieldHighlight(final boolean input) {

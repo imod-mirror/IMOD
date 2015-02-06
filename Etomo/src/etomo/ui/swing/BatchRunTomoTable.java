@@ -33,6 +33,7 @@ import etomo.type.OrderedHashMap;
 import etomo.type.TableReference;
 import etomo.type.UserConfiguration;
 import etomo.ui.BatchRunTomoTab;
+import etomo.ui.FieldDisplayer;
 import etomo.ui.PreferredTableSize;
 import etomo.ui.TableListener;
 
@@ -333,8 +334,10 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
   }
 
   boolean saveAutodocs(final TemplatePanel templatePanel,
-    final Autodoc graftedBaseAutodoc, final boolean doValidation) {
-    return rowList.saveAutodocs(templatePanel, graftedBaseAutodoc, doValidation);
+    final Autodoc graftedBaseAutodoc, final boolean doValidation,
+    final File deliverToDirectory, final FieldDisplayer fieldDisplayer) {
+    return rowList.saveAutodocs(templatePanel, graftedBaseAutodoc, doValidation,
+      deliverToDirectory, fieldDisplayer);
   }
 
   void loadAutodocs() {
@@ -765,9 +768,11 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
     }
 
     private boolean saveAutodocs(final TemplatePanel templatePanel,
-      final Autodoc graftedBaseAutodoc, final boolean doValidation) {
+      final Autodoc graftedBaseAutodoc, final boolean doValidation,
+      final File deliverToDirectory, final FieldDisplayer fieldDisplayer) {
       for (int i = 0; i < list.size(); i++) {
-        if (!list.get(i).saveAutodoc(templatePanel, graftedBaseAutodoc, doValidation)) {
+        if (!list.get(i).saveAutodoc(templatePanel, graftedBaseAutodoc, doValidation,
+          deliverToDirectory, fieldDisplayer)) {
           return false;
         }
       }

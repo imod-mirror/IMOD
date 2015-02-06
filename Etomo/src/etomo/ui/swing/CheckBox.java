@@ -365,11 +365,13 @@ final class CheckBox extends JCheckBox implements Field, ActionListener {
   }
 
   public boolean equalsFieldHighlight() {
-    return fieldHighlight != null && fieldHighlight.equals(isSelected());
+    return fieldHighlight != null && fieldHighlight.isSet()
+      && fieldHighlight.equals(isSelected());
   }
 
   public boolean equalsFieldHighlight(final String value) {
-    return fieldHighlight != null && fieldHighlight.equals(value);
+    return fieldHighlight != null && fieldHighlight.isSet()
+      && fieldHighlight.equals(value);
   }
 
   public void setEnabled(final boolean enabled) {

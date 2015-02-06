@@ -131,7 +131,10 @@ subroutine analyzePatchTracks(numProjPt)
     !
     ! If point is a peak, check whether it is within 1/4 of maximum length of last one,
     ! and if so take the stronger of the two
-    if (dmag(i) > dmag(i - 1) .and. dmag(i) > dmag(i + 1)) then
+    ! Take first of a pair of equal points (this can happen)
+    if ((dmag(i) > dmag(i - 1) .and. dmag(i) > dmag(i + 1)) .or.  &
+        (dmag(i) > dmag(i - 1) .and. dmag(i) == dmag(i + 1) .and.  &
+        dmag(i) > dmag(min(nview, i + 2)))) then
       if (numPeaks > 0 .and. i - linAlf(max(1, numPeaks)) < maxLen / 4.) then
         if (dmag(i) > dmag(linAlf(numPeaks))) linAlf(numPeaks) = i
       else
@@ -140,6 +143,12 @@ subroutine analyzePatchTracks(numProjPt)
       endif
     endif
   enddo
+  !
+  ! And if somehow that failed to find any peaks, simply say there is one in the middle
+  if (numPeaks == 0) then
+    numPeaks = 1
+    linAlf(1) = nview / 2.
+  endif
   !
   ! Put each track in a group based on which peak its midpoint is nearest
   do j = 1, nrealPt

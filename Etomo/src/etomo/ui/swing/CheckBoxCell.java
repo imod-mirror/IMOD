@@ -17,6 +17,7 @@ import etomo.ui.Field;
 import etomo.ui.FieldDisplayer;
 import etomo.ui.FieldSettingInterface;
 import etomo.ui.FieldValidationFailedException;
+import etomo.ui.UIComponent;
 import etomo.util.Utilities;
 
 /**
@@ -28,7 +29,8 @@ import etomo.util.Utilities;
  *
  * @version $Id$
  */
-final class CheckBoxCell extends InputCell implements ToggleCell, ActionListener, Field {
+final class CheckBoxCell extends InputCell implements ToggleCell, ActionListener, Field,
+  UIComponent, SwingComponent {
   private final JCheckBox checkBox = new JCheckBox();
   // label: from JCheckBox.getText(). Updated in setLabel(). Always up to date
   // because it is a read only field in JCheckBox.
@@ -48,8 +50,12 @@ final class CheckBoxCell extends InputCell implements ToggleCell, ActionListener
     setFont();
   }
 
-  Component getComponent() {
+  public Component getComponent() {
     return checkBox;
+  }
+
+  public SwingComponent getUIComponent() {
+    return this;
   }
 
   UITestFieldType getFieldType() {
@@ -252,6 +258,11 @@ final class CheckBoxCell extends InputCell implements ToggleCell, ActionListener
       && fieldHighlight.equals(isSelected());
   }
 
+  public boolean equalsFieldHighlight(final String value) {
+    return fieldHighlight != null && fieldHighlight.isSet()
+      && fieldHighlight.equals(value != null && !value.matches("\\s*"));
+  }
+
   public void clearFieldHighlight() {
     if (fieldHighlight != null && fieldHighlight.isSet()) {
       fieldHighlight.reset();
@@ -284,6 +295,10 @@ final class CheckBoxCell extends InputCell implements ToggleCell, ActionListener
   }
 
   public boolean equalsDefaultValue() {
+    return false;
+  }
+
+  public boolean equalsDefaultValue(final String value) {
     return false;
   }
 
