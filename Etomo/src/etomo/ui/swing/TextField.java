@@ -185,7 +185,11 @@ final class TextField implements UIComponent, SwingComponent, Field, FocusListen
   }
 
   public boolean equalsDefaultValue() {
-    return defaultValue != null && defaultValue.equals(getText());
+    return defaultValue != null && defaultValue.isSet() && defaultValue.equals(getText());
+  }
+
+  public boolean equalsDefaultValue(final String value) {
+    return defaultValue != null && defaultValue.isSet() && defaultValue.equals(value);
   }
 
   /**
@@ -249,7 +253,13 @@ final class TextField implements UIComponent, SwingComponent, Field, FocusListen
   }
 
   public boolean equalsFieldHighlight() {
-    return fieldHighlight != null && fieldHighlight.equals(getText());
+    return fieldHighlight != null && fieldHighlight.isSet()
+      && fieldHighlight.equals(getText());
+  }
+
+  public boolean equalsFieldHighlight(final String value) {
+    return fieldHighlight != null && fieldHighlight.isSet()
+      && fieldHighlight.equals(value);
   }
 
   public void focusGained(final FocusEvent event) {}
