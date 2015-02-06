@@ -403,7 +403,9 @@ final class FileTextField2 implements FileTextFieldInterface, Field, ActionListe
   public boolean equalsDefaultValue() {
     return field.equalsDefaultValue();
   }
-
+  public boolean equalsDefaultValue(final String value) {
+    return field.equalsDefaultValue(value);
+  }
   public boolean isFieldHighlightSet() {
     return field.isFieldHighlightSet();
   }
@@ -424,6 +426,10 @@ final class FileTextField2 implements FileTextFieldInterface, Field, ActionListe
 
   public boolean equalsFieldHighlight() {
     return field.equalsFieldHighlight();
+  }
+
+  public boolean equalsFieldHighlight(final String value) {
+    return field.equalsFieldHighlight(value);
   }
 
   public void clearFieldHighlight() {
