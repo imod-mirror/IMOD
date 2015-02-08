@@ -41,10 +41,10 @@ Batch Tomogram Reconstruction with IMOD
     for personal use and do so by hand, put it in the directory
     .etomotemplates under your home directory (this is where eTomo's template
     editor places user templates by default).  <A HREF =
-    "usingEtomo#Templates">Using eTomo</A> describes what to do with templates
+    "UsingEtomo.html#Templates">Using eTomo</A> describes what to do with templates
     for general use.  The plan is for there to be an <B>Advanced</B> button
     that will open a full directive editor will all possible choices.
-    <P> The interface is organized into for tabs that would generally be
+    <P> The interface is organized into four tabs that would generally be
     visited in sequence from left to right.  However, they can all be accessed
     and changed at any time.  Also note that you can close the interface and
     reopen it to resume working on a project; you should find all of the
@@ -69,7 +69,8 @@ Batch Tomogram Reconstruction with IMOD
   The <B>Batch Setup</B> tab has items that should be filled in first.
   <UL>
     <LI> <B>Move dataset to</B>.&nbsp;  This item allows you to move datasets from
-      their current locations into another location for processing.  With this
+      their current locations into another location where each will be given
+      its own directory for processing.  With this
       option, when
       <A HREF = "man/batchruntomo.html#TOP">Batchruntomo</A> starts processing
       a dataset, it creates a directory for it under the indicated location,
@@ -167,12 +168,11 @@ Batch Tomogram Reconstruction with IMOD
       dual-axis
       set, combination will be done automatically only for the <B>Autoseed and
       track</B> method.  With that method, the seed model for the second axis
-      will by done by first running
+      will be done by first running
       <A HREF = "man/transferfid.html#TOP">Transferfid </A> then using
        <A HREF = "man/auotfidseed.html#TOP">Autofidseed</A> to add points to
        the model, which is useful if there is a significant shift between the
-       two axes.  Local tracking is done by default, and we plan to remove the
-       tracking size entry as it is not commonly needed.  If you use patch
+       two axes.  Local tracking is done by default. If you use patch
        tracking and break contours into pieces, the pieces will have the
        default length that is used in eTomo based on the number of views.
        There is no entry for binning the prealigned stack; to do this, you
