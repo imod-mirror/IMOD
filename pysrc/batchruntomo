@@ -1261,7 +1261,10 @@ def scanSetupDirectives():
          return 1
 
    if (not pixelSize and not scanHeader) or not setName or not datasetDir:
-      abortSet('Pixel size, set name, or dataset directory missing from directives')
+      abortSet('Pixel size missing from directives, and header is not being scanned')
+      return 1
+   if (not pixelSize and not scanHeader) or not setName or not datasetDir:
+      abortSet('Set name or dataset directory missing from directives')
       return 1
    if defocus < -999999 and lookupDirective(runtimePrefix + 'AlignedStack', 'correctCTF',
                                             0, BOOL_VALUE):
