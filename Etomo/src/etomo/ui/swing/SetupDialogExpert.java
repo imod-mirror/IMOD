@@ -372,8 +372,8 @@ public final class SetupDialogExpert {
     return dataset.getParentFile();
   }
 
-  public void setTiltAngleFields(final AxisID axisID, 
-    final TiltAngleSpec tiltAngleSpec, final UserConfiguration userConfiguration) {
+  public void setTiltAngleFields(final AxisID axisID, final TiltAngleSpec tiltAngleSpec,
+    final UserConfiguration userConfiguration) {
     if (axisID == AxisID.SECOND) {
       tiltAnglePanelExpertB.setFields(tiltAngleSpec, userConfiguration);
     }
@@ -537,16 +537,17 @@ public final class SetupDialogExpert {
     tiltAnglePanelExpertB.updateTemplateValues(directiveFileCollection);
   }
 
-  void viewRawStack(AxisID axisID, final Run3dmodMenuOptions menuOptions) {
+  void viewRawStack(final String fileExtension, final AxisID axisID,
+    final Run3dmodMenuOptions menuOptions) {
     if (axisID == AxisID.SECOND) {
-      manager.imodPreview(AxisID.SECOND, menuOptions);
+      manager.imodPreview(fileExtension, AxisID.SECOND, menuOptions);
     }
     else {
       if (getAxisType() == AxisType.SINGLE_AXIS) {
-        manager.imodPreview(AxisID.ONLY, menuOptions);
+        manager.imodPreview(fileExtension, AxisID.ONLY, menuOptions);
       }
       else {
-        manager.imodPreview(AxisID.FIRST, menuOptions);
+        manager.imodPreview(fileExtension, AxisID.FIRST, menuOptions);
       }
     }
   }
