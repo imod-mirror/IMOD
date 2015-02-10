@@ -248,11 +248,12 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
   public void action(final String actionCommand,
     final Deferred3dmodButton deferred3dmodButton,
     final Run3dmodMenuOptions run3dmodMenuOptions) {
+    String fileExtension = DatasetTool.getExtension(ftfDataset.getText());
     if (btnViewRawStackA.getActionCommand().equals(actionCommand)) {
-      expert.viewRawStack(AxisID.FIRST, run3dmodMenuOptions);
+      expert.viewRawStack(fileExtension, AxisID.FIRST, run3dmodMenuOptions);
     }
     else if (btnViewRawStackB.getActionCommand().equals(actionCommand)) {
-      expert.viewRawStack(AxisID.SECOND, run3dmodMenuOptions);
+      expert.viewRawStack(fileExtension, AxisID.SECOND, run3dmodMenuOptions);
     }
   }
 
