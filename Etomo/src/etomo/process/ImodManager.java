@@ -763,14 +763,24 @@ public class ImodManager {
     return newImod(key, axisID, (String) null);
   }
 
-  public int newImod(String key, AxisID axisID, String datasetName)
+  public int newImod(final String key, final String fileExtension, final AxisID axisID)
     throws AxisTypeException {
+    return newImod(key, fileExtension, axisID, (String) null);
+  }
+
+  public int newImod(String key, final AxisID axisID, final String datasetName)
+    throws AxisTypeException {
+    return newImod(key, null, axisID, datasetName);
+  }
+
+  public int newImod(String key, final String fileExtension, final AxisID axisID,
+    final String datasetName) throws AxisTypeException {
     Vector vector;
     ImodState imodState;
     key = getPrivateKey(key);
     vector = getVector(key, axisID);
     if (vector == null) {
-      vector = newVector(key, axisID, datasetName);
+      vector = newVector(key, fileExtension, axisID, datasetName);
       if (axisID == null) {
         imodMap.put(key, vector);
       }
@@ -779,7 +789,7 @@ public class ImodManager {
       }
       return 0;
     }
-    imodState = newImodState(key, axisID, datasetName);
+    imodState = newImodState(key, fileExtension, axisID, datasetName);
     vector.add(imodState);
     return vector.lastIndexOf(imodState);
   }
@@ -1810,8 +1820,9 @@ public class ImodManager {
     return newVector(newImodState(key, axisID));
   }
 
-  Vector newVector(final String key, final AxisID axisID, final String datasetName) {
-    return newVector(newImodState(key, axisID, datasetName));
+  Vector newVector(final String key, final String fileExtension, final AxisID axisID,
+    final String datasetName) {
+    return newVector(newImodState(key, fileExtension, axisID, datasetName));
   }
 
   Vector newVector(final String key, final File file) {
@@ -1836,39 +1847,41 @@ public class ImodManager {
   }
 
   ImodState newImodState(final String key) {
-    return newImodState(key, null, null, null, null, null, null);
+    return newImodState(key, null, null, null, null, null, null, null);
   }
 
   ImodState newImodState(final String key, final AxisID axisID) {
-    return newImodState(key, axisID, null, null, null, null, null);
+    return newImodState(key, null, axisID, null, null, null, null, null);
   }
 
   ImodState newImodState(final String key, final AxisID axisID, final File[] fileList) {
-    return newImodState(key, axisID, null, null, null, null, fileList);
+    return newImodState(key, null, axisID, null, null, null, null, fileList);
   }
 
-  ImodState newImodState(String key, AxisID axisID, String datasetName) {
-    return newImodState(key, axisID, datasetName, null, null, null, null);
+  ImodState newImodState(final String key, final String fileExtension,
+    final AxisID axisID, final String datasetName) {
+    return newImodState(key, fileExtension, axisID, datasetName, null, null, null, null);
   }
 
   ImodState newImodState(String key, File file) {
-    return newImodState(key, null, null, file, null, null, null);
+    return newImodState(key, null, null, null, file, null, null, null);
   }
 
   ImodState newImodState(final String key, final AxisID axisID, final File file) {
-    return newImodState(key, axisID, null, file, null, null, null);
+    return newImodState(key, null, axisID, null, file, null, null, null);
   }
 
   ImodState newImodState(String key, String[] fileNameArray) {
-    return newImodState(key, null, null, null, fileNameArray, null, null);
+    return newImodState(key, null, null, null, null, fileNameArray, null, null);
   }
 
   ImodState newImodState(String key, String[] fileNameArray, String subdirName) {
-    return newImodState(key, null, null, null, fileNameArray, subdirName, null);
+    return newImodState(key, null, null, null, null, fileNameArray, subdirName, null);
   }
 
-  ImodState newImodState(String key, AxisID axisID, String datasetName, File file,
-    String[] fileNameArray, String subdirName, final File[] fileList) {
+  ImodState newImodState(final String key, final String fileExtension,
+    final AxisID axisID, final String datasetName, final File file,
+    final String[] fileNameArray, final String subdirName, final File[] fileList) {
     if (key.equals(RAW_STACK_KEY) && axisID != null) {
       return newRawStack(axisID, file);
     }
@@ -1912,7 +1925,7 @@ public class ImodManager {
       return newMtfFilter(axisID);
     }
     if (key.equals(PREVIEW_KEY) && axisID != null) {
-      return newPreview(axisID);
+      return newPreview(axisID, fileExtension);
     }
     if (key.equals(TOMOGRAM_KEY)) {
       return newTomogram(file, axisID);
@@ -2252,9 +2265,8 @@ public class ImodManager {
     return imodState;
   }
 
-  private ImodState newPreview(AxisID axisID) {
-    ImodState imodState =
-      new ImodState(manager, axisID, datasetName, DatasetTool.STANDARD_DATASET_EXT);
+  private ImodState newPreview(final AxisID axisID, final String fileExtension) {
+    ImodState imodState = new ImodState(manager, axisID, datasetName, fileExtension);
     imodState.setLoadAsIntegers();
     return imodState;
   }
