@@ -529,7 +529,6 @@ void InfoWindow::extract()
   if (commandString.isEmpty())
     return;
 
-  mActions[FILE_MENU_EXTRACT]->setEnabled(false);
   mTrimvolType = rotateVol ? 1 : 0;
 
   // Get the output and input file names
@@ -537,6 +536,7 @@ void InfoWindow::extract()
   if (mTrimvolOutput.isEmpty())
     return;
 
+  mActions[FILE_MENU_EXTRACT]->setEnabled(false);
   QString filePath = App->cvi->image->filename;
   if (timeLock)
     filePath = App->cvi->imageList[timeLock - 1].filename;
