@@ -62,7 +62,7 @@ final class NewstackPanel extends NewstackOrBlendmontPanel {
    * @param deferred3dmodButton
    * @param run3dmodMenuOptions
    */
-  void action(final String command, final Deferred3dmodButton deferred3dmodButton,
+  public void action(final String command, final Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(getRunProcessButtonActionCommand())) {
       manager.newst(getRunProcessResultDisplay(), null, deferred3dmodButton, axisID,

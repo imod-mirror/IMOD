@@ -1275,6 +1275,11 @@ public final class ImodState {
     process.reopenLog();
   }
 
+  public void openModel(final String model, final boolean modelMode)
+      throws SystemProcessException, IOException {
+    process.openModel(model, modelMode);
+  }
+
   /**
    * @param binning
    */

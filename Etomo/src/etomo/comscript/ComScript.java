@@ -140,6 +140,10 @@ public class ComScript {
     }
   }
 
+  public String toString() {
+    return comFile.getAbsolutePath();
+  }
+
   /**
    * Read in the specified com script from the file system parsing the command,
    * comments and arguments into an internal representation.

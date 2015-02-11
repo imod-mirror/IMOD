@@ -475,7 +475,7 @@ public final class LogWindow implements LogInterface, LogProperties {
   }
 
   public void store(final Properties props, String prepend) {
-    prepend = getPrepend(prepend);
+    prepend = createPrepend(prepend);
     Dimension size = frame.getSize();
     // A panel that has never been displayed will have a height and width of 0.
     if (size.width <= 0 || size.height <= 0) {
@@ -503,7 +503,7 @@ public final class LogWindow implements LogInterface, LogProperties {
     frameLocationYProperty.reset();
     visibleProperty.set(VISIBLE_DEFAULT);
     // load
-    prepend = getPrepend(prepend);
+    prepend = createPrepend(prepend);
     frameSizeWidthProperty.load(props, prepend);
     frameSizeHeightProperty.load(props, prepend);
     frameLocationXProperty.load(props, prepend);
@@ -511,7 +511,7 @@ public final class LogWindow implements LogInterface, LogProperties {
     visibleProperty.load(props, prepend, VISIBLE_DEFAULT);
   }
 
-  private String getPrepend(String prepend) {
+  private String createPrepend(String prepend) {
     if (prepend == null || prepend.matches("\\s*")) {
       prepend = PREPEND;
     }
