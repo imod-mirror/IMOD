@@ -64,7 +64,7 @@ program newstack
   logical rescale, blankOutput, adjustOrigin, hasWarp, fillTmp, fillNeeded, stripExtra
   logical readShrunk, numberedFromOne, twoDirections, useMdocFiles, outDocChanged, quiet
   logical*4 phaseShift
-  character dat*9, timeStr*8, tempExt*9
+  character dat * 9, timeStr * 8, tempExt * 9
   logical nbytes_and_flags
   character*80 titlech
   integer*4 inUnit, numInFiles, listTotal, numOutTot, numOutFiles, nxOut, nyOut, lmGrid
@@ -255,11 +255,11 @@ program newstack
     endif
     if (PipGetInteger('BytesSignedInOutput', i) == 0) call overrideWriteBytes(i)
     i = 1
-    if (PipGetString('ExcludeSections', listString) .eq. 0) then
+    if (PipGetString('ExcludeSections', listString) == 0) then
       call parseList2(listString, inList, numExclude, LIMSEC)
       i = numExclude
     endif
-    allocate(isecExclude(i), stat=ierr)
+    allocate(isecExclude(i), stat = ierr)
     call memoryError(ierr, 'ARRAY FOR EXCLUDED SECTIONS')
     if (numExclude > 0) then
       isecExclude(1:numExclude) = inList(1:numExclude) - numberOffset
@@ -291,13 +291,13 @@ program newstack
   !
   ! Get HDF and volume related options
   if (pipInput) then
-    if (PipGetString('FormatOfOutputFile', listString) .eq. 0) then
+    if (PipGetString('FormatOfOutputFile', listString) == 0) then
       ierr = setOutputTypeFromString(listString)
       if (ierr == -5) &
           call exitError('HDF files are not supported by this IMOD package')
       if (ierr < 0) call exitError('Unrecognized entry for output file format')
     endif
-    if (PipGetString('VolumesToRead', listString) .eq. 0) then
+    if (PipGetString('VolumesToRead', listString) == 0) then
       call parseList2(listString, inList, numVolRead, LIMSEC)
       numVolRead = min(numVolRead, numInFiles)
       listVolumes(1:numVolRead) = inList(1:numVolRead)
@@ -355,9 +355,9 @@ program newstack
     if (indFile == 1) then
       nxFirst = nx
       nyFirst = ny
-      call irtdel(1, deltafirst)
+      call iiuRetDelta(1, deltafirst)
       !
-      ! Retain first input file volume structure in output if already doing HDF unless 
+      ! Retain first input file volume structure in output if already doing HDF unless
       ! user said not  to; adopt its chunk sizes unless user entered them
       call iiuRetChunkSizes(1, nxTileIn, nyTileIn, nzChunkIn)
       if (nzChunkIn > 0 .and. b3dOutputFileType() == 5) then
@@ -369,8 +369,8 @@ program newstack
         endif
       endif
     endif
-    call imclose(1)
-    if (needClose1 > 0) call imclose(needClose1)
+    call iiuClose(1)
+    if (needClose1 > 0) call iiuClose(needClose1)
     nxMax = max(nx, nxMax)
     nyMax = max(ny, nyMax)
     nlist(indFile) = nz
@@ -407,7 +407,7 @@ program newstack
             ' IS AN ILLEGAL SECTION NUMBER FOR ', trim(inFile(indFile))
         call exit(1)
       endif
-      if (numberInList(inList(isec), isecExclude, numExclude, 0) .eq. 0) then
+      if (numberInList(inList(isec), isecExclude, numExclude, 0) == 0) then
         inList(indOut) = inList(isec)
         indOut = indOut + 1
       endif
@@ -539,9 +539,9 @@ program newstack
       numSecOut(i) = 1
       write(convNum, convFormat) i + iseriesBase - 1
       if (seriesExt == ' ') then
-        outFile(i) = trim(tempName)//'.'//trim(adjustl(convNum))
+        outFile(i) = trim(tempName) //'.'//trim(adjustl(convNum))
       else
-        outFile(i) = trim(tempName)//trim(adjustl(convNum))//'.'//trim(seriesExt)
+        outFile(i) = trim(tempName) //trim(adjustl(convNum)) //'.'//trim(seriesExt)
       endif
     enddo
     numOutTot = listTotal
@@ -1098,8 +1098,8 @@ program newstack
             endif
           endif
         enddo
-        call imclose(1)
-        if (needClose1 > 0) call imclose(needClose1)
+        call iiuClose(1)
+        if (needClose1 > 0) call iiuClose(needClose1)
       enddo
       !
       ! for shift to mean, figure out new mean, min and max and whether
@@ -1123,7 +1123,7 @@ program newstack
         !call rsMedian(secZmaxes, numOutTot, ztemp, zmaxMed)
         !call rsMADN(secZmaxes, numOutTot, zmaxMed, ztemp, zmaxMADN)
         !print *,'median', zmaxMed, '   MADN', zmaxMADN
-        !write(*,'(8f9.2)')(ztemp(i) / zmaxMADN, i = 1, numOutTot)
+        !write(*,'(8f9.2)') (ztemp(i) / zmaxMADN, i = 1, numOutTot)
         call rsMadMedianOutliers(secZmins, numOutTot, 8., ztemp)
         do i = 1, numOutTot
           if (ztemp(i) >= 0.) then
@@ -1313,19 +1313,19 @@ program newstack
           if (iiuAltChunkSizes(2, nxTileIn, nyTileIn, nzChunkIn) .ne. 0) call exitError( &
               'SETTING CHUNK SIZES IN NEW VOLUME')
           if (nxTileIn .ne. nxOut .or. nyTileIn .ne. nyOut .or. nzChunkIn .ne.  &
-              numSecOut(iOutFile)) write(*,'(a,i7,a,i7,a,i4)')'Actual chunk size: ', &
-              nxTileIn,' by', nyTileIn, ' by', nzChunkIn
+              numSecOut(iOutFile)) write(*,'(a,i7,a,i7,a,i4)') 'Actual chunk size: ', &
+              nxTileIn, ' by', nyTileIn, ' by', nzChunkIn
         endif
 
-        call itrhdr(2, 1)
-        call ialmod(2, newMode)
+        call iiuTransHeader(2, 1)
+        call iiuAltMode(2, newMode)
         !
         ! set new size, keep old nxyzst
         !
         nxyz2(1) = nxOut
         nxyz2(2) = nyOut
         nxyz2(3) = numSecOut(iOutFile)
-        call ialsiz(2, nxyz2, nxyzst)
+        call iiuAltSize(2, nxyz2, nxyzst)
         !
         ! if mxyz=nxyz, keep this relationship
         !
@@ -1333,7 +1333,7 @@ program newstack
           mxyz2(1) = nxOut
           mxyz2(2) = nyOut
           mxyz2(3) = numSecOut(iOutFile)
-          call ialsam(2, mxyz2)
+          call iiuAltSample(2, mxyz2)
         else
           mxyz2(1) = mxyz(1)
           mxyz2(2) = mxyz(2)
@@ -1347,14 +1347,14 @@ program newstack
           cell2(i + 3) = 90.
         enddo
         cell2(3) = mxyz2(3) * (cell(3) / mxyz(3))
-        call ialcel(2, cell2)
+        call iiuAltCell(2, cell2)
         !
         ! shift origin by the fraction pixel offset when binning or reducing with read
         ! a positive change is needed to indicate origin inside image
         ! When reduction was added, removed a convoluted subpixel adjustment to this
         ! that was wrong as basis for adjusting origin for size changes
-        call irtdel(1, delta)
-        call irtorg(1, xOrigin, yOrigin, zOrigin)
+        call iiuRetDelta(1, delta)
+        call iiuRetOrigin(1, xOrigin, yOrigin, zOrigin)
         if (readReduction > 1) then
           xOrigin = xOrigin - delta(1) * rxOffset
           yOrigin = yOrigin - delta(2) * ryOffset
@@ -1383,7 +1383,7 @@ program newstack
           endif
         endif
         if (adjustOrigin .or. readReduction > 1) &
-            call ialorg(2, xOrigin, yOrigin, zOrigin)
+            call iiuAltOrigin(2, xOrigin, yOrigin, zOrigin)
         !
         if (trunctText == ' ') then
           write(titlech, 302) xfText, floatText, dat, timeStr
@@ -1415,11 +1415,11 @@ program newstack
             allocate(extraOut(maxExtraOut), stat = ierr)
             call memoryError(ierr, 'ARRAYS FOR EXTRA HEADER DATA')
           endif
-          call ialnbsym(2, nByteSymOut)
-          call imposn(2, 0, 0)
+          call iiuAltNumExtended(2, nByteSymOut)
+          call iiuSetPosition(2, 0, 0)
           indExtraOut = 0
         else
-          call ialnbsym(2, 0)
+          call iiuAltNumExtended(2, 0)
         endif
 
         ierr = 0
@@ -1431,7 +1431,7 @@ program newstack
             .and. indAdocIn > 0) then
           call setCurrentAdocOrExit(indAdocIn, 'INPUT')
           if (AdocTransferSection(globalName, 1, indAdocOut, globalName, 0) .ne. 0) &
-              call exitError('TRANSFERRING GLOBAL DATA BETWEEN AUTODOCS') 
+              call exitError('TRANSFERRING GLOBAL DATA BETWEEN AUTODOCS')
         endif
       endif
       !
@@ -1449,11 +1449,11 @@ program newstack
         endif
         if (nx * ny * 2 > idimInOut) call exitError('INPUT IMAGE TOO LARGE FOR ARRAY.')
 
-        call imposn(1, iSecRead, 0)
+        call iiuSetPosition(1, iSecRead, 0)
         call irdsec(1, array,*99)
         call iclcdn(array, nx, ny, 1, nx, 1, ny, dmin2, dmax2, dmean2)
-        call imposn(2, isecOut - 1, 0)
-        call iwrsec(2, array)
+        call iiuSetPosition(2, isecOut - 1, 0)
+        call iiuWriteSection(2, array)
         go to 80
       endif
       !
@@ -1495,7 +1495,7 @@ program newstack
         do i = 1, nxOut
           array(i) = tmpMin * scaleFactor + constAdd
         enddo
-        call imposn(2, isecOut - 1, 0)
+        call iiuSetPosition(2, isecOut - 1, 0)
         do i = 1, nyOut
           call iwrlin(2, array)
         enddo
@@ -1541,7 +1541,7 @@ program newstack
             yGridIntrv, fieldDx, fieldDy, lmGrid, lmGrid, listString) .ne. 0) &
             call exitError(listString)
         !
-        !print *,nxGrid, nyGrid, xGridIntrv, yGridIntrv, xGridStart, xGridStart +(nxGrid &
+        !print *,nxGrid, nyGrid, xGridIntrv, yGridIntrv, xGridStart, xGridStart + (nxGrid &
         ! - 1) * xGridIntrv, yGridStart, yGridStart + (nyGrid - 1)*yGridIntrv
         ! do ierr = 1, nyGrid
         ! write(*,'(f7.2,9f8.2)') (fieldDx(i, ierr), fieldDy(i, ierr), i=1, nxGrid)
@@ -1717,7 +1717,7 @@ program newstack
         tempName = temp_filename(outFile(iOutFile), ' ', tempExt)
         !
         call imopen(3, tempName, 'scratch')
-        call icrhdr(3, nxyz2, nxyz2, 2, title, 0)
+        call iiuCreateHeader(3, nxyz2, nxyz2, 2, title, 0)
         ifTempOpen = 1
       endif
       !
@@ -1931,12 +1931,12 @@ program newstack
         wallStart = wallTime()
         if (.not.rescale) then
           if (iVerbose > 0) print *,'writing to real file', iChunk
-          call imposn(2, isecOut - 1, lineOutSt(iChunk))
-          call iwrsecl(2, array(iChunkBase), numLinesOut(iChunk))
+          call iiuSetPosition(2, isecOut - 1, lineOutSt(iChunk))
+          call iiuWriteLines(2, array(iChunkBase), numLinesOut(iChunk))
         elseif (iChunk .ne. numChunks .and. ifOutChunk > 0) then
           if (iVerbose > 0) print *,'writing to temp file', iChunk
-          call imposn(3, 0, lineOutSt(iChunk))
-          call iwrsecl(3, array(iBufOutBase), numLinesOut(iChunk))
+          call iiuSetPosition(3, 0, lineOutSt(iChunk))
+          call iiuWriteLines(3, array(iBufOutBase), numLinesOut(iChunk))
         endif
         saveTime = saveTime + wallTime() - wallStart
       enddo
@@ -1965,7 +1965,7 @@ program newstack
           if (ifOutChunk == 0) iChunkBase = iBufOutBase + lineOutSt(iChunk) * nxOut
           if (iChunk .ne. numChunks .and. ifOutChunk > 0) then
             if (iVerbose > 0) print *,'reading', iChunk
-            call imposn(3, 0, lineOutSt(iChunk))
+            call iiuSetPosition(3, 0, lineOutSt(iChunk))
             call irdsecl(3, array(iBufOutBase), numLinesOut(iChunk),*99)
           endif
           do iy = 1, numLinesOut(iChunk)
@@ -1989,8 +1989,8 @@ program newstack
           enddo
           wallStart = wallTime()
           if (iVerbose > 0) print *,'writing', iChunk
-          call imposn(2, isecOut - 1, lineOutSt(iChunk))
-          call iwrsecl(2, array(iChunkBase), numLinesOut(iChunk))
+          call iiuSetPosition(2, isecOut - 1, lineOutSt(iChunk))
+          call iiuWriteLines(2, array(iChunkBase), numLinesOut(iChunk))
           saveTime = saveTime + wallTime() - wallStart
         enddo
       else
@@ -2052,39 +2052,39 @@ program newstack
       if (numReplace == 0 .and. isecOut > numSecOut(iOutFile)) then
         if (outDocChanged .and. iiuFileType(2) .ne. 5) then
           call setCurrentAdocOrExit(indAdocOut, 'OUTPUT')
-          if (AdocWrite(trim(outFile(iOutFile))//'.mdoc') .ne.0) call exitError( &
+          if (AdocWrite(trim(outFile(iOutFile)) //'.mdoc') .ne. 0) call exitError( &
               'WRITING MDOC FILE FOR OUTPUT FILE')
           call AdocClear(indAdocOut)
         endif
         if (nByteSymOut > 0) call ialsym(2, nByteSymOut, extraOut)
         dmean = dmean / numSecOut(iOutFile)
-        call iwrhdr(2, title, 1, dmin, dmax, dmean)
-        call imclose(2)
-        if (needClose2 > 0) call imClose(needClose2)
+        call iiuWriteHeader(2, title, 1, dmin, dmax, dmean)
+        call iiuClose(2)
+        if (needClose2 > 0) call iiuClose(needClose2)
         isecOut = 1
         iOutFile = iOutFile + 1
       endif
       isec = isec + 1
     enddo
-    call imclose(1)
-    if (needClose1 > 0) call imClose(needClose1)
+    call iiuClose(1)
+    if (needClose1 > 0) call iiuClose(needClose1)
   enddo
   if (numReplace > 0) then
-    call iwrhdr(2, title, -1, dmin, dmax, dmean)
-    call imclose(2)
+    call iiuWriteHeader(2, title, -1, dmin, dmax, dmean)
+    call iiuClose(2)
   endif
   !
-  if (ifTempOpen .ne. 0) call imclose(3)
+  if (ifTempOpen .ne. 0) call iiuClose(3)
   if (numTruncLow + numTruncHigh > 0) write(*,103) numTruncLow, numTruncHigh
 103 format(' TRUNCATIONS OCCURRED:',i11,' at low end,',i11, &
       ' at high end of range')
   if (numSecTrunc > 0 .and. &
       numTruncLow + numTruncHigh > numSecTrunc * 4. * (1. + nxOut * (nyOut / 1.e6))) then
-    write(*,'(/,a,i4,a,i11,a)') 'WARNING: NEWSTACK - ',numSecTrunc,  &
+    write(*,'(/,a,i4,a,i11,a)') 'WARNING: NEWSTACK - ', numSecTrunc,  &
         ' sections had extreme ranges and were truncated to preserve dynamic range '// &
         '(overall, ', numTruncLow + numTruncHigh, ' pixels were truncated)'
   else if (numSecTrunc > 0) then
-    write(*,'(/,a,i4,a)') 'NOTE: ',numSecTrunc,  &
+    write(*,'(/,a,i4,a)') 'NOTE: ', numSecTrunc,  &
         ' sections had extreme ranges and were truncated to preserve dynamic range '
   endif
   if (iVerbose > 0) write(*,'(a,f8.4,a,f8.4,a,f8.4,a,f8.4)') 'loadtime', &
@@ -2102,7 +2102,7 @@ CONTAINS
     if (limEntered == 0) then
       needTemp = 1
       if (readShrunk) needTemp = max(nx * (nint(readReduction) + 20),  &
-          int(min(int(MAXTEMP, kind=8), int(nx, kind=8) * ny)))
+          int(min(int(MAXTEMP, kind = 8), int(nx, kind = 8) * ny)))
       if (iBinning > 1) needTemp = nx * iBinning
       needDim = int(nxBin, kind = 8) * nyNeeded
       if (phaseShift .and. nxFSpad > 0)  &
@@ -2254,7 +2254,7 @@ CONTAINS
         call sums_to_avgsd8(dsum, dsumSq, nxOut, nyOut, avgSec, sdSec)
         ! print *,'overall mean & sd', avgSec, sdSec
         if (tmpMin == tmpMax .or. sdSec == 0.) sdSec = 1.
-        
+
         ! Truncate the min and max to what will fit in the common range determined after
         ! outlier elimination, then compute the min and max that those map to.
         tmpMin = max(tmpMin, zmin * sdsec + avgSec)
@@ -2602,7 +2602,7 @@ end subroutine getReducedSize
 !
 subroutine readBinnedOrReduced(imUnit, iz, array, nxDim, nyDim, xUBstart, yUBstart,  &
     redFac, nxRed, nyRed, ifiltType, doShrink, temp, lenTemp)
-  implicit none 
+  implicit none
   integer*4 imUnit, iz, nxDim, nyDim, nxRed, nyRed, ifiltType, lenTemp, ierr
   real*4 array(*), xUBstart, yUBstart, temp(*), redFac
   logical doShrink
