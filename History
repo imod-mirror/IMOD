@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/11/15: Fixed Makepyramid to work with one input argument (In 4.7).
+
 2/11/15: Fixed 3dmod Extract File entry being disabled after cancelling the 
 file chooser (In 4.7).
 
