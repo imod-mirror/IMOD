@@ -92,7 +92,8 @@ program newstack
   integer*4 indFilter, linesShrink, numAllSec, maxNumXF, nxMax, nyMax, ifControl, nzChunk
   integer*4 indFiltTemp, ifFiltSet, ifShrink, numVolRead, if3dVolumes, nxTile, nyTile
   integer*4 indAdocIn, indAdocOut, indSectIn, needClose1, needClose2, nxTileIn, nyTileIn
-  integer*4 nxFSpad, nyFSpad, maxFSpad, minFSpad, nxDimNeed, nyDimNeed
+  integer*4 nxFSpad, nyFSpad, maxFSpad, minFSpad, nxDimNeed, nyDimNeed, numReverse
+  integer*4 indArg
   real*4 rxOffset, ryOffset, fsPadFrac
   real*4 fieldMaxY, rotateAngle, expandFactor, fillVal, shrinkFactor
   real*8 dsum, dsumSq, tsum, tsumSq, wallStart, wallTime, loadTime, saveTime
@@ -216,6 +217,7 @@ program newstack
   fsPadFrac = 0.1
   nxFSpad = 0
   nyFSpad = 0
+  numReverse = 0
   !
   ! Preliminary allocation of array
   allocate(array(limToAlloc), stat = ierr)
@@ -244,6 +246,13 @@ program newstack
     ierr = PipGetLogical('NumberedFromOne', numberedFromOne)
     ierr = PipGetLogical('TwoDirectionTiltSeries', twoDirections)
     if (numberedFromOne) numberOffset = 1
+    if (PipGetInteger('ReverseInputFileOrder', numReverse) == 0) then
+      if (numInFiles < 0)  &
+          call exitError('YOU CANNOT ENTER -reverse WITH AN INPUT FILE LIST')
+      if (abs(numReverse) > numInFiles) &
+          call exitError('THE ENTRY TO -reverse IS BIGGER THAN THE NUMBER OF INPUT FILES')
+      if (numReverse == 0) numReverse = numInFiles
+    endif
     if (PipGetInteger('BytesSignedInOutput', i) == 0) call overrideWriteBytes(i)
     i = 1
     if (PipGetString('ExcludeSections', listString) .eq. 0) then
@@ -306,17 +315,27 @@ program newstack
   nyMax = 0
   if (twoDirections .and. numInFiles .ne. 2)  &
       call exitError('THERE MUST BE EXACTLY TWO INPUT FILES TO USE -twodir')
-  do indFile = 1, numInFiles
-    !
-    ! get the next filename
-    !
-    if (pipinput .and. inUnit .ne. 7) then
-      if (indFile <= numInputFiles) then
+  !
+  ! For pip input, get all the filenames now in case they need to be reversed
+  if (pipinput .and. inUnit .ne. 7) then
+    do indArg = 1, numInFiles
+      indFile = indArg
+      if (numReverse > 0 .and. indArg <= numReverse)  &
+          indFile = numReverse + 1 - indArg
+      if (numReverse < 0 .and. indArg > numInFiles + numReverse)  &
+          indFile = numInFiles + numReverse + (numInFiles + 1 - indArg)
+      if (indArg <= numInputFiles) then
         ierr = PipGetString('InputFile', inFile(indFile))
       else
-        ierr = PipGetNonOptionArg(indFile - numInputFiles, inFile(indFile))
+        ierr = PipGetNonOptionArg(indArg - numInputFiles, inFile(indFile))
       endif
-    else
+    enddo
+  endif
+
+  do indFile = 1, numInFiles
+    !
+    ! get the next filename if it wasn't gotten in previous loop
+    if (.not. (pipinput .and. inUnit .ne. 7)) then
       if (inUnit .ne. 7) then
         if (numInFiles == 1) then
           write(*,'(1x,a,$)') 'Name of input file: '
