@@ -311,7 +311,8 @@ public final class ParsedList {
       missingAttribute = true;
       return;
     }
-    PrimativeTokenizer tokenizer = createTokenizer(attribute.getValue());
+    PrimativeTokenizer tokenizer = createTokenizer(attribute.getValue(),
+        attribute.getLineNum());
     Token token = null;
     try {
       token = tokenizer.next();
@@ -322,7 +323,7 @@ public final class ParsedList {
         token = tokenizer.next();
       }
       if (token == null || !token.equals(Token.Type.SYMBOL, OPEN_SYMBOL.charValue())) {
-        fail("Missing delimiter: '" + OPEN_SYMBOL + "'");
+        fail("Missing delimiter: '" + OPEN_SYMBOL + "'", attribute.getLineNum());
         return;
       }
       token = tokenizer.next();
@@ -330,7 +331,7 @@ public final class ParsedList {
       if (token != null && token.is(Token.Type.WHITESPACE)) {
         token = tokenizer.next();
       }
-      token = parseList(token, tokenizer);
+      token = parseList(token, tokenizer, attribute.getLineNum());
       if (isFailed()) {
         return;
       }
@@ -339,33 +340,34 @@ public final class ParsedList {
       }
       // if the close symbol wasn't found, fail
       if (token == null || !token.equals(Token.Type.SYMBOL, CLOSE_SYMBOL.charValue())) {
-        fail("Missing delimiter: '" + CLOSE_SYMBOL + "'");
+        fail("Missing delimiter: '" + CLOSE_SYMBOL + "'", attribute.getLineNum());
         return;
       }
     }
     catch (IOException e) {
       e.printStackTrace();
-      fail(e.getMessage());
+      fail(e.getMessage(), attribute.getLineNum());
     }
   }
 
-  private PrimativeTokenizer createTokenizer(String value) {
-    PrimativeTokenizer tokenizer = new PrimativeTokenizer(value);
+  private PrimativeTokenizer createTokenizer(final String value, final int lineNum) {
+    PrimativeTokenizer tokenizer = PrimativeTokenizer.getStringInstance(value, debug);
     try {
       tokenizer.initialize();
     }
     catch (IOException e) {
       e.printStackTrace();
-      fail(e.getMessage());
+      fail(e.getMessage(), lineNum);
     }
     catch (LogFile.LockException e) {
       e.printStackTrace();
-      fail(e.getMessage());
+      fail(e.getMessage(), lineNum);
     }
     return tokenizer;
   }
 
-  private Token parseList(Token token, PrimativeTokenizer tokenizer) {
+  private Token parseList(Token token, final PrimativeTokenizer tokenizer,
+      final int lineNum) {
     if (token == null) {
       return null;
     }
@@ -378,7 +380,7 @@ public final class ParsedList {
         && !token.equals(Token.Type.SYMBOL, CLOSE_SYMBOL.charValue())) {
       try {
         // parse an element
-        token = parseElement(token, tokenizer);
+        token = parseElement(token, tokenizer, lineNum);
         // Find the divider.
         // Whitespace may be used as a divider or the divider may be preceded by
         // whitespace.
@@ -401,13 +403,14 @@ public final class ParsedList {
       }
       catch (IOException e) {
         e.printStackTrace();
-        fail(e.getMessage());
+        fail(e.getMessage(), lineNum);
       }
     }
     return token;
   }
 
-  private Token parseElement(Token token, PrimativeTokenizer tokenizer) {
+  private Token parseElement(Token token, final PrimativeTokenizer tokenizer,
+      final int lineNum) {
     try {
       if (token.is(Token.Type.WHITESPACE)) {
         token = tokenizer.next();
@@ -415,7 +418,7 @@ public final class ParsedList {
     }
     catch (IOException e) {
       e.printStackTrace();
-      fail(e.getMessage());
+      fail(e.getMessage(), lineNum);
     }
     if (token.equals(Token.Type.SYMBOL, DIVIDER_SYMBOL.charValue())) {
       // Found an empty element.
@@ -427,19 +430,19 @@ public final class ParsedList {
     ParsedElement element;
     if (type == ParsedElementType.STRING) {
       element = ParsedQuotedString.getInstance(isDebug(), descr);
-      token = element.parse(token, tokenizer);
+      token = element.parse(token, tokenizer, lineNum);
     }
     else if (ParsedArray.isArray(token)) {
       element = ParsedArray.getInstance(type, etomoNumberType, isDebug(), defaultValue,
           descr);
-      token = element.parse(token, tokenizer);
+      token = element.parse(token, tokenizer, lineNum);
     }
     else {
       // Array descriptors don't have their own open and close symbols, so they
       // look like numbers until to you get to the first divider (":"or "-").
       ParsedDescriptor descriptor = ParsedDescriptor.getInstance(type, etomoNumberType,
           isDebug(), defaultValue, descr);
-      token = descriptor.parse(token, tokenizer);
+      token = descriptor.parse(token, tokenizer, lineNum);
       // create the correct type of element
       if (descriptor.isEmpty()) {
         // There's nothing there, so its an empty element
@@ -466,25 +469,26 @@ public final class ParsedList {
     for (int i = 0; i < list.size(); i++) {
       ParsedElement element = list.get(i);
       if (element != null) {
-        errorMessage = element.validate();
+        errorMessage = element.validate(0);
       }
       if (errorMessage != null) {
         return errorMessage;
       }
     }
-    return getFailedMessage();
+    return getFailedMessage(0);
   }
 
   /**
    * Returns null if not failed, otherwise returns a string.
    * @return
    */
-  final String getFailedMessage() {
+  final String getFailedMessage(final int lineNum) {
     if (!failed || !missingAttribute) {
       return null;
     }
     if (failedMessage == null) {
-      return (descr != null ? descr : "") + ": Unable to parse.";
+      return (descr != null ? descr : "") + ": Unable to parse."
+          + (lineNum > 0 ? "  Line# " + lineNum : "");
     }
     return failedMessage;
   }
@@ -503,9 +507,10 @@ public final class ParsedList {
     missingAttribute = false;
   }
 
-  final void fail(final String message) {
+  final void fail(final String message, final int lineNum) {
     failed = true;
-    failedMessage = (descr != null ? descr : "") + ": " + message;
+    failedMessage = (descr != null ? descr : "") + ": " + message
+        + (lineNum > 0 ? "  Line# " + lineNum : "");
   }
 
   private static final class Type {

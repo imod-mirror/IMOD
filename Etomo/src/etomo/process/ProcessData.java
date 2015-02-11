@@ -309,7 +309,7 @@ public final class ProcessData implements Storable {
     return processingMethod;
   }
 
-  private String getPrepend(String prepend) {
+  private String createPrepend(String prepend) {
     if (prepend == "") {
       prepend = processDataPrepend;
     }
@@ -331,7 +331,7 @@ public final class ProcessData implements Storable {
   }
 
   private void store(Properties props, String prepend) {
-    prepend = getPrepend(prepend);
+    prepend = createPrepend(prepend);
     String group = prepend + ".";
     // Remove everything containing COMPUTER_KEY to prevent entries that
     // where removed from computerMap from remaining in props.
@@ -427,7 +427,7 @@ public final class ProcessData implements Storable {
     reset();
     // load
     processName = null;
-    prepend = getPrepend(prepend);
+    prepend = createPrepend(prepend);
     String group = prepend + ".";
     pid = props.getProperty(group + PID_KEY);
     groupPid = props.getProperty(group + GROUP_PID_KEY);

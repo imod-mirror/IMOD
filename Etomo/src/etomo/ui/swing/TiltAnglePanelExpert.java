@@ -54,7 +54,7 @@ final class TiltAnglePanelExpert {
 
   void setFields(final TiltAngleSpec tiltAngleSpec, final UserConfiguration userConfig) {
     if (tiltAngleSpec.getType() == TiltAngleType.FILE
-        || userConfig.getTiltAnglesRawtltFile()) {
+        || userConfig.isTiltAnglesRawtltFile()) {
       panel.setFile(true);
       enableAngleFields(false);
     }

@@ -3,7 +3,18 @@ IMOD History
 2/11/15: Fixed 3dmod Extract File entry being disabled after cancelling the 
 file chooser (In 4.7).
 
+2/11/15: Added option to Newstack to process some or all input files in
+reverse order.
+
+2/11/15: Added options to Densmatch to scale to a given mean/SD, change the
+mode for a new output file, and assess the existing density using all pixels
+instead of a sample of pixels.
+
+2/7/15: IMOD_4-8-22
+2/7/15: Fix batch interface to put out gold=0 when there are no fiducials, needed to get through tomogram setup for patch tracking.
+
 2/5/15: IMOD_4-7-13
+2/2/15: IMOD_4-8-21
 2/1/15: Fixed robust fitting with whole contours that aren't cut into pieces 
 (In 4.7).
 
@@ -11,19 +22,72 @@ file chooser (In 4.7).
 put out an even size for binned stack and by improving Tilt's evaluation of
 whether the tilt axis is centered (In 4.7).
 
+1/19/15: Preliminary version of batch processing interface added to eTomo.
+
+1/15/15: IMOD_4-8-18
+1/14/15: Made Ctfplotter delete all existing values in table when autofitting
+to whole range, not just ones with midpoints bracketed by the new midpoints.
+
+1/11/15: IMOD_4-8-17
+1/10/15: Various PEET interface changes for working with single-particle
+volumes and with masks.
+
 1/10/15: Fixed bug in Imodauto if there are empty boundary contours (In 4.7).
+
+1/8/15: Make Boxstartend fill to mean of existing data when extracting only
+one slice per point.
+
+1/8/15: Added a script Rawtomocoords to compute positions in the raw tilt
+series, projection angles, and defocus for points marked in a tomogram.
+
+1/3/15: Implemented a dynamic adjustment of maximum strip width in
+Ctfphaseflip to minimize artifactual rings of low values around the zeros in
+the power spectrum.  Spacing between strips is increased between wider strips
+at low tilt, and the default spacing value in the .com file was reduced to
+compensate for this change.
 
 1/3/15: Fixed error in the last interpolation region between strips in 
 Ctfphaseflip (In 4.7).
+
+1/3/15: Ctfplotter changes:
+  Added option to fit a polynomial to make the power spectrum become flat at
+  high frequencies.
+  Made the CTF-like curve be fit with two exponentials when the fitting range
+  extends past halfway between second and third zero.
+  Smoothed noise power spectra to reduce noise added by subtracting them.
+  Made the default power for the CTF-like curve be 1.5
+  Applied more constraints in the CTF-like fitting to prevent bad fits.
+  Improved initial scaling of display.
+  Added command-line options for setting the baseline fitting order and to
+  extend the initial fitting range beyond the second zero.
+
+1/3/15: Added script imoduntar for listing or untarring a file, to use on
+Windows without Cygwin.
+
+1/3/15: Added option to Newstack to shift images with phase shifts in Fourier
+space instead of with interpolation.
+
+12/16/14: Add option to Sirtsetup to set number of chunks per processor.
+
+12/4/14: Made Processchunks give an error with more than 100,000 chunks.
+
+11/28/14: Various fixes related to model Z coordinates starting at -0.5
+instead of 0: fixed half-pixel error when rotating model by 90 degrees; fixed
+Findbeads3d to put out Z coordinates starting at -0.5; fixed Tilt to reproject
+models other than those from Findbeads3d correctly; added options to
+Model2point and Point2model for working with point coordinates that have Z
+starting at 0; clarified in documentation.
 
 10/25/14: IMOD_4-7-12
 10/25/14: Fixed Beadtrack failure if it has to reduce local area target size
 (In 4.7).
 
 10/24/14: Stopped Imodauto contouring of exact values from always doing
-contours around vales equal to the file maximum (In 4.7).
+contours around values equal to the file maximum (In 4.7).
 
 10/24/14: Removed 100-pixel limit on 10% tapering in Tiltxcorr (In 4.7).
+
+10/23/14: Changed Subtomosetup to put multiple runs in each command file.
 
 10/17/14: IMOD_4-7-11
 10/17/14: In eTomo - Setup Tomogram, added INFO messages about pixel spacing
@@ -34,6 +98,9 @@ of the Python link just as the self-installing file does (In 4.7).(Bug# 1821)
 
 10/16/14: Fixed Interpolator for Mac (In 4.7).
 
+10/16/14: Added more detail to error message when Beadtrack or Tiltalign
+cannot read model.
+
 10/15/14: In eTomo - Post Processing, removed the lock from the flatten and
 squeeze panels that was active when the sum.rec or _full.rec file was missing.
 This state should only affect the trimvol panel (In 4.7).(Bug# 1820)
@@ -41,11 +108,25 @@ This state should only affect the trimvol panel (In 4.7).(Bug# 1820)
 10/15/14: Added information from the autodoc file to all autodoc tooltips (In
 4.7).(Bug# 1811)
 
+10/15/14: Made alterheader take command-line arguments with PIP.
+
 10/15/14: Fixed INVERTORG in Alterheader (In 4.7).
+
+10/14/14: Added rubber band size to Slicer toolbar when size is being changed.
+
+10/14/14: Batchruntomo can now exclude images at the end of the series with
+large dark regions, do tomogram positioning for plastic sections, combine
+dual-axis tomograms, and trim to section limits for plastic sections.
 
 10/14/14: Made dm2mrc write temporary files to output file directory and added
 option to set a directory for these files (In 4.7).
 
+10/12/14: IMOD_4-8-16
+10/12/14: Fixed uninitialized quiet option in Newstack.
+
+10/10/14: Fixed -O option to 3dmod, broken in 4.8.7.
+
+10/9/14: IMOD_4-8-15
 10/9/14: Fixed two-sided display of meshes in models built on flipped
 tomograms before IMOD 4.7 (In 4.7).
 
@@ -53,39 +134,113 @@ tomograms before IMOD 4.7 (In 4.7).
 bin if it exists but no longer matches the python link target, added script
 for executable installer to call to make or update python.exe (In 4.7).
 
+10/7/14: Clip histogram with -s option will analyze for bimodal distribution
+of values and report fraction with low values.
+
+10/2/14: IMOD_4-8-14
+10/2/14: Corrsearch3d can now compute a measure of local structure and use it
+to eliminate patches from consideration, which allows it to work without a
+boundary model or tight Z limits.  It also takes options that allow it to
+eliminate patches outside the area that can be reconstructed well. Refinematch
+and Findwarp can try to fit after eliminating patches with a series of
+criteria for these local structure values. A new script, Autopatchfind, runs
+patchcorr and matchorwarp repeatedly with increasing patch size or density to 
+achieve a criterion mean residual.  Setupcombine was adpated to these new
+capabilities.
+
+10/2/14: Added new version of Findsection that analyzes surfaces of a plastic
+section and can output a model for tomopitch, a model for flattening, and
+estimates of Z limits for trimming and combine.
+
+10/2/14: In 3dmod, added Ctrl-X hot key to open XYZ, added K to toggle
+centering in Zap, switched contour copy key from K to Shift+K.
+
+10/1/14: In eTomo - Tomogram Combination, added variables to hold matchorwarp
+parameters structurecrit and extentfit.(Bug# 1819)
+
+9/25/14: Added option to Newstack to suppress most typical output.
+
 9/25/14: IMOD_4-7-10
 9/24/14: In eTomo, fixed the system template pulldown list, which was loading
 the wrong template (In 4.7).(Bug# 1818)
 
+9/23/14: Patch2imod can read up to 6 extra value columns and save them as
+general values in the model, making a selected one the primary one; and
+Imod2patch can restore all these data to a new patch file.
+
 9/22/14: Fixed CCC values in reduced vector output of Refinematch if more
 restrictive boundaries are applied (In 4.7).
 
+9/17/14: Added a threshold command to Clip and made 3dmod image processing
+able to apply this in some cases.
+
 9/16/14: Fixed Tiltalign crash when robust fitting doesn't converge (In 4.7).
 
+9/8/14: IMOD_4-8-13
 9/8/14: Changed autofidseed to create a specified temporary directory, not
 just the default one (In 4.7).
+
+9/8/14: Added script Subtomosetup to make command files for generating
+multiple numbered subtomograms.
 
 9/8/14: Fixed imodinfo listing objects multiple times with multiple input
 files (In 4.7).
 
+9/7/14: Fixed 3dmod loading of subset in Z for non-cached data.
+
+9/4/14: In eTomo - PEET, handling a reference without brackets in the .prm
+file.  Also added line numbers to the parsing error messages.(Bug# 1815)
+
+9/4/14: In eTomo - uitest, fixed values that where not working with changes in
+IMOD.  Added a test for a fiducial size of 0.(Bug# 1799)
+
 9/4/14: Fixed number of processors used for SIRT run from Batchruntomo (In
 4.7).
+
+8/30/14: IMOD_4-8-11
+8/30/14: Added button to export graph values to file from 3dmod Graph window.
 
 8/28/14: IMOD_4-7-9
 8/22/14: Fixed problem with movie snapshots starting with the current image
 instead of starting one on some systems; made Slicer movies do double shots on
 ends the same as Zap ones do.
 
+8/18/14: Added options to Mtffilter to filter in 1-D and to apply an R-weighted
+filter.
+
+8/15/14: In eTomo - PEET, added a radio button for setting yaxisType to 3.
+(Bug# 1787)
+
 8/15/14: IMOD_4-7-8
 8/15/14: Fixed bug that caused crash in Nda (In 4.7).
 
+8/7/14: Changes for 3dmod image processing: Kept track of sequence of
+operations so that they can be reapplied easily; added buttons to remove last
+one from list, redo all operations, and list the command-line operations in the
+Info windows; added option to save modified data to memory automatically; made
+thresholding able to update continuously; added File-Process File menu item to
+apply operations to image file or subset inside rubber band.
+
+8/7/14: Added option to change output mode from Mtffilter, and a warning when
+output is out of range for the existing mode.
+
 8/5/14: Allowed File-Extract in 3dmod to be run on non-MRC files (In 4.7).
+
+8/3/14: IMOD_4-8-10
+8/3/14: Subdivided steps in Batchruntomo so CTF plotting and 3D gold
+finding could be checked at one stopping point; eliminated option to switch
+order of steps; CHANGED NUMBERS FOR -start AND -end AGAIN.
+
+7/31/14: Fixed clip corr giving non-zero exit status on Windows.
 
 7/30/14: IMOD_4-7-7
 7/30/14: SWITCHED WRITING OF BYTE FILES BACK TO UNSIGNED (In 4.7).
 
 7/24/14: Fixed transferfid for bidirectional series and other cases with
 a separate view group option in tracka.com (In 4.7).
+
+7/21/14: Modified uitest to work with the new way IMOD is solving for angles.
+(Bug# 1805)
 
 7/21/14: In eTomo - Fine Alignment, changed the title of the MaximumCycles
 parameter to "Iteration limit" (In 4.7).(Bug# 1807)
@@ -94,8 +249,19 @@ parameter to "Iteration limit" (In 4.7).(Bug# 1807)
 This bug can lead to problems with dataset stablility if these fields are
 modified (In 4.7).(Bug# 1812)
 
+7/14/14: IMOD_4-8-9
+7/16/14: Changes for Batchruntomo: make it rerun align without local
+alignments if it fails with it; add ability to detect blank views at ends of
+series; allow pre-existing defocus file to be used; make -start option apply
+to all sets being run, not just the first; add start point for CTF correction
+separate from plotting; add option to do gold erasing before CTF correction;
+add option to use existing alignment.  NUMBERS FOR -start OPTION HAVE
+CHANGED.
+
 7/15/14: Tiltalign issues warning instead of error if WeightWholeTracks is
 entered for non-patch track model (In 4.7).
+
+7/12/14: Added Object menu item to fill in Z in all contours.
 
 7/11/14: Fixed inability to use patch tracking if cumulative correlation was
 checked in coarse alignment (In 4.7).
@@ -104,14 +270,32 @@ checked in coarse alignment (In 4.7).
 contours into option to Imodchopconts instead of Tiltxcorr; fixed problem with 
 Imodchopconts testing for whether incompatible options were entered (In 4.7).
 
+7/5/14: IMOD_4-8-8
+7/5/14: Batchruntomo has changes for controlling thickness and calls
+Restrictalign to reduce variable being solved for when necessary.
+
 7/2/14: Fixed problem with fiducial number that Batchruntomo uses to decide if
 stretching can be solved (in 4.7).
+
+7/2/14: IMOD_4-8-7
+7/2/14: Added script Restrictalign for setting parameters appropriately in a
+Tiltalign command file when there are low numbers of fiducials.
+
+7/1/14: Made Ccderaser able to erase points with large differences from their
+neighbors in the border region where regular analysis is not done.
 
 7/1/14: Changed Newstack antialiased reduction to give same image size and
 centering as binning (In 4.7).
  
 6/27/14: Added option to Alterheader to set space group and made Tilt set it
 to 1 for tomogram output, following new MRC conventions (In 4.7).
+
+6/25/14: Fixed problem keeping track of opened files when reading multiple
+files into 3dmod.
+
+6/24/14: Changed surface analysis in Tiltalign to fit a pair of parallel
+planes instead of using two independent fits, which can give screwy angles and
+distances; also output line saying when X-tilt or slope can't be measured.
 
 6/22/14: IMOD_4-7-6
 6/22/14: Allow robust alignment in Batchruntomo with patch tracking and
@@ -120,8 +304,32 @@ contours cut into pieces (In 4.7).
 6/18/14: In eTomo - Tomogram Combination, fixed problems with validation and
 handling missing tomograms (In 4.7).(Bug# 1803)
 
+6/17/14: Added script Excludeviews for reversibly removing views from a tilt
+series and saving them in another file.
+
+6/17/14: Added option to Edmont for entering sections numbered from 1; made it
+access piece list in .mdoc or HDF file; made it able to transfer metadata 
+in .mdoc or HDF files from input to output.
+
+6/17/14: Made Extracttilts able to output the metadata in an HDF file in
+autodoc format.
+
 6/17/14: In eTomo using the piece list file (when available) to open montaged
 raw stacks in Reconstruction and Serial Sections (In 4.7).(Bug# 1801)
+
+6/16/14: Remove 6/5/14 automatic use of .pl file, since it then uses it 
+inappropriately on blended file.
+
+6/6/14: Made Extractpieces and Extracttilts take information from an
+associated .mdoc file automatically as a fallback and work with metadata in an
+HDF file also; made Extracttilts able to extract the text strings for any
+metadata in .modc or HDF file; made 3dmod able to take piece coordinates from
+an HDF file.
+
+6/6/14: Added script for copying header of MRC file.
+
+6/5/14: Made 3dmod automatically get piece coordinates from a .pl file
+with same root name as single image file entered.
 
 6/5/14: Fixed Tomopitch so its output is parsable by eTomo for shift or
 thickness more than 1000 (In 4.7).
@@ -129,10 +337,14 @@ thickness more than 1000 (In 4.7).
 6/3/14: Made 3dmod automatically look for piece coordinates in an associated
 .mdoc file and eliminated -pm option, which was not in the man page (In 4.7).
 
+5/26/14: IMOD_4-8-6
 5/21/14: Stopped Makecomfile from giving error when run with a bead size of 0
 (In 4.7).
 
 5/14/14: Fixed transparent background when saving model montage (In 4.7). 
+
+5/8/14: Added an option to Clip to specify a defect correction file for K2
+images.
 
 5/4/14: IMOD_4-7-5
 5/4/14: In eTomo fixed the icon for warning message popups (In 4.7).
@@ -141,15 +353,21 @@ thickness more than 1000 (In 4.7).
 5/1/14: Fixed ability to run certain steps on single axis datasets in a
 Windows installation without Cygwin (In 4.7).
 
-5/1/14: Fixed setting of IMOD_CALIB_DIR in by installer for Windows without
+5/1/14: Fixed setting of IMOD_CALIB_DIR by installer for Windows without
 Cygwin (In 4.7).
+
+4/30/14: IMOD_4-8-5
+4/30/14: Made Mrc2tif able to read all file types including JPEG/PNG/BMP.
 
 4/30/14: Fixed Tiltxcorr when using shift limits (In 4.7).
 
 4/27/14: Changed Squeezevol to allow odd output sizes in X and Z (In 4.7).
 
+4/16/14: IMOD_4-8-4
 4/16/14: Fixed loss of bottom and top lines in interpolation routine when
 there is 0 or 180 degree rotation (In 4.7).
+
+4/16/14: Allowed new output mode for clip flip operations except yz and rotx.
 
 4/16/14: Fixed clip flipxy when writing signed bytes (In 4.7).
 
@@ -164,10 +382,16 @@ template is used and turns off logarithmic scaling (In 4.7).
 4/9/14: Suppressed Newstack warning about truncated sections unless a lot of
 pixels were truncated (In 4.7).
 
+4/8/14: Add ability to copy a contour as its equivalent ellipse in 3dmod, and
+get report of equivalent ellipse parameters in imodinfo.
+
+4/2/14: IMOD_4-8-3
 4/2/14: Fixed pixel size and model scaling set from a TIFF file when there is
 a resolution with no units (In 4.7).
 
 4/2/14: Fixed setupstitch when there is an error reading header (In 4.7).
+
+4/1/14: Improved unit tests for the PEET interface in eTomo.(Bug# 1794)
 
 3/31/14:IMOD_4-7-3 released
 3/29/14: In eTomo - PEET, fixed the loading of a non-array selectClassID
@@ -176,6 +400,22 @@ missing parameters (In 4.7).(Bug# 1789)
 
 3/27/14: Fixed a communication problem between eTomo and 3dmod and rolled back
 previous incorrect fixes from 2/14/14 and 3/14/14 (In 4.7).(Bug# 1792)
+
+3/27/14: Fixed HDF writing, optimized chunk cache size for volume writing,
+fixed pyramid creation, made 3dmod recognize tiling in HDF file.
+
+3/24/14: IMOD_4-8-2
+3/23/14: Eliminated an input routine that reads line-by-line, which was giving
+terrible 3dmod performance on Mac laptops loading over a network.
+
+3/22/14: Programs can now read and write HDF files interchangeably with MRC
+files. Write performance is currently atrocious.  Metadata can be stored as
+well; Newstack will move metadata between an HDF file and an .mdoc file
+associated with another file type, or even between two mdoc files.  Supported
+HDF files can consist of stacks of 2D images of the same size, or files with
+multiple 3D volumes, which 3dmod will open like multiple files.  Makepyramid
+can make a multi-volume HDF file that 3dmod will recognize as an image
+pyramid.
 
 3/22/14: Fixed newstack when -fromone used with default section list (In 4.7).
 

@@ -31,7 +31,7 @@ final class FrontPageProcessPanel extends AxisProcessPanel {
   public static final String rcsid = "$Id$";
 
   FrontPageProcessPanel(FrontPageManager manager) {
-    super(AxisID.ONLY, manager, true);
+    super(AxisID.ONLY, manager, true,true);
     initializePanels();
   }
 

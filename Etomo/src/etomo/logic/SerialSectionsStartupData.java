@@ -89,7 +89,7 @@ public final class SerialSectionsStartupData {
     getParameters(param, manager);
     param.setFromScratch(true);
     param.setImageInputFile(FileType.PREBLEND_OUTPUT_MRC.deriveFileName(getRootName(),
-        AxisType.SINGLE_AXIS, manager, AxisID.ONLY));
+        AxisType.SINGLE_AXIS, AxisID.ONLY));
     param.setImageOutputFile(FileType.ALIGNED_STACK_MRC, getRootName(),
         AxisType.SINGLE_AXIS);
   }
@@ -102,7 +102,7 @@ public final class SerialSectionsStartupData {
       param.setDistortionField(distortionField.getName());
     }
     param.setPieceListInput(FileType.PIECE_LIST.deriveFileName(getRootName(),
-        AxisType.SINGLE_AXIS, manager, AxisID.ONLY));
+        AxisType.SINGLE_AXIS, AxisID.ONLY));
     param.setRootNameForEdges(getRootName());
     param.setImagesAreBinned(imagesAreBinned);
     param.setAdjustOrigin(true);

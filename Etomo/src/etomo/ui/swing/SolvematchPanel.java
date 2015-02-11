@@ -301,7 +301,7 @@ final class SolvematchPanel implements Run3dmodButtonContainer, Expandable {
     pnlImodMatchModels.add(cbBinBy2);
     pnlImodMatchModels.add(btnImodMatchModels.getComponent());
     UIUtilities.setButtonSizeAll(pnlImodMatchModels,
-        UIParameters.INSTANCE.getButtonDimension());
+        UIParameters.getInstance().getButtonDimension());
 
     pnlFiducialSelect.setLayout(new BoxLayout(pnlFiducialSelect, BoxLayout.X_AXIS));
     UIUtilities.addWithSpace(pnlFiducialSelect, opnlFiducialRadio, FixedDim.x20_y0);
@@ -638,14 +638,7 @@ final class SolvematchPanel implements Run3dmodButtonContainer, Expandable {
     return ltfFiducialMatchListB.getText();
   }
 
-  public void action(final Run3dmodButton button,
-      final Run3dmodMenuOptions run3dmodMenuOptions) {
-    buttonAction(button.getActionCommand(), button.getDeferred3dmodButton(),
-        run3dmodMenuOptions);
-  }
-
-  // Action functions for setup panel buttons
-  private void buttonAction(final String command,
+  public void action(final String command,
       Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(cbUseCorrespondingPoints.getActionCommand())) {
@@ -723,7 +716,7 @@ final class SolvematchPanel implements Run3dmodButtonContainer, Expandable {
     }
 
     public void actionPerformed(final ActionEvent event) {
-      adaptee.buttonAction(event.getActionCommand(), null, null);
+      adaptee.action(event.getActionCommand(), null, null);
     }
   }
 
@@ -748,7 +741,7 @@ final class SolvematchPanel implements Run3dmodButtonContainer, Expandable {
     ReadOnlyAutodoc autodoc = null;
     try {
       autodoc = AutodocFactory.getInstance(applicationManager, AutodocFactory.SOLVEMATCH,
-          AxisID.ONLY);
+          AxisID.ONLY,false);
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();

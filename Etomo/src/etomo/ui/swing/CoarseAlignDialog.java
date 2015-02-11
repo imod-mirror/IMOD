@@ -371,7 +371,7 @@ public final class CoarseAlignDialog extends ProcessDialog implements ContextMen
     // Set the alignment and size of the UI objects
     UIUtilities.alignComponentsX(pnlCoarseAlign, Component.CENTER_ALIGNMENT);
     UIUtilities.setButtonSizeAll(pnlCoarseAlign,
-        UIParameters.INSTANCE.getButtonDimension());
+        UIParameters.getInstance().getButtonDimension());
 
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     UIUtilities.addWithSpace(rootPanel, pnlCoarseAlign, FixedDim.x0_y10);
@@ -545,16 +545,12 @@ public final class CoarseAlignDialog extends ProcessDialog implements ContextMen
         .setToolTipText("Use Midas to adjust the alignment of the montage frames.");
   }
 
-  public void action(final Run3dmodButton button,
-      final Run3dmodMenuOptions run3dmodMenuOptions) {
-    buttonAction(button.getActionCommand(), run3dmodMenuOptions);
-  }
-
   /**
    * Action function for process buttons
    * @param event
    */
-  void buttonAction(final String command, final Run3dmodMenuOptions menuOptions) {
+  public void action(final String command, final Deferred3dmodButton deferred3dmodButton,
+      final Run3dmodMenuOptions menuOptions) {
     if (command.equals(btnMidas.getActionCommand())) {
       applicationManager.midasRawStack(axisID, btnMidas);
     }
@@ -585,7 +581,7 @@ public final class CoarseAlignDialog extends ProcessDialog implements ContextMen
     }
 
     public void actionPerformed(final ActionEvent event) {
-      adaptee.buttonAction(event.getActionCommand(), null);
+      adaptee.action(event.getActionCommand(), null, null);
     }
   }
 }

@@ -82,6 +82,8 @@ The options
 , 
 .B -c
 , 
+.B -e
+, 
 .B -l
 , 
 .B -L
@@ -143,6 +145,31 @@ has one defined.
 .TP
 .B -r
 Print ratio of length to area for closed contours.
+.TP
+.B -e
+Print properties of equivalent ellipses for closed contours.  The
+equivalent ellipse is the one with the same second moments as the area
+enclosed by a contour.  If limits are entered with \fB-x\fR, \fB-y\fR,
+or \fB-z\fR, only contours with center coordinates within the limits are
+in reported.  Only the X and Y coordinates of the points are
+considered when computing these ellipses.  For each contour, the values
+reported are the X and Y center coordinates of the ellipse (i.e, the
+centroid of the contour area), the average Z coordinate of the contour
+points, all in pixels, the semi-major and semi-minor axes in scaled
+units, the eccentricity (a value between 0 for a circle and 1 for a
+maximally elongated ellipse), and the angle of the semi-major axis (a
+value between 0 and 180 except as described next).  If the range of
+angles is less than 80 degrees, then numbers will be
+reported that are suitable for simple averaging.  This is accomplished
+based on the angle of the first contour for an object: if it is less than 44, then all
+subsequent angles greater than 136 will have 180 subtracted to give
+negative angles; if it is greater than 136, 180 is then added to angles less
+than 45.  Means and and standard deviations are also reported for these
+four measures; the mean of the angles will be adjusted to be between 0
+and 180.  BEWARE: if the range of angles is greater than 88 degrees,
+the mean will be meaningless unless the distribution of angles does not
+wrap around at 0 or 180, so you need to examine the individual angles
+before using the mean.
 .TP
 .B -F
 Print full report on the objects, a collection of summary information.
