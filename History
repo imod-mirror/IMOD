@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/11/15: Added options to Densmatch to scale to a given mean/SD, change the
+mode for a new output file, and assess the existing density using all pixels
+instead of a sample of pixels.
+
 2/7/15: IMOD_4-8-22
 2/7/15: Fix batch interface to put out gold=0 when there are no fiducials, needed to get through tomogram setup for patch tracking.
 
