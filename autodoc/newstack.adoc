@@ -50,6 +50,21 @@ next line, next filename on next line, etc.  If this
 option is used, no output filenames may be specified with the -output option
 or as the last file on the command line.
 
+[Field = ReverseInputFileOrder]
+short = reverse
+type = I
+usage = Process files in inverted order (0: all, N>0: first N, N<0: last N)
+tooltip = 
+manpage = Process some or all of the input files in reverse order.  Enter 0 to
+reverse the order for all files, a number N greater than 0 to process only the
+first N files in reverse order, or a a number N less than 0 to reverse only
+the last N files.  This option allows you to stack sequentially numbered files
+in a desired order and still enter them with wild cards on a command line.
+No other entries, such as multiple section lists, are reversed; they all apply
+to the files in the order that they are processed.
+There must be at least the given number of input files, entered with
+\fB-input\fR or as non-option arguments.  
+
 [Field = SplitStartingNumber]
 short = split
 type = I
