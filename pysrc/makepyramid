@@ -48,7 +48,7 @@ minPixel = 1. * (1024**2)
 maxPixel = 4. * (1024**2)
 optimalPixel = 2. * (1024**2)
 
-(opts, nonopts) = PipReadOrParseOptions(sys.argv, options, progname, 2, 1, 0)
+(opts, nonopts) = PipReadOrParseOptions(sys.argv, options, progname, 1, 1, 0)
 
 # Get input file and root name
 infile = PipGetInOutFile('InputFile', 0)
