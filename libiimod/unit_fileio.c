@@ -597,7 +597,7 @@ int iiuwritesubarray(int *iunit, char *array, int *nxdim, int *ixStart,
  * position.  The current position is advanced to the line after the last one written.
  * If not exiting on error, returns negative values for internal errors and positive 
  * values for an error from the writing operation.  Fortran wrappers iiuWriteLines,
- * irwsecl (a void), and irwlin(int *iunit, char *array), a void to write one line.
+ * iwrsecl (a void), and irwlin(int *iunit, char *array), a void to write one line.
  */
 int iiuWriteLines(int iunit, char *array, int numLines)
 {
