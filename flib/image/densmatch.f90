@@ -16,14 +16,12 @@
 !
 program densmatch
   implicit none
-  integer idim, MAX_SAMPLES
-  parameter (idim = 1000000, MAX_SAMPLES = 100000)
-  integer*4 nx, ny, nz, ifXminMax, ifYminMax, ifZminMax, ifMinMax(3)
+  integer*4 nx, ny, nz, ifXminMax, ifYminMax, ifZminMax, ifMinMax(3), maxSamples
   integer*4 ixStart, iyStart, izStart, nxUse, nyUse, nzUse, ixyzStart(3), nxyzUse(3)
   integer*4 numSampX, numSampY, numSampZ, numSampXyz(3)
   real*4 dxSample, dySample, dzSample, dxyzSample(3)
-  integer*4 nxyz(3), mxyz(3)
-  real*4 array(idim)
+  integer*4 nxyz(3), mxyz(3), idim, maxDim
+  real*4, allocatable :: array(:)
   !
   character*320 inFile, outFile
   !
@@ -37,32 +35,39 @@ program densmatch
   !
   character dat * 9, tim * 8, errstr * 9
   character*80 titlech
-  logical report
-  integer*4 iunitOut, ierr, iunit, mode, idelSample, ndat, jz, iz
-  integer*4 jy, iy, jx, ix, i, maxLines, numChunks, iChunk, numLines, iyLine
-  integer*4 iShift(3)
+  logical report, allPixels
+  integer*4 iunitOut, ierr, iunit, mode, idelSample, ndat, jz, iz, newMode, iunStart
+  integer*4 jy, iy, jx, ix, i, maxLines, numChunks, iChunk, numLines, iyLine, ifMode
+  integer*4 iShift(3), nonOptScaledNum
   integer*4 iStart(3), iEnd(3)
   real*4 dmin, dmax, dmean, sem, scaleFac, addFac, tsum, tmin, tmax, tmean
   real*8 dsum8, dsumSq8, tsum8, tsumSq8
   !
   logical pipInput
   integer*4 numOptArg, numNonOptArg
-  integer*4 PipGetString, PipGetInteger, PipGetFloat, PipGetLogical
+  integer*4 PipGetString, PipGetInteger, PipGetFloat, PipGetLogical, PipGetTwoFloats
   integer*4 PipGetInOutFile, PipGetTwoIntegers, PipGetThreeIntegers
   !
   ! fallbacks from ../../manpages/autodoc2man -3 2  densmatch
   !
   integer numOptions
-  parameter (numOptions = 9)
+  parameter (numOptions = 12)
   character*(40 * numOptions) options(1)
   options(1) = &
-      'reference:ReferenceFile:FN:@scaled:ScaledFile:FN:@'// &
-      'output:OutputFile:FN:@report:ReportOnly:B:@'// &
-      'xminmax:XMinAndMax:IP:@yminmax:YMinAndMax:IP:@'// &
-      'zminmax:ZMinAndMax:IP:@offset:OffsetRefToScaledXYZ:FT:@'// &
-      'help:usage:B:'
+      'reference:ReferenceFile:FN:@scaled:ScaledFile:FN:@output:OutputFile:FN:@'// &
+      'target:TargetMeanAndSD:FP:@mode:ModeToOutput:I:@report:ReportOnly:B:@'// &
+      'xminmax:XMinAndMax:IP:@yminmax:YMinAndMax:IP:@zminmax:ZMinAndMax:IP:@'// &
+      'all:UseAllPixels:B:@offset:OffsetRefToScaledXYZ:IT:@help:usage:B:'
   outFile = ' '
+  maxDim = 100000000
+  !
+  ! This number of samples improves SD accuracy to 0.2%, down from 1-2% with 100000
+  ! without increasing data access time that much
+  maxSamples = 1000000
   report = .false.
+  nonOptScaledNum = 2
+  iunStart = 1
+  allPixels = .false.
   do i = 1, 3
     ifMinMax(i) = 0
     iShift(i) = 0
@@ -74,18 +79,30 @@ program densmatch
   call PipReadOrParseOptions(options, numOptions, 'densmatch', 'ERROR: DENSMATCH - ', &
       .true., 1, 2, 1, numOptArg, numNonOptArg)
   pipInput = numOptArg + numNonOptArg > 0
+  ! 
+  ! Determine if target mean and SD
+  if (pipInput) then
+    if (PipGetTwoFloats('TargetMeanAndSD', average(1), stanDev(1)) == 0) then
+      iunStart = 2
+      nonOptScaledNum = 1
+      call PipNumberOfEntries('ReferenceFile', ierr)
+      if (ierr > 0) call exitError('YOU CANNOT ENTER BOTH -target AND -reference')
+    endif
+  endif
+    !
+    ! If not, get input file
+  if (iunStart == 1) then
+    if (PipGetInOutFile('ReferenceFile', 1, 'Name of reference volume', inFile) .ne. 0) &
+        call exitError('EITHER A REFERENCE FILE OR A TARGET MEAN/SD MUST BE ENTERED')
+    call imopen(1, inFile, 'ro')
+  endif
   !
-  ! Get input and output files
-  !
-  if (PipGetInOutFile('ReferenceFile', 1, 'Name of reference volume', inFile) .ne. 0) &
-      call exitError('NO REFERENCE FILE WAS SPECIFIED')
-  call imopen(1, inFile, 'ro')
-  !
-  if (PipGetInOutFile('ScaledFile', 2, 'Name of volume to be scaled', inFile) .ne. 0) &
-      call exitError('NO FILE WAS SPECIFIED TO BE SCALED')
+  ! Get output file(s)
+  if (PipGetInOutFile('ScaledFile', nonOptScaledNum, 'Name of volume to be scaled', &
+      inFile) .ne. 0) call exitError('NO FILE WAS SPECIFIED TO BE SCALED')
   call imopen(2, inFile, 'old')
   !
-  ierr = PipGetInOutFile('OutputFile', 3, 'Name of output file,'// &
+  ierr = PipGetInOutFile('OutputFile', nonOptScaledNum + 1, 'Name of output file,'// &
       ' or Return to rewrite file to be scaled', outFile)
   !
   iunitOut = 2
@@ -98,22 +115,36 @@ program densmatch
     ifXminMax = 1 - PipGetTwoIntegers('XMinAndMax', iStart(1), iEnd(1))
     ifYminMax = 1 - PipGetTwoIntegers('YMinAndMax', iStart(2), iEnd(2))
     ifZminMax = 1 - PipGetTwoIntegers('ZMinAndMax', iStart(3), iEnd(3))
+    ierr = PipGetLogical('UseAllPixels', allPixels)
+    if (allPixels) then
+      if (ifXminMax + ifYminMax + ifZminMax > 0) call exitError( &
+          'YOU CANNOT ENTER -all WITH AN OPTION SPECIFYING A MIN AND MAX')
+      ifMinMax(1:3) = 1
+      iStart(1:3) = 0
+      iEnd(1:3) = 0
+    endif
     if (PipGetThreeIntegers('OffsetRefToScaledXYZ', iShift(1), iShift(2), &
-        iShift(3)) == 0 .and. ifXminMax + ifYminMax + ifZminMax == 0) &
-        call exitError('YOU MUST ENTER MIN AND MAX X, Y, OR Z IF YOU ENTER OFFSETS')
+        iShift(3)) == 0) then
+      if (ifXminMax + ifYminMax + ifZminMax == 0) &
+          call exitError('YOU MUST ENTER MIN AND MAX X, Y, OR Z IF YOU ENTER OFFSETS')
+      if (iunStart == 2) call exitError('YOU CANNOT ENTER BOTH -target AND -offset')
+    endif
+    ifMode = 1 - PipGetInteger('ModeToOutput', newMode)
+    if (ifMode > 0 .and. outFile == ' ') call exitError( &
+        'YOU CANNOT ENTER A NEW MODE UNLESS OUTPUTTING TO A NEW FILE')
   endif
   call PipDone()
   !
   ! sample each volume to find mean and SD
   !
-  do iunit = 1, 2
+  do iunit = iunStart, 2
     call irdhdr(iunit, nxyz, mxyz, mode, dmin, dmax, dmean)
-    if (nx >= idim) call exitError('IMAGE TOO LARGE IN X FOR ARRAY')
     do i = 1, 3
       nxyzUse(i) = max(1, nxyz(i) / 2)
       ixyzStart(i) = nxyz(i) / 4
       if (ifMinMax(i) .ne. 0) then
         ixyzStart(i) = iStart(i)
+        if (iEnd(i) == 0) iEnd(i) = nxyz(i) - 1
         nxyzUse(i) = iEnd(i) + 1 - iStart(i)
         if (iunit == 2) ixyzStart(i) = ixyzStart(i) + iShift(i)
         errstr = ' '
@@ -122,13 +153,19 @@ program densmatch
             ixyzStart(i) + nxyzUse(i) > nxyz(i)) errstr = 'ENDING '
         if (errstr .ne. ' ') then
           write(*,'(/,a,a,a,a,i2)') 'ERROR: DENSMATCH - ', errstr, &
-              char(ichar('W') + i), ' COORDINATE OUT OF RANGE IN VOLUME #', &
-              iunit
+              char(ichar('W') + i), ' COORDINATE OUT OF RANGE IN VOLUME #', iunit
           call exit(1)
         endif
       endif
     enddo
-    idelSample = (((float(nxUse) * nyUse) * nzUse) / MAX_SAMPLES)**.3333 + 1.
+    idelSample = (((float(nxUse) * nyUse) * nzUse) / maxSamples)**.3333 + 1.
+    if (allPixels) idelSample = 1
+    !
+    if (iunit == iunStart) then
+      idim = max(nx, min(maxDim, nx * ny))
+      allocate(array(idim), stat=ierr)
+      call memoryError(ierr, 'ARRAY FOR IMAGE DATA')
+    endif
     !
     ! Make sure there are at least 10 samples in each direction
     do i = 1, 3
@@ -139,10 +176,11 @@ program densmatch
       else
         dxyzSample(i) = (nxyzUse(i) - 1.) / (numSampXyz(i) - 1.)
       endif
-      ! write(*,'(a,i2,a,i2,a,i5,a,i5,a,i4,a,f9.2)') 'vol', iun, ' axis', i, &
-      ! ' start', ixyzs(i), ' use', nxyzuse(i), ' #samp', nsxyz(i), ' dsamp', &
-      ! dxyzsamp(i)
+      ! write(*,'(a,i2,a,i2,a,i5,a,i5,a,i4,a,f9.2)') 'vol', iunit, ' axis', i, &
+      ! ' start', ixyzstart(i), ' use', nxyzuse(i), ' #samp', numsampxyz(i), ' dsamp', &
+      ! dxyzsample(i)
     enddo
+    !
     ndat = 0
     dsum8 = 0.
     dsumSq8 = 0.
@@ -165,7 +203,7 @@ program densmatch
       dsumSq8 = dsumSq8 + tsumSq8
     enddo
     call sums_to_avgsd8(dsum8, dsumSq8, ndat, 1, average(iunit), stanDev(iunit), sem)
-    write(6, 103) iunit, average(iunit), stanDev(iunit)
+    write(6, 103) iunit + 1 - iunStart, average(iunit), stanDev(iunit)
 103 format(' Volume',i2,': mean =',f12.4,',  SD =',f12.4)
   enddo
   !
@@ -181,6 +219,10 @@ program densmatch
   endif
   !
   if (iunitOut == 3) call iiuTransHeader(3, 2)
+  if (ifMode > 0) then
+    call iiuAltMode(3, newMode)
+    mode = newMode
+  endif
   tsum = 0.
   tmin = 1.e30
   tmax = -1.e30
@@ -213,7 +255,7 @@ program densmatch
     enddo
   enddo
   tmean = tsum / (nz * ny)
-  call date(dat)
+  call b3ddate(dat)
   call time(tim)
   !
   write(titlech, 3000) dat, tim
