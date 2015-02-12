@@ -458,7 +458,7 @@ final class DirectivePanel {
       defaultValueString = value.toString();
     }
     String debugString = "";
-    if (debug.isOn()) {
+    if (debug.isExtraVerbose()) {
       debugString = "  Type:" + directive.getValueType() + ", Batch:"
           + directive.isBatch() + ", Tmplt:" + directive.isTemplate() + ", eTomo:"
           + directive.getEtomoColumn() + ", AxisLevelData:"

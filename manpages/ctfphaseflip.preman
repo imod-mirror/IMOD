@@ -15,7 +15,7 @@ The output file of ctfplotter(1) is usually used as the defocus file.
 
 Ctfphaseflip corrects each view strip by strip.  A strip is defined as an image
 region whose defocus difference is less than a user specified value, but the
-width is also limited to 256 pixels.
+width is usually limited further to reduce computation time.
 
 It can be run in a parallel mode similiar to the Tilt(1) program by setting the
 TotalViews option.  The script Splitcorrection(1) can be used to prepare 
@@ -23,6 +23,20 @@ command files for running the program in parallel.
 
 A sample command file for running the program with "subm" can be found in the
 IMOD/com directory (ctfcorrection.com).
+
+Originally, the program limited strip widths to 256, but the power
+spectra of low tilt images often showed rings of very low values right
+around the zeros of the CTF.  As of IMOD 4.8.17, the strip width is
+limited dynamically in a way that should minimize this effect.  Making
+the strips wider eliminates or reduces this effect, provided that the
+shift in the position of the first zero across the width of the strip
+is big enough.  At very low tilt, the maximum allowed width is
+increased to a value that would make the first zero shift by 0.6 pixel
+in the Fourier transform.  At higher tilts, the criterion shift is
+reduced by (1 - tan(tiltAngle)).  At zero tilt, the strip width is
+simply half of the image size in X.  The spacing between adjacent
+strips is also adjusted to be larger for wider strips, to keep the
+computational time down (see the \fI-iWidth\fR option below).
 
 .SH OPTIONS
 Ctfphaseflip uses the PIP package for input (see the manual page
