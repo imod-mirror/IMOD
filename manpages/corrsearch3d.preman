@@ -18,13 +18,43 @@ within a specified range, the program uses FFT-based cross-correlation
 instead of real-space correlation.  The program works from the center
 of the volume outward, analyzing patches in the X direction, then in
 the shorter of Y and Z dimensions, then in the longer of those
-dimensions.  An optional model file can be entered with contours
+dimensions.  
+.P
+An optional model file can be entered with contours
 enclosing the area where patches should be analyzed; patches outside
 this area are excluded.  Information about the source volume for the
 file being transformed can be entered so that the program can analyze
 patches only from regions that are good in the second image file.  In
 addition, a model can be provided enclosing good areas in the source
-for the second file.
+for the second file.  Sometimes the borders of the usable area are
+defined just by the area that contains image data in aligned stack;
+unusable area can be significant if the tilt axis was not very close to
+vertical or horizontal and an extra-large aligned stack was built to
+contain more of the rotated images.  In this case, the need for a
+boundary model can be avoided by entering options that
+specify the size of the original tilt series and the tilt axis
+rotation.
+.P
+An initial analysis of a measure of structure in the volume can also be
+used to avoid the need for delineating the region to where patches
+should be analyzed.  The measure of structure is the local standard
+deviation, computed in an array of boxes that overlap by about 50%.
+This SD is computed after a series of binnings to minimize the degree
+to which the SD reflects noisiness in the data rather than the presence
+of structure.  For each binning, the
+program measures the median SD of the top and bottom surfaces.  It also
+analyzes a histogram of SD values through the entire volume and seeks
+two peaks in the histogram, one for structure and one for background.
+If this succeeds, it picks the binning where the top of the peak for
+structure is most distinguishable from the median of surface SD
+values.  It uses the dip between the peaks as the best estimate of a
+threshold between structure and background.
+Using the SD values from this binning, it then computes two
+numbers for each patch: the fraction of boxes in the patch with SD
+above this threshold, and the mean SD in the patch relative to the SD
+at the top of the peak.  Patches can then be eliminated if one of the
+measures falls below a criterion. The first measure seems to be better
+for this purpose.
 .P
 The data being correlated can be filtered by convolving with a 3x3x3 or
 5x5x5 Gaussian kernel in real space.  This smoothing is applied to one
@@ -48,9 +78,12 @@ displacements computed by the program are in addition to this global
 shift.
 .P
 The program outputs an initial line with the total number of
-patches, then one line for each patch, containing the X, Y, and Z
+patches and a set of ID values for the extra columns of data.  Then
+there is one line for each patch, containing the X, Y, and Z
 coordinates of the patch, the displacement between the two files
-in X, Y, and Z, and the correlation coefficient.
+in X, Y, and Z, and the correlation coefficient (ID value 1).  If local SD is
+analyzed, there are two more columns: the fraction of boxes with a high
+SD, and the relative mean SD value in the patch (ID values 5 and 6, respectively).
 .SH OPTIONS
 Corrsearch3d uses the PIP package for input (see the manual page for pip(1))
 and can take input interactively for options that existed when it was

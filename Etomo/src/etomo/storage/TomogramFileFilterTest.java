@@ -4,21 +4,16 @@ import java.io.File;
 
 import etomo.EtomoDirector;
 import etomo.process.BaseProcessManager;
-
 import junit.framework.TestCase;
 
 /**
  * <p>Description: </p>
  * 
- * <p>Copyright: Copyright 2008</p>
+ * <p>Copyright: Copyright 2008 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
- * University of Colorado</p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
+ * @version $Id$
  * 
  * <p> $Log$
  * <p> Revision 1.1  2009/10/29 19:53:53  sueh
@@ -29,6 +24,10 @@ public class TomogramFileFilterTest extends TestCase {
   private static final File testDir = new File(StorageTests.TEST_ROOT_DIR,
       "TomogramFileFilter");
   private static final TomogramFileFilter tomogramFileFilter = new TomogramFileFilter();
+  
+  public TomogramFileFilterTest(String test) {
+    super(test);
+  }
 
   public void testDirectory() {
     File dir = new File(testDir, "testDirectory");

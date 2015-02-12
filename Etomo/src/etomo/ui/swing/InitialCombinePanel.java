@@ -281,7 +281,7 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
   private final LabeledTextField ltfOutputSizeY = new LabeledTextField(FieldType.INTEGER,
       "Initial match size: ");
   private final JLabel lOutputSizeYInfo = new JLabel();
- private final ButtonActionListener buttonAction = new ButtonActionListener(this);
+  private final ButtonActionListener buttonAction = new ButtonActionListener(this);
 
   private MatchMode matchMode = null;
   private final DialogType dialogType;
@@ -334,7 +334,7 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
     pnlRoot.addMouseListener(mouseAdapter);
     setToolTipText();
   }
-  
+
   void removeListeners() {
     btnMatchvolRestart.removeActionListener(buttonAction);
   }
@@ -554,16 +554,7 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
         logFileLabel, logFile, applicationManager, AxisID.ONLY);
   }
 
-  public void action(Run3dmodButton button, Run3dmodMenuOptions run3dmodMenuOptions) {
-    buttonAction(button.getActionCommand(), button.getDeferred3dmodButton(),
-        run3dmodMenuOptions);
-  }
-
-  /**
-   * Respond to button actions
-   * @param event
-   */
-  protected void buttonAction(String command, Deferred3dmodButton deferred3dmodButton,
+  public void action(String command, Deferred3dmodButton deferred3dmodButton,
       Run3dmodMenuOptions run3dmodMenuOptions) {
     // Synchronize this panel with the others
     tomogramCombinationDialog.synchronize(TomogramCombinationDialog.lblInitial, true);
@@ -585,7 +576,7 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
     }
 
     public void actionPerformed(ActionEvent event) {
-      listenee.buttonAction(event.getActionCommand(), null, null);
+      listenee.action(event.getActionCommand(), null, null);
     }
   }
 

@@ -34,15 +34,11 @@ import etomo.util.FilePath;
 /**
  * <p>Description: </p>
  * 
- * <p>Copyright: Copyright 2009</p>
+ * <p>Copyright: Copyright 2009 - 2014 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
- * University of Colorado</p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
+ * @version $Id$
  * 
  * <p> $Log$
  * <p> Revision 1.1  2010/11/13 16:07:34  sueh
@@ -65,26 +61,26 @@ import etomo.util.FilePath;
  * <p> </p>
  */
 final class ReferencePanel implements UIComponent, SwingComponent {
-  public static final String rcsid = "$Id$";
-
   private static final String TITLE = "Reference";
   private static final String REFERENCE_FILE_LABEL = "User supplied file: ";
-  private static final String MULTIPARTICLE_BUTTON_LABEL = FieldLabels.FLG_FAIR_REFERENCE_LABEL
-      + " with";
+  private static final String MULTIPARTICLE_BUTTON_LABEL =
+    FieldLabels.FLG_FAIR_REFERENCE_LABEL + " with";
   private static final String VOLUME_LABEL = "In Volume";
 
   private final EtomoPanel pnlRoot = new EtomoPanel();
   private final ButtonGroup bgReference = new ButtonGroup();
   private final RadioTextField rtfParticle = RadioTextField.getInstance(
-      FieldType.INTEGER, "Particle ", bgReference, PeetDialog.SETUP_LOCATION_DESCR);
+    FieldType.INTEGER, "Particle ", bgReference, PeetDialog.SETUP_LOCATION_DESCR);
   private final Spinner sVolume = Spinner.getLabeledInstance(VOLUME_LABEL + ": ");
   private final RadioButton rbFile = new RadioButton(REFERENCE_FILE_LABEL, bgReference);
   private final FileTextField2 ftfFile;
   private final RadioButton rbMultiparticle = new RadioButton(MULTIPARTICLE_BUTTON_LABEL,
-      bgReference);
+    bgReference);
   private final ComboBox cmbMultiparticle = ComboBox
-      .getUnlabeledInstance(MULTIPARTICLE_BUTTON_LABEL);
+    .getUnlabeledInstance(MULTIPARTICLE_BUTTON_LABEL);
   private final JLabel lMultiparticle = new JLabel("particles");
+  private final LabeledTextField ltfVolume = new LabeledTextField(FieldType.INTEGER,
+    VOLUME_LABEL + ": ");
 
   private final ReferenceParent parent;
   private final BaseManager manager;
@@ -97,7 +93,7 @@ final class ReferencePanel implements UIComponent, SwingComponent {
   }
 
   static ReferencePanel getInstance(final ReferenceParent parent,
-      final BaseManager manager) {
+    final BaseManager manager) {
     ReferencePanel instance = new ReferencePanel(parent, manager);
     instance.createPanel();
     instance.setTooltips();
@@ -129,7 +125,7 @@ final class ReferencePanel implements UIComponent, SwingComponent {
     pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.Y_AXIS));
     pnlRoot.add(pnlBorder);
     pnlRoot.add(Box.createRigidArea(new Dimension(0, 8)));
-    //border
+    // border
     pnlBorder.setLayout(new BoxLayout(pnlBorder, BoxLayout.Y_AXIS));
     pnlBorder.setBorder(new EtchedBorder(TITLE).getBorder());
     pnlBorder.add(pnlParticle);
@@ -141,6 +137,7 @@ final class ReferencePanel implements UIComponent, SwingComponent {
     pnlParticle.add(rtfParticle.getContainer());
     pnlParticle.add(Box.createRigidArea(FixedDim.x10_y0));
     pnlParticle.add(sVolume.getContainer());
+    pnlParticle.add(ltfVolume.getContainer());
     pnlParticle.add(Box.createRigidArea(FixedDim.x130_y0));
     // file panel
     pnlFile.setLayout(new BoxLayout(pnlFile, BoxLayout.X_AXIS));
@@ -175,7 +172,7 @@ final class ReferencePanel implements UIComponent, SwingComponent {
     String propertyUserDir = manager.getPropertyUserDir();
     if (!ftfFile.isEmpty()) {
       ftfFile.setText(FilePath.getRerootedRelativePath(origDatasetDir, propertyUserDir,
-          ftfFile.getText()));
+        ftfFile.getText()));
     }
   }
 
@@ -206,7 +203,7 @@ final class ReferencePanel implements UIComponent, SwingComponent {
     metaData.setReferenceParticle(rtfParticle.getText());
     metaData.setReferenceFile(ftfFile.getText());
     metaData.setReferenceMultiparticleLevel(MultiparticleReference
-        .convertIndexToLevel(cmbMultiparticle.getSelectedIndex()));
+      .convertIndexToLevel(cmbMultiparticle.getSelectedIndex()));
   }
 
   /**
@@ -218,7 +215,7 @@ final class ReferencePanel implements UIComponent, SwingComponent {
     sVolume.setValue(metaData.getReferenceVolume());
     rtfParticle.setText(metaData.getReferenceParticle());
     cmbMultiparticle.setSelectedIndex(MultiparticleReference.convertLevelToIndex(metaData
-        .getReferenceMultiparticleLevel()));
+      .getReferenceMultiparticleLevel()));
   }
 
   /**
@@ -235,9 +232,9 @@ final class ReferencePanel implements UIComponent, SwingComponent {
       String level = matlabParam.getReferenceLevel();
       EtomoNumber index = new EtomoNumber();
       if (!MultiparticleReference.convertLevelToIndex(level, index)) {
-        UIHarness.INSTANCE.openProblemValueMessageDialog(this, "Incorrect",
-            MatlabParam.REFERENCE_KEY, "level", FieldLabels.FLG_FAIR_REFERENCE_LABEL,
-            level, MultiparticleReference.convertIndexToLevel(index.getInt()), null);
+        UIHarness.INSTANCE.openProblemValueMessageDialog(manager, this, "Incorrect",
+          MatlabParam.REFERENCE_KEY, "level", FieldLabels.FLG_FAIR_REFERENCE_LABEL,
+          level, MultiparticleReference.convertIndexToLevel(index.getInt()), null);
       }
       cmbMultiparticle.setSelectedIndex(index.getInt());
     }
@@ -264,7 +261,7 @@ final class ReferencePanel implements UIComponent, SwingComponent {
       else if (rbMultiparticle.isSelected()) {
         matlabParam.setFlgFairReference(true);
         matlabParam.setReferenceLevel(MultiparticleReference
-            .convertIndexToLevel(cmbMultiparticle.getSelectedIndex()));
+          .convertIndexToLevel(cmbMultiparticle.getSelectedIndex()));
       }
     }
     catch (FieldValidationFailedException e) {
@@ -287,10 +284,15 @@ final class ReferencePanel implements UIComponent, SwingComponent {
     return rtfParticle.isSelected();
   }
 
+  void msgFlgVolNamesAreTemplates(final boolean on) {
+    sVolume.setVisible(!on);
+    ltfVolume.setVisible(on);
+  }
+
   private void action(final String actionCommand) {
     if (actionCommand.equals(rtfParticle.getActionCommand())
-        || actionCommand.equals(rbFile.getActionCommand())
-        || actionCommand.equals(rbMultiparticle.getActionCommand())) {
+      || actionCommand.equals(rbFile.getActionCommand())
+      || actionCommand.equals(rbMultiparticle.getActionCommand())) {
       parent.updateDisplay();
     }
   }
@@ -304,12 +306,12 @@ final class ReferencePanel implements UIComponent, SwingComponent {
     // Must have particle number if volume is selected
     if (rtfParticle.isSelected() && rtfParticle.isEmpty()) {
       return "In " + TITLE + ", " + rtfParticle.getLabel() + " is required when "
-          + sVolume.getLabel() + " is selected.";
+        + sVolume.getLabel() + " is selected.";
     }
     // Must have a reference file if reference file is selected
     if (rbFile.isSelected() && ftfFile.isEmpty()) {
       return "In " + TITLE + ", a file is required when " + rbFile.getText()
-          + " is selected.";
+        + " is selected.";
     }
     return null;
   }
@@ -321,10 +323,12 @@ final class ReferencePanel implements UIComponent, SwingComponent {
   void updateDisplay() {
     rtfParticle.setEnabled(parent.getVolumeTableSize() > 0);
     sVolume.setEnabled(rtfParticle.isSelected());
+    ltfVolume.setEnabled(rtfParticle.isSelected());
     sVolume.setMax(parent.getVolumeTableSize());
     ftfFile.setEnabled(rbFile.isSelected());
     cmbMultiparticle.setComboBoxEnabled(rbMultiparticle.isSelected());
     lMultiparticle.setEnabled(rbMultiparticle.isSelected());
+    msgFlgVolNamesAreTemplates(parent.isFlgVolNamesAreTemplates());
   }
 
   /**
@@ -334,7 +338,8 @@ final class ReferencePanel implements UIComponent, SwingComponent {
   private void setTooltips() {
     ReadOnlyAutodoc autodoc = null;
     try {
-      autodoc = AutodocFactory.getInstance(manager, AutodocFactory.PEET_PRM, AxisID.ONLY);
+      autodoc =
+        AutodocFactory.getInstance(manager, AutodocFactory.PEET_PRM, AxisID.ONLY, false);
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();
@@ -347,17 +352,17 @@ final class ReferencePanel implements UIComponent, SwingComponent {
     }
     sVolume.setToolTipText("The number of the volume containing the reference.");
     rtfParticle
-        .setRadioButtonToolTipText("Specify the reference by volume and particle numbers.");
+      .setRadioButtonToolTipText("Specify the reference by volume and particle numbers.");
     rtfParticle
-        .setTextFieldToolTipText("The number of the particle to use as the reference.");
+      .setTextFieldToolTipText("The number of the particle to use as the reference.");
     rbFile.setToolTipText("Specify the reference by filename.");
     ftfFile.setToolTipText("The name of the file containing the MRC volume to use "
-        + "as the reference.");
+      + "as the reference.");
     rbMultiparticle.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-        MatlabParam.FLG_FAIR_REFERENCE_KEY));
+      MatlabParam.FLG_FAIR_REFERENCE_KEY, false));
     cmbMultiparticle
-        .setToolTipText("Number of particles to be used to generate a multi-particle "
-            + "reference.");
+      .setToolTipText("Number of particles to be used to generate a multi-particle "
+        + "reference.");
   }
 
   private static final class ReferenceActionListener implements ActionListener {

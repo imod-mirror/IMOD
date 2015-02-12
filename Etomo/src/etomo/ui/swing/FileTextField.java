@@ -151,7 +151,7 @@ final class FileTextField implements FileTextFieldInterface {
       panel.add(this.label);
     }
     field = new TextField(FIELD_TYPE, label, null);
-    field.setTextPreferredSize(new Dimension(250 * (int) Math.round(UIParameters.INSTANCE
+    field.setTextPreferredSize(new Dimension(250 * (int) Math.round(UIParameters.getInstance()
         .getFontSizeAdjustment()), FOLDER_BUTTON_SIZE.height));
     constraints.insets = new Insets(0, 0, 0, -1);
     layout.setConstraints(field.getComponent(), constraints);
@@ -224,7 +224,7 @@ final class FileTextField implements FileTextFieldInterface {
   private void action() {
     // Open up the file chooser in the current working directory
     JFileChooser chooser = new FileChooser(new File(propertyUserDir));
-    chooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
+    chooser.setPreferredSize(UIParameters.getInstance().getFileChooserDimension());
     if (fileSelectionMode != -1) {
       chooser.setFileSelectionMode(fileSelectionMode);
     }

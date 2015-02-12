@@ -870,7 +870,7 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
    */
   public void setOutputFile(final FileType fileType, final String rootName,
       final AxisType axisType) {
-    outputFile.set(fileType.deriveFileName(rootName, axisType, manager, axisID));
+    outputFile.set(fileType.deriveFileName(rootName, axisType, axisID));
     outputFileType = fileType;
   }
 

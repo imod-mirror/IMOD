@@ -445,24 +445,24 @@ public class SystemProgram implements Runnable {
             || (commandArray.length > 0 && (commandArray[0].equals("ssh") || commandArray[0]
                 .equals("ps"))) || (commandArray.length > 1 && commandArray[0]
             .equals("b3dwinps")))) {
-      debug = Arguments.DebugLevel.OFF;
+      debug = Arguments.DebugLevel.getOffInstance();
     }
     started = true;
-    if (debug.isOn()) {
+    if (debug.isExtraVerbose()) {
       System.err.println("");
       System.err.println("SystemProgram: command array: ");
       for (int i = 0; i < commandArray.length; i++) {
         System.err.println("  " + commandArray[i]);
       }
-      if (debug.isStandard()) {
-        System.err.print("SystemProgram: working directory: ");
-        if (workingDirectory == null) {
-          System.err.println("null");
-          System.err.println("SystemProgram: using:  " + propertyUserDir);
-        }
-        else {
-          System.err.println(workingDirectory.getAbsoluteFile());
-        }
+    }
+    if (debug.isOn()) {
+      System.err.print("SystemProgram: working directory: ");
+      if (workingDirectory == null) {
+        System.err.println("null");
+        System.err.println("SystemProgram: using:  " + propertyUserDir);
+      }
+      else {
+        System.err.println(workingDirectory.getAbsoluteFile());
       }
     }
 
@@ -540,7 +540,7 @@ public class SystemProgram implements Runnable {
         cmdInputStream.close();
       }
 
-      if (debug.isStandard()) {
+      if (debug.isOn()) {
         System.err.println("Done writing to process stdin");
         if (stdInput != null && stdInput.length > 0) {
           System.err.println("SystemProgram: Wrote to process stdin:");
@@ -583,7 +583,7 @@ public class SystemProgram implements Runnable {
         System.err.println(msg);
       }
 
-      if (debug.isStandard())
+      if (debug.isOn())
         System.err.println("SystemProgram: Exit value: " + String.valueOf(exitValue));
 
       // Wait for the manager threads to complete
@@ -595,21 +595,21 @@ public class SystemProgram implements Runnable {
         except.printStackTrace();
         System.err.println("SystemProgram:: interrupted waiting for reader threads!");
       }
-      if (debug.isStandard())
+      if (debug.isOn())
         System.err.print("SystemProgram: Reading from process stdout: ");
       cmdOutputStream.close();
 
       int cntStdOutput = stdout.size();
-      if (debug.isStandard())
+      if (debug.isOn())
         System.err.println(String.valueOf(cntStdOutput) + " lines");
 
-      if (debug.isStandard())
+      if (debug.isOn())
         System.err.print("SystemProgram: Reading from process stderr: ");
 
       cmdErrorStream.close();
 
       int cntStdError = stderr.size();
-      if (debug.isStandard())
+      if (debug.isOn())
         System.err.println(String.valueOf(cntStdError) + " lines");
 
     }
@@ -662,7 +662,7 @@ public class SystemProgram implements Runnable {
     processMessages.addProcessOutput(stdout);
     processMessages.addProcessOutput(stderr);
 
-    if (debug.isStandard()) {
+    if (debug.isOn()) {
       if (stdout != null && stdout.size() > 0) {
         System.err.println("SystemProgram: Read from process stdout:");
         System.err
@@ -711,14 +711,14 @@ public class SystemProgram implements Runnable {
 
   private OutputBufferManager newOutputBufferManager(final BufferedReader cmdBuffer) {
     OutputBufferManager bufferManager = new OutputBufferManager(cmdBuffer);
-    bufferManager.setDebug(debug.isOn());
+    bufferManager.setDebug(debug.isExtraVerbose());
     bufferManager.setCollectOutput(collectOutput);
     return bufferManager;
   }
 
   private OutputBufferManager newErrorBufferManager(final BufferedReader cmdBuffer) {
     OutputBufferManager bufferManager = new OutputBufferManager(cmdBuffer);
-    bufferManager.setDebug(debug.isOn());
+    bufferManager.setDebug(debug.isExtraVerbose());
     bufferManager.setCollectOutput(collectOutput);
     return bufferManager;
   }
