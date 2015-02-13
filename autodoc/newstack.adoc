@@ -122,7 +122,7 @@ file with data stored as volumes, and data will be stored in a new 3D volume.
 A value of 3 is used by Makepyramid(1) to cause Newstack to insert the
 attribute "image_pyramid".  By default, if an HDF output file is being
 created, it will be stored as a volume if the first input file is an HDF file
-with volume storage.  A value of -1 will cause an outout HDF file to be
+with volume storage.  A value of -1 will cause an output HDF file to be
 organized as a stack even if the input file has volumes.
 
 [Field = ChunkSizesInXYZ]
@@ -158,6 +158,25 @@ transferred from one .mdoc to another, if input and output files are MRC; from
 an .mdoc into the attributes of an HDF file if input is MRC and output is HDF;
 or from HDF attributes into an .mdoc if input is HDF and output is MRC.  When
 input and output are both HDF, attributes are transferred automatically.
+
+[Field = TiltAngleFile]
+short = tilt
+type = FN
+usage = Name of file with tilt angles to substitute or insert into output
+tooltip = 
+manpage = Name of file with tilt angles, one per line, to substitute or insert
+into the metadata of the output file(s).  Angles can subsequently be retrieved
+with Extracttilts(1).  If the input file(s) have extended
+headers with either the SerialEM or Agard/FEI format, the new values will be
+substituted for existing angles and other extended header items will be
+preserved.
+(There must already be angles in the SerialEM header, and all input files must
+have the same type of extended header.)  If the input file(s) have no extended
+header, angles will be placed into an extended header in the Agard/FEI format
+(just 1 floating point number per section).  (In this case, all input files
+must have no extended header.)  Tilt angles can also be replaced or inserted if 
+output file(s) are HDF, with or without an incoming ".mdoc" file; and tilt
+angles in ".mdoc" files associated with MRC files will be maintained as well.
 
 [SectionHeader = SecOptions]
 usage = SECTION SELECTION OPTIONS 
