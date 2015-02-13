@@ -34,6 +34,7 @@
 #define adoclookupsection ADOCLOOKUPSECTION
 #define adoclookupbynamevalue ADOCLOOKUPBYNAMEVALUE
 #define adocfindinsertindex ADOCFINDINSERTINDEX
+#define adocinsertsection ADOCINSERTSECTION
 #define adoctransfersection ADOCTRANSFERSECTION
 #define adocgetstring ADOCGETSTRING
 #define adocgetinteger ADOCGETINTEGER
@@ -71,6 +72,7 @@
 #define adoclookupsection adoclookupsection_
 #define adoclookupbynamevalue adoclookupbynamevalue_
 #define adocfindinsertindex adocfindinsertindex_
+#define adocinsertsection adocinsertsection_
 #define adoctransfersection adoctransfersection_
 #define adocgetstring adocgetstring_
 #define adocgetinteger adocgetinteger_
@@ -366,9 +368,9 @@ int adoclookupbynamevalue(char *typeName, int *nameValue, int typeSize)
   int err;
   if (!(cStr = adocf2cstr(typeName, typeSize)))
     return -1;
-  err = AdocLookupByNameValue(cStr, *nameValue) + 1;
+  err = AdocLookupByNameValue(cStr, *nameValue);
   free(cStr);
-  return err;
+  return (err >= 0 ? err + 1 : err);
 }
 
 int adocfindinsertindex(char *typeName, int *nameValue, int typeSize)
@@ -379,6 +381,19 @@ int adocfindinsertindex(char *typeName, int *nameValue, int typeSize)
     return -1;
   err = AdocFindInsertIndex(cStr, *nameValue);
   free(cStr);
+  return (err >= 0 ? err + 1 : err);
+}
+
+int adocinsertsection(const char *typeName, int *sectInd, const char *name, int typeSize,
+                      int nameSize)
+{
+  char *tStr, *nStr;
+  int err;
+  if (twof2cstr(typeName, name, typeSize, nameSize, &tStr, &nStr))
+    return -1;
+  err = AdocInsertSection(tStr, *sectInd - 1, nStr);
+  free(tStr);
+  free(nStr);
   return err;
 }
 
