@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/12/15: Switch to writing bytes as signed by default.
+
 2/12/15: Added option to Newstack to insert or change tilt angles in the
 output file.
 
@@ -16,7 +18,8 @@ mode for a new output file, and assess the existing density using all pixels
 instead of a sample of pixels.
 
 2/7/15: IMOD_4-8-22
-2/7/15: Fix batch interface to put out gold=0 when there are no fiducials, needed to get through tomogram setup for patch tracking.
+2/7/15: Fix batch interface to put out gold=0 when there are no fiducials,
+needed to get through tomogram setup for patch tracking.
 
 2/5/15: IMOD_4-7-13
 2/2/15: IMOD_4-8-21
