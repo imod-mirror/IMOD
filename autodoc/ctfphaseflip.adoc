@@ -1,0 +1,194 @@
+Version = 1.0
+Pip = 1
+
+[Field = InputStack]
+short = input
+type = FN
+usage = Input stack that will be corrected
+tooltip =
+manpage = 
+
+[Field = OutputFileName]
+short = output
+type = FN
+usage = Name of output file for the corrected views
+tooltip =
+manpage = 
+
+[Field = AngleFile]
+short = angleFn
+type =  FN
+usage = File containing tilt angles for the input stack
+tooltip =
+manpage = File containing tilt angles for the input stack.  Each line of this
+file is the tilt angle for a view of the input stack.  The angles are listed
+in order starting from view 1.
+
+[Field = InvertTiltAngles]
+short = invert
+type = B
+usage = Invert the sign of the tilt angles
+tooltip =
+manpage = Invert the sign of the tilt angles to compensate for a left-handed 
+coordinate system in the microscope.  When the sign of the tilt angles and 
+the value of the tilt axis rotation angle are such that reconstructions are
+generated with inverted handedness, then this option is needed for a proper
+correction.    One way to assess this need is to examine the aligned stack
+being corrected, which has its tilt axis vertical.  At positive tilt angles,
+the right side of the images should be more underfocused than the left side;
+if not, then this option is needed.
+
+[Field = DefocusFile]
+short = defFn
+type = FN
+usage = File with list of tilt angle ranges and defocus values in nanometers
+tooltip =
+manpage = File with list of tilt angle ranges and defocus values in
+nanometers, such as was output by ctfplotter(1).  Each line should have a
+starting and ending view number (numbered from 1), a starting and ending tilt
+angle, and a defocus value.  Defocus is in nanometers, with positive values for
+underfocus.  The program will assign that defocus value to the
+midpoint of the range of views.  For a view at a given tilt
+angle, it will find the defocus either by interpolating between two
+surrounding midpoint angles, if there are such angles, or by taking the nearest
+defocus value, if the angle is beyond the range of the available midpoint
+angles.  To correct a tilt series with a single value of defocus, supply a
+file with a single line containing "20 20 0. 0. defocus_value".  If you prepare
+a defocus file with more than one line, be sure to use the exact angles from the
+tilt angle file specified with the -angleFn option; do not round to one
+decimal place.  Alternatively, add the number "2" as an extra value at the end
+of the first line of the file; this will prevent the program from thinking
+that the view numbers might be off by one.
+
+[Field = TransformFile]
+short = xform
+type = FN
+usage = File with linear transformations used to align images
+tooltip = 
+manpage = File with the linear transformations that were used to align the
+images.  With this option, the program will use the shifts in X to adjust the
+middle position that is considered to be at the nominal defocus value for each
+image.  Whether this is appropriate or not needs to be determined by
+experimentation.
+
+[Field = DefocusTol]
+short = defTol
+type = I
+usage =  Defocus tolerance in nanometers limiting the strip width
+tooltip =
+manpage =  Defocus tolerance in nanometers that limits the width of the strips.
+An image region
+with defocus difference less than this tolerance 
+is considered to have constant defocus and can be corrected as one strip. The
+strip width is either the width of this region or the maximum strip width,
+whichever is smaller; but strips will also be constrained to be at least 128
+pixels wide.  Each strip is corrected based on
+the defocus at the center of the strip. 
+
+[Field = MaximumStripWidth]
+short = maxWidth
+type = I
+usage = Maximum width of strips in pixels (disables dynamic width adjustment)
+tooltip =
+manpage = Maximum width of strips in pixels.  This entry disables the dynamic
+adjustment of maximum width described above and applies a fixed maximum at all
+tilt angles.
+
+[Field = InterpolationWidth]
+short = iWidth
+type = I
+usage = The distance in pixels between two consecutive strips  
+tooltip =
+manpage = The distance in pixels between the center lines of two consecutive 
+strips. A pixel inside the region between those two center lines resides in
+both strips. As the two strips are corrected separately, that pixel will have 2
+corrected values. The final value for that pixel is a linear interpolation of
+the 2 corrected values.  If a value of 1 is entered, there is no such
+interpolation.  For a value greater than one, the entered value will be used
+whenever the strip width is less than 256 (i.e., at high tilt), and the value
+will be scaled proportional to the strip width for widths above 256.  This
+scaling keeps the computational time down
+and is reasonable because the defocus difference between adjacent wide strips
+at wider intervals is still less than that between the narrower strips at high
+tilt.  However, strips at constant spacing can still be obtained by entering
+the negative of the desired spacing, which disables the scaling of the
+spacing.
+
+[Field = PixelSize]
+short = pixelSize
+type = F
+usage = Image pixel size in nanometers
+tooltip =
+manpage = Image pixel size in nanometers
+
+[Field = Voltage]
+short = volt
+type = I
+usage =  Microscope voltage in kV
+tooltip =
+manpage =  Microscope voltage in kV
+
+[Field = SphericalAberration]
+short = cs
+type = F
+usage = Microscope spherical aberration in millimeters
+tooltip =
+manpage = Microscope spherical aberration in millimeters.  A value of 0 can be
+entered; it will be made slightly larger to prevent division by 0 in the CTF
+equations.
+
+[Field = AmplitudeContrast]
+short = ampContrast
+type = F
+usage = The fraction of amplitude contrast
+tooltip =
+manpage = The fraction of amplitude contrast. For Cryo-EM, 
+it should be between 0.07 and 0.14.  The value should be the same as was used
+when detecting the defocus.
+
+[Field = StartingEndingViews]
+short = views
+type = IP
+usage = The starting and ending views to correct (numbered from 1)
+tooltip =
+manpage = The starting view and the ending view to correct in this run
+of the program, numbered from 1.  This is
+an optional field.  The default is to correct all views in the input stack.
+
+[Field = TotalViews]
+short = totalViews
+type = IP
+usage = The starting and ending views that need to be corrected in all
+parallel runs of the program.
+tooltip =
+manpage = The starting view and the ending view that need to be corrected in
+all parallel runs of the program.  This field is only needed when doing
+parallel runs with direct writing to a single output file.  The program is
+run initially with a StartingEndingViews entry of -1,-1 to set up the output
+file.  Then it is run with actual starting and ending views for each parallel
+run, and each run writes to the existing output file.
+
+[Field = BoundaryInfoFile]
+short = boundary
+type = FN
+usage = Name of file with information about boundaries for parallel writing
+tooltip =
+manpage = Name of file with information about boundaries between chunks and
+files in which to write lines at the boundaries, when multiple runs are 
+writing in parallel to an output file.
+
+[Field = AxisAngle]
+short = aAngle 
+type = F
+usage = This option is not supported 
+tooltip =
+manpage = This option is not supported.  The tilt axis has to be vertical,
+i.e., to be coincident with the Y axis.  Usually this means the input stack
+has to be the aligned stack.
+
+[Field = Parameter]
+short = param
+type = PF 
+usage = Read parameter entries from file
+tooltip = 
+manpage = Read parameter entries from this file.
