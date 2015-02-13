@@ -930,7 +930,7 @@ program newstack
         if (numOutFiles > 1) call exitError( &
             'THERE MUST BE ONLY ONE OUTPUT FILE TO USE -replace')
         if (if3dVolumes > 0) call exitError('YOU CANNOT USE -3d OR -chunk WITH -replace')
-        if (saveTilts > 0) call exitError('YOU CANNOT USE -tilt WITH -replace')
+        if (saveTilts) call exitError('YOU CANNOT USE -tilt WITH -replace')
         if (.not. quiet) call iiuAltPrint(1)
         call iiAllowMultiVolume(0)
         call imopen(2, outFile(1), 'OLD')
