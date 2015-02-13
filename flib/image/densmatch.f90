@@ -160,6 +160,8 @@ program densmatch
     enddo
     idelSample = (((float(nxUse) * nyUse) * nzUse) / maxSamples)**.3333 + 1.
     if (allPixels) idelSample = 1
+    if (allPixels .and. (float(nx) * ny) * nz > 2.1e9) call exitError( &
+        'THE -all OPTION CANNOT BE USED FOR VOLUMES OF MORE THAN 2 GIGAPIXELS')
     !
     if (iunit == iunStart) then
       idim = max(nx, min(maxDim, nx * ny))
