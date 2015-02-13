@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/12/15: Added option to Newstack to insert or change tilt angles in the
+output file.
+
 2/11/15: Fixed Makepyramid to work with one input argument (In 4.7).
 
 2/11/15: Fixed 3dmod Extract File entry being disabled after cancelling the 
