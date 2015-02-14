@@ -1,6 +1,15 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-2/12/15: Switch to writing bytes as signed by default.
+2/13/15: Supported reading of nonstandard large TIFF files from ImageJ; 
+got min/max and pixel size from image description of ImageJ files.
+
+2/13/15: Made Newstack able to write TIFF files > 4 GB correctly and added an
+environment variable that can be used to get all TIFF files to be written in
+large file format. 
+
+2/13/15: Added option to Queuechunk to allow resources to be set.
+
+2/12/15: Switched to writing bytes as signed by default.
 
 2/12/15: Added option to Newstack to insert or change tilt angles in the
 output file.
