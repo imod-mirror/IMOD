@@ -43,6 +43,9 @@
 #define OUTPUT_TYPE_DEFAULT OUTPUT_TYPE_MRC
 #define OUTPUT_TYPE_ENV_VAR "IMOD_OUTPUT_FORMAT"
 
+#define ALL_BIGTIFF_DEFAULT 0
+#define ALL_BIGTIFF_ENV_VAR "IMOD_ALL_BIG_TIFF"
+
 #define RADIANS_PER_DEGREE 0.01745329252
 
 /* Determinant of 3x3 matrix */
@@ -96,6 +99,9 @@ extern "C" {
   void overrideOutputType(int type);
   int b3dOutputFileType();
   int setOutputTypeFromString(const char *typeStr);
+  void overrideAllBigTiff(int value);
+  int makeAllBigTiff();
+  void setNextOutputSize(int nx, int ny, int nz, int mode);
 
 #ifdef __cplusplus
 }
