@@ -67,6 +67,8 @@
 #define overrideoutputtype OVERRIDEOUTPUTTYPE
 #define b3doutputfiletype B3DOUTPUTFILETYPE
 #define setoutputtypefromstring SETOUTPUTTYPEFROMSTRING
+#define overrideallbigtiff OVERRIDEALLBIGTIFF
+#define setnextoutputsize SETNEXTOUTPUTSIZE
 #else
 #define imodbackupfile imodbackupfile_
 #define imodgetenv imodgetenv_
@@ -88,6 +90,8 @@
 #define overrideoutputtype overrideoutputtype_
 #define b3doutputfiletype b3doutputfiletype_
 #define setoutputtypefromstring setoutputtypefromstring_
+#define overrideallbigtiff overrideallbigtiff_
+#define setnextoutputsize setnextoutputsize_
 #endif
 
 /* DNM 2/26/03: These need to be printf instead of fprintf(stderr) to not
@@ -464,6 +468,59 @@ int setoutputtypefromstring(const char *str, int strSize)
   ret = setOutputTypeFromString(cstr);
   free(cstr);
   return ret;
+}
+
+static int sAllBigTiffOverride = -1;
+
+/*!
+ * A [value] of 1 causes all new TIFF files to be opened in large file format with 
+ * "w8", overriding both the default setting in the defined macro ALL_BIGTIFF_DEFAULT 
+ * and the value of the environment value IMOD_ALL_BIG_TIFF.
+ */
+void overrideAllBigTiff(int value)
+{
+  sAllBigTiffOverride = value;
+}
+
+/*! Fortran wrapper for @overrideAllBigTiff */
+void overrideallbigtiff(int *value)
+{
+  overrideAllBigTiff(*value);
+}
+
+/*!
+ * Returns 1 if all new TIFF files should be opened in large file format, based upon the 
+ * default in the defined macro ALL_BIGTIFF_DEFAULT, the value of the environment value 
+ * IMOD_ALL_BIG_TIFF, and a value set with @@overrideAllBigTiff@. 
+ */
+int makeAllBigTiff()
+{
+  int value = ALL_BIGTIFF_DEFAULT;
+  char *envPtr = getenv(ALL_BIGTIFF_ENV_VAR);
+  if (envPtr)
+    value = atoi(envPtr);
+  if (sAllBigTiffOverride >= 0)
+    value = sAllBigTiffOverride;
+  return value;
+}
+
+/*!
+ * Indicates the output size in [nx], [ny], [nz] and the data mode in [mode] of a file
+ * about to be opened; the routine calls @overrideAllBigTiff to force a new TIFF file to
+ * have either the large file format or the older format as appropriate.
+ */
+void setNextOutputSize(int nx, int ny, int nz, int mode)
+{
+  Islice slice;
+  if (sliceInit(&slice, nx, ny, mode, NULL))
+    return;
+  overrideAllBigTiff(((double)nx * ny) * nz * slice.dsize * slice.dsize > 4.0e9 ? 1 : 0);
+}
+
+/*! Fortran wrapper for @setNextOutputSize */
+void setnextoutputsize(int *nx, int *ny, int *nz, int *mode)
+{
+  setNextOutputSize(*nx, *ny, *nz, *mode);
 }
 
 /*! Creates a C string with a copy of a Fortran string described by [str] and 
