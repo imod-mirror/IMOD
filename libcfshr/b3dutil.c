@@ -18,6 +18,7 @@
 #include <sys/stat.h>
 #include "imodconfig.h"
 #include "b3dutil.h"
+#include "mrcslice.h"
 
 #ifndef _WIN32
 #include <sys/time.h>
