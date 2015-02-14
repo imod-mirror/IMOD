@@ -192,7 +192,7 @@ EOF
     # substitute resources if entered
     #
     if [ $qtype == "pbs" ] ; then 
-        if [ -n $resources ] ; then
+        if [ -n "$resources" ] ; then
             com="$com -l $resources"
         else 
             com="$com -l nodes=1" 
