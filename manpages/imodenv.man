@@ -36,6 +36,17 @@ Set to 1 to force Findwarp(1) to use an older method of computing the
 ratio of measurements to unknown values even for new data, or -1 to
 make it use the newer method even with older data.
 .TP
+.B IMOD_ALL_BIG_TIFF
+Set to 1 to make all new TIFF files be opened in the newer format that allows
+files bigger than 4 GB, even when it is not known at the time of
+opening that the file will be large.  Currently only Mrc2tif(1) and
+Newstack(1) will write a multi-image TIFF file bigger than 4 GB in the
+correct format.  This variable would need to be set to get other 
+other programs to write large TIFF files correctly.  However, with it
+set, smaller TIFF files written by those programs (except 3dmod
+snapshots) will be unreadable by other software that does not read
+large files.
+.TP
 .B IMOD_AUTOSAVE
 Interval at which 3dmod should autosave the model, in minutes (superceded by
 setting in 3dmod preferences).
