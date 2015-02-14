@@ -66,6 +66,7 @@ EXPORTS
 	ilistPop
 	AdocGetTwoFloats
 	arrayMinMaxMeanSd
+	makeAllBigTiff
 	b3dFwrite
 	ADOCSETFLOATARRAY
 	PIPREADPROGDEFAULTS
@@ -112,6 +113,7 @@ EXPORTS
 	IMODBACKUPFILE
 	POLYNOMIALFIT
 	PipNumberOfArgs
+	SETNEXTOUTPUTSIZE
 	zoomFiltValue
 	fValue
 	ilistTruncate
@@ -133,6 +135,7 @@ EXPORTS
 	dsytrd3
 	LSFITS
 	SPARSEPROD
+	setNextOutputSize
 	ADOCGETFLOAT
 	LSQR
 	selectzoomfilterXY
@@ -231,6 +234,7 @@ EXPORTS
 	PARWRTSETCURRENTFW
 	sliceSplitFill
 	PipReadOrParseOptions
+	dataSizeForMode
 	lsFitPred
 	DFVALUE
 	PIPPRINTENTRIES
@@ -367,6 +371,8 @@ EXPORTS
 	MINIMIZE1D
 	xfUnit
 	RSMEDIAN
+	overrideAllBigTiff
+	OVERRIDEALLBIGTIFF
 	ADOCGETTHREEINTEGERS
 	PIPGETNONOPTIONARG
 	CONVEXBOUND
