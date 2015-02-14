@@ -1343,6 +1343,7 @@ program newstack
                 'SETTING image_pyramid ATTRIBUTE IN GLOBAL SECTION OF HDF FILE')
           endif
         else
+          call setNextOutputSize(nxOut, nyOut, numSecOut(iOutFile), newMode);
           call imopen(2, outFile(iOutFile), 'NEW')
           needClose2 = 0
         endif
