@@ -512,10 +512,10 @@ int makeAllBigTiff()
  */
 void setNextOutputSize(int nx, int ny, int nz, int mode)
 {
-  Islice slice;
-  if (sliceInit(&slice, nx, ny, mode, NULL))
+  int bytes, channels;
+  if (dataSizeForMode(mode, &bytes, &channels))
     return;
-  overrideAllBigTiff(((double)nx * ny) * nz * slice.dsize * slice.dsize > 4.0e9 ? 1 : 0);
+  overrideAllBigTiff(((double)nx * ny) * nz * channels * bytes > 4.0e9 ? 1 : 0);
 }
 
 /*! Fortran wrapper for @setNextOutputSize */
@@ -786,6 +786,48 @@ int fgetline(FILE *fp, char s[], int limit)
     return (-1 * (length + 2));
   else
     return (length);
+}
+
+/*!
+ * For the given MRC file mode or SLICE_MODE_MAX in [mode], returns the number of bytes 
+ * of the basic data element in [dataSize] and the number of data channels in [channels].
+ * Returns -1 for an unsupported or undefined mode.
+ */
+int dataSizeForMode(int mode, int *dataSize, int *channels)
+{
+  switch (mode) {
+  case MRC_MODE_BYTE:
+    *dataSize = sizeof(b3dUByte);
+    *channels = 1;
+    break;
+  case MRC_MODE_SHORT:
+  case MRC_MODE_USHORT:
+    *dataSize = sizeof(b3dInt16);
+    *channels = 1;
+    break;
+  case MRC_MODE_FLOAT:
+    *dataSize = sizeof(b3dFloat);
+    *channels = 1;
+    break;
+  case MRC_MODE_COMPLEX_SHORT:
+    *dataSize = sizeof(b3dInt16);
+    *channels = 2;
+    break;
+  case MRC_MODE_COMPLEX_FLOAT:
+    *dataSize = sizeof(b3dFloat);
+    *channels = 2;
+    break;
+  case MRC_MODE_RGB:
+    *dataSize = sizeof(b3dUByte);
+    *channels = 3;
+    break;
+  case SLICE_MODE_MAX:
+    *dataSize = SLICE_MAX_DSIZE;
+    *channels = SLICE_MAX_CSIZE;
+  default:
+    return(-1);
+  }
+  return(0);
 }
 
 /*! Returns the number of possible extra header items encoded as short integers

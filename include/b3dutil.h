@@ -102,6 +102,7 @@ extern "C" {
   void overrideAllBigTiff(int value);
   int makeAllBigTiff();
   void setNextOutputSize(int nx, int ny, int nz, int mode);
+  int dataSizeForMode(int mode, int *bytes, int *channels);
 
 #ifdef __cplusplus
 }
