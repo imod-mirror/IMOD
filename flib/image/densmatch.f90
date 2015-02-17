@@ -221,7 +221,7 @@ program densmatch
   endif
   !
   if (iunitOut == 3) call iiuTransHeader(3, 2)
-  if (ifMode > 0) then
+  if (iunitOut == 3 .and. ifMode > 0) then
     call iiuAltMode(3, newMode)
     mode = newMode
   endif
