@@ -1,6 +1,6 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-2/16/15: IMOD_4-8-23
+2/17/15: IMOD_4-8-24
 2/13/15: Supported reading of nonstandard large TIFF files from ImageJ; 
 got min/max and pixel size from image description of ImageJ files.
 
