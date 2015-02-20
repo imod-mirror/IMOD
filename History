@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/20/15: Processchunks and Batchruntomo changed to take : instead of # as
+separator in CPU entry; Batchruntomo now allows entries of 1 and limits the
+number of threads used when running a single command file.
+
 2/17/15: IMOD_4-8-24
 2/13/15: Supported reading of nonstandard large TIFF files from ImageJ; 
 got min/max and pixel size from image description of ImageJ files.
