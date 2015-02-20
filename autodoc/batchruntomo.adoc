@@ -66,8 +66,12 @@ type = CH
 usage = Machines to use in parallel processing, or number of local cores
 tooltip = 
 manpage = Machines to use in parallel processing, or number of local cores.
-Each machine name can be followed by a # sign followed by the number of CPUs
-to use in that machine; e.g., druid#4,tubule#4.
+Each machine name can be followed by a ":" (colon), followed by the number of CPUs
+to use in that machine; e.g., druid:4,tubule:4.  Prior to IMOD 4.8.25, a "#"
+sign was used instead of ":".  Using the "#" sign will now result in a warning 
+when entering options on the command line and an error when
+entering options through standard input, because in the latter case it cannot
+be distinguished from the start of a comment.
 
 [Field = SingleOnFirstCPU]
 short = single
@@ -75,7 +79,8 @@ type = B
 usage = Run single command files on first machine in CPU list
 tooltip = 
 manpage = Run single command files on the first machine in the CPU list, instead of
-on the local machine.
+on the local machine.  The matchvol and autopatchfit steps in combine are not
+affected by this entry; they are always run on the machine with the most CPUs.
 
 [Field = GPUMachineList]
 short = gpus
@@ -94,6 +99,20 @@ usage = Priority level or niceness for running jobs; default is 15
 tooltip = 
 manpage = Priority level or niceness for running jobs.  Note that this applies
 to all computations, not just those run with parallel processing.  The default is 15.
+
+[Field = LimitLocalThreads]
+short = limit
+type = I
+usage = Limit on # of parallel threads to use when running on local machine
+tooltip = 
+manpage = Limit on the number of threads when running a single command file
+on the local machine.  By default, this limit is set
+to the number of CPUs on the local machine indicated by the entry to
+\fB-cpus\fR.  If that entry consists only of remote machines,
+then the program has no information about this limit, and single
+command files containing programs parallelized with OpenMP will use all
+available cores.  This option allows one to enter a limit in this case, as
+well as to set a different limit than the number of CPUs in the CPU list.
 
 [Field = RemoteDirectory]
 short = remote
