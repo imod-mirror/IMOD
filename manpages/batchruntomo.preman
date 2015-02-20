@@ -99,6 +99,8 @@ not be produced.  Directives with prefix "runtime" are simply ignored if they
 are not relevant to the chosen processing sequence.
 
 .SS Template Files
+Template files can contain parameters that can be used meaningfully 
+for multiple, similar data sets.
 Directives exist to define a microscope template file, a system template file,
 and a user template file.  The idea is for the microscope file to have
 parameters specific to a microscope or microscope/camera combination, and to
@@ -327,6 +329,21 @@ basis of "runtime" directives and other information.  The biggest
 example of this is the treatment of "align.com" when Tiltalign(1) is
 rerun; the \fB-use\fR option is provided specifically to avoid
 rerunning Tiltalign(1).
+
+.SS Resource Usage
+The CPU list provided with the \fB-cpus\fR option is passed directly to
+Processchunks(1) for running operations that are divided into multiple
+chunks.  However, other operations that run from a single command file
+will generally be run on the local machine, unless the \fB-single\fR
+option is used to direct them to the first machine in the CPU list.
+The exceptions are two time-consuming steps in dual-axis combination,
+Matchvol(1) and Autopatchfit(1), which benefit
+from using multiple threads and are sent to the machine with the highest
+number of CPUs.  When running single command files, the program sets a
+limit on the number of threads equal to the number of CPUs designated
+in the CPU list for the machine being used, if it is known
+(\fB-limit\fR can be entered if this is not otherwise known for the
+local machine).
 
 .SH OPTIONS
 Batchruntomo uses the PIP package for input (see the manual page for pip(1)).
