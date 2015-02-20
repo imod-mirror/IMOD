@@ -91,6 +91,9 @@ sNoAbbrevs = 0
 sNotFoundOK = False
 sLinkedOption = None
 sTestAbbrevForUsage = False
+sForbidCommentLong = ''
+sForbidCommentShort = ''
+sWarnOnComment = False
 
 # Initialize for given number of options
 #
@@ -158,6 +161,14 @@ def PipEnableEntryOutput(val):
 def PipSetLinkedOption(option):
    global sLinkedOption
    sLinkedOption = option
+
+# Set up one option for which in-line comments are not allowed
+#
+def PipForbidComments(longName, shortName, warn):
+   global sForbidCommentShort, sForbidCommentLong, sWarnOnComment
+   sForbidCommentShort = shortName
+   sForbidCommentLong = longName
+   sWarnOnComment = warn
 
 # Return the error number
 #
@@ -768,7 +779,7 @@ def PipReadOptionFile(progName, helpLevel, localDir):
    inQuoteIndex = -1
    
    while (1):
-      (lineLen, bigStr, indst) = PipReadNextLine(optFile, '#', 0, 0)
+      (lineLen, bigStr, indst, badComment) = PipReadNextLine(optFile, '#', 0, 0)
       if (lineLen == -2):
          PipSetError("Error reading autodoc file")
          return -1
@@ -1069,7 +1080,7 @@ def PipGetInOutFile(option, nonOptArgNo):
 #
 def ReadParamFile(pFile):
    global sNotFoundOK, sNumOptionArguments, sOptTable, sNonOptLines, tokenSep
-   global STANDARD_INPUT_STRING, STANDARD_INPUT_END, sNumOptions
+   global STANDARD_INPUT_STRING, STANDARD_INPUT_END, sNumOptions, sWarnOnComment
    while (1):
 
       # If non-option lines are allowed, set flag that it is OK for
@@ -1077,14 +1088,19 @@ def ReadParamFile(pFile):
       # of lines at the start of the input
       sNotFoundOK = not sNumOptionArguments and \
                    (sOptTable[sNonOptInd].count < sNonOptLines)
-      (lineLen, lineStr, indst) = PipReadNextLine(pFile,  '#', 0, 1)
+      (lineLen, lineStr, indst, badComment) = PipReadNextLine(pFile,  '#', 0, 1)
       if (lineLen == -3):
          break
       if (lineLen == -2):
          PipSetError("Error reading parameter file or " + \
                      STANDARD_INPUT_STRING)
          return -1
-
+      if badComment:
+         if sWarnOnComment:
+            sys.stdout.write("PIP WARNING: " + badComment)
+         else:
+            PipSetError(badComment)
+            return -1
 
       # Find token
       matchObj = re.search(tokenSep, lineStr[indst:])
@@ -1159,16 +1175,17 @@ def ReadParamFile(pFile):
 # non-white space character
 #
 def PipReadNextLine(pFile, comment, keepComments, inLineComments):
-   global nonWhite
+   global nonWhite, sForbidCommentLong, sForbidCommentShort
 
    while (1):
+      badComment = ""
       try:
          lineStr = pFile.readline()
          lineLen = len(lineStr)
          if not lineLen:
-            return (-3, '', 0)
+            return (-3, '', 0, '')
       except:
-         return (-2, '', 0)
+         return (-2, '', 0, '')
 
       # Get first non-white space
       matchObj = re.search(nonWhite, lineStr)
@@ -1191,6 +1208,15 @@ def PipReadNextLine(pFile, comment, keepComments, inLineComments):
          if strPtr >= 0:
             lineLen = strPtr
 
+            # Look for forbidden in-line comments
+            if sForbidCommentLong or sForbidCommentShort:
+               lsplit = lineStr.split()
+               option = lsplit[0].lstrip('-')
+               if (sForbidCommentLong and sForbidCommentLong.startswith(option)) or \
+                      (sForbidCommentShort and sForbidCommentShort.startswith(option)):
+                  badComment = 'The ' + comment + ' character should not be used for' + \
+                      ' a comment or any other reason on the line: ' + lineStr
+
       # adjust line length back further to remove white space and newline
       lineStr = lineStr[0:lineLen].rstrip()
       lineLen = len(lineStr)
@@ -1199,7 +1225,7 @@ def PipReadNextLine(pFile, comment, keepComments, inLineComments):
       if (indst < lineLen or keepComments):
          break
   
-   return (lineLen, lineStr, indst)
+   return (lineLen, lineStr, indst, badComment)
 
 
 
