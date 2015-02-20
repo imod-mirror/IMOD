@@ -207,13 +207,21 @@ option.  The value should be an integer specifying the size in megabytes.  The
 default in 3dmod is 20000.
 .TP
 .B WRITE_MODE0_SIGNED
-Set this variable to 1 to have all MRC files in mode 0 written as
-signed bytes, which is the putative MRC standard. In IMOD 4.9, this
-will be the default behavior, and then the variable can be set to 0 to
-have files written as unsigned bytes.
+Set this variable to 0 to have all MRC files in mode 0 written as
+unsigned bytes, which was the convention used by IMOD prior to 4.8.24
+but is contrary to the current MRC standard.
 
 .SS Build and Test Variables
 
+.TP
+.B BRT_TEST_OPTIONS
+When the Batchruntomo test is run in the nightly ImodTests, this
+variable can be set to provide options in place of "-cpu 2".
+.TP
+.B BRT_TEST_SOURCE_DIR
+If this environment variable is set to a location where the stacks
+BBa.st and BBb.st are located, the nightly tests in ImodTests
+will include a reconstruction of this data set with Batchruntomo.
 .TP
 .B CUDA_DIR
 Directory with CUDA toolkit, must be defined to enable building with CUDA.
@@ -251,6 +259,10 @@ are also added to all executables.
 .TP
 .B QTDIR
 Location of Qt, or at least of Qt bin directory if include is elsewhere.
+.TP
+.B SCRIPT_TEST_DIR
+An alternate location for Python source scripts run by the tests in
+ImodTests/scriptTests.
 .TP
 .B SOLVEMATCH_TEST
 Set this variable to prevent Solvematch from exiting with error when given a
