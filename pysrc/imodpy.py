@@ -892,7 +892,14 @@ def cygwinPath(path):
          if cygtemp != None and len(cygtemp) > 0:
             return cygtemp[0].strip()
       except Exception:
-         pass
+         path = path.replace('\\', '/')
+         if  path[1] == ':':
+            path = '/cygdrive/' + path[0].lower() + path[2:]
+         mess = ''
+         if len(errStrings):
+            mess = ': ' + errStrings[0].strip()
+         prnstr('WARNING: Error running Cygwin program cygpath' + mess + \
+                '; returning ' + path)
    return path
 
 

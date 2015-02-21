@@ -96,14 +96,14 @@ command search path"""
       prnstr(errstr)
       sys.exit(1)
 
-   if re.search(r'ersion.*1\.4', line):
-      errstr = "You are trying to run a 1.4 version of Java"
+   if re.search(r'ersion.*1\.[45]', line):
+      errstr = "You are trying to run a version of Java before 1.6"
       fulljava = which('java')
       if fulljava:
          errstr += ', located at ' + fulljava
       prnstr(errstr)
       errstr =  \
-          """eTomo will no longer work with java 1.4.  You should install a Sun/Oracle
+          """eTomo will no longer work with java 1.4-1.5.  You should install an Oracle
 or OpenJDK version of the Java runtime environment, version 1.6 or higher, and
 put it on your command search path, or point IMOD_JAVADIR to it"""
       if os.getenv('IMOD_JAVADIR') != None:

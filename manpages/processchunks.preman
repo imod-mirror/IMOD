@@ -65,8 +65,10 @@ The machine list provided on the command line should be a list of machine
 names or IP addresses, separated by commas and with no embedded spaces.
 Machines with multiple processors can be entered as many times as the
 number of processors that you want to use, or a machine name can be entered
-with a "#" and the number of processors to use.  For example,
-"tubule#4,eclipse#6" would use 4 processors on tubule and 6 on eclipse.  (See
+with a ":" and the number of processors to use.  (Prior to IMOD 4.8.25,
+a "#" was used, but this cannot be distinguished from the start of a
+comment when reading options from standard input.)  For example,
+"tubule:4,eclipse:6" would use 4 processors on tubule and 6 on eclipse.  (See
 the 
 .B -G
 option for the different syntax and restrictions when using a GPU and running
