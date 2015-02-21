@@ -89,6 +89,16 @@ def reportImodError(abortText = None):
       abortSet(abortText)
 
 
+# Get elapsed time and break into minutes, seconds, and fraction of seconds
+def elapsedComponents(startTime):
+   used = time.time() - startTime
+   minutes = int(used / 60.)
+   used -= 60 * minutes
+   seconds = int(used)
+   frac = int(round((used - seconds) * 10))
+   return (minutes, seconds, frac)
+
+
 # Test whether a value returned by lookupDirective is a string and abort with message
 def testDirectiveValue(val, directive, dtype):
    if isinstance(val, str):
@@ -620,11 +630,18 @@ def runOneProcess(comfile, single = True, usingGPU = False, message = '',
       mess = 'Running ' + comfile
 
    if single:
+
+      # Figure out the machine to use for single and its thread limit if possible
+      threads = firstCpuLimit
       if useMostCPUs:
          machines = topCPUmachine
+         threads = topCpuLimit
       elif not useFirstCPUforSingle:
          machines = '1'
+         threads = localCpuLimit
       comArray += ['-s', '-e', '1']
+      if threads > 0:
+         comArray += ['-O', str(threads)]
       comuse = comfile
    else:
       mess += ' in multiple chunks'
@@ -765,12 +782,7 @@ def runOneProcess(comfile, single = True, usingGPU = False, message = '',
    elif finished == -2:
       abortSet('Strangely, processchunks quit but Q was not detected in the check file')
    elif finished == 1:
-      used = time.time() - startTime
-      minutes = int(used / 60.)
-      used -= 60 * minutes
-      seconds = int(used)
-      frac = int(round((used - seconds) * 10))
-      
+      (minutes, seconds, frac) = elapsedComponents(startTime);
       prnLog(fmtstr('Successfully finished {}   in {:02d}:{:02d}.{}\n', comfile, minutes,
                     seconds, frac), flush=True)
    return finished < 0
@@ -3233,7 +3245,7 @@ def runCombine():
 #### MAIN PROGRAM  ####
 #
 # load System Libraries
-import os, sys, shutil, math, csv, re, time, datetime
+import os, sys, shutil, math, csv, re, time, datetime, platform
 
 #
 # Setup runtime environment
@@ -3255,9 +3267,9 @@ options = ["directive:DirectiveFile:FNM:", "root:RootName:FNM:",
            "current:CurrentLocation:FNM:", "deliver:DeliverToDirectory:FN:",
            "one:ProcessOneAxis:I:", "cpus:CPUMachineList:CH:",
            "single:SingleOnFirstCPU:B:", "gpus:GPUMachineList:CH:", "nice:NiceValue:I:",
-           "remote:RemoteDirectory:FN:", "check:CheckFile:FN:",
-           "email:EmailAddress:CH:", "validation:ValidationType:I:",
-           "start:StartingStep:F:", "end:EndingStep:F:",
+           "limit:LimitLocalThreads:I:", "remote:RemoteDirectory:FN:",
+           "check:CheckFile:FN:", "email:EmailAddress:CH:",
+           "validation:ValidationType:I:", "start:StartingStep:F:", "end:EndingStep:F:",
            "first:StartForFirstSetOnly:B:", "use:UseExistingAlignment:B:",
            "exit:ExitOnError:B:", "etomo:EtomoDebug:I:"]
 
@@ -3311,6 +3323,9 @@ handlingMessages = ['autofidseed', 'transferfid', 'track', 'align', 'solvematch'
                     'autopatchfit']
 standardTags = [('ERROR:', 0), ('WARNING:', 0)]
 
+# This handles the problem with # being lost as a comment in standard input
+PipForbidComments('CPUMachineList', 'cpus', False)
+
 (opts, nonopts) = PipReadOrParseOptions(sys.argv, options, progname, 1, 1, 0)
 os.environ['PIP_PRINT_ENTRIES'] = '0'
 
@@ -3363,32 +3378,61 @@ startingDir = os.getcwd()
 # For CPU's, validate the number if it is just a number, then parse the list and add up
 # the values after # if any, set flag for parallel processing = # of cores
 cpuList = PipGetString('CPUMachineList', '')
+localName = (platform.node().split('.'))[0]
 parallelCPU = 0
 mostCPUs = 0
 topCPUmachine = '1'
+topCpuLimit = 1
+localCpuLimit = 1
+firstCpuLimit = 1
+if '#' in cpuList:
+   prnstr('WARNING: The # sign should not be used in the -cpus entry; use : instead')
 if cpuList != '':
+   localCpuLimit = 0
+   firstCpuLimit = 0
    try:
       parallelCPU = int(cpuList)
-      if parallelCPU < 2 or parallelCPU > 128:
-         exitError('A number of cores entered with -cpus must be between 2 and 128')
+      localCpuLimit = parallelCPU
+      firstCpuLimit = parallelCPU
+      topCpuLimit = parallelCPU
+      if parallelCPU < 1 or parallelCPU > 128:
+         exitError('A number of cores entered with -cpus must be between 1 and 128')
    except ValueError:
       for machine in cpuList.split(','):
-         msplit = machine.split('#')
+         msplit = machine.replace('#', ':').split(':')
          if len(msplit) > 2:
-            exitError('A machine name cannot be followed by two # signs')
+            exitError('A machine name cannot be followed by two : or # signs')
          if len(msplit) < 2:
             numCPU = 1
          else:
             try:
                numCPU = int(msplit[1])
-               if numCPU < 2:
-                  exitError('The value after # is less than 2 in ' + machine)
+               if numCPU < 1:
+                  exitError('The value after : or # is less than 1 in ' + machine)
             except ValueError:
-               exitError('Failed to convert value after # to integer in ' + machine)
+               exitError('Failed to convert value after : or # to integer in ' + machine)
          parallelCPU += numCPU
+         if msplit[0] == 'localhost' or (msplit[0].split('.'))[0] == localName:
+            localCpuLimit += numCPU
          if numCPU > mostCPUs:
             mostCPUs = numCPU
             topCPUmachine = msplit[0]
+            topCpuLimit = numCPU
+         if not firstCpuLimit:
+            firstCpuLimit = numCPU
+
+# After all that, replace the #'s in the list that will get used, and accept an option
+# to set or revise the limit on local cores, and if it is high enough, then revise the
+# machine with most CPUs
+cpuList = cpuList.replace('#', ':')
+localLimit = PipGetInteger('LimitLocalThreads', 0)
+if localLimit < 0 or localLimit > 128:
+   exitError('The limit on number of local threads must be between 1 and 128')
+if localLimit:
+   localCpuLimit = localLimit
+   if localLimit > topCpuLimit:
+      topCPUmachine = 'localhost'
+      topCpuLimit = localLimit
 
 # For GPU's, set useGPU if entered, insist a number is 1, and set flag for parallel GPU
 # if there is an actual machine list to number of GPUs, adding up entries 
@@ -3488,6 +3532,7 @@ for dfileInd in range(numSets):
       continue
 
    prnstr(fmtstr('Beginning to process {} file {}', fileType, dfile))
+   startTime = time.time()
 
    # If validating a single template file, do not process it, just run the checks
    if validation > 1:
@@ -3577,7 +3622,7 @@ for dfileInd in range(numSets):
    prnLog('Starting data set ' + setName)
 
    if startingStep <= 0 and not (dualAxis and doOneAxis > 1):
-   #if False:
+
       # Run etomo for setup and try to report errors
       failed = False
       errlog = ''
@@ -3618,29 +3663,6 @@ for dfileInd in range(numSets):
       if failed:
          reportImodError('etomo setup failed, cannot proceed with this data set')
          continue
-
-   # temporarily running copytomocoms directly
-   # if startingStep <= 0:
-   #    copyargs = []
-   #    for direc in allDirectives:
-   #       for key in direc:
-   #          if copyPrefix in key:
-   #             arg = key[len(copyPrefix):]
-   #             val = direc[key][0]
-   #             copyargs.append(arg + ' ' + val)
-   #    if scopeTmplText in allDirectives[BatInd]:
-   #       copyargs.append('change ' + allDirectives[BatInd][scopeTmplText][0])
-   #    if sysTmplText in allDirectives[BatInd]:
-   #       copyargs.append('change ' + allDirectives[BatInd][sysTmplText][0])
-   #    if userTmplText in allDirectives[BatInd]:
-   #       copyargs.append('change ' + allDirectives[BatInd][userTmplText][0])
-   #    copyargs.append('change ' + absDirectiveFile)
-   #    try:
-   #       runcmd('copytomocoms -StandardInput', copyargs, 'stdout')
-   #    except ImodpyError:
-   #       reportImodError('Error running copytomocoms')
-   #       continue
-
 
    fidSizePix = fidSizeNm / pixelSize
    haveAaxisAFSbound = False
@@ -3686,6 +3708,9 @@ for dfileInd in range(numSets):
          if math.fabs(endPrint - endingStep) > 0.005:
             endPrint = endingStep
          message += fmtstr(' through step {}', endPrint)
+      if not dualAxis:
+         (minutes, seconds, frac) = elapsedComponents(startTime);
+         message += fmtstr('  in {:02d}:{:02d}.{}', minutes, seconds, frac)
       prnLog(message)
       summaryMessage += message + '\n'
 
@@ -3696,7 +3721,9 @@ for dfileInd in range(numSets):
       axisInd = 2
       dataName = setName
       runCombine()
-      prnLog('Completed dataset ' + setName)
+      (minutes, seconds, frac) = elapsedComponents(startTime);
+      prnLog(fmtstr('Completed dataset {}  in {:02d}:{:02d}.{}', setName, minutes,
+                    seconds, frac))
       
    closeLogFile()
 
