@@ -467,8 +467,9 @@ public class CombineParams extends ConstCombineParams implements Storable {
     fiducialMatchListB.parseString(props.getProperty(group + "FiducialMatchListB",
         fiducialMatchListB.toString()));
 
-    patchSize = CombinePatchSize.fromString(props.getProperty(group + "PatchSize",
-        patchSize.toString()));
+    patchSize =
+      CombinePatchSize.fromString(props.getProperty(group + "PatchSize",
+        (patchSize != null ? patchSize.toString() : CombinePatchSize.SMALL.toString())));
 
     patchRegionModel = props.getProperty(group + "PatchRegionModel", patchRegionModel);
 
