@@ -220,6 +220,9 @@ public final class BatchRunTomoManager extends BaseManager {
       processEndState = ProcessEndState.FAILED;
     }
     mainPanel.stopProgressBar(AXIS_ID, processEndState);
+    logMessage(new String[] { "", "How to run batchruntomo from the command line:",
+      "Open a terminal window.", "Type the following two commands:",
+      "cd " + propertyUserDir, "subm " + metaData.getName() }, "Instructions", AXIS_ID);
   }
 
   private boolean saveBatchRunTomoDialog(final boolean doValidation) {
