@@ -23,15 +23,15 @@ binning.
   4) The tomogram on which points were selected for reconstruction must
 be available and entered with the \fB-volume\fR option, although it
 need not be in the current directory.
-  7) The tilt series alignment, tomogram positioning parameters, the
+  5) The tilt series alignment, tomogram positioning parameters, the
 X-axis tilt, and the tilt angle offset in the Tomogram Generation panel
 of eTomo must not be changed between the binned tomogram and subvolume
 reconstructions.
-  5) If you apply any processing to that volume outside of eTomo, the
+  6) If you apply any processing to that volume outside of eTomo, the
 header entries for pixel spacing, origin, and tilt angles must be
 preserved in the file entered with the \fB-volume\fR option.  If you need to
 trim some more, use Trimvol(1); if you need to bin, use Binvol(1).  
-  6) If you need to apply other software that does not preserve these
+  7) If you need to apply other software that does not preserve these
 header entries, follow these procedures: Make sure that the file
 analyzed has the same dimensions as the IMOD-based file from which it
 was derived.  Enter the name of the IMOD-based file instead of the
