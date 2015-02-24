@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/23/15: IMOD_4-8-25
+2/23/15: Fixed hang of eTomo when template editor is opened; made batch
+interface put out : as separator in CPU list.
+
 2/20/15: Processchunks and Batchruntomo changed to take : instead of # as
 separator in CPU entry; Batchruntomo now allows entries of 1 and limits the
 number of threads used when running a single command file.
