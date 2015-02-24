@@ -192,9 +192,9 @@ if ifBtoA:
 tracka = 'track' + src + '.com'
 if not os.path.exists(tracka):
    exitError('Cannot find ' + tracka + ' command file')
-tracklines = readTextFile(tracka)
+trackLines = readTextFile(tracka)
 
-tracklines = extractProgramEntries(trackLines, 'beadtrack', '-Standard')
+trackLines = extractProgramEntries(trackLines, 'beadtrack', '-Standard')
 if trackLines == None:
    exitError('Old version of ' + tracka + ' cannot be used; convert it by opening ' +\
              'and closing the fiducial tracking panel in etomo')
@@ -260,8 +260,8 @@ ylimit = nyb // 5
 zeroA -= 1
 zeroB -= 1
 
-asecstr = zeroA - (nviews // 2)
-asecEnd = asecstr + nviews - 1
+asecStart = zeroA - (nviews // 2)
+asecEnd = asecStart + nviews - 1
 bsecStart = zeroB - (nviews // 2)
 bsecEnd = bsecStart + nviews - 1
 lowestAsec = min(asecEnd, max(asecStart, zeroAview - 1))
