@@ -143,7 +143,8 @@ import etomo.util.MRCHeader;
  */
 
 public class CombineParams extends ConstCombineParams implements Storable {
-  public static final String rcsid = "$Id$";
+  public static final String rcsid =
+    "$Id$";
 
   private static final String MATCH_B_TO_A_KEY = "MatchBtoA";
   private static final String MATCH_MODE_KEY = "MatchMode";
@@ -294,11 +295,11 @@ public class CombineParams extends ConstCombineParams implements Storable {
   }
 
   public void setMaxPatchZMax(String fileName) throws InvalidParameterException,
-      IOException {
+    IOException {
 
     // Get the data size limits from the image stack
-    MRCHeader mrcHeader = MRCHeader.getInstance(manager.getPropertyUserDir(), fileName,
-        AxisID.ONLY);
+    MRCHeader mrcHeader =
+      MRCHeader.getInstance(manager.getPropertyUserDir(), fileName, AxisID.ONLY);
     if (!mrcHeader.read(manager)) {
       throw new IOException("file does not exist");
     }
@@ -452,20 +453,22 @@ public class CombineParams extends ConstCombineParams implements Storable {
       }
     }
     else {
-      matchMode = MatchMode.getInstance(props.getProperty(group + MATCH_MODE_KEY,
-          matchMode.toString()));
+      matchMode =
+        MatchMode.getInstance(props.getProperty(group + MATCH_MODE_KEY, matchMode
+          .toString()));
     }
 
-    fiducialMatch = FiducialMatch.fromString(props.getProperty(group + "FiducialMatch",
-        fiducialMatch.toString()));
+    fiducialMatch =
+      FiducialMatch.fromString(props.getProperty(group + "FiducialMatch", fiducialMatch
+        .toString()));
 
     useList.parseString(props.getProperty(group + "UseList", useList.toString()));
 
     fiducialMatchListA.parseString(props.getProperty(group + "FiducialMatchListA",
-        fiducialMatchListA.toString()));
+      fiducialMatchListA.toString()));
 
     fiducialMatchListB.parseString(props.getProperty(group + "FiducialMatchListB",
-        fiducialMatchListB.toString()));
+      fiducialMatchListB.toString()));
 
     patchSize =
       CombinePatchSize.fromString(props.getProperty(group + "PatchSize",
@@ -473,32 +476,39 @@ public class CombineParams extends ConstCombineParams implements Storable {
 
     patchRegionModel = props.getProperty(group + "PatchRegionModel", patchRegionModel);
 
-    patchXMin = Integer.parseInt(props.getProperty(group + "PatchBoundaryXMin",
-        String.valueOf(patchXMin)));
+    patchXMin =
+      Integer.parseInt(props.getProperty(group + "PatchBoundaryXMin", String
+        .valueOf(patchXMin)));
 
-    patchXMax = Integer.parseInt(props.getProperty(group + "PatchBoundaryXMax",
-        String.valueOf(patchXMax)));
+    patchXMax =
+      Integer.parseInt(props.getProperty(group + "PatchBoundaryXMax", String
+        .valueOf(patchXMax)));
 
-    patchYMin = Integer.parseInt(props.getProperty(group + "PatchBoundaryYMin",
-        String.valueOf(patchYMin)));
+    patchYMin =
+      Integer.parseInt(props.getProperty(group + "PatchBoundaryYMin", String
+        .valueOf(patchYMin)));
 
-    patchYMax = Integer.parseInt(props.getProperty(group + "PatchBoundaryYMax",
-        String.valueOf(patchYMax)));
+    patchYMax =
+      Integer.parseInt(props.getProperty(group + "PatchBoundaryYMax", String
+        .valueOf(patchYMax)));
 
     patchZMin.load(props, prepend);
     patchZMax.load(props, prepend);
 
     tempDirectory = props.getProperty(group + "TempDirectory", tempDirectory);
 
-    manualCleanup = Boolean.valueOf(
+    manualCleanup =
+      Boolean.valueOf(
         props.getProperty(group + "ManualCleanup", Boolean.toString(manualCleanup)))
         .booleanValue();
 
-    modelBased = Boolean.valueOf(
+    modelBased =
+      Boolean.valueOf(
         props.getProperty(group + "ModelBased", Boolean.toString(modelBased)))
         .booleanValue();
-    transfer = Boolean.valueOf(
-        props.getProperty(group + "Transfer", Boolean.toString(transfer))).booleanValue();
+    transfer =
+      Boolean.valueOf(props.getProperty(group + "Transfer", Boolean.toString(transfer)))
+        .booleanValue();
 
     if (fiducialMatch == FiducialMatch.USE_MODEL) {
       modelBased = true;
@@ -506,8 +516,9 @@ public class CombineParams extends ConstCombineParams implements Storable {
     else {
       modelBased = false;
     }
-    maxPatchZMax = Integer.parseInt(props.getProperty(group + "MaxPatchBoundaryZMax",
-        String.valueOf(maxPatchZMax)));
+    maxPatchZMax =
+      Integer.parseInt(props.getProperty(group + "MaxPatchBoundaryZMax", String
+        .valueOf(maxPatchZMax)));
   }
 
   /**
@@ -517,10 +528,10 @@ public class CombineParams extends ConstCombineParams implements Storable {
    * boundaries.
    */
   public void setDefaultPatchBoundaries(String fileName)
-      throws InvalidParameterException, IOException {
+    throws InvalidParameterException, IOException {
     // Get the data size limits from the image stack
-    MRCHeader mrcHeader = MRCHeader.getInstance(manager.getPropertyUserDir(), fileName,
-        AxisID.ONLY);
+    MRCHeader mrcHeader =
+      MRCHeader.getInstance(manager.getPropertyUserDir(), fileName, AxisID.ONLY);
     if (!mrcHeader.read(manager)) {
       return;
     }

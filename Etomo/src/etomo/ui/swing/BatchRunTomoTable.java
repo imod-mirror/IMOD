@@ -584,21 +584,23 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
       OrderedHashMap.ReadOnlyArray<BatchRunTomoRowMetaData> array =
         metaData.getOrderedRows();
       boolean fileAdded = false;
-      for (int i = 0; i < array.size(); i++) {
-        BatchRunTomoRowMetaData rowMetaData = array.get(i);
-        if (rowMetaData != null) {
-          int index = list.size();
-          String stackID = rowMetaData.getStackID();
-          BatchRunTomoRow row =
-            BatchRunTomoRow.getInstance(table, pnlTable, layout, constraints, index + 1,
-              new File(tableReference.getUniqueString(stackID)), null, false, false,
-              manager, stackID, preferredTableSize);
-          row.expandStack(btnStack.isExpanded());
-          list.add(row);
-          fileAdded = true;
-          row.display(viewport, curTab);
-          if (tableListener != null && i == 0 && firstIndex == 0) {
-            tableListener.firstRowAdded(eventObject);
+      if (array != null) {
+        for (int i = 0; i < array.size(); i++) {
+          BatchRunTomoRowMetaData rowMetaData = array.get(i);
+          if (rowMetaData != null) {
+            int index = list.size();
+            String stackID = rowMetaData.getStackID();
+            BatchRunTomoRow row =
+              BatchRunTomoRow.getInstance(table, pnlTable, layout, constraints,
+                index + 1, new File(tableReference.getUniqueString(stackID)), null,
+                false, false, manager, stackID, preferredTableSize);
+            row.expandStack(btnStack.isExpanded());
+            list.add(row);
+            fileAdded = true;
+            row.display(viewport, curTab);
+            if (tableListener != null && i == 0 && firstIndex == 0) {
+              tableListener.firstRowAdded(eventObject);
+            }
           }
         }
       }
