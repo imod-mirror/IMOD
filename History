@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/25/15: Made messages to 3dmod able to contain spaces in filenames.
+
 2/23/15: IMOD_4-8-25
 2/23/15: Fixed hang of eTomo when template editor is opened; made batch
 interface put out : as separator in CPU list.
