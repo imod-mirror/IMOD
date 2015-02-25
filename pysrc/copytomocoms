@@ -8,10 +8,10 @@
 progname = 'copytomocoms'
 prefix = 'ERROR: ' + progname + ' - '
 
-SAMPLESIZE = 10               # Size of sample tomogram
-SAMPALISIZE = 60              # Size of aligned stack for sampling
-MINBORDER1 = 30                 # Minimum border size
-MINBORDER2 = 40                 # Minimum size if y dimension > borderstep1
+SAMPLESIZE = 10   #24           # Size of sample tomogram
+SAMPALISIZE = 60  #74           # Size of aligned stack for sampling
+MINBORDER1 = 30   #33           # Minimum border size
+MINBORDER2 = 40   #43           # Minimum size if y dimension > borderstep1
 BORDERSTEP1 = 500               # threshold for using minborder2
 BORDERSTEP2 = 1000              # threshold for linearly increasing size
 BORDERFAC = 10                  # controls linear increase of border size
@@ -42,6 +42,16 @@ def writeComFile(dstfile, sedlines):
       writeTextFile(os.path.join(origComDir, dstfile), sedlines)
 
 
+# If there are directive changes, first write the default file, then apply changes
+def applyChangeListAndWrite(srcRoot, sedlines, dstfile, doChanges = True):
+   if doChanges and len(changeList) > 0:
+      tempLines = copy.deepcopy(sedlines)
+      sedlines = modifyForChangeList(sedlines, srcRoot, setlet, changeList)
+      if dfltComDir and tempLines != sedlines:
+         writeTextFile(os.path.join(dfltComDir, dstfile), tempLines)
+   writeComFile(dstfile, sedlines)
+
+      
 # This function does the boilerplate of defining source and destination files,
 # backing up the diestination file and adding it to the backuplist, running pysed,
 # adding the savework command to the output, and writing the output file
@@ -52,13 +62,7 @@ def editAndWrite(srcRoot, dstRoot, sedcom, doChanges = True):
    makeBackupFile(dstfile)
    sedlines = pysed(sedcom, srcfile, None)
    sedlines.append(backupline)
-
-   # If there are directive changes, first write the default file, then apply changes
-   if doChanges and len(changeList) > 0:
-      if dfltComDir:
-         writeTextFile(os.path.join(dfltComDir, dstfile), sedlines)
-      sedlines = modifyForChangeList(sedlines, srcRoot, setlet, changeList)
-   writeComFile(dstfile, sedlines)
+   applyChangeListAndWrite(srcRoot, sedlines, dstfile, doChanges)
 
 
 # Function to run goodframe
@@ -99,7 +103,7 @@ def printInfo(text):
 #### MAIN PROGRAM  ####
 #
 # load System Libraries
-import os, sys, shutil, math, stat
+import os, sys, shutil, math, stat, copy
 
 #
 # Setup runtime environment
@@ -288,6 +292,11 @@ for (comDir, comDescr) in ((origComDir, 'original'), (dfltComDir, 'default')):
       except OSError:
          warning('Error making directory for ' + comDescr + ' com files')
          comDir = ''
+
+   if not comDir and comDescr == 'original':
+      origComDir = ''
+   if not comDir and comDescr == 'default':
+      dfltComDir = ''
 
 
 # SKIP ALLOWING STACKS IN BACKUP DIRECTORY AND MAKING LINKS TO THEM
@@ -753,9 +762,7 @@ for iaxis in range(naxis):
    sedlines = pysed(sedcom, srcfile, None)
    dstlines.extend(sedlines)
    dstlines.append(backupline)
-   if changeList:
-      dstlines = modifyForChangeList(dstlines, 'xcorr', setlet, changeList)
-   writeComFile(dstfile, dstlines)
+   applyChangeListAndWrite('xcorr', dstlines, dstfile)
 
 
    # Set up lines for adding distortion corrections
@@ -866,9 +873,7 @@ for iaxis in range(naxis):
                    fmtstr("$if (-e {0}.resid) patch2imod -s {1} {0}.resid {0}.resmod",
                           setname, RESIDUAL_SCALE),
                    backupline])
-   if changeList:
-      sedlines = modifyForChangeList(sedlines, 'align', setlet, changeList)
-   writeComFile(dstfile, sedlines)
+   applyChangeListAndWrite('align', sedlines, dstfile)
    backuplist.extend([dstfile, setname + "local.xf", setname + "fid.xyz",
                       setname + ".xf", setname + ".tlt", setname + ".resid",
                       setname + ".resmod", setname + ".3dmod"])

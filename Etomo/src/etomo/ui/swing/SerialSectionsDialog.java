@@ -550,13 +550,7 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
     updateDisplay();
   }
 
-  public void action(final Run3dmodButton button,
-      final Run3dmodMenuOptions run3dmodMenuOptions) {
-    action(button.getActionCommand(), button.getDeferred3dmodButton(),
-        run3dmodMenuOptions);
-  }
-
-  private void action(final String command, Deferred3dmodButton deferred3dmodButton,
+  public void action(final String command, final Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(btnPreblend.getActionCommand())) {
       manager.preblend(null, deferred3dmodButton, axisID, run3dmodMenuOptions,
@@ -737,7 +731,8 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
     ReadOnlyAutodoc autodoc = null;
     try {
       if (viewType == ViewType.MONTAGE) {
-        autodoc = AutodocFactory.getInstance(manager, AutodocFactory.BLENDMONT, axisID);
+        autodoc = AutodocFactory.getInstance(manager, AutodocFactory.BLENDMONT, axisID,
+            false);
         cbVerySloppyMontage
             .setToolTipText("Overlaps between images vary substantially; use for "
                 + "montages taken with stage movement.");
@@ -754,7 +749,8 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
             + EtomoAutodoc.getTooltip(autodoc, BlendmontParam.FILL_VALUE_KEY));
       }
       else {
-        autodoc = AutodocFactory.getInstance(manager, AutodocFactory.NEWSTACK, axisID);
+        autodoc = AutodocFactory.getInstance(manager, AutodocFactory.NEWSTACK, axisID,
+            false);
         spBinByFactor.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
             NewstParam.BIN_BY_FACTOR_KEY));
         cbFillWithZero.setToolTipText("Sets " + NewstParam.FILL_VALUE_KEY + " to zero.  "

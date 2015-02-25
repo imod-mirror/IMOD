@@ -23,19 +23,13 @@ import etomo.util.Utilities;
 /**
  * <p>Description: </p>
  * 
- * <p>Copyright: Copyright (c) 2005</p>
+ * <p>Copyright: Copyright 2005 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
- * University of Colorado</p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
+ * @version $Id$
  */
 final class SpacedTextField implements UIComponent, SwingComponent {
-  public static final String rcsid = "$Id$";
-
   private final JTextField textField = new JTextField();
   private final JPanel fieldPanel = new JPanel();
   private final JPanel yAxisPanel = new JPanel();
@@ -48,10 +42,10 @@ final class SpacedTextField implements UIComponent, SwingComponent {
     // set name
     String name = Utilities.convertLabelToName(label);
     textField.setName(UITestFieldType.TEXT_FIELD.toString()
-        + AutodocTokenizer.SEPARATOR_CHAR + name);
+      + AutodocTokenizer.SEPARATOR_CHAR + name);
     if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
       System.out.println(textField.getName() + ' ' + AutodocTokenizer.DEFAULT_DELIMITER
-          + ' ');
+        + ' ');
     }
     label = label.trim();
     this.label = new JLabel(label);
@@ -122,7 +116,9 @@ final class SpacedTextField implements UIComponent, SwingComponent {
   final String getText(final boolean doValidation) throws FieldValidationFailedException {
     String text = textField.getText();
     if (doValidation && textField.isEnabled()) {
-      text = FieldValidator.validateText(text, fieldType, this, getQuotedLabel(), false,false);
+      text =
+        FieldValidator.validateText(text, fieldType, this, getQuotedLabel(), false,
+          false, null);
     }
     return text;
   }

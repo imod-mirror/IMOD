@@ -50,6 +50,21 @@ next line, next filename on next line, etc.  If this
 option is used, no output filenames may be specified with the -output option
 or as the last file on the command line.
 
+[Field = ReverseInputFileOrder]
+short = reverse
+type = I
+usage = Process files in inverted order (0: all, N>0: first N, N<0: last N)
+tooltip = 
+manpage = Process some or all of the input files in reverse order.  Enter 0 to
+reverse the order for all files, a number N greater than 0 to process only the
+first N files in reverse order, or a a number N less than 0 to reverse only
+the last N files.  This option allows you to stack sequentially numbered files
+in a desired order and still enter them with wild cards on a command line.
+No other entries, such as multiple section lists, are reversed; they all apply
+to the files in the order that they are processed.
+There must be at least the given number of input files, entered with
+\fB-input\fR or as non-option arguments.  
+
 [Field = SplitStartingNumber]
 short = split
 type = I
@@ -71,6 +86,97 @@ manpage = Extension to append to the filenames in a series of numbered files.
 With this option, files will be named like "rootnnn.ext" instead of
 "root.nnn", where "root" is the root name entered as the output file name,
 and "ext" is the extension entered with this option.
+
+[Field = FormatOfOutputFile]
+short = format
+type = CH
+usage = Type of output file: MRC, TIF or TIFF, HDF (or lower case)
+tooltip =
+manpage = Set output file format to MRC, TIFF, or HDF (if the package supports
+HDF) by entering MRC, TIF, TIFF, HDF, or any lower case form of
+these.  This entry overrides a default format set with the environment
+variable IMOD_OUTPUT_FORMAT.
+
+[Field = VolumesToRead]
+short = volumes
+type = LI
+usage = List of volume numbers to read from multi-volume HDF files
+tooltip =
+manpage = If any HDF files containing multiple volumes are included in the
+input file list, this option must be entered to specify which volume to read
+from such a file.  Enter a volume number for each input file, numbered from 1,
+at least up until the last multi-volume HDF file in the input file list.
+Enter 1 for an HDF file with only one volume or a stack of 2D images, or for
+other file types.
+
+[Field = Store3DVolumes]
+short = 3d
+type = I
+usage = Controls whether to store 3D volume in new or existing file
+tooltip =
+manpage = This option controls whether data are stored in a 3D volume in an
+HDF file.  If 1 is entered, a new HDF file will be created (overriding the
+default output type) and data will be stored as 3D volume rather than a stack
+of 2D images.  If 2 or 3 are entered, the output file must be an existing HDF
+file with data stored as volumes, and data will be stored in a new 3D volume.
+A value of 3 is used by Makepyramid(1) to cause Newstack to insert the
+attribute "image_pyramid".  By default, if an HDF output file is being
+created, it will be stored as a volume if the first input file is an HDF file
+with volume storage.  A value of -1 will cause an output HDF file to be
+organized as a stack even if the input file has volumes.
+
+[Field = ChunkSizesInXYZ]
+short = chunk
+type = IT
+usage = Set target chunk sizes in X, Y, and Z for 3D volumes in HDF files
+tooltip =
+manpage = Set target chunk sizes in X, Y, and Z for 3D volumes stored in HDF
+files.  Based on the target, an actual chunk size will be chosen in each
+dimension that minimizes the amount of extra image area created by making a
+set of full tiles.  When the target value already evenly divides the image size
+in a dimension, that target will be used.  If this option is entered, the
+output file will be an HDF file with data stored as a 3D volume, making it
+unnecessary to enter -3d or -format.  The default is for 3D volumes to be
+stored with no tiling in X and Y and a chunk size of 1 in Z, or with the
+tiling and chunk size of the first input file if it an HDF file stored as a 3D
+volume.
+
+[Field = UseMdocFiles]
+short = mdoc
+type = B
+usage = Copy metadata from .mdoc files associated with input files, if any
+tooltip =
+manpage = This option allows data about each image section in metadata autodoc
+(.mdoc) files to be transferred and managed much as data in the extended
+header of an MRC file are.  With it selected, the program will search for a
+matching .mdoc file for each input file that is not HDF, and create a
+matching .mdoc file for each output file that is not HDF.  (A matching file is
+one with .mdoc appended to the image filename, as SerialEM creates).  Metadata
+about each image slice in ZValue sections will be transferred between autodocs
+and the ZValue will be renumbered appropriately.  Thus, data can be
+transferred from one .mdoc to another, if input and output files are MRC; from
+an .mdoc into the attributes of an HDF file if input is MRC and output is HDF;
+or from HDF attributes into an .mdoc if input is HDF and output is MRC.  When
+input and output are both HDF, attributes are transferred automatically.
+
+[Field = TiltAngleFile]
+short = tilt
+type = FN
+usage = Name of file with tilt angles to substitute or insert into output
+tooltip = 
+manpage = Name of file with tilt angles, one per line, to substitute or insert
+into the metadata of the output file(s).  Angles can subsequently be retrieved
+with Extracttilts(1).  If the input file(s) have extended
+headers with either the SerialEM or Agard/FEI format, the new values will be
+substituted for existing angles and other extended header items will be
+preserved.
+(There must already be angles in the SerialEM header, and all input files must
+have the same type of extended header.)  If the input file(s) have no extended
+header, angles will be placed into an extended header in the Agard/FEI format
+(just 1 floating point number per section).  (In this case, all input files
+must have no extended header.)  Tilt angles can also be replaced or inserted if 
+output file(s) are HDF, with or without an incoming ".mdoc" file; and tilt
+angles in ".mdoc" files associated with MRC files will be maintained as well.
 
 [SectionHeader = SecOptions]
 usage = SECTION SELECTION OPTIONS 
@@ -180,7 +286,11 @@ manpage = X and Y center offsets for each section.  This is an offset to the
 center of the area from which image will be taken, so a positive offset in X
 will move images to the left.  If images are being binned, the entry should be
 in unbinned pixels.  Enter one X,Y pair to apply a single offset to
-all sections.
+all sections.  If other transformations are being applied to the sections,
+these offsets will generally be combined with those operations, and
+non-integer offsets are meaningful.  Otherwise, the nearest integer offset
+will generally be applied, except when the \fI-phase\fR option is used to
+apply the offsets in Fourier space.
 
 [Field = ApplyOffsetsFirst]
 short = applyfirst
@@ -220,6 +330,21 @@ the second file, etc., in which case the transform file must have at least one
 line per input file.  Otherwise, -uselines can be used to specify which
 transform to apply for each file, in which case at least one line must be
 specified per input file.
+
+[Field = PhaseShiftFFT]
+short = phase
+type = B
+usage = Shift images by changing phase in Fourier space instead of interpolating
+tooltip = 
+manpage = Shift images by taking a Fourier transform, changing phases
+appropriately, and taking an inverse Fourier transform, rather than by
+interpolating in real space.  In principle, this method preserves high
+frequencies better than interpolation does.  The method can be used only if
+images are just being shifted, not rotated, scaled, warped, or undistorted.
+The shifts can be specified in two ways: with the \fI-offset\fR option, or as
+linear transforms that contain only shifts.  This option can be used together
+with either \fI-bin\fR or \fI-shrink\fR, but not both, because the data are
+scaled down when read in.
 
 [Field = RotateByAngle]
 short = rotate
@@ -541,6 +666,13 @@ tooltip =
 manpage = To test the code for reading in and binning images in chunks,
 enter limits for the total size of the working array, and for the size of 
 the array used for binning.  The sizes are the number of 4-byte elements.
+
+[Field = QuietOutput]
+short = quiet
+type = B
+usage = Suppress image file opening and min/max/mean output
+tooltip = 
+manpage = 
 
 [Field = VerboseOutput]
 short = verbose

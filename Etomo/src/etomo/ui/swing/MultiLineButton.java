@@ -20,6 +20,7 @@ import etomo.util.Utilities;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.FontMetrics;
 import java.awt.Insets;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseListener;
@@ -33,15 +34,10 @@ import java.lang.String;
  * This prevents the text from changing color when the button is disabled, so
  * this class controls the text color on enable/disable.</p>
  *
- * <p>Copyright: Copyright 2002 - 2006</p>
+ * <p>Copyright: Copyright 2002 - 2014 by the Regents of the University of Colorado</p>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
- * Univeristy of Colorado</p>
- *
- * @author $Author$
- *
- * @version $Revision$
+ * @version $Id$
  *
  * <p> $Log$
  * <p> Revision 1.4  2011/04/04 17:21:11  sueh
@@ -239,8 +235,6 @@ import java.lang.String;
  * <p> </p>
  */
 class MultiLineButton implements ProcessResultDisplay {
-  public static final String rcsid = "$$Id$$";
-
   public static final String ENABLED_TEXT_COLOR_PROPERTY = "Button.foreground";
   public static final String DISABLED_TEXT_COLOR_PROPERTY = "Button.disabledText";
 
@@ -256,12 +250,13 @@ class MultiLineButton implements ProcessResultDisplay {
   private Color buttonHighlightForeground = null;
   private boolean debug = false;
   private String unformattedLabel = null;
+  private FontMetrics fontMetrics = null;
 
   public void dumpState() {
     System.err.print("[toggleButton:" + toggleButton + ",stateKey:" + stateKey
-        + ",\nmanualName:" + manualName + ",buttonForeground:" + buttonForeground
-        + ",\nbuttonHighlightForeground:" + buttonHighlightForeground + ",debug:" + debug
-        + ",\nunformattedLabel:" + unformattedLabel + "]");
+      + ",\nmanualName:" + manualName + ",buttonForeground:" + buttonForeground
+      + ",\nbuttonHighlightForeground:" + buttonHighlightForeground + ",debug:" + debug
+      + ",\nunformattedLabel:" + unformattedLabel + "]");
   }
 
   MultiLineButton() {
@@ -274,6 +269,20 @@ class MultiLineButton implements ProcessResultDisplay {
 
   static MultiLineButton getDebugInstance(String label) {
     return new MultiLineButton(label, false, null, true);
+  }
+
+  int getPreferredWidth() {
+    if (fontMetrics == null) {
+      fontMetrics = UIUtilities.getFontMetrics(button);
+    }
+    return UIUtilities.getPreferredWidth(button, unformattedLabel, fontMetrics);
+  }
+
+  int getPreferredWidth(final String text) {
+    if (fontMetrics == null) {
+      fontMetrics = UIUtilities.getFontMetrics(button);
+    }
+    return UIUtilities.getPreferredWidth(button, text, fontMetrics);
   }
 
   int getWidth() {
@@ -314,10 +323,9 @@ class MultiLineButton implements ProcessResultDisplay {
     if (buttonForeground == null) {
       buttonForeground = button.getForeground();
       // creating a readable foreground highlight color
-      buttonHighlightForeground = Colors.subtractColor(
-          Colors.HIGHLIGHT_BACKGROUND,
-          UIUtilities.divideColor(
-              Colors.subtractColor(new Color(255, 255, 255), buttonForeground), 2));
+      buttonHighlightForeground =
+        Colors.subtractColor(Colors.HIGHLIGHT_BACKGROUND, UIUtilities.divideColor(Colors
+          .subtractColor(new Color(255, 255, 255), buttonForeground), 2));
     }
     if (highlight) {
       button.setForeground(buttonHighlightForeground);
@@ -331,7 +339,8 @@ class MultiLineButton implements ProcessResultDisplay {
     return new MultiLineButton(null, true, null, false);
   }
 
-  static final MultiLineButton getToggleButtonInstance(String label, DialogType dialogType) {
+  static final MultiLineButton
+    getToggleButtonInstance(String label, DialogType dialogType) {
     return new MultiLineButton(label, true, dialogType, false);
   }
 
@@ -404,7 +413,7 @@ class MultiLineButton implements ProcessResultDisplay {
   void setName(String label) {
     String name = Utilities.convertLabelToName(label);
     button.setName(UITestFieldType.BUTTON.toString() + AutodocTokenizer.SEPARATOR_CHAR
-        + name);
+      + name);
     if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
       System.out.println(getName() + ' ' + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
     }
@@ -470,11 +479,15 @@ class MultiLineButton implements ProcessResultDisplay {
     button.addActionListener(actionListener);
   }
 
+  void setActionCommand(final String actionCommand) {
+    button.setActionCommand(actionCommand);
+  }
+
   final String getActionCommand() {
     return button.getActionCommand();
   }
 
-  final Component getComponent() {
+  public final Component getComponent() {
     return button;
   }
 
@@ -513,7 +526,7 @@ class MultiLineButton implements ProcessResultDisplay {
   final void setAlignmentY(float alignmentY) {
     button.setAlignmentY(alignmentY);
   }
-  
+
   /**
    * @return a label suitable for a message - in single quotes and truncated at the colon.
    */
@@ -538,23 +551,33 @@ class MultiLineButton implements ProcessResultDisplay {
    * @param container
    * @param size
    */
-  final void setSize() {
+  void setSize() {
     setSize(false);
   }
-  
+
   final void setSingleLineSize() {
-    Dimension size = UIParameters.INSTANCE.getButtonSingleLineDimension();
+    Dimension size = UIParameters.getInstance(fontMetrics).getButtonSingleLineDimension();
     button.setPreferredSize(size);
     button.setMaximumSize(size);
   }
 
   final void setSize(boolean setMinimum) {
-    Dimension size = UIParameters.INSTANCE.getButtonDimension();
+    FontMetrics fontMetrics = null;
+    if (UIParameters.needButtonFontMetrics()) {
+      fontMetrics = UIUtilities.getFontMetrics(button);
+    }
+    Dimension size = UIParameters.getInstance(fontMetrics).getButtonDimension();
     button.setPreferredSize(size);
     button.setMaximumSize(size);
     if (setMinimum) {
       button.setMinimumSize(size);
     }
+  }
+
+  final void setToPreferredSize() {
+    Dimension size = button.getPreferredSize();
+    button.setPreferredSize(size);
+    button.setMaximumSize(size);
   }
 
   final void setSize(Dimension size) {
@@ -600,7 +623,7 @@ class MultiLineButton implements ProcessResultDisplay {
     return button.isVisible();
   }
 
-  final boolean isEnabled() {
+  public final boolean isEnabled() {
     return button.isEnabled();
   }
 

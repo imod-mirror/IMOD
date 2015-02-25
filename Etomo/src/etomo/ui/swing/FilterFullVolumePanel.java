@@ -106,7 +106,7 @@ final class FilterFullVolumePanel implements Run3dmodButtonContainer {
 
   private void createPanel() {
     // initialization
-    ltfKValue.setTextPreferredWidth(UIParameters.INSTANCE.getFourDigitWidth());
+    ltfKValue.setTextPreferredWidth(UIParameters.getInstance().getFourDigitWidth());
     btnRunFilterFullVolume.setSize();
     btnViewFilteredVolume.setSize();
     btnCleanup.setSize();
@@ -178,14 +178,7 @@ final class FilterFullVolumePanel implements Run3dmodButtonContainer {
     param.setOverlapTimesFour(cbOverlapTimesFour.isSelected());
   }
 
-  public void action(final Run3dmodButton button,
-      final Run3dmodMenuOptions run3dmodMenuOptions) {
-    action(button.getActionCommand(), button.getDeferred3dmodButton(),
-        run3dmodMenuOptions);
-  }
-
-  private void action(final String command,
-      final Deferred3dmodButton deferred3dmodButton,
+  public void action(final String command, final Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(btnRunFilterFullVolume.getActionCommand())) {
       if (!parent.initSubdir()) {
