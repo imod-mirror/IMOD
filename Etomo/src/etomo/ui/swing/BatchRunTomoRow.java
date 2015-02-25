@@ -298,10 +298,11 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
       }
       else if (actionCommand.equals(cbcBoundaryModel.getActionCommand())
         && cbcBoundaryModel.isSelected()) {
+        File stack = new File(fcStack.getExpandedValue());
         // The model is only opened for the A axis
         if (imodIndexA != -1) {
-          manager.imodModel(AxisID.FIRST, imodIndexA, fcStack.getContractedValue(),
-            FileType.BATCH_RUN_TOMO_BOUNDARY_MODEL, dual);
+          manager.imodModel(AxisID.FIRST, imodIndexA, stack.getParentFile(), stack
+            .getName(), FileType.BATCH_RUN_TOMO_BOUNDARY_MODEL, dual);
         }
       }
       else if (actionCommand.equals(bcEditDataset.getActionCommand())) {
@@ -511,7 +512,7 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
         String boundaryModelName =
           BatchTool.getModelFileName(FileType.BATCH_RUN_TOMO_BOUNDARY_MODEL, stack
             .getName(), cbcDual.isSelected());
-        //Validation: make sure the boundary model file exists
+        // Validation: make sure the boundary model file exists
         if (doValidation
           && !new File(originalLocation, boundaryModelName).exists()
           && (deliverToDirectory == null || !(new File(new File(deliverToDirectory,
