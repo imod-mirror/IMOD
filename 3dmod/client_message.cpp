@@ -46,6 +46,7 @@ static QStringList sMessageStrings;
 static int sMessageStamp = -1;
 static bool sInitialLoad;
 
+#define SPACE_KEEPER "%?@%*#!"
 #define STDIN_INTERVAL  50
 #define MAX_LINE 256
 static char sThreadLine[MAX_LINE];
@@ -221,6 +222,7 @@ void ImodClipboard::clipHackTimeout()
 void ImodClipboard::stdinTimeout()
 {
   QString text;
+  QStringList tmpStrings;
   if (mHandling)
     return;
 
@@ -262,11 +264,12 @@ void ImodClipboard::stdinTimeout()
     mDisconnected = true;
     return;
   }
-  
+
+  splitWithEscapedSpaces(text, tmpStrings);
   if (sInitialLoad)
-    sMessageStrings += text.split(" ", QString::SkipEmptyParts);
+    sMessageStrings += tmpStrings;
   else
-    sMessageStrings = text.split(" ", QString::SkipEmptyParts);
+    sMessageStrings = tmpStrings;
 
   // Start timer to execute message just as for clipboard
   mHandling = true;
@@ -296,7 +299,7 @@ bool ImodClipboard::handleMessage()
 
   // Split the string, ignoring multiple spaces, and return false if fewer
   // than 3 elements
-  tmpStrings = text.split(" ", QString::SkipEmptyParts);
+  splitWithEscapedSpaces(text, tmpStrings);
   if (tmpStrings.count() < 3)
     return false;
 
@@ -319,6 +322,15 @@ bool ImodClipboard::handleMessage()
     sMessageStrings << tmpStrings[arg];
     
   return true;
+}
+
+// Split on spaces after converting escaped spaces to nonsense string
+// We used \\ for the escape to avoid having to escape backslashes themselves
+void ImodClipboard::splitWithEscapedSpaces(QString &text, QStringList &tmpStrings)
+{
+  text.replace("\\\\ ", SPACE_KEEPER);
+  tmpStrings = text.split(" ", QString::SkipEmptyParts);
+  tmpStrings.replaceInStrings(SPACE_KEEPER, " ");
 }
 
 // This function performs the action after the delay is up.  It returns
