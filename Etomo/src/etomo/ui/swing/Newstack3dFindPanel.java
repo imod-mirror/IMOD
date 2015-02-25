@@ -82,8 +82,8 @@ final class Newstack3dFindPanel extends NewstackOrBlendmont3dFindPanel implement
   public void setParameters(ConstNewstParam param) {
   }
 
-  public boolean getParameters(NewstParam newstParam,final boolean doValidation) throws FortranInputSyntaxException,
-      InvalidParameterException, IOException {
+  public boolean getParameters(NewstParam newstParam, final boolean doValidation)
+      throws FortranInputSyntaxException, InvalidParameterException, IOException {
     newstParam.setCommandMode(NewstParam.Mode.FULL_ALIGNED_STACK);
     newstParam.setFiducialessAlignment(manager.getMetaData().isFiducialessAlignment(
         axisID));
@@ -125,7 +125,7 @@ final class Newstack3dFindPanel extends NewstackOrBlendmont3dFindPanel implement
    * @param deferred3dmodButton
    * @param run3dmodMenuOptions
    */
-  void action(final String command, final Deferred3dmodButton deferred3dmodButton,
+  public void action(final String command, final Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(get3dmodFullButtonActionCommand())) {
       manager.imodFineAlign3dFind(axisID, run3dmodMenuOptions);

@@ -251,7 +251,7 @@ public abstract class ProcessDialog implements AbstractParallelDialog {
     pnlExitButtons.add(Box.createHorizontalGlue());
 
     UIUtilities.setButtonSizeAll(pnlExitButtons,
-        UIParameters.INSTANCE.getNarrowButtonDimension());
+        UIParameters.getInstance().getNarrowButtonDimension());
 
     // Exit action listeners
     btnCancel.addActionListener(new buttonCancelActionAdapter(this));
