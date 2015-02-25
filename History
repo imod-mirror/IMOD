@@ -1,5 +1,10 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/25/15: Fixes to batch interface: model is put in right place if 3dmod is
+open already when Boundary Model checked; right-click operations on opening
+3dmod work with boundary model checked; tilt series is loaded as integers;
+defocus is now in microns in the interface.
+
 2/25/15: Made messages to 3dmod able to contain spaces in filenames.
 
 2/23/15: IMOD_4-8-25
