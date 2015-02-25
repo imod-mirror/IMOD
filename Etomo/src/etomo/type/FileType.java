@@ -864,6 +864,15 @@ public final class FileType {
     return getFileName(null, null, rootName, axisType, axisID, false);
   }
 
+  public File getFile(final File dir, final String rootName,
+    final AxisType axisType, final AxisID axisID) {
+    String fileName = getFileName(null, null, rootName, axisType, axisID, false);
+    if (fileName != null) {
+      return new File(dir, fileName);
+    }
+    return null;
+  }
+
   public String getFileName(final String rootName, final AxisID axisID) {
     return getFileName(null, null, rootName, null, axisID, false);
   }
