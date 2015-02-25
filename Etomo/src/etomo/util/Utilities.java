@@ -31,11 +31,11 @@ import etomo.comscript.ComScript;
 /**
  * <p>Description: A class containing utility methods.</p>
  * <p/>
- * <p>Copyright: Copyright 2002 to 2014 by the Regents of the University of Colorado</p>
+ * <p>Copyright: Copyright 2002 - 2015 by the Regents of the University of Colorado</p>
  * <p/>
  * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * @version $Date$ $Revision$
+ * @version $Id$
  *          <p/>
  *          <p> $$Log$
  *          <p> $Revision 3.80  2011/06/28 20:02:20  sueh
@@ -368,8 +368,7 @@ public class Utilities {
   public static final String FINISHED_STATUS = "finished";
   public static final String FAILED_STATUS = "  failed";
 
-  private Utilities() {
-  }
+  private Utilities() {}
 
   /**
    * Returns an element from a comma-divided list stored in a string.  Returns null if the
@@ -417,8 +416,9 @@ public class Utilities {
    * @return true if the file exist
    */
   public static boolean fileExists(BaseManager manager, String extension, AxisID axisID) {
-    File file = new File(manager.getPropertyUserDir(),
-        manager.getBaseMetaData().getName() + axisID.getExtension() + extension);
+    File file =
+      new File(manager.getPropertyUserDir(), manager.getBaseMetaData().getName()
+        + axisID.getExtension() + extension);
     if (file.exists()) {
       return true;
     }
@@ -436,21 +436,22 @@ public class Utilities {
    * @return
    */
   public static File getFile(BaseManager manager, boolean mustExist, AxisID axisID,
-      String extension, String fileDescription) {
-    File file = new File(manager.getPropertyUserDir(),
-        manager.getName() + axisID.getExtension() + extension);
+    String extension, String fileDescription) {
+    File file =
+      new File(manager.getPropertyUserDir(), manager.getName() + axisID.getExtension()
+        + extension);
     if (!file.exists() && mustExist) {
-      UIHarness.INSTANCE.openMessageDialog(manager,
-          "The " + fileDescription + " file: " + file.getAbsolutePath() +
-              " doesn't exist.", "Missing File", axisID);
+      UIHarness.INSTANCE.openMessageDialog(manager, "The " + fileDescription + " file: "
+        + file.getAbsolutePath() + " doesn't exist.", "Missing File", axisID);
       return null;
     }
     return file;
   }
 
   public static File getFile(BaseManager manager, AxisID axisID, String extension) {
-    File file = new File(manager.getPropertyUserDir(),
-        manager.getName() + axisID.getExtension() + extension);
+    File file =
+      new File(manager.getPropertyUserDir(), manager.getName() + axisID.getExtension()
+        + extension);
     return file;
   }
 
@@ -468,8 +469,8 @@ public class Utilities {
     }
     if (isWindowsOS()) {
       int driveIndex = filename.indexOf(':');
-      if (driveIndex != -1 && driveIndex < filename.length() - 1 &&
-          filename.charAt(driveIndex + 1) == File.separatorChar) {
+      if (driveIndex != -1 && driveIndex < filename.length() - 1
+        && filename.charAt(driveIndex + 1) == File.separatorChar) {
         return new File(filename);
       }
     }
@@ -486,7 +487,7 @@ public class Utilities {
    */
   public static boolean isValidStack(File file, BaseManager manager, AxisID axisID) {
     MRCHeader header =
-        MRCHeader.getInstance(manager.getPropertyUserDir(), file.getName(), axisID);
+      MRCHeader.getInstance(manager.getPropertyUserDir(), file.getName(), axisID);
     boolean validMrcFile = false;
     try {
       header.read(manager);
@@ -512,16 +513,16 @@ public class Utilities {
     if (!EtomoDirector.INSTANCE.getArguments().isActions()) {
       return null;
     }
-    return ACTION_TAG + "Renamed " + (from != null ? from.getName() : "") + " to " +
-        (to != null ? to.getName() : "");
+    return ACTION_TAG + "Renamed " + (from != null ? from.getName() : "") + " to "
+      + (to != null ? to.getName() : "");
   }
 
   public static String prepareCopyActionMessage(final File from, final File to) {
     if (!EtomoDirector.INSTANCE.getArguments().isActions()) {
       return null;
     }
-    return ACTION_TAG + "Copied " + (from != null ? from.getName() : "") + " to " +
-        (to != null ? to.getName() : "");
+    return ACTION_TAG + "Copied " + (from != null ? from.getName() : "") + " to "
+      + (to != null ? to.getName() : "");
   }
 
   /**
@@ -539,16 +540,17 @@ public class Utilities {
   }
 
   public static String getCommandAction(final String[] commandArray,
-      final String[] stdInput) {
+    final String[] stdInput) {
     if (commandArray == null || commandArray.length == 0) {
       return null;
     }
     String command = commandArray[0].trim();
-    if ((commandArray.length == 1 &&
-        (command.equals("env") || command.equals("hostname") ||
-            (command.equals("tcsh") && (stdInput == null || stdInput.length == 0)))) ||
-        command.endsWith("ssh") || command.equals("ps") || command.endsWith("3dmod") ||
-        command.endsWith("imodsendevent")) {
+    if ((commandArray.length == 1 && (command.equals("env") || command.equals("hostname") || (command
+      .equals("tcsh") && (stdInput == null || stdInput.length == 0))))
+      || command.endsWith("ssh")
+      || command.equals("ps")
+      || command.endsWith("3dmod")
+      || command.endsWith("imodsendevent")) {
       return null;
     }
     int commandLength = 1;
@@ -595,8 +597,9 @@ public class Utilities {
       if (param.endsWith("alignlog")) {
         showDash = true;
       }
-      if (!showDash && (param.startsWith("-") ||
-          (isWindowsOS() && param.length() == 2 && param.startsWith("/")))) {
+      if (!showDash
+        && (param.startsWith("-") || (isWindowsOS() && param.length() == 2 && param
+          .startsWith("/")))) {
         continue;
       }
       if (i >= commandLength) {
@@ -710,10 +713,9 @@ public class Utilities {
       return null;
     }
     commandLine = commandLine.trim();
-    if (commandLine.equals("env") || commandLine.equals("hostname") ||
-        commandLine.indexOf("ssh") != -1 || commandLine.indexOf("ps") != -1 ||
-        commandLine.indexOf("3dmod") != -1 ||
-        commandLine.indexOf("imodsendevent") != -1) {
+    if (commandLine.equals("env") || commandLine.equals("hostname")
+      || commandLine.indexOf("ssh") != -1 || commandLine.indexOf("ps") != -1
+      || commandLine.indexOf("3dmod") != -1 || commandLine.indexOf("imodsendevent") != -1) {
       return null;
     }
     return commandLine;
@@ -729,9 +731,9 @@ public class Utilities {
    * @return
    */
   public static String prepareDialogActionMessage(final DialogType dialogType,
-      final AxisID axisID, final DialogType oldDialogType) {
-    if (!EtomoDirector.INSTANCE.getArguments().isActions() || dialogType == null ||
-        dialogType == oldDialogType) {
+    final AxisID axisID, final DialogType oldDialogType) {
+    if (!EtomoDirector.INSTANCE.getArguments().isActions() || dialogType == null
+      || dialogType == oldDialogType) {
       return null;
     }
     String axis = "";
@@ -752,21 +754,21 @@ public class Utilities {
    * @throws IOException
    */
   public static boolean renameFileSafely(final BaseManager manager, final AxisID axisID,
-      final File source, final File destination) throws IOException {
+    final File source, final File destination) throws IOException {
     if (source == null || destination == null) {
       System.err.println("WARNING: unable to rename - source or destination is null");
       return false;
     }
     if (!source.exists()) {
-      System.err.println(
-          "WARNING: unable to rename - " + source.getName() + " does not exist.");
+      System.err.println("WARNING: unable to rename - " + source.getName()
+        + " does not exist.");
       return false;
     }
     // If the destination exists, exit
     if (destination.exists()) {
-      UIHarness.INSTANCE.openMessageDialog(manager,
-          "Unable to rename " + source.getName() + " to " + destination.getName() +
-              " because the target file already exists.", "Rename Failed", axisID);
+      UIHarness.INSTANCE.openMessageDialog(manager, "Unable to rename "
+        + source.getName() + " to " + destination.getName()
+        + " because the target file already exists.", "Rename Failed", axisID);
       return false;
     }
     // Rename the existing log file
@@ -788,8 +790,8 @@ public class Utilities {
         }
         System.err.println("Unable to rename file to: " + destination.getAbsolutePath());
         StringBuffer message =
-            new StringBuffer("Unable to rename " + source.getAbsolutePath() + " to " +
-                destination.getAbsolutePath());
+          new StringBuffer("Unable to rename " + source.getAbsolutePath() + " to "
+            + destination.getAbsolutePath());
         if (isWindowsOS()) {
           message.append("\nIf either of these files is open in 3dmod, close 3dmod.");
         }
@@ -820,8 +822,8 @@ public class Utilities {
       // TODO implement interactive Bug# 1696
       Utilities.debugPrint(destination.getAbsolutePath() + " exists, deleting");
       if (!destination.delete()) {
-        System.err.println(
-            "Unable to delete destination file: " + destination.getAbsolutePath());
+        System.err.println("Unable to delete destination file: "
+          + destination.getAbsolutePath());
         if (destination.exists()) {
           System.err.println(destination.getAbsolutePath() + " still exists!");
         }
@@ -851,8 +853,8 @@ public class Utilities {
         }
         System.err.println("Unable to rename file to: " + destination.getAbsolutePath());
         StringBuffer message =
-            new StringBuffer("Unable to rename " + source.getAbsolutePath() + " to " +
-                destination.getAbsolutePath());
+          new StringBuffer("Unable to rename " + source.getAbsolutePath() + " to "
+            + destination.getAbsolutePath());
         if (isWindowsOS()) {
           message.append("\nIf either of these files is open in 3dmod, close 3dmod.");
         }
@@ -865,7 +867,7 @@ public class Utilities {
   }
 
   public static File mostRecentFile(String propertyUserDir, String file1Name,
-      String file2Name, String file3Name, String file4Name) {
+    String file2Name, String file3Name, String file4Name) {
     File file1 = null;
     File file2 = null;
     File file3 = null;
@@ -920,15 +922,15 @@ public class Utilities {
    * @return
    */
   public static FileType mostRecentFile(final BaseManager manager, final AxisID axisID,
-      final FileType[] fileTypes, final int defaultIndex) {
+    final FileType[] fileTypes, final int defaultIndex) {
     if (fileTypes == null) {
       return null;
     }
     int mostRecentIndex = -1;
     File file = null;
     long mostRecentFileTime = 0;
-    if (defaultIndex >= 0 && defaultIndex < fileTypes.length &&
-        fileTypes[defaultIndex] != null) {
+    if (defaultIndex >= 0 && defaultIndex < fileTypes.length
+      && fileTypes[defaultIndex] != null) {
       mostRecentIndex = defaultIndex;
       file = fileTypes[mostRecentIndex].getFile(manager, axisID);
       if (file != null && file.exists()) {
@@ -957,12 +959,12 @@ public class Utilities {
   }
 
   public static void copyFile(final FileType source, final FileType destination,
-      final BaseManager manager, final AxisID axisID) throws IOException {
+    final BaseManager manager, final AxisID axisID) throws IOException {
     copyFile(source.getFile(manager, axisID), destination.getFile(manager, axisID));
   }
 
   public static void copyFile(final File source, final FileType destination,
-      final BaseManager manager, final AxisID axisID) throws IOException {
+    final BaseManager manager, final AxisID axisID) throws IOException {
     copyFile(source, destination.getFile(manager, axisID));
   }
 
@@ -971,15 +973,13 @@ public class Utilities {
    */
   public static void copyFile(File source, File destination) throws IOException {
     if (source == null) {
-      System.err
-          .println("Warning:  Unable to copyFile - source is null:  source" + source +
-              ",destination:" + destination);
+      System.err.println("Warning:  Unable to copyFile - source is null:  source"
+        + source + ",destination:" + destination);
       return;
     }
     if (source != null && source.equals(destination)) {
-      System.err.println(
-          "Warning:Can't copy a file to itself:source:" + source + ",destination:" +
-              destination);
+      System.err.println("Warning:Can't copy a file to itself:source:" + source
+        + ",destination:" + destination);
       return;
     }
     // Try using the nio method but if it fails fall back to BufferedFileReader/
@@ -1048,36 +1048,36 @@ public class Utilities {
   }
 
   public static boolean deleteFileType(BaseManager manager, AxisID axisID,
-      FileType fileType) {
-    return deleteFile(
-        new File(manager.getPropertyUserDir(), fileType.getFileName(manager, axisID)),
-        manager, axisID);
+    FileType fileType) {
+    return deleteFile(new File(manager.getPropertyUserDir(), fileType.getFileName(
+      manager, axisID)), manager, axisID);
   }
 
-  public static boolean deleteFile(final File file, final BaseManager manager, final AxisID axisID) {
+  public static boolean deleteFile(final File file, final BaseManager manager,
+    final AxisID axisID) {
     if (file.isFile()) {
       if (file.exists()) {
         if (!file.delete()) {
           StringBuffer message =
-              new StringBuffer("Unable to delete file: " + file.getAbsolutePath());
+            new StringBuffer("Unable to delete file: " + file.getAbsolutePath());
           if (Utilities.isWindowsOS()) {
             message.append("\nIf this file is open in 3dmod, close 3dmod.");
           }
-          UIHarness.INSTANCE
-              .openMessageDialog(manager, message.toString(), "Can not delete file",
-                  axisID);
+          UIHarness.INSTANCE.openMessageDialog(manager, message.toString(),
+            "Can not delete file", axisID);
           return false;
         }
       }
     }
     else if (file.isDirectory()) {
-      SystemProgram remove = new SystemProgram(manager, manager.getPropertyUserDir(),
-          new String[]{"python", "-u", ApplicationManager.getIMODBinPath() + "b3dremove",
-              "-r", file.getAbsolutePath()}, axisID);
+      SystemProgram remove =
+        new SystemProgram(manager, manager.getPropertyUserDir(), new String[] { "python",
+          "-u", ApplicationManager.getIMODBinPath() + "b3dremove", "-r",
+          file.getAbsolutePath() }, axisID);
       remove.run();
       if (file.exists()) {
         UIHarness.INSTANCE.openMessageDialog(manager, "Cannot delete the directory",
-            "Can not delete directory", axisID);
+          "Can not delete directory", axisID);
         return false;
       }
     }
@@ -1133,6 +1133,10 @@ public class Utilities {
   }
 
   public static String escapeSpaces(final String string) {
+    return escapeSpaces(string, false);
+  }
+
+  public static String escapeSpaces(final String string, final boolean doubleEscape) {
     int index = string.indexOf(' ');
     if (index == -1) {
       return string;
@@ -1141,7 +1145,12 @@ public class Utilities {
     int prevIndex = 0;
     while (index != -1) {
       buffer.append(string.substring(prevIndex, index));
-      buffer.append("\\ ");
+      if (!doubleEscape) {
+        buffer.append("\\ ");
+      }
+      else {
+        buffer.append("\\\\ ");
+      }
       prevIndex = ++index;
       index = string.indexOf(' ', prevIndex);
     }
@@ -1155,7 +1164,7 @@ public class Utilities {
    * @throws IOException
    */
   public static void writeFile(File file, String[] strings, boolean newFile)
-      throws IOException {
+    throws IOException {
     if (file == null) {
       throw new IOException();
     }
@@ -1187,8 +1196,8 @@ public class Utilities {
    * @return
    */
   public static boolean isValidFile(File file, String fileDescription,
-      StringBuffer invalidReason, boolean exists, boolean canRead, boolean canWrite,
-      boolean isDirectory) {
+    StringBuffer invalidReason, boolean exists, boolean canRead, boolean canWrite,
+    boolean isDirectory) {
     boolean isValid = true;
     if (file == null) {
       if (fileDescription != null && !fileDescription.matches("\\s+")) {
@@ -1274,7 +1283,7 @@ public class Utilities {
    * @param status
    */
   public static void timestamp(String process, String command, File container,
-      String status) {
+    String status) {
     if (!timestamp) {
       return;
     }
@@ -1290,7 +1299,7 @@ public class Utilities {
    * @param status
    */
   public static void timestamp(String process, String command, ComScript container,
-      String status) {
+    String status) {
     if (!timestamp) {
       return;
     }
@@ -1313,7 +1322,7 @@ public class Utilities {
    * @param status    0 = started, 1 = finished, -1 = failed, or -100 = null
    */
   public static void timestamp(String process, String command, String container,
-      String status) {
+    String status) {
     if (!timestamp) {
       return;
     }
@@ -1421,7 +1430,7 @@ public class Utilities {
   }
 
   public static final void findMessageAndOpenDialog(BaseManager manager, AxisID axisID,
-      String[] searchLines, String startsWith, String title) {
+    String[] searchLines, String startsWith, String title) {
     if (searchLines == null) {
       return;
     }
@@ -1433,12 +1442,12 @@ public class Utilities {
   }
 
   public static final File getExistingDir(BaseManager manager, String envVariable,
-      AxisID axisID, String notFoundMessage) {
+    AxisID axisID, String notFoundMessage) {
     if (envVariable == null || envVariable.matches("\\s*")) {
       return null;
     }
     String dirName =
-        EnvironmentVariable.INSTANCE.getValue(manager, null, envVariable, axisID);
+      EnvironmentVariable.INSTANCE.getValue(manager, null, envVariable, axisID);
     if (dirName == null || dirName.matches("\\s*")) {
       return null;
     }
@@ -1450,12 +1459,12 @@ public class Utilities {
   }
 
   public static final File getExistingDir(BaseManager manager, String envVariable,
-      AxisID axisID) {
+    AxisID axisID) {
     if (envVariable == null || envVariable.matches("\\s*")) {
       return null;
     }
     String dirName =
-        EnvironmentVariable.INSTANCE.getValue(manager, null, envVariable, axisID);
+      EnvironmentVariable.INSTANCE.getValue(manager, null, envVariable, axisID);
     if (dirName == null || dirName.matches("\\s*")) {
       return null;
     }
@@ -1467,7 +1476,7 @@ public class Utilities {
   }
 
   public static final boolean checkExistingDir(File dir, String envVariable,
-      final String notFoundMessage) {
+    final String notFoundMessage) {
     if (!dir.exists() || !dir.isDirectory() || !dir.canRead()) {
       System.err.println(notFoundMessage);
       return false;
@@ -1477,28 +1486,25 @@ public class Utilities {
 
   public static final boolean checkExistingDir(File dir, String envVariable) {
     if (!dir.exists()) {
-      System.err.println(
-          "Warning:  " + dir.getAbsolutePath() + " does not exist.  See $" + envVariable +
-              ".");
+      System.err.println("Warning:  " + dir.getAbsolutePath() + " does not exist.  See $"
+        + envVariable + ".");
       return false;
     }
     if (!dir.isDirectory()) {
-      System.err
-          .println("Warning:  " + dir.getAbsolutePath() + " is not a directory.  See $" +
-              envVariable + ".");
+      System.err.println("Warning:  " + dir.getAbsolutePath()
+        + " is not a directory.  See $" + envVariable + ".");
       return false;
     }
     if (!dir.canRead()) {
-      System.err.println(
-          "Warning:  cannot read " + dir.getAbsolutePath() + ".  See $" + envVariable +
-              ".");
+      System.err.println("Warning:  cannot read " + dir.getAbsolutePath() + ".  See $"
+        + envVariable + ".");
       return false;
     }
     return true;
   }
 
   public static final String convertLabelToName(String label1, String label2,
-      String label3) {
+    String label3) {
     StringBuffer buffer = new StringBuffer();
     if (label1 != null) {
       buffer.append(label1 + " ");
@@ -1513,7 +1519,7 @@ public class Utilities {
   }
 
   public static final ConstEtomoNumber convertNanometersToMicrons(
-      final ConstEtomoNumber nm) {
+    final ConstEtomoNumber nm) {
     EtomoNumber microns = new EtomoNumber(EtomoNumber.Type.DOUBLE);
     microns.set(nm);
     microns.divideBy(1000);
@@ -1654,7 +1660,7 @@ public class Utilities {
    * @return binning (default 1)
    */
   public static int getStackBinning(BaseManager manager, AxisID axisID,
-      FileType stackFileType) {
+    FileType stackFileType) {
     MRCHeader stackHeader = MRCHeader.getInstance(manager, axisID, stackFileType);
     MRCHeader rawstackHeader = MRCHeader.getInstance(manager, axisID, FileType.RAW_STACK);
     try {
