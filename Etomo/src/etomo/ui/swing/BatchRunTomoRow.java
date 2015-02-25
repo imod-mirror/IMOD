@@ -230,7 +230,7 @@ final class BatchRunTomoRow implements Highlightable, Run3dmodButtonContainer {
       File modelFile =
         new File(stack.getParentFile(), BatchTool.getModelFileName(modelFileType, stack
           .getName(), dual));
-      imod(modelFile, axisID, dual, null);
+      imod(modelFile, axisID, dual, run3dmodMenuOptions);
       return modelFile;
     }
     // No model is required
