@@ -108,6 +108,21 @@ tooltip =
 manpage = Run Midas on the first pair of views, and use the alignment that you set in
 Midas as the initial alignment for all pairs of views that are considered.
 
+[Field = ScanRotationMaxAndStep]
+short = scan
+type = FP
+usage = Maximum angle and step size to scan for best rotation, or one angle and 0
+tooltip =
+manpage = Either the maximum angle and angular step size at which to apply
+rotation in order to estimate the best rotation; or a single rotation angle to
+apply and a 0 step size; or 0,0 for no rotation scan (legacy behavior).  In
+the latter case, or when the rotation scan finds the best rotation at the end
+the range, an initial run of Xfsimplex(1) will be done to search for
+rotation/translation only.  The default is 20 and 4, which will accommodate
+inaccuracies in 90-degree rotation of up to ~15 degrees, and give fairly
+accurate interpolated rotation values the allow the first Xfsimplex(1) step to
+be skipped.
+
 [Field = CorrespondingCoordFile]
 short = c
 type = FN
