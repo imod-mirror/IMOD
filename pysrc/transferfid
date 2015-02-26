@@ -25,6 +25,12 @@ DIRECTION_WIN_THRESH = 4
 BIG_WIN_THRESH = 2
 BIG_WIN_FACTOR = 2.
 
+# Criteria for when to stop doing rotation scan and pick a mean or median angle
+numAngForMean = 4
+numAngForMedian = 5
+angleMeanRangeCrit = 1
+angleMedianCrit = 0.8
+
 # Global variables needed by functions
 tmpRoot = ''
 pid = ''
@@ -127,7 +133,8 @@ if tmpDir:
    tmpRoot = tmpDir + '/' + progname + '.'
 
 tmpStack = tmpRoot + 'stack' + pid
-tmpImga = tmpRoot + 'imga' + pid
+tmpImgAm = tmpRoot + 'imgam' + pid
+tmpImgAp = tmpRoot + 'imgap' + pid
 tmpXcxf = tmpRoot + 'xcxf' + pid
 tmpXf1 = tmpRoot + 'xf1' + pid
 tmpXf2 = tmpRoot + 'xf2' + pid
@@ -173,6 +180,17 @@ if angle < 0:
    pmEnd = 0
 if angle > 0:
    pmStart = 1
+
+# Get rotation scan variables and set 3-state flag for find, use, or skip angle
+(scanRotMax, scanRotStep) = PipGetTwoFloats('ScanRotationMaxAndStep', 20., 4.)
+findRotation = 1
+bestAngles = [[], []]
+if scanRotMax == 0.:
+   findRotation = 0
+elif scanRotStep == 0.:
+   findRotation = -1
+   bestRotation = scanRotMax
+
 leaveTmp = PipGetBoolean('LeaveTempFiles', 0)
 midas = PipGetBoolean('RunMidas', 0)
 mirror = PipGetBoolean('MirrorXaxis', 0)
@@ -249,11 +267,14 @@ size = int(math.floor(math.sqrt(nxa * nya)))
 limit = 512
 if size >= 4096:
    limit = 1024
-reduce = (size + limit - 1) // limit
-if size < 4096 and reduce > 4:
-   reduce = 4
+simplexBinning = (size + limit - 1) // limit
+if size < 4096 and simplexBinning > 4:
+   simplexBinning = 4
 xlimit = nxb // 5
 ylimit = nyb // 5
+
+# Control the binning in tiltxcorr since speed is more important than high precision
+xcorrBinning = max(1, int(round(size / 900.)))
 
 # Get starting and ending section numbers
 #
@@ -305,42 +326,41 @@ plusWin = 0
 minusWin = 0
 plusBig = 0
 minusBig = 0
+rot90sec = [-1, -1]
+tmpImgAmp = (tmpImgAm, tmpImgAp)
 try:
-   for bsecInd in range(nviews):
-      bsec = bsecList[bsecInd]
-      for asecInd in range(nviews):
-         asec = asecList[asecInd]
+   for asecInd in range(nviews):
+      asec = asecList[asecInd]
+      for bsecInd in range(nviews):
+         bsec = bsecList[bsecInd]
          plusMinus = pmStart
          pmDiffs = []
          while plusMinus <= pmEnd:
+            tmpImga = tmpImgAmp[plusMinus]
             if plusMinus:
                if mirror:
-                  rotstr = "0 -1 -1 0 -1 -1"
+                  rotstr = "0 -1 -1 0 0 0"
                else:
-                  rotstr = "0 -1 1 0 -1 0"
+                  rotstr = "0 -1 1 0 0 0"
                pmAngle = +90
             else:
                if mirror:
                   rotstr = "0 1 1 0 0 0"
                else:
-                  rotstr = "0 1 -1 0 0 -1"
+                  rotstr = "0 1 -1 0 0 0"
                pmAngle = -90
 
             writeTextFile(tmpRot90, [rotstr])
+            if rot90sec[plusMinus] != asec:
 
-            # extract the rotated section from A
-            try:
-               runcmd(fmtstr('newstack -sec {} -xform {} -size {},{} -use 0 {} "{}"',
-                             asec, tmpRot90, nxb, nyb, imageA, tmpImga))
-            except ImodpyError:
-               cleanExitError(fmtstr('Extracting rotated section from {}', AA))
+               # extract the rotated section from A
+               try:
+                  runcmd(fmtstr('newstack -sec {} -xform {} -size {},{} -use 0 {} "{}"',
+                                asec, tmpRot90, nxb, nyb, imageA, tmpImga))
+                  rot90sec[plusMinus] = asec
+               except ImodpyError:
+                  cleanExitError(fmtstr('Extracting rotated section from {}', AA))
 
-            # Stack this rotated section on top of the sec from b
-            try:
-               runcmd(fmtstr('newstack -sec {} -sec 0 {} "{}" "{}"',
-                             bsec, imageB, tmpImga, tmpStack))
-            except ImodpyError:
-               cleanExitError(fmtstr('Stacking rotated {} on {}', AA, BB))
                
             if midas:
                if not asecInd and not bsecInd:
@@ -350,18 +370,16 @@ try:
                   prnstr(" and save the transform to the already-defined output file")
                   prnstr(" ")
                   try:
-                     runcmd(fmtstr('midas -D "{}" "{}"', tmpStack, tmpMidxf))
+                     runcmd(fmtstr('midas -D -r "{}" -rz {} "{}" "{}"', imageB, bsec,
+                                   tmpImga, tmpXf1))
                   except ImodpyError:
                      cleanExitError()
                      
-                  if not os.path.exists(tmpMidxf):
+                  if not os.path.exists(tmpXf1):
                      cleanup()
                      exitError('Transform file not found - cannot proceed')
 
-                  midxfLines = readTextFile(tmpMidxf)
-                  if len(midxfLines) < 2:
-                     exitError('No transform found in ' + tmpMidxf)
-                  writeTextFile(tmpXf1, [midxfLines[1]])
+                  tmpInitXf = tmpXf1
                   prnstr("Finding the best matched pair of views in the two series:")
                   prnstr("              (Type Ctrl-C to end search)")
 
@@ -369,34 +387,77 @@ try:
             else:
 
                # Run tiltxcorr
+               angleOpt = ''
+               if findRotation > 0:
+                  angleOpt = fmtstr('ScanRotationMaxAndStep {} {}', scanRotMax,
+                                    scanRotStep)
+               elif findRotation < 0:
+                  angleOpt = fmtstr('ScanRotationMaxAndStep {} 0.', bestRotation)
+                  bestAng = bestRotation
                try:
-                  runcmd(fmtstr('tiltxcorr -angles 0,0 -radius2 {} -sigma1 {} -sigma2' +\
-                                ' {} {} {}', radius2, sigma1, sigma2, tmpStack, tmpXcxf))
+                  xccom = ['InputFile ' + tmpImga,
+                           'OutputFile ' + tmpXcxf,
+                           'TiltAngles 0',
+                           'ReferenceFile ' + imageB,
+                           'ReferenceView ' + str(bsec + 1),
+                           'BinningToApply ' + str(xcorrBinning),
+                           'FilterRadius2 ' + str(radius2),
+                           'FilterSigma1 ' + str(sigma1),
+                           'FilterSigma2 ' + str(sigma2)]
+                  if angleOpt:
+                     xccom.append(angleOpt)
+                  xcLines = runcmd('tiltxcorr -StandardInput', xccom)
                except ImodpyError:
                   cleanExitError('Running tiltxcorr to get initial correlation alignment')
 
-               # Run xfsimplex looking for rotation only
-               xfcom = ['AImageFile ' + tmpStack,
-                        'BImageFile ' + tmpImga,
-                        'OutputFile ' + tmpXf1,
-                        'InitialTransformFile ' + tmpXcxf,
-                        'VariablesToSearch 3',
-                        'BinningToApply ' + str(reduce),
-                        fmtstr('LimitsOnSearch {},{},{}', xlimit, ylimit, rotLimit),
-                        'UseTransformLine 1']
-               try:
-                  runcmd('xfsimplex -StandardInput', xfcom)
-               except ImodpyError:
-                  cleanExitError('Running first xfsimplex with rotation only')
+               if findRotation > 0:
+                  for line in xcLines:
+                     if 'Best angle in' in line:
+                        ind = line.rfind('=')
+                        if ind > 0:
+                           try:
+                              bestAng = float(line[ind + 1:])
+                           except Exception:
+                              exitError('Converting best angle output from Tiltxcorr ' +\
+                                           'to float')
+                           bestAngles[plusMinus].append(bestAng)
+                           #prnstr('Found rotation ' + str(bestAng))
+                           break
+                  else:  # ELSE ON FOR
+                     exitError('Cannot find rotation angle in output of Tiltxcorr')
+                              
+
+               # Run xfsimplex looking for rotation only for legacy run (0,0 entered for
+               # -scan) or if angle being used is at end of scan range
+               if findRotation == 0 or (math.fabs(math.fabs(bestAng) - scanRotMax) < 0.1
+                                        and scanRotStep != 0.):
+                  xfcom = ['AImageFile ' + imageB,
+                           'BImageFile ' + tmpImga,
+                           'OutputFile ' + tmpXf1,
+                           'SectionsToUse ' + str(bsec) + ' 0',
+                           'InitialTransformFile ' + tmpXcxf,
+                           'VariablesToSearch 3',
+                           'BinningToApply ' + str(simplexBinning),
+                           fmtstr('LimitsOnSearch {},{},{}', xlimit, ylimit, rotLimit)]
+                  tmpInitXf = tmpXf1
+                  try:
+                     prnstr('Running rotation-only xfsimplex')
+                     runcmd('xfsimplex -StandardInput', xfcom)
+                  except ImodpyError:
+                     cleanExitError('Running first xfsimplex with rotation only')
+
+               else:
+                  tmpInitXf = tmpXcxf
 
 
             # Run xfsimplex again from there, looking for full transform
-            xfcom = ['AImageFile ' + tmpStack,
+            xfcom = ['AImageFile ' + imageB,
                      'BImageFile ' + tmpImga,
                      'OutputFile ' + tmpXf2,
-                     'InitialTransformFile ' + tmpXf1,
+                     'SectionsToUse ' + str(bsec) + ' 0',
+                     'InitialTransformFile ' + tmpInitXf,
                      'VariablesToSearch 6',
-                     'BinningToApply ' + str(reduce),
+                     'BinningToApply ' + str(simplexBinning),
                      fmtstr('LimitsOnSearch {},{},{},{}', xlimit, ylimit, rotLimit,
                             otherLimits)]
             try:
@@ -457,8 +518,38 @@ try:
                    (minusBig >= BIG_WIN_THRESH and not plusWin):
                pmEnd = 0
 
+         # Once there is a single direction, see if the angles are consistent enough
+         # to stop scanning for them
+         numAng = len(bestAngles[pmEnd])
+         if pmStart == pmEnd and findRotation > 0 and numAng >= numAngForMean:
+            meanAngle = sum(bestAngles[pmEnd]) / numAng
+            minAngle = min(bestAngles[pmEnd])
+            maxAngle = max(bestAngles[pmEnd])
+            if meanAngle - minAngle < angleMeanRangeCrit and \
+                   maxAngle - meanAngle < angleMeanRangeCrit:
+               bestRotation = meanAngle
+               findRotation = -1
+               #prnstr(fmtstr('Using mean rotation {:2f}, min = {:2f}, max = {:2f}, n ' +\
+               #                '= {}', meanAngle, minAngle, maxAngle, numAng))
+            elif numAng >= numAngForMedian:
+               bestAngles[pmEnd].sort()
+               if numAng % 2:
+                  median = bestAngles[pmEnd][numAng // 2]
+               else:
+                  median = (bestAngles[pmEnd][numAng // 2] +
+                            bestAngles[pmEnd][numAng // 2 - 1]) / 2.
+               if (median - bestAngles[pmEnd][1] < angleMedianCrit and \
+                      maxAngle - median < angleMedianCrit) or \
+                      (median - minAngle < angleMedianCrit and \
+                          bestAngles[pmEnd][-2] - median < angleMedianCrit):
+                  bestRotation = median
+                  findRotation = -1
+                  #prnstr(fmtstr('Using median rotation {:2f}, min = {:2f}, max = {:2f}'+\
+                  #                ', n = {}', median, minAngle, maxAngle, numAng))
+                      
+
 except KeyboardInterrupt:
-   pass
+   pass 
 
 try:
    prnstr(fmtstr('Transferring fiducials from view {} in {} to view {} in {} with' + \
