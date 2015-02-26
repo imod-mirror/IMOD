@@ -441,7 +441,7 @@ try:
                            fmtstr('LimitsOnSearch {},{},{}', xlimit, ylimit, rotLimit)]
                   tmpInitXf = tmpXf1
                   try:
-                     prnstr('Running rotation-only xfsimplex')
+                     #prnstr('Running rotation-only xfsimplex')
                      runcmd('xfsimplex -StandardInput', xfcom)
                   except ImodpyError:
                      cleanExitError('Running first xfsimplex with rotation only')
