@@ -119,8 +119,8 @@ apply and a 0 step size; or 0,0 for no rotation scan (legacy behavior).  In
 the latter case, or when the rotation scan finds the best rotation at the end
 the range, an initial run of Xfsimplex(1) will be done to search for
 rotation/translation only.  The default is 20 and 4, which will accommodate
-inaccuracies in 90-degree rotation of up to ~15 degrees, and give fairly
-accurate interpolated rotation values the allow the first Xfsimplex(1) step to
+inaccuracies in 90-degree rotation of up to ~22 degrees, and give fairly
+accurate interpolated rotation values that allow the first Xfsimplex(1) step to
 be skipped.
 
 [Field = CorrespondingCoordFile]
