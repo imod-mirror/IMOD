@@ -12,7 +12,8 @@ gputilttest b3dremove b3dcopy b3dcatfiles findsirtdiffs dm2mrc archiveorig runra
 splitcorrection transferfid xfalign startprocess imodhelp submfg etomo colornewst \
 autofidseed onegenplot setupstitch makecomfile batchruntomo makepyramid tomodataplots \
 imodkillgroup b3dtouch b3dwinps subm b3dhostname excludeviews copyheader \
-restrictalign subtomosetup autopatchfit imoduntar rawtiltcoords $(BACKGROUND_SCRIPTS)
+restrictalign subtomosetup autopatchfit imoduntar rawtiltcoords matchrotpairs \
+$(BACKGROUND_SCRIPTS)
 
 MODULES = imodpy.py pysed.py supermont.py pip.py comchanger.py tomocoords.py
 

@@ -3657,7 +3657,7 @@ for dfileInd in range(numSets):
          printTaggedMessages(errlog, [('INFO:', 1), ('LOG:', 3)])
       else:
          if failed:
-            prnLog('Running etomo failed, no error information available')
+            prnLog('Running etomo failed, no etomo error log available')
          else:
             prnLog('Cannot access an error log from running etomo')
       if failed:
