@@ -226,7 +226,7 @@ def searchPairs(progname, zeroA, zeroB, nviewsA, nviewsB, imageA, imageB, nxa, n
                      # first time, run midas
                      if bilinear:
                         prnstr('Starting midas - you should align as well as possible,')
-                     else
+                     else:
                         prnstr('Starting midas - you should align translation and ' +\
                                   'rotation,')
                      prnstr(' and save the transform to the already-defined output file')
