@@ -82,8 +82,7 @@ doPID = PipGetBoolean('PID', 0)
 printPID(doPID)
 
 # Set names of temp files, this gets pid, tmpRoot, and tmpDir in the module globals
-(tmpImgAm, tmpImgAp, tmpXcxf, tmpXf1, tmpXf2, tmpRot90, tmpMinxf) = \
-    getTempNames(progname)
+tmpMinxf = getTempNames(progname)
 
 tmpStack = tmpRoot + 'stack' + pid
 tmpTwoxf = tmpRoot + 'twoxf' + pid
