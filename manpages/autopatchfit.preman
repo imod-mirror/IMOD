@@ -52,7 +52,7 @@ Read parameter entries from standard input
 .SH FILES
 The initial patchcorr.com and matchorwarp.com will become backup files
 patchcorr.com~ and matchorwarp.com~.  After a fitting fails, except on
-the final step, the patch.out file will be renamed pacth_NXxNYxNZ.out,
+the final step, the patch.out file will be renamed patch_NXxNYxNZ.out,
 where NX, NY, NZ are the sizes in X, Y, and Z.
 .SH AUTHOR
 .nf
