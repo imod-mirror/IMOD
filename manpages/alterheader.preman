@@ -1,6 +1,6 @@
 .na
 .nh
-.TH alterheader 1 4.6.34 BL3DEMC
+.TH alterheader 1 4.6.34 IMOD
 .SH NAME
 alterheader - to alter header information in an MRC file
 .SH SYNOPSIS

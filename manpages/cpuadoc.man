@@ -1,4 +1,4 @@
-.TH cpuadoc 1 3.7.0 BL3DEMC
+.TH cpuadoc 1 3.7.0 IMOD
 .na
 .nh
 
@@ -241,7 +241,7 @@ official path to the directory is.  This is the path that eTomo will see on
 the local machine, so you need to work out how this needs to be translated
 so that it can be accessed on the remote machines.
 
-As a simple example, each Linux machine in the BL3DEMC used to have a directory
+As a simple example, each Linux machine in our laboratory used to have a directory
 named \fB/localscratch\fR which was accessed from any machine as
 \fB/scratch/\fIcomputer_name\fR (where \fIcomputer_name\fR is the name of a
 machine, without any domain).  The required mount rules were entered as:

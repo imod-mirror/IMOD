@@ -1,6 +1,6 @@
 .na
 .nh
-.TH matchrotpairs 1 2.8.2 BL3DEMC
+.TH matchrotpairs 1 2.8.2 IMOD
 .SH NAME
 matchrotpairs \- find transform between best matching pair of rotated views
 .SH SYNOPSIS

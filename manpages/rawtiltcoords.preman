@@ -1,6 +1,6 @@
 .na
 .nh
-.TH rawtiltcoords 1 4.8.7 BL3DEMC
+.TH rawtiltcoords 1 4.8.7 IMOD
 .SH NAME
 rawtiltcoords \- Get positions and angles of tomogram points in raw tilt series
 .SH SYNOPSIS

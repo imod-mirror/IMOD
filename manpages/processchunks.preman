@@ -1,6 +1,6 @@
 .na
 .nh
-.TH processchunks 1 3.2.22 BL3DEMC
+.TH processchunks 1 3.2.22 IMOD
 .SH NAME
 processchunks \- Run command files in parallel on multiple processors
 .SH SYNOPSIS

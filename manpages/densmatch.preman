@@ -1,6 +1,6 @@
 .na
 .nh
-.TH densmatch 1 4.6.34 BL3DEMC
+.TH densmatch 1 4.6.34 IMOD
 .SH NAME
 densmatch - Scale densities in one volume to match another volume or to
 have a given mean/SD

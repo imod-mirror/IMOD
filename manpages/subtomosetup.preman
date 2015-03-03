@@ -1,6 +1,6 @@
 .na
 .nh
-.TH subtomosetup 1 4.8.7 BL3DEMC
+.TH subtomosetup 1 4.8.7 IMOD
 .SH NAME
 subtomosetup \- Sets up command files for reconstructing multiple subvolumes
 .SH SYNOPSIS

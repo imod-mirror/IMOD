@@ -1,6 +1,6 @@
 .na
 .nh
-.TH solvematch 1 4.6.34 BL3DEMC
+.TH solvematch 1 4.6.34 IMOD
 .SH NAME
 solvematch - Solve for transformation matching one tomogram to another
 .SH SYNOPSIS

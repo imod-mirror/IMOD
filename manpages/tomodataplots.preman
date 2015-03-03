@@ -1,7 +1,7 @@
 
 .na
 .nh
-.TH tomodataplots 1 4.6.18 BL3DEMC
+.TH tomodataplots 1 4.6.18 IMOD
 .SH NAME
 tomodataplots \- Make an X/Y plot of output from tilt series processing
 .SH SYNOPSIS

@@ -1,6 +1,6 @@
 .na
 .nh
-.TH restrictalign 1 4.8.7 BL3DEMC
+.TH restrictalign 1 4.8.7 IMOD
 .SH NAME
 restrictalign \- Restrict tilt alignment parameters for low number of fiducials
 .SH SYNOPSIS

@@ -1,6 +1,6 @@
 .na
 .nh
-.TH extractpieces 1 4.6.34 BL3DEMC
+.TH extractpieces 1 4.6.34 IMOD
 .SH NAME
 extractpieces - Extract piece coordinates from header of image file
 .SH SYNOPSIS

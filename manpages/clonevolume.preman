@@ -1,6 +1,6 @@
 .na
 .nh
-.TH clonevolume 1 4.4.1 BL3DEMC
+.TH clonevolume 1 4.4.1 IMOD
 .SH NAME
 clonevolume \- clone copies of a volume (typically a PEET averaged
 subvolume) back to the aligned positions and orientations in a starting 
