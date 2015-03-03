@@ -1,6 +1,6 @@
 .na
 .nh
-.TH mrc2tif 1 2.00 BL3DEMC
+.TH mrc2tif 1 2.00 IMOD
 .SH NAME
 mrc2tif \- Create TIFF, JPEG, or PNG files from an MRC image file.
 .SH SYNOPSIS

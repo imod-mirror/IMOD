@@ -1,6 +1,6 @@
 .na
 .nh
-.TH imodsendevent 1 2.7.2 BL3DEMC
+.TH imodsendevent 1 2.7.2 IMOD
 .SH NAME
 imodsendevent \- Sends a clipboard message with a command to 3dmod
 .SH SYNOPSIS

@@ -1,6 +1,6 @@
 .na
 .nh
-.TH splitblend 1 4.2.3 BL3DEMC
+.TH splitblend 1 4.2.3 IMOD
 .SH NAME
 splitblend \- Produce command files for running blendmont in parallel
 .SH SYNOPSIS

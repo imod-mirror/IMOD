@@ -1,6 +1,6 @@
 .na
 .nh
-.TH preNAD 1 4.6.18 BL3DEMC
+.TH preNAD 1 4.6.18 IMOD
 .SH NAME
 preNAD \- 2D anisotropic diffusion filter for tilt projections
 .SH SYNOPSIS

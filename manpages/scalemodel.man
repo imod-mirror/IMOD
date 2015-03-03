@@ -1,6 +1,6 @@
 .na
 .nh
-.TH scalemodel 1 4.6.34 BL3DEMC
+.TH scalemodel 1 4.6.34 IMOD
 .SH NAME
 scalemodel - rescale a model for changes in image origin, delta or tilt
 .P

@@ -1,6 +1,6 @@
 .na
 .nh
-.TH autopatchfit 1 4.8.14 BL3DEMC
+.TH autopatchfit 1 4.8.14 IMOD
 .SH NAME
 autopatchfit \- Run 3D patch correlation and fitting iteratively
 .SH SYNOPSIS

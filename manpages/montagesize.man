@@ -1,6 +1,6 @@
 .na
 .nh
-.TH montagesize 1 4.6.34 BL3DEMC
+.TH montagesize 1 4.6.34 IMOD
 .SH NAME
 montagesize - Determine dimensions of a montaged image file
 .SH SYNOPSIS

@@ -1,6 +1,6 @@
 .na
 .nh
-.TH mtffilter 1 4.6.34 BL3DEMC
+.TH mtffilter 1 4.6.34 IMOD
 .SH NAME
 mtffilter - filter by inverse of MTF and general Fourier filter
 .SH SYNOPSIS

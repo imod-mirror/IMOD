@@ -1,6 +1,6 @@
 .na
 .nh
-.TH batchruntomo 1 4.6.18 BL3DEMC
+.TH batchruntomo 1 4.6.18 IMOD
 .SH NAME
 batchruntomo \- Align tilt series and generate tomograms automatically
 .SH SYNOPSIS

@@ -1,6 +1,6 @@
 .na
 .nh
-.TH enhance 1 4.6.34 BL3DEMC
+.TH enhance 1 4.6.34 IMOD
 .SH NAME
 enhance - to apply gaussian bandpass filter
 .SH SYNOPSIS

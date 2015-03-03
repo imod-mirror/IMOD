@@ -1,6 +1,6 @@
 .na
 .nh
-.TH findsection 1 4.6.34 BL3DEMC
+.TH findsection 1 4.6.34 IMOD
 .SH NAME
 findsection - Locates section boundaries in tomograms
 .SH SYNOPSIS
