@@ -13,7 +13,7 @@ splitcorrection transferfid xfalign startprocess imodhelp submfg etomo colornews
 autofidseed onegenplot setupstitch makecomfile batchruntomo makepyramid tomodataplots \
 imodkillgroup b3dtouch b3dwinps subm b3dhostname excludeviews copyheader \
 restrictalign subtomosetup autopatchfit imoduntar rawtiltcoords matchrotpairs \
-$(BACKGROUND_SCRIPTS)
+dualvolmatch $(BACKGROUND_SCRIPTS)
 
 MODULES = imodpy.py pysed.py supermont.py pip.py comchanger.py tomocoords.py tiltmatch.py
 
