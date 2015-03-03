@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/2/15: Added a script, Dualvolmatch, to get initial alignment between
+dual-axis volumes when there are no corresponding fiducials.
+
 3/1/15: Made Transferfid and Matchrotpairs evaluate mirrored as well as
 unmirrored images by default.
 
