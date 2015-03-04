@@ -58,6 +58,15 @@ fiducials distributed in Z (e.g. on two surfaces), 1 or -1 for fiducials on
 one surface (-1 if tomograms are inverted in Z with respect to each other),
 or -2 to use matching models only.
 
+[Field = InitialVolumeMatching]
+short = initial
+type = B
+usage = Get initial transformation with correlations instead of fiducials
+tooltip =
+manpage = Use Dualvolmatch(1) to find the initial transformation between
+volumes by matching reprojections and correlating patches, instead of using
+Solvematch(1), which requires fidicial positions or matching models.
+
 [Field = PatchTypeOrXYZ]
 short = patchsize
 type = CH
@@ -96,7 +105,7 @@ type = CH
 usage = Extra target residual values for final trial of Autopatchfit
 tooltip =
 manpage = This option can be used to provide extra target residual values to
-be be used by Autopatchfit(1) on its final trial.
+be used by Autopatchfit(1) on its final trial.
 
 [Field = XLowerAndUpper]
 short = xlimits
