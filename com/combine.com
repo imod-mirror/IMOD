@@ -23,6 +23,15 @@ $set process = solvematch.com
 $echo "Running solvematch.com"
 $vmstocsh solvematch.log < solvematch.com | csh -ef
 $if ($status) goto error
+$goto matchvol1
+#
+# Or run dualvolmatch
+#
+$dualvolmatch:
+$set process = dualvolmatch.com
+$echo "Running dualvolmatch.com"
+$vmstocsh dualvolmatch.log < dualvolmatch.com | csh -ef
+$if ($status) goto error
 #
 # Next run matchvol to make matching volume
 #
