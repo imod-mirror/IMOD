@@ -327,17 +327,19 @@ try:
       if 'center shift' in line:
          lsplit = line.split()
          cenShift = float(lsplit[-1])
+         #
+         # BRT is using 'implies a center' as a tag
          prnstr(fmtstr('The residual for the center patch implies a center shift in ' +\
                           'Z of {:.1f}', cenShift))
       if 'Mean residual' in line:
          if not testMode:
             prnstr(line.rstrip())
          lsplit = line.replace(',', ' ').split()
-         meanResid = float(lsplit[2])
+         meanResid = float(lsplit[2]) * binning
 
    roundCen = int(round(cenShift))
    roundAbsCen = int(round(math.fabs(cenShift)))
-   if meanResid * binning > ubMaxResid:
+   if meanResid > ubMaxResid:
 
       # If the residual is too big, just get the center shift from a bigger patch and
       # add it to the initial transform and make that be the output file
@@ -347,8 +349,9 @@ try:
                            'NumberOfPatchesXYZ 1,1,1',
                            'OutputFile ' + onePatchFile]
 
-      prnstr(fmtstr('The unbinned residual is {:.2f} which is above the limit',
-                    meanResid * binning))
+      # BRT is using 'unbinned mean residual' and 'Falling back' as tags
+      prnstr(fmtstr('The unbinned mean residual is {:.2f} which is above the limit',
+                    meanResid))
       prnstr('Falling back to the initial estimate of the 3D transformation')
       prnstr('Running corrsearch3d on one bigger patch to get shifts')
       runcmd('corrsearch3d -StandardInput', cscom)
@@ -364,6 +367,7 @@ try:
 
       # If there is much center shift in earlier run, warn that thickness should be bigger
       # perhaps by twice this shift
+      # BRT is looking for 'may need to set thickness'
       if roundAbsCen >= 5 and nyb + 2 * roundAbsCen > nya:
          prnstr('')
          prnstr('WARNING: dualvolmatch - You may need to set thickness of initial ' + \
@@ -372,9 +376,11 @@ try:
          prnstr('')
 
    elif math.fabs(cenShift) > maxCenShift:
+      prnstr(fmtstr('The unbinned mean residual is {:.2f}', meanResid))
 
       # When using the solved transform, if the center shift is above limit, behave like
       # solvematch, using similar text, and advise on thickness too
+      # BRT is looking for 'InitialShiftXYZ' and 'needs' 
       prnstr('')
       prnstr('   The center shift is bigger than the specified limit')
       prnstr('   The InitialShiftXYZ for corrsearch3d needs to be 0 ' + \
@@ -386,8 +392,11 @@ try:
                    'least ' + str(nyb))
          prnstr('     (In eTomo, Initial match size for Matchvol1)')
             
+      # BRT is looking for 'CenterShiftLimit' and 'avoid stopping'
       prnstr('   To avoid stopping with this error, set CenterShiftLimit to ' + \
                 str(roundAbsCen + 2))
+
+      # BRT is looking for 'Initial shift needs'
       cleanExitError('Initial shift needs to be set for patch correlation')
 
    cleanup()
