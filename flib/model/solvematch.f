@@ -724,6 +724,8 @@ c
       iorigmax = iorig(ipntmax)
       if (iorigmax .le. maxconta .and. modObj(1,1) .gt. 0) then
         ipta = icont2pta(iorigmax)
+c         
+c         BRT is using 'Mean residual' as tag
         write(*,1011)devavg,devmax,iorigmax,modObj(ipta, 1),
      &      modCont(ipta, 1),abtext(indA)
 1011    format(//,' Mean residual',f8.3,',  maximum',f9.3,
@@ -781,6 +783,8 @@ c       Then give warnings of unequal scalings
         enddo
         axisScale(j) = sqrt(sumsq)
       enddo
+c       
+c       BRT is using 'Scaling along' as tag
       write(*,118)(axisScale(i),i=1,3)
 118   format(/, 'Scaling along the three axes - X:',f7.3,'  Y:',f7.3,'  Z:',f7.3)
       xyScaleDiff = 100. * abs((axisScale(1) - axisScale(2)) / axisScale(1))
@@ -827,6 +831,7 @@ c       Then give warnings of unequal scalings
       endif
 c       
 c       Issue specific dual-axis warning with advice
+c       BRT is looking for 'Try specifying' and 'on one surface'
       if (badaxis1 .eq. 'Y' .and. nsurf .eq. 2 .and. (ifAngleOfs .ne. 0 .or.
      &    ifZshifts .ne. 0)) write(*,119)
 119   format('WARNING: Y scaling is probably wrong because you specified that',
@@ -917,6 +922,8 @@ c               print *,xcen,ycen,size,ndat,devavgloc,devmaxloc
               if (devmaxLoc .gt. stoplim) numBig = numBig + 1
             enddo
           enddo
+c           
+c           BRT is using 'Local fits' and 'Average mean' as tags
           write(*,1015)localNum, sumMean/(numLocalX * numLocalY),
      &        sumMax/(numLocalX * numLocalY), devAllMax, numBig,
      &        numLocalX * numLocalY, stoplim
@@ -965,6 +972,8 @@ c132           format(9f8.1)
             dist = sqrt(csdx**2 + csdy**2 + csdz**2)
 c             print *,'distance',dist, csdx,csdy,csdz
             if (dist .ge. shiftLimit) then
+c               
+c               BRT is looking for 'InitialShiftXYZ' and 'needs' 
               write(*, 1016)dist, nint(csdx),nint(csdy),nint(csdz),
      &            nint(csdx),nint(csdz),nint(csdy)
 1016          format(/,'Center shift indicated by local fit is',f6.0,
@@ -976,11 +985,15 @@ c             print *,'distance',dist, csdx,csdy,csdz
 1017          format('   You should also set thickness of initial ',
      &            'matching file to at least', i5,/,
      &            '     (In eTomo, Initial match size for Matchvol1)')
+c               
+c               BRT is looking for 'CenterShiftLimit' and 'avoid stopping'
               write(*,1018)nint(dist) + 1
 1018          format('   To avoid stopping with this error, set CenterShift',
      &            'Limit to',i4,/,
      &            '     (In eTomo, Limit on center shift for Solvematch)')
               if (devmax .lt. stoplim) then
+c                 
+c                 BRT is looking for INITIAL SHIFT' and 'SOLUTION IS OK'
                 write(*,'(/,a)')'ERROR: SOLVEMATCH - INITIAL SHIFT NEEDS TO'//
      &              ' BE SET FOR PATCH CORRELATION (BUT SOLUTION IS OK)'
               else
