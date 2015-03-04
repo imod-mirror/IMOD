@@ -17,9 +17,6 @@ TAPERPADXZ = 8       # Size of taper/pad for 3D ffts in X and Z
 TAPERPADY = 4       # Size of taper/pad for 3D ffts in Y
 MAXPIECEY = 1       # Maximum pieces in Y
 MINOVERLAP = 10     # Minimum overlap between pieces
-MATCHSHIFTXZ = 100   # size of 3-D box in X and Z for matchshifts
-MATCHSHIFTY  = (40, 60, 76, 90)      # Y sizes per increment of Y dimension
-MATCHSHIFTINC = 100
 
 # Read needed values from one tilt.com
 def readTiltOptions(tilt):
@@ -170,10 +167,12 @@ from comchanger import *
 to_srcname = "g5a"
 from_srcname = "g5b"
 tmp_srcname = "g5tmpdir"
+root_srcname = "g5"
 backupname = "./savework"
 backupsed = ".\/savework"
 
-matchshift = "solvematch.com"
+solvematch = "solvematch.com"
+dualvolmatch = "dualvolmatch.com"
 matchvol1 = "matchvol1.com"
 patchcorr = "patchcorr.com"
 matchorwarp = "matchorwarp.com"
@@ -245,10 +244,14 @@ corrlist1 = corrlist1.replace('/', '\/')
 corrlist2 = corrlist2.replace('/', '\/')
 uselist = uselist.replace('/', '\/')
 
-modsurf = PipGetInteger('SurfaceModelType', -10)
-if modsurf < -2 or modsurf > 2:
-   exitError('You must enter the -surface option with a value between -2 ' +\
-             'and 2')
+useVolMatch = PipGetBoolean('InitialVolumeMatching', 0)
+if useVolMatch:
+   modsurf = 2
+else:
+   modsurf = PipGetInteger('SurfaceModelType', -10)
+   if modsurf < -2 or modsurf > 2:
+      exitError('You must enter either the -initial option or the -surface option ' +\
+                   'with a value between -2 and 2')
 
 patchin = PipGetString('PatchTypeOrXYZ', 'M')
 (patchnx, patchny, patchnz, err) = patchSizeFromEntry(patchin)
@@ -314,7 +317,8 @@ if os.path.exists(tilta) and os.path.exists(tiltb):
 else:
    xaxisa = xaxisb = angoffa = angoffb = zshifta = zshiftb = 0.
    binninga = binningb = 0
-   warning("CANNOT FIND tilta.com or tiltb.com; CANNOT SET X-AXIS TILTS CORRECTLY")
+   if not useVolMatch:
+      warning("CANNOT FIND tilta.com or tiltb.com; CANNOT SET X-AXIS TILTS CORRECTLY")
 
 # set up some filenames
 recfile = toname + ".rec"
@@ -388,21 +392,6 @@ if not patchzl:
 if patchzl <= 0 or patchzl > nz or patchzl >= patchzu:
    exitError(fmtstr('Z limits ({}, {}) out of range or out of order', \
                     patchzl, patchzu))
-
-# figure out a size in Y for matchshift block
-msyindex = nz // MATCHSHIFTINC - 1
-if msyindex < 0:
-    msy = min(nz, MATCHSHIFTY[0])
-elif msyindex >= len(MATCHSHIFTY) - 1:
-    msy = MATCHSHIFTY[len(MATCHSHIFTY) - 1]
-else:
-    deltay = nz - (msyindex + 1) * MATCHSHIFTINC
-    msy1 = MATCHSHIFTY[msyindex]
-    msy2 = MATCHSHIFTY[msyindex+1]
-    msy = msy1 + (deltay * (msy2 - msy1)) // MATCHSHIFTINC
-
-# Set the size in X and Z, not bigger than 1/4 of min (was X) dimension
-msxz = min(MATCHSHIFTXZ, minsize // 4)
 
 npatchx = (patchxu + DELPATCHXY // 2 - patchxl) // DELPATCHXY
 npatchy = (patchyu + DELPATCHXY // 2 - patchyl) // DELPATCHXY
@@ -493,12 +482,13 @@ if tmpdir:
              "finishes successfully.")
 
 prnstr(" ")
-prnstr("The number of patches for PATCHCRAWL3D is "+\
+prnstr("The number of patches for Corrsearch3d is "+\
       fmtstr("{} in X, {} in Y, and {} in Z", npatchx, npatchz, npatchy))
-prnstr("   (Y and Z are not flipped on the PATCHCRAWL3D command line)")
+prnstr("   (Y and Z are not flipped in the patchcorr command line)")
 
 makeBackupFile("combine.com")
-makeBackupFile(matchshift)
+makeBackupFile(solvematch)
+makeBackupFile(dualvolmatch)
 makeBackupFile(matchvol1)
 makeBackupFile(matchvol2)
 makeBackupFile(warpvol)
@@ -517,10 +507,12 @@ sedcom = ['s/' + from_srcname + '/' + fromname + '/g',
           fmtstr("/{}/s/.*/TransferCoordinateFile	{}/", sedtranskey,
                  transfile),
           "/^UsePoints/s/[ 	].*/	" + uselist + "/",
-          fmtstr("/^MatchingAtoB/s/[ 	].*/	{}/", matchatob),
-          fmtstr("/matchshifts.*64 32 64/s/64 32 64/{} {} {}/", msxz, msy,
-                 msxz)]
-editApplyChangeListAndWrite(sedcom, matchshift)
+          fmtstr("/^MatchingAtoB/s/[ 	].*/	{}/", matchatob)]
+editApplyChangeListAndWrite(sedcom, solvematch)
+
+sedcom = [fmtstr("s/{}/{}/g", root_srcname, rootname),
+          fmtstr("/^MatchAtoB/s/[ 	].*/	{}/", matchatob)]
+editApplyChangeListAndWrite(sedcom, dualvolmatch)
 
 sedcom = [fmtstr("s/{}/{}/g", from_srcname, fromname),
           fmtstr("s/{}/{}/g", to_srcname, toname),
@@ -581,13 +573,20 @@ sedcom = [fmtstr("s/{}/{}/g", from_srcname, fromname),
 pysed(sedcom, srcdir + '/' + matchorwarp, matchorwarp)
 
 # Do combine.com
-if autoPatch:
-   final = autoPatch
-   if extraTargets:
-      final += ' -extra ' + extraTargets
-   sedcom = [fmtstr('/autopatchfit -final/s/-final E/-final {}/', final),
-             '/goto patchcorr/s//goto autopatch/']
+if autoPatch or useVolMatch:
+   sedcom = []
+   if autoPatch:
+      final = autoPatch
+      if extraTargets:
+         final += ' -extra ' + extraTargets
+      sedcom = [fmtstr('/autopatchfit -final/s/-final E/-final {}/', final),
+                '/goto patchcorr/s//goto autopatch/']
+
+   if useVolMatch:
+      sedcom.append('/goto solvematch/s//goto dualvolmatch/')
+         
    pysed(sedcom, srcdir + '/combine.com', 'combine.com')
+   
 else:
    shutil.copy(srcdir + '/combine.com', 'combine.com')
 
