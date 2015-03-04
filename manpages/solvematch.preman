@@ -64,8 +64,10 @@ this because there is no reliable information about this polarity in the
 fiducial coordinates.  However, such an inversion should be impossible when
 data are acquired with a CCD camera.
 .SS Using Matching Models
-When fiducial points from Tiltalign(1) are not available, you can use
-models of corresponding points to register the two volumes.  Pick a set
+When fiducial points from Tiltalign(1) are not available, the best
+option for dual-axis tomograms is to use Dualvolmatch(1) instead of
+Solvematch.  Otherwise, you can use models of corresponding points to
+register the two volumes in Solvematch.  Pick a set
 of points that can be localized well in both tomograms and enter them in
 the same order into a model for each tomogram.  The points can be in the
 same or in different objects or contours, as long as they occur in the
@@ -76,15 +78,14 @@ the volumes, they should be relatively near the 8 corners of the volume, and
 more points should be used for greater accuracy; but if the alignment is to
 be refined with correlation, this is not necessary.
 .P
-Using Old, Relative Fiducial Coordinates
+.SS Using Old, Relative Fiducial Coordinates
 With fiducial coordinates from older versions of Tiltalign(1), the program
 can solve for the 3 by 3 transformation but not for the shifts in X, Y
-and Z.  There are two ways to get these shifts: by cross-correlation
-of one transformed volume with the other, and by giving Solvematch
-models of corresponding points in the two tomograms.  The shell script
-that does correlations, Matchshifts(1), is generally successful.  If it
-fails, you have two options: rerun Tiltalign to get absolute
-coordinates; or create matching models.  If you do this, 3-6 points are
+and Z.  There are several ways to get these shifts: by rerunning
+Tiltalign(1) to get absolute coordinates; by finding the transformation
+with Dualvolmatch(1), or by giving Solvematch models of
+corresponding points in the two tomograms. 
+If you create matching models, 3-6 points are
 recommended.  If fiducials are essentially on one surface, then the
 modeled points are needed to find the scaling in Y (Z in flipped
 orientation) between the two tomograms.  In this case, be sure to

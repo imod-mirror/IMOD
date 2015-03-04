@@ -57,11 +57,16 @@ Batch Tomogram Reconstruction with IMOD
       IMOD, check this paragraph for news about the current capabilities.  In
       the initial release of this
       interface, dual axis datasets will be run to completion if possible.
+      When there are no fiducials or too few fiducials, it will get the initial 
+      alignment of the volumes by matching of reprojections and patch correlations.
       This is great if it works, but if you do open the Tomogram Combination
-      interface, it will overwrite the final parameters from the automated
-      processing.  It is now our highest priority to resolve this conflict and
-      update the Combine interface with new options for automated combining
-      compatible.
+      interface, it will overwrite the final parameters for patch size and
+      number from the automated
+      processing.  There is also no way to rerun the initial matching using
+      <A HREF = "man/dualvolmatch.html#TOP">Dualvolmatch</A> instead of
+      fiducials or matching models.  It is now our highest priority to resolve
+      these conflicts and update the Combine interface with new options for
+      automated combining compatible.
     </P>
 <H3><A NAME = "BatchSetup"></A>Setting General Batch Processing
   Parameters</H3>
@@ -216,8 +221,9 @@ Batch Tomogram Reconstruction with IMOD
       thickness, one by total unbinned pixels, one by binned pixels, and one to
       use a calculated value plus a specified margin.  The latter will use a
       specified thickness as the fallback if there is no calculated thickness
-      available or if it is too much smaller than the fallback.  This option is
-      the default because it is the most general-purpose.  Currently, the
+      available or if it is too much smaller than the fallback (only 0.4 as
+      big).  This option is the default because it is the most
+      general-purpose.  Currently, the
       calculated value is simply based on the distance between gold on two
       surfaces, but soon it will be possible to use automatic positioning for
       plastic sections.

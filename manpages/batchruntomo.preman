@@ -262,14 +262,16 @@ otherwise it must be specified with a directive.  The
 useful one because it can be used to specify a thickness to be used when
 there is no thickness available from either fine alignment or
 positioning.  The fallback thickness will also be used if the thickness
-from either is less than half of the fallback thickness, which
+from either is less than 40% of the fallback thickness, which
 would be the case if there are gold on only one surface and no 
 positioning was done.
 .P
 .B Tomogram combination
-for a dual-axis dataset is currently possible only for datasets with a
-fiducial alignment; it will proceed automatically in that case.  The program first uses
-Findsection(1) to find the Z limits.  The patch correlations and
+for a dual-axis dataset is possible with all kinds of alignments and
+will proceed automatically.  The program first uses
+Findsection(1) to find the Z limits, and decides whether to get the
+initial registration between volumes with Solvematch(1) or
+Dualvolmatch(1).  The patch correlations and
 fitting are done with Autopatchfit(1); by default, it will try medium to
 extra-large patches and add target residual values of 0.4,0.45 for
 Findwarp(1) on the final trial.  There are "runtime.Combine" directives
