@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/4/15: Added ability to run NAD from Batchruntomo, and an option to specify
+an SMTP server for email.
+
 3/4/15: Modified Setupcombine to set up for using initial volume matching, and
 made Batchruntomo use it when appropriate, so it can now combine data without
 fiducials.  Changed ratio so that fallback thickness is used when calculated
@@ -21,7 +24,7 @@ Transferfid for the matching operation.
 2/25/15: Transferfid can now find alignments when error in 90-degree rotation
 is up to 20 degrees, using new rotation search in Tiltxcorr.  Speed
 improvements in Xfsimplex and greater efficiency in Transferfid have reduced
-exeecution time by about half.
+execution time by about half.
 
 2/25/15: Fixed Midas for reference section other than 0.
 
