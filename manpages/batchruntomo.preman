@@ -302,10 +302,18 @@ will be the Trimvol default of 80% of the range; if "scaleFromZ" is not
 present, the central one-third of slices will be used.  All of these size
 and scaling directives may be specified either as a number of pixels, or as a
 fraction between 0.02 and 1.
+.P
+.B Nonlinear anisotropic diffusion (NAD)
+with Nad_eed_3d(1) can be run if both "runtime.NAD" directives are
+present for specifying the number of iterations and the K value.
 
 .SS Stopping and Restarting
 The \fB-start\fR and \fB-end\fR options allow datasets to be started
-and stopped at chosen steps in the sequence.  
+and stopped at chosen steps in the sequence.  The most useful step
+to stop at would be 10, to check CTF plotting and/or gold detection, then
+restart at 11.  To check fine alignment before going on, stop and
+restart at 6.
+.P
 If you are setting up a situation where parameters are being changed
 before restarting in an existing dataset, you should experiment to
 make sure the changes have the desired effect and are not overridden.

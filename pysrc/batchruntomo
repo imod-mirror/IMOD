@@ -48,7 +48,7 @@ def sendEmail(subject, message):
       msg['Subject'] = subject
       msg['From'] = 'batchruntomo'
       msg['To'] = emailAddress
-      s = smtplib.SMTP('localhost')
+      s = smtplib.SMTP(SMTPserver)
       s.sendmail(emailAddress, [emailAddress], msg.as_string())
       s.quit()
    except Exception:
@@ -3131,6 +3131,51 @@ def trimVolume():
    return 0
 
 
+# Run anisotropic diffusion in chunks
+def runNAD():
+   recFile = setName + '.rec'
+   nadFile = recFile + '.nad'
+   comFile = 'autoNAD' + '.com'
+
+   # Get the directives and make sure both are there, and make sure file exists
+   iterations = lookupDirective(runtimePrefix + 'NAD', 'iterations', 0, INT_VALUE)
+   Kvalue = lookupDirective(runtimePrefix + 'NAD', 'Kvalue', 0, FLOAT_VALUE)
+   if testDirectiveValue(iterations, 'NAD.iterations', 'integer') or \
+          testDirectiveValue(iterations, 'NAD.Kvalue', 'float'):
+      return 1
+   if not iterations and not Kvalue:
+      return 0
+   if (iterations and not Kvalue) or (Kvalue and not iterations):
+      abortSet('Both "iterations" and "Kvalue" directives need to be present to run NAD')
+      return 1
+   if not os.path.exists(recFile):
+      abortSet('You must run post-processing in order to run NAD')
+      return 1
+
+   # Get optional memory entry, compute the chunksize, write the dummy com file
+   memory = lookupDirective(runtimePrefix + 'NAD', 'chunkMemoryMB', 0, INT_VALUE)
+   if testDirectiveValue(iterations, 'NAD.chunkMemoryMB', 'integer'):
+      return 1
+   if not memory:
+      memory = 512
+   chunkSize = max(5, memory // 36)
+   nadcom = fmtstr('$nad_eed_3d -n {} -k {} INPUTFILE OUTPUTFILE', iterations, Kvalue)
+   if writeTextFileReportErr(comFile, [nadcom]):
+      return 1
+
+   # Make the chunk coms
+   padding = max(8, iterations)
+   chunkCom = fmtstr('chunksetup -m {} -p {} -no {} {} {}', chunkSize, padding, comFile,
+                     recFile, nadFile)
+   try:
+      runcmd(chunkCom)
+   except ImodpyError:
+     reportImodError('Error running chunksetup on ' + comFile)
+     return 1
+
+   return runOneProcess(comFile, False, message = 'Filtering with anisotripoc diffusion')
+   
+
 # Do all the operations on an axis
 def runOneAxis():
    global xtiltNeeded, fidThickness, fidIncShift, reconThickness
@@ -3319,10 +3364,14 @@ def runOneAxis():
       return 1
 
    # Run trimvol on full data set or at axis level if directive for it
-   if ((not dualAxis and needStep(finalStepNum)) or (dualAxis and needStep(14.5))) and \
+   if ((not dualAxis and needStep(trimStepNum)) or (dualAxis and needStep(14.5))) and \
           trimVolume():
       return 1
 
+   # Run NAD on full data set only
+   if not dualAxis and needStep(nadStepNum) and runNAD():
+      return 1
+   
    return 0
 
 
@@ -3337,8 +3386,11 @@ def runCombine():
    if alignAndCombineAxes():
       return
 
-   if needStep(finalStepNum):
-      trimVolume()
+   if needStep(trimStepNum) and trimVolume():
+      return
+
+   if needStep(nadStepNum):
+      runNAD()
 
    
 #### MAIN PROGRAM  ####
@@ -3396,7 +3448,9 @@ ctfPlotStepNum = 9
 detect3DstepNum = 10
 ctfCorrStepNum = 11
 eraseStepNum = 12
-finalStepNum = 20
+trimStepNum = 20
+nadStepNum = 21
+finalStepNum = 21
 
 # Defaults
 dfltDarkExcludeFraction = 0.33
@@ -3579,6 +3633,7 @@ if skipTiltalign and (startingStep <= 5.005 or \
 validation = PipGetInteger('ValidationType', 0)
 remoteDataDir = ''
 emailAddress = PipGetString('EmailAddress', '')
+SMTPserver = PipGetString('SMTPserver', 'localhost')
 if emailAddress:
    if pyVersion < 250:
       emailAddress = ''

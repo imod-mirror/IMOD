@@ -140,6 +140,15 @@ tooltip =
 manpage = Address for sending email messages either when a set is aborted or
 when the run completes.
 
+[Field = SMTPserver]
+short = SMTP
+type = CH
+usage = SMTP server for sending email (default is localhost)
+tooltip =
+manpage = An SMTP server for sending email messages.  The default is
+"localhost", but if the local host cannot send email, a server can be entered
+with this option.
+
 [Field = ValidationType]
 short = validation
 type = I
@@ -184,7 +193,8 @@ manpage = Step to start processing with:
 ^   17: Initial matchvol
 ^   18: Autopatchfind
 ^   19: Volcombine
-^   20: Postprocessing
+^   20: Postprocessing with Trimvol
+^   21: NAD (Nonlinear anistropic diffusion)
 ^   Each set will start at this step unless the
 \fB-first\fR option is entered, in which case only the first set will start
 with this step and others will start from the beginning.  In the latter case,

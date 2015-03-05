@@ -190,3 +190,6 @@ runtime.Trimvol.any.scaleFromY,Fraction or # of pixels in Y to use to set scalin
 runtime.Trimvol.any.scaleFromZ,Fraction or # of slices in Z to use to set scaling to bytes,Float,Y,Y,NE,BRT default is 0.33,Frac or # of slices in Z for byte scaling,
 runtime.Trimvol.any.doAorBofDualAxis,Trim a/b.rec of dual axis set,Bool,Y,Y,NE,,Trim a/b.rec of dual axis set,
 runtime.Trimvol.any.doSIRTifBoth,1 to trim SIRT or 2 to trim both if BP done also,Int,Y,Y,NE,,Which to trim if BP and SIRT exist,0: BP only; 1: SIRT only; 2: Both
+runtime.NAD.any.iterations,Number of iterations for running NAD,Int,Y,Y,NE,Both iterations and Kvalue must be entered,,
+runtime.NAD.any.Kvalue,K value to use when running NAD,Float,Y,Y,NE,,,
+runtime.NAD.any.chunkMemoryMB,Memory available for each chunk in MB,Int,Y,Y,NE,BRT default 512,Memory available for each chunk in MB,
