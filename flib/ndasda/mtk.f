@@ -15,6 +15,8 @@ c
       subroutine realgraphicsmain()
       parameter (limgraphs=50,limbins=1001,limwobj=100000,limxyz=10000000,
      &    limregion=200,itypall=999)
+c       limwobj * 36 + limxyz * 12  = 3.6 + 120
+c       limgraphs * 4 * (12 + 3 * limtyp + 2 * limbins) = 1.6
       parameter (limtyp=250,limrand=1000,limflag=512)
       parameter (limprobs=50,limprobsets=50)
       parameter (nOptNeedModel=10)
