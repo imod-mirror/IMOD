@@ -83,11 +83,13 @@ This attribute goes into the table under the heading \fBCPU Type\fR and can
 contain a description of the computer's processor.
 
 .TP
-.B exclude-interface = recon\fR|\fBjoin\fR|\fBpp\fR|\fBpeet
+.B exclude-interface = batchRunTomo\fR|\fBjoin\fR|\fBpeet\fR|\fBpp\fR|\fBrecon\fR|\fBserialSections\fR|\fBtools
 Excludes a computer from the Parallel Processing table depending on the
-interface in use.  Interfaces:  Tomogram Reconstruction - \fBrecon\fR, Join -
-\fBjoin\fR, Parallel Processing - \fBpp\fR, PEET - \fBpeet\fR.  Only one
-interface can be excluded per computer.
+interface in use.  Only one interface can be excluded per computer.
+"\fBbatchRunTomo\fR" refers to the Batch Tomograms interface.
+"\fBpp\fR" refers to the Nonlinear Anisotropic Diffusion interface, and the Generic Parallel Process interface.
+"\fBrecon\fR" refers to the Build Tomogram interface.
+"\fBtools\fR" refers to the Flatten Value interface, and the Test GPU interface.
 
 .TP
 .B users = \fIuser_name\fR[\fB,\fIuser_name\fR...]

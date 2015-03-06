@@ -5996,8 +5996,7 @@ public final class ApplicationManager extends BaseManager implements
     if (!tiltDisplay.getParameters(param, doValidation)) {
       return null;
     }
-    param.setSeparateChunks(CpuAdoc.INSTANCE.isSeparateChunks(this, axisID,
-      propertyUserDir));
+    param.setSeparateChunks(CpuAdoc.INSTANCE.isSeparateChunks());
     return param;
   }
 
