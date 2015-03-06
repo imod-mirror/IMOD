@@ -2,19 +2,16 @@ package etomo.ui.swing;
 
 import etomo.FrontPageManager;
 import etomo.type.AxisID;
+import etomo.type.InterfaceType;
 
 /**
 * <p>Description: </p>
 * 
-* <p>Copyright: Copyright 2008</p>
-*
-* <p>Organization:
-* Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
-* University of Colorado</p>
-* 
-* @author $Author$
-* 
-* @version $Revision$
+ * <p>Copyright: Copyright 2008 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
+ *
+ * @version $Id$
 * 
 * <p> $Log$
 * <p> Revision 1.1  2010/11/13 16:07:34  sueh
@@ -28,13 +25,10 @@ import etomo.type.AxisID;
 * <p> </p>
 */
 final class FrontPageProcessPanel extends AxisProcessPanel {
-  public static final String rcsid = "$Id$";
-
-  FrontPageProcessPanel(FrontPageManager manager) {
-    super(AxisID.ONLY, manager, true,true);
+  FrontPageProcessPanel(final FrontPageManager manager) {
+    super(AxisID.ONLY, manager, true, true, InterfaceType.FRONT_PAGE);
     initializePanels();
   }
 
-  void createProcessControlPanel() {
-  }
+  void createProcessControlPanel() {}
 }
