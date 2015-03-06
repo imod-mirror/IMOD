@@ -29,18 +29,19 @@ import etomo.util.Utilities;
 /**
  * <p>Description: </p>
  * <p/>
- * <p>Copyright: Copyright 2002 - 2014 by the Regents of the University of Colorado</p>
+ * <p>Copyright: Copyright 2002 - 2015 by the Regents of the University of Colorado</p>
  * <p/>
  * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
  * @version $Id$
  */
-final class HeaderCell implements Cell, TableComponent, UIComponent, SwingComponent {
+final class HeaderCell extends Cell implements TableComponent, UIComponent,
+  SwingComponent {
   private static final ColorUIResource background = new ColorUIResource(204, 204, 204);
-  private static final ColorUIResource greyout =
-      Colors.subtractColor(Colors.BACKGROUND, background);
-  private static final ColorUIResource warningBackground =
-      Colors.subtractColor(Colors.WARNING_BACKGROUND, greyout);
+  private static final ColorUIResource greyout = Colors.subtractColor(Colors.BACKGROUND,
+    background);
+  private static final ColorUIResource warningBackground = Colors.subtractColor(
+    Colors.WARNING_BACKGROUND, greyout);
 
   private final UITestFieldType uiTestFieldType;
 
@@ -273,15 +274,15 @@ final class HeaderCell implements Cell, TableComponent, UIComponent, SwingCompon
       name = Utilities.convertLabelToName(text);
     }
     else {
-      name = Utilities
-          .convertLabelToName(tableHeader, rowHeader != null ? rowHeader.getText() : null,
-              columnHeader != null ? columnHeader.getText() : null);
+      name =
+        Utilities.convertLabelToName(tableHeader,
+          rowHeader != null ? rowHeader.getText() : null,
+          columnHeader != null ? columnHeader.getText() : null);
     }
     getComponent().setName(prefix + name);
     if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
-      System.out.println(
-          uiTestFieldType.toString() + AutodocTokenizer.SEPARATOR_CHAR + name + ' ' +
-              AutodocTokenizer.DEFAULT_DELIMITER + ' ');
+      System.out.println(uiTestFieldType.toString() + AutodocTokenizer.SEPARATOR_CHAR
+        + name + ' ' + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
     }
   }
 
