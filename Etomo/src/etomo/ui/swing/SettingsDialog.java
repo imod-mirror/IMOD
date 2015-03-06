@@ -22,10 +22,13 @@ import etomo.ui.FieldType;
  * Window>Preferences>Java>Templates.
  * To enable and disable the creation of type comments go to
  * Window>Preferences>Java>Code Generation.
+ *  * <p>Copyright: Copyright 2002 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
+ *
+ * @version $Id$ $
  */
 public final class SettingsDialog extends JDialog {
-  public static final String rcsid = "$Id$";
-
   // Font selection panel
   private final FontFamilies fontFamilies = new FontFamilies();
   private final JList listFontFamily = new JList(fontFamilies.getFontFamilies());
@@ -194,8 +197,7 @@ public final class SettingsDialog extends JDialog {
         AxisID.ONLY, propertyUserDir));
     // Disable GPU processing checkbox if it was enabled by a method that takes
     // precidence over this one (cpu.adoc).
-    cbGpuProcessing.setEnabled(!Network.isGpuProcessingSetExternally(manager,
-        AxisID.ONLY, propertyUserDir));
+    cbGpuProcessing.setEnabled(!Network.isGpuProcessingSetExternally());
   }
 
   private void updateDisplay() {
