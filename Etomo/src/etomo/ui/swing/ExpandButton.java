@@ -15,6 +15,7 @@ import etomo.EtomoDirector;
 import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.type.DialogType;
 import etomo.type.UITestFieldType;
+import etomo.ui.Expander;
 import etomo.ui.TableComponent;
 import etomo.util.Utilities;
 
@@ -27,15 +28,11 @@ import etomo.util.Utilities;
  * displays the button and implements Expandable.  When the button is pressed,
  * its state is changed and it calls Expandable.expand(ExpandButton).</p>
  * 
- * <p>Copyright: Copyright (c) 2002, 2003, 2004</p>
+ * <p>Copyright: Copyright 2002 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- *<p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
- * University of Colorado</p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
+ * @version $Id$
  * 
  * <p> $Log$
  * <p> Revision 1.1  2010/11/13 16:07:34  sueh
@@ -146,9 +143,7 @@ import etomo.util.Utilities;
  * <p> tells the component it is displayed on when it has been pressed.
  * <p> </p>
  */
-final class ExpandButton extends MultiLineButton implements TableComponent {
-  public static final String rcsid = "$Id$";
-
+final class ExpandButton extends MultiLineButton implements TableComponent, Expander {
   private static final Type DEFAULT_TYPE = Type.MORE;
 
   private final Type type;
@@ -168,7 +163,7 @@ final class ExpandButton extends MultiLineButton implements TableComponent {
   }
 
   static ExpandButton getInstance(final Expandable expandable1,
-      final Expandable expandable2, ExpandButton.Type type) {
+    final Expandable expandable2, ExpandButton.Type type) {
     if (type == null) {
       type = DEFAULT_TYPE;
     }
@@ -177,7 +172,7 @@ final class ExpandButton extends MultiLineButton implements TableComponent {
   }
 
   static ExpandButton getGlobalInstance(final Expandable expandable1,
-      ExpandButton.Type type, final GlobalExpandButton globalExpandButton) {
+    ExpandButton.Type type, final GlobalExpandButton globalExpandButton) {
     if (type == null) {
       type = DEFAULT_TYPE;
     }
@@ -186,18 +181,18 @@ final class ExpandButton extends MultiLineButton implements TableComponent {
   }
 
   static ExpandButton getGlobalInstance(final Expandable expandable1,
-      final Expandable expandable2, ExpandButton.Type type,
-      final GlobalExpandButton globalExpandButton) {
+    final Expandable expandable2, ExpandButton.Type type,
+    final GlobalExpandButton globalExpandButton) {
     if (type == null) {
       type = DEFAULT_TYPE;
     }
-    ExpandButton instance = new ExpandButton(expandable1, expandable2, type,
-        globalExpandButton);
+    ExpandButton instance =
+      new ExpandButton(expandable1, expandable2, type, globalExpandButton);
     return instance;
   }
 
   static ExpandButton getExpandedInstance(final Expandable expandable1,
-      final Expandable expandable2, ExpandButton.Type type) {
+    final Expandable expandable2, ExpandButton.Type type) {
     if (type == null) {
       type = DEFAULT_TYPE;
     }
@@ -214,13 +209,13 @@ final class ExpandButton extends MultiLineButton implements TableComponent {
    * @param component
    */
   private ExpandButton(final Expandable expandable1, final Expandable expandable2,
-      final ExpandButton.Type type, final GlobalExpandButton globalExpandButton) {
+    final ExpandButton.Type type, final GlobalExpandButton globalExpandButton) {
     this(expandable1, expandable2, type, false, globalExpandButton);
   }
 
   private ExpandButton(final Expandable expandable1, final Expandable expandable2,
-      final ExpandButton.Type type, final boolean expanded,
-      final GlobalExpandButton globalExpandButton) {
+    final ExpandButton.Type type, final boolean expanded,
+    final GlobalExpandButton globalExpandButton) {
     super();
     this.expandable1 = expandable1;
     this.expandable2 = expandable2;
@@ -253,7 +248,7 @@ final class ExpandButton extends MultiLineButton implements TableComponent {
   void setName(final String associatedLabel) {
     String name = Utilities.convertLabelToName(associatedLabel);
     getButton().setName(
-        UITestFieldType.MINI_BUTTON.toString() + AutodocTokenizer.SEPARATOR_CHAR + name);
+      UITestFieldType.MINI_BUTTON.toString() + AutodocTokenizer.SEPARATOR_CHAR + name);
     if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
       System.out.println(getName() + ' ' + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
     }
@@ -263,7 +258,7 @@ final class ExpandButton extends MultiLineButton implements TableComponent {
    * 
    * @return expanded
    */
-  boolean isExpanded() {
+  public boolean isExpanded() {
     return expanded;
   }
 
@@ -278,8 +273,8 @@ final class ExpandButton extends MultiLineButton implements TableComponent {
    * @return
    */
   String createButtonStateKey(final DialogType dialogType) {
-    String stateKey = dialogType.getStorableName() + '.' + getName() + '.'
-        + type.getExpandedState();
+    String stateKey =
+      dialogType.getStorableName() + '.' + getName() + '.' + type.getExpandedState();
     setStateKey(stateKey);
     return stateKey;
   }
@@ -314,12 +309,12 @@ final class ExpandButton extends MultiLineButton implements TableComponent {
     }
   }
 
-public  int getPreferredWidth() {
+  public int getPreferredWidth() {
     return getPreferredWidth(type.getUnformattedText(expanded));
   }
 
   void add(final JPanel panel, final GridBagLayout layout,
-      final GridBagConstraints constraints) {
+    final GridBagConstraints constraints) {
     double oldWeightx = constraints.weightx;
     constraints.weightx = 0.0;
     layout.setConstraints(getComponent(), constraints);
@@ -402,11 +397,11 @@ public  int getPreferredWidth() {
     private static final String OPEN_EXPANDED_SYMBOL = "-";
 
     static final Type MORE = new Type("more", MORE_EXPANDED_SYMBOL, "Show less.", "less",
-        "<html>&gt", "Show more.");
+      "<html>&gt", "Show more.");
     static final Type ADVANCED = new Type("advanced", ADVANCED_EXPANDED_SYMBOL,
-        "Show basic options.", "basic", "A", "Show all options.");
+      "Show basic options.", "basic", "A", "Show all options.");
     static final Type OPEN = new Type("open", OPEN_EXPANDED_SYMBOL, "Close panel.",
-        "closed", "+", "Open panel.");
+      "closed", "+", "Open panel.");
 
     // Backwards compatibility issue: expandedState is a key in the .edf file.
     private final String expandedState;
@@ -418,8 +413,8 @@ public  int getPreferredWidth() {
     private final String contractedToolTip;
 
     private Type(final String expandedState, final String expandedSymbol,
-        final String expandedToolTip, final String contractedState,
-        final String contractedSymbol, final String contractedToolTip) {
+      final String expandedToolTip, final String contractedState,
+      final String contractedSymbol, final String contractedToolTip) {
       this.expandedState = expandedState;
       this.expandedSymbol = expandedSymbol;
       this.expandedToolTip = expandedToolTip;
@@ -444,8 +439,8 @@ public  int getPreferredWidth() {
     private static boolean isExpandedSymbol(String symbol) {
       symbol = Utilities.convertLabelToName(symbol);
       return symbol.equals(Utilities.convertLabelToName(MORE_EXPANDED_SYMBOL))
-          || symbol.equals(Utilities.convertLabelToName(ADVANCED_EXPANDED_SYMBOL))
-          || symbol.equals(Utilities.convertLabelToName(OPEN_EXPANDED_SYMBOL));
+        || symbol.equals(Utilities.convertLabelToName(ADVANCED_EXPANDED_SYMBOL))
+        || symbol.equals(Utilities.convertLabelToName(OPEN_EXPANDED_SYMBOL));
     }
 
     private String getState(final boolean expanded) {
