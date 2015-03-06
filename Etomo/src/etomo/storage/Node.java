@@ -13,15 +13,11 @@ import etomo.util.EnvironmentVariable;
 /**
  * <p>Description: </p>
  * 
- * <p>Copyright: Copyright 2010</p>
+ * <p>Copyright: Copyright 2010 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
- * University of Colorado</p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
+ * @version $Id$
  * 
  * <p> $Log$
  * <p> Revision 1.4  2011/02/22 04:52:05  sueh
@@ -41,7 +37,11 @@ import etomo.util.EnvironmentVariable;
  * <p> </p>
  */
 public final class Node {
-  public static final String rcsid = "$Id$";
+  static final String NUMBER_KEY = "number";
+  static final String TYPE_KEY = "type";
+  static final String SPEED_KEY = "speed";
+  static final String MEMORY_KEY = "memory";
+  static final String OS_KEY = "os";
 
   public static final String LOCAL_HOST_NAME = "localhost";
 
@@ -90,7 +90,7 @@ public final class Node {
    * @param managerKey
    */
   static synchronized void createLocalInstance(final BaseManager manager,
-      final AxisID axisID, final String propertyUserDir) {
+    final AxisID axisID, final String propertyUserDir) {
     if (LOCAL_HOST_INSTANCE != null) {
       return;
     }
@@ -99,7 +99,7 @@ public final class Node {
     // See if LOCAL_INSTANCE.number should be greater then 1 and set it if necessary.
     EtomoNumber imodProcessors = new EtomoNumber();
     imodProcessors.set(EnvironmentVariable.INSTANCE.getValue(manager, propertyUserDir,
-        "IMOD_PROCESSORS", axisID));
+      "IMOD_PROCESSORS", axisID));
     UserConfiguration userConfiguration = EtomoDirector.INSTANCE.getUserConfiguration();
     if (!imodProcessors.isNull() && imodProcessors.isValid()) {
       LOCAL_HOST_INSTANCE.number.set(imodProcessors);
@@ -128,7 +128,7 @@ public final class Node {
         userArray = list.split("\\s*,\\s*");
       }
     }
-    attribute = section.getAttribute("number");
+    attribute = section.getAttribute(NUMBER_KEY);
     if (attribute != null) {
       number.set(attribute.getValue());
     }
@@ -144,7 +144,7 @@ public final class Node {
     if (attribute != null) {
       speed = attribute.getValue();
     }
-    attribute = section.getAttribute("type");
+    attribute = section.getAttribute(TYPE_KEY);
     if (attribute != null) {
       type = attribute.getValue();
     }
@@ -215,9 +215,9 @@ public final class Node {
    * @return
    */
   public boolean isLocalHost(final BaseManager manager, final AxisID axisID,
-      final String propertyUserDir) {
+    final String propertyUserDir) {
     String localHostName = Network.getLocalHostName(manager, axisID, propertyUserDir);
-    if (localHostName ==null) {
+    if (localHostName == null) {
       return false;
     }
     if (name.equals(localHostName)) {
@@ -258,6 +258,10 @@ public final class Node {
     return true;
   }
 
+  InterfaceType getExcludeInterface() {
+    return excludeInterface;
+  }
+
   public boolean isMemoryEmpty() {
     return memory == null || memory.matches("\\s*");
   }
@@ -280,7 +284,7 @@ public final class Node {
     }
     return gpuDeviceArray.length;
   }
-  
+
   public String[] getGpuDeviceArray() {
     return gpuDeviceArray;
   }
@@ -307,6 +311,22 @@ public final class Node {
 
   public String getType() {
     return type;
+  }
+
+  public boolean isType() {
+    return type != null && !type.matches("\\s*");
+  }
+
+  public boolean isSpeed() {
+    return speed != null && !speed.matches("\\s*");
+  }
+
+  public boolean isMemory() {
+    return memory != null && !memory.matches("\\s*");
+  }
+
+  public boolean isOs() {
+    return os != null && !os.matches("\\s*");
   }
 
   public String getCommand() {
