@@ -2,25 +2,20 @@ package etomo.ui.swing;
 
 import etomo.ParallelManager;
 import etomo.type.AxisID;
+import etomo.type.InterfaceType;
 
 /**
 * <p>Description: </p>
 * 
-* <p>Copyright: Copyright (c) 2006</p>
-*
-* <p>Organization:
-* Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
-* University of Colorado</p>
-* 
-* @author $Author$
-* 
-* @version $Revision$
+ * <p>Copyright: Copyright 2006 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
+ *
+ * @version $Id$
 */
 public final class ParallelProcessPanel extends AxisProcessPanel {
-  public static final String rcsid = "$Id$";
-
   ParallelProcessPanel(ParallelManager manager) {
-    super(AxisID.ONLY, manager, true,true);
+    super(AxisID.ONLY, manager, true, true, InterfaceType.PP);
     createProcessControlPanel();
     showBothAxis();
     initializePanels();
