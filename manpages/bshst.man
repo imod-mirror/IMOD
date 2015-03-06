@@ -1,6 +1,6 @@
 .na
 .nh
-.TH bshst 1 4.6.34 BL3DEMC
+.TH bshst 1 4.6.34 IMOD
 .SH NAME
 BSHST - an interactive histogram plotting routine called by Genhstplt
            and other programs

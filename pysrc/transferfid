@@ -9,49 +9,10 @@
 progname = 'transferfid'
 prefix = 'ERROR: ' + progname + ' - '
 
-# Filter for tiltxcorr
-sigma1 = 0.03
-sigma2 = 0.05
-radius2 = 0.25
-
-# Search limit parameters
-xylimitfrac = 5
-rotlimit = 15
-otherlimits = '.1,.05,2'
-
-# Number of wins more in one rotation direction than the other that will
-# make it abandon the other direction
-DIRECTION_WIN_THRESH = 4
-BIG_WIN_THRESH = 2
-BIG_WIN_FACTOR = 2.
-
-# Global variables needed by functions
-tmproot = ''
-pid = ''
-leavetmp = 0
-tmpdir = ''
-
-# Clean up all the temp files before exiting
-def cleanup():
-   if leavetmp:
-      prnstr('Temporary files left in ' + tmpdir + ' as *' + pid)
-   else:
-      cleanlist = glob.glob(tmproot + '*' + pid + '*')
-      cleanupFiles(cleanlist)
-         
-
-# Cleanup files, issue top message if any, and do the Imod error exit
-def cleanExitError(message = ''):
-   cleanup()
-   if message:
-      prnstr(prefix + message)
-   exitFromImodError(progname)
-   
-
 # Find the view with the minimum tilt angle from either the tilt file or track.com
 def getMinimumAngle(setname, src, AA, lines):
-   tiltfile = setname + src + '.rawtlt'
-   if not os.path.exists(tiltfile):
+   tiltFile = setname + src + '.rawtlt'
+   if not os.path.exists(tiltFile):
 
       # Try to find starting and increment and compute from them
       first = optionValue(lines, 'FirstTiltAngle', 2)
@@ -59,7 +20,7 @@ def getMinimumAngle(setname, src, AA, lines):
       if not first or not increment:
          exitError(fmtstr('{} not found - it is needed unless you enter the zero-tilt ' +\
                           'view number for {} with -z{} or track{}.com ' +\
-                          'has starting angle and increment', tiltfile, AA, src, src))
+                          'has starting angle and increment', tiltFile, AA, src, src))
       if math.fabs(increment[0]) < math.fabs(0.000001 * first[0]):
          exitError('Tilt increment too small to find zero tilt view number')
       zero = 1 + int(math.floor(-first[0] / increment[0] + 0.5))
@@ -68,20 +29,20 @@ def getMinimumAngle(setname, src, AA, lines):
       return zero
 
    # Find minimum tilt angle in rawtlt file
-   anglines = readTextFile(tiltfile)
+   angLines = readTextFile(tiltFile)
    amin = 1.e20
    zero = -1
    try:
-      for i in range(len(anglines)):
-         if anglines[i].strip():
-            ang = math.fabs(float(anglines[i]))
+      for i in range(len(angLines)):
+         if angLines[i].strip():
+            ang = math.fabs(float(angLines[i]))
             if ang < amin:
                amin = ang
                zero = i + 1
    except Exception:
-      exitError('Converting lines in ' + tiltfile + ' to floating point values')
+      exitError('Converting lines in ' + tiltFile + ' to floating point values')
    if zero <= 0:
-      exitError('Cannot find a minimum tilt angle from ' + tiltfile)
+      exitError('Cannot find a minimum tilt angle from ' + tiltFile)
    return zero
 
 
@@ -104,6 +65,7 @@ else:
 # load IMOD Libraries
 from pip import *
 from pysed import *
+from tiltmatch import *
 
 # Fallbacks from ../manpages/autodoc2man 3 1 transferfid
 options = ["s:Setname:CH:", "b:TransferBtoA:B:", "ia:AImageFile:FN:",
@@ -119,28 +81,18 @@ passOnKeyInterrupt(True)
 doPID = PipGetBoolean('PID', 0)
 printPID(doPID)
 
-# Set names of temp files
-tmpdir = imodTempDir()
-pid = '.' + str(os.getpid())
-tmproot = progname
-if tmpdir:
-   tmproot = tmpdir + '/' + progname + '.'
+# Set names of temp files, this gets pid, tmpRoot, and tmpDir in the module globals
+tmpMinxf = getTempNames(progname)
 
-tmpstack = tmproot + 'stack' + pid
-tmpimga = tmproot + 'imga' + pid
-tmpxcxf = tmproot + 'xcxf' + pid
-tmpxf1 = tmproot + 'xf1' + pid
-tmpxf2 = tmproot + 'xf2' + pid
-tmprot90 = tmproot + 'rot90' + pid
-tmpminxf = tmproot + 'minxf' + pid
-tmptwoxf = tmproot + 'twoxf' + pid
-tmpclip = tmproot + 'clip' + pid
-tmpxfmod = tmproot + 'xfmod' + pid
-tmpseed = tmproot + 'seed' + pid
-tmpmap1 = tmproot + 'map1' + pid
-tmpmap2 = tmproot + 'map2' + pid
-tmpmap3 = tmproot + 'map3' + pid
-tmpmidxf = tmproot + 'midxf' + pid
+tmpStack = tmpRoot + 'stack' + pid
+tmpTwoxf = tmpRoot + 'twoxf' + pid
+tmpClip = tmpRoot + 'clip' + pid
+tmpXfmod = tmpRoot + 'xfmod' + pid
+tmpSeed = tmpRoot + 'seed' + pid
+tmpMap1 = tmpRoot + 'map1' + pid
+tmpMap2 = tmpRoot + 'map2' + pid
+tmpMap3 = tmpRoot + 'map3' + pid
+tmpMidxf = tmpRoot + 'midxf' + pid
 
 setname = PipGetInOutFile('Setname', 0)
 if not setname:
@@ -150,392 +102,184 @@ src = 'a'
 dst = 'b'
 AA = 'A'
 BB = 'B'
-ifbtoa = PipGetBoolean('TransferBtoA', 0)
-if ifbtoa:
+ifBtoA = PipGetBoolean('TransferBtoA', 0)
+if ifBtoA:
    src = 'b'
    dst = 'a'
    AA = 'B'
    BB = 'A'
 
-imagea = PipGetString('AImageFile', '')
-imageb = PipGetString('BImageFile', '')
-fidfile = PipGetString('FiducialModel', setname + src + '.fid')
-outfile = PipGetString('SeedModel', setname + dst + '.seed')
+imageA = PipGetString('AImageFile', '')
+imageB = PipGetString('BImageFile', '')
+fidFile = PipGetString('FiducialModel', setname + src + '.fid')
+outFile = PipGetString('SeedModel', setname + dst + '.seed')
 nviews = PipGetInteger('ViewsToSearch', 5)
-zeroa = PipGetInteger('ACenterView', -1)
-zerob = PipGetInteger('BCenterView', -1)
+zeroA = PipGetInteger('ACenterView', -1)
+zeroB = PipGetInteger('BCenterView', -1)
 correspond = PipGetString('CorrespondingCoordFile', '')
 lowestXfFile = PipGetString('LowestTiltTransformFile', '')
-pmstart = 0
-pmend = 1
-angle = PipGetInteger('AngleOfRotation', 0)
-if angle < 0:
-   pmend = 0
-if angle > 0:
-   pmstart = 1
-leavetmp = PipGetBoolean('LeaveTempFiles', 0)
-midas = PipGetBoolean('RunMidas', 0)
-mirror = PipGetBoolean('MirrorXaxis', 0)
 if nviews < 0:
    exitError('The number of views to sample must be positive')
 
 # swap inputs for filename and center z's if going backwards
-if ifbtoa:
-   tmp = imagea
-   imagea = imageb
-   imageb = tmp
-   tmp = zeroa
-   zeroa = zerob
-   zerob = tmp
+if ifBtoA:
+   tmp = imageA
+   imageA = imageB
+   imageB = tmp
+   tmp = zeroA
+   zeroA = zeroB
+   zeroB = tmp
 
 # Get the A track command file and insist it be PIP version; get A image file if needed
 tracka = 'track' + src + '.com'
 if not os.path.exists(tracka):
    exitError('Cannot find ' + tracka + ' command file')
-tracklines = readTextFile(tracka)
+trackLines = readTextFile(tracka)
 
-tracklines = extractProgramEntries(tracklines, 'beadtrack', '-Standard')
-if tracklines == None:
+trackLines = extractProgramEntries(trackLines, 'beadtrack', '-Standard')
+if trackLines == None:
    exitError('Old version of ' + tracka + ' cannot be used; convert it by opening ' +\
              'and closing the fiducial tracking panel in etomo')
 
-if not imagea:
-   imagea = optionValue(tracklines, 'ImageFile', 0)
+if not imageA:
+   imageA = optionValue(trackLines, 'ImageFile', 0)
 
 # Get B image file from trackb.com if needed 
-if not imageb or zerob < 0:
+if not imageB or zeroB < 0:
    trackb = 'track' + dst + '.com'
    if not os.path.exists(trackb):
       exitError(fmtstr('Cannot find {} command file; it is needed unless you enter the' +\
                        ' {} image file with -i{}', trackb, BB, dst))
-   blines = readTextFile(trackb)
-   if not imageb:
-      imageb =  optionValue(blines, 'ImageFile', 0)
-   if not imageb:
+   bLines = readTextFile(trackb)
+   if not imageB:
+      imageB =  optionValue(bLines, 'ImageFile', 0)
+   if not imageB:
       exitError(fmtstr('Cannot find the {} image file name in {}', BB, trackb))
 
 # Get the view at minimum tilt if needed for one reason or another
-zeroAview = zeroa
-zeroBview = zerob
-if zeroa < 0 or lowestXfFile:
-   zeroAview = getMinimumAngle(setname, src, AA, tracklines)
-if zerob < 0 or lowestXfFile:
-   zeroBview = getMinimumAngle(setname, dst, BB, blines)
-if zeroa < 0:
-   zeroa = zeroAview
-if zerob < 0:
-   zerob = zeroBview
+zeroAview = zeroA
+zeroBview = zeroB
+if zeroA < 0 or lowestXfFile:
+   zeroAview = getMinimumAngle(setname, src, AA, trackLines)
+if zeroB < 0 or lowestXfFile:
+   zeroBview = getMinimumAngle(setname, dst, BB, bLines)
+if zeroA < 0:
+   zeroA = zeroAview
+if zeroB < 0:
+   zeroB = zeroBview
 
 # Make sure image files exist and fid file too
-for imfile in (imagea, imageb):
+for imfile in (imageA, imageB):
    if not os.path.exists(imfile):
       exitError('Image file ' + imfile + ' does not exist')
 
-if not os.path.exists(fidfile):
-   exitError('Fuducial file ' + fidfile + ' does not exist')
+if not os.path.exists(fidFile):
+   exitError('Fiducial file ' + fidFile + ' does not exist')
 
 # Get image sizes and pixel size
-(nxa, nya, nza, mode, pxa, pya, pza) = getmrc(imagea)
-(nxb, nyb, nzb, mode, pxb, pyb, pzb) = getmrc(imageb)
+(nxa, nya, nza, mode, pxa, pya, pza) = getmrc(imageA)
+(nxb, nyb, nzb, mode, pxb, pyb, pzb) = getmrc(imageB)
 if math.fabs((pxb - pxa) /pxa) > 0.025:
-   exitError(fmtstr('Pixel sizes do not match: {} = {}, {} = {}', imagea, pxa, imageb,
+   exitError(fmtstr('Pixel sizes do not match: {} = {}, {} = {}', imageA, pxa, imageB,
                     pxb))
 
-# Set the binning needed to get image size to 512 or less unless the size is
-# bigger than 4K, in which case bin to 1024.  Limit binning to 4 between 2048
-# and 4096.  Set limits on X/Y in search
-# Original had sqrt of nxa * nxb!
-size = int(math.floor(math.sqrt(nxa * nya)))
-limit = 512
-if size >= 4096:
-   limit = 1024
-reduce = (size + limit - 1) // limit
-if size < 4096 and reduce > 4:
-   reduce = 4
-xlimit = nxb // 5
-ylimit = nyb // 5
+zeroA -= 1
+zeroB -= 1
 
-# Get starting and ending section numbers
-#
-zeroa -= 1
-zerob -= 1
-
-asecstr = zeroa - (nviews // 2)
-asecend = asecstr + nviews - 1
-bsecstr = zerob - (nviews // 2)
-bsecend = bsecstr + nviews - 1
-lowestAsec = min(asecend, max(asecstr, zeroAview - 1))
-lowestBsec = min(bsecend, max(bsecstr, zeroBview - 1))
+asecStart = zeroA - (nviews // 2)
+asecEnd = asecStart + nviews - 1
+bsecStart = zeroB - (nviews // 2)
+bsecEnd = bsecStart + nviews - 1
+lowestAsec = min(asecEnd, max(asecStart, zeroAview - 1))
+lowestBsec = min(bsecEnd, max(bsecStart, zeroBview - 1))
 
 # Check section numbers
-if asecstr < 0 or asecend >= nza:
+if asecStart < 0 or asecEnd >= nza:
     exitError(fmtstr('The starting or ending section numbers for {} are out of range' + \
-                     ' ({} and {})', AA, asecstr, asecend))
-if bsecstr < 0 or bsecend >= nzb:
+                     ' ({} and {})', AA, asecStart, asecEnd))
+if bsecStart < 0 or bsecEnd >= nzb:
     exitError(fmtstr('The starting or ending section numbers for {} are out of range' + \
-                     ' ({} and {})', BB, bsecstr, bsecend))
+                     ' ({} and {})', BB, bsecStart, bsecEnd))
 
-# Set up lists to do sections from center out
-aseclist = [zeroa]
-bseclist = [zerob]
-ind = 1
-while ind < nviews:
-   for dir in (1, -1):
-      aseclist.append(zeroa + ind * dir)
-      bseclist.append(zerob + ind * dir)
-   ind += 1
-   
-
-# Do we still need to scale density differences?
-diffscale = 1.0 # was 1000000
-
-# set up for midas
-#
-if midas:
-   if pmend != pmstart:
-      pmend = 0
-else:
-    prnstr("Finding the best matched pair of views in the two series:")
-    prnstr("              (Type Ctrl-C to end search)")
-
-# Loop on section from b, section from a, and -/+90 rotations
-diffmin = 2000000000
-diffLowestTilt = diffmin
-pluswin = 0
-minuswin = 0
-plusbig = 0
-minusbig = 0
-try:
-   for bsecind in range(nviews):
-      bsec = bseclist[bsecind]
-      for asecind in range(nviews):
-         asec = aseclist[asecind]
-         plusminus = pmstart
-         pmdiffs = []
-         while plusminus <= pmend:
-            if plusminus:
-               if mirror:
-                  rotstr = "0 -1 -1 0 -1 -1"
-               else:
-                  rotstr = "0 -1 1 0 -1 0"
-               pmangle = +90
-            else:
-               if mirror:
-                  rotstr = "0 1 1 0 0 0"
-               else:
-                  rotstr = "0 1 -1 0 0 -1"
-               pmangle = -90
-
-            writeTextFile(tmprot90, [rotstr])
-
-            # extract the rotated section from A
-            try:
-               runcmd(fmtstr('newstack -sec {} -xform {} -size {},{} -use 0 {} "{}"',
-                             asec, tmprot90, nxb, nyb, imagea, tmpimga))
-            except ImodpyError:
-               cleanExitError(fmtstr('Extracting rotated section from {}', AA))
-
-            # Stack this rotated section on top of the sec from b
-            try:
-               runcmd(fmtstr('newstack -sec {} -sec 0 {} "{}" "{}"',
-                             bsec, imageb, tmpimga, tmpstack))
-            except ImodpyError:
-               cleanExitError(fmtstr('Stacking rotated {} on {}', AA, BB))
-               
-            if midas:
-               if not asecind and not bsecind:
-
-                  # first time, run midas
-                  prnstr("Starting midas - you should align translation and rotation,")
-                  prnstr(" and save the transform to the already-defined output file")
-                  prnstr(" ")
-                  try:
-                     runcmd(fmtstr('midas -D "{}" "{}"', tmpstack, tmpmidxf))
-                  except ImodpyError:
-                     cleanExitError()
-                     
-                  if not os.path.exists(tmpmidxf):
-                     cleanup()
-                     exitError('Transform file not found - cannot proceed')
-
-                  midxflines = readTextFile(tmpmidxf)
-                  if len(midxflines) < 2:
-                     exitError('No transform found in ' + tmpmidxf)
-                  writeTextFile(tmpxf1, [midxflines[1]])
-                  prnstr("Finding the best matched pair of views in the two series:")
-                  prnstr("              (Type Ctrl-C to end search)")
-
-                  
-            else:
-
-               # Run tiltxcorr
-               try:
-                  runcmd(fmtstr('tiltxcorr -angles 0,0 -radius2 {} -sigma1 {} -sigma2' +\
-                                ' {} {} {}', radius2, sigma1, sigma2, tmpstack, tmpxcxf))
-               except ImodpyError:
-                  cleanExitError('Running tiltxcorr to get initial correlation alignment')
-
-               # Run xfsimplex looking for rotation only
-               xfcom = ['AImageFile ' + tmpstack,
-                        'BImageFile ' + tmpimga,
-                        'OutputFile ' + tmpxf1,
-                        'InitialTransformFile ' + tmpxcxf,
-                        'VariablesToSearch 3',
-                        'BinningToApply ' + str(reduce),
-                        fmtstr('LimitsOnSearch {},{},{}', xlimit, ylimit, rotlimit),
-                        'UseTransformLine 1']
-               try:
-                  runcmd('xfsimplex -StandardInput', xfcom)
-               except ImodpyError:
-                  cleanExitError('Running first xfsimplex with rotation only')
-
-
-            # Run xfsimplex again from there, looking for full transform
-            xfcom = ['AImageFile ' + tmpstack,
-                     'BImageFile ' + tmpimga,
-                     'OutputFile ' + tmpxf2,
-                     'InitialTransformFile ' + tmpxf1,
-                     'VariablesToSearch 6',
-                     'BinningToApply ' + str(reduce),
-                     fmtstr('LimitsOnSearch {},{},{},{}', xlimit, ylimit, rotlimit,
-                            otherlimits)]
-            try:
-               simplines = runcmd('xfsimplex -StandardInput', xfcom)
-            except ImodpyError:
-               cleanExitError('Running second xfsimplex with full transform')
-
-            try:
-               diffspl = simplines[len(simplines) - 2].split()
-               diff = float(diffspl[1]) * diffscale
-            except Exception:
-               cleanup()
-               exitError('Extracting difference value from Xfsimplex output')
-            prnstr(fmtstr('{} {} {} {} rotation {:3d} difference {:11.6f}', AA, asec + 1,
-                          BB, bsec + 1, pmangle, diff), end = '')
-            if diff < diffmin:
-               prnstr('*', flush=True)
-               diffmin = diff
-               asecbest = asec
-               bsecbest = bsec
-               try:
-                  runcmd(fmtstr('xfproduct "{}" "{}" "{}"', tmprot90, tmpxf2, tmpminxf))
-               except ImodpyError:
-                  cleanExitError('Taking product of 90 degree and found transform')
-
-            else:
-               prnstr(' ', flush=True)
-
-            #  Accumulate differences from plus and minus
-            pmdiffs.append(diff)
-            plusminus += 1
-
-            # If XF file at lowest tilt requested, output one for best lowest tilt pair
-            if lowestXfFile and asec == lowestAsec and bsec == lowestBsec and \
-                   diff < diffLowestTilt:
-               diffLowestTilt = diff
-               try:
-                  runcmd(fmtstr('xfproduct "{}" "{}" "{}"', tmprot90, tmpxf2,
-                                lowestXfFile))
-               except ImodpyError:
-                  cleanExitError('Taking product of 90 degree and found transform')
-
-         # If there are both plus and minus, count who wins
-         # and stop doing a consistent loser, or a big loser sooner
-         if len(pmdiffs) == 2:
-            if pmdiffs[0] < pmdiffs[1]:
-               minuswin += 1
-            if pmdiffs[0] > pmdiffs[1]:
-               pluswin += 1
-            if pmdiffs[0] * BIG_WIN_FACTOR < pmdiffs[1]:
-               minusbig += 1
-            if pmdiffs[0] > pmdiffs[1] * BIG_WIN_FACTOR:
-               plusbig += 1
-            if pluswin >= minuswin + DIRECTION_WIN_THRESH or \
-                   (plusbig >= BIG_WIN_THRESH and not minuswin):
-               pmstart = 1
-            if minuswin >= pluswin + DIRECTION_WIN_THRESH or \
-                   (minusbig >= BIG_WIN_THRESH and not pluswin):
-               pmend = 0
-
-except KeyboardInterrupt:
-   pass
-
+(asecBest, bsecBest, junk1, junk2) = \
+    searchPairs(progname, zeroA, zeroB, nviews, nviews, imageA, imageB, nxa, nxb, nya,
+                nyb, AA, BB, lowestXfFile, lowestAsec, lowestBsec, '', 0, False)
 try:
    prnstr(fmtstr('Transferring fiducials from view {} in {} to view {} in {} with' + \
-                 ' Beadtrack:', asecbest + 1, AA, bsecbest + 1, BB))
+                 ' Beadtrack:', asecBest + 1, AA, bsecBest + 1, BB))
    prnstr("              (Type Ctrl-C to interrupt)")
 
    # Stack the two best sections
    minxf = []
-   if os.path.exists(tmpminxf):
-      minxf = readTextFile(tmpminxf)
+   if os.path.exists(tmpMinxf):
+      minxf = readTextFile(tmpMinxf)
    if len(minxf) < 1:
       cleanup()
       exitError('No alignment was computed, cannot continue')
-   writeTextFile(tmptwoxf, ['1 0 0 1 0 0', minxf[0]])
+   writeTextFile(tmpTwoxf, ['1 0 0 1 0 0', minxf[0]])
    try:
       runcmd(fmtstr('newstack -sec {} -sec {} -xform {} -use 0,1 -float 2 {} {} "{}"',
-                    bsecbest, asecbest, tmptwoxf, imageb, imagea, tmpstack))
+                    bsecBest, asecBest, tmpTwoxf, imageB, imageA, tmpStack))
    except ImodpyError:
       cleanExitError('Stacking two best views')
 
    # Find the pixel size of the model and a scale factor
    try:
-      infolines = runcmd('imodinfo -h ' + fidfile)
+      infoLines = runcmd('imodinfo -h ' + fidFile)
    except Exception:
       cleanExitError('Extracting pixel size from model')
-   modpixel = 0.
-   for l in infolines:
+   modPixel = 0.
+   for l in infoLines:
       if l.find('SCALE  =') >= 0:
          l = l.replace(',', '')
          l = l.replace('(', '')
          l = l.replace(')', '')
          try:
-            modpixel = float(l.split()[3])
+            modPixel = float(l.split()[3])
          except Exception:
-            modpixel = 0.
+            modPixel = 0.
             pass
          break
 
-   if not modpixel:
+   if not modPixel:
       cleanup()
       exitError('Getting model scale value')
 
-   modscale = pxa / modpixel
+   modScale = pxa / modPixel
 
    # clip out the model and remap it to z = 1
-   clipcom = ['InputFile ' + fidfile,
-              'OutputFile ' + tmpclip,
-              fmtstr('ZMinAndMax {},{}', asecbest - 0.5, asecbest + 0.5),
+   clipcom = ['InputFile ' + fidFile,
+              'OutputFile ' + tmpClip,
+              fmtstr('ZMinAndMax {},{}', asecBest - 0.5, asecBest + 0.5),
               'KeepEmptyContours']
    try:
       runcmd('clipmodel -StandardInput', clipcom)
    except ImodpyError:
       cleanExitError('Clipping out best view from ' + AA + ' fiducial model')
    try:
-      runcmd(fmtstr('remapmodel -new 1 "{}" "{}"', tmpclip, tmpmap1))
+      runcmd(fmtstr('remapmodel -new 1 "{}" "{}"', tmpClip, tmpMap1))
    except ImodpyError:
       cleanExitError('Remapping ' + AA + ' fiducials to section 1')
 
    # transform model then adjust its coordinates to new center
-   xadd = modscale * (nxb - nxa) / 2.
-   yadd = modscale * (nyb - nya) / 2.
+   xadd = modScale * (nxb - nxa) / 2.
+   yadd = modScale * (nyb - nya) / 2.
    try:
-      runcmd(fmtstr('xfmodel -xforms "{}" -scale {} "{}" "{}"', tmptwoxf, modscale,
-                    tmpmap1, tmpxfmod))
+      runcmd(fmtstr('xfmodel -xforms "{}" -scale {} "{}" "{}"', tmpTwoxf, modScale,
+                    tmpMap1, tmpXfmod))
    except ImodpyError:
       cleanExitError('Transforming ' + AA + ' fiducials to match ' + BB + ' image')
    try:
-      runcmd(fmtstr('remapmodel -new 1 -add {},{},0 "{}" "{}"', xadd, yadd, tmpxfmod,
-                    tmpmap2))
+      runcmd(fmtstr('remapmodel -new 1 -add {},{},0 "{}" "{}"', xadd, yadd, tmpXfmod,
+                    tmpMap2))
    except ImodpyError:
       cleanExitError('Recentering transformed ' + AA + ' fiducials')
 
    # Prepare the blendmont command; keep tracking parameters but modify for two untilted
    # images
-   sedcom = ['?^ImageFile?s?[ 	].*? ' + tmpstack + '?',
-             '?^InputSeedModel?s?[ 	].*? ' + tmpmap2 + '?',
-             '?^OutputModel?s?[ 	].*? ' + tmpseed + '?',
+   sedcom = ['?^ImageFile?s?[ 	].*? ' + tmpStack + '?',
+             '?^InputSeedModel?s?[ 	].*? ' + tmpMap2 + '?',
+             '?^OutputModel?s?[ 	].*? ' + tmpSeed + '?',
              '?^RotationAngle?s?[ 	].*? 0?',
              '?^FirstTiltAngle?d',
              '?^TiltIncrement?d',
@@ -545,10 +289,10 @@ try:
              '?^SeparateGroup?d',
              '?^RoundsOfTracking?s?[ 	].*? 1?',
              '?^RotationAngle?a?TiltAngles 0,0?']
-   sedlines = pysed(sedcom, tracklines, None, False, '?')
+   sedlines = pysed(sedcom, trackLines, None, False, '?')
 
    # If there is local tracking, definitely track objects together
-   iflocal = optionValue(tracklines, 'LocalAreaTracking', 0)
+   iflocal = optionValue(trackLines, 'LocalAreaTracking', 0)
    if iflocal and iflocal[0]:
       sedcom.append('TrackObjectsTogether')
 
@@ -566,28 +310,28 @@ try:
 
    # Remap seed model to the section in B
    try:
-      runcmd(fmtstr('remapmodel -new {},-999 "{}" "{}"', bsecbest, tmpseed, tmpmap3))
+      runcmd(fmtstr('remapmodel -new {},-999 "{}" "{}"', bsecBest, tmpSeed, tmpMap3))
    except ImodpyError:
       cleanExitError('Remapping seed model up to view in ' + BB)
 
    # Repack the model to remove empty points, and pass through mapping report
    # First find out if the fid.xyz is available and has contour data
-   xyzname = setname + src + 'fid.xyz'
-   if os.path.exists(xyzname):
-      xyzlines = readTextFile(xyzname)
+   xyzName = setname + src + 'fid.xyz'
+   if os.path.exists(xyzName):
+      xyzlines = readTextFile(xyzName)
       if len(xyzlines[len(xyzlines) - 1].split()) < 6:
-         xyzname = ''
+         xyzName = ''
    else:
-      xyzname = ''
+      xyzName = ''
 
-   comlines = [fidfile, xyzname, tmpmap3, outfile, correspond,
-               fmtstr('{},{},{}', asecbest, bsecbest, ifbtoa)]
+   comlines = [fidFile, xyzName, tmpMap3, outFile, correspond,
+               fmtstr('{},{},{}', asecBest, bsecBest, ifBtoA)]
    try:
-      replines = runcmd('repackseed', comlines)
+      repLines = runcmd('repackseed', comlines)
    except ImodpyError:
       cleanExitError('Repacking seed model and establishing correspondence')
    doOut = False
-   for l in replines:
+   for l in repLines:
       doOut = doOut or l.find('follow') >= 0
       if doOut:
          prnstr(l.strip())

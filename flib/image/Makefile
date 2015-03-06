@@ -188,8 +188,9 @@ xfinverse$(E): xfinverse.$(O)
 xfproduct$(E): xfproduct.$(O)
 	$(FC) -o xfproduct xfproduct.$(O) $(LDFLG) $(IMLIBS) $(LIWARP) $(LIBS)
 
-xfsimplex$(E): xfsimplex.$(O)
-	$(FC) -o xfsimplex xfsimplex.$(O) $(LDFLG) $(IMLIBS) $(LIWARP) $(LIFFT) $(LIBS)
+xfsimplex$(E): xfsimplex.$(O) simplexdiff.$(O)
+	$(FC) -o xfsimplex xfsimplex.$(O) simplexdiff.$(O) $(LDFLG) $(IMLIBS) \
+	$(LIWARP) $(LIFFT) $(LIBS)
 
 xftoxg$(E): xftoxg.$(O)
 	$(FC) -o xftoxg xftoxg.$(O) $(LDFLG) $(IMLIBS) $(LIWARP) $(LIBS)

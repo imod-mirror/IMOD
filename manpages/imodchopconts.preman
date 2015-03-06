@@ -1,6 +1,6 @@
 .na
 .nh
-.TH imodchopconts 1 2.50 BL3DEMC
+.TH imodchopconts 1 2.50 IMOD
 .SH NAME
 imodchopconts \- Chop up contours in IMOD model based on length or color
 .SH SYNOPSIS

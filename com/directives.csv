@@ -175,7 +175,9 @@ runtime.Combine.any.extraTargets,Extra residual targets for final trial,String,Y
 runtime.Combine.any.wedgeReduction,Fraction to reduce amplitudes in missing wedge regions,Float,Y,Y,NE,,Reduction fraction in missing wedge,
 runtime.Combine.any.lowFromBothRadius,Fourier radius below which to take components from both tomograms,Float,Y,Y,NE,,Take data from both below radius,
 runtime.Combine.any.doSIRTifBoth,1 to combine SIRT reconstructions if BP was done also,Int,Y,Y,NE,,1 to combine SIRT if BP also done,0: combine BP if both; 1: combine SIRT if both
-comparam.patchcorr.any.KernelSigma,Sigma for kernel filter in patch correlations,Float,Y,Y,NE,BRT default 1.45,Sigma for kernel filter,
+comparam.solvematch.solvematch.MaximumResidual,Maximum error when fitting to corresponding points,Float,Y,Y,,,Max error in fit to corresponding points,
+comparam.dualvolmatch.dualvolmatch.MaximumResidual,Error in fit to patch vectors that makes it fall back to preliminary transform ,Float,Y,Y,NE,,Max error in initial fit to patches,
+comparam.patchcorr.corrsearch3d.KernelSigma,Sigma for kernel filter in patch correlations,Float,Y,Y,,BRT default 1.45,Sigma for kernel filter,
 ,,,,,,,,
 Postprocessing,,,,,,,,
 runtime.Trimvol.any.findSecAddThickness,Fraction or # of pixels to add to Findsection Z extent,Float,Y,Y,NE,For plastic sections only,Find thickness; add fraction or # of slices,
@@ -188,3 +190,6 @@ runtime.Trimvol.any.scaleFromY,Fraction or # of pixels in Y to use to set scalin
 runtime.Trimvol.any.scaleFromZ,Fraction or # of slices in Z to use to set scaling to bytes,Float,Y,Y,NE,BRT default is 0.33,Frac or # of slices in Z for byte scaling,
 runtime.Trimvol.any.doAorBofDualAxis,Trim a/b.rec of dual axis set,Bool,Y,Y,NE,,Trim a/b.rec of dual axis set,
 runtime.Trimvol.any.doSIRTifBoth,1 to trim SIRT or 2 to trim both if BP done also,Int,Y,Y,NE,,Which to trim if BP and SIRT exist,0: BP only; 1: SIRT only; 2: Both
+runtime.NAD.any.iterations,Number of iterations for running NAD,Int,Y,Y,NE,Both iterations and Kvalue must be entered,,
+runtime.NAD.any.Kvalue,K value to use when running NAD,Float,Y,Y,NE,,,
+runtime.NAD.any.chunkMemoryMB,Memory available for each chunk in MB,Int,Y,Y,NE,BRT default 512,Memory available for each chunk in MB,

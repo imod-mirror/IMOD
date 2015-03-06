@@ -121,215 +121,215 @@ public final class FileType {
 
   // File types with a name description
   public static final FileType FIDUCIAL_3D_MODEL = FileType.getImodInstance(true, true,
-      "", ".3dmod", ImodManager.FIDUCIAL_MODEL_KEY);
+    "", ".3dmod", ImodManager.FIDUCIAL_MODEL_KEY);
   public static final FileType BATCH_RUN_TOMO_GLOBAL_AUTODOC = FileType.getInstance(true,
-      false, "", ".adoc");
+    false, "", ".adoc");
   public static final FileType DEFAULT_BATCH_RUN_TOMO_AUTODOC = FileType
-      .getIMODDirInstance(false, false, "batchDefaults", ".adoc", COM_DIR);
+    .getIMODDirInstance(false, false, "batchDefaults", ".adoc", COM_DIR);
   public static final FileType LOCAL_BATCH_DIRECTIVE_FILE = FileType.getInstance(false,
-      false, "batchDirective", ".adoc");
+    false, "batchDirective", ".adoc");
   public static final FileType LOCAL_SCOPE_TEMPLATE = FileType.getInstance(false, false,
-      "scopeTemplate", ".adoc");
+    "scopeTemplate", ".adoc");
   public static final FileType LOCAL_SYSTEM_TEMPLATE = FileType.getInstance(false, false,
-      "systemTemplate", ".adoc");
+    "systemTemplate", ".adoc");
   public static final FileType LOCAL_USER_TEMPLATE = FileType.getInstance(false, false,
-      "userTemplate", ".adoc");
+    "userTemplate", ".adoc");
   public static final FileType ALIGNED_STACK = FileType.getDescribedImodInstance(true,
-      true, "", ".ali", ImodManager.FINE_ALIGNED_KEY, "the final aligned stack");
+    true, "", ".ali", ImodManager.FINE_ALIGNED_KEY, "the final aligned stack");
   public static final FileType NEWST_OR_BLEND_3D_FIND_OUTPUT = FileType.getImodInstance(
-      true, true, "_3dfind", ".ali", ImodManager.FINE_ALIGNED_3D_FIND_KEY);
+    true, true, "_3dfind", ".ali", ImodManager.FINE_ALIGNED_3D_FIND_KEY);
   public static final FileType CTF_CORRECTED_STACK = FileType.getImodInstance(true, true,
-      "_ctfcorr", ".ali", ImodManager.CTF_CORRECTION_KEY);
+    "_ctfcorr", ".ali", ImodManager.CTF_CORRECTION_KEY);
   public static final FileType ERASED_BEADS_STACK = FileType.getImodInstance(true, true,
-      "_erase", ".ali", ImodManager.ERASED_FIDUCIALS_KEY);
+    "_erase", ".ali", ImodManager.ERASED_FIDUCIALS_KEY);
   public static final FileType MTF_FILTERED_STACK = FileType.getImodInstance(true, true,
-      "_filt", ".ali", ImodManager.MTF_FILTER_KEY);
+    "_filt", ".ali", ImodManager.MTF_FILTER_KEY);
   public static final FileType TRANSFORMED_REFINING_MODEL = FileType.getImodInstance(
-      true, false, "_refine", ".alimod", ImodManager.TRANSFORMED_MODEL_KEY);
+    true, false, "_refine", ".alimod", ImodManager.TRANSFORMED_MODEL_KEY);
   public static final FileType XCORR_BLEND_OUTPUT = FileType.getInstance(true, true, "",
-      ".bl");
+    ".bl");
+  public static final FileType CHECK_FILE = FileType.getInstance(true, true, "", ".cmds");
   public static final FileType AUTOFIDSEED_COMSCRIPT = FileType.getInstance(false, true,
-      "autofidseed", ".com");
+    "autofidseed", ".com");
   public static final FileType BATCH_RUN_TOMO_COMSCRIPT = FileType.getInstance(true,
-      false, "", ".com");
+    false, "", ".com");
   public static final FileType BLEND_COMSCRIPT = FileType.getInstance(false, true,
-      "blend", ".com");
+    "blend", ".com");
   public static final FileType COPYTOMOCOMS_COMSCRIPT = FileType.getInstance(false,
-      false, "copytomocoms", ".com");
+    false, "copytomocoms", ".com");
   public static final FileType GOLD_ERASER_COMSCRIPT = FileType.getInstance(false, true,
-      "golderaser", ".com");
+    "golderaser", ".com");
   public static final FileType PREBLEND_COMSCRIPT = FileType.getInstance(false, true,
-      "preblend", ".com");
+    "preblend", ".com");
   public static final FileType CTF_CORRECTION_COMSCRIPT = FileType.getInstance(false,
-      true, "ctfcorrection", ".com");
+    true, "ctfcorrection", ".com");
   public static final FileType FIND_BEADS_3D_COMSCRIPT = FileType.getInstance(false,
-      true, "findbeads3d", ".com");
+    true, "findbeads3d", ".com");
   public static final FileType FLATTEN_COMSCRIPT = FileType.getInstance(false, false,
-      "flatten", ".com");
+    "flatten", ".com");
   public static final FileType FLATTEN_TOOL_COMSCRIPT = FileType.getInstance(true, false,
-      "_flatten", ".com");
+    "_flatten", ".com");
   public static final FileType MTF_FILTER_COMSCRIPT = FileType.getInstance(false, true,
-      "mtffilter", ".com");
+    "mtffilter", ".com");
   public static final FileType NEWST_COMSCRIPT = FileType.getInstance(false, true,
-      "newst", ".com");
+    "newst", ".com");
   public static final FileType SIRTSETUP_COMSCRIPT = FileType.getInstance(false, true,
-      "sirtsetup", ".com");
+    "sirtsetup", ".com");
   public static final FileType SLOPPY_BLEND_COMSCRIPT = FileType.getIMODDirInstance(
-      false, false, "sloppyblend", ".com", COM_DIR);
+    false, false, "sloppyblend", ".com", COM_DIR);
   public static final FileType TILT_COMSCRIPT = FileType.getInstance(false, true, "tilt",
-      ".com");
+    ".com");
   public static final FileType TILT_FOR_SIRT_COMSCRIPT = FileType.getInstance(false,
-      true, "tilt", "_for_sirt.com");
+    true, "tilt", "_for_sirt.com");
   public static final FileType TRACK_COMSCRIPT = FileType.getInstance(false, true,
-      "track", ".com");
+    "track", ".com");
   public static final FileType CROSS_CORRELATION_COMSCRIPT = FileType.getInstance(false,
-      true, "xcorr", ".com");
+    true, "xcorr", ".com");
   public static final FileType PATCH_TRACKING_COMSCRIPT = FileType.getInstance(false,
-      true, "xcorr_pt", ".com");
+    true, "xcorr_pt", ".com");
   public static final FileType DIRECTIVES_DESCR = FileType.getIMODDirInstance(false,
-      false, "directives", ".csv", COM_DIR);
+    false, "directives", ".csv", COM_DIR);
   public static final FileType DISTORTION_CORRECTED_STACK = FileType.getInstance(true,
-      true, "", ".dcst");
+    true, "", ".dcst");
   public static final FileType AUTOFIDSEED_DIR = FileType.getInstance(false, true,
-      "autofidseed", ".dir");
+    "autofidseed", ".dir");
   public static final FileType PIECE_SHIFTS = FileType
-      .getInstance(true, true, "", ".ecd");
+    .getInstance(true, true, "", ".ecd");
   public static final FileType MANUAL_REPLACEMENT_MODEL = FileType.getInstance(true,
-      true, "", ".erase");
+    true, "", ".erase");
   public static final FileType FIDUCIAL_MODEL = FileType.getInstance(true, true, "",
-      ".fid");
+    ".fid");
   public static final FileType CCD_ERASER_BEADS_INPUT_MODEL = FileType.getInstance(true,
-      true, "_erase", ".fid");
+    true, "_erase", ".fid");
   public static final FileType FIDUCIAL_PATCH_TRACKING_MODEL = FileType.getInstance(true,
-      true, "_pt", ".fid");
+    true, "_pt", ".fid");
   public static final FileType FLATTEN_TOOL_OUTPUT = FileType.getImodInstance(true,
-      false, "", ".flat", ImodManager.FLATTEN_TOOL_OUTPUT_KEY);
+    false, "", ".flat", ImodManager.FLATTEN_TOOL_OUTPUT_KEY);
   public static final FileType NAD_TEST_INPUT = FileType.getImodInstanceInSubdirectory(
-      false, false, "test", ".input", ImodManager.TEST_VOLUME_KEY, null);
+    false, false, "test", ".input", ImodManager.TEST_VOLUME_KEY, null);
   public static final FileType JOIN = FileType.getImodInstance(true, false, "", ".join",
-      ImodManager.JOIN_KEY);
+    ImodManager.JOIN_KEY);
   public static final FileType MODELED_JOIN = FileType.getImodInstance(true, false,
-      "_modeled", ".join", ImodManager.MODELED_JOIN_KEY);
+    "_modeled", ".join", ImodManager.MODELED_JOIN_KEY);
   public static final FileType TRIAL_JOIN = FileType.getImodInstance(true, false,
-      "_trial", ".join", ImodManager.TRIAL_JOIN_KEY);
+    "_trial", ".join", ImodManager.TRIAL_JOIN_KEY);
   public static final FileType ERASER_LOG = FileType.getInstance(false, true, "eraser",
-      ".log");
+    ".log");
   public static final FileType TILT_ALIGN_LOG = FileType.getInstance(false, true,
-      "align", ".log");
+    "align", ".log");
   public static final FileType FIXED_STATS_LOG = FileType.getInstance(true, true,
-      "_fixed.st_stats", ".log");
+    "_fixed.st_stats", ".log");
   public static final FileType GPU_TEST_LOG = FileType.getInstance(false, false,
-      "gputest", ".log");
+    "gputest", ".log");
   public static final FileType PREBLEND_LOG = FileType.getInstance(false, true,
-      "preblend", ".log");
+    "preblend", ".log");
   public static final FileType STATS_LOG = FileType.getInstance(true, true, ".st_stats",
-      ".log");
+    ".log");
   public static final FileType ALIGN_SOLUTION_LOG = FileType.getInstance(false, true,
-      "taSolution", ".log");
+    "taSolution", ".log");
   public static final FileType CROSS_CORRELATION_LOG = FileType.getInstance(false, true,
-      "xcorr", ".log");
+    "xcorr", ".log");
   public static final FileType FIND_BEADS_3D_OUTPUT_MODEL = FileType.getInstance(true,
-      true, "_3dfind", ".mod");
+    true, "_3dfind", ".mod");
   public static final FileType AUTOFIDSEED_BOUNDARY_MODEL = FileType.getInstance(true,
-      true, "_afsbound", ".mod");
+    true, "_afsbound", ".mod");
   public static final FileType AUTO_ALIGN_BOUNDARY_MODEL = FileType.getInstance(true,
-      false, "_bound", ".mod");
+    false, "_bound", ".mod");
   public static final FileType SMOOTHING_ASSESSMENT_OUTPUT_MODEL = FileType
-      .getImodInstance(true, true, "_checkflat", ".mod",
-          ImodManager.SMOOTHING_ASSESSMENT_KEY);
+    .getImodInstance(true, true, "_checkflat", ".mod",
+      ImodManager.SMOOTHING_ASSESSMENT_KEY);
   public static final FileType CLUSTERED_ELONGATED_MODEL = FileType
-      .getImodInstanceInSubdirectory(false, false, "clusterElong", ".mod", null,
-          FileType.AUTOFIDSEED_DIR);
+    .getImodInstanceInSubdirectory(false, false, "clusterElong", ".mod", null,
+      FileType.AUTOFIDSEED_DIR);
   public static final FileType FLATTEN_WARP_INPUT_MODEL = FileType.getInstance(true,
-      false, "_flat", ".mod");
+    false, "_flat", ".mod");
   public static final FileType PATCH_VECTOR_MODEL = FileType.getImodInstance(false,
-      false, "patch_vector", ".mod", ImodManager.PATCH_VECTOR_MODEL_KEY);
+    false, "patch_vector", ".mod", ImodManager.PATCH_VECTOR_MODEL_KEY);
   public static final FileType PATCH_VECTOR_CCC_MODEL = FileType.getImodInstance(false,
-      false, "patch_vector_ccc", ".mod", ImodManager.PATCH_VECTOR_CCC_MODEL_KEY);
+    false, "patch_vector_ccc", ".mod", ImodManager.PATCH_VECTOR_CCC_MODEL_KEY);
   public static final FileType PATCH_TRACKING_BOUNDARY_MODEL = FileType.getInstance(true,
-      true, "_ptbound", ".mod");
+    true, "_ptbound", ".mod");
   public static final FileType BATCH_RUN_TOMO_BOUNDARY_MODEL = FileType.getInstance(true,
-      false, "_rawbound", ".mod");
+    false, "_rawbound", ".mod");
   public static final FileType ALIGNED_STACK_MRC = FileType.getImodInstance(true, true,
-      "_ali", ".mrc", ImodManager.ALIGNED_STACK_KEY);
+    "_ali", ".mrc", ImodManager.ALIGNED_STACK_KEY);
   public static final FileType PREBLEND_OUTPUT_MRC = FileType.getImodInstance(true, true,
-      "_preblend", ".mrc", ImodManager.PREBLEND_KEY);
+    "_preblend", ".mrc", ImodManager.PREBLEND_KEY);
   public static final FileType ANISOTROPIC_DIFFUSION_OUTPUT = FileType.getImodInstance(
-      true, false, "", ".nad", ImodManager.ANISOTROPIC_DIFFUSION_VOLUME_KEY);
+    true, false, "", ".nad", ImodManager.ANISOTROPIC_DIFFUSION_VOLUME_KEY);
   public static final FileType PIECE_LIST = FileType.getInstance(true, true, "", ".pl");
   public static final FileType PREALIGNED_STACK = FileType.getImodInstance(true, true,
-      "", ".preali", ImodManager.COARSE_ALIGNED_KEY);
+    "", ".preali", ImodManager.COARSE_ALIGNED_KEY);
   public static final FileType PRE_XG = FileType.getImodInstance(true, true, "",
-      ".prexg", null);
+    ".prexg", null);
   public static final FileType MATLAB_PARAM_FILE = FileType.getInstance(true, false, "",
-      ".prm");
+    ".prm");
   public static final FileType RAW_TILT_ANGLES = FileType.getInstance(true, true, "",
-      ".rawtlt");
+    ".rawtlt");
   public static final FileType TRIM_VOL_OUTPUT = FileType.getImodInstance(true, false,
-      "", ".rec", ImodManager.TRIMMED_VOLUME_KEY);
+    "", ".rec", ImodManager.TRIMMED_VOLUME_KEY);
   private static final FileType TILT_OUTPUT_DUAL = FileType.getInstance(true, true, "",
-      ".rec");
+    ".rec");
   public static final FileType TILT_3D_FIND_OUTPUT = FileType.getImodInstance(true, true,
-      "_3dfind", ".rec", ImodManager.FULL_VOLUME_3D_FIND_KEY);
+    "_3dfind", ".rec", ImodManager.FULL_VOLUME_3D_FIND_KEY);
   public static final FileType FLATTEN_OUTPUT = FileType.getImodInstance(true, false,
-      "_flat", ".rec", ImodManager.FLAT_VOLUME_KEY);
+    "_flat", ".rec", ImodManager.FLAT_VOLUME_KEY);
   private static final FileType TILT_OUTPUT_SINGLE = FileType.getInstance(true, true,
-      "_full", ".rec");
+    "_full", ".rec");
   public static final FileType COMBINED_VOLUME = FileType.getImodInstance(false, false,
-      "sum", ".rec", ImodManager.COMBINED_TOMOGRAM_KEY);
+    "sum", ".rec", ImodManager.COMBINED_TOMOGRAM_KEY);
   public static final FileType JOIN_SAMPLE_AVERAGES = FileType.getImodInstance(true,
-      false, "", ".sampavg", ImodManager.JOIN_SAMPLE_AVERAGES_KEY);
+    false, "", ".sampavg", ImodManager.JOIN_SAMPLE_AVERAGES_KEY);
   public static final FileType JOIN_SAMPLE = FileType.getImodInstance(true, false, "",
-      ".sample", ImodManager.JOIN_SAMPLES_KEY);
+    ".sample", ImodManager.JOIN_SAMPLES_KEY);
   public static final FileType SEED_MODEL = FileType.getInstance(true, true, "", ".seed");
   public static final FileType SIRT_SUBAREA_SCALED_OUTPUT_TEMPLATE = FileType
-      .getTemplateInstance(true, true, "_sub", ".sint");
+    .getTemplateInstance(true, true, "_sub", ".sint");
   public static final FileType SQUEEZE_VOL_OUTPUT = FileType.getImodInstance(true, false,
-      "", ".sqz", ImodManager.SQUEEZED_VOLUME_KEY);
+    "", ".sqz", ImodManager.SQUEEZED_VOLUME_KEY);
   public static final FileType SIRT_SUBAREA_OUTPUT_TEMPLATE = FileType
-      .getTemplateInstance(true, true, "_sub", ".srec");
+    .getTemplateInstance(true, true, "_sub", ".srec");
   public static final FileType RAW_STACK = FileType.getTwoImodInstance(true, true, "",
-      DatasetTool.STANDARD_DATASET_EXT, ImodManager.RAW_STACK_KEY,
-      ImodManager.PREVIEW_KEY);
+    DatasetTool.STANDARD_DATASET_EXT, ImodManager.RAW_STACK_KEY, ImodManager.PREVIEW_KEY);
   public static final FileType FIXED_XRAYS_STACK = FileType.getImodInstance(true, true,
-      "_fixed", DatasetTool.STANDARD_DATASET_EXT, ImodManager.ERASED_STACK_KEY);
+    "_fixed", DatasetTool.STANDARD_DATASET_EXT, ImodManager.ERASED_STACK_KEY);
   public static final FileType ORIGINAL_RAW_STACK = FileType.getInstance(true, true,
-      "_orig", DatasetTool.STANDARD_DATASET_EXT);
+    "_orig", DatasetTool.STANDARD_DATASET_EXT);
   public static final FileType EDGE_FUNCTIONS_X = FileType.getInstance(true, true, "",
-      ".xef");
+    ".xef");
   public static final FileType LOCAL_TRANSFORMATION_LIST = FileType.getInstance(true,
-      false, "", ".xf");
+    false, "", ".xf");
   public static final FileType AUTO_LOCAL_TRANSFORMATION_LIST = FileType.getInstance(
-      true, false, "_auto", ".xf");
+    true, false, "_auto", ".xf");
   public static final FileType EMPTY_LOCAL_TRANSFORMATION_LIST = FileType.getInstance(
-      true, false, "_empty", ".xf");
+    true, false, "_empty", ".xf");
   public static final FileType MIDAS_LOCAL_TRANSFORMATION_LIST = FileType.getInstance(
-      true, false, "_midas", ".xf");
+    true, false, "_midas", ".xf");
   public static final FileType GLOBAL_TRANSFORMATION_LIST = FileType.getInstance(true,
-      false, "", ".xg");
+    false, "", ".xg");
 
   public static final FileType TILT_OUTPUT = FileType.getDifferentDualSingleInstance(
-      TILT_OUTPUT_SINGLE, TILT_OUTPUT_DUAL, ImodManager.FULL_VOLUME_KEY, "the tomogram");
+    TILT_OUTPUT_SINGLE, TILT_OUTPUT_DUAL, ImodManager.FULL_VOLUME_KEY, "the tomogram");
   // Template for .sintnn
   public static final FileType SIRT_SCALED_OUTPUT_TEMPLATE = FileType
-      .getDerivedTemplateInstance(TILT_OUTPUT, ".sint", ImodManager.SIRT_KEY);
+    .getDerivedTemplateInstance(TILT_OUTPUT, ".sint", ImodManager.SIRT_KEY);
   // Template for .srecnn
   public static final FileType SIRT_OUTPUT_TEMPLATE = FileType
-      .getDerivedTemplateInstance(TILT_OUTPUT, ".srec", ImodManager.SIRT_KEY);
+    .getDerivedTemplateInstance(TILT_OUTPUT, ".srec", ImodManager.SIRT_KEY);
 
   // File types without a specific name
   public static final FileType AVERAGED_VOLUMES = FileType
-      .getUnamedInstance(ImodManager.AVG_VOL_KEY);
+    .getUnamedInstance(ImodManager.AVG_VOL_KEY);
   public static final FileType NAD_TEST_VARYING_ITERATIONS = FileType
-      .getUnamedInstanceInSubdirectory(ImodManager.VARYING_ITERATION_TEST_KEY);
+    .getUnamedInstanceInSubdirectory(ImodManager.VARYING_ITERATION_TEST_KEY);
   public static final FileType NAD_TEST_VARYING_K = FileType
-      .getUnamedInstanceInSubdirectory(ImodManager.VARYING_K_TEST_KEY);
+    .getUnamedInstanceInSubdirectory(ImodManager.VARYING_K_TEST_KEY);
   public static final FileType POSITIONING_SAMPLE = FileType
-      .getUnamedInstance(ImodManager.SAMPLE_KEY);
+    .getUnamedInstance(ImodManager.SAMPLE_KEY);
   public static final FileType REFERENCE_VOLUMES = FileType
-      .getUnamedInstance(ImodManager.REF_KEY);
+    .getUnamedInstance(ImodManager.REF_KEY);
   public static final FileType TRIAL_TOMOGRAM = FileType
-      .getUnamedInstance(ImodManager.TRIAL_TOMOGRAM_KEY);
+    .getUnamedInstance(ImodManager.TRIAL_TOMOGRAM_KEY);
 
   private final boolean usesDataset;
   private final boolean usesAxisID;
@@ -351,11 +351,11 @@ public final class FileType {
   private FileType parentFileType = null;
 
   private FileType(final boolean usesDataset, final boolean usesAxisID,
-      final String typeString, final String extension, final String imodManagerKey,
-      final String imodManagerKey2, final String description, final boolean composite,
-      final boolean inSubdirectory, final FileType subFileType,
-      final FileType singleFileType, final FileType dualFileType, final boolean unnamed,
-      final boolean template, final String inImodSubdirectory, final FileType subdir) {
+    final String typeString, final String extension, final String imodManagerKey,
+    final String imodManagerKey2, final String description, final boolean composite,
+    final boolean inSubdirectory, final FileType subFileType,
+    final FileType singleFileType, final FileType dualFileType, final boolean unnamed,
+    final boolean template, final String inImodSubdirectory, final FileType subdir) {
     this.usesDataset = usesDataset;
     this.usesAxisID = usesAxisID;
     this.typeString = typeString;
@@ -378,9 +378,9 @@ public final class FileType {
   }
 
   private static FileType getTemplateInstance(final boolean usesDataset,
-      final boolean usesAxisID, final String typeString, final String extension) {
+    final boolean usesAxisID, final String typeString, final String extension) {
     return new FileType(usesDataset, usesAxisID, typeString, extension, null, null, null,
-        false, false, null, null, null, false, true, null, null);
+      false, false, null, null, null, false, true, null, null);
   }
 
   /**
@@ -392,10 +392,10 @@ public final class FileType {
    * @param description
    */
   private static FileType getDifferentDualSingleInstance(final FileType singleFileType,
-      final FileType dualFileType, final String imodManagerKey, final String description) {
+    final FileType dualFileType, final String imodManagerKey, final String description) {
     FileType instance =
-        new FileType(false, false, null, null, imodManagerKey, null, description, true,
-            false, null, singleFileType, dualFileType, false, false, null, null);
+      new FileType(false, false, null, null, imodManagerKey, null, description, true,
+        false, null, singleFileType, dualFileType, false, false, null, null);
     // Child file types are not valid by themselves
     singleFileType.parentFileType = instance;
     dualFileType.parentFileType = instance;
@@ -403,9 +403,9 @@ public final class FileType {
   }
 
   private static FileType getInstance(final boolean usesDataset,
-      final boolean usesAxisID, final String typeString, final String extension) {
+    final boolean usesAxisID, final String typeString, final String extension) {
     return new FileType(usesDataset, usesAxisID, typeString, extension, null, null, null,
-        false, false, null, null, null, false, false, null, null);
+      false, false, null, null, null, false, false, null, null);
   }
 
   /**
@@ -419,54 +419,54 @@ public final class FileType {
    * @param imodManagerKey
    */
   private static FileType getDerivedTemplateInstance(final FileType subFileType,
-      final String extension, final String imodManagerKey) {
+    final String extension, final String imodManagerKey) {
     return new FileType(false, false, null, extension, imodManagerKey, null, null, true,
-        false, subFileType, null, null, false, true, null, null);
+      false, subFileType, null, null, false, true, null, null);
   }
 
   private static FileType getImodInstance(final boolean usesDataset,
-      final boolean usesAxisID, final String typeString, final String extension,
-      final String imodManagerKey) {
+    final boolean usesAxisID, final String typeString, final String extension,
+    final String imodManagerKey) {
     return new FileType(usesDataset, usesAxisID, typeString, extension, imodManagerKey,
-        null, null, false, false, null, null, null, false, false, null, null);
+      null, null, false, false, null, null, null, false, false, null, null);
   }
 
   private static FileType getImodInstanceInSubdirectory(final boolean usesDataset,
-      final boolean usesAxisID, final String typeString, final String extension,
-      final String imodManagerKey, final FileType subdir) {
+    final boolean usesAxisID, final String typeString, final String extension,
+    final String imodManagerKey, final FileType subdir) {
     return new FileType(usesDataset, usesAxisID, typeString, extension, imodManagerKey,
-        null, null, false, true, null, null, null, false, false, null, subdir);
+      null, null, false, true, null, null, null, false, false, null, subdir);
   }
 
   private static FileType getTwoImodInstance(final boolean usesDataset,
-      final boolean usesAxisID, final String typeString, final String extension,
-      final String imodManagerKey, final String imodManagerKey2) {
+    final boolean usesAxisID, final String typeString, final String extension,
+    final String imodManagerKey, final String imodManagerKey2) {
     return new FileType(usesDataset, usesAxisID, typeString, extension, imodManagerKey,
-        imodManagerKey2, null, false, false, null, null, null, false, false, null, null);
+      imodManagerKey2, null, false, false, null, null, null, false, false, null, null);
   }
 
   private static FileType getDescribedImodInstance(final boolean usesDataset,
-      final boolean usesAxisID, final String typeString, final String extension,
-      final String imodManagerKey, final String description) {
+    final boolean usesAxisID, final String typeString, final String extension,
+    final String imodManagerKey, final String description) {
     return new FileType(usesDataset, usesAxisID, typeString, extension, imodManagerKey,
-        null, description, false, false, null, null, null, false, false, null, null);
+      null, description, false, false, null, null, null, false, false, null, null);
   }
 
   private static FileType getUnamedInstance(final String imodManagerKey) {
     return new FileType(false, false, "", "", imodManagerKey, null, null, false, false,
-        null, null, null, true, false, null, null);
+      null, null, null, true, false, null, null);
   }
 
   private static FileType getUnamedInstanceInSubdirectory(final String imodManagerKey) {
     return new FileType(false, false, "", "", imodManagerKey, null, null, false, true,
-        null, null, null, true, false, null, null);
+      null, null, null, true, false, null, null);
   }
 
   private static FileType getIMODDirInstance(final boolean usesDataset,
-      final boolean usesAxisID, final String typeString, final String extension,
-      final String imodSubdirectory) {
+    final boolean usesAxisID, final String typeString, final String extension,
+    final String imodSubdirectory) {
     return new FileType(usesDataset, usesAxisID, typeString, extension, null, null, null,
-        false, false, null, null, null, false, false, imodSubdirectory, null);
+      false, false, null, null, null, false, false, imodSubdirectory, null);
   }
 
   /**
@@ -479,7 +479,7 @@ public final class FileType {
    * @return
    */
   public static FileType getInstance(final AxisType axisType, boolean usesDataset,
-      boolean usesAxisID, String typeString, String extension) {
+    boolean usesAxisID, String typeString, String extension) {
     Iterator iterator = namedFileTypeList.iterator();
     while (iterator.hasNext()) {
       FileType fileType = (FileType) iterator.next();
@@ -506,7 +506,7 @@ public final class FileType {
    * @return
    */
   public static FileType getInstance(final BaseManager manager, final AxisID axisID,
-      final boolean usesDataset, final boolean usesAxisID, final String fileName) {
+    final boolean usesDataset, final boolean usesAxisID, final String fileName) {
     if (fileName == null) {
       return null;
     }
@@ -541,8 +541,8 @@ public final class FileType {
       FileType fileType = (FileType) iterator.next();
       // Ignore child file types. Return a file type that equals patterns and booleans.
       if (fileType.parentFileType == null
-          && fileType.equals(axisType, fileName, usesDataset, usesAxisID, fixedPattern,
-              axisPattern)) {
+        && fileType.equals(axisType, fileName, usesDataset, usesAxisID, fixedPattern,
+          axisPattern)) {
         return fileType;
       }
     }
@@ -560,23 +560,23 @@ public final class FileType {
    * @return
    */
   private boolean equals(final AxisType axisType, final String fileName,
-      final boolean usesDataset, final boolean usesAxisID, final String fixedPattern,
-      final String axisPattern) {
+    final boolean usesDataset, final boolean usesAxisID, final String fixedPattern,
+    final String axisPattern) {
     if (composite) {
       // Handle type files which are based on another file type but have their own
       // extension.
       if (subFileType != null && extension != null) {
         return subFileType.equals(axisType, fileName, usesDataset, usesAxisID,
-            fixedPattern, axisPattern, Pattern.quote(extension));
+          fixedPattern, axisPattern, Pattern.quote(extension));
       }
       // Handle file types with single and dual file types instead of descriptions.
       return getChildFileType(axisType).equals(axisType, fileName, usesDataset,
-          usesAxisID, fixedPattern, axisPattern);
+        usesAxisID, fixedPattern, axisPattern);
     }
     return usesDataset == this.usesDataset
-        && usesAxisID == this.usesAxisID
-        && fileName.matches(fixedPattern + Pattern.quote(typeString) + axisPattern
-            + Pattern.quote(extension));
+      && usesAxisID == this.usesAxisID
+      && fileName.matches(fixedPattern + Pattern.quote(typeString) + axisPattern
+        + Pattern.quote(extension));
   }
 
   /**
@@ -591,23 +591,23 @@ public final class FileType {
    * @return
    */
   private boolean equals(final AxisType axisType, final String fileName,
-      final boolean usesDataset, final boolean usesAxisID, final String fixedPattern,
-      final String axisPattern, final String extensionPattern) {
+    final boolean usesDataset, final boolean usesAxisID, final String fixedPattern,
+    final String axisPattern, final String extensionPattern) {
     if (composite) {
       // Handle type files which are based on another file type but have their own
       // extension.
       if (subFileType != null) {
         return subFileType.equals(axisType, fileName, usesDataset, usesAxisID,
-            fixedPattern, axisPattern, extensionPattern);
+          fixedPattern, axisPattern, extensionPattern);
       }
       // Handle file types with single and dual file types instead of descriptions.
       return getChildFileType(axisType).equals(axisType, fileName, usesDataset,
-          usesAxisID, fixedPattern, axisPattern, extensionPattern);
+        usesAxisID, fixedPattern, axisPattern, extensionPattern);
     }
     return usesDataset == this.usesDataset
-        && usesAxisID == this.usesAxisID
-        && fileName.matches(fixedPattern + Pattern.quote(typeString) + axisPattern
-            + extensionPattern);
+      && usesAxisID == this.usesAxisID
+      && fileName.matches(fixedPattern + Pattern.quote(typeString) + axisPattern
+        + extensionPattern);
   }
 
   /**
@@ -619,7 +619,7 @@ public final class FileType {
    */
   public boolean equals(final AxisType axisType, final FileType fileType) {
     return equals(axisType, fileType.usesDataset, fileType.usesAxisID,
-        fileType.typeString, fileType.extension);
+      fileType.typeString, fileType.extension);
   }
 
   /**
@@ -632,20 +632,20 @@ public final class FileType {
    * @return
    */
   private boolean equals(final AxisType axisType, final boolean usesDataset,
-      final boolean usesAxisID, final String typeString, final String extension) {
+    final boolean usesAxisID, final String typeString, final String extension) {
     if (composite) {
       // Handle type files which are based on another file type but have their own
       // extension.
       if (subFileType != null && this.extension != null) {
         return this.extension.equals(extension)
-            && subFileType.equals(axisType, usesDataset, usesAxisID, typeString);
+          && subFileType.equals(axisType, usesDataset, usesAxisID, typeString);
       }
       // Handle file types with single and dual file types instead of descriptions.
       return getChildFileType(axisType).equals(axisType, usesDataset, usesAxisID,
-          typeString, extension);
+        typeString, extension);
     }
     return this.usesDataset == usesDataset && this.usesAxisID == usesAxisID
-        && this.typeString.equals(typeString) && this.extension.equals(extension);
+      && this.typeString.equals(typeString) && this.extension.equals(extension);
   }
 
   /**
@@ -658,7 +658,7 @@ public final class FileType {
    * @return
    */
   private boolean equals(final AxisType axisType, final boolean usesDataset,
-      final boolean usesAxisID, final String typeString) {
+    final boolean usesAxisID, final String typeString) {
     if (composite) {
       // Handle type files which are based on another file type
       if (subFileType != null) {
@@ -666,10 +666,10 @@ public final class FileType {
       }
       // Handle file types with single and dual file types instead of descriptions.
       return getChildFileType(axisType).equals(axisType, usesDataset, usesAxisID,
-          typeString);
+        typeString);
     }
     if (this.usesDataset == usesDataset && this.usesAxisID == usesAxisID
-        && this.typeString.equals(typeString)) {
+      && this.typeString.equals(typeString)) {
       return true;
     }
     return false;
@@ -756,8 +756,8 @@ public final class FileType {
    * @return
    */
   private File getFile(final BaseManager manager, BaseMetaData metaData, String rootName,
-      AxisType axisType, final AxisID axisID, String propertyUserDir,
-      String fileSubdirectoryName) {
+    AxisType axisType, final AxisID axisID, String propertyUserDir,
+    String fileSubdirectoryName) {
     if (metaData == null && manager != null) {
       metaData = manager.getBaseMetaData();
     }
@@ -789,7 +789,7 @@ public final class FileType {
     String subdirName;
     if (inImodSubdirectory != null) {
       return new File(new File(new File(EtomoDirector.INSTANCE.getIMODDirectory(),
-          inImodSubdirectory), fileName).getAbsolutePath());
+        inImodSubdirectory), fileName).getAbsolutePath());
     }
     if (propertyUserDir == null && manager != null) {
       propertyUserDir = manager.getPropertyUserDir();
@@ -800,11 +800,11 @@ public final class FileType {
       }
       if (subdir != null) {
         return new File(new File(subdir.getFileName(manager, metaData, rootName,
-            axisType, axisID, false), fileName).getAbsolutePath());
+          axisType, axisID, false), fileName).getAbsolutePath());
       }
       if (manager != null && fileSubdirectoryName != null) {
         return new File(new File(new File(propertyUserDir, fileSubdirectoryName),
-            fileName).getAbsolutePath());
+          fileName).getAbsolutePath());
       }
     }
     String dir = propertyUserDir;
@@ -823,7 +823,7 @@ public final class FileType {
   }
 
   public boolean exists(final BaseManager manager, final BaseMetaData metaData,
-      final AxisID axisID) {
+    final AxisID axisID) {
     File file = getFile(manager, null, null, null, axisID, null, null);
     if (file != null) {
       return file.exists();
@@ -855,13 +855,22 @@ public final class FileType {
   }
 
   public String getFileName(final BaseManager manager, final BaseMetaData metaData,
-      final AxisID axisID) {
+    final AxisID axisID) {
     return getFileName(manager, metaData, null, null, axisID, false);
   }
 
   public String getFileName(final String rootName, final AxisType axisType,
-      final AxisID axisID) {
+    final AxisID axisID) {
     return getFileName(null, null, rootName, axisType, axisID, false);
+  }
+
+  public File getFile(final File dir, final String rootName,
+    final AxisType axisType, final AxisID axisID) {
+    String fileName = getFileName(null, null, rootName, axisType, axisID, false);
+    if (fileName != null) {
+      return new File(dir, fileName);
+    }
+    return null;
   }
 
   public String getFileName(final String rootName, final AxisID axisID) {
@@ -880,7 +889,7 @@ public final class FileType {
    * @return
    */
   private String getFileName(final BaseManager manager, BaseMetaData metaData,
-      String rootName, AxisType axisType, final AxisID axisID, final boolean templateOK) {
+    String rootName, AxisType axisType, final AxisID axisID, final boolean templateOK) {
     if (metaData == null && manager != null) {
       metaData = manager.getBaseMetaData();
     }
@@ -908,7 +917,7 @@ public final class FileType {
     }
     if (composite && (subFileType == null || extension == null)) {
       return getChildFileType(axisType).getFileName(manager, metaData, rootName,
-          axisType, axisID, true);
+        axisType, axisID, true);
     }
 
     return getLeftSide(rootName, axisType, axisID) + extension;
@@ -964,7 +973,7 @@ public final class FileType {
    * @return
    */
   public String deriveFileName(final String rootName, final AxisType axisType,
-      final AxisID axisID) {
+    final AxisID axisID) {
     return getLeftSide(rootName, axisType, axisID) + getExtension(axisType);
   }
 
@@ -1038,8 +1047,8 @@ public final class FileType {
     }
     if (axisType == null || axisType == AxisType.NOT_SET) {
       throw new IllegalStateException(
-          "AxisType is not set.  AxisType must be set before getting a dataset "
-              + "file name containing the axisID extension.");
+        "AxisType is not set.  AxisType must be set before getting a dataset "
+          + "file name containing the axisID extension.");
     }
     return axisID;
   }

@@ -1,6 +1,6 @@
 .na
 .nh
-.TH mtsmooth 1 4.6.34 BL3DEMC
+.TH mtsmooth 1 4.6.34 IMOD
 .SH NAME
 mtsmooth - to smooth a model of MTs
 .SH SYNOPSIS

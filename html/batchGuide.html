@@ -57,11 +57,16 @@ Batch Tomogram Reconstruction with IMOD
       IMOD, check this paragraph for news about the current capabilities.  In
       the initial release of this
       interface, dual axis datasets will be run to completion if possible.
+      When there are no fiducials or too few fiducials, it will get the initial 
+      alignment of the volumes by matching of reprojections and patch correlations.
       This is great if it works, but if you do open the Tomogram Combination
-      interface, it will overwrite the final parameters from the automated
-      processing.  It is now our highest priority to resolve this conflict and
-      update the Combine interface with new options for automated combining
-      compatible.
+      interface, it will overwrite the final parameters for patch size and
+      number from the automated
+      processing.  There is also no way to rerun the initial matching using
+      <A HREF = "man/dualvolmatch.html#TOP">Dualvolmatch</A> instead of
+      fiducials or matching models.  It is now our highest priority to resolve
+      these conflicts and update the Combine interface with new options for
+      automated combining compatible.
     </P>
 <H3><A NAME = "BatchSetup"></A>Setting General Batch Processing
   Parameters</H3>
@@ -216,8 +221,9 @@ Batch Tomogram Reconstruction with IMOD
       thickness, one by total unbinned pixels, one by binned pixels, and one to
       use a calculated value plus a specified margin.  The latter will use a
       specified thickness as the fallback if there is no calculated thickness
-      available or if it is too much smaller than the fallback.  This option is
-      the default because it is the most general-purpose.  Currently, the
+      available or if it is too much smaller than the fallback (only 0.4 as
+      big).  This option is the default because it is the most
+      general-purpose.  Currently, the
       calculated value is simply based on the distance between gold on two
       surfaces, but soon it will be possible to use automatic positioning for
       plastic sections.
@@ -246,9 +252,22 @@ Batch Tomogram Reconstruction with IMOD
   the project directory, named "rootname.com", where "rootname" is the project
   root name from the <B>Batch Setup</B> tab.  Simply execute this with:
   <br><code>&nbsp;&nbsp; subm rootname</code>
-  <br>The log file created here will contain all of the log output form the
-  run, but there will be a copy of the portion of that log for each dataset in
-  its respective directory.
+  <br>The eTomo project log window will have two command lines, one for
+  changing to that directory and one for running the job; you should be able
+  to copy and paste these into the terminal.
+<P>
+  There are two ways to kill the operation: 1) In the project directory, enter
+  the command:
+  <br><code>&nbsp;&nbsp; echo Q > rootname.cmds</code>
+  <br>where agin you substitute the project root name for "rootname". 2) In
+  the same terminal where you gave the "subm" command, enter "fg" to bring the
+  background process to the foreground, then press Ctrl-C (this will not work
+  in Windows without Cygwin). Both of these methods allow Batchruntomo to stop
+  all running processes.
+<P>
+  The log file created in the project directory will contain all of the log
+  output from the run, but there will be a copy of the portion of that log for
+  each dataset in its respective directory.
 </P>
 </body>
 </html>

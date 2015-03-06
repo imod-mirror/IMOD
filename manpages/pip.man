@@ -1,7 +1,7 @@
 .na
 .nh
 .ll 7.5i
-.TH PIP 1 3.0.11 BL3DEMC
+.TH PIP 1 3.0.11 IMOD
 .SH NAME
 .nh
 PIP \- package for parsing input parameters from Fortran or C

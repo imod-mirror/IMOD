@@ -1,6 +1,6 @@
 .na
 .nh
-.TH setupcombine 1 4.2.9 BL3DEMC
+.TH setupcombine 1 4.2.9 IMOD
 .SH NAME
 setupcombine \- Create command files for combining dual-axis tomograms
 .SH SYNOPSIS

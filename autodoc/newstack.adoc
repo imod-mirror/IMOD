@@ -177,6 +177,8 @@ header, angles will be placed into an extended header in the Agard/FEI format
 must have no extended header.)  Tilt angles can also be replaced or inserted if 
 output file(s) are HDF, with or without an incoming ".mdoc" file; and tilt
 angles in ".mdoc" files associated with MRC files will be maintained as well.
+If just an extension is entered (for example, ".tlt"), the program will look
+for a file with the root name of the input image file and this extension.
 
 [SectionHeader = SecOptions]
 usage = SECTION SELECTION OPTIONS 

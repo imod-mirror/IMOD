@@ -119,6 +119,36 @@ probability for a patch to be evaluated as an outlier (default 0.01), and
 a criterion probability for a patch to be eliminated regardless of the
 distribution of extreme values (default 0.002).
 
+[Field = InitialTransformFile]
+short = initial
+type = FN
+usage = File with 3D transformation used to create the volume being aligned
+tooltip = 
+manpage = File with the 3D transformation that was used to create the volume
+being aligned.  This transformation will be multiplied by the refining
+transform and output in the file specified by the \fB-product\fR option.  The
+two options must be entered together.  A side-effect of using this option is
+that the program will report the shift in Y (the presumed depth dimension)
+needed to align corresponding patches in the center of the volumes. 
+
+[Field = ProductTransformFile]
+short = product
+type = FN
+usage = Name of output file for product of initial and refining transforms
+tooltip = 
+manpage = Name of output file for the product of the transform entered with
+the \fB-initial\fR option and the refining transform.
+
+[Field = ScaleShiftByFactor]
+short = scale
+type = F
+usage = Factor by which to scale shifts in the product transform file
+tooltip = 
+manpage = Factor by which to scale shifts in the transform written when the
+\fB-product\fR option is given.
+This option is needed to get a transformation that can be applied to an
+unbinned volume when binned volumes have been analyzed.
+
 [Field = ParameterFile]
 short = param
 type = PF

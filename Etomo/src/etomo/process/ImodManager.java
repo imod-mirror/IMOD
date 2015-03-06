@@ -2397,7 +2397,9 @@ public class ImodManager {
   }
 
   private ImodState newBatchRunTomoStack(File file) {
-    return new ImodState(manager, file, AxisID.ONLY);
+    ImodState imodState = new ImodState(manager, file, AxisID.ONLY);
+    imodState.setLoadAsIntegers();
+    return imodState;
   }
 
   private boolean isPerAxis(String key) {

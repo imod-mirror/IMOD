@@ -1,6 +1,6 @@
 .na
 .nh
-.TH imod2patch 1 2.42 BL3DEMC
+.TH imod2patch 1 2.42 IMOD
 .SH NAME
 imod2patch \- converts a model to a patch displacement file
 .SH SYNOPSIS

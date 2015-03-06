@@ -1,6 +1,6 @@
 .na
 .nh
-.TH corrsearch3d 1 4.6.34 BL3DEMC
+.TH corrsearch3d 1 4.6.34 IMOD
 .SH NAME
 corrsearch3d - search for array of 3D displacements between two volumes
 .SH SYNOPSIS

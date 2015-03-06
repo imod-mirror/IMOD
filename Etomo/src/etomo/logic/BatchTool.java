@@ -42,7 +42,7 @@ public final class BatchTool {
       FileType.DEFAULT_BATCH_RUN_TOMO_AUTODOC.getFile(manager, AxisID.ONLY);
     boolean batchDefaultExists = batchDefault.exists();
     boolean inputDirectiveFileSet =
-      inputDirectiveFile != null && !inputDirectiveFile.exists();
+      inputDirectiveFile != null && inputDirectiveFile.exists();
     if (!inputDirectiveFileSet && !batchDefaultExists) {
       return null;
     }

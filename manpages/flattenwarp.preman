@@ -1,6 +1,6 @@
 .na
 .nh
-.TH flattenwarp 1 4.0.1 BL3DEMC
+.TH flattenwarp 1 4.0.1 IMOD
 .SH NAME
 flattenwarp -\ compute warping transformations for flattening a volume 
 .SH SYNOPSIS

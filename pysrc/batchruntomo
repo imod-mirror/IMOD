@@ -19,7 +19,7 @@ global rawXsize, rawYsize, zsize, fiducialless, coarseBinning
 global xtiltNeeded, fidThickness, fidIncShift, reconThickness, didLocalAlign, madeZfactors
 global aliBinning, aliXunbinned, aliYunbinned, patchTrack, totalDelTilt, latestMessages
 global suppressAbort, absDirectiveFile, userTemplateDir, summaryMessage, logFile
-global finalRetVal, correctCTF, eraseGold, axisLet, axisNum
+global finalRetVal, correctCTF, eraseGold, axisLet, axisNum, useVolMatch, nxRecA, nyRecA
 
 # Print a string to both standard out and a log file if one is defined
 def prnLog(string, end  = '\n', flush = False):
@@ -48,7 +48,7 @@ def sendEmail(subject, message):
       msg['Subject'] = subject
       msg['From'] = 'batchruntomo'
       msg['To'] = emailAddress
-      s = smtplib.SMTP('localhost')
+      s = smtplib.SMTP(SMTPserver)
       s.sendmail(emailAddress, [emailAddress], msg.as_string())
       s.quit()
    except Exception:
@@ -115,6 +115,7 @@ def printTaggedMessages(logfile, tags):
    global latestMessages
    printedAny = False
    latestMessages = []
+   anyError = False
    if isinstance(logfile, str):
       loglines = readTextFile(logfile, None, True)
       if isinstance(loglines, str):
@@ -139,12 +140,18 @@ def printTaggedMessages(logfile, tags):
             else:
                match = l.startswith(tag[0])
             if match:
-               latestMessages.append(l)
-               if tag[1] & 2:
-                  prnLog(l[len(tag[0]):].lstrip())
-               else:
-                  prnLog(l)
-               printedAny = True
+               # Suppress uninformative vmstopy output if there is already a message
+               if not anyError or not (l.startswith('ERROR:') and \
+                                          l.endswith('exited with status 1')):
+                  if tag[0].startswith('ERROR'):
+                     anyError = True
+                  latestMessages.append(l)
+                  if tag[1] & 2:
+                     prnLog(l[len(tag[0]):].lstrip())
+                  else:
+                     prnLog(l)
+                  printedAny = True
+                  
                if tag[1] & 1:
                   readingMulti = True
                break
@@ -2369,7 +2376,7 @@ def modifyTiltComFile(sampleThickness):
                thickness += extra
                
          # In any of these cases, fallback rules if thickness is too low or not set
-         if fallbackThick and thickness < fallbackThick / 2:
+         if fallbackThick and thickness < fallbackThick * useFallbackRatio:
             thickness = fallbackThick
 
          if not thickness:
@@ -2607,13 +2614,14 @@ def edfDelAndAdd(option, value, delim = '/'):
 
 # Analyze the tomogram for Z limits and run setupcombine
 def setupCombine():
-   global axisLet, axisNum
+   global axisLet, axisNum, useVolMatch, nxRecA, nyRecA
    topBotInd = 2
    patchSize = 'M'
-   
-   # Make sure preconditions exist  For now, sign of running transferfid is required
-   if not os.path.exists('transferfid.coord'):
-      return -1
+   useVolMatch = 0
+   edfVol = 'false'
+   if fiducialless or patchTrack or not os.path.exists('transferfid.coord'):
+      useVolMatch = 1
+      edfVol = 'true'
 
    # Get the right files in place if SIRT is involved
    useSIRTifBoth = lookupDirective(combinePrefix, 'doSIRTifBoth', 0, INT_VALUE)
@@ -2674,7 +2682,7 @@ def setupCombine():
          return 1
       zRangeA = topBotA[topBotInd + 1] - topBotA[topBotInd]
       if zRangeA < 4:
-         abortSet('Findsection failed to find a useful a Z range in A tomogram')
+         abortSet('Findsection failed to find a useful Z range in A tomogram')
 
    # Need to find limits in B unless match ratio is very low
    needFindB = matchAtoBratio > 0.25
@@ -2684,7 +2692,7 @@ def setupCombine():
          return 1
       zRangeB = topBotB[topBotInd + 1] - topBotB[topBotInd]
       if zRangeB < 4:
-         abortSet('Findsection failed to find a useful a Z range in B tomogram')
+         abortSet('Findsection failed to find a useful Z range in B tomogram')
 
    # Match A to B if ratio was very high or B is sufficiently smaller
    matchAtoB = not needFindA or (needFindB and zRangeB <= matchAtoBratio * zRangeA)
@@ -2696,7 +2704,9 @@ def setupCombine():
    # Determine number of surfaces, make sure 2 is still OK
    # If in doubt, just set to 1 and see what happens
    numSurf = numSurfaces
-   if numSurf > 1:
+   if useVolMatch:
+      numSurf = 2
+   else:
    
       # Do the appropriate axis of align log
       if matchAtoB:
@@ -2707,18 +2717,31 @@ def setupCombine():
       axisLet = 'a'
       (totalDelTilt, xtiltNeeded, fidThickness, fidIncShift, fidTotalShift, \
           reconThickness, numBot, numTop) = angleArr
-      if fidThickness < (topBotA[topBotInd + 1] - topBotA[topBotInd]) / 2:
-         numSurf = 1
-         mess = 'because fiducial extent is much smaller than Z range'
-      else:
-         fallbackThick = lookupDirective(runtimePrefix + 'Reconstruction',
-                                         'fallbackThickness', 0, INT_VALUE)
-         if isinstance(fallbackThick, int) and fallbackThick < reconThickness / 2:
+      if numBot + numTop < solvematchMinFids:
+         useVolMatch = 1
+         prnLog('Using Dualvolmatch instead of Solvematch because there are too few ' +\
+                   'fiducials')
+      elif numSurf > 1:
+         if fidThickness < (topBotA[topBotInd + 1] - topBotA[topBotInd]) / 2:
             numSurf = 1
-            mess = 'because fiducial extent is much smaller than fallback thickness'
+            mess = 'because fiducial extent is much smaller than Z range'
+         else:
+            fallbackThick = lookupDirective(runtimePrefix + 'Reconstruction',
+                                            'fallbackThickness', 0, INT_VALUE)
+            if isinstance(fallbackThick, int) and \
+                   reconThickness < fallbackThick * useFallbackRatio:
+               numSurf = 1
+               mess = 'because fiducial extent is much smaller than fallback thickness'
 
-      if numSurf == 1:
-         prnLog('Setting number of surfaces for Solvematch to 1 ' + mess)
+         if numSurf > 1 and (numBot < solvematchMinEachSide or \
+                                numTop < solvematchMinEachSide or \
+                                min(float(numBot) / numTop, float(numTop) / numTop) < \
+                                solvematchMinSideRatio):
+            numSurf = 1
+            mess = 'because there are too few fiducials on one surface'
+
+         if numSurf == 1:
+            prnLog('Setting number of surfaces for Solvematch to 1 ' + mess)
 
    edfSurf = 'BothSides'
    if numSurf == 1:
@@ -2743,13 +2766,15 @@ def setupCombine():
                'PatchTypeOrXYZ ' + patchSize,
                'AutoPatchFinalSize ' + finalPatchSize,
                'ExtraResidualTargets ' + extraTargets]
+   if useVolMatch:
+      comLines.append('InitialVolumeMatching 1')
    if scopeTmplText in allDirectives[BatInd]:
       comLines.append('ChangeParametersFile ' + allDirectives[BatInd][scopeTmplText][0])
    if sysTmplText in allDirectives[BatInd]:
       comLines.append('ChangeParametersFile ' + allDirectives[BatInd][sysTmplText][0])
    if userTmplText in allDirectives[BatInd]:
       comLines.append('ChangeParametersFile ' + allDirectives[BatInd][userTmplText][0])
-      comLines.append('ChangeParametersFile ' + absDirectiveFile)
+   comLines.append('ChangeParametersFile ' + absDirectiveFile)
    if matchAtoB:
       comLines.append('MatchAtoB 1')
    if wedgeFrac:
@@ -2766,6 +2791,7 @@ def setupCombine():
    # Now try to modify the edf file.  Z limits are fatal.  First word -> batchruntomo
    sedcom = edfDelAndAdd('batchruntomo.Combine.MatchMode', edfMatch) + \
        edfDelAndAdd('batchruntomo.Combine.FiducialMatch', edfSurf) + \
+       edfDelAndAdd('batchruntomo.Combine.InitialVolumeMatching', edfVol) + \
        edfDelAndAdd('batchruntomo.Combine.PatchSize', patchSize) + \
        edfDelAndAdd('batchruntomo.Combine.FinalPatchSize', finalPatchSize) + \
        edfDelAndAdd('batchruntomo.Combine.ExtraResidualTargets', extraTargets)
@@ -2779,14 +2805,15 @@ def setupCombine():
    # Finally, modify matchvol1.com to preserve a larger B volume size
    # The transposed ny,nz match setupcombine usage for better or worse
    try:
-      (nxa, nza, nya) = getmrcsize(setName + 'a.rec')
+      (nxRecA, nza, nyRecA) = getmrcsize(setName + 'a.rec')
       (nxb, nzb, nyb) = getmrcsize(setName + 'b.rec')
 
    except ImodpyError:
       reportImodError('Error getting sizes of axis rec files')
       return 1
 
-   sedcom = [sedModify('OutputSizeXYZ', fmtstr('{} {} {}', nxa, max(nza, nzb), nya))]
+   sedcom = [sedModify('OutputSizeXYZ', fmtstr('{} {} {}', nxRecA, max(nza, nzb),
+                                               nyRecA))]
    if pysed(sedcom, 'matchvol1.com', 'matchvol1.com', retErr = True):
       abortSet('Error modifying matchvol1.com')
       return 1
@@ -2796,61 +2823,138 @@ def setupCombine():
 
 # Run solvematch and make needed modifications if there is a center shift
 def initialCombineMatch():
-   global suppressAbort
-   suppressAbort = False   
-   err = runOneProcess('solvematch.com', message = 'Getting initial alignment between ' +\
-                          'volumes')
-   suppressAbort = True
-   printTaggedMessages('solvematch.log', standardTags +
-                       [('Mean residual', 4), ('Scaling along', 0), ('Local fits', 0),
-                        ('Average mean', 4)])
-   if not err:
-      return 0
-   initShift = []
-   shiftLimit = 0
-   logLines = readTextFileReportErr('solvematch.log')
-   if not logLines:
-      return 1
+   global suppressAbort, useVolMatch
 
-   # If there was an error, try to find initial shift as well as center shift
-   for line in logLines:
-      if 'InitialShiftXYZ' in line and 'needs' in line:
-         lsplit = line.split()
-         try:
-            for ind in (0, 1, 2):
-               initShift.append(int(lsplit[-3 + ind]))
-         except Exception:
-            abortSet('Error trying to get initial shift from :' + line)
-      if 'CenterShiftLimit' in line and 'avoid stopping' in line:
-         lsplit = line.split()
-         try:
-            shiftLimit = int(lsplit[-1])
-         except ValueError:
-            pass
-
-      # If error line is found that says it's OK, modify patchcorr.com
-      if 'ERROR:' in line and 'INITIAL SHIFT' in line and 'SOLUTION IS OK' in line:
-         if initShift:
-            prnLog(fmtstr('Setting initial shift for Corrsearch3d to {} {} {}',
-                          initShift[0], initShift[2], initShift[1]))
-            sedcm = sedDelAndAdd('InitialShiftXYZ', fmtstr('{},{},{}', initShift[0],
-                                                           initShift[1], initShift[2]),
-                                 'FlipYZMessages')
-            if pysed(sedcm, 'patchcorr.com', 'patchcorr.com', retErr = True):
-               abortSet('Error modifying patchcorr.com')
-               return 1
-
-            # If that succeeded, modify solvematch with shift limit
-            if shiftLimit:
-               if pysed([sedModify('CenterShiftLimit', shiftLimit)], 'solvematch.com',
-                        'solvematch.com', retErr = True):
-                  abortSet('Error modifying solvematch.com with new shift limit')
-                  return 1
-            return 0
-
-         abortSet('Initial shift is required to go on, but was not found in ' +\
-                     'solvematch.log')
+   # If we are coming in at this step, need to reconstruct whether volume matching
+   # is supposed to be used
+   if useVolMatch < 0:
+      edfLines = readTextFileReportErr(setName + '.edf')
+      if not edfLines:
          return 1
+      for line in edfLines:
+         if 'InitialVolumeMatching' in line:
+            if 'true' in line:
+               useVolMatch = 1
+            elif 'false' in line:
+               useVolMatch = 0
+            break
+      if useVolMatch < 0:
+         abortSet('Cannot determine if initial volume matching was set up to be used')
+         return 1
+
+   # Set up for type of process and whether may need to run it twice
+   if useVolMatch:
+      comRoot = 'dualvolmatch'
+      numLoop = 1
+      tags = [('unbinned mean residual', 4), ('implies a center', 4), ('Falling back', 4)]
+   else:
+      comRoot = 'solvematch'
+      numLoop = 2
+      tags = [('Mean residual', 4), ('Scaling along', 0), ('Local fits', 0),
+              ('Average mean', 4)]
+
+   for loop in range(numLoop):
+
+      # Run the process and process and read log regardless
+      suppressAbort = True
+      err = runOneProcess(comRoot + '.com', message = 'Getting initial alignment ' +\
+                             'between volumes')
+      suppressAbort = False
+
+      # Warnings got printed regardless, errors got printed if it failed, so set tags to
+      # avoid duplicate messages
+      useTags = [('ERROR:', 0)] + tags
+      if err:
+         useTags = tags
+      printTaggedMessages(comRoot + '.log', useTags);
+      logLines = readTextFileReportErr(comRoot + '.log')
+      if not logLines:
+         return 1
+
+      # For vol match, see if need to change the matchvol thickness
+      if useVolMatch and not err:
+         for line in logLines:
+            if 'may need to set thickness' in line:
+               lsplit = line.split()
+               try:
+                  newThick = int(lsplit[-1])
+               except Exception:
+                  abortSet('Error trying to get suggested thickness for matchvol')
+
+               sedcom = [sedModify('OutputSizeXYZ', fmtstr('{} {} {}', nxRecA,
+                                                              newThick, nyRecA))]
+               if pysed(sedcom, 'matchvol1.com', 'matchvol1.com', retErr = True):
+                  abortSet('Error modifying matchvol1.com')
+                  return 1
+               prnLog(fmtstr('Thickness for matched volume set to {} as suggested',
+                             newThick))
+               break
+
+      # For solvematch look first to see if it suggests using one surface, modify the
+      # com and loop for another run
+      if not useVolMatch:
+         redo = False
+         for line in logLines:
+            if 'Try specifying' in line and 'on one surface' in line:
+               if pysed([sedModify('SurfacesOrUseModels', 1)], 'solvematch.com',
+                        'solvematch.com', retErr = True):
+                  abortSet('Error modifying solvematch.com')
+                  return 1
+               prnLog('Rerunning with one surface as suggested')
+               redo = True
+               break
+
+         if redo:
+            continue
+            
+      # Otherwise done if no error
+      if not err:
+         return 0
+      initShift = []
+      shiftLimit = 0
+
+      # If there was an error, try to find initial shift as well as center shift
+      for line in logLines:
+
+         if 'InitialShiftXYZ' in line and 'needs' in line:
+            lsplit = line.split()
+            try:
+               for ind in (0, 1, 2):
+                  initShift.append(int(lsplit[-3 + ind]))
+            except Exception:
+               abortSet('Error trying to get initial shift from :' + line)
+         if 'CenterShiftLimit' in line and 'avoid stopping' in line:
+            lsplit = line.split()
+            try:
+               shiftLimit = int(lsplit[-1])
+            except ValueError:
+               pass
+
+         # If error line is found that says it's OK, modify patchcorr.com
+         if 'ERROR:' in line and (('INITIAL SHIFT' in line and \
+                                      'SOLUTION IS OK' in line) or \
+                                     'Initial shift needs' in line):
+            if initShift:
+               prnLog(fmtstr('Setting initial shift for Corrsearch3d to {} {} {}',
+                             initShift[0], initShift[2], initShift[1]))
+               sedcm = sedDelAndAdd('InitialShiftXYZ', fmtstr('{},{},{}', initShift[0],
+                                                              initShift[1], initShift[2]),
+                                    'FlipYZMessages')
+               if pysed(sedcm, 'patchcorr.com', 'patchcorr.com', retErr = True):
+                  abortSet('Error modifying patchcorr.com')
+                  return 1
+
+               # If that succeeded, modify com file with shift limit
+               if shiftLimit:
+                  if pysed([sedModify('CenterShiftLimit', shiftLimit)], comRoot + '.com',
+                           comRoot + '.com', retErr = True):
+                     abortSet('Error modifying solvematch.com with new shift limit')
+                     return 1
+               return 0
+
+            abortSet('Initial shift is required to go on, but was not found in ' +\
+                        comRoot + '.log')
+            return 1
 
    abortSet('Error getting initial alignment between volumes')
    return 1
@@ -3026,6 +3130,51 @@ def trimVolume():
       
    return 0
 
+
+# Run anisotropic diffusion in chunks
+def runNAD():
+   recFile = setName + '.rec'
+   nadFile = recFile + '.nad'
+   comFile = 'autoNAD' + '.com'
+
+   # Get the directives and make sure both are there, and make sure file exists
+   iterations = lookupDirective(runtimePrefix + 'NAD', 'iterations', 0, INT_VALUE)
+   Kvalue = lookupDirective(runtimePrefix + 'NAD', 'Kvalue', 0, FLOAT_VALUE)
+   if testDirectiveValue(iterations, 'NAD.iterations', 'integer') or \
+          testDirectiveValue(iterations, 'NAD.Kvalue', 'float'):
+      return 1
+   if not iterations and not Kvalue:
+      return 0
+   if (iterations and not Kvalue) or (Kvalue and not iterations):
+      abortSet('Both "iterations" and "Kvalue" directives need to be present to run NAD')
+      return 1
+   if not os.path.exists(recFile):
+      abortSet('You must run post-processing in order to run NAD')
+      return 1
+
+   # Get optional memory entry, compute the chunksize, write the dummy com file
+   memory = lookupDirective(runtimePrefix + 'NAD', 'chunkMemoryMB', 0, INT_VALUE)
+   if testDirectiveValue(iterations, 'NAD.chunkMemoryMB', 'integer'):
+      return 1
+   if not memory:
+      memory = 512
+   chunkSize = max(5, memory // 36)
+   nadcom = fmtstr('$nad_eed_3d -n {} -k {} INPUTFILE OUTPUTFILE', iterations, Kvalue)
+   if writeTextFileReportErr(comFile, [nadcom]):
+      return 1
+
+   # Make the chunk coms
+   padding = max(8, iterations)
+   chunkCom = fmtstr('chunksetup -m {} -p {} -no {} {} {}', chunkSize, padding, comFile,
+                     recFile, nadFile)
+   try:
+      runcmd(chunkCom)
+   except ImodpyError:
+     reportImodError('Error running chunksetup on ' + comFile)
+     return 1
+
+   return runOneProcess(comFile, False, message = 'Filtering with anisotripoc diffusion')
+   
 
 # Do all the operations on an axis
 def runOneAxis():
@@ -3215,22 +3364,21 @@ def runOneAxis():
       return 1
 
    # Run trimvol on full data set or at axis level if directive for it
-   if ((not dualAxis and needStep(finalStepNum)) or (dualAxis and needStep(14.5))) and \
+   if ((not dualAxis and needStep(trimStepNum)) or (dualAxis and needStep(14.5))) and \
           trimVolume():
       return 1
 
+   # Run NAD on full data set only
+   if not dualAxis and needStep(nadStepNum) and runNAD():
+      return 1
+   
    return 0
 
 
 # Or run the steps for combine, return on error or when done
 def runCombine():
-   if needStep(15):
-      err = setupCombine()
-      if err < 0:
-         prnLog('Tomogram combination can be done only after fiducial autoseed ' + \
-                   'and track; ending this dataset')
-      if err:
-         return
+   if needStep(15) and setupCombine():
+      return
 
    if needStep(16) and initialCombineMatch():
       return
@@ -3238,8 +3386,11 @@ def runCombine():
    if alignAndCombineAxes():
       return
 
-   if needStep(finalStepNum):
-      trimVolume()
+   if needStep(trimStepNum) and trimVolume():
+      return
+
+   if needStep(nadStepNum):
+      runNAD()
 
    
 #### MAIN PROGRAM  ####
@@ -3297,7 +3448,9 @@ ctfPlotStepNum = 9
 detect3DstepNum = 10
 ctfCorrStepNum = 11
 eraseStepNum = 12
-finalStepNum = 20
+trimStepNum = 20
+nadStepNum = 21
+finalStepNum = 21
 
 # Defaults
 dfltDarkExcludeFraction = 0.33
@@ -3311,6 +3464,11 @@ dfltPosThicknesses = (250, 400, 500, 600)
 sizesForPosThicknesses = (0, 512, 1024, 2048)
 dfltExtraWarpTargets = '0.4,0.45'
 dfltFinalPatchSize = 'E'
+solvematchMinFids = 8
+solvematchMinEachSide = 3
+solvematchMinSideRatio = 0.2
+useFallbackRatio = 0.4
+useVolMatch = -1
 
 logFile = None
 finalRetVal = 0
@@ -3320,7 +3478,7 @@ direcFileErrorNames = ['scope template', 'system template', 'user template',
 
 # List of coms where the runner is handling messages, and the standard tags for messages
 handlingMessages = ['autofidseed', 'transferfid', 'track', 'align', 'solvematch',
-                    'autopatchfit']
+                    'autopatchfit', 'dualvolmatch']
 standardTags = [('ERROR:', 0), ('WARNING:', 0)]
 
 # This handles the problem with # being lost as a comment in standard input
@@ -3475,6 +3633,7 @@ if skipTiltalign and (startingStep <= 5.005 or \
 validation = PipGetInteger('ValidationType', 0)
 remoteDataDir = ''
 emailAddress = PipGetString('EmailAddress', '')
+SMTPserver = PipGetString('SMTPserver', 'localhost')
 if emailAddress:
    if pyVersion < 250:
       emailAddress = ''
@@ -3657,7 +3816,7 @@ for dfileInd in range(numSets):
          printTaggedMessages(errlog, [('INFO:', 1), ('LOG:', 3)])
       else:
          if failed:
-            prnLog('Running etomo failed, no error information available')
+            prnLog('Running etomo failed, no etomo error log available')
          else:
             prnLog('Cannot access an error log from running etomo')
       if failed:

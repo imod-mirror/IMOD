@@ -1,5 +1,45 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/4/15: Added ability to run NAD from Batchruntomo, and an option to specify
+an SMTP server for email.
+
+3/4/15: Modified Setupcombine to set up for using initial volume matching, and
+made Batchruntomo use it when appropriate, so it can now combine data without
+fiducials.  Changed ratio so that fallback thickness is used when calculated
+thickness is less by a factor of 0.4 instead of 0.5.
+
+3/3/15: Fixed clip filter to work with images having only one factor of 2 in X
+(e.g., K2 images).
+
+3/2/15: Added a script, Dualvolmatch, to get initial alignment between
+dual-axis volumes when there are no corresponding fiducials.
+
+3/1/15: Made Transferfid and Matchrotpairs evaluate mirrored as well as
+unmirrored images by default.
+
+2/28/15: Converted Matchrotpairs to Python by extracting a big module from
+Transferfid for the matching operation.
+
+2/25/15: IMOD_4-8-26
+2/25/15: Transferfid can now find alignments when error in 90-degree rotation
+is up to 20 degrees, using new rotation search in Tiltxcorr.  Speed
+improvements in Xfsimplex and greater efficiency in Transferfid have reduced
+execution time by about half.
+
+2/25/15: Fixed Midas for reference section other than 0.
+
+2/25/15: Fixes to batch interface: model is put in right place if 3dmod is
+open already when Boundary Model checked; right-click operations on opening
+3dmod work with boundary model checked; tilt series is loaded as integers;
+defocus is now in microns in the interface; non-interface entries in a
+starting directive file are not lost.
+
+2/25/15: Made messages to 3dmod able to contain spaces in filenames.
+
+2/23/15: IMOD_4-8-25
+2/23/15: Fixed hang of eTomo when template editor is opened; made batch
+interface put out : as separator in CPU list.
+
 2/20/15: Processchunks and Batchruntomo changed to take : instead of # as
 separator in CPU entry; Batchruntomo now allows entries of 1 and limits the
 number of threads used when running a single command file.

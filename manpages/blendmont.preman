@@ -1,6 +1,6 @@
 .na
 .nh
-.TH blendmont 1 4.6.34 BL3DEMC
+.TH blendmont 1 4.6.34 IMOD
 .SH NAME
 blendmont - aligns and blends overlapping edges of montaged images
 .SH SYNOPSIS

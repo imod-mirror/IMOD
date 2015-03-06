@@ -1,6 +1,6 @@
 .na
 .nh
-.TH extracttilts 1 4.6.34 BL3DEMC
+.TH extracttilts 1 4.6.34 IMOD
 .SH NAME
 extracttilts - Extract tilt angles or other info from image or metadata file 
 .SH SYNOPSIS

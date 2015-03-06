@@ -14,6 +14,7 @@ import etomo.process.SystemProgram;
 import etomo.storage.DirectiveFile;
 import etomo.type.AxisID;
 import etomo.type.EtomoNumber;
+import etomo.type.FileType;
 import etomo.type.ProcessName;
 import etomo.type.StringParameter;
 import etomo.ui.swing.UIHarness;
@@ -129,6 +130,7 @@ public class BatchruntomoParam implements CommandParam {
     scriptCommand.useKeywordValue();
     scriptCommand.setValuesInterleaved(InterleavedIndex.getTags(mode),
       interleavedParameters);
+    scriptCommand.setValue("CheckFile", FileType.CHECK_FILE.getFileName(manager, null));
     deliverToDirectory.updateComScript(scriptCommand);
     if (cpuMachineList != null && cpuMachineList.length() > 0) {
       scriptCommand.setValue(CPU_MACHINE_LIST_TAG, cpuMachineList.toString());

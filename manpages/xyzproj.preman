@@ -1,6 +1,6 @@
 .na
 .nh
-.TH xyzproj 1 4.6.34 BL3DEMC
+.TH xyzproj 1 4.6.34 IMOD
 .SH NAME
 xyzproj - to project volume at a series of tilts around the X, Y, or Z axis
 .SH SYNOPSIS
