@@ -187,7 +187,7 @@ C
 c       
       dmean=dmsum/nzs
 c       
-      CALL DATE(DAT)
+      CALL B3DDATE(DAT)
       CALL TIME(TIM)
 c       
       write(titlech,1500)dat,tim

@@ -211,7 +211,7 @@ C
       CELL2(6)=90.
 C       
       call time(tim)
-      call date(dat)
+      call b3ddate(dat)
 c       
       write(titlech,301) dat,tim
 301   FORMAT('BOXAVG: average of boxes',32x,a9,2x,a8)
