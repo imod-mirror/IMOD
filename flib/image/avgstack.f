@@ -91,7 +91,7 @@ c	--- Clear the storage array ---
       cell(3) = cell(1) / mxyz(1)
       call ialcel(2,cell)
 
-      call date(dat)
+      call b3ddate(dat)
       call time(tim)
       numsec = ilst - ifst + 1
 
