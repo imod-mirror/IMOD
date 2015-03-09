@@ -643,8 +643,10 @@ offending particles from further averaging or consideration during
 the current iteration.&nbsp; The <b>Shift</b> and <b>Angular</b> 
 tolerances specify
 the maximum separation in integer pixels and degrees, respectively, at 
-at which particles can be considered 
-duplicates.&nbsp; The shift tolerance is applied separately to
+at which particles can be considered duplicates.&nbsp; 
+Two particles are considered duplicates only if their separation 
+exceeds neither of these tolerances. 
+The shift tolerance is applied separately to
 each of the tomogram X, Y, and Z coordinates. Duplication is determined
 independently near the end of each iteration, so a particle ingored as
 a duplicate in one iteration is not necessarily 
