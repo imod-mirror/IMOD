@@ -134,12 +134,14 @@ def searchPairs(progname, zeroA, zeroB, nviewsA, nviewsB, imageA, imageB, nxa, n
    if angle > 0:
       pmStart = 1
    midas = PipGetBoolean('RunMidas', 0)
-   mirror = PipGetBoolean('MirrorXaxis', 0)
+   mirror = PipGetInteger('MirrorXaxis', 0)
    leaveTmp = PipGetBoolean('LeaveTempFiles', 0)
    mirStart = 0
    mirEnd = 1
    if mirror > 0:
       mirStart = 1
+   if mirror < 0:
+      mirEnd = 0
 
    # Get rotation scan variables and set 3-state flag for find, use, or skip angle
    (scanRotMax, scanRotStep) = PipGetTwoFloats('ScanRotationMaxAndStep', 20., 4.)

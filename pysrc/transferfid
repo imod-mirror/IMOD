@@ -71,7 +71,7 @@ from tiltmatch import *
 options = ["s:Setname:CH:", "b:TransferBtoA:B:", "ia:AImageFile:FN:",
            "ib:BImageFile:FN:", "f:FiducialModel:FN:", "o:SeedModel:FN:",
            "n:ViewsToSearch:I:", "za:ACenterView:I:", "zb:BCenterView:I:",
-           "a:AngleOfRotation:I:", "x:MirrorXaxis:B:", "m:RunMidas:B:",
+           "a:AngleOfRotation:I:", "x:MirrorXaxis:I:", "m:RunMidas:B:",
            "c:CorrespondingCoordFile:FN:", "lowest:LowestTiltTransformFile:FN:",
            "t:LeaveTempFiles:B:", ":PID:B:"]
 
