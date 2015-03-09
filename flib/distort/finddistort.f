@@ -618,7 +618,7 @@ c
           call iclden(sumEntries, nPtField(1), nPtField(2), 1, nPtField(1), 1,
      &        nPtField(2), dmin, dmax, dmean)
           call iwrsec(2, sumEntries)
-          call date(dat)
+          call b3ddate(dat)
           call time(tim)
           write(titlech,3000) dat,tim
 3000      format ( 'FINDDISTORT: Sum of coefficient entries',t57,a9,2x, a8)
