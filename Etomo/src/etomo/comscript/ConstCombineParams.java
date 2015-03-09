@@ -1,30 +1,19 @@
 package etomo.comscript;
 
-import java.io.IOException;
-import java.util.ArrayList;
-
-import etomo.BaseManager;
-import etomo.type.AxisID;
 import etomo.type.CombinePatchSize;
 import etomo.type.ConstEtomoNumber;
-import etomo.type.EtomoNumber;
 import etomo.type.FiducialMatch;
 import etomo.type.MatchMode;
-import etomo.util.DatasetFiles;
-import etomo.util.MRCHeader;
 
 /**
  * <p>Description: A read only model of the parameter interface for the
  * setupcombine script</p>
  *
- * <p>Copyright: Copyright (c) 2002</p>
+ * <p>Copyright: Copyright 2002 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * <p>Organization: Boulder Laboratory for 3D Fine Structure,
- * University of Colorado</p>
- *
- * @author $Author$
- *
- * @version $Revision$
+ * @version $Id$
  *
  * <p> $Log$
  * <p> Revision 3.10  2010/02/17 04:47:54  sueh
@@ -107,345 +96,90 @@ import etomo.util.MRCHeader;
  * <p> </p>
  */
 
-public abstract class ConstCombineParams {
-  public static final String rcsid = "$Id$";
-
-  public static final String PATCH_Z_MIN_LABEL = "Z axis min";
-  public static final String PATCH_Z_MAX_LABEL = "Z axis max";
-
-  protected String revisionNumber = "1.2";
-
-  // protected MatchMode dialogMatchMode = MatchMode.B_TO_A;
-  protected MatchMode matchMode = null;
-  protected FiducialMatch fiducialMatch = FiducialMatch.BOTH_SIDES;
-  protected StringList useList = new StringList(0);
-  protected StringList fiducialMatchListA = new StringList(0);
-  protected StringList fiducialMatchListB = new StringList(0);
-  protected CombinePatchSize patchSize = CombinePatchSize.MEDIUM;
-  protected int patchXMin = 0;
-  protected int patchXMax = 0;
-  protected int patchYMin = 0;
-  protected int patchYMax = 0;
-  protected EtomoNumber patchZMin = new EtomoNumber("PatchBoundaryZMin");
-  protected EtomoNumber patchZMax = new EtomoNumber("PatchBoundaryZMax");
-  protected int maxPatchZMax = 0;
-
-  protected String patchRegionModel = "";
-  protected String tempDirectory = "";
-  protected boolean manualCleanup = false;
-  protected boolean modelBased = false;
-  protected boolean transfer = true;
-
-  protected final BaseManager manager;
-
-  protected ArrayList invalidReasons = new ArrayList();
-
-  public ConstCombineParams(BaseManager manager) {
-    this.manager = manager;
-    patchZMin.set(0);
-    patchZMax.set(0);
-  }
-
-  public ConstCombineParams(final ConstCombineParams src) {
-    manager = src.manager;
-    patchZMin.set(0);
-    patchZMax.set(0);
-  }
-
-  public boolean equals(ConstCombineParams cmp) {
-    // if (dialogMatchMode != cmp.dialogMatchMode) {
-    // return false;
-    // }
-    if (matchMode != cmp.matchMode) {
-      return false;
-    }
-    if (!fiducialMatch.equals(cmp.getFiducialMatch())) {
-      return false;
-    }
-
-    if (!useList.toString().equals(cmp.getUseList().toString())) {
-      return false;
-    }
-    if (!fiducialMatchListA.toString().equals(cmp.getFiducialMatchListA().toString())) {
-      return false;
-    }
-    if (!fiducialMatchListB.toString().equals(cmp.getFiducialMatchListB().toString())) {
-      return false;
-    }
-    if (!patchSize.equals(cmp.getPatchSize())) {
-      return false;
-    }
-    if (!(patchXMin == cmp.getPatchXMin())) {
-      return false;
-    }
-    if (!(patchXMax == cmp.getPatchXMax())) {
-      return false;
-    }
-    if (!(patchYMin == cmp.getPatchYMin())) {
-      return false;
-    }
-    if (!(patchYMax == cmp.getPatchYMax())) {
-      return false;
-    }
-    if (!patchZMin.equals(cmp.getPatchZMin())) {
-      return false;
-    }
-    if (!patchZMax.equals(cmp.getPatchZMax())) {
-      return false;
-    }
-    if (!(patchRegionModel.equals(cmp.getPatchRegionModel()))) {
-      return false;
-    }
-    if (!(tempDirectory.equals(cmp.getTempDirectory()))) {
-      return false;
-    }
-    if (!(manualCleanup == cmp.getManualCleanup())) {
-      return false;
-    }
-    if (!(modelBased == cmp.isModelBased())) {
-      return false;
-    }
-    return true;
-  }
-
+public interface ConstCombineParams {
+  
+  public boolean isAutoPatchFinalSizeSet();
+  public boolean isExtraResidualTargetsSet();
   /**
    * Returns true if the patch boundary values have been modified
    */
-  public boolean isPatchBoundarySet() {
-    if (patchXMin == 0 && patchXMax == 0 && patchYMin == 0 && patchYMax == 0
-        && patchZMin.equals(0) && patchZMax.equals(0)) {
-      return false;
-    }
-    return true;
-  }
+  public boolean isPatchBoundarySet();
 
   /**
    * Checks the validity of the attribute values.
    * @return true if all entries are valid, otherwise the reasons are 
    * available through the method getInvalidReasons.
    */
-  public boolean isValid(boolean YAndZflipped) {
-    boolean valid = true;
-    // Clear any previous reasons from the list
-    invalidReasons.clear();
-    if (patchXMin < 1) {
-      valid = false;
-      invalidReasons.add("X min value is less than 1");
-    }
-    if (patchXMax < 1) {
-      valid = false;
-      invalidReasons.add("X max value is less than 1");
-    }
-    if (patchXMin > patchXMax) {
-      valid = false;
-      invalidReasons.add("X min value is greater than the X max value");
-    }
-
-    if (patchYMin < 1) {
-      valid = false;
-      invalidReasons.add("Y min value is less than 1");
-    }
-    if (patchYMax < 1) {
-      valid = false;
-      invalidReasons.add("Y max value is less than 1");
-    }
-    if (patchYMin > patchYMax) {
-      valid = false;
-      invalidReasons.add("Y min value is greater than the Y max value");
-    }
-
-    if (patchZMin.getInt() < 1) {
-      valid = false;
-      invalidReasons.add("Z min value is less than 1");
-    }
-    if (patchZMax.getInt() < 1) {
-      valid = false;
-      invalidReasons.add("ZX max value is less than 1");
-    }
-    if (maxPatchZMax > 0 && patchZMax.gt(maxPatchZMax)) {
-      valid = false;
-      invalidReasons.add("Z max value is greater than the maximum Z max value ("
-          + maxPatchZMax + ")");
-    }
-    if (patchZMin.gt(patchZMax)) {
-      valid = false;
-      invalidReasons.add("Z min value is greater than the Z max value");
-    }
-    // get the tomogram header to check x, y, and z
-    AxisID axisID;
-    // if (dialogMatchMode == null || dialogMatchMode == MatchMode.B_TO_A) {
-    // axisID = AxisID.FIRST;
-    // }
-    // else {
-    // axisID = AxisID.SECOND;
-    // }
-    if (matchMode == null || matchMode == MatchMode.B_TO_A) {
-      axisID = AxisID.FIRST;
-    }
-    else {
-      axisID = AxisID.SECOND;
-    }
-    MRCHeader header = MRCHeader.getInstance(manager.getPropertyUserDir(), DatasetFiles
-        .getTomogram(manager, axisID).getAbsolutePath(), axisID);
-    try {
-      if (!header.read(manager)) {
-        return true;
-      }
-    }
-    catch (IOException e) {
-      return true;
-    }
-    catch (Exception e) {
-      e.printStackTrace();
-      return true;
-    }
-    int x = header.getNColumns();
-    if (x < patchXMin || x < patchXMax) {
-      valid = false;
-      invalidReasons.add("X values cannot be greater then " + x);
-    }
-    int y;
-    int z;
-    if (YAndZflipped) {
-      y = header.getNSections();
-      z = header.getNRows();
-    }
-    else {
-      y = header.getNRows();
-      z = header.getNSections();
-    }
-    if (y < patchYMin || y < patchYMax) {
-      valid = false;
-      invalidReasons.add("Y values cannot be greater then " + y);
-    }
-
-    if (patchZMin.gt(z) || patchZMax.gt(z)) {
-      valid = false;
-      invalidReasons.add("Z values cannot be greater then " + z);
-    }
-    return valid;
-  }
+  public boolean isValid(boolean YAndZflipped);
 
   /**
    * Returns the reasons the attribute values are invalid as a string array.
    */
-  public String[] getInvalidReasons() {
-    return (String[]) invalidReasons.toArray(new String[invalidReasons.size()]);
-  }
+  public String[] getInvalidReasons();
 
-  public String getRevisionNumber() {
-    return revisionNumber;
-  }
+  public MatchMode getMatchMode();
 
-  // public MatchMode getDialogMatchMode() {
-  // return dialogMatchMode;
-  // }
+  public boolean isTransfer();
 
-  public MatchMode getMatchMode() {
-    return matchMode;
-  }
+  public FiducialMatch getFiducialMatch();
 
-  public boolean isTransfer() {
-    return transfer;
-  }
+  public String getUseList();
 
-  public FiducialMatch getFiducialMatch() {
-    return fiducialMatch;
-  }
+  public String getFiducialMatchListA();
 
-  public String getUseList() {
-    return useList.toString();
-  }
+  public String getFiducialMatchListB();
 
-  public String getFiducialMatchListA() {
-    return fiducialMatchListA.toString();
-  }
+  public CombinePatchSize getPatchSize();
 
-  public String getFiducialMatchListB() {
-    return fiducialMatchListB.toString();
-  }
+  public CombinePatchSize getAutoPatchFinalSize();
 
-  public CombinePatchSize getPatchSize() {
-    return patchSize;
-  }
+  public String getExtraResidualTargets();
 
-  public String getPatchRegionModel() {
-    return patchRegionModel;
-  }
+  public String getTempDirectory();
 
-  public String getTempDirectory() {
-    return tempDirectory;
-  }
-
-  public boolean getManualCleanup() {
-    return manualCleanup;
-  }
+  public boolean getManualCleanup();
 
   /**
    * Returns the patchXMax.
    * @return int
    */
-  public int getPatchXMax() {
-    return patchXMax;
-  }
+  public int getPatchXMax();
 
   /**
    * Returns the patchXMin.
    * @return int
    */
-  public int getPatchXMin() {
-    return patchXMin;
-  }
+  public int getPatchXMin();
 
   /**
    * Returns the patchYMax.
    * @return int
    */
-  public int getPatchYMax() {
-    return patchYMax;
-  }
+  public int getPatchYMax();
 
   /**
    * Returns the patchYMin.
    * @return int
    */
-  public int getPatchYMin() {
-    return patchYMin;
-  }
+  public int getPatchYMin();
 
   /**
    * Returns the patchZMax.
    * @return int
    */
-  public ConstEtomoNumber getPatchZMax() {
-    return patchZMax;
-  }
+  public ConstEtomoNumber getPatchZMax();
 
   /**
    * Returns the patchZMin.
    * @return int
    */
-  public ConstEtomoNumber getPatchZMin() {
-    return patchZMin;
-  }
+  public ConstEtomoNumber getPatchZMin();
 
-  public int getMaxPatchZMax() {
-    return maxPatchZMax;
-  }
+  public int getMaxPatchZMax();
 
   /**
    * Returns true if a patch region model has been specified.
    * @return boolean
    */
-  public boolean usePatchRegionModel() {
-
-    return !patchRegionModel.matches("^\\s*$");
-  }
-
-  /**
-   * @return boolean
-   */
-  public boolean isModelBased() {
-    return modelBased;
-  }
+  public boolean usePatchRegionModel();
 }
