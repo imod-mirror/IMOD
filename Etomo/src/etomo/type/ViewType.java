@@ -3,14 +3,11 @@ package etomo.type;
 /**
  * <p>Description: View type definitions</p>
  *
- * <p>Copyright: Copyright (c) 2002</p>
+ * <p>Copyright: Copyright 2002 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * <p>Organization: Boulder Laboratory for 3D Fine Structure,
- * University of Colorado</p>
- *
- * @author $Author$
- *
- * @version $Revision$
+ * @version $Id$
  *
  * <p> $Log$
  * <p> Revision 3.1  2007/12/26 22:20:01  sueh
@@ -30,8 +27,6 @@ package etomo.type;
  * <p> </p>
  */
 public class ViewType implements EnumeratedType {
-  public static final String rcsid = "$Id$";
-
   public static final ViewType SINGLE_VIEW = new ViewType("Single View", "single", 0);
   public static final ViewType MONTAGE = new ViewType("Montage", "montage", 1);
 
@@ -61,6 +56,13 @@ public class ViewType implements EnumeratedType {
 
   public ConstEtomoNumber getValue() {
     return index;
+  }
+
+  public ConstEtomoNumber getValue(final int i) {
+    if (i == 0) {
+      return index;
+    }
+    return null;
   }
 
   public boolean isDefault() {
