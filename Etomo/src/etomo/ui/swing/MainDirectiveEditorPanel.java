@@ -4,25 +4,20 @@ import etomo.DirectiveEditorManager;
 import etomo.process.ProcessState;
 import etomo.storage.DataFileFilter;
 import etomo.type.AxisID;
+import etomo.type.InterfaceType;
 
 /**
 * <p>Description: </p>
 * 
-* <p>Copyright: Copyright 2013</p>
+* <p>Copyright: Copyright 2013 - 2015 by the Regents of the University of Colorado</p>
+* <p/>
+* <p>Organization: Dept. of MCD Biology, University of Colorado</p>
 *
-* <p>Organization:
-* Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
-* University of Colorado</p>
-* 
-* @author $Author$
-* 
-* @version $Revision$
+* @version $Id$
 * 
 * <p> $Log$ </p>
 */
-public final class MainDirectiveEditorPanel extends MainPanel{
-  public static final String rcsid = "$Id:$";
-
+public final class MainDirectiveEditorPanel extends MainPanel {
   private final DirectiveEditorManager manager;
 
   private DirectiveEditorProcessPanel axisPanelA = null;
@@ -36,8 +31,7 @@ public final class MainDirectiveEditorPanel extends MainPanel{
     scrollA.add(axisPanelA.getContainer());
   }
 
-  void addAxisPanelB() {
-  }
+  void addAxisPanelB() {}
 
   boolean isAxisPanelANull() {
     return axisPanelA == null;
@@ -48,11 +42,10 @@ public final class MainDirectiveEditorPanel extends MainPanel{
   }
 
   void createAxisPanelA(AxisID axisID) {
-    axisPanelA = new DirectiveEditorProcessPanel(manager);
+    axisPanelA = new DirectiveEditorProcessPanel(manager, InterfaceType.DIRECTIVE_EDITOR);
   }
 
-  void createAxisPanelB() {
-  }
+  void createAxisPanelB() {}
 
   AxisProcessPanel getAxisPanelA() {
     return axisPanelA;
@@ -85,19 +78,16 @@ public final class MainDirectiveEditorPanel extends MainPanel{
     axisPanelA = null;
   }
 
-  public void saveDisplayState() {
-  }
+  public void saveDisplayState() {}
 
   public void setState(ProcessState processState, AxisID axisID,
-      AbstractParallelDialog parallelDialog) {
-  }
+    AbstractParallelDialog parallelDialog) {}
 
   void showAxisPanelA() {
     axisPanelA.show();
   }
 
-  void showAxisPanelB() {
-  }
+  void showAxisPanelB() {}
 
   public final void setStatusBarText(final String directory, final int maxTitleLength) {
     super.setStatusBarTextToDirectory(directory, maxTitleLength);
