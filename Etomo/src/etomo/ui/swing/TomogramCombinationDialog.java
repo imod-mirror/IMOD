@@ -456,7 +456,7 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
       parallelProcessCheckBoxText = ParallelPanel.FIELD_LABEL;
     }
     // Instantiate the tab pane contents
-    pnlSetup = new SetupCombinePanel(this, applicationManager, dialogType);
+    pnlSetup =  SetupCombinePanel.getInstance(this, applicationManager, dialogType);
     pnlInitial = new InitialCombinePanel(this, applicationManager, dialogType,
         btnAdvanced);
     pnlFinal = new FinalCombinePanel(this, applicationManager, dialogType, btnAdvanced);
