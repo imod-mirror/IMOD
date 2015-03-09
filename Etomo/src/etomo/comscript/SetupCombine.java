@@ -2,20 +2,12 @@
  * <p>
  * Description:
  * </p>
- * 
  * <p>
- * Copyright: Copyright (c) 2002
- * </p>
- * 
- * <p>
- * Organization: Boulder Laboratory for 3D Fine Structure, University of
- * Colorado
- * </p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
- * 
+ * <p>Copyright: Copyright 2002 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
+ *
+ * @version $Id$ 
  * <p>
  * $Log$
  * Revision 3.24  2011/02/21 21:32:38  sueh
@@ -215,6 +207,7 @@ import java.util.ArrayList;
 import etomo.ApplicationManager;
 import etomo.BaseManager;
 import etomo.EtomoDirector;
+import etomo.process.BaseProcessManager;
 import etomo.process.ProcessMessages;
 import etomo.process.SystemProcessException;
 import etomo.process.SystemProgram;
@@ -227,7 +220,7 @@ import etomo.type.MatchMode;
 import etomo.util.DatasetFiles;
 
 public class SetupCombine {
-  public static final String rcsid = "$Id$";
+  private static final String COMMAND = "setupcombine";
 
   private final SystemProgram setupcombine;
 
@@ -244,22 +237,27 @@ public class SetupCombine {
     metaData = manager.getConstMetaData();
     debug = EtomoDirector.INSTANCE.getArguments().isDebug();
 
-    //  Create a new SystemProgram object for setupcombine, set the
-    //  working directory and stdin array.
-    // Do not use the -e flag for tcsh since David's scripts handle the failure 
-    // of commands and then report appropriately.  The exception to this is the
-    // com scripts which require the -e flag.  RJG: 2003-11-06 
+    // Create a new SystemProgram object for setupcombine, set the
+    // working directory and stdin array.
+    // Do not use the -e flag for tcsh since David's scripts handle the failure
+    // of commands and then report appropriately. The exception to this is the
+    // com scripts which require the -e flag. RJG: 2003-11-06
     command.add("python");
     command.add("-u");
-    command.add(ApplicationManager.getIMODBinPath() + "setupcombine");
+    command.add(ApplicationManager.getIMODBinPath() + COMMAND);
     genOptions();
     String[] commandArray = new String[command.size()];
     for (int i = 0; i < commandArray.length; i++) {
       commandArray[i] = (String) command.get(i);
     }
-    setupcombine = new SystemProgram(manager, manager.getPropertyUserDir(), commandArray,
-        AxisID.ONLY);
-    //genStdInputSequence();
+    setupcombine =
+      new SystemProgram(manager, manager.getPropertyUserDir(), commandArray, AxisID.ONLY);
+    // genStdInputSequence();
+  }
+
+  public static String[] getInfoOnPatchSizes() {
+    return BaseProcessManager.getCommandOutput(new String[] { COMMAND,
+      "-InfoOnPatchSizes" }, null, null);
   }
 
   public MatchMode getMatchMode() {
@@ -277,10 +275,10 @@ public class SetupCombine {
     String matchListFrom;
     FiducialMatch fiducialMatch = combineParams.getFiducialMatch();
     CombinePatchSize patchSize = combineParams.getPatchSize();
-    //dataset name
+    // dataset name
     command.add("-name");
     command.add(metaData.getDatasetName());
-    //transfer fid coord file and point list
+    // transfer fid coord file and point list
     if (combineParams.isTransfer()) {
       transfer = true;
       command.add("-transfer");
@@ -291,11 +289,11 @@ public class SetupCombine {
         command.add(combineParams.getUseList());
       }
     }
-    //matching relationship
+    // matching relationship
     if (matchMode == MatchMode.A_TO_B) {
       command.add("-atob");
     }
-    //corresponding lists
+    // corresponding lists
     if (!transfer) {
       if (matchMode == MatchMode.A_TO_B) {
         matchListTo = combineParams.getFiducialMatchListB();
@@ -305,7 +303,7 @@ public class SetupCombine {
         matchListTo = combineParams.getFiducialMatchListA();
         matchListFrom = combineParams.getFiducialMatchListB();
       }
-      //points lists
+      // points lists
       if (!matchListTo.equals("")) {
         command.add("-tolist");
         command.add(matchListTo);
@@ -313,15 +311,20 @@ public class SetupCombine {
         command.add(matchListFrom);
       }
     }
-    //fiducial surfaces / use model
+    // fiducial surfaces / use model
     if (fiducialMatch != null && fiducialMatch != FiducialMatch.NOT_SET) {
       command.add("-surfaces");
       command.add(fiducialMatch.getOption());
     }
-    //patch sizes
+    // patch sizes
     if (patchSize != null) {
       command.add("-patchsize");
-      command.add(patchSize.getOption());
+      if (patchSize != CombinePatchSize.XYZ) {
+        command.add(patchSize.getOption());
+      }
+      else {
+        command.add(combineParams.getPatchSizeXYZ());
+      }
     }
     int min = combineParams.getPatchXMin();
     int max = combineParams.getPatchXMax();
@@ -337,28 +340,26 @@ public class SetupCombine {
     }
     ConstEtomoNumber number = combineParams.getPatchZMin();
     if (number.isNull()) {
-      throw new SystemProcessException(ConstCombineParams.PATCH_Z_MIN_LABEL
-          + " is required.");
+      throw new SystemProcessException(CombineParams.PATCH_Z_MIN_LABEL + " is required.");
     }
     min = combineParams.getPatchZMin().getInt();
     number = combineParams.getPatchZMax();
     if (number.isNull()) {
-      throw new SystemProcessException(ConstCombineParams.PATCH_Z_MAX_LABEL
-          + " is required.");
+      throw new SystemProcessException(CombineParams.PATCH_Z_MAX_LABEL + " is required.");
     }
     max = combineParams.getPatchZMax().getInt();
     if (min != 0 || max != 0) {
       command.add("-zlimits");
       command.add(String.valueOf(min) + "," + String.valueOf(max));
     }
-    //patch region model
+    // patch region model
     if (combineParams.usePatchRegionModel()) {
       command.add("-regionmod");
-      command.add(combineParams.patchRegionModel);
+      command.add(combineParams.getPatchRegionModel());
     }
-    if (!combineParams.tempDirectory.equals("")) {
+    if (combineParams.isTempDirectorySet()) {
       command.add("-tempdir");
-      command.add(combineParams.tempDirectory);
+      command.add(combineParams.getTempDirectory());
       if (combineParams.getManualCleanup()) {
         command.add("-noclean");
       }
@@ -373,19 +374,19 @@ public class SetupCombine {
 
     CombineParams combineParams = metaData.getCombineParams();
     matchMode = combineParams.getMatchMode();
-    //writing the script, so set the script match mode to be the same as the
-    //screen match mode
+    // writing the script, so set the script match mode to be the same as the
+    // screen match mode
     combineParams.setMatchMode(matchMode);
 
     String[] tempStdInput = new String[15];
 
-    //  compile the input sequence to setupcombine
+    // compile the input sequence to setupcombine
     int lineCount = 0;
 
-    //  Dataset name
+    // Dataset name
     tempStdInput[lineCount++] = metaData.getDatasetName();
 
-    //  Matching relationship
+    // Matching relationship
     if (matchMode == null || matchMode == MatchMode.B_TO_A) {
       tempStdInput[lineCount++] = "a";
       if (combineParams.getFiducialMatchListA() != "") {
@@ -407,7 +408,7 @@ public class SetupCombine {
       }
     }
 
-    //  Fiducial surfaces / use model
+    // Fiducial surfaces / use model
     if (combineParams.getFiducialMatch() == FiducialMatch.BOTH_SIDES) {
       tempStdInput[lineCount++] = "2";
     }
@@ -427,7 +428,7 @@ public class SetupCombine {
       tempStdInput[lineCount++] = "-2";
     }
 
-    //  Patch sizes
+    // Patch sizes
     if (combineParams.getPatchSize() == CombinePatchSize.LARGE) {
       tempStdInput[lineCount++] = "l";
     }
@@ -447,10 +448,10 @@ public class SetupCombine {
     tempStdInput[lineCount++] = String.valueOf(combineParams.getPatchZMin());
     tempStdInput[lineCount++] = String.valueOf(combineParams.getPatchZMax());
 
-    tempStdInput[lineCount++] = combineParams.patchRegionModel;
+    tempStdInput[lineCount++] = combineParams.getPatchRegionModel();
 
-    tempStdInput[lineCount++] = combineParams.tempDirectory;
-    if (!combineParams.tempDirectory.equals("")) {
+    tempStdInput[lineCount++] = combineParams.getTempDirectory();
+    if (combineParams.isTempDirectorySet()) {
       if (combineParams.getManualCleanup()) {
         tempStdInput[lineCount++] = "y";
       }
@@ -460,8 +461,8 @@ public class SetupCombine {
     }
 
     //
-    //  Copy the temporary stdInput to the real stdInput to get the number
-    //  of array elements correct
+    // Copy the temporary stdInput to the real stdInput to get the number
+    // of array elements correct
     String[] stdInput = new String[lineCount];
     for (int i = 0; i < lineCount; i++) {
       stdInput[i] = tempStdInput[i];
@@ -472,7 +473,7 @@ public class SetupCombine {
 
   public int run() throws IOException {
     int exitValue;
-    //  Execute the script
+    // Execute the script
     setupcombine.run();
     exitValue = setupcombine.getExitValue();
     return exitValue;
