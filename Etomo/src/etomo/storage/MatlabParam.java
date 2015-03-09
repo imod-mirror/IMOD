@@ -41,7 +41,7 @@ import etomo.util.DatasetFiles;
  * szVol = [, , ]
  * outsideMaskRadius =
  * </p>
- * <p>Copyright: Copyright 2006 - 2014 by the Regents of the University of Colorado</p>
+ * <p>Copyright: Copyright 2006 - 2015 by the Regents of the University of Colorado</p>
  * <p/>
  * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  * @version $Id$
@@ -2146,6 +2146,13 @@ public final class MatlabParam {
       }
       return value;
     }
+
+    public ConstEtomoNumber getValue(final int index) {
+      if (index == 0) {
+        return getValue();
+      }
+      return null;
+    }
   }
 
   public static final class MaskType implements EnumeratedType {
@@ -2166,6 +2173,10 @@ public final class MatlabParam {
     }
 
     public ConstEtomoNumber getValue() {
+      return null;
+    }
+
+    public ConstEtomoNumber getValue(final int index) {
       return null;
     }
 
@@ -2226,6 +2237,10 @@ public final class MatlabParam {
     }
 
     public ConstEtomoNumber getValue() {
+      return null;
+    }
+
+    public ConstEtomoNumber getValue(final int index) {
       return null;
     }
 
@@ -2298,6 +2313,10 @@ public final class MatlabParam {
     }
 
     public ConstEtomoNumber getValue() {
+      return null;
+    }
+
+    public ConstEtomoNumber getValue(final int index) {
       return null;
     }
 
