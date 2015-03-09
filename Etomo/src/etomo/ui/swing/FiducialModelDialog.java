@@ -46,14 +46,11 @@ import etomo.comscript.TransferfidParam;
 /**
  * <p>Description: The dialog box for creating the fiducial model(s).</p>
  *
- * <p>Copyright: Copyright (c) 2002</p>
+ * <p>Copyright: Copyright 2002 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * <p>Organization: Boulder Laboratory for 3D Fine Structure,
- * University of Colorado</p>
- *
- * @author $Author$
- *
- * @version $Revision$
+ * @version $Id$
  *
  * <p> $Log$
  * <p> Revision 1.4  2011/06/24 17:02:45  sueh
@@ -379,28 +376,27 @@ import etomo.comscript.TransferfidParam;
  * <p> </p>
  */
 public final class FiducialModelDialog extends ProcessDialog implements ContextMenu,
-    Run3dmodButtonContainer, Expandable {
-  public static final String rcsid = "$Id$";
-
+  Run3dmodButtonContainer, Expandable {
   static final String SEEDING_NOT_DONE_LABEL = "Seed Fiducial Model";
   private static final String SEEDING_DONE_LABEL = "View Seed Model";
   private static final DialogType DIALOG_TYPE = DialogType.FIDUCIAL_MODEL;
   static final String AUTOFIDSEED_NEW_MODEL_LABEL = "Generate Seed Model";
   private static final String AUTOFIDSEED_APPEND_LABEL = "Add Points to Seed Model";
-  private static final String AUTOFIDSEED_NEW_MODEL_TITLE = "Generate seed model automatically";
-  private static final String AUTOFIDSEED_APPEND_TITLE = "Add points to seed model automatically";
+  private static final String AUTOFIDSEED_NEW_MODEL_TITLE =
+    "Generate seed model automatically";
+  private static final String AUTOFIDSEED_APPEND_TITLE =
+    "Add points to seed model automatically";
 
   private final JPanel pnlMain = new JPanel();
-  private final FiducialModelActionListener actionListener = new FiducialModelActionListener(
-      this);
+  private final FiducialModelActionListener actionListener =
+    new FiducialModelActionListener(this);
   private final ButtonGroup bgMethod = new ButtonGroup();
   private final RadioButton rbMethodSeed = new RadioButton("Make seed and track",
-      TrackingMethod.SEED, bgMethod);
+    TrackingMethod.SEED, bgMethod);
   private final RadioButton rbMethodPatchTracking = new RadioButton(
-      "Use patch tracking to make fiducial model", TrackingMethod.PATCH_TRACKING,
-      bgMethod);
+    "Use patch tracking to make fiducial model", TrackingMethod.PATCH_TRACKING, bgMethod);
   private final RadioButton rbMethodRaptor = new RadioButton("Run RAPTOR and fix",
-      TrackingMethod.RAPTOR, bgMethod);
+    TrackingMethod.RAPTOR, bgMethod);
   private final JPanel[] pnlMethodArray = new JPanel[TrackingMethod.NUM];
   private TabbedPane tpSeedAndTrack = new TabbedPane();
   private final JPanel[] pnlSeedAndTrackArray = new JPanel[SeedAndTrackTab.NUM_TABS];
@@ -410,55 +406,56 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
   private final JPanel[] pnlRunRaptorBodyArray = new JPanel[RunRaptorTab.NUM_TABS];
   private final ButtonGroup bgSeedModel = new ButtonGroup();
   private final RadioButton rbSeedModelManual = new RadioButton(
-      "Make seed model manually", SeedModelEnumeratedType.MANUAL, bgSeedModel);
+    "Make seed model manually", SeedModelEnumeratedType.MANUAL, bgSeedModel);
   private final RadioButton rbSeedModelAuto = new RadioButton(
-      AUTOFIDSEED_NEW_MODEL_TITLE, SeedModelEnumeratedType.AUTO, bgSeedModel);
+    AUTOFIDSEED_NEW_MODEL_TITLE, SeedModelEnumeratedType.AUTO, bgSeedModel);
   private final RadioButton rbSeedModelTransfer = new RadioButton(
-      "Transfer seed model from the other axis", SeedModelEnumeratedType.TRANSFER,
-      bgSeedModel);
+    "Transfer seed model from the other axis", SeedModelEnumeratedType.TRANSFER,
+    bgSeedModel);
   private final JPanel[] pnlSeedModelArray = new JPanel[SeedModelEnumeratedType.NUM];
   private final JPanel pnlAutoSeedModel = new JPanel();
   private final JPanel pnlAutofidseed = new JPanel();
   private final CheckBox cbBoundaryModel = new CheckBox("Use boundary model");
   private final Run3dmodButton btnBoundaryModel = Run3dmodButton.get3dmodInstance(
-      "Create/Edit Boundary Model", this);
+    "Create/Edit Boundary Model", this);
   private final CheckBox cbExcludeInsideAreas = new CheckBox(
-      "Exclude inside boundary contours");
+    "Exclude inside boundary contours");
   private final LabeledTextField ltfBordersInXandY = new LabeledTextField(
-      FieldType.INTEGER_PAIR, "Borders in X & Y: ");
+    FieldType.INTEGER_PAIR, "Borders in X & Y: ");
   private final LabeledTextField ltfMinGuessNumBeads = new LabeledTextField(
-      FieldType.INTEGER, "Estimated number of beads in sample: ");
+    FieldType.INTEGER, "Estimated number of beads in sample: ");
   private final LabeledTextField ltfMinSpacing = new LabeledTextField(
-      FieldType.FLOATING_POINT, "Minimum spacing: ");
+    FieldType.FLOATING_POINT, "Minimum spacing: ");
   private final LabeledTextField ltfPeakStorageFraction = new LabeledTextField(
-      FieldType.FLOATING_POINT, "Fraction of peaks to store: ");
+    FieldType.FLOATING_POINT, "Fraction of peaks to store: ");
   private final ButtonGroup bgTarget = new ButtonGroup();
   private final RadioTextField rtfTargetNumberOfBeads = RadioTextField.getInstance(
-      FieldType.INTEGER, "Total number:", bgTarget);
+    FieldType.INTEGER, "Total number:", bgTarget);
   private final RadioTextField rtfTargetDensityOfBeads = RadioTextField.getInstance(
-      FieldType.FLOATING_POINT, "Density (per megapixel):", bgTarget);
+    FieldType.FLOATING_POINT, "Density (per megapixel):", bgTarget);
   private final CheckBox cbTwoSurfaces = new CheckBox("Select beads on two surfaces");
-  private final CheckBox cbAppendToSeedModel = new CheckBox("Add beads to existing model");
+  private final CheckBox cbAppendToSeedModel =
+    new CheckBox("Add beads to existing model");
   private final LabeledTextField ltfIgnoreSurfaceData = new LabeledTextField(
-      FieldType.INTEGER_LIST, "Ignore sorting in tracked models: ");
+    FieldType.INTEGER_LIST, "Ignore sorting in tracked models: ");
   private final LabeledTextField ltfDropTracks = new LabeledTextField(
-      FieldType.INTEGER_LIST, "Drop tracked models: ");
+    FieldType.INTEGER_LIST, "Drop tracked models: ");
   private final LabeledTextField ltfMaxMajorToMinorRatio = new LabeledTextField(
-      FieldType.FLOATING_POINT, "Maximum ratio between surfaces: ");
+    FieldType.FLOATING_POINT, "Maximum ratio between surfaces: ");
   private final CheckBox cbClusteredPointsAllowedClustered = new CheckBox(
-      "Allow clustered beads");
+    "Allow clustered beads");
   private final CheckBoxSpinner cbsElongatedPointsAllowed = CheckBoxSpinner.getInstance(
-      "Allow elongated beads of severity: ", 1, 1, 3);
+    "Allow elongated beads of severity: ", 1, 1, 3);
   private final Run3dmodButton btn3dmodAutofidseed = Run3dmodButton.get3dmodInstance(
-      "Open Seed Model", this);
+    "Open Seed Model", this);
   private final Run3dmodButton btn3dmodInitialBeadFinding = Run3dmodButton
-      .get3dmodInstance("Open Initial Bead Model", this);
+    .get3dmodInstance("Open Initial Bead Model", this);
   private final Run3dmodButton btn3dmodBeadSelectionAndSorting = Run3dmodButton
-      .get3dmodInstance("Open Sorted 3D Models", this);
+    .get3dmodInstance("Open Sorted 3D Models", this);
   private final Run3dmodButton btn3dmodClusteredElongatedModel = Run3dmodButton
-      .get3dmodInstance("Open Clustered / Elongated Model", this);
+    .get3dmodInstance("Open Clustered / Elongated Model", this);
   private final MultiLineButton btnCleanup = new MultiLineButton(
-      "Clean Up Temporary Files");
+    "Clean Up Temporary Files");
   private final CheckBox cbAdjustSizes = new CheckBox("Find and adjust bead size");
 
   private final Run3dmodButton btnSeed;
@@ -476,7 +473,7 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
   private RunRaptorTab curRunRaptorTab = null;
 
   private FiducialModelDialog(final ApplicationManager appMgr, final AxisID axisID,
-      final AxisType axisType) {
+    final AxisType axisType) {
     super(appMgr, axisID, DIALOG_TYPE);
     this.axisType = axisType;
     ProcessResultDisplayFactory factory = appMgr.getProcessResultDisplayFactory(axisID);
@@ -489,11 +486,11 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
       raptorPanel = null;
     }
     pnlBeadtrack = BeadtrackPanel.getInstance(appMgr, axisID, dialogType, btnAdvanced);
-    tiltxcorrPanel = TiltxcorrPanel.getPatchTrackingInstance(appMgr, axisID, DIALOG_TYPE,
-        btnAdvanced);
+    tiltxcorrPanel =
+      TiltxcorrPanel.getPatchTrackingInstance(appMgr, axisID, DIALOG_TYPE, btnAdvanced);
     if (applicationManager.isDualAxis()) {
-      pnlTransferfid = TransferfidPanel.getInstance(applicationManager, axisID,
-          dialogType, btnAdvanced);
+      pnlTransferfid =
+        TransferfidPanel.getInstance(applicationManager, axisID, dialogType, btnAdvanced);
     }
     else {
       pnlTransferfid = null;
@@ -501,7 +498,7 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
   }
 
   public static FiducialModelDialog getInstance(final ApplicationManager appMgr,
-      final AxisID axisID, final AxisType axisType) {
+    final AxisID axisID, final AxisType axisType) {
     FiducialModelDialog instance = new FiducialModelDialog(appMgr, axisID, axisType);
     instance.createPanel();
     instance.setToolTipText();
@@ -585,10 +582,10 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
     for (i = 0; i < SeedAndTrackTab.NUM_TABS; i++) {
       pnlSeedAndTrackArray[i] = new JPanel();
       tpSeedAndTrack
-          .addTab(SeedAndTrackTab.getInstance(i).title, pnlSeedAndTrackArray[i]);
+        .addTab(SeedAndTrackTab.getInstance(i).title, pnlSeedAndTrackArray[i]);
       pnlSeedAndTrackBodyArray[i] = new JPanel();
       pnlSeedAndTrackBodyArray[i].setLayout(new BoxLayout(pnlSeedAndTrackBodyArray[i],
-          BoxLayout.Y_AXIS));
+        BoxLayout.Y_AXIS));
     }
     i = SeedAndTrackTab.SEED.index;
     pnlSeedAndTrackBodyArray[i].add(pnlSeedModelX);
@@ -646,9 +643,9 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
     pnlAutofidseedParam.add(pnlBeadSearchingAndSorting);
     // Initial bead finding
     pnlInitialBeadFinding
-        .setLayout(new BoxLayout(pnlInitialBeadFinding, BoxLayout.Y_AXIS));
+      .setLayout(new BoxLayout(pnlInitialBeadFinding, BoxLayout.Y_AXIS));
     pnlInitialBeadFinding.setBorder(new EtchedBorder("Initial Bead Finding Parameters")
-        .getBorder());
+      .getBorder());
     pnlInitialBeadFinding.setAlignmentY(Box.TOP_ALIGNMENT);
     pnlInitialBeadFinding.add(pnlBoundaryModel);
     pnlInitialBeadFinding.add(pnlExcludeInsideAreas);
@@ -665,7 +662,7 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
     pnlBoundaryModel.add(btnBoundaryModel.getComponent());
     // ExcludeInsideAreas
     pnlExcludeInsideAreas
-        .setLayout(new BoxLayout(pnlExcludeInsideAreas, BoxLayout.X_AXIS));
+      .setLayout(new BoxLayout(pnlExcludeInsideAreas, BoxLayout.X_AXIS));
     pnlExcludeInsideAreas.add(cbExcludeInsideAreas);
     pnlExcludeInsideAreas.add(Box.createHorizontalGlue());
     // AdjustSizes
@@ -674,15 +671,15 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
     pnlAdjustSizes.add(Box.createHorizontalGlue());
     // 3dmodInitialBeadFinding
     pnl3dmodInitialBeadFinding.setLayout(new BoxLayout(pnl3dmodInitialBeadFinding,
-        BoxLayout.X_AXIS));
+      BoxLayout.X_AXIS));
     pnl3dmodInitialBeadFinding.add(Box.createHorizontalGlue());
     pnl3dmodInitialBeadFinding.add(btn3dmodInitialBeadFinding.getComponent());
     pnl3dmodInitialBeadFinding.add(Box.createHorizontalGlue());
     // Bead sorting and searching
     pnlBeadSearchingAndSorting.setLayout(new BoxLayout(pnlBeadSearchingAndSorting,
-        BoxLayout.Y_AXIS));
+      BoxLayout.Y_AXIS));
     pnlBeadSearchingAndSorting.setBorder(new EtchedBorder(
-        "Selection and Sorting Parameters").getBorder());
+      "Selection and Sorting Parameters").getBorder());
     pnlBeadSearchingAndSorting.setAlignmentY(Box.TOP_ALIGNMENT);
     pnlBeadSearchingAndSorting.add(pnlTarget);
     pnlBeadSearchingAndSorting.add(pnlTwoSurfaces);
@@ -711,18 +708,18 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
     pnlAppendToSeedModel.add(Box.createHorizontalGlue());
     // ClusteredPointsAllowed1
     pnlClusteredPointsAllowed1.setLayout(new BoxLayout(pnlClusteredPointsAllowed1,
-        BoxLayout.X_AXIS));
+      BoxLayout.X_AXIS));
     pnlClusteredPointsAllowed1.add(cbClusteredPointsAllowedClustered);
     pnlClusteredPointsAllowed1.add(Box.createHorizontalGlue());
     // 3dmodBeadSortingAndSearching
     pnl3dmodBeadSortingAndSearching.setLayout(new BoxLayout(
-        pnl3dmodBeadSortingAndSearching, BoxLayout.X_AXIS));
+      pnl3dmodBeadSortingAndSearching, BoxLayout.X_AXIS));
     pnl3dmodBeadSortingAndSearching.add(Box.createHorizontalGlue());
     pnl3dmodBeadSortingAndSearching.add(btn3dmodBeadSelectionAndSorting.getComponent());
     pnl3dmodBeadSortingAndSearching.add(Box.createHorizontalGlue());
     // 3dmodClusteredElongatedModel
     pnl3dmodClusteredElongatedModel.setLayout(new BoxLayout(
-        pnl3dmodClusteredElongatedModel, BoxLayout.X_AXIS));
+      pnl3dmodClusteredElongatedModel, BoxLayout.X_AXIS));
     pnl3dmodClusteredElongatedModel.add(Box.createHorizontalGlue());
     pnl3dmodClusteredElongatedModel.add(btn3dmodClusteredElongatedModel.getComponent());
     pnl3dmodClusteredElongatedModel.add(Box.createHorizontalGlue());
@@ -751,8 +748,9 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
     if (curMethodIndex != -1) {
       pnlMain.remove(pnlMethodArray[curMethodIndex]);
     }
-    curMethodIndex = ((RadioButton.RadioButtonModel) bgMethod.getSelection())
-        .getEnumeratedType().getValue().getInt();
+    curMethodIndex =
+      ((RadioButton.RadioButtonModel) bgMethod.getSelection()).getEnumeratedType()
+        .getValue().getInt();
     pnlMain.add(pnlMethodArray[curMethodIndex]);
     // Refresh the tabs if necessary
     if (curMethodIndex == TrackingMethod.SEED.getValue().getInt()) {
@@ -774,18 +772,18 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
     int newIndex = tpSeedAndTrack.getSelectedIndex();
     // Change the tab body panel
     if ((curSeedAndTrackTab == null && newIndex != -1)
-        || !curSeedAndTrackTab.equals(newIndex)) {
+      || !curSeedAndTrackTab.equals(newIndex)) {
       // If the tab has changed:
       // Remove the body from previous tab so that the size of the tabbed pane won't
       // reflect it.
       if (curSeedAndTrackTab != null) {
         pnlSeedAndTrackArray[curSeedAndTrackTab.index]
-            .remove(pnlSeedAndTrackBodyArray[curSeedAndTrackTab.index]);
+          .remove(pnlSeedAndTrackBodyArray[curSeedAndTrackTab.index]);
       }
       // Update the current tab and add the body to the tabbed pane
       curSeedAndTrackTab = SeedAndTrackTab.getInstance(newIndex);
       pnlSeedAndTrackArray[curSeedAndTrackTab.index]
-          .add(pnlSeedAndTrackBodyArray[curSeedAndTrackTab.index]);
+        .add(pnlSeedAndTrackBodyArray[curSeedAndTrackTab.index]);
     }
     // Replace shared panels
     if (curSeedAndTrackTab == SeedAndTrackTab.TRACK) {
@@ -794,7 +792,7 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
     }
     // Refresh the auto seed panel if necessary
     if (curSeedAndTrackTab == SeedAndTrackTab.SEED
-        && curSeedModelIndex == SeedModelEnumeratedType.AUTO.value.getInt()) {
+      && curSeedModelIndex == SeedModelEnumeratedType.AUTO.value.getInt()) {
       updateSeedModel();
     }
     else {
@@ -815,11 +813,11 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
       // reflect it.
       if (curRunRaptorTab != null) {
         pnlRunRaptorArray[curRunRaptorTab.index]
-            .remove(pnlRunRaptorBodyArray[curRunRaptorTab.index]);
+          .remove(pnlRunRaptorBodyArray[curRunRaptorTab.index]);
       }
       curRunRaptorTab = RunRaptorTab.getInstance(newIndex);
       pnlRunRaptorArray[curRunRaptorTab.index]
-          .add(pnlRunRaptorBodyArray[curRunRaptorTab.index]);
+        .add(pnlRunRaptorBodyArray[curRunRaptorTab.index]);
     }
     // Replace shared panels
     if (curRunRaptorTab == RunRaptorTab.TRACK) {
@@ -834,22 +832,23 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
    * currently selected radio button in the seed tab's body panel.
    */
   private void updateSeedModel() {
-    int newIndex = ((RadioButton.RadioButtonModel) bgSeedModel.getSelection())
-        .getEnumeratedType().getValue().getInt();
+    int newIndex =
+      ((RadioButton.RadioButtonModel) bgSeedModel.getSelection()).getEnumeratedType()
+        .getValue().getInt();
     // Change the panel
     if ((curSeedModelIndex == -1 && newIndex != -1) || curSeedModelIndex != newIndex) {
       // If a different radio button has been selected:
       if (curSeedModelIndex != -1) {
         pnlSeedAndTrackBodyArray[SeedAndTrackTab.SEED.index]
-            .remove(pnlSeedModelArray[curSeedModelIndex]);
+          .remove(pnlSeedModelArray[curSeedModelIndex]);
       }
       curSeedModelIndex = newIndex;
       pnlSeedAndTrackBodyArray[SeedAndTrackTab.SEED.index]
-          .add(pnlSeedModelArray[curSeedModelIndex]);
+        .add(pnlSeedModelArray[curSeedModelIndex]);
     }
     // Replace shared panels
     if (curSeedAndTrackTab == SeedAndTrackTab.SEED
-        && curSeedModelIndex == SeedModelEnumeratedType.AUTO.value.getInt()) {
+      && curSeedModelIndex == SeedModelEnumeratedType.AUTO.value.getInt()) {
       pnlAutoSeedModel.remove(pnlAutofidseed);
       pnlAutoSeedModel.add(pnlBeadtrack.getContainer());
       pnlAutoSeedModel.add(pnlAutofidseed);
@@ -920,8 +919,7 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
     updateAdvanced(button.isExpanded());
   }
 
-  public void expand(final ExpandButton button) {
-  }
+  public void expand(final ExpandButton button) {}
 
   /**
    * Set the advanced state for the dialog box
@@ -965,13 +963,13 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
       rbSeedModelTransfer.setEnabled(true);
     }
     btn3dmodInitialBeadFinding.setEnabled(AutofidseedInitFileFilter.exists(
-        applicationManager, axisID));
-    boolean modelsExist = AutofidseedSelectionAndSorting.exists(applicationManager,
-        axisID);
+      applicationManager, axisID));
+    boolean modelsExist =
+      AutofidseedSelectionAndSorting.exists(applicationManager, axisID);
     btn3dmodBeadSelectionAndSorting.setEnabled(modelsExist);
     ltfIgnoreSurfaceData.setEnabled(modelsExist);
-    boolean exists = FileType.CLUSTERED_ELONGATED_MODEL
-        .exists(applicationManager, axisID);
+    boolean exists =
+      FileType.CLUSTERED_ELONGATED_MODEL.exists(applicationManager, axisID);
     btn3dmodClusteredElongatedModel.setEnabled(exists);
   }
 
@@ -1018,7 +1016,7 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
       raptorPanel.getParameters(metaData);
     }
     metaData.setTrackMethod(axisID, ((RadioButton.RadioButtonModel) bgMethod
-        .getSelection()).getEnumeratedType().toString());
+      .getSelection()).getEnumeratedType().toString());
     tiltxcorrPanel.getParameters(metaData);
     metaData.setTrackSeedModelManual(rbSeedModelManual.isSelected(), axisID);
     metaData.setTrackSeedModelAuto(rbSeedModelAuto.isSelected(), axisID);
@@ -1061,15 +1059,15 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
     rtfTargetDensityOfBeads.setText(metaData.getTrackTargetDensityOfBeads(axisID));
     // backwards compatibility
     cbsElongatedPointsAllowed.setSelected(metaData
-        .isTrackClusteredPointsAllowedElongated(axisID));
+      .isTrackClusteredPointsAllowedElongated(axisID));
     cbsElongatedPointsAllowed.setValue(metaData
-        .getTrackClusteredPointsAllowedElongatedValue(axisID));
+      .getTrackClusteredPointsAllowedElongatedValue(axisID));
     if (!metaData.isTrackElongatedPointsAllowedNull(axisID)) {
       cbsElongatedPointsAllowed.setValue(metaData.getTrackElongatedPointsAllowed(axisID));
     }
     btnAdvanced.changeState(metaData.isTrackAdvanced(axisID));
-    SeedAndTrackTab seedAndTrackTab = SeedAndTrackTab.getInstance(metaData
-        .getSeedAndTrackTab(axisID));
+    SeedAndTrackTab seedAndTrackTab =
+      SeedAndTrackTab.getInstance(metaData.getSeedAndTrackTab(axisID));
     if (seedAndTrackTab != null) {
       tpSeedAndTrack.setSelectedIndex(seedAndTrackTab.index);
       changeSeedAndTrackTab();
@@ -1136,14 +1134,14 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
   }
 
   public boolean getParameters(final AutofidseedParam param, final boolean doValidation)
-      throws FortranInputSyntaxException {
+    throws FortranInputSyntaxException {
     try {
       param.setMinGuessNumBeads(ltfMinGuessNumBeads.getText(doValidation));
       param.setMinSpacing(ltfMinSpacing.getText(doValidation));
       param.setPeakStorageFraction(ltfPeakStorageFraction.getText(doValidation));
       param.setBoundaryModel(cbBoundaryModel.isSelected());
       param.setExcludeInsideAreas(cbExcludeInsideAreas.isEnabled()
-          && cbExcludeInsideAreas.isSelected());
+        && cbExcludeInsideAreas.isSelected());
       param.setAdjustSizes(cbAdjustSizes.isSelected());
       param.setBordersInXandY(ltfBordersInXandY.getText(doValidation));
       param.setTwoSurfaces(cbTwoSurfaces.isSelected());
@@ -1192,7 +1190,7 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
   }
 
   public boolean getTransferFidParams(final TransferfidParam transferFidParam,
-      final boolean doValidation) {
+    final boolean doValidation) {
     if (pnlTransferfid != null) {
       return pnlTransferfid.getParameters(transferFidParam, doValidation);
     }
@@ -1209,18 +1207,22 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
   public void popUpContextMenu(final MouseEvent mouseEvent) {
     String[] manPagelabel;
     String[] manPage;
-    boolean autofidseed = curMethodIndex == TrackingMethod.SEED.getValue().getInt()
+    boolean autofidseed =
+      curMethodIndex == TrackingMethod.SEED.getValue().getInt()
         && curSeedAndTrackTab == SeedAndTrackTab.SEED
         && curSeedModelIndex == SeedModelEnumeratedType.AUTO.value.getInt();
     if (autofidseed) {
-      manPagelabel = new String[] { "Autofidseed", "Imodfindbeads", "Beadtrack",
-          "Sortbeadsurfs", "Pickbestseed" };
-      manPage = new String[] { "autofidseed.html", "imodfindbeads.html",
-          "beadtrack.html", "sortbeadsurfs.html", "pickbestseed.html" };
+      manPagelabel =
+        new String[] { "Autofidseed", "Imodfindbeads", "Beadtrack", "Sortbeadsurfs",
+          "Pickbestseed" };
+      manPage =
+        new String[] { "autofidseed.html", "imodfindbeads.html", "beadtrack.html",
+          "sortbeadsurfs.html", "pickbestseed.html" };
     }
     else {
       manPagelabel = new String[] { "Autofidseed", "Beadtrack", "Transferfid", "3dmod" };
-      manPage = new String[] { "autofidseed.html", "beadtrack.html", "transferfid.html",
+      manPage =
+        new String[] { "autofidseed.html", "beadtrack.html", "transferfid.html",
           "3dmod.html" };
     }
 
@@ -1238,7 +1240,7 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
       anchor = "GETTING FIDUCIAL";
     }
     new ContextPopup(rootPanel, mouseEvent, anchor, ContextPopup.TOMO_GUIDE,
-        manPagelabel, manPage, logFileLabel, logFile, applicationManager, axisID);
+      manPagelabel, manPage, logFileLabel, logFile, applicationManager, axisID);
   }
 
   /**
@@ -1246,43 +1248,44 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
    */
   private void setToolTipText() {
     rbMethodSeed
-        .setToolTipText("Create a seed model and use beadtracker to generate the "
-            + "fiducial model.");
+      .setToolTipText("Create a seed model and use beadtracker to generate the "
+        + "fiducial model.");
     rbMethodPatchTracking
-        .setToolTipText("Create the fiducial model with patch tracking.");
+      .setToolTipText("Create the fiducial model with patch tracking.");
     rbMethodRaptor.setToolTipText("Use RAPTOR to create the fiducial model.");
     btnSeed.setToolTipText("Open new or existing seed model in 3dmod.");
     rbSeedModelManual
-        .setToolTipText("Open 3dmod to create a seed model by selecting fiducials "
-            + "manually.");
+      .setToolTipText("Open 3dmod to create a seed model by selecting fiducials "
+        + "manually.");
     rbSeedModelAuto
-        .setToolTipText("Use Autofidseed to select a fiducial seed model automatically.");
+      .setToolTipText("Use Autofidseed to select a fiducial seed model automatically.");
     rbSeedModelTransfer
-        .setToolTipText("Create a seed mode by transferring the fiducial selection from "
-            + "the other axis.");
+      .setToolTipText("Create a seed mode by transferring the fiducial selection from "
+        + "the other axis.");
     btn3dmodAutofidseed
-        .setToolTipText("Open the model of seed points selected by Autofidseed.");
+      .setToolTipText("Open the model of seed points selected by Autofidseed.");
     btn3dmodInitialBeadFinding
-        .setToolTipText("Open model of beads found by Imodfindbeads on all of the views "
-            + "analyzed.");
+      .setToolTipText("Open model of beads found by Imodfindbeads on all of the views "
+        + "analyzed.");
     btn3dmodBeadSelectionAndSorting
-        .setToolTipText("Open 3D models of beads sorted onto two surfaces in the "
-            + "different Beadtrack runs.");
+      .setToolTipText("Open 3D models of beads sorted onto two surfaces in the "
+        + "different Beadtrack runs.");
     btnCleanup.setToolTipText("Delete the temporary directory.");
     btnAutofidseed
-        .setToolTipText("Run Autofidseed to find beads, track them through 11 views, and "
-            + "select a seed model.");
+      .setToolTipText("Run Autofidseed to find beads, track them through 11 views, and "
+        + "select a seed model.");
     cbsElongatedPointsAllowed
-        .setSpinnerToolTipText("Select 1, 2, or 3 to include beads identified as "
-            + "elongated in up to 1/3, up to 2/3, or all of the Beadtrack runs, "
-            + "respectively");
+      .setSpinnerToolTipText("Select 1, 2, or 3 to include beads identified as "
+        + "elongated in up to 1/3, up to 2/3, or all of the Beadtrack runs, "
+        + "respectively");
     btn3dmodClusteredElongatedModel
-        .setToolTipText("Open a model with all beads that are candidates for selection, "
-            + "color-coded by whether they are clustered or elongated");
+      .setToolTipText("Open a model with all beads that are candidates for selection, "
+        + "color-coded by whether they are clustered or elongated");
     ReadOnlyAutodoc autodoc = null;
     try {
-      autodoc = AutodocFactory.getInstance(applicationManager,
-          AutodocFactory.AUTOFIDSEED, axisID, false);
+      autodoc =
+        AutodocFactory.getInstance(applicationManager, AutodocFactory.AUTOFIDSEED,
+          axisID, false);
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();
@@ -1293,72 +1296,71 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
     catch (LogFile.LockException e) {
       e.printStackTrace();
     }
-    String tooltip = EtomoAutodoc
-        .getTooltip(autodoc, AutofidseedParam.BOUNDARY_MODEL_KEY);
+    String tooltip =
+      EtomoAutodoc.getTooltip(autodoc, AutofidseedParam.BOUNDARY_MODEL_KEY);
     cbBoundaryModel.setToolTipText(tooltip);
     btnBoundaryModel
-        .setToolTipText("Open 3dmod to create or edit a model with contours around areas "
-            + "to include or exclude");
+      .setToolTipText("Open 3dmod to create or edit a model with contours around areas "
+        + "to include or exclude");
     cbExcludeInsideAreas.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-        AutofidseedParam.EXCLUDE_INSIDE_AREAS_KEY));
+      AutofidseedParam.EXCLUDE_INSIDE_AREAS_KEY));
     cbAdjustSizes.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-        AutofidseedParam.ADJUST_SIZES_KEY));
+      AutofidseedParam.ADJUST_SIZES_KEY));
     ltfBordersInXandY.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-        AutofidseedParam.BORDERS_IN_X_AND_Y_KEY));
+      AutofidseedParam.BORDERS_IN_X_AND_Y_KEY));
     ltfMinGuessNumBeads.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-        AutofidseedParam.MIN_GUESS_NUM_BEADS_KEY));
+      AutofidseedParam.MIN_GUESS_NUM_BEADS_KEY));
     ltfMinSpacing.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-        AutofidseedParam.MIN_SPACING_KEY));
+      AutofidseedParam.MIN_SPACING_KEY));
     ltfPeakStorageFraction.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-        AutofidseedParam.PEAK_STORAGE_FRACTION_KEY));
+      AutofidseedParam.PEAK_STORAGE_FRACTION_KEY));
     rtfTargetNumberOfBeads.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-        AutofidseedParam.TARGET_NUMBER_OF_BEADS_KEY));
+      AutofidseedParam.TARGET_NUMBER_OF_BEADS_KEY));
     rtfTargetDensityOfBeads.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-        AutofidseedParam.TARGET_DENSITY_OF_BEADS_KEY));
+      AutofidseedParam.TARGET_DENSITY_OF_BEADS_KEY));
     cbTwoSurfaces.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-        AutofidseedParam.TWO_SURFACES_KEY));
+      AutofidseedParam.TWO_SURFACES_KEY));
     cbAppendToSeedModel.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-        AutofidseedParam.APPEND_TO_SEED_MODEL_KEY));
+      AutofidseedParam.APPEND_TO_SEED_MODEL_KEY));
     ltfIgnoreSurfaceData.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-        AutofidseedParam.IGNORE_SURFACE_DATA_KEY));
+      AutofidseedParam.IGNORE_SURFACE_DATA_KEY));
     ltfDropTracks.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-        AutofidseedParam.DROP_TRACKS_KEY));
+      AutofidseedParam.DROP_TRACKS_KEY));
     ltfMaxMajorToMinorRatio.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-        AutofidseedParam.MAX_MAJOR_TO_MINOR_RATIO_KEY));
+      AutofidseedParam.MAX_MAJOR_TO_MINOR_RATIO_KEY));
     cbClusteredPointsAllowedClustered.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-        AutofidseedParam.CLUSTERED_POINTS_ALLOWED_KEY));
+      AutofidseedParam.CLUSTERED_POINTS_ALLOWED_KEY));
     cbsElongatedPointsAllowed.setCheckBoxToolTipText(EtomoAutodoc.getTooltip(autodoc,
-        AutofidseedParam.ELONGATED_POINTS_ALLOWED_KEY));
+      AutofidseedParam.ELONGATED_POINTS_ALLOWED_KEY));
 
   }
 
   // Action function for buttons
   public void action(final String command, final Deferred3dmodButton deferred3dmodButton,
-      final Run3dmodMenuOptions run3dmodMenuOptions) {
+    final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(rbMethodSeed.getActionCommand())
-        || command.equals(rbMethodPatchTracking.getActionCommand())
-        || command.equals(rbMethodRaptor.getActionCommand())) {
+      || command.equals(rbMethodPatchTracking.getActionCommand())
+      || command.equals(rbMethodRaptor.getActionCommand())) {
       updateMethod();
     }
     else if (command.equals(rbSeedModelManual.getActionCommand())
-        || command.equals(rbSeedModelAuto.getActionCommand())
-        || command.equals(rbSeedModelTransfer.getActionCommand())) {
+      || command.equals(rbSeedModelAuto.getActionCommand())
+      || command.equals(rbSeedModelTransfer.getActionCommand())) {
       updateSeedModel();
     }
     else if (command.equals(btnSeed.getActionCommand())
-        || command.equals(btn3dmodAutofidseed.getActionCommand())) {
+      || command.equals(btn3dmodAutofidseed.getActionCommand())) {
       applicationManager.imodSeedModel(axisID, run3dmodMenuOptions, btnSeed,
-          ImodManager.COARSE_ALIGNED_KEY,
-          DatasetFiles.getSeedFileName(applicationManager, axisID),
-          DatasetFiles.getRawTiltFile(applicationManager, axisID), dialogType);
+        ImodManager.COARSE_ALIGNED_KEY, DatasetFiles.getSeedFileName(applicationManager,
+          axisID), DatasetFiles.getRawTiltFile(applicationManager, axisID), dialogType);
     }
     else if (command.equals(cbBoundaryModel.getActionCommand())
-        || command.equals(cbAppendToSeedModel.getActionCommand())) {
+      || command.equals(cbAppendToSeedModel.getActionCommand())) {
       updateDisplay();
     }
     else if (command.equals(btnAutofidseed.getActionCommand())) {
       applicationManager.autofidseed(axisID, btnAutofidseed, deferred3dmodButton,
-          run3dmodMenuOptions, null, DIALOG_TYPE, this);
+        run3dmodMenuOptions, null, DIALOG_TYPE, this);
     }
     else if (command.equals(btn3dmodInitialBeadFinding.getActionCommand())) {
       String fileName = AutofidseedInitFileFilter.getFileName(applicationManager, axisID);
@@ -1367,8 +1369,8 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
       }
     }
     else if (command.equals(btn3dmodBeadSelectionAndSorting.getActionCommand())) {
-      List<String> fileNameList = AutofidseedSelectionAndSorting.getFileNameList(
-          applicationManager, axisID);
+      List<String> fileNameList =
+        AutofidseedSelectionAndSorting.getFileNameList(applicationManager, axisID);
       if (fileNameList != null) {
         applicationManager.imodSortedModels(axisID, run3dmodMenuOptions, fileNameList);
       }
@@ -1382,7 +1384,7 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
     }
     else if (command.equals(btnBoundaryModel.getActionCommand())) {
       applicationManager.imodModel(FileType.PREALIGNED_STACK,
-          FileType.AUTOFIDSEED_BOUNDARY_MODEL, axisID, run3dmodMenuOptions, true);
+        FileType.AUTOFIDSEED_BOUNDARY_MODEL, axisID, run3dmodMenuOptions, true);
     }
   }
 
@@ -1442,11 +1444,11 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
 
   public static final class SeedModelEnumeratedType implements EnumeratedType {
     private static final SeedModelEnumeratedType MANUAL = new SeedModelEnumeratedType(
-        true, 0, "Manual");
+      true, 0, "Manual");
     private static final SeedModelEnumeratedType AUTO = new SeedModelEnumeratedType(
-        false, 1, "Auto");
+      false, 1, "Auto");
     public static final SeedModelEnumeratedType TRANSFER = new SeedModelEnumeratedType(
-        false, 2, "Transfer");
+      false, 2, "Transfer");
 
     private static final int NUM = 3;
 
@@ -1455,7 +1457,7 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
     private final String string;
 
     private SeedModelEnumeratedType(final boolean isDefault, final int value,
-        final String string) {
+      final String string) {
       this.isDefault = isDefault;
       this.value.set(value);
       this.string = string;
@@ -1487,6 +1489,13 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
 
     public ConstEtomoNumber getValue() {
       return value;
+    }
+
+    public ConstEtomoNumber getValue(final int index) {
+      if (index == 0) {
+        return value;
+      }
+      return null;
     }
 
     public String toString() {
