@@ -1,5 +1,81 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/4/15: Added ability to run NAD from Batchruntomo, and an option to specify
+an SMTP server for email.
+
+3/4/15: Modified Setupcombine to set up for using initial volume matching, and
+made Batchruntomo use it when appropriate, so it can now combine data without
+fiducials.  Changed ratio so that fallback thickness is used when calculated
+thickness is less by a factor of 0.4 instead of 0.5.
+
+3/3/15: Fixed clip filter to work with images having only one factor of 2 in X
+(e.g., K2 images).
+
+3/2/15: Added a script, Dualvolmatch, to get initial alignment between
+dual-axis volumes when there are no corresponding fiducials.
+
+3/1/15: Made Transferfid and Matchrotpairs evaluate mirrored as well as
+unmirrored images by default.
+
+2/28/15: Converted Matchrotpairs to Python by extracting a big module from
+Transferfid for the matching operation.
+
+2/25/15: IMOD_4-8-26
+2/25/15: Transferfid can now find alignments when error in 90-degree rotation
+is up to 20 degrees, using new rotation search in Tiltxcorr.  Speed
+improvements in Xfsimplex and greater efficiency in Transferfid have reduced
+execution time by about half.
+
+2/25/15: Fixed Midas for reference section other than 0.
+
+2/25/15: Fixes to batch interface: model is put in right place if 3dmod is
+open already when Boundary Model checked; right-click operations on opening
+3dmod work with boundary model checked; tilt series is loaded as integers;
+defocus is now in microns in the interface; non-interface entries in a
+starting directive file are not lost.
+
+2/25/15: Made messages to 3dmod able to contain spaces in filenames.
+
+2/23/15: IMOD_4-8-25
+2/23/15: Fixed hang of eTomo when template editor is opened; made batch
+interface put out : as separator in CPU list.
+
+2/20/15: Processchunks and Batchruntomo changed to take : instead of # as
+separator in CPU entry; Batchruntomo now allows entries of 1 and limits the
+number of threads used when running a single command file.
+
+2/17/15: IMOD_4-8-24
+2/13/15: Supported reading of nonstandard large TIFF files from ImageJ; 
+got min/max and pixel size from image description of ImageJ files.
+
+2/13/15: Made Newstack able to write TIFF files > 4 GB correctly and added an
+environment variable that can be used to get all TIFF files to be written in
+large file format. 
+
+2/13/15: Added option to Queuechunk to allow resources to be set.
+
+2/12/15: Switched to writing bytes as signed by default.
+
+2/12/15: Added option to Newstack to insert or change tilt angles in the
+output file.
+
+2/11/15: Fixed Makepyramid to work with one input argument (In 4.7).
+
+2/11/15: Fixed 3dmod Extract File entry being disabled after cancelling the 
+file chooser (In 4.7).
+
+2/11/15: Added option to Newstack to process some or all input files in
+reverse order.
+
+2/11/15: Added options to Densmatch to scale to a given mean/SD, change the
+mode for a new output file, and assess the existing density using all pixels
+instead of a sample of pixels.
+
+2/7/15: IMOD_4-8-22
+2/7/15: Fix batch interface to put out gold=0 when there are no fiducials,
+needed to get through tomogram setup for patch tracking.
+
+2/5/15: IMOD_4-7-13
 2/2/15: IMOD_4-8-21
 2/1/15: Fixed robust fitting with whole contours that aren't cut into pieces 
 (In 4.7).

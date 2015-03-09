@@ -1,6 +1,6 @@
 .na
 .nh
-.TH boxstartend 1 4.6.34 BL3DEMC
+.TH boxstartend 1 4.6.34 IMOD
 .SH NAME
 boxstartend - to clip out portions of a volume around contour points
 .SH SYNOPSIS

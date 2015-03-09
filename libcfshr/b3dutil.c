@@ -18,6 +18,7 @@
 #include <sys/stat.h>
 #include "imodconfig.h"
 #include "b3dutil.h"
+#include "mrcslice.h"
 
 #ifndef _WIN32
 #include <sys/time.h>
@@ -67,6 +68,8 @@
 #define overrideoutputtype OVERRIDEOUTPUTTYPE
 #define b3doutputfiletype B3DOUTPUTFILETYPE
 #define setoutputtypefromstring SETOUTPUTTYPEFROMSTRING
+#define overrideallbigtiff OVERRIDEALLBIGTIFF
+#define setnextoutputsize SETNEXTOUTPUTSIZE
 #else
 #define imodbackupfile imodbackupfile_
 #define imodgetenv imodgetenv_
@@ -88,6 +91,8 @@
 #define overrideoutputtype overrideoutputtype_
 #define b3doutputfiletype b3doutputfiletype_
 #define setoutputtypefromstring setoutputtypefromstring_
+#define overrideallbigtiff overrideallbigtiff_
+#define setnextoutputsize setnextoutputsize_
 #endif
 
 /* DNM 2/26/03: These need to be printf instead of fprintf(stderr) to not
@@ -466,6 +471,59 @@ int setoutputtypefromstring(const char *str, int strSize)
   return ret;
 }
 
+static int sAllBigTiffOverride = -1;
+
+/*!
+ * A [value] of 1 causes all new TIFF files to be opened in large file format with 
+ * "w8", overriding both the default setting in the defined macro ALL_BIGTIFF_DEFAULT 
+ * and the value of the environment value IMOD_ALL_BIG_TIFF.
+ */
+void overrideAllBigTiff(int value)
+{
+  sAllBigTiffOverride = value;
+}
+
+/*! Fortran wrapper for @overrideAllBigTiff */
+void overrideallbigtiff(int *value)
+{
+  overrideAllBigTiff(*value);
+}
+
+/*!
+ * Returns 1 if all new TIFF files should be opened in large file format, based upon the 
+ * default in the defined macro ALL_BIGTIFF_DEFAULT, the value of the environment value 
+ * IMOD_ALL_BIG_TIFF, and a value set with @@overrideAllBigTiff@. 
+ */
+int makeAllBigTiff()
+{
+  int value = ALL_BIGTIFF_DEFAULT;
+  char *envPtr = getenv(ALL_BIGTIFF_ENV_VAR);
+  if (envPtr)
+    value = atoi(envPtr);
+  if (sAllBigTiffOverride >= 0)
+    value = sAllBigTiffOverride;
+  return value;
+}
+
+/*!
+ * Indicates the output size in [nx], [ny], [nz] and the data mode in [mode] of a file
+ * about to be opened; the routine calls @overrideAllBigTiff to force a new TIFF file to
+ * have either the large file format or the older format as appropriate.
+ */
+void setNextOutputSize(int nx, int ny, int nz, int mode)
+{
+  int bytes, channels;
+  if (dataSizeForMode(mode, &bytes, &channels))
+    return;
+  overrideAllBigTiff(((double)nx * ny) * nz * channels * bytes > 4.0e9 ? 1 : 0);
+}
+
+/*! Fortran wrapper for @setNextOutputSize */
+void setnextoutputsize(int *nx, int *ny, int *nz, int *mode)
+{
+  setNextOutputSize(*nx, *ny, *nz, *mode);
+}
+
 /*! Creates a C string with a copy of a Fortran string described by [str] and 
   [strsize], using [malloc]. */
 char *f2cString(const char *str, int strSize)
@@ -728,6 +786,48 @@ int fgetline(FILE *fp, char s[], int limit)
     return (-1 * (length + 2));
   else
     return (length);
+}
+
+/*!
+ * For the given MRC file mode or SLICE_MODE_MAX in [mode], returns the number of bytes 
+ * of the basic data element in [dataSize] and the number of data channels in [channels].
+ * Returns -1 for an unsupported or undefined mode.
+ */
+int dataSizeForMode(int mode, int *dataSize, int *channels)
+{
+  switch (mode) {
+  case MRC_MODE_BYTE:
+    *dataSize = sizeof(b3dUByte);
+    *channels = 1;
+    break;
+  case MRC_MODE_SHORT:
+  case MRC_MODE_USHORT:
+    *dataSize = sizeof(b3dInt16);
+    *channels = 1;
+    break;
+  case MRC_MODE_FLOAT:
+    *dataSize = sizeof(b3dFloat);
+    *channels = 1;
+    break;
+  case MRC_MODE_COMPLEX_SHORT:
+    *dataSize = sizeof(b3dInt16);
+    *channels = 2;
+    break;
+  case MRC_MODE_COMPLEX_FLOAT:
+    *dataSize = sizeof(b3dFloat);
+    *channels = 2;
+    break;
+  case MRC_MODE_RGB:
+    *dataSize = sizeof(b3dUByte);
+    *channels = 3;
+    break;
+  case SLICE_MODE_MAX:
+    *dataSize = SLICE_MAX_DSIZE;
+    *channels = SLICE_MAX_CSIZE;
+  default:
+    return(-1);
+  }
+  return(0);
 }
 
 /*! Returns the number of possible extra header items encoded as short integers

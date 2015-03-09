@@ -1,6 +1,6 @@
 .na
 .nh
-.TH excludeviews 1 4.8.7 BL3DEMC
+.TH excludeviews 1 4.8.7 IMOD
 .SH NAME
 excludeviews \- Reversibly remove views from a tilt series stack
 .SH SYNOPSIS

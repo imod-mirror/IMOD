@@ -51,6 +51,21 @@ public final class DatasetTool {
   }
 
   /**
+   * Returns one of the two extensions, defaulting to the standard extension.
+   * @param file
+   * @return
+   */
+  public static String getExtension(final String file) {
+    if (file == null) {
+      return STANDARD_DATASET_EXT;
+    }
+    if (file.endsWith(ALTERNATE_DATASET_EXT)) {
+      return ALTERNATE_DATASET_EXT;
+    }
+    return STANDARD_DATASET_EXT;
+  }
+
+  /**
    * Prevent B stacks in the stackList from being passed by.  Do the same to files with
    * name collision.
    *

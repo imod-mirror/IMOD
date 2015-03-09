@@ -26,6 +26,7 @@ import etomo.type.ConstEtomoVersion;
 import etomo.type.EtomoBoolean2;
 import etomo.type.EtomoNumber;
 import etomo.type.EtomoVersion;
+import etomo.type.InterfaceType;
 import etomo.type.PanelHeaderState;
 import etomo.type.ProcessResultDisplay;
 import etomo.type.ProcessingMethod;
@@ -36,7 +37,7 @@ import etomo.util.HashedArray;
 /**
  * <p>Description: </p>
  * <p/>
- * <p>Copyright: Copyright 2005 - 2014 by the Regents of the University of Colorado</p>
+ * <p>Copyright: Copyright 2005 - 2015 by the Regents of the University of Colorado</p>
  * <p/>
  * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
@@ -59,12 +60,12 @@ public final class ParallelPanel implements Expandable, Storable {
   private final EtomoPanel tablePanel = new EtomoPanel();
   private final EtomoPanel computerTablePanel = new EtomoPanel();
   private final EtomoPanel queueTablePanel = new EtomoPanel();
-  private final LabeledTextField ltfCPUsSelected =
-      new LabeledTextField(FieldType.INTEGER, CPUS_SELECTED_LABEL);
-  private final LabeledTextField ltfSecondaryCPUsSelected =
-      new LabeledTextField(FieldType.INTEGER, GPUS_SELECTED_LABEL);
-  private final LabeledTextField ltfChunksFinished =
-      new LabeledTextField(FieldType.INTEGER, "Chunks finished: ");
+  private final LabeledTextField ltfCPUsSelected = new LabeledTextField(
+    FieldType.INTEGER, CPUS_SELECTED_LABEL);
+  private final LabeledTextField ltfSecondaryCPUsSelected = new LabeledTextField(
+    FieldType.INTEGER, GPUS_SELECTED_LABEL);
+  private final LabeledTextField ltfChunksFinished = new LabeledTextField(
+    FieldType.INTEGER, "Chunks finished: ");
   private final MultiLineButton btnSaveDefaults = new MultiLineButton("Save As Defaults");
   private final SpacedPanel bodyPanel = SpacedPanel.getInstance();
   private final EtomoPanel rootPanel = new EtomoPanel();
@@ -86,7 +87,7 @@ public final class ParallelPanel implements Expandable, Storable {
   private final MultiLineButton btnResume;
   private final MultiLineButton btnPause;
 
-  // private ParallelProcessMonitor parallelProcessMonitor = null;
+  // private ParallelProcessPanelHeaderMonitor parallelProcessMonitor = null;
   private boolean visible = true;
   private boolean open = true;
   private boolean pauseEnabled = false;
@@ -100,10 +101,12 @@ public final class ParallelPanel implements Expandable, Storable {
   private final boolean popupChunkWarnings;
 
   static ParallelPanel getInstance(final BaseManager manager, final AxisID axisID,
-      final PanelHeaderState state, final AxisProcessPanel parent,
-      final boolean popupChunkWarnings, final boolean runnable) {
+    final PanelHeaderState state, final AxisProcessPanel parent,
+    final boolean popupChunkWarnings, final boolean runnable,
+    final InterfaceType interfaceType) {
     ParallelPanel instance =
-        new ParallelPanel(manager, axisID, state, parent, popupChunkWarnings, runnable);
+      new ParallelPanel(manager, axisID, state, parent, popupChunkWarnings, runnable,
+        interfaceType);
     instance.addListeners();
     return instance;
   }
@@ -117,8 +120,9 @@ public final class ParallelPanel implements Expandable, Storable {
    * @param runnable           - set to true if table values with be used to run one or more processes
    */
   private ParallelPanel(final BaseManager manager, final AxisID axisID,
-      final PanelHeaderState state, final AxisProcessPanel parent,
-      final boolean popupChunkWarnings, final boolean runnable) {
+    final PanelHeaderState state, final AxisProcessPanel parent,
+    final boolean popupChunkWarnings, final boolean runnable,
+    final InterfaceType interfaceType) {
     this.runnable = runnable;
     // try {
     ParameterStore parameterStore = EtomoDirector.INSTANCE.getParameterStore();
@@ -136,15 +140,24 @@ public final class ParallelPanel implements Expandable, Storable {
       btnResume = null;
       btnPause = null;
     }
+    // header
+    header =
+      PanelHeader.getMoreLessInstance(runnable ? TITLE : NON_RUNNABLE_TITLE, this, null);
     // initialize table
-    cpuTable = new CpuTable(manager, this, axisID, runnable);
+    cpuTable =
+      new CpuTable(manager, this, axisID, runnable, header.getMoreLessButton(),
+        interfaceType);
     cpuTable.createTable();
     currentTable = cpuTable;
     currentTable.setVisible(true);
-    queueTable = new QueueTable(manager, this, axisID, runnable);
+    queueTable =
+      new QueueTable(manager, this, axisID, runnable, header.getMoreLessButton(),
+        interfaceType);
     queueTable.createTable();
     queueTable.setVisible(false);
-    gpuTable = new GpuTable(manager, this, axisID, runnable);
+    gpuTable =
+      new GpuTable(manager, this, axisID, runnable, header.getMoreLessButton(),
+        interfaceType);
     gpuTable.createTable();
     gpuTable.setVisible(false);
     ltfSecondaryCPUsSelected.setVisible(false);
@@ -160,11 +173,10 @@ public final class ParallelPanel implements Expandable, Storable {
     southPanel.add(ltfSecondaryCPUsSelected);
     southPanel.add(btnRestartLoad);
     // sNice
-    niceFloor =
-        CpuAdoc.INSTANCE.getMinNice(manager, axisID, manager.getPropertyUserDir());
-    sNice = Spinner
-        .getLabeledInstance("Nice: ", manager.getParallelProcessingDefaultNice(),
-            niceFloor, ProcesschunksParam.NICE_CEILING);
+    niceFloor = CpuAdoc.INSTANCE.getMinNice();
+    sNice =
+      Spinner.getLabeledInstance("Nice: ", manager.getParallelProcessingDefaultNice(),
+        niceFloor, ProcesschunksParam.NICE_CEILING);
     southPanel.add(sNice.getContainer());
     if (btnPause != null) {
       southPanel.add(btnPause);
@@ -177,7 +189,7 @@ public final class ParallelPanel implements Expandable, Storable {
     bodyPanel.addRigidArea();
     bodyPanel.add(tablePanel);
     bodyPanel.add(southPanel);
-    if (Network.hasQueues(manager, axisID, manager.getPropertyUserDir())) {
+    if (interfaceType != InterfaceType.BATCH_RUN_TOMO && Network.hasQueues()) {
       if (Network.hasComputers(manager, axisID, manager.getPropertyUserDir())) {
         JPanel clusterPanel = new JPanel();
         clusterPanel.setLayout(new BoxLayout(clusterPanel, BoxLayout.X_AXIS));
@@ -190,18 +202,16 @@ public final class ParallelPanel implements Expandable, Storable {
         cbQueues.setSelected(true);
       }
     }
-    // header
-    header = PanelHeader
-        .getMoreLessInstance(runnable ? TITLE : NON_RUNNABLE_TITLE, this, null);
     // rootPanel
     rootPanel.add(header);
     rootPanel.add(bodyPanel.getContainer());
-    ltfChunksFinished.setTextPreferredWidth(UIParameters.getInstance().getFourDigitWidth());
+    ltfChunksFinished.setTextPreferredWidth(UIParameters.getInstance()
+      .getFourDigitWidth());
     ltfChunksFinished.setEditable(false);
     ltfCPUsSelected.setTextPreferredWidth(UIParameters.getInstance().getFourDigitWidth());
     ltfCPUsSelected.setEditable(false);
-    ltfSecondaryCPUsSelected
-        .setTextPreferredWidth(UIParameters.getInstance().getFourDigitWidth());
+    ltfSecondaryCPUsSelected.setTextPreferredWidth(UIParameters.getInstance()
+      .getFourDigitWidth());
     ltfSecondaryCPUsSelected.setEditable(false);
     if (btnPause != null) {
       btnPause.setEnabled(false);
@@ -274,7 +284,7 @@ public final class ParallelPanel implements Expandable, Storable {
   }
 
   String getCPUsSelected(final boolean doValidation)
-      throws FieldValidationFailedException {
+    throws FieldValidationFailedException {
     return ltfCPUsSelected.getText(doValidation);
   }
 
@@ -298,7 +308,7 @@ public final class ParallelPanel implements Expandable, Storable {
   }
 
   public void setProcessInfo(final ProcesschunksParam processchunksParam,
-      final ProcessResultDisplay processResultDisplay) {
+    final ProcessResultDisplay processResultDisplay) {
     this.processchunksParam = processchunksParam;
     this.processResultDisplay = processResultDisplay;
     if (processchunksParam != null) {
@@ -310,8 +320,8 @@ public final class ParallelPanel implements Expandable, Storable {
     String command = event.getActionCommand();
     if (btnResume != null && command == btnResume.getActionCommand()) {
       manager.resume(axisID, processchunksParam, processResultDisplay, null, null,
-          popupChunkWarnings,
-          mediator.getRunMethodForParallelPanel(getProcessingMethod()), false, null);
+        popupChunkWarnings, mediator.getRunMethodForParallelPanel(getProcessingMethod()),
+        false, null);
     }
     else if (btnPause != null && command == btnPause.getActionCommand()) {
       manager.pause(axisID);
@@ -587,7 +597,7 @@ public final class ParallelPanel implements Expandable, Storable {
    * @param param
    */
   public boolean getResumeParameters(final ProcesschunksParam param,
-      final boolean doValidation) {
+    final boolean doValidation) {
     try {
       processingRunning = true;
       cbQueues.setEnabled(!processingMethodLocked && !processingRunning);
@@ -597,7 +607,7 @@ public final class ParallelPanel implements Expandable, Storable {
       cpusSelected.set(ltfCPUsSelected.getText(doValidation));
       if (cpusSelected.equals(0)) {
         UIHarness.INSTANCE.openMessageDialog(manager, getNoCpusSelectedErrorMessage(),
-            "Unable to resume", axisID);
+          "Unable to resume", axisID);
         return false;
       }
       param.setCPUNumber(cpusSelected);
@@ -622,13 +632,12 @@ public final class ParallelPanel implements Expandable, Storable {
       if (!numMachines.isValid()) {
         if (numMachines.equals(0)) {
           UIHarness.INSTANCE.openMessageDialog(manager, getNoCpusSelectedErrorMessage(),
-              "Unable to run splittilt", axisID);
+            "Unable to run splittilt", axisID);
           return false;
         }
         else {
-          UIHarness.INSTANCE.openMessageDialog(manager,
-              getCPUsSelectedLabel() + " " + numMachines.getInvalidReason(),
-              "Unable to run sirtsetup", axisID);
+          UIHarness.INSTANCE.openMessageDialog(manager, getCPUsSelectedLabel() + " "
+            + numMachines.getInvalidReason(), "Unable to run sirtsetup", axisID);
           return false;
         }
       }
@@ -646,8 +655,8 @@ public final class ParallelPanel implements Expandable, Storable {
    *
    * @param param
    */
-  public boolean getParameters(final ProcesschunksParam param,
-      final boolean doValidation) {
+  public boolean
+    getParameters(final ProcesschunksParam param, final boolean doValidation) {
     try {
       processingRunning = true;
       cbQueues.setEnabled(!processingMethodLocked && !processingRunning);
@@ -660,10 +669,10 @@ public final class ParallelPanel implements Expandable, Storable {
         return true;
       }
       else {
-        UIHarness.INSTANCE
-            .openMessageDialog(manager, error + "  " + currentTable.getHelpMessage() +
-                (secondaryTable != null ? "  " + secondaryTable.getHelpMessage() : ""),
-                "Table Error", axisID);
+        UIHarness.INSTANCE.openMessageDialog(manager,
+          error + "  " + currentTable.getHelpMessage()
+            + (secondaryTable != null ? "  " + secondaryTable.getHelpMessage() : ""),
+          "Table Error", axisID);
         return false;
       }
     }
@@ -681,13 +690,12 @@ public final class ParallelPanel implements Expandable, Storable {
    */
   public boolean getParameters(final BatchruntomoParam param) {
     param.setNiceValue(sNice.getValue());
-    currentTable
-        .getParameters(mediator.getRunMethodForParallelPanel(getProcessingMethod()),
-            param);
+    currentTable.getParameters(
+      mediator.getRunMethodForParallelPanel(getProcessingMethod()), param);
     if (secondaryTable != null) {
       secondaryTable.getParameters(
-          mediator.getSecondaryRunMethodForParallelPanel(getSecondaryProcessingMethod()),
-          param);
+        mediator.getSecondaryRunMethodForParallelPanel(getSecondaryProcessingMethod()),
+        param);
     }
     return true;
   }
@@ -700,8 +708,7 @@ public final class ParallelPanel implements Expandable, Storable {
     }
   }
 
-  public void expand(final GlobalExpandButton button) {
-  }
+  public void expand(final GlobalExpandButton button) {}
 
   /**
    * set the visible boolean based on whether the panel is visible
@@ -748,13 +755,13 @@ public final class ParallelPanel implements Expandable, Storable {
    */
   private void setToolTipText() {
     ltfCPUsSelected.setToolTipText("Must be at least 1.");
-    sNice.setToolTipText(
-        "Lower the value to run the processes at a higher priority.  Raise the value to run at a lower priority.");
+    sNice
+      .setToolTipText("Lower the value to run the processes at a higher priority.  Raise the value to run at a lower priority.");
     if (btnPause != null) {
-      btnPause.setToolTipText(
-          "Finishes the processes that are currently running and then stops.");
-      btnResume.setToolTipText(
-          "Starts the process but does not redo the chunks that are already completed.");
+      btnPause
+        .setToolTipText("Finishes the processes that are currently running and then stops.");
+      btnResume
+        .setToolTipText("Starts the process but does not redo the chunks that are already completed.");
     }
     btnSaveDefaults.setToolTipText("Saves the computers and number of CPUs selected.");
   }

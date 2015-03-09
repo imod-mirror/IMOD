@@ -1765,44 +1765,17 @@ int getfilename(char *name, char *prompt)
   return i;
 }
 
-
 /*!
  * For the given MRC file mode in [mode], returns the number of bytes of the
  * basic data element in [dsize] and the number of data channels in [csize].
- * Returns -1 for an unsupported or undefined mode.
+ * Returns -1 for an unsupported or undefined mode.  Simply calls 
+ * @@b3dutil.html#dataSizeForMode@ unless mode is SLICE_MODE_MAX.
  */
 int mrc_getdcsize(int mode, int *dsize, int *csize)
 {
-  switch (mode){
-  case MRC_MODE_BYTE:
-    *dsize = sizeof(b3dUByte);
-    *csize = 1;
-    break;
-  case MRC_MODE_SHORT:
-  case MRC_MODE_USHORT:
-    *dsize = sizeof(b3dInt16);
-    *csize = 1;
-    break;
-  case MRC_MODE_FLOAT:
-    *dsize = sizeof(b3dFloat);
-    *csize = 1;
-    break;
-  case MRC_MODE_COMPLEX_SHORT:
-    *dsize = sizeof(b3dInt16);
-    *csize = 2;
-    break;
-  case MRC_MODE_COMPLEX_FLOAT:
-    *dsize = sizeof(b3dFloat);
-    *csize = 2;
-    break;
-  case MRC_MODE_RGB:
-    *dsize = sizeof(b3dUByte);
-    *csize = 3;
-    break;
-  default:
-    return(-1);
-  }
-  return(0);
+  if (mode == SLICE_MODE_MAX)
+    return -1;
+  return dataSizeForMode(mode, dsize, csize);
 }
 
 /*!

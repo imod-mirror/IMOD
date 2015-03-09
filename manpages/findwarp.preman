@@ -1,6 +1,6 @@
 .na
 .nh
-.TH findwarp 1 4.6.34 BL3DEMC
+.TH findwarp 1 4.6.34 IMOD
 .SH NAME
 findwarp - to find a series of 3-D transformations to warp one volume
            into alignment with another

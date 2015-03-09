@@ -238,7 +238,9 @@ final class PanelHeader implements Expandable, ConstPanelHeaderSettings {
   ExpandButton getOpenCloseButton() {
     return btnOpenClose;
   }
-
+  ExpandButton getMoreLessButton() {
+    return btnMoreLess;
+  }
   public boolean isAdvanced() {
     if (btnAdvancedBasic == null) {
       return false;

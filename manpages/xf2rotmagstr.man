@@ -1,6 +1,6 @@
 .na
 .nh
-.TH xf2rotmagstr 1 4.6.34 BL3DEMC
+.TH xf2rotmagstr 1 4.6.34 IMOD
 .SH NAME
 xf2rotmagstr - Convert transforms to rotation, magnification, stretch
 .SH SYNOPSIS

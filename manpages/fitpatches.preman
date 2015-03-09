@@ -1,6 +1,6 @@
 .na
 .nh
-.TH fitpatches 1 4.0.14 BL3DEMC
+.TH fitpatches 1 4.0.14 IMOD
 .SH NAME
 fitpatches \- manage and fit to patch vector files for supermontaging
 .SH SYNOPSIS

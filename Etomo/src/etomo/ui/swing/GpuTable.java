@@ -3,17 +3,21 @@ package etomo.ui.swing;
 import etomo.BaseManager;
 import etomo.comscript.BatchruntomoParam;
 import etomo.comscript.ProcesschunksParam;
+import etomo.logic.ProcessorTableState;
+import etomo.logic.ProcessorType;
 import etomo.storage.Node;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoVersion;
+import etomo.type.InterfaceType;
 import etomo.type.ProcessingMethod;
+import etomo.ui.Expander;
 
 import java.util.Map;
 
 /**
  * <p>Description: </p>
  * <p/>
- * <p>Copyright: Copyright 2010 - 2014 by the Regents of the University of Colorado</p>
+ * <p>Copyright: Copyright 2010 - 2015 by the Regents of the University of Colorado</p>
  * <p/>
  * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
@@ -31,8 +35,12 @@ final class GpuTable extends CpuTable {
   private static final String PREPEND = ".Gpu";
 
   GpuTable(final BaseManager manager, final ParallelPanel parent, final AxisID axisID,
-      final boolean runnable) {
-    super(manager, parent, axisID, runnable);
+    final boolean runnable, final Expander moreLess, final InterfaceType interfaceType) {
+    super(manager, parent, axisID, runnable, moreLess, interfaceType);
+  }
+  
+  ProcessorType getProcessorType() {
+    return ProcessorType.GPU;
   }
 
   boolean isCpuTable() {
@@ -67,14 +75,14 @@ final class GpuTable extends CpuTable {
     if (!node.isGpu()) {
       return true;
     }
-    if (node.isGpuLocal() &&
-        !node.isLocalHost(manager, axisID, manager.getPropertyUserDir())) {
+    if (node.isGpuLocal()
+      && !node.isLocalHost(manager, axisID, manager.getPropertyUserDir())) {
       return true;
     }
     return false;
   }
 
-  Map<String, String> getMachineMap(final BatchruntomoParam param){
+  Map<String, String> getMachineMap(final BatchruntomoParam param) {
     return param.getGPUMachineMap();
   }
 
@@ -97,9 +105,9 @@ final class GpuTable extends CpuTable {
   }
 
   ProcessorTableRow createProcessorTableRow(final ProcessorTable processorTable,
-      final Node node, final int numRowsInTable) {
-    return ProcessorTableRow
-        .getComputerInstance(processorTable, node, node.getGpuNumber(), numRowsInTable);
+    final Node node, final int numRowsInTable, final ProcessorTableState tableState) {
+    return ProcessorTableRow.getComputerInstance(processorTable, node, node
+      .getGpuNumber(), numRowsInTable, tableState);
   }
 
   void initRow(ProcessorTableRow row) {

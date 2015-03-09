@@ -14,6 +14,7 @@ import etomo.process.SystemProgram;
 import etomo.storage.DirectiveFile;
 import etomo.type.AxisID;
 import etomo.type.EtomoNumber;
+import etomo.type.FileType;
 import etomo.type.ProcessName;
 import etomo.type.StringParameter;
 import etomo.ui.swing.UIHarness;
@@ -35,14 +36,17 @@ public class BatchruntomoParam implements CommandParam {
   private static final String CPU_MACHINE_LIST_TAG = "CPUMachineList";
   private static final String GPU_MACHINE_LIST_TAG = "GPUMachineList";
   public static final String MACHINE_LIST_LOCAL_VALUE = "1";
+  /**
+   * @deprecated
+   */
   private static final String CPU_MACHINE_LIST_DIVIDER = "#";
-  private static final String GPU_MACHINE_LIST_DIVIDER = ":";
+  private static final String LIST_DIVIDER = ":";
 
   private final List<String> command = new ArrayList<String>();
   private final EtomoNumber validationType = new EtomoNumber();
 
-  private final StringParameter deliverToDirectory =
-      new StringParameter("DeliverToDirectory");
+  private final StringParameter deliverToDirectory = new StringParameter(
+    "DeliverToDirectory");
   private final StringParameter niceValue = new StringParameter("NiceValue");
   private final StringParameter emailAddress = new StringParameter("EmailAddress");
 
@@ -63,7 +67,7 @@ public class BatchruntomoParam implements CommandParam {
   private Set<String> requiredFilesValidationSet = null;
 
   private BatchruntomoParam(final BaseManager manager, final AxisID axisID,
-      final CommandMode mode, final boolean doValidation) {
+    final CommandMode mode, final boolean doValidation) {
     this.manager = manager;
     this.axisID = axisID;
     this.mode = mode;
@@ -72,28 +76,27 @@ public class BatchruntomoParam implements CommandParam {
       interleavedParameters = new ArrayList[InterleavedIndex.BATCH_LENGTH];
       interleavedParameters[InterleavedIndex.ROOT_NAME.index] = new ArrayList<String>();
       interleavedParameters[InterleavedIndex.CURRENT_LOCATION.index] =
-          new ArrayList<String>();
+        new ArrayList<String>();
     }
     else {
       interleavedParameters = new ArrayList[InterleavedIndex.VALIDATION_LENGTH];
     }
     interleavedParameters[InterleavedIndex.DIRECTIVE_FILE.index] =
-        new ArrayList<String>();
+      new ArrayList<String>();
   }
 
   public static BatchruntomoParam getInstance(final BaseManager manager,
-      final AxisID axisID, final boolean doValidation) {
+    final AxisID axisID, final boolean doValidation) {
     return new BatchruntomoParam(manager, axisID, Mode.BATCH, doValidation);
   }
 
   public static BatchruntomoParam getValidationInstance(final BaseManager manager,
-      final AxisID axisID) {
+    final AxisID axisID) {
     return new BatchruntomoParam(manager, axisID, Mode.VALIDATION, false);
   }
 
   public void parseComScriptCommand(final ComScriptCommand scriptCommand)
-      throws BadComScriptException, InvalidParameterException,
-      FortranInputSyntaxException {
+    throws BadComScriptException, InvalidParameterException, FortranInputSyntaxException {
     // reset
     for (int i = 0; i < interleavedParameters.length; i++) {
       interleavedParameters[i].clear();
@@ -123,10 +126,11 @@ public class BatchruntomoParam implements CommandParam {
   }
 
   public void updateComScriptCommand(final ComScriptCommand scriptCommand)
-      throws BadComScriptException {
+    throws BadComScriptException {
     scriptCommand.useKeywordValue();
-    scriptCommand
-        .setValuesInterleaved(InterleavedIndex.getTags(mode), interleavedParameters);
+    scriptCommand.setValuesInterleaved(InterleavedIndex.getTags(mode),
+      interleavedParameters);
+    scriptCommand.setValue("CheckFile", FileType.CHECK_FILE.getFileName(manager, null));
     deliverToDirectory.updateComScript(scriptCommand);
     if (cpuMachineList != null && cpuMachineList.length() > 0) {
       scriptCommand.setValue(CPU_MACHINE_LIST_TAG, cpuMachineList.toString());
@@ -138,13 +142,13 @@ public class BatchruntomoParam implements CommandParam {
     emailAddress.updateComScript(scriptCommand);
     String remoteDirectory = null;
     try {
-      remoteDirectory = RemotePath.INSTANCE
-          .getRemotePath(manager, manager.getPropertyUserDir(), axisID);
+      remoteDirectory =
+        RemotePath.INSTANCE.getRemotePath(manager, manager.getPropertyUserDir(), axisID);
     }
     catch (InvalidMountRuleException e) {
-      UIHarness.INSTANCE.openMessageDialog(manager,
-          "ERROR:  Remote path error.  " + "Unabled to run batchruntomo" + ".\n\n" +
-              e.getMessage(), "Batchruntomo Error", axisID);
+      UIHarness.INSTANCE.openMessageDialog(manager, "ERROR:  Remote path error.  "
+        + "Unabled to run batchruntomo" + ".\n\n" + e.getMessage(), "Batchruntomo Error",
+        axisID);
       valid = false;
     }
     if (remoteDirectory != null) {
@@ -152,16 +156,15 @@ public class BatchruntomoParam implements CommandParam {
     }
   }
 
-  public void initializeDefaults() {
-  }
+  public void initializeDefaults() {}
 
   /**
    * @param directiveFile
    */
   public void addDirectiveFile(final File directiveFile) {
     if (directiveFile != null) {
-      interleavedParameters[InterleavedIndex.DIRECTIVE_FILE.index]
-          .add(directiveFile.getAbsolutePath());
+      interleavedParameters[InterleavedIndex.DIRECTIVE_FILE.index].add(directiveFile
+        .getAbsolutePath());
     }
   }
 
@@ -179,7 +182,7 @@ public class BatchruntomoParam implements CommandParam {
       if (!first) {
         cpuMachineList.append(",");
       }
-      cpuMachineList.append(machine + CPU_MACHINE_LIST_DIVIDER + number);
+      cpuMachineList.append(machine + LIST_DIVIDER + number);
     }
   }
 
@@ -206,7 +209,7 @@ public class BatchruntomoParam implements CommandParam {
    * @return
    */
   private static Map<String, String> convertToMachineMap(final StringBuilder machineList,
-      final boolean gpu) {
+    final boolean gpu) {
     if (machineList != null && machineList.length() > 0) {
       String list = machineList.toString();
       if (!list.equals(MACHINE_LIST_LOCAL_VALUE)) {
@@ -216,7 +219,7 @@ public class BatchruntomoParam implements CommandParam {
           String divider = null;
           for (int i = 0; i < machineArray.length; i++) {
             String[] machine = null;
-            //Try to set the divider.  Each element will use the same, or no divider.
+            // Try to set the divider. Each element will use the same, or no divider.
             if (divider != null) {
               machine = machineArray[i].split(divider);
             }
@@ -224,8 +227,8 @@ public class BatchruntomoParam implements CommandParam {
               divider = CPU_MACHINE_LIST_DIVIDER;
               machine = machineArray[i].split(divider);
             }
-            else if (machineArray[i].indexOf(GPU_MACHINE_LIST_DIVIDER) != -1) {
-              divider = GPU_MACHINE_LIST_DIVIDER;
+            else if (machineArray[i].indexOf(LIST_DIVIDER) != -1) {
+              divider = LIST_DIVIDER;
               machine = machineArray[i].split(divider);
             }
             if (machine == null) {
@@ -234,18 +237,18 @@ public class BatchruntomoParam implements CommandParam {
             else {
               if (machine != null && machine.length > 1) {
                 if (gpu) {
-                  //for gpu put in the number of gpu ids.
-                  //frodo:2,sam:1:2
+                  // for gpu put in the number of gpu ids.
+                  // frodo:2,sam:1:2
                   machineMap.put(machine[0], Integer.toString(machine.length - 1));
                 }
                 else {
-                  //for cpu, there should be only one number - the number of CPUs.
-                  //frodo#4,sam#4
+                  // for cpu, there should be only one number - the number of CPUs.
+                  // frodo:4,sam:4
                   machineMap.put(machine[0], machine[1]);
                 }
               }
               else {
-                machineMap.put(machine[i], "1");
+                machineMap.put(machine[0], "1");
               }
             }
           }
@@ -261,7 +264,7 @@ public class BatchruntomoParam implements CommandParam {
   }
 
   public void addGPUMachine(final String machine, final int number,
-      final String[] deviceArray) {
+    final String[] deviceArray) {
     if (machine != null && !machine.matches("\\s*") && number > 0) {
       boolean first = false;
       if (gpuMachineList == null) {
@@ -274,7 +277,7 @@ public class BatchruntomoParam implements CommandParam {
       gpuMachineList.append(machine);
       if (deviceArray != null) {
         for (int i = 0; i < number; i++) {
-          gpuMachineList.append(GPU_MACHINE_LIST_DIVIDER + deviceArray[i]);
+          gpuMachineList.append(LIST_DIVIDER + deviceArray[i]);
         }
       }
     }
@@ -311,12 +314,11 @@ public class BatchruntomoParam implements CommandParam {
     deliverToDirectory.reset();
   }
 
-
   public boolean addRootName(final String input, final boolean enforceUniqueness,
-      final boolean dual, final StringBuilder errMsg) {
+    final boolean dual, final StringBuilder errMsg) {
     if (mode != Mode.BATCH) {
-      System.err.println(
-          "Warning: attempting to set a root name in a non-batch mode batchruntomo command");
+      System.err
+        .println("Warning: attempting to set a root name in a non-batch mode batchruntomo command");
       return false;
     }
     boolean retval = true;
@@ -334,16 +336,16 @@ public class BatchruntomoParam implements CommandParam {
       else {
         rootNameValidationSet.add(input);
       }
-      //Make sure that file(s) denoted by the root name are not used more then once.
-      //Keep retval off if it has been turned off.
+      // Make sure that file(s) denoted by the root name are not used more then once.
+      // Keep retval off if it has been turned off.
       if (!dual) {
         retval = validateRequiredFile(input, errMsg) && retval;
       }
       else {
         retval =
-            validateRequiredFile(input + AxisID.FIRST.getExtension(), errMsg) && retval;
+          validateRequiredFile(input + AxisID.FIRST.getExtension(), errMsg) && retval;
         retval =
-            validateRequiredFile(input + AxisID.SECOND.getExtension(), errMsg) && retval;
+          validateRequiredFile(input + AxisID.SECOND.getExtension(), errMsg) && retval;
       }
     }
     interleavedParameters[InterleavedIndex.ROOT_NAME.index].add(input);
@@ -371,10 +373,10 @@ public class BatchruntomoParam implements CommandParam {
    * @return
    */
   public boolean addCurrentLocation(final String input, final boolean enforceUniqueness,
-      final StringBuilder errMsg) {
+    final StringBuilder errMsg) {
     if (mode != Mode.BATCH) {
-      System.err.println(
-          "Warning: attempting to set a current location in a non-batch mode batchruntomo command");
+      System.err
+        .println("Warning: attempting to set a current location in a non-batch mode batchruntomo command");
       return false;
     }
 
@@ -451,13 +453,13 @@ public class BatchruntomoParam implements CommandParam {
     for (int i = 0; i < len; i++) {
       command.add("-directive");
       String value =
-          (String) interleavedParameters[InterleavedIndex.DIRECTIVE_FILE.index].get(i);
+        (String) interleavedParameters[InterleavedIndex.DIRECTIVE_FILE.index].get(i);
       if (value != null) {
         command.add(value);
       }
     }
     batchruntomo =
-        new SystemProgram(manager, manager.getPropertyUserDir(), command, AxisID.ONLY);
+      new SystemProgram(manager, manager.getPropertyUserDir(), command, AxisID.ONLY);
     batchruntomo.setMessagePrependTag("Beginning to process template file");
     return true;
   }
@@ -466,17 +468,17 @@ public class BatchruntomoParam implements CommandParam {
     if (directiveFile != null) {
       File file = directiveFile.getFile();
       if (file != null) {
-        interleavedParameters[InterleavedIndex.DIRECTIVE_FILE.index]
-            .add(directiveFile.getFile().getAbsolutePath());
+        interleavedParameters[InterleavedIndex.DIRECTIVE_FILE.index].add(directiveFile
+          .getFile().getAbsolutePath());
       }
     }
   }
 
   public boolean isValid() {
     if (mode == Mode.VALIDATION) {
-      return (validationType.equals(VALIDATION_TYPE_BATCH_DIRECTIVE) ||
-          validationType.equals(VALIDATION_TYPE_TEMPLATE)) &&
-          !interleavedParameters[InterleavedIndex.DIRECTIVE_FILE.index].isEmpty();
+      return (validationType.equals(VALIDATION_TYPE_BATCH_DIRECTIVE) || validationType
+        .equals(VALIDATION_TYPE_TEMPLATE))
+        && !interleavedParameters[InterleavedIndex.DIRECTIVE_FILE.index].isEmpty();
     }
     return valid;
   }
@@ -536,7 +538,7 @@ public class BatchruntomoParam implements CommandParam {
 
   public String[] getStdError() {
     if (batchruntomo == null) {
-      return new String[]{"ERROR: Batchruntomo is null."};
+      return new String[] { "ERROR: Batchruntomo is null." };
     }
     return batchruntomo.getStdError();
   }
@@ -558,18 +560,17 @@ public class BatchruntomoParam implements CommandParam {
     private static final Mode VALIDATION = new Mode();
     private static final Mode BATCH = new Mode();
 
-    private Mode() {
-    }
+    private Mode() {}
   }
 
   private static final class InterleavedIndex {
-    //validation and batch
-    private static final InterleavedIndex DIRECTIVE_FILE =
-        new InterleavedIndex(0, "DirectiveFile");
-    //batch only
+    // validation and batch
+    private static final InterleavedIndex DIRECTIVE_FILE = new InterleavedIndex(0,
+      "DirectiveFile");
+    // batch only
     private static final InterleavedIndex ROOT_NAME = new InterleavedIndex(1, "RootName");
-    private static final InterleavedIndex CURRENT_LOCATION =
-        new InterleavedIndex(2, "CurrentLocation");
+    private static final InterleavedIndex CURRENT_LOCATION = new InterleavedIndex(2,
+      "CurrentLocation");
 
     private static final int VALIDATION_LENGTH = 1;
     private static final int BATCH_LENGTH = 3;
@@ -584,10 +585,10 @@ public class BatchruntomoParam implements CommandParam {
 
     private static String[] getTags(final CommandMode mode) {
       if (mode == Mode.VALIDATION) {
-        return new String[]{DIRECTIVE_FILE.tag};
+        return new String[] { DIRECTIVE_FILE.tag };
       }
       if (mode == Mode.BATCH) {
-        return new String[]{DIRECTIVE_FILE.tag, ROOT_NAME.tag, CURRENT_LOCATION.tag};
+        return new String[] { DIRECTIVE_FILE.tag, ROOT_NAME.tag, CURRENT_LOCATION.tag };
       }
       return null;
     }

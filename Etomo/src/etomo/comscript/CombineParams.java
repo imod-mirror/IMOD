@@ -144,6 +144,7 @@ import etomo.util.MRCHeader;
  */
 
 public final class CombineParams implements ConstCombineParams, Storable {
+
   private static final String MATCH_B_TO_A_KEY = "MatchBtoA";
   private static final String MATCH_MODE_KEY = "MatchMode";
   private static final String DIALOG_MATCH_MODE_KEY = "DialogMatchMode";
@@ -508,13 +509,13 @@ public final class CombineParams implements ConstCombineParams, Storable {
     }
     else {
       matchMode =
-        MatchMode.getInstance(props.getProperty(group + MATCH_MODE_KEY,
-          matchMode.toString()));
+        MatchMode.getInstance(props.getProperty(group + MATCH_MODE_KEY, matchMode
+          .toString()));
     }
 
     fiducialMatch =
-      FiducialMatch.fromString(props.getProperty(group + "FiducialMatch",
-        fiducialMatch.toString()));
+      FiducialMatch.fromString(props.getProperty(group + "FiducialMatch", fiducialMatch
+        .toString()));
 
     useList.parseString(props.getProperty(group + "UseList", useList.toString()));
 
@@ -526,24 +527,24 @@ public final class CombineParams implements ConstCombineParams, Storable {
 
     patchSize =
       CombinePatchSize.getInstance(props.getProperty(group + "PatchSize",
-        patchSize.toString()));
+        (patchSize != null ? patchSize.toString() : CombinePatchSize.SMALL.toString())));
     patchRegionModel = props.getProperty(group + "PatchRegionModel", patchRegionModel);
 
     patchXMin =
-      Integer.parseInt(props.getProperty(group + "PatchBoundaryXMin",
-        String.valueOf(patchXMin)));
+      Integer.parseInt(props.getProperty(group + "PatchBoundaryXMin", String
+        .valueOf(patchXMin)));
 
     patchXMax =
-      Integer.parseInt(props.getProperty(group + "PatchBoundaryXMax",
-        String.valueOf(patchXMax)));
+      Integer.parseInt(props.getProperty(group + "PatchBoundaryXMax", String
+        .valueOf(patchXMax)));
 
     patchYMin =
-      Integer.parseInt(props.getProperty(group + "PatchBoundaryYMin",
-        String.valueOf(patchYMin)));
+      Integer.parseInt(props.getProperty(group + "PatchBoundaryYMin", String
+        .valueOf(patchYMin)));
 
     patchYMax =
-      Integer.parseInt(props.getProperty(group + "PatchBoundaryYMax",
-        String.valueOf(patchYMax)));
+      Integer.parseInt(props.getProperty(group + "PatchBoundaryYMax", String
+        .valueOf(patchYMax)));
     patchZMin.load(props, prepend);
     patchZMax.load(props, prepend);
 
@@ -569,8 +570,8 @@ public final class CombineParams implements ConstCombineParams, Storable {
       modelBased = false;
     }
     maxPatchZMax =
-      Integer.parseInt(props.getProperty(group + "MaxPatchBoundaryZMax",
-        String.valueOf(maxPatchZMax)));
+      Integer.parseInt(props.getProperty(group + "MaxPatchBoundaryZMax", String
+        .valueOf(maxPatchZMax)));
     patchSizeXYZ = props.getProperty(group + PATCH_SIZE_XYZ_KEY, patchSizeXYZ);
     autoPatchFinalSize =
       CombinePatchSize.getInstance(props.getProperty(group + AUTO_PATCH_FINAL_SIZE_KEY,

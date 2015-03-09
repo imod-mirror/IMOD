@@ -1,6 +1,6 @@
 .na
 .nh
-.TH ctfplotter 1 3.10.18 BL3DEMC
+.TH ctfplotter 1 3.10.18 IMOD
 .SH NAME
 ctfplotter \- estimate defocus values of a tilt series 
 .SH SYNOPSIS

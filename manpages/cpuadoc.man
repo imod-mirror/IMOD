@@ -1,4 +1,4 @@
-.TH cpuadoc 1 3.7.0 BL3DEMC
+.TH cpuadoc 1 3.7.0 IMOD
 .na
 .nh
 
@@ -83,11 +83,13 @@ This attribute goes into the table under the heading \fBCPU Type\fR and can
 contain a description of the computer's processor.
 
 .TP
-.B exclude-interface = recon\fR|\fBjoin\fR|\fBpp\fR|\fBpeet
+.B exclude-interface = batchRunTomo\fR|\fBjoin\fR|\fBpeet\fR|\fBpp\fR|\fBrecon\fR|\fBserialSections\fR|\fBtools
 Excludes a computer from the Parallel Processing table depending on the
-interface in use.  Interfaces:  Tomogram Reconstruction - \fBrecon\fR, Join -
-\fBjoin\fR, Parallel Processing - \fBpp\fR, PEET - \fBpeet\fR.  Only one
-interface can be excluded per computer.
+interface in use.  Only one interface can be excluded per computer.
+"\fBbatchRunTomo\fR" refers to the Batch Tomograms interface.
+"\fBpp\fR" refers to the Nonlinear Anisotropic Diffusion interface, and the Generic Parallel Process interface.
+"\fBrecon\fR" refers to the Build Tomogram interface.
+"\fBtools\fR" refers to the Flatten Value interface, and the Test GPU interface.
 
 .TP
 .B users = \fIuser_name\fR[\fB,\fIuser_name\fR...]
@@ -241,7 +243,7 @@ official path to the directory is.  This is the path that eTomo will see on
 the local machine, so you need to work out how this needs to be translated
 so that it can be accessed on the remote machines.
 
-As a simple example, each Linux machine in the BL3DEMC used to have a directory
+As a simple example, each Linux machine in our laboratory used to have a directory
 named \fB/localscratch\fR which was accessed from any machine as
 \fB/scratch/\fIcomputer_name\fR (where \fIcomputer_name\fR is the name of a
 machine, without any domain).  The required mount rules were entered as:

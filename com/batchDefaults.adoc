@@ -1,8 +1,5 @@
 # This file has default settings applied by etomo when it puts out directives
-# for batch processing. The "extract" ones are temporary until etomo is fixed
-# to apply the user default
-setupset.copyarg.extract=1
-setupset.copyarg.bextract=1
+# for batch processing
 setupset.scanHeader=1
 runtime.Preprocessing.any.archiveOriginal=1
 comparam.eraser.ccderaser.LineObjects=2

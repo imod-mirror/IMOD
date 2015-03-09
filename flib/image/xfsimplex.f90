@@ -686,15 +686,15 @@ subroutine diff(delta, crray, drray, a, nxIn, nyIn)
   real*4 deltaLast/0./
   save deltaLast
   real*4 xcen, ycen, xAdd, yAdd, fj, fi, x, y, fx, fx1, fy, fy1, den, deltaFac, ccc
-  real*4 daltaSum, dend
+  real*4 deltaSum, dend
   integer*4 numPix, j, i, ix, iy, ix1, iy1, ixp, iyp, idirX, idirY, idx, idy
-  integer*4 numCrit, minDist, ixMin, iyMin
+  integer*4 numCrit, minDist, ixMin, iyMin, ifOldDiff
   logical*4 oldDiff
   real*8 sx
   real*4 outsideMultiplier
 
   delta = 0.
-
+  ifOldDiff = 0
   sx = 0.
   numPix = 0
   do iyp = 1, numYpatch
@@ -708,6 +708,7 @@ subroutine diff(delta, crray, drray, a, nxIn, nyIn)
     enddo
   enddo
   oldDiff = numXpatch * numYpatch == 1 .and. ifCCC == 0
+  if (oldDiff) ifOldDiff = 1
   xcen = float(nx) * 0.5 + 0.5                    !use + 0.5 to be consistent
   ycen = float(ny) * 0.5 + 0.5                    !with new cubinterp usage
   !
@@ -726,90 +727,10 @@ subroutine diff(delta, crray, drray, a, nxIn, nyIn)
     xAdd = xcen + a(1) + 0.5                      !the 0.5 here gets nearest int
     yAdd = ycen + a(2) + 0.5
   endif
-  do j = ny1, ny2
-    fj = float(j) - ycen
-    iyp = (j - ny1) / nxyPatch + 1
-    if (ifInterp == 0) then
-      !
-      do i = nx1, nx2
-        fi = float(i) - xcen
-        !
-        ix = amat(1, 1) * fi + amat(1, 2) * fj + xAdd
-        iy = amat(2, 1) * fi + amat(2, 2) * fj + yAdd
-        !
-        if (ix >= 1 .and. ix <= nx .and. iy >= 1 .and. iy <= ny) then
-          den = crray(ix, iy)
-          !
-          ! DUPLICATION FROM HERE (sorry, it saves 5% over an internal sub)
-          dend = drray(i, j)
-          if (oldDiff) then
-            sx = sx + abs(den - dend)
-            numPix = numPix + 1
-          else if (ifCCC == 0) then
-            ixp = (i - nx1) / nxyPatch + 1
-            sxa(ixp, iyp) = sxa(ixp, iyp) + den - dend
-            sxSqa(ixp, iyp) = sxSqa(ixp, iyp) + (den - dend)**2
-            numPixA(ixp, iyp) = numPixA(ixp, iyp) + 1
-          else
-            ixp = (i - nx1) / nxyPatch + 1
-            sxa(ixp, iyp) = sxa(ixp, iyp) + den
-            sya(ixp, iyp) = sya(ixp, iyp) + dend
-            sxya(ixp, iyp) = sxya(ixp, iyp) + den * dend
-            sxSqa(ixp, iyp) = sxSqa(ixp, iyp) + den**2
-            sySqa(ixp, iyp) = sySqa(ixp, iyp) + dend**2
-            numPixA(ixp, iyp) = numPixA(ixp, iyp) + 1
-          endif
-          ! DUPLICATION TO HERE
-        endif
-        !
-      enddo
-      !
-    else
-      do i = nx1, nx2
-        fi = float(i) - xcen
-        !
-        x = amat(1, 1) * fi + amat(1, 2) * fj + xAdd
-        y = amat(2, 1) * fi + amat(2, 2) * fj + yAdd
-        !
-        ix = x
-        iy = y
-        if (ix >= 1 .and. ix < nx .and. iy >= 1 .and. iy < ny) then
-          ! IX = MIN(NX-1, MAX(IX, 1))
-          ! IY = MIN(NY-1, MAX(IY, 1))
-          ix1 = ix + 1
-          iy1 = iy + 1
-          fx = 1 + ix - x
-          fx1 = 1. -fx
-          fy = 1 + iy - y
-          fy1 = 1. -fy
-          den = crray(ix, iy) * fx * fy + crray(ix1, iy) * fx1 * fy + &
-              crray(ix, iy1) * fx * fy1 + crray(ix1, iy1) * fx1 * fy1
-          !
-          ! DUPLICATED SECTION
-          dend = drray(i, j)
-          if (oldDiff) then
-            sx = sx + abs(den - dend)
-            numPix = numPix + 1
-          else if (ifCCC == 0) then
-            ixp = (i - nx1) / nxyPatch + 1
-            sxa(ixp, iyp) = sxa(ixp, iyp) + den - dend
-            sxSqa(ixp, iyp) = sxSqa(ixp, iyp) + (den - dend)**2
-            numPixA(ixp, iyp) = numPixA(ixp, iyp) + 1
-          else
-            ixp = (i - nx1) / nxyPatch + 1
-            sxa(ixp, iyp) = sxa(ixp, iyp) + den
-            sya(ixp, iyp) = sya(ixp, iyp) + dend
-            sxya(ixp, iyp) = sxya(ixp, iyp) + den * dend
-            sxSqa(ixp, iyp) = sxSqa(ixp, iyp) + den**2
-            sySqa(ixp, iyp) = sySqa(ixp, iyp) + dend**2
-            numPixA(ixp, iyp) = numPixA(ixp, iyp) + 1
-          endif
-        endif
-        !
-      enddo
-      !
-    endif
-  enddo
+  call simplexDiff(crray, drray, nx, ny, nx1, nx2, ny1, ny2, amat, xcen, ycen, xAdd, &
+      yAdd, ifInterp, ifOldDiff, ifCCC, sx, numPix, numXpatch, nxyPatch, sxa, sya, &
+      sxya, sxSqa, sySqa, numPixA)
+
   if (oldDiff) then
     if (numPix > 0) delta = sx / (numPix * sd1)
   else
@@ -866,7 +787,7 @@ subroutine diff(delta, crray, drray, a, nxIn, nyIn)
     !
     ! Now add up the delta values from the patches, weighted by number of
     ! pixels
-    daltaSum = 0.
+    deltaSum = 0.
     numPix = 0
     do iyp = 1, numYpatch
       do ixp = 1, numXpatch
@@ -877,7 +798,7 @@ subroutine diff(delta, crray, drray, a, nxIn, nyIn)
             den = (sxSqa(ixp, iyp) - sxa(ixp, iyp)**2 / numPixA(ixp, iyp)) / &
                 (numPixA(ixp, iyp) - 1.)
             if (den > 0) then
-              daltaSum = daltaSum + numPixA(ixp, iyp) * sqrt(den) / sd1
+              deltaSum = deltaSum + numPixA(ixp, iyp) * sqrt(den) / sd1
               numPix = numPix + numPixA(ixp, iyp)
             endif
           else
@@ -888,7 +809,7 @@ subroutine diff(delta, crray, drray, a, nxIn, nyIn)
             if (den > 0) then
               ccc = (numPixA(ixp, iyp) * sxya(ixp, iyp) - &
                   sxa(ixp, iyp) * sya(ixp, iyp)) / sqrt(den)
-              daltaSum = daltaSum + numPixA(ixp, iyp) * (1. - ccc)
+              deltaSum = deltaSum + numPixA(ixp, iyp) * (1. - ccc)
               numPix = numPix + numPixA(ixp, iyp)
             endif
           endif
@@ -897,7 +818,7 @@ subroutine diff(delta, crray, drray, a, nxIn, nyIn)
     enddo
     !
     ! Take the weighted average
-    if (numPix > 0) delta = daltaSum / numPix
+    if (numPix > 0) delta = deltaSum / numPix
   endif
   !
   deltaFac = outsideMultiplier(a, aLimits)

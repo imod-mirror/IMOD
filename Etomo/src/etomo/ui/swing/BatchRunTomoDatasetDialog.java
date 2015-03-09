@@ -725,7 +725,7 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable, UIC
       if (ltfGold.isEnabled()) {
         BatchTool.saveFieldToAutodoc(ltfGold, autodoc, doValidation, fieldDisplayer);
       }
-      //Gold must have some value.  If the field is disabled, use 0.
+      // Gold must have some value. If the field is disabled, use 0.
       else if (BatchTool.needInAutodoc(ltfGold, GOLD_DEFAULT)) {
         autodoc.addNameValuePairAttribute(DirectiveDef.GOLD.getDirective(null, null),
           GOLD_DEFAULT);
@@ -751,7 +751,12 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable, UIC
       BatchTool.saveFieldToAutodoc(cbLocalAlignments, autodoc);
       BatchTool.saveFieldToAutodoc(lsBinByFactor, autodoc);
       BatchTool.saveFieldToAutodoc(cbCorrectCTF, autodoc);
-      BatchTool.saveFieldToAutodoc(ltfDefocus, autodoc, doValidation, fieldDisplayer);
+      EtomoNumber nDefocus = new EtomoNumber(EtomoNumber.Type.DOUBLE);
+      nDefocus.set(ltfDefocus.getText(doValidation, fieldDisplayer));
+      if (!nDefocus.isNull()) {
+        autodoc.addNameValuePairAttribute(DirectiveDef.DEFOCUS.getDirective(null, null),
+          String.valueOf(nDefocus.getDouble() * 1000.));
+      }
       if (rtfAutoFitRangeAndStep.isEnabled() && rtfAutoFitRangeAndStep.isSelected()) {
         if (rbTrackingMethodSeed.isEnabled()
           && BatchTool.needInAutodoc(rbTrackingMethodSeed)) {
@@ -893,7 +898,20 @@ final class BatchRunTomoDatasetDialog implements ActionListener, Expandable, UIC
     setValue(cbLocalAlignments, directiveFiles, setFieldHighlightValue);
     setValue(lsBinByFactor, directiveFiles, setFieldHighlightValue);
     setValue(cbCorrectCTF, directiveFiles, setFieldHighlightValue);
-    setValue(ltfDefocus, directiveFiles, setFieldHighlightValue);
+    if (directiveFiles.contains(DirectiveDef.DEFOCUS, setFieldHighlightValue)) {
+      EtomoNumber nDefocus = new EtomoNumber(EtomoNumber.Type.DOUBLE);
+      nDefocus.set(directiveFiles.getValue(DirectiveDef.DEFOCUS, setFieldHighlightValue));
+      if (!nDefocus.isNull()) {
+        double dDefocus = nDefocus.getDouble()/1000.;
+        if (!setFieldHighlightValue) {
+          ltfDefocus.setValue(String.valueOf(dDefocus));
+        }
+        else {
+          ltfDefocus.setFieldHighlight(String.valueOf(dDefocus));
+        }
+      }
+    }
+   // setValue(ltfDefocus, directiveFiles, setFieldHighlightValue);
     if (directiveFiles.contains(DirectiveDef.AUTO_FIT_RANGE_AND_STEP,
       setFieldHighlightValue)) {
       EtomoNumber step = new EtomoNumber(EtomoNumber.Type.DOUBLE);

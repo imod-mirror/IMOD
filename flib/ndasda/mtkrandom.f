@@ -22,9 +22,12 @@ c
      &    ifexcludeout)
       include 'mtk.inc'
       parameter (limwobj=30000,
-     &    limtyp=50,itypall=999,limxyz=50000,limbound=1000)
+     &    limtyp=50,itypall=999,limxyz=250000,limbound=1000)
       parameter (limind=limverts*6)
       parameter (limsizes=limxyz)
+c       limwobj * 28 = 0.8
+c       limxyz * 40 = 10.0
+c       limverts * 24 = 22
       real*4 xmt(*),ymt(*),zmt(*),probnear(limprobs,*),delnear(*)
       integer*4 indstrt(*),npntobj(*),iobjflag(*)
       integer*4 icolor(*)                       !types of sample points
@@ -53,6 +56,7 @@ c
       save iffirst,iseed
       data icall/0/
       save icall
+      common /modindbig/ modind
 c       
       character*8 jtime
 c       

@@ -1,6 +1,6 @@
 .na
 .nh
-.TH batchruntomo 1 4.6.18 BL3DEMC
+.TH batchruntomo 1 4.6.18 IMOD
 .SH NAME
 batchruntomo \- Align tilt series and generate tomograms automatically
 .SH SYNOPSIS
@@ -99,6 +99,8 @@ not be produced.  Directives with prefix "runtime" are simply ignored if they
 are not relevant to the chosen processing sequence.
 
 .SS Template Files
+Template files can contain parameters that can be used meaningfully 
+for multiple, similar data sets.
 Directives exist to define a microscope template file, a system template file,
 and a user template file.  The idea is for the microscope file to have
 parameters specific to a microscope or microscope/camera combination, and to
@@ -260,14 +262,16 @@ otherwise it must be specified with a directive.  The
 useful one because it can be used to specify a thickness to be used when
 there is no thickness available from either fine alignment or
 positioning.  The fallback thickness will also be used if the thickness
-from either is less than half of the fallback thickness, which
+from either is less than 40% of the fallback thickness, which
 would be the case if there are gold on only one surface and no 
 positioning was done.
 .P
 .B Tomogram combination
-for a dual-axis dataset is currently possible only for datasets with a
-fiducial alignment; it will proceed automatically in that case.  The program first uses
-Findsection(1) to find the Z limits.  The patch correlations and
+for a dual-axis dataset is possible with all kinds of alignments and
+will proceed automatically.  The program first uses
+Findsection(1) to find the Z limits, and decides whether to get the
+initial registration between volumes with Solvematch(1) or
+Dualvolmatch(1).  The patch correlations and
 fitting are done with Autopatchfit(1); by default, it will try medium to
 extra-large patches and add target residual values of 0.4,0.45 for
 Findwarp(1) on the final trial.  There are "runtime.Combine" directives
@@ -298,10 +302,18 @@ will be the Trimvol default of 80% of the range; if "scaleFromZ" is not
 present, the central one-third of slices will be used.  All of these size
 and scaling directives may be specified either as a number of pixels, or as a
 fraction between 0.02 and 1.
+.P
+.B Nonlinear anisotropic diffusion (NAD)
+with Nad_eed_3d(1) can be run if both "runtime.NAD" directives are
+present for specifying the number of iterations and the K value.
 
 .SS Stopping and Restarting
 The \fB-start\fR and \fB-end\fR options allow datasets to be started
-and stopped at chosen steps in the sequence.  
+and stopped at chosen steps in the sequence.  The most useful step
+to stop at would be 10, to check CTF plotting and/or gold detection, then
+restart at 11.  To check fine alignment before going on, stop and
+restart at 6.
+.P
 If you are setting up a situation where parameters are being changed
 before restarting in an existing dataset, you should experiment to
 make sure the changes have the desired effect and are not overridden.
@@ -327,6 +339,21 @@ basis of "runtime" directives and other information.  The biggest
 example of this is the treatment of "align.com" when Tiltalign(1) is
 rerun; the \fB-use\fR option is provided specifically to avoid
 rerunning Tiltalign(1).
+
+.SS Resource Usage
+The CPU list provided with the \fB-cpus\fR option is passed directly to
+Processchunks(1) for running operations that are divided into multiple
+chunks.  However, other operations that run from a single command file
+will generally be run on the local machine, unless the \fB-single\fR
+option is used to direct them to the first machine in the CPU list.
+The exceptions are two time-consuming steps in dual-axis combination,
+Matchvol(1) and Autopatchfit(1), which benefit
+from using multiple threads and are sent to the machine with the highest
+number of CPUs.  When running single command files, the program sets a
+limit on the number of threads equal to the number of CPUs designated
+in the CPU list for the machine being used, if it is known
+(\fB-limit\fR can be entered if this is not otherwise known for the
+local machine).
 
 .SH OPTIONS
 Batchruntomo uses the PIP package for input (see the manual page for pip(1)).

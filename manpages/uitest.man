@@ -1,4 +1,4 @@
-.TH uitest 1 2/4/2009 BL3DEMC
+.TH uitest 1 2/4/2009 IMOD
 .na
 .nh
 

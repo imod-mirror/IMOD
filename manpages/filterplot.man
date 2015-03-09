@@ -1,6 +1,6 @@
 .na
 .nh
-.TH filterplot 1 4.6.34 BL3DEMC
+.TH filterplot 1 4.6.34 IMOD
 .SH NAME
 filterplot - plot filter created by 4 IMOD filter parameters
 .SH SYNOPSIS

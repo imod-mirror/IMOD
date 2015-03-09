@@ -1,6 +1,6 @@
 .na
 .nh
-.TH transferfid 1 2.6.13 BL3DEMC
+.TH transferfid 1 2.6.13 IMOD
 .SH NAME
 transferfid \- make seed model for second axis from fiducials for first axis
 .SH SYNOPSIS

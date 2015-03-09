@@ -44,6 +44,7 @@
 
 #include <qobject.h>
 #include <qstring.h>
+#include <qstringlist.h>
 class QTimer;
 
 class ImodClipboard : public QObject
@@ -61,6 +62,7 @@ class ImodClipboard : public QObject
   int waitForDisconnect();
   bool disconnectedFromStderr() {return mDisconnected;};
   void doneWithLoad();
+  void splitWithEscapedSpaces(QString &text, QStringList &tmpString);
 
   QTimer *mClipHackTimer;
   QTimer *mStdinTimer;

@@ -30,7 +30,7 @@
 #define B3DSWAP(a,b,c) {c = (a); a = (b); b = c;}
 
 #define IMOD_MRC_STAMP 1146047817
-#define WRITE_SBYTES_DEFAULT 0
+#define WRITE_SBYTES_DEFAULT 1
 #define WRITE_SBYTES_ENV_VAR "WRITE_MODE0_SIGNED"
 #define READ_SBYTES_ENV_VAR "READ_MODE0_SIGNED"
 #define MRC_FLAGS_SBYTES  1
@@ -42,6 +42,9 @@
 #define OUTPUT_TYPE_HDF     5
 #define OUTPUT_TYPE_DEFAULT OUTPUT_TYPE_MRC
 #define OUTPUT_TYPE_ENV_VAR "IMOD_OUTPUT_FORMAT"
+
+#define ALL_BIGTIFF_DEFAULT 0
+#define ALL_BIGTIFF_ENV_VAR "IMOD_ALL_BIG_TIFF"
 
 #define RADIANS_PER_DEGREE 0.01745329252
 
@@ -96,6 +99,10 @@ extern "C" {
   void overrideOutputType(int type);
   int b3dOutputFileType();
   int setOutputTypeFromString(const char *typeStr);
+  void overrideAllBigTiff(int value);
+  int makeAllBigTiff();
+  void setNextOutputSize(int nx, int ny, int nz, int mode);
+  int dataSizeForMode(int mode, int *bytes, int *channels);
 
 #ifdef __cplusplus
 }

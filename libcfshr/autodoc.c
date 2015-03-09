@@ -646,11 +646,15 @@ int AdocInsertSection(const char *typeName, int sectInd, const char *name)
   }
 
   /* Add section to end regardless, then return if that is all that is needed */
-  coll = &curAdoc->collections[collInd];
   if (AdocAddSection(typeName, name) < 0)
     return -1;
   if (sectInd == numSect)
     return 0;
+
+  /* Fix collection index if a new collection had to be added */
+  if (collInd < 0)
+    collInd = curAdoc->numCollections - 1;
+  coll = &curAdoc->collections[collInd];
 
   /* Save the new section then move existing sections up and copy new one into place */
   memcpy(&newSect, &coll->sections[coll->numSections - 1], sizeof(AdocSection));
@@ -760,7 +764,7 @@ int AdocFindInsertIndex(const char *typeName, int nameValue)
     return -1;
   collInd = lookupCollection(curAdoc, typeName);
   if (collInd < 0)
-    return -1;
+    return 0;
   coll = &curAdoc->collections[collInd];
   for (sectInd = 0; sectInd < coll->numSections; sectInd++) {
     sectValue = atoi(coll->sections[sectInd].name);

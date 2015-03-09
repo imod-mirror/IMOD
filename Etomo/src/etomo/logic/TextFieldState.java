@@ -10,21 +10,15 @@ import etomo.util.FilePath;
 /**
 * <p>Description: </p>
 * 
-* <p>Copyright: Copyright 2012</p>
+* <p>Copyright: Copyright 2012 - 2015 by the Regents of the University of Colorado</p>
+* <p/>
+* <p>Organization: Dept. of MCD Biology, University of Colorado</p>
 *
-* <p>Organization:
-* Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
-* University of Colorado</p>
-* 
-* @author $Author$
-* 
-* @version $Revision$
+* @version $Id$
 * 
 * <p> $Log$ </p>
 */
 public final class TextFieldState {
-  public static final String rcsid = "$Id:$";
-
   private final boolean editableField;
   private final ParsedElementType parsedElementType;
   private final String rootDir;
@@ -119,6 +113,9 @@ public final class TextFieldState {
    * @param value
    */
   public String convertToFieldText(final String string) {
+    if (string ==null) {
+      return "";
+    }
     if (expanded || !FilePath.isPath(string)) {
       // Set value as is, unless the field is contracted and its a file path.
       parent = null;

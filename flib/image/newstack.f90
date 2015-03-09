@@ -42,6 +42,10 @@ program newstack
   integer*4 lineInSt(maxChunks+1), numLinesIn(maxChunks)
   real*4, allocatable :: scaleFacs(:), scaleConsts(:), secZmins(:), secZmaxes(:), ztemp(:)
   integer*1, allocatable :: extraIn(:), extraOut(:)
+  integer*1 btiltTemp(4)
+  integer*2 itiltTemp(2)
+  real*4 rtiltTemp
+  equivalence (rtiltTemp, btiltTemp), (itiltTemp, btiltTemp)
   data optimalMax/255., 32767., 255., 32767., 255., 255., 65535., 255., 255., &
       511., 1023., 2047., 4095., 8191., 16383., 32767./
   !
@@ -55,7 +59,7 @@ program newstack
   integer*4 ifMagGrad, numMagGrad, magUse
   real*4 pixelMagGrad, axisRot
   integer*4, allocatable :: lineUse(:), listReplace(:), idfUse(:), nControl(:)
-  real*4, allocatable :: xcen(:), ycen(:), secMean(:), f(:,:,:)
+  real*4, allocatable :: xcen(:), ycen(:), secMean(:), f(:,:,:), extraTilts(:)
   real*4, allocatable :: tmpDx(:,:), tmpDy(:,:), fieldDx(:,:), fieldDy(:,:)
   integer*4, allocatable :: listVolumes(:)
 
@@ -63,13 +67,14 @@ program newstack
   !
   logical rescale, blankOutput, adjustOrigin, hasWarp, fillTmp, fillNeeded, stripExtra
   logical readShrunk, numberedFromOne, twoDirections, useMdocFiles, outDocChanged, quiet
+  logical saveTilts, serialEMtype
   logical*4 phaseShift
-  character dat*9, timeStr*8, tempExt*9
+  character dat * 9, timeStr * 8, tempExt * 9
   logical nbytes_and_flags
   character*80 titlech
   integer*4 inUnit, numInFiles, listTotal, numOutTot, numOutFiles, nxOut, nyOut, lmGrid
   integer*4 newMode, ifOffset, ifXform, nXforms, nLineUse, ifMean, ifFloat, ifWarping
-  integer*4 nsum, ilist, iFile, iSecRead, loadYstart, loadYend, isec, isecOut
+  integer*4 nsum, ilist, iFile, iSecRead, loadYstart, loadYend, isec, isecOut, itype
   real*4 xOffsAll, yOffsAll, fracZero, dminSpecified, dmaxSpecified, contrastLo
   real*4 zmin, zmax, diffMinMean, diffMaxMean, grandSum, sdSec, contrastHi
   real*4 grandMean, shiftMin, shiftMax, shiftMean, dminIn, dmaxIn, dmeanIn
@@ -92,7 +97,8 @@ program newstack
   integer*4 indFilter, linesShrink, numAllSec, maxNumXF, nxMax, nyMax, ifControl, nzChunk
   integer*4 indFiltTemp, ifFiltSet, ifShrink, numVolRead, if3dVolumes, nxTile, nyTile
   integer*4 indAdocIn, indAdocOut, indSectIn, needClose1, needClose2, nxTileIn, nyTileIn
-  integer*4 nxFSpad, nyFSpad, maxFSpad, minFSpad, nxDimNeed, nyDimNeed
+  integer*4 nxFSpad, nyFSpad, maxFSpad, minFSpad, nxDimNeed, nyDimNeed, numReverse
+  integer*4 indArg, ifirstExtraType, ianyExtraType, numForTilt
   real*4 rxOffset, ryOffset, fsPadFrac
   real*4 fieldMaxY, rotateAngle, expandFactor, fillVal, shrinkFactor
   real*8 dsum, dsumSq, tsum, tsumSq, wallStart, wallTime, loadTime, saveTime
@@ -100,6 +106,7 @@ program newstack
   real*4 cosd, sind
   integer*4 taperAtFill, selectZoomFilter, zoomFiltInterp, numberInList, niceFFTlimit
   integer*4 readCheckWarpFile, AdocLookupByNameValue, AdocTransferSection, AdocSetCurrent
+  integer*4 AdocFindInsertIndex, AdocSetFloat, AdocInsertSection, AdocAddSection
   integer*4 iiuRetAdocIndex, iiuVolumeOpen, iiuAltChunkSizes, AdocWrite, niceFrame
   integer*4 getLinearTransform, findMaxGridSize, getSizeAdjustedGrid, iiuFileType
   integer*4 setOutputTypeFromString, b3dOutputFileType, AdocSetInteger, iiuWriteGlobalAdoc
@@ -114,31 +121,32 @@ program newstack
   ! fallbacks from ../../manpages/autodoc2man -3 2  newstack
   !
   integer numOptions
-  parameter (numOptions = 52)
+  parameter (numOptions = 56)
   character*(40 * numOptions) options(1)
   options(1) = &
       'input:InputFile:FNM:@output:OutputFile:FNM:@fileinlist:FileOfInputs:FN:@'// &
-      'fileoutlist:FileOfOutputs:FN:@split:SplitStartingNumber:I:@'// &
-      'append:AppendExtension:CH:@format:FormatOfOutputFile:CH:@'// &
-      'volumes:VolumesToRead:LI:@3d:Store3DVolumes:I:@chunk:ChunkSizesInXYZ:IT:@'// &
-      'mdoc:UseMdocFiles:B:@secs:SectionsToRead:LIM:@fromone:NumberedFromOne:B:@'// &
+      'fileoutlist:FileOfOutputs:FN:@reverse:ReverseInputFileOrder:I:@'// &
+      'split:SplitStartingNumber:I:@append:AppendExtension:CH:@'// &
+      'format:FormatOfOutputFile:CH:@volumes:VolumesToRead:LI:@3d:Store3DVolumes:I:@'// &
+      'chunk:ChunkSizesInXYZ:IT:@mdoc:UseMdocFiles:B:@tilt:TiltAngleFile:FN:@'// &
+      'secs:SectionsToRead:LIM:@fromone:NumberedFromOne:B:@'// &
       'exclude:ExcludeSections:LI:@twodir:TwoDirectionTiltSeries:B:@'// &
       'skip:SkipSectionIncrement:I:@numout:NumberToOutput:IAM:@'// &
       'replace:ReplaceSections:LI:@blank:BlankOutput:B:@offset:OffsetsInXandY:FAM:@'// &
       'applyfirst:ApplyOffsetsFirst:B:@xform:TransformFile:FN:@'// &
       'uselines:UseTransformLines:LIM:@onexform:OneTransformPerFile:B:@'// &
-      'rotate:RotateByAngle:F:@expand:ExpandByFactor:F:@shrink:ShrinkByFactor:F:@'// &
-      'antialias:AntialiasFilter:I:@bin:BinByFactor:I:@distort:DistortionField:FN:@'// &
-      'imagebinned:ImagesAreBinned:I:@fields:UseFields:LIM:@'// &
-      'gradient:GradientFile:FN:@origin:AdjustOrigin:B:@'// &
+      'phase:PhaseShiftFFT:B:@rotate:RotateByAngle:F:@expand:ExpandByFactor:F:@'// &
+      'shrink:ShrinkByFactor:F:@antialias:AntialiasFilter:I:@bin:BinByFactor:I:@'// &
+      'distort:DistortionField:FN:@imagebinned:ImagesAreBinned:I:@'// &
+      'fields:UseFields:LIM:@gradient:GradientFile:FN:@origin:AdjustOrigin:B:@'// &
       'linear:LinearInterpolation:B:@nearest:NearestNeighbor:B:@'// &
       'size:SizeToOutputInXandY:IP:@mode:ModeToOutput:I:@'// &
       'bytes:BytesSignedInOutput:I:@strip:StripExtraHeader:B:@'// &
       'float:FloatDensities:I:@meansd:MeanAndStandardDeviation:FP:@'// &
       'contrast:ContrastBlackWhite:IP:@scale:ScaleMinAndMax:FP:@'// &
       'multadd:MultiplyAndAdd:FPM:@fill:FillValue:F:@taper:TaperAtFill:IP:@'// &
-      'memory:MemoryLimit:I:@test:TestLimits:IP:@verbose:VerboseOutput:I:@'// &
-      'param:ParameterFile:PF:@help:usage:B:'
+      'memory:MemoryLimit:I:@test:TestLimits:IP:@quiet:QuietOutput:B:@'// &
+      'verbose:VerboseOutput:I:@param:ParameterFile:PF:@help:usage:B:'
   !
   ! Pip startup: set error, parse options, check help, set flag if used
   !
@@ -216,6 +224,9 @@ program newstack
   fsPadFrac = 0.1
   nxFSpad = 0
   nyFSpad = 0
+  numReverse = 0
+  saveTilts = .false.
+  ianyExtraType = 0
   !
   ! Preliminary allocation of array
   allocate(array(limToAlloc), stat = ierr)
@@ -224,7 +235,7 @@ program newstack
   !
   ! read in list of input files
   !
-  call ialprt(.false.)
+  call iiuAltPrint(0)
   inUnit = 5
   !
   ! get number of input files and other preliminary items
@@ -244,13 +255,20 @@ program newstack
     ierr = PipGetLogical('NumberedFromOne', numberedFromOne)
     ierr = PipGetLogical('TwoDirectionTiltSeries', twoDirections)
     if (numberedFromOne) numberOffset = 1
+    if (PipGetInteger('ReverseInputFileOrder', numReverse) == 0) then
+      if (numInFiles < 0)  &
+          call exitError('YOU CANNOT ENTER -reverse WITH AN INPUT FILE LIST')
+      if (abs(numReverse) > numInFiles) &
+          call exitError('THE ENTRY TO -reverse IS BIGGER THAN THE NUMBER OF INPUT FILES')
+      if (numReverse == 0) numReverse = numInFiles
+    endif
     if (PipGetInteger('BytesSignedInOutput', i) == 0) call overrideWriteBytes(i)
     i = 1
-    if (PipGetString('ExcludeSections', listString) .eq. 0) then
+    if (PipGetString('ExcludeSections', listString) == 0) then
       call parseList2(listString, inList, numExclude, LIMSEC)
       i = numExclude
     endif
-    allocate(isecExclude(i), stat=ierr)
+    allocate(isecExclude(i), stat = ierr)
     call memoryError(ierr, 'ARRAY FOR EXCLUDED SECTIONS')
     if (numExclude > 0) then
       isecExclude(1:numExclude) = inList(1:numExclude) - numberOffset
@@ -282,13 +300,13 @@ program newstack
   !
   ! Get HDF and volume related options
   if (pipInput) then
-    if (PipGetString('FormatOfOutputFile', listString) .eq. 0) then
+    if (PipGetString('FormatOfOutputFile', listString) == 0) then
       ierr = setOutputTypeFromString(listString)
       if (ierr == -5) &
           call exitError('HDF files are not supported by this IMOD package')
       if (ierr < 0) call exitError('Unrecognized entry for output file format')
     endif
-    if (PipGetString('VolumesToRead', listString) .eq. 0) then
+    if (PipGetString('VolumesToRead', listString) == 0) then
       call parseList2(listString, inList, numVolRead, LIMSEC)
       numVolRead = min(numVolRead, numInFiles)
       listVolumes(1:numVolRead) = inList(1:numVolRead)
@@ -306,17 +324,27 @@ program newstack
   nyMax = 0
   if (twoDirections .and. numInFiles .ne. 2)  &
       call exitError('THERE MUST BE EXACTLY TWO INPUT FILES TO USE -twodir')
-  do indFile = 1, numInFiles
-    !
-    ! get the next filename
-    !
-    if (pipinput .and. inUnit .ne. 7) then
-      if (indFile <= numInputFiles) then
+  !
+  ! For pip input, get all the filenames now in case they need to be reversed
+  if (pipinput .and. inUnit .ne. 7) then
+    do indArg = 1, numInFiles
+      indFile = indArg
+      if (numReverse > 0 .and. indArg <= numReverse)  &
+          indFile = numReverse + 1 - indArg
+      if (numReverse < 0 .and. indArg > numInFiles + numReverse)  &
+          indFile = numInFiles + numReverse + (numInFiles + 1 - indArg)
+      if (indArg <= numInputFiles) then
         ierr = PipGetString('InputFile', inFile(indFile))
       else
-        ierr = PipGetNonOptionArg(indFile - numInputFiles, inFile(indFile))
+        ierr = PipGetNonOptionArg(indArg - numInputFiles, inFile(indFile))
       endif
-    else
+    enddo
+  endif
+
+  do indFile = 1, numInFiles
+    !
+    ! get the next filename if it wasn't gotten in previous loop
+    if (.not. (pipinput .and. inUnit .ne. 7)) then
       if (inUnit .ne. 7) then
         if (numInFiles == 1) then
           write(*,'(1x,a,$)') 'Name of input file: '
@@ -336,9 +364,9 @@ program newstack
     if (indFile == 1) then
       nxFirst = nx
       nyFirst = ny
-      call irtdel(1, deltafirst)
+      call iiuRetDelta(1, deltafirst)
       !
-      ! Retain first input file volume structure in output if already doing HDF unless 
+      ! Retain first input file volume structure in output if already doing HDF unless
       ! user said not  to; adopt its chunk sizes unless user entered them
       call iiuRetChunkSizes(1, nxTileIn, nyTileIn, nzChunkIn)
       if (nzChunkIn > 0 .and. b3dOutputFileType() == 5) then
@@ -350,8 +378,8 @@ program newstack
         endif
       endif
     endif
-    call imclose(1)
-    if (needClose1 > 0) call imclose(needClose1)
+    call iiuClose(1)
+    if (needClose1 > 0) call iiuClose(needClose1)
     nxMax = max(nx, nxMax)
     nyMax = max(ny, nyMax)
     nlist(indFile) = nz
@@ -388,7 +416,7 @@ program newstack
             ' IS AN ILLEGAL SECTION NUMBER FOR ', trim(inFile(indFile))
         call exit(1)
       endif
-      if (numberInList(inList(isec), isecExclude, numExclude, 0) .eq. 0) then
+      if (numberInList(inList(isec), isecExclude, numExclude, 0) == 0) then
         inList(indOut) = inList(isec)
         indOut = indOut + 1
       endif
@@ -520,9 +548,9 @@ program newstack
       numSecOut(i) = 1
       write(convNum, convFormat) i + iseriesBase - 1
       if (seriesExt == ' ') then
-        outFile(i) = trim(tempName)//'.'//trim(adjustl(convNum))
+        outFile(i) = trim(tempName) //'.'//trim(adjustl(convNum))
       else
-        outFile(i) = trim(tempName)//trim(adjustl(convNum))//'.'//trim(seriesExt)
+        outFile(i) = trim(tempName) //trim(adjustl(convNum)) //'.'//trim(seriesExt)
       endif
     enddo
     numOutTot = listTotal
@@ -781,6 +809,26 @@ program newstack
     ierr = PipGetTwoIntegers('TaperAtFill', numTaper, insideTaper)
     ierr = PipGetLogical('QuietOutput', quiet)
     !
+    ! Tilt angles
+    if (PipGetString('TiltAngleFile', tempName) == 0) then
+      if (stripExtra) call exitError('YOU CANNOT ENTER both -tilt AND -strip')
+      if (index(tempName, '.', .true.) == 1) then
+        ind = index(inFile(1), '.', .true.) - 1
+        if (ind <= 0) ind = len_trim(inFile(1))
+        tempName = inFile(1)(1:ind) // tempName
+      endif
+      call dopen(3, tempName, 'ro', 'f')
+      allocate(extraTilts(listTotal), stat = ierr)
+      call memoryError(ierr, 'ARRAY FOR TILT ANGLES')
+      do ind = 1, listTotal
+        read(3, *, iostat=ierr) extraTilts(ind)
+        if (ierr .ne. 0) call exitError('READING TILT ANGLE FILE: IT MUST HAVE AS '// &
+            'MANY LINES AS SECTIONS BEING WRITTEN')
+      enddo
+      close(3)
+      saveTilts = .true.
+    endif
+    !
     ! Memory limits
     limEntered = 1 - PipGetTwoIntegers('TestLimits', ierr, lenTemp)
     if (limEntered > 0) limToAlloc = ierr
@@ -881,13 +929,13 @@ program newstack
         ! print *,'replacing', (listReplace(i), i = 1, numReplace)
         if (numOutFiles > 1) call exitError( &
             'THERE MUST BE ONLY ONE OUTPUT FILE TO USE -replace')
-        if (if3dVolumes > 0) call exitError( &
-            'YOU CANNOT USE -3d OR -chunk WITH -replace')
-        if (.not. quiet) call ialprt(.true.)
+        if (if3dVolumes > 0) call exitError('YOU CANNOT USE -3d OR -chunk WITH -replace')
+        if (saveTilts) call exitError('YOU CANNOT USE -tilt WITH -replace')
+        if (.not. quiet) call iiuAltPrint(1)
         call iiAllowMultiVolume(0)
         call imopen(2, outFile(1), 'OLD')
         call irdhdr(2, nxyz2, mxyz2, modeOld, dmin, dmax, dmean)
-        call ialprt(.false.)
+        call iiuAltPrint(0)
         do i = 1, numReplace
           listReplace(i) = listReplace(i) - numberOffset
           if (listReplace(i) < 0 .or. listReplace(i) >= nxyz2(3)) &
@@ -1079,8 +1127,8 @@ program newstack
             endif
           endif
         enddo
-        call imclose(1)
-        if (needClose1 > 0) call imclose(needClose1)
+        call iiuClose(1)
+        if (needClose1 > 0) call iiuClose(needClose1)
       enddo
       !
       ! for shift to mean, figure out new mean, min and max and whether
@@ -1104,7 +1152,7 @@ program newstack
         !call rsMedian(secZmaxes, numOutTot, ztemp, zmaxMed)
         !call rsMADN(secZmaxes, numOutTot, zmaxMed, ztemp, zmaxMADN)
         !print *,'median', zmaxMed, '   MADN', zmaxMADN
-        !write(*,'(8f9.2)')(ztemp(i) / zmaxMADN, i = 1, numOutTot)
+        !write(*,'(8f9.2)') (ztemp(i) / zmaxMADN, i = 1, numOutTot)
         call rsMadMedianOutliers(secZmins, numOutTot, 8., ztemp)
         do i = 1, numOutTot
           if (ztemp(i) >= 0.) then
@@ -1132,7 +1180,7 @@ program newstack
   isecOut = 1
   isecReplace = 1
   iOutFile = 1
-  if (.not. quiet) call ialprt(.true.)
+  if (.not. quiet) call iiuAltPrint(1)
   call time(timeStr)
   call b3dDate(dat)
   numTruncLow = 0
@@ -1142,8 +1190,8 @@ program newstack
   do iFile = 1, numInFiles
     call openInputFile(iFile)
     call irdhdr(1, nxyz, mxyz, mode, dminIn, dmaxIn, dmeanIn)
-    call irtsiz(1, nxyz, mxyz, nxyzst)
-    call irtcel(1, cell)
+    call iiuRetSize(1, nxyz, mxyz, nxyzst)
+    call iiuRetCell(1, cell)
     !
     ! get the binned size to read
     !
@@ -1154,7 +1202,8 @@ program newstack
     !
     ! get extra header information if any
     !
-    call irtnbsym(1, nByteSymIn)
+    call iiuRetNumExtended(1, nByteSymIn)
+    itype = 0
     if (nByteSymIn > 0) then
       !
       ! Deallocate array if it was allocated and is not big enough
@@ -1169,15 +1218,28 @@ program newstack
         allocate(extraIn(maxExtraIn), stat = ierr)
         if (ierr .ne. 0) call exitError('ALLOCATING MEMORY FOR EXTRA HEADER ARRAYS')
       endif
-      call irtsym(1, nByteSymIn, extraIn)
-      call irtsymtyp(1, nByteExtraIn, iFlagExtraIn)
+      call iiuRetExtendedData(1, nByteSymIn, extraIn)
+      call iiuRetExtendedType(1, nByteExtraIn, iFlagExtraIn)
       !
       ! DNM 4/18/02: if these numbers do not represent bytes and
       ! flags, then number of bytes is 4 times nint + nreal
       !
-      if (.not.nbytes_and_flags(nByteExtraIn, iFlagExtraIn)) &
-          nByteExtraIn = 4 * (nByteExtraIn + iFlagExtraIn)
+      serialEMtype = nbytes_and_flags(nByteExtraIn, iFlagExtraIn)
+      if (.not.serialEMtype) nByteExtraIn = 4 * (nByteExtraIn + iFlagExtraIn)
+      itype = 1
+      if (serialEMtype) itype = -1
+      if (serialEMtype .and. saveTilts .and. mod(iFlagExtraIn, 2) == 0)  &
+          call exitError('YOU CANNOT SAVE TILT ANGLES INTO A SERIALEM EXTENDED '// &
+          'HEADER THAT WAS NOT SAVED WITH TILT ANGLES')
     endif
+    if (ianyExtraType == 0) ianyExtraType = itype
+    if (ifile == 1) ifirstExtraType = itype
+    if (ianyExtraType .ne. 0 .and. itype .ne. 0 .and. ianyExtraType .ne. itype .and.  &
+        .not. stripExtra) call exitError('YOU CANNOT INCLUDE FILES WITH SERIALEM AND'// &
+        ' AGARD/FEI TYPE EXTENDED HEADERS IN THE SAME RUN; ADD THE -strip OPTION')
+    if (saveTilts .and. itype .ne. ifirstExtraType) call exitError( &
+        'TO STORE TILT ANGLES, ALL INPUT FILES MUST HAVE THE SAME TYPE OF EXTENDED'// &
+        ' HEADER OR NO EXTENDED HEADER')
     ierr = 0
     if (useMdocFiles) ierr = 1
     indAdocIn = iiuRetAdocIndex(1, 0, ierr)
@@ -1281,6 +1343,7 @@ program newstack
                 'SETTING image_pyramid ATTRIBUTE IN GLOBAL SECTION OF HDF FILE')
           endif
         else
+          call setNextOutputSize(nxOut, nyOut, numSecOut(iOutFile), newMode);
           call imopen(2, outFile(iOutFile), 'NEW')
           needClose2 = 0
         endif
@@ -1294,19 +1357,19 @@ program newstack
           if (iiuAltChunkSizes(2, nxTileIn, nyTileIn, nzChunkIn) .ne. 0) call exitError( &
               'SETTING CHUNK SIZES IN NEW VOLUME')
           if (nxTileIn .ne. nxOut .or. nyTileIn .ne. nyOut .or. nzChunkIn .ne.  &
-              numSecOut(iOutFile)) write(*,'(a,i7,a,i7,a,i4)')'Actual chunk size: ', &
-              nxTileIn,' by', nyTileIn, ' by', nzChunkIn
+              numSecOut(iOutFile)) write(*,'(a,i7,a,i7,a,i4)') 'Actual chunk size: ', &
+              nxTileIn, ' by', nyTileIn, ' by', nzChunkIn
         endif
 
-        call itrhdr(2, 1)
-        call ialmod(2, newMode)
+        call iiuTransHeader(2, 1)
+        call iiuAltMode(2, newMode)
         !
         ! set new size, keep old nxyzst
         !
         nxyz2(1) = nxOut
         nxyz2(2) = nyOut
         nxyz2(3) = numSecOut(iOutFile)
-        call ialsiz(2, nxyz2, nxyzst)
+        call iiuAltSize(2, nxyz2, nxyzst)
         !
         ! if mxyz=nxyz, keep this relationship
         !
@@ -1314,7 +1377,7 @@ program newstack
           mxyz2(1) = nxOut
           mxyz2(2) = nyOut
           mxyz2(3) = numSecOut(iOutFile)
-          call ialsam(2, mxyz2)
+          call iiuAltSample(2, mxyz2)
         else
           mxyz2(1) = mxyz(1)
           mxyz2(2) = mxyz(2)
@@ -1328,14 +1391,14 @@ program newstack
           cell2(i + 3) = 90.
         enddo
         cell2(3) = mxyz2(3) * (cell(3) / mxyz(3))
-        call ialcel(2, cell2)
+        call iiuAltCell(2, cell2)
         !
         ! shift origin by the fraction pixel offset when binning or reducing with read
         ! a positive change is needed to indicate origin inside image
         ! When reduction was added, removed a convoluted subpixel adjustment to this
         ! that was wrong as basis for adjusting origin for size changes
-        call irtdel(1, delta)
-        call irtorg(1, xOrigin, yOrigin, zOrigin)
+        call iiuRetDelta(1, delta)
+        call iiuRetOrigin(1, xOrigin, yOrigin, zOrigin)
         if (readReduction > 1) then
           xOrigin = xOrigin - delta(1) * rxOffset
           yOrigin = yOrigin - delta(2) * ryOffset
@@ -1364,7 +1427,7 @@ program newstack
           endif
         endif
         if (adjustOrigin .or. readReduction > 1) &
-            call ialorg(2, xOrigin, yOrigin, zOrigin)
+            call iiuAltOrigin(2, xOrigin, yOrigin, zOrigin)
         !
         if (trunctText == ' ') then
           write(titlech, 302) xfText, floatText, dat, timeStr
@@ -1382,8 +1445,14 @@ program newstack
         !
         nByteSymOut = 0
         outDocChanged = .false.
-        if (nByteSymIn > 0 .and. .not.stripExtra .and. b3dOutputFileType() == 2) then
+        if ((nByteSymIn > 0 .or. saveTilts) .and. .not.stripExtra .and. &
+            b3dOutputFileType() == 2) then
           nByteExtraOut = nByteExtraIn
+          if (nByteSymIn == 0) then
+            nByteExtraOut = 4
+            serialEMtype = .false.
+            call iiuAltExtendedType(2, 0, 1)
+          endif
           nByteSymOut = numSecOut(iOutFile) * nByteExtraOut
           if (maxExtraOut > 0 .and. nByteSymOut > maxExtraOut) then
             deallocate(extraOut, stat = ierr)
@@ -1396,11 +1465,11 @@ program newstack
             allocate(extraOut(maxExtraOut), stat = ierr)
             call memoryError(ierr, 'ARRAYS FOR EXTRA HEADER DATA')
           endif
-          call ialnbsym(2, nByteSymOut)
-          call imposn(2, 0, 0)
+          call iiuAltNumExtended(2, nByteSymOut)
+          call iiuSetPosition(2, 0, 0)
           indExtraOut = 0
         else
-          call ialnbsym(2, 0)
+          call iiuAltNumExtended(2, 0)
         endif
 
         ierr = 0
@@ -1412,7 +1481,7 @@ program newstack
             .and. indAdocIn > 0) then
           call setCurrentAdocOrExit(indAdocIn, 'INPUT')
           if (AdocTransferSection(globalName, 1, indAdocOut, globalName, 0) .ne. 0) &
-              call exitError('TRANSFERRING GLOBAL DATA BETWEEN AUTODOCS') 
+              call exitError('TRANSFERRING GLOBAL DATA BETWEEN AUTODOCS')
         endif
       endif
       !
@@ -1430,11 +1499,11 @@ program newstack
         endif
         if (nx * ny * 2 > idimInOut) call exitError('INPUT IMAGE TOO LARGE FOR ARRAY.')
 
-        call imposn(1, iSecRead, 0)
+        call iiuSetPosition(1, iSecRead, 0)
         call irdsec(1, array,*99)
         call iclcdn(array, nx, ny, 1, nx, 1, ny, dmin2, dmax2, dmean2)
-        call imposn(2, isecOut - 1, 0)
-        call iwrsec(2, array)
+        call iiuSetPosition(2, isecOut - 1, 0)
+        call iiuWriteSection(2, array)
         go to 80
       endif
       !
@@ -1476,7 +1545,7 @@ program newstack
         do i = 1, nxOut
           array(i) = tmpMin * scaleFactor + constAdd
         enddo
-        call imposn(2, isecOut - 1, 0)
+        call iiuSetPosition(2, isecOut - 1, 0)
         do i = 1, nyOut
           call iwrlin(2, array)
         enddo
@@ -1522,7 +1591,7 @@ program newstack
             yGridIntrv, fieldDx, fieldDy, lmGrid, lmGrid, listString) .ne. 0) &
             call exitError(listString)
         !
-        !print *,nxGrid, nyGrid, xGridIntrv, yGridIntrv, xGridStart, xGridStart +(nxGrid &
+        !print *,nxGrid, nyGrid, xGridIntrv, yGridIntrv, xGridStart, xGridStart + (nxGrid &
         ! - 1) * xGridIntrv, yGridStart, yGridStart + (nyGrid - 1)*yGridIntrv
         ! do ierr = 1, nyGrid
         ! write(*,'(f7.2,9f8.2)') (fieldDx(i, ierr), fieldDy(i, ierr), i=1, nxGrid)
@@ -1698,7 +1767,7 @@ program newstack
         tempName = temp_filename(outFile(iOutFile), ' ', tempExt)
         !
         call imopen(3, tempName, 'scratch')
-        call icrhdr(3, nxyz2, nxyz2, 2, title, 0)
+        call iiuCreateHeader(3, nxyz2, nxyz2, 2, title, 0)
         ifTempOpen = 1
       endif
       !
@@ -1912,12 +1981,12 @@ program newstack
         wallStart = wallTime()
         if (.not.rescale) then
           if (iVerbose > 0) print *,'writing to real file', iChunk
-          call imposn(2, isecOut - 1, lineOutSt(iChunk))
-          call iwrsecl(2, array(iChunkBase), numLinesOut(iChunk))
+          call iiuSetPosition(2, isecOut - 1, lineOutSt(iChunk))
+          call iiuWriteLines(2, array(iChunkBase), numLinesOut(iChunk))
         elseif (iChunk .ne. numChunks .and. ifOutChunk > 0) then
           if (iVerbose > 0) print *,'writing to temp file', iChunk
-          call imposn(3, 0, lineOutSt(iChunk))
-          call iwrsecl(3, array(iBufOutBase), numLinesOut(iChunk))
+          call iiuSetPosition(3, 0, lineOutSt(iChunk))
+          call iiuWriteLines(3, array(iBufOutBase), numLinesOut(iChunk))
         endif
         saveTime = saveTime + wallTime() - wallStart
       enddo
@@ -1946,7 +2015,7 @@ program newstack
           if (ifOutChunk == 0) iChunkBase = iBufOutBase + lineOutSt(iChunk) * nxOut
           if (iChunk .ne. numChunks .and. ifOutChunk > 0) then
             if (iVerbose > 0) print *,'reading', iChunk
-            call imposn(3, 0, lineOutSt(iChunk))
+            call iiuSetPosition(3, 0, lineOutSt(iChunk))
             call irdsecl(3, array(iBufOutBase), numLinesOut(iChunk),*99)
           endif
           do iy = 1, numLinesOut(iChunk)
@@ -1970,8 +2039,8 @@ program newstack
           enddo
           wallStart = wallTime()
           if (iVerbose > 0) print *,'writing', iChunk
-          call imposn(2, isecOut - 1, lineOutSt(iChunk))
-          call iwrsecl(2, array(iChunkBase), numLinesOut(iChunk))
+          call iiuSetPosition(2, isecOut - 1, lineOutSt(iChunk))
+          call iiuWriteLines(2, array(iChunkBase), numLinesOut(iChunk))
           saveTime = saveTime + wallTime() - wallStart
         enddo
       else
@@ -1993,7 +2062,7 @@ program newstack
       !
 80    isecOut = isecOut + 1
       dmin = min(dmin, dmin2)
-      dmax = MAX(dmax, dmax2)
+      dmax = max(dmax, dmax2)
       if (numReplace == 0) then
         dmean = dmean + dmean2
         !
@@ -2001,10 +2070,30 @@ program newstack
         !
         if (nByteSymOut .ne. 0 .and. indExtraOut < nByteSymOut) then
           nByteCopy = min(nByteExtraOut, nByteExtraIn, nByteSymIn)
-          nByteClear = nByteExtraOut - nByteCopy
+          numForTilt = 0
+          if (saveTilts) then
+            !
+            ! To save tilt angles, put angle in the integer or real then copy the right
+            ! number of bytes; adjust the number to copy and number to clear
+            if (serialEMtype) then
+              itiltTemp(1) = nint(100. * extraTilts(isec))
+              numForTilt = 2
+            else
+              rtiltTemp = extraTilts(isec)
+              numForTilt = 4
+            endif
+            do i = 1, numForTilt
+              indExtraOut = indExtraOut + 1
+              extraOut(indExtraOut) = btiltTemp(i)
+            enddo
+            nByteCopy = max(nByteCopy, numForTilt) - numForTilt
+          endif
+          nByteClear = nByteExtraOut - numForTilt - nByteCopy
+          !
+          ! Copy bytes, then clear out the rest if any
           do i = 1, nByteCopy
             indExtraOut = indExtraOut + 1
-            extraOut(indExtraOut) = extraIn(iSecRead * nByteExtraIn + i)
+            extraOut(indExtraOut) = extraIn(iSecRead * nByteExtraIn + i + numForTilt)
           enddo
           do i = 1, nByteClear
             indExtraOut = indExtraOut + 1
@@ -2013,15 +2102,34 @@ program newstack
         endif
         !
         ! Transfer an adoc section
+        call int_iwrite(listString, isecOut - 2, ierr)
         if (indAdocIn > 0 .and. indAdocOut > 0) then
           call setCurrentAdocOrExit(indAdocIn, 'INPUT')
           indSectIn = AdocLookupByNameValue(zvalueName, isecRead)
           if (indSectIn > 0) then
-            call int_iwrite(listString, isecOut - 2, ierr)
             if (AdocTransferSection(zvalueName, indSectIn, indAdocOut, listString, 1) &
                 .ne. 0) call exitError('TRANSFERRING SECTION DATA BETWEEN AUTODOCS')
             outDocChanged = .true.
           endif
+        endif
+          !
+          ! Save tilts in the adoc section: if section does not exist, create it at the
+          ! right index; add value to section
+        if (indAdocOut > 0 .and. saveTilts) then
+          call setCurrentAdocOrExit(indAdocOut, 'OUTPUT')
+          indSectIn = AdocLookupByNameValue(zvalueName, isecOut - 2)
+          if (indSectIn <= 0) then
+            indSectIn = AdocFindInsertIndex(zvalueName, isecOut - 2)
+            if (indSectIn > 0) then
+              if (AdocInsertSection(zvalueName, indSectIn, listString) < 0) &
+                  indSectIn = -1
+            endif
+            if (indSectIn < 0)  &
+                call exitError('ADDING AN AUTODOC SECTION FOR SAVING TILT ANGLE')
+          endif
+          if (AdocSetFloat(zvalueName, indSectIn, 'TiltAngle', extraTilts(isec)) &
+              .ne. 0) call exitError('ADDING TILT ANGLE TO AUTODOC')
+          outDocChanged = .true.
         endif
       else if (isecReplace < listTotal) then
         isecReplace = isecReplace + 1
@@ -2033,39 +2141,39 @@ program newstack
       if (numReplace == 0 .and. isecOut > numSecOut(iOutFile)) then
         if (outDocChanged .and. iiuFileType(2) .ne. 5) then
           call setCurrentAdocOrExit(indAdocOut, 'OUTPUT')
-          if (AdocWrite(trim(outFile(iOutFile))//'.mdoc') .ne.0) call exitError( &
+          if (AdocWrite(trim(outFile(iOutFile)) //'.mdoc') .ne. 0) call exitError( &
               'WRITING MDOC FILE FOR OUTPUT FILE')
           call AdocClear(indAdocOut)
         endif
-        if (nByteSymOut > 0) call ialsym(2, nByteSymOut, extraOut)
+        if (nByteSymOut > 0) call iiuAltExtendedData(2, nByteSymOut, extraOut)
         dmean = dmean / numSecOut(iOutFile)
-        call iwrhdr(2, title, 1, dmin, dmax, dmean)
-        call imclose(2)
-        if (needClose2 > 0) call imClose(needClose2)
+        call iiuWriteHeader(2, title, 1, dmin, dmax, dmean)
+        call iiuClose(2)
+        if (needClose2 > 0) call iiuClose(needClose2)
         isecOut = 1
         iOutFile = iOutFile + 1
       endif
       isec = isec + 1
     enddo
-    call imclose(1)
-    if (needClose1 > 0) call imClose(needClose1)
+    call iiuClose(1)
+    if (needClose1 > 0) call iiuClose(needClose1)
   enddo
   if (numReplace > 0) then
-    call iwrhdr(2, title, -1, dmin, dmax, dmean)
-    call imclose(2)
+    call iiuWriteHeader(2, title, -1, dmin, dmax, dmean)
+    call iiuClose(2)
   endif
   !
-  if (ifTempOpen .ne. 0) call imclose(3)
+  if (ifTempOpen .ne. 0) call iiuClose(3)
   if (numTruncLow + numTruncHigh > 0) write(*,103) numTruncLow, numTruncHigh
 103 format(' TRUNCATIONS OCCURRED:',i11,' at low end,',i11, &
       ' at high end of range')
   if (numSecTrunc > 0 .and. &
       numTruncLow + numTruncHigh > numSecTrunc * 4. * (1. + nxOut * (nyOut / 1.e6))) then
-    write(*,'(/,a,i4,a,i11,a)') 'WARNING: NEWSTACK - ',numSecTrunc,  &
+    write(*,'(/,a,i4,a,i11,a)') 'WARNING: NEWSTACK - ', numSecTrunc,  &
         ' sections had extreme ranges and were truncated to preserve dynamic range '// &
         '(overall, ', numTruncLow + numTruncHigh, ' pixels were truncated)'
   else if (numSecTrunc > 0) then
-    write(*,'(/,a,i4,a)') 'NOTE: ',numSecTrunc,  &
+    write(*,'(/,a,i4,a)') 'NOTE: ', numSecTrunc,  &
         ' sections had extreme ranges and were truncated to preserve dynamic range '
   endif
   if (iVerbose > 0) write(*,'(a,f8.4,a,f8.4,a,f8.4,a,f8.4)') 'loadtime', &
@@ -2083,7 +2191,7 @@ CONTAINS
     if (limEntered == 0) then
       needTemp = 1
       if (readShrunk) needTemp = max(nx * (nint(readReduction) + 20),  &
-          int(min(int(MAXTEMP, kind=8), int(nx, kind=8) * ny)))
+          int(min(int(MAXTEMP, kind = 8), int(nx, kind = 8) * ny)))
       if (iBinning > 1) needTemp = nx * iBinning
       needDim = int(nxBin, kind = 8) * nyNeeded
       if (phaseShift .and. nxFSpad > 0)  &
@@ -2235,7 +2343,7 @@ CONTAINS
         call sums_to_avgsd8(dsum, dsumSq, nxOut, nyOut, avgSec, sdSec)
         ! print *,'overall mean & sd', avgSec, sdSec
         if (tmpMin == tmpMax .or. sdSec == 0.) sdSec = 1.
-        
+
         ! Truncate the min and max to what will fit in the common range determined after
         ! outlier elimination, then compute the min and max that those map to.
         tmpMin = max(tmpMin, zmin * sdsec + avgSec)
@@ -2583,7 +2691,7 @@ end subroutine getReducedSize
 !
 subroutine readBinnedOrReduced(imUnit, iz, array, nxDim, nyDim, xUBstart, yUBstart,  &
     redFac, nxRed, nyRed, ifiltType, doShrink, temp, lenTemp)
-  implicit none 
+  implicit none
   integer*4 imUnit, iz, nxDim, nyDim, nxRed, nyRed, ifiltType, lenTemp, ierr
   real*4 array(*), xUBstart, yUBstart, temp(*), redFac
   logical doShrink

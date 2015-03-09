@@ -533,8 +533,6 @@ void InfoWindow::extract()
   if (commandString.isEmpty())
     return;
 
-  mActions[FILE_MENU_EXTRACT]->setEnabled(false);
-  mActions[FILE_MENU_PROCESS]->setEnabled(false);
   mTrimvolType = rotateVol ? 1 : 0;
 
   // Get the output and input file names
@@ -542,6 +540,8 @@ void InfoWindow::extract()
   if (mTrimvolOutput.isEmpty())
     return;
 
+  mActions[FILE_MENU_EXTRACT]->setEnabled(false);
+  mActions[FILE_MENU_PROCESS]->setEnabled(false);
   QString filePath = getAdjustedFilePath(timeLock);
 
   // Build the argument lists and print them

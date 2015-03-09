@@ -1,6 +1,6 @@
 .na
 .nh
-.TH imod2vrml2 1 2.00 BL3DEMC
+.TH imod2vrml2 1 2.00 IMOD
 .SH NAME
 imod2vrml2 \- Make a VRML2.0 model from an IMOD model file.
 .SH SYNOPSIS

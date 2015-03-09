@@ -2,27 +2,22 @@ package etomo.ui.swing;
 
 import etomo.BaseManager;
 import etomo.type.AxisID;
+import etomo.type.InterfaceType;
 
 /**
 * <p>Description: </p>
 * 
-* <p>Copyright: Copyright 2013</p>
+* <p>Copyright: Copyright 2013 - 2015 by the Regents of the University of Colorado</p>
+* <p/>
+* <p>Organization: Dept. of MCD Biology, University of Colorado</p>
 *
-* <p>Organization:
-* Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
-* University of Colorado</p>
-* 
-* @author $Author$
-* 
-* @version $Revision$
+* @version $Id$
 * 
 * <p> $Log$ </p>
 */
 final class BatchRunTomoProcessPanel extends AxisProcessPanel {
-  public static final String rcsid = "$Id:$";
-  
-  BatchRunTomoProcessPanel(final BaseManager manager) {
-    super(AxisID.ONLY, manager, true,false);
+  BatchRunTomoProcessPanel(final BaseManager manager, final InterfaceType interfaceType) {
+    super(AxisID.ONLY, manager, true, false, interfaceType);
     createProcessControlPanel();
     showBothAxis();
     initializePanels();
