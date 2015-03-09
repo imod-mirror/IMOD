@@ -67,10 +67,14 @@ absence of this option, the program will consider both directions of rotation.
 
 [Field = MirrorXaxis]
 short = mirror
-type = B
-usage = Mirror one image around X axis
+type = I
+usage = Mirror one image around X axis (1), do not mirror (-1), or try with
+and without mirroring (0, the default)
 tooltip =
-manpage = Mirror one image around the X axis before rotating by 90 degrees.
+manpage = This option controls whether the image from one stack is mirrored 
+around the X axis before rotating by 90 degrees.  Enter 1 to mirror
+always, -1 to never mirror, or 0 to have the program assess both with and
+without mirroring.  The default is 0.
 
 [Field = DistortionFile]
 short = d

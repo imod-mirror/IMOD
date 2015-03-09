@@ -42,7 +42,7 @@ from tiltmatch import *
 # Fallbacks from ../manpages/autodoc2man 3 1 matchrotpairs
 options = ["ia:AImageFile:FN:", "ib:BImageFile:FN:", "output:OutputFile:FN:",
            "za:AStartingEndingViews:IP:", "zb:BStartingEndingViews:IP:",
-           "swap:SwapAandB:B:", "a:AngleOfRotation:I:", "mirror:MirrorXaxis:B:",
+           "swap:SwapAandB:B:", "a:AngleOfRotation:I:", "mirror:MirrorXaxis:I:",
            "d:DistortionFile:FN:", "b:ImagesAreBinned:I:", "m:RunMidas:B:",
            "scan:ScanRotationMaxAndStep:FP:", "nearest:NearestNeighbor:B:",
            "x:WriteAllTransforms:B:", "t:LeaveTempFiles:B:", ":PID:B:"]
