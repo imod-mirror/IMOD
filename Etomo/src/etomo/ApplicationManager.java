@@ -1328,7 +1328,8 @@ public final class ApplicationManager extends BaseManager implements
    * 
    * @param axisID
    */
-  public void imodPreview(AxisID axisID, Run3dmodMenuOptions menuOptions) {
+  public void imodPreview(final String fileExtension,final AxisID axisID, 
+    final Run3dmodMenuOptions menuOptions) {
     if (setupDialogExpert == null) {
       return;
     }
@@ -1344,7 +1345,7 @@ public final class ApplicationManager extends BaseManager implements
       return;
     }
     try {
-      int previewNumber = imodManager.newImod(key, axisID);
+      int previewNumber = imodManager.newImod(key, fileExtension, axisID);
       imodManager.setWorkingDirectory(key, axisID, previewNumber, previewWorkingDir);
       if (FileType.PIECE_LIST.exists(this, previewMetaData, axisID)) {
         imodManager.setPieceListFileName(key, axisID, previewNumber, FileType.PIECE_LIST
@@ -5995,8 +5996,7 @@ public final class ApplicationManager extends BaseManager implements
     if (!tiltDisplay.getParameters(param, doValidation)) {
       return null;
     }
-    param.setSeparateChunks(CpuAdoc.INSTANCE.isSeparateChunks(this, axisID,
-      propertyUserDir));
+    param.setSeparateChunks(CpuAdoc.INSTANCE.isSeparateChunks());
     return param;
   }
 

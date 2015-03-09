@@ -1,6 +1,6 @@
 .na
 .nh
-.TH tilt 1 4.6.34 BL3DEMC
+.TH tilt 1 4.6.34 IMOD
 .SH NAME
 tilt - calculates 3-D tomographic reconstruction from a tilt series
 .SH SYNOPSIS

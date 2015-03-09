@@ -998,7 +998,7 @@ program corrsearch3d
     enddo
   endif
   close(1)
-  perPos = (3. *numCorrs) / (numPosTotal - numFourierPatch)
+  perPos = (3. *numCorrs) / max(1, numPosTotal - numFourierPatch)
   write(*,'(f8.2,a,i5,a)') perPos, ' correlations per position,'// &
       ' Fourier correlations computed', numFourierPatch, ' times'
   if (ifDebug > 0) write(*,'(a,8f8.4)')'LETKZ, search, oneCCC:',  &

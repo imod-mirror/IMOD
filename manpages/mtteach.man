@@ -1,6 +1,6 @@
 .na
 .nh
-.TH mtteach 1 4.6.34 BL3DEMC
+.TH mtteach 1 4.6.34 IMOD
 .SH NAME
 mtteach - develop criteria for feature recognition
 .SH SYNOPSIS

@@ -11,6 +11,7 @@ import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.event.ChangeEvent;
@@ -86,6 +87,10 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
     this);
   private final StacksFieldDisplayer stacksFieldDisplayer =
     new StacksFieldDisplayer(this);
+  private final JLabel[] lTempInstructions = new JLabel[] {
+    new JLabel("This preliminary version does not run batchruntomo."),
+    new JLabel("Instructions to run batchruntomo have been added to the project log."),
+    new JLabel("Press <Ctrl> L to open/close the log.") };
 
   private final FileTextField2 ftfRootDir;
   private final FileTextField2 ftfInputDirectiveFile;
@@ -146,6 +151,10 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
     tabbedPane.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
     ftfRootDir.setAbsolutePath(true);
     ftfRootDir.setFileSelectionMode(FileChooser.DIRECTORIES_ONLY);
+    for (int i = 0; i < lTempInstructions.length; i++) {
+      lTempInstructions[i].setForeground(ProcessControlPanel.colorInProgress);
+      lTempInstructions[i].setVisible(false);
+    }
     // defaults
     ftfRootDir.setText(new File(System.getProperty("user.dir")).getAbsolutePath());
     ftfInputDirectiveFile.setOrigin(ftfRootDir.getFile());
@@ -484,6 +493,11 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
     }
     else if (actionCommand.equals(btnRun.getActionCommand())) {
       manager.run();
+      if (!lTempInstructions[0].isVisible()) {
+        for (int i = 0; i < lTempInstructions.length; i++) {
+          lTempInstructions[i].setVisible(true);
+        }
+      }
     }
     else if (actionCommand.equals(cbCPUMachineList.getActionCommand())
       || actionCommand.equals(rbGPUMachineListOff.getActionCommand())
@@ -661,6 +675,9 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
       pnlRun.add(pnlTable);
       pnlRun.add(Box.createRigidArea(FixedDim.x0_y10));
       pnlRun.add(pnlRunButton);
+      for (int i = 0; i < lTempInstructions.length; i++) {
+        pnlRun.add(lTempInstructions[i]);
+      }
       pnlRun.add(Box.createRigidArea(FixedDim.x0_y5));
       pnlTable.add(table.getComponent());
       UIUtilities.alignComponentsX(pnlRun, Component.LEFT_ALIGNMENT);

@@ -1,6 +1,6 @@
 .na
 .nh
-.TH findbeads3d 1 4.6.34 BL3DEMC
+.TH findbeads3d 1 4.6.34 IMOD
 .SH NAME
 findbeads3d - Find spherical densities in a volume
 .SH SYNOPSIS

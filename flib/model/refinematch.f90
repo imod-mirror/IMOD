@@ -21,8 +21,8 @@ program refinematch
   implicit none
   integer LIMEXTRA, LIMCRIT
   parameter (LIMEXTRA = 20, LIMCRIT = 20)
-  real*4 aMat(3,3), delXYZ(3), devXYZ(3)
-  real*4 devXYZmax(3), fitCenter(3), cxlast(3), freinp(LIMEXTRA)
+  real*4 aMat(3,3), delXYZ(3), devXYZ(3), aMatInit(3,3), delInit(3), prodMat(3,3)
+  real*4 devXYZmax(3), fitCenter(3), cxlast(3), freinp(LIMEXTRA), prodDel(3)
   integer*4 nxyz(3), numeric(LIMEXTRA), IDextra(LIMEXTRA)
   real*4 selectCrit(LIMCRIT, LIMEXTRA)
   integer*4 numSelectCrit, indSelect, icolSelect(LIMEXTRA), isignSelect(LIMEXTRA)  
@@ -30,14 +30,14 @@ program refinematch
   real*4, allocatable :: fitMat(:,:), xVerts(:), yVerts(:), contourZ(:), extraVals(:,:)
   real*4, allocatable :: cenXYZ(:,:), vecXYZ(:,:), dropRes(:)
   logical inside, oneLayer(3), haveCCC
-  character*320 filename, line
+  character*320 filename, line, initialFile, productFile
   !
   integer*4 numConts, ierr, ifFlip, i, indY, indZ, indcur, iobj, numData, numFit
-  real*4 fracDrop, cccRes
+  real*4 fracDrop, cccRes, prodScaleFac, cenDist, cenDistMin
   integer*4 ifUse, icont, icontMin, j, ind, maxDrop, ndrop, ipntMax, ip, ipt, numFields
   real*4 dzMin, critProb, elimMin, absProbCrit, devMean, devSD, devMax, stopLim, dz
   integer*4 icolFixed, limCont, limVert, maxExtra, numExtraID, limPatch, matCols
-  integer*4 numColSelect, ipat
+  integer*4 numColSelect, ipat, indClosest
   integer*4 idResidCol/2/
   integer*4 readNumPatches
 
@@ -50,15 +50,17 @@ program refinematch
   ! fallbacks from ../../manpages/autodoc2man -3 2  refinematch
   !
   integer numOptions
-  parameter (numOptions = 11)
+  parameter (numOptions = 17)
   character*(40 * numOptions) options(1)
   options(1) = &
-      'patch:PatchFile:FN:@region:RegionModel:FN:@'// &
-      'volume:VolumeOrSizeXYZ:FN:@output:OutputFile:FN:@'// &
-      'residual:ResidualPatchOutput:FN:@limit:MeanResidualLimit:F:@'// &
+      'patch:PatchFile:FN:@output:OutputFile:FN:@region:RegionModel:FN:@'// &
+      'volume:VolumeOrSizeXYZ:FN:@residual:ResidualPatchOutput:FN:@'// &
+      'reduced:ReducedVectorOutput:FN:@limit:MeanResidualLimit:F:@'// &
+      'extra:ExtraValueSelection:IPM:@select:SelectionCriteria:FAM:@'// &
       'maxfrac:MaxFractionToDrop:F:@minresid:MinResidualToDrop:F:@'// &
-      'prob:CriterionProbabilities:FP:@param:ParameterFile:PF:@'// &
-      'help:usage:B:'
+      'prob:CriterionProbabilities:FP:@initial:InitialTransformFile:FN:@'// &
+      'product:ProductTransformFile:FN:@scale:ScaleShiftByFactor:F:@'// &
+      'param:ParameterFile:PF:@help:usage:B:'
   !
   fracDrop = 0.1
   critProb = 0.01
@@ -67,6 +69,8 @@ program refinematch
   matCols = 20
   numColSelect = 0
   numSelectCrit = 0
+  initialFile = ' '
+  productFile = ' '
   !
   call PipReadOrParseOptions(options, numOptions, 'refinematch', &
       'ERROR: REFINEMATCH - ', .true., 3, 1, 1, numOptArg, numNonOptArg)
@@ -90,6 +94,17 @@ program refinematch
     ierr = PipGetTwoFloats('CriterionProbabilities', critProb, absProbCrit)
     if (PipGetFloat('MeanResidualLimit', stopLim) > 0) call exitError( &
         'YOU MUST ENTER A MEAN RESIDUAL LIMIT')
+    ierr = PipGetString('InitialTransformFile', initialFile)
+    ind = PipGetString('ProductTransformFile', productFile)
+    if (ierr + ind == 1) call exitError( &
+        'YOU MUST ENTER BOTH -initial AND -product FILES, NOT JUST ONE')
+    prodScaleFac = 1.
+    ierr = PipGetFloat('ScaleShiftByFactor', prodScaleFac)
+    if (initialFile .ne. ' ') then
+      call dopen(3, initialFile, 'ro', 'f')
+      read(3,*, err = 99) ((aMatInit(i, j), j = 1, 3), delInit(i), i = 1, 3)
+      close(3)
+    endif
   else
     write(*,'(1x,a,/,a,$)') &
         'Enter name of model file with contour enclosing area to ' &
@@ -316,10 +331,33 @@ program refinematch
     write(1, 102) ((aMat(i, j), j = 1, 3), delXYZ(i), i = 1, 3)
     close(1)
   endif
+
+  ! Take product with initial file and output that if requested
+  if (initialFile .ne. ' ') then
+    call xfmult3d(aMatInit, delInit, aMat, delXYZ, prodMat, prodDel)
+    call dopen(1, productFile, 'new', 'f')
+    write(1, 102) ((prodMat(i, j), j = 1, 3), prodScaleFac * prodDel(i), i = 1, 3)
+    close(1)
+    !
+    ! This triggers reporting of center shift as Y residual of used patch  nearest center
+    cenDistMin = 1.e37
+    do i = 1, numFit - ndrop
+      ipat = nint(fitMat(5, i))
+      cenDist = sqrt((cenXYZ(ipat, 1) - nxyz(1) / 2.)**2 + &
+          (cenXYZ(ipat, 3) - nxyz(3) / 2.)**2)
+      if (cenDist < cenDistMin) then
+        cenDistMin = cenDist
+        indClosest = i
+      endif
+    enddo
+    write(*,'(a,f8.1)')'Implied center shift is ', fitMat(16, indClosest) * prodScaleFac
+  endif
+  
   if (devMean > stopLim) then
     write(*,'(/,a)') 'REFINEMATCH - MEAN RESIDUAL TOO HIGH;'// &
         ' EITHER RAISE THE LIMIT OR USE WARPING'
     call exit(2)
   endif
   call exit(0)
+99 call exitError('READING INITIAL TRANSFORM FILE')
 end program refinematch

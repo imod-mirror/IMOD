@@ -3,11 +3,15 @@ package etomo.storage;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Hashtable;
-import java.util.List;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 
 import etomo.BaseManager;
+import etomo.logic.ProcessorType;
 import etomo.storage.autodoc.AutodocFactory;
 import etomo.storage.autodoc.ReadOnlyAttribute;
 import etomo.storage.autodoc.ReadOnlyAutodoc;
@@ -16,6 +20,7 @@ import etomo.storage.autodoc.SectionLocation;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.EtomoNumber;
+import etomo.type.InterfaceType;
 import etomo.util.EnvironmentVariable;
 
 /**
@@ -26,23 +31,17 @@ import etomo.util.EnvironmentVariable;
  * <p>Assumptions:</p>
  * <p>The Computer section names in cpu.adoc must be unique.</p>
  * 
- * <p>Copyright: Copyright 2006</p>
+ * <p>Copyright: Copyright 2006 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
- * University of Colorado</p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
+ * @version $Id$
  * 
  * @threadsafe
  * @immutable
  * @singleton
  */
 public class CpuAdoc {
-  public static final String rcsid = "$Id$";
-
   public static final String COMPUTER_SECTION_TYPE = "Computer";
   public static final String QUEUE_SECTION_TYPE = "Queue";
   static final String GPU_KEY = "gpu";
@@ -52,13 +51,16 @@ public class CpuAdoc {
 
   public static final CpuAdoc INSTANCE = new CpuAdoc();
 
-  private final List computerList = new ArrayList();
-  private final Map computerMap = new Hashtable();
-  private final List queueList = new ArrayList();
-  private final Map queueMap = new Hashtable();
+  // list of computer names
+  private final ArrayList<String> computerList = new ArrayList<String>();
+  private final Map<String, Node> computerMap = new Hashtable<String, Node>();
+  private final ArrayList<String> queueList = new ArrayList<String>();
+  private final Map<String, Node> queueMap = new Hashtable<String, Node>();
   private final EtomoNumber minNice = new EtomoNumber();
   private final EtomoNumber maxTilt = new EtomoNumber();
   private final EtomoNumber maxVolcombine = new EtomoNumber();
+  private final String user = System.getProperty("user.name");
+  private final OrListMap orListMap = new OrListMap();
 
   private boolean separateChunks = false;
   private boolean usersColumn = false;
@@ -78,46 +80,51 @@ public class CpuAdoc {
     minNice.setDefault(MIN_NICE_DEFAULT);
   }
 
-  public boolean isSeparateChunks(BaseManager manager, AxisID axisID,
-      String propertyUserDir) {
-    load(manager, axisID, propertyUserDir);
+  public boolean isSeparateChunks() {
+    load();
     return separateChunks;
   }
 
-  public boolean isUsersColumn(BaseManager manager, AxisID axisID, String propertyUserDir) {
-    load(manager, axisID, propertyUserDir);
+  public boolean isUsersColumn() {
+    load();
     return usersColumn;
   }
 
-  public int getMinNice(BaseManager manager, AxisID axisID, String propertyUserDir) {
-    load(manager, axisID, propertyUserDir);
+  public int getMinNice() {
+    load();
     return minNice.getInt();
   }
 
-  public String getSpeedUnits(BaseManager manager, AxisID axisID, String propertyUserDir) {
-    load(manager, axisID, propertyUserDir);
+  public String getSpeedUnits() {
+    load();
     return speedUnits;
   }
 
-  public String getMemoryUnits(BaseManager manager, AxisID axisID, String propertyUserDir) {
-    load(manager, axisID, propertyUserDir);
+  public String getMemoryUnits() {
+    load();
     return memoryUnits;
   }
 
-  public String[] getLoadUnits(BaseManager manager, AxisID axisID, String propertyUserDir) {
-    load(manager, axisID, propertyUserDir);
+  public String[] getLoadUnitsArray() {
+    load();
     return loadUnits;
   }
 
-  public ConstEtomoNumber getMaxTilt(BaseManager manager, AxisID axisID,
-      String propertyUserDir) {
-    load(manager, axisID, propertyUserDir);
+  public int getLoadUnits() {
+    load();
+    if (loadUnits != null) {
+      return loadUnits.length;
+    }
+    return 0;
+  }
+
+  public ConstEtomoNumber getMaxTilt() {
+    load();
     return maxTilt;
   }
 
-  public ConstEtomoNumber getMaxVolcombine(BaseManager manager, AxisID axisID,
-      String propertyUserDir) {
-    load(manager, axisID, propertyUserDir);
+  public ConstEtomoNumber getMaxVolcombine() {
+    load();
     return maxVolcombine;
   }
 
@@ -130,14 +137,13 @@ public class CpuAdoc {
    * @param ignoredNode if this node is non-null and present in the list, the list is still considered empty.  Parameter may be null
    * @return
    */
-  boolean isGpuComputerListEmpty(BaseManager manager, AxisID axisID,
-      String propertyUserDir, final Node ignoredNode) {
-    load(manager, axisID, propertyUserDir);
+  boolean isGpuComputerListEmpty(final Node ignoredNode) {
+    load();
     if (computerList.isEmpty()) {
       return true;
     }
     for (int i = 0; i < computerList.size(); i++) {
-      Node node = (Node) computerMap.get(computerList.get(i));
+      Node node = computerMap.get(computerList.get(i));
       if ((ignoredNode == null || node != ignoredNode) && node.isGpu()) {
         return false;
       }
@@ -145,13 +151,13 @@ public class CpuAdoc {
     return true;
   }
 
-  boolean isComputerListEmpty(BaseManager manager, AxisID axisID, String propertyUserDir) {
-    load(manager, axisID, propertyUserDir);
+  boolean isComputerListEmpty() {
+    load();
     return computerList.isEmpty();
   }
 
-  boolean isQueueListEmpty(BaseManager manager, AxisID axisID, String propertyUserDir) {
-    load(manager, axisID, propertyUserDir);
+  boolean isQueueListEmpty() {
+    load();
     return queueList.isEmpty();
   }
 
@@ -163,9 +169,9 @@ public class CpuAdoc {
    * @param managerKey
    * @return
    */
-  Node getComputer(BaseManager manager, int index, AxisID axisID, String propertyUserDir) {
-    load(manager, axisID, propertyUserDir);
-    return (Node) computerMap.get(computerList.get(index));
+  Node getComputer(int index) {
+    load();
+    return computerMap.get(computerList.get(index));
   }
 
   /**
@@ -177,7 +183,7 @@ public class CpuAdoc {
    */
   Node getLocalHostComputer(BaseManager manager, AxisID axisID, String propertyUserDir) {
     // Search for "localhost":
-    Node localHost = getComputer(manager, Node.LOCAL_HOST_NAME, axisID, propertyUserDir);
+    Node localHost = getComputer(Node.LOCAL_HOST_NAME);
     if (localHost != null) {
       return localHost;
     }
@@ -186,7 +192,7 @@ public class CpuAdoc {
     if (localHostName == null) {
       return null;
     }
-    localHost = getComputer(manager, localHostName, axisID, propertyUserDir);
+    localHost = getComputer(localHostName);
     if (localHost != null) {
       return localHost;
     }
@@ -195,14 +201,14 @@ public class CpuAdoc {
     int index = localHostName.indexOf('.');
     if (index != -1) {
       localHostName = localHostName.substring(0, index);
-      localHost = getComputer(manager, localHostName, axisID, propertyUserDir);
+      localHost = getComputer(localHostName);
     }
     return localHost;
   }
 
-  Node getQueue(BaseManager manager, int index, AxisID axisID, String propertyUserDir) {
-    load(manager, axisID, propertyUserDir);
-    return (Node) queueMap.get(queueList.get(index));
+  Node getQueue(int index) {
+    load();
+    return queueMap.get(queueList.get(index));
   }
 
   /**
@@ -213,9 +219,9 @@ public class CpuAdoc {
    * @param managerKey
    * @return
    */
-  Node getQueue(BaseManager manager, String name, AxisID axisID, String propertyUserDir) {
-    load(manager, axisID, propertyUserDir);
-    return (Node) queueMap.get(name);
+  Node getQueue(String name) {
+    load();
+    return queueMap.get(name);
   }
 
   /**
@@ -226,36 +232,35 @@ public class CpuAdoc {
    * @param managerKey
    * @return
    */
-  Node getComputer(BaseManager manager, String name, AxisID axisID, String propertyUserDir) {
-    load(manager, axisID, propertyUserDir);
+  Node getComputer(String name) {
+    load();
     if (name != null) {
-      return (Node) computerMap.get(name);
+      return computerMap.get(name);
     }
     return null;
   }
 
-  int getComputerListSize(BaseManager manager, AxisID axisID, String propertyUserDir) {
-    load(manager, axisID, propertyUserDir);
+  int getComputerListSize() {
+    load();
     return computerList.size();
   }
 
-  int getQueueListSize(BaseManager manager, AxisID axisID, String propertyUserDir) {
-    load(manager, axisID, propertyUserDir);
+  int getQueueListSize() {
+    load();
     return queueList.size();
   }
 
-  boolean exists(BaseManager manager, AxisID axisID, String propertyUserDir) {
-    load(manager, axisID, propertyUserDir);
+  boolean exists() {
+    load();
     return exists;
   }
 
-  private synchronized void load(BaseManager manager, AxisID axisID,
-      String propertyUserDir) {
+  private synchronized void load() {
     if (loaded) {
       return;
     }
     loaded = true;
-    ReadOnlyAutodoc autodoc = getAutodoc(manager, axisID);
+    ReadOnlyAutodoc autodoc = getAutodoc();
     if (autodoc != null && autodoc.exists()) {
       exists = true;
       separateChunks = loadBooleanAttribute(autodoc, "separate-chunks");
@@ -320,10 +325,10 @@ public class CpuAdoc {
     return list.split("\\s*,\\s*");
   }
 
-  private ReadOnlyAutodoc getAutodoc(BaseManager manager, AxisID axisID) {
+  private ReadOnlyAutodoc getAutodoc() {
     ReadOnlyAutodoc autodoc = null;
     try {
-      autodoc = AutodocFactory.getInstance(manager, AutodocFactory.CPU, axisID,false);
+      autodoc = AutodocFactory.getInstance(null, AutodocFactory.CPU, null, false);
     }
     catch (FileNotFoundException e) {
       e.printStackTrace();
@@ -336,8 +341,8 @@ public class CpuAdoc {
     }
     if (autodoc == null) {
       System.err.println("Missing $" + EnvironmentVariable.CALIB_DIR
-          + "/cpu.adoc file.\n" + "Parallel processing cannot be used.\n"
-          + "See $IMOD_DIR/autodoc/cpu.adoc.");
+        + "/cpu.adoc file.\n" + "Parallel processing cannot be used.\n"
+        + "See $IMOD_DIR/autodoc/cpu.adoc.");
     }
     return autodoc;
   }
@@ -351,12 +356,49 @@ public class CpuAdoc {
     while ((section = autodoc.nextSection(location)) != null) {
       Node computer = Node.getComputerInstance();
       computer.load(section);
-      String name = section.getName();
-      if (computer != null) {
+      if (!computer.isExcludedUser(user)) {
+        String name = section.getName();
         computerList.add(name);
         computerMap.put(name, computer);
+        orListMap.addNode(ProcessorType.CPU, computer);
       }
     }
+  }
+
+  public boolean isNumberGt1(final InterfaceType interfaceType,
+    final ProcessorType processorType) {
+    load();
+    return orListMap.isValueTrue(interfaceType, processorType, OrValue.NUMBER_GT_1);
+  }
+
+  public boolean isGpuGt1(final InterfaceType interfaceType,
+    final ProcessorType processorType) {
+    load();
+    return orListMap.isValueTrue(interfaceType, processorType, OrValue.GPU_GT_1);
+  }
+
+  public boolean isType(final InterfaceType interfaceType,
+    final ProcessorType processorType) {
+    load();
+    return orListMap.isValueTrue(interfaceType, processorType, OrValue.CPU_TYPE);
+  }
+
+  public boolean isSpeed(final InterfaceType interfaceType,
+    final ProcessorType processorType) {
+    load();
+    return orListMap.isValueTrue(interfaceType, processorType, OrValue.SPEED);
+  }
+
+  public boolean isMemory(final InterfaceType interfaceType,
+    final ProcessorType processorType) {
+    load();
+    return orListMap.isValueTrue(interfaceType, processorType, OrValue.MEMORY);
+  }
+
+  public boolean
+    isOs(final InterfaceType interfaceType, final ProcessorType processorType) {
+    load();
+    return orListMap.isValueTrue(interfaceType, processorType, OrValue.OS);
   }
 
   private void loadQueues(ReadOnlyAutodoc autodoc) {
@@ -368,10 +410,11 @@ public class CpuAdoc {
     while ((section = autodoc.nextSection(location)) != null) {
       Node queue = Node.getQueueInstance();
       queue.load(section);
-      String name = section.getName();
-      if (queue != null) {
+      if (!queue.isExcludedUser(user)) {
+        String name = section.getName();
         queueList.add(name);
         queueMap.put(name, queue);
+        orListMap.addNode(ProcessorType.QUEUE, queue);
       }
     }
   }
@@ -385,7 +428,7 @@ public class CpuAdoc {
   }
 
   private void loadAttribute(EtomoNumber number, ReadOnlyAutodoc autodoc, String key1,
-      String key2) {
+    String key2) {
     number.reset();
     ReadOnlyAttribute attrib = autodoc.getAttribute(key1);
     if (attrib == null) {
@@ -411,7 +454,7 @@ public class CpuAdoc {
   }
 
   private String[] loadStringListAttribute(ReadOnlyAutodoc autodoc, String key1,
-      String key2) {
+    String key2) {
     ReadOnlyAttribute attrib = autodoc.getAttribute(key1);
     if (attrib == null) {
       return new String[0];
@@ -425,6 +468,224 @@ public class CpuAdoc {
       return new String[0];
     }
     return list.split("\\s*,\\s*");
+  }
+
+  /**
+   * Keeps track of boolean values derived from the cpu.adoc nodes.  Each value is true
+   * if it is true for any node that meets the criteria.  The orMap member variable will
+   * contain a set of these values for each sectionType (computer and queue), and each
+   * excluded interface mentioned in the cpu.adoc.  This class does not take the user list
+   * into account.
+   */
+  private static final class OrListMap {
+    /**
+     * interfaceTypeSet contains section type + interface
+     */
+    private Set<String> interfaceTypeSet = null;
+    /**
+     * orMap: key is section type + interface, value is an orList
+     */
+    private Map<String, boolean[]> orMap = null;
+
+    private OrListMap() {}
+
+    /**
+     * Returns true of the orValue for this processor and interface type is true.
+     * @param interfaceType
+     * @param processorType
+     * @param orValue
+     * @return
+     */
+    private boolean isValueTrue(final InterfaceType interfaceType,
+      final ProcessorType processorType, final OrValue orValue) {
+      if (orValue == null || orMap == null) {
+        return false;
+      }
+      // First look for the interfaceType-level orList
+      boolean[] orList = orMap.get(getKey(interfaceType, processorType));
+      if (orList != null) {
+        return orList[orValue.index];
+      }
+      // If the interfaceType-level orList doesn't exist, use the processor-level orList.
+      orList = orMap.get(getKey(processorType));
+      if (orList != null) {
+        return orList[orValue.index];
+      }
+      return false;
+    }
+
+    /**
+     * Add the boolean values contained in the node parameter.
+     * @param processorType
+     * @param node
+     */
+    private void addNode(final ProcessorType processorType, final Node node) {
+      if (node == null) {
+        return;
+      }
+      String sectionKey = getKey(processorType);
+      // If there is an excluded interface, and hasn't been seen before, add it to the
+      // interface name list.
+      InterfaceType excludeInterfaceType = node.getExcludeInterface();
+      boolean[] orList = null;
+      if (excludeInterfaceType != null) {
+        // The excluded interface name is new - add it to the interface name list.
+        if (interfaceTypeSet == null || !interfaceTypeSet.contains(excludeInterfaceType)) {
+          if (interfaceTypeSet == null) {
+            interfaceTypeSet = new HashSet<String>();
+          }
+          interfaceTypeSet.add(getKey(excludeInterfaceType, processorType));
+          // The new interface name gets a copy of the orList for this processorType.
+          if (orMap != null) {
+            orList = orMap.get(sectionKey);
+            if (orList != null) {
+              boolean[] newOrList = createOrList();
+              orMap.put(getKey(excludeInterfaceType, processorType), newOrList);
+              for (int i = 0; i < OrValue.ARRAY.length; i++) {
+                newOrList[i] = orList[i];
+              }
+            }
+          }
+        }
+      }
+      // Set any true boolean values in the processor-level orList
+      boolean[] valueList = createOrList();
+      boolean trueValueFound = false;
+      for (int i = 0; i < OrValue.ARRAY.length; i++) {
+        // Hold on to the values from the node.
+        valueList[i] = OrValue.ARRAY[i].isTrue(node);
+        if (valueList[i]) {
+          trueValueFound = true;
+          if (orList == null && orMap != null) {
+            orList = orMap.get(sectionKey);
+          }
+          if (orList == null) {
+            if (orMap == null) {
+              orMap = new HashMap<String, boolean[]>();
+            }
+            orList = createOrList();
+            orMap.put(sectionKey, orList);
+          }
+          orList[i] = true;
+        }
+      }
+      // Set any true boolean values in any interface-level orLists
+      if (trueValueFound && orMap != null && interfaceTypeSet != null) {
+        // Reusing the orList variable
+        orList = null;
+        Iterator<String> iterator = interfaceTypeSet.iterator();
+        while (iterator.hasNext()) {
+          InterfaceType interfaceType = decodeKey(processorType, iterator.next());
+          if (interfaceType != null && interfaceType != excludeInterfaceType) {
+            for (int i = 0; i < valueList.length; i++) {
+              if (valueList[i]) {
+                String key = getKey(interfaceType, processorType);
+                orList = orMap.get(key);
+                if (orList == null) {
+                  orList = createOrList();
+                  orMap.put(key, orList);
+                }
+                orList[i] = true;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    private boolean[] createOrList() {
+      boolean[] orList = new boolean[OrValue.ARRAY.length];
+      for (int i = 0; i < orList.length; i++) {
+        orList[i] = false;
+      }
+      return orList;
+    }
+
+    /**
+     * Returns the queue section type when the queue processor type is passed in.
+     * Otherwise returns the computer section type.
+     * @param processorType
+     * @return
+     */
+    private String getKey(final ProcessorType processorType) {
+      if (processorType == ProcessorType.QUEUE) {
+        return QUEUE_SECTION_TYPE;
+      }
+      return COMPUTER_SECTION_TYPE;
+    }
+
+    private String getKey(final InterfaceType interfaceType,
+      final ProcessorType processorType) {
+      return getKey(processorType)
+        + (interfaceType != null ? "." + interfaceType.toString() : "");
+    }
+
+    /**
+     * Returns the interface type in the key, if the key contains a matching processor
+     * type.
+     * @param processorType
+     * @param key
+     * @return
+     */
+    private InterfaceType decodeKey(final ProcessorType processorType, final String key) {
+      String firstPart = getKey(processorType);
+      if (key == null || key.indexOf('.') == -1 || !key.startsWith(firstPart)) {
+        return null;
+      }
+      String[] array = key.split("\\.");
+      if (array == null || array.length < 2) {
+        return null;
+      }
+      return InterfaceType.getInstance(array[1]);
+    }
+  }
+
+  /**
+   * An enum of boolean values derived from the cpu.adoc nodes.
+   */
+  private static final class OrValue {
+    private static final int TOTAL = 6;// total number of class instances
+    private static final OrValue[] ARRAY = new OrValue[TOTAL];
+
+    private static int curIndex = 0;
+    private static final OrValue CPU_TYPE = new OrValue(Node.TYPE_KEY, curIndex++);
+    private static final OrValue NUMBER_GT_1 = new OrValue(Node.NUMBER_KEY, curIndex++);
+    private static final OrValue GPU_GT_1 = new OrValue(Node.NUMBER_KEY, curIndex++);
+    private static final OrValue MEMORY = new OrValue(Node.MEMORY_KEY, curIndex++);
+    private static final OrValue OS = new OrValue(Node.OS_KEY, curIndex++);
+    private static final OrValue SPEED = new OrValue(Node.SPEED_KEY, curIndex++);
+
+    private final String key;
+    private final int index;
+
+    private OrValue(final String key, final int index) {
+      this.key = key;
+      this.index = index;
+      ARRAY[index] = this;
+    }
+
+    private boolean isTrue(final Node node) {
+      if (this == CPU_TYPE) {
+        return node.isType();
+      }
+      if (this == NUMBER_GT_1) {
+        return node.getNumber() > 1;
+      }
+      if (this == GPU_GT_1) {
+        String[] gpuArray = node.getGpuDeviceArray();
+        return gpuArray != null && gpuArray.length > 1;
+      }
+      if (this == MEMORY) {
+        return node.isMemory();
+      }
+      if (this == OS) {
+        return node.isOs();
+      }
+      if (this == SPEED) {
+        return node.isSpeed();
+      }
+      return false;
+    }
   }
 }
 /**

@@ -26,14 +26,11 @@ import etomo.util.DatasetFiles;
 /**
  * <p>Description: </p>
  *
- * <p>Copyright: Copyright (c) 2002, 2003, 2004, 2005</p>
+ * <p>Copyright: Copyright 2002 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * <p>Organization: Boulder Laboratory for 3D Fine Structure,
- * University of Colorado</p>
- *
- * @author $Author$
- *
- * @version $Revision$
+ * @version $Id$
  */
 final class TransferfidPanel implements Expandable, Run3dmodButtonContainer {
   public static final String rcsid = "$Id$";
@@ -212,7 +209,7 @@ final class TransferfidPanel implements Expandable, Run3dmodButtonContainer {
     if (params.getSearchDirection().isPositive()) {
       rbSearchPlus90.setSelected(true);
     }
-    cbMirrorInX.setSelected(params.getMirrorInX().is());
+    cbMirrorInX.setSelected(params.getMirrorXaxis().is());
   }
 
   void setParameters(ReconScreenState screenState) {
@@ -245,7 +242,7 @@ final class TransferfidPanel implements Expandable, Run3dmodButtonContainer {
         params.setSearchDirection(-1);
       }
       params.setNumberViews(ltfNumberViews.getText(doValidation));
-      params.setMirrorInX(cbMirrorInX.isSelected());
+      params.setMirrorXaxis(cbMirrorInX.isSelected());
       if (axisID == AxisID.SECOND) {
         manager.getMetaData().setTransferfidBFields(params);
       }

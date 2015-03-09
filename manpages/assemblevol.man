@@ -1,6 +1,6 @@
 .na
 .nh
-.TH assemblevol 1 4.6.34 BL3DEMC
+.TH assemblevol 1 4.6.34 IMOD
 .SH NAME
 assemblevol - assemble an image file from an array of subvolumes
 .SH SYNOPSIS

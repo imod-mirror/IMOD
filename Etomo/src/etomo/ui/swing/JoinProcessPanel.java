@@ -2,19 +2,16 @@ package etomo.ui.swing;
 
 import etomo.JoinManager;
 import etomo.type.AxisID;
+import etomo.type.InterfaceType;
 
 /**
 * <p>Description: </p>
 * 
-* <p>Copyright: Copyright (c) 2002, 2003, 2004</p>
+* <p>Copyright: Copyright 2002 - 2015 by the Regents of the University of Colorado</p>
+* <p/>
+* <p>Organization: Dept. of MCD Biology, University of Colorado</p>
 *
-*<p>Organization:
-* Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
-* University of Colorado</p>
-* 
-* @author $Author$
-* 
-* @version $Revision$
+* @version $Id$
 * 
 * <p> $Log$
 * <p> Revision 1.1  2010/11/13 16:07:34  sueh
@@ -57,14 +54,12 @@ import etomo.type.AxisID;
 */
 
 public class JoinProcessPanel extends AxisProcessPanel {
-  public static final String rcsid = "$Id$";
-
   /**
-   * @param joinManager
-   * @param axis
-   */
-  public JoinProcessPanel(JoinManager joinManager, AxisID axis) {
-    super(axis, joinManager, true,true);
+  * @param joinManager
+  * @param axis
+  */
+  public JoinProcessPanel(final JoinManager joinManager, final AxisID axis) {
+    super(axis, joinManager, true, true, InterfaceType.JOIN);
     createProcessControlPanel();
     showBothAxis();
     initializePanels();

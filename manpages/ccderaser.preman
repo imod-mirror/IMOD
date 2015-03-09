@@ -1,6 +1,6 @@
 .na
 .nh
-.TH ccderaser 1 4.6.34 BL3DEMC
+.TH ccderaser 1 4.6.34 IMOD
 .SH NAME
 ccderaser - erase X-rays, defects and fiducial markers from images
 .SH SYNOPSIS

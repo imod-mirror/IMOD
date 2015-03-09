@@ -388,6 +388,8 @@ if typeInd == 0:
    singleFiles += pwinfo
    afinfo = glob.glob('autofidseed*.info')
    singleFiles += afinfo
+   adocs = glob.glob('batch*.adoc') + glob.glob('*emplate*.adoc')
+   singleFiles += adocs
    
 #
 # JOIN

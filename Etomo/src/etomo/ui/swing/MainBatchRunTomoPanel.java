@@ -4,25 +4,20 @@ import etomo.BaseManager;
 import etomo.process.ProcessState;
 import etomo.storage.DataFileFilter;
 import etomo.type.AxisID;
+import etomo.type.InterfaceType;
 
 /**
 * <p>Description: </p>
 * 
-* <p>Copyright: Copyright 2013</p>
-*
-* <p>Organization:
-* Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
-* University of Colorado</p>
-* 
-* @author $Author$
-* 
-* @version $Revision$
+ * <p>Copyright: Copyright 2013 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
+ *
+ * @version $Id$
 * 
 * <p> $Log$ </p>
 */
 public final class MainBatchRunTomoPanel extends MainPanel {
-  public static final String rcsid = "$Id:$";
-
   private final BaseManager manager;
 
   private BatchRunTomoProcessPanel axisPanelA = null;
@@ -36,19 +31,16 @@ public final class MainBatchRunTomoPanel extends MainPanel {
     scrollA.add(axisPanelA.getContainer());
   }
 
-  void addAxisPanelB() {
-  }
+  void addAxisPanelB() {}
 
   void createAxisPanelA(final AxisID axisID) {
-    axisPanelA = new BatchRunTomoProcessPanel(manager);
+    axisPanelA = new BatchRunTomoProcessPanel(manager, InterfaceType.BATCH_RUN_TOMO);
   }
 
-  public void setState(ProcessState processState, AxisID axisID,
-      AbstractParallelDialog batchRunTomoDialog) {
-  }
+  public void setState(final ProcessState processState, final AxisID axisID,
+    final AbstractParallelDialog batchRunTomoDialog) {}
 
-  void createAxisPanelB() {
-  }
+  void createAxisPanelB() {}
 
   AxisProcessPanel getAxisPanelA() {
     return axisPanelA;
@@ -78,7 +70,7 @@ public final class MainBatchRunTomoPanel extends MainPanel {
     return true;
   }
 
-  AxisProcessPanel mapBaseAxis(AxisID axisID) {
+  AxisProcessPanel mapBaseAxis(final AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       return null;
     }
@@ -89,13 +81,11 @@ public final class MainBatchRunTomoPanel extends MainPanel {
     axisPanelA = null;
   }
 
-  public void saveDisplayState() {
-  }
+  public void saveDisplayState() {}
 
   void showAxisPanelA() {
     axisPanelA.show();
   }
 
-  void showAxisPanelB() {
-  }
+  void showAxisPanelB() {}
 }

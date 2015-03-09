@@ -1,6 +1,6 @@
 .na
 .nh
-.TH ctfphaseflip 1 3.10.18 BL3DEMC
+.TH ctfphaseflip 1 3.10.18 IMOD
 .SH NAME
 ctfphaseflip \- correct tilt series for microscope CTF by phase flipping 
 .SH SYNOPSIS

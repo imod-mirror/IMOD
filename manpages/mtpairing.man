@@ -1,6 +1,6 @@
 .na
 .nh
-.TH mtpairing 1 4.6.34 BL3DEMC
+.TH mtpairing 1 4.6.34 IMOD
 .SH NAME
 mtpairing - to analyze pairing between MTs
 .SH SYNOPSIS

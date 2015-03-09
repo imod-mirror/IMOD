@@ -1,6 +1,6 @@
 .na
 .nh
-.TH tiltxcorr 1 4.6.34 BL3DEMC
+.TH tiltxcorr 1 4.6.34 IMOD
 .SH NAME
 tiltxcorr - to align a tilt series by cross-correlation
 .SH SYNOPSIS

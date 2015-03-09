@@ -220,6 +220,9 @@ public final class BatchRunTomoManager extends BaseManager {
       processEndState = ProcessEndState.FAILED;
     }
     mainPanel.stopProgressBar(AXIS_ID, processEndState);
+    logMessage(new String[] { "", "How to run batchruntomo from the command line:",
+      "Open a terminal window.", "Type the following two commands:",
+      "cd " + propertyUserDir, "subm " + metaData.getName() }, "Instructions", AXIS_ID);
   }
 
   private boolean saveBatchRunTomoDialog(final boolean doValidation) {
@@ -336,30 +339,35 @@ public final class BatchRunTomoManager extends BaseManager {
   /**
    * Open imod model in a running imod instance
    */
-  public void imodModel(final AxisID axisID, final int imodIndex, final String stackName,
-    final FileType modelFile, final boolean dualAxis) {
-    if (imodIndex == -1 || modelFile == null) {
+  public void imodModel(final AxisID axisID, final int imodIndex,
+    final File stackLocation, final String stackName, final FileType modelFileType,
+    final boolean dualAxis) {
+    if (imodIndex == -1 || modelFileType == null || stackName == null) {
       return;
     }
     String key = ImodManager.BATCH_RUN_TOMO_STACK_KEY;
     AxisType axisType = dualAxis ? AxisType.DUAL_AXIS : AxisType.SINGLE_AXIS;
     String datasetName = DatasetTool.getDatasetName(stackName, dualAxis);
-    try {
-      imodManager.openModel(key, axisID, imodIndex, modelFile.getFileName(datasetName,
-        axisType, axisID), true);
-    }
-    catch (AxisTypeException except) {
-      except.printStackTrace();
-      uiHarness.openMessageDialog(this, except.getMessage(), "AxisType problem", axisID);
-    }
-    catch (SystemProcessException except) {
-      except.printStackTrace();
-      uiHarness.openMessageDialog(this, except.getMessage(), "Problem opening " + key,
-        axisID);
-    }
-    catch (IOException e) {
-      e.printStackTrace();
-      uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception", axisID);
+    File modelFile = modelFileType.getFile(stackLocation, datasetName, axisType, axisID);
+    if (modelFile != null) {
+      try {
+        imodManager.openModel(key, axisID, imodIndex, Utilities.escapeSpaces(modelFile
+          .getAbsolutePath(), true), true);
+      }
+      catch (AxisTypeException except) {
+        except.printStackTrace();
+        uiHarness
+          .openMessageDialog(this, except.getMessage(), "AxisType problem", axisID);
+      }
+      catch (SystemProcessException except) {
+        except.printStackTrace();
+        uiHarness.openMessageDialog(this, except.getMessage(), "Problem opening " + key,
+          axisID);
+      }
+      catch (IOException e) {
+        e.printStackTrace();
+        uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception", axisID);
+      }
     }
   }
 

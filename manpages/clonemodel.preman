@@ -1,6 +1,6 @@
 .na
 .nh
-.TH clonemodel 1 4.4.1 BL3DEMC
+.TH clonemodel 1 4.4.1 IMOD
 .SH NAME
 clonemodel \- clone copies of a model (e.g. an isosurface from a PEET average)
 back to the aligned positions and orientations.
