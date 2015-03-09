@@ -1,28 +1,29 @@
 package etomo.comscript;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Properties;
 
 import etomo.BaseManager;
 import etomo.storage.Storable;
 import etomo.type.AxisID;
 import etomo.type.CombinePatchSize;
+import etomo.type.ConstEtomoNumber;
+import etomo.type.EtomoNumber;
 import etomo.type.FiducialMatch;
 import etomo.type.MatchMode;
+import etomo.util.DatasetFiles;
 import etomo.util.InvalidParameterException;
 import etomo.util.MRCHeader;
 
 /**
  * <p>Description: </p>
  *
- * <p>Copyright: Copyright (c) 2002</p>
+ * <p>Copyright: Copyright 2002 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * <p>Organization: Boulder Laboratory for 3D Fine Structure,
- * University of Colorado</p>
- *
- * @author $Author$
- *
- * @version $Revision$
+ * @version $Id$
  *
  * <p> $Log$
  * <p> Revision 3.16  2010/02/17 04:47:54  sueh
@@ -142,25 +143,61 @@ import etomo.util.MRCHeader;
  * <p> </p>
  */
 
-public class CombineParams extends ConstCombineParams implements Storable {
-  public static final String rcsid = "$Id$";
-
+public final class CombineParams implements ConstCombineParams, Storable {
   private static final String MATCH_B_TO_A_KEY = "MatchBtoA";
   private static final String MATCH_MODE_KEY = "MatchMode";
   private static final String DIALOG_MATCH_MODE_KEY = "DialogMatchMode";
+  public static final String PATCH_Z_MIN_LABEL = "Z axis min";
+  public static final String PATCH_Z_MAX_LABEL = "Z axis max";
+  private static final String PATCH_SIZE_XYZ_KEY = "PatchSize.XYZ";
+  private static final String AUTO_PATCH_FINAL_SIZE_KEY = "AutoPatchFinalSize";
+  private static final String AUTO_PATCH_FINAL_SIZE_XYZ_KEY = "AutoPatchFinalSize.XYZ";
+  private static final String EXTRA_RESIDUAL_TARGETS_KEY = "ExtraResidualTargets";
+
+  private ArrayList invalidReasons = new ArrayList();
+
+  private final BaseManager manager;
+
+  private MatchMode matchMode = null;
+  private FiducialMatch fiducialMatch = FiducialMatch.BOTH_SIDES;
+  private StringList useList = new StringList(0);
+  private StringList fiducialMatchListA = new StringList(0);
+  private StringList fiducialMatchListB = new StringList(0);
+  private CombinePatchSize patchSize = CombinePatchSize.MEDIUM;
+  private int patchXMin = 0;
+  private int patchXMax = 0;
+  private int patchYMin = 0;
+  private int patchYMax = 0;
+  private EtomoNumber patchZMin = new EtomoNumber("PatchBoundaryZMin");
+  private EtomoNumber patchZMax = new EtomoNumber("PatchBoundaryZMax");
+  private int maxPatchZMax = 0;
+  private String patchRegionModel = "";
+  private String tempDirectory = "";
+  private boolean manualCleanup = false;
+  private boolean modelBased = false;
+  private boolean transfer = true;
+  private String revisionNumber = "1.2";
+  private String patchSizeXYZ = null;
+  private CombinePatchSize autoPatchFinalSize = CombinePatchSize.LARGE;
+  private String autoPatchFinalSizeXYZ = null;
+  private String extraResidualTargets = "";
 
   /**
    * Default constructor
    */
-  public CombineParams(BaseManager manager) {
-    super(manager);
+  public CombineParams(final BaseManager manager) {
+    this.manager = manager;
+    patchZMin.set(0);
+    patchZMax.set(0);
   }
 
   /**
    * Copy constructor
    */
-  public CombineParams(final ConstCombineParams src) {
-    super(src);
+  public CombineParams(final CombineParams src) {
+    manager = src.manager;
+    patchZMin.set(0);
+    patchZMax.set(0);
     // dialogMatchMode = src.dialogMatchMode;
     matchMode = src.matchMode;
     fiducialMatch = src.fiducialMatch;
@@ -178,22 +215,13 @@ public class CombineParams extends ConstCombineParams implements Storable {
     tempDirectory = src.tempDirectory;
     manualCleanup = src.manualCleanup;
     transfer = src.transfer;
+    patchSizeXYZ = src.patchSizeXYZ;
+    autoPatchFinalSize = src.autoPatchFinalSize;
+    autoPatchFinalSizeXYZ = src.autoPatchFinalSizeXYZ;
+    extraResidualTargets = src.extraResidualTargets;
   }
 
-  public void setRevisionNumber(String revNumber) {
-    revisionNumber = revNumber;
-  }
-
-  // public void setDialogMatchMode(boolean isBtoA) {
-  // if (isBtoA) {
-  // dialogMatchMode = MatchMode.B_TO_A;
-  // }
-  // else {
-  // dialogMatchMode = MatchMode.A_TO_B;
-  // }
-  // }
-
-  public void setMatchMode(boolean isBtoA) {
+  public void setMatchMode(final boolean isBtoA) {
     if (isBtoA) {
       matchMode = MatchMode.B_TO_A;
     }
@@ -202,11 +230,11 @@ public class CombineParams extends ConstCombineParams implements Storable {
     }
   }
 
-  public void setMatchMode(MatchMode matchMode) {
+  public void setMatchMode(final MatchMode matchMode) {
     this.matchMode = matchMode;
   }
 
-  public void setFiducialMatch(FiducialMatch match) {
+  public void setFiducialMatch(final FiducialMatch match) {
     fiducialMatch = match;
     if (match == FiducialMatch.USE_MODEL || match == FiducialMatch.USE_MODEL_ONLY) {
       modelBased = true;
@@ -216,23 +244,45 @@ public class CombineParams extends ConstCombineParams implements Storable {
     }
   }
 
-  public void setUseList(String useList) {
+  public void setUseList(final String useList) {
     this.useList.parseString(useList);
   }
 
-  public void setFiducialMatchListA(String list) {
+  public void setFiducialMatchListA(final String list) {
     fiducialMatchListA.parseString(list);
   }
 
-  public void setFiducialMatchListB(String list) {
+  public void setFiducialMatchListB(final String list) {
     fiducialMatchListB.parseString(list);
   }
 
-  public void setPatchSize(CombinePatchSize size) {
+  public void setPatchSize(final CombinePatchSize size) {
     patchSize = size;
   }
 
-  public void setPatchRegionModel(String modelFileName) {
+  public void setPatchSize(final String x, final String y, final String z) {
+    patchSize = CombinePatchSize.XYZ;
+    patchSizeXYZ = x + "," + y + "," + z;
+  }
+
+  public void setAutoPatchFinalSize(final String x, final String y, final String z) {
+    autoPatchFinalSize = CombinePatchSize.XYZ;
+    autoPatchFinalSizeXYZ = x + "," + y + "," + z;
+  }
+
+  public void setExtraResidualTargets(final String input) {
+    extraResidualTargets = input;
+  }
+
+  public void resetExtraResidualTargets() {
+    extraResidualTargets = "";
+  }
+
+  public void resetPatchSize() {
+    patchSize = CombinePatchSize.MEDIUM;
+  }
+
+  public void setPatchRegionModel(final String modelFileName) {
     if (modelFileName.matches("^\\s+$")) {
       patchRegionModel = "";
     }
@@ -249,7 +299,7 @@ public class CombineParams extends ConstCombineParams implements Storable {
    * Sets the patchXMax.
    * @param patchXMax The patchXMax to set
    */
-  public void setPatchXMax(int patchXMax) {
+  public void setPatchXMax(final int patchXMax) {
     this.patchXMax = patchXMax;
   }
 
@@ -257,7 +307,7 @@ public class CombineParams extends ConstCombineParams implements Storable {
    * Sets the patchXMin.
    * @param patchXMin The patchXMin to set
    */
-  public void setPatchXMin(int patchXMin) {
+  public void setPatchXMin(final int patchXMin) {
     this.patchXMin = patchXMin;
   }
 
@@ -265,7 +315,7 @@ public class CombineParams extends ConstCombineParams implements Storable {
    * Sets the patchYMax.
    * @param patchYMax The patchYMax to set
    */
-  public void setPatchYMax(int patchYMax) {
+  public void setPatchYMax(final int patchYMax) {
     this.patchYMax = patchYMax;
   }
 
@@ -273,7 +323,7 @@ public class CombineParams extends ConstCombineParams implements Storable {
    * Sets the patchYMin.
    * @param patchYMin The patchYMin to set
    */
-  public void setPatchYMin(int patchYMin) {
+  public void setPatchYMin(final int patchYMin) {
     this.patchYMin = patchYMin;
   }
 
@@ -281,7 +331,7 @@ public class CombineParams extends ConstCombineParams implements Storable {
    * Sets the patchZMax.
    * @param patchZMax The patchZMax to set
    */
-  public void setPatchZMax(String patchZMax) {
+  public void setPatchZMax(final String patchZMax) {
     this.patchZMax.set(patchZMax);
   }
 
@@ -289,27 +339,27 @@ public class CombineParams extends ConstCombineParams implements Storable {
    * Sets the patchZMin.
    * @param patchZMin The patchZMin to set
    */
-  public void setPatchZMin(String patchZMin) {
+  public void setPatchZMin(final String patchZMin) {
     this.patchZMin.set(patchZMin);
   }
 
-  public void setMaxPatchZMax(String fileName) throws InvalidParameterException,
-      IOException {
+  public void setMaxPatchZMax(final String fileName) throws InvalidParameterException,
+    IOException {
 
     // Get the data size limits from the image stack
-    MRCHeader mrcHeader = MRCHeader.getInstance(manager.getPropertyUserDir(), fileName,
-        AxisID.ONLY);
+    MRCHeader mrcHeader =
+      MRCHeader.getInstance(manager.getPropertyUserDir(), fileName, AxisID.ONLY);
     if (!mrcHeader.read(manager)) {
       throw new IOException("file does not exist");
     }
     maxPatchZMax = mrcHeader.getNRows();
   }
 
-  public void setMaxPatchZMax(int maxPatchZMax) {
+  public void setMaxPatchZMax(final int maxPatchZMax) {
     this.maxPatchZMax = maxPatchZMax;
   }
 
-  public void setTempDirectory(String directoryName) {
+  public void setTempDirectory(final String directoryName) {
     if (directoryName.matches("^\\s+$")) {
       tempDirectory = "";
     }
@@ -318,11 +368,11 @@ public class CombineParams extends ConstCombineParams implements Storable {
     }
   }
 
-  public void setTransfer(boolean transfer) {
+  public void setTransfer(final boolean transfer) {
     this.transfer = transfer;
   }
 
-  public void setManualCleanup(boolean isManual) {
+  public void setManualCleanup(final boolean isManual) {
     manualCleanup = isManual;
   }
 
@@ -330,7 +380,7 @@ public class CombineParams extends ConstCombineParams implements Storable {
    * Sets the modelBased state.
    * @param modelBased True if a model based combine is being used.
    */
-  public void setModelBased(boolean modelBased) {
+  public void setModelBased(final boolean modelBased) {
     this.modelBased = modelBased;
     if (modelBased) {
       fiducialMatch = FiducialMatch.USE_MODEL;
@@ -343,11 +393,11 @@ public class CombineParams extends ConstCombineParams implements Storable {
   /**
    *  Insert the objects attributes into the properties object.
    */
-  public void store(Properties props) {
+  public void store(final Properties props) {
     store(props, "");
   }
 
-  public void store(Properties props, String prepend) {
+  public void store(final Properties props, String prepend) {
     String group;
     if (prepend == "") {
       prepend = "Combine";
@@ -394,16 +444,21 @@ public class CombineParams extends ConstCombineParams implements Storable {
     props.setProperty(group + "ModelBased", String.valueOf(modelBased));
     props.setProperty(group + "Transfer", String.valueOf(transfer));
     props.setProperty(group + "MaxPatchBoundaryZMax", String.valueOf(maxPatchZMax));
+    props.setProperty(group + PATCH_SIZE_XYZ_KEY, patchSizeXYZ);
+    props.setProperty(group + AUTO_PATCH_FINAL_SIZE_KEY, autoPatchFinalSize.toString());
+    props.setProperty(group + AUTO_PATCH_FINAL_SIZE_XYZ_KEY, autoPatchFinalSizeXYZ);
+    props
+      .setProperty(group + EXTRA_RESIDUAL_TARGETS_KEY, extraResidualTargets.toString());
   }
 
   /**
    *  Get the objects attributes from the properties object.
    */
-  public void load(Properties props) {
+  public void load(final Properties props) {
     load(props, "");
   }
 
-  public void load(Properties props, String prepend) {
+  public void load(final Properties props, String prepend) {
     String group;
     if (prepend == "") {
       prepend = "Combine";
@@ -452,52 +507,60 @@ public class CombineParams extends ConstCombineParams implements Storable {
       }
     }
     else {
-      matchMode = MatchMode.getInstance(props.getProperty(group + MATCH_MODE_KEY,
+      matchMode =
+        MatchMode.getInstance(props.getProperty(group + MATCH_MODE_KEY,
           matchMode.toString()));
     }
 
-    fiducialMatch = FiducialMatch.fromString(props.getProperty(group + "FiducialMatch",
+    fiducialMatch =
+      FiducialMatch.fromString(props.getProperty(group + "FiducialMatch",
         fiducialMatch.toString()));
 
     useList.parseString(props.getProperty(group + "UseList", useList.toString()));
 
     fiducialMatchListA.parseString(props.getProperty(group + "FiducialMatchListA",
-        fiducialMatchListA.toString()));
+      fiducialMatchListA.toString()));
 
     fiducialMatchListB.parseString(props.getProperty(group + "FiducialMatchListB",
-        fiducialMatchListB.toString()));
+      fiducialMatchListB.toString()));
 
-    patchSize = CombinePatchSize.fromString(props.getProperty(group + "PatchSize",
+    patchSize =
+      CombinePatchSize.getInstance(props.getProperty(group + "PatchSize",
         patchSize.toString()));
-
     patchRegionModel = props.getProperty(group + "PatchRegionModel", patchRegionModel);
 
-    patchXMin = Integer.parseInt(props.getProperty(group + "PatchBoundaryXMin",
+    patchXMin =
+      Integer.parseInt(props.getProperty(group + "PatchBoundaryXMin",
         String.valueOf(patchXMin)));
 
-    patchXMax = Integer.parseInt(props.getProperty(group + "PatchBoundaryXMax",
+    patchXMax =
+      Integer.parseInt(props.getProperty(group + "PatchBoundaryXMax",
         String.valueOf(patchXMax)));
 
-    patchYMin = Integer.parseInt(props.getProperty(group + "PatchBoundaryYMin",
+    patchYMin =
+      Integer.parseInt(props.getProperty(group + "PatchBoundaryYMin",
         String.valueOf(patchYMin)));
 
-    patchYMax = Integer.parseInt(props.getProperty(group + "PatchBoundaryYMax",
+    patchYMax =
+      Integer.parseInt(props.getProperty(group + "PatchBoundaryYMax",
         String.valueOf(patchYMax)));
-
     patchZMin.load(props, prepend);
     patchZMax.load(props, prepend);
 
     tempDirectory = props.getProperty(group + "TempDirectory", tempDirectory);
 
-    manualCleanup = Boolean.valueOf(
+    manualCleanup =
+      Boolean.valueOf(
         props.getProperty(group + "ManualCleanup", Boolean.toString(manualCleanup)))
         .booleanValue();
 
-    modelBased = Boolean.valueOf(
+    modelBased =
+      Boolean.valueOf(
         props.getProperty(group + "ModelBased", Boolean.toString(modelBased)))
         .booleanValue();
-    transfer = Boolean.valueOf(
-        props.getProperty(group + "Transfer", Boolean.toString(transfer))).booleanValue();
+    transfer =
+      Boolean.valueOf(props.getProperty(group + "Transfer", Boolean.toString(transfer)))
+        .booleanValue();
 
     if (fiducialMatch == FiducialMatch.USE_MODEL) {
       modelBased = true;
@@ -505,8 +568,21 @@ public class CombineParams extends ConstCombineParams implements Storable {
     else {
       modelBased = false;
     }
-    maxPatchZMax = Integer.parseInt(props.getProperty(group + "MaxPatchBoundaryZMax",
+    maxPatchZMax =
+      Integer.parseInt(props.getProperty(group + "MaxPatchBoundaryZMax",
         String.valueOf(maxPatchZMax)));
+    patchSizeXYZ = props.getProperty(group + PATCH_SIZE_XYZ_KEY, patchSizeXYZ);
+    autoPatchFinalSize =
+      CombinePatchSize.getInstance(props.getProperty(group + AUTO_PATCH_FINAL_SIZE_KEY,
+        autoPatchFinalSize.toString()));
+    autoPatchFinalSizeXYZ =
+      props.getProperty(group + AUTO_PATCH_FINAL_SIZE_XYZ_KEY, autoPatchFinalSizeXYZ);
+    extraResidualTargets =
+      props.getProperty(group + EXTRA_RESIDUAL_TARGETS_KEY, extraResidualTargets);
+  }
+
+  public void setAutoPatchFinalSize(final CombinePatchSize input) {
+    autoPatchFinalSize = input;
   }
 
   /**
@@ -515,11 +591,11 @@ public class CombineParams extends ConstCombineParams implements Storable {
    * @param fileName The MRC iamge stack file name used to set the patch
    * boundaries.
    */
-  public void setDefaultPatchBoundaries(String fileName)
-      throws InvalidParameterException, IOException {
+  public void setDefaultPatchBoundaries(final String fileName)
+    throws InvalidParameterException, IOException {
     // Get the data size limits from the image stack
-    MRCHeader mrcHeader = MRCHeader.getInstance(manager.getPropertyUserDir(), fileName,
-        AxisID.ONLY);
+    MRCHeader mrcHeader =
+      MRCHeader.getInstance(manager.getPropertyUserDir(), fileName, AxisID.ONLY);
     if (!mrcHeader.read(manager)) {
       return;
     }
@@ -538,7 +614,7 @@ public class CombineParams extends ConstCombineParams implements Storable {
    * @param mrcHeader
    * @return
    */
-  public static int getXYBorder(MRCHeader mrcHeader) {
+  public static int getXYBorder(final MRCHeader mrcHeader) {
     // Logic from setupcombine to provide the default border size, the variable
     // names used match those from the setupcombine script
     int[] xyborders = { 24, 36, 54, 68, 80 };
@@ -550,5 +626,325 @@ public class CombineParams extends ConstCombineParams implements Storable {
     if (borderindex > 4)
       borderindex = 4;
     return xyborders[borderindex];
+  }
+
+  public final boolean equals(final CombineParams cmp) {
+    // if (dialogMatchMode != cmp.dialogMatchMode) {
+    // return false;
+    // }
+    if (matchMode != cmp.matchMode) {
+      return false;
+    }
+    if (!fiducialMatch.equals(cmp.getFiducialMatch())) {
+      return false;
+    }
+
+    if (!useList.toString().equals(cmp.getUseList().toString())) {
+      return false;
+    }
+    if (!fiducialMatchListA.toString().equals(cmp.getFiducialMatchListA().toString())) {
+      return false;
+    }
+    if (!fiducialMatchListB.toString().equals(cmp.getFiducialMatchListB().toString())) {
+      return false;
+    }
+    if (!patchSize.equals(cmp.getPatchSize())) {
+      return false;
+    }
+    if (!(patchXMin == cmp.getPatchXMin())) {
+      return false;
+    }
+    if (!(patchXMax == cmp.getPatchXMax())) {
+      return false;
+    }
+    if (!(patchYMin == cmp.getPatchYMin())) {
+      return false;
+    }
+    if (!(patchYMax == cmp.getPatchYMax())) {
+      return false;
+    }
+    if (!patchZMin.equals(cmp.getPatchZMin())) {
+      return false;
+    }
+    if (!patchZMax.equals(cmp.getPatchZMax())) {
+      return false;
+    }
+    if (!(patchRegionModel.equals(cmp.patchRegionModel))) {
+      return false;
+    }
+    if (!(tempDirectory.equals(cmp.getTempDirectory()))) {
+      return false;
+    }
+    if (!(manualCleanup == cmp.getManualCleanup())) {
+      return false;
+    }
+    if (!(modelBased == cmp.modelBased)) {
+      return false;
+    }
+    if (patchSizeXYZ == null && cmp.patchSizeXYZ != null
+      || !patchSizeXYZ.equals(cmp.patchSizeXYZ)) {
+      return false;
+    }
+    if (!autoPatchFinalSize.equals(cmp.autoPatchFinalSize)) {
+      return false;
+    }
+    if (autoPatchFinalSizeXYZ == null && cmp.autoPatchFinalSizeXYZ != null
+      || !autoPatchFinalSizeXYZ.equals(cmp.autoPatchFinalSizeXYZ)) {
+      return false;
+    }
+    if (!(extraResidualTargets.equals(cmp.extraResidualTargets))) {
+      return false;
+    }
+    return true;
+  }
+
+  public boolean isAutoPatchFinalSizeSet() {
+    return autoPatchFinalSize != null;
+  }
+
+  public boolean isExtraResidualTargetsSet() {
+    return !extraResidualTargets.equals("");
+  }
+
+  /**
+   * Returns true if the patch boundary values have been modified
+   */
+  public boolean isPatchBoundarySet() {
+    if (patchXMin == 0 && patchXMax == 0 && patchYMin == 0 && patchYMax == 0
+      && patchZMin.equals(0) && patchZMax.equals(0)) {
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Checks the validity of the attribute values.
+   * @return true if all entries are valid, otherwise the reasons are 
+   * available through the method getInvalidReasons.
+   */
+  public final boolean isValid(final boolean YAndZflipped) {
+    boolean valid = true;
+    // Clear any previous reasons from the list
+    invalidReasons.clear();
+    if (patchXMin < 1) {
+      valid = false;
+      invalidReasons.add("X min value is less than 1");
+    }
+    if (patchXMax < 1) {
+      valid = false;
+      invalidReasons.add("X max value is less than 1");
+    }
+    if (patchXMin > patchXMax) {
+      valid = false;
+      invalidReasons.add("X min value is greater than the X max value");
+    }
+
+    if (patchYMin < 1) {
+      valid = false;
+      invalidReasons.add("Y min value is less than 1");
+    }
+    if (patchYMax < 1) {
+      valid = false;
+      invalidReasons.add("Y max value is less than 1");
+    }
+    if (patchYMin > patchYMax) {
+      valid = false;
+      invalidReasons.add("Y min value is greater than the Y max value");
+    }
+
+    if (patchZMin.getInt() < 1) {
+      valid = false;
+      invalidReasons.add("Z min value is less than 1");
+    }
+    if (patchZMax.getInt() < 1) {
+      valid = false;
+      invalidReasons.add("ZX max value is less than 1");
+    }
+    if (maxPatchZMax > 0 && patchZMax.gt(maxPatchZMax)) {
+      valid = false;
+      invalidReasons.add("Z max value is greater than the maximum Z max value ("
+        + maxPatchZMax + ")");
+    }
+    if (patchZMin.gt(patchZMax)) {
+      valid = false;
+      invalidReasons.add("Z min value is greater than the Z max value");
+    }
+    // get the tomogram header to check x, y, and z
+    AxisID axisID;
+    // if (dialogMatchMode == null || dialogMatchMode == MatchMode.B_TO_A) {
+    // axisID = AxisID.FIRST;
+    // }
+    // else {
+    // axisID = AxisID.SECOND;
+    // }
+    if (matchMode == null || matchMode == MatchMode.B_TO_A) {
+      axisID = AxisID.FIRST;
+    }
+    else {
+      axisID = AxisID.SECOND;
+    }
+    MRCHeader header =
+      MRCHeader.getInstance(manager.getPropertyUserDir(),
+        DatasetFiles.getTomogram(manager, axisID).getAbsolutePath(), axisID);
+    try {
+      if (!header.read(manager)) {
+        return true;
+      }
+    }
+    catch (IOException e) {
+      return true;
+    }
+    catch (Exception e) {
+      e.printStackTrace();
+      return true;
+    }
+    int x = header.getNColumns();
+    if (x < patchXMin || x < patchXMax) {
+      valid = false;
+      invalidReasons.add("X values cannot be greater then " + x);
+    }
+    int y;
+    int z;
+    if (YAndZflipped) {
+      y = header.getNSections();
+      z = header.getNRows();
+    }
+    else {
+      y = header.getNRows();
+      z = header.getNSections();
+    }
+    if (y < patchYMin || y < patchYMax) {
+      valid = false;
+      invalidReasons.add("Y values cannot be greater then " + y);
+    }
+
+    if (patchZMin.gt(z) || patchZMax.gt(z)) {
+      valid = false;
+      invalidReasons.add("Z values cannot be greater then " + z);
+    }
+    return valid;
+  }
+
+  /**
+   * Returns the reasons the attribute values are invalid as a string array.
+   */
+  public final String[] getInvalidReasons() {
+    return (String[]) invalidReasons.toArray(new String[invalidReasons.size()]);
+  }
+
+  public MatchMode getMatchMode() {
+    return matchMode;
+  }
+
+  public boolean isTransfer() {
+    return transfer;
+  }
+
+  public FiducialMatch getFiducialMatch() {
+    return fiducialMatch;
+  }
+
+  public String getUseList() {
+    return useList.toString();
+  }
+
+  public String getFiducialMatchListA() {
+    return fiducialMatchListA.toString();
+  }
+
+  public String getFiducialMatchListB() {
+    return fiducialMatchListB.toString();
+  }
+
+  public String getPatchRegionModel() {
+    return patchRegionModel;
+  }
+
+  public CombinePatchSize getPatchSize() {
+    return patchSize;
+  }
+
+  public String getPatchSizeXYZ() {
+    return patchSizeXYZ;
+  }
+
+  public CombinePatchSize getAutoPatchFinalSize() {
+    return autoPatchFinalSize;
+  }
+
+  public String getExtraResidualTargets() {
+    return extraResidualTargets;
+  }
+
+  public String getTempDirectory() {
+    return tempDirectory;
+  }
+
+  public boolean isTempDirectorySet() {
+    return !tempDirectory.equals("");
+  }
+
+  public boolean getManualCleanup() {
+    return manualCleanup;
+  }
+
+  /**
+   * Returns the patchXMax.
+   * @return int
+   */
+  public int getPatchXMax() {
+    return patchXMax;
+  }
+
+  /**
+   * Returns the patchXMin.
+   * @return int
+   */
+  public int getPatchXMin() {
+    return patchXMin;
+  }
+
+  /**
+   * Returns the patchYMax.
+   * @return int
+   */
+  public int getPatchYMax() {
+    return patchYMax;
+  }
+
+  /**
+   * Returns the patchYMin.
+   * @return int
+   */
+  public int getPatchYMin() {
+    return patchYMin;
+  }
+
+  /**
+   * Returns the patchZMax.
+   * @return int
+   */
+  public ConstEtomoNumber getPatchZMax() {
+    return patchZMax;
+  }
+
+  /**
+   * Returns the patchZMin.
+   * @return int
+   */
+  public ConstEtomoNumber getPatchZMin() {
+    return patchZMin;
+  }
+
+  public int getMaxPatchZMax() {
+    return maxPatchZMax;
+  }
+
+  /**
+   * Returns true if a patch region model has been specified.
+   * @return boolean
+   */
+  public boolean usePatchRegionModel() {
+    return !patchRegionModel.matches("^\\s*$");
   }
 }
