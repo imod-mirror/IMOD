@@ -38,14 +38,37 @@ public final class FiducialMatch {
   private FiducialMatch(String name) {
     this.name = name;
   }
+
   public static final FiducialMatch NOT_SET = new FiducialMatch("Not Set");
   public static final FiducialMatch BOTH_SIDES = new FiducialMatch("BothSides");
   public static final FiducialMatch ONE_SIDE = new FiducialMatch("OneSide");
-  public static final FiducialMatch ONE_SIDE_INVERTED =
-    new FiducialMatch("OneSideInverted");
+  public static final FiducialMatch ONE_SIDE_INVERTED = new FiducialMatch(
+    "OneSideInverted");
   public static final FiducialMatch USE_MODEL = new FiducialMatch("UseModel");
   public static final FiducialMatch USE_MODEL_ONLY = new FiducialMatch("UseModelOnly");
-  
+
+  public static FiducialMatch getInstance(final String input) {
+    if (NOT_SET.name.equals(input)) {
+      return NOT_SET;
+    }
+    if (BOTH_SIDES.name.equals(input)) {
+      return BOTH_SIDES;
+    }
+    if (ONE_SIDE.name.equals(input)) {
+      return ONE_SIDE;
+    }
+    if (ONE_SIDE_INVERTED.name.equals(input)) {
+      return ONE_SIDE_INVERTED;
+    }
+    if (USE_MODEL.name.equals(input)) {
+      return USE_MODEL;
+    }
+    if (USE_MODEL_ONLY.name.equals(input)) {
+      return USE_MODEL_ONLY;
+    }
+    return null;
+  }
+
   /**
    * Returns a string representation of the object.
    */
@@ -77,7 +100,7 @@ public final class FiducialMatch {
 
     return null;
   }
-  
+
   public String getOption() {
     if (this == NOT_SET) {
       return null;
