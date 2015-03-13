@@ -12,6 +12,7 @@ import etomo.type.ConstEtomoNumber;
 import etomo.type.EtomoNumber;
 import etomo.type.FiducialMatch;
 import etomo.type.MatchMode;
+import etomo.type.StringProperty;
 import etomo.util.DatasetFiles;
 import etomo.util.InvalidParameterException;
 import etomo.util.MRCHeader;
@@ -48,7 +49,7 @@ import etomo.util.MRCHeader;
  * <p>
  * <p> Revision 3.10  2006/07/19 15:14:37  sueh
  * <p> bug# 903 Change patchZMin and Max to EtomoNumbers so they won't generate
- * <p> an exception when they are set to a blank string.
+ * <p> an exceptionMatchMode when they are set to a blank string.
  * <p>
  * <p> Revision 3.9  2006/05/16 21:20:23  sueh
  * <p> bug# 856 Added transfer and useList.  Removed dialogMatchMode from
@@ -150,76 +151,87 @@ public final class CombineParams implements ConstCombineParams, Storable {
   private static final String DIALOG_MATCH_MODE_KEY = "DialogMatchMode";
   public static final String PATCH_Z_MIN_LABEL = "Z axis min";
   public static final String PATCH_Z_MAX_LABEL = "Z axis max";
-  private static final String PATCH_SIZE_XYZ_KEY = "PatchSize.XYZ";
   private static final String AUTO_PATCH_FINAL_SIZE_KEY = "AutoPatchFinalSize";
-  private static final String AUTO_PATCH_FINAL_SIZE_XYZ_KEY = "AutoPatchFinalSize.XYZ";
-  private static final String EXTRA_RESIDUAL_TARGETS_KEY = "ExtraResidualTargets";
+  private static final String XYZ_KEY = "XYZ";
+  private static final String PATCH_SIZE_KEY = "PatchSize";
+  private static final String DEFAULT_PATCH_SIZE = CombinePatchSize.MEDIUM.toString();
+  private static final String REVISION = "1.2";
 
-  private ArrayList invalidReasons = new ArrayList();
+  private final ArrayList invalidReasons = new ArrayList();
+  private final StringProperty patchSize = new StringProperty(PATCH_SIZE_KEY);
+  private final EtomoNumber patchZMin = new EtomoNumber("PatchBoundaryZMin");
+  private final EtomoNumber patchZMax = new EtomoNumber("PatchBoundaryZMax");
+  private final StringProperty patchSizeXYZ = new StringProperty(PATCH_SIZE_KEY + "."
+    + XYZ_KEY);
+  private final StringProperty autoPatchFinalSize = new StringProperty(
+    AUTO_PATCH_FINAL_SIZE_KEY);
+  private final StringProperty autoPatchFinalSizeXYZ = new StringProperty(
+    AUTO_PATCH_FINAL_SIZE_KEY + "." + XYZ_KEY);
+  private final StringProperty extraResidualTargets = new StringProperty(
+    "ExtraResidualTargets");
+  private final StringProperty wedgeReductionFraction = new StringProperty(
+    "WedgeReductionFraction");
+  private final StringProperty lowFromBothRadius =
+    new StringProperty("LowFromBothRadius");
 
   private final BaseManager manager;
 
-  private MatchMode matchMode = null;
-  private FiducialMatch fiducialMatch = FiducialMatch.BOTH_SIDES;
   private StringList useList = new StringList(0);
   private StringList fiducialMatchListA = new StringList(0);
   private StringList fiducialMatchListB = new StringList(0);
-  private CombinePatchSize patchSize = CombinePatchSize.MEDIUM;
+  private MatchMode matchMode = null;
+  private FiducialMatch fiducialMatch = FiducialMatch.BOTH_SIDES;
   private int patchXMin = 0;
   private int patchXMax = 0;
   private int patchYMin = 0;
   private int patchYMax = 0;
-  private EtomoNumber patchZMin = new EtomoNumber("PatchBoundaryZMin");
-  private EtomoNumber patchZMax = new EtomoNumber("PatchBoundaryZMax");
   private int maxPatchZMax = 0;
   private String patchRegionModel = "";
   private String tempDirectory = "";
   private boolean manualCleanup = false;
   private boolean modelBased = false;
   private boolean transfer = true;
-  private String revisionNumber = "1.2";
-  private String patchSizeXYZ = null;
-  private CombinePatchSize autoPatchFinalSize = CombinePatchSize.LARGE;
-  private String autoPatchFinalSizeXYZ = null;
-  private String extraResidualTargets = "";
+  private String revisionNumber = REVISION;
 
   /**
    * Default constructor
    */
   public CombineParams(final BaseManager manager) {
     this.manager = manager;
-    patchZMin.set(0);
-    patchZMax.set(0);
+    reset();
   }
 
-  /**
-   * Copy constructor
-   */
-  public CombineParams(final CombineParams src) {
-    manager = src.manager;
+  public void reset() {
+    invalidReasons.clear();
+    patchSize.set(DEFAULT_PATCH_SIZE);
     patchZMin.set(0);
     patchZMax.set(0);
-    // dialogMatchMode = src.dialogMatchMode;
-    matchMode = src.matchMode;
-    fiducialMatch = src.fiducialMatch;
-    useList = new StringList(src.useList);
-    fiducialMatchListA = new StringList(src.fiducialMatchListA);
-    fiducialMatchListB = new StringList(src.fiducialMatchListB);
-    patchSize = src.patchSize;
-    patchXMin = src.patchXMin;
-    patchXMax = src.patchXMax;
-    patchYMin = src.patchYMin;
-    patchYMax = src.patchYMax;
-    patchZMin = src.patchZMin;
-    patchZMax = src.patchZMax;
-    patchRegionModel = src.patchRegionModel;
-    tempDirectory = src.tempDirectory;
-    manualCleanup = src.manualCleanup;
-    transfer = src.transfer;
-    patchSizeXYZ = src.patchSizeXYZ;
-    autoPatchFinalSize = src.autoPatchFinalSize;
-    autoPatchFinalSizeXYZ = src.autoPatchFinalSizeXYZ;
-    extraResidualTargets = src.extraResidualTargets;
+    patchSizeXYZ.reset();
+    autoPatchFinalSize.reset();
+    autoPatchFinalSizeXYZ.reset();
+    extraResidualTargets.reset();
+    wedgeReductionFraction.reset();
+    lowFromBothRadius.reset();
+    useList.reset();
+    fiducialMatchListA.reset();
+    fiducialMatchListB.reset();
+    matchMode = null;
+    fiducialMatch = FiducialMatch.BOTH_SIDES;
+    patchXMin = 0;
+    patchXMax = 0;
+    patchYMin = 0;
+    patchYMax = 0;
+    maxPatchZMax = 0;
+    patchRegionModel = "";
+    tempDirectory = "";
+    manualCleanup = false;
+    modelBased = false;
+    transfer = true;
+    revisionNumber = REVISION;
+  }
+
+  public void setLowFromBothRadius(final String input) {
+    lowFromBothRadius.set(input);
   }
 
   public void setMatchMode(final boolean isBtoA) {
@@ -235,6 +247,16 @@ public final class CombineParams implements ConstCombineParams, Storable {
     this.matchMode = matchMode;
   }
 
+  public void setMatchMode(final StringProperty input) {
+    if (input != null) {
+
+      matchMode = MatchMode.getInstance(input.toString());
+    }
+    else {
+      matchMode = null;
+    }
+  }
+
   public void setFiducialMatch(final FiducialMatch match) {
     fiducialMatch = match;
     if (match == FiducialMatch.USE_MODEL || match == FiducialMatch.USE_MODEL_ONLY) {
@@ -242,6 +264,18 @@ public final class CombineParams implements ConstCombineParams, Storable {
     }
     else {
       modelBased = false;
+    }
+  }
+
+  public void setFiducialMatch(final StringProperty input) {
+    if (input != null) {
+      fiducialMatch = FiducialMatch.getInstance(input.toString());
+      if (fiducialMatch == null) {
+        fiducialMatch = FiducialMatch.BOTH_SIDES;
+      }
+    }
+    else {
+      fiducialMatch = FiducialMatch.BOTH_SIDES;
     }
   }
 
@@ -257,30 +291,123 @@ public final class CombineParams implements ConstCombineParams, Storable {
     fiducialMatchListB.parseString(list);
   }
 
-  public void setPatchSize(final CombinePatchSize size) {
-    patchSize = size;
+  public void setWedgeReductionFraction(final String input) {
+    wedgeReductionFraction.set(input);
   }
 
-  public void setPatchSize(final String x, final String y, final String z) {
-    patchSize = CombinePatchSize.XYZ;
-    patchSizeXYZ = x + "," + y + "," + z;
+  public void setPatchSize(final boolean autoFinal, final CombinePatchSize input) {
+    if (input != null) {
+      if (!autoFinal) {
+        patchSize.set(input.toString());
+      }
+      else {
+        autoPatchFinalSize.set(input.toString());
+      }
+      if (input != CombinePatchSize.CUSTOM) {
+        if (!autoFinal) {
+          patchSizeXYZ.reset();
+        }
+        else {
+          autoPatchFinalSizeXYZ.reset();
+        }
+      }
+    }
+    else if (!autoFinal) {
+      patchSize.set(DEFAULT_PATCH_SIZE);
+      patchSizeXYZ.reset();
+    }
+    else {
+      autoPatchFinalSize.reset();
+      autoPatchFinalSizeXYZ.reset();
+    }
   }
 
-  public void setAutoPatchFinalSize(final String x, final String y, final String z) {
-    autoPatchFinalSize = CombinePatchSize.XYZ;
-    autoPatchFinalSizeXYZ = x + "," + y + "," + z;
+  public void setPatchSize(final boolean autoFinal, final String input) {
+    CombinePatchSize combinePatchSize = CombinePatchSize.getInstance(input);
+    setPatchSize(autoFinal, combinePatchSize);
+    if (combinePatchSize == CombinePatchSize.CUSTOM) {
+      if (!autoFinal) {
+        patchSizeXYZ.set(input);
+      }
+      else {
+        autoPatchFinalSizeXYZ.set(input);
+      }
+    }
+  }
+
+  public void setPatchSizeXYZ(final boolean autoFinal, final String[] xyz) {
+    if (xyz == null) {
+      if (!autoFinal) {
+        patchSize.set(CombinePatchSize.CUSTOM.toString());
+        patchSizeXYZ.reset();
+      }
+      else {
+        autoPatchFinalSize.set(CombinePatchSize.CUSTOM.toString());
+        autoPatchFinalSizeXYZ.reset();
+      }
+    }
+    CombinePatchSize combinePatchSize = CombinePatchSize.getInstance(xyz);
+    if (!autoFinal) {
+      patchSize.set(combinePatchSize.toString());
+      if (patchSize.isEmpty()) {
+        patchSize.set(DEFAULT_PATCH_SIZE);
+      }
+    }
+    else {
+      autoPatchFinalSize.set(combinePatchSize.toString());
+    }
+    if (combinePatchSize == CombinePatchSize.CUSTOM) {
+      StringBuilder builder = new StringBuilder();
+      for (int i = 0; i < xyz.length; i++) {
+        builder.append(xyz[i]);
+        if (i < xyz.length - 1) {
+          builder.append(", ");
+        }
+      }
+      if (!autoFinal) {
+        patchSize.set(CombinePatchSize.CUSTOM.toString());
+        patchSizeXYZ.set(builder.toString());
+      }
+      else {
+        autoPatchFinalSize.set(CombinePatchSize.CUSTOM.toString());
+        autoPatchFinalSizeXYZ.set(builder.toString());
+      }
+    }
+  }
+
+  public void setPatchSize(final boolean autoFinal, final StringProperty input) {
+    if (input != null) {
+      setPatchSize(autoFinal, input.toString());
+    }
+    else if (!autoFinal) {
+      patchSize.set(DEFAULT_PATCH_SIZE);
+      patchSizeXYZ.reset();
+    }
+    else {
+      autoPatchFinalSize.reset();
+      autoPatchFinalSizeXYZ.reset();
+    }
   }
 
   public void setExtraResidualTargets(final String input) {
-    extraResidualTargets = input;
+    extraResidualTargets.set(input);
+  }
+
+  public void setExtraResidualTargets(final StringProperty input) {
+    extraResidualTargets.set(input);
   }
 
   public void resetExtraResidualTargets() {
-    extraResidualTargets = "";
+    extraResidualTargets.reset();
   }
 
-  public void resetPatchSize() {
-    patchSize = CombinePatchSize.MEDIUM;
+  public void resetPatchSize(final boolean autoFinal) {
+    if (!autoFinal) {
+      patchSize.set(DEFAULT_PATCH_SIZE);
+    }
+    else {
+      autoPatchFinalSize.reset();
+    }
   }
 
   public void setPatchRegionModel(final String modelFileName) {
@@ -407,6 +534,7 @@ public final class CombineParams implements ConstCombineParams, Storable {
       prepend = prepend + "Combine";
     }
     group = prepend + ".";
+    revisionNumber = REVISION;
     props.setProperty(group + "RevisionNumber", revisionNumber);
 
     // Start backwards compatibility with RevisionNumber = 1.0
@@ -432,7 +560,7 @@ public final class CombineParams implements ConstCombineParams, Storable {
     props.setProperty(group + "UseList", useList.toString());
     props.setProperty(group + "FiducialMatchListA", fiducialMatchListA.toString());
     props.setProperty(group + "FiducialMatchListB", fiducialMatchListB.toString());
-    props.setProperty(group + "PatchSize", patchSize.toString());
+    patchSize.store(props, prepend);
     props.setProperty(group + "PatchBoundaryXMin", String.valueOf(patchXMin));
     props.setProperty(group + "PatchBoundaryXMax", String.valueOf(patchXMax));
     props.setProperty(group + "PatchBoundaryYMin", String.valueOf(patchYMin));
@@ -445,11 +573,12 @@ public final class CombineParams implements ConstCombineParams, Storable {
     props.setProperty(group + "ModelBased", String.valueOf(modelBased));
     props.setProperty(group + "Transfer", String.valueOf(transfer));
     props.setProperty(group + "MaxPatchBoundaryZMax", String.valueOf(maxPatchZMax));
-    props.setProperty(group + PATCH_SIZE_XYZ_KEY, patchSizeXYZ);
-    props.setProperty(group + AUTO_PATCH_FINAL_SIZE_KEY, autoPatchFinalSize.toString());
-    props.setProperty(group + AUTO_PATCH_FINAL_SIZE_XYZ_KEY, autoPatchFinalSizeXYZ);
-    props
-      .setProperty(group + EXTRA_RESIDUAL_TARGETS_KEY, extraResidualTargets.toString());
+    patchSizeXYZ.store(props, prepend);
+    autoPatchFinalSize.store(props, prepend);
+    autoPatchFinalSizeXYZ.store(props, prepend);
+    extraResidualTargets.store(props, prepend);
+    wedgeReductionFraction.store(props, prepend);
+    lowFromBothRadius.store(props, prepend);
   }
 
   /**
@@ -509,13 +638,12 @@ public final class CombineParams implements ConstCombineParams, Storable {
     }
     else {
       matchMode =
-        MatchMode.getInstance(props.getProperty(group + MATCH_MODE_KEY, matchMode
-          .toString()));
+        MatchMode.getInstance(props.getProperty(group + MATCH_MODE_KEY,
+          matchMode.toString()));
     }
-
     fiducialMatch =
-      FiducialMatch.fromString(props.getProperty(group + "FiducialMatch", fiducialMatch
-        .toString()));
+      FiducialMatch.fromString(props.getProperty(group + "FiducialMatch",
+        fiducialMatch.toString()));
 
     useList.parseString(props.getProperty(group + "UseList", useList.toString()));
 
@@ -525,26 +653,24 @@ public final class CombineParams implements ConstCombineParams, Storable {
     fiducialMatchListB.parseString(props.getProperty(group + "FiducialMatchListB",
       fiducialMatchListB.toString()));
 
-    patchSize =
-      CombinePatchSize.getInstance(props.getProperty(group + "PatchSize",
-        (patchSize != null ? patchSize.toString() : CombinePatchSize.SMALL.toString())));
+    patchSize.load(props, prepend, DEFAULT_PATCH_SIZE.toString());
     patchRegionModel = props.getProperty(group + "PatchRegionModel", patchRegionModel);
 
     patchXMin =
-      Integer.parseInt(props.getProperty(group + "PatchBoundaryXMin", String
-        .valueOf(patchXMin)));
+      Integer.parseInt(props.getProperty(group + "PatchBoundaryXMin",
+        String.valueOf(patchXMin)));
 
     patchXMax =
-      Integer.parseInt(props.getProperty(group + "PatchBoundaryXMax", String
-        .valueOf(patchXMax)));
+      Integer.parseInt(props.getProperty(group + "PatchBoundaryXMax",
+        String.valueOf(patchXMax)));
 
     patchYMin =
-      Integer.parseInt(props.getProperty(group + "PatchBoundaryYMin", String
-        .valueOf(patchYMin)));
+      Integer.parseInt(props.getProperty(group + "PatchBoundaryYMin",
+        String.valueOf(patchYMin)));
 
     patchYMax =
-      Integer.parseInt(props.getProperty(group + "PatchBoundaryYMax", String
-        .valueOf(patchYMax)));
+      Integer.parseInt(props.getProperty(group + "PatchBoundaryYMax",
+        String.valueOf(patchYMax)));
     patchZMin.load(props, prepend);
     patchZMax.load(props, prepend);
 
@@ -570,20 +696,14 @@ public final class CombineParams implements ConstCombineParams, Storable {
       modelBased = false;
     }
     maxPatchZMax =
-      Integer.parseInt(props.getProperty(group + "MaxPatchBoundaryZMax", String
-        .valueOf(maxPatchZMax)));
-    patchSizeXYZ = props.getProperty(group + PATCH_SIZE_XYZ_KEY, patchSizeXYZ);
-    autoPatchFinalSize =
-      CombinePatchSize.getInstance(props.getProperty(group + AUTO_PATCH_FINAL_SIZE_KEY,
-        autoPatchFinalSize.toString()));
-    autoPatchFinalSizeXYZ =
-      props.getProperty(group + AUTO_PATCH_FINAL_SIZE_XYZ_KEY, autoPatchFinalSizeXYZ);
-    extraResidualTargets =
-      props.getProperty(group + EXTRA_RESIDUAL_TARGETS_KEY, extraResidualTargets);
-  }
-
-  public void setAutoPatchFinalSize(final CombinePatchSize input) {
-    autoPatchFinalSize = input;
+      Integer.parseInt(props.getProperty(group + "MaxPatchBoundaryZMax",
+        String.valueOf(maxPatchZMax)));
+    patchSizeXYZ.load(props, prepend);
+    autoPatchFinalSize.load(props, prepend);
+    autoPatchFinalSizeXYZ.load(props, prepend);
+    extraResidualTargets.load(props, prepend);
+    wedgeReductionFraction.load(props, prepend);
+    lowFromBothRadius.load(props, prepend);
   }
 
   /**
@@ -629,82 +749,25 @@ public final class CombineParams implements ConstCombineParams, Storable {
     return xyborders[borderindex];
   }
 
-  public final boolean equals(final CombineParams cmp) {
-    // if (dialogMatchMode != cmp.dialogMatchMode) {
-    // return false;
-    // }
-    if (matchMode != cmp.matchMode) {
-      return false;
+  public boolean isPatchSizeSet(final boolean autoFinal) {
+    if (!autoFinal) {
+      return !patchSize.isEmpty();
     }
-    if (!fiducialMatch.equals(cmp.getFiducialMatch())) {
-      return false;
+    else {
+      return !autoPatchFinalSize.isEmpty();
     }
-
-    if (!useList.toString().equals(cmp.getUseList().toString())) {
-      return false;
-    }
-    if (!fiducialMatchListA.toString().equals(cmp.getFiducialMatchListA().toString())) {
-      return false;
-    }
-    if (!fiducialMatchListB.toString().equals(cmp.getFiducialMatchListB().toString())) {
-      return false;
-    }
-    if (!patchSize.equals(cmp.getPatchSize())) {
-      return false;
-    }
-    if (!(patchXMin == cmp.getPatchXMin())) {
-      return false;
-    }
-    if (!(patchXMax == cmp.getPatchXMax())) {
-      return false;
-    }
-    if (!(patchYMin == cmp.getPatchYMin())) {
-      return false;
-    }
-    if (!(patchYMax == cmp.getPatchYMax())) {
-      return false;
-    }
-    if (!patchZMin.equals(cmp.getPatchZMin())) {
-      return false;
-    }
-    if (!patchZMax.equals(cmp.getPatchZMax())) {
-      return false;
-    }
-    if (!(patchRegionModel.equals(cmp.patchRegionModel))) {
-      return false;
-    }
-    if (!(tempDirectory.equals(cmp.getTempDirectory()))) {
-      return false;
-    }
-    if (!(manualCleanup == cmp.getManualCleanup())) {
-      return false;
-    }
-    if (!(modelBased == cmp.modelBased)) {
-      return false;
-    }
-    if (patchSizeXYZ == null && cmp.patchSizeXYZ != null
-      || !patchSizeXYZ.equals(cmp.patchSizeXYZ)) {
-      return false;
-    }
-    if (!autoPatchFinalSize.equals(cmp.autoPatchFinalSize)) {
-      return false;
-    }
-    if (autoPatchFinalSizeXYZ == null && cmp.autoPatchFinalSizeXYZ != null
-      || !autoPatchFinalSizeXYZ.equals(cmp.autoPatchFinalSizeXYZ)) {
-      return false;
-    }
-    if (!(extraResidualTargets.equals(cmp.extraResidualTargets))) {
-      return false;
-    }
-    return true;
-  }
-
-  public boolean isAutoPatchFinalSizeSet() {
-    return autoPatchFinalSize != null;
   }
 
   public boolean isExtraResidualTargetsSet() {
-    return !extraResidualTargets.equals("");
+    return !extraResidualTargets.isEmpty();
+  }
+
+  public boolean isLowFromBothRadiusSet() {
+    return !lowFromBothRadius.isEmpty();
+  }
+
+  public boolean isWedgeReductionFractionSet() {
+    return !wedgeReductionFraction.isEmpty();
   }
 
   /**
@@ -861,20 +924,48 @@ public final class CombineParams implements ConstCombineParams, Storable {
     return patchRegionModel;
   }
 
-  public CombinePatchSize getPatchSize() {
-    return patchSize;
+  public CombinePatchSize getPatchSize(final boolean autoFinal) {
+    if (!autoFinal) {
+      return CombinePatchSize.getInstance(patchSize.toString());
+    }
+    else {
+      return CombinePatchSize.getInstance(autoPatchFinalSize.toString());
+    }
   }
 
-  public String getPatchSizeXYZ() {
-    return patchSizeXYZ;
+  public String getPatchSizeXYZ(final boolean autoFinal) {
+    if (!autoFinal) {
+      return patchSizeXYZ.toString();
+    }
+    else {
+      return autoPatchFinalSizeXYZ.toString();
+    }
   }
 
-  public CombinePatchSize getAutoPatchFinalSize() {
-    return autoPatchFinalSize;
+  public String[] getPatchSizeXYZArray(final boolean autoFinal) {
+    String xyz;
+    if (!autoFinal) {
+      xyz = patchSizeXYZ.toString();
+    }
+    else {
+      xyz = autoPatchFinalSizeXYZ.toString();
+    }
+    if (xyz == null) {
+      return null;
+    }
+    return xyz.split("\\s*,\\s*");
   }
 
   public String getExtraResidualTargets() {
-    return extraResidualTargets;
+    return extraResidualTargets.toString();
+  }
+
+  public String getLowFromBothRadius() {
+    return lowFromBothRadius.toString();
+  }
+
+  public String getWedgeReductionFraction() {
+    return wedgeReductionFraction.toString();
   }
 
   public String getTempDirectory() {
