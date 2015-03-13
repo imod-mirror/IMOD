@@ -92,13 +92,6 @@ public final class TrackingMethod implements EnumeratedType {
     return value;
   }
 
-  public ConstEtomoNumber getValue(final int index) {
-    if (index == 0) {
-      return value;
-    }
-    return null;
-  }
-
   public String toString() {
     return string;
   }
