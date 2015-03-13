@@ -274,7 +274,8 @@ public class SetupCombine {
     String matchListTo;
     String matchListFrom;
     FiducialMatch fiducialMatch = combineParams.getFiducialMatch();
-    CombinePatchSize patchSize = combineParams.getPatchSize();
+    CombinePatchSize patchSize = combineParams.getPatchSize(false);
+    CombinePatchSize autoPatchFinalSize = combineParams.getPatchSize(true);
     // dataset name
     command.add("-name");
     command.add(metaData.getDatasetName());
@@ -319,12 +320,25 @@ public class SetupCombine {
     // patch sizes
     if (patchSize != null) {
       command.add("-patchsize");
-      if (patchSize != CombinePatchSize.XYZ) {
+      if (patchSize != CombinePatchSize.CUSTOM) {
         command.add(patchSize.getOption());
       }
       else {
-        command.add(combineParams.getPatchSizeXYZ());
+        command.add(combineParams.getPatchSizeXYZ(false));
       }
+    }
+    if (autoPatchFinalSize != null) {
+      command.add("-AutoPatchFinalSize");
+      if (autoPatchFinalSize != CombinePatchSize.CUSTOM) {
+        command.add(autoPatchFinalSize.getOption());
+      }
+      else {
+        command.add(combineParams.getPatchSizeXYZ(true));
+      }
+    }
+    if (combineParams.isExtraResidualTargetsSet()) {
+      command.add("-ExtraResidualTargets");
+      command.add(combineParams.getExtraResidualTargets());
     }
     int min = combineParams.getPatchXMin();
     int max = combineParams.getPatchXMax();
@@ -356,6 +370,14 @@ public class SetupCombine {
     if (combineParams.usePatchRegionModel()) {
       command.add("-regionmod");
       command.add(combineParams.getPatchRegionModel());
+    }
+    if (combineParams.isLowFromBothRadiusSet()) {
+      command.add("-LowFromBothRadius");
+      command.add(combineParams.getLowFromBothRadius());
+    }
+    if (combineParams.isWedgeReductionFractionSet()) {
+      command.add("-WedgeReductionFraction");
+      command.add(combineParams.getWedgeReductionFraction());
     }
     if (combineParams.isTempDirectorySet()) {
       command.add("-tempdir");
@@ -429,15 +451,15 @@ public class SetupCombine {
     }
 
     // Patch sizes
-    if (combineParams.getPatchSize() == CombinePatchSize.LARGE) {
+    if (combineParams.getPatchSize(false) == CombinePatchSize.LARGE) {
       tempStdInput[lineCount++] = "l";
     }
 
-    if (combineParams.getPatchSize() == CombinePatchSize.MEDIUM) {
+    if (combineParams.getPatchSize(false) == CombinePatchSize.MEDIUM) {
       tempStdInput[lineCount++] = "m";
     }
 
-    if (combineParams.getPatchSize() == CombinePatchSize.SMALL) {
+    if (combineParams.getPatchSize(false) == CombinePatchSize.SMALL) {
       tempStdInput[lineCount++] = "s";
     }
 
