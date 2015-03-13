@@ -396,7 +396,6 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   private static final String GEN_KEY = "Gen";
   private static final String POST_KEY = "Post";
   private static final String COARSE_KEY = "Coarse";
-  private static final String COMBINE_KEY = "Combine";
 
   // Panel keys
   private static final String NEWSTACK_OR_BLENDMONT_KEY = "NewstackOrBlendmont";
@@ -420,6 +419,8 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   private static final String USE_KEY = "Use";
   private static final String X_KEY = "X";
   private static final String Y_KEY = "Y";
+  private static final String BATCHRUNTOMO_KEY = "batchruntomo";
+  private static final String COMBINE_KEY = "Combine";
 
   private static final String TILT_3D_FIND_A_TILT_PARALLEL_KEY = STACK_KEY
     + ".A.Tilt.Parallel";
@@ -501,20 +502,20 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
                                                                                          // compatibility
   private String numberOfLocalPatchesXandY =
     TiltalignParam.NUMBER_OF_LOCAL_PATCHES_X_AND_Y_DEFAULT;
-  private final EtomoBoolean2 noBeamTiltSelectedA = new EtomoBoolean2(AxisID.FIRST
-    .getExtension()
-    + "." + DialogType.FINE_ALIGNMENT.getStorableName() + ".NoBeamTiltSelected");
-  private final EtomoBoolean2 fixedBeamTiltSelectedA = new EtomoBoolean2(AxisID.FIRST
-    .getExtension()
-    + "." + DialogType.FINE_ALIGNMENT.getStorableName() + ".FixedBeamTiltSelected");
+  private final EtomoBoolean2 noBeamTiltSelectedA = new EtomoBoolean2(
+    AxisID.FIRST.getExtension() + "." + DialogType.FINE_ALIGNMENT.getStorableName()
+      + ".NoBeamTiltSelected");
+  private final EtomoBoolean2 fixedBeamTiltSelectedA = new EtomoBoolean2(
+    AxisID.FIRST.getExtension() + "." + DialogType.FINE_ALIGNMENT.getStorableName()
+      + ".FixedBeamTiltSelected");
   private final EtomoNumber fixedBeamTiltA = new EtomoNumber(AxisID.FIRST.getExtension()
     + "." + DialogType.FINE_ALIGNMENT.getStorableName() + ".FixedBeamTilt");
-  private final EtomoBoolean2 noBeamTiltSelectedB = new EtomoBoolean2(AxisID.SECOND
-    .getExtension()
-    + "." + DialogType.FINE_ALIGNMENT.getStorableName() + ".NoBeamTiltSelected");
-  private final EtomoBoolean2 fixedBeamTiltSelectedB = new EtomoBoolean2(AxisID.SECOND
-    .getExtension()
-    + "." + DialogType.FINE_ALIGNMENT.getStorableName() + ".FixedBeamTiltSelected");
+  private final EtomoBoolean2 noBeamTiltSelectedB = new EtomoBoolean2(
+    AxisID.SECOND.getExtension() + "." + DialogType.FINE_ALIGNMENT.getStorableName()
+      + ".NoBeamTiltSelected");
+  private final EtomoBoolean2 fixedBeamTiltSelectedB = new EtomoBoolean2(
+    AxisID.SECOND.getExtension() + "." + DialogType.FINE_ALIGNMENT.getStorableName()
+      + ".FixedBeamTiltSelected");
   private final EtomoNumber fixedBeamTiltB = new EtomoNumber(AxisID.SECOND.getExtension()
     + "." + DialogType.FINE_ALIGNMENT.getStorableName() + ".FixedBeamTilt");
   private final FortranInputString sizeToOutputInXandYA = new FortranInputString(2);
@@ -876,36 +877,16 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
    */
   private final EtomoNumber minimumOverlapB = new EtomoNumber(TRACK_KEY + "."
     + SECOND_AXIS_KEY + ".MinimumOverlap");
-  // TODO
-  private final StringProperty extraResidualTargets = new StringProperty(COMBINE_KEY
-    + ".ExtraResidualTargets");
   private final StringProperty extraResidualTargetsFromBatchruntomo = new StringProperty(
-    "batchruntomo.Combine.ExtraResidualTargets");
-
-  private final StringProperty fiducialMatch = new StringProperty(COMBINE_KEY
-    + ".FiducialMatch");
+    BATCHRUNTOMO_KEY + "." + COMBINE_KEY + ".ExtraResidualTargets");
   private final StringProperty fiducialMatchFromBatchruntomo = new StringProperty(
-    "batchruntomo.Combine.FiducialMatch");
-
-  private final StringProperty autoPatchFinalSize = new StringProperty(COMBINE_KEY
-    + ".AutoPatchFinalSize");
+    BATCHRUNTOMO_KEY + "." + COMBINE_KEY + ".FiducialMatch");
   private final StringProperty autoPatchFinalSizeFromBatchruntomo = new StringProperty(
-    "batchruntomo.Combine.FinalPatchSize");
-
-  private final StringProperty matchMode = new StringProperty(COMBINE_KEY + ".MatchMode");
+    BATCHRUNTOMO_KEY + "." + COMBINE_KEY + ".FinalPatchSize");
   private final StringProperty matchModeFromBatchruntomo = new StringProperty(
-    "batchruntomo.Combine.MatchMode");
-
-  private final StringProperty patchTypeOrXYZ = new StringProperty(COMBINE_KEY
-    + ".PatchTypeOrXYZ");
+    BATCHRUNTOMO_KEY + "." + COMBINE_KEY + ".MatchMode");
   private final StringProperty patchTypeOrXYZFromBatchruntomo = new StringProperty(
-    "batchruntomo.Combine.PatchSize");
-
-  private final StringProperty wedgeReductionFraction = new StringProperty(COMBINE_KEY
-    + ".WedgeReductionFraction");
-
-  private final StringProperty lowFromBothRadius = new StringProperty(COMBINE_KEY
-    + ".LowFromBothRadius");
+    BATCHRUNTOMO_KEY + "." + COMBINE_KEY + ".PatchSize");
 
   public MetaData(final ApplicationManager manager, final LogProperties logProperties) {
     super(logProperties);
@@ -1702,10 +1683,6 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     comScriptsCreated = state;
   }
 
-  public void setCombineParams(final CombineParams combine) {
-    combineParams = combine;
-  }
-
   public void setFiducialessAlignment(final AxisID axisID, final boolean state) {
     if (axisID == AxisID.SECOND) {
       fiducialessAlignmentB = state;
@@ -1937,18 +1914,12 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     minimumOverlapA.reset();
     minimumOverlapB.reset();
     origImageStackExt.reset();
-    extraResidualTargets.reset();
     extraResidualTargetsFromBatchruntomo.reset();
-    fiducialMatch.reset();
     fiducialMatchFromBatchruntomo.reset();
-    autoPatchFinalSize.reset();
     autoPatchFinalSizeFromBatchruntomo.reset();
-    matchMode.reset();
     matchModeFromBatchruntomo.reset();
-    patchTypeOrXYZ.reset();
     patchTypeOrXYZFromBatchruntomo.reset();
-    wedgeReductionFraction.reset();
-    lowFromBothRadius.reset();
+    combineParams.reset();
     // load
     prepend = createPrepend(prepend);
     String group = prepend + ".";
@@ -2287,31 +2258,24 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     weightWholeTracksB.load(props, prepend);
     lengthOfPiecesA.load(props, prepend);
     lengthOfPiecesB.load(props, prepend);
-    extraResidualTargets.load(props, prepend);
-    extraResidualTargetsFromBatchruntomo.load(props, prepend);
-    fiducialMatch.load(props, prepend);
-    fiducialMatchFromBatchruntomo.load(props, prepend);
-    autoPatchFinalSize.load(props, prepend);
-    autoPatchFinalSizeFromBatchruntomo.load(props, prepend);
-    matchMode.load(props, prepend);
-    matchModeFromBatchruntomo.load(props, prepend);
-    patchTypeOrXYZ.load(props, prepend);
-    patchTypeOrXYZFromBatchruntomo.load(props, prepend);
-    wedgeReductionFraction.load(props, prepend);
-    lowFromBothRadius.load(props, prepend);
+    extraResidualTargetsFromBatchruntomo.load(props);
+    fiducialMatchFromBatchruntomo.load(props);
+    autoPatchFinalSizeFromBatchruntomo.load(props);
+    matchModeFromBatchruntomo.load(props);
+    patchTypeOrXYZFromBatchruntomo.load(props);
     // backwards compatibility - not necessary to load minimumOverlap
     if (!trackLengthAndOverlapA.isEmpty()) {
       if (lengthOfPiecesA.isNull()) {
-        lengthOfPiecesA.set(Utilities.getElementFromList(trackLengthAndOverlapA
-          .toString(), 0));
+        lengthOfPiecesA.set(Utilities.getElementFromList(
+          trackLengthAndOverlapA.toString(), 0));
       }
       minimumOverlapA.set(Utilities.getElementFromList(trackLengthAndOverlapA.toString(),
         1));
     }
     if (!trackLengthAndOverlapB.isEmpty()) {
       if (lengthOfPiecesB.isNull()) {
-        lengthOfPiecesB.set(Utilities.getElementFromList(trackLengthAndOverlapB
-          .toString(), 0));
+        lengthOfPiecesB.set(Utilities.getElementFromList(
+          trackLengthAndOverlapB.toString(), 0));
       }
       minimumOverlapB.set(Utilities.getElementFromList(trackLengthAndOverlapB.toString(),
         1));
@@ -2518,8 +2482,8 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
       props.remove(group + "AxisA.ExcludeProjections");
     }
     else {
-      setProperty(props, group, "AxisA.ExcludeProjections", String
-        .valueOf(excludeProjectionsA));
+      setProperty(props, group, "AxisA.ExcludeProjections",
+        String.valueOf(excludeProjectionsA));
     }
 
     tiltAngleSpecB.store(props, group + "AxisB");
@@ -2527,22 +2491,22 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
       props.remove(group + "AxisB.ExcludeProjections");
     }
     else {
-      setProperty(props, group, "AxisB.ExcludeProjections", String
-        .valueOf(excludeProjectionsB));
+      setProperty(props, group, "AxisB.ExcludeProjections",
+        String.valueOf(excludeProjectionsB));
     }
 
     combineParams.store(props, group);
     setProperty(props, group, "DistortionFile", distortionFile);
     setProperty(props, group, "MagGradientFile", magGradientFile);
     binning.store(props, prepend);
-    setProperty(props, group, "FiducialessAlignmentA", String
-      .valueOf(fiducialessAlignmentA));
-    setProperty(props, group, "FiducialessAlignmentB", String
-      .valueOf(fiducialessAlignmentB));
-    setProperty(props, group, "WholeTomogramSampleA", String
-      .valueOf(wholeTomogramSampleA));
-    setProperty(props, group, "WholeTomogramSampleB", String
-      .valueOf(wholeTomogramSampleB));
+    setProperty(props, group, "FiducialessAlignmentA",
+      String.valueOf(fiducialessAlignmentA));
+    setProperty(props, group, "FiducialessAlignmentB",
+      String.valueOf(fiducialessAlignmentB));
+    setProperty(props, group, "WholeTomogramSampleA",
+      String.valueOf(wholeTomogramSampleA));
+    setProperty(props, group, "WholeTomogramSampleB",
+      String.valueOf(wholeTomogramSampleB));
     squeezevolParam.store(props, prepend);
     useZFactorsA.store(props, prepend);
     useZFactorsB.store(props, prepend);
@@ -2697,6 +2661,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     stackCtfAutoFitRangeAndStepA.store(props, prepend);
     stackCtfAutoFitRangeAndStepB.store(props, prepend);
     origScopeTemplate.store(props, prepend);
+
     origSystemTemplate.store(props, prepend);
     origUserTemplate.store(props, prepend);
     isTwodirA.store(props, prepend);
@@ -2721,41 +2686,33 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     weightWholeTracksB.store(props, prepend);
     lengthOfPiecesA.store(props, prepend);
     lengthOfPiecesB.store(props, prepend);
-    extraResidualTargets.store(props, prepend);
-    extraResidualTargetsFromBatchruntomo.store(props, prepend);
-    fiducialMatch.store(props, prepend);
-    fiducialMatchFromBatchruntomo.store(props, prepend);
-    autoPatchFinalSize.store(props, prepend);
-    autoPatchFinalSizeFromBatchruntomo.store(props, prepend);
-    matchMode.store(props, prepend);
-    matchModeFromBatchruntomo.store(props, prepend);
-    patchTypeOrXYZ.store(props, prepend);
-    patchTypeOrXYZFromBatchruntomo.store(props, prepend);
-    wedgeReductionFraction.store(props, prepend);
-    lowFromBothRadius.store(props, prepend);
+    extraResidualTargetsFromBatchruntomo.store(props);
+    fiducialMatchFromBatchruntomo.store(props);
+    autoPatchFinalSizeFromBatchruntomo.store(props);
+    matchModeFromBatchruntomo.store(props);
+    patchTypeOrXYZFromBatchruntomo.store(props);
     // Backward compatibility - not necessary to store minimumOverlap
     origImageStackExt.store(props, prepend);
   }
 
-  // TODO
   public void setAutoPatchFinalSize(final String input) {
-    autoPatchFinalSize.set(input);
+    combineParams.setPatchSize(true, input);
   }
 
   public void setExtraResidualTargets(final String input) {
-    extraResidualTargets.set(input);
+    combineParams.setExtraResidualTargets(input);
   }
 
   public void setWedgeReductionFraction(final String input) {
-    wedgeReductionFraction.set(input);
+    combineParams.setWedgeReductionFraction(input);
   }
 
   public void setLowFromBothRadius(final String input) {
-    lowFromBothRadius.set(input);
+    combineParams.setLowFromBothRadius(input);
   }
 
   public void setPatchTypeOrXYZ(final String input) {
-    patchTypeOrXYZ.set(input);
+    combineParams.setPatchSize(false, input);
   }
 
   public boolean isBatchruntomoSet() {
@@ -2767,27 +2724,31 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   }
 
   public void moveExtraResidualTargetsFromBatchruntomo() {
-    extraResidualTargets.set(extraResidualTargetsFromBatchruntomo);
+    combineParams.setExtraResidualTargets(extraResidualTargetsFromBatchruntomo);
     extraResidualTargetsFromBatchruntomo.reset();
   }
 
   public void moveFiducialMatchFromBatchruntomo() {
-    fiducialMatch.set(fiducialMatchFromBatchruntomo);
+    combineParams.setFiducialMatch(fiducialMatchFromBatchruntomo);
     fiducialMatchFromBatchruntomo.reset();
   }
 
   public void moveAutoPatchFinalSizeFromBatchruntomo() {
-    autoPatchFinalSize.set(autoPatchFinalSizeFromBatchruntomo);
+    combineParams.setPatchSize(true, autoPatchFinalSizeFromBatchruntomo);
     autoPatchFinalSizeFromBatchruntomo.reset();
   }
 
   public void moveMatchModeFromBatchruntomo() {
-    matchMode.set(matchModeFromBatchruntomo);
+    combineParams.setMatchMode(matchModeFromBatchruntomo);
     matchModeFromBatchruntomo.reset();
   }
 
+  public MatchMode getMatchMode() {
+    return combineParams.getMatchMode();
+  }
+
   public void movePatchTypeOrXYZFromBatchruntomo() {
-    patchTypeOrXYZ.set(patchTypeOrXYZFromBatchruntomo);
+    combineParams.setPatchSize(false, patchTypeOrXYZFromBatchruntomo);
     patchTypeOrXYZFromBatchruntomo.reset();
   }
 
