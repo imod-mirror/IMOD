@@ -97,9 +97,11 @@ import etomo.type.MatchMode;
  */
 
 public interface ConstCombineParams {
-  
-  public boolean isAutoPatchFinalSizeSet();
+
+  public boolean isPatchSizeSet(boolean autoFinal);
+
   public boolean isExtraResidualTargetsSet();
+
   /**
    * Returns true if the patch boundary values have been modified
    */
@@ -129,9 +131,9 @@ public interface ConstCombineParams {
 
   public String getFiducialMatchListB();
 
-  public CombinePatchSize getPatchSize();
+  public CombinePatchSize getPatchSize(boolean autoFinal);
 
-  public CombinePatchSize getAutoPatchFinalSize();
+  public String[] getPatchSizeXYZArray(boolean autoFinal);
 
   public String getExtraResidualTargets();
 
@@ -182,4 +184,8 @@ public interface ConstCombineParams {
    * @return boolean
    */
   public boolean usePatchRegionModel();
+
+  public String getWedgeReductionFraction();
+
+  public String getLowFromBothRadius();
 }
