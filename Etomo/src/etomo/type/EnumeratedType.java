@@ -20,8 +20,6 @@ public interface EnumeratedType {
 
   public ConstEtomoNumber getValue();
 
-  public ConstEtomoNumber getValue(int index);
-
   public String toString();
 
   public String getLabel();
