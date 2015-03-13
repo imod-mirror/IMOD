@@ -244,13 +244,6 @@ public final class XftoxgParam implements Command {
       return value;
     }
 
-    public ConstEtomoNumber getValue(final int index) {
-      if (index == 0) {
-        return value;
-      }
-      return null;
-    }
-
     public boolean isDefault() {
       return false;
     }
@@ -279,13 +272,6 @@ public final class XftoxgParam implements Command {
 
     public ConstEtomoNumber getValue() {
       return value;
-    }
-
-    public ConstEtomoNumber getValue(final int index) {
-      if (index == 0) {
-        return value;
-      }
-      return null;
     }
 
     public boolean isDefault() {
