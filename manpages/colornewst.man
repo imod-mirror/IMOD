@@ -1,6 +1,6 @@
 .na
 .nh
-.TH colornewst 1 4.6.1 BL3DEMC
+.TH colornewst 1 4.6.1 IMOD
 .SH NAME
 colornewst -\ Run Newstack command on a color file
 .SH SYNOPSIS

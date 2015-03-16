@@ -18,26 +18,27 @@
 !
 program corrsearch3d
   implicit none
-  integer LIMVERT, LIMCONT
-  parameter (LIMVERT = 100000, LIMCONT = 1000)
-  integer*4 nx, ny, nz, nx2, ny2, nz2
+  integer LIM_LOCAL_BIN
+  parameter (LIM_LOCAL_BIN = 6)
+  integer*4 nx, ny, nz, nx2, ny2, nz2, nxyz(3), nxyz2(3)
   real*4 dxInitial, dyInitial, dzInitial, dxyzInit(3)
   real*4 dxVolume, dyVolume, dzVolume, dxyzVol(3)
-  common //nx, ny, nz, nx2, ny2, nz2, dxInitial, dyInitial, dzInitial, dxVolume, &
-      dyVolume, dzVolume
-  equivalence (nx, nxyz), (nx2, nxyz2), (dxyzInit, dxInitial)
-  equivalence (dxyzVol, dxVolume)
+  equivalence (dxInitial, dxyzInit(1)), (dyInitial, dxyzInit(2)), (dzInitial, dxyzInit(3))
+  equivalence (dxVolume, dxyzVol(1)), (dyVolume, dxyzVol(2)), (dzVolume, dxyzVol(3))
+  equivalence (nx, nxyz(1)), (ny, nxyz(2)), (nz, nxyz(3))
+  equivalence (nx2, nxyz2(1)), (ny2, nxyz2(2)), (nz2, nxyz2(3))
+  integer*4 nxPatch, nyPatch, nzPatch, nxyzPatch(3)
+  equivalence (nxPatch, nxyzPatch(1)), (nyPatch, nxyzPatch(2)), (nzPatch, nxyzPatch(3))
   !
-  integer*4 nxyz(3), mxyz(3), nxyzBsource(3), nxyz2(3)
+  integer*4 mxyz(3), nxyzBsource(3), limVert, limCont
   real*4 ctf(8193)
   !
   logical inside, exist, readSmallMod, found, flipMessages, loadFullWidth
   integer getImodHead, getImodScales
-  real*4 xVertex(LIMVERT), yVertex(LIMVERT), zcont(LIMCONT)
-  integer*4 indVert(LIMCONT), numVertex(LIMCONT)
-  real*4 xVertexB(LIMVERT), yVertexB(LIMVERT), zcontB(LIMCONT)
-  integer*4 indVertB(LIMCONT), numVertB(LIMCONT)
-  character*160 fileA, fileB, outputFile, modelFile, tempFile, xfFile, bModel
+  real*4, allocatable :: xVertex(:), yVertex(:), zcont(:)
+  integer*4, allocatable :: indVert(:), numVertex(:), indVertB(:), numVertB(:)
+  real*4, allocatable :: xVertexB(:), yVertexB(:), zcontB(:)
+  character*320 fileA, fileB, outputFile, modelFile, tempFile, xfFile, bModel
   !
   ! limPatch
   real*4, allocatable :: dxPatch(:), dyPatch(:), dzPatch(:), directErr(:)
@@ -46,8 +47,9 @@ program corrsearch3d
   real*4, allocatable :: dxDirect(:), dyDirect(:), dzDirect(:), ccDirect(:), corrCoef(:)
   real*4, allocatable :: work(:), buffer(:)
   real*4 xvertBsource(4), yvertBsource(4), xvertSort(4), yvertSort(4)
+  real*4 xvertTilt(4), yvertTilt(4), xvertTiltB(4), yvertTiltB(4)
   !
-  integer*4 indPatch, ix, iy, iz, nxPatch, nyPatch, nzPatch, maxShift, limPatch, limWork
+  integer*4 indPatch, ix, iy, iz, maxShift, limPatch, limWork
   integer*4 ifDebug, numFourierPatch, numCorrs, mode, numXpatch, numYpatch, numZpatch
   integer*4 nBordXlow, nbordXhigh, nbordYlow, nbordYhigh, nbordZlow, nbordZhigh, nxTaper
   integer*4 ixStart, iyStart, izStart, ixDelta, iyDelta, izDelta, nyTaper, nzTaper
@@ -58,6 +60,8 @@ program corrsearch3d
   integer*4 nxPad, nyPad, nzPad, numPatchPixels, indPatchA, nzPatchTmp, idim
   integer*4 indPatchB, indLoadA, indLoadB, maxXload, numCont, idimOptimal, idimHigher
   integer*4 ierr, ifFlip, numPosTotal, numBcont, ifFlipB
+  integer*4 nxSeries, nySeries, nxSeriesB, nySeriesB, ifAxis
+  real*4 axisRotation
   real*4 xcen, ycen, zcen, xpatchLow, xpatchHigh, zpatchLow, zpatchHigh, dz, dzMin
   integer*4 indP, ifUse, icont, icontMin, ixSpan, izSpan, kernelSize, ixPatchEnd
   integer*4 izPatchStart, izPatchEnd, izDir, izPatch, iz0, iz1, izCen, izAdjacent, indA
@@ -69,11 +73,22 @@ program corrsearch3d
   integer*4 nxLoadB, nyLoadb, nzLoadB, ixB0, ixB1, iyB0, iyB1, izB0, izB1
   integer*4 ixMin, ixMax, iyMin, iyMax, izMin, izMax, ifShiftIn, numAdjacentLook
   integer*4 nxXCpad, nyXCpad, nzXCpad, nxXCbord, nyXCbord, nzXCbord, niceLim
-  integer*4 num3CorrThreads, numSmoothThreads, numCCCthreads
+  integer*4 num3CorrThreads, numSmoothThreads, numCCCthreads, ifHistVerbose
   real*4 aSource(3,3), dxyzSource(3), dxNew, dyNew, dzNew, peak, wsumAdjacent, wsumNear
   real*4 dxSum, dySum, dzSum, err, perPos, dxAdjacent, dyAdjacent, dzAdjacent, zmodCen
   real*4 dxSumNear, dySumNear, dzSumNear, dxNear, dyNear, dzNear, distSq, distNear
   real*4 ccRatio, wcc, sizeSwitch, ymodCen, distAdjacent
+  real*4, allocatable :: statMeans(:), statSDs(:), statBuffer(:), patchFracHighSD(:)
+  real*4, allocatable :: patchMeanStruct(:)
+  integer*4 lsdBoxSize(3, LIM_LOCAL_BIN), numLsdBinnings, ibinBest, numInSample
+  integer*4 lsdBinning(3, LIM_LOCAL_BIN) /1,1,1, 2,2,2, 3,3,3, 4,4,4, 6,6,6, 8,8,8/
+  integer*4 lsdStartCoord(3), lsdEndCoord(3), lsdBoxStart(3, LIM_LOCAL_BIN)
+  integer*4 numLsdBoxes(3, LIM_LOCAL_BIN), lsdBufferStarts(LIM_LOCAL_BIN + 1)
+  integer*4 lsdStatStarts(LIM_LOCAL_BIN + 1), lsdSpacing(3, LIM_LOCAL_BIN)
+  integer*4 ibStart(3), ibEnd(3), numHistBins, numElimBySD
+  real*4 edgeSampleFrac, fallbackStructFrac, betterScaleCrit
+  real*4 fallbackPctFrac, fracForHist, elimBySdCrit, elimBySdType, highSDlevel
+  integer*4 idCCCcol/1/, idFracCol/5/, idStructCol/6/
   integer*4 niceFrame, usingFFTW, niceFFTlimit, numOMPthreads
   real*8 wallTime, wallStart, wallbest, wallCCC, wallCum(5)
 
@@ -86,7 +101,7 @@ program corrsearch3d
   ! fallbacks from ../../manpages/autodoc2man -3 2  corrsearch3d
   !
   integer numOptions
-  parameter (numOptions = 27)
+  parameter (numOptions = 33)
   character*(40 * numOptions) options(1)
 
   indPatch(ix, iy, iz) = ix + (iy - 1) * numXpatch + (iz - 1) * numXpatch * numYpatch
@@ -95,11 +110,14 @@ program corrsearch3d
       'ref:ReferenceFile:FN:@align:FileToAlign:FN:@output:OutputFile:FN:@'// &
       'region:RegionModel:FN:@size:PatchSizeXYZ:IT:@number:NumberOfPatchesXYZ:IT:@'// &
       'xminmax:XMinAndMax:IP:@yminmax:YMinAndMax:IP:@zminmax:ZMinAndMax:IP:@'// &
-      'taper:TapersInXYZ:IT:@pad:PadsInXYZ:IT:@maxshift:MaximumShift:I:@'// &
-      'volume:VolumeShiftXYZ:FT:@initial:InitialShiftXYZ:FT:@'// &
-      'bsource:BSourceOrSizeXYZ:CH:@bxform:BSourceTransform:FN:@'// &
-      'bxborder:BSourceBorderXLoHi:IP:@byzborder:BSourceBorderYZLoHi:IP:@'// &
-      'bregion:BRegionModel:FN:@kernel:KernelSigma:F:@ksize:KernelSize:F:@'// &
+      'tilt:TiltSeriesSizeXY:IP:@btilt:BTiltSeriesSizeXY:IP:@'// &
+      'axis:AxisRotationAngle:F:@taper:TapersInXYZ:IT:@pad:PadsInXYZ:IT:@'// &
+      'maxshift:MaximumShift:I:@volume:VolumeShiftXYZ:FT:@'// &
+      'initial:InitialShiftXYZ:FT:@bsource:BSourceOrSizeXYZ:CH:@'// &
+      'bxform:BSourceTransform:FN:@bxborder:BSourceBorderXLoHi:IP:@'// &
+      'byzborder:BSourceBorderYZLoHi:IP:@bregion:BRegionModel:FN:@'// &
+      'binnings:LocalSDNumBinnings:I:@box:BoxSizeForLocalSD:IT:@'// &
+      'elim:EliminateByLocalSD:FP:@kernel:KernelSigma:F:@ksize:KernelSize:F:@'// &
       'lowpass:LowPassRadiusSigma:FP:@sigma1:HighPassSigma:F:@'// &
       'messages:FlipYZMessages:B:@debug:DebugMode:I:@param:ParameterFile:PF:@'// &
       'help:usage:B:'
@@ -135,11 +153,22 @@ program corrsearch3d
   distNear = 4.
   ccRatio = 0.33
   flipMessages = .false.
+  numLsdBinnings = 0
   wallBest = 0.
   wallCum(:) = 0.
   wallCCC = 0.
   idimOptimal = 250000000
   idimHigher = 490000000
+  numHistBins = 1000
+  edgeSampleFrac = 0.5     ! Fraction of edge pixels to use for median/MADN
+  fracForHist = 0.99       ! Fraction of all boxes to use for histogram
+  fallbackPctFrac = 0.75   ! Percentile for fallback "typical high SD value"
+  fallbackStructFrac = 0.5 ! Fraction of "typical high" to use like histo dip
+  betterScaleCrit = 0.33   ! Difference of ratios must rise by this must to use
+  elimBySdType = 0.
+  elimBySdCrit = 0.5
+  nxSeries = 0
+  nxSeriesB = 0
   !
   ! Pip startup: set error, parse options, check help, set flag if used
   !
@@ -215,7 +244,7 @@ program corrsearch3d
         dyVolume, dzVolume)
     ierr = PipGetThreeFloats('InitialShiftXYZ', dxInitial, &
         dyInitial, dzInitial)
-    ierr = PipgetTwoFloats('LowPassRadiusSigma', radius2, sigma2)
+    ierr = PipGetTwoFloats('LowPassRadiusSigma', radius2, sigma2)
     ierr = PipGetFloat('HighPassSigma', sigma1)
     ierr = PipGetFloat('KernelSigma', sigmaKernel)
     if (sigmaKernel > sizeSwitch) kernelSize = 5
@@ -223,6 +252,31 @@ program corrsearch3d
     if (kernelSize .ne. 3 .and. kernelSize .ne. 5) call exitError( &
         'KERNEL SIZE MUST BE 3 or 5')
     ierr = PipGetLogical('FlipYZMessages', flipMessages)
+    ierr = PipGetInteger('LocalSDNumBinnings', numLsdBinnings)
+    if (numLsdBinnings > LIM_LOCAL_BIN) &
+        call exitError('NUMBER OF LOCAL BINNINGS IS TOO HIGH')
+    if (numLsdBinnings > 0) then
+      if (PipGetThreeIntegers('BoxSizeForLocalSD', lsdBoxSize(1, 1), lsdBoxSize(2, 1), &
+          lsdBoxSize(3, 1)) .ne. 0) &
+          call exitError('BOX SIZE MUST BE ENTERED FOR LOCAL SD ANALYSIS')
+      ierr = PipGetTwoFloats('EliminateByLocalSD', elimBySdType, elimBySdCrit)
+      if (2 * lsdBoxSize(1, 1) > nxPatch .or. 2 * lsdBoxSize(2, 1) > nyPatch .or.  &
+          2 * lsdBoxSize(3, 1) > nzPatch) then
+        do i = 1, 3
+          lsdBoxSize(i, 1) = min(lsdBoxSize(i, 1), nxyzPatch(i) / 2)
+        enddo
+        write(*,'(a,a,3i4)')'WARNING: BOX SIZE FOR SD ANALYSIS TOO LARGE FOR PATCHES,', &
+            ' CHANGED TO',(lsdBoxSize(i, 1), i = 1, 3)
+      endif
+    endif
+
+    ifAxis = 1 - PipGetFloat('AxisRotationAngle', axisRotation)
+    ierr = 1 - PipGetTwoIntegers('TiltSeriesSizeXY', nxSeries, nySeries)
+    ix = 1 - PipGetTwoIntegers('BTiltSeriesSizeXY', nxSeriesB, nySeriesB)
+    if (ifAxis == 0 .and. ix + ierr > 0) &
+        call exitError('AXIS ROTATION ANGLE MUST BE ENTERED FOR TILT SERIES SIZE'// &
+        ' TO BE USEFUL')
+    if (nxyzBsource(1) == 0) nxSeriesB = 0
     ierr = PipGetInteger('DebugMode', ifDebug)
   else
     write(*,'(1x,a,$)') 'X, Y, and Z size of patches: '
@@ -250,6 +304,11 @@ program corrsearch3d
         ' source for the image file being aligned: '
     read(5,*) nbordSourceXlow, nbordSourceXhigh, nbordSourceZlow, nbordSourceZhigh
   endif
+  ifHistVerbose = 0;
+  do while (ifDebug >= 10)
+    ifHistVerbose = ifHistVerbose + 1
+    ifDebug = ifDebug - 10
+  enddo
   !
   ! If there is no initial shift entered, enforce centered transform
   ! by setting initial shift to half the difference in size
@@ -310,8 +369,13 @@ program corrsearch3d
   !
   numCont = 0
   if (modelFile .ne. ' ') then
+    call getContourArraySizes(modelFile, 1, limCont, limVert)
+    allocate(xVertex(limVert), yVertex(limVert), zcont(limCont), indVert(limCont), &
+        numVertex(limCont), stat = ierr)
+    call memoryError(ierr, 'ARRAYS FOR CONTOURS')
     call get_region_contours(modelFile, 'CORRSEARCH3D', xVertex, yVertex, &
-        numVertex, indVert, zcont, numCont, ifFlip, LIMCONT, LIMVERT, 1)
+        numVertex, indVert, zcont, numCont, ifFlip, limCont, limVert, 1)
+
 
     if (ifDebug > 0) write(*,'(5(f7.0,f8.0))') &
         (xVertex(i), yVertex(i), i = indVert(1), indVert(1) + numVertex(1) - 1)
@@ -340,8 +404,12 @@ program corrsearch3d
     ! then transform to coordinates in A volume native plane
     !
     print *,'Processing model on source for second volume'
+    call getContourArraySizes(bModel, 2, limCont, limVert)
+    allocate(xVertexB(limVert), yVertexB(limVert), zcontB(limCont), indVertB(limCont), &
+        numVertB(limCont), stat = ierr)
+    call memoryError(ierr, 'ARRAYS FOR CONTOURS')
     call get_region_contours(bModel, 'CORRSEARCH3D', xVertexB, yVertexB, &
-        numVertB, indVertB, zcontB, numBcont, ifFlipB, LIMCONT, LIMVERT, 2)
+        numVertB, indVertB, zcontB, numBcont, ifFlipB, limCont, limVert, 2)
     do j = 1, numBcont
       if (ifDebug > 0) write(*,'(5(f7.0,f8.0))') &
           (xVertexB(i), yVertexB(i), i = indVertB(j), indVertB(j) + numVertB(j) - 1)
@@ -433,10 +501,31 @@ program corrsearch3d
         + nzPatch
   endif
   !
+  ! Set up another set of boundaries if the tilt series size was entered
+  ierr = 2
+  if (ifFlip > 0) ierr = 3
+  call tiltVertexSetup(nxSeries, nySeries, nxyz(1), nxyz(ierr), xvertTilt, yvertTilt)
+  call tiltVertexSetup(nxSeriesB, nySeriesB, nxyzBsource(1), nxyzBsource(indYb),  &
+      xvertTiltB, yvertTiltB)
+  if (nxSeriesb > 0) then
+    do i = 1, 4
+      call xformBsourceToA(xvertTiltB(i), yvertTiltB(i), nxyzBsource, nxyz, ifFlipB, &
+          ifFlip, aSource, dxyzSource, xvertTiltB(i), yvertTiltB(i))
+    enddo
+    if (ifDebug > 1) write(*,'(a, 8f9.1)')' B to A', (xvertTiltB(ix), yvertTiltB(ix), &
+        ix = 1, 4)
+  endif
+  !
+  ! Do analysis of local SDs
+  if (numLsdBinnings > 0) then
+    call analyzeLocalSDs()
+  endif
+  !
   ! prescan for patches inside boundaries, to get total count and flags
   ! for whether to do
   !
   numPosTotal = 0
+  numElimBySD = 0
   do iz = 1, numZpatch
     zcen = izStart + (iz - 1) * izDelta + nzPatch / 2
     do iy = 1, numYpatch
@@ -453,42 +542,31 @@ program corrsearch3d
         xcen = ixStart + (ix - 1) * ixDelta + nxPatch / 2
         ifUse = 1
         !
+        ! If SD analysis was done, eliminate first based on that
+        if (numLsdBinnings > 0 .and. nint(elimBySdType) > 0) then
+          if ((nint(elimBySdType) > 1 .and. &
+              patchMeanStruct(indP) < elimBySdCrit * highSDlevel) .or. &
+              (nint(elimBySdType) == 1 .and. patchFracHighSD(indP) < elimBySdCrit)) then
+            ifUse = 0
+            numElimBySD = numElimBySD + 1
+            if (ifDebug == 2) write(*,'(3f8.1,a,f7.4)')xcen, ycen, zcen, &
+                ' eliminated by SD criterion, frac', patchFracHighSD(indP)
+          endif
+        endif
+        !
         ! If A model was entered, find nearest contour in Z and see if
         ! patch is inside it
-        !
-        if (numCont > 0) then
-          ifUse = 0
-          dzMin = 100000.
-          do icont = 1, numCont
-            dz = abs(zmodCen - zcont(icont))
-            if (dz < dzMin) then
-              dzMin = dz
-              icontMin = icont
-            endif
-          enddo
-          indV = indVert(icontMin)
-          if (inside(xVertex(indV), yVertex(indV), numVertex(icontMin), xcen, ymodCen)) &
-              ifUse = 1
+        if (numCont > 0 .and. ifUse == 1) then
+          call checkBoundaryConts(xcen, ymodCen, zmodCen, ifUse, numCont, &
+              numVertex, xVertex, yVertex, zcont, indVert)
           if (ifUse == 0 .and. ifDebug == 2) &
               print *,xcen, ymodCen, ' eliminated by A model contour', icontMin
-
         endif
         !
         ! Do the same if still ok and B model was entered
-        !
         if (numBcont > 0 .and. ifUse == 1) then
-          ifUse = 0
-          dzMin = 100000.
-          do icont = 1, numBcont
-            dz = abs(zmodCen - zcontB(icont))
-            if (dz < dzMin) then
-              dzMin = dz
-              icontMin = icont
-            endif
-          enddo
-          indV = indVertB(icontMin)
-          if (inside(xVertexB(indV), yVertexB(indV), numVertB(icontMin), xcen, ymodCen)) &
-              ifUse = 1
+          call checkBoundaryConts(xcen, ymodCen, zmodCen, ifUse, numBcont, &
+              numVertB, xVertexB, yVertexB, zcontB, indVertB)
           if (ifUse == 0 .and. ifDebug == 2) &
               print *,xcen, ymodCen, ' eliminated by B model'
         endif
@@ -515,6 +593,17 @@ program corrsearch3d
           if (ifUse == 0 .and. ifDebug == 2) &
               print *,xcen, ymodCen, ' eliminated by B boundaries'
         endif
+        if (ifUse == 1 .and. nxSeries > 0) then
+          if (.not. inside(xvertTilt, yvertTilt, 4, xcen, ymodCen)) ifuse = 0
+          if (ifUse == 0 .and. ifDebug == 2) &
+              print *,xcen, ymodCen, ' eliminated by A tilt series borders'
+        endif
+        if (ifUse == 1 .and. nxSeriesB > 0) then
+          if (.not. inside(xvertTiltB, yvertTiltB, 4, xcen, ymodCen)) ifuse = 0
+          if (ifUse == 0 .and. ifDebug == 2) &
+              print *,xcen, ymodCen, ' eliminated by B tilt series borders'
+        endif
+
         if (ifUse == 0) then
           ifDone(indP) = -1
         else
@@ -526,6 +615,9 @@ program corrsearch3d
     enddo
   enddo
   !
+  if (numLsdBinnings > 0)  &
+      write(*,'(i7,a,i7,a)') numElimBySD, ' of', numXpatch * numYpatch * numZpatch, &
+      ' total possible patches eliminated by SD criterion'
   if (numPosTotal < 1) call exitError('NO PATCHES FIT WITHIN ALL OF THE CONSTRAINTS')
   !
   ! set indexes at which to load data and compose patches
@@ -571,7 +663,7 @@ program corrsearch3d
   call memoryError(ierr, 'IMAGE BUFFER')
   !
   call dopen(1, outputFile, 'new', 'f')
-  write(1, '(i7,a)') numPosTotal, ' positions'
+  write(1, '(i7,a,i3)') numPosTotal, ' positions', idCCCcol
 
   ! Set up number of threads based on analysis relative to 40x20x40 patches
   if (kernelSize == 3) then
@@ -857,7 +949,7 @@ program corrsearch3d
       if (ifDone(indP) > 0) then
         write(1, 105) ixCen, iyCen, izCen, dxPatch(indP), dyPatch(indP), &
             dzPatch(indP), corrCoef(indP)
-105     format(3i6,3f9.2,f10.4,3f9.2,f10.4,f8.3)
+105     format(3i6,3f9.2,f10.4,3f9.2,f12.4,f8.3)
         call flush(1)
       endif
     endif
@@ -865,9 +957,14 @@ program corrsearch3d
   !
   ! If any ones were skipped, need to rewrite the file
   !
-  if ((numSkip > 0 .or. ifDebug == 3) .and. ifDebug .ne. 2) then
+  if ((numSkip > 0 .or. numLsdBinnings > 0 .or. ifDebug == 3) .and. ifDebug .ne. 2) then
     rewind(1)
-    write(1, '(i7,a)') numPosTotal - numSkip, ' positions'
+    if (numLsdBinnings > 0) then
+      write(1, '(i7,a,3i3)') numPosTotal - numSkip, ' positions', idCCCcol, idFracCol, &
+          idStructCol
+    else
+      write(1, '(i7,a,3i3)') numPosTotal - numSkip, ' positions', idCCCcol
+    endif
     do indSequence = 1, numSequence
       ixPatch = ixSequence(indSequence)
       iyPatch = iySequence(indSequence)
@@ -887,21 +984,66 @@ program corrsearch3d
                 dzDirect(indP), ccDirect(indP), directErr(indP)
           endif
         else
-          write(1, 105) ixCen, iyCen, izCen, dxPatch(indP), dyPatch(indP), &
-              dzPatch(indP), corrCoef(indP)
+          if (numLsdBinnings > 0) then
+            write(1, 115) ixCen, iyCen, izCen, dxPatch(indP), dyPatch(indP), &
+                dzPatch(indP), corrCoef(indP), patchFracHighSD(indP),  &
+                patchMeanStruct(indP) / highSDlevel
+115         format(3i6,3f9.2,f10.4,f8.4,f10.5)
+          else
+            write(1, 105) ixCen, iyCen, izCen, dxPatch(indP), dyPatch(indP), &
+                dzPatch(indP), corrCoef(indP)
+          endif
         endif
       endif
     enddo
   endif
   close(1)
-  perPos = (3. *numCorrs) / (numPosTotal - numFourierPatch)
+  perPos = (3. *numCorrs) / max(1, numPosTotal - numFourierPatch)
   write(*,'(f8.2,a,i5,a)') perPos, ' correlations per position,'// &
       ' Fourier correlations computed', numFourierPatch, ' times'
-  write(*,'(a,8f8.4)')'LETKZ, search, oneCCC:', (wallCum(i),i=1,5), wallBest, wallCCC
+  if (ifDebug > 0) write(*,'(a,8f8.4)')'LETKZ, search, oneCCC:',  &
+      (wallCum(i),i=1,5), wallBest, wallCCC
   call exit(0)
 95 call exitError('READING TRANSFORM FILE')
 
 CONTAINS
+
+
+  ! tiltVertexSetup constructs a bounding box from the original data and rotates it
+  ! by the negative of the tilt axis angle.  In the data set that this was first tried
+  ! with, the good area appeared to go about 60 pixels BEYOND the borders of this area.
+  ! Even if the good data stops nearer to this boundary, it should be OK to let the patch
+  ! centers go out to these borders.  Thus this just has xbord and ybord zero.
+  !
+  subroutine tiltVertexSetup(nxTilt, nyTilt, nxRec, nyRec, xvert, yvert)
+    integer*4 nxTilt, nyTilt, nxRec, nyRec
+    real*4 xvert(4), yvert(4), xbord, ybord
+    real*4 rotMat(2,3)
+    real*4 cosd, sind
+    if (nxTilt == 0 .or. nxRec == 0) return
+    xbord = 0.
+    ybord = 0.
+    xvert(1) = nxRec / 2. - (nxTilt - xbord) / 2.
+    yvert(1) = nyRec / 2. - (nyTilt - ybord) / 2.
+    xvert(2) = nxRec / 2. + (nxTilt - xbord) / 2.
+    yvert(2) = yvert(1)
+    xvert(3) = xvert(2)
+    yvert(3) = nyRec / 2. + (nyTilt - ybord) / 2.
+    xvert(4) = xvert(1)
+    yvert(4) = yvert(3)
+    rotMat(1, 1) = cosd(axisRotation)
+    rotMat(1, 2) = sind(axisRotation)
+    rotMat(2, 1) = -rotMat(1, 2)
+    rotMat(2, 2) = rotMat(1, 1)
+    rotMat(1:2, 3) = 0.;
+    if (ifDebug > 0) write(*,'(a, 8f9.1)')'raw verts', (xvert(ix), yvert(ix), ix = 1, 4)
+    do ix = 1, 4
+      call xfApply(rotMat, nxRec / 2., nyRec / 2., xvert(ix), yvert(ix), xvert(ix),  &
+          yvert(ix))
+    enddo
+    if (ifDebug > 0) write(*,'(a, 8f9.1)')'tilt verts', (xvert(ix), yvert(ix), ix = 1, 4)
+    return
+  end subroutine tiltVertexSetup
 
   ! loadExtractProcess takes care of loading data as needed from the
   ! given unit IUNIT into the right area of BUFFER, extracting the desired
@@ -967,7 +1109,263 @@ CONTAINS
       wallCum(5) = wallCum(5) + wallNow - wallStart
     endif
     return
-end subroutine loadExtractProcess
+  end subroutine loadExtractProcess
+
+
+  ! analyzeLocalSDs sets up parameters for the multi-binning local SD analysis,
+  ! calls the routines to obtain the statistics, and analyzes the edge values and the
+  ! overall distribution to set threshold values
+  !
+  subroutine analyzeLocalSDs()
+    integer*4 numPix, lsdZind, numBoxes, ibin, numForMed, lsdFuncData(4), idelSamp
+    integer*4 numSample
+    real*4 edgeMedian(LIM_LOCAL_BIN), edgeMADN(LIM_LOCAL_BIN), fallbackSD(LIM_LOCAL_BIN)
+    real*4 histDip(LIM_LOCAL_BIN), peakBelow(LIM_LOCAL_BIN), peakAbove(LIM_LOCAL_BIN)
+    real*4 histStart, histEnd, ratio, ratioLast, ratioDiff, boxStructCrit
+    real*4 diffLast
+    logical useFallback
+    integer*4 multiBinSetup, multiBinStats, lsdLoadFunc, findHistogramDip
+    real*8 percentileFloat
+    external lsdLoadFunc
+    !
+    ! Set up sizes and spacings
+    do j = 1, numLsdBinnings
+      numPix = 1
+      do i = 1, 3
+        lsdBoxSize(i, j) = max(1, nint((float(lsdBoxSize(i, 1)) * lsdBinning(i, 1)) / &
+            lsdBinning(i, j)))
+        numPix = numPix * lsdBoxSize(i, j)
+        lsdSpacing(i, j) = max(1, nint(min(lsdBoxSize(i, j) / 2., nxyzPatch(i) / 10.)))
+      enddo
+      if (numPix < 15) call exitError('BOX SIZE FOR LOCAL SDs IS TOO SMALL')
+    enddo
+
+    lsdStartCoord(1) = ixStart
+    lsdStartCoord(2) = iyStart
+    lsdStartCoord(3) = izStart
+    lsdEndCoord(1) = ixStart + (numXpatch - 1) * ixDelta + nxPatch
+    lsdEndCoord(2) = iyStart + (numYpatch - 1) * iyDelta + nyPatch
+    lsdEndCoord(3) = izStart + (numZpatch - 1) * izDelta + nzPatch
+    lsdZind = 3
+    if (ifFlip > 0) lsdZind = 2
+    lsdStartCoord(lsdZind) = 0
+    lsdEndCoord(lsdZind) = nxyz(lsdZind) - 1
+    ierr = multiBinSetup(lsdBinning, lsdBoxSize, lsdSpacing, numLsdBinnings,  &
+        lsdStartCoord, lsdEndCoord, lsdBoxStart, numLsdBoxes, lsdBufferStarts,  &
+        lsdStatStarts)
+    if (ierr .ne. 0) call exitError('SETTING UP MULTI-BIN ANALYSIS')
+    numBoxes = 0
+    do ibin = 1, numLsdBinnings
+      numBoxes = max(numBoxes, lsdStatStarts(ibin + 1) - lsdStatStarts(ibin))
+    enddo
+    numSample = min(numBoxes, 2000 * numHistBins)
+    ibin = max(lsdBufferStarts(numLsdBinnings + 1),  &
+        numSample + max(numSample, numHistBins))
+    allocate(statBuffer(ibin), statMeans(lsdStatStarts(numLsdBinnings + 1)),  &
+        statSDs(lsdStatStarts(numLsdBinnings + 1)), patchFracHighSD(limPatch),  &
+        patchMeanStruct(limPatch), stat = ierr)
+    call memoryError(ierr, 'ARRAYS FOR MULTI-BIN ANALYSIS')
+    lsdFuncData(1) = lsdStartCoord(1)
+    lsdFuncData(2) = lsdEndCoord(1)
+    lsdFuncData(3) = lsdStartCoord(2)
+    lsdFuncData(4) = lsdEndCoord(2)
+    wallStart = wallTime()
+    ierr = multiBinStats(lsdBinning, lsdBoxSize, lsdSpacing, numLsdBinnings,  &
+        lsdStartCoord, lsdEndCoord, lsdBoxStart, numLsdBoxes, lsdBufferStarts,  &
+        lsdStatStarts, statBuffer, statMeans, statSDs, lsdFuncData, lsdLoadFunc)
+    if (ierr .ne. 0) call exitError('DOING MULTI-BIN ANALYSIS OF SDs')
+    if (ifDebug > 0) write(*,'(a,f9.3)')'multiBinStats time', wallTime() - wallStart
+    
+    !
+    ! Collect values on the top and bottom planes
+    useFallback = .true.
+    ibinBest = -1
+    do ibin = 1, numLsdBinnings
+      !
+      ! Collect values on the top and bottom planes and analyze lowest fraction for 
+      ! median/MADN
+      do i = 1, 3
+        ibStart(i) = 1
+        ibEnd(i) = numLsdBoxes(i, ibin)
+      enddo
+      ibStart(lsdZind) = ibEnd(lsdZind)
+      numInSample = 0
+      call addBoxesToSample(ibin)
+      ibStart(lsdZind) = 1
+      ibEnd(lsdZind) = 1
+      call addBoxesToSample(ibin)
+      !
+      ! Sort the edge values and take median/MADN of a fraction of them
+      call rsSortFloats(statBuffer, numInSample)
+      numForMed = max(2., edgeSampleFrac * numInSample)
+      call rsMedianOfSorted(statBuffer, numForMed, edgeMedian(ibin))
+      call rsFastMADN(statBuffer, numForMed, edgeMedian(ibin), statBuffer(numForMed + 1),&
+          edgeMADN(ibin))
+      write(*,'(/,a,i2,a,f9.2,a,f8.2,/,a)')'For scaling', ibin, ': edge SD median = ', &
+          edgeMedian(ibin), ', MADN = ', edgeMADN(ibin), &
+          'Analyzing histogram of square root of SDs:'
+
+      ! Get a sample of data for large volumes to do percentile/histogram analysis
+      numBoxes = lsdStatStarts(ibin + 1) - lsdStatStarts(ibin)
+      numSample = min(numBoxes, 2000 * numHistBins)
+      idelSamp = numBoxes / numSample
+      ix = lsdStatStarts(ibin) + 1
+      do i = 1, numSample
+        statBuffer(i) = statSDs(ix)
+        ix = ix + idelSamp
+      enddo
+
+      ! Find a moderate high percentile as a measure of typical strong structure
+      fallbackSD(ibin) = percentileFloat(nint(fallbackPctFrac * numSample), statBuffer, &
+          numSample)
+
+      ! Take the square root to spread out the lower end of the histogram
+      ! Find a high-percentile cutoff value for limiting the histogram range
+      statBuffer(1:numSample) = sqrt(statBuffer(1:numSample))
+      histStart = minval(statBuffer(1:numSample))
+      histEnd = percentileFloat(nint(fracForHist * numSample), statBuffer, numSample)
+      
+      wallStart = wallTime()
+      if (findHistogramDip(statBuffer, numSample, 0, statBuffer(numSample + 1),  &
+          numHistBins, histStart, histEnd, histDip(ibin),  &
+          peakBelow(ibin), peakAbove(ibin), ifHistVerbose) .ne. 0) then
+        histDip(ibin) = -1
+      else
+        useFallback = .false.
+        histDip(ibin) = histDip(ibin)**2
+        peakBelow(ibin) = peakBelow(ibin)**2
+        peakAbove(ibin) = peakAbove(ibin)**2
+        write(*,'(a,f9.2,a,2f9.2)')'SD value of dip is ', histDip(ibin), ', peaks at ', &
+            peakBelow(ibin), peakAbove(ibin)
+        if (ibinBest < 0) ibinBest = ibin
+      endif
+      if (ifDebug > 0) write(*,'(i8,a,i12, a,f9.3)')numSample, ' of',numBoxes,  &
+          ' boxes; histogram time', wallTime() - wallStart
+    enddo
+    print *
+
+    ! Find most distinguishable binning based on ones with dips, or based on all fallbacks
+    ratioLast = 0.
+    ratioDiff = 0.
+    do ibin = 1, numLsdBinnings
+      if (useFallback) then
+        ratio = (fallbackSD(ibin) - edgeMedian(ibin)) / edgeMADN(ibin)
+      else
+        if (histDip(ibin) < 0) cycle
+        ratio = (peakAbove(ibin) - edgeMedian(ibin)) / edgeMADN(ibin)
+      endif
+      if (ibin > 1) then
+        ratioDiff = (ratio - ratioLast) / (ibin - ibinBest)
+        if (ratioDiff < betterScaleCrit * diffLast) cycle
+        ibinBest = ibin
+      endif
+      ratioLast = ratio;
+      diffLast = ratioDiff;
+    enddo
+    if (numLsdBinnings > 1) &
+        write(*,'(a,i2,a,/)')'Selected scaling #', ibinBest, ' for further analysis'
+    !
+    ! Set up criteria now
+    if (useFallback) then
+      boxStructCrit = fallbackSD(ibinBest) * fallbackStructFrac
+      highSDlevel = fallbackSD(ibinBest)
+      write(*,'(a,f9.2,a,f9.2)')'No histogram dips found; using fallback SD of ', &
+          fallbackSD(ibinBest), ' for strong structure and criterion of ',boxStructCrit
+    else
+      boxStructCrit = histDip(ibinBest)
+      highSDlevel = peakAbove(ibinBest)
+    endif
+    !
+    ! Now evaluate each patch, find mean SD of blocks in patch and fraction of blocks
+    ! above the structure criterion.  Yes, this was actually good up to 10 threads
+    wallStart = wallTime()
+    ierr = numOMPthreads(10)
+
+    !$OMP PARALLEL DO NUM_THREADS(ierr) &
+    !$OMP& SHARED(numZpatch, izDelta, nzPatch, numYpatch, iyDelta, nyPatch, numXpatch)&
+    !$OMP& SHARED(ixDelta, nxPatch, patchMeanStruct, patchFracHighSD, lsdStatStarts)&
+    !$OMP& SHARED(ibinBest, numLsdBoxes, statSDs, boxStructCrit, izStart,iyStart,ixStart)&
+    !$OMP& PRIVATE(izPatch, iz0, iyPatch, iy0, ixPatch, ix0, ibStart, ibEnd, numBoxes)&
+    !$OMP& PRIVATE(ix, iy, iz, i, indP)
+    do izPatch = 1, numZpatch
+      iz0 = izStart + (izPatch - 1) * izDelta
+      call findBoxesInsidePatch(3, iz0, iz0 + nzPatch - 1, ibStart(3), ibEnd(3))
+      do iyPatch = 1, numYpatch
+        iy0 = iyStart + (iyPatch - 1) * iyDelta
+        call findBoxesInsidePatch(2, iy0, iy0 + nyPatch - 1, ibStart(2), ibEnd(2))
+        do ixPatch = 1, numXpatch
+          ix0 = ixStart + (ixPatch - 1) * ixDelta
+          call findBoxesInsidePatch(1, ix0, ix0 + nxPatch - 1, ibStart(1), ibEnd(1))
+          indP = indPatch(ixPatch, iyPatch, izPatch)
+          numBoxes = 0
+          patchMeanStruct(indP) = 0.;
+          patchFracHighSD(indP) = 0.;
+          do iz = ibStart(3), ibEnd(3)
+            do iy = ibStart(2), ibEnd(2)
+              do ix = ibStart(1), ibEnd(1)
+                i = lsdStatStarts(ibinBest) + ((iz - 1) * numLsdBoxes(2, ibinBest) + &
+                    (iy - 1)) * numLsdBoxes(1, ibinBest) + ix
+                patchMeanStruct(indP) = patchMeanStruct(indP) + statSDs(i)
+                if (statSDs(i) >= boxStructCrit) &
+                    patchFracHighSD(indP) = patchFracHighSD(indP) + 1
+                numBoxes = numBoxes + 1
+              enddo
+            enddo
+          enddo
+          if (numBoxes > 0) then
+            patchFracHighSD(indP) = patchFracHighSD(indP) / numBoxes
+            patchMeanStruct(indP) = patchMeanStruct(indP) / numBoxes
+          else
+            patchMeanStruct(indP) = -1.;
+            patchFracHighSD(indP) = -1.;
+          endif
+        enddo
+      enddo
+    enddo
+    !$OMP END PARALLEL DO
+    if (ifDebug > 0) write(*,'(a,f9.3)') ' patch structure time', wallTime() - wallStart
+  end subroutine analyzeLocalSDs
+
+
+  ! addBoxesToSample adds boxes in the range ibStart, ibEnd into a sample
+  !
+  subroutine addBoxesToSample(iscl)
+    integer*4 iscl, ixBox, iyBox, izBox, ibase
+    do izBox = ibStart(3), ibEnd(3)
+      do iyBox = ibStart(2), ibEnd(2)
+        ibase = lsdStatStarts(iscl) + ((izBox - 1) * numLsdBoxes(2, iscl) + (iyBox - 1)) &
+            * numLsdBoxes(1, iscl)
+        do ixBox = ibStart(1), ibEnd(1)
+          numInSample = numInSample + 1
+          statBuffer(numInSample) = statSDs(ibase + ixBox)
+        enddo
+      enddo
+    enddo
+  end subroutine addBoxesToSample
+
+
+  ! findBoxesInsidePatch finds the box numbers in a patch whose starting and ending
+  ! coordinates are in ipStart, ipEnd, and puts the range of boxes in ibStart, ibEnd
+  !
+  subroutine findBoxesInsidePatch(ixyz, ipStart, ipEnd, ibStart, ibEnd)
+    integer*4 iscl, ixyz, ipStart, ipEnd, ibStart, ibEnd
+    iscl = ibinBest
+    ibStart = ((ipStart - lsdStartCoord(ixyz)) / float(lsdBinning(ixyz, iscl)) -  &
+        lsdBoxStart(ixyz, iscl)) / lsdSpacing(ixyz, iscl) + 1
+    do while (lsdStartCoord(ixyz) + lsdBinning(ixyz, iscl) * (lsdBoxStart(ixyz, iscl) + &
+        (ibStart - 1) * lsdSpacing(ixyz, iscl)) < ipStart)
+      ibStart = ibStart + 1
+    enddo
+    ibEnd = ceiling(((ipEnd - lsdStartCoord(ixyz)) / float(lsdBinning(ixyz, iscl)) &
+        + 1 - lsdBoxStart(ixyz, iscl) - lsdBoxSize(ixyz, iscl)) /  &
+        lsdSpacing(ixyz, iscl)) + 1
+    ibEnd = min(numLsdBoxes(ixyz, iscl), ibEnd)
+    do while (lsdStartCoord(ixyz) + lsdBinning(ixyz, iscl) * (lsdBoxStart(ixyz, iscl) + &
+        (ibEnd - 1) * lsdSpacing(ixyz, iscl) + lsdBoxSize(ixyz, iscl)) < ipEnd)
+      ibEnd = ibEnd - 1
+    enddo
+    return
+  end subroutine findBoxesInsidePatch
 
 end program corrsearch3d
 
@@ -1311,7 +1709,7 @@ subroutine kernelSmooth(array, brray, nxDim, nx, ny, nz, isize, sigma, numThread
   implicit none
   integer*4 nx, nxDim, ny, nz, ix, iy, iz, i, j, k, isize, mid, less, numThreads
   real*4 array(nxDim, ny, nz), brray(nxDim, ny, nz), sigma
-  real*4 w(5,5,5), wsum, sizeRatio
+  real*4 w(5,5,5), wsum
   !
   ! Make up the gaussian kernel
   !
@@ -1378,7 +1776,7 @@ end subroutine kernelSmooth
 ! than adding everything into one output pixel at a time
 subroutine smoothOnePlane(array, brray, nxDim, nx, ny, iz, isize, w)
   implicit none
-  integer*4 nx, nxDim, ny, ix, iy, iz, i, j, k, isize, mid
+  integer*4 nx, nxDim, ny, iy, iz, j, k, isize, mid
   real*4 array(nxDim, ny, *), brray(nxDim, ny, *)
   real*4 w(5,5,5)
   mid = (isize + 1) / 2
@@ -1600,14 +1998,9 @@ subroutine loadVol(iunit, array, nxDim, nyDim, ix0, ix1, iy0, iy1, iz0, iz1)
   implicit none
   integer*4 nxDim, nyDim, ix0, ix1, iy0, iy1, iz0, iz1, iunit, indZ, iz
   real*4 array(nxDim,nyDim,*)
-  real*8 wallTime, wallStart, wallAll, wallNow, wallCum, wallAllSt, wallSeek
   !
   ! print *,iunit, nxdim, nydim, ix0, ix1, iy0, iy1, iz0, iz1
   indZ = 0
-  wallStart = wallTime()
-  wallAllSt = wallStart
-  wallCum = 0.
-  wallSeek =0.
   do iz = iz0, iz1
     indZ = indZ + 1
     call imposn(iunit, iz, 0)
@@ -1630,7 +2023,7 @@ subroutine extractPatch(buffer, nxLoad, nyLoad, nzLoad, loadX0, loadY0, loadZ0, 
   integer*4 nxLoad, nyLoad, nzLoad, loadX0, loadY0, loadZ0, ix0, iy0
   integer*4 iz0, nxPatch, nyPatch, nzPatch
   real*4 buffer(nxLoad,nyLoad,nzLoad), array(nxPatch,nyPatch,nzPatch), scale
-  integer*4 iz, iy, ix, indz
+  integer*4 iz, iy, ix
   !
   ix = ix0 - loadX0
   iy = iy0 - loadY0
@@ -1649,7 +2042,6 @@ subroutine volMeanZero(array, nxDim, nx, ny, nz)
   integer*4 nxDim, nx, ny, nz
   real*4 array(nxDim,ny,nz)
   real*8 arsum
-  integer*4 i, j, k
   real*4 dmean
   arsum = sum(array(1:nx, 1:ny, 1:nz))
   dmean = arsum / (nx * ny * nz)
@@ -1884,3 +2276,16 @@ subroutine dumpVolume(crray, nxDim, nxPad, nyPad, nzPad, rootname)
   call imclose(4)
   return
 end subroutine dumpVolume
+
+
+! The function for loading data for multibinstats
+!
+integer*4 function lsdLoadFunc(iz, idata, buffer)
+  implicit none
+  integer*4 iz, idata(*), iiuReadSecPart
+  real*4 buffer
+  call iiuSetPosition(1, iz, 0)
+  lsdLoadFunc = iiuReadSecPart(1, buffer, idata(2) + 1 - idata(1), idata(1), idata(2), &
+      idata(3), idata(4))
+  return
+end function lsdLoadFunc

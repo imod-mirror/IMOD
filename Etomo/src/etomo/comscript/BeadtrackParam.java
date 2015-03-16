@@ -392,7 +392,7 @@ public class BeadtrackParam extends OldBeadtrackParam implements CommandParam,
   private HashMap getRequiredMap() {
     ReadOnlyAutodoc autodoc = null;
     try {
-      autodoc = AutodocFactory.getInstance(manager, AutodocFactory.BEADTRACK, axisID);
+      autodoc = AutodocFactory.getInstance(manager, AutodocFactory.BEADTRACK, axisID,false);
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();

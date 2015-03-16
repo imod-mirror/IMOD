@@ -1,6 +1,6 @@
 .na
 .nh
-.TH imod-dist 1 4.6.1 BL3DEMC
+.TH imod-dist 1 4.6.1 IMOD
 .SH NAME
 imod-dist \- distance measurement tool for IMOD model files
 .SH SYNOPSIS

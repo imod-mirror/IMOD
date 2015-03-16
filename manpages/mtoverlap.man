@@ -1,6 +1,6 @@
 .na
 .nh
-.TH mtoverlap 1 4.6.34 BL3DEMC
+.TH mtoverlap 1 4.6.34 IMOD
 .SH NAME
 mtoverlap - to sdisplay and analyze overlap of spindle MTs
 .SH SYNOPSIS

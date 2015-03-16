@@ -305,7 +305,7 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
     pnlVaryingK.setComponentAlignmentX(Component.CENTER_ALIGNMENT);
     SpacedPanel pnlVaryingKFields = SpacedPanel.getInstance();
     pnlVaryingKFields.setBoxLayout(BoxLayout.X_AXIS);
-    ltfTestKValueList.setTextPreferredWidth(UIParameters.INSTANCE.getListWidth());
+    ltfTestKValueList.setTextPreferredWidth(UIParameters.getInstance().getListWidth());
     pnlVaryingKFields.add(ltfTestKValueList);
     pnlVaryingKFields.add(spTestIteration);
     pnlVaryingK.add(pnlVaryingKFields);
@@ -329,7 +329,7 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
     SpacedPanel pnlVaryingIterationFields = SpacedPanel.getInstance();
     pnlVaryingIterationFields.setBoxLayout(BoxLayout.X_AXIS);
     pnlVaryingIterationFields.add(ltfTestKValue);
-    ltfTestIterationList.setTextPreferredWidth(UIParameters.INSTANCE.getListWidth());
+    ltfTestIterationList.setTextPreferredWidth(UIParameters.getInstance().getListWidth());
     pnlVaryingIterationFields.add(ltfTestIterationList);
     pnlVaryingIteration.add(pnlVaryingIterationFields);
     SpacedPanel pnlVaryingIterationButtons = SpacedPanel.getInstance();
@@ -358,6 +358,10 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
    */
   public ProcessingMethod getProcessingMethod() {
     return ProcessingMethod.PP_CPU;
+  }
+
+  public ProcessingMethod getSecondaryProcessingMethod() {
+    return null;
   }
 
   public void disableGpu(final boolean disable) {
@@ -399,12 +403,6 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
     return rootPanel.getContainer();
   }
 
-  public void action(final Run3dmodButton button,
-      final Run3dmodMenuOptions run3dmodMenuOptions) {
-    action(button.getActionCommand(), button.getDeferred3dmodButton(),
-        run3dmodMenuOptions);
-  }
-
   public void getInitialParameters(final ParallelMetaData metaData) {
     metaData.setRootName(ftfVolume.getFileName());
     metaData.setVolume(ftfVolume.getFileAbsolutePath());
@@ -419,9 +417,9 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
     metaData.setTestIterationList(ltfTestIterationList.getText());
     filterFullVolumePanel.getParameters(metaData);
   }
-  
- public void getParametersForTrimvol(final ParallelMetaData metaData) {
-   pnlTestVolumeRubberband.getParametersForTrimvol(metaData);
+
+  public void getParametersForTrimvol(final ParallelMetaData metaData) {
+    pnlTestVolumeRubberband.getParametersForTrimvol(metaData);
   }
 
   public Number getMemoryPerChunk() {
@@ -563,7 +561,7 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
     return cbLoadWithFlipping.isSelected();
   }
 
-  private void action(final String command, Deferred3dmodButton deferred3dmodButton,
+  public void action(final String command, Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(btnExtractTestVolume.getActionCommand())) {
       if (!initSubdir()) {
@@ -608,7 +606,7 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
   private void openVolume() {
     File volume = null;
     JFileChooser chooser = new FileChooser(new File(manager.getPropertyUserDir()));
-    chooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
+    chooser.setPreferredSize(UIParameters.getInstance().getFileChooserDimension());
     chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
     chooser.setFileFilter(new TomogramFileFilter());
     int returnVal = chooser.showOpenDialog(rootPanel.getContainer());

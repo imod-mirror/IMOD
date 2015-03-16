@@ -1,6 +1,6 @@
 .na
 .nh
-.TH vmstopy 1 3.8.26 BL3DEMC
+.TH vmstopy 1 3.8.26 IMOD
 .SH NAME
 vmstopy - converts IMOD command file to Python script
 .SH SYNOPSIS

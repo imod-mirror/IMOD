@@ -7,8 +7,7 @@
 </head>
 <body>
 <A NAME = "TOP"><h2 align="center">Guide to Ctfplotter</h2></A>
-<h3 align="center">Boulder Laboratory for 3-D Electron Microscopy of
-Cells</h3>
+<h3 align="center">University of Colorado, Boulder</h3>
 <p>
 Ctfplotter plots noise-subtracted, rotationally averaged power spectra from
 tilt series data and allows one to determine the position of the first zero of
@@ -33,14 +32,14 @@ reciprocal pixels).
 If the pixel size is in nanometers, any frequency on the X axis can be
 converted to 1/nm by dividing by the pixel size. 
 <br> The Y coordinate is the logarithm of image power.</li>
-<li> The red curve is the logarithm of the power spectrum
+<li> The magenta curve is the logarithm of the power spectrum
 of the selected views after subtracting the noise floor. <br>
 If you use a fitting method that fits just one curve, the green curve fits the 
-red curve from "X1_starts" to "X2_ends", which can be set in the fitting range
+magenta curve from "X1_starts" to "X2_ends", which can be set in the fitting range
 dialog.<br>
 If you use a method that fits two curves, the green curve is fit to the
-red curve from "X1_starts" to "X1_ends" and the blue curve
-fits the red curve from "X2_starts" to" X2_ends", all of which can be set in
+magenta curve from "X1_starts" to "X1_ends" and the blue curve
+fits the magenta curve from "X2_starts" to" X2_ends", all of which can be set in
 the fitting range dialog.<br>
 In either case, the curves are drawn over the whole frequency range.</li>
 <li> To zoom in an area, hold down the left mouse button down and
@@ -53,10 +52,10 @@ hot keys for zooming in 3dmod, "-" or "+/=". </li>
 Use arrow keys to scroll vertically and horizontally.  You can also use the
 mouse scroll wheel to scroll vertically.</li>
 <li> The text field marked
-with "Z" on the top line reports the normalized frequency of the
+with "Z" on the top line reports the frequency of the
 first zero, either found by fitting to the power spectra, or set by
 double-clicking with the left mouse button.  The absolute frequency of the
-first zero in 1/nm is (normalized frequency)*(Nyquist frequency).<br>
+first zero in 1/nm is this frequency divided by the pixel size.<br>
 The text field marked with "D" on the top line
 reports the found defocus in microns.<br>
 If you double-click on the position of the
@@ -116,12 +115,19 @@ recomputed with the current parameters.
 <p>
 <img alt="rangeDialog" src="rangeCTF-like.png">
 </P><P>
-Fitting to a CTF-like curve involves finding four parameters, or five if the
+Fitting to a CTF-like curve involves finding four to seven parameters,
+depending on the extent of the fit and whether the
 option <B>Vary exponent of CTF function</B> is selected.  Varying the exponent
 can allow the curve to fit better to the width of the dip around the first
 zero, but since it adds a parameter, it can destabilize the fitting and
 produce bad results in some cases.  One of the parameters of the curve is the
-defocus.
+defocus.  The other parameters for a basic fit are an additive factor, a
+scaling factor, and the decay rate for an exponential that attenuates the
+curve.  However, when there is detectable signal between the second and third
+zeros and the fitting region is extended to at least halfway between those
+zeros, the program automatically adds two more parameters, a scaling
+factor and decay rate for a second exponential.  The benefit of this is
+illustrated in one of the examples below.
 </P>
 <p>
 The range of the curve is set from the entries <B>X1 Starts</B> and 
@@ -129,7 +135,7 @@ The range of the curve is set from the entries <B>X1 Starts</B> and
 about 0.05/pixel before the first zero, and close to the second zero,
 respectively, based on the expected defocus.  If necessary, you should adjust
 the starting value so that it is to the right of where the fitted curve
-strongly deviates from the actual.  If the red curve become noisy and falls
+strongly deviates from the actual.  If the magenta curve become noisy and falls
 off before a second zero, you should also reduce the ending point of the fit
 to exclude that region.  See the example below.
 </P>
@@ -179,9 +185,17 @@ curve after the first zero, drawn in blue. Use the <B>X2 fitting method</B>
 radio button to
 fit to a straight line or to a Gaussian.
 </P>
-
-<h2>Angle Range and Tile Selection Dialog<br>
-</h2>
+<P>
+This dialog also has a control, the <B>Baseline fitting order</B>, to allow a
+polynomial to be fit to the apparent baseline of the power spectrum at
+frequencies past the first zero.  This polynomial can then be subtracted to
+make the baseline be flat.  This fitting is not on by default (the order is 0)
+because this baseline adjustment can actually degrade the quality of fits to
+the curve itself in cases where the baseline is already relatively flat.
+An order of 2 is generally sufficient but orders of 3 and 4 are possible.  The
+order can also be adjusted with hot keys 0, 1, 2, 3, and 4.
+</P>
+<h2>Angle Range and Tile Selection Dialog</h2>
 This dialog presents the various parameters that control how the power
 spectrum is computed.  After changing parameters, either press
 <B>Apply</B> or type the "Enter" key in one of the text boxes to have the curve
@@ -338,18 +352,19 @@ Push the <B>Save to File</B> button to write the contents of the angles and
 defocus table to the output file.
 
 </P>
-<h2>Example</h2>
-This example shows the appearance of the plotting window with a tilt series
+<h2>Examples</h2>
+The first example shows the appearance of the plotting window with a tilt series
 from bovine papilloma virus, taken at a nominal defocus of 3 microns and a
-pixel size of 0.76 nm.  When the program is started with the default
+pixel size of 0.76 nm.  These data were taken on a CCD camera and there is
+little useful signal past the first zero.  When the program is started with the default
 angular range in the command file, the window looks like this:
 </P><P>
 <img src="plotStartup.png">
 </P><P>
 The range of the display in Y is dominated by the power at low frequencies, so
 it is essential to zoom the display.  This graph was zoomed by pressing the
-left mouse button with the cursor just at the place where the green and red
-curves diverge (at ~0.125 in X), then dragging the mouse to just below the 
+left mouse button with the cursor just above the second low hump in the magenta curve
+(at ~0.13 in X), then dragging the mouse to just below the 
 curves and just to the left of 0.4 to set the lower right corner of the rubber
 band.  Then the window looks like this:
 </P><P>
@@ -357,7 +372,7 @@ band.  Then the window looks like this:
 </P><P>
 Now we can see more clearly that the background subtraction is giving a
 reasonable power spectrum that is close to flat at high frequencies.
-The next step is to add in all of tiles, either by pushing the "Adding
+The next step is to add in all of the tiles, either by pushing the "Adding
 Non-center Tiles" button or by opening the Angle range dialog and switching to
 the <B>All tiles</B> option.  These two methods will give slightly different
 results, and the latter is actually preferable.
@@ -386,7 +401,7 @@ like this:
 Here we see that the
 CTF-like fitting works fairly well near the bottom of the dip, and that it
 leads to a defocus estimate significantly different from the nominal defocus.
-Turning on the <B>Vary exponent of CTF function</B> gives a slightly better
+Turning on the <B>Vary exponent of CTF function</B> gives a slightly different
 fit:
 </P><P>
 <img src="plotPower.png">
@@ -394,7 +409,7 @@ fit:
 This fitting method can now be used over different angular ranges, and the
 results can be stored from each range.  If <B>Autofit All Steps</B> is
 used over the full extent of the tilt series, four ranges have defocus values
-near 3.5 but the last one has a value of only 2.5 microns.  The curve for this
+near 3.5 but the last one has a value of only 3.1 microns.  The curve for this
 range lacks a dip, so this value is wrong.  This problem is solved by
 restricting the high end of the extent analyzed to 57 degrees.  After running
 with this extent and loading the last range to verify that its spectrum has a
@@ -407,18 +422,65 @@ different fitting methods with this data set, they are illustrated next.
 </P><P>
 <img src="plotPolynomial.png">
 </P><P>
-This panel shows the power spectrum for a different angular range (-50 to -10
-degrees) with a
+This panel shows the power spectrum for the initial angular range with a
 fourth-order polynomial fit to the frequency range shown in the dialog above.
 As is typical of polynomials, the green curve goes off wildly outside the
 fitting range.
 </P><P>
 <img src="plotIntersect.png">
 </P><P>
-This panel shows the power spectrum for the original angular range with
+This panel shows the power spectrum with
 determination of the zero from the intersection of two curves, with the
 frequency range as shown in the dialog above.
 </P>
+<P>
+The second example is from microtubules decorated with Eg5, taken with a DE-12
+direct detector camera at a nominal defocus of 6 microns.  This shows the
+spectrum and CTF-like fit for an angular range of -20 to 20 degrees, after
+switching to including all
+tiles included and using the current defocus estimate.
+</P><P>
+<img src="Eg5-6DinitialFit.png">
+</P><P>
+The fitting range here was 0.085 to 0.19, and it needs to be changed because
+the defocus is different from the nominal value, and also because there is
+good signal between the second and third zeros.  Changing the fitting range to
+0.1 to 0.25 and varying the exponent of the CTF curve gives the following:
+</P><P>
+<img src="Eg5-6DfullFit.png">
+</P><P>
+The curve fits the second peak much better now because the fit includes two
+exponential decays, one dominated by the falloff of the power spectrum before
+the first zero and the other to accommodate the very different decay from the
+first to the second peak.  With this data set, it was possible to fit ranges
+of 10 degrees, although ranges of 20 degrees gave cleaner results at one end
+of the tilt range, but the data were too noisy to allow reliable fitting to
+every individual image.
+</P><P>
+The third example is from the ventral disk of Giardia, taken with a Gatan K2
+camera in an electron-counting mode at a nominal defocus of 4 microns.  This
+is the initial spectrum of -20 to 20 degrees after zooming, and selecting all
+tiles and the current defocus estimate.
+</P><P>
+<img src="Janelia13initial.png">
+</P><P>
+Here,
+for whatever reason, the power spectra of the noise images do not match that
+of the actual data, and it is necessary to turn on the fitting to the baseline
+in the Fitting dialog.
+</P><P>
+<img src="Janelia13baseline.png">
+</P><P>
+With the baseline fitting turned on (with order 2, in this case), it is clear
+that the data can be fit to the third zero, and the fit here is with the
+fitting range set to end at 0.375.  These data had low enough noise
+that it was possible to fit every image.  This is accomplished by turning on
+the <b>Fit each view separately</b> check box and then pressing the button now
+labeled <B>Autofit All Single Views</B>.
+</P><P>
+<img src="Janelia13-33deg.png">
+</P><P>
+This is a representative spectrum and fit from a tilt of 33 degrees.
 <br>
 <a href="../man/ctfplotter.html#TOP">Refer to Ctfplotter man page</a><br>
 <br>

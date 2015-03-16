@@ -1,6 +1,6 @@
 .na
 .nh
-.TH splittilt 1 3.4.1 BL3DEMC
+.TH splittilt 1 3.4.1 IMOD
 .SH NAME
 splittilt \- Produce multiple command files for running Tilt in parallel
 .SH SYNOPSIS
