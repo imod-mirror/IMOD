@@ -65,6 +65,7 @@
 #define numompthreads NUMOMPTHREADS
 #define b3dompthreadnum B3DOMPTHREADNUM
 #define numberinlist NUMBERINLIST
+#define balancedgrouplimits BALANCEDGROUPLIMITS
 #define overrideoutputtype OVERRIDEOUTPUTTYPE
 #define b3doutputfiletype B3DOUTPUTFILETYPE
 #define setoutputtypefromstring SETOUTPUTTYPEFROMSTRING
@@ -88,6 +89,7 @@
 #define numompthreads numompthreads_
 #define b3dompthreadnum b3dompthreadnum_
 #define numberinlist numberinlist_
+#define balancedgrouplimits balancedgrouplimits_
 #define overrideoutputtype overrideoutputtype_
 #define b3doutputfiletype b3doutputfiletype_
 #define setoutputtypefromstring setoutputtypefromstring_
@@ -908,6 +910,26 @@ int numberInList(int num, int *list, int nlist, int noListValue)
 int numberinlist(int *num, int *list, int *nlist, int *noListValue)
 {
   return numberInList(*num, list, *nlist, *noListValue);
+}
+
+/*!
+ * Computes inclusive limits [start] and [end] of group at index [groupInd] when dividing 
+ * a total of [numTotal] items into [numGroups] groups as evenly as possible, with 
+ * the remainder from the division distributed among the first groups.
+ */
+void balancedGroupLimits(int numTotal, int numGroups, int groupInd, int *start, int *end)
+{
+  int base = numTotal / numGroups;
+  int rem = numTotal % numGroups;
+  *start = groupInd * base + B3DMIN(groupInd, rem);
+  *end = (groupInd + 1) * base + B3DMIN(groupInd + 1, rem) - 1;
+}
+
+/*! Fortran wrapper for @balancedGroupLimits */
+void balancedgrouplimits(int *numTotal, int *numGroups, int *groupInd, int *start,
+                         int *end)
+{
+  balancedGroupLimits(*numTotal, *numGroups, *groupInd, start, end);
 }
 
 /*!
