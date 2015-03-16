@@ -337,7 +337,6 @@ void FindSect::main( int argc, char *argv[])
     if (nxyz[ind] - 2 * startCoord[ind] < minRange[ind])
       startCoord[ind] = (nxyz[ind] - minRange[ind]) / 2;
     endCoord[ind] = nxyz[ind] - 1 - startCoord[ind];
-    mBinning[0][ind] = 1;
   }
   PipGetTwoIntegers("XMinAndMax", &startCoord[0], &endCoord[0]);
   PipGetTwoIntegers("YMinAndMax", &startCoord[1], &endCoord[1]);
