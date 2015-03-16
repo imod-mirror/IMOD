@@ -2,6 +2,7 @@
 # This script will make sure that there is a current python.exe in cygwin
 # Newer cygwin has only a cygwin link from python to python2.x.exe
 # This will not work when called from non-cygwin applications (java)
+PATH="/bin:$PATH"
 doCopy=0
 if [[ -e /bin/python.exe && -h /bin/python ]] ; then
 
