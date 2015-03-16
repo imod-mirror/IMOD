@@ -75,6 +75,7 @@ Root: HKCU; Subkey: "Environment"; ValueType: string; ValueName: "IMOD_DIR"; Val
 [Run]
 Filename: "{cmd}"; Parameters: "/C move {code:getQuotedAppDir}\installIMOD.log {code:getQuotedAppDir}\IMOD"; WorkingDir: "{app}"; StatusMsg: "Moving installIMOD.log to IMOD..."; Check: (not isFailed)
 Filename: "{cmd}"; Parameters: "/C move {code:getQuotedAppDir}\fixCygPython.sh {code:getQuotedAppDir}\IMOD"; WorkingDir: "{app}"; StatusMsg: "Moving fixCygPython.sh to IMOD..."; Check: (not isFailed)
+Filename: "{cmd}"; Parameters: "/C move {code:getQuotedAppDir}\fixCygPython.log {code:getQuotedAppDir}\IMOD"; WorkingDir: "{app}"; StatusMsg: "Moving fixCygPython.log to IMOD..."; Check: (not isFailed)
 
 
 [Code]
@@ -242,6 +243,7 @@ procedure installIMOD();
 //Run installIMOD.
 var
   command: String;
+  fixCommand: String;
   outputBaseFilename: String;
   skip: String;
   returnCode: Integer;
@@ -262,7 +264,13 @@ begin
   outputBaseFilename := 'imod_{#ImodVersion}_win'
 #endif
   if Cygwin and fileExists(PythonDir + '\python') then begin
-    Exec(PythonDir + '\bash.exe',ExpandConstant('{app}')+'\fixCygPython.sh',PythonDir,SW_SHOW,ewWaitUntilTerminated,returnCode)
+    fixCommand := '/C '+ PythonDir + '\bash.exe ' + ExpandConstant('{app}')+'\fixCygPython.sh > fixCygPython.log 2>&1';
+    Exec(ExpandConstant('{cmd}'), fixCommand, ExpandConstant('{app}'), SW_SHOW, ewWaitUntilTerminated, returnCode);
+    //Exec(PythonDir + '\bash.exe',ExpandConstant('{app}')+'\fixCygPython.sh',PythonDir,SW_SHOW,ewWaitUntilTerminated,returnCode)
+    if returnCode <> 0 then begin
+      MsgBox('A script to create a python.exe in cygwin has failed, returnCode=' + IntToStr(returnCode) + '.  Error messages are in fixCygPython.log in ' + ExpandConstant('{app}') + 
+      ' If IMOD install fails, try running the command "cp -L /bin/python /bin/python.exe" in a Cygwin terminal', mbCriticalError, MB_OK);
+    end;
   end;
   command := '/C PATH=' + PythonDir + ';%PATH% && echo Installing IMOD.......... && python installIMOD -yes ' + skip + outputBaseFilename + '.tar.gz > installIMOD.log 2>&1';
   if Exec(ExpandConstant('{cmd}'), command, ExpandConstant('{app}'), SW_SHOW, ewWaitUntilTerminated, returnCode) then begin
