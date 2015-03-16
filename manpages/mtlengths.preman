@@ -1,6 +1,6 @@
 .na
 .nh
-.TH mtlengths 1 4.6.34 BL3DEMC
+.TH mtlengths 1 4.6.34 IMOD
 .SH NAME
 mtlengths - compute lengths of MTs in a model
 .SH SYNOPSIS

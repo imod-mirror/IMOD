@@ -46,6 +46,7 @@ static QStringList sMessageStrings;
 static int sMessageStamp = -1;
 static bool sInitialLoad;
 
+#define SPACE_KEEPER "%?@%*#!"
 #define STDIN_INTERVAL  50
 #define MAX_LINE 256
 static char sThreadLine[MAX_LINE];
@@ -221,6 +222,7 @@ void ImodClipboard::clipHackTimeout()
 void ImodClipboard::stdinTimeout()
 {
   QString text;
+  QStringList tmpStrings;
   if (mHandling)
     return;
 
@@ -262,11 +264,12 @@ void ImodClipboard::stdinTimeout()
     mDisconnected = true;
     return;
   }
-  
+
+  splitWithEscapedSpaces(text, tmpStrings);
   if (sInitialLoad)
-    sMessageStrings += text.split(" ", QString::SkipEmptyParts);
+    sMessageStrings += tmpStrings;
   else
-    sMessageStrings = text.split(" ", QString::SkipEmptyParts);
+    sMessageStrings = tmpStrings;
 
   // Start timer to execute message just as for clipboard
   mHandling = true;
@@ -296,7 +299,7 @@ bool ImodClipboard::handleMessage()
 
   // Split the string, ignoring multiple spaces, and return false if fewer
   // than 3 elements
-  tmpStrings = text.split(" ", QString::SkipEmptyParts);
+  splitWithEscapedSpaces(text, tmpStrings);
   if (tmpStrings.count() < 3)
     return false;
 
@@ -321,6 +324,15 @@ bool ImodClipboard::handleMessage()
   return true;
 }
 
+// Split on spaces after converting escaped spaces to nonsense string
+// We used \\ for the escape to avoid having to escape backslashes themselves
+void ImodClipboard::splitWithEscapedSpaces(QString &text, QStringList &tmpStrings)
+{
+  text.replace("\\\\ ", SPACE_KEEPER);
+  tmpStrings = text.split(" ", QString::SkipEmptyParts);
+  tmpStrings.replaceInStrings(SPACE_KEEPER, " ");
+}
+
 // This function performs the action after the delay is up.  It returns
 // true if the program is still to quit
 bool ImodClipboard::executeMessage()
@@ -342,7 +354,7 @@ bool ImodClipboard::executeMessage()
 
   // Number of arguments required - for backward compatibility, going to
   // model mode does not require one but should have one
-  int requiredArgs[] = {0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 5, 5, 0, 2, 4, 4, 3, 1, 1};
+  int requiredArgs[] = {0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 5, 5, 0, 2, 4, 4, 3, 1, 1, 0};
   int numArgs = sMessageStrings.count();
 
   // Loop on the actions in the list; set arg to numArgs to break loop
@@ -409,7 +421,7 @@ bool ImodClipboard::executeMessage()
                                 sMessageAction == MESSAGE_OPEN_KEEP_BW, false);
         if(returnValue == IMOD_IO_SUCCESS) {
           wprint("%s loaded.\n", 
-                 LATIN1(QDir::convertSeparators(QString(Imod_filename))));
+                 LATIN1(QDir::toNativeSeparators(QString(Imod_filename))));
 
         }
         else if(returnValue == IMOD_IO_SAVE_ERROR) {
@@ -427,7 +439,7 @@ bool ImodClipboard::executeMessage()
           if(returnValue == IMOD_IO_SUCCESS) {
         
             wprint("New model %s created.\n", 
-                   LATIN1(QDir::convertSeparators(QString(Imod_filename))));
+                   LATIN1(QDir::toNativeSeparators(QString(Imod_filename))));
           }
           else {
             wprint("Could not create a new model %s.\n", 
@@ -618,6 +630,11 @@ bool ImodClipboard::executeMessage()
           imodvOpenSelectedWindows(LATIN1(sMessageStrings[arg + 1]));
         ImodInfoWin->openSelectedWindows(LATIN1(sMessageStrings[++arg]),
                                          ImodvClosed ? 0 : 1);
+        break;
+
+      case MESSAGE_MODEL_CHANGED:
+        imodPrintStderr("Model changed: %d\n", (imod && imod_model_changed(imod)) ? 1 : 
+                        0);
         break;
 
       case MESSAGE_PLUGIN_EXECUTE:

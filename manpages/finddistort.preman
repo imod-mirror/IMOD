@@ -1,6 +1,6 @@
 .na
 .nh
-.TH finddistort 1 4.6.34 BL3DEMC
+.TH finddistort 1 4.6.34 IMOD
 .SH NAME
 finddistort - Solves for image distortion field from overlapping images
 .SH SYNOPSIS

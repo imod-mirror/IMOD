@@ -3,10 +3,8 @@
  *
  *  Author: David Mastronarde  email: mast@colorado.edu
  *
- *  Copyright (C) 1995-2005 by Boulder Laboratory for 3-Dimensional Electron
- *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
+ *  Copyright (C) 1995-2014 by the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
- *  Log at end
  */
 
 #include <stdio.h>
@@ -18,36 +16,46 @@
 
 static int istoreFindValue(Ilist *list, int index, int type, float *value,
                            int *listInd);
+#define MAX_VALUE_COLS 6
 
 int main( int argc, char *argv[])
 {
-  int i;
-  FILE *fin, *fout;
-  struct Mod_Model *mod;
+  int i, ind, col, maxValType;
+  FILE *fout;
+  Imod *mod;
   int npatch = 0;
-  int nvalue = 0, nvalue2 = 0;
+  int numValues[MAX_VALUE_COLS], valueIDs[MAX_VALUE_COLS];
   int ix, iy, iz;
+  int colForVal1 = 1;
   float dx, dy, dz;
-  float value, maxval = -1.e30;
-  float value2, maxval2 = -1.e30;
-  int ob, co, listInd, listStart;
+  float value, maxVal[MAX_VALUE_COLS];
+  int ob, co, listInd, listStart, numCols;
   Ipoint *pts;
-  char format[10] = "%10.4f";
-  char format2[10] = "%10.4f";
+  char format[MAX_VALUE_COLS][10];
+  int colToTypeMap[MAX_VALUE_COLS];
 
   setExitPrefix("ERROR: imod2patch - ");
 
 
-  if (argc != 3){
+  if (argc < 3){
     if (argc != 1)
       printf("ERROR: imod2patch - wrong # of arguments\n");
     printf("imod2patch usage:\n");
-    printf("imod2patch imod_model patch_file\n");
+    printf("imod2patch [-v col] imod_model patch_file\n");
     exit(1);
   }
-
+  for (ind = 0; ind < MAX_VALUE_COLS; ind++) {
+    numValues[ind] = 0;
+    valueIDs[ind] = 0;
+    colToTypeMap[ind] = -1;
+    maxVal[ind] = -1.e37;
+  }
 
   i = 1;
+  if (!strcmp(argv[i], "-v")) {
+    i++;
+    colForVal1 = atoi(argv[i++]);
+  }
 
   mod = imodRead(argv[i]);
   if (!mod)
@@ -67,29 +75,67 @@ int main( int argc, char *argv[])
       listStart = listInd;
       if (mod->obj[ob].cont[co].psize >= 2) {
         npatch++;
-        if (istoreFindValue(mod->obj[ob].store, co, GEN_STORE_VALUE1, &value,
-                            &listInd)) {
-          maxval = B3DMAX(maxval, value);
-          nvalue++;
-        }
-        listInd = listStart;
-        if (istoreFindValue(mod->obj[ob].store, co, GEN_STORE_VALUE2, &value2,
-                            &listInd)) {
-          maxval2 = B3DMAX(maxval2, value2);
-          nvalue2++;
+        for (ind = 0; ind < MAX_VALUE_COLS; ind++) {
+          listInd = listStart;
+          if (istoreFindValue(mod->obj[ob].store, co, GEN_STORE_VALUE1 + 2 * ind, &value,
+                              &listInd)) {
+            maxVal[ind] = B3DMAX(maxVal[ind], value);
+            numValues[ind]++;
+          }
         }
       }
     }
   }
+  /* printf("numval %d %d %d %f %f %f\n", numValues[0], numValues[1], numValues[2], 
+     maxVal[0], maxVal[1], maxVal[2]); */
 
-  /* If values are greater than one they are probably residuals and only need
-     2 decimal places */
-  if (nvalue && maxval > 1.01)
-    strcpy(format, "%10.2f");
-  if (nvalue2 && maxval2 > 1.01)
-    strcpy(format, "%10.2f");
+  /* Get the value ID's if any and convert an entered ID to a type #.  Also set format
+     for output based on maximum value */
+  maxValType = -1;
+  numCols = 0;
+  for (ind = 0; ind < MAX_VALUE_COLS; ind++) {
+    strcpy(format[ind], "%10.4f");
+    if (numValues[ind]) {
+      numCols++;
+      maxValType = ind;
+      if (maxVal[ind] > 10.1)
+        strcpy(format[ind], "%10.2f");
+      else if (maxVal[ind] > 1.01)
+        strcpy(format[ind], "%10.3f");
+    }
+  }
+  for (ind = 0; ind < B3DMIN(maxValType + 1, mod->obj[0].extra[IOBJ_EXSIZE - 1]); ind++)
+    valueIDs[ind] = mod->obj[0].extra[IOBJ_EXSIZE - 2 - ind];
+  /*printf("# vla ID %d %d %d %d\n", maxValType, valueIDs[0],valueIDs[1],valueIDs[2]);*/
 
-  fprintf(fout, "%d   edited positions\n", npatch);
+  /* Error checks on the column for value 1 */
+  if (colForVal1 < 1 || colForVal1 > numCols) {
+      if (numCols)
+        exitError("The column for general value type must be between 1 and %d", numCols);
+      exitError("There are no general values stored in the model");
+  }
+  colForVal1--;
+  
+  /* Set up map from column to value type index */
+  if (numValues[0])
+    colToTypeMap[colForVal1] = 0;
+  col = 0;
+  for (ind = 1; ind <= maxValType; ind++) {
+    if (numValues[ind]) {
+      if (!colToTypeMap[col])
+        col++;
+      colToTypeMap[col++] = ind;
+    }
+  }
+  /*printf("%d %d %d %d\n", numCols, colToTypeMap[0], colToTypeMap[1], colToTypeMap[2]);*/
+
+  /* Output the header line */
+  fprintf(fout, "%d   edited positions", npatch);
+  if (mod->obj[0].extra[IOBJ_EXSIZE - 1] > 0)
+    for (col = 0; col < numCols; col++)
+      fprintf(fout, "  %d", valueIDs[colToTypeMap[col]]);
+  fprintf(fout, "\n");
+
   for (ob = 0; ob < mod->objsize; ob++) {
     listInd = 0;
     for (co = 0; co < mod->obj[ob].contsize; co++) {
@@ -108,20 +154,15 @@ int main( int argc, char *argv[])
         else
           fprintf(fout, "%6d %5d %5d %8.2f %8.2f %8.2f", 
                   ix, iy, iz, dx, dy, dz);
-        if (nvalue) {
-          value = 0.;
-          istoreFindValue(mod->obj[ob].store, co, GEN_STORE_VALUE1, &value,
-                          &listInd);
-          fprintf(fout, format, value);
-          
-        }
-        if (nvalue2) {
-          listInd = listStart;
-          value2 = 0.;
-          istoreFindValue(mod->obj[ob].store, co, GEN_STORE_VALUE2, &value2,
-                          &listInd);
-          fprintf(fout, format2, value2);
-          
+        for (col = 0; col < numCols; col++) {
+          ind = colToTypeMap[col];
+          if (numValues[ind]) {
+            listInd = listStart;
+            value = 0.;
+            istoreFindValue(mod->obj[ob].store, co, GEN_STORE_VALUE1 + 2 * ind, &value,
+                            &listInd);
+            fprintf(fout, format[ind], value);
+          }
         }
         fprintf(fout, "\n");
 
@@ -152,31 +193,3 @@ static int istoreFindValue(Ilist *list, int index, int type, float *value,
   }
   return 0;
 }
-
-/*
-$Log$
-Revision 3.8  2006/09/12 15:02:55  mast
-add include
-
-Revision 3.7  2006/08/31 20:58:26  mast
-Extract values from model and put back in patch file
-
-Revision 3.6  2005/02/11 00:41:40  mast
-Removed unneeded declaration
-
-Revision 3.5  2004/11/05 19:05:29  mast
-Include local files with quotes, not brackets
-
-Revision 3.4  2004/09/21 22:30:28  mast
-Fixed stray ~ in error string
-
-Revision 3.3  2004/07/07 19:25:30  mast
-Changed exit(-1) to exit(3) for Cygwin
-
-Revision 3.2  2003/10/24 03:05:23  mast
-open as binary, strip program name and/or use routine for backup file
-
-Revision 3.1  2002/12/23 21:34:22  mast
-fixed exit status
-
-*/

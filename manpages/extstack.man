@@ -1,6 +1,6 @@
 .na
 .nh
-.TH extstack 1 4.6.34 BL3DEMC
+.TH extstack 1 4.6.34 IMOD
 .SH NAME
 extstack - extract images from objects with rotational symmetry
 .SH SYNOPSIS

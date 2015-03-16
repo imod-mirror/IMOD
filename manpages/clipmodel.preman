@@ -1,6 +1,6 @@
 .na
 .nh
-.TH clipmodel 1 4.6.34 BL3DEMC
+.TH clipmodel 1 4.6.34 IMOD
 .SH NAME
 clipmodel - to clip a MT model by location or object number
 .SH SYNOPSIS

@@ -83,7 +83,7 @@ c
 c       
       integer*4 intGrid, mode, iboxsize, indent, izRef, izShift, nxfRead
       integer*4 izLower, izUpper, i, ixy, lenYpad, lenEndv, ierr, iPair
-      integer*4 intField, intData, nPairList, numPairs, j, iAngle
+      integer*4 intField, intData, nPairList, numPairs, j, iAngle, ifQuiet
       real*4 dmin, dmax, dmean, dum
       logical doMultr, done, useOldXf, saveXfs, makePatch
       integer*4 numVars, numRows, numTotField, iter, numIter, numTied
@@ -213,7 +213,7 @@ c
       ierr = PipGetLogical('SolveWithMultr', doMultr)
       ierr = PipGetInteger('ImageBinning', iBinning)
       ierr = PipGetInteger('BoxSize', iBoxsize)
-      ierr = PipGetString('RedirectOutput', quietStr)
+      ifQuiet = 1 - PipGetString('RedirectOutput', quietStr)
       ierr = PipGetString('CoverageImage', covFile)
       call PipDone()
 
@@ -290,8 +290,11 @@ c             check for and get result
 c             
             call system(comString)
             inquire(file=tempfile,exist=exist)
-            if (.not.exist) call exitError(
+            if (.not.exist .and. ifQuiet .ne. 0) call exitError(
      &          'TILTXCORR FAILED TO MAKE TRANSFORM FILE')
+            if (.not.exist .and. ifQuiet .eq. 0) call exitError(
+     &          'TILTXCORR FAILED TO MAKE TRANSFORM FILE - IF RUNNING ON WINDOWS,'//
+     &          ' YOU NEED TO ENTER THE -redirect OPTION')
             
             open(3, file=tempfile, status='OLD', form='FORMATTED')
             
@@ -615,7 +618,7 @@ c
           call iclden(sumEntries, nPtField(1), nPtField(2), 1, nPtField(1), 1,
      &        nPtField(2), dmin, dmax, dmean)
           call iwrsec(2, sumEntries)
-          call date(dat)
+          call b3ddate(dat)
           call time(tim)
           write(titlech,3000) dat,tim
 3000      format ( 'FINDDISTORT: Sum of coefficient entries',t57,a9,2x, a8)

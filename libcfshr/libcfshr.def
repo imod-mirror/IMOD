@@ -4,6 +4,7 @@ LIBRARY      "libcfshr"
 
 EXPORTS
 	CUBINTERP
+	AdocTransferSection
 	PipLinkedIndex
 	RSMADN
 	amoebaInit
@@ -25,6 +26,8 @@ EXPORTS
 	setSurfSortParam
 	sliceGetVal
 	AdocGetSectionName
+	PipReadProgDefaults
+	AdocSetIntegerArray
 	rsFastMedian
 	GAUSSJ
 	sliceGetValMagnitude
@@ -44,10 +47,12 @@ EXPORTS
 	PipGetError
 	scanHistogram
 	PARABOLICFITPOSITION
+	ADOCLOOKUPBYNAMEVALUE
 	setOrClearFlags
 	ilistSwap
 	PipDone
 	PipAddOption
+	OVERRIDEOUTPUTTYPE
 	eigenSort
 	numOMPthreads
 	B3DSHIFTBYTES
@@ -61,19 +66,26 @@ EXPORTS
 	ilistPop
 	AdocGetTwoFloats
 	arrayMinMaxMeanSd
+	makeAllBigTiff
 	b3dFwrite
+	ADOCSETFLOATARRAY
+	PIPREADPROGDEFAULTS
 	PIPGETBOOLEAN
 	sliceEdgeMean
+	AdocOrderWriteByValue
 	PipStartsWith
 	FINDHISTOGRAMDIP
 	ADOCSETTWOFLOATS
+	MONTXCORREDGE
 	ilistInsert
 	ADOCSETTWOINTEGERS
+	multiBinSetup
 	reduceByBinning
 	polynomialFit
 	ICLAVGSD
 	ilistRemove
 	PIPGETINTEGER
+	montBigSearch
 	ADOCGETNUMBEROFSECTIONS
 	ilistNext
 	lsFit2Pred
@@ -92,6 +104,7 @@ EXPORTS
 	ADOCREAD
 	AdocWrite
 	AdocSetKeyValue
+	AdocGetImageMetaInfo
 	CCCoefficientTwoPads
 	PipSetUsageString
 	mrcHugeSeek
@@ -100,6 +113,7 @@ EXPORTS
 	IMODBACKUPFILE
 	POLYNOMIALFIT
 	PipNumberOfArgs
+	SETNEXTOUTPUTSIZE
 	zoomFiltValue
 	fValue
 	ilistTruncate
@@ -117,15 +131,18 @@ EXPORTS
 	LSFIT
 	LSFIT2
 	wrapFFTslice
+	AdocGetValTypeAndSize
 	dsytrd3
 	LSFITS
 	SPARSEPROD
+	setNextOutputSize
 	ADOCGETFLOAT
 	LSQR
 	selectzoomfilterXY
 	EXTRAISNBYTESANDFLAGS
 	AdocInsertSection
 	parWrtFindRegion
+	AdocSetFloatArray
 	SCALEDGAUSSIANKERNEL
 	AMOEBAINIT
 	CPUTIME
@@ -139,6 +156,8 @@ EXPORTS
 	sliceCreate
 	PARWRTFINDREGION
 	MEANZERO
+	fourierShiftImage
+	MULTIBINSTATS
 	rsTrimmedMeanOfSorted
 	WEIGHTEDPOLYFIT
 	parWrtProperties
@@ -147,10 +166,13 @@ EXPORTS
 	sliceSmoothOutPad
 	PIPGETERROR
 	PIPLINKEDINDEX
+	montXCFindBinning
 	AdocSetInteger
 	RSSORTINDEXEDFLOATS
 	b3dGetError
+	AdocGetCollectionName
 	ADOCGETTWOFLOATS
+	MONTXCFINDBINNING
 	AdocGetString
 	mrc_big_seek
 	AdocLookupSection
@@ -161,6 +183,7 @@ EXPORTS
 	sumsToAvgSDdbl
 	xfMult
 	PIPSETMANPAGEOUTPUT
+	IREPAK
 	RSMADMEDIANOUTLIERS
 	normalizeColumns
 	makeLinePointers
@@ -178,6 +201,7 @@ EXPORTS
 	f2cString
 	parWrtSetCurrent
 	SAMPLEMEANSD
+	montXCIndsAndCTF
 	AdocGetNumberOfKeys
 	amatToRotmagstr
 	rssortints
@@ -194,6 +218,7 @@ EXPORTS
 	adjustPieceOverlap
 	AdocGetThreeIntegers
 	conjugateProduct
+	MONTXCBASICSIZES
 	arrayMinMaxMean
 	XCorrSetCTFnoScl
 	surfaceSort
@@ -202,7 +227,6 @@ EXPORTS
 	ADOCSETTHREEINTEGERS
 	PipGetTwoFloats
 	AdocSetThreeFloats
-	b3doutputfiletype
 	ilistSize
 	parWrtInitialize
 	ADOCGETTHREEFLOATS
@@ -210,6 +234,7 @@ EXPORTS
 	PARWRTSETCURRENTFW
 	sliceSplitFill
 	PipReadOrParseOptions
+	dataSizeForMode
 	lsFitPred
 	DFVALUE
 	PIPPRINTENTRIES
@@ -217,6 +242,7 @@ EXPORTS
 	TAPEROUTPAD
 	b3dShiftBytes
 	PIPGETTHREEINTEGERS
+	setOutputTypeFromString
 	pidToStderr
 	ADOCGETINTEGER
 	PIPSETERROR
@@ -224,14 +250,17 @@ EXPORTS
 	SELECTZOOMFILTER
 	scaledGaussianKernel
 	AdocSetFloat
+	ADOCTRANSFERSECTION
 	sliceTaperInPad
 	PipPrintHelp
+	ADOCINSERTSECTION
 	READBYTESSIGNED
 	rsMADN
 	AMAT_TO_ROTMAGSTR
 	ADOCSETINTEGER
 	PIDTOSTDERR
 	ilistNew
+	ADOCGETSTANDARDNAMES
 	RSFASTMEDIANINPLACE
 	b3dHeaderItemBytes
 	IMODGETPID
@@ -244,15 +273,20 @@ EXPORTS
 	rsFastMedianInPlace
 	ZOOMFILTINTERP
 	XCORRPEAKFINDWIDTH
+	AdocGetNumCollections
 	sliceTaperOutPad
+	FOURIERSHIFTIMAGE
 	xfInvert
+	montXCorrEdge
 	addValueToRow
+	montSdCalc
 	lsFit2
 	PIPNUMBEROFENTRIES
 	PipGetInteger
 	PIPGETTWOFLOATS
 	b3dOMPthreadNum
 	b3dIMax
+	ADOCGETIMAGEMETAINFO
 	zoomFiltInterp
 	FINDPIECESHIFTS
 	b3dIMin
@@ -263,20 +297,25 @@ EXPORTS
 	ilistShift
 	sliceModeIfReal
 	AVGSD
+	NICEFRAME
+	binIntoSlice
 	ADDVALUETOROW
 	RSSORTFLOATS
 	AdocSetTwoIntegers
+	EXTRACTWITHBINNING
 	cblas_dcopy
 	gaussjDet
 	multRegress
 	errFunc
 	selectZoomFilterXY
 	PIPREADSTDINIFSET
+	MONTBIGSEARCH
 	PARWRTPROPERTIES
 	imodProgName
 	b3dSetStoreError
 	RSTRIMMEDMEAN
 	parselist
+	SETOUTPUTTYPEFROMSTRING
 	PARWRTINITIALIZEFW
 	gaussj
 	INSIDECONTOUR
@@ -284,6 +323,8 @@ EXPORTS
 	RSFASTMEDIAN
 	XFMULT
 	PIPGETTHREEFLOATS
+	AdocGetKeyByIndex
+	ADOCLOOKUPSECTION
 	ADOCGETSTRING
 	REDUCE_BY_BINNING
 	sliceInit
@@ -294,7 +335,9 @@ EXPORTS
 	LSFIT2PRED
 	ADOCSETKEYVALUE
 	amoeba
+	niceFrame
 	SETCTFWSR
+	B3DOUTPUTFILETYPE
 	ADOCGETSECTIONNAME
 	fitSphereWgt
 	CONJUGATEPRODUCT
@@ -310,13 +353,16 @@ EXPORTS
 	PipParseInput
 	NUMBERINLIST
 	AdocGetThreeFloats
+	multiBinStats
 	checkPieceList
+	BININTOSLICE
 	PARSELISTFW
 	PIPDONE
 	AMOEBA
 	ilistAppend
 	rsTrimmedMean
 	PIPADDOPTION
+	ADOCCLEAR
 	ADOCSETCURRENT
 	PipMemoryError
 	AdocDeleteSection
@@ -325,6 +371,8 @@ EXPORTS
 	MINIMIZE1D
 	xfUnit
 	RSMEDIAN
+	overrideAllBigTiff
+	OVERRIDEALLBIGTIFF
 	ADOCGETTHREEINTEGERS
 	PIPGETNONOPTIONARG
 	CONVEXBOUND
@@ -347,11 +395,13 @@ EXPORTS
 	AdocNew
 	cmapReadConvert
 	addRowToMatrix
+	MULTIBINSETUP
 	AdocSetCurrent
 	PIPNEXTARG
 	ADOCADDSECTION
 	DTVALUE
 	ICLDEN
+	ADOCFINDINSERTINDEX
 	fgetline
 	exitError
 	betaFunc
@@ -360,6 +410,7 @@ EXPORTS
 	ilistPush
 	lsFit3
 	cblas_dnrm2
+	montXCBasicSizes
 	imodGetpid
 	ADOCGETTWOINTEGERS
 	sliceGetYSize
@@ -370,6 +421,7 @@ EXPORTS
 	SETSURFSORTPARAM
 	PipSetError
 	cmapStandardRamp
+	AdocLookupByNameValue
 	SETCTFNOSCL
 	sliceMode
 	XFINVERT
@@ -383,13 +435,16 @@ EXPORTS
 	RSTRIMMEDMEANOFSORTED
 	enableRadiusFitting
 	B3DMILLISLEEP
+	MONTXCINDSANDCTF
 	PIPEXITONERRORFW
+	MONTSDCALC
 	setPeakFindLimits
 	sliceFree
 	lsFit
 	matrixToAngles
 	PIPPRINTHELP
 	TAPERINPADEX
+	extractWithBinning
 	anglesToMatrix
 	TAPERINPAD
 	rsSortFloats
@@ -402,7 +457,6 @@ EXPORTS
 	cblas_dscal
 	PipEnableEntryOutput
 	WALLTIME
-	overrideoutputtype
 	minimize1D
 	PIPINITIALIZE
 	ROBUSTREGRESS
@@ -429,12 +483,15 @@ EXPORTS
 	ADJUSTPIECEOVERLAP
 	cblas_daxpy
 	selectZoomFilter
+	rsPercentileOfSorted
 	dsyevc3
 	PIPGETSTRING
 	GAUSSJDET
 	PipGetFloatArray
 	XCorrPeakFindWidth
 	statMatrices
+	ADOCORDERWRITEBYVALUE
+	ADOCSETINTEGERARRAY
 	WRAPFFTSLICE
 	slicePutVal
 	ADOCOPENIMAGEMETADATA

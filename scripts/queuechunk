@@ -14,6 +14,7 @@ queuename=
 qtype=
 action=
 maui=0
+resources=
 
 # Current directory, with spaces escaped
 curdir=`pwd | sed '/ /s//\\ /g'`
@@ -97,6 +98,7 @@ The com file root may be omitted if the action is L
     -t type   Type of batch manager (pbs or sge, required)
     -a type   Action: R run, S run synchronous, P pause, K kill, L load
     -w dir    Working directory
+    -l list   Resources to use instead of 'nodes=1' in the -l option to qsub
 EOF
     exit 1
 fi
@@ -119,6 +121,8 @@ while [ $# -gt 1 ]; do
                 qtype=pbs
                 maui=1
             fi
+            shift;;
+        -l) resources="$2"
             shift;;
         *)  echo "ERROR: $pn - unknown option $1"
             exit 1
@@ -184,9 +188,16 @@ EOF
     com="qsub -e /dev/null -o /dev/null -r n -V"
     if [ -n "$queuename" ] ; then com="$com -q $queuename" ; fi
 
-    # This was needed to get one job per processor on the PBS we tested
+    # nodes=1 was needed to get one job per processor on the PBS we tested, but 
+    # substitute resources if entered
     #
-    if [ $qtype == "pbs" ] ; then com="$com -l nodes=1" ; fi
+    if [ $qtype == "pbs" ] ; then 
+        if [ -n "$resources" ] ; then
+            com="$com -l $resources"
+        else 
+            com="$com -l nodes=1" 
+        fi
+    fi
 
     if [[ $qtype == "sge" && $action == "S" ]] ; then 
         com="$com -sync y $jobname" 

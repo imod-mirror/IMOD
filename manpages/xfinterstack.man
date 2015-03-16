@@ -1,6 +1,6 @@
 .na
 .nh
-.TH xfinterstack 1 4.6.34 BL3DEMC
+.TH xfinterstack 1 4.6.34 IMOD
 .SH NAME
 xfinterstack - transform a model to match model built on other stack
 .SH SYNOPSIS

@@ -1,6 +1,6 @@
 .na
 .nh
-.TH tapervoledge 1 4.6.34 BL3DEMC
+.TH tapervoledge 1 4.6.34 IMOD
 .SH NAME
 tapervoledge - to excise a subset of a volume, taper the edges, and pad
 .SH SYNOPSIS

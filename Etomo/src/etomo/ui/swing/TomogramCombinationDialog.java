@@ -37,15 +37,11 @@ import etomo.type.TomogramState;
 /**
  * <p>Description: </p>
  *
- * <p>Copyright: Copyright (c) 2002 - 2006</p>
+ * <p>Copyright: Copyright 2002 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
- * University of Colorado</p>
- *
- * @author $Author$
- *
- * @version $Revision$
+ * @version $Id$
  *
  * <p> $Log$
  * <p> Revision 1.4  2011/02/10 04:33:00  sueh
@@ -406,8 +402,6 @@ import etomo.type.TomogramState;
  */
 public final class TomogramCombinationDialog extends ProcessDialog implements
     ContextMenu, AbstractParallelDialog, ProcessInterface {
-  public static final String rcsid = "$Id$";
-
   private static final int SETUP_INDEX = 0;
   private static final int INITIAL_INDEX = 1;
   private static final int FINAL_INDEX = 2;
@@ -445,8 +439,7 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
 
   public TomogramCombinationDialog(ApplicationManager appMgr) {
     super(appMgr, AxisID.FIRST, DialogType.TOMOGRAM_COMBINATION);
-    ConstEtomoNumber maxCPUs = CpuAdoc.INSTANCE.getMaxVolcombine(appMgr, axisID,
-        applicationManager.getPropertyUserDir());
+    ConstEtomoNumber maxCPUs = CpuAdoc.INSTANCE.getMaxVolcombine();
     mediator = appMgr.getProcessingMethodMediator(axisID);
     if (maxCPUs != null && !maxCPUs.isNull()) {
       parallelProcessCheckBoxText = ParallelPanel.FIELD_LABEL
@@ -680,6 +673,10 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
       return pnlFinal.getProcessingMethod();
     }
     return ProcessingMethod.LOCAL_CPU;
+  }
+
+  public ProcessingMethod getSecondaryProcessingMethod() {
+    return null;
   }
 
   /**
