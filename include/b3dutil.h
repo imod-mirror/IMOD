@@ -83,6 +83,8 @@ extern "C" {
   int extraIsNbytesAndFlags(int nint, int nreal);
   void setOrClearFlags(b3dUInt32 *flags, b3dUInt32 mask, int state);
   int numberInList(int num, int *list, int nlist, int noListValue);
+  void balancedGroupLimits(int numTotal, int numGroups, int groupInd, int *start, 
+                           int *end);
   unsigned char **makeLinePointers(void *array, int xsize, int ysize, int dsize);
 
   int b3dIMin(int narg, ...);
