@@ -6240,7 +6240,7 @@ public final class ApplicationManager extends BaseManager implements
       // boundaries if
       // they have not already been set
       CombineParams combineParams = metaData.getCombineParams();
-      if (!combineParams.isPatchBoundarySet()) {
+      if (!combineParams.isPatchBoundarySet() && !metaData.isBatchruntomoSet()) {
         // The first time combine is opened for this dataset, set tomogram size
         TomogramTool.saveTomogramSize(this, AxisID.FIRST, AxisID.ONLY);
         TomogramTool.saveTomogramSize(this, AxisID.SECOND, AxisID.ONLY);
