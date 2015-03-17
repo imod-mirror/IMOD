@@ -128,6 +128,22 @@ public final class CombinePatchSize implements EnumeratedType {
     return CUSTOM;
   }
 
+  public static CombinePatchSize getInstance(final int[] xyz) {
+    if (xyz == null) {
+      return null;
+    }
+    // See if xyz match one of the fixed instances.
+    loadXYZ();
+    if (PATCH_SIZE_ARRAY != null) {
+      for (int i = 0; i < PATCH_SIZE_ARRAY.length; i++) {
+        if (PATCH_SIZE_ARRAY[i].equals(xyz)) {
+          return PATCH_SIZE_ARRAY[i];
+        }
+      }
+    }
+    return CUSTOM;
+  }
+
   /**
    * Does not return the CUSTOM instance.  Returns the instance described by input.
    * Otherwise returns null.
@@ -173,6 +189,35 @@ public final class CombinePatchSize implements EnumeratedType {
         try {
           if ((xyz[i] != EMPTY_ELEMENT || !xyzArray[i].matches("\\s*"))
             && xyz[i] != Integer.valueOf(xyzArray[i])) {
+            return false;
+          }
+        }
+        catch (NumberFormatException e) {
+          e.printStackTrace();
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
+  /**
+   * Returns true if xyzArray equals xyz.  Empty elements are equal.
+   * @param xyzArray
+   * @return
+   */
+  public boolean equals(final int[] xyzArray) {
+    loadXYZ();
+    for (int i = 0; i < xyz.length; i++) {
+      // Empty elements are equal
+      if ((xyzArray == null || xyzArray.length <= i)) {
+        if (xyz[i] == EMPTY_ELEMENT) {
+          return false;
+        }
+      }
+      else {
+        try {
+          if (xyz[i] != Integer.valueOf(xyzArray[i])) {
             return false;
           }
         }
@@ -254,7 +299,7 @@ public final class CombinePatchSize implements EnumeratedType {
   }
 
   public boolean isDefault() {
-    return false;
+    return this == MEDIUM;
   }
 
   public ConstEtomoNumber getValue() {
