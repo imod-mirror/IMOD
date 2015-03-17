@@ -58,13 +58,6 @@ public class ViewType implements EnumeratedType {
     return index;
   }
 
-  public ConstEtomoNumber getValue(final int i) {
-    if (i == 0) {
-      return index;
-    }
-    return null;
-  }
-
   public boolean isDefault() {
     return this == DEFAULT;
   }
