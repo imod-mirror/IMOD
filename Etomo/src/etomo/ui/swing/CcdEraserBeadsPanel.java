@@ -201,10 +201,10 @@ final class CcdEraserBeadsPanel implements Run3dmodButtonContainer, CcdEraserDis
    */
   void getParameters(final MetaData metaData) throws FortranInputSyntaxException {
     metaData.setFinalStackFiducialDiameter(axisID, ltfFiducialDiameter.getText());
-    metaData.setFinalStackExpandCircleIterations(axisID, cbspExpandCircleIterations
-      .getValue());
-    metaData.setUseFinalStackExpandCircleIterations(axisID, cbspExpandCircleIterations
-      .isSelected());
+    metaData.setFinalStackExpandCircleIterations(axisID,
+      cbspExpandCircleIterations.getValue());
+    metaData.setUseFinalStackExpandCircleIterations(axisID,
+      cbspExpandCircleIterations.isSelected());
     metaData.setFinalStackPolynomialOrder(axisID, getPolynomialOrder());
   }
 
@@ -365,13 +365,6 @@ final class CcdEraserBeadsPanel implements Run3dmodButtonContainer, CcdEraserDis
 
     public ConstEtomoNumber getValue() {
       return value;
-    }
-
-    public ConstEtomoNumber getValue(final int index) {
-      if (index == 0) {
-        return value;
-      }
-      return null;
     }
 
     public String getLabel() {
