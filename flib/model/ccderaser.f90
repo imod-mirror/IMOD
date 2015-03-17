@@ -1878,15 +1878,15 @@ subroutine taperInsideCont(array, nx, ny, xbound, ybound, numInObj, xmin, xmax, 
       yline = ybound(ip) + segmentY * 0.5
       ix = nint(xLine + vectorY + 0.5)
       iy = nint(yline - vectorX + 0.5)
-      if (.not.inside(xbound, ybound, numInObj, ix - 0.5, iy - 0.5)) then
+      if (inside(xbound, ybound, numInObj, ix - 0.5, iy - 0.5)) then
         !
-        ! If that wasn't inside, reverse direction and test that point and give up
-        ! on segment if neither one is inside
+        ! If that wasn't outside, reverse direction and test that point and give up
+        ! on segment if neither one is outside
         vectorX = -vectorX
         vectorY = -vectorY
         ix = nint(xLine + vectorY + 0.5)
         iy = nint(yline - vectorX + 0.5)
-        if (.not.inside(xbound, ybound, numInObj, ix - 0.5, iy - 0.5)) cycle
+        if (inside(xbound, ybound, numInObj, ix - 0.5, iy - 0.5)) cycle
       endif
       !
       ! Then loop along line and collect some points
