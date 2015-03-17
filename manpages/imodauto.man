@@ -87,7 +87,7 @@ threshold.
 .TP
 .B -E \fIvalue\fR
 Specifies an exact value to generate contours around, regardless of whether
-surrounding pixels are high or lower than this (see discription above).
+surrounding pixels are high or lower than this (see description above).
 The
 .B -l, -h,
 and
