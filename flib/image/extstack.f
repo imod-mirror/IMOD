@@ -239,7 +239,7 @@ c       --- Write out the header info ---
       call ialcel(2,cell)
       call ialsiz(2,nxyzb,nxyzstb)
 
-      call date(dat)
+      call b3ddate(dat)
       call time(tim)
 c       
 c       7/7/00 CER: remove the encodes
