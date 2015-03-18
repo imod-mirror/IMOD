@@ -11,6 +11,7 @@ import javax.swing.JPanel;
 
 import etomo.comscript.CombineParams;
 import etomo.comscript.ConstCombineParams;
+import etomo.comscript.ConstPatchcrawl3DParam;
 import etomo.type.CombinePatchSize;
 import etomo.type.EnumeratedType;
 import etomo.ui.FieldType;
@@ -26,27 +27,32 @@ import etomo.ui.FieldValidationFailedException;
  * @version $Id$
  */
 final class PatchSizePanel implements ActionListener {
+  public static final CombinePatchSize DEFAULT_FINAL_SIZE = CombinePatchSize.EXTRA_LARGE;
+
   private final JPanel pnlRoot = new JPanel();
   private final ButtonGroup bgType = new ButtonGroup();
   private final RadioButton rbTypeMedium = new RadioButton("Medium patches",
     CombinePatchSize.MEDIUM, bgType);
   private final RadioButton rbTypeLarge = new RadioButton("Large patches",
     CombinePatchSize.LARGE, bgType);
-  private final RadioButton rbTypeXyz = new RadioButton("Custom", CombinePatchSize.XYZ,
-    bgType);
-  private final LabeledTextField ltfX = new LabeledTextField(FieldType.INTEGER, "X:");
-  private final LabeledTextField ltfY = new LabeledTextField(FieldType.INTEGER, "Y:");
-  private final LabeledTextField ltfZ = new LabeledTextField(FieldType.INTEGER, "Z:");
+  private final RadioButton rbTypeCustom = new RadioButton("Custom",
+    CombinePatchSize.CUSTOM, bgType);
+  private final String[] xyzLabels = new String[] { "X: ", "Y: ", "Z: " };
+  private final LabeledTextField[] ltfXYZ = new LabeledTextField[xyzLabels.length];
 
   private final RadioButton rbTypeSmall;
   private final RadioButton rbTypeExtraLarge;
   private final String title;
-  private final boolean maxSize;
+  private final boolean finalSize;
 
-  private PatchSizePanel(final boolean maxSize) {
-    this.maxSize = maxSize;
+  private PatchSizePanel(final boolean finalSize) {
+    this.finalSize = finalSize;
     String baseTitle = "Patch Size";
-    if (!maxSize) {
+    for (int i = 0; i < ltfXYZ.length; i++) {
+      ltfXYZ[i] = new LabeledTextField(FieldType.INTEGER, xyzLabels[i]);
+      ltfXYZ[i].setRequired(true);
+    }
+    if (!finalSize) {
       title = baseTitle;
       rbTypeSmall = new RadioButton("Small patches", CombinePatchSize.SMALL, bgType);
       rbTypeExtraLarge = null;
@@ -59,9 +65,9 @@ final class PatchSizePanel implements ActionListener {
     }
   }
 
-  static PatchSizePanel getInstance(final boolean maxSize) {
-    PatchSizePanel instance = new PatchSizePanel(maxSize);
-    instance.createPanel(maxSize);
+  static PatchSizePanel getInstance(final boolean finalSize) {
+    PatchSizePanel instance = new PatchSizePanel(finalSize);
+    instance.createPanel(finalSize);
     instance.addTooltips();
     instance.addListeners();
     return instance;
@@ -77,7 +83,7 @@ final class PatchSizePanel implements ActionListener {
     if (rbTypeExtraLarge != null) {
       rbTypeExtraLarge.setAlignmentX(Component.LEFT_ALIGNMENT);
     }
-    rbTypeXyz.setAlignmentX(Component.LEFT_ALIGNMENT);
+    rbTypeCustom.setAlignmentX(Component.LEFT_ALIGNMENT);
     // panels
     JPanel pnlType = new JPanel();
     JPanel pnlXYZ = new JPanel();
@@ -98,15 +104,16 @@ final class PatchSizePanel implements ActionListener {
     if (rbTypeExtraLarge != null) {
       pnlType.add(rbTypeExtraLarge.getComponent());
     }
-    pnlType.add(rbTypeXyz.getComponent());
+    pnlType.add(rbTypeCustom.getComponent());
     // XYZ
     pnlXYZ.setLayout(new BoxLayout(pnlXYZ, BoxLayout.Y_AXIS));
     pnlXYZ.setBorder(new EtchedBorder("In Pixels").getBorder());
-    pnlXYZ.add(ltfX.getComponent());
-    pnlXYZ.add(Box.createVerticalGlue());
-    pnlXYZ.add(ltfY.getComponent());
-    pnlXYZ.add(Box.createVerticalGlue());
-    pnlXYZ.add(ltfZ.getComponent());
+    for (int i = 0; i < ltfXYZ.length; i++) {
+      pnlXYZ.add(ltfXYZ[i].getComponent());
+      if (i < ltfXYZ.length - 1) {
+        pnlXYZ.add(Box.createVerticalGlue());
+      }
+    }
     // update
     actionPerformed(null);
   }
@@ -124,29 +131,30 @@ final class PatchSizePanel implements ActionListener {
     if (rbTypeExtraLarge != null) {
       rbTypeExtraLarge.addActionListener(this);
     }
-    rbTypeXyz.addActionListener(this);
+    rbTypeCustom.addActionListener(this);
   }
 
   public void actionPerformed(final ActionEvent event) {
-    EnumeratedType combinedPatchSize =
+    EnumeratedType enumeratedType =
       ((RadioButton.RadioButtonModel) bgType.getSelection()).getEnumeratedType();
-    if (combinedPatchSize != CombinePatchSize.XYZ) {
-      ltfX.setText(combinedPatchSize.getValue(CombinePatchSize.X_INDEX));
-      ltfY.setText(combinedPatchSize.getValue(CombinePatchSize.Y_INDEX));
-      ltfZ.setText(combinedPatchSize.getValue(CombinePatchSize.Z_INDEX));
+    if (enumeratedType != CombinePatchSize.CUSTOM
+      && enumeratedType instanceof CombinePatchSize) {
+      CombinePatchSize combinedPatchSize = (CombinePatchSize) enumeratedType;
+      int len = Math.min(ltfXYZ.length, combinedPatchSize.getXYZLen());
+      for (int i = 0; i < len; i++) {
+        ltfXYZ[i].setText(combinedPatchSize.getXYZ(i));
+      }
     }
     updateDisplay();
   }
 
   private void updateDisplay() {
-    boolean enabled = rbTypeXyz.isEnabled();
-    ltfX.setEnabled(enabled);
-    ltfY.setEnabled(enabled);
-    ltfZ.setEnabled(enabled);
-    boolean selected = rbTypeXyz.isSelected();
-    ltfX.setEditable(selected);
-    ltfY.setEditable(selected);
-    ltfZ.setEditable(selected);
+    boolean enabled = rbTypeCustom.isEnabled();
+    boolean selected = rbTypeCustom.isSelected();
+    for (int i = 0; i < ltfXYZ.length; i++) {
+      ltfXYZ[i].setEnabled(enabled);
+      ltfXYZ[i].setEditable(selected);
+    }
   }
 
   void setEnabled(final boolean enabled) {
@@ -158,7 +166,7 @@ final class PatchSizePanel implements ActionListener {
     if (rbTypeExtraLarge != null) {
       rbTypeExtraLarge.setEnabled(enabled);
     }
-    rbTypeXyz.setEnabled(enabled);
+    rbTypeCustom.setEnabled(enabled);
     updateDisplay();
   }
 
@@ -167,13 +175,47 @@ final class PatchSizePanel implements ActionListener {
   }
 
   public void setParameters(final ConstCombineParams combineParams) {
-    CombinePatchSize combinePatchSize;
-    if (!maxSize) {
-      combinePatchSize = combineParams.getPatchSize();
+    CombinePatchSize combinePatchSize = null;
+    combinePatchSize = combineParams.getPatchSize(finalSize);
+    if (combinePatchSize == null && finalSize) {
+      combinePatchSize = DEFAULT_FINAL_SIZE;
+    }
+    if (combinePatchSize == CombinePatchSize.CUSTOM) {
+      rbTypeCustom.setSelected(true);
+      String[] xyz = combineParams.getPatchSizeXYZArray(finalSize);
+      if (xyz != null) {
+        int len = Math.min(ltfXYZ.length, xyz.length);
+        for (int i = 0; i < len; i++) {
+          ltfXYZ[i].setText(xyz[i]);
+        }
+      }
     }
     else {
-      combinePatchSize = combineParams.getAutoPatchFinalSize();
+      setFixedType(combinePatchSize);
     }
+    actionPerformed(null);
+  }
+
+  public void setParameters(final ConstPatchcrawl3DParam patchrawlParam) {
+    //Assume flipped
+    int[] xyz =
+      new int[] { patchrawlParam.getXPatchSize(), patchrawlParam.getZPatchSize(),
+        patchrawlParam.getYPatchSize() };
+    CombinePatchSize combinePatchSize = CombinePatchSize.getInstance(xyz);
+    if (combinePatchSize == CombinePatchSize.CUSTOM) {
+      rbTypeCustom.setSelected(true);
+      int len = Math.min(ltfXYZ.length, xyz.length);
+      for (int i = 0; i < len; i++) {
+        ltfXYZ[i].setText(xyz[i]);
+      }
+    }
+    else {
+      setFixedType(combinePatchSize);
+    }
+    actionPerformed(null);
+  }
+
+  void setFixedType(final CombinePatchSize combinePatchSize) {
     if (combinePatchSize == CombinePatchSize.SMALL) {
       if (rbTypeSmall != null) {
         rbTypeSmall.setSelected(true);
@@ -196,7 +238,6 @@ final class PatchSizePanel implements ActionListener {
         selectTypeXyz(CombinePatchSize.EXTRA_LARGE);
       }
     }
-    actionPerformed(null);
   }
 
   public boolean getParameters(final CombineParams combineParams,
@@ -204,51 +245,44 @@ final class PatchSizePanel implements ActionListener {
     if (isEnabled()) {
       EnumeratedType combinedPatchSize =
         ((RadioButton.RadioButtonModel) bgType.getSelection()).getEnumeratedType();
-      if (!maxSize) {
-        combineParams.setPatchSize((CombinePatchSize) combinedPatchSize);
+      if (combinedPatchSize instanceof CombinePatchSize) {
+        combineParams.setPatchSize(finalSize, (CombinePatchSize) combinedPatchSize);
       }
-      else {
-        combineParams.setAutoPatchFinalSize((CombinePatchSize) combinedPatchSize);
-      }
-      if (combinedPatchSize == CombinePatchSize.XYZ) {
+      if (combinedPatchSize == CombinePatchSize.CUSTOM) {
+        String[] xyz = new String[ltfXYZ.length];
         try {
-          String x = ltfX.getText(doValidation);
-          String y = ltfY.getText(doValidation);
-          String z = ltfZ.getText(doValidation);
-          if (!maxSize) {
-            combineParams.setPatchSize(x, y, z);
+          for (int i = 0; i < ltfXYZ.length; i++) {
+            xyz[i] = ltfXYZ[i].getText(doValidation);
           }
-          else {
-            combineParams.setAutoPatchFinalSize(x, y, z);
-          }
+          combineParams.setPatchSizeXYZ(finalSize, xyz);
         }
         catch (FieldValidationFailedException e) {
           return false;
         }
       }
     }
-    else if (!maxSize) {
-      combineParams.resetPatchSize();
-    }
     else {
-      combineParams.resetExtraResidualTargets();
+      combineParams.resetPatchSize(finalSize);
     }
     return true;
   }
 
-  private void selectTypeXyz(final CombinePatchSize type) {
-    rbTypeXyz.setSelected(true);
-    ltfX.setText(type.getX());
-    ltfY.setText(type.getY());
-    ltfZ.setText(type.getZ());
+  private void selectTypeXyz(final CombinePatchSize combinePatchSize) {
+    rbTypeCustom.setSelected(true);
+    int len = Math.min(ltfXYZ.length, combinePatchSize.getXYZLen());
+    for (int i = 0; i < len; i++) {
+      ltfXYZ[i].setText(combinePatchSize.getXYZ(i));
+    }
   }
 
   private void addTooltips() {
-    if (!maxSize) {
-      rbTypeSmall
-        .setToolTipText("Use small patches for refining the alignment with correlation - "
-          + "appropriate for feature-rich tomogram from binned CCD camera images "
-          + "or from film.");
+    if (!finalSize) {
+      if (rbTypeSmall != null) {
+        rbTypeSmall
+          .setToolTipText("Use small patches for refining the alignment with correlation - "
+            + "appropriate for feature-rich tomogram from binned CCD camera images "
+            + "or from film.");
+      }
       rbTypeMedium
         .setToolTipText("Use medium patches for refining the alignment with correlation - "
           + "appropriate for feature-rich tomogram from unbinned CCD camera " + "images.");
