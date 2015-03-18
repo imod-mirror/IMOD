@@ -18,6 +18,7 @@ import javax.swing.JPanel;
 import etomo.ApplicationManager;
 import etomo.comscript.CombineParams;
 import etomo.comscript.ConstCombineParams;
+import etomo.comscript.ConstPatchcrawl3DParam;
 import etomo.logic.TomogramTool;
 import etomo.storage.Network;
 import etomo.type.AxisID;
@@ -496,7 +497,7 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
   private final CheckBox cbAutoPatchFinalSize = new CheckBox(
     "Use Automatic Patch Fitting");
   private final LabeledTextField ltfExtraResidualTargets = new LabeledTextField(
-    FieldType.INTEGER, "Extra warping limits: ");
+    FieldType.STRING, "Extra warping limits: ");
   private final PatchSizePanel pspPatchTypeOrXYZ = PatchSizePanel.getInstance(false);
   private final PatchSizePanel pspAutoPatchFinalSize = PatchSizePanel.getInstance(true);
 
@@ -954,7 +955,7 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
     setBtoA(matchMode);
     pnlSolvematch.setParameters(combineParams);
     pspPatchTypeOrXYZ.setParameters(combineParams);
-    cbAutoPatchFinalSize.setSelected(combineParams.isAutoPatchFinalSizeSet());
+    cbAutoPatchFinalSize.setSelected(combineParams.isPatchSizeSet(true));
     pspAutoPatchFinalSize.setParameters(combineParams);
     cbPatchRegionModel.setSelected(combineParams.usePatchRegionModel());
     ltfXMin.setText(combineParams.getPatchXMin());
@@ -972,6 +973,18 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
     // update
     pnlSolvematch.updateUseFiducialModel();
     updatePatchRegionModel();
+  }
+
+  public void setParameters(final ConstPatchcrawl3DParam patchrawlParam) {
+    pspPatchTypeOrXYZ.setParameters(patchrawlParam);
+    ltfXMin.setText(patchrawlParam.getXLow());
+    ltfXMax.setText(patchrawlParam.getXHigh());
+    //Assuming flipped
+    ltfYMin.setText(patchrawlParam.getZLow());
+    ltfYMax.setText(patchrawlParam.getZHigh());
+    ltfZMin.setText(patchrawlParam.getYLow());
+    ltfZMax.setText(patchrawlParam.getYHigh());
+    System.out.println("B:ltfXMin:" + ltfXMin.getText() + ",ltfZMin:" + ltfZMin.getText());
   }
 
   /**
