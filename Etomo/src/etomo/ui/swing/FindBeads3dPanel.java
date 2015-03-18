@@ -365,13 +365,6 @@ final class FindBeads3dPanel implements FindBeads3dDisplay, Expandable,
       return value;
     }
 
-    public ConstEtomoNumber getValue(final int index) {
-      if (index == 0) {
-        return value;
-      }
-      return null;
-    }
-
     public boolean isDefault() {
       if (this == SOME_BELOW) {
         return true;
