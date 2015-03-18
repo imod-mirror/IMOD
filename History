@@ -1,5 +1,23 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/16/16: Fixed Ccderaser taking mean inside instead of outside boundary
+contours (in 4.7).
+
+3/15/15: IMOD_4-7-14
+3/15/15: Fixed fixCygPython.sh to put Cygwin on path befor running commands 
+(In 4.7).
+
+3/9/15: IMOD_4-8-27
+3/8/15: In eTomo - Fiducial Model Dialog changed the transferfid -x parameter
+to an integer with two values (0 and 1).  A third value will be added later.
+
+3/8/15: In eTomo, Changed the processchunks GPU list divider to ":".  In the
+Batchruntomo Interface, temporarily added instructions for running
+batchruntomo to the project log, fixed a problem with GPUMachineList and
+multiple GPUs, fixed problems with opening 3dmod, and fixed the way defocus is
+being displayed.  Fixed a variety of formatting problems in the processor
+table.
+
 3/4/15: Added ability to run NAD from Batchruntomo, and an option to specify
 an SMTP server for email.
 

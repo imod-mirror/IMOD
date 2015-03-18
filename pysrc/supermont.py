@@ -87,7 +87,7 @@ def updatePatchFromModel(patchname, modelname):
       try:
          runcmd('imod2patch ' + modelname + ' ' + tmpname, None)
       except ImodpyError:
-         exitFromImodError(progname)
+         exitFromImodError(smpref.replace('-', ' ').split()[-1])
 
       try:
          patchfile = open(patchname, 'r')

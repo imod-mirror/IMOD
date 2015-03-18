@@ -119,6 +119,7 @@ EXPORTS
 	ilistTruncate
 	incompBeta
 	b3dFread
+	BALANCEDGROUPLIMITS
 	ROTMAGSTR_TO_AMAT
 	AdocOpenImageMetadata
 	ADOCGETFLOATARRAY
@@ -126,6 +127,7 @@ EXPORTS
 	wallTime
 	RSMEDIANOFSORTED
 	MULTREGRESS
+	balancedGroupLimits
 	sliceClear
 	dsyevh3
 	LSFIT
