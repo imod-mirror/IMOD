@@ -1351,8 +1351,9 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
     else if (command.equals(btnSeed.getActionCommand())
       || command.equals(btn3dmodAutofidseed.getActionCommand())) {
       applicationManager.imodSeedModel(axisID, run3dmodMenuOptions, btnSeed,
-        ImodManager.COARSE_ALIGNED_KEY, DatasetFiles.getSeedFileName(applicationManager,
-          axisID), DatasetFiles.getRawTiltFile(applicationManager, axisID), dialogType);
+        ImodManager.COARSE_ALIGNED_KEY,
+        DatasetFiles.getSeedFileName(applicationManager, axisID),
+        DatasetFiles.getRawTiltFile(applicationManager, axisID), dialogType);
     }
     else if (command.equals(cbBoundaryModel.getActionCommand())
       || command.equals(cbAppendToSeedModel.getActionCommand())) {
@@ -1489,13 +1490,6 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
 
     public ConstEtomoNumber getValue() {
       return value;
-    }
-
-    public ConstEtomoNumber getValue(final int index) {
-      if (index == 0) {
-        return value;
-      }
-      return null;
     }
 
     public String toString() {
