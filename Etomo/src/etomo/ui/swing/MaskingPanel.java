@@ -368,13 +368,13 @@ final class MaskingPanel implements UIComponent, SwingComponent {
         matlabParam
             .setMaskType(((RadioButton.RadioButtonModel) bgMaskType.getSelection())
                 .getEnumeratedType());
-        if (!rbMaskTypeNone.isSelected()) {
-          matlabParam.setMaskBlurStdDev(ltfMaskBlurStdDev.getText(doValidation));
-
-        }
         if (rbMaskTypeCylinder.isSelected()) {
           matlabParam.setCylinderHeight(ltfCylinderHeight.getText(doValidation));
         }
+      }
+      if (!rbMaskTypeNone.isSelected()) {
+        matlabParam.setMaskBlurStdDev(ltfMaskBlurStdDev.getText(doValidation));
+
       }
       if (cbCylinderOrientation.isEnabled() && cbCylinderOrientation.isSelected()) {
         matlabParam.setMaskModelPts(ltfZRotation.getText(doValidation),

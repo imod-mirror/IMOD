@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/19/16: In eTomo - PEET fixed a problem where blurMaskStdDev was not being
+saved when "User supplied binary file" was selected.(Bug# 1867)
+
 3/16/16: Fixed Ccderaser taking mean inside instead of outside boundary
 contours (in 4.7).
 
