@@ -500,6 +500,7 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
     FieldType.STRING, "Extra warping limits: ");
   private final PatchSizePanel pspPatchTypeOrXYZ = PatchSizePanel.getInstance(false);
   private final PatchSizePanel pspAutoPatchFinalSize = PatchSizePanel.getInstance(true);
+  private final CheckBox cbdualvolmatch = new CheckBox("Use image correlations Use image correlations");
 
   private final MultiLineButton btnCreate;
   private final Run3dmodButton btnCombine;
