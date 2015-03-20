@@ -1,6 +1,116 @@
 Version = 1.2
 
 [function = main]
+[[if = test-gui]]
+  #setup
+  #
+  #values
+  #
+  #tomogram matching relationship
+  assert.rb.match-the-b-tomogram-to-a=on
+  assert.rb.match-the-a-tomogram-to-a=off
+  #
+  #solvematch parameters
+  assert.rb.fiducials-on-both-size=on
+  assert.rb.fiducials-on-one-side-not-inverted=off
+  assert.rb.fiducials-on-one-side-inverted=off
+  assert.rb.use-matching-models-and-fiducials=off
+  assert.rb.use-matching-models-only=off
+  assert.cb.load-binned-by-2=off
+  assert.cb.specify-corresponding-points-instead-of-using-coordinate-file=off
+  assert.tf.correspoinding-fiducial-list-a=
+  #
+  #patch parameters for refining aligment
+  assert.rb.small-patches=off
+  assert.rb.medium-patches=on
+  assert.rb.large-patches=off
+  assert.cb.use-patch-region-model=off
+  assert.tf.x-axis-min=%{axis-min}
+  assert.tf.x-axis-max=%{axis-max}
+  assert.tf.y-axis-min=%{axis-min}
+  assert.tf.y-axis-max=%{axis-max}
+  assert.tf.z-axis-min=
+  assert.tf.z-axis-max=
+  #
+  #volcombine controls
+  assert.cb.parallel-processing=on
+  assert.cb.stop-before-running-volcombine=off
+  #
+  #intermediate data storage
+  assert.tf.temporary-directory=
+  assert.cb.manual-cleanup=off
+  #
+  #buttons
+  assert.bn.create-combine-scripts=off
+  assert.bn.start-combine=off
+  #
+  #enabled
+  #
+  #tomogram matching relationship
+  assert.enabled.rb.match-the-b-tomogram-to-a=
+  assert.enabled.rb.match-the-a-tomogram-to-a=off
+  #
+  #solvematch parameters
+  assert.enabled.rb.fiducials-on-both-size=
+  assert.enabled.rb.fiducials-on-one-side-not-inverted=
+  assert.enabled.rb.fiducials-on-one-side-inverted=
+  assert.enabled.rb.use-matching-models-and-fiducials=
+  assert.enabled.rb.use-matching-models-only=
+  assert.disabled.cb.load-binned-by-2=
+  assert.disabled.bn.create-matching-models-in-3dmod=
+  assert.enabled.cb.specify-corresponding-points-instead-of-using-coordinate-file=
+  assert.enabled.tf.correspoinding-fiducial-list-a=
+  #
+  #patch parameters for refining aligment
+  assert.enabled.rb.small-patches=
+  assert.enabled.rb.medium-patches=
+  assert.enabled.rb.large-patches=
+  assert.enabled.cb.use-patch-region-model=
+  assert.disabled.bn.create-edit-region-model=
+  assert.enabled.tf.x-axis-min=
+  assert.enabled.tf.x-axis-max=
+  assert.enabled.tf.y-axis-min=
+  assert.enabled.tf.y-axis-max=
+  assert.enabled.tf.z-axis-min=
+  assert.enabled.tf.z-axis-max=
+  assert.enabled.bn.defaults=
+  #
+  #volcombine controls
+  assert.enabled.cb.parallel-processing=
+  assert.enabled.cb.stop-before-running-volcombine=
+  #
+  #intermediate data storage
+  assert.enabled.tf.temporary-directory=
+  assert.enabled.cb.manual-cleanup=
+  #
+  #buttons
+  assert.enabled.bn.3dmod-volume-a=
+  assert.enabled.bn.3dmod-volume-b=
+  assert.enabled.bn.create-combine-scripts=
+  assert.enabled.bn.start-combine=
+  #
+  #behavior
+  #
+  #solvematch parameters
+  rb.use-matching-models-and-fiducials=
+  assert.enabled.cb.load-binned-by-2=
+  assert.enabled.bn.create-matching-models-in-3dmod=
+  rb.use-matching-models-only=
+  assert.enabled.cb.load-binned-by-2=
+  assert.enabled.bn.create-matching-models-in-3dmod=
+  rb.fiducials-on-both-size=
+  #
+  cb.specify-corresponding-points-instead-of-using-coordinate-file=
+  assert.tf.correspoinding-fiducial-list-b=
+  assert.enabled.tf.correspoinding-fiducial-list-b=
+  cb.specify-corresponding-points-instead-of-using-coordinate-file=
+  #
+  #patch parameters for refining aligment
+  cb.use-patch-region-model=
+  assert.enabled.bn.create-edit-region-model=
+  cb.use-patch-region-model=
+  assert.disabled.bn.create-edit-region-model=
+[[]]
 [[if = patch-tracking]]
 	#use matching models for patch tracking
 	rb.use-matching-models-only=
@@ -31,6 +141,202 @@ assert.exists.file = patchcorr.com
 assert.exists.file = solvematch.com
 assert.exists.file = volcombine.com
 assert.exists.file = warpvol.com
+[[if = test-gui]]
+  #initial match
+  tb.setup.1=
+  #
+  #values
+  #
+  #solvematch parameters
+  assert.rb.fiducials-on-both-size=on
+  assert.rb.fiducials-on-one-side-not-inverted=off
+  assert.rb.fiducials-on-one-side-inverted=off
+  assert.rb.use-matching-models-and-fiducials=off
+  assert.rb.use-matching-models-only=off
+  assert.cb.load-binned-by-2=off
+  assert.cb.specify-corresponding-points-instead-of-using-coordinate-file=off
+  assert.tf.correspoinding-fiducial-list-a=
+  assert.tf.limit-on-maximum-residual=8.0
+  assert.bn.restart-combine=off
+  #
+  #matchvol1
+  assert.bn.restart-at-matchvol1=off
+  #
+  #enabled
+  #
+  #solvematch parameters
+  assert.enabled.rb.fiducials-on-both-size=
+  assert.enabled.rb.fiducials-on-one-side-not-inverted=
+  assert.enabled.rb.fiducials-on-one-side-inverted=
+  assert.enabled.rb.use-matching-models-and-fiducials=
+  assert.enabled.rb.use-matching-models-only=
+  assert.disabled.cb.load-binned-by-2=
+  assert.disabled.bn.create-matching-models-in-3dmod=
+  assert.enabled.cb.specify-corresponding-points-instead-of-using-coordinate-file=
+  assert.enabled.tf.correspoinding-fiducial-list-b=
+  assert.enabled.tf.limit-on-maximum-residual=
+  assert.enabled.bn.restart-combine=
+  #
+  #matchvol1
+  assert.enabled.bn.restart-at-matchvol1=
+  #
+  #behavior
+  #
+  #solvematch parameters
+  rb.use-matching-models-and-fiducials=
+  assert.enabled.cb.load-binned-by-2=
+  assert.enabled.bn.create-matching-models-in-3dmod=
+  rb.use-matching-models-only=
+  assert.enabled.cb.load-binned-by-2=
+  assert.enabled.bn.create-matching-models-in-3dmod=
+  rb.fiducials-on-both-size=
+  #
+  cb.specify-corresponding-points-instead-of-using-coordinate-file=
+  assert.tf.correspoinding-fiducial-list-b=
+  assert.enabled.tf.correspoinding-fiducial-list-b=
+  cb.specify-corresponding-points-instead-of-using-coordinate-file=
+  #
+  #final match
+  tb.setup.2=
+  #
+  #values
+  #
+  #patch region model
+  assert.cb.use-patch-region-model=off
+  #
+  #patchcorr parameters
+  assert.tf.x-patch-size=80
+  assert.tf.y-patch-size=80
+  assert.tf.z-patch-size=40
+  assert.bn.restart-at-patchcorr=off
+  #
+  #matchorwarp parameters
+  assert.tf.warping-residual-limits=0.2,0.27,0.35
+  assert.tf.number-of-columns-to-exclude-on-left=
+  assert.tf.number-of-columns-to-exclude-on-right=
+  assert.tf.number-of-rows-to-exclude-on-bottom=
+  assert.tf.number-of-rows-to-exclude-on-top=
+  assert.bn.restart-at-matchorwarp=off
+  #
+  #volcombine parameters
+  assert.cb.parallel-processing=on
+  assert.cb.stop-before-running-volcombine=off
+  assert.bn.restart-at-volcombine=off
+  #
+  #enabled
+  #
+  #patch region model
+  assert.enabled.cb.use-patch-region-model=
+  assert.enabled.bn.create/edit-patch-region-model=
+  #
+  #patchcorr parameters
+  assert.enabled.tf.x-patch-size=80
+  assert.enabled.tf.y-patch-size=80
+  assert.enabled.tf.z-patch-size=40
+  assert.enabled.bn.patch-size-+20%=
+  assert.enabled.bn.patch-size--20%=
+  assert.enabled.bn.restart-at-patchcorr=
+  assert.enabled.bn.open-vector-model-with-correlations=
+  #
+  #matchorwarp parameters
+  assert.enabled.tf.warping-residual-limits=
+  assert.enabled.tf.number-of-columns-to-exclude-on-left=
+  assert.enabled.tf.number-of-columns-to-exclude-on-right=
+  assert.enabled.tf.number-of-rows-to-exclude-on-bottom=
+  assert.enabled.tf.number-of-rows-to-exclude-on-top=
+  assert.enabled.bn.restart-at-matchorwarp=
+  assert.enabled.bn.matchorwarp-trial-run=
+  #
+  #volcombine parameters
+  assert.enabled.cb.parallel-processing=
+  assert.enabled.cb.stop-before-running-volcombine=
+  assert.enabled.bn.restart-at-volcombine=
+  #
+  #buttons
+  assert.disabled.bn.examine-patch-vector-model=
+  assert.disabled.bn.replace-patch-vectors=
+  assert.enabled.bn.open-volume-being-matched-to=
+  assert.enabled.bn.open-combined-volume=
+  #
+  #advanced
+  bn.advanced=
+  #initial match
+  tb.setup.1=
+  #
+  #values
+  #
+  #solvematch parameters
+  assert.tf.limit-on-center-shift=10.0
+  #
+  #matchvol1
+  assert.tf.initial-match-size=84
+  #
+  #enabled
+  #
+  #solvematch parameters
+  assert.enabled.tf.limit-on-center-shift=
+  #
+  #matchvol1
+  assert.enabled.tf.initial-match-size=
+  #
+  #final match
+  tb.setup.2=
+  #
+  #values
+  #
+  #patchcorr parameters
+  assert.tf.number-of-x-patches=%{number-of-patches}
+  assert.tf.number-of-y-patches=%{number-of-patches}
+  assert.tf.number-of-z-patches=%{number-of-z-patches}
+  assert.tf.x-low=%{axis-min}
+  assert.tf.y-low=%{axis-min}
+  assert.tf.z-low=%{z-low}
+  assert.tf.x-high=%{axis-max}
+  assert.tf.y-high=%{axis-max}
+  assert.tf.z-high=%{z-high}
+  assert.tf.initial-shift-in-x=
+  assert.tf.y=
+  assert.tf.z=
+  assert.cb.kernel-filtering-with-sigma=off
+  assert.tf.kernel-filtering-with-sigma=1.0
+  #
+  #matchorwarp parameters
+  assert.tf.residual-limit-for-single-transform=0.3
+  assert.cb.use-linear-interpolation=off
+  #
+  #volcombine parameters
+  assert.tf.reduction-factor-for-matching-amplitudes-in-combined-fft=0.0
+  asert.tf.radius-below-which-to-average-components-from-both-tomograms=0.0
+  #
+  #enabled
+  #
+  #patchcorr parameters
+  assert.enabled.tf.number-of-x-patches=
+  assert.enabled.tf.number-of-y-patches=
+  assert.enabled.tf.number-of-z-patches=
+  assert.enabled.tf.x-low=
+  assert.enabled.tf.y-low=
+  assert.enabled.tf.z-low=
+  assert.enabled.tf.x-high=
+  assert.enabled.tf.y-high=
+  assert.enabled.tf.z-high=
+  assert.enabled.tf.initial-shift-in-x=
+  assert.enabled.tf.y=
+  assert.enabled.tf.z=
+  assert.enabled.cb.kernel-filtering-with-sigma=
+  assert.disabled.tf.kernel-filtering-with-sigma=
+  #
+  #matchorwarp parameters
+  assert.enabled.tf.residual-limit-for-single-transform=
+  assert.enabled.cb.use-linear-interpolation=
+  #
+  #volcombine parameters
+  assert.enabled.tf.reduction-factor-for-matching-amplitudes-in-combined-fft=
+  asert.enabled.tf.radius-below-which-to-average-components-from-both-tomograms=
+  #
+  bn.basic=
+  tb.setup=
+[[]]
 bn.start-combine =
 [[if = test-gui]]
   if.wait.process.processchunks-volcombine.run.function.test-kill-pp=completed
@@ -67,6 +373,39 @@ assert.exists.file = patchcorr.log~
 assert.exists.file = solvematch.log~
 sleep = 
 [[if = test-gui]]
+  #setup
+  tb.setup=
+  #
+  #buttons
+  assert.bn.start-combine=on
+  #
+  #initial match
+  tb.setup.1=
+  #
+  #solvematch parameters
+  assert.bn.restart-combine=on
+  #
+  #matchvol1
+  assert.bn.restart-at-matchvol1=on
+  #
+  #final match
+  tb.setup.2=
+  #
+  #patchcorr parameters
+  assert.bn.restart-at-patchcorr=on
+  #
+  #matchorwarp parameters
+  assert.bn.restart-at-matchorwarp=on
+  #
+  #volcombine parameters
+  assert.bn.restart-at-volcombine=on
+  #
+  #enabled
+  #
+  #buttons
+  assert.enabled.bn.examine-patch-vector-model=
+  assert.enabled.bn.replace-patch-vectors=
+  #validation
   run.function.test-final-match=
   run.function.test-volcombine=
 [[]]
