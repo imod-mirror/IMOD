@@ -1,0 +1,291 @@
+#!/bin/tcsh -f
+#
+# Stub for self-extracting IMOD installer
+# Use -help to see the options
+#
+
+set installer = installIMOD
+set this = "$0"
+set rootname = "$this:t"
+set packname = $rootname:r.tar.gz
+set tempdir = IMODtempDir
+set installdir = ""
+set namedir = ""
+set nameopt = ""
+set custom = 0
+set skipopt = ""
+set scriptopt = ""
+set sysdir = ""
+set yesopt = ""
+set debopt = ""
+set ubuntu = 0
+set ubscripts = (/etc/csh.cshrc /etc/bash.bashrc)
+
+# Find the end of this script
+#
+set stubline = `awk '/END OF STUB/ {if (gotit > 0) {print NR ; exit} else { gotit = 1}}' "$this"`
+if ($stubline == "" || $#stubline > 1) then
+    echo "Could not find package in this file!"
+    exit 1
+endif
+
+@ skip = $stubline
+@ skip++
+
+set extract = 0
+set test = 0
+while ($#argv > 0)
+    switch ($argv[1])
+        case -ex*:
+            set extract = 1
+            shift
+            breaksw
+
+        case -test:
+            set test = 1
+            shift
+            breaksw
+
+        case -di*:
+            set installdir = "$argv[2]"
+            shift ; shift
+            breaksw
+
+        case -na*:
+            set namedir = "$argv[2]"
+            set nameopt = "-name $namedir"
+            set spacetst = `echo $namedir | grep '[ /\\]'`
+            if ("$spacetst" != "") then
+                echo "The entry for -name must be a single directory name"
+                echo "with no spaces or directory separators"
+                exit 1
+            endif
+            shift ; shift
+            breaksw
+
+        case -sc*:
+            set sysdir = "$argv[2]"
+            shift; shift
+            breaksw
+        
+        case -sk*:
+            set skipopt = "-skip"
+            shift
+            breaksw
+
+        case -y*:
+            set yesopt = "-yes"
+            shift
+            breaksw
+         
+        case -de*
+            set debopt = "-debian"
+            set ubuntu = 1
+            shift
+            breaksw
+
+        case -h*:
+        case --help:
+            goto usage
+            breaksw
+
+        default:
+            echo "Illegal option $argv[1]"
+            exit 1
+    endsw
+end
+
+set sysfiles = ()
+
+set system = `uname -s`
+set defaultdir = /usr/local
+
+# This gives legacy behavior of passing on exit status of command in set var=`command`
+set anyerror
+
+switch ($system)
+    case *Linux*:
+        set os = linux
+        set scripts = (IMOD-linux.csh IMOD-linux.sh)
+        if (! $ubuntu) then
+            set relfiles = `\find /etc -maxdepth 1 -type f -name '*release' -print`
+            if ("$relfiles" != "") then
+                set ubtest = `grep -i ubuntu $relfiles`
+                if ("$ubtest" != "") set ubuntu = 1
+            endif
+        endif
+        if ($ubuntu) set sysfiles = ($ubscripts)
+        breaksw
+    case *CYGWIN*:
+        set os = windows
+        set scripts = (IMOD-cygwin.csh IMOD-cygwin.sh)
+        breaksw
+    case *Darwin*:
+        set os = osx
+        set defaultdir = /Applications
+        set scripts = (mac.cshrc mac.profile)
+        set sysfiles = (/etc/csh.login /etc/profile)
+        breaksw
+
+    default:
+        if ($extract == 1) breaksw
+        echo "IMOD will not run on this system ($system)"
+        echo "You can add the option -extract to just extract the tar file"
+        exit 1
+
+endsw
+
+# For install and script dir, need to make an absolute path before
+# going into temp dir and running install script
+#
+if ("$installdir" != "") then
+    if ($os == windows) set installdir = `cygpath "$installdir"`
+    set absolute = `echo $installdir | grep '^/'`
+    if ($status) set installdir = "`pwd`""/$installdir"
+endif
+
+set copyto = /etc/profile.d
+if ("$sysdir" != "") then
+    if ($os == windows) set sysdir = `cygpath "$sysdir"`
+    set absolute = `echo $sysdir | grep '^/'`
+    if ($status) set sysdir = "`pwd`""/$sysdir"
+    set scriptopt = "-script $sysdir"
+    set copyto = "$sysdir"
+endif
+
+
+if ("$installdir" == "") set installdir = $defaultdir
+if ("$installdir" != "$defaultdir") set custom = 1
+
+if ($extract == 0) then
+    echo ""
+    if ("$namedir" == "") then
+        echo "This script will install IMOD in $installdir and rename"
+        echo "any previous version, or remove another copy of this version."
+    else
+        echo "This script will install IMOD in $installdir and name it $namedir."
+        echo "It will first remove $namedir if it exists, and remove anything that"
+        echo "matches the imod_n.n.n name that this IMOD will unpack as"
+    endif
+    echo ""
+    if ($#sysfiles == 0 && "$skipopt" == "") then
+        echo "It will copy $scripts[1] and $scripts[2] to $copyto"
+    else if ("$skipopt" == "") then
+        echo -n "It will edit $sysfiles[1]"
+        if ($#sysfiles == 2) then
+            echo -n " and $sysfiles[2]"
+        endif
+        echo " to source a startup script"
+        echo " in $installdir/IMOD unless they already appear to do so"
+    endif
+    
+    if ("$yesopt" == "") then
+        echo ""
+        echo "You can add the option -h to see a full list of options"
+        echo ""
+        echo -n "Enter Y if you want to proceed: "
+        set yesno = $<
+        if ("$yesno" != "Y" && "$yesno" != "y") exit 0
+    endif
+endif
+
+mkdir -p $tempdir    
+
+echo "Extracting $packname ..."
+tail -n +$skip "$this" >! $tempdir/$packname
+
+set version = `echo $rootname | sed '/\(imod_[0-9.]*\).*/s//\1/' | sed '/\.$/s///'`
+
+cd $tempdir
+
+echo "Extracting $installer"
+
+tar -xzf $packname $version/$installer
+
+if (! -e $version/$installer) then
+    echo "Could not extract $installer"
+    exit 1
+endif
+
+\mv $version/$installer .
+rmdir $version
+
+if ($extract == 1) then
+    echo "Left $packname and $installer in $tempdir"
+    exit 0
+endif
+
+# Fix python link in recent Cygwin distributions
+if ($test == 0 && $os == windows) then
+    if (-e /bin/python.exe && -l /bin/python) then
+        diff -q /bin/python.exe /bin/python >& /dev/null
+        if ($status) then
+            echo " "
+            echo "The copy of python in /bin/python.exe appears to be out of date"
+            echo "Making a new copy of the current python to /bin/python.exe"
+            \cp -Lf /bin/python /bin/python.exe
+        endif
+    else if (! -e /bin/python.exe) then
+        echo " "
+        if (-l /bin/python) then
+            echo "The Cygwin link to python will not work for IMOD"
+            echo "Making a copy of its target that is an actual /bin/python.exe"
+            \cp -Lf /bin/python /bin/python.exe
+        else
+            echo "You must have Python installed in Cygwin to run this installer"
+            set test = 1
+        endif
+    endif
+endif
+if ($os == windows) setenv PATH "/bin:$PATH"
+
+set retval = 0
+if ($test == 0) then
+    python -u $installer -dir "$installdir" $nameopt $scriptopt $skipopt $debopt $yesopt $packname
+    set retval = $status
+endif
+
+echo " "
+echo "Cleaning up $packname, $installer, and $tempdir"
+cd ..
+if ("$yesopt" != "") sleep 2
+\rm -f $tempdir/$installer $tempdir/$packname
+\rm -rf $tempdir
+if ($status) echo "Sorry, you will have to do that yourself: rm -rf $tempdir"
+
+exit $retval
+
+usage:
+cat <<EOF
+This is a self-installing IMOD package which will install IMOD in a default
+or specified location and set up startup files.
+Options can be added after the name of the package on the command line.  
+Options may be abbreviated.  The options are:
+  -dir dir     Install IMOD within the given directory.  The directory must
+                 exist (unless -name is entered also) and you must have
+                 permission to write to it.  
+  -name dir    Rename the IMOD directory to the given name.  The script will
+                 automatically remove an existing version by this name and not
+                 offer to clean up of other versions
+  -extract     Just extract the package and the real IMOD install script into
+                 a directory named $tempdir, without installing
+  -script dir  Place the IMOD startup scripts in the given directory.  On Linux
+                 and Windows, scripts will be copied there instead of to 
+                 /etc/profile.d.  On Mac and SGI, scripts will be copied there
+                 and the system startup files will not be modified.
+  -skip        Skip copying startup scripts (Linux and Windows) or modifying
+                  system startup files (Mac and SGI)
+  -debian      Modify $ubscripts[1] and $ubscripts[2] instead of 
+                  copying startup scripts to /etc/profile.d
+                   - this option is set automatically for Ubuntu
+  -yes         Install this version and remove old versions without asking for
+                  confirmation
+  -test        Run this self-installing script but not the real install script
+  -h, --help   Print this help
+EOF
+exit 0
+
+#  $Id$
+#
+
+END OF STUB
