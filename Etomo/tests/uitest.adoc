@@ -477,6 +477,13 @@ set.var.x-axis-tilt.b=-0.08
 set.var.x-axis-tilt-patch-tracking.a=1.23
 set.var.x-axis-tilt-simple-align.a=2.04
 set.var.x-axis-tilt-simple-align.b=2.04
+#combine
+set.var.axis-min = 24
+set.var.axis-max = 488
+set.var.number-of-patches=5
+set.var.number-of-z-patches=2
+set.var.z-low=5
+set.var.z-high=70
 #PostProc
 set.var.scaling-z-min=28
 set.var.scaling-z-max=56
