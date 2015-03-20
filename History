@@ -1,5 +1,6 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/19/16: IMOD_4-8-28
 3/19/16: In eTomo - PEET fixed a problem where blurMaskStdDev was not being
 saved when "User supplied binary file" was selected.(Bug# 1867)
 
