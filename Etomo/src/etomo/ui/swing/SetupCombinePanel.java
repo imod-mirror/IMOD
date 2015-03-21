@@ -543,7 +543,7 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
     pnlSolvematch =
       SolvematchPanel.getInstance(tomogramCombinationDialog,
         TomogramCombinationDialog.lblSetup, applicationManager,
-        ReconScreenState.COMBINE_SETUP_SOLVEMATCH_HEADER_GROUP, dialogType);
+        ReconScreenState.COMBINE_SETUP_SOLVEMATCH_HEADER_GROUP, dialogType, null);
     phPatchAndMinMax =
       PanelHeader
         .getInstance("Patch Parameters for Refining Alignment", this, dialogType);
