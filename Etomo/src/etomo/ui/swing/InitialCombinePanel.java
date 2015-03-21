@@ -260,6 +260,7 @@ import etomo.util.MRCHeader;
  */
 public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
   Run3dmodButtonContainer, Expandable {
+  static final String INITIAL_MATCHING_LABEL = "Initial Matching Parameters";
   private TomogramCombinationDialog tomogramCombinationDialog;
   private ApplicationManager applicationManager;
 
@@ -277,6 +278,9 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
     "Initial match size: ");
   private final JLabel lOutputSizeYInfo = new JLabel();
   private final ButtonActionListener buttonAction = new ButtonActionListener(this);
+  private final JPanel pnlInitialMatchingBody = new JPanel();
+
+  private final PanelHeader phInitialMatching;
 
   private MatchMode matchMode = null;
   private final DialogType dialogType;
@@ -297,18 +301,27 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
     btnMatchvolRestart =
       (Run3dmodButton) appMgr.getProcessResultDisplayFactory(AxisID.ONLY)
         .getRestartMatchvol1();
+    phInitialMatching =
+      PanelHeader.getAdvancedBasicInstance(INITIAL_MATCHING_LABEL, this, dialogType,
+        globalAdvancedButton);
     btnMatchvolRestart.setContainer(this);
     pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.Y_AXIS));
+    JPanel pnlInitialMatching = new JPanel();
+    pnlRoot.add(pnlInitialMatching);
 
-    // Create the solvematch panel
+    // InitialMatching
+    pnlInitialMatching.setLayout(new BoxLayout(pnlInitialMatching, BoxLayout.Y_AXIS));
+    pnlInitialMatching.add(phInitialMatching.getContainer());
+    pnlInitialMatching.add(pnlInitialMatchingBody);
+    // InitialMatchingBody
+    pnlInitialMatchingBody.setLayout(new BoxLayout(pnlInitialMatchingBody,
+      BoxLayout.Y_AXIS));
+    // solvematch
     pnlSolvematch =
       SolvematchPanel.getInstance(tomogramCombinationDialog,
         TomogramCombinationDialog.lblInitial, appMgr,
-        ReconScreenState.COMBINE_INITIAL_SOLVEMATCH_HEADER_GROUP, dialogType,
-        globalAdvancedButton);
-    pnlRoot.add(pnlSolvematch.getContainer());
-    // pnlRoot.add(Box.createRigidArea(FixedDim.x0_y10));
-    // pnlRoot.add(Box.createVerticalGlue());
+        ReconScreenState.COMBINE_INITIAL_SOLVEMATCH_HEADER_GROUP, dialogType);
+    pnlInitialMatchingBody.add(pnlSolvematch.getContainer());
 
     pnlMatchvol1.setBorder(BorderFactory.createEtchedBorder());
     pnlMatchvol1.setLayout(new BoxLayout(pnlMatchvol1, BoxLayout.Y_AXIS));
@@ -446,7 +459,8 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
   }
 
   public void expand(GlobalExpandButton button) {
-
+    updateAdvanced(button.isExpanded());
+    UIHarness.INSTANCE.pack(AxisID.ONLY, applicationManager);
   }
 
   public void expand(ExpandButton button) {
@@ -456,6 +470,12 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
     }
     else if (matchvol1Header != null && matchvol1Header.equalsAdvancedBasic(button)) {
       updateMatchvol1Advanced(expanded);
+    }
+    if (phInitialMatching.equalsOpenClose(button)) {
+      pnlInitialMatchingBody.setVisible(button.isExpanded());
+    }
+    else if (phInitialMatching.equalsAdvancedBasic(button)) {
+      updateAdvanced(button.isExpanded());
     }
     UIHarness.INSTANCE.pack(AxisID.ONLY, applicationManager);
   }

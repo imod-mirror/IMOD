@@ -500,6 +500,9 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
     FieldType.STRING, "Extra warping limits: ");
   private final PatchSizePanel pspPatchTypeOrXYZ = PatchSizePanel.getInstance(false);
   private final PatchSizePanel pspAutoPatchFinalSize = PatchSizePanel.getInstance(true);
+  private final CheckBox cbdualvolmatch = new CheckBox(
+    "Use image correlations Use image correlations");
+  private final JPanel pnlInitialMatchingBody = new JPanel();
 
   private final MultiLineButton btnCreate;
   private final Run3dmodButton btnCombine;
@@ -512,6 +515,7 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
   private final TomogramCombinationDialog tomogramCombinationDialog;
   private final ApplicationManager applicationManager;
   private final SolvematchPanel pnlSolvematch;
+  private final PanelHeader phInitialMatching;
 
   private int maxZMax = 0;
   private boolean validAutodoc = false;
@@ -539,7 +543,7 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
     pnlSolvematch =
       SolvematchPanel.getInstance(tomogramCombinationDialog,
         TomogramCombinationDialog.lblSetup, applicationManager,
-        ReconScreenState.COMBINE_SETUP_SOLVEMATCH_HEADER_GROUP, dialogType, null);
+        ReconScreenState.COMBINE_SETUP_SOLVEMATCH_HEADER_GROUP, dialogType);
     phPatchAndMinMax =
       PanelHeader
         .getInstance("Patch Parameters for Refining Alignment", this, dialogType);
@@ -548,6 +552,9 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
     cbParallelProcess =
       new CheckBox(tomogramCombinationDialog.parallelProcessCheckBoxText);
     volcombineHeader = PanelHeader.getInstance("Volcombine Controls", this, dialogType);
+    phInitialMatching =
+      PanelHeader.getInstance(InitialCombinePanel.INITIAL_MATCHING_LABEL, this,
+        dialogType);
   }
 
   public static SetupCombinePanel getInstance(final TomogramCombinationDialog parent,
@@ -597,12 +604,13 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
     JPanel pnlPatchRegionModel = new JPanel();
     JPanel pnlButton = new JPanel();
     JPanel pnlAutoPatchFinalSizeCheckBox = new JPanel();
+    JPanel pnlInitialMatching = new JPanel();
     // Root
     pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.Y_AXIS));
     pnlRoot.setBorder(new BeveledBorder("Combination Parameters").getBorder());
     pnlRoot.add(lblEffectWarning);
     pnlRoot.add(pnlToSelector);
-    pnlRoot.add(pnlSolvematch.getContainer());
+    pnlRoot.add(pnlInitialMatching);
     pnlRoot.add(pnlPatchAndMinMax);
     pnlRoot.add(pnlVolcombineControls);
     pnlRoot.add(pnlTempDirectory);
@@ -629,6 +637,14 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
     pnlAtoB.setAlignmentX(Component.CENTER_ALIGNMENT);
     pnlAtoB.add(rbAtoB.getComponent());
     pnlAtoB.add(Box.createHorizontalGlue());
+    // InitialMatching
+    pnlInitialMatching.setLayout(new BoxLayout(pnlInitialMatching, BoxLayout.Y_AXIS));
+    pnlInitialMatching.add(phInitialMatching.getContainer());
+    pnlInitialMatching.add(pnlInitialMatchingBody);
+    // InitialMatchingBody
+    pnlInitialMatchingBody.setLayout(new BoxLayout(pnlInitialMatchingBody,
+      BoxLayout.Y_AXIS));
+    pnlInitialMatchingBody.add(pnlSolvematch.getContainer());
     // PatchAndMinMax
     pnlPatchAndMinMax.setBorder(BorderFactory.createEtchedBorder());
     pnlPatchAndMinMax.setLayout(new BoxLayout(pnlPatchAndMinMax, BoxLayout.Y_AXIS));
@@ -872,8 +888,7 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
 
   void getParameters(final ReconScreenState screenState) {
     toSelectorHeader.getState(screenState.getCombineSetupToSelectorHeaderState());
-    pnlSolvematch.getHeader()
-      .getState(screenState.getCombineSetupSolvematchHeaderState());
+    phInitialMatching.getState(screenState.getCombineSetupSolvematchHeaderState());
     phPatchAndMinMax.getState(screenState.getCombineSetupPatchcorrHeaderState());
     volcombineHeader.getState(screenState.getCombineSetupVolcombineHeaderState());
     tempDirectoryHeader.getState(screenState.getCombineSetupTempDirHeaderState());
@@ -881,8 +896,7 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
 
   void setParameters(final ReconScreenState screenState) {
     toSelectorHeader.setState(screenState.getCombineSetupToSelectorHeaderState());
-    pnlSolvematch.getHeader()
-      .setState(screenState.getCombineSetupSolvematchHeaderState());
+    phInitialMatching.setState(screenState.getCombineSetupSolvematchHeaderState());
     phPatchAndMinMax.setState(screenState.getCombineSetupPatchcorrHeaderState());
     volcombineHeader.setState(screenState.getCombineSetupVolcombineHeaderState());
     tempDirectoryHeader.setState(screenState.getCombineSetupTempDirHeaderState());
@@ -931,6 +945,9 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
     }
     else if (tempDirectoryHeader.equalsOpenClose(button)) {
       pnlTempDirectoryBody.setVisible(button.isExpanded());
+    }
+    else if (phInitialMatching.equalsOpenClose(button)) {
+      pnlInitialMatchingBody.setVisible(button.isExpanded());
     }
     UIHarness.INSTANCE.pack(AxisID.ONLY, applicationManager);
   }
