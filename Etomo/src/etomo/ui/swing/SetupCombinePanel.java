@@ -539,7 +539,7 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
     pnlSolvematch =
       SolvematchPanel.getInstance(tomogramCombinationDialog,
         TomogramCombinationDialog.lblSetup, applicationManager,
-        ReconScreenState.COMBINE_SETUP_SOLVEMATCH_HEADER_GROUP, dialogType);
+        ReconScreenState.COMBINE_SETUP_SOLVEMATCH_HEADER_GROUP, dialogType, null);
     phPatchAndMinMax =
       PanelHeader
         .getInstance("Patch Parameters for Refining Alignment", this, dialogType);
@@ -979,12 +979,13 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
     pspPatchTypeOrXYZ.setParameters(patchrawlParam);
     ltfXMin.setText(patchrawlParam.getXLow());
     ltfXMax.setText(patchrawlParam.getXHigh());
-    //Assuming flipped
+    // Assuming flipped
     ltfYMin.setText(patchrawlParam.getZLow());
     ltfYMax.setText(patchrawlParam.getZHigh());
     ltfZMin.setText(patchrawlParam.getYLow());
     ltfZMax.setText(patchrawlParam.getYHigh());
-    System.out.println("B:ltfXMin:" + ltfXMin.getText() + ",ltfZMin:" + ltfZMin.getText());
+    System.out
+      .println("B:ltfXMin:" + ltfXMin.getText() + ",ltfZMin:" + ltfZMin.getText());
   }
 
   /**
