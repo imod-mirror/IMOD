@@ -320,7 +320,7 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
     pnlSolvematch =
       SolvematchPanel.getInstance(tomogramCombinationDialog,
         TomogramCombinationDialog.lblInitial, appMgr,
-        ReconScreenState.COMBINE_INITIAL_SOLVEMATCH_HEADER_GROUP, dialogType,
+        ReconScreenState.COMBINE_INITIAL_SOLVEMATCH_HEADER_GROUP, dialogType);
     pnlInitialMatchingBody.add(pnlSolvematch.getContainer());
 
     pnlMatchvol1.setBorder(BorderFactory.createEtchedBorder());
