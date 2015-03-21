@@ -32,14 +32,11 @@ import etomo.util.MRCHeader;
 /**
  * <p>Description: </p>
  *
- * <p>Copyright: Copyright (c) 2002</p>
+ * <p>Copyright: Copyright 2002 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * <p>Organization: Boulder Laboratory for 3D Fine Structure,
- * University of Colorado</p>
- *
- * @author $Author$
- *
- * @version $Revision$
+ * @version $Id$
  *
  * <p> $Log$
  * <p> Revision 1.3  2011/02/03 06:22:16  sueh
@@ -262,9 +259,7 @@ import etomo.util.MRCHeader;
  * <p> </p>
  */
 public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
-    Run3dmodButtonContainer, Expandable {
-  public static final String rcsid = "$Id$";
-
+  Run3dmodButtonContainer, Expandable {
   private TomogramCombinationDialog tomogramCombinationDialog;
   private ApplicationManager applicationManager;
 
@@ -279,7 +274,7 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
   private final SpacedPanel pnlMatchvol1Body = SpacedPanel.getInstance(true);
   private final PanelHeader matchvol1Header;
   private final LabeledTextField ltfOutputSizeY = new LabeledTextField(FieldType.INTEGER,
-      "Initial match size: ");
+    "Initial match size: ");
   private final JLabel lOutputSizeYInfo = new JLabel();
   private final ButtonActionListener buttonAction = new ButtonActionListener(this);
 
@@ -291,22 +286,26 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
    * @param appMgr
    */
   public InitialCombinePanel(TomogramCombinationDialog parent, ApplicationManager appMgr,
-      DialogType dialogType, GlobalExpandButton globalAdvancedButton) {
+    DialogType dialogType, GlobalExpandButton globalAdvancedButton) {
     this.dialogType = dialogType;
     tomogramCombinationDialog = parent;
     applicationManager = appMgr;
     globalAdvancedButton.register(this);
-    matchvol1Header = PanelHeader.getAdvancedBasicInstance("Matchvol1", this,
+    matchvol1Header =
+      PanelHeader.getAdvancedBasicInstance("Matchvol1", this,
         DialogType.TOMOGRAM_COMBINATION, globalAdvancedButton);
-    btnMatchvolRestart = (Run3dmodButton) appMgr.getProcessResultDisplayFactory(
-        AxisID.ONLY).getRestartMatchvol1();
+    btnMatchvolRestart =
+      (Run3dmodButton) appMgr.getProcessResultDisplayFactory(AxisID.ONLY)
+        .getRestartMatchvol1();
     btnMatchvolRestart.setContainer(this);
     pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.Y_AXIS));
 
     // Create the solvematch panel
-    pnlSolvematch = SolvematchPanel.getInstance(tomogramCombinationDialog,
+    pnlSolvematch =
+      SolvematchPanel.getInstance(tomogramCombinationDialog,
         TomogramCombinationDialog.lblInitial, appMgr,
-        ReconScreenState.COMBINE_INITIAL_SOLVEMATCH_HEADER_GROUP, dialogType);
+        ReconScreenState.COMBINE_INITIAL_SOLVEMATCH_HEADER_GROUP, dialogType,
+        globalAdvancedButton);
     pnlRoot.add(pnlSolvematch.getContainer());
     // pnlRoot.add(Box.createRigidArea(FixedDim.x0_y10));
     // pnlRoot.add(Box.createVerticalGlue());
@@ -341,7 +340,7 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
 
   void setDeferred3dmodButtons() {
     btnMatchvolRestart.setDeferred3dmodButton(tomogramCombinationDialog
-        .getImodCombinedButton());
+      .getImodCombinedButton());
     pnlSolvematch.setDeferred3dmodButtons();
   }
 
@@ -357,10 +356,10 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
       toAxisID = AxisID.SECOND;
       fromAxisID = AxisID.FIRST;
     }
-    MRCHeader toHeader = MRCHeader.getInstance(applicationManager, toAxisID,
-        DatasetFiles.TOMO_EXT);
-    MRCHeader fromHeader = MRCHeader.getInstance(applicationManager, fromAxisID,
-        DatasetFiles.TOMO_EXT);
+    MRCHeader toHeader =
+      MRCHeader.getInstance(applicationManager, toAxisID, DatasetFiles.TOMO_EXT);
+    MRCHeader fromHeader =
+      MRCHeader.getInstance(applicationManager, fromAxisID, DatasetFiles.TOMO_EXT);
     int toY = -1;
     try {
       if (!toHeader.read(applicationManager)) {
@@ -388,7 +387,7 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
     }
     fromY = fromHeader.getNRows();
     lOutputSizeYInfo.setText("Original " + fromAxisID.getExtension().toUpperCase()
-        + " size is " + fromY + ".  Final size will be " + toY);
+      + " size is " + fromY + ".  Final size will be " + toY);
   }
 
   ProcessingMethod getProcessingMethod() {
@@ -474,14 +473,14 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
    * @param solvematchsParam
    */
   public boolean getSolvematchParams(SolvematchParam solvematchParam,
-      final boolean doValidation) {
+    final boolean doValidation) {
     return pnlSolvematch.getParameters(solvematchParam, doValidation);
   }
 
   final void setParameters(ReconScreenState screenState) {
     pnlSolvematch.setParameters(screenState);
     btnMatchvolRestart.setButtonState(screenState.getButtonState(btnMatchvolRestart
-        .getButtonStateKey()));
+      .getButtonStateKey()));
   }
 
   // InitialCombineFields interface pass-thru
@@ -510,7 +509,7 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
   }
 
   public String getUseList(final boolean doValidation)
-      throws FieldValidationFailedException {
+    throws FieldValidationFailedException {
     return pnlSolvematch.getUseList(doValidation);
   }
 
@@ -519,7 +518,7 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
   }
 
   public String getFiducialMatchListA(final boolean doValidation)
-      throws FieldValidationFailedException {
+    throws FieldValidationFailedException {
     return pnlSolvematch.getFiducialMatchListA(doValidation);
   }
 
@@ -532,7 +531,7 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
   }
 
   public String getFiducialMatchListB(final boolean doValidation)
-      throws FieldValidationFailedException {
+    throws FieldValidationFailedException {
     return pnlSolvematch.getFiducialMatchListB(doValidation);
   }
 
@@ -549,19 +548,20 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
     String[] logFileLabel = { "Transferfid", "Solvematch" };
     String[] logFile = { "transferfid.log", "solvematch.log" };
 
-    ContextPopup contextPopup = new ContextPopup(pnlRoot, mouseEvent,
-        "Initial Problems in Combining", ContextPopup.TOMO_GUIDE, manPagelabel, manPage,
-        logFileLabel, logFile, applicationManager, AxisID.ONLY);
+    ContextPopup contextPopup =
+      new ContextPopup(pnlRoot, mouseEvent, "Initial Problems in Combining",
+        ContextPopup.TOMO_GUIDE, manPagelabel, manPage, logFileLabel, logFile,
+        applicationManager, AxisID.ONLY);
   }
 
   public void action(String command, Deferred3dmodButton deferred3dmodButton,
-      Run3dmodMenuOptions run3dmodMenuOptions) {
+    Run3dmodMenuOptions run3dmodMenuOptions) {
     // Synchronize this panel with the others
     tomogramCombinationDialog.synchronize(TomogramCombinationDialog.lblInitial, true);
     if (command.equals(btnMatchvolRestart.getActionCommand())) {
       applicationManager.matchvol1Combine(btnMatchvolRestart, null, deferred3dmodButton,
-          run3dmodMenuOptions, dialogType,
-          tomogramCombinationDialog.getRunProcessingMethod());
+        run3dmodMenuOptions, dialogType,
+        tomogramCombinationDialog.getRunProcessingMethod());
     }
   }
 
@@ -584,13 +584,14 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
    * Initialize the tooltip text for the axis panel objects
    */
   private void setToolTipText() {
-    String text = "Thickness to make initial matching volume, which may need to be "
+    String text =
+      "Thickness to make initial matching volume, which may need to be "
         + "thicker than the final matching volume to contain all the material needed for "
         + "patch correlations.";
     ltfOutputSizeY.setToolTipText(text);
     lOutputSizeYInfo.setToolTipText(text);
     btnMatchvolRestart
-        .setToolTipText("Resume and make first matching volume, despite a small displacement "
-            + "between the match check volumes");
+      .setToolTipText("Resume and make first matching volume, despite a small displacement "
+        + "between the match check volumes");
   }
 }
