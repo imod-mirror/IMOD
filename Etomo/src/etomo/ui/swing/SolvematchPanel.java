@@ -235,24 +235,19 @@ final class SolvematchPanel implements Run3dmodButtonContainer {
   private String parentTitle;
   private boolean binningWarning = false;
   private boolean initialPanel = true;
-
   // initial tab only
   private Run3dmodButton btnRestart = null;
   private LabeledTextField ltfResidulThreshold = null;
   private LabeledTextField ltfCenterShiftLimit = null;
   private final DialogType dialogType;
 
-  private SolvematchPanel(TomogramCombinationDialog parent, String title,
-    ApplicationManager appMgr, String headerGroup, DialogType dialogType,
-    GlobalExpandButton globalAdvancedButton) {
+  private SolvematchPanel(final TomogramCombinationDialog parent, final String title,
+    final ApplicationManager appMgr, final String headerGroup, final DialogType dialogType) {
     this.dialogType = dialogType;
     tomogramCombinationDialog = parent;
     parentTitle = title;
     applicationManager = appMgr;
     this.headerGroup = headerGroup;
-    if (globalAdvancedButton != null) {
-      globalAdvancedButton.register(this);
-    }
     // Create the fiducial relationship panel
     pnlFiducialRadio.setLayout(new BoxLayout(pnlFiducialRadio, BoxLayout.Y_AXIS));
     // create inital button and fields
@@ -328,11 +323,9 @@ final class SolvematchPanel implements Run3dmodButtonContainer {
   }
 
   static SolvematchPanel getInstance(TomogramCombinationDialog parent, String title,
-    ApplicationManager appMgr, String headerGroup, DialogType dialogType,
-    GlobalExpandButton globalAdvancedButton) {
+    ApplicationManager appMgr, String headerGroup, DialogType dialogType) {
     SolvematchPanel instance =
-      new SolvematchPanel(parent, title, appMgr, headerGroup, dialogType,
-        globalAdvancedButton);
+      new SolvematchPanel(parent, title, appMgr, headerGroup, dialogType);
     instance.addListeners();
     return instance;
   }
@@ -411,13 +404,6 @@ final class SolvematchPanel implements Run3dmodButtonContainer {
         .setButtonState(screenState.getButtonState(btnRestart.getButtonStateKey()));
     }
   }
-
-  public void expand(final GlobalExpandButton button) {
-    updateAdvanced(button.isExpanded());
-    UIHarness.INSTANCE.pack(AxisID.ONLY, applicationManager);
-  }
-
-
 
   void updateAdvanced(boolean state) {
     ltfCenterShiftLimit.setVisible(state);
