@@ -984,8 +984,6 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
     ltfYMax.setText(patchrawlParam.getZHigh());
     ltfZMin.setText(patchrawlParam.getYLow());
     ltfZMax.setText(patchrawlParam.getYHigh());
-    System.out
-      .println("B:ltfXMin:" + ltfXMin.getText() + ",ltfZMin:" + ltfZMin.getText());
   }
 
   /**
@@ -1269,7 +1267,6 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
       String temp = ltfXMin.getText();
       ltfXMin.setText(ltfYMin.getText());
       ltfYMin.setText(temp);
-
       temp = ltfXMax.getText();
       ltfXMax.setText(ltfYMax.getText());
       ltfYMax.setText(temp);
