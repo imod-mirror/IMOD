@@ -7,7 +7,6 @@ import java.awt.event.ActionListener;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
-import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
@@ -34,15 +33,11 @@ import etomo.ui.FieldValidationFailedException;
 /**
  * <p>Description: </p>
  * 
- * <p>Copyright: Copyright (c) 2002, 2003</p>
+ * <p>Copyright: Copyright 2002 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
- * University of Colorado</p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
+ * @version $Id$
  * 
  * <p> $Log$
  * <p> Revision 1.4  2011/02/22 19:30:16  sueh
@@ -210,12 +205,8 @@ import etomo.ui.FieldValidationFailedException;
  * <p> Solvematch mid change
  * <p> </p>
  */
-final class SolvematchPanel implements Run3dmodButtonContainer, Expandable {
-
-  private static final String HEADER_LABEL = "Solvematch Parameters";
-
+final class SolvematchPanel implements Run3dmodButtonContainer {
   private final EtomoPanel pnlRoot = new EtomoPanel();
-  private final JPanel pnlBody = new JPanel();
   private final JPanel pnlFiducialRadio = new JPanel();
   private final JPanel pnlFiducialSelect = new JPanel();
   private final ButtonGroup bgFiducialParams = new ButtonGroup();
@@ -239,7 +230,6 @@ final class SolvematchPanel implements Run3dmodButtonContainer, Expandable {
       "Specify corresponding points instead of using coordinate file");
 
   private final ApplicationManager applicationManager;
-  private final PanelHeader header;
   private final String headerGroup;
   private final TomogramCombinationDialog tomogramCombinationDialog;
 
@@ -303,21 +293,22 @@ final class SolvematchPanel implements Run3dmodButtonContainer, Expandable {
     pnlFiducialSelect.add(pnlImodMatchModels);
     pnlFiducialSelect.add(Box.createHorizontalGlue());
 
-    pnlBody.setLayout(new BoxLayout(pnlBody, BoxLayout.Y_AXIS));
-    UIUtilities.addWithSpace(pnlBody, pnlFiducialSelect, FixedDim.x0_y10);
+    pnlRoot.setBorder(new EtchedBorder("Solvematch Parameters").getBorder());
+    pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.Y_AXIS));
+    UIUtilities.addWithSpace(pnlRoot, pnlFiducialSelect, FixedDim.x0_y10);
     JPanel pnlUseCorrespondingPoints = new JPanel();
     pnlUseCorrespondingPoints.setLayout(new BoxLayout(pnlUseCorrespondingPoints,
         BoxLayout.X_AXIS));
     pnlUseCorrespondingPoints.setAlignmentX(Component.CENTER_ALIGNMENT);
     pnlUseCorrespondingPoints.add(cbUseCorrespondingPoints);
     pnlUseCorrespondingPoints.add(Box.createHorizontalGlue());
-    UIUtilities.addWithYSpace(pnlBody, pnlUseCorrespondingPoints);
-    UIUtilities.addWithYSpace(pnlBody, ltfUseList.getContainer());
-    UIUtilities.addWithYSpace(pnlBody, ltfFiducialMatchListA.getContainer());
-    UIUtilities.addWithYSpace(pnlBody, ltfFiducialMatchListB.getContainer());
+    UIUtilities.addWithYSpace(pnlRoot, pnlUseCorrespondingPoints);
+    UIUtilities.addWithYSpace(pnlRoot, ltfUseList.getContainer());
+    UIUtilities.addWithYSpace(pnlRoot, ltfFiducialMatchListA.getContainer());
+    UIUtilities.addWithYSpace(pnlRoot, ltfFiducialMatchListB.getContainer());
     if (initialPanel) {
-      UIUtilities.addWithYSpace(pnlBody, ltfResidulThreshold.getContainer());
-      UIUtilities.addWithYSpace(pnlBody, ltfCenterShiftLimit.getContainer());
+      UIUtilities.addWithYSpace(pnlRoot, ltfResidulThreshold.getContainer());
+      UIUtilities.addWithYSpace(pnlRoot, ltfCenterShiftLimit.getContainer());
       btnRestart.setSize();
       JPanel pnlRestart = new JPanel();
       pnlRestart.setLayout(new BoxLayout(pnlRestart, BoxLayout.X_AXIS));
@@ -325,19 +316,8 @@ final class SolvematchPanel implements Run3dmodButtonContainer, Expandable {
       pnlRestart.add(Box.createHorizontalGlue());
       pnlRestart.add(btnRestart.getComponent());
       pnlRestart.add(Box.createHorizontalGlue());
-      UIUtilities.addWithYSpace(pnlBody, pnlRestart);
+      UIUtilities.addWithYSpace(pnlRoot, pnlRestart);
     }
-    pnlRoot.setBorder(BorderFactory.createEtchedBorder());
-    pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.Y_AXIS));
-    if (initialPanel) {
-      header = PanelHeader.getAdvancedBasicInstance(HEADER_LABEL, this,
-          parent.getDialogType());
-    }
-    else {
-      header = PanelHeader.getInstance(HEADER_LABEL, this, parent.getDialogType());
-    }
-    pnlRoot.add(header);
-    pnlRoot.add(pnlBody);
     setToolTipText();
     show();
   }
@@ -427,15 +407,7 @@ final class SolvematchPanel implements Run3dmodButtonContainer, Expandable {
   public void expand(final GlobalExpandButton button) {
   }
 
-  public void expand(ExpandButton button) {
-    if (header.equalsOpenClose(button)) {
-      pnlBody.setVisible(button.isExpanded());
-    }
-    else if (initialPanel && header.equalsAdvancedBasic(button)) {
-      updateAdvanced(button.isExpanded());
-    }
-    UIHarness.INSTANCE.pack(AxisID.ONLY, applicationManager);
-  }
+
 
   void updateAdvanced(boolean state) {
     ltfCenterShiftLimit.setVisible(state);
@@ -443,10 +415,6 @@ final class SolvematchPanel implements Run3dmodButtonContainer, Expandable {
 
   public void setVisible(boolean visible) {
     pnlRoot.setVisible(visible);
-  }
-
-  PanelHeader getHeader() {
-    return header;
   }
 
   /**
