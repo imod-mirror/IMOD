@@ -8,17 +8,17 @@ Version = 1.2
   #
   #tomogram matching relationship
   assert.rb.match-the-b-tomogram-to-a=on
-  assert.rb.match-the-a-tomogram-to-a=off
+  assert.rb.match-the-a-tomogram-to-b=off
   #
   #solvematch parameters
-  assert.rb.fiducials-on-both-size=on
-  assert.rb.fiducials-on-one-side-not-inverted=off
-  assert.rb.fiducials-on-one-side-inverted=off
+  assert.rb.fiducials-on-both-sides=on
+  assert.rb.fiducials-on-one-side,-not-inverted=off
+  assert.rb.fiducials-on-one-side,-inverted=off
   assert.rb.use-matching-models-and-fiducials=off
   assert.rb.use-matching-models-only=off
   assert.cb.load-binned-by-2=off
   assert.cb.specify-corresponding-points-instead-of-using-coordinate-file=off
-  assert.tf.correspoinding-fiducial-list-a=
+  assert.tf.starting-points-to-use-from-a=
   #
   #patch parameters for refining aligment
   assert.rb.small-patches=off
@@ -48,18 +48,18 @@ Version = 1.2
   #
   #tomogram matching relationship
   assert.enabled.rb.match-the-b-tomogram-to-a=
-  assert.enabled.rb.match-the-a-tomogram-to-a=off
+  assert.enabled.rb.match-the-a-tomogram-to-b=off
   #
   #solvematch parameters
-  assert.enabled.rb.fiducials-on-both-size=
-  assert.enabled.rb.fiducials-on-one-side-not-inverted=
-  assert.enabled.rb.fiducials-on-one-side-inverted=
+  assert.enabled.rb.fiducials-on-both-sides=
+  assert.enabled.rb.fiducials-on-one-side,-not-inverted=
+  assert.enabled.rb.fiducials-on-one-side,-inverted=
   assert.enabled.rb.use-matching-models-and-fiducials=
   assert.enabled.rb.use-matching-models-only=
   assert.disabled.cb.load-binned-by-2=
   assert.disabled.bn.create-matching-models-in-3dmod=
   assert.enabled.cb.specify-corresponding-points-instead-of-using-coordinate-file=
-  assert.enabled.tf.correspoinding-fiducial-list-a=
+  assert.enabled.tf.starting-points-to-use-from-a=
   #
   #patch parameters for refining aligment
   assert.enabled.rb.small-patches=
@@ -98,11 +98,12 @@ Version = 1.2
   rb.use-matching-models-only=
   assert.enabled.cb.load-binned-by-2=
   assert.enabled.bn.create-matching-models-in-3dmod=
-  rb.fiducials-on-both-size=
+  rb.fiducials-on-both-sides=
   #
   cb.specify-corresponding-points-instead-of-using-coordinate-file=
-  assert.tf.correspoinding-fiducial-list-b=
-  assert.enabled.tf.correspoinding-fiducial-list-b=
+  assert.tf.corresponding-fiducial-list-a=
+  assert.tf.corresponding-fiducial-list-b=
+  assert.enabled.tf.corresponding-fiducial-list-b=
   cb.specify-corresponding-points-instead-of-using-coordinate-file=
   #
   #patch parameters for refining aligment
@@ -148,14 +149,14 @@ assert.exists.file = warpvol.com
   #values
   #
   #solvematch parameters
-  assert.rb.fiducials-on-both-size=on
-  assert.rb.fiducials-on-one-side-not-inverted=off
-  assert.rb.fiducials-on-one-side-inverted=off
+  assert.rb.fiducials-on-both-sides=on
+  assert.rb.fiducials-on-one-side,-not-inverted=off
+  assert.rb.fiducials-on-one-side,-inverted=off
   assert.rb.use-matching-models-and-fiducials=off
   assert.rb.use-matching-models-only=off
   assert.cb.load-binned-by-2=off
   assert.cb.specify-corresponding-points-instead-of-using-coordinate-file=off
-  assert.tf.correspoinding-fiducial-list-a=
+  assert.tf.starting-points-to-use-from-a=
   assert.tf.limit-on-maximum-residual=8.0
   assert.bn.restart-combine=off
   #
@@ -165,15 +166,16 @@ assert.exists.file = warpvol.com
   #enabled
   #
   #solvematch parameters
-  assert.enabled.rb.fiducials-on-both-size=
-  assert.enabled.rb.fiducials-on-one-side-not-inverted=
-  assert.enabled.rb.fiducials-on-one-side-inverted=
+  assert.enabled.rb.fiducials-on-both-sides=
+  assert.enabled.rb.fiducials-on-one-side,-not-inverted=
+  assert.enabled.rb.fiducials-on-one-side,-inverted=
   assert.enabled.rb.use-matching-models-and-fiducials=
   assert.enabled.rb.use-matching-models-only=
   assert.disabled.cb.load-binned-by-2=
   assert.disabled.bn.create-matching-models-in-3dmod=
   assert.enabled.cb.specify-corresponding-points-instead-of-using-coordinate-file=
-  assert.enabled.tf.correspoinding-fiducial-list-b=
+  assert.enabled.tf.corresponding-fiducial-list-a=
+  assert.enabled.tf.corresponding-fiducial-list-b=
   assert.enabled.tf.limit-on-maximum-residual=
   assert.enabled.bn.restart-combine=
   #
@@ -189,11 +191,12 @@ assert.exists.file = warpvol.com
   rb.use-matching-models-only=
   assert.enabled.cb.load-binned-by-2=
   assert.enabled.bn.create-matching-models-in-3dmod=
-  rb.fiducials-on-both-size=
+  rb.fiducials-on-both-sides=
   #
   cb.specify-corresponding-points-instead-of-using-coordinate-file=
-  assert.tf.correspoinding-fiducial-list-b=
-  assert.enabled.tf.correspoinding-fiducial-list-b=
+  assert.tf.corresponding-fiducial-list-a=
+  assert.tf.corresponding-fiducial-list-b=
+  assert.enabled.tf.corresponding-fiducial-list-b=
   cb.specify-corresponding-points-instead-of-using-coordinate-file=
   #
   #final match
