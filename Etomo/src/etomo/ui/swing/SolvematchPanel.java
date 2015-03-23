@@ -231,6 +231,7 @@ final class SolvematchPanel implements Run3dmodButtonContainer {
   private final ApplicationManager applicationManager;
   private final String headerGroup;
   private final TomogramCombinationDialog tomogramCombinationDialog;
+  private final DialogType dialogType;
 
   private String parentTitle;
   private boolean binningWarning = false;
@@ -239,7 +240,9 @@ final class SolvematchPanel implements Run3dmodButtonContainer {
   private Run3dmodButton btnRestart = null;
   private LabeledTextField ltfResidulThreshold = null;
   private LabeledTextField ltfCenterShiftLimit = null;
-  private final DialogType dialogType;
+  private boolean enabled = true;
+  private boolean useCorrespondingPointsChanged = false;
+  private boolean debug = false;
 
   private SolvematchPanel(final TomogramCombinationDialog parent, final String title,
     final ApplicationManager appMgr, final String headerGroup, final DialogType dialogType) {
@@ -323,9 +326,11 @@ final class SolvematchPanel implements Run3dmodButtonContainer {
   }
 
   static SolvematchPanel getInstance(TomogramCombinationDialog parent, String title,
-    ApplicationManager appMgr, String headerGroup, DialogType dialogType) {
+    ApplicationManager appMgr, String headerGroup, DialogType dialogType,
+    final boolean debug) {
     SolvematchPanel instance =
       new SolvematchPanel(parent, title, appMgr, headerGroup, dialogType);
+    instance.debug = debug;
     instance.addListeners();
     return instance;
   }
@@ -341,7 +346,7 @@ final class SolvematchPanel implements Run3dmodButtonContainer {
       cbUseCorrespondingPoints.setVisible(false);
       ltfUseList.setVisible(false);
     }
-    updateUseCorrespondingPoints();
+    updateDisplay();
   }
 
   void setDeferred3dmodButtons() {
@@ -392,7 +397,7 @@ final class SolvematchPanel implements Run3dmodButtonContainer {
     ltfUseList.setText(combineParams.getUseList());
     if (cbUseCorrespondingPoints.isVisible()) {
       cbUseCorrespondingPoints.setSelected(!combineParams.isTransfer());
-      updateUseCorrespondingPoints();
+      updateDisplay();
     }
   }
 
@@ -403,10 +408,6 @@ final class SolvematchPanel implements Run3dmodButtonContainer {
       btnRestart
         .setButtonState(screenState.getButtonState(btnRestart.getButtonStateKey()));
     }
-  }
-
-  void updateAdvanced(boolean state) {
-    ltfCenterShiftLimit.setVisible(state);
   }
 
   public void setVisible(boolean visible) {
@@ -535,7 +536,7 @@ final class SolvematchPanel implements Run3dmodButtonContainer {
     if (value == FiducialMatch.BOTH_SIDES) {
       rbBothSides.setSelected(true);
     }
-    updateUseFiducialModel();
+    updateDisplay();
   }
 
   public boolean isBinBy2() {
@@ -587,7 +588,8 @@ final class SolvematchPanel implements Run3dmodButtonContainer {
   public void action(final String command, Deferred3dmodButton deferred3dmodButton,
     final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(cbUseCorrespondingPoints.getActionCommand())) {
-      updateUseCorrespondingPoints();
+      useCorrespondingPointsChanged = true;
+      updateDisplay();
     }
     else {
       // Synchronize this panel with the others
@@ -615,19 +617,32 @@ final class SolvematchPanel implements Run3dmodButtonContainer {
    * @param event
    */
   protected void rbFiducialAction(ActionEvent event) {
-    updateUseFiducialModel();
+    updateDisplay();
   }
 
-  /**
-   * Enable/disable the matching model button
-   */
-  void updateUseFiducialModel() {
-    boolean enable = rbUseModel.isSelected() || rbUseModelOnly.isSelected();
-    btnImodMatchModels.setEnabled(enable);
-    cbBinBy2.setEnabled(enable);
+  void updateDisplay(final boolean enable) {
+    enabled = enable;
+    updateDisplay();
   }
 
-  void updateUseCorrespondingPoints() {
+  private void updateDisplay() {
+    System.out.println("A:enabled:" + enabled);
+    if (enabled) {
+      Thread.dumpStack();
+    }
+    if (ltfCenterShiftLimit != null) {
+      ltfCenterShiftLimit.setEnabled(enabled);
+      ltfCenterShiftLimit.setVisible(tomogramCombinationDialog.isAdvanced());
+    }
+    rbUseModel.setEnabled(enabled);
+    rbUseModelOnly.setEnabled(enabled);
+    boolean fiducialMode = rbUseModel.isSelected() || rbUseModelOnly.isSelected();
+    btnImodMatchModels.setEnabled(fiducialMode && enabled);
+    cbBinBy2.setEnabled(fiducialMode && enabled);
+    cbUseCorrespondingPoints.setEnabled(enabled);
+    ltfFiducialMatchListA.setEnabled(enabled);
+    ltfFiducialMatchListB.setEnabled(enabled);
+    ltfUseList.setEnabled(enabled);
     if (cbUseCorrespondingPoints.isSelected()) {
       ltfFiducialMatchListA.setVisible(true);
       ltfFiducialMatchListB.setVisible(true);
@@ -638,7 +653,10 @@ final class SolvematchPanel implements Run3dmodButtonContainer {
       ltfFiducialMatchListB.setVisible(false);
       ltfUseList.setVisible(true);
     }
-    tomogramCombinationDialog.updateDisplay();
+    if (useCorrespondingPointsChanged) {
+      useCorrespondingPointsChanged = false;
+      tomogramCombinationDialog.updateDisplay();
+    }
   }
 
   public boolean isUseCorrespondingPoints() {
@@ -647,7 +665,7 @@ final class SolvematchPanel implements Run3dmodButtonContainer {
 
   public void setUseCorrespondingPoints(boolean selected) {
     cbUseCorrespondingPoints.setSelected(selected);
-    updateUseCorrespondingPoints();
+    updateDisplay();
   }
 
   /**
