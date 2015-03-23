@@ -26,9 +26,9 @@ Version = 1.2
   assert.rb.large-patches=off
   assert.cb.use-patch-region-model=off
   assert.tf.x-axis-min=%{axis-min}
-  assert.tf.x-axis-max=%{axis-max}
+  assert.tf.x-axis-max=%{x-axis-max}
   assert.tf.y-axis-min=%{axis-min}
-  assert.tf.y-axis-max=%{axis-max}
+  assert.tf.y-axis-max=%{y-axis-max}
   assert.tf.z-axis-min=
   assert.tf.z-axis-max=
   #
@@ -48,7 +48,7 @@ Version = 1.2
   #
   #tomogram matching relationship
   assert.enabled.rb.match-the-b-tomogram-to-a=
-  assert.enabled.rb.match-the-a-tomogram-to-b=off
+  assert.enabled.rb.match-the-a-tomogram-to-b=
   #
   #solvematch parameters
   assert.enabled.rb.fiducials-on-both-sides=
@@ -66,7 +66,7 @@ Version = 1.2
   assert.enabled.rb.medium-patches=
   assert.enabled.rb.large-patches=
   assert.enabled.cb.use-patch-region-model=
-  assert.disabled.bn.create-edit-region-model=
+  assert.disabled.bn.create/edit-patch-region-model=
   assert.enabled.tf.x-axis-min=
   assert.enabled.tf.x-axis-max=
   assert.enabled.tf.y-axis-min=
@@ -87,7 +87,7 @@ Version = 1.2
   assert.enabled.bn.3dmod-volume-a=
   assert.enabled.bn.3dmod-volume-b=
   assert.enabled.bn.create-combine-scripts=
-  assert.enabled.bn.start-combine=
+  assert.disabled.bn.start-combine=
   #
   #behavior
   #
@@ -103,14 +103,15 @@ Version = 1.2
   cb.specify-corresponding-points-instead-of-using-coordinate-file=
   assert.tf.corresponding-fiducial-list-a=
   assert.tf.corresponding-fiducial-list-b=
+  assert.enabled.tf.corresponding-fiducial-list-a=
   assert.enabled.tf.corresponding-fiducial-list-b=
   cb.specify-corresponding-points-instead-of-using-coordinate-file=
   #
   #patch parameters for refining aligment
   cb.use-patch-region-model=
-  assert.enabled.bn.create-edit-region-model=
+  assert.enabled.bn.create/edit-patch-region-model=
   cb.use-patch-region-model=
-  assert.disabled.bn.create-edit-region-model=
+  assert.disabled.bn.create/edit-patch-region-model=
 [[]]
 [[if = patch-tracking]]
 	#use matching models for patch tracking
@@ -174,8 +175,7 @@ assert.exists.file = warpvol.com
   assert.disabled.cb.load-binned-by-2=
   assert.disabled.bn.create-matching-models-in-3dmod=
   assert.enabled.cb.specify-corresponding-points-instead-of-using-coordinate-file=
-  assert.enabled.tf.corresponding-fiducial-list-a=
-  assert.enabled.tf.corresponding-fiducial-list-b=
+  assert.enabled.tf.starting-points-to-use-from-a=
   assert.enabled.tf.limit-on-maximum-residual=
   assert.enabled.bn.restart-combine=
   #
@@ -196,6 +196,7 @@ assert.exists.file = warpvol.com
   cb.specify-corresponding-points-instead-of-using-coordinate-file=
   assert.tf.corresponding-fiducial-list-a=
   assert.tf.corresponding-fiducial-list-b=
+  assert.enabled.tf.corresponding-fiducial-list-a=
   assert.enabled.tf.corresponding-fiducial-list-b=
   cb.specify-corresponding-points-instead-of-using-coordinate-file=
   #
@@ -233,11 +234,11 @@ assert.exists.file = warpvol.com
   assert.enabled.bn.create/edit-patch-region-model=
   #
   #patchcorr parameters
-  assert.enabled.tf.x-patch-size=80
-  assert.enabled.tf.y-patch-size=80
-  assert.enabled.tf.z-patch-size=40
+  assert.enabled.tf.x-patch-size=
+  assert.enabled.tf.y-patch-size=
+  assert.enabled.tf.z-patch-size=
   assert.enabled.bn.patch-size-+20%=
-  assert.enabled.bn.patch-size--20%=
+  assert.enabled.bn.patch-size-20%=
   assert.enabled.bn.restart-at-patchcorr=
   assert.enabled.bn.open-vector-model-with-correlations=
   #
@@ -272,7 +273,7 @@ assert.exists.file = warpvol.com
   assert.tf.limit-on-center-shift=10.0
   #
   #matchvol1
-  assert.tf.initial-match-size=84
+  assert.tf.initial-match-size=%{initial-match-size}
   #
   #enabled
   #
@@ -294,8 +295,8 @@ assert.exists.file = warpvol.com
   assert.tf.x-low=%{axis-min}
   assert.tf.y-low=%{axis-min}
   assert.tf.z-low=%{z-low}
-  assert.tf.x-high=%{axis-max}
-  assert.tf.y-high=%{axis-max}
+  assert.tf.x-high=%{x-axis-max}
+  assert.tf.y-high=%{y-axis-max}
   assert.tf.z-high=%{z-high}
   assert.tf.initial-shift-in-x=
   assert.tf.y=
@@ -309,7 +310,7 @@ assert.exists.file = warpvol.com
   #
   #volcombine parameters
   assert.tf.reduction-factor-for-matching-amplitudes-in-combined-fft=0.0
-  asert.tf.radius-below-which-to-average-components-from-both-tomograms=0.0
+  assert.tf.radius-below-which-to-average-components-from-both-tomograms=0.0
   #
   #enabled
   #
@@ -335,7 +336,7 @@ assert.exists.file = warpvol.com
   #
   #volcombine parameters
   assert.enabled.tf.reduction-factor-for-matching-amplitudes-in-combined-fft=
-  asert.enabled.tf.radius-below-which-to-average-components-from-both-tomograms=
+  assert.enabled.tf.radius-below-which-to-average-components-from-both-tomograms=
   #
   bn.basic=
   tb.setup=
@@ -398,7 +399,8 @@ sleep =
   assert.bn.restart-at-patchcorr=on
   #
   #matchorwarp parameters
-  assert.bn.restart-at-matchorwarp=on
+  #Matchorwarp button sometimes not selected for BB - timing problem?
+  if.var.montage.assert.bn.restart-at-matchorwarp=on
   #
   #volcombine parameters
   assert.bn.restart-at-volcombine=on
