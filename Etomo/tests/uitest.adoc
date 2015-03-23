@@ -477,6 +477,16 @@ set.var.x-axis-tilt.b=-0.08
 set.var.x-axis-tilt-patch-tracking.a=1.23
 set.var.x-axis-tilt-simple-align.a=2.04
 set.var.x-axis-tilt-simple-align.b=2.04
+#combine
+set.var.axis-min = 24
+set.var.x-axis-max = 526
+set.var.y-axis-max = 526
+set.var.number-of-x-patches=5
+set.var.number-of-y-patches=5
+set.var.number-of-z-patches=2
+set.var.z-low=5
+set.var.z-high=70
+set.var.initial-match-size=84
 #PostProc
 set.var.scaling-z-min=28
 set.var.scaling-z-max=56
@@ -551,6 +561,17 @@ set.var.x-axis-tilt-patch-tracking.a=1.7
 set.var.x-axis-tilt-patch-tracking.b=0.32
 set.var.tomogram-thickness-in-z-patch-tracking.a=84
 set.var.tomogram-thickness-in-z-patch-tracking.b=112
+#combine
+set.var.axis-min = 36
+set.var.x-axis-max = 1964
+set.var.y-axis-max = 1014
+set.var.number-of-patches=5
+set.var.number-of-x-patches=19
+set.var.number-of-y-patches=10
+set.var.number-of-z-patches=2
+set.var.z-low=5
+set.var.z-high=70
+set.var.initial-match-size=96
 #PostProc
 set.var.scaling-z-min=32
 set.var.scaling-z-min-simple-align=

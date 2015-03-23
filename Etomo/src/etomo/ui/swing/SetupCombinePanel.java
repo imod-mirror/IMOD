@@ -45,17 +45,11 @@ import etomo.util.MRCHeader;
  * </p>
  * 
  * <p>
- * Copyright: Copyright (c) 2002
- * </p>
- * 
- * <p>
- * Organization: Boulder Laboratory for 3D Fine Structure, University of
- * Colorado
- * </p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
+ * <p>Copyright: Copyright 2002 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
+ *
+ * @version $Id$
  * 
  * <p>
  * $Log$
@@ -452,10 +446,9 @@ import etomo.util.MRCHeader;
  * </p>
  */
 public final class SetupCombinePanel implements ContextMenu, InitialCombineFields,
-    FinalCombineFields, Run3dmodButtonContainer, Expandable {
-  public static final String rcsid = "$Id$";
-
-  private static final String TOMOGRAM_SIZE_CHANGED_STRING = "THE TOMOGRAM HAS CHANGED - check min and max values";
+  FinalCombineFields, Run3dmodButtonContainer, Expandable {
+  private static final String TOMOGRAM_SIZE_CHANGED_STRING =
+    "THE TOMOGRAM HAS CHANGED - check min and max values";
 
   private TomogramCombinationDialog tomogramCombinationDialog;
   private ApplicationManager applicationManager;
@@ -468,7 +461,8 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
   private EtomoPanel pnlToSelector = new EtomoPanel();
   private ButtonGroup bgToSelector = new ButtonGroup();
   private JPanel pnlRBToSelector = new JPanel();
-  private JLabel lblEffectWarning = new JLabel(
+  private JLabel lblEffectWarning =
+    new JLabel(
       "You must create new combine scripts for some changes in these parameters to take effect.");
   private RadioButton rbBtoA = new RadioButton("Match the B tomogram to A");
   private RadioButton rbAtoB = new RadioButton("Match the A tomogram to B");
@@ -484,36 +478,36 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
   private JPanel pnlPatchRegionModel = new JPanel();
   private CheckBox cbPatchRegionModel = new CheckBox("Use patch region model");
   private Run3dmodButton btnPatchRegionModel = Run3dmodButton.get3dmodInstance(
-      "Create/Edit Patch Region Model", this);
+    "Create/Edit Patch Region Model", this);
 
   private JPanel pnlPatchRegion = new JPanel();
   private final EtomoPanel pnlVolcombineControls = new EtomoPanel();
   private final JPanel pnlVolcombineControlsBody = new JPanel();
   private LabeledTextField ltfXMin = new LabeledTextField(FieldType.INTEGER,
-      "X axis min: ");
+    "X axis min: ");
   private LabeledTextField ltfXMax = new LabeledTextField(FieldType.INTEGER,
-      "X axis max: ");
+    "X axis max: ");
   private LabeledTextField ltfYMin = new LabeledTextField(FieldType.INTEGER,
-      "Y axis min: ");
+    "Y axis min: ");
   private LabeledTextField ltfYMax = new LabeledTextField(FieldType.INTEGER,
-      "Y axis max: ");
+    "Y axis max: ");
   private LabeledTextField ltfZMin = new LabeledTextField(FieldType.INTEGER,
-      ConstCombineParams.PATCH_Z_MIN_LABEL + ": ");
+    ConstCombineParams.PATCH_Z_MIN_LABEL + ": ");
   private LabeledTextField ltfZMax = new LabeledTextField(FieldType.INTEGER,
-      ConstCombineParams.PATCH_Z_MAX_LABEL + ": ");
+    ConstCombineParams.PATCH_Z_MAX_LABEL + ": ");
   private int maxZMax = 0;
 
   private EtomoPanel pnlTempDirectory = new EtomoPanel();
   private JPanel pnlTempDirectoryBody = new JPanel();
   private LabeledTextField ltfTempDirectory = new LabeledTextField(FieldType.STRING,
-      "Temporary directory: ");
+    "Temporary directory: ");
   private CheckBox cbManualCleanup = new CheckBox("Manual cleanup");
 
   private JPanel pnlButton = new JPanel();
   private Run3dmodButton btnImodVolumeA = Run3dmodButton.get3dmodInstance(
-      "3dmod Volume A", this);
+    "3dmod Volume A", this);
   private Run3dmodButton btnImodVolumeB = Run3dmodButton.get3dmodInstance(
-      "3dmod Volume B", this);
+    "3dmod Volume B", this);
   private final MultiLineButton btnCreate;
   private final Run3dmodButton btnCombine;
   private JLabel binningWarning = new JLabel();
@@ -522,7 +516,7 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
   private final PanelHeader tempDirectoryHeader;
   private final PanelHeader volcombineHeader;
   private final CheckBox cbNoVolcombine = new CheckBox(
-      FinalCombinePanel.NO_VOLCOMBINE_TITLE);
+    FinalCombinePanel.NO_VOLCOMBINE_TITLE);
   private final CheckBox cbParallelProcess;
   private final SetupCombineActionListener actionListener;
   private final JLabel lTomogramSizeWarning = new JLabel();
@@ -536,7 +530,7 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
    * Default constructor
    */
   public SetupCombinePanel(TomogramCombinationDialog parent, ApplicationManager appMgr,
-      DialogType dialogType) {
+    DialogType dialogType) {
     tomogramCombinationDialog = parent;
     applicationManager = appMgr;
     this.dialogType = dialogType;
@@ -552,10 +546,11 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
     ltfYMax.setNumberMustBePositive(true);
     ltfZMin.setNumberMustBePositive(true);
     ltfZMax.setNumberMustBePositive(true);
-    btnCreate = (MultiLineButton) appMgr.getProcessResultDisplayFactory(AxisID.ONLY)
+    btnCreate =
+      (MultiLineButton) appMgr.getProcessResultDisplayFactory(AxisID.ONLY)
         .getCreateCombine();
-    btnCombine = (Run3dmodButton) appMgr.getProcessResultDisplayFactory(AxisID.ONLY)
-        .getCombine();
+    btnCombine =
+      (Run3dmodButton) appMgr.getProcessResultDisplayFactory(AxisID.ONLY).getCombine();
     btnCombine.setContainer(this);
     // Create the matching direction selector panel
     lblEffectWarning.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -564,8 +559,8 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
     bgToSelector.add(rbAtoB.getAbstractButton());
     bgToSelector.add(rbBtoA.getAbstractButton());
     pnlToSelector.setBorder(BorderFactory.createEtchedBorder());
-    toSelectorHeader = PanelHeader.getInstance("Tomogram Matching Relationship", this,
-        dialogType);
+    toSelectorHeader =
+      PanelHeader.getInstance("Tomogram Matching Relationship", this, dialogType);
     pnlToSelector.setLayout(new BoxLayout(pnlToSelector, BoxLayout.Y_AXIS));
     pnlRBToSelector.setLayout(new BoxLayout(pnlRBToSelector, BoxLayout.Y_AXIS));
     JPanel pnlBtoA = new JPanel();
@@ -585,9 +580,10 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
     pnlToSelector.add(Box.createHorizontalGlue());
 
     // Create the solvematch panel
-    pnlSolvematch = SolvematchPanel.getInstance(tomogramCombinationDialog,
+    pnlSolvematch =
+      SolvematchPanel.getInstance(tomogramCombinationDialog,
         TomogramCombinationDialog.lblSetup, appMgr,
-        ReconScreenState.COMBINE_SETUP_SOLVEMATCH_HEADER_GROUP, dialogType);
+        ReconScreenState.COMBINE_SETUP_SOLVEMATCH_HEADER_GROUP, dialogType, null);
     // pnlSolvematch.visibleResidual(false);
 
     // Create the patch parmeters panel
@@ -640,22 +636,23 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
     btnDefaults.setSize();
     pnlPatchParamsBody.add(pnlDefaults);
     pnlPatchParams.setBorder(BorderFactory.createEtchedBorder());
-    patchParamsHeader = PanelHeader.getInstance(
-        "Patch Parameters for Refining Alignment", this, dialogType);
+    patchParamsHeader =
+      PanelHeader
+        .getInstance("Patch Parameters for Refining Alignment", this, dialogType);
     pnlPatchParams.setLayout(new BoxLayout(pnlPatchParams, BoxLayout.Y_AXIS));
     pnlPatchParams.add(patchParamsHeader);
     pnlPatchParams.add(pnlPatchParamsBody);
 
     // Create the volcombine controls panel
     pnlVolcombineControls
-        .setLayout(new BoxLayout(pnlVolcombineControls, BoxLayout.Y_AXIS));
+      .setLayout(new BoxLayout(pnlVolcombineControls, BoxLayout.Y_AXIS));
     pnlVolcombineControls.setBorder(BorderFactory.createEtchedBorder());
     volcombineHeader = PanelHeader.getInstance("Volcombine Controls", this, dialogType);
     pnlVolcombineControls.add(volcombineHeader);
     pnlVolcombineControlsBody.setLayout(new BoxLayout(pnlVolcombineControlsBody,
-        BoxLayout.Y_AXIS));
-    cbParallelProcess = new CheckBox(
-        tomogramCombinationDialog.parallelProcessCheckBoxText);
+      BoxLayout.Y_AXIS));
+    cbParallelProcess =
+      new CheckBox(tomogramCombinationDialog.parallelProcessCheckBoxText);
     JPanel pnlParallelProcess = new JPanel();
     pnlParallelProcess.setLayout(new BoxLayout(pnlParallelProcess, BoxLayout.X_AXIS));
     pnlParallelProcess.setAlignmentX(Box.CENTER_ALIGNMENT);
@@ -683,8 +680,8 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
     pnlTempDirectoryBody.add(pnlManualCleanup);
 
     pnlTempDirectory.setBorder(BorderFactory.createEtchedBorder());
-    tempDirectoryHeader = PanelHeader.getInstance("Intermediate Data Storage", this,
-        dialogType);
+    tempDirectoryHeader =
+      PanelHeader.getInstance("Intermediate Data Storage", this, dialogType);
     pnlTempDirectory.setLayout(new BoxLayout(pnlTempDirectory, BoxLayout.Y_AXIS));
     pnlTempDirectory.add(tempDirectoryHeader);
     pnlTempDirectory.add(pnlTempDirectoryBody);
@@ -719,7 +716,8 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
     pnlButton.add(Box.createHorizontalGlue());
     pnlButton.add(btnCombine.getComponent());
     pnlButton.add(Box.createHorizontalGlue());
-    UIUtilities.setButtonSizeAll(pnlButton, UIParameters.getInstance().getButtonDimension());
+    UIUtilities.setButtonSizeAll(pnlButton, UIParameters.getInstance()
+      .getButtonDimension());
 
     pnlToSelector.setAlignmentX(Component.CENTER_ALIGNMENT);
     pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.Y_AXIS));
@@ -763,8 +761,8 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
   }
 
   private void updateTomogramSizeWarning(boolean enableCombine) {
-    boolean changed = TomogramTool.isTomogramSizeChanged(applicationManager, matchBtoA,
-        AxisID.ONLY);
+    boolean changed =
+      TomogramTool.isTomogramSizeChanged(applicationManager, matchBtoA, AxisID.ONLY);
     lTomogramSizeWarning.setVisible(changed);
     if (changed) {
       lTomogramSizeWarning.setText(TOMOGRAM_SIZE_CHANGED_STRING);
@@ -787,7 +785,8 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
   void setParameters(ConstMetaData metaData) {
     // Parallel processing is optional in tomogram reconstruction, so only use it
     // if the user set it up.
-    validAutodoc = Network.isParallelProcessingEnabled(applicationManager, AxisID.FIRST,
+    validAutodoc =
+      Network.isParallelProcessingEnabled(applicationManager, AxisID.FIRST,
         applicationManager.getPropertyUserDir());
     ConstEtomoNumber combineVolcombineParallel = metaData.getCombineVolcombineParallel();
     cbParallelProcess.setEnabled(validAutodoc && !processingMethodLocked);
@@ -814,7 +813,7 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
 
   private void sendProcessingMethodMessage() {
     applicationManager.getProcessingMethodMediator(AxisID.FIRST).setMethod(
-        tomogramCombinationDialog, getProcessingMethod());
+      tomogramCombinationDialog, getProcessingMethod());
   }
 
   public void setNoVolcombine(boolean noVolcombine) {
@@ -853,7 +852,7 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
   void getParameters(ReconScreenState screenState) {
     toSelectorHeader.getState(screenState.getCombineSetupToSelectorHeaderState());
     pnlSolvematch.getHeader()
-        .getState(screenState.getCombineSetupSolvematchHeaderState());
+      .getState(screenState.getCombineSetupSolvematchHeaderState());
     patchParamsHeader.getState(screenState.getCombineSetupPatchcorrHeaderState());
     volcombineHeader.getState(screenState.getCombineSetupVolcombineHeaderState());
     tempDirectoryHeader.getState(screenState.getCombineSetupTempDirHeaderState());
@@ -862,7 +861,7 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
   void setParameters(ReconScreenState screenState) {
     toSelectorHeader.setState(screenState.getCombineSetupToSelectorHeaderState());
     pnlSolvematch.getHeader()
-        .setState(screenState.getCombineSetupSolvematchHeaderState());
+      .setState(screenState.getCombineSetupSolvematchHeaderState());
     patchParamsHeader.setState(screenState.getCombineSetupPatchcorrHeaderState());
     volcombineHeader.setState(screenState.getCombineSetupVolcombineHeaderState());
     tempDirectoryHeader.setState(screenState.getCombineSetupTempDirHeaderState());
@@ -897,8 +896,7 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
     pnlTempDirectory.setVisible(visible);
   }
 
-  public void expand(final GlobalExpandButton button) {
-  }
+  public void expand(final GlobalExpandButton button) {}
 
   public void expand(ExpandButton button) {
     if (toSelectorHeader.equalsOpenClose(button)) {
@@ -967,7 +965,7 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
    * @throws NumberFormatException
    */
   public boolean getParameters(final CombineParams combineParams,
-      final boolean doValidation) throws NumberFormatException {
+    final boolean doValidation) throws NumberFormatException {
     try {
       String badParameter = "unknown";
       try {
@@ -1096,7 +1094,7 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
   public void setBinningWarning(boolean binningWarning) {
     if (binningWarning) {
       this.binningWarning
-          .setText("WARNING:  Coordinates must be selected from an unbinned 3dmod");
+        .setText("WARNING:  Coordinates must be selected from an unbinned 3dmod");
     }
     else {
       this.binningWarning.setText("");
@@ -1120,7 +1118,7 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
   }
 
   public String getUseList(final boolean doValidation)
-      throws FieldValidationFailedException {
+    throws FieldValidationFailedException {
     return pnlSolvematch.getUseList(doValidation);
   }
 
@@ -1129,7 +1127,7 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
   }
 
   public String getFiducialMatchListA(final boolean doValidation)
-      throws FieldValidationFailedException {
+    throws FieldValidationFailedException {
     return pnlSolvematch.getFiducialMatchListA(doValidation);
   }
 
@@ -1142,7 +1140,7 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
   }
 
   public String getFiducialMatchListB(final boolean doValidation)
-      throws FieldValidationFailedException {
+    throws FieldValidationFailedException {
     return pnlSolvematch.getFiducialMatchListB(doValidation);
   }
 
@@ -1160,7 +1158,7 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
    * @param run3dmodMenuOptions
    */
   public void action(final String command, final Deferred3dmodButton deferred3dmodButton,
-      final Run3dmodMenuOptions run3dmodMenuOptions) {
+    final Run3dmodMenuOptions run3dmodMenuOptions) {
     // Synchronize this panel with the others
     tomogramCombinationDialog.synchronize(TomogramCombinationDialog.lblSetup, true);
     if (command.equals(btnCreate.getActionCommand())) {
@@ -1169,8 +1167,8 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
     }
     else if (command.equals(btnCombine.getActionCommand())) {
       applicationManager.combine(btnCombine, null, deferred3dmodButton,
-          run3dmodMenuOptions, dialogType,
-          tomogramCombinationDialog.getRunProcessingMethod());
+        run3dmodMenuOptions, dialogType,
+        tomogramCombinationDialog.getRunProcessingMethod());
     }
     else if (command.equals(cbParallelProcess.getActionCommand())) {
       sendProcessingMethodMessage();
@@ -1191,7 +1189,8 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
 
   private void resetXandY() {
     AxisID toAxisID = matchBtoA ? AxisID.FIRST : AxisID.SECOND;
-    MRCHeader mrcHeader = MRCHeader.getInstance(applicationManager.getPropertyUserDir(),
+    MRCHeader mrcHeader =
+      MRCHeader.getInstance(applicationManager.getPropertyUserDir(),
         DatasetFiles.getTomogramName(applicationManager, toAxisID), AxisID.ONLY);
     try {
       if (!mrcHeader.read(applicationManager)) {
@@ -1204,10 +1203,8 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
       ltfYMax.setText(mrcHeader.getNSections() - xyborder);
       tomogramCombinationDialog.synchronizeFromCurrentTab();
     }
-    catch (IOException e) {
-    }
-    catch (InvalidParameterException e) {
-    }
+    catch (IOException e) {}
+    catch (InvalidParameterException e) {}
   }
 
   /**
@@ -1226,9 +1223,9 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
     }
     MatchMode scriptMatchMode = state.getCombineMatchMode();
     return scriptMatchMode == null
-        || (scriptMatchMode == MatchMode.A_TO_B && !rbAtoB.isSelected())
-        || (scriptMatchMode == MatchMode.B_TO_A && !rbBtoA.isSelected())
-        || TomogramTool.isTomogramSizeChanged(applicationManager, matchBtoA, AxisID.ONLY);
+      || (scriptMatchMode == MatchMode.A_TO_B && !rbAtoB.isSelected())
+      || (scriptMatchMode == MatchMode.B_TO_A && !rbBtoA.isSelected())
+      || TomogramTool.isTomogramSizeChanged(applicationManager, matchBtoA, AxisID.ONLY);
   }
 
   private void updateMatchTo() {
@@ -1277,17 +1274,20 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
    * Right mouse btn context menu
    */
   public void popUpContextMenu(MouseEvent mouseEvent) {
-    String[] manPagelabel = { "Solvematch", "Matchshifts", "Patchcrawl3d", "Matchorwarp" };
-    String[] manPage = { "solvematch.html", "matchshifts.html", "patchcrawl3d.html",
-        "matchorwarp.html" };
-    String[] logFileLabel = { "Transferfid", "Solvematch", "Patchcorr", "Matchorwarp",
-        "Volcombine" };
-    String[] logFile = { "transferfid.log", "solvematch.log", "patchcorr.log",
-        "matchorwarp.log", "volcombine.log" };
+    String[] manPagelabel =
+      { "Solvematch", "Matchshifts", "Patchcrawl3d", "Matchorwarp" };
+    String[] manPage =
+      { "solvematch.html", "matchshifts.html", "patchcrawl3d.html", "matchorwarp.html" };
+    String[] logFileLabel =
+      { "Transferfid", "Solvematch", "Patchcorr", "Matchorwarp", "Volcombine" };
+    String[] logFile =
+      { "transferfid.log", "solvematch.log", "patchcorr.log", "matchorwarp.log",
+        "volcombine.log" };
 
-    ContextPopup contextPopup = new ContextPopup(pnlRoot, mouseEvent,
-        "TOMOGRAM COMBINATION", ContextPopup.TOMO_GUIDE, manPagelabel, manPage,
-        logFileLabel, logFile, applicationManager, AxisID.ONLY);
+    ContextPopup contextPopup =
+      new ContextPopup(pnlRoot, mouseEvent, "TOMOGRAM COMBINATION",
+        ContextPopup.TOMO_GUIDE, manPagelabel, manPage, logFileLabel, logFile,
+        applicationManager, AxisID.ONLY);
   }
 
   // Button action listener
@@ -1335,47 +1335,46 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
   private void setToolTipText() {
     String text;
     rbBtoA
-        .setToolTipText("Transform the B tomogram into the same orientation as the A tomogram.");
+      .setToolTipText("Transform the B tomogram into the same orientation as the A tomogram.");
     rbAtoB
-        .setToolTipText("Transform the A tomogram into the same orientation as the B tomogram.");
+      .setToolTipText("Transform the A tomogram into the same orientation as the B tomogram.");
     rbSmallPatch
-        .setToolTipText("Use small patches for refining the alignment with correlation - "
-            + "appropriate for feature-rich tomogram from binned CCD camera images "
-            + "or from film.");
+      .setToolTipText("Use small patches for refining the alignment with correlation - "
+        + "appropriate for feature-rich tomogram from binned CCD camera images "
+        + "or from film.");
     rbMediumPatch
-        .setToolTipText("Use medium patches for refining the alignment with correlation - "
-            + "appropriate for feature-rich tomogram from unbinned CCD camera "
-            + "images.");
+      .setToolTipText("Use medium patches for refining the alignment with correlation - "
+        + "appropriate for feature-rich tomogram from unbinned CCD camera " + "images.");
     rbLargePatch
-        .setToolTipText("Use large patches for refining the alignment with correlation - may be "
-            + "needed for tomogram with sparse features.");
+      .setToolTipText("Use large patches for refining the alignment with correlation - may be "
+        + "needed for tomogram with sparse features.");
     cbPatchRegionModel
-        .setToolTipText("Use a model with contours around the areas where patches should be "
-            + "correlated to prevent bad patches outside those areas.");
+      .setToolTipText("Use a model with contours around the areas where patches should be "
+        + "correlated to prevent bad patches outside those areas.");
     btnPatchRegionModel
-        .setToolTipText("Open the volume being matched to and create the patch region model.");
+      .setToolTipText("Open the volume being matched to and create the patch region model.");
     ltfXMin.setToolTipText("Minimum X coordinate for left edge of correlation patches.");
     ltfXMax.setToolTipText("Maximum X coordinate for right edge of correlation patches.");
     ltfYMin.setToolTipText("Minimum Y coordinate for upper edge of correlation patches.");
     ltfYMax.setToolTipText("Maximum Y coordinate for lower edge of correlation patches.");
     ltfZMin.setToolTipText("Minimum Z coordinate for top edge of correlation patches.");
     ltfZMax
-        .setToolTipText("Maximum Z coordinate for bottom edge of correlation patches.");
+      .setToolTipText("Maximum Z coordinate for bottom edge of correlation patches.");
     ltfTempDirectory
-        .setToolTipText("Specify a directory on local disk (e.g., /usr/tmp, or /scratch/myarea) "
-            + "to avoid writing temporary files over a network.");
+      .setToolTipText("Specify a directory on local disk (e.g., /usr/tmp, or /scratch/myarea) "
+        + "to avoid writing temporary files over a network.");
     cbManualCleanup
-        .setToolTipText("If using a temporary directory, select this option if you will want to "
-            + "examine the *.mat file that will be left in it.");
+      .setToolTipText("If using a temporary directory, select this option if you will want to "
+        + "examine the *.mat file that will be left in it.");
     btnImodVolumeA.setToolTipText("Display tomogram from axis A");
     btnImodVolumeB.setToolTipText("Display tomogram from axis B");
     btnCreate
-        .setToolTipText("Run setupcombine to create the com scripts for combining, using the "
-            + "current parameters.");
+      .setToolTipText("Run setupcombine to create the com scripts for combining, using the "
+        + "current parameters.");
     btnCombine.setToolTipText("Start running the combine operation from the beginning.");
     cbNoVolcombine
-        .setToolTipText("Stop after running Matchorwarp.  Use the \"Restart at Volcombine\" button to continue.");
+      .setToolTipText("Stop after running Matchorwarp.  Use the \"Restart at Volcombine\" button to continue.");
     cbParallelProcess
-        .setToolTipText(FinalCombinePanel.VOLCOMBINE_PARALLEL_PROCESSING_TOOL_TIP);
+      .setToolTipText(FinalCombinePanel.VOLCOMBINE_PARALLEL_PROCESSING_TOOL_TIP);
   }
 }
