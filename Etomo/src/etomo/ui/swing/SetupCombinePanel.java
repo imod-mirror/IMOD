@@ -500,8 +500,8 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
     FieldType.STRING, "Extra warping limits: ");
   private final PatchSizePanel pspPatchTypeOrXYZ = PatchSizePanel.getInstance(false);
   private final PatchSizePanel pspAutoPatchFinalSize = PatchSizePanel.getInstance(true);
-  private final CheckBox cbdualvolmatch = new CheckBox(
-    "Use image correlations Use image correlations");
+  private final CheckBox cbDualvolmatch = new CheckBox(
+    InitialCombinePanel.DUALVOLMATCH_LABEL);
   private final JPanel pnlInitialMatchingBody = new JPanel();
 
   private final MultiLineButton btnCreate;
@@ -543,7 +543,7 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
     pnlSolvematch =
       SolvematchPanel.getInstance(tomogramCombinationDialog,
         TomogramCombinationDialog.lblSetup, applicationManager,
-        ReconScreenState.COMBINE_SETUP_SOLVEMATCH_HEADER_GROUP, dialogType);
+        ReconScreenState.COMBINE_SETUP_SOLVEMATCH_HEADER_GROUP, dialogType, false);
     phPatchAndMinMax =
       PanelHeader
         .getInstance("Patch Parameters for Refining Alignment", this, dialogType);
@@ -590,6 +590,7 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
     rbBtoA.setAlignmentX(Component.LEFT_ALIGNMENT);
     binningWarning.setAlignmentX(Component.CENTER_ALIGNMENT);
     btnPatchRegionModel.setSize();
+    cbDualvolmatch.setSelected(true);
     // panels
     JPanel pnlMinMax = new JPanel();
     JPanel pnlBtoA = new JPanel();
@@ -644,6 +645,7 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
     // InitialMatchingBody
     pnlInitialMatchingBody.setLayout(new BoxLayout(pnlInitialMatchingBody,
       BoxLayout.Y_AXIS));
+    pnlInitialMatchingBody.add(cbDualvolmatch);
     pnlInitialMatchingBody.add(pnlSolvematch.getContainer());
     // PatchAndMinMax
     pnlPatchAndMinMax.setBorder(BorderFactory.createEtchedBorder());
@@ -751,7 +753,7 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
     UIUtilities.setButtonSizeAll(pnlButton, UIParameters.getInstance()
       .getButtonDimension());
     // update display
-    pnlSolvematch.updateUseFiducialModel();
+    pnlSolvematch.updateDisplay(!cbDualvolmatch.isSelected());
     updatePatchRegionModel();
   }
 
@@ -765,6 +767,7 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
     btnDefaults.addActionListener(actionListener);
     cbParallelProcess.addActionListener(actionListener);
     cbAutoPatchFinalSize.addActionListener(actionListener);
+    cbDualvolmatch.addActionListener(actionListener);
     // Bind the radio buttons to the action listener
     RBMatchToListener rbMatchToListener = new RBMatchToListener(this);
     rbAtoB.addActionListener(rbMatchToListener);
@@ -817,6 +820,7 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
     boolean autoPatchFinalSize = cbAutoPatchFinalSize.isSelected();
     pspAutoPatchFinalSize.setEnabled(autoPatchFinalSize);
     ltfExtraResidualTargets.setEnabled(autoPatchFinalSize);
+    pnlSolvematch.updateDisplay(!cbDualvolmatch.isSelected());
   }
 
   void setParameters(final ConstMetaData metaData) {
@@ -988,7 +992,7 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
       ltfExtraResidualTargets.setText(combineParams.getExtraResidualTargets());
     }
     // update
-    pnlSolvematch.updateUseFiducialModel();
+    pnlSolvematch.updateDisplay(!cbDualvolmatch.isSelected());
     updatePatchRegionModel();
   }
 
