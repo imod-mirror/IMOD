@@ -246,15 +246,14 @@ int main(int argc, char *argv[])
 		fprintf(stderr, "       as masks for splitting contours (-b)\n" );
 		exit(3);
 	}
-	
+
 	for(int i=0; i<numSplitObjs; i++)
 	{
 		for(int j=0; j<numMaskObjs; j++)
 			if( objList[i]==objMaskList[j] )
 				printf("WARNING: Object %d appears as both a split and mask object.\n", i );
 	}
-	
-	for(int i=0; i<numSplitObjs; i++)
+  for(int i=0; i<numSplitObjs; i++)
 	{
 		objList[i]--;
 		if( objList[i] < 0 || objList[i] >= numObjectsAtStart )
@@ -300,19 +299,18 @@ int main(int argc, char *argv[])
 	char maskObjName [1024];
 	char newObjName  [1024];
 	float red, green, blue;
-	
 	for(int s=0; s<numSplitObjs; s++)		// for each object to split
 	{
-		Iobj *objS = getAndSetObj( imod, objList[s] );
-		sprintf( splitObjName, "%s", imodObjectGetName(objS) );
-		if( useObjNums || strlen(splitObjName) == 0 )
-			sprintf( splitObjName, "object %d", objList[s]+1 );
-		
 		for(int m=0; m<numMaskObjs; m++)		// for each mask object to split.
 		{
 			Iobj *objNew = addNewObj(imod);							// create a new object in the model
 			imodObjectGetColor( objNew, &red, &green, &blue );		// get object colors
 			
+      Iobj *objS = getAndSetObj( imod, objList[s] );
+      sprintf( splitObjName, "%s", imodObjectGetName(objS) );
+      if( useObjNums || strlen(splitObjName) == 0 )
+        sprintf( splitObjName, "object %d", objList[s]+1 );
+		
 			Iobj *objM = getAndSetObj( imod, objMaskList[m] );	// our mask object
 			Iobj *objDup = imodObjectDup( objS );		// duplicate our split object
 			imodObjectCopy( objDup, objNew );				// copy properties (color, name etc)
@@ -338,6 +336,7 @@ int main(int argc, char *argv[])
 		if(keepOutside)		// if keep inside is on, add an extra object on the end
 		{
 			Iobj *objNew = addNewObj(imod);				// create new object
+      Iobj *objS = getAndSetObj( imod, objList[s] );
 			imodObjectCopy( objS, objNew );				// copy properties (color, name etc)
 			sprintf( newObjName, "%s... masked OUTSIDE",	 imodObjectGetName(objS) );
 			imodObjectSetName(objNew, newObjName);					// set object's name
