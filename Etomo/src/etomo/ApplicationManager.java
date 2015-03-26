@@ -6282,12 +6282,7 @@ public final class ApplicationManager extends BaseManager implements
         // If batchruntomo data is in the metadata, then combine was run by batchruntomo.
         // The batchruntomo data must override other meta data. Transfer the batchruntomo
         // data to properties managed by etomo, and remove the original Batchruntomo data.
-        metaData.moveExtraResidualTargetsFromBatchruntomo();
-        metaData.moveFiducialMatchFromBatchruntomo();
-        // TODO
-        metaData.moveAutoPatchFinalSizeFromBatchruntomo();
-        metaData.moveMatchModeFromBatchruntomo();
-        metaData.movePatchTypeOrXYZFromBatchruntomo();
+        metaData.moveBatchruntomoSettings();
         state.setCombineScriptsCreated(true);
         state.setCombineMatchMode(metaData.getMatchMode());
       }
