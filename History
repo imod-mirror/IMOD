@@ -1,10 +1,12 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-3/19/16: IMOD_4-8-28
-3/19/16: In eTomo - PEET fixed a problem where blurMaskStdDev was not being
+3/26/15: Fixed slashmasksort.
+
+3/19/15: IMOD_4-8-28
+3/19/15: In eTomo - PEET fixed a problem where blurMaskStdDev was not being
 saved when "User supplied binary file" was selected.(Bug# 1867)
 
-3/16/16: Fixed Ccderaser taking mean inside instead of outside boundary
+3/16/15: Fixed Ccderaser taking mean inside instead of outside boundary
 contours (In 4.7).
 
 3/15/15: IMOD_4-7-14
