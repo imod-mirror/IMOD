@@ -409,6 +409,7 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
   public static final String lblInitial = "Initial Match";
   public static final String lblFinal = "Final Match";
   public static final int ALL_FIELDS = 10;
+
   private SetupCombinePanel pnlSetup;
   private InitialCombinePanel pnlInitial;
   private FinalCombinePanel pnlFinal;
@@ -545,6 +546,7 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
 
   public void getParameters(ReconScreenState screenState) {
     pnlSetup.getParameters(screenState);
+    pnlInitial.getParameters(screenState);
     pnlFinal.getParameters(screenState);
   }
 
