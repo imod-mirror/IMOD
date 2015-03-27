@@ -173,6 +173,8 @@ public final class CombineParams implements ConstCombineParams, Storable {
     "WedgeReductionFraction");
   private final StringProperty lowFromBothRadius =
     new StringProperty("LowFromBothRadius");
+  private final EtomoNumber initialVolumeMatching = new EtomoNumber(
+    EtomoNumber.Type.BOOLEAN, "InitialVolumeMatching");
 
   private final BaseManager manager;
 
@@ -212,6 +214,7 @@ public final class CombineParams implements ConstCombineParams, Storable {
     extraResidualTargets.reset();
     wedgeReductionFraction.reset();
     lowFromBothRadius.reset();
+    initialVolumeMatching.reset();
     useList.reset();
     fiducialMatchListA.reset();
     fiducialMatchListB.reset();
@@ -389,11 +392,11 @@ public final class CombineParams implements ConstCombineParams, Storable {
     }
   }
 
-  public void setExtraResidualTargets(final String input) {
-    extraResidualTargets.set(input);
+  public void setInitialVolumeMatching(final boolean input) {
+    initialVolumeMatching.set(input);
   }
 
-  public void setExtraResidualTargets(final StringProperty input) {
+  public void setExtraResidualTargets(final String input) {
     extraResidualTargets.set(input);
   }
 
@@ -579,6 +582,7 @@ public final class CombineParams implements ConstCombineParams, Storable {
     extraResidualTargets.store(props, prepend);
     wedgeReductionFraction.store(props, prepend);
     lowFromBothRadius.store(props, prepend);
+    initialVolumeMatching.store(props, prepend);
   }
 
   /**
@@ -704,6 +708,7 @@ public final class CombineParams implements ConstCombineParams, Storable {
     extraResidualTargets.load(props, prepend);
     wedgeReductionFraction.load(props, prepend);
     lowFromBothRadius.load(props, prepend);
+    initialVolumeMatching.load(props, prepend);
   }
 
   /**

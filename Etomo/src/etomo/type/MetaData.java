@@ -887,6 +887,8 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     BATCHRUNTOMO_KEY + "." + COMBINE_KEY + ".MatchMode");
   private final StringProperty patchTypeOrXYZFromBatchruntomo = new StringProperty(
     BATCHRUNTOMO_KEY + "." + COMBINE_KEY + ".PatchSize");
+  private final EtomoBoolean2 initialVolumeMatching = new EtomoBoolean2(BATCHRUNTOMO_KEY
+    + "." + COMBINE_KEY + ".InitialVolumeMatching");
 
   public MetaData(final ApplicationManager manager, final LogProperties logProperties) {
     super(logProperties);
@@ -1919,6 +1921,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     autoPatchFinalSizeFromBatchruntomo.reset();
     matchModeFromBatchruntomo.reset();
     patchTypeOrXYZFromBatchruntomo.reset();
+    initialVolumeMatching.reset();
     combineParams.reset();
     // load
     prepend = createPrepend(prepend);
@@ -2263,6 +2266,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     autoPatchFinalSizeFromBatchruntomo.load(props);
     matchModeFromBatchruntomo.load(props);
     patchTypeOrXYZFromBatchruntomo.load(props);
+    initialVolumeMatching.load(props);
     // backwards compatibility - not necessary to load minimumOverlap
     if (!trackLengthAndOverlapA.isEmpty()) {
       if (lengthOfPiecesA.isNull()) {
@@ -2691,6 +2695,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     autoPatchFinalSizeFromBatchruntomo.store(props);
     matchModeFromBatchruntomo.store(props);
     patchTypeOrXYZFromBatchruntomo.store(props);
+    initialVolumeMatching.store(props);
     // Backward compatibility - not necessary to store minimumOverlap
     origImageStackExt.store(props, prepend);
   }
@@ -2720,36 +2725,29 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
       || !fiducialMatchFromBatchruntomo.isEmpty()
       || !autoPatchFinalSizeFromBatchruntomo.isEmpty()
       || !matchModeFromBatchruntomo.isEmpty()
-      || !patchTypeOrXYZFromBatchruntomo.isEmpty();
+      || !patchTypeOrXYZFromBatchruntomo.isEmpty() || initialVolumeMatching.is();
   }
 
-  public void moveExtraResidualTargetsFromBatchruntomo() {
-    combineParams.setExtraResidualTargets(extraResidualTargetsFromBatchruntomo);
+  /**
+   * Copies batchruntomo settings to equivalent etomo-managed settings.
+   */
+  public void moveBatchruntomoSettings() {
+    combineParams.setExtraResidualTargets(extraResidualTargetsFromBatchruntomo.toString());
     extraResidualTargetsFromBatchruntomo.reset();
-  }
-
-  public void moveFiducialMatchFromBatchruntomo() {
     combineParams.setFiducialMatch(fiducialMatchFromBatchruntomo);
     fiducialMatchFromBatchruntomo.reset();
-  }
-
-  public void moveAutoPatchFinalSizeFromBatchruntomo() {
     combineParams.setPatchSize(true, autoPatchFinalSizeFromBatchruntomo);
     autoPatchFinalSizeFromBatchruntomo.reset();
-  }
-
-  public void moveMatchModeFromBatchruntomo() {
     combineParams.setMatchMode(matchModeFromBatchruntomo);
     matchModeFromBatchruntomo.reset();
+    combineParams.setPatchSize(false, patchTypeOrXYZFromBatchruntomo);
+    patchTypeOrXYZFromBatchruntomo.reset();
+    combineParams.setInitialVolumeMatching(initialVolumeMatching.is());
+    initialVolumeMatching.reset();
   }
 
   public MatchMode getMatchMode() {
     return combineParams.getMatchMode();
-  }
-
-  public void movePatchTypeOrXYZFromBatchruntomo() {
-    combineParams.setPatchSize(false, patchTypeOrXYZFromBatchruntomo);
-    patchTypeOrXYZFromBatchruntomo.reset();
   }
 
   public String getMinimumOverlap(final AxisID axisID) {

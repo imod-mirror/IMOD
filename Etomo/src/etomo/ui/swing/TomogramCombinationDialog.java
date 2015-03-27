@@ -401,7 +401,7 @@ import etomo.type.TomogramState;
  * <p> </p>
  */
 public final class TomogramCombinationDialog extends ProcessDialog implements
-    ContextMenu, AbstractParallelDialog, ProcessInterface {
+  ContextMenu, AbstractParallelDialog, ProcessInterface {
   private static final int SETUP_INDEX = 0;
   private static final int INITIAL_INDEX = 1;
   private static final int FINAL_INDEX = 2;
@@ -409,6 +409,7 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
   public static final String lblInitial = "Initial Match";
   public static final String lblFinal = "Final Match";
   public static final int ALL_FIELDS = 10;
+
   private SetupCombinePanel pnlSetup;
   private InitialCombinePanel pnlInitial;
   private FinalCombinePanel pnlFinal;
@@ -432,9 +433,9 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
 
   protected String paramString() {
     return "pnlSetup=" + pnlSetup + ",\npnlInitial=" + pnlInitial + ",\npnlFinal="
-        + pnlFinal + ",\ncombinePanelEnabled=" + combinePanelEnabled
-        + ",\nparallelProcessCheckBoxText=" + parallelProcessCheckBoxText
-        + ",\nidxLastTab=" + idxLastTab;
+      + pnlFinal + ",\ncombinePanelEnabled=" + combinePanelEnabled
+      + ",\nparallelProcessCheckBoxText=" + parallelProcessCheckBoxText
+      + ",\nidxLastTab=" + idxLastTab;
   }
 
   public TomogramCombinationDialog(ApplicationManager appMgr) {
@@ -442,16 +443,16 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
     ConstEtomoNumber maxCPUs = CpuAdoc.INSTANCE.getMaxVolcombine();
     mediator = appMgr.getProcessingMethodMediator(axisID);
     if (maxCPUs != null && !maxCPUs.isNull()) {
-      parallelProcessCheckBoxText = ParallelPanel.FIELD_LABEL
-          + ParallelPanel.MAX_CPUS_STRING + maxCPUs.toString();
+      parallelProcessCheckBoxText =
+        ParallelPanel.FIELD_LABEL + ParallelPanel.MAX_CPUS_STRING + maxCPUs.toString();
     }
     else {
       parallelProcessCheckBoxText = ParallelPanel.FIELD_LABEL;
     }
     // Instantiate the tab pane contents
-    pnlSetup =  SetupCombinePanel.getInstance(this, applicationManager, dialogType);
-    pnlInitial = new InitialCombinePanel(this, applicationManager, dialogType,
-        btnAdvanced);
+    pnlSetup = SetupCombinePanel.getInstance(this, applicationManager, dialogType);
+    pnlInitial =
+      InitialCombinePanel.getInstance(this, applicationManager, dialogType, btnAdvanced);
     pnlFinal = new FinalCombinePanel(this, applicationManager, dialogType, btnAdvanced);
 
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
@@ -514,7 +515,8 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
    * @param combineParams
    * @throws NumberFormatException
    */
-  public boolean getCombineParams(CombineParams combineParams, final boolean doValidation)
+  public boolean
+    getCombineParams(CombineParams combineParams, final boolean doValidation)
       throws NumberFormatException {
     return pnlSetup.getParameters(combineParams, doValidation);
   }
@@ -544,6 +546,7 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
 
   public void getParameters(ReconScreenState screenState) {
     pnlSetup.getParameters(screenState);
+    pnlInitial.getParameters(screenState);
     pnlFinal.getParameters(screenState);
   }
 
@@ -556,7 +559,7 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
       return;
     }
     if (combineProcessType == CombineProcessType.SOLVEMATCH
-        || combineProcessType == CombineProcessType.MATCHVOL1) {
+      || combineProcessType == CombineProcessType.MATCHVOL1) {
       tabbedPane.setSelectedIndex(INITIAL_INDEX);
     }
     else {
@@ -588,12 +591,12 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
    * @throws NumberFormatException
    */
   public boolean getSolvematchParams(SolvematchParam solvematchParams,
-      final boolean doValidation) throws NumberFormatException {
+    final boolean doValidation) throws NumberFormatException {
     return pnlInitial.getSolvematchParams(solvematchParams, doValidation);
   }
 
   public boolean getParameters(MatchvolParam param, final boolean doValidation)
-      throws NumberFormatException {
+    throws NumberFormatException {
     return pnlInitial.getParameters(param, doValidation);
   }
 
@@ -622,7 +625,7 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
    * @throws NumberFormatException
    */
   public boolean getPatchcrawl3DParams(Patchcrawl3DParam patchcrawl3DParams,
-      final boolean doValidation) throws NumberFormatException {
+    final boolean doValidation) throws NumberFormatException {
     return pnlFinal.getPatchcrawl3DParams(patchcrawl3DParams, doValidation);
   }
 
@@ -655,8 +658,7 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
     pnlFinal.setMatchorwarpParams(matchorwarpParams);
   }
 
-  public void disableGpu(final boolean disable) {
-  }
+  public void disableGpu(final boolean disable) {}
 
   public void lockProcessingMethod(final boolean lock) {
     pnlSetup.lockProcessingMethod(lock);
@@ -814,7 +816,7 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
    * @throws NumberFormatException
    */
   public boolean getMatchorwarpParams(MatchorwarpParam matchorwarpParams,
-      final boolean doValidation) throws NumberFormatException {
+    final boolean doValidation) throws NumberFormatException {
     return pnlFinal.getMatchorwarpParams(matchorwarpParams, doValidation);
   }
 
@@ -841,13 +843,15 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
    * Right mouse button context menu
    */
   public void popUpContextMenu(MouseEvent mouseEvent) {
-    String[] manPagelabel = { "Solvematch", "Matchshifts", "Patchcrawl3d", "Matchorwarp" };
-    String[] manPage = { "solvematch.html", "matchshifts.html", "patchcrawl3d.html",
-        "matchorwarp.html" };
+    String[] manPagelabel =
+      { "Solvematch", "Matchshifts", "Patchcrawl3d", "Matchorwarp" };
+    String[] manPage =
+      { "solvematch.html", "matchshifts.html", "patchcrawl3d.html", "matchorwarp.html" };
     String[] logFileLabel = { "Solvematch.log", "Patchcorr.log", "Matchorwarp.log" };
-    ContextPopup contextPopup = new ContextPopup(rootPanel, mouseEvent,
-        "TOMOGRAM COMBINATION", ContextPopup.TOMO_GUIDE, manPagelabel, manPage,
-        logFileLabel, logFileLabel, applicationManager, axisID);
+    ContextPopup contextPopup =
+      new ContextPopup(rootPanel, mouseEvent, "TOMOGRAM COMBINATION",
+        ContextPopup.TOMO_GUIDE, manPagelabel, manPage, logFileLabel, logFileLabel,
+        applicationManager, axisID);
   }
 
   public boolean isTabEnabled(String tabLabel) {
