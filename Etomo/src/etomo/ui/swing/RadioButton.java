@@ -121,6 +121,10 @@ final class RadioButton implements RadioButtonInterface, Field, ActionListener {
   public boolean isText() {
     return false;
   }
+  
+  public boolean isVisible() {
+    return radioButton.isVisible();
+  }
 
   public String toString() {
     return radioButton.getText() + ": " + (radioButton.isSelected() ? "On" : "Off");
