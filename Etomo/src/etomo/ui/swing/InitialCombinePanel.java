@@ -260,10 +260,6 @@ import etomo.util.MRCHeader;
  */
 public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
   Run3dmodButtonContainer, Expandable {
-  static final String INITIAL_MATCHING_LABEL = "Initial Matching Parameters";
-  static final String DUALVOLMATCH_LABEL =
-    "Use image correlations Use image correlations";
-
   private final JPanel pnlRoot = new JPanel();
   private final Run3dmodButton btnMatchvolRestart;
   private final SpacedPanel pnlMatchvol1Body = SpacedPanel.getInstance(true);
@@ -272,10 +268,6 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
     "Initial match size: ");
   private final JLabel lOutputSizeYInfo = new JLabel();
   private final ButtonActionListener buttonAction = new ButtonActionListener(this);
-  private final JPanel pnlInitialMatchingBody = new JPanel();
-  private final CheckBox cbDualvolmatch = new CheckBox(DUALVOLMATCH_LABEL);
-
-  private final PanelHeader phInitialMatching;
   private final TomogramCombinationDialog tomogramCombinationDialog;
   private final ApplicationManager applicationManager;
   private final DialogType dialogType;
@@ -300,13 +292,11 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
     btnMatchvolRestart =
       (Run3dmodButton) appMgr.getProcessResultDisplayFactory(AxisID.ONLY)
         .getRestartMatchvol1();
-    phInitialMatching =
-      PanelHeader.getAdvancedBasicInstance(INITIAL_MATCHING_LABEL, this, dialogType,
-        globalAdvancedButton);
     pnlSolvematch =
       SolvematchPanel.getInstance(tomogramCombinationDialog,
         TomogramCombinationDialog.lblInitial, appMgr,
-        ReconScreenState.COMBINE_INITIAL_SOLVEMATCH_HEADER_GROUP, dialogType, false);
+        ReconScreenState.COMBINE_INITIAL_SOLVEMATCH_HEADER_GROUP, dialogType, true,
+        globalAdvancedButton);
   }
 
   static InitialCombinePanel getInstance(final TomogramCombinationDialog parent,
@@ -322,33 +312,17 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
 
   private void createPanel() {
     // panels
-    JPanel pnlInitialMatching = new JPanel();
     EtomoPanel pnlMatchvol1 = new EtomoPanel();
-    JPanel pnlDualvolmatch = new JPanel();
     // init
     btnMatchvolRestart.setContainer(this);
-    cbDualvolmatch.setSelected(true);
     lOutputSizeYInfo.setAlignmentX(Component.CENTER_ALIGNMENT);
     btnMatchvolRestart.setSize();
     btnMatchvolRestart.setAlignmentX(Component.CENTER_ALIGNMENT);
     btnMatchvolRestart.setSize();
     // root
     pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.Y_AXIS));
-    pnlRoot.add(pnlInitialMatching);
+    pnlRoot.add(pnlSolvematch.getContainer());
     pnlRoot.add(pnlMatchvol1);
-    // InitialMatching
-    pnlInitialMatching.setLayout(new BoxLayout(pnlInitialMatching, BoxLayout.Y_AXIS));
-    pnlInitialMatching.add(phInitialMatching.getContainer());
-    pnlInitialMatching.add(pnlInitialMatchingBody);
-    // InitialMatchingBody
-    pnlInitialMatchingBody.setLayout(new BoxLayout(pnlInitialMatchingBody,
-      BoxLayout.Y_AXIS));
-    pnlInitialMatchingBody.add(cbDualvolmatch);
-    pnlInitialMatchingBody.add(pnlSolvematch.getContainer());
-    pnlInitialMatchingBody.add(pnlDualvolmatch);
-    // Dualvolmatch
-    pnlDualvolmatch.setBorder(new EtchedBorder("Dualvolmatch Parameters").getBorder());
-    pnlDualvolmatch.setLayout(new BoxLayout(pnlDualvolmatch, BoxLayout.Y_AXIS));
     // Matchvol1
     pnlMatchvol1.setBorder(BorderFactory.createEtchedBorder());
     pnlMatchvol1.setLayout(new BoxLayout(pnlMatchvol1, BoxLayout.Y_AXIS));
@@ -359,14 +333,11 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
     pnlMatchvol1Body.add(ltfOutputSizeY);
     pnlMatchvol1Body.add(lOutputSizeYInfo);
     pnlMatchvol1Body.add(btnMatchvolRestart);
-    //
-    updateDisplay();
   }
 
   private void addListeners() {
     // Bind the UI objects to their ActionListeners
     btnMatchvolRestart.addActionListener(buttonAction);
-    cbDualvolmatch.addActionListener(buttonAction);
     // Mouse listener for context menu
     GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
     pnlRoot.addMouseListener(mouseAdapter);
@@ -453,7 +424,6 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
 
   void updateAdvanced(final boolean state) {
     updateMatchvol1Advanced(state);
-    pnlSolvematch.updateDisplay(cbDualvolmatch.isSelected());
   }
 
   void updateMatchvol1Advanced(final boolean advanced) {
@@ -496,12 +466,6 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
     else if (matchvol1Header != null && matchvol1Header.equalsAdvancedBasic(button)) {
       updateMatchvol1Advanced(expanded);
     }
-    if (phInitialMatching.equalsOpenClose(button)) {
-      pnlInitialMatchingBody.setVisible(button.isExpanded());
-    }
-    else if (phInitialMatching.equalsAdvancedBasic(button)) {
-      updateAdvanced(button.isExpanded());
-    }
     UIHarness.INSTANCE.pack(AxisID.ONLY, applicationManager);
   }
 
@@ -520,6 +484,10 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
   public boolean getSolvematchParams(final SolvematchParam solvematchParam,
     final boolean doValidation) {
     return pnlSolvematch.getParameters(solvematchParam, doValidation);
+  }
+
+  void getParameters(final ReconScreenState screenState) {
+    pnlSolvematch.getParameters(screenState);
   }
 
   final void setParameters(final ReconScreenState screenState) {
@@ -608,13 +576,6 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
         run3dmodMenuOptions, dialogType,
         tomogramCombinationDialog.getRunProcessingMethod());
     }
-    else {
-      updateDisplay();
-    }
-  }
-
-  void updateDisplay() {
-    pnlSolvematch.updateDisplay(!cbDualvolmatch.isSelected());
   }
 
   /**
