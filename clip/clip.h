@@ -50,8 +50,6 @@ typedef struct Grap_options
   float red, green, blue;
   float thresh;
   float weight;
-  float pctlFrac;
-  float falloffFrac;
   float pad;
   int   mode;
   int   dim;

@@ -133,8 +133,6 @@ void default_options(ClipOptions *opt)
   opt->red = IP_DEFAULT; opt->green = IP_DEFAULT; opt->blue = IP_DEFAULT;
   opt->high = IP_DEFAULT; opt->low = IP_DEFAULT;
   opt->thresh = IP_DEFAULT;
-  opt->pctlFrac = IP_DEFAULT;
-  opt->falloffFrac = IP_DEFAULT;
   opt->weight = IP_DEFAULT;
   opt->pad    = IP_DEFAULT;
   opt->process = IP_NONE;
@@ -346,10 +344,6 @@ int main( int argc, char *argv[] )
 
       case 't':
         sscanf(argv[++i], "%f", &(opt.thresh)); break;
-      case 'E':
-        sscanf(argv[++i], "%f", &(opt.pctlFrac)); break;
-      case 'F':
-        sscanf(argv[++i], "%f", &(opt.falloffFrac)); break;
 
       case 'k':
       case 'w':

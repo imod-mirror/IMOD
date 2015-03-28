@@ -65,27 +65,12 @@ extent included in the analysis will be based on an integral number of blocks.
 The default is to analyze one block at each sample position.  When multiple
 tomogram samples are analyzed, all of the available positions will be used.
 
-[Field = HighSDboxCriterion]
-short = high
-type = F
-usage = Criterion for using high SD boxes to define extent for Tomopitch output
-tooltip = 
-manpage = Determine sample extent simply from boxes with SD values the given
-criterion number of MADNs above the edge median.
-
-[Field = BeadModelFile]
-short = bead
-type = FN
-usage = Name of model file with positions to use when finding extent with high SD
-tooltip = 
-manpage = 
-
 [Field = NumberOfDefaultScales]
 short = scales
 type = I
 usage = Number of default, isotropic binnings to analyze
 tooltip = 
-manpage = This option can be used to specify how many default binnings to
+manpage = This option can be used to specify a how many default binnings to
 analyze, instead of entering each one with the \fB-binning\fR option.  These
 binnings are isotropic (the same in each dimension).  The default binnings
 available are 1, 2, 3, 4, 6, 8, 12, 16, 24, 32, 48, and 64.  The default is to

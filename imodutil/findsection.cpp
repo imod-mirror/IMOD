@@ -40,8 +40,6 @@ FindSect::FindSect()
   mNumThicknesses = 0;
   mFitPitchSeparately = 0;
   mScanBlockSize = -1;
-  mColMedians = NULL;
-  mColSlice = NULL;
 
   // Parameters
   // 1: Minimum # of points for using robust fit to get pitch line on one surface
@@ -111,14 +109,13 @@ void FindSect::main( int argc, char *argv[])
   int maxEdgeBoxes, maxCenBoxes, maxColumnBuf, zRange, rem, boxNum, izInside[2], izMid;
   int numIter, wgtColIn, wgtColOut, numSamples, maxPitchFit, samBlockSpace, tomoSeq;
   int maxBlocks, numTomoOpt, numBinEntries, minBoxes, maxPixels;
-  int maxColBoxes, maxColSlice;
   float dmin, dmax, dmean, tmin, tmax, tmean, insideMed, lastRatio, ratioDiff, lastDiff;
   float pixelDelta[3], newCell[6], origin[3], newOrigin[3], curTilt[3];
   float ratio, fitConst[2], xx, yy, xySpacing, madnFac, numBoxPerBlock;
   float fitSD[MAX_FIT_COL], fitMean[MAX_FIT_COL], fitSolution[MAX_FIT_COL];
   int defaultScales[MAX_DEFAULT_SCALES] = {1, 2, 3, 4, 6, 8, 12, 16, 24, 32, 48, 64};
   float axisRotation, tiltXvert[4], tiltYvert[4], rotMat[3][2];
-  int ifReconArea, nxSeries, nySeries, sign, surfaceLim[2], combineLim[2], colXyz[3];
+  int ifReconArea, nxSeries, nySeries, sign, surfaceLim[2], combineLim[2];
   double meanSum;
   float edgeDenMeans[MAX_MBS_SCALES], cenDenMeans[MAX_MBS_SCALES];
   int minRange[3] = {0, 0, 0};
@@ -127,12 +124,9 @@ void FindSect::main( int argc, char *argv[])
   char *pointRoot = NULL;
   char *pitchName = NULL;
   char *surfaceName = NULL;
-  char *beadFile = NULL;
   Imod *pitchModel;
-  Imod *beadModel;
   int sampleExtent = 0;
   int numPitchPairs = 0;
-  float highSDcrit = 0.;
   int bufferStartInds[MAX_MBS_SCALES];
   MrcHeader *inHeader;
   float *writeSrc, *writeBuf, *smoothBound;
@@ -141,6 +135,7 @@ void FindSect::main( int argc, char *argv[])
   float borderFrac = 0.05f;
   float edgeThickFrac = 0.025f;
   float edgeAreaFrac = 0.5f;
+  float cenThickFrac = 0.1f;
   float cenAreaFrac = 0.33f;
 
   // Parameters
@@ -157,10 +152,6 @@ void FindSect::main( int argc, char *argv[])
   float combineLowPctl = 0.01f;
   // 26: Number of pixels to back off from the low-percentile of positions
   int combineOutsidePix = 20;
-  // 27: Fraction of depth extent to use for center samples
-  float cenThickFrac = 0.1f;
-  float highSDexcludePctl = 0.01f;
-  float beadExcludePctl = 0.04f;
 
   // Fallbacks from    ../manpages/autodoc2man 2 1 findsection
   int numOptions = 23;
@@ -245,9 +236,6 @@ void FindSect::main( int argc, char *argv[])
       SET_CONTROL_FLOAT(24, combineHighPctl);
       SET_CONTROL_FLOAT(25, combineLowPctl);
       SET_CONTROL_INT(26, combineOutsidePix);
-      SET_CONTROL_FLOAT(27, cenThickFrac);
-      SET_CONTROL_FLOAT(28, highSDexcludePctl);
-      SET_CONTROL_FLOAT(29, beadExcludePctl);
     }
   }
   PipGetInteger("DebugOutput", &mDebugOutput);
@@ -326,26 +314,21 @@ void FindSect::main( int argc, char *argv[])
   PipGetString("SurfaceModel", &surfaceName);
   PipGetBoolean("SeparatePitchLineFits", &mFitPitchSeparately);
   PipGetString("TomoPitchModel", &pitchName);
-  PipGetFloat("HighSDboxCriterion", &highSDcrit);
-  PipGetString("BeadModelFile", &beadFile);
   if (surfaceName && numTomos > 1)
     exitError("You cannot output a surface model with multiple input tomograms");
   ierr = PipGetInteger("NumberOfSamples", &numSamples);
-  if (!ierr && (numTomos > 1 || highSDcrit > 0.))
-    exitError("You cannot specify sampling with multiple input tomograms or analysis "
-              "for high SD");
-  if (ierr && pitchName && highSDcrit <= 0. && numTomos == 1)
+  if (!ierr && numTomos > 1)
+    exitError("You cannot specify sampling with multiple input tomograms");
+  if (ierr && pitchName && numTomos == 1)
     exitError("You must specify the number of samples for a boundary model from a "
               "single tomogram");
   ierr = PipGetInteger("SampleExtentInY", &sampleExtent);
-  if (!ierr && (numTomos > 1 || highSDcrit > 0.))
-    exitError("You cannot specify sample extent with multiple tomograms or analysis "
-              "for high SD"); 
+  if (!ierr && numTomos > 1)
+    exitError("You cannot specify sample extent with multiple tomograms"); 
   if (!ierr && !pitchName)
     exitError("You cannot specify sample extent unless outputting a model for "
               "tomopitch"); 
 
-  cenThickFrac = highSDcrit > 0. ? 0.4f : 0.1f;
   borderFrac = surfaceName ? 0.025f : 0.05f;
 
   // Initialize coordinate limits with a border on the other two axes; get limits
@@ -435,8 +418,6 @@ void FindSect::main( int argc, char *argv[])
   maxCenBoxes = 0;
   maxPitchFit = 0;
   maxBlocks = 0;
-  maxColBoxes = 0;
-  maxColSlice = 0;
   for (scl = 0; scl < numBinnings; scl++) {
     edgeBoxes = 2;
     cenBoxes = 1;
@@ -481,10 +462,6 @@ void FindSect::main( int argc, char *argv[])
       }
       maxPitchFit = B3DMAX(maxPitchFit, size * mNumBlocks[scl][b3dX]);
     }
-
-    // Keep track of biggest thickness and biggest box slice in X-Z for column outputs
-    maxColBoxes = B3DMAX(maxColBoxes, mNumBoxes[scl][mThickInd]);
-    maxColSlice = B3DMAX(maxColSlice, mNumBoxes[scl][b3dX]*mNumBoxes[scl][mThickInd]);
   }
 
   size = b3dIMax(6, bufferStartInds[numBinnings], 2 * maxEdgeBoxes, 2 * maxCenBoxes, 
@@ -494,11 +471,7 @@ void FindSect::main( int argc, char *argv[])
   mMeans = B3DMALLOC(float, mStatStartInds[numBinnings]);
   mSDs = B3DMALLOC(float, mStatStartInds[numBinnings]);
   mThicknesses = B3DMALLOC(float, maxBlocks);
-  if (volRoot) {
-    mColSlice = B3DMALLOC(float, maxColSlice + maxColBoxes);
-    mColMedians = mColSlice + maxColSlice;
-  }
-  if (!mBuffer || !mMeans || !mSDs || !mThicknesses || (volRoot && !mColSlice))
+  if (!mBuffer || !mMeans || !mSDs || !mThicknesses)
     exitError("Allocating arrays for image data and statistics");
 
   // Set up a tomopitch model
@@ -573,15 +546,6 @@ void FindSect::main( int argc, char *argv[])
           for (iz = 0; iz < mNumBoxes[scl][b3dZ]; iz++) {
             writeBuf = writeSrc + mStatStartInds[scl] + iz *  mNumBoxes[scl][b3dY] * 
               mNumBoxes[scl][b3dX];
-            if (loop) {
-              for (iyBox = 0; iyBox < mNumBoxes[scl][b3dY]; iyBox++)  {
-                for (ixBox = 0; ixBox < mNumBoxes[scl][b3dX]; ixBox++) {
-                  ind = ixBox + iyBox * mNumBoxes[scl][b3dX];
-                  writeBuf[ind] = sqrt(writeBuf[ind]);
-                }
-              }
-              }
-
             iiuWriteSection(1, (char *)writeBuf);
             arrayMinMaxMean(writeBuf, mNumBoxes[scl][b3dX], mNumBoxes[scl][b3dY], 0,
                             mNumBoxes[scl][b3dX] - 1, 0 , mNumBoxes[scl][b3dY] - 1, &tmin,
@@ -595,53 +559,6 @@ void FindSect::main( int argc, char *argv[])
         }          
         writeSrc = mSDs;
       } 
-
-      // Set up output file for column medians
-      for (scl = 0; scl < numBinnings; scl++) {
-        sprintf((char *)mBuffer, "%s%d-scale%d.colmed", volRoot, tomo, scl);
-        iiuOpen(1, (char *)mBuffer, "NEW");
-        setupBlocks(mNumBoxes[scl][b3dX], scl, b3dX);
-        setupBlocks(mNumBoxes[scl][yInd], scl, yInd);
-        printf("%d: %d x blocks of %d+   %d y blocks of %d+\n", scl,mNumBlocks[scl][b3dX],
-               mNumInBlock[scl][0], mNumBlocks[scl][yInd], mNumInBlock[scl][yInd]);
-        colXyz[0] = mNumBoxes[scl][0];
-        colXyz[1] = mNumBoxes[scl][mThickInd];
-        colXyz[2] = mNumBlocks[scl][yInd];
-        iiuCreateHeader(1, &colXyz[0], &colXyz[0], 2, NULL, 0);
-        dmin = 1.e37;
-        dmax = -dmin;
-        dmean = 0;
-        
-        for (iyBox = 0; iyBox < mNumBlocks[scl][yInd]; iyBox++) {
-          for (ixBox = 0; ixBox < mNumBlocks[scl][b3dX]; ixBox++) {
-            
-            // Get the range of boxes in the block
-            for (ixyz = 0; ixyz <= yInd; ixyz += yInd)
-              balancedGroupLimits(mNumBoxes[scl][ixyz], mNumBlocks[scl][ixyz], 
-                                  ixyz ? iyBox : ixBox, &starts[ixyz], &ends[ixyz]);
-            
-            // Get the medians
-            findColumnMidpoint(starts[0], ends[0], starts[yInd], ends[yInd], scl,
-                               &mBuffer[maxCenBoxes], izInside, izMid, insideMed);
-            
-            // Replicate medians into the boxes within the slice
-            for (iz = 0; iz < mNumBoxes[scl][mThickInd]; iz++)
-              for (ind = starts[0]; ind <= ends[0]; ind++)
-                mColSlice[iz * mNumBoxes[scl][0] + ind] = mColMedians[iz];
-            
-          }
-          
-          // Write slice for this Y
-          iiuWriteSection(1, (char *)mColSlice);
-          arrayMinMaxMean(mColSlice, colXyz[0], colXyz[1], 0, colXyz[0] - 1, 0, 
-                          colXyz[1] - 1, &tmin, &tmax, &tmean);
-          dmin = B3DMIN(dmin, tmin);
-          dmax = B3DMAX(dmax, tmax);
-          dmean += tmean / mNumBlocks[scl][yInd];
-        }
-        iiuWriteHeaderStr(1, "FINDSECTION", 0, dmin, dmax, dmean);
-        iiuClose(1);
-      }
     }
 
     // Evaluate statistics of edge first
@@ -687,7 +604,7 @@ void FindSect::main( int argc, char *argv[])
              edgCenMean[0], edgCenSD[0], medians[scl][0], MADNs[scl][0],
              edgCenMean[1], edgCenSD[1], medians[scl][1], MADNs[scl][1]); */
       if (mDebugOutput)
-        printf("edge: %d  %8.3f %8.3f\n", numStat, mEdgeMedians[scl], mEdgeMADNs[scl]);
+        printf("edge: %d  %6.1f %5.1f\n", numStat, mEdgeMedians[scl], mEdgeMADNs[scl]);
     /*  for (loop = 0; loop < 4; loop++)
         printf("  %.3f",(medians[scl][0] - (1. + 0.5 * loop) * MADNs[scl][0] - 
         medians[scl][1]) / MADNs[scl][1]);*/
@@ -722,17 +639,10 @@ void FindSect::main( int argc, char *argv[])
           }
           /*printf("block %d %d  x %d %d y %d %d\n", ixBox, iyBox, starts[0], ends[0], 
             starts[yInd], ends[yInd]);  */
-
-          if (highSDcrit > 0.) {
-            starts[mThickInd] = cenStarts[scl][mThickInd];
-            ends[mThickInd] = cenEnds[scl][mThickInd];
-            addBoxesToSample(starts[0], ends[0], starts[1], ends[1], starts[2], ends[2], 
-                             scl, numStat, meanSum);
-
-            // Get the midpoint and ranges inside and add boxes
-          } else if (!findColumnMidpoint(starts[0], ends[0], starts[yInd], ends[yInd], 
-                                         scl, &mBuffer[maxCenBoxes], izInside, izMid,
-                                         insideMed)) {
+          
+          // Get the midpoint and ranges inside and add boxes
+          if (!findColumnMidpoint(starts[0], ends[0], starts[yInd], ends[yInd], scl,
+                                  &mBuffer[maxCenBoxes], izInside, izMid, insideMed)) {
             starts[mThickInd] = B3DMAX(izInside[0], izMid - zRange / 2);
             ends[mThickInd] = B3DMIN(izInside[1], starts[mThickInd] + zRange - 1);
             addBoxesToSample(starts[0], ends[0], starts[1], ends[1], starts[2], ends[2], 
@@ -740,12 +650,9 @@ void FindSect::main( int argc, char *argv[])
           }
         }
       }
-      if (numStat < 10) {
-        if (mDebugOutput < 0)
-          continue;
+      if (numStat < 10)
         exitError("Too few boxes in center sample where boundaries of section could "
                   "be detected");
-      }
       cenDenMeans[scl] = meanSum / numStat;
 
       rsFastMedian(mBuffer, numStat, &mBuffer[numStat], &mCenMedians[scl]);
@@ -780,11 +687,6 @@ void FindSect::main( int argc, char *argv[])
     }
     if (numBinnings > 1)
       printf("Selected scaling # %d as the best one for analysis\n", mBestScale + 1);
-
-    if (highSDcrit > 0) {
-
-
-    }
     
     // Now find a boundary position in each block
     // Set up the blocking from scratch and loop on the blocks
@@ -1361,8 +1263,6 @@ int FindSect::findColumnMidpoint(int startX, int endX, int startY, int endY, int
     rsFastMedianInPlace(buffer, numXYbox, &medSD);
     sdMax = B3DMAX(sdMax, medSD);
     buffer[numXYbox + izBox] = medSD;
-    if (mColMedians)
-      mColMedians[izBox] = medSD;
   }
 
   // If difference from edge is below criterion, return error
@@ -1825,53 +1725,6 @@ void FindSect::buildVariableList(int major, int minor, int numBound, int numGood
     mVarList[4][1] = minor;
     mNumVars = 5;
   }
-}
-
-void FindSect::analyzeHighSD(float highSDcrit) 
-{
-  int boxInd, ixBox, iyBox, izBox;
-  int scl = mBestScale;
-  int numHigh = 0;
-
-  // Count high boxes, get arrays
-  for (izBox = startZ; izBox <= endZ; izBox++) {
-    for (iyBox = startY; iyBox <= endY; iyBox++) {
-      for (ixBox = startX; ixBox <= endX; ixBox++) {
-        boxInd = mStatStartInds[scl] + (izBox * mNumBoxes[scl][b3dY] + iyBox) * 
-          mNumBoxes[scl][b3dX] + ixBox;
-        if (abs(mSDs[boxInd] - mEdgeMedians[scl]) / mEdgeMADNs[scl] > highSDcrit)
-          numHigh++;
-      }
-    }
-  }
-  boxCenters = B3DMALLOC(float, 3 * numHigh);
-  boxRot = B3DMALLOC(float, 3 * numHigh);
-  if (!boxRot || !boxCenters)
-    exitError("Allocating arrays for high-SD boxes");
-
-  // Put the high box positions in array
-  numHigh = 0;
-  for (izBox = startZ; izBox <= endZ; izBox++) {
-    for (iyBox = startY; iyBox <= endY; iyBox++) {
-      for (ixBox = startX; ixBox <= endX; ixBox++) {
-        boxInd = mStatStartInds[scl] + (izBox * mNumBoxes[scl][b3dY] + iyBox) * 
-          mNumBoxes[scl][b3dX] + ixBox;
-        if (abs(mSDs[boxInd] - mEdgeMedians[scl]) / mEdgeMADNs[scl] > highSDcrit) {
-          boxCenter[3 * numHigh] = startCoord[b3dX] + mBinning[scl][b3dX] * 
-            (ixBox * mBoxSpacing[scl][b3dX] + boxSize[b3dX] / 2.);
-          boxNum = indY == 1 ? iyBox : izBox;
-          boxCenter[3 * numHigh + 1] = startCoord[indY] + mBinning[scl][indY] * 
-            (boxNum * mBoxSpacing[scl][indY] + boxSize[indY] / 2.);
-          boxNum = mThickInd == 1 ? iyBox : izBox;
-          boxCenter[3 * numHigh + 2] = startCoord[mThickInd] + mBinning[scl][mThickInd] * 
-            (boxNum * mBoxSpacing[scl][mThickInd] + boxSize[mThickInd] / 2.);
-          numHigh++;
-        }
-      }
-    }
-  }
-
-
 }
 
 /*
