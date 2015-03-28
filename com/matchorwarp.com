@@ -2,14 +2,26 @@
 #
 # MATCHORWARP RUNS REFINEMATCH AND MATCHVOL, OR FINDWARP AND WARPVOL.
 #
-####CreatedVersion#### 4.8.28
+####CreatedVersion#### 3.8.25
 #
-$matchorwarp -StandardInput
-InputVolume      g5b.rec
-OutputVolume     g5b.mat
-SizeXYZorVolume  g5a.rec
-RefineLimit      0.3
-WarpLimits       0.2,0.27,0.35
-ResidualFile     patch.resid
-ClipPlaneBoxSize 600
-#TemporaryDirectory  g5tmpdir
+# -refinelimit #   SPECIFIES THE MAXIMUM MEAN RESIDUAL ALLOWED BY REFINEMATCH;
+# ABOVE THIS, WARPING WILL BE USED.
+#
+# -warplimit #,#,#...   SPECIFIES A SERIES OF MEAN RESIDUALS THAT WARPVOL WILL
+# TRY TO ACHIEVE; ABOVE THE HIGHEST LIMIT, IT WILL NOT PROCEED.  YOU CAN ADD
+# TO THE LIST.
+#
+# TO SPECIFY A MODEL FILE WITH CONTOURS ENCLOSING THE PATCHES TO INCLUDE IN
+# THE FIT, ADD AN ARGUMENT "-modelfile filename" RIGHT AFTER "matchorwarp".
+#
+# TO EXCLUDE ROWS OR COLUMNS OF PATCHES, ADD ARGUMENTS "-xlower #" (# OF 
+# COLUMNS TO EXCLUDE ON LEFT), "-xupper #" (# TO EXCLUDE ON RIGHT), 
+# "-zlower #" (# OF ROWS TO EXCLUDE ON BOTTOM), OR "-zupper #" (# TO EXCLUDE
+# ON TOP).
+#
+# TO TRY TO SOLVE FOR TRANSFORMATIONS WITHOUT TRANSFORMING THE VOLUME, ADD
+# THE ARGUMENT "-trial"
+#
+$matchorwarp -size g5a.rec -refinelimit 0.3 \
+-residualfile patch.resid -vectormodel patch_vector.mod \
+-clipsize 600 -warplimit 0.2,0.27,0.35 -tempdir g5tmpdir g5b.rec g5b.mat

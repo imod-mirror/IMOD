@@ -24,7 +24,7 @@ program findbeads3d
   integer*4 ixStart, ixEnd, iyStart, iyEnd, izStart, izEnd
   real*4 elongation, radius, distMin, xpeak, ypeak, zpeak
   real*4 dmin, dmax, dmean, polarity, peakCorr, fracAvg
-  integer*4 ixMin, ixMax, iyMin, iyMax, izMin, izMax
+  ! integer*4 iy, iz
   integer*4 ix, ixPiece, iyPiece, izPiece, minInside, maxXsize
   integer*4 ixPeak, iyPeak, izPeak, numSave, ix0, ix1, iy0, iy1, iz0, iz1
   integer*4 numPass, minGuess, iVerbose, ibinning, num3CorrThreads
@@ -38,23 +38,24 @@ program findbeads3d
   !
   integer*4 numOptArg, numNonOptArg
   integer*4 PipGetInteger, PipGetLogical
-  integer*4 PipGetString, PipGetFloat, PipGetTwoFloats, PipGetTwoIntegers
+  integer*4 PipGetString, PipGetFloat, PipGetTwoFloats
   integer*4 PipGetInOutFile
   !
-  ! fallbacks from ../../manpages/autodoc2man -3 2  findbeads3d
+  ! fallbacks from ../../manpages/autodoc2man -2 2  findbeads3d
   !
   integer numOptions
-  parameter (numOptions = 22)
+  parameter (numOptions = 19)
   character*(40 * numOptions) options(1)
   options(1) = &
-      'input:InputFile:FN:@output:OutputFile:FN:@candidate:CandidateModel:FN:@'// &
-      'size:BeadSize:F:@binning:BinningOfVolume:I:@xminmax:XMinAndMax:IP:@'// &
-      'yminmax:YMinAndMax:IP:@zminmax:ZMinAndMax:IP:@light:LightBeads:B:@'// &
+      'input:InputFile:FN:@output:OutputFile:FN:@'// &
+      'candidate:CandidateModel:FN:@size:BeadSize:F:@'// &
+      'binning:BinningOfVolume:I:@light:LightBeads:B:@'// &
       'angle:AngleRange:FP:@tilt:TiltFile:FN:@ylong:YAxisElongated:B:@'// &
-      'peakmin:MinRelativeStrength:F:@threshold:ThresholdForAveraging:F:@'// &
-      'store:StorageThreshold:F:@spacing:MinSpacing:F:@both:EliminateBoth:B:@'// &
-      'guess:GuessNumBeads:I:@max:MaxNumBeads:I:@verbose:VerboseOutput:I:@'// &
-      'param:ParameterFile:PF:@help:usage:B:'
+      'peakmin:MinRelativeStrength:F:@'// &
+      'threshold:ThresholdForAveraging:F:@store:StorageThreshold:F:@'// &
+      'spacing:MinSpacing:F:@both:EliminateBoth:B:@'// &
+      'guess:GuessNumBeads:I:@max:MaxNumBeads:I:@'// &
+      'verbose:VerboseOutput:I:@param:ParameterFile:PF:@help:usage:B:'
   !
   degToRad = 0.0174532
   modelFile = ' '
@@ -104,7 +105,6 @@ program findbeads3d
   ierr = PipGetLogical('YAxisElongated', yElongated)
   !
   ierr = PipGetFloat('MinRelativeStrength', peakRelMin)
-  peakRelMin = sqrt(max(0.,peakRelMin))
   ierr = PipGetFloat('StorageThreshold', storeThresh)
   ierr = PipGetFloat('ThresholdForAveraging', avgThresh)
   !
@@ -140,25 +140,11 @@ program findbeads3d
         (dzAdjacent - cos(dzAdjacent) * sin(dzAdjacent)))
     print *,'Elongation factor is', elongation
   endif
-  
-  ixMin = 1
-  iyMin = 1
-  izMin = 1
-  ixMax = nx
-  iyMax = ny
-  izMax = nz
-  ierr = PipGetTwoIntegers('XMinAndMax', ixMin, ixMax)
-  ierr = PipGetTwoIntegers('YMinAndMax', iyMin, iyMax)
-  ierr = PipGetTwoIntegers('ZMinAndMax', izMin, izMax)
-  if (ixMin < 1 .or. ixMax > nx .or. ixMax - ixMin < 2 * beadSize .or. &
-      iyMin < 1 .or. iyMax > ny .or. iyMax - iyMin < 2 * beadSize .or. &
-      izMin < 1 .or. izMax > nz .or. izMax - izMin < 2 * beadSize) call exitError( &
-      'COORDINATE MIN AND MAX VALUES ARE OUT OF RANGE OR DEFINE TOO SMALL A VOLUME')
-  if (maxPeaks < 3) call exitError('THE -maxPeaks ENTRY IS NEGATIVE OR TOO SMALL')
+  if (maxPeaks < 3) call exitError('-maxPeaks entry is negative or too small')
   limPeak = maxPeaks + 10
   allocate(indPeak(limPeak), indCorr(limPeak), peakVal(limPeak), peakPos(3, limPeak), &
       corrVal(limPeak), corrPos(3, limPeak), stat = ierr)
-  call memoryError(ierr, 'ARRAYS FOR PEAKS')
+  call memoryError(ierr, 'ALLOCATING ARRAYS FOR PEAKS')
   !
   call PipDone()
   !
@@ -211,27 +197,30 @@ program findbeads3d
   !
   ! Get the definition of the pieces
   !
-  call definePieces(izMin, izMax, nzOverlap, minZsize, 0, maxPiece, numZpieces, &
+  call definePieces(nz, nzOverlap, minZsize, 0, maxPiece, numZpieces, &
       lenPiece(1, 3), ind0(1, 3), ind1(1, 3), ierr)
-  if (ierr .ne. 0) call exitError('TOO MANY PIECES FOR ARRAY IN Z DIMENSION')
-  call definePieces(iyMin, iyMax, nyOverlap, minYsize, 0, maxPiece, numYpieces, &
+  if (ierr .ne. 0) call exitError( &
+      'TOO MANY PIECES FOR ARRAY IN Z DIMENSION')
+  call definePieces(ny, nyOverlap, minYsize, 0, maxPiece, numYpieces, &
       lenPiece(1, 2), ind0(1, 2), ind1(1, 2), ierr)
-  if (ierr .ne. 0) call exitError('TOO MANY PIECES FOR ARRAY IN Y DIMENSION')
+  if (ierr .ne. 0) call exitError( &
+      'TOO MANY PIECES FOR ARRAY IN Y DIMENSION')
   maxXsize = maxVol / (lenPiece(1, 2) * (lenPiece(1, 3) + 3))
-  call definePieces(ixMin, ixMax, nxOverlap, 0, maxXsize, maxPiece, numXpieces, &
+  call definePieces(nx, nxOverlap, 0, maxXsize, maxPiece, numXpieces, &
       lenPiece(1, 1), ind0(1, 1), ind1(1, 1), ierr)
-  if (ierr .ne. 0) call exitError('TOO MANY PIECES FOR ARRAY IN X DIMENSION')
+  if (ierr .ne. 0) call exitError( &
+      'TOO MANY PIECES FOR ARRAY IN X DIMENSION')
   !
   ! Redefine the longest dimension of Y or Z
   if (ny > nz) then
     maxXsize = maxVol / (lenPiece(1, 1) * (lenPiece(1, 3) + 3))
     if (iVerbose > 0) print *,'New max for y', maxXsize
-    call definePieces(iyMin, iyMax, nyOverlap, 0, maxXsize, maxPiece, &
+    call definePieces(ny, nyOverlap, 0, maxXsize, maxPiece, &
         numYpieces, lenPiece(1, 2), ind0(1, 2), ind1(1, 2), ierr)
   else
     maxXsize = maxVol / (lenPiece(1, 1) * (lenPiece(1, 2) + 3))
     if (iVerbose > 0) print *,'New max for z', maxXsize
-    call definePieces(izMin, izMax, nzOverlap, 0, maxXsize, maxPiece, &
+    call definePieces(nz, nzOverlap, 0, maxXsize, maxPiece, &
         numZpieces, lenPiece(1, 3), ind0(1, 3), ind1(1, 3), ierr)
   endif
 
@@ -414,7 +403,7 @@ program findbeads3d
                     maxShift, found, peakCorr, num3CorrThreads)
                 if (found) then
                   call addToSortedList(indCorr, corrVal, numCorrs, &
-                      maxPeaks, peakRelMin, sqrt(peakCorr), index)
+                      maxPeaks, peakRelMin, peakCorr, index)
                   if (index > 0) then
                     corrPos(1, index) = xpeak + ind0(ixPiece, 1) + sumXoffset
                     corrPos(2, index) = ypeak + ind0(iyPiece, 2) + sumYoffset
@@ -462,7 +451,7 @@ program findbeads3d
   !
   call flush(6)
   ierr = findHistogramDip(peakVal, numCorrs, minGuess, histo, limHisto, &
-      0., 1., histDip, peakBelow, peakAbove, max(0, iVerbose - 2))
+      0., 1., histDip, peakBelow, peakAbove, 0)
   blackThresh = histDip
   if (storeThresh <= 0.) then
     if (ierr .ne. 0) call exitError('NO DIP FOUND IN HISTOGRAM OF '// &
@@ -498,8 +487,7 @@ end program findbeads3d
 
 ! DEFINEPIECES will determine how to divide an extent into overlapping
 ! pieces.  Inputs:
-! indMin = minimum coordinate, numbered from 1
-! indMax = maximum coordinate, numbered from 1
+! nTotal = total extent
 ! nOverlap = overlap between pieces
 ! minSize = minimum size of pieces, or 0 to apply maximum size instead
 ! maxSize = maximum size of pieces ( if minSize is 0)
@@ -510,16 +498,15 @@ end program findbeads3d
 ! ind0, ind1 = arrays of starting, ending indices numbered from zero
 ! ierr = 1 if too many pieces for arrays
 !
-subroutine definePieces(indMin, indMax, nOverlap, minSize, maxSize, maxPieces, &
+subroutine definePieces(nTotal, nOverlap, minSize, maxSize, maxPieces, &
     numPieces, lenPiece, ind0, ind1, ierr)
   implicit none
-  integer*4 nTotal, nOverlap, minSize, maxSize, maxPieces, numPieces, indMin, indMax
+  integer*4 nTotal, nOverlap, minSize, maxSize, maxPieces, numPieces
   integer*4 lenPiece(*), ind0(*), ind1(*), isize, i, ierr, irem
   !
   ! If a minimum size is defined, find the biggest number of pieces that
   ! divide into sizes bigger than the minimum
   !
-  nTotal = indMax + 1 - indMin
   ierr = 1
   if (minSize > 0) then
     isize = minSize + 1
@@ -545,7 +532,7 @@ subroutine definePieces(indMin, indMax, nOverlap, minSize, maxSize, maxPieces, &
   !
   isize = (nTotal + (numPieces - 1) * nOverlap) / numPieces
   irem = mod(nTotal + (numPieces - 1) * nOverlap, numPieces)
-  ind0(1) = indMin - 1
+  ind0(1) = 0
   do i = 1, numPieces
     lenPiece(i) = isize
     if (irem >= i) lenPiece(i) = lenPiece(i) + 1
@@ -845,7 +832,7 @@ subroutine findPixelSumPeaks(array, planes, nx, ny, nz, ixStart, ixEnd, &
               ! print *,cen
               if (cen > 0) then
                 call addToSortedList(indPeak, peakVal, numPeaks, maxPeaks, &
-                    peakRelMin, sqrt(cen), index)
+                    peakRelMin, cen, index)
                 if (index > 0) then
                   peakPos(1, index) = ix + ixOffset + posShift
                   peakPos(2, index) = iy + iyOffset + posShift

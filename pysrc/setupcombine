@@ -196,6 +196,7 @@ sedtranskey = "gibberish"
 fromlet = "b"
 tolet = "a"
 delregion = "RegionModel"
+mowSize = "gibberish"
 
 # Fallbacks from ../manpages/autodoc2man 3 1 setupcombine
 options = ["name:RootName:FN:", "atob:MatchAtoB:B:", "tolist:ToVolPointList:LI:",
@@ -260,6 +261,7 @@ if err:
 
 autoPatch = PipGetString('AutoPatchFinalSize', '')
 extraTargets = ''
+mowOpts = ''
 if autoPatch:
    (autonx, autony, autonz, err) = patchSizeFromEntry(autoPatch)
    if err:
@@ -269,6 +271,8 @@ if autoPatch:
       exitError('The final patch size for Autopatchfit must not be smaller than ' + \
                    'the starting patch size')
    extraTargets = PipGetString('ExtraResidualTargets', '')
+   mowSize = "matchorwarp -size"
+   mowOpts = '-extentfit 3 -structurecrit 0.5,0.57,0.65'
    
 # Limits
 (patchxl, patchxu) = PipGetTwoIntegers('XLowerAndUpper', 0, 0)
@@ -284,6 +288,10 @@ if noZentered and not autoPatch:
 regionmod = PipGetString('PatchRegionModel', '')
 if regionmod:
    delregion = 'gibberish'
+   mowSize = "matchorwarp -size"
+   if mowOpts:
+      mowOpts += ' '
+   mowOpts += '-modelfile ' + regionmod
    if not os.path.exists(regionmod):
       warning('file ' + regionmod + ' does not yet exist.')
 
@@ -439,6 +447,7 @@ if tmproot:
    tmpdir = tmproot + '/combine.' + fmtstr('{}', os.getpid())
    tmppath = tmpdir + '/'
    ifmkdir = '$if'
+   tempdirarg = "gibberish"
    tmpmatfile = tmppath + matfile
    sedtmpdir = tmpdir.replace('/','\/')
    sedmatfile = sedtmpdir + '\/' + matfile
@@ -448,6 +457,7 @@ else:
    tmpdir = ""
    tmppath = ""
    ifmkdir = '#$if'
+   tempdirarg = " -tempdir "
    tmpmatfile = matfile
    sedtmpdir = ""
    sedmatfile = matfile
@@ -558,14 +568,9 @@ sedcom = [fmtstr("s/{}/{}/g", from_srcname, fromname),
           fmtstr("s/{}/{}/g", tmp_srcname, sedtmpdir),
           fmtstr("/mkdir/s/.*if/{}/", ifmkdir),
           fmtstr("s/{}/{}/g", matfile, sedmatfile),
-          fmtstr("/{}/s/#//", sedtempkey)]
-if autoPatch:
-   sedcom += ['/^WarpLimits/a/ExtentToFit	3/',
-              '/^WarpLimits/a/StructureCriteria	0.5,0.57,0.65/']
-if regionmod:
-   sedcom.append(fmtstr('/^WarpLimits/a/ModelFile	{}/', regionmod))
-
-editApplyChangeListAndWrite(sedcom, matchorwarp)
+          fmtstr("/{}/s//matchorwarp {} -size/", mowSize, mowOpts),
+          fmtstr("/{}/s///", tempdirarg)]
+pysed(sedcom, srcdir + '/' + matchorwarp, matchorwarp)
 
 # Do combine.com
 if autoPatch or useVolMatch:

@@ -625,13 +625,11 @@ program ccderaser
         elseif (contOnSecOrAllSec .and. objTaper(iobj)) then
           if (numTapering == 0) write(*,'(a,$)') ' tapering large patches -'
           numTapering = numTapering + 1
-          ierr = iobj
           call fillBoundaryArrays(iobj, xbound, ybound, xmin, xmax, yMin, ymax)
           call taperInsideCont(array, nx, ny, xbound, ybound, npt_in_obj(iobj), &
               xmin, xmax, yMin, ymax, ierr)
           if (ierr .ne. 0) then
             call objToCont(iobj, obj_color, imodObj, imodCont)
-            print *,npt_in_obj(iobj),iobj
             write(*,107) imodObj, imodCont, 'does not have enough adjacent points'
             call exit(1)
           endif
@@ -1971,16 +1969,14 @@ subroutine taperInsideCont(array, nx, ny, xbound, ybound, numInObj, xmin, xmax, 
   implicit none
   integer*4 nx, ny, numInObj, iferr
   real*4 array(nx, ny), xbound(*), ybound(*), xmin, xmax, yMin, ymax
-  real*4 adjValues(5 * (xmax + ymax + 2 - xmin - ymin))
   real*4 sum, segmentX, segmentY, vectorX, vectorY, xLine, yline, taper, dist, distMin
   real*4 t, tmin, dx, dy, fill, xx, yy, frac, taperSq, vecLen
   integer*4 numSum, ip, ipNext, ix, iy, ixf, iyf, numVecPts, ixStart, ixEnd
-  integer*4 iyStart, iyEnd, ipMin, i, maxAdjVal
+  integer*4 iyStart, iyEnd, ipMin, i
   logical inside
   taper = 8.
   taperSq = taper**2
   iferr = 1
-  maxAdjVal = 5 * (xmax + ymax + 2 - xmin - ymin)
   !
   ! First we need the mean outside the periphery
   sum = 0.
@@ -2020,7 +2016,6 @@ subroutine taperInsideCont(array, nx, ny, xbound, ybound, numInObj, xmin, xmax, 
         if (ix > 0 .and. ix <= nx .and. iy > 0 .and. iy <= ny) then
           sum = sum + array(ix, iy)
           numSum = numSum + 1
-          if (numSum <= maxAdjVal) adjValues(numSum) = array(ix, iy)
         endif
       enddo
     endif
@@ -2029,11 +2024,6 @@ subroutine taperInsideCont(array, nx, ny, xbound, ybound, numInObj, xmin, xmax, 
   if (numSum < 3) return
   iferr = 0
   fill = sum / numSum
-  !
-  ! Use the median instead of the mean if the array did not fill up and there are enough
-  ! points
-  if (numSum <= maxAdjVal .and. numSum > 20)  &
-      call rsFastMedianInPlace(adjValues, numSum, fill)
   ixStart = max(1, min(nx, floor(xmin - 0.5)))
   iyStart = max(1, min(ny, floor(yMin - 0.5)))
   ixEnd = max(1, min(nx, ceiling(xmax - 0.5)))

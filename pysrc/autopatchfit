@@ -68,61 +68,45 @@ if not highDensity:
       highDensity = 1
 
 # First manage the trial flag in matchorwarp and pull off extra targets
-# Identify if standard input form of file
 mowLines = readTextFile(mowcom)
 found = 0
-stdInputLine = -1
-trialLine = -1
-warpLine = -1
-warpOpt = '-warplimit'
 for lineInd in range(len(mowLines)):
-   line = mowLines[lineInd].strip()
-   if 'matchorwarp' in line and '-StandardI' in line:
-      stdInputLine = lineInd
-      warpOpt = 'WarpLimits'
-   if stdInputLine >= 0 and extraTarget and line.startswith('WarpLimits'):
-      mowLines[lineInd] = mowLines[lineInd].replace(',' + extraTarget, '')
-      warpLine = lineInd
-   if stdInputLine < 0 and (not line.startswith('#')) and '-warplimit' in line:
-      warpLine = lineInd
+   line = mowLines[lineInd]
+   if (not line.strip().startswith('#')) and '-warplimit' in line:
       if extraTarget:
-         mowLines[lineInd] = mowLines[lineInd].replace(',' + extraTarget, '')
+         mowLines[lineInd] = mowLines[lineInd].replace(extraTarget, '')
       if trialMode:
          mowLines[lineInd] = mowLines[lineInd].replace('-warplimit', '-trial -warplimit')
+         found = 1
          break
-   if stdInputLine >= 0 and line.startswith('Trial'):
-      trialLine = lineInd
-   if stdInputLine < 0 and not trialMode and (not line.startswith('#')) and \
-          '-trial' in line:
-      mowLines[lineInd] = mowLines[lineInd].replace('-trial', '')
+   if not trialMode:
+      if (not line.strip().startswith('#')) and '-trial' in line:
+         mowLines[lineInd] = mowLines[lineInd].replace('-trial', '')
 
-if warpLine < 0:
+if trialMode and not found:
    exitError('Cannot find existing residual targets in ' + mowcom)
-
-# Pull out or put in the Trial line, adjusting warpLine as needed
-if stdInputLine >= 0:
-   if trialMode and trialLine < 0:
-      mowLines.insert(stdInputLine + 1, 'TrialMode 1')
-      warpLine += 1
-   elif not trialMode and trialLine >= 0:
-      del mowLines[trialLine]
-      if trialLine < warpLine:
-         warpLine -= 1
 
 makeBackupFile(mowcom)
 writeTextFile(mowcom, mowLines)
 
 # Make sure matchorwarp can be modified for extra target before starting
 if extraTarget:
-   line = mowLines[warpLine]
-   lsplit = line.strip().replace('	', ' ').split()
-   for ind in range(len(lsplit) - 1):
-      if lsplit[ind] == warpOpt:
-         curTarget = lsplit[ind + 1]
-         if not curTarget.endswith(extraTarget):
-            newTarget = curTarget + ',' + extraTarget
-            mowLines[warpLine] = line.replace(curTarget, newTarget)
-            break
+   found = 0
+   for lineInd in range(len(mowLines)):
+      line = mowLines[lineInd]
+      if (not line.strip().startswith('#')) and '-warplimit' in line:
+         lsplit = line.split()
+         for ind in range(len(lsplit) - 1):
+            if lsplit[ind] == '-warplimit':
+               curTarget = lsplit[ind + 1]
+               if not curTarget.endswith(extraTarget):
+                  newTarget = curTarget + ',' + extraTarget
+                  mowLines[lineInd] = line.replace(curTarget, newTarget)
+               found = 1
+               break
+
+   if not found:
+      exitError('Cannot find existing residual targets in ' + mowcom)
 
 # Figure out the maximum number of runs in advance
 nxyzPatchCur = optionValue(patchLines, 'PatchSizeXYZ', INT_VALUE, numVal = 3)
@@ -178,7 +162,7 @@ if numXYZorig[1] == 1:
    nzLimit = zRange
 else:
    nzLimit = (zRange * 3) // 2
-
+   
 for trial in range(maxTrials):
    finalTrial = trial == maxTrials - 1
    
@@ -225,8 +209,8 @@ for trial in range(maxTrials):
 
    # Modify matchorwarp if there are extra criteria on last round
    if finalTrial and extraTarget:
-      prnstr(fmtstr('AUTOPATCHFIT - Adding {} to warp residual limits', extraTarget))
       writeTextFile(mowcom, mowLines)
+      prnstr(fmtstr('AUTOPATCHFIT - Adding {} to warp residual limits', extraTarget))
 
    if trial or not skipFirst:
       prnstr('AUTOPATCHFIT - Running ' + patchcom, flush = True)
@@ -241,7 +225,7 @@ for trial in range(maxTrials):
       makeBackupFile('matchorwarp.log')
       runcmd('vmstopy -x -q ' + mowcom + ' matchorwarp.log')
 
-      # Success!
+      # Success!  Anything to do, or just exit here?
       logLines = readTextFile('matchorwarp.log')
       refineRes = ''
       warpRes = ''
