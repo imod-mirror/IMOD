@@ -39,7 +39,7 @@ public:
   int mNumBoxes[MAX_MBS_SCALES][3];
   int mBinning[MAX_MBS_SCALES][3];
   int mBoxSpacing[MAX_MBS_SCALES][3];
-  float *mSDs, *mBuffer, *mMeans;
+  float *mSDs, *mBuffer, *mMeans, *mColMedians, *mColSlice;
   int mStatStartInds[MAX_MBS_SCALES];
   float mEdgeMedians[MAX_MBS_SCALES], mEdgeMADNs[MAX_MBS_SCALES];
   float mCenMedians[MAX_MBS_SCALES], mCenMADNs[MAX_MBS_SCALES];

@@ -39,6 +39,29 @@ tooltip =
 manpage = The current binning of the image volume.  The entered bead size is
 divided by this binning to obtain the actual size of the beads in the volume.
 
+[Field = XMinAndMax]
+short = xminmax
+type = IP
+usage = Starting and ending X coordinates of region to find beads in
+tooltip = 
+manpage = Starting and ending X coordinates of region in which to find beads.
+X, Y, and Z coordinates are numbered from 1.  The default is to search the
+whole volume.
+
+[Field = YMinAndMax]
+short = yminmax
+type = IP
+usage = Starting and ending Y coordinates of region to find beads in
+tooltip = 
+manpage = 
+
+[Field = ZMinAndMax]
+short = zminmax
+type = IP
+usage = Starting and ending Z coordinates of region to find beads in
+tooltip = 
+manpage = 
+
 [Field = LightBeads]
 short = light
 type = B
