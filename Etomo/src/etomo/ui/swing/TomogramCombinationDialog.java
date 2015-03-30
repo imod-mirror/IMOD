@@ -17,6 +17,7 @@ import etomo.comscript.ConstMatchorwarpParam;
 import etomo.comscript.ConstPatchcrawl3DParam;
 import etomo.comscript.ConstSetParam;
 import etomo.comscript.ConstSolvematchParam;
+import etomo.comscript.DualvolmatchParam;
 import etomo.comscript.MatchvolParam;
 import etomo.comscript.SetParam;
 import etomo.comscript.MatchorwarpParam;
@@ -559,6 +560,7 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
       return;
     }
     if (combineProcessType == CombineProcessType.SOLVEMATCH
+      || combineProcessType == CombineProcessType.DUALVOLMATCH
       || combineProcessType == CombineProcessType.MATCHVOL1) {
       tabbedPane.setSelectedIndex(INITIAL_INDEX);
     }
@@ -593,6 +595,10 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
   public boolean getSolvematchParams(SolvematchParam solvematchParams,
     final boolean doValidation) throws NumberFormatException {
     return pnlInitial.getSolvematchParams(solvematchParams, doValidation);
+  }
+
+  public boolean getParameters(DualvolmatchParam param, final boolean doValidation) {
+    return pnlInitial.getParameters(param, doValidation);
   }
 
   public boolean getParameters(MatchvolParam param, final boolean doValidation)
