@@ -6293,7 +6293,7 @@ public final class ApplicationManager extends BaseManager implements
       }
       // Fill in the dialog box params and set it to the appropriate state
       tomogramCombinationDialog.setCombineParams(combineParams);
-      // TODO
+      // TODO combine.com must have dualvolmatch command
       backwardsCompatibilityCombineScriptsExist();
       // If setupcombine has been run load the com scripts, otherwise disable
       // the
@@ -6326,9 +6326,12 @@ public final class ApplicationManager extends BaseManager implements
         loadPatchcorr();
         loadMatchorwarp();
         loadVolcombine();
-        loadCombineComscript();
+        CombineComscriptState  combineComscriptState=loadCombineComscript();
         tomogramCombinationDialog
           .synchronize(TomogramCombinationDialog.lblSetup, true/* false */);
+        if (!combineComscriptState.isDualvolmatchPresent()) {
+          tomogramCombinationDialog.invalidateScripts();
+        }
       }
       else {
         // force the user to set Z values on a new combine
@@ -7101,7 +7104,7 @@ public final class ApplicationManager extends BaseManager implements
   /**
    * Load the combine com script
    */
-  private void loadCombineComscript() {
+  private CombineComscriptState loadCombineComscript() {
     comScriptMgr.loadCombine();
     CombineComscriptState combineComscriptState = getCombineComscript();
     if (combineComscriptState == null) {
