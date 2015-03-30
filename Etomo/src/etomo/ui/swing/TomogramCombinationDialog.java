@@ -761,6 +761,7 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
     toPanel.setUseCorrespondingPoints(fromPanel.isUseCorrespondingPoints());
     toPanel.setUseList(fromPanel.getUseList());
     toPanel.setMatchMode(fromPanel.getMatchMode());
+    toPanel.setInitialVolumeMatching(fromPanel.isInitialVolumeMatching());
   }
 
   /**
