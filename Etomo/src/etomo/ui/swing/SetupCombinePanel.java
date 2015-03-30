@@ -892,6 +892,14 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
   public boolean isEnabled() {
     return true;
   }
+  
+  public boolean isInitialVolumeMatching() {
+    return pnlSolvematch.isInitialVolumeMatching();
+  }
+  
+  public void setInitialVolumeMatching(final boolean input) {
+    pnlSolvematch.setInitialVolumeMatching(input);
+  }
 
   public MatchMode getMatchMode() {
     if (rbBtoA.isSelected()) {
