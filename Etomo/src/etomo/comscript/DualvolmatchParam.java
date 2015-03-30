@@ -13,26 +13,48 @@ import etomo.type.ScriptParameter;
  * @version $Id$
  */
 public final class DualvolmatchParam implements CommandParam {
-  ScriptParameter maximumResidual = new ScriptParameter(EtomoNumber.Type.DOUBLE,
-    "MaximumResidual");
-  
+  public static final String MAXIMUM_RESIDUAL = "MaximumResidual";
+  public static final String CENTER_SHIFT_LIMIT = "CenterShiftLimit";
+
+  private final ScriptParameter maximumResidual = new ScriptParameter(
+    EtomoNumber.Type.DOUBLE, MAXIMUM_RESIDUAL);
+  private final ScriptParameter centerShiftLimit = new ScriptParameter(
+    EtomoNumber.Type.DOUBLE, CENTER_SHIFT_LIMIT);
+
+  DualvolmatchParam() {}
+
   public void initializeDefaults() {
     maximumResidual.reset();
+    centerShiftLimit.reset();
   }
 
   public void parseComScriptCommand(final ComScriptCommand scriptCommand)
     throws FortranInputSyntaxException, InvalidParameterException {
     initializeDefaults();
     maximumResidual.parse(scriptCommand);
+    centerShiftLimit.parse(scriptCommand);
   }
 
   public void updateComScriptCommand(final ComScriptCommand scriptCommand)
     throws BadComScriptException {
     scriptCommand.useKeywordValue();
     maximumResidual.updateComScript(scriptCommand);
+    centerShiftLimit.updateComScript(scriptCommand);
   }
-  
+
   public String getMaximumResidual() {
     return maximumResidual.toString();
+  }
+
+  public String getCenterShiftLimit() {
+    return centerShiftLimit.toString();
+  }
+
+  public void setMaximumResidual(final String input) {
+    maximumResidual.set(input);
+  }
+
+  public void setCenterShiftLimit(final String input) {
+    centerShiftLimit.set(input);
   }
 }
