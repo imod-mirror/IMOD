@@ -6329,9 +6329,9 @@ public final class ApplicationManager extends BaseManager implements
         CombineComscriptState  combineComscriptState=loadCombineComscript();
         tomogramCombinationDialog
           .synchronize(TomogramCombinationDialog.lblSetup, true/* false */);
-        if (!combineComscriptState.isDualvolmatchPresent()) {
+        //if (!combineComscriptState.isDualvolmatchPresent()) {
           //TODO run setupcombine with copy combine.com only
-        }
+        //}
       }
       else {
         // force the user to set Z values on a new combine
@@ -7108,10 +7108,11 @@ public final class ApplicationManager extends BaseManager implements
     comScriptMgr.loadCombine();
     CombineComscriptState combineComscriptState = getCombineComscript();
     if (combineComscriptState == null) {
-      return;
+      return null;
     }
     tomogramCombinationDialog.setRunVolcombine(combineComscriptState.isRunVolcombine());
     tomogramCombinationDialog.updateDisplay();
+    return combineComscriptState;
   }
 
   /**
