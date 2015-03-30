@@ -1704,8 +1704,12 @@ void imodTransForSubsetLoad(Imod *imod, MrcHeader *hdata, IloadInfo *li)
 /*!
  * Transforms the model in [imod] according to the old and current shift, scale,
  * and rotation in the @@IrefImage structure@ [iref], with the additional 
- * scaling required for binning in each dimension specified in [binScale].
- * Returns 1 for memory errors.
+ * scaling required for binning in each dimension specified in [binScale].  The image
+ * reference information in the existing model @@IrefImage structure@, if any, is not 
+ * considered.  Typically, if that exists, its {ctrans}, {cscale}, and {crot} members 
+ * would be copied to the {otrans}, {oscale} and {orot} members of [iref], and the 
+ * current values in [iref] would be filled in from the origin, delta, and tilt
+ * angle values in an image file header.  Returns 1 for memory errors.
  */
 int imodTransFromRefImage(Imod *imod, IrefImage *iref, Ipoint binScale)
 {
