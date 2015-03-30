@@ -2749,6 +2749,10 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   public MatchMode getMatchMode() {
     return combineParams.getMatchMode();
   }
+  
+  public boolean isInitialVolumeMatching() {
+    return combineParams.isInitialVolumeMatching();
+  }
 
   public String getMinimumOverlap(final AxisID axisID) {
     if (axisID == AxisID.SECOND) {
