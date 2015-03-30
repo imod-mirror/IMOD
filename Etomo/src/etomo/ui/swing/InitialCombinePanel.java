@@ -14,6 +14,7 @@ import javax.swing.JPanel;
 
 import etomo.ApplicationManager;
 import etomo.comscript.ConstSolvematchParam;
+import etomo.comscript.DualvolmatchParam;
 import etomo.comscript.MatchvolParam;
 import etomo.comscript.SolvematchParam;
 import etomo.type.AxisID;
@@ -484,6 +485,10 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
   public boolean getSolvematchParams(final SolvematchParam solvematchParam,
     final boolean doValidation) {
     return pnlSolvematch.getParameters(solvematchParam, doValidation);
+  }
+
+  public boolean getParameters(final DualvolmatchParam param, final boolean doValidation) {
+    return pnlSolvematch.getParameters(param, doValidation);
   }
 
   void getParameters(final ReconScreenState screenState) {
