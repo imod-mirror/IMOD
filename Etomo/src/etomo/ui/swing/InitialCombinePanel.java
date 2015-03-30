@@ -440,6 +440,14 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
     return tomogramCombinationDialog.isTabEnabled(TomogramCombinationDialog.lblInitial);
   }
 
+  public boolean isInitialVolumeMatching() {
+    return pnlSolvematch.isInitialVolumeMatching();
+  }
+
+  public void setInitialVolumeMatching(final boolean input) {
+    pnlSolvematch.setInitialVolumeMatching(input);
+  }
+
   public boolean getParameters(final MatchvolParam param, final boolean doValidation) {
     try {
       param.setOutputSizeY(ltfOutputSizeY.getText(doValidation));
