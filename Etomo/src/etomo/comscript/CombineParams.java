@@ -200,6 +200,7 @@ public final class CombineParams implements ConstCombineParams, Storable {
    */
   public CombineParams(final BaseManager manager) {
     this.manager = manager;
+    initialVolumeMatching.setDisplayValue(false);
     reset();
   }
 
@@ -765,6 +766,10 @@ public final class CombineParams implements ConstCombineParams, Storable {
 
   public boolean isExtraResidualTargetsSet() {
     return !extraResidualTargets.isEmpty();
+  }
+  
+  public boolean isInitialVolumeMatching() {
+    return initialVolumeMatching.is();
   }
 
   public boolean isLowFromBothRadiusSet() {
