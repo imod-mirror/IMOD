@@ -289,8 +289,8 @@ assert.exists.file = warpvol.com
   assert.tf.limit-on-center-shift=10.0
   #
   #matchvol1
-  if.not.var.patch-trackin.assert.tf.initial-match-size=%{initial-match-size}
-  if.var.patch-trackin.assert.tf.initial-match-size=%{initial-match-size-patch-trackin}
+  if.not.var.patch-tracking.assert.tf.initial-match-size=%{initial-match-size}
+  if.var.patch-tracking.assert.tf.initial-match-size=%{initial-match-size-patch-tracking}
   #
   #enabled
   #
@@ -308,15 +308,18 @@ assert.exists.file = warpvol.com
   #patchcorr parameters
   assert.tf.number-of-x-patches=%{number-of-x-patches}
   assert.tf.number-of-y-patches=%{number-of-y-patches}
-  assert.tf.number-of-z-patches=%{number-of-z-patches}
+  if.not.var.patch-tracking.assert.tf.number-of-z-patches=%{number-of-z-patches}
+  if.var.patch-tracking.assert.tf.number-of-z-patches=%{number-of-z-patches-patch-tracking}
   assert.tf.x-low=%{axis-min}
   assert.tf.y-low=%{axis-min}
-  assert.tf.z-low=%{z-low}
-  if.not.var.patch-tracking.assert.tf.x-high=%{x-axis-max}
+  if.not.var.patch-tracking.assert.tf.z-low=%{z-low}
+  if.var.patch-tracking.assert.tf.z-low=%{z-low-patch-tracking}
+  if.not.var.patch-tracking.assert.tf.x-high=%{x-axis-max-patch-tracking}
   if.var.patch-tracking.assert.tf.x-high=%{x-axis-max-patch-tracking}
   if.not.var.patch-tracking.assert.tf.y-high=%{y-axis-max}
   if.var.patch-tracking.assert.tf.y-high=%{y-axis-max-patch-tracking}
-  assert.tf.z-high=%{z-high}
+  if.not.var.patch-tracking.assert.tf.z-high=%{z-high}
+  if.var.patch-tracking.assert.tf.z-high=%{z-high-patch-tracking}
   assert.tf.initial-shift-in-x=
   assert.tf.y=
   assert.tf.z=
