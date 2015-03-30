@@ -11,13 +11,16 @@ import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
+import javax.swing.JButton;
 import javax.swing.JPanel;
 
 import etomo.ApplicationManager;
 import etomo.comscript.CombineParams;
 import etomo.comscript.ConstCombineParams;
 import etomo.comscript.ConstSolvematchParam;
+import etomo.comscript.DualvolmatchParam;
 import etomo.comscript.SolvematchParam;
+import etomo.logic.CombineTool;
 import etomo.storage.LogFile;
 import etomo.storage.autodoc.AutodocFactory;
 import etomo.storage.autodoc.ReadOnlyAutodoc;
@@ -32,7 +35,7 @@ import etomo.ui.FieldType;
 import etomo.ui.FieldValidationFailedException;
 
 /**
- * <p>Description: </p>
+ * <p>Description: Handles solvematch and dualvolmatch.  The name should be InitialMatchPanel.</p>
  * 
  * <p>Copyright: Copyright 2002 - 2015 by the Regents of the University of Colorado</p>
  * <p/>
@@ -206,19 +209,30 @@ import etomo.ui.FieldValidationFailedException;
  * <p> Solvematch mid change
  * <p> </p>
  */
-final class SolvematchPanel implements Run3dmodButtonContainer, Expandable {
-  private static final String HEADER_LABEL = "Solvematch Parameters";
+final class SolvematchPanel implements Run3dmodButtonContainer, Expandable,
+  ActionListener {
+  private static final String INITIAL_MATCH_LABEL = "Initial Matching Parameters";
 
   private final EtomoPanel pnlRoot = new EtomoPanel();
-  private final JPanel pnlBody = new JPanel();
   private final JPanel pnlFiducialRadio = new JPanel();
   private final JPanel pnlFiducialSelect = new JPanel();
   private final ButtonGroup bgFiducialParams = new ButtonGroup();
-  private final RadioButton rbBothSides = new RadioButton("Fiducials on both sides");
-  private final RadioButton rbOneSide = new RadioButton("Fiducials on one side");
+  private final RadioButton rbBothSides = new RadioButton("Fiducials on both sides",
+    bgFiducialParams);
+  private final RadioButton rbOneSide = new RadioButton("Fiducials on one side",
+    bgFiducialParams);
+  /**
+   * @deprecated
+   */
+  private final RadioButton rbOneSideInverted = new RadioButton(
+    "Fiducials on one side, inverted", bgFiducialParams);
+  /**
+   * @deprecated
+   */
   private final RadioButton rbUseModel = new RadioButton(
-    "Use matching models and fiducials");
-  private final RadioButton rbUseModelOnly = new RadioButton("Use matching models only");
+    "Use matching models and fiducials", bgFiducialParams);
+  private final RadioButton rbUseModelOnly = new RadioButton("Use matching models only",
+    bgFiducialParams);
   private final JPanel pnlImodMatchModels = new JPanel();
   private final CheckBox cbBinBy2 = new CheckBox("Load binned by 2");
   private final Run3dmodButton btnImodMatchModels = Run3dmodButton.get3dmodInstance(
@@ -231,129 +245,203 @@ final class SolvematchPanel implements Run3dmodButtonContainer, Expandable {
     FieldType.INTEGER_LIST, "Starting points to use from A: ");
   private final CheckBox cbUseCorrespondingPoints = new CheckBox(
     "Specify corresponding points instead of using coordinate file");
+  private final CheckBox cbInitialVolumeMatching = new CheckBox(
+    "Use image correlations instead of solvematch for initial match");
+  private final JPanel pnlRootBody = new JPanel();
 
-  private final ApplicationManager applicationManager;
-  private final PanelHeader header;
+  private final ApplicationManager manager;
   private final String headerGroup;
-  private final TomogramCombinationDialog tomogramCombinationDialog;
-
-  private String parentTitle;
-  private boolean binningWarning = false;
-  private boolean initialPanel = true;
-
-  // initial tab only
-  private Run3dmodButton btnRestart = null;
-  private LabeledTextField ltfResidulThreshold = null;
-  private LabeledTextField ltfCenterShiftLimit = null;
+  private final TomogramCombinationDialog parent;
   private final DialogType dialogType;
+  private final PanelHeader phInitialMatch;
+  private final String parentTitle;
+  private final Run3dmodButton btnRestart;
+  private final LabeledTextField ltfSolvematchMaximumResidual;
+  private final LabeledTextField ltfSolvematchCenterShiftLimit;
+  private final LabeledTextField ltfDualvolmatchMaximumResidual;
+  private final LabeledTextField ltfDualvolmatchCenterShiftLimit;
 
-  private SolvematchPanel(TomogramCombinationDialog parent, String title,
-    ApplicationManager appMgr, String headerGroup, DialogType dialogType,
-    GlobalExpandButton globalAdvancedButton) {
+  private boolean binningWarning = false;
+  // initial tab only
+  private boolean useCorrespondingPointsChanged = false;
+  private boolean debug = false;
+
+  private SolvematchPanel(final TomogramCombinationDialog parent,
+    final String parentTitle, final ApplicationManager manager, final String headerGroup,
+    final DialogType dialogType, final boolean debug,
+    final GlobalExpandButton globalAdvancedButton) {
     this.dialogType = dialogType;
-    tomogramCombinationDialog = parent;
-    parentTitle = title;
-    applicationManager = appMgr;
+    this.parent = parent;
+    this.parentTitle = parentTitle;
+    this.manager = manager;
     this.headerGroup = headerGroup;
-    if (globalAdvancedButton != null) {
-      globalAdvancedButton.register(this);
-    }
-    // Create the fiducial relationship panel
-    pnlFiducialRadio.setLayout(new BoxLayout(pnlFiducialRadio, BoxLayout.Y_AXIS));
-    // create inital button and fields
-    if (title.equals(TomogramCombinationDialog.lblInitial)) {
+    this.debug = debug;
+    if (parentTitle.equals(TomogramCombinationDialog.lblInitial)) {
+      phInitialMatch =
+        PanelHeader.getAdvancedBasicInstance(INITIAL_MATCH_LABEL, this, dialogType,
+          globalAdvancedButton);
       btnRestart =
-        (Run3dmodButton) appMgr.getProcessResultDisplayFactory(AxisID.ONLY)
+        (Run3dmodButton) manager.getProcessResultDisplayFactory(AxisID.ONLY)
           .getRestartCombine();
-      btnRestart.setContainer(this);
-      ltfResidulThreshold =
+      ltfSolvematchMaximumResidual =
         new LabeledTextField(FieldType.FLOATING_POINT, "Limit on maximum residual: ");
-      ltfCenterShiftLimit =
+      ltfSolvematchCenterShiftLimit =
+        new LabeledTextField(FieldType.FLOATING_POINT, "Limit on center shift: ");
+      ltfDualvolmatchMaximumResidual =
+        new LabeledTextField(FieldType.FLOATING_POINT,
+          "Limit on mean residual in patch correlations: ");
+      ltfDualvolmatchCenterShiftLimit =
         new LabeledTextField(FieldType.FLOATING_POINT, "Limit on center shift: ");
     }
     else {
-      initialPanel = false;
+      phInitialMatch = PanelHeader.getInstance(INITIAL_MATCH_LABEL, this, dialogType);
+      btnRestart = null;
+      ltfSolvematchMaximumResidual = null;
+      ltfSolvematchCenterShiftLimit = null;
+      ltfDualvolmatchMaximumResidual = null;
+      ltfDualvolmatchCenterShiftLimit = null;
     }
+    if (globalAdvancedButton != null) {
+      globalAdvancedButton.register(this);
+    }
+  }
+
+  static SolvematchPanel getInstance(final TomogramCombinationDialog parent,
+    String parentTitle, ApplicationManager manager, String headerGroup,
+    DialogType dialogType, final boolean debug,
+    final GlobalExpandButton globalAdvancedButton) {
+    SolvematchPanel instance =
+      new SolvematchPanel(parent, parentTitle, manager, headerGroup, dialogType, debug,
+        globalAdvancedButton);
+    instance.createPanel();
+    instance.setToolTipText();
+    instance.show();
+    instance.addListeners();
+    return instance;
+  }
+
+  private void createPanel() {
+    // locals
+    JPanel pnlSolveMatch = new JPanel();
+    JPanel pnlFiducialRadioOuter = new JPanel();
+    JPanel pnlUseCorrespondingPoints = new JPanel();
+    JPanel pnlRestart = null;
+    if (btnRestart != null) {
+      pnlRestart = new JPanel();
+    }
+    JPanel pnlInitialVolumeMatching = new JPanel();
+    JPanel pnlDualvolmatch = null;
+    if (ltfDualvolmatchMaximumResidual != null) {
+      pnlDualvolmatch = new JPanel();
+    }
+    // init
     rbBothSides.setAlignmentX(Component.LEFT_ALIGNMENT);
     rbOneSide.setAlignmentX(Component.LEFT_ALIGNMENT);
+    rbOneSideInverted.setAlignmentX(Component.LEFT_ALIGNMENT);
     rbUseModel.setAlignmentX(Component.LEFT_ALIGNMENT);
-    bgFiducialParams.add(rbBothSides.getAbstractButton());
-    bgFiducialParams.add(rbOneSide.getAbstractButton());
-    bgFiducialParams.add(rbUseModel.getAbstractButton());
-    bgFiducialParams.add(rbUseModelOnly.getAbstractButton());
-    JPanel opnlFiducialRadio = new JPanel();
-    opnlFiducialRadio.setLayout(new BoxLayout(opnlFiducialRadio, BoxLayout.X_AXIS));
-    opnlFiducialRadio.setAlignmentX(Component.CENTER_ALIGNMENT);
-    opnlFiducialRadio.add(pnlFiducialRadio);
-    opnlFiducialRadio.add(Box.createHorizontalGlue());
+    pnlFiducialRadioOuter.setAlignmentX(Component.CENTER_ALIGNMENT);
+    if (btnRestart != null) {
+      btnRestart.setContainer(this);
+      btnRestart.setSize();
+    }
+    cbInitialVolumeMatching.setSelected(CombineTool
+      .getInitialVolumeMatchingInitValue(manager));
+    rbOneSideInverted.setVisible(false);
+    rbUseModel.setVisible(false);
+    // Root
+    pnlRoot.setBorder(BorderFactory.createEtchedBorder());
+    pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.Y_AXIS));
+    pnlRoot.add(phInitialMatch);
+    pnlRoot.add(pnlRootBody);
+    // RootBody
+    pnlRootBody.setLayout(new BoxLayout(pnlRootBody, BoxLayout.Y_AXIS));
+    pnlRootBody.add(Box.createRigidArea(FixedDim.x0_y5));
+    pnlRootBody.add(pnlInitialVolumeMatching);
+    pnlRootBody.add(Box.createRigidArea(FixedDim.x0_y5));
+    pnlRootBody.add(pnlSolveMatch);
+    if (pnlDualvolmatch != null) {
+      pnlRootBody.add(pnlDualvolmatch);
+    }
+    if (pnlRestart != null) {
+      UIUtilities.addWithYSpace(pnlRootBody, pnlRestart);
+    }
+    // InitialVolumeMatching
+    pnlInitialVolumeMatching.setLayout(new BoxLayout(pnlInitialVolumeMatching,
+      BoxLayout.X_AXIS));
+    pnlInitialVolumeMatching.add(cbInitialVolumeMatching);
+    pnlInitialVolumeMatching.add(Box.createHorizontalGlue());
+    // SolveMatch
+    pnlSolveMatch.setBorder(new EtchedBorder("Solvematch Parameters").getBorder());
+    pnlSolveMatch.setLayout(new BoxLayout(pnlSolveMatch, BoxLayout.Y_AXIS));
+    UIUtilities.addWithSpace(pnlSolveMatch, pnlFiducialSelect, FixedDim.x0_y10);
+    UIUtilities.addWithYSpace(pnlSolveMatch, pnlUseCorrespondingPoints);
+    UIUtilities.addWithYSpace(pnlSolveMatch, ltfUseList.getContainer());
+    UIUtilities.addWithYSpace(pnlSolveMatch, ltfFiducialMatchListA.getContainer());
+    UIUtilities.addWithYSpace(pnlSolveMatch, ltfFiducialMatchListB.getContainer());
+    if (ltfSolvematchMaximumResidual != null) {
+      UIUtilities.addWithYSpace(pnlSolveMatch,
+        ltfSolvematchMaximumResidual.getContainer());
+    }
+    if (ltfSolvematchCenterShiftLimit != null) {
+      UIUtilities.addWithYSpace(pnlSolveMatch,
+        ltfSolvematchCenterShiftLimit.getContainer());
+    }
+    // FiducialSelect
+    pnlFiducialSelect.setLayout(new BoxLayout(pnlFiducialSelect, BoxLayout.X_AXIS));
+    UIUtilities.addWithSpace(pnlFiducialSelect, pnlFiducialRadioOuter, FixedDim.x20_y0);
+    pnlFiducialSelect.add(pnlImodMatchModels);
+    pnlFiducialSelect.add(Box.createHorizontalGlue());
+    // FiducialRadioOuter
+    pnlFiducialRadioOuter
+      .setLayout(new BoxLayout(pnlFiducialRadioOuter, BoxLayout.X_AXIS));
+    pnlFiducialRadioOuter.add(pnlFiducialRadio);
+    pnlFiducialRadioOuter.add(Box.createHorizontalGlue());
+    // FiducialRadio
+    pnlFiducialRadio.setLayout(new BoxLayout(pnlFiducialRadio, BoxLayout.Y_AXIS));
     pnlFiducialRadio.add(rbBothSides.getComponent());
     pnlFiducialRadio.add(rbOneSide.getComponent());
+    pnlFiducialRadio.add(rbOneSideInverted.getComponent());
     pnlFiducialRadio.add(rbUseModel.getComponent());
     pnlFiducialRadio.add(rbUseModelOnly.getComponent());
-
+    // ImodMatchModels
     pnlImodMatchModels.setLayout(new BoxLayout(pnlImodMatchModels, BoxLayout.Y_AXIS));
     pnlImodMatchModels.add(cbBinBy2);
     pnlImodMatchModels.add(btnImodMatchModels.getComponent());
-    UIUtilities.setButtonSizeAll(pnlImodMatchModels, UIParameters.getInstance()
-      .getButtonDimension());
-
-    pnlFiducialSelect.setLayout(new BoxLayout(pnlFiducialSelect, BoxLayout.X_AXIS));
-    UIUtilities.addWithSpace(pnlFiducialSelect, opnlFiducialRadio, FixedDim.x20_y0);
-    pnlFiducialSelect.add(pnlImodMatchModels);
-    pnlFiducialSelect.add(Box.createHorizontalGlue());
-
-    pnlBody.setLayout(new BoxLayout(pnlBody, BoxLayout.Y_AXIS));
-    UIUtilities.addWithSpace(pnlBody, pnlFiducialSelect, FixedDim.x0_y10);
-    JPanel pnlUseCorrespondingPoints = new JPanel();
+    // UseCorrespondingPoints
     pnlUseCorrespondingPoints.setLayout(new BoxLayout(pnlUseCorrespondingPoints,
       BoxLayout.X_AXIS));
     pnlUseCorrespondingPoints.setAlignmentX(Component.CENTER_ALIGNMENT);
     pnlUseCorrespondingPoints.add(cbUseCorrespondingPoints);
     pnlUseCorrespondingPoints.add(Box.createHorizontalGlue());
-    UIUtilities.addWithYSpace(pnlBody, pnlUseCorrespondingPoints);
-    UIUtilities.addWithYSpace(pnlBody, ltfUseList.getContainer());
-    UIUtilities.addWithYSpace(pnlBody, ltfFiducialMatchListA.getContainer());
-    UIUtilities.addWithYSpace(pnlBody, ltfFiducialMatchListB.getContainer());
-    if (initialPanel) {
-      UIUtilities.addWithYSpace(pnlBody, ltfResidulThreshold.getContainer());
-      UIUtilities.addWithYSpace(pnlBody, ltfCenterShiftLimit.getContainer());
-      btnRestart.setSize();
-      JPanel pnlRestart = new JPanel();
+    // Dualvolmatch
+    if (pnlDualvolmatch != null) {
+      pnlDualvolmatch.setBorder(new EtchedBorder("Dualvolmatch Parameters").getBorder());
+      pnlDualvolmatch.setLayout(new BoxLayout(pnlDualvolmatch, BoxLayout.Y_AXIS));
+      if (ltfDualvolmatchMaximumResidual != null) {
+        pnlDualvolmatch.add(ltfDualvolmatchMaximumResidual.getComponent());
+      }
+      if (ltfDualvolmatchCenterShiftLimit != null) {
+        pnlDualvolmatch.add(ltfDualvolmatchCenterShiftLimit.getComponent());
+      }
+    }
+    // Restart
+    if (pnlRestart != null) {
       pnlRestart.setLayout(new BoxLayout(pnlRestart, BoxLayout.X_AXIS));
       pnlRestart.setAlignmentX(Component.CENTER_ALIGNMENT);
       pnlRestart.add(Box.createHorizontalGlue());
       pnlRestart.add(btnRestart.getComponent());
       pnlRestart.add(Box.createHorizontalGlue());
-      UIUtilities.addWithYSpace(pnlBody, pnlRestart);
     }
-    pnlRoot.setBorder(BorderFactory.createEtchedBorder());
-    pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.Y_AXIS));
-    if (initialPanel) {
-      header =
-        PanelHeader.getAdvancedBasicInstance(HEADER_LABEL, this, parent.getDialogType(),
-          globalAdvancedButton);
-    }
-    else {
-      header = PanelHeader.getInstance(HEADER_LABEL, this, parent.getDialogType());
-    }
-    pnlRoot.add(header);
-    pnlRoot.add(pnlBody);
-    setToolTipText();
-    show();
-  }
-
-  static SolvematchPanel getInstance(TomogramCombinationDialog parent, String title,
-    ApplicationManager appMgr, String headerGroup, DialogType dialogType,
-    GlobalExpandButton globalAdvancedButton) {
-    SolvematchPanel instance =
-      new SolvematchPanel(parent, title, appMgr, headerGroup, dialogType,
-        globalAdvancedButton);
-    instance.addListeners();
-    return instance;
+    // adjust
+    UIUtilities.setButtonSizeAll(pnlImodMatchModels, UIParameters.getInstance()
+      .getButtonDimension());
+    // update
+    updateDisplay();
+    updateAdvanced(phInitialMatch.isAdvanced());
   }
 
   void show() {
-    if (applicationManager.coordFileExists()) {
+    if (manager.coordFileExists()) {
       cbUseCorrespondingPoints.setSelected(false);
       cbUseCorrespondingPoints.setVisible(true);
       ltfUseList.setVisible(true);
@@ -363,31 +451,29 @@ final class SolvematchPanel implements Run3dmodButtonContainer, Expandable {
       cbUseCorrespondingPoints.setVisible(false);
       ltfUseList.setVisible(false);
     }
-    updateUseCorrespondingPoints();
+    updateDisplay();
   }
 
   void setDeferred3dmodButtons() {
     if (btnRestart != null) {
-      btnRestart
-        .setDeferred3dmodButton(tomogramCombinationDialog.getImodCombinedButton());
+      btnRestart.setDeferred3dmodButton(parent.getImodCombinedButton());
     }
   }
 
   private void addListeners() {
     // Bind the ui elements to their listeners
-    SolvematchPanelActionListener actionListener =
-      new SolvematchPanelActionListener(this);
-    if (initialPanel) {
-      btnRestart.addActionListener(actionListener);
+    if (btnRestart != null) {
+      btnRestart.addActionListener(this);
     }
-    btnImodMatchModels.addActionListener(actionListener);
-    cbBinBy2.addActionListener(actionListener);
-    cbUseCorrespondingPoints.addActionListener(actionListener);
-    RBFiducialListener rbFiducialListener = new RBFiducialListener(this);
-    rbBothSides.addActionListener(rbFiducialListener);
-    rbOneSide.addActionListener(rbFiducialListener);
-    rbUseModel.addActionListener(rbFiducialListener);
-    rbUseModelOnly.addActionListener(rbFiducialListener);
+    btnImodMatchModels.addActionListener(this);
+    cbBinBy2.addActionListener(this);
+    cbUseCorrespondingPoints.addActionListener(this);
+    rbBothSides.addActionListener(this);
+    rbOneSide.addActionListener(this);
+    rbOneSideInverted.addActionListener(this);
+    rbUseModel.addActionListener(this);
+    rbUseModelOnly.addActionListener(this);
+    cbInitialVolumeMatching.addActionListener(this);
   }
 
   public Container getContainer() {
@@ -396,17 +482,24 @@ final class SolvematchPanel implements Run3dmodButtonContainer, Expandable {
 
   // FIXME there are current two ways to get the parameters into and out of the
   // panel. Does this need to be the case? It seem redundant.
-  void setParameters(ConstCombineParams combineParams) {
-    if (combineParams.getFiducialMatch() == FiducialMatch.BOTH_SIDES) {
+  void setParameters(final ConstCombineParams combineParams) {
+    FiducialMatch match = combineParams.getFiducialMatch();
+    if (match == FiducialMatch.BOTH_SIDES) {
       rbBothSides.setSelected(true);
     }
-    if (combineParams.getFiducialMatch() == FiducialMatch.ONE_SIDE) {
+    else if (match == FiducialMatch.ONE_SIDE) {
       rbOneSide.setSelected(true);
     }
-    if (combineParams.getFiducialMatch() == FiducialMatch.USE_MODEL) {
-      rbUseModel.setSelected(true);
+    // backwards compatibility
+    else if (match == FiducialMatch.ONE_SIDE_INVERTED) {
+      rbOneSideInverted.setSelected(true);
+      rbOneSideInverted.setVisible(true);
     }
-    if (combineParams.getFiducialMatch() == FiducialMatch.USE_MODEL_ONLY) {
+    else if (match == FiducialMatch.USE_MODEL) {
+      rbUseModel.setSelected(true);
+      rbUseModel.setVisible(true);
+    }
+    else if (match == FiducialMatch.USE_MODEL_ONLY) {
       rbUseModelOnly.setSelected(true);
     }
     ltfFiducialMatchListA.setText(combineParams.getFiducialMatchListA());
@@ -414,44 +507,47 @@ final class SolvematchPanel implements Run3dmodButtonContainer, Expandable {
     ltfUseList.setText(combineParams.getUseList());
     if (cbUseCorrespondingPoints.isVisible()) {
       cbUseCorrespondingPoints.setSelected(!combineParams.isTransfer());
-      updateUseCorrespondingPoints();
+      updateDisplay();
     }
   }
 
-  final void setParameters(ReconScreenState screenState) {
-    if (initialPanel) {
+  void setParameters(final DualvolmatchParam param) {
+    if (ltfDualvolmatchMaximumResidual != null) {
+      ltfDualvolmatchMaximumResidual.setText(param.getMaximumResidual());
+    }
+    if (ltfDualvolmatchCenterShiftLimit != null) {
+      ltfDualvolmatchCenterShiftLimit.setText(param.getCenterShiftLimit());
+    }
+  }
+
+  void getParameters(final ReconScreenState screenState) {
+    if (btnRestart != null) {
+      // initial tab
+      phInitialMatch.getState(screenState.getCombineInitialSolvematchHeaderState());
+    }
+    else {
+      // setup tab
+      phInitialMatch.getState(screenState.getCombineSetupSolvematchHeaderState());
+    }
+  }
+
+  final void setParameters(final ReconScreenState screenState) {
+    if (btnRestart != null) {
+      // initial tab
+      phInitialMatch.setState(screenState.getCombineInitialSolvematchHeaderState());
       btnRestart.setButtonState(screenState.getButtonState(btnRestart
-        .createButtonStateKey(tomogramCombinationDialog.getDialogType())));
+        .createButtonStateKey(parent.getDialogType())));
       btnRestart
         .setButtonState(screenState.getButtonState(btnRestart.getButtonStateKey()));
     }
-  }
-
-  public void expand(final GlobalExpandButton button) {
-    updateAdvanced(button.isExpanded());
-    UIHarness.INSTANCE.pack(AxisID.ONLY, applicationManager);
-  }
-
-  public void expand(ExpandButton button) {
-    if (header.equalsOpenClose(button)) {
-      pnlBody.setVisible(button.isExpanded());
+    else {
+      // setup tab
+      phInitialMatch.setState(screenState.getCombineSetupSolvematchHeaderState());
     }
-    else if (initialPanel && header.equalsAdvancedBasic(button)) {
-      updateAdvanced(button.isExpanded());
-    }
-    UIHarness.INSTANCE.pack(AxisID.ONLY, applicationManager);
   }
 
-  void updateAdvanced(boolean state) {
-    ltfCenterShiftLimit.setVisible(state);
-  }
-
-  public void setVisible(boolean visible) {
+  public void setVisible(final boolean visible) {
     pnlRoot.setVisible(visible);
-  }
-
-  PanelHeader getHeader() {
-    return header;
   }
 
   /**
@@ -459,18 +555,23 @@ final class SolvematchPanel implements Run3dmodButtonContainer, Expandable {
    * CombineParams object 
    * @param combineParams
    */
-  boolean getParameters(CombineParams combineParams, final boolean doValidation) {
+  boolean getParameters(final CombineParams combineParams, final boolean doValidation) {
     try {
-      if (rbBothSides.isSelected()) {
+      if (rbBothSides.isSelected() && rbBothSides.isEnabled()) {
         combineParams.setFiducialMatch(FiducialMatch.BOTH_SIDES);
       }
-      if (rbOneSide.isSelected()) {
+      if (rbOneSide.isSelected() && rbOneSide.isEnabled()) {
         combineParams.setFiducialMatch(FiducialMatch.ONE_SIDE);
       }
-      if (rbUseModel.isSelected()) {
+      JButton b = new JButton();
+      if (rbOneSideInverted.isSelected() && rbOneSideInverted.isEnabled()
+        && rbOneSideInverted.isVisible()) {
+        combineParams.setFiducialMatch(FiducialMatch.ONE_SIDE_INVERTED);
+      }
+      if (rbUseModel.isSelected() && rbUseModel.isEnabled() && rbUseModel.isVisible()) {
         combineParams.setFiducialMatch(FiducialMatch.USE_MODEL);
       }
-      if (rbUseModelOnly.isSelected()) {
+      if (rbUseModelOnly.isSelected() && rbUseModelOnly.isEnabled()) {
         combineParams.setFiducialMatch(FiducialMatch.USE_MODEL_ONLY);
       }
       combineParams.setTransfer(!cbUseCorrespondingPoints.isSelected());
@@ -482,6 +583,7 @@ final class SolvematchPanel implements Run3dmodButtonContainer, Expandable {
       else {
         combineParams.setUseList(ltfUseList.getText(doValidation));
       }
+      combineParams.setInitialVolumeMatching(cbInitialVolumeMatching.isSelected());
       return true;
     }
     catch (FieldValidationFailedException e) {
@@ -489,7 +591,7 @@ final class SolvematchPanel implements Run3dmodButtonContainer, Expandable {
     }
   }
 
-  void setParameters(ConstSolvematchParam solvematchParam) {
+  void setParameters(final ConstSolvematchParam solvematchParam) {
     setSurfacesOrModels(solvematchParam.getSurfacesOrModel());
     if (solvematchParam.isMatchBToA()) {
       ltfFiducialMatchListA.setText(solvematchParam.getToCorrespondenceList().toString());
@@ -501,23 +603,39 @@ final class SolvematchPanel implements Run3dmodButtonContainer, Expandable {
       ltfFiducialMatchListA.setText(solvematchParam.getFromCorrespondenceList()
         .toString());
     }
-    if (initialPanel) {
-      ltfResidulThreshold.setText(solvematchParam.getMaximumResidual());
-      ltfCenterShiftLimit.setText(solvematchParam.getCenterShiftLimit());
+    if (ltfSolvematchMaximumResidual != null) {
+      ltfSolvematchMaximumResidual.setText(solvematchParam.getMaximumResidual());
+    }
+    if (ltfSolvematchCenterShiftLimit != null) {
+      ltfSolvematchCenterShiftLimit.setText(solvematchParam.getCenterShiftLimit());
     }
     ltfUseList.setText(solvematchParam.getUsePoints().toString());
   }
 
-  /* void visibleResidual(boolean state) { ltfResidulThreshold.setVisible(state); } */
+  boolean getParameters(final DualvolmatchParam param, final boolean doValidation) {
+    try {
+      if (ltfDualvolmatchMaximumResidual != null) {
+        param.setMaximumResidual(ltfDualvolmatchMaximumResidual.getText(doValidation));
+      }
+      if (ltfDualvolmatchCenterShiftLimit != null) {
+        param.setCenterShiftLimit(ltfDualvolmatchCenterShiftLimit.getText(doValidation));
+      }
+      return true;
+    }
+    catch (FieldValidationFailedException e) {
+      return false;
+    }
+  }
+
   /**
    * Get the parameters from the ui and filling in the appropriate fields in the
    * SolvematchParam object 
    * @param combineParams
    */
-  boolean getParameters(SolvematchParam solvematchParam, final boolean doValidation) {
+  boolean
+    getParameters(final SolvematchParam solvematchParam, final boolean doValidation) {
     try {
       solvematchParam.setSurfacesOrModel(getSurfacesOrModels());
-
       if (solvematchParam.isMatchBToA()) {
         solvematchParam.setToCorrespondenceList(ltfFiducialMatchListA
           .getText(doValidation));
@@ -530,10 +648,15 @@ final class SolvematchPanel implements Run3dmodButtonContainer, Expandable {
         solvematchParam.setToCorrespondenceList(ltfFiducialMatchListB
           .getText(doValidation));
       }
-      if (initialPanel) {
-        solvematchParam.setMaximumResidual(ltfResidulThreshold.getText(doValidation));
-        solvematchParam.setCenterShiftLimit(ltfCenterShiftLimit.getText(doValidation));
+      if (ltfSolvematchMaximumResidual != null) {
+        solvematchParam.setMaximumResidual(ltfSolvematchMaximumResidual
+          .getText(doValidation));
       }
+      if (ltfSolvematchCenterShiftLimit != null) {
+        solvematchParam.setCenterShiftLimit(ltfSolvematchCenterShiftLimit
+          .getText(doValidation));
+      }
+
       solvematchParam.setTransferCoordinateFile(cbUseCorrespondingPoints.isSelected());
       solvematchParam.setUsePoints(ltfUseList.getText(doValidation));
       return true;
@@ -548,27 +671,37 @@ final class SolvematchPanel implements Run3dmodButtonContainer, Expandable {
    * @return
    */
   public FiducialMatch getSurfacesOrModels() {
-    if (rbBothSides.isSelected()) {
+    if (rbBothSides.isSelected() && rbBothSides.isEnabled()) {
       return FiducialMatch.BOTH_SIDES;
     }
-    if (rbOneSide.isSelected()) {
+    if (rbOneSide.isSelected() && rbOneSide.isEnabled()) {
       return FiducialMatch.ONE_SIDE;
     }
-    if (rbUseModel.isSelected()) {
+    if (rbOneSideInverted.isSelected() && rbOneSideInverted.isEnabled()
+      && rbOneSideInverted.isVisible()) {
+      return FiducialMatch.ONE_SIDE_INVERTED;
+    }
+    if (rbUseModel.isSelected() && rbUseModel.isEnabled() && rbUseModel.isVisible()) {
       return FiducialMatch.USE_MODEL;
     }
-    if (rbUseModelOnly.isSelected()) {
+    if (rbUseModelOnly.isSelected() && rbUseModelOnly.isEnabled()) {
       return FiducialMatch.USE_MODEL_ONLY;
     }
     return FiducialMatch.NOT_SET;
   }
 
-  public void setSurfacesOrModels(FiducialMatch value) {
+  public void setSurfacesOrModels(final FiducialMatch value) {
     if (value == FiducialMatch.USE_MODEL_ONLY) {
       rbUseModelOnly.setSelected(true);
     }
+    // backwards compatibility
+    if (value == FiducialMatch.ONE_SIDE_INVERTED) {
+      rbOneSideInverted.setSelected(true);
+      rbOneSideInverted.setVisible(true);
+    }
     if (value == FiducialMatch.USE_MODEL) {
       rbUseModel.setSelected(true);
+      rbUseModel.setVisible(true);
     }
     if (value == FiducialMatch.ONE_SIDE) {
       rbOneSide.setSelected(true);
@@ -576,22 +709,22 @@ final class SolvematchPanel implements Run3dmodButtonContainer, Expandable {
     if (value == FiducialMatch.BOTH_SIDES) {
       rbBothSides.setSelected(true);
     }
-    updateUseFiducialModel();
+    updateDisplay();
   }
 
   public boolean isBinBy2() {
     return cbBinBy2.isSelected();
   }
 
-  public void setBinBy2(boolean state) {
+  void setBinBy2(final boolean state) {
     cbBinBy2.setSelected(state);
   }
 
-  void setUseList(String useList) {
+  void setUseList(final String useList) {
     ltfUseList.setText(useList);
   }
 
-  public void setFiducialMatchListA(String fiducialMatchListA) {
+  void setFiducialMatchListA(final String fiducialMatchListA) {
     ltfFiducialMatchListA.setText(fiducialMatchListA);
   }
 
@@ -612,7 +745,7 @@ final class SolvematchPanel implements Run3dmodButtonContainer, Expandable {
     return ltfFiducialMatchListA.getText();
   }
 
-  public void setFiducialMatchListB(String fiducialMatchListB) {
+  void setFiducialMatchListB(final String fiducialMatchListB) {
     ltfFiducialMatchListB.setText(fiducialMatchListB);
   }
 
@@ -625,27 +758,51 @@ final class SolvematchPanel implements Run3dmodButtonContainer, Expandable {
     return ltfFiducialMatchListB.getText();
   }
 
-  public void action(final String command, Deferred3dmodButton deferred3dmodButton,
+  public void expand(ExpandButton button) {
+    if (phInitialMatch.equalsOpenClose(button)) {
+      pnlRootBody.setVisible(button.isExpanded());
+    }
+    else if (phInitialMatch.equalsAdvancedBasic(button)) {
+      updateAdvanced(button.isExpanded());
+    }
+  }
+
+  public void expand(GlobalExpandButton button) {
+    updateAdvanced(button.isExpanded());
+    UIHarness.INSTANCE.pack(AxisID.ONLY, manager);
+  }
+
+  public void actionPerformed(final ActionEvent event) {
+    action(event.getActionCommand(), null, null);
+  }
+
+  public void action(final String command, final Deferred3dmodButton deferred3dmodButton,
     final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(cbUseCorrespondingPoints.getActionCommand())) {
-      updateUseCorrespondingPoints();
+      useCorrespondingPointsChanged = true;
+      updateDisplay();
+    }
+    else if (command.equals(rbBothSides.getActionCommand())
+      || command.equals(rbOneSide.getActionCommand())
+      || command.equals(rbUseModelOnly.getActionCommand())
+      || command.equals(cbInitialVolumeMatching.getActionCommand())) {
+      updateDisplay();
     }
     else {
       // Synchronize this panel with the others
-      tomogramCombinationDialog.synchronize(parentTitle, true);
+      parent.synchronize(parentTitle, true);
       if (command.equals(cbBinBy2.getActionCommand())) {
         if (!binningWarning && cbBinBy2.isSelected()) {
-          tomogramCombinationDialog.setBinningWarning(true);
+          parent.setBinningWarning(true);
           binningWarning = true;
         }
       }
-      else if (initialPanel && command.equals(btnRestart.getActionCommand())) {
-        applicationManager.combine(btnRestart, null, deferred3dmodButton,
-          run3dmodMenuOptions, dialogType,
-          tomogramCombinationDialog.getProcessingMethod());
+      else if (btnRestart != null && command.equals(btnRestart.getActionCommand())) {
+        manager.combine(btnRestart, null, deferred3dmodButton, run3dmodMenuOptions,
+          dialogType, parent.getProcessingMethod(), cbInitialVolumeMatching.isSelected());
       }
       else if (command.equals(btnImodMatchModels.getActionCommand())) {
-        applicationManager.imodMatchingModel(cbBinBy2.isSelected(), run3dmodMenuOptions);
+        manager.imodMatchingModel(cbBinBy2.isSelected(), run3dmodMenuOptions);
       }
     }
   }
@@ -655,20 +812,37 @@ final class SolvematchPanel implements Run3dmodButtonContainer, Expandable {
    * 
    * @param event
    */
-  protected void rbFiducialAction(ActionEvent event) {
-    updateUseFiducialModel();
+  private void rbFiducialAction(final ActionEvent event) {
+    updateDisplay();
   }
 
-  /**
-   * Enable/disable the matching model button
-   */
-  void updateUseFiducialModel() {
-    boolean enable = rbUseModel.isSelected() || rbUseModelOnly.isSelected();
-    btnImodMatchModels.setEnabled(enable);
-    cbBinBy2.setEnabled(enable);
+  private void updateAdvanced(final boolean advanced) {
+    if (ltfSolvematchCenterShiftLimit != null) {
+      ltfSolvematchCenterShiftLimit.setVisible(advanced);
+    }
+    if (ltfDualvolmatchCenterShiftLimit != null) {
+      ltfDualvolmatchCenterShiftLimit.setVisible(advanced);
+    }
   }
 
-  void updateUseCorrespondingPoints() {
+  private void updateDisplay() {
+    boolean initialVolumeMatching = cbInitialVolumeMatching.isSelected();
+    if (ltfSolvematchCenterShiftLimit != null) {
+      ltfSolvematchCenterShiftLimit.setEnabled(!initialVolumeMatching);
+    }
+    if (ltfSolvematchMaximumResidual != null) {
+      ltfSolvematchMaximumResidual.setEnabled(!initialVolumeMatching);
+    }
+    rbBothSides.setEnabled(!initialVolumeMatching);
+    rbOneSide.setEnabled(!initialVolumeMatching);
+    rbUseModelOnly.setEnabled(!initialVolumeMatching);
+    boolean fiducialMode = rbUseModel.isSelected() || rbUseModelOnly.isSelected();
+    btnImodMatchModels.setEnabled(fiducialMode && !initialVolumeMatching);
+    cbBinBy2.setEnabled(fiducialMode && !initialVolumeMatching);
+    cbUseCorrespondingPoints.setEnabled(!initialVolumeMatching);
+    ltfFiducialMatchListA.setEnabled(!initialVolumeMatching);
+    ltfFiducialMatchListB.setEnabled(!initialVolumeMatching);
+    ltfUseList.setEnabled(!initialVolumeMatching);
     if (cbUseCorrespondingPoints.isSelected()) {
       ltfFiducialMatchListA.setVisible(true);
       ltfFiducialMatchListB.setVisible(true);
@@ -679,56 +853,39 @@ final class SolvematchPanel implements Run3dmodButtonContainer, Expandable {
       ltfFiducialMatchListB.setVisible(false);
       ltfUseList.setVisible(true);
     }
-    tomogramCombinationDialog.updateDisplay();
+    if (useCorrespondingPointsChanged) {
+      useCorrespondingPointsChanged = false;
+      parent.updateDisplay();
+    }
   }
 
   public boolean isUseCorrespondingPoints() {
     return cbUseCorrespondingPoints.isSelected();
   }
 
-  public void setUseCorrespondingPoints(boolean selected) {
+  public boolean isInitialVolumeMatching() {
+    return cbInitialVolumeMatching.isSelected();
+  }
+
+  void setUseCorrespondingPoints(boolean selected) {
     cbUseCorrespondingPoints.setSelected(selected);
-    updateUseCorrespondingPoints();
-  }
-
-  /**
-   * Manage the matching models button
-   */
-  private final class SolvematchPanelActionListener implements ActionListener {
-    private final SolvematchPanel adaptee;
-
-    private SolvematchPanelActionListener(final SolvematchPanel adaptee) {
-      this.adaptee = adaptee;
-    }
-
-    public void actionPerformed(final ActionEvent event) {
-      adaptee.action(event.getActionCommand(), null, null);
-    }
-  }
-
-  class RBFiducialListener implements ActionListener {
-
-    SolvematchPanel adaptee;
-
-    public RBFiducialListener(SolvematchPanel adaptee) {
-      this.adaptee = adaptee;
-    }
-
-    public void actionPerformed(ActionEvent event) {
-      adaptee.rbFiducialAction(event);
-    }
+    updateDisplay();
   }
 
   /**
    * Initialize the tooltip text
    */
   private void setToolTipText() {
-    ReadOnlySection section;
-    ReadOnlyAutodoc autodoc = null;
+    ReadOnlySection solvematchSection;
+    ReadOnlyAutodoc solvematchAutodoc = null;
+    ReadOnlyAutodoc dualvolmatchAutodoc = null;
     try {
-      autodoc =
-        AutodocFactory.getInstance(applicationManager, AutodocFactory.SOLVEMATCH,
-          AxisID.ONLY, false);
+      solvematchAutodoc =
+        AutodocFactory
+          .getInstance(manager, AutodocFactory.SOLVEMATCH, AxisID.ONLY, false);
+      dualvolmatchAutodoc =
+        AutodocFactory
+          .getInstance(manager, AutodocFactory.DUALVOLMATCH, AxisID.ONLY, false);
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();
@@ -739,23 +896,25 @@ final class SolvematchPanel implements Run3dmodButtonContainer, Expandable {
     catch (LogFile.LockException except) {
       except.printStackTrace();
     }
-    String autodocName = autodoc.getAutodocName();
-    section =
-      autodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME,
+    String autodocName = solvematchAutodoc.getAutodocName();
+    solvematchSection =
+      solvematchAutodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME,
         SolvematchParam.SURFACE_OR_USE_MODELS);
     cbUseCorrespondingPoints
       .setToolTipText("Check to use the points in A and B in the transferfid log file.  "
         + "Leave unchecked to use transferfid.coord.");
-    if (section != null) {
-      rbBothSides.setToolTipText(EtomoAutodoc.getTooltip(autodocName, section,
+    if (solvematchSection != null) {
+      rbBothSides.setToolTipText(EtomoAutodoc.getTooltip(autodocName, solvematchSection,
         SolvematchParam.BOTH_SIDES_OPTION));
-      rbOneSide.setToolTipText(EtomoAutodoc.getTooltip(autodocName, section,
+      rbOneSideInverted.setToolTipText(EtomoAutodoc.getTooltip(autodocName, solvematchSection,
+        SolvematchParam.ONE_SIDE_INVERTED_OPTION));
+      rbOneSide.setToolTipText(EtomoAutodoc.getTooltip(autodocName, solvematchSection,
         SolvematchParam.ONE_SIDE_OPTION));
-      rbUseModel.setToolTipText(EtomoAutodoc.getTooltip(autodocName, section,
+      rbUseModel.setToolTipText(EtomoAutodoc.getTooltip(autodocName, solvematchSection,
         SolvematchParam.USE_MODEL_OPTION));
-      rbUseModelOnly.setToolTipText(EtomoAutodoc.getTooltip(autodocName, section,
+      rbUseModelOnly.setToolTipText(EtomoAutodoc.getTooltip(autodocName, solvematchSection,
         SolvematchParam.USE_MODEL_ONLY_OPTION));
-      if (initialPanel) {
+      if (btnRestart != null) {
         btnRestart
           .setToolTipText("Restart the combine operation from the beginning with the parameters "
             + "specified here.");
@@ -765,17 +924,27 @@ final class SolvematchPanel implements Run3dmodButtonContainer, Expandable {
       .setToolTipText("Use binning by 2 when opening matching models to allow the two 3dmods "
         + "to fit into the computer's memory.");
     btnImodMatchModels.setToolTipText("Create models of corresponding points.");
-    ltfFiducialMatchListA.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+    ltfFiducialMatchListA.setToolTipText(EtomoAutodoc.getTooltip(solvematchAutodoc,
       SolvematchParam.TO_CORRESPONDENCE_LIST));
-    ltfFiducialMatchListB.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+    ltfFiducialMatchListB.setToolTipText(EtomoAutodoc.getTooltip(solvematchAutodoc,
       SolvematchParam.FROM_CORRESPONDENCE_LIST));
     ltfUseList.setToolTipText(EtomoAutodoc
-      .getTooltip(autodoc, SolvematchParam.USE_POINTS));
-    if (initialPanel) {
-      ltfResidulThreshold.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+      .getTooltip(solvematchAutodoc, SolvematchParam.USE_POINTS));
+    if (ltfSolvematchMaximumResidual != null) {
+      ltfSolvematchMaximumResidual.setToolTipText(EtomoAutodoc.getTooltip(solvematchAutodoc,
         SolvematchParam.MAXIMUM_RESIDUAL));
-      ltfCenterShiftLimit.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+    }
+    if (ltfSolvematchCenterShiftLimit != null) {
+      ltfSolvematchCenterShiftLimit.setToolTipText(EtomoAutodoc.getTooltip(solvematchAutodoc,
         SolvematchParam.CENTER_SHIFT_LIMIT_KEY));
+    }
+    if (ltfDualvolmatchMaximumResidual != null) {
+      ltfDualvolmatchMaximumResidual.setToolTipText(EtomoAutodoc.getTooltip(dualvolmatchAutodoc,
+        DualvolmatchParam.MAXIMUM_RESIDUAL));
+    }
+    if (ltfDualvolmatchCenterShiftLimit != null) {
+      ltfDualvolmatchCenterShiftLimit.setToolTipText(EtomoAutodoc.getTooltip(dualvolmatchAutodoc,
+        DualvolmatchParam.CENTER_SHIFT_LIMIT));
     }
   }
 }
