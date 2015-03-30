@@ -6330,7 +6330,7 @@ public final class ApplicationManager extends BaseManager implements
         tomogramCombinationDialog
           .synchronize(TomogramCombinationDialog.lblSetup, true/* false */);
         if (!combineComscriptState.isDualvolmatchPresent()) {
-          tomogramCombinationDialog.invalidateScripts();
+          //TODO run setupcombine with copy combine.com only
         }
       }
       else {
