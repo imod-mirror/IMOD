@@ -277,6 +277,10 @@ class MultiLineButton implements ProcessResultDisplay {
     }
     return UIUtilities.getPreferredWidth(button, unformattedLabel, fontMetrics);
   }
+  
+  public void setDebug(final boolean input) {
+    debug = input;
+  }
 
   int getPreferredWidth(final String text) {
     if (fontMetrics == null) {
@@ -324,8 +328,10 @@ class MultiLineButton implements ProcessResultDisplay {
       buttonForeground = button.getForeground();
       // creating a readable foreground highlight color
       buttonHighlightForeground =
-        Colors.subtractColor(Colors.HIGHLIGHT_BACKGROUND, UIUtilities.divideColor(Colors
-          .subtractColor(new Color(255, 255, 255), buttonForeground), 2));
+        Colors.subtractColor(
+          Colors.HIGHLIGHT_BACKGROUND,
+          UIUtilities.divideColor(
+            Colors.subtractColor(new Color(255, 255, 255), buttonForeground), 2));
     }
     if (highlight) {
       button.setForeground(buttonHighlightForeground);
