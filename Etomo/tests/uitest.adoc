@@ -489,6 +489,7 @@ set.var.number-of-z-patches=2
 set.var.z-low=5
 set.var.z-high=70
 set.var.initial-match-size=84
+set.var.initial-match-size-patch-tracking=84
 #PostProc
 set.var.scaling-z-min=28
 set.var.scaling-z-max=56
@@ -576,6 +577,7 @@ set.var.number-of-z-patches=2
 set.var.z-low=5
 set.var.z-high=70
 set.var.initial-match-size=96
+set.var.initial-match-size-patch-tracking=84
 #PostProc
 set.var.scaling-z-min=32
 set.var.scaling-z-min-simple-align=
