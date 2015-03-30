@@ -573,6 +573,7 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
     ltfYMax.setNumberMustBePositive(true);
     ltfZMin.setNumberMustBePositive(true);
     ltfZMax.setNumberMustBePositive(true);
+      (MultiLineButton) appMgr.getProcessResultDisplayFactory(AxisID.ONLY)
     btnCombine.setContainer(this);
     btnDefaults.setSize();
     lTomogramSizeWarning.setForeground(ProcessControlPanel.colorNotStarted);
@@ -755,6 +756,7 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
     rbBtoA.addActionListener(rbMatchToListener);
     // Bind the patch region model check box to its action listener
     cbPatchRegionModel.addActionListener(new CBPatchListener(this));
+      .getButtonDimension());
     // Mouse listener for context menu
     pnlRoot.addMouseListener(new GenericMouseAdapter(this));
   }
