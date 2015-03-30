@@ -377,7 +377,8 @@ import etomo.util.Utilities;
  */
 
 public final class ComScriptManager extends BaseComScriptManager {
-  public static final String rcsid = "$Id$";
+  public static final String rcsid =
+    "$Id$";
 
   static final String PARAM_KEY = "Param";
 
@@ -412,6 +413,7 @@ public final class ComScriptManager extends BaseComScriptManager {
   // The solvematch com script replaces the functionality of the
   // solvematchshift and solvematchmod com scripts
   private ComScript scriptSolvematch;
+  private ComScript scriptDualvolmatch;
   private ComScript scriptSolvematchshift;
   private ComScript scriptSolvematchmod;
   private ComScript scriptPatchcorr;
@@ -473,14 +475,14 @@ public final class ComScriptManager extends BaseComScriptManager {
   public boolean loadGoldEraser(AxisID axisID, boolean required) {
     // Assign the new ComScriptObject object to the appropriate reference
     if (axisID == AxisID.SECOND) {
-      scriptGoldEraserB = loadComScript(
-          FileType.GOLD_ERASER_COMSCRIPT.getFileName(appManager, axisID), axisID, true,
-          required, false, false);
+      scriptGoldEraserB =
+        loadComScript(FileType.GOLD_ERASER_COMSCRIPT.getFileName(appManager, axisID),
+          axisID, true, required, false, false);
       return scriptGoldEraserB != null;
     }
-    scriptGoldEraserA = loadComScript(
-        FileType.GOLD_ERASER_COMSCRIPT.getFileName(appManager, axisID), axisID, true,
-        required, false, false);
+    scriptGoldEraserA =
+      loadComScript(FileType.GOLD_ERASER_COMSCRIPT.getFileName(appManager, axisID),
+        axisID, true, required, false, false);
     return scriptGoldEraserA != null;
   }
 
@@ -593,14 +595,14 @@ public final class ComScriptManager extends BaseComScriptManager {
    */
   public void loadUndistort(AxisID axisID) {
     if (axisID == AxisID.SECOND) {
-      scriptUndistortB = loadComScript(
-          BlendmontParam.getProcessName(BlendmontParam.Mode.UNDISTORT), axisID, true,
-          false, false);
+      scriptUndistortB =
+        loadComScript(BlendmontParam.getProcessName(BlendmontParam.Mode.UNDISTORT),
+          axisID, true, false, false);
     }
     else {
-      scriptUndistortA = loadComScript(
-          BlendmontParam.getProcessName(BlendmontParam.Mode.UNDISTORT), axisID, true,
-          false, false);
+      scriptUndistortA =
+        loadComScript(BlendmontParam.getProcessName(BlendmontParam.Mode.UNDISTORT),
+          axisID, true, false, false);
     }
   }
 
@@ -621,8 +623,8 @@ public final class ComScriptManager extends BaseComScriptManager {
     }
 
     // Initialize a TiltxcorrParam object from the com script command object
-    TiltxcorrParam tiltXcorrParam = new TiltxcorrParam(appManager, axisID,
-        ProcessName.XCORR_PT);
+    TiltxcorrParam tiltXcorrParam =
+      new TiltxcorrParam(appManager, axisID, ProcessName.XCORR_PT);
     initialize(tiltXcorrParam, xcorrPt, "tiltxcorr", axisID, false, false);
     return tiltXcorrParam;
   }
@@ -660,7 +662,7 @@ public final class ComScriptManager extends BaseComScriptManager {
     // object
     GotoParam gotoParam = new GotoParam();
     if (!initialize(gotoParam, xcorrPt, GotoParam.COMMAND_NAME, axisID, false, false,
-        required)) {
+      required)) {
       return null;
     }
     return gotoParam;
@@ -705,8 +707,8 @@ public final class ComScriptManager extends BaseComScriptManager {
     }
 
     // Initialize a TiltxcorrParam object from the com script command object
-    TiltxcorrParam tiltXcorrParam = new TiltxcorrParam(appManager, axisID,
-        ProcessName.XCORR);
+    TiltxcorrParam tiltXcorrParam =
+      new TiltxcorrParam(appManager, axisID, ProcessName.XCORR);
     initialize(tiltXcorrParam, xcorr, "tiltxcorr", axisID, false, false);
     return tiltXcorrParam;
   }
@@ -806,7 +808,7 @@ public final class ComScriptManager extends BaseComScriptManager {
       scriptXcorr = scriptXcorrA;
     }
     modifyCommand(scriptXcorr, blendmontParam, BlendmontParam.COMMAND_NAME, axisID,
-        false, false);
+      false, false);
   }
 
   public void saveXcorrToUndistort(BlendmontParam blendmontParam, AxisID axisID) {
@@ -822,7 +824,7 @@ public final class ComScriptManager extends BaseComScriptManager {
       scriptXcorr = scriptXcorrA;
     }
     addModifyCommand(scriptXcorr, scriptUndistort, blendmontParam,
-        BlendmontParam.COMMAND_NAME, axisID, false, false);
+      BlendmontParam.COMMAND_NAME, axisID, false, false);
   }
 
   /**
@@ -862,40 +864,40 @@ public final class ComScriptManager extends BaseComScriptManager {
   public void loadPreblend(AxisID axisID) {
     // Assign the new ComScriptObject object to the appropriate reference
     if (axisID == AxisID.SECOND) {
-      scriptPreblendB = loadComScript(
-          BlendmontParam.getProcessName(BlendmontParam.Mode.PREBLEND), axisID, true,
-          false, false);
+      scriptPreblendB =
+        loadComScript(BlendmontParam.getProcessName(BlendmontParam.Mode.PREBLEND),
+          axisID, true, false, false);
     }
     else {
-      scriptPreblendA = loadComScript(
-          BlendmontParam.getProcessName(BlendmontParam.Mode.PREBLEND), axisID, true,
-          false, false);
+      scriptPreblendA =
+        loadComScript(BlendmontParam.getProcessName(BlendmontParam.Mode.PREBLEND),
+          axisID, true, false, false);
     }
   }
 
   public void loadBlend(AxisID axisID) {
     // Assign the new ComScriptObject object to the appropriate reference
     if (axisID == AxisID.SECOND) {
-      scriptBlendB = loadComScript(
-          BlendmontParam.getProcessName(BlendmontParam.Mode.BLEND), axisID, true, false,
-          false);
+      scriptBlendB =
+        loadComScript(BlendmontParam.getProcessName(BlendmontParam.Mode.BLEND), axisID,
+          true, false, false);
     }
     else {
-      scriptBlendA = loadComScript(
-          BlendmontParam.getProcessName(BlendmontParam.Mode.BLEND), axisID, true, false,
-          false);
+      scriptBlendA =
+        loadComScript(BlendmontParam.getProcessName(BlendmontParam.Mode.BLEND), axisID,
+          true, false, false);
     }
   }
 
   public void loadBlend3dFind(AxisID axisID) {
     // Assign the new ComScriptObject object to the appropriate reference
     if (axisID == AxisID.SECOND) {
-      scriptBlend3dFindB = loadComScript(ProcessName.BLEND_3D_FIND, axisID, true, false,
-          false);
+      scriptBlend3dFindB =
+        loadComScript(ProcessName.BLEND_3D_FIND, axisID, true, false, false);
     }
     else {
-      scriptBlend3dFindA = loadComScript(ProcessName.BLEND_3D_FIND, axisID, true, false,
-          false);
+      scriptBlend3dFindA =
+        loadComScript(ProcessName.BLEND_3D_FIND, axisID, true, false, false);
     }
   }
 
@@ -907,14 +909,14 @@ public final class ComScriptManager extends BaseComScriptManager {
   public boolean loadAutofidseed(AxisID axisID, boolean required) {
     // Assign the new ComScriptObject object to the appropriate reference
     if (axisID == AxisID.SECOND) {
-      scriptAutofidseedB = loadComScript(
-          FileType.AUTOFIDSEED_COMSCRIPT.getFileName(appManager, axisID), axisID, true,
-          required, false, false);
+      scriptAutofidseedB =
+        loadComScript(FileType.AUTOFIDSEED_COMSCRIPT.getFileName(appManager, axisID),
+          axisID, true, required, false, false);
       return scriptAutofidseedB != null;
     }
-    scriptAutofidseedA = loadComScript(
-        FileType.AUTOFIDSEED_COMSCRIPT.getFileName(appManager, axisID), axisID, true,
-        required, false, false);
+    scriptAutofidseedA =
+      loadComScript(FileType.AUTOFIDSEED_COMSCRIPT.getFileName(appManager, axisID),
+        axisID, true, required, false, false);
     return scriptAutofidseedA != null;
   }
 
@@ -926,28 +928,28 @@ public final class ComScriptManager extends BaseComScriptManager {
   public boolean loadXcorrPt(AxisID axisID, boolean required) {
     // Assign the new ComScriptObject object to the appropriate reference
     if (axisID == AxisID.SECOND) {
-      scriptXcorrPtB = loadComScript(
-          FileType.PATCH_TRACKING_COMSCRIPT.getFileName(appManager, axisID), axisID,
-          true, required, false, false);
+      scriptXcorrPtB =
+        loadComScript(FileType.PATCH_TRACKING_COMSCRIPT.getFileName(appManager, axisID),
+          axisID, true, required, false, false);
       return scriptXcorrPtB != null;
     }
-    scriptXcorrPtA = loadComScript(
-        FileType.PATCH_TRACKING_COMSCRIPT.getFileName(appManager, axisID), axisID, true,
-        required, false, false);
+    scriptXcorrPtA =
+      loadComScript(FileType.PATCH_TRACKING_COMSCRIPT.getFileName(appManager, axisID),
+        axisID, true, required, false, false);
     return scriptXcorrPtA != null;
   }
 
   public boolean loadSirtsetup(AxisID axisID) {
     // Assign the new ComScriptObject object to the appropriate reference
     if (axisID == AxisID.SECOND) {
-      scriptSirtsetupB = loadComScript(
-          FileType.SIRTSETUP_COMSCRIPT.getFileName(appManager, axisID), axisID, true,
-          false, false, false);
+      scriptSirtsetupB =
+        loadComScript(FileType.SIRTSETUP_COMSCRIPT.getFileName(appManager, axisID),
+          axisID, true, false, false, false);
       return scriptSirtsetupB != null;
     }
-    scriptSirtsetupA = loadComScript(
-        FileType.SIRTSETUP_COMSCRIPT.getFileName(appManager, axisID), axisID, true,
-        false, false, false);
+    scriptSirtsetupA =
+      loadComScript(FileType.SIRTSETUP_COMSCRIPT.getFileName(appManager, axisID), axisID,
+        true, false, false, false);
     return scriptSirtsetupA != null;
   }
 
@@ -963,8 +965,9 @@ public final class ComScriptManager extends BaseComScriptManager {
 
     // Initialize a SirtsetupParam object from the com script command object
     SirtsetupParam param = new SirtsetupParam(appManager, axisID);
-    initialize(param, sirtsetup, FileType.SIRTSETUP_COMSCRIPT.getTypeString(appManager
-        .getMetaData().getAxisType()), axisID, true, true);
+    initialize(param, sirtsetup,
+      FileType.SIRTSETUP_COMSCRIPT.getTypeString(appManager.getMetaData().getAxisType()),
+      axisID, true, true);
     return param;
   }
 
@@ -989,25 +992,28 @@ public final class ComScriptManager extends BaseComScriptManager {
   public boolean loadCtfPlotter(AxisID axisID, boolean required) {
     // Assign the new ComScriptObject object to the appropriate reference
     if (axisID == AxisID.SECOND) {
-      scriptCtfPlotterB = loadComScript(ProcessName.CTF_PLOTTER.getComscript(axisID),
-          axisID, true, required, false, false);
+      scriptCtfPlotterB =
+        loadComScript(ProcessName.CTF_PLOTTER.getComscript(axisID), axisID, true,
+          required, false, false);
       return scriptCtfPlotterB != null;
     }
-    scriptCtfPlotterA = loadComScript(ProcessName.CTF_PLOTTER.getComscript(axisID),
-        axisID, true, required, false, false);
+    scriptCtfPlotterA =
+      loadComScript(ProcessName.CTF_PLOTTER.getComscript(axisID), axisID, true, required,
+        false, false);
     return scriptCtfPlotterA != null;
   }
 
   public boolean loadCtfCorrection(AxisID axisID, boolean required) {
     // Assign the new ComScriptObject object to the appropriate reference
     if (axisID == AxisID.SECOND) {
-      scriptCtfCorrectionB = loadComScript(
-          ProcessName.CTF_CORRECTION.getComscript(axisID), axisID, true, required, false,
-          false);
+      scriptCtfCorrectionB =
+        loadComScript(ProcessName.CTF_CORRECTION.getComscript(axisID), axisID, true,
+          required, false, false);
       return scriptCtfCorrectionB != null;
     }
-    scriptCtfCorrectionA = loadComScript(ProcessName.CTF_CORRECTION.getComscript(axisID),
-        axisID, true, required, false, false);
+    scriptCtfCorrectionA =
+      loadComScript(ProcessName.CTF_CORRECTION.getComscript(axisID), axisID, true,
+        required, false, false);
     return scriptCtfCorrectionA != null;
   }
 
@@ -1049,10 +1055,11 @@ public final class ComScriptManager extends BaseComScriptManager {
     }
 
     // Initialize a BlendmontParam object from the com script command object
-    BlendmontParam preblendParam = new BlendmontParam(appManager, appManager
-        .getMetaData().getDatasetName(), axisID, BlendmontParam.Mode.PREBLEND);
+    BlendmontParam preblendParam =
+      new BlendmontParam(appManager, appManager.getMetaData().getDatasetName(), axisID,
+        BlendmontParam.Mode.PREBLEND);
     initialize(preblendParam, scriptPreblend, BlendmontParam.COMMAND_NAME, axisID, false,
-        false);
+      false);
     return preblendParam;
   }
 
@@ -1067,8 +1074,9 @@ public final class ComScriptManager extends BaseComScriptManager {
     }
 
     // Initialize a BlendmontParam object from the com script command object
-    BlendmontParam blendParam = new BlendmontParam(appManager, appManager.getMetaData()
-        .getDatasetName(), axisID, BlendmontParam.Mode.BLEND);
+    BlendmontParam blendParam =
+      new BlendmontParam(appManager, appManager.getMetaData().getDatasetName(), axisID,
+        BlendmontParam.Mode.BLEND);
     initialize(blendParam, scriptBlend, BlendmontParam.COMMAND_NAME, axisID, false, false);
     return blendParam;
   }
@@ -1089,10 +1097,11 @@ public final class ComScriptManager extends BaseComScriptManager {
     }
 
     // Initialize a BlendmontParam object from the com script command object
-    BlendmontParam blendParam = new BlendmontParam(appManager, appManager.getMetaData()
-        .getDatasetName(), axisID, BlendmontParam.Mode.BLEND_3DFIND);
+    BlendmontParam blendParam =
+      new BlendmontParam(appManager, appManager.getMetaData().getDatasetName(), axisID,
+        BlendmontParam.Mode.BLEND_3DFIND);
     initialize(blendParam, scriptBlend3dFind, BlendmontParam.COMMAND_NAME, axisID, false,
-        false);
+      false);
     return blendParam;
   }
 
@@ -1152,7 +1161,7 @@ public final class ComScriptManager extends BaseComScriptManager {
       scriptPreblend = scriptPreblendA;
     }
     modifyCommand(scriptPreblend, blendmontParam, BlendmontParam.COMMAND_NAME, axisID,
-        false, false);
+      false, false);
   }
 
   public void saveBlend(BlendmontParam blendmontParam, AxisID axisID) {
@@ -1167,7 +1176,7 @@ public final class ComScriptManager extends BaseComScriptManager {
       scriptBlend = scriptBlendA;
     }
     modifyCommand(scriptBlend, blendmontParam, BlendmontParam.COMMAND_NAME, axisID,
-        false, false);
+      false, false);
   }
 
   public void saveBlend3dFind(BlendmontParam blendmontParam, AxisID axisID) {
@@ -1180,7 +1189,7 @@ public final class ComScriptManager extends BaseComScriptManager {
       scriptBlend3dFind = scriptBlend3dFindA;
     }
     modifyCommand(scriptBlend3dFind, blendmontParam, BlendmontParam.COMMAND_NAME, axisID,
-        false, false);
+      false, false);
   }
 
   public void saveBlend3dFind(MrcTaperParam param, AxisID axisID) {
@@ -1193,7 +1202,7 @@ public final class ComScriptManager extends BaseComScriptManager {
       scriptBlend3dFind = scriptBlend3dFindA;
     }
     modifyCommand(scriptBlend3dFind, param, MrcTaperParam.COMMAND_NAME, axisID, false,
-        false);
+      false);
   }
 
   public void saveFindBeads3d(FindBeads3dParam param, AxisID axisID) {
@@ -1205,7 +1214,7 @@ public final class ComScriptManager extends BaseComScriptManager {
       script = scriptFindBeads3dA;
     }
     modifyCommand(script, param, ProcessName.FIND_BEADS_3D.toString(), axisID, false,
-        false);
+      false);
   }
 
   public void saveCtfPlotter(CtfPlotterParam param, AxisID axisID) {
@@ -1253,12 +1262,12 @@ public final class ComScriptManager extends BaseComScriptManager {
 
     // Assign the new ComScriptObject object to the appropriate reference
     if (axisID == AxisID.SECOND) {
-      scriptFindBeads3dB = loadComScript(ProcessName.FIND_BEADS_3D.toString(), axisID,
-          true, false, false);
+      scriptFindBeads3dB =
+        loadComScript(ProcessName.FIND_BEADS_3D.toString(), axisID, true, false, false);
     }
     else {
-      scriptFindBeads3dA = loadComScript(ProcessName.FIND_BEADS_3D.toString(), axisID,
-          true, false, false);
+      scriptFindBeads3dA =
+        loadComScript(ProcessName.FIND_BEADS_3D.toString(), axisID, true, false, false);
     }
   }
 
@@ -1338,8 +1347,8 @@ public final class ComScriptManager extends BaseComScriptManager {
     }
 
     // Initialize a BeadtrckParam object from the com script command object
-    TiltalignParam tiltalignParam = new TiltalignParam(appManager, appManager
-        .getMetaData().getDatasetName(), axisID);
+    TiltalignParam tiltalignParam =
+      new TiltalignParam(appManager, appManager.getMetaData().getDatasetName(), axisID);
     initialize(tiltalignParam, align, "tiltalign", axisID, false, false);
     return tiltalignParam;
   }
@@ -1426,12 +1435,12 @@ public final class ComScriptManager extends BaseComScriptManager {
   public void loadNewst3dFind(AxisID axisID) {
     // Assign the new ComScriptObject object to the appropriate reference
     if (axisID == AxisID.SECOND) {
-      scriptNewst3dFindB = loadComScript(ProcessName.NEWST_3D_FIND, axisID, true, false,
-          false);
+      scriptNewst3dFindB =
+        loadComScript(ProcessName.NEWST_3D_FIND, axisID, true, false, false);
     }
     else {
-      scriptNewst3dFindA = loadComScript(ProcessName.NEWST_3D_FIND, axisID, true, false,
-          false);
+      scriptNewst3dFindA =
+        loadComScript(ProcessName.NEWST_3D_FIND, axisID, true, false, false);
     }
   }
 
@@ -1616,7 +1625,7 @@ public final class ComScriptManager extends BaseComScriptManager {
     }
     // update the newst parameters
     modifyCommand(scriptNewst3dFind, param, MrcTaperParam.COMMAND_NAME, axisID, false,
-        false);
+      false);
   }
 
   /**
@@ -1640,12 +1649,12 @@ public final class ComScriptManager extends BaseComScriptManager {
   public void loadTiltForSirt(AxisID axisID) {
     // Assign the new ComScriptObject object to the appropriate reference
     if (axisID == AxisID.SECOND) {
-      scriptTiltForSirtB = loadComScript(FileType.TILT_FOR_SIRT_COMSCRIPT, axisID, false,
-          true, true);
+      scriptTiltForSirtB =
+        loadComScript(FileType.TILT_FOR_SIRT_COMSCRIPT, axisID, false, true, true);
     }
     else {
-      scriptTiltForSirtA = loadComScript(FileType.TILT_FOR_SIRT_COMSCRIPT, axisID, false,
-          true, true);
+      scriptTiltForSirtA =
+        loadComScript(FileType.TILT_FOR_SIRT_COMSCRIPT, axisID, false, true, true);
     }
   }
 
@@ -1669,12 +1678,12 @@ public final class ComScriptManager extends BaseComScriptManager {
    */
   public void loadTilt3dFindReproject(AxisID axisID) {
     if (axisID == AxisID.SECOND) {
-      scriptTilt3dFindReprojectB = loadComScript(ProcessName.TILT_3D_FIND_REPROJECT,
-          axisID, false, true, true);
+      scriptTilt3dFindReprojectB =
+        loadComScript(ProcessName.TILT_3D_FIND_REPROJECT, axisID, false, true, true);
     }
     else {
-      scriptTilt3dFindReprojectA = loadComScript(ProcessName.TILT_3D_FIND_REPROJECT,
-          axisID, false, true, true);
+      scriptTilt3dFindReprojectA =
+        loadComScript(ProcessName.TILT_3D_FIND_REPROJECT, axisID, false, true, true);
     }
   }
 
@@ -1696,8 +1705,8 @@ public final class ComScriptManager extends BaseComScriptManager {
     }
 
     // Initialize a TiltParam object from the com script command object
-    TiltParam tiltParam = new TiltParam(appManager, appManager.getMetaData()
-        .getDatasetName(), axisID);
+    TiltParam tiltParam =
+      new TiltParam(appManager, appManager.getMetaData().getDatasetName(), axisID);
     initialize(tiltParam, tilt, "tilt", axisID, true, true);
     return tiltParam;
   }
@@ -1718,8 +1727,8 @@ public final class ComScriptManager extends BaseComScriptManager {
       comScript = scriptTiltForSirtA;
     }
     // Initialize a TiltParam object from the com script command object
-    TiltParam tiltParam = new TiltParam(appManager, appManager.getMetaData()
-        .getDatasetName(), axisID);
+    TiltParam tiltParam =
+      new TiltParam(appManager, appManager.getMetaData().getDatasetName(), axisID);
     initialize(tiltParam, comScript, "tilt", axisID, true, true);
     return tiltParam;
   }
@@ -1742,8 +1751,8 @@ public final class ComScriptManager extends BaseComScriptManager {
     }
 
     // Initialize a TiltParam object from the com script command object
-    TiltParam tiltParam = new TiltParam(appManager, appManager.getMetaData()
-        .getDatasetName(), axisID);
+    TiltParam tiltParam =
+      new TiltParam(appManager, appManager.getMetaData().getDatasetName(), axisID);
     initialize(tiltParam, tilt, "tilt", axisID, true, true);
     return tiltParam;
   }
@@ -1767,8 +1776,8 @@ public final class ComScriptManager extends BaseComScriptManager {
     }
 
     // Initialize a TiltParam object from the com script command object
-    TiltParam tiltParam = new TiltParam(appManager, appManager.getMetaData()
-        .getDatasetName(), axisID);
+    TiltParam tiltParam =
+      new TiltParam(appManager, appManager.getMetaData().getDatasetName(), axisID);
     initialize(tiltParam, tilt, "tilt", axisID, true, true);
     return tiltParam;
   }
@@ -1906,7 +1915,7 @@ public final class ComScriptManager extends BaseComScriptManager {
     // Initialize from the com script command object
     CtfPhaseFlipParam ctfPhaseFlipParam = new CtfPhaseFlipParam(appManager, axisID);
     initialize(ctfPhaseFlipParam, ctfPhaseflip, CtfPhaseFlipParam.COMMAND, axisID, false,
-        false);
+      false);
     return ctfPhaseFlipParam;
   }
 
@@ -1952,7 +1961,7 @@ public final class ComScriptManager extends BaseComScriptManager {
       scriptMTFFilter = scriptMTFFilterA;
     }
     modifyCommand(scriptMTFFilter, mtfFilterParam, MTFFILTER_COMMAND, axisID, false,
-        false);
+      false);
   }
 
   /**
@@ -1960,6 +1969,11 @@ public final class ComScriptManager extends BaseComScriptManager {
    */
   public void loadSolvematch() {
     scriptSolvematch = loadComScript("solvematch", AxisID.ONLY, true, false, false);
+  }
+
+  public void loadDualvolmatch() {
+    scriptDualvolmatch =
+      loadComScript(ProcessName.DUALVOLMATCH.toString(), AxisID.ONLY, true, false, false);
   }
 
   /**
@@ -1976,6 +1990,13 @@ public final class ComScriptManager extends BaseComScriptManager {
     return solveMatchParam;
   }
 
+  public DualvolmatchParam getDualvolmatch() {
+    DualvolmatchParam param = new DualvolmatchParam();
+    initialize(param, scriptDualvolmatch, ProcessName.DUALVOLMATCH.toString(),
+      AxisID.ONLY, false, false);
+    return param;
+  }
+
   /**
    * Replace the solvematch command in the solvematch com script with the info
    * in the specified SolvematchParam object
@@ -1984,7 +2005,12 @@ public final class ComScriptManager extends BaseComScriptManager {
   public void saveSolvematch(SolvematchParam solveMatchParam) {
 
     modifyCommand(scriptSolvematch, solveMatchParam, "solvematch", AxisID.ONLY, false,
-        false);
+      false);
+  }
+
+  public void saveDualvolmatch(DualvolmatchParam param) {
+    modifyCommand(scriptDualvolmatch, param, ProcessName.DUALVOLMATCH.toString(),
+      AxisID.ONLY, false, false);
   }
 
   /**
@@ -1993,15 +2019,15 @@ public final class ComScriptManager extends BaseComScriptManager {
    */
   public void saveSolvematch(MatchshiftsParam matchshiftsParam) {
     modifyCommand(scriptSolvematch, matchshiftsParam, matchshiftsParam.getCommand(),
-        AxisID.ONLY, true, false, false, false);
+      AxisID.ONLY, true, false, false, false);
   }
 
   /**
    * Load the solvematchshift com script
    */
   public void loadSolvematchshift() {
-    scriptSolvematchshift = loadComScript("solvematchshift", AxisID.ONLY, true, false,
-        false);
+    scriptSolvematchshift =
+      loadComScript("solvematchshift", AxisID.ONLY, true, false, false);
   }
 
   /**
@@ -2014,7 +2040,7 @@ public final class ComScriptManager extends BaseComScriptManager {
     // object
     SolvematchshiftParam solveMatchshiftParam = new SolvematchshiftParam();
     initialize(solveMatchshiftParam, scriptSolvematchshift, "solvematch", AxisID.ONLY,
-        false, false);
+      false, false);
     return solveMatchshiftParam;
   }
 
@@ -2024,7 +2050,7 @@ public final class ComScriptManager extends BaseComScriptManager {
     // object
     MatchshiftsParam matchshiftsParam = new MatchshiftsParam();
     initialize(matchshiftsParam, scriptSolvematchshift, "matchshifts", AxisID.ONLY,
-        false, false);
+      false, false);
     return matchshiftsParam;
   }
 
@@ -2044,8 +2070,8 @@ public final class ComScriptManager extends BaseComScriptManager {
     }
 
     // Initialize a TiltxcorrParam object from the com script command object
-    BlendmontParam blendmontParam = new BlendmontParam(appManager, appManager
-        .getMetaData().getDatasetName(), axisID);
+    BlendmontParam blendmontParam =
+      new BlendmontParam(appManager, appManager.getMetaData().getDatasetName(), axisID);
     initialize(blendmontParam, xcorr, BlendmontParam.COMMAND_NAME, axisID, false, false);
     return blendmontParam;
   }
@@ -2082,7 +2108,7 @@ public final class ComScriptManager extends BaseComScriptManager {
     except.printStackTrace();
     System.err.println("WARNING: call to saveSolvematchshift");
     modifyCommand(scriptSolvematchshift, solveMatchshiftParam, "solvematch", AxisID.ONLY,
-        false, false);
+      false, false);
   }
 
   /**
@@ -2102,7 +2128,7 @@ public final class ComScriptManager extends BaseComScriptManager {
     // object
     SolvematchmodParam solveMatchmodParam = new SolvematchmodParam();
     initialize(solveMatchmodParam, scriptSolvematchmod, "solvematch", AxisID.ONLY, false,
-        false);
+      false);
     return solveMatchmodParam;
   }
 
@@ -2117,7 +2143,7 @@ public final class ComScriptManager extends BaseComScriptManager {
     except.printStackTrace();
     System.err.println("WARNING: call to saveSolvematchshift");
     modifyCommand(scriptSolvematchmod, solveMatchmodParam, "solvematch", AxisID.ONLY,
-        false, false);
+      false, false);
   }
 
   /**
@@ -2136,9 +2162,9 @@ public final class ComScriptManager extends BaseComScriptManager {
     // Initialize a Patchcrawl3DParam object from the com script command object
     Patchcrawl3DParam patchcrawl3DParam = new Patchcrawl3DParam();
     if (!initialize(patchcrawl3DParam, scriptPatchcorr, Patchcrawl3DParam.COMMAND,
-        AxisID.ONLY, true, false, false, true)) {
+      AxisID.ONLY, true, false, false, true)) {
       initialize(patchcrawl3DParam, scriptPatchcorr, Patchcrawl3DPrePIPParam.COMMAND,
-          AxisID.ONLY, false, false);
+        AxisID.ONLY, false, false);
     }
     return patchcrawl3DParam;
   }
@@ -2150,11 +2176,11 @@ public final class ComScriptManager extends BaseComScriptManager {
   public void savePatchcorr(Patchcrawl3DParam patchcrawl3DParam) {
 
     if (!modifyOptionalCommand(scriptPatchcorr, patchcrawl3DParam,
-        Patchcrawl3DParam.COMMAND, AxisID.ONLY, false, false)) {
+      Patchcrawl3DParam.COMMAND, AxisID.ONLY, false, false)) {
       deleteCommand(scriptPatchcorr, Patchcrawl3DPrePIPParam.COMMAND, AxisID.ONLY, false,
-          false);
+        false);
       addModifyCommand(scriptPatchcorr, patchcrawl3DParam, Patchcrawl3DParam.COMMAND,
-          AxisID.ONLY, -1, false, false, false);
+        AxisID.ONLY, -1, false, false, false);
     }
   }
 
@@ -2162,8 +2188,8 @@ public final class ComScriptManager extends BaseComScriptManager {
    * Load the matchvol1 com script
    */
   public void loadMatchvol1() {
-    scriptMatchvol1 = loadComScript(MatchvolParam.COMMAND + '1', AxisID.ONLY, true,
-        false, false);
+    scriptMatchvol1 =
+      loadComScript(MatchvolParam.COMMAND + '1', AxisID.ONLY, true, false, false);
   }
 
   /**
@@ -2185,7 +2211,7 @@ public final class ComScriptManager extends BaseComScriptManager {
   public void saveMatchvol(MatchvolParam matchvolParam) {
 
     modifyCommand(scriptMatchvol1, matchvolParam, MatchvolParam.COMMAND, AxisID.ONLY,
-        false, false);
+      false, false);
   }
 
   /**
@@ -2204,7 +2230,7 @@ public final class ComScriptManager extends BaseComScriptManager {
     // Initialize a MatchorwarpParam object from the com script command object
     MatchorwarpParam matchorwarpParam = new MatchorwarpParam();
     initialize(matchorwarpParam, scriptMatchorwarp, "matchorwarp", AxisID.ONLY, false,
-        false);
+      false);
     return matchorwarpParam;
   }
 
@@ -2215,16 +2241,17 @@ public final class ComScriptManager extends BaseComScriptManager {
   public void saveMatchorwarp(MatchorwarpParam matchorwarpParam) {
 
     modifyCommand(scriptMatchorwarp, matchorwarpParam, "matchorwarp", AxisID.ONLY, false,
-        false);
+      false);
   }
 
   /**
    * 
    * @return
    */
-  public CombineComscriptState getCombineComscript() {
+  public CombineComscriptState getCombineComscript(final boolean initialVolumeMatching) {
     // Initialize a CombineComscript object from the com script command object
-    CombineComscriptState combineComscriptState = new CombineComscriptState();
+    CombineComscriptState combineComscriptState =
+      new CombineComscriptState(initialVolumeMatching);
     if (!combineComscriptState.initialize(this)) {
       return null;
     }
@@ -2235,8 +2262,8 @@ public final class ComScriptManager extends BaseComScriptManager {
    * Load the combine com script
    */
   public void loadCombine() {
-    scriptCombine = loadComScript(CombineComscriptState.COMSCRIPT_NAME, AxisID.ONLY,
-        true, false, false);
+    scriptCombine =
+      loadComScript(CombineComscriptState.COMSCRIPT_NAME, AxisID.ONLY, true, false, false);
   }
 
   public void loadVolcombine() {
@@ -2249,7 +2276,7 @@ public final class ComScriptManager extends BaseComScriptManager {
    */
   public void saveCombine(GotoParam gotoParam) {
     modifyCommand(scriptCombine, gotoParam, GotoParam.COMMAND_NAME, AxisID.ONLY, false,
-        false);
+      false);
   }
 
   /**
@@ -2259,7 +2286,7 @@ public final class ComScriptManager extends BaseComScriptManager {
    */
   public int saveCombine(EchoParam echoParam, String previousCommand) {
     return addModifyCommand(scriptCombine, echoParam, EchoParam.COMMAND_NAME,
-        AxisID.ONLY, previousCommand, false, false);
+      AxisID.ONLY, previousCommand, false, false);
   }
 
   /**
@@ -2268,7 +2295,7 @@ public final class ComScriptManager extends BaseComScriptManager {
    */
   public void saveCombine(ExitParam exitParam, int previousCommandIndex) {
     addModifyCommand(scriptCombine, exitParam, ExitParam.COMMAND_NAME, AxisID.ONLY,
-        previousCommandIndex, false, false, false);
+      previousCommandIndex, false, false, false);
   }
 
   /**
@@ -2278,17 +2305,17 @@ public final class ComScriptManager extends BaseComScriptManager {
    */
   public void saveCombine(GotoParam gotoParam, int previousCommandIndex) {
     addModifyCommand(scriptCombine, gotoParam, GotoParam.COMMAND_NAME, AxisID.ONLY,
-        previousCommandIndex, false, false, false);
+      previousCommandIndex, false, false, false);
   }
 
   public void saveVolcombine(SetParam setParam) {
     modifyCommand(scriptVolcombine, setParam, SetParam.COMMAND_NAME, AxisID.ONLY, false,
-        false);
+      false);
   }
 
   public void saveVolcombine(SetParam setParam, String previousCommand) {
     modifyCommand(scriptVolcombine, setParam, SetParam.COMMAND_NAME, AxisID.ONLY, false,
-        false, previousCommand, false, false);
+      false, previousCommand, false, false);
   }
 
   /**
@@ -2309,7 +2336,7 @@ public final class ComScriptManager extends BaseComScriptManager {
     // object
     GotoParam gotoParam = new GotoParam();
     if (!initialize(gotoParam, scriptCombine, GotoParam.COMMAND_NAME, AxisID.ONLY, true,
-        false, false, true)) {
+      false, false, true)) {
       return null;
     }
     return gotoParam;
@@ -2318,17 +2345,17 @@ public final class ComScriptManager extends BaseComScriptManager {
   public SetParam getSetParamFromVolcombine(String name, EtomoNumber.Type type) {
     SetParam setParam = new SetParam(name, type);
     if (!initialize(setParam, scriptVolcombine, SetParam.COMMAND_NAME, AxisID.ONLY, true,
-        false, false, true)) {
+      false, false, true)) {
       return null;
     }
     return setParam;
   }
 
   public SetParam getSetParamFromVolcombine(String name, EtomoNumber.Type type,
-      String previousCommand) {
+    String previousCommand) {
     SetParam setParam = new SetParam(name, type);
     if (!initialize(setParam, scriptVolcombine, SetParam.COMMAND_NAME, AxisID.ONLY, true,
-        previousCommand, true, false, false)) {
+      previousCommand, true, false, false)) {
       return null;
     }
     return setParam;
@@ -2345,27 +2372,27 @@ public final class ComScriptManager extends BaseComScriptManager {
     // object
     EchoParam echoParam = new EchoParam();
     if (!initialize(echoParam, scriptCombine, EchoParam.COMMAND_NAME, AxisID.ONLY, false,
-        previousCommand, false, false, false)) {
+      previousCommand, false, false, false)) {
       return null;
     }
     return echoParam;
   }
 
   public void loadFlatten(AxisID axisID) {
-    scriptFlatten = loadComScript(ProcessName.FLATTEN.toString(), axisID, true, false,
-        false);
+    scriptFlatten =
+      loadComScript(ProcessName.FLATTEN.toString(), axisID, true, false, false);
   }
 
   public boolean isWarpVolParamInFlatten(AxisID axisID) {
     return loadComScript(ProcessName.FLATTEN.toString(), axisID, true, false, false)
-        .isCommandLoaded();
+      .isCommandLoaded();
   }
 
   public WarpVolParam getWarpVolParamFromFlatten(AxisID axisID) {
     // Initialize a WarpVolParam object from the com script command
     // object
-    WarpVolParam param = new WarpVolParam(appManager, axisID,
-        WarpVolParam.Mode.POST_PROCESSING);
+    WarpVolParam param =
+      new WarpVolParam(appManager, axisID, WarpVolParam.Mode.POST_PROCESSING);
     initialize(param, scriptFlatten, WarpVolParam.COMMAND, axisID, false, false);
     return param;
   }
@@ -2392,12 +2419,13 @@ public final class ComScriptManager extends BaseComScriptManager {
    *  
    */
   public void useTemplate(String scriptName, String datasetName, AxisType axisType,
-      AxisID axisID) throws BadComScriptException, IOException {
+    AxisID axisID) throws BadComScriptException, IOException {
     Utilities.timestamp("copy from template", scriptName, Utilities.STARTED_STATUS);
     // Read in the template file from the IMOD_DIR/com directory replacing all
     // instances of the tag g5a and g5b with the appropriate dataset name
-    String comDirectory = EtomoDirector.INSTANCE.getIMODDirectory().getAbsolutePath()
-        + File.separator + "com";
+    String comDirectory =
+      EtomoDirector.INSTANCE.getIMODDirectory().getAbsolutePath() + File.separator
+        + "com";
 
     File template = new File(comDirectory, scriptName + ".com");
     if (!template.exists()) {
@@ -2418,8 +2446,9 @@ public final class ComScriptManager extends BaseComScriptManager {
       scriptWriter = new BufferedWriter(new FileWriter(script));
     }
     else {
-      script = new File(appManager.getPropertyUserDir(), scriptName
-          + axisID.getExtension() + ".com");
+      script =
+        new File(appManager.getPropertyUserDir(), scriptName + axisID.getExtension()
+          + ".com");
       scriptWriter = new BufferedWriter(new FileWriter(script));
       datasetName = datasetName + axisID.getExtension();
     }
@@ -2462,11 +2491,12 @@ public final class ComScriptManager extends BaseComScriptManager {
    * @throws IOException
    */
   public void useTemplate(String scriptName, AxisType axisType, AxisID axisID,
-      boolean rename) throws BadComScriptException, IOException {
+    boolean rename) throws BadComScriptException, IOException {
     Utilities.timestamp("copy from template", scriptName, Utilities.STARTED_STATUS);
     // Copy the template file from the IMOD_DIR/com directory to the script
-    String comDirectory = EtomoDirector.INSTANCE.getIMODDirectory().getAbsolutePath()
-        + File.separator + "com";
+    String comDirectory =
+      EtomoDirector.INSTANCE.getIMODDirectory().getAbsolutePath() + File.separator
+        + "com";
 
     File template = new File(comDirectory, scriptName + ".com");
     if (!template.exists()) {
@@ -2481,8 +2511,9 @@ public final class ComScriptManager extends BaseComScriptManager {
       script = new File(appManager.getPropertyUserDir(), scriptName + ".com");
     }
     else {
-      script = new File(appManager.getPropertyUserDir(), scriptName
-          + axisID.getExtension() + ".com");
+      script =
+        new File(appManager.getPropertyUserDir(), scriptName + axisID.getExtension()
+          + ".com");
     }
 
     if (rename) {
@@ -2493,58 +2524,60 @@ public final class ComScriptManager extends BaseComScriptManager {
   }
 
   private ComScript loadComScript(ProcessName processName, AxisID axisID,
-      boolean parseComments, boolean caseInsensitive, boolean separateWithASpace) {
+    boolean parseComments, boolean caseInsensitive, boolean separateWithASpace) {
     return loadComScript(processName.getComscript(axisID), axisID, parseComments, true,
-        caseInsensitive, separateWithASpace);
+      caseInsensitive, separateWithASpace);
   }
 
   private ComScript loadComScript(String scriptName, AxisID axisID,
-      boolean parseComments, boolean caseInsensitive, boolean separateWithASpace) {
+    boolean parseComments, boolean caseInsensitive, boolean separateWithASpace) {
     return loadComScript(
-        ProcessName.getInstance(scriptName, axisID).getComscript(axisID), axisID,
-        parseComments, true, caseInsensitive, separateWithASpace);
+      ProcessName.getInstance(scriptName, axisID).getComscript(axisID), axisID,
+      parseComments, true, caseInsensitive, separateWithASpace);
   }
 
   private boolean modifyOptionalCommand(ComScript script, CommandParam params,
-      String command, AxisID axisID, boolean caseInsensitive, boolean separateWithASpace) {
+    String command, AxisID axisID, boolean caseInsensitive, boolean separateWithASpace) {
     return modifyCommand(script, params, command, axisID, false, true, caseInsensitive,
-        separateWithASpace);
+      separateWithASpace);
   }
 
   private boolean modifyCommand(ComScript script, CommandParam params, String command,
-      AxisID axisID, boolean addNew, boolean optional, String previousCommand,
-      boolean caseInsensitive, boolean separateWithASpace) {
+    AxisID axisID, boolean addNew, boolean optional, String previousCommand,
+    boolean caseInsensitive, boolean separateWithASpace) {
     if (script == null) {
       (new IllegalStateException()).printStackTrace();
       String[] errorMessage = new String[2];
       errorMessage[0] = "Unable to update comscript.";
       errorMessage[1] = "\nscript=" + script + "\ncommand=" + command;
       uiHarness.openMessageDialog(appManager, errorMessage, "ComScriptManager Error",
-          axisID);
+        axisID);
       return false;
     }
     Utilities.timestamp("update", command, script, Utilities.STARTED_STATUS);
 
     // locate previous command
     ComScriptCommand previousComScriptCommand = null;
-    int previousCommandIndex = script.getScriptCommandIndex(previousCommand,
-        caseInsensitive, separateWithASpace);
+    int previousCommandIndex =
+      script.getScriptCommandIndex(previousCommand, caseInsensitive, separateWithASpace);
 
     // previous command must exist
     if (previousCommandIndex == -1) {
       String[] errorMessage = new String[2];
       errorMessage[0] = "Unable to update " + script.getName() + ".  ";
-      errorMessage[1] = "Unable to update " + command + " because the previous command, "
+      errorMessage[1] =
+        "Unable to update " + command + " because the previous command, "
           + previousCommand + ", is missing.";
       uiHarness.openMessageDialog(appManager, errorMessage, "ComScriptManager Error",
-          axisID);
+        axisID);
       Utilities.timestamp("update", command, script, Utilities.FAILED_STATUS);
       return false;
     }
     // Update the specified com script command from the CommandParam object
     ComScriptCommand comScriptCommand = null;
-    int commandIndex = script.getScriptCommandIndex(command, previousCommandIndex + 1,
-        addNew, caseInsensitive, separateWithASpace);
+    int commandIndex =
+      script.getScriptCommandIndex(command, previousCommandIndex + 1, addNew,
+        caseInsensitive, separateWithASpace);
     // optional return false if failed
     if (optional && commandIndex == -1) {
       Utilities.timestamp("updateComScript", command, script, Utilities.FAILED_STATUS);
@@ -2561,7 +2594,7 @@ public final class ComScriptManager extends BaseComScriptManager {
       errorMessage[1] = "Command: " + command;
       errorMessage[2] = except.getMessage();
       JOptionPane.showMessageDialog(null, errorMessage, "Can't update " + command
-          + " in " + script.getComFileName(), JOptionPane.ERROR_MESSAGE);
+        + " in " + script.getComFileName(), JOptionPane.ERROR_MESSAGE);
       Utilities.timestamp("update", command, script, Utilities.FAILED_STATUS);
       return false;
     }
@@ -2580,7 +2613,7 @@ public final class ComScriptManager extends BaseComScriptManager {
       errorMessage[1] = "Command: " + command;
       errorMessage[2] = except.getMessage();
       JOptionPane.showMessageDialog(null, except.getMessage(), "Can't write " + command
-          + axisID.getExtension() + ".com", JOptionPane.ERROR_MESSAGE);
+        + axisID.getExtension() + ".com", JOptionPane.ERROR_MESSAGE);
       Utilities.timestamp("update", command, script, Utilities.FAILED_STATUS);
       return false;
     }
@@ -2601,15 +2634,15 @@ public final class ComScriptManager extends BaseComScriptManager {
    * @param addNew
    */
   private void addModifyCommand(ComScript fromScript, ComScript toScript,
-      CommandParam params, String command, AxisID axisID, boolean caseInsensitive,
-      boolean separateWithASpace) {
+    CommandParam params, String command, AxisID axisID, boolean caseInsensitive,
+    boolean separateWithASpace) {
     if (toScript == null) {
       (new IllegalStateException()).printStackTrace();
       String[] errorMessage = new String[2];
       errorMessage[0] = "Unable to update comscript.  ";
       errorMessage[1] = "\ntoScript=" + toScript + "ncommand=" + command;
       uiHarness.openMessageDialog(appManager, errorMessage, "ComScriptManager Error",
-          axisID);
+        axisID);
       return;
     }
     Utilities.timestamp("update", command, toScript, Utilities.STARTED_STATUS);
@@ -2617,18 +2650,18 @@ public final class ComScriptManager extends BaseComScriptManager {
     // toScript.
     if (fromScript == null) {
       modifyCommand(toScript, params, command, axisID, true, false, caseInsensitive,
-          separateWithASpace);
+        separateWithASpace);
       Utilities.timestamp("update", command, toScript, Utilities.FINISHED_STATUS);
       return;
     }
     // Update the specified com script command from the CommandParam object
     ComScriptCommand comScriptCommand = null;
-    int toScriptCommandIndex = toScript.getScriptCommandIndex(command, true,
-        caseInsensitive, separateWithASpace);
+    int toScriptCommandIndex =
+      toScript.getScriptCommandIndex(command, true, caseInsensitive, separateWithASpace);
     try {
       // Get comScriptCommand from fromScript
-      comScriptCommand = fromScript.getScriptCommand(command, caseInsensitive,
-          separateWithASpace);
+      comScriptCommand =
+        fromScript.getScriptCommand(command, caseInsensitive, separateWithASpace);
     }
     catch (BadComScriptException except) {
       except.printStackTrace();
@@ -2637,7 +2670,7 @@ public final class ComScriptManager extends BaseComScriptManager {
       errorMessage[1] = "Command: " + command;
       errorMessage[2] = except.getMessage();
       JOptionPane.showMessageDialog(null, errorMessage, "Can't read " + command + " in "
-          + fromScript.getComFileName(), JOptionPane.ERROR_MESSAGE);
+        + fromScript.getComFileName(), JOptionPane.ERROR_MESSAGE);
       Utilities.timestamp("update", command, toScript, Utilities.FAILED_STATUS);
       return;
     }
@@ -2652,7 +2685,7 @@ public final class ComScriptManager extends BaseComScriptManager {
       errorMessage[1] = "Command: " + command;
       errorMessage[2] = except.getMessage();
       JOptionPane.showMessageDialog(null, errorMessage, "Can't update " + command
-          + " in " + toScript.getComFileName(), JOptionPane.ERROR_MESSAGE);
+        + " in " + toScript.getComFileName(), JOptionPane.ERROR_MESSAGE);
       Utilities.timestamp("update", command, toScript, Utilities.FAILED_STATUS);
       return;
     }
@@ -2671,7 +2704,7 @@ public final class ComScriptManager extends BaseComScriptManager {
       errorMessage[1] = "Command: " + command;
       errorMessage[2] = except.getMessage();
       JOptionPane.showMessageDialog(null, except.getMessage(), "Can't write " + command
-          + axisID.getExtension() + ".com", JOptionPane.ERROR_MESSAGE);
+        + axisID.getExtension() + ".com", JOptionPane.ERROR_MESSAGE);
       Utilities.timestamp("update", command, toScript, Utilities.FAILED_STATUS);
       return;
     }
@@ -2689,35 +2722,36 @@ public final class ComScriptManager extends BaseComScriptManager {
    * @return index of updated command
    */
   private int addModifyCommand(ComScript script, CommandParam params, String command,
-      AxisID axisID, String previousCommand, boolean caseInsensitive,
-      boolean separateWithASpace) {
+    AxisID axisID, String previousCommand, boolean caseInsensitive,
+    boolean separateWithASpace) {
     if (script == null) {
       String[] errorMessage = new String[1];
-      errorMessage[0] = "Unable to update comscript.\nscript=" + script + "\ncommand="
-          + command;
+      errorMessage[0] =
+        "Unable to update comscript.\nscript=" + script + "\ncommand=" + command;
       uiHarness.openMessageDialog(appManager, errorMessage, "ComScriptManager Error",
-          axisID);
+        axisID);
       return -1;
     }
     Utilities.timestamp("update", command, script, Utilities.STARTED_STATUS);
     // locate previous command
     ComScriptCommand previousComScriptCommand = null;
-    int previousCommandIndex = script.getScriptCommandIndex(previousCommand,
-        caseInsensitive, separateWithASpace);
+    int previousCommandIndex =
+      script.getScriptCommandIndex(previousCommand, caseInsensitive, separateWithASpace);
 
     if (previousCommandIndex == -1) {
       String[] errorMessage = new String[2];
       errorMessage[0] = "Unable to update " + script.getName() + ".  ";
-      errorMessage[1] = "Unable to update " + command + " because the previous command, "
+      errorMessage[1] =
+        "Unable to update " + command + " because the previous command, "
           + previousCommand + ", is missing.";
       uiHarness.openMessageDialog(appManager, errorMessage, "ComScriptManager Error",
-          axisID);
+        axisID);
       Utilities.timestamp("update", command, script, Utilities.FAILED_STATUS);
       return -1;
     }
 
     return addModifyCommand(script, params, command, axisID, previousCommandIndex, true,
-        caseInsensitive, separateWithASpace);
+      caseInsensitive, separateWithASpace);
   }
 
   /**
@@ -2731,14 +2765,14 @@ public final class ComScriptManager extends BaseComScriptManager {
    * @return
    */
   private int addModifyCommand(ComScript script, CommandParam params, String command,
-      AxisID axisID, int previousCommandIndex, boolean updateStarted,
-      boolean caseInsensitive, boolean separateWithASpace) {
+    AxisID axisID, int previousCommandIndex, boolean updateStarted,
+    boolean caseInsensitive, boolean separateWithASpace) {
     if (script == null) {
       String[] errorMessage = new String[2];
       errorMessage[0] = "Unable to update comscript.";
       errorMessage[1] = "\nscript=" + script + "\ncommand=" + command;
       uiHarness.openMessageDialog(appManager, errorMessage, "ComScriptManager Error",
-          axisID);
+        axisID);
       return -1;
     }
     if (!updateStarted) {
@@ -2747,11 +2781,12 @@ public final class ComScriptManager extends BaseComScriptManager {
     if (previousCommandIndex < -1) {
       String[] errorMessage = new String[2];
       errorMessage[0] = "Unable to update " + script.getName() + ".  ";
-      errorMessage[1] = "Can't find " + command + " because the previous command index, "
+      errorMessage[1] =
+        "Can't find " + command + " because the previous command index, "
           + previousCommandIndex + ", is invalid.\npreviousCommandIndex="
           + previousCommandIndex;
       uiHarness.openMessageDialog(appManager, errorMessage, "ComScriptManager Error",
-          axisID);
+        axisID);
       Utilities.timestamp("update", command, script, Utilities.FAILED_STATUS);
       return -1;
     }
@@ -2761,8 +2796,9 @@ public final class ComScriptManager extends BaseComScriptManager {
     int commandIndex = previousCommandIndex + 1;
 
     try {
-      comScriptCommand = script.getScriptCommand(command, commandIndex, true,
-          caseInsensitive, separateWithASpace);
+      comScriptCommand =
+        script.getScriptCommand(command, commandIndex, true, caseInsensitive,
+          separateWithASpace);
       params.updateComScriptCommand(comScriptCommand);
     }
     catch (BadComScriptException except) {
@@ -2772,7 +2808,7 @@ public final class ComScriptManager extends BaseComScriptManager {
       errorMessage[1] = "Command: " + command;
       errorMessage[2] = except.getMessage();
       JOptionPane.showMessageDialog(null, errorMessage, "Can't update " + command
-          + " in " + script.getComFileName(), JOptionPane.ERROR_MESSAGE);
+        + " in " + script.getComFileName(), JOptionPane.ERROR_MESSAGE);
       Utilities.timestamp("update", command, script, Utilities.FAILED_STATUS);
       return commandIndex;
     }
@@ -2790,7 +2826,7 @@ public final class ComScriptManager extends BaseComScriptManager {
       errorMessage[1] = "Command: " + command;
       errorMessage[2] = except.getMessage();
       JOptionPane.showMessageDialog(null, except.getMessage(), "Can't write " + command
-          + axisID.getExtension() + ".com", JOptionPane.ERROR_MESSAGE);
+        + axisID.getExtension() + ".com", JOptionPane.ERROR_MESSAGE);
       Utilities.timestamp("update", command, script, Utilities.FAILED_STATUS);
       return commandIndex;
     }
@@ -2799,37 +2835,39 @@ public final class ComScriptManager extends BaseComScriptManager {
   }
 
   private void deleteCommand(ComScript script, String command, AxisID axisID,
-      String previousCommand, boolean caseInsensitive, boolean separateWithASpace) {
+    String previousCommand, boolean caseInsensitive, boolean separateWithASpace) {
     if (script == null) {
       String[] errorMessage = new String[2];
       errorMessage[0] = "Unable to update comscript.  ";
       errorMessage[1] = "Cannot delete" + command + ".\nscript=" + script;
       uiHarness.openMessageDialog(appManager, errorMessage, "ComScriptManager Error",
-          axisID);
+        axisID);
       return;
     }
     Utilities.timestamp("delete", command, script, Utilities.STARTED_STATUS);
 
     // locate previous command
     ComScriptCommand previousComScriptCommand = null;
-    int previousCommandIndex = script.getScriptCommandIndex(previousCommand,
-        caseInsensitive, separateWithASpace);
+    int previousCommandIndex =
+      script.getScriptCommandIndex(previousCommand, caseInsensitive, separateWithASpace);
 
     if (previousCommandIndex == -1) {
       String[] errorMessage = new String[2];
       errorMessage[0] = "Unable to update " + script.getName() + ".  ";
-      errorMessage[1] = "Unable to delete " + command + " because the previous command, "
+      errorMessage[1] =
+        "Unable to delete " + command + " because the previous command, "
           + previousCommand + ", is missing.";
       uiHarness.openMessageDialog(appManager, errorMessage, "ComScriptManager Error",
-          axisID);
+        axisID);
       Utilities.timestamp("delete", command, script, Utilities.FAILED_STATUS);
       return;
     }
 
     // Update the specified com script command from the CommandParam object
     ComScriptCommand comScriptCommand = null;
-    int commandIndex = script.getScriptCommandIndex(command, previousCommandIndex + 1,
-        caseInsensitive, separateWithASpace);
+    int commandIndex =
+      script.getScriptCommandIndex(command, previousCommandIndex + 1, caseInsensitive,
+        separateWithASpace);
 
     if (commandIndex == -1) {
       Utilities.timestamp("delete", command, script, Utilities.FAILED_STATUS);
@@ -2848,33 +2886,33 @@ public final class ComScriptManager extends BaseComScriptManager {
       errorMessage[1] = "Command: " + command;
       errorMessage[2] = except.getMessage();
       JOptionPane.showMessageDialog(null, except.getMessage(), "Can't write " + command
-          + axisID.getExtension() + ".com", JOptionPane.ERROR_MESSAGE);
+        + axisID.getExtension() + ".com", JOptionPane.ERROR_MESSAGE);
       Utilities.timestamp("delete", command, script, Utilities.FAILED_STATUS);
     }
     Utilities.timestamp("delete", command, script, Utilities.FINISHED_STATUS);
   }
 
   private void deleteCommand(ComScript script, String command, AxisID axisID,
-      boolean caseInsensitive, boolean separateWithASpace) {
+    boolean caseInsensitive, boolean separateWithASpace) {
     if (script == null) {
       (new IllegalStateException()).printStackTrace();
       String[] errorMessage = new String[2];
       errorMessage[0] = "Unable to update comscript.";
       errorMessage[1] = "\nscript=" + script + "\ncommand=" + command;
       uiHarness.openMessageDialog(appManager, errorMessage, "ComScriptManager Error",
-          axisID);
+        axisID);
       return;
     }
     Utilities.timestamp("delete", command, script, Utilities.STARTED_STATUS);
 
     // Update the specified com script command from the CommandParam object
     ComScriptCommand comScriptCommand = null;
-    int commandIndex = script.getScriptCommandIndex(command, caseInsensitive,
-        separateWithASpace);
+    int commandIndex =
+      script.getScriptCommandIndex(command, caseInsensitive, separateWithASpace);
 
     try {
-      comScriptCommand = script.getScriptCommand(command, caseInsensitive,
-          separateWithASpace);
+      comScriptCommand =
+        script.getScriptCommand(command, caseInsensitive, separateWithASpace);
     }
     catch (BadComScriptException except) {
       except.printStackTrace();
@@ -2883,7 +2921,7 @@ public final class ComScriptManager extends BaseComScriptManager {
       errorMessage[1] = "Command: " + command;
       errorMessage[2] = except.getMessage();
       JOptionPane.showMessageDialog(null, errorMessage, "Can't delete " + command
-          + " in " + script.getComFileName(), JOptionPane.ERROR_MESSAGE);
+        + " in " + script.getComFileName(), JOptionPane.ERROR_MESSAGE);
       Utilities.timestamp("delete", command, script, Utilities.FAILED_STATUS);
       return;
     }
@@ -2902,7 +2940,7 @@ public final class ComScriptManager extends BaseComScriptManager {
       errorMessage[1] = "Command: " + command;
       errorMessage[2] = except.getMessage();
       JOptionPane.showMessageDialog(null, except.getMessage(), "Can't write " + command
-          + axisID.getExtension() + ".com", JOptionPane.ERROR_MESSAGE);
+        + axisID.getExtension() + ".com", JOptionPane.ERROR_MESSAGE);
       Utilities.timestamp("delete", command, script, Utilities.FAILED_STATUS);
       return;
     }
@@ -2923,11 +2961,11 @@ public final class ComScriptManager extends BaseComScriptManager {
    * @return boolean
    */
   private boolean initialize(CommandParam param, ComScript comScript, String command,
-      AxisID axisID, boolean optionalCommand, String previousCommand,
-      boolean optionalPreviousCommand, boolean caseInsensitive, boolean separateWithASpace) {
+    AxisID axisID, boolean optionalCommand, String previousCommand,
+    boolean optionalPreviousCommand, boolean caseInsensitive, boolean separateWithASpace) {
     if (previousCommand == null) {
       return initialize(param, comScript, command, axisID, caseInsensitive,
-          separateWithASpace);
+        separateWithASpace);
     }
     Utilities.timestamp("initialize", command, comScript, Utilities.STARTED_STATUS);
     if (!comScript.isCommandLoaded()) {
@@ -2936,8 +2974,9 @@ public final class ComScriptManager extends BaseComScriptManager {
     else {
       // locate previous command
       ComScriptCommand previousComScriptCommand = null;
-      int previousCommandIndex = comScript.getScriptCommandIndex(previousCommand,
-          caseInsensitive, separateWithASpace);
+      int previousCommandIndex =
+        comScript.getScriptCommandIndex(previousCommand, caseInsensitive,
+          separateWithASpace);
 
       if (previousCommandIndex == -1) {
         if (optionalPreviousCommand) {
@@ -2945,17 +2984,19 @@ public final class ComScriptManager extends BaseComScriptManager {
         }
         String[] errorMessage = new String[2];
         errorMessage[0] = "Unable to read " + comScript.getName() + ".  ";
-        errorMessage[1] = "Unable to read " + command + " because the previous command, "
+        errorMessage[1] =
+          "Unable to read " + command + " because the previous command, "
             + previousCommand + ", is missing.";
         uiHarness.openMessageDialog(appManager, errorMessage, "ComScriptManager Error",
-            axisID);
+          axisID);
         Utilities.timestamp("initialize", command, comScript, Utilities.FAILED_STATUS);
         return false;
       }
 
       ComScriptCommand comScriptCommand = null;
-      int commandIndex = comScript.getScriptCommandIndex(command,
-          previousCommandIndex + 1, caseInsensitive, separateWithASpace);
+      int commandIndex =
+        comScript.getScriptCommandIndex(command, previousCommandIndex + 1,
+          caseInsensitive, separateWithASpace);
 
       if (commandIndex == -1) {
         Utilities.timestamp("initialize", command, comScript, Utilities.FAILED_STATUS);
@@ -2963,14 +3004,14 @@ public final class ComScriptManager extends BaseComScriptManager {
       }
       if (optionalCommand) {
         if (comScript.getScriptCommandIndex(command, previousCommandIndex + 1,
-            caseInsensitive, separateWithASpace) == -1) {
+          caseInsensitive, separateWithASpace) == -1) {
           Utilities.timestamp("initialize", command, comScript, Utilities.FAILED_STATUS);
           return false;
         }
       }
       try {
         param.parseComScriptCommand(comScript.getScriptCommand(command, commandIndex,
-            false, caseInsensitive, separateWithASpace));
+          false, caseInsensitive, separateWithASpace));
       }
       catch (Exception except) {
         except.printStackTrace();
@@ -2980,7 +3021,7 @@ public final class ComScriptManager extends BaseComScriptManager {
         errorMessage[2] = except.getClass().getName();
         errorMessage[3] = except.getMessage();
         JOptionPane.showMessageDialog(null, errorMessage,
-            "Com Script Command Parse Error", JOptionPane.ERROR_MESSAGE);
+          "Com Script Command Parse Error", JOptionPane.ERROR_MESSAGE);
         Utilities.timestamp("initialize", command, comScript, Utilities.FAILED_STATUS);
         return false;
       }
