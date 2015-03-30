@@ -455,16 +455,15 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
     new JLabel(
       "You must create new combine scripts for some changes in these parameters to take effect.");
   private final ButtonGroup bgToSelector = new ButtonGroup();
-  private final RadioButton rbBtoA = new RadioButton("Match the B tomogram to A"
-    , bgToSelector);
-  private final RadioButton rbAtoB = new RadioButton("Match the A tomogram to B"
-    , bgToSelector);
+  private final RadioButton rbBtoA = new RadioButton("Match the B tomogram to A",
+    bgToSelector);
+  private final RadioButton rbAtoB = new RadioButton("Match the A tomogram to B",
+    bgToSelector);
   private final EtomoPanel pnlPatchAndMinMax = new EtomoPanel();
   private final JPanel pnlPatchAndMinMaxBody = new JPanel();
-  private final CheckBox cbPatchRegionModel = new CheckBox("Use patch region model"
-    );
+  private final CheckBox cbPatchRegionModel = new CheckBox("Use patch region model");
   private final Run3dmodButton btnPatchRegionModel = Run3dmodButton.get3dmodInstance(
-    "Create/Edit Patch Region Model" , this);
+    "Create/Edit Patch Region Model", this);
   private final EtomoPanel pnlVolcombineControls = new EtomoPanel();
   private final JPanel pnlVolcombineControlsBody = new JPanel();
   private final LabeledTextField ltfXMin = new LabeledTextField(FieldType.INTEGER,
@@ -483,22 +482,20 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
   private final JPanel pnlTempDirectoryBody = new JPanel();
   private final LabeledTextField ltfTempDirectory = new LabeledTextField(
     FieldType.STRING, "Temporary directory: ");
-  private final CheckBox cbManualCleanup = new CheckBox("Manual cleanup"
-   );
+  private final CheckBox cbManualCleanup = new CheckBox("Manual cleanup");
   private final Run3dmodButton btnImodVolumeA = Run3dmodButton.get3dmodInstance(
-    "3dmod Volume A" , this);
+    "3dmod Volume A", this);
   private final Run3dmodButton btnImodVolumeB = Run3dmodButton.get3dmodInstance(
-    "3dmod Volume B" , this);
+    "3dmod Volume B", this);
   private final JLabel lTomogramSizeWarning = new JLabel();
-  private final MultiLineButton btnDefaults = new MultiLineButton("Defaults"
-    );
+  private final MultiLineButton btnDefaults = new MultiLineButton("Defaults");
   private final JLabel binningWarning = new JLabel();
   private final CheckBox cbNoVolcombine = new CheckBox(
     FinalCombinePanel.NO_VOLCOMBINE_TITLE);
   private final SetupCombineActionListener actionListener =
     new SetupCombineActionListener(this);
   private final CheckBox cbAutoPatchFinalSize = new CheckBox(
-    "Use Automatic Patch Fitting" );
+    "Use Automatic Patch Fitting");
   private final LabeledTextField ltfExtraResidualTargets = new LabeledTextField(
     FieldType.STRING, "Extra warping limits: ");
   private final PatchSizePanel pspPatchTypeOrXYZ = PatchSizePanel.getInstance(false);
@@ -537,24 +534,20 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
       (Run3dmodButton) applicationManager.getProcessResultDisplayFactory(AxisID.ONLY)
         .getCombine();
     toSelectorHeader =
-      PanelHeader.getInstance("Tomogram Matching Relationship"
-        , this, dialogType);
+      PanelHeader.getInstance("Tomogram Matching Relationship", this, dialogType);
     // Create the solvematch panel
     pnlSolvematch =
       SolvematchPanel.getInstance(tomogramCombinationDialog,
         TomogramCombinationDialog.lblSetup, applicationManager,
         ReconScreenState.COMBINE_SETUP_SOLVEMATCH_HEADER_GROUP, dialogType, false, null);
     phPatchAndMinMax =
-      PanelHeader.getInstance("Patch Parameters for Refining Alignment"
-        , this, dialogType);
+      PanelHeader
+        .getInstance("Patch Parameters for Refining Alignment", this, dialogType);
     tempDirectoryHeader =
-      PanelHeader.getInstance("Intermediate Data Storage"
-        , this, dialogType);
+      PanelHeader.getInstance("Intermediate Data Storage", this, dialogType);
     cbParallelProcess =
       new CheckBox(tomogramCombinationDialog.parallelProcessCheckBoxText);
-    volcombineHeader =
-      PanelHeader.getInstance("Volcombine Controls" ,
-        this, dialogType);
+    volcombineHeader = PanelHeader.getInstance("Volcombine Controls", this, dialogType);
   }
 
   public static SetupCombinePanel getInstance(final TomogramCombinationDialog parent,
@@ -1203,7 +1196,8 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
     else if (command.equals(btnCombine.getActionCommand())) {
       applicationManager.combine(btnCombine, null, deferred3dmodButton,
         run3dmodMenuOptions, dialogType,
-        tomogramCombinationDialog.getRunProcessingMethod());
+        tomogramCombinationDialog.getRunProcessingMethod(),
+        pnlSolvematch.isInitialVolumeMatching());
     }
     else if (command.equals(cbParallelProcess.getActionCommand())) {
       sendProcessingMethodMessage();
