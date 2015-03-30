@@ -221,7 +221,8 @@ assert.exists.file = warpvol.com
   #values
   #
   #patch region model
-  assert.cb.use-patch-region-model=off
+  if.not.var.patch-tracking.assert.cb.use-patch-region-model=off
+  if.var.patch-tracking.assert.cb.use-patch-region-model=on
   #
   #patchcorr parameters
   assert.tf.x-patch-size=80
@@ -288,7 +289,8 @@ assert.exists.file = warpvol.com
   assert.tf.limit-on-center-shift=10.0
   #
   #matchvol1
-  assert.tf.initial-match-size=%{initial-match-size}
+  if.not.var.patch-trackin.assert.tf.initial-match-size=%{initial-match-size}
+  if.var.patch-trackin.assert.tf.initial-match-size=%{initial-match-size-patch-trackin}
   #
   #enabled
   #
