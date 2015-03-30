@@ -486,8 +486,11 @@ set.var.y-axis-max-patch-tracking = 526
 set.var.number-of-x-patches=5
 set.var.number-of-y-patches=5
 set.var.number-of-z-patches=2
+set.var.number-of-z-patches-patch-tracking=2
 set.var.z-low=5
+set.var.z-low-patch-tracking=5
 set.var.z-high=70
+set.var.z-high-patch-tracking=70
 set.var.initial-match-size=84
 set.var.initial-match-size-patch-tracking=84
 #PostProc
@@ -574,8 +577,11 @@ set.var.number-of-patches=5
 set.var.number-of-x-patches=19
 set.var.number-of-y-patches=10
 set.var.number-of-z-patches=2
+set.var.number-of-z-patches-patch-tracking=3
 set.var.z-low=5
+set.var.z-low-patch-tracking=8
 set.var.z-high=70
+set.var.z-high-patch-tracking=84
 set.var.initial-match-size=96
 set.var.initial-match-size-patch-tracking=84
 #PostProc
