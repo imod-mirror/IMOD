@@ -46,6 +46,10 @@ int clip_scaling(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
   int truncLo = 0, truncHi = 0, truncToMean = 0;
   float threshLo = 0., threshHi = 255.;
 
+  // If no section list is entered, copy the full extended header for unwrap
+  bool copyExtra = opt->process == IP_UNWRAP && opt->nofsecs == IP_DEFAULT && 
+    opt->oz == IP_DEFAULT;
+
   z = set_options(opt, hin, hout);
   if (z < 0)
     return(z);
@@ -113,6 +117,8 @@ int clip_scaling(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
     if (opt->val == IP_DEFAULT)
       opt->val = 32768.;
     mrc_head_label(hout, "clip: unwrapped integer values");
+    if (copyExtra && mrcCopyExtraHeader(hin, hout))
+      show_warning("clip warning: failed to copy extra header data");
     break;
   default:
     return(-1);
