@@ -216,6 +216,8 @@ final class SolvematchPanel implements Run3dmodButtonContainer, Expandable {
   private final ButtonGroup bgFiducialParams = new ButtonGroup();
   private final RadioButton rbBothSides = new RadioButton("Fiducials on both sides");
   private final RadioButton rbOneSide = new RadioButton("Fiducials on one side");
+  private final RadioButton rbOneSideInverted = new RadioButton(
+    "Fiducials on one side, inverted");
   private final RadioButton rbUseModel = new RadioButton(
     "Use matching models and fiducials");
   private final RadioButton rbUseModelOnly = new RadioButton("Use matching models only");
@@ -751,6 +753,8 @@ final class SolvematchPanel implements Run3dmodButtonContainer, Expandable {
         SolvematchParam.BOTH_SIDES_OPTION));
       rbOneSide.setToolTipText(EtomoAutodoc.getTooltip(autodocName, section,
         SolvematchParam.ONE_SIDE_OPTION));
+      rbOneSideInverted.setToolTipText(EtomoAutodoc.getTooltip(autodocName, section,
+                SolvematchParam.ONE_SIDE_INVERTED_OPTION));
       rbUseModel.setToolTipText(EtomoAutodoc.getTooltip(autodocName, section,
         SolvematchParam.USE_MODEL_OPTION));
       rbUseModelOnly.setToolTipText(EtomoAutodoc.getTooltip(autodocName, section,
