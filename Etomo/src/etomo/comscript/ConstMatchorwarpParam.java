@@ -1,19 +1,13 @@
 package etomo.comscript;
 
-import etomo.type.EtomoNumber;
-import etomo.util.DatasetFiles;
-
 /**
  * <p>Description: </p>
  * 
- * <p>Copyright: Copyright (c) 2002</p>
- * 
- * <p>Organization: Boulder Laboratory for 3D Fine Structure,
- * University of Colorado</p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
+ * <p>Copyright: Copyright 2002 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
+ *
+ * @version $Id$
  * 
  * <p> $Log$
  * <p> Revision 3.3  2006/09/19 21:55:47  sueh
@@ -35,183 +29,43 @@ import etomo.util.DatasetFiles;
  * <p> Combine layout in progress
  * <p> </p>
  */
-public class ConstMatchorwarpParam {
-  public static final String rcsid = "$Id$";
+public interface ConstMatchorwarpParam {
 
-  protected static final String RESIDUAL_FILE_KEY = "-residualfile";
-  protected static final String VECTOR_MODEL_KEY = "-vectormodel";
-  protected static final String RESIDUAL_FILE_DEFAULT = "patch.resid";
-  protected static final String VECTOR_MODEL_DEFAULT = DatasetFiles.PATCH_VECTOR_MODEL;
-  protected static final int CLIP_SIZE_DEFAULT = 600;
+  public String getInverseFile();
 
-  protected String size = "";
-  protected double refineLimit;
-  protected String residualFile = null;
-  protected String vectormodel = null;
-  protected final EtomoNumber clipsize = new EtomoNumber("-clipsize");
-  protected boolean useRefinelimit = false;
-  protected String warpLimit = "";
-  protected String modelFile = "";
-  protected String patchFile = "";
-  protected String solveFile = "";
-  protected String refineFile = "";
-  protected String inverseFile = "";
-  protected String warpFile = "";
-  protected String tempDir = "";
-  protected int xLowerExclude = 0;
-  protected int xUpperExclude = 0;
-  protected int zLowerExclude = 0;
-  protected int zUpperExclude = 0;
-  protected boolean trial = false;
-  protected String inputFile = "";
-  protected String outputFile = "";
-  protected boolean useLinearInterpolation = false;
-  String structurecrit = "";
-  String extentfit = "";
+  public String getModelFile();
 
-  public ConstMatchorwarpParam() {
-  }
+  public boolean isUseModelFile();
 
-  /**
-   * @return String
-   */
-  public String getInverseFile() {
-    return inverseFile;
-  }
+  public String getPatchFile();
 
-  /**
-   * @return String
-   */
-  public String getModelFile() {
-    return modelFile;
-  }
+  public String getRefineLimit();
 
-  public boolean isUseModelFile() {
-    return !ParamUtilities.isEmpty(modelFile);
-  }
+  public String getSolveFile();
 
-  /**
-   * @return String
-   */
-  public String getPatchFile() {
-    return patchFile;
-  }
+  public String getTempDir();
 
-  /**
-   * @return double
-   */
-  public double getRefineLimit() {
-    return refineLimit;
-  }
+  public String getWarpFile();
 
-  /**
-   * @return String
-   */
-  public String getSize() {
-    return size;
-  }
+  public String getWarpLimit();
 
-  /**
-   * @return String
-   */
-  public String getSolveFile() {
-    return solveFile;
-  }
+  public int getXLowerExclude();
 
-  /**
-   * @return String
-   */
-  public String getTempDir() {
-    return tempDir;
-  }
+  public int getXUpperExclude();
 
-  /**
-   * @return String
-   */
-  public String getWarpFile() {
-    return warpFile;
-  }
+  public int getZLowerExclude();
 
-  /**
-   * @return String
-   */
-  public String getWarpLimit() {
-    return warpLimit;
-  }
+  public int getZUpperExclude();
 
-  /**
-   * @return int
-   */
-  public int getXLowerExclude() {
-    return xLowerExclude;
-  }
+  public String getInputFile();
 
-  /**
-   * @return int
-   */
-  public int getXUpperExclude() {
-    return xUpperExclude;
-  }
+  public String getOutputFile();
 
-  /**
-   * @return int
-   */
-  public int getZLowerExclude() {
-    return zLowerExclude;
-  }
+  public boolean isTrial();
 
-  /**
-   * @return int
-   */
-  public int getZUpperExclude() {
-    return zUpperExclude;
-  }
+  public boolean isUseRefinelimit();
 
-  /**
-   * @return String
-   */
-  public String getInputFile() {
-    return inputFile;
-  }
+  public String getRefineFile();
 
-  /**
-   * @return String
-   */
-  public String getOutputFile() {
-    return outputFile;
-  }
-
-  /**
-   * @return boolean
-   */
-  public boolean isTrial() {
-    return trial;
-  }
-
-  /**
-   * @return boolean
-   */
-  public boolean isUseRefinelimit() {
-    return useRefinelimit;
-  }
-
-  /**
-   * @return String
-   */
-  public String getRefineFile() {
-    return refineFile;
-  }
-
-  public boolean isUseLinearInterpolation() {
-    return useLinearInterpolation;
-  }
-
-  /**
-   * Return the default patch region model file name
-   * @return String
-   */
-  public static String getDefaultPatchRegionModel() {
-    return "patch_region.mod";
-  }
-
+  public boolean isUseLinearInterpolation();
 }
