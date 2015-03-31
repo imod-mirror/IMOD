@@ -24,14 +24,11 @@ import etomo.util.Utilities;
  * saving particlar com scripts and extracting the parameter sets for the 
  * commands within those scripts.</p>
  *
- * <p>Copyright: Copyright (c) 2002</p>
+ * <p>Copyright: Copyright 2002 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * <p>Organization: Boulder Laboratory for 3D Fine Structure,
- * University of Colorado</p>
- *
- * @author $Author$
- *
- * @version $Revision$
+ * @version $Id$
  *
  * <p> $Log$
  * <p> Revision 3.67  2011/04/09 06:22:51  sueh
@@ -375,11 +372,7 @@ import etomo.util.Utilities;
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
  */
-
 public final class ComScriptManager extends BaseComScriptManager {
-  public static final String rcsid =
-    "$Id$";
-
   static final String PARAM_KEY = "Param";
 
   private final ApplicationManager appManager;
@@ -420,7 +413,7 @@ public final class ComScriptManager extends BaseComScriptManager {
   private ComScript scriptMatchorwarp;
   private ComScript scriptTomopitchA;
   private ComScript scriptTomopitchB;
-  private ComScript scriptCombine;
+  private ComScript scriptCombine = null;
   private ComScript scriptVolcombine;
   private ComScript scriptCtfCorrectionA;
   private ComScript scriptCtfCorrectionB;
@@ -2376,6 +2369,18 @@ public final class ComScriptManager extends BaseComScriptManager {
       return null;
     }
     return echoParam;
+  }
+
+  public boolean isDualvolmatchParamInCombine() {
+    if (scriptCombine == null) {
+      loadCombine();
+    }
+    if (scriptCombine == null) {
+      return false;
+    }
+    DualvolmatchParam param = new DualvolmatchParam();
+    return initialize(param, scriptCombine, ProcessName.DUALVOLMATCH.toString(),
+      AxisID.ONLY, false, false);
   }
 
   public void loadFlatten(AxisID axisID) {
