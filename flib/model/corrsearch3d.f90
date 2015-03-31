@@ -1216,14 +1216,15 @@ CONTAINS
       enddo
 
       ! Find a moderate high percentile as a measure of typical strong structure
-      fallbackSD(ibin) = percentileFloat(nint(fallbackPctFrac * numSample), statBuffer, &
-          numSample)
+      fallbackSD(ibin) = percentileFloat(max(1, nint(fallbackPctFrac * numSample)), &
+          statBuffer, numSample)
 
       ! Take the square root to spread out the lower end of the histogram
       ! Find a high-percentile cutoff value for limiting the histogram range
       statBuffer(1:numSample) = sqrt(statBuffer(1:numSample))
       histStart = minval(statBuffer(1:numSample))
-      histEnd = percentileFloat(nint(fracForHist * numSample), statBuffer, numSample)
+      histEnd = percentileFloat(max(1, nint(fracForHist * numSample)), statBuffer, &
+          numSample)
       
       wallStart = wallTime()
       if (findHistogramDip(statBuffer, numSample, 0, statBuffer(numSample + 1),  &
