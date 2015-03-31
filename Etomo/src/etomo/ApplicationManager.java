@@ -6329,9 +6329,9 @@ public final class ApplicationManager extends BaseManager implements
         CombineComscriptState  combineComscriptState=loadCombineComscript();
         tomogramCombinationDialog
           .synchronize(TomogramCombinationDialog.lblSetup, true/* false */);
-        //if (!combineComscriptState.isDualvolmatchPresent()) {
+        if (!combineComscriptState.isDualvolmatchPresent(comScriptMgr)) {
           //TODO run setupcombine with copy combine.com only
-        //}
+        }
       }
       else {
         // force the user to set Z values on a new combine
