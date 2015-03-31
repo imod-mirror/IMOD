@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/31/15: Fixed clip average and other operations broken by 2/14/15 changes.
+
 3/28/15: Made clip unwrap copy extra header when full file is processed.
 
 3/26/15: Fixed slashmasksort.
