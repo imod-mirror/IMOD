@@ -12,8 +12,9 @@ Version = 1.2
   #
   #solvematch parameters
   assert.rb.fiducials-on-both-sides=on
-  assert.rb.fiducials-on-one-side,-not-inverted=off
-  assert.rb.fiducials-on-one-side,-inverted=off
+  assert.rb.fiducials-on-one-side=off
+  #todo find a way to test the invisible radio buttons
+  #assert.rb.fiducials-on-one-side,-inverted=off
   assert.rb.use-matching-models-and-fiducials=off
   assert.rb.use-matching-models-only=off
   assert.cb.load-binned-by-2=off
@@ -27,6 +28,9 @@ Version = 1.2
   assert.rb.medium-patches=on
   assert.rb.large-patches=off
   assert.cb.use-patch-region-model=off
+  
+  assert.cb.use-automatic-patch-fitting=off
+  
   assert.tf.x-axis-min=%{axis-min}
   if.not.var.patch-tracking.assert.tf.x-axis-max=%{x-axis-max}
   if.var.patch-tracking.assert.tf.x-axis-max=%{x-axis-max-patch-tracking}
@@ -56,8 +60,8 @@ Version = 1.2
   #
   #solvematch parameters
   assert.enabled.rb.fiducials-on-both-sides=
-  assert.enabled.rb.fiducials-on-one-side,-not-inverted=
-  assert.enabled.rb.fiducials-on-one-side,-inverted=
+  assert.enabled.rb.fiducials-on-one-side=
+  #assert.enabled.rb.fiducials-on-one-side,-inverted=
   assert.enabled.rb.use-matching-models-and-fiducials=
   assert.enabled.rb.use-matching-models-only=
   assert.disabled.cb.load-binned-by-2=
@@ -158,8 +162,8 @@ assert.exists.file = warpvol.com
   #solvematch parameters
   if.not.var.patch-tracking.assert.rb.fiducials-on-both-sides=on
   if.var.patch-tracking.assert.rb.fiducials-on-both-sides=off
-  assert.rb.fiducials-on-one-side,-not-inverted=off
-  assert.rb.fiducials-on-one-side,-inverted=off
+  assert.rb.fiducials-on-one-side=off
+  #assert.rb.fiducials-on-one-side,-inverted=off
   assert.rb.use-matching-models-and-fiducials=off
   if.not.var.patch-tracking.assert.rb.use-matching-models-only=off
   if.var.patch-tracking.assert.rb.use-matching-models-only=on
@@ -179,8 +183,8 @@ assert.exists.file = warpvol.com
   #
   #solvematch parameters
   assert.enabled.rb.fiducials-on-both-sides=
-  assert.enabled.rb.fiducials-on-one-side,-not-inverted=
-  assert.enabled.rb.fiducials-on-one-side,-inverted=
+  assert.enabled.rb.fiducials-on-one-side=
+  #assert.enabled.rb.fiducials-on-one-side,-inverted=
   assert.enabled.rb.use-matching-models-and-fiducials=
   assert.enabled.rb.use-matching-models-only=
   if.not.var.patch-tracking.assert.disabled.cb.load-binned-by-2=
