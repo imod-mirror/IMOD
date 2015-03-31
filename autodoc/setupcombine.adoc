@@ -208,6 +208,15 @@ tooltip =
 manpage = List the 4 patch sizes specified by S, M, L, and E and exit.  No
 other options will have any effect.
 
+[Field = OnlyMakeCombineCom]
+short = only
+type = B
+usage = Just create a new copy of combine.com and exit
+tooltip =
+manpage = Just create a new copy of combine.com and exit.  There are no
+required entries in this case and the only relevant entries are the
+\fB-initial\fR, \fB-autopatch\fR, and \fB-extra\fR options.
+
 [Field = usage]
 short = help
 type = B

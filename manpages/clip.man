@@ -872,6 +872,8 @@ such as a small number just sufficient to bring the originally negative numbers
 above 0.  This process will also work with unsigned input data but a
 .B -n
 entry is required.  Standard input and output options can be used.
+Extra header data are copied from the input file to the output file if
+neither the \fB-iz\fR nor the \fB-oz\fR option is entered.
 
 .SH HISTORY
 Originally most processes loaded all data into memory unless the -2d option

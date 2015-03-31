@@ -137,6 +137,26 @@ def editApplyChangeListAndWrite(sedcom, comName):
       writeTextFile(os.path.join(origComDir, comName), sedLines)
                        
 
+# Make a copy of combine.com or edit it as needed
+def makeCombineCom():
+   if autoPatch or useVolMatch:
+      sedcom = []
+      if autoPatch:
+         final = autoPatch
+         if extraTargets:
+            final += ' -extra ' + extraTargets
+         sedcom = [fmtstr('/autopatchfit -final/s/-final E/-final {}/', final),
+                   '/goto patchcorr/s//goto autopatch/']
+
+      if useVolMatch:
+         sedcom.append('/goto solvematch/s//goto dualvolmatch/')
+            
+      pysed(sedcom, srcdir + '/combine.com', 'combine.com')
+      
+   else:
+      shutil.copy(srcdir + '/combine.com', 'combine.com')
+
+
 def warning(text):
    prnstr(' ', file=sys.stderr)
    prnstr('WARNING: ' + text + '\n', file=sys.stderr)
@@ -202,13 +222,14 @@ mowSize = "gibberish"
 options = ["name:RootName:FN:", "atob:MatchAtoB:B:", "tolist:ToVolPointList:LI:",
            "fromlist:FromVolPointList:LI:", "transfer:TransferPointFile:FN:",
            "uselist:UsePointList:LI:", "surfaces:SurfaceModelType:I:",
-           "patchsize:PatchTypeOrXYZ:CH:", "autopatch:AutoPatchFinalSize:CH:",
-           "extra:ExtraResidualTargets:CH:", "xlimits:XLowerAndUpper:IP:",
-           "ylimits:YLowerAndUpper:IP:", "zlimits:ZLowerAndUpper:IP:",
-           "regionmod:PatchRegionModel:FN:", "lowradius:LowFromBothRadius:F:",
-           "wedgefrac:WedgeReductionFraction:F:", "change:ChangeParametersFile:FNM:",
-           "one:OneParameterChange:CHM:", "tempdir:TemporaryDirectory:FN:",
-           "noclean:NoTempCleanup:B:", "help:usage:B:"]
+           "initial:InitialVolumeMatching:B:", "patchsize:PatchTypeOrXYZ:CH:",
+           "autopatch:AutoPatchFinalSize:CH:", "extra:ExtraResidualTargets:CH:",
+           "xlimits:XLowerAndUpper:IP:", "ylimits:YLowerAndUpper:IP:",
+           "zlimits:ZLowerAndUpper:IP:", "regionmod:PatchRegionModel:FN:",
+           "lowradius:LowFromBothRadius:F:", "wedgefrac:WedgeReductionFraction:F:",
+           "change:ChangeParametersFile:FNM:", "one:OneParameterChange:CHM:",
+           "tempdir:TemporaryDirectory:FN:", "noclean:NoTempCleanup:B:",
+           "info:InfoOnPatchSizes:B:", "only:OnlyMakeCombineCom:B:", "help:usage:B:"]
 
 (numOpts, numNonOpts) = PipReadOrParseOptions(sys.argv, options, progname, 1, \
                                               0, 0)
@@ -221,8 +242,9 @@ if ifInfo:
    sys.exit(0)
 
 # Get options
+makeCombineOnly = PipGetBoolean('OnlyMakeCombineCom', 0)
 rootname = PipGetString("RootName", "")
-if not rootname:
+if not rootname and not makeCombineOnly:
    exitError("A root name must be entered")
 
 matchatob = PipGetBoolean('MatchAtoB', 0)
@@ -249,13 +271,13 @@ if useVolMatch:
    modsurf = 2
 else:
    modsurf = PipGetInteger('SurfaceModelType', -10)
-   if modsurf < -2 or modsurf > 2:
+   if (modsurf < -2 or modsurf > 2) and not makeCombineOnly:
       exitError('You must enter either the -initial option or the -surface option ' +\
                    'with a value between -2 and 2')
 
 patchin = PipGetString('PatchTypeOrXYZ', 'M')
 (patchnx, patchny, patchnz, err) = patchSizeFromEntry(patchin)
-if err:
+if err and not makeCombineOnly:
    exitError('You must enter one of S, M, L, or E or sizes in X,Y,Z for ' +\
                 'the -patchsize option')
 
@@ -273,6 +295,12 @@ if autoPatch:
    extraTargets = PipGetString('ExtraResidualTargets', '')
    mowSize = "matchorwarp -size"
    mowOpts = '-extentfit 3 -structurecrit 0.5,0.57,0.65'
+   
+# If making combine.com only, do it now that preconditions are done
+if makeCombineOnly:
+   makeBackupFile("combine.com")
+   makeCombineCom()
+   sys.exit(0)
    
 # Limits
 (patchxl, patchxu) = PipGetTwoIntegers('XLowerAndUpper', 0, 0)
@@ -573,22 +601,7 @@ sedcom = [fmtstr("s/{}/{}/g", from_srcname, fromname),
 pysed(sedcom, srcdir + '/' + matchorwarp, matchorwarp)
 
 # Do combine.com
-if autoPatch or useVolMatch:
-   sedcom = []
-   if autoPatch:
-      final = autoPatch
-      if extraTargets:
-         final += ' -extra ' + extraTargets
-      sedcom = [fmtstr('/autopatchfit -final/s/-final E/-final {}/', final),
-                '/goto patchcorr/s//goto autopatch/']
-
-   if useVolMatch:
-      sedcom.append('/goto solvematch/s//goto dualvolmatch/')
-         
-   pysed(sedcom, srcdir + '/combine.com', 'combine.com')
-   
-else:
-   shutil.copy(srcdir + '/combine.com', 'combine.com')
+makeCombineCom()
 
 # Start volcombine, get as strings
 sedcom = [fmtstr("s/{}/{}/g", from_srcname, fromname),
