@@ -1188,8 +1188,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
         matchorwarpParam.setWarpLimit(ltfWarpLimit.getText(doValidation));
 
         badParameter = ltfRefineLimit.getLabel();
-        matchorwarpParam.setRefineLimit(Double.parseDouble(ltfRefineLimit
-          .getText(doValidation)));
+        matchorwarpParam.setRefineLimit(ltfRefineLimit.getText(doValidation));
 
         badParameter = ltfXLowerExclude.getLabel();
         String text = ltfXLowerExclude.getText(doValidation);
