@@ -207,7 +207,6 @@ import etomo.ui.FieldValidationFailedException;
  * <p> </p>
  */
 final class SolvematchPanel implements Run3dmodButtonContainer, Expandable {
-
   private static final String HEADER_LABEL = "Solvematch Parameters";
 
   private final EtomoPanel pnlRoot = new EtomoPanel();
@@ -216,8 +215,7 @@ final class SolvematchPanel implements Run3dmodButtonContainer, Expandable {
   private final JPanel pnlFiducialSelect = new JPanel();
   private final ButtonGroup bgFiducialParams = new ButtonGroup();
   private final RadioButton rbBothSides = new RadioButton("Fiducials on both sides");
-  private final RadioButton rbOneSide = new RadioButton(
-    "Fiducials on one side, NOT inverted");
+  private final RadioButton rbOneSide = new RadioButton("Fiducials on one side");
   private final RadioButton rbOneSideInverted = new RadioButton(
     "Fiducials on one side, inverted");
   private final RadioButton rbUseModel = new RadioButton(
@@ -280,11 +278,9 @@ final class SolvematchPanel implements Run3dmodButtonContainer, Expandable {
     }
     rbBothSides.setAlignmentX(Component.LEFT_ALIGNMENT);
     rbOneSide.setAlignmentX(Component.LEFT_ALIGNMENT);
-    rbOneSideInverted.setAlignmentX(Component.LEFT_ALIGNMENT);
     rbUseModel.setAlignmentX(Component.LEFT_ALIGNMENT);
     bgFiducialParams.add(rbBothSides.getAbstractButton());
     bgFiducialParams.add(rbOneSide.getAbstractButton());
-    bgFiducialParams.add(rbOneSideInverted.getAbstractButton());
     bgFiducialParams.add(rbUseModel.getAbstractButton());
     bgFiducialParams.add(rbUseModelOnly.getAbstractButton());
     JPanel opnlFiducialRadio = new JPanel();
@@ -294,7 +290,6 @@ final class SolvematchPanel implements Run3dmodButtonContainer, Expandable {
     opnlFiducialRadio.add(Box.createHorizontalGlue());
     pnlFiducialRadio.add(rbBothSides.getComponent());
     pnlFiducialRadio.add(rbOneSide.getComponent());
-    pnlFiducialRadio.add(rbOneSideInverted.getComponent());
     pnlFiducialRadio.add(rbUseModel.getComponent());
     pnlFiducialRadio.add(rbUseModelOnly.getComponent());
 
@@ -393,7 +388,6 @@ final class SolvematchPanel implements Run3dmodButtonContainer, Expandable {
     RBFiducialListener rbFiducialListener = new RBFiducialListener(this);
     rbBothSides.addActionListener(rbFiducialListener);
     rbOneSide.addActionListener(rbFiducialListener);
-    rbOneSideInverted.addActionListener(rbFiducialListener);
     rbUseModel.addActionListener(rbFiducialListener);
     rbUseModelOnly.addActionListener(rbFiducialListener);
   }
@@ -410,9 +404,6 @@ final class SolvematchPanel implements Run3dmodButtonContainer, Expandable {
     }
     if (combineParams.getFiducialMatch() == FiducialMatch.ONE_SIDE) {
       rbOneSide.setSelected(true);
-    }
-    if (combineParams.getFiducialMatch() == FiducialMatch.ONE_SIDE_INVERTED) {
-      rbOneSideInverted.setSelected(true);
     }
     if (combineParams.getFiducialMatch() == FiducialMatch.USE_MODEL) {
       rbUseModel.setSelected(true);
@@ -477,9 +468,6 @@ final class SolvematchPanel implements Run3dmodButtonContainer, Expandable {
       }
       if (rbOneSide.isSelected()) {
         combineParams.setFiducialMatch(FiducialMatch.ONE_SIDE);
-      }
-      if (rbOneSideInverted.isSelected()) {
-        combineParams.setFiducialMatch(FiducialMatch.ONE_SIDE_INVERTED);
       }
       if (rbUseModel.isSelected()) {
         combineParams.setFiducialMatch(FiducialMatch.USE_MODEL);
@@ -568,9 +556,6 @@ final class SolvematchPanel implements Run3dmodButtonContainer, Expandable {
     if (rbOneSide.isSelected()) {
       return FiducialMatch.ONE_SIDE;
     }
-    if (rbOneSideInverted.isSelected()) {
-      return FiducialMatch.ONE_SIDE_INVERTED;
-    }
     if (rbUseModel.isSelected()) {
       return FiducialMatch.USE_MODEL;
     }
@@ -583,9 +568,6 @@ final class SolvematchPanel implements Run3dmodButtonContainer, Expandable {
   public void setSurfacesOrModels(FiducialMatch value) {
     if (value == FiducialMatch.USE_MODEL_ONLY) {
       rbUseModelOnly.setSelected(true);
-    }
-    if (value == FiducialMatch.ONE_SIDE_INVERTED) {
-      rbOneSideInverted.setSelected(true);
     }
     if (value == FiducialMatch.USE_MODEL) {
       rbUseModel.setSelected(true);
@@ -772,7 +754,7 @@ final class SolvematchPanel implements Run3dmodButtonContainer, Expandable {
       rbOneSide.setToolTipText(EtomoAutodoc.getTooltip(autodocName, section,
         SolvematchParam.ONE_SIDE_OPTION));
       rbOneSideInverted.setToolTipText(EtomoAutodoc.getTooltip(autodocName, section,
-        SolvematchParam.ONE_SIDE_INVERTED_OPTION));
+                SolvematchParam.ONE_SIDE_INVERTED_OPTION));
       rbUseModel.setToolTipText(EtomoAutodoc.getTooltip(autodocName, section,
         SolvematchParam.USE_MODEL_OPTION));
       rbUseModelOnly.setToolTipText(EtomoAutodoc.getTooltip(autodocName, section,

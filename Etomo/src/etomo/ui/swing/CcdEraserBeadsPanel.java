@@ -36,15 +36,11 @@ import etomo.util.DatasetFiles;
 /**
  * <p>Description: </p>
  * 
- * <p>Copyright: Copyright 2008</p>
+ * <p>Copyright: Copyright 2008 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
- * University of Colorado</p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
+ * @version $Id$
  * 
  * <p> $Log$
  * <p> Revision 1.5  2011/06/21 18:07:25  sueh
@@ -84,25 +80,23 @@ import etomo.util.DatasetFiles;
  * <p> </p>
  */
 final class CcdEraserBeadsPanel implements Run3dmodButtonContainer, CcdEraserDisplay {
-  public static final String rcsid = "$Id$";
-
   static final String CCD_ERASER_LABEL = "Erase Beads";
   static final String USE_ERASED_STACK_LABEL = "Use Erased Stack";
 
-  private final CcdEraserPanelActionListener actionListener = new CcdEraserPanelActionListener(
-      this);
+  private final CcdEraserPanelActionListener actionListener =
+    new CcdEraserPanelActionListener(this);
   private final SpacedPanel pnlRoot = SpacedPanel.getInstance();
   private final LabeledTextField ltfFiducialDiameter = new LabeledTextField(
-      FieldType.FLOATING_POINT, "Diameter to erase (pixels): ");
+    FieldType.FLOATING_POINT, "Diameter to erase (pixels): ");
   private final CheckBoxSpinner cbspExpandCircleIterations = CheckBoxSpinner.getInstance(
-      "Iterations to grow circular areas:", 2, 1, 5);
+    "Iterations to grow circular areas:", 2, 1, 5);
   private final ButtonGroup bgPolynomialOrder = new ButtonGroup();
   private final RadioButton rbPolynomialOrderUseMean = new RadioButton(
-      "Use mean of surrounding points", PolynomialOrder.USE_MEAN, bgPolynomialOrder);
+    "Use mean of surrounding points", PolynomialOrder.USE_MEAN, bgPolynomialOrder);
   private final RadioButton rbPolynomialOrderFitAPlane = new RadioButton(
-      "Fit a plane to surrounding points", PolynomialOrder.FIT_A_PLANE, bgPolynomialOrder);
+    "Fit a plane to surrounding points", PolynomialOrder.FIT_A_PLANE, bgPolynomialOrder);
   private final Run3dmodButton btn3dmodCcdEraser = Run3dmodButton.get3dmodInstance(
-      "View Erased Stack", this);
+    "View Erased Stack", this);
 
   private final Run3dmodButton btnCcdEraser;
   private final MultiLineButton btnUseCcdEraser;
@@ -111,18 +105,18 @@ final class CcdEraserBeadsPanel implements Run3dmodButtonContainer, CcdEraserDis
   private final DialogType dialogType;
 
   private CcdEraserBeadsPanel(final ApplicationManager manager, final AxisID axisID,
-      DialogType dialogType) {
+    DialogType dialogType) {
     this.manager = manager;
     this.axisID = axisID;
     this.dialogType = dialogType;
-    ProcessResultDisplayFactory displayFactory = manager
-        .getProcessResultDisplayFactory(axisID);
+    ProcessResultDisplayFactory displayFactory =
+      manager.getProcessResultDisplayFactory(axisID);
     btnCcdEraser = (Run3dmodButton) displayFactory.getCcdEraserBeads();
     btnUseCcdEraser = (MultiLineButton) displayFactory.getUseCcdEraserBeads();
   }
 
   static CcdEraserBeadsPanel getInstance(final ApplicationManager manager,
-      final AxisID axisID, final DialogType dialogType) {
+    final AxisID axisID, final DialogType dialogType) {
     CcdEraserBeadsPanel instance = new CcdEraserBeadsPanel(manager, axisID, dialogType);
     instance.createPanel();
     instance.addListeners();
@@ -138,7 +132,7 @@ final class CcdEraserBeadsPanel implements Run3dmodButtonContainer, CcdEraserDis
 
   void initialize() {
     ltfFiducialDiameter.setText(manager.calcBinnedBeadDiameterPixels(axisID,
-        FileType.ALIGNED_STACK, 1));
+      FileType.ALIGNED_STACK, 1));
   }
 
   private void createPanel() {
@@ -164,7 +158,7 @@ final class CcdEraserBeadsPanel implements Run3dmodButtonContainer, CcdEraserDis
     ccdEraserParameterPanel.add(polynomialOrderPanel);
     // Fiducial diameter
     fiducialDiameterPanel
-        .setLayout(new BoxLayout(fiducialDiameterPanel, BoxLayout.Y_AXIS));
+      .setLayout(new BoxLayout(fiducialDiameterPanel, BoxLayout.Y_AXIS));
     fiducialDiameterPanel.add(ltfFiducialDiameter.getContainer());
     fiducialDiameterPanel.add(Box.createVerticalGlue());
     fiducialDiameterPanel.add(cbspExpandCircleIterations.getContainer());
@@ -187,7 +181,7 @@ final class CcdEraserBeadsPanel implements Run3dmodButtonContainer, CcdEraserDis
 
   String getPolynomialOrder() {
     return ((RadioButton.RadioButtonModel) bgPolynomialOrder.getSelection())
-        .getEnumeratedType().toString();
+      .getEnumeratedType().toString();
   }
 
   void setPolynomialOrder(final EnumeratedType enumeratedType) {
@@ -208,9 +202,9 @@ final class CcdEraserBeadsPanel implements Run3dmodButtonContainer, CcdEraserDis
   void getParameters(final MetaData metaData) throws FortranInputSyntaxException {
     metaData.setFinalStackFiducialDiameter(axisID, ltfFiducialDiameter.getText());
     metaData.setFinalStackExpandCircleIterations(axisID,
-        cbspExpandCircleIterations.getValue());
+      cbspExpandCircleIterations.getValue());
     metaData.setUseFinalStackExpandCircleIterations(axisID,
-        cbspExpandCircleIterations.isSelected());
+      cbspExpandCircleIterations.isSelected());
     metaData.setFinalStackPolynomialOrder(axisID, getPolynomialOrder());
   }
 
@@ -230,15 +224,15 @@ final class CcdEraserBeadsPanel implements Run3dmodButtonContainer, CcdEraserDis
       // Default fiducialDiameter to fiducialDiameter from setup / pixel size
       // (convert to pixels). Round to 1 decimal place.
       ltfFiducialDiameter.setText((Math.round(metaData.getFiducialDiameter()
-          / metaData.getPixelSize() * 10.0) / 10.0));
+        / metaData.getPixelSize() * 10.0) / 10.0));
     }
     setPolynomialOrder(PolynomialOrder.getInstance(metaData
-        .getFinalStackPolynomialOrder(axisID)));
+      .getFinalStackPolynomialOrder(axisID)));
     cbspExpandCircleIterations.setSelected(metaData
-        .isUseFinalStackExpandCircleIterations(axisID));
+      .isUseFinalStackExpandCircleIterations(axisID));
     if (metaData.isFinalStackExpandCircleIterationsSet(axisID)) {
       cbspExpandCircleIterations.setValue(metaData
-          .getFinalStackExpandCircleIterations(axisID));
+        .getFinalStackExpandCircleIterations(axisID));
     }
   }
 
@@ -246,7 +240,7 @@ final class CcdEraserBeadsPanel implements Run3dmodButtonContainer, CcdEraserDis
     try {
       param.setInputFile(DatasetFiles.getFullAlignedStackFileName(manager, axisID));
       param.setModelFile(FileType.CCD_ERASER_BEADS_INPUT_MODEL.getFileName(manager,
-          axisID));
+        axisID));
       param.setOutputFile(FileType.ERASED_BEADS_STACK);
       EtomoNumber fiducialDiameter = new EtomoNumber(EtomoNumber.Type.DOUBLE);
       fiducialDiameter.set(ltfFiducialDiameter.getText(doValidation));
@@ -276,10 +270,10 @@ final class CcdEraserBeadsPanel implements Run3dmodButtonContainer, CcdEraserDis
   }
 
   public void action(final String command, final Deferred3dmodButton deferred3dmodButton,
-      final Run3dmodMenuOptions run3dmodMenuOptions) {
+    final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(btnCcdEraser.getActionCommand())) {
       manager.goldEraser(btnCcdEraser, null, deferred3dmodButton, run3dmodMenuOptions,
-          axisID, dialogType, this);
+        axisID, dialogType, this);
     }
     else if (command.equals(btn3dmodCcdEraser.getActionCommand())) {
       manager.imodErasedFiducials(run3dmodMenuOptions, axisID);
@@ -296,16 +290,16 @@ final class CcdEraserBeadsPanel implements Run3dmodButtonContainer, CcdEraserDis
 
   final void setParameters(final ReconScreenState screenState) {
     btnCcdEraser.setButtonState(screenState.getButtonState(btnCcdEraser
-        .getButtonStateKey()));
+      .getButtonStateKey()));
     btnUseCcdEraser.setButtonState(screenState.getButtonState(btnUseCcdEraser
-        .getButtonStateKey()));
+      .getButtonStateKey()));
   }
 
   private void setToolTipText() {
     ReadOnlyAutodoc autodoc = null;
     try {
-      autodoc = AutodocFactory.getInstance(manager, AutodocFactory.CCDERASER, axisID,
-          false);
+      autodoc =
+        AutodocFactory.getInstance(manager, AutodocFactory.CCDERASER, axisID, false);
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();
@@ -317,23 +311,23 @@ final class CcdEraserBeadsPanel implements Run3dmodButtonContainer, CcdEraserDis
       e.printStackTrace();
     }
     ltfFiducialDiameter
-        .setToolTipText("The diameter, in pixels of the aligned stack, that will "
-            + "be erased around each point.");
+      .setToolTipText("The diameter, in pixels of the aligned stack, that will "
+        + "be erased around each point.");
     cbspExpandCircleIterations.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-        CCDEraserParam.EXPAND_CIRCLE_ITERATIONS_KEY));
+      CCDEraserParam.EXPAND_CIRCLE_ITERATIONS_KEY));
     rbPolynomialOrderUseMean
-        .setToolTipText("Fill the erased pixel with the mean of surrounding " + "points.");
+      .setToolTipText("Fill the erased pixel with the mean of surrounding " + "points.");
     rbPolynomialOrderFitAPlane
-        .setToolTipText("Fill the erased pixels with a gradient based on plane "
-            + "fit to surrounding points.");
+      .setToolTipText("Fill the erased pixels with a gradient based on plane "
+        + "fit to surrounding points.");
     btnCcdEraser.setToolTipText("Run Ccderaser on the aligned stack to erase around "
-        + "model points.");
+      + "model points.");
     btn3dmodCcdEraser
-        .setToolTipText("View the results of running Ccderaser on the aligned "
-            + "stack along with the _erase.fid model.");
+      .setToolTipText("View the results of running Ccderaser on the aligned "
+        + "stack along with the _erase.fid model.");
     btnUseCcdEraser
-        .setToolTipText("Replace the full aligned stack (.ali) with the erased "
-            + "stack (_erase.ali).");
+      .setToolTipText("Replace the full aligned stack (.ali) with the erased "
+        + "stack (_erase.ali).");
   }
 
   private final class CcdEraserPanelActionListener implements ActionListener {

@@ -32,7 +32,7 @@ import etomo.util.MRCHeader;
 /**
  * <p>Description: </p>
  *
- * <p>Copyright: Copyright 2014 - 2015 by the Regents of the University of Colorado</p>
+ * <p>Copyright: Copyright 2002 - 2015 by the Regents of the University of Colorado</p>
  * <p/>
  * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
