@@ -3,7 +3,6 @@ package etomo.comscript;
 import etomo.EtomoDirector;
 import etomo.type.FileType;
 import etomo.type.ProcessName;
-import etomo.ui.swing.TomogramCombinationDialog;
 import etomo.util.DatasetFiles;
 
 /**
@@ -11,15 +10,11 @@ import etomo.util.DatasetFiles;
  * combine.com.  Contains information about which commands will be run.
  * Also knows about watched files like patch.out.</p>
  *
- * <p>Copyright: Copyright 2004 </p>
+ * <p>Copyright: Copyright 2004 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
- * Univeristy of Colorado</p>
- *
- * @author $$Author$$
- *
- * @version $$Revision$$
+ * @version $Id$
  *
  * <p> $Log$
  * <p> Revision 1.14  2010/11/13 16:03:15  sueh
@@ -98,10 +93,7 @@ import etomo.util.DatasetFiles;
  * <p> $and keep track of information required to run command.com
  * <p> </p>
  */
-public class CombineComscriptState implements ComscriptState {
-  public static final String rcsid =
-    "$$Id$$";
-
+public final class CombineComscriptState implements ComscriptState {
   public static final String COMSCRIPT_NAME = "combine";
   public static final String COMSCRIPT_WATCHED_FILE = "combine.out";
 
@@ -111,10 +103,6 @@ public class CombineComscriptState implements ComscriptState {
 
   private static final String WATCHED_FILES[] = { null, null, DatasetFiles.PATCH_OUT,
     null, null };
-
-  private static final String DIALOG_PANES[] = { TomogramCombinationDialog.lblInitial,
-    TomogramCombinationDialog.lblInitial, TomogramCombinationDialog.lblFinal,
-    TomogramCombinationDialog.lblFinal, TomogramCombinationDialog.lblFinal };
 
   public static final int NULL_INDEX = -1;
   public static final int SOLVEMATCH_DUALVOLMATCH_INDEX = 0;
@@ -158,7 +146,7 @@ public class CombineComscriptState implements ComscriptState {
    * @param comScriptManager
    * @return
    */
-  public boolean initialize(ComScriptManager comScriptManager) {
+  boolean initialize(final ComScriptManager comScriptManager) {
     if (!loadStartCommand(comScriptManager)) {
       runSelfTest(INITIALIZED_STATE);
       return false;
@@ -173,7 +161,8 @@ public class CombineComscriptState implements ComscriptState {
    * @param startCommand
    * @param comScriptManager
    */
-  public void setStartCommand(int startCommand, ComScriptManager comScriptManager) {
+  public void setStartCommand(final int startCommand,
+    final ComScriptManager comScriptManager) {
     if (startCommand < 0 || startCommand >= NUM_COMMANDS) {
       throw new IndexOutOfBoundsException();
     }
@@ -197,7 +186,8 @@ public class CombineComscriptState implements ComscriptState {
    * @param endCommand
    * @param comScriptManager
    */
-  public void setEndCommand(int endCommand, ComScriptManager comScriptManager) {
+  public void
+    setEndCommand(final int endCommand, final ComScriptManager comScriptManager) {
     if (endCommand < 0 || endCommand >= NUM_COMMANDS) {
       throw new IndexOutOfBoundsException();
     }
@@ -240,7 +230,7 @@ public class CombineComscriptState implements ComscriptState {
     outputImageFileTypeExternal = null;
   }
 
-  public void setOutputImageFileType(FileType input) {
+  public void setOutputImageFileType(final FileType input) {
     outputImageFileTypeExternal = input;
   }
 
@@ -269,7 +259,7 @@ public class CombineComscriptState implements ComscriptState {
   /**
    * 
    */
-  public String getCommand(int commandIndex) {
+  public String getCommand(final int commandIndex) {
     if (commandIndex == NULL_INDEX) {
       return null;
     }
@@ -283,7 +273,7 @@ public class CombineComscriptState implements ComscriptState {
   /**
    * 
    */
-  public String getWatchedFile(int commandIndex) {
+  public String getWatchedFile(final int commandIndex) {
     if (commandIndex == NULL_INDEX) {
       return null;
     }
@@ -312,19 +302,12 @@ public class CombineComscriptState implements ComscriptState {
     return SUCCESS_TEXT;
   }
 
-  public static String getDialogPane(int commandIndex) {
-    if (commandIndex == NULL_INDEX) {
-      return null;
-    }
-    return DIALOG_PANES[commandIndex];
-  }
-
   /**
    * convert a command name to a command index
    * @param commandName
    * @return
    */
-  public static int getCommandIndex(String commandName) {
+  private static int getCommandIndex(final String commandName) {
     for (int i = 0; i < NUM_COMMANDS; i++) {
       if (commandName.equals(COMMANDS[i])) {
         return i;
@@ -338,7 +321,7 @@ public class CombineComscriptState implements ComscriptState {
    * @param commandIndex
    * @return
    */
-  private static String toLabel(int commandIndex) {
+  private static String toLabel(final int commandIndex) {
     return COMMANDS[commandIndex] + LABEL_DELIMITER;
   }
 
@@ -347,7 +330,7 @@ public class CombineComscriptState implements ComscriptState {
    * @param comScriptManager
    * @return
    */
-  private boolean loadStartCommand(ComScriptManager comScriptManager) {
+  private boolean loadStartCommand(final ComScriptManager comScriptManager) {
     // check the first goto to see which command will be run first
     GotoParam gotoParam = comScriptManager.getGotoParamFromCombine();
     // backward compatibility - old combine.com did not have this goto
@@ -363,7 +346,7 @@ public class CombineComscriptState implements ComscriptState {
    * before running volcombine.
    * @param comScriptManager
    */
-  private void loadEndCommand(ComScriptManager comScriptManager) {
+  private void loadEndCommand(final ComScriptManager comScriptManager) {
     EchoParam echoParam =
       comScriptManager.getEchoParamFromCombine(toLabel(VOLCOMBINE_INDEX));
     if (echoParam != null && echoParam.getString().startsWith(SUCCESS_TEXT)) {
@@ -372,6 +355,10 @@ public class CombineComscriptState implements ComscriptState {
     else {
       endCommand = VOLCOMBINE_INDEX;
     }
+  }
+
+  public boolean isDualvolmatchPresent(final ComScriptManager comScriptManager) {
+    return comScriptManager.isDualvolmatchParamInCombine();
   }
 
   /**
@@ -397,7 +384,7 @@ public class CombineComscriptState implements ComscriptState {
    * test for incorrect member variable settings in CombineComscriptState.
    * @param state
    */
-  public void selfTest(int state) {
+  private void selfTest(final int state) {
     String stateString = null;
     switch (state) {
       case CONSTRUCTED_STATE:
@@ -417,12 +404,6 @@ public class CombineComscriptState implements ComscriptState {
             + "NUM_COMMANDS should be equal to the size of WATCHED_FILES.  "
             + "NUM_COMMANDS=" + NUM_COMMANDS + ",WATCHED_FILES.length="
             + WATCHED_FILES.length);
-        }
-        if (DIALOG_PANES.length != NUM_COMMANDS) {
-          throw new IllegalStateException(stateString
-            + "NUM_COMMANDS should be equal to the size of DIALOG_PANES.  "
-            + "NUM_COMMANDS=" + NUM_COMMANDS + ",DIALOG_PANES.length="
-            + DIALOG_PANES.length);
         }
         if (COMSCRIPT_MATCH_STRING == null) {
           throw new NullPointerException(stateString
@@ -514,14 +495,14 @@ public class CombineComscriptState implements ComscriptState {
    * @param selfTest
    * @param state
    */
-  private void runSelfTest(int state) {
+  private void runSelfTest(final int state) {
     if (!selfTest) {
       return;
     }
     selfTest(state);
   }
 
-  public boolean equals(CombineComscriptState that) {
+  public boolean equals(final CombineComscriptState that) {
     if (startCommand != that.startCommand) {
       notEqualsReason =
         "StartCommand is not equal.  this.startCommand=" + startCommand
@@ -536,10 +517,6 @@ public class CombineComscriptState implements ComscriptState {
     }
     notEqualsReason = null;
     return true;
-  }
-
-  public String getNotEqualsReason() {
-    return notEqualsReason;
   }
 
   public FileType getOutputImageFileType() {
