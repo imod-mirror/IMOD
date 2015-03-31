@@ -70,12 +70,13 @@ public class Patchcrawl3DParam extends ConstPatchcrawl3DParam implements Command
   public static final String COMMAND = "corrsearch3d";
   private boolean convertToPIP = false;
 
-  /* (non-Javadoc)
+  /*
+   * (non-Javadoc)
+   * 
    * @see etomo.comscript.CommandParam#initialize(etomo.comscript.ComScriptCommand)
    */
   public void parseComScriptCommand(ComScriptCommand scriptCommand)
-      throws BadComScriptException, FortranInputSyntaxException,
-      InvalidParameterException {
+    throws BadComScriptException, FortranInputSyntaxException, InvalidParameterException {
     String[] cmdLineArgs = scriptCommand.getCommandLineArgs();
     if (!scriptCommand.isKeywordValuePairs()) {
       convertToPIP = true;
@@ -91,6 +92,7 @@ public class Patchcrawl3DParam extends ConstPatchcrawl3DParam implements Command
       numberOfPatchesXYZ.validateAndSet(scriptCommand);
       xMinAndMax.validateAndSet(scriptCommand);
       yMinAndMax.validateAndSet(scriptCommand);
+      zMinAndMax.validateAndSet(scriptCommand);
       if (scriptCommand.hasKeyword(REGION_MODEL_KEY)) {
         regionModel = scriptCommand.getValue(REGION_MODEL_KEY);
       }
@@ -113,41 +115,41 @@ public class Patchcrawl3DParam extends ConstPatchcrawl3DParam implements Command
       throw new IllegalStateException("!convertToPIP in load()");
     }
     reset();
-    //xPatchSize, yPatchSize, zPatchSize
+    // xPatchSize, yPatchSize, zPatchSize
     patchSizeXYZ.set(0, param.getXPatchSize());
     patchSizeXYZ.set(1, param.getYPatchSize());
     patchSizeXYZ.set(2, param.getZPatchSize());
-    //nX, nY, nZ
+    // nX, nY, nZ
     numberOfPatchesXYZ.set(0, param.getNX());
     numberOfPatchesXYZ.set(1, param.getNY());
     numberOfPatchesXYZ.set(2, param.getNZ());
-    //xLow, xHigh
+    // xLow, xHigh
     xMinAndMax.set(0, param.getXLow());
     xMinAndMax.set(1, param.getXHigh());
-    //yLow, yHigh
+    // yLow, yHigh
     yMinAndMax.set(0, param.getYLow());
     yMinAndMax.set(1, param.getYHigh());
-    //zLow, zHigh
+    // zLow, zHigh
     zMinAndMax.set(0, param.getZLow());
     zMinAndMax.set(1, param.getZHigh());
-    //drop maxShift
-    //fileA
+    // drop maxShift
+    // fileA
     referenceFile = param.getFileA();
-    //fileB
+    // fileB
     fileToAlign = param.getFileB();
-    //outputFile
+    // outputFile
     outputFile = param.getOutputFile();
-    //transformFile
+    // transformFile
     bSourceTransform = param.getTransformFile();
-    //originalFileB
+    // originalFileB
     bSourceOrSizeXYZ = param.getOriginalFileB();
-    //borders
+    // borders
     FortranInputString borders = param.getBordersFortranInputString();
     bSourceBorderXLoHi.set(0, borders.getInt(0));
     bSourceBorderXLoHi.set(1, borders.getInt(1));
     bSourceBorderYZLoHi.set(0, borders.getInt(2));
     bSourceBorderYZLoHi.set(1, borders.getInt(3));
-    //boundaryModel
+    // boundaryModel
     regionModel = param.getBoundaryModel();
   }
 
@@ -157,24 +159,26 @@ public class Patchcrawl3DParam extends ConstPatchcrawl3DParam implements Command
    * @param scriptCommand the ComScriptCommand containing the beadtrack command
    */
   private ComScriptInputArg[] getInputArguments(ComScriptCommand scriptCommand)
-      throws BadComScriptException {
+    throws BadComScriptException {
     String command = scriptCommand.getCommand();
-    //  Check to be sure that it is the right command
+    // Check to be sure that it is the right command
     if (!command.equals(COMMAND) && !(command.equals("patchcrawl3d") && convertToPIP)) {
       throw (new BadComScriptException("Not a " + COMMAND + " command"));
     }
 
-    //  Get the input arguments parameters to preserve the comments
+    // Get the input arguments parameters to preserve the comments
     ComScriptInputArg[] inputArgs = scriptCommand.getInputArguments();
     return inputArgs;
   }
 
-  /* (non-Javadoc)
+  /*
+   * (non-Javadoc)
+   * 
    * @see etomo.comscript.CommandParam#updateComScript(etomo.comscript.ComScriptCommand)
    */
   public void updateComScriptCommand(ComScriptCommand scriptCommand)
-      throws BadComScriptException {
-    //  get the input arguments from the command
+    throws BadComScriptException {
+    // get the input arguments from the command
     ComScriptInputArg[] inputArgs;
     try {
       inputArgs = getInputArguments(scriptCommand);
@@ -183,7 +187,7 @@ public class Patchcrawl3DParam extends ConstPatchcrawl3DParam implements Command
       throw (except);
     }
 
-    //  Switch to keyword/value pairs
+    // Switch to keyword/value pairs
     scriptCommand.useKeywordValue();
     patchSizeXYZ.updateScriptParameter(scriptCommand);
     numberOfPatchesXYZ.updateScriptParameter(scriptCommand);
@@ -196,20 +200,19 @@ public class Patchcrawl3DParam extends ConstPatchcrawl3DParam implements Command
     if (convertToPIP) {
       scriptCommand.setCommand(COMMAND);
       ParamUtilities.updateScriptParameter(scriptCommand, REFERENCE_FILE_KEY,
-          referenceFile);
+        referenceFile);
       ParamUtilities.updateScriptParameter(scriptCommand, FILE_TO_ALIGN_KEY, fileToAlign);
       ParamUtilities.updateScriptParameter(scriptCommand, OUTPUT_FILE_KEY, outputFile);
       ParamUtilities.updateScriptParameter(scriptCommand, B_SOURCE_TRANSFORM_KEY,
-          bSourceTransform);
+        bSourceTransform);
       ParamUtilities.updateScriptParameter(scriptCommand, B_SOURCE_OR_SIZE_XYZ_KEY,
-          bSourceOrSizeXYZ);
+        bSourceOrSizeXYZ);
       bSourceBorderXLoHi.updateScriptParameter(scriptCommand);
       bSourceBorderYZLoHi.updateScriptParameter(scriptCommand);
     }
   }
 
-  public void initializeDefaults() {
-  }
+  public void initializeDefaults() {}
 
   /**
    * Sets the nX.
