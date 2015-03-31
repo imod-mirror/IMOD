@@ -7,15 +7,11 @@ import etomo.ui.FieldValidationFailedException;
 /**
 * <p>Description: </p>
 *
-* <p>Copyright: Copyright 2004</p>
-*
-* <p>Organization:
-* Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
-* Univeristy of Colorado</p>
-*
-* @author $$Author$$
-*
-* @version $$Revision$$
+ * <p>Copyright: Copyright 2004 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
+ *
+ * @version $Id$
 *
 * <p> $$Log$
 * <p> $Revision 1.1  2010/11/13 16:07:34  sueh
@@ -43,8 +39,6 @@ import etomo.ui.FieldValidationFailedException;
 * <p> $$ </p>
 */
 interface InitialCombineFields {
-  public static final String rcsid = "$$Id$$";
-
   public void setSurfacesOrModels(FiducialMatch useMatchingModels);
 
   public FiducialMatch getSurfacesOrModels();
@@ -56,14 +50,14 @@ interface InitialCombineFields {
   public void setFiducialMatchListA(String fiducialMatchListA);
 
   public String getFiducialMatchListA(boolean doValidation)
-      throws FieldValidationFailedException;
+    throws FieldValidationFailedException;
 
   public String getFiducialMatchListA();
 
   public void setFiducialMatchListB(String fiducialMatchListB);
 
   public String getFiducialMatchListB(boolean doValidation)
-      throws FieldValidationFailedException;
+    throws FieldValidationFailedException;
 
   public String getFiducialMatchListB();
 
@@ -76,11 +70,15 @@ interface InitialCombineFields {
   public void setUseList(String useList);
 
   public String getUseList(final boolean doValidation)
-      throws FieldValidationFailedException;
+    throws FieldValidationFailedException;
 
   public String getUseList();
 
   public MatchMode getMatchMode();
 
   public void setMatchMode(MatchMode matchMode);
+
+  public void setInitialVolumeMatching(boolean input);
+
+  public boolean isInitialVolumeMatching();
 }
