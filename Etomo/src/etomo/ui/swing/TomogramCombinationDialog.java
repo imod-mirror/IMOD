@@ -449,7 +449,7 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
       parallelProcessCheckBoxText = ParallelPanel.FIELD_LABEL;
     }
     // Instantiate the tab pane contents
-    pnlSetup = new SetupCombinePanel(this, applicationManager, dialogType);
+    pnlSetup =  SetupCombinePanel.getInstance(this, applicationManager, dialogType);
     pnlInitial = new InitialCombinePanel(this, applicationManager, dialogType,
         btnAdvanced);
     pnlFinal = new FinalCombinePanel(this, applicationManager, dialogType, btnAdvanced);
@@ -496,6 +496,7 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
    */
   public void setCombineParams(final ConstCombineParams combineParams) {
     pnlSetup.setParameters(combineParams);
+    pnlFinal.setParameters(combineParams);
   }
 
   public void setZMin(String zMin) {
@@ -602,6 +603,7 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
    * @param patchcrawl3DParams
    */
   public void setPatchcrawl3DParams(ConstPatchcrawl3DParam patchcrawl3DParams) {
+    pnlSetup.setParameters(patchcrawl3DParams);
     pnlFinal.setPatchcrawl3DParams(patchcrawl3DParams);
   }
 
