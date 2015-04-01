@@ -27,10 +27,22 @@ Version = 1.2
   assert.rb.small-patches=off
   assert.rb.medium-patches=on
   assert.rb.large-patches=off
+  assert.rb.custom=off
+  assert.tf.x=80
+  assert.tf.y=80
+  assert.tf.z=40
   assert.cb.use-patch-region-model=off
-  
+  #
   assert.cb.use-automatic-patch-fitting=off
-  
+  assert.rb.medium-patches.1=off
+  assert.rb.large-patches.1=off
+  assert.rb.extra-large-patches=on
+  assert.rb.custom.1=off
+  assert.tf.x=120
+  assert.tf.y=120
+  assert.tf.z=60
+  assert.tf.extra-warping-limits=
+  #
   assert.tf.x-axis-min=%{axis-min}
   if.not.var.patch-tracking.assert.tf.x-axis-max=%{x-axis-max}
   if.var.patch-tracking.assert.tf.x-axis-max=%{x-axis-max-patch-tracking}
@@ -75,8 +87,21 @@ Version = 1.2
   assert.enabled.rb.small-patches=
   assert.enabled.rb.medium-patches=
   assert.enabled.rb.large-patches=
+  assert.enabled.rb.custom=
+  #todo test not editable
   assert.enabled.cb.use-patch-region-model=
   assert.disabled.bn.create/edit-patch-region-model=
+  #
+  assert.enabled.cb.use-automatic-patch-fitting=
+  assert.disabled.rb.medium-patches.1=
+  assert.disabled.rb.large-patches.1=
+  assert.disabled.rb.extra-large-patches=
+  assert.disabled.rb.custom.1=
+  assert.disabled.tf.x.1=
+  assert.disabled.tf.y.1=
+  assert.disabled.tf.z.1=
+  assert.disabled.tf.extra-warping-limits=
+  #
   assert.enabled.tf.x-axis-min=
   assert.enabled.tf.x-axis-max=
   assert.enabled.tf.y-axis-min=
@@ -118,6 +143,40 @@ Version = 1.2
   if.not.var.patch-tracking.cb.specify-corresponding-points-instead-of-using-coordinate-file=
   #
   #patch parameters for refining aligment
+  rb.small-patches=
+  assert.tf.x=64
+  assert.tf.y=64
+  assert.tf.z=32
+  rb.large-patches=
+  assert.tf.x=100
+  assert.tf.y=100
+  assert.tf.z=50
+  rb.custom=
+  assert.enabled.tf.x=
+  assert.enabled.tf.y=
+  assert.enabled.tf.z=
+  rb.medium-patches=
+  #
+  cb.use-automatic-patch-fitting=on
+  assert.enabled.rb.medium-patches.1=
+  assert.enabled.rb.large-patches.1=
+  assert.enabled.rb.extra-large-patches=
+  assert.enabled.rb.custom.1=
+  rb.medium-patches.1=
+  assert.tf.x.1=80
+  assert.tf.y.1=80
+  assert.tf.z.1=40
+  rb.large-patches.1=
+  assert.tf.x.1=100
+  assert.tf.y.1=100
+  assert.tf.z.1=50
+  rb.custom.1=
+  assert.enabled.tf.x.1=
+  assert.enabled.tf.y.1=
+  assert.enabled.tf.z.1=
+  rb.extra-large-patches=
+  cb.use-automatic-patch-fitting=off
+  #
   cb.use-patch-region-model=
   assert.enabled.bn.create/edit-patch-region-model=
   cb.use-patch-region-model=
