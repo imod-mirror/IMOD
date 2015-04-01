@@ -592,6 +592,8 @@ int clip_flip(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
     for(i = 0, j = 0; i < hin->nx; i++, j++){
       if (newMode)
         sl = sliceCreate(hout->nx, hout->nz, hin->mode);
+      if (!sl)
+        return -1;
       if (mrc_read_slice(sl->data.b, hin->fp, hin, i, 'x'))
         return -1;
       if (newMode && sliceNewMode(sl, hout->mode) < 0)
@@ -629,6 +631,8 @@ int clip_flip(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
     /* DNM 3/23/01: need to transpose into a new slice because it is
        read in as a y by z slice, not a z by y slice */
     tsl = sliceCreate(hout->nx, hout->ny, hout->mode);
+    if (!sl || !tsl)
+      return -1;
     for(k = 0; k < hin->nx; k++){
       if (mrc_read_slice(sl->data.b, hin->fp, hin, k, 'x'))
         return -1;
@@ -778,6 +782,8 @@ int clip_flip(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
     for (k = 0; k < hin->nz; k++){
       if (newMode)
         sl = sliceCreate(hout->nx, hout->ny, hin->mode);
+      if (!sl)
+        return -1;
       if (mrc_read_slice(sl->data.b, hin->fp, hin, k, 'z'))
         return -1;
       if (newMode && sliceNewMode(sl, hout->mode) < 0)
@@ -810,6 +816,8 @@ int clip_flip(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
     for (k = 0; k < hin->nz; k++){
       if (newMode)
         sl = sliceCreate(hout->nx, hout->ny, hin->mode);
+      if (!sl)
+        return -1;
       if (mrc_read_slice(sl->data.b, hin->fp, hin, hout->nz-k-1, 'z'))
         return -1;
       if (newMode && sliceNewMode(sl, hout->mode) < 0)
@@ -1669,6 +1677,8 @@ int clip2d_average(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
   cnts = sliceCreate(opt->ix, opt->iy, SLICE_MODE_FLOAT);
   if (variance)
     ssq = sliceCreate(opt->ix, opt->iy, SLICE_MODE_MAX);
+  if (!avgs || !cnts || (variance && !ssq))
+    return -1;
 
   /* Initialize sums */
   aval[0] = aval[1] = aval[2] = 0.0f;
