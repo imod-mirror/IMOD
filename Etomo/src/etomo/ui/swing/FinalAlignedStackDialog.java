@@ -54,6 +54,7 @@ import etomo.type.ViewType;
 import etomo.ui.FieldType;
 import etomo.ui.FieldValidationFailedException;
 import etomo.util.DatasetFiles;
+import etomo.util.Utilities;
 
 /**
  * <p>Description: </p>
@@ -221,7 +222,8 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements Expa
   private final LabeledTextField ltfLowPassRadiusSigma = new LabeledTextField(
       FieldType.FLOATING_POINT_PAIR, "Low pass (cutoff,sigma): ");
   private final ImageIcon iconFolder = new ImageIcon(
-      ClassLoader.getSystemResource("images/openFile.gif"));
+      ClassLoader.getSystemResource(!Utilities.APRIL_FOOLS ? "images/openFile.gif"
+        : "images/openFileFool.png"));
   private final LabeledTextField ltfMtfFile = new LabeledTextField(FieldType.STRING,
       MTF_FILE_LABEL);
   private final SimpleButton btnMtfFile = new SimpleButton(iconFolder);
