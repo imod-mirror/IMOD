@@ -252,6 +252,7 @@ public final class ProcessName {
   public static final ProcessName COPYTOMOCOMS = new ProcessName("copytomocoms");
   public static final ProcessName TOMODATAPLOTS = new ProcessName("tomodataplots");
   public static final ProcessName DUALVOLMATCH = new ProcessName("dualvolmatch");
+  public static final ProcessName SETUPCOMBINE = new ProcessName("setupcombine");
 
   /**
    * Returns a string representation of the object.
@@ -569,6 +570,9 @@ public final class ProcessName {
     }
     if (name.compareToIgnoreCase(DUALVOLMATCH.name) == 0) {
       return DUALVOLMATCH;
+    }
+    if (name.compareToIgnoreCase(SETUPCOMBINE.name) == 0) {
+      return SETUPCOMBINE;
     }
     return null;
   }
