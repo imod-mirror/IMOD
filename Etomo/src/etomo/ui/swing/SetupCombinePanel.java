@@ -583,6 +583,7 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
     rbBtoA.setAlignmentX(Component.LEFT_ALIGNMENT);
     binningWarning.setAlignmentX(Component.CENTER_ALIGNMENT);
     btnPatchRegionModel.setSize();
+    tempDirectoryHeader.setOpen(false);
     // panels
     JPanel pnlMinMax = new JPanel();
     JPanel pnlBtoA = new JPanel();
