@@ -252,7 +252,7 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
     filterFullVolumePanel = FilterFullVolumePanel.getInstance(manager, DIALOG_TYPE, this);
     // root
     rootPanel.setBoxLayout(BoxLayout.X_AXIS);
-    if (Utilities.isAprilFools()) {
+    if (Utilities.APRIL_FOOLS) {
       rootPanel.setBorder(new BeveledBorder("Anisotropic Delusion").getBorder());
     }
     else {
