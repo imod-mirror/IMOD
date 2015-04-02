@@ -6326,11 +6326,13 @@ public final class ApplicationManager extends BaseManager implements
         loadPatchcorr();
         loadMatchorwarp();
         loadVolcombine();
-        CombineComscriptState  combineComscriptState=loadCombineComscript();
+        CombineComscriptState combineComscriptState = loadCombineComscript();
         tomogramCombinationDialog
           .synchronize(TomogramCombinationDialog.lblSetup, true/* false */);
         if (!combineComscriptState.isDualvolmatchPresent(comScriptMgr)) {
-          //TODO run setupcombine with copy combine.com only
+          if (setupCombineComOnly()) {
+            loadCombineComscript();
+          }
         }
       }
       else {
@@ -6699,7 +6701,7 @@ public final class ApplicationManager extends BaseManager implements
       return false;
     }
     try {
-      if (!processMgr.setupCombineScripts(metaData, processResultDisplay)) {
+      if (!processMgr.setupCombineScripts(processResultDisplay)) {
         mainPanel.stopProgressBar(AxisID.ONLY, ProcessEndState.FAILED);
         return false;
       }
@@ -6726,6 +6728,28 @@ public final class ApplicationManager extends BaseManager implements
     mainPanel.stopProgressBar(AxisID.ONLY);
     TomogramTool.saveTomogramSize(this, AxisID.FIRST, AxisID.ONLY);
     TomogramTool.saveTomogramSize(this, AxisID.SECOND, AxisID.ONLY);
+    return true;
+  }
+
+  public boolean setupCombineComOnly() {
+    mainPanel.startProgressBar("Combine.com out of date - recreating", AxisID.ONLY,
+      ProcessName.SETUPCOMBINE);
+    try {
+      if (!processMgr.setupCombineOnlyMakeCombineCom()) {
+        mainPanel.stopProgressBar(AxisID.ONLY, ProcessEndState.FAILED);
+        return false;
+      }
+    }
+    catch (IOException except) {
+      mainPanel.stopProgressBar(AxisID.ONLY, ProcessEndState.FAILED);
+      except.printStackTrace();
+      uiHarness.openMessageDialog(
+        this,
+        "Can't run setupcombine.  Copy combine.com from $IMOD_DIR/com.\n"
+          + except.getMessage(), "Setupcombine IOException", AxisID.ONLY);
+      return false;
+    }
+    mainPanel.stopProgressBar(AxisID.ONLY, ProcessEndState.DONE);
     return true;
   }
 
@@ -6860,7 +6884,7 @@ public final class ApplicationManager extends BaseManager implements
     }
     return true;
   }
-  
+
   public boolean updateDualvolmatchCom(final boolean doValidation) {
     if (tomogramCombinationDialog == null) {
       uiHarness.openMessageDialog(this,
@@ -7216,7 +7240,7 @@ public final class ApplicationManager extends BaseManager implements
       sendMsgProcessFailedToStart(processResultDisplay);
       return;
     }
-    System.out.println("A:initialVolumeMatching:"+initialVolumeMatching);
+    System.out.println("A:initialVolumeMatching:" + initialVolumeMatching);
     CombineComscriptState combineComscriptState =
       updateCombineComscriptState(initialVolumeMatching ? CombineProcessType.DUALVOLMATCH
         : CombineProcessType.SOLVEMATCH);
@@ -7224,7 +7248,7 @@ public final class ApplicationManager extends BaseManager implements
       sendMsgProcessFailedToStart(processResultDisplay);
       return;
     }
-    //Don't fail on a failed com file that won't be run.
+    // Don't fail on a failed com file that won't be run.
     if (!updateSolvematchCom(true) && !initialVolumeMatching) {
       sendMsgProcessFailedToStart(processResultDisplay);
       return;
