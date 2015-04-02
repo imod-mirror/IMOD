@@ -2371,16 +2371,16 @@ public final class ComScriptManager extends BaseComScriptManager {
     return echoParam;
   }
 
-  public boolean isDualvolmatchParamInCombine() {
+  public boolean isDualvolmatchLabelInCombine() {
     if (scriptCombine == null) {
       loadCombine();
     }
     if (scriptCombine == null) {
       return false;
     }
-    DualvolmatchParam param = new DualvolmatchParam();
-    return initialize(param, scriptCombine, ProcessName.DUALVOLMATCH.toString(),
-      AxisID.ONLY, false, false);
+    LabelParam param = new LabelParam(ProcessName.DUALVOLMATCH);
+    return initialize(param, scriptCombine, param.getLabel(),
+      AxisID.ONLY, false, false,false);
   }
 
   public void loadFlatten(AxisID axisID) {
