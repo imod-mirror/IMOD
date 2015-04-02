@@ -49,7 +49,8 @@ public final class ParallelDialog implements AbstractParallelDialog, ProcessInte
   private static final String PROCESS_NAME_LABEL = "Process name: ";
 
   private final ImageIcon iconFolder = new ImageIcon(
-      ClassLoader.getSystemResource("images/openFile.gif"));
+      ClassLoader.getSystemResource(!Utilities.APRIL_FOOLS ? "images/openFile.gif"
+        : "images/openFileFool.png"));
   private final SpacedPanel pnlRoot = SpacedPanel.getInstance();
   private final JPanel pnlProcessName = new JPanel();
   private final SimpleButton btnChunkComscript = new SimpleButton(iconFolder);
