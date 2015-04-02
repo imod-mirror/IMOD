@@ -1,5 +1,6 @@
 package etomo.ui.swing;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
@@ -29,6 +30,7 @@ import etomo.ui.FieldType;
 import etomo.ui.FieldValidationFailedException;
 import etomo.ui.UIComponent;
 import etomo.util.FilePath;
+import etomo.util.Utilities;
 
 /**
  * <p>
@@ -147,6 +149,24 @@ final class MaskingPanel implements UIComponent, SwingComponent {
     JPanel pnlCylinderOrientationCheckBox = new JPanel();
     JPanel pnlCylinderOrientationX = new JPanel();
     JPanel pnlMaskBlurStdDev = new JPanel();
+    if (Utilities.APRIL_FOOLS) {
+      Color background = new Color(255,192,136);
+      pnlRoot.setBackground(background);
+      pnlMaskType.setBackground(background);
+      pnlSphereCylinder.setBackground(background);
+      pnlMaskTypeNone.setBackground(background);
+      pnlMaskTypeSphere.setBackground(background);
+      pnlMaskTypeCylinder.setBackground(background);
+      pnlFile.setBackground(background);
+      ftfMaskTypeFile.setBackground(background);
+      pnlRadius.setBackground(background);
+      pnlMaskBlurStdDev.setBackground(background);
+      background = new Color(251,212,159);
+      pnlCylinderOrientationX.setBackground(background);
+      pnlCylinderOrientation.setBackground(background);
+      pnlCylinderRotation.setBackground(background);
+      pnlCylinderOrientationCheckBox.setBackground(background);
+    }
     // initalization
     ftfMaskTypeFile.setAdjustedFieldWidth(190);
     // root panel
