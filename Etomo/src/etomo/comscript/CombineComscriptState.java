@@ -358,7 +358,7 @@ public final class CombineComscriptState implements ComscriptState {
   }
 
   public boolean isDualvolmatchPresent(final ComScriptManager comScriptManager) {
-    return comScriptManager.isDualvolmatchParamInCombine();
+    return comScriptManager.isDualvolmatchLabelInCombine();
   }
 
   /**
