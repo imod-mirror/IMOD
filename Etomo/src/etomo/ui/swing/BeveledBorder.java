@@ -1,8 +1,11 @@
 package etomo.ui.swing;
 
 import java.awt.*;
+
 import javax.swing.*;
 import javax.swing.border.*;
+
+import etomo.util.Utilities;
 
 /**
  * <p>Description: </p>
@@ -37,20 +40,24 @@ import javax.swing.border.*;
  * <p> </p>
  */
 public class BeveledBorder {
-  public static final String rcsid = "$Id$";
+  public static final String rcsid =
+    "$Id$";
 
   Border border;
   TitledBorder titledBorder;
-  static Color highlightOuter = new Color(248, 254, 255);
-  static Color shadowOuter = new Color(121, 124, 136);
-  static Color shadowInner = new Color(84, 86, 95);
+  static Color highlightOuter = !Utilities.APRIL_FOOLS ? new Color(248, 254, 255) : new Color(255, 231,
+    205);
+  static Color shadowOuter = !Utilities.APRIL_FOOLS ? new Color(121, 124, 136) : new Color(138, 152, 219);
+  static Color shadowInner = !Utilities.APRIL_FOOLS ? new Color(84, 86, 95) : new Color(103, 101, 204);
 
   public BeveledBorder(String title) {
-    titledBorder = new TitledBorder(BorderFactory.createEtchedBorder(highlightOuter,
-        shadowOuter), title);
+    titledBorder =
+      new TitledBorder(BorderFactory.createEtchedBorder(highlightOuter, shadowOuter),
+        title);
 
-    border = BorderFactory.createBevelBorder(BevelBorder.LOWERED, highlightOuter,
-        Color.white, shadowOuter, shadowOuter);
+    border =
+      BorderFactory.createBevelBorder(BevelBorder.LOWERED, highlightOuter, Color.white,
+        shadowOuter, shadowOuter);
     titledBorder.setBorder(border);
   }
 
