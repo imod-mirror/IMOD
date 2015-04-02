@@ -826,6 +826,7 @@ int dataSizeForMode(int mode, int *dataSize, int *channels)
   case SLICE_MODE_MAX:
     *dataSize = SLICE_MAX_DSIZE;
     *channels = SLICE_MAX_CSIZE;
+    break;
   default:
     return(-1);
   }
