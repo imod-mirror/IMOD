@@ -38,9 +38,9 @@ Version = 1.2
   assert.rb.large-patches.1=off
   assert.rb.extra-large-patches=on
   assert.rb.custom.1=off
-  assert.tf.x=120
-  assert.tf.y=120
-  assert.tf.z=60
+  assert.tf.x.1=120
+  assert.tf.y.1=120
+  assert.tf.z.1=60
   assert.tf.extra-warping-limits=
   #
   assert.tf.x-axis-min=%{axis-min}
@@ -57,6 +57,8 @@ Version = 1.2
   assert.cb.stop-before-running-volcombine=off
   #
   #intermediate data storage
+  mb.intermediate-data-storage=+
+  sleep=
   assert.tf.temporary-directory=
   assert.cb.manual-cleanup=off
   #
