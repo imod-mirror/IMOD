@@ -2013,7 +2013,7 @@ SUBROUTINE inputParameters()
   !
   character*1024 card
   character*320 inputFile, outputFile, recFile, baseFile, boundFile, vertBoundFile
-  character*320 vertOutFile, angleOutput, transformFile, defocusFile
+  character*320 vertOutFile, angleOutput, transformFile, defocusFile, gpuErrorStr
   integer*4 nfields, inum(LIMNUM)
   real*4 xnum(LIMNUM)
   !
@@ -2085,6 +2085,7 @@ SUBROUTINE inputParameters()
   iterForReport = 0
   focusInvert = 0.
   defocusFile = ' '
+  gpuErrorStr = ' '
   !
   ! Minimum array size to allocate, desired number of slices to allocate
   ! for if it exceeds that minimum size
@@ -3389,7 +3390,9 @@ SUBROUTINE inputParameters()
     if (useGPU) then
       ind = 0
       if (debug) ind = 1
-      if (useGPU) useGPU = gpuAvailable(indGPU, gpuMemory, ind) .ne. 0
+      useGPU = gpuAvailable(indGPU, gpuMemory, ind) .ne. 0
+      if (.not. useGPU) gpuErrorStr =  &
+          'No GPU is available, run gputilttest for more details'
       ind = maxNeeds(1) * inPlaneSize + iwidth * numPlanes
       iex = iwidth * numPlanes
       kti = 0
@@ -3402,19 +3405,19 @@ SUBROUTINE inputParameters()
       endif
       if (useGPU) then
         useGPU = 4 * ind <= gpuMemoryFrac * gpuMemory
-        if (.not. useGPU) print *, 'GPU is available but it has insufficient memory'
+        if (.not. useGPU) gpuErrorStr = 'GPU is available but it has insufficient '// &
+            'memory to reproject with current parameters'
       endif
       if (useGPU)  call allocateGpuPlanes(iex, nxWarp * nyWarp, kti, 0, &
           numPlanes, iwideReproj, ithickReproj)
-      if (useGPU .and. nxWarp .ne. 0) &
-          useGPU = gpuLoadLocals(packLocal, nxWarp * nyWarp) == 0
-      if (useGPU) then
-        print *,'Using the GPU for reprojection'
-      else
-        print *,'The GPU cannot be used, using the CPU for reprojection'
+      if (useGPU .and. nxWarp .ne. 0) then
+        useGPU = gpuLoadLocals(packLocal, nxWarp * nyWarp) == 0
+        if (.not. useGPU) gpuErrorStr = 'Failed to load local alignment data into GPU'
       endif
+      if (useGPU) print *,'Using the GPU for reprojection'
       if (allocated(packLocal)) deallocate(packLocal)
       call warnOrExitIfNoGPU()
+      if (.not. useGPU) print *,'The GPU cannot be used, using the CPU for reprojection'
     endif
     !
     ! Finally allocate the warpDelz now that number of lines is known,
@@ -3511,6 +3514,8 @@ SUBROUTINE inputParameters()
     useGPU = gpuAvailable(indGPU, gpuMemory, ind) .ne. 0
     if (debug) write(*,'(a,f8.4)') 'Time to test if GPU available: ', &
         wallTime() - wallStart
+    if (.not. useGPU) gpuErrorStr =  &
+        'No GPU is available, run gputilttest for more details'
     if (useGPU) then
       !
       ! Basic need is input planes for reconstructing one slice plus 2
@@ -3525,10 +3530,12 @@ SUBROUTINE inputParameters()
       if (useGPU) then
         interpFacStretch = 0
       else
-        print *,'GPU is available but it has insufficient memory'
+        gpuErrorStr = 'GPU is available but it has insufficient '// &
+            'memory to backproject with current parameters'
       endif
     endif
     call warnOrExitIfNoGPU()
+    if (.not. useGPU) print *, 'The GPU cannot be used; using CPU for backprojection'
   endif
   !
   ! next evaluate cosine stretch and new-style tilt for memory
@@ -3633,21 +3640,25 @@ SUBROUTINE inputParameters()
 
     ! print *,useGPU
     wallStart = wallTime()
-    if (useGPU) useGPU = gpuLoadFilter(array) == 0
+    if (useGPU) then
+      useGPU = gpuLoadFilter(array) == 0
+      if (.not. useGPU) gpuErrorStr = 'Failed to load filter array into GPU'
+    endif
     ! print *,useGPU
-    if (useGPU .and. nxWarp .ne. 0) &
-        useGPU = gpuLoadLocals(packLocal, nxWarp * nyWarp) == 0
+    if (useGPU .and. nxWarp .ne. 0) then
+      useGPU = gpuLoadLocals(packLocal, nxWarp * nyWarp) == 0
+      if (.not. useGPU) gpuErrorStr = 'Failed to load local alignment data into GPU'
+    endif
     ! print *,useGPU
     if (debug .and. useGPU) write(*,'(a,f8.4)') 'Time to load filter/locals on GPU: ', &
         wallTime() - wallStart
+    if (allocated(packLocal)) deallocate(packLocal)
+    call warnOrExitIfNoGPU()
     if (useGPU) then
       print *,'Using GPU for backprojection'
     else
-      print *,'Failed to allocate or load arrays on the GPU - using CPU '// &
-          'for backprojection'
+      print *, 'The GPU cannot be used - using CPU for backprojection'
     endif
-    if (allocated(packLocal)) deallocate(packLocal)
-    call warnOrExitIfNoGPU()
   endif
 
   ! print *,interpFacStretch, ipExtraSize, ifAlpha, numVertNeeded
@@ -3729,11 +3740,21 @@ CONTAINS
     iperPlane = inPlaneSize
     if (numDelz > 0) iperPlane = inPlaneSize + 8 * iwidth + numWarpDelz
     maxGpuPlane = (gpuMemoryFrac * gpuMemory / 4. - nonPlane) / iperPlane
+    if (maxGpuPlane < maxNeeds(1)) then
+      write(gpuErrorStr, '(a,i4,a,i4,a)') 'The GPU only has enough memory to load', &
+          maxGpuPlane, ' planes of data and, with current parameters, up to',  &
+          maxNeeds(1),' input planes are required to reconstruct a single plane'
+    else if (65535 / nygplane < maxNeeds(1)) then
+      write(gpuErrorStr, '(a,i4,a,i4,a)') 'With current parameters, up to', maxNeeds(1), &
+          ' input planes are required to reconstruct a single plane, while '// &
+          'the allowed number of lines in GPU texture memory will fit only', &
+          65535 / nygplane, ' input planes'
+    endif
     maxGpuPlane = min(maxGpuPlane, numPlanes, 65535 / nygplane)
     ! FOR TESTING MEMORY SHIFTING ETC
     ! ind = max(maxNeeds(1), min(ind, numPlanes / 3))
     numGpuPlanes = 0
-    ! print *, ind, numPlanes, maxNeeds(1)
+    ! print *, ind, numPlanes, maxNeeds(1), maxGpuPlane
     do i = maxGpuPlane, maxNeeds(1), -1
       if (gpuAllocArrays(iwidth, nygout, nxgplane, nygplane, i, numViews, &
           numWarps,  numDelz, numFilts, 0, maxGpuPlane, maxNeeds(1)) == 0) &
@@ -3745,24 +3766,23 @@ CONTAINS
       endif
     enddo
     useGPU = numGpuPlanes > 0
+    if (.not. useGPU .and. maxGpuPlane >= maxNeeds(1)) gpuErrorStr = 'Failed to '// &
+        'allocate enough memory on the GPU to recontruct even a single plane'
     return
   end subroutine allocateGpuPlanes
 
   ! Issue desired warning or exit on error if GPU not available
   subroutine warnOrExitIfNoGPU()
-    if (ifGpuByEnviron .ne. 0) then
-      if (useGPU .or. iactGpuFailEnviron == 0) return
-      if (iactGpuFailEnviron == 2) call exitError('The environment '// &
-          'variable IMOD_USE_GPU was set but a GPU cannot be used')
-      write(*,'(a)') 'MESSAGE: The environment variable IMOD_USE_GPU was set ' &
-          //'but a GPU will not be used'
-    else
-      if (useGPU .or. iactGpuFailOption == 0) return
-      if (iactGpuFailOption == 2) call exitError('Use of the GPU was '// &
-          'requested with the entry UseGPU but a GPU cannot be used')
-      write(*,'(a)') 'MESSAGE: Use of the GPU was requested with the entry '// &
-          'UseGPU but a GPU will not be used'
+    if (useGPU) return
+    if ((ifGpuByEnviron .ne. 0 .and. iactGpuFailEnviron == 2) .or.  &
+        (ifGpuByEnviron == 0 .and. iactGpuFailOption == 2)) then
+      write(*, '(/,a,a)')'ERROR: tilt - ', trim(gpuErrorStr)
+      call exitError('Use of the GPU was requested but a GPU cannot be used')
     endif
+    write(*, '(a)') trim(gpuErrorStr)
+    if ((ifGpuByEnviron .ne. 0 .and. iactGpuFailEnviron == 1) .or.  &
+        (ifGpuByEnviron == 0 .and. iactGpuFailOption == 1)) write(*,'(a)') &
+        'MESSAGE: Use of the GPU was requested but a GPU will not be used'
     call flush(6)
     return
   end subroutine warnOrExitIfNoGPU
@@ -3772,8 +3792,7 @@ CONTAINS
     allocate(packLocal(numWarpPos * numViews, 12), stat = ierr)
     if (ierr .ne. 0) then
       useGPU = .false.
-      write(*,'(/,a)') 'Failed to allocate array needed for '// &
-          'using GPU with local alignments'
+      gpuErrorStr = 'Failed to allocate array needed for using GPU with local alignments'
       call warnOrExitIfNoGPU()
     else
       !
