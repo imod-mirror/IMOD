@@ -802,6 +802,7 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
     boolean autoPatchFinalSize = cbAutoPatchFinalSize.isSelected();
     pspAutoPatchFinalSize.setEnabled(autoPatchFinalSize);
     ltfExtraResidualTargets.setEnabled(autoPatchFinalSize);
+    pnlSolvematch.updateDisplay();
   }
 
   void setParameters(final ConstMetaData metaData) {
