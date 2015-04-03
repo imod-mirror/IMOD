@@ -11,7 +11,6 @@ import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
-import javax.swing.JButton;
 import javax.swing.JPanel;
 
 import etomo.ApplicationManager;
@@ -564,7 +563,6 @@ final class SolvematchPanel implements Run3dmodButtonContainer, Expandable,
       if (rbOneSide.isSelected() && rbOneSide.isEnabled()) {
         combineParams.setFiducialMatch(FiducialMatch.ONE_SIDE);
       }
-      JButton b = new JButton();
       if (rbOneSideInverted.isSelected() && rbOneSideInverted.isEnabled()
         && rbOneSideInverted.isVisible()) {
         combineParams.setFiducialMatch(FiducialMatch.ONE_SIDE_INVERTED);
