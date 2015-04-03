@@ -50,6 +50,11 @@ Version = 1.2
   #
   #enabled
   #
+  #tabs
+  assert.enabled.tb.setup=
+  assert.disabled.tb.setup.1=
+  assert.disabled.tb.setup.2=
+  #
   #tomogram matching relationship
   assert.enabled.rb.match-the-b-tomogram-to-a=
   assert.enabled.rb.match-the-a-tomogram-to-b=
@@ -150,6 +155,16 @@ assert.exists.file = solvematch.com
 assert.exists.file = volcombine.com
 assert.exists.file = warpvol.com
 [[if = test-gui]]
+  #tabs
+  assert.enabled.tb.setup.1=
+  assert.enabled.tb.setup.2=
+  #
+  #behavior
+  rb.match-the-a-tomogram-to-b=
+  assert.disabled.tb.setup.1=
+  assert.disabled.tb.setup.2=
+  rb.match-the-b-tomogram-to-a=
+  #
   #initial match
   tb.setup.1=
   #
