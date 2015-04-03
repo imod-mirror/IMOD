@@ -1,5 +1,6 @@
 package etomo.ui.swing;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FontMetrics;
@@ -87,13 +88,15 @@ final class FileTextField2 implements FileTextFieldInterface, Field, ActionListe
     final boolean labeled, final boolean peet, final boolean alternateLayout) {
     if (!peet) {
       button =
-        new SimpleButton(new ImageIcon(ClassLoader
-          .getSystemResource("images/openFile.gif")));
+        new SimpleButton(new ImageIcon(
+          ClassLoader.getSystemResource(!Utilities.APRIL_FOOLS ? "images/openFile.gif"
+            : "images/openFileFool.png")));
     }
     else {
       button =
-        new SimpleButton(new ImageIcon(ClassLoader
-          .getSystemResource("images/openFilePeet.png")));
+        new SimpleButton(new ImageIcon(
+          ClassLoader.getSystemResource(!Utilities.APRIL_FOOLS
+            ? "images/openFilePeet.png" : "images/openFileFool.png")));
     }
     button.setName(label);
     field = new TextField(STRING_FIELD_TYPE, label, null);
@@ -192,6 +195,10 @@ final class FileTextField2 implements FileTextFieldInterface, Field, ActionListe
       panel.add(button);
       panel.add(Box.createHorizontalGlue());
     }
+  }
+  
+  void setBackground(final Color color) {
+    panel.setBackground(color);
   }
 
   int getPreferredWidth() {
@@ -403,9 +410,11 @@ final class FileTextField2 implements FileTextFieldInterface, Field, ActionListe
   public boolean equalsDefaultValue() {
     return field.equalsDefaultValue();
   }
+
   public boolean equalsDefaultValue(final String value) {
     return field.equalsDefaultValue(value);
   }
+
   public boolean isFieldHighlightSet() {
     return field.isFieldHighlightSet();
   }

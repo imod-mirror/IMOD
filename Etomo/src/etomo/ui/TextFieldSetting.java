@@ -105,11 +105,11 @@ public final class TextFieldSetting implements FieldSettingInterface {
     ConstEtomoNumber nValue = createNumber(value);
     if (nValue != null) {
       // Treating two nulls as equal (value and input may not have the same type)
-      if (nValue.isNull() && EtomoNumber.isNull(input)) {
+      if (nValue.isNull() && EtomoNumber.isNumberNull(input)) {
         return true;
       }
       // One is null - not equal
-      if (nValue.isNull() || EtomoNumber.isNull(input)) {
+      if (nValue.isNull() || EtomoNumber.isNumberNull(input)) {
         return false;
       }
       // Do a numeric comparison
