@@ -535,6 +535,10 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
     pnlInitial.setSolvematchParams(solvematchParams);
   }
 
+  public void setDualvolmatchParams(DualvolmatchParam param) {
+    pnlInitial.setDualvolmatchParams(param);
+  }
+
   public void setParameters(MatchvolParam param) {
     pnlInitial.setParameters(param);
   }
@@ -742,6 +746,7 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
         synchronize(pnlSetup, pnlFinal);
       }
     }
+    updateDisplay();
   }
 
   /**
@@ -798,6 +803,7 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
     tabbedPane.setEnabledAt(INITIAL_INDEX, enableTabs);
     tabbedPane.setEnabledAt(FINAL_INDEX, enableTabs);
     pnlSetup.updateDisplay(enableTabs);
+    pnlInitial.updateDisplay();
   }
 
   public void updatePatchVectorModelDisplay() {
