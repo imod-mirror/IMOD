@@ -2509,6 +2509,21 @@ final class AutodocTester extends Assert implements VariableList {
         }
       }
     }
+    // TAB
+    // tb.tabbed_panel_title.index_of_tab
+    else if (fieldType == UITestFieldType.TAB) {
+      // find the tabbed panel and click on the tab
+      assertNull("value not valid in a tab command"+ formatCommandInfo(command), value);
+      JTabbedPane tabbedPane = findTabbedPane(name);
+      if (tabbedPane == null) {
+        fail("can't find field - " + command.getField().getName()
+            + formatCommandInfo(command));
+        return;
+      }
+      //assert.enabled.tb
+      //assert.disabled.tb
+      assertEnabled(tabbedPane, command);
+    }
     // TEXT FIELD
     else if (fieldType == UITestFieldType.TEXT_FIELD) {
       JTextComponent textField = findTextField(name, index);
