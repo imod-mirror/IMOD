@@ -509,6 +509,7 @@ final class SolvematchPanel implements Run3dmodButtonContainer, Expandable,
       cbUseCorrespondingPoints.setSelected(!combineParams.isTransfer());
       updateDisplay();
     }
+    cbInitialVolumeMatching.setSelected(combineParams.isInitialVolumeMatching());
   }
 
   void setParameters(final DualvolmatchParam param) {
@@ -825,7 +826,7 @@ final class SolvematchPanel implements Run3dmodButtonContainer, Expandable,
     }
   }
 
-  private void updateDisplay() {
+  void updateDisplay() {
     boolean initialVolumeMatching = cbInitialVolumeMatching.isSelected();
     if (ltfSolvematchCenterShiftLimit != null) {
       ltfSolvematchCenterShiftLimit.setEnabled(!initialVolumeMatching);
@@ -843,6 +844,12 @@ final class SolvematchPanel implements Run3dmodButtonContainer, Expandable,
     ltfFiducialMatchListA.setEnabled(!initialVolumeMatching);
     ltfFiducialMatchListB.setEnabled(!initialVolumeMatching);
     ltfUseList.setEnabled(!initialVolumeMatching);
+    if (ltfDualvolmatchMaximumResidual != null) {
+      ltfDualvolmatchMaximumResidual.setEnabled(initialVolumeMatching);
+    }
+    if (ltfDualvolmatchCenterShiftLimit != null) {
+      ltfDualvolmatchCenterShiftLimit.setEnabled(initialVolumeMatching);
+    }
     if (cbUseCorrespondingPoints.isSelected()) {
       ltfFiducialMatchListA.setVisible(true);
       ltfFiducialMatchListB.setVisible(true);
