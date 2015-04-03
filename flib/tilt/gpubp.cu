@@ -187,7 +187,7 @@ static int *planeLoaded;
 int gpuavailable(int *nGPU, float *memory, int *debug)
 {
   int current_device = 0;
-  int device_count = 0;
+  int version, version2, device_count = 0;
   float gflops;
   struct cudaDeviceProp device_properties, best_properties;
 
@@ -195,11 +195,19 @@ int gpuavailable(int *nGPU, float *memory, int *debug)
   float max_gflops = -1.;
   *memory = 0;
   cudaGetDeviceCount( &device_count );
-  if (*debug)
+  if (*debug) {
+    cudaRuntimeGetVersion(&version2);
+    cudaDriverGetVersion(&version);
+    pflush("CUDA version - driver: %d.%03d  runtime: %d.%03d\n", version / 1000,
+           version % 1000, version2 / 1000, version2 % 1000);
     pflush("Device count = %d\n", device_count);
+  }
   if (*nGPU != 0) {
-    if (*nGPU < 0 || *nGPU > device_count)
+    if (*nGPU < 0 || *nGPU > device_count) {
+      pflush("The requested GPU number, %d, is out of range; there are only %d devices\n",
+             *nGPU, device_count);
       return 0;
+    }
     current_device = *nGPU - 1;
     device_count = *nGPU;
   }
@@ -211,10 +219,11 @@ int gpuavailable(int *nGPU, float *memory, int *debug)
       return 0;
     }
     if (*debug)
-      pflush("Device %d: mpc %d  cr %d  major %d minor %d  mem %.0f\n",
-             current_device, device_properties.multiProcessorCount,
-             device_properties.clockRate, device_properties.major,
-             device_properties.minor, (float)device_properties.totalGlobalMem);
+      pflush("Device %d (%s): mpc %d  cr %d  major %d minor %d  mem %.0f\n",
+             current_device, device_properties.name, 
+             device_properties.multiProcessorCount, device_properties.clockRate,
+             device_properties.major, device_properties.minor,
+             (float)device_properties.totalGlobalMem);
     gflops = device_properties.multiProcessorCount * 
       device_properties.clockRate;
 
