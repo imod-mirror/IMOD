@@ -426,6 +426,10 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
   void updateAdvanced(final boolean state) {
     updateMatchvol1Advanced(state);
   }
+  
+  void updateDisplay() {
+    pnlSolvematch.updateDisplay();
+  }
 
   void updateMatchvol1Advanced(final boolean advanced) {
     ltfOutputSizeY.setVisible(advanced);
@@ -484,6 +488,10 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
    */
   public void setSolvematchParams(final ConstSolvematchParam solvematchParam) {
     pnlSolvematch.setParameters(solvematchParam);
+  }
+
+  public void setDualvolmatchParams(final DualvolmatchParam param) {
+    pnlSolvematch.setParameters(param);
   }
 
   /**
