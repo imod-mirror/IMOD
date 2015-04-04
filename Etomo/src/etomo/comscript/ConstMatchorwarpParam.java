@@ -30,24 +30,11 @@ package etomo.comscript;
  * <p> </p>
  */
 public interface ConstMatchorwarpParam {
-
-  public String getInverseFile();
-
-  public String getModelFile();
-
   public boolean isUseModelFile();
-
-  public String getPatchFile();
 
   public String getRefineLimit();
 
-  public String getSolveFile();
-
-  public String getTempDir();
-
-  public String getWarpFile();
-
-  public String getWarpLimit();
+  public String getWarpLimits();
 
   public int getXLowerExclude();
 
@@ -57,15 +44,5 @@ public interface ConstMatchorwarpParam {
 
   public int getZUpperExclude();
 
-  public String getInputFile();
-
-  public String getOutputFile();
-
-  public boolean isTrial();
-
-  public boolean isUseRefinelimit();
-
-  public String getRefineFile();
-
-  public boolean isUseLinearInterpolation();
+  public boolean isLinearInterpolation();
 }
