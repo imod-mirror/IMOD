@@ -12,13 +12,16 @@
 
 #include <math.h>
 #include "imodconfig.h"
+#include "cfsemshare.h"
 
 #ifdef F77FUNCAP
 #define amoebafwrap AMOEBA
 #define amoebainitfwrap AMOEBAINIT
+#define dualamoeba DUALAMOEBA
 #else
 #define amoebafwrap amoeba_
 #define amoebainitfwrap amoebainit_
+#define dualamoeba dualamoeba_
 #endif
 
 #define NMAX  20
@@ -239,6 +242,36 @@ void amoebaInit(float *p, float *y, int mp, int ndim, float delfac,
   }
 }
 
+/*!
+ * Runs @amoebaInit then @amoeba twice, in the recommended fashion, starting the second
+ * run from the ending point of the first.  The two [ptolFac] values for the first and
+ * second runs should be in the array [ptolFacs], and the two [ftol] factors for the runs
+ * should be in the array [ftolFacs].  The sum of iterations on the two runs is returned
+ * in [iterP].  Other variables are as described above.
+ * This routine can be used as long as [ndim] is not bigger than MAX_DUAL_AMOEBA_VAR.
+ */
+void dualAmoeba(float *y, int ndim, float delfac, float *ptolFacs, float *ftolFacs, 
+                float *a, float *da, void (*funk)(float *, float *), int *iterP)
+{
+  float pp[MAX_DUAL_AMOEBA_VAR + 1][MAX_DUAL_AMOEBA_VAR + 1], ptol[MAX_DUAL_AMOEBA_VAR];
+  int iter, i, jmin;
+  amoebaInit(&pp[0][0], y, MAX_DUAL_AMOEBA_VAR + 1, ndim, delfac, ptolFacs[0], a, da,
+             funk, ptol);
+  amoeba(&pp[0][0], y, MAX_DUAL_AMOEBA_VAR + 1, ndim, ftolFacs[0], funk, &iter, ptol,
+         &jmin);
+  for (i = 0; i < ndim; i++)
+    a[i] = pp[i][jmin];
+  *iterP = iter;
+  
+  amoebaInit(&pp[0][0], y, MAX_DUAL_AMOEBA_VAR + 1, ndim, delfac, ptolFacs[1], a, da,
+             funk, ptol);
+  amoeba(&pp[0][0], y, MAX_DUAL_AMOEBA_VAR + 1, ndim, ftolFacs[1], funk, &iter, ptol,
+         &jmin);
+  for (i = 0; i < ndim; i++)
+    a[i] = pp[i][jmin];
+  *iterP += iter;
+}
+
 void amoebafwrap(float *p, float *y, int *mp, int *ndim, float *ftol, 
                  void (*funk)(float *, float *), int *iter, float *ptol, 
                  int *ilo)
@@ -253,4 +286,10 @@ void amoebainitfwrap(float *p, float *y, int *mp, int *ndim, float *delfac,
                      void (*funk)(float *, float *), float *ptol)
 {
   amoebaInit(p, y, *mp, *ndim, *delfac, *ptolFac, a, da, funk, ptol);
+}
+
+void dualamoeba(float *y, int *ndim, float *delfac, float *ptolFacs, float *ftolFacs, 
+                float *a, float *da, void (*funk)(float *, float *), int *iterP)
+{
+  dualAmoeba(y, *ndim, *delfac, ptolFacs, ftolFacs, a, da, funk, iterP);
 }
