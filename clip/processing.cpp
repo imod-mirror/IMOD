@@ -2497,11 +2497,14 @@ int clipHistogram(MrcHeader *hin, ClipOptions *opt)
 {
 #define MAX_HIST_BINS 65536
   int bins[MAX_HIST_BINS];
+  int *comboBins;
+  float xx[11], yy[11];
   Islice *slice;
-  int numBins, i, j, ind, combine, maxBin, minBin, sum, k, iz;
-  int offset = 0;
+  int numBins, i, j, ind, combine, maxBin, minBin, sum, k, iz, peakInd, dir, diffInd;
+  int start, end, offset = 0, numFit = 7;
   int floatVals = FALSE;
-  float delta, histMin, histMax, val;
+  float delta, histMin, histMax, val, comboLeft, frac, thresh, ff, rInd, maxDiff;
+  double threshCounts, cumulCounts = 0.;
   set_input_options(opt, hin);
 
   if (opt->sano)
@@ -2577,6 +2580,22 @@ int clipHistogram(MrcHeader *hin, ClipOptions *opt)
     sliceFree(slice);
   }
 
+  // Get the threshold at a percentile if asked for
+  if (opt->thresh != IP_DEFAULT) {
+    threshCounts = ((opt->thresh * opt->nofsecs) * slice->xsize) * slice->ysize;
+    for (ind = 0; ind < numBins; ind++) {
+      cumulCounts += bins[ind];
+      if (cumulCounts >= threshCounts) {
+        frac = (cumulCounts - threshCounts) / bins[ind];
+        if (floatVals)
+          thresh = histMin + (ind - frac) * delta;
+        else
+          thresh = (ind - frac) - offset;
+        break;
+      }
+    }
+  }
+
   // Find first and last bin with counts
   minBin = -1;
   maxBin = -1;
@@ -2606,10 +2625,18 @@ int clipHistogram(MrcHeader *hin, ClipOptions *opt)
     printf("There are no values within the specified range\n");
     return 0;
   }
+  numBins = maxBin + 1 - minBin;
+  comboBins = &bins[minBin];
+  peakInd = -1;
   if (floatVals) {
+    comboLeft = histMin + minBin * delta;
     printf(" Bin midpoint   counts    (bin interval is %f)\n", delta);
-    for (ind = minBin; ind <= maxBin; ind++)
+    for (ind = minBin; ind <= maxBin; ind++) {
       printf("%13.6g %8d\n", histMin + (ind + 0.5) * delta, bins[ind]);
+      if (peakInd < 0 || bins[ind] > bins[peakInd])
+        peakInd = ind;
+    }
+    peakInd -= minBin;
   } else {
 
     // For integers, figure out combining of bins
@@ -2626,24 +2653,175 @@ int clipHistogram(MrcHeader *hin, ClipOptions *opt)
     }
 
     // Combine and print bins
+    delta = combine;
+    comboLeft = minBin - offset;
     if (combine > 1) {
       printf("Bin midpoint   counts    (bin interval is %d)\n", combine);
       numBins = ((maxBin + 1 - minBin) + combine - 1) / combine;
+      comboBins = bins;
       for (ind = 0; ind < numBins; ind++) {
         sum = 0;
         for (i = 0; i < combine; i++)
           sum += bins[B3DMIN(maxBin, minBin + ind * combine + i)];
         printf("%12.1f %8d\n", minBin + (ind + 0.5) * combine - offset, sum);
+        bins[ind] = sum;
+        if (peakInd < 0 || bins[ind] > bins[peakInd])
+          peakInd = ind;
       }
     } else {
 
       // Or just print bins
       printf(" Value   counts    (bin interval is %d)\n", combine);
-      for (ind = minBin; ind <= maxBin; ind++)
+      for (ind = minBin; ind <= maxBin; ind++) {
         printf("%6d %8d\n", ind - offset, bins[ind]);
+        if (peakInd < 0 || bins[ind] > bins[peakInd])
+          peakInd = ind;
+      }
+      peakInd -= minBin;
     }
   }
-  return 0;
+
+  if (opt->thresh != IP_DEFAULT)
+    printf("Threshold value for reaching %g of counts = %g\n", opt->thresh, thresh);
+
+  if (opt->falloffFrac != IP_DEFAULT) {
+
+    // For finding a maximal falloff point, set up the direction based on sign
+    if (opt->falloffFrac > 0) {
+      dir = 1;
+      ind = 1;
+    } else {
+      dir = -1;
+      ind = numBins - 2;
+    }
+    diffInd = -1;
+    maxDiff = 0.;
+    cumulCounts = 0;
+    threshCounts = ((fabs(opt->falloffFrac) * opt->nofsecs) * slice->xsize) *slice->ysize;
+
+    // Loop and find maximum falloff ratio past the required cumulative counts
+    // Need to use fits to measure the ratio well once the counts get low enough
+    while (ind > 0 && ind < numBins - 1) {
+      cumulCounts += comboBins[ind - dir];
+      if (comboBins[ind] > 3000 && comboBins[ind - dir] > 3000) {
+        frac = comboBins[ind - dir] / (float)comboBins[ind];
+      } else {
+        if (comboBins[ind] > 1000 && comboBins[ind - dir] > 1000)
+          numFit = 3;
+        if (comboBins[ind] > 300 && comboBins[ind - dir] > 300)
+          numFit = 5;
+        if (comboBins[ind] > 100 && comboBins[ind - dir] > 100)
+          numFit = 7;
+        if (comboBins[ind] > 30 && comboBins[ind - dir] > 30)
+          numFit = 9;
+        else
+          numFit = 11;
+        start = B3DMAX(0, ind - numFit / 2);
+        end = B3DMIN(numBins - 1, start + numFit - 1);
+        start = B3DMAX(0, end + 1 - numFit);
+        for (j = 0; j <= end - start; j++) {
+          xx[j] = j;
+          yy[j] = comboBins[j + start];
+        }
+        lsFit(xx, yy, end + 1 - start, &frac, &ff, &val);
+        frac = (frac * (ind - dir - start) + ff) / B3DMAX(1., frac * (ind - start) + ff);
+      }
+      if (comboBins[ind] > 100 && frac > maxDiff && cumulCounts > threshCounts) {
+        maxDiff = frac;
+        diffInd = ind;
+      }
+      ind += dir;
+    }
+
+    if (diffInd < 0) {
+      printf("ERROR: CLIP - No point of maximum falloff could be found past %.3f of "
+             "total cumulative counts\n", fabs(opt->falloffFrac));
+      return(-1);
+    }
+
+    printf("Maximum falloff occurs at %g\n", comboLeft + diffInd * delta);
+  }
+
+  if (opt->pctlFrac == IP_DEFAULT)
+    return 0;
+
+  // Now for looking for extra counts, need a peak not too close to end
+  if (peakInd > 0.8 * numBins || peakInd < 0.2 * numBins) {
+    printf("ERROR: CLIP - Peak is at %f, too close to end of range to analyze for "
+           "extra counts\n", comboLeft + (peakInd + 0.5) * delta);
+    return(-1);
+  }
+
+  frac = parabolicFitPosition(bins[peakInd - 1], bins[peakInd], bins[peakInd + 1]);
+  if (opt->pctlFrac > 0) {
+    dir = 1;
+    start = numBins - 1;
+  } else {
+    dir = -1;
+    start = 0;
+  }
+  diffInd = -1;
+  printf("Interpolated peak position %13.6g\n", comboLeft + (peakInd + frac + 0.5) * 
+         delta);
+
+  // For each position on the side to be computed, get the corresponding position on the
+  // opposite side and interpolate if it is in legal range, then subtract and replace
+  // Find the peak in this pass
+  ind = start;
+  printf("Bins %s peak minus bins %s peak:\n", dir > 0 ? "above" : "below", 
+         dir > 0 ?  "below" : "above");
+  while (dir * (ind - (peakInd + dir * 3)) > 0) {
+    rInd = 2 * (peakInd + frac) - ind;
+    val = 0;
+    j = (int)floor(rInd);
+    ff = rInd - j;
+    if (j >= 0 && j < numBins - 1) {
+      val = (1. - ff) * comboBins[j] + ff * comboBins[j + 1];
+      printf("%13.6g %8d\n", comboLeft + (ind + 0.5) * delta, 
+             comboBins[ind] - B3DNINT(val));
+    }
+    comboBins[ind] -= B3DNINT(val);
+    if (diffInd < 0 || comboBins[ind] > comboBins[diffInd])
+      diffInd = ind;
+    ind -= dir;
+  }
+
+  if (comboBins[diffInd] < 0) {
+    printf("ERROR: CLIP - There are fewer counts %s the peak than %s it\n",
+           dir > 0 ? "above" : "below", dir > 0 ?  "below" : "above");
+    return(-1);
+  }
+  
+  // Now get cumulative count to end until the first crossing past the peak
+  cumulCounts = 0.;
+  ind = start;
+  while (dir * (ind - (peakInd + dir * 3)) > 0) {
+    if (dir * (ind - diffInd) < 0 && comboBins[ind] < 0)
+      break;
+    cumulCounts += comboBins[ind];
+    ind -= dir;
+  }
+
+  threshCounts = fabs(opt->pctlFrac) * cumulCounts;
+  cumulCounts = 0.;
+  ind = start;
+  while (dir * (ind - (peakInd + dir * 3)) > 0) {
+    if (dir * (ind - diffInd) < 0 && comboBins[ind] < 0)
+      break;
+    cumulCounts += comboBins[ind];
+    if (cumulCounts > threshCounts) {
+      frac = (cumulCounts - threshCounts) / comboBins[ind];
+      rInd = ind + dir * frac;
+      val = comboLeft + rInd * delta;
+      printf("%.3f of the extra counts %s the peak occur %s %g\n", fabs(opt->pctlFrac),
+             dir > 0 ? "above" : "below", dir > 0 ? "above" : "below", val);
+      return 0;
+    }
+    ind -= dir;
+  }
+  printf("ERROR: CLIP - Extra counts occurred %s the peak but percentile analysis "
+         "failed\n", dir > 0 ? "above" : "below");
+  return(-1);
 }
 
 /*
