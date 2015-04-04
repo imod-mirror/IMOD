@@ -1,18 +1,18 @@
 package etomo.comscript;
 
-import java.util.ArrayList;
+import etomo.type.EtomoNumber;
+import etomo.type.ScriptParameter;
+import etomo.type.StringParameter;
+import etomo.util.DatasetFiles;
 
 /**
  * <p>Description: </p>
  * 
- * <p>Copyright: Copyright (c) 2002</p>
- * 
- * <p>Organization: Boulder Laboratory for 3D Fine Structure,
- * University of Colorado</p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
+ * <p>Copyright: Copyright 2002 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
+ *
+ * @version $Id$
  * 
  * <p> $Log$
  * <p> Revision 3.4  2010/04/28 15:59:50  sueh
@@ -47,25 +47,110 @@ import java.util.ArrayList;
  * <p> </p>
  */
 
-public class MatchorwarpParam extends ConstMatchorwarpParam implements CommandParam {
-  /* (non-Javadoc)
-   * @see etomo.comscript.CommandParam#initialize(etomo.comscript.ComScriptCommand) */
-  public void parseComScriptCommand(ComScriptCommand scriptCommand)
-      throws BadComScriptException, FortranInputSyntaxException,
-      InvalidParameterException {
+public final class MatchorwarpParam implements ConstMatchorwarpParam, CommandParam {
+  protected static final String RESIDUAL_FILE_KEY = "-residualfile";
+  protected static final String VECTOR_MODEL_KEY = "-vectormodel";
+  protected static final String RESIDUAL_FILE_DEFAULT = "patch.resid";
+  protected static final String VECTOR_MODEL_DEFAULT = DatasetFiles.PATCH_VECTOR_MODEL;
+  protected static final int CLIP_SIZE_DEFAULT = 600;
+
+  private final StringParameter sizeXYZorVolume = new StringParameter("SizeXYZorVolume");
+  private final ScriptParameter refineLimit = new ScriptParameter(
+    EtomoNumber.Type.DOUBLE, "RefineLimit");
+  protected String residualFile = null;
+  protected String vectormodel = null;
+  protected final EtomoNumber clipsize = new EtomoNumber("-clipsize");
+  protected boolean useRefinelimit = false;
+  protected String warpLimit = "";
+  protected String modelFile = "";
+  protected String patchFile = "";
+  protected String solveFile = "";
+  protected String refineFile = "";
+  protected String inverseFile = "";
+  protected String warpFile = "";
+  protected String tempDir = "";
+  protected int xLowerExclude = 0;
+  protected int xUpperExclude = 0;
+  protected int zLowerExclude = 0;
+  protected int zUpperExclude = 0;
+  protected boolean trial = false;
+  protected String inputFile = "";
+  protected String outputFile = "";
+  protected boolean useLinearInterpolation = false;
+  String structurecrit = "";
+  String extentfit = "";
+
+  public void parseComScriptCommand(final ComScriptCommand scriptCommand)
+    throws BadComScriptException, FortranInputSyntaxException, InvalidParameterException {
+    initializeDefaults();
+    if (!scriptCommand.isKeywordValuePairs()) {
+      parseComScriptCommandForBackwardsCompatibility(scriptCommand);
+    }
+    else {
+      sizeXYZorVolume.parse(scriptCommand);
+      refineLimit.parse(scriptCommand);
+    }
+  }
+
+  public void updateComScriptCommand(final ComScriptCommand scriptCommand)
+    throws BadComScriptException {
+    scriptCommand.useKeywordValue();
+    sizeXYZorVolume.updateComScript(scriptCommand);
+    refineLimit.updateComScript(scriptCommand);
+  }
+
+  /**
+   * Reset the state of the object to it initial defaults
+   */
+  public void initializeDefaults() {
+    sizeXYZorVolume.reset();
+    refineLimit.reset();
+    useRefinelimit = false;
+    residualFile = null;
+    vectormodel = null;
+    clipsize.reset();
+    warpLimit = "";
+    modelFile = "";
+    patchFile = "";
+    solveFile = "";
+    refineFile = "";
+    inverseFile = "";
+    warpFile = "";
+    tempDir = "";
+    xLowerExclude = 0;
+    xUpperExclude = 0;
+    zLowerExclude = 0;
+    zUpperExclude = 0;
+    trial = false;
+    inputFile = "";
+    outputFile = "";
+    useLinearInterpolation = false;
+    structurecrit = "";
+    extentfit = "";
+  }
+
+  /**
+   * @deprecated
+   * @param scriptCommand
+   * @throws BadComScriptException
+   * @throws FortranInputSyntaxException
+   * @throws InvalidParameterException
+   */
+  public void parseComScriptCommandForBackwardsCompatibility(
+    final ComScriptCommand scriptCommand) throws BadComScriptException,
+    FortranInputSyntaxException, InvalidParameterException {
     // TODO error checking - throw exceptions for bad syntax
     String[] cmdLineArgs = scriptCommand.getCommandLineArgs();
-    reset();
 
     for (int i = 0; i < cmdLineArgs.length - 2; i++) {
-      if (cmdLineArgs[i].startsWith("-si")) {
+      if (cmdLineArgs[i].startsWith("-siz")) {
         i++;
-        size = cmdLineArgs[i];
+        sizeXYZorVolume.set(cmdLineArgs[i]);
       }
 
       if (cmdLineArgs[i].startsWith("-refinel")) {
         i++;
-        refineLimit = Double.parseDouble(cmdLineArgs[i]);
+        refineLimit.set(cmdLineArgs[i]);
         useRefinelimit = true;
       }
       if (cmdLineArgs[i].startsWith(RESIDUAL_FILE_KEY)) {
@@ -171,131 +256,11 @@ public class MatchorwarpParam extends ConstMatchorwarpParam implements CommandPa
     }
   }
 
-  /* (non-Javadoc)
-   * @see etomo.comscript.CommandParam#updateComScript (etomo.comscript.ComScriptCommand) */
-  public void updateComScriptCommand(ComScriptCommand scriptCommand)
-      throws BadComScriptException {
-
-    // Create a new command line argument array
-    ArrayList cmdLineArgs = new ArrayList(20);
-
-    if (!size.equals("")) {
-      cmdLineArgs.add("-size");
-      cmdLineArgs.add(size);
-    }
-
-    if (useRefinelimit) {
-      cmdLineArgs.add("-refinelimit");
-      cmdLineArgs.add(String.valueOf(refineLimit));
-    }
-
-    if (residualFile != null) {
-      cmdLineArgs.add(RESIDUAL_FILE_KEY);
-      cmdLineArgs.add(residualFile);
-    }
-
-    if (vectormodel != null) {
-      cmdLineArgs.add(VECTOR_MODEL_KEY);
-      cmdLineArgs.add(vectormodel);
-    }
-
-    if (!clipsize.isNull()) {
-      cmdLineArgs.add(clipsize.getName());
-      cmdLineArgs.add(clipsize.toString());
-    }
-
-    if (!warpLimit.equals("")) {
-      cmdLineArgs.add("-warplimit");
-      cmdLineArgs.add(warpLimit);
-    }
-
-    if (!modelFile.equals("")) {
-      cmdLineArgs.add("-modelfile");
-      cmdLineArgs.add(modelFile);
-    }
-
-    if (!patchFile.equals("")) {
-      cmdLineArgs.add("-patchfile");
-      cmdLineArgs.add(patchFile);
-    }
-
-    if (!solveFile.equals("")) {
-      cmdLineArgs.add("-solvefile");
-      cmdLineArgs.add(solveFile);
-    }
-
-    if (!refineFile.equals("")) {
-      cmdLineArgs.add("-refinefile");
-      cmdLineArgs.add(refineFile);
-    }
-    if (!inverseFile.equals("")) {
-      cmdLineArgs.add("-inversefile");
-      cmdLineArgs.add(inverseFile);
-    }
-
-    if (!warpFile.equals("")) {
-      cmdLineArgs.add("-warpfile");
-      cmdLineArgs.add(warpFile);
-    }
-
-    if (!tempDir.equals("")) {
-      cmdLineArgs.add("-tempdir");
-      cmdLineArgs.add(tempDir);
-    }
-
-    if (xLowerExclude > 0) {
-      cmdLineArgs.add("-xlowerexclude");
-      cmdLineArgs.add(String.valueOf(xLowerExclude));
-    }
-
-    if (xUpperExclude > 0) {
-      cmdLineArgs.add("-xupperexclude");
-      cmdLineArgs.add(String.valueOf(xUpperExclude));
-    }
-
-    if (zLowerExclude > 0) {
-      cmdLineArgs.add("-zlowerexclude");
-      cmdLineArgs.add(String.valueOf(zLowerExclude));
-    }
-
-    if (zUpperExclude > 0) {
-      cmdLineArgs.add("-zupperexclude");
-      cmdLineArgs.add(String.valueOf(zUpperExclude));
-    }
-
-    if (useLinearInterpolation) {
-      cmdLineArgs.add("-linear");
-    }
-
-    if (trial) {
-      cmdLineArgs.add("-trial");
-    }
-
-    if (!structurecrit.equals("")) {
-      cmdLineArgs.add("-structurecrit");
-      cmdLineArgs.add(structurecrit);
-    }
-
-    if (!extentfit.equals("")) {
-      cmdLineArgs.add("-extentfit");
-      cmdLineArgs.add(extentfit);
-    }
-
-    cmdLineArgs.add(inputFile);
-    cmdLineArgs.add(outputFile);
-
-    int nArgs = cmdLineArgs.size();
-    scriptCommand.setCommandLineArgs((String[]) cmdLineArgs.toArray(new String[nArgs]));
-  }
-
-  public void initializeDefaults() {
-  }
-
   /**
    * Sets the inverseFile.
    * @param inverseFile The inverseFile to set
    */
-  public void setInverseFile(String inverseFile) {
+  public void setInverseFile(final String inverseFile) {
     this.inverseFile = inverseFile;
   }
 
@@ -303,7 +268,7 @@ public class MatchorwarpParam extends ConstMatchorwarpParam implements CommandPa
    * Sets the modelFile.
    * @param modelFile The modelFile to set
    */
-  public void setModelFile(String modelFile) {
+  public void setModelFile(final String modelFile) {
     this.modelFile = modelFile;
   }
 
@@ -312,14 +277,14 @@ public class MatchorwarpParam extends ConstMatchorwarpParam implements CommandPa
    * @param patchFile
    */
   public void setDefaultModelFile() {
-    modelFile = ConstMatchorwarpParam.getDefaultPatchRegionModel();
+    modelFile = getDefaultPatchRegionModel();
   }
 
   /**
    * Sets the patchFile.
    * @param patchFile The patchFile to set
    */
-  public void setPatchFile(String patchFile) {
+  public void setPatchFile(final String patchFile) {
     this.patchFile = patchFile;
   }
 
@@ -327,23 +292,15 @@ public class MatchorwarpParam extends ConstMatchorwarpParam implements CommandPa
    * Sets the refineLimit.
    * @param refineLimit The refineLimit to set
    */
-  public void setRefineLimit(double refineLimit) {
-    this.refineLimit = refineLimit;
-  }
-
-  /**
-   * Sets the size.
-   * @param size The size to set
-   */
-  public void setSize(String size) {
-    this.size = size;
+  public void setRefineLimit(final String input) {
+    refineLimit.set(refineLimit);
   }
 
   /**
    * Sets the solveFile.
    * @param solveFile The solveFile to set
    */
-  public void setSolveFile(String solveFile) {
+  public void setSolveFile(final String solveFile) {
     this.solveFile = solveFile;
   }
 
@@ -351,7 +308,7 @@ public class MatchorwarpParam extends ConstMatchorwarpParam implements CommandPa
    * Sets the tempDir.
    * @param tempDir The tempDir to set
    */
-  public void setTempDir(String tempDir) {
+  public void setTempDir(final String tempDir) {
     this.tempDir = tempDir;
   }
 
@@ -359,7 +316,7 @@ public class MatchorwarpParam extends ConstMatchorwarpParam implements CommandPa
    * Sets the warpFile.
    * @param warpFile The warpFile to set
    */
-  public void setWarpFile(String warpFile) {
+  public void setWarpFile(final String warpFile) {
     this.warpFile = warpFile;
   }
 
@@ -367,7 +324,7 @@ public class MatchorwarpParam extends ConstMatchorwarpParam implements CommandPa
    * Sets the warpLimit.
    * @param warpLimit The warpLimit to set
    */
-  public void setWarpLimit(String warpLimit) {
+  public void setWarpLimit(final String warpLimit) {
     this.warpLimit = warpLimit;
   }
 
@@ -375,7 +332,7 @@ public class MatchorwarpParam extends ConstMatchorwarpParam implements CommandPa
    * Sets the xLowerExclude.
    * @param xLowerExclude The xLowerExclude to set
    */
-  public void setXLowerExclude(int xLowerExclude) {
+  public void setXLowerExclude(final int xLowerExclude) {
     this.xLowerExclude = xLowerExclude;
   }
 
@@ -383,7 +340,7 @@ public class MatchorwarpParam extends ConstMatchorwarpParam implements CommandPa
    * Sets the xUpperExclude.
    * @param xUpperExclude The xUpperExclude to set
    */
-  public void setXUpperExclude(int xUpperExclude) {
+  public void setXUpperExclude(final int xUpperExclude) {
     this.xUpperExclude = xUpperExclude;
   }
 
@@ -391,7 +348,7 @@ public class MatchorwarpParam extends ConstMatchorwarpParam implements CommandPa
    * Sets the zLowerExclude.
    * @param zLowerExclude The zLowerExclude to set
    */
-  public void setZLowerExclude(int zLowerExclude) {
+  public void setZLowerExclude(final int zLowerExclude) {
     this.zLowerExclude = zLowerExclude;
   }
 
@@ -399,7 +356,7 @@ public class MatchorwarpParam extends ConstMatchorwarpParam implements CommandPa
    * Sets the zUpperExclude.
    * @param zUpperExclude The zUpperExclude to set
    */
-  public void setZUpperExclude(int zUpperExclude) {
+  public void setZUpperExclude(final int zUpperExclude) {
     this.zUpperExclude = zUpperExclude;
   }
 
@@ -407,7 +364,7 @@ public class MatchorwarpParam extends ConstMatchorwarpParam implements CommandPa
    * Sets the inputFile.
    * @param inputFile The inputFile to set
    */
-  public void setInputFile(String inputFile) {
+  public void setInputFile(final String inputFile) {
     this.inputFile = inputFile;
   }
 
@@ -415,7 +372,7 @@ public class MatchorwarpParam extends ConstMatchorwarpParam implements CommandPa
    * Sets the outputFile.
    * @param outputFile The outputFile to set
    */
-  public void setOutputFile(String outputFile) {
+  public void setOutputFile(final String outputFile) {
     this.outputFile = outputFile;
   }
 
@@ -423,7 +380,7 @@ public class MatchorwarpParam extends ConstMatchorwarpParam implements CommandPa
    * Sets the trial flag.
    * @param trial Specify the trial state
    */
-  public void setTrial(boolean trial) {
+  public void setTrial(final boolean trial) {
     this.trial = trial;
   }
 
@@ -431,7 +388,7 @@ public class MatchorwarpParam extends ConstMatchorwarpParam implements CommandPa
    * Sets the useRefinelimit.
    * @param useRefinelimit The useRefinelimit to set
    */
-  public void setUseRefinelimit(boolean useRefinelimit) {
+  public void setUseRefinelimit(final boolean useRefinelimit) {
     this.useRefinelimit = useRefinelimit;
   }
 
@@ -439,40 +396,147 @@ public class MatchorwarpParam extends ConstMatchorwarpParam implements CommandPa
    * Sets the refineFile.
    * @param refineFile The refineFile to set
    */
-  public void setRefineFile(String refineFile) {
+  public void setRefineFile(final String refineFile) {
     this.refineFile = refineFile;
   }
 
-  public void setUseLinearInterpolation(boolean useLinearInterpolation) {
+  public void setUseLinearInterpolation(final boolean useLinearInterpolation) {
     this.useLinearInterpolation = useLinearInterpolation;
   }
 
   /**
-   * Reset the state of the object to it initial defaults
+   * @return String
    */
-  private void reset() {
-    size = "";
-    useRefinelimit = false;
-    residualFile = null;
-    vectormodel = null;
-    clipsize.reset();
-    warpLimit = "";
-    modelFile = "";
-    patchFile = "";
-    solveFile = "";
-    refineFile = "";
-    inverseFile = "";
-    warpFile = "";
-    tempDir = "";
-    xLowerExclude = 0;
-    xUpperExclude = 0;
-    zLowerExclude = 0;
-    zUpperExclude = 0;
-    trial = false;
-    inputFile = "";
-    outputFile = "";
-    useLinearInterpolation = false;
-    structurecrit = "";
-    extentfit="";
+  public String getInverseFile() {
+    return inverseFile;
+  }
+
+  /**
+   * @return String
+   */
+  public String getModelFile() {
+    return modelFile;
+  }
+
+  public boolean isUseModelFile() {
+    return !ParamUtilities.isEmpty(modelFile);
+  }
+
+  public String getPatchFile() {
+    return patchFile;
+  }
+
+  public String getRefineLimit() {
+    return refineLimit.toString();
+  }
+
+  /**
+   * @return String
+   */
+  public String getSizeXYZorVolume() {
+    return sizeXYZorVolume.toString();
+  }
+
+  /**
+   * @return String
+   */
+  public String getSolveFile() {
+    return solveFile;
+  }
+
+  /**
+   * @return String
+   */
+  public String getTempDir() {
+    return tempDir;
+  }
+
+  /**
+   * @return String
+   */
+  public String getWarpFile() {
+    return warpFile;
+  }
+
+  /**
+   * @return String
+   */
+  public String getWarpLimit() {
+    return warpLimit;
+  }
+
+  /**
+   * @return int
+   */
+  public int getXLowerExclude() {
+    return xLowerExclude;
+  }
+
+  /**
+   * @return int
+   */
+  public int getXUpperExclude() {
+    return xUpperExclude;
+  }
+
+  /**
+   * @return int
+   */
+  public int getZLowerExclude() {
+    return zLowerExclude;
+  }
+
+  /**
+   * @return int
+   */
+  public int getZUpperExclude() {
+    return zUpperExclude;
+  }
+
+  /**
+   * @return String
+   */
+  public String getInputFile() {
+    return inputFile;
+  }
+
+  /**
+   * @return String
+   */
+  public String getOutputFile() {
+    return outputFile;
+  }
+
+  /**
+   * @return boolean
+   */
+  public boolean isTrial() {
+    return trial;
+  }
+
+  /**
+   * @return boolean
+   */
+  public boolean isUseRefinelimit() {
+    return useRefinelimit;
+  }
+
+  /**
+   * @return String
+   */
+  public String getRefineFile() {
+    return refineFile;
+  }
+
+  public boolean isUseLinearInterpolation() {
+    return useLinearInterpolation;
+  }
+
+  /**
+   * Return the default patch region model file name
+   * @return String
+   */
+  public static String getDefaultPatchRegionModel() {
+    return "patch_region.mod";
   }
 }
