@@ -319,7 +319,9 @@ Green value; Range is (0.0 - 1.0) Default is 1.0.
 Blue value;  Range is (0.0 - 1.0) Default is 1.0.
 .TP
 .B -t \fIvalue\fR
-Threshold value for thresholding.
+Threshold value for thresholding; or used for a histogram to report the
+threshold at which the given fraction of values occur in the cumulative
+distribution.
 .TP
 .B -D \fIfile\fR
 Name of defect list file produced by SerialEM, for correction of
@@ -371,7 +373,17 @@ option.
 Overlap values in X and Y to be used when printing coordinates corresponding
 to positions in a displayed montage.  Negative values correspond to spaces
 between the displayed pieces.
-
+.TP
+.B -E \fIvalue\fR
+.TP
+Used with histogram to find the point at which the given fraction of
+extra values on one side of the histogram peak is found.
+.B -F \fIvalue\fR
+Used with histogram to find the point at which the histogram falls off
+most rapidly past a certain point defined by the given fraction value.
+If \fIvalue\fR is positive, the fastest falling point above the given
+fraction of values is found; if it is negative, the fastest falling
+point below the absolute value of the value is found.
 .SH PROCESSES
 
 A brief description of each process is given below.
@@ -583,10 +595,39 @@ and
 .B -h
 with the lower and upper limits of the histogram to build (for floating point
 or complex values) or the limits of the range to output (for integer-valued
-data).  Only values with the given limits are counted in the histogram; values
+data).  Only values within the given limits are counted in the histogram; values
 outside the range are ignored.  With integer-valued data, the last bin may
 have fewer counts because it represents a smaller range of values than the
 rest.
+.br
+With the \fB-t\fR option, the program will compute a cumulative
+distribution and report the point by which the given fraction of values
+has occurred.
+.br
+Two specialized analyses of the histogram can be done with the \fB-F\fR
+and \fB-E\fR
+options.  Both of these options take a fractional value representing a
+percentile point in a distribution, and in each case the sign of the
+value is used to indicate the direction of the analysis.
+With \fB-F\fR, the program finds the fastest falling point in the
+histogram past the indicated fraction of values, which would typically
+be a large positive or negative fraction.  With a positive value,
+the cumulative distribution is computed from low to high and the
+fastest falloff is sought when going to higher values.  With a negative
+value, the cumulative distribution is computed in the opposite order and
+the falloff is found going to lower values.  
+.br
+With the \fBE-fR option,
+the program identifies extra counts on one side of the histogram and
+finds the point by which the given fraction of these counts has occurred.
+Specifically, it finds the interpolated position of the peak of the
+histogram, then subtracts from each bin above the peak (for a positive
+value) the interpolated value of the histogram an equal distance below
+the peak.  If a positive peak appears in this difference, a cumulative
+distribution is computed out to the point past this peak where the
+difference goes negative, and the point by which the given fraction of
+extra counts have occurred is reported.  Again, a negative fraction
+inverts the direction of analysis.
 .br
 With the \fB-s\fR option, the program will instead analyze kernel (smoothed)
 histograms of a sample of the image data (up to 1,000,000 pixels),
