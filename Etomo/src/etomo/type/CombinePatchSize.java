@@ -1,16 +1,16 @@
 package etomo.type;
 
+import etomo.comscript.SetupCombine;
+
 /**
- * <p>Description: </p>
+ * <p>Description: Combine patch sizes.  When necessary, it loads patch sizes from
+ * setupcombine output.  The CUSTOM instance does not contain a patch size.</p>
  *
- * <p>Copyright: Copyright (c) 2002</p>
+ * <p>Copyright: Copyright 2002 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * <p>Organization: Boulder Laboratory for 3D Fine Structure,
- * University of Colorado</p>
- *
- * @author $Author$
- *
- * @version $Revision$
+ * @version $Id$
  *
  * <p> $Log$
  * <p> Revision 3.1  2006/05/12 00:08:45  sueh
@@ -30,55 +30,287 @@ package etomo.type;
  * <p> </p>
  */
 
-public final class CombinePatchSize {
-  public static final String rcsid = "$Id$";
+public final class CombinePatchSize implements EnumeratedType {
+  // Fixed patch sizes
+  public static final CombinePatchSize SMALL = new CombinePatchSize("Small", "S");
+  public static final CombinePatchSize MEDIUM = new CombinePatchSize("Medium", "M");
+  public static final CombinePatchSize LARGE = new CombinePatchSize("Large", "L");
+  public static final CombinePatchSize EXTRA_LARGE = new CombinePatchSize("Extra large",
+    "E");
+  // Custom patch
+  public static final CombinePatchSize CUSTOM = new CombinePatchSize("Custom");
 
-  private final String name;
+  private static final int VALUE_INDEX = 0;
+  private static final int XYZ_INDEX = 1;
+  private static final int EMPTY_ELEMENT = -1;
+  public static final int X_INDEX = 0;
+  public static final int Y_INDEX = 1;
+  public static final int Z_INDEX = 2;
 
-  private CombinePatchSize(String name) {
-    this.name = name;
+  private static CombinePatchSize PATCH_SIZE_ARRAY[] = null;
+
+  private final String label;
+  private final String value;
+  private final int[] xyz = new int[] { EMPTY_ELEMENT, EMPTY_ELEMENT, EMPTY_ELEMENT };
+
+  private CombinePatchSize(final String label, final String value) {
+    this.label = label;
+    this.value = value;
   }
 
-  public static final CombinePatchSize SMALL = new CombinePatchSize("Small");
-  public static final CombinePatchSize MEDIUM = new CombinePatchSize("Medium");
-  public static final CombinePatchSize LARGE = new CombinePatchSize("Large");
-
-  /**
-   * Returns a string representation of the object.
-   */
-  public String toString() {
-    return name;
+  private CombinePatchSize(final String label) {
+    this.label = label;
+    value = label;
   }
 
   /**
-   * Takes a string representation of an CombinePatchSize type and returns the
-   * correct static object.  The string is case insensitive.  Null is returned if
-   * the string is not one of the possibilities from toString().
+   * Returns null if input is empty.  Returns the instance described by input, if input is
+   * a character string.  Returns the instance that matches input, if input is a standard
+   * xyz patch size.  Otherwise returns the CUSTOM instance.
+   * @param input
+   * @see setupcombine
+   * @return
    */
-  public static CombinePatchSize fromString(String name) {
-    if (name.compareToIgnoreCase(SMALL.toString()) == 0) {
+  public static CombinePatchSize getInstance(String input) {
+    if (input == null) {
+      return null;
+    }
+    input = input.trim();
+    if (input.equals("")) {
+      return null;
+    }
+    if (input.equalsIgnoreCase(SMALL.value) || input.equalsIgnoreCase(SMALL.label)) {
       return SMALL;
     }
-    if (name.compareToIgnoreCase(MEDIUM.toString()) == 0) {
+    if (input.equalsIgnoreCase(MEDIUM.value) || input.equalsIgnoreCase(MEDIUM.label)) {
       return MEDIUM;
     }
-    if (name.compareToIgnoreCase(LARGE.toString()) == 0) {
+    if (input.equalsIgnoreCase(LARGE.value) || input.equalsIgnoreCase(LARGE.label)) {
       return LARGE;
     }
+    if (input.equalsIgnoreCase(EXTRA_LARGE.value)
+      || input.equalsIgnoreCase(EXTRA_LARGE.label)) {
+      return EXTRA_LARGE;
+    }
+    if (input.equalsIgnoreCase(CUSTOM.value) || input.equalsIgnoreCase(CUSTOM.label)
+      || input.indexOf(",") == -1) {
+      return CUSTOM;
+    }
+    // Should be x,y,z. See if it matches one of the fixed instances.
+    String[] xyzArray = input.split(",");
+    if (xyzArray == null) {
+      return CUSTOM;
+    }
+    loadXYZ();
+    if (PATCH_SIZE_ARRAY != null) {
+      for (int i = 0; i < PATCH_SIZE_ARRAY.length; i++) {
+        if (PATCH_SIZE_ARRAY[i].equals(xyzArray)) {
+          return PATCH_SIZE_ARRAY[i];
+        }
+      }
+    }
+    return CUSTOM;
+  }
 
+  public static CombinePatchSize getInstance(final String[] xyz) {
+    if (xyz == null) {
+      return null;
+    }
+    // See if xyz match one of the fixed instances.
+    loadXYZ();
+    if (PATCH_SIZE_ARRAY != null) {
+      for (int i = 0; i < PATCH_SIZE_ARRAY.length; i++) {
+        if (PATCH_SIZE_ARRAY[i].equals(xyz)) {
+          return PATCH_SIZE_ARRAY[i];
+        }
+      }
+    }
+    return CUSTOM;
+  }
+
+  public static CombinePatchSize getInstance(final int[] xyz) {
+    if (xyz == null) {
+      return null;
+    }
+    // See if xyz match one of the fixed instances.
+    loadXYZ();
+    if (PATCH_SIZE_ARRAY != null) {
+      for (int i = 0; i < PATCH_SIZE_ARRAY.length; i++) {
+        if (PATCH_SIZE_ARRAY[i].equals(xyz)) {
+          return PATCH_SIZE_ARRAY[i];
+        }
+      }
+    }
+    return CUSTOM;
+  }
+
+  /**
+   * Does not return the CUSTOM instance.  Returns the instance described by input.
+   * Otherwise returns null.
+   * @param input - character string
+   * @see setupcombine
+   * @return
+   */
+  private static CombinePatchSize getFixedInstance(final String input) {
+    if (input == null) {
+      return null;
+    }
+    if (input.equalsIgnoreCase(SMALL.value) || input.equalsIgnoreCase(SMALL.label)) {
+      return SMALL;
+    }
+    if (input.equalsIgnoreCase(MEDIUM.value) || input.equalsIgnoreCase(MEDIUM.label)) {
+      return MEDIUM;
+    }
+    if (input.equalsIgnoreCase(LARGE.value) || input.equalsIgnoreCase(LARGE.label)) {
+      return LARGE;
+    }
+    if (input.equalsIgnoreCase(EXTRA_LARGE.value)
+      || input.equalsIgnoreCase(EXTRA_LARGE.label)) {
+      return EXTRA_LARGE;
+    }
     return null;
+  }
+
+  /**
+   * Returns true if xyzArray equals xyz.  Empty elements are equal.
+   * @param xyzArray
+   * @return
+   */
+  public boolean equals(final String[] xyzArray) {
+    loadXYZ();
+    for (int i = 0; i < xyz.length; i++) {
+      // Empty elements are equal
+      if ((xyzArray == null || xyzArray.length <= i) || xyzArray[i] == null) {
+        if (xyz[i] != EMPTY_ELEMENT) {
+          return false;
+        }
+      }
+      else {
+        try {
+          if ((xyz[i] != EMPTY_ELEMENT || !xyzArray[i].matches("\\s*"))
+            && xyz[i] != Integer.valueOf(xyzArray[i])) {
+            return false;
+          }
+        }
+        catch (NumberFormatException e) {
+          e.printStackTrace();
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
+  /**
+   * Returns true if xyzArray equals xyz.  Empty elements are equal.
+   * @param xyzArray
+   * @return
+   */
+  public boolean equals(final int[] xyzArray) {
+    loadXYZ();
+    for (int i = 0; i < xyz.length; i++) {
+      // Empty elements are equal
+      if ((xyzArray == null || xyzArray.length <= i)) {
+        if (xyz[i] == EMPTY_ELEMENT) {
+          return false;
+        }
+      }
+      else {
+        try {
+          if (xyz[i] != Integer.valueOf(xyzArray[i])) {
+            return false;
+          }
+        }
+        catch (NumberFormatException e) {
+          e.printStackTrace();
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
+  public int getXYZLen() {
+    return xyz.length;
+  }
+
+  public int getXYZ(final int index) {
+    loadXYZ();
+    return xyz[index];
+  }
+
+  /**
+   * Creates and loads PATCH_SIZE_ARRAY, and sets xyz for each fixed instance.  For
+   * missing xyz elements, preserves -1.
+   */
+  private static void loadXYZ() {
+    // Load PATCH_SIZE_ARRAY once.
+    if (PATCH_SIZE_ARRAY != null) {
+      return;
+    }
+    synchronized (SMALL) {
+      if (PATCH_SIZE_ARRAY != null) {
+        return;
+      }
+      // Run setupcombine -InfoOnPatchSizes
+      String[] output = SetupCombine.getInfoOnPatchSizes();
+      if (output == null) {
+        return;
+      }
+      // Get the instances and the patch sizes and place them in PATCH_SIZE_ARRAY
+      PATCH_SIZE_ARRAY = new CombinePatchSize[output.length];
+      for (int i = 0; i < output.length; i++) {
+        if (output[i] == null) {
+          continue;
+        }
+        // Example of output:
+        // S: 64 64 32
+        String[] array = output[i].split("\\s*:\\s*");
+        if (array == null || array.length <= VALUE_INDEX) {
+          continue;
+        }
+        PATCH_SIZE_ARRAY[i] = getFixedInstance(array[VALUE_INDEX]);
+        if (PATCH_SIZE_ARRAY[i] == null || array.length <= XYZ_INDEX) {
+          continue;
+        }
+        // set the xyz member variable
+        String[] xyzArray = array[XYZ_INDEX].split("\\s+");
+        if (xyzArray == null) {
+          continue;
+        }
+        int len = Math.min(xyzArray.length, SMALL.xyz.length);
+        for (int j = 0; j < len; j++) {
+          // Preserve -1 for missing xyz values
+          if (xyzArray[j] != null) {
+            try {
+              PATCH_SIZE_ARRAY[i].xyz[j] = Integer.valueOf(xyzArray[j]);
+            }
+            catch (NumberFormatException e) {
+              e.printStackTrace();
+            }
+          }
+        }
+      }
+    }
   }
 
   public String getOption() {
-    if (this == SMALL) {
-      return "S";
-    }
-    if (this == MEDIUM) {
-      return "M";
-    }
-    if (this == LARGE) {
-      return "L";
-    }
+    return value;
+  }
+
+  public boolean isDefault() {
+    return this == MEDIUM;
+  }
+
+  public ConstEtomoNumber getValue() {
     return null;
+  }
+
+  public String toString() {
+    return getOption();
+  }
+
+  public String getLabel() {
+    return label;
   }
 }
