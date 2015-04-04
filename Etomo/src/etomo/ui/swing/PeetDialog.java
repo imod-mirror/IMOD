@@ -1,5 +1,6 @@
 package etomo.ui.swing;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.GridLayout;
@@ -1036,6 +1037,9 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     JPanel pnlReferenceAndMissingWedgeCompensation = new JPanel();
     JPanel pnlInitMotlAndYAxisType = new JPanel();
     JPanel pnlInitMotlX = new JPanel();
+    if (Utilities.APRIL_FOOLS) {
+      pnlInitMotlX.setBackground(new Color(255, 243, 149));
+    }
     // tab panel
     pnlSetup.setBoxLayout(BoxLayout.Y_AXIS);
     pnlSetup.setBorder(BorderFactory.createEtchedBorder());

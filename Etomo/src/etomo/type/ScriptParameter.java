@@ -8,15 +8,11 @@ import etomo.comscript.InvalidParameterException;
 /**
  * <p>Description: </p>
  * 
- * <p>Copyright: Copyright (c) 2005</p>
+ * <p>Copyright: Copyright 2005 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- *<p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
- * University of Colorado</p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
+ * @version $Id$
  * 
  * <p> $Log$
  * <p> Revision 1.14  2009/09/22 21:02:35  sueh
@@ -90,10 +86,8 @@ import etomo.comscript.InvalidParameterException;
  * <p> </p>
  */
 public class ScriptParameter extends EtomoNumber {
-  public static final String rcsid = "$Id$";
-
-  protected String shortName = null;
-  //An inactive value is not placed in the comscript
+  String shortName = null;
+  // An inactive value is not placed in the comscript
   private EtomoBoolean2 active = null;
 
   /**
@@ -126,7 +120,7 @@ public class ScriptParameter extends EtomoNumber {
     super(that);
   }
 
-  protected String paramString() {
+  String paramString() {
     return super.paramString() + ",\nactive=" + active;
   }
 
@@ -162,10 +156,22 @@ public class ScriptParameter extends EtomoNumber {
    * @param includeWhenDefaulted
    * @return
    */
-  public void updateComScript(ComScriptCommand scriptCommand, boolean includeWhenDefaulted) {
+  public void
+    updateComScript(ComScriptCommand scriptCommand, boolean includeWhenDefaulted) {
     if (isActive()
-        && ((includeWhenDefaulted && !isNull()) || (!includeWhenDefaulted && isNotNullAndNotDefault()))) {
-      scriptCommand.setValue(name, toString(getValue()));
+      && ((includeWhenDefaulted && !isNull()) || (!includeWhenDefaulted && isNotNullAndNotDefault()))) {
+      if (type != Type.BOOLEAN || isDisplayAsNumber()) {
+        scriptCommand.setValue(name, toString(getValue()));
+      }
+      else if (is()) {
+        // When not displayAsNumber, boolean parameters are included without a value when
+        // they are true
+        scriptCommand.setValue(name, "");
+      }
+      else {
+        // When not displayAsNumber, boolean parameters are removed when they are false
+        scriptCommand.deleteKey(name);
+      }
     }
     else {
       scriptCommand.deleteKey(name);
@@ -185,7 +191,7 @@ public class ScriptParameter extends EtomoNumber {
   }
 
   public ConstEtomoNumber parse(ComScriptCommand scriptCommand)
-      throws InvalidParameterException {
+    throws InvalidParameterException {
     return parse(scriptCommand, false);
   }
 
@@ -197,15 +203,17 @@ public class ScriptParameter extends EtomoNumber {
    * @throws InvalidParameterException
    */
   public ConstEtomoNumber parse(ComScriptCommand scriptCommand, boolean setActive)
-      throws InvalidParameterException {
+    throws InvalidParameterException {
     boolean found = false;
-    if (isDebug()) {
-      System.out.println("name=" + name + ",scriptCommand.hasKeyword(name)="
-          + scriptCommand.hasKeyword(name));
-    }
     if (!scriptCommand.hasKeyword(name)) {
       if (shortName == null || !scriptCommand.hasKeyword(shortName)) {
-        reset();
+        if (type == Type.BOOLEAN && !isDisplayAsNumber()) {
+          // Missing boolean parameters equal false unless the boolean is displayed as a number
+          set(0);
+        }
+        else {
+          reset();
+        }
       }
       else {
         found = true;
@@ -214,14 +222,12 @@ public class ScriptParameter extends EtomoNumber {
     }
     else {
       found = true;
-      if (isDebug()) {
-        System.out
-            .println("scriptCommand.getValue(name)=" + scriptCommand.getValue(name));
-      }
       set(scriptCommand.getValue(name));
-      if (isDebug()) {
-        System.out.println("toString()=" + toString());
-      }
+    }
+    if (found && type == Type.BOOLEAN && !isDisplayAsNumber() && isNull()) {
+      // Boolean parameters do not have a value unless the boolean is displayed as a
+      // number
+      set(1);
     }
     if (setActive) {
       setActive(found);
