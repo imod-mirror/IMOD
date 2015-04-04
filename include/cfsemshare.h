@@ -28,6 +28,7 @@ extern "C" {
 #endif
 
 #define MAX_MBS_SCALES 16
+#define MAX_DUAL_AMOEBA_VAR  16
 
   /* parselist.c  - for parsing a list of integers */
   int *parselist (const char *line, int *nlist);
@@ -39,6 +40,8 @@ extern "C" {
   void amoebaInit(float *p, float *y, int mp, int ndim, float delfac, 
                   float ptolFac, float *a, float *da, 
                   void (*funk)(float *, float *), float *ptol);
+  void dualAmoeba(float *y, int ndim, float delfac, float *ptolFacs, float *ftolFacs, 
+                  float *a, float *da, void (*funk)(float *, float *), int *iterP);
 
   /* samplemeansd.c - for computing mean and SD quickly by sampling */
   int sampleMeanSD(unsigned char **image, int type, int nx, int ny,
