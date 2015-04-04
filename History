@@ -1,5 +1,13 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4/3/15: Clip histogram has a new option to report a percentile point and
+options for some more specialized analysis.
+
+4/3/15: Made Ccderaser use the median instead of mean of surrounding points as
+the value to taper to inside a contour.
+
+4/3/15: Improved GPU-related debug output and error reporting from Tilt.
+
 4/1/15: IMOD_4-8-29
 3/31/15: Fixed clip average and other operations broken by 2/14/15 changes.
 

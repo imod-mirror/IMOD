@@ -239,6 +239,7 @@ EXPORTS
 	dataSizeForMode
 	lsFitPred
 	DFVALUE
+	DUALAMOEBA
 	PIPPRINTENTRIES
 	writeBytesSigned
 	TAPEROUTPAD
@@ -440,6 +441,7 @@ EXPORTS
 	MONTXCINDSANDCTF
 	PIPEXITONERRORFW
 	MONTSDCALC
+	dualAmoeba
 	setPeakFindLimits
 	sliceFree
 	lsFit
