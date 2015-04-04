@@ -84,6 +84,8 @@ public final class Colors {
   private static Color backgroundB = null;
   private static Color backgroundJoin = null;
   private static Color backgroundParallel = null;
+  private static Color backgroundBatchruntomo = null;
+  private static Color backgroundSerialSections = null;
   private static Color backgroundTools = null;
   private static ColorUIResource cellNotEditableBackground = null;
 
@@ -129,10 +131,34 @@ public final class Colors {
         backgroundParallel = new Color(186, 224, 173);// lime
       }
       else {
-        backgroundParallel = new Color(254, 253, 160);
+        backgroundParallel = new Color(255, 253, 216);
       }
     }
     return backgroundParallel;
+  }
+
+  static Color getBackgroundBatchruntomo() {
+    if (backgroundBatchruntomo == null) {
+      if (!Utilities.APRIL_FOOLS) {
+        backgroundBatchruntomo = new Color(194, 208, 251);
+      }
+      else {
+        backgroundBatchruntomo = new Color(255, 239, 192);
+      }
+    }
+    return backgroundBatchruntomo;
+  }
+
+  static Color getBackgroundSerialSections() {
+    if (backgroundSerialSections == null) {
+      if (!Utilities.APRIL_FOOLS) {
+        backgroundSerialSections = new Color(218, 232, 250);
+      }
+      else {
+        backgroundSerialSections = new Color(194, 247, 159);
+      }
+    }
+    return backgroundSerialSections;
   }
 
   static Color getBackgroundTools() {
