@@ -627,7 +627,7 @@ program ccderaser
           numTapering = numTapering + 1
           call fillBoundaryArrays(iobj, xbound, ybound, xmin, xmax, yMin, ymax)
           call taperInsideCont(array, nx, ny, xbound, ybound, npt_in_obj(iobj), &
-              xmin, xmax, yMin, ymax, ierr)
+              xmin, xmax, yMin, ymax, 5 * nint(xmax + ymax + 2 - xmin - ymin), ierr)
           if (ierr .ne. 0) then
             call objToCont(iobj, obj_color, imodObj, imodCont)
             write(*,107) imodObj, imodCont, 'does not have enough adjacent points'
@@ -1965,11 +1965,11 @@ end function contourArea
 ! inside from a border value to the mean value.
 !
 subroutine taperInsideCont(array, nx, ny, xbound, ybound, numInObj, xmin, xmax, &
-    yMin, ymax, iferr)
+    yMin, ymax, maxAdjVal, iferr)
   implicit none
   integer*4 nx, ny, numInObj, iferr
   real*4 array(nx, ny), xbound(*), ybound(*), xmin, xmax, yMin, ymax
-  real*4 adjValues(5 * (xmax + ymax + 2 - xmin - ymin))
+  real*4 adjValues(maxAdjVal)
   real*4 sum, segmentX, segmentY, vectorX, vectorY, xLine, yline, taper, dist, distMin
   real*4 t, tmin, dx, dy, fill, xx, yy, frac, taperSq, vecLen
   integer*4 numSum, ip, ipNext, ix, iy, ixf, iyf, numVecPts, ixStart, ixEnd
@@ -1978,7 +1978,6 @@ subroutine taperInsideCont(array, nx, ny, xbound, ybound, numInObj, xmin, xmax, 
   taper = 8.
   taperSq = taper**2
   iferr = 1
-  maxAdjVal = 5 * (xmax + ymax + 2 - xmin - ymin)
   !
   ! First we need the mean outside the periphery
   sum = 0.
