@@ -1140,7 +1140,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
    * @param matchorwarpParam
    */
   public void setMatchorwarpParams(ConstMatchorwarpParam matchorwarpParam) {
-    ltfWarpLimit.setText(matchorwarpParam.getWarpLimit());
+    ltfWarpLimit.setText(matchorwarpParam.getWarpLimits());
     ltfRefineLimit.setText(matchorwarpParam.getRefineLimit());
 
     if (matchorwarpParam.getXLowerExclude() > 0) {
@@ -1158,7 +1158,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
       ltfZUpperExclude.setText(matchorwarpParam.getZUpperExclude());
     }
 
-    cbUseLinearInterpolation.setSelected(matchorwarpParam.isUseLinearInterpolation());
+    cbUseLinearInterpolation.setSelected(matchorwarpParam.isLinearInterpolation());
 
     // when loading into the dialog, matchorwarp takes precidence over patchcorr
     cbUsePatchRegionModel.setSelected(matchorwarpParam.isUseModelFile());
@@ -1185,7 +1185,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
         }
 
         badParameter = ltfWarpLimit.getLabel();
-        matchorwarpParam.setWarpLimit(ltfWarpLimit.getText(doValidation));
+        matchorwarpParam.setWarpLimits(ltfWarpLimit.getText(doValidation));
 
         badParameter = ltfRefineLimit.getLabel();
         matchorwarpParam.setRefineLimit(ltfRefineLimit.getText(doValidation));
@@ -1193,7 +1193,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
         badParameter = ltfXLowerExclude.getLabel();
         String text = ltfXLowerExclude.getText(doValidation);
         if (text.matches("\\S+")) {
-          matchorwarpParam.setXLowerExclude(Integer.parseInt(text));
+          matchorwarpParam.setXLowerExclude(text);
         }
         else {
           matchorwarpParam.setXLowerExclude(0);
@@ -1202,7 +1202,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
         badParameter = ltfXUpperExclude.getLabel();
         text = ltfXUpperExclude.getText(doValidation);
         if (text.matches("\\S+")) {
-          matchorwarpParam.setXUpperExclude(Integer.parseInt(text));
+          matchorwarpParam.setXUpperExclude(text);
         }
         else {
           matchorwarpParam.setXUpperExclude(0);
@@ -1211,7 +1211,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
         badParameter = ltfZLowerExclude.getLabel();
         text = ltfZLowerExclude.getText(doValidation);
         if (text.matches("\\S+")) {
-          matchorwarpParam.setZLowerExclude(Integer.parseInt(text));
+          matchorwarpParam.setZLowerExclude(text);
         }
         else {
           matchorwarpParam.setZLowerExclude(0);
@@ -1220,13 +1220,13 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
         badParameter = ltfZUpperExclude.getLabel();
         text = ltfZUpperExclude.getText(doValidation);
         if (text.matches("\\S+")) {
-          matchorwarpParam.setZUpperExclude(Integer.parseInt(text));
+          matchorwarpParam.setZUpperExclude(text);
         }
         else {
           matchorwarpParam.setZUpperExclude(0);
         }
         badParameter = cbUseLinearInterpolation.getText();
-        matchorwarpParam.setUseLinearInterpolation(cbUseLinearInterpolation.isSelected());
+        matchorwarpParam.setLinearInterpolation(cbUseLinearInterpolation.isSelected());
       }
       catch (NumberFormatException except) {
         String message = badParameter + " " + except.getMessage();
@@ -1238,16 +1238,6 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
       return false;
     }
   }
-
-  /**
-   * Get the combine parameters from the UI
-   * @param combineParams
-   */
-  /*
-   * public void getCombineParameters(CombineParams combineParams) { if
-   * (cbUsePatchRegionModel.isSelected()) { combineParams.setDefaultPatchRegionModel(); }
-   * else { combineParams.setPatchRegionModel(""); } }
-   */
 
   /**
    * Right mouse button context menu
