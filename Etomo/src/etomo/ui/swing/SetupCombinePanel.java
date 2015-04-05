@@ -539,7 +539,7 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
     pnlSolvematch =
       SolvematchPanel.getInstance(tomogramCombinationDialog,
         TomogramCombinationDialog.lblSetup, applicationManager,
-        ReconScreenState.COMBINE_SETUP_SOLVEMATCH_HEADER_GROUP, dialogType, null);
+        ReconScreenState.COMBINE_SETUP_SOLVEMATCH_HEADER_GROUP, dialogType, false, null);
     phPatchAndMinMax =
       PanelHeader
         .getInstance("Patch Parameters for Refining Alignment", this, dialogType);
@@ -598,6 +598,7 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
     JPanel pnlPatchRegionModel = new JPanel();
     JPanel pnlButton = new JPanel();
     JPanel pnlAutoPatchFinalSizeCheckBox = new JPanel();
+    JPanel pnlInitialMatching = new JPanel();
     // Root
     pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.Y_AXIS));
     pnlRoot.setBorder(new BeveledBorder("Combination Parameters").getBorder());
@@ -736,7 +737,6 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
     UIUtilities.setButtonSizeAll(pnlButton, UIParameters.getInstance()
       .getButtonDimension());
     // update display
-    pnlSolvematch.updateUseFiducialModel();
     updatePatchRegionModel();
   }
 
@@ -802,6 +802,7 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
     boolean autoPatchFinalSize = cbAutoPatchFinalSize.isSelected();
     pspAutoPatchFinalSize.setEnabled(autoPatchFinalSize);
     ltfExtraResidualTargets.setEnabled(autoPatchFinalSize);
+    pnlSolvematch.updateDisplay();
   }
 
   void setParameters(final ConstMetaData metaData) {
@@ -872,27 +873,34 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
   }
 
   void getParameters(final ReconScreenState screenState) {
+    pnlSolvematch.getParameters(screenState);
     toSelectorHeader.getState(screenState.getCombineSetupToSelectorHeaderState());
-    pnlSolvematch.getHeader()
-      .getState(screenState.getCombineSetupSolvematchHeaderState());
     phPatchAndMinMax.getState(screenState.getCombineSetupPatchcorrHeaderState());
     volcombineHeader.getState(screenState.getCombineSetupVolcombineHeaderState());
     tempDirectoryHeader.getState(screenState.getCombineSetupTempDirHeaderState());
   }
 
   void setParameters(final ReconScreenState screenState) {
+    pnlSolvematch.setParameters(screenState);
     toSelectorHeader.setState(screenState.getCombineSetupToSelectorHeaderState());
-    pnlSolvematch.getHeader()
-      .setState(screenState.getCombineSetupSolvematchHeaderState());
     phPatchAndMinMax.setState(screenState.getCombineSetupPatchcorrHeaderState());
     volcombineHeader.setState(screenState.getCombineSetupVolcombineHeaderState());
     tempDirectoryHeader.setState(screenState.getCombineSetupTempDirHeaderState());
     btnCreate.setButtonState(screenState.getButtonState(btnCreate.getButtonStateKey()));
     btnCombine.setButtonState(screenState.getButtonState(btnCombine.getButtonStateKey()));
+
   }
 
   public boolean isEnabled() {
     return true;
+  }
+  
+  public boolean isInitialVolumeMatching() {
+    return pnlSolvematch.isInitialVolumeMatching();
+  }
+  
+  public void setInitialVolumeMatching(final boolean input) {
+    pnlSolvematch.setInitialVolumeMatching(input);
   }
 
   public MatchMode getMatchMode() {
@@ -972,7 +980,6 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
       ltfExtraResidualTargets.setText(combineParams.getExtraResidualTargets());
     }
     // update
-    pnlSolvematch.updateUseFiducialModel();
     updatePatchRegionModel();
   }
 
@@ -1199,7 +1206,8 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
     else if (command.equals(btnCombine.getActionCommand())) {
       applicationManager.combine(btnCombine, null, deferred3dmodButton,
         run3dmodMenuOptions, dialogType,
-        tomogramCombinationDialog.getRunProcessingMethod());
+        tomogramCombinationDialog.getRunProcessingMethod(),
+        pnlSolvematch.isInitialVolumeMatching());
     }
     else if (command.equals(cbParallelProcess.getActionCommand())) {
       sendProcessingMethodMessage();

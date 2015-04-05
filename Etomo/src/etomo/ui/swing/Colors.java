@@ -4,18 +4,16 @@ import java.awt.Color;
 
 import javax.swing.plaf.ColorUIResource;
 
+import etomo.util.Utilities;
+
 /**
  * <p>Description: </p>
  * 
- * <p>Copyright: Copyright (c) 2005</p>
+ * <p>Copyright: Copyright 2005 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- *<p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
- * University of Colorado</p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
+ * @version $Id$
  * 
  * <p> $Log$
  * <p> Revision 1.1  2010/11/13 16:07:34  sueh
@@ -58,70 +56,119 @@ import javax.swing.plaf.ColorUIResource;
  * <p> </p>
  */
 public final class Colors {
-  public static final String rcsid = "$Id$";
-
   static final ColorUIResource CELL_FOREGROUND = new ColorUIResource(0, 0, 0);
   static final ColorUIResource CELL_NOT_IN_USE_FOREGROUND = new ColorUIResource(102, 102,
-      102);
+    102);
   static final ColorUIResource CELL_ERROR_BACKGROUND = new ColorUIResource(255, 204, 204);
   static final ColorUIResource CELL_ERROR_BACKGROUND_NOT_EDITABLE = new ColorUIResource(
-      230, 184, 184);// 223,179,179?
+    230, 184, 184);// 223,179,179?
   static final ColorUIResource BACKGROUND = new ColorUIResource(255, 255, 255);
   static final ColorUIResource WARNING_BACKGROUND = new ColorUIResource(255, 255, 204);
   static final ColorUIResource WARNING_BACKGROUND_NOT_EDITABLE = new ColorUIResource(230,
-      230, 184);
+    230, 184);
   static final ColorUIResource HIGHLIGHT_BACKGROUND = new ColorUIResource(204, 255, 255);
   static final ColorUIResource HIGHLIGHT_BACKGROUND_NOT_EDITABLE = new ColorUIResource(
-      184, 230, 230);
+    184, 230, 230);
   static final ColorUIResource FOREGROUND = new ColorUIResource(0, 0, 0);
 
   private static final ColorUIResource BACKGROUND_GREYOUT = new ColorUIResource(25, 25,
-      25);
+    25);
   static final ColorUIResource CELL_DISABLED_FOREGROUND = new ColorUIResource(120, 120,
-      120);
+    120);
   static final Color AVAILABLE_BACKGROUND = new ColorUIResource(224, 240, 255);
   static final Color AVAILABLE_BORDER = new ColorUIResource(153, 204, 255);
-  static final Color FIELD_HIGHLIGHT = new Color(0,0,185);
+  static final Color FIELD_HIGHLIGHT = new Color(0, 0, 185);
   private static final int BACKGROUND_ADJUSTMENT = 20;
 
   private static Color backgroundA = null;
   private static Color backgroundB = null;
   private static Color backgroundJoin = null;
   private static Color backgroundParallel = null;
+  private static Color backgroundBatchruntomo = null;
+  private static Color backgroundSerialSections = null;
   private static Color backgroundTools = null;
   private static ColorUIResource cellNotEditableBackground = null;
 
   static Color getBackgroundA() {
     if (backgroundA == null) {
-      backgroundA = new Color(173, 199, 224);// saphire
+      if (!Utilities.APRIL_FOOLS) {
+        backgroundA = new Color(173, 199, 224);// saphire
+      }
+      else {
+        backgroundA = new Color(163, 214, 247);
+      }
     }
     return backgroundA;
   }
 
   static Color getBackgroundB() {
     if (backgroundB == null) {
-      backgroundB = new Color(173, 224, 199);// jade
+      if (!Utilities.APRIL_FOOLS) {
+        backgroundB = new Color(173, 224, 199);// jade
+      }
+      else {
+        backgroundB = new Color(255, 216, 141);
+      }
     }
     return backgroundB;
   }
 
   static Color getBackgroundJoin() {
     if (backgroundJoin == null) {
-      backgroundJoin = new Color(199, 173, 224);// violet
+      if (!Utilities.APRIL_FOOLS) {
+        backgroundJoin = new Color(199, 173, 224);// violet
+      }
+      else {
+        backgroundJoin = new Color(162, 167, 255);
+      }
     }
     return backgroundJoin;
   }
 
   static Color getBackgroundParallel() {
     if (backgroundParallel == null) {
-      backgroundParallel = new Color(186, 224, 173);// lime
+      if (!Utilities.APRIL_FOOLS) {
+        backgroundParallel = new Color(186, 224, 173);// lime
+      }
+      else {
+        backgroundParallel = new Color(255, 253, 216);
+      }
     }
     return backgroundParallel;
   }
 
+  static Color getBackgroundBatchruntomo() {
+    if (backgroundBatchruntomo == null) {
+      if (!Utilities.APRIL_FOOLS) {
+        backgroundBatchruntomo = new Color(194, 208, 251);
+      }
+      else {
+        backgroundBatchruntomo = new Color(255, 239, 192);
+      }
+    }
+    return backgroundBatchruntomo;
+  }
+
+  static Color getBackgroundSerialSections() {
+    if (backgroundSerialSections == null) {
+      if (!Utilities.APRIL_FOOLS) {
+        backgroundSerialSections = new Color(218, 232, 250);
+      }
+      else {
+        backgroundSerialSections = new Color(194, 247, 159);
+      }
+    }
+    return backgroundSerialSections;
+  }
+
   static Color getBackgroundTools() {
     if (backgroundTools == null) {
-      backgroundTools = new Color(173, 212, 224);// azure
+      if (!Utilities.APRIL_FOOLS) {
+        backgroundTools = new Color(173, 212, 224);// azure
+      }
+      else {
+        backgroundTools = new Color(52, 130, 218);
+      }
     }
     return backgroundTools;
   }
@@ -135,12 +182,12 @@ public final class Colors {
 
   static ColorUIResource subtractColor(Color color, Color subtractColor) {
     return new ColorUIResource(color.getRed() - subtractColor.getRed(), color.getGreen()
-        - subtractColor.getGreen(), color.getBlue() - subtractColor.getBlue());
+      - subtractColor.getGreen(), color.getBlue() - subtractColor.getBlue());
   }
 
   private static ColorUIResource addColor(Color color, Color subtractColor) {
     return new ColorUIResource(color.getRed() + subtractColor.getRed(), color.getGreen()
-        + subtractColor.getGreen(), color.getBlue() + subtractColor.getBlue());
+      + subtractColor.getGreen(), color.getBlue() + subtractColor.getBlue());
   }
 }
 /**

@@ -18,6 +18,7 @@ import javax.swing.filechooser.FileFilter;
 
 import etomo.type.ConstStringParameter;
 import etomo.ui.FieldType;
+import etomo.util.Utilities;
 
 /**
  * <p>Description: </p>
@@ -104,7 +105,8 @@ final class FileTextField implements FileTextFieldInterface {
   private final FieldType FIELD_TYPE = FieldType.STRING;
 
   private final SimpleButton button = new SimpleButton(new ImageIcon(
-      ClassLoader.getSystemResource("images/openFile.gif")));
+      ClassLoader.getSystemResource(!Utilities.APRIL_FOOLS ? "images/openFile.gif"
+        : "images/openFileFool.png")));
   private final JPanel panel = new JPanel();
   private final GridBagLayout layout = new GridBagLayout();
   private final GridBagConstraints constraints = new GridBagConstraints();
