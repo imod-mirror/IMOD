@@ -57,7 +57,10 @@ Version = 1.2
   assert.cb.stop-before-running-volcombine=off
   #
   #intermediate data storage
+  mb.parallel-processing=-
   mb.intermediate-data-storage=+
+  sleep=
+  format=
   sleep=
   assert.tf.temporary-directory=
   assert.cb.manual-cleanup=off
@@ -124,6 +127,7 @@ Version = 1.2
   #intermediate data storage
   assert.enabled.tf.temporary-directory=
   assert.enabled.cb.manual-cleanup=
+  mb.intermediate-data-storage=-
   #
   #buttons
   assert.enabled.bn.3dmod-volume-a=
