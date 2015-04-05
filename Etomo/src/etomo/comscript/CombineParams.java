@@ -420,7 +420,7 @@ public final class CombineParams implements ConstCombineParams, Storable {
   }
 
   public void setDefaultPatchRegionModel() {
-    patchRegionModel = ConstMatchorwarpParam.getDefaultPatchRegionModel();
+    patchRegionModel = MatchorwarpParam.getDefaultPatchRegionModel();
   }
 
   /**

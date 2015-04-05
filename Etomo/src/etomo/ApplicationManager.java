@@ -7158,7 +7158,7 @@ public final class ApplicationManager extends BaseManager implements
       if (!tomogramCombinationDialog.getMatchorwarpParams(matchorwarpParam, doValidation)) {
         return false;
       }
-      matchorwarpParam.setTrial(trialMode);
+      matchorwarpParam.setTrialMode(trialMode);
       comScriptMgr.saveMatchorwarp(matchorwarpParam);
     }
     catch (NumberFormatException except) {
