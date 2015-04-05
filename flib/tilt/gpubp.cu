@@ -187,7 +187,7 @@ static int *planeLoaded;
 int gpuavailable(int *nGPU, float *memory, int *debug)
 {
   int current_device = 0;
-  int version, version2, device_count = 0;
+  int device_count = 0;
   float gflops;
   struct cudaDeviceProp device_properties, best_properties;
 
@@ -196,10 +196,13 @@ int gpuavailable(int *nGPU, float *memory, int *debug)
   *memory = 0;
   cudaGetDeviceCount( &device_count );
   if (*debug) {
+#if CUDA_CERSION >= 3000
+    int version, version2;
     cudaRuntimeGetVersion(&version2);
     cudaDriverGetVersion(&version);
     pflush("CUDA version - driver: %d.%03d  runtime: %d.%03d\n", version / 1000,
            version % 1000, version2 / 1000, version2 % 1000);
+#endif
     pflush("Device count = %d\n", device_count);
   }
   if (*nGPU != 0) {
