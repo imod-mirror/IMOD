@@ -18,7 +18,7 @@ Version = 1.2
   assert.rb.fiducials-on-one-side=off
   #todo find a way to test the invisible radio buttons
   #assert.rb.fiducials-on-one-side,-inverted=off
-  assert.rb.use-matching-models-and-fiducials=off
+  #assert.rb.use-matching-models-and-fiducials=off
   assert.rb.use-matching-models-only=off
   assert.cb.load-binned-by-2=off
   if.not.var.patch-tracking.assert.cb.specify-corresponding-points-instead-of-using-coordinate-file=off
