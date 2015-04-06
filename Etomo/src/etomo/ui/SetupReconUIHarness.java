@@ -90,7 +90,8 @@ public final class SetupReconUIHarness {
     if (directiveFileCollection == null) {
       return false;
     }
-    initializeFields(manager.getConstMetaData(), EtomoDirector.INSTANCE.getUserConfiguration());
+    initializeFields(manager.getConstMetaData(), EtomoDirector.INSTANCE
+      .getUserConfiguration());
     AxisType axisType = AxisType.SINGLE_AXIS;
     if (directiveFileCollection.isValue(DirectiveDef.DUAL)) {
       axisType = AxisType.DUAL_AXIS;
@@ -567,6 +568,26 @@ public final class SetupReconUIHarness {
       if (directiveFileCollection != null) {
         saveDirectiveFile(directiveFileCollection
           .getDirectiveFile(DirectiveFileType.BATCH), metaData);
+      }
+      String value = directiveFileCollection.getValue(DirectiveDef.PATCH_SIZE);
+      if (value != null) {
+        metaData.setPatchTypeOrXYZ(value);
+      }
+      value = directiveFileCollection.getValue(DirectiveDef.EXTRA_TARGETS);
+      if (value != null) {
+        metaData.setExtraResidualTargets(value);
+      }
+      value = directiveFileCollection.getValue(DirectiveDef.FINAL_PATCH_SIZE);
+      if (value != null) {
+        metaData.setAutoPatchFinalSize(value);
+      }
+      value = directiveFileCollection.getValue(DirectiveDef.WEDGE_REDUCTION);
+      if (value != null) {
+        metaData.setWedgeReductionFraction(value);
+      }
+      value = directiveFileCollection.getValue(DirectiveDef.LOW_FROM_BOTH_RADIUS);
+      if (value != null) {
+        metaData.setLowFromBothRadius(value);
       }
       return metaData;
     }

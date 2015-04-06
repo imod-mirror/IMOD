@@ -5,15 +5,11 @@ import java.util.Properties;
 /**
  * <p>Description: </p>
  * 
- * <p>Copyright: Copyright 2006</p>
+ * <p>Copyright: Copyright 2006 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
- * University of Colorado</p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
+ * @version $Id$
  * 
  * @notthreadsafe
  * 
@@ -40,10 +36,10 @@ import java.util.Properties;
  * <p> </p>
  */
 public final class StringProperty implements ConstStringProperty {
-  public static final String rcsid = "$Id$";
-
   private final String key;
   private final boolean returnNullWhenEmpty;
+
+  private boolean debug = false;
 
   private String string = null;
 
@@ -51,7 +47,7 @@ public final class StringProperty implements ConstStringProperty {
     this.key = null;
     this.returnNullWhenEmpty = false;
   }
-  
+
   public StringProperty(final String key) {
     this.key = key;
     this.returnNullWhenEmpty = false;
@@ -85,7 +81,7 @@ public final class StringProperty implements ConstStringProperty {
       string = input;
     }
   }
-  
+
   int length() {
     if (isEmpty()) {
       return 0;
@@ -93,7 +89,7 @@ public final class StringProperty implements ConstStringProperty {
     return string.length();
   }
 
-  void set(final StringProperty input) {
+  public void set(final StringProperty input) {
     string = input.string;
   }
 
@@ -115,11 +111,15 @@ public final class StringProperty implements ConstStringProperty {
     return this.string.equals(string);
   }
 
-  boolean equals(final StringProperty stringProperty) {
+  public boolean equals(final StringProperty stringProperty) {
     if (string == null) {
       return isEmpty(stringProperty.string);
     }
     return string.equals(stringProperty.string);
+  }
+
+  public void load(Properties props) {
+    load(props, "");
   }
 
   public void load(Properties props, String prepend) {
@@ -131,6 +131,16 @@ public final class StringProperty implements ConstStringProperty {
     }
   }
 
+  public void load(final Properties props, final String prepend,
+    final String defaultString) {
+    if (props == null) {
+      set(defaultString);
+    }
+    else {
+      string = props.getProperty(createKey(prepend), defaultString);
+    }
+  }
+
   void loadFromOtherKey(Properties props, String prepend, String key) {
     if (props == null) {
       reset();
@@ -138,6 +148,14 @@ public final class StringProperty implements ConstStringProperty {
     else {
       string = props.getProperty(createKey(prepend, key));
     }
+  }
+
+  public void setDebug(final boolean input) {
+    debug = input;
+  }
+
+  public void store(Properties props) {
+    store(props, "");
   }
 
   public void store(Properties props, String prepend) {
