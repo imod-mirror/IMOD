@@ -1,5 +1,8 @@
 package etomo.type;
 
+import java.util.ArrayList;
+
+import etomo.EtomoDirector;
 import etomo.comscript.SetupCombine;
 
 /**
@@ -47,7 +50,7 @@ public final class CombinePatchSize implements EnumeratedType {
   public static final int Y_INDEX = 1;
   public static final int Z_INDEX = 2;
 
-  private static CombinePatchSize PATCH_SIZE_ARRAY[] = null;
+  private static ArrayList<CombinePatchSize> PATCH_SIZE_ARRAY = null;
 
   private final String label;
   private final String value;
@@ -103,9 +106,11 @@ public final class CombinePatchSize implements EnumeratedType {
     }
     loadXYZ();
     if (PATCH_SIZE_ARRAY != null) {
-      for (int i = 0; i < PATCH_SIZE_ARRAY.length; i++) {
-        if (PATCH_SIZE_ARRAY[i].equals(xyzArray)) {
-          return PATCH_SIZE_ARRAY[i];
+      int len = PATCH_SIZE_ARRAY.size();
+      for (int i = 0; i < len; i++) {
+        CombinePatchSize instance = PATCH_SIZE_ARRAY.get(i);
+        if (instance != null && instance.equals(xyzArray)) {
+          return instance;
         }
       }
     }
@@ -119,9 +124,11 @@ public final class CombinePatchSize implements EnumeratedType {
     // See if xyz match one of the fixed instances.
     loadXYZ();
     if (PATCH_SIZE_ARRAY != null) {
-      for (int i = 0; i < PATCH_SIZE_ARRAY.length; i++) {
-        if (PATCH_SIZE_ARRAY[i].equals(xyz)) {
-          return PATCH_SIZE_ARRAY[i];
+      int len = PATCH_SIZE_ARRAY.size();
+      for (int i = 0; i < len; i++) {
+        CombinePatchSize instance = PATCH_SIZE_ARRAY.get(i);
+        if (instance != null && instance.equals(xyz)) {
+          return instance;
         }
       }
     }
@@ -135,9 +142,11 @@ public final class CombinePatchSize implements EnumeratedType {
     // See if xyz match one of the fixed instances.
     loadXYZ();
     if (PATCH_SIZE_ARRAY != null) {
-      for (int i = 0; i < PATCH_SIZE_ARRAY.length; i++) {
-        if (PATCH_SIZE_ARRAY[i].equals(xyz)) {
-          return PATCH_SIZE_ARRAY[i];
+      int len = PATCH_SIZE_ARRAY.size();
+      for (int i = 0; i < len; i++) {
+        CombinePatchSize instance = PATCH_SIZE_ARRAY.get(i);
+        if (instance != null && instance.equals(xyz)) {
+          return instance;
         }
       }
     }
@@ -248,44 +257,75 @@ public final class CombinePatchSize implements EnumeratedType {
     if (PATCH_SIZE_ARRAY != null) {
       return;
     }
+    if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
+      System.err.println("waiting for sync");
+    }
     synchronized (SMALL) {
       if (PATCH_SIZE_ARRAY != null) {
+        if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
+          System.err.println("PATCH_SIZE_ARRAY was created");
+        }
         return;
       }
-      // Run setupcombine -InfoOnPatchSizes
+      // Run setupcombine -info
       String[] output = SetupCombine.getInfoOnPatchSizes();
       if (output == null) {
+        if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
+          System.err.println("output is null");
+        }
         return;
       }
       // Get the instances and the patch sizes and place them in PATCH_SIZE_ARRAY
-      PATCH_SIZE_ARRAY = new CombinePatchSize[output.length];
+      PATCH_SIZE_ARRAY = new ArrayList<CombinePatchSize>();
+      if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
+        System.err.println("output.length:" + output.length);
+      }
       for (int i = 0; i < output.length; i++) {
         if (output[i] == null) {
+          if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
+            System.err.println("output[" + i + "] is null");
+          }
           continue;
         }
         // Example of output:
         // S: 64 64 32
         String[] array = output[i].split("\\s*:\\s*");
         if (array == null || array.length <= VALUE_INDEX) {
+          if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
+            System.err.println("unused output[" + i + "]:" + output[i]);
+          }
           continue;
         }
-        PATCH_SIZE_ARRAY[i] = getFixedInstance(array[VALUE_INDEX]);
-        if (PATCH_SIZE_ARRAY[i] == null || array.length <= XYZ_INDEX) {
+        CombinePatchSize combinePatchSize = getFixedInstance(array[VALUE_INDEX]);
+        if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
+          System.err.println("combinePatchSize:" + combinePatchSize);
+        }
+        if (combinePatchSize == null || array.length <= XYZ_INDEX) {
+          if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
+            System.err.println("unused output[" + i + "]:" + output[i]);
+          }
           continue;
         }
         // set the xyz member variable
         String[] xyzArray = array[XYZ_INDEX].split("\\s+");
         if (xyzArray == null) {
+          if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
+            System.err.println("array[" + XYZ_INDEX + "] is null.");
+          }
           continue;
         }
+        PATCH_SIZE_ARRAY.add(combinePatchSize);
         int len = Math.min(xyzArray.length, SMALL.xyz.length);
         for (int j = 0; j < len; j++) {
           // Preserve -1 for missing xyz values
           if (xyzArray[j] != null) {
             try {
-              PATCH_SIZE_ARRAY[i].xyz[j] = Integer.valueOf(xyzArray[j]);
+              combinePatchSize.xyz[j] = Integer.valueOf(xyzArray[j]);
             }
             catch (NumberFormatException e) {
+              if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
+                System.err.println("bad xyzArray[" + j + "]:" + xyzArray[j]);
+              }
               e.printStackTrace();
             }
           }
