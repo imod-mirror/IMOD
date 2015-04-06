@@ -12,8 +12,9 @@ Version = 1.2
   #
   #solvematch parameters
   assert.rb.fiducials-on-both-sides=on
-  assert.rb.fiducials-on-one-side,-not-inverted=off
-  assert.rb.fiducials-on-one-side,-inverted=off
+  assert.rb.fiducials-on-one-side=off
+  #todo find a way to test the invisible radio buttons
+  #assert.rb.fiducials-on-one-side,-inverted=off
   assert.rb.use-matching-models-and-fiducials=off
   assert.rb.use-matching-models-only=off
   assert.cb.load-binned-by-2=off
@@ -26,7 +27,22 @@ Version = 1.2
   assert.rb.small-patches=off
   assert.rb.medium-patches=on
   assert.rb.large-patches=off
+  assert.rb.custom=off
+  assert.tf.x=80
+  assert.tf.y=80
+  assert.tf.z=40
   assert.cb.use-patch-region-model=off
+  #
+  assert.cb.use-automatic-patch-fitting=off
+  assert.rb.medium-patches.1=off
+  assert.rb.large-patches.1=off
+  assert.rb.extra-large-patches=on
+  assert.rb.custom.1=off
+  assert.tf.x.1=120
+  assert.tf.y.1=120
+  assert.tf.z.1=60
+  assert.tf.extra-warping-limits=
+  #
   assert.tf.x-axis-min=%{axis-min}
   if.not.var.patch-tracking.assert.tf.x-axis-max=%{x-axis-max}
   if.var.patch-tracking.assert.tf.x-axis-max=%{x-axis-max-patch-tracking}
@@ -41,6 +57,11 @@ Version = 1.2
   assert.cb.stop-before-running-volcombine=off
   #
   #intermediate data storage
+  mb.parallel-processing=-
+  mb.intermediate-data-storage=+
+  sleep=
+  format=
+  sleep=
   assert.tf.temporary-directory=
   assert.cb.manual-cleanup=off
   #
@@ -61,8 +82,8 @@ Version = 1.2
   #
   #solvematch parameters
   assert.enabled.rb.fiducials-on-both-sides=
-  assert.enabled.rb.fiducials-on-one-side,-not-inverted=
-  assert.enabled.rb.fiducials-on-one-side,-inverted=
+  assert.enabled.rb.fiducials-on-one-side=
+  #assert.enabled.rb.fiducials-on-one-side,-inverted=
   assert.enabled.rb.use-matching-models-and-fiducials=
   assert.enabled.rb.use-matching-models-only=
   assert.disabled.cb.load-binned-by-2=
@@ -76,8 +97,21 @@ Version = 1.2
   assert.enabled.rb.small-patches=
   assert.enabled.rb.medium-patches=
   assert.enabled.rb.large-patches=
+  assert.enabled.rb.custom=
+  #todo test not editable
   assert.enabled.cb.use-patch-region-model=
   assert.disabled.bn.create/edit-patch-region-model=
+  #
+  assert.enabled.cb.use-automatic-patch-fitting=
+  assert.disabled.rb.medium-patches.1=
+  assert.disabled.rb.large-patches.1=
+  assert.disabled.rb.extra-large-patches=
+  assert.disabled.rb.custom.1=
+  assert.disabled.tf.x.1=
+  assert.disabled.tf.y.1=
+  assert.disabled.tf.z.1=
+  assert.disabled.tf.extra-warping-limits=
+  #
   assert.enabled.tf.x-axis-min=
   assert.enabled.tf.x-axis-max=
   assert.enabled.tf.y-axis-min=
@@ -93,6 +127,7 @@ Version = 1.2
   #intermediate data storage
   assert.enabled.tf.temporary-directory=
   assert.enabled.cb.manual-cleanup=
+  mb.intermediate-data-storage=-
   #
   #buttons
   assert.enabled.bn.3dmod-volume-a=
@@ -119,6 +154,40 @@ Version = 1.2
   if.not.var.patch-tracking.cb.specify-corresponding-points-instead-of-using-coordinate-file=
   #
   #patch parameters for refining aligment
+  rb.small-patches=
+  assert.tf.x=64
+  assert.tf.y=64
+  assert.tf.z=32
+  rb.large-patches=
+  assert.tf.x=100
+  assert.tf.y=100
+  assert.tf.z=50
+  rb.custom=
+  assert.enabled.tf.x=
+  assert.enabled.tf.y=
+  assert.enabled.tf.z=
+  rb.medium-patches=
+  #
+  cb.use-automatic-patch-fitting=on
+  assert.enabled.rb.medium-patches.1=
+  assert.enabled.rb.large-patches.1=
+  assert.enabled.rb.extra-large-patches=
+  assert.enabled.rb.custom.1=
+  rb.medium-patches.1=
+  assert.tf.x.1=80
+  assert.tf.y.1=80
+  assert.tf.z.1=40
+  rb.large-patches.1=
+  assert.tf.x.1=100
+  assert.tf.y.1=100
+  assert.tf.z.1=50
+  rb.custom.1=
+  assert.enabled.tf.x.1=
+  assert.enabled.tf.y.1=
+  assert.enabled.tf.z.1=
+  rb.extra-large-patches=
+  cb.use-automatic-patch-fitting=off
+  #
   cb.use-patch-region-model=
   assert.enabled.bn.create/edit-patch-region-model=
   cb.use-patch-region-model=
@@ -173,8 +242,8 @@ assert.exists.file = warpvol.com
   #solvematch parameters
   if.not.var.patch-tracking.assert.rb.fiducials-on-both-sides=on
   if.var.patch-tracking.assert.rb.fiducials-on-both-sides=off
-  assert.rb.fiducials-on-one-side,-not-inverted=off
-  assert.rb.fiducials-on-one-side,-inverted=off
+  assert.rb.fiducials-on-one-side=off
+  #assert.rb.fiducials-on-one-side,-inverted=off
   assert.rb.use-matching-models-and-fiducials=off
   if.not.var.patch-tracking.assert.rb.use-matching-models-only=off
   if.var.patch-tracking.assert.rb.use-matching-models-only=on
@@ -194,8 +263,8 @@ assert.exists.file = warpvol.com
   #
   #solvematch parameters
   assert.enabled.rb.fiducials-on-both-sides=
-  assert.enabled.rb.fiducials-on-one-side,-not-inverted=
-  assert.enabled.rb.fiducials-on-one-side,-inverted=
+  assert.enabled.rb.fiducials-on-one-side=
+  #assert.enabled.rb.fiducials-on-one-side,-inverted=
   assert.enabled.rb.use-matching-models-and-fiducials=
   assert.enabled.rb.use-matching-models-only=
   if.not.var.patch-tracking.assert.disabled.cb.load-binned-by-2=
