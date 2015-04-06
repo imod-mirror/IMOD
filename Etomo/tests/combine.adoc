@@ -10,12 +10,15 @@ Version = 1.2
   assert.rb.match-the-b-tomogram-to-a=on
   assert.rb.match-the-a-tomogram-to-b=off
   #
+  #initial matching parameters
+  assert.cb.use-image-correlations-instead-of-solvematch-for-initial-match=off
+  #
   #solvematch parameters
   assert.rb.fiducials-on-both-sides=on
   assert.rb.fiducials-on-one-side=off
   #todo find a way to test the invisible radio buttons
   #assert.rb.fiducials-on-one-side,-inverted=off
-  assert.rb.use-matching-models-and-fiducials=off
+  #assert.rb.use-matching-models-and-fiducials=off
   assert.rb.use-matching-models-only=off
   assert.cb.load-binned-by-2=off
   if.not.var.patch-tracking.assert.cb.specify-corresponding-points-instead-of-using-coordinate-file=off
@@ -80,11 +83,12 @@ Version = 1.2
   assert.enabled.rb.match-the-b-tomogram-to-a=
   assert.enabled.rb.match-the-a-tomogram-to-b=
   #
+  #initial matching parameters
+  assert.enabled.cb.use-image-correlations-instead-of-solvematch-for-initial-match=
+  #
   #solvematch parameters
   assert.enabled.rb.fiducials-on-both-sides=
   assert.enabled.rb.fiducials-on-one-side=
-  #assert.enabled.rb.fiducials-on-one-side,-inverted=
-  assert.enabled.rb.use-matching-models-and-fiducials=
   assert.enabled.rb.use-matching-models-only=
   assert.disabled.cb.load-binned-by-2=
   assert.disabled.bn.create-matching-models-in-3dmod=
@@ -137,15 +141,28 @@ Version = 1.2
   #
   #behavior
   #
+  #initial matching parameters
+  assert.cb.use-image-correlations-instead-of-solvematch-for-initial-match=off
+  #
   #solvematch parameters
-  rb.use-matching-models-and-fiducials=
-  assert.enabled.cb.load-binned-by-2=
-  assert.enabled.bn.create-matching-models-in-3dmod=
   rb.use-matching-models-only=
+  cb.use-image-correlations-instead-of-solvematch-for-initial-match=on
+  assert.disabled.rb.fiducials-on-both-sides=
+  assert.disabled.rb.fiducials-on-one-side=
+  assert.disabled.rb.use-matching-models-only=
+  assert.disabled.cb.load-binned-by-2=
+  assert.disabled.bn.create-matching-models-in-3dmod=
+  if.not.var.patch-tracking.assert.disabled.cb.specify-corresponding-points-instead-of-using-coordinate-file=
+  if.not.var.patch-tracking.assert.disabled.tf.starting-points-to-use-from-a=
+  if.var.patch-tracking.assert.disabled.tf.corresponding-fiducial-list-a=
+  if.var.patch-tracking.assert.disabled.tf.corresponding-fiducial-list-b=
+  cb.use-image-correlations-instead-of-solvematch-for-initial-match=off
+  #
   assert.enabled.cb.load-binned-by-2=
   assert.enabled.bn.create-matching-models-in-3dmod=
   rb.fiducials-on-both-sides=
   #
+  #solvematch parameters
   if.not.var.patch-tracking.cb.specify-corresponding-points-instead-of-using-coordinate-file=
   assert.tf.corresponding-fiducial-list-a=
   assert.tf.corresponding-fiducial-list-b=
@@ -239,12 +256,13 @@ assert.exists.file = warpvol.com
   #
   #values
   #
+  #initial matching parameters
+  assert.cb.use-image-correlations-instead-of-solvematch-for-initial-match=off
+  #
   #solvematch parameters
   if.not.var.patch-tracking.assert.rb.fiducials-on-both-sides=on
   if.var.patch-tracking.assert.rb.fiducials-on-both-sides=off
   assert.rb.fiducials-on-one-side=off
-  #assert.rb.fiducials-on-one-side,-inverted=off
-  assert.rb.use-matching-models-and-fiducials=off
   if.not.var.patch-tracking.assert.rb.use-matching-models-only=off
   if.var.patch-tracking.assert.rb.use-matching-models-only=on
   if.not.var.patch-tracking.assert.cb.load-binned-by-2=off
@@ -254,6 +272,10 @@ assert.exists.file = warpvol.com
   if.var.patch-tracking.assert.tf.corresponding-fiducial-list-a=
   if.var.patch-tracking.assert.tf.corresponding-fiducial-list-b=
   assert.tf.limit-on-maximum-residual=8.0
+  #
+  #dualvolmatch parameters
+  assert.tf.limit-on-residual-in-patch-correlations=10.0
+  #
   assert.bn.restart-combine=off
   #
   #matchvol1
@@ -261,11 +283,10 @@ assert.exists.file = warpvol.com
   #
   #enabled
   #
-  #solvematch parameters
+  #initial matching parameters
+  assert.enabled.cb.use-image-correlations-instead-of-solvematch-for-initial-match=
   assert.enabled.rb.fiducials-on-both-sides=
   assert.enabled.rb.fiducials-on-one-side=
-  #assert.enabled.rb.fiducials-on-one-side,-inverted=
-  assert.enabled.rb.use-matching-models-and-fiducials=
   assert.enabled.rb.use-matching-models-only=
   if.not.var.patch-tracking.assert.disabled.cb.load-binned-by-2=
   if.var.patch-tracking.assert.enabled.cb.load-binned-by-2=
@@ -276,6 +297,10 @@ assert.exists.file = warpvol.com
   if.var.patch-tracking.assert.enabled.tf.corresponding-fiducial-list-a=
   if.var.patch-tracking.assert.enabled.tf.corresponding-fiducial-list-b=
   assert.enabled.tf.limit-on-maximum-residual=
+  #
+  #dualvolmatch parameters
+  assert.disabled.tf.limit-on-residual-in-patch-correlations=
+  #
   assert.enabled.bn.restart-combine=
   #
   #matchvol1
@@ -283,11 +308,29 @@ assert.exists.file = warpvol.com
   #
   #behavior
   #
-  #solvematch parameters
-  rb.use-matching-models-and-fiducials=
-  assert.enabled.cb.load-binned-by-2=
-  assert.enabled.bn.create-matching-models-in-3dmod=
+  #initial matching parameters
   rb.use-matching-models-only=
+  cb.use-image-correlations-instead-of-solvematch-for-initial-match=on
+  #
+  #solvematch parameters
+  assert.disabled.rb.fiducials-on-both-sides=
+  assert.disabled.rb.fiducials-on-one-side=
+  assert.disabled.rb.use-matching-models-only=
+  if.not.var.patch-tracking.assert.disabled.cb.load-binned-by-2=
+  if.var.patch-tracking.assert.disabled.cb.load-binned-by-2=
+  if.not.var.patch-tracking.assert.disabled.bn.create-matching-models-in-3dmod=
+  if.var.patch-tracking.assert.disabled.bn.create-matching-models-in-3dmod=
+  if.not.var.patch-tracking.assert.disabled.cb.specify-corresponding-points-instead-of-using-coordinate-file=
+  if.not.var.patch-tracking.assert.disabled.tf.starting-points-to-use-from-a=
+  if.var.patch-tracking.assert.disabled.tf.corresponding-fiducial-list-a=
+  if.var.patch-tracking.assert.disabled.tf.corresponding-fiducial-list-b=
+  assert.disabled.tf.limit-on-maximum-residual=
+  #
+  #dualvolmatch parameters
+  assert.enabled.tf.limit-on-residual-in-patch-correlations=
+  cb.use-image-correlations-instead-of-solvematch-for-initial-match=off
+  #
+  #solvematch parameters
   assert.enabled.cb.load-binned-by-2=
   assert.enabled.bn.create-matching-models-in-3dmod=
   if.not.var.patch-tracking.rb.fiducials-on-both-sides=
@@ -369,8 +412,13 @@ assert.exists.file = warpvol.com
   #
   #values
   #
+  #initial matching parameters
+  #
   #solvematch parameters
   assert.tf.limit-on-center-shift=10.0
+  #
+  #dualvolmatch parameters
+  assert.tf.limit-on-center-shift.1=10.0
   #
   #matchvol1
   if.not.var.patch-tracking.assert.tf.initial-match-size=%{initial-match-size}
@@ -378,11 +426,27 @@ assert.exists.file = warpvol.com
   #
   #enabled
   #
+  #initial matching parameters
+  #
   #solvematch parameters
   assert.enabled.tf.limit-on-center-shift=
   #
+  #dualvolmatch parameters
+  assert.disabled.tf.limit-on-center-shift.1=
+  #
   #matchvol1
   assert.enabled.tf.initial-match-size=
+  #
+  #behavior
+  #
+  #initial matching parameters
+  cb.use-image-correlations-instead-of-solvematch-for-initial-match=on
+  #
+  #solvematch parameters
+  assert.disabled.tf.limit-on-center-shift=
+  #
+  #dualvolmatch parameters
+  assert.enabled.tf.limit-on-center-shift.1=
   #
   #final match
   tb.setup.2=
@@ -492,7 +556,7 @@ sleep =
   #initial match
   tb.setup.1=
   #
-  #solvematch parameters
+  #initial matching parameters
   assert.bn.restart-combine=on
   #
   #matchvol1

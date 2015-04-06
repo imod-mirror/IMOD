@@ -35,6 +35,7 @@ import etomo.comscript.ConstTiltxcorrParam;
 import etomo.comscript.CopyTomoComs;
 import etomo.comscript.CtfPhaseFlipParam;
 import etomo.comscript.CtfPlotterParam;
+import etomo.comscript.DualvolmatchParam;
 import etomo.comscript.ExtractmagradParam;
 import etomo.comscript.ExtractpiecesParam;
 import etomo.comscript.ExtracttiltsParam;
@@ -2653,14 +2654,12 @@ public final class ApplicationManager extends BaseManager implements
     }
     if (!okToMakeFiducialModelSeedModel(axisID)) {
       return false;
-    }/*
-      * if (seedModel.exists() && seedModel.lastModified() > fiducialModel.lastModified())
+    }/* if (seedModel.exists() && seedModel.lastModified() > fiducialModel.lastModified())
       * { String[] message = new String[3]; message[0] = "WARNING: The seed model file is
       * more recent the fiducial model file"; message[1] = "To avoid losing your changes
       * to the seed model file,"; message[2] = "track fiducials before pressing Use
       * Fiducial Model as Seed."; uiHarness.openMessageDialog(message, "Use Fiducial Model
-      * as Seed Failed", axisID); return; }
-      */
+      * as Seed Failed", axisID); return; } */
     mainPanel.setProgressBar("Using Fiducial Model as Seed", 1, axisID);
     processTrack.setFiducialModelState(ProcessState.INPROGRESS, axisID);
     mainPanel.setFiducialModelState(ProcessState.INPROGRESS, axisID);
@@ -6282,12 +6281,7 @@ public final class ApplicationManager extends BaseManager implements
         // If batchruntomo data is in the metadata, then combine was run by batchruntomo.
         // The batchruntomo data must override other meta data. Transfer the batchruntomo
         // data to properties managed by etomo, and remove the original Batchruntomo data.
-        metaData.moveExtraResidualTargetsFromBatchruntomo();
-        metaData.moveFiducialMatchFromBatchruntomo();
-        // TODO
-        metaData.moveAutoPatchFinalSizeFromBatchruntomo();
-        metaData.moveMatchModeFromBatchruntomo();
-        metaData.movePatchTypeOrXYZFromBatchruntomo();
+        metaData.moveBatchruntomoSettings();
         state.setCombineScriptsCreated(true);
         state.setCombineMatchMode(metaData.getMatchMode());
       }
@@ -6299,7 +6293,7 @@ public final class ApplicationManager extends BaseManager implements
       }
       // Fill in the dialog box params and set it to the appropriate state
       tomogramCombinationDialog.setCombineParams(combineParams);
-      // TODO
+      // TODO combine.com must have dualvolmatch command
       backwardsCompatibilityCombineScriptsExist();
       // If setupcombine has been run load the com scripts, otherwise disable
       // the
@@ -6328,13 +6322,19 @@ public final class ApplicationManager extends BaseManager implements
           }
           loadSolvematch(modelBased);
         }
+        loadDualvolmatch();
         loadMatchvol1();
         loadPatchcorr();
         loadMatchorwarp();
         loadVolcombine();
-        loadCombineComscript();
+        CombineComscriptState combineComscriptState = loadCombineComscript();
         tomogramCombinationDialog
           .synchronize(TomogramCombinationDialog.lblSetup, true/* false */);
+        if (!combineComscriptState.isDualvolmatchPresent(comScriptMgr)) {
+          if (setupCombineComOnly()) {
+            loadCombineComscript();
+          }
+        }
       }
       else {
         // force the user to set Z values on a new combine
@@ -6630,6 +6630,7 @@ public final class ApplicationManager extends BaseManager implements
       tomogramCombinationDialog.getParameters(getScreenState(AxisID.ONLY));
       if (!tomogramCombinationDialog.isChanged(state)) {
         updateSolvematchCom(false);
+        updateDualvolmatchCom(false);
         updateMatchvol1Com(false);
         updatePatchcorrCom(false);
         updateMatchorwarpCom(false, false);
@@ -6702,7 +6703,7 @@ public final class ApplicationManager extends BaseManager implements
       return false;
     }
     try {
-      if (!processMgr.setupCombineScripts(metaData, processResultDisplay)) {
+      if (!processMgr.setupCombineScripts(processResultDisplay)) {
         mainPanel.stopProgressBar(AxisID.ONLY, ProcessEndState.FAILED);
         return false;
       }
@@ -6721,6 +6722,7 @@ public final class ApplicationManager extends BaseManager implements
 
     // Reload all of the parameters into the ComScriptManager
     loadSolvematch();
+    loadDualvolmatch();
     loadMatchvol1();
     loadPatchcorr();
     loadMatchorwarp();
@@ -6729,6 +6731,28 @@ public final class ApplicationManager extends BaseManager implements
     mainPanel.stopProgressBar(AxisID.ONLY);
     TomogramTool.saveTomogramSize(this, AxisID.FIRST, AxisID.ONLY);
     TomogramTool.saveTomogramSize(this, AxisID.SECOND, AxisID.ONLY);
+    return true;
+  }
+
+  public boolean setupCombineComOnly() {
+    mainPanel.startProgressBar("Combine.com out of date - recreating", AxisID.ONLY,
+      ProcessName.SETUPCOMBINE);
+    try {
+      if (!processMgr.setupCombineOnlyMakeCombineCom()) {
+        mainPanel.stopProgressBar(AxisID.ONLY, ProcessEndState.FAILED);
+        return false;
+      }
+    }
+    catch (IOException except) {
+      mainPanel.stopProgressBar(AxisID.ONLY, ProcessEndState.FAILED);
+      except.printStackTrace();
+      uiHarness.openMessageDialog(
+        this,
+        "Can't run setupcombine.  Copy combine.com from $IMOD_DIR/com.\n"
+          + except.getMessage(), "Setupcombine IOException", AxisID.ONLY);
+      return false;
+    }
+    mainPanel.stopProgressBar(AxisID.ONLY, ProcessEndState.DONE);
     return true;
   }
 
@@ -6807,7 +6831,10 @@ public final class ApplicationManager extends BaseManager implements
     comScriptMgr.loadSolvematch();
     tomogramCombinationDialog.setSolvematchParams(comScriptMgr.getSolvematch());
   }
-
+  public void loadDualvolmatch() {
+    comScriptMgr.loadDualvolmatch();
+    tomogramCombinationDialog.setDualvolmatchParams(comScriptMgr.getDualvolmatch());
+  }
   /**
    * Merge solvematchshift and solvematchmod com scripts in solvematch and load
    * solvematchinto the tomogram combination dialog
@@ -6864,6 +6891,32 @@ public final class ApplicationManager extends BaseManager implements
     return true;
   }
 
+  public boolean updateDualvolmatchCom(final boolean doValidation) {
+    if (tomogramCombinationDialog == null) {
+      uiHarness.openMessageDialog(this,
+        "Can not update dualvolmatch.com without an active tomogram generation dialog",
+        "Program logic error", AxisID.ONLY);
+      return false;
+    }
+    try {
+      comScriptMgr.loadDualvolmatch();
+      DualvolmatchParam param = comScriptMgr.getDualvolmatch();
+      if (!tomogramCombinationDialog.getParameters(param, doValidation)) {
+        return false;
+      }
+      comScriptMgr.saveDualvolmatch(param);
+    }
+    catch (NumberFormatException except) {
+      String[] errorMessage = new String[2];
+      errorMessage[0] = "Dualvolmatch Parameter Syntax Error";
+      errorMessage[1] = except.getMessage();
+      uiHarness.openMessageDialog(this, errorMessage,
+        "Dualvolmatch Parameter Syntax Error", AxisID.ONLY);
+      return false;
+    }
+    return true;
+  }
+
   /**
    * Update the matchvol1 com file from the tomogramCombinationDialog
    * 
@@ -6894,7 +6947,7 @@ public final class ApplicationManager extends BaseManager implements
     }
     return true;
   }
-
+/*
   private void createNewSolvematch(SolvematchParam solvematchParam) {
     try {
       comScriptMgr.useTemplate("solvematch", metaData.getDatasetName(),
@@ -6912,7 +6965,7 @@ public final class ApplicationManager extends BaseManager implements
     comScriptMgr.loadSolvematch();
     comScriptMgr.saveSolvematch(solvematchParam);
     tomogramCombinationDialog.setSolvematchParams(solvematchParam);
-  }
+  }*/
 
   /**
    * load the matchvol1 com script into the tomogram combination dialog
@@ -7046,7 +7099,9 @@ public final class ApplicationManager extends BaseManager implements
   }
 
   private CombineComscriptState getCombineComscript() {
-    CombineComscriptState combineComscriptState = comScriptMgr.getCombineComscript();
+    boolean initialVolumeMatching = metaData.isInitialVolumeMatching();
+    CombineComscriptState combineComscriptState =
+      comScriptMgr.getCombineComscript(initialVolumeMatching);
     if (combineComscriptState == null) {
       try {
         comScriptMgr.useTemplate(CombineComscriptState.COMSCRIPT_NAME,
@@ -7062,7 +7117,7 @@ public final class ApplicationManager extends BaseManager implements
         return null;
       }
       comScriptMgr.loadCombine();
-      combineComscriptState = comScriptMgr.getCombineComscript();
+      combineComscriptState = comScriptMgr.getCombineComscript(initialVolumeMatching);
     }
     return combineComscriptState;
   }
@@ -7079,14 +7134,15 @@ public final class ApplicationManager extends BaseManager implements
   /**
    * Load the combine com script
    */
-  private void loadCombineComscript() {
+  private CombineComscriptState loadCombineComscript() {
     comScriptMgr.loadCombine();
     CombineComscriptState combineComscriptState = getCombineComscript();
     if (combineComscriptState == null) {
-      return;
+      return null;
     }
     tomogramCombinationDialog.setRunVolcombine(combineComscriptState.isRunVolcombine());
     tomogramCombinationDialog.updateDisplay();
+    return combineComscriptState;
   }
 
   /**
@@ -7126,14 +7182,14 @@ public final class ApplicationManager extends BaseManager implements
       else {
         combineComscriptState.resetOutputImageFileType();
         combineComscriptState.setEndCommand(
-          CombineProcessType.getInstance(CombineProcessType.VOLCOMBINE_INDEX - 1)
+          CombineProcessType.getInstance(CombineProcessType.VOLCOMBINE_INDEX - 1, false)
             .getIndex(), comScriptMgr);
       }
     }
     else {
       combineComscriptState.resetOutputImageFileType();
       combineComscriptState.setEndCommand(
-        CombineProcessType.getInstance(CombineProcessType.VOLCOMBINE_INDEX - 1)
+        CombineProcessType.getInstance(CombineProcessType.VOLCOMBINE_INDEX - 1, false)
           .getIndex(), comScriptMgr);
     }
     return combineComscriptState;
@@ -7175,10 +7231,11 @@ public final class ApplicationManager extends BaseManager implements
   /**
    * Initiate the combine process from the beginning
    */
-  public void combine(ProcessResultDisplay processResultDisplay,
-    ProcessSeries processSeries, Deferred3dmodButton deferred3dmodButton,
-    Run3dmodMenuOptions run3dmodMenuOptions, final DialogType dialogType,
-    final ProcessingMethod volcombineProcessingMethod) {
+  public void
+    combine(ProcessResultDisplay processResultDisplay, ProcessSeries processSeries,
+      Deferred3dmodButton deferred3dmodButton, Run3dmodMenuOptions run3dmodMenuOptions,
+      final DialogType dialogType, final ProcessingMethod volcombineProcessingMethod,
+      final boolean initialVolumeMatching) {
     sendMsgProcessStarting(processResultDisplay);
     if (processSeries == null) {
       processSeries = new ProcessSeries(this, dialogType);
@@ -7189,13 +7246,20 @@ public final class ApplicationManager extends BaseManager implements
       sendMsgProcessFailedToStart(processResultDisplay);
       return;
     }
+    System.out.println("A:initialVolumeMatching:" + initialVolumeMatching);
     CombineComscriptState combineComscriptState =
-      updateCombineComscriptState(CombineProcessType.SOLVEMATCH);
+      updateCombineComscriptState(initialVolumeMatching ? CombineProcessType.DUALVOLMATCH
+        : CombineProcessType.SOLVEMATCH);
     if (combineComscriptState == null) {
       sendMsgProcessFailedToStart(processResultDisplay);
       return;
     }
-    if (!updateSolvematchCom(true)) {
+    // Don't fail on a failed com file that won't be run.
+    if (!updateSolvematchCom(true) && !initialVolumeMatching) {
+      sendMsgProcessFailedToStart(processResultDisplay);
+      return;
+    }
+    if (!updateDualvolmatchCom(true) && initialVolumeMatching) {
       sendMsgProcessFailedToStart(processResultDisplay);
       return;
     }

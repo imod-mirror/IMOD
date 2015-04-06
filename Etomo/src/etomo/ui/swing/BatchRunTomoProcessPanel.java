@@ -22,4 +22,8 @@ final class BatchRunTomoProcessPanel extends AxisProcessPanel {
     showBothAxis();
     initializePanels();
   }
+
+  void showBothAxis() {
+    setBackground(Colors.getBackgroundBatchruntomo());
+  }
 }

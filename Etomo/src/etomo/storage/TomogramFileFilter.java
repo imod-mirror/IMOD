@@ -8,15 +8,11 @@ import java.util.List;
 /**
  * <p>Description: </p>
  * 
- * <p>Copyright: Copyright (c) 2002, 2003, 2004</p>
+ * <p>Copyright: Copyright 2002 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- *<p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
- * University of Colorado</p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
+ * @version $Id$
  * 
  * <p> $Log$
  * <p> Revision 1.5  2009/10/29 19:52:45  sueh
@@ -38,9 +34,8 @@ import java.util.List;
  * <p> bug# 520 A file filter for .rec files
  * <p> </p>
  */
-public class TomogramFileFilter extends ExtensibleFileFilter implements java.io.FileFilter {
-  public static final String rcsid = "$Id$";
-
+public class TomogramFileFilter extends ExtensibleFileFilter implements
+  java.io.FileFilter {
   private static final List extraExtensionList = new ArrayList();
 
   private boolean allowAll = false;
@@ -51,16 +46,16 @@ public class TomogramFileFilter extends ExtensibleFileFilter implements java.io.
    * is in extraExtensionList.
    */
   public boolean accept(File file) {
-    if (!file.isFile()) {
+    if (file.isDirectory()) {
       return true;
     }
     if (allowAll) {
       return true;
     }
     String filePath = file.getAbsolutePath();
-    //  If this is a file test its extension, all others should return true
+    // If this is a file test its extension, all others should return true
     if (filePath.endsWith(".rec") || filePath.endsWith(".flip")
-        || filePath.endsWith(".sqz") || filePath.endsWith(".join")) {
+      || filePath.endsWith(".sqz") || filePath.endsWith(".join")) {
       return true;
     }
     Iterator iterator = extraExtensionList.iterator();
@@ -81,7 +76,7 @@ public class TomogramFileFilter extends ExtensibleFileFilter implements java.io.
     if (accept(file)) {
       return;
     }
-    //New extension
+    // New extension
     String fileName = file.getName();
     int extensionIndex = fileName.lastIndexOf(".");
     if (extensionIndex == -1) {

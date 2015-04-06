@@ -188,4 +188,6 @@ public interface ConstCombineParams {
   public String getWedgeReductionFraction();
 
   public String getLowFromBothRadius();
+
+  public boolean isInitialVolumeMatching();
 }

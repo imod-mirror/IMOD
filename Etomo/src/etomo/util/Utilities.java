@@ -351,6 +351,7 @@ import etomo.comscript.ComScript;
 public class Utilities {
   public static final String ACTION_TAG = "Etomo Action: ";
 
+  public static final boolean APRIL_FOOLS = new Date().toString().indexOf("Apr 01 ") != -1;
   private static boolean retrievedDebug = false;
   private static boolean debug = false;
   private static boolean retrievedSelfTest = false;
@@ -453,10 +454,6 @@ public class Utilities {
       new File(manager.getPropertyUserDir(), manager.getName() + axisID.getExtension()
         + extension);
     return file;
-  }
-
-  public static boolean isAprilFools() {
-    return new Date().toString().indexOf("Apr 01 ") != -1;
   }
 
   public static File getFile(String propertyUserDir, String filename) {
