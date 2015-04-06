@@ -273,7 +273,7 @@ public final class SetupCombine {
 
   public static String[] getInfoOnPatchSizes() {
     return BaseProcessManager.getCommandOutput(new String[] { COMMAND,
-      "-InfoOnPatchSizes" }, null, null);
+      "-info" }, null, null);
   }
 
   public MatchMode getMatchMode() {
