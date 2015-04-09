@@ -1502,6 +1502,7 @@ def runTiltalign(taLines):
                 sedModify('StretchOption', 0),
                 sedModify('SkewOption', 0)] + \
                 sedDelAndAdd('ImagesAreBinned', coarseBinning, 'OutputTransformFile') + \
+                sedDelAndAdd('ScaleShifts', '1,' + str(coarseBinning), 'InputFile2')+ \
                 sedDelAndAdd('RobustFitting', doRobust, 'OutputTransformFile')
 
       if modifyWriteAndRunCom(alignCom, sedcom, taLines, message = mess):
@@ -1594,6 +1595,7 @@ def runTiltalign(taLines):
                                                                   useMinFids)),
                    sedModify('AngleOffset', totalDelTilt)] + \
                    sedDelAndAdd('ImagesAreBinned', coarseBinning, 'OutputTransformFile')+\
+                   sedDelAndAdd('ScaleShifts', '1,' + str(coarseBinning), 'InputFile2')+ \
                    sedDelAndAdd('RobustFitting', doRobust, 'OutputTransformFile')
 
          if madeZfactors:
