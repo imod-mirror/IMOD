@@ -1,6 +1,6 @@
 .na
 .nh
-.TH ccderaser 1 4.6.34 BL3DEMC
+.TH ccderaser 1 4.6.34 IMOD
 .SH NAME
 ccderaser - erase X-rays, defects and fiducial markers from images
 .SH SYNOPSIS
@@ -57,6 +57,17 @@ ignored.
 Two methods are used because the first method is probably more reliable
 for dealing with strong peaks that extend over several pixels, while the
 second method is definitely better for finding small X-rays.
+.P
+After all the patches have been scanned for a section, the program then
+searches for single pixels with large interpixel differences at the
+edges of the image, over the width set by the \fBborder\fI option.  A
+difference between a pixel and the mean of whatever adjacent pixels
+exist is computed and its deviation from the overall mean interpixel
+difference is divided by the maximum SD of interpixel differences over
+all of the scans.  When this value exceeds the difference criterion and
+the interpixel difference is greater than that of its neighbors, the
+pixel is replaced with the mean.  This procedure is iterated up to 4
+times to catch adjacent extreme pixels.
 .P
 Tuning the removal of X-rays would primarily involve adjusting two of
 the criteria.  The peak and difference criteria would be adjusted down or

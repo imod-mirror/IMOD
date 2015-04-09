@@ -1,6 +1,6 @@
 .na
 .nh
-.TH tilt 1 4.6.34 BL3DEMC
+.TH tilt 1 4.6.34 IMOD
 .SH NAME
 tilt - calculates 3-D tomographic reconstruction from a tilt series
 .SH SYNOPSIS
@@ -77,16 +77,12 @@ values.  If the log was not being taken in the backprojection, these sums
 are then divided by the weighting factors entered with WeightFile, if any,
 and output.  If the log was taken, the sums are adjusted by adding an amount
 that should give a constant mean level, then the exponential is taken.
-.P
+.SS Using a GPU
 The program can use the GPU of an NVIDIA graphics card for all kinds of
 reconstructions and reprojections from an existing reconstruction file.  The
 card must be capable of supporting computations with CUDA, and you must have
 a version of NVIDIA graphics drivers installed that supports the particular
-version of CUDA against which your version of Tilt was compiled.  Typically
-this will be CUDA 2.1, supported by drivers 180.22 and higher in Linux, or
-181.20 and higher in Windows.  Not all IMOD packages can be used with a GPU;
-ones that do will have cudart and cufft libraries in either IMOD/bin,
-IMOD/lib or IMOD/qtlib.
+version of CUDA against which your version of Tilt was compiled.  
 .P
 The program can compute multiple iterations of the Simultaneous Iterative
 Reconstruction Technique (SIRT) internally for the situation where a
@@ -106,6 +102,18 @@ difference is then subtracted from the starting slice, and the procedure is
 ready to be iterated.  The program carries each slice through the full set
 of iterations before writing it out and going on to the next slice.  Further
 details are given under the SIRTIterations options.
+.P
+The amount of memory required in the GPU is relatively modest unless
+local alignments or Z factors are being used.  In those cases, the
+memory requirement depends on how many planes of input data need
+to be loaded to reconstruct one plane of output data, where a plane
+refers to a set of horizontal projection lines or a tomogram slice.
+That need will be determined by thickness, amount of X-axis tilt, and the
+degree of distortion imposed by the local alignments.  When there is
+insufficient memory to do an operation on the GPU, the program will
+issue a message to this effect that refers to "current parameters";
+these are the relevant parameters.  Reducing the thickness or the X-axis
+tilt should allow the operation to proceed.
 .P
 Backprojection works with angles up to and beyond 90 degrees on both the CPU
 and GPU.  Both reprojection and internal SIRT should work for such data sets

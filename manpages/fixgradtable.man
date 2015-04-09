@@ -1,6 +1,6 @@
 .na
 .nh
-.TH fixgradtable 1 4.2.23 BL3DEMC
+.TH fixgradtable 1 4.2.23 IMOD
 .SH NAME
 fixgradtable -\ Adjust magnification gradient table for new crossover value
 .SH SYNOPSIS

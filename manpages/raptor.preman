@@ -1,6 +1,6 @@
 .na
 .nh
-.TH RAPTOR 1 4.1.19 BL3DEMC
+.TH RAPTOR 1 4.1.19 IMOD
 .SH NAME
 RAPTOR \- Automatic alignment of tilt series with fiducial markers
 .SH SYNOPSIS

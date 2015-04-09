@@ -23,6 +23,7 @@ class FittingDialog :public QDialog
   Q_OBJECT
   public:
     FittingDialog(MyApp *app, QWidget *parent=0);
+    void setBaselineOrder(int value);
 signals:
     void range(double lowX, double highX, double, double );
     void x1MethodChosen(int );
@@ -37,6 +38,7 @@ private slots:
     void zeroMethodClicked(int which);
     void fitPowerClicked(bool state);
     void orderChanged(int value);
+    void baseOrderChanged(int value);
  private:
     void manageWidgets(int which);
     MyApp *mApp;
@@ -59,5 +61,7 @@ private slots:
     QSpinBox *mOrderSpinBox;
     QPushButton *mApplyButton;
     QPushButton *mCloseButton;
+    QLabel *mBaselineLabel;
+    QSpinBox *mBaselineSpinBox;
 };
 #endif

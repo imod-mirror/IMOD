@@ -1,6 +1,6 @@
 .na
 .nh
-.TH gputilttest 1 4.2.23 BL3DEMC
+.TH gputilttest 1 4.2.23 IMOD
 .SH NAME
 gputilttest -\ Test reliability of GPU with repeated runs of Tilt program
 .SH SYNOPSIS

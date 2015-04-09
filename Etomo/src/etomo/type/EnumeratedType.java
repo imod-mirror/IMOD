@@ -3,15 +3,11 @@ package etomo.type;
 /**
  * <p>Description: </p>
  * 
- * <p>Copyright: Copyright 2007</p>
+ * <p>Copyright: Copyright 2007 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
- * University of Colorado</p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
+ * @version $Id$
  * 
  * <p> $Log$
  * <p> Revision 1.1  2007/04/13 19:56:28  sueh
@@ -20,13 +16,11 @@ package etomo.type;
  * <p> </p>
  */
 public interface EnumeratedType {
-  public static final String rcsid = "$Id$";
-
   public boolean isDefault();
 
   public ConstEtomoNumber getValue();
-  
+
   public String toString();
-  
+
   public String getLabel();
 }

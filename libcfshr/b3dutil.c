@@ -18,6 +18,7 @@
 #include <sys/stat.h>
 #include "imodconfig.h"
 #include "b3dutil.h"
+#include "mrcslice.h"
 
 #ifndef _WIN32
 #include <sys/time.h>
@@ -64,6 +65,12 @@
 #define numompthreads NUMOMPTHREADS
 #define b3dompthreadnum B3DOMPTHREADNUM
 #define numberinlist NUMBERINLIST
+#define balancedgrouplimits BALANCEDGROUPLIMITS
+#define overrideoutputtype OVERRIDEOUTPUTTYPE
+#define b3doutputfiletype B3DOUTPUTFILETYPE
+#define setoutputtypefromstring SETOUTPUTTYPEFROMSTRING
+#define overrideallbigtiff OVERRIDEALLBIGTIFF
+#define setnextoutputsize SETNEXTOUTPUTSIZE
 #else
 #define imodbackupfile imodbackupfile_
 #define imodgetenv imodgetenv_
@@ -82,6 +89,12 @@
 #define numompthreads numompthreads_
 #define b3dompthreadnum b3dompthreadnum_
 #define numberinlist numberinlist_
+#define balancedgrouplimits balancedgrouplimits_
+#define overrideoutputtype overrideoutputtype_
+#define b3doutputfiletype b3doutputfiletype_
+#define setoutputtypefromstring setoutputtypefromstring_
+#define overrideallbigtiff overrideallbigtiff_
+#define setnextoutputsize setnextoutputsize_
 #endif
 
 /* DNM 2/26/03: These need to be printf instead of fprintf(stderr) to not
@@ -99,9 +112,8 @@ int imodVersion(const char *pname)
 /*! Prints copyright notice */
 void imodCopyright(void)
 {
-  char *uofc =   "the Regents of the University of Colorado";
-  printf("Copyright (C) %s by %s\n%s & %s\n", COPYRIGHT_YEARS,
-         LAB_NAME1, LAB_NAME2, uofc);
+  char *uofc =   "Regents of the University of Colorado";
+  printf("Copyright (C) %s by the %s\n", COPYRIGHT_YEARS, uofc);
   return;
 }
 
@@ -392,10 +404,11 @@ void overrideoutputtype(int *type)
 }
 
 /*!
- * Returns the current output file type  OUTPUT_TYPE_MRC (2) or OUTPUT_TYPE_TIFF (1), 
+ * Returns the current output file type  OUTPUT_TYPE_MRC (2), OUTPUT_TYPE_TIFF (1), or
+ * OUTPUT_TYPE_HDF (5) (provided the package was build with HDF).
  * The type is either the default type (which is MRC), or the value of the environment 
- * variable IMOD_OUTPUT_FORMAT if that is set and is 'MRC', 'TIF', or 'TIFF', overridden
- * by a value set with @@overrideOutputType@.
+ * variable IMOD_OUTPUT_FORMAT if that is set and is 'MRC', 'TIF', 'TIFF', or 'HDF', 
+ * overridden by a value set with @@overrideOutputType@.
  */
 int b3dOutputFileType()
 {
@@ -406,8 +419,13 @@ int b3dOutputFileType()
       type = OUTPUT_TYPE_MRC;
     else if (!strcmp(envtype, "TIFF") || !strcmp(envtype, "TIF"))
       type = OUTPUT_TYPE_TIFF;
+#ifndef NO_HDF_LIB
+    else if (!strcmp(envtype, "HDF"))
+      type = OUTPUT_TYPE_HDF;
+#endif
   }
-  if (sOutputTypeOverride == OUTPUT_TYPE_MRC || sOutputTypeOverride == OUTPUT_TYPE_TIFF)
+  if (sOutputTypeOverride == OUTPUT_TYPE_MRC || sOutputTypeOverride == OUTPUT_TYPE_TIFF ||
+      sOutputTypeOverride == OUTPUT_TYPE_HDF)
     type = sOutputTypeOverride;
   return type;
 }
@@ -416,6 +434,96 @@ int b3dOutputFileType()
 int b3doutputfiletype()
 {
   return b3dOutputFileType();
+}
+
+/*!
+ * Sets output filetype based on a string in [typeStr], which can contain 'MRC', 'TIF', 
+ * 'TIFF', or 'HDF' (or all lower-case equivalents).  Returns 2 for MRC, 1 for TIFF,
+ * 5 for HDF, -5 for HDF if there is no HDF support, and -1 for other entries
+ */
+int setOutputTypeFromString(const char *typeStr)
+{
+  int retval = -1;
+  if (!strcmp(typeStr, "MRC") || !strcmp(typeStr, "mrc"))
+    retval = OUTPUT_TYPE_MRC;
+  else if (!strcmp(typeStr, "TIFF") || !strcmp(typeStr, "TIF") || 
+           !strcmp(typeStr, "tiff") || !strcmp(typeStr, "tif"))
+    retval = OUTPUT_TYPE_TIFF;
+  else if (!strcmp(typeStr, "HDF") || !strcmp(typeStr, "hdf"))
+#ifdef NO_HDF_LIB
+    retval = -OUTPUT_TYPE_HDF;
+#else
+    retval = OUTPUT_TYPE_HDF;
+#endif
+    printf("output type %d\n", retval);
+  if (retval > 0)
+    overrideOutputType(retval);
+  return retval;
+}
+
+/*! Fortran wrapper for @setOutputTypeFromString */
+int setoutputtypefromstring(const char *str, int strSize)
+{
+  char *cstr = f2cString(str, strSize);
+  int ret;
+  if (!cstr)
+    return -2;
+  ret = setOutputTypeFromString(cstr);
+  free(cstr);
+  return ret;
+}
+
+static int sAllBigTiffOverride = -1;
+
+/*!
+ * A [value] of 1 causes all new TIFF files to be opened in large file format with 
+ * "w8", overriding both the default setting in the defined macro ALL_BIGTIFF_DEFAULT 
+ * and the value of the environment value IMOD_ALL_BIG_TIFF.
+ */
+void overrideAllBigTiff(int value)
+{
+  sAllBigTiffOverride = value;
+}
+
+/*! Fortran wrapper for @overrideAllBigTiff */
+void overrideallbigtiff(int *value)
+{
+  overrideAllBigTiff(*value);
+}
+
+/*!
+ * Returns 1 if all new TIFF files should be opened in large file format, based upon the 
+ * default in the defined macro ALL_BIGTIFF_DEFAULT, the value of the environment value 
+ * IMOD_ALL_BIG_TIFF, and a value set with @@overrideAllBigTiff@. 
+ */
+int makeAllBigTiff()
+{
+  int value = ALL_BIGTIFF_DEFAULT;
+  char *envPtr = getenv(ALL_BIGTIFF_ENV_VAR);
+  if (envPtr)
+    value = atoi(envPtr);
+  if (sAllBigTiffOverride >= 0)
+    value = sAllBigTiffOverride;
+  return value;
+}
+
+/*!
+ * Indicates the output size in [nx], [ny], [nz] and the data mode in [mode] of a file
+ * about to be opened; the routine calls @overrideAllBigTiff to force a new TIFF file to
+ * have either the large file format or the older format as appropriate.
+ */
+void setNextOutputSize(int nx, int ny, int nz, int mode)
+{
+  int bytes, channels;
+  if (dataSizeForMode(mode, &bytes, &channels))
+    return;
+  overrideAllBigTiff(((double)nx * ny) * nz * channels * bytes > 4.0e9 ? 1 : 0);
+}
+
+/*! Fortran wrapper for @setNextOutputSize */
+void setnextoutputsize(int *nx, int *ny, int *nz, int *mode)
+{
+  setNextOutputSize(*nx, *ny, *nz, *mode);
 }
 
 /*! Creates a C string with a copy of a Fortran string described by [str] and 
@@ -471,7 +579,7 @@ static char errorMess[MAX_IMOD_ERROR_STRING] = "";
 /*! Stores an error message and may print it as well.  The message is 
   internally printed with vsprintf.  It is printed to [fout] unless 
   b3dSetStoreError has been called with a non-zero value. */
-void b3dError(FILE *out, char *format, ...)
+void b3dError(FILE *out, const char *format, ...)
 {
   va_list args;
   va_start(args, format);
@@ -682,6 +790,49 @@ int fgetline(FILE *fp, char s[], int limit)
     return (length);
 }
 
+/*!
+ * For the given MRC file mode or SLICE_MODE_MAX in [mode], returns the number of bytes 
+ * of the basic data element in [dataSize] and the number of data channels in [channels].
+ * Returns -1 for an unsupported or undefined mode.
+ */
+int dataSizeForMode(int mode, int *dataSize, int *channels)
+{
+  switch (mode) {
+  case MRC_MODE_BYTE:
+    *dataSize = sizeof(b3dUByte);
+    *channels = 1;
+    break;
+  case MRC_MODE_SHORT:
+  case MRC_MODE_USHORT:
+    *dataSize = sizeof(b3dInt16);
+    *channels = 1;
+    break;
+  case MRC_MODE_FLOAT:
+    *dataSize = sizeof(b3dFloat);
+    *channels = 1;
+    break;
+  case MRC_MODE_COMPLEX_SHORT:
+    *dataSize = sizeof(b3dInt16);
+    *channels = 2;
+    break;
+  case MRC_MODE_COMPLEX_FLOAT:
+    *dataSize = sizeof(b3dFloat);
+    *channels = 2;
+    break;
+  case MRC_MODE_RGB:
+    *dataSize = sizeof(b3dUByte);
+    *channels = 3;
+    break;
+  case SLICE_MODE_MAX:
+    *dataSize = SLICE_MAX_DSIZE;
+    *channels = SLICE_MAX_CSIZE;
+    break;
+  default:
+    return(-1);
+  }
+  return(0);
+}
+
 /*! Returns the number of possible extra header items encoded as short integers
  * by SerialEM in [nflags], and the number of bytes that each occupies in 
  * [nbytes], an array that should be dimensioned to 32. */
@@ -760,6 +911,26 @@ int numberInList(int num, int *list, int nlist, int noListValue)
 int numberinlist(int *num, int *list, int *nlist, int *noListValue)
 {
   return numberInList(*num, list, *nlist, *noListValue);
+}
+
+/*!
+ * Computes inclusive limits [start] and [end] of group at index [groupInd] when dividing 
+ * a total of [numTotal] items into [numGroups] groups as evenly as possible, with 
+ * the remainder from the division distributed among the first groups.
+ */
+void balancedGroupLimits(int numTotal, int numGroups, int groupInd, int *start, int *end)
+{
+  int base = numTotal / numGroups;
+  int rem = numTotal % numGroups;
+  *start = groupInd * base + B3DMIN(groupInd, rem);
+  *end = (groupInd + 1) * base + B3DMIN(groupInd + 1, rem) - 1;
+}
+
+/*! Fortran wrapper for @balancedGroupLimits */
+void balancedgrouplimits(int *numTotal, int *numGroups, int *groupInd, int *start,
+                         int *end)
+{
+  balancedGroupLimits(*numTotal, *numGroups, *groupInd, start, end);
 }
 
 /*!

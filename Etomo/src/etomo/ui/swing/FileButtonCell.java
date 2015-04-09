@@ -139,7 +139,7 @@ final class FileButtonCell extends InputCell {
   private void action() {
     JFileChooser chooser = new FileChooser(currentDirectory.getCurrentDirectory());
     chooser.setDialogTitle(label == null ? "Open File" : label);
-    chooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
+    chooser.setPreferredSize(UIParameters.getInstance().getFileChooserDimension());
     chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
     if (fileFilter != null) {
       chooser.setFileFilter(fileFilter);

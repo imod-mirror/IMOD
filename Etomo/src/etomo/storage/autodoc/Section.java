@@ -157,6 +157,13 @@ final class Section extends WriteOnlyStatementList implements ReadOnlySection {
         + ",\nattributeList=" + attributeList + "]";
   }
 
+  void graft(final Statement statement) {
+    if (statement == null) {
+      return;
+    }
+    statementList.add(new GraftedStatement(getMostRecentStatement(), statement));
+  }
+
   public String getString() {
     StringBuffer buffer = new StringBuffer();
     buffer.append(AutodocTokenizer.OPEN_CHAR);
@@ -244,8 +251,8 @@ final class Section extends WriteOnlyStatementList implements ReadOnlySection {
     return parent.getCurrentDelimiter();
   }
 
-  WriteOnlyAttributeList addAttribute(Token name) {
-    return attributeList.addAttribute(name);
+  WriteOnlyAttributeList addAttribute(final Token name, final int lineNum) {
+    return attributeList.addAttribute(name, lineNum);
   }
 
   boolean equalsType(String type) {

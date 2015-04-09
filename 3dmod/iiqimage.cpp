@@ -1,15 +1,17 @@
-/*  iiqimage.cpp  - Implements an ImodImageFile for any file type that QImage
+/*
+ * THIS FILE IS COPIED TO qttools/mrc2tif: EDIT ONLY THE MASTER IN 3dmod ***
+ *
+ * iiqimage.cpp  - Implements an ImodImageFile for any file type that QImage
  *                  can read.  Would have been part of libiimod, but then all
  *                  programs using libiimod would need Qt
  *
  *  Author: David Mastronarde   email: mast@colorado.edu
  *
- *  Copyright (C) 1995-2004 by Boulder Laboratory for 3-Dimensional Electron
+ *  Copyright (C) 1995-2014 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  * $Id$
- * Log at end of file
  */
 
 #include <qimage.h>
@@ -20,7 +22,6 @@
 
 // C linkage is required for these functions which are called from iimage
 extern "C" {
-  int iiQImageCheck(ImodImageFile *inFile);
   int qimageReadSectionByte(ImodImageFile *inFile, char *buf, int inSection);
   int qimageReadSectionFloat(ImodImageFile *inFile, char *buf, int inSection);
   int qimageReadSection(ImodImageFile *inFile, char *buf, int inSection);
@@ -82,6 +83,7 @@ int iiQImageCheck(ImodImageFile *inFile)
   inFile->cleanUp = qimageClose;
   inFile->reopen = qimageReopen;
   inFile->close = qimageClose;
+  inFile->fillMrcHeader = tiffFillMrcHeader;
 
   return 0;
 }
@@ -180,7 +182,7 @@ static int ReadSection(ImodImageFile *inFile, char *buf, int byte)
     // Get a map for scaling the bytes, then get composite map to go from
     // pixel indexes to scaled value;
     map2 = get_byte_map(slope, offset, outmin, outmax, 0);
-    maxind = image->numColors() - 1;
+    maxind = B3DMAX(0, colorTable.size() - 1);
     for (i = 0; i < 256; i++) {
       pixel = qRed(colorTable[B3DMIN(i, maxind)]);
       map[i] = map2[pixel];
@@ -226,17 +228,3 @@ static int ReadSection(ImodImageFile *inFile, char *buf, int byte)
 
   return 0;
 }
-
-/*
-
-$Log$
-Revision 1.3  2009/01/15 16:33:17  mast
-Qt 4 port
-
-Revision 1.2  2006/09/03 21:36:28  mast
-Switched to proper error codes
-
-Revision 1.1  2004/11/30 03:38:55  mast
-Added to program
-
-*/
