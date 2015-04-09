@@ -1,6 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-3/16/16: Fixed Ccderaser taking mean inside instead of outside boundary
+4/9/15: Fixed Batchruntomo to scale fine alignment shifts by the prealign
+binning when combining with the prealign shifts (In 4.7).
+
+3/16/15: Fixed Ccderaser taking mean inside instead of outside boundary
 contours (in 4.7).
 
 3/15/15: IMOD_4-7-14
