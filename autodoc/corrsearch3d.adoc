@@ -205,6 +205,17 @@ usage = Exchange Y and Z in error messages if Y is short dimension
 tooltip = 
 manpage = 
 
+[Field = InvertYLimits]
+short = invert
+type = B
+usage = Invert Y limits because they come from Z slice values viewed in 3dmod
+tooltip = 
+manpage = Invert the starting and ending Y coordinates to take patches from by
+subtracting them from NY - 1 and exchanging the two values, where NY is the Y
+dimension of the file being matched to.  This entry is needed if the Y limits
+are set from Z slice values picked in 3dmod after loading the volume with rotation
+round the X axis.
+
 [Field = DebugMode]
 short = debug
 type = I
