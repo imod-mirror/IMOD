@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4/7/15: In eTomo - Tomogram Combination, handling a combine done by
+batchruntomo.(Bug# 1826)
+
 4/3/15: Clip histogram has a new option to report a percentile point and
 options for some more specialized analysis.
 
