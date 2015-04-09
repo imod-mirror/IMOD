@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4/9/15: Added options to Findbeads3d to allow a subvolume to be analyzed and
+started taking the square root of peak strength for analysis and display.
+
 4/9/15: Fixed Corrsearch3d so that Z slice limits picked in etomo will specify
 the proper Y range in the unrotated volume (In 4.7).
 
