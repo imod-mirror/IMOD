@@ -264,6 +264,8 @@ imodutil/slashfindspheres
 imodutil/slashmasksort
 imodutil/slashsplitconts
 imodutil/wmod2imod
+imodutil/findsection
+imodutil/imodchopconts
 
 manpages/autodoc2man
 manpages/mantohtml
@@ -288,3 +290,9 @@ sourcedoc/sourcedoc
 
 Etomo/.idea/*
 Etomo/Etomo.iml
+etomo_err.log
+etomo_out.log
+
+SystemTemplate/cryoSample.adoc
+SystemTemplate/plasticSection.adoc
+com/progDefaults.adoc
