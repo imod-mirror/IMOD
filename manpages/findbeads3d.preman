@@ -63,7 +63,21 @@ thickness thus needs to be at least 2.2 bead diameters more than the
 average distance between the surfaces, which is indicated in the Surface
 Analysis output of Tiltalign(1) as "Thickness at Z intercepts".  To the
 extent that beads do not lie exactly in planes, even more thickness will be
-required; 3 diameters might be a good starting point.
+required; 3 diameters is a good starting point and is used in the
+interface in eTomo.
+.P
+In IMOD 4.8.30, the program switched to taking the square root of
+correlation peak strength.  In a histogram, this change spreads out the
+very large histogram peak from weaker, non-bead peaks, compacts and
+accentuates the much smaller histogram peak from actual beads, and thus
+makes the histogram dip more pronounced and easier to detect.  The
+square root values will be reported for the histogram dip and peaks and
+stored in the model for visualization in 3dmod.  If a relative peak
+strength is entered for the threshold options \-fBthreshold\fR and
+\fB-store\fR, it should be in terms of the square root values.
+However, the minimum relative peak strength is still entered in terms
+of the raw correlation values before taking the square root, in order
+to maintain the same behavior for this routinely applied parameter.
 .SH OPTIONS
 Findbeads3d uses the PIP package for input exclusively (see the manual page
 for pip(1)).  The following options can be specified either as command line
