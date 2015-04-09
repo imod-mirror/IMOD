@@ -1,6 +1,6 @@
 .na
 .nh
-.TH reducecont 1 4.6.34 BL3DEMC
+.TH reducecont 1 4.6.34 IMOD
 .SH NAME
 reducecont - to reduce the number of points in model contours
 .SH SYNOPSIS

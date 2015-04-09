@@ -1,6 +1,6 @@
 .na
 .nh
-.TH mtk 1 4.6.34 BL3DEMC
+.TH mtk 1 4.6.34 IMOD
 .SH NAME
 mtk - to analyze spatial relationship between objects in 3D
 .SH SYNOPSIS

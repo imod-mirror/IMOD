@@ -1,6 +1,6 @@
 .na
 .nh
-.TH extposition 1 4.6.34 BL3DEMC
+.TH extposition 1 4.6.34 IMOD
 .SH NAME
 extposition - get list of position numbers for axoneme doublets
 .SH SYNOPSIS

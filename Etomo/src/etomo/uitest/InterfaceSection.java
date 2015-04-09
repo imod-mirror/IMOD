@@ -127,7 +127,7 @@ final class InterfaceSection extends Assert {
     commandMap = new HashMap();
     BaseManager manager = EtomoDirector.INSTANCE.getCurrentManagerForTest();
     ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(manager, AutodocFactory.UITEST,
-        AxisID.ONLY);
+        AxisID.ONLY,false);
     CommandReader reader = CommandReader.getSectionReader(autodoc, SectionType.INTERFACE
         .toString(), sectionName, null, null);
     Command command = null;

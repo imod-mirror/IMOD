@@ -1,6 +1,6 @@
 .na
 .nh
-.TH bsplt 1 4.6.34 BL3DEMC
+.TH bsplt 1 4.6.34 IMOD
 .SH NAME
 BSPLT - an interactive 2-D plotting routine called by Genhstplt
        and other programs

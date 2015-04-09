@@ -54,6 +54,7 @@ c	--- initialize and input info ---
       call imopen(2,output,'new')
 
       call irdhdr(1,nxyz,mxyz,mode,dmin,dmax,dmean) !--- Get Image Header ---!
+      if (mode == 4) call errorExit('USE THE CLIP PROGRAM TO AVERAGE FFTS')
       maxarr = nx*ny
       limarr = max(nx, min(5000*5000, maxarr))
       allocate(array(maxarr), brray(limarr), stat = ifst)
@@ -90,7 +91,7 @@ c	--- Clear the storage array ---
       cell(3) = cell(1) / mxyz(1)
       call ialcel(2,cell)
 
-      call date(dat)
+      call b3ddate(dat)
       call time(tim)
       numsec = ilst - ifst + 1
 

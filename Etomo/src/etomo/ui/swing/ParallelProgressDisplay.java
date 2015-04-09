@@ -5,15 +5,11 @@ import java.util.Map;
 /**
  * <p>Description: </p>
  * 
- * <p>Copyright: Copyright (c) 2005</p>
+ * <p>Copyright: Copyright 2005 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- *<p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
- * University of Colorado</p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
+ * @version "$Id$
  * 
  * <p> $Log$
  * <p> Revision 1.12  2009/04/20 20:06:42  sueh
@@ -66,8 +62,6 @@ import java.util.Map;
  * <p> </p>
  */
 public interface ParallelProgressDisplay {
-  public static final String rcsid = "$Id$";
-
   public void msgDropped(String computer, String reason);
 
   public void addSuccess(String computer);
@@ -92,4 +86,6 @@ public interface ParallelProgressDisplay {
   public void setComputerMap(Map<String,String> computerMap);
 
   public void msgProcessStarted();
+  
+  public boolean isSecondary();
 }

@@ -1,6 +1,6 @@
 .na
 .nh
-.TH archiveorig 1 2.6.4 BL3DEMC
+.TH archiveorig 1 2.6.4 IMOD
 .SH NAME
 archiveorig \- Archive/restore original data after X-ray removal
 .SH SYNOPSIS

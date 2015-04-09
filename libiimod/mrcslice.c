@@ -1069,14 +1069,10 @@ int mrc_bandpass_filter(struct MRCslice *sin, double low, double high)
     return(-1);
   }
 
-  /* Set up X coordinate scaling for odd or even (mirrored) FFTs */
-  if (sin->xsize % 2) {
-    xscale = 0.5 / (sin->xsize - 1.);
-    xadd = 0.;
-  } else {
-    xscale = 1. / sin->xsize;
-    xadd = -0.5;
-  }
+  /* Set up X coordinate scaling: no longer support mirrored FFTs because 
+     nonmirrored ones can have even sizes too */
+  xscale = 0.5 / (sin->xsize - 1.);
+  xadd = 0.;
 
   for (j = 0; j < sin->ysize; j++)
     for(i = 0; i < sin->xsize; i++){
