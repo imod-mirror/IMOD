@@ -253,7 +253,9 @@ Batch Tomogram Reconstruction with IMOD
   There are two ways to kill the operation: 1) In the project directory, enter
   the command:
   <br><code>&nbsp;&nbsp; echo Q > rootname.cmds</code>
-  <br>where agin you substitute the project root name for "rootname". 2) In
+  <br>where agin you substitute the project root name for "rootname". This
+  file should not yet exist, and this command will create the file with
+  the Q in it.  2) In
   the same terminal where you gave the "subm" command, enter "fg" to bring the
   background process to the foreground, then press Ctrl-C (this will not work
   in Windows without Cygwin). Both of these methods allow Batchruntomo to stop
