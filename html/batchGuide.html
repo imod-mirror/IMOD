@@ -54,19 +54,13 @@ Batch Tomogram Reconstruction with IMOD
       the batch processing capability itself are still under development; the
       <A HREF = "man/batchruntomo.html#TOP">Batchruntomo</A> man page is the
       definitive source for what can be run.  When you get a new version of
-      IMOD, check this paragraph for news about the current capabilities.  In
-      the initial release of this
-      interface, dual axis datasets will be run to completion if possible.
-      When there are no fiducials or too few fiducials, it will get the initial 
-      alignment of the volumes by matching of reprojections and patch correlations.
-      This is great if it works, but if you do open the Tomogram Combination
-      interface, it will overwrite the final parameters for patch size and
-      number from the automated
-      processing.  There is also no way to rerun the initial matching using
+      IMOD, check this paragraph for news about the current capabilities.
+      Dual axis datasets will be run to completion if possible.
+      As of IMOD 4.8.30, the eTomo combine interface will load parameters
+      properly from the last values used in the automated processing.  
+      Modifications to allow rerunning the initial matching using
       <A HREF = "man/dualvolmatch.html#TOP">Dualvolmatch</A> instead of
-      fiducials or matching models.  It is now our highest priority to resolve
-      these conflicts and update the Combine interface with new options for
-      automated combining compatible.
+      fiducials or matching models will be available soon.
     </P>
 <H3><A NAME = "BatchSetup"></A>Setting General Batch Processing
   Parameters</H3>
