@@ -1,5 +1,5 @@
 .na
-.nh`
+.nh
 .TH dualvolmatch 1 4.8.125 IMOD
 .SH NAME
 dualvolmatch \- Find initial transformation between dual-axis volumes
