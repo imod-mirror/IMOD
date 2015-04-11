@@ -1833,9 +1833,12 @@ def eraseGoldFilterAlignedStack():
    # Erase the beads
    if eraseGold and needStep(8):
       comlines = ['RootNameOfDataFiles ' + dataName,
-                  'BeadSize ' + str(fidSizePix / aliBinning + extraDiam),
-                  fmtstr('OneParameterChange {}golderaser{}.ccderaser.' + \
-                            'ExpandCircleIterations=2', comPrefix, axisLet)]
+                  'BeadSize ' + str(fidSizePix / aliBinning + extraDiam)]
+      comlines += laterComDirectives('golderaser', 'ccderaser', 0)
+      if lookupDirective(comPrefix + 'golderaser', 'ccderaser.ExpandCircleIterations', 0,
+                         STRING_VALUE) == None:
+         comlines.append(fmtstr('OneParameterChange {}golderaser{}.ccderaser.' + \
+                                   'ExpandCircleIterations=2', comPrefix, axisLet))
       if makeAndRunOneCom(comlines, 'golderaser' + axisCom,
                           'Erasing beads from aligned stack'):
          return 1
