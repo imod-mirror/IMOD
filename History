@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4/10/15: Made Batchruntomo apply directives for options in golderaser.com 
+(In 4.7).
+
 4/9/15: Fixed Corrsearch3d so that Z slice limits picked in etomo will specify
 the proper Y range in the unrotated volume (In 4.7).
 
