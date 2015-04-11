@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4/10/15: Made Batchruntomo apply directives for options in golderaser.com 
+(In 4.7).
+
 4/9/15: IMOD_4-8-30
 4/9/15: Added options to Findbeads3d to allow a subvolume to be analyzed and
 started taking the square root of peak strength for analysis and display.
