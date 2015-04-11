@@ -8,7 +8,7 @@
 # An example of cpu.adoc for a standalone computer:
 #
 
-Version = 1.0
+Version = 1.2
 [Computer = localhost]
 # In this example the computer has two cores or CPUs.
 number = 2
@@ -23,7 +23,7 @@ gpu.device = 2,1,3
 # type of processor:
 #
 
-Version = 1.0
+Version = 1.2
 units.speed = GHz
 units.memory = GB
 
@@ -58,7 +58,7 @@ number = 2
 # If the resulting table in Etomo is too wide, the cpu.adoc can be changed to
 # this:
 
-Version = 1.0
+Version = 1.2
 
 [Computer = frodo]
 number = 2
