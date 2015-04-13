@@ -23,7 +23,7 @@ program findbeads3d
   integer*4 numZpieces, numPeaks, maxPeaks, numCorrs, indPlanes
   integer*4 ixStart, ixEnd, iyStart, iyEnd, izStart, izEnd
   real*4 elongation, radius, distMin, xpeak, ypeak, zpeak
-  real*4 dmin, dmax, dmean, polarity, peakCorr, fracAvg
+  real*4 dmin, dmax, dmean, polarity, peakCorr, fracAvg, avgFallback, storeFallback
   integer*4 ixMin, ixMax, iyMin, iyMax, izMin, izMax
   integer*4 ix, ixPiece, iyPiece, izPiece, minInside, maxXsize
   integer*4 ixPeak, iyPeak, izPeak, numSave, ix0, ix1, iy0, iy1, iz0, iz1
@@ -44,7 +44,7 @@ program findbeads3d
   ! fallbacks from ../../manpages/autodoc2man -3 2  findbeads3d
   !
   integer numOptions
-  parameter (numOptions = 22)
+  parameter (numOptions = 23)
   character*(40 * numOptions) options(1)
   options(1) = &
       'input:InputFile:FN:@output:OutputFile:FN:@candidate:CandidateModel:FN:@'// &
@@ -52,9 +52,9 @@ program findbeads3d
       'yminmax:YMinAndMax:IP:@zminmax:ZMinAndMax:IP:@light:LightBeads:B:@'// &
       'angle:AngleRange:FP:@tilt:TiltFile:FN:@ylong:YAxisElongated:B:@'// &
       'peakmin:MinRelativeStrength:F:@threshold:ThresholdForAveraging:F:@'// &
-      'store:StorageThreshold:F:@spacing:MinSpacing:F:@both:EliminateBoth:B:@'// &
-      'guess:GuessNumBeads:I:@max:MaxNumBeads:I:@verbose:VerboseOutput:I:@'// &
-      'param:ParameterFile:PF:@help:usage:B:'
+      'store:StorageThreshold:F:@fallback:FallbackThresholds:FP:@'// &
+      'spacing:MinSpacing:F:@both:EliminateBoth:B:@guess:GuessNumBeads:I:@'// &
+      'max:MaxNumBeads:I:@verbose:VerboseOutput:I:@param:ParameterFile:PF:@help:usage:B:'
   !
   degToRad = 0.0174532
   modelFile = ' '
@@ -72,6 +72,8 @@ program findbeads3d
   sepMin = 0.9
   avgThresh = -2.
   storeThresh = 0.
+  avgFallback = 0.
+  storeFallback = 0.
   iVerbose = 0
   minGuess = 0
   ibinning = 1
@@ -80,8 +82,7 @@ program findbeads3d
   ! Pip startup: set error, parse options, do help output
   !
   call PipReadOrParseOptions(options, numOptions, 'findbeads3d', &
-      'ERROR: FINDBEADS3D - ', .false., 2, 1, 1, numOptArg, &
-      numNonOptArg)
+      'ERROR: FINDBEADS3D - ', .false., 2, 1, 1, numOptArg, numNonOptArg)
   !
   ! Open image file
   !
@@ -118,6 +119,7 @@ program findbeads3d
   ierr = PipGetInteger('GuessNumBeads', minGuess)
   ierr = PipGetInteger('MaxNumBeads', maxPeaks)
   ierr = PipGetInteger('VerboseOutput', iVerbose)
+  ierr = PipGetTwoFloats('FallbackThresholds', avgFallback, storeFallback)
   ierr = PipGetTwoFloats('AngleRange', dxAdjacent, dyAdjacent)
   ix = PipGetString('TiltFile', tiltFile)
   if (ierr == 0 .or. ix == 0) then
@@ -135,6 +137,7 @@ program findbeads3d
     endif
     !
     ! Elongation factor from Radermacher 1988 paper
+    ! cryoposition looks for 'Elongation factor is'
     dzAdjacent = 0.5 * (abs(dxAdjacent) + abs(dyAdjacent)) * degToRad
     elongation = sqrt((dzAdjacent + cos(dzAdjacent) * sin(dzAdjacent)) / &
         (dzAdjacent - cos(dzAdjacent) * sin(dzAdjacent)))
@@ -293,6 +296,11 @@ program findbeads3d
       0., 1., histDip, peakBelow, peakAbove, max(0, iVerbose - 2))
   blackThresh = histDip
   !
+  if (ierr .ne. 0 .and. avgThresh < 0 .and. avgFallback > 0.) then
+    print *,'No histogram dip found for initial peaks, using fallback averaging '// &
+        'threshold'
+    avgThresh = avgFallback
+  endif
   if (avgThresh < 0) then
     if (ierr .ne. 0) call exitError('NO HISTOGRAM DIP FOUND FOR INITIAL'// &
         ' PEAKS; ENTER POSITIVE -thresh TO PROCEED')
@@ -464,6 +472,14 @@ program findbeads3d
   ierr = findHistogramDip(peakVal, numCorrs, minGuess, histo, limHisto, &
       0., 1., histDip, peakBelow, peakAbove, max(0, iVerbose - 2))
   blackThresh = histDip
+  !
+  ! cryoposition looks for 'using fallback storage threshold'
+  ! and for 'Storing' and 'peaks in model' in one line
+  if (ierr .ne. 0 .and. storeThresh <= 0. .and. storeFallback > 0) then
+    print *,'No dip found in histogram of correlation peaks, using fallback storage '// &
+        'threshold'
+    storeThresh = storeFallback
+  endif
   if (storeThresh <= 0.) then
     if (ierr .ne. 0) call exitError('NO DIP FOUND IN HISTOGRAM OF '// &
         'CORRELATION PEAKS; ENTER -store WITH POSITIVE VALUE TO PROCEED')
