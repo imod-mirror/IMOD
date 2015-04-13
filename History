@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4/13/15: Added option to set fallback thresholds for Findbeads3d.
+
 4/10/15: Made Batchruntomo apply directives for options in golderaser.com 
 (In 4.7).
 

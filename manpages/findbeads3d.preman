@@ -16,7 +16,7 @@ lesser densities.
 The search occurs in two phases.  First, density is summed over small cubes
 centered on each pixel, about 3/8 of the bead diameter on a side, and local
 peaks in the summed density are found.  The peak strength is measured by an
-integral of the densities relative to the background denisty.  When two of
+integral of the densities relative to the background density.  When two of
 these candidate peaks are too close together, the weaker one is eliminated.
 The integrals are scaled so that they range up to 1, a subset of the
 strongest peaks are selected, and an average bead is obtained by extracting
