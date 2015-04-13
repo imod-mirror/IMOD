@@ -863,6 +863,8 @@ program ccderaser
     call flush(6)
   enddo
   !
+  call irtorg(1, origin(1), origin(2), origin(3))
+  call irtdel(1, delta)
   tmean = tsum / nz
   if (mode == 1) then
     tmin = max(-32768., tmin)
@@ -884,8 +886,6 @@ program ccderaser
   else
     print *,'New minimum and maximum density would be:', tmin, tmax
   endif
-  call irtorg(1, origin(1), origin(2), origin(3))
-  call irtdel(1, delta)
 
   !
   ! put out a model, even if there are no points.  Slide objects down

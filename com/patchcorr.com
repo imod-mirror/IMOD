@@ -1,6 +1,6 @@
 # THIS FILE RUNS CORRSEARCH3D
 #
-####CreatedVersion#### 3.8.25
+####CreatedVersion#### 4.7.15
 #
 # TO SPECIFY A MODEL FILE WITH CONTOURS ENCLOSING THE PATCHES TO ANALYZE,
 # ADD A LINE WITH "RegionModel   filename"
@@ -24,6 +24,7 @@ BSourceTransform        solve.xf
 BSourceBorderXLoHi      36,36
 BSourceBorderYZLoHi     36,36
 FlipYZMessages
+InvertYLimits
 #
 # Make a patch vector model
 $patch2imod -n "Values are correlation coefficients" patch.out \

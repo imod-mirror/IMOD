@@ -96,7 +96,7 @@ program corrsearch3d
   integer*4 numOptArg, numNonOptArg
   integer*4 PipGetInteger, PipGetTwoIntegers, PipGetThreeIntegers
   integer*4 PipGetString, PipGetFloat, PipGetThreeFloats, PipgetTwoFloats
-  integer*4 PipGetInOutFile, PipGetLogical
+  integer*4 PipGetInOutFile, PipGetLogical, PipGetBoolean
   !
   ! fallbacks from ../../manpages/autodoc2man -3 2  corrsearch3d
   !
@@ -221,6 +221,13 @@ program corrsearch3d
         PipGetTwoIntegers('YMinAndMax', iyMin, iyMax) + &
         PipGetTwoIntegers('ZMinAndMax', izMin, izMax) .ne. 0) call &
         exitError('MIN AND MAX COORDINATES IN X, Y, AND Z MUST BE ENTERED')
+    j = 0
+    ierr = PipGetBoolean('InvertYLimits', j)
+    if (j > 0) then
+      i = ny - 1 - iyMin
+      iyMin = ny - 1 - iyMax
+      iyMax = i
+    endif
     nBordXlow = ixMin - 1
     nbordXhigh = nx - ixMax
     nbordYlow = iyMin - 1
