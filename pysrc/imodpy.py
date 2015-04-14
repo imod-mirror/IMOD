@@ -47,6 +47,7 @@ This module provides the following functions:
 
   addIMODbinIgnoreSIGHUP()  - Adds IMOD_DIR/bin to front of PATH and ignores SIGHUP
   printPID(doPrint)   - Prints a PID with system-dependent prefix if doPrint is true
+  getIMODversion()    - Returns the IMOD version as a string, or None for error
   imodIsAbsPath(path) - Tests whether the path is an absolute path (works in Cygwin)
   imodAbsPath(path) - Returns absolute path, converted to windows format if on Windows
   imodNice(niceInc) - Sets niceness of process, even on Windows
@@ -925,6 +926,16 @@ def printPID(doPrint):
       PID = 'Cygwin ' + PID
    sys.stderr.write(PID)
    sys.stderr.flush()
+
+
+# Returns the IMOD version as a string, or None for error
+def getIMODversion(): 
+   try:
+      infoLines = runcmd('imodinfo')
+      lsplit = infoLines[0].split()
+      return lsplit[2]
+   except Exception:
+      return None
 
 
 # Tests whether the path is an absolute path
