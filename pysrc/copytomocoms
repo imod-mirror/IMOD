@@ -60,6 +60,7 @@ def editAndWrite(srcRoot, dstRoot, sedcom, doChanges = True):
    dstfile = dstRoot + dstext
    backuplist.append(dstfile)
    makeBackupFile(dstfile)
+   sedcom.append('/####CreatedVersion####/s/# .*/#' + IMODversion + '/')
    sedlines = pysed(sedcom, srcfile, None)
    sedlines.append(backupline)
    applyChangeListAndWrite(srcRoot, sedlines, dstfile, doChanges)
@@ -134,6 +135,11 @@ srcdir = os.path.join(os.environ['IMOD_DIR'], 'com')
 if not os.path.exists(srcdir):
    exitError("Source directory for command files, " + srcdir + ", not found")
 
+# Get IMOD version
+IMODversion = getIMODversion()
+if not IMODversion:
+   exitError('Getting IMOD version')
+
 # Fallbacks from ../manpages/autodoc2man 3 1 copytomocoms
 options = ["name:RootName:FN:", "dual:DualAxis:B:", "montage:MontagedImages:B:",
            "backup:BackupDirectory:FN:", "pixel:PixelSize:F:", "gold:GoldBeadSize:F:",
@@ -158,7 +164,7 @@ options = ["name:RootName:FN:", "dual:DualAxis:B:", "montage:MontagedImages:B:",
 rootname = PipGetString("RootName", "")
 if not rootname:
    exitError("A root name must be entered")
-
+   
 naxis = PipGetBoolean('DualAxis', 0) + 1
 montage = PipGetBoolean('MontagedImages', 0)
 backupdir = PipGetString('BackupDirectory', '')
@@ -742,7 +748,8 @@ for iaxis in range(naxis):
                 "/AdjustOrigin/d",
                 fmtstr("/^StartingAndEndingX/s/[ 	].*/	{} {}/", xstart, xend),
                 fmtstr("/^StartingAndEndingY/s/[ 	].*/	{} {}/", ystart, yend),
-                '/mrctaper/d']
+                '/mrctaper/d',
+                '/####CreatedVersion####/s/# .*/#' + IMODversion + '/']
       sedlines = pysed(sedcom, srcfile, None)
       dstlines.extend(sedlines)
       dstlines.append('$doxcorr:')
@@ -756,7 +763,8 @@ for iaxis in range(naxis):
              fmtstr("/^RotationAngle/s/[ 	].*/	{}/", axisangle),
              fmtstr("/^#*SkipViews.*/s//SkipViews	{}/", excludelist),
              fmtstr("/^#*{}/d", wipeskip),
-             fmtstr("s/{}.st/{}/", setname, xcsrc)]
+             fmtstr("s/{}.st/{}/", setname, xcsrc),
+             '/####CreatedVersion####/s/# .*/#' + IMODversion + '/']
    if magViewText:
       sedcom.append(magViewText)
    sedlines = pysed(sedcom, srcfile, None)
@@ -853,7 +861,8 @@ for iaxis in range(naxis):
              fmtstr("s/{}/{}/", stackname, tracksrc),
              fmtstr("s/{}.xf/{}/", setname, tiltxf),
              fmtstr("/^FixXYZCoordinates/s/.*/FixXYZCoordinates	{}/", fixxyz),
-             fmtstr("/^#*{}/d", wipeexclude)]
+             fmtstr("/^#*{}/d", wipeexclude),
+             '/####CreatedVersion####/s/# .*/#' + IMODversion + '/']
    if sepGroupText:
       sedcom.append(sepGroupText)
    sedlines = pysed(sedcom, srcfile, None)
@@ -985,7 +994,8 @@ for iaxis in range(naxis):
                    "/if (-e/d",
                    "/AdjustOrigin/d",
                    "/TaperAtFill/d",
-                   "/THIS IS A COMMAND FILE/s//THESE ARE COMMANDS/"]
+                   "/THIS IS A COMMAND FILE/s//THESE ARE COMMANDS/",
+                   '/####CreatedVersion####/s/# .*/#' + IMODversion + '/']
          sedlines = pysed(sedcom, 'newst' + dstext, None)
       else:
          sedcom = ["/^OldEdgeFunctions/s/0/1/",
@@ -993,7 +1003,8 @@ for iaxis in range(naxis):
                    "/if (-e/d",
                    "/AdjustOrigin/d",
                    "/mrctaper/d",
-                   "/Command file/s//Commands/"]
+                   "/Command file/s//Commands/",
+                   '/####CreatedVersion####/s/# .*/#' + IMODversion + '/']
          sedlines = pysed(sedcom, 'blend' + dstext, None)
          if changeList:
             sedlines = modifyForChangeList(sedlines, 'sample', setlet, changeList)
