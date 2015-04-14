@@ -385,6 +385,8 @@ public final class CombineComscriptState implements ComscriptState {
    * @param state
    */
   private void selfTest(final int state) {
+    System.err.println("state:"+state+",startCommand:"+startCommand+",endCommand:"+endCommand);
+    Thread.dumpStack();
     String stateString = null;
     switch (state) {
       case CONSTRUCTED_STATE:
