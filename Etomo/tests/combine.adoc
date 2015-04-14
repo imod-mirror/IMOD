@@ -274,7 +274,7 @@ assert.exists.file = warpvol.com
   assert.tf.limit-on-maximum-residual=8.0
   #
   #dualvolmatch parameters
-  assert.tf.limit-on-residual-in-patch-correlations=10.0
+  assert.tf.limit-on-mean-residual-in-patch-correlations=10.0
   #
   assert.bn.restart-combine=off
   #
@@ -299,7 +299,7 @@ assert.exists.file = warpvol.com
   assert.enabled.tf.limit-on-maximum-residual=
   #
   #dualvolmatch parameters
-  assert.disabled.tf.limit-on-residual-in-patch-correlations=
+  assert.disabled.tf.limit-on-mean-residual-in-patch-correlations=
   #
   assert.enabled.bn.restart-combine=
   #
@@ -327,7 +327,7 @@ assert.exists.file = warpvol.com
   assert.disabled.tf.limit-on-maximum-residual=
   #
   #dualvolmatch parameters
-  assert.enabled.tf.limit-on-residual-in-patch-correlations=
+  assert.enabled.tf.limit-on-mean-residual-in-patch-correlations=
   cb.use-image-correlations-instead-of-solvematch-for-initial-match=off
   #
   #solvematch parameters
