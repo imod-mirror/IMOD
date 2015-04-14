@@ -49,7 +49,7 @@ subroutine input_vars(var, varName, inputAlf, numVarSearch, numVarAngles, &
   integer*4 iref2, ioptMag, irefComp, ioptComp, iffix, iv, jv, ioptDel
   integer*4 irefDmag, nvarTmp, ivdum, idist, ioptDist(2), ioptAlf, nviewFixIn
   integer*4 irefTilt, numDmagVar, ivl, ivh, lenOpt
-  integer*4 irefTiltIn
+  integer*4 irefTiltIn, noSepTiltGroups, numSepSave
   integer*4 nearest_view, ifpip, mapFix, ierr
   character*1024 listString
   save ioptRot, ivSpecEndXtilt, ioptTilt, nviewFixIn, irefTiltIn
@@ -76,6 +76,7 @@ subroutine input_vars(var, varName, inputAlf, numVarSearch, numVarAngles, &
   tiltAdd = 0.
   numVarSearch = 0
   ifpip = 0
+  noSepTiltGroups = 0
   if (ifLocal == 0) then
     call allocateMapsep(ierr)
     call memoryError(ierr, 'ARRAYS FOR MAPSEP')
@@ -93,6 +94,7 @@ subroutine input_vars(var, varName, inputAlf, numVarSearch, numVarAngles, &
       call mapSeparateGroup(iviewsInGroup(1, ig), numSepInGroup(ig), mapFileToView,  &
           nfileViews)
     enddo
+    ierr = PipGetInteger('NoSeparateTiltGroups', noSepTiltGroups)
     rotStart = 0.
     ierr = PipGetFloat('RotationAngle', rotStart)
   endif
@@ -360,13 +362,18 @@ subroutine input_vars(var, varName, inputAlf, numVarSearch, numVarAngles, &
       power = powerTilt
     endif
     call setGrpSize(tilt, nview, power, groupSize)
-    call automap(nview, mapList, groupSize, mapFileToView, nfileViews &
-        , ifpip, 1, PrependLocal('TiltDefaultGrouping', ifLocal), &
+    !
+    ! Cancel the separate groups if appropriate by saving, zeroing, and restoring them
+    numSepSave = numSeparateGroups
+    if ((noSepTiltGroups == 1 .and. patchTrackModel) .or. noSepTiltGroups > 1) &
+        numSeparateGroups = 0
+    call automap(nview, mapList, groupSize, mapFileToView, nfileViews , ifpip, 1, &
+        PrependLocal('TiltDefaultGrouping', ifLocal), &
         PrependLocal('TiltNondefaultGroup', ifLocal), numInView, ninThresh, &
-        ifLocal, nmapDefTilt, nRanSpecTilt, nmapSpecTilt, ivSpecStrTilt, &
-        ivSpecEndTilt)
+        ifLocal, nmapDefTilt, nRanSpecTilt, nmapSpecTilt, ivSpecStrTilt, ivSpecEndTilt)
     if (.not.pipinput) write(6, 111) (mapList(i), i = 1, nview)
 111 format(/,' Variable mapping list:',(1x,25i3))
+    numSeparateGroups = numSepSave
   endif
   !
   ! analyze map list
