@@ -256,7 +256,8 @@ end subroutine automap
 
 ! Input the separate groups and check that not every view is in each one
 !
-subroutine inputSeparateGroups(numSeparateGroups, numSepInGroup, iviewsInGroup, listString)
+subroutine inputSeparateGroups(numSeparateGroups, numSepInGroup, iviewsInGroup,  &
+    listString)
   use alivar
   implicit none
   integer*4 numSeparateGroups, numSepInGroup(*), iviewsInGroup(maxView, *)
@@ -306,17 +307,14 @@ subroutine inputGroupings(nFileViews, ifpip, ifRequired, defaultOption, &
   !
   nRanSpecIn = 0
   if (ifpip == 0) then
-    print *,'Enter the negative of a group size to NOT treat ', &
-        'any views separately here.'
-    write(*,'(1x,a,$)') 'Default group size, # of ranges'// &
-        ' with special group sizes: '
+    print *,'Enter the negative of a group size to NOT treat any views separately here.'
+    write(*,'(1x,a,$)') 'Default group size, # of ranges with special group sizes: '
     read(5,*) nmapDef, nRanSpecIn
   else
     if (PipGetInteger(defaultOption, nmapDef) > 0) then
       if (ifRequired == 0) return
       print *
-      print *,'ERROR: AUTOMAP - OPTION ', trim(defaultOption), &
-          ' MUST BE ENTERED'
+      print *,'ERROR: AUTOMAP - OPTION ', trim(defaultOption), ' MUST BE ENTERED'
       call exit(1)
     endif
     ierr = PipNumberOfEntries(nonDefaultOption, nRanSpecIn)
@@ -333,8 +331,7 @@ subroutine inputGroupings(nFileViews, ifpip, ifRequired, defaultOption, &
           iran, ', group size: '
       read(5,*) ivstr, ivend, nmapSpecIn(iran)
     else
-      ierr = PipGetThreeIntegers(nonDefaultOption, ivstr, ivend, &
-          nmapSpecIn(iran))
+      ierr = PipGetThreeIntegers(nonDefaultOption, ivstr, ivend, nmapSpecIn(iran))
     endif
     if (ivstr > ivend) then
       print *,'ERROR: AUTOMAP - Start past end of range:', ivstr, ivend
