@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4/13/15: Added option to Tiltalign to allow grouping of tilt angles across
+separate view groups and put option in master com file to do this for a patch
+tracking model. 
+
 4/13/15: Added option to set fallback thresholds for Findbeads3d.
 
 4/10/15: Made Batchruntomo apply directives for options in golderaser.com 
