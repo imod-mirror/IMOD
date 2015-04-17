@@ -1811,13 +1811,13 @@ end subroutine decompose
 
 !
 !-------------------------------------------------------------------------
-subroutine dumpSlice(LSLICE, DMIN, DMAX, DTOT8)
+subroutine dumpSlice(lslice, dmin, dmax, dtot8)
   ! --------------------------------------
   !
   use tiltvars
   implicit none
-  integer*4 lslice, nparextra, iend, index, i, j, imapOut, indDel
-  real*4 DMIN, DMAX, fill
+  integer*4 lslice, numParExtraLines, iend, index, i, j, imapOut, indDel
+  real*4 dmin, dmax, fill
   real*8 dtot8, dtmp8
   !
   ! If adding to a base rec, read in each line and add scaled values
@@ -1853,8 +1853,8 @@ subroutine dumpSlice(LSLICE, DMIN, DMAX, DTOT8)
     enddo
   endif
   !
-  nparextra = 100
-  IEND = IMAPOUT + ithickOut * iwidth - 1
+  numParExtraLines = 100
+  iend = imapOut + ithickOut * iwidth - 1
   !
   ! outScale
   ! DNM simplified and fixed bug in getting min/max/mean
@@ -1864,8 +1864,8 @@ subroutine dumpSlice(LSLICE, DMIN, DMAX, DTOT8)
   !
   if (reprojBP) then
     !--------------outScale
-    DO I = IMAPOUT, IEND
-      array(I) = (array(I) + outAdd) * outScale
+    do i = imapOut, iend
+      array(i) = (array(i) + outAdd) * outScale
     enddo
     !
     ! Fill value assumes edge fill value
@@ -1877,9 +1877,9 @@ subroutine dumpSlice(LSLICE, DMIN, DMAX, DTOT8)
           cosReproj(j), xRayStart(i), yRayStart(i), &
           numPixInRay(i), maxRayPixels(j), fill, projLine, 0, 0)
       do i = 1, iwidth
-        DMIN = AMIN1(projLine(I), DMIN)
-        DMAX = AMAX1(projLine(I), DMAX)
-        DTmp8 = DTmp8 + projLine(I)
+        dmin = amin1(projLine(i), dmin)
+        dmax = amax1(projLine(i), dmax)
+        dtmp8 = dtmp8 + projLine(i)
       enddo
       i = (lslice - isliceStart) / idelSlice
       if (minTotSlice > 0) i = lslice - minTotSlice
@@ -1891,11 +1891,11 @@ subroutine dumpSlice(LSLICE, DMIN, DMAX, DTOT8)
   endif
   !
   !--------------outScale and get min / max / sum
-  DO I = IMAPOUT, IEND
-    array(I) = (array(I) + outAdd) * outScale
-    DMIN = AMIN1(array(I), DMIN)
-    DMAX = AMAX1(array(I), DMAX)
-    DTmp8 = DTmp8 + array(I)
+  do i = imapOut, iend
+    array(i) = (array(i) + outAdd) * outScale
+    dmin = amin1(array(i), dmin)
+    dmax = amax1(array(i), dmax)
+    dtmp8 = dtmp8 + array(i)
     !
   enddo
   dtot8 = dtot8 + dtmp8
@@ -1903,8 +1903,8 @@ subroutine dumpSlice(LSLICE, DMIN, DMAX, DTOT8)
   ! Dump slice
   if (perpendicular) then
     ! ....slices correspond to sections of map
-    CALL parWrtSEC(2, array(IMAPOUT))
-  ELSE
+    call parWrtSec(2, array(imapOut))
+  else
     ! ....slices must be properly stored
     ! Take each line of array and place it in the correct section of the map.
     index = imapOut
@@ -1913,23 +1913,23 @@ subroutine dumpSlice(LSLICE, DMIN, DMAX, DTOT8)
       index = imapOut + (ithickOut - 1) * iwidth
       indDel = -1
     endif
-    DO J = 1, ithickOut
-      CALL iiuSetPosition(2, J - 1, (LSLICE - isliceStart) / idelSlice)
-      CALL IWRLIN(2, array(INDEX))
+    do j = 1, ithickOut
+      call iiuSetPosition(2, j - 1, (lslice - isliceStart) / idelSlice)
+      call iwrlin(2, array(index))
       !
       ! DNM 2/29/01: partially demangle the parallel output by writing
       ! up to 100 lines at a time in this plane
       !
-      if (mod((LSLICE - isliceStart) / idelSlice, nparextra) == 0) then
-        do i = 1, min(nparextra - 1, (isliceEnd - lslice) / idelSlice)
-          CALL IWRLIN(2, array(INDEX))
+      if (mod((lslice - isliceStart) / idelSlice, numParExtraLines) == 0) then
+        do i = 1, min(numParExtraLines - 1, (isliceEnd - lslice) / idelSlice)
+          call iwrlin(2, array(index))
         enddo
       endif
-      INDEX = INDEX + indDel * iwidth
-    END DO
-  END IF
+      index = index + indDel * iwidth
+    enddo
+  endif
   !
-  RETURN
+  return
 end subroutine dumpSlice
 
 ! maskEdges out (blur) the edges of the slice at the given index
@@ -1937,12 +1937,12 @@ end subroutine dumpSlice
 subroutine maskSlice(ibaseMask, ithickMask)
   use tiltvars
   implicit none
-  integer*4 ibaseMask, ithickMask, i, j, idir, limit, lr, nsum, nsmooth
-  integer*4 ntaper, index, ibase
+  integer*4 ibaseMask, ithickMask, i, j, idir, limit, lr, nsum, numSmooth
+  integer*4 numTaper, index, ibase
   real*4 sum, edgeMean, frac
   !
-  nsmooth = 10
-  ntaper = 10
+  numSmooth = 10
+  numTaper = 10
   idir = -1
   limit = 1
   do lr = 1, 2
@@ -1961,7 +1961,7 @@ subroutine maskSlice(ibaseMask, ithickMask)
       index = ixUnmaskedSE(lr, j) + idir
       sum = array(ibase + ixUnmaskedSE(lr, j))
       nsum = 1
-      do i = 1, nsmooth
+      do i = 1, numSmooth
         if (idir * (limit - index) < 0) exit
         if (j + i <= ithickMask) then
           nsum = nsum + 1
@@ -1973,16 +1973,16 @@ subroutine maskSlice(ibaseMask, ithickMask)
         endif
         !
         ! Taper partway to mean over this smoothing distance
-        frac = i / (ntaper + nsmooth + 1.)
+        frac = i / (numTaper + numSmooth + 1.)
         array(ibase + index) = (1. - frac) * sum / nsum + frac * edgeMean
         index = index + idir
       enddo
       !
       ! Then taper rest of way down to mean over more pixels, then fill
       ! with mean
-      do i = 1, ntaper
+      do i = 1, numTaper
         if (idir * (limit - index) < 0) exit
-        frac = (i + nsmooth) / (ntaper + nsmooth + 1.)
+        frac = (i + numSmooth) / (numTaper + numSmooth + 1.)
         array(ibase + index) = (1. - frac) * sum / nsum + frac * edgeMean
         index = index + idir
       enddo
@@ -3829,17 +3829,17 @@ CONTAINS
 end subroutine inputParameters
 
 
-! Finds two nearest angles to PROJ and returns their indices IND1 and
+! Finds two nearest angles to PROJANGLE and returns their indices IND1 and
 ! IND2 and an interpolation fraction FRAC
 !
-subroutine lookupAngle(proj, angles, numViews, ind1, ind2, frac)
+subroutine lookupAngle(projAngle, angles, numViews, ind1, ind2, frac)
   implicit none
-  real*4 proj, angles(*), frac
+  real*4 projAngle, angles(*), frac
   integer*4 numViews, ind1, ind2, i
   ind1 = 0
   ind2 = 0
   do i = 1, numViews
-    if (proj >= angles(i)) then
+    if (projAngle >= angles(i)) then
       if (ind1 == 0) ind1 = i
       if (angles(i) > angles(ind1)) ind1 = i
     else
@@ -3853,7 +3853,7 @@ subroutine lookupAngle(proj, angles, numViews, ind1, ind2, frac)
   elseif (ind2 == 0) then
     ind2 = ind1
   else
-    frac = (proj - angles(ind1)) / (angles(ind2) - angles(ind1))
+    frac = (projAngle - angles(ind1)) / (angles(ind2) - angles(ind1))
   endif
   return
 end subroutine lookupAngle
@@ -3861,24 +3861,23 @@ end subroutine lookupAngle
 
 ! Compute mean and SD of interior of a slice for SIRT report
 !
-subroutine sampleForReport(slice, lslice, kthick, iteration, sscale, &
-    sflevl)
+subroutine sampleForReport(slice, lslice, kthick, iteration, sampScale, sampAdd)
   use tiltvars
   implicit none
-  real*4 slice(*), sscale, sflevl, avg, sd
-  integer*4 lslice, kthick, iteration, iskip, ixlo, iylo, ierr
+  real*4 slice(*), sampScale, sampAdd, avg, SD
+  integer*4 lslice, kthick, iteration, iskip, ixLow, iyLow, ierr
   integer*4 sampleMeanSD
   !
   iskip = (isliceEnd - isliceStart) / 10
   if (lslice < isliceStart + iskip .or. lslice > isliceEnd - iskip) return
-  ixlo = iwidth / 10
-  iylo = kthick / 4
-  ierr = sampleMeanSD(slice, iwidth, kthick, 0.02, ixlo, iylo, iwidth - 2 * &
-      ixlo, kthick - 2 * iylo, avg, sd)
+  ixLow = iwidth / 10
+  iyLow = kthick / 4
+  ierr = sampleMeanSD(slice, iwidth, kthick, 0.02, ixLow, iyLow, iwidth - 2 * &
+      ixLow, kthick - 2 * iyLow, avg, SD)
   if (ierr .ne. 0) return
   reportVals(1, iteration) = reportVals(1, iteration) + &
-      (avg + sflevl) * sscale
-  reportVals(2, iteration) = reportVals(2, iteration) + sd * sscale
+      (avg + sampAdd) * sampScale
+  reportVals(2, iteration) = reportVals(2, iteration) + SD * sampScale
   reportVals(3, iteration) = reportVals(3, iteration) + 1
   return
 end subroutine sampleForReport
@@ -3892,20 +3891,20 @@ subroutine local_factors(ix, iy, iv, ind1, ind2, ind3, ind4, f1, f2, f3, f4)
   !
   use tiltvars
   implicit none
-  integer*4 ix, iy, iv, ind1, ind2, ind3, ind4, ixt, ixpos, iyt, iypos
+  integer*4 ix, iy, iv, ind1, ind2, ind3, ind4, ixt, ixPos, iyt, iyPos
   real*4 f1, f2, f3, f4, fx, fy
   !
   ixt = min(max(ix - ixStartWarp, 0), (nxWarp - 1) * idelXwarp)
-  ixpos = min(ixt / idelXwarp + 1, nxWarp - 1)
-  fx = float(ixt - (ixpos - 1) * idelXwarp) / idelXwarp
+  ixPos = min(ixt / idelXwarp + 1, nxWarp - 1)
+  fx = float(ixt - (ixPos - 1) * idelXwarp) / idelXwarp
   iyt = min(max(iy - iyStartWarp, 0), (nyWarp - 1) * idelYwarp)
-  iypos = min(iyt / idelYwarp + 1, nyWarp - 1)
-  fy = float(iyt - (iypos - 1) * idelYwarp) / idelYwarp
+  iyPos = min(iyt / idelYwarp + 1, nyWarp - 1)
+  fy = float(iyt - (iyPos - 1) * idelYwarp) / idelYwarp
 
-  ind1 = indWarp(nxWarp * (iypos - 1) + ixpos) + iv
-  ind2 = indWarp(nxWarp * (iypos - 1) + ixpos + 1) + iv
-  ind3 = indWarp(nxWarp * iypos + ixpos) + iv
-  ind4 = indWarp(nxWarp * iypos + ixpos + 1) + iv
+  ind1 = indWarp(nxWarp * (iyPos - 1) + ixPos) + iv
+  ind2 = indWarp(nxWarp * (iyPos - 1) + ixPos + 1) + iv
+  ind3 = indWarp(nxWarp * iyPos + ixPos) + iv
+  ind4 = indWarp(nxWarp * iyPos + ixPos + 1) + iv
   f1 = (1. -fy) * (1. -fx)
   f2 = (1. -fy) * fx
   f3 = fy * (1. -fx)
@@ -3917,22 +3916,21 @@ end subroutine local_factors
 ! Compute local projection factors at a position in a column for view iv:
 ! j is X index in the reconstruction, lslice is slice # in aligned stack
 !
-subroutine localProjFactors(j, lslice, iv, xprojf, xprojz, yprojf, &
-    yprojz)
+subroutine localProjFactors(j, lslice, iv, xprojFix, xprojZ, yprojFix, yprojZ)
   use tiltvars
   implicit none
   integer*4 j, lslice, iv
-  real*4 xprojf, xprojz, yprojf, yprojz
+  real*4 xprojFix, xprojZ, yprojFix, yprojZ
   integer*4 ind1, ind2, ind3, ind4, ixc
   real*4 f1, f2, f3, f4, xx, yy
-  real*4 calf, salf, a11, a12, a21, a22, xadd, yadd, xalladd, yalladd
-  real*4 calf2, salf2, a112, a122, a212, a222, xadd2, yadd2
-  real*4 calf3, salf3, a113, a123, a213, a223, xadd3, yadd3
-  real*4 calf4, salf4, a114, a124, a214, a224, xadd4, yadd4
+  real*4 cosAlph, sinAlph, a11, a12, a21, a22, xAdd, yAdd, xAllAdd, yAllAdd
+  real*4 cosAlph2, sinAlph2, a112, a122, a212, a222, xAdd2, yAdd2
+  real*4 cosAlph3, sinAlph3, a113, a123, a213, a223, xAdd3, yAdd3
+  real*4 cosAlph4, sinAlph4, a114, a124, a214, a224, xAdd4, yAdd4
   real*4 f1x, f2x, f3x, f4x, f1xy, f2xy, f3xy, f4xy
   real*4 f1y, f2y, f3y, f4y, f1yy, f2yy, f3yy, f4yy
   real*4 xp1f, xp1z, yp1f, xp2f, xp2z, yp2f, xp3f, xp3z, yp3f, xp4f, xp4z, yp4f
-  real*4 cbeta, sbeta, cbeta2, sbeta2, cbeta3, sbeta3, cbeta4, sbeta4
+  real*4 cosBet, sinBet, cosBet2, sinBet2, cosBet3, sinBet3, cosBet4, sinBet4
   !
   ! get transform and angle adjustment
   !
@@ -3942,49 +3940,49 @@ subroutine localProjFactors(j, lslice, iv, xprojf, xprojz, yprojf, &
   ! get all the factors needed to compute a projection position
   ! from the four local transforms
   !
-  cbeta = cWarpBeta(ind1)
-  sbeta = sWarpBeta(ind1)
-  calf = cWarpAlpha(ind1)
-  salf = sWarpAlpha(ind1)
+  cosBet = cWarpBeta(ind1)
+  sinBet = sWarpBeta(ind1)
+  cosAlph = cWarpAlpha(ind1)
+  sinAlph = sWarpAlpha(ind1)
   a11 = fwarp(1, 1, ind1)
   a12 = fwarp(1, 2, ind1)
   a21 = fwarp(2, 1, ind1)
   a22 = fwarp(2, 2, ind1)
-  xadd = fwarp(1, 3, ind1) + xcenIn - xcenIn * a11 - centerSlice * a12
-  yadd = fwarp(2, 3, ind1) + centerSlice - xcenIn * a21 - centerSlice * a22
+  xAdd = fwarp(1, 3, ind1) + xcenIn - xcenIn * a11 - centerSlice * a12
+  yAdd = fwarp(2, 3, ind1) + centerSlice - xcenIn * a21 - centerSlice * a22
   !
-  cbeta2 = cWarpBeta(ind2)
-  sbeta2 = sWarpBeta(ind2)
-  calf2 = cWarpAlpha(ind2)
-  salf2 = sWarpAlpha(ind2)
+  cosBet2 = cWarpBeta(ind2)
+  sinBet2 = sWarpBeta(ind2)
+  cosAlph2 = cWarpAlpha(ind2)
+  sinAlph2 = sWarpAlpha(ind2)
   a112 = fwarp(1, 1, ind2)
   a122 = fwarp(1, 2, ind2)
   a212 = fwarp(2, 1, ind2)
   a222 = fwarp(2, 2, ind2)
-  xadd2 = fwarp(1, 3, ind2) + xcenIn - xcenIn * a112 - centerSlice * a122
-  yadd2 = fwarp(2, 3, ind2) + centerSlice - xcenIn * a212 - centerSlice * a222
+  xAdd2 = fwarp(1, 3, ind2) + xcenIn - xcenIn * a112 - centerSlice * a122
+  yAdd2 = fwarp(2, 3, ind2) + centerSlice - xcenIn * a212 - centerSlice * a222
   !
-  cbeta3 = cWarpBeta(ind3)
-  sbeta3 = sWarpBeta(ind3)
-  calf3 = cWarpAlpha(ind3)
-  salf3 = sWarpAlpha(ind3)
+  cosBet3 = cWarpBeta(ind3)
+  sinBet3 = sWarpBeta(ind3)
+  cosAlph3 = cWarpAlpha(ind3)
+  sinAlph3 = sWarpAlpha(ind3)
   a113 = fwarp(1, 1, ind3)
   a123 = fwarp(1, 2, ind3)
   a213 = fwarp(2, 1, ind3)
   a223 = fwarp(2, 2, ind3)
-  xadd3 = fwarp(1, 3, ind3) + xcenIn - xcenIn * a113 - centerSlice * a123
-  yadd3 = fwarp(2, 3, ind3) + centerSlice - xcenIn * a213 - centerSlice * a223
+  xAdd3 = fwarp(1, 3, ind3) + xcenIn - xcenIn * a113 - centerSlice * a123
+  yAdd3 = fwarp(2, 3, ind3) + centerSlice - xcenIn * a213 - centerSlice * a223
   !
-  cbeta4 = cWarpBeta(ind4)
-  sbeta4 = sWarpBeta(ind4)
-  calf4 = cWarpAlpha(ind4)
-  salf4 = sWarpAlpha(ind4)
+  cosBet4 = cWarpBeta(ind4)
+  sinBet4 = sWarpBeta(ind4)
+  cosAlph4 = cWarpAlpha(ind4)
+  sinAlph4 = sWarpAlpha(ind4)
   a114 = fwarp(1, 1, ind4)
   a124 = fwarp(1, 2, ind4)
   a214 = fwarp(2, 1, ind4)
   a224 = fwarp(2, 2, ind4)
-  xadd4 = fwarp(1, 3, ind4) + xcenIn - xcenIn * a114 - centerSlice * a124
-  yadd4 = fwarp(2, 3, ind4) + centerSlice - xcenIn * a214 - centerSlice * a224
+  xAdd4 = fwarp(1, 3, ind4) + xcenIn - xcenIn * a114 - centerSlice * a124
+  yAdd4 = fwarp(2, 3, ind4) + centerSlice - xcenIn * a214 - centerSlice * a224
   !
   f1x = f1 * a11
   f2x = f2 * a112
@@ -4004,41 +4002,41 @@ subroutine localProjFactors(j, lslice, iv, xprojf, xprojz, yprojf, &
   f3yy = f3 * a223
   f4yy = f4 * a224
   ! fyfromy=f1*a22+f2*a222+f3*a223+f4*a224
-  xalladd = f1 * xadd + f2 * xadd2 + f3 * xadd3 + f4 * xadd4
-  yalladd = f1 * yadd + f2 * yadd2 + f3 * yadd3 + f4 * yadd4
+  xAllAdd = f1 * xAdd + f2 * xAdd2 + f3 * xAdd3 + f4 * xAdd4
+  yAllAdd = f1 * yAdd + f2 * yAdd2 + f3 * yAdd3 + f4 * yAdd4
   !
   ! Each projection position is a sum of a fixed factor ("..f")
   ! and a factor that multiplies z ("..z")
   !
   xx = j - xcenOut
   yy = lslice - centerSlice
-  xp1f = xx * cbeta + yy * salf * sbeta + xcenIn + axisXoffset
-  xp1z = calf * sbeta + warpXZfac(ind1)
-  xp2f = xx * cbeta2 + yy * salf2 * sbeta2 + xcenIn + axisXoffset
-  xp2z = calf2 * sbeta2 + warpXZfac(ind2)
-  xp3f = xx * cbeta3 + yy * salf3 * sbeta3 + xcenIn + axisXoffset
-  xp3z = calf3 * sbeta3 + warpXZfac(ind3)
-  xp4f = xx * cbeta4 + yy * salf4 * sbeta4 + xcenIn + axisXoffset
-  xp4z = calf4 * sbeta4 + warpXZfac(ind4)
+  xp1f = xx * cosBet + yy * sinAlph * sinBet + xcenIn + axisXoffset
+  xp1z = cosAlph * sinBet + warpXZfac(ind1)
+  xp2f = xx * cosBet2 + yy * sinAlph2 * sinBet2 + xcenIn + axisXoffset
+  xp2z = cosAlph2 * sinBet2 + warpXZfac(ind2)
+  xp3f = xx * cosBet3 + yy * sinAlph3 * sinBet3 + xcenIn + axisXoffset
+  xp3z = cosAlph3 * sinBet3 + warpXZfac(ind3)
+  xp4f = xx * cosBet4 + yy * sinAlph4 * sinBet4 + xcenIn + axisXoffset
+  xp4z = cosAlph4 * sinBet4 + warpXZfac(ind4)
 
-  yp1f = yy * calf + centerSlice
-  yp2f = yy * calf2 + centerSlice
-  yp3f = yy * calf3 + centerSlice
-  yp4f = yy * calf4 + centerSlice
+  yp1f = yy * cosAlph + centerSlice
+  yp2f = yy * cosAlph2 + centerSlice
+  yp3f = yy * cosAlph3 + centerSlice
+  yp4f = yy * cosAlph4 + centerSlice
   !
   ! store the fixed and z-dependent component of the
   ! projection coordinates
   !
-  xprojf = f1x * xp1f + f2x * xp2f + f3x * xp3f + f4x * xp4f + &
-      f1xy * yp1f + f2xy * yp2f + f3xy * yp3f + f4xy * yp4f + xalladd
-  xprojz = f1x * xp1z + f2x * xp2z + f3x * xp3z + f4x * xp4z - &
-      (f1xy * (salf - warpYZfac(ind1)) + f2xy * (salf2 - warpYZfac(ind2)) + &
-      f3xy * (salf3 - warpYZfac(ind3)) + f4xy * (salf4 - warpYZfac(ind4)))
-  yprojf = f1y * xp1f + f2y * xp2f + f3y * xp3f + f4y * xp4f + &
-      f1yy * yp1f + f2yy * yp2f + f3yy * yp3f + f4yy * yp4f + yalladd
-  yprojz = f1y * xp1z + f2y * xp2z + f3y * xp3z + f4y * xp4z - &
-      (f1yy * (salf - warpYZfac(ind1)) + f2yy * (salf2 - warpYZfac(ind2)) + &
-      f3yy * (salf3 - warpYZfac(ind3)) + f4yy * (salf4 - warpYZfac(ind4)))
+  xprojFix = f1x * xp1f + f2x * xp2f + f3x * xp3f + f4x * xp4f + &
+      f1xy * yp1f + f2xy * yp2f + f3xy * yp3f + f4xy * yp4f + xAllAdd
+  xprojZ = f1x * xp1z + f2x * xp2z + f3x * xp3z + f4x * xp4z - &
+      (f1xy * (sinAlph - warpYZfac(ind1)) + f2xy * (sinAlph2 - warpYZfac(ind2)) + &
+      f3xy * (sinAlph3 - warpYZfac(ind3)) + f4xy * (sinAlph4 - warpYZfac(ind4)))
+  yprojFix = f1y * xp1f + f2y * xp2f + f3y * xp3f + f4y * xp4f + &
+      f1yy * yp1f + f2yy * yp2f + f3yy * yp3f + f4yy * yp4f + yAllAdd
+  yprojZ = f1y * xp1z + f2y * xp2z + f3y * xp3z + f4y * xp4z - &
+      (f1yy * (sinAlph - warpYZfac(ind1)) + f2yy * (sinAlph2 - warpYZfac(ind2)) + &
+      f3yy * (sinAlph3 - warpYZfac(ind3)) + f4yy * (sinAlph4 - warpYZfac(ind4)))
   return
 end subroutine localProjFactors
 
