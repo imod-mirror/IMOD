@@ -77,13 +77,7 @@ public final class MatchorwarpParam implements ConstMatchorwarpParam, CommandPar
     "StructureCriteria");
   private final StringParameter extentToFit = new StringParameter("ExtentToFit");
 
-  private boolean useRefinelimit = false;
-
   MatchorwarpParam() {
-    xLowerExclude.setDisplayValue(0);
-    xUpperExclude.setDisplayValue(0);
-    zLowerExclude.setDisplayValue(0);
-    zUpperExclude.setDisplayValue(0);
   }
 
   public void parseComScriptCommand(final ComScriptCommand scriptCommand)
@@ -95,9 +89,6 @@ public final class MatchorwarpParam implements ConstMatchorwarpParam, CommandPar
     else {
       sizeXYZorVolume.parse(scriptCommand);
       refineLimit.parse(scriptCommand);
-      if (!refineLimit.isNull()) {
-        useRefinelimit = true;
-      }
       residualFile.parse(scriptCommand);
       vectorModel.parse(scriptCommand);
       warpLimits.parse(scriptCommand);
@@ -154,7 +145,6 @@ public final class MatchorwarpParam implements ConstMatchorwarpParam, CommandPar
   public void initializeDefaults() {
     sizeXYZorVolume.reset();
     refineLimit.reset();
-    useRefinelimit = false;
     residualFile.reset();
     vectorModel.reset();
     clipPlaneBoxSize.reset();
@@ -200,7 +190,6 @@ public final class MatchorwarpParam implements ConstMatchorwarpParam, CommandPar
       if (cmdLineArgs[i].startsWith("-refinel")) {
         i++;
         refineLimit.set(cmdLineArgs[i]);
-        useRefinelimit = true;
       }
       if (cmdLineArgs[i].startsWith("-res")) {
         i++;
@@ -326,7 +315,7 @@ public final class MatchorwarpParam implements ConstMatchorwarpParam, CommandPar
    * @param refineLimit The refineLimit to set
    */
   public void setRefineLimit(final String input) {
-    refineLimit.set(refineLimit);
+    refineLimit.set(input);
   }
 
   /**
@@ -349,6 +338,10 @@ public final class MatchorwarpParam implements ConstMatchorwarpParam, CommandPar
     xLowerExclude.set(input);
   }
 
+  public void resetXLowerExclude() {
+    xLowerExclude.reset();
+  }
+
   /**
    * Sets the xUpperExclude.
    * @param xUpperExclude The xUpperExclude to set
@@ -359,6 +352,10 @@ public final class MatchorwarpParam implements ConstMatchorwarpParam, CommandPar
 
   public void setXUpperExclude(final int input) {
     xUpperExclude.set(input);
+  }
+
+  public void resetXUpperExclude() {
+    xUpperExclude.reset();
   }
 
   /**
@@ -373,6 +370,10 @@ public final class MatchorwarpParam implements ConstMatchorwarpParam, CommandPar
     zLowerExclude.set(input);
   }
 
+  public void resetZLowerExclude() {
+    zLowerExclude.reset();
+  }
+
   /**
    * Sets the zUpperExclude.
    * @param zUpperExclude The zUpperExclude to set
@@ -383,6 +384,10 @@ public final class MatchorwarpParam implements ConstMatchorwarpParam, CommandPar
 
   public void setZUpperExclude(final int input) {
     zUpperExclude.set(input);
+  }
+
+  public void resetZUpperExclude() {
+    zUpperExclude.reset();
   }
 
   /**
@@ -419,11 +424,19 @@ public final class MatchorwarpParam implements ConstMatchorwarpParam, CommandPar
     return xLowerExclude.getInt();
   }
 
+  public boolean isXLowerExcludeSet() {
+    return !xLowerExclude.isNull();
+  }
+
   /**
    * @return int
    */
   public int getXUpperExclude() {
     return xUpperExclude.getInt();
+  }
+
+  public boolean isXUpperExcludeSet() {
+    return !xUpperExclude.isNull();
   }
 
   /**
@@ -433,11 +446,19 @@ public final class MatchorwarpParam implements ConstMatchorwarpParam, CommandPar
     return zLowerExclude.getInt();
   }
 
+  public boolean isZLowerExcludeSet() {
+    return !zLowerExclude.isNull();
+  }
+
   /**
    * @return int
    */
   public int getZUpperExclude() {
     return zUpperExclude.getInt();
+  }
+
+  public boolean isZUpperExcludeSet() {
+    return !zUpperExclude.isNull();
   }
 
   public boolean isLinearInterpolation() {
