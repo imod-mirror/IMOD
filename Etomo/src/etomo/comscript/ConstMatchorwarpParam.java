@@ -45,4 +45,12 @@ public interface ConstMatchorwarpParam {
   public int getZUpperExclude();
 
   public boolean isLinearInterpolation();
+
+  public boolean isXLowerExcludeSet();
+
+  public boolean isXUpperExcludeSet();
+
+  public boolean isZLowerExcludeSet();
+
+  public boolean isZUpperExcludeSet();
 }
