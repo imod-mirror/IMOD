@@ -4356,56 +4356,56 @@ integer*4 function allocateArray(maxNeeds, numEval, minLoad, minMemory)
 end function allocateArray
 
 
-subroutine reproject(array, nxs, nys, nxout, sinang, cosang, xRayStart, &
+subroutine reproject(array, nxs, nys, nxOut, sinAngle, cosAngle, xRayStart, &
     yRayStart, numPixInRay, maxRayPixels, fill, projLine, linear, noScale)
   implicit none
-  integer*4 nxs, nys, nxout, numPixInRay(*), maxRayPixels, linear, noScale
+  integer*4 nxs, nys, nxOut, numPixInRay(*), maxRayPixels, linear, noScale
   real*4 array(nxs, nys), xRayStart(*), yRayStart(*), fill, projLine(*)
-  integer*4 ixout, iray, ixr, iyr, nraypts, idir
-  real*4 sinang, cosang, rayfac, rayadd, xray, yray, pixtmp, fullfill
+  integer*4 ixOut, iray, ixr, iyr, numRayPts, idir
+  real*4 sinAngle, cosAngle, rayFac, rayAdd, xRay, yRay, pixTemp, fullFill
   real * 4 dx, dy, v2, v4, v6, v8, v5, a, b, c, d
   !
-  rayfac = 1. / maxRayPixels
-  fullfill = fill
+  rayFac = 1. / maxRayPixels
+  fullFill = fill
   if (noScale .ne. 0) then
-    rayfac = 1.
-    fullfill = fill * maxRayPixels
+    rayFac = 1.
+    fullFill = fill * maxRayPixels
   endif
-  do ixout = 1, nxout
-    projLine(ixout) = fullfill
-    nraypts = numPixInRay(ixout)
-    if (nraypts > 0) then
-      pixtmp = 0.
-      if (sinang .ne. 0.) then
+  do ixOut = 1, nxOut
+    projLine(ixOut) = fullFill
+    numRayPts = numPixInRay(ixOut)
+    if (numRayPts > 0) then
+      pixTemp = 0.
+      if (sinAngle .ne. 0.) then
         if (linear == 0) then
-          do iray = 0, nraypts - 1
-            xray = xRayStart(ixout) + iray * sinang
-            yray = yRayStart(ixout) + iray * cosang
-            ixr = nint(xray)
-            iyr = nint(yray)
-            dx = xray - ixr
-            dy = yray - iyr
+          do iray = 0, numRayPts - 1
+            xRay = xRayStart(ixOut) + iray * sinAngle
+            yRay = yRayStart(ixOut) + iray * cosAngle
+            ixr = nint(xRay)
+            iyr = nint(yRay)
+            dx = xRay - ixr
+            dy = yRay - iyr
             v2 = array(ixr, iyr - 1)
             v4 = array(ixr - 1, iyr)
             v5 = array(ixr, iyr)
             v6 = array(ixr + 1, iyr)
             v8 = array(ixr, iyr + 1)
             !
-            A = (V6 + V4) * .5 - V5
-            B = (V8 + V2) * .5 - V5
-            C = (V6 - V4) * .5
-            D = (V8 - V2) * .5
-            pixtmp = pixtmp + A * DX * DX + B * DY * DY + C * DX + D * DY + V5
+            a = (v6 + v4) * .5 - v5
+            b = (v8 + v2) * .5 - v5
+            c = (v6 - v4) * .5
+            d = (v8 - v2) * .5
+            pixTemp = pixTemp + a * dx * dx + b * dy * dy + c * dx + d * dy + v5
           enddo
         else
-          do iray = 0, nraypts - 1
-            xray = xRayStart(ixout) + iray * sinang
-            yray = yRayStart(ixout) + iray * cosang
-            ixr = xray
-            iyr = yray
-            dx = xray - ixr
-            dy = yray - iyr
-            pixtmp = pixtmp + (1 - dy) * &
+          do iray = 0, numRayPts - 1
+            xRay = xRayStart(ixOut) + iray * sinAngle
+            yRay = yRayStart(ixOut) + iray * cosAngle
+            ixr = xRay
+            iyr = yRay
+            dx = xRay - ixr
+            dy = yRay - iyr
+            pixTemp = pixTemp + (1 - dy) * &
                 ((1. -dx) * array(ixr, iyr) + dx * array(ixr + 1, iyr)) + dy * &
                 ((1. -dx) * array(ixr, iyr + 1) + dx * array(ixr + 1, iyr + 1))
           enddo
@@ -4414,16 +4414,16 @@ subroutine reproject(array, nxs, nys, nxout, sinang, cosang, xRayStart, &
         !
         ! vertical projection
         !
-        ixr = nint(xRayStart(ixout))
-        iyr = nint(yRayStart(ixout))
-        idir = sign(1., cosang)
-        do iray = 0, nraypts - 1
-          pixtmp = pixtmp + array(ixr, iyr + idir * iray)
+        ixr = nint(xRayStart(ixOut))
+        iyr = nint(yRayStart(ixOut))
+        idir = sign(1., cosAngle)
+        do iray = 0, numRayPts - 1
+          pixTemp = pixTemp + array(ixr, iyr + idir * iray)
         enddo
       endif
 
-      rayadd = rayfac * (maxRayPixels - nraypts) * fill
-      projLine(ixout) = rayfac * pixtmp + rayadd
+      rayAdd = rayFac * (maxRayPixels - numRayPts) * fill
+      projLine(ixOut) = rayFac * pixTemp + rayAdd
     endif
   enddo
   return
@@ -4841,59 +4841,59 @@ end subroutine loadedProjectingPoint
 
 ! reprojOneAngle reprojects a line at one angle from projection data
 ! in ARRAY into reprojLines.  LINE is the Y value in projections, Z value
-! in reconstructed slices.  ARRAY is loaded with slices from inLoadStr to
-! inLoadEnd, with a slice size of IPLANE and NXLOAD values on each line
-! in X.  CBETA, SBETA, CALF, SALF are cosines and sines of tilt angle
+! in reconstructed slices.  ARRAY is loaded with slices from inLoadStart to
+! inLoadEnd, with a slice size of inPlaneSize and NXLOAD values on each line
+! in X.  COSBET, SINBET, COSALPH, SINALPH are cosines and sines of tilt angle
 ! and alpha tilt.  IFALPHA is non-zero for tilt araound the X axis.
-! IWIDE is the width and ithickReproj is the thickness to reprojection;
+! iwidth is the width and ithickReproj is the thickness to reprojection;
 ! the coordinates of the region in the slice to reproject start at
 ! minXreproj, minYreproj and are offset from center by xprojOffset,
-! yprojOffset.  DELZ is the spacing in Y at which to sample points along
-! a projection ray. XCEN, YCEN are center coordinates of output;
-! xcenPdelxx is xcenIn + axisXoffset; SLICEN is the middle coordinate in Z
-! XZFACV, YZFACV are Z factors for this view, and PMEAN is the mean of
+! yprojOffset.  DELZIN is the spacing in Y at which to sample points along
+! a projection ray. XCENout, YCENout are center coordinates of output;
+! xcenPdelxx is xcenIn + axisXoffset; centerSlice is the middle coordinate in Z
+! XZFACVIEW, YZFACVIEW are Z factors for this view, and PMEAN is the mean of
 ! the slices for filling.
 ! Many of these names are the same as in the rest of the program and
 ! have the same meaning, but they are passed in, not taken from the
 ! tiltvars module, so that this can be called in cases other than the
 ! reprojectRec where they are defined.
 !
-subroutine reprojOneAngle(array, reprojLines, inLoadStr, inLoadEnd, line, &
-    cbeta, sbeta, calf, salf, delzIn, iwidth, ithickReproj, inPlaneSize, &
-    nxload, minXreproj, minYreproj, xprojOffset, yprojOffset, xcenOut, ycenOut, &
-    xcenPdelxx, centerSlice, ifAlpha, xzfacv, yzfacv, dmeanIn)
+subroutine reprojOneAngle(array, reprojLines, inLoadStart, inLoadEnd, line, &
+    cosBet, sinBet, cosAlph, sinAlph, delzIn, iwidth, ithickReproj, inPlaneSize, &
+    nxLoad, minXreproj, minYreproj, xprojOffset, yprojOffset, xcenOut, ycenOut, &
+    xcenPdelxx, centerSlice, ifAlpha, xzFacView, yzFacView, dmeanIn)
   implicit none
-  real*4 array(*), reprojLines(*), cbeta, sbeta, calf, salf, delx, delzIn
-  integer*4 inLoadStr, inLoadEnd, line, iwidth, ithickReproj, inPlaneSize, nxload
+  real*4 array(*), reprojLines(*), cosBet, sinBet, cosAlph, sinAlph, delX, delzIn
+  integer*4 inLoadStart, inLoadEnd, line, iwidth, ithickReproj, inPlaneSize, nxLoad
   integer*4 minXreproj, minYreproj, ifAlpha
-  real*4 xprojOffset, yprojOffset, centerSlice, xzfacv, yzfacv, dmeanIn
+  real*4 xprojOffset, yprojOffset, centerSlice, xzFacView, yzFacView, dmeanIn
   real*4 xcenOut, ycenOut, xcenPdelxx
   !
-  integer*4 ix, iz, i, numz, kz, iys, ixnd, ixst, ind, indbase
-  real*4 znum, fz, omfz, zz, xx, fx, ytol, pfill, salfsbetdcal, xcenAdj, ysl, dely
-  real*4 omfx, yy, fy, omfy, xproj, yproj, yslice, d11, d12, d21, d22
+  integer*4 ix, iz, i, numZ, kz, iys, ixEnd, ixStart, ind, indBase
+  real*4 zNum, fz, oneMfz, zz, xx, fx, yEndTol, pfill, salfSbetOverCalf, xcenAdj, yslc
+  real*4 oneMfx, yy, fy, oneMfy, xproj, yproj, ySlice, d11, d12, d21, d22, delY
   real*8 xx8, yy8, zz8
-  integer*4 numx, kx, ixyOKst, ixyOKnd, iyfix, ifixst, ifixnd
-  real*4 delz, xnum, eps
+  integer*4 numX, kx, ixyOKstart, ixyOKend, iyFix, ifixStart, ifixEnd
+  real*4 delZ, xNum, eps
 
-  ytol = 3.05
+  yEndTol = 3.05
   eps = 0.01
   reprojLines(1:iwidth) = 0.
-  if (abs(sbeta * ithickReproj) <= abs(cbeta * iwidth)) then
+  if (abs(sinBet * ithickReproj) <= abs(cosBet * iwidth)) then
     !
-    delz = delzIn
-    delx = 1. / cbeta
-    znum = 1. + (ithickReproj - 1) / delz
-    numz = znum
-    if (znum - numz >= 0.1) numz = numz + 1
+    delZ = delzIn
+    delX = 1. / cosBet
+    zNum = 1. + (ithickReproj - 1) / delZ
+    numZ = zNum
+    if (zNum - numZ >= 0.1) numZ = numZ + 1
     !
     ! Loop up in Z through slices, adding in lines of data to the
     ! output line
-    do kz = 1, numz
-      zz = 1 + (kz - 1) * delz
+    do kz = 1, numZ
+      zz = 1 + (kz - 1) * delZ
       iz = zz
       fz = zz - iz
-      omfz = 1. - fz
+      oneMfz = 1. - fz
       pfill = dmeanIn
       !
       ! If Z is past the top, drop back one line and set up fractions
@@ -4901,20 +4901,20 @@ subroutine reprojOneAngle(array, reprojLines, inLoadStr, inLoadEnd, line, &
       if (zz >= ithickReproj) then
         zz = ithickReproj
         iz = ithickReproj - 1
-        fz = omfz
-        omfz = 0.
+        fz = oneMfz
+        oneMfz = 0.
         pfill = dmeanIn * fz
       endif
       zz = zz + minYreproj - 1 - ycenOut
       !
       ! Get y slice for this z value
       yproj = line + yprojOffset
-      yy = (yproj + zz * (salf - yzfacv) - centerSlice) / calf
-      yslice = yy + centerSlice - yprojOffset
-      if (ifAlpha == 0) yslice = line
+      yy = (yproj + zz * (sinAlph - yzFacView) - centerSlice) / cosAlph
+      ySlice = yy + centerSlice - yprojOffset
+      if (ifAlpha == 0) ySlice = line
       ! if (line==591) print *,kz, zz, iz, fz, omfz, yproj, yy, yslice
-      if (yslice < inloadstr - ytol .or. &
-          yslice > inloadend + ytol) then
+      if (ySlice < inLoadStart - yEndTol .or. &
+          ySlice > inLoadEnd + yEndTol) then
         !
         ! Really out of bounds, do fill
         ! if (line==591) print *,'Out of bounds, view, line, zz', line, zz
@@ -4922,48 +4922,48 @@ subroutine reprojOneAngle(array, reprojLines, inLoadStr, inLoadEnd, line, &
       else
         !
         ! otherwise set up iy and interpolation factors
-        iys = floor(yslice)
+        iys = floor(ySlice)
         if (ifAlpha .ne. 0) then
-          if (iys < inloadstr) then
-            iys = inloadstr
+          if (iys < inLoadStart) then
+            iys = inLoadStart
             fy = 0.
-          else if (iys >= inloadend) then
-            iys = inloadend - 1
+          else if (iys >= inLoadEnd) then
+            iys = inLoadEnd - 1
             fy = 1.
           else
-            fy = yslice - iys
+            fy = ySlice - iys
           endif
-          omfy = 1. - fy
+          oneMfy = 1. - fy
         endif
         !
         ! Now get starting X coordinate, fill to left
         xproj = 1 + xprojOffset
-        xx = (xproj - (yy * salf * sbeta + zz * (calf * sbeta + &
-            xzfacv) + xcenPdelxx)) / cbeta + xcenOut - (minXreproj - 1)
-        ixst = 1
+        xx = (xproj - (yy * sinAlph * sinBet + zz * (cosAlph * sinBet + &
+            xzFacView) + xcenPdelxx)) / cosBet + xcenOut - (minXreproj - 1)
+        ixStart = 1
         if (xx < 1) then
-          ixst = ceiling((1. - xx) / delx + 1.)
+          ixStart = ceiling((1. - xx) / delX + 1.)
         elseif (xx >= iwidth) then
-          ixst = ceiling((iwidth - xx) / delx + 1.)
+          ixStart = ceiling((iwidth - xx) / delX + 1.)
         endif
-        xx = xx + (ixst - 1) * delx
+        xx = xx + (ixStart - 1) * delX
         if (xx < 1 .or. xx >= iwidth) then
-          ixst = ixst + 1
-          xx = xx + delx
+          ixStart = ixStart + 1
+          xx = xx + delX
         endif
-        if (ixst > 1) reprojLines(1:ixst - 1) = reprojLines(1:ixst - 1) + pfill
+        if (ixStart > 1) reprojLines(1:ixStart - 1) = reprojLines(1:ixStart - 1) + pfill
         !
         ! get ending X coordinate, fill to right
-        ixnd = iwidth
-        if (xx + (ixnd - ixst) * delx >= iwidth - eps) then
-          ixnd = (iwidth - xx) / delx + ixst
-          if (xx + (ixnd - ixst) * delx >= iwidth - eps) ixnd = ixnd - 1
-        elseif (xx + (ixnd - ixst) * delx < 1 + eps) then
-          ixnd = (1. - xx) / delx + ixst
-          if (xx + (ixnd - ixst) * delx < 1 + eps) ixnd = ixnd - 1
+        ixEnd = iwidth
+        if (xx + (ixEnd - ixStart) * delX >= iwidth - eps) then
+          ixEnd = (iwidth - xx) / delX + ixStart
+          if (xx + (ixEnd - ixStart) * delX >= iwidth - eps) ixEnd = ixEnd - 1
+        elseif (xx + (ixEnd - ixStart) * delX < 1 + eps) then
+          ixEnd = (1. - xx) / delX + ixStart
+          if (xx + (ixEnd - ixStart) * delX < 1 + eps) ixEnd = ixEnd - 1
         endif
-        if (ixnd < iwidth) &
-            reprojLines(ixnd + 1:iwidth) = reprojLines(ixnd + 1:iwidth) + pfill
+        if (ixEnd < iwidth) &
+            reprojLines(ixEnd + 1:iwidth) = reprojLines(ixEnd + 1:iwidth) + pfill
 
         ! if (line == lsStart) write(*,'(3i6,3f11.3)') iv, ixst, ixnd, xx, &
         ! (ixst+xprojOffset - &
@@ -4974,45 +4974,45 @@ subroutine reprojOneAngle(array, reprojLines, inLoadStr, inLoadEnd, line, &
         ! xzfacv) + xcenPdelxx)) / cbeta + xcenOut - (minXreproj-1)
         !
         ! Add the line in: do simple 2x2 interpolation if no alpha
-        indbase = 1 + inPlaneSize * (iys - inloadstr) + (iz - 1) * nxload
+        indBase = 1 + inPlaneSize * (iys - inLoadStart) + (iz - 1) * nxLoad
         ! if (line==591) print *,ixst, ixnd
         xx8 = xx
         if (ifAlpha == 0) then
-          do i = ixst, ixnd
+          do i = ixStart, ixEnd
             ix = xx8
             fx = xx8 - ix
-            omfx = 1. - fx
-            ind = indbase + ix - 1
+            oneMfx = 1. - fx
+            ind = indBase + ix - 1
             reprojLines(i) = reprojLines(i) + &
-                omfz * omfx * array(ind) + &
-                omfz * fx * array(ind + 1) + &
-                fz * omfx * array(ind + nxload) + &
-                fz * fx * array(ind + nxload + 1)
+                oneMfz * oneMfx * array(ind) + &
+                oneMfz * fx * array(ind + 1) + &
+                fz * oneMfx * array(ind + nxLoad) + &
+                fz * fx * array(ind + nxLoad + 1)
             ! if (line==591.and.i==164) print *,reprojLines(i), array(ind), &
             ! array(ind + 1), array(ind + nxload), array(ind + nxload + 1)
-            xx8 = xx8 + delx
+            xx8 = xx8 + delX
           enddo
         else
           !
           ! Or do the full 3D interpolation if any variation in Y
-          do i = ixst, ixnd
+          do i = ixStart, ixEnd
             ix = xx8
             fx = xx8 - ix
-            omfx = 1. - fx
-            d11 = omfx * omfy
-            d12 = omfx * fy
-            d21 = fx * omfy
+            oneMfx = 1. - fx
+            d11 = oneMfx * oneMfy
+            d12 = oneMfx * fy
+            d21 = fx * oneMfy
             d22 = fx * fy
-            ind = indbase + ix - 1
+            ind = indBase + ix - 1
             reprojLines(i) = reprojLines(i) + &
-                omfz * (d11 * array(ind) &
+                oneMfz * (d11 * array(ind) &
                 + d12 * array(ind + inPlaneSize) + d21 * array(ind + 1) &
                 + d22 * array(ind + inPlaneSize + 1)) &
-                + fz * (d11 * array(ind + nxload) &
-                + d12 * array(ind + inPlaneSize + nxload) &
-                + d21 * array(ind + 1 + nxload) &
-                + d22 * array(ind + inPlaneSize + 1 + nxload))
-            xx8 = xx8 + delx
+                + fz * (d11 * array(ind + nxLoad) &
+                + d12 * array(ind + inPlaneSize + nxLoad) &
+                + d21 * array(ind + 1 + nxLoad) &
+                + d22 * array(ind + inPlaneSize + 1 + nxLoad))
+            xx8 = xx8 + delX
           enddo
         endif
       endif
@@ -5026,20 +5026,20 @@ subroutine reprojOneAngle(array, reprojLines, inLoadStr, inLoadEnd, line, &
     ! The step between pixels along a line is 1/sin beta with no alpha tilt,
     ! The alpha tilt compresses it by the delta Z factor divided by cosine
     ! beta, the amount that delta Z factor is compressed from cosine beta.
-    delx = abs(sbeta)
-    xnum = 1. + (iwidth - 1) / delx
-    numx = xnum
-    if (xnum - numx >= 0.1) numx = numx + 1
-    delz = delzIn / (sbeta * abs(cbeta))
-    dely = delz * (salf - yzfacv) / calf
+    delX = abs(sinBet)
+    xNum = 1. + (iwidth - 1) / delX
+    numX = xNum
+    if (xNum - numX >= 0.1) numX = numX + 1
+    delZ = delzIn / (sinBet * abs(cosBet))
+    delY = delZ * (sinAlph - yzFacView) / cosAlph
     ! print *,'delx, dely, delz', delx, dely, delz
     !
     ! Loop in X across slices, adding in vertical lines of data to the output line
-    do kx = 1, numx
-      xx = 1 + (kx - 1) * delx
+    do kx = 1, numX
+      xx = 1 + (kx - 1) * delX
       ix = xx
       fx = xx - ix
-      omfx = 1. - fx
+      oneMfx = 1. - fx
       pfill = dmeanIn
       !
       ! If X is past the end, drop back one line and set up fractions
@@ -5047,189 +5047,190 @@ subroutine reprojOneAngle(array, reprojLines, inLoadStr, inLoadEnd, line, &
       if (xx >= iwidth) then
         xx = iwidth
         ix = iwidth - 1
-        fx = omfx
-        omfx = 0.
+        fx = oneMfx
+        oneMfx = 0.
         pfill = dmeanIn * fx
       endif
 
       ! get starting Z coordinate
-      salfsbetdcal = salf * sbeta / calf
+      salfSbetOverCalf = sinAlph * sinBet / cosAlph
       xcenAdj = xcenOut - (minXreproj - 1)
       xproj = 1 + xprojOffset
       yproj = line + yprojOffset
 
-      zz = (xproj - (yproj - centerSlice) * salfsbetdcal - xcenPdelxx - (xx - xcenAdj) * &
-          cbeta) / ((salf - yzfacv) * salfsbetdcal + calf * sbeta + xzfacv)
+      zz = (xproj - (yproj - centerSlice) * salfSbetOverCalf - xcenPdelxx -  &
+          (xx - xcenAdj) * cosBet) / ((sinAlph - yzFacView) * salfSbetOverCalf +  &
+          cosAlph * sinBet + xzFacView)
       !
       ! Get y slice for this z value, then convert Z to be index coordinates in slice
-      yy = (yproj + zz * (salf - yzfacv) - centerSlice) / calf
-      yslice = yy + centerSlice - yprojOffset
-      if (ifAlpha == 0) yslice = line
+      yy = (yproj + zz * (sinAlph - yzFacView) - centerSlice) / cosAlph
+      ySlice = yy + centerSlice - yprojOffset
+      if (ifAlpha == 0) ySlice = line
       zz = zz - (minYreproj - 1 - ycenOut)
       !
       ! Get starting X proj limit based on Z
-      ixst = 1
+      ixStart = 1
       if (zz < 1.) then
-        ixst = ceiling((1. - zz) / delz + 1.)
+        ixStart = ceiling((1. - zz) / delZ + 1.)
       elseif (zz >= ithickReproj) then
-        ixst = ceiling((ithickReproj - zz) / delz + 1.)
+        ixStart = ceiling((ithickReproj - zz) / delZ + 1.)
       endif
       !
       ! Revise starting limit for Y
       if (ifAlpha .ne. 0) then
-        ysl = yslice + (ixst - 1.) * dely
-        if (ysl < inloadstr - ytol) then
-          ixst = ceiling((inloadstr - ytol - yslice) / dely + 1.)
-        elseif (ysl > inloadend + ytol) then
-          ixst = ceiling((inloadend + ytol - yslice) / dely + 1.)
+        yslc = ySlice + (ixStart - 1.) * delY
+        if (yslc < inLoadStart - yEndTol) then
+          ixStart = ceiling((inLoadStart - yEndTol - ySlice) / delY + 1.)
+        elseif (yslc > inLoadEnd + yEndTol) then
+          ixStart = ceiling((inLoadEnd + yEndTol - ySlice) / delY + 1.)
         endif
       endif
       !
       ! Adjust Z start for final start and make sure it works, adjust Y also
-      zz = zz + (ixst - 1.) * delz
+      zz = zz + (ixStart - 1.) * delZ
       if (zz < 1. .or. zz >= ithickReproj) then
-        zz = zz + delz
-        ixst = ixst + 1
+        zz = zz + delZ
+        ixStart = ixStart + 1
       endif
-      yslice = yslice + (ixst - 1.) * dely
-      if (ifAlpha == 0) yslice = line
+      ySlice = ySlice + (ixStart - 1.) * delY
+      if (ifAlpha == 0) ySlice = line
       !
       ! get ending coordinate based on limits in Z and Y
-      ixnd = iwidth
-      if (zz + (ixnd - ixst) * delz >= ithickReproj - eps) then
-        ixnd = (ithickReproj - zz) / delz + ixst
-        if (zz + (ixnd - ixst) * delz >= ithickReproj - eps) ixnd = ixnd - 1
-      elseif ( zz + (ixnd - ixst) * delz < 1. + eps) then
-        ixnd = (1. - zz) / delz + ixst
-        if (zz + (ixnd - ixst) * delz < 1. + eps) ixnd = ixnd - 1
+      ixEnd = iwidth
+      if (zz + (ixEnd - ixStart) * delZ >= ithickReproj - eps) then
+        ixEnd = (ithickReproj - zz) / delZ + ixStart
+        if (zz + (ixEnd - ixStart) * delZ >= ithickReproj - eps) ixEnd = ixEnd - 1
+      elseif ( zz + (ixEnd - ixStart) * delZ < 1. + eps) then
+        ixEnd = (1. - zz) / delZ + ixStart
+        if (zz + (ixEnd - ixStart) * delZ < 1. + eps) ixEnd = ixEnd - 1
       endif
       if (ifAlpha .ne. 0) then
-        ysl = yslice + (ixnd - ixst) * dely
-        if (ysl < inloadstr - ytol) then
-          ixnd = (inloadstr - ytol - yslice) / dely + ixst
-        elseif (ysl > inloadend + ytol) then
-          ixnd = (inloadend + ytol - yslice) / dely + ixst
+        yslc = ySlice + (ixEnd - ixStart) * delY
+        if (yslc < inLoadStart - yEndTol) then
+          ixEnd = (inLoadStart - yEndTol - ySlice) / delY + ixStart
+        elseif (yslc > inLoadEnd + yEndTol) then
+          ixEnd = (inLoadEnd + yEndTol - ySlice) / delY + ixStart
         endif
       endif
       !
       ! Now get X indexes within which Y can safely be varied
-      ixyOKst = ixst
-      ixyOKnd = ixnd
+      ixyOKstart = ixStart
+      ixyOKend = ixEnd
       if (ifAlpha .ne. 0) then
-        if (yslice < inloadstr) then
-          ixyOKst = ceiling((inloadstr - yslice) / dely + ixst)
-          if (yslice + (ixyOKst - ixst) * dely < inloadstr + eps) &
-              ixyOKst = ixyOKst + 1
-        elseif (yslice >= inloadend) then
-          ixyOKst = ceiling((inloadend - yslice) / dely + ixst)
-          if (yslice + (ixyOKst - ixst) * dely >= inloadend - eps) &
-              ixyOKst = ixyOKst + 1
+        if (ySlice < inLoadStart) then
+          ixyOKstart = ceiling((inLoadStart - ySlice) / delY + ixStart)
+          if (ySlice + (ixyOKstart - ixStart) * delY < inLoadStart + eps) &
+              ixyOKstart = ixyOKstart + 1
+        elseif (ySlice >= inLoadEnd) then
+          ixyOKstart = ceiling((inLoadEnd - ySlice) / delY + ixStart)
+          if (ySlice + (ixyOKstart - ixStart) * delY >= inLoadEnd - eps) &
+              ixyOKstart = ixyOKstart + 1
         endif
-        yslice = yslice + (ixyOKst - ixst) * dely
+        ySlice = ySlice + (ixyOKstart - ixStart) * delY
         !
-        ysl = yslice + (ixnd - ixyOKst) * dely
-        if (ysl < inloadstr) then
-          ixyOKnd = (inloadstr - yslice) / dely + ixyOKst
-          if (yslice + (ixyOKnd - ixyOKst) * dely < inloadstr + eps) &
-              ixyOKnd = ixyOKnd-1
-        elseif (ysl >= inloadend) then
-          ixyOKnd = (inloadend - yslice) / dely + ixyOKst
-          if (yslice + (ixyOKnd - ixyOKst) * dely >= inloadend - eps) &
-              ixyOKnd = ixyOKnd-1
+        yslc = ySlice + (ixEnd - ixyOKstart) * delY
+        if (yslc < inLoadStart) then
+          ixyOKend = (inLoadStart - ySlice) / delY + ixyOKstart
+          if (ySlice + (ixyOKend - ixyOKstart) * delY < inLoadStart + eps) &
+              ixyOKend = ixyOKend-1
+        elseif (yslc >= inLoadEnd) then
+          ixyOKend = (inLoadEnd - ySlice) / delY + ixyOKstart
+          if (ySlice + (ixyOKend - ixyOKstart) * delY >= inLoadEnd - eps) &
+              ixyOKend = ixyOKend-1
         endif
       endif
       ! write( *,'(i5,f7.1,4i5,2f7.1)') kx, xx, ixst, ixyOKst, ixyOKnd, ixnd, zz, &
       ! zz+(ixnd-ixst)*delz
       !
       ! Do the fills
-      if (ixst > 1) reprojLines(1:ixst - 1) = reprojLines(1:ixst - 1) + pfill
-      if (ixnd < iwidth) &
-          reprojLines(ixnd + 1:iwidth) = reprojLines(ixnd + 1:iwidth) + pfill
+      if (ixStart > 1) reprojLines(1:ixStart - 1) = reprojLines(1:ixStart - 1) + pfill
+      if (ixEnd < iwidth) &
+          reprojLines(ixEnd + 1:iwidth) = reprojLines(ixEnd + 1:iwidth) + pfill
       !
       ! Add the line in: do simple 2x2 interpolation if no alpha
       ! if (line==591) print *,ixst, ixnd
       if (ifAlpha == 0) then
         zz8 = zz
-        indbase = 1 + inPlaneSize * (line - inloadstr) + ix - 1
-        do i = ixst, ixnd
+        indBase = 1 + inPlaneSize * (line - inLoadStart) + ix - 1
+        do i = ixStart, ixEnd
           iz = zz8
           fz = zz8 - iz
-          omfz = 1. - fz
-          ind = indbase + (iz - 1) * nxload
+          oneMfz = 1. - fz
+          ind = indBase + (iz - 1) * nxLoad
           reprojLines(i) = reprojLines(i) + &
-              omfz * omfx * array(ind) + &
-              omfz * fx * array(ind + 1) + &
-              fz * omfx * array(ind + nxload) + &
-              fz * fx * array(ind + nxload + 1)
+              oneMfz * oneMfx * array(ind) + &
+              oneMfz * fx * array(ind + 1) + &
+              fz * oneMfx * array(ind + nxLoad) + &
+              fz * fx * array(ind + nxLoad + 1)
           ! if (i==70) print *,reprojLines(i)
           ! if (line==591.and.i==164) print *,reprojLines(i), array(ind), &
           ! array(ind + 1), array(ind + nxload), array(ind + nxload + 1)
-          zz8 = zz8 + delz
+          zz8 = zz8 + delZ
         enddo
       else
         !
         ! Or do the full 3D interpolation if any variation in Y, starting with
         ! the loop where Y varies
-        yy8 = yslice
-        zz8 = zz + (ixyOKst - ixst) * delz
-        indbase = 1 - inPlaneSize * inloadstr + ix - 1
-        do i = ixyOKst, ixyOKnd
+        yy8 = ySlice
+        zz8 = zz + (ixyOKstart - ixStart) * delZ
+        indBase = 1 - inPlaneSize * inLoadStart + ix - 1
+        do i = ixyOKstart, ixyOKend
           iz = zz8
           fz = zz8 - iz
-          omfz = 1. - fz
+          oneMfz = 1. - fz
           iys = yy8
           fy = yy8 - iys
-          omfy = 1. - fy
-          d11 = omfx * omfy
-          d12 = omfx * fy
-          d21 = fx * omfy
+          oneMfy = 1. - fy
+          d11 = oneMfx * oneMfy
+          d12 = oneMfx * fy
+          d21 = fx * oneMfy
           d22 = fx * fy
-          ind = indbase + inPlaneSize * iys + (iz - 1) * nxload
+          ind = indBase + inPlaneSize * iys + (iz - 1) * nxLoad
           reprojLines(i) = reprojLines(i) + &
-              omfz * (d11 * array(ind) &
+              oneMfz * (d11 * array(ind) &
               + d12 * array(ind + inPlaneSize) + d21 * array(ind + 1) &
               + d22 * array(ind + inPlaneSize + 1)) &
-              + fz * (d11 * array(ind + nxload) &
-              + d12 * array(ind + inPlaneSize + nxload) &
-              + d21 * array(ind + 1 + nxload) &
-              + d22 * array(ind + inPlaneSize + 1 + nxload))
-          zz8 = zz8 + delz
-          yy8 = yy8 + dely
+              + fz * (d11 * array(ind + nxLoad) &
+              + d12 * array(ind + inPlaneSize + nxLoad) &
+              + d21 * array(ind + 1 + nxLoad) &
+              + d22 * array(ind + inPlaneSize + 1 + nxLoad))
+          zz8 = zz8 + delZ
+          yy8 = yy8 + delY
         enddo
         !
         ! Now do special loops with Y fixed - do the one at the end first
         ! since Y and Z are all set for that
-        ifixst = ixyOKnd + 1
-        ifixnd = ixnd
-        do iyfix = 1, 2
-          do i = ifixst, ifixnd
+        ifixStart = ixyOKend + 1
+        ifixEnd = ixEnd
+        do iyFix = 1, 2
+          do i = ifixStart, ifixEnd
             iz = zz8
             fz = zz8 - iz
-            omfz = 1. - fz
-            d11 = omfx * omfy
-            d12 = omfx * fy
-            d21 = fx * omfy
+            oneMfz = 1. - fz
+            d11 = oneMfx * oneMfy
+            d12 = oneMfx * fy
+            d21 = fx * oneMfy
             d22 = fx * fy
-            ind = indbase + inPlaneSize * iys + (iz - 1) * nxload
+            ind = indBase + inPlaneSize * iys + (iz - 1) * nxLoad
             reprojLines(i) = reprojLines(i) + &
-                omfz * (d11 * array(ind) &
+                oneMfz * (d11 * array(ind) &
                 + d12 * array(ind + inPlaneSize) + d21 * array(ind + 1) &
                 + d22 * array(ind + inPlaneSize + 1)) &
-                + fz * (d11 * array(ind + nxload) &
-                + d12 * array(ind + inPlaneSize + nxload) &
-                + d21 * array(ind + 1 + nxload) &
-                + d22 * array(ind + inPlaneSize + 1 + nxload))
-            zz8 = zz8 + delz
+                + fz * (d11 * array(ind + nxLoad) &
+                + d12 * array(ind + inPlaneSize + nxLoad) &
+                + d21 * array(ind + 1 + nxLoad) &
+                + d22 * array(ind + inPlaneSize + 1 + nxLoad))
+            zz8 = zz8 + delZ
           enddo
           !
           ! Set up for loop with Y fixed at start, reset y and z
-          yy8 = yslice
+          yy8 = ySlice
           zz8 = zz
           iys = yy8
           fy = yy8 - iys
-          omfy = 1. - fy
-          ifixst = ixst
-          ifixnd = ixyOKst - 1
+          oneMfy = 1. - fy
+          ifixStart = ixStart
+          ifixEnd = ixyOKstart - 1
         enddo
       endif
     enddo
@@ -5240,22 +5241,22 @@ end subroutine reprojOneAngle
 ! Computes the change in Z that moves by 1 pixel along a projection
 ! ray given the sines and cosines of alpha and beta and the z factors
 !
-real*4 function reprojDelz(sbeta, cbeta, salf, calf, xzfac, yzfac)
+real*4 function reprojDelz(sinBet, cosBet, sinAlph, cosAlph, xzFac, yzFac)
   implicit none
-  real*4 sbeta, cbeta, salf, calf, xzfac, yzfac,  dyfac
-  dyfac = (salf - yzfac) / calf
-  reprojDelz = 1. / sqrt(1. + dyfac**2 + &
-      ((dyfac * salf * sbeta + calf * sbeta + xzfac) / cbeta)**2)
+  real*4 sinBet, cosBet, sinAlph, cosAlph, xzFac, yzFac,  dyFac
+  dyFac = (sinAlph - yzFac) / cosAlph
+  reprojDelz = 1. / sqrt(1. + dyFac**2 + &
+      ((dyFac * sinAlph * sinBet + cosAlph * sinBet + xzFac) / cosBet)**2)
   return
 end function reprojDelz
 
 
 ! Writes line LINE for view IV of a reprojection
 !
-subroutine writeReprojLines(iv, lineStart, lineEnd, DMIN, DMAX, DTOT8)
+subroutine writeReprojLines(iv, lineStart, lineEnd, dmin, dmax, dtot8)
   use tiltvars
   implicit none
-  integer*4 line, i, iyout, iv, lineStart, lineEnd, numVals
+  integer*4 line, i, iyOut, iv, lineStart, lineEnd, numVals
   real*4 dmin, dmax, val
   real*8 dtot8
   !
@@ -5292,9 +5293,9 @@ subroutine writeReprojLines(iv, lineStart, lineEnd, DMIN, DMAX, DTOT8)
     dtot8 = dtot8 + val
   enddo
   do line = lineStart, lineEnd
-    iyout = line - isliceStart
-    if (minTotSlice > 0) iyout = line - minTotSlice
-    call parWrtPosn(2, iv - 1, iyout)
+    iyOut = line - isliceStart
+    if (minTotSlice > 0) iyOut = line - minTotSlice
+    call parWrtPosn(2, iv - 1, iyOut)
     call parWrtLin(2, reprojLines(1 + (line - lineStart) * iwidth))
   enddo
   return
