@@ -302,10 +302,6 @@ if [ -n "$repName" ] ; then
   if [ $imodRep ] ; then
     export IMOD_DIR=$HOME/workspace/$repository
   fi
-  #warn if the file being run is not up to date
-  if [ "$scriptFile" -ot "$HOME/workspace/$repository/Etomo/scripts/etomorun.sh" ] ; then
-    echo "Warning: $scriptFile is out of date."
-  fi
 fi
 #set os
 if [ `uname` == "Darwin" ] ; then
@@ -411,7 +407,7 @@ if [ $target ] ; then
         exit $ret
       fi
     fi
-    ll -rt etomo_*_out.log>nada
+    ls -lrt etomo_*_out.log>nada
     mail -s "uitest $target on $repository succeeded on `hostname`" sueh@colorado.edu < nada
   fi
 fi
