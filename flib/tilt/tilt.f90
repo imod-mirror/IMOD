@@ -4087,42 +4087,42 @@ subroutine findProjectingPoint(xproj, yproj, zz, iv, xx, yy)
   use tiltvars
   implicit none
   real*4 xproj, yproj, zz, xx, yy
-  integer*4 iv, iter, ifdone, ixassay, iyassay
-  real*4 xprojf11, xprojz11, yprojf11, yprojz11, xprojf21, xprojz21, &
-      yprojf21, yprojz21, xprojf12, xprojz12, yprojf12, yprojz12
-  real*4 xp11, yp11, xp12, yp12, xp21, yp21, xerr, yerr, dxpx, dxpy, dypx
-  real*4 dypy, fx, fy, den
+  integer*4 iv, iter, ifDone, ixAssay, iyAssay
+  real*4 xprojFix11, xprojZ11, yprojFix11, yprojZ11, xprojFix21, xprojZ21, &
+      yprojFix21, yprojZ21, xprojFix12, xprojZ12, yprojFix12, yprojZ12
+  real*4 xp11, yp11, xp12, yp12, xp21, yp21, xerr, yerr, dxPx, dxPy, dyPx
+  real*4 dyPy, fx, fy, den
   !
   iter = 1
-  ifdone = 0
-  do while (ifdone == 0 .and. iter <= 5)
-    ixassay = floor(xx)
-    iyassay = floor(yy)
-    call localProjFactors(ixassay, iyassay, iv, xprojf11, xprojz11, &
-        yprojf11, yprojz11)
-    call localProjFactors(ixassay + 1, iyassay, iv, xprojf21, xprojz21, &
-        yprojf21, yprojz21)
-    call localProjFactors(ixassay, iyassay + 1, iv, xprojf12, xprojz12, &
-        yprojf12, yprojz12)
-    xp11 = xprojf11 + xprojz11 * zz
-    yp11 = yprojf11 + yprojz11 * zz
-    xp21 = xprojf21 + xprojz21 * zz
-    yp21 = yprojf21 + yprojz21 * zz
-    xp12 = xprojf12 + xprojz12 * zz
-    yp12 = yprojf12 + yprojz12 * zz
+  ifDone = 0
+  do while (ifDone == 0 .and. iter <= 5)
+    ixAssay = floor(xx)
+    iyAssay = floor(yy)
+    call localProjFactors(ixAssay, iyAssay, iv, xprojFix11, xprojZ11, yprojFix11, &
+        yprojZ11)
+    call localProjFactors(ixAssay + 1, iyAssay, iv, xprojFix21, xprojZ21, yprojFix21, &
+        yprojZ21)
+    call localProjFactors(ixAssay, iyAssay + 1, iv, xprojFix12, xprojZ12, yprojFix12, &
+        yprojZ12)
+    xp11 = xprojFix11 + xprojZ11 * zz
+    yp11 = yprojFix11 + yprojZ11 * zz
+    xp21 = xprojFix21 + xprojZ21 * zz
+    yp21 = yprojFix21 + yprojZ21 * zz
+    xp12 = xprojFix12 + xprojZ12 * zz
+    yp12 = yprojFix12 + yprojZ12 * zz
     xerr = xproj - xp11
     yerr = yproj - yp11
-    dxpx = xp21 - xp11
-    dxpy = xp12 - xp11
-    dypx = yp21 - yp11
-    dypy = yp12 - yp11
-    den = dxpx * dypy - dxpy * dypx
-    fx = (xerr * dypy - yerr * dxpy) / den
-    fy = (dxpx * yerr - dypx * xerr) / den
-    xx = ixassay + fx
-    yy = iyassay + fy
+    dxPx = xp21 - xp11
+    dxPy = xp12 - xp11
+    dyPx = yp21 - yp11
+    dyPy = yp12 - yp11
+    den = dxPx * dyPy - dxPy * dyPx
+    fx = (xerr * dyPy - yerr * dxPy) / den
+    fy = (dxPx * yerr - dyPx * xerr) / den
+    xx = ixAssay + fx
+    yy = iyAssay + fy
     if (fx > -0.1 .and. fx < 1.1 .and. fy > -0.1 .and. fy < 1.1) &
-        ifdone = 1
+        ifDone = 1
     iter = iter + 1
   enddo
   return
@@ -4134,47 +4134,47 @@ end subroutine findProjectingPoint
 subroutine set_cos_stretch()
   use tiltvars
   implicit none
-  integer*4 lsmin, lsmax, iv, ix, iy, lslice
-  real*4 tanal, xpmax, xpmin, zz, zpart, yy, xproj
+  integer*4 lsliceMin, lsliceMax, iv, ix, iy, lslice
+  real*4 tanAlph, xpMax, xpMin, zz, zPart, yy, xproj
   ! make the indexes be bases, numbered from 0
   !
   indStretchLine(1) = 0
-  lsmin = min(isliceEnd, isliceStart)
-  lsmax = max(isliceEnd, isliceStart)
+  lsliceMin = min(isliceEnd, isliceStart)
+  lsliceMax = max(isliceEnd, isliceStart)
   if (ifAlpha < 0) then
     !
     ! New-style X tilting: SET MINIMUM NUMBER OF INPUT SLICES HERE
     !
-    lsmin = centerSlice + (lsmin - centerSlice) * cosAlpha(1) + yOffset * sinAlpha(1) - &
-        0.5 * ithickOut * abs(sinAlpha(1)) - 1.
-    lsmax = centerSlice + (lsmax - centerSlice) * cosAlpha(1) + yOffset * sinAlpha(1) + &
-        0.5 * ithickOut * abs(sinAlpha(1)) + 2.
-    tanal = sinAlpha(1) / cosAlpha(1)
-    lsmin = max(1, lsmin)
-    lsmax = min(lsmax, nyProj)
+    lsliceMin = centerSlice + (lsliceMin - centerSlice) * cosAlpha(1) +  &
+        yOffset * sinAlpha(1) - 0.5 * ithickOut * abs(sinAlpha(1)) - 1.
+    lsliceMax = centerSlice + (lsliceMax - centerSlice) * cosAlpha(1) +  &
+        yOffset * sinAlpha(1) + 0.5 * ithickOut * abs(sinAlpha(1)) + 2.
+    tanAlph = sinAlpha(1) / cosAlpha(1)
+    lsliceMin = max(1, lsliceMin)
+    lsliceMax = min(lsliceMax, nyProj)
   endif
   do iv = 1, numViews
-    xpmax = 1
-    xpmin = nxProj
+    xpMax = 1
+    xpMin = nxProj
     !
     ! find min and max position of 8 corners of reconstruction
     !
     do ix = 1, iwidth, iwidth - 1
       do iy = 1, ithickBP, ithickBP - 1
-        do lslice = lsmin, lsmax, max(1, lsmax - lsmin)
-          ZZ = (IY - ycenOut) * compress(iv)
+        do lslice = lsliceMin, lsliceMax, max(1, lsliceMax - lsliceMin)
+          zz = (iy - ycenOut) * compress(iv)
           if (ifAlpha < 0) zz = compress(iv) * &
-              (iy - (ycenOut - nint(tanal * (lslice - centerSlice))))
+              (iy - (ycenOut - nint(tanAlph * (lslice - centerSlice))))
           if (ifAlpha <= 0) then
-            zPART = zz * sinBeta(iv) + xcenIn + axisXoffset
+            zPart = zz * sinBeta(iv) + xcenIn + axisXoffset
           else
             yy = lslice - centerSlice
-            zpart = yy * sinAlpha(iv) * sinBeta(iv) + zz * (cosAlpha(iv) * sinBeta(iv) + &
+            zPart = yy * sinAlpha(iv) * sinBeta(iv) + zz * (cosAlpha(iv) * sinBeta(iv) + &
                 xzfac(iv)) + xcenIn + axisXoffset
           endif
-          xproj = zpart + (ix - xcenOut) * cosBeta(iv)
-          xpmin = max(1., min(xpmin, xproj))
-          xpmax = min(float(nxProj), max(xpmax, xproj))
+          xproj = zPart + (ix - xcenOut) * cosBeta(iv)
+          xpMin = max(1., min(xpMin, xproj))
+          xpMax = min(float(nxProj), max(xpMax, xproj))
         enddo
       enddo
     enddo
@@ -4182,8 +4182,8 @@ subroutine set_cos_stretch()
     !
     ! set up extent and offset of stretches
     !
-    stretchOffset(iv) = xpmin / cosBeta(iv) - 1. / interpFacStretch
-    nxStretched(iv) = interpFacStretch * (xpmax - xpmin) / cosBeta(iv) + 2.
+    stretchOffset(iv) = xpMin / cosBeta(iv) - 1. / interpFacStretch
+    nxStretched(iv) = interpFacStretch * (xpMax - xpMin) / cosBeta(iv) + 2.
     indStretchLine(iv + 1) = indStretchLine(iv) + nxStretched(iv)
     ! print *,iv, xpmin, xpmax, stretchOffset(iv), nxStretched(iv), indStretchLine(iv)
   enddo
@@ -4199,26 +4199,26 @@ subroutine setNeededSlices(maxNeeds, numEval)
   use tiltvars
   implicit none
   integer*4 numEval, maxNeeds(*)
-  integer*4 lsmin, lsmax, ierr, itry, nxassay, minslice, ixassay
-  integer*4 maxslice, iassay, ixsam, iv, iy, iyp
-  real*4 dxassay, dxtmp, xx, yy, zz, xp, yp
-  real*4 xprojf, xprojz, yprojf, yprojz, xproj, yproj
-  lsmin = isliceStart
-  lsmax = isliceEnd
+  integer*4 lsliceMin, lsliceMax, ierr, itry, nxAssay, minSlice, ixAssay
+  integer*4 maxSlice, iassay, ixSample, iv, iy, iyp
+  real*4 dxAssay, dxTemp, xx, yy, zz, xp, yp
+  real*4 xprojFix, xprojZ, yprojFix, yprojZ, xproj, yproj
+  lsliceMin = isliceStart
+  lsliceMax = isliceEnd
   if (ifAlpha < 0) then
-    lsmin = centerSlice + (isliceStart - centerSlice) * cosAlpha(1) +  &
+    lsliceMin = centerSlice + (isliceStart - centerSlice) * cosAlpha(1) +  &
         yOffset * sinAlpha(1) - 0.5 * ithickOut * abs(sinAlpha(1)) - 1.
-    lsmax = centerSlice + (isliceEnd - centerSlice) * cosAlpha(1) +  &
+    lsliceMax = centerSlice + (isliceEnd - centerSlice) * cosAlpha(1) +  &
         yOffset * sinAlpha(1) + 0.5 * ithickOut * abs(sinAlpha(1)) + 2.
-    lsmin = max(1, lsmin)
-    lsmax = min(lsmax, nyProj)
+    lsliceMin = max(1, lsliceMin)
+    lsliceMax = min(lsliceMax, nyProj)
   endif
-  indNeededBase = lsmin - 1
-  numNeedSE = lsmax - indNeededBase
+  indNeededBase = lsliceMin - 1
+  numNeedSE = lsliceMax - indNeededBase
   allocate(neededStarts(numNeedSE), neededEnds(numNeedSE), stat = ierr)
   call memoryError(ierr, 'ARRAYS needStarts/needEnds')
 
-  do itry = lsmin, lsmax
+  do itry = lsliceMin, lsliceMax
 
     if (ifAlpha <= 0 .and. nxWarp == 0) then
       !
@@ -4234,26 +4234,26 @@ subroutine setNeededSlices(maxNeeds, numEval)
       ! or half the warp spacing
       !
       if (nxWarp == 0) then
-        nxassay = 2
-        dxassay = iwidth - 1
+        nxAssay = 2
+        dxAssay = iwidth - 1
       else
-        dxtmp = idelXwarp / 2
-        nxassay = max(2., iwidth / dxtmp + 1.)
-        dxassay = (iwidth - 1.) / (nxassay - 1.)
+        dxTemp = idelXwarp / 2
+        nxAssay = max(2., iwidth / dxTemp + 1.)
+        dxAssay = (iwidth - 1.) / (nxAssay - 1.)
       endif
       !
       ! sample top and bottom at each position
       !
-      minslice = nyProj + 1
-      maxslice = 0
-      do iassay = 1, nxassay
-        ixassay = nint(1 + (iassay - 1) * dxassay)
+      minSlice = nyProj + 1
+      maxSlice = 0
+      do iassay = 1, nxAssay
+        ixAssay = nint(1 + (iassay - 1) * dxAssay)
         do iv = 1, numViews
           if (.not. recReproj) then
-            ixsam = nint(ixassay - xcenOut + xcenIn + axisXoffset)
+            ixSample = nint(ixAssay - xcenOut + xcenIn + axisXoffset)
             if (nxWarp .ne. 0) then
-              call localProjFactors(ixassay, itry, iv, xprojf, &
-                  xprojz, yprojf, yprojz)
+              call localProjFactors(ixAssay, itry, iv, xprojFix, &
+                  xprojZ, yprojFix, yprojZ)
             endif
             do iy = 1, ithickBP, ithickBP - 1
               !
@@ -4261,19 +4261,19 @@ subroutine setNeededSlices(maxNeeds, numEval)
               ! transform if necessary, and use to get min and
               ! max slices needed to get this position
               !
-              xx = ixsam - xcenOut
+              xx = ixSample - xcenOut
               yy = itry - centerSlice
               zz = iy - ycenOut
               xp = xx * cosBeta(iv) + yy * sinAlpha(iv) * sinBeta(iv) + &
                   zz * (cosAlpha(iv) * sinBeta(iv) + xzfac(iv)) + xcenIn + axisXoffset
               yp = yy * cosAlpha(iv) - zz * (sinAlpha(iv) - yzfac(iv)) + centerSlice
               if (nxWarp .ne. 0) then
-                xp = xprojf + xprojz * zz
-                yp = yprojf + yprojz * zz
+                xp = xprojFix + xprojZ * zz
+                yp = yprojFix + yprojZ * zz
               endif
               iyp = max(1., yp)
-              minslice = min(minslice, iyp)
-              maxslice = max(maxslice, min(nyProj, iyp + 1))
+              minSlice = min(minSlice, iyp)
+              maxSlice = max(maxSlice, min(nyProj, iyp + 1))
               ! if (debug) print *,xx, yy, zz, iyp, minslice, maxslice
             enddo
           else
@@ -4281,7 +4281,7 @@ subroutine setNeededSlices(maxNeeds, numEval)
             ! Projections: get Y coordinate in original projection
             ! if local, get the X coordinate in reconstruction too
             ! then get the refinement
-            xproj = ixassay + xprojOffset
+            xproj = ixAssay + xprojOffset
             yproj = itry + yprojOffset
             do iy = 1, ithickReproj, ithickReproj - 1
               zz = iy + minYreproj - 1 - ycenOut
@@ -4294,8 +4294,8 @@ subroutine setNeededSlices(maxNeeds, numEval)
                 call findProjectingPoint(xproj, yproj, zz, iv, xx, yy)
               endif
               iyp = max(1., yy - yprojOffset)
-              minslice = min(minslice, iyp)
-              maxslice = max(maxslice, min(nyProj, iyp + 1))
+              minSlice = min(minSlice, iyp)
+              maxSlice = max(maxSlice, min(nyProj, iyp + 1))
             enddo
           endif
         enddo
@@ -4303,18 +4303,18 @@ subroutine setNeededSlices(maxNeeds, numEval)
       !
       ! set up starts and ends
       !
-      neededStarts(itry - indNeededBase) = max(1, minslice)
-      neededEnds(itry - indNeededBase) = min(nyProj, maxslice)
+      neededStarts(itry - indNeededBase) = max(1, minSlice)
+      neededEnds(itry - indNeededBase) = min(nyProj, maxSlice)
     endif
   enddo
   !
   ! Count maximum # of slices needed for number of slices to be computed
   do iv = 1, numEval
     maxNeeds(iv) = 0
-    do iy = lsmin, lsmax + 1 - iv
-      maxslice = neededEnds(iy + iv - 1 - indNeededBase) + 1 -  &
+    do iy = lsliceMin, lsliceMax + 1 - iv
+      maxSlice = neededEnds(iy + iv - 1 - indNeededBase) + 1 -  &
           neededStarts(iy - indNeededBase)
-      maxNeeds(iv) = max(maxNeeds(iv), maxslice)
+      maxNeeds(iv) = max(maxNeeds(iv), maxSlice)
     enddo
   enddo
   return
