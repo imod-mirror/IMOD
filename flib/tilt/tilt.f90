@@ -815,80 +815,81 @@ end program tilt
 
 ! Taper intensities across pad region from end of line to start
 !
-subroutine taperEndToStart(istart)
+subroutine taperEndToStart(indStart)
   use tiltvars
   implicit none
-  real*4 xsum, stmean, endmean, f
-  integer*4 ipad, nsum, ix, istart
+  real*4 xsum, startMean, endMean, f
+  integer*4 ipad, nsum, ix, indStart
   !
   nsum = 0
   xsum = 0.
-  do ix = istart, istart + min(2, nxProj - 1)
+  do ix = indStart, indStart + min(2, nxProj - 1)
     nsum = nsum + 1
     xsum = xsum + array(ix)
   enddo
-  stmean = xsum / nsum
+  startMean = xsum / nsum
   if (nsum == 0) print *,'stmean bogus'
   nsum = 0
   xsum = 0.
-  do ix = istart + max(0, nxProj - 3), istart + nxProj - 1
+  do ix = indStart + max(0, nxProj - 3), indStart + nxProj - 1
     nsum = nsum + 1
     xsum = xsum + array(ix)
   enddo
   if (nsum == 0) print *,'ndmean bogus'
-  endmean = xsum / nsum
+  endMean = xsum / nsum
   do ipad = 1, numPad
     f = ipad / (numPad + 1.)
-    array(istart + nxProj + ipad-1) = f * stmean + (1. -f) * endmean
+    array(indStart + nxProj + ipad-1) = f * startMean + (1. -f) * endMean
   enddo
   return
 end subroutine taperEndToStart
 
-subroutine manageRing(numVertNeeded, nvsinring, nextfreevs, lvsstart, &
-    lvsend, lslice)
+subroutine manageRing(numVertNeeded, numVertSliceInRing, nextFreeVertSlice, &
+    lvertSliceStart, lvertSliceEnd, lslice)
   implicit none
-  integer*4 numVertNeeded, nvsinring, nextfreevs, lvsstart, lvsend, lslice
-  if (nvsinring < numVertNeeded) then
-    if (nvsinring == 0) lvsstart = lslice
-    nvsinring = nvsinring + 1
+  integer*4 numVertNeeded, numVertSliceInRing, nextFreeVertSlice, lvertSliceStart
+  integer*4 lvertSliceEnd, lslice
+  if (numVertSliceInRing < numVertNeeded) then
+    if (numVertSliceInRing == 0) lvertSliceStart = lslice
+    numVertSliceInRing = numVertSliceInRing + 1
   else
-    lvsstart = lvsstart + 1
+    lvertSliceStart = lvertSliceStart + 1
   endif
-  lvsend = lslice
-  nextfreevs = nextfreevs + 1
-  if (nextfreevs > numVertNeeded) nextfreevs = 1
+  lvertSliceEnd = lslice
+  nextFreeVertSlice = nextFreeVertSlice + 1
+  if (nextFreeVertSlice > numVertNeeded) nextFreeVertSlice = 1
   return
 end subroutine manageRing
 
 
 
 ! --------------------------------------------------------------------
-SUBROUTINE RADWT(IRMAXin, IFALLin, ifilterSet)
+subroutine radwt(iradMaxIn, iradFallIn, ifilterSet)
   ! -----------------------------
   !
   ! Set Radial Transform weighting
   ! Linear ramp plus Gaussian fall off
   use tiltvars
   implicit none
-  integer*4 IRMAXin, IFALLin, ifilterSet
-  integer*4 nxprj2, IEND, irmax, ifall, iv, iw, ibase, i
-  real*4 stretch, avgint, atten, sumint, wsum, z, arg, sirtFrac
-  real*4 diffmin, diff, attensum
+  integer*4 iradMaxIn, iradFallIn, ifilterSet
+  integer*4 nxProjPad, iradEnd, iradMax, iradFall, iv, iw, indBase, i
+  real*4 stretch, avgInterval, atten, sumInterval, wsum, z, arg, sirtFrac
+  real*4 diffMin, diff, attenSum
   real*4, allocatable :: wgtAtten(:)
   !
   allocate(wgtAtten(limView), stat = i)
   call memoryError(i, 'ARRAY FOR WEIGHTS PER VIEW')
   sirtFrac = 0.99
-  nxprj2 = nxProj + 2 + numPad
-  IEND = NXPRJ2 / 2
+  nxProjPad = nxProj + 2 + numPad
+  iradEnd = nxProjPad / 2
   stretch = float(nxProj + numPad) / nxProj
-  irmax = nint(irmaxin * stretch)
-  ifall = nint(ifallin * stretch)
-  avgint = 1.
-  attensum = 0.
+  iradMax = nint(iradMaxIn * stretch)
+  iradFall = nint(iradFallIn * stretch)
+  avgInterval = 1.
+  attenSum = 0.
   zeroWeight = 0.
   if (numTiltIncWgt > 0 .and. numWgtAngles > 1) then
-    avgint = (wgtAngles(numWgtAngles) - wgtAngles(1)) / (numWgtAngles - 1)
+    avgInterval = (wgtAngles(numWgtAngles) - wgtAngles(1)) / (numWgtAngles - 1)
     if (debug) write(6, 401)
 401 format(/' View  Angle Weighting')
   endif
@@ -897,21 +898,21 @@ SUBROUTINE RADWT(IRMAXin, IFALLin, ifilterSet)
   do iv = 1, numWgtAngles
     atten = 1.
     if (numTiltIncWgt > 0. .and. numWgtAngles > 1) then
-      sumint = 0
+      sumInterval = 0
       wsum = 0.
       do iw = 1, numTiltIncWgt
         if (iv - iw > 0) then
           wsum = wsum + tiltIncWgts(iw)
-          sumint = sumint + tiltIncWgts(iw) * (wgtAngles(iv + 1 - iw) - &
+          sumInterval = sumInterval + tiltIncWgts(iw) * (wgtAngles(iv + 1 - iw) - &
               wgtAngles(iv - iw))
         endif
         if (iv + iw <= numViews) then
           wsum = wsum + tiltIncWgts(iw)
-          sumint = sumint + tiltIncWgts(iw) * (wgtAngles(iv + iw) - &
+          sumInterval = sumInterval + tiltIncWgts(iw) * (wgtAngles(iv + iw) - &
               wgtAngles(iv + iw - 1))
         endif
       enddo
-      atten = atten * (sumint / wsum) / avgint
+      atten = atten * (sumInterval / wsum) / avgInterval
     endif
     wgtAtten(iv) = atten
   enddo
@@ -922,11 +923,11 @@ SUBROUTINE RADWT(IRMAXin, IFALLin, ifilterSet)
     ! Get weighting from nearest weighting angle
     atten = 1.
     if (numTiltIncWgt > 0 .and. numWgtAngles > 1) then
-      diffmin = 1.e10
+      diffMin = 1.e10
       do iw = 1, numWgtAngles
         diff = abs(angles(iv) - wgtAngles(iw))
-        if (diff < diffmin) then
-          diffmin = diff
+        if (diff < diffMin) then
+          diffMin = diff
           atten = wgtAtten(iw)
         endif
       enddo
@@ -942,95 +943,95 @@ SUBROUTINE RADWT(IRMAXin, IFALLin, ifilterSet)
       enddo
     endif
     !
-    attensum = attensum + atten
-    ibase = (iv - 1 + (ifilterSet - 1) * numViews) * nxprj2
-    DO  I = 1, min(IRMAX, iend)
+    attenSum = attenSum + atten
+    indBase = (iv - 1 + (ifilterSet - 1) * numViews) * nxProjPad
+    do  i = 1, min(iradMax, iradEnd)
       ! This was the basic filter
       ! ARRAY(ibase+2*I-1) =atten*(I-1)
       ! This is the mixture of the basic filter and a flat filter with
       ! a scaling that would give approximately the same output magnitude
-      array(ibase + 2 * I - 1) = atten * ((1. -flatFrac) * (I - 1) + flatFrac * &
+      array(indBase + 2 * i - 1) = atten * ((1. -flatFrac) * (i - 1) + flatFrac * &
           filterScale)
       !
       ! This 0.2 is what Kak and Slaney's weighting function gives at 0
-      if (i == 1) array(ibase + 2 * I - 1) = atten * 0.2
+      if (i == 1) array(indBase + 2 * i - 1) = atten * 0.2
       !
       ! This is the SIRT filter, which divides the error equally among
       ! the pixels on a ray.
-      if (flatFrac > 1) array(ibase + 2 * I - 1) = sirtFrac * atten * &
+      if (flatFrac > 1) array(indBase + 2 * i - 1) = sirtFrac * atten * &
           filterScale / (ithickBP / cosBeta(iv))
       !
       ! And just the value and compute the mean zero weighting
-      array(ibase + 2 * I) = array(ibase + 2 * I - 1)
-      if (i == 1) zeroWeight = zeroWeight + array(ibase + 2 * I - 1) / numViews
+      array(indBase + 2 * i) = array(indBase + 2 * i - 1)
+      if (i == 1) zeroWeight = zeroWeight + array(indBase + 2 * i - 1) / numViews
     enddo
   enddo
-  if (debug) print *,'Mean weighting factor', attensum / numViews
+  if (debug) print *,'Mean weighting factor', attenSum / numViews
   !
   ! Set up Gaussian
-  DO I = IRMAX + 1, IEND
-    ARG = FLOAT(I - IRMAX) / FLOAT(IFALL)
-    atten = EXP(-ARG * ARG)
-    ibase = 0
+  do i = iradMax + 1, iradEnd
+    arg = float(i - iradMax) / float(iradFall)
+    atten = exp(-arg * arg)
+    indBase = 0
     do iv = 1, numViews
-      Z = atten * array(ibase + 2 * irmax)
-      array(ibase + 2 * I - 1) = z
-      array(ibase + 2 * I) = Z
-      ibase = ibase + nxprj2
+      z = atten * array(indBase + 2 * iradMax)
+      array(indBase + 2 * i - 1) = z
+      array(indBase + 2 * i) = z
+      indBase = indBase + nxProjPad
     enddo
   enddo
-  RETURN
-END SUBROUTINE RADWT
+  return
+end subroutine radwt
 !
 !
 ! ---------------------------------------------------------------------
-SUBROUTINE MASKPREP(lslice)
+subroutine maskPrep(lslice)
   ! ----------------
   !
   ! This subroutine prepares the limits of the slice width to be computed
   ! if masking is used
   use tiltvars
   implicit none
-  real*4 radlft, radrt, y, yy, ycenuse
-  integer*4 i, ixlft, ixrt, lslice
+  real*4 radiusLeft, radiusRight, y, yy, ycenUse
+  integer*4 i, ixLeft, ixRight, lslice
   !
   ! Compute left and right edges of unmasked area
   if (maskEdges) then
     !
     ! Adjust the Y center for alpha tilt (already adjusted for ifAlpha < 0)
-    ycenuse = ycenOut
-    if (ifAlpha > 0) ycenuse = ycenOut + (1. / cosAlpha(1) - 1.) * yOffset &
+    ycenUse = ycenOut
+    if (ifAlpha > 0) ycenUse = ycenOut + (1. / cosAlpha(1) - 1.) * yOffset &
         - nint((lslice - centerSlice) * sinAlpha(1) / cosAlpha(1))
     !
     ! Get square of radius of arcs of edge of input data from input center
-    radlft = (xcenIn + axisXoffset - 1)**2
-    radrt = (nxProj - xcenIn - axisXoffset)**2
-    DO I = 1, ithickBP
-      Y = I - YCENuse
-      YY = min(Y * Y, radlft)
+    radiusLeft = (xcenIn + axisXoffset - 1)**2
+    radiusRight = (nxProj - xcenIn - axisXoffset)**2
+    do i = 1, ithickBP
+      y = i - ycenUse
+      yy = min(y * y, radiusLeft)
       !
       ! get distance of X coordinate from center, subtract from or add to
       ! center and round up on left, down on right, plus added maskEdges pixels
-      ixlft = xcenOut + 1. -sqrt(radlft - yy)
-      ixUnmaskedSE(1, i) = max(1, ixlft + numExtraMaskPix)
-      YY = min(Y * Y, radrt)
-      ixrt = xcenOut + sqrt(radrt - yy)
-      ixUnmaskedSE(2, i) = min(iwidth, ixrt - numExtraMaskPix)
+      ixLeft = xcenOut + 1. -sqrt(radiusLeft - yy)
+      ixUnmaskedSE(1, i) = max(1, ixLeft + numExtraMaskPix)
+      yy = min(y * y, radiusRight)
+      ixRight = xcenOut + sqrt(radiusRight - yy)
+      ixUnmaskedSE(2, i) = min(iwidth, ixRight - numExtraMaskPix)
     enddo
     !-------------------------------------------------
     ! If no maskEdges
-  ELSE
-    DO I = 1, ithickBP
+  else
+    do i = 1, ithickBP
       ixUnmaskedSE(1, i) = 1
       ixUnmaskedSE(2, i) = iwidth
     enddo
-  END IF
-  RETURN
-END SUBROUTINE MASKPREP
+  END if
+  return
+end subroutine maskprep
 !
 !
 ! ---------------------------------------------------------------------
-SUBROUTINE TRANSFORM(ibase, lslice, ifilterSet)
+subroutine transform(ibase, lslice, ifilterSet)
   ! ----------------------------
   !
   ! This subroutine applies a one-dimensional Fourier transform to
@@ -1158,11 +1159,11 @@ SUBROUTINE TRANSFORM(ibase, lslice, ifilterSet)
   enddo
 
   RETURN
-END SUBROUTINE TRANSFORM
+end subroutine transform
 
 
 ! ---------------------------------------------------------------------
-SUBROUTINE PROJECT(ISTART, lslice)
+subroutine project(istart, lslice)
   ! --------------------------
   !
   ! This subroutine assembles one reconstructed slice perpendicular
@@ -1517,7 +1518,7 @@ SUBROUTINE PROJECT(ISTART, lslice)
   if (debug) write(*, '(a,f8.4)') 'CPU backprojection time', &
       walltime() - tstart
   RETURN
-END SUBROUTINE PROJECT
+end subroutine project
 !
 !-------------------------------------------------------------------------
 !
@@ -1805,7 +1806,7 @@ end subroutine decompose
 
 !
 !-------------------------------------------------------------------------
-SUBROUTINE dumpSlice(LSLICE, DMIN, DMAX, DTOT8)
+subroutine dumpSlice(LSLICE, DMIN, DMAX, DTOT8)
   ! --------------------------------------
   !
   use tiltvars
@@ -1924,7 +1925,7 @@ SUBROUTINE dumpSlice(LSLICE, DMIN, DMAX, DTOT8)
   END IF
   !
   RETURN
-END SUBROUTINE dumpSlice
+end subroutine dumpSlice
 
 ! maskEdges out (blur) the edges of the slice at the given index
 !
@@ -1994,7 +1995,7 @@ end subroutine maskSlice
 
 ! The input routine, gets input and sets up almost all parameters
 ! -----------------------------------------------------------------
-SUBROUTINE inputParameters()
+subroutine inputParameters()
   ! ----------------
 
   use tiltvars
@@ -2824,7 +2825,7 @@ SUBROUTINE inputParameters()
   endif
   !
   if (ifExpWeight .ne. 0) then
-    if (ifLog == 0) write(6,*)' Weighting factors were entered from a file'
+    if (ifLog == 0) write(6,*) ' Weighting factors were entered from a file'
     if (ifLog .ne. 0) write(6,*) ' Weighting factors were entered '// &
         'but will be ignored because log is being taken'
   endif
@@ -3743,7 +3744,7 @@ CONTAINS
     if (maxGpuPlane < maxNeeds(1)) then
       write(gpuErrorStr, '(a,i4,a,i4,a)') 'The GPU only has enough memory to load', &
           maxGpuPlane, ' planes of data and, with current parameters, up to',  &
-          maxNeeds(1),' input planes are required to reconstruct a single plane'
+          maxNeeds(1), ' input planes are required to reconstruct a single plane'
     else if (65535 / nygplane < maxNeeds(1)) then
       write(gpuErrorStr, '(a,i4,a,i4,a)') 'With current parameters, up to', maxNeeds(1), &
           ' input planes are required to reconstruct a single plane, while '// &
@@ -3776,7 +3777,7 @@ CONTAINS
     if (useGPU) return
     if ((ifGpuByEnviron .ne. 0 .and. iactGpuFailEnviron == 2) .or.  &
         (ifGpuByEnviron == 0 .and. iactGpuFailOption == 2)) then
-      write(*, '(/,a,a)')'ERROR: tilt - ', trim(gpuErrorStr)
+      write(*, '(/,a,a)') 'ERROR: tilt - ', trim(gpuErrorStr)
       call exitError('Use of the GPU was requested but a GPU cannot be used')
     endif
     write(*, '(a)') trim(gpuErrorStr)
@@ -3820,7 +3821,7 @@ CONTAINS
   end subroutine packLocalData
 
   ! END OF INPUT ROUTINE
-END subroutine inputParameters
+end subroutine inputParameters
 
 
 ! Finds two nearest angles to PROJ and returns their indices IND1 and
