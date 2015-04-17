@@ -235,7 +235,7 @@ program tilt
             do nl = lstart, needEnd, idelSlice
               ! Position to read from projection NV at record NL
               iyload = max(0, min(nyProj - 1, nl - 1))
-              call imposn(1, mapUsedView(nv) - 1, iyload)
+              call iiuSetPosition(1, mapUsedView(nv) - 1, iyload)
               call irdlin(1, array(istart),*999)
               ! Take log if requested
               ! 3/31/04: limit values to .001 time dynamic range
@@ -261,7 +261,7 @@ program tilt
           !
           ! Load reconstruction for projections
           do nl = lstart, needEnd, idelSlice
-            call imposn(3, nl - 1, 0)
+            call iiuSetPosition(3, nl - 1, 0)
             call irdpas(3, array(ibase), maxXload + 1 - minXload, &
                 ithickReproj, minXload - 1, maxXload - 1, minYreproj - 1, &
                 maxYreproj - 1, *999)
@@ -386,7 +386,7 @@ program tilt
           else if (ifAlpha == 0) then
             !
             ! Read in single slice
-            call imposn(3, lslice - 1, 0)
+            call iiuSetPosition(3, lslice - 1, 0)
             call irdsec(3, array(ireadBase), *999)
             dsum = 0.
             dpix = 0.
@@ -404,7 +404,7 @@ program tilt
                 * iwidth
             if (vertSirtInput) then
               if (debug) print *,'loading vertical slice', lslice
-              call imposn(3, lslice - 1, 0)
+              call iiuSetPosition(3, lslice - 1, 0)
               call irdsec(3, array(ibaseSIRT), *999)
             else
               !
@@ -427,7 +427,7 @@ program tilt
               if (debug .and. loadEnd >= loadStart) &
                   print *,'reading into ring', loadStart, loadEnd
               do lri = loadStart, loadEnd
-                call imposn(3, lri - 1, 0)
+                call iiuSetPosition(3, lri - 1, 0)
                 ioffset = ireadBase + (nextReadFree - 1) * ithickOut * iwidth
                 call irdsec(3, array(ioffset), *999)
                 do i = 0, ithickOut * iwidth - 1
@@ -623,7 +623,7 @@ program tilt
   !
   call dumpFillSlices()
   ! Close files
-  call imclose(1)
+  call iiuClose(1)
   pixelTot = float(numSlices) * iwidth * ithickOut
   if (reprojBP .or. recReproj) pixelTot = float(numSlices) * iwidth * numReproj
   dmean = dtot8 / pixelTot
@@ -648,21 +648,21 @@ program tilt
     if (perpendicular .and. intervalHeadSave > 0 .and. .not.(reprojBP .or. recReproj)) &
         then
       nxyzTmp(3) = numSlices
-      call ialsiz(2, nxyzTmp, nxyzst)
+      call iiuAltSize(2, nxyzTmp, nxyzst)
     endif
-    call iwrhdr(2, title, 1, dmin, dmax, dmean)
+    call iiuWriteHeader(2, title, 1, dmin, dmax, dmean)
     if (.not.(reprojBP .or. recReproj)) then
       write(6, 930) 'reconstruction'
     else
       write(6, 930) 'reprojection'
     endif
     call irdhdr(2, nxyzTmp, nxyzst, mode, dmin, dmax, dmean)
-    if (saveVertSlices) call iwrhdr(6, title, 1, dmin6, dmax6, (dmin6 + dmax6) / 2.)
+    if (saveVertSlices) call iiuWriteHeader(6, title, 1, dmin6, dmax6, (dmin6 + dmax6) / 2.)
   else
     write(*,'(a,3g15.7,f15.0)') 'Min, max, mean, # pixels=', dmin, dmax, dmean, pixelTot
   endif
-  call imclose(2)
-  if (saveVertSlices) call imclose(6)
+  call iiuClose(2)
+  if (saveVertSlices) call iiuClose(6)
   if (.not.(reprojBP .or. recReproj .or. numSIRTiter > 0)) then
     recScale = numViews * 235. / (unscaledMax - unscaledMin)
     recAdd = (10. *(unscaledMax - unscaledMin) / 235. -unscaledMin) / numViews
@@ -683,12 +683,12 @@ program tilt
     enddo
   endif
   if (ifOutSirtProj > 0) then
-    call iwrhdr(4, title, 1, dmin4, dmax4, (dmin4 + dmax4) / 2.)
-    call imclose(4)
+    call iiuWriteHeader(4, title, 1, dmin4, dmax4, (dmin4 + dmax4) / 2.)
+    call iiuClose(4)
   endif
   if (ifOutSirtRec > 0) then
-    call iwrhdr(5, title, 1, dmin5, dmax5, (dmin5 + dmax5) / 2.)
-    call imclose(5)
+    call iiuWriteHeader(5, title, 1, dmin5, dmax5, (dmin5 + dmax5) / 2.)
+    call iiuClose(5)
   endif
   call exit(0)
 999 write(6, 920) mapUsedView(nv), nl
@@ -752,7 +752,7 @@ CONTAINS
     if (isUnit == 4) then
       do iv = 1, numViews
         j = iwriteStart + (iv - 1) * nxprj2
-        call imposn(4, iv - 1, lslice - isliceStart)
+        call iiuSetPosition(4, iv - 1, lslice - isliceStart)
         call iwrlin(4, array(j))
       enddo
       call iclden(array(iwriteStart), nxprj2, iv, 1, iwidth, 1, numViews, &
@@ -760,7 +760,7 @@ CONTAINS
       dmin4 = min(dmin4, istmin)
       dmax4 = max(dmax4, istmax)
     else
-      call iwrsec(5, array(iwriteStart))
+      call iiuWriteSection(5, array(iwriteStart))
       call iclden(array(iwriteStart), iwidth, ithickBP, 1, iwidth, 1, ithickBP, &
           istmin, istmax, istmean)
       dmin5 = min(dmin5, istmin)
@@ -789,9 +789,9 @@ CONTAINS
       nxyzTmp(2) = ithickOut
       nxyzTmp(3) = numSliceOut
       if (mod(numSliceOut, intervalHeadSave) == 1) then
-        call ialsiz(2, nxyzTmp, nxyzst)
+        call iiuAltSize(2, nxyzTmp, nxyzst)
         dmean = dtot8 / (float(numSliceOut) * iwidth * ithickOut)
-        call iwrhdr(2, title, -1, dmin, dmax, dmean)
+        call iiuWriteHeader(2, title, -1, dmin, dmax, dmean)
         call parWrtPosn(2, numSliceOut, 0)
       endif
     endif
@@ -1031,7 +1031,7 @@ end subroutine maskprep
 !
 !
 ! ---------------------------------------------------------------------
-subroutine transform(ibase, lslice, ifilterSet)
+subroutine transform(ibaseInd, lslice, ifilterSet)
   ! ----------------------------
   !
   ! This subroutine applies a one-dimensional Fourier transform to
@@ -1040,130 +1040,130 @@ subroutine transform(ibase, lslice, ifilterSet)
   !
   use tiltvars
   implicit none
-  integer*4 nxprj2, istart, index, indrad, nv, i, ibfrom, ibto, ixp
-  integer*4 ixpp1, ixpm1, ixpp2, ibase, lslice, ifilterSet
-  real*4 x, xp, dx, dxm1, v4, v5, v6, a, c, dennew, dxdxm1, diffmax
+  integer*4 nxProjPad, indStart, index, indRad, iv, i, ibFrom, ibaseTo, ixp
+  integer*4 ixpP1, ixpM1, ixpP2, ibaseInd, lslice, ifilterSet
+  real*4 x, xp, dx, dxM1, v4, v5, v6, a, c, denNew, dxDxM1, diffMax
   real*4 fx1, fx2, fx3, fx4
-  real*8 walltime, tstart
+  real*8 wallTime, tstart
   integer*4 gpuFilterLines
 
-  NXPRJ2 = nxProj + 2 + numPad
-  istart = ibase + ipExtraSize
-  tstart = walltime()
+  nxProjPad = nxProj + 2 + numPad
+  indStart = ibaseInd + ipExtraSize
+  tstart = wallTime()
   index = 1
   if (useGPU) then
-    index = gpuFilterLines(array(ISTART), lslice, ifilterSet)
+    index = gpuFilterLines(array(indStart), lslice, ifilterSet)
   endif
   if (index .ne. 0) then
     !
     ! Apply forward Fourier transform
-    CALL ODFFT(array(ISTART), nxProj + numPad, numViews, 0)
+    call odfft(array(indStart), nxProj + numPad, numViews, 0)
     !
     ! Apply Radial weighting
-    INDEX = ISTART
-    indrad = 1 + (ifilterSet - 1) * NXPRJ2 * numViews
+    index = indStart
+    indRad = 1 + (ifilterSet - 1) * nxProjPad * numViews
     v4 = 0.
     v5 = 0.
-    DO  NV = 1, numViews
-      DO I = 1, NXPRJ2
-        v4 = v4 + array(INDEX)
-        v5 = v5 + array(indrad)
-        array(INDEX) = array(INDEX) * array(indrad)
-        indrad = indrad + 1
-        INDEX = INDEX + 1
+    do  iv = 1, numViews
+      do i = 1, nxProjPad
+        v4 = v4 + array(index)
+        v5 = v5 + array(indRad)
+        array(index) = array(index) * array(indRad)
+        indRad = indRad + 1
+        index = index + 1
       enddo
     enddo
     !
     ! Apply inverse transform
-    CALL ODFFT(array(ISTART), nxProj + numPad, numViews, 1)
+    call odfft(array(indStart), nxProj + numPad, numViews, 1)
   endif
-  if (debug) write(*,'(a,f8.4)') 'Filter time', walltime() - tstart
+  if (debug) write(*,'(a,f8.4)') 'Filter time', wallTime() - tstart
   if (ipExtraSize == 0) return
   !
   ! do cosine stretch and move down one plane
   ! Use cubic interpolation a la cubinterp
   !
   ! print *,'istart, ibase', istart, ibase
-  do nv = 1, numViews
-    ibfrom = istart + (nv - 1) * nxprj2 - 1
-    ibto = ibase + indStretchLine(nv) - 1
+  do iv = 1, numViews
+    ibFrom = indStart + (iv - 1) * nxProjPad - 1
+    ibaseTo = ibaseInd + indStretchLine(iv) - 1
     ! print *,nv, ibfrom, ibto, nxStretched(nv)
-    diffmax = 0.
+    diffMax = 0.
     if (interpOrdStretch == 1) then
       !
       ! linear interpolation
       !
-      do i = 1, nxStretched(nv)
-        x = i / float(interpFacStretch) + stretchOffset(nv)
-        xp = min(max(1., x * cosBeta(nv)), float(nxProj))
-        IXP = XP
-        DX = XP - IXP
-        ixp = ixp + ibfrom
-        IXPP1 = min(IXP + 1, nxProj + ibfrom)
-        dxm1 = dx - 1.
-        array(ibto + i) = -dxm1 * array(ixp) + dx * array(ixpp1)
+      do i = 1, nxStretched(iv)
+        x = i / float(interpFacStretch) + stretchOffset(iv)
+        xp = min(max(1., x * cosBeta(iv)), float(nxProj))
+        ixp = xp
+        dx = xp - ixp
+        ixp = ixp + ibFrom
+        ixpP1 = min(ixp + 1, nxProj + ibFrom)
+        dxM1 = dx - 1.
+        array(ibaseTo + i) = -dxM1 * array(ixp) + dx * array(ixpP1)
       enddo
     else if (interpOrdStretch == 2) then
       !
       ! quadratic
       !
-      do i = 1, nxStretched(nv)
-        x = i / float(interpFacStretch) + stretchOffset(nv)
-        xp = min(max(1., x * cosBeta(nv)), float(nxProj))
-        IXP = nint(XP)
-        DX = XP - IXP
-        ixp = ixp + ibfrom
-        IXPP1 = min(IXP + 1, nxProj + ibfrom)
-        IXPM1 = max(IXP - 1, 1 + ibfrom)
-        V4 = array(IXPM1)
-        V5 = array(IXP)
-        V6 = array(IXPP1)
+      do i = 1, nxStretched(iv)
+        x = i / float(interpFacStretch) + stretchOffset(iv)
+        xp = min(max(1., x * cosBeta(iv)), float(nxProj))
+        ixp = nint(xp)
+        dx = xp - ixp
+        ixp = ixp + ibFrom
+        ixpP1 = min(ixp + 1, nxProj + ibFrom)
+        ixpM1 = max(ixp - 1, 1 + ibFrom)
+        v4 = array(ixpM1)
+        v5 = array(ixp)
+        v6 = array(ixpP1)
         !
-        A = (V6 + V4) * .5 - V5
-        C = (V6 - V4) * .5
+        a = (v6 + v4) * .5 - v5
+        c = (v6 - v4) * .5
         !
-        dennew = A * DX * DX + C * DX + V5
+        denNew = a * dx * dx + c * dx + v5
         ! dennew=min(dennew, max(v4, v5, v6))
         ! dennew=max(dennew, min(v4, v5, v6))
-        array(ibto + i) = dennew
+        array(ibaseTo + i) = denNew
       enddo
     else
       !
       ! cubic
       !
-      do i = 1, nxStretched(nv)
-        x = i / float(interpFacStretch) + stretchOffset(nv)
-        xp = min(max(1., x * cosBeta(nv)), float(nxProj))
-        IXP = XP
-        DX = XP - IXP
-        ixp = ixp + ibfrom
-        IXPP1 = min(IXP + 1, nxProj + ibfrom)
-        IXPM1 = max(IXP - 1, 1 + ibfrom)
-        ixpp2 = min(ixp + 2, nxProj + ibfrom)
+      do i = 1, nxStretched(iv)
+        x = i / float(interpFacStretch) + stretchOffset(iv)
+        xp = min(max(1., x * cosBeta(iv)), float(nxProj))
+        ixp = xp
+        dx = xp - ixp
+        ixp = ixp + ibFrom
+        ixpP1 = min(ixp + 1, nxProj + ibFrom)
+        ixpM1 = max(ixp - 1, 1 + ibFrom)
+        ixpP2 = min(ixp + 2, nxProj + ibFrom)
 
-        dxm1 = dx - 1.
-        dxdxm1 = dx * dxm1
-        fx1 = -dxm1 * dxdxm1
-        fx4 = dx * dxdxm1
+        dxM1 = dx - 1.
+        dxDxM1 = dx * dxM1
+        fx1 = -dxM1 * dxDxM1
+        fx4 = dx * dxDxM1
         fx2 = 1 + dx**2 * (dx - 2.)
-        fx3 = dx * (1. -dxdxm1)
-        dennew = fx1 * array(ixpm1) + fx2 * array(ixp) + &
-            fx3 * array(ixpp1) + fx4 * array(ixpp2)
+        fx3 = dx * (1. -dxDxM1)
+        denNew = fx1 * array(ixpM1) + fx2 * array(ixp) + &
+            fx3 * array(ixpP1) + fx4 * array(ixpP2)
         ! dennew=min(dennew, max(array(ixpm1), array(ixp), array(ixpp1), &
         ! array(ixpp2)))
         ! dennew=max(dennew, min(array(ixpm1), array(ixp), array(ixpp1), &
         ! array(ixpp2)))
-        array(ibto + i) = dennew
+        array(ibaseTo + i) = denNew
       enddo
     endif
   enddo
 
-  RETURN
+  return
 end subroutine transform
 
 
 ! ---------------------------------------------------------------------
-subroutine project(istart, lslice)
+subroutine project(indStart, lslice)
   ! --------------------------
   !
   ! This subroutine assembles one reconstructed slice perpendicular
@@ -1171,15 +1171,15 @@ subroutine project(istart, lslice)
   !
   use tiltvars
   implicit none
-  integer*4 jstrt(3), jend(3)
+  integer*4 jStart(3), jEnd(3)
   real*8 xproj8, tstart
-  integer*4 nxprj2, ipdel, IPOINT, iv, INDEX, i, j
-  real*4 CBETA, SBETA, zz, zpart, yy, yproj, YFRAC, omyfrac
-  integer*4 jPROJ, jlft, jrt, iproj, ip1, ip2, ind, ipbase, ifytest
-  integer*4 jtstlft, jtstrt, ISTART, lslice, jregion
-  real*4 xlft, xrt, x, xfrac, omxfrac, zbot, ztop, xproj, ytol
-  integer*4 gpubpnox, gpubpxtilt, gpubplocal
-  real*8 walltime
+  integer*4 nxProjPad, iprojDelta, ipoint, iv, index, i, j
+  real*4 cbeta, sbeta, zz, zPart, yy, yproj, yfrac, oneMyFrac
+  integer*4 jProj, jLeft, jRight, iproj, ip1, ip2, ind, iprojBase, ifYtest
+  integer*4 jTestLeft, jTestRight, indStart, lslice, jregion
+  real*4 xLeft, xRight, x, xfrac, oneMxFrac, zBottom, zTop, xproj, yEndTol
+  integer*4 gpubpNox, gpubpXtilt, gpubpLocal
+  real*8 wallTime
   !
   ! A note on the ubiquitous ytol: It is needed to keep artifacts from
   ! building up at ends of data set through SIRT, from reprojection of the
@@ -1187,209 +1187,209 @@ subroutine project(istart, lslice)
   ! projection difference.  2.05 was sufficient for X-axis tilt cases but
   ! 3.05 was needed for local alignments, thus it is set to 3.05 everywhere
   ! (Here, reprojection routines, and in GPU routines)
-  ytol = 3.05
+  yEndTol = 3.05
   !
   ! Determine maskEdges extent if it is variable
-  if (ifAlpha .ne. 0 .and. maskEdges) call maskprep(lslice)
-  NXPRJ2 = nxProj + 2 + numPad
-  tstart = walltime()
+  if (ifAlpha .ne. 0 .and. maskEdges) call maskPrep(lslice)
+  nxProjPad = nxProj + 2 + numPad
+  tstart = wallTime()
   !
   ! GPU backprojection
   if (useGPU) then
     ind = 1
     if (ifAlpha <= 0 .and. nxWarp == 0) then
-      ind = gpubpnox(array(indOutSlice), array(istart), sinBeta, cosBeta, nxProj, &
+      ind = gpubpNox(array(indOutSlice), array(indStart), sinBeta, cosBeta, nxProj, &
           xcenIn + axisXoffset, xcenOut, ycenOut, edgeFill)
     else if (nxWarp == 0 .and. loadGpuStart > 0) then
-      ind = gpubpxtilt(array(indOutSlice), sinBeta, cosBeta, sinAlpha, cosAlpha, xzfac, &
+      ind = gpubpXtilt(array(indOutSlice), sinBeta, cosBeta, sinAlpha, cosAlpha, xzfac, &
           yzfac, nxProj, nyProj, xcenIn + axisXoffset, xcenOut, ycenOut, lslice, &
           centerSlice, edgeFill)
     else if (loadGpuStart > 0) then
-      ind = gpubplocal(array(indOutSlice), lslice, nxWarp, nyWarp, ixStartWarp, &
+      ind = gpubpLocal(array(indOutSlice), lslice, nxWarp, nyWarp, ixStartWarp, &
           iyStartWarp, idelXwarp, idelYwarp, nxProj, xcenOut, xcenIn, axisXoffset, &
           ycenOut, centerSlice, edgeFill)
     endif
     if (ind == 0) then
       if (debug) write(*, '(a,f8.4)') 'GPU backprojection time', &
-          walltime() - tstart
+          wallTime() - tstart
       return
     endif
   endif
   !
   ! CPU backprojection: clear out the slice
-  DO I = 0, isliceSizeBP - 1
-    array(indOutSlice + I) = 0.
+  do i = 0, isliceSizeBP - 1
+    array(indOutSlice + i) = 0.
   enddo
-  ipdel = idelSlice * inPlaneSize
+  iprojDelta = idelSlice * inPlaneSize
   !
   if (nxWarp == 0) then
     !
     ! Loop over all views
-    IPOINT = ISTART - 1
-    DO iv = 1, numViews
+    ipoint = indStart - 1
+    do iv = 1, numViews
       !
       ! Set view angle
-      CBETA = cosBeta(iv)
-      SBETA = sinBeta(iv)
+      cbeta = cosBeta(iv)
+      sbeta = sinBeta(iv)
       !
       ! Loop over all points in output slice
-      INDEX = indOutSlice
+      index = indOutSlice
       !
-      DO I = 1, ithickBP
-        ZZ = (I - ycenOut) * compress(iv)
+      do i = 1, ithickBP
+        zz = (i - ycenOut) * compress(iv)
         if (ifAlpha <= 0) then
-          zPART = zz * SBETA + xcenIn + axisXoffset
+          zPart = zz * sbeta + xcenIn + axisXoffset
         else
           !
           ! If x-axis tilting, find interpolation factor between the
           ! slices
           !
           yy = lslice - centerSlice
-          zpart = yy * sinAlpha(iv) * sbeta + zz * (cosAlpha(iv) * sbeta + xzfac(iv)) + &
+          zPart = yy * sinAlpha(iv) * sbeta + zz * (cosAlpha(iv) * sbeta + xzfac(iv)) + &
               xcenIn + axisXoffset
           yproj = yy * cosAlpha(iv) - zz * (sinAlpha(iv) - yzfac(iv)) + centerSlice
           !
           ! if inside the tolerance, clamp it to the endpoints
-          if (yproj >= 1. - ytol .and. yproj <= nyProj + ytol) &
+          if (yproj >= 1. - yEndTol .and. yproj <= nyProj + yEndTol) &
               yproj = max(1., min(float(nyProj), yproj))
-          jPROJ = YPROJ
-          jproj = min(nyProj - 1, jproj)
-          YFRAC = YPROJ - JPROJ
-          omyfrac = 1. -yfrac
+          jProj = yproj
+          jProj = min(nyProj - 1, jProj)
+          yfrac = yproj - jProj
+          oneMyFrac = 1. -yfrac
         endif
         !
         ! compute left and right limits that come from legal data
         !
         x = cbeta
         if (abs(cbeta) < 0.001) x = sign(0.001, cbeta)
-        xlft = (1. -zpart) / x + xcenOut
-        xrt = (nxProj - zpart) / x + xcenOut
-        if (xrt < xlft) then
-          x = xlft
-          xlft = xrt
-          xrt = x
+        xLeft = (1. -zPart) / x + xcenOut
+        xRight = (nxProj - zPart) / x + xcenOut
+        if (xRight < xLeft) then
+          x = xLeft
+          xLeft = xRight
+          xRight = x
         endif
-        jlft = xlft
-        if (jlft < xlft) jlft = jlft + 1
-        jlft = max(jlft, ixUnmaskedSE(1, i))
-        jrt = xrt
-        if (jrt == xrt) jrt = jrt - 1
-        jrt = min(jrt, ixUnmaskedSE(2, i))
+        jLeft = xLeft
+        if (jLeft < xLeft) jLeft = jLeft + 1
+        jLeft = max(jLeft, ixUnmaskedSE(1, i))
+        jRight = xRight
+        if (jRight == xRight) jRight = jRight - 1
+        jRight = min(jRight, ixUnmaskedSE(2, i))
         !
         ! If the limits are now crossed, just skip to full fill at end
-        if (jlft <= jrt) then
+        if (jLeft <= jRight) then
           !
           ! set up starting index and projection position
           !
-          do ind = index + ixUnmaskedSE(1, i) - 1, index + jlft - 2
+          do ind = index + ixUnmaskedSE(1, i) - 1, index + jLeft - 2
             array(ind) = array(ind) + edgeFill
           enddo
-          index = index + (jlft - 1)
-          x = jlft - xcenOut
+          index = index + (jLeft - 1)
+          x = jLeft - xcenOut
           if (interpFacStretch .ne. 0) then
             !
             ! Computation with prestretched data
             !
-            XPROJ8 = interpFacStretch * (zPART / CBETA + X - stretchOffset(iv))
-            IPROJ = XPROJ8
-            XFRAC = XPROJ8 - IPROJ
+            xproj8 = interpFacStretch * (zPart / cbeta + x - stretchOffset(iv))
+            iproj = xproj8
+            xfrac = xproj8 - iproj
             iproj = iproj + ipoint + indStretchLine(iv)
-            omxfrac = 1. -xfrac
+            oneMxFrac = 1. -xfrac
             if (ifAlpha <= 0) then
               !
               ! interpolation in simple case of no x-axis tilt
               !
-              DO ind = index, index + jrt - jlft
-                array(IND) = array(IND) + &
-                    omxfrac * array(IPROJ) + XFRAC * array(IPROJ + 1)
+              do ind = index, index + jRight - jLeft
+                array(ind) = array(ind) + &
+                    oneMxFrac * array(iproj) + xfrac * array(iproj + 1)
                 iproj = iproj + interpFacStretch
               enddo
-              index = index + jrt + 1 - jlft
+              index = index + jRight + 1 - jLeft
             else
               !
               ! If x-axis tilting, interpolate from two lines
               !
-              ip1 = iproj + (jproj - lslice) * ipdel
-              ip2 = ip1 + ipdel
+              ip1 = iproj + (jProj - lslice) * iprojDelta
+              ip2 = ip1 + iprojDelta
               if (yproj >= 1. .and. yproj <= nyProj .and. &
                   ip1 >= indLoadBase .and. ip2 >= indLoadBase .and. ip1 < indLoadEnd &
                   .and. ip2 < indLoadEnd) then
 
-                DO ind = index, index + jrt - jlft
-                  array(IND) = array(IND) + &
-                      omxfrac * (omyfrac * array(IP1) + yFRAC * array(IP2)) + &
-                      xfrac * (omyfrac * array(IP1 + 1) + yFRAC * array(IP2 + 1))
+                do ind = index, index + jRight - jLeft
+                  array(ind) = array(ind) + &
+                      oneMxFrac * (oneMyFrac * array(ip1) + yfrac * array(ip2)) + &
+                      xfrac * (oneMyFrac * array(ip1 + 1) + yfrac * array(ip2 + 1))
                   ip1 = ip1 + interpFacStretch
                   ip2 = ip2 + interpFacStretch
                 enddo
               else
-                do ind = index, index + jrt + 1 - jlft - 1
+                do ind = index, index + jRight + 1 - jLeft - 1
                   array(ind) = array(ind) + edgeFill
                 enddo
               endif
-              index = index + jrt + 1 - jlft
+              index = index + jRight + 1 - jLeft
             endif
           else
             !
             ! Computation direct from projection data
             !
-            XPROJ8 = zPART + X * CBETA
+            xproj8 = zPart + x * cbeta
             if (ifAlpha <= 0) then
               !
               ! interpolation in simple case of no x-axis tilt
               !
-              call bpsumnox(array, index, ipoint, jrt + 1 - jlft, xproj8, cbeta)
+              call bpsumnox(array, index, ipoint, jRight + 1 - jLeft, xproj8, cbeta)
             else
               !
               ! If x-axis tilting
               !
-              IPROJ = XPROJ8
-              ipbase = ipoint + (jproj - lslice) * ipdel
-              ip1 = ipbase + iproj
-              ip2 = ip1 + ipdel
+              iproj = xproj8
+              iprojBase = ipoint + (jProj - lslice) * iprojDelta
+              ip1 = iprojBase + iproj
+              ip2 = ip1 + iprojDelta
               if (yproj >= 1. .and. yproj <= nyProj .and. &
                   ip1 >= indLoadBase .and. ip2 >= indLoadBase .and. ip1 < indLoadEnd &
                   .and. ip2 < indLoadEnd) then
 
-                call bpsumxtilt(array, index, ipbase, ipdel, jrt + 1 - jlft, &
-                    xproj8, cbeta, yfrac, omyfrac)
+                call bpsumxtilt(array, index, iprojBase, iprojDelta, jRight + 1 - jLeft, &
+                    xproj8, cbeta, yfrac, oneMyFrac)
               else
-                do ind = index, index + jrt + 1 - jlft - 1
+                do ind = index, index + jRight + 1 - jLeft - 1
                   array(ind) = array(ind) + edgeFill
                 enddo
-                index = index + jrt + 1 - jlft
+                index = index + jRight + 1 - jLeft
               endif
             endif
           endif
         else
-          jrt = 0
+          jRight = 0
         endif
-        do ind = index, index + iwidth - jrt - 1
+        do ind = index, index + iwidth - jRight - 1
           array(ind) = array(ind) + edgeFill
         enddo
-        index = index + iwidth - jrt
+        index = index + iwidth - jRight
       enddo
       !
       !-------------------------------------------
       !
       ! End of projection loop
-      if (interpFacStretch == 0) IPOINT = IPOINT + NXPRJ2
+      if (interpFacStretch == 0) ipoint = ipoint + nxProjPad
     enddo
   else
     !
     ! LOCAL ALIGNMENTS
     !
     ! Loop over all views
-    IPOINT = ISTART - 1
-    DO IV = 1, numViews
+    ipoint = indStart - 1
+    do iv = 1, numViews
       !
       ! precompute the factors for getting xproj and yproj all the
       ! way across the slice
       !
-      ifytest = 0
-      zbot = (1 - ycenOut) * compress(iv)
-      ztop = (ithickBP - ycenOut) * compress(iv)
-      DO J = 1, iwidth
+      ifYtest = 0
+      zBottom = (1 - ycenOut) * compress(iv)
+      zTop = (ithickBP - ycenOut) * compress(iv)
+      do j = 1, iwidth
         !
         ! get the fixed and z-dependent component of the
         ! projection coordinates
@@ -1400,101 +1400,101 @@ subroutine project(istart, lslice)
         ! see if any y testing is needed in the inner loop by checking
         ! yproj at top and bottom in Z
         !
-        yproj = yprojfs(j) + yprojzs(j) * zbot
-        jPROJ = YPROJ
-        ip1 = ipoint + (jproj - lslice) * ipdel + 1
-        ip2 = ip1 + ipdel
+        yproj = yprojfs(j) + yprojzs(j) * zBottom
+        jProj = yproj
+        ip1 = ipoint + (jProj - lslice) * iprojDelta + 1
+        ip2 = ip1 + iprojDelta
         if (ip1 <= indLoadBase .or. ip2 <= indLoadBase .or. ip1 >= indLoadEnd &
-            .or. ip2 >= indLoadEnd .or. jproj < 1 .or. jproj >= nyProj) &
-            ifytest = 1
-        yproj = yprojfs(j) + yprojzs(j) * ztop
-        jPROJ = YPROJ
-        ip1 = ipoint + (jproj - lslice) * ipdel + 1
-        ip2 = ip1 + ipdel
+            .or. ip2 >= indLoadEnd .or. jProj < 1 .or. jProj >= nyProj) &
+            ifYtest = 1
+        yproj = yprojfs(j) + yprojzs(j) * zTop
+        jProj = yproj
+        ip1 = ipoint + (jProj - lslice) * iprojDelta + 1
+        ip2 = ip1 + iprojDelta
         if (ip1 <= indLoadBase .or. ip2 <= indLoadBase .or. ip1 >= indLoadEnd &
-            .or. ip2 >= indLoadEnd .or. jproj < 1 .or. jproj >= nyProj) &
-            ifytest = 1
+            .or. ip2 >= indLoadEnd .or. jProj < 1 .or. jProj >= nyProj) &
+            ifYtest = 1
       enddo
       !
       ! walk in from each end until xproj is safely within bounds
       ! to define region where no x checking is needed
       !
-      jtstlft = 0
+      jTestLeft = 0
       j = 1
-      do while(jtstlft == 0 .and. j < iwidth)
-        if (min(xprojfs(j) + zbot * xprojzs(j), &
-            xprojfs(j) + ztop * xprojzs(j)) >= 1) jtstlft = j
+      do while(jTestLeft == 0 .and. j < iwidth)
+        if (min(xprojfs(j) + zBottom * xprojzs(j), &
+            xprojfs(j) + zTop * xprojzs(j)) >= 1) jTestLeft = j
         j = j + 1
       enddo
-      if (jtstlft == 0) jtstlft = iwidth
+      if (jTestLeft == 0) jTestLeft = iwidth
       !
-      jtstrt = 0
+      jTestRight = 0
       j = iwidth
-      do while(jtstrt == 0 .and. j > 1)
-        if (max(xprojfs(j) + zbot * xprojzs(j), &
-            xprojfs(j) + ztop * xprojzs(j)) < nxProj) jtstrt = j
+      do while(jTestRight == 0 .and. j > 1)
+        if (max(xprojfs(j) + zBottom * xprojzs(j), &
+            xprojfs(j) + zTop * xprojzs(j)) < nxProj) jTestRight = j
         j = j - 1
       enddo
-      if (jtstrt == 0) jtstrt = 1
-      if (jtstrt < jtstlft) then
-        jtstrt = iwidth / 2
-        jtstlft = jtstrt + 1
+      if (jTestRight == 0) jTestRight = 1
+      if (jTestRight < jTestLeft) then
+        jTestRight = iwidth / 2
+        jTestLeft = jTestRight + 1
       endif
       !
-      INDEX = indOutSlice
+      index = indOutSlice
       !
       ! loop over the slice, outer loop on z levels
       !
-      DO I = 1, ithickBP
-        ZZ = (I - ycenOut) * compress(iv)
-        jlft = max(jtstlft, ixUnmaskedSE(1, i))
-        jrt = min(jtstrt, ixUnmaskedSE(2, i))
+      do i = 1, ithickBP
+        zz = (i - ycenOut) * compress(iv)
+        jLeft = max(jTestLeft, ixUnmaskedSE(1, i))
+        jRight = min(jTestRight, ixUnmaskedSE(2, i))
         index = index + ixUnmaskedSE(1, i) - 1
         !
         ! set up to do inner loop in three regions of X
         !
-        jstrt(1) = ixUnmaskedSE(1, i)
-        jend(1) = jlft - 1
-        jstrt(2) = jlft
-        jend(2) = jrt
-        jstrt(3) = jrt + 1
-        jend(3) = ixUnmaskedSE(2, i)
+        jStart(1) = ixUnmaskedSE(1, i)
+        jEnd(1) = jLeft - 1
+        jStart(2) = jLeft
+        jEnd(2) = jRight
+        jStart(3) = jRight + 1
+        jEnd(3) = ixUnmaskedSE(2, i)
         do jregion = 1, 3
-          if (jregion .ne. 2 .or. ifytest == 1) then
+          if (jregion .ne. 2 .or. ifYtest == 1) then
             !
             ! loop involving full testing - either left or right
             ! sides needing x testing, or anywhere if y testing
             ! needed
             !
-            do j = jstrt(jregion), jend(jregion)
+            do j = jStart(jregion), jEnd(jregion)
               xproj = xprojfs(j) + zz * xprojzs(j)
               yproj = yprojfs(j) + zz * yprojzs(j)
-              if (yproj >= 1. - ytol .and. yproj <= nyProj + ytol) &
+              if (yproj >= 1. - yEndTol .and. yproj <= nyProj + yEndTol) &
                   yproj = max(1., min(float(nyProj), yproj))
               if (xproj >= 1 .and. xproj <= nxProj .and. &
                   yproj >= 1. .and. yproj <= nyProj) then
                 !
-                IPROJ = XPROJ
+                iproj = xproj
                 iproj = min(nxProj - 1, iproj)
-                XFRAC = XPROJ - IPROJ
-                jPROJ = YPROJ
-                jproj = min(nyProj - 1, jproj)
-                YFRAC = YPROJ - JPROJ
+                xfrac = xproj - iproj
+                jProj = yproj
+                jProj = min(nyProj - 1, jProj)
+                yfrac = yproj - jProj
                 !
-                ip1 = ipoint + (jproj - lslice) * ipdel + iproj
-                ip2 = ip1 + ipdel
+                ip1 = ipoint + (jProj - lslice) * iprojDelta + iproj
+                ip2 = ip1 + iprojDelta
                 if (ip1 >= indLoadBase .and. ip2 >= indLoadBase .and. &
                     ip1 < indLoadEnd .and. ip2 < indLoadEnd) then
-                  array(INDEX) = array(INDEX) + &
-                      (1. -yfrac) * ((1. -XFRAC) * array(IP1) &
-                      + XFRAC * array(IP1 + 1)) + &
-                      yfrac * ((1. -XFRAC) * array(IP2) &
-                      + XFRAC * array(IP2 + 1))
+                  array(index) = array(index) + &
+                      (1. -yfrac) * ((1. -xfrac) * array(ip1) &
+                      + xfrac * array(ip1 + 1)) + &
+                      yfrac * ((1. -xfrac) * array(ip2) &
+                      + xfrac * array(ip2 + 1))
                 else
-                  array(INDEX) = array(INDEX) + edgeFill
+                  array(index) = array(index) + edgeFill
                 endif
               else
-                array(INDEX) = array(INDEX) + edgeFill
+                array(index) = array(index) + edgeFill
               endif
               index = index + 1
             enddo
@@ -1502,9 +1502,9 @@ subroutine project(istart, lslice)
             ! loop for no x-testing and no y testing
             !
           else
-            call bpsumlocal(array, index, zz, xprojfs, xprojzs, yprojfs, &
-                yprojzs, ipoint, ipdel, lslice, jstrt(jregion), &
-                jend(jregion))
+            call bpsumLocal(array, index, zz, xprojfs, xprojzs, yprojfs, &
+                yprojzs, ipoint, iprojDelta, lslice, jStart(jregion), &
+                jEnd(jregion))
           endif
         enddo
         index = index + iwidth - ixUnmaskedSE(2, i)
@@ -1512,54 +1512,56 @@ subroutine project(istart, lslice)
       !-------------------------------------------
       !
       ! End of projection loop
-      IPOINT = IPOINT + NXPRJ2
+      ipoint = ipoint + nxProjPad
     enddo
   endif
   if (debug) write(*, '(a,f8.4)') 'CPU backprojection time', &
-      walltime() - tstart
-  RETURN
+      wallTime() - tstart
+  return
 end subroutine project
 !
 !-------------------------------------------------------------------------
 !
 ! COMPOSE will interpolate the output slice LSLICEOUT from vertical
-! slices in the ring buffer, where LVSSTART and LVSEND are the starting
+! slices in the ring buffer, where lvertSliceStart and lVertSliceEnd are the starting
 ! and ending slices in the ring buffer, IDIR is the direction of
-! reconstruction, and IRINGSTART is the position of LVSSTART in the
+! reconstruction, and IRINGSTART is the position of lvertSliceStart in the
 ! ring buffer.
 !
-subroutine compose(lsliceout, lvsstart, lvsend, idir, iringstart, composeFill)
+subroutine compose(lsliceOut, lvertSliceStart, lVertSliceEnd, idir, iringStart, &
+    composeFill)
   use tiltvars
   implicit none
-  integer*4 lsliceout, lvsstart, lvsend, idir, iringstart
+  integer*4 lsliceOut, lvertSliceStart, lVertSliceEnd, idir, iringStart
   real*4 composeFill
   integer*4 ind1(4), ind2(4), ind3(4), ind4(4)
-  real*4 tanalpha, vertcen, cenj, cenl, vsl, vycen, fx, vy, fy, f22, f23, f32, f33
-  integer*4 ivsl, ifmiss, i, lvsl, iring, ibase, ivy, indcen, jnd5, jnd2, j, k
+  real*4 tanAlpha, vertCen, centeredJ, centeredL, vSlice, vyCentered, fx, vy, fy, f22, f23
+  real*4 f32, f33
+  integer*4 ivSlice, ifMiss, i, lvSlice, iring, ibaseInd, ivy, indCen, jnd5, jnd2, j, k
   real*4 fx1, fx2, fx3, fx4, fy1, fy2, fy3, fy4, v1, v2, v3, v4, f5, f2, f8, f4, f6
-  integer*4 jnd8, jnd4, jnd6, nfill
+  integer*4 jnd8, jnd4, jnd6, numFill
   !
   ! 12/12/09: stopped reading base here, read on output; eliminate zeroing
   !
-  tanalpha = sinAlpha(1) / cosAlpha(1)
-  vertcen = ithickBP / 2 + 0.5
+  tanAlpha = sinAlpha(1) / cosAlpha(1)
+  vertCen = ithickBP / 2 + 0.5
   fx = 0.
   fy = 0.
-  nfill = 0
+  numFill = 0
   !
   ! loop on lines of data
   !
   do j = 1, ithickOut
-    cenj = j - (ithickOut / 2 + 0.5) - yOffset
-    cenl = lsliceout - centerSlice
+    centeredJ = j - (ithickOut / 2 + 0.5) - yOffset
+    centeredL = lsliceOut - centerSlice
     !
     ! calculate slice number and y position in vertical slices
     !
-    vsl = cenl * cosAlpha(1) - cenj * sinAlpha(1) + centerSlice
-    vycen = cenl * sinAlpha(1) + cenj * cosAlpha(1)
-    ivsl = vsl
-    fx = vsl - ivsl
-    ifmiss = 0
+    vSlice = centeredL * cosAlpha(1) - centeredJ * sinAlpha(1) + centerSlice
+    vyCentered = centeredL * sinAlpha(1) + centeredJ * cosAlpha(1)
+    ivSlice = vSlice
+    fx = vSlice - ivSlice
+    ifMiss = 0
     !
     ! for each of 4 slices needed for cubic interpolation, initialize
     ! data indexes at zero then see if slice exists in ring
@@ -1569,30 +1571,33 @@ subroutine compose(lsliceout, lvsstart, lvsend, idir, iringstart, composeFill)
       ind2(i) = 0
       ind3(i) = 0
       ind4(i) = 0
-      lvsl = ivsl + i - 2
-      if (idir * (lvsl - lvsstart) >= 0 .and. idir * (lvsend - lvsl) >= 0) then
+      lvSlice = ivSlice + i - 2
+      if (idir * (lvSlice - lvertSliceStart) >= 0 .and.  &
+          idir * (lVertSliceEnd - lvSlice) >= 0) then
         !
         ! if slice exists, get base index for the slice, compute the
         ! y index in the slice, then set the 4 data indexes if they
         ! are within the slice
         !
-        iring = idir * (lvsl - lvsstart) + iringstart
+        iring = idir * (lvSlice - lvertSliceStart) + iringStart
         if (iring > numVertNeeded) iring = iring - numVertNeeded
-        ibase = indOutSlice + isliceSizeBP + (iring - 1) * ithickBP * iwidth
-        vy = vycen + vertcen - nint(tanalpha * (lvsl - centerSlice)) +  &
+        ibaseInd = indOutSlice + isliceSizeBP + (iring - 1) * ithickBP * iwidth
+        vy = vyCentered + vertCen - nint(tanAlpha * (lvSlice - centerSlice)) +  &
             yOffset / cosAlpha(1)
         ivy = vy
         fy = vy - ivy
-        if (ivy - 1 >= 1 .and. ivy - 1 <= ithickBP) ind1(i) = ibase + iwidth * (ivy - 2)
-        if (ivy >= 1 .and. ivy <= ithickBP) ind2(i) = ibase + iwidth * (ivy - 1)
-        if (ivy + 1 >= 1 .and. ivy + 1 <= ithickBP) ind3(i) = ibase + iwidth * ivy
-        if (ivy + 2 >= 1 .and. ivy + 2 <= ithickBP) ind4(i) = ibase + iwidth * (ivy + 1)
+        if (ivy - 1 >= 1 .and. ivy - 1 <= ithickBP) &
+            ind1(i) = ibaseInd + iwidth * (ivy - 2)
+        if (ivy >= 1 .and. ivy <= ithickBP) ind2(i) = ibaseInd + iwidth * (ivy - 1)
+        if (ivy + 1 >= 1 .and. ivy + 1 <= ithickBP) ind3(i) = ibaseInd + iwidth * ivy
+        if (ivy + 2 >= 1 .and. ivy + 2 <= ithickBP) &
+            ind4(i) = ibaseInd + iwidth * (ivy + 1)
       endif
       if (ind1(i) == 0 .or. ind2(i) == 0 .or. ind3(i) == 0 .or. &
-          ind4(i) == 0) ifmiss = 1
+          ind4(i) == 0) ifMiss = 1
     enddo
-    ibase = indOutSlice + (j - 1) * iwidth - 1
-    if (interpOrdXtilt > 2 .and. ifmiss == 0) then
+    ibaseInd = indOutSlice + (j - 1) * iwidth - 1
+    if (interpOrdXtilt > 2 .and. ifMiss == 0) then
       !
       ! cubic interpolation if selected, and no data missing
       !
@@ -1613,7 +1618,7 @@ subroutine compose(lsliceout, lvsstart, lvsend, idir, iringstart, composeFill)
             fx3 * array(ind3(3)) + fx4 * array(ind3(4))
         v4 = fx1 * array(ind4(1)) + fx2 * array(ind4(2)) + &
             fx3 * array(ind4(3)) + fx4 * array(ind4(4))
-        array(ibase + i) = fy1 * v1 + fy2 * v2 + fy3 * v3 + fy4 * v4
+        array(ibaseInd + i) = fy1 * v1 + fy2 * v2 + fy3 * v3 + fy4 * v4
         do k = 1, 4
           ind1(k) = ind1(k) + 1
           ind2(k) = ind2(k) + 1
@@ -1621,29 +1626,29 @@ subroutine compose(lsliceout, lvsstart, lvsend, idir, iringstart, composeFill)
           ind4(k) = ind4(k) + 1
         enddo
       enddo
-    elseif (interpOrdXtilt == 2 .and. ifmiss == 0) then
+    elseif (interpOrdXtilt == 2 .and. ifMiss == 0) then
       !
       ! quadratic interpolation if selected, and no data missing
       ! shift to next column or row if fractions > 0.5
       !
-      indcen = 2
+      indCen = 2
       if (fx > 0.5) then
-        indcen = 3
+        indCen = 3
         fx = fx - 1.
       endif
       if (fy <= 0.5) then
-        jnd5 = ind2(indcen)
-        jnd2 = ind1(indcen)
-        jnd8 = ind3(indcen)
-        jnd4 = ind2(indcen - 1)
-        jnd6 = ind2(indcen + 1)
+        jnd5 = ind2(indCen)
+        jnd2 = ind1(indCen)
+        jnd8 = ind3(indCen)
+        jnd4 = ind2(indCen - 1)
+        jnd6 = ind2(indCen + 1)
       else
         fy = fy - 1.
-        jnd5 = ind3(indcen)
-        jnd2 = ind2(indcen)
-        jnd8 = ind4(indcen)
-        jnd4 = ind3(indcen - 1)
-        jnd6 = ind3(indcen + 1)
+        jnd5 = ind3(indCen)
+        jnd2 = ind2(indCen)
+        jnd8 = ind4(indCen)
+        jnd4 = ind3(indCen - 1)
+        jnd6 = ind3(indCen + 1)
       endif
       !
       ! get coefficients and do the interpolation
@@ -1654,7 +1659,7 @@ subroutine compose(lsliceout, lvsstart, lvsend, idir, iringstart, composeFill)
       f4 = (fx**2 - fx) / 2.
       f6 = f4 + fx
       do i = 1, iwidth
-        array(ibase + i) = f5 * array(jnd5) + f2 * array(jnd2) + &
+        array(ibaseInd + i) = f5 * array(jnd5) + f2 * array(jnd2) + &
             f4 * array(jnd4) + f6 * array(jnd6) + f8 * array(jnd8)
         jnd5 = jnd5 + 1
         jnd2 = jnd2 + 1
@@ -1699,7 +1704,7 @@ subroutine compose(lsliceout, lvsstart, lvsend, idir, iringstart, composeFill)
         f32 = fy * (1. -fx)
         f33 = fy * fx
         do i = 1, iwidth
-          array(ibase + i) = f22 * array(ind2(2)) + &
+          array(ibaseInd + i) = f22 * array(ind2(2)) + &
               f23 * array(ind2(3)) + f32 * array(ind3(2)) + f33 * array(ind3(3))
           ind2(2) = ind2(2) + 1
           ind2(3) = ind2(3) + 1
@@ -1709,9 +1714,9 @@ subroutine compose(lsliceout, lvsstart, lvsend, idir, iringstart, composeFill)
       else
         ! print *,'filling', j
         do i = 1, iwidth
-          array(i + ibase) = composeFill
+          array(i + ibaseInd) = composeFill
         enddo
-        nfill = nfill + 1
+        numFill = numFill + 1
       endif
     endif
   enddo
@@ -1726,63 +1731,63 @@ end subroutine compose
 ! position of lReadStart in the ring buffer, and ibaseSIRT is the index
 ! in stack at which to place the slice.
 !
-subroutine decompose(lslice, lReadStart, lreadEnd, iringstart, &
-    ibaseSIRT)
+subroutine decompose(lslice, lReadStart, lreadEnd, iringStart, ibaseSIRT)
   use tiltvars
   implicit none
-  integer*4 lslice, lReadStart, lreadEnd, iringstart, ibaseSIRT
-  real*4 tanalpha, outcen, cenl, vslcen, vycen, outsl, outj, fx, fy
-  real*4 f11, f12, f21, f22
-  integer*4 ibasev, ibase1, ibase2, j, ioutsl, jout, i, iring
+  integer*4 lslice, lReadStart, lreadEnd, iringStart, ibaseSIRT
+  real*4 tanAlpha, outCen, centeredL, vSliceCentered, vyCentered, outSlice, outYpos
+  real*4 f11, f12, f21, f22, fx, fy
+  integer*4 ibaseVert, ibase1, ibase2, j, ioutSlice, jOut, i, iring
 
-  tanalpha = sinAlpha(1) / cosAlpha(1)
-  outcen = ithickOut / 2 + 0.5
-  cenl = lslice - centerSlice
-  vslcen = cenl
+  tanAlpha = sinAlpha(1) / cosAlpha(1)
+  outCen = ithickOut / 2 + 0.5
+  centeredL = lslice - centerSlice
+  vSliceCentered = centeredL
   !
   ! loop on lines of data
   do j = 1, ithickBP
-    ibasev = ibaseSIRT + (j - 1) * iwidth
+    ibaseVert = ibaseSIRT + (j - 1) * iwidth
     !
     ! calculate slice number and y position in input slices
     !
-    vycen = j - (ithickBP / 2 + 0.5 - nint(tanalpha * cenl) + yOffset / cosAlpha(1))
-    outsl = centerSlice + vslcen * cosAlpha(1) + vycen * sinAlpha(1)
-    outj = outcen + yOffset - vslcen * sinAlpha(1) + vycen * cosAlpha(1)
+    vyCentered = j - (ithickBP / 2 + 0.5 - nint(tanAlpha * centeredL) +  &
+        yOffset / cosAlpha(1))
+    outSlice = centerSlice + vSliceCentered * cosAlpha(1) + vyCentered * sinAlpha(1)
+    outYpos = outCen + yOffset - vSliceCentered * sinAlpha(1) + vyCentered * cosAlpha(1)
     ! print *,j, vycen, outsl, outj
     ! if (outsl >= lreadStart - 0.5 .and. outsl <= lreadEnd + 0.5 &
     ! .and. outj >= 0.5 .and.outj <= ithickOut + 0.5) then
     !
     ! For a legal position, get interpolation integers and fractions,
     ! adjust if within half pixel of end
-    ioutsl = outsl
-    fx = outsl - ioutsl
-    if (ioutsl < lreadStart) then
-      ioutsl = lreadStart
+    ioutSlice = outSlice
+    fx = outSlice - ioutSlice
+    if (ioutSlice < lReadStart) then
+      ioutSlice = lReadStart
       fx = 0.
-    else if (ioutsl > lreadEnd - 1) then
-      ioutsl = lreadEnd - 1
+    else if (ioutSlice > lreadEnd - 1) then
+      ioutSlice = lreadEnd - 1
       fx = 1.
     endif
-    jout = outj
-    fy = outj - jout
-    if (jout < 1) then
-      jout = 1
+    jOut = outYpos
+    fy = outYpos - jOut
+    if (jOut < 1) then
+      jOut = 1
       fy = 0.
-    else if (jout > ithickOut - 1) then
-      jout = ithickOut - 1
+    else if (jOut > ithickOut - 1) then
+      jOut = ithickOut - 1
       fy = 1.
     endif
     !
     ! Get slice indexes in ring
-    iring = ioutsl - lreadStart + iringstart
+    iring = ioutSlice - lReadStart + iringStart
     if (iring > numReadNeed) iring = iring - numReadNeed
     ibase1 = ireadBase + (iring - 1) * ithickOut * iwidth + &
-        (jout - 1) * iwidth
-    iring = ioutsl + 1 - lreadStart + iringstart
+        (jOut - 1) * iwidth
+    iring = ioutSlice + 1 - lReadStart + iringStart
     if (iring > numReadNeed) iring = iring - numReadNeed
     ibase2 = ireadBase + (iring - 1) * ithickOut * iwidth + &
-        (jout - 1) * iwidth
+        (jOut - 1) * iwidth
     !
     ! Interpolate line
     f11 = (1. -fy) * (1. -fx)
@@ -1790,7 +1795,7 @@ subroutine decompose(lslice, lReadStart, lreadEnd, iringstart, &
     f21 = fy * (1. -fx)
     f22 = fy * fx
     do i = 0, iwidth - 1
-      array(ibasev + i) = f11 * array(ibase1 + i) + f12 * array(ibase2 + i) + &
+      array(ibaseVert + i) = f11 * array(ibase1 + i) + f12 * array(ibase2 + i) + &
           f21 * array(ibase1 + i + iwidth) + f22 * array(ibase2 + i + iwidth)
     enddo
     ! else
@@ -1820,7 +1825,7 @@ subroutine dumpSlice(LSLICE, DMIN, DMAX, DTOT8)
   if (numSIRTiter > 0 .and. ifAlpha >= 0) imapOut = ireadBase
   if (readBaseRec) then
     index = imapOut
-    call imposn(3, lslice - 1, 0)
+    call iiuSetPosition(3, lslice - 1, 0)
     if (iterForReport > 0) call sampleForReport(array(imapOut), &
         lslice, ithickOut, 1, outScale, outAdd)
     do j = 1, ithickOut
@@ -1909,7 +1914,7 @@ subroutine dumpSlice(LSLICE, DMIN, DMAX, DTOT8)
       indDel = -1
     endif
     DO J = 1, ithickOut
-      CALL IMPOSN(2, J - 1, (LSLICE - isliceStart) / idelSlice)
+      CALL iiuSetPosition(2, J - 1, (LSLICE - isliceStart) / idelSlice)
       CALL IWRLIN(2, array(INDEX))
       !
       ! DNM 2/29/01: partially demangle the parallel output by writing
@@ -5276,7 +5281,7 @@ subroutine writeReprojLines(iv, lineStart, lineEnd, DMIN, DMAX, DTOT8)
     enddo
   endif
   if (projSubtraction) then
-    call imposn(1, iv - 1, lineStart - 1)
+    call iiuSetPosition(1, iv - 1, lineStart - 1)
     call irdsecl(1, origLines, lineEnd + 1 - lineStart, *99)
     reprojLines(1:numVals) = reprojLines(1:numVals) - origLines(1:numVals)
   endif
