@@ -4090,8 +4090,8 @@ subroutine findProjectingPoint(xproj, yproj, zz, iv, xx, yy)
   integer*4 iv, iter, ifDone, ixAssay, iyAssay
   real*4 xprojFix11, xprojZ11, yprojFix11, yprojZ11, xprojFix21, xprojZ21, &
       yprojFix21, yprojZ21, xprojFix12, xprojZ12, yprojFix12, yprojZ12
-  real*4 xp11, yp11, xp12, yp12, xp21, yp21, xerr, yerr, dxPx, dxPy, dyPx
-  real*4 dyPy, fx, fy, den
+  real*4 xp11, yp11, xp12, yp12, xp21, yp21, xerr, yerr, dxpx, dxpy, dypx
+  real*4 dypy, fx, fy, den
   !
   iter = 1
   ifDone = 0
@@ -4112,13 +4112,13 @@ subroutine findProjectingPoint(xproj, yproj, zz, iv, xx, yy)
     yp12 = yprojFix12 + yprojZ12 * zz
     xerr = xproj - xp11
     yerr = yproj - yp11
-    dxPx = xp21 - xp11
-    dxPy = xp12 - xp11
-    dyPx = yp21 - yp11
-    dyPy = yp12 - yp11
-    den = dxPx * dyPy - dxPy * dyPx
-    fx = (xerr * dyPy - yerr * dxPy) / den
-    fy = (dxPx * yerr - dyPx * xerr) / den
+    dxpx = xp21 - xp11
+    dxpy = xp12 - xp11
+    dypx = yp21 - yp11
+    dypy = yp12 - yp11
+    den = dxpx * dypy - dxpy * dypx
+    fx = (xerr * dypy - yerr * dxpy) / den
+    fy = (dxpx * yerr - dypx * xerr) / den
     xx = ixAssay + fx
     yy = iyAssay + fy
     if (fx > -0.1 .and. fx < 1.1 .and. fy > -0.1 .and. fy < 1.1) &
@@ -4435,93 +4435,92 @@ end subroutine reproject
 ! started and ending slices loaded; min/max/sum densities are maintained
 ! in DMIN, DMAX, and DTOT8
 !
-subroutine reprojectRec(lsStart, lsEnd, inloadstr, inloadend, DMIN, DMAX, &
-    DTOT8)
+subroutine reprojectRec(lsliceStart, lsliceEnd, inLoadStart, inLoadEnd, dmin, dmax, dtot8)
   use tiltvars
   implicit none
-  integer*4 lsStart, lsEnd, inloadstr, inloadend
+  integer*4 lsliceStart, lsliceEnd, inLoadStart, inLoadEnd
   real*4 dmin, dmax
   integer*4 iv, ix, iy, iz, ixp, line, i, iys, ind
   integer*4 ind1, ind2, ind3, ind4, load
-  real*4 calf, salf, cbeta, sbeta, delz, delx, fz, omfz, zz, xx, fx
-  real*4 omfx, yy, fy, omfy, xproj, yproj, d11, d12, d21, d22
-  real*4 f1, f2, f3, f4, xxgood, yygood, zzgood
-  real*4 ytol, xprojMin, xprojMax, xjump, zjump, dely, diffxmax, diffymax
-  integer*4 indbase, nxload, ixc, lastZdone
-  integer*4 ijump, njump, lgpuEnd, lineBase
+  real*4 cosAlph, sinAlph, cosBet, sinBet, delZ, delX, fz, oneMfz, zz, xx, fx
+  real*4 oneMfx, yy, fy, oneMfy, xproj, yproj, d11, d12, d21, d22
+  real*4 f1, f2, f3, f4, xxGood, yyGood, zzGood
+  real*4 yEndTol, xprojMin, xprojMax, xJump, zJump, delY, diffXmax, diffYmax
+  integer*4 indBase, nxLoad, ixc, lastZdone
+  integer*4 indJump, numJump, lgpuEnd, lineBase
   real*4 ycenAdj
-  real*8 sum, dtot8, walltime, tstart, tcumul
-  logical*4 tryjump
-  real*4 reprojDelz
+  real*8 sum, dtot8, wallTime, wallStart, wallCumul
+  logical*4 tryJump
+  real*4 reprojDelZ
   integer*4 gpuReproject, gpuReprojLocal
 
-  ytol = 3.05
-  xjump = 5.0
-  nxload = maxXload + 1 - minXload
-  tstart = walltime()
-  tcumul = 0.
+  yEndTol = 3.05
+  xJump = 5.0
+  nxLoad = maxXload + 1 - minXload
+  wallStart = wallTime()
+  wallCumul = 0.
   ycenAdj = ycenOut - (minYreproj - 1)
   !
   if (useGPU .and. loadGpuStart > 0) then
-    ijump = 1
+    indJump = 1
     !
     ! GPU REPROJECTION: Find last slice that can be done
-    do lgpuEnd = lsEnd, lsStart, -1
+    do lgpuEnd = lsliceEnd, lsliceStart, -1
       if (neededEnds(lgpuEnd - indNeededBase) <= loadGpuEnd) then
-        ijump = 0
+        indJump = 0
         exit
       endif
     enddo
-    if (ijump == 0) then
+    if (indJump == 0) then
       !
       ! Loop on views; do non-local case first
       do iv = 1, numViews
         if (nxWarp == 0) then
-          delz = reprojDelz(sinBeta(iv), cosBeta(iv), sinAlpha(iv), cosAlpha(iv), &
+          delZ = reprojDelZ(sinBeta(iv), cosBeta(iv), sinAlpha(iv), cosAlpha(iv), &
               xzfac(iv), yzfac(iv))
-          ijump = gpuReproject(reprojLines, sinBeta(iv), cosBeta(iv), sinAlpha(iv), &
-              cosAlpha(iv), xzfac(iv), yzfac(iv), delz, lsStart, lgpuEnd, &
+          indJump = gpuReproject(reprojLines, sinBeta(iv), cosBeta(iv), sinAlpha(iv), &
+              cosAlpha(iv), xzfac(iv), yzfac(iv), delZ, lsliceStart, lgpuEnd, &
               ithickReproj, xcenOut, xcenIn + axisXoffset, minXreproj, xprojOffset, &
               ycenOut, minYreproj, yprojOffset, centerSlice, ifAlpha, dmeanIn)
         else
           !
           ! GPU with local alignments: fill warpDelz array for all lines
-          do line = lsStart, lgpuEnd
-            call fillWarpDelz(warpDelz(1 + (line - lsStart) * numWarpDelz))
+          do line = lsliceStart, lgpuEnd
+            call fillWarpDelz(warpDelz(1 + (line - lsliceStart) * numWarpDelz))
           enddo
           !
           ! Get the xprojmin and max adjusted by 5
           xprojMin = 10000000.
           xprojMax = 0.
-          do load = inloadstr, inloadend
+          do load = inLoadStart, inLoadEnd
             iys = nint(load + yprojOffset)
-            do ix = 1, nxload, nxload - 1
-              call localProjFactors(ix + minXload - 1, iys, iv, sbeta, &
-                  cbeta, salf, calf)
-              salf = sbeta + (1 - ycenAdj) * cbeta
-              calf = sbeta + (ithickReproj - ycenAdj) * cbeta
-              xprojMin = min(xprojMin, salf - 5., calf - 5.)
-              xprojMax = max(xprojMax, salf + 5., calf + 5.)
+            do ix = 1, nxLoad, nxLoad - 1
+              call localProjFactors(ix + minXload - 1, iys, iv, sinBet, &
+                  cosBet, sinAlph, cosAlph)
+              sinAlph = sinBet + (1 - ycenAdj) * cosBet
+              cosAlph = sinBet + (ithickReproj - ycenAdj) * cosBet
+              xprojMin = min(xprojMin, sinAlph - 5., cosAlph - 5.)
+              xprojMax = max(xprojMax, sinAlph + 5., cosAlph + 5.)
             enddo
           enddo
           ! print *,'xprojmin, max', xprojMin, xprojMax
           !
           ! Do it
-          ijump = gpuReprojLocal(reprojLines, sinBeta(iv), cosBeta(iv), sinAlpha(iv), &
+          indJump = gpuReprojLocal(reprojLines, sinBeta(iv), cosBeta(iv), sinAlpha(iv), &
               cosAlpha(iv), xzfac(iv), yzfac(iv), nxWarp, nyWarp, ixStartWarp, &
               iyStartWarp, idelXwarp, idelYwarp, warpDelz, numWarpDelz, &
-              dxWarpDelz, xprojMin, xprojMax, lsStart, lgpuEnd, &
+              dxWarpDelz, xprojMin, xprojMax, lsliceStart, lgpuEnd, &
               ithickReproj, iv, xcenOut, xcenIn, axisXoffset, minXload, xprojOffset, &
               ycenAdj, yprojOffset, centerSlice, dmeanIn)
         endif
-        if (ijump .ne. 0) exit
-        tcumul = tcumul + walltime() - tstart
-        call writeReprojLines(iv, lsStart, lgpuEnd, DMIN, DMAX, DTOT8)
-        tstart = walltime()
+        if (indJump .ne. 0) exit
+        wallCumul = wallCumul + wallTime() - wallStart
+        call writeReprojLines(iv, lsliceStart, lgpuEnd, dmin, dmax, dtot8)
+        wallStart = wallTime()
       enddo
-      if (ijump == 0) then
-        if (debug) write(*, '(a,f8.4)') 'GPU reprojection time', tcumul
-        lsEnd = lgpuEnd
+      if (indJump == 0) then
+        if (debug) write(*, '(a,f8.4)') 'GPU reprojection time', wallCumul
+        lsliceEnd = lgpuEnd
         return
       endif
     endif
@@ -4532,20 +4531,20 @@ subroutine reprojectRec(lsStart, lsEnd, inloadstr, inloadend, DMIN, DMAX, &
     if (nxWarp == 0) then
       !
       ! Get the delta z for this view
-      calf = cosAlpha(iv)
-      salf = sinAlpha(iv)
-      cbeta = cosBeta(iv)
-      sbeta = sinBeta(iv)
-      delz = reprojDelz(sbeta, cbeta, salf, calf, xzfac(iv), yzfac(iv))
+      cosAlph = cosAlpha(iv)
+      sinAlph = sinAlpha(iv)
+      cosBet = cosBeta(iv)
+      sinBet = sinBeta(iv)
+      delZ = reprojDelZ(sinBet, cosBet, sinAlph, cosAlph, xzfac(iv), yzfac(iv))
       ! print *,sbeta, cbeta, salf, calf, xzfac(iv), yzfac(iv)
       ! print *,delx, delz
       !
       ! Loop on the output lines to be done
-      do line = lsStart, lsEnd
-        lineBase = (line - lsStart) * iwidth + 1
+      do line = lsliceStart, lsliceEnd
+        lineBase = (line - lsliceStart) * iwidth + 1
         call reprojOneAngle(array(indLoadBase), reprojLines(lineBase), &
-            inLoadStr, inLoadEnd, line, cbeta, sbeta, calf, salf, &
-            delz, iwidth, ithickReproj, inPlaneSize, nxload, minXreproj, &
+            inLoadStart, inLoadEnd, line, cosBet, sinBet, cosAlph, sinAlph, &
+            delZ, iwidth, ithickReproj, inPlaneSize, nxLoad, minXreproj, &
             minYreproj, xprojOffset, yprojOffset, xcenOut, ycenOut, &
             xcenIn + axisXoffset, centerSlice, ifAlpha, xzfac(iv), yzfac(iv), dmeanIn)
       enddo
@@ -4557,17 +4556,17 @@ subroutine reprojectRec(lsStart, lsEnd, inloadstr, inloadend, DMIN, DMAX, &
       ! general BUG ycenAdj replaces ycenOut - minYreproj (off by 1)
       xprojMin = 10000000.
       xprojMax = 0.
-      do load = inloadstr, inloadend
-        indbase = nxload * (load - inloadstr)
+      do load = inLoadStart, inLoadEnd
+        indBase = nxLoad * (load - inLoadStart)
         iys = nint(load + yprojOffset)
-        do ix = 1, nxload
-          ind = indbase + ix
+        do ix = 1, nxLoad
+          ind = indBase + ix
           call localProjFactors(ix + minXload - 1, iys, iv, xprojfs(ind), &
               xprojzs(ind), yprojfs(ind), yprojzs(ind))
           if (ix == 1) xprojMin = min(xprojMin, &
               xprojfs(ind) + (1 - ycenAdj) * xprojzs(ind),  xprojfs(ind) &
               + (ithickReproj - ycenAdj) * xprojzs(ind))
-          if (ix == nxload) xprojMax = max(xprojMax, &
+          if (ix == nxLoad) xprojMax = max(xprojMax, &
               xprojfs(ind) + (1 - ycenAdj) * xprojzs(ind),  xprojfs(ind) &
               + (ithickReproj - ycenAdj) * xprojzs(ind))
         enddo
@@ -4575,8 +4574,8 @@ subroutine reprojectRec(lsStart, lsEnd, inloadstr, inloadend, DMIN, DMAX, &
       ! print *,'xprojmin, max', xprojMin, xprojMax
       !
       ! loop on lines to be done
-      do line = lsStart, lsEnd
-        lineBase = (line - lsStart) * iwidth
+      do line = lsliceStart, lsliceEnd
+        lineBase = (line - lsliceStart) * iwidth
         call fillWarpDelz(warpDelz)
         ! print *,iv, line, inloadstr, inloadend
         !
@@ -4604,22 +4603,22 @@ subroutine reprojectRec(lsStart, lsEnd, inloadstr, inloadend, DMIN, DMAX, &
           !
           ! Move on ray up in Z
           lastZdone = 0
-          tryjump = .true.
-          diffxmax = 0
-          diffymax = 0
+          tryJump = .true.
+          diffXmax = 0
+          diffYmax = 0
           ! BUG ?? Surely this should be abs(sinBeta(iv))
-          zjump = xjump * cosBeta(iv) / max(0.2, abs(sinBeta(iv)))
+          zJump = xJump * cosBeta(iv) / max(0.2, abs(sinBeta(iv)))
           do while (zz < ithickReproj + 1 - ycenAdj .and. &
               lastZdone == 0)
             if (xproj < xprojMin - 5. .or. xproj > xprojMax + 5.) then
               sum = sum + dmeanIn
             else
-              call loadedProjectingPoint(xproj, yproj, zz, nxload, &
-                  inloadstr, inloadend, xx, yy)
+              call loadedProjectingPoint(xproj, yproj, zz, nxLoad, &
+                  inLoadStart, inLoadEnd, xx, yy)
               !
               ! If X or Y is out of bounds, fill with mean
-              if (yy < inloadstr - ytol .or. yy > inloadend + ytol &
-                  .or. xx < 1. .or. xx >= nxload) then
+              if (yy < inLoadStart - yEndTol .or. yy > inLoadEnd + yEndTol &
+                  .or. xx < 1. .or. xx >= nxLoad) then
                 sum = sum + dmeanIn
               else
                 !
@@ -4627,100 +4626,100 @@ subroutine reprojectRec(lsStart, lsEnd, inloadstr, inloadend, DMIN, DMAX, &
                 ! a fractional Z pixel at top of volume
                 ix = xx
                 fx = xx - ix
-                omfx = 1. - fx
-                yy = max(float(inloadstr), min(inloadend - 0.01, yy))
+                oneMfx = 1. - fx
+                yy = max(float(inLoadStart), min(inLoadEnd - 0.01, yy))
                 iy = yy
                 fy = yy - iy
-                omfy = 1. - fy
+                oneMfy = 1. - fy
                 ! BUG ????  Shouldn't this be + ycenOut - minYreproj?
                 iz = max(1., zz + ycenAdj)
                 fz = zz + ycenAdj - iz
-                omfz = 1. - fz
+                oneMfz = 1. - fz
                 if (iz == ithickReproj) then
                   iz = iz - 1
-                  fz = omfz
-                  omfz = 0.
+                  fz = oneMfz
+                  oneMfz = 0.
                   lastZdone = 1
                 endif
                 !
                 ! Do the interpolation
-                d11 = omfx * omfy
-                d12 = omfx * fy
-                d21 = fx * omfy
+                d11 = oneMfx * oneMfy
+                d12 = oneMfx * fy
+                d21 = fx * oneMfy
                 d22 = fx * fy
-                ind = indLoadBase + inPlaneSize * (iy - inloadstr) + (iz - 1) * nxload &
+                ind = indLoadBase + inPlaneSize * (iy - inLoadStart) + (iz - 1) * nxLoad &
                     + ix - 1
-                sum = sum + omfz * (d11 * array(ind) &
+                sum = sum + oneMfz * (d11 * array(ind) &
                     + d12 * array(ind + inPlaneSize) + d21 * array(ind + 1) &
                     + d22 * array(ind + inPlaneSize + 1)) &
-                    + fz * (d11 * array(ind + nxload) &
-                    + d12 * array(ind + inPlaneSize + nxload) &
-                    + d21 * array(ind + 1 + nxload) &
-                    + d22 * array(ind + inPlaneSize + 1 + nxload))
+                    + fz * (d11 * array(ind + nxLoad) &
+                    + d12 * array(ind + inPlaneSize + nxLoad) &
+                    + d21 * array(ind + 1 + nxLoad) &
+                    + d22 * array(ind + inPlaneSize + 1 + nxLoad))
                 !
-                do while(tryjump)
+                do while(tryJump)
                   !
                   ! If jumping is OK, save the current position and compute
                   ! how many steps can be jumped, stopping below the top
-                  xxgood = xx
-                  yygood = yy
-                  zzgood = zz
+                  xxGood = xx
+                  yyGood = yy
+                  zzGood = zz
                   ind = max(1., min(float(numWarpDelz), xx / dxWarpDelz))
-                  delz = warpDelz(ind)
-                  njump = zjump / delz
-                  if (zz + zjump > ithickReproj - ycenAdj - 1) then
-                    njump = (ithickReproj - ycenAdj - 1 - zz) / delz
-                    tryjump = .false.
+                  delZ = warpDelz(ind)
+                  numJump = zJump / delZ
+                  if (zz + zJump > ithickReproj - ycenAdj - 1) then
+                    numJump = (ithickReproj - ycenAdj - 1 - zz) / delZ
+                    tryJump = .false.
                   endif
-                  if (njump > 0) then
+                  if (numJump > 0) then
                     !
                     ! Make the jump, find the projecting point;
                     ! if it's out of bounds restore last point
-                    zz = zz + njump * delz
-                    xx = xx + njump * sinBeta(iv)
+                    zz = zz + numJump * delZ
+                    xx = xx + numJump * sinBeta(iv)
                     call loadedProjectingPoint(xproj, yproj, zz, &
-                        nxload, inloadstr, inloadend, xx, yy)
-                    if (yy < inloadstr .or. yy > inloadend .or. &
-                        xx < 1. .or. xx >= nxload) then
-                      njump = 0
-                      xx = xxgood
-                      yy = yygood
-                      zz = zzgood
-                      tryjump = .false.
+                        nxLoad, inLoadStart, inLoadEnd, xx, yy)
+                    if (yy < inLoadStart .or. yy > inLoadEnd .or. &
+                        xx < 1. .or. xx >= nxLoad) then
+                      numJump = 0
+                      xx = xxGood
+                      yy = yyGood
+                      zz = zzGood
+                      tryJump = .false.
                     else
-                      delx = (xx - xxgood) / njump
-                      dely = (yy - yygood) / njump
+                      delX = (xx - xxGood) / numJump
+                      delY = (yy - yyGood) / numJump
                     endif
                   endif
                   !
                   ! Loop on points from last one to final one
-                  do ijump = 1, njump
-                    xx = xxgood + ijump * delx
-                    yy = yygood + ijump * dely
-                    zz = zzgood + ijump * delz
+                  do indJump = 1, numJump
+                    xx = xxGood + indJump * delX
+                    yy = yyGood + indJump * delY
+                    zz = zzGood + indJump * delZ
                     ix = xx
                     fx = xx - ix
-                    omfx = 1. - fx
-                    iy = min(int(yy), inloadend - 1)
+                    oneMfx = 1. - fx
+                    iy = min(int(yy), inLoadEnd - 1)
                     fy = yy - iy
-                    omfy = 1. - fy
+                    oneMfy = 1. - fy
                     ! BUG again, need ycenAdj
                     iz = zz + ycenAdj
                     fz = zz + ycenAdj - iz
-                    omfz = 1. - fz
-                    d11 = omfx * omfy
-                    d12 = omfx * fy
-                    d21 = fx * omfy
+                    oneMfz = 1. - fz
+                    d11 = oneMfx * oneMfy
+                    d12 = oneMfx * fy
+                    d21 = fx * oneMfy
                     d22 = fx * fy
-                    ind = indLoadBase + inPlaneSize * (iy - inloadstr) + (iz - 1) * &
-                        nxload + ix - 1
-                    sum = sum + omfz * (d11 * array(ind) &
+                    ind = indLoadBase + inPlaneSize * (iy - inLoadStart) + (iz - 1) * &
+                        nxLoad + ix - 1
+                    sum = sum + oneMfz * (d11 * array(ind) &
                         + d12 * array(ind + inPlaneSize) + d21 * array(ind + 1) &
                         + d22 * array(ind + inPlaneSize + 1)) &
-                        + fz * (d11 * array(ind + nxload) &
-                        + d12 * array(ind + inPlaneSize + nxload) &
-                        + d21 * array(ind + 1 + nxload) &
-                        + d22 * array(ind + inPlaneSize + 1 + nxload))
+                        + fz * (d11 * array(ind + nxLoad) &
+                        + d12 * array(ind + inPlaneSize + nxLoad) &
+                        + d21 * array(ind + 1 + nxLoad) &
+                        + d22 * array(ind + inPlaneSize + 1 + nxLoad))
                     ! fx = xx
                     ! fy = yy
                     ! call loadedProjectingPoint(xproj, yproj, zz, &
@@ -4742,31 +4741,31 @@ subroutine reprojectRec(lsStart, lsEnd, inloadstr, inloadend, DMIN, DMAX, &
         enddo
       enddo
     endif
-    tcumul = tcumul + walltime() - tstart
-    call writeReprojLines(iv, lsStart, lsEnd, DMIN, DMAX, DTOT8)
-    tstart = walltime()
+    wallCumul = wallCumul + wallTime() - wallStart
+    call writeReprojLines(iv, lsliceStart, lsliceEnd, dmin, dmax, dtot8)
+    wallStart = wallTime()
   enddo
-  if (debug) write(*, '(a,f8.4)') 'CPU reprojection time', tcumul
+  if (debug) write(*, '(a,f8.4)') 'CPU reprojection time', wallCumul
 
 CONTAINS
   !
   ! compute delta z as function of X across the loaded slice
   ! which is not ideal since the data will not be coming from slice
-  subroutine fillWarpDelz(wrpdlz)
-    real*4 wrpdlz(*)
+  subroutine fillWarpDelz(warpDelZ)
+    real*4 warpDelZ(*)
     iys = nint(line + yprojOffset)
     do i = 1, numWarpDelz
       xx = 1 + dxWarpDelz * (i - 1)
       ixc = nint(xx + minXload - 1 - xcenOut + xcenIn + axisXoffset)
       call local_factors(ixc, iys, iv, ind1, ind2, ind3, ind4, f1, f2, &
           f3, f4)
-      wrpdlz(i) = f1 * reprojDelz(sWarpBeta(ind1), cWarpBeta(ind1), &
+      warpDelZ(i) = f1 * reprojDelZ(sWarpBeta(ind1), cWarpBeta(ind1), &
           sWarpAlpha(ind1), cWarpAlpha(ind1), warpXZfac(ind1), warpYZfac(ind1)) &
-          + f2 * reprojDelz(sWarpBeta(ind2), cWarpBeta(ind2), &
+          + f2 * reprojDelZ(sWarpBeta(ind2), cWarpBeta(ind2), &
           sWarpAlpha(ind2), cWarpAlpha(ind2), warpXZfac(ind2), warpYZfac(ind2)) &
-          + f3 * reprojDelz(sWarpBeta(ind3), cWarpBeta(ind3), &
+          + f3 * reprojDelZ(sWarpBeta(ind3), cWarpBeta(ind3), &
           sWarpAlpha(ind3), cWarpAlpha(ind3), warpXZfac(ind3), warpYZfac(ind3)) &
-          + f4 * reprojDelz(sWarpBeta(ind4), cWarpBeta(ind4), &
+          + f4 * reprojDelZ(sWarpBeta(ind4), cWarpBeta(ind4), &
           sWarpAlpha(ind4), cWarpAlpha(ind4), warpXZfac(ind4), warpYZfac(ind4))
     enddo
     ! print *,'got delz eg:', wrpdlz(1), wrpdlz(numWarpDelz/2), &
@@ -4781,59 +4780,58 @@ end subroutine reprojectRec
 ! X coordinate needs to be a loaded X index
 ! Y coordinate yy is in slices of reconstruction, yproj in original proj
 !
-subroutine loadedProjectingPoint(xproj, yproj, zz, nxload, &
-    inloadstr, inloadend, xx, yy)
+subroutine loadedProjectingPoint(xproj, yproj, zz, nxLoad, inLoadStart, inLoadEnd, xx, yy)
   use tiltvars
   implicit none
   real*4 xproj, yproj, zz, xx, yy
-  integer*4 nxload, inloadstr, inloadend
-  integer*4 iter, ifdone, ind, ix, iy, ifout, i
-  real*4 xp11, yp11, xp12, yp12, xp21, yp21, xerr, yerr, dypx, dxpy, dxpx
+  integer*4 nxLoad, inLoadStart, inLoadEnd
+  integer*4 iter, ifDone, ind, ix, iy, ifOut, i
+  real*4 xp11, yp11, xp12, yp12, xp21, yp21, xErr, yErr, dypx, dxpy, dxpx
   real*4 dypy, den, fx, fy
   ! logical*4 dbout
   ! dbout = abs(xproj - 700.) < 3 .and. abs(zz) < 3
   ! dbout = .false.
   ! print *,'Finding proj pt to', xproj, yproj, zz
   iter = 0
-  ifdone = 0
-  do while (ifdone == 0 .and. iter < 5)
+  ifDone = 0
+  do while (ifDone == 0 .and. iter < 5)
     ix = floor(xx)
     iy = floor(yy)
-    ifout = 0
-    if (ix < 1 .or. ix >= nxload .or. iy < inloadstr .or. &
-        iy >= inloadend) then
-      ifout = 1
-      ix = min(nxload - 1, max(1, ix))
-      iy = min(inloadend - 1, max(inloadstr, iy))
+    ifOut = 0
+    if (ix < 1 .or. ix >= nxLoad .or. iy < inLoadStart .or. &
+        iy >= inLoadEnd) then
+      ifOut = 1
+      ix = min(nxLoad - 1, max(1, ix))
+      iy = min(inLoadEnd - 1, max(inLoadStart, iy))
     endif
-    ind = nxload * (iy - inloadstr) + ix
+    ind = nxLoad * (iy - inLoadStart) + ix
     xp11 = xprojfs(ind) + xprojzs(ind) * zz
     yp11 = yprojfs(ind) + yprojzs(ind) * zz
     xp21 = xprojfs(ind + 1) + xprojzs(ind + 1) * zz
     yp21 = yprojfs(ind + 1) + yprojzs(ind + 1) * zz
-    xp12 = xprojfs(ind + nxload) + xprojzs(ind + nxload) * zz
-    yp12 = yprojfs(ind + nxload) + yprojzs(ind + nxload) * zz
+    xp12 = xprojfs(ind + nxLoad) + xprojzs(ind + nxLoad) * zz
+    yp12 = yprojfs(ind + nxLoad) + yprojzs(ind + nxLoad) * zz
     ! write(*,101) 'facs', (xprojfs(i), xprojzs(i), yprojfs(i), &
     ! yprojzs(i), i=ind, ind+1)
     ! write(*,101) 'xps', xx, yy, zz, xp11, yp11, xp21, yp21, xp12, yp12
     !101     format(a,9f8.2)
-    xerr = xproj - xp11
-    yerr = yproj - yp11
+    xErr = xproj - xp11
+    yErr = yproj - yp11
     dxpx = xp21 - xp11
     dxpy = xp12 - xp11
     dypx = yp21 - yp11
     dypy = yp12 - yp11
     den = dxpx * dypy - dxpy * dypx
-    fx = (xerr * dypy - yerr * dxpy) / den
-    fy = (dxpx * yerr - dypx * xerr) / den
+    fx = (xErr * dypy - yErr * dxpy) / den
+    fy = (dxpx * yErr - dypx * xErr) / den
     ! write(*,101) 'dx,err,f', dxpx, dxpy, dypx, dypy, den, xerr, yerr, fx, fy
     xx = ix + fx
     yy = iy + fy
     if (fx > -0.1 .and. fx < 1.1 .and. fy > -0.1 .and. &
-        fy < 1.1) ifdone = 1
-    if (ifout .ne. 0 .and. (iter > 0 .or.  xx < 0. .or. &
-        xx > nxload + 1 .or. yy < inloadstr - 1. .or. &
-        yy > inloadend + 1.)) ifdone = 1
+        fy < 1.1) ifDone = 1
+    if (ifOut .ne. 0 .and. (iter > 0 .or.  xx < 0. .or. &
+        xx > nxLoad + 1 .or. yy < inLoadStart - 1. .or. &
+        yy > inLoadEnd + 1.)) ifDone = 1
     iter = iter + 1
   enddo
   return
