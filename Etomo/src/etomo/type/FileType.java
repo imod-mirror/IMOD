@@ -124,6 +124,8 @@ public final class FileType {
   // any .edf, .ejf, or .epe as long as it has a different dataset name
 
   // File types with a name description
+  public static final FileType ORIG_COMS_DIR = FileType.getInstance(false, false,
+    "origcoms", "");
   public static final FileType FIDUCIAL_3D_MODEL = FileType.getImodInstance(true, true,
       "", ".3dmod", ImodManager.FIDUCIAL_MODEL_KEY);
   public static final FileType LOCAL_BATCH_DIRECTIVE_FILE = FileType.getInstance(false,
