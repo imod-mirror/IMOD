@@ -2134,7 +2134,7 @@ public final class ComScriptManager extends BaseComScriptManager {
   public Patchcrawl3DParam getPatchcrawl3D() {
 
     // Initialize a Patchcrawl3DParam object from the com script command object
-    Patchcrawl3DParam patchcrawl3DParam = new Patchcrawl3DParam();
+    Patchcrawl3DParam patchcrawl3DParam = new Patchcrawl3DParam(appManager);
     if (!initialize(patchcrawl3DParam, scriptPatchcorr, Patchcrawl3DParam.COMMAND,
         AxisID.ONLY, true, false, false, true)) {
       initialize(patchcrawl3DParam, scriptPatchcorr, Patchcrawl3DPrePIPParam.COMMAND,
