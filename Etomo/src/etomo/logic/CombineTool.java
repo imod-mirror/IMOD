@@ -1,9 +1,6 @@
 package etomo.logic;
 
-import java.io.File;
-
 import etomo.BaseManager;
-import etomo.EtomoDirector;
 import etomo.type.FileType;
 
 /**
@@ -16,8 +13,7 @@ import etomo.type.FileType;
  * @version $Id$
  */
 public final class CombineTool {
-  public boolean isInvertYLimits(final BaseManager manager) {
-   //return FileType.ORIG_COMS_DIR.exists(manager);
-    return false;
+  public static boolean isInvertYLimits(final BaseManager manager) {
+    return FileType.ORIG_COMS_DIR.exists(manager, null);
   }
 }
