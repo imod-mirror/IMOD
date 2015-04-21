@@ -77,8 +77,7 @@ public final class MatchorwarpParam implements ConstMatchorwarpParam, CommandPar
     "StructureCriteria");
   private final StringParameter extentToFit = new StringParameter("ExtentToFit");
 
-  MatchorwarpParam() {
-  }
+  MatchorwarpParam() {}
 
   public void parseComScriptCommand(final ComScriptCommand scriptCommand)
     throws BadComScriptException, FortranInputSyntaxException, InvalidParameterException {
@@ -114,6 +113,9 @@ public final class MatchorwarpParam implements ConstMatchorwarpParam, CommandPar
 
   public void updateComScriptCommand(final ComScriptCommand scriptCommand)
     throws BadComScriptException {
+    if (vectorModel.isEmpty()) {
+      vectorModel.set(DatasetFiles.PATCH_VECTOR_MODEL);
+    }
     scriptCommand.useKeywordValue();
     sizeXYZorVolume.updateComScript(scriptCommand);
     refineLimit.updateComScript(scriptCommand);
@@ -146,7 +148,6 @@ public final class MatchorwarpParam implements ConstMatchorwarpParam, CommandPar
     sizeXYZorVolume.reset();
     refineLimit.reset();
     residualFile.reset();
-    vectorModel.reset();
     clipPlaneBoxSize.reset();
     warpLimits.reset();
     modelFile.reset();
