@@ -1,6 +1,6 @@
 .na
 .nh
-.TH eraser 1 4.6.34 BL3DEMC
+.TH eraser 1 4.6.34 IMOD
 .SH NAME
 eraser - to erase small flaws in image
 .SH SYNOPSIS

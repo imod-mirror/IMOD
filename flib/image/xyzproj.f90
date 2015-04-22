@@ -293,7 +293,7 @@ program xyzproj
   enddo
   call ialCel(2, cell)
   call time(tim)
-  call date(dat)
+  call b3ddate(dat)
   !
   write(titlech, 301) ix0, ix1, iy0, iy1, iz0, iz1, xyz, dat, tim
   read(titlech, '(20a4)') (title(kti), kti = 1, 20)

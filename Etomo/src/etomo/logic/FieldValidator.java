@@ -4,6 +4,7 @@ import java.io.File;
 
 import etomo.EtomoDirector;
 import etomo.type.EtomoNumber;
+import etomo.ui.FieldDisplayer;
 import etomo.ui.FieldType;
 import etomo.ui.FieldValidationFailedException;
 import etomo.ui.UIComponent;
@@ -12,21 +13,13 @@ import etomo.ui.swing.UIHarness;
 /**
 * <p>Description: Validator for numeric text fields.</p>
 * 
-* <p>Copyright: Copyright 2012</p>
-*
-* <p>Organization:
-* Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
-* University of Colorado</p>
-* 
-* @author $Author$
-* 
-* @version $Revision$
-* 
-* <p> $Log$ </p>
+ * <p>Copyright: Copyright 2012 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
+ *
+ * @version $Id$
 */
 public final class FieldValidator {
-  public static final String rcsid = "$Id:$";
-
   private static final String TITLE = "Field Validation Failed";
 
   /**
@@ -41,19 +34,22 @@ public final class FieldValidator {
    * @param descr
    * @param required
    * @param numberMustBePositive - if the field type is a single integer or double, must be > 0
+   * @param fieldDisplayer makes sure that the field being validated is displayed (optional)
    * @return fieldText, trimmed if validation is possible on fieldType
    * @throws FieldValidationFailedException if the validation fails
    */
   public static String validateText(final String fieldText, final FieldType fieldType,
-      final UIComponent component, final String descr, final boolean required,
-      final boolean numberMustBePositive) throws FieldValidationFailedException {
+    final UIComponent component, final String descr, final boolean required,
+    final boolean numberMustBePositive, final FieldDisplayer fieldDisplayer)
+    throws FieldValidationFailedException {
     if (required && (fieldText == null || fieldText.matches("\\s*"))) {
-      UIHarness.INSTANCE.openMessageDialog(component, "An entry is required in " + descr
-          + ".", TITLE);
-      FieldValidationFailedException fe = new FieldValidationFailedException(descr
-          + ":required field:" + "fieldText:" + fieldText);
+      UIHarness.INSTANCE.openMessageDialog(null,component, "An entry is required in " + descr
+        + ".", TITLE, fieldDisplayer);
+      FieldValidationFailedException fe =
+        new FieldValidationFailedException(descr + ":required field:" + "fieldText:"
+          + fieldText);
       if (EtomoDirector.INSTANCE.getArguments().isDebug()
-          || EtomoDirector.INSTANCE.getArguments().isTest()) {
+        || EtomoDirector.INSTANCE.getArguments().isTest()) {
         fe.printStackTrace();
       }
       throw fe;
@@ -75,13 +71,15 @@ public final class FieldValidator {
         // Validate the number of elements
         if (!elementList.equalsNElements(fieldType.requiredSize)) {
           // Wrong number of elements
-          UIHarness.INSTANCE.openMessageDialog(component, "The value in " + descr
-              + " should have " + fieldType.requiredSize + " elements.", TITLE);
-          FieldValidationFailedException fe = new FieldValidationFailedException(descr
-              + ":wrong number of elements:" + "fieldText:" + fieldText + ",nElements:"
-              + elementList.getNElements() + ",requiredSize:" + fieldType.requiredSize);
+          UIHarness.INSTANCE.openMessageDialog(null,component, "The value in " + descr
+            + " should have " + fieldType.requiredSize + " elements.", TITLE,
+            fieldDisplayer);
+          FieldValidationFailedException fe =
+            new FieldValidationFailedException(descr + ":wrong number of elements:"
+              + "fieldText:" + fieldText + ",nElements:" + elementList.getNElements()
+              + ",requiredSize:" + fieldType.requiredSize);
           if (EtomoDirector.INSTANCE.getArguments().isDebug()
-              || EtomoDirector.INSTANCE.getArguments().isTest()) {
+            || EtomoDirector.INSTANCE.getArguments().isTest()) {
             fe.printStackTrace();
           }
           throw fe;
@@ -90,12 +88,14 @@ public final class FieldValidator {
       // Validate integers or floating point numbers in the array or list.
       ElementListIterator iterator = elementList.iterator();
       while (iterator.hasNext()) {
-        validateText(iterator.next(), fieldType.validationType, component, descr, false);
+        validateText(iterator.next(), fieldType.validationType, component, descr, false,
+          fieldDisplayer);
       }
     }
     else {
       // Validate integers and floating point numbers.
-      validateText(text, fieldType.validationType, component, descr, numberMustBePositive);
+      validateText(text, fieldType.validationType, component, descr,
+        numberMustBePositive, fieldDisplayer);
     }
     // Validation succeeded - return original trimmed field text.
     return fieldText.trim();
@@ -113,9 +113,9 @@ public final class FieldValidator {
    * @throws FieldValidationFailedException if the validation fails
    */
   private static void validateText(final String text,
-      final FieldType.ValidationType validationType, final UIComponent component,
-      final String descr, final boolean numberMustBePositive)
-      throws FieldValidationFailedException {
+    final FieldType.ValidationType validationType, final UIComponent component,
+    final String descr, final boolean numberMustBePositive,
+    final FieldDisplayer fieldDisplayer) throws FieldValidationFailedException {
     // Empty fields are valid. External spaces should already have been removed
     if (text.equals("")) {
       return;
@@ -124,20 +124,22 @@ public final class FieldValidator {
       if (validationType == FieldType.ValidationType.INTEGER) {
         int value = Integer.parseInt(text);
         if (numberMustBePositive && value <= 0) {
-          UIHarness.INSTANCE.openMessageDialog(component, "The value in " + descr
-              + " must be greater then zero.", TITLE);
-          FieldValidationFailedException fe = new FieldValidationFailedException(descr
-              + ":text" + text + ",validationType+:" + validationType);
+          UIHarness.INSTANCE.openMessageDialog(null,component, "The value in " + descr
+            + " must be greater then zero.", TITLE, fieldDisplayer);
+          FieldValidationFailedException fe =
+            new FieldValidationFailedException(descr + ":text" + text
+              + ",validationType+:" + validationType);
           throw fe;
         }
       }
       else if (validationType == FieldType.ValidationType.FLOATING_POINT) {
         double value = Double.parseDouble(text);
         if (numberMustBePositive && value <= 0) {
-          UIHarness.INSTANCE.openMessageDialog(component, "The value in " + descr
-              + " must be greater then zero.", TITLE);
-          FieldValidationFailedException fe = new FieldValidationFailedException(descr
-              + ":text" + text + ",validationType+:" + validationType);
+          UIHarness.INSTANCE.openMessageDialog(null,component, "The value in " + descr
+            + " must be greater then zero.", TITLE, fieldDisplayer);
+          FieldValidationFailedException fe =
+            new FieldValidationFailedException(descr + ":text" + text
+              + ",validationType+:" + validationType);
           throw fe;
         }
       }
@@ -146,12 +148,13 @@ public final class FieldValidator {
       if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
         e.printStackTrace();
       }
-      UIHarness.INSTANCE.openMessageDialog(component, "The value in " + descr
-          + " is not " + validationType + ".\n" + e.getMessage(), TITLE);
-      FieldValidationFailedException fe = new FieldValidationFailedException(descr
-          + ":text" + text + ",validationType+:" + validationType);
+      UIHarness.INSTANCE.openMessageDialog(null,component, "The value in " + descr
+        + " is not " + validationType + ".\n" + e.getMessage(), TITLE, fieldDisplayer);
+      FieldValidationFailedException fe =
+        new FieldValidationFailedException(descr + ":text" + text + ",validationType+:"
+          + validationType);
       if (EtomoDirector.INSTANCE.getArguments().isDebug()
-          || EtomoDirector.INSTANCE.getArguments().isTest()) {
+        || EtomoDirector.INSTANCE.getArguments().isTest()) {
         fe.printStackTrace();
       }
       throw fe;
@@ -159,7 +162,7 @@ public final class FieldValidator {
   }
 
   public static boolean equals(final FieldType fieldType, String fieldText1,
-      String fieldText2) {
+    String fieldText2) {
     if (fieldText1 == null || fieldText2 == null) {
       if (fieldText1 == null && fieldText2 == null) {
         return true;
@@ -194,11 +197,11 @@ public final class FieldValidator {
     // Handle arrays
     FieldType numberFieldType = null;
     if (fieldType == FieldType.INTEGER_ARRAY || fieldType == FieldType.INTEGER_PAIR
-        || fieldType == FieldType.INTEGER_TRIPLE) {
+      || fieldType == FieldType.INTEGER_TRIPLE) {
       numberFieldType = FieldType.INTEGER;
     }
     if (fieldType == FieldType.FLOATING_POINT_ARRAY
-        || fieldType == FieldType.FLOATING_POINT_PAIR) {
+      || fieldType == FieldType.FLOATING_POINT_PAIR) {
       numberFieldType = FieldType.FLOATING_POINT;
     }
     ElementList elementList1 = new ElementList(fieldType, fieldText1);

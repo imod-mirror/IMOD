@@ -47,7 +47,9 @@ c       $Id$
      &    zgapnd,ngaps,manyrandom,onlyshifted, nearestOnly)
       include 'mtk.inc'
       parameter (limgraphs=50,limbins=1001,limwobj=30000,
-     &    limtyp=50,itypall=999,limxyz=50000)
+     &    limtyp=50,itypall=999,limxyz=250000)
+c       limwobj * (78 + limgraphs) + limxyz * 44 = 3.8 + 11
+c       limverts * 24 =  22  (note the equivalence, and this is shared with mtkrandom)
       parameter (limind=limverts*6,limbinsave=limind*2,limtmp=1000)
       parameter (limsizes=limxyz)
       real*4 xmt(*),ymt(*),zmt(*)
@@ -80,6 +82,7 @@ c
       integer*4 icolorsize(limeshobj)
       real*4 sizes(limsizes)
       save nsizeloaded,indsize,nextsize,icolorsize,sizes
+      common /modindbig/ modind
 c       
       findsep=winmin.lt.winmax.and.nobjwin.lt.0
       if(findsep)then

@@ -11,15 +11,11 @@ import etomo.util.Utilities;
 /**
  * <p>Description: </p>
  * 
- * <p>Copyright: Copyright 2006</p>
+ * <p>Copyright: Copyright 2006 - 2014 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
- * University of Colorado</p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
+ * @version $Id$
  * 
  * @notthreadsafe
  * 
@@ -119,8 +115,6 @@ import etomo.util.Utilities;
  * <p> </p>
  */
 public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
-  public static final String rcsid = "$Id$";
-
   public static final String NEW_TITLE = "PEET";
 
   // do not change these unless backward compatibility work is done
@@ -151,7 +145,8 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
       + VOLUME_KEY);
   private final EtomoNumber referenceParticle = new EtomoNumber(REFERENCE_KEY + "."
       + PARTICLE_KEY);
-  private final StringProperty referenceFile = new StringProperty(REFERENCE_KEY + ".File");
+  private final StringProperty referenceFile =
+      new StringProperty(REFERENCE_KEY + ".File");
   private final EtomoNumber edgeShift = new EtomoNumber("EdgeShift");
   private final EtomoBoolean2 flgWedgeWeight = new EtomoBoolean2("FlgWedgeWeight");
   /**
@@ -183,10 +178,13 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
       "MaskType.ManualCylinderOrientation");
   private final EtomoNumber referenceMultiparticleLevel = new EtomoNumber(REFERENCE_KEY
       + ".Multiparticle.level");
-  private final EtomoBoolean2 tiltRangeMultiAxes = new EtomoBoolean2("TiltRangeMultiAxes");
+  private final EtomoBoolean2 tiltRangeMultiAxes =
+      new EtomoBoolean2("TiltRangeMultiAxes");
+  private final EtomoNumber cylinderHeight = new EtomoNumber("CylinderHeight");
+  private final EtomoNumber maskBlurStdDev = new EtomoNumber("MaskBlurStdDev");
 
   public PeetMetaData(final LogProperties logProperties) {
-   super(logProperties);
+    super(logProperties);
     fileExtension = DataFileType.PEET.extension;
     axisType = AxisType.SINGLE_AXIS;
     referenceMultiparticleLevel.setDefault(MultiparticleReference.DEFAULT_LEVEL);
@@ -216,6 +214,8 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
     tiltRangeMultiAxes.set(input.tiltRangeMultiAxes);
     tiltRangeMultiAxesFile.reset();
     tiltRangeMultiAxesFile.set(input.tiltRangeMultiAxesFile);
+    cylinderHeight.set(input.cylinderHeight);
+    maskBlurStdDev.set(input.maskBlurStdDev);
   }
 
   public String getMetaDataFileName() {
@@ -283,6 +283,8 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
     referenceMultiparticleLevel.reset();
     tiltRangeMultiAxes.reset();
     tiltRangeMultiAxesFile.reset();
+    cylinderHeight.reset();
+    maskBlurStdDev.reset();
     // load
     prepend = createPrepend(prepend);
     String group = prepend + ".";
@@ -304,6 +306,8 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
     referenceMultiparticleLevel.load(props, prepend);
     tiltRangeMultiAxes.load(props, prepend);
     tiltRangeMultiAxesFile.load(props, prepend);
+    cylinderHeight.load(props, prepend);
+    maskBlurStdDev.load(props, prepend);
 
     revisionNumber.load(props, prepend);
     if (revisionNumber.isNull() || revisionNumber.lt(LATEST_VERSION)) {
@@ -354,6 +358,8 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
     referenceMultiparticleLevel.store(props, prepend);
     tiltRangeMultiAxes.store(props, prepend);
     tiltRangeMultiAxesFile.store(props, prepend);
+    cylinderHeight.store(props, prepend);
+    maskBlurStdDev.store(props, prepend);
   }
 
   public void setRootName(final String input) {
@@ -391,7 +397,13 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
   public String getMaskTypeVolume() {
     return maskTypeVolume.toString();
   }
-
+  
+  public String getCylinderHeight() {
+    return cylinderHeight.toString();
+  }
+  public String getMaskBlurStdDev() {
+    return maskBlurStdDev.toString();
+  }
   public boolean isManualCylinderOrientation() {
     return manualCylinderOrientation.is();
   }
@@ -510,6 +522,14 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
 
   public void setNWeightGroup(final Number input) {
     nWeightGroup.set(input);
+  }
+
+  public void setCylinderHeight(final String input) {
+    cylinderHeight.set(input);
+  }
+
+  public void setMaskBlurStdDev(final String input) {
+    maskBlurStdDev.set(input);
   }
 
   String getGroupKey() {

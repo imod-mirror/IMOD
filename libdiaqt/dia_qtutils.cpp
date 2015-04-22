@@ -459,8 +459,7 @@ int diaQInput(int *value, int low, int high, int decimal, const char *prompt)
   
 
   if (!decimal) {
-    result = QInputDialog::getInteger
-      (NULL, title, str, *value, low, high, 1, &ok);
+    result = QInputDialog::getInt(NULL, title, str, *value, low, high, 1, &ok);
     if (ok)
       *value = result;
     return ok ? 1 : 0;

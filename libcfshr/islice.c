@@ -28,8 +28,7 @@ Islice *sliceCreate(int xsize, int ysize, int mode)
   size_t xysize = (size_t)xsize * (size_t)ysize;
 
   if (xysize / xsize != ysize) {
-    b3dError(stderr, "ERROR: sliceCreate - slice is too large for a "
-             "32-bit computer.\n");
+    b3dError(stderr, "ERROR: sliceCreate - slice is too large for a 32-bit computer.\n");
     return(NULL);
   }
 
@@ -37,63 +36,19 @@ Islice *sliceCreate(int xsize, int ysize, int mode)
   if (!s)
     return(NULL);
      
-  s->xsize = xsize;
-  s->ysize = ysize;
-  s->mode  = mode;
-  s->index = -1;
-
-  switch(mode){
-      
-  case MRC_MODE_BYTE:
-    s->dsize = sizeof(unsigned char);
-    s->csize = 1;
-    s->data.b = (unsigned char *)malloc(xysize * s->dsize * s->csize);
-    break;
-
-  case MRC_MODE_SHORT:
-  case MRC_MODE_USHORT:
-    s->dsize = sizeof(b3dInt16);
-    s->csize = 1;
-    s->data.s = (b3dInt16 *)malloc(xysize * s->dsize * s->csize);
-    break;
-      
-  case MRC_MODE_FLOAT:
-    s->dsize = sizeof(float);
-    s->csize = 1;
-    s->data.f = (float *)malloc(xysize * s->dsize * s->csize);
-    break;
-
-  case MRC_MODE_COMPLEX_SHORT:
-    s->dsize = sizeof(b3dInt16);
-    s->csize = 2;
-    s->data.s = (b3dInt16 *)malloc(xysize * s->dsize * s->csize);
-    break;
-
-  case MRC_MODE_COMPLEX_FLOAT:
-    s->dsize = sizeof(float);
-    s->csize = 2;
-    s->data.f = (float *)malloc(xysize * s->dsize * s->csize);
-    break;
-
-  case MRC_MODE_RGB:
-    s->dsize = sizeof(unsigned char);
-    s->csize = 3;
-    s->data.b = (unsigned char *)malloc(xysize * s->dsize * s->csize);
-    break;
-
-  case SLICE_MODE_MAX:
-    s->csize = SLICE_MAX_CSIZE;
-    s->dsize = SLICE_MAX_DSIZE;
-    s->data.f = (float *)malloc(xysize * s->dsize * s->csize);
-    break;
-
-  default:
+  if (dataSizeForMode(mode, &s->dsize, &s->csize)) {
+    b3dError(stderr, "ERROR: sliceCreate - Unsupported data mode %d.\n", mode);
     free(s);
     return(NULL);
   }
 
-  if (!s->data.b){
-    b3dError(stderr, "ERROR: sliceCreate - not enough memory.\n");
+  s->xsize = xsize;
+  s->ysize = ysize;
+  s->mode  = mode;
+  s->index = -1;
+  s->data.b = (unsigned char *)malloc(xysize * s->dsize * s->csize);
+  if (!s->data.b) {
+    b3dError(stderr, "ERROR: sliceCreate - failed to allocate slice memory.\n");
     free(s);
     return(NULL);
   }
@@ -111,45 +66,9 @@ int sliceInit(Islice *s, int xsize, int ysize, int mode, void *data)
   s->xsize = xsize;
   s->ysize = ysize;
   s->mode  = mode;
-
-  switch(mode){
-  case MRC_MODE_BYTE:
-    s->csize = 1;
-    s->dsize = 1;
-    s->data.b = data;
-    break;
-  case MRC_MODE_SHORT:
-  case MRC_MODE_USHORT:
-    s->dsize = sizeof(b3dInt16);
-    s->csize = 1;
-    s->data.us = data;
-    break;
-  case MRC_MODE_FLOAT:
-    s->dsize = sizeof(b3dFloat);
-    s->csize = 1;
-    s->data.f = data;
-    break;
-  case MRC_MODE_COMPLEX_SHORT:
-    s->dsize = sizeof(b3dInt16);
-    s->csize = 2;
-    s->data.s = data;
-    break;
-  case MRC_MODE_COMPLEX_FLOAT:
-    s->dsize = sizeof(b3dFloat);
-    s->csize = 2;
-    s->data.f = data;
-    break;
-  case MRC_MODE_RGB:
-    s->csize = 1;
-    s->dsize = 3;
-    s->data.b = data;
-    break;
-  case SLICE_MODE_MAX:
-    s->csize = SLICE_MAX_CSIZE;
-    s->dsize = SLICE_MAX_DSIZE;
-    s->data.f = data;
-    break;
-  default:
+  s->data.b = data;
+  if (dataSizeForMode(mode, &s->dsize, &s->csize)) {
+    b3dError(stderr, "ERROR: sliceInit - Unsupported data mode %d.\n", mode);
     return(-1);
   }
   return(0);

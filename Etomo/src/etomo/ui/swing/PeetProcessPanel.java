@@ -2,19 +2,16 @@ package etomo.ui.swing;
 
 import etomo.BaseManager;
 import etomo.type.AxisID;
+import etomo.type.InterfaceType;
 
 /**
 * <p>Description: </p>
 * 
-* <p>Copyright: Copyright 2006</p>
-*
-* <p>Organization:
-* Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
-* University of Colorado</p>
-* 
-* @author $Author$
-* 
-* @version $Revision$
+ * <p>Copyright: Copyright 2006 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
+ *
+ * @version $Id$
 * 
 * <p> $Log$
 * <p> Revision 1.1  2010/11/13 16:07:35  sueh
@@ -31,10 +28,8 @@ import etomo.type.AxisID;
 * <p> </p>
 */
 public class PeetProcessPanel extends AxisProcessPanel {
-  public static final String rcsid = "$Id$";
-
   PeetProcessPanel(BaseManager manager) {
-    super(AxisID.ONLY, manager, false);
+    super(AxisID.ONLY, manager, false, true, InterfaceType.PEET);
     createProcessControlPanel();
     initializePanels();
   }

@@ -1,6 +1,6 @@
 .na
 .nh
-.TH xfalign 1 2.50 BL3DEMC
+.TH xfalign 1 2.50 IMOD
 .SH NAME
 xfalign \- Automatic image alignment using xfsimplex
 .SH SYNOPSIS
