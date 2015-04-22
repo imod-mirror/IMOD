@@ -28,7 +28,7 @@
 //Using a shorter sleep time then the processchunks script and not adjusting
 //the sleep depending on the number of machines.
 static const int sleepMillisec = 1000;
-static const int maxLocalByNum = 64;
+static const int maxLocalByNum = 128;
 //converting old timeout counter to milliseconds
 static const int runProcessTimeout = 30 * 2 * 1000;
 static const int checkFileReconnectReset = 10;
@@ -135,7 +135,7 @@ void processchunksUsageHeader(const char *pname) {
   printf("\nUsage: %s [Options] machine_list root_name\nWill process multiple command "
     "files on multiple processors or machines\nmachine_list is a list of "
     "available machines, separated by commas.\nList machine names multiple "
-    "times or followed by #n to use multiple CPUs on a machine.\nRoot_name is "
+    "times or followed by :n to use multiple CPUs on a machine.\nRoot_name is "
     "the base name of the command files, omitting -nnn.com\n\n", pname);
 }
 
@@ -522,7 +522,9 @@ void Processchunks::timerEvent(QTimerEvent */*timerEvent*/) {
     mNextSyncIndex = mSizeJobArray + 2 - 1;
     noChunks = false;
   }
-  if (mSingleFile && mNumDone > 0) {
+
+  // Finish up now if all chunks are done
+  if ((mSingleFile && mNumDone > 0) || mNumDone >= mSizeJobArray) {
     cleanupAndExit();
     return;
   }
@@ -542,6 +544,7 @@ void Processchunks::cleanupAndExit(int exitCode) {
     }
     //Etomo is looking for this line too
     *mOutStream << "Finished reassembling" << endl;
+    mOutStream->flush();
   }
   if (mCheckFile != NULL) {
     mCheckFile->close();
@@ -555,6 +558,7 @@ void Processchunks::cleanupAndExit(int exitCode) {
     }
   }
   *mOutStream << "exitCode:" << exitCode << endl;
+  mOutStream->flush();
   exit(exitCode);
 }
 
@@ -763,10 +767,9 @@ void Processchunks::initMachineList(QStringList &machineNameList,
   if (mQueue) 
     return;
 
-  if (!mGpuMode && mCpuList.contains(":"))
-    exitError("The machine list cannot contain : unless -G is entered");
-  if (mGpuMode && mCpuList.contains("#"))
-    exitError("The machine list cannot contain # if -G is entered");
+  if (mCpuList.contains("#"))
+    exitError("The machine list must contain : instead of # with or without the "
+              "-G option");
   
   //Setup up machine names from mCpuList
   const QStringList cpuArray = mCpuList.split(",", QString::SkipEmptyParts);
@@ -796,7 +799,7 @@ void Processchunks::initMachineList(QStringList &machineNameList,
   QString machineName;
   for (i = 0; i < cpuArray.size(); i++) {
     const QString cpuMachine = cpuArray.at(i);
-    const QStringList machineSplit = cpuMachine.split(mGpuMode ? ":" : "#");
+    const QStringList machineSplit = cpuMachine.split(":");
     machineName = machineSplit[0].toLower();
     if (machineSplit.size() == 1) {
       numCores = 1;
@@ -823,7 +826,7 @@ void Processchunks::initMachineList(QStringList &machineNameList,
 
         // For regular machines, insist on one * and convert the number as numCores
         if (machineSplit.size() > 2)
-          exitError("Multiple # signs in machine specification: %s", 
+          exitError("Multiple : characters in machine specification: %s", 
                     cpuMachine.toLatin1().data());
         numCores = machineSplit[1].toInt(&ok);
         if (!ok || numCores < 1)
@@ -831,7 +834,7 @@ void Processchunks::initMachineList(QStringList &machineNameList,
                     cpuMachine.toLatin1().data());
         if (numCores > maxLocalByNum)
           exitError("You cannot specify more than %d cores on a machine with "
-                    "machine#number", maxLocalByNum);
+                    "machine:number", maxLocalByNum);
       }
     } 
       
@@ -1009,6 +1012,10 @@ void Processchunks::setupComFileJobs() {
     startComFile.append("-start.com");
     if (mCurrentDir.exists(startComFile)) {
       comFileArray.append(startComFile);
+    }
+    if (mCurrentDir.exists(mRootName + QString("-100000.com")) ||
+        mCurrentDir.exists(mRootName + QString("-100000-sync.com"))) {
+      exitError("Cannot process more than 99999 chunks");
     }
     //Add numeric com files
     mCurrentDir.setSorting(QDir::Name);

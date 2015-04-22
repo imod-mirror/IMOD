@@ -1,6 +1,6 @@
 .na
 .nh
-.TH addtostack 1 4.6.34 BL3DEMC
+.TH addtostack 1 4.6.34 IMOD
 .SH NAME
 addtostack - add sections to end of existing stack
 .SH SYNOPSIS

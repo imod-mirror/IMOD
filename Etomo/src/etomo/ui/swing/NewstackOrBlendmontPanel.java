@@ -215,12 +215,6 @@ abstract class NewstackOrBlendmontPanel implements Run3dmodButtonContainer, Expa
     return btnRunProcess;
   }
 
-  public void action(final Run3dmodButton button,
-      final Run3dmodMenuOptions run3dmodMenuOptions) {
-    action(button.getActionCommand(), button.getDeferred3dmodButton(),
-        run3dmodMenuOptions);
-  }
-
   /**
    * Executes the action associated with command.  Deferred3dmodButton is null
    * if it comes from the dialog's ActionListener.  Otherwise is comes from a
@@ -230,7 +224,7 @@ abstract class NewstackOrBlendmontPanel implements Run3dmodButtonContainer, Expa
    * @param deferred3dmodButton
    * @param run3dmodMenuOptions
    */
-  abstract void action(final String command,
+  abstract public void action(final String command,
       final Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions);
 

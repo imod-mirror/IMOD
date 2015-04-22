@@ -79,7 +79,9 @@ public class Patchcrawl3DParam extends ConstPatchcrawl3DParam implements Command
     this.manager = manager;
   }
 
-  /* (non-Javadoc)
+  /*
+   * (non-Javadoc)
+   * 
    * @see etomo.comscript.CommandParam#initialize(etomo.comscript.ComScriptCommand)
    */
   public void parseComScriptCommand(ComScriptCommand scriptCommand)
@@ -99,6 +101,7 @@ public class Patchcrawl3DParam extends ConstPatchcrawl3DParam implements Command
       numberOfPatchesXYZ.validateAndSet(scriptCommand);
       xMinAndMax.validateAndSet(scriptCommand);
       yMinAndMax.validateAndSet(scriptCommand);
+      zMinAndMax.validateAndSet(scriptCommand);
       if (scriptCommand.hasKeyword(REGION_MODEL_KEY)) {
         regionModel = scriptCommand.getValue(REGION_MODEL_KEY);
       }
@@ -178,7 +181,9 @@ public class Patchcrawl3DParam extends ConstPatchcrawl3DParam implements Command
     return inputArgs;
   }
 
-  /* (non-Javadoc)
+  /*
+   * (non-Javadoc)
+   * 
    * @see etomo.comscript.CommandParam#updateComScript(etomo.comscript.ComScriptCommand)
    */
   public void updateComScriptCommand(ComScriptCommand scriptCommand)

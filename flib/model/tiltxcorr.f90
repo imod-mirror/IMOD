@@ -26,16 +26,16 @@ program tiltxcorr
   include 'smallmodel.inc90'
   integer*4 nx, ny, nz
   !
-  integer*4 nxyz(3), mxyz(3)
+  integer*4 nxyz(3), mxyz(3), nxyzRef(3)
   real*4 title(20), delta(3), origin(3)
   real*4 ctfp(8193), ctfUB(8193)
   real*4, allocatable :: sumArray(:), crray(:), array(:), brray(:)
-  real*4, allocatable :: tmpArray(:), ubArray(:), ubBrray(:)
+  real*4, allocatable :: tmpArray(:), ubArray(:), ubBrray(:), arrCopy(:)
   logical*4 inStreak(LIMPEAKS)
   !
   equivalence (nx, nxyz(1)), (ny, nxyz(2)), (nz, nxyz(3))
   !
-  character*320 inFile, plFile, imFileOut, xfFileOut
+  character*320 inFile, plFile, imFileOut, xfFileOut, refFile
   character*1000 listString
   real*4 fs(2,3), fsInv(2,3), fUnit(2,3), prexfInv(2,3)
   character*9 dat
@@ -51,7 +51,7 @@ program tiltxcorr
   real*4, allocatable :: patchCenX(:), patchCenY(:), patchCenXall(:), patchCenYall(:)
   real*4, allocatable :: xControl(:), yControl(:), xVector(:), yVector(:)
   real*4, allocatable :: xmodel(:,:), ymodel(:,:), xbound(:), ybound(:)
-  real*4, allocatable :: xtfsBound(:), ytfsBound(:)
+  real*4, allocatable :: xtfsBound(:), ytfsBound(:), rotScanPeaks(:)
   integer*4, allocatable :: iobjFlags(:), ifBoundOnView(:)
   integer*4 iobjBound(LIMBOUND), indBound(LIMBOUND)
   integer*4 numInBound(LIMBOUND)
@@ -80,7 +80,7 @@ program tiltxcorr
   integer*4 ixBoxForAdj, iyBoxForAdj, ipatch, numPoints, numBound, iobj, lenTemp
   integer*4 ipnt, ipt, numInside, iobjSeed, imodObj, imodCont, ix, iy, iAntiFiltType
   integer*4 limitShiftX, limitShiftY, numSkip, lastNotSkipped, lenConts, nFillTaper
-  integer*4 numControl, numBoundAll, idim2
+  integer*4 numControl, numBoundAll, idim2, iunitRef
   integer*4 nxUnali, nyUnali, numAllViews, ivPairOffset, ifFindWarp, limitedBinSize
   integer*4 nxUBpad, nyUBpad, nxUBtaper, magView
   real*4 critInside, cosRatio, peakVal, peakLast, xpeakLast, yPeakLast
@@ -88,18 +88,20 @@ program tiltxcorr
   real*4 fracOverMax, critNonBlank, fillTaperFrac, deltaUBctf, radExclude
   integer*4 nyUBtaper, limitUBshiftX, limitUBshiftY, niceLimit, ifEllipse, maxXcorrPeaks
   real*4 binWidthRatioCrit, peak2ToPeak3Crit, centralPeakMaxWidth, ubWidthRatioCrit
-  integer*4 ifUBpeakIsSharp, numCuts, numMagViews
+  integer*4 ifUBpeakIsSharp, numCuts, numMagViews, ifReusePrev, ifScanRotation
+  integer*4 numRotSteps, indBestRot, izInRefFile
   real*4 cosRotAngle, sinRotAngle, overlapCrit, overlapPower, foundMag, stepMag, searchMin
-  real*4 searchMax, brackets(14)
+  real*4 searchMax, brackets(14), scanRotMax, scanRotInterval, angle, bestAngle, refTilt
   real*8 wallMask, wallStart, wallInterp, wallfft, wallPeak
 
   logical*4 tracking, verbose, breaking, taperCur, taperRef, reverseOrder, evalCCC
   logical*4 refViewOut, rawAlignedPair, addToWarps, curViewOut, limitingShift
-  logical*4 searchedForMag, searchMag
+  logical*4 searchedForMag, searchMag, reusePrevArrays, useRefFile
   integer*4 niceFrame, newImod, putImodMaxes, putModelName, numberInList
   integer*4 newWarpFile, setWarpPoints, writeWarpFile, setLinearTransform, readWarpFile
   integer*4 separateLinearTransform, niceFFTlimit, minimize1D
   real*4 cosd, sind
+  real*8 parabolicFitPosition
 
   logical pipinput
   integer*4 numOptArg, numNonOptArg
@@ -110,7 +112,7 @@ program tiltxcorr
   ! fallbacks from ../../manpages/autodoc2man -3 2  tiltxcorr
   !
   integer numOptions
-  parameter (numOptions = 55)
+  parameter (numOptions = 58)
   character*(40 * numOptions) options(1)
   options(1) = &
       'input:InputFile:FN:@piece:PieceListFile:FN:@output:OutputFile:FN:@'// &
@@ -128,7 +130,8 @@ program tiltxcorr
       'cumulative:CumulativeCorrelation:B:@absstretch:AbsoluteCosineStretch:B:@'// &
       'nostretch:NoCosineStretch:B:@iterate:IterateCorrelations:I:@'// &
       'search:SearchMagChanges:B:@changes:ViewsWithMagChanges:LI:@'// &
-      'mag:MagnificationLimits:FP:@size:SizeOfPatchesXandY:IP:@'// &
+      'mag:MagnificationLimits:FP:@scan:ScanRotationMaxAndStep:FP:@'// &
+      'reference:ReferenceFile:FN:@rview:ReferenceView:I:@size:SizeOfPatchesXandY:IP:@'//&
       'number:NumberOfPatchesXandY:IP:@overlap:OverlapOfPatchesXandY:IP:@'// &
       'seed:SeedModel:FN:@objseed:SeedObject:I:@length:LengthAndOverlap:IP:@'// &
       'prexf:PrealignmentTransformFile:FN:@imagebinned:ImagesAreBinned:I:@'// &
@@ -203,7 +206,11 @@ program tiltxcorr
   searchMag = .false.
   searchMin = 0.9
   searchMax = 1.1
+  ifScanRotation = 0
+  numRotSteps = 0
   limitedBinSize = 4300**2
+  refFile = ' '
+  iunitRef = 1
   !
   ! Pip startup: set error, parse options, check help, set flag if used
   !
@@ -363,8 +370,28 @@ program tiltxcorr
     ierr = PipGetTwoFloats('MagnificationLimits', searchMin, searchMax)
     if (searchMin >= searchMax - 0.01) call exitError( &
         'LIMITS FOR MAGNIFICATION SEARCH ARE OUT OF ORDER OR TOO CLOSE TO EACH OTHER') 
-    if (searchMag .and. (ifCumulate > 0 .or. ifLeaveAxis > 0)) call exitError( &
-        'MAG CHANGE CANNOT BE SEARCHED WITH -cumulative OR -leave OPTIONS')
+    if (searchMag .and. (ifCumulate > 0 .or. ifLeaveAxis > 0 .or. ifFindWarp .ne. 0)) &
+        call exitError('MAG CHANGE CANNOT BE SEARCHED WITH -cumulative, -leave, or'// &
+        ' -warp OPTIONS')
+    ifScanRotation = 1 - PipGetTwoFloats('ScanRotationMaxAndStep', scanRotMax, &
+        scanRotInterval)
+    if (ifScanRotation > 0) then
+      if (searchMag .or. ifCumulate > 0 .or. ifLeaveAxis > 0 .or. ifFindWarp .ne. 0)  &
+          call exitError('ROTATION CANNOT BE SCANNED WITH -search, -cumulative,'// &
+          ' -leave, or -warp OPTIONS')
+      if (scanRotInterval == 0) then
+        numRotSteps = 0
+      else
+        if (scanRotMax <= 0. .or. scanRotInterval <= 0. .or. &
+            scanRotInterval > 2.7 * scanRotMax) call exitError( &
+            'SCAN ROTATION RANGE AND INTERVAL MUST BE POSITIVE AND INTERVAL'// &
+            ' SHOULD BE LESS THAN 3 TIMES THE RANGE')
+        numRotSteps = nint(2. * scanRotMax / scanRotInterval) + 1
+        scanRotInterval = 2. * scanRotMax / (numRotSteps - 1)
+        allocate(rotScanPeaks(numRotSteps), stat = ierr)
+        call memoryError(ierr, 'ARRAY FOR ROTATION SCAN PEAKS')
+      endif
+    endif
     ierr = PipGetFloat('AngleOffset', angleOffset)
     do iv = 1, numViews
       tilt(iv) = tilt(iv) + angleOffset
@@ -377,6 +404,20 @@ program tiltxcorr
     if (ierr + iz == 1) then
       call parselist2(listString, listSkip, numSkip, nz)
       breaking = iz == 0
+    endif
+    if (PipGetString('ReferenceFile', refFile) == 0) then
+      iunitRef = 2
+      call imopen(2, refFile, 'ro')
+      call irdhdr(2, nxyzRef, mxyz, mode, dmin2, dmax2, dmean2)
+      if (nxyzRef(1) .ne. nx .or. nxyzRef(2) .ne. ny) call exitError( &
+          'THE REFERENCE FILE MUST BE THE SAME SIZE IN X AND Y AS THE IMAGE FILE')
+      izInRefFile = 0
+      if (PipGetInteger('ReferenceView', ierr) == 0) izInRefFile = ierr - 1
+      if (izInRefFile < 0 .or. izInRefFile >= nxyzRef(3)) call exitError( &
+          'REFERENCE VIEW NUMBER IS OUT OF RANGE')
+      if (ifCumulate > 0 .or. ifLeaveAxis > 0 .or. breaking .or. ifFindWarp .ne. 0) &
+          call exitError('A REFERENCE FILE CANNOT BE USED WITH -break, -cumulative,'// &
+          ' -leave or -warp OPTIONS')
     endif
   else
     write(*,'(1x,a,$)') 'Rotation angle FROM vertical TO the tilt axis: '
@@ -403,6 +444,9 @@ program tiltxcorr
       ixEnd - ixStart < 24 .or. iyEnd - iyStart < 24) call exitError( &
       'Impossible amount to trim by or incorrect coordinates')
 
+  reusePrevArrays = (numIter > 1 .or. searchMag .or. numRotSteps > 0) .and.  &
+      ifImOut == 0
+  useRefFile = iunitRef == 2
   nxUse = ixEnd + 1 - ixStart
   nyUse = iyEnd + 1 - iyStart
   cosPhi = cosd(rotAngle)
@@ -478,10 +522,12 @@ program tiltxcorr
         then
       if (ifCumulate .ne. 0) call exitError( &
           'YOU CANNOT USE CUMULATIVE CORRELATION WITH PATCH TRACKING')
-      if (searchMag) call exitError( &
-          'YOU CANNOT SEARCH FOR A MAG CHANGE WITH PATCH TRACKING')
+      if (searchMag .or. ifScanRotation > 0) call exitError( &
+          'YOU CANNOT SEARCH FOR A MAG CHANGE OR SCAN ROTATION WITH PATCH TRACKING')
       if (breaking .and. ifFindWarp == 0)  &
           call exitError('YOU CANNOT BREAK AT VIEWS WITH PATCH TRACKING')
+      if (useRefFile) call exitError( &
+          'YOU CANNOT DO PATCH TRACKING WITH A REFERENCE IMAGE')
       tracking = .true.
       if (ifFindWarp .ne. 0 .and. reverseOrder) call exitError( &
           'YOU CANNOT FIND WARP TRANSFORMS IN REVERSE ORDER')
@@ -672,8 +718,8 @@ program tiltxcorr
               'BINNING ENTRY OR FLAGS IN EXISTING WARP FILE ARE INVALID')
         else
           ierr = newWarpFile(nx, ny, 1, delta(1), 3)
-          if (ierr < 0) call exitError(' &
-              &FAILURE TO ALLOCATE NEW WARP STRUCTURE IN LIBRARY')
+          if (ierr < 0) call exitError( &
+              'FAILURE TO ALLOCATE NEW WARP STRUCTURE IN LIBRARY')
         endif
       endif
 
@@ -750,8 +796,10 @@ program tiltxcorr
   nxPad = niceFrame((nxUse + 2 * nxBorder) / nbinning, 2, niceLimit)
   nyPad = niceFrame((nyUse + 2 * nyBorder) / nbinning, 2, niceLimit)
   idim2 = (nxPad + 2) * nyPad + 16
+  iz = 0
   allocate(sumarray(idim2), crray(idim2), array(idim2), brray(idim2), stat = ierr)
-  call memoryError(ierr, 'ARRAYS FOR IMAGES')
+  if (reusePrevArrays) allocate(arrCopy(idim2), stat = iz)
+  call memoryError(abs(ierr) + abs(iz), 'ARRAYS FOR IMAGES')
 
   write(*,'(/,a,i3,a,i5,a,i5)') binRedText, nbinning, &
       ';  padded, reduced size is', nxPad, ' by', nyPad
@@ -868,7 +916,11 @@ program tiltxcorr
   ! set up for first or only loop
   !
   ! print *,mintilt, izstart, izend
-  if (minTilt >= izEnd) then
+  if (useRefFile) then
+    ivStart = izStart
+    ivEnd = izEnd
+    refTilt = 0.
+  else if (minTilt >= izEnd) then
     ivStart = izEnd - 1
     ivEnd = izStart
     loopDir = -1
@@ -906,7 +958,11 @@ program tiltxcorr
       !
       ! If view is on skip/break list, copy the previous cumulative transform
       if (numberInList(ivSkip, listSkip, numSkip, 0) .ne. 0) then
-        f(1:2, 3, ivCur) = f(1:2, 3, ivRef)
+        if (useRefFile) then
+          call xfunit(f(1, 1, ivCur), 1.0)
+        else
+          f(1:2, 3, ivCur) = f(1:2, 3, ivRef)
+        endif
         cycle
       endif
       !
@@ -922,7 +978,11 @@ program tiltxcorr
       idir = 1
       stretch = 1.
       if (ifNoStretch == 0 .and. abs(cosView) > 0.01) then
-        stretch = cosd(tilt(ivRef)) / cosView
+        if (useRefFile) then
+          stretch = 1. / cosView
+        else
+          stretch = cosd(tilt(ivRef)) / cosView
+        endif
         if (ifCumulate .ne. 0 .and. ifAbsStretch .ne. 0) &
             stretch = cosd(tilt(minTilt)) / cosView
       endif
@@ -934,6 +994,7 @@ program tiltxcorr
         ivRef = izTmp
         cosView = cosd(tilt(ivCur))
       endif
+      if (.not. useRefFile) refTilt = tilt(ivRef)
       if (verbose) print *,'idir, stretch, ivRef, ivCur', idir, stretch, ivRef, ivCur
       !
       ! If doing warp and there is more than one boundary contour or the contour needs
@@ -991,7 +1052,7 @@ program tiltxcorr
         ! rounded to nearest integer
         cenx = patchCenX(ipatch) - nx / 2.
         ceny = patchCenY(ipatch) - ny / 2.
-        call adjustCoord(0., tilt(ivRef), cenx, ceny, x0, y0)
+        call adjustCoord(0., refTilt, cenx, ceny, x0, y0)
         ixBoxRef = max(-ixCenStart, min(nx - 1 - ixCenEnd, nint(x0)))
         iyBoxRef = max(-iyCenStart, min(ny - 1 - iyCenEnd, nint(y0)))
         baseTilt = 0.
@@ -1050,7 +1111,7 @@ program tiltxcorr
         !
         ! Now that reference and stretch is fixed, get a limited cosine ratio to
         ! use below, get the transforms and look up the Z's in file
-        cosRatio = abs(cosView) / max(abs(cosView), abs(cosd(tilt(ivRef))), 1.e-6)
+        cosRatio = abs(cosView) / max(abs(cosView), abs(cosd(refTilt)), 1.e-6)
         call rotmagstr_to_amat(0., 1., stretch, rotAngle, fs)
         fs(1, 3) = 0.
         fs(2, 3) = 0.
@@ -1059,6 +1120,7 @@ program tiltxcorr
           if (izPcList(i) + 1 == ivRef) izLast = i - 1
           if (izPcList(i) + 1 == ivCur) izCur = i - 1
         enddo
+        if (useRefFile) izLast = izInRefFile
         ! print *,izlast, izcur, stretch
         !
         ! If tracking and prexg's are available, evaluate need for tapering and
@@ -1106,6 +1168,7 @@ program tiltxcorr
         endif
         xpeakFrac = 0.
         ypeakFrac = 0.
+        ifReusePrev = 0
         !
         ! If correlating inside boundary contour, transform contours
         if (.not. tracking .and. numBound > 0) then
@@ -1149,6 +1212,7 @@ program tiltxcorr
           stepMag = min(0.03, (searchMax - searchMin) / 3.)
           foundMag = searchMin - stepMag
           numCuts = -1
+          if (reusePrevArrays) ifReusePrev = -1
           if (verbose) print *,'Searching for best magnification change'
           do while (.true.)
 
@@ -1184,7 +1248,37 @@ program tiltxcorr
           call rotmagstr_to_amat(0., foundMag, stretch, rotAngle, fs)
         endif
 
+        ! Or, scan rotations if selected
+        indBestRot = 1
+        if (ifScanRotation > 0) then
+          if (numRotSteps > 0) then
+            if (reusePrevArrays .and. ifReusePrev .eq. 0) ifReusePrev = -1
+            do iter = 1, numRotSteps
+              angle = (iter - 1) * scanRotInterval - scanRotMax
+              call rotmagstr_to_amat(angle, 1., stretch, rotAngle, fs)
+              if (nbinning > 1) then
+                call correlateAndFindPeaks(evalCCC, ubArray, ubBrray, 0)
+              else
+                call correlateAndFindPeaks(evalCCC, array, brray, 0)
+              endif
+              rotScanPeaks(iter) = peakVal
+              if (peakVal > rotScanPeaks(indBestRot)) indBestRot = iter
+            enddo
+            angle = (indBestRot - 1) * scanRotInterval - scanRotMax
+            if (indBestRot > 1 .and. indBestRot < numRotSteps) then
+              bestAngle = angle
+              angle = (parabolicFitPosition(rotScanPeaks(indBestRot - 1), &
+                  rotScanPeaks(indBestRot), rotScanPeaks(indBestRot + 1)) + &
+                  indBestRot - 1) * scanRotInterval - scanRotMax
+            endif
+          else
+            angle = idir * scanRotMax
+          endif
+          call rotmagstr_to_amat(angle, 1., stretch, rotAngle, fs)
+        endif
+
         ! Now start iterations of regular correlation alignment
+        if (reusePrevArrays .and. numIter > 1 .and. ifReusePrev .eq. 0) ifReusePrev = -1
         do iter = 1, numIter
           if (nbinning > 1) then
             call correlateAndFindPeaks(evalCCC, ubArray, ubBrray, ifImOut)
@@ -1316,7 +1410,7 @@ program tiltxcorr
         ! not of the box if axis not at center: so add on the cumulative
         ! amount that would have been added due to box offsets in block
         ! above
-        if (ifCumulate == 0 .and. ifNoStretch == 0) then
+        if (ifCumulate == 0 .and. ifNoStretch == 0 .and. .not. useRefFile) then
           xFromCen = cumXshift
           yFromCen = cumYshift
           if (ifLeaveAxis .ne. 0) then
@@ -1339,6 +1433,20 @@ program tiltxcorr
         if (.not.tracking) write(*,111) 'View', iview, ', shifts', xshift, &
             yshift, '      peak', peakVal
 111     format(a,i4,a,2f10.2,a,g15.6)
+        if (ifScanRotation > 0) then
+          if (numRotSteps > 0) then
+            !
+            ! DEPENDENCY: transferfid is looking for 'Best angle in' and reads the number
+            ! after the last =
+            if (indBestRot > 1 .and. indBestRot < numRotSteps) then
+              write(*,'(a,f7.1,a,f8.2)')'  Best angle in rotation scan =',  &
+                  idir * bestAngle, '   interpolated angle =', idir * angle
+            else
+              write(*,'(a,f7.1)')'  Best angle in rotation scan =', idir * angle
+            endif
+          endif
+          call rotmagstr_to_amat(idir * angle, 1., 1., 0., f(1, 1, magView))
+        endif
         !
         ! DNM 10/22/03: Only do flush for large stacks because of problem
         ! inside shell scripts in Windows/Intel
@@ -1417,7 +1525,7 @@ program tiltxcorr
   endif
   !
   ! Now adjust transforms of skipped ones so they are always the same as the one below
-  if (.not. breaking) then
+  if (.not. breaking .and. .not. useRefFile) then
     lastNotSkipped = -1
     do iv = 1, numViews
       if (numberInList(iv, listSkip, numSkip, 0) == 0) then
@@ -1434,7 +1542,7 @@ program tiltxcorr
     !
     ! If leaving axis at an offset box, output G transforms directly so that
     ! the material in box at zero tilt will stay in box
-    if (ifLeaveAxis .ne. 0) then
+    if (ifLeaveAxis .ne. 0 .or. useRefFile) then
       do iv = 1, nz
         call xfwrite(1, f(1, 1, iv))
       enddo
@@ -1627,84 +1735,98 @@ CONTAINS
     call meanZero(brray, nxPad + 2, nxPad, nyPad)
     !
     ! get "last" into array, just pad it there
-    !
-    call readBinnedOrReduced(1, izLast, array, ixCenStart + ixBoxRef, &
-        iyCenStart + iyBoxRef, taperRef)
+    ! All operations involving array happen only if not reusing, or on first round
+    if (ifReusePrev <= 0) then
+      call readBinnedOrReduced(iunitRef, izLast, array, ixCenStart + ixBoxRef, &
+          iyCenStart + iyBoxRef, taperRef)
 
-    limitXlo = -limitShiftX
-    limitXhi = limitShiftX
-    limitYlo = -limitShiftY
-    limitYhi = limitShiftY
-    if (ifCumulate .ne. 0) then
-      limitXlo = xpeak - limitShiftX
-      limitXhi = xpeak + limitShiftX
-      limitYlo = ypeak - limitShiftY
-      limitYhi = ypeak + limitShiftY
-      if (iter == 1) then
-        !
-        ! if accumulating, transform image by last shift, add it to
-        ! sum array, then taper and pad into array
-        !
-        if (ifAbsStretch == 0) then
-          call xfunit(fUnit, 1.0)
-        else
-          unstretchDx = xpeak
-          unstretchDy = ypeak
+      limitXlo = -limitShiftX
+      limitXhi = limitShiftX
+      limitYlo = -limitShiftY
+      limitYhi = limitShiftY
+      if (ifCumulate .ne. 0) then
+        limitXlo = xpeak - limitShiftX
+        limitXhi = xpeak + limitShiftX
+        limitYlo = ypeak - limitShiftY
+        limitYhi = ypeak + limitShiftY
+        if (iter == 1) then
+          !
+          ! if accumulating, transform image by last shift, add it to
+          ! sum array, then taper and pad into array
+          !
+          if (ifAbsStretch == 0) then
+            call xfunit(fUnit, 1.0)
+          else
+            unstretchDx = xpeak
+            unstretchDy = ypeak
+          endif
+          if (verbose) print *,'cumulating usdx,usdy,xpeak,ypeak',  &
+              unstretchDx, unstretchDy, xpeak, ypeak
+          call iclden(array, nxUseBin, nyUseBin, 1, nxUseBin, 1, nyUseBin, &
+              useMin, useMax, useMean)
+          call cubInterp(array, crray, nxUseBin, nyUseBin, nxUseBin, nyUseBin, fUnit, &
+              nxUseBin / 2., nyUseBin / 2., unstretchDx, unstretchDy , 1., useMean, 0)
+          do i = 1, nxUseBin * nyUseBin
+            sumArray(i) = sumArray(i) + crray(i)
+          enddo
         endif
-        if (verbose) print *,'cumulating usdx,usdy,xpeak,ypeak',  &
-            unstretchDx, unstretchDy, xpeak, ypeak
-        call iclden(array, nxUseBin, nyUseBin, 1, nxUseBin, 1, nyUseBin, &
-            useMin, useMax, useMean)
-        call cubInterp(array, crray, nxUseBin, nyUseBin, nxUseBin, nyUseBin, fUnit, &
-            nxUseBin / 2., nyUseBin / 2., unstretchDx, unstretchDy , 1., useMean, 0)
-        do i = 1, nxUseBin * nyUseBin
-          sumArray(i) = sumArray(i) + crray(i)
+        call taperInPad(sumArray, nxUseBin, nyUseBin, array, nxPad + 2, nxPad, nyPad, &
+            nxTaper, nyTaper)
+      else
+        call taperInPad(array, nxUseBin, nyUseBin, array, nxPad + 2, nxPad, nyPad, &
+            nxTaper, nyTaper)
+      endif
+
+      if (ifDoImOut .ne. 0) then
+        do isOut = 1, 2
+          if (isOut == 1) then
+            call irepak(crray, array, nxPad + 2, nyPad, 0, nxPad-1, 0, nyPad-1)
+          else
+            call irepak(crray, brray, nxPad + 2, nyPad, 0, nxPad-1, 0, nyPad-1)
+          endif
+          if (mode .ne. 2) then
+            call isetdn(crray, nxPad, nyPad, mode, 1, nxPad, 1, nyPad, dmin2,dmax2,dmean3)
+          else
+            call iclden(crray, nxPad, nyPad, 1, nxPad, 1, nyPad, dmin2, dmax2, dmean3)
+          endif
+          call iwrsec(3, crray)
+          nzOut = nzOut + 1
+          !
+          dmax = max(dmax, dmax2)
+          dmin = min(dmin, dmin2)
+          dmeanSum = dmeanSum + dmean3
         enddo
       endif
-      call taperInPad(sumArray, nxUseBin, nyUseBin, array, nxPad + 2, nxPad, nyPad, &
-          nxTaper, nyTaper)
-    else
-      call taperInPad(array, nxUseBin, nyUseBin, array, nxPad + 2, nxPad, nyPad, &
-          nxTaper, nyTaper)
+      call meanZero(array, nxPad + 2, nxPad, nyPad)
     endif
-    if (ifDoImOut .ne. 0) then
-      do isOut = 1, 2
-        if (isOut == 1) then
-          call irepak(crray, array, nxPad + 2, nyPad, 0, nxPad-1, 0, nyPad-1)
-        else
-          call irepak(crray, brray, nxPad + 2, nyPad, 0, nxPad-1, 0, nyPad-1)
-        endif
-        if (mode .ne. 2) then
-          call isetdn(crray, nxPad, nyPad, mode, 1, nxPad, 1, nyPad, dmin2, dmax2, dmean3)
-        else
-          call iclden(crray, nxPad, nyPad, 1, nxPad, 1, nyPad, dmin2, dmax2, dmean3)
-        endif
-        call iwrsec(3, crray)
-        nzOut = nzOut + 1
-        !
-        dmax = max(dmax, dmax2)
-        dmin = min(dmin, dmin2)
-        dmeanSum = dmeanSum + dmean3
-      enddo
-    endif
-    call meanZero(array, nxPad + 2, nxPad, nyPad)
 
     !
     ! print *,'taking fft'
     wallStart = wallTime()
-    if (useCCC .and. deltaCTF == 0)  &
+    if (useCCC .and. deltaCTF == 0 .and. ifReusePrev <= 0)  &
         crray(1:(nxPad + 2) * nyPad) = array(1:(nxPad + 2) * nyPad)
-    call todfft(array, nxPad, nyPad, 0)
+    if (ifReusePrev <= 0) call todfft(array, nxPad, nyPad, 0)
     call todfft(brray, nxPad, nyPad, 0)
     !
     if (deltaCTF .ne. 0.) then
-      if (useCCC) then
-        call filterPart(array, array, nxPad, nyPad, ctfp, deltaCTF)
-        call filterPart(brray, brray, nxPad, nyPad, ctfp, deltaCTF)
-        crray(1:(nxPad + 2) * nyPad) = array(1:(nxPad + 2) * nyPad)
-      else
-        call filterPart(array, array, nxPad, nyPad, ctfp, deltaCTF)
+      if (ifReusePrev <= 0) then
+        if (useCCC) then
+          call filterPart(array, array, nxPad, nyPad, ctfp, deltaCTF)
+          crray(1:(nxPad + 2) * nyPad) = array(1:(nxPad + 2) * nyPad)
+          call todfft(crray, nxPad, nyPad, 1)
+        else
+          call filterPart(array, array, nxPad, nyPad, ctfp, deltaCTF)
+        endif
       endif
+      if (useCCC) call filterPart(brray, brray, nxPad, nyPad, ctfp, deltaCTF)
+    endif
+    !
+    ! Here the array gets either saved or copied back when reusing
+    if (ifReusePrev < 0) then
+      arrCopy(1:(nxPad + 2) * nyPad) = array(1:(nxPad + 2) * nyPad)
+      ifReusePrev = 1
+    else if (ifReusePrev > 0) then
+      array(1:(nxPad + 2) * nyPad) = arrCopy(1:(nxPad + 2) * nyPad)
     endif
     !
     ! multiply array by complex conjugate of brray, put back in array
@@ -1716,7 +1838,6 @@ CONTAINS
     wallfft = wallfft + wallTime() - wallStart
 
     if (useCCC) then
-      if (deltaCTF .ne. 0.) call todfft(crray, nxPad, nyPad, 1)
       call todfft(brray, nxPad, nyPad, 1)
     endif
     wallStart = wallTime()
@@ -1814,7 +1935,7 @@ CONTAINS
 
           ! Load both images unbinned from reference limits, taper, and take the
           ! correlation with high-pass filter only
-          call irdbinned(1, izLast, ubArray, nxUse, nyUse, ixCenStart + ixBoxRef, &
+          call irdbinned(iunitRef, izLast, ubArray, nxUse, nyUse, ixCenStart + ixBoxRef, &
               iyCenStart + iyBoxRef, 1, nxUse, nyUse, tmpArray, lenTemp, ierr)
           if (ierr .ne. 0) call exitError('READING IMAGE FILE')
           call taperInPad(ubArray, nxUse, nyUse, ubArray, nxUBpad + 2, nxUBpad, &

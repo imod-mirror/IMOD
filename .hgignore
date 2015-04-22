@@ -46,6 +46,7 @@ Etomo/jar
 Etomo/.settings
 mrc2tif/Makefile
 mrc2tif/tiff.c
+mrc2tif/iiqimage.cpp
 flib/subrs/smallmodel
 .distname
 .options
@@ -81,6 +82,7 @@ imod_4*
 core
 core.*
 qrc_*.cpp
+mrc2tif/iiqimage.cpp
 plugs/*/imod*.h
 plugs/*/undoredo.h
 plugs/*/control.h
@@ -286,3 +288,6 @@ sendevent/imodsendevent
 sourcedoc/sourcedoc
 SystemTemplate/cryoSample.adoc
 SystemTemplate/plasticSection.adoc
+
+Etomo/.idea/*
+Etomo/Etomo.iml

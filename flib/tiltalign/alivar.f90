@@ -77,17 +77,17 @@ CONTAINS
 end module alivar
 
 ! Mapping variables
-module mapsep
+module mapSepGroups
   use arraymaxes
   implicit none
-  integer*4 nsepingrp(MAXGRP), ngsep
-  integer*4, allocatable :: ivsep(:,:)
+  integer*4 numSepInGroup(MAXGRP), numSeparateGroups
+  integer*4, allocatable :: iviewsInGroup(:,:)
 
 CONTAINS
 
   subroutine allocateMapsep(ierr)
     integer*4 ierr
-    allocate(ivsep(maxView, MAXGRP), stat = ierr)
+    allocate(iviewsInGroup(maxView, MAXGRP), stat = ierr)
     return
   end subroutine allocateMapsep
-end module mapsep
+end module mapSepGroups

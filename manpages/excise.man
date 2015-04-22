@@ -1,6 +1,6 @@
 .na
 .nh
-.TH excise 1 4.6.34 BL3DEMC
+.TH excise 1 4.6.34 IMOD
 .SH NAME
 excise - Extracts images from sepcified areas in an image file
 .SH SYNOPSIS

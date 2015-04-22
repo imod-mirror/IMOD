@@ -1,6 +1,6 @@
 .na
 .nh
-.TH warpvol 1 4.6.34 BL3DEMC
+.TH warpvol 1 4.6.34 IMOD
 .SH NAME
 warpvol - to warp one volume into alignment with another
 .SH SYNOPSIS

@@ -1,6 +1,6 @@
 .na
 .nh
-.TH xfjointomo 1 4.6.34 BL3DEMC
+.TH xfjointomo 1 4.6.34 IMOD
 .SH NAME
 xfjointomo - use model features to refine serial tomogram alignment
 .SH SYNOPSIS

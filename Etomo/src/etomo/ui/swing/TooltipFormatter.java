@@ -59,7 +59,8 @@ package etomo.ui.swing;
  */
 
 public class TooltipFormatter {
-  public static final String rcsid = "$Id$";
+  public static final String rcsid =
+    "$Id$";
 
   public static final TooltipFormatter INSTANCE = new TooltipFormatter();
   private static final int N_COLUMNS = 60;
@@ -87,14 +88,21 @@ public class TooltipFormatter {
       else {
         String subString = rawString.substring(idxStart, idxSearch);
         int idxStop = subString.lastIndexOf(' ');
-        //  All one word!
+        // All one word!
         if (idxStop < 0) {
-          idxStop = N_COLUMNS;
+          if (rawString.substring(idxStart).indexOf(' ') != -1) {
+            idxStop = N_COLUMNS;
+          }
+          else {
+            // No more spaces in this tooltip - place the rest on one line.
+            htmlFormat.append(convertToHtml(rawString.substring(idxStart)));
+            splitting = false;
+          }
         }
         else {
           htmlFormat.append(convertToHtml(rawString.substring(idxStart, idxStart
-              + idxStop))
-              + "<br>");
+            + idxStop))
+            + "<br>");
           idxStart = idxStart + idxStop + 1;
         }
       }
@@ -117,8 +125,8 @@ public class TooltipFormatter {
     HtmlMask htmlMask = new HtmlMask();
     htmlMask.mask(rawString);
     while (index >= 0) {
-      index = Math.max(buffer.lastIndexOf("<", index - 1), buffer.lastIndexOf(">",
-          index - 1));
+      index =
+        Math.max(buffer.lastIndexOf("<", index - 1), buffer.lastIndexOf(">", index - 1));
       if (index != -1 && !htmlMask.isMasked(index)) {
         char c = buffer.charAt(index);
         buffer.deleteCharAt(index);
@@ -132,7 +140,7 @@ public class TooltipFormatter {
     }
     if (debug) {
       System.out.println("TooltipFormatter.convertToHtml:buffer.toString()="
-          + buffer.toString());
+        + buffer.toString());
     }
     return buffer.toString();
   }
@@ -150,31 +158,32 @@ public class TooltipFormatter {
    * currently handle indents.  Wraps at N_COLUMNS.
    * @return
    */
-  /*
-   public String convert(String rawString) {
-   if (rawString == null) {return null;}
-   StringBuffer htmlFormat = new StringBuffer("<html>");
-   int lineIndex = 0;
-   for (int i = 0; i < rawString.length(); i++) {
-   char currentChar = rawString.charAt(i);
-   if (currentChar == '\n') {
-   htmlFormat.append("<br>");
-   lineIndex = 0;
-   }
-   else {
-   htmlFormat.append(currentChar);
-   lineIndex++;
-   }
-   if (lineIndex == N_COLUMNS) {
-   htmlFormat.append("<br>");
-   lineIndex = 0;
-   }   
-   }    
-   return htmlFormat.toString();
-   }*/
+ /*
+  public String convert(String rawString) {
+    if (rawString == null) {
+      return null;
+    }
+    StringBuffer htmlFormat = new StringBuffer("<html>");
+    int lineIndex = 0;
+    for (int i = 0; i < rawString.length(); i++) {
+      char currentChar = rawString.charAt(i);
+      if (currentChar == '\n') {
+        htmlFormat.append("<br>");
+        lineIndex = 0;
+      }
+      else {
+        htmlFormat.append(currentChar);
+        lineIndex++;
+      }
+      if (lineIndex == N_COLUMNS) {
+        htmlFormat.append("<br>");
+        lineIndex = 0;
+      }
+    }
+    return htmlFormat.toString();
+  }*/
 
-  private TooltipFormatter() {
-  }
+  private TooltipFormatter() {}
 
   private static final class HtmlMask {
     /**
@@ -184,8 +193,7 @@ public class TooltipFormatter {
 
     private boolean[] maskMap = null;
 
-    private HtmlMask() {
-    }
+    private HtmlMask() {}
 
     /**
      * maskMap is constructed to be the same length as string.  Put a true at
