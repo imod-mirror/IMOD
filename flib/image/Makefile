@@ -10,7 +10,7 @@ PROGS = addtostack$(E) alterheader$(E) assemblevol$(E) avganova$(E) \
  avgstack$(E) calc$(E) checkxforms$(E) combinefft$(E) edgemtf$(E) \
  densmatch$(E) edpiecepoint$(E) enhance$(E) eraser$(E) excise$(E) \
  extposition$(E) extracttilts$(E) extractpieces$(E) extstack$(E) fftrans$(E) \
- findcontrast$(E) findsection$(E) fixmont$(E) goodframe$(E) \
+ findcontrast$(E) fixmont$(E) goodframe$(E) \
  header$(E) matchvol$(E) montagesize$(E) mtdetect$(E) mtteach$(E) \
  newstack$(E) rotatevol$(E) rotmont$(E) subimage$(E) subimanova$(E) \
  subimstat$(E) taperoutvol$(E) tapervoledge$(E) tomopieces$(E) \
@@ -102,9 +102,6 @@ fftrans$(E): fftrans.$(O)
 findcontrast$(E): findcontrast.$(O)
 	$(FC) -o findcontrast findcontrast.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
-findsection$(E): findsection.$(O)
-	$(FC) -o findsection findsection.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
-
 fixmont$(E): fixmont.$(O)
 	$(FC) -o fixmont fixmont.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
@@ -191,8 +188,9 @@ xfinverse$(E): xfinverse.$(O)
 xfproduct$(E): xfproduct.$(O)
 	$(FC) -o xfproduct xfproduct.$(O) $(LDFLG) $(IMLIBS) $(LIWARP) $(LIBS)
 
-xfsimplex$(E): xfsimplex.$(O)
-	$(FC) -o xfsimplex xfsimplex.$(O) $(LDFLG) $(IMLIBS) $(LIWARP) $(LIFFT) $(LIBS)
+xfsimplex$(E): xfsimplex.$(O) simplexdiff.$(O)
+	$(FC) -o xfsimplex xfsimplex.$(O) simplexdiff.$(O) $(LDFLG) $(IMLIBS) \
+	$(LIWARP) $(LIFFT) $(LIBS)
 
 xftoxg$(E): xftoxg.$(O)
 	$(FC) -o xftoxg xftoxg.$(O) $(LDFLG) $(IMLIBS) $(LIWARP) $(LIBS)

@@ -14,20 +14,17 @@ import etomo.EtomoDirector;
 import etomo.process.ProcessState;
 import etomo.type.AxisID;
 import etomo.type.DialogType;
+import etomo.type.InterfaceType;
 import etomo.util.Utilities;
 
 /**
  * <p>Description: </p>
  * 
- * <p>Copyright: Copyright (c) 2002, 2003, 2004</p>
+ * <p>Copyright: Copyright 2002 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- *<p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
- * University of Colorado</p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
+ * @version $Id$
  * 
  * <p> $Log$
  * <p> Revision 1.3  2011/09/10 03:42:49  sueh
@@ -164,32 +161,30 @@ import etomo.util.Utilities;
  * <p> </p>
  */
 public class TomogramProcessPanel extends AxisProcessPanel {
-  public static final String rcsid = "$Id$";
-
   public static final String BOTH_AXIS_LABEL = "Both";
   static final String AXIS_B_LABEL = "Axis B";
   private static final String AXIS_A_LABEL = "Axis A";
 
   private ProcessControlPanel procCtlPreProc = new ProcessControlPanel(
-      DialogType.PRE_PROCESSING);
+    DialogType.PRE_PROCESSING);
   private ProcessControlPanel procCtlCoarseAlign = new ProcessControlPanel(
-      DialogType.COARSE_ALIGNMENT);
+    DialogType.COARSE_ALIGNMENT);
   private ProcessControlPanel procCtlFiducialModel = new ProcessControlPanel(
-      DialogType.FIDUCIAL_MODEL);
+    DialogType.FIDUCIAL_MODEL);
   private ProcessControlPanel procCtlFineAlignment = new ProcessControlPanel(
-      DialogType.FINE_ALIGNMENT);
+    DialogType.FINE_ALIGNMENT);
   private ProcessControlPanel procCtlTomogramPositioning = new ProcessControlPanel(
-      DialogType.TOMOGRAM_POSITIONING);
+    DialogType.TOMOGRAM_POSITIONING);
   private ProcessControlPanel procCtlFinalAlignedStack = new ProcessControlPanel(
-      DialogType.FINAL_ALIGNED_STACK);
+    DialogType.FINAL_ALIGNED_STACK);
   private ProcessControlPanel procCtlTomogramGeneration = new ProcessControlPanel(
-      DialogType.TOMOGRAM_GENERATION);
+    DialogType.TOMOGRAM_GENERATION);
   private ProcessControlPanel procCtlTomogramCombination = new ProcessControlPanel(
-      DialogType.TOMOGRAM_COMBINATION);
+    DialogType.TOMOGRAM_COMBINATION);
   private ProcessControlPanel procCtlPostProcessing = new ProcessControlPanel(
-      DialogType.POST_PROCESSING);
+    DialogType.POST_PROCESSING);
   private ProcessControlPanel procCtlCleanUp = new ProcessControlPanel(
-      DialogType.CLEAN_UP);
+    DialogType.CLEAN_UP);
   private SimpleButton axisButton1 = new SimpleButton();
   private SimpleButton axisButton2 = new SimpleButton();
   JPanel axisButtonPanel = new JPanel();
@@ -207,7 +202,7 @@ public class TomogramProcessPanel extends AxisProcessPanel {
    * @param axis
    */
   public TomogramProcessPanel(ApplicationManager appManager, AxisID axis) {
-    super(axis, appManager, true);
+    super(axis, appManager, true, true, InterfaceType.RECON);
     applicationManager = (ApplicationManager) manager;
     // Create the process control panel
     createProcessControlPanel();
@@ -248,15 +243,15 @@ public class TomogramProcessPanel extends AxisProcessPanel {
     }
     else if (command.equals(procCtlTomogramPositioning.getCommand())) {
       ((TomogramPositioningExpert) applicationManager.getUIExpert(
-          DialogType.TOMOGRAM_POSITIONING, axisID)).openDialog();
+        DialogType.TOMOGRAM_POSITIONING, axisID)).openDialog();
     }
     else if (command.equals(procCtlFinalAlignedStack.getCommand())) {
       ((FinalAlignedStackExpert) applicationManager.getUIExpert(
-          DialogType.FINAL_ALIGNED_STACK, axisID)).openDialog();
+        DialogType.FINAL_ALIGNED_STACK, axisID)).openDialog();
     }
     else if (command.equals(procCtlTomogramGeneration.getCommand())) {
       ((TomogramGenerationExpert) applicationManager.getUIExpert(
-          DialogType.TOMOGRAM_GENERATION, axisID)).openDialog();
+        DialogType.TOMOGRAM_GENERATION, axisID)).openDialog();
     }
     else if (command.equals(procCtlTomogramCombination.getCommand())) {
       applicationManager.openTomogramCombinationDialog();
@@ -409,16 +404,8 @@ public class TomogramProcessPanel extends AxisProcessPanel {
 
   private void setButton(SimpleButton button, String label, String tooltip) {
     button.setText(label);
-    /* Rectangle2D buttonSize = button.getFontMetrics(button.getFont())
-     * .getStringBounds(AXIS_A_LABEL.toCharArray(), 0, label.length(),
-     * button.getGraphics()); System.out.println("buttonSize="+buttonSize); if
-     * (buttonWidth < buttonSize.getWidth()) { buttonWidth = (int) buttonSize.getWidth();
-     * } if (buttonHeight <buttonSize.getHeight()) { buttonHeight = (int)
-     * buttonSize.getHeight(); }
-     * System.out.println("buttonWidth="+buttonWidth+",buttonHeight="+buttonHeight);
-     * button.setSize(buttonWidth, buttonHeight); */
-    button.setPreferredSize(UIParameters.INSTANCE.getAxisButtonDimension());
-    button.setMaximumSize(UIParameters.INSTANCE.getAxisButtonDimension());
+    button.setPreferredSize(UIParameters.getInstance().getAxisButtonDimension());
+    button.setMaximumSize(UIParameters.getInstance().getAxisButtonDimension());
     button.setToolTipText(tooltip);
   }
 
@@ -431,8 +418,8 @@ public class TomogramProcessPanel extends AxisProcessPanel {
     setToolTipText();
     panelProcessSelect.add(Box.createRigidArea(FixedDim.x0_y5));
     int layoutAxis = BoxLayout.X_AXIS;
-    boolean compactDisplay = EtomoDirector.INSTANCE.getUserConfiguration()
-        .getCompactDisplay();
+    boolean compactDisplay =
+      EtomoDirector.INSTANCE.getUserConfiguration().getCompactDisplay();
     if (compactDisplay) {
       layoutAxis = BoxLayout.Y_AXIS;
     }
@@ -592,33 +579,33 @@ public class TomogramProcessPanel extends AxisProcessPanel {
     axisATooltip = TooltipFormatter.INSTANCE.format("See Axis A only.");
     axisBTooltip = TooltipFormatter.INSTANCE.format("See Axis B only.");
     procCtlPreProc
-        .setToolTipText("Open the Pre-processing panel to erase x-rays, bad pixels and/or bad"
-            + " CCD rows from the raw projection stack.");
+      .setToolTipText("Open the Pre-processing panel to erase x-rays, bad pixels and/or bad"
+        + " CCD rows from the raw projection stack.");
     procCtlCoarseAlign
-        .setToolTipText("Open the Coarse Alignment panel to generate a coarsely aligned "
-            + "stack using cross correlation and to fix coarse alignment problems "
-            + "with Midas.");
+      .setToolTipText("Open the Coarse Alignment panel to generate a coarsely aligned "
+        + "stack using cross correlation and to fix coarse alignment problems "
+        + "with Midas.");
     procCtlFiducialModel
-        .setToolTipText("Open the Fiducial Model Generation panel to create a fiducial "
-            + "model to be used in the fine alignment step.");
+      .setToolTipText("Open the Fiducial Model Generation panel to create a fiducial "
+        + "model to be used in the fine alignment step.");
     procCtlFineAlignment
-        .setToolTipText("Open the Fine Alignment panel to use the generated fiducial model to "
-            + "sub-pixel align the project sequence.");
+      .setToolTipText("Open the Fine Alignment panel to use the generated fiducial model to "
+        + "sub-pixel align the project sequence.");
     procCtlTomogramPositioning
-        .setToolTipText("Open the Tomogram Position panel to optimally adjust the 3D location "
-            + "and size of the reconstruction volume.");
+      .setToolTipText("Open the Tomogram Position panel to optimally adjust the 3D location "
+        + "and size of the reconstruction volume.");
     procCtlFinalAlignedStack
-        .setToolTipText("Open the Final Aligned Stack panel to generate the final aligned stack.");
+      .setToolTipText("Open the Final Aligned Stack panel to generate the final aligned stack.");
     procCtlTomogramGeneration
-        .setToolTipText("Open the Tomogram Generation panel to calcuate the tomographic reconstruction.");
+      .setToolTipText("Open the Tomogram Generation panel to calcuate the tomographic reconstruction.");
     procCtlTomogramCombination
-        .setToolTipText("Open the Tomogram Combination panel to combine the tomograms generated "
-            + "from the A and B axes into a single dual axis reconstruction.");
+      .setToolTipText("Open the Tomogram Combination panel to combine the tomograms generated "
+        + "from the A and B axes into a single dual axis reconstruction.");
     procCtlPostProcessing
-        .setToolTipText("Open the Post Processing panel to trim the final reconstruction to size"
-            + " and squeeze the final reconstruction volume.");
+      .setToolTipText("Open the Post Processing panel to trim the final reconstruction to size"
+        + " and squeeze the final reconstruction volume.");
     procCtlCleanUp
-        .setToolTipText("Open the Clean Up panel to delete the intermediate files.");
+      .setToolTipText("Open the Clean Up panel to delete the intermediate files.");
   }
 
   /**

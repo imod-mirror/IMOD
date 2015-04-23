@@ -1,6 +1,6 @@
 .na
 .nh
-.TH findwarp 1 4.6.34 BL3DEMC
+.TH findwarp 1 4.6.34 IMOD
 .SH NAME
 findwarp - to find a series of 3-D transformations to warp one volume
            into alignment with another
@@ -12,13 +12,19 @@ transformations that can then be used by Warpvol(1) to align two volumes
 to each other.  It performs a series of multiple linear regression on
 local sets of the displacements between the volumes determined at a matrix
 of positions (patches).  The displacements must be contained in a file
-with the following form:
+with at least the following form:
 .P
-Number of displacements
+Number of displacements [optional ID values]
 .br
 One line for each displacement consisting of the X, Y, and Z
    coordinates in the first volume, then the displacements in X, Y
    and Z involved in moving from the first to the second volume
+   
+.P
+The displacement file can have additional columns of values after the
+displacements in X, Y, and Z.  These extra columns are numbered from 1, and
+they may also have ID values on the first line of the file indicating their
+type.
 .P
 The program has two basic modes of operation.  In one mode, it will
 compute a solution for a specified number of patches to be included in
@@ -41,8 +47,10 @@ if for some reason it operates incorrectly, you can control the parameters
 of elimination or stop the elimination from occurring.  By default, the
 program will eliminate up to 10% of the patches from each local fit.
 .P
-The program also provides two methods for fitting to only a subset of the
-data.  One method is to eliminate whole rows or columns of patches. The
+In addition to the outlier removal, the program provides several
+methods for fitting to only a subset of the 
+data; two involving manual steps and one automatic.  
+One manual method is to eliminate whole rows or columns of patches. The
 other is to use a model file to specify which patches to include in the
 fit.  This model can be quite simple, consisting of just a single contour
 enclosing the region where patches are generally good.  This contour can
@@ -54,7 +62,23 @@ three layers, add another contour in the middle, etc.  For a given patch,
 the program will find the contour at the nearest Z level and use that one
 to determine whether to include the patch.
 .P
-In addition, the program will work with a patch file from which bad
+Automatic removal of some data is also possible if Corrsearch3d(1)
+computed some measures of structure for each patch and stored these as
+extra columns in the patch vector file.  Selection of patches based on
+these values is done by entering the \fB-extra\fR option to indicate
+the kind of extra column, and the \fB-select\fR option with one or more
+threshold values for the values in that column.  For example, to select
+based on the fraction of analyzed boxes in each patch that have a high
+amount of structure, which has ID number 5, one might enter "-extra
+5,1" and "-select 0.5,0.6,0.7".  If multiple criteria are entered, as
+in this example, the entire autofitting process will be
+repeated with each selection criterion to try to satisfy the first residual
+criterion, then higher residual criteria will be considered.  Even if a
+criterion for mean residual is satisfied with a given selection threshold, it
+may go on to a higher threshold to try to reduce the maximum residual
+(see the \fB-desired\fR option).
+.P
+The program will also work with a patch file from which bad
 patches have been removed by hand.  This may become necessary if bad
 patches are too frequent in some location to be eliminated as outliers.
 To use this feature, use Patch2imod(1) to convert the patch file to a
@@ -77,7 +101,29 @@ reports the average and the maximum of the mean residuals.  On the next
 line, it reports the average and maximum of the maximum residuals.  The
 goal is to find an arrangement that contains as many patches as possible
 in each direction yet has residuals comparable to those found with a
-volume that does not need warping (typically 0.1 to 0.2).
+volume that does not need warping (typically 0.2 to 0.3).
+.P
+The program decides which arrangements of patches are acceptable for
+fitting by determining whether the ratio of measurements to unknown
+values falls within a given range.  Originally, this ratio was
+evaluated based on the nominal number of patches in each dimension.  In IMOD
+4.8.14, the maximum number of patches actually available in each dimension,
+and the mean number of patches, is evaluated for each potential local fitting
+size.  Ratios are based on these two values and used to determine if a fitting
+size is acceptable.  This is a more reliable method for curved sections,
+especially when there are relatively many patch positions in the thickness dimension.
+The default is to use the new method for new patch data that have extra column
+ID values, otherwise to use the old method.  There are two ways to
+override this behavior: either enter 
+-1 or 1 for the \fB-legacy\fR option to force the use of the
+new or old method, respectively; or set the environment variable
+FINDWARP_LEGACY_RATIOS to -1 or 1.
+.P
+If you want to regenerate the combined volume in an older data set,
+where there are no IDs for the extra columns, you can use existing
+patches and get the same result from Findwarp as before.  To get a new
+fitting result (which might be preferable), either make a new set of
+patch vectors or set the environment variable to -1.
 .SH OPTIONS
 Findwarp uses the PIP package for input (see the manual page for pip(1))
 but can still take input interactively for exploring the effect of varying

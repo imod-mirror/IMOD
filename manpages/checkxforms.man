@@ -1,6 +1,6 @@
 .na
 .nh
-.TH checkxforms 1 4.6.34 BL3DEMC
+.TH checkxforms 1 4.6.34 IMOD
 .SH NAME
 checkxforms - find maximum displacement & rotation in set of transforms
 .SH SYNOPSIS

@@ -1,6 +1,6 @@
 .na
 .nh
-.TH idfprocess 1 4.6.34 BL3DEMC
+.TH idfprocess 1 4.6.34 IMOD
 .SH NAME
 idfprocess - do operations on and get statistics from distortion fields
 .SH SYNOPSIS

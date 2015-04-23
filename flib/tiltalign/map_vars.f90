@@ -256,30 +256,31 @@ end subroutine automap
 
 ! Input the separate groups and check that not every view is in each one
 !
-subroutine inputSeparateGroups(ngsep, nsepInGrp, ivsep, listString)
+subroutine inputSeparateGroups(numSeparateGroups, numSepInGroup, iviewsInGroup,  &
+    listString)
   use alivar
   implicit none
-  integer*4 ngsep, nsepInGrp(*), ivsep(maxView, *)
+  integer*4 numSeparateGroups, numSepInGroup(*), iviewsInGroup(maxView, *)
   character*(*) listString
   integer*4 ig, iv, i, ierr, PipGetString, PipNumberOfEntries
 
-  ierr = PipNumberOfEntries('SeparateGroup', ngsep)
-  if (ngsep > MAXGRP) call errorExit('TOO MANY SEPARATE GROUPS FOR ARRAYS', 0)
-  do ig = 1, ngsep
+  ierr = PipNumberOfEntries('SeparateGroup', numSeparateGroups)
+  if (numSeparateGroups > MAXGRP) call errorExit('TOO MANY SEPARATE GROUPS FOR ARRAYS', 0)
+  do ig = 1, numSeparateGroups
     ierr = PipGetString('SeparateGroup', listString)
-    call parseList2(listString, ivsep(1, ig), nsepInGrp(ig), maxView)
+    call parseList2(listString, iviewsInGroup(1, ig), numSepInGroup(ig), maxView)
 
     ! Check each view to see if it is in the group
     do iv = 1, nview
       ierr = 0
-      do i = 1, nsepInGrp(ig)
-        if (ivsep(i, ig) == iv) then
+      do i = 1, numSepInGroup(ig)
+        if (iviewsInGroup(i, ig) == iv) then
           ierr = 1
           exit
         endif
       enddo
-      
-      ! We get here with a 1 if it is in, so if there is ever a view not in the group, 
+
+      ! We get here with a 1 if it is in, so if there is ever a view not in the group,
       ! the group is OK
       if (ierr == 0) then
         exit
@@ -306,17 +307,14 @@ subroutine inputGroupings(nFileViews, ifpip, ifRequired, defaultOption, &
   !
   nRanSpecIn = 0
   if (ifpip == 0) then
-    print *,'Enter the negative of a group size to NOT treat ', &
-        'any views separately here.'
-    write(*,'(1x,a,$)') 'Default group size, # of ranges'// &
-        ' with special group sizes: '
+    print *,'Enter the negative of a group size to NOT treat any views separately here.'
+    write(*,'(1x,a,$)') 'Default group size, # of ranges with special group sizes: '
     read(5,*) nmapDef, nRanSpecIn
   else
     if (PipGetInteger(defaultOption, nmapDef) > 0) then
       if (ifRequired == 0) return
       print *
-      print *,'ERROR: AUTOMAP - OPTION ', trim(defaultOption), &
-          ' MUST BE ENTERED'
+      print *,'ERROR: AUTOMAP - OPTION ', trim(defaultOption), ' MUST BE ENTERED'
       call exit(1)
     endif
     ierr = PipNumberOfEntries(nonDefaultOption, nRanSpecIn)
@@ -333,8 +331,7 @@ subroutine inputGroupings(nFileViews, ifpip, ifRequired, defaultOption, &
           iran, ', group size: '
       read(5,*) ivstr, ivend, nmapSpecIn(iran)
     else
-      ierr = PipGetThreeIntegers(nonDefaultOption, ivstr, ivend, &
-          nmapSpecIn(iran))
+      ierr = PipGetThreeIntegers(nonDefaultOption, ivstr, ivend, nmapSpecIn(iran))
     endif
     if (ivstr > ivend) then
       print *,'ERROR: AUTOMAP - Start past end of range:', ivstr, ivend
@@ -366,7 +363,7 @@ end subroutine inputGroupings
 subroutine makeMapList(nview, mapList, groupSize, mapFileToView, nFileViews, &
     nmapDef, ivSpecStrIn, ivSpecEndIn, nmapSpecIn, nRanSpecIn, numInView, &
     ninThresh)
-  use mapSep
+  use mapSepGroups
 
   implicit none
   integer*4 mapList(*), nview, nFileViews, nmapDef, nRanSpecIn, numInView(*)
@@ -471,9 +468,9 @@ subroutine makeMapList(nview, mapList, groupSize, mapFileToView, nFileViews, &
     do iv = ivSpecStr(iran), ivSpecEnd(iran)
       ifsep = 0
       if (nmapSpec(iran) > 0) then
-        do ig = 1, ngsep
-          do jj = 1, nSepInGrp(ig)
-            if (iv == ivsep(jj, ig)) ifsep = 1
+        do ig = 1, numSeparateGroups
+          do jj = 1, numSepInGroup(ig)
+            if (iv == iviewsInGroup(jj, ig)) ifsep = 1
           enddo
         enddo
       endif
@@ -488,13 +485,13 @@ subroutine makeMapList(nview, mapList, groupSize, mapFileToView, nFileViews, &
     call groupList(inran, ninRange, abs(nmapSpec(iran)), groupSize, numInView, &
         ninThresh, ivar, mapList)
     if (nmapSpec(iran) > 0) then
-      do ig = 1, ngsep
+      do ig = 1, numSeparateGroups
         ninRange = 0
-        do jj = 1, nSepInGrp(ig)
-          if (ivsep(jj, ig) >= ivSpecStr(iran) .and. &
-              ivsep(jj, ig) <= ivSpecEnd(iran)) then
+        do jj = 1, numSepInGroup(ig)
+          if (iviewsInGroup(jj, ig) >= ivSpecStr(iran) .and. &
+              iviewsInGroup(jj, ig) <= ivSpecEnd(iran)) then
             ninRange = ninRange + 1
-            inran(ninRange) = ivsep(jj, ig)
+            inran(ninRange) = iviewsInGroup(jj, ig)
           endif
         enddo
         call groupList(inran, ninRange, nmapSpec(iran), groupSize, numInView, &
@@ -701,20 +698,20 @@ end subroutine setGrpSize
 ! Remap the view numbers in a separate group from file views
 ! to internal views
 !
-subroutine mapSeparateGroup(ivSep, nSepInGrp, mapFileToView, &
+subroutine mapSeparateGroup(iviewsInGroup, numSepInGroup, mapFileToView, &
     nFileViews)
   implicit none
-  integer*4 ivSep(*), nSepInGrp, mapFileToView(*), nFileViews, i, j
+  integer*4 iviewsInGroup(*), numSepInGroup, mapFileToView(*), nFileViews, i, j
   !
   i = 1
-  do while(i <= nSepInGrp)
-    if (ivsep(i) <= 0 .or. ivsep(i) > nFileViews) call errorExit( &
+  do while(i <= numSepInGroup)
+    if (iviewsInGroup(i) <= 0 .or. iviewsInGroup(i) > nFileViews) call errorExit( &
         'View in separate group is outside known range of image file', 0)
-    ivsep(i) = mapFileToView(ivsep(i))
-    if (ivsep(i) == 0) then
-      nSepInGrp = nSepInGrp - 1
-      do j = i, nSepInGrp
-        ivsep(j) = ivsep(j + 1)
+    iviewsInGroup(i) = mapFileToView(iviewsInGroup(i))
+    if (iviewsInGroup(i) == 0) then
+      numSepInGroup = numSepInGroup - 1
+      do j = i, numSepInGroup
+        iviewsInGroup(j) = iviewsInGroup(j + 1)
       enddo
     else
       i = i + 1

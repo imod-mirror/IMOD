@@ -1,6 +1,6 @@
 .na
 .nh
-.TH sumdensity 1 4.6.34 BL3DEMC
+.TH sumdensity 1 4.6.34 IMOD
 .SH NAME
 sumdensity - adds densities above a threshold for pixels within contours
 .SH SYNOPSIS

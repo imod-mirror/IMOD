@@ -1,6 +1,6 @@
 .na
 .nh
-.TH numericdiff 1 4.6.34 BL3DEMC
+.TH numericdiff 1 4.6.34 IMOD
 .SH NAME
 numericdiff - compare numeric entries between two text files
 .SH SYNOPSIS

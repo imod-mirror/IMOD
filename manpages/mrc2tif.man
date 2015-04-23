@@ -1,6 +1,6 @@
 .na
 .nh
-.TH mrc2tif 1 2.00 BL3DEMC
+.TH mrc2tif 1 2.00 IMOD
 .SH NAME
 mrc2tif \- Create TIFF, JPEG, or PNG files from an MRC image file.
 .SH SYNOPSIS
@@ -9,8 +9,13 @@ mrc2tif  [options]  mrc_input_file  tiff_file_root_name
 mrc2tif usually creates a series of TIFF files with the prefix \fItiff_file_root_name\fR
 and with the suffix .nnn.tif, where nnn is the z number.  Byte, signed and
 unsigned 16-bit integer, float, 
-and RGB color files (modes 0, 1, 6, 2, 16) can be converted.  There are
-options to create JPEG or PNG files instead of TIFF.  The data will be
+and RGB color files (modes 0, 1, 6, 2, 16) can be converted.  The input
+file need not be an MRC file; it can be any kind of file readable by
+other IMOD programs, plus
+the image file types readable by 3dmod using Qt libraries, of which the most
+useful are PNG, JPEG, and BMP.
+There are
+options to create JPEG or PNG output files instead of TIFF.  The data will be
 written to a TIFF file in the same mode as in the input file by default, but
 there are options that allow the integer and float modes to be scaled to
 bytes; the same options allow scaling of byte and RGB values.  If the input

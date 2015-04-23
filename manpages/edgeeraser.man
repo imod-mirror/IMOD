@@ -1,6 +1,6 @@
 .na
 .nh
-.TH edgeeraser 1 4.6.34 BL3DEMC
+.TH edgeeraser 1 4.6.34 IMOD
 .SH NAME
 edgeeraser - erase defects along the edges of images
 .SH SYNOPSIS

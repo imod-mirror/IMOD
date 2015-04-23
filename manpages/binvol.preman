@@ -1,6 +1,6 @@
 .na
 .nh
-.TH binvol 1 4.6.34 BL3DEMC
+.TH binvol 1 4.6.34 IMOD
 .SH NAME
 binvol - Bin a 3D volume down isotropically or anisotropically
 .SH SYNOPSIS

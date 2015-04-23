@@ -1105,7 +1105,8 @@ public class ProcessManager extends BaseProcessManager {
    *          a read-only MetaData object containing the information to run the
    *          copytomocoms script
    */
-  private ProcessMessages setupComScripts(CopyTomoComs copyTomoComs, AxisID axisID,final AxisType axisType) {
+  private ProcessMessages setupComScripts(CopyTomoComs copyTomoComs, AxisID axisID,
+      final AxisType axisType) {
     if (!copyTomoComs.setup()) {
       return null;
     }
@@ -1146,7 +1147,7 @@ public class ProcessManager extends BaseProcessManager {
   }
 
   public boolean batchruntomo(final AxisID axisID, final BatchruntomoParam param) {
-    if (!param.setup()) {
+    if (!param.setupValidationCommand()) {
       return false;
     }
     int exitValue = param.run();

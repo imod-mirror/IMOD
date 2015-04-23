@@ -121,7 +121,7 @@ void locatorScheduleDraw(ImodView *vi)
  * Constructor for the locator class: get the GL window, set up widgets
  */
 LocatorWindow::LocatorWindow(bool rgba, bool doubleBuffer, bool enableDepth, 
-                QWidget * parent, Qt::WFlags f)
+                QWidget * parent, Qt::WindowFlags f)
   : QMainWindow(parent, f)
 {
   setAttribute(Qt::WA_DeleteOnClose);

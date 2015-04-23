@@ -70,12 +70,12 @@ final class XfModelPanel implements Run3dmodButtonContainer {
   }
 
   private void createPanel() {
-    //Initialize
+    // Initialize
     btnXfModel.setContainer(this);
     btnXfModel.setDeferred3dmodButton(btn3dmodXfModel);
     btnXfModel.setSize();
     btn3dmodXfModel.setSize();
-    //Root panel
+    // Root panel
     pnlRoot.setBoxLayout(BoxLayout.X_AXIS);
     pnlRoot.add(btnXfModel.getComponent());
     pnlRoot.add(btn3dmodXfModel.getComponent());
@@ -97,13 +97,7 @@ final class XfModelPanel implements Run3dmodButtonContainer {
     btnXfModel.setButtonState(screenState.getButtonState(btnXfModel.getButtonStateKey()));
   }
 
-  public void action(final Run3dmodButton button,
-      final Run3dmodMenuOptions run3dmodMenuOptions) {
-    action(button.getActionCommand(), button.getDeferred3dmodButton(),
-        run3dmodMenuOptions);
-  }
-
-  private void action(final String command, Deferred3dmodButton deferred3dmodButton,
+  public void action(final String command, Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(btnXfModel.getActionCommand())) {
       manager.xfmodel(btnXfModel, null, deferred3dmodButton, run3dmodMenuOptions, axisID,
