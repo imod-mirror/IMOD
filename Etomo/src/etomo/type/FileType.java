@@ -120,8 +120,10 @@ public final class FileType {
   // any .edf, .ejf, or .epe as long as it has a different dataset name
 
   // File types with a name description
+  public static final FileType ORIG_COMS_DIR = FileType.getInstance(false, false,
+    "origcoms", "");
   public static final FileType FIDUCIAL_3D_MODEL = FileType.getImodInstance(true, true,
-    "", ".3dmod", ImodManager.FIDUCIAL_MODEL_KEY);
+      "", ".3dmod", ImodManager.FIDUCIAL_MODEL_KEY);
   public static final FileType BATCH_RUN_TOMO_GLOBAL_AUTODOC = FileType.getInstance(true,
     false, "", ".adoc");
   public static final FileType DEFAULT_BATCH_RUN_TOMO_AUTODOC = FileType
@@ -854,14 +856,14 @@ public final class FileType {
     return getFileName(manager, null, null, null, axisID, false);
   }
 
-  public String getFileName(final BaseManager manager, final BaseMetaData metaData,
-    final AxisID axisID) {
-    return getFileName(manager, metaData, null, null, axisID, false);
-  }
-
   public String getFileName(final String rootName, final AxisType axisType,
     final AxisID axisID) {
     return getFileName(null, null, rootName, axisType, axisID, false);
+  }
+
+  public String getFileName(final BaseManager manager, final BaseMetaData metaData,
+    final AxisID axisID) {
+    return getFileName(manager, metaData, null, null, axisID, false);
   }
 
   public File getFile(final File dir, final String rootName,
@@ -871,10 +873,6 @@ public final class FileType {
       return new File(dir, fileName);
     }
     return null;
-  }
-
-  public String getFileName(final String rootName, final AxisID axisID) {
-    return getFileName(null, null, rootName, null, axisID, false);
   }
 
   /**
@@ -921,6 +919,10 @@ public final class FileType {
     }
 
     return getLeftSide(rootName, axisType, axisID) + extension;
+  }
+
+  public String getFileName(final String rootName, final AxisID axisID) {
+    return getFileName(null, null, rootName, null, axisID, false);
   }
 
   /**

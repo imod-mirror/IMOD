@@ -1,5 +1,10 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4/23/15: In eTomo - Tomogram Combination, setting InvertYLimits in
+corrsearch3d when the origcoms is present.  This mitigates a bug that causes
+a tomogram to appear upside-down in the top-down view in 3dmod (In 4.7).  This
+bug has been fixed in 4.8.(Bug# 1874)
+
 4/13/15: Added option to Tiltalign to allow grouping of tilt angles across
 separate view groups and put option in master com file to do this for a patch
 tracking model. 
