@@ -1,6 +1,6 @@
 .na
 .nh
-.TH pickbestseed 1 4.6.8 BL3DEMC
+.TH pickbestseed 1 4.6.8 IMOD
 .SH NAME
 pickbestseed \- Selects best seed points for autofidseed
 .SH SYNOPSIS

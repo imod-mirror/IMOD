@@ -1,10 +1,3 @@
-      subroutine date(dat)
-      implicit none
-      character*(*) dat
-      call b3ddate(dat)
-      return
-      end
-
       subroutine time(tim)
       implicit none
       character*(*) tim

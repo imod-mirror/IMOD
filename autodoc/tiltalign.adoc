@@ -184,6 +184,15 @@ can be entered; separate them by spaces.
 manpage = List of views that should be grouped separately in automapping.
 Multiple entries can be used to specify more than one set of separate views.
 
+[Field = NoSeparateTiltGroups]
+short = 
+type = I
+usage = Group tilt angles across separate groups (1 for patch track, 2 for any)
+tooltip =
+manpage = Allow tilt angles to be grouped across separate view groups in order
+to prevent large jumps in the solved tilt angles.  Enter 1 to allow this grouping
+with a patch tracking model, or 2 to allow it for any fiducial model.
+
 [Field = FirstTiltAngle]
 short = first
 type = F

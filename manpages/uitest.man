@@ -1,4 +1,4 @@
-.TH uitest 1 2/4/2009 BL3DEMC
+.TH uitest 1 2/4/2009 IMOD
 .na
 .nh
 
@@ -19,6 +19,15 @@ the \fBetomo\fR application and interacts with it by using JfcUnit to grab
 named GUI elements.  \fBEtomo\fR automatically names most of its GUI elements.
 \fBJfcUnitTests\fR gets its instructions from a set of autodoc files which are
 read sequentially.
+
+.P
+JfcUnits is the library used to manipulate GUI elements in eTomo.  It is an
+extension of JUnit which interacts with Java GUI elements.  JfcUnit
+is not adequate for demos or automation.  It finds an element's location on the
+screen and then accesses the element using its physical location.  If the
+element was moved during the lag time these two events, manipulating the
+element will fail.  Also, since JfcUnitTests is not part of eTomo, it does not
+wait until a task is finished in eTomo and can easily go too fast.
 
 .SH ENVIRONMENT
 The IMOD environment that allows Etomo to be run must be in place.
@@ -737,8 +746,8 @@ Order counts in this section.
 .RE
 
 .TP 4
-.B assert.\fR(\fBenabled\fR|\fBdisabled\fR)\fB.\fR(\fBbn\fR|\fBcb\fR|\fBcbb\fR|\fBmn\fR|\fBmb\fR|\fBrb\fR|\fBsp\fR|\fBtf\fR)\fB = 
-Tests whether the \fIfield\fR is enabled or disabled.  Panel and tabs are not
+.B assert.\fR(\fBenabled\fR|\fBdisabled\fR)\fB.\fR(\fBbn\fR|\fBcb\fR|\fBcbb\fR|\fBmn\fR|\fBmb\fR|\fBrb\fR|\fBsp\fR|\fBtb\fR|\fBtf\fR)\fB = 
+Tests whether the \fIfield\fR is enabled or disabled.  Panels are not
 valid for this command.
 .RS 4
 

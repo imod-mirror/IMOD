@@ -1,6 +1,6 @@
 .na
 .nh
-.TH patchcrawl3d 1 2.50 BL3DEMC
+.TH patchcrawl3d 1 2.50 IMOD
 .SH NAME
 patchcrawl3d \- Search for displacements between local patches from two volumes
 .SH SYNOPSIS

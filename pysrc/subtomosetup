@@ -1,0 +1,258 @@
+#!/usr/bin/env python
+# subtomosetup - make command files for reconstructing subvolumes around points
+#
+# Author: David Mastronarde
+#
+# $Id$
+#
+
+progname = 'subtomosetup'
+prefix = 'ERROR: ' + progname + ' - '
+yzRatioCrit = 2.
+xzShiftDecimals = 2
+maxChunks = 99990
+minChunks = 8
+maxChunkPerProc = 10
+minChunkPerProc = 5
+
+#### MAIN PROGRAM  ####
+#
+# load System Libraries
+import os, sys, copy
+
+#
+# Setup runtime environment
+if os.getenv('IMOD_DIR') != None:
+   sys.path.insert(0, os.path.join(os.environ['IMOD_DIR'], 'pylib'))
+   from imodpy import *
+   addIMODbinIgnoreSIGHUP()
+else:
+   sys.stdout.write(prefix + " IMOD_DIR is not defined!\n")
+   sys.exit(1)
+
+#
+# load IMOD Libraries
+from pip import *
+from pysed import *
+from tomocoords import *
+
+# Fallbacks from ../manpages/autodoc2man 3 1 subtomosetup
+options = ["root:RootName:CH:", "volume:VolumeModeled:FN:",
+           "center:CenterPositionFile:FN:", "objects:ObjectsToUse:LI:",
+           "size:SizeInXYZ:IT:", "dir:DirectoryForOutput:FN:", "com:CommandFile:FN:",
+           "reorient:ReorientionType:I:"]
+
+(rootName, volName, centerFile, pointFile, modelFile, objList, comFile, \
+       reorientIn, enteredOrient) = getCommonOptions(options, progname)
+
+outDir = PipGetString('DirectoryForOutput', '')
+(xSize, ySize, zSize) = PipGetThreeIntegers('SizeInXYZ', 0, 0, 0)
+if xSize < 1 or ySize < 1 or zSize < 1:
+   exitError('Positive sizes must be entered for the reconstructions')
+
+# Check that all the files exist
+stackName = rootName + '.st'
+aliName = rootName + '.ali'
+checkList = [(stackName, 'raw stack'), (aliName, 'aligned stack'),
+             (volName, 'modeled volume'), (comFile, 'command file'),
+             (centerFile, 'center position file')]
+for (name, descrip) in checkList:
+   if not os.path.exists(name):
+      exitError('The ' + descrip + ', ' + name + ', does not exist')
+
+# Check and create output directory
+if outDir:
+   if os.path.exists(outDir):
+      if not os.path.isdir(outDir):
+         exitError('The specified name for output directory already exists and is ' +\
+                      'not a directory')
+   else:
+      try:
+         os.mkdir(outDir)
+      except OSError:
+         exitError('Making directory for output, ' + outDir)
+
+# Get possible entries for runs per chunk and # of processors
+numProc = PipGetInteger('ProcessorNumber', 0)
+numRunsPerChunk = PipGetInteger('RunsPerChunk', 10)
+if not PipGetErrNo() and numProc > 0:
+   exitError('You cannot enter both -proc and -runs')
+
+fullRec = None
+(pid, cleanList, pointList, aliBinning, reorient, comLines, \
+    nxRaw, nyRaw, nzRaw, pixXraw, pixYraw, pixZraw, \
+    nxAli, nyAli, nzAli, pixXali, pixYali, pixZali, origXali, origYali, \
+    origZali, nxVol, nyVol, nzVol, pixXvol, pixYvol, pixZvol, origXvol, \
+    origYvol, origZvol, nxFull, nyFull, nzFull, pixXfull, pixYfull, pixZfull, \
+    origXfull, origYfull, origZfull) = \
+    getPointsAndHeaders(modelFile, objList, pointFile, progname, stackName, aliName, \
+                           volName, fullRec, enteredOrient, reorientIn, comFile)
+   
+(comRoot, ext) = os.path.splitext(comFile)
+comRoot += '-sub'
+cleanChunkFiles(comRoot)
+thickness = ySize
+numSlices = zSize
+if reorient:
+   thickness = zSize
+   numSlices = ySize
+
+# ASSUMING CENTER ALIGNED STACK, could use origins to overcome this
+sssx = (nxRaw - nxAli) // 2
+sssy = (nyRaw - nyAli) // 2
+
+sedcomBase = [sedModify('IMAGEBINNED', aliBinning, delim = '|'),
+              sedModify('FULLIMAGE', fmtstr('{} {}', nxRaw, nyRaw), delim = '|'),
+              sedModify('SUBSETSTART', fmtstr('{} {}', sssx, sssy), delim = '|'),
+              sedModify('THICKNESS', thickness, delim = '|'),
+              '|savework|d'] + \
+   sedDelAndAdd('WIDTH', xSize, 'XTILTFILE', delim = '|')
+
+# Get format string for particle names to get equal digits on all
+numDec = 1
+numPts = len(pointList)
+while numPts > 9:
+   numDec += 1
+   numPts = numPts // 10
+numFormat = '-{:0' + str(numDec) + 'd}'
+
+# Determine number of runs per chunk by getting number of chunks
+numPts = len(pointList)
+if numProc > 0:
+
+   # If # of processors entered, try for a large # of chunks per processor but lower it
+   # to give fewer than 1000 chunks; in any case limit chunks to the maximum and to # pts
+   numChunkPerProc = maxChunkPerProc
+   while numChunkPerProc >= minChunkPerProc:
+      numChunks = min(numPts, numChunkPerProc * numProc, maxChunks)
+      if numChunks < 1000:
+         break;
+      numChunkPerProc -= 1
+
+else:
+
+   # Otherwise base it on default or entered # of runs per chunks; but it must be raised
+   # if that gives too many chunks, or lower it if it is too few
+   minRuns = numPts // maxChunks + 1
+   minChunks = min(numPts, minChunks)
+   numRunsPerChunk = max(numRunsPerChunk, minRuns)
+   numChunks = max(minChunks, numPts // numRunsPerChunk)
+
+numRunsPerChunk = (numPts + numChunks - 1) // numChunks
+
+# Loop on chunks
+chunk = 1
+ptEnd = 0
+numPtTot = 0
+while ptEnd < numPts:
+   ptStart = ptEnd
+   ptEnd = min(ptEnd + numRunsPerChunk, numPts)
+   chunkLines = []
+
+   # Loop on points that might be in chunk
+   for ptNum in range(ptStart, ptEnd):
+
+      comName = comRoot + fmtstr('-{:03d}', chunk) + '.com'
+      chunkBase = rootName + fmtstr(numFormat, numPtTot + 1)
+
+      # Use a forward slash so output is stable and tests work with Windows python
+      if outDir:
+         chunkBase = outDir + '/' + chunkBase
+      chunkName = chunkBase + '.mrc'
+      if reorient:
+         chunkName = chunkBase + '.tmp'
+      sedcom = copy.deepcopy(sedcomBase)
+      sedcom.append(sedModify('OutputFile', chunkName, delim = '|'))
+      point = pointList[ptNum]
+
+      # Convert points from a point list by the header transformation to match scaled
+      # values that came in from model conversion
+      if not modelFile:
+         point[0] = point[0] * pixXvol - origXvol;
+         point[1] = point[1] * pixYvol - origYvol;
+         point[2] = point[2] * pixZvol - origZvol;
+      
+      # Now need to get slice range and X/Z shifts.  X is easy and invariant
+      xInAli = (point[0] + origXali) / pixXali
+      xShift = nxAli / 2. - xInAli
+
+      # For no reorientation, Y comes from Z, Y from Y; z shift is negative of coordinate
+      if reorient == 0:
+         yInAli = (point[2] + origYali) / pixYali
+         zShift = -(point[1]) / pixXali
+
+      # For rotation, Y comes from Y, Z from inversion of Y
+      elif reorient < 0:
+         yInAli = (point[1] + origYali) / pixYali
+         zShift = (point[2]) / pixXali
+
+      # For flip, the origins were not swapped in the header, so undo the origin that was
+      # applied and adjust by origin that should have been applied
+      else:
+         yInAli = (point[1] + origYvol - origZvol - origYali) / pixYali
+         zShift = -(point[2] + origZvol - origYvol) / pixXali
+
+      # Get the slice range, skip if too far out of range
+      sliceStart = int(round(yInAli - numSlices / 2.))
+      sliceEnd = sliceStart + numSlices - 1
+      if yInAli < numSlices / 6. or yInAli > nyAli - numSlices / 6.:
+         prnstr(fmtstr('WARNING: {} - Point # {} is skipped; it requires too many Y ' +\
+                     'slices outside the reconstructable range for this aligned stack',
+                       progname, ptNum + 1))
+         continue
+
+      # And set up for blank slices if partly out of the range
+      newstRange = ''
+      if sliceStart < 0 or sliceEnd >= nyAli:
+         if sliceStart < 0:
+            numBlank = -sliceStart
+            newstRange = fmtstr('{}-{}', sliceStart, sliceEnd)
+            sliceStart = 0
+         else:
+            numBlank = sliceEnd - nyAli
+            newstRange = '0-' + str(numSlices - 1)
+            sliceEnd = nyAli - 1
+         prnstr(fmtstr('WARNING: {} - Point # {} is near the edge of the aligned stack' +\
+                       ' in Y and requires {} blank slices', progname, ptNum + 1,
+                       numBlank))
+
+      # Finish the sed com, process the lines
+      sedcom += sedDelAndAdd('SHIFT', fmtstr('{} {}', round(xShift, xzShiftDecimals),
+                                             round(zShift, xzShiftDecimals)), 'XTILTFILE',
+                             delim = '|')
+      sedcom += sedDelAndAdd('SLICE', fmtstr('{} {}', sliceStart, sliceEnd), 'XTILTFILE',
+                             delim = '|')
+      sedLines = pysed(sedcom, comLines, delim = '|')
+
+      # Add blank slices if needed
+      if newstRange:
+         sedLines += [fmtstr('$newstack -blank -sec {} "{}" "{}"', newstRange, chunkName,
+                             chunkBase + '.tmp2'), 
+                      '$b3dremove "' + chunkName + '"']
+         chunkName = chunkBase + '.tmp2'
+      
+      # Add final reorientation
+      if reorient:
+         oper = 'rotx'
+         if reorient > 0:
+            oper = 'flipyz'
+         sedLines += [fmtstr('$clip {} "{}" "{}"', oper, chunkName, chunkBase + '.mrc'), 
+                      '$b3dremove "' + chunkName + '"']
+
+      # Add lines to chunk
+      chunkLines += sedLines
+      numPtTot += 1
+
+   # Write the file if there are any lines
+   if chunkLines:
+      writeTextFile(comName, chunkLines)
+      chunk += 1
+
+# Write finish file
+finlines = fmtstr('$b3dremove -g "{0}-[0-9][0-9][0-9]*.com*" ' + \
+                     '"{0}-[0-9][0-9][0-9]*.log*" "{0}-finish*.com*"', comRoot)
+writeTextFile(comRoot + '-finish.com', [finlines])
+prnstr(fmtstr('Created {} command files for {} subtomograms; run them with:', chunk,
+              numPtTot))
+prnstr(fmtstr('    "subm {0}*.com"   or   "processchunks ... {0}"', comRoot))
+sys.exit(0)

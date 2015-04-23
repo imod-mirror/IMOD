@@ -1,6 +1,6 @@
 .na
 .nh
-.TH imodkillgroup 1 4.6.1 BL3DEMC
+.TH imodkillgroup 1 4.6.1 IMOD
 .SH NAME
 imodkillgroup -\ Kill process group or process tree given one process ID
 .SH SYNOPSIS

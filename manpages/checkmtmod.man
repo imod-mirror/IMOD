@@ -1,6 +1,6 @@
 .na
 .nh
-.TH checkmtmod 1 4.6.34 BL3DEMC
+.TH checkmtmod 1 4.6.34 IMOD
 .SH NAME
 checkmtmod - check various features of a MT model
 .SH SYNOPSIS

@@ -64,7 +64,7 @@ c
 c       
       fracmatt=0.05
       call time(tim)
-      call date(dat)
+      call b3ddate(dat)
 c       
       write(*,'(1x,a,$)')'0 to place output in new files, or 1 to '
      &    //'append to existing files: '

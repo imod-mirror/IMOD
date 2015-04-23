@@ -1,6 +1,6 @@
 .na
 .nh
-.TH smoothsurf 1 4.6.34 BL3DEMC
+.TH smoothsurf 1 4.6.34 IMOD
 .SH NAME
 smoothsurf - to smooth a surface defined by model contours
 .SH SYNOPSIS
