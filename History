@@ -1,6 +1,6 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-4/22/15: In eTomo - Tomogram Combination, setting InvertYLimits in
+4/23/15: In eTomo - Tomogram Combination, setting InvertYLimits in
 corrsearch3d when the origcoms is present.  This mitigates a bug that causes
 a tomogram to appear upside-down in the top-down view in 3dmod (In 4.7).
 (Bug# 1874)
