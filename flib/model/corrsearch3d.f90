@@ -195,8 +195,8 @@ program corrsearch3d
     j = 0
     ierr = PipGetBoolean('InvertYLimits', j)
     if (j > 0) then
-      i = ny - 1 - iyMin
-      iyMin = ny - 1 - iyMax
+      i = ny + 1 - iyMin
+      iyMin = ny + 1 - iyMax
       iyMax = i
     endif
     nBordXlow = ixMin - 1
