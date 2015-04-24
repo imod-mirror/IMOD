@@ -1,6 +1,6 @@
 .na
 .nh
-.TH xfmodel 1 4.6.34 BL3DEMC
+.TH xfmodel 1 4.6.34 IMOD
 .SH NAME
 xfmodel - solves for transformations and applies them to models
 .SH SYNOPSIS

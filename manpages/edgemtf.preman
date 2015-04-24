@@ -1,6 +1,6 @@
 .na
 .nh
-.TH edgemtf 1 4.6.34 BL3DEMC
+.TH edgemtf 1 4.6.34 IMOD
 .SH NAME
 edgemtf - Computes MTF curves from images of an edge
 .SH SYNOPSIS

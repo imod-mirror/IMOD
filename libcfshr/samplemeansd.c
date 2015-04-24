@@ -2,7 +2,6 @@
  * samplemeansd.c : estimate mean and Sd of image from sample of pixels
  *
  * $Id$
- * Log at end
  */
 
 #include <stdlib.h>
@@ -24,6 +23,16 @@
 #else
 #define samplemeansd samplemeansd_
 #endif
+
+#define ADD_AND_ADVANCE \
+      sum += fval; \
+      sumsq += fval * fval; \
+      ixUse += dxSample; \
+      while (ixUse >= nxUse) { \
+        ixUse -= nxUse; \
+        iyUse++; \
+      }
+
 
 /*!
  * Estimates mean and SD of a sample of an image.  Returns nonzero for errors.
@@ -179,51 +188,58 @@ int sampleMeanSD(unsigned char **image, int type, int nx, int ny,
     ixUse = 0;
     iyUse = 0;
 
-    for (j = 0; j < nSample; j++) {
-
-      /* get the value */
-      switch (type) {
-      case BYTE :
+    switch (type) {
+    case BYTE :
+      for (j = 0; j < nSample; j++) {
         fval = ubytep[iyUse + iyStart][ixUse + ixStart];
-        break;
+        ADD_AND_ADVANCE;
+      }
+      break;
 
-      case RGBA:
-      case RGB:
+    case RGBA:
+    case RGB:
+      for (j = 0; j < nSample; j++) {
         fval = 0.3 * ubytep[iyUse + iyStart][nchan*(ixUse+ixStart)] +
           0.59 * ubytep[iyUse + iyStart][nchan*(ixUse+ixStart)+1] +
           0.11 * ubytep[iyUse + iyStart][nchan*(ixUse+ixStart)+2];
-        break;
+        ADD_AND_ADVANCE;
+      }
+      break;
     
-      case SIGNED_BYTE :
+    case SIGNED_BYTE :
+      for (j = 0; j < nSample; j++) {
         fval = bytep[iyUse + iyStart][ixUse + ixStart];
-        break;
+        ADD_AND_ADVANCE;
+      }
+      break;
     
-      case SIGNED_SHORT :
+    case SIGNED_SHORT :
+      for (j = 0; j < nSample; j++) {
         fval = shortp[iyUse + iyStart][ixUse + ixStart];
-        break;
-
-      case UNSIGNED_SHORT :
+        ADD_AND_ADVANCE;
+      }
+      break;
+    
+    case UNSIGNED_SHORT :
+      for (j = 0; j < nSample; j++) {
         fval = ushortp[iyUse + iyStart][ixUse + ixStart];
-        break;
+        ADD_AND_ADVANCE;
+      }
+      break;
 
-      case FLOAT :
+    case FLOAT :
+      for (j = 0; j < nSample; j++) {
         fval = floatp[iyUse + iyStart][ixUse + ixStart];
-        break;
+        ADD_AND_ADVANCE;
+      }
+      break;
 
-      case INTEGER :
+    case INTEGER :
+      for (j = 0; j < nSample; j++) {
         fval = intp[iyUse + iyStart][ixUse + ixStart];
-        break;
-
+        ADD_AND_ADVANCE;
       }
-      sum += fval;
-      sumsq += fval * fval;
-
-      /* move indexes to next spot in use area */
-      ixUse += dxSample;
-      while (ixUse >= nxUse) {
-        ixUse -= nxUse;
-        iyUse++;
-      }
+      break;
 
     }
     nsum = nSample;
@@ -260,39 +276,3 @@ int samplemeansd(float *image, int *nx, int *ny, float *sample, int *ixStart,
   free(lines);
   return i;
 }
-
-/*
-
-$Log$
-Revision 1.5  2011/02/14 23:59:03  mast
-Fixed byte case and call to new line pointer routine
-
-Revision 1.4  2011/02/12 04:32:06  mast
-Added support for RGB
-
-Revision 1.3  2010/02/26 16:56:57  mast
-Added fortran wrapper
-
-Revision 1.2  2008/10/02 02:05:12  mast
-Clean up warning for SerialEM
-
-Revision 1.1  2007/09/20 02:43:08  mast
-Moved to new library
-
-Revision 3.2  2006/10/02 15:32:32  mast
-Fixed for > 2 Gpixel image
-
-Revision 3.1  2006/06/26 15:44:06  mast
-*** empty log message ***
-
-Revision 3.3  2003/09/18 00:48:55  mast
-Changed to take starting coordinates and image subset size
-
-Revision 3.2  2003/09/16 02:59:10  mast
-Changed to access image data via line pointers
-
-Revision 3.1  2002/12/01 15:34:41  mast
-Changes to get clean compilation with g++
-
-*/
-

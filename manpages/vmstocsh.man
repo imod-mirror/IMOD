@@ -1,6 +1,6 @@
 .na
 .nh
-.TH vmstocsh 1 4.6.34 BL3DEMC
+.TH vmstocsh 1 4.6.34 IMOD
 .SH NAME
 vmstocsh - converts VMS-style command file to C-shell script
 .SH SYNOPSIS

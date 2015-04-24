@@ -148,7 +148,7 @@ import javax.swing.border.TitledBorder;
 final class SpacedPanel {
   public static final String rcsid = "$Id$";
 
-  private static final Dimension MULTI_LINE_BUTTON_DIM = UIParameters.INSTANCE
+  private static final Dimension MULTI_LINE_BUTTON_DIM = UIParameters.getInstance()
       .getButtonDimension();
 
   private final EtomoPanel panel = new EtomoPanel();

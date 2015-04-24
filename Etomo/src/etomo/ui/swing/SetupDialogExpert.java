@@ -32,15 +32,11 @@ import etomo.util.SharedConstants;
 /**
  * <p>Description: </p>
  * 
- * <p>Copyright: Copyright 2006</p>
+ * <p>Copyright: Copyright 2006 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
- * University of Colorado</p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
+ * @version $Id$
  * 
  * <p> $Log$
  * <p> Revision 1.3  2011/02/24 23:37:49  sueh
@@ -119,8 +115,6 @@ import etomo.util.SharedConstants;
  * <p> </p>
  */
 public final class SetupDialogExpert {
-  public static final String rcsid = "$Id$";
-
   private final TiltAnglePanelExpert tiltAnglePanelExpertA;
   private final TiltAnglePanelExpert tiltAnglePanelExpertB;
   private final SetupDialog dialog;
@@ -130,19 +124,20 @@ public final class SetupDialogExpert {
   private File dir = null;
 
   private SetupDialogExpert(final ApplicationManager manager,
-      final SetupReconUIHarness setupUIHarness, final boolean calibrationAvailable) {
+    final SetupReconUIHarness setupUIHarness, final boolean calibrationAvailable) {
     this.manager = manager;
     this.setupUIHarness = setupUIHarness;
     tiltAnglePanelExpertA = new TiltAnglePanelExpert(manager, AxisID.FIRST);
     tiltAnglePanelExpertB = new TiltAnglePanelExpert(manager, AxisID.SECOND);
-    dialog = SetupDialog.getInstance(this, manager, AxisID.ONLY, DialogType.SETUP_RECON,
+    dialog =
+      SetupDialog.getInstance(this, manager, AxisID.ONLY, DialogType.SETUP_RECON,
         calibrationAvailable);
   }
 
   public static SetupDialogExpert getInstance(ApplicationManager manager,
-      final SetupReconUIHarness setupUIHarness, boolean calibrationAvailable) {
-    SetupDialogExpert instance = new SetupDialogExpert(manager, setupUIHarness,
-        calibrationAvailable);
+    final SetupReconUIHarness setupUIHarness, boolean calibrationAvailable) {
+    SetupDialogExpert instance =
+      new SetupDialogExpert(manager, setupUIHarness, calibrationAvailable);
     instance.setTooltips();
     return instance;
   }
@@ -150,7 +145,7 @@ public final class SetupDialogExpert {
   /**
    * Process command line arguments that pertain to Setup Dialog.  May can
    * functions in ApplicationManager.
-   * @return true the automation does not generate errors
+   * @return true if the automation does not generate errors
    */
   public void doAutomation() {
     Arguments arguments = EtomoDirector.INSTANCE.getArguments();
@@ -160,7 +155,7 @@ public final class SetupDialogExpert {
     if (dataset != null) {
       // If the directory was set and dataset is a file (not the dataset name), pass the
       // absolute path to the dialog.
-      if (dir != null && dataset.endsWith(FileType.RAW_STACK.getExtension(manager))) {
+      if (dir != null && dataset.endsWith(FileType.RAW_STACK.getExtension())) {
         dialog.setDataset(new File(dir, dataset).getAbsolutePath());
       }
       else {
@@ -254,15 +249,18 @@ public final class SetupDialogExpert {
     String secondStackName = null;
     // Create File instances based on the stacks specified in the setup dialog
     if (axisType == AxisType.DUAL_AXIS) {
-      firstStack = new File(propertyUserDir, datasetName + AxisID.FIRST.getExtension()
+      firstStack =
+        new File(propertyUserDir, datasetName + AxisID.FIRST.getExtension()
           + DatasetTool.STANDARD_DATASET_EXT);
       firstStackName = firstStack.getName();
-      secondStack = new File(propertyUserDir, datasetName + AxisID.SECOND.getExtension()
+      secondStack =
+        new File(propertyUserDir, datasetName + AxisID.SECOND.getExtension()
           + DatasetTool.STANDARD_DATASET_EXT);
       secondStackName = secondStack.getName();
     }
     else if (axisType == AxisType.SINGLE_AXIS) {
-      firstStack = new File(propertyUserDir, datasetName + AxisID.ONLY.getExtension()
+      firstStack =
+        new File(propertyUserDir, datasetName + AxisID.ONLY.getExtension()
           + DatasetTool.STANDARD_DATASET_EXT);
       firstStackName = firstStack.getName();
     }
@@ -287,7 +285,7 @@ public final class SetupDialogExpert {
       catch (LogFile.LockException e) {
         e.printStackTrace();
         UIHarness.INSTANCE.openMessageDialog(manager, "Unable to read .edf files in "
-            + propertyUserDir, "Etomo Error");
+          + propertyUserDir, "Etomo Error");
         continue;
       }
       // Create File instances based on the stacks specified in the edf file
@@ -299,11 +297,13 @@ public final class SetupDialogExpert {
       String savedFirstStackName;
       String savedSecondStackName;
       if (savedAxisType == AxisType.DUAL_AXIS) {
-        savedFirstStack = new File(propertyUserDir, savedDatasetName
-            + AxisID.FIRST.getExtension() + DatasetTool.STANDARD_DATASET_EXT);
+        savedFirstStack =
+          new File(propertyUserDir, savedDatasetName + AxisID.FIRST.getExtension()
+            + DatasetTool.STANDARD_DATASET_EXT);
         savedFirstStackName = savedFirstStack.getName();
-        savedSecondStack = new File(propertyUserDir, savedDatasetName
-            + AxisID.SECOND.getExtension() + DatasetTool.STANDARD_DATASET_EXT);
+        savedSecondStack =
+          new File(propertyUserDir, savedDatasetName + AxisID.SECOND.getExtension()
+            + DatasetTool.STANDARD_DATASET_EXT);
         savedSecondStackName = savedSecondStack.getName();
         if (axisType == AxisType.DUAL_AXIS) {
           // compare dual axis A against saved dual axis A
@@ -319,22 +319,23 @@ public final class SetupDialogExpert {
           // compare single axis against saved dual axis A
           // compare single axis against saved dual axis B
           if (savedFirstStack.exists()
-              && !firstStackName.equals(savedFirstStackName)
-              && (!savedSecondStack.exists() || (savedSecondStack.exists() && !firstStackName
-                  .equals(savedSecondStackName)))) {
+            && !firstStackName.equals(savedFirstStackName)
+            && (!savedSecondStack.exists() || (savedSecondStack.exists() && !firstStackName
+              .equals(savedSecondStackName)))) {
             return true;
           }
         }
       }
       else if (savedAxisType == AxisType.SINGLE_AXIS) {
-        savedFirstStack = new File(propertyUserDir, savedDatasetName
-            + AxisID.ONLY.getExtension() + DatasetTool.STANDARD_DATASET_EXT);
+        savedFirstStack =
+          new File(propertyUserDir, savedDatasetName + AxisID.ONLY.getExtension()
+            + DatasetTool.STANDARD_DATASET_EXT);
         savedFirstStackName = savedFirstStack.getName();
         if (axisType == AxisType.DUAL_AXIS) {
           // compare dual axis A against saved single axis
           // compare dual axis B against saved single axis
           if (savedFirstStack.exists() && !firstStackName.equals(savedFirstStackName)
-              && !secondStackName.equals(savedFirstStackName)) {
+            && !secondStackName.equals(savedFirstStackName)) {
             return true;
           }
         }
@@ -371,6 +372,16 @@ public final class SetupDialogExpert {
     return dataset.getParentFile();
   }
 
+  public void setTiltAngleFields(final AxisID axisID, final TiltAngleSpec tiltAngleSpec,
+    final UserConfiguration userConfiguration) {
+    if (axisID == AxisID.SECOND) {
+      tiltAnglePanelExpertB.setFields(tiltAngleSpec, userConfiguration);
+    }
+    else {
+      tiltAnglePanelExpertA.setFields(tiltAngleSpec, userConfiguration);
+    }
+  }
+
   public void initializeFields(ConstMetaData metaData, UserConfiguration userConfig) {
     if (!metaData.getDatasetName().equals("")) {
       String canonicalPath = getPropertyUserDir() + "/" + metaData.getDatasetName();
@@ -379,13 +390,13 @@ public final class SetupDialogExpert {
     // Parallel processing is optional in tomogram reconstruction, so only use it
     // if the user set it up.
     dialog.setParallelProcess(UserEnv.isParallelProcessing(manager, AxisID.ONLY,
-        getPropertyUserDir()));
+      getPropertyUserDir()));
     dialog.setParallelProcessEnabled(UserEnv.isParallelProcessingEnabled(manager,
-        AxisID.ONLY, getPropertyUserDir()));
+      AxisID.ONLY, getPropertyUserDir()));
     dialog.setGpuProcessingEnabled(UserEnv.isGpuProcessingEnabled(manager, AxisID.ONLY,
-        getPropertyUserDir()));
+      getPropertyUserDir()));
     dialog.setGpuProcessing(UserEnv.isGpuProcessing(manager, AxisID.ONLY,
-        getPropertyUserDir()));
+      getPropertyUserDir()));
     dialog.setBackupDirectory(metaData.getBackupDirectory());
     dialog.setDistortionFile(metaData.getDistortionFile());
     dialog.setMagGradientFile(metaData.getMagGradientFile());
@@ -413,10 +424,7 @@ public final class SetupDialogExpert {
       dialog.setImageRotation(metaData.getImageRotation(AxisID.ONLY).toString());
     }
     dialog.setBinning(metaData.getBinning());
-
-    tiltAnglePanelExpertA.setFields(metaData.getTiltAngleSpecA(), userConfig);
     dialog.setExcludeList(AxisID.FIRST, metaData.getExcludeProjectionsA());
-    tiltAnglePanelExpertB.setFields(metaData.getTiltAngleSpecB(), userConfig);
     dialog.setExcludeList(AxisID.SECOND, metaData.getExcludeProjectionsB());
     dialog.setTwodir(AxisID.FIRST, metaData.isTwodir(AxisID.FIRST));
     dialog.setTwodir(AxisID.SECOND, metaData.isTwodir(AxisID.SECOND));
@@ -461,7 +469,7 @@ public final class SetupDialogExpert {
   }
 
   public boolean getTiltAngleFields(final AxisID axisID,
-      final TiltAngleSpec tiltAngleSpec, final boolean doValidation) {
+    final TiltAngleSpec tiltAngleSpec, final boolean doValidation) {
     if (axisID == AxisID.SECOND) {
       return tiltAnglePanelExpertB.getFields(tiltAngleSpec, doValidation);
     }
@@ -524,51 +532,52 @@ public final class SetupDialogExpert {
   }
 
   void updateTiltAnglePanelTemplateValues(
-      final DirectiveFileCollection directiveFileCollection) {
+    final DirectiveFileCollection directiveFileCollection) {
     tiltAnglePanelExpertA.updateTemplateValues(directiveFileCollection);
     tiltAnglePanelExpertB.updateTemplateValues(directiveFileCollection);
   }
 
-  void viewRawStack(AxisID axisID, final Run3dmodMenuOptions menuOptions) {
+  void viewRawStack(final String fileExtension, final AxisID axisID,
+    final Run3dmodMenuOptions menuOptions) {
     if (axisID == AxisID.SECOND) {
-      manager.imodPreview(AxisID.SECOND, menuOptions);
+      manager.imodPreview(fileExtension, AxisID.SECOND, menuOptions);
     }
     else {
       if (getAxisType() == AxisType.SINGLE_AXIS) {
-        manager.imodPreview(AxisID.ONLY, menuOptions);
+        manager.imodPreview(fileExtension, AxisID.ONLY, menuOptions);
       }
       else {
-        manager.imodPreview(AxisID.FIRST, menuOptions);
+        manager.imodPreview(fileExtension, AxisID.FIRST, menuOptions);
       }
     }
   }
 
   private void setTooltips() {
     dialog.setDatasetTooltip(
-        "Enter the name of view data file(s). You can also select the view "
-            + "data file by pressing the folder button.",
-        "This button will open a file chooser dialog box allowing you to "
-            + "select the view data file.");
+      "Enter the name of view data file(s). You can also select the view "
+        + "data file by pressing the folder button.",
+      "This button will open a file chooser dialog box allowing you to "
+        + "select the view data file.");
     dialog.setBackupDirectoryTooltip(
-        "Enter the name of the directory where you want the small data "
-            + "files .com and .log files to be backed up.  You can use the "
-            + "folder button on the right to create a new directory to "
-            + "store the backups.",
-        "This button will open a file chooser dialog box allowing you to "
-            + "select and/or create the backup directory.");
+      "Enter the name of the directory where you want the small data "
+        + "files .com and .log files to be backed up.  You can use the "
+        + "folder button on the right to create a new directory to "
+        + "store the backups.",
+      "This button will open a file chooser dialog box allowing you to "
+        + "select and/or create the backup directory.");
     dialog.setScanHeaderTooltip("Attempt to extract pixel size and tilt axis "
-        + "rotation angle from data stack.");
+      + "rotation angle from data stack.");
     dialog.setAxisTypeTooltip("This radio button selector will choose whether the "
-        + "data consists of one or two tilt axis.");
+      + "data consists of one or two tilt axis.");
     dialog.setViewTypeTooltip(SharedConstants.VIEW_TYPE_TOOLTIP);
 
     dialog
-        .setPixelSizeTooltip("Enter the view image pixel size in nanometers " + "here.");
+      .setPixelSizeTooltip("Enter the view image pixel size in nanometers " + "here.");
     dialog.setFiducialDiameterTooltip("Enter the fiducial size in nanometers here.");
     dialog.setImageRotationTooltip("Enter the view image rotation in degrees. This "
-        + "is the rotation (CCW positive) from the Y-axis (the tilt axis "
-        + "after the views are aligned) to the suspected tilt axis in the "
-        + "unaligned views.");
+      + "is the rotation (CCW positive) from the Y-axis (the tilt axis "
+      + "after the views are aligned) to the suspected tilt axis in the "
+      + "unaligned views.");
     dialog.setDistortionFileTooltip(SharedConstants.DISTORTION_FIELD_TOOLTIP);
     dialog.setBinningTooltip(SharedConstants.IMAGES_ARE_BINNED_TOOLTIP);
 
@@ -576,29 +585,29 @@ public final class SetupDialogExpert {
     tiltAnglePanelExpertB.setTooltips();
 
     dialog.setExcludeListTooltip("Enter the view images to <b>exclude</b> from the "
-        + "processing of this axis.  Ranges are allowed, separate ranges by "
-        + "commas.  For example to exclude the first four and last four "
-        + "images of a 60 view stack enter 1-4,57-60.");
+      + "processing of this axis.  Ranges are allowed, separate ranges by "
+      + "commas.  For example to exclude the first four and last four "
+      + "images of a 60 view stack enter 1-4,57-60.");
     dialog.setTwodirTooltip("Tilt series was acquired in two directions from the given "
-        + "starting angle; the break in the series is assumed to be after the first "
-        + "image in the stack at that angle.");
+      + "starting angle; the break in the series is assumed to be after the first "
+      + "image in the stack at that angle.");
     dialog.setPostponeTooltip("This button will setup the processing for existing "
-        + "command scripts.  <b>Be sure that parameters entered match the "
-        + "existing command scripts.");
+      + "command scripts.  <b>Be sure that parameters entered match the "
+      + "existing command scripts.");
     dialog.setExecuteTooltip("This button will create a new set of command scripts "
-        + "overwriting any of the same name in the specified working "
-        + "directory.  Be sure to save the data file after creating the "
-        + "command script if you wish to keep the results.");
+      + "overwriting any of the same name in the specified working "
+      + "directory.  Be sure to save the data file after creating the "
+      + "command script if you wish to keep the results.");
     dialog.setParallelProcessTooltip("Sets the default for parallel processing "
-        + "(distributing processes across multiple computers).");
+      + "(distributing processes across multiple computers).");
     dialog.setGpuProcessingTooltip("Sets the default for GPU processing (sending "
-        + "processes to the graphics card).");
+      + "processes to the graphics card).");
 
     dialog.setMagGradientFileTooltip("OPTIONAL:  A file with magnification "
-        + "gradients to be applied for each image.");
+      + "gradients to be applied for each image.");
     dialog.setViewRawStackTooltip("View the current raw image stack.");
     dialog.setAdjustedFocusTooltip("Set this if \"Change focus with height\" was "
-        + "selected when the montage was acquired in SerialEM.");
+      + "selected when the montage was acquired in SerialEM.");
   }
 
   // View type radio button

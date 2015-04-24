@@ -1,6 +1,6 @@
 .na
 .nh
-.TH avgstack 1 4.6.34 BL3DEMC
+.TH avgstack 1 4.6.34 IMOD
 .SH NAME
 avgstack - Averages multiple sections from an image file
 .SH SYNOPSIS

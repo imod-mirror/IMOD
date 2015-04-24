@@ -78,10 +78,11 @@ int iiTIFFCheck(ImodImageFile *inFile)
   TIFF* tif;
   FILE *fp;
   b3dUInt16 buf;
-  int dirnum = 1;
+  int dirnum = 0;
   uint16 bits, samples, photometric, sampleformat, planarConfig;
   uint16 bitsIm, samplesIm, photoIm, formatIm, planarIm, resUnit;
   uint32 rowsPerStrip;
+  uint32 *offsets;
   int nxim, nyim, formatDef, tileWidth, tileLength, gotMin = 0, gotMax = 0;
   int defined, i, j, hasPixelIm, hasPixel = 0, mismatch = 0, err = 0;
   float xResol, yResol, xPixelIm = 0., yPixelIm = 0., xPixel, yPixel, resScale;
@@ -90,6 +91,10 @@ int iiTIFFCheck(ImodImageFile *inFile)
   char *resvar;
   uint16 TVIPStag = 37708;
   float pixelLimit = 1.;
+  char *description, *ptr;
+  int imageJ = 0, imJslices = 0, imJimages = 0;
+  float imJmin = 9.e37, imJmax = -9.e37, imJpixel = -1.;
+  RawImageInfo info;
 
   if (!inFile) 
     return IIERR_BAD_CALL;
@@ -163,6 +168,29 @@ int iiTIFFCheck(ImodImageFile *inFile)
       yPixelIm = resScale / yResol;
     } else
       hasPixelIm = 0;
+    
+    /* For the first directory, get the description and check if it ImageJ
+       If so look for various values that are useful */
+    if (!dirnum && TIFFGetField(tif, TIFFTAG_IMAGEDESCRIPTION, &description)) {
+      if (strstr(description, "ImageJ=") == description) {
+        imageJ = 1;
+        ptr = strstr(description, "slices=");
+        if (ptr)
+          imJslices = atoi(ptr + 7);
+        ptr = strstr(description, "images=");
+        if (ptr)
+          imJimages = atoi(ptr + 7);
+        ptr = strstr(description, "min=");
+        if (ptr)
+          imJmin = atoi(ptr + 4);
+        ptr = strstr(description, "max=");
+        if (ptr)
+          imJmax = atoi(ptr + 4);
+        ptr = strstr(description, "spacing=");
+        if (ptr && strstr(description, "unit=micron"))
+          imJpixel = 1.e4 * atof(ptr + 8);
+      }
+    }
 
     /* If this is a bigger image, it is a new standard, so set all the
        properties and reset to one directory */
@@ -211,6 +239,18 @@ int iiTIFFCheck(ImodImageFile *inFile)
     gotMin = 1;
   if (TIFFGetField(tif, TIFFTAG_SMAXSAMPLEVALUE, &lastMax))
     gotMax = 1;
+  if (!gotMin && imageJ && imJmin < 8.e37) {
+    lastMin = imJmin;
+    gotMin = 1;
+  }
+  if (!gotMax && imageJ && imJmax > -8.e37) {
+    lastMax = imJmax;
+    gotMax = 1;
+  }
+  if (!hasPixel && imageJ && imJpixel > 0.) {
+    xPixel = yPixel = imJpixel;
+    hasPixel = 1;
+  }
 
   TIFFSetDirectory(tif, 0);
 
@@ -246,6 +286,7 @@ int iiTIFFCheck(ImodImageFile *inFile)
   inFile->readSectionByte = tiffReadSectionByte;
   inFile->readSectionFloat = tiffReadSectionFloat;
 
+  /* Set up file mode and default properties; fill in mode for raw info at same time */
   defined = TIFFGetField(tif, TIFFTAG_SAMPLEFORMAT, &sampleformat);
   if (bits == 8) {
     inFile->type   = IITYPE_UBYTE;
@@ -253,9 +294,11 @@ int iiTIFFCheck(ImodImageFile *inFile)
     inFile->amean  = 128;
     inFile->amax   = 255;
     inFile->mode   = MRC_MODE_BYTE;
+    info.type = RAW_MODE_BYTE;
     if (photometric == PHOTOMETRIC_RGB) {
       inFile->format = IIFORMAT_RGB;
       inFile->mode   = MRC_MODE_RGB;
+      info.type = RAW_MODE_RGB;
       inFile->readSectionByte = NULL;
       inFile->readSectionUShort = NULL;
     } else if (photometric == PHOTOMETRIC_PALETTE) {
@@ -289,6 +332,7 @@ int iiTIFFCheck(ImodImageFile *inFile)
       TIFFSetDirectory(tif, 0);
     } else if (defined && sampleformat == SAMPLEFORMAT_INT) {
       inFile->type   = IITYPE_BYTE;
+      info.type = RAW_MODE_SBYTE;
     }
   } else {
     /* If there is a field specifying signed numbers, set up for signed;
@@ -300,12 +344,14 @@ int iiTIFFCheck(ImodImageFile *inFile)
         inFile->amin   = -32767;
         inFile->amax   = 32767;
         inFile->mode   = MRC_MODE_SHORT;
+        info.type      = RAW_MODE_SHORT;
       } else {
         inFile->type   = IITYPE_USHORT;
         inFile->amean  = 32767;
         inFile->amin   = 0;
         inFile->amax   = 65535;
         inFile->mode   = MRC_MODE_USHORT;   /* Why was this SHORT for both? */
+        info.type      = RAW_MODE_USHORT;
       }
     } else {
 
@@ -328,6 +374,7 @@ int iiTIFFCheck(ImodImageFile *inFile)
         inFile->amin   = 0;
         inFile->amax   = 255.;
         inFile->mode   = MRC_MODE_FLOAT;
+        info.type      = RAW_MODE_FLOAT;
       } else {
         closeWithError(inFile, "ERROR: iiTIFFCheck - 32-bit TIFF "
                        "file with no data type defined\n");
@@ -365,6 +412,35 @@ int iiTIFFCheck(ImodImageFile *inFile)
 
   inFile->smin   = inFile->amin;
   inFile->smax   = inFile->amax;
+
+  /* Intercept ImageJ big tiff and try to convert to mrc-like */
+  if (imageJ && dirnum == 1 && imJslices == imJimages && imJimages > 1 && 
+      inFile->planesPerImage == 1 && photometric != PHOTOMETRIC_PALETTE && 
+      inFile->mode >= 0) {
+    info.nx = inFile->nx;
+    info.ny = inFile->ny;
+    info.nz = imJimages;
+    info.swapBytes = TIFFIsByteSwapped(tif);
+    info.sectionSkip = 0;
+    info.yInverted = 1;
+    info.amin = inFile->amin;
+    info.amax = inFile->amax;
+    info.pixel = hasPixel ? xPixel : 0.;
+    info.zPixel = info.pixel;
+    if (TIFFGetField(tif, TIFFTAG_STRIPOFFSETS, &offsets) > 0) {
+      info.headerSize = *offsets;
+      TIFFClose(tif);
+      inFile->fp = fopen(inFile->filename, inFile->fmode);
+      if (!inFile->fp) {
+        b3dError(stderr, "ERROR: iiTIFFCheck - Reopening file %s for treatment as "
+                 "MRC-like\n", inFile->filename);
+        return(IIERR_IO_ERROR);
+      }
+      return iiSetupRawHeaders(inFile, &info);
+    }
+  }
+
+  /* Otherwise proceed to return as a TIFF file */
   inFile->headerSize = 8;
   inFile->sectionSkip = 0;
   inFile->fp = (FILE *)tif;    
@@ -1022,8 +1098,8 @@ int tiffOpenNew(ImodImageFile *inFile)
     psize *= 3;
   
   /* Try to open a big file in version 4 */
-  if (tiffVersion(&minor) > 3 && ((double)inFile->nx * inFile->ny * inFile->nz * psize)
-      > 4.0e9)
+  if (tiffVersion(&minor) > 3 && (((double)inFile->nx * inFile->ny) * inFile->nz * psize
+                                  > 4.0e9 || makeAllBigTiff()))
     tif = TIFFOpen(inFile->filename, "w8");
   else
     tif = TIFFOpen(inFile->filename, "w");
@@ -1172,9 +1248,10 @@ int tiffWriteSetup(ImodImageFile *inFile, int compression, int inverted, int res
 
   if (*tileSizeX) {
 
+    /* For tiles, make sure each dimension is multiple of 16, it is what tiffcp does */
     sRowsPerStrip = *outRows;
-    bestTileSize(inFile->nx, tileSizeX, &sNumXtiles);
-    bestTileSize(inFile->ny, (int *)(&sRowsPerStrip), &sNumStrips);
+    iiBestTileSize(inFile->nx, tileSizeX, &sNumXtiles, 16);
+    iiBestTileSize(inFile->ny, (int *)(&sRowsPerStrip), &sNumStrips, 16);
     sXtileSize = *tileSizeX;
     TIFFSetField(tif, TIFFTAG_TILEWIDTH, sXtileSize);
     TIFFSetField(tif, TIFFTAG_TILELENGTH, sRowsPerStrip);
@@ -1217,16 +1294,6 @@ int tiffWriteSetup(ImodImageFile *inFile, int compression, int inverted, int res
   sLinesDone = 0;
   sAlreadyInverted = inverted;
   return 0;
-}
-
-/* For tiles, make sure each dimension is multiple of 16, it is what tiffcp does 
-   But also increase tile size to the point that minimizes the extra amount that is
-   put out because tiles must be equal */
-static void bestTileSize(int imSize, int *tileSize, int *numTiles)
-{
-  *numTiles = (imSize + *tileSize - 1) / *tileSize;
-  *tileSize = 16 * (int)ceil(imSize / (16. * *numTiles));
-  *numTiles = (imSize + *tileSize - 1) / *tileSize;
 }
 
 /*

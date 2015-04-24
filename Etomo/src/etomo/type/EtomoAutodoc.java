@@ -13,20 +13,13 @@ import etomo.util.PrimativeTokenizer;
 /**
  * <p>Description: </p>
  * 
- * <p>Copyright: Copyright (c) 2005</p>
+ * <p>Copyright: Copyright 2005 - 2014 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- *<p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
- * University of Colorado</p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
- * 
+ * @version $Id$
  */
 public final class EtomoAutodoc {
-  public static final String rcsid = "$Id$";
-
   public static final String HEADER_SECTION_NAME = "SectionHeader";
   public static final String FIELD_SECTION_NAME = "Field";
   public static final String REQUIRED_ATTRIBUTE_NAME = "required";
@@ -47,10 +40,10 @@ public final class EtomoAutodoc {
 
   private static boolean debug = false;
 
-  private EtomoAutodoc() {
-  }
+  private EtomoAutodoc() {}
 
-  public static String getTooltip(final String autodocName, final ReadOnlySection section) {
+  public static String getTooltip(final String autodocName,
+      final ReadOnlySection section, final boolean addSource) {
     if (section == null) {
       if (debug) {
         System.out.println("EtomoAutodoc.getTooltip:section is null");
@@ -70,11 +63,16 @@ public final class EtomoAutodoc {
     }
     if (text != null) {
       text = removeFormatting(text.trim());
-      String source = "(" + autodocName + ":  " + section.getName() + ")";
-      if (text.endsWith(".")) {
-        return text.substring(0, text.length() - 1) + " " + source + ".";
+      if (addSource) {
+        String source = "(" + autodocName + ":  " + section.getName() + ")";
+        if (text.endsWith(".")) {
+          return text.substring(0, text.length() - 1) + " " + source + ".";
+        }
+        return text + " " + source + ".";
       }
-      return text + " " + source + ".";
+      else {
+        return text;
+      }
     }
     return null;
   }
@@ -82,21 +80,22 @@ public final class EtomoAutodoc {
   public static String getTooltip(final String autodocName,
       final ReadOnlySection section, final String enumValueName) {
     try {
-      String enumTooltip = section.getAttribute("enum").getAttribute(enumValueName)
-          .getAttribute(TOOLTIP_ATTRIBUTE_NAME).getMultiLineValue();
+      String enumTooltip =
+          section.getAttribute("enum").getAttribute(enumValueName)
+              .getAttribute(TOOLTIP_ATTRIBUTE_NAME).getMultiLineValue();
       if (enumTooltip != null) {
         enumTooltip = removeFormatting(enumTooltip.trim());
-        String source = "(" + autodocName + ":  " + section.getName() + " "
-            + enumValueName + ")";
+        String source =
+            "(" + autodocName + ":  " + section.getName() + " " + enumValueName + ")";
         if (enumTooltip.endsWith(".")) {
           return enumTooltip.substring(0, enumTooltip.length() - 1) + " " + source + ".";
         }
         return enumTooltip + " " + source + ".";
       }
-      return getTooltip(autodocName, section);
+      return getTooltip(autodocName, section, true);
     }
     catch (NullPointerException e) {
-      return getTooltip(autodocName, section);
+      return getTooltip(autodocName, section, true);
     }
   }
 
@@ -105,7 +104,16 @@ public final class EtomoAutodoc {
       return null;
     }
     return getTooltip(autodoc.getAutodocName(),
-        autodoc.getSection(FIELD_SECTION_NAME, fieldName));
+        autodoc.getSection(FIELD_SECTION_NAME, fieldName), true);
+  }
+
+  public static String getTooltip(final ReadOnlyAutodoc autodoc, final String fieldName,
+      final boolean addSource) {
+    if (autodoc == null || fieldName == null) {
+      return null;
+    }
+    return getTooltip(autodoc.getAutodocName(),
+        autodoc.getSection(FIELD_SECTION_NAME, fieldName), addSource);
   }
 
   /**
@@ -117,7 +125,7 @@ public final class EtomoAutodoc {
     if (value == null) {
       return null;
     }
-    PrimativeTokenizer tokenizer = new PrimativeTokenizer(value);
+    PrimativeTokenizer tokenizer = PrimativeTokenizer.getStringInstance(value, debug);
     StringBuffer tooltip = new StringBuffer();
     boolean removeIndentFormatting = false;
     boolean startOfLine = true;
@@ -180,7 +188,7 @@ public final class EtomoAutodoc {
     if (value == null) {
       return null;
     }
-    PrimativeTokenizer tokenizer = new PrimativeTokenizer(value);
+    PrimativeTokenizer tokenizer = PrimativeTokenizer.getStringInstance(value, debug);
     ArrayList list = new ArrayList();
     StringBuffer buffer = new StringBuffer(128);
     boolean startOfLine = true;

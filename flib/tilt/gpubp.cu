@@ -9,7 +9,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  *  $Id$
- *  Log at end of file
  */
 #include <stdio.h>
 #include <stdarg.h>
@@ -98,14 +97,14 @@ extern "C" {
 #endif
 
 static int checkProjLoad(int *numPlanes, int *lsliceStart, int startm1);
-static int testReportErr(char *mess);
+static int testReportErr(const char *mess);
 static int loadBetaInvertCos(float *cbeta, float *sbeta, float *costmp,
                              int num);
 static int synchronizeCopySlice(float *devslc, int pitch, float *slice,
                                 int width, int numLines);
 static void pflush(const char *format, ...);
 static void pflerr(const char *format, ...);
-static void allocerr(char *mess, int *nplanes, int *firstNpl,
+static void allocerr(const char *mess, int *nplanes, int *firstNpl,
                      int *lastNpl, int ifcuda);
 
 
@@ -196,11 +195,22 @@ int gpuavailable(int *nGPU, float *memory, int *debug)
   float max_gflops = -1.;
   *memory = 0;
   cudaGetDeviceCount( &device_count );
-  if (*debug)
+  if (*debug) {
+#if CUDA_CERSION >= 3000
+    int version, version2;
+    cudaRuntimeGetVersion(&version2);
+    cudaDriverGetVersion(&version);
+    pflush("CUDA version - driver: %d.%03d  runtime: %d.%03d\n", version / 1000,
+           version % 1000, version2 / 1000, version2 % 1000);
+#endif
     pflush("Device count = %d\n", device_count);
+  }
   if (*nGPU != 0) {
-    if (*nGPU < 0 || *nGPU > device_count)
+    if (*nGPU < 0 || *nGPU > device_count) {
+      pflush("The requested GPU number, %d, is out of range; there are only %d devices\n",
+             *nGPU, device_count);
       return 0;
+    }
     current_device = *nGPU - 1;
     device_count = *nGPU;
   }
@@ -212,10 +222,11 @@ int gpuavailable(int *nGPU, float *memory, int *debug)
       return 0;
     }
     if (*debug)
-      pflush("Device %d: mpc %d  cr %d  major %d minor %d  mem %.0f\n",
-             current_device, device_properties.multiProcessorCount,
-             device_properties.clockRate, device_properties.major,
-             device_properties.minor, (float)device_properties.totalGlobalMem);
+      pflush("Device %d (%s): mpc %d  cr %d  major %d minor %d  mem %.0f\n",
+             current_device, device_properties.name, 
+             device_properties.multiProcessorCount, device_properties.clockRate,
+             device_properties.major, device_properties.minor,
+             (float)device_properties.totalGlobalMem);
     gflops = device_properties.multiProcessorCount * 
       device_properties.clockRate;
 
@@ -1965,7 +1976,7 @@ static int synchronizeCopySlice(float *devslc, int pitch, float *slice,
 }
 
 // Test for and report error after executing threads           
-static int testReportErr(char *mess)
+static int testReportErr(const char *mess)
 {
   cudaError_t err;
   err = cudaGetLastError();
@@ -2007,10 +2018,10 @@ static void pflerr(const char *format, ...)
 }
 
 // Print appropriate error from allocation and free all arrays
-static void allocerr(char *mess, int *nplanes, int *firstNpl,
+static void allocerr(const char *mess, int *nplanes, int *firstNpl,
                      int *lastNpl, int ifcuda)
 {
-  char *whichText[3] = {"first", "last", "only"};
+  const char *whichText[3] = {"first", "last", "only"};
   int which = 2;
   gpudone();
   if (*firstNpl != *lastNpl) {
@@ -2028,28 +2039,3 @@ static void allocerr(char *mess, int *nplanes, int *firstNpl,
 }
 
 
-/*
-
-$Log$
-Revision 3.6  2010/09/15 22:51:04  mast
-Increased size to 2200 for constant arrays and tested nviews against this
-in the allocate routine
-
-Revision 3.5  2010/07/26 16:31:04  mast
-Changes for ncvv 3.1
-
-Revision 3.4  2010/02/26 16:56:37  mast
-Pass debug flag to gpuAvailable and return memory as a float
-
-Revision 3.3  2010/02/22 06:04:49  mast
-Added reprojection with local alignments and one-slice reprojection
-
-Revision 3.2  2010/01/10 17:20:05  mast
-Stopped selecting device more than once, setup structure to limit error
-messages on repeated allocation attempts
-
-Revision 3.1  2009/12/31 20:36:59  mast
-Initial implementation
-
-
-*/
