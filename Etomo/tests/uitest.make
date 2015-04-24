@@ -1,8 +1,9 @@
-all: gpu-test-gui single-test-gui peet-test-gui join-test-gui serial-sections-test-gui nad-test-gui generic-test-gui flatten-volume-test-gui dual-test-gui serial-sections-montage-test-gui single-montage-test-gui single-patch-tracking-test-gui single-fidless-test-gui single-simple-align-test-gui dual-montage-test-gui dual-montage-patch-tracking-test-gui
+all: gpu-test-gui single-zero-bead-test-gui single-test-gui peet-test-gui join-test-gui serial-sections-test-gui nad-test-gui generic-test-gui flatten-volume-test-gui dual-test-gui serial-sections-montage-test-gui single-montage-test-gui single-patch-tracking-test-gui single-fidless-test-gui single-simple-align-test-gui dual-montage-test-gui dual-montage-patch-tracking-test-gui
 all-pt: single-patch-tracking-test-gui single-patch-tracking dual-montage-patch-tracking
 all-peet: peet peet-test-gui
 build: single dual single-montage dual-montage join nad peet generic flatten-volume
 recon: single dual single-test-gui dual-test-gui single-fidless single-simple-align single-patch-tracking-test-gui single-patch-tracking single-montage dual-montage single-montage-test-gui single-montage-patch-tracking dual-montage-test-gui dual-montage-patch-tracking
+all-dual:  dual-test-gui dual-montage-test-gui dual-montage-patch-tracking-test-gui
 
 temp: 
 
@@ -28,6 +29,8 @@ single-patch-tracking: dummy
 	$(IMOD_UITEST_SCRIPT)/uitest single-patch-tracking
 single-montage: dummy
 	$(IMOD_UITEST_SCRIPT)/uitest single-montage
+single-zero-bead-test-gui: dummy
+	$(IMOD_UITEST_SCRIPT)/uitest single-zero-bead-test-gui
 dual-montage: dummy
 	$(IMOD_UITEST_SCRIPT)/uitest dual-montage
 single-montage-test-gui: dummy

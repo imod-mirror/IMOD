@@ -4,8 +4,7 @@
  *  Original author: James Kremer
  *  Revised by: David Mastronarde   email: mast@colorado.edu
  *
- *  Copyright (C) 1995-2005 by Boulder Laboratory for 3-Dimensional Electron
- *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
+ *  Copyright (C) 1995-2014 by the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  * 
  * $Id$
@@ -49,7 +48,7 @@ int imodDefault(Imod *model)
   char *newmodname = "IMOD-NewModel";
 
   model->objsize  = 0;
-  model->flags = IMODF_NEW_TO_3DMOD;
+  model->flags = IMODF_NEW_TO_3DMOD | IMODF_Z_FROM_MINUSPT5;
   for (i = 0; i < 13; i++)
     model->name[i] = newmodname[i];
   model->name[i]    = 0x00;
@@ -1508,14 +1507,14 @@ void imodRot90X(Imod *imod, int toNative)
 
   /* Set up the constants and multipliers from getting between Y and Z */
   if (toNative) {
-    yconst = 0.;
+    yconst = -0.5;
     yfac = 1.;
-    zconst = imod->zmax - 1.;
+    zconst = imod->zmax - 0.5;
     zfac = -1.;
   } else {
-    zconst = 0.;
+    zconst = 0.5;
     zfac = 1.;
-    yconst = imod->ymax - 1.;
+    yconst = imod->ymax - 0.5;
     yfac = -1.;
   }
   
@@ -1705,8 +1704,12 @@ void imodTransForSubsetLoad(Imod *imod, MrcHeader *hdata, IloadInfo *li)
 /*!
  * Transforms the model in [imod] according to the old and current shift, scale,
  * and rotation in the @@IrefImage structure@ [iref], with the additional 
- * scaling required for binning in each dimension specified in [binScale].
- * Returns 1 for memory errors.
+ * scaling required for binning in each dimension specified in [binScale].  The image
+ * reference information in the existing model @@IrefImage structure@, if any, is not 
+ * considered.  Typically, if that exists, its {ctrans}, {cscale}, and {crot} members 
+ * would be copied to the {otrans}, {oscale} and {orot} members of [iref], and the 
+ * current values in [iref] would be filled in from the origin, delta, and tilt
+ * angle values in an image file header.  Returns 1 for memory errors.
  */
 int imodTransFromRefImage(Imod *imod, IrefImage *iref, Ipoint binScale)
 {
@@ -1728,6 +1731,13 @@ int imodTransFromRefImage(Imod *imod, IrefImage *iref, Ipoint binScale)
   if (!mat || !matClip || !matNorm)
     return 1;
 
+  /* Model coordinates range from -0.5 to nz - 0.5 when pixels are considered to
+     have thickness in Z, so adjust up by 0.5, apply operations, adjust back down */
+  pnt.x = 0.;
+  pnt.y = 0.;
+  pnt.z = 0.5;
+  imodMatTrans(mat, &pnt);
+  
   imodMatScale(mat, &iref->oscale);
   pnt.x = 1. / iref->oscale.x;
   pnt.y = 1. / iref->oscale.y;
@@ -1773,6 +1783,10 @@ int imodTransFromRefImage(Imod *imod, IrefImage *iref, Ipoint binScale)
   pnt.y = 1. / (iref->cscale.y * binScale.y);
   pnt.z = 1. / (iref->cscale.z * binScale.z);
   imodMatScale(mat, &pnt);
+  pnt.x = 0.;
+  pnt.y = 0.;
+  pnt.z = -0.5;
+  imodMatTrans(mat, &pnt);
 
   /* Mesh normals scaling does not need to include the binning scale because
    they already include Z-scaling and the model display will be adjusted to

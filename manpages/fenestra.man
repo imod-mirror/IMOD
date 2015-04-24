@@ -1,6 +1,6 @@
 .na
 .nh
-.TH fenestra 1 4.6.34 BL3DEMC
+.TH fenestra 1 4.6.34 IMOD
 .SH NAME
 fenestra - find areas of holes in model objects
 .SH SYNOPSIS

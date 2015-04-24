@@ -140,7 +140,7 @@ abstract class ParsedDescriptor extends ParsedElement {
    * Whitespace are not allowed around the divider in an array descriptor.
    * descriptor
    */
-  Token parse(Token token, PrimativeTokenizer tokenizer) {
+  Token parse(Token token, final PrimativeTokenizer tokenizer, final int lineNum) {
     if (isDebug()) {
       System.out.println("ParsedDescriptor.parse:token=" + token);
     }
@@ -159,7 +159,7 @@ abstract class ParsedDescriptor extends ParsedElement {
           && !token.equals(Token.Type.SYMBOL, ParsedList.CLOSE_SYMBOL.charValue())
           && !token.equals(Token.Type.SYMBOL, ParsedArray.CLOSE_SYMBOL.charValue())) {
         // parse an element
-        token = parseElement(token, tokenizer);
+        token = parseElement(token, tokenizer, lineNum);
         if (isDebug()) {
           System.out.println("ParsedDescriptor.parse:descriptor=" + descriptor);
         }
@@ -175,13 +175,13 @@ abstract class ParsedDescriptor extends ParsedElement {
         // Don't worry about whitespace after the divider. It should be handled
         // by the element.
       }
-      if (validate() != null) {
+      if (validate(lineNum) != null) {
         clear();
       }
     }
     catch (IOException e) {
       e.printStackTrace();
-      fail(e.getMessage());
+      fail(e.getMessage(), lineNum);
     }
     return token;
   }
@@ -215,13 +215,14 @@ abstract class ParsedDescriptor extends ParsedElement {
     }
   }
 
-  final Token parseElement(Token token, final PrimativeTokenizer tokenizer) {
+  final Token parseElement(Token token, final PrimativeTokenizer tokenizer,
+      final int lineNum) {
     // parse a number
     ParsedNumber element = ParsedNumber.getInstance(type, etomoNumberType, isDebug(),
         defaultValue, descr);
     element.setDebug(isDebug());
     element.setDefault(defaultValue);
-    token = element.parse(token, tokenizer);
+    token = element.parse(token, tokenizer, lineNum);
     if (isDebug()) {
       System.out.println("ParsedDescriptor.parse:element=" + element);
     }
@@ -270,13 +271,13 @@ abstract class ParsedDescriptor extends ParsedElement {
     }
   }
 
-  void setRawString(final int index, final String string) {
+  void setRawString(final int index, final String string, final int lineNum) {
     if (index < 0) {
       return;
     }
     ParsedNumber element = ParsedNumber.getInstance(type, etomoNumberType, isDebug(),
         defaultValue, descr);
-    element.setRawString(string);
+    element.setRawString(string, lineNum);
     descriptor.set(index, element);
   }
 
@@ -294,18 +295,18 @@ abstract class ParsedDescriptor extends ParsedElement {
   /**
    * @return null if valid.
    */
-  public String validate() {
+  public String validate(final int lineNum) {
     for (int i = 0; i < descriptor.size(); i++) {
       ParsedElement element = descriptor.get(i);
       String errorMessage = null;
       if (element != null) {
-        errorMessage = element.validate();
+        errorMessage = element.validate(lineNum);
       }
       if (errorMessage != null) {
         return errorMessage;
       }
     }
-    return getFailedMessage();
+    return getFailedMessage(lineNum);
   }
 
   final EtomoNumber.Type getEtomoNumberType() {
@@ -324,22 +325,22 @@ abstract class ParsedDescriptor extends ParsedElement {
    * input is a collection, since it is not indexed, so it is a semi-raw string
    * - it has :'s or -'s
    */
-  final void setRawString(final String input) {
+  final void setRawString(final String input, final int lineNum) {
     descriptor.clear();
     resetFailed();
     if (input == null) {
       return;
     }
-    PrimativeTokenizer tokenizer = createTokenizer(input);
+    PrimativeTokenizer tokenizer = createTokenizer(input, lineNum);
     StringBuffer buffer = new StringBuffer();
     Token token = null;
     try {
       token = tokenizer.next();
-      parse(token, tokenizer);
+      parse(token, tokenizer, lineNum);
     }
     catch (IOException e) {
       e.printStackTrace();
-      fail(e.getMessage());
+      fail(e.getMessage(), lineNum);
     }
   }
 

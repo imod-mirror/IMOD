@@ -10,24 +10,23 @@ are system administrator who habitually builds packages, please try to use the
 appropriate binary packages first.  Aside from saving the build step, the
 packages are a lot easier to upgrade.
 
+Some brief instructions for building IMOD on Debian and Ubuntu are provided at
+the end, based on a report from Andrew Jewett.
+
 GENERAL NOTES
 
-IMOD was ported to version 4 of QT with Qt 4.4.3.  One feature was
-subsequently disabled conditionally to allow it to build with Qt 4.3 (colored
-error messages in the 3dmod Info window).  The help system was modified in
-IMOD 4.4.6 to use the new Assistant in Qt 4, thus allowing it to compile with
-Qt 4.7 and beyond, where the old assistant_adp is no longer available.  The
-new Assistant had problems in Qt 4.4 in Windows and Linux, and we thus moved
-to various later versions of Qt on various systems either to solve those
-specific problems or as a precautionary measure.  We now use Qt 4.7.4 for our
-Windows builds, 4.6.3 on RHEL6 Linux, 4.5.3 on RHEL5 Linux, and 4.6.4 for a
-32-bit build under Mac OS X with a carbon interface.  The 64-bit
-builds on Mac OS X use either 4.6.3 or 4.8.5 because there was a problem in key event
-processing from 4.6.4 through (at least) 4.7.4 that is gone in 4.8.5.
+IMOD was ported to version 4 of QT with Qt 4.4.3.  We have since moved to
+higher versions on all systems in order to get proper function from the new
+help system in Qt 4.  We now use Qt 4.7.4 for our Windows builds, 4.6.3 on
+RHEL6 Linux, and 4.5.3 on RHEL5 Linux.  The 64-bit builds on older Mac OS X
+use 4.8.5 because there was a problem in key event processing from 4.6.4
+through (at least) 4.7.4 that is gone in 4.8.5.  As far as we know, we have
+used one function introduced in Qt 4.5 but no later features.
 
-The take home message: if you have Qt 4.3 or higher on your system already,
-you can safely build with that.  If you need to build Qt, it is safe to use the
-latest Qt compatible with your compilers on any architecture.
+The take home message: if you have Qt 4.5 or higher on your system already,
+you can safely build with that.  If you need to build or otherwise install Qt,
+it is safe to use the latest Qt compatible with your compilers on any
+architecture, including Qt 5. 
 
 Several strategies were used when building Qt.  One was to build in a local
 directory and then run "make install".  With later versions on Mac, this
@@ -36,7 +35,8 @@ directory, with the "install directory" being a link in /usr/local/Trolltech
 to the local directory.  In these cases, "make install" was not run.  Below we
 show the commands that we have used for building Qt, but these are just
 examples and not authoritative statements.  You will probably be better off
-following Qt instructions.
+following Qt instructions or avoiding a build by installing pre-built
+binaries, as we have done with Qt 5.4 on Mac.
 
 In all architectures, in order for the IMOD setup to work, environment
 variable QTDIR must be defined to be the directory containing at least Qt/bin,
@@ -53,7 +53,7 @@ program directory.
 In order to build with CUDA support, environment variable CUDA_DIR must be
 defined to point to the directory where the CUDA toolkit is installed.  The
 build computer itself need not be CUDA-capable or have drivers supporting
-CUDA.  So far, CUDA 2.1 - 2.3, 3.1 - 3.3, and 4.0 - 4.1 have been used on various
+CUDA.  So far, CUDA 2.1 - 2.3, 3.1 - 3.3, 4.0 - 4.1, and 6.0 have been used on various
 systems; 3.1 required some nvcc compiler flag changes and library location
 changes.  These changes have been made for Mac OS X in IMOD 4.1, but not until
 IMOD 4.2.5 for 64-bit Linux.  CUDA support for 64-bit Mac can be built only
@@ -202,6 +202,29 @@ running
 
 and skipping the install.  It can also be built in place, and there it tells
 you not to do "make install".
+
+For Qt 5.4.1, we did not succeed in building Qt with g++ or clang under OSX
+10.8, possibly because we had an older version of XCode tools.  We installed a
+pre-build binary package without sources in a directory right under the home
+directory, $HOME/qt-5.4.1.  The customary bin, lib and include directories are
+under qt-5.4.1/5.4/clang_64, so for consistency with other installs, we made a
+link: 
+  ln -s $HOME/qt-5.4.1/5.4/clang_64 /usr/local/Trolltech/Qt-5.4.1
+In this package, the headers are not in subdirectories of include, but inside
+each of the frameworks in lib.  The easiest way to make them accessible to
+make a link for each of the six needed libraries.  Here is a csh script for
+that:
+
+foreach lib (QtCore QtGui QtOpenGL QtPrintSupport QtSql QtWidgets)
+ln -s ../lib/$lib.framework/Headers $lib
+end
+
+The equivalent bash script is:
+
+for lib in QtCore QtGui QtOpenGL QtPrintSupport QtSql QtWidgets
+do
+ln -s ../lib/$lib.framework/Headers $lib
+done
 
 To build IMOD, QTDIR must be defined, $QTDIR/bin must be on the path, and
 $QTDIR/lib must be on the DYLD_LIBRARY_PATH.
@@ -495,3 +518,39 @@ exclude it from the build.  3dmod should now build.
 
 4. Open the Qt-generated project file midas/midas.dsp and confirm the
 conversion.  Build midas.
+
+
+BUILDING ON UBUNTU
+
+Compiling under Ubuntu (14.04LTS)  (from Andrew Jewett)
+
+Install the needed packages 
+
+   sudo apt-get install build-essential gfortran default-jdk 
+   sudo apt-get install libtiff5-dev tcsh libjpeg62 mercurial
+   sudo apt-get install qt4-dev-tools
+
+You can obtain the source code using:
+
+   hg clone http://bio3d.colorado.edu/imod/nightlyBuilds/IMOD
+   cd IMOD/
+
+Thereafter, you can update the source with
+   hg pull -u
+   
+Set the environment variables needed to compile
+
+   export QTDIR=/usr/share/qt4
+   export QMAKESPEC=linux-g++
+
+To build IMOD and install it at a system location such as /usr/local/imod-test:
+   export IMOD_DIR=/usr/local/imod-test
+   sudo -E mkdir $IMOD_DIR
+   ./setup -i $IMOD_DIR
+   make
+   sudo -E make install
+
+To run this installed version, set the IMOD_DIR variable and source 
+the startup script to set other environment variables
+
+   source $IMOD_DIR/IMOD-linux.sh

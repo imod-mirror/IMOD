@@ -168,6 +168,7 @@ int iiSetupRawHeaders(ImodImageFile *inFile, RawImageInfo *info)
   /* Pass on a min and max of 0 as a sign that there is no min/max */
   hdr->amin = info->amin;
   hdr->amax = info->amax;
+  hdr->amean = (info->amin + info->amax) / 2.;
   if (info->pixel)
     mrc_set_scale(hdr, (double)info->pixel, (double)info->pixel, 
                   (double)(info->zPixel ? info->zPixel : info->pixel));

@@ -2,6 +2,11 @@
       parameter (limverts=900000,limtri=limverts*2,limpoly=50000)
       parameter (limeshobj=255,limsurf=10000,limcont=limpoly)
       parameter (limshift=20000)
+c       3/6/15 tried to double big arrays and triple others and got a seg fault on Linux
+c       limverts * 12 + limtri * 80 = limverts * 172 = 65
+c       limpoly * 40 + limconts * 24 = limpoly * 64 = 3.2
+c       limsurf * 44 = 0.4
+c       limshift * 16 = 0.3
       real*4 verts(3,limverts)                  !vertex array
       integer*4 indvert(3,limtri)               !index to 3 vertices of triangl
       real*4 xyrot(3,2,limtri)                  !rotated X and Y coords

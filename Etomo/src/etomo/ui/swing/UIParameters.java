@@ -1,15 +1,24 @@
+package etomo.ui.swing;
+
+import java.awt.Dimension;
+import java.awt.FontMetrics;
+
+import javax.swing.JCheckBox;
+
+import etomo.EtomoDirector;
+
 /**
- * <p>Description: Provides a static store for UI parameters</p>
+ * <p>Description: Provides a static store for UI parameters.  Uses lazy instanciation.
+ * The font size and button font metrics are supplied separately, and can be supplied in
+ * any order.  CalcSizes called when the instance is first constructed, as well as when
+ * the font size is passed via createInstance.  Adjusting the button size is done when the
+ * button font metrics are passed, and from calcSizes if the font metrics have been set.</p>
  * 
- * <p>Copyright: Copyright (c) 2002, 2003</p>
+ * <p>Copyright: Copyright 2002 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- *<p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
- * University of Colorado</p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
+ * @version $Id$
  * 
  * <p> $Log$
  * <p> Revision 1.1  2010/11/13 16:07:34  sueh
@@ -86,21 +95,20 @@
  * <p> Initial revision
  * <p> </p>
  */
-package etomo.ui.swing;
-
-import java.awt.Dimension;
-
-import javax.swing.JCheckBox;
-
-import etomo.EtomoDirector;
 
 public final class UIParameters {
-  public static final String rcsid = "$Id$";
+  private static UIParameters instance = null;
 
-  public static final UIParameters INSTANCE = new UIParameters();
+  private static final Object CONSTRUCT = new Object();
   private static final double DEFAULT_FONT_SIZE = 12;
-  private static final double DEFAULT_HEIGHT = 21;
-
+  private static final double DEFAULT_CHECKBOX_HEIGHT = 21;
+  private static final int DEFAULT_TEXT_HEIGHT = 15;
+  private static final int DEFAULT_MAX_CHARS_WIDTH = 139;
+  private static final String[] LONG_BUTTON_LINES = new String[] {
+    "Align SerialSections ", " Anisotropic Diffusion", " Replacement Model",
+    "Track with Fiducial ", "Use RAPTOR Result ", "Delete Intermediate ",
+    "Run Flattenwarp to ", " Values Test Results", "Run with Different ",
+    " Iteration Test Results", " Alignment to Midas", " Transformed Model" };
   private final Dimension dimButton = new Dimension();
   private final Dimension dimButtonSingleLine = new Dimension();
   private final Dimension dimNarrowButton = new Dimension();
@@ -109,7 +117,6 @@ public final class UIParameters {
   private final Dimension dimFileChooser = new Dimension();
   private final Dimension dimAxisButton = new Dimension();
 
-  private double fontSize = DEFAULT_FONT_SIZE;
   private double fontSizeAdjustment = 1;
   private int numericWidth;
   private int wideNumericWidth;
@@ -121,13 +128,68 @@ public final class UIParameters {
   private int listWidth;
   private int fileWidth;
 
-  private UIParameters() {
-    calcSizes();
+  private static boolean adjustedButtonSize = false;
+  private static FontMetrics buttonFontMetrics = null;
+
+  private double checkboxHeight = DEFAULT_CHECKBOX_HEIGHT;
+
+  private UIParameters() {}
+
+  /**
+   * Calculates sizes using the fontSize parameter.  Creates the instance if necessary.
+   * improves the button size if font metrics are available.
+   * @param fontSize
+   */
+  public static void createInstance(final double fontSize) {
+    if (instance == null) {
+      synchronized (CONSTRUCT) {
+        instance = new UIParameters();
+      }
+    }
+    instance.calcSizes(fontSize);
   }
 
-  public void setFontSize(int fontSize) {
-    this.fontSize = fontSize;
-    calcSizes();
+  /**
+   * Calls createInstance if the instance is null.  Returns the instance.  Will never
+   * return null.
+   * @return
+   */
+  public static UIParameters getInstance() {
+    if (instance == null) {
+      createInstance(DEFAULT_FONT_SIZE);
+    }
+    return instance;
+  }
+
+  /**
+   * Returns the singleton instance with a better button size based on font metrics.  The
+   * improved button size is calculated when font metrics are set.  It is calculated again
+   * if font size is later reset.
+   * Function will never return null.  Calls createInstance if instance is null.  Uses the
+   * default font size.
+   * Font metrics only affects the button size the first time it is set.
+   * @return
+   */
+  public static UIParameters getInstance(final FontMetrics buttonFontMetrics) {
+    UIParameters.buttonFontMetrics = buttonFontMetrics;
+    if (instance == null) {
+      createInstance(DEFAULT_FONT_SIZE);
+      return instance;
+    }
+    if (!adjustedButtonSize && buttonFontMetrics != null) {
+      synchronized (CONSTRUCT) {
+        instance.improveButtonSize(buttonFontMetrics);
+      }
+    }
+    return instance;
+  }
+
+  /**
+   * Only the multi-line button size is recalculated based on font metrics.
+   * @return
+   */
+  public static boolean needButtonFontMetrics() {
+    return !adjustedButtonSize;
   }
 
   /**
@@ -211,27 +273,29 @@ public final class UIParameters {
    * Sets size of objects given the current UI state.
    *
    */
-  private void calcSizes() {
-    double height;
+  private void calcSizes(final double fontSize) {
+    adjustedButtonSize = false;
     // Create a temporary check box and get its height
     if (!EtomoDirector.INSTANCE.getArguments().isHeadless()) {
       JCheckBox temp = new JCheckBox();
-      height = temp.getPreferredSize().getHeight();
+      checkboxHeight = temp.getPreferredSize().getHeight();
     }
     else {
-      height = DEFAULT_HEIGHT;
+      checkboxHeight = DEFAULT_CHECKBOX_HEIGHT;
     }
     fontSizeAdjustment = fontSize / DEFAULT_FONT_SIZE;
-    dimButton.setSize(7 * height * fontSizeAdjustment, 2 * height * fontSizeAdjustment);
-    dimButtonSingleLine.setSize(7 * height * fontSizeAdjustment, 1.25 * height * fontSizeAdjustment);
-    dimNarrowButton.setSize(4 * height * fontSizeAdjustment, 1.25 * height
-        * fontSizeAdjustment);
-    dimAxisButton.setSize(3.6 * height * fontSizeAdjustment, 1.25 * height
-        * fontSizeAdjustment);
-    dimSpinner.setSize(2 * height * fontSizeAdjustment, 1.05 * height
-        * fontSizeAdjustment);
-    dimFileField.setSize(20 * height * fontSizeAdjustment, 2 * height
-        * fontSizeAdjustment);
+    dimButton.setSize(7 * checkboxHeight * fontSizeAdjustment, 2 * checkboxHeight
+      * fontSizeAdjustment);
+    dimButtonSingleLine.setSize(7 * checkboxHeight * fontSizeAdjustment, 1.25
+      * checkboxHeight * fontSizeAdjustment);
+    dimNarrowButton.setSize(4 * checkboxHeight * fontSizeAdjustment, 1.25
+      * checkboxHeight * fontSizeAdjustment);
+    dimAxisButton.setSize(3.6 * checkboxHeight * fontSizeAdjustment, 1.25
+      * checkboxHeight * fontSizeAdjustment);
+    dimSpinner.setSize(2 * checkboxHeight * fontSizeAdjustment, 1.05 * checkboxHeight
+      * fontSizeAdjustment);
+    dimFileField.setSize(20 * checkboxHeight * fontSizeAdjustment, 2 * checkboxHeight
+      * fontSizeAdjustment);
     dimFileChooser.setSize(400 * fontSizeAdjustment, 400 * fontSizeAdjustment);
     numericWidth = (int) (40 * fontSizeAdjustment);
     wideNumericWidth = (int) (50 * fontSizeAdjustment);
@@ -242,5 +306,34 @@ public final class UIParameters {
     fourDigitWidth = (int) (40 * fontSizeAdjustment);
     listWidth = (int) (140 * fontSizeAdjustment);
     fileWidth = (int) (210 * fontSizeAdjustment);
+    // Adjust the button size if possible
+    if (buttonFontMetrics != null) {
+      instance.improveButtonSize(buttonFontMetrics);
+    }
+  }
+
+  /**
+   * Create a better button size based on font metrics and the longest lines of text in
+   * the multiline buttons.
+   * @param fontMetrics
+   */
+  private void improveButtonSize(final FontMetrics fontMetrics) {
+    if (fontMetrics == null) {
+      return;
+    }
+    adjustedButtonSize = true;
+    int textHeight = fontMetrics.getHeight();
+    System.err.println("button text height:" + textHeight);
+    double heightAdjustment = (double) textHeight / DEFAULT_TEXT_HEIGHT;
+    int maxCharsWidth = 0;
+    for (int i = 0; i < LONG_BUTTON_LINES.length; i++) {
+      maxCharsWidth =
+        Math.max(maxCharsWidth, fontMetrics.charsWidth(
+          LONG_BUTTON_LINES[i].toCharArray(), 0, LONG_BUTTON_LINES[i].length()));
+    }
+    System.err.println("button maximum characters width:" + maxCharsWidth);
+    double widthAdjustment = (double) maxCharsWidth / DEFAULT_MAX_CHARS_WIDTH;
+    dimButton.setSize(7 * checkboxHeight * widthAdjustment, 2 * checkboxHeight
+      * heightAdjustment);
   }
 }

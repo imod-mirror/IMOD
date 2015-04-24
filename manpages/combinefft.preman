@@ -1,6 +1,6 @@
 .na
 .nh
-.TH combinefft 1 4.6.34 BL3DEMC
+.TH combinefft 1 4.6.34 IMOD
 .SH NAME
 combinefft - combine FFTs of tomograms from a double-axis tilt series
 .SH SYNOPSIS

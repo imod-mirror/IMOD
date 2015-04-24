@@ -1,6 +1,6 @@
 .na
 .nh
-.TH setupstitch 1 3.10.5 BL3DEMC
+.TH setupstitch 1 3.10.5 IMOD
 .SH NAME
 setupstitch \- Initial set up for stitching montage of overlapping tomograms
 .SH SYNOPSIS
@@ -44,7 +44,7 @@ starting the info file yourself with a text editor.  In any case, there are
 some situations that require manually inserting information about individual
 volumes into the info file.
 .P
-The info file is in the BL3DEMC autodoc format, which consists of sections
+The info file is in the IMOD autodoc format, which consists of sections
 of defined types, each containing information as key-value pairs.  In the
 abstract, this looks like:
 .nf

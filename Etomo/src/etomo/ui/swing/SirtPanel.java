@@ -467,7 +467,7 @@ final class SirtPanel implements Run3dmodButtonContainer, SirtsetupDisplay, Expa
     else {
       fileType = FileType.SIRT_OUTPUT_TEMPLATE;
     }
-    String templateExt = fileType.getExtension(manager);
+    String templateExt = fileType.getExtension(manager.getBaseMetaData().getAxisType());
     if (fileNameList != null && fileNameList.length > 0) {
       fileNumberList = new int[fileNameList.length];
       for (int i = 0; i < fileNumberList.length; i++) {
@@ -520,7 +520,7 @@ final class SirtPanel implements Run3dmodButtonContainer, SirtsetupDisplay, Expa
         .listFiles((FilenameFilter) sirtOutputFileFilter);
     if (fileList == null || fileList.length != 1) {
       JFileChooser chooser = new FileChooser(new File(manager.getPropertyUserDir()));
-      chooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
+      chooser.setPreferredSize(UIParameters.getInstance().getFileChooserDimension());
       chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
       chooser.setMultiSelectionEnabled(true);
       chooser.setFileFilter(sirtOutputFileFilter);
@@ -554,7 +554,7 @@ final class SirtPanel implements Run3dmodButtonContainer, SirtsetupDisplay, Expa
       return;
     }
     JFileChooser chooser = new FileChooser(new File(manager.getPropertyUserDir()));
-    chooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
+    chooser.setPreferredSize(UIParameters.getInstance().getFileChooserDimension());
     chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
     chooser.setFileFilter(sirtOutputFileFilter);
     int returnVal = chooser.showOpenDialog(pnlRoot);
@@ -587,11 +587,6 @@ final class SirtPanel implements Run3dmodButtonContainer, SirtsetupDisplay, Expa
     UIHarness.INSTANCE.pack(axisID, manager);
   }
 
-  public void action(final Run3dmodButton button,
-      final Run3dmodMenuOptions run3dmodMenuOptions) {
-    action(button.getActionCommand(), button.getDeferred3dmodButton(),
-        run3dmodMenuOptions);
-  }
 
   private void resumeChanged() {
     boolean resume = isResume();
@@ -630,7 +625,7 @@ final class SirtPanel implements Run3dmodButtonContainer, SirtsetupDisplay, Expa
    * @param deferred3dmodButton
    * @param run3dmodMenuOptions
    */
-  private void action(final String actionCommand,
+  public void action(final String actionCommand,
       final Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (actionCommand.equals(btnSirt.getActionCommand())) {
@@ -660,7 +655,7 @@ final class SirtPanel implements Run3dmodButtonContainer, SirtsetupDisplay, Expa
   private void setToolTipText() {
     ReadOnlyAutodoc autodoc = null;
     try {
-      autodoc = AutodocFactory.getInstance(manager, AutodocFactory.SIRTSETUP, axisID);
+      autodoc = AutodocFactory.getInstance(manager, AutodocFactory.SIRTSETUP, axisID,false);
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();
