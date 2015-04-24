@@ -1,0 +1,449 @@
+#!/bin/csh
+#############################################################################
+# Intel running Red Hat Linux 7-8
+# Modified for Intel running Red Hat 7.3  7/18/02 by dnm and rjg
+#
+# 3/28/03: eliminated all X includes and libs
+#
+set c_includes = ""
+set ccompFlags = ""
+set Ltifflib = ""
+set Lfftwlib = ""
+
+# DNM 8/27/01: Needed for large files to work right.  Use a -D define instead
+# of #define in imodconfig because it must precede all system includes.
+set defines = '-D_FILE_OFFSET_BITS=64'
+
+# If TIFF 4 exists, adjust the include path and
+#
+if ($?TIFF4_DIR) then
+    set c_includes = "-I${TIFF4_DIR}/include"
+    set Ltifflib = "-L${TIFF4_DIR}/lib"
+endif
+
+# If FFTW exists, adjust include path and set library variables
+#
+if ($?FFTW3_DIR) then
+    set c_includes = "$c_includes -I${FFTW3_DIR}/include"
+    set Lfftwlib = "-L${FFTW3_DIR}/lib"
+    set lifft = "-lifft -lfftw3f_omp -lfftw3f"
+endif
+
+# Set default compiler to intel if the fortran compiler is on the path
+#
+if ($compiler == default) then
+    which ifort >& /dev/null
+    if (! $status) set compiler = intel
+    if ($compiler == default) set compiler = gfortran
+endif
+if ($compiler == gnu) set compiler = gfortran
+
+set fcompFlags = ""
+set openmpFlags = ""
+if ($compiler == intel) then
+    set dynamic = '-i-dynamic'
+    if ($intelstat == true) then
+        set dynamic = "-i-static"
+        set shared_libs = false
+    endif
+    echo "CC        = icc"              >> $configure
+    echo "CXX       = icpc"              >> $configure
+    set fcomp = "ifort"
+    set lapackopt = '-nofor-main'
+    set fcompFlags = '-132 -assume bscc -vec-report0 -heap-arrays 100'
+    set ccompFlags = '-vec-report0'
+    echo "      parameter (nbytes_recl_item=4)" >! $endian_dir/recl_bytes.inc
+    set nnvulnflags = '-fp-model source'
+
+    icc -v >&! icc.tmp
+    set iccnum = `sed 's/[^0-9]/ /g' icc.tmp`
+    @ iccversion = 9
+    if ($#iccnum > 1) then
+        @ iccversion = $iccnum[1]
+    else
+        echo "Cannot get version number from icc -v"
+    endif
+    \rm -f icc.tmp
+    if ($openmp == true) set openmpFlags = "-openmp"
+    echo 'LDFLAGS = -L$(LIBDIR)'" $dynamic $openmpFlags $Ltifflib $Lfftwlib" >> $configure
+
+else
+    echo "CC        = gcc"              >> $configure
+    echo "CXX       = g++"              >> $configure
+    set fcompFlags = "-ffixed-line-length-0"
+    set fortvers = 3
+    set lapackopt = ''
+
+    if ($compiler == gfortran) then
+        gfortran -v >&! gfortran.tmp
+        set fortvers = `sed -n '/gcc version/s/.*sion \([0-9\.]*\).*/\1/p' gfortran.tmp |sed '/\./s// /g'`
+        \rm -f gfortran.tmp
+        if ($#fortvers < 2) set fortvers = 3
+    endif
+    if ($fortvers[1] == 3) then
+        set fcomp = "f77"
+        #
+        # tell the C routines being called by Fortran that they need two __
+        #
+        echo '#define G77__HACK' >> $hconfigure
+        set openmp = false
+    else
+        #
+        # gfortran needs unlimited fixed format, and date and time subroutines
+        # also needs -fbackslash starting at 4.3
+        set fcomp = "gfortran"
+        @ minorvers = $fortvers[2]
+        if ($fortvers[1] != 4 || $minorvers > 2) set fcompFlags = "-fbackslash $fcompFlags"
+        echo "DATESRC   = compat/datetime.f" >> $configure
+        echo "DIRDATEOBJ  = compat/datetime.o" >> $configure
+        echo "DATEOBJ  = datetime.o" >> $configure
+        if ($fortvers[1] == 4 && $minorvers == 0) set openmp = false
+        if ($openmp == true) set openmpFlags = "-fopenmp"
+    endif
+    echo 'LDFLAGS = -L$(LIBDIR)'" $openmpFlags $Ltifflib $Lfftwlib" >> $configure
+    if ($QMAKESPEC == "linux-icc") unsetenv QMAKESPEC
+endif
+
+# Needed under tcsh 6.12 in RH 8.0 to avoid getting two \ out
+cat << EOF >> $configure
+CP        = \\cp
+FIND      = \\find
+EOF
+
+#
+# Set up special flags for 64 bit
+#
+set m64flags =
+set libflags =
+if ($m64bit == true) then
+    if ($compiler != intel) then
+        if ($m64notIA == true) set m64flags = "-m64"
+        set libflags = "-fPIC"
+    endif
+    set include_flags = "$include_flags -I/usr/lib64"
+endif
+
+set wrapper = ""
+
+if ($shared_libs != false) then
+    if ($compiler == intel) then
+        #
+        # Intel compiler defines a different flag in fortran and C so add them
+        # to the archive commands
+        #
+        echo "AR      = icc -fPIC"                 >> $configure
+        echo "ARCPP   = icpc -fPIC"                >> $configure
+        echo "ARFLAGS = $flags $libflags -shared -o "    >> $configure
+        set far = 'ifort -fpic'
+    else
+        echo "AR      = g++"                 >> $configure
+        echo "ARCPP   = g++"                >> $configure
+        echo "ARFLAGS = $flags $libflags -shared -o "    >> $configure
+    endif
+    echo "RANLIB    = true"                     >> $configure
+    echo "LIBEXT  = so"                 >> $configure
+else
+    echo "AR      = ar"                 >> $configure
+    echo "ARCPP   = ar"                 >> $configure
+    echo "ARFLAGS = ruv "                >> $configure
+    echo "RANLIB    = ranlib"            >> $configure
+    echo "LIBEXT  = a"                  >> $configure
+endif
+
+echo 'MAKELIB   = $(AR) $(ARFLAGS)' >> $configure
+echo 'MAKELIBCPP = $(ARCPP) $(ARFLAGS)' >> $configure
+echo 'MAKELIBSO = $(MAKELIBCPP)' >> $configure
+
+echo "CLIBS   = -lc -lm" >> $configure
+echo 'LIBS    = $(CLIBS)'  >> $configure
+echo 'FORTCLIBS = '  >> $configure
+
+if ($compiler == intel) then
+    echo "IMLIBS     = -lhvem -lmrcim -liimod -lcfshr -ltiff" >> $configure
+else
+    echo "IMLIBS     = -lhvem -lmrcim -liimod -lcfshr -lb3dcmpt -ltiff" >> $configure
+endif
+
+#
+# It said "Needed for Red Hat 9/Qt 3.1" but now it seems not, and gcc 4 needs
+# it gone
+#set fort_cpplibs = -lstdc++
+
+# 
+# tell the C routines to swap the bytes for INTEL
+#
+echo '#define B3D_LITTLE_ENDIAN' >> $hconfigure
+echo '#define SWAP_IEEE_FLOATS' >> $hconfigure
+
+#
+# Tell fortran routines how to swap bytes too
+#
+\cp $endian_dir/little_endian.inc $endian_dir/endian.inc
+
+# 10/1906: Removed lots of ancient hack defines
+
+#
+# Use a workaround when window managers won't do StaysOnTop reliably
+# 1/16/09: Let's try it without the hack and see how it goes
+#echo '#define STAY_ON_TOP_HACK' >> $hconfigure
+
+# For Qt 3.2 onward, need to post message twice
+#
+echo '#define SENDEVENT_RETRY_HACK 0' >> $hconfigure
+
+set qmcxxFlags = ''
+if ($compiler == intel) then
+    set optimization = "-O2 -w"
+    if ($m64bit == true) set optimization = "-O2 -unroll -w -axWPT"
+    if ($debug == true) then
+        #  remark #310: old-style parameter list (anachronism) [need (void)]
+        #  remark #383: value copied to temporary, reference to temporary used
+        #  remark #424: extra ";" ignored
+        #  remark #444: destructor for base class ... is not virtual
+        #  remark #593: variable "..." was set but never used
+        #  remark #810: conversion from ... to ... may lose precision
+        #  remark #869: parameter ... was never referenced
+        #  remark #981: operands are evaluated in unspecified order
+        #  remark #1418: external function with no prior declaration (f-wraps!)
+        #  remark #1572: floating-point equality and inequality comparisons 
+        #     are unreliable [but usually quite appropriate!]
+        #  remark #2259: non-pointer conversion from ... to ... may lose significant bits
+        set qmcxxFlags = "-Wall -wd310,383,424,444,593,810,869,981,1418,1572,2259"
+        set optimization = "-g -O0"
+        set fcompFlags = ($fcompFlags -check -traceback -fpe0 -W1)
+        set ccompFlags = ($ccompFlags -traceback $qmcxxFlags)
+    endif
+else
+    set optimization = "-O3 -w"
+    if ($debug == true) then
+        set optimization = "-ggdb -O0 -Wall"
+        set qmcxxFlags = "-Wno-unused-parameter -Wno-sign-compare -Wno-long-long"
+        set ccompFlags = ($ccompFlags $qmcxxFlags -pedantic)
+    endif
+endif
+
+# 4/8/04: Use intermediate variables to simplify all the defines that are needed
+#
+set cflags = "$flags $m64flags $ccompFlags $optimization $defines $include_flags $c_includes"
+set fflags = "$flags $m64flags $fcompFlags $optimization $include_flags"
+
+echo "CFLAGS  = $cflags" >> $configure
+echo "CXXFLAGS = $cflags" >> $configure
+echo "FFLAGS  = $fflags" >> $configure
+echo "NOOPFFLAGS = $fflags -O0" >> $configure
+
+# 4/8/04: Add flags for building libraries
+#
+if ($compiler == intel) then
+    echo "LIBCFLAGS  = -fPIC $libflags $cflags" >> $configure
+    echo "LIBFFLAGS  = -fpic $libflags $fflags" >> $configure
+else
+    echo "LIBCFLAGS  = $libflags $cflags" >> $configure
+    echo "LIBFFLAGS  = $libflags $fflags" >> $configure
+endif
+
+# 7/6/05: took out the fallbacks; no longer needed on SGI
+#
+
+if ($m64bit == true) then
+    # If 64-bit, use fortran routines for tilt
+    echo 'TILTOBJS = bpsumnox.o bpsumxtilt.o bpsumlocal.o' >> $configure
+else
+    # Otherwise use assembly code for tilt program
+    echo 'TILTOBJS = handnox.o handxtilt.o handlocal.o' >> $configure
+endif
+
+# make extra fortran libs
+#
+if ($compiler != intel) echo 'LINUXFLIBS = $(LIBCOMPAT)' >> $configure
+
+# Qtplax needs to kill second thread on Linux, but problem in Suse 64-bit
+#
+if ($m64bit == false) echo '#define QTPLAX_ATEXIT_HACK' >> $hconfigure
+
+#
+#   default is to assume tifflib exists
+#
+if ($tifflibs == default) set tifflibs = true
+
+# Link lapack programs with fortran compiler; C++ programs need library
+#
+set lapacklink = "$fcomp $lapackopt"
+set fort_cpplibs = "-lstdc++"
+
+# If Qt is not unitary, set up various variables
+#
+set midasglinc = $QTDIR/include
+if (! -e "$QTDIR/include") then
+    set qtincdir = /usr/include
+
+    # This is for Unbuntu
+    if (! -e /usr/include/Qt) set qtincdir = /usr/include/qt4
+    set midasglinc = $qtincdir
+    if ($m64bit == true) then
+        echo "QTLIBSRC = /usr/lib64" >> $configure
+    else
+        echo "QTLIBSRC = /usr/lib" >> $configure
+    endif
+    if (! -e $QTDIR/bin/moc) set moc = `which moc`
+endif
+    
+#
+# Set up things for Qt include files
+#
+cat << EOF  >! $midas_qconf
+DEFINES	+= _FILE_OFFSET_BITS=64
+INCLUDEPATH += $midasglinc/QtOpenGL
+LIBS += $Ltifflib $Lfftwlib
+EOF
+
+cat << EOF >! $imod_qconf
+SOURCES += linegui.cpp
+HEADERS += linegui.h
+LIBS += -L$lib_dir $Ltifflib $Lfftwlib -liimod -limesh -limod -ltrack -lcfshr -ldiaqt $lifft -ltiff
+LIBS += -lGLU -lm
+DEFINES	+= _FILE_OFFSET_BITS=64
+QMAKE_LFLAGS_DEBUG += -Wl,-E
+QMAKE_LFLAGS_RELEASE += -Wl,-E
+EOF
+
+# The lstdc++ is needed for linking with gfortran on FC 14; see if it works everywhere
+echo "LIBS += $Ltifflib $Lfftwlib $fort_cpplibs" >! $ctfplot_qconf
+echo "LIBS += $Ltifflib" >! $mrc2tif_qconf
+echo " " >! $prochunk_qconf
+if ("$qmcxxFlags" != "") then
+    foreach i ($midas_qconf $imod_qconf $ctfplot_qconf $prochunk_qconf)
+        echo "QMAKE_CXXFLAGS_DEBUG += $qmcxxFlags" >> $i
+    end
+endif
+
+# Set up to massage QT makefiles for intel, and take care of DLL copies
+@ dllnum = 1
+if ($compiler == intel) then
+    if ($intelstat == false) then
+        @ dllnum = 3
+        set ccdir = `which icc`
+        set cclibdir = $ccdir:h:h/lib
+        set fortdir = `which ifort`
+        set fortlibdir = $fortdir:h:h/lib
+        if ($iccversion > 10) then
+            set cclibdir = $ccdir:h:h:h/lib/ia32
+            if ($m64bit == true) set cclibdir = $ccdir:h:h:h/lib/intel64
+            set fortlibdir = $cclibdir
+        endif
+        echo "DLLSOURCEDIR1 = $cclibdir" >> $configure
+        echo "DLLSOURCEDIR2 = $fortlibdir" >> $configure
+        if ($iccversion > 9) then
+            echo "DLLSTOCOPY2 = libifcore libifport libifcoremt" >> $configure
+            set dllstocopy1 = "libimf libintlc"
+        else
+            echo "DLLSTOCOPY2 = libifcore libifport" >> $configure
+            set dllstocopy1 = "libcxaguard libirc libimf libintlc"
+        endif
+        if ($wrapintel == true) then
+            echo "DLLDESTDIR = qtlib" >> $configure
+        else
+            echo "DLLDESTDIR = lib" >> $configure
+        endif
+        if ($openmp == true) then
+            if ($iccversion > 10) then
+                set dllstocopy1 = "$dllstocopy1 libiomp5"
+            else
+                set dllstocopy1 = "$dllstocopy1 libguide"
+            endif
+            if ($iccversion <= 9) set dllstocopy1 = "$dllstocopy1 libifcoremt"
+        endif
+    endif
+    setenv QMAKESPEC linux-icc
+
+    if ($m64bit == true) then
+        if ($intelstat == false) \
+          echo "DLLSTOCOPY1 = $dllstocopy1 libsvml" >> $configure
+        set qtdel1 = "-m64"
+        set qtdel2 = "-mtune=nocona"
+        set qtsub1f = "X11R6\/lib "
+        set qtsub1t = "X11R6\/lib64 "
+    else
+        if ($intelstat == false) \
+            echo "DLLSTOCOPY1 = $dllstocopy1" >> $configure
+        set qtdel1 = "-m32"
+        set qtdel2 = "-fasynchronous-unwind-tables"
+        set qtsub1f = gibberish
+        set qtsub1t = t
+    endif
+
+# Or set up to pack libg2c
+else if ($packg2c == true) then
+    set g2cdir = /usr/lib
+    if ($m64bit == true) set g2cdir = /usr/lib64
+    set g2clib = libg2c
+    if ($compiler == "gfortran") set g2clib = libgfortran
+    if (`\find $g2cdir -maxdepth 1 -name "${g2clib}.so*" -print` != "") then
+        echo "DLLDESTDIR = lib" >> $configure
+        echo "DLLSOURCEDIR1 = $g2cdir" >> $configure
+        echo "DLLSTOCOPY1 = $g2clib" >> $configure
+        if ($compiler != "gfortran") echo "DLLSTORENAME = libg2c" >> $configure
+        @ dllnum = 2
+    else
+        echo "WARNING: Cannot find ${g2clib}.so in $g2cdir"
+    endif
+endif
+
+# Adjust variables for CUDA and set to copy the library
+#
+if ($?CUDA_DIR) then
+    set cudavers = `nvcc --version | sed -n -e '/[,.]/s// /g' -e '/^.*release/s///p'`
+    @ cudamajor = $cudavers[1]
+    if ($cudamajor > 4) set cuda_arch_opts = '-arch sm_12'
+    set cudalibdir = "$CUDA_DIR/lib"
+    if ($cudamajor > 2 && $m64bit == true) set cudalibdir = "$CUDA_DIR/lib64"
+    set nvcc_flags = "$cuda_arch_opts $nvcc_flags -DUNIX -Xcompiler -fno-strict-aliasing -O3"
+    if ($cudamajor < 3) set nvcc_flags = "$nvcc_flags --host-compilation C"
+    if ($dllnum == 1) echo "DLLDESTDIR = lib" >> $configure
+    echo "DLLSTOCOPY$dllnum = libcudart libcufft" >> $configure
+    echo "DLLSOURCEDIR$dllnum = $cudalibdir" >> $configure
+    set cudalibs = "-L$cudalibdir -lcudart -lcufft"
+    @ dllnum++
+endif
+
+# Set up to copy libtiff 4 library
+#
+if ($?TIFF4_DIR) then
+    if ($dllnum == 1) echo "DLLDESTDIR = lib" >> $configure 
+    echo "DLLSTOCOPY$dllnum = libtiff" >> $configure 
+    echo "DLLSOURCEDIR$dllnum = $TIFF4_DIR/lib" >> $configure
+    @ dllnum++
+endif
+
+# Set up to copy FFTW library
+#
+if ($?FFTW3_DIR) then
+    if ($dllnum == 1) echo "DLLDESTDIR = lib" >> $configure 
+    echo "DLLSTOCOPY$dllnum = libfftw3f_omp libfftw3f" >> $configure 
+    echo "DLLSOURCEDIR$dllnum = $FFTW3_DIR/lib" >> $configure
+    @ dllnum++
+endif    
+
+if ($packqt == true) then
+    #
+    # Set up to copy qt lib for distribution, set up for correctly named
+    # startup files depending on whether it is default to use Qt or not
+    #
+    set assistant = `which assistant`
+    set qt4libstocopy = `ldd $assistant | sed -n '/libQt/s/ *lib\([^\.]*\).*=.*/\1/p'`
+    set qt4libstocopy = (QtOpenGL $qt4libstocopy)
+    echo 'QTINSTLIBDIR = qtlib' >> $configure
+    if ($useqt == true) then
+        if ($compiler == intel && $intelstat == false && $wrapintel == true) then
+            echo 'INSTALL_FILES = IMOD-linux.csh IMOD-linux.sh' >> $configure
+        else
+            echo 'INSTALL_RENAME = IMOD-linuxPackQt.csh IMOD-linux.csh IMOD-linuxPackQt.sh IMOD-linux.sh' >> $configure
+        endif
+    else
+        echo 'INSTALL_RENAME = IMOD-linuxPackQt.csh IMOD-localQt.csh IMOD-linuxPackQt.sh IMOD-localQt.sh' >> $configure
+        echo 'INSTALL_FILES = IMOD-linux.csh IMOD-linux.sh' >> $configure
+    endif
+else
+    echo 'INSTALL_FILES = IMOD-linux.csh IMOD-linux.sh IMOD-qtconflict.csh IMOD-qtconflict.sh' >> $configure
+    set qt4libstocopy = ""
+endif
