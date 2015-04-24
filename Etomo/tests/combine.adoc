@@ -447,6 +447,7 @@ assert.exists.file = warpvol.com
   #
   #dualvolmatch parameters
   assert.enabled.tf.limit-on-center-shift.1=
+  cb.use-image-correlations-instead-of-solvematch-for-initial-match=off
   #
   #final match
   tb.setup.2=
