@@ -134,7 +134,7 @@ public final class Arguments {
    * before it can
    * run EtomoDirector.main.
    */
-  private boolean selfTest = true;
+  private boolean selfTest = false;
   private boolean newstuff = false;
   private boolean displayMemory = false;
   private boolean help = false;
