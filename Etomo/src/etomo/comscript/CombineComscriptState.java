@@ -1,6 +1,5 @@
 package etomo.comscript;
 
-import etomo.EtomoDirector;
 import etomo.type.FileType;
 import etomo.type.ProcessName;
 import etomo.util.DatasetFiles;
@@ -137,8 +136,8 @@ public final class CombineComscriptState implements ComscriptState {
       COMMANDS[SOLVEMATCH_DUALVOLMATCH_INDEX] = ProcessName.DUALVOLMATCH.toString();
     }
     initializeComscriptMatchString();
-    selfTest = EtomoDirector.INSTANCE.getArguments().isSelfTest();
-    runSelfTest(CONSTRUCTED_STATE);
+    //selfTest = EtomoDirector.INSTANCE.getArguments().isSelfTest();
+    //runSelfTest(CONSTRUCTED_STATE);
   }
 
   /**
@@ -148,11 +147,11 @@ public final class CombineComscriptState implements ComscriptState {
    */
   boolean initialize(final ComScriptManager comScriptManager) {
     if (!loadStartCommand(comScriptManager)) {
-      runSelfTest(INITIALIZED_STATE);
+     // runSelfTest(INITIALIZED_STATE);
       return false;
     }
     loadEndCommand(comScriptManager);
-    runSelfTest(INITIALIZED_STATE);
+    //runSelfTest(INITIALIZED_STATE);
     return true;
   }
 
@@ -178,7 +177,7 @@ public final class CombineComscriptState implements ComscriptState {
     GotoParam gotoParam = new GotoParam();
     gotoParam.setLabel(COMMANDS[startCommand]);
     comScriptManager.saveCombine(gotoParam);
-    runSelfTest(START_COMMAND_SET_STATE);
+   // runSelfTest(START_COMMAND_SET_STATE);
   }
 
   /**
@@ -223,7 +222,7 @@ public final class CombineComscriptState implements ComscriptState {
       throw new IllegalStateException(
         "EndCommand can only be volcombine or matchorwarp.  endCommand=" + endCommand);
     }
-    runSelfTest(END_COMMAND_SET_STATE);
+  //  runSelfTest(END_COMMAND_SET_STATE);
   }
 
   public void resetOutputImageFileType() {
