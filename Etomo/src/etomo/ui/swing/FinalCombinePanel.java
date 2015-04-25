@@ -1140,25 +1140,25 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
    * @param matchorwarpParam
    */
   public void setMatchorwarpParams(ConstMatchorwarpParam matchorwarpParam) {
-    ltfWarpLimit.setText(matchorwarpParam.getWarpLimit());
+    ltfWarpLimit.setText(matchorwarpParam.getWarpLimits());
     ltfRefineLimit.setText(matchorwarpParam.getRefineLimit());
 
-    if (matchorwarpParam.getXLowerExclude() > 0) {
+    if (matchorwarpParam.isXLowerExcludeSet()) {
       ltfXLowerExclude.setText(matchorwarpParam.getXLowerExclude());
     }
-    if (matchorwarpParam.getXUpperExclude() > 0) {
+    if (matchorwarpParam.isXUpperExcludeSet()) {
       ltfXUpperExclude.setText(matchorwarpParam.getXUpperExclude());
     }
 
-    if (matchorwarpParam.getZLowerExclude() > 0) {
+    if (matchorwarpParam.isZLowerExcludeSet()) {
       ltfZLowerExclude.setText(matchorwarpParam.getZLowerExclude());
     }
 
-    if (matchorwarpParam.getZUpperExclude() > 0) {
+    if (matchorwarpParam.isZUpperExcludeSet()) {
       ltfZUpperExclude.setText(matchorwarpParam.getZUpperExclude());
     }
 
-    cbUseLinearInterpolation.setSelected(matchorwarpParam.isUseLinearInterpolation());
+    cbUseLinearInterpolation.setSelected(matchorwarpParam.isLinearInterpolation());
 
     // when loading into the dialog, matchorwarp takes precidence over patchcorr
     cbUsePatchRegionModel.setSelected(matchorwarpParam.isUseModelFile());
@@ -1185,49 +1185,41 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
         }
 
         badParameter = ltfWarpLimit.getLabel();
-        matchorwarpParam.setWarpLimit(ltfWarpLimit.getText(doValidation));
+        matchorwarpParam.setWarpLimits(ltfWarpLimit.getText(doValidation));
 
         badParameter = ltfRefineLimit.getLabel();
-        matchorwarpParam.setRefineLimit(Double.parseDouble(ltfRefineLimit
-          .getText(doValidation)));
+        matchorwarpParam.setRefineLimit(ltfRefineLimit.getText(doValidation));
 
         badParameter = ltfXLowerExclude.getLabel();
-        String text = ltfXLowerExclude.getText(doValidation);
-        if (text.matches("\\S+")) {
-          matchorwarpParam.setXLowerExclude(Integer.parseInt(text));
+        if (!ltfXLowerExclude.isEmpty()) {
+          matchorwarpParam.setXLowerExclude(ltfXLowerExclude.getText(doValidation));
         }
         else {
-          matchorwarpParam.setXLowerExclude(0);
+          matchorwarpParam.resetXLowerExclude();
         }
-
         badParameter = ltfXUpperExclude.getLabel();
-        text = ltfXUpperExclude.getText(doValidation);
-        if (text.matches("\\S+")) {
-          matchorwarpParam.setXUpperExclude(Integer.parseInt(text));
+        if (!ltfXUpperExclude.isEmpty()) {
+          matchorwarpParam.setXUpperExclude(ltfXUpperExclude.getText(doValidation));
         }
         else {
-          matchorwarpParam.setXUpperExclude(0);
+          matchorwarpParam.resetXUpperExclude();
         }
-
         badParameter = ltfZLowerExclude.getLabel();
-        text = ltfZLowerExclude.getText(doValidation);
-        if (text.matches("\\S+")) {
-          matchorwarpParam.setZLowerExclude(Integer.parseInt(text));
+        if (!ltfZLowerExclude.isEmpty()) {
+          matchorwarpParam.setZLowerExclude(ltfZLowerExclude.getText(doValidation));
         }
         else {
-          matchorwarpParam.setZLowerExclude(0);
+          matchorwarpParam.resetZLowerExclude();
         }
-
         badParameter = ltfZUpperExclude.getLabel();
-        text = ltfZUpperExclude.getText(doValidation);
-        if (text.matches("\\S+")) {
-          matchorwarpParam.setZUpperExclude(Integer.parseInt(text));
+        if (!ltfZUpperExclude.isEmpty()) {
+          matchorwarpParam.setZUpperExclude(ltfZUpperExclude.getText(doValidation));
         }
         else {
-          matchorwarpParam.setZUpperExclude(0);
+          matchorwarpParam.resetZUpperExclude();
         }
         badParameter = cbUseLinearInterpolation.getText();
-        matchorwarpParam.setUseLinearInterpolation(cbUseLinearInterpolation.isSelected());
+        matchorwarpParam.setLinearInterpolation(cbUseLinearInterpolation.isSelected());
       }
       catch (NumberFormatException except) {
         String message = badParameter + " " + except.getMessage();
@@ -1239,16 +1231,6 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
       return false;
     }
   }
-
-  /**
-   * Get the combine parameters from the UI
-   * @param combineParams
-   */
-  /*
-   * public void getCombineParameters(CombineParams combineParams) { if
-   * (cbUsePatchRegionModel.isSelected()) { combineParams.setDefaultPatchRegionModel(); }
-   * else { combineParams.setPatchRegionModel(""); } }
-   */
 
   /**
    * Right mouse button context menu
