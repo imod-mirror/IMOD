@@ -798,7 +798,7 @@ final class SolvematchPanel implements Run3dmodButtonContainer, Expandable,
       }
       else if (btnRestart != null && command.equals(btnRestart.getActionCommand())) {
         manager.combine(btnRestart, null, deferred3dmodButton, run3dmodMenuOptions,
-          dialogType, parent.getProcessingMethod(), cbInitialVolumeMatching.isSelected());
+          dialogType, parent.getRunProcessingMethod(), cbInitialVolumeMatching.isSelected());
       }
       else if (command.equals(btnImodMatchModels.getActionCommand())) {
         manager.imodMatchingModel(cbBinBy2.isSelected(), run3dmodMenuOptions);
