@@ -45,9 +45,9 @@ import etomo.ui.FieldValidationFailedException;
  */
 final class TiltalignPanel implements Expandable {
   private static final String MIN_LOCAL_PATCH_SIZE_LABEL =
-      "Min. local patch size or overlap factor (x,y): ";
+    "Min. local patch size or overlap factor (x,y): ";
   private static final String MIN_LOCAL_PATCH_SIZE_OVERLAP_ONLY_LABEL =
-      "Overlap factor (x,y): ";
+    "Overlap factor (x,y): ";
   private final AxisID axisID;
 
   /*
@@ -73,7 +73,7 @@ final class TiltalignPanel implements Expandable {
   private final JPanel pnlGeneralBody = new JPanel();
 
   private final LabeledTextField ltfResidualThreshold = new LabeledTextField(
-      FieldType.FLOATING_POINT, "Threshold for residual report: ");
+    FieldType.FLOATING_POINT, "Threshold for residual report: ");
 
   private final RadioButton rbResidAllViews = new RadioButton("All views");
   private final RadioButton rbResidNeighboring = new RadioButton("Neighboring views");
@@ -81,29 +81,29 @@ final class TiltalignPanel implements Expandable {
   private final EtomoPanel pnlResidualThreshold = new EtomoPanel();
 
   private final RadioButton rbSingleFiducialSurface = new RadioButton(
-      "Do not sort fiducials into 2 surfaces for analysis");
+    "Do not sort fiducials into 2 surfaces for analysis");
   private final RadioButton rbDualFiducialSurfaces = new RadioButton(
-      "Assume fiducials on 2 surfaces for analysis");
+    "Assume fiducials on 2 surfaces for analysis");
   private final ButtonGroup bgFiducialSurfaces = new ButtonGroup();
   private final EtomoPanel pnlFiducialSurfaces = new EtomoPanel();
 
   private final LabeledTextField ltfExcludeList = new LabeledTextField(
-      FieldType.INTEGER_LIST, "List of views to exclude: ");
+    FieldType.INTEGER_LIST, "List of views to exclude: ");
   private final LabeledTextField ltfSeparateViewGroups = new LabeledTextField(
-      FieldType.INTEGER_LIST, "Separate view groups: ");
+    FieldType.INTEGER_LIST, "Separate view groups: ");
 
   private final EtomoPanel pnlVolumeParameters = new EtomoPanel();
   private final LabeledTextField ltfTiltAngleOffset = new LabeledTextField(
-      FieldType.FLOATING_POINT, "Total tilt angle offset: ");
+    FieldType.FLOATING_POINT, "Total tilt angle offset: ");
   private final LabeledTextField ltfTiltAxisZShift = new LabeledTextField(
-      FieldType.FLOATING_POINT, "Tilt axis z shift: ");
+    FieldType.FLOATING_POINT, "Tilt axis z shift: ");
 
   private final EtomoPanel pnlMinimizationParams = new EtomoPanel();
   private final JPanel pnlMetroFactor = new JPanel();
   private final LabeledTextField ltfMetroFactor = new LabeledTextField(
-      FieldType.FLOATING_POINT, "Metro factor: ");
+    FieldType.FLOATING_POINT, "Metro factor: ");
   private final LabeledTextField ltfMaximumCycles = new LabeledTextField(
-      FieldType.INTEGER, "Iteration limit: ");
+    FieldType.INTEGER, "Iteration limit: ");
 
   private final EtomoPanel pnlLocalParameters = new EtomoPanel();
   private final EtomoPanel pnlLocalParametersBody = new EtomoPanel();
@@ -111,15 +111,15 @@ final class TiltalignPanel implements Expandable {
   private final CheckBox cbLocalAlignments = new CheckBox("Enable local alignments");
   private final ButtonGroup bgLocalPatches = new ButtonGroup();
   private final RadioTextField rtfTargetPatchSizeXandY = RadioTextField.getInstance(
-      FieldType.INTEGER_PAIR, "Target patch size (x,y): ", bgLocalPatches);
+    FieldType.INTEGER_PAIR, "Target patch size (x,y): ", bgLocalPatches);
   private final RadioTextField rtfNLocalPatches = RadioTextField.getInstance(
-      FieldType.INTEGER_PAIR, "# of local patches (x,y): ", bgLocalPatches);
+    FieldType.INTEGER_PAIR, "# of local patches (x,y): ", bgLocalPatches);
   private final LabeledTextField ltfMinLocalPatchSize = new LabeledTextField(
-      FieldType.FLOATING_POINT_PAIR, MIN_LOCAL_PATCH_SIZE_OVERLAP_ONLY_LABEL);
+    FieldType.FLOATING_POINT_PAIR, MIN_LOCAL_PATCH_SIZE_OVERLAP_ONLY_LABEL);
   private final LabeledTextField ltfMinLocalFiducials = new LabeledTextField(
-      FieldType.INTEGER_PAIR, "Min. # of fiducials (total, each surface): ");
+    FieldType.INTEGER_PAIR, "Min. # of fiducials (total, each surface): ");
   private final CheckBox cbFixXYZCoordinates = new CheckBox(
-      "Use global X-Y-Z coordinates");
+    "Use global X-Y-Z coordinates");
 
   // Global variables pane
   private final EtomoPanel pnlGlobalVariable = new EtomoPanel();
@@ -128,31 +128,31 @@ final class TiltalignPanel implements Expandable {
   // Tilt angle pane
   private final RadioButton rbTiltAngleFixed = new RadioButton("Fixed tilt angles");
   private final RadioButton rbTiltAngleAll = new RadioButton(
-      "Solve for all except minimum tilt");
+    "Solve for all except minimum tilt");
   private final RadioButton rbTiltAngleAutomap = new RadioButton("Group tilt angles ");
   private final ButtonGroup bgTiltAngleSolution = new ButtonGroup();
   private final EtomoPanel pnlTiltAngleSolution = new EtomoPanel();
 
   private final LabeledTextField ltfTiltAngleGroupSize = new LabeledTextField(
-      FieldType.INTEGER, "Group size: ");
+    FieldType.INTEGER, "Group size: ");
   private final LabeledTextField ltfTiltAngleNonDefaultGroups = new LabeledTextField(
-      FieldType.INTEGER_TRIPLE, "Non-default grouping: ");
+    FieldType.INTEGER_TRIPLE, "Non-default grouping: ");
 
   // Magnfication pane
   private final RadioButton rbMagnificationFixed = new RadioButton(
-      "Fixed magnification at 1.0");
+    "Fixed magnification at 1.0");
   private final RadioButton rbMagnificationAll = new RadioButton(
-      "Solve for all magnifications");
+    "Solve for all magnifications");
   private RadioButton rbMagnificationAutomap = new RadioButton("Group magnifications");
   private final ButtonGroup bgMagnificationSolution = new ButtonGroup();
   private final EtomoPanel pnlMagnificationSolution = new EtomoPanel();
 
   private final LabeledTextField ltfMagnificationReferenceView = new LabeledTextField(
-      FieldType.INTEGER, "Reference view: ");
+    FieldType.INTEGER, "Reference view: ");
   private final LabeledTextField ltfMagnificationGroupSize = new LabeledTextField(
-      FieldType.INTEGER, "Group size: ");
+    FieldType.INTEGER, "Group size: ");
   private final LabeledTextField ltfMagnificationNonDefaultGroups = new LabeledTextField(
-      FieldType.INTEGER_TRIPLE, "Non-default grouping: ");
+    FieldType.INTEGER_TRIPLE, "Non-default grouping: ");
 
   // GlobalDistortion pane
   private final EtomoPanel pnlDistortionSolution = new EtomoPanel();
@@ -162,14 +162,14 @@ final class TiltalignPanel implements Expandable {
   private final ButtonGroup bgDistortionSolution = new ButtonGroup();
 
   private final LabeledTextField ltfXstretchGroupSize = new LabeledTextField(
-      FieldType.INTEGER, "X stretch group size: ");
+    FieldType.INTEGER, "X stretch group size: ");
   private final LabeledTextField ltfXstretchNonDefaultGroups = new LabeledTextField(
-      FieldType.INTEGER_TRIPLE, "X stretch non-default grouping: ");
+    FieldType.INTEGER_TRIPLE, "X stretch non-default grouping: ");
 
   private final LabeledTextField ltfSkewGroupSize = new LabeledTextField(
-      FieldType.INTEGER, "Skew group size: ");
+    FieldType.INTEGER, "Skew group size: ");
   private final LabeledTextField ltfSkewNonDefaultGroups = new LabeledTextField(
-      FieldType.INTEGER_TRIPLE, "Skew non-default grouping: ");
+    FieldType.INTEGER_TRIPLE, "Skew non-default grouping: ");
 
   // Local variables pane
   private final EtomoPanel pnlLocalSolution = new EtomoPanel();
@@ -180,45 +180,45 @@ final class TiltalignPanel implements Expandable {
   private final CheckBox cbLocalRotation = new CheckBox("Enable");
 
   private final LabeledTextField ltfLocalRotationGroupSize = new LabeledTextField(
-      FieldType.INTEGER, "Group size: ");
+    FieldType.INTEGER, "Group size: ");
   private final LabeledTextField ltfLocalRotationNonDefaultGroups = new LabeledTextField(
-      FieldType.INTEGER_TRIPLE, "Non-default grouping: ");
+    FieldType.INTEGER_TRIPLE, "Non-default grouping: ");
 
   // Local tilt angle pane
   private final EtomoPanel pnlLocalTiltAngleSolution = new EtomoPanel();
   private final CheckBox cbLocalTiltAngle = new CheckBox("Enable");
 
   private final LabeledTextField ltfLocalTiltAngleGroupSize = new LabeledTextField(
-      FieldType.INTEGER, "Group size: ");
+    FieldType.INTEGER, "Group size: ");
   private final LabeledTextField ltfLocalTiltAngleNonDefaultGroups =
-      new LabeledTextField(FieldType.INTEGER_TRIPLE, "Non-default grouping: ");
+    new LabeledTextField(FieldType.INTEGER_TRIPLE, "Non-default grouping: ");
 
   // Local magnfication pane
   private final EtomoPanel pnlLocalMagnificationSolution = new EtomoPanel();
   private final CheckBox cbLocalMagnification = new CheckBox("Enable");
 
   private final LabeledTextField ltfLocalMagnificationGroupSize = new LabeledTextField(
-      FieldType.INTEGER, "Group size: ");
+    FieldType.INTEGER, "Group size: ");
   private final LabeledTextField ltfLocalMagnificationNonDefaultGroups =
-      new LabeledTextField(FieldType.INTEGER_TRIPLE, "Non-default grouping: ");
+    new LabeledTextField(FieldType.INTEGER_TRIPLE, "Non-default grouping: ");
 
   // Local distortion pane
   private final EtomoPanel pnlLocalDistortionSolution = new EtomoPanel();
   private final RadioButton rbLocalDistortionDisabled = new RadioButton("Disabled");
   private final RadioButton rbLocalDistortionFullSolution = new RadioButton(
-      "Full solution");
+    "Full solution");
   private final RadioButton rbLocalDistortionSkew = new RadioButton("Skew only");
   private final ButtonGroup bgLocalDistortionSolution = new ButtonGroup();
 
   private final LabeledTextField ltfLocalXstretchGroupSize = new LabeledTextField(
-      FieldType.INTEGER, "X stretch group size: ");
+    FieldType.INTEGER, "X stretch group size: ");
   private final LabeledTextField ltfLocalXstretchNonDefaultGroups = new LabeledTextField(
-      FieldType.INTEGER_TRIPLE, "X stretch non-default grouping: ");
+    FieldType.INTEGER_TRIPLE, "X stretch non-default grouping: ");
 
   private final LabeledTextField ltfLocalSkewGroupSize = new LabeledTextField(
-      FieldType.INTEGER, "Skew group size: ");
+    FieldType.INTEGER, "Skew group size: ");
   private final LabeledTextField ltfLocalSkewNonDefaultGroups = new LabeledTextField(
-      FieldType.INTEGER_TRIPLE, "Skew non-default grouping: ");
+    FieldType.INTEGER_TRIPLE, "Skew non-default grouping: ");
 
   // Rotation pane
   private final RadioButton rbRotationNone = new RadioButton("No rotation");
@@ -228,26 +228,28 @@ final class TiltalignPanel implements Expandable {
   private final ButtonGroup bgRotationSolution = new ButtonGroup();
   private final EtomoPanel pnlRotationSolution = new EtomoPanel();
   private final LabeledTextField ltfRotationAngle = new LabeledTextField(
-      FieldType.FLOATING_POINT, "Rotation angle: ");
+    FieldType.FLOATING_POINT, "Rotation angle: ");
   private final LabeledTextField ltfRotationGroupSize = new LabeledTextField(
-      FieldType.INTEGER, "Group size: ");
+    FieldType.INTEGER, "Group size: ");
   private final LabeledTextField ltfRotationNonDefaultGroups = new LabeledTextField(
-      FieldType.INTEGER_TRIPLE, "Non-default grouping: ");
+    FieldType.INTEGER_TRIPLE, "Non-default grouping: ");
   private final CheckBox cbProjectionStretch = new CheckBox(
-      "Solve for single stretch during projection");
+    "Solve for single stretch during projection");
   private final ApplicationManager appMgr;
   private final ButtonGroup bgBeamTiltOption = new ButtonGroup();
   private final RadioButton rbNoBeamTilt = new RadioButton("No beam tilt");
   private final RadioTextField rtfFixedBeamTilt = RadioTextField.getInstance(
-      FieldType.FLOATING_POINT, "Fixed beam tilt (degrees): ", bgBeamTiltOption);
+    FieldType.FLOATING_POINT, "Fixed beam tilt (degrees): ", bgBeamTiltOption);
   private final RadioButton rbSolveForBeamTilt = new RadioButton("Solve for beam tilt");
   private final EtomoPanel pnlBeamTilt = new EtomoPanel();
   private final JPanel pnlBeamTiltBody = new JPanel();
 
   private final CheckTextField ctfRobustFittingAndKFactorScaling = CheckTextField
-      .getInstance(FieldType.FLOATING_POINT, "Do robust fitting with tuning factor:");
+    .getInstance(FieldType.FLOATING_POINT, "Do robust fitting with tuning factor:");
   private final CheckBox cbWeightWholeTracks = new CheckBox(
-      "Find weights for contours, not points");
+    "Find weights for contours, not points");
+  private final CheckBox cbXTiltAutomapSame = new CheckBox(
+    "Solve for X axis tilt between separate groups");
 
   private final PanelHeader phBeamTilt;
 
@@ -255,13 +257,13 @@ final class TiltalignPanel implements Expandable {
   private boolean patchTracking = false;
 
   private TiltalignPanel(final AxisID axis, final ApplicationManager appMgr,
-      GlobalExpandButton globalAdvancedButton) {
+    GlobalExpandButton globalAdvancedButton) {
     this.appMgr = appMgr;
     axisID = axis;
     tabPane.setBorder(new EtchedBorder("Tiltalign Parameters").getBorder());
     phBeamTilt =
-        PanelHeader.getAdvancedBasicOnlyInstance("Beam Tilt", this,
-            DialogType.FINE_ALIGNMENT, globalAdvancedButton, true);
+      PanelHeader.getAdvancedBasicOnlyInstance("Beam Tilt", this,
+        DialogType.FINE_ALIGNMENT, globalAdvancedButton, true);
     globalAdvancedButton.register(this);
     // Create the tabs
     createGeneralTab();
@@ -277,9 +279,9 @@ final class TiltalignPanel implements Expandable {
    * @return local instance of TiltalignPanel
    */
   static TiltalignPanel getInstance(final AxisID axis, final ApplicationManager appMgr,
-      GlobalExpandButton globalAdvancedButton) {
+    GlobalExpandButton globalAdvancedButton) {
     TiltalignPanel tiltalignPanel =
-        new TiltalignPanel(axis, appMgr, globalAdvancedButton);
+      new TiltalignPanel(axis, appMgr, globalAdvancedButton);
     tiltalignPanel.addListeners();
     return tiltalignPanel;
   }
@@ -303,7 +305,7 @@ final class TiltalignPanel implements Expandable {
     rbTiltAngleAll.addActionListener(tiltAngleRadioListener);
     rbTiltAngleAutomap.addActionListener(tiltAngleRadioListener);
     MagnificationRadioListener magnificationRadioListener =
-        new MagnificationRadioListener(this);
+      new MagnificationRadioListener(this);
     rbMagnificationFixed.addActionListener(magnificationRadioListener);
     rbMagnificationAll.addActionListener(magnificationRadioListener);
     rbMagnificationAutomap.addActionListener(magnificationRadioListener);
@@ -312,16 +314,16 @@ final class TiltalignPanel implements Expandable {
     rbDistortionFullSolution.addActionListener(distortionRadioListener);
     rbDistortionSkew.addActionListener(distortionRadioListener);
     LocalRotationCheckListener localRotationCheckListener =
-        new LocalRotationCheckListener(this);
+      new LocalRotationCheckListener(this);
     cbLocalRotation.addActionListener(localRotationCheckListener);
     LocalTiltAngleCheckListener localTiltAngleCheckListener =
-        new LocalTiltAngleCheckListener(this);
+      new LocalTiltAngleCheckListener(this);
     cbLocalTiltAngle.addActionListener(localTiltAngleCheckListener);
     LocalMagnificationCheckListener localMagnificationCheckListener =
-        new LocalMagnificationCheckListener(this);
+      new LocalMagnificationCheckListener(this);
     cbLocalMagnification.addActionListener(localMagnificationCheckListener);
     LocalDistortionRadioListener localDistortionRadioListener =
-        new LocalDistortionRadioListener(this);
+      new LocalDistortionRadioListener(this);
     rbLocalDistortionDisabled.addActionListener(localDistortionRadioListener);
     rbLocalDistortionFullSolution.addActionListener(localDistortionRadioListener);
     rbLocalDistortionSkew.addActionListener(localDistortionRadioListener);
@@ -369,8 +371,8 @@ final class TiltalignPanel implements Expandable {
     // Group and solve rotations: disable if full or skew AND solve beam tilt
     // selected.
     boolean disable =
-        (rbDistortionFullSolution.isSelected() || rbDistortionSkew.isSelected())
-            && rbSolveForBeamTilt.isSelected();
+      (rbDistortionFullSolution.isSelected() || rbDistortionSkew.isSelected())
+        && rbSolveForBeamTilt.isSelected();
     rbRotationAll.setEnabled(keepEnabled || !disable);
     // Group Rotations:
     keepEnabled = rbRotationAutomap.isSelected();
@@ -381,8 +383,8 @@ final class TiltalignPanel implements Expandable {
     // Full and skew: disabled if All rotations or Group rotations AND solve beam
     // tilt is on
     disable =
-        (rbRotationAll.isSelected() || rbRotationAutomap.isSelected())
-            && rbSolveForBeamTilt.isSelected();
+      (rbRotationAll.isSelected() || rbRotationAutomap.isSelected())
+        && rbSolveForBeamTilt.isSelected();
     rbDistortionFullSolution.setEnabled(keepEnabled || !disable);
     // Distortion: Skew only:
     keepEnabled = rbDistortionSkew.isSelected();
@@ -393,11 +395,11 @@ final class TiltalignPanel implements Expandable {
     // Solve for beam tilt: disable if All rotations or Group rotations AND Full or
     // Skew distortion selected.
     disable =
-        (rbRotationAll.isSelected() || rbRotationAutomap.isSelected())
-            && (rbDistortionFullSolution.isSelected() || rbDistortionSkew.isSelected());
+      (rbRotationAll.isSelected() || rbRotationAutomap.isSelected())
+        && (rbDistortionFullSolution.isSelected() || rbDistortionSkew.isSelected());
     rbSolveForBeamTilt.setEnabled(keepEnabled || !disable);
     cbWeightWholeTracks.setEnabled(patchTracking
-        && ctfRobustFittingAndKFactorScaling.isSelected());
+      && ctfRobustFittingAndKFactorScaling.isSelected());
   }
 
   private void action(ActionEvent actionEvent) {
@@ -465,7 +467,7 @@ final class TiltalignPanel implements Expandable {
     }
 
     ltfResidualThreshold.setText(Math
-        .abs(params.getResidualReportCriterion().getDouble()));
+      .abs(params.getResidualReportCriterion().getDouble()));
     if (params.getResidualReportCriterion().getDouble() < 0) {
       rbResidNeighboring.setSelected(true);
     }
@@ -620,7 +622,7 @@ final class TiltalignPanel implements Expandable {
       cbLocalMagnification.setSelected(true);
     }
     ltfLocalMagnificationGroupSize
-        .setText(params.getLocalMagDefaultGrouping().toString());
+      .setText(params.getLocalMagDefaultGrouping().toString());
     ltfLocalMagnificationNonDefaultGroups.setText(params.getLocalMagNondefaultGroup());
 
     // Local distortion solution type
@@ -636,7 +638,7 @@ final class TiltalignPanel implements Expandable {
       rbLocalDistortionSkew.setSelected(true);
     }
     ltfLocalXstretchGroupSize
-        .setText(params.getLocalXStretchDefaultGrouping().toString());
+      .setText(params.getLocalXStretchDefaultGrouping().toString());
     ltfLocalXstretchNonDefaultGroups.setText(params.getLocalXStretchNondefaultGroup());
     // Local skew solution parameters
     ltfLocalSkewGroupSize.setText(params.getLocalSkewDefaultGrouping().toString());
@@ -650,6 +652,7 @@ final class TiltalignPanel implements Expandable {
     if (rtfFixedBeamTilt.isSelected()) {
       rtfFixedBeamTilt.setText(params.getFixedOrInitialBeamTilt());
     }
+    cbXTiltAutomapSame.setSelected(params.isXTiltOptionAutomapSame());
     // Set the UI to match the data
     enableFields();
     updateDisplay();
@@ -713,11 +716,11 @@ final class TiltalignPanel implements Expandable {
    * getParameters(MetaData) must be called before getParameters(TiltalignParam).
    */
   boolean getParameters(final TiltalignParam params, final boolean doValidation)
-      throws FortranInputSyntaxException {
+    throws FortranInputSyntaxException {
     try {
       String badParameter = "";
       params.setImagesAreBinned(UIExpertUtilities.INSTANCE.getStackBinning(appMgr,
-          axisID, ".preali"));
+        axisID, ".preali"));
       try {
         if (rbDualFiducialSurfaces.isSelected()) {
           params.setSurfacesToAnalyze(2);
@@ -817,7 +820,7 @@ final class TiltalignPanel implements Expandable {
 
         badParameter = ltfMagnificationNonDefaultGroups.getLabel();
         params.setMagNondefaultGroup(ltfMagnificationNonDefaultGroups
-            .getText(doValidation));
+          .getText(doValidation));
 
         // Rotation pane
         if (rbRotationNone.isSelected())
@@ -865,7 +868,7 @@ final class TiltalignPanel implements Expandable {
 
         badParameter = ltfXstretchNonDefaultGroups.getLabel();
         params.setXStretchNondefaultGroup(ltfXstretchNonDefaultGroups
-            .getText(doValidation));
+          .getText(doValidation));
 
         badParameter = cbProjectionStretch.getText();
         params.setProjectionStretch(cbProjectionStretch.isSelected());
@@ -879,11 +882,11 @@ final class TiltalignPanel implements Expandable {
         params.setLocalRotOption(type);
         badParameter = ltfLocalRotationGroupSize.getLabel();
         params
-            .setLocalRotDefaultGrouping(ltfLocalRotationGroupSize.getText(doValidation));
+          .setLocalRotDefaultGrouping(ltfLocalRotationGroupSize.getText(doValidation));
 
         badParameter = ltfLocalRotationNonDefaultGroups.getLabel();
         params.setLocalRotNondefaultGroup(ltfLocalRotationNonDefaultGroups
-            .getText(doValidation));
+          .getText(doValidation));
 
         // Tilt angle pane
         type = 0;
@@ -892,11 +895,11 @@ final class TiltalignPanel implements Expandable {
         params.setLocalTiltOption(type);
         badParameter = ltfLocalTiltAngleGroupSize.getLabel();
         params.setLocalTiltDefaultGrouping(ltfLocalTiltAngleGroupSize
-            .getText(doValidation));
+          .getText(doValidation));
 
         badParameter = ltfLocalTiltAngleNonDefaultGroups.getLabel();
         params.setLocalTiltNondefaultGroup(ltfLocalTiltAngleNonDefaultGroups
-            .getText(doValidation));
+          .getText(doValidation));
 
         // Local magnification pane
         if (cbLocalMagnification.isSelected()) {
@@ -908,11 +911,11 @@ final class TiltalignPanel implements Expandable {
 
         badParameter = ltfLocalMagnificationGroupSize.getLabel();
         params.setLocalMagDefaultGrouping(ltfLocalMagnificationGroupSize
-            .getText(doValidation));
+          .getText(doValidation));
 
         badParameter = ltfLocalMagnificationNonDefaultGroups.getLabel();
         params.setLocalMagNondefaultGroup(ltfLocalMagnificationNonDefaultGroups
-            .getText(doValidation));
+          .getText(doValidation));
 
         // Distortion pane
         type = 0;
@@ -934,15 +937,15 @@ final class TiltalignPanel implements Expandable {
 
         badParameter = ltfLocalSkewNonDefaultGroups.getLabel();
         params.setLocalSkewNondefaultGroup(ltfLocalSkewNonDefaultGroups
-            .getText(doValidation));
+          .getText(doValidation));
 
         badParameter = ltfLocalXstretchGroupSize.getLabel();
         params.setLocalXStretchDefaultGrouping(ltfLocalXstretchGroupSize
-            .getText(doValidation));
+          .getText(doValidation));
 
         badParameter = ltfLocalXstretchNonDefaultGroups.getLabel();
         params.setLocalXStretchNondefaultGroup(ltfLocalXstretchNonDefaultGroups
-            .getText(doValidation));
+          .getText(doValidation));
         // params needs to have other values set before it can set OutputZFactorFile
         params.setOutputZFactorFile();
 
@@ -960,6 +963,7 @@ final class TiltalignPanel implements Expandable {
           badParameter = rbSolveForBeamTilt.getText();
           params.setBeamTiltOption(TiltalignParam.BEAM_SEARCH_OPTION);
         }
+        params.setXTiltAutomapSameLargeGroup(cbXTiltAutomapSame.isSelected());
       }
       catch (FortranInputSyntaxException except) {
         String message = badParameter + " " + except.getMessage();
@@ -979,14 +983,14 @@ final class TiltalignPanel implements Expandable {
   boolean isValid() {
     if (rtfFixedBeamTilt.isSelected() && rtfFixedBeamTilt.getText().equals("")) {
       UIHarness.INSTANCE.openMessageDialog(appMgr, rtfFixedBeamTilt.getLabel()
-          + " can not be empty when it is selected.", "Entry Error");
+        + " can not be empty when it is selected.", "Entry Error");
       return false;
     }
     if (patchTracking && rbDualFiducialSurfaces.isSelected()) {
       UIHarness.INSTANCE.openMessageDialog(appMgr,
-          "Patch tracking puts fiducials only on one side.  Select \""
-              + rbSingleFiducialSurface.getText() + "\" for better results.",
-          "Entry Warning", axisID);
+        "Patch tracking puts fiducials only on one side.  Select \""
+          + rbSingleFiducialSurface.getText() + "\" for better results.",
+        "Entry Warning", axisID);
       // This is just a warning so don't return false.
     }
     return true;
@@ -1090,7 +1094,7 @@ final class TiltalignPanel implements Expandable {
     ltfXstretchGroupSize.setEnabled(xStretchState);
     ltfXstretchNonDefaultGroups.setEnabled(xStretchState);
     boolean skewState =
-        rbDistortionFullSolution.isSelected() || rbDistortionSkew.isSelected();
+      rbDistortionFullSolution.isSelected() || rbDistortionSkew.isSelected();
     ltfSkewGroupSize.setEnabled(skewState);
     ltfSkewNonDefaultGroups.setEnabled(skewState);
   }
@@ -1118,7 +1122,7 @@ final class TiltalignPanel implements Expandable {
     ltfLocalXstretchGroupSize.setEnabled(xStretchState);
     ltfLocalXstretchNonDefaultGroups.setEnabled(xStretchState);
     boolean skewState =
-        rbLocalDistortionSkew.isSelected() || rbLocalDistortionFullSolution.isSelected();
+      rbLocalDistortionSkew.isSelected() || rbLocalDistortionFullSolution.isSelected();
     ltfLocalSkewGroupSize.setEnabled(skewState);
     ltfLocalSkewNonDefaultGroups.setEnabled(skewState);
   }
@@ -1134,7 +1138,7 @@ final class TiltalignPanel implements Expandable {
    * @param items
    */
   private void createRadioBox(final JPanel panel, final ButtonGroup group,
-      RadioButton[] items) {
+    RadioButton[] items) {
     createRadioBox(panel, group, items, 245);
   }
 
@@ -1146,11 +1150,12 @@ final class TiltalignPanel implements Expandable {
    * @param width
    */
   private void createRadioBox(final JPanel panel, final ButtonGroup group,
-      RadioButton[] items, int width) {
-    int radioButtonHeight = (int) (18 * UIParameters.getInstance().getFontSizeAdjustment());
+    RadioButton[] items, int width) {
+    int radioButtonHeight =
+      (int) (18 * UIParameters.getInstance().getFontSizeAdjustment());
     Dimension radioButtonItemSize =
-        new Dimension((int) (width * UIParameters.getInstance().getFontSizeAdjustment()),
-            radioButtonHeight);
+      new Dimension((int) (width * UIParameters.getInstance().getFontSizeAdjustment()),
+        radioButtonHeight);
 
     // Add the items to the group and to the panel
     for (int i = 0; i < items.length; i++) {
@@ -1207,7 +1212,7 @@ final class TiltalignPanel implements Expandable {
 
     pnlFiducialSurfaces.setLayout(new BoxLayout(pnlFiducialSurfaces, BoxLayout.X_AXIS));
     pnlFiducialSurfaces.setBorder(new EtchedBorder("Analysis of Surface Angles")
-        .getBorder());
+      .getBorder());
 
     // Need an extra panel to make border extend the appropriate width
     JPanel pnlRBFiducual = new JPanel();
@@ -1224,7 +1229,7 @@ final class TiltalignPanel implements Expandable {
 
     pnlVolumeParameters.setLayout(new BoxLayout(pnlVolumeParameters, BoxLayout.Y_AXIS));
     pnlVolumeParameters.setBorder(new EtchedBorder("Volume Position Parameters")
-        .getBorder());
+      .getBorder());
     pnlVolumeParameters.add(ltfTiltAngleOffset.getContainer());
     pnlVolumeParameters.add(Box.createRigidArea(FixedDim.x0_y5));
     pnlVolumeParameters.add(ltfTiltAxisZShift.getContainer());
@@ -1233,9 +1238,9 @@ final class TiltalignPanel implements Expandable {
     pnlGeneralBody.add(Box.createRigidArea(FixedDim.x0_y10));
 
     pnlMinimizationParams
-        .setLayout(new BoxLayout(pnlMinimizationParams, BoxLayout.Y_AXIS));
+      .setLayout(new BoxLayout(pnlMinimizationParams, BoxLayout.Y_AXIS));
     pnlMinimizationParams.setBorder(new EtchedBorder("Minimization Parameters")
-        .getBorder());
+      .getBorder());
     pnlMinimizationParams.add(pnlRobustFitting);
     pnlMinimizationParams.add(Box.createRigidArea(FixedDim.x0_y3));
     pnlMinimizationParams.add(pnlMetroFactor);
@@ -1256,10 +1261,10 @@ final class TiltalignPanel implements Expandable {
 
     // local alignment
     ltfMinLocalFiducials.setTextPreferredWidth(60 * UIParameters.getInstance()
-        .getFontSizeAdjustment());
+      .getFontSizeAdjustment());
     pnlLocalParameters.setLayout(new BoxLayout(pnlLocalParameters, BoxLayout.Y_AXIS));
     pnlLocalParameters.setBorder(new EtchedBorder("Local Alignment Parameters")
-        .getBorder());
+      .getBorder());
     JPanel pnlLocalAlignments = new JPanel();
     pnlLocalAlignments.setLayout(new BoxLayout(pnlLocalAlignments, BoxLayout.X_AXIS));
     pnlLocalAlignments.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -1272,8 +1277,8 @@ final class TiltalignPanel implements Expandable {
     pnlLocalPatches.add(rtfTargetPatchSizeXandY.getContainer());
     pnlLocalPatches.add(rtfNLocalPatches.getContainer());
     createVariablePanel(pnlLocalParametersBody, pnlLocalPatches.getContainer(),
-        ltfMinLocalPatchSize, ltfMinLocalFiducials, null, null, cbFixXYZCoordinates,
-        null, FixedDim.x10_y0);
+      ltfMinLocalPatchSize, ltfMinLocalFiducials, null, null, cbFixXYZCoordinates, null,
+      FixedDim.x10_y0);
     pnlLocalParameters.add(pnlLocalParametersBody);
     pnlGeneralBody.add(pnlLocalParameters);
     pnlGeneralBody.add(Box.createVerticalGlue());
@@ -1287,7 +1292,7 @@ final class TiltalignPanel implements Expandable {
   private void createGlobalSolutionTab() {
     pnlGlobalVariable.setLayout(new BoxLayout(pnlGlobalVariable, BoxLayout.Y_AXIS));
     pnlGlobalVariableBody
-        .setLayout(new BoxLayout(pnlGlobalVariableBody, BoxLayout.Y_AXIS));
+      .setLayout(new BoxLayout(pnlGlobalVariableBody, BoxLayout.Y_AXIS));
 
     // Layout the global rotation variable parameters
     JPanel pnlRBRotation = new JPanel();
@@ -1299,8 +1304,8 @@ final class TiltalignPanel implements Expandable {
     items[3] = rbRotationAll;
     createRadioBox(pnlRBRotation, bgRotationSolution, items);
     createVariablePanel(pnlRotationSolution, pnlRBRotation, ltfRotationAngle,
-        ltfRotationGroupSize, ltfRotationNonDefaultGroups, null, null,
-        "Rotation Solution Type", null);
+      ltfRotationGroupSize, ltfRotationNonDefaultGroups, null, null,
+      "Rotation Solution Type", null);
 
     // Layout the global tilt angle estimate pane
     JPanel pnlRBTiltAngle = new JPanel();
@@ -1311,7 +1316,7 @@ final class TiltalignPanel implements Expandable {
     items[2] = rbTiltAngleAll;
     createRadioBox(pnlRBTiltAngle, bgTiltAngleSolution, items);
     createVariablePanel(pnlTiltAngleSolution, pnlRBTiltAngle, ltfTiltAngleGroupSize,
-        ltfTiltAngleNonDefaultGroups, "Tilt Angle Solution Type");
+      ltfTiltAngleNonDefaultGroups, "Tilt Angle Solution Type");
 
     // Layout the global magnification variable parameters
     JPanel pnlRBMagnification = new JPanel();
@@ -1322,8 +1327,8 @@ final class TiltalignPanel implements Expandable {
     items[2] = rbMagnificationAll;
     createRadioBox(pnlRBMagnification, bgMagnificationSolution, items);
     createVariablePanel(pnlMagnificationSolution, pnlRBMagnification,
-        ltfMagnificationReferenceView, ltfMagnificationGroupSize,
-        ltfMagnificationNonDefaultGroups, null, null, "Magnification Solution Type", null);
+      ltfMagnificationReferenceView, ltfMagnificationGroupSize,
+      ltfMagnificationNonDefaultGroups, null, null, "Magnification Solution Type", null);
 
     // Layout the global distortion pane
 
@@ -1336,11 +1341,12 @@ final class TiltalignPanel implements Expandable {
     pnlRBDistortion.setLayout(new BoxLayout(pnlRBDistortion, BoxLayout.Y_AXIS));
     createRadioBox(pnlRBDistortion, bgDistortionSolution, items);
     ltfXstretchNonDefaultGroups.setTextPreferredWidth(UIParameters.getInstance()
-        .getIntegerTripletWidth());
-    ltfXstretchGroupSize.setTextPreferredWidth(UIParameters.getInstance().getFourDigitWidth());
+      .getIntegerTripletWidth());
+    ltfXstretchGroupSize.setTextPreferredWidth(UIParameters.getInstance()
+      .getFourDigitWidth());
     createVariablePanel(pnlDistortionSolution, pnlRBDistortion, ltfXstretchGroupSize,
-        ltfXstretchNonDefaultGroups, ltfSkewGroupSize, ltfSkewNonDefaultGroups, null,
-        "Distortion Solution Type", null);
+      ltfXstretchNonDefaultGroups, ltfSkewGroupSize, ltfSkewNonDefaultGroups, null,
+      "Distortion Solution Type", null);
 
     // Add the individual panes to the tab
     pnlGlobalVariableBody.add(Box.createRigidArea(FixedDim.x0_y5));
@@ -1380,8 +1386,17 @@ final class TiltalignPanel implements Expandable {
     pnlGlobalVariableBody.add(pnlBeamTilt);
     pnlGlobalVariableBody.add(Box.createRigidArea(FixedDim.x0_y10));
     pnlGlobalVariableBody.add(Box.createVerticalGlue());
-    cbProjectionStretch.setAlignmentX(Component.RIGHT_ALIGNMENT);
-    pnlGlobalVariableBody.add(cbProjectionStretch);
+    cbXTiltAutomapSame.setAlignmentX(Component.RIGHT_ALIGNMENT);
+    JPanel pnlXTiltAutomapSame = new JPanel();
+    pnlXTiltAutomapSame.setLayout(new BoxLayout(pnlXTiltAutomapSame, BoxLayout.X_AXIS));
+    pnlXTiltAutomapSame.add(cbXTiltAutomapSame);
+    pnlXTiltAutomapSame.add(Box.createHorizontalGlue());
+    pnlGlobalVariableBody.add(pnlXTiltAutomapSame);
+    JPanel pnlProjectionStretch = new JPanel();
+    pnlProjectionStretch.setLayout(new BoxLayout(pnlProjectionStretch, BoxLayout.X_AXIS));
+    pnlProjectionStretch.add(cbProjectionStretch);
+    pnlProjectionStretch.add(Box.createHorizontalGlue());
+    pnlGlobalVariableBody.add(pnlProjectionStretch);
     pnlGlobalVariable.add(pnlGlobalVariableBody);
     tabPane.addTab("Global Variables", pnlGlobalVariable);
     pnlGlobalVariableBody.setVisible(false);
@@ -1395,18 +1410,18 @@ final class TiltalignPanel implements Expandable {
 
     // Construct the rotation solution objects
     createVariablePanel(pnlLocalRotationSolution, cbLocalRotation,
-        ltfLocalRotationGroupSize, ltfLocalRotationNonDefaultGroups,
-        "Local Rotation Solution Type");
+      ltfLocalRotationGroupSize, ltfLocalRotationNonDefaultGroups,
+      "Local Rotation Solution Type");
 
     // Construct the tilt angle solution objects
     createVariablePanel(pnlLocalTiltAngleSolution, cbLocalTiltAngle,
-        ltfLocalTiltAngleGroupSize, ltfLocalTiltAngleNonDefaultGroups,
-        "Local Tilt Angle Solution Type");
+      ltfLocalTiltAngleGroupSize, ltfLocalTiltAngleNonDefaultGroups,
+      "Local Tilt Angle Solution Type");
 
     // Construct the local magnification pane
     createVariablePanel(pnlLocalMagnificationSolution, cbLocalMagnification,
-        ltfLocalMagnificationGroupSize, ltfLocalMagnificationNonDefaultGroups,
-        "Local Magnification Solution Type");
+      ltfLocalMagnificationGroupSize, ltfLocalMagnificationNonDefaultGroups,
+      "Local Magnification Solution Type");
 
     // Construction the local distortion pane
 
@@ -1419,13 +1434,12 @@ final class TiltalignPanel implements Expandable {
     pnlRBLocalDistortion.setLayout(new BoxLayout(pnlRBLocalDistortion, BoxLayout.Y_AXIS));
     createRadioBox(pnlRBLocalDistortion, bgLocalDistortionSolution, items);
     ltfLocalXstretchNonDefaultGroups.setTextPreferredWidth(UIParameters.getInstance()
-        .getIntegerTripletWidth());
+      .getIntegerTripletWidth());
     ltfLocalXstretchGroupSize.setTextPreferredWidth(UIParameters.getInstance()
-        .getFourDigitWidth());
+      .getFourDigitWidth());
     createVariablePanel(pnlLocalDistortionSolution, pnlRBLocalDistortion,
-        ltfLocalXstretchGroupSize, ltfLocalXstretchNonDefaultGroups,
-        ltfLocalSkewGroupSize, ltfLocalSkewNonDefaultGroups, null,
-        "Local Distortion Solution Type", null);
+      ltfLocalXstretchGroupSize, ltfLocalXstretchNonDefaultGroups, ltfLocalSkewGroupSize,
+      ltfLocalSkewNonDefaultGroups, null, "Local Distortion Solution Type", null);
 
     pnlLocalSolutionBody.add(Box.createVerticalGlue());
     pnlLocalSolutionBody.add(Box.createRigidArea(FixedDim.x0_y10));
@@ -1448,43 +1462,43 @@ final class TiltalignPanel implements Expandable {
   }
 
   private void createVariablePanel(final EtomoPanel panel, final CheckBox checkBox,
-      final LabeledTextField groupSize, final LabeledTextField additionalGroups,
-      final String title) {
+    final LabeledTextField groupSize, final LabeledTextField additionalGroups,
+    final String title) {
     createVariablePanel(panel, checkBox, groupSize, additionalGroups, null, title);
   }
 
   private void createVariablePanel(final EtomoPanel panel, final CheckBox checkBox,
-      final LabeledTextField field1, final LabeledTextField field2,
-      final LabeledTextField field3, final String title) {
+    final LabeledTextField field1, final LabeledTextField field2,
+    final LabeledTextField field3, final String title) {
     JPanel buttonPanel = new JPanel();
     buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.Y_AXIS));
     buttonPanel.add(checkBox);
     createVariablePanel(panel, buttonPanel, field1, field2, field3, null, null, title,
-        null);
+      null);
   }
 
   private void createVariablePanel(final EtomoPanel panel, final CheckBox checkBox1,
-      final LabeledTextField field1, final LabeledTextField field2,
-      final LabeledTextField field3, final CheckBox checkBox2, final String title) {
+    final LabeledTextField field1, final LabeledTextField field2,
+    final LabeledTextField field3, final CheckBox checkBox2, final String title) {
     JPanel buttonPanel = new JPanel();
     buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.Y_AXIS));
     buttonPanel.add(checkBox1);
     createVariablePanel(panel, buttonPanel, field1, field2, field3, null, checkBox2,
-        title, null);
+      title, null);
   }
 
   /* create a variable panel with an internal panel (can contain a radio button group */
   private void createVariablePanel(final EtomoPanel panel, final JPanel buttonPanel,
-      final LabeledTextField groupSize, final LabeledTextField additionalGroups,
-      final String title) {
+    final LabeledTextField groupSize, final LabeledTextField additionalGroups,
+    final String title) {
     createVariablePanel(panel, buttonPanel, groupSize, additionalGroups, null, null,
-        null, title, null);
+      null, title, null);
   }
 
   private void createVariablePanel(final EtomoPanel panel, final Container buttonPanel,
-      final LabeledTextField field1, final LabeledTextField field2,
-      final LabeledTextField field3, final LabeledTextField field4,
-      final CheckBox checkBox, final String title, Dimension spacing) {
+    final LabeledTextField field1, final LabeledTextField field2,
+    final LabeledTextField field3, final LabeledTextField field4,
+    final CheckBox checkBox, final String title, Dimension spacing) {
     if (spacing == null) {
       spacing = FixedDim.x40_y0;
     }
@@ -1656,7 +1670,8 @@ final class TiltalignPanel implements Expandable {
     ReadOnlySection section;
     ReadOnlyAutodoc autodoc = null;
     try {
-      autodoc = AutodocFactory.getInstance(appMgr, AutodocFactory.TILTALIGN, axisID,false);
+      autodoc =
+        AutodocFactory.getInstance(appMgr, AutodocFactory.TILTALIGN, axisID, false);
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();
@@ -1670,166 +1685,166 @@ final class TiltalignPanel implements Expandable {
     String autodocName = autodoc.getAutodocName();
     // General tab
     ltfExcludeList.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-        TiltalignParam.EXCLUDE_LIST_KEY));
+      TiltalignParam.EXCLUDE_LIST_KEY));
     ltfSeparateViewGroups.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-        TiltalignParam.SEPARATE_GROUP_KEY));
+      TiltalignParam.SEPARATE_GROUP_KEY));
     section =
-        autodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME,
-            TiltalignParam.RESIDUAL_REPORT_CRITERION_KEY);
+      autodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME,
+        TiltalignParam.RESIDUAL_REPORT_CRITERION_KEY);
     if (section != null) {
       ltfResidualThreshold.setToolTipText(EtomoAutodoc.getTooltip(autodocName, section,
-          true));
+        true));
       rbResidAllViews
-          .setToolTipText(EtomoAutodoc.getTooltip(autodocName, section, "all"));
+        .setToolTipText(EtomoAutodoc.getTooltip(autodocName, section, "all"));
       rbResidNeighboring.setToolTipText(EtomoAutodoc.getTooltip(autodocName, section,
-          "neighboring"));
+        "neighboring"));
     }
     section =
-        autodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME,
-            TiltalignParam.SURFACES_TO_ANALYZE_KEY);
+      autodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME,
+        TiltalignParam.SURFACES_TO_ANALYZE_KEY);
     if (section != null) {
       rbSingleFiducialSurface.setToolTipText(EtomoAutodoc.getTooltip(autodocName,
-          section, "1") + "  Use if fiducials are on one surface or distributed in Z.");
+        section, "1") + "  Use if fiducials are on one surface or distributed in Z.");
       rbDualFiducialSurfaces.setToolTipText(EtomoAutodoc.getTooltip(autodocName, section,
-          "2"));
+        "2"));
     }
     ltfTiltAngleOffset.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-        TiltalignParam.ANGLE_OFFSET_KEY));
+      TiltalignParam.ANGLE_OFFSET_KEY));
     ltfTiltAxisZShift.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-        TiltalignParam.AXIS_Z_SHIFT_KEY));
+      TiltalignParam.AXIS_Z_SHIFT_KEY));
     ltfMetroFactor.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-        TiltalignParam.METRO_FACTOR_KEY));
+      TiltalignParam.METRO_FACTOR_KEY));
     ltfMaximumCycles.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-        TiltalignParam.MAXIMUM_CYCLES_KEY));
+      TiltalignParam.MAXIMUM_CYCLES_KEY));
     cbLocalAlignments.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-        TiltalignParam.LOCAL_ALIGNMENTS_KEY));
+      TiltalignParam.LOCAL_ALIGNMENTS_KEY));
     rtfTargetPatchSizeXandY.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-        TiltalignParam.TARGET_PATCH_SIZE_X_AND_Y_KEY));
+      TiltalignParam.TARGET_PATCH_SIZE_X_AND_Y_KEY));
     rtfNLocalPatches.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-        TiltalignParam.NUMBER_OF_LOCAL_PATCHES_X_AND_Y_KEY));
+      TiltalignParam.NUMBER_OF_LOCAL_PATCHES_X_AND_Y_KEY));
     ltfMinLocalPatchSize.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-        TiltalignParam.MIN_SIZE_OR_OVERLAP_X_AND_Y_KEY));
+      TiltalignParam.MIN_SIZE_OR_OVERLAP_X_AND_Y_KEY));
     ltfMinLocalFiducials.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-        TiltalignParam.MIN_FIDS_TOTAL_AND_EACH_SURFACE_KEY));
+      TiltalignParam.MIN_FIDS_TOTAL_AND_EACH_SURFACE_KEY));
     cbFixXYZCoordinates.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-        TiltalignParam.FIX_XYZ_COORDINATES_KEY));
+      TiltalignParam.FIX_XYZ_COORDINATES_KEY));
     ctfRobustFittingAndKFactorScaling.setCheckBoxToolTipText(EtomoAutodoc.getTooltip(
-        autodoc, TiltalignParam.ROBUST_FITTING_KEY));
+      autodoc, TiltalignParam.ROBUST_FITTING_KEY));
     ctfRobustFittingAndKFactorScaling.setFieldToolTipText(EtomoAutodoc.getTooltip(
-        autodoc, TiltalignParam.K_FACTOR_SCALING_KEY));
+      autodoc, TiltalignParam.K_FACTOR_SCALING_KEY));
     cbWeightWholeTracks.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-        TiltalignParam.WEIGHT_WHOLE_TRACKS_KEY));
+      TiltalignParam.WEIGHT_WHOLE_TRACKS_KEY));
     // Global variables
     section =
-        autodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME,
-            TiltalignParam.TILT_OPTION_KEY);
+      autodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME, TiltalignParam.TILT_OPTION_KEY);
     if (section != null) {
       rbTiltAngleFixed.setToolTipText(EtomoAutodoc.getTooltip(autodocName, section,
-          TiltalignParam.FIXED_OPTION));
+        TiltalignParam.FIXED_OPTION));
       rbTiltAngleAll.setToolTipText(EtomoAutodoc.getTooltip(autodocName, section,
-          TiltalignParam.TILT_ALL_OPTION));
+        TiltalignParam.TILT_ALL_OPTION));
       rbTiltAngleAutomap.setToolTipText(EtomoAutodoc.getTooltip(autodocName, section,
-          TiltalignParam.TILT_AUTOMAPPED_OPTION));
+        TiltalignParam.TILT_AUTOMAPPED_OPTION));
     }
     ltfTiltAngleGroupSize.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-        TiltalignParam.TILT_DEFAULT_GROUPING_KEY));
+      TiltalignParam.TILT_DEFAULT_GROUPING_KEY));
     ltfTiltAngleNonDefaultGroups.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-        TiltalignParam.TILT_NONDEFAULT_GROUP_KEY));
+      TiltalignParam.TILT_NONDEFAULT_GROUP_KEY));
 
     section =
-        autodoc
-            .getSection(EtomoAutodoc.FIELD_SECTION_NAME, TiltalignParam.MAG_OPTION_KEY);
+      autodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME, TiltalignParam.MAG_OPTION_KEY);
     if (section != null) {
       rbMagnificationFixed.setToolTipText(EtomoAutodoc.getTooltip(autodocName, section,
-          TiltalignParam.FIXED_OPTION));
+        TiltalignParam.FIXED_OPTION));
       rbMagnificationAll.setToolTipText(EtomoAutodoc.getTooltip(autodocName, section,
-          TiltalignParam.ALL_OPTION));
+        TiltalignParam.ALL_OPTION));
       rbMagnificationAutomap.setToolTipText(EtomoAutodoc.getTooltip(autodocName, section,
-          TiltalignParam.AUTOMAPPED_OPTION));
+        TiltalignParam.AUTOMAPPED_OPTION));
     }
     ltfMagnificationReferenceView.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-        TiltalignParam.MAG_REFERENCE_VIEW_KEY));
+      TiltalignParam.MAG_REFERENCE_VIEW_KEY));
     ltfMagnificationGroupSize.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-        TiltalignParam.MAG_DEFAULT_GROUPING_KEY));
+      TiltalignParam.MAG_DEFAULT_GROUPING_KEY));
     ltfMagnificationNonDefaultGroups.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-        TiltalignParam.MAG_NONDEFAULT_GROUP_KEY));
+      TiltalignParam.MAG_NONDEFAULT_GROUP_KEY));
 
     section =
-        autodoc
-            .getSection(EtomoAutodoc.FIELD_SECTION_NAME, TiltalignParam.ROT_OPTION_KEY);
+      autodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME, TiltalignParam.ROT_OPTION_KEY);
     if (section != null) {
       rbRotationNone.setToolTipText(EtomoAutodoc.getTooltip(autodocName, section,
-          TiltalignParam.NONE_OPTION));
+        TiltalignParam.NONE_OPTION));
       rbRotationAll.setToolTipText(EtomoAutodoc.getTooltip(autodocName, section,
-          TiltalignParam.ALL_OPTION));
+        TiltalignParam.ALL_OPTION));
       rbRotationAutomap.setToolTipText(EtomoAutodoc.getTooltip(autodocName, section,
-          TiltalignParam.AUTOMAPPED_OPTION));
+        TiltalignParam.AUTOMAPPED_OPTION));
       rbRotationOne.setToolTipText(EtomoAutodoc.getTooltip(autodocName, section,
-          TiltalignParam.SINGLE_OPTION));
+        TiltalignParam.SINGLE_OPTION));
     }
     ltfRotationAngle.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-        TiltalignParam.ROT_ANGLE_KEY));
+      TiltalignParam.ROT_ANGLE_KEY));
     ltfRotationGroupSize.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-        TiltalignParam.ROT_DEFAULT_GROUPING_KEY));
+      TiltalignParam.ROT_DEFAULT_GROUPING_KEY));
     ltfRotationNonDefaultGroups.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-        TiltalignParam.ROT_NONDEFAULT_GROUP_KEY));
+      TiltalignParam.ROT_NONDEFAULT_GROUP_KEY));
     rbDistortionDisabled
-        .setToolTipText("Do not solve for distortions in the plane of section.");
+      .setToolTipText("Do not solve for distortions in the plane of section.");
     rbDistortionFullSolution
-        .setToolTipText("Solve for X-stretch and skew in the plane of section.");
+      .setToolTipText("Solve for X-stretch and skew in the plane of section.");
     rbDistortionSkew.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-        TiltalignParam.SKEW_OPTION_KEY));
+      TiltalignParam.SKEW_OPTION_KEY));
     ltfXstretchGroupSize.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-        TiltalignParam.X_STRETCH_DEFAULT_GROUPING_KEY));
+      TiltalignParam.X_STRETCH_DEFAULT_GROUPING_KEY));
     ltfXstretchNonDefaultGroups.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-        TiltalignParam.X_STRETCH_NONDEFAULT_GROUP_KEY));
+      TiltalignParam.X_STRETCH_NONDEFAULT_GROUP_KEY));
     ltfSkewGroupSize.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-        TiltalignParam.SKEW_DEFAULT_GROUPING_KEY));
+      TiltalignParam.SKEW_DEFAULT_GROUPING_KEY));
     ltfSkewNonDefaultGroups.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-        TiltalignParam.SKEW_NONDEFAULT_GROUP_KEY));
+      TiltalignParam.SKEW_NONDEFAULT_GROUP_KEY));
     cbProjectionStretch.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-        TiltalignParam.PROJECTION_STRETCH_KEY));
+      TiltalignParam.PROJECTION_STRETCH_KEY));
     // local variables
     cbLocalRotation.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-        TiltalignParam.LOCAL_ROT_OPTION_KEY));
+      TiltalignParam.LOCAL_ROT_OPTION_KEY));
     ltfLocalRotationGroupSize.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-        TiltalignParam.LOCAL_ROT_DEFAULT_GROUPING_KEY));
+      TiltalignParam.LOCAL_ROT_DEFAULT_GROUPING_KEY));
     ltfLocalRotationNonDefaultGroups.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-        TiltalignParam.LOCAL_ROT_NONDEFAULT_GROUP_KEY));
+      TiltalignParam.LOCAL_ROT_NONDEFAULT_GROUP_KEY));
     cbLocalTiltAngle.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-        TiltalignParam.LOCAL_TILT_OPTION_KEY));
+      TiltalignParam.LOCAL_TILT_OPTION_KEY));
     ltfLocalTiltAngleGroupSize.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-        TiltalignParam.LOCAL_TILT_DEFAULT_GROUPING_KEY));
+      TiltalignParam.LOCAL_TILT_DEFAULT_GROUPING_KEY));
     ltfLocalTiltAngleNonDefaultGroups.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-        TiltalignParam.LOCAL_TILT_NONDEFAULT_GROUP_KEY));
+      TiltalignParam.LOCAL_TILT_NONDEFAULT_GROUP_KEY));
     cbLocalMagnification.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-        TiltalignParam.LOCAL_MAG_OPTION_KEY));
+      TiltalignParam.LOCAL_MAG_OPTION_KEY));
     ltfLocalMagnificationGroupSize.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-        TiltalignParam.LOCAL_MAG_DEFAULT_GROUPING_KEY));
+      TiltalignParam.LOCAL_MAG_DEFAULT_GROUPING_KEY));
     ltfLocalMagnificationNonDefaultGroups.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-        TiltalignParam.LOCAL_MAG_NONDEFAULT_GROUP_KEY));
+      TiltalignParam.LOCAL_MAG_NONDEFAULT_GROUP_KEY));
     rbLocalDistortionDisabled
-        .setToolTipText("Do not solve for local distortions in the plane of section.");
+      .setToolTipText("Do not solve for local distortions in the plane of section.");
     rbLocalDistortionFullSolution
-        .setToolTipText("Solve for local X-stretch and skew in the plane of section.");
+      .setToolTipText("Solve for local X-stretch and skew in the plane of section.");
     rbLocalDistortionSkew.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-        TiltalignParam.LOCAL_SKEW_OPTION_KEY));
+      TiltalignParam.LOCAL_SKEW_OPTION_KEY));
     ltfLocalXstretchGroupSize.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-        TiltalignParam.LOCAL_X_STRETCH_DEFAULT_GROUPING_KEY));
+      TiltalignParam.LOCAL_X_STRETCH_DEFAULT_GROUPING_KEY));
     ltfLocalXstretchNonDefaultGroups.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-        TiltalignParam.LOCAL_X_STRETCH_NONDEFAULT_GROUP_KEY));
+      TiltalignParam.LOCAL_X_STRETCH_NONDEFAULT_GROUP_KEY));
     ltfLocalSkewGroupSize.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-        TiltalignParam.LOCAL_SKEW_DEFAULT_GROUPING_KEY));
+      TiltalignParam.LOCAL_SKEW_DEFAULT_GROUPING_KEY));
     ltfLocalSkewNonDefaultGroups.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-        TiltalignParam.LOCAL_SKEW_NONDEFAULT_GROUP_KEY));
+      TiltalignParam.LOCAL_SKEW_NONDEFAULT_GROUP_KEY));
     rbNoBeamTilt.setToolTipText("The beam axis is perpendicular to tilt axis");
     rtfFixedBeamTilt
-        .setRadioButtonToolTipText("Set the non-perpendicularity between tilt axis and beam axis.");
+      .setRadioButtonToolTipText("Set the non-perpendicularity between tilt axis and beam axis.");
     rtfFixedBeamTilt.setTextFieldToolTipText(EtomoAutodoc.getTooltip(autodoc,
-        TiltalignParam.FIXED_OR_INITIAL_BEAM_TILT));
+      TiltalignParam.FIXED_OR_INITIAL_BEAM_TILT));
     rbSolveForBeamTilt
-        .setToolTipText("Perform the minimization at a series of fixed beam tilt values and"
-            + " search for the value that gives the smallest error.");
+      .setToolTipText("Perform the minimization at a series of fixed beam tilt values and"
+        + " search for the value that gives the smallest error.");
+    cbXTiltAutomapSame
+      .setToolTipText("Solve for an X-axis tilt for each separate view group (XTiltOption"
+        + " 4 with very large XTiltDefaultGrouping)");
   }
 
   private static final class TPActionListener implements ActionListener {
