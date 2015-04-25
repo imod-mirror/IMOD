@@ -548,6 +548,7 @@ tb.setup.2=
 #
 cb.parallel-processing = 1
 tb.setup = 
+cb.use-image-correlations-instead-of-solvematch-for-initial-match=off
 bn.start-combine =
 wait.process.processchunks-volcombine = done
 assert.exists.file = combine.log~
