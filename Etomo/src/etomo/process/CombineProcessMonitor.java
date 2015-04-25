@@ -295,19 +295,16 @@ public class CombineProcessMonitor implements DetachedProcessMonitor {
    */
   private void getCurrentSection() throws LogFile.LockException, IOException {
     String line;
-    String matchString = CombineComscriptState.getComscriptMatchString();
+    String childCommandName = null;
     while ((line = logFile.readLine(logFileReaderId)) != null) {
       int index = -1;
-      if ((line.indexOf("running ") != -1 || line.indexOf("Running ") != -1)
-        && line.matches(matchString)) {
-        String[] fields = line.split("\\s+");
-        for (int i = 0; i < fields.length; i++) {
-          if (fields[i].matches(matchString)) {
-            String comscriptName = fields[i];
-            setCurrentChildCommand(comscriptName);
-            runCurrentChildMonitor();
-          }
+      if ((line.indexOf("running ") != -1 || line.indexOf("Running ") != -1)) {
+        childCommandName = combineComscriptState.getMatchingCommand(line);
+        if (childCommandName != null) {
+          setCurrentChildCommand(childCommandName);
+          runCurrentChildMonitor();
         }
+        childCommandName = null;
       }
       else if (line.startsWith("ERROR:") || line.startsWith("Traceback")) {
         process.setProcessResultDisplay(processResultDisplay);
@@ -325,13 +322,13 @@ public class CombineProcessMonitor implements DetachedProcessMonitor {
    * run the monitor associated with the current .com file, if these is one
    * @param comscriptName
    */
-  private void setCurrentChildCommand(String comscriptName) throws LogFile.LockException {
+  private void setCurrentChildCommand(String childCommandName)
+    throws LogFile.LockException {
     if (childLog != null && childLogWritingId != null && !childLogWritingId.isEmpty()) {
       childLog.closeForWriting(childLogWritingId);
       childLogWritingId = null;
     }
     manager.progressBarDone(axisID, ProcessEndState.DONE);
-    String childCommandName = comscriptName.substring(0, comscriptName.indexOf(".com"));
     currentCommand = ProcessName.getInstance(childCommandName, axisID);
     if (currentCommand != null) {
       childLog =
