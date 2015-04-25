@@ -18,24 +18,20 @@ import etomo.type.IteratorElementList;
 import etomo.type.ProcessName;
 import etomo.type.ScriptParameter;
 import etomo.type.TiltAngleSpec;
+import etomo.type.XTiltOption;
 
 /**
  * <p>Description: A read only model of the parameter interface for the
  *  tiltalign program</p>
  *
- * <p>Copyright: Copyright (c) 2002 - 2006</p>
+ * <p>Copyright: Copyright 2002 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * <p>Organization: Boulder Laboratory for 3D Fine Structure,
- * University of Colorado</p>
- *
- * @author $Author$
- *
- * @version $Revision$
+ * @version $Id$
  *
  */
 public class ConstTiltalignParam implements CommandDetails {
-  public static final String rcsid = "$Id$";
-
   public static final int SINGLE_OPTION = -1;
   public static final int FIXED_OPTION = 0;
   public static final int NONE_OPTION = FIXED_OPTION;
@@ -54,10 +50,12 @@ public class ConstTiltalignParam implements CommandDetails {
   public static final String METRO_FACTOR_KEY = "MetroFactor";
   public static final String MAXIMUM_CYCLES_KEY = "MaximumCycles";
   public static final String LOCAL_ALIGNMENTS_KEY = "LocalAlignments";
-  public static final String NUMBER_OF_LOCAL_PATCHES_X_AND_Y_KEY = "NumberOfLocalPatchesXandY";
+  public static final String NUMBER_OF_LOCAL_PATCHES_X_AND_Y_KEY =
+    "NumberOfLocalPatchesXandY";
   public static final String TARGET_PATCH_SIZE_X_AND_Y_KEY = "TargetPatchSizeXandY";
   public static final String MIN_SIZE_OR_OVERLAP_X_AND_Y_KEY = "MinSizeOrOverlapXandY";
-  public static final String MIN_FIDS_TOTAL_AND_EACH_SURFACE_KEY = "MinFidsTotalAndEachSurface";
+  public static final String MIN_FIDS_TOTAL_AND_EACH_SURFACE_KEY =
+    "MinFidsTotalAndEachSurface";
   public static final String TILT_OPTION_KEY = "TiltOption";
   public static final String TILT_DEFAULT_GROUPING_KEY = "TiltDefaultGrouping";
   public static final String TILT_NONDEFAULT_GROUP_KEY = "TiltNondefaultGroup";
@@ -84,8 +82,10 @@ public class ConstTiltalignParam implements CommandDetails {
   public static final String LOCAL_MAG_DEFAULT_GROUPING_KEY = "LocalMagDefaultGrouping";
   public static final String LOCAL_MAG_NONDEFAULT_GROUP_KEY = "LocalMagNondefaultGroup";
   public static final String LOCAL_SKEW_OPTION_KEY = "LocalSkewOption";
-  public static final String LOCAL_X_STRETCH_DEFAULT_GROUPING_KEY = "LocalXStretchDefaultGrouping";
-  public static final String LOCAL_X_STRETCH_NONDEFAULT_GROUP_KEY = "LocalXStretchNondefaultGroup";
+  public static final String LOCAL_X_STRETCH_DEFAULT_GROUPING_KEY =
+    "LocalXStretchDefaultGrouping";
+  public static final String LOCAL_X_STRETCH_NONDEFAULT_GROUP_KEY =
+    "LocalXStretchNondefaultGroup";
   public static final String LOCAL_SKEW_DEFAULT_GROUPING_KEY = "LocalSkewDefaultGrouping";
   public static final String LOCAL_SKEW_NONDEFAULT_GROUP_KEY = "LocalSkewNondefaultGroup";
   public static final String PROJECTION_STRETCH_KEY = "ProjectionStretch";
@@ -119,16 +119,16 @@ public class ConstTiltalignParam implements CommandDetails {
   protected static final int nondefaultGroupSize = 3;
 
   private static final int[] optionValidValues = { FIXED_OPTION, ALL_OPTION,
-      AUTOMAPPED_OPTION };
+    AUTOMAPPED_OPTION };
   private static final int[] tiltOptionValidValues = { FIXED_OPTION, TILT_ALL_OPTION,
-      TILT_AUTOMAPPED_OPTION };
+    TILT_AUTOMAPPED_OPTION };
   private static final int[] distortionOptionValidValues = { FIXED_OPTION,
-      AUTOMAPPED_OPTION };
+    AUTOMAPPED_OPTION };
   private static final int[] localOptionValidValues = { FIXED_OPTION, AUTOMAPPED_OPTION };
   private static final int[] localTiltOptionValidValues = { FIXED_OPTION,
-      TILT_AUTOMAPPED_OPTION };
+    TILT_AUTOMAPPED_OPTION };
   private static final int[] rotOptionValidValues = { FIXED_OPTION, ALL_OPTION,
-      AUTOMAPPED_OPTION, SINGLE_OPTION };
+    AUTOMAPPED_OPTION, SINGLE_OPTION };
   private static final int[] surfacesToAnalyzeValidValues = { 0, 1, 2 };
   private static final ProcessName PROCESS_NAME = ProcessName.ALIGN;
   private static final String commandFileExtension = ".com";
@@ -201,12 +201,14 @@ public class ConstTiltalignParam implements CommandDetails {
   ScriptParameter imagesAreBinned;
   ScriptParameter beamTiltOption;
   final ScriptParameter fixedOrInitialBeamTilt = new ScriptParameter(
-      EtomoNumber.Type.DOUBLE, "FixedOrInitialBeamTilt");
+    EtomoNumber.Type.DOUBLE, "FixedOrInitialBeamTilt");
   String outputXAxisTiltFile = "";
   final EtomoBoolean2 robustFitting = new EtomoBoolean2(ROBUST_FITTING_KEY);
-  final EtomoBoolean2 weightWholeTracks= new EtomoBoolean2(WEIGHT_WHOLE_TRACKS_KEY);
+  final EtomoBoolean2 weightWholeTracks = new EtomoBoolean2(WEIGHT_WHOLE_TRACKS_KEY);
   ScriptParameter kFactorScaling = new ScriptParameter(EtomoNumber.Type.DOUBLE,
-      K_FACTOR_SCALING_KEY);
+    K_FACTOR_SCALING_KEY);
+  ScriptParameter xTiltOption = new ScriptParameter("XTiltOption");
+  ScriptParameter xTiltDefaultGrouping = new ScriptParameter("XTiltDefaultGrouping");
 
   AxisID axisID;
   String datasetName;
@@ -214,7 +216,7 @@ public class ConstTiltalignParam implements CommandDetails {
   final BaseManager manager;
 
   public ConstTiltalignParam(final BaseManager manager, final String datasetName,
-      final AxisID axisID) {
+    final AxisID axisID) {
     this.axisID = axisID;
     this.datasetName = datasetName;
     this.manager = manager;
@@ -227,69 +229,72 @@ public class ConstTiltalignParam implements CommandDetails {
     projectionStretch = new EtomoBoolean2(PROJECTION_STRETCH_KEY);
     rotOption = new ScriptParameter(EtomoNumber.Type.INTEGER, ROT_OPTION_KEY);
     rotOption.setValidValues(rotOptionValidValues).setDisplayValue(AUTOMAPPED_OPTION);
-    rotDefaultGrouping = new ScriptParameter(EtomoNumber.Type.INTEGER,
-        ROT_DEFAULT_GROUPING_KEY);
+    rotDefaultGrouping =
+      new ScriptParameter(EtomoNumber.Type.INTEGER, ROT_DEFAULT_GROUPING_KEY);
     rotDefaultGrouping.setDisplayValue(3);
-    rotationFixedView = new ScriptParameter(EtomoNumber.Type.INTEGER, "RotationFixedView");
+    rotationFixedView =
+      new ScriptParameter(EtomoNumber.Type.INTEGER, "RotationFixedView");
     localRotOption = new ScriptParameter(EtomoNumber.Type.INTEGER, LOCAL_ROT_OPTION_KEY);
     localRotOption.setValidValues(localOptionValidValues).setDisplayValue(
-        AUTOMAPPED_OPTION);
-    localRotDefaultGrouping = new ScriptParameter(EtomoNumber.Type.INTEGER,
-        LOCAL_ROT_DEFAULT_GROUPING_KEY);
+      AUTOMAPPED_OPTION);
+    localRotDefaultGrouping =
+      new ScriptParameter(EtomoNumber.Type.INTEGER, LOCAL_ROT_DEFAULT_GROUPING_KEY);
     localRotDefaultGrouping.setDisplayValue(6);
     tiltOption = new ScriptParameter(EtomoNumber.Type.INTEGER, TILT_OPTION_KEY);
     tiltOption.setValidValues(tiltOptionValidValues).setDisplayValue(TILT_ALL_OPTION);
-    tiltDefaultGrouping = new ScriptParameter(EtomoNumber.Type.INTEGER,
-        TILT_DEFAULT_GROUPING_KEY);
+    tiltDefaultGrouping =
+      new ScriptParameter(EtomoNumber.Type.INTEGER, TILT_DEFAULT_GROUPING_KEY);
     tiltDefaultGrouping.setDisplayValue(5);
-    localTiltOption = new ScriptParameter(EtomoNumber.Type.INTEGER, LOCAL_TILT_OPTION_KEY);
+    localTiltOption =
+      new ScriptParameter(EtomoNumber.Type.INTEGER, LOCAL_TILT_OPTION_KEY);
     localTiltOption.setValidValues(localTiltOptionValidValues).setDisplayValue(
-        TILT_AUTOMAPPED_OPTION);
-    localTiltDefaultGrouping = new ScriptParameter(EtomoNumber.Type.INTEGER,
-        LOCAL_TILT_DEFAULT_GROUPING_KEY);
+      TILT_AUTOMAPPED_OPTION);
+    localTiltDefaultGrouping =
+      new ScriptParameter(EtomoNumber.Type.INTEGER, LOCAL_TILT_DEFAULT_GROUPING_KEY);
     localTiltDefaultGrouping.setDisplayValue(6);
-    magReferenceView = new ScriptParameter(EtomoNumber.Type.INTEGER,
-        MAG_REFERENCE_VIEW_KEY);
+    magReferenceView =
+      new ScriptParameter(EtomoNumber.Type.INTEGER, MAG_REFERENCE_VIEW_KEY);
     magOption = new ScriptParameter(EtomoNumber.Type.INTEGER, MAG_OPTION_KEY);
     magOption.setValidValues(optionValidValues).setDisplayValue(ALL_OPTION);
-    magDefaultGrouping = new ScriptParameter(EtomoNumber.Type.INTEGER,
-        MAG_DEFAULT_GROUPING_KEY);
+    magDefaultGrouping =
+      new ScriptParameter(EtomoNumber.Type.INTEGER, MAG_DEFAULT_GROUPING_KEY);
     magDefaultGrouping.setDisplayValue(4);
-    localMagReferenceView = new ScriptParameter(EtomoNumber.Type.INTEGER,
-        "LocalMagReferenceView");
+    localMagReferenceView =
+      new ScriptParameter(EtomoNumber.Type.INTEGER, "LocalMagReferenceView");
     localMagOption = new ScriptParameter(EtomoNumber.Type.INTEGER, LOCAL_MAG_OPTION_KEY);
     localMagOption.setValidValues(localOptionValidValues).setDisplayValue(
-        AUTOMAPPED_OPTION);
-    localMagDefaultGrouping = new ScriptParameter(EtomoNumber.Type.INTEGER,
-        LOCAL_MAG_DEFAULT_GROUPING_KEY);
+      AUTOMAPPED_OPTION);
+    localMagDefaultGrouping =
+      new ScriptParameter(EtomoNumber.Type.INTEGER, LOCAL_MAG_DEFAULT_GROUPING_KEY);
     localMagDefaultGrouping.setDisplayValue(7);
     xStretchOption = new ScriptParameter(EtomoNumber.Type.INTEGER, "XStretchOption");
     xStretchOption.setValidValues(distortionOptionValidValues).setDisplayValue(
-        NONE_OPTION);
-    xStretchDefaultGrouping = new ScriptParameter(EtomoNumber.Type.INTEGER,
-        X_STRETCH_DEFAULT_GROUPING_KEY);
+      NONE_OPTION);
+    xStretchDefaultGrouping =
+      new ScriptParameter(EtomoNumber.Type.INTEGER, X_STRETCH_DEFAULT_GROUPING_KEY);
     xStretchDefaultGrouping.setDisplayValue(7);
-    localXStretchOption = new ScriptParameter(EtomoNumber.Type.INTEGER,
-        "LocalXStretchOption");
+    localXStretchOption =
+      new ScriptParameter(EtomoNumber.Type.INTEGER, "LocalXStretchOption");
     localXStretchOption.setValidValues(localOptionValidValues).setDisplayValue(
-        AUTOMAPPED_OPTION);
-    localXStretchDefaultGrouping = new ScriptParameter(EtomoNumber.Type.INTEGER,
-        LOCAL_X_STRETCH_DEFAULT_GROUPING_KEY);
+      AUTOMAPPED_OPTION);
+    localXStretchDefaultGrouping =
+      new ScriptParameter(EtomoNumber.Type.INTEGER, LOCAL_X_STRETCH_DEFAULT_GROUPING_KEY);
     localXStretchDefaultGrouping.setDisplayValue(7);
     skewOption = new ScriptParameter(EtomoNumber.Type.INTEGER, SKEW_OPTION_KEY);
     skewOption.setValidValues(distortionOptionValidValues).setDisplayValue(NONE_OPTION);
-    skewDefaultGrouping = new ScriptParameter(EtomoNumber.Type.INTEGER,
-        SKEW_DEFAULT_GROUPING_KEY);
+    skewDefaultGrouping =
+      new ScriptParameter(EtomoNumber.Type.INTEGER, SKEW_DEFAULT_GROUPING_KEY);
     skewDefaultGrouping.setDisplayValue(11);
-    localSkewOption = new ScriptParameter(EtomoNumber.Type.INTEGER, LOCAL_SKEW_OPTION_KEY);
+    localSkewOption =
+      new ScriptParameter(EtomoNumber.Type.INTEGER, LOCAL_SKEW_OPTION_KEY);
     localSkewOption.setValidValues(optionValidValues).setDisplayValue(AUTOMAPPED_OPTION);
-    localSkewDefaultGrouping = new ScriptParameter(EtomoNumber.Type.INTEGER,
-        LOCAL_SKEW_DEFAULT_GROUPING_KEY);
+    localSkewDefaultGrouping =
+      new ScriptParameter(EtomoNumber.Type.INTEGER, LOCAL_SKEW_DEFAULT_GROUPING_KEY);
     localSkewDefaultGrouping.setDisplayValue(11);
-    residualReportCriterion = new ScriptParameter(EtomoNumber.Type.DOUBLE,
-        RESIDUAL_REPORT_CRITERION_KEY);
-    surfacesToAnalyze = new ScriptParameter(EtomoNumber.Type.INTEGER,
-        SURFACES_TO_ANALYZE_KEY);
+    residualReportCriterion =
+      new ScriptParameter(EtomoNumber.Type.DOUBLE, RESIDUAL_REPORT_CRITERION_KEY);
+    surfacesToAnalyze =
+      new ScriptParameter(EtomoNumber.Type.INTEGER, SURFACES_TO_ANALYZE_KEY);
     surfacesToAnalyze.setValidValues(surfacesToAnalyzeValidValues);
     metroFactor = new ScriptParameter(EtomoNumber.Type.DOUBLE, METRO_FACTOR_KEY);
     maximumCycles = new ScriptParameter(EtomoNumber.Type.INTEGER, MAXIMUM_CYCLES_KEY);
@@ -387,6 +392,7 @@ public class ConstTiltalignParam implements CommandDetails {
     robustFitting.reset();
     weightWholeTracks.reset();
     kFactorScaling.reset();
+    xTiltOption.reset();
   }
 
   public ConstEtomoNumber getImagesAreBinned() {
@@ -401,62 +407,62 @@ public class ConstTiltalignParam implements CommandDetails {
     StringBuffer invalidReason = new StringBuffer();
     if (!rotOption.isValid()) {
       invalidReason.append(rotOption.getDescription() + ": "
-          + rotOption.getInvalidReason() + "\n");
+        + rotOption.getInvalidReason() + "\n");
     }
     if (!localRotOption.isValid()) {
       invalidReason.append(localRotOption.getDescription() + ": "
-          + localRotOption.getInvalidReason() + "\n");
+        + localRotOption.getInvalidReason() + "\n");
     }
     if (!tiltOption.isValid()) {
       invalidReason.append(tiltOption.getDescription() + ": "
-          + tiltOption.getInvalidReason() + "\n");
+        + tiltOption.getInvalidReason() + "\n");
     }
     if (!localTiltOption.isValid()) {
       invalidReason.append(localTiltOption.getDescription() + ": "
-          + localTiltOption.getInvalidReason() + "\n");
+        + localTiltOption.getInvalidReason() + "\n");
     }
     if (!magOption.isValid()) {
       invalidReason.append(magOption.getDescription() + ": "
-          + magOption.getInvalidReason() + "\n");
+        + magOption.getInvalidReason() + "\n");
     }
     if (!localMagOption.isValid()) {
       invalidReason.append(localMagOption.getDescription() + ": "
-          + localMagOption.getInvalidReason() + "\n");
+        + localMagOption.getInvalidReason() + "\n");
     }
     if (!xStretchOption.isValid()) {
       invalidReason.append(xStretchOption.getDescription() + ": "
-          + xStretchOption.getInvalidReason() + "\n");
+        + xStretchOption.getInvalidReason() + "\n");
     }
     if (!localXStretchOption.isValid()) {
       invalidReason.append(localXStretchOption.getDescription() + ": "
-          + localXStretchOption.getInvalidReason() + "\n");
+        + localXStretchOption.getInvalidReason() + "\n");
     }
     if (!skewOption.isValid()) {
       invalidReason.append(skewOption.getDescription() + ": "
-          + skewOption.getInvalidReason() + "\n");
+        + skewOption.getInvalidReason() + "\n");
     }
     if (!localSkewOption.isValid()) {
       invalidReason.append(localSkewOption.getDescription() + ": "
-          + localSkewOption.getInvalidReason() + "\n");
+        + localSkewOption.getInvalidReason() + "\n");
     }
     if (!surfacesToAnalyze.isValid()) {
       invalidReason.append(surfacesToAnalyze.getDescription() + ": "
-          + surfacesToAnalyze.getInvalidReason() + "\n");
+        + surfacesToAnalyze.getInvalidReason() + "\n");
     }
     if (!beamTiltOption.isValid()) {
       invalidReason.append(beamTiltOption.getDescription() + ": "
-          + beamTiltOption.getInvalidReason() + "\n");
+        + beamTiltOption.getInvalidReason() + "\n");
     }
     if (!fixedOrInitialBeamTilt.isValid()) {
       invalidReason.append(fixedOrInitialBeamTilt.getDescription() + ": "
-          + fixedOrInitialBeamTilt.getInvalidReason() + "\n");
+        + fixedOrInitialBeamTilt.getInvalidReason() + "\n");
     }
     return invalidReason.toString();
   }
 
   public boolean isExcludeListAvailable() {
     return (includeStartEndInc.isDefault() || !includeStartEndInc.valuesSet())
-        && includeList.getNElements() == 0;
+      && includeList.getNElements() == 0;
   }
 
   public String getCommand() {
@@ -472,7 +478,7 @@ public class ConstTiltalignParam implements CommandDetails {
   }
 
   public List getLogMessage() throws LogFile.LockException, FileNotFoundException,
-      IOException {
+    IOException {
     return null;
   }
 
@@ -865,7 +871,7 @@ public class ConstTiltalignParam implements CommandDetails {
    */
   public boolean useOutputZFactorFile() {
     return !skewOption.equals(FIXED_OPTION)
-        || (localAlignments.is() && !localSkewOption.equals(FIXED_OPTION));
+      || (localAlignments.is() && !localSkewOption.equals(FIXED_OPTION));
   }
 
   /**
@@ -1034,6 +1040,10 @@ public class ConstTiltalignParam implements CommandDetails {
     return xStretchOption;
   }
 
+  public boolean isXTiltOptionAutomapSame() {
+    return XTiltOption.getInstance(xTiltOption.getInt()) == XTiltOption.AUTOMAP_SAME;
+  }
+
   /**
    * identifies an old version
    * @return
@@ -1043,8 +1053,7 @@ public class ConstTiltalignParam implements CommandDetails {
   }
 
   public static final class Fields implements etomo.comscript.FieldInterface {
-    private Fields() {
-    }
+    private Fields() {}
 
     public static final Fields USE_OUTPUT_Z_FACTOR_FILE = new Fields();
     public static final Fields LOCAL_ALIGNMENTS = new Fields();
