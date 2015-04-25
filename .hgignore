@@ -264,6 +264,7 @@ imodutil/slashfindspheres
 imodutil/slashmasksort
 imodutil/slashsplitconts
 imodutil/wmod2imod
+imodutil/imodchopconts
 
 manpages/autodoc2man
 manpages/mantohtml
@@ -285,6 +286,8 @@ raptor/MarkersCorrespond
 raptor/RAPTOR
 sendevent/imodsendevent
 sourcedoc/sourcedoc
+SystemTemplate/cryoSample.adoc
+SystemTemplate/plasticSection.adoc
 
 Etomo/.idea/*
 Etomo/Etomo.iml

@@ -1,6 +1,6 @@
 # THIS IS A COMMAND FILE TO RUN TILTALIGN
 #
-####CreatedVersion#### 3.10.4
+####CreatedVersion#### 4.8.31
 #
 # To exclude views, add a line "ExcludeList view_list" with the list of views
 #
@@ -46,6 +46,11 @@ SkewOption	0
 XStretchDefaultGrouping	7
 SkewDefaultGrouping	11
 BeamTiltOption	0
+#
+# To solve for X axis tilt between two halves of a dataset, set XTiltOption to 4
+#
+XTiltOption	0
+XTiltDefaultGrouping	1000
 # 
 # Criterion # of S.D's above mean residual to report (- for local mean)
 #
@@ -54,6 +59,7 @@ SurfacesToAnalyze	2
 MetroFactor	.25
 MaximumCycles	1000
 KFactorScaling	1.
+NoSeparateTiltGroups	1
 #
 # ADD a recommended amount to shift up to the existing AxisZShift value
 #

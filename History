@@ -1,5 +1,33 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4/23/15: In eTomo - Tomogram Combination, setting InvertYLimits in
+corrsearch3d when the origcoms is present.  This mitigates a bug that causes
+a tomogram to appear upside-down in the top-down view in 3dmod (In 4.7).  This
+bug has been fixed in 4.8.(Bug# 1874)
+
+4/13/15: Added option to Tiltalign to allow grouping of tilt angles across
+separate view groups and put option in master com file to do this for a patch
+tracking model. 
+
+4/13/15: Added option to set fallback thresholds for Findbeads3d.
+
+4/10/15: Made Batchruntomo apply directives for options in golderaser.com 
+(In 4.7).
+
+4/9/15: IMOD_4-8-30
+4/9/15: Added options to Findbeads3d to allow a subvolume to be analyzed and
+started taking the square root of peak strength for analysis and display.
+
+4/9/15: Fixed Corrsearch3d so that Z slice limits picked in etomo will specify
+the proper Y range in the unrotated volume (In 4.7).
+
+4/9/15: Fixed Batchruntomo to scale fine alignment shifts by the prealign
+binning when combining with the prealign shifts (In 4.7).
+
+4/7/15: In eTomo - Tomogram Combination, changes to handle a combine done by
+batchruntomo and to allow automatic patch fitting to be done through the 
+interface.(Bug# 1826)
+
 4/3/15: Clip histogram has a new option to report a percentile point and
 options for some more specialized analysis.
 

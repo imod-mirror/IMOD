@@ -617,7 +617,7 @@ fastest falloff is sought when going to higher values.  With a negative
 value, the cumulative distribution is computed in the opposite order and
 the falloff is found going to lower values.  
 .br
-With the \fBE-fR option,
+With the \fB-Ef\fR option,
 the program identifies extra counts on one side of the histogram and
 finds the point by which the given fraction of these counts has occurred.
 Specifically, it finds the interpolated position of the peak of the
@@ -939,6 +939,6 @@ imodmop(1)
 .SH BUGS
 There are not checks for the validity of all input values, and some
 nonsensical mode conversions are allowed.  The extended header is not copied
-over to the output file, except by the quadrant process.
+over to the output file, except by the quadrant and unwrap processes.
 
 Email bug reports to mast@colorado.edu.

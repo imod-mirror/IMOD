@@ -1904,6 +1904,7 @@ def runTiltalign(taLines):
                 sedModify('XStretchOption', 0),
                 sedModify('SkewOption', 0)] + \
                 sedDelAndAdd('ImagesAreBinned', coarseBinning, 'OutputTransformFile') + \
+                sedDelAndAdd('ScaleShifts', '1,' + str(coarseBinning), 'InputFile2')+ \
                 sedDelAndAdd('RobustFitting', doRobust, 'OutputTransformFile')
 
       (restricted, noRobust) =  modifyRestrictAndRunAlign(alignCom, sedcom, taLines, mess,
@@ -2007,6 +2008,7 @@ def runTiltalign(taLines):
                                                                   useMinFids)),
                    sedModify('AngleOffset', delTilt)] + \
                    sedDelAndAdd('ImagesAreBinned', coarseBinning, 'OutputTransformFile')+\
+                   sedDelAndAdd('ScaleShifts', '1,' + str(coarseBinning), 'InputFile2')+ \
                    sedDelAndAdd('RobustFitting', doRobust, 'OutputTransformFile')
 
          if madeZfactors:
@@ -2287,9 +2289,12 @@ def eraseGoldInAlignedStack():
    if not extraDiam:
       extraDiam = 0.
    comlines = ['RootNameOfDataFiles ' + dataName,
-               'BeadSize ' + str(fidSizePix / aliBinning + extraDiam),
-               fmtstr('OneParameterChange {}golderaser{}.ccderaser.' + \
-                         'ExpandCircleIterations=2', comPrefix, axisLet)]
+                  'BeadSize ' + str(fidSizePix / aliBinning + extraDiam)]
+   comlines += laterComDirectives('golderaser', 'ccderaser', 0)
+   if lookupDirective(comPrefix + 'golderaser', 'ccderaser.ExpandCircleIterations', 0,
+                      STRING_VALUE) == None:
+      comlines.append(fmtstr('OneParameterChange {}golderaser{}.ccderaser.' + \
+                                'ExpandCircleIterations=2', comPrefix, axisLet))
    if makeAndRunOneCom(comlines, 'golderaser' + axisCom,
                        'Erasing beads from aligned stack'):
       return 1

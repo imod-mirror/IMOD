@@ -314,15 +314,15 @@ int findHistogramDip(float *values, int numVals, int minGuess, float *bins,
   if (i == numCut)
     return 1;
   
-  printf("Histogram smoothed with H = %.3f has dip at %g, peaks at %g"
-         " and %g\n", coarseH, *histDip, *peakBelow, *peakAbove);
+  printf("Histogram smoothed with H = %.3f has dip at %g, peaks at %g and %g\n", coarseH,
+         *histDip, *peakBelow, *peakAbove);
   
-  kernelHistogram(values, numVals, bins, numBins, firstVal, lastVal, fineH,
-                  verbose);
+  kernelHistogram(values, numVals, bins, numBins, firstVal, lastVal, fineH, verbose);
   scanHistogram(bins, numBins, firstVal, lastVal, 0.5 * (*histDip + *peakBelow), 
                 0.5 * (*histDip + *peakAbove), 0, histDip, peakBelow, peakAbove);
-  printf("Histogram smoothed with H = %g has lowest dip at %g\n",
-         fineH, *histDip);
+  
+  /* cryoposition looks for "lowest dip" */
+  printf("Histogram smoothed with H = %g has lowest dip at %g\n", fineH, *histDip);
   fflush(stdout);
   return 0;
 }
