@@ -238,6 +238,7 @@ assert.exists.file = matchvol1.com
 assert.exists.file = matchvol2.com
 assert.exists.file = patchcorr.com
 assert.exists.file = solvematch.com
+assert.exists.file = dualvolmatch.com
 assert.exists.file = volcombine.com
 assert.exists.file = warpvol.com
 [[if = test-gui]]
@@ -537,6 +538,14 @@ bn.restart-at-volcombine =
 wait.process.combine = done
 sleep =
 assert.exists.file = volcombine.log~
+#
+tb.setup.1=
+cb.use-image-correlations-instead-of-solvematch-for-initial-match=on
+bn.restart-combine=
+wait.process.processchunks-volcombine = done
+assert.exists.file = dualvolmatch.log
+tb.setup.2=
+#
 cb.parallel-processing = 1
 tb.setup = 
 bn.start-combine =
