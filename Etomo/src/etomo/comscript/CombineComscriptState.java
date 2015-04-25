@@ -96,20 +96,19 @@ public final class CombineComscriptState implements ComscriptState {
   public static final String COMSCRIPT_NAME = "combine";
   public static final String COMSCRIPT_WATCHED_FILE = "combine.out";
 
-  private static final String COMMANDS[] = { ProcessName.SOLVEMATCH.toString(),
+  private final String commands[] = { ProcessName.SOLVEMATCH.toString(),
     ProcessName.MATCHVOL1.toString(), ProcessName.PATCHCORR.toString(),
     ProcessName.MATCHORWARP.toString(), ProcessName.VOLCOMBINE.toString() };
 
   private static final String WATCHED_FILES[] = { null, null, DatasetFiles.PATCH_OUT,
     null, null };
 
-  public static final int NULL_INDEX = -1;
-  public static final int SOLVEMATCH_DUALVOLMATCH_INDEX = 0;
-  public static final int MATCHVOL1_INDEX = 1;
-  public static final int PATCHCORR_INDEX = 2;
-  public static final int MATCHORWARP_INDEX = 3;
-  public static final int VOLCOMBINE_INDEX = 4;
-  public static final int NUM_COMMANDS = COMMANDS.length;
+  private static final int NULL_INDEX = -1;
+  private static final int SOLVEMATCH_DUALVOLMATCH_INDEX = 0;
+  private static final int MATCHVOL1_INDEX = 1;
+  private static final int PATCHCORR_INDEX = 2;
+  private static final int MATCHORWARP_INDEX = 3;
+  private static final int VOLCOMBINE_INDEX = 4;
   private static final char LABEL_DELIMITER = ':';
 
   private static final String SUCCESS_TEXT = "COMBINE SUCCESSFULLY COMPLETED";
@@ -119,7 +118,6 @@ public final class CombineComscriptState implements ComscriptState {
   private static final int INITIALIZED_STATE = 2;
   private static final int START_COMMAND_SET_STATE = 3;
   private static final int END_COMMAND_SET_STATE = 4;
-  private static String COMSCRIPT_MATCH_STRING = null;
 
   private int startCommand = NULL_INDEX;
   private int endCommand = NULL_INDEX;
@@ -133,11 +131,8 @@ public final class CombineComscriptState implements ComscriptState {
 
   public CombineComscriptState(final boolean initialVolumeMatching) {
     if (initialVolumeMatching) {
-      COMMANDS[SOLVEMATCH_DUALVOLMATCH_INDEX] = ProcessName.DUALVOLMATCH.toString();
+      commands[SOLVEMATCH_DUALVOLMATCH_INDEX] = ProcessName.DUALVOLMATCH.toString();
     }
-    initializeComscriptMatchString();
-    //selfTest = EtomoDirector.INSTANCE.getArguments().isSelfTest();
-    //runSelfTest(CONSTRUCTED_STATE);
   }
 
   /**
@@ -147,11 +142,9 @@ public final class CombineComscriptState implements ComscriptState {
    */
   boolean initialize(final ComScriptManager comScriptManager) {
     if (!loadStartCommand(comScriptManager)) {
-     // runSelfTest(INITIALIZED_STATE);
       return false;
     }
     loadEndCommand(comScriptManager);
-    //runSelfTest(INITIALIZED_STATE);
     return true;
   }
 
@@ -162,7 +155,7 @@ public final class CombineComscriptState implements ComscriptState {
    */
   public void setStartCommand(final int startCommand,
     final ComScriptManager comScriptManager) {
-    if (startCommand < 0 || startCommand >= NUM_COMMANDS) {
+    if (startCommand < 0 || startCommand >= commands.length) {
       throw new IndexOutOfBoundsException();
     }
     this.startCommand = startCommand;
@@ -175,9 +168,8 @@ public final class CombineComscriptState implements ComscriptState {
       outputImageFileType2 = null;
     }
     GotoParam gotoParam = new GotoParam();
-    gotoParam.setLabel(COMMANDS[startCommand]);
+    gotoParam.setLabel(commands[startCommand]);
     comScriptManager.saveCombine(gotoParam);
-   // runSelfTest(START_COMMAND_SET_STATE);
   }
 
   /**
@@ -187,7 +179,7 @@ public final class CombineComscriptState implements ComscriptState {
    */
   public void
     setEndCommand(final int endCommand, final ComScriptManager comScriptManager) {
-    if (endCommand < 0 || endCommand >= NUM_COMMANDS) {
+    if (endCommand < 0 || endCommand >= commands.length) {
       throw new IndexOutOfBoundsException();
     }
     this.endCommand = endCommand;
@@ -211,7 +203,7 @@ public final class CombineComscriptState implements ComscriptState {
       // insert echo param if it is not there, otherwise update it
       EchoParam echoParam = new EchoParam();
       echoParam.setString(SUCCESS_TEXT + THROUGH_TEXT
-        + COMMANDS[MATCHORWARP_INDEX].toUpperCase());
+        + commands[MATCHORWARP_INDEX].toUpperCase());
       int echoIndex = comScriptManager.saveCombine(echoParam, commandLabel);
       // insert exit param if it is not there, otherwise update it
       ExitParam exitParam = new ExitParam();
@@ -222,7 +214,18 @@ public final class CombineComscriptState implements ComscriptState {
       throw new IllegalStateException(
         "EndCommand can only be volcombine or matchorwarp.  endCommand=" + endCommand);
     }
-  //  runSelfTest(END_COMMAND_SET_STATE);
+  }
+
+  public String getMatchingCommand(final String line) {
+    if (line == null) {
+      return null;
+    }
+    for (int i = 0; i < commands.length; i++) {
+      if (line.indexOf(commands[i]) != -1) {
+        return commands[i];
+      }
+    }
+    return null;
   }
 
   public void resetOutputImageFileType() {
@@ -262,11 +265,11 @@ public final class CombineComscriptState implements ComscriptState {
     if (commandIndex == NULL_INDEX) {
       return null;
     }
-    return COMMANDS[commandIndex];
+    return commands[commandIndex];
   }
 
   public ProcessName getInitialProcessName() {
-    return ProcessName.getInstance(COMMANDS[SOLVEMATCH_DUALVOLMATCH_INDEX]);
+    return ProcessName.getInstance(commands[SOLVEMATCH_DUALVOLMATCH_INDEX]);
   }
 
   /**
@@ -287,16 +290,6 @@ public final class CombineComscriptState implements ComscriptState {
     return COMSCRIPT_WATCHED_FILE;
   }
 
-  /**
-   * @return
-   */
-  public static String getComscriptMatchString() {
-    if (COMSCRIPT_MATCH_STRING == null) {
-      initializeComscriptMatchString();
-    }
-    return COMSCRIPT_MATCH_STRING;
-  }
-
   public static String getSuccessText() {
     return SUCCESS_TEXT;
   }
@@ -306,9 +299,9 @@ public final class CombineComscriptState implements ComscriptState {
    * @param commandName
    * @return
    */
-  private static int getCommandIndex(final String commandName) {
-    for (int i = 0; i < NUM_COMMANDS; i++) {
-      if (commandName.equals(COMMANDS[i])) {
+  private int getCommandIndex(final String commandName) {
+    for (int i = 0; i < commands.length; i++) {
+      if (commandName.equals(commands[i])) {
         return i;
       }
     }
@@ -320,8 +313,8 @@ public final class CombineComscriptState implements ComscriptState {
    * @param commandIndex
    * @return
    */
-  private static String toLabel(final int commandIndex) {
-    return COMMANDS[commandIndex] + LABEL_DELIMITER;
+  private String toLabel(final int commandIndex) {
+    return commands[commandIndex] + LABEL_DELIMITER;
   }
 
   /**
@@ -358,149 +351,6 @@ public final class CombineComscriptState implements ComscriptState {
 
   public boolean isDualvolmatchPresent(final ComScriptManager comScriptManager) {
     return comScriptManager.isDualvolmatchLabelInCombine();
-  }
-
-  /**
-   * create a regular expression which matches the comscripts in managed by
-   * this object
-   *
-   */
-  private static void initializeComscriptMatchString() {
-    // match 0 or more characters and a word boundary
-    StringBuffer stringBuffer = new StringBuffer(".*\\b?[");
-    // match 1 or the strings in COMMANDS
-    for (int i = 0; i < NUM_COMMANDS; i++) {
-      stringBuffer.append("\\Q" + COMMANDS[i] + "\\E");
-    }
-    // match ".com", a word boundary, and 0 or more characters
-    stringBuffer.append("]\\.com\\b?.*");
-    COMSCRIPT_MATCH_STRING = stringBuffer.toString();
-  }
-
-  // Testing code
-
-  /**
-   * test for incorrect member variable settings in CombineComscriptState.
-   * @param state
-   */
-  private void selfTest(final int state) {
-    System.err.println("state:"+state+",startCommand:"+startCommand+",endCommand:"+endCommand);
-    Thread.dumpStack();
-    String stateString = null;
-    switch (state) {
-      case CONSTRUCTED_STATE:
-        stateString = "After construction:  ";
-        if (startCommand != NULL_INDEX || endCommand != NULL_INDEX) {
-          throw new IllegalStateException(stateString
-            + "startCommand and endCommand should start as NULL_INDEX.  "
-            + "startCommand=" + startCommand + ",endCommand=" + endCommand);
-        }
-        if (COMMANDS.length != NUM_COMMANDS) {
-          throw new IllegalStateException(stateString
-            + "NUM_COMMANDS should be equal to the size of COMMMANDS.  "
-            + "NUM_COMMANDS=" + NUM_COMMANDS + ",COMMANDS.length=" + COMMANDS.length);
-        }
-        if (WATCHED_FILES.length != NUM_COMMANDS) {
-          throw new IllegalStateException(stateString
-            + "NUM_COMMANDS should be equal to the size of WATCHED_FILES.  "
-            + "NUM_COMMANDS=" + NUM_COMMANDS + ",WATCHED_FILES.length="
-            + WATCHED_FILES.length);
-        }
-        if (COMSCRIPT_MATCH_STRING == null) {
-          throw new NullPointerException(stateString
-            + "ComscriptMatchString cannot be null.");
-        }
-        String comscriptName = null;
-        for (int i = 0; i < NUM_COMMANDS; i++) {
-          comscriptName = COMMANDS[i] + ".com";
-          if (!comscriptName.matches(COMSCRIPT_MATCH_STRING)) {
-            throw new IllegalStateException(stateString
-              + "The regular expression comscriptMatchString must match each "
-              + "comscript name.  " + "comscriptMatchString'" + COMSCRIPT_MATCH_STRING
-              + ",comscriptName=" + comscriptName);
-          }
-        }
-        break;
-
-      case INITIALIZED_STATE:
-        stateString = "After initialize:  ";
-        if (startCommand != NULL_INDEX || endCommand != NULL_INDEX) {
-          if (startCommand > endCommand) {
-            throw new IllegalStateException(stateString
-              + "StartCommand and endCommand must not be NULL_INDEX.  " + "startCommand="
-              + startCommand + ",endCommand=" + endCommand + "NULL_INDEX=" + NULL_INDEX);
-          }
-          if (startCommand < 0 || startCommand >= NUM_COMMANDS || endCommand < 0
-            || endCommand >= NUM_COMMANDS) {
-            throw new IndexOutOfBoundsException(stateString
-              + "StartCommand and endCommand must be valid index values.  "
-              + "startCommand=" + startCommand + ",endCommand=" + endCommand
-              + ",NUM_COMMANDS=" + NUM_COMMANDS);
-          }
-        }
-        break;
-
-      case START_COMMAND_SET_STATE:
-        stateString = "After set start command:  ";
-        if (startCommand == NULL_INDEX) {
-          throw new IllegalStateException(stateString
-            + "StartCommand must not be NULL_INDEX.  " + "startCommand=" + startCommand
-            + "NULL_INDEX=" + NULL_INDEX);
-        }
-        if (startCommand < 0 || startCommand >= NUM_COMMANDS) {
-          throw new IndexOutOfBoundsException(stateString
-            + "StartCommand must be a valid index value.  " + "startCommand="
-            + startCommand + ",NUM_COMMANDS=" + NUM_COMMANDS);
-        }
-        break;
-
-      case END_COMMAND_SET_STATE:
-        stateString = "After set end command:  ";
-        if (endCommand == NULL_INDEX) {
-          throw new IllegalStateException(stateString
-            + "EndCommand must not be NULL_INDEX.  " + "endCommand=" + endCommand
-            + "NULL_INDEX=" + NULL_INDEX);
-        }
-        if (endCommand < 0 || endCommand >= NUM_COMMANDS) {
-          throw new IndexOutOfBoundsException(stateString
-            + "EndCommand must be a valid index value.  " + "endCommand=" + endCommand
-            + ",NUM_COMMANDS=" + NUM_COMMANDS);
-        }
-        if (endCommand != VOLCOMBINE_INDEX && endCommand != MATCHORWARP_INDEX) {
-          throw new IllegalStateException(stateString
-            + "EndCommand can only refer to volcombine or matchorwarp.  " + "endCommand="
-            + endCommand + ",VOLCOMBINE_INDEX=" + VOLCOMBINE_INDEX
-            + ",MATCHORWARP_INDEX=" + MATCHORWARP_INDEX);
-        }
-        if (endCommand < VOLCOMBINE_INDEX && isRunVolcombine()) {
-          throw new IllegalStateException(stateString
-            + "IsRunVolcombine() should not be true when endCommand is less " + "then"
-            + "VOLCOMBINE_INDEX.  " + "endCommand=" + endCommand + ",VOLCOMBINE_INDEX="
-            + VOLCOMBINE_INDEX);
-        }
-        if (endCommand >= VOLCOMBINE_INDEX && !isRunVolcombine()) {
-          throw new IllegalStateException(stateString
-            + "IsRunVolcombine() should not be false when endCommand is "
-            + "greater or equal to" + "VOLCOMBINE_INDEX.  " + "endCommand=" + endCommand
-            + ",VOLCOMBINE_INDEX=" + VOLCOMBINE_INDEX);
-        }
-        break;
-
-      default:
-        throw new IllegalStateException("Unknown state.  state=" + state);
-    }
-  }
-
-  /**
-   * Runs selfTest(int) when selfTest is set
-   * @param selfTest
-   * @param state
-   */
-  private void runSelfTest(final int state) {
-    if (!selfTest) {
-      return;
-    }
-    selfTest(state);
   }
 
   public boolean equals(final CombineComscriptState that) {
