@@ -539,6 +539,7 @@ wait.process.combine = done
 sleep =
 assert.exists.file = volcombine.log~
 #
+cb.parallel-processing = 1
 tb.setup.1=
 cb.use-image-correlations-instead-of-solvematch-for-initial-match=on
 bn.restart-combine=
@@ -546,7 +547,6 @@ wait.process.processchunks-volcombine = done
 assert.exists.file = dualvolmatch.log
 tb.setup.2=
 #
-cb.parallel-processing = 1
 tb.setup = 
 cb.use-image-correlations-instead-of-solvematch-for-initial-match=off
 bn.start-combine =
