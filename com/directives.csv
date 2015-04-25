@@ -147,7 +147,7 @@ comparam.mtffilter.mtffilter.LowPassRadiusSigma,Radius and sigma for 2D filterin
 runtime.GoldErasing.any.binning,Binning to use in finding gold,Int,Y,Y,SO,,Binning to use when finding gold in 3D,
 runtime.GoldErasing.any.extraDiameter,Extra pixels of diameter to erase,Float,Y,Y,NE,,Extra pixels of diameter to erase,
 runtime.GoldErasing.any.thickness,Reconstruction thickness if patch or fidless alignment,Int,Y,Y,SO,,Thickness of tomogram to find gold in,
-comparam.golderaser.ccderaser.ExpandCircleIterations,Iterations for expanding patches around circles,Int,Y,Y,SD,,Iterations to grow circular areas,
+comparam.golderaser.ccderaser.ExpandCircleIterations,Iterations for expanding patches around circles,Int,Y,Y,SD,BRT default 2,Iterations to grow circular areas,
 ,,,,,,,,
 Reconstruction,,,,,,,,
 comparam.tilt.tilt.THICKNESS,Thickness for reconstruction,Int,Y,Y,SO,,Unbinned thickness of reconstruction,

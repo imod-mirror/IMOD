@@ -1,10 +1,12 @@
 package etomo.logic;
 
 import etomo.ApplicationManager;
+import etomo.BaseManager;
 import etomo.type.AxisID;
 import etomo.type.FileType;
 import etomo.type.MetaData;
 import etomo.util.Imodinfo;
+
 
 /**
  * <p>Description: Logic for tomogram combination</p>
@@ -15,7 +17,11 @@ import etomo.util.Imodinfo;
  *
  * @version $Id$
  */
-public class CombineTool {
+public final class CombineTool {
+  public static boolean isInvertYLimits(final BaseManager manager) {
+    return FileType.ORIG_COMS_DIR.exists(manager, null);
+  }
+  
   public static boolean
     getInitialVolumeMatchingInitValue(final ApplicationManager manager) {
     MetaData metaData = manager.getMetaData();

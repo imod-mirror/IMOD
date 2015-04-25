@@ -12,7 +12,7 @@
 !
 program beadtrack
   use tltcntrl
-  use mapSep
+  use mapSepGroups
   use cgPixels
   implicit none
   include 'smallmodel.inc90'
@@ -256,7 +256,7 @@ program beadtrack
   !
   limPcList = nz + 10
   allocate(ixPclist(limPcList), iyPclist(limPcList), izPclist(limPcList),  &
-      listz(limPcList), prexf(2,3,limPclist), stat = ierr)
+      listz(limPcList), prexf(2, 3, limPclist), stat = ierr)
   call memoryError(ierr, 'PIECE LIST ARRAYS')
 
   call read_piece_list2(pieceFile, ixPclist, iyPclist, izPclist, npclist, limPcList)
@@ -362,7 +362,7 @@ program beadtrack
     !
     ! nview needs to be set for this routine to check the groups properly
     nview = nviewAll
-    call inputSeparateGroups(ngsep, nsepInGrpIn, ivsepIn, listString)
+    call inputSeparateGroups(numSeparateGroups, nsepInGrpIn, ivsepIn, listString)
   else
     !
     write(*,'(1x,a,$)') 'List of views to skip over: '
@@ -379,10 +379,10 @@ program beadtrack
     write(*,'(1x,a,/,a,$)') 'For automapping tilt and mag,' &
         //' enter the number of sets of views to treat separately' &
         //' from the main set of views (otherwise enter 0): '
-    read(5,*) ngsep
-    if (ngsep > MAXGRP) call errorExit &
+    read(5,*) numSeparateGroups
+    if (numSeparateGroups > MAXGRP) call errorExit &
         ('TOO MANY SEPARATE GROUPS FOR ARRAYS', 0)
-    do ig = 1, ngsep
+    do ig = 1, numSeparateGroups
       write(*,'(1x,a,i3,a,$)') 'List of views in set', ig, &
           '(ranges OK): '
       call rdlist(5, ivsepIn(1, ig), nsepInGrpIn(ig))
@@ -419,7 +419,7 @@ program beadtrack
   !
   nvLocalIn = 0
   localViewPass = 0
-  tiltFitMin = 8.   ! Was 15 until cos/sin fitting improved 7/25/12
+  tiltFitMin = 8.   ! Was 15 until cos / sin fitting improved 7 / 25 / 12
   nSnapList = 0
   !
   if (pipinput) then
@@ -492,9 +492,9 @@ program beadtrack
     if (ifReadXfs .ne. 0) then
       call dopen(3, prexfFile, 'ro', 'f')
       call xfrdall2(3, prexf, iv, limPcList, ierr)
-      if (ierr .eq. 2) call exitError('READING TRANSFORM FILE')
-      if (iv .lt. nz) call exitError('NOT ENOUGH TRANSFORMS IN PREALIGN TRANSFORM FILE')
-      prexf(1:2,3,1:nz) = prexf(1:2,3,1:nz) / imageBinned
+      if (ierr == 2) call exitError('READING TRANSFORM FILE')
+      if (iv < nz) call exitError('NOT ENOUGH TRANSFORMS IN PREALIGN TRANSFORM FILE')
+      prexf(1:2, 3, 1:nz) = prexf(1:2, 3, 1:nz) / imageBinned
       close(3)
       nFillTaper = max(4, nint(0.1 * (nxBox * nyBox) / 2.))
     endif
@@ -1092,7 +1092,7 @@ program beadtrack
     allocate(edgeSDsave(minViewDo:maxViewDo, maxAllReal),  &
         elongSave(minViewDo:maxViewDo, maxAllReal), elongSmooth(nxBox, nyBox), &
         elongMask(nxBox, nyBox), ixElong(nxBox * nyBox), iyElong(nxBox * nyBox),  &
-        stat=ierr)
+        stat = ierr)
     call memoryError(ierr, 'ARRAYS FOR EDGE SDS')
     edgeSDsave(:,:) = -1.
     call scaledGaussianKernel(elongKernel, kernDimElong, 7, max(elongSigma, sobelSigma))
@@ -1217,9 +1217,9 @@ program beadtrack
   !
   nzout = 0
   if (outFile .ne. ' ') then
-    CALL imopen(2, trim(outFile)//'.box', 'NEW')
-    CALL imopen(3, trim(outFile)//'.ref', 'NEW')
-    CALL imopen(4, trim(outFile)//'.cor', 'NEW')
+    CALL imopen(2, trim(outFile) //'.box', 'NEW')
+    CALL imopen(3, trim(outFile) //'.ref', 'NEW')
+    CALL imopen(4, trim(outFile) //'.cor', 'NEW')
     do i = 2, 4
       call itrhdr(i, 1)
       call ialmod(i, modeBox)
@@ -1241,8 +1241,8 @@ program beadtrack
     corroSum = 0.
     corrMin = 1.e20
     corrMax = -1.e20
-    CALL dopen(2, trim(outFile)//'.brpl', 'NEW', 'F')
-    CALL dopen(3, trim(outFile)//'.cpl', 'NEW', 'F')
+    CALL dopen(2, trim(outFile) //'.brpl', 'NEW', 'F')
+    CALL dopen(3, trim(outFile) //'.cpl', 'NEW', 'F')
   endif
   !
   ! Set up formats
@@ -1273,9 +1273,9 @@ program beadtrack
     if (saveAllPoints .and. iAreaSave < 0 .and. listSeq(iseq) .ne. lastSeq)  &
         exit
     saveAllPoints = abs(iAreaSave) == listSeq(iseq) .and. ipassSave == iseqPass
-    
+
     ! Initial mean residuals for new set of points or beginning of a full round when
-    ! there is just one set; doing more than 2 rounds will then work the same as 
+    ! there is just one set; doing more than 2 rounds will then work the same as
     ! restarting from fid as seed
     if (listSeq(iseq) .ne. lastSeq .or. (nobjLists == 1 .and. iseqPass > 1 .and.  &
         mod(iseqPass, 2) == 1) .and. mod(iseq, 2) == 1) then
@@ -1425,7 +1425,7 @@ program beadtrack
   ! Write out residual file and XYZ file
   if (elongFile .ne. ' ' .or. xyzFile .ne. ' ') then
     if (xyzFile .ne. ' ') then
-      deallocate(boxes, corrSum, stat=ierr)
+      deallocate(boxes, corrSum, stat = ierr)
       call adjustXYZinAreas(iobjLists, maxOlist, indObjList, ninObjList, xyzAllArea, &
           nobjLists, xyzSave, maxObjOrig)
       call dopen(7, xyzFile, 'new', 'f')
@@ -1516,12 +1516,12 @@ program beadtrack
         obackMean = obackMean / izv
       endif
       if (itry > 0) wsum = wsum / itry
-      if (elongFile .ne. ' ') write(4, '(i3,i7,f12.4,6f11.4,f11.2)')imodObj, imodCont, &
+      if (elongFile .ne. ' ') write(4, '(i3,i7,f12.4,6f11.4,f11.2)') imodObj, imodCont, &
           xpos, sdmean, sdmed, edgeSDsd, elongMean, elongMed, elongSD, wsum
-           
-      if (xyzFile .ne. ' ' .and. xpos >= 0 .and. (xyzSave(1,iobj) .ne. 0. .or.  &
-          xyzSave(2,iobj) .ne. 0. .or. xyzSave(3,iobj) .ne. 0.)) &
-          write(7,'(i6,4f12.3)') iobj, (xyzSave(i,iobj),i=1,3), xpos
+
+      if (xyzFile .ne. ' ' .and. xpos >= 0 .and. (xyzSave(1, iobj) .ne. 0. .or.  &
+          xyzSave(2, iobj) .ne. 0. .or. xyzSave(3, iobj) .ne. 0.)) &
+          write(7, '(i6,4f12.3)') iobj, (xyzSave(i, iobj), i = 1, 3), xpos
     enddo
     if (elongFile .ne. ' ') close(4)
     if (xyzFile .ne. ' ') close(7)
@@ -1813,7 +1813,7 @@ CONTAINS
         endif
         xseek(iobjDo) = xpos / ix
         yseek(iobjDo) = ypos / ix
-        !if (saveAllPoints) print *,'justAvg',iobj,xseek(iobjDo), yseek(iobjDo)
+        !if (saveAllPoints) print *,'justAvg', iobj, xseek(iobjDo), yseek(iobjDo)
       enddo
     endif
     !
@@ -1873,13 +1873,13 @@ CONTAINS
             c * xyzSave(3, indr) + dxCur + xcen
         yseek(iobjDo) = d * xyzSave(1, indr) + e * xyzSave(2, indr) +  &
             f * xyzSave(3, indr) + dyCur + ycen
-        !if (saveAllPoints) print *,'3d proj',iobj,xseek(iobjDo), yseek(iobjDo)
+        !if (saveAllPoints) print *,'3d proj', iobj, xseek(iobjDo), yseek(iobjDo)
       else if (justAverage == 0) then
         call nextPos(iobj, ipNearest(iobjDo), idir, iznext, tiltAll, numFit, &
             minFit, rotStart, tiltFitMin, izExclude, numExclude, xseek(iobjDo),  &
             yseek(iobjDo))
-        !if (saveAllPoints) print *,'nextPos',iobj,p_coord(1, object(ibase +  &
-            !ipNearest(iobjDo))),p_coord(2, object(ibase + ipNearest(iobjDo))), &
+        !if (saveAllPoints) print *,'nextPos', iobj, p_coord(1, object(ibase +  &
+            !ipNearest(iobjDo))), p_coord(2, object(ibase + ipNearest(iobjDo))), &
             !xseek(iobjDo), yseek(iobjDo)
       endif
       if (saveAllPoints) then
@@ -1969,9 +1969,9 @@ CONTAINS
       call avgsd(wsFit, numAvg, wsumAvg, wsumSD, xtmp)
       if (numAvg > minWsumForPred .and. minDif < 3) then
         call lsFitPred(ivFit, wsFit, numAvg, prSlope, prIntcp, prro, prsa, prsb, &
-            prse, 0., wpredLocal, prederr) 
-        if (saveAllPoints) write(*,'(a,i4,6f10.2)')'pred',numAvg,wsumAvg,wsumSD, &
-            wpredLocal, prederr,prSlope, prsb
+            prse, 0., wpredLocal, prederr)
+        if (saveAllPoints) write(*,'(a,i4,6f10.2)') 'pred', numAvg, wsumAvg, wsumSD, &
+            wpredLocal, prederr, prSlope, prsb
       else
         wpredLocal = wsumAvg
       endif
@@ -2020,7 +2020,7 @@ CONTAINS
     if (numLocals >= 5) then
       idif = 1 + numNeighInLocal / 5
       dblNormCrit = percentileCritFrac * percentileFloat(idif, wsumsLocal, numLocals)
-      if (saveAllPoints) print *,numLocals,' locals, crit:',idif,dblNormCrit
+      if (saveAllPoints) print *,numLocals, ' locals, crit:', idif, dblNormCrit
       dblNormCrit = max(dblNormCrit, dblNormMinCrit)
     endif
 
@@ -2080,11 +2080,11 @@ CONTAINS
 
           ! Scale the criterion by the predicted value and the ratio of this bead's mean
           ! to the corresponding local mean.  Limit to a small fraction of the local mean
-          ! 
+          !
           wsumCrit(iobjDo) = max(xtmp * wpredLocal * wsumAvg / wlocalSum, &
               wcritToLocalMinRatio * wlocalSum)
           wsumCrit(iobjDo) = min(wsumCrit(iobjDo), percentileCritFrac * wsumAvg)
-          if (saveAllPoints) write(*,'(a,3i4,2f8.0,f8.4,f8.0)')'crit',iobjSeq(iobjDo), &
+          if (saveAllPoints) write(*,'(a,3i4,2f8.0,f8.4,f8.0)') 'crit', iobjSeq(iobjDo), &
               numPctl, numAvg, wsumAvg, wlocalSum, xtmp, wsumCrit(iobjDo)
         else
 
@@ -2097,11 +2097,11 @@ CONTAINS
           if (numAvg >= nint(1.5 * minWsumForPred)) then
             call lsfitPred(ivFit, wsFit, min(numAvg, maxWavg + 1), prSlope, prIntcp, &
                 prro, prsa, prsb, prse, 0., wpred, prederr)
-            !write(*,'(a,5f8.0)')'bead fit',wsumAvg, wsumSD, wpred, prSlope, prsb
+            !write(*,'(a,5f8.0)') 'bead fit', wsumAvg, wsumSD, wpred, prSlope, prsb
             if (prederr < wsumSD .and. abs(prSlope) > 2.5 * prsb)  then
                 wsumCrit(iobjDo) = max((1. - 0.6 * (1. - fracCrit)) * wpred, &
                     wsumAvg * dblNormMinCrit)
-              !write(*,'(a,3f8.0)')'replacement',wsumCrit(iobjDo)
+              !write(*,'(a,3f8.0)') 'replacement', wsumCrit(iobjDo)
             endif
           endif
 
@@ -2316,7 +2316,7 @@ CONTAINS
     !
     if (wsum > 0.) then
       wsumSave(iview, iobjSeq(iobjDo)) = wsum
-      if (getEdgeSD) then 
+      if (getEdgeSD) then
         edgeSDsave(iview, iobjSeq(iobjDo)) = edgeSD
         call calcElongation(boxTmp, nxBox, nyBox, xpeak, ypeak,  &
             elongSave(iview, iobjSeq(iobjDo)))
@@ -2326,7 +2326,7 @@ CONTAINS
       xpos = nint(xnext) + xpeak
       ypos = nint(ynext) + ypeak
       if (ifTrace .ne. 0) &
-          write(*,'(a,3i5,4f7.1,2f12.0,f12.4)') 'add',nzout, iznext, iobj, &
+          write(*,'(a,3i5,4f7.1,2f12.0,f12.4)') 'add', nzout, iznext, iobj, &
           xnext, ynext, xpos, ypos, peak, wsum, edgeSD
       !
       ! add point to model
@@ -2387,7 +2387,7 @@ CONTAINS
     return
   end subroutine lookForOneBead
 
-  
+
   subroutine loadBoxAndTaper()
     integer*4 taperAtFill
     call imposn(1, ipcz, 0)
@@ -2407,7 +2407,7 @@ CONTAINS
     integer*4 ibest
     real*4 distMin, peakMax, xpcen, ypcen, reduceFac
     !
-    ! Tried to moved reference position toward center of expected position (0,0) by up to
+    ! Tried to moved reference position toward center of expected position (0, 0) by up to
     ! half a bead diameter - it was sometimes signinficantly worse
     xpcen = xpeak
     ypcen = ypeak
@@ -2490,7 +2490,7 @@ CONTAINS
       call int_iwrite(listString, iview, ndel)
       write(pieceFile, '(a,a,a,i1)') '.', listString(1:ndel), '.', ipass
       call scale_model(1)
-      call write_wmod(trim(modelFile)//trim(pieceFile))
+      call write_wmod(trim(modelFile) //trim(pieceFile))
       call scale_model(0)
     endif
     numAddTmp = numAdded
@@ -2566,7 +2566,7 @@ CONTAINS
           ! next round
           !
           if ((ipass == 1 .and. errMax > fitDistCrit) .or. ifMeanBad == 1) then
-            if (saveAllPoints)write(*,'(i3,f7.2,i2,4f10.5)') iobj, errMax, ifMeanBad, &
+            if (saveAllPoints) write(*,'(i3,f7.2,i2,4f10.5)') iobj, errMax, ifMeanBad, &
                 resMean(iobj, ivSeq), curDiff, resAvg, resSD
             wsumSave(iview, iobj) = -1.
             if (getEdgeSD) edgeSdsave(iview, iobj) = -1.
