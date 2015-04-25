@@ -23,6 +23,11 @@ public final class SerialSectionsProcessPanel extends AxisProcessPanel {
   SerialSectionsProcessPanel(BaseManager manager) {
     super(AxisID.ONLY, manager, false, true, InterfaceType.SERIAL_SECTIONS);
     createProcessControlPanel();
+    showBothAxis();
     initializePanels();
+  }
+  
+  void showBothAxis() {
+    setBackground(Colors.getBackgroundSerialSections());
   }
 }

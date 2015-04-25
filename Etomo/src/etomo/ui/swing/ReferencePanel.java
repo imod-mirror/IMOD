@@ -1,5 +1,6 @@
 package etomo.ui.swing;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
@@ -30,6 +31,7 @@ import etomo.ui.FieldType;
 import etomo.ui.FieldValidationFailedException;
 import etomo.ui.UIComponent;
 import etomo.util.FilePath;
+import etomo.util.Utilities;
 
 /**
  * <p>Description: </p>
@@ -121,6 +123,15 @@ final class ReferencePanel implements UIComponent, SwingComponent {
     JPanel pnlFile = new JPanel();
     JPanel pnlMultiparticle = new JPanel();
     JPanel pnlBorder = new JPanel();
+    if (Utilities.APRIL_FOOLS) {
+      Color background = new Color(211, 78, 127);
+      pnlRoot.setBackground(background);
+      pnlBorder.setBackground(background);
+      pnlParticle.setBackground(background);
+      pnlFile.setBackground(background);
+      pnlMultiparticle.setBackground(background);
+      ftfFile.setBackground(background);
+    }
     // Root
     pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.Y_AXIS));
     pnlRoot.add(pnlBorder);
