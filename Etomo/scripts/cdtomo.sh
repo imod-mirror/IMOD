@@ -1,11 +1,10 @@
 #! /bin/bash
 #
-#Goes to the specified test directory
+#Goes to the specified test directory (default is linux)
 #
 #Copyright: Copyright 2015 by the Regents of the University of Colorado</p>
 #Organization: Dept. of MCD Biology, University of Colorado
-#record script file
-scriptFile=$_
+#
 usageParam="-h"
 helpParam="--help"
 helpMsg="Use $usageParam or $helpParam for more information."
@@ -41,15 +40,11 @@ branName="Branch"
 #variables
 ret=
 repName=
-setImod=
-imodRep=
 etomoVers=
 repNum=
-target=
 repository=
-os=
-repositoryPath=
-etomoRepositoryPath=
+error=
+#
 # function setOption
 # $1 required
 # $2 description
@@ -64,26 +59,10 @@ setOption ()
     ret=$4
   elif [ $1 ] ; then
     echo Syntax error: $2 is required.  $helpMsg
-    if [ $3 == "bash" ] ; then
-      return 1
-    else
-      exit 1
-    fi
+    error=1
   fi
 }
-# function errCheck
-# $1 $?
-# $2 $0
-errCheck ()
-{
-  if [ ! $1 -eq 0 ] ; then
-    if [ $2 == "bash" ] ; then
-      return 0
-    else
-      exit 0
-    fi
-  fi
-}
+#
 while test $# -gt 0; do
   case "$1" in
     $usageParam)
@@ -124,16 +103,19 @@ while test $# -gt 0; do
       echo "Go to the ${branName}1-4.8 repository:"
       echo source cdtomo.sh -B 4.8 1
       echo
-      if [ $0 == "bash" ] ; then
-        return 0
-      else
-        exit 0
-      fi
+      leave $0 0
       ;;
     -$devParam)
       repName=$devName
       shift
       setOption "" $repNumTag $0 $1
+      if [ $error ] ; then
+        if [ $0 == "bash" ] ; then
+          return $error
+        else
+          exit $error
+        fi
+      fi
       if [ $ret ] ; then
         repNum=$ret
         break
@@ -143,6 +125,13 @@ while test $# -gt 0; do
       repName=$compName
       shift
       setOption "" $repNumTag $0 $1
+      if [ $error ] ; then
+        if [ $0 == "bash" ] ; then
+          return $error
+        else
+          exit $error
+        fi
+      fi
       if [ $ret ] ; then
         repNum=$ret
         break
@@ -152,6 +141,13 @@ while test $# -gt 0; do
       repName=$intName
       shift
       setOption "" $repNumTag $0 $1
+      if [ $error ] ; then
+        if [ $0 == "bash" ] ; then
+          return $error
+        else
+          exit $error
+        fi
+      fi
       if [ $ret ] ; then
         repNum=$ret
         break
@@ -161,6 +157,13 @@ while test $# -gt 0; do
       repName=$regName
       shift
       setOption "" $repNumTag $0 $1
+      if [ $error ] ; then
+        if [ $0 == "bash" ] ; then
+          return $error
+        else
+          exit $error
+        fi
+      fi
       if [ $ret ] ; then
         repNum=$ret
         break
@@ -170,6 +173,13 @@ while test $# -gt 0; do
       repName=$branName
       shift
       setOption true $etomoVersTag $0 $1
+      if [ $error ] ; then
+        if [ $0 == "bash" ] ; then
+          return $error
+        else
+          exit $error
+        fi
+      fi
       etomoVers=$ret
       shift
       setOption "" $repNumTag $0 $1
@@ -204,5 +214,20 @@ if [ -n "$repName" ] ; then
     repository=$repName$repNum
   fi
   echo $repository
-  cd $HOME/workspace/$repository
+  cd "/home/NOBACKUP/sueh/test datasets/$repository/linux"
+  if [ $? -eq 0 ] ; then
+    #succeeded
+    error=0
+  else
+    error=1
+    cd "/home/NOBACKUP/sueh/test datasets/$repository"
+    if [ ! $? -eq 0 ] ; then
+      cd "/home/NOBACKUP/sueh/test datasets"
+    fi
+  fi
+  if [ $0 == "bash" ] ; then
+    return $error
+  else
+    exit $error
+  fi
 fi
