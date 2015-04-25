@@ -7246,7 +7246,6 @@ public final class ApplicationManager extends BaseManager implements
       sendMsgProcessFailedToStart(processResultDisplay);
       return;
     }
-    System.out.println("A:initialVolumeMatching:" + initialVolumeMatching);
     CombineComscriptState combineComscriptState =
       updateCombineComscriptState(initialVolumeMatching ? CombineProcessType.DUALVOLMATCH
         : CombineProcessType.SOLVEMATCH);
