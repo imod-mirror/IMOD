@@ -1,9 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4/25/15: IMOD_4-7-15
 4/23/15: In eTomo - Tomogram Combination, setting InvertYLimits in
-corrsearch3d when the origcoms is present.  This mitigates a bug that causes
-a tomogram to appear upside-down in the top-down view in 3dmod (In 4.7).
-(Bug# 1874)
+corrsearch3d when the origcoms is present.  This mitigates a problem caused
+by the change from flipping to rotation in 3dmod (In 4.7).(Bug# 1874)
 
 4/10/15: Made Batchruntomo apply directives for options in golderaser.com 
 (In 4.7).
