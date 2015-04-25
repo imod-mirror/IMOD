@@ -44,7 +44,6 @@ public final class CombineProcessType {
 
   public static CombineProcessType getInstance(final int processIndex,
    final boolean initialVolumeMatching) {
-    System.out.println("B:initialVolumeMatching:"+initialVolumeMatching);
     if (processIndex == SOLVEMATCH_DUALVOLMATCH_INDEX) {
       if (!initialVolumeMatching) {
         return SOLVEMATCH;
