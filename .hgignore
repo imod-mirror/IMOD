@@ -287,6 +287,8 @@ raptor/MarkersCorrespond
 raptor/RAPTOR
 sendevent/imodsendevent
 sourcedoc/sourcedoc
+SystemTemplate/cryoSample.adoc
+SystemTemplate/plasticSection.adoc
 
 Etomo/.idea/*
 Etomo/Etomo.iml

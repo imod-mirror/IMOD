@@ -1,5 +1,8 @@
 package etomo.comscript;
 
+import etomo.BaseManager;
+import etomo.logic.CombineTool;
+
 /**
  * <p>Description: </p>
  * 
@@ -70,6 +73,12 @@ public class Patchcrawl3DParam extends ConstPatchcrawl3DParam implements Command
   public static final String COMMAND = "corrsearch3d";
   private boolean convertToPIP = false;
 
+  private final BaseManager manager;
+
+  Patchcrawl3DParam(final BaseManager manager) {
+    this.manager = manager;
+  }
+
   /*
    * (non-Javadoc)
    * 
@@ -98,6 +107,7 @@ public class Patchcrawl3DParam extends ConstPatchcrawl3DParam implements Command
       }
       initialShiftXYZ.validateAndSet(scriptCommand);
       kernelSigma.parse(scriptCommand, true);
+      invertYLimits.parse(scriptCommand);
     }
     catch (NumberFormatException except) {
       throw new BadComScriptException(except.getMessage());
@@ -197,6 +207,10 @@ public class Patchcrawl3DParam extends ConstPatchcrawl3DParam implements Command
     ParamUtilities.updateScriptParameter(scriptCommand, REGION_MODEL_KEY, regionModel);
     initialShiftXYZ.updateScriptParameter(scriptCommand);
     kernelSigma.updateComScript(scriptCommand);
+    if (!invertYLimits.is() && CombineTool.isInvertYLimits(manager)) {
+      invertYLimits.set(true);
+    }
+    invertYLimits.updateComScript(scriptCommand);
     if (convertToPIP) {
       scriptCommand.setCommand(COMMAND);
       ParamUtilities.updateScriptParameter(scriptCommand, REFERENCE_FILE_KEY,

@@ -1,6 +1,7 @@
 package etomo.comscript;
 
 import etomo.type.ConstEtomoNumber;
+import etomo.type.EtomoBoolean2;
 import etomo.type.EtomoNumber;
 import etomo.type.ScriptParameter;
 
@@ -70,6 +71,7 @@ public class ConstPatchcrawl3DParam {
       INITIAL_SHIFT_XYZ_KEY, 3);
   protected final ScriptParameter kernelSigma = new ScriptParameter(
       EtomoNumber.Type.DOUBLE, KERNEL_SIGMA_KEY);
+  final EtomoBoolean2 invertYLimits = new EtomoBoolean2("InvertYLimits");
 
   protected String referenceFile = null;
   protected String fileToAlign = null;
@@ -77,6 +79,7 @@ public class ConstPatchcrawl3DParam {
   protected String bSourceTransform = null;
   protected String bSourceOrSizeXYZ = null;
   protected String regionModel = null;
+
 
   public ConstPatchcrawl3DParam() {
     patchSizeXYZ.setIntegerType(true);
@@ -105,6 +108,7 @@ public class ConstPatchcrawl3DParam {
     regionModel = null;
     initialShiftXYZ.setDefault();//optional parameter
     kernelSigma.reset();
+    invertYLimits.reset();
   }
 
   public boolean isUseBoundaryModel() {
