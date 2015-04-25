@@ -7,14 +7,11 @@ import etomo.util.DatasetFiles;
 /**
  * <p>Description: </p>
  *
- * <p>Copyright: Copyright (c) 2004</p>
+ * <p>Copyright: Copyright 2004 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * <p>Organization: Boulder Laboratory for 3D Fine Structure,
- * University of Colorado</p>
- *
- * @author $$Author$$
- *
- * @version $$Revision$$
+ * @version $Id$
  *
  * <p> $$Log$
  * <p> $Revision 1.26  2011/02/09 06:05:10  sueh
@@ -108,8 +105,6 @@ import etomo.util.DatasetFiles;
  * <p> $$ </p>
  */
 public final class ProcessName {
-  public static final String rcsid = "$$Id$$";
-
   // known process names
   private static final String xcorr = "xcorr";
   private static final String prenewst = "prenewst";
@@ -228,7 +223,7 @@ public final class ProcessName {
   public static final ProcessName PEET_PARSER = new ProcessName(peetParser);
   public static final ProcessName AVERAGE_ALL = new ProcessName("averageAll");
   public static final ProcessName ANISOTROPIC_DIFFUSION = new ProcessName(
-      anisotropicDiffusion);
+    anisotropicDiffusion);
   public static final ProcessName CHUNKSETUP = new ProcessName(chunksetup);
   public static final ProcessName CTF_PLOTTER = new ProcessName(ctfPlotter);
   public static final ProcessName CTF_CORRECTION = new ProcessName(ctfCorrection);
@@ -244,7 +239,7 @@ public final class ProcessName {
   public static final ProcessName TILT_3D_FIND = new ProcessName(tilt_3dfind);
   public static final ProcessName FIND_BEADS_3D = new ProcessName(findbeads3d);
   public static final ProcessName TILT_3D_FIND_REPROJECT = new ProcessName(
-      tilt_3dfind_reproject);
+    tilt_3dfind_reproject);
   public static final ProcessName MIDAS = new ProcessName(midas);
   public static final ProcessName XCORR_PT = new ProcessName(xcorr_pt);
   public static final ProcessName PROCHUNKS_CSH = new ProcessName(prochunks_csh, true);
@@ -256,6 +251,8 @@ public final class ProcessName {
   public static final ProcessName MAKECOMFILE = new ProcessName("makecomfile");
   public static final ProcessName COPYTOMOCOMS = new ProcessName("copytomocoms");
   public static final ProcessName TOMODATAPLOTS = new ProcessName("tomodataplots");
+  public static final ProcessName DUALVOLMATCH = new ProcessName("dualvolmatch");
+  public static final ProcessName SETUPCOMBINE = new ProcessName("setupcombine");
 
   /**
    * Returns a string representation of the object.
@@ -309,8 +306,8 @@ public final class ProcessName {
     }
     // check if name is process name plus axis extension
     if (!axisID.getExtension().equals("") && name.endsWith(axisID.getExtension())) {
-      processName = getInstance(name.substring(0, name.length()
-          - axisID.getExtension().length()));
+      processName =
+        getInstance(name.substring(0, name.length() - axisID.getExtension().length()));
       if (processName != null) {
         return processName;
       }
@@ -327,8 +324,8 @@ public final class ProcessName {
     }
     // check if file name is process name plus axis extension plus file extension
     if (!axisID.getExtension().equals("") && name.endsWith(axisID.getExtension())) {
-      processName = getInstance(name.substring(0, name.length()
-          - axisID.getExtension().length()));
+      processName =
+        getInstance(name.substring(0, name.length() - axisID.getExtension().length()));
       if (processName != null) {
         return processName;
       }
@@ -345,7 +342,7 @@ public final class ProcessName {
    * @return
    */
   public static ProcessName getInstance(final String name, final AxisID axisID,
-      final String extension) {
+    final String extension) {
     if (extension == null || extension.equals("")) {
       return getInstance(name, axisID);
     }
@@ -571,6 +568,12 @@ public final class ProcessName {
     if (name.compareToIgnoreCase(TOMODATAPLOTS.name) == 0) {
       return TOMODATAPLOTS;
     }
+    if (name.compareToIgnoreCase(DUALVOLMATCH.name) == 0) {
+      return DUALVOLMATCH;
+    }
+    if (name.compareToIgnoreCase(SETUPCOMBINE.name) == 0) {
+      return SETUPCOMBINE;
+    }
     return null;
   }
 
@@ -579,19 +582,19 @@ public final class ProcessName {
       return null;
     }
     String fileName = file.getName();
-    StringBuffer processStringBuffer = new StringBuffer(fileName.substring(0,
-        fileName.lastIndexOf(excludeString)));
+    StringBuffer processStringBuffer =
+      new StringBuffer(fileName.substring(0, fileName.lastIndexOf(excludeString)));
     ProcessName processName;
     if ((processName = ProcessName.getInstance(processStringBuffer.toString())) != null) {
       return processName;
     }
     if (processStringBuffer.toString().endsWith(AxisID.FIRST.getExtension())) {
       return ProcessName.getInstance(processStringBuffer.substring(processStringBuffer
-          .lastIndexOf(AxisID.FIRST.getExtension())));
+        .lastIndexOf(AxisID.FIRST.getExtension())));
     }
     if (processStringBuffer.toString().endsWith(AxisID.SECOND.getExtension())) {
       return ProcessName.getInstance(processStringBuffer.substring(processStringBuffer
-          .lastIndexOf(AxisID.SECOND.getExtension())));
+        .lastIndexOf(AxisID.SECOND.getExtension())));
     }
     return null;
   }
