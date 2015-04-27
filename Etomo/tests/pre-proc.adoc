@@ -35,10 +35,6 @@ if.var.quick.return=
 	cb.manual-replacement=on
 	bn.create-fixed-stack=
 	wait.popup.comscript-terminated=OK
-	# bug# 1254
-	bn.use-fixed-stack=
-	wait.popup.entry-error=OK
-	#
 	cb.manual-replacement=off
 	bn.basic=
 	# Run again
