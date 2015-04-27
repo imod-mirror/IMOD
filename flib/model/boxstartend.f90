@@ -225,6 +225,10 @@ program boxstartend
       loadObjs(numLoadObj) = imodObj
     endif
   enddo
+  if (numLoadObj == 0 .and. numObjClip > 0) call exitError( &
+      'THE LIST OF OBJECTS TO USE DOES NOT SPECIFY ANY VALID OBJECT NUMBERS')
+  if (numLoadObj == 0) call exitError('ALL OBJECTS HAVE CLOSED CONTOURS AND WILL '// &
+      'NOT BE USED UNLESS SPECIFIED WITH -objects')
   if (.not.getModelObjectList(loadObjs, numLoadObj)) &
       call exitError('LOADING MODEL DATA')
   !

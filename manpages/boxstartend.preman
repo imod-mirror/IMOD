@@ -42,6 +42,11 @@ be centered in that dimension, where C is the coordinate in that
 dimension and "round" means rounding to the nearest integer.  If the box
 size is odd, the needed shift is round(C + 0.5) - (C + 0.5).
 .P
+By default, points will be used from all open and scattered point
+objects in the model, but closed contour objects will be skipped.  Use
+the \fB-objects\fR option to specify which objects to use or to include
+closed contour objects.
+.P
 Blank images are put out for points far enough outside the image area;
 no points are skipped.
 .SH OPTIONS
