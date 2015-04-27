@@ -19,6 +19,7 @@ import etomo.EtomoDirector;
 import etomo.storage.ExtensibleFileFilter;
 import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.type.UITestFieldType;
+import etomo.util.Utilities;
 
 /**
 * <p>Description: </p>
@@ -46,7 +47,8 @@ final class FileButtonCell extends InputCell {
   private FileFilter fileFilter = null;
 
   private final SimpleButton button = new SimpleButton(new ImageIcon(
-      ClassLoader.getSystemResource("images/openFilePeet.png")));
+    ClassLoader.getSystemResource(!Utilities.APRIL_FOOLS ? "images/openFilePeet.png"
+      : "images/openFileFool.png")));
 
   private FileButtonCell(final CurrentDirectory currentDirectory) {
     this.currentDirectory = currentDirectory;
@@ -100,7 +102,7 @@ final class FileButtonCell extends InputCell {
     button.setName(name);
     if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
       System.out.println(getComponent().getName() + ' '
-          + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
+        + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
     }
   }
 

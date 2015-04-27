@@ -1,5 +1,8 @@
 package etomo.type;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.Properties;
 import java.util.Vector;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -26,15 +29,11 @@ import etomo.util.Utilities;
  * <p>ScriptParameter uses the default value to decide whether an instance needs
  * to be placed in a script.</p>
  * 
- * <p>Copyright: Copyright (c) 2002 - 2006</p>
+ * <p>Copyright: Copyright 2002 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- *<p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
- * University of Colorado</p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
+ * @version $Id$
  * 
  * <p> $Log$
  * <p> Revision 1.68  2011/02/22 05:32:22  sueh
@@ -334,16 +333,14 @@ import etomo.util.Utilities;
  * <p> </p>
  */
 public abstract class ConstEtomoNumber implements Storable {
-  public static final String rcsid = "$Id$";
-
   // null values
   public static final double DOUBLE_NULL_VALUE = Double.NaN;
   public static final float FLOAT_NULL_VALUE = Float.NaN;
   public static final int INTEGER_NULL_VALUE = Integer.MIN_VALUE;
   public static final long LONG_NULL_VALUE = Long.MIN_VALUE;
-  // null for types not currently supported
-  private static final short shortNullValue = Short.MIN_VALUE;
-  private static final byte byteNullValue = Byte.MIN_VALUE;
+  public static final int BOOLEAN_NULL_VALUE = INTEGER_NULL_VALUE;
+  private static final int BOOLEAN_FALSE = 0;
+  private static final int BOOLEAN_TRUE = 1;
 
   // type
   final Type type;// defaults to integer, can't be changed once it is set
@@ -367,12 +364,14 @@ public abstract class ConstEtomoNumber implements Storable {
   // number below validFloor are invalid
   private Number validFloor;// optional, defaults to newNumber()
   Number defaultValue;
-  String[] stringArray = null;
+  String[] outputStringArray = null;
+  ArrayList<String[]> inputStringArray = null;
 
   // internal validation result
   StringBuffer invalidReason = null;
   private boolean debug = false;
   private boolean valueAltered = false;
+  private boolean displayAsNumber= false;
 
   /**
    * Construct a ConstEtomoNumber with type = INTEGER_TYPE
@@ -446,13 +445,32 @@ public abstract class ConstEtomoNumber implements Storable {
         validValues.add(newNumber((Number) instance.validValues.get(i)));
       }
     }
+    if (instance.outputStringArray != null && instance.outputStringArray.length > 0) {
+      outputStringArray = new String[instance.outputStringArray.length];
+      for (int i = 0; i < instance.outputStringArray.length; i++) {
+        outputStringArray[i] = instance.outputStringArray[i];
+      }
+    }
+    if (instance.inputStringArray != null && instance.inputStringArray.size() > 0) {
+      inputStringArray = new ArrayList<String[]>();
+      int len = instance.inputStringArray.size();
+      for (int i = 0; i < len; i++) {
+        String[] instanceStringArray = instance.inputStringArray.get(i);
+        if (instanceStringArray != null && instanceStringArray.length > 0) {
+          String[] stringArray = new String[instanceStringArray.length];
+          for (int j = 0; j < instanceStringArray.length; j++) {
+            stringArray[j] = instanceStringArray[j];
+          }
+        }
+      }
+    }
     if (instance.invalidReason != null) {
       invalidReason = new StringBuffer(instance.invalidReason.toString());
     }
   }
 
-  public static boolean isNull(int value) {
-    return value == INTEGER_NULL_VALUE;
+  public boolean isNull(int value) {
+    return isNull((Integer) value);
   }
 
   public String getDescription() {
@@ -506,7 +524,7 @@ public abstract class ConstEtomoNumber implements Storable {
       }
       addInvalidReason(toString(currentValue) + " is not a valid value.");
       addInvalidReason("Valid values are greater or equal to " + toString(validFloor)
-          + ".");
+        + ".");
     }
   }
 
@@ -519,9 +537,9 @@ public abstract class ConstEtomoNumber implements Storable {
    */
   Number applyCeilingValue(Number value) {
     if (value != null && !isNull(ceilingValue) && !isNull(value)
-        && gt(value, ceilingValue)) {
+      && gt(value, ceilingValue)) {
       valueAltered = true;
-      return newNumber(ceilingValue);
+      return ceilingValue;
     }
     return value;
   }
@@ -535,7 +553,7 @@ public abstract class ConstEtomoNumber implements Storable {
   Number applyFloorValue(Number value) {
     if (value != null && !isNull(floorValue) && !isNull(value) && lt(value, floorValue)) {
       valueAltered = true;
-      return newNumber(floorValue);
+      return floorValue;
     }
     return value;
   }
@@ -597,11 +615,12 @@ public abstract class ConstEtomoNumber implements Storable {
   }
 
   String paramString() {
-    StringBuffer buffer = new StringBuffer(",\ntype=" + type + ",\nname=" + name
-        + ",\ndescription=" + description + ",\ninvalidReason=" + invalidReason
-        + ",\ncurrentValue=" + currentValue + ",\ndisplayValue=" + displayValue
-        + ",\nceilingValue=" + ceilingValue + ",\nfloorValue=" + floorValue
-        + ",\nnullIsValid=" + nullIsValid + ",\nvalidValues=");
+    StringBuffer buffer =
+      new StringBuffer(",\ntype=" + type + ",\nname=" + name + ",\ndescription="
+        + description + ",\ninvalidReason=" + invalidReason + ",\ncurrentValue="
+        + currentValue + ",\ndisplayValue=" + displayValue + ",\nceilingValue="
+        + ceilingValue + ",\nfloorValue=" + floorValue + ",\nnullIsValid=" + nullIsValid
+        + ",\nvalidValues=");
     if (validValues == null) {
       buffer.append("null");
     }
@@ -621,7 +640,7 @@ public abstract class ConstEtomoNumber implements Storable {
   public ConstEtomoNumber setCeiling(int ceilingValue) {
     this.ceilingValue = newNumber(ceilingValue);
     validateFloorAndCeiling();
-    currentValue = applyCeilingValue(currentValue);
+    currentValue = newNumber(applyCeilingValue(currentValue));
     return this;
   }
 
@@ -635,7 +654,7 @@ public abstract class ConstEtomoNumber implements Storable {
   public ConstEtomoNumber setFloor(int floorValue) {
     this.floorValue = newNumber(floorValue);
     validateFloorAndCeiling();
-    currentValue = applyFloorValue(currentValue);
+    currentValue = newNumber(applyFloorValue(currentValue));
     return this;
   }
 
@@ -672,111 +691,112 @@ public abstract class ConstEtomoNumber implements Storable {
       throw new IllegalStateException("defaultValue cannot be null.");
     }
     // Type should be either double, integer, or long.
-    if (type != Type.DOUBLE && type != Type.INTEGER && type != Type.LONG) {
+    if (type != Type.DOUBLE && type != Type.INTEGER && type != Type.LONG
+      && type != Type.BOOLEAN) {
       throw new IllegalStateException("type is not valid.  type=" + type);
     }
     // Type constants must be unique.
     if (Type.DOUBLE == Type.INTEGER || Type.DOUBLE == Type.LONG
-        || Type.INTEGER == Type.LONG) {
+      || Type.INTEGER == Type.LONG) {
       throw new IllegalStateException("Type constants are the same.\nDOUBLE_TYPE="
-          + Type.DOUBLE + ",INTEGER_TYPE=" + Type.INTEGER + ",LONG_TYPE=" + Type.LONG);
+        + Type.DOUBLE + ",INTEGER_TYPE=" + Type.INTEGER + ",LONG_TYPE=" + Type.LONG);
     }
     // All members of type Number must be created with the current type
     // The type should be set only once.
     if (type == Type.DOUBLE) {
       if (!(currentValue instanceof Double)) {
         throw new IllegalStateException(
-            "currentValue doesn't match the current type.  currentValue.getClass()="
-                + currentValue.getClass() + ",type=" + type);
+          "currentValue doesn't match the current type.  currentValue.getClass()="
+            + currentValue.getClass() + ",type=" + type);
       }
       if (!(displayValue instanceof Double)) {
         throw new IllegalStateException(
-            "displayValue doesn't match the current type.  displayValue.getClass()="
-                + displayValue.getClass() + ",type=" + type);
+          "displayValue doesn't match the current type.  displayValue.getClass()="
+            + displayValue.getClass() + ",type=" + type);
       }
       if (!(ceilingValue instanceof Double)) {
         throw new IllegalStateException(
-            "ceilingValue doesn't match the current type.  ceilingValue.getClass()="
-                + ceilingValue.getClass() + ",type=" + type);
+          "ceilingValue doesn't match the current type.  ceilingValue.getClass()="
+            + ceilingValue.getClass() + ",type=" + type);
       }
       if (!(floorValue instanceof Double)) {
         throw new IllegalStateException(
-            "floorValue doesn't match the current type.  floorValue.getClass()="
-                + floorValue.getClass() + ",type=" + type);
+          "floorValue doesn't match the current type.  floorValue.getClass()="
+            + floorValue.getClass() + ",type=" + type);
       }
       if (!(validFloor instanceof Double)) {
         throw new IllegalStateException(
-            "validFloor doesn't match the current type.  validFloor.getClass()="
-                + validFloor.getClass() + ",type=" + type);
+          "validFloor doesn't match the current type.  validFloor.getClass()="
+            + validFloor.getClass() + ",type=" + type);
       }
       if (!(defaultValue instanceof Double)) {
         throw new IllegalStateException(
-            "defaultValue doesn't match the current type.  defaultValue.getClass()="
-                + defaultValue.getClass() + ",type=" + type);
+          "defaultValue doesn't match the current type.  defaultValue.getClass()="
+            + defaultValue.getClass() + ",type=" + type);
       }
     }
-    if (type == Type.INTEGER) {
+    if (type == Type.INTEGER || type == Type.BOOLEAN) {
       if (!(currentValue instanceof Integer)) {
         throw new IllegalStateException(
-            "currentValue doesn't match the current type.  currentValue.getClass()="
-                + currentValue.getClass() + ",type=" + type);
+          "currentValue doesn't match the current type.  currentValue.getClass()="
+            + currentValue.getClass() + ",type=" + type);
       }
       if (!(displayValue instanceof Integer)) {
         throw new IllegalStateException(
-            "displayValue doesn't match the current type.  displayValue.getClass()="
-                + displayValue.getClass() + ",type=" + type);
+          "displayValue doesn't match the current type.  displayValue.getClass()="
+            + displayValue.getClass() + ",type=" + type);
       }
       if (!(ceilingValue instanceof Integer)) {
         throw new IllegalStateException(
-            "ceilingValue doesn't match the current type.  ceilingValue.getClass()="
-                + ceilingValue.getClass() + ",type=" + type);
+          "ceilingValue doesn't match the current type.  ceilingValue.getClass()="
+            + ceilingValue.getClass() + ",type=" + type);
       }
       if (!(floorValue instanceof Integer)) {
         throw new IllegalStateException(
-            "floorValue doesn't match the current type.  floorValue.getClass()="
-                + floorValue.getClass() + ",type=" + type);
+          "floorValue doesn't match the current type.  floorValue.getClass()="
+            + floorValue.getClass() + ",type=" + type);
       }
       if (!(validFloor instanceof Integer)) {
         throw new IllegalStateException(
-            "validFloor doesn't match the current type.  validFloor.getClass()="
-                + validFloor.getClass() + ",type=" + type);
+          "validFloor doesn't match the current type.  validFloor.getClass()="
+            + validFloor.getClass() + ",type=" + type);
       }
       if (!(defaultValue instanceof Integer)) {
         throw new IllegalStateException(
-            "defaultValue doesn't match the current type.  defaultValue.getClass()="
-                + defaultValue.getClass() + ",type=" + type);
+          "defaultValue doesn't match the current type.  defaultValue.getClass()="
+            + defaultValue.getClass() + ",type=" + type);
       }
     }
     if (type == Type.LONG) {
       if (!(currentValue instanceof Long)) {
         throw new IllegalStateException(
-            "currentValue doesn't match the current type.  currentValue.getClass()="
-                + currentValue.getClass() + ",type=" + type);
+          "currentValue doesn't match the current type.  currentValue.getClass()="
+            + currentValue.getClass() + ",type=" + type);
       }
       if (!(displayValue instanceof Long)) {
         throw new IllegalStateException(
-            "displayValue doesn't match the current type.  displayValue.getClass()="
-                + displayValue.getClass() + ",type=" + type);
+          "displayValue doesn't match the current type.  displayValue.getClass()="
+            + displayValue.getClass() + ",type=" + type);
       }
       if (!(ceilingValue instanceof Long)) {
         throw new IllegalStateException(
-            "ceilingValue doesn't match the current type.  ceilingValue.getClass()="
-                + ceilingValue.getClass() + ",type=" + type);
+          "ceilingValue doesn't match the current type.  ceilingValue.getClass()="
+            + ceilingValue.getClass() + ",type=" + type);
       }
       if (!(floorValue instanceof Long)) {
         throw new IllegalStateException(
-            "floorValue doesn't match the current type.  floorValue.getClass()="
-                + floorValue.getClass() + ",type=" + type);
+          "floorValue doesn't match the current type.  floorValue.getClass()="
+            + floorValue.getClass() + ",type=" + type);
       }
       if (!(validFloor instanceof Long)) {
         throw new IllegalStateException(
-            "validFloor doesn't match the current type.  validFloor.getClass()="
-                + validFloor.getClass() + ",type=" + type);
+          "validFloor doesn't match the current type.  validFloor.getClass()="
+            + validFloor.getClass() + ",type=" + type);
       }
       if (!(defaultValue instanceof Long)) {
         throw new IllegalStateException(
-            "defaultValue doesn't match the current type.  defaultValue.getClass()="
-                + defaultValue.getClass() + ",type=" + type);
+          "defaultValue doesn't match the current type.  defaultValue.getClass()="
+            + defaultValue.getClass() + ",type=" + type);
       }
     }
     // floorValue <= ceilingValue
@@ -792,43 +812,43 @@ public abstract class ConstEtomoNumber implements Storable {
     // test deep copy on assignment
     if (currentValue == displayValue) {
       throw new IllegalStateException(
-          "newNumber() was not use in an assignment:  currentValue, displayValue");
+        "newNumber() was not use in an assignment:  currentValue, displayValue");
     }
     if (currentValue == ceilingValue) {
       throw new IllegalStateException(
-          "newNumber() was not use in an assignment:  currentValue, ceilingValue");
+        "newNumber() was not use in an assignment:  currentValue, ceilingValue");
     }
     if (currentValue == floorValue) {
       throw new IllegalStateException(
-          "newNumber() was not use in an assignment:  currentValue, floorValue.");
+        "newNumber() was not use in an assignment:  currentValue, floorValue.");
     }
     if (currentValue == validFloor) {
       throw new IllegalStateException(
-          "newNumber() was not use in an assignment:  currentValue, validFloor.");
+        "newNumber() was not use in an assignment:  currentValue, validFloor.");
     }
     if (displayValue == ceilingValue) {
       throw new IllegalStateException(
-          "newNumber() was not use in an assignment:  displayValue, ceilingValue");
+        "newNumber() was not use in an assignment:  displayValue, ceilingValue");
     }
     if (displayValue == floorValue) {
       throw new IllegalStateException(
-          "newNumber() was not use in an assignment:  displayValue, floorValue.");
+        "newNumber() was not use in an assignment:  displayValue, floorValue.");
     }
     if (displayValue == validFloor) {
       throw new IllegalStateException(
-          "newNumber() was not use in an assignment:  displayValue, validFloor.");
+        "newNumber() was not use in an assignment:  displayValue, validFloor.");
     }
     if (ceilingValue == floorValue) {
       throw new IllegalStateException(
-          "newNumber() was not use in an assignment:  ceilingValue, floorValue.");
+        "newNumber() was not use in an assignment:  ceilingValue, floorValue.");
     }
     if (ceilingValue == validFloor) {
       throw new IllegalStateException(
-          "newNumber() was not use in an assignment:  ceilingValue, validFloor.");
+        "newNumber() was not use in an assignment:  ceilingValue, validFloor.");
     }
     if (floorValue == validFloor) {
       throw new IllegalStateException(
-          "newNumber() was not use in an assignment:  floorValue, validFloor.");
+        "newNumber() was not use in an assignment:  floorValue, validFloor.");
     }
   }
 
@@ -856,7 +876,7 @@ public abstract class ConstEtomoNumber implements Storable {
   /**
    * Set the value will be used if the user does not set a value or there is no
    * value to load.  Also used in reset().
-   * @param resetValue
+   * @param displayValue
    * @return
    */
   public void setDisplayValue(double displayValue) {
@@ -943,7 +963,7 @@ public abstract class ConstEtomoNumber implements Storable {
   }
 
   public static void store(EtomoNumber etomoNumber, String name, Properties props,
-      String prepend) {
+    String prepend) {
     if (etomoNumber == null) {
       props.remove(prepend + '.' + name);
       return;
@@ -969,19 +989,41 @@ public abstract class ConstEtomoNumber implements Storable {
    * translated to and from strings.  No effect if the type isn't integer.
    * Use with setValidValues and setDisplayValue to create a boolean that can be
    * null.
-   * @param input - used to set stringArray
+   * @param input - used to set inputStringArray
    */
-  public void setStrings(String[] input) {
-    if (type != Type.INTEGER) {
+  public void setOutputStrings(String[] input) {
+    if (type != Type.INTEGER && type != Type.BOOLEAN) {
       return;
     }
     if (input == null || input.length == 0) {
-      stringArray = null;
+      outputStringArray = null;
     }
-    stringArray = new String[input.length];
+    outputStringArray = new String[input.length];
     for (int i = 0; i < input.length; i++) {
-      stringArray[i] = input[i];
+      outputStringArray[i] = input[i];
     }
+  }
+
+  /**
+   * Sets an instance with a string array so numbers can be
+   * translated from strings.  No effect if the type isn't integer.
+   * Use with setValidValues and setDisplayValue to create a boolean that can be
+   * null.
+   * @param input - used to set outputStringArray
+   */
+  public void addInputStrings(String[] input) {
+    if ((type != Type.INTEGER && type != Type.BOOLEAN) || input == null
+      || input.length == 0) {
+      return;
+    }
+    if (inputStringArray == null) {
+      inputStringArray = new ArrayList<String[]>();
+    }
+    String[] array = new String[input.length];
+    for (int i = 0; i < input.length; i++) {
+      array[i] = input[i];
+    }
+    inputStringArray.add(array);
   }
 
   /**
@@ -1084,7 +1126,7 @@ public abstract class ConstEtomoNumber implements Storable {
       defaultValue = newNumber();
     }
     else {
-      defaultValue = input.getNumber();
+      defaultValue = newNumber(input.getNumber());
     }
   }
 
@@ -1226,10 +1268,37 @@ public abstract class ConstEtomoNumber implements Storable {
   private void initialize() {
     ceilingValue = newNumber();
     floorValue = newNumber();
-    this.displayValue = newNumber();
+    displayValue = newNumber();
     currentValue = newNumber();
     validFloor = newNumber();
     defaultValue = newNumber();
+    if (type == Type.BOOLEAN) {
+      setOutputStrings(new String[] { "false", "true" });
+      addInputStrings(new String[] { "no", "yes" });
+      addInputStrings(new String[] { "off", "on" });
+      addInputStrings(new String[] { "f", "t" });
+      addInputStrings(new String[] { "n", "y" });
+    }
+  }
+
+  /**
+   * Values will always be displayed as numbers after this is run.  Removes the output
+   * string array.  The output string array is added to the input string array so its
+   * strings can be used for input.  Boolean numbers are 0 and 1.
+   */
+  public void setDisplayAsNumber() {
+    displayAsNumber = true;
+    if (outputStringArray != null) {
+      if (inputStringArray == null) {
+        inputStringArray = new ArrayList<String[]>();
+      }
+      inputStringArray.add(outputStringArray);
+      outputStringArray = null;
+    }
+  }
+  
+  boolean isDisplayAsNumber() {
+    return displayAsNumber;
   }
 
   /**
@@ -1282,10 +1351,10 @@ public abstract class ConstEtomoNumber implements Storable {
     if (isNull(value)) {
       return "";
     }
-    if (type == Type.INTEGER && stringArray != null) {
+    if ((type == Type.INTEGER || type == Type.BOOLEAN) && outputStringArray != null) {
       int index = value.intValue();
-      if (index > 0 && index < stringArray.length) {
-        return stringArray[index];
+      if (index >= 0 && index < outputStringArray.length) {
+        return outputStringArray[index];
       }
     }
     return value.toString();
@@ -1320,11 +1389,11 @@ public abstract class ConstEtomoNumber implements Storable {
   }
 
   Number newNumber() {
+    if (type == Type.INTEGER || type == Type.BOOLEAN) {
+      return new Integer(INTEGER_NULL_VALUE);
+    }
     if (type == Type.DOUBLE) {
       return new Double(DOUBLE_NULL_VALUE);
-    }
-    if (type == Type.INTEGER) {
-      return new Integer(INTEGER_NULL_VALUE);
     }
     if (type == Type.LONG) {
       return new Long(LONG_NULL_VALUE);
@@ -1341,11 +1410,17 @@ public abstract class ConstEtomoNumber implements Storable {
     if (value == null || isNull(value)) {
       return newNumber();
     }
-    if (type == Type.DOUBLE) {
-      return new Double(value.doubleValue());
+    if (type == Type.BOOLEAN) {
+      if (equals(value, BOOLEAN_FALSE)) {
+        return new Integer(BOOLEAN_FALSE);
+      }
+      return new Integer(BOOLEAN_TRUE);
     }
     if (type == Type.INTEGER) {
       return new Integer(value.intValue());
+    }
+    if (type == Type.DOUBLE) {
+      return new Double(value.doubleValue());
     }
     if (type == Type.LONG) {
       return new Long(value.longValue());
@@ -1359,6 +1434,7 @@ public abstract class ConstEtomoNumber implements Storable {
    * @param invalidBuffer
    * @return
    */
+  // TODO
   Number newNumber(String value, StringBuffer invalidBuffer) {
     if (value == null) {
       return newNumber();
@@ -1368,11 +1444,18 @@ public abstract class ConstEtomoNumber implements Storable {
       return newNumber();
     }
     try {
-      if (type == Type.DOUBLE) {
-        return new Double(value);
+      if (type == Type.BOOLEAN) {
+        Integer integer = new Integer(value);
+        if (integer.equals(BOOLEAN_FALSE)) {
+          return integer;
+        }
+        return new Integer(BOOLEAN_TRUE);
       }
       if (type == Type.INTEGER) {
         return new Integer(value);
+      }
+      if (type == Type.DOUBLE) {
+        return new Double(value);
       }
       if (type == Type.LONG) {
         return new Long(value);
@@ -1380,6 +1463,29 @@ public abstract class ConstEtomoNumber implements Storable {
       throw new IllegalStateException("type=" + type);
     }
     catch (NumberFormatException e) {
+      // Convert string to a specific integer value
+      if (type == Type.INTEGER || type == Type.BOOLEAN) {
+        if (outputStringArray != null) {
+          for (int i = 0; i < outputStringArray.length; i++) {
+            if (value.compareToIgnoreCase(outputStringArray[i]) == 0) {
+              return newNumber(i);
+            }
+          }
+        }
+        if (inputStringArray != null) {
+          int len = inputStringArray.size();
+          for (int i = 0; i < len; i++) {
+            String[] stringArray = inputStringArray.get(i);
+            if (stringArray != null) {
+              for (int j = 0; j < stringArray.length; j++) {
+                if (value.compareToIgnoreCase(stringArray[j]) == 0) {
+                  return newNumber(j);
+                }
+              }
+            }
+          }
+        }
+      }
       invalidBuffer.append(value + " is not a valid " + type + ".  " + e.getMessage());
       // TODO should the invalid string be stored somewhere?
       return newNumber();
@@ -1387,11 +1493,20 @@ public abstract class ConstEtomoNumber implements Storable {
   }
 
   Number newNumber(int value) {
-    if (type == Type.DOUBLE) {
-      return new Double(value);
+    if (isNull(value)) {
+      return newNumber();
+    }
+    if (type == Type.BOOLEAN) {
+      if (value == BOOLEAN_FALSE) {
+        return new Integer(BOOLEAN_FALSE);
+      }
+      return new Integer(BOOLEAN_TRUE);
     }
     if (type == Type.INTEGER) {
       return new Integer(value);
+    }
+    if (type == Type.DOUBLE) {
+      return new Double(value);
     }
     if (type == Type.LONG) {
       return new Long(value);
@@ -1407,14 +1522,20 @@ public abstract class ConstEtomoNumber implements Storable {
   }
 
   Number newNumber(double value) {
-    if (Double.isNaN(value)) {
+    if (isNull(value)) {
       return newNumber();
     }
-    if (type == Type.DOUBLE) {
-      return new Double(value);
+    if (type == Type.BOOLEAN) {
+      if (value == BOOLEAN_FALSE) {
+        return new Integer(BOOLEAN_FALSE);
+      }
+      return new Integer(BOOLEAN_TRUE);
     }
     if (type == Type.INTEGER) {
       return new Integer((int) value);
+    }
+    if (type == Type.DOUBLE) {
+      return new Double(value);
     }
     if (type == Type.LONG) {
       return new Long((long) value);
@@ -1423,14 +1544,20 @@ public abstract class ConstEtomoNumber implements Storable {
   }
 
   Number newNumber(long value) {
-    if (value == LONG_NULL_VALUE) {
+    if (isNull(value)) {
       return newNumber();
     }
-    if (type == Type.DOUBLE) {
-      return new Double(value);
+    if (type == Type.BOOLEAN) {
+      if (value == BOOLEAN_FALSE) {
+        return new Integer(BOOLEAN_FALSE);
+      }
+      return new Integer(BOOLEAN_TRUE);
     }
     if (type == Type.INTEGER) {
       return new Integer((int) value);
+    }
+    if (type == Type.DOUBLE) {
+      return new Double(value);
     }
     if (type == Type.LONG) {
       return new Long(value);
@@ -1439,14 +1566,20 @@ public abstract class ConstEtomoNumber implements Storable {
   }
 
   Number newNumber(float value) {
-    if (value == LONG_NULL_VALUE) {
+    if (isNull(value)) {
       return newNumber();
     }
-    if (type == Type.DOUBLE) {
-      return new Double(value);
+    if (type == Type.BOOLEAN) {
+      if (value == BOOLEAN_FALSE) {
+        return new Integer(BOOLEAN_FALSE);
+      }
+      return new Integer(BOOLEAN_TRUE);
     }
     if (type == Type.INTEGER) {
       return new Integer((int) value);
+    }
+    if (type == Type.DOUBLE) {
+      return new Double(value);
     }
     if (type == Type.LONG) {
       return new Long((long) value);
@@ -1454,12 +1587,55 @@ public abstract class ConstEtomoNumber implements Storable {
     throw new IllegalStateException("type=" + type);
   }
 
- public static boolean isNull(Number number) {
+  /**
+   * Returns true if number is the null value for this type.
+   * @param number
+   * @return
+   */
+  public boolean isNull(Number number) {
     if (number == null) {
       return true;
     }
+    boolean nullValue = isNumberNull(number);
+    if (!nullValue) {
+      return false;
+    }
+    if (type == Type.BOOLEAN || type == Type.INTEGER) {
+      return number instanceof Integer;
+    }
+    if (type == Type.DOUBLE) {
+      return number instanceof Double;
+    }
+    if (type == Type.LONG) {
+      return number instanceof Long;
+    }
+    return false;
+  }
+
+  /**
+   * Return true if number is the null value of its instance.  So for Integer, the Integer
+   * null value is null, but for Short only the Short null value is null.  Except for
+   * Double and Float, the minimum value is used for all null values.  NaN values are used
+   * for Double and Float.  The function will not return true for another type's null
+   * value.  The exception to this is Double and Float.  They recognize each other's NaN
+   * values with their isNaN functions.
+   * @param number
+   * @return
+   */
+  public static boolean isNumberNull(Number number) {
+    if (number == null) {
+      return true;
+    }
+    if (number instanceof AtomicInteger || number instanceof BigInteger
+      || number instanceof Integer) {
+      return number.intValue() == Integer.MIN_VALUE;
+    }
+    if (number instanceof AtomicLong || number instanceof BigDecimal
+      || number instanceof Long) {
+      return number.longValue() == Long.MIN_VALUE;
+    }
     if (number instanceof Byte) {
-      return number.byteValue() == byteNullValue;
+      return number.byteValue() == Byte.MIN_VALUE;
     }
     if (number instanceof Double) {
       return Double.isNaN(number.doubleValue());
@@ -1467,17 +1643,11 @@ public abstract class ConstEtomoNumber implements Storable {
     if (number instanceof Float) {
       return Float.isNaN(number.floatValue());
     }
-    if (number instanceof Integer || number instanceof AtomicInteger) {
-      return isNull(number.intValue());
-    }
-    if (number instanceof Long || number instanceof AtomicLong) {
-      return number.longValue() == LONG_NULL_VALUE;
-    }
     if (number instanceof Short) {
-      return number.shortValue() == shortNullValue;
+      return number.shortValue() == Short.MIN_VALUE;
     }
     throw new IllegalStateException("Unknown type.  value.getClass()="
-        + number.getClass());
+      + number.getClass());
   }
 
   boolean gt(Number number1, Number number2) {
@@ -1541,8 +1711,8 @@ public abstract class ConstEtomoNumber implements Storable {
     // then or equal to ceilingValue.
     if (!isNull(ceilingValue) && !isNull(floorValue) && gt(floorValue, ceilingValue)) {
       throw new IllegalStateException(
-          "FloorValue cannot be greater then ceilingValue.\nfloorValue=" + floorValue
-              + ", ceilingValue=" + ceilingValue);
+        "FloorValue cannot be greater then ceilingValue.\nfloorValue=" + floorValue
+          + ", ceilingValue=" + ceilingValue);
     }
   }
 
@@ -1565,30 +1735,30 @@ public abstract class ConstEtomoNumber implements Storable {
     }
     // equality test
     if (type != original.type
-        || !name.equals(original.name)
-        || !description.equals(original.description)
-        || !equals(currentValue, original.currentValue)
-        || !equals(displayValue, original.displayValue)
-        || !equals(ceilingValue, original.ceilingValue)
-        || !equals(floorValue, original.floorValue)
-        || !equals(validFloor, original.validFloor)
-        || !equals(defaultValue, original.defaultValue)
-        || (validValues != null && original.validValues == null)
-        || (validValues == null && original.validValues != null)
-        || (validValues != null && original.validValues != null && !validValues
-            .equals(original.validValues))
-        || nullIsValid != original.nullIsValid
-        || (invalidReason != null && original.invalidReason == null)
-        || (invalidReason == null && original.invalidReason != null)
-        || (invalidReason != null && original.invalidReason != null && !invalidReason
-            .toString().equals(original.invalidReason.toString()))) {
+      || !name.equals(original.name)
+      || !description.equals(original.description)
+      || !equals(currentValue, original.currentValue)
+      || !equals(displayValue, original.displayValue)
+      || !equals(ceilingValue, original.ceilingValue)
+      || !equals(floorValue, original.floorValue)
+      || !equals(validFloor, original.validFloor)
+      || !equals(defaultValue, original.defaultValue)
+      || (validValues != null && original.validValues == null)
+      || (validValues == null && original.validValues != null)
+      || (validValues != null && original.validValues != null && !validValues
+        .equals(original.validValues))
+      || nullIsValid != original.nullIsValid
+      || (invalidReason != null && original.invalidReason == null)
+      || (invalidReason == null && original.invalidReason != null)
+      || (invalidReason != null && original.invalidReason != null && !invalidReason
+        .toString().equals(original.invalidReason.toString()))) {
       throw new IllegalStateException("Incorrect copy: this=" + this.classInfoString()
-          + ",original=" + original.classInfoString());
+        + ",original=" + original.classInfoString());
     }
   }
 
   private boolean compare(final Comparison comparison, final Number number1,
-      final Number number2) {
+    final Number number2) {
     if (comparison == Comparison.EQUALS && isNull(number1) && isNull(number2)) {
       return true;
     }
@@ -1624,7 +1794,7 @@ public abstract class ConstEtomoNumber implements Storable {
   }
 
   private Number doMath(final Operator operator, final Number number1,
-      final Number number2) {
+    final Number number2) {
     boolean null1 = false;
     boolean null2 = false;
     if ((null1 = isNull(number1)) || (null2 = isNull(number2))) {
@@ -1672,7 +1842,7 @@ public abstract class ConstEtomoNumber implements Storable {
   }
 
   private Number doMath(final Operator operator, final double number1,
-      final double number2) {
+    final double number2) {
     if (operator == Operator.ADD) {
       return newNumber(number1 + number2);
     }
@@ -1685,7 +1855,8 @@ public abstract class ConstEtomoNumber implements Storable {
     return newNumber();
   }
 
-  private Number doMath(final Operator operator, final double number1, final float number2) {
+  private Number
+    doMath(final Operator operator, final double number1, final float number2) {
     if (operator == Operator.ADD) {
       return newNumber(number1 + number2);
     }
@@ -1698,7 +1869,8 @@ public abstract class ConstEtomoNumber implements Storable {
     return newNumber();
   }
 
-  private Number doMath(final Operator operator, final double number1, final long number2) {
+  private Number
+    doMath(final Operator operator, final double number1, final long number2) {
     if (operator == Operator.ADD) {
       return newNumber(number1 + number2);
     }
@@ -1711,7 +1883,8 @@ public abstract class ConstEtomoNumber implements Storable {
     return newNumber();
   }
 
-  private Number doMath(final Operator operator, final float number1, final double number2) {
+  private Number
+    doMath(final Operator operator, final float number1, final double number2) {
     if (operator == Operator.ADD) {
       return newNumber(number1 + number2);
     }
@@ -1724,7 +1897,8 @@ public abstract class ConstEtomoNumber implements Storable {
     return newNumber();
   }
 
-  private Number doMath(final Operator operator, final float number1, final float number2) {
+  private Number
+    doMath(final Operator operator, final float number1, final float number2) {
     if (operator == Operator.ADD) {
       return newNumber(number1 + number2);
     }
@@ -1750,7 +1924,8 @@ public abstract class ConstEtomoNumber implements Storable {
     return newNumber();
   }
 
-  private Number doMath(final Operator operator, final long number1, final double number2) {
+  private Number
+    doMath(final Operator operator, final long number1, final double number2) {
     if (operator == Operator.ADD) {
       return newNumber(number1 + number2);
     }
@@ -1790,7 +1965,7 @@ public abstract class ConstEtomoNumber implements Storable {
   }
 
   private boolean compare(final Comparison comparison, final double number1,
-      final double number2) {
+    final double number2) {
     if (comparison == Comparison.GT) {
       return number1 > number2;
     }
@@ -1810,7 +1985,7 @@ public abstract class ConstEtomoNumber implements Storable {
   }
 
   private boolean compare(final Comparison comparison, final double number1,
-      final float number2) {
+    final float number2) {
     if (comparison == Comparison.GT) {
       return number1 > number2;
     }
@@ -1830,7 +2005,7 @@ public abstract class ConstEtomoNumber implements Storable {
   }
 
   private boolean compare(final Comparison comparison, final double number1,
-      final long number2) {
+    final long number2) {
     if (comparison == Comparison.GT) {
       return number1 > number2;
     }
@@ -1850,7 +2025,7 @@ public abstract class ConstEtomoNumber implements Storable {
   }
 
   private boolean compare(final Comparison comparison, final float number1,
-      final double number2) {
+    final double number2) {
     if (comparison == Comparison.GT) {
       return number1 > number2;
     }
@@ -1870,7 +2045,7 @@ public abstract class ConstEtomoNumber implements Storable {
   }
 
   private boolean compare(final Comparison comparison, final float number1,
-      final float number2) {
+    final float number2) {
     if (comparison == Comparison.GT) {
       return number1 > number2;
     }
@@ -1890,7 +2065,7 @@ public abstract class ConstEtomoNumber implements Storable {
   }
 
   private boolean compare(final Comparison comparison, final float number1,
-      final long number2) {
+    final long number2) {
     if (comparison == Comparison.GT) {
       return number1 > number2;
     }
@@ -1910,7 +2085,7 @@ public abstract class ConstEtomoNumber implements Storable {
   }
 
   private boolean compare(final Comparison comparison, final long number1,
-      final double number2) {
+    final double number2) {
     if (comparison == Comparison.GT) {
       return number1 > number2;
     }
@@ -1930,7 +2105,7 @@ public abstract class ConstEtomoNumber implements Storable {
   }
 
   private boolean compare(final Comparison comparison, final long number1,
-      final float number2) {
+    final float number2) {
     if (comparison == Comparison.GT) {
       return number1 > number2;
     }
@@ -1950,7 +2125,7 @@ public abstract class ConstEtomoNumber implements Storable {
   }
 
   private boolean compare(final Comparison comparison, final long number1,
-      final long number2) {
+    final long number2) {
     if (comparison == Comparison.GT) {
       return number1 > number2;
     }
@@ -1973,6 +2148,10 @@ public abstract class ConstEtomoNumber implements Storable {
     public static final Type DOUBLE = new Type();
     public static final Type INTEGER = new Type();
     public static final Type LONG = new Type();
+    /**
+     * BOOLEAN is an integer where every non-null number other then 0 is turned into a 1.
+     */
+    public static final Type BOOLEAN = new Type();
 
     public static Type getDefault() {
       return INTEGER;
@@ -1988,6 +2167,9 @@ public abstract class ConstEtomoNumber implements Storable {
       if (this == LONG) {
         return "Long";
       }
+      if (this == BOOLEAN) {
+        return "Boolean";
+      }
       return "Unknown Type";
     }
   }
@@ -1999,8 +2181,7 @@ public abstract class ConstEtomoNumber implements Storable {
     private static final Comparison LE = new Comparison();
     private static final Comparison EQUALS = new Comparison();
 
-    private Comparison() {
-    }
+    private Comparison() {}
   }
 
   private static final class Operator {
@@ -2008,7 +2189,6 @@ public abstract class ConstEtomoNumber implements Storable {
     private static final Operator MULTIPLY = new Operator();
     private static final Operator DIVIDE_BY = new Operator();
 
-    private Operator() {
-    }
+    private Operator() {}
   }
 }

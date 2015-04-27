@@ -1,5 +1,6 @@
 package etomo.ui.swing;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -21,19 +22,16 @@ import etomo.type.EnumeratedType;
 import etomo.type.EtomoAutodoc;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.ui.FieldLabels;
+import etomo.util.Utilities;
 
 /**
  * <p>Description: </p>
  * 
- * <p>Copyright: Copyright 2009</p>
+ * <p>Copyright: Copyright 2009 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
- * University of Colorado</p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
+ * @version $Id$
  * 
  * <p> $Log$
  * <p> Revision 1.1  2010/11/13 16:07:34  sueh
@@ -51,8 +49,6 @@ import etomo.ui.FieldLabels;
  */
 
 final class YAxisTypePanel {
-  public static final String rcsid = "$Id$";
-
   private static final String Y_AXIS_CONTOUR_LABEL = "End points of contour";
 
   private final SpacedPanel pnlRoot = SpacedPanel.getInstance();
@@ -94,6 +90,11 @@ final class YAxisTypePanel {
   private void createPanel() {
     // local panels
     SpacedPanel pnlYaxisType = SpacedPanel.getInstance();
+    if (Utilities.APRIL_FOOLS) {
+      Color  background = new Color(255,239,148);
+      pnlRoot.setBackground(background);
+      pnlYaxisType.setBackground(background);
+    }
     pnlRoot.setBoxLayout(BoxLayout.X_AXIS);
     pnlRoot.setBorder(new EtchedBorder(FieldLabels.YAXIS_TYPE_LABEL).getBorder());
     pnlRoot.add(pnlYaxisType);

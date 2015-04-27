@@ -1,3 +1,23 @@
+package etomo.comscript;
+
+import java.io.IOException;
+import java.util.ArrayList;
+
+import etomo.ApplicationManager;
+import etomo.BaseManager;
+import etomo.EtomoDirector;
+import etomo.process.BaseProcessManager;
+import etomo.process.ProcessMessages;
+import etomo.process.SystemProcessException;
+import etomo.process.SystemProgram;
+import etomo.type.AxisID;
+import etomo.type.CombinePatchSize;
+import etomo.type.ConstEtomoNumber;
+import etomo.type.ConstMetaData;
+import etomo.type.FiducialMatch;
+import etomo.type.MatchMode;
+import etomo.util.DatasetFiles;
+
 /**
  * <p>
  * Description:
@@ -199,40 +219,22 @@
  * <p>
  * </p>
  */
-package etomo.comscript;
-
-import java.io.IOException;
-import java.util.ArrayList;
-
-import etomo.ApplicationManager;
-import etomo.BaseManager;
-import etomo.EtomoDirector;
-import etomo.process.BaseProcessManager;
-import etomo.process.ProcessMessages;
-import etomo.process.SystemProcessException;
-import etomo.process.SystemProgram;
-import etomo.type.AxisID;
-import etomo.type.CombinePatchSize;
-import etomo.type.ConstEtomoNumber;
-import etomo.type.ConstMetaData;
-import etomo.type.FiducialMatch;
-import etomo.type.MatchMode;
-import etomo.util.DatasetFiles;
-
-public class SetupCombine {
+public final class SetupCombine {
   private static final String COMMAND = "setupcombine";
+
+  private final ArrayList command = new ArrayList();
 
   private final SystemProgram setupcombine;
 
-  private final ArrayList command = new ArrayList();
-  int exitValue;
-  ConstMetaData metaData;
-  boolean debug;
+  private int exitValue;
+  private ConstMetaData metaData;
+  private boolean debug;
   private final BaseManager manager;
   private MatchMode matchMode = null;
   private boolean transfer = false;
 
-  public SetupCombine(ApplicationManager manager) throws SystemProcessException {
+  private SetupCombine(final ApplicationManager manager, final boolean onlyMakeCombineCom)
+    throws SystemProcessException {
     this.manager = manager;
     metaData = manager.getConstMetaData();
     debug = EtomoDirector.INSTANCE.getArguments().isDebug();
@@ -245,14 +247,28 @@ public class SetupCombine {
     command.add("python");
     command.add("-u");
     command.add(ApplicationManager.getIMODBinPath() + COMMAND);
-    genOptions();
+    if (!onlyMakeCombineCom) {
+      genOptions();
+    }
+    else {
+      genOptionsOnlyMakeCombineCom();
+    }
     String[] commandArray = new String[command.size()];
     for (int i = 0; i < commandArray.length; i++) {
       commandArray[i] = (String) command.get(i);
     }
     setupcombine =
       new SystemProgram(manager, manager.getPropertyUserDir(), commandArray, AxisID.ONLY);
-    // genStdInputSequence();
+  }
+
+  public static SetupCombine getInstance(ApplicationManager manager)
+    throws SystemProcessException {
+    return new SetupCombine(manager, false);
+  }
+
+  public static SetupCombine getOnlyMakeCombineComInstance(ApplicationManager manager)
+    throws SystemProcessException {
+    return new SetupCombine(manager, true);
   }
 
   public static String[] getInfoOnPatchSizes() {
@@ -386,6 +402,10 @@ public class SetupCombine {
         command.add("-noclean");
       }
     }
+  }
+
+  private void genOptionsOnlyMakeCombineCom() {
+    command.add("-OnlyMakeCombineCom");
   }
 
   /**

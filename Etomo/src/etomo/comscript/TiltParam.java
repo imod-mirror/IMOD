@@ -1252,7 +1252,7 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
     }
     catch (etomo.util.InvalidParameterException e) {
       e.printStackTrace();
-      if (Utilities.isAprilFools()) {
+      if (Utilities.APRIL_FOOLS) {
         UIHarness.INSTANCE.openMessageDialog(manager,
             "A horrible horrible thing happened while I was setting the subset "
                 + "start in tilt.com.  Your tomogram would have been a disaster.  "
