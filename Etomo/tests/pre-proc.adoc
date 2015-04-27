@@ -30,7 +30,7 @@ if.var.quick.return=
 	assert.exists.file=%{dataset}%{axis}_peak.mod
 	assert.exists.file=%{dataset}%{axis}_fixed.st
 	run.function.test-gui-montage=
-    # bug# 1254
+  # bug# 1254
 	bn.use-fixed-stack=
 	wait.popup.entry-error=OK
 	# Run again
