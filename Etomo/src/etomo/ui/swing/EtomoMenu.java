@@ -40,7 +40,7 @@ final class EtomoMenu {
   static final String JOIN_LABEL = "Join Serial Tomograms";
   static final String GENERIC_LABEL = "Generic Parallel Process";
   static final String NAD_LABEL = "Nonlinear Anisotropic "
-    + (Utilities.isAprilFools() ? "Delusion" : "Diffusion");
+    + (Utilities.APRIL_FOOLS ? "Delusion" : "Diffusion");
   static final String BATCH_RUN_TOMO_LABEL = "Batch Tomograms";
   static final String PEET_LABEL = "Subvolume Averaging (PEET)";
   static final String FLATTEN_VOLUME_LABEL = "Flatten Volume";

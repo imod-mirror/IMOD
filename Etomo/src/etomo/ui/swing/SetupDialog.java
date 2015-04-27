@@ -37,6 +37,7 @@ import etomo.type.UserConfiguration;
 import etomo.ui.FieldType;
 import etomo.ui.FieldValidationFailedException;
 import etomo.ui.SetupReconInterface;
+import etomo.util.Utilities;
 
 /**
  * <p>Description: </p>
@@ -66,7 +67,8 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
   // Dataset GUI objects
   private final JPanel pnlDataset = new JPanel();
   private final ImageIcon iconFolder = new ImageIcon(ClassLoader
-    .getSystemResource("images/openFile.gif"));
+    .getSystemResource(!Utilities.APRIL_FOOLS ? "images/openFile.gif"
+      : "images/openFileFool.png"));
 
   private final FileTextField2 ftfDataset = FileTextField2.getInstance(
     applicationManager, DATASET_NAME_LABEL);

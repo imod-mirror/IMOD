@@ -1,5 +1,6 @@
 package etomo.ui.swing;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
@@ -23,15 +24,11 @@ import javax.swing.border.TitledBorder;
  * axes, use DoubleSpacedPanel.  It is most useful for creating panels which
  * would normally need rigid areas.  It should work like a JPanel.</p>
  * 
- * <p>Copyright: Copyright (c) 2002, 2003, 2004</p>
+ * <p>Copyright: Copyright 2002 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- *<p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
- * University of Colorado</p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
+ * @version $Id$
  * 
  * <p> $Log$
  * <p> Revision 1.1  2010/11/13 16:07:34  sueh
@@ -59,7 +56,7 @@ import javax.swing.border.TitledBorder;
  * <p> bug# 1047 Added getComponent.
  * <p>
  * <p> Revision 1.20  2007/11/06 20:32:03  sueh
- * <p> bug# 1047 Added addRigidArea(Dimension).
+ * <p> bug# 1047 Added addRigidArea(Dimension). * @version $Revision$
  * <p>
  * <p> Revision 1.19  2007/05/26 00:33:23  sueh
  * <p> bug# 994 Not automatically setting button size in SpacedPanel anymore.
@@ -146,10 +143,8 @@ import javax.swing.border.TitledBorder;
  * <p> </p>
  */
 final class SpacedPanel {
-  public static final String rcsid = "$Id$";
-
   private static final Dimension MULTI_LINE_BUTTON_DIM = UIParameters.getInstance()
-      .getButtonDimension();
+    .getButtonDimension();
 
   private final EtomoPanel panel = new EtomoPanel();
   private final JPanel innerPanel = new JPanel();
@@ -188,7 +183,7 @@ final class SpacedPanel {
    * @param yAxisPadding - add a rigid area at the top of the panel
    */
   private SpacedPanel(final boolean yAxisPadding, final boolean focusable) {
-    //panels
+    // panels
     if (focusable) {
       outerPanel = new FocusablePanel();
     }
@@ -197,11 +192,11 @@ final class SpacedPanel {
     }
     outerPanel.setLayout(new BoxLayout(outerPanel, BoxLayout.Y_AXIS));
     innerPanel.setLayout(new BoxLayout(innerPanel, BoxLayout.X_AXIS));
-    //innerPanel
+    // innerPanel
     innerPanel.add(Box.createRigidArea(FixedDim.x5_y0));
     innerPanel.add(panel);
     innerPanel.add(Box.createRigidArea(FixedDim.x5_y0));
-    //outerPanel
+    // outerPanel
     if (yAxisPadding) {
       outerPanel.add(Box.createRigidArea(FixedDim.x0_y5));
     }
@@ -211,6 +206,12 @@ final class SpacedPanel {
 
   void requestFocus() {
     panel.requestFocus();
+  }
+
+  void setBackground(final Color color) {
+    panel.setBackground(color);
+    outerPanel.setBackground(color);
+    innerPanel.setBackground(color);
   }
 
   final void setBoxLayout(final int axis) {
@@ -322,7 +323,7 @@ final class SpacedPanel {
   }
 
   void add(final RadioButton radioButton) {
-    //  addSpacing();
+    // addSpacing();
     panel.add(radioButton.getComponent());
     addSpacing();
     if (componentAlignmentX != null) {
@@ -356,7 +357,7 @@ final class SpacedPanel {
   }
 
   void add(final LabeledSpinner labeledSpinner) {
-    //addSpacing();
+    // addSpacing();
     panel.add(labeledSpinner.getContainer());
     addSpacing();
     if (componentAlignmentX != null) {
@@ -366,7 +367,7 @@ final class SpacedPanel {
 
   void add(final MultiLineButton multiLineButton) {
     // addSpacing();
-    //multiLineButton.setSize();
+    // multiLineButton.setSize();
     panel.add(multiLineButton.getComponent());
     addSpacing();
     if (componentAlignmentX != null) {
