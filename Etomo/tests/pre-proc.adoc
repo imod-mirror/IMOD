@@ -30,13 +30,6 @@ if.var.quick.return=
 	assert.exists.file=%{dataset}%{axis}_peak.mod
 	assert.exists.file=%{dataset}%{axis}_fixed.st
 	run.function.test-gui-montage=
-	# Fail with manual
-	bn.advanced=
-	cb.manual-replacement=on
-	bn.create-fixed-stack=
-	wait.popup.comscript-terminated=OK
-	cb.manual-replacement=off
-	bn.basic=
 	# Run again
 	bn.create-fixed-stack=
 	wait.process.ccd-eraser=done
