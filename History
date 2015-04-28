@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4/27/15: In eTomo - Tomogram Combination, added controls for dualvolmatch.
+(Bug# 1865)
+
 4/25/15: IMOD_4-7-15
 4/24/15: In eTomo - Join fixed the trial join and rejoin "use every" spinners.
 (Bug# 1868)
