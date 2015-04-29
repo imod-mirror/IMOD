@@ -481,7 +481,7 @@ final class SolvematchPanel implements Run3dmodButtonContainer, Expandable,
 
   // FIXME there are current two ways to get the parameters into and out of the
   // panel. Does this need to be the case? It seem redundant.
-  void setParameters(final ConstCombineParams combineParams) {
+  void setParameters(final ConstCombineParams combineParams, final boolean init) {
     FiducialMatch match = combineParams.getFiducialMatch();
     if (match == FiducialMatch.BOTH_SIDES) {
       rbBothSides.setSelected(true);
@@ -508,7 +508,10 @@ final class SolvematchPanel implements Run3dmodButtonContainer, Expandable,
       cbUseCorrespondingPoints.setSelected(!combineParams.isTransfer());
       updateDisplay();
     }
-    cbInitialVolumeMatching.setSelected(combineParams.isInitialVolumeMatching());
+    boolean initialVolumeMatching = combineParams.isInitialVolumeMatching();
+    if (!init || initialVolumeMatching) {
+      cbInitialVolumeMatching.setSelected(initialVolumeMatching);
+    }
   }
 
   void setParameters(final DualvolmatchParam param) {
@@ -798,7 +801,8 @@ final class SolvematchPanel implements Run3dmodButtonContainer, Expandable,
       }
       else if (btnRestart != null && command.equals(btnRestart.getActionCommand())) {
         manager.combine(btnRestart, null, deferred3dmodButton, run3dmodMenuOptions,
-          dialogType, parent.getRunProcessingMethod(), cbInitialVolumeMatching.isSelected());
+          dialogType, parent.getRunProcessingMethod(),
+          cbInitialVolumeMatching.isSelected());
       }
       else if (command.equals(btnImodMatchModels.getActionCommand())) {
         manager.imodMatchingModel(cbBinBy2.isSelected(), run3dmodMenuOptions);
