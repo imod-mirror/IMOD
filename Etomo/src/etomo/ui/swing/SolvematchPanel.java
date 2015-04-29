@@ -245,7 +245,7 @@ final class SolvematchPanel implements Run3dmodButtonContainer, Expandable,
   private final CheckBox cbUseCorrespondingPoints = new CheckBox(
     "Specify corresponding points instead of using coordinate file");
   private final CheckBox cbInitialVolumeMatching = new CheckBox(
-    "Use image correlations instead of solvematch for initial match");
+    "Use image correlations instead of Solvematch for initial match");
   private final JPanel pnlRootBody = new JPanel();
 
   private final ApplicationManager manager;
