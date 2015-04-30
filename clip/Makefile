@@ -7,7 +7,7 @@ include ../configure
 
 O = $(OBJEXT)
 OBJS = clip.$(O) processing.$(O) file_io.$(O)\
-	correlation.$(O) fft.$(O) filter.$(O) CorrectDefects.$(O)
+	correlation.$(O) fft.$(O) filter.$(O) CorrectDefects.$(O) threshminsize.$(O)
 
 PROG = clip$(BINEXT)
 
