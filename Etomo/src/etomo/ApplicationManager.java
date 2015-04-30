@@ -8506,6 +8506,10 @@ public final class ApplicationManager extends BaseManager implements
     if (dialog == null || axisID == AxisID.ONLY) {
       return;
     }
+    try {
+      Thread.sleep(100);
+    }
+    catch (InterruptedException e) {}
     boolean prealisExist =
       Utilities.fileExists(this, ".preali", AxisID.FIRST)
         && Utilities.fileExists(this, ".preali", AxisID.SECOND);
