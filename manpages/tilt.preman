@@ -122,7 +122,10 @@ provided that local alignments are not used.
 Tilt uses the PIP package for input (see the manual page for pip(1)) but
 it has several special features to maintain compatibility with the old
 input method and old command files.  1) Options are case-insensitive and can
-be entered in upper, lower, or mixed case.  2) If the program is started
+be entered in upper, lower, or mixed case.  While Tilt can take such
+variants, options used in command files and scripts should always have
+the case shown below, because various IMOD scripts recognize only those
+forms.  2) If the program is started
 with no command line arguments, it behaves as if -StandardInput were given
 and takes lines from standard input.  3) The first two lines taken from
 standard input can be the input and output filenames, without their

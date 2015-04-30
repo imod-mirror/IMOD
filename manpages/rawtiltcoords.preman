@@ -6,7 +6,7 @@ rawtiltcoords \- Get positions and angles of tomogram points in raw tilt series
 .SH SYNOPSIS
 rawtiltcoords  options
 .SH DESCRIPTION
-Rawtiltcoords produces an IMOD model the with points at the coordinates
+Rawtiltcoords produces an IMOD model with points at the coordinates
 in the raw tilt series corresponding to points in a tomogram.
 Optionally, it can also make a list of the projection angles 
 and the computed defocus at each point.  
