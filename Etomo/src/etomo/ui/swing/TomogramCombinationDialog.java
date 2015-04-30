@@ -496,8 +496,8 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
    * object
    * @param combineParams
    */
-  public void setCombineParams(final ConstCombineParams combineParams) {
-    pnlSetup.setParameters(combineParams);
+  public void setCombineParams(final ConstCombineParams combineParams,final boolean init) {
+    pnlSetup.setParameters(combineParams,init);
     pnlFinal.setParameters(combineParams);
   }
 
