@@ -374,16 +374,21 @@ Overlap values in X and Y to be used when printing coordinates corresponding
 to positions in a displayed montage.  Negative values correspond to spaces
 between the displayed pieces.
 .TP
-.B -E \fIvalue\fR
-.TP
-Used with histogram to find the point at which the given fraction of
+.B -E \fIfraction,direction\fR
+Used with \fBhistogram\fR to find the point at which the given fraction of
 extra values on one side of the histogram peak is found.
-.B -F \fIvalue\fR
-Used with histogram to find the point at which the histogram falls off
-most rapidly past a certain point defined by the given fraction value.
-If \fIvalue\fR is positive, the fastest falling point above the given
+.TP
+.B -F \fIfraction,direction\fR
+Used with \fBhistogram\fR to find the point at which the histogram falls off
+most rapidly past a certain point defined by the given \fIfraction\fR value.
+If \fIdirection\fR is positive, the fastest falling point above the given
 fraction of values is found; if it is negative, the fastest falling
-point below the absolute value of the value is found.
+point below the fraction is found.
+.TP
+.B -M \fIsize,direction\fR
+Used with \fBthreshold\fR to mark points as above (or below) threshold
+only if they are part of a set of adjacent points at least as big as the
+given \fIsize\fR, for \fIdirection\fR positive (or negative).
 .SH PROCESSES
 
 A brief description of each process is given below.
@@ -600,36 +605,36 @@ outside the range are ignored.  With integer-valued data, the last bin may
 have fewer counts because it represents a smaller range of values than the
 rest.
 .br
-With the \fB-t\fR option, the program will compute a cumulative
+   With the \fB-t\fR option, the program will compute a cumulative
 distribution and report the point by which the given fraction of values
 has occurred.
 .br
-Two specialized analyses of the histogram can be done with the \fB-F\fR
+   Two specialized analyses of the histogram can be done with the \fB-F\fR
 and \fB-E\fR
 options.  Both of these options take a fractional value representing a
-percentile point in a distribution, and in each case the sign of the
-value is used to indicate the direction of the analysis.
+percentile point in a distribution, plus a direction
+value to indicate the direction of the analysis.
 With \fB-F\fR, the program finds the fastest falling point in the
 histogram past the indicated fraction of values, which would typically
-be a large positive or negative fraction.  With a positive value,
+be a large fraction.  With a positive direction,
 the cumulative distribution is computed from low to high and the
 fastest falloff is sought when going to higher values.  With a negative
-value, the cumulative distribution is computed in the opposite order and
+direction, the cumulative distribution is computed in the opposite order and
 the falloff is found going to lower values.  
 .br
-With the \fB-Ef\fR option,
+   With the \fB-E\fR option,
 the program identifies extra counts on one side of the histogram and
 finds the point by which the given fraction of these counts has occurred.
 Specifically, it finds the interpolated position of the peak of the
 histogram, then subtracts from each bin above the peak (for a positive
-value) the interpolated value of the histogram an equal distance below
+direction) the interpolated value of the histogram an equal distance below
 the peak.  If a positive peak appears in this difference, a cumulative
 distribution is computed out to the point past this peak where the
 difference goes negative, and the point by which the given fraction of
-extra counts have occurred is reported.  Again, a negative fraction
+extra counts have occurred is reported.  Again, a negative direction
 inverts the direction of analysis.
 .br
-With the \fB-s\fR option, the program will instead analyze kernel (smoothed)
+   With the \fB-s\fR option, the program will instead analyze kernel (smoothed)
 histograms of a sample of the image data (up to 1,000,000 pixels),
 looking for two peaks in such a histogram.  If successful, it will
 report the intensity of the two peak values and of the lowest point (dip)
@@ -855,6 +860,20 @@ option is given, the low and high values will be set to the minimum and
 maximum of the input image file.
 The low value can also be set with \fB-l\fR and the high value with \fB-h\fR.
 Standard input and output options can be used.
+.br
+   If the \fB-M\fR option is given with a minimum size and a direction,
+the thresholding will be done by a separate routine that enforces a
+minimum size for adjacent sets of points on one side of the threshold
+(above or below the threshold for a positive or negative direction,
+respectively).  Points are considered adjacent if they are next to each
+other in X, Y, or Z, but not if they are diagonal to each other.  The
+routine operates most efficiently if the regions on the selected side
+of threshold are relatively sparse and compact, and may consume much
+more time and/or memory if this is not the case.
+The image size in X and Y is limited to between 2 and 4 gigapixels.
+With the \fB-2d\fR option, sets of points are not connected between
+slices and the minimum size applies to the sets of adjacent points on
+one plane.
 .TP
 .B truncate
 Truncate pixel values at a lower or upper limit, or both.  Enter the lower
