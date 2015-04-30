@@ -8491,11 +8491,8 @@ public final class ApplicationManager extends BaseManager implements
   }
 
   void updateDialog(ProcessName processName, AxisID axisID) {
-    if (axisID != AxisID.ONLY
-      && (processName == ProcessName.PRENEWST || processName == ProcessName.TRACK || processName == ProcessName.TILT)) {
-      updateDialog(fiducialModelDialogB, AxisID.SECOND);
-      updateDialog(fiducialModelDialogA, AxisID.FIRST);
-    }
+    updateDialog(fiducialModelDialogB, AxisID.SECOND);
+    updateDialog(fiducialModelDialogA, AxisID.FIRST);
     if (processName == ProcessName.NEWST || processName == ProcessName.BLEND) {
       ((FinalAlignedStackExpert) getUIExpert(DialogType.FINAL_ALIGNED_STACK, axisID))
         .updateDialog();
@@ -8503,9 +8500,6 @@ public final class ApplicationManager extends BaseManager implements
   }
 
   private void updateDialog(FiducialModelDialog dialog, AxisID axisID) {
-    if (dialog == null || axisID == AxisID.ONLY) {
-      return;
-    }
     try {
       Thread.sleep(100);
     }
@@ -8520,8 +8514,11 @@ public final class ApplicationManager extends BaseManager implements
     else {
       fidExists = Utilities.fileExists(this, ".fid", AxisID.FIRST);
     }
-    dialog.setTransferfidEnabled(prealisExist && fidExists);
-    dialog.updateEnabled();
+    System.err.println("prealisExist:" + prealisExist + ",fidExists:" + fidExists);
+    if (dialog != null) {
+      dialog.setTransferfidEnabled(prealisExist && fidExists);
+      dialog.updateEnabled();
+    }
   }
 
   private void setBackgroundThreadName(String name, AxisID axisID, String processName) {

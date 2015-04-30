@@ -88,15 +88,18 @@ Version = 1.2
   assert.enabled.cb.use-image-correlations-instead-of-solvematch-for-initial-match=
   #
   #solvematch parameters
-  assert.enabled.rb.fiducials-on-both-sides=
-  assert.enabled.rb.fiducials-on-one-side=
-  assert.enabled.rb.use-matching-models-only=
+  if.not.var.patch-tracking.assert.enabled.rb.fiducials-on-both-sides=
+  if.var.patch-tracking.assert.disabled.rb.fiducials-on-both-sides=
+  if.not.var.patch-tracking.assert.enabled.rb.fiducials-on-one-side=
+  if.var.patch-tracking.assert.disabled.rb.fiducials-on-one-side=
+  if.not.var.patch-tracking.assert.enabled.rb.use-matching-models-only=
+  if.var.patch-tracking.assert.disabled.rb.use-matching-models-only=
   assert.disabled.cb.load-binned-by-2=
   assert.disabled.bn.create-matching-models-in-3dmod=
   if.not.var.patch-tracking.assert.enabled.cb.specify-corresponding-points-instead-of-using-coordinate-file=
   if.not.var.patch-tracking.assert.enabled.tf.starting-points-to-use-from-a=
-  if.var.patch-tracking.assert.enabled.tf.corresponding-fiducial-list-a=
-  if.var.patch-tracking.assert.enabled.tf.corresponding-fiducial-list-b=
+  if.var.patch-tracking.assert.disabled.tf.corresponding-fiducial-list-a=
+  if.var.patch-tracking.assert.disabled.tf.corresponding-fiducial-list-b=
   #
   #patch parameters for refining aligment
   assert.enabled.rb.small-patches=
@@ -155,10 +158,20 @@ Version = 1.2
   if.var.patch-tracking.assert.disabled.tf.corresponding-fiducial-list-a=
   if.var.patch-tracking.assert.disabled.tf.corresponding-fiducial-list-b=
   cb.use-image-correlations-instead-of-solvematch-for-initial-match=off
+  assert.enabled.rb.fiducials-on-both-sides=
+  assert.enabled.rb.fiducials-on-one-side=
+  assert.enabled.rb.use-matching-models-only=
+  assert.disabled.cb.load-binned-by-2=
+  assert.disabled.bn.create-matching-models-in-3dmod=
+  if.not.var.patch-tracking.assert.enabled.cb.specify-corresponding-points-instead-of-using-coordinate-file=
+  if.not.var.patch-tracking.assert.enabled.tf.starting-points-to-use-from-a=
+  if.var.patch-tracking.assert.enabled.tf.corresponding-fiducial-list-a=
+  if.var.patch-tracking.assert.enabled.tf.corresponding-fiducial-list-b=
   #
   assert.enabled.cb.load-binned-by-2=
   assert.enabled.bn.create-matching-models-in-3dmod=
   rb.fiducials-on-both-sides=
+  if.var.patch-tracking.cb.use-image-correlations-instead-of-solvematch-for-initial-match=on
   #
   #solvematch parameters
   if.not.var.patch-tracking.cb.specify-corresponding-points-instead-of-using-coordinate-file=
