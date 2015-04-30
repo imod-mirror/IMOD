@@ -168,6 +168,7 @@ Version = 1.2
   if.var.patch-tracking.assert.enabled.tf.corresponding-fiducial-list-a=
   if.var.patch-tracking.assert.enabled.tf.corresponding-fiducial-list-b=
   #
+  rb.use-matching-models-only=
   assert.enabled.cb.load-binned-by-2=
   assert.enabled.bn.create-matching-models-in-3dmod=
   rb.fiducials-on-both-sides=
