@@ -1,5 +1,8 @@
 #! /bin/bash
 #
+# for compiling
+# grep \\\[Computer.*=.*bigfoot\] ImodCalib/cpu.adoc
+#
 #Sets up IMOD on Linux or Mac and runs uitests.
 #
 #Copyright: Copyright 2015 by the Regents of the University of Colorado</p>
