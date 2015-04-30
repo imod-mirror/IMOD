@@ -208,8 +208,8 @@ Version = 1.2
   assert.tf.z-axis-min=1
   if.not.var.patch-tracking.assert.tf.z-axis-max=%{z}
   if.var.patch-tracking.assert.tf.z-axis-max=%{z-patch-tracking}
-  assert.tf.z-axis-min=
-  assert.tf.z-axis-max=
+  tf.z-axis-min=
+  tf.z-axis-max=
   #
   cb.use-patch-region-model=
   assert.enabled.bn.create/edit-patch-region-model=
