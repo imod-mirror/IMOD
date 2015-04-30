@@ -24,7 +24,7 @@ in seconds.  The default is 5.
 .B -D
 Debug mode.  The program will log what it sends by placing on the clipboard
 and all changes that it detects on the clipboard.  Reports are to
-stadard error.
+standard error.
 .SH COMMANDS TO 3DMOD
 Currently, 3dmod will accept the following commands, either through
 this mechanism or through standard input when started with -L.

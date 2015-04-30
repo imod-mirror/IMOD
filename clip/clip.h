@@ -1,8 +1,7 @@
 /*
  *  clip.h -- Header file for command line image proccessing.
  *
- *  Copyright (C) 1995-2005 by Boulder Laboratory for 3-Dimensional Electron
- *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
+ *  Copyright (C) 1995-2015 by the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  *  $Id$
@@ -52,6 +51,7 @@ typedef struct Grap_options
   float weight;
   float pctlFrac;
   float falloffFrac;
+  int   minSize;
   float pad;
   int   mode;
   int   dim;
@@ -157,5 +157,8 @@ int grap_corr(MrcHeader *hin1, MrcHeader *hin2, MrcHeader *hout,
 int padfloat_volume(Istack *v, float pad);
 int clip_cor_scalevol(Istack *v);
 double parabolic_fit(double *outX, double *outY, double i[3][3]);
+
+int thresholdWithMinSize(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt,
+                         float threshLo, float threshHi, int zWrite);
      
 #endif /* clip.h */
