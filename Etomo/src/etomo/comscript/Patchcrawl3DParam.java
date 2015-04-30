@@ -326,7 +326,7 @@ public class Patchcrawl3DParam extends ConstPatchcrawl3DParam implements Command
 
   public void setUseBoundaryModel(boolean useBoundaryModel) {
     if (useBoundaryModel) {
-      regionModel = ConstMatchorwarpParam.getDefaultPatchRegionModel();
+      regionModel = MatchorwarpParam.getDefaultPatchRegionModel();
     }
     else {
       regionModel = "";

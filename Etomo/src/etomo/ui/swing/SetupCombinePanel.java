@@ -960,10 +960,10 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
    * Set the parameters of the panel using the combineParams object
    * @param combineParams
    */
-  public void setParameters(final ConstCombineParams combineParams) {
+  public void setParameters(final ConstCombineParams combineParams,final boolean init) {
     MatchMode matchMode = combineParams.getMatchMode();
     setBtoA(matchMode);
-    pnlSolvematch.setParameters(combineParams);
+    pnlSolvematch.setParameters(combineParams,init);
     pspPatchTypeOrXYZ.setParameters(combineParams);
     cbAutoPatchFinalSize.setSelected(combineParams.isPatchSizeSet(true));
     pspAutoPatchFinalSize.setParameters(combineParams);

@@ -3,6 +3,12 @@ IMOD History
 4/27/15: In eTomo - Tomogram Combination, added controls for dualvolmatch.
 (Bug# 1865)
 
+4/30/15: Added an option to Tilt to get a thresholded reprojection of fixed
+values for pixels beyond a threshold.
+
+4/30/15: Added -M option to Clip to do thresholding with a minimum size in 2D
+or 3D for regions beyond the threshold on one side.
+
 4/25/15: IMOD_4-7-15
 4/24/15: In eTomo - Join fixed the trial join and rejoin "use every" spinners.
 (Bug# 1868)
@@ -276,7 +282,7 @@ to eliminate patches from consideration, which allows it to work without a
 boundary model or tight Z limits.  It also takes options that allow it to
 eliminate patches outside the area that can be reconstructed well. Refinematch
 and Findwarp can try to fit after eliminating patches with a series of
-criteria for these local structure values. A new script, Autopatchfind, runs
+criteria for these local structure values. A new script, Autopatchfit, runs
 patchcorr and matchorwarp repeatedly with increasing patch size or density to 
 achieve a criterion mean residual.  Setupcombine was adpated to these new
 capabilities.

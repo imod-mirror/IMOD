@@ -11,7 +11,8 @@ Version = 1.2
   assert.rb.match-the-a-tomogram-to-b=off
   #
   #initial matching parameters
-  assert.cb.use-image-correlations-instead-of-solvematch-for-initial-match=off
+  if.not.var.patch-tracking.assert.cb.use-image-correlations-instead-of-solvematch-for-initial-match=off
+  if.var.patch-tracking.assert.cb.use-image-correlations-instead-of-solvematch-for-initial-match=on
   #
   #solvematch parameters
   assert.rb.fiducials-on-both-sides=on
@@ -141,9 +142,6 @@ Version = 1.2
   #
   #behavior
   #
-  #initial matching parameters
-  assert.cb.use-image-correlations-instead-of-solvematch-for-initial-match=off
-  #
   #solvematch parameters
   rb.use-matching-models-only=
   cb.use-image-correlations-instead-of-solvematch-for-initial-match=on
@@ -266,7 +264,8 @@ assert.exists.file = warpvol.com
   #values
   #
   #initial matching parameters
-  assert.cb.use-image-correlations-instead-of-solvematch-for-initial-match=off
+  if.not.var.patch-tracking.assert.cb.use-image-correlations-instead-of-solvematch-for-initial-match=off
+  if.var.patch-tracking.assert.cb.use-image-correlations-instead-of-solvematch-for-initial-match=on
   #
   #solvematch parameters
   if.not.var.patch-tracking.assert.rb.fiducials-on-both-sides=on

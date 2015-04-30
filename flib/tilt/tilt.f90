@@ -2053,26 +2053,27 @@ subroutine inputParameters()
   ! fallbacks from ../../manpages/autodoc2man -3 2  tilt
   !
   integer numOptions
-  parameter (numOptions = 70)
+  parameter (numOptions = 71)
   character*(40 * numOptions) options(1)
   options(1) = &
-      'input:InputProjections:FN:@output:OutputFile:FN:@'// &
-      'recfile:RecFileToReproject:FN:@:ProjectModel:FN:@:AngleOutputFile:FN:@'// &
-      ':AlignTransformFile:FN:@:DefocusFile:FN:@:PixelForDefocus:FP:@'// &
-      ':BaseRecFile:FN:@:ActionIfGPUFails:IP:@:AdjustOrigin:B:@:ANGLES:FAM:@'// &
-      ':BaseNumViews:I:@:BoundaryInfoFile:FN:@:COMPFRACTION:F:@:COMPRESS:FAM:@'// &
-      ':ConstrainSign:I:@:COSINTERP:IA:@:DENSWEIGHT:FA:@:DONE:B:@:EXCLUDELIST2:LIM:@'// &
-      ':FlatFilterFraction:F:@:FBPINTERP:I:@:FULLIMAGE:IP:@:IMAGEBINNED:I:@'// &
-      ':INCLUDE:LIM:@:LOCALFILE:FN:@:LOCALSCALE:F:@:LOG:F:@:MASK:I:@:MinMaxMean:IT:@'// &
-      ':MODE:I:@:OFFSET:FA:@:PARALLEL:B:@:PERPENDICULAR:B:@:RADIAL:FP:@'// &
-      ':REPLICATE:FPM:@:REPROJECT:FAM:@:RotateBy90:B:@:SCALE:FP:@:SHIFT:FA:@'// &
-      ':SIRTIterations:I:@:SIRTSubtraction:B:@:SLICE:IA:@:StartingIteration:I:@'// &
-      ':SUBSETSTART:IP:@:SubtractFromBase:LI:@:THICKNESS:I:@:TILTFILE:FN:@:TITLE:CH:@'// &
-      ':TOTALSLICES:IP:@:UseGPU:I:@:ViewsToReproject:LI:@:VertBoundaryFile:FN:@'// &
-      ':VertSliceOutputFile:FN:@:VertForSIRTInput:B:@:WeightAngleFile:FN:@'// &
-      ':WeightFile:FN:@:WIDTH:I:@:XAXISTILT:F:@xminmax:XMinAndMaxReproj:IP:@'// &
-      ':XTILTFILE:FN:@:XTILTINTERP:I:@yminmax:YMinAndMaxReproj:IP:@:ZFACTORFILE:FN:@'// &
-      'zminmax:ZMinAndMaxReproj:IP:@debug:DebugOutput:B:@'// &
+      'input:InputProjections:FN:@output:OutputFile:FN:@:TILTFILE:FN:@'// &
+      ':XTILTFILE:FN:@:ZFACTORFILE:FN:@:LOCALFILE:FN:@:BoundaryInfoFile:FN:@'// &
+      ':WeightAngleFile:FN:@:WeightFile:FN:@:WIDTH:I:@:SLICE:IA:@:TOTALSLICES:IP:@'// &
+      ':THICKNESS:I:@:OFFSET:FA:@:SHIFT:FA:@:ANGLES:FAM:@:XAXISTILT:F:@'// &
+      ':COMPFRACTION:F:@:COMPRESS:FAM:@:FULLIMAGE:IP:@:SUBSETSTART:IP:@'// &
+      ':IMAGEBINNED:I:@:LOCALSCALE:F:@:LOG:F:@:RADIAL:FP:@:DENSWEIGHT:FA:@'// &
+      ':INCLUDE:LIM:@:EXCLUDELIST2:LIM:@:COSINTERP:IA:@:XTILTINTERP:I:@:UseGPU:I:@'// &
+      ':ActionIfGPUFails:IP:@:MODE:I:@:SCALE:FP:@:MASK:I:@:PERPENDICULAR:B:@'// &
+      ':PARALLEL:B:@:RotateBy90:B:@:AdjustOrigin:B:@:TITLE:CH:@:BaseRecFile:FN:@'// &
+      ':BaseNumViews:I:@:SubtractFromBase:LI:@:MinMaxMean:IT:@:REPROJECT:FAM:@'// &
+      ':ViewsToReproject:LI:@recfile:RecFileToReproject:FN:@'// &
+      'xminmax:XMinAndMaxReproj:IP:@yminmax:YMinAndMaxReproj:IP:@'// &
+      'zminmax:ZMinAndMaxReproj:IP:@threshold:ThresholdedReproj:FT:@'// &
+      ':FlatFilterFraction:F:@:SIRTIterations:I:@:SIRTSubtraction:B:@'// &
+      ':StartingIteration:I:@:VertBoundaryFile:FN:@:VertSliceOutputFile:FN:@'// &
+      ':VertForSIRTInput:B:@:ConstrainSign:I:@:ProjectModel:FN:@:AngleOutputFile:FN:@'// &
+      ':AlignTransformFile:FN:@:DefocusFile:FN:@:PixelForDefocus:FP:@:DONE:B:@'// &
+      ':FBPINTERP:I:@:REPLICATE:FPM:@debug:DebugOutput:B:@'// &
       'internal:InternalSIRTSlices:IP:@param:ParameterFile:PF:@help:usage:B:'
   !
   recReproj = .false.
@@ -2089,6 +2090,7 @@ subroutine inputParameters()
   angleOutput = ' '
   flatFrac = 0.
   iterForReport = 0
+  threshPolarity = 0.
   focusInvert = 0.
   defocusFile = ' '
   gpuErrorStr = ' '
@@ -2148,6 +2150,8 @@ subroutine inputParameters()
   !
   ! Get entries for reprojection from rec file
   ierr = PipGetInteger('SIRTIterations', numSIRTiter)
+  ierr = PipGetThreeFloats('ThresholdedReproj', threshForReproj, threshPolarity, &
+      threshSumFac)
   if (PipGetString('RecFileToReproject', recFile) == 0) then
     if (projModel) call exitError( &
         'YOU CANNOT USE -RecFileToReproject with -ProjectModel')
@@ -2183,10 +2187,15 @@ subroutine inputParameters()
     maxZreproj = maxZreproj + 1
     !
     ! If not reading from a rec and doing sirt, then must be doing from 0
-  else if (numSIRTiter  > 0) then
+  else if (numSIRTiter > 0) then
     sirtFromZero = .true.
     flatFrac = 1.
   endif
+  if (threshPolarity .ne. 0. .and. .not. recReproj) call exitError( &
+      'THRESHOLDED REPROJECTION CAN BE USED ONLY WITH THE -RecFileToReproject OPTION')
+  if (threshPolarity .ne. 0. .and. (numSIRTiter > 0 .or. projSubtraction)) &
+      call exitError('THRESHOLDED REPROJECTION CANNOT BE USED WITH -SIRTSubtraction '// &
+      'OR -SIRTIterations')
 
   if (.not. recReproj .and. .not.projModel .and. numSIRTiter <= 0 .and. &
       PipGetString('BaseRecFile', baseFile) == 0) then
@@ -2616,7 +2625,7 @@ subroutine inputParameters()
     read(card,*) indGPU
     ifGpuByEnviron = 1
   endif
-  useGPU = indGPU >= 0
+  useGPU = indGPU >= 0 .and. threshPolarity == 0
   ierr = PipGetTwoIntegers('ActionIfGPUFails', iactGpuFailOption, &
       iactGpuFailEnviron)
   !
@@ -3376,6 +3385,12 @@ subroutine inputParameters()
     iwidth = noutXyz(1)
     nyProj = nrecXyz(3)
     dmeanIn = (dmeanIn / outScale - outAdd) / filterScale
+    if (threshPolarity .ne. 0.) then
+      threshForReproj = (threshForReproj / outScale - outAdd) / filterScale
+      threshMarkVal = threshForReproj
+      threshFillVal = dmeanIn
+      if (threshSumFac < 1.) threshMarkVal = threshMarkVal * ithickReproj
+    endif
     indLoadBase = 1
     ipExtraSize = 0
     numPad = 0
@@ -4429,9 +4444,9 @@ subroutine reproject(array, nxs, nys, nxOut, sinAngle, cosAngle, xRayStart, &
   return
 end subroutine reproject
 
-! Reprojects slices from lsStart to lsEnd and writes the reprojections
+! Reprojects slices from lsliceStart to lsliceEnd and writes the reprojections
 ! Fewer slices may be done if on the GPU, and the ending slice done is
-! returned in lsEnd.  INLOADSTR and INLOADEND are slice numbers of
+! returned in lsliceEnd.  INLOADSTART and INLOADEND are slice numbers of
 ! started and ending slices loaded; min/max/sum densities are maintained
 ! in DMIN, DMAX, and DTOT8
 !
@@ -4528,7 +4543,9 @@ subroutine reprojectRec(lsliceStart, lsliceEnd, inLoadStart, inLoadEnd, dmin, dm
   !
   ! CPU REPROJECTION: loop on views; first handle non-local alignments
   do iv = 1, numViews
-    if (nxWarp == 0) then
+    if (threshPolarity .ne. 0.) then
+      call thresholdedReproj()
+    elseif (nxWarp == 0) then
       !
       ! Get the delta z for this view
       cosAlph = cosAlpha(iv)
@@ -4771,6 +4788,77 @@ CONTAINS
     ! print *,'got delz eg:', wrpdlz(1), wrpdlz(numWarpDelz/2), &
     ! wrpdlz(numWarpDelz)
   end subroutine fillWarpDelz
+
+
+  ! Does a reprojection only of discrete points beyond a threshold
+  !
+  subroutine thresholdedReproj()
+    real*4 polarity, f11, f12, f21, f22, rlX, rlSlice, rlZ
+    integer*4 numLines, iyp, loadedSlice
+    numLines = lsliceEnd + 1 - lsliceStart
+    reprojLines(1 : numLines * iwidth) = threshFillVal * ithickReproj
+    polarity = sign(1., threshPolarity)
+    do loadedSlice = inLoadStart, inLoadEnd
+      ind = indLoadBase + (loadedSlice - inLoadStart) * inPlaneSize
+      do iy = 1, ithickReproj
+        do ix = 1, nxLoad
+          if (polarity * (array(ind) - threshForReproj) >= 0) then
+            !
+            ! Get real coordinate position within full reconstruction and projection
+            ! position in full aligned stack
+            rlX = ix + minXreproj - 1
+            rlSlice = loadedSlice
+            rlZ = iy + minYreproj - 1
+            call projectionPosition(iv, rlX, rlZ, rlSlice, xproj, yproj, ind1, ind2, &
+                f11, f12, f21, f22)
+            !
+            ! Adjust for position in reprojection being produced then adjust Y to 
+            ! be an index in the lines being produced
+            xproj = xproj - xprojOffset
+            yproj = yproj - (minZreproj - 1 + yprojOffset)
+            yproj = yproj + isliceStart - lsliceStart
+            ixp = xproj
+            iyp = yproj
+            if (ixp >= 0 .and. ixp <= iwidth .and. iyp >= 0 .and. iyp <= numLines) then
+              !
+              ! If any of the 4 actual pixels is in range, get the interpolation factors
+              ! for those 4 surrounding pixels
+              fx = xproj - ixp
+              fy = yproj - iyp
+              f11 = (1. - fx) * (1. - fy)
+              f12 = (1. - fx) * fy
+              f21 = fx * (1. - fy)
+              f22 = fx * fy
+              ind1 = ixp + iwidth * (iyp - 1)
+              !
+              ! If NOT summing, just mark any pixel with fraction above threshold
+              ! Otherwise add the fraction times the value
+              if (threshSumFac < 1.) then
+                if (f11 >= threshSumFac .and. ixp > 0 .and. iyp > 0) &
+                    reprojLines(ind1) = threshMarkVal
+                if (f12 >= threshSumFac .and. ixp > 0 .and. iyp < numLines) &
+                    reprojLines(ind1 + iwidth) = threshMarkVal
+                if (f21 >= threshSumFac .and. ixp < iwidth .and. iyp > 0) &
+                    reprojLines(ind1 + 1) = threshMarkVal
+                if (f22 >= threshSumFac .and. ixp < iwidth .and. iyp < numLines) &
+                    reprojLines(ind1 + 1 + iwidth) = threshMarkVal
+              else
+                if (ixp > 0 .and. iyp > 0) reprojLines(ind1) = &
+                    reprojLines(ind1) + f11 * threshMarkVal - threshFillVal
+                if (ixp > 0 .and. iyp < numLines) reprojLines(ind1 + iwidth) = &
+                    reprojLines(ind1 + iwidth) + f12 * threshMarkVal - threshFillVal
+                if (ixp < iwidth .and. iyp > 0) reprojLines(ind1 + 1) = &
+                    reprojLines(ind1 + 1) + f21 * threshMarkVal - threshFillVal
+                if (ixp < iwidth .and. iyp < numLines) reprojLines(ind1 + 1 + iwidth) = &
+                    reprojLines(ind1 + 1 + iwidth) + f22 * threshMarkVal - threshFillVal
+              endif
+            endif
+          endif
+          ind = ind + 1
+        enddo
+      enddo
+    enddo
+  end subroutine thresholdedReproj
 
 end subroutine reprojectRec
 
@@ -5258,12 +5346,14 @@ subroutine writeReprojLines(iv, lineStart, lineEnd, dmin, dmax, dtot8)
   real*4 dmin, dmax, val
   real*8 dtot8
   !
-  ! Write the line after scaling.  outScale log data to give approximately
+  ! Write the line after scaling.  Scale log data to give approximately
   ! constant mean levels.  Descale non-log data by exposure weights
   numVals = iwidth * (lineEnd + 1 - lineStart)
   if (ifLog .ne. 0) then
     ! Hopefully this works for local as well
-    if (abs(sinBeta(iv) * ithickReproj) <= abs(cosBeta(iv) * iwidth)) then
+    if (threshPolarity .ne. 0.) then
+      val = alog10(projMean + baseForLog) - ithickReproj * dmeanIn
+    else if (abs(sinBeta(iv) * ithickReproj) <= abs(cosBeta(iv) * iwidth)) then
       val = alog10(projMean + baseForLog) - ithickReproj * dmeanIn / abs(cosBeta(iv))
     else
       val = alog10(projMean + baseForLog) - iwidth * dmeanIn / abs(sinBeta(iv))
@@ -5273,8 +5363,10 @@ subroutine writeReprojLines(iv, lineStart, lineEnd, dmin, dmax, dtot8)
       reprojLines(i) = 10**(reprojLines(i) + val) - baseForLog
     enddo
   else
+    val = exposeWeight(iv)
+    if (threshPolarity .ne. 0.) val = exposeWeight((numViews + 1) / 2)
     do i = 1, numVals
-      reprojLines(i) = reprojLines(i) / exposeWeight(iv)
+      reprojLines(i) = reprojLines(i) / val
     enddo
   endif
   if (projSubtraction) then
@@ -5312,10 +5404,8 @@ subroutine projectModel(outModel, outAngles, transformFile, delta, numViewsOrig,
   real*4 delta(3), origin(3), pixForDefocus, focusInvert
   character*120 objName
   integer*4 numViewsOrig, ibase, numPoints, iobj, ipt, ip1, iv, nfv, numXfs
-  real*4 oneVal, rlJ, rlI, rlSlice, zz, yy, zpart, xproj, yproj, zOffset
+  real*4 oneVal, rlJ, rlI, rlSlice, yy, xproj, yproj, zOffset, f11, f12, f21, f22
   integer*4 j, lslice, imodObj, imodCont, ierr, size
-  real*4 fj, fls, f11, f12, f21, f22, xf11, xz11, yf11, yz11
-  real*4 xf21, xz21, yf21, yz21, xf12, xz12, yf12, yz12, xf22, xz22, yf22
   real*4 yz22, xprojf, xprojz, yprojf, yprojz, degToRad, ptDefocus, betaInv
   real*4 fjlMat(2,2), f1234(4), gamma, stretch, strPhi, smag, gammaSum, betaSum, alphaSum
   integer*4 ind1234(4), jInc, lsInc, ic
@@ -5428,36 +5518,8 @@ subroutine projectModel(outModel, outAngles, transformFile, delta, numViewsOrig,
     do nfv = 1, numViewsOrig
       iv = mapFileToView(nfv)
       if (iv > 0) then
-        zz = (rlI - ycenModProj) * compress(iv)
-        yy = rlSlice - centerSlice
-        if (nxWarp == 0) then
-          zpart = yy * sinAlpha(iv) * sinBeta(iv) + zz * (cosAlpha(iv) * sinBeta(iv) +  &
-              xzfac(iv)) + xcenIn + axisXoffset
-          yproj = yy * cosAlpha(iv) - zz * (sinAlpha(iv) - yzfac(iv)) + centerSlice
-          xproj = zpart + (rlJ - xcenOut) * cosBeta(iv)
-        else
-          !
-          ! local alignments
-          j = rlJ
-          fj = rlJ - j
-          lslice = rlSlice
-          fls = rlSlice - lslice
-          f11 = (1. -fj) * (1. -fls)
-          f12 = (1. -fj) * fls
-          f21 = fj * (1. -fls)
-          f22 = fj * fls
-          call localProjFactors(j, lslice, iv, xf11, xz11, yf11, yz11)
-          call localProjFactors(j + 1, lslice, iv, xf21, xz21, yf21, yz21)
-          call localProjFactors(j, lslice + 1, iv, xf12, xz12, yf12, yz12)
-          call localProjFactors(j + 1, lslice + 1, iv, xf22, xz22, yf22, yz22)
-          xprojf = f11 * xf11 + f12 * xf12 + f21 * xf21 + f22 * xf22
-          xprojz = f11 * xz11 + f12 * xz12 + f21 * xz21 + f22 * xz22
-          yprojf = f11 * yf11 + f12 * yf12 + f21 * yf21 + f22 * yf22
-          yprojz = f11 * yz11 + f12 * yz12 + f21 * yz21 + f22 * yz22
-          xproj = xprojf + zz * xprojz
-          yproj = yprojf + zz * yprojz
-          !
-        endif
+        call projectionPosition(iv, rlJ, rlI, rlSlice, xproj, yproj, j, lslice,  &
+            f11, f12, f21, f22)
         if (outAngles .ne. ' ') then
           betaSum = 0.
           alphaSum = 0.
@@ -5529,3 +5591,51 @@ subroutine projectModel(outModel, outAngles, transformFile, delta, numViewsOrig,
   call exit(0)
 98 call exitError('READING FILE OF DEFOCUS VALUES')
 end subroutine projectModel
+
+! Computes the projection position xproj,yproj on view iv of position rlX, rlZ,
+! rlSlice in the reconstruction, where these are real pixel coordinates, equal to 1
+! in the middle of the first pixel.  Other returned values are the rounded down X and 
+! slice numbers in J and lslice, and the four interpolation factors for the real pixel
+! position
+!
+subroutine projectionPosition(iv, rlX, rlZ, rlSlice, xproj, yproj, j, lslice, &
+    f11, f12, f21, f22)
+  use tiltvars
+  implicit none
+  real*4 rlX, rlZ, rlSlice, zz, yy, zpart, xproj, yproj
+  integer*4 j, lslice, iv
+  real*4 fj, fls, f11, f12, f21, f22, xf11, xz11, yf11, yz11
+  real*4 xf21, xz21, yf21, yz21, xf12, xz12, yf12, yz12, xf22, xz22, yf22
+  real*4 yz22, xprojf, xprojz, yprojf, yprojz
+  
+  zz = (rlZ - ycenModProj) * compress(iv)
+  yy = rlSlice - centerSlice
+  if (nxWarp == 0) then
+    zpart = yy * sinAlpha(iv) * sinBeta(iv) + zz * (cosAlpha(iv) * sinBeta(iv) +  &
+        xzfac(iv)) + xcenIn + axisXoffset
+    yproj = yy * cosAlpha(iv) - zz * (sinAlpha(iv) - yzfac(iv)) + centerSlice
+    xproj = zpart + (rlX - xcenOut) * cosBeta(iv)
+  else
+    !
+    ! local alignments
+    j = rlX
+    fj = rlX - j
+    lslice = rlSlice
+    fls = rlSlice - lslice
+    f11 = (1. -fj) * (1. -fls)
+    f12 = (1. -fj) * fls
+    f21 = fj * (1. -fls)
+    f22 = fj * fls
+    call localProjFactors(j, lslice, iv, xf11, xz11, yf11, yz11)
+    call localProjFactors(j + 1, lslice, iv, xf21, xz21, yf21, yz21)
+    call localProjFactors(j, lslice + 1, iv, xf12, xz12, yf12, yz12)
+    call localProjFactors(j + 1, lslice + 1, iv, xf22, xz22, yf22, yz22)
+    xprojf = f11 * xf11 + f12 * xf12 + f21 * xf21 + f22 * xf22
+    xprojz = f11 * xz11 + f12 * xz12 + f21 * xz21 + f22 * xz22
+    yprojf = f11 * yf11 + f12 * yf12 + f21 * yf21 + f22 * yf22
+    yprojz = f11 * yz11 + f12 * yz12 + f21 * yz21 + f22 * yz22
+    xproj = xprojf + zz * xprojz
+    yproj = yprojf + zz * yprojz
+    !
+  endif
+end subroutine projectionPosition
