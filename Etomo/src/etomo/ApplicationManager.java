@@ -6234,12 +6234,14 @@ public final class ApplicationManager extends BaseManager implements
     String actionMessage =
       setCurrentDialogType(DialogType.TOMOGRAM_COMBINATION, AxisID.FIRST);
     mainPanel.selectButton(AxisID.FIRST, "Tomogram Combination");
+    boolean init = false;
     if (tomogramCombinationDialog == null) {
       // Get the setupcombine parameters and set the default patch
       // boundaries if
       // they have not already been set
       CombineParams combineParams = metaData.getCombineParams();
       if (!combineParams.isPatchBoundarySet() && !metaData.isBatchruntomoSet()) {
+        init = true;
         // The first time combine is opened for this dataset, set tomogram size
         TomogramTool.saveTomogramSize(this, AxisID.FIRST, AxisID.ONLY);
         TomogramTool.saveTomogramSize(this, AxisID.SECOND, AxisID.ONLY);
@@ -6292,7 +6294,7 @@ public final class ApplicationManager extends BaseManager implements
           .timestamp("new", "TomogramCombinationDialog", Utilities.FINISHED_STATUS);
       }
       // Fill in the dialog box params and set it to the appropriate state
-      tomogramCombinationDialog.setCombineParams(combineParams);
+      tomogramCombinationDialog.setCombineParams(combineParams, init);
       // TODO combine.com must have dualvolmatch command
       backwardsCompatibilityCombineScriptsExist();
       // If setupcombine has been run load the com scripts, otherwise disable
@@ -8501,7 +8503,6 @@ public final class ApplicationManager extends BaseManager implements
   }
 
   private void updateDialog(FiducialModelDialog dialog, AxisID axisID) {
-    System.err.println(">>>>>A:" + axisID);
     if (dialog == null || axisID == AxisID.ONLY) {
       return;
     }
@@ -8515,8 +8516,6 @@ public final class ApplicationManager extends BaseManager implements
     else {
       fidExists = Utilities.fileExists(this, ".fid", AxisID.FIRST);
     }
-    System.err.println(">>>>>B:axisID:" + axisID + ",prealisExist:" + prealisExist
-      + ",fidExists:" + fidExists);
     dialog.setTransferfidEnabled(prealisExist && fidExists);
     dialog.updateEnabled();
   }

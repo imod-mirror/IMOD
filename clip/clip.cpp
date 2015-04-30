@@ -1,11 +1,10 @@
 /*
- *  clip -- Command Line Image Proccesing
+ *  clip -- Command Line Image Processing
  *
  *  Original author: James Kremer
  *  Revised by: David Mastronarde   email: mast@colorado.edu
  *
- *  Copyright (C) 1995-2005 by Boulder Laboratory for 3-Dimensional Electron
- *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
+ *  Copyright (C) 1995-2015 by the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  *  $Id$
@@ -95,6 +94,10 @@ void usage(void)
           "file.\n");
   fprintf(stderr, "\t[-B #] Binning value to use in defect correction.\n");
   fprintf(stderr, "\t[-S]   Scale defect list up by 2 if it is not already scaled.\n");
+  fprintf(stderr, "\t[-E #,#] Analyze histogram for extra counts on one side.\n");
+  fprintf(stderr, "\t[-F #,#] Analyze histogram for fastest falloff point.\n");
+  fprintf(stderr, "\t[-M #,#] Set minimum size of connected regions when "
+          "thresholding.\n");
   fprintf(stderr, "\n");
 }
 
@@ -137,6 +140,7 @@ void default_options(ClipOptions *opt)
   opt->falloffFrac = IP_DEFAULT;
   opt->weight = IP_DEFAULT;
   opt->pad    = IP_DEFAULT;
+  opt->minSize = IP_DEFAULT;
   opt->process = IP_NONE;
   opt->dim = 3;
   opt->add2file = IP_APPEND_FALSE;
@@ -168,7 +172,7 @@ int main( int argc, char *argv[] )
   int view    = FALSE;    /* view file at end?           */
   int procout = TRUE;     /* will process write output?. */
   int needtwo = FALSE;    /* Does process need two input files? */
-  int i, j;
+  int i, j, itemp;
   int retval = 0;
 
   char viewcmd[1024];
@@ -347,9 +351,20 @@ int main( int argc, char *argv[] )
       case 't':
         sscanf(argv[++i], "%f", &(opt.thresh)); break;
       case 'E':
-        sscanf(argv[++i], "%f", &(opt.pctlFrac)); break;
+        sscanf(argv[++i], "%f%*c%d", &(opt.pctlFrac), &itemp); 
+        if (itemp < 0)
+          opt.pctlFrac = -opt.pctlFrac;
+        break;
       case 'F':
-        sscanf(argv[++i], "%f", &(opt.falloffFrac)); break;
+        sscanf(argv[++i], "%f%*c%d", &(opt.falloffFrac), &itemp);
+        if (itemp < 0)
+          opt.falloffFrac = -opt.falloffFrac;
+        break;
+      case 'M':
+        sscanf(argv[++i], "%d%*c%d", &(opt.minSize), &itemp);
+        if (itemp < 0)
+          opt.minSize = -opt.minSize;
+        break;
 
       case 'k':
       case 'w':
