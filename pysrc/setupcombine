@@ -125,6 +125,7 @@ def getSeriesSizeAndAngle(axis):
 # Edits the com file with the current sed commands, applies a change list if any, writes
 # com file and writes a default copy to dfltcoms if different, and a copy to origcoms
 def editApplyChangeListAndWrite(sedcom, comName):
+   sedcom.append('/####CreatedVersion####/s/# .*/#' + IMODversion + '/')
    sedLines = pysed(sedcom, srcdir + '/' + comName, None)
    (srcRoot, ext) = os.path.splitext(comName)
    if len(changeList) > 0:
@@ -139,22 +140,19 @@ def editApplyChangeListAndWrite(sedcom, comName):
 
 # Make a copy of combine.com or edit it as needed
 def makeCombineCom():
+   sedcom = ['/####CreatedVersion####/s/# .*/#' + IMODversion + '/']
    if autoPatch or useVolMatch:
-      sedcom = []
       if autoPatch:
          final = autoPatch
          if extraTargets:
             final += ' -extra ' + extraTargets
-         sedcom = [fmtstr('/autopatchfit -final/s/-final E/-final {}/', final),
+         sedcom += [fmtstr('/autopatchfit -final/s/-final E/-final {}/', final),
                    '/goto patchcorr/s//goto autopatch/']
 
       if useVolMatch:
          sedcom.append('/goto solvematch/s//goto dualvolmatch/')
             
-      pysed(sedcom, srcdir + '/combine.com', 'combine.com')
-      
-   else:
-      shutil.copy(srcdir + '/combine.com', 'combine.com')
+   pysed(sedcom, srcdir + '/combine.com', 'combine.com')
 
 
 def warning(text):
@@ -203,6 +201,11 @@ volcombine = "volcombine.com"
 srcdir = os.path.join(os.environ['IMOD_DIR'], 'com')
 if not os.path.exists(srcdir):
    exitError("Source directory for command files, " + srcdir + ", not found")
+
+# Get IMOD version
+IMODversion = getIMODversion()
+if not IMODversion:
+   exitError('Getting IMOD version')
 
 # Set up to save coms if copytomocoms set up directories
 origComDir = 'origcoms'
@@ -538,7 +541,8 @@ sedcom = [fmtstr("s/{}/{}/g", from_srcname, fromname),
           fmtstr("/mkdir/s/.*if/{}/", ifmkdir),
           fmtstr("s/{}/{}/g", matfile, sedmatfile),
           fmtstr("/{}/s/#//", sedtempkey),
-          fmtstr("/OutputSizeXYZ/s/\//{} {} {}/g", nx,nz,ny)]
+          fmtstr("/OutputSizeXYZ/s/\//{} {} {}/g", nx,nz,ny),
+          '/####CreatedVersion####/s/# .*/#' + IMODversion + '/']
 pysed(sedcom, srcdir + '/' + matchvol2, matchvol2)
 
 pysed(sedcom, srcdir + '/' + warpvol, warpvol)
@@ -605,7 +609,8 @@ sedcom = [fmtstr("s/{}/{}/g", from_srcname, fromname),
           fmtstr("s/{}/{}/g", matfile, sedmatfile),
           fmtstr('/set combinefft_lowboth =/s/=.*/= {}/', lowRadius),
           fmtstr('/set combinefft_reduce =/s/=.*/= {}/', wedgeReduction),
-          fmtstr("/savework-file/s//{}/g", backupsed)]
+          fmtstr("/savework-file/s//{}/g", backupsed),
+          '/####CreatedVersion####/s/# .*/#' + IMODversion + '/']
 voltext = pysed(sedcom, srcdir + '/' + volcombine)
 
 # If we really want this to run with no recfile, supply the test size to -tomo
