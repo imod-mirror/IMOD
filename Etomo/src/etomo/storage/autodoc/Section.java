@@ -11,17 +11,11 @@ import etomo.ui.swing.Token;
 /**
  * <p>Description:</p>
  *
- * <p>Copyright: Copyright 2002 - 2006</p>
+ * <p>Copyright: Copyright 2002 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
- * University of Colorado</p>
- *
- * @author $$Author$$
- *
- * @version $$Revision$$
- * 
- * @notthreadsafe
+ * @version $Id$
  * 
  * @notthreadsafe
  *
@@ -130,8 +124,6 @@ import etomo.ui.swing.Token;
  */
 
 final class Section extends WriteOnlyStatementList implements ReadOnlySection {
-  public static final String rcsid = "$$Id$$";
-
   private final List statementList = new ArrayList();
   private final String key;
   private final Token type;
@@ -315,8 +307,8 @@ final class Section extends WriteOnlyStatementList implements ReadOnlySection {
     }
   }
 
-  NameValuePair addNameValuePair() {
-    NameValuePair pair = new NameValuePair(this, getMostRecentStatement());
+  NameValuePair addNameValuePair(final int lineNum) {
+    NameValuePair pair = new NameValuePair(this, getMostRecentStatement(), lineNum);
     statementList.add(pair);
     return pair;
   }
@@ -324,10 +316,10 @@ final class Section extends WriteOnlyStatementList implements ReadOnlySection {
   /**
    * Adds a subsection to a section.
    */
-  Section addSection(Token type, Token name) {
+  Section addSection(Token type, Token name, final int lineNum) {
     Section section = new Section(type, name, this);
     section.subsection = true;
-    statementList.add(new Subsection(section, this, getMostRecentStatement()));
+    statementList.add(new Subsection(section, this, getMostRecentStatement(), lineNum));
     sectionList.add(section);
     subSectionMap.put(section.getKey(), section);
     return section;
@@ -376,12 +368,12 @@ final class Section extends WriteOnlyStatementList implements ReadOnlySection {
         subSectionName));
   }
 
-  void addComment(Token comment) {
-    statementList.add(new Comment(comment, this, getMostRecentStatement()));
+  void addComment(Token comment, final int lineNum) {
+    statementList.add(new Comment(comment, this, getMostRecentStatement(), lineNum));
   }
 
-  void addEmptyLine() {
-    statementList.add(new EmptyLine(this, getMostRecentStatement()));
+  void addEmptyLine(final int lineNum) {
+    statementList.add(new EmptyLine(this, getMostRecentStatement(), lineNum));
   }
 
   void print(int level) {

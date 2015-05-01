@@ -47,14 +47,15 @@ import etomo.type.UITestSubjectType;
  * <p> </p>
  */
 final class Command extends Assert {
-  public static final String rcsid = "$Id$";
+  public static final String rcsid =
+    "$Id$";
 
   private static final String SEPARATOR_OPERATOR = "|";
   private static final char IGNORE_VARIABLE_OPERATOR = '"';
 
   private final Subject subject;
   private final Field field;
-  //current axis being tested
+  // current axis being tested
   private final AxisID testAxisID;
 
   private boolean empty = true;
@@ -66,6 +67,7 @@ final class Command extends Assert {
   private ReadOnlySection subsection = null;
   private String string = null;
   private boolean known = false;
+  private int lineNum = -1;
 
   Command(AxisID testAxisID) {
     this.testAxisID = testAxisID;
@@ -91,12 +93,12 @@ final class Command extends Assert {
 
   private void assertValid() {
     if (actionType == null) {
-      assertFalse("must have a field if there is not actionType(" + string + ")", field
-          .isEmpty());
+      assertFalse("must have a field if there is not actionType(" + string + ")",
+        field.isEmpty());
     }
     if (modifierType != null) {
       assertFalse("modifierType can't exist without a subject or a field (" + string
-          + ")", subject.isEmpty() && field.isEmpty());
+        + ")", subject.isEmpty() && field.isEmpty());
     }
     assertNotNull("must create string representation of command", string);
     assertTrue("processed command must be known (" + string + ")", isKnown());
@@ -111,6 +113,7 @@ final class Command extends Assert {
     if (statement == null) {
       return;
     }
+    lineNum = statement.getLineNum();
     string = statement.getString();
     Statement.Type type = statement.getType();
     if (type == Statement.Type.EMPTY_LINE || type == Statement.Type.COMMENT) {
@@ -139,10 +142,10 @@ final class Command extends Assert {
     }
     String leftSide = statement.getLeftSide(i);
     assertNull("unknown attributes at the end of the command - " + leftSide + " ("
-        + string + ")", leftSide);
+      + string + ")", leftSide);
     setValue(statement.getRightSide(), variableList);
     known = true;
-    //validate
+    // validate
     assertValid();
   }
 
@@ -154,7 +157,7 @@ final class Command extends Assert {
    * @return
    */
   public int setSubcommand(ReadOnlyStatement statement, int startAt,
-      VariableList variableList) {
+    VariableList variableList) {
     reset();
     assertNotNull("statement is null", statement);
     string = statement.getString();
@@ -173,7 +176,7 @@ final class Command extends Assert {
     String leftSide = statement.getLeftSide(i);
     setValue(statement.getRightSide(), variableList);
     known = true;
-    //validate
+    // validate
     assertValid();
     return i;
   }
@@ -187,7 +190,7 @@ final class Command extends Assert {
       for (int i = 0; i < valueArray.length; i++) {
         valueArray[i] = replaceVariables(valueArray[i], variableList, testAxisID);
         buffer.append(valueArray[i]
-            + (i < valueArray.length - 1 ? SEPARATOR_OPERATOR : ""));
+          + (i < valueArray.length - 1 ? SEPARATOR_OPERATOR : ""));
       }
       if (buffer.length() > 0) {
         value = buffer.toString();
@@ -205,7 +208,7 @@ final class Command extends Assert {
    * @return
    */
   static String replaceVariables(String input, VariableList variableList, AxisID axisID) {
-    //Return input as is if it is empty.
+    // Return input as is if it is empty.
     if (variableList == null || input == null) {
       return input;
     }
@@ -214,65 +217,65 @@ final class Command extends Assert {
     int variableRefStart = -1;
     int bufferVariableRefStart = -1;
     int index = 0;
-    //Walk through input looking for quotes and variable references.  Put each
-    //character into the buffer, replacing variable references.
+    // Walk through input looking for quotes and variable references. Put each
+    // character into the buffer, replacing variable references.
     while (index < input.length()) {
       char curChar = input.charAt(index);
       if (curChar == IGNORE_VARIABLE_OPERATOR) {
-        //Found a quote.  Decide whether this is a start quote, an end quote, or
-        //an unmatched quote.
+        // Found a quote. Decide whether this is a start quote, an end quote, or
+        // an unmatched quote.
         if (ignoringVariables) {
-          //Found end quote.
+          // Found end quote.
           ignoringVariables = false;
         }
-        //This is a start quote if a matching end quote can be found, otherwise
-        //ignore it.
+        // This is a start quote if a matching end quote can be found, otherwise
+        // ignore it.
         else if (index + 1 < input.length()
-            && input.indexOf(IGNORE_VARIABLE_OPERATOR, index + 1) != -1) {
-          //Found start quote.
+          && input.indexOf(IGNORE_VARIABLE_OPERATOR, index + 1) != -1) {
+          // Found start quote.
           ignoringVariables = true;
-          //Quotes take precedence over variable references, so a matched quote
-          //in the middle of a variable reference invalidates the variable
-          //reference.
+          // Quotes take precedence over variable references, so a matched quote
+          // in the middle of a variable reference invalidates the variable
+          // reference.
           variableRefStart = -1;
           bufferVariableRefStart = -1;
         }
         else {
-          //Not a start or end quote so don't strip it.
+          // Not a start or end quote so don't strip it.
           buffer.append(curChar);
         }
       }
       else {
-        //Only matching quotes are stripped.
+        // Only matching quotes are stripped.
         buffer.append(curChar);
-        //If not ignoring variables, check for a variable reference.
+        // If not ignoring variables, check for a variable reference.
         if (!ignoringVariables) {
-          //If not already in a variable reference, check for the start of a
-          //variable reference %{.
+          // If not already in a variable reference, check for the start of a
+          // variable reference %{.
           if (variableRefStart == -1 && curChar == '%' && input.length() > index + 1
-              && input.charAt(index + 1) == '{') {
-            //May be the start of a variable reference.
+            && input.charAt(index + 1) == '{') {
+            // May be the start of a variable reference.
             variableRefStart = index;
             bufferVariableRefStart = buffer.length() - 1;
-            //Move the index forward to the {.
+            // Move the index forward to the {.
             index++;
             buffer.append(input.charAt(index));
           }
-          //If currently inside a variables reference, check for the end of the
-          //variable reference.  Ignore empty variable references.
+          // If currently inside a variables reference, check for the end of the
+          // variable reference. Ignore empty variable references.
           else if (variableRefStart != -1 && curChar == '}'
-              && bufferVariableRefStart + 2 < buffer.length() - 1) {
-            //Found the end of the variable reference - substitute.
-            String variableName = buffer.substring(bufferVariableRefStart + 2, buffer
-                .length() - 1);
+            && bufferVariableRefStart + 2 < buffer.length() - 1) {
+            // Found the end of the variable reference - substitute.
+            String variableName =
+              buffer.substring(bufferVariableRefStart + 2, buffer.length() - 1);
             assertTrue("Unknown variable " + variableName + " (" + input + ")",
-                variableList.isVariableSet(variableName, axisID));
+              variableList.isVariableSet(variableName, axisID));
             String variableValue = variableList.getVariableValue(variableName, axisID);
             if (variableValue == null) {
               variableValue = "";
             }
-            //Replace the variable reference, including the %{} characters, in the
-            //buffer.
+            // Replace the variable reference, including the %{} characters, in the
+            // buffer.
             buffer.replace(bufferVariableRefStart, buffer.length(), variableValue);
             variableRefStart = -1;
             bufferVariableRefStart = -1;
@@ -319,6 +322,10 @@ final class Command extends Assert {
       return null;
     }
     return field;
+  }
+
+  int getLineNum() {
+    return lineNum;
   }
 
   Command getSubcommand() {

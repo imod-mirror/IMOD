@@ -7,15 +7,11 @@ import etomo.storage.LogFile;
 /**
  * <p>Description: </p>
  * 
- * <p>Copyright: Copyright 2006</p>
+ * <p>Copyright: Copyright 2006 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
- * University of Colorado</p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
+ * @version $Id$
  * 
  * <p> $Log$
  * <p> Revision 1.4  2009/02/04 23:30:00  sueh
@@ -37,14 +33,12 @@ import etomo.storage.LogFile;
  * <p> </p>
  */
 final class EmptyLine extends Statement {
-  public static final String rcsid = "$Id$";
-
   private static final Type TYPE = Statement.Type.EMPTY_LINE;
 
   private final WriteOnlyStatementList parent;
 
-  EmptyLine(WriteOnlyStatementList parent, Statement previousStatement) {
-    super(previousStatement);
+  EmptyLine(WriteOnlyStatementList parent, Statement previousStatement, final int lineNum) {
+    super(previousStatement, lineNum);
     this.parent = parent;
   }
 
@@ -77,7 +71,7 @@ final class EmptyLine extends Statement {
   }
 
   void write(LogFile file, LogFile.WriterId writerId) throws LogFile.LockException,
-      IOException {
+    IOException {
     file.newLine(writerId);
   }
 
