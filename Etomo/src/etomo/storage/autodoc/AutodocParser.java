@@ -306,7 +306,7 @@ import etomo.ui.swing.Token;
 
 final class AutodocParser {
   public static final String rcsid =
-      "$$Id$$";
+    "$$Id$$";
 
   private final Vector line = new Vector();
 
@@ -345,48 +345,50 @@ final class AutodocParser {
   private boolean debug = false;
 
   private AutodocParser(final Autodoc autodoc, final boolean allowAltComment,
-      final boolean versionRequired, final boolean peetVariant, final Location location,
-      final String envVar, final String subdirName, final String name,
-      final File autodocFile, final BaseManager manager, final AxisID axisID,
-      final String notFoundMessage, final boolean debug, final boolean writable) {
+    final boolean versionRequired, final boolean peetVariant, final Location location,
+    final String envVar, final String subdirName, final String name,
+    final File autodocFile, final BaseManager manager, final AxisID axisID,
+    final String notFoundMessage, final boolean debug, final boolean writable) {
     this.debug = debug;
     this.peetVariant = peetVariant;
     if (autodoc == null) {
       throw new IllegalArgumentException("autodoc is null.");
     }
     this.autodoc = autodoc;
-    tokenizer = new AutodocTokenizer(allowAltComment, location, envVar, subdirName, name,
+    tokenizer =
+      new AutodocTokenizer(allowAltComment, location, envVar, subdirName, name,
         autodocFile, manager, axisID, notFoundMessage, debug, writable);
     logFile = tokenizer.getLogFile();
     this.versionRequired = versionRequired;
   }
 
   static AutodocParser getAutodocInstance(final Autodoc autodoc,
-      final boolean allowAltComment, final boolean versionRequired,
-      final boolean peetVariant, final String name, final BaseManager manager,
-      final AxisID axisID, final String notFoundMessage, final boolean debug) {
+    final boolean allowAltComment, final boolean versionRequired,
+    final boolean peetVariant, final String name, final BaseManager manager,
+    final AxisID axisID, final String notFoundMessage, final boolean debug) {
     return new AutodocParser(autodoc, allowAltComment, versionRequired, peetVariant,
-        Location.AUTODOC, null, null, name, null, manager, axisID, notFoundMessage, debug,
-        false);
+      Location.AUTODOC, null, null, name, null, manager, axisID, notFoundMessage, debug,
+      false);
   }
 
   static AutodocParser getGenericInstance(final Autodoc autodoc,
-      final boolean allowAltComment, final boolean versionRequired,
-      final boolean peetVariant, final String envVar, final String subdirName,
-      final String name, final BaseManager manager, final AxisID axisID,
-      final String notFoundMessage, final boolean debug, final boolean writable) {
-    return new AutodocParser(autodoc, allowAltComment, versionRequired, peetVariant, null,
-        envVar, subdirName, name, null, manager, axisID, notFoundMessage, debug,
-        writable);
+    final boolean allowAltComment, final boolean versionRequired,
+    final boolean peetVariant, final String envVar, final String subdirName,
+    final String name, final BaseManager manager, final AxisID axisID,
+    final String notFoundMessage, final boolean debug, final boolean writable) {
+    return new AutodocParser(autodoc, allowAltComment, versionRequired, peetVariant,
+      null, envVar, subdirName, name, null, manager, axisID, notFoundMessage, debug,
+      writable);
   }
 
   static AutodocParser getGenericInstance(final Autodoc autodoc,
-      final boolean allowAltComment, final boolean versionRequired,
-      final boolean peetVariant, final File autodocFile, final BaseManager manager,
-      final AxisID axisID, final String notFoundMessage, final boolean debug,
-      final boolean writable) {
-    return new AutodocParser(autodoc, allowAltComment, versionRequired, peetVariant, null,
-        null, null, null, autodocFile, manager, axisID, notFoundMessage, debug, writable);
+    final boolean allowAltComment, final boolean versionRequired,
+    final boolean peetVariant, final File autodocFile, final BaseManager manager,
+    final AxisID axisID, final String notFoundMessage, final boolean debug,
+    final boolean writable) {
+    return new AutodocParser(autodoc, allowAltComment, versionRequired, peetVariant,
+      null, null, null, null, autodocFile, manager, axisID, notFoundMessage, debug,
+      writable);
   }
 
   void initialize() throws FileNotFoundException, IOException, LogFile.LockException {
@@ -473,12 +475,11 @@ final class AutodocParser {
     }
     // Eat up the whitespace. This helps identify the empty line. But if its not
     // an empty line, it gets rid of the white space at the beginning of the line
-    while (matchToken(Token.Type.WHITESPACE) != null) {
-    }
+    while (matchToken(Token.Type.WHITESPACE) != null) {}
     if (token.is(Token.Type.EOL)) {
       testStartFunction("emptyline");
       // found empty line
-      list.addEmptyLine();
+      list.addEmptyLine(lineNum);
       nextToken();
       testEndFunction("emptyline", true);
       return true;
@@ -503,7 +504,7 @@ final class AutodocParser {
     // comments can be made of multiple tokens, so use a link list
     LinkList commentLinkList = new LinkList(token);
     // found comment so save the first token in the link list
-    list.addComment(commentLinkList.getHead());
+    list.addComment(commentLinkList.getHead(), lineNum);
     // add tokens to the comment
     while (!token.is(Token.Type.EOL) && !token.is(Token.Type.EOF)) {
       commentLinkList.append(token);
@@ -541,29 +542,25 @@ final class AutodocParser {
     }
     if (matchToken(Token.Type.CLOSE) == null) {
       // bad section
-      reportError(
-          "A section header must end with \"" + AutodocTokenizer.CLOSE_CHAR + "\".");
+      reportError("A section header must end with \"" + AutodocTokenizer.CLOSE_CHAR
+        + "\".");
       testEndFunction("section", false);
       return false;
     }
     matchToken(Token.Type.WHITESPACE);
     if (matchToken(Token.Type.EOL) == null && matchToken(Token.Type.EOF) == null) {
       // bad section
-      reportError(
-          "A section header must end with \"" + AutodocTokenizer.CLOSE_CHAR + "\".");
+      reportError("A section header must end with \"" + AutodocTokenizer.CLOSE_CHAR
+        + "\".");
       testEndFunction("section", false);
       return false;
     }
     while (!token.is(Token.Type.EOF)) {
       // look for elements in the section
-      if (emptyLine(section)) {
-      }
-      else if (comment(section)) {
-      }
-      else if (pair(section)) {
-      }
-      else if (subsection(section)) {
-      }
+      if (emptyLine(section)) {}
+      else if (comment(section)) {}
+      else if (pair(section)) {}
+      else if (subsection(section)) {}
       else {
         // end of section
         testEndFunction("section", true);
@@ -603,27 +600,24 @@ final class AutodocParser {
     }
     if (matchToken(Token.Type.SUBCLOSE) == null) {
       // bad subsection
-      reportError("A subsection header must end with \"" + AutodocTokenizer.CLOSE_CHAR +
-          AutodocTokenizer.CLOSE_CHAR + "\".");
+      reportError("A subsection header must end with \"" + AutodocTokenizer.CLOSE_CHAR
+        + AutodocTokenizer.CLOSE_CHAR + "\".");
       testEndFunction("subsection", false);
       return false;
     }
     matchToken(Token.Type.WHITESPACE);
     if (matchToken(Token.Type.EOL) == null && matchToken(Token.Type.EOF) == null) {
       // bad section
-      reportError("A section header must end with \"" + AutodocTokenizer.CLOSE_CHAR +
-          AutodocTokenizer.CLOSE_CHAR + "\".");
+      reportError("A section header must end with \"" + AutodocTokenizer.CLOSE_CHAR
+        + AutodocTokenizer.CLOSE_CHAR + "\".");
       testEndFunction("section", false);
       return false;
     }
     while (!subsectionClose(subsection)) {
       // look for elements in the subsection
-      if (emptyLine(subsection)) {
-      }
-      else if (comment(subsection)) {
-      }
-      else if (pair(subsection)) {
-      }
+      if (emptyLine(subsection)) {}
+      else if (comment(subsection)) {}
+      else if (pair(subsection)) {}
       else {
         // subsection must close
         reportError("A subsection must end with a subsection close.");
@@ -653,18 +647,17 @@ final class AutodocParser {
     // eat up SUBCLOSE
     if (matchToken(Token.Type.SUBCLOSE) == null) {
       // bad subsection
-      reportError(
-          "A subsection close must have the format \"" + AutodocTokenizer.OPEN_CHAR +
-              AutodocTokenizer.OPEN_CHAR + AutodocTokenizer.CLOSE_CHAR +
-              AutodocTokenizer.CLOSE_CHAR + "\".");
+      reportError("A subsection close must have the format \""
+        + AutodocTokenizer.OPEN_CHAR + AutodocTokenizer.OPEN_CHAR
+        + AutodocTokenizer.CLOSE_CHAR + AutodocTokenizer.CLOSE_CHAR + "\".");
       testEndFunction("subsectionClose", false);
       return false;
     }
     matchToken(Token.Type.WHITESPACE);
     if (matchToken(Token.Type.EOL) == null && matchToken(Token.Type.EOF) == null) {
       // bad subsection
-      reportError("A section header must end with \"" + AutodocTokenizer.CLOSE_CHAR +
-          AutodocTokenizer.CLOSE_CHAR + "\".");
+      reportError("A section header must end with \"" + AutodocTokenizer.CLOSE_CHAR
+        + AutodocTokenizer.CLOSE_CHAR + "\".");
       testEndFunction("section", false);
       return false;
     }
@@ -695,7 +688,7 @@ final class AutodocParser {
    * @throws IOException
    */
   private Section sectionHeader(final WriteOnlyStatementList nameValuePairList)
-      throws IOException {
+    throws IOException {
     testStartFunction("sectionHeader");
     matchToken(Token.Type.WHITESPACE);
     // get the section type
@@ -709,8 +702,8 @@ final class AutodocParser {
     matchToken(Token.Type.WHITESPACE);
     if (matchToken(Token.Type.DELIMITER) == null) {
       // bad section header
-      reportError("A section header must contain a delimiter (\"" +
-          tokenizer.getDelimiterString() + "\").");
+      reportError("A section header must contain a delimiter (\""
+        + tokenizer.getDelimiterString() + "\").");
       testEndFunction("sectionHeader", false);
       return null;
     }
@@ -726,7 +719,7 @@ final class AutodocParser {
     matchToken(Token.Type.WHITESPACE);
     testEndFunction("sectionHeader", true);
     // assume that this is a good section and save it now
-    return nameValuePairList.addSection(type, nameLinkList.getHead());
+    return nameValuePairList.addSection(type, nameLinkList.getHead(), lineNum);
   }
 
   /**
@@ -756,9 +749,9 @@ final class AutodocParser {
     // section name may contain multiple tokens
     LinkList nameLinkList = new LinkList(token);
     // link the section name together
-    while (!token.is(Token.Type.CLOSE) && !token.is(Token.Type.SUBCLOSE) &&
-        !token.is(Token.Type.WHITESPACE) && !token.is(Token.Type.EOL) &&
-        !token.is(Token.Type.EOF)) {
+    while (!token.is(Token.Type.CLOSE) && !token.is(Token.Type.SUBCLOSE)
+      && !token.is(Token.Type.WHITESPACE) && !token.is(Token.Type.EOL)
+      && !token.is(Token.Type.EOF)) {
       nameLinkList.append(token);
       nextToken();
     }
@@ -783,14 +776,15 @@ final class AutodocParser {
    * @throws IOException
    */
   private boolean pair(WriteOnlyStatementList list) throws IOException {
-    if (emptyLine(list) || !delimiterInLine ||
-        (!token.is(Token.Type.WORD) && !token.is(Token.Type.KEYWORD) &&
-            !token.is(Token.Type.QUOTE))) {
+    if (emptyLine(list)
+      || !delimiterInLine
+      || (!token.is(Token.Type.WORD) && !token.is(Token.Type.KEYWORD) && !token
+        .is(Token.Type.QUOTE))) {
       // not a pair
       return false;
     }
     testStartFunction("pair");
-    NameValuePair pair = list.addNameValuePair();
+    NameValuePair pair = list.addNameValuePair(lineNum);
     Attribute leafAttribute = name(list, pair);
     if (leafAttribute == null) {
       // bad pair
@@ -816,7 +810,7 @@ final class AutodocParser {
    * @throws IOException
    */
   private Attribute name(WriteOnlyStatementList list, NameValuePair pair)
-      throws IOException {
+    throws IOException {
     testStartFunction("name");
     Attribute attribute = baseAttribute(list, pair);
     if (attribute == null) {
@@ -829,9 +823,8 @@ final class AutodocParser {
       attribute = attribute(attribute, pair);
       if (attribute == null) {
         // bad name
-        reportError(
-            "Attribute must follow separator (\"" + AutodocTokenizer.SEPARATOR_CHAR +
-                "\")" + ".");
+        reportError("Attribute must follow separator (\""
+          + AutodocTokenizer.SEPARATOR_CHAR + "\")" + ".");
         testEndFunction("name", false);
       }
     }
@@ -846,8 +839,9 @@ final class AutodocParser {
    *
    * @return Attribute or null
    */
-  private Attribute baseAttribute(WriteOnlyAttributeList attributeList,
-      NameValuePair pair) throws IOException {
+  private Attribute
+    baseAttribute(WriteOnlyAttributeList attributeList, NameValuePair pair)
+      throws IOException {
     return buildAttribute(attributeList, pair, true);
   }
 
@@ -859,7 +853,7 @@ final class AutodocParser {
    * @return Attribute or null
    */
   private Attribute attribute(WriteOnlyAttributeList attributeList, NameValuePair pair)
-      throws IOException {
+    throws IOException {
     return buildAttribute(attributeList, pair, false);
   }
 
@@ -873,7 +867,7 @@ final class AutodocParser {
    * @throws IOException
    */
   private Attribute buildAttribute(final WriteOnlyAttributeList attributeList,
-      final NameValuePair pair, final boolean base) throws IOException {
+    final NameValuePair pair, final boolean base) throws IOException {
     String function;
     if (base) {
       function = "base-attribute";
@@ -884,8 +878,8 @@ final class AutodocParser {
     if (base) {
       testStartFunction(function);
     }
-    if (!token.is(Token.Type.WORD) && !token.is(Token.Type.KEYWORD) &&
-        !token.is(Token.Type.QUOTE) && (base || !token.is(Token.Type.COMMENT))) {
+    if (!token.is(Token.Type.WORD) && !token.is(Token.Type.KEYWORD)
+      && !token.is(Token.Type.QUOTE) && (base || !token.is(Token.Type.COMMENT))) {
       if (base) {
         testEndFunction("base-attribute", false);
       }
@@ -897,15 +891,15 @@ final class AutodocParser {
     LinkList valueLinkList = new LinkList(token);
     valueLinkList.append(token);
     nextToken();
-    while (token.is(Token.Type.WORD) || token.is(Token.Type.KEYWORD) ||
-        token.is(Token.Type.QUOTE) || token.is(Token.Type.COMMENT)) {
+    while (token.is(Token.Type.WORD) || token.is(Token.Type.KEYWORD)
+      || token.is(Token.Type.QUOTE) || token.is(Token.Type.COMMENT)) {
       valueLinkList.append(token);
       nextToken();
     }
     testEndFunction(function, true);
     // add and return the new attribute
     Attribute attribute =
-        (Attribute) attributeList.addAttribute(valueLinkList.getHead(), lineNum);
+      (Attribute) attributeList.addAttribute(valueLinkList.getHead(), lineNum);
     pair.addAttribute(attribute);
     return attribute;
   }
@@ -918,7 +912,7 @@ final class AutodocParser {
    * @throws IOException
    */
   private void value(WriteOnlyStatementList parent, Attribute attribute,
-      NameValuePair pair, final Token closeQuote) throws IOException {
+    NameValuePair pair, final Token closeQuote) throws IOException {
     testStartFunction("value");
     // values can be made of multiple tokens, so use a link list
     LinkList valueLinkList = new LinkList(token);
@@ -957,25 +951,23 @@ final class AutodocParser {
     nextToken();
     if (!foundCloseQuote) {
       if (closeQuote == null) {
-        while (!error && valueLine(parent, valueLinkList)) {
-        }
+        while (!error && valueLine(parent, valueLinkList)) {}
       }
       else {
-        while (!error && quotedValueLine(parent, valueLinkList, closeQuote)) {
-        }
+        while (!error && quotedValueLine(parent, valueLinkList, closeQuote)) {}
       }
     }
     // Strip non-embedded EOL, EOF, and WHITESPACE at the start and end of the value
-    while (valueLinkList.size() > 0 &&
-        (valueLinkList.isFirstElement(Token.Type.WHITESPACE) ||
-            valueLinkList.isFirstElement(Token.Type.EOL) ||
-            valueLinkList.isFirstElement(Token.Type.EOF))) {
+    while (valueLinkList.size() > 0
+      && (valueLinkList.isFirstElement(Token.Type.WHITESPACE)
+        || valueLinkList.isFirstElement(Token.Type.EOL) || valueLinkList
+          .isFirstElement(Token.Type.EOF))) {
       valueLinkList.dropFirstElement();
     }
-    while (valueLinkList.size() > 0 &&
-        (valueLinkList.isLastElement(Token.Type.WHITESPACE) ||
-            valueLinkList.isLastElement(Token.Type.EOL) ||
-            valueLinkList.isLastElement(Token.Type.EOF))) {
+    while (valueLinkList.size() > 0
+      && (valueLinkList.isLastElement(Token.Type.WHITESPACE)
+        || valueLinkList.isLastElement(Token.Type.EOL) || valueLinkList
+          .isLastElement(Token.Type.EOF))) {
       valueLinkList.dropLastElement();
     }
     // Remove the closing quote
@@ -999,24 +991,24 @@ final class AutodocParser {
    * @throws IOException
    */
   private boolean valueLine(WriteOnlyStatementList parent, LinkList valueLinkList)
-      throws IOException {
-    if (emptyLine(parent) || delimiterInLine || token.is(Token.Type.COMMENT) ||
-        token.is(Token.Type.EOL) || token.is(Token.Type.EOF) ||
-        token.is(Token.Type.SUBOPEN)) {
+    throws IOException {
+    if (emptyLine(parent) || delimiterInLine || token.is(Token.Type.COMMENT)
+      || token.is(Token.Type.EOL) || token.is(Token.Type.EOF)
+      || token.is(Token.Type.SUBOPEN)) {
       // not a value line
       return false;
     }
     testStartFunction("valueLine");
-    while (!token.is(Token.Type.DELIMITER) && !token.is(Token.Type.EOL) &&
-        !token.is(Token.Type.EOF)) {
+    while (!token.is(Token.Type.DELIMITER) && !token.is(Token.Type.EOL)
+      && !token.is(Token.Type.EOF)) {
       // add the token to the value link list
       valueLinkList.append(token);
       nextToken();
     }
     if (token.is(Token.Type.DELIMITER)) {// really bad error - preprocessor is wrong
       // bad value line
-      reportError("A value line cannot contain the delimiter string (\"" +
-          tokenizer.getDelimiterString() + "\").");
+      reportError("A value line cannot contain the delimiter string (\""
+        + tokenizer.getDelimiterString() + "\").");
       testEndFunction("valueLine", false);
       return false;
     }
@@ -1039,15 +1031,15 @@ final class AutodocParser {
    * @throws IOException
    */
   private boolean quotedValueLine(WriteOnlyStatementList parent, LinkList valueLinkList,
-      final Token closeQuote) throws IOException {
+    final Token closeQuote) throws IOException {
     if (valueLinkList.isDone()) {
       // quoted value was completed in the previous line
       return false;
     }
     if (emptyLine(parent) || token.is(Token.Type.EOL)) {
       // illegal empty line inside a quoted value
-      reportError("An empty line cannot be embedded in a quoted value (\"" +
-          closeQuote.getChar() + "\").");
+      reportError("An empty line cannot be embedded in a quoted value (\""
+        + closeQuote.getChar() + "\").");
       return false;
     }
     if (token.is(Token.Type.EOF)) {
@@ -1164,9 +1156,8 @@ final class AutodocParser {
     token = (Token) line.get(tokenIndex);
     tokenIndex++;
     if (detailedTest) {
-      System.err.println(
-          tokenIndex + ":" + token + ",delimiterInLine=" + delimiterInLine + ":" +
-              tokenizer.getDelimiterString());
+      System.err.println(tokenIndex + ":" + token + ",delimiterInLine=" + delimiterInLine
+        + ":" + tokenizer.getDelimiterString());
     }
   }
 
@@ -1189,7 +1180,8 @@ final class AutodocParser {
         delimiterInLine = true;
       }
       line.add(token);
-    } while (!token.is(Token.Type.EOL) && !token.is(Token.Type.EOF));
+    }
+    while (!token.is(Token.Type.EOL) && !token.is(Token.Type.EOF));
   }
 
   // postprocessor
@@ -1212,8 +1204,8 @@ final class AutodocParser {
   }
 
   private boolean isDelimiterChange(Attribute attribute) {
-    if (attribute.getNameToken()
-        .equals(Token.Type.KEYWORD, AutodocTokenizer.DELIMITER_KEYWORD)) {
+    if (attribute.getNameToken().equals(Token.Type.KEYWORD,
+      AutodocTokenizer.DELIMITER_KEYWORD)) {
       return true;
     }
     return false;
@@ -1225,8 +1217,8 @@ final class AutodocParser {
     }
   }
 
-  void testStreamTokenizer(boolean tokens, boolean details)
-      throws IOException, LogFile.LockException {
+  void testStreamTokenizer(boolean tokens, boolean details) throws IOException,
+    LogFile.LockException {
     tokenizer.testStreamTokenizer(tokens, details);
   }
 
@@ -1254,7 +1246,8 @@ final class AutodocParser {
       else if (!token.is(Token.Type.EOF)) {
         System.err.print(token.getValue());
       }
-    } while (!token.is(Token.Type.EOF));
+    }
+    while (!token.is(Token.Type.EOF));
   }
 
   /**

@@ -2056,11 +2056,11 @@ public final class MatlabParam {
       // If the attribute doesn't exist try to add a comment and add the attribute
       if (comment != null) {
         // there's a comment, so add an empty line first
-        autodoc.addEmptyLine();
+        autodoc.addEmptyLine(-1);
         // Format and add the comment
         String[] commentArray = EtomoAutodoc.format(attributeName + ":\n" + comment);
         for (int i = 0; i < commentArray.length; i++) {
-          autodoc.addComment(" " + commentArray[i]);
+          autodoc.addComment(" " + commentArray[i], -1);
         }
       }
       // Add the attribute and name/value pair

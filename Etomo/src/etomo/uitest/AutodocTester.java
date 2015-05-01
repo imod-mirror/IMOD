@@ -797,7 +797,8 @@ final class AutodocTester extends Assert implements VariableList {
   }
 
   private String formatCommandInfo(final Command command) {
-    return " (" + axisID.getExtension() + ": " + command + ")";
+    return " (" + (command != null ? ("line:" + command.getLineNum() + " ") : "")
+      + axisID.getExtension() + ": " + command + ")";
   }
 
   /**
