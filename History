@@ -1,6 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-4/27/15: In eTomo - Tomogram Combination, added controls for dualvolmatch.
+5/1/15: In eTomo - Fine Alignment, Added a global XTilt option.(Bug# 1793)
+
+5/1/15: In eTomo - Tomogram Combination, converted matchorwarp parameters to
+PIP.(Bug# 1866)
+
+5/1/15: In eTomo - Tomogram Combination, added controls for dualvolmatch.
 (Bug# 1865)
 
 4/30/15: Added an option to Tilt to get a thresholded reprojection of fixed
