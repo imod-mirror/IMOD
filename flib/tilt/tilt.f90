@@ -3412,8 +3412,9 @@ subroutine inputParameters()
       ind = 0
       if (debug) ind = 1
       useGPU = gpuAvailable(indGPU, gpuMemory, ind) .ne. 0
-      if (.not. useGPU) gpuErrorStr =  &
-          'No GPU is available, run gputilttest for more details'
+      if (.not. useGPU) gpuErrorStr = 'No GPU is available'
+      if (.not. useGPU .and. .not. debug) gpuErrorStr = gpuErrorStr// &
+          ', run gputilttest for more details'
       ind = maxNeeds(1) * inPlaneSize + iwidth * numPlanes
       iex = iwidth * numPlanes
       kti = 0

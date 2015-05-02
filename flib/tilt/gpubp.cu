@@ -196,7 +196,7 @@ int gpuavailable(int *nGPU, float *memory, int *debug)
   *memory = 0;
   cudaGetDeviceCount( &device_count );
   if (*debug) {
-#if CUDA_CERSION >= 3000
+#if CUDA_VERSION >= 3000
     int version, version2;
     cudaRuntimeGetVersion(&version2);
     cudaDriverGetVersion(&version);
