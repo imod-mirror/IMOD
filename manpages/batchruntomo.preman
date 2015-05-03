@@ -276,7 +276,9 @@ fitting are done with Autopatchfit(1); by default, it will try medium to
 extra-large patches and add target residual values of 0.4,0.45 for
 Findwarp(1) on the final trial.  There are "runtime.Combine" directives
 to control this behavior and to set a few other parameters for tomogram
-combination.  If both SIRT and back-projection reconstructions are
+combination; also, "comparam" directives can be used to modify
+parameters in solvematch.com, patchcorr.com, and matchorwarp.com. If
+both SIRT and back-projection reconstructions are
 available, the latter will be combined unless the combine
 "doSIRTifBoth" directive specifies otherwise.
 .P
