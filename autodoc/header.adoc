@@ -58,6 +58,14 @@ usage = Output mean value of data
 tooltip = 
 manpage = 
 
+[Field = RootMeanSquare]
+short = rms
+type = B
+usage = Output RMS deviation from mean of the data
+tooltip = 
+manpage = Output the RMS value (root-mean-square deviation from the mean)
+stored in the header.
+
 [Field = VolumeNumber]
 short = volume
 type = I

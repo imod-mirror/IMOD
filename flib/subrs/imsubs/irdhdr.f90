@@ -24,9 +24,9 @@ subroutine irdhdr(iunit, nxyz, mxyz, imode, dmin, dmax, dmean)
       '(unsigned 16-bit integer)', 'RGB color'/
   integer*4 nameMap(0:16) /1, 2, 3, 4, 5, 6, 7, 6, 6, 0, 0, 0, 0, 0, 0, 0, 8/
   !
-  integer*4 i, k, ispg, iunit, imode, idtype, numExtra, numLabels
-  integer*4 lensnum, nd1, nd2, iflags, imodFlags, ifBrief
-  real*4 dmin, dmax, dmean, vd1, vd2, xorig, yorig, zorig
+  integer*4 i, k, ispg, iunit, imode, idtype, numExtra, numLabels, isIMOD
+  integer*4 lensnum, nd1, nd2, iflags, imodFlags, ifBrief, nVersion
+  real*4 dmin, dmax, dmean, vd1, vd2, xorig, yorig, zorig, RMS
   logical*4 doExtra, doPrint
   integer*4 iiuRetBrief, iiuRetPrint
   ifBrief = iiuRetBrief()
@@ -34,9 +34,10 @@ subroutine irdhdr(iunit, nxyz, mxyz, imode, dmin, dmax, dmean)
   doExtra = ifBrief == 0 .and. doPrint
 
   call iiuRetBasicHead(iunit, nxyz, mxyz, imode, dmin, dmax, dmean)
-  call iiuRetImodFlags(iunit, imodFlags, k)
+  call iiuRetImodFlags(iunit, imodFlags, isIMOD)
   call iiuFileInfo(iunit, i, k, iflags)
   call iiuRetSize(iunit, nxyz, mxyz, nxyzst)
+  call iiuRetMRCVersion(iunit, nVersion)
 
   if (btest(iflags, 2) .and. doExtra) write(6, 1005)
 1005 format(/,20x,'This file has an old-style MRC header.')
@@ -61,6 +62,7 @@ subroutine irdhdr(iunit, nxyz, mxyz, imode, dmin, dmax, dmean)
   call iiuRetTiltOrig(iunit, tiltOrig)
   call iiuRetSpaceGroup(iunit, ispg)
   call iiuRetNumExtended(iunit, numExtra)
+  call iiuRetRMS(iunit, RMS)
   minLabel = ' '
   maxLabel = ' '
   meanLabel = ' '
@@ -77,11 +79,15 @@ subroutine irdhdr(iunit, nxyz, mxyz, imode, dmin, dmax, dmean)
   else
     modeLabel = modeNames(nameMap(imode))
   endif
-  if (doExtra) write(6, 1000) nxyz, imode, modeLabel, &
-      nxyzst, mxyz, delta, (cell(k), k = 4, 6), (lxyz(mapcrs(k)), k = 1, 3), &
-      xorig, yorig, zorig, dmin, minLabel, dmax, maxLabel, dmean, &
-      meanLabel, tiltOrig, tilt, ispg, numExtra, idtype, lensNum, &
-      numLabels, ((labels(i, k), i = 1, 20), k = 1, numLabels)
+  if (doExtra) then
+    write(6, 1000) nxyz, imode, modeLabel, nxyzst, mxyz, delta, (cell(k), k = 4, 6), &
+        (lxyz(mapcrs(k)), k = 1, 3), xorig, yorig, zorig, dmin, minLabel, dmax, &
+        maxLabel, dmean, meanLabel
+    if (RMS > 0 .or. (RMS == 0. .and. (nVersion > 0 .or. &
+        (isIMOD .and. btest(imodFlags, 3))))) write(6, 1019) RMS
+    write(6, 1020) tiltOrig, tilt, ispg, numExtra, idtype, lensNum, &
+        numLabels, ((labels(i, k), i = 1, 20), k = 1, numLabels)
+  endif
   !
   ! for unix output without carriagecontrol:
   ! DNM changed leading 2X to 1X on each line, changed tilt angle output
@@ -98,7 +104,10 @@ subroutine irdhdr(iunit, nxyz, mxyz, imode, dmin, dmax, dmean)
       1x,'Origin on x,y,z .......................',1x,3g12.4,/, &
       1x,'Minimum density .......................',g13.5,a,/, &
       1x,'Maximum density .......................',g13.5,a,/, &
-      1x,'Mean density ..........................',g13.5,a,/, &
+      1x,'Mean density ..........................',g13.5,a)
+1019 format(&
+      1x,'RMS deviation from mean................',g13.5)
+1020 format(&
       1x,'tilt angles (original,current) ........',6f6.1,/, &
       1x,'Space group,# extra bytes,idtype,lens .',4I9,//, &
       1x,i5,' Titles :' / 10(19a4,a3/))

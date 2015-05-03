@@ -132,7 +132,10 @@ typedef struct MRCheader
   b3dInt32   next;     /* This is nsymbt in the MRC standard */
   b3dInt16   creatid;  /* Used to be creator id, hvem = 1000, now 0 */
 
-  b3dByte    blank[30];
+  b3dByte    blank[6];
+  b3dByte    extType[4]; /* Extended type */
+  b3dInt32   nversion;  /* Version number in MRC 2014 standard */
+  b3dByte    blank2[16];
   
   b3dInt16   nint;
   b3dInt16   nreal;

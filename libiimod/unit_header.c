@@ -14,6 +14,7 @@
 #include <string.h> 
 #include <stdlib.h>
 #include <math.h>
+#include <time.h>
 #include "iiunit.h"
 #include "iimage.h"
 #include "b3dutil.h"
@@ -56,6 +57,8 @@
 #define ialimodflags IALIMODFLAGS
 #define iiualtsigned IIUALTSIGNED
 #define ialsigned IALSIGNED
+#define iiualtmrcversion IIUALTMRCVERSION
+#define iiuretmrcversion IIURETMRCVERSION
 #define iiuretorigin IIURETORIGIN
 #define irtorg IRTORG
 #define iiualtorigin IIUALTORIGIN
@@ -139,6 +142,8 @@
 #define ialimodflags ialimodflags_
 #define iiualtsigned iiualtsigned_
 #define ialsigned ialsigned_
+#define iiualtmrcversion iiualtmrcversion_
+#define iiuretmrcversion iiuretmrcversion_
 #define iiuretorigin iiuretorigin_
 #define irtorg irtorg_
 #define iiualtorigin iiualtorigin_
@@ -574,6 +579,41 @@ void iiuAltSigned(int iunit, int iflags)
 
 void iiualtsigned(int *iunit, int *iflags) {iiuAltSigned(*iunit, *iflags);}
 void ialsigned(int *iunit, int *iflags) {iiuAltSigned(*iunit, *iflags);}
+
+/*!
+ * Returns the {nversion} component in [version] for unit [iunit], or 0 if it is not 
+ * between 20140 and 10 * (current year plus 2).  Fortran wrapper iiuRetMRCVersion.
+ */
+void iiuRetMRCVersion(int iunit, int *version)
+{
+  struct tm *tmp;
+  time_t time_tval;
+  char buffer[10];
+  int year;
+  MrcHeader *hdr = iiuMrcHeader(iunit, "iiuRetMRCVersion", 1, 0);
+  time_tval = time(NULL);
+  tmp = localtime(&time_tval);
+  strftime(buffer, 10, "%Y", tmp);
+  year = atoi(buffer);
+  *version = 0;
+  if (hdr->nversion >= 20140 && hdr->nversion < (year + 2) * 10)
+    *version = hdr->nversion;
+}
+
+void iiuretmrcversion(int *iunit, int *version) { iiuRetMRCVersion(*iunit, version);}
+
+/*!
+ * Sets the {nversion} component to [version] for unit [iunit].  This should be set 
+ * non-zero only for a file fully conforming to at least the 2014 MRC standard.  Fortran 
+ * wrapper iiuAltMRCVersion.
+ */
+void iiuAltMRCVersion(int iunit, int version)
+{
+  MrcHeader *hdr = iiuMrcHeader(iunit, "iiuAltMRCVersion", 1, 0);
+  hdr->nversion = version;
+} 
+
+void iiualtmrcversion(int *iunit, int *version) {iiuAltMRCVersion(*iunit, *version);}
 
 /*!
  * Returns the X, Y, and Z origin values into [xorig], [yorig], and [zorig] for unit

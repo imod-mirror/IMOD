@@ -35,6 +35,7 @@
 #define READ_SBYTES_ENV_VAR "READ_MODE0_SIGNED"
 #define MRC_FLAGS_SBYTES  1
 #define MRC_FLAGS_INV_ORIGIN 4
+#define MRC_FLAGS_BAD_RMS_NEG  8
 
 /* Duplicate definitions of output-capable IITYPE values to avoid including iimage.h */
 #define OUTPUT_TYPE_TIFF    1
