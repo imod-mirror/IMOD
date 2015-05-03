@@ -11,22 +11,23 @@ program header
   integer maxextra, ntypes
   parameter (maxextra = 2000000, ntypes = 6)
   real*4 array(maxextra/4)
-  integer*4 NXYZ(3), MXYZ(3), mode, nbsym, numInt, numReal, ierr, i, j
+  integer*4 nxyz(3), mxyz(3), mode, nbsym, numInt, numReal, ierr, i, j
   integer*4 labels(20,10), nlabel
   character*4 feichar
   logical nbytes_and_flags
   !
-  CHARACTER*320 FILIN
+  character*320 inFile
   !
   character*17 typeName(ntypes) /'Tilt angles', 'Piece coordinates', &
       'Stage positions', 'Magnifications', 'Intensities', 'Exposure doses'/
   character*25 extractCom(ntypes) /'extracttilts', 'extractpieces', &
       'extracttilts -stage', 'extracttilts -mag', 'extracttilts -int', &
       'extracttilts -exp'/
-  integer*4 numInputFiles, nfilein, ifBrief, iBinning, iflags, ifImod, ivolume, imUnit
+  character*16 computed /'(not computed)'/
+  integer*4 numInputFiles, numFileIn, ifBrief, iBinning, iflags, ifImod, ivolume, imUnit
   integer*4 numVolumes
-  logical*4 doSize, doMode, doMin, doMax, doMean, silent, doPixel, doOrigin
-  real*4 DMIN, DMAX, DMEAN, pixel, tiltaxis, delta(3)
+  logical*4 doSize, doMode, doMin, doMax, doMean, silent, doPixel, doOrigin, doRMS
+  real*4 dmin, dmax, dmean, pixel, tiltaxis, delta(3), rms
   integer*4 iiuRetNumVolumes, iiuVolumeOpen
   logical pipinput
   integer*4 numOptArg, numNonOptArg
@@ -35,12 +36,12 @@ program header
   ! fallbacks from ../../manpages/autodoc2man -3 2  header
   !
   integer numOptions
-  parameter (numOptions = 11)
+  parameter (numOptions = 12)
   character*(40 * numOptions) options(1)
   options(1) = &
       'input:InputFile:FNM:@size:Size:B:@mode:Mode:B:@pixel:PixelSize:B:@'// &
       'origin:Origin:B:@minimum:Minimum:B:@maximum:Maximum:B:@mean:Mean:B:@'// &
-      'volume:VolumeNumber:I:@brief:Brief:B:@help:usage:B:'
+      'rms:RootMeanSquare:B:@volume:VolumeNumber:I:@brief:Brief:B:@help:usage:B:'
   !
   ! defaults
   !
@@ -51,7 +52,8 @@ program header
   doMean = .false.
   doPixel = .false.
   doOrigin = .false.
-  nfilein = 1
+  doRMS = .false.
+  numFileIn = 1
   ifBrief = 0
   ivolume = -1
   imUnit = 1
@@ -60,8 +62,7 @@ program header
   ! But turn off the entry printing first!
   call PipEnableEntryOutput(0)
   call PipReadOrParseOptions(options, numOptions, 'header', &
-      'ERROR: HEADER - ', .true., 1, 2, 0, numOptArg, &
-      numNonOptArg)
+      'ERROR: HEADER - ', .true., 1, 2, 0, numOptArg, numNonOptArg)
   pipinput = numOptArg + numNonOptArg > 0
   !
   if (pipinput) then
@@ -70,44 +71,45 @@ program header
     ierr = PipGetLogical('Max', doMax)
     ierr = PipGetLogical('Min', doMin)
     ierr = PipGetLogical('Mean', doMean)
+    ierr = PipGetLogical('RootMeanSquare', doRMS)
     ierr = PipGetLogical('PixelSize', doPixel)
     ierr = PipGetLogical('Origin', doOrigin)
     ierr = PipGetInteger('Brief', ifBrief)
     ierr = PipGetInteger('VolumeNumber', ivolume)
     call PipNumberOfEntries('InputFile', numInputFiles)
-    nfilein = numInputFiles + numNonOptArg
-    if (nfilein == 0) &
+    numFileIn = numInputFiles + numNonOptArg
+    if (numFileIn == 0) &
         call exitError('No input file specified')
   endif
 
-  silent = doSize .or. doMode .or. doMin .or. doMax .or. doMean .or. &
+  silent = doSize .or. doMode .or. doMin .or. doMax .or. doMean .or. doRMS .or. &
       doPixel .or. doOrigin
-  if (silent) call ialprt(.false.)
-  call ialbrief(ifBrief)
+  if (silent) call iiuAltPrint(0)
+  call ialBrief(ifBrief)
 
-  do i = 1, nfilein
+  do i = 1, numFileIn
     !
     ! get the next filename
     !
     if (pipinput) then
       if (i <= numInputFiles) then
-        ierr = PipGetString('InputFile', filin)
+        ierr = PipGetString('InputFile', inFile)
       else
-        ierr = PipGetNonOptionArg(i - numInputFiles, filin)
+        ierr = PipGetNonOptionArg(i - numInputFiles, inFile)
       endif
     else
       write(*,'(1x,a,$)') 'Name of input file: '
-      READ(5, '(a)') FILIN
+      read(5, '(a)') inFile
     endif
     !
     call iiAllowMultiVolume(1)
-    CALL IMOPEN(1, FILIN, 'RO')
+    call imopen(1, inFile, 'RO')
     numVolumes = iiuRetNumVolumes(1)
     if (iVolume > max(1, numVolumes)) call exitError( &
         'The volume number entered is higher than the number of volumes in the file')
     if (numVolumes > 1) then
       if (iVolume < 0) then
-        write(*,'(a,i4,a)')'This is the header for the first of', numVolumes, &
+        write(*,'(a,i4,a)') 'This is the header for the first of', numVolumes, &
             ' volumes, use -vol # to see others'
       else if (iVolume > 1) then
         imUnit = 11
@@ -116,27 +118,35 @@ program header
       endif
     endif
 
-    CALL IRDHDR(imUnit, NXYZ, MXYZ, MODE, DMIN, DMAX, DMEAN)
+    call irdhdr(imUnit, nxyz, mxyz, mode, dmin, dmax, dmean)
     !
     if (silent) then
       if (doSize) write(*, '(3i8)') (nxyz(j), j = 1, 3)
       if (doMode) write(*, '(i4)') mode
       if (doPixel) then
-        call irtdel(imUnit, delta)
+        call iiuRetDelta(imUnit, delta)
         write(*, '(3g11.4)') (delta(j), j = 1, 3)
       endif
       if (doOrigin) then
-        call irtorg(imUnit, delta(1), delta(2), delta(3))
+        call iiuRetOrigin(imUnit, delta(1), delta(2), delta(3))
         write(*, '(3g11.4)') (delta(j), j = 1, 3)
       endif
       if (doMin) write(*, '(g13.5)') dmin
       if (doMax) write(*, '(g13.5)') dmax
       if (doMean) write(*, '(g13.5)') dmean
+      if (doRMS) then
+        call iiuRetImodFlags(imUnit, iflags, ifImod)
+        call iiuRetMRCVersion(imUnit, j)
+        call iiuRetRMS(imUnit, rms)
+        if (rms > 0 .or. (rms == 0. .and. (j > 0 .or. (ifImod .and. btest(iflags, 3))))) &
+            computed = ' '
+        write(*, '(g13.5,a)') rms, trim(computed)
+      endif
     else
-      call irtnbsym(imUnit, nbsym)
+      call iiuRetNumExtended(imUnit, nbsym)
       if (nbsym > 0 .and. nbsym <= maxextra) then
-        call irtsym(imUnit, nbsym, array)
-        call irtsymtyp(imUnit, numInt, numReal)
+        call iiuRetExtendedData(imUnit, nbsym, array)
+        call iiuRetExtendedType(imUnit, numInt, numReal)
         if (.not. nbytes_and_flags(numInt, numReal) .and. numReal >= 12) then
           tiltaxis = array(numInt + 11)
           if (tiltaxis >= -360. .and. tiltaxis <= 360.) then
@@ -152,9 +162,9 @@ program header
 101         format(10x,'Tilt axis rotation angle = ', f7.1, a)
           endif
           pixel = array(numInt + 12) * 1.e9
-          call irtdel(imUnit, delta)
-          call irtImodFlags(imUnit, iflags, ifImod)
-          if (pixel > 0.01 .and. pixel < 10000 .and. iand(iflags, 2) .eq. 0) then
+          call iiuRetDelta(imUnit, delta)
+          call iiuRetImodFlags(imUnit, iflags, ifImod)
+          if (pixel > 0.01 .and. pixel < 10000 .and. iand(iflags, 2) == 0) then
             do j = 3, 1, -1
               iBinning = nint(delta(j))
               if (abs(delta(j) - iBinning) > 1.e-6 .or. iBinning <= 0 .or. &
@@ -185,9 +195,9 @@ program header
       endif
     endif
 
-    CALL imclose(imUnit)
-    if (imUnit > 1) call imclose(1)
+    call iiuClose(imUnit)
+    if (imUnit > 1) call iiuClose(1)
   enddo
   !
   call exit(0)
-END program header
+end program header
