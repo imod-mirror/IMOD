@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/4/15: Fixed running Batchruntomo from etomo's command file under Cygwin.
+
 5/3/15: IMOD_4-8-31
 5/3/15: Added RMS value to standard Fortran header output if it was apparently
 computed and added -rms option to Header program.  Started initializing RMS as
