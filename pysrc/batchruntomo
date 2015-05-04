@@ -2765,6 +2765,7 @@ def setupCombine():
           testDirectiveValue(lowRadius, 'Combine.lowFromBothRadius', 'float'):
       return 1
    comLines = ['RootName ' + setName,
+               'WarningsToStandardOut 1',
                'TransferPointFile transferfid.coord',
                'SurfaceModelType ' + str(numSurf),
                fmtstr('ZLowerAndUpper {},{}', topBotA[topBotInd], topBotA[topBotInd + 1]),
