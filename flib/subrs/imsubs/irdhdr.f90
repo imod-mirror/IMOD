@@ -84,7 +84,7 @@ subroutine irdhdr(iunit, nxyz, mxyz, imode, dmin, dmax, dmean)
         (lxyz(mapcrs(k)), k = 1, 3), xorig, yorig, zorig, dmin, minLabel, dmax, &
         maxLabel, dmean, meanLabel
     if (RMS > 0 .or. (RMS == 0. .and. (nVersion > 0 .or. &
-        (isIMOD .and. btest(imodFlags, 3))))) write(6, 1019) RMS
+        (isIMOD .ne. 0 .and. btest(imodFlags, 3))))) write(6, 1019) RMS
     write(6, 1020) tiltOrig, tilt, ispg, numExtra, idtype, lensNum, &
         numLabels, ((labels(i, k), i = 1, 20), k = 1, numLabels)
   endif
