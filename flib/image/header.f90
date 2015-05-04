@@ -138,8 +138,8 @@ program header
         call iiuRetImodFlags(imUnit, iflags, ifImod)
         call iiuRetMRCVersion(imUnit, j)
         call iiuRetRMS(imUnit, rms)
-        if (rms > 0 .or. (rms == 0. .and. (j > 0 .or. (ifImod .and. btest(iflags, 3))))) &
-            computed = ' '
+        if (rms > 0 .or. (rms == 0. .and. (j > 0 .or.  &
+            (ifImod .ne. 0 .and. btest(iflags, 3))))) computed = ' '
         write(*, '(g13.5,a)') rms, trim(computed)
       endif
     else
