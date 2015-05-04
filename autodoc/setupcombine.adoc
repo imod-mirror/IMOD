@@ -217,6 +217,13 @@ manpage = Just create a new copy of combine.com and exit.  There are no
 required entries in this case and the only relevant entries are the
 \fB-initial\fR, \fB-autopatch\fR, and \fB-extra\fR options.
 
+[Field = WarningsToStandardOut]
+short = warnings
+type = B
+usage = Print warnings to standard out instead of standard error
+tooltip =
+manpage = 
+
 [Field = usage]
 short = help
 type = B

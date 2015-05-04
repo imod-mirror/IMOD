@@ -156,8 +156,11 @@ def makeCombineCom():
 
 
 def warning(text):
-   prnstr(' ', file=sys.stderr)
-   prnstr('WARNING: ' + text + '\n', file=sys.stderr)
+   dest = sys.stderr
+   if warnToStdOut:
+      dest = sys.stdout
+   prnstr(' ', file=dest)
+   prnstr('WARNING: ' + text + '\n', file=dest)
    
 
 
@@ -231,7 +234,8 @@ options = ["name:RootName:FN:", "atob:MatchAtoB:B:", "tolist:ToVolPointList:LI:"
            "lowradius:LowFromBothRadius:F:", "wedgefrac:WedgeReductionFraction:F:",
            "change:ChangeParametersFile:FNM:", "one:OneParameterChange:CHM:",
            "tempdir:TemporaryDirectory:FN:", "noclean:NoTempCleanup:B:",
-           "info:InfoOnPatchSizes:B:", "only:OnlyMakeCombineCom:B:", "help:usage:B:"]
+           "info:InfoOnPatchSizes:B:", "only:OnlyMakeCombineCom:B:",
+           "warnings:WarningsToStandardOut:B:", "help:usage:B:"]
 
 (numOpts, numNonOpts) = PipReadOrParseOptions(sys.argv, options, progname, 1, \
                                               0, 0)
@@ -249,6 +253,7 @@ rootname = PipGetString("RootName", "")
 if not rootname and not makeCombineOnly:
    exitError("A root name must be entered")
 
+warnToStdOut = PipGetBoolean('WarningsToStandardOut', 0)
 matchatob = PipGetBoolean('MatchAtoB', 0)
 if matchatob:
    fromlet = 'a'
