@@ -10,24 +10,23 @@
  */
 
 #include <set>
-#include <vector>
 #include <list>
 #include <exception>
 #include <stdio.h>
 #include <string.h>
+#include "cppdefs.h"
 #include "clip.h"
-//#include "../imodutil/cppdefs.h"
 
 // A structure to hold a connected set of points in one plane
 struct PlaneConnectedPoints {
-  std::set<unsigned int> points;
+  set<unsigned int> points;
   int xmin, ymin, xmax, ymax;
 };
 
 // A structure to hold information about a collection of planar sets connected in Z
 struct ZConnectedSets {
-  std::vector<int> planeZ;
-  std::vector<int> index;
+  vector<int> planeZ;
+  vector<int> index;
   int xmin, ymin, xmax, ymax;
   int zmin, zmax;
   int numPoints;
@@ -60,19 +59,20 @@ int thresholdWithMinSize(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt,
   int ksecIn, ksecOut, zvalIn, nx, ny, xShift, yMask, lookX, lookY, minSize, ybase;
   int ix, iy, checkX, checkY, ind, psInd, zcInd, checkInd, nextCheck, lookInd, zActive;
   int direction = 1;
-  std::vector<std::vector<PlaneConnectedPoints> > connPoints;
-  std::vector<unsigned int> checkList;
-  std::list<ZConnectedSets> zConnSets;
-  std::list<ZConnectedSets>::iterator zIter, firstIter;
-  std::set<unsigned int>::iterator psIter;
-  Islice *inSlice, *outSlice;
+  int ksecOffset = opt->dim == 3 ? 1 : 0;
+  vector<vector<PlaneConnectedPoints> > connPoints;
+  vector<unsigned int> checkList;
+  list<ZConnectedSets> zConnSets;
+  list<ZConnectedSets>::iterator zIter, firstIter;
+  set<unsigned int>::iterator psIter;
+  Islice *inSlice, *outSlice, *nextSlice = NULL, *lastSlice = NULL;
   bool foundZset, foundPlane;
   unsigned int xyCombo;
   unsigned char *grouped;
   float *fdata;
   float thresh = opt->thresh;
   Ival fillVal, setVal;
-  std::set<unsigned int> *pointSet;
+  set<unsigned int> *pointSet;
   PlaneConnectedPoints *planeSet;
   ZConnectedSets *zSet;
 
@@ -132,16 +132,23 @@ int thresholdWithMinSize(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt,
     connPoints.resize(opt->nofsecs);
 
     // Loop on input slices
-    for (ksecIn = 0; ksecIn < opt->nofsecs; ksecIn++) {
+    for (ksecIn = -ksecOffset; ksecIn < opt->nofsecs; ksecIn++) {
+      if (ksecIn + ksecOffset < opt->nofsecs) {
 
-      // Read and convert the next slice
-      zvalIn = opt->secs[ksecIn];
-      inSlice = sliceReadSubm(hin, zvalIn, 'z', opt->ix, opt->iy, (int)opt->cx,
-                            (int)opt->cy);
-      if (!inSlice || sliceFloat(inSlice) < 0) {
-        printf("ERROR: CLIP - %s slice %d %s\n", inSlice ? "Converting" : "Reading",
-               zvalIn, inSlice ? "to floating point" : "from file");
-        return -1;
+        // Read and convert the next slice
+        zvalIn = opt->secs[ksecIn + ksecOffset];
+        nextSlice = sliceReadSubm(hin, zvalIn, 'z', opt->ix, opt->iy, (int)opt->cx,
+                                  (int)opt->cy);
+        if (!nextSlice || sliceFloat(nextSlice) < 0) {
+          printf("ERROR: CLIP - %s slice %d %s\n", nextSlice ? "Converting" : "Reading",
+                 zvalIn, inSlice ? "to floating point" : "from file");
+          return -1;
+        }
+
+        if (!ksecOffset || ksecIn == -1)
+          inSlice = nextSlice;
+        if (ksecIn == -1)
+          continue;
       }
       fdata = inSlice->data.f;
       memset(grouped, 0, nx * ny);
@@ -176,13 +183,29 @@ int thresholdWithMinSize(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt,
               CHECK_AND_ADD(checkX, B3DMIN(ny - 1, checkY + 1));
               nextCheck++;
             }
+
+            // If there is only a single point and it is not present on previous and
+            // next slice, remove it
+            if (nextCheck == 1 && lastSlice && nextSlice && 
+                direction * (lastSlice->data.f[lookInd] - thresh) < 0. &&
+                direction * (nextSlice->data.f[lookInd] - thresh) < 0.)
+              connPoints[ksecIn].erase(connPoints[ksecIn].end() - 1);
           }
         }
       }
       //PRINT2(ksecIn, connPoints[ksecIn].size());
 
-      // The slice is done.  Loop through the Z-connected sets for each planar set and
-      // find ones to connect to
+      // The slice is done.  Handle rolling the slice pointers for 3D and freeing a slice
+      if (ksecOffset) {
+        if (lastSlice)
+          sliceFree(lastSlice);
+        lastSlice = inSlice;
+        inSlice = nextSlice;
+        nextSlice = NULL;
+      } else
+        sliceFree(inSlice);
+
+      // Loop through the Z-connected sets for each planar set and find ones to connect to
       for (psInd = 0; psInd < connPoints[ksecIn].size(); psInd++) {
         planeSet = &connPoints[ksecIn][psInd];
         foundZset = false;
@@ -314,11 +337,13 @@ int thresholdWithMinSize(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt,
           return -1;
 
         // Clean up all planar sets on the output Z plane
-        connPoints[ksecOut].clear();
+        // This is essential for recovering this memory
+        CLEAR_RESIZE(connPoints[ksecOut], PlaneConnectedPoints, 0);
       }
 
       // Now clean up any Z sets that end before next output slice or are too small
       // and end before active slice
+      // This doesn't seem to recovery much memory but supposedly the library reuses it
       for (zIter = zConnSets.begin(); zIter != zConnSets.end(); zIter++) {
         if ((zIter->numPoints < minSize && zIter->zmax < zActive) || 
             zIter->zmax < ksecOut) {
@@ -329,14 +354,20 @@ int thresholdWithMinSize(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt,
       //PRINT1(zConnSets.size());
     }
   }
-  catch (std::bad_alloc &ba) {
+  catch (bad_alloc &ba) {
     printf("ERROR: CLIP - Memory allocation failed in a standard template operation\n");
     return -1;
   }
-  catch (std::exception &e) {
+  catch (exception &e) {
     printf("ERROR: CLIP - An exception (%s) occurred in a standard template operation\n",
            e.what());
     return -1;
   }
+
+  // Clean up so memory leaks can be detected
+  free(grouped);
+  sliceFree(outSlice);
+  if (lastSlice)
+    sliceFree(lastSlice);
   return set_mrc_coords(opt);
 }
