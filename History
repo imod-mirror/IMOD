@@ -5,7 +5,7 @@ when running with an FEI file where the pixel size gets transferred to the
 standard header; also fixed use of a generic X-ray model modeled on images at
 a different magnification.
 
-5/6/15: Added potion to Imodtrans to set the image reference information of
+5/6/15: Added option to Imodtrans to set the image reference information of
 model to a given image file before any operations.
 
 5/5/15: In eTomo - Batchruntomo Interface, corrected the instructions in the
