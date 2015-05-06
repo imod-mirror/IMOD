@@ -199,6 +199,18 @@ the other operations except flipping with the
 .B -Y 
 option.
 .TP
+.B -I \fIimage file\fR
+Adjust the image coordinate reference information in the model to match
+that in the given image file, without modifying model coordinates.
+This option is useful if the pixel spacing or origin is changed in the
+header of the image file, such as with Alterheader(1), after a model has
+been built on that file.  Such changes in header would cause an
+inappropriate scaling or shift when loading the model on the modified
+image or other images files derived from it.  The model resulting from
+this operation would again load correctly on such image files.  This
+operation occurs before any others, including flipping with the
+\fB-Y\fR option.
+.TP
 .B -Y
 Exchange Y and Z coordinates in the model file, without changing the flag
 indicating the model's flip state.
