@@ -546,7 +546,7 @@ Set the environment variables needed to compile
 To build IMOD and install it at a system location such as /usr/local/imod-test:
    export IMOD_DIR=/usr/local/imod-test
    sudo -E mkdir $IMOD_DIR
-   ./setup -i $IMOD_DIR
+   sudo ./setup -i $IMOD_DIR
    make
    sudo -E make install
 
