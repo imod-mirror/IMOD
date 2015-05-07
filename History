@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/6/15: Added preliminary version of preNID program from Mauro Maiorca.
+
 5/6/15: Fixed Batchruntomo's use of boundary models and specific X-ray models
 when running with an FEI file where the pixel size gets transferred to the
 standard header; also fixed use of a generic X-ray model modeled on images at

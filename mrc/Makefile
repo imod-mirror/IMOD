@@ -54,6 +54,10 @@ preNAD$(E) : preNAD.$(O) ctfutils.$(O) recline.$(O)
 	$(LAPACKLINK) -o preNAD preNAD.$(O) ctfutils.$(O) recline.$(O) $(LDFLAGS) \
 	$(IILIBS) $(LAPACKLIBS) $(LAPACK_FLIBS) $(FORT_CPPLIBS) $(CLIBS)
 
+preNID$(E) : preNID.$(O) ctfutils.$(O) recline.$(O)
+	$(LAPACKLINK) -o preNID preNID.$(O)  ctfutils.$(O) recline.$(O) $(LDFLAGS) \
+	$(IILIBS) $(LAPACKLIBS) $(LAPACK_FLIBS) $(FORT_CPPLIBS) $(CLIBS)
+
 
 ##############################################################################
 # install programs
