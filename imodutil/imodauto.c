@@ -28,7 +28,14 @@ static Iobj *imodaObjectCreateThresholdData
  int exact, int dim, int minsize, int maxsize, int followdiag, int inside, double shave,
  double tol, int delete_edge, int smoothflags, Iobj *boundObj, int nearestBound);
 
-static int imoda_object_bfill_2d(unsigned char *idata, int *tdata,
+static int *createThresholdDataOneSlice
+(float ksigma, double highthresh, double lowthresh, int exact, int dim, int minsize,
+ int maxsize, int followdiag, int inside, double shave, double tol, int delete_edge,
+ int smoothflags, Iobj *boundObj, int nearestBound, Iobj *nobj, Ilist *boundConts,
+ int nx, int ny, int *tdata, unsigned char *idata, unsigned char *fdata, int *xlist, 
+ int *ylist, unsigned char **linePtrs, float mean, int ksec);
+
+static int imoda_object_bfill_2d(unsigned char *idata, int *tdata, int *xlist, int *ylist,
                                  int nx, int ny, int x, int y, int lt,
                                  int ht, int exact, int diagonal, int col);
 static int findBoundaryConts(int z, Iobj *boundObj, int nearestBound, Ilist *contList);
@@ -400,7 +407,6 @@ int main(int argc, char *argv[])
 #define KERNEL_MAXSIZE 7
 
 static int listsize;
-static int *xlist, *ylist;
 
 /* creates an object from a 3-D image array */
 
@@ -411,35 +417,19 @@ static Iobj *imodaObjectCreateThresholdData
  double shave, double tol, int delete_edge, int smoothflags, 
  Iobj *boundObj, int nearestBound)
 {
-  Iobj *obj, *nobj;
-  Icont *cont, *newconts, *tmpcont;
-  Ipoint pt;
+  Iobj *nobj;
   Ilist *boundConts = ilistNew(sizeof(int), 4);
-  int nco, co, cpt, cz, ncont, incont;
-  int *nump;
   int *tdata;
   int nx = li->xmax + 1 - li->xmin;
   int ny = li->ymax + 1 - li->ymin;
   int nz = li->zmax + 1 - li->zmin;
+  int *xlist, *ylist;
   unsigned char *idata;
   unsigned char *fdata;
   unsigned char **linePtrs;
-  int i,j,k, ind;
-  int col = 1;
-  float mean;
-  double tsum;
-  int t1, t2;
+  int k;
   int nxy = nx * ny;
-  float area, threshUsed;
-  int nobjsize = 0;
-  int onobjsize = 0;
-  Ipoint pmin, pmax, pim;
-  Islice slice;
-  int nedge, critedge;
-  int diagonal, reverse;
-  float kernel[KERNEL_MAXSIZE*KERNEL_MAXSIZE];
-  int kerdim;
-  Islice *sout;
+  float mean;
  
   tdata = (int *)malloc(sizeof(int) * nx * ny);
   idata = (unsigned char *)malloc(nxy);
@@ -461,277 +451,15 @@ static Iobj *imodaObjectCreateThresholdData
     mean = hdata->amean;
   }     
 
-  for(k = 0; k < nz; k++){
+  for (k = 0; k < nz; k++){
     if (mrcReadZByte(hdata, li, idata, k + li->zmin))
       return NULL;
 
-    /* Get list of boundary contours for this section */
-    if (boundObj && findBoundaryConts(k, boundObj, nearestBound, boundConts))
+    if (createThresholdDataOneSlice
+        (ksigma, highthresh, lowthresh, exact, dim, minsize, maxsize, followdiag, inside,
+         shave, tol, delete_edge, smoothflags, boundObj, nearestBound, nobj, boundConts,
+         nx, ny, tdata, idata, fdata, xlist, ylist, linePtrs, mean, k))
       return NULL;
-
-    /* Filter first if sigma entered */
-    if (ksigma >= 0.) {
-      sliceInit(&slice, nx, ny, SLICE_MODE_BYTE, idata);
-      slice.min = slice.max = 0.;
-      if (ksigma > 0.) {
-        scaledGaussianKernel(kernel, &kerdim, KERNEL_MAXSIZE, ksigma);
-        sout = slice_mat_filter(&slice, kernel, kerdim);
-        sliceScaleAndFree(sout, &slice);
-      } else {
-        sliceByteSmooth(&slice);
-      }
-    }
-
-    /* Get per-section mean for dim = 3 */
-    if (dim == 3) {
-      for (tsum = 0, i = 0; i < nxy; i++)
-        tsum += idata[i];
-      mean = tsum / nxy;
-    }
-
-    /* Use the thresholds literally for dim = 1 */
-    if (dim == 1){
-      t1 = (int)lowthresh;
-      t2 = (int)highthresh;
-    } else {
-      t1 = (int) mean * lowthresh;
-      t2 = (int) mean * highthresh;
-    }
-    /* printf("z %d  t1 %d  t2 %d exact %d\n", k, t1, t2, exact); */
-
-    /* To match imod auto, increment t1 and test for >= that, or <=
-       low threshold.  But also set t1 to -1 if it's 0, to enforce an
-       exclusion of 0's.  Also, if doing exact, these values are already set up */
-    if (exact < 0) {
-      t2++;
-      if (!t1)
-        t1 = -1;
-    } 
-
-    col = 1;
-    /* init tdata and fill with out of bounds data */
-    for (i = 0; i < nxy; i++)
-      tdata[i] = 0;
-    for (i = 0; i < nxy; i++)
-      if (idata[i] > t1 && idata[i] < t2 && idata[i] != exact)
-        tdata[i] = -1;
-
-    /* If there are boundary contours, check each point not marked out yet and mark
-       the ones that are not inside any contour */
-    if (ilistSize(boundConts)) {
-      pim.z = k;
-      for (j = 0; j < ny; j++) {
-        for (i = 0; i < nx; i++) {
-          if (tdata[i + (j * nx)] != 0)
-            continue;
-          pim.x = i + 0.5;
-          pim.y = j + 0.5;
-          incont = 0;
-          for (ind = 0; ind < ilistSize(boundConts) && !incont; ind++) {
-            nump = (int *)ilistItem(boundConts, ind);
-            incont = imodPointInsideCont(&boundObj->cont[*nump], &pim);
-          }
-          if (!incont)
-            tdata[i + (j * nx)] = -1;
-        }
-      }
-    }
-
-    /* Loop on each pixel that hasn't been marked somehow, and fill a patch from that
-       point */
-    for (j = 0; j < ny; j++)
-      for (i = 0; i < nx; i++) {
-        if (tdata[i + (j * nx)] != 0)
-          continue;
-        if (followdiag <= 0)
-          diagonal = 0;
-        else if (followdiag >= 3)
-          diagonal = 1;
-        else if (followdiag == 1)
-          diagonal = ((exact < 0 && idata[i + (j * nx)] >= t2) || 
-                      idata[i + (j * nx)] == exact);
-        else
-          diagonal = ((exact < 0 && idata[i + (j * nx)] <= t1) ||
-                      idata[i + (j * nx)] == exact);
-
-        if (imoda_object_bfill_2d(idata, tdata, nx, ny, i, j, t1, t2, exact, diagonal,
-                                  col) > 1 || minsize < 2) {
-                        
-          /* printf("\nfilled c %d at %d,%d,%d\n", 
-             col, i, j, k); */
-                               
-          col++;
-        } else {
-          /* If single pixel, and minsize > 1, just eliminate
-             this pixel */
-          tdata[i + (j * nx)] = -1; 
-        }
-      }
-         
-
-    /* sort the points into contours */
-    obj = imodObjectNew();
-    obj->contsize = col-1;
-    obj->cont = imodContoursNew(obj->contsize);
-         
-    for(j = 0; j < ny; j++)
-      for(i = 0; i < nx; i++){
-        co = (int) tdata[i + (j * nx)];
-        if (co > 0){
-          pt.x = i; pt.y = j; pt.z = k;
-          imodPointAppend(&(obj->cont[co-1]), &pt);
-        }
-      }
-
-    nobjsize = nobj->contsize;
-    onobjsize = nobjsize;
-    /* eliminate contours with # of points outside the bounds */
-    for (co = 0; co < obj->contsize; co++) {
-      cont = &(obj->cont[co]);
-      nedge = 0;
-      critedge = delete_edge;
-      /* If doing inside, set up to eliminate any contour touching
-         an edge if it is the wrong polarity */
-      if (inside) {
-        i = cont->pts->x;
-        j = cont->pts->y;
-        if ((followdiag == 1 && ((exact < 0 && idata[i + (j * nx)] <= t1) || 
-                                 (exact >= 0 && idata[i + (j * nx)] != exact))) ||
-            (followdiag == 2 && idata[i + (j * nx)] >= t2))
-          critedge = 1;
-      }
-      if (critedge) {
-        /* count the edges that the contour touches */
-        imodContourGetBBox(cont, &pmin, &pmax);
-        if (pmin.x == 0)
-          nedge++;
-        if (pmax.x == nx - 1)
-          nedge++;
-        if (pmin.y == 0)
-          nedge++;
-        if (pmax.y == ny - 1)
-          nedge++;
-
-        /* If there are boundary conts, find distance of each point to each contour and
-           set edge flag if it is ever close */
-        if (ilistSize(boundConts)) {
-          for (ind = 0; ind < ilistSize(boundConts) && !incont; ind++) {
-            nump = (int *)ilistItem(boundConts, ind);
-            for (i = 0; i < cont->psize; i++) {
-              pim.x = cont->pts[i].x + 0.5;
-              pim.y = cont->pts[i].y + 0.5;
-              if (imodPointContDistance(&boundObj->cont[*nump], &pim, 0, 0, &j)
-                  < 0.8) {
-                nedge++;
-                break;
-              }
-            }
-            if (i < cont->psize)
-              break;
-          }
-        }
-      }
-      if ((cont->psize < minsize) ||
-          (cont->psize > maxsize && maxsize > 0) ||
-          (critedge && (nedge >= critedge))){
-        if (cont->psize){
-          cont->psize = 0;
-          free(cont->pts);
-        }
-        continue;
-      }
-                   
-      nobjsize++;
-    }
-
-    for (nco = onobjsize, co = 0; co < obj->contsize; co++) {
-              
-      cont = &(obj->cont[co]);
-      if (!cont->psize) continue;
-
-      printf("\rsection %d contour %6d of %6d size = %6d", 
-             k, nco-onobjsize + 1, nobjsize-onobjsize,
-             cont->psize);
-      fflush(stdout);
-             
-      cz = cont->pts->z;
-
-      /* Clear fdata array and mark pixels in this contour as FLOOD */
-      for(i = 0; i < nxy; i++)
-        fdata[i] = 0;
-
-      for(cpt = 0; cpt < cont->psize; cpt++){
-        i = cont->pts[cpt].x;
-        j = cont->pts[cpt].y;
-        fdata[i + (j * nx)] = AUTOX_FLOOD;
-      }
-
-      if (followdiag <= 0)
-        diagonal = 0;
-      else if (followdiag >= 3)
-        diagonal = 1;
-      else if (followdiag == 1)
-        diagonal = ((exact < 0 && idata[i + (j * nx)] >= t2) || 
-                    idata[i + (j * nx)] == exact);
-      else
-        diagonal = ((exact < 0 && idata[i + (j * nx)] <= t1) ||
-                    idata[i + (j * nx)] == exact);
-              
-      imodAutoPatch(fdata, xlist, ylist, listsize, nx, ny);
-
-      /* Set the reverse flag and set threshold based on which one is passed */
-      /* These won't be used for exact work */
-      reverse = idata[i + (j * nx)] <= t1 ? 1 : 0;
-      threshUsed = -1.;
-      if (idata[i + (j * nx)] <= t1)
-        threshUsed = t1 + 0.5;
-      if (idata[i + (j * nx)] >= t2)
-        threshUsed = t2 - 0.5;
-
-      /* If we do an expand, shrink, or smooth, run the patch again and set 
-         the threshold to be found by the routine.
-         Probably should forbid this for exact */
-      if (smoothflags > 1)
-        imodAutoExpand(fdata, nx, ny);
-      if (smoothflags % 2)
-        imodAutoShrink(fdata, nx, ny);
-      if (smoothflags) {
-        imodAutoPatch(fdata, xlist, ylist, listsize, nx, ny);
-        threshUsed = -1.;
-      }
-
-      /* Make line pointers for image array */
-      for (j = 0; j < ny; j++)
-        linePtrs[j] = &idata[j * nx];
-             
-      newconts = imodContoursFromImagePoints(fdata, exact < 0 ? linePtrs : NULL, nx, ny,
-                                             cz, AUTOX_FLOOD, diagonal, threshUsed,
-                                             reverse, &ncont);
-      for (i = 0; i < ncont; i++) {
-                  
-        /* Just check the area and eliminate again */
-        area = imodContourArea(&(newconts[i]));
-        if (area < minsize || (maxsize > 0 && area > maxsize))
-          continue;
-                  
-        imodContourStrip(&(newconts[i]));
-        if (tol != 0.0)
-          imodContourReduce(&(newconts[i]), tol);
-        if (shave != 0.0)
-          imodContourShave(&(newconts[i]), shave);
-        tmpcont = imodContourNew();
-        imodObjectAddContour(nobj, tmpcont);
-        free(tmpcont);
-        imodContourCopy(&newconts[i], 
-                        &(nobj->cont[nobj->contsize - 1]));
-      }
-      nco++;
-      if (newconts)
-        free(newconts);
-    }
-         
-    imodObjectDelete(obj);
-         
   }
      
   free(idata);
@@ -743,7 +471,309 @@ static Iobj *imodaObjectCreateThresholdData
   return(nobj);
 }
 
-static int imoda_object_bfill_2d(unsigned char *idata, int *data,
+static int *createThresholdDataOneSlice
+(float ksigma, double highthresh, double lowthresh, int exact, int dim, int minsize,
+ int maxsize, int followdiag, int inside, double shave, double tol, int delete_edge,
+ int smoothflags, Iobj *boundObj, int nearestBound, Iobj *nobj, Ilist *boundConts,
+ int nx, int ny, int *tdata, unsigned char *idata, unsigned char *fdata, int *xlist, 
+ int *ylist, unsigned char **linePtrs, float mean, int ksec)
+{
+  Iobj *obj;
+  Icont *cont, *newconts, *tmpcont;
+  Ipoint pt;
+  int nco, co, cpt, cz, ncont, incont;
+  int *nump;
+  int i,j, ind;
+  int col = 1;
+  double tsum;
+  int t1, t2;
+  int nxy = nx * ny;
+  float area, threshUsed;
+  int nobjsize = 0;
+  int onobjsize = 0;
+  Ipoint pmin, pmax, pim;
+  Islice slice;
+  int nedge, critedge;
+  int diagonal, reverse;
+  float kernel[KERNEL_MAXSIZE*KERNEL_MAXSIZE];
+  int kerdim;
+  Islice *sout;
+ 
+  nobj->red = 0.;
+  nobj->green = 1.;
+  nobj->blue = 0.;
+
+  /* Get list of boundary contours for this section */
+  if (boundObj && findBoundaryConts(ksec, boundObj, nearestBound, boundConts))
+    return NULL;
+
+  /* Filter first if sigma entered */
+  if (ksigma >= 0.) {
+    sliceInit(&slice, nx, ny, SLICE_MODE_BYTE, idata);
+    slice.min = slice.max = 0.;
+    if (ksigma > 0.) {
+      scaledGaussianKernel(kernel, &kerdim, KERNEL_MAXSIZE, ksigma);
+      sout = slice_mat_filter(&slice, kernel, kerdim);
+      sliceScaleAndFree(sout, &slice);
+    } else {
+      sliceByteSmooth(&slice);
+    }
+  }
+
+  /* Get per-section mean for dim = 3 */
+  if (dim == 3) {
+    for (tsum = 0, i = 0; i < nxy; i++)
+      tsum += idata[i];
+    mean = tsum / nxy;
+  }
+
+  /* Use the thresholds literally for dim = 1 */
+  if (dim == 1){
+    t1 = (int)lowthresh;
+    t2 = (int)highthresh;
+  } else {
+    t1 = (int) mean * lowthresh;
+    t2 = (int) mean * highthresh;
+  }
+  /* printf("z %d  t1 %d  t2 %d exact %d\n", k, t1, t2, exact); */
+
+  /* To match imod auto, increment t1 and test for >= that, or <=
+     low threshold.  But also set t1 to -1 if it's 0, to enforce an
+     exclusion of 0's.  Also, if doing exact, these values are already set up */
+  if (exact < 0) {
+    t2++;
+    if (!t1)
+      t1 = -1;
+  } 
+
+  col = 1;
+  /* init tdata and fill with out of bounds data */
+  for (i = 0; i < nxy; i++)
+    tdata[i] = 0;
+  for (i = 0; i < nxy; i++)
+    if (idata[i] > t1 && idata[i] < t2 && idata[i] != exact)
+      tdata[i] = -1;
+
+  /* If there are boundary contours, check each point not marked out yet and mark
+     the ones that are not inside any contour */
+  if (ilistSize(boundConts)) {
+    pim.z = ksec;
+    for (j = 0; j < ny; j++) {
+      for (i = 0; i < nx; i++) {
+        if (tdata[i + (j * nx)] != 0)
+          continue;
+        pim.x = i + 0.5;
+        pim.y = j + 0.5;
+        incont = 0;
+        for (ind = 0; ind < ilistSize(boundConts) && !incont; ind++) {
+          nump = (int *)ilistItem(boundConts, ind);
+          incont = imodPointInsideCont(&boundObj->cont[*nump], &pim);
+        }
+        if (!incont)
+          tdata[i + (j * nx)] = -1;
+      }
+    }
+  }
+
+  /* Loop on each pixel that hasn't been marked somehow, and fill a patch from that
+     point */
+  for (j = 0; j < ny; j++)
+    for (i = 0; i < nx; i++) {
+      if (tdata[i + (j * nx)] != 0)
+        continue;
+      if (followdiag <= 0)
+        diagonal = 0;
+      else if (followdiag >= 3)
+        diagonal = 1;
+      else if (followdiag == 1)
+        diagonal = ((exact < 0 && idata[i + (j * nx)] >= t2) || 
+                    idata[i + (j * nx)] == exact);
+      else
+        diagonal = ((exact < 0 && idata[i + (j * nx)] <= t1) ||
+                    idata[i + (j * nx)] == exact);
+
+      if (imoda_object_bfill_2d(idata, tdata, xlist, ylist, nx, ny, i, j, t1, t2, exact,
+                                diagonal, col) > 1 || minsize < 2) {
+                        
+        /* printf("\nfilled c %d at %d,%d,%d\n", 
+           col, i, j, k); */
+                               
+        col++;
+      } else {
+        /* If single pixel, and minsize > 1, just eliminate
+           this pixel */
+        tdata[i + (j * nx)] = -1; 
+      }
+    }
+         
+
+  /* sort the points into contours */
+  obj = imodObjectNew();
+  obj->contsize = col-1;
+  obj->cont = imodContoursNew(obj->contsize);
+         
+  for(j = 0; j < ny; j++)
+    for(i = 0; i < nx; i++){
+      co = (int) tdata[i + (j * nx)];
+      if (co > 0){
+        pt.x = i; pt.y = j; pt.z = ksec;
+        imodPointAppend(&(obj->cont[co-1]), &pt);
+      }
+    }
+
+  nobjsize = nobj->contsize;
+  onobjsize = nobjsize;
+  /* eliminate contours with # of points outside the bounds */
+  for (co = 0; co < obj->contsize; co++) {
+    cont = &(obj->cont[co]);
+    nedge = 0;
+    critedge = delete_edge;
+    /* If doing inside, set up to eliminate any contour touching
+       an edge if it is the wrong polarity */
+    if (inside) {
+      i = cont->pts->x;
+      j = cont->pts->y;
+      if ((followdiag == 1 && ((exact < 0 && idata[i + (j * nx)] <= t1) || 
+                               (exact >= 0 && idata[i + (j * nx)] != exact))) ||
+          (followdiag == 2 && idata[i + (j * nx)] >= t2))
+        critedge = 1;
+    }
+    if (critedge) {
+      /* count the edges that the contour touches */
+      imodContourGetBBox(cont, &pmin, &pmax);
+      if (pmin.x == 0)
+        nedge++;
+      if (pmax.x == nx - 1)
+        nedge++;
+      if (pmin.y == 0)
+        nedge++;
+      if (pmax.y == ny - 1)
+        nedge++;
+
+      /* If there are boundary conts, find distance of each point to each contour and
+         set edge flag if it is ever close */
+      if (ilistSize(boundConts)) {
+        for (ind = 0; ind < ilistSize(boundConts) && !incont; ind++) {
+          nump = (int *)ilistItem(boundConts, ind);
+          for (i = 0; i < cont->psize; i++) {
+            pim.x = cont->pts[i].x + 0.5;
+            pim.y = cont->pts[i].y + 0.5;
+            if (imodPointContDistance(&boundObj->cont[*nump], &pim, 0, 0, &j)
+                < 0.8) {
+              nedge++;
+              break;
+            }
+          }
+          if (i < cont->psize)
+            break;
+        }
+      }
+    }
+    if ((cont->psize < minsize) ||
+        (cont->psize > maxsize && maxsize > 0) ||
+        (critedge && (nedge >= critedge))){
+      if (cont->psize){
+        cont->psize = 0;
+        free(cont->pts);
+      }
+      continue;
+    }
+                   
+    nobjsize++;
+  }
+
+  for (nco = onobjsize, co = 0; co < obj->contsize; co++) {
+              
+    cont = &(obj->cont[co]);
+    if (!cont->psize) continue;
+
+    printf("\rsection %d contour %6d of %6d size = %6d", 
+           ksec, nco-onobjsize + 1, nobjsize-onobjsize,
+           cont->psize);
+    fflush(stdout);
+             
+    cz = cont->pts->z;
+
+    /* Clear fdata array and mark pixels in this contour as FLOOD */
+    for(i = 0; i < nxy; i++)
+      fdata[i] = 0;
+
+    for(cpt = 0; cpt < cont->psize; cpt++){
+      i = cont->pts[cpt].x;
+      j = cont->pts[cpt].y;
+      fdata[i + (j * nx)] = AUTOX_FLOOD;
+    }
+
+    if (followdiag <= 0)
+      diagonal = 0;
+    else if (followdiag >= 3)
+      diagonal = 1;
+    else if (followdiag == 1)
+      diagonal = ((exact < 0 && idata[i + (j * nx)] >= t2) || 
+                  idata[i + (j * nx)] == exact);
+    else
+      diagonal = ((exact < 0 && idata[i + (j * nx)] <= t1) ||
+                  idata[i + (j * nx)] == exact);
+              
+    imodAutoPatch(fdata, xlist, ylist, listsize, nx, ny);
+
+    /* Set the reverse flag and set threshold based on which one is passed */
+    /* These won't be used for exact work */
+    reverse = idata[i + (j * nx)] <= t1 ? 1 : 0;
+    threshUsed = -1.;
+    if (idata[i + (j * nx)] <= t1)
+      threshUsed = t1 + 0.5;
+    if (idata[i + (j * nx)] >= t2)
+      threshUsed = t2 - 0.5;
+
+    /* If we do an expand, shrink, or smooth, run the patch again and set 
+       the threshold to be found by the routine.
+       Probably should forbid this for exact */
+    if (smoothflags > 1)
+      imodAutoExpand(fdata, nx, ny);
+    if (smoothflags % 2)
+      imodAutoShrink(fdata, nx, ny);
+    if (smoothflags) {
+      imodAutoPatch(fdata, xlist, ylist, listsize, nx, ny);
+      threshUsed = -1.;
+    }
+
+    /* Make line pointers for image array */
+    for (j = 0; j < ny; j++)
+      linePtrs[j] = &idata[j * nx];
+             
+    newconts = imodContoursFromImagePoints(fdata, exact < 0 ? linePtrs : NULL, nx, ny,
+                                           cz, AUTOX_FLOOD, diagonal, threshUsed,
+                                           reverse, &ncont);
+    for (i = 0; i < ncont; i++) {
+                  
+      /* Just check the area and eliminate again */
+      area = imodContourArea(&(newconts[i]));
+      if (area < minsize || (maxsize > 0 && area > maxsize))
+        continue;
+                  
+      imodContourStrip(&(newconts[i]));
+      if (tol != 0.0)
+        imodContourReduce(&(newconts[i]), tol);
+      if (shave != 0.0)
+        imodContourShave(&(newconts[i]), shave);
+      tmpcont = imodContourNew();
+      imodObjectAddContour(nobj, tmpcont);
+      free(tmpcont);
+      imodContourCopy(&newconts[i], 
+                      &(nobj->cont[nobj->contsize - 1]));
+    }
+    nco++;
+    if (newconts)
+      free(newconts);
+  }
+         
+  imodObjectDelete(obj);
+         
+  return(0);
+}
+
+static int imoda_object_bfill_2d(unsigned char *idata, int *data, int *xlist, int *ylist,
                                  int xsize, int ysize, int x, int y, int t1, 
                                  int t2, int exact, int diagonal, int col)
 {
