@@ -70,6 +70,12 @@ from the region at sharp corners.  3) Use the contour smoothing option in
 Drawing Tools, available from the Special menu of 3dmod(1).  Check the option
 to "ALLOW POINTS TO BE MOVED" and reduce the "min distance to move" to 0.1.
 This may be the best method.
+.P
+The program is parallelized with OpenMP by having multiple sections
+be analyzed in parallel.  This high level of parallelization
+requires multiple copies of several arrays as large as the image area
+being analyzed.  For large images, the number of threads will be
+limited to keep the memory usage under 2 GB.
 .SH OPTIONS
 .TP
 .B -l \fIvalue\fR

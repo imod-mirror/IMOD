@@ -61,8 +61,8 @@ static void usage(void)
   printf("\t-Y min,max\tLoad subset in Y from min to max (numbered from 0).\n");
   printf("\t-Z min,max\tLoad subset in Z from min to max (numbered from 0).\n");
   printf("\t-B file\tName of model file with boundary contours.\n");
-  printf("\t-O file\tNumber of object with boundary contours in boundary model.\n");
-  printf("\t-S file\tApply boundary contours only on the same Z as the contour.\n");
+  printf("\t-O #\tNumber of object with boundary contours in boundary model.\n");
+  printf("\t-S \tApply boundary contours only on the same Z as the contour.\n");
   printf("\t-k #\tSmooth with kernel filter of given sigma.\n");
   printf("\t-z #\tSet model z scale.\n");
   printf("\t-x \tExpand areas before enclosing in contours.\n");
@@ -371,12 +371,12 @@ int main(int argc, char *argv[])
   obj->green = green;
   obj->blue = blue;
 
-  /* Shift all points in the object by the load-in min values */
+  /* Shift all points in X/Y in the object by the load-in min values; correct Z was 
+     assigned already */
   for (co = 0; co < obj->contsize; co++) {
     for (pt = 0; pt < obj->cont[co].psize; pt++) {
       obj->cont[co].pts[pt].x += li.xmin;
       obj->cont[co].pts[pt].y += li.ymin;
-      obj->cont[co].pts[pt].z += li.zmin;
     }
   }
 
@@ -405,6 +405,7 @@ int main(int argc, char *argv[])
 }
 
 #define KERNEL_MAXSIZE 7
+#define MAX_THREADS 16
 
 static int listsize;
 
@@ -417,58 +418,128 @@ static Iobj *imodaObjectCreateThresholdData
  double shave, double tol, int delete_edge, int smoothflags, 
  Iobj *boundObj, int nearestBound)
 {
-  Iobj *nobj;
-  Ilist *boundConts = ilistNew(sizeof(int), 4);
-  int *tdata;
+  Iobj **secObj, *newObj;
+  Ilist *boundConts[MAX_THREADS];
+  int *tdata[MAX_THREADS];
   int nx = li->xmax + 1 - li->xmin;
   int ny = li->ymax + 1 - li->ymin;
   int nz = li->zmax + 1 - li->zmin;
-  int *xlist, *ylist;
-  unsigned char *idata;
-  unsigned char *fdata;
-  unsigned char **linePtrs;
-  int k;
+  int *xlist[MAX_THREADS], *ylist[MAX_THREADS];
+  unsigned char *idata[MAX_THREADS];
+  unsigned char *fdata[MAX_THREADS];
+  unsigned char **linePtrs[MAX_THREADS];
+  int ksec, numThreads, ind, error, numCont, numStarted = 0;
   int nxy = nx * ny;
-  float mean;
- 
-  tdata = (int *)malloc(sizeof(int) * nx * ny);
-  idata = (unsigned char *)malloc(nxy);
-  fdata = (unsigned char *)malloc(nxy);
-  listsize = 4 * (nx + ny);
-  xlist = (int *)malloc(listsize * sizeof(int));
-  ylist = (int *)malloc(listsize * sizeof(int));
-  linePtrs = (unsigned char **)malloc(sizeof(unsigned char *) * ny);
-  nobj = imodObjectNew();
-  nobj->red = 0.;
-  nobj->green = 1.;
-  nobj->blue = 0.;
+  float mean, bytesPerSlice;
+  float memLimitMB = 2000;
 
-  if (!tdata || !fdata || !xlist || !ylist || !linePtrs || !idata)
+  /* Roughly, 100x100 should be limited to 2 threads, 200x200 to 4 */
+  numThreads = B3DNINT(sqrt((double)nxy) / 50.);
+  bytesPerSlice = 6. * nxy + 2. * listsize;
+  ksec = (int)(memLimitMB * 1024. * 1024. / bytesPerSlice);
+  numThreads = B3DMIN(numThreads, ksec);
+  B3DCLAMP(numThreads, 1, MAX_THREADS);
+  numThreads = numOMPthreads(numThreads);
+  printf("Number of sections being done in parallel = %d\n", numThreads);
+  listsize = 4 * (nx + ny);
+  newObj = imodObjectNew();
+  newObj->red = 0.;
+  newObj->green = 1.;
+  newObj->blue = 0.;
+
+  /* Allocate data for all the threads */
+  for (ind = 0; ind < numThreads; ind++) {
+    tdata[ind] = B3DMALLOC(int, nxy);
+    idata[ind] = B3DMALLOC(unsigned char , nxy);
+    fdata[ind] = B3DMALLOC(unsigned char , nxy);
+    xlist[ind] = B3DMALLOC(int, listsize);
+    ylist[ind] = B3DMALLOC(int, listsize);
+    linePtrs[ind] = B3DMALLOC(unsigned char *, ny);
+    boundConts[ind] = ilistNew(sizeof(int), 4);
+
+    if (!tdata[ind] || !fdata[ind] || !xlist[ind] || !ylist[ind] || !linePtrs[ind] ||
+        !idata[ind] || !boundConts[ind])
+      return NULL;
+  }
+
+  /* And an object for each section */
+  secObj = B3DMALLOC(Iobj *, nz);
+  if (!secObj)
     return NULL;
+  for (ind = 0; ind < nz; ind++) {
+    secObj[ind] = imodObjectNew();
+    if (!secObj[ind])
+      return NULL;
+  }
 
   /* Get whole-file mean for dim = 2.  5/30/08: Trust file mean! */
   if (dim == 2) {
     mean = hdata->amean;
   }     
+  error = 0;
 
-  for (k = 0; k < nz; k++){
-    if (mrcReadZByte(hdata, li, idata, k + li->zmin))
-      return NULL;
-
+#pragma omp parallel for num_threads(numThreads) default(none)          \
+  shared(li, hdata, ksigma, highthresh, lowthresh, exact, dim, minsize, maxsize) \
+  shared(followdiag, inside, shave, tol, delete_edge, smoothflags, boundObj) \
+  shared(nearestBound, secObj, boundConts, nx, ny, tdata, idata, fdata, xlist, ylist) \
+  shared(linePtrs, mean, error, stdout, numStarted, nz)                 \
+  private(ksec, ind)
+  for (ksec = li->zmin; ksec <= li->zmax; ksec++) {
+    ind = b3dOMPthreadNum();
+#pragma omp critical
+    {
+      if (mrcReadZByte(hdata, li, idata[ind], ksec)) {
+        error = 1;
+      }
+      numStarted++;
+      printf("\rStarting section %d of %d", numStarted, nz);
+      fflush(stdout);
+    }
+    if (error)
+      continue;
+    
     if (createThresholdDataOneSlice
         (ksigma, highthresh, lowthresh, exact, dim, minsize, maxsize, followdiag, inside,
-         shave, tol, delete_edge, smoothflags, boundObj, nearestBound, nobj, boundConts,
-         nx, ny, tdata, idata, fdata, xlist, ylist, linePtrs, mean, k))
-      return NULL;
+         shave, tol, delete_edge, smoothflags, boundObj, nearestBound, 
+         secObj[ksec - li->zmin], boundConts[ind], nx, ny, tdata[ind], idata[ind],
+         fdata[ind], xlist[ind], ylist[ind], linePtrs[ind], mean, ksec)) {
+      error = 1;
+      continue;
+    }
   }
-     
-  free(idata);
-  free(tdata);
-  free(fdata);
-  free(xlist);
-  free(ylist);
+  if (error)
+    return NULL;
+
+  /* Combine into one new object */
+  numCont = 0;
+  for (ind = 0; ind < nz; ind++)
+    numCont += secObj[ind]->contsize;
+
+  newObj->cont = B3DMALLOC(Icont, numCont);
+  if (!newObj->cont)
+    return NULL;
+  newObj->contsize = numCont;
+  numCont = 0;
+  for (ind = 0; ind < nz; ind++) {
+    memcpy(&newObj->cont[numCont], secObj[ind]->cont, secObj[ind]->contsize * 
+           sizeof(Icont));
+    numCont += secObj[ind]->contsize;
+    free(secObj[ind]->cont);
+    free(secObj[ind]);
+  }
+  free(secObj);
+
+  for (ind = 0; ind < numThreads; ind++) {
+    free(tdata[ind]);
+    free(idata[ind]);
+    free(fdata[ind]);
+    free(xlist[ind]);
+    free(ylist[ind]);
+    free(linePtrs[ind]);
+    ilistDelete(boundConts[ind]);
+  }
   printf("\ndone\n");
-  return(nobj);
+  return(newObj);
 }
 
 static int *createThresholdDataOneSlice
@@ -685,12 +756,8 @@ static int *createThresholdDataOneSlice
   for (nco = onobjsize, co = 0; co < obj->contsize; co++) {
               
     cont = &(obj->cont[co]);
-    if (!cont->psize) continue;
-
-    printf("\rsection %d contour %6d of %6d size = %6d", 
-           ksec, nco-onobjsize + 1, nobjsize-onobjsize,
-           cont->psize);
-    fflush(stdout);
+    if (!cont->psize) 
+      continue;
              
     cz = cont->pts->z;
 

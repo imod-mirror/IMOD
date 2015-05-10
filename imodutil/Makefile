@@ -47,6 +47,9 @@ imodtrans$(E) : imodtrans.$(O)
 imodmop$(E) : imodmop.$(O) 
 	$(CC) -o imodmop imodmop.$(O) $(LDFLAGS) $(IILIBS) $(CLIBS)
 
+imodauto.$(O) : imodauto.c
+	$(CC) $(CFLAGS) $(OPENMP) -c imodauto.c
+
 imodauto$(E) : imodauto.$(O) 
 	$(CC) -o imodauto imodauto.$(O) $(LDFLAGS) $(IILIBS) $(CLIBS)
 
