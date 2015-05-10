@@ -478,11 +478,13 @@ static Iobj *imodaObjectCreateThresholdData
   }     
   error = 0;
 
-#pragma omp parallel for num_threads(numThreads) default(none)          \
+  /* Have to declare default as shared because on Windows it doesn't like stdout and
+     Linux wants it to be marked shared */
+#pragma omp parallel for num_threads(numThreads) default(shared)          \
   shared(li, hdata, ksigma, highthresh, lowthresh, exact, dim, minsize, maxsize) \
   shared(followdiag, inside, shave, tol, delete_edge, smoothflags, boundObj) \
   shared(nearestBound, secObj, boundConts, nx, ny, tdata, idata, fdata, xlist, ylist) \
-  shared(linePtrs, mean, error, stdout, numStarted, nz)                 \
+  shared(linePtrs, mean, error, numStarted, nz)                         \
   private(ksec, ind)
   for (ksec = li->zmin; ksec <= li->zmax; ksec++) {
     ind = b3dOMPthreadNum();
