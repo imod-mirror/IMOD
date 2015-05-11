@@ -788,7 +788,7 @@ static int *createThresholdDataOneSlice
 
     /* Set the reverse flag and set threshold based on which one is passed */
     /* These won't be used for exact work */
-    reverse = idata[i + (j * nx)] <= t1 ? 1 : 0;
+    reverse = B3DCHOICE(idata[i + (j * nx)] <= t1, 1, 0);
     threshUsed = -1.;
     if (idata[i + (j * nx)] <= t1)
       threshUsed = t1 + 0.5;
@@ -811,8 +811,8 @@ static int *createThresholdDataOneSlice
     for (j = 0; j < ny; j++)
       linePtrs[j] = &idata[j * nx];
              
-    newconts = imodContoursFromImagePoints(fdata, exact < 0 ? linePtrs : NULL, nx, ny,
-                                           cz, AUTOX_FLOOD, diagonal, threshUsed,
+    newconts = imodContoursFromImagePoints(fdata, B3DCHOICE(exact < 0, linePtrs, NULL),
+                                           nx, ny, cz, AUTOX_FLOOD, diagonal, threshUsed,
                                            reverse, &ncont);
     for (i = 0; i < ncont; i++) {
                   
@@ -855,7 +855,7 @@ static int imoda_object_bfill_2d(unsigned char *idata, int *data, int *xlist, in
   int testExact = 0;
 
   if (exact >= 0) {
-    testExact = idata[x + (y * xsize)] == exact ? 1 : 0;
+    testExact = B3DCHOICE(idata[x + (y * xsize)] == exact, 1, 0);
   } else if (idata[x + (y * xsize)] <= t1) {
     threshold = t1;
     direction = -1;
@@ -961,8 +961,8 @@ static int findBoundaryConts(int z, Iobj *boundObj, int nearestBound, Ilist *con
       continue;
     zcont = B3DNINT(boundObj->cont[co].pts->z);
     diff = zcont - z;
-    if ((diff < 0 && -diff < minDiff) || (diff >= 0 && diff < minDiff)) {
-      minDiff = diff >= 0 ? diff : -diff;
+    if (B3DABS(diff) < minDiff) {
+      minDiff = B3DABS(diff);
       zmin = zcont;
     }
   }
