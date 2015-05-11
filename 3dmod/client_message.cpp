@@ -490,10 +490,10 @@ bool ImodClipboard::executeMessage()
         else {
           imod_set_mmode(IMOD_MMOVIE);
           if (movieVal < 0) {
-            xaxis = (-movieVal) & 1 ? 1 : 0;
-            yaxis = (-movieVal) & 2 ? 1 : 0;
-            zaxis = (-movieVal) & 4 ? 1 : 0;
-            taxis = (-movieVal) & 8 ? 1 : 0;
+            xaxis = B3DCHOICE((-movieVal) & 1, 1, 0);
+            yaxis = B3DCHOICE((-movieVal) & 2, 1, 0);
+            zaxis = B3DCHOICE((-movieVal) & 4, 1, 0);
+            taxis = B3DCHOICE((-movieVal) & 8, 1, 0);
             imodMovieXYZT(App->cvi, xaxis, yaxis, zaxis, taxis);
           }
         }

@@ -54,7 +54,7 @@
 int minimize1D(float curPosition, float curValue, float initialStep, int numScanSteps,
                int *numCutsDone, float *brackets, float *nextPosition)
 {
-  int i, stepNum, walking = *numCutsDone ? 0 : 1;
+  int i, stepNum, walking = (*numCutsDone) ? 0 : 1;
   float step = initialStep;
   float *positions = brackets;
   float *values = brackets + 7;

@@ -293,7 +293,7 @@ int thresholdWithMinSize(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt,
 
       // Set the "active" Z plane as the current one, or one past that if we have just 
       // done the last plane, then loop on potential output planes
-      zActive = ksecIn < opt->nofsecs - 1 ? ksecIn : opt->nofsecs;
+      zActive = B3DCHOICE(ksecIn < opt->nofsecs - 1, ksecIn, opt->nofsecs);
       for (; ksecOut < zActive; ksecOut++) {
 
         // A plane can be output if all sets that start on or before it end before the
