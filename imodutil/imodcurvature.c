@@ -1168,7 +1168,7 @@ static int fitCylinder(float *xx3, float *yy3, float *zz3, float *xxr,
       if (verbose) 
         printf("%d  alf %5.1f gam %5.1f  rad %10.1f  err %10.3f %s\n", 
                100 *ia + ig, alphat,
-               gammat, radt, rmst, rmst < *rmsErr ? "*" : " ");
+               gammat, radt, rmst, B3DCHOICE(rmst < *rmsErr, "*", " "));
       if (rmst < *rmsErr) {
         *rmsErr = rmst;
         *alpha = alphat;
