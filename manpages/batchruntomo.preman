@@ -326,7 +326,10 @@ once a command file is created, because they are processed generically
 during command file creation.  In most cases, creation occurs during
 tomogram setup, but some files are created with
 Makecomfile(1) just when needed, so it would be possible to change
-"comparam" directives for a file still to be created.
+"comparam" directives for a file still to be created.  Some exceptions
+to this are "align.tiltalign.SurfacesToAnalyze" and
+"tilt.tilt.THICKNESS", for which the current directive value will be
+used instead of the value in the command file.
 .br
 2) Changes in "setupset" directives will also generally have no effect
 because they are interpreted during setup; the use of the defocus value
