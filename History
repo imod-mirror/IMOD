@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/12/15: Made Batchruntomo use directive value for number of surfaces in
+preference to the value in align.com.
+
 5/9/15: Parallelized Imodauto.
 
 5/6/15: IMOD_4-8-32

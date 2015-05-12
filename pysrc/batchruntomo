@@ -3350,9 +3350,17 @@ def runOneAxis():
    taLines = readTextFile('align' + axisCom)
    if not taLines:
       return 1
-   numSurfaces = optionValue(taLines, 'SurfacesToAnalyze', INT_VALUE, numVal = 1)
-   if not numSurfaces:
-      abortSet('Failed to find SurfacesToAnalyze in align' + axisCom)
+
+   # Get the number of surfaces from directives in case it changed, fall back to align.com
+   numSurfaces = lookupDirective(comPrefix + 'align', 'tiltalign.SurfacesToAnalyze', 0,
+                                 INT_VALUE)
+   if numSurfaces == None:
+      numSurfaces = optionValue(taLines, 'SurfacesToAnalyze', INT_VALUE, numVal = 1)
+      if numSurfaces == None:
+         abortSet('Failed to find SurfacesToAnalyze in align' + axisCom)
+   if numSurfaces <= 0:
+      abortSet('SurfacesToAnalyze is 0 or negative in directives or in align' + axisCom)
+      return 1
 
    if fiducialless or patchTrack:
       numSurfaces = 1
