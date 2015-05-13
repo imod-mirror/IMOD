@@ -69,7 +69,7 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
   private final HeaderCell[] hcExcludeViews = new HeaderCell[NUM_STACKS_HEADER_ROWS];
   private final HeaderCell hcExcludeViewsB = new HeaderCell("from B");
   private final HeaderCell[] hcBoundaryModel = new HeaderCell[NUM_STACKS_HEADER_ROWS];
-  private final HeaderCell[] hcTwoSurfaces = new HeaderCell[NUM_STACKS_HEADER_ROWS];
+  private final HeaderCell[] hcSurfacesToAnalyze = new HeaderCell[NUM_STACKS_HEADER_ROWS];
   private final HeaderCell[] hc3dmod = new HeaderCell[NUM_STACKS_HEADER_ROWS];
   private final HeaderCell hc3dmodB = new HeaderCell("B");
   // dataset tab
@@ -136,9 +136,9 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
     hcBoundaryModel[0] = new HeaderCell();
     hcBoundaryModel[1] = new HeaderCell("Boundary");
     hcBoundaryModel[2] = new HeaderCell("Model");
-    hcTwoSurfaces[0] = new HeaderCell("Beads");
-    hcTwoSurfaces[1] = new HeaderCell("on Two");
-    hcTwoSurfaces[2] = new HeaderCell("Surfaces");
+    hcSurfacesToAnalyze[0] = new HeaderCell("Beads");
+    hcSurfacesToAnalyze[1] = new HeaderCell("on Two");
+    hcSurfacesToAnalyze[2] = new HeaderCell("Surfaces");
     hc3dmod[0] = new HeaderCell("Open");
     hc3dmod[1] = new HeaderCell("Stack");
     hc3dmod[2] = new HeaderCell("A");
@@ -216,7 +216,7 @@ final class BatchRunTomoTable implements Viewable, Highlightable, Expandable,
           hcExcludeViewsB.add(pnlTable, layout, constraints);
         }
         hcBoundaryModel[i].add(pnlTable, layout, constraints);
-        hcTwoSurfaces[i].add(pnlTable, layout, constraints);
+        hcSurfacesToAnalyze[i].add(pnlTable, layout, constraints);
         if (i < numRows - 1) {
           constraints.gridwidth = GridBagConstraints.REMAINDER;
         }
