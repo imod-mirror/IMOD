@@ -15,10 +15,10 @@ import javax.swing.JOptionPane;
 
 import etomo.BaseManager;
 import etomo.EtomoDirector;
+import etomo.logic.PopupTool;
 import etomo.process.ProcessMessages;
 import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.type.AxisID;
-import etomo.type.BaseMetaData;
 import etomo.type.FrameType;
 import etomo.type.UITestActionType;
 import etomo.type.UITestSubjectType;
@@ -36,11 +36,6 @@ import etomo.util.Utilities;
  * @version $Id$
  */
 abstract class AbstractFrame extends JFrame implements UIComponent, SwingComponent {
-  public static final String rcsid =
-    "$Id$";
-
-  private static final int MAX_MESSAGE_LINES = 20;
-  private static final int MESSAGE_WIDTH = 60;
   private static final boolean PRINT_NAMES = EtomoDirector.INSTANCE.getArguments()
     .isPrintNames();
   private static final String OK = "OK";
@@ -87,8 +82,8 @@ abstract class AbstractFrame extends JFrame implements UIComponent, SwingCompone
       UserConfiguration userConfiguration = EtomoDirector.INSTANCE.getUserConfiguration();
       if (!EtomoDirector.INSTANCE.getArguments().isIgnoreLoc()
         && userConfiguration.isLastLocationSet(getFrameType())) {
-        setLocation(userConfiguration.getLastLocationX(getFrameType()), userConfiguration
-          .getLastLocationY(getFrameType()));
+        setLocation(userConfiguration.getLastLocationX(getFrameType()),
+          userConfiguration.getLastLocationY(getFrameType()));
       }
     }
     super.setVisible(visible);
@@ -410,9 +405,10 @@ abstract class AbstractFrame extends JFrame implements UIComponent, SwingCompone
 
   private final String[]
     wrapWarning(BaseManager manager, ProcessMessages processMessages) {
-    ArrayList messageArray = setupMessageArray(manager);
+    ArrayList messageArray = null;
     for (int i = 0; i < processMessages.warningListSize(); i++) {
-      messageArray = wrap(processMessages.getWarning(i), messageArray);
+      messageArray =
+        PopupTool.wrapMessage(manager, processMessages.getWarning(i), messageArray);
     }
     return toStringArray(messageArray);
   }
@@ -424,9 +420,10 @@ abstract class AbstractFrame extends JFrame implements UIComponent, SwingCompone
    * @return
    */
   private final String[] wrapError(BaseManager manager, ProcessMessages processMessages) {
-    ArrayList messageArray = setupMessageArray(manager);
+    ArrayList messageArray = null;
     for (int i = 0; i < processMessages.errorListSize(); i++) {
-      messageArray = wrap(processMessages.getError(i), messageArray);
+      messageArray =
+        PopupTool.wrapMessage(manager, processMessages.getError(i), messageArray);
     }
     return toStringArray(messageArray);
   }
@@ -438,8 +435,7 @@ abstract class AbstractFrame extends JFrame implements UIComponent, SwingCompone
    * @return
    */
   private String[] wrap(BaseManager manager, String message) {
-    ArrayList messageArray = setupMessageArray(manager);
-    messageArray = wrap(message, messageArray);
+    ArrayList messageArray = PopupTool.wrapMessage(manager, message, null);
     return toStringArray(messageArray);
   }
 
@@ -450,9 +446,9 @@ abstract class AbstractFrame extends JFrame implements UIComponent, SwingCompone
    * @return
    */
   private String[] wrap(BaseManager manager, String[] message) {
-    ArrayList messageArray = setupMessageArray(manager);
+    ArrayList messageArray = null;
     for (int i = 0; i < message.length; i++) {
-      messageArray = wrap(message[i], messageArray);
+      messageArray = PopupTool.wrapMessage(manager, message[i], messageArray);
     }
     return toStringArray(messageArray);
   }
@@ -463,66 +459,6 @@ abstract class AbstractFrame extends JFrame implements UIComponent, SwingCompone
       return returnArray;
     }
     return (String[]) arrayList.toArray(new String[arrayList.size()]);
-  }
-
-  private final ArrayList setupMessageArray(BaseManager manager) {
-    ArrayList messageArray = new ArrayList();
-    if (manager != null) {
-      BaseMetaData metaData = manager.getBaseMetaData();
-      if (metaData != null) {
-        messageArray.add(manager.getName() + ":");
-      }
-    }
-    return messageArray;
-  }
-
-  /**
-   * wrap the message and place it in messageArray
-   *
-   * @param messagePiece
-   * @param messageArray
-   * @return messageArray
-   */
-  private ArrayList wrap(String messagePiece, ArrayList messageArray) {
-    if (messagePiece == null) {
-      if (messageArray.size() == 0) {
-        messageArray.add(" ");
-      }
-      return messageArray;
-    }
-    if (messagePiece.equals("\n")) {
-      messageArray.add(" ");
-      return messageArray;
-    }
-    // first - break up the message piece by line
-    String[] messagePieceArray = messagePiece.split("\n");
-    // second - break up each line by maximum length
-    for (int i = 0; i < messagePieceArray.length; i++) {
-      // handle empty lines
-      if (messagePieceArray[i] == null || messagePieceArray[i].length() == 0) {
-        messageArray.add(" ");
-      }
-      else {
-        int messageLength = messagePieceArray[i].length();
-        int messageIndex = 0;
-        while (messageIndex < messageLength && messageArray.size() < MAX_MESSAGE_LINES) {
-          int endIndex = Math.min(messageLength, messageIndex + MESSAGE_WIDTH);
-          StringBuffer newLine =
-            new StringBuffer(messagePieceArray[i].substring(messageIndex, endIndex));
-          // overflowing line - look for whitespace or a comma
-          messageIndex = endIndex;
-          char lastChar = ' ';
-          while (messageIndex < messageLength
-            && messagePieceArray[i].substring(messageIndex, messageIndex + 1).matches(
-              "\\S+") && lastChar != ',') {
-            lastChar = messagePieceArray[i].charAt(messageIndex++);
-            newLine.append(lastChar);
-          }
-          messageArray.add(newLine.toString());
-        }
-      }
-    }
-    return messageArray;
   }
 
   private void showOptionPane(BaseManager manager, AxisID axisID, String[] message,
@@ -586,8 +522,7 @@ abstract class AbstractFrame extends JFrame implements UIComponent, SwingCompone
   private int showOptionDialog(final BaseManager manager, final AxisID axisID,
     final Component parentComponent, final String[] message, final String title,
     final int optionType, int messageType, final Icon icon, final Object initialValue,
-    final boolean overrideDefaultLabels, final String[] optionLabels)
-    throws HeadlessException {
+    final boolean overrideDefaults, final String[] options) throws HeadlessException {
     if (manager != null) {
       manager.logMessage(message, title, axisID);
     }
@@ -633,36 +568,30 @@ abstract class AbstractFrame extends JFrame implements UIComponent, SwingCompone
     }
     // Decide whether to pass an array of button labels (to override the defaults) or
     // null.
-    if (overrideDefaultLabels) {
+    if (overrideDefaults) {
       pane =
-        new JOptionPane(message, messageType, optionType, icon, optionLabels,
-          initialValue);
+        new JOptionPane(message, messageType, optionType, icon, options, initialValue);
     }
     else {
       pane = new JOptionPane(message, messageType, optionType, icon, null, initialValue);
     }
     pane.setInitialValue(initialValue);
-    pane
-      .setComponentOrientation(((parentComponent == null) ? JOptionPane.getRootFrame() : parentComponent)
-        .getComponentOrientation());
+    pane.setComponentOrientation(((parentComponent == null) ? JOptionPane.getRootFrame()
+      : parentComponent).getComponentOrientation());
 
     JDialog dialog = pane.createDialog(parentComponent, title);
     // A popup with a parent component and no axis is most likely connected to a field.
-    // In RedHat the popup appears to center itself over the center of the field. Raise
-    // the popup so it is a few pixels above the field. If the new location is off the
-    // monitor (negative y), set it to the top of monitor.
     if (parentComponent != null && axisID == null) {
       Point location = dialog.getLocation();
-      location.y -= (parentComponent.getHeight() / 2) + (dialog.getHeight() / 2) + 8;
-      if (location.y < 0) {
-        location.y = 0;
-      }
+      location.y =
+        PopupTool.adjustLocationY(location.y, parentComponent.getHeight(),
+          dialog.getHeight());
       dialog.setLocation(location);
     }
     pane.selectInitialValue();
     String name = Utilities.convertLabelToName(title);
     pane.setName(name);
-    printName(name, optionLabels, title, message);
+    printName(name, options, title, message);
     dialog.setVisible(true);
     dialog.dispose();
 
@@ -672,23 +601,23 @@ abstract class AbstractFrame extends JFrame implements UIComponent, SwingCompone
       return JOptionPane.CLOSED_OPTION;
     }
     // If a null array of options was passed, pane returns an integer.
-    if (!overrideDefaultLabels || optionLabels == null) {
+    if (!overrideDefaults || options == null) {
       if (selectedValue instanceof Integer) {
         return ((Integer) selectedValue).intValue();
       }
       return JOptionPane.CLOSED_OPTION;
     }
     // If an array of options was passed, pane returns the label of the button selected.
-    for (int counter = 0, maxCounter = optionLabels.length; counter < maxCounter; counter++) {
-      if (optionLabels[counter].equals(selectedValue)) {
+    for (int counter = 0, maxCounter = options.length; counter < maxCounter; counter++) {
+      if (options[counter].equals(selectedValue)) {
         return counter;
       }
     }
     return JOptionPane.CLOSED_OPTION;
   }
 
-  private synchronized final void printName(String name, String[] optionStrings,
-    String title, String[] message) {
+  private synchronized final void printName(String name, String[] options, String title,
+    String[] message) {
     if (PRINT_NAMES) {
       // print waitfor popup name/value pair
       StringBuffer buffer =
@@ -697,10 +626,16 @@ abstract class AbstractFrame extends JFrame implements UIComponent, SwingCompone
           + AutodocTokenizer.SEPARATOR_CHAR + name + ' '
           + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
       // if there are options, then print a popup name/value pair
-      if (optionStrings != null && optionStrings.length > 0) {
-        buffer.append(optionStrings[0]);
-        for (int i = 1; i < optionStrings.length; i++) {
-          buffer.append(',' + optionStrings[i]);
+      if (options != null && options.length > 0) {
+        boolean appended = false;
+        for (int i = 1; i < options.length; i++) {
+          if (options[i] instanceof String) {
+            if (appended) {
+              buffer.append(',');
+            }
+            buffer.append(options[i]);
+            appended = true;
+          }
         }
         System.out.println(buffer);
       }
