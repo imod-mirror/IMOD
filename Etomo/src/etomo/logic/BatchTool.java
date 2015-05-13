@@ -219,16 +219,18 @@ public final class BatchTool {
           if (!field.isBoolean() && (!field.isEmpty() || field.isRequired())) {
             // text fields, file text fields, and spinners
             if (needInAutodoc(field)) {
-              autodoc.addNameValuePairAttribute(directiveDef.getDirective(axisID,
-                axisType), field.getText(doValidation, fieldDisplayer));
+              autodoc.addNameValuePairAttribute(
+                directiveDef.getDirective(axisID, axisType),
+                field.getText(doValidation, fieldDisplayer));
             }
             return true;
           }
           else if (field.isBoolean() && field.isSelected()) {
             // radio text fields and checkbox text fields
             if (needInAutodoc(field)) {
-              autodoc.addNameValuePairAttribute(directiveDef.getDirective(axisID,
-                axisType), field.getText(doValidation, fieldDisplayer));
+              autodoc.addNameValuePairAttribute(
+                directiveDef.getDirective(axisID, axisType),
+                field.getText(doValidation, fieldDisplayer));
             }
             return true;
           }
@@ -240,14 +242,45 @@ public final class BatchTool {
       Thread.dumpStack();
     }
     return false;
+  }
 
+  /**
+   * Adds the field to the autodoc.  Returns if true if the field can be saved in the
+   * autodoc.  If the field is not needed in the autodoc because it is set to default or
+   * the same is a template value, it won't be saved, but this function will still return
+   * true.
+   *
+   * @param field    - GUI field
+   * @param value    - value for the directive
+   * @param autodoc  - autodoc for saving directives
+   * @return true if field is valid (if doValidation is on) and savable
+   */
+  public static boolean saveFieldToAutodoc(final Field field, final String value,
+    final WritableAutodoc autodoc) {
+    // Don't add directive values that are equal to default values, or directive
+    // values that already exists in one of the templates. Values from templates
+    // are used as field highlight values. See needInAutodoc.
+    DirectiveDef directiveDef = field.getDirectiveDef();
+    if (directiveDef != null) {
+      if (field.isEnabled()) {
+        if (needInAutodoc(field)) {
+          autodoc.addNameValuePairAttribute(directiveDef.getDirective(null, null), value);
+        }
+        return true;
+      }
+    }
+    else {
+      System.err.println("ERROR: " + field.getQuotedLabel() + " has a null directive.");
+      Thread.dumpStack();
+    }
+    return false;
   }
 
   public static String getModelFileName(final FileType fileType, final String stack,
     final boolean dualAxis) {
     if (fileType != null) {
-      return fileType.getFileName(DatasetTool.getDatasetName(stack, dualAxis),
-        dualAxis ? AxisType.DUAL_AXIS : AxisType.SINGLE_AXIS, null);
+      return fileType.getFileName(DatasetTool.getDatasetName(stack, dualAxis), dualAxis
+        ? AxisType.DUAL_AXIS : AxisType.SINGLE_AXIS, null);
     }
     return null;
   }
