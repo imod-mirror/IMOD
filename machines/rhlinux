@@ -327,8 +327,12 @@ if ($compiler == intel) then
         set fortdir = `which ifort`
         set fortlibdir = $fortdir:h:h/lib
         if ($iccversion > 10) then
-            set cclibdir = $ccdir:h:h:h/lib/ia32
-            if ($m64bit == true) set cclibdir = $ccdir:h:h:h/lib/intel64
+	    set topdir = $ccdir:h:h:h
+	    #
+	    # Do not know if this changes at 12, 13, or 14
+	    if ($iccversion > 11) set topdir = $topdir:h
+            set cclibdir = $topdir/lib/ia32
+            if ($m64bit == true) set cclibdir = $topdir/lib/intel64
             set fortlibdir = $cclibdir
         endif
         echo "DLLSOURCEDIR1 = $cclibdir" >> $configure
@@ -336,6 +340,10 @@ if ($compiler == intel) then
         if ($iccversion > 9) then
             echo "DLLSTOCOPY2 = libifcore libifport libifcoremt" >> $configure
             set dllstocopy1 = "libimf libintlc"
+	    #
+	    # No idea if this starts at 12 or 13 or 14, and if it is needed for
+	    # 32-bit or just 64
+	    if ($iccversion > 11) set dllstocopy1 = "libimf libintlc libirng"
         else
             echo "DLLSTOCOPY2 = libifcore libifport" >> $configure
             set dllstocopy1 = "libcxaguard libirc libimf libintlc"
