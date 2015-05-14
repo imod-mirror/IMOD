@@ -32,7 +32,7 @@ import etomo.util.UniqueKey;
  *
  * @version $Id$
  */
-public final class UIHarness {
+public final class UIHarness implements UIComponent {
   private static final String LOG_TAG = "LOG";
 
   public static final UIHarness INSTANCE = new UIHarness();
@@ -125,27 +125,42 @@ public final class UIHarness {
         getComponent(uiComponent), message, null);
     }
     log(message, (AxisID) null);
-    return true;
+    if (EtomoDirector.INSTANCE.isTestFailed()) {
+      return true;
+    }
+    return false;
   }
+
+
 
   public void openProblemValueMessageDialog(final BaseManager manager,
     final UIComponent uiComponent, final String problem, final String paramName,
     final String paramDescr, final String fieldLabel, final String problemValue,
     final String replacementValue, final String replacementValueDescr) {
-    openWarningMessageDialog(manager, uiComponent, problem
-      + " '"
-      + paramName
-      + "' parameter "
-      + (paramDescr != null ? paramDescr : "")
-      + " value '"
-      + problemValue
-      + "'."
-      + (replacementValue != null ? "  The " + problem.toLowerCase()
-        + " value will be replaced with "
-        + (replacementValueDescr != null ? "'" + replacementValueDescr + "': " : "")
-        + " '" + replacementValue + "'." : "")
-      + (fieldLabel != null ? "  See the '" + fieldLabel + "' field." : ""), problem
-      + " Value");
+    openWarningMessageDialog(manager, uiComponent,
+      problem
+        + " '"
+        + paramName
+        + "' parameter "
+        + (paramDescr != null ? paramDescr : "")
+        + " value '"
+        + problemValue
+        + "'."
+        + (replacementValue != null ? "  The " + problem.toLowerCase()
+          + " value will be replaced with "
+          + (replacementValueDescr != null ? "'" + replacementValueDescr + "': " : "")
+          + " '" + replacementValue + "'." : "")
+        + (fieldLabel != null ? "  See the '" + fieldLabel + "' field." : ""), problem
+        + " Value");
+  }
+  
+  public void openPopup(final Popup popup) {
+    if (isHead() && !EtomoDirector.INSTANCE.isTestFailed()) {
+      popup.open();
+    }
+    else {
+      popup.log();
+    }
   }
 
   private synchronized void openWarningMessageDialog(final BaseManager manager,
@@ -265,8 +280,14 @@ public final class UIHarness {
       return retval;
     }
     log(message, axisID);
+
     retval = new EtomoBoolean2();
-    retval.set(true);
+    if (EtomoDirector.INSTANCE.isTestFailed()) {
+      retval.set(true);
+    }
+    else {
+      retval.set(false);
+    }
     return retval;
   }
 
@@ -276,7 +297,10 @@ public final class UIHarness {
       return getMessageFrame(manager, null).displayYesNoMessage(manager, message, axisID);
     }
     log(message, axisID);
-    return true;
+    if (EtomoDirector.INSTANCE.isTestFailed()) {
+      return true;
+    }
+    return false;
   }
 
   public synchronized boolean openYesNoDialogWithDefaultNo(BaseManager manager,
@@ -286,7 +310,10 @@ public final class UIHarness {
         message, title, axisID);
     }
     log(message, axisID);
-    return true;
+    if (EtomoDirector.INSTANCE.isTestFailed()) {
+      return true;
+    }
+    return false;
   }
 
   public synchronized boolean openDeleteDialog(BaseManager manager, String[] message,
@@ -296,7 +323,10 @@ public final class UIHarness {
         .displayDeleteMessage(manager, message, axisID);
     }
     log(message, axisID);
-    return true;
+    if (EtomoDirector.INSTANCE.isTestFailed()) {
+      return true;
+    }
+    return false;
   }
 
   public synchronized boolean openYesNoWarningDialog(BaseManager manager, String message,
@@ -306,7 +336,10 @@ public final class UIHarness {
         axisID);
     }
     log(message, axisID);
-    return true;
+    if (EtomoDirector.INSTANCE.isTestFailed()) {
+      return true;
+    }
+    return false;
   }
 
   public synchronized boolean openYesNoDialog(BaseManager manager, String[] message,
@@ -315,7 +348,10 @@ public final class UIHarness {
       return getMessageFrame(manager, null).displayYesNoMessage(manager, message, axisID);
     }
     log(message, axisID);
-    return true;
+    if (EtomoDirector.INSTANCE.isTestFailed()) {
+      return true;
+    }
+    return false;
   }
 
   public void showAxisA() {
@@ -375,6 +411,10 @@ public final class UIHarness {
         frame.save(axisID);
       }
     }
+  }
+
+  public SwingComponent getUIComponent() {
+    return getMainFrame();
   }
 
   public AbstractFrame getMessageFrame(final BaseManager manager,
