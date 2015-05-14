@@ -85,7 +85,6 @@ import etomo.util.Utilities;
  * <p> </p>
  */
 public final class Arguments {
-  public static final String NAMES_TAG = "--names";
   public static final String SELFTEST_TAG = "--selftest";
   public static final String TEST_TAG = "--test";
   static final String HEADLESS_TAG = "--headless";
@@ -167,7 +166,7 @@ public final class Arguments {
   private boolean fromBRT = false;
 
   private final EtomoNumber enFiducial = new EtomoNumber(EtomoNumber.Type.DOUBLE);
-
+  public static final String NAMES_TAG = "--names";
   Arguments() {}
 
   static void printHelpMessage() {
