@@ -1,5 +1,6 @@
 package etomo.ui.swing;
 
+import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
@@ -10,6 +11,7 @@ import javax.swing.ButtonGroup;
 import javax.swing.JPanel;
 
 import etomo.ApplicationManager;
+import etomo.PluginFactory;
 import etomo.comscript.ConstTiltParam;
 import etomo.comscript.FortranInputSyntaxException;
 import etomo.comscript.SirtsetupParam;
@@ -17,6 +19,7 @@ import etomo.type.AxisID;
 import etomo.type.ConstMetaData;
 import etomo.type.DialogType;
 import etomo.type.MetaData;
+import etomo.type.PluginNiche;
 import etomo.type.ProcessingMethod;
 import etomo.type.ReconScreenState;
 import etomo.type.TomogramState;
@@ -27,16 +30,11 @@ import etomo.type.TomogramState;
  * </p>
  * 
  * <p>
- * Copyright: Copyright (c) 2002 - 2010</p>
- * 
- * <p>
- * Organization: Boulder Laboratory for 3D Fine Structure, University of 
- * Colorado
- * </p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
+ * <p>Copyright: Copyright 2002 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
+ *
+ * @version $Id$
  * 
  * <p>
  * $Log$
@@ -673,35 +671,52 @@ import etomo.type.TomogramState;
  */
 
 public class TomogramGenerationDialog extends ProcessDialog implements ContextMenu {
-  public static final String rcsid = "$Id$";
-
-  public static final String X_AXIS_TILT_TOOLTIP = "This line allows one to rotate the reconstruction around the X axis, so "
+  public static final String X_AXIS_TILT_TOOLTIP =
+    "This line allows one to rotate the reconstruction around the X axis, so "
       + "that a section that appears to be tilted around the X axis can be "
       + "made flat to fit into a smaller volume.";
 
   private final ButtonGroup bgMethod = new ButtonGroup();
   private final RadioButton rbBackProjection = new RadioButton("Back Projection",
-      bgMethod);
+    bgMethod);
   private final RadioButton rbSirt = new RadioButton("SIRT", bgMethod);
 
   private final TiltPanel tiltPanel;
   private final TomogramGenerationExpert expert;
   private final SirtPanel sirtPanel;
+  private final RadioButton rbPlugin;
+  private final Component pluginPanel;
+  private final Component tiltPanelRoot;
 
   private TomogramGenerationDialog(ApplicationManager appMgr,
-      TomogramGenerationExpert expert, AxisID axisID) {
+    TomogramGenerationExpert expert, AxisID axisID) {
     super(appMgr, axisID, DialogType.TOMOGRAM_GENERATION);
     this.expert = expert;
+    Plugin plugin =
+      (Plugin) PluginFactory.INSTANCE.getPlugin(PluginNiche.TOMOGRAM_GENERATION);
+    if (plugin != null) {
+      rbPlugin = new RadioButton(plugin.getButtonTitle(), bgMethod);
+    }
+    else {
+      rbPlugin = null;
+    }
     tiltPanel = TiltPanel.getInstance(appMgr, axisID, dialogType, btnAdvanced, this);
     sirtPanel = SirtPanel.getInstance(appMgr, axisID, dialogType, btnAdvanced, this);
     tiltPanel.addFieldObserver(sirtPanel);
     sirtPanel.addResumeObserver(tiltPanel);
+    tiltPanelRoot = tiltPanel.getRoot();
+    if (rbPlugin != null) {
+      pluginPanel = plugin.getComponent();
+    }
+    else {
+      pluginPanel = null;
+    }
   }
 
   static TomogramGenerationDialog getInstance(ApplicationManager appMgr,
-      TomogramGenerationExpert expert, AxisID axisID) {
-    TomogramGenerationDialog instance = new TomogramGenerationDialog(appMgr, expert,
-        axisID);
+    TomogramGenerationExpert expert, AxisID axisID) {
+    TomogramGenerationDialog instance =
+      new TomogramGenerationDialog(appMgr, expert, axisID);
     instance.createPanel();
     instance.updateAdvanced();
     instance.addListeners();
@@ -709,6 +724,11 @@ public class TomogramGenerationDialog extends ProcessDialog implements ContextMe
   }
 
   private void createPanel() {
+    // panels
+    JPanel pnlPluginPanel = null;
+    if (rbPlugin != null) {
+      pnlPluginPanel = new JPanel();
+    }
     // init
     JPanel pnlMethod = new JPanel();
     rbBackProjection.setSelected(true);
@@ -716,8 +736,13 @@ public class TomogramGenerationDialog extends ProcessDialog implements ContextMe
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     rootPanel.setBorder(new BeveledBorder("Tomogram Generation").getBorder());
     rootPanel.add(pnlMethod);
-    rootPanel.add(tiltPanel.getRoot());
+    rootPanel.add(tiltPanelRoot);
     rootPanel.add(sirtPanel.getRoot());
+    if (pnlPluginPanel != null) {
+      rootPanel.add(Box.createRigidArea(FixedDim.x0_y5));
+      rootPanel.add(pnlPluginPanel);
+      rootPanel.add(Box.createRigidArea(FixedDim.x0_y3));
+    }
     // method panel
     pnlMethod.setLayout(new BoxLayout(pnlMethod, BoxLayout.X_AXIS));
     pnlMethod.add(Box.createHorizontalGlue());
@@ -725,6 +750,17 @@ public class TomogramGenerationDialog extends ProcessDialog implements ContextMe
     pnlMethod.add(Box.createHorizontalGlue());
     pnlMethod.add(rbSirt.getComponent());
     pnlMethod.add(Box.createHorizontalGlue());
+    if (rbPlugin != null) {
+      pnlMethod.add(rbPlugin.getComponent());
+      pnlMethod.add(Box.createHorizontalGlue());
+    }
+    // PluginPanel
+    if (pnlPluginPanel != null) {
+      pnlPluginPanel.setLayout(new BoxLayout(pnlPluginPanel, BoxLayout.X_AXIS));
+      pnlPluginPanel.add(Box.createHorizontalGlue());
+      pnlPluginPanel.add(pluginPanel);
+      pnlPluginPanel.add(Box.createHorizontalGlue());
+    }
     // buttons
     btnExecute.setText("Done");
     addExitButtons();
@@ -736,6 +772,9 @@ public class TomogramGenerationDialog extends ProcessDialog implements ContextMe
     ActionListener listener = new TomogramGenerationActionListener(this);
     rbBackProjection.addActionListener(listener);
     rbSirt.addActionListener(listener);
+    if (rbPlugin != null) {
+      rbPlugin.addActionListener(listener);
+    }
   }
 
   public void msgSirtSucceeded() {
@@ -834,9 +873,10 @@ public class TomogramGenerationDialog extends ProcessDialog implements ContextMe
     }
     manPageLabel[i] = "3dmod";
     manPage[i] = "3dmod.html";
-    ContextPopup contextPopup = new ContextPopup(rootPanel, mouseEvent,
-        "TOMOGRAM GENERATION", ContextPopup.TOMO_GUIDE, manPageLabel, manPage,
-        logFileLabel, logFile, applicationManager, axisID);
+    ContextPopup contextPopup =
+      new ContextPopup(rootPanel, mouseEvent, "TOMOGRAM GENERATION",
+        ContextPopup.TOMO_GUIDE, manPageLabel, manPage, logFileLabel, logFile,
+        applicationManager, axisID);
   }
 
   public void setTiltState(TomogramState state, ConstMetaData metaData) {
@@ -869,6 +909,11 @@ public class TomogramGenerationDialog extends ProcessDialog implements ContextMe
   private void methodChanged() {
     tiltPanel.msgMethodChanged();
     sirtPanel.msgMethodChanged();
+    if (pluginPanel != null) {
+      boolean plugin = rbPlugin.isSelected();
+      pluginPanel.setVisible(plugin);
+      tiltPanelRoot.setVisible(!plugin);
+    }
     UIHarness.INSTANCE.pack(axisID, applicationManager);
   }
 
@@ -879,7 +924,8 @@ public class TomogramGenerationDialog extends ProcessDialog implements ContextMe
   private void action(final ActionEvent event) {
     String actionCommand = event.getActionCommand();
     if (actionCommand.equals(rbBackProjection.getActionCommand())
-        || actionCommand.equals(rbSirt.getActionCommand())) {
+      || actionCommand.equals(rbSirt.getActionCommand())
+      || actionCommand.equals(rbPlugin.getActionCommand())) {
       methodChanged();
     }
   }
