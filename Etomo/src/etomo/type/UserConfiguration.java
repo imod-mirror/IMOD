@@ -97,16 +97,17 @@ public final class UserConfiguration implements Storable {
   private static final String MONTAGE_KEY = DEFAULTS_KEY + ".Montage";
   private static final String PARALLEL_PROCESSING_KEY = "ParallelProcessing";
   private static final String SINGLE_AXIS_KEY = DEFAULTS_KEY + ".SingleAxis";
-  private static final String NO_PARALLEL_PROCESSING_KEY =
-      DEFAULTS_KEY + ".NoParallelProcessing";
-  private static final String GPU_PROCESSING_DEFAULT_KEY =
-      DEFAULTS_KEY + ".GpuProcessingDefault";
+  private static final String NO_PARALLEL_PROCESSING_KEY = DEFAULTS_KEY
+    + ".NoParallelProcessing";
+  private static final String GPU_PROCESSING_DEFAULT_KEY = DEFAULTS_KEY
+    + ".GpuProcessingDefault";
   private static final String SWAP_Y_AND_Z_KEY = DEFAULTS_KEY + ".SwapYAndZ";
-  private static final String TILT_ANGLES_RAWTLT_FILE_KEY =
-      DEFAULTS_KEY + ".TiltAnglesRawtltFile";
+  private static final String TILT_ANGLES_RAWTLT_FILE_KEY = DEFAULTS_KEY
+    + ".TiltAnglesRawtltFile";
+  private static final String PLUGIN_KEY = "Plugin";
 
-  private final EtomoVersion revisionNumber =
-      EtomoVersion.getInstance("RevisionNumber", CURRENT_REVISION_NUMBER);
+  private final EtomoVersion revisionNumber = EtomoVersion.getInstance("RevisionNumber",
+    CURRENT_REVISION_NUMBER);
   private final EtomoBoolean2 gpuProcessing = new EtomoBoolean2("GpuProcessing");
   private final EtomoNumber cpus = new EtomoNumber("Cpus");
   private final EtomoNumber parallelTableSize = new EtomoNumber("ParallelTableSize");
@@ -116,16 +117,16 @@ public final class UserConfiguration implements Storable {
   private final EtomoNumber mainLastLocationY = new EtomoNumber("Main.LastLocationY");
   private final EtomoNumber subLastLocationX = new EtomoNumber("Sub.LastLocationX");
   private final EtomoNumber subLastLocationY = new EtomoNumber("Sub.LastLocationY");
-  private final EtomoBoolean2 setFEIPixelSize =
-      new EtomoBoolean2(DEFAULTS_KEY + ".SetFEIPixelSize");
-  private final StringProperty userTemplateDirAbsPath =
-      new StringProperty(DEFAULTS_KEY + ".UserTemplateDir", true);
-  private final StringProperty scopeTemplateAbsPath =
-      new StringProperty(DEFAULTS_KEY + ".ScopeTemplate", true);
-  private final StringProperty systemTemplateAbsPath =
-      new StringProperty(DEFAULTS_KEY + ".SystemTemplate", true);
-  private final StringProperty userTemplateAbsPath =
-      new StringProperty(DEFAULTS_KEY + ".UserTemplate", true);
+  private final EtomoBoolean2 setFEIPixelSize = new EtomoBoolean2(DEFAULTS_KEY
+    + ".SetFEIPixelSize");
+  private final StringProperty userTemplateDirAbsPath = new StringProperty(DEFAULTS_KEY
+    + ".UserTemplateDir", true);
+  private final StringProperty scopeTemplateAbsPath = new StringProperty(DEFAULTS_KEY
+    + ".ScopeTemplate", true);
+  private final StringProperty systemTemplateAbsPath = new StringProperty(DEFAULTS_KEY
+    + ".SystemTemplate", true);
+  private final StringProperty userTemplateAbsPath = new StringProperty(DEFAULTS_KEY
+    + ".UserTemplate", true);
   private final StringProperty emailAddress = new StringProperty("EmailAddress", true);
   private final EtomoBoolean2 useEmailAddress = new EtomoBoolean2("EmailAddress.Use");
 
@@ -148,6 +149,7 @@ public final class UserConfiguration implements Storable {
   private EtomoBoolean2 gpuProcessingDefault = null;
   private EtomoBoolean2 swapYAndZ = null;
   private EtomoBoolean2 tiltAnglesRawtltFile = null;
+  private HashMap<String, EtomoBoolean2> pluginMap = null;
 
   public UserConfiguration() {
     MRUFileList = new CircularBuffer(nMRUFiles);
@@ -165,13 +167,13 @@ public final class UserConfiguration implements Storable {
   }
 
   protected String paramString() {
-    return "\n,revisionNumber=" + revisionNumber + ",\nnativeLookAndFeel=" +
-        nativeLookAndFeel + ",\nadvancedDialogs=" + advancedDialogs +
-        ",\ntoolTipsInitialDelay=" + toolTipsInitialDelay + ",\ntoolTipsDismissDelay=" +
-        toolTipsDismissDelay + ",\nnMRUFiles=" + nMRUFiles + ",\nMRUFileList=" +
-        MRUFileList.toString() + ",\nfontFamily=" + fontFamily + ",\nfontSize=" +
-        fontSize + ",\nmainWindowWidth=" + mainWindowWidth + ",\nmainWindowHeight=" +
-        mainWindowHeight + ",\nautoFit=" + autoFit;
+    return "\n,revisionNumber=" + revisionNumber + ",\nnativeLookAndFeel="
+      + nativeLookAndFeel + ",\nadvancedDialogs=" + advancedDialogs
+      + ",\ntoolTipsInitialDelay=" + toolTipsInitialDelay + ",\ntoolTipsDismissDelay="
+      + toolTipsDismissDelay + ",\nnMRUFiles=" + nMRUFiles + ",\nMRUFileList="
+      + MRUFileList.toString() + ",\nfontFamily=" + fontFamily + ",\nfontSize="
+      + fontSize + ",\nmainWindowWidth=" + mainWindowWidth + ",\nmainWindowHeight="
+      + mainWindowHeight + ",\nautoFit=" + autoFit;
   }
 
   /**
@@ -193,9 +195,9 @@ public final class UserConfiguration implements Storable {
     props.setProperty(group + "AdvancedDialogs", String.valueOf(advancedDialogs));
     props.setProperty(group + COMPACT_DISPLAY_KEY, String.valueOf(compactDisplay));
     props.setProperty(group + "ToolTipsInitialDelay",
-        String.valueOf(toolTipsInitialDelay));
+      String.valueOf(toolTipsInitialDelay));
     props.setProperty(group + "ToolTipsDismissDelay",
-        String.valueOf(toolTipsDismissDelay));
+      String.valueOf(toolTipsDismissDelay));
     props.setProperty(group + "FontFamily", String.valueOf(fontFamily));
     props.setProperty(group + "FontSize", String.valueOf(fontSize));
     EtomoBoolean2.store(singleAxis, props, prepend, SINGLE_AXIS_KEY);
@@ -203,7 +205,7 @@ public final class UserConfiguration implements Storable {
     EtomoBoolean2.store(noParallelProcessing, props, prepend, NO_PARALLEL_PROCESSING_KEY);
     EtomoBoolean2.store(gpuProcessingDefault, props, prepend, GPU_PROCESSING_DEFAULT_KEY);
     EtomoBoolean2
-        .store(tiltAnglesRawtltFile, props, prepend, TILT_ANGLES_RAWTLT_FILE_KEY);
+      .store(tiltAnglesRawtltFile, props, prepend, TILT_ANGLES_RAWTLT_FILE_KEY);
     EtomoBoolean2.store(swapYAndZ, props, prepend, SWAP_Y_AND_Z_KEY);
     EtomoBoolean2.store(parallelProcessing, props, prepend, PARALLEL_PROCESSING_KEY);
     gpuProcessing.store(props, prepend);
@@ -222,17 +224,20 @@ public final class UserConfiguration implements Storable {
     userTemplateAbsPath.store(props, prepend);
     emailAddress.store(props, prepend);
     useEmailAddress.store(props, prepend);
-
     props.setProperty(group + "MainWindowWidth", String.valueOf(mainWindowWidth));
     props.setProperty(group + "MainWindowHeight", String.valueOf(mainWindowHeight));
-
     props.setProperty(group + "NMRUFiles", String.valueOf(nMRUFiles));
     for (int i = 0; i < nMRUFiles; i++) {
       props.setProperty(group + "EtomoDataFile" + String.valueOf(i),
-          (String) MRUFileList.get());
+        (String) MRUFileList.get());
     }
-
     props.setProperty(group + "AutoFit", String.valueOf(autoFit));
+    if (pluginMap != null) {
+      Iterator<EtomoBoolean2> iterator = pluginMap.values().iterator();
+      while (iterator.hasNext()) {
+        iterator.next().store(props, prepend);
+      }
+    }
   }
 
   public void load(Properties props) {
@@ -274,18 +279,21 @@ public final class UserConfiguration implements Storable {
     //
     revisionNumber.load(props, origPrepend);
     parallelProcessing =
-        EtomoBoolean2.load(parallelProcessing, PARALLEL_PROCESSING_KEY, props, prepend);
+      EtomoBoolean2.load(parallelProcessing, PARALLEL_PROCESSING_KEY, props, prepend);
     montage = EtomoBoolean2.load(montage, MONTAGE_KEY, props, prepend);
     singleAxis = EtomoBoolean2.load(singleAxis, SINGLE_AXIS_KEY, props, prepend);
-    noParallelProcessing = EtomoBoolean2
+    noParallelProcessing =
+      EtomoBoolean2
         .load(noParallelProcessing, NO_PARALLEL_PROCESSING_KEY, props, prepend);
-    gpuProcessingDefault = EtomoBoolean2
+    gpuProcessingDefault =
+      EtomoBoolean2
         .load(gpuProcessingDefault, GPU_PROCESSING_DEFAULT_KEY, props, prepend);
     parallelTableSize.load(props, prepend);
     swapYAndZ = EtomoBoolean2.load(swapYAndZ, SWAP_Y_AND_Z_KEY, props, prepend);
     cpus.load(props, prepend);
-    tiltAnglesRawtltFile = EtomoBoolean2
-        .load(tiltAnglesRawtltFile, TILT_ANGLES_RAWTLT_FILE_KEY, props, prepend);
+    tiltAnglesRawtltFile =
+      EtomoBoolean2.load(tiltAnglesRawtltFile, TILT_ANGLES_RAWTLT_FILE_KEY, props,
+        prepend);
     joinTableSize.load(props, prepend);
     peetTableSize.load(props, prepend);
     // Backward compatibility
@@ -295,7 +303,7 @@ public final class UserConfiguration implements Storable {
       if (parallelProcessing == null) {
 
         parallelProcessing =
-            EtomoBoolean2.load(parallelProcessing, PARALLEL_PROCESSING_KEY, props, ".");
+          EtomoBoolean2.load(parallelProcessing, PARALLEL_PROCESSING_KEY, props, ".");
       }
       if (montage == null) {
         montage = EtomoBoolean2.load(montage, MONTAGE_KEY, props, ".");
@@ -304,7 +312,8 @@ public final class UserConfiguration implements Storable {
         singleAxis = EtomoBoolean2.load(singleAxis, SINGLE_AXIS_KEY, props, ".");
       }
       if (noParallelProcessing == null) {
-        noParallelProcessing = EtomoBoolean2
+        noParallelProcessing =
+          EtomoBoolean2
             .load(noParallelProcessing, NO_PARALLEL_PROCESSING_KEY, props, ".");
       }
       if (parallelTableSize.isNull()) {
@@ -317,8 +326,9 @@ public final class UserConfiguration implements Storable {
         cpus.load(props, ".");
       }
       if (tiltAnglesRawtltFile == null) {
-        tiltAnglesRawtltFile = EtomoBoolean2
-            .load(tiltAnglesRawtltFile, TILT_ANGLES_RAWTLT_FILE_KEY, props, ".");
+        tiltAnglesRawtltFile =
+          EtomoBoolean2.load(tiltAnglesRawtltFile, TILT_ANGLES_RAWTLT_FILE_KEY, props,
+            ".");
       }
       if (joinTableSize.isNull()) {
         joinTableSize.load(props, ".");
@@ -329,25 +339,25 @@ public final class UserConfiguration implements Storable {
     }
     // revisionNumber = props.getProperty(group + "RevisionNumber", "1.0");
     nativeLookAndFeel =
-        Boolean.valueOf(props.getProperty(group + "NativeLookAndFeel", "false"))
-            .booleanValue();
+      Boolean.valueOf(props.getProperty(group + "NativeLookAndFeel", "false"))
+        .booleanValue();
     advancedDialogs =
-        Boolean.valueOf(props.getProperty(group + "AdvancedDialogs", "false"))
-            .booleanValue();
+      Boolean.valueOf(props.getProperty(group + "AdvancedDialogs", "false"))
+        .booleanValue();
     compactDisplay =
-        Boolean.valueOf(props.getProperty(group + COMPACT_DISPLAY_KEY, "false"))
-            .booleanValue();
+      Boolean.valueOf(props.getProperty(group + COMPACT_DISPLAY_KEY, "false"))
+        .booleanValue();
     toolTipsInitialDelay =
-        Integer.parseInt(props.getProperty(group + "ToolTipsInitialDelay", "1000"));
+      Integer.parseInt(props.getProperty(group + "ToolTipsInitialDelay", "1000"));
     toolTipsDismissDelay =
-        Integer.parseInt(props.getProperty(group + "ToolTipsDismissDelay", "30000"));
+      Integer.parseInt(props.getProperty(group + "ToolTipsDismissDelay", "30000"));
     fontFamily = props.getProperty(group + "FontFamily", "Dialog");
     fontSize = Integer.parseInt(props.getProperty(group + "FontSize", "12"));
 
     mainWindowWidth =
-        Integer.parseInt(props.getProperty(group + "MainWindowWidth", "800"));
+      Integer.parseInt(props.getProperty(group + "MainWindowWidth", "800"));
     mainWindowHeight =
-        Integer.parseInt(props.getProperty(group + "MainWindowHeight", "600"));
+      Integer.parseInt(props.getProperty(group + "MainWindowHeight", "600"));
 
     nMRUFiles = Integer.parseInt(props.getProperty(group + "NMRUFiles", "10"));
     MRUFileList = new CircularBuffer(nMRUFiles);
@@ -355,7 +365,7 @@ public final class UserConfiguration implements Storable {
       MRUFileList.put(props.getProperty("EtomoDataFile" + String.valueOf(i), ""));
     }
     autoFit =
-        Boolean.valueOf(props.getProperty(group + "AutoFit", "false")).booleanValue();
+      Boolean.valueOf(props.getProperty(group + "AutoFit", "false")).booleanValue();
     // TEMP bug# 614
     autoFit = true;
     gpuProcessing.load(props, prepend);
@@ -376,6 +386,61 @@ public final class UserConfiguration implements Storable {
     userTemplateAbsPath.load(props, prepend);
     emailAddress.load(props, prepend);
     useEmailAddress.load(props, prepend);
+    // Can't use getProperty to find an unknown key - go through the entire collection
+    if (pluginMap != null) {
+      pluginMap.clear();
+    }
+    Set<Map.Entry<Object, Object>> set = props.entrySet();
+    if (set != null) {
+      Iterator<Map.Entry<Object, Object>> iterator = set.iterator();
+      if (iterator != null) {
+        while (iterator.hasNext()) {
+          Map.Entry<Object, Object> entry = iterator.next();
+          // Must be strings. Null value is OK.
+          if (entry == null || !(entry.getKey() instanceof String)
+            || (entry.getValue() != null && !(entry.getValue() instanceof String))) {
+            continue;
+          }
+          String propKey = (String) entry.getKey();
+          if (propKey == null) {
+            continue;
+          }
+          if (propKey.startsWith(group + PLUGIN_KEY)) {
+            // Get the key without the prepend for
+            String key = propKey.substring(group.length());
+            EtomoBoolean2 property = new EtomoBoolean2(key);
+            property.set((String) entry.getValue());
+            if (pluginMap == null) {
+              pluginMap = new HashMap<String, EtomoBoolean2>();
+            }
+            pluginMap.put(key, property);
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * Adds or updates a plugin property.
+   * @param key
+   * @param value
+   */
+  public void setPlugin(final String key, final boolean value) {
+    if (key == null || key.matches("\\s*")) {
+      return;
+    }
+    EtomoBoolean2 property = null;
+    if (pluginMap != null) {
+      property = pluginMap.get(key);
+    }
+    if (property == null) {
+      property = new EtomoBoolean2(key);
+    }
+    property.set(value);
+    if (pluginMap == null) {
+      pluginMap = new HashMap<String, EtomoBoolean2>();
+    }
+    pluginMap.put(key, property);
   }
 
   /**
@@ -385,6 +450,20 @@ public final class UserConfiguration implements Storable {
     if (MRUFileList.search(filename) == -1) {
       MRUFileList.put(filename);
     }
+  }
+
+  public boolean hasPlugin(final String key) {
+    if (pluginMap != null && pluginMap.containsKey(key)) {
+      return true;
+    }
+    return false;
+  }
+
+  public boolean isPlugin(final String key) {
+    if (pluginMap != null) {
+      return pluginMap.get(key).is();
+    }
+    return false;
   }
 
   /**
