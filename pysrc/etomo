@@ -180,6 +180,27 @@ if '-h' in sys.argv or '--help' in sys.argv or '--h' in sys.argv:
 if '--fg' in sys.argv or '--directive' in sys.argv:
    foreground = 1
 
+# add plugin locations to the classpath
+pluginPathArray = []
+path = os.path.join(os.environ['IMOD_DIR'], '..', 'EtomoPlugins')
+if os.path.exists(path):
+   pluginPathArray.append(path)
+   prnstr('Plugin location: ' + path)
+path = os.path.join(os.environ['IMOD_DIR'], 'imodplug', 'etomo')
+if os.path.exists(path):
+   pluginPathArray.append(path)
+   prnstr('Plugin location: ' + path)
+path = '/home/sueh/TestPlugins'
+if os.path.exists(path):
+   pluginPathArray.append(path)
+   prnstr('Plugin location: ' + path)
+pluginPaths = ''
+if pluginPathArray:
+   for path in pluginPathArray:
+      if pluginPaths:
+         pluginPaths += os.pathsep
+      pluginPaths += path
+
 # Allow developer to run a specified jar
 jarDir = IMOD_DIR + '/bin/'
 if '--jardir' in sys.argv:
@@ -189,8 +210,9 @@ if '--jardir' in sys.argv:
          break
 
 # Build the common java command
-javacom = fmtstr('java -Xmx{0} {1} -cp "{2}/etomo" -jar "{2}/etomo.jar"', \
-                    ETOMO_MEM_LIM, userhomeQuoted, jarDir)
+javacom = fmtstr('java -Xmx{0} -Djava.ext.dirs="{3)" {1} -cp "{2}/etomo" -jar "{2}/etomo.jar"', \
+                    ETOMO_MEM_LIM, userhomeQuoted, jarDir, pluginPaths)
+prnstr('javacom:' + javacom)
 comArray = ['java', '-Xmx' + ETOMO_MEM_LIM]
 if userhome:
    comArray.append(userhome)
