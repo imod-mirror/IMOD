@@ -1,7 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-5/13/15: In eTomo - Batchruntomo Interface, saving the Two Surfaces checkbox
-to the comparam.align.tiltalign.SurfacesToAnalyze.(Bug# 1880)
+5/13/15: IMOD_4-8-33
+5/13/15: In eTomo - Batchruntomo Interface, connected the Two Surfaces checkbox
+to the right directive so that it has an effect.(Bug# 1880)
 
 5/12/15: Made Batchruntomo use directive value for number of surfaces in
 preference to the value in align.com.

@@ -85,7 +85,7 @@ import etomo.util.Utilities;
  * <p> </p>
  */
 public final class Arguments {
-  public static final String NAMES_TAG = "--names";
+  public static final String DIRECTIVE_TAG = "--directive";
   public static final String SELFTEST_TAG = "--selftest";
   public static final String TEST_TAG = "--test";
   static final String HEADLESS_TAG = "--headless";
@@ -112,7 +112,6 @@ public final class Arguments {
   private static final String IGNORE_LOC_TAG = "--ignoreloc";
   private static final String IGNORE_SETTINGS_TAG = "--ignoresettings";
   private static final String ACTIONS_TAG = "--actions";
-  public static final String DIRECTIVE_TAG = "--directive";
   private static final String CPUS_TAG = "--cpus";
   private static final String GPUS_TAG = "--gpus";
   private static final String FROM_BRT_TAG = "--fromBRT";
@@ -121,11 +120,6 @@ public final class Arguments {
 
   private boolean debug = false;
   private DebugLevel debugLevel = DebugLevel.OFF;
-  /**
-   * If arguments hasn't been initialized yet, then
-   * assume that this is a test because UITest does alot of work before it can
-   * run EtomoDirector.main.
-   */
   private boolean test = true;
   private boolean headless = GraphicsEnvironment.isHeadless();
   /**
@@ -167,7 +161,12 @@ public final class Arguments {
   private boolean fromBRT = false;
 
   private final EtomoNumber enFiducial = new EtomoNumber(EtomoNumber.Type.DOUBLE);
-
+  /**
+   * If arguments hasn't been initialized yet, then
+   * assume that this is a test because UITest does alot of work before it can
+   * run EtomoDirector.main.
+   */
+  public static final String NAMES_TAG = "--names";
   Arguments() {}
 
   static void printHelpMessage() {
