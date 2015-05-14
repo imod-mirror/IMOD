@@ -85,7 +85,7 @@ import etomo.util.Utilities;
  * <p> </p>
  */
 public final class Arguments {
-  public static final String NAMES_TAG = "--names";
+  public static final String DIRECTIVE_TAG = "--directive";
   public static final String SELFTEST_TAG = "--selftest";
   public static final String TEST_TAG = "--test";
   static final String HEADLESS_TAG = "--headless";
@@ -112,7 +112,6 @@ public final class Arguments {
   private static final String IGNORE_LOC_TAG = "--ignoreloc";
   private static final String IGNORE_SETTINGS_TAG = "--ignoresettings";
   private static final String ACTIONS_TAG = "--actions";
-  public static final String DIRECTIVE_TAG = "--directive";
   private static final String CPUS_TAG = "--cpus";
   private static final String GPUS_TAG = "--gpus";
   private static final String FROM_BRT_TAG = "--fromBRT";
@@ -126,6 +125,7 @@ public final class Arguments {
    * assume that this is a test because UITest does alot of work before it can
    * run EtomoDirector.main.
    */
+  public static final String NAMES_TAG = "--names";
   private boolean test = true;
   private boolean headless = GraphicsEnvironment.isHeadless();
   /**
