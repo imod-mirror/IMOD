@@ -19,7 +19,7 @@ public class GraftedStatement extends Statement {
   private final Statement statement;
 
   public GraftedStatement(final Statement previousStatement, final Statement statement) {
-    super(previousStatement);
+    super(previousStatement, -1);
     this.statement = statement;
   }
 

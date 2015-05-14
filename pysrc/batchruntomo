@@ -586,14 +586,15 @@ def useFileAsReplacement(useFile, oldFile, saveOrig, makeBackup):
 
 
 # Run imodtrans to get a boundary model onto (prealigned) stack
+# In case there was any screwup in pixel size change of boundary model, make sure it
+# fits the current stack before transforming
 def transformRawBoundaryModel(modelIn, modelOut):
    try:
       (panx, pany, panz) = getmrcsize(dataName + '.preali')
-      comstr = fmtstr('imodtrans -i "{}.preali" -2 "{}.prexg" -S {} -tx {} -ty {} "{}"' +
-                      ' "{}"', dataName, dataName, 1. / coarseBinning,
-                      (panx - rawXsize // coarseBinning) / 2.,
-                      (pany - rawYsize // coarseBinning) / 2.,
-                      modelIn, modelOut)
+      comstr = fmtstr('imodtrans -I "{}.st" -i "{}.preali" -2 "{}.prexg" -S {} -tx {}' +\
+                         ' -ty {} "{}" "{}"', dataName, dataName, dataName,
+                      1. / coarseBinning, (panx - rawXsize // coarseBinning) / 2.,
+                      (pany - rawYsize // coarseBinning) / 2., modelIn, modelOut)
       prnLog('Transforming ' + modelIn + ' to ' + modelOut + ' with:\n' + comstr)
       runcmd(comstr)
    except ImodpyError:
@@ -1321,6 +1322,64 @@ def getAxisInitialParameters():
       return 1
 
    return 0
+
+
+# Run imodtrans on a model to make it match existing raw stack,
+# Then replace original file.  A failure is not fatal unless it leaves no raw model file
+def fixModelHeaderForImage(model, image):
+   if not os.path.exists(image) or not os.path.exists(model):
+      return 0
+   tmpName = model + '.transtemp'
+   try:
+      runcmd(fmtstr('imodtrans -I "{}" "{}" "{}"', image, model, tmpName))
+   except ImodpyError:
+      prnLog('WARNING: Could not fix coordinate information in model ' + model)
+      reportImodError(None)
+      return 0
+   makeBackupFile(model)
+   try:
+      os.rename(tmpName, model)
+   except OSError:
+      prnLog('Error renaming fixed model ' + tmpName + ' to ' + model)
+      return 1
+   prnLog('Modified model ' + model + ' to adjust for change in pixel size of raw stack')
+   return 0
+            
+
+# If pixel size was changed for an FEI file, make sure all raw boundary and X-ray models
+# are changed so that they can still load correctly on the raw stacks
+def fixAllSuppliedModelHeaders():
+   modSet = set()
+   bModSet = set()
+   axList = ['a', 'any']
+   if dualAxis:
+      image = setName + 'a.st'
+      modSet.add(setName + 'a.erase')
+      axList.append('b')
+      bModSet.add(setName + 'b.erase')
+   else:
+      image = setName + '.st'
+      modSet.add(setName + '.erase')
+
+   for operation in ('SeedFinding', 'PatchTracking'):
+      for axLet in axList:
+         key = runtimePrefix + operation + '.' + axLet + '.rawBoundaryModel'
+         if key in allDirectives[BatInd]:
+            rawBound = allDirectives[BatInd][key][0]
+            if axLet == 'b':
+               bModSet.add(rawBound)
+            else:
+               modSet.add(rawBound)
+
+   for ind in range(len(modSet)):
+      rawBound = modSet.pop()
+      if fixModelHeaderForImage(rawBound, image):
+         return 1
+
+   for ind in range(len(bModSet)):
+      rawBound = bModSet.pop()
+      if fixModelHeaderForImage(rawBound, setName + 'b.st'):
+         return 1
 
 
 # SINGLE-CALL FUNCTIONS FOR PROCESSING STEPS AND A FEW HELPERS FOR THEM
@@ -2765,6 +2824,7 @@ def setupCombine():
           testDirectiveValue(lowRadius, 'Combine.lowFromBothRadius', 'float'):
       return 1
    comLines = ['RootName ' + setName,
+               'WarningsToStandardOut 1',
                'TransferPointFile transferfid.coord',
                'SurfaceModelType ' + str(numSurf),
                fmtstr('ZLowerAndUpper {},{}', topBotA[topBotInd], topBotA[topBotInd + 1]),
@@ -3199,15 +3259,18 @@ def runOneAxis():
       sedcom = []
 
       # Copy the model file to the standard local name and switch to that unless the
-      # file already exists
+      # file already exists.  But do it with imodtrans to make sure pixel size fits the
+      # current stack
       model = lookupDirective(comPrefix + 'eraser', 'ccderaser.ModelFile', 0,STRING_VALUE)
       if model:
          eraseMod = setName + axisLet + '.erase'
          if os.path.basename(model) != eraseMod and not os.path.exists(eraseMod):
             try:
-               shutil.copyfile(model, eraseMod)
-            except Exception:
-               abortSet('Error copying manual erasing model ' + model + ' to ' + eraseMod)
+               runcmd(fmtstr('imodtrans -I "{}" "{}" "{}"', setName + axisLet + '.st',
+                             model, eraseMod))
+            except ImodpyError:
+               reportImodError('Error transforming manual erasing model ' + model + \
+                                  ' to ' + eraseMod)
                return 1
             sedcom = [sedModify('ModelFile', eraseMod)]
 
@@ -3287,9 +3350,17 @@ def runOneAxis():
    taLines = readTextFile('align' + axisCom)
    if not taLines:
       return 1
-   numSurfaces = optionValue(taLines, 'SurfacesToAnalyze', INT_VALUE, numVal = 1)
-   if not numSurfaces:
-      abortSet('Failed to find SurfacesToAnalyze in align' + axisCom)
+
+   # Get the number of surfaces from directives in case it changed, fall back to align.com
+   numSurfaces = lookupDirective(comPrefix + 'align', 'tiltalign.SurfacesToAnalyze', 0,
+                                 INT_VALUE)
+   if numSurfaces == None:
+      numSurfaces = optionValue(taLines, 'SurfacesToAnalyze', INT_VALUE, numVal = 1)
+      if numSurfaces == None:
+         abortSet('Failed to find SurfacesToAnalyze in align' + axisCom)
+   if numSurfaces <= 0:
+      abortSet('SurfacesToAnalyze is 0 or negative in directives or in align' + axisCom)
+      return 1
 
    if fiducialless or patchTrack:
       numSurfaces = 1
@@ -3818,7 +3889,22 @@ for dfileInd in range(numSets):
                shutil.copy(errlog, '.')
             except Exception:
                prnLog('WARNING: failed to copy ' + errlog + ' to dataset directory')
-         printTaggedMessages(errlog, [('INFO:', 1), ('LOG:', 3)])
+
+         loglines = readTextFile(errlog, None, True)
+         if isinstance(loglines, str):
+            prnLog('WARNING: Error ' + loglines)
+         else:
+            printTaggedMessages(loglines, [('INFO:', 1), ('LOG:', 3)])
+            err = 0
+            for line in loglines:
+               if 'Pixel spacing was set in FEI file' in line:
+                  err = fixAllSuppliedModelHeaders()
+                  break
+
+            if err:
+               prnLog('Cannot proceed with this data set')
+               continue
+            
       else:
          if failed:
             prnLog('Running etomo failed, no etomo error log available')

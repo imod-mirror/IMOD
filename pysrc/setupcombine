@@ -125,6 +125,7 @@ def getSeriesSizeAndAngle(axis):
 # Edits the com file with the current sed commands, applies a change list if any, writes
 # com file and writes a default copy to dfltcoms if different, and a copy to origcoms
 def editApplyChangeListAndWrite(sedcom, comName):
+   sedcom.append('/####CreatedVersion####/s/# .*/#' + IMODversion + '/')
    sedLines = pysed(sedcom, srcdir + '/' + comName, None)
    (srcRoot, ext) = os.path.splitext(comName)
    if len(changeList) > 0:
@@ -139,27 +140,27 @@ def editApplyChangeListAndWrite(sedcom, comName):
 
 # Make a copy of combine.com or edit it as needed
 def makeCombineCom():
+   sedcom = ['/####CreatedVersion####/s/# .*/#' + IMODversion + '/']
    if autoPatch or useVolMatch:
-      sedcom = []
       if autoPatch:
          final = autoPatch
          if extraTargets:
             final += ' -extra ' + extraTargets
-         sedcom = [fmtstr('/autopatchfit -final/s/-final E/-final {}/', final),
+         sedcom += [fmtstr('/autopatchfit -final/s/-final E/-final {}/', final),
                    '/goto patchcorr/s//goto autopatch/']
 
       if useVolMatch:
          sedcom.append('/goto solvematch/s//goto dualvolmatch/')
             
-      pysed(sedcom, srcdir + '/combine.com', 'combine.com')
-      
-   else:
-      shutil.copy(srcdir + '/combine.com', 'combine.com')
+   pysed(sedcom, srcdir + '/combine.com', 'combine.com')
 
 
 def warning(text):
-   prnstr(' ', file=sys.stderr)
-   prnstr('WARNING: ' + text + '\n', file=sys.stderr)
+   dest = sys.stderr
+   if warnToStdOut:
+      dest = sys.stdout
+   prnstr(' ', file=dest)
+   prnstr('WARNING: ' + text + '\n', file=dest)
    
 
 
@@ -204,6 +205,11 @@ srcdir = os.path.join(os.environ['IMOD_DIR'], 'com')
 if not os.path.exists(srcdir):
    exitError("Source directory for command files, " + srcdir + ", not found")
 
+# Get IMOD version
+IMODversion = getIMODversion()
+if not IMODversion:
+   exitError('Getting IMOD version')
+
 # Set up to save coms if copytomocoms set up directories
 origComDir = 'origcoms'
 dfltComDir = 'dfltcoms'
@@ -216,7 +222,6 @@ sedtranskey = "gibberish"
 fromlet = "b"
 tolet = "a"
 delregion = "RegionModel"
-mowSize = "gibberish"
 
 # Fallbacks from ../manpages/autodoc2man 3 1 setupcombine
 options = ["name:RootName:FN:", "atob:MatchAtoB:B:", "tolist:ToVolPointList:LI:",
@@ -229,7 +234,8 @@ options = ["name:RootName:FN:", "atob:MatchAtoB:B:", "tolist:ToVolPointList:LI:"
            "lowradius:LowFromBothRadius:F:", "wedgefrac:WedgeReductionFraction:F:",
            "change:ChangeParametersFile:FNM:", "one:OneParameterChange:CHM:",
            "tempdir:TemporaryDirectory:FN:", "noclean:NoTempCleanup:B:",
-           "info:InfoOnPatchSizes:B:", "only:OnlyMakeCombineCom:B:", "help:usage:B:"]
+           "info:InfoOnPatchSizes:B:", "only:OnlyMakeCombineCom:B:",
+           "warnings:WarningsToStandardOut:B:", "help:usage:B:"]
 
 (numOpts, numNonOpts) = PipReadOrParseOptions(sys.argv, options, progname, 1, \
                                               0, 0)
@@ -247,6 +253,7 @@ rootname = PipGetString("RootName", "")
 if not rootname and not makeCombineOnly:
    exitError("A root name must be entered")
 
+warnToStdOut = PipGetBoolean('WarningsToStandardOut', 0)
 matchatob = PipGetBoolean('MatchAtoB', 0)
 if matchatob:
    fromlet = 'a'
@@ -283,7 +290,6 @@ if err and not makeCombineOnly:
 
 autoPatch = PipGetString('AutoPatchFinalSize', '')
 extraTargets = ''
-mowOpts = ''
 if autoPatch:
    (autonx, autony, autonz, err) = patchSizeFromEntry(autoPatch)
    if err:
@@ -293,9 +299,7 @@ if autoPatch:
       exitError('The final patch size for Autopatchfit must not be smaller than ' + \
                    'the starting patch size')
    extraTargets = PipGetString('ExtraResidualTargets', '')
-   mowSize = "matchorwarp -size"
-   mowOpts = '-extentfit 3 -structurecrit 0.5,0.57,0.65'
-   
+
 # If making combine.com only, do it now that preconditions are done
 if makeCombineOnly:
    makeBackupFile("combine.com")
@@ -316,10 +320,6 @@ if noZentered and not autoPatch:
 regionmod = PipGetString('PatchRegionModel', '')
 if regionmod:
    delregion = 'gibberish'
-   mowSize = "matchorwarp -size"
-   if mowOpts:
-      mowOpts += ' '
-   mowOpts += '-modelfile ' + regionmod
    if not os.path.exists(regionmod):
       warning('file ' + regionmod + ' does not yet exist.')
 
@@ -475,7 +475,6 @@ if tmproot:
    tmpdir = tmproot + '/combine.' + fmtstr('{}', os.getpid())
    tmppath = tmpdir + '/'
    ifmkdir = '$if'
-   tempdirarg = "gibberish"
    tmpmatfile = tmppath + matfile
    sedtmpdir = tmpdir.replace('/','\/')
    sedmatfile = sedtmpdir + '\/' + matfile
@@ -485,7 +484,6 @@ else:
    tmpdir = ""
    tmppath = ""
    ifmkdir = '#$if'
-   tempdirarg = " -tempdir "
    tmpmatfile = matfile
    sedtmpdir = ""
    sedmatfile = matfile
@@ -548,7 +546,8 @@ sedcom = [fmtstr("s/{}/{}/g", from_srcname, fromname),
           fmtstr("/mkdir/s/.*if/{}/", ifmkdir),
           fmtstr("s/{}/{}/g", matfile, sedmatfile),
           fmtstr("/{}/s/#//", sedtempkey),
-          fmtstr("/OutputSizeXYZ/s/\//{} {} {}/g", nx,nz,ny)]
+          fmtstr("/OutputSizeXYZ/s/\//{} {} {}/g", nx,nz,ny),
+          '/####CreatedVersion####/s/# .*/#' + IMODversion + '/']
 pysed(sedcom, srcdir + '/' + matchvol2, matchvol2)
 
 pysed(sedcom, srcdir + '/' + warpvol, warpvol)
@@ -596,9 +595,14 @@ sedcom = [fmtstr("s/{}/{}/g", from_srcname, fromname),
           fmtstr("s/{}/{}/g", tmp_srcname, sedtmpdir),
           fmtstr("/mkdir/s/.*if/{}/", ifmkdir),
           fmtstr("s/{}/{}/g", matfile, sedmatfile),
-          fmtstr("/{}/s//matchorwarp {} -size/", mowSize, mowOpts),
-          fmtstr("/{}/s///", tempdirarg)]
-pysed(sedcom, srcdir + '/' + matchorwarp, matchorwarp)
+          fmtstr("/{}/s/#//", sedtempkey)]
+if autoPatch:
+   sedcom += ['/^WarpLimits/a/ExtentToFit	3/',
+              '/^WarpLimits/a/StructureCriteria	0.5,0.57,0.65/']
+if regionmod:
+   sedcom.append(fmtstr('/^WarpLimits/a/ModelFile	{}/', regionmod))
+
+editApplyChangeListAndWrite(sedcom, matchorwarp)
 
 # Do combine.com
 makeCombineCom()
@@ -610,7 +614,8 @@ sedcom = [fmtstr("s/{}/{}/g", from_srcname, fromname),
           fmtstr("s/{}/{}/g", matfile, sedmatfile),
           fmtstr('/set combinefft_lowboth =/s/=.*/= {}/', lowRadius),
           fmtstr('/set combinefft_reduce =/s/=.*/= {}/', wedgeReduction),
-          fmtstr("/savework-file/s//{}/g", backupsed)]
+          fmtstr("/savework-file/s//{}/g", backupsed),
+          '/####CreatedVersion####/s/# .*/#' + IMODversion + '/']
 voltext = pysed(sedcom, srcdir + '/' + volcombine)
 
 # If we really want this to run with no recfile, supply the test size to -tomo

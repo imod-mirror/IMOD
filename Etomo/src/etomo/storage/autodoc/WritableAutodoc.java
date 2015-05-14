@@ -36,7 +36,7 @@ import etomo.ui.swing.Token;
  * <p> </p>
  */
 public interface WritableAutodoc extends ReadOnlyAutodoc {
-   public void addNameValuePairAttribute(String name, String value);
+  public void addNameValuePairAttribute(String name, String value);
 
   public void addNameValuePairAttribute(String name, String value, int lineNum);
 
@@ -44,11 +44,11 @@ public interface WritableAutodoc extends ReadOnlyAutodoc {
 
   public void write() throws LogFile.LockException, IOException;
 
-  public void addComment(Token comment);
+  public void addComment(Token comment, int lineNum);
 
-  public void addEmptyLine();
+  public void addEmptyLine(int lineNum);
 
-  public void addComment(String comment);
+  public void addComment(String comment, int lineNum);
 
   public WritableStatement removeNameValuePair(String name);
 

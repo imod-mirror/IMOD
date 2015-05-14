@@ -6234,12 +6234,14 @@ public final class ApplicationManager extends BaseManager implements
     String actionMessage =
       setCurrentDialogType(DialogType.TOMOGRAM_COMBINATION, AxisID.FIRST);
     mainPanel.selectButton(AxisID.FIRST, "Tomogram Combination");
+    boolean init = false;
     if (tomogramCombinationDialog == null) {
       // Get the setupcombine parameters and set the default patch
       // boundaries if
       // they have not already been set
       CombineParams combineParams = metaData.getCombineParams();
       if (!combineParams.isPatchBoundarySet() && !metaData.isBatchruntomoSet()) {
+        init = true;
         // The first time combine is opened for this dataset, set tomogram size
         TomogramTool.saveTomogramSize(this, AxisID.FIRST, AxisID.ONLY);
         TomogramTool.saveTomogramSize(this, AxisID.SECOND, AxisID.ONLY);
@@ -6292,7 +6294,7 @@ public final class ApplicationManager extends BaseManager implements
           .timestamp("new", "TomogramCombinationDialog", Utilities.FINISHED_STATUS);
       }
       // Fill in the dialog box params and set it to the appropriate state
-      tomogramCombinationDialog.setCombineParams(combineParams);
+      tomogramCombinationDialog.setCombineParams(combineParams, init);
       // TODO combine.com must have dualvolmatch command
       backwardsCompatibilityCombineScriptsExist();
       // If setupcombine has been run load the com scripts, otherwise disable
@@ -6831,10 +6833,12 @@ public final class ApplicationManager extends BaseManager implements
     comScriptMgr.loadSolvematch();
     tomogramCombinationDialog.setSolvematchParams(comScriptMgr.getSolvematch());
   }
+
   public void loadDualvolmatch() {
     comScriptMgr.loadDualvolmatch();
     tomogramCombinationDialog.setDualvolmatchParams(comScriptMgr.getDualvolmatch());
   }
+
   /**
    * Merge solvematchshift and solvematchmod com scripts in solvematch and load
    * solvematchinto the tomogram combination dialog
@@ -6947,25 +6951,26 @@ public final class ApplicationManager extends BaseManager implements
     }
     return true;
   }
-/*
-  private void createNewSolvematch(SolvematchParam solvematchParam) {
-    try {
-      comScriptMgr.useTemplate("solvematch", metaData.getDatasetName(),
-        AxisType.DUAL_AXIS, AxisID.ONLY);
-    }
-    catch (Exception e) {
-      e.printStackTrace();
-      String[] message = new String[2];
-      message[0] = "Unable to create solvematch com script";
-      message[1] = "Check file and directory permissions";
-      uiHarness.openMessageDialog(this, message, "Cannot Create Comscript", AxisID.ONLY);
-      return;
-    }
-    // Write it out the converted object disk
-    comScriptMgr.loadSolvematch();
-    comScriptMgr.saveSolvematch(solvematchParam);
-    tomogramCombinationDialog.setSolvematchParams(solvematchParam);
-  }*/
+
+  /*
+    private void createNewSolvematch(SolvematchParam solvematchParam) {
+      try {
+        comScriptMgr.useTemplate("solvematch", metaData.getDatasetName(),
+          AxisType.DUAL_AXIS, AxisID.ONLY);
+      }
+      catch (Exception e) {
+        e.printStackTrace();
+        String[] message = new String[2];
+        message[0] = "Unable to create solvematch com script";
+        message[1] = "Check file and directory permissions";
+        uiHarness.openMessageDialog(this, message, "Cannot Create Comscript", AxisID.ONLY);
+        return;
+      }
+      // Write it out the converted object disk
+      comScriptMgr.loadSolvematch();
+      comScriptMgr.saveSolvematch(solvematchParam);
+      tomogramCombinationDialog.setSolvematchParams(solvematchParam);
+    }*/
 
   /**
    * load the matchvol1 com script into the tomogram combination dialog
@@ -7214,7 +7219,7 @@ public final class ApplicationManager extends BaseManager implements
       if (!tomogramCombinationDialog.getMatchorwarpParams(matchorwarpParam, doValidation)) {
         return false;
       }
-      matchorwarpParam.setTrial(trialMode);
+      matchorwarpParam.setTrialMode(trialMode);
       comScriptMgr.saveMatchorwarp(matchorwarpParam);
     }
     catch (NumberFormatException except) {
@@ -8486,11 +8491,8 @@ public final class ApplicationManager extends BaseManager implements
   }
 
   void updateDialog(ProcessName processName, AxisID axisID) {
-    if (axisID != AxisID.ONLY
-      && (processName == ProcessName.PRENEWST || processName == ProcessName.TRACK)) {
-      updateDialog(fiducialModelDialogB, AxisID.SECOND);
-      updateDialog(fiducialModelDialogA, AxisID.FIRST);
-    }
+    updateDialog(fiducialModelDialogB, AxisID.SECOND);
+    updateDialog(fiducialModelDialogA, AxisID.FIRST);
     if (processName == ProcessName.NEWST || processName == ProcessName.BLEND) {
       ((FinalAlignedStackExpert) getUIExpert(DialogType.FINAL_ALIGNED_STACK, axisID))
         .updateDialog();
@@ -8498,9 +8500,10 @@ public final class ApplicationManager extends BaseManager implements
   }
 
   private void updateDialog(FiducialModelDialog dialog, AxisID axisID) {
-    if (dialog == null || axisID == AxisID.ONLY) {
-      return;
+    try {
+      Thread.sleep(100);
     }
+    catch (InterruptedException e) {}
     boolean prealisExist =
       Utilities.fileExists(this, ".preali", AxisID.FIRST)
         && Utilities.fileExists(this, ".preali", AxisID.SECOND);
@@ -8511,8 +8514,11 @@ public final class ApplicationManager extends BaseManager implements
     else {
       fidExists = Utilities.fileExists(this, ".fid", AxisID.FIRST);
     }
-    dialog.setTransferfidEnabled(prealisExist && fidExists);
-    dialog.updateEnabled();
+    System.err.println("prealisExist:" + prealisExist + ",fidExists:" + fidExists);
+    if (dialog != null) {
+      dialog.setTransferfidEnabled(prealisExist && fidExists);
+      dialog.updateEnabled();
+    }
   }
 
   private void setBackgroundThreadName(String name, AxisID axisID, String processName) {

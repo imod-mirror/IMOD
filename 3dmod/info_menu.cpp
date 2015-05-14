@@ -697,7 +697,7 @@ void InfoWindow::editObjectSlot(int item)
     imodGetIndex(imod, &obOld, &co, &pt);
     if (obOld < 0)
       break;
-    obNew = obOld == imod->objsize - 1 ? obOld : imod->objsize;
+    obNew = B3DCHOICE(obOld == imod->objsize - 1, obOld, imod->objsize);
 
     if (!diaQInput(&obNew, 1, imod->objsize, 0,
                    "New object number for current object."))

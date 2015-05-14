@@ -351,7 +351,8 @@ import etomo.comscript.ComScript;
 public class Utilities {
   public static final String ACTION_TAG = "Etomo Action: ";
 
-  public static final boolean APRIL_FOOLS = new Date().toString().indexOf("Apr 01 ") != -1;
+  public static final boolean APRIL_FOOLS =
+    new Date().toString().indexOf("Apr 01 ") != -1;
   private static boolean retrievedDebug = false;
   private static boolean debug = false;
   private static boolean retrievedSelfTest = false;
@@ -763,9 +764,9 @@ public class Utilities {
     }
     // If the destination exists, exit
     if (destination.exists()) {
-      UIHarness.INSTANCE.openMessageDialog(manager, "Unable to rename "
-        + source.getName() + " to " + destination.getName()
-        + " because the target file already exists.", "Rename Failed", axisID);
+      UIHarness.INSTANCE.openMessageDialog(manager,
+        "Unable to rename " + source.getName() + " to " + destination.getName()
+          + " because the target file already exists.", "Rename Failed", axisID);
       return false;
     }
     // Rename the existing log file
@@ -1046,8 +1047,9 @@ public class Utilities {
 
   public static boolean deleteFileType(BaseManager manager, AxisID axisID,
     FileType fileType) {
-    return deleteFile(new File(manager.getPropertyUserDir(), fileType.getFileName(
-      manager, axisID)), manager, axisID);
+    return deleteFile(
+      new File(manager.getPropertyUserDir(), fileType.getFileName(manager, axisID)),
+      manager, axisID);
   }
 
   public static boolean deleteFile(final File file, final BaseManager manager,
@@ -1648,6 +1650,11 @@ public class Utilities {
       }
     }
     return buffer.toString();
+  }
+
+  public static String convertPathToUniversalWindows(final String path) {
+    String newPath = path.replaceAll("\\\\", "/");
+    return "\"" + newPath + "\"";
   }
 
   /**

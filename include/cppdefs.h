@@ -7,6 +7,7 @@
 
 #include "b3dutil.h"
 #include <iostream>
+#include <vector>
 using namespace std;
 
 #define SET_CONTROL_FLOAT(a,b) case a: b = yy ; cout << #b << " set to " << yy << endl ; break
@@ -17,5 +18,10 @@ using namespace std;
 #define PRINT2(a,b) cout << #a << " = " << a << ",  " #b << " = " << b << endl
 #define PRINT3(a,b,c) cout << #a << " = " << a << ",  " #b << " = " << b << ",  " #c << " = " << c << endl
 #define PRINT4(a,b,c,d) cout << #a << " = " << a << ",  " #b << " = " << b << ",  " #c << " = " << c << ",  " #d << " = " << d << endl
+
+#define CLEAR_RESIZE(a,b,c) { a.clear();       \
+    std::vector<b> vtmp = std::vector<b>(a);   \
+  a.swap(vtmp);                                \
+  a.resize(c); }
 
 #endif

@@ -276,7 +276,9 @@ fitting are done with Autopatchfit(1); by default, it will try medium to
 extra-large patches and add target residual values of 0.4,0.45 for
 Findwarp(1) on the final trial.  There are "runtime.Combine" directives
 to control this behavior and to set a few other parameters for tomogram
-combination.  If both SIRT and back-projection reconstructions are
+combination; also, "comparam" directives can be used to modify
+parameters in solvematch.com, patchcorr.com, and matchorwarp.com. If
+both SIRT and back-projection reconstructions are
 available, the latter will be combined unless the combine
 "doSIRTifBoth" directive specifies otherwise.
 .P
@@ -324,7 +326,10 @@ once a command file is created, because they are processed generically
 during command file creation.  In most cases, creation occurs during
 tomogram setup, but some files are created with
 Makecomfile(1) just when needed, so it would be possible to change
-"comparam" directives for a file still to be created.
+"comparam" directives for a file still to be created.  Some exceptions
+to this are "align.tiltalign.SurfacesToAnalyze" and
+"tilt.tilt.THICKNESS", for which the current directive value will be
+used instead of the value in the command file.
 .br
 2) Changes in "setupset" directives will also generally have no effect
 because they are interpreted during setup; the use of the defocus value

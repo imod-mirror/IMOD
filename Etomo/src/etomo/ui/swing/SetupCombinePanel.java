@@ -26,6 +26,7 @@ import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstMetaData;
 import etomo.type.DialogType;
 import etomo.type.FiducialMatch;
+import etomo.type.FileType;
 import etomo.type.MatchMode;
 import etomo.type.MetaData;
 import etomo.type.ProcessResultDisplay;
@@ -894,11 +895,11 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
   public boolean isEnabled() {
     return true;
   }
-  
+
   public boolean isInitialVolumeMatching() {
     return pnlSolvematch.isInitialVolumeMatching();
   }
-  
+
   public void setInitialVolumeMatching(final boolean input) {
     pnlSolvematch.setInitialVolumeMatching(input);
   }
@@ -959,10 +960,10 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
    * Set the parameters of the panel using the combineParams object
    * @param combineParams
    */
-  public void setParameters(final ConstCombineParams combineParams) {
+  public void setParameters(final ConstCombineParams combineParams,final boolean init) {
     MatchMode matchMode = combineParams.getMatchMode();
     setBtoA(matchMode);
-    pnlSolvematch.setParameters(combineParams);
+    pnlSolvematch.setParameters(combineParams,init);
     pspPatchTypeOrXYZ.setParameters(combineParams);
     cbAutoPatchFinalSize.setSelected(combineParams.isPatchSizeSet(true));
     pspAutoPatchFinalSize.setParameters(combineParams);
@@ -980,6 +981,7 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
       ltfExtraResidualTargets.setText(combineParams.getExtraResidualTargets());
     }
     // update
+    setAutoPatchZ();
     updatePatchRegionModel();
   }
 
@@ -992,6 +994,7 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
     ltfYMax.setText(patchrawlParam.getZHigh());
     ltfZMin.setText(patchrawlParam.getYLow());
     ltfZMax.setText(patchrawlParam.getYHigh());
+    setAutoPatchZ();
   }
 
   /**
@@ -1102,6 +1105,7 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
 
   public void setZMin(final String zMin) {
     ltfZMin.setText(zMin);
+    setAutoPatchZ();
   }
 
   public String getZMin() {
@@ -1114,6 +1118,7 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
 
   public void setZMax(final String zMax) {
     ltfZMax.setText(zMax);
+    setAutoPatchZ();
   }
 
   public String getZMax() {
@@ -1224,8 +1229,38 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
     else if (command.equals(btnImodVolumeB.getActionCommand())) {
       applicationManager.imodFullVolume(AxisID.SECOND, run3dmodMenuOptions);
     }
+    else if (command.equals(cbAutoPatchFinalSize.getActionCommand())) {
+      setAutoPatchZ();
+      tomogramCombinationDialog.updateDisplay();
+    }
     else {
       tomogramCombinationDialog.updateDisplay();
+    }
+  }
+
+  /**
+   * Sets empty Zmin/max fields to 1/Z if autoPatchFinalSize is selected.
+   */
+  private void setAutoPatchZ() {
+    if (cbAutoPatchFinalSize.isSelected()) {
+      if (ltfZMin.isEmpty()) {
+        ltfZMin.setText("1");
+      }
+      if (ltfZMax.isEmpty()) {
+        MRCHeader header =
+          MRCHeader.getInstance(applicationManager, AxisID.FIRST, FileType.TILT_OUTPUT);
+        try {
+          header.read(applicationManager);
+          // flipped
+          ltfZMax.setText(header.getNRows());
+        }
+        catch (InvalidParameterException e) {
+          e.printStackTrace();
+        }
+        catch (IOException e) {
+          e.printStackTrace();
+        }
+      }
     }
   }
 

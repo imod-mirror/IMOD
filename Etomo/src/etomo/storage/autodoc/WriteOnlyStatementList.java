@@ -12,16 +12,13 @@ import etomo.ui.swing.Token;
  * @version $Id$
  */
 abstract class WriteOnlyStatementList extends WriteOnlyAttributeList {
-  public static final String rcsid =
-      "$Id$";
+  abstract NameValuePair addNameValuePair(int lineNum);
 
-  abstract NameValuePair addNameValuePair();
+  abstract Section addSection(Token type, Token name, int lineNum);
 
-  abstract Section addSection(Token type, Token name);
+  abstract void addEmptyLine(int lineNum);
 
-  abstract void addEmptyLine();
-
-  abstract void addComment(Token comment);
+  abstract void addComment(Token comment, int lineNum);
 
   abstract void setCurrentDelimiter(Token newDelimiter);
 

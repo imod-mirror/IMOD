@@ -82,7 +82,7 @@ int mrc_head_read(FILE *fin, MrcHeader *hdata)
     memcpy(&hdata->zorg, &hdata->cmap[0], 4);
     memcpy(&hdata->xorg, &hdata->stamp[0], 4);
     memcpy(&hdata->yorg, &hdata->rms, 4);
-    hdata->rms = 0.;
+    hdata->rms = -1.;
     if (hdata->swapped)
       mrc_swap_floats(&hdata->rms, 1);
     mrc_set_cmap_stamp(hdata);
@@ -440,6 +440,7 @@ int mrc_head_new(MrcHeader *hdata,
 
   hdata->next    = 0;
   hdata->creatid = 0;   /* 7/13/11: changed to 0  for compatibility with CCP4 */
+  hdata->nversion = 0;
   hdata->nint    = 0;
   hdata->nreal   = 0;
   hdata->sub     = 0;   /* 7/13/11: changed these two from 1 to 0 */
@@ -449,7 +450,7 @@ int mrc_head_new(MrcHeader *hdata,
   hdata->min3    = 0.0f;
   hdata->max3    = 0.0f;
   hdata->imodStamp = IMOD_MRC_STAMP;
-  hdata->imodFlags = 0;
+  hdata->imodFlags = MRC_FLAGS_BAD_RMS_NEG;
 
   hdata->idtype = 0;
   hdata->lens = 0;
@@ -458,11 +459,13 @@ int mrc_head_new(MrcHeader *hdata,
   hdata->vd1 = 0;
   hdata->vd2 = 0;
      
-  for(x = 0; x < 30; x++)  /* 7/13/11: This should be cleared out */
+  for(x = 0; x < 10; x++)  /* 7/13/11: This should be cleared out */
     hdata->blank[x] = 0;
+  for(x = 0; x < 16; x++)
+    hdata->blank2[x] = 0;
   for(x = 0; x < 6; x++)
     hdata->tiltangles[x] = 0.0f;
-  hdata->rms = 0.;
+  hdata->rms = -1.;
   /* 7/20/11: get rid of old header stuff */
   hdata->zorg = 0.0f;
   hdata->xorg = 0.0f;
@@ -496,11 +499,13 @@ void mrcInitOutputHeader(MrcHeader *hdata)
   hdata->headerSize = 1024;
   hdata->sectionSkip = 0;
   hdata->yInverted = 0;
-  hdata->iiuFlags = 0;
+  hdata->iiuFlags = MRC_FLAGS_BAD_RMS_NEG;
+  hdata->rms = -1;
   hdata->bytesSigned = writeBytesSigned();
   hdata->next = 0;
   hdata->nint = 0;
   hdata->nreal = 0;
+  hdata->nversion = 0;
 }
 
 /* DNM 12/25/00: Scale is defined as ratio of sample to cell, so change the
@@ -629,6 +634,7 @@ void mrc_swap_header(MrcHeader *hdata)
   mrc_swap_longs(&hdata->ispg, 1);
   mrc_swap_longs(&hdata->next, 1);
   mrc_swap_shorts(&hdata->creatid, 1);
+  mrc_swap_longs(&hdata->nversion, 1);
   mrc_swap_shorts(&hdata->nint, 4);
   mrc_swap_floats(&hdata->min2, 4);
   mrc_swap_longs(&hdata->imodStamp, 2);

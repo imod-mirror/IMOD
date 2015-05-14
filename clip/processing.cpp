@@ -4,8 +4,7 @@
  *  Original author: James Kremer
  *  Revised by: David Mastronarde   email: mast@colorado.edu
  *
- *  Copyright (C) 1995-2005 by Boulder Laboratory for 3-Dimensional Electron
- *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
+ *  Copyright (C) 1995-2015 by the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  *  $Id$
@@ -88,6 +87,8 @@ int clip_scaling(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
       show_error("clip threshold: You must enter a threshold value");
       return -1;
     }
+    if (opt->minSize != IP_DEFAULT)
+      return thresholdWithMinSize(hin, hout, opt, threshLo, threshHi, z);
     mrc_head_label(hout, "clip: thresholded");
     break;
   case IP_TRUNCATE:
@@ -207,6 +208,7 @@ int clip_scaling(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
 
   return set_mrc_coords(opt);  
 }
+
 
 /*
  * Common routine for the edge filters that are not simple convolutions
@@ -2547,7 +2549,9 @@ int clipHistogram(MrcHeader *hin, ClipOptions *opt)
         return -1;
       }
     }
-    numBins = B3DNINT((histMax - histMin) / delta);
+    numBins = (int)ceil((histMax - histMin) / delta);
+    if ((histMax - histMin) / delta >= numBins - 0.01)
+      numBins++;
     B3DCLAMP(numBins, 0, MAX_HIST_BINS - 1);
   }
   
@@ -2779,14 +2783,14 @@ int clipHistogram(MrcHeader *hin, ClipOptions *opt)
       val = (1. - ff) * comboBins[j] + ff * comboBins[j + 1];
       printf("%13.6g %8d\n", comboLeft + (ind + 0.5) * delta, 
              comboBins[ind] - B3DNINT(val));
+      comboBins[ind] -= B3DNINT(val);
+      if (diffInd < 0 || comboBins[ind] > comboBins[diffInd])
+        diffInd = ind;
     }
-    comboBins[ind] -= B3DNINT(val);
-    if (diffInd < 0 || comboBins[ind] > comboBins[diffInd])
-      diffInd = ind;
     ind -= dir;
   }
 
-  if (comboBins[diffInd] < 0) {
+  if (diffInd < 0 || comboBins[diffInd] <= 0) {
     printf("ERROR: CLIP - There are fewer counts %s the peak than %s it\n",
            dir > 0 ? "above" : "below", dir > 0 ?  "below" : "above");
     return(-1);
@@ -2800,6 +2804,11 @@ int clipHistogram(MrcHeader *hin, ClipOptions *opt)
       break;
     cumulCounts += comboBins[ind];
     ind -= dir;
+  }
+  if (cumulCounts <= 0) {
+    printf("ERROR: CLIP - There are fewer counts %s the peak than %s it\n",
+           dir > 0 ? "above" : "below", dir > 0 ?  "below" : "above");
+    return(-1);
   }
 
   threshCounts = fabs(opt->pctlFrac) * cumulCounts;

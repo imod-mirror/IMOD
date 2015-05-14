@@ -157,9 +157,11 @@ EXPORTS
 	hdfWriteSectionAny
 	tiffClose
 	sliceWrapFFTLines
+	iiuRetMRCVersion
 	IIUALTLABELS
 	IIURETBRIEF
 	iiCallingReadOrWrite
+	IIURETMRCVERSION
 	mrc_slice_lie
 	mrc_plist_load
 	iiuAltSpaceGroup
@@ -225,6 +227,7 @@ EXPORTS
 	mrcWriteZFloat
 	iiuMemoryError
 	parallelWriteSlice
+	IIUALTMRCVERSION
 	iiWriteSection
 	iiMRCLoadPCoord
 	sliceReadMRC
@@ -235,6 +238,7 @@ EXPORTS
 	IIUALTAXISMAP
 	mrc_head_new
 	IIUALTCHUNKSIZES
+	iiuAltMRCVersion
 	IRTSIZ
 	iiuRetTiltOrig
 	tiffFillMrcHeader

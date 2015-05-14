@@ -400,6 +400,8 @@ for iaxis in range(naxis):
                else:
                   warning(warnout)
             else:
+
+               # Batchruntomo looks for 'Pixel spacing was set in FEI file'
                printInfo('Pixel spacing was set in FEI file ' + stackname + \
                             ' from value in extended header')
                

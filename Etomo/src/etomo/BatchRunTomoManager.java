@@ -220,9 +220,13 @@ public final class BatchRunTomoManager extends BaseManager {
       processEndState = ProcessEndState.FAILED;
     }
     mainPanel.stopProgressBar(AXIS_ID, processEndState);
+    String path = propertyUserDir;
+    if (Utilities.isWindowsOS()) {
+      path = Utilities.convertPathToUniversalWindows(propertyUserDir);
+    }
     logMessage(new String[] { "", "How to run batchruntomo from the command line:",
-      "Open a terminal window.", "Type the following two commands:",
-      "cd " + propertyUserDir, "subm " + metaData.getName() }, "Instructions", AXIS_ID);
+      "Open a terminal window.", "Type the following two commands:", "cd " + path,
+      "subm " + metaData.getName() }, "Instructions", AXIS_ID);
   }
 
   private boolean saveBatchRunTomoDialog(final boolean doValidation) {
@@ -230,8 +234,8 @@ public final class BatchRunTomoManager extends BaseManager {
       return false;
     }
     if (paramFile == null
-      && (!dialog.isParamFileModifiable() || !setNewParamFile(dialog.getRootDir(), dialog
-        .getRootName()))) {
+      && (!dialog.isParamFileModifiable() || !setNewParamFile(dialog.getRootDir(),
+        dialog.getRootName()))) {
       // setting the param file failed
       return false;
     }
@@ -351,8 +355,8 @@ public final class BatchRunTomoManager extends BaseManager {
     File modelFile = modelFileType.getFile(stackLocation, datasetName, axisType, axisID);
     if (modelFile != null) {
       try {
-        imodManager.openModel(key, axisID, imodIndex, Utilities.escapeSpaces(modelFile
-          .getAbsolutePath(), true), true);
+        imodManager.openModel(key, axisID, imodIndex,
+          Utilities.escapeSpaces(modelFile.getAbsolutePath(), true), true);
       }
       catch (AxisTypeException except) {
         except.printStackTrace();

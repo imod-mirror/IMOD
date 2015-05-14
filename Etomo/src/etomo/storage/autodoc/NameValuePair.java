@@ -9,19 +9,13 @@ import etomo.ui.swing.Token;
 /**
  * <p>Description: </p>
  * 
- * <p>Copyright: Copyright (c) 2005</p>
+ * <p>Copyright: Copyright 2005 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
- * University of Colorado</p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
+ * @version $Id$
  */
 final class NameValuePair extends Statement {
-  public static final String rcsid = "$Id$";
-
   private static final Type TYPE = Statement.Type.NAME_VALUE_PAIR;
 
   /**
@@ -33,8 +27,8 @@ final class NameValuePair extends Statement {
   private Token value = null;
   private Token newDelimiter = null;
 
-  public NameValuePair(WriteOnlyStatementList parent, Statement previousStatement) {
-    super(previousStatement);
+  public NameValuePair(WriteOnlyStatementList parent, Statement previousStatement, final int lineNum) {
+    super(previousStatement, lineNum);
     this.parent = parent;
   }
 

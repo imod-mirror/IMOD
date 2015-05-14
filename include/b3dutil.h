@@ -28,6 +28,7 @@
 #define B3DMALLOC(a,b) (a *)malloc((b) * sizeof(a))
 #define B3DREALLOC(a,b,c) a = (b *)realloc(a, (c) * sizeof(b))
 #define B3DSWAP(a,b,c) {c = (a); a = (b); b = c;}
+#define B3DCHOICE(a,b,c) ((a) ? (b) : (c))
 
 #define IMOD_MRC_STAMP 1146047817
 #define WRITE_SBYTES_DEFAULT 1
@@ -35,6 +36,7 @@
 #define READ_SBYTES_ENV_VAR "READ_MODE0_SIGNED"
 #define MRC_FLAGS_SBYTES  1
 #define MRC_FLAGS_INV_ORIGIN 4
+#define MRC_FLAGS_BAD_RMS_NEG  8
 
 /* Duplicate definitions of output-capable IITYPE values to avoid including iimage.h */
 #define OUTPUT_TYPE_TIFF    1

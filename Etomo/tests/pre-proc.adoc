@@ -154,10 +154,6 @@ assert.disabled.bn.kill-process=
 tf.peak-criterion=10.
 # Test with manual model
 cb.manual-replacement=on
-# todo remove .erase
-bn.find-x-rays=
-# Manual model file hasn't been created.
-wait.popup.comscript-terminated=OK
 # Run with manual model
 copy.file=%{dataset}%{axis}.erase
 bn.find-x-rays=

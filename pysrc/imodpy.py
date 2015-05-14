@@ -886,6 +886,7 @@ def getCygpath(windows, path):
 
 
 # Returns a Cygwin path for path using cygpath if running in Cygwin
+# Falls back to composing the path itself if cygpath fails
 def cygwinPath(path):
    if 'cygwin' in sys.platform:
       try:
@@ -952,7 +953,9 @@ def imodIsAbsPath(path):
 
 # Return an absolute path, converted to windows format if on Windows
 def imodAbsPath(path):
-   absp = os.path.abspath(path)
+
+   # Cygwin will not work with a windows path, so convert it
+   absp = os.path.abspath(cygwinPath(path))
    if 'win32' in sys.platform or 'cygwin' in sys.platform:
       absp = getCygpath(True, absp)
    return absp
