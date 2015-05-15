@@ -184,18 +184,13 @@ if '--fg' in sys.argv or '--directive' in sys.argv:
 pluginPathArray = []
 path = os.path.join(os.environ['IMOD_DIR'], '..', 'EtomoPlugins')
 if os.path.exists(path):
-   pluginPathArray.append(path)
-   prnstr('Plugin location: ' + path)
+   pluginPathArray.append(path + "/*")
 path = os.path.join(os.environ['IMOD_DIR'], 'imodplug', 'etomo')
 if os.path.exists(path):
-   pluginPathArray.append(path)
-   prnstr('Plugin location: ' + path)
-path = '/home/sueh/TestPlugins'
-if os.path.exists(path):
-   pluginPathArray.append(path)
-   prnstr('Plugin location: ' + path)
+   pluginPathArray.append(path + "/*")
 pluginPaths = ''
 if pluginPathArray:
+   pluginPaths = ':'
    for path in pluginPathArray:
       if pluginPaths:
          pluginPaths += os.pathsep
@@ -210,13 +205,12 @@ if '--jardir' in sys.argv:
          break
 
 # Build the common java command
-javacom = fmtstr('java -Xmx{0} -Djava.ext.dirs="{3)" {1} -cp "{2}/etomo" -jar "{2}/etomo.jar"', \
+javacom = fmtstr('java -Xmx{0} {1} -cp "{2}/etomo.jar{3}" etomo.EtomoDirector', \
                     ETOMO_MEM_LIM, userhomeQuoted, jarDir, pluginPaths)
-prnstr('javacom:' + javacom)
 comArray = ['java', '-Xmx' + ETOMO_MEM_LIM]
 if userhome:
    comArray.append(userhome)
-comArray += ['-cp', jarDir + '/etomo', '-jar', jarDir + '/etomo.jar']
+comArray += ['-cp', jarDir + '/etomo.jar' + pluginPaths, 'etomo.EtomoDirector']
 skipNext = False
 for ind in range(1, len(sys.argv)):
    if skipNext:
