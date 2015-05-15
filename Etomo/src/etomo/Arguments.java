@@ -120,12 +120,6 @@ public final class Arguments {
 
   private boolean debug = false;
   private DebugLevel debugLevel = DebugLevel.OFF;
-  /**
-   * If arguments hasn't been initialized yet, then
-   * assume that this is a test because UITest does alot of work before it can
-   * run EtomoDirector.main.
-   */
-  public static final String NAMES_TAG = "--names";
   private boolean test = true;
   private boolean headless = GraphicsEnvironment.isHeadless();
   /**
@@ -167,7 +161,12 @@ public final class Arguments {
   private boolean fromBRT = false;
 
   private final EtomoNumber enFiducial = new EtomoNumber(EtomoNumber.Type.DOUBLE);
-
+  /**
+   * If arguments hasn't been initialized yet, then
+   * assume that this is a test because UITest does alot of work before it can
+   * run EtomoDirector.main.
+   */
+  public static final String NAMES_TAG = "--names";
   Arguments() {}
 
   static void printHelpMessage() {
