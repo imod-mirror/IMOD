@@ -406,7 +406,7 @@ public final class UserConfiguration implements Storable {
             continue;
           }
           if (propKey.startsWith(group + PLUGIN_KEY)) {
-            // Get the key without the prepend for
+            // The key is property name without the group
             String key = propKey.substring(group.length());
             EtomoBoolean2 property = new EtomoBoolean2(key);
             property.set((String) entry.getValue());
@@ -425,10 +425,11 @@ public final class UserConfiguration implements Storable {
    * @param key
    * @param value
    */
-  public void setPlugin(final String key, final boolean value) {
+  public void setPlugin(String key, final boolean value) {
     if (key == null || key.matches("\\s*")) {
       return;
     }
+    key = PLUGIN_KEY + "." + key;
     EtomoBoolean2 property = null;
     if (pluginMap != null) {
       property = pluginMap.get(key);
@@ -452,14 +453,22 @@ public final class UserConfiguration implements Storable {
     }
   }
 
-  public boolean hasPlugin(final String key) {
+  public boolean hasPlugin(String key) {
+    if (key == null || key.matches("\\s*")) {
+      return false;
+    }
+    key = PLUGIN_KEY + "." + key;
     if (pluginMap != null && pluginMap.containsKey(key)) {
       return true;
     }
     return false;
   }
 
-  public boolean isPlugin(final String key) {
+  public boolean isPlugin(String key) {
+    if (key == null || key.matches("\\s*")) {
+      return false;
+    }
+    key = PLUGIN_KEY + "." + key;
     if (pluginMap != null) {
       return pluginMap.get(key).is();
     }
