@@ -46,6 +46,7 @@ public final class PluginFactory {
   }
 
   public void loadPlugins(final UIComponent uiComponent) {
+    System.out.println("A");
     if (loaded) {
       return;
     }
@@ -59,9 +60,7 @@ public final class PluginFactory {
       try {
         Iterator<Plugin> pluginList = loader.iterator();
         UserConfiguration configuration = null;
-        System.out.println("A");
         while (pluginList.hasNext()) {
-          System.out.println("B");
           Plugin plugin = pluginList.next();
           //Make sure plugin conforms to the correct interface(s) for its niche.
           if (plugin != null) {
