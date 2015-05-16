@@ -46,7 +46,6 @@ public final class PluginFactory {
   }
 
   public void loadPlugins(final UIComponent uiComponent) {
-    System.out.println("A");
     if (loaded) {
       return;
     }
