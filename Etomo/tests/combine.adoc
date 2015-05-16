@@ -154,8 +154,8 @@ if.var.patch-tracking.run.function.main-patch-tracking=
   assert.enabled.rb.fiducials-on-both-sides=
   assert.enabled.rb.fiducials-on-one-side=
   assert.enabled.rb.use-matching-models-only=
-  assert.disabled.cb.load-binned-by-2=
-  assert.disabled.bn.create-matching-models-in-3dmod=
+  assert.enabled.cb.load-binned-by-2=
+  assert.enabled.bn.create-matching-models-in-3dmod=
   assert.enabled.cb.specify-corresponding-points-instead-of-using-coordinate-file=
   assert.enabled.tf.starting-points-to-use-from-a=
   #
