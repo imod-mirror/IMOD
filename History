@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/18/15: In eTomo added a basic plugin framework and plugin niche in Tomogram
+Generation.(Bug# 1870)
+
 5/13/15: IMOD_4-8-33
 5/13/15: In eTomo - Batchruntomo Interface, connected the Two Surfaces checkbox
 to the right directive so that it has an effect.(Bug# 1880)
