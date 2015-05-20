@@ -906,33 +906,22 @@ def analyzeAlignLog(twoSurf, angleArr):
 # 8,9: SUBSETSTART X and Y
 # This function can be moved to imodpy so etomo can access it from a script
 def montageFrameValues(nxmont, nymont, nxali, nyali, frameArr):
-   try:
 
-      # aligned stacksize
-      goodout = runcmd(fmtstr('goodframe {} {}', nxali, nyali))
-      gsplit = goodout[len(goodout) - 1].split()
-      frameArr[0] = int(gsplit[0])
-      frameArr[1] = int(gsplit[1])
+   # aligned stacksize
+   (frameArr[0], frameArr[1]) = runGoodframe(nxali, nyali)
+   (frameArr[6], frameArr[7]) = runGoodframe(nxmont, nymont)
+   if frameArr[0] < 0 or frameArr[6] < 0:
+      return min(frameArr[0], frameArr[6])
 
-      # raw blended stack size (FULLIMAGE)
-      goodout = runcmd(fmtstr('goodframe {} {}', nxmont, nymont))
-      gsplit = goodout[len(goodout) - 1].split()
-      frameArr[6] = int(gsplit[0])
-      frameArr[7] = int(gsplit[1])
+   # starting coordinates X and Y for blend
+   frameArr[2] = -((frameArr[0] - nxmont) // 2)
+   frameArr[3] = -((frameArr[1] - nymont) // 2)
+   
+   # ending for blend, and SUBSETSTART
+   for ind in (0, 1):
+      frameArr[ind + 4] = frameArr[ind + 2] + frameArr[ind] - 1
+      frameArr[ind + 8] = -((frameArr[ind] - frameArr[ind + 6]) // 2)
 
-      # starting coordinates X and Y for blend
-      frameArr[2] = -((frameArr[0] - nxmont) // 2)
-      frameArr[3] = -((frameArr[1] - nymont) // 2)
-      
-      # ending for blend, and SUBSETSTART
-      for ind in (0, 1):
-         frameArr[ind + 4] = frameArr[ind + 2] + frameArr[ind] - 1
-         frameArr[ind + 8] = -((frameArr[ind] - frameArr[ind + 6]) // 2)
-
-   except ImodpyError:
-      return 1
-   except Exception:
-      return 2
    return 0
 
 
