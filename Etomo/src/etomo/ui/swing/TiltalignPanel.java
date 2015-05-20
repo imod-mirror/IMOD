@@ -20,6 +20,7 @@ import javax.swing.event.ChangeListener;
 import etomo.ApplicationManager;
 import etomo.comscript.ConstTiltalignParam;
 import etomo.comscript.FortranInputSyntaxException;
+import etomo.comscript.RestrictalignParam;
 import etomo.comscript.TiltalignParam;
 import etomo.storage.LogFile;
 import etomo.storage.autodoc.AutodocFactory;
@@ -37,34 +38,18 @@ import etomo.ui.FieldValidationFailedException;
 /**
  * <p>Description: </p>
  *
- * <p>Copyright: Copyright 2002 - 2014 by the Regents of the University of Colorado</p>
+ * <p>Copyright: Copyright 2002 - 2015 by the Regents of the University of Colorado</p>
  * <p/>
  * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
  * @version $Id$
  */
-final class TiltalignPanel implements Expandable {
+final class TiltalignPanel implements Expandable, ActionListener {
   private static final String MIN_LOCAL_PATCH_SIZE_LABEL =
     "Min. local patch size or overlap factor (x,y): ";
   private static final String MIN_LOCAL_PATCH_SIZE_OVERLAP_ONLY_LABEL =
     "Overlap factor (x,y): ";
   private final AxisID axisID;
-
-  /*
-   * // TODO need recomended default for all sub groups see (align.com) private final int
-   * defaultTiltAngleType = 5; private final int defaultTiltAngleGroupSize = 5; private
-   * final int defaultMagnificationType = 3; private final int defaultDistortionType = 2;
-   * private final int defaultXstretchType = 3; private final int defaultXstretchGroupSize
-   * = 7; private final int defaultSkewType = 3; private final int defaultSkewGroupSize =
-   * 11; private final int defaultLocalRotationType = 3; private final int
-   * defaultLocalRotationGroupSize = 6; private final int defaultLocalTiltAngleType = 5;
-   * private final int defaultLocalTiltAngleGroupSize = 6; private final int
-   * defaultLocalMagnificationType = 3; private final int
-   * defaultLocalMagnificationGroupSize = 7; private final int defaultLocalDistortionType
-   * = 2; private final int defaultLocalXstretchType = 3; private final int
-   * defaultLocalXstretchGroupSize = 7; private final int defaultLocalSkewType = 3;
-   * private final int defaultLocalSkewGroupSize = 11;
-   */
 
   private final TabbedPane tabPane = new TabbedPane();
 
@@ -250,6 +235,11 @@ final class TiltalignPanel implements Expandable {
     "Find weights for contours, not points");
   private final CheckBox cbXTiltAutomapSame = new CheckBox(
     "Solve for X axis tilt between separate groups");
+  private final LabeledTextField ltfTargetMeasurementRatio = new LabeledTextField(
+    FieldType.FLOATING_POINT, "Ratio of measurements to unknowns to achieve:  Target ");
+  private final LabeledTextField ltfMinMeasurementRatio = new LabeledTextField(
+    FieldType.FLOATING_POINT, "Minimum ");
+  private MultiLineButton btnRestrictalign = new MultiLineButton("Restrict Variables");
 
   private final PanelHeader phBeamTilt;
 
@@ -335,6 +325,7 @@ final class TiltalignPanel implements Expandable {
     rtfFixedBeamTilt.addActionListener(tpActionListener);
     rbSolveForBeamTilt.addActionListener(tpActionListener);
     ctfRobustFittingAndKFactorScaling.addActionListener(tpActionListener);
+    btnRestrictalign.addActionListener(this);
   }
 
   private void changeTab(ChangeEvent changeEvent) {
@@ -421,6 +412,19 @@ final class TiltalignPanel implements Expandable {
     }
     else if (actionCommand.equals(ctfRobustFittingAndKFactorScaling.getActionCommand())) {
       updateDisplay();
+    }
+  }
+
+  public void actionPerformed(final ActionEvent actionEvent) {
+    if (actionEvent == null) {
+      return;
+    }
+    String actionCommand = actionEvent.getActionCommand();
+    if (actionCommand == null) {
+      return;
+    }
+    if (actionCommand.equals(btnRestrictalign.getActionCommand())) {
+      appMgr.restrictalign(axisID, null);
     }
   }
 
@@ -665,6 +669,8 @@ final class TiltalignPanel implements Expandable {
     metaData.setFixedBeamTiltSelected(axisID, rtfFixedBeamTilt.isSelected());
     metaData.setFixedBeamTilt(axisID, rtfFixedBeamTilt.getText());
     metaData.setWeightWholeTracks(axisID, cbWeightWholeTracks.isSelected());
+    metaData.setTargetMeasurementRatio(axisID, ltfTargetMeasurementRatio.getText());
+    metaData.setMinMeasurementRatio(axisID, ltfMinMeasurementRatio.getText());
   }
 
   /**
@@ -678,11 +684,24 @@ final class TiltalignPanel implements Expandable {
     rtfFixedBeamTilt.setSelected(metaData.getFixedBeamTiltSelected(axisID).is());
     rtfFixedBeamTilt.setText(metaData.getFixedBeamTilt(axisID));
     cbWeightWholeTracks.setSelected(metaData.getWeightWholeTracks(axisID));
+    ltfTargetMeasurementRatio.setText(metaData.getTargetMeasurementRatio(axisID));
+    ltfMinMeasurementRatio.setText(metaData.getMinMeasurementRatio(axisID));
     updateDisplay();
   }
 
   void setParameters(BaseScreenState screenState) {
     phBeamTilt.setButtonStates(screenState);
+  }
+
+  boolean setParameters(final RestrictalignParam param, final boolean doValidation) {
+    try {
+      param.setTargetMeasurementRatio(ltfTargetMeasurementRatio.getText(doValidation));
+      param.setMinMeasurementRatio(ltfMinMeasurementRatio.getText(doValidation));
+      return true;
+    }
+    catch (FieldValidationFailedException e) {
+      return false;
+    }
   }
 
   public void setPatchTracking(boolean input) {
@@ -1018,6 +1037,7 @@ final class TiltalignPanel implements Expandable {
     ltfLocalSkewNonDefaultGroups.setVisible(state);
     ltfMinLocalPatchSize.setVisible(state);
     cbFixXYZCoordinates.setVisible(state);
+    cbXTiltAutomapSame.setVisible(state);
   }
 
   // Local alignment state
@@ -1290,6 +1310,15 @@ final class TiltalignPanel implements Expandable {
    * Layout the global estimate tab
    */
   private void createGlobalSolutionTab() {
+    // panels
+    JPanel pnlRestrictalign = new JPanel();
+    JPanel pnlMeasurementRatio = new JPanel();
+    JPanel pnlRestrictalignButton = new JPanel();
+    // init
+    btnRestrictalign.setSize();
+    ltfTargetMeasurementRatio.setPreferredWidth(45);
+    ltfMinMeasurementRatio.setPreferredWidth(45);
+    //
     pnlGlobalVariable.setLayout(new BoxLayout(pnlGlobalVariable, BoxLayout.Y_AXIS));
     pnlGlobalVariableBody
       .setLayout(new BoxLayout(pnlGlobalVariableBody, BoxLayout.Y_AXIS));
@@ -1361,6 +1390,26 @@ final class TiltalignPanel implements Expandable {
     pnlGlobalVariableBody.add(pnlDistortionSolution);
     pnlGlobalVariableBody.add(Box.createRigidArea(FixedDim.x0_y5));
     pnlGlobalVariableBody.add(Box.createVerticalGlue());
+    pnlGlobalVariableBody.add(pnlRestrictalign);
+    pnlGlobalVariableBody.add(Box.createRigidArea(FixedDim.x0_y10));
+    // Restrictalign
+    pnlRestrictalign.setLayout(new BoxLayout(pnlRestrictalign, BoxLayout.Y_AXIS));
+    pnlRestrictalign.setBorder(new EtchedBorder("Restrict Alignment Variables")
+      .getBorder());
+    pnlRestrictalign.add(pnlMeasurementRatio);
+    pnlRestrictalign.add(Box.createRigidArea(FixedDim.x0_y5));
+    pnlRestrictalign.add(pnlRestrictalignButton);
+    // MeasurementRatio
+    pnlMeasurementRatio.setLayout(new BoxLayout(pnlMeasurementRatio, BoxLayout.X_AXIS));
+    pnlMeasurementRatio.add(ltfTargetMeasurementRatio.getComponent());
+    pnlMeasurementRatio.add(Box.createRigidArea(FixedDim.x10_y0));
+    pnlMeasurementRatio.add(ltfMinMeasurementRatio.getComponent());
+    // RestrictalignButton
+    pnlRestrictalignButton.setLayout(new BoxLayout(pnlRestrictalignButton,
+      BoxLayout.X_AXIS));
+    pnlRestrictalignButton.add(Box.createHorizontalGlue());
+    pnlRestrictalignButton.add(btnRestrictalign.getComponent());
+    pnlRestrictalignButton.add(Box.createHorizontalGlue());
     // beam tilt
     pnlBeamTilt.setLayout(new BoxLayout(pnlBeamTilt, BoxLayout.Y_AXIS));
     pnlBeamTilt.setBorder(BorderFactory.createEtchedBorder());
@@ -1845,6 +1894,12 @@ final class TiltalignPanel implements Expandable {
     cbXTiltAutomapSame
       .setToolTipText("Solve for an X-axis tilt for each separate view group (XTiltOption"
         + " 4 with very large XTiltDefaultGrouping)");
+    String tooltip =
+      "Run restrictalign to reduce number of variables if appropriate for the number of "
+        + "fiducials";
+    ltfTargetMeasurementRatio.setToolTipText(tooltip);
+    ltfMinMeasurementRatio.setToolTipText(tooltip);
+    btnRestrictalign.setToolTipText(tooltip);
   }
 
   private static final class TPActionListener implements ActionListener {
