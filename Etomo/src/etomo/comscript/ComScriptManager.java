@@ -1322,6 +1322,15 @@ public final class ComScriptManager extends BaseComScriptManager {
     }
   }
 
+  public void resetAlign(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      scriptAlignB = null;
+    }
+    else {
+      scriptAlignA = null;
+    }
+  }
+
   /**
    * Get the tiltalign parameters from the specified align script object
    * @param axisID the AxisID to read.
@@ -2379,8 +2388,8 @@ public final class ComScriptManager extends BaseComScriptManager {
       return false;
     }
     LabelParam param = new LabelParam(ProcessName.DUALVOLMATCH);
-    return initialize(param, scriptCombine, param.getLabel(),
-      AxisID.ONLY, false, false,false);
+    return initialize(param, scriptCombine, param.getLabel(), AxisID.ONLY, false, false,
+      false);
   }
 
   public void loadFlatten(AxisID axisID) {
