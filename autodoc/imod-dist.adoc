@@ -13,7 +13,7 @@ another, the option is required.
 [Field = OutputFile]
 short = o
 type = FN
-usage = The file to write the results to (default=stdout).
+usage = "The file to write the results to (default=stdout)"
 tooltip = 
 manpage = A file to write the results into.  If this option is not entered and
 there is a second non-option argument, it will used as an output file name.
