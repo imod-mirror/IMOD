@@ -1042,6 +1042,7 @@ import etomo.comscript.CopyTomoComs;
 import etomo.comscript.ExtractmagradParam;
 import etomo.comscript.ExtracttiltsParam;
 import etomo.comscript.NewstParam;
+import etomo.comscript.RestrictalignParam;
 import etomo.comscript.RunraptorParam;
 import etomo.comscript.SetupCombine;
 import etomo.comscript.SirtsetupParam;
@@ -1940,7 +1941,7 @@ public class ProcessManager extends BaseProcessManager {
     throws IOException {
     SetupCombine setupCombine;
     try {
-      setupCombine =  SetupCombine.getInstance(appManager);
+      setupCombine = SetupCombine.getInstance(appManager);
     }
     catch (SystemProcessException e) {
       uiHarness.openMessageDialog(appManager, e.getMessage(), "Setup Combine Error",
@@ -2164,6 +2165,14 @@ public class ProcessManager extends BaseProcessManager {
     throws SystemProcessException {
     BackgroundProcess backgroundProcess =
       startBackgroundProcess(param, AxisID.ONLY, true, ProcessName.ARCHIVEORIG,
+        processSeries);
+    return backgroundProcess.getName();
+  }
+
+  public String restrictalign(final RestrictalignParam param, final AxisID axisID,
+    final ProcessSeries processSeries) throws SystemProcessException {
+    BackgroundProcess backgroundProcess =
+      startBackgroundProcess(param, axisID, false, ProcessName.RESTRICTALIGN,
         processSeries);
     return backgroundProcess.getName();
   }
