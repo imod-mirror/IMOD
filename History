@@ -1,5 +1,13 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/20/15: Fixed Findbeads3d threshold setting in model when no points stored
+below threshold.
+
+5/20/15: Added ability to signal Batchruntomo to finish current set and quit.
+
+5/20/15: Added option to Subtomosetup to make it skip subvolume numbers when
+it skips points.
+
 5/18/15: In eTomo added a basic plugin framework and plugin niche in Tomogram
 Generation.(Bug# 1870)
 
