@@ -66,19 +66,6 @@ def editAndWrite(srcRoot, dstRoot, sedcom, doChanges = True):
    applyChangeListAndWrite(srcRoot, sedlines, dstfile, doChanges)
 
 
-# Function to run goodframe
-def runGoodframe(xsize, ysize):
-   try:
-      goodout = runcmd(fmtstr('goodframe {} {}', xsize, ysize))
-      if len(goodout) > 0:
-         gsplit = goodout[0].split()
-         if len(gsplit) > 1:
-            return (int(gsplit[0]), int(gsplit[1]))
-   except ImodpyError:
-      pass
-   exitError('Running goodframe to get full aligned or prealigned stack size')
-
-
 # Look for the Fei title to determine if it is an FEI file
 def isFileFromFEI(filename):
    try:
@@ -410,7 +397,7 @@ for iaxis in range(naxis):
          # Regardless of file type, run this full header once here
          xsize = -1
          (xsize,ysize,zsize,mode,pixelx,pixely,pixelz,orix,oriy,oriz,mindens,maxdens, \
-          meandens) = getmrc(stackname, True)
+             meandens) = getmrc(stackname, True)
          if montage:
             montcmd = 'montagesize ' + stackname
             if os.path.exists(piecename):
@@ -448,6 +435,8 @@ for iaxis in range(naxis):
    fully = ysize
    if montage:
       (fullx, fully) = runGoodframe(xsize, ysize)
+      if fullx < 0:
+         exitError('Running goodframe to get full aligned stack size')
          
    # Also get the rotation relative to square to get indent in Y from rotation
    indentangle = axisangle
@@ -847,6 +836,8 @@ for iaxis in range(naxis):
    alysize = ysize
    if preblend:
       (alxsize, alysize) = runGoodframe(xsize, ysize)
+      if alxsize < 0:
+         exitError('Running goodframe to get full prealigned stack size')
 
    # 5/3/02: change to using image file name, keep dimensions commented out
 

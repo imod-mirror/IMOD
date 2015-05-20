@@ -24,6 +24,8 @@ This module provides the following functions:
   getMontageSize(stack, [plName]) - runs 'montagesize' on <stack>; adds piece 
                                      list file plName if supplied and it exists; 
                                      returns nx, ny, nz in a tuple
+  runGoodframe(nx, ny) - runs goodframe with nx and ny, returns two sizes or (-1, -1)
+                            or (-2, -2) for error
   getImageFormat(file) - runs header to determine format of <file>; returns
                             TIFF, HDF, likeMRC, or MRC
   makeBackupFile(file)   - renames file to file~, deleting old file~
@@ -490,6 +492,22 @@ def getMontageSize(stack, plName = None):
    except Exception:
       errStrings = command + ': ' + problem
       raise ImodpyError
+
+
+# Runs goodframe with the two sizes, nx and ny, and returns the two FFT-compatible sizes
+# or (-1, -1) for an error running goodframe, or (-2, -2) for an error in the output
+def runGoodframe(nx, ny):
+   try:
+      goodout = runcmd(fmtstr('goodframe {} {}', nx, ny))
+      gsplit = goodout[len(goodout) - 1].split()
+      gfnx = int(gsplit[0])
+      gfny = int(gsplit[1])
+      return (gfnx, gfny)
+
+   except ImodpyError:
+      return (-1, -1)
+   except Exception:
+      return (-2, -2)
 
 
 # Gets the image format as MRC, HDF, TIFF, or likeMRC
