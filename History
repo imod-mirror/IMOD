@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/20/15: Fixed problem with eTomo trying to make a patch track com file while
+the .preali is still being built.
+
 5/20/15: Fixed Findbeads3d threshold setting in model when no points stored
 below threshold.
 
