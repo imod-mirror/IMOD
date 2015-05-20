@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/20/15: Changed patch tracking size from 700x700 to 680x680 in system
+template cryoSample.adoc to give 4x4 patches in 2Kx2K data.
+
 5/20/15: Fixed problem with eTomo trying to make a patch track com file while
 the .preali is still being built.
 
