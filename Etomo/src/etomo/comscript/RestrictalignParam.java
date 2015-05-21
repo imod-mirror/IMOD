@@ -1,6 +1,8 @@
 package etomo.comscript;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 import etomo.BaseManager;
 import etomo.type.AxisID;
@@ -37,15 +39,30 @@ public final class RestrictalignParam implements Command {
     alignComscriptFile = FileType.ALIGN_COMSCRIPT.getFile(manager, axisID);
   }
 
+  /**
+   * Creates and returns the command array.  Command array will not be changed after this
+   * call.  Not thread safe.
+   */
   public String[] getCommandArray() {
     if (commandArray != null) {
       return commandArray;
     }
-    commandArray =
-      new String[] { "python", "-u", BaseManager.getIMODBinPath() + PROCESS_NAME,
-        "-AlignCommandFile", alignComscriptFile.getName(),
-        "-" + targetMeasurementRatio.getName(), targetMeasurementRatio.toString(),
-        "-" + minMeasurementRatio.getName(), minMeasurementRatio.toString() };
+    List<String> command = new ArrayList<String>();
+    command.add("python");
+    command.add("-u");
+    command.add(BaseManager.getIMODBinPath() + PROCESS_NAME);
+    command.add("-AlignCommandFile");
+    command.add(alignComscriptFile.getName());
+    if (!targetMeasurementRatio.isNull()) {
+      command.add( "-" + targetMeasurementRatio.getName());
+      command.add( targetMeasurementRatio.toString());
+    }
+    if(!minMeasurementRatio.isNull()) {
+      command.add( "-" + minMeasurementRatio.getName());
+      command.add( minMeasurementRatio.toString());
+    }
+    commandArray = new String[command.size()];
+    commandArray = command.toArray(commandArray);
     return commandArray;
   }
 
