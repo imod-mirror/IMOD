@@ -123,7 +123,7 @@ public final class FileType {
   public static final FileType ORIG_COMS_DIR = FileType.getInstance(false, false,
     "origcoms", "");
   public static final FileType FIDUCIAL_3D_MODEL = FileType.getImodInstance(true, true,
-      "", ".3dmod", ImodManager.FIDUCIAL_MODEL_KEY);
+    "", ".3dmod", ImodManager.FIDUCIAL_MODEL_KEY);
   public static final FileType BATCH_RUN_TOMO_GLOBAL_AUTODOC = FileType.getInstance(true,
     false, "", ".adoc");
   public static final FileType DEFAULT_BATCH_RUN_TOMO_AUTODOC = FileType
@@ -151,6 +151,8 @@ public final class FileType {
   public static final FileType XCORR_BLEND_OUTPUT = FileType.getInstance(true, true, "",
     ".bl");
   public static final FileType CHECK_FILE = FileType.getInstance(true, true, "", ".cmds");
+  public static final FileType ALIGN_COMSCRIPT = FileType.getInstance(false, true,
+    "align", ".com");
   public static final FileType AUTOFIDSEED_COMSCRIPT = FileType.getInstance(false, true,
     "autofidseed", ".com");
   public static final FileType BATCH_RUN_TOMO_COMSCRIPT = FileType.getInstance(true,
@@ -866,8 +868,8 @@ public final class FileType {
     return getFileName(manager, metaData, null, null, axisID, false);
   }
 
-  public File getFile(final File dir, final String rootName,
-    final AxisType axisType, final AxisID axisID) {
+  public File getFile(final File dir, final String rootName, final AxisType axisType,
+    final AxisID axisID) {
     String fileName = getFileName(null, null, rootName, axisType, axisID, false);
     if (fileName != null) {
       return new File(dir, fileName);
