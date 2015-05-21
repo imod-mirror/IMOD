@@ -856,7 +856,7 @@ public class ImodProcess {
       raise3dmod();
       return;
     }
-
+    boolean test = EtomoDirector.INSTANCE.getArguments().isTest();
     // Reset the window string
     windowID = "";
     if (EtomoDirector.INSTANCE.getArguments().getDebugLevel().isExtraVerbose()) {
@@ -997,17 +997,17 @@ public class ImodProcess {
     String[] commandArray = new String[commandOptions.size()];
     for (int i = 0; i < commandOptions.size(); i++) {
       commandArray[i] = (String) commandOptions.get(i);
-      if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
+      if (EtomoDirector.INSTANCE.getArguments().isDebug() || test) {
         System.err.print(commandArray[i] + " ");
       }
-      else if (debug) {
+      else if (debug || test) {
         System.err.print(commandArray[i] + " ");
       }
     }
-    if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
+    if (EtomoDirector.INSTANCE.getArguments().isDebug() || test) {
       System.err.println();
     }
-    else if (debug) {
+    else if (debug || test) {
       System.err.println();
     }
     imod = new InteractiveSystemProgram(manager, commandArray, axisID);

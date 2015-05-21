@@ -1,5 +1,19 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/20/15: Fixed problem with eTomo trying to make a patch track com file while
+the .preali is still being built.
+
+5/20/15: Fixed Findbeads3d threshold setting in model when no points stored
+below threshold.
+
+5/20/15: Added ability to signal Batchruntomo to finish current set and quit.
+
+5/20/15: Added option to Subtomosetup to make it skip subvolume numbers when
+it skips points.
+
+5/18/15: In eTomo added a basic plugin framework and plugin niche in Tomogram
+Generation.(Bug# 1870)
+
 5/13/15: IMOD_4-8-33
 5/13/15: In eTomo - Batchruntomo Interface, connected the Two Surfaces checkbox
 to the right directive so that it has an effect.(Bug# 1880)

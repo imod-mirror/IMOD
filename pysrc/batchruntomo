@@ -20,6 +20,7 @@ global xtiltNeeded, fidThickness, fidIncShift, reconThickness, didLocalAlign, ma
 global aliBinning, aliXunbinned, aliYunbinned, patchTrack, totalDelTilt, latestMessages
 global suppressAbort, absDirectiveFile, userTemplateDir, summaryMessage, logFile
 global finalRetVal, correctCTF, eraseGold, axisLet, axisNum, useVolMatch, nxRecA, nyRecA
+global finishSetAndQuit
 
 # Print a string to both standard out and a log file if one is defined
 def prnLog(string, end  = '\n', flush = False):
@@ -603,16 +604,22 @@ def transformRawBoundaryModel(modelIn, modelOut):
 
 # Check for a Q in the check file and just exit, unless some reason to return turns up
 def checkForQuit():
+   global finishSetAndQuit
    if not os.path.exists(checkFile):
       return False
    checklines = readTextFile(checkFile, None, True)
    if isinstance(checklines, str) or len(checklines) < 1:
       return False
-   if checklines[len(checklines) - 1].startswith('Q'):
+   if checklines[-1].startswith('Q'):
+      writeTextFile(proChunkCheckFile, ['Q'], True)
       prnLog('RECEIVED SIGNAL TO QUIT, JUST EXITING')
       sys.exit(0)
+   if checklines[-1].startswith('F'):
+      if not finishSetAndQuit:
+         prnLog('RECEIVED SIGNAL TO FINISH CURRENT SET AND EXIT')
+      finishSetAndQuit = True
 
-      
+
 # Runs a com file or com chunks using processchunks
 def runOneProcess(comfile, single = True, usingGPU = False, message = '',
                   useMostCPUs = False):
@@ -622,11 +629,11 @@ def runOneProcess(comfile, single = True, usingGPU = False, message = '',
    sleepTime = 0.2
    startingTimeOut = 60.
    readErrorTimeout = 30.
-   checkInterval = 10.
+   checkInterval = 5.
    
    # Check for quitting then compose the command array
    checkForQuit()
-   comArray = ['processchunks', '-P', '-g', '-c', checkFile, '-n', str(niceness)]
+   comArray = ['processchunks', '-P', '-g', '-c', proChunkCheckFile, '-n', str(niceness)]
    outfile = 'processchunks' + axisLet + '.out'
    if remoteDataDir:
       comArray += ['-w', remoteDataDir]
@@ -738,7 +745,7 @@ def runOneProcess(comfile, single = True, usingGPU = False, message = '',
          # If can't get the output, tell processchunks to quit but keep going to next set
          if opened and not readOK and \
                 elapsed - gotLinesAt > readErrorTimeout:
-            writeTextFile(checkFile, ['Q'], True)
+            writeTextFile(proChunkCheckFile, ['Q'], True)
             time.sleep(5.)
             abortSet('Unable to read processchunks output file without an error')
             return 1
@@ -760,7 +767,7 @@ def runOneProcess(comfile, single = True, usingGPU = False, message = '',
             pass
 
    except KeyboardInterrupt:
-      writeTextFile(checkFile, ['Q'], True)
+      writeTextFile(proChunkCheckFile, ['Q'], True)
       prnLog('Detected keyboard interrupt, told processchunks to quit')
       sys.exit(1)
 
@@ -899,33 +906,22 @@ def analyzeAlignLog(twoSurf, angleArr):
 # 8,9: SUBSETSTART X and Y
 # This function can be moved to imodpy so etomo can access it from a script
 def montageFrameValues(nxmont, nymont, nxali, nyali, frameArr):
-   try:
 
-      # aligned stacksize
-      goodout = runcmd(fmtstr('goodframe {} {}', nxali, nyali))
-      gsplit = goodout[len(goodout) - 1].split()
-      frameArr[0] = int(gsplit[0])
-      frameArr[1] = int(gsplit[1])
+   # aligned stacksize
+   (frameArr[0], frameArr[1]) = runGoodframe(nxali, nyali)
+   (frameArr[6], frameArr[7]) = runGoodframe(nxmont, nymont)
+   if frameArr[0] < 0 or frameArr[6] < 0:
+      return min(frameArr[0], frameArr[6])
 
-      # raw blended stack size (FULLIMAGE)
-      goodout = runcmd(fmtstr('goodframe {} {}', nxmont, nymont))
-      gsplit = goodout[len(goodout) - 1].split()
-      frameArr[6] = int(gsplit[0])
-      frameArr[7] = int(gsplit[1])
+   # starting coordinates X and Y for blend
+   frameArr[2] = -((frameArr[0] - nxmont) // 2)
+   frameArr[3] = -((frameArr[1] - nymont) // 2)
+   
+   # ending for blend, and SUBSETSTART
+   for ind in (0, 1):
+      frameArr[ind + 4] = frameArr[ind + 2] + frameArr[ind] - 1
+      frameArr[ind + 8] = -((frameArr[ind] - frameArr[ind + 6]) // 2)
 
-      # starting coordinates X and Y for blend
-      frameArr[2] = -((frameArr[0] - nxmont) // 2)
-      frameArr[3] = -((frameArr[1] - nymont) // 2)
-      
-      # ending for blend, and SUBSETSTART
-      for ind in (0, 1):
-         frameArr[ind + 4] = frameArr[ind + 2] + frameArr[ind] - 1
-         frameArr[ind + 8] = -((frameArr[ind] - frameArr[ind + 6]) // 2)
-
-   except ImodpyError:
-      return 1
-   except Exception:
-      return 2
    return 0
 
 
@@ -3515,6 +3511,7 @@ autoSeedText = runtimePrefix + 'SeedFinding'
 combinePrefix = runtimePrefix + 'Combine'
 setupBname = 'laterbsetup.com'
 localBatchCopy = 'batchDirective.adoc'
+proChunkCheckFile = 'processchunks.cmds'
 montFrameData = 10 * [0]
 suppressAbort = False
 altExtension = 'mrc'
@@ -3548,6 +3545,7 @@ useVolMatch = -1
 
 logFile = None
 finalRetVal = 0
+finishSetAndQuit = False
 latestMessages = []
 direcFileErrorNames = ['scope template', 'system template', 'user template',
                        'batch directive']
@@ -3728,6 +3726,8 @@ else:
                                     str(os.getpid()) + '.input'))
 if validation <= 0:
    prnstr('To quit all processing, place a Q in the file: ' + checkFile)
+if os.path.exists(checkFile):
+   cleanupFiles([checkFile])
 
 baseComDict = {}
 validComDict = {}
@@ -3757,9 +3757,12 @@ for dfileInd in range(numSets):
    dfile = dirFiles[dfileInd]
    axisNum = 0
 
-   # Remove check file in case it was used to tell processchunks to quit by us
-   if os.path.exists(checkFile):
-      cleanupFiles([checkFile])
+   # Check for an F in the check file before going on
+   # No need to remove processchunks check file, it takes care of it itself
+   checkForQuit()
+   if finishSetAndQuit:
+      sys.exit(0)
+
    os.chdir(startingDir)
    allDirectives = [{}, {}, {}, {}]
    absDirectiveFile = imodAbsPath(dfile)

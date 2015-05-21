@@ -5,7 +5,7 @@ Pip = 1
 [Field = factor]
 short = f
 type = F
-usage = Global factor to squeeze by, default = 1.6
+usage = "Global factor to squeeze by, default = 1.6"
 tooltip =
 manpage =
 

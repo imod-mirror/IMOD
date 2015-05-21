@@ -153,6 +153,9 @@ public class EtomoDirector {
         Utilities.setStartTime();
       }
       INSTANCE.initialize();
+      if (!EtomoDirector.INSTANCE.arguments.isHelp()) {
+        PluginFactory.INSTANCE.loadPlugins(UIHarness.INSTANCE);
+      }
       // automation must be done last in main, otherwise initialization may not
       // complete normally.
       EtomoDirector.INSTANCE.doAutomation();

@@ -60,7 +60,8 @@ but with enough leading zeros so that all files have the same number of
 digits and will list in order.  If a position is too close to the top
 or bottom of the Y-extent that can be reconstructed from the current
 aligned stack, the particle will be skipped, but output files will
-still be numbered sequentially.  For positions not quite so close to
+still be numbered sequentially unless the \fB-skip\fR option is
+entered.  For positions not quite so close to
 the limits in Y, a Tilt(1) run will be included to generate a subvolume
 with up to 1/6 of the extent blank in that direction.
 .P

@@ -318,14 +318,10 @@ if xymax > midasLimit:
    ifsquoze = 1
    squeeze = midasLimit / xymax
    expand = xymax / midasLimit
-   try:
-      gdxy = runcmd(fmtstr('goodframe {} {}', int(squeeze * nxmax), int(squeeze * nymax)))
-   except ImodpyError:
-      exitFromImodError(progname)
-   if len(gdxy) < 1 or len(gdxy[0].split()) < 2:
+   (newx, newy) = runGoodframe(int(squeeze * nxmax), int(squeeze * nymax))
+   if newx < 0:
       exitError('Getting new size for squeezed slices from goodframe')
-   newxy = gdxy[0].split()
-   newsize = newxy[0] + ',' + newxy[1]
+   newsize = fmtstr('{},{}', newx, newy)
    makeBackupFile(joinroot + '.sqzxf')
    makeBackupFile(joinroot + '.xpndxf')
    writeTextFile(joinroot + '.sqzxf', [fmtstr('{0:.7f} 0. 0. {0:.7f} 0. 0.', squeeze)])

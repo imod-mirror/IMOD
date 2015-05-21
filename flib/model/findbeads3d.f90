@@ -1298,7 +1298,7 @@ subroutine writePeakModel(firstFile, indPeak, peakVal, peakPos, &
     object(i) = i
   enddo
   iobj = 0
-  if (blackThresh > 0) iobj = max(1, min(255, &
+  if (blackThresh > 0) iobj = max(0, min(255, &
       nint(255. * (blackThresh - peakMin) / peakMax - peakMin)))
   ierr = putValBlackWhite(1, iobj, 255)
   ierr = putImageRef(delta, origin)
