@@ -39,13 +39,16 @@ from tomocoords import *
 # Fallbacks from ../manpages/autodoc2man 3 1 subtomosetup
 options = ["root:RootName:CH:", "volume:VolumeModeled:FN:",
            "center:CenterPositionFile:FN:", "objects:ObjectsToUse:LI:",
-           "size:SizeInXYZ:IT:", "dir:DirectoryForOutput:FN:", "com:CommandFile:FN:",
-           "reorient:ReorientionType:I:"]
+           "size:SizeInXYZ:IT:", "dir:DirectoryForOutput:FN:",
+           "skip:SkipSubVolNumbers:B:", "com:CommandFile:FN:",
+           "reorient:ReorientionType:I:", "proc:ProcessorNumber:I:",
+           "runs:RunsPerChunk:I:"]
 
 (rootName, volName, centerFile, pointFile, modelFile, objList, comFile, \
        reorientIn, enteredOrient) = getCommonOptions(options, progname)
 
 outDir = PipGetString('DirectoryForOutput', '')
+skipVolNumbers = PipGetBoolean('SkipSubVolNumbers', 0)
 (xSize, ySize, zSize) = PipGetThreeIntegers('SizeInXYZ', 0, 0, 0)
 if xSize < 1 or ySize < 1 or zSize < 1:
    exitError('Positive sizes must be entered for the reconstructions')
@@ -151,9 +154,12 @@ while ptEnd < numPts:
 
    # Loop on points that might be in chunk
    for ptNum in range(ptStart, ptEnd):
+      numUse = numPtTot + 1
+      if skipVolNumbers:
+         numUse = ptNum + 1
 
       comName = comRoot + fmtstr('-{:03d}', chunk) + '.com'
-      chunkBase = rootName + fmtstr(numFormat, numPtTot + 1)
+      chunkBase = rootName + fmtstr(numFormat, numUse)
 
       # Use a forward slash so output is stable and tests work with Windows python
       if outDir:

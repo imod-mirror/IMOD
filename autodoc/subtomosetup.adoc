@@ -59,6 +59,17 @@ subvolumes will be written into the dataset directory; this option can be used
 to place them in a subdirectory or, in fact, in a directory located anywhere.
 If the directory does not exist yet, it will be created.
 
+[Field = SkipSubVolNumbers]
+short = skip
+type = B
+usage = Make subvolume and point numbers correspond even if points are skipped
+tooltip =
+manpage = Skip subvolume numbers whenever points near the border of the volume
+are skipped, thus keeping the subvolume and point numbers in register even when
+points are skipped.  The default is to put out sequentially numbered subvolumes
+with no gaps, which is required when processing the subvolumes in PEET with 
+template specifications for a series of volumes.
+
 [Field = CommandFile]
 short = com
 type = FN

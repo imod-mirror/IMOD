@@ -124,13 +124,20 @@ manpage = Path on remote machines to directory from which this program is starte
 [Field = CheckFile]
 short = check
 type = FN
-usage = File to check for quit signals
+usage = File to check for quit and finish signals
 tooltip = 
-manpage = File to check for quit signals.  The default is batchruntomo.###.input
+manpage = File to check for quit and finish signals.  The default is 
+batchruntomo.###.input
 in the directory where this program is started, where ### is the process ID.
-The file is passed to processchunks when it runs jobs, and is checked before
-and after running jobs.  Only a Q should be placed in this file.  This will
-terminate any running jobs and stop all processing.
+This file should not have the same name as the file used by Batchruntomo to
+control Processchunks when it runs jobs, which is "processchunks.cmds" in the
+data set directory.  If a Q is placed in this file, it will terminate any
+running jobs and stop all processing.  If an F is placed in the file, the
+program will stop after finishing the current data set.  Termination will
+usually be quicker if a Q is placed into "processchunks.cmds" as well, with no
+delay between that action and writing Q to this check file.  Thus, it should
+be done by a program or by entering a single command line with two commands on
+it.
 
 [Field = EmailAddress]
 short = email
@@ -191,7 +198,7 @@ manpage = Step to start processing with:
 ^   15: Combine setup
 ^   16: Solvematch
 ^   17: Initial matchvol
-^   18: Autopatchfind
+^   18: Autopatchfit
 ^   19: Volcombine
 ^   20: Postprocessing with Trimvol
 ^   21: NAD (Nonlinear anistropic diffusion)
@@ -245,4 +252,3 @@ type = I
 usage = Run etomo with the given debug level
 tooltip =
 manpage =
-

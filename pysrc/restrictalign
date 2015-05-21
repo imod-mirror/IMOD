@@ -351,9 +351,11 @@ if robustOff:
 if origParam[XSTRETCH_OPT] and not newParam[XSTRETCH_OPT]:
    prnstr('Turned off solving for X stretch')
    sedcom.append(sedModify('XStretchOption', 0))
+   sedcom.append(sedModify('LocalXStretchOption', 0))
 if origParam[SKEW_OPT] and not newParam[SKEW_OPT]:
    prnstr('Turned off solving for skew')
    sedcom.append(sedModify('SkewOption', 0))
+   sedcom.append(sedModify('LocalSkewOption', 0))
 if origParam[PROJ_STRETCH] and not newParam[PROJ_STRETCH]:
    prnstr('Turned off solving for projection stretch')
    sedcom.append(sedModify('ProjectionStretch', 0))
