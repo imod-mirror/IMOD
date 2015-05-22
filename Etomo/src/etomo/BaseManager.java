@@ -70,23 +70,13 @@ import etomo.util.Utilities;
  * Description: Base class for ApplicationManager and JoinManager
  * </p>
  * 
- * <p>
- * Copyright: Copyright (c) 2002 - 2005
- * </p>
- * 
- * <p>
- * Organization: Boulder Laboratory for 3-Dimensional Electron Microscopy of
- * Cells (BL3DEM), University of Colorado
- * </p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
+ * <p>Copyright: Copyright 2002 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
+ *
+ * @version $Id$
  */
 public abstract class BaseManager {
-  public static final String rcsid =
-    "$Id$";
-
   // static variables
   private static boolean headless = false;
   // proected MainFrame mainFrame = null;
@@ -410,6 +400,47 @@ public abstract class BaseManager {
     }
   }
 
+  /**
+   * 
+   * @param processName
+   * @param message
+   * @param axisID
+   */
+  public void logMessageWithKeyword(final ProcessName processName,
+    final String[] message, final AxisID axisID) {
+    if (message == null) {
+      return;
+    }
+    if (processName == null) {
+      logMessage(message, null, axisID);
+      return;
+    }
+    LogInterface logInterface = getLogInterface();
+    ArrayList<String> messageArray = new ArrayList<String>();
+    boolean log = false;
+    String tag = processName.toString() + ":";
+    for (int i = 0; i < message.length; i++) {
+      if (!log && message[i].trim().startsWith(tag)) {
+        log = true;
+      }
+      if (log) {
+        messageArray.add(message[i]);
+      }
+    }
+    if (!messageArray.isEmpty()) {
+      if (logInterface != null) {
+        logInterface.logMessage(axisID, messageArray);
+      }
+      else {
+        System.err.println(Utilities.getDateTimeStamp() + "\n" + axisID + " axis:");
+        int len = messageArray.size();
+        for (int i = 0; i < len; i++) {
+          System.err.println(messageArray.get(i));
+        }
+      }
+    }
+  }
+
   public void logMessageWithKeyword(final String[] message, final String keyword,
     final String title, final AxisID axisID) {
     LogInterface logInterface = getLogInterface();
@@ -486,7 +517,7 @@ public abstract class BaseManager {
   public void updateDirectiveMap(final DirectiveMap directiveMap,
     final StringBuffer errmsg) {}
 
-  public void logMessage(List<String> message, String title, AxisID axisID) {
+  public void logMessage(ArrayList<String> message, String title, AxisID axisID) {
     LogInterface logInterface = getLogInterface();
     if (logInterface != null) {
       logInterface.logMessage(title, axisID, message);
