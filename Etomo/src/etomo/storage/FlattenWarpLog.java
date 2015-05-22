@@ -3,22 +3,17 @@ package etomo.storage;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.List;
 
 import etomo.type.ProcessName;
 
 /**
  * <p>Description: Represents the flattenwarp log.</p>
  * 
- * <p>Copyright: Copyright 2009</p>
+ * <p>Copyright: Copyright 2009 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
- * University of Colorado</p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
+ * @version $Id$
  * 
  * <p> $Log$
  * <p> Revision 1.3  2010/03/19 21:59:22  sueh
@@ -33,9 +28,7 @@ import etomo.type.ProcessName;
  * <p> </p>
  */
 public final class FlattenWarpLog implements Loggable {
-  public static final String rcsid = "$Id$";
-
-  private final List lineList = new ArrayList();
+  private final ArrayList<String> lineList = new ArrayList();
 
   private String[] log = null;
 
@@ -58,7 +51,7 @@ public final class FlattenWarpLog implements Loggable {
    * without setLog being called (because it is a pointer), it would not
    * necessarily be correct anymore.
    */
-  public List getLogMessage() throws LogFile.LockException, FileNotFoundException,
+  public ArrayList<String> getLogMessage() throws LogFile.LockException, FileNotFoundException,
       IOException {
     if (log == null || !lineList.isEmpty()) {
       return lineList;
