@@ -1,14 +1,11 @@
 /**
  * <p>Description: </p>
  * 
- * <p>Copyright: Copyright (c) 2002 - 2006</p>
- * 
- * <p>Organization: Boulder Laboratory for 3D Fine Structure,
- * University of Colorado</p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
+ * <p>Copyright: Copyright 2002 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
+ *
+ * @version $Id$
  * 
  * <p> $Log$
  * <p> Revision 3.45  2011/06/21 17:58:51  sueh
@@ -248,8 +245,6 @@ import etomo.util.MRCHeader;
 import etomo.util.InvalidParameterException;
 
 public class TrimvolParam implements CommandDetails {
-  public static final String rcsid = "$Id$";
-
   private static final String VERSION = "1.1";
   private static final String VERSION_KEY = "Version";
 
@@ -918,7 +913,7 @@ public class TrimvolParam implements CommandDetails {
     return commandName;
   }
 
-  public List getLogMessage() throws LogFile.LockException, FileNotFoundException,
+  public ArrayList<String> getLogMessage() throws LogFile.LockException, FileNotFoundException,
       IOException {
     return null;
   }
