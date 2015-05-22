@@ -3,7 +3,6 @@ package etomo.storage;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.List;
 
 import etomo.process.AlignLogGenerator;
 import etomo.type.AxisID;
@@ -12,22 +11,16 @@ import etomo.type.ProcessName;
 /**
 * <p>Description: </p>
 * 
-* <p>Copyright: Copyright 2012</p>
-*
-* <p>Organization:
-* Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
-* University of Colorado</p>
-* 
-* @author $Author$
-* 
-* @version $Revision$
+ * <p>Copyright: Copyright 2012 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
+ *
+ * @version $Id$
 * 
 * <p> $Log$ </p>
 */
 public final class TaRobustLog implements Loggable {
-  public static final String rcsid = "$Id:$";
-
-  private final List lineList = new ArrayList();
+  private final ArrayList<String> lineList = new ArrayList<String>();
 
   private final String userDir;
   private final AxisID axisID;
@@ -54,7 +47,7 @@ public final class TaRobustLog implements Loggable {
   /**
    * Get a message to be logged in the LogPanel.
    */
-  public List getLogMessage() throws LogFile.LockException, FileNotFoundException,
+  public ArrayList<String> getLogMessage() throws LogFile.LockException, FileNotFoundException,
       IOException {
     lineList.clear();
     // refresh the log file
