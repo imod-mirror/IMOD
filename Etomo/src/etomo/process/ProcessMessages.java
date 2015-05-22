@@ -18,19 +18,13 @@ import etomo.storage.LogFile;
 /**
  * <p>Description: </p>
  * 
- * <p>Copyright: Copyright (c) 2005</p>
+ * <p>Copyright: Copyright 2005 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
- * University of Colorado</p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
+ * @version $Id$
  */
 public final class ProcessMessages {
-  public static final String rcsid = "$Id$";
-
   private static final String ERROR_TAG = "ERROR:";
   private static final String[] ERROR_TAGS = { ERROR_TAG, "Errno", "Traceback" };
   private static final boolean[] ALWAYS_MULTI_LINE = { false, false, true };
@@ -333,11 +327,11 @@ public final class ProcessMessages {
    * @param matchString
    * @return
    */
-  public List<String> getInfoList(final String[] matchStringArray) {
+  public ArrayList<String> getInfoList(final String[] matchStringArray) {
     if (!isInfo()) {
       return null;
     }
-    List<String> matches = new ArrayList<String>();
+    ArrayList<String> matches = new ArrayList<String>();
     Iterator<String> i = infoList.iterator();
     while (i.hasNext()) {
       String message = i.next();
