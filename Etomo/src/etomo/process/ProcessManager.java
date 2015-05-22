@@ -5,18 +5,11 @@
  * an interface to executing some simple command sequences.
  * </p>
  * 
- * <p>
- * Copyright: Copyright (c) 2002 - 2006
- * </p>
- * 
- * <p>
- * Organization: Boulder Laboratory for 3D Fine Structure, University of
- * Colorado
- * </p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
+ * <p>Copyright: Copyright 2002 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
+ *
+ * @version "$Id$
  * 
  * <p>
  * $Log$
@@ -1059,9 +1052,6 @@ import java.io.File;
 import java.io.IOException;
 
 public class ProcessManager extends BaseProcessManager {
-  public static final String rcsid =
-    "$Id$";
-
   // variables cast from base class variables
   // initialized in constructor
   private final ApplicationManager appManager;
@@ -2508,6 +2498,10 @@ public class ProcessManager extends BaseProcessManager {
       }
       else if (process.getProcessName() == ProcessName.RUNRAPTOR) {
         appManager.getState().setUseRaptorResultWarning(true);
+      }
+      else if (process.getProcessName() == ProcessName.RESTRICTALIGN) {
+        appManager.logMessageWithKeyword(process.getProcessName(), process.getStdOutput(),
+          process.getAxisID());
       }
       else {
         String commandName = process.getCommandName();
