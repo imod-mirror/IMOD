@@ -3,7 +3,7 @@ package etomo.ui.swing;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.List;
+import java.util.ArrayList;
 
 import javax.swing.SwingUtilities;
 import javax.swing.text.BadLocationException;
@@ -17,15 +17,11 @@ import etomo.util.Utilities;
  * <p>Description: Uses SwingUtilities.invokeLater to add timestamps and lines
  * to a LogInterface.</p>
  * 
- * <p>Copyright: Copyright 2010</p>
+ * <p>Copyright: Copyright 2010 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
- * University of Colorado</p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
+ * @version $Id$
  * 
  * <p> $Log$
  * <p> Revision 1.2  2011/02/22 18:08:09  sueh
@@ -39,22 +35,20 @@ import etomo.util.Utilities;
  * <p> </p>
  */
 final class EtomoLogger {
-  public static final String rcsid = "$Id$";
-
   private final LogInterface logInterface;
 
   EtomoLogger(final LogInterface logInterface) {
     this.logInterface = logInterface;
   }
 
-  synchronized void loadMessages(List<String> lineList) throws LogFile.LockException,
-      IOException {
+  synchronized void loadMessages(ArrayList<String> lineList)
+    throws LogFile.LockException, IOException {
     SwingUtilities.invokeLater(new AppendLater(true, lineList));
   }
 
   public void logMessage(String line1, String line2) {
     SwingUtilities
-        .invokeLater(new AppendLater(Utilities.getDateTimeStamp(), line1, line2));
+      .invokeLater(new AppendLater(Utilities.getDateTimeStamp(), line1, line2));
   }
 
   public void logMessage(Loggable loggable, AxisID axisID) {
@@ -63,33 +57,38 @@ final class EtomoLogger {
     }
     try {
       SwingUtilities.invokeLater(new AppendLater(Utilities.getDateTimeStamp(), loggable
-          .getName() + " - " + axisID + " axis:", loggable.getLogMessage()));
+        .getName() + " - " + axisID + " axis:", loggable.getLogMessage()));
     }
     catch (LogFile.LockException e) {
       e.printStackTrace();
       SwingUtilities
-          .invokeLater(new AppendLater("Unable to log message:", e.getMessage()));
+        .invokeLater(new AppendLater("Unable to log message:", e.getMessage()));
     }
     catch (IOException e) {
       e.printStackTrace();
       SwingUtilities
-          .invokeLater(new AppendLater("Unable to log message:", e.getMessage()));
+        .invokeLater(new AppendLater("Unable to log message:", e.getMessage()));
     }
   }
 
   public void logMessage(String title, AxisID axisID, String[] message) {
     SwingUtilities.invokeLater(new AppendLater(Utilities.getDateTimeStamp(), title
-        + " - " + axisID + " axis:", message));
+      + " - " + axisID + " axis:", message));
   }
 
-  public void logMessage(String title, AxisID axisID, List<String> message) {
+  public void logMessage(String title, AxisID axisID, ArrayList<String> message) {
     SwingUtilities.invokeLater(new AppendLater(Utilities.getDateTimeStamp(), title
-        + " - " + axisID + " axis:", message));
+      + " - " + axisID + " axis:", message));
+  }
+
+  public void logMessage(final AxisID axisID, final ArrayList<String> message) {
+    SwingUtilities.invokeLater(new AppendLater(Utilities.getDateTimeStamp(), axisID
+      + " axis:", message));
   }
 
   public void logMessage(final String title, final AxisID axisID) {
     SwingUtilities.invokeLater(new AppendLater(Utilities.getDateTimeStamp(), title
-        + " - " + axisID + " axis:"));
+      + " - " + axisID + " axis:"));
   }
 
   public void logMessage(final String message) {
@@ -106,7 +105,7 @@ final class EtomoLogger {
     private String line2 = null;
     private String line3 = null;
     private String[] stringArray = null;
-    private List<String> lineList = null;
+    private ArrayList<String> lineList = null;
     private File file = null;
 
     private AppendLater(String line1) {
@@ -130,13 +129,13 @@ final class EtomoLogger {
       this.stringArray = stringArray;
     }
 
-    private AppendLater(String line1, String line2, List<String> lineList) {
+    private AppendLater(String line1, String line2, ArrayList<String> lineList) {
       this.line1 = line1;
       this.line2 = line2;
       this.lineList = lineList;
     }
 
-    private AppendLater(boolean loadingFromFile, List<String> lineList) {
+    private AppendLater(boolean loadingFromFile, ArrayList<String> lineList) {
       this.loadingFromFile = loadingFromFile;
       this.lineList = lineList;
     }
@@ -169,7 +168,8 @@ final class EtomoLogger {
         }
       }
       if (lineList != null) {
-        for (int i = 0; i < lineList.size(); i++) {
+        int len = lineList.size();
+        for (int i = 0; i < len; i++) {
           newLine();
           logInterface.append(lineList.get(i));
         }
