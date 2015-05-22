@@ -1,14 +1,11 @@
 /**
  * <p>Description: Tilt command model.</p>
  *
- * <p>Copyright: Copyright (c) 2002-2004</p>
+ * <p>Copyright: Copyright 2002 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * <p>Organization: Boulder Laboratory for 3D Fine Structure,
- * University of Colorado</p>
- *
- * @author $Author$
- *
- * @version $Revision$
+ * @version $Id$
  *
  * <p> $Log$
  * <p> Revision 3.56  2011/05/03 18:02:15  sueh
@@ -272,8 +269,8 @@ package etomo.comscript;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Hashtable;
-import java.util.List;
 
 import etomo.ApplicationManager;
 import etomo.logic.DatasetTool;
@@ -297,8 +294,6 @@ import etomo.util.MRCHeader;
 import etomo.util.Utilities;
 
 public final class TiltParam implements ConstTiltParam, CommandParam {
-  public static final String rcsid = "$Id$";
-
   public static final String LOG_KEY = "LOG";
 
   public static final String SUBSETSTART_KEY = "SUBSETSTART";
@@ -406,7 +401,7 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
     return processName.toString();
   }
 
-  public List getLogMessage() throws LogFile.LockException, FileNotFoundException,
+  public ArrayList<String> getLogMessage() throws LogFile.LockException, FileNotFoundException,
       IOException {
     return null;
   }
