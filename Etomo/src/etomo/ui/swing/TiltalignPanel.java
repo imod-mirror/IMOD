@@ -1315,7 +1315,7 @@ final class TiltalignPanel implements Expandable, ActionListener {
     JPanel pnlMeasurementRatio = new JPanel();
     JPanel pnlRestrictalignButton = new JPanel();
     // init
-    btnRestrictalign.setSize();
+    btnRestrictalign.setToPreferredSize();
     ltfTargetMeasurementRatio.setPreferredWidth(45);
     ltfMinMeasurementRatio.setPreferredWidth(45);
     //
