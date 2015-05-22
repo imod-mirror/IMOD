@@ -16,6 +16,7 @@ import javax.swing.JScrollPane;
 
 import etomo.ApplicationManager;
 import etomo.comscript.FortranInputSyntaxException;
+import etomo.comscript.RestrictalignParam;
 import etomo.comscript.TiltalignParam;
 import etomo.comscript.TomodataplotsParam;
 import etomo.process.ImodProcess;
@@ -321,9 +322,10 @@ import etomo.type.Run3dmodMenuOptions;
  */
 
 public final class AlignmentEstimationDialog extends ProcessDialog implements
-    ContextMenu, Run3dmodButtonContainer {
+  ContextMenu, Run3dmodButtonContainer {
 
-  public static final String rcsid = "$Id$";
+  public static final String rcsid =
+    "$Id$";
 
   private EtomoPanel pnlAlignEst = new EtomoPanel();
   private BeveledBorder border = new BeveledBorder("Fine Alignment");
@@ -331,18 +333,19 @@ public final class AlignmentEstimationDialog extends ProcessDialog implements
   private JPanel panelButton = new JPanel();
   private final MultiLineButton btnComputeAlignment;
   private Run3dmodButton btnImod = Run3dmodButton.get3dmodInstance(
-      "View/Edit Fiducial Model", this);
+    "View/Edit Fiducial Model", this);
   private MultiLineButton btnView3DModel = new MultiLineButton(
-      "<html><b>View 3D Model</b>");
+    "<html><b>View 3D Model</b>");
   private Run3dmodButton btnViewResiduals = Run3dmodButton.get3dmodInstance(
-      "View Residual Vectors", this);
+    "View Residual Vectors", this);
   private final AlignmentEstimationActionListner actionListener;
 
   private boolean patchTracking = false;
 
   public AlignmentEstimationDialog(ApplicationManager appMgr, AxisID axisID) {
     super(appMgr, axisID, DialogType.FINE_ALIGNMENT);
-    btnComputeAlignment = (MultiLineButton) appMgr.getProcessResultDisplayFactory(axisID)
+    btnComputeAlignment =
+      (MultiLineButton) appMgr.getProcessResultDisplayFactory(axisID)
         .getComputeAlignment();
     pnlTiltalign = TiltalignPanel.getInstance(axisID, appMgr, btnAdvanced);
     btnExecute.setText("Done");
@@ -408,6 +411,11 @@ public final class AlignmentEstimationDialog extends ProcessDialog implements
     pnlTiltalign.setParameters(screenState);
   }
 
+  public boolean
+    setParameters(final RestrictalignParam param, final boolean doValidation) {
+    return pnlTiltalign.setParameters(param, doValidation);
+  }
+
   public void setPatchTracking(boolean input) {
     patchTracking = input;
     pnlTiltalign.setPatchTracking(input);
@@ -434,7 +442,7 @@ public final class AlignmentEstimationDialog extends ProcessDialog implements
   }
 
   public boolean getTiltalignParams(final TiltalignParam tiltalignParam,
-      final boolean doValidation) throws FortranInputSyntaxException {
+    final boolean doValidation) throws FortranInputSyntaxException {
     try {
       if (!pnlTiltalign.getParameters(tiltalignParam, doValidation)) {
         return false;
@@ -459,7 +467,7 @@ public final class AlignmentEstimationDialog extends ProcessDialog implements
    * @param alignLabels
    */
   private void addLogFileTab(final String logFileName, final String label,
-      final List<String> logFileList, final List<String> labelList) {
+    final List<String> logFileList, final List<String> labelList) {
     String name = logFileName + axisID.getExtension() + ".log";
     File log = new File(applicationManager.getPropertyUserDir(), name);
     if (log.length() > 10) {
@@ -499,14 +507,15 @@ public final class AlignmentEstimationDialog extends ProcessDialog implements
     Vector logFileLabel = new Vector(1);
     logFileLabel.add(alignLabels.toArray(new String[alignLabels.size()]));
 
-    TomodataplotsParam.Task[] graph = { TomodataplotsParam.Task.ROTATION,
-        TomodataplotsParam.Task.TILT_SKEW, TomodataplotsParam.Task.MAG,
-        TomodataplotsParam.Task.XSTRETCH, TomodataplotsParam.Task.RESID,
-        TomodataplotsParam.Task.AVER_RESID };
+    TomodataplotsParam.Task[] graph =
+      { TomodataplotsParam.Task.ROTATION, TomodataplotsParam.Task.TILT_SKEW,
+        TomodataplotsParam.Task.MAG, TomodataplotsParam.Task.XSTRETCH,
+        TomodataplotsParam.Task.RESID, TomodataplotsParam.Task.AVER_RESID };
 
-    ContextPopup contextPopup = new ContextPopup(rootPanel, mouseEvent,
-        "FINAL ALIGNMENT", manPagelabel, manPage, logWindowLabel, logFileLabel, logFile,
-        graph, applicationManager, alignCommandName, axisID);
+    ContextPopup contextPopup =
+      new ContextPopup(rootPanel, mouseEvent, "FINAL ALIGNMENT", manPagelabel, manPage,
+        logWindowLabel, logFileLabel, logFile, graph, applicationManager,
+        alignCommandName, axisID);
   }
 
   void done() {
@@ -524,7 +533,7 @@ public final class AlignmentEstimationDialog extends ProcessDialog implements
 
   // Event handler for panel buttons
   public void action(String command, final Deferred3dmodButton deferred3dmodButton,
-      final Run3dmodMenuOptions run3dmodMenuOptions) {
+    final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(btnComputeAlignment.getActionCommand())) {
       applicationManager.fineAlignment(axisID, btnComputeAlignment, null);
     }
@@ -533,8 +542,8 @@ public final class AlignmentEstimationDialog extends ProcessDialog implements
     }
     else if (command.equals(btnImod.getActionCommand())) {
       applicationManager.imodFixFiducials(axisID, run3dmodMenuOptions, null,
-          patchTracking ? ImodProcess.BeadFixerMode.PATCH_TRACKING_RESIDUAL_MODE
-              : ImodProcess.BeadFixerMode.RESIDUAL_MODE, null);
+        patchTracking ? ImodProcess.BeadFixerMode.PATCH_TRACKING_RESIDUAL_MODE
+          : ImodProcess.BeadFixerMode.RESIDUAL_MODE, null);
     }
     else if (command.equals(btnViewResiduals.getActionCommand())) {
       applicationManager.imodViewResiduals(axisID, run3dmodMenuOptions);
@@ -563,8 +572,8 @@ public final class AlignmentEstimationDialog extends ProcessDialog implements
     btnComputeAlignment.setToolTipText("Run Tiltalign with current parameters.");
     btnImod.setToolTipText("View fiducial model on the image stack in 3dmod.");
     btnView3DModel
-        .setToolTipText("View model of solved 3D locations of fiducial points in 3dmodv.");
+      .setToolTipText("View model of solved 3D locations of fiducial points in 3dmodv.");
     btnViewResiduals
-        .setToolTipText("Show model of residual vectors (exaggerated 10x) on the image stack.");
+      .setToolTipText("Show model of residual vectors (exaggerated 10x) on the image stack.");
   }
 }

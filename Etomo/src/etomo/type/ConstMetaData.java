@@ -319,7 +319,8 @@ import etomo.comscript.FortranInputString;
  * <p> </p>
  */
 public interface ConstMetaData {
-  public static final String rcsid = "$Id$";
+  public static final String rcsid =
+    "$Id$";
 
   public ConstEtomoNumber getPostCurTab();
 
@@ -566,4 +567,9 @@ public interface ConstMetaData {
   public String getLengthOfPieces(AxisID axisID);
 
   public String getMinimumOverlap(AxisID axisID);
+
+  public String getTargetMeasurementRatio(AxisID axisID);
+
+  public String getMinMeasurementRatio(AxisID axisID);
+
 }

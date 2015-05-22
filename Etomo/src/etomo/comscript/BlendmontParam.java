@@ -3,8 +3,8 @@ package etomo.comscript;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Hashtable;
-import java.util.List;
 
 import etomo.BaseManager;
 import etomo.logic.DatasetTool;
@@ -29,19 +29,13 @@ import etomo.util.Montagesize;
 /**
  * <p>Description: </p>
  * 
- * <p>Copyright: Copyright (c) 2005 - 2006</p>
+ * <p>Copyright: Copyright 2005 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- *<p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
- * University of Colorado</p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
+ * @version $Id$
  */
 public final class BlendmontParam implements CommandParam, CommandDetails {
-  public static final String rcsid = "$Id$";
-
   public static final String GOTO_LABEL = "doblend";
   public static final String COMMAND_NAME = "blendmont";
   public static final int LINEAR_INTERPOLATION_ORDER = 1;
@@ -665,7 +659,7 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
     throw new IllegalArgumentException("mode=" + mode);
   }
 
-  public List getLogMessage() throws LogFile.LockException, FileNotFoundException,
+  public ArrayList<String> getLogMessage() throws LogFile.LockException, FileNotFoundException,
       IOException {
     return null;
   }

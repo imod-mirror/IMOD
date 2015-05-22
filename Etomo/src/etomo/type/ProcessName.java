@@ -253,6 +253,7 @@ public final class ProcessName {
   public static final ProcessName TOMODATAPLOTS = new ProcessName("tomodataplots");
   public static final ProcessName DUALVOLMATCH = new ProcessName("dualvolmatch");
   public static final ProcessName SETUPCOMBINE = new ProcessName("setupcombine");
+  public static final ProcessName RESTRICTALIGN = new ProcessName("restrictalign");
 
   /**
    * Returns a string representation of the object.

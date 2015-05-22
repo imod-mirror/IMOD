@@ -5,7 +5,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Hashtable;
-import java.util.List;
 
 import etomo.BaseManager;
 import etomo.JoinManager;
@@ -30,15 +29,11 @@ import etomo.util.DatasetFiles;
 /**
  * <p>Description: </p>
  * 
- * <p>Copyright: Copyright (c) 2002 - 2006</p>
+ * <p>Copyright: Copyright 2002 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- *<p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
- * University of Colorado</p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
+ * @version $Id$
  * 
  * <p> $Log$
  * <p> Revision 1.46  2011/06/18 04:20:47  sueh
@@ -238,8 +233,6 @@ import etomo.util.DatasetFiles;
  * <p> </p>
  */
 public final class FinishjoinParam implements CommandDetails {
-  public static final String rcsid = "$Id$";
-
   public static final String SIZE_TAG = "Maximum size required:";
   public static final String OFFSET_TAG = "Offset needed to center:";
   public static final int SIZE_IN_X_INDEX = 3;
@@ -410,7 +403,7 @@ public final class FinishjoinParam implements CommandDetails {
     return COMMAND_NAME;
   }
 
-  public List getLogMessage() throws LogFile.LockException, FileNotFoundException,
+  public ArrayList<String> getLogMessage() throws LogFile.LockException, FileNotFoundException,
       IOException {
     return null;
   }

@@ -30,14 +30,11 @@ import etomo.util.MRCHeader;
 /**
  * <p>Description: Newstack command model</p>
  *
- * <p>Copyright: Copyright (c) 2002 - 2006</p>
+ * <p>Copyright: Copyright 2002 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * <p>Organization: Boulder Laboratory for 3D Fine Structure,
- * University of Colorado</p>
- *
- * @author $Author$
- *
- * @version $Revision$
+ * @version $Id$
  *
  * <p> $Log$
  * <p> Revision 3.33  2011/05/10 16:49:36  sueh
@@ -204,10 +201,7 @@ import etomo.util.MRCHeader;
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
  */
-
 public final class NewstParam implements ConstNewstParam, CommandParam {
-  public static final String rcsid = "$Id$";
-
   private static final String INPUT_FILE_KEY = "InputFile";
   private static final String SECTIONS_TO_READ_KEY = "SectionsToRead";
   private static final String NUMBER_TO_OUTPUT_KEY = "NumberToOutput";
@@ -236,28 +230,29 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
   private final List<String> sectionsToRead = new Vector<String>();
   private final List<String> numberToOutput = new Vector<String>();
   private final FortranInputString sizeToOutputInXandY = new FortranInputString(
-      "SizeToOutputInXandY", 2);
+    "SizeToOutputInXandY", 2);
   private final ScriptParameter modeToOutput = new ScriptParameter(MODE_TO_OUTPUT_KEY);
   private final FortranInputString userSizeToOutputInXandY = new FortranInputString(2);
   private final FortranInputString offsetsInXandY = new FortranInputString(
-      OFFSETS_IN_X_AND_Y_KEY, 2);
-  private final Vector<FortranInputString> offsetsInXandYExtraEntries = new Vector<FortranInputString>();
+    OFFSETS_IN_X_AND_Y_KEY, 2);
+  private final Vector<FortranInputString> offsetsInXandYExtraEntries =
+    new Vector<FortranInputString>();
   private final EtomoBoolean2 applyOffsetsFirst = new EtomoBoolean2("ApplyOffsetsFirst");
   private final StringParameter transformFile = new StringParameter("TransformFile");
   private final StringParameter useTransformLines = new StringParameter(
-      "UseTransformLines");
+    "UseTransformLines");
   private final ScriptParameter rotateByAngle = new ScriptParameter(
-      EtomoNumber.Type.DOUBLE, "RotateByAngle");
+    EtomoNumber.Type.DOUBLE, "RotateByAngle");
   private final ScriptParameter expandByFactor = new ScriptParameter(
-      EtomoNumber.Type.DOUBLE, "ExpandByFactor");
+    EtomoNumber.Type.DOUBLE, "ExpandByFactor");
   private final ScriptParameter binByFactor = new ScriptParameter("BinByFactor");
   private final EtomoBoolean2 linearInterpolation = new EtomoBoolean2(
-      "LinearInterpolation");
+    "LinearInterpolation");
   private final ScriptParameter floatDensities = new ScriptParameter("FloatDensities");
   private final FortranInputString contrastBlackWhite = new FortranInputString(
-      "ContrastBlackWhite", 2);
+    "ContrastBlackWhite", 2);
   private final FortranInputString scaleMinAndMax = new FortranInputString(
-      "ScaleMinAndMax", 2);
+    "ScaleMinAndMax", 2);
   private final StringParameter distortionField = new StringParameter("DistortionField");
   private final ScriptParameter imagesAreBinned = new ScriptParameter("ImagesAreBinned");
   private final FortranInputString testLimits = new FortranInputString("TestLimits", 2);
@@ -269,7 +264,7 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
   private final EtomoBoolean2 adjustOrigin = new EtomoBoolean2("AdjustOrigin");
   private final FortranInputString taperAtFill = new FortranInputString("TaperAtFill", 2);
   private final ScriptParameter fillValue = new ScriptParameter(EtomoNumber.Type.DOUBLE,
-      "FillValue");
+    "FillValue");
   private final EtomoNumber imageRotation = new EtomoNumber(EtomoNumber.Type.DOUBLE);
   private final ScriptParameter antialiasFilter = new ScriptParameter("AntialiasFilter");
 
@@ -277,7 +272,7 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
   private EtomoBoolean2 cntiff = new EtomoBoolean2("-cntiff");
   private final ScriptParameter cntempdir = new ScriptParameter("-cntempdir");
   private final EtomoNumber cnmaxtemp = new EtomoNumber(EtomoNumber.Type.DOUBLE,
-      "-cnmaxtemp");
+    "-cnmaxtemp");
   private EtomoBoolean2 cnverbose = new EtomoBoolean2("-cnverbose");
 
   private final AxisID axisID;
@@ -296,7 +291,7 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
   private Mode mode;
 
   private NewstParam(final BaseManager manager, final AxisID axisID,
-      final boolean useColorNewst) {
+    final boolean useColorNewst) {
     this.manager = manager;
     this.axisID = axisID;
     this.useColorNewst = useColorNewst;
@@ -313,7 +308,8 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
     return new NewstParam(manager, axisID, false);
   }
 
-  public static NewstParam getColorInstance(final BaseManager manager, final AxisID axisID) {
+  public static NewstParam
+    getColorInstance(final BaseManager manager, final AxisID axisID) {
     return new NewstParam(manager, axisID, true);
   }
 
@@ -363,7 +359,7 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
    * and parameters.
    */
   public void parseComScriptCommand(final ComScriptCommand scriptCommand)
-      throws FortranInputSyntaxException, InvalidParameterException {
+    throws FortranInputSyntaxException, InvalidParameterException {
     reset();
     if (scriptCommand.isKeywordValuePairs()) {
       // Read in everything that the backwards compatibility code is reading in, even if
@@ -432,7 +428,7 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
         if (cmdLineArgs[i].startsWith("-")) {
           // Handle all the colornewst parameters
           if (useColorNewst
-              && (cmdLineArgs[i].startsWith("-cn") || cmdLineArgs[i].startsWith("--cn"))) {
+            && (cmdLineArgs[i].startsWith("-cn") || cmdLineArgs[i].startsWith("--cn"))) {
             if (cmdLineArgs[i].toLowerCase().endsWith(cntiff.getName())) {
               cntiff.set(true);
             }
@@ -462,12 +458,12 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
             outputFileType = null;
           }
           else if (cmdLineArgs[i].startsWith("-filei")
-              || cmdLineArgs[i].startsWith("-FileOfI")) {
+            || cmdLineArgs[i].startsWith("-FileOfI")) {
             i++;
             fileOfInputs.set(cmdLineArgs[i]);
           }
           else if (cmdLineArgs[i].startsWith("-fileo")
-              || cmdLineArgs[i].startsWith("-FileOfO")) {
+            || cmdLineArgs[i].startsWith("-FileOfO")) {
             i++;
             fileOfOutputs.set(cmdLineArgs[i]);
           }
@@ -555,7 +551,7 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
             gradientFile.set(cmdLineArgs[i]);
           }
           else if (cmdLineArgs[i].toLowerCase().startsWith("-ori")
-              || cmdLineArgs[i].startsWith("-Adj")) {
+            || cmdLineArgs[i].startsWith("-Adj")) {
             adjustOrigin.set(true);
           }
           else if (cmdLineArgs[i].toLowerCase().startsWith("-taper")) {
@@ -591,7 +587,7 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
    * @param scriptCommand the script command to be updated
    */
   public void updateComScriptCommand(final ComScriptCommand scriptCommand)
-      throws BadComScriptException {
+    throws BadComScriptException {
     if (!useColorNewst) {
       scriptCommand.useKeywordValue();
       for (Iterator<String> i = inputFile.iterator(); i.hasNext();) {
@@ -610,7 +606,7 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
       modeToOutput.updateComScript(scriptCommand);
       offsetsInXandY.updateScriptParameter(scriptCommand);
       for (Iterator<FortranInputString> i = offsetsInXandYExtraEntries.iterator(); i
-          .hasNext();) {
+        .hasNext();) {
         i.next().updateScriptParameter(scriptCommand);
       }
       applyOffsetsFirst.updateComScript(scriptCommand);
@@ -679,7 +675,7 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
         cmdLineArgs.add(offsetsInXandY.toString(true));
       }
       for (Iterator<FortranInputString> i = offsetsInXandYExtraEntries.iterator(); i
-          .hasNext();) {
+        .hasNext();) {
         FortranInputString fis = i.next();
         if (!fis.isNull()) {
           cmdLineArgs.add("-offset");
@@ -776,8 +772,7 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
     }
   }
 
-  public void initializeDefaults() {
-  }
+  public void initializeDefaults() {}
 
   public void setBinByFactor(final Number input) {
     if (input == null) {
@@ -869,7 +864,7 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
    * @param fileType
    */
   public void setOutputFile(final FileType fileType, final String rootName,
-      final AxisType axisType) {
+    final AxisType axisType) {
     outputFile.set(fileType.deriveFileName(rootName, axisType, axisID));
     outputFileType = fileType;
   }
@@ -920,9 +915,8 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
    * @throws IOException
    */
   public boolean setSizeToOutputInXandY(final String userSizeX, final String userSizeY,
-      final int binning, final double imageRotation, final String description)
-      throws FortranInputSyntaxException, etomo.util.InvalidParameterException,
-      IOException {
+    final int binning, final double imageRotation, final String description)
+    throws FortranInputSyntaxException, etomo.util.InvalidParameterException, IOException {
     String userSize = "";
     // make sure an empty string really causes sizeToOutputInXandY to be empty.
     if (!userSizeX.matches("\\s*") || !userSizeY.matches("\\s*")) {
@@ -947,9 +941,8 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
    * dialog, can be set for newst_3dfind.com.
    */
   public boolean setSizeToOutputInXandY(String userSize, final int binning,
-      final double imageRotation, final String description)
-      throws FortranInputSyntaxException, etomo.util.InvalidParameterException,
-      IOException {
+    final double imageRotation, final String description)
+    throws FortranInputSyntaxException, etomo.util.InvalidParameterException, IOException {
     // make sure an empty string really causes sizeToOutputInXandY to be empty.
     if (userSize.equals("")) {
       userSize = "/";
@@ -959,9 +952,9 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
     this.imageRotation.set(imageRotation);
     // UserSize is empty, check for an angle close to 90 degrees.
     if ((sizeToOutputInXandY.isDefault() || sizeToOutputInXandY.isEmpty())
-        && Utilities.is90DegreeImageRotation(imageRotation)) {
-      MRCHeader header = MRCHeader.getInstance(manager, axisID,
-          DatasetTool.STANDARD_DATASET_EXT);
+      && Utilities.is90DegreeImageRotation(imageRotation)) {
+      MRCHeader header =
+        MRCHeader.getInstance(manager, axisID, DatasetTool.STANDARD_DATASET_EXT);
       header.read(manager);
       // Set y from columns (x)
       sizeToOutputInXandY.set(1, header.getNColumns());
@@ -979,7 +972,8 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
         if (iSize % 2 == iBinSize % 2) {
           if (iSize % binning > 1)
             iBinSize += 2;
-        } else {
+        }
+        else {
           iBinSize += 1;
         }
         sizeToOutputInXandY.set(ixy, iBinSize);
@@ -988,7 +982,7 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
     if (validate && description != null) {
       if (!userSizeToOutputInXandY.isNull(0) && userSizeToOutputInXandY.isNull(1)) {
         UIHarness.INSTANCE.openMessageDialog(manager, "Two values are required for "
-            + description + ".", "Entry Error", axisID);
+          + description + ".", "Entry Error", axisID);
         return false;
       }
     }
@@ -1144,8 +1138,8 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
     return "newstack";
   }
 
-  public List getLogMessage() throws LogFile.LockException, FileNotFoundException,
-      IOException {
+  public ArrayList<String> getLogMessage() throws LogFile.LockException,
+    FileNotFoundException, IOException {
     return null;
   }
 
@@ -1230,8 +1224,7 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
   }
 
   public static final class Field implements FieldInterface {
-    private Field() {
-    }
+    private Field() {}
 
     public static final Field FIDUCIALESS_ALIGNMENT = new Field();
     public static final Field BINNING = new Field();

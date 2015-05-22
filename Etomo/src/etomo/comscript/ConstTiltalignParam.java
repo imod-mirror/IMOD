@@ -3,8 +3,8 @@ package etomo.comscript;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Hashtable;
-import java.util.List;
 
 import etomo.BaseManager;
 import etomo.storage.LogFile;
@@ -477,7 +477,7 @@ public class ConstTiltalignParam implements CommandDetails {
     return PROCESS_NAME.toString();
   }
 
-  public List getLogMessage() throws LogFile.LockException, FileNotFoundException,
+  public ArrayList<String> getLogMessage() throws LogFile.LockException, FileNotFoundException,
     IOException {
     return null;
   }
