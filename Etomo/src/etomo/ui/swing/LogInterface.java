@@ -1,7 +1,7 @@
 package etomo.ui.swing;
 
 import java.io.File;
-import java.util.List;
+import java.util.ArrayList;
 
 import javax.swing.text.BadLocationException;
 
@@ -13,15 +13,11 @@ import etomo.type.AxisID;
  * Used by classes that have messages to log.  Also used by EtomoLogger which is
  * a utility for LogInterface classes.
  * 
- * <p>Copyright: Copyright 2010</p>
+ * <p>Copyright: Copyright 2010 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
- * University of Colorado</p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
+ * @version $Id$
  * 
  * <p> $Log$
  * <p> Revision 1.2  2011/02/22 18:14:05  sueh
@@ -35,11 +31,11 @@ import etomo.type.AxisID;
  * <p> </p>
  */
 public interface LogInterface {
-  public static final String rcsid = "$Id$";
-
   public void logMessage(String title, AxisID axisID, String[] message);
 
-  public void logMessage(String title, AxisID axisID, List<String> message);
+  public void logMessage(String title, AxisID axisID, ArrayList<String> message);
+
+  public void logMessage(AxisID axisID, ArrayList<String> message);
 
   public void logMessage(Loggable loggable, AxisID axisID);
 
