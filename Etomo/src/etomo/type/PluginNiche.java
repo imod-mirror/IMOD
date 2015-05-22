@@ -107,7 +107,7 @@ public final class PluginNiche {
     if (plugin.getPluginNiche() == niche) {
       if (!niche.pluginInterface.isInstance(plugin)) {
         System.err.println("Error: Invalid plugin " + plugin.getTitle()
-          + ".  A plugin for the " + niche.descr + " niche much implement "
+          + ".  A plugin for the " + niche.descr + " niche must implement "
           + niche.pluginInterface + ".");
         return false;
       }
