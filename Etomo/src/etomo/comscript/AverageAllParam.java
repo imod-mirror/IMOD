@@ -23,15 +23,11 @@ import etomo.util.EnvironmentVariable;
 /**
  * <p>Description: </p>
  * 
- * <p>Copyright: Copyright 2009</p>
+ * <p>Copyright: Copyright 2009 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
- * University of Colorado</p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
+ * @version $Id$
  * 
  * <p> $Log$
  * <p> Revision 1.7  2011/02/21 21:09:43  sueh
@@ -58,8 +54,6 @@ import etomo.util.EnvironmentVariable;
  * <p> </p>
  */
 public final class AverageAllParam implements CommandDetails {
-  public static final String rcsid = "$Id$";
-
   private static final ProcessName PROCESS_NAME = ProcessName.AVERAGE_ALL;
 
   private final BaseManager manager;
@@ -130,9 +124,9 @@ public final class AverageAllParam implements CommandDetails {
     return (String[]) commandArray.toArray(new String[commandArray.size()]);
   }
 
-  public List getLogMessage() throws LogFile.LockException, FileNotFoundException,
+  public ArrayList<String> getLogMessage() throws LogFile.LockException, FileNotFoundException,
       IOException {
-    List message = new ArrayList();
+    ArrayList<String> message = new ArrayList();
     message.add(MatlabParam.SZ_VOL_KEY + " = " + szVol);
     message.add(MatlabParam.LST_FLAG_ALL_TOM_KEY + " = " + lstFlagAllTom);
     StringBuffer buffer = new StringBuffer();
