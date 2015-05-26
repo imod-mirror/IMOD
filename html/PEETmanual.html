@@ -183,7 +183,7 @@ creates a corresponding log file.</p>
 <br>
 
 <p>Files with .mrc extension in this folder are volumes stored
-in MRC format.&nbsp References and final averages created by PEET 
+in MRC format.&nbsp; References and final averages created by PEET 
 are important examples.&nbsp;  
 For example, myRun_Ref#m.mrc is the reference volume created for 
 alignment during iteration #m.&nbsp; Similarly, the average volume 
@@ -247,11 +247,11 @@ along filaments, and will be assigned the corresponding type.</p>
 <TD WIDTH=461 VALIGN=TOP>
 <p>The name of a file containing an initial motive list, specifying
 rotations and / or translations required to approximately align each 
-particle with the reference.&nbsp This can permit use of a more restricted
+particle with the reference.&nbsp; This can permit use of a more restricted
 search for the optimal alignment.&nbsp;  The file format is identical to
 that of the .csv MOTL files used by PEET to transfer alignment 
 information between
-iterations.&nbsp This parameter is active only if the  
+iterations.&nbsp; This parameter is active only if the  
 <b>User supplied csv files</b> option is selected in the 
 "Initial Motive List" section, described below.</p>
 </TD>
@@ -424,7 +424,7 @@ The mask volume size need not match that of the reference.&nbsp;
 If they differ, the mask volume will be centered on the reference, and mask
 values outside the reference volume ignored.&nbsp; Mask values outside the
 mask volume, but within the reference, will be determined by the value
-of the majority of the 8 corner voxels of the mask volume.&nbsp  
+of the majority of the 8 corner voxels of the mask volume.&nbsp;  
 (I.e., if 5 or more corners are zero, the mask will
 be zero outside the volume;&nbsp; conversely, if 4 or fewer corners are
 zero, the mask will be one outside the mask volume.)&nbsp;
@@ -438,7 +438,7 @@ By placing closed contours on each section of interest, the region inside
 the contour will be included.
 For this purpose, it does not matter that this
 program leaves original density values rather than 1's in the
-region that is retained.&nbsp (I.e. the user supplied mask is not strictly
+region that is retained.&nbsp; (I.e. the user supplied mask is not strictly
 required to be binary, although it will be treated as if it were.)</p>
 
 <p>Masks will be centered on the initial reference, and, by default, a cylindrical 
@@ -717,7 +717,7 @@ reflected in the final motive list.&nbsp;</p>
 <p>if <b>Use absolute value of cross-correlation</b>  is checked, PEET will maximize 
 the absolute value of the cross-correlation, rather than its signed value, during
 alignment searches.&nbsp; This can help prevent noise from reinforcing to match features
-in the reference.&nbsp This works well for many biological structures which are globular
+in the reference.&nbsp; This works well for many biological structures which are globular
 or irregularly shaped.&nbsp; Use it with caution, however, with repeating or highly
 symmetric structures where there is a chance of aligning "out of phase" (i.e. dark
 on light).</p>
