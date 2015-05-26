@@ -2944,6 +2944,7 @@ public final class ApplicationManager extends BaseManager implements
       // upgrade and save param to comscript
       UIExpertUtilities.INSTANCE.upgradeOldAlignCom(this, axisID, tiltalignParam);
     }
+    fineAlignmentDialog.setDefaultParameters();
     fineAlignmentDialog.setParameters(metaData);
     fineAlignmentDialog.setTiltalignParams(tiltalignParam);
     // Handle patch tracking.
@@ -4134,6 +4135,9 @@ public final class ApplicationManager extends BaseManager implements
       return null;
     }
     RestrictalignParam param = new RestrictalignParam(this, axisID);
+    //From directive files
+    param.setOrderOfRestrictions(metaData.getOrderOfRestrictions(axisID));
+    param.setSkipBeamTiltWithOneRot(metaData.getSkipBeamTiltWithOneRot(axisID));
     if (dialog.setParameters(param, doValidation)) {
       return param;
     }
