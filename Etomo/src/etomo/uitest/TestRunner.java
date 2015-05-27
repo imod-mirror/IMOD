@@ -28,15 +28,11 @@ import etomo.util.Utilities;
 /**
  * <p>Description: </p>
  * 
- * <p>Copyright: Copyright 2008</p>
+ * <p>Copyright: Copyright 2008 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
- * University of Colorado</p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
+ * @version $Id$
  * 
  * <p> $Log$
  * <p> Revision 1.14  2010/06/02 21:48:10  sueh
@@ -84,11 +80,9 @@ import etomo.util.Utilities;
  * <p> </p>
  */
 public final class TestRunner extends JFCTestCase implements VariableList {
-  public static final String rcsid = "$Id$";
-
   private static final String[] IMAGE_FILE_EXT_ARRAY = { ".3dmod", ".ali", ".erase",
-      ".fid", ".mod", ".resmod", ".seed", DatasetTool.STANDARD_DATASET_EXT, ".matmod",
-      ".rec" };
+    ".fid", ".mod", ".resmod", ".seed", DatasetTool.STANDARD_DATASET_EXT, ".matmod",
+    ".rec" };
 
   private final Map variableMap = new HashMap();
   private final Map variableMapA = new HashMap();
@@ -105,8 +99,7 @@ public final class TestRunner extends JFCTestCase implements VariableList {
   private InterfaceSection interfaceSection = null;
   private boolean debug = true;
 
-  public TestRunner() {
-  }
+  public TestRunner() {}
 
   protected void setUp() throws Exception {
     super.setUp();
@@ -136,23 +129,24 @@ public final class TestRunner extends JFCTestCase implements VariableList {
     // parameterList.add(Arguments.NAMES_TAG);
     // parameterList.add(Arguments.DEBUG_TAG);
     // get uitest.adoc
-    ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(null, AutodocFactory.UITEST,
-        AxisID.ONLY,false);
+    ReadOnlyAutodoc autodoc =
+      AutodocFactory.getInstance(null, AutodocFactory.UITEST, AxisID.ONLY, false);
     if (autodoc == null) {
       fail("Missing autodoc: " + AutodocFactory.UITEST);
       return;
     }
     // Get the Test section specified by the environment variable
     // IMOD_TEST_SECTION.
-    String testName = EnvironmentVariable.INSTANCE.getValue(null, null,
-        "IMOD_TEST_SECTION", AxisID.ONLY);
+    String testName =
+      EnvironmentVariable.INSTANCE.getValue(null, null, "IMOD_TEST_SECTION", AxisID.ONLY);
     System.err.println("Testing " + testName);
     if (testName == null || testName.matches("\\*+")) {
       fail("$IMOD_TEST_SECTION has not been set");
     }
     // Read the commands in the Test section in order.
-    CommandReader testSectionReader = CommandReader.getSectionReader(autodoc,
-        SectionType.TEST.toString(), testName, AxisID.ONLY, this);
+    CommandReader testSectionReader =
+      CommandReader.getSectionReader(autodoc, SectionType.TEST.toString(), testName,
+        AxisID.ONLY, this);
     List autodocTesterList = new ArrayList();
     // The best order for these attributes to be set is TEST_DIR, then ADOC, then
     // DATASET.
@@ -161,7 +155,7 @@ public final class TestRunner extends JFCTestCase implements VariableList {
       command = testSectionReader.nextCommand(command);
       if (command != null && command.isKnown()) {
         assertNull("field not needed in Test section commands (" + command + ")",
-            command.getField());
+          command.getField());
         UITestActionType actionType = command.getActionType();
         UITestSubjectType subjectType = command.getSubjectType();
         Subject subject = command.getSubject();
@@ -171,16 +165,19 @@ public final class TestRunner extends JFCTestCase implements VariableList {
           if (subjectType == UITestSubjectType.ADOC) {
             // Create an autodoc tester for each autodoc in the Test section. The
             // they appear is the order in which they start running.
-            File dir = Utilities.getExistingDir(null, EtomoDirector.SOURCE_ENV_VAR, AxisID.ONLY);
-            System.err.println(EtomoDirector.SOURCE_ENV_VAR + ": " + dir.getAbsolutePath());
+            File dir =
+              Utilities.getExistingDir(null, EtomoDirector.SOURCE_ENV_VAR, AxisID.ONLY);
+            System.err.println(EtomoDirector.SOURCE_ENV_VAR + ": "
+              + dir.getAbsolutePath());
             AxisID axisID = subject.getAxisID();
             // Get the sectionType
             String sectionType = subject.getName();
             assertNotNull(
-                "set.adoc command must specify section types to run in autodoc ("
-                    + command + ")", sectionType);
+              "set.adoc command must specify section types to run in autodoc (" + command
+                + ")", sectionType);
             // Create an autodoc tester for this autodoc.
-            AutodocTester autodocTester = AutodocTester.getAutodocTester(this, helper,
+            AutodocTester autodocTester =
+              AutodocTester.getAutodocTester(this, helper,
                 AutodocFactory.getTestInstance(null, dir, value, AxisID.ONLY), dir,
                 sectionType, axisID, this);
             autodocTesterList.add(autodocTester);
@@ -207,7 +204,7 @@ public final class TestRunner extends JFCTestCase implements VariableList {
           else if (subjectType == UITestSubjectType.INTERFACE) {
             String subjectName = command.getSubject().getName();
             assertNotNull("set.interface command requires a subject name (" + command
-                + ")", subjectName);
+              + ")", subjectName);
             interfaceSection = new InterfaceSection(subjectName);
           }
           else {
@@ -216,7 +213,7 @@ public final class TestRunner extends JFCTestCase implements VariableList {
         }
         // COPY
         else if (actionType == UITestActionType.COPY
-            && subjectType == UITestSubjectType.FILE) {
+          && subjectType == UITestSubjectType.FILE) {
           // Only copy axes that are specified in the Test section in the
           // set.adoc commands.
           if (autodocTesterMap.containsKey(subject.getAxisID())) {
@@ -232,8 +229,9 @@ public final class TestRunner extends JFCTestCase implements VariableList {
     // directory from the name of the Test section.
     assertNotNull("testdir is required in Test sections", testDir);
     // Run Etomo
+    System.err.println("parameterList=" + parameterList);
     EtomoDirector
-        .main((String[]) parameterList.toArray(new String[parameterList.size()]));
+      .main((String[]) parameterList.toArray(new String[parameterList.size()]));
     etomo = EtomoDirector.INSTANCE;
     // Run each autodoc, taking turns
     boolean testing = true;
@@ -278,16 +276,21 @@ public final class TestRunner extends JFCTestCase implements VariableList {
    * @param sectionName
    */
   private void executeDatasetSection(final ReadOnlyAutodoc autodoc,
-      final String sectionName) {
+    final String sectionName) {
     assertNotNull("sectionName is required", sectionName);
-    CommandReader datasetSectionReader = CommandReader.getSectionReader(autodoc,
-        SectionType.DATASET.toString(), sectionName, AxisID.ONLY, this);
+    CommandReader datasetSectionReader =
+      CommandReader.getSectionReader(autodoc, SectionType.DATASET.toString(),
+        sectionName, AxisID.ONLY, this);
     // The directory where dataset files are stored is specified by the section
     // name.
-    uitestDataDir = new File(Utilities.getExistingDir(null, "IMOD_UITEST_DATA",
-        AxisID.ONLY), sectionName);
-    uitestImageDataDir = new File(Utilities.getExistingDir(null,
-        "IMOD_UITEST_IMAGE_DATA", AxisID.ONLY), sectionName);
+    uitestDataDir =
+      new File(Utilities.getExistingDir(null, "IMOD_UITEST_DATA", AxisID.ONLY),
+        sectionName);
+    parameterList.add(Arguments.USER_TEMPLATE_LOC_TAG);
+    parameterList.add(uitestDataDir.getAbsolutePath());
+    uitestImageDataDir =
+      new File(Utilities.getExistingDir(null, "IMOD_UITEST_IMAGE_DATA", AxisID.ONLY),
+        sectionName);
     System.err.println("uitestDataDir=" + uitestDataDir);
     System.err.println("uitestImageDataDir=" + uitestImageDataDir);
     processDatasetSection(autodoc, sectionName);
@@ -300,14 +303,15 @@ public final class TestRunner extends JFCTestCase implements VariableList {
    */
   private void processDatasetSection(ReadOnlyAutodoc autodoc, String sectionName) {
     assertNotNull("sectionName is required", sectionName);
-    CommandReader datasetSectionReader = CommandReader.getSectionReader(autodoc,
-        SectionType.DATASET.toString(), sectionName, AxisID.ONLY, this);
+    CommandReader datasetSectionReader =
+      CommandReader.getSectionReader(autodoc, SectionType.DATASET.toString(),
+        sectionName, AxisID.ONLY, this);
     Command command = null;
     while (!datasetSectionReader.isDone()) {
       command = datasetSectionReader.nextCommand(command);
       if (command != null && command.isKnown()) {
         assertNull("field not needed in dataset section commands (" + command + ")",
-            command.getField());
+          command.getField());
         UITestActionType actionType = command.getActionType();
         UITestSubjectType subjectType = command.getSubjectType();
         Subject subject = command.getSubject();
@@ -327,7 +331,7 @@ public final class TestRunner extends JFCTestCase implements VariableList {
           if (subjectType == UITestSubjectType.INTERFACE) {
             String subjectName = command.getSubject().getName();
             assertNotNull("set.interface command requires a subject name (" + command
-                + ")", subjectName);
+              + ")", subjectName);
             interfaceSection = new InterfaceSection(subjectName);
           }
           else if (subjectType == UITestSubjectType.VAR) {
@@ -349,7 +353,7 @@ public final class TestRunner extends JFCTestCase implements VariableList {
         }
         // USE
         else if (actionType == UITestActionType.USE
-            && subjectType == UITestSubjectType.DATASET) {
+          && subjectType == UITestSubjectType.DATASET) {
           // use.dataset
           processDatasetSection(autodoc, value);
         }
@@ -359,7 +363,7 @@ public final class TestRunner extends JFCTestCase implements VariableList {
       }
     }
     System.err
-        .println("dataset=" + variableMap.get(UITestSubjectType.DATASET.toString()));
+      .println("dataset=" + variableMap.get(UITestSubjectType.DATASET.toString()));
   }
 
   public void setVariable(String variableName, Object variableValue) {
@@ -375,7 +379,7 @@ public final class TestRunner extends JFCTestCase implements VariableList {
    */
   public String getVariableValue(String variableName, AxisID axisID) {
     if ((axisID == AxisID.FIRST || axisID == AxisID.ONLY)
-        && variableMapA.containsKey(variableName)) {
+      && variableMapA.containsKey(variableName)) {
       return (String) variableMapA.get(variableName);
     }
     if (axisID == AxisID.SECOND && variableMapB.containsKey(variableName)) {
@@ -440,9 +444,10 @@ public final class TestRunner extends JFCTestCase implements VariableList {
     }
     else if (!keepDatasetDir) {
       // clean the test directory by deleting it
-      SystemProgram remove = new SystemProgram(manager, System.getProperty("user.dir"),
-          new String[] { "python", getIMODBinPath() + "b3dremove", "-r",
-              testDir.getAbsolutePath() }, AxisID.ONLY);
+      SystemProgram remove =
+        new SystemProgram(manager, System.getProperty("user.dir"), new String[] {
+          "python", getIMODBinPath() + "b3dremove", "-r", testDir.getAbsolutePath() },
+          AxisID.ONLY);
       remove.run();
       // make the test directory
       testDir.mkdir();
@@ -452,8 +457,11 @@ public final class TestRunner extends JFCTestCase implements VariableList {
   }
 
   private static String getIMODBinPath() {
-    return EnvironmentVariable.INSTANCE.getValue(null, null, EtomoDirector.IMOD_DIR_ENV_VAR, AxisID.ONLY)
-        + File.separator + "bin" + File.separator;
+    return EnvironmentVariable.INSTANCE.getValue(null, null,
+      EtomoDirector.IMOD_DIR_ENV_VAR, AxisID.ONLY)
+      + File.separator
+      + "bin"
+      + File.separator;
   }
 
   /**
@@ -475,7 +483,7 @@ public final class TestRunner extends JFCTestCase implements VariableList {
     File file = new File(dataDir, fileName);
     if (!file.exists() || file.isDirectory()) {
       throw new IllegalStateException("file must exist and must not be a directory: "
-          + file.getAbsolutePath());
+        + file.getAbsolutePath());
     }
     boolean toFileNameEmpty = toFileName == null || toFileName.matches("\\s*");
     // If keepDatasetDir is true, then only copy if the file does not exist in
@@ -492,9 +500,10 @@ public final class TestRunner extends JFCTestCase implements VariableList {
         return;
       }
     }
-    SystemProgram copy = new SystemProgram(null, System.getProperty("user.dir"),
-        new String[] { "python", getIMODBinPath() + "b3dcopy", file.getAbsolutePath(),
-            toFileNameEmpty ? "." : toFileName }, AxisID.ONLY);
+    SystemProgram copy =
+      new SystemProgram(null, System.getProperty("user.dir"), new String[] { "python",
+        getIMODBinPath() + "b3dcopy", file.getAbsolutePath(),
+        toFileNameEmpty ? "." : toFileName }, AxisID.ONLY);
     copy.run();
   }
 
