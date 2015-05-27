@@ -19,8 +19,6 @@ import etomo.type.AxisType;
  * @version $Id$
  */
 public final class DirectiveDef {
-  public static final String rcsid = "$Id:$";
-
   public static final String RUN_TIME_ANY_AXIS_TAG = "any";
   public static final String RUN_TIME_A_AXIS_TAG = "a";
   public static final String RUN_TIME_B_AXIS_TAG = "b";
@@ -154,6 +152,15 @@ public final class DirectiveDef {
     DirectiveType.RUN_TIME, Module.RECONSTRUCTION, "fallbackThickness");
   public static final DirectiveDef USE_SIRT = new DirectiveDef(DirectiveType.RUN_TIME,
     Module.RECONSTRUCTION, "useSirt");
+
+  public static final DirectiveDef MIN_MEASUREMENT_RATIO = new DirectiveDef(
+    DirectiveType.RUN_TIME, Module.RESTRICT_ALIGN, "minMeasurementRatio");
+  public static final DirectiveDef ORDER_OF_RESTRICTIONS = new DirectiveDef(
+    DirectiveType.RUN_TIME, Module.RESTRICT_ALIGN, "orderOfRestrictions");
+  public static final DirectiveDef SKIP_BEAM_TILT_WITH_ONE_ROT = new DirectiveDef(
+    DirectiveType.RUN_TIME, Module.RESTRICT_ALIGN, "skipBeamTiltWithOneRot");
+  public static final DirectiveDef TARGET_MEASUREMENT_RATIO = new DirectiveDef(
+    DirectiveType.RUN_TIME, Module.RESTRICT_ALIGN, "targetMeasurementRatio");
 
   public static final DirectiveDef RAW_BOUNDARY_MODEL_FOR_SEED_FINDING =
     new DirectiveDef(DirectiveType.RUN_TIME, Module.SEED_FINDING, "rawBoundaryModel");
@@ -338,6 +345,10 @@ public final class DirectiveDef {
     return directiveType == DirectiveType.COM_PARAM;
   }
 
+  public boolean isRuntime() {
+    return directiveType == DirectiveType.RUN_TIME;
+  }
+
   public boolean isBoolean() {
     loadDirectiveDescr();
     return bool;
@@ -397,7 +408,7 @@ public final class DirectiveDef {
   /**
    * @return module name for runtime directives
    */
-  String getModule() {
+  public String getModule() {
     return module;
   }
 
@@ -531,8 +542,8 @@ public final class DirectiveDef {
       }
       return AxisID.ONLY.getExtension();
     }
-    return (axisID != null && axisID != AxisID.ONLY) ? (AutodocTokenizer.SEPARATOR_CHAR + axisID
-      .getExtension()) : "";
+    return (axisID != null && axisID != AxisID.ONLY)
+      ? (AutodocTokenizer.SEPARATOR_CHAR + axisID.getExtension()) : "";
   }
 
   /**

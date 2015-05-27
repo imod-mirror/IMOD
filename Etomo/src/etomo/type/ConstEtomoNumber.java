@@ -1516,9 +1516,9 @@ public abstract class ConstEtomoNumber implements Storable {
 
   Number newNumber(boolean value) {
     if (value) {
-      return newNumber(1);
+      return newNumber(BOOLEAN_TRUE);
     }
-    return newNumber(0);
+    return newNumber(BOOLEAN_FALSE);
   }
 
   Number newNumber(double value) {

@@ -5,18 +5,11 @@
  * an interface to executing some simple command sequences.
  * </p>
  * 
- * <p>
- * Copyright: Copyright (c) 2002 - 2006
- * </p>
- * 
- * <p>
- * Organization: Boulder Laboratory for 3D Fine Structure, University of
- * Colorado
- * </p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
+ * <p>Copyright: Copyright 2002 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
+ *
+ * @version "$Id$
  * 
  * <p>
  * $Log$
@@ -1042,6 +1035,7 @@ import etomo.comscript.CopyTomoComs;
 import etomo.comscript.ExtractmagradParam;
 import etomo.comscript.ExtracttiltsParam;
 import etomo.comscript.NewstParam;
+import etomo.comscript.RestrictalignParam;
 import etomo.comscript.RunraptorParam;
 import etomo.comscript.SetupCombine;
 import etomo.comscript.SirtsetupParam;
@@ -1058,9 +1052,6 @@ import java.io.File;
 import java.io.IOException;
 
 public class ProcessManager extends BaseProcessManager {
-  public static final String rcsid =
-    "$Id$";
-
   // variables cast from base class variables
   // initialized in constructor
   private final ApplicationManager appManager;
@@ -1940,7 +1931,7 @@ public class ProcessManager extends BaseProcessManager {
     throws IOException {
     SetupCombine setupCombine;
     try {
-      setupCombine =  SetupCombine.getInstance(appManager);
+      setupCombine = SetupCombine.getInstance(appManager);
     }
     catch (SystemProcessException e) {
       uiHarness.openMessageDialog(appManager, e.getMessage(), "Setup Combine Error",
@@ -2164,6 +2155,14 @@ public class ProcessManager extends BaseProcessManager {
     throws SystemProcessException {
     BackgroundProcess backgroundProcess =
       startBackgroundProcess(param, AxisID.ONLY, true, ProcessName.ARCHIVEORIG,
+        processSeries);
+    return backgroundProcess.getName();
+  }
+
+  public String restrictalign(final RestrictalignParam param, final AxisID axisID,
+    final ProcessSeries processSeries) throws SystemProcessException {
+    BackgroundProcess backgroundProcess =
+      startBackgroundProcess(param, axisID, false, ProcessName.RESTRICTALIGN,
         processSeries);
     return backgroundProcess.getName();
   }
@@ -2499,6 +2498,10 @@ public class ProcessManager extends BaseProcessManager {
       }
       else if (process.getProcessName() == ProcessName.RUNRAPTOR) {
         appManager.getState().setUseRaptorResultWarning(true);
+      }
+      else if (process.getProcessName() == ProcessName.RESTRICTALIGN) {
+        appManager.logMessageWithKeyword(process.getProcessName(), process.getStdOutput(),
+          process.getAxisID());
       }
       else {
         String commandName = process.getCommandName();

@@ -7,6 +7,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import etomo.comscript.ArchiveorigParam;
@@ -54,6 +55,7 @@ import etomo.comscript.NewstParam;
 import etomo.comscript.Patchcrawl3DParam;
 import etomo.comscript.ProcessDetails;
 import etomo.comscript.ProcesschunksParam;
+import etomo.comscript.RestrictalignParam;
 import etomo.comscript.RunraptorParam;
 import etomo.comscript.SetParam;
 import etomo.comscript.SirtsetupParam;
@@ -516,7 +518,7 @@ public final class ApplicationManager extends BaseManager implements
         }
         // Send a specific INFO: message to the project log
         if (messages.isInfo()) {
-          List<String> infoMessages =
+          ArrayList<String> infoMessages =
             messages.getInfoList(new String[] { "Setting logarithm offset",
               "Pixel spacing" });
           if (infoMessages != null && infoMessages.size() != 0) {
@@ -2942,6 +2944,7 @@ public final class ApplicationManager extends BaseManager implements
       // upgrade and save param to comscript
       UIExpertUtilities.INSTANCE.upgradeOldAlignCom(this, axisID, tiltalignParam);
     }
+    fineAlignmentDialog.setDefaultParameters();
     fineAlignmentDialog.setParameters(metaData);
     fineAlignmentDialog.setTiltalignParams(tiltalignParam);
     // Handle patch tracking.
@@ -3794,6 +3797,59 @@ public final class ApplicationManager extends BaseManager implements
     mainPanel.startProgressBar("Aligning stack", axisID, ProcessName.ALIGN);
   }
 
+  public void restrictalign(AxisID axisID, ProcessSeries processSeries) {
+    // Set a reference to the correct object
+    AlignmentEstimationDialog dialog =
+      (AlignmentEstimationDialog) getDialog(DialogType.FINE_ALIGNMENT, axisID);
+    if (dialog != null && !dialog.isValid()) {
+      return;
+    }
+    if (updateAlignCom(axisID, true) == null) {
+      return;
+    }
+    RestrictalignParam param = updateRestrictalign(axisID, true);
+    if (param == null) {
+      return;
+    }
+    if (processSeries == null) {
+      processSeries = new ProcessSeries(this, DialogType.FINE_ALIGNMENT);
+      processSeries.setLastProcess(Task.RELOAD_ALIGN_COM);
+    }
+    processTrack.setFineAlignmentState(ProcessState.INPROGRESS, axisID);
+    mainPanel.setFineAlignmentState(ProcessState.INPROGRESS, axisID);
+    mainPanel.startProgressBar("Restricting alignment variables", axisID,
+      ProcessName.RESTRICTALIGN);
+    try {
+      setThreadName(processMgr.restrictalign(param, axisID, processSeries), axisID);
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+      mainPanel.stopProgressBar(axisID, ProcessEndState.FAILED);
+      String[] message = new String[2];
+      message[0] = "Can not execute restrictalign";
+      message[1] = e.getMessage();
+      uiHarness.openMessageDialog(this, message, "Unable to execute script", axisID);
+      return;
+    }
+  }
+
+  private void reloadAlignCom(final AxisID axisID) {
+    mainPanel.startProgressBar("Reloading align", axisID);
+    comScriptMgr.resetAlign(axisID);
+    AlignmentEstimationDialog dialog =
+      (AlignmentEstimationDialog) getDialog(DialogType.FINE_ALIGNMENT, axisID);
+    if (dialog == null) {
+      openFineAlignmentDialog(axisID);
+    }
+    else {
+      comScriptMgr.loadAlign(axisID);
+      TiltalignParam param = comScriptMgr.getTiltalignParam(axisID);
+      // If this is a montage, then binning can only be 1, so no need to upgrade
+      dialog.setTiltalignParams(param);
+    }
+    mainPanel.stopProgressBar(axisID, ProcessEndState.DONE);
+  }
+
   /**
    * Open 3dmod with the new fidcuial model
    */
@@ -4069,6 +4125,23 @@ public final class ApplicationManager extends BaseManager implements
     mainPanel.startProgressBar("Transferring fiducials", destAxisID,
       ProcessName.TRANSFERFID);
     updateDialog(fiducialModelDialog, destAxisID);
+  }
+
+  private RestrictalignParam updateRestrictalign(final AxisID axisID,
+    final boolean doValidation) {
+    AlignmentEstimationDialog dialog =
+      (AlignmentEstimationDialog) getDialog(DialogType.FINE_ALIGNMENT, axisID);
+    if (dialog == null) {
+      return null;
+    }
+    RestrictalignParam param = new RestrictalignParam(this, axisID);
+    //From directive files
+    param.setOrderOfRestrictions(metaData.getOrderOfRestrictions(axisID));
+    param.setSkipBeamTiltWithOneRot(metaData.getSkipBeamTiltWithOneRot(axisID));
+    if (dialog.setParameters(param, doValidation)) {
+      return param;
+    }
+    return null;
   }
 
   /**
@@ -8487,6 +8560,9 @@ public final class ApplicationManager extends BaseManager implements
         (CcdEraserDisplay) display);
       return true;
     }
+    if (process.equals(Task.RELOAD_ALIGN_COM)) {
+      reloadAlignCom(axisID);
+    }
     return false;
   }
 
@@ -9250,6 +9326,24 @@ public final class ApplicationManager extends BaseManager implements
       return MetaData.getNewFileTitle();
     }
     return metaData.getName();
+  }
+
+  public static final class Task implements TaskInterface {
+    private static final Task RELOAD_ALIGN_COM = new Task();
+
+    private final boolean droppable;
+
+    private Task() {
+      this(false);
+    }
+
+    private Task(final boolean droppable) {
+      this.droppable = droppable;
+    }
+
+    public boolean okToDrop() {
+      return droppable;
+    }
   }
 }
 /**

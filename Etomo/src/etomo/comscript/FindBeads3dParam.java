@@ -3,8 +3,8 @@ package etomo.comscript;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Hashtable;
-import java.util.List;
 
 import etomo.BaseManager;
 import etomo.storage.LogFile;
@@ -24,15 +24,11 @@ import etomo.type.StringParameter;
 /**
  * <p>Description: </p>
  * 
- * <p>Copyright: Copyright 2009</p>
+ * <p>Copyright: Copyright 2009 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
- * University of Colorado</p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
+ * @version $Id$
  * 
  * <p> $Log$
  * <p> Revision 3.10  2011/04/09 06:23:04  sueh
@@ -69,8 +65,6 @@ import etomo.type.StringParameter;
  * <p> </p>
  */
 public final class FindBeads3dParam implements ConstFindBeads3dParam, CommandParam {
-  public static final String rcsid = "$Id$";
-
   public static final String BEAD_SIZE_TAG = "BeadSize";
   public static final String LIGHT_BEADS_TAG = "LightBeads";
   public static final String MIN_RELATIVE_STRENGTH_TAG = "MinRelativeStrength";
@@ -211,7 +205,7 @@ public final class FindBeads3dParam implements ConstFindBeads3dParam, CommandPar
     return minSpacing.toString();
   }
 
-  public List getLogMessage() throws LogFile.LockException, FileNotFoundException,
+  public ArrayList<String> getLogMessage() throws LogFile.LockException, FileNotFoundException,
       IOException {
     return null;
   }

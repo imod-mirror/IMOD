@@ -115,6 +115,7 @@ public final class Arguments {
   private static final String CPUS_TAG = "--cpus";
   private static final String GPUS_TAG = "--gpus";
   private static final String FROM_BRT_TAG = "--fromBRT";
+  public static final String USER_TEMPLATE_LOC_TAG = "--userTemplateLoc";
 
   private final List<String> paramFileNameList = new ArrayList<String>();
 
@@ -159,6 +160,7 @@ public final class Arguments {
   private boolean cpus = false;
   private boolean gpus = false;
   private boolean fromBRT = false;
+  private File userTemplateLoc = null;
 
   private final EtomoNumber enFiducial = new EtomoNumber(EtomoNumber.Type.DOUBLE);
   /**
@@ -167,6 +169,7 @@ public final class Arguments {
    * run EtomoDirector.main.
    */
   public static final String NAMES_TAG = "--names";
+
   Arguments() {}
 
   static void printHelpMessage() {
@@ -260,8 +263,8 @@ public final class Arguments {
   private static String stripManpageFormatting(final String input) {
     if (input.indexOf("\\f") != -1) {
       String regexp = "\\\\f";
-      return input.replaceAll(regexp + "B", "").replaceAll(regexp + "I", "").replaceAll(
-        regexp + "R", "");
+      return input.replaceAll(regexp + "B", "").replaceAll(regexp + "I", "")
+        .replaceAll(regexp + "R", "");
     }
     return input;
   }
@@ -380,6 +383,10 @@ public final class Arguments {
 
   public boolean isGpus() {
     return gpus;
+  }
+
+  public File getUserTemplateLoc() {
+    return userTemplateLoc;
   }
 
   /**
@@ -579,6 +586,11 @@ public final class Arguments {
         else if (args[i].equals(FROM_BRT_TAG)) {
           fromBRT = true;
         }
+        else if (args[i].equals(USER_TEMPLATE_LOC_TAG)) {
+          // The quotes have already been stripped.
+          userTemplateLoc = new File(args[i + 1]);
+          i++;
+        }
         else {
           errorMessageList.add("WARNING:  unknown argument, " + args[i] + ", ignored.");
         }
@@ -706,8 +718,8 @@ public final class Arguments {
       }
       else {
         errorMessageList.add(0, message);
-        UIHarness.INSTANCE.openMessageDialog(null, component, errorMessageList
-          .toArray(new String[errorMessageList.size()]), title);
+        UIHarness.INSTANCE.openMessageDialog(null, component,
+          errorMessageList.toArray(new String[errorMessageList.size()]), title);
       }
       return false;
     }
@@ -720,8 +732,8 @@ public final class Arguments {
       }
       else {
         warningMessageList.add(0, message);
-        UIHarness.INSTANCE.openMessageDialog(null, component, warningMessageList
-          .toArray(new String[warningMessageList.size()]), title);
+        UIHarness.INSTANCE.openMessageDialog(null, component,
+          warningMessageList.toArray(new String[warningMessageList.size()]), title);
       }
     }
     return true;

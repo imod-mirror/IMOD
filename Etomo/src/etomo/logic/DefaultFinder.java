@@ -27,8 +27,7 @@ public final class DefaultFinder {
 
   public ReadOnlyAutodoc progDefaultsAutodoc = null;
 
-  private DefaultFinder() {
-  }
+  private DefaultFinder() {}
 
   /**
    * Gets the default value from the autodoc corresponding to the directiveDef, or from
@@ -38,10 +37,21 @@ public final class DefaultFinder {
    * @return
    */
   public String getDefaultValue(final DirectiveDef directiveDef) {
-    if (!directiveDef.isComparam()) {
+    String command;
+    if (directiveDef.isComparam()) {
+      command = directiveDef.getCommand();
+    }
+    else if (directiveDef.isRuntime()) {
+      // Warning: not all of the directive modules have a corresponding .adoc file.
+      command = directiveDef.getModule();
+      if (command == null) {
+        return null;
+      }
+      command = command.toLowerCase();
+    }
+    else {
       return null;
     }
-    String command = directiveDef.getCommand();
     boolean autodocLoaded = AutodocFactory.isLoaded(command);
     ReadOnlySection commandSection = null;
     // If the autodoc has not been loaded, look for directiveDef.command in
@@ -51,15 +61,25 @@ public final class DefaultFinder {
       commandSection = getCommandSection(command);
     }
     // If the autodoc is already loaded, or command is present in progDefaults.adoc, try
-    // to
-    // get the default from the autodoc.
+    // to get the default from the autodoc.
     if (autodocLoaded || commandSection != null) {
       String name = directiveDef.getName();
+      //Runtime names start with a small letter.  Capitalize it so it matches the
+      //parameter name, which will be capitalized.
+      if (directiveDef.isRuntime() && name != null && !name.isEmpty()) {
+        String firstLetter = name.substring(0, 1).toUpperCase();
+        if (name.length() > 1) {
+          name = firstLetter + name.substring(1);
+        }
+        else {
+          name = firstLetter;
+        }
+      }
       try {
         ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(null, command);
         if (autodoc != null) {
-          ReadOnlySection fieldSection = autodoc.getSection(
-              EtomoAutodoc.FIELD_SECTION_NAME, name);
+          ReadOnlySection fieldSection =
+            autodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME, name);
           if (fieldSection != null) {
             ReadOnlyAttribute attribute = fieldSection.getAttribute("default");
             if (attribute != null) {

@@ -889,6 +889,25 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     BATCHRUNTOMO_KEY + "." + COMBINE_KEY + ".PatchSize");
   private final EtomoBoolean2 initialVolumeMatching = new EtomoBoolean2(BATCHRUNTOMO_KEY
     + "." + COMBINE_KEY + ".InitialVolumeMatching");
+  private final EtomoNumber targetMeasurementRatioA = new EtomoNumber(
+    EtomoNumber.Type.DOUBLE, FINE_KEY + "." + FIRST_AXIS_KEY + ".TargetMeasurementRatio");
+  private final EtomoNumber targetMeasurementRatioB =
+    new EtomoNumber(EtomoNumber.Type.DOUBLE, FINE_KEY + "." + SECOND_AXIS_KEY
+      + ".TargetMeasurementRatio");
+  private final EtomoNumber minMeasurementRatioA = new EtomoNumber(
+    EtomoNumber.Type.DOUBLE, FINE_KEY + "." + FIRST_AXIS_KEY + ".MinMeasurementRatio");
+  private final EtomoNumber minMeasurementRatioB = new EtomoNumber(
+    EtomoNumber.Type.DOUBLE, FINE_KEY + "." + SECOND_AXIS_KEY + ".MinMeasurementRatio");
+  private final StringProperty orderOfRestrictionsA = new StringProperty(FINE_KEY + "."
+    + FIRST_AXIS_KEY + ".OrderOfRestrictions");
+  private final StringProperty orderOfRestrictionsB = new StringProperty(FINE_KEY + "."
+    + SECOND_AXIS_KEY + ".OrderOfRestrictions");
+  private final EtomoNumber skipBeamTiltWithOneRotA =
+    new EtomoNumber(EtomoNumber.Type.BOOLEAN, FINE_KEY + "." + FIRST_AXIS_KEY
+      + ".SkipBeamTiltWithOneRot");
+  private final EtomoNumber skipBeamTiltWithOneRotB = new EtomoNumber(
+    EtomoNumber.Type.BOOLEAN, FINE_KEY + "." + SECOND_AXIS_KEY
+      + ".SkipBeamTiltWithOneRot");
 
   public MetaData(final ApplicationManager manager, final LogProperties logProperties) {
     super(logProperties);
@@ -1923,6 +1942,14 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     patchTypeOrXYZFromBatchruntomo.reset();
     initialVolumeMatching.reset();
     combineParams.reset();
+    targetMeasurementRatioA.reset();
+    targetMeasurementRatioB.reset();
+    minMeasurementRatioA.reset();
+    minMeasurementRatioB.reset();
+    orderOfRestrictionsA.reset();
+    orderOfRestrictionsB.reset();
+    skipBeamTiltWithOneRotA.reset();
+    skipBeamTiltWithOneRotB.reset();
     // load
     prepend = createPrepend(prepend);
     String group = prepend + ".";
@@ -2285,6 +2312,14 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
         1));
     }
     origImageStackExt.load(props, prepend);
+    targetMeasurementRatioA.load(props, prepend);
+    targetMeasurementRatioB.load(props, prepend);
+    minMeasurementRatioA.load(props, prepend);
+    minMeasurementRatioB.load(props, prepend);
+    orderOfRestrictionsA.load(props, prepend);
+    orderOfRestrictionsB.load(props, prepend);
+    skipBeamTiltWithOneRotA.load(props, prepend);
+    skipBeamTiltWithOneRotB.load(props, prepend);
   }
 
   public boolean isTrackElongatedPointsAllowedNull(final AxisID axisID) {
@@ -2698,6 +2733,14 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     initialVolumeMatching.store(props);
     // Backward compatibility - not necessary to store minimumOverlap
     origImageStackExt.store(props, prepend);
+    targetMeasurementRatioA.store(props, prepend);
+    targetMeasurementRatioB.store(props, prepend);
+    minMeasurementRatioA.store(props, prepend);
+    minMeasurementRatioB.store(props, prepend);
+    orderOfRestrictionsA.store(props, prepend);
+    orderOfRestrictionsB.store(props, prepend);
+    skipBeamTiltWithOneRotA.store(props, prepend);
+    skipBeamTiltWithOneRotB.store(props, prepend);
   }
 
   public void setAutoPatchFinalSize(final String input) {
@@ -2732,7 +2775,8 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
    * Copies batchruntomo settings to equivalent etomo-managed settings.
    */
   public void moveBatchruntomoSettings() {
-    combineParams.setExtraResidualTargets(extraResidualTargetsFromBatchruntomo.toString());
+    combineParams
+      .setExtraResidualTargets(extraResidualTargetsFromBatchruntomo.toString());
     extraResidualTargetsFromBatchruntomo.reset();
     combineParams.setFiducialMatch(fiducialMatchFromBatchruntomo);
     fiducialMatchFromBatchruntomo.reset();
@@ -2749,9 +2793,87 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   public MatchMode getMatchMode() {
     return combineParams.getMatchMode();
   }
-  
+
   public boolean isInitialVolumeMatching() {
     return combineParams.isInitialVolumeMatching();
+  }
+
+  public String getTargetMeasurementRatio(final AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return targetMeasurementRatioB.toString();
+    }
+    return targetMeasurementRatioA.toString();
+  }
+
+  public boolean isTargetMeasurementRatioSet(final AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return !targetMeasurementRatioB.isNull();
+    }
+    return !targetMeasurementRatioA.isNull();
+  }
+
+  public String getMinMeasurementRatio(final AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return minMeasurementRatioB.toString();
+    }
+    return minMeasurementRatioA.toString();
+  }
+
+  public boolean isMinMeasurementRatioSet(final AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return !minMeasurementRatioB.isNull();
+    }
+    return !minMeasurementRatioA.isNull();
+  }
+
+  public String getOrderOfRestrictions(final AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return orderOfRestrictionsB.toString();
+    }
+    return orderOfRestrictionsA.toString();
+  }
+
+  public String getSkipBeamTiltWithOneRot(final AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return skipBeamTiltWithOneRotB.toString();
+    }
+    return skipBeamTiltWithOneRotA.toString();
+  }
+
+  public void setTargetMeasurementRatio(final AxisID axisID, final String input) {
+    if (axisID == AxisID.SECOND) {
+      targetMeasurementRatioB.set(input);
+    }
+    else {
+      targetMeasurementRatioA.set(input);
+    }
+  }
+
+  public void setMinMeasurementRatio(final AxisID axisID, final String input) {
+    if (axisID == AxisID.SECOND) {
+      minMeasurementRatioB.set(input);
+    }
+    else {
+      minMeasurementRatioA.set(input);
+    }
+  }
+
+  public void setOrderOfRestrictions(final AxisID axisID, final String input) {
+    if (axisID == AxisID.SECOND) {
+      orderOfRestrictionsB.set(input);
+    }
+    else {
+      orderOfRestrictionsA.set(input);
+    }
+  }
+
+  public void setSkipBeamTiltWithOneRot(final AxisID axisID, final boolean input) {
+    if (axisID == AxisID.SECOND) {
+      skipBeamTiltWithOneRotB.set(input);
+    }
+    else {
+      skipBeamTiltWithOneRotA.set(input);
+    }
   }
 
   public String getMinimumOverlap(final AxisID axisID) {

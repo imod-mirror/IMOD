@@ -26,15 +26,11 @@ import etomo.util.DatasetFiles;
 /**
  * <p>Description: </p>
  * 
- * <p>Copyright: Copyright 2006</p>
+ * <p>Copyright: Copyright 2006 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
- * University of Colorado</p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
+ * @version $Id$
  * 
  * <p> $Log$
  * <p> Revision 1.20  2011/02/21 21:08:40  sueh
@@ -106,8 +102,6 @@ import etomo.util.DatasetFiles;
  * <p> </p>
  */
 public final class AnisotropicDiffusionParam implements CommandDetails {
-  public static final String rcsid = "$Id$";
-
   private static final String K_VALUE_TAG = "-k";
   private static final String ITERATION_TAG = "-n";
   private static final String COMMAND_CHAR = "$";
@@ -373,7 +367,7 @@ public final class AnisotropicDiffusionParam implements CommandDetails {
     return null;
   }
 
-  public List getLogMessage() throws LogFile.LockException, FileNotFoundException,
+  public ArrayList<String> getLogMessage() throws LogFile.LockException, FileNotFoundException,
       IOException {
     return null;
   }

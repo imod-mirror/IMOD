@@ -355,6 +355,10 @@ run.function.magnification-solution-type-test-gui-basic=
 run.function.tilt-angle-solution-type-test-gui-basic=
 run.function.distortion-solution-type-test-gui-basic=
 run.function.beam-tilt-test-gui=
+run.function.restrict-alignment-variables-test-gui=
+
+
+
 
 
 [function = global-variables-test-gui-advanced]
@@ -545,6 +549,27 @@ rb.solve-for-beam-tilt=
 assert.disabled.tf.fixed-beam-tilt=
 rb.no-beam-tilt=
 mb.beam-tilt=B
+
+
+[function = restrict-alignment-variables-test-gui]
+#values
+assert.tf.ratio-of-measurements-to-unknowns-to-achieve=%{ratio-of-measurements-to-unknowns-to-achieve}
+assert.tf.minimum=3.2
+#enabled
+assert.enabled.tf.ratio-of-measurements-to-unknowns-to-achieve=
+assert.enabled.tf.minimum=
+assert.enabled.bn.restrict-variables=
+#behavior
+assert.rb.solve-for-all-magnifications=on
+tf.ratio-of-measurements-to-unknowns-to-achieve=8.8
+tf.minimum=8.7
+bn.restrict-variables=
+wait.process.reloading-align=done
+#test orderOfRestrictions from user template
+assert.rb.fixed-magnifications-at-10=on
+rb.solve-for-all-magnifications=
+tf.ratio-of-measurements-to-unknowns-to-achieve=%{ratio-of-measurements-to-unknowns-to-achieve}
+tf.minimum=3.2
 
 
 # Local Variables tab gui test

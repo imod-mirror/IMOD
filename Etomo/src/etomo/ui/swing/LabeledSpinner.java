@@ -303,7 +303,7 @@ final class LabeledSpinner implements Field, ChangeListener, FocusListener {
   }
 
   public void useDefaultValue() {
-    if (directiveDef == null || !directiveDef.isComparam()) {
+    if (directiveDef == null) {
       if (defaultValueSetting != null && defaultValueSetting.isSet()) {
         defaultValueSetting.reset();
       }

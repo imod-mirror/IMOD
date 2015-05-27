@@ -3,8 +3,8 @@ package etomo.comscript;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Hashtable;
-import java.util.List;
 
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
@@ -17,19 +17,13 @@ import etomo.type.ProcessName;
 /**
  * <p>Description: </p>
  * 
- * <p>Copyright: Copyright (c) 2006</p>
+ * <p>Copyright: Copyright 2006 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
- * University of Colorado</p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
+ * @version $Id$
  */
 public class StartJoinParam implements CommandDetails {
-  public static final String rcsid = "$Id$";
-
   private static final ProcessName PROCESS_NAME = ProcessName.STARTJOIN;
   private static final boolean debug = true;
 
@@ -132,7 +126,7 @@ public class StartJoinParam implements CommandDetails {
     return null;
   }
 
-  public List getLogMessage() throws LogFile.LockException, FileNotFoundException,
+  public ArrayList<String> getLogMessage() throws LogFile.LockException, FileNotFoundException,
       IOException {
     return null;
   }
