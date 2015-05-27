@@ -31,14 +31,11 @@ import etomo.type.Run3dmodMenuOptions;
 /**
  * <p>Description: </p>
  *
- * <p>Copyright: Copyright (c) 2002</p>
+ * <p>Copyright: Copyright 2002 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
- * <p>Organization: Boulder Laboratory for 3D Fine Structure,
- * University of Colorado</p>
- *
- * @author $Author$
- *
- * @version $Revision$
+ * @version $Id$
  *
  * <p> $Log$
  * <p> Revision 1.2  2010/12/05 04:50:50  sueh
@@ -323,10 +320,6 @@ import etomo.type.Run3dmodMenuOptions;
 
 public final class AlignmentEstimationDialog extends ProcessDialog implements
   ContextMenu, Run3dmodButtonContainer {
-
-  public static final String rcsid =
-    "$Id$";
-
   private EtomoPanel pnlAlignEst = new EtomoPanel();
   private BeveledBorder border = new BeveledBorder("Fine Alignment");
   private TiltalignPanel pnlTiltalign;
@@ -428,7 +421,9 @@ public final class AlignmentEstimationDialog extends ProcessDialog implements
   public void getParameters(BaseScreenState screenState) {
     pnlTiltalign.getParameters(screenState);
   }
-
+  public void setDefaultParameters() {
+    pnlTiltalign.setDefaultParameters();
+  }
   public void setParameters(ConstMetaData metaData) {
     pnlTiltalign.setParameters(metaData);
   }
