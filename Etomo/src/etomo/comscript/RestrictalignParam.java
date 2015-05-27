@@ -9,6 +9,7 @@ import etomo.type.AxisID;
 import etomo.type.EtomoNumber;
 import etomo.type.FileType;
 import etomo.type.ProcessName;
+import etomo.type.StringParameter;
 
 /**
  * <p>Description: Contains parameters and command string for restrictalign. </p>
@@ -26,6 +27,10 @@ public final class RestrictalignParam implements Command {
     "TargetMeasurementRatio");
   private EtomoNumber minMeasurementRatio = new EtomoNumber(EtomoNumber.Type.DOUBLE,
     "MinMeasurementRatio");
+  private StringParameter orderOfRestrictions =
+    new StringParameter("OrderOfRestrictions");
+  private EtomoNumber skipBeamTiltWithOneRot = new EtomoNumber(EtomoNumber.Type.BOOLEAN,
+    "SkipBeamTiltWithOneRot");
 
   private final BaseManager manager;
   private final AxisID axisID;
@@ -54,12 +59,19 @@ public final class RestrictalignParam implements Command {
     command.add("-AlignCommandFile");
     command.add(alignComscriptFile.getName());
     if (!targetMeasurementRatio.isNull()) {
-      command.add( "-" + targetMeasurementRatio.getName());
-      command.add( targetMeasurementRatio.toString());
+      command.add("-" + targetMeasurementRatio.getName());
+      command.add(targetMeasurementRatio.toString());
     }
-    if(!minMeasurementRatio.isNull()) {
-      command.add( "-" + minMeasurementRatio.getName());
-      command.add( minMeasurementRatio.toString());
+    if (!minMeasurementRatio.isNull()) {
+      command.add("-" + minMeasurementRatio.getName());
+      command.add(minMeasurementRatio.toString());
+    }
+    if (!orderOfRestrictions.isEmpty()) {
+      command.add("-" + orderOfRestrictions.getName());
+      command.add(orderOfRestrictions.toString());
+    }
+    if (!skipBeamTiltWithOneRot.isNull() && skipBeamTiltWithOneRot.is()) {
+      command.add("-" + skipBeamTiltWithOneRot.getName());
     }
     commandArray = new String[command.size()];
     commandArray = command.toArray(commandArray);
@@ -72,6 +84,14 @@ public final class RestrictalignParam implements Command {
 
   public void setMinMeasurementRatio(final String input) {
     minMeasurementRatio.set(input);
+  }
+
+  public void setOrderOfRestrictions(final String input) {
+    orderOfRestrictions.set(input);
+  }
+
+  public void setSkipBeamTiltWithOneRot(final String input) {
+    skipBeamTiltWithOneRot.set(input);
   }
 
   public AxisID getAxisID() {
