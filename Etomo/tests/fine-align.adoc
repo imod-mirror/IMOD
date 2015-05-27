@@ -566,7 +566,7 @@ tf.minimum=8.7
 bn.restrict-variables=
 wait.process.reloading-align=done
 #test orderOfRestrictions from user template
-assert.rb.fixed-magnifications-at-10=on
+assert.rb.fixed-magnification-at-10=on
 rb.solve-for-all-magnifications=
 tf.ratio-of-measurements-to-unknowns-to-achieve=%{ratio-of-measurements-to-unknowns-to-achieve}
 tf.minimum=3.2
