@@ -558,7 +558,7 @@ assert.tf.minimum=3.2
 #enabled
 assert.enabled.tf.ratio-of-measurements-to-unknowns-to-achieve=
 assert.enabled.tf.minimum=
-assert.enabled.bn.restrictVariables=
+assert.enabled.bn.restrict-variables=
 #behavior
 assert.rb.solve-for-all-magnifications=on
 tf.ratio-of-measurements-to-unknowns-to-achieve=8.8
