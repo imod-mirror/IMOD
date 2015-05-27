@@ -673,10 +673,12 @@ final class TiltalignPanel implements Expandable, ActionListener {
     metaData.setTargetMeasurementRatio(axisID, ltfTargetMeasurementRatio.getText());
     metaData.setMinMeasurementRatio(axisID, ltfMinMeasurementRatio.getText());
   }
+
   void setDefaultParameters() {
     ltfTargetMeasurementRatio.useDefaultValue();
     ltfMinMeasurementRatio.useDefaultValue();
   }
+
   /**
    * Backwards compatibility: setParameters(ConstMetaData) must be called before
    * setParameters(TiltalignParam).
@@ -688,8 +690,12 @@ final class TiltalignPanel implements Expandable, ActionListener {
     rtfFixedBeamTilt.setSelected(metaData.getFixedBeamTiltSelected(axisID).is());
     rtfFixedBeamTilt.setText(metaData.getFixedBeamTilt(axisID));
     cbWeightWholeTracks.setSelected(metaData.getWeightWholeTracks(axisID));
-    ltfTargetMeasurementRatio.setText(metaData.getTargetMeasurementRatio(axisID));
-    ltfMinMeasurementRatio.setText(metaData.getMinMeasurementRatio(axisID));
+    if (metaData.isTargetMeasurementRatioSet(axisID)) {
+      ltfTargetMeasurementRatio.setText(metaData.getTargetMeasurementRatio(axisID));
+    }
+    if (metaData.isMinMeasurementRatioSet(axisID)) {
+      ltfMinMeasurementRatio.setText(metaData.getMinMeasurementRatio(axisID));
+    }
     updateDisplay();
   }
 
@@ -1396,8 +1402,11 @@ final class TiltalignPanel implements Expandable, ActionListener {
     pnlGlobalVariableBody.add(pnlDistortionSolution);
     pnlGlobalVariableBody.add(Box.createRigidArea(FixedDim.x0_y5));
     pnlGlobalVariableBody.add(Box.createVerticalGlue());
+    pnlGlobalVariableBody.add(pnlBeamTilt);
+    pnlGlobalVariableBody.add(Box.createRigidArea(FixedDim.x0_y23));
     pnlGlobalVariableBody.add(pnlRestrictalign);
     pnlGlobalVariableBody.add(Box.createRigidArea(FixedDim.x0_y10));
+    pnlGlobalVariableBody.add(Box.createVerticalGlue());
     // Restrictalign
     pnlRestrictalign.setLayout(new BoxLayout(pnlRestrictalign, BoxLayout.Y_AXIS));
     pnlRestrictalign.setBorder(new EtchedBorder("Restrict Alignment Variables")
@@ -1438,9 +1447,6 @@ final class TiltalignPanel implements Expandable, ActionListener {
     pnlBeamTiltBody.add(rbSolveForBeamTilt.getComponent());
     UIUtilities.alignComponentsX(pnlBeamTiltBody, Component.LEFT_ALIGNMENT);
     pnlBeamTilt.add(opnlBeamTiltBody);
-    pnlGlobalVariableBody.add(pnlBeamTilt);
-    pnlGlobalVariableBody.add(Box.createRigidArea(FixedDim.x0_y10));
-    pnlGlobalVariableBody.add(Box.createVerticalGlue());
     cbXTiltAutomapSame.setAlignmentX(Component.RIGHT_ALIGNMENT);
     JPanel pnlXTiltAutomapSame = new JPanel();
     pnlXTiltAutomapSame.setLayout(new BoxLayout(pnlXTiltAutomapSame, BoxLayout.X_AXIS));
