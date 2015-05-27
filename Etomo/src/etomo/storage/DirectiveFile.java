@@ -376,6 +376,7 @@ public final class DirectiveFile implements DirectiveFileInterface {
     public static final Module PREPROCESSING = new Module("Preprocessing");
     public static final Module RAPTOR = new Module("RAPTOR");
     public static final Module RECONSTRUCTION = new Module("Reconstruction");
+    public static final Module RESTRICT_ALIGN = new Module("RestrictAlign");
     public static final Module SEED_FINDING = new Module("SeedFinding");
     public static final Module TILT_ALIGNMENT = new Module("TiltAlignment");
     public static final Module TRIMVOL = new Module("Trimvol");
