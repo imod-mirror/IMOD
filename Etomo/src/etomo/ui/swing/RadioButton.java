@@ -199,7 +199,7 @@ final class RadioButton implements RadioButtonInterface, Field, ActionListener {
   }
 
   public void useDefaultValue() {
-    if (directiveDef == null || !directiveDef.isComparam()) {
+    if (directiveDef == null) {
       if (defaultValue != null && defaultValue.isSet()) {
         defaultValue.reset();
       }
