@@ -2805,11 +2805,25 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     return targetMeasurementRatioA.toString();
   }
 
+  public boolean isTargetMeasurementRatioSet(final AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return !targetMeasurementRatioB.isNull();
+    }
+    return !targetMeasurementRatioA.isNull();
+  }
+
   public String getMinMeasurementRatio(final AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       return minMeasurementRatioB.toString();
     }
     return minMeasurementRatioA.toString();
+  }
+
+  public boolean isMinMeasurementRatioSet(final AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return !minMeasurementRatioB.isNull();
+    }
+    return !minMeasurementRatioA.isNull();
   }
 
   public String getOrderOfRestrictions(final AxisID axisID) {
