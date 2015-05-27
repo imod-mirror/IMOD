@@ -25,6 +25,12 @@ usage=Timestamp processes.
 manpage=Send timestamps to standard error before and after processes are
 run.
 
+[Field = userTemplateLoc]
+format=\fB"\fIdirectory_path\fB"
+usage=Adds a second User Template directory.
+manpage=Adds a second User Template directory, in addition to one set in
+the Settings dialog.
+
 
 [SectionHeader = DirectiveAutomationOptions]
 usage=AUTOMATION OPTIONS - DIRECTIVE FILE
