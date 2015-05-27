@@ -35,8 +35,9 @@ public final class ConfigTool {
    */
   public static File[] getScopeTemplateFiles() {
     SortedMap<String, File> map = new TreeMap<String, File>();
-    File[] fileArray = new File(EtomoDirector.INSTANCE.getIMODCalibDirectory(),
-        "ScopeTemplate").listFiles(new AutodocFilter(true));
+    File[] fileArray =
+      new File(EtomoDirector.INSTANCE.getIMODCalibDirectory(), "ScopeTemplate")
+        .listFiles(new AutodocFilter(true));
     if (fileArray == null) {
       return null;
     }
@@ -59,8 +60,9 @@ public final class ConfigTool {
    * @return
    */
   public static File[] getSystemTemplateFiles() {
-    File[] fileArray = new File(EtomoDirector.INSTANCE.getIMODDirectory(),
-        DEFAULT_SYSTEM_TEMPLATE_DIR).listFiles(new AutodocFilter(true));
+    File[] fileArray =
+      new File(EtomoDirector.INSTANCE.getIMODDirectory(), DEFAULT_SYSTEM_TEMPLATE_DIR)
+        .listFiles(new AutodocFilter(true));
     SortedMap<String, File> map = null;
     if (fileArray != null) {
       map = new TreeMap<String, File>();
@@ -68,7 +70,8 @@ public final class ConfigTool {
         map.put(fileArray[i].getName(), fileArray[i]);
       }
     }
-    fileArray = new File(EtomoDirector.INSTANCE.getIMODCalibDirectory(),
+    fileArray =
+      new File(EtomoDirector.INSTANCE.getIMODCalibDirectory(),
         DEFAULT_SYSTEM_TEMPLATE_DIR).listFiles(new AutodocFilter(true));
     if (fileArray != null) {
       if (map == null) {
@@ -128,19 +131,16 @@ public final class ConfigTool {
       dir = new File(userTemplateDirPath);
     }
     else {
-      String homeDirectory = System.getProperty("user.home");
-      if (homeDirectory == null) {
-        return null;
-      }
       dir = getDefaultUserTemplateDir();
     }
-    File[] fileArray = dir.listFiles(new AutodocFilter());
-    if (fileArray == null) {
-      return null;
+    SortedMap<String, File> map = sortAutodocFiles(dir, null);
+    File secondUserTemplateDir =
+      EtomoDirector.INSTANCE.getArguments().getUserTemplateLoc();
+    if (secondUserTemplateDir != null) {
+      map = sortAutodocFiles(secondUserTemplateDir, map);
     }
-    SortedMap<String, File> map = new TreeMap<String, File>();
-    for (int i = 0; i < fileArray.length; i++) {
-      map.put(fileArray[i].getName(), fileArray[i]);
+    if (map == null) {
+      return null;
     }
     int size = map.size();
     if (size == 0) {
@@ -153,6 +153,31 @@ public final class ConfigTool {
   }
 
   /**
+   * Get a the autodoc files from dir and add them to a sorted map.
+   * @param dir
+   * @param map
+   * @return map
+   */
+  private static SortedMap<String, File> sortAutodocFiles(final File dir,
+    SortedMap<String, File> map) {
+    if (dir == null) {
+      return map;
+    }
+    System.err.println("User template location:"+dir.getAbsolutePath());
+    File[] fileArray = dir.listFiles(new AutodocFilter());
+    if (fileArray == null || fileArray.length == 0) {
+      return map;
+    }
+    if (map == null) {
+      map = new TreeMap<String, File>();
+    }
+    for (int i = 0; i < fileArray.length; i++) {
+      map.put(fileArray[i].getName(), fileArray[i]);
+    }
+    return map;
+  }
+
+  /**
    * Returns either the parent of currentDistortionFile, the distortion directory in
    * ImodCalib, or the propery user directory.
    * @param manager
@@ -160,7 +185,7 @@ public final class ConfigTool {
    * @return
    */
   public static String getDistortionDir(final BaseManager manager,
-      final File curtDistortionFile) {
+    final File curtDistortionFile) {
     File dir = null;
     if (curtDistortionFile != null) {
       dir = curtDistortionFile.getParentFile();
@@ -168,7 +193,8 @@ public final class ConfigTool {
         return dir.getAbsolutePath();
       }
     }
-    dir = new File(EtomoDirector.INSTANCE.getIMODCalibDirectory().getAbsolutePath(),
+    dir =
+      new File(EtomoDirector.INSTANCE.getIMODCalibDirectory().getAbsolutePath(),
         "Distortion");
     if (dir.exists() && dir.isDirectory() && dir.canRead()) {
       return dir.getAbsolutePath();
