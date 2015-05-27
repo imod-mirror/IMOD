@@ -249,7 +249,7 @@ final class CheckBox extends JCheckBox implements Field, ActionListener {
   }
 
   public void useDefaultValue() {
-    if (directiveDef == null || !directiveDef.isComparam()) {
+    if (directiveDef == null) {
       if (defaultValue != null && defaultValue.isSet()) {
         defaultValue.reset();
       }
