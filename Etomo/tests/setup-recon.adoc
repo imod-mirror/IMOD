@@ -33,6 +33,9 @@ if.var.quick.return=
 [[]]
 #fill in data
 tf.dataset-name=%{dataset}
+[[ifnot = montage]]
+  cbb.user-template=userDirectiveFile.adoc
+[[]]
 run.function.data-type=
 bn.scan-header=
 [[if = montage]]
