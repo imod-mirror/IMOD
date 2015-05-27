@@ -22,6 +22,7 @@ import etomo.comscript.ConstTiltalignParam;
 import etomo.comscript.FortranInputSyntaxException;
 import etomo.comscript.RestrictalignParam;
 import etomo.comscript.TiltalignParam;
+import etomo.storage.DirectiveDef;
 import etomo.storage.LogFile;
 import etomo.storage.autodoc.AutodocFactory;
 import etomo.storage.autodoc.ReadOnlyAutodoc;
@@ -672,7 +673,10 @@ final class TiltalignPanel implements Expandable, ActionListener {
     metaData.setTargetMeasurementRatio(axisID, ltfTargetMeasurementRatio.getText());
     metaData.setMinMeasurementRatio(axisID, ltfMinMeasurementRatio.getText());
   }
-
+  void setDefaultParameters() {
+    ltfTargetMeasurementRatio.useDefaultValue();
+    ltfMinMeasurementRatio.useDefaultValue();
+  }
   /**
    * Backwards compatibility: setParameters(ConstMetaData) must be called before
    * setParameters(TiltalignParam).
@@ -1318,6 +1322,8 @@ final class TiltalignPanel implements Expandable, ActionListener {
     btnRestrictalign.setToPreferredSize();
     ltfTargetMeasurementRatio.setPreferredWidth(45);
     ltfMinMeasurementRatio.setPreferredWidth(45);
+    ltfTargetMeasurementRatio.setDirectiveDef(DirectiveDef.TARGET_MEASUREMENT_RATIO);
+    ltfMinMeasurementRatio.setDirectiveDef(DirectiveDef.MIN_MEASUREMENT_RATIO);
     //
     pnlGlobalVariable.setLayout(new BoxLayout(pnlGlobalVariable, BoxLayout.Y_AXIS));
     pnlGlobalVariableBody
