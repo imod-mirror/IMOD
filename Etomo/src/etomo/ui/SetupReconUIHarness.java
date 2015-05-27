@@ -90,8 +90,8 @@ public final class SetupReconUIHarness {
     if (directiveFileCollection == null) {
       return false;
     }
-    initializeFields(manager.getConstMetaData(), EtomoDirector.INSTANCE
-      .getUserConfiguration());
+    initializeFields(manager.getConstMetaData(),
+      EtomoDirector.INSTANCE.getUserConfiguration());
     AxisType axisType = AxisType.SINGLE_AXIS;
     if (directiveFileCollection.isValue(DirectiveDef.DUAL)) {
       axisType = AxisType.DUAL_AXIS;
@@ -462,9 +462,9 @@ public final class SetupReconUIHarness {
     if (!setupInterface.validateTiltAngle(AxisID.SECOND, errorMessageTitle)) {
       return false;
     }
-    return DatasetTool.validateViewType(
-      setupInterface.isSingleViewSelected() ? ViewType.SINGLE_VIEW : ViewType.MONTAGE,
-      getPropertyUserDir(), getStackFileName(setupInterface), manager, null, AxisID.ONLY);
+    return DatasetTool.validateViewType(setupInterface.isSingleViewSelected()
+      ? ViewType.SINGLE_VIEW : ViewType.MONTAGE, getPropertyUserDir(),
+      getStackFileName(setupInterface), manager, null, AxisID.ONLY);
   }
 
   public boolean isDirectiveDrivenAutomation() {
@@ -498,8 +498,8 @@ public final class SetupReconUIHarness {
       metaData.setViewType(getViewType(setupInterface));
       String currentField = "";
       currentField = "Image Rotation";
-      metaData.setImageRotation(setupInterface.getImageRotation(AxisID.FIRST,
-        doValidation), AxisID.FIRST);
+      metaData.setImageRotation(
+        setupInterface.getImageRotation(AxisID.FIRST, doValidation), AxisID.FIRST);
       if (!metaData.getImageRotation(AxisID.FIRST).isValid()) {
         UIHarness.INSTANCE.openMessageDialog(manager, currentField + " must be numeric.",
           "Setup Dialog Error", AxisID.ONLY);
@@ -511,8 +511,8 @@ public final class SetupReconUIHarness {
         currentField = "Fiducial Diameter";
         metaData.setFiducialDiameter(setupInterface.getFiducialDiameter(doValidation));
         if (axisType == AxisType.DUAL_AXIS) {
-          metaData.setImageRotation(setupInterface.getImageRotation(AxisID.SECOND,
-            doValidation), AxisID.SECOND);
+          metaData.setImageRotation(
+            setupInterface.getImageRotation(AxisID.SECOND, doValidation), AxisID.SECOND);
         }
         currentField = "Axis A starting and step angles";
         if (!setupInterface.getTiltAngleFields(AxisID.FIRST,
@@ -520,8 +520,8 @@ public final class SetupReconUIHarness {
           return null;
         }
         currentField = "Axis B starting and step angles";
-        if (!setupInterface.getTiltAngleFields(AxisID.SECOND, metaData
-          .getTiltAngleSpecB(), doValidation)) {
+        if (!setupInterface.getTiltAngleFields(AxisID.SECOND,
+          metaData.getTiltAngleSpecB(), doValidation)) {
           return null;
         }
       }
@@ -531,16 +531,16 @@ public final class SetupReconUIHarness {
         return null;
       }
       metaData.setBinning(setupInterface.getBinning());
-      metaData.setExcludeProjections(setupInterface.getExcludeList(AxisID.FIRST,
-        doValidation), AxisID.FIRST);
-      metaData.setExcludeProjections(setupInterface.getExcludeList(AxisID.SECOND,
-        doValidation), AxisID.SECOND);
+      metaData.setExcludeProjections(
+        setupInterface.getExcludeList(AxisID.FIRST, doValidation), AxisID.FIRST);
+      metaData.setExcludeProjections(
+        setupInterface.getExcludeList(AxisID.SECOND, doValidation), AxisID.SECOND);
       metaData.setIsTwodir(AxisID.FIRST, setupInterface.isTwodir(AxisID.FIRST));
       metaData.setIsTwodir(AxisID.SECOND, setupInterface.isTwodir(AxisID.SECOND));
-      metaData.setTwodir(AxisID.FIRST, setupInterface.getTwodir(AxisID.FIRST,
-        doValidation));
-      metaData.setTwodir(AxisID.SECOND, setupInterface.getTwodir(AxisID.SECOND,
-        doValidation));
+      metaData.setTwodir(AxisID.FIRST,
+        setupInterface.getTwodir(AxisID.FIRST, doValidation));
+      metaData.setTwodir(AxisID.SECOND,
+        setupInterface.getTwodir(AxisID.SECOND, doValidation));
       if (axisType == AxisType.DUAL_AXIS) {
         File bStack =
           DatasetFiles.getStack(getPropertyUserDir(), metaData, AxisID.SECOND);
@@ -566,8 +566,8 @@ public final class SetupReconUIHarness {
         saveDirectiveFile(directiveFile, metaData);
       }
       if (directiveFileCollection != null) {
-        saveDirectiveFile(directiveFileCollection
-          .getDirectiveFile(DirectiveFileType.BATCH), metaData);
+        saveDirectiveFile(
+          directiveFileCollection.getDirectiveFile(DirectiveFileType.BATCH), metaData);
       }
       String value = directiveFileCollection.getValue(DirectiveDef.PATCH_SIZE);
       if (value != null) {
@@ -643,8 +643,8 @@ public final class SetupReconUIHarness {
     }
     if (directiveFile.contains(DirectiveDef.SIZE_IN_X_AND_Y, axisID)) {
       try {
-        metaData.setSizeToOutputInXandY(axisID, directiveFile.getValue(
-          DirectiveDef.SIZE_IN_X_AND_Y, axisID));
+        metaData.setSizeToOutputInXandY(axisID,
+          directiveFile.getValue(DirectiveDef.SIZE_IN_X_AND_Y, axisID));
       }
       catch (FortranInputSyntaxException e) {
         File file = directiveFile.getFile();
@@ -655,13 +655,13 @@ public final class SetupReconUIHarness {
       }
     }
     if (directiveFile.contains(DirectiveDef.BIN_BY_FACTOR_FOR_ALIGNED_STACK, axisID)) {
-      metaData.setStackBinning(axisID, directiveFile.getValue(
-        DirectiveDef.BIN_BY_FACTOR_FOR_ALIGNED_STACK, axisID));
+      metaData.setStackBinning(axisID,
+        directiveFile.getValue(DirectiveDef.BIN_BY_FACTOR_FOR_ALIGNED_STACK, axisID));
     }
     if (directiveFile.contains(DirectiveDef.AUTO_FIT_RANGE_AND_STEP, axisID)) {
       try {
-        metaData.setStackCtfAutoFitRangeAndStep(axisID, directiveFile.getValue(
-          DirectiveDef.AUTO_FIT_RANGE_AND_STEP, axisID));
+        metaData.setStackCtfAutoFitRangeAndStep(axisID,
+          directiveFile.getValue(DirectiveDef.AUTO_FIT_RANGE_AND_STEP, axisID));
       }
       catch (FortranInputSyntaxException e) {
         UIHarness.INSTANCE.openMessageDialog(manager, "Invalid directive file: "
@@ -671,29 +671,45 @@ public final class SetupReconUIHarness {
       }
     }
     if (directiveFile.contains(DirectiveDef.BINNING_FOR_GOLD_ERASING, axisID)) {
-      metaData.setStack3dFindBinning(axisID, directiveFile.getValue(
-        DirectiveDef.BINNING_FOR_GOLD_ERASING, axisID));
+      metaData.setStack3dFindBinning(axisID,
+        directiveFile.getValue(DirectiveDef.BINNING_FOR_GOLD_ERASING, axisID));
     }
     // GoldErasingThickness overrides the .com file
     if (directiveFile.contains(DirectiveDef.THICKNESS_FOR_GOLD_ERASING, axisID)) {
-      metaData.setStack3dFindThickness(axisID, directiveFile.getValue(
-        DirectiveDef.THICKNESS_FOR_GOLD_ERASING, axisID));
+      metaData.setStack3dFindThickness(axisID,
+        directiveFile.getValue(DirectiveDef.THICKNESS_FOR_GOLD_ERASING, axisID));
     }
     if (directiveFile.contains(DirectiveDef.WHOLE_TOMOGRAM, axisID)) {
-      metaData.setWholeTomogramSample(axisID, directiveFile.isValue(
-        DirectiveDef.WHOLE_TOMOGRAM, axisID));
+      metaData.setWholeTomogramSample(axisID,
+        directiveFile.isValue(DirectiveDef.WHOLE_TOMOGRAM, axisID));
     }
     if (directiveFile.contains(DirectiveDef.USE_SIRT, axisID)) {
-      metaData.setGenBackProjection(axisID, !directiveFile.isValue(DirectiveDef.USE_SIRT,
-        axisID));
+      metaData.setGenBackProjection(axisID,
+        !directiveFile.isValue(DirectiveDef.USE_SIRT, axisID));
     }
     if (directiveFile.contains(DirectiveDef.THICKNESS_FOR_POSITIONING, axisID)) {
-      metaData.setSampleThickness(axisID, directiveFile.getValue(
-        DirectiveDef.THICKNESS_FOR_POSITIONING, axisID));
+      metaData.setSampleThickness(axisID,
+        directiveFile.getValue(DirectiveDef.THICKNESS_FOR_POSITIONING, axisID));
     }
     if (directiveFile.contains(DirectiveDef.BIN_BY_FACTOR_FOR_POSITIONING, axisID)) {
-      metaData.setPosBinning(axisID, directiveFile.getValue(
-        DirectiveDef.BIN_BY_FACTOR_FOR_POSITIONING, axisID));
+      metaData.setPosBinning(axisID,
+        directiveFile.getValue(DirectiveDef.BIN_BY_FACTOR_FOR_POSITIONING, axisID));
+    }
+    if (directiveFile.contains(DirectiveDef.TARGET_MEASUREMENT_RATIO)) {
+      metaData.setTargetMeasurementRatio(axisID,
+        directiveFile.getValue(DirectiveDef.TARGET_MEASUREMENT_RATIO, axisID));
+    }
+    if (directiveFile.contains(DirectiveDef.MIN_MEASUREMENT_RATIO)) {
+      metaData.setMinMeasurementRatio(axisID,
+        directiveFile.getValue(DirectiveDef.MIN_MEASUREMENT_RATIO, axisID));
+    }
+    if (directiveFile.contains(DirectiveDef.ORDER_OF_RESTRICTIONS)) {
+      metaData.setOrderOfRestrictions(axisID,
+        directiveFile.getValue(DirectiveDef.ORDER_OF_RESTRICTIONS, axisID));
+    }
+    if (directiveFile.contains(DirectiveDef.SKIP_BEAM_TILT_WITH_ONE_ROT)) {
+      metaData.setSkipBeamTiltWithOneRot(axisID,
+        directiveFile.isValue(DirectiveDef.SKIP_BEAM_TILT_WITH_ONE_ROT, axisID));
     }
   }
 
