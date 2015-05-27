@@ -898,6 +898,16 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     EtomoNumber.Type.DOUBLE, FINE_KEY + "." + FIRST_AXIS_KEY + ".MinMeasurementRatio");
   private final EtomoNumber minMeasurementRatioB = new EtomoNumber(
     EtomoNumber.Type.DOUBLE, FINE_KEY + "." + SECOND_AXIS_KEY + ".MinMeasurementRatio");
+  private final StringProperty orderOfRestrictionsA = new StringProperty(FINE_KEY + "."
+    + FIRST_AXIS_KEY + ".OrderOfRestrictions");
+  private final StringProperty orderOfRestrictionsB = new StringProperty(FINE_KEY + "."
+    + SECOND_AXIS_KEY + ".OrderOfRestrictions");
+  private final EtomoNumber skipBeamTiltWithOneRotA =
+    new EtomoNumber(EtomoNumber.Type.BOOLEAN, FINE_KEY + "." + FIRST_AXIS_KEY
+      + ".SkipBeamTiltWithOneRot");
+  private final EtomoNumber skipBeamTiltWithOneRotB = new EtomoNumber(
+    EtomoNumber.Type.BOOLEAN, FINE_KEY + "." + SECOND_AXIS_KEY
+      + ".SkipBeamTiltWithOneRot");
 
   public MetaData(final ApplicationManager manager, final LogProperties logProperties) {
     super(logProperties);
@@ -1936,6 +1946,10 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     targetMeasurementRatioB.reset();
     minMeasurementRatioA.reset();
     minMeasurementRatioB.reset();
+    orderOfRestrictionsA.reset();
+    orderOfRestrictionsB.reset();
+    skipBeamTiltWithOneRotA.reset();
+    skipBeamTiltWithOneRotB.reset();
     // load
     prepend = createPrepend(prepend);
     String group = prepend + ".";
@@ -2302,6 +2316,10 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     targetMeasurementRatioB.load(props, prepend);
     minMeasurementRatioA.load(props, prepend);
     minMeasurementRatioB.load(props, prepend);
+    orderOfRestrictionsA.load(props, prepend);
+    orderOfRestrictionsB.load(props, prepend);
+    skipBeamTiltWithOneRotA.load(props, prepend);
+    skipBeamTiltWithOneRotB.load(props, prepend);
   }
 
   public boolean isTrackElongatedPointsAllowedNull(final AxisID axisID) {
@@ -2719,6 +2737,10 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     targetMeasurementRatioB.store(props, prepend);
     minMeasurementRatioA.store(props, prepend);
     minMeasurementRatioB.store(props, prepend);
+    orderOfRestrictionsA.store(props, prepend);
+    orderOfRestrictionsB.store(props, prepend);
+    skipBeamTiltWithOneRotA.store(props, prepend);
+    skipBeamTiltWithOneRotB.store(props, prepend);
   }
 
   public void setAutoPatchFinalSize(final String input) {
@@ -2790,6 +2812,20 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     return minMeasurementRatioA.toString();
   }
 
+  public String getOrderOfRestrictions(final AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return orderOfRestrictionsB.toString();
+    }
+    return orderOfRestrictionsA.toString();
+  }
+
+  public String getSkipBeamTiltWithOneRot(final AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return skipBeamTiltWithOneRotB.toString();
+    }
+    return skipBeamTiltWithOneRotA.toString();
+  }
+
   public void setTargetMeasurementRatio(final AxisID axisID, final String input) {
     if (axisID == AxisID.SECOND) {
       targetMeasurementRatioB.set(input);
@@ -2805,6 +2841,24 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     }
     else {
       minMeasurementRatioA.set(input);
+    }
+  }
+
+  public void setOrderOfRestrictions(final AxisID axisID, final String input) {
+    if (axisID == AxisID.SECOND) {
+      orderOfRestrictionsB.set(input);
+    }
+    else {
+      orderOfRestrictionsA.set(input);
+    }
+  }
+
+  public void setSkipBeamTiltWithOneRot(final AxisID axisID, final boolean input) {
+    if (axisID == AxisID.SECOND) {
+      skipBeamTiltWithOneRotB.set(input);
+    }
+    else {
+      skipBeamTiltWithOneRotA.set(input);
     }
   }
 
