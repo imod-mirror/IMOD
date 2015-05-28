@@ -27,7 +27,8 @@ final class NameValuePair extends Statement {
   private Token value = null;
   private Token newDelimiter = null;
 
-  public NameValuePair(WriteOnlyStatementList parent, Statement previousStatement, final int lineNum) {
+  public NameValuePair(WriteOnlyStatementList parent, Statement previousStatement,
+    final int lineNum) {
     super(previousStatement, lineNum);
     this.parent = parent;
   }
@@ -113,7 +114,7 @@ final class NameValuePair extends Statement {
   }
 
   void write(LogFile file, LogFile.WriterId writerId) throws LogFile.LockException,
-      IOException {
+    IOException {
     for (int i = 0; i < name.size(); i++) {
       ((Attribute) name.get(i)).write(file, writerId);
       if (i < name.size() - 1) {
@@ -123,8 +124,8 @@ final class NameValuePair extends Statement {
     file.write(' ' + parent.getCurrentDelimiter() + ' ', writerId);
     if (value != null) {
       value.write(file, writerId);
-      file.newLine(writerId);
     }
+    file.newLine(writerId);
     if (newDelimiter != null) {
       parent.setCurrentDelimiter(newDelimiter);
     }
