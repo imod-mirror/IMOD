@@ -561,8 +561,8 @@ assert.enabled.tf.minimum=
 assert.enabled.bn.restrict-variables=
 #behavior
 assert.rb.solve-for-all-magnifications=on
-tf.ratio-of-measurements-to-unknowns-to-achieve=8.8
-tf.minimum=8.7
+tf.ratio-of-measurements-to-unknowns-to-achieve=8.9
+tf.minimum=8.8
 bn.restrict-variables=
 wait.process.reloading-align=done
 #test orderOfRestrictions from user template
