@@ -553,23 +553,31 @@ mb.beam-tilt=B
 
 [function = restrict-alignment-variables-test-gui]
 #values
-assert.tf.ratio-of-measurements-to-unknowns-to-achieve=%{ratio-of-measurements-to-unknowns-to-achieve}
-assert.tf.minimum=3.2
+assert.tf.ratio-of-measurements-to-unknowns-to-achieve=%{target}
+assert.tf.minimum=%{minimum}
 #enabled
 assert.enabled.tf.ratio-of-measurements-to-unknowns-to-achieve=
 assert.enabled.tf.minimum=
 assert.enabled.bn.restrict-variables=
 #behavior
-assert.rb.solve-for-all-magnifications=on
-tf.ratio-of-measurements-to-unknowns-to-achieve=8.9
-tf.minimum=8.8
+tf.ratio-of-measurements-to-unknowns-to-achieve=%{target-restrict}
+tf.minimum=%{minimum-restrict}
 bn.restrict-variables=
 wait.process.reloading-align=done
-#test orderOfRestrictions from user template
-assert.rb.fixed-magnification-at-10=on
+[[ifnot = montage]]
+  #user template in use
+  assert.rb.group-rotations=off
+  assert.rb.fixed-magnification-at-10=on
+[[]]
+[[if = montage]]
+  assert.rb.group-rotations=on
+  assert.rb.fixed-magnification-at-10=off
+[[]]
+#reset
+rb.solve-for-all-rotations=
 rb.solve-for-all-magnifications=
-tf.ratio-of-measurements-to-unknowns-to-achieve=%{ratio-of-measurements-to-unknowns-to-achieve}
-tf.minimum=3.2
+tf.ratio-of-measurements-to-unknowns-to-achieve=%{target}
+tf.minimum=%{minimum}
 
 
 # Local Variables tab gui test
