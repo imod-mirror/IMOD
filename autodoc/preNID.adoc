@@ -1,0 +1,67 @@
+Version = 1.0
+Pip = 1
+
+[Field = InputStack]
+short = input
+type = FN
+usage = Input image file
+tooltip = 
+manpage = Input image file.
+
+[Field = OutputFileName]
+short = output
+type = FN
+usage = Output image file
+tooltip = 
+manpage = Output image file.
+
+[Field = AnglesFile]
+short = angles
+type = FN
+usage = Tilt angles file.
+tooltip = 
+manpage = Tilt angles file.
+
+[Field = sigma]
+short = s
+type = LI
+usage = Initial sigma (in pixels)
+tooltip = 
+manpage = Initial sigma (in pixels)
+
+[Field = alpha]
+short = a
+type = LI
+usage = alpha, typical values from 0.2 to 0.5
+tooltip = 
+manpage = alpha
+
+[Field = beta]
+short = b
+type = LI
+usage = sigma beta  (in pixels),  typical values from 0.5 to 5
+tooltip = 
+manpage = sigma beta  (in pixels),  typical values from 0.5 to 8
+
+[Field = tau]
+short = t
+type = LI
+usage = tau, typical values from  0.1 to 0.2
+tooltip = 
+manpage = tau, typical values from  0.1 to 0.2
+
+[Field = Iterations]
+short = ite
+type = LI
+usage = number of iterations in the smoothing process, typically from 3 to 20, 1 if -maskOutput
+tooltip = 
+manpage = number of iterations in the smoothing process, 1 if -maskOutput
+
+[Field = maskOutput]
+short = mask
+type = B
+usage = Produce a binary mask as output
+tooltip = 
+manpage =  Produce a binary mask as output
+
+
