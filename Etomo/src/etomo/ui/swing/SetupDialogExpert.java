@@ -431,10 +431,7 @@ public final class SetupDialogExpert {
     dialog.setTwodir(AxisID.FIRST, metaData.getTwodir(AxisID.FIRST));
     dialog.setTwodir(AxisID.SECOND, metaData.getTwodir(AxisID.SECOND));
     if (metaData.getAxisType() == AxisType.SINGLE_AXIS) {
-      tiltAnglePanelExpertB.setEnabled(false);
-      dialog.setExcludeListEnabled(AxisID.SECOND, false);
-      dialog.setTwodirEnabled(AxisID.SECOND, false);
-      dialog.setViewRawStackEnabled(AxisID.SECOND, false);
+      setTiltAnglePanelEnabled(AxisID.SECOND, false);
     }
     dialog.setParameters(userConfig);
     dialog.checkpoint();
@@ -504,16 +501,10 @@ public final class SetupDialogExpert {
 
   void action(final String actionCommand) {
     if (dialog.equalsSingleAxisActionCommand(actionCommand)) {
-      tiltAnglePanelExpertB.setEnabled(false);
-      dialog.setExcludeListEnabled(AxisID.SECOND, false);
-      dialog.setTwodirEnabled(AxisID.SECOND, false);
-      dialog.setViewRawStackEnabled(AxisID.SECOND, false);
+      setTiltAnglePanelEnabled(AxisID.SECOND, false);
     }
     else if (dialog.equalsDualAxisActionCommand(actionCommand)) {
-      tiltAnglePanelExpertB.setEnabled(true);
-      dialog.setExcludeListEnabled(AxisID.SECOND, true);
-      dialog.setTwodirEnabled(AxisID.SECOND, true);
-      dialog.setViewRawStackEnabled(AxisID.SECOND, true);
+      setTiltAnglePanelEnabled(AxisID.SECOND, true);
     }
     else if (dialog.equalsSingleViewActionCommand(actionCommand)) {
       dialog.setAdjustedFocusEnabled(AxisID.FIRST, false);
@@ -535,6 +526,18 @@ public final class SetupDialogExpert {
     final DirectiveFileCollection directiveFileCollection) {
     tiltAnglePanelExpertA.updateTemplateValues(directiveFileCollection);
     tiltAnglePanelExpertB.updateTemplateValues(directiveFileCollection);
+  }
+
+  void setTiltAnglePanelEnabled(final AxisID axisID, final boolean enable) {
+    if (axisID == AxisID.SECOND) {
+      tiltAnglePanelExpertB.setEnabled(enable);
+    }
+    else {
+      tiltAnglePanelExpertA.setEnabled(enable);
+    }
+    dialog.setExcludeListEnabled(axisID, enable);
+    dialog.setTwodirEnabled(axisID, enable);
+    dialog.setViewRawStackEnabled(axisID, enable);
   }
 
   void viewRawStack(final String fileExtension, final AxisID axisID,
