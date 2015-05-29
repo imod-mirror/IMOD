@@ -33,6 +33,27 @@ if.var.quick.return=
 [[]]
 #fill in data
 tf.dataset-name=%{dataset}
+#behavoir
+[[if = test-gui]]
+  cbb.system-template=cryoSample.adoc
+  assert.rb.single-axis=on
+  assert.disabled.rb.extract-tilt-angles-from-data.1=
+  assert.disabled.rb.specify-the-starting-angle-and-step.1=
+  assert.disabled.rb.tilt-angles-in-existing-rawtlt-file.1=
+  assert.disabled.cb.series-was-bidirectional-from.1=
+  assert.disabled.tf.exclude-views.1=
+  assert.disabled.bn.view-raw-image-stack.1=
+[[]]
+cbb.system-template=plasticSection.adoc
+[[if = test-gui]]
+  assert.rb.dual-axis=on
+  assert.enabled.rb.extract-tilt-angles-from-data.1=
+  assert.enabled.rb.specify-the-starting-angle-and-step.1=
+  assert.enabled.rb.tilt-angles-in-existing-rawtlt-file.1=
+  assert.enabled.cb.series-was-bidirectional-from.1=
+  assert.enabled.tf.exclude-views.1=
+  assert.enabled.bn.view-raw-image-stack.1=
+[[]]
 [[ifnot = montage]]
   cbb.user-template=userDirectiveFile.adoc
 [[]]
