@@ -229,6 +229,12 @@ public final class FileType {
     "preblend", ".log");
   public static final FileType STATS_LOG = FileType.getInstance(true, true, ".st_stats",
     ".log");
+  public static final FileType ALIGN_ANGLES_LOG = FileType.getInstance(false, true,
+    "taAngles", ".log");
+  public static final FileType ALIGN_ERROR_LOG = FileType.getInstance(false, true,
+    "taError", ".log");
+  public static final FileType ALIGN_ROBUST_LOG = FileType.getInstance(false, true,
+    "taRobust", ".log");
   public static final FileType ALIGN_SOLUTION_LOG = FileType.getInstance(false, true,
     "taSolution", ".log");
   public static final FileType CROSS_CORRELATION_LOG = FileType.getInstance(false, true,
@@ -824,6 +830,14 @@ public final class FileType {
       return file.exists();
     }
     return false;
+  }
+
+  public long lastModified(final BaseManager manager, final AxisID axisID) {
+    File file = getFile(manager, null, null, null, axisID, null, null);
+    if (file != null) {
+      return file.lastModified();
+    }
+    return -1;
   }
 
   public boolean exists(final BaseManager manager, final BaseMetaData metaData,
