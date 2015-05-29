@@ -560,8 +560,14 @@ assert.enabled.tf.ratio-of-measurements-to-unknowns-to-achieve=
 assert.enabled.tf.minimum=
 assert.enabled.bn.restrict-variables=
 #behavior
-tf.ratio-of-measurements-to-unknowns-to-achieve=%{target-restrict}
-tf.minimum=%{minimum-restrict}
+[[ifnot = patch-tracking]]
+  tf.ratio-of-measurements-to-unknowns-to-achieve=%{target-restrict}
+  tf.minimum=%{minimum-restrict}
+[[]]
+[[if = patch-tracking]]
+  tf.ratio-of-measurements-to-unknowns-to-achieve=%{target-restrict-patch-tracking}
+  tf.minimum=%{minimum-restrict-patch-tracking}
+[[]]
 bn.restrict-variables=
 wait.process.reloading-align=done
 [[ifnot = montage]]
