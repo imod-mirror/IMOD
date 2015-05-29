@@ -453,8 +453,10 @@ set.var.#-of-beads-to-choose=15
 #FineAlign
 set.var.target=4.2
 set.var.target-restrict=8.9
+set.var.target-restrict-patch-tracking=8.9
 set.var.minimum=3.2
 set.var.minimum-restrict=8.8
+set.var.minimum-restrict-patch-tracking=8.8
 #FinalStack
 set.var.size-to-output-x=550
 set.var.size-to-output-y=550
@@ -544,8 +546,10 @@ set.var.#-of-beads-to-choose=30
 #FineAlign
 set.var.target=3.6
 set.var.target-restrict=16.1
+set.var.target-restrict-patch-tracking=21.7
 set.var.minimum=3.2
 set.var.minimum-restrict=16
+set.var.minimum-restrict-patch-tracking=21.6
 #FinalStack
 set.var.size-to-output-x.a=2000
 set.var.size-to-output-y.a=1050
