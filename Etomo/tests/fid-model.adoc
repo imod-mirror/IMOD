@@ -648,7 +648,7 @@ mb.expert-parameters=-
 #setup
 rb.use-patch-tracking-to-make-fiducial-model=
 #test values
-assert.tf.size-of-patches=
+assert.tf.size-of-patches=300,300
 assert.rb.fractional-overlap-of-patches=on
 assert.tf.fractional-overlap-of-patches=0.33,0.33
 assert.rb.number-of-patches=off
@@ -727,7 +727,9 @@ if.var.build-with-seed.return=
 rb.use-patch-tracking-to-make-fiducial-model=
 #test 1
 #build
-tf.size-of-patches=200,200
+[[ifnot = montage]]
+  tf.size-of-patches=200,200
+[[]]
 cb.use-boundary-model=on
 copy.file=%{dataset}%{axis}_ptbound.mod
 bn.create-boundary-model=
