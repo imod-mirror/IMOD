@@ -5,35 +5,33 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import etomo.ApplicationManager;
 import etomo.process.AlignLogGenerator;
 import etomo.type.AxisID;
+import etomo.type.FileType;
 import etomo.type.ProcessName;
 
 /**
 * <p>Description: </p>
 * 
-* <p>Copyright: Copyright 2012</p>
-*
-* <p>Organization:
-* Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
-* University of Colorado</p>
-* 
-* @author $Author$
-* 
-* @version $Revision$
+ * <p>Copyright: Copyright 2012 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
+ *
+ * @version $Id$
 * 
 * <p> $Log$ </p>
 */
 public final class TaRobustLog implements Loggable {
-  public static final String rcsid = "$Id:$";
-
   private final List lineList = new ArrayList();
 
   private final String userDir;
+  private final ApplicationManager manager;
   private final AxisID axisID;
 
-  private TaRobustLog(String userDir, AxisID axisID) {
+  private TaRobustLog(String userDir, final ApplicationManager manager, AxisID axisID) {
     this.userDir = userDir;
+    this.manager = manager;
     this.axisID = axisID;
   }
 
@@ -43,8 +41,20 @@ public final class TaRobustLog implements Loggable {
    * @param processName
    * @return
    */
-  public static TaRobustLog getInstance(String userDir, AxisID axisID) {
-    return new TaRobustLog(userDir, axisID);
+  public static TaRobustLog getInstance(String userDir, final ApplicationManager manager,
+    AxisID axisID) {
+    TaRobustLog instance= new TaRobustLog(userDir, manager, axisID);
+    instance.createLog();
+    return instance;
+  }
+
+  private void createLog() {
+    FileType taLog = FileType.ALIGN_ROBUST_LOG;
+    if (!taLog.exists(manager, axisID)
+      || taLog.lastModified(manager, axisID) < FileType.TILT_ALIGN_LOG.lastModified(
+        manager, axisID)) {
+      manager.generateAlignLogs(axisID);
+    }
   }
 
   public String getName() {
@@ -55,18 +65,18 @@ public final class TaRobustLog implements Loggable {
    * Get a message to be logged in the LogPanel.
    */
   public List getLogMessage() throws LogFile.LockException, FileNotFoundException,
-      IOException {
+    IOException {
     lineList.clear();
     // refresh the log file
-    LogFile taRobustLog = LogFile.getInstance(userDir, axisID,
-        AlignLogGenerator.ROBUST_LOG_NAME);
+    LogFile taRobustLog =
+      LogFile.getInstance(userDir, axisID, AlignLogGenerator.ROBUST_LOG_NAME);
     if (taRobustLog.exists()) {
       LogFile.ReaderId readerId = taRobustLog.openReader();
       if (readerId != null && !readerId.isEmpty()) {
         String line = taRobustLog.readLine(readerId);
         while (line != null) {
           if (line.trim().startsWith("Residual error weighted mean")
-              && line.indexOf("Local area") == -1) {
+            && line.indexOf("Local area") == -1) {
             lineList.add(line);
           }
           else if (line.trim().startsWith("Weighted error local mean")) {
