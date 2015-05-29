@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/29/15: In eTomo, creating ta* align logs when it is necessary to read them.
+(Bug# 1873)
+
 5/29/15: In eTomo - Batchruntomo Interface, fixed a bug in autodoc writing -
 where a new line was not issued for a directive without a value.(Bug# 1872)
 
