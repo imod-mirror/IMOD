@@ -2765,8 +2765,8 @@ public final class ApplicationManager extends BaseManager implements
    */
   public void logTiltAlignLogMessage(AxisID axisID) {
     LoggableCollection collection = new LoggableCollection();
-    collection.addLoggable(TaErrorLog.getInstance(getPropertyUserDir(), axisID));
-    collection.addLoggable(TaRobustLog.getInstance(getPropertyUserDir(), axisID));
+    collection.addLoggable(TaErrorLog.getInstance(getPropertyUserDir(), this, axisID));
+    collection.addLoggable(TaRobustLog.getInstance(getPropertyUserDir(), this, axisID));
     logMessage(collection, axisID);
   }
 
@@ -7842,6 +7842,10 @@ public final class ApplicationManager extends BaseManager implements
       return true;
     }
     return false;
+  }
+
+  public void generateAlignLogs(final AxisID axisID) {
+    processMgr.generateAlignLogs(axisID);
   }
 
   /**
