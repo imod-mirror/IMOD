@@ -311,16 +311,16 @@ mb.beadtracker=+
 #test values
 assert.tf.view-skip-list=
 assert.tf.separate-view-groups=
-assert.cb.refine-center-with-sobel-filter=off
+assert.cb.refine-center-with-sobel-filter=on
 assert.tf.sigma-for-kernel-filter=
 #test enabled
 assert.enabled.tf.view-skip-list=
 assert.enabled.tf.separate-view-groups=
 assert.enabled.cb.refine-center-with-sobel-filter=
-assert.disabled.tf.sigma-for-kernel-filter=
+assert.enabled.tf.sigma-for-kernel-filter=
 #test behavior
 cb.refine-center-with-sobel-filter=
-assert.enabled.tf.sigma-for-kernel-filter=
+assert.disabled.tf.sigma-for-kernel-filter=
 cb.refine-center-with-sobel-filter=
 #reset
 mb.beadtracker=-
@@ -456,7 +456,7 @@ mb.beadtracker=+
 #test values
 assert.tf.view-skip-list=
 assert.tf.separate-view-groups=
-assert.cb.refine-center-with-sobel-filter=off
+assert.cb.refine-center-with-sobel-filter=on
 assert.tf.sigma-for-kernel-filter=
 assert.cb.fill-seed-model-gaps=on
 assert.cb.local-tracking=on
@@ -469,7 +469,7 @@ assert.bn.track-with-fiducial-model-as-seed=off
 assert.enabled.tf.view-skip-list=
 assert.enabled.tf.separate-view-groups=
 assert.enabled.cb.refine-center-with-sobel-filter=
-assert.disabled.tf.sigma-for-kernel-filter=
+assert.enabled.tf.sigma-for-kernel-filter=
 assert.enabled.cb.fill-seed-model-gaps=
 assert.enabled.cb.local-tracking=
 assert.enabled.tf.local-area-size=
@@ -479,7 +479,7 @@ assert.enabled.bn.fix-fiducial-model=
 assert.enabled.bn.track-with-fiducial-model-as-seed=
 #test behavior
 cb.refine-center-with-sobel-filter=
-assert.enabled.tf.sigma-for-kernel-filter=
+assert.disabled.tf.sigma-for-kernel-filter=
 cb.refine-center-with-sobel-filter=
 #close panel
 mb.beadtracker=-
@@ -553,7 +553,6 @@ if.var.build.return=
 [[]]
 #test 3
 cb.local-tracking=off
-cb.refine-center-with-sobel-filter=on
 bn.track-seed-model=
 if.not.var.zero-bead.wait.process.tracking-fiducials=done
 [[if = zero-bead]]
@@ -579,6 +578,7 @@ if.not.var.zero-bead.wait.process.tracking-fiducials=done
   assert.exists.file=track%{axis}.log~
   assert.exists.file=%{dataset}%{axis}.fid~
 [[]]
+cb.refine-center-with-sobel-filter=on
 #test 5
 bn.track-with-fiducial-model-as-seed=
 if.not.var.zero-bead.wait.process.tracking-fiducials=done
