@@ -123,7 +123,7 @@ public final class FileType {
   public static final FileType ORIG_COMS_DIR = FileType.getInstance(false, false,
     "origcoms", "");
   public static final FileType FIDUCIAL_3D_MODEL = FileType.getImodInstance(true, true,
-      "", ".3dmod", ImodManager.FIDUCIAL_MODEL_KEY);
+    "", ".3dmod", ImodManager.FIDUCIAL_MODEL_KEY);
   public static final FileType BATCH_RUN_TOMO_GLOBAL_AUTODOC = FileType.getInstance(true,
     false, "", ".adoc");
   public static final FileType DEFAULT_BATCH_RUN_TOMO_AUTODOC = FileType
@@ -227,6 +227,12 @@ public final class FileType {
     "preblend", ".log");
   public static final FileType STATS_LOG = FileType.getInstance(true, true, ".st_stats",
     ".log");
+  public static final FileType ALIGN_ANGLES_LOG = FileType.getInstance(false, true,
+    "taAngles", ".log");
+  public static final FileType ALIGN_ERROR_LOG = FileType.getInstance(false, true,
+    "taError", ".log");
+  public static final FileType ALIGN_ROBUST_LOG = FileType.getInstance(false, true,
+    "taRobust", ".log");
   public static final FileType ALIGN_SOLUTION_LOG = FileType.getInstance(false, true,
     "taSolution", ".log");
   public static final FileType CROSS_CORRELATION_LOG = FileType.getInstance(false, true,
@@ -824,6 +830,14 @@ public final class FileType {
     return false;
   }
 
+  public long lastModified(final BaseManager manager, final AxisID axisID) {
+    File file = getFile(manager, null, null, null, axisID, null, null);
+    if (file != null) {
+      return file.lastModified();
+    }
+    return -1;
+  }
+
   public boolean exists(final BaseManager manager, final BaseMetaData metaData,
     final AxisID axisID) {
     File file = getFile(manager, null, null, null, axisID, null, null);
@@ -866,8 +880,8 @@ public final class FileType {
     return getFileName(manager, metaData, null, null, axisID, false);
   }
 
-  public File getFile(final File dir, final String rootName,
-    final AxisType axisType, final AxisID axisID) {
+  public File getFile(final File dir, final String rootName, final AxisType axisType,
+    final AxisID axisID) {
     String fileName = getFileName(null, null, rootName, axisType, axisID, false);
     if (fileName != null) {
       return new File(dir, fileName);
