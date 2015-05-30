@@ -50,9 +50,9 @@ default = 3.2
 type = F
 usage = Minimum ratio of measurements to unknown values (default 3.2)
 tooltip = Minimum ratio of measurements to unknown values.  Restrictions will
-be applied until at least as one ratio rises above this value.
+be applied until at least one ratio rises above this value.
 manpage = Minimum ratio of measurements to unknown values.  Restrictions will
-be applied until at least as one ratio rises above this value.  The default is
+be applied until at least one ratio rises above this value.  The default is
 3.2.
 
 [Field = OrderOfRestrictions]
