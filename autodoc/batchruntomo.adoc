@@ -1,0 +1,254 @@
+Version = 1.0
+Pip = 1
+
+[Field = DirectiveFile]
+short = directive
+type = FNM
+usage = Input file with directives for automating one or more data sets
+tooltip = 
+manpage = Input file with directives for automating one or more data sets.
+The filename must end in .adoc.  All non-option arguments will be taken as
+such input files.  
+
+[Field = RootName]
+short = root
+type = FNM
+usage = Root name of data set (omit a or b for dual-axis set)
+tooltip = 
+manpage = A data set name can be provided with this option to override the
+name contained in the directive file, thus allowing directive files to be
+reused without editing.  If this
+option is used, the number of directive files must be either one or the same
+as the number of root names.  The current location of the tilt series must be indicated
+with the -current option if only one directive file is entered with multiple
+root names.
+
+[Field = CurrentLocation]
+short = current
+type = FNM
+usage = Directory where tilt series currently resides
+tooltip = 
+manpage = Directory where tilt series is currently located.  This entry
+overrides the dataset directory contained in the directive file.  It can be
+used in two different ways.  If the -deliver option is entered, this option
+specifies the directory where a tilt series will be moved from, and it must be
+entered either once (if all data sets are in the same place) or once for each
+data set.  If the -deliver option is not entered, then this option specifies
+the directory where the data set will be processed and must be entered once
+for each data set.
+
+[Field = DeliverToDirectory]
+short = deliver
+type = FN
+usage = Make a subdirectory of this directory for each data set
+tooltip = 
+manpage = Make a subdirectory of the specified directory for each data set,
+named with the root name of the data set, and move the tilt series into the
+subdirectory.  Several other files with the same root name as the tilt series 
+will be moved from the current location of the data set: an associated
+metadata file with extension ".mdoc", a log of acquisition with extension
+".log", and a file of tilt angles with extension ".rawtlt".  A raw boundary
+model for patch tracking or autoseeding will also be delivered.  The -current
+option must be entered either once, or once for each data set.
+
+[Field = ProcessOneAxis]
+short = one
+type = I
+usage = 1 to do only A axis, 2 to do only B axis of dual axis data set
+tooltip = 
+manpage = Enter 1 to do setup and process A axis, or 2 to skip setup and
+process only B axis.  This entry applies to all dual-axis data sets being
+run.
+
+[Field = CPUMachineList]
+short = cpus
+type = CH
+usage = Machines to use in parallel processing, or number of local cores
+tooltip = 
+manpage = Machines to use in parallel processing, or number of local cores.
+Each machine name can be followed by a ":" (colon), followed by the number of CPUs
+to use in that machine; e.g., druid:4,tubule:4.  Prior to IMOD 4.8.25, a "#"
+sign was used instead of ":".  Using the "#" sign will now result in a warning 
+when entering options on the command line and an error when
+entering options through standard input, because in the latter case it cannot
+be distinguished from the start of a comment.
+
+[Field = SingleOnFirstCPU]
+short = single
+type = B
+usage = Run single command files on first machine in CPU list
+tooltip = 
+manpage = Run single command files on the first machine in the CPU list, instead of
+on the local machine.  The matchvol and autopatchfit steps in combine are not
+affected by this entry; they are always run on the machine with the most CPUs.
+
+[Field = GPUMachineList]
+short = gpus
+type = CH
+usage = Machines to use for parallel processing with a GPU, or 1 for local GPU
+tooltip = 
+manpage = Machines to use for parallel processing with a GPU, or 1 for local
+GPU.  As when running processchunks with the -G option, multiple or specific
+GPUs can be specified by colon-separated numbers after a machine name, e.g.,
+druid:2,tubule:1:2.
+
+[Field = NiceValue]
+short = nice
+type = I
+usage = Priority level or niceness for running jobs; default is 15
+tooltip = 
+manpage = Priority level or niceness for running jobs.  Note that this applies
+to all computations, not just those run with parallel processing.  The default is 15.
+
+[Field = LimitLocalThreads]
+short = limit
+type = I
+usage = Limit on # of parallel threads to use when running on local machine
+tooltip = 
+manpage = Limit on the number of threads when running a single command file
+on the local machine.  By default, this limit is set
+to the number of CPUs on the local machine indicated by the entry to
+\fB-cpus\fR.  If that entry consists only of remote machines,
+then the program has no information about this limit, and single
+command files containing programs parallelized with OpenMP will use all
+available cores.  This option allows one to enter a limit in this case, as
+well as to set a different limit than the number of CPUs in the CPU list.
+
+[Field = RemoteDirectory]
+short = remote
+type = FN
+usage = Path to starting directory on remote machines
+tooltip = 
+manpage = Path on remote machines to directory from which this program is started.
+
+[Field = CheckFile]
+short = check
+type = FN
+usage = File to check for quit and finish signals
+tooltip = 
+manpage = File to check for quit and finish signals.  The default is 
+batchruntomo.###.input
+in the directory where this program is started, where ### is the process ID.
+This file should not have the same name as the file used by Batchruntomo to
+control Processchunks when it runs jobs, which is "processchunks.cmds" in the
+data set directory.  If a Q is placed in this file, it will terminate any
+running jobs and stop all processing.  If an F is placed in the file, the
+program will stop after finishing the current data set.  Termination will
+usually be quicker if a Q is placed into "processchunks.cmds" as well, with no
+delay between that action and writing Q to this check file.  Thus, it should
+be done by a program or by entering a single command line with two commands on
+it.
+
+[Field = EmailAddress]
+short = email
+type = CH
+usage = Address for sending email messages on failure or final completion
+tooltip =
+manpage = Address for sending email messages either when a set is aborted or
+when the run completes.
+
+[Field = SMTPserver]
+short = SMTP
+type = CH
+usage = SMTP server for sending email (default is localhost)
+tooltip =
+manpage = An SMTP server for sending email messages.  The default is
+"localhost", but if the local host cannot send email, a server can be entered
+with this option.
+
+[Field = ValidationType]
+short = validation
+type = I
+usage = 0/1/2 to validate directives (1/2 to do this then exit), or -1 not to
+tooltip = 
+manpage = By default, the program will check all directives in the directive
+and template files against the master list of directives in
+IMOD_DIR/com/directives.csv.  Enter 1 to run the program just to check
+a directive file and exit, 2 to check a template file and exit, or -1 to skip
+this step.  When checking a directive file, the directive file is first processed to
+find certain required values, and an error in that step will prevent the
+checking of directives.  Template files referenced by the directive file will
+be checked as well.  With an entry of 2, the file will be checked right after
+reading.  A batch directive file is required to contain only directives with a
+Y in the "Batch" column of the master directives file, and a template file
+must contain only directives with a Y in the "Tmplt" column.
+
+[Field = StartingStep]
+short = start
+type = F
+usage = Step to start processing with
+tooltip = 
+manpage = Step to start processing with: 
+^   0: Setup
+^   1: Preprocessing
+^   2: Cross-correlation alignment
+^   3: Prealigned stack
+^   4: Patch tracking, autoseeding, or RAPTOR
+^   5: Bead tracking
+^   7: Positioning
+^   8: Aligned stack generation
+^   9: CTF plotting
+^   10: 3D gold detection
+^   11: CTF correction
+^   12: Gold erasing after transforming fiducial model or 
+^       projecting 3D model
+^   13: 2D filtering
+^   14: Reconstruction
+^   14.5: Postprocessing on a/b axis reconstruction
+^   15: Combine setup
+^   16: Solvematch
+^   17: Initial matchvol
+^   18: Autopatchfit
+^   19: Volcombine
+^   20: Postprocessing with Trimvol
+^   21: NAD (Nonlinear anistropic diffusion)
+^   Each set will start at this step unless the
+\fB-first\fR option is entered, in which case only the first set will start
+with this step and others will start from the beginning.  In the latter case,
+add 100 to start with this step in
+the second axis of a dual-axis data set.  These numbers can be relied on not
+to change again since this is now a floating point entry; fractional values
+will be used if necessary to insert more steps without renumbering.
+
+[Field = EndingStep]
+short = end
+type = F
+usage = Step to end with
+tooltip = 
+manpage = Step to end with in each set and axis.  Steps are numbered as
+described for \fB-start\fR.  Note that 6 can be used to stop after alignment.
+
+[Field = StartForFirstSetOnly]
+short = first
+type = B
+usage = Skip to starting step only for the first set
+tooltip = 
+manpage = Skip to starting step only for the first set; the following sets
+will be run from the beginning.
+
+[Field = UseExistingAlignment]
+short = use
+type = B
+usage = Use existing fine alignment without rerunning Tiltalign
+tooltip =
+manpage = Use existing fine alignment without rerunning Tiltalign.
+Ordinarily, whenever the \fB-start\fR option is used and the program will be
+running any steps that involve the aligned stack or reconstruction, it reruns
+Tiltalign(1) iteratively in the usual fashion before proceeding.  This option
+can be used to keep the program from
+overwriting an alignment based on manually adjusted parameters.  It is allowed
+only when starting past step 5.
+
+[Field = ExitOnError]
+short = exit
+type = B
+usage = Exit on error instead of going on to next axis or data set
+tooltip =
+manpage =
+
+[Field = EtomoDebug]
+short = etomo
+type = I
+usage = Run etomo with the given debug level
+tooltip =
+manpage =
