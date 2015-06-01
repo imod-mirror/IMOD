@@ -37,7 +37,7 @@ public final class VersionControl {
   private static final String DEPENDANT_IMOD_VERSION = "4.4.4";
   private static final String DEPENDANT_PEET_VERSION = "1.8.0";
   //Updated by a script
-  public static final String TIME_STAMP = "5/29/2015 15:21";
+  public static final String TIME_STAMP = "6/1/2015 14:29";
 
   /**
 
