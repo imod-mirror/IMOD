@@ -951,8 +951,8 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
 
     trackMethodA.set(TrackingMethod.SEED.toString());
     trackMethodB.set(TrackingMethod.SEED.toString());
-    trackSeedModelManualA.set(true);
-    trackSeedModelManualB.set(true);
+    trackSeedModelAutoA.set(true);
+    trackSeedModelAutoB.set(true);
   }
 
   /**
