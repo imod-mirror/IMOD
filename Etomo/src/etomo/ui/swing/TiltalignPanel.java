@@ -1906,12 +1906,28 @@ final class TiltalignPanel implements Expandable, ActionListener {
     cbXTiltAutomapSame
       .setToolTipText("Solve for an X-axis tilt for each separate view group (XTiltOption"
         + " 4 with very large XTiltDefaultGrouping)");
-    String tooltip =
-      "Run restrictalign to reduce number of variables if appropriate for the number of "
-        + "fiducials";
-    ltfTargetMeasurementRatio.setToolTipText(tooltip);
-    ltfMinMeasurementRatio.setToolTipText(tooltip);
-    btnRestrictalign.setToolTipText(tooltip);
+    btnRestrictalign
+      .setToolTipText("Run restrictalign to reduce number of variables if appropriate for the number of "
+        + "fiducials");
+    // Restrictalign autodoc
+    autodoc = null;
+    try {
+      autodoc =
+        AutodocFactory.getInstance(appMgr, AutodocFactory.RESTRICT_ALIGN, axisID, false);
+    }
+    catch (FileNotFoundException except) {
+      except.printStackTrace();
+    }
+    catch (IOException except) {
+      except.printStackTrace();
+    }
+    catch (LogFile.LockException e) {
+      e.printStackTrace();
+    }
+    ltfTargetMeasurementRatio.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+      RestrictalignParam.TARGET_MEASUREMENT_RATIO_KEY));
+    ltfMinMeasurementRatio.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+      RestrictalignParam.MIN_MEASUREMENT_RATIO_KEY));
   }
 
   private static final class TPActionListener implements ActionListener {
