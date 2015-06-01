@@ -1,5 +1,12 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/1/15: In uitest, added a system template to the reconstruction tests.
+(Bug# 1888)
+
+6/1/15: In eTomo - Setup Reconstruction, fixed a problem reading templates
+where the dialog was not completely updated to reflect the single/dual axis
+setting.(Bug# 1884)
+
 5/29/15: In eTomo, creating ta* align logs when it is necessary to read them.
 (Bug# 1873)
 
