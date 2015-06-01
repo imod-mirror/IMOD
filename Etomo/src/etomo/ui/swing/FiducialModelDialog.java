@@ -956,7 +956,7 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
     }
     if (!transferfidEnabled && rbSeedModelTransfer.isEnabled()) {
       rbSeedModelTransfer.setEnabled(false);
-      rbSeedModelManual.setSelected(true);
+      rbSeedModelAuto.setSelected(true);
       updateMethod();
     }
     else if (transferfidEnabled) {
