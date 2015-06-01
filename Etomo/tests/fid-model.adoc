@@ -79,9 +79,9 @@ run.function.run-track-beads=
 
 [function = test-basic-seed-model]
 #test values
-assert.rb.make-seed-model-manually=on
-if.not.var.dual-b.assert.rb.generate-seed-model-automatically=off
-if.var.dual-b.assert.rb.add-points-to-seed-model-automatically=off
+assert.rb.make-seed-model-manually=off
+if.not.var.dual-b.assert.rb.generate-seed-model-automatically=on
+if.var.dual-b.assert.rb.add-points-to-seed-model-automatically=on
 if.var.dual.assert.rb.transfer-seed-model-from-the-other-axis=off
 #test enabled
 assert.enabled.rb.make-seed-model-manually=
@@ -110,6 +110,7 @@ run.function.run-transfer-seed-model-from-the-other-axis=
 # make-seed-model-manually
 
 [function = test-basic-make-seed-model-manually]
+rb.make-seed-model-manually=
 #test values
 assert.bn.seed-fiducial-model=off
 #test enabled
