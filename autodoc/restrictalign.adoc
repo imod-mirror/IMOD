@@ -36,7 +36,9 @@ short = target
 type = F
 default = 3.6
 usage = Target ratio of measurements to unknown values (default 3.6)
-tooltip =
+tooltip = Target ratio of measurements to unknown values.  Of those
+restrictions that give a ratio above the required minimum,
+the one that gives a ratio closest to this target will be chosen.
 manpage = Target ratio of measurements to unknown values.  If two successive
 restrictions give a ratio above the minimum required by the \fB-minimum\fR
 option, the restriction that gives a ratio closest to this value will be chosen.
@@ -47,9 +49,10 @@ short = minimum
 default = 3.2
 type = F
 usage = Minimum ratio of measurements to unknown values (default 3.2)
-tooltip =
+tooltip = Minimum ratio of measurements to unknown values.  Restrictions will
+be applied until at least one ratio rises above this value.
 manpage = Minimum ratio of measurements to unknown values.  Restrictions will
-be applied until at least as one ratio rises above this value.  The default is
+be applied until at least one ratio rises above this value.  The default is
 3.2.
 
 [Field = OrderOfRestrictions]
