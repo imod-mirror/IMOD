@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/2/15: In eTomo - Fiducial Model, made generating the seed model
+automatically the default.(Bug# 1822)
+
 6/1/15: In uitest, added a system template to the reconstruction tests.
 (Bug# 1888)
 
