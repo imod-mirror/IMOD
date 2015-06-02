@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/2/15: In eTomo - Fine Alignment, added an interface for restrictalign.
+(Bug# 1875)
+
 6/2/15: In eTomo - Fiducial Model, made generating the seed model
 automatically the default.(Bug# 1822)
 
@@ -15,9 +18,6 @@ setting.(Bug# 1884)
 
 5/29/15: In eTomo - Batchruntomo Interface, fixed a bug in autodoc writing -
 where a new line was not issued for a directive without a value.(Bug# 1872)
-
-5/29/15: In eTomo - Fine Alignment, added an interface for restrictalign.
-(Bug# 1875)
 
 5/20/15: IMOD_4-8-35
 5/20/15: Changed patch tracking size from 700x700 to 680x680 in system
