@@ -1,13 +1,23 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/2/15: In eTomo - Fine Alignment, added an interface for restrictalign.
+(Bug# 1875)
+
+6/2/15: In eTomo - Fiducial Model, made generating the seed model
+automatically the default.(Bug# 1822)
+
+6/1/15: In uitest, added a system template to the reconstruction tests.
+(Bug# 1888)
+
+6/1/15: In eTomo - Setup Reconstruction, fixed a problem reading templates
+where the dialog was not completely updated to reflect the single/dual axis
+setting.(Bug# 1884)
+
 5/29/15: In eTomo, creating ta* align logs when it is necessary to read them.
 (Bug# 1873)
 
 5/29/15: In eTomo - Batchruntomo Interface, fixed a bug in autodoc writing -
 where a new line was not issued for a directive without a value.(Bug# 1872)
-
-5/29/15: In eTomo - Fine Alignment, added an interface for restrictalign.
-(Bug# 1875)
 
 5/20/15: IMOD_4-8-35
 5/20/15: Changed patch tracking size from 700x700 to 680x680 in system
