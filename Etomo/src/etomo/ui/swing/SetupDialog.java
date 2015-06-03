@@ -66,8 +66,8 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
   private final JPanel pnlDataParameters = new JPanel();
   // Dataset GUI objects
   private final JPanel pnlDataset = new JPanel();
-  private final ImageIcon iconFolder = new ImageIcon(ClassLoader
-    .getSystemResource(!Utilities.APRIL_FOOLS ? "images/openFile.gif"
+  private final ImageIcon iconFolder = new ImageIcon(
+    ClassLoader.getSystemResource(!Utilities.APRIL_FOOLS ? "images/openFile.gif"
       : "images/openFileFool.png"));
 
   private final FileTextField2 ftfDataset = FileTextField2.getInstance(
@@ -238,9 +238,9 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     else {
       String datasetName = ftfDataset.getText();
       if (!DatasetTool.validateDatasetName(applicationManager, null, AxisID.ONLY,
-        new File(expert.getPropertyUserDir()), datasetName, DataFileType.RECON, expert
-          .getAxisType(), !datasetName.endsWith(FileType.RAW_STACK.getExtension(expert
-          .getAxisType())))) {
+        new File(expert.getPropertyUserDir()), datasetName, DataFileType.RECON,
+        expert.getAxisType(),
+        !datasetName.endsWith(FileType.RAW_STACK.getExtension(expert.getAxisType())))) {
         return false;
       }
     }
@@ -404,6 +404,7 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     else {
       cbAdjustedFocusB.resetToCheckpoint();
     }
+    expert.setTiltAnglePanelEnabled(AxisID.SECOND, rbDualAxis.isSelected());
   }
 
   private void viewRawStackA() {
@@ -817,8 +818,9 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
   void distortionFileAction() {
     try {
       File file =
-        getFile(ConfigTool.getDistortionDir(applicationManager, ftfDistortionFile
-          .getFile()), new DistortionFileFilter(), JFileChooser.FILES_ONLY);
+        getFile(
+          ConfigTool.getDistortionDir(applicationManager, ftfDistortionFile.getFile()),
+          new DistortionFileFilter(), JFileChooser.FILES_ONLY);
       if (file != null) {
         ftfDistortionFile.setText(file.getAbsolutePath());
       }

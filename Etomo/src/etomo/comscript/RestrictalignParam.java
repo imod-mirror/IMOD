@@ -22,11 +22,13 @@ import etomo.type.StringParameter;
  */
 public final class RestrictalignParam implements Command {
   private static final ProcessName PROCESS_NAME = ProcessName.RESTRICTALIGN;
+  public static final String TARGET_MEASUREMENT_RATIO_KEY = "TargetMeasurementRatio";
+  public static final String MIN_MEASUREMENT_RATIO_KEY = "MinMeasurementRatio";
 
   private EtomoNumber targetMeasurementRatio = new EtomoNumber(EtomoNumber.Type.DOUBLE,
-    "TargetMeasurementRatio");
+    TARGET_MEASUREMENT_RATIO_KEY);
   private EtomoNumber minMeasurementRatio = new EtomoNumber(EtomoNumber.Type.DOUBLE,
-    "MinMeasurementRatio");
+    MIN_MEASUREMENT_RATIO_KEY);
   private StringParameter orderOfRestrictions =
     new StringParameter("OrderOfRestrictions");
   private EtomoNumber skipBeamTiltWithOneRot = new EtomoNumber(EtomoNumber.Type.BOOLEAN,
