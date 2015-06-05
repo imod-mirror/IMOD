@@ -91,6 +91,8 @@ OFFSET  SIZE DATA    NAME	Description
                                  4 = origin is stored with sign inverted from definition
                                      below
                                  8 = RMS value is negative if it was not computed
+                                 16 = Bytes have two 4-bit values, the first one in the
+                                      low 4 bits and the second one in the high 4 bits
 
                               Explanation of type of data.
 160 240  2   short   idtype;  ( 0 = mono, 1 = tilt, 2 = tilts, 3 = lina, 4 = lins)
