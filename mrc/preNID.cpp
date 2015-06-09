@@ -436,14 +436,14 @@ CreateMaskedLocalSmooth (unsigned int nx,	/*!< Dimension (in pixels) along the a
 
 
   meanDoG =
-    (pow (dDoGdx[padding][padding], 2.0) +
-     pow (dDoGdy[padding][padding], 2.0));;
+    (pow ((double)dDoGdx[padding][padding], 2.0) +
+     pow ((double)dDoGdy[padding][padding], 2.0));;
   maxDoG = meanDoG;
   minDoG = meanDoG;
   for (unsigned int i = 0; i < nx + 2 * padding; i++)
     for (unsigned int j = 0; j < ny + 2 * padding; j++)
       {
-	DoG[i][j] = (pow (dDoGdx[i][j], 2.0) + pow (dDoGdy[i][j], 2.0));
+	DoG[i][j] = (pow ((double)dDoGdx[i][j], 2.0) + pow ((double)dDoGdy[i][j], 2.0));
 	if (DoG[i][j] > maxDoG)
 	  maxDoG = DoG[i][j];
 	if (DoG[i][j] < minDoG)
