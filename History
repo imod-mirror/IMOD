@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/8/15: IMOD_4-8-36
+6/8/15: Added preNID to program list so it will be built and distibuted.
+
 6/3/15: Changed patch tracking size from 700x700 to 680x680 in system
 template cryoSample.adoc to give 4x4 patches in 2Kx2K data, also added
 directive to analyze 1 surface in tiltalign.
