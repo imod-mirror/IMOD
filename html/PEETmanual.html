@@ -758,11 +758,18 @@ during alignment, however, and will effectively set the number of
 <p><b>Particles per CPU</b> controls the splitting of alignment searches into "chunks"
 for parallel execution on multiple CPUS.&nbsp; No more than the specified number of particles 
 will be sent simultaneously to a single CPU for alignment.&nbsp;
-The smaller this value, the more command and log files will be created, and, within limits,
-the greater the overall throughput.&nbsp; Too high a value, can lead to long 
-delays should you wish to pause and then resume the processing.&nbsp; 
-The default of 5 is a good choice for most purposes; if eTomo reports more than a few thousand 
-chunks to be processed, you may wish to consider raising this setting.</p>
+The smaller this value, the more command and log files will be created,
+and, within limits, the greater the overall throughput.&nbsp; 
+Too high a value, can lead to long delays should you wish to pause and
+then resume processing.&nbsp; The default of 20 is a good choice for 
+most purposes (runs with at least several hundred subvolumes); if eTomo 
+reports more than a few thousand chunks to be processed, you may wish 
+to raise this setting. Conversely, if you have many cpus and few
+particles, you can lower Particles per cpu for faster execution.&nbsp; 
+To make effective use of available processors, the total number of chunks 
+reported by eTomo should be no less than the number of cpus times the 
+number of alignment iterations to be performed.
+</p>
 
 <p><b>Debug level</b> (0, 1, 2, or 3) controls the amount of information included in the log 
 files, with higher numbers leading to more verbose logs.</p>
