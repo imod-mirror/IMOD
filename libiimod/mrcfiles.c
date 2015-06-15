@@ -499,7 +499,7 @@ void mrcInitOutputHeader(MrcHeader *hdata)
   hdata->headerSize = 1024;
   hdata->sectionSkip = 0;
   hdata->yInverted = 0;
-  hdata->iiuFlags = MRC_FLAGS_BAD_RMS_NEG;
+  hdata->imodFlags = MRC_FLAGS_BAD_RMS_NEG;
   hdata->rms = -1;
   hdata->bytesSigned = writeBytesSigned();
   hdata->next = 0;
