@@ -451,6 +451,7 @@ int mrc_head_new(MrcHeader *hdata,
   hdata->max3    = 0.0f;
   hdata->imodStamp = IMOD_MRC_STAMP;
   hdata->imodFlags = MRC_FLAGS_BAD_RMS_NEG;
+  hdata->iiuFlags = 0;
 
   hdata->idtype = 0;
   hdata->lens = 0;
