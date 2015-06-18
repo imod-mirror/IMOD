@@ -874,8 +874,6 @@ main (int argc, char *argv[])
   char *progname = imodProgName (argv[0]);
 
   int numOptArgs, numNonOptArgs;
-  int numOptions = 11;
-
 
 
   unsigned int padding = 40;
@@ -894,19 +892,12 @@ main (int argc, char *argv[])
   int *anglesToProcess;
   int nAnglesToProcess = 0;
 
+  // Fallbacks from    ../manpages/autodoc2man 2 1 preNID
+  int numOptions = 11;
   const char *options[] = {
-    "input:InputStack:FN:",
-    "output:OutputFileName:FN:",
-    "angles:AnglesFile:FN:",
-    "s:sigma:LI:",
-    "a:alpha:LI:",
-    "b:beta:LI:",
-    "t:tau:LI:",
-    "im:InputMask:FN:",
-    "mask:maskOutput:B:",
-    "ite:Iterations:LI:",
-    "views:ViewsToProcess:LI:"
-  };
+    "input:InputStack:FN:", "output:OutputFileName:FN:", "angles:AnglesFile:FN:",
+    "s:Sigma:LI:", "a:Alpha:LI:", "b:Beta:LI:", "t:Tau:LI:", "ite:Iterations:LI:",
+    "im:InputMask:FN:", "mask:MaskOutput:B:", "views:ViewsToProcess:LI:"};
 
   printf
     ("\n [Mauro Maiorca, of the Biochemistry & Molecular Biology Department, Bio21 institute, University of Melbourne, Australia, contributed the preNAD program (adapted for IMOD). ");
