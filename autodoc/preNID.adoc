@@ -22,28 +22,28 @@ usage = Tilt angles file.
 tooltip = 
 manpage = Tilt angles file.
 
-[Field = sigma]
+[Field = Sigma]
 short = s
 type = LI
 usage = Initial sigma (in pixels)
 tooltip = 
 manpage = Initial sigma (in pixels)
 
-[Field = alpha]
+[Field = Alpha]
 short = a
 type = LI
 usage = alpha, typical values from 0.2 to 0.5
 tooltip = 
 manpage = alpha
 
-[Field = beta]
+[Field = Beta]
 short = b
 type = LI
 usage = sigma beta  (in pixels),  typical values from 0.5 to 5
 tooltip = 
 manpage = sigma beta  (in pixels),  typical values from 0.5 to 8
 
-[Field = tau]
+[Field = Tau]
 short = t
 type = LI
 usage = tau, typical values from  0.1 to 0.2
@@ -57,11 +57,23 @@ usage = number of iterations in the smoothing process, typically from 3 to 20, 1
 tooltip = 
 manpage = number of iterations in the smoothing process, 1 if -maskOutput
 
-[Field = maskOutput]
+[Field = InputMask]
+short = im
+type = FN
+usage = Input image file with mask to apply
+tooltip = 
+manpage = 
+
+[Field = MaskOutput]
 short = mask
 type = B
 usage = Produce a binary mask as output
 tooltip = 
 manpage =  Produce a binary mask as output
 
-
+[Field = ViewsToProcess]
+short = views
+type = LI
+usage = List of views to process
+tooltip = 
+manpage =
