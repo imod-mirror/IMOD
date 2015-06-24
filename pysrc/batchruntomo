@@ -3491,10 +3491,10 @@ options = ["directive:DirectiveFile:FNM:", "root:RootName:FNM:",
            "one:ProcessOneAxis:I:", "cpus:CPUMachineList:CH:",
            "single:SingleOnFirstCPU:B:", "gpus:GPUMachineList:CH:", "nice:NiceValue:I:",
            "limit:LimitLocalThreads:I:", "remote:RemoteDirectory:FN:",
-           "check:CheckFile:FN:", "email:EmailAddress:CH:",
+           "check:CheckFile:FN:", "email:EmailAddress:CH:", "SMTP:SMTPserver:CH:",
            "validation:ValidationType:I:", "start:StartingStep:F:", "end:EndingStep:F:",
            "first:StartForFirstSetOnly:B:", "use:UseExistingAlignment:B:",
-           "exit:ExitOnError:B:", "etomo:EtomoDebug:I:"]
+           "exit:ExitOnError:B:", "etomo:EtomoDebug:I:", ":PID:B:"]
 
 copyPrefix = 'setupset.copyarg.'
 setupPrefix = 'setupset.'
@@ -3560,6 +3560,9 @@ PipForbidComments('CPUMachineList', 'cpus', False)
 
 (opts, nonopts) = PipReadOrParseOptions(sys.argv, options, progname, 1, 1, 0)
 os.environ['PIP_PRINT_ENTRIES'] = '0'
+
+doPID = PipGetBoolean('PID', 0)
+printPID(doPID)
 
 # Get the directive file names
 numByArg = PipNumberOfEntries('DirectiveFile')
