@@ -390,7 +390,7 @@ def getmrc(file, doAll = False):
       needed = 3
 
    if len(hdrout) < needed:
-      errStrings = ["header " + file + ": too few lines of output"]
+      errStrings = ["header " + file + ": too few lines of output\n"]
       raise ImodpyError(errStrings)
 
    nxyz = hdrout[0].split()
@@ -398,7 +398,13 @@ def getmrc(file, doAll = False):
    if doAll:
       orixyz = hdrout[3].split()
    if len(nxyz) < 3 or len(pxyz) < 3 or (doAll and len(orixyz) < 3):
-      errStrings = ["header " + file + ": too few numbers on lines"]
+      if len(nxyz) < 3:
+         badLine = '-si option: ' + hdrout[0].strip()
+      elif  len(pxyz) < 3:
+         badLine = '-pi option: ' + hdrout[2].strip()
+      else:
+         badLine = '-ori option: ' + hdrout[3].strip()
+      errStrings = ["header " + file + ": too few numbers on line for " + badLine + "\n"]
       raise ImodpyError(errStrings)
    ix = int(nxyz[0])
    iy = int(nxyz[1])
