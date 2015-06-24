@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/23/15: IMOD_4-8-37
+6/23/15: Fixed header output for -origin for negative values.
+
 6/15/15: Fixed bogus warnings in header output.
 
 6/15/15: Fixed division by 0 problem in reprojections by Tilt.
