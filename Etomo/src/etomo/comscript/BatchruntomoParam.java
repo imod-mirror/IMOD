@@ -26,7 +26,7 @@ import etomo.util.RemotePath.InvalidMountRuleException;
 /**
  * <p>Description: </p>
  * <p/>
- * <p>Copyright: Copyright 2012 - 2014 by the Regents of the University of Colorado</p>
+ * <p>Copyright: Copyright 2012 - 2015 by the Regents of the University of Colorado</p>
  * <p/>
  * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
