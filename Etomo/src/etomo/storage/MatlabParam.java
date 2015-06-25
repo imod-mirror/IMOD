@@ -29,7 +29,7 @@ import etomo.type.ParsedElement;
 import etomo.type.ParsedList;
 import etomo.type.ParsedNumber;
 import etomo.type.ParsedQuotedString;
-import etomo.ui.FieldLabels;
+import etomo.ui.SharedStrings;
 import etomo.ui.UIComponent;
 import etomo.ui.swing.UIHarness;
 import etomo.util.DatasetFiles;
@@ -1305,7 +1305,7 @@ public final class MatlabParam {
     edgeShift.parse(autodoc.getAttribute(EDGE_SHIFT_KEY));
     if (!addError(edgeShift, errorList)) {
       checkValue(edgeShift, EDGE_SHIFT_MIN, EDGE_SHIFT_MAX, 1, component, EDGE_SHIFT_KEY,
-        FieldLabels.EDGE_SHIFT_LABEL, String.valueOf(EDGE_SHIFT_DEFAULT));
+        SharedStrings.EDGE_SHIFT_LABEL, String.valueOf(EDGE_SHIFT_DEFAULT));
     }
     // lstThresholds
     lstThresholds.parse(autodoc.getAttribute(LST_THRESHOLDS_KEY));
@@ -1325,7 +1325,7 @@ public final class MatlabParam {
     addError(debugLevel, errorList);
     if (!addError(debugLevel, errorList)) {
       checkValue(debugLevel, DEBUG_LEVEL_MIN, DEBUG_LEVEL_MAX, 1, component,
-        DEBUG_LEVEL_KEY, FieldLabels.DEBUG_LEVEL_LABEL,
+        DEBUG_LEVEL_KEY, SharedStrings.DEBUG_LEVEL_LABEL,
         String.valueOf(DEBUG_LEVEL_DEFAULT));
     }
     // YaxisType
@@ -1364,7 +1364,7 @@ public final class MatlabParam {
     nWeightGroup.parse(autodoc.getAttribute(N_WEIGHT_GROUP_KEY));
     if (!addError(nWeightGroup, errorList)) {
       checkValue(nWeightGroup, N_WEIGHT_GROUP_MIN, N_WEIGHT_GROUP_MAX, 1, component,
-        N_WEIGHT_GROUP_KEY, FieldLabels.N_WEIGHT_GROUP_LABEL,
+        N_WEIGHT_GROUP_KEY, SharedStrings.N_WEIGHT_GROUP_LABEL,
         String.valueOf(N_WEIGHT_GROUP_DEFAULT));
     }
     // flgRemoveDuplicates
@@ -1372,33 +1372,33 @@ public final class MatlabParam {
     addError(flgRemoveDuplicates, errorList);
     if (!addError(flgRemoveDuplicates, errorList)) {
       checkValue(flgRemoveDuplicates, new int[] { 0, 1 }, component,
-        FLG_REMOVE_DUPLICATES_KEY, FieldLabels.FLG_REMOVE_DUPLICATES_LABEL, 1);
+        FLG_REMOVE_DUPLICATES_KEY, SharedStrings.FLG_REMOVE_DUPLICATES_LABEL, 1);
     }
     // flgAlignAverages
     flgAlignAverages.parse(autodoc.getAttribute(FLG_ALIGN_AVERAGES_KEY));
     addError(flgAlignAverages, errorList);
     if (!addError(flgAlignAverages, errorList)) {
       checkValue(flgAlignAverages, new int[] { 0, 1 }, component, FLG_ALIGN_AVERAGES_KEY,
-        FieldLabels.FLG_ALIGN_AVERAGES_LABEL, 1);
+        SharedStrings.FLG_ALIGN_AVERAGES_LABEL, 1);
     }
     // flgFairReference
     flgFairReference.parse(autodoc.getAttribute(FLG_FAIR_REFERENCE_KEY));
     if (!addError(flgFairReference, errorList)) {
       checkValue(flgFairReference, new int[] { 0, 1 }, component, FLG_FAIR_REFERENCE_KEY,
-        FieldLabels.FLG_FAIR_REFERENCE_LABEL, -1);
+        SharedStrings.FLG_FAIR_REFERENCE_LABEL, -1);
     }
     // flgAbsValue
     flgAbsValue.parse(autodoc.getAttribute(FLG_ABS_VALUE_KEY));
     if (!addError(flgAbsValue, errorList)) {
       checkValue(flgAbsValue, new int[] { 0, 1 }, component, FLG_ABS_VALUE_KEY,
-        FieldLabels.FLG_ABS_VALUE_LABEL, 1);
+        SharedStrings.FLG_ABS_VALUE_LABEL, 1);
     }
     // flgStrictSearchLimits
     flgStrictSearchLimits.parse(autodoc.getAttribute(FLG_STRICT_SEARCH_LIMITS_KEY));
     addError(flgStrictSearchLimits, errorList);
     if (!addError(flgStrictSearchLimits, errorList)) {
       checkValue(flgStrictSearchLimits, new int[] { 0, 1 }, component,
-        FLG_STRICT_SEARCH_LIMITS_KEY, FieldLabels.FLG_STRICT_SEARCH_LIMITS_LABEL, 1);
+        FLG_STRICT_SEARCH_LIMITS_KEY, SharedStrings.FLG_STRICT_SEARCH_LIMITS_LABEL, 1);
     }
     // selectClassID
     attribute = autodoc.getAttribute(SELECT_CLASS_ID_KEY);
@@ -1417,14 +1417,14 @@ public final class MatlabParam {
     flgNoReferenceRefinement.parse(autodoc.getAttribute(FLG_NO_REFERENCE_REFINEMENT_KEY));
     if (!addError(flgNoReferenceRefinement, errorList)) {
       checkValue(flgNoReferenceRefinement, new int[] { 0, 1 }, component,
-        FLG_NO_REFERENCE_REFINEMENT_KEY, FieldLabels.FLG_NO_REFERENCE_REFINEMENT_LABEL,
+        FLG_NO_REFERENCE_REFINEMENT_KEY, SharedStrings.FLG_NO_REFERENCE_REFINEMENT_LABEL,
         -1);
     }
     // flgRandomize
     flgRandomize.parse(autodoc.getAttribute(FLG_RANDOMIZE_KEY));
     if (!addError(flgRandomize, errorList)) {
       checkValue(flgRandomize, new int[] { 0, 1 }, component, FLG_RANDOMIZE_KEY,
-        FieldLabels.FLG_RANDOMIZE_LABEL, -1);
+        SharedStrings.FLG_RANDOMIZE_LABEL, -1);
     }
     // cylinderHeight
     cylinderHeight.parse(autodoc.getAttribute(CYLINDER_HEIGHT_KEY));
@@ -1436,7 +1436,7 @@ public final class MatlabParam {
     flgVolNamesAreTemplates.parse(autodoc.getAttribute(FLG_VOL_NAMES_ARE_TEMPLATES_KEY));
     if (!addError(flgVolNamesAreTemplates, errorList)) {
       checkValue(flgVolNamesAreTemplates, new int[] { 0, 1 }, component,
-        FLG_VOL_NAMES_ARE_TEMPLATES_KEY, FieldLabels.FLG_VOL_NAMES_ARE_TEMPLATES_LABEL,
+        FLG_VOL_NAMES_ARE_TEMPLATES_KEY, SharedStrings.FLG_VOL_NAMES_ARE_TEMPLATES_LABEL,
         -1);
     }
   }
@@ -2079,11 +2079,11 @@ public final class MatlabParam {
      */
     public static final InitMotlCode Z_AXIS = new InitMotlCode(1, null);
     public static final InitMotlCode X_AND_Z_AXIS = new InitMotlCode(2,
-      FieldLabels.INIT_MOTL_X_AND_Z_AXIS_LABEL);
+      SharedStrings.INIT_MOTL_X_AND_Z_AXIS_LABEL);
     public static final InitMotlCode RANDOM_ROTATIONS = new InitMotlCode(3,
-      FieldLabels.INIT_MOTL_RANDOM_ROTATIONS);
+      SharedStrings.INIT_MOTL_RANDOM_ROTATIONS);
     public static final InitMotlCode RANDOM_AXIAL_ROTATIONS = new InitMotlCode(4,
-      FieldLabels.INIT_MOTL_RANDOM_AXIAL_ROTATIONS);
+      SharedStrings.INIT_MOTL_RANDOM_AXIAL_ROTATIONS);
     public static final InitMotlCode DEFAULT = ZERO;
 
     public static final String KEY = "initMOTL";
@@ -2134,7 +2134,7 @@ public final class MatlabParam {
       }
       UIHarness.INSTANCE
         .openProblemValueMessageDialog(null, component, "Unknown", KEY, null,
-          FieldLabels.INIT_MOTL_LABEL, value, DEFAULT.value.toString(), DEFAULT.label);
+          SharedStrings.INIT_MOTL_LABEL, value, DEFAULT.value.toString(), DEFAULT.label);
       return DEFAULT;
     }
 
@@ -2262,20 +2262,20 @@ public final class MatlabParam {
         return HALF;
       }
       UIHarness.INSTANCE.openProblemValueMessageDialog(null, component, "Unknown", KEY,
-        null, FieldLabels.SAMPLE_SPHERE_LABEL, value, DEFAULT.value, null);
+        null, SharedStrings.SAMPLE_SPHERE_LABEL, value, DEFAULT.value, null);
       return DEFAULT;
     }
   }
 
   public static final class YAxisType implements EnumeratedType {
     public static final YAxisType Y_AXIS = new YAxisType(new EtomoNumber().set(0),
-      FieldLabels.YAXIS_TYPE_Y_AXIS_LABEL);
+      SharedStrings.YAXIS_TYPE_Y_AXIS_LABEL);
     public static final YAxisType PARTICLE_MODEL = new YAxisType(
-      new EtomoNumber().set(1), FieldLabels.YAXIS_TYPE_PARTICLE_MODEL_LABEL);
+      new EtomoNumber().set(1), SharedStrings.YAXIS_TYPE_PARTICLE_MODEL_LABEL);
     public static final YAxisType CONTOUR = new YAxisType(new EtomoNumber().set(2),
-      FieldLabels.YAXIS_TYPE_CONTOUR_LABEL);
+      SharedStrings.YAXIS_TYPE_CONTOUR_LABEL);
     public static final YAxisType CSV_FILES = new YAxisType(new EtomoNumber().set(3),
-      FieldLabels.CSV_FILES_LABEL);
+      SharedStrings.CSV_FILES_LABEL);
     public static final YAxisType DEFAULT = Y_AXIS;
 
     public static final String KEY = "yaxisType";
@@ -2326,7 +2326,7 @@ public final class MatlabParam {
         return CSV_FILES;
       }
       UIHarness.INSTANCE.openProblemValueMessageDialog(null, component, "Unknown", KEY,
-        null, FieldLabels.YAXIS_TYPE_LABEL, value, DEFAULT.value.toString(),
+        null, SharedStrings.YAXIS_TYPE_LABEL, value, DEFAULT.value.toString(),
         DEFAULT.label);
       return DEFAULT;
     }
@@ -2704,15 +2704,15 @@ public final class MatlabParam {
     }
 
     private void setDPhi(final ParsedElement input, final UIComponent component) {
-      dPhi.set(input, D_PHI_KEY, FieldLabels.D_PHI_LABEL, component);
+      dPhi.set(input, D_PHI_KEY, SharedStrings.D_PHI_LABEL, component);
     }
 
     private void setDTheta(final ParsedElement input, final UIComponent component) {
-      dTheta.set(input, D_THETA_KEY, FieldLabels.D_THETA_LABEL, component);
+      dTheta.set(input, D_THETA_KEY, SharedStrings.D_THETA_LABEL, component);
     }
 
     private void setDPsi(final ParsedElement input, final UIComponent component) {
-      dPsi.set(input, D_PSI_KEY, FieldLabels.D_PSI_LABEL, component);
+      dPsi.set(input, D_PSI_KEY, SharedStrings.D_PSI_LABEL, component);
     }
 
     private ParsedElement getDPhi() {
