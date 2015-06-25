@@ -787,6 +787,16 @@ public abstract class BaseProcessManager {
       processMonitor, axisID);
   }
 
+  final ComScriptProcess startDetachedComScript(final String commandString,
+    final OutfileProcessMonitor monitor, final AxisID axisID, final Command command,
+    final FileType fileType) throws SystemProcessException {
+    OutfileComScriptProcess process =
+      new OutfileComScriptProcess(manager, commandString, this, axisID, monitor, command,
+        fileType);
+    monitor.setProcess(process);
+    return startComScript(process, commandString, monitor, axisID);
+  }
+
   /**
    * Start a managed command script for the specified axis
    * @param command
