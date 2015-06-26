@@ -9,7 +9,7 @@ import javax.swing.JCheckBox;
 import javax.swing.text.Document;
 
 import etomo.EtomoDirector;
-import etomo.logic.DefaultFinder;
+import etomo.logic.AutodocAttributeRetriever;
 import etomo.storage.DirectiveDef;
 import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.storage.autodoc.ReadOnlySection;
@@ -127,6 +127,9 @@ final class CheckBox extends JCheckBox implements Field, ActionListener {
   private BooleanFieldSetting defaultValue = null;
   private BooleanFieldSetting checkpoint = null;
   private BooleanFieldSetting fieldHighlight = null;
+
+  private boolean enabled = true;
+  private boolean editable = true;
 
   public CheckBox() {
     super();
@@ -258,7 +261,7 @@ final class CheckBox extends JCheckBox implements Field, ActionListener {
     // only search for default value once for this directiveDef
     if (defaultValue == null) {
       defaultValue = new BooleanFieldSetting();
-      String value = DefaultFinder.INSTANCE.getDefaultValue(directiveDef);
+      String value = AutodocAttributeRetriever.INSTANCE.getDefaultValue(directiveDef);
       if (value != null) {
         // if default value has been found, set it in the field setting
         defaultValue.set(value);
@@ -375,10 +378,27 @@ final class CheckBox extends JCheckBox implements Field, ActionListener {
   }
 
   public void setEnabled(final boolean enabled) {
-    super.setEnabled(enabled);
-    if (enabled) {
+    this.enabled = enabled;
+    // Only visually enabled if both enabled and editable
+    super.setEnabled(enabled && editable);
+    if (enabled && editable) {
       updateFieldHighlight();
     }
+  }
+
+  public void setEditable(final boolean editable) {
+    this.editable = editable;
+    // Editable has no visible effect if the button is disabled.
+    if (enabled) {
+      super.setEnabled(editable);
+    }
+    if (enabled && editable) {
+      updateFieldHighlight();
+    }
+  }
+  
+  public boolean isEnabled() {
+    return enabled;
   }
 
   public void actionPerformed(ActionEvent e) {
@@ -436,6 +456,16 @@ final class CheckBox extends JCheckBox implements Field, ActionListener {
   public void setToolTipText(final String autodocName, final ReadOnlySection section,
     final String enumValue) {
     setToolTipText(EtomoAutodoc.getTooltip(autodocName, section, enumValue));
+  }
+  
+  public void setTooltip(final Field field) {
+    if (field != null) {
+      super.setToolTipText(field.getTooltip());
+    }
+  }
+
+  public String getTooltip() {
+    return super.getToolTipText();
   }
 
   void printInfo() {
