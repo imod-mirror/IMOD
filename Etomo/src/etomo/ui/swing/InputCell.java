@@ -42,7 +42,9 @@ abstract class InputCell extends Cell {
 
   abstract int getWidth();
 
-  public abstract void setEnabled(boolean enabled);
+  abstract void setEnabled(boolean enabled);
+
+  abstract boolean isEnabled();
 
   abstract void setToolTipText(String toolTipText);
 
@@ -61,12 +63,15 @@ abstract class InputCell extends Cell {
 
   void setEditable(boolean editable) {
     this.editable = editable;
-    getComponent().setEnabled(editable);
-    setBackground();
+    if (isEnabled()) {
+      // disabled overrides editable
+      getComponent().setEnabled(editable);
+      setBackground();
+    }
   }
 
   boolean isEditable() {
-    return getComponent().isEnabled();
+    return editable;
   }
 
   final void setHighlight(boolean highlight) {
@@ -106,7 +111,7 @@ abstract class InputCell extends Cell {
 
   void setBackground() {
     if (highlight) {
-      if (editable) {
+      if (isEnabled()) {
         setBackground(Colors.HIGHLIGHT_BACKGROUND);
       }
       else {
@@ -114,7 +119,7 @@ abstract class InputCell extends Cell {
       }
     }
     else if (warning) {
-      if (editable) {
+      if (isEnabled()) {
         setBackground(Colors.WARNING_BACKGROUND);
       }
       else {
@@ -122,14 +127,14 @@ abstract class InputCell extends Cell {
       }
     }
     else if (error) {
-      if (editable) {
+      if (isEnabled()) {
         setBackground(Colors.CELL_ERROR_BACKGROUND);
       }
       else {
         setBackground(Colors.CELL_ERROR_BACKGROUND_NOT_EDITABLE);
       }
     }
-    else if (editable) {
+    else if (isEnabled()) {
       setBackground(Colors.BACKGROUND);
     }
     else {
@@ -163,8 +168,9 @@ abstract class InputCell extends Cell {
   }
 
   String convertLabelToName() {
-    return Utilities.convertLabelToName(tableHeader, rowHeader != null ? rowHeader
-      .getText() : null, columnHeader != null ? columnHeader.getText() : null);
+    return Utilities.convertLabelToName(tableHeader,
+      rowHeader != null ? rowHeader.getText() : null,
+      columnHeader != null ? columnHeader.getText() : null);
   }
 
   /**
