@@ -84,6 +84,7 @@ void BehaviorForm::update()
   diaSetChecked(autosaveEnabledBox, mPrefs->autosaveOn);
   diaSetSpinBox(autosaveSpinBox, mPrefs->autosaveInterval);
   autosaveDirEdit->setText(QDir::toNativeSeparators(mPrefs->autosaveDir));
+  diaSetChecked(keyHWstereoBox, mPrefs->keySetsHWstereo);
   diaSetChecked(imageIconifyBox, mPrefs->iconifyImageWin);
   diaSetChecked(imodDlgIconifyBox, mPrefs->iconifyImodDlg);
   diaSetChecked(imodvDlgIconifyBox, mPrefs->iconifyImodvDlg);
@@ -107,6 +108,7 @@ void BehaviorForm::unload()
   mPrefs->pageStep = pageStepSpinBox->value();
   mPrefs->autosaveOn = autosaveEnabledBox->isChecked();
   mPrefs->autosaveInterval = autosaveSpinBox->value();
+  mPrefs->keySetsHWstereo = keyHWstereoBox->isChecked();
   mPrefs->iconifyImageWin = imageIconifyBox->isChecked();
   mPrefs->iconifyImodDlg = imodDlgIconifyBox->isChecked();
   mPrefs->iconifyImodvDlg = imodvDlgIconifyBox->isChecked();

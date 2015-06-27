@@ -117,6 +117,7 @@ typedef struct imod_pref_struct
   TRIPLET(bool, isoHighThresh);     // Set initial threshold above middle
   TRIPLET(int, isoBoxInitial);      // Initial box size
   TRIPLET(int, isoBoxLimit);        // Limit to box size
+  TRIPLET(bool, keySetsHWstereo);   // Hardware stereo is turned on with hot key
 } ImodPrefStruct;
 
 class PrefsDialog : public QDialog
@@ -207,6 +208,7 @@ class ImodPreferences : public QObject
   bool isoHighThresh() {return mCurrentPrefs.isoHighThresh;};
   int isoBoxInitial() {return mCurrentPrefs.isoBoxInitial;};
   int isoBoxLimit() {return mCurrentPrefs.isoBoxLimit;};
+  bool keySetsHWstereo() {return mCurrentPrefs.keySetsHWstereo;};
   QString snapFormat2(QString *curFormat = NULL);
   void set2ndSnapFormat();
   void restoreSnapFormat();
