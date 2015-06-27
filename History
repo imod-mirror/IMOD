@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/27/15: Added 3dmod preference to enable the S hot key to turn on hardware
+stereo, which is off by default on Macs, to prevent accidentally turning on
+non-functional hardware stereo.
+
 6/23/15: IMOD_4-8-37
 6/23/15: Fixed header output for -origin for negative values.
 
