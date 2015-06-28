@@ -39,7 +39,7 @@ import etomo.type.EtomoAutodoc;
 import etomo.type.PeetMetaData;
 import etomo.type.ProcessingMethod;
 import etomo.type.Run3dmodMenuOptions;
-import etomo.ui.FieldLabels;
+import etomo.ui.SharedStrings;
 import etomo.ui.FieldType;
 import etomo.ui.FieldValidationFailedException;
 import etomo.ui.UIComponent;
@@ -457,9 +457,9 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
   private final SpacedPanel pnlSetupBody = SpacedPanel.getInstance();
   private final CheckBox cbAlignedBaseName = new CheckBox(ALIGNED_BASE_NAME_LABEL);
   private final CheckBox cbFlgStrictSearchLimits = new CheckBox(
-    FieldLabels.FLG_STRICT_SEARCH_LIMITS_LABEL);
+    SharedStrings.FLG_STRICT_SEARCH_LIMITS_LABEL);
   private final CheckBox cbFlgNoReferenceRefinement = new CheckBox(
-    FieldLabels.FLG_NO_REFERENCE_REFINEMENT_LABEL);
+    SharedStrings.FLG_NO_REFERENCE_REFINEMENT_LABEL);
   private final LabeledTextField ltfLowCutoff = new LabeledTextField(
     FieldType.FLOATING_POINT, "Low frequency cutoff:", 5);
   private final LabeledTextField ltfLowCutoffSigma = new LabeledTextField(
@@ -490,9 +490,9 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
   private final RadioButton rbInitMotlRandomAxialRotations = new RadioButton(
     MatlabParam.InitMotlCode.RANDOM_AXIAL_ROTATIONS, bgInitMotl);
   private final RadioButton rbInitMotlFiles = new RadioButton(
-    FieldLabels.CSV_FILES_LABEL, bgInitMotl);
+    SharedStrings.CSV_FILES_LABEL, bgInitMotl);
   private final LabeledSpinner lsDebugLevel = LabeledSpinner.getInstance(
-    FieldLabels.DEBUG_LEVEL_LABEL + ": ", MatlabParam.DEBUG_LEVEL_DEFAULT,
+    SharedStrings.DEBUG_LEVEL_LABEL + ": ", MatlabParam.DEBUG_LEVEL_DEFAULT,
     MatlabParam.DEBUG_LEVEL_MIN, MatlabParam.DEBUG_LEVEL_MAX, 1, 59);
   private final Run3dmodButton btnAvgVol = Run3dmodButton.get3dmodInstance(
     "Open averages in 3dmod", this);
@@ -504,11 +504,11 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     "Open references in 3dmod", this);
   private final MultiLineButton btnAverageAll = new MultiLineButton(AVERAGE_ALL_LABEL);
   private final CheckBox cbflgAlignAverages = new CheckBox(
-    FieldLabels.FLG_ALIGN_AVERAGES_LABEL);
-  private final CheckBox cbFlgAbsValue = new CheckBox(FieldLabels.FLG_ABS_VALUE_LABEL);
+    SharedStrings.FLG_ALIGN_AVERAGES_LABEL);
+  private final CheckBox cbFlgAbsValue = new CheckBox(SharedStrings.FLG_ABS_VALUE_LABEL);
   private final LabeledTextField ltfSelectClassID = new LabeledTextField(
     FieldType.INTEGER, "Average only members of classes: ");
-  private final CheckBox cbFlgRandomize = new CheckBox(FieldLabels.FLG_RANDOMIZE_LABEL);
+  private final CheckBox cbFlgRandomize = new CheckBox(SharedStrings.FLG_RANDOMIZE_LABEL);
 
   private final SphericalSamplingForThetaAndPsiPanel sphericalSamplingForThetaAndPsiPanel;
   private final YAxisTypePanel yAxisTypePanel;
@@ -1072,7 +1072,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     pnlInitMotlAndYAxisType.add(pnlInitMotlX);
     // init motl x
     pnlInitMotlX.setLayout(new BoxLayout(pnlInitMotlX, BoxLayout.X_AXIS));
-    pnlInitMotlX.setBorder(new EtchedBorder(FieldLabels.INIT_MOTL_LABEL).getBorder());
+    pnlInitMotlX.setBorder(new EtchedBorder(SharedStrings.INIT_MOTL_LABEL).getBorder());
     pnlInitMotlX.add(pnlInitMotl);
     pnlInitMotlX.add(Box.createRigidArea(FixedDim.x167_y0));
     // init MOTL
