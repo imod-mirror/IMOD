@@ -27,14 +27,11 @@ import etomo.type.ProcessName;
 /**
  * <p>Description: </p>
  *
- * <p>Copyright: Copyright (c) 2004</p>
- *
- * <p>Organization: Boulder Laboratory for 3D Fine Structure,
- * University of Colorado</p>
- *
- * @author $Author$
- *
- * @version $Revision$
+* <p>Copyright: Copyright 2004 - 2015 by the Regents of the University of Colorado</p>
+* <p/>
+* <p>Organization: Dept. of MCD Biology, University of Colorado</p>
+*
+* @version $Id$
  *
  * <p> $Log$
  * <p> Revision 1.2  2011/02/03 06:20:01  sueh
@@ -269,7 +266,8 @@ import etomo.type.ProcessName;
  * <p> </p>
  */
 public abstract class MainPanel extends EtomoPanel {
-  public static final String rcsid = "$Id$";
+  public static final String rcsid =
+    "$Id$";
 
   static final String STATUS_BAR_EMPTY_TITLE = "No data set loaded";
   static final String STATUS_BAR_BASE_TITLE = "Data file: ";
@@ -332,7 +330,7 @@ public abstract class MainPanel extends EtomoPanel {
   abstract AxisProcessPanel getAxisPanelB();
 
   public abstract void setState(ProcessState processState, AxisID axisID,
-      AbstractParallelDialog parallelDialog);
+    AbstractParallelDialog parallelDialog);
 
   /**
    * Main window constructor.  This sets up the menus and status line.
@@ -383,7 +381,8 @@ public abstract class MainPanel extends EtomoPanel {
     }
   }
 
-  public void setStatusBarText(File paramFile, BaseMetaData metaData, LogWindow logWindow) {
+  public void
+    setStatusBarText(File paramFile, BaseMetaData metaData, LogWindow logWindow) {
     // Set the title of log panel. SetStatusBarText is used by all of the
     // interfaces so this is good place to do it.
     if (logWindow != null) {
@@ -402,9 +401,10 @@ public abstract class MainPanel extends EtomoPanel {
         String datasetName = paramFile.getAbsolutePath();
         if (STATUS_BAR_BASE_TITLE.length() + datasetName.length() > maxTitleLength) {
           // Shorten the dataset name
-          datasetName = "..."
+          datasetName =
+            "..."
               + datasetName.substring(datasetName.length()
-                  - (maxTitleLength - STATUS_BAR_BASE_TITLE.length() - 3));
+                - (maxTitleLength - STATUS_BAR_BASE_TITLE.length() - 3));
         }
         String title = STATUS_BAR_BASE_TITLE + datasetName;
         statusBar.setText(title);
@@ -470,13 +470,22 @@ public abstract class MainPanel extends EtomoPanel {
    * @param label
    * @param nSteps
    */
-  public void setProgressBar(String label, int nSteps, AxisID axisID, boolean pauseEnabled) {
+  public void
+    setProgressBar(String label, int nSteps, AxisID axisID, boolean pauseEnabled) {
     AxisProcessPanel axisPanel = mapBaseAxis(axisID);
     if (axisPanel == null) {
       return;
     }
     axisPanel.setProgressBar(label, nSteps, pauseEnabled);
     axisPanel.setProgressBarValue(0);
+  }
+
+  public void setProgressBarString(final String barString, final AxisID axisID) {
+    AxisProcessPanel axisPanel = mapBaseAxis(axisID);
+    if (axisPanel == null) {
+      return;
+    }
+    axisPanel.setProgressBarString(barString);
   }
 
   public void setStaticProgressBar(final String label, final AxisID axisID) {
@@ -552,7 +561,7 @@ public abstract class MainPanel extends EtomoPanel {
    * @param axisID
    */
   public void stopProgressBar(AxisID axisID, ProcessEndState processEndState,
-      String statusString) {
+    String statusString) {
     AxisProcessPanel axisPanel = mapBaseAxis(axisID);
     axisPanel.stopProgressBar(processEndState, statusString);
   }
@@ -698,7 +707,8 @@ public abstract class MainPanel extends EtomoPanel {
    * @param always
    */
   void setVerticalScrollBarPolicy(boolean always) {
-    int policy = always ? JScrollPane.VERTICAL_SCROLLBAR_ALWAYS
+    int policy =
+      always ? JScrollPane.VERTICAL_SCROLLBAR_ALWAYS
         : JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED;
     if (scrollPaneA != null) {
       scrollPaneA.setVerticalScrollBarPolicy(policy);
