@@ -18,7 +18,7 @@ excludes = ['cpuadoc', 'pip', 'imodenv', 'uitest']
 # Directories to search for the file list, in alphabetic order, and corresponding
 # extensions to glob for
 listDirs = ['3dmodHelp', '3dmodimages', 'ctfHelp', 'etomoImages', 'joinImages', 'libhelp',
-            'man', 'midasHelp', 'plughelp']
+            'man', 'midasHelp', 'miscImages', 'plughelp']
 dirExts = ['[hp]*', '*', '*', '*', '*', '*', 'html', 'html', '*', '*']
 
 # Files and directories to change Ctrl to Apple in on Mac
