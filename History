@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/28/15: Fixed Transferfid and Matchrotpairs starting Midas twice, without and
+with mirroring.
+
 6/27/15: Added 3dmod preference to enable the S hot key to turn on hardware
 stereo, which is off by default on Macs, to prevent accidentally turning on
 non-functional hardware stereo.
