@@ -26,7 +26,7 @@ import etomo.type.ConstPeetMetaData;
 import etomo.type.EtomoAutodoc;
 import etomo.type.EtomoNumber;
 import etomo.type.PeetMetaData;
-import etomo.ui.FieldLabels;
+import etomo.ui.SharedStrings;
 import etomo.ui.FieldType;
 import etomo.ui.FieldValidationFailedException;
 import etomo.ui.UIComponent;
@@ -66,7 +66,7 @@ final class ReferencePanel implements UIComponent, SwingComponent {
   private static final String TITLE = "Reference";
   private static final String REFERENCE_FILE_LABEL = "User supplied file: ";
   private static final String MULTIPARTICLE_BUTTON_LABEL =
-    FieldLabels.FLG_FAIR_REFERENCE_LABEL + " with";
+    SharedStrings.FLG_FAIR_REFERENCE_LABEL + " with";
   private static final String VOLUME_LABEL = "In Volume";
 
   private final EtomoPanel pnlRoot = new EtomoPanel();
@@ -244,7 +244,7 @@ final class ReferencePanel implements UIComponent, SwingComponent {
       EtomoNumber index = new EtomoNumber();
       if (!MultiparticleReference.convertLevelToIndex(level, index)) {
         UIHarness.INSTANCE.openProblemValueMessageDialog(manager, this, "Incorrect",
-          MatlabParam.REFERENCE_KEY, "level", FieldLabels.FLG_FAIR_REFERENCE_LABEL,
+          MatlabParam.REFERENCE_KEY, "level", SharedStrings.FLG_FAIR_REFERENCE_LABEL,
           level, MultiparticleReference.convertIndexToLevel(index.getInt()), null);
       }
       cmbMultiparticle.setSelectedIndex(index.getInt());
