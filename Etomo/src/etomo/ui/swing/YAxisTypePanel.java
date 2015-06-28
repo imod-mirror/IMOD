@@ -21,7 +21,7 @@ import etomo.type.AxisID;
 import etomo.type.EnumeratedType;
 import etomo.type.EtomoAutodoc;
 import etomo.type.Run3dmodMenuOptions;
-import etomo.ui.FieldLabels;
+import etomo.ui.SharedStrings;
 import etomo.util.Utilities;
 
 /**
@@ -96,7 +96,7 @@ final class YAxisTypePanel {
       pnlYaxisType.setBackground(background);
     }
     pnlRoot.setBoxLayout(BoxLayout.X_AXIS);
-    pnlRoot.setBorder(new EtchedBorder(FieldLabels.YAXIS_TYPE_LABEL).getBorder());
+    pnlRoot.setBorder(new EtchedBorder(SharedStrings.YAXIS_TYPE_LABEL).getBorder());
     pnlRoot.add(pnlYaxisType);
     pnlRoot.add(Box.createRigidArea(FixedDim.x197_y0));
     // YaxisType
