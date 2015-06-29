@@ -161,7 +161,7 @@ subvolumes. Files with any of these non-conformities should have a zero in the
 NVERSION field.  For a conforming file, NVERSION would be 10 times the year of
 the standard plus a version number within the year.  Since this field was not
 zeroed out by SerialEM before version 3.3, IMOD code tests for 
-NVERSION >= 20140 and < 10 * (current year + 2).  Other non-standard items, in
+NVERSION >= 20140 and &lt; 10 * (current year + 2).  Other non-standard items, in
 bytes 152-195, are at the top of the extra data section and do not conflict
 with other known uses.
 
