@@ -325,12 +325,25 @@ public abstract class BaseManager {
   void updateDialog(final ProcessName processName, final AxisID axisID) {}
 
   public void logMessage(final File file) {
+    logMessage(file, false);
+  }
+
+  public void logSimpleMessage(final File file) {
+    logMessage(file, true);
+  }
+
+  private void logMessage(final File file, final boolean simple) {
     if (file == null || !file.exists() || file.isDirectory() || !file.canRead()) {
       return;
     }
     LogInterface logInterface = getLogInterface();
     if (logInterface != null) {
-      logInterface.logMessage(file);
+      if (!simple) {
+        logInterface.logMessage(file);
+      }
+      else {
+        logInterface.logMessage(file, false);
+      }
     }
     else {
       System.err.println("Logging from file: " + file.getAbsolutePath());
@@ -354,6 +367,20 @@ public abstract class BaseManager {
         e.printStackTrace();
         System.err.println("Unable to log from file.  " + e.getMessage());
       }
+    }
+  }
+
+  /**
+   * Log without extra stuff
+   * @param message
+   */
+  public void logSimpleMessage(final String message) {
+    LogInterface logInterface = getLogInterface();
+    if (logInterface != null) {
+      logInterface.logMessage(message, false, false);
+    }
+    else {
+      System.err.println(message);
     }
   }
 
