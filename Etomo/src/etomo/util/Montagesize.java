@@ -27,8 +27,9 @@ import etomo.type.EtomoNumber;
  * @version $Revision$
  */
 public class Montagesize {
-  public static final String rcsid = "$Id$";
-  
+  public static final String rcsid =
+    "$Id$";
+
   private static final String EXT = ".pl";
   //
   // n'ton member variables
@@ -75,7 +76,7 @@ public class Montagesize {
    * @return
    */
   public static Montagesize getInstance(BaseManager manager, AxisID axisID,
-      final String fileExtension) {
+    final String fileExtension) {
     File keyFile = Utilities.getFile(manager, axisID, fileExtension);
     String key = makeKey(keyFile);
     Montagesize montagesize = (Montagesize) instances.get(key);
@@ -94,7 +95,7 @@ public class Montagesize {
    * @return
    */
   public static Montagesize getInstance(String fileLocation, String filename,
-      AxisID axisID) {
+    AxisID axisID) {
     File keyFile = Utilities.getFile(fileLocation, filename);
     String key = makeKey(keyFile);
     Montagesize montagesize = (Montagesize) instances.get(key);
@@ -114,7 +115,7 @@ public class Montagesize {
    * @return
    */
   private static synchronized Montagesize createInstance(String propertyUserDir,
-      String key, File file, AxisID axisID) {
+    String key, File file, AxisID axisID) {
     Montagesize montagesize = (Montagesize) instances.get(key);
     if (montagesize != null) {
       return montagesize;
@@ -216,7 +217,7 @@ public class Montagesize {
    * @returns true if attempted to read
    */
   public synchronized boolean read(BaseManager manager) throws IOException,
-      InvalidParameterException {
+    InvalidParameterException {
     if (file.isDirectory()) {
       throw new IOException(file + "is not a file.");
     }
@@ -233,8 +234,8 @@ public class Montagesize {
     Utilities.timestamp("read", "montagesize", file, Utilities.STARTED_STATUS);
     // Run the montagesize command on the file.
     buildCommand();
-    SystemProgram montagesize = new SystemProgram(manager, propertyUserDir, commandArray,
-        axisID);
+    SystemProgram montagesize =
+      new SystemProgram(manager, propertyUserDir, commandArray, axisID);
     modifiedFlag.setReadingNow();
     montagesize.run();
 
@@ -243,11 +244,12 @@ public class Montagesize {
       String[] stdOutput = montagesize.getStdOutput();
       if (stdOutput != null && stdOutput.length > 0) {
         ProcessMessages messages = montagesize.getProcessMessages();
-        if (messages.errorListSize() > 0) {
-          String message = "montagesize returned an error while reading"
-              + file.getAbsolutePath() + ":\n";
-          for (int i = 0; i < messages.errorListSize(); i++) {
-            message = message + messages.getError(i) + "\n";
+        if (messages.size(ProcessMessages.ListType.ERROR) > 0) {
+          String message =
+            "montagesize returned an error while reading" + file.getAbsolutePath()
+              + ":\n";
+          for (int i = 0; i < messages.size(ProcessMessages.ListType.ERROR); i++) {
+            message = message + messages.get(ProcessMessages.ListType.ERROR, i) + "\n";
           }
           Utilities.timestamp("read", "montagesize", file, Utilities.FAILED_STATUS);
           throw new InvalidParameterException(message);
@@ -257,8 +259,8 @@ public class Montagesize {
     // Throw an exception if the file can not be read
     String[] stdError = montagesize.getStdError();
     if (stdError != null && stdError.length > 0) {
-      String message = "montagesize returned an error while reading"
-          + file.getAbsolutePath() + ":\n";
+      String message =
+        "montagesize returned an error while reading" + file.getAbsolutePath() + ":\n";
       for (int i = 0; i < stdError.length; i++) {
         message = message + stdError[i] + "\n";
       }
@@ -271,7 +273,7 @@ public class Montagesize {
     if (stdOutput == null || stdOutput.length < 1) {
       Utilities.timestamp("read", "montagesize", file, Utilities.FAILED_STATUS);
       throw new IOException("montagesize returned no data while reading"
-          + file.getAbsolutePath());
+        + file.getAbsolutePath());
     }
 
     for (int i = 0; i < stdOutput.length; i++) {
@@ -283,8 +285,8 @@ public class Montagesize {
         if (tokens.length < 7) {
           Utilities.timestamp("read", "montagesize", file, Utilities.FAILED_STATUS);
           throw new IOException(
-              "Montagesize returned less than three parameters for image size while reading"
-                  + file.getAbsolutePath());
+            "Montagesize returned less than three parameters for image size while reading"
+              + file.getAbsolutePath());
         }
         x.set(tokens[4]);
         y.set(tokens[5]);
@@ -292,17 +294,17 @@ public class Montagesize {
         if (!x.isValid() || x.isNull()) {
           Utilities.timestamp("read", "montagesize", file, Utilities.FAILED_STATUS);
           throw new NumberFormatException("NX is not set, token is " + tokens[4] + "\n"
-              + x.getInvalidReason());
+            + x.getInvalidReason());
         }
         if (!y.isValid() || y.isNull()) {
           Utilities.timestamp("read", "montagesize", file, Utilities.FAILED_STATUS);
           throw new NumberFormatException("NY is not set, token is " + tokens[5] + "\n"
-              + y.getInvalidReason());
+            + y.getInvalidReason());
         }
         if (!z.isValid() || z.isNull()) {
           Utilities.timestamp("read", "montagesize", file, Utilities.FAILED_STATUS);
           throw new NumberFormatException("NZ is not set, token is " + tokens[6] + "\n"
-              + z.getInvalidReason());
+            + z.getInvalidReason());
         }
       }
     }
@@ -358,7 +360,7 @@ public class Montagesize {
     String key = makeKey(file);
     if (key == null || key.matches("\\s*")) {
       throw new IllegalStateException("unable to make key: filename="
-          + file.getAbsolutePath());
+        + file.getAbsolutePath());
     }
     Montagesize montagesize = (Montagesize) instances.get(key);
     if (montagesize == null) {
@@ -372,7 +374,7 @@ public class Montagesize {
 
   protected String paramString() {
     return ",file=" + file + ",fileExists=" + fileExists + ",x=" + x + ",y=" + y + ",z="
-        + z + ",axisID=" + axisID;
+      + z + ",axisID=" + axisID;
   }
 }
 /**
