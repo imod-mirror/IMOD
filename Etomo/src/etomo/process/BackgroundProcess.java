@@ -306,7 +306,8 @@ import etomo.ui.swing.UIHarness;
  */
 class BackgroundProcess extends Thread implements SystemProcessInterface {
 
-  public static final String rcsid = "$Id$";
+  public static final String rcsid =
+    "$Id$";
 
   private final List<String> commandArrayList;
   private final ProcessData processData;
@@ -337,9 +338,9 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
   private ProcessResultDisplay processResultDisplay = null;
 
   BackgroundProcess(BaseManager manager, List<String> commandArrayList,
-      BaseProcessManager processManager, AxisID axisID,
-      ProcessResultDisplay processResultDisplay, ProcessName processName,
-      ProcessSeries processSeries) {
+    BaseProcessManager processManager, AxisID axisID,
+    ProcessResultDisplay processResultDisplay, ProcessName processName,
+    ProcessSeries processSeries) {
     this.manager = manager;
     this.axisID = axisID;
     this.commandArrayList = commandArrayList;
@@ -351,7 +352,7 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
     if (processSeries != null) {
       processData.setDialogType(processSeries.getDialogType());
       processData.setLastProcess(processSeries, processName == null ? false
-          : processName.resumable);
+        : processName.resumable);
     }
     this.processSeries = processSeries;
     processDetails = null;
@@ -362,8 +363,8 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
   }
 
   BackgroundProcess(BaseManager manager, CommandDetails commandDetails,
-      BaseProcessManager processManager, AxisID axisID, ProcessName processName,
-      ProcessSeries processSeries, boolean popupChunkWarnings) {
+    BaseProcessManager processManager, AxisID axisID, ProcessName processName,
+    ProcessSeries processSeries, boolean popupChunkWarnings) {
     this.manager = manager;
     this.axisID = axisID;
     this.commandDetails = commandDetails;
@@ -376,7 +377,7 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
     if (processSeries != null) {
       processData.setDialogType(processSeries.getDialogType());
       processData.setLastProcess(processSeries, processName == null ? false
-          : processName.resumable);
+        : processName.resumable);
     }
     this.processSeries = processSeries;
     commandArrayList = null;
@@ -385,8 +386,8 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
   }
 
   BackgroundProcess(BaseManager manager, Command command,
-      BaseProcessManager processManager, AxisID axisID, ProcessName processName,
-      final ProcessSeries processSeries) {
+    BaseProcessManager processManager, AxisID axisID, ProcessName processName,
+    final ProcessSeries processSeries) {
     this.manager = manager;
     this.axisID = axisID;
     this.command = command;
@@ -397,7 +398,7 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
     if (processSeries != null) {
       processData.setDialogType(processSeries.getDialogType());
       processData.setLastProcess(processSeries, processName == null ? false
-          : processName.resumable);
+        : processName.resumable);
     }
     this.processSeries = processSeries;
     commandArrayList = null;
@@ -408,8 +409,8 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
   }
 
   BackgroundProcess(BaseManager manager, CommandDetails commandDetails,
-      BaseProcessManager processManager, AxisID axisID, ProcessName processName,
-      final ProcessSeries processSeries) {
+    BaseProcessManager processManager, AxisID axisID, ProcessName processName,
+    final ProcessSeries processSeries) {
     this.manager = manager;
     this.axisID = axisID;
     this.command = commandDetails;
@@ -420,7 +421,7 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
     if (processSeries != null) {
       processData.setDialogType(processSeries.getDialogType());
       processData.setLastProcess(processSeries, processName == null ? false
-          : processName.resumable);
+        : processName.resumable);
     }
     this.processSeries = processSeries;
     commandArrayList = null;
@@ -431,9 +432,9 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
   }
 
   BackgroundProcess(BaseManager manager, CommandDetails commandDetails,
-      BaseProcessManager processManager, AxisID axisID,
-      ProcessResultDisplay processResultDisplay, ProcessName processName,
-      final ProcessSeries processSeries) {
+    BaseProcessManager processManager, AxisID axisID,
+    ProcessResultDisplay processResultDisplay, ProcessName processName,
+    final ProcessSeries processSeries) {
     this.manager = manager;
     this.axisID = axisID;
     command = commandDetails;
@@ -447,7 +448,7 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
     if (processSeries != null) {
       processData.setDialogType(processSeries.getDialogType());
       processData.setLastProcess(processSeries, processName == null ? false
-          : processName.resumable);
+        : processName.resumable);
     }
     processData.setDisplayKey(processResultDisplay);
     this.processSeries = processSeries;
@@ -457,8 +458,8 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
   }
 
   BackgroundProcess(BaseManager manager, Command command,
-      BaseProcessManager processManager, AxisID axisID, boolean forceNextProcess,
-      ProcessName processName, final ProcessSeries processSeries) {
+    BaseProcessManager processManager, AxisID axisID, boolean forceNextProcess,
+    ProcessName processName, final ProcessSeries processSeries) {
     this.manager = manager;
     this.axisID = axisID;
     this.command = command;
@@ -470,7 +471,7 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
     if (processSeries != null) {
       processData.setDialogType(processSeries.getDialogType());
       processData.setLastProcess(processSeries, processName == null ? false
-          : processName.resumable);
+        : processName.resumable);
     }
     this.processSeries = processSeries;
     commandArrayList = null;
@@ -480,9 +481,9 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
   }
 
   BackgroundProcess(BaseManager manager, Command command,
-      BaseProcessManager processManager, AxisID axisID,
-      ProcessResultDisplay processResultDisplay, ProcessName processName,
-      final ProcessSeries processSeries) {
+    BaseProcessManager processManager, AxisID axisID,
+    ProcessResultDisplay processResultDisplay, ProcessName processName,
+    final ProcessSeries processSeries) {
     this.manager = manager;
     this.axisID = axisID;
     this.command = command;
@@ -495,7 +496,7 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
     if (processSeries != null) {
       processData.setDialogType(processSeries.getDialogType());
       processData.setLastProcess(processSeries, processName == null ? false
-          : processName.resumable);
+        : processName.resumable);
     }
     this.processSeries = processSeries;
     commandArrayList = null;
@@ -506,9 +507,9 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
   }
 
   BackgroundProcess(BaseManager manager, String[] commandArray,
-      BaseProcessManager processManager, AxisID axisID,
-      ProcessResultDisplay processResultDisplay, ProcessName processName,
-      final ProcessSeries processSeries) {
+    BaseProcessManager processManager, AxisID axisID,
+    ProcessResultDisplay processResultDisplay, ProcessName processName,
+    final ProcessSeries processSeries) {
     this.manager = manager;
     this.axisID = axisID;
     this.commandArray = commandArray;
@@ -520,7 +521,7 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
     if (processSeries != null) {
       processData.setDialogType(processSeries.getDialogType());
       processData.setLastProcess(processSeries, processName == null ? false
-          : processName.resumable);
+        : processName.resumable);
     }
     this.processSeries = processSeries;
     commandArrayList = null;
@@ -532,8 +533,8 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
   }
 
   BackgroundProcess(BaseManager manager, String[] commandArray,
-      BaseProcessManager processManager, AxisID axisID, ProcessName processName,
-      final ProcessSeries processSeries) {
+    BaseProcessManager processManager, AxisID axisID, ProcessName processName,
+    final ProcessSeries processSeries) {
     this.manager = manager;
     this.axisID = axisID;
     this.commandArray = commandArray;
@@ -543,7 +544,7 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
     if (processSeries != null) {
       processData.setDialogType(processSeries.getDialogType());
       processData.setLastProcess(processSeries, processName == null ? false
-          : processName.resumable);
+        : processName.resumable);
     }
     this.processSeries = processSeries;
     commandArrayList = null;
@@ -555,9 +556,9 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
   }
 
   BackgroundProcess(BaseManager manager, String[] commandArray,
-      BaseProcessManager processManager, AxisID axisID, boolean forceNextProcess,
-      ProcessResultDisplay processResultDisplay, final ProcessSeries processSeries,
-      ProcessName processName) {
+    BaseProcessManager processManager, AxisID axisID, boolean forceNextProcess,
+    ProcessResultDisplay processResultDisplay, final ProcessSeries processSeries,
+    ProcessName processName) {
     this.manager = manager;
     this.axisID = axisID;
     this.commandArray = commandArray;
@@ -570,7 +571,7 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
     if (processSeries != null) {
       processData.setDialogType(processSeries.getDialogType());
       processData.setLastProcess(processSeries, processName == null ? false
-          : processName.resumable);
+        : processName.resumable);
     }
     this.processSeries = processSeries;
     commandArrayList = null;
@@ -588,7 +589,7 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
     manager.closeStaleFile(command.getOutputImageFileType2(), axisID);
   }
 
-  public final void setComputerMap(Map<String,String> computerMap) {
+  public final void setComputerMap(Map<String, String> computerMap) {
     if (processData != null) {
       processData.setComputerMap(computerMap);
     }
@@ -617,7 +618,7 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
   }
 
   public final void setProcessResultDisplay(
-      final ProcessResultDisplay processResultDisplay) {
+    final ProcessResultDisplay processResultDisplay) {
     this.processResultDisplay = processResultDisplay;
   }
 
@@ -771,16 +772,17 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
 
   boolean newProgram() {
     if (commandArray != null) {
-      program = new SystemProgram(manager, manager.getPropertyUserDir(), commandArray,
-          axisID);
+      program =
+        new SystemProgram(manager, manager.getPropertyUserDir(), commandArray, axisID);
     }
     else if (command != null) {
-      program = new SystemProgram(manager, manager.getPropertyUserDir(),
+      program =
+        new SystemProgram(manager, manager.getPropertyUserDir(),
           command.getCommandArray(), axisID);
     }
     else if (commandArrayList != null) {
-      program = new SystemProgram(manager, manager.getPropertyUserDir(),
-          commandArrayList, axisID);
+      program =
+        new SystemProgram(manager, manager.getPropertyUserDir(), commandArrayList, axisID);
     }
     else {
       processDone(1);
@@ -830,16 +832,17 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
     if (exitValue == 0) {
       // treate any error message as a failure
       // popup error messages from the process
-      if (processMessages.isError()) {
+      if (!processMessages.isEmpty(ProcessMessages.ListType.ERROR)) {
         errorFound = true;
         UIHarness.INSTANCE.openErrorMessageDialog(manager, processMessages,
-            "Process Error", axisID);
+          "Process Error", axisID);
       }
       // popup error messages from the monitor
-      if (monitorMessages != null && monitorMessages.isError()) {
+      if (monitorMessages != null
+        && !monitorMessages.isEmpty(ProcessMessages.ListType.ERROR)) {
         errorFound = true;
         UIHarness.INSTANCE.openErrorMessageDialog(manager, monitorMessages,
-            "Process Monitor Error", axisID);
+          "Process Monitor Error", axisID);
         if (endState == ProcessEndState.FAILED) {
           errorFound = true;
         }
@@ -847,15 +850,18 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
       if (popupChunkWarnings && !errorFound && monitorMessages != null) {
         // TODO start using CHUNK WARNING: tag after processchunks starts
         // putting one out.
-        String lastWarningMessage = monitorMessages.getLastWarning();
+        String lastWarningMessage =
+          monitorMessages.getLast(ProcessMessages.ListType.WARNING);
         if (lastWarningMessage != null) {
           ProcessMessages warningMessage = ProcessMessages.getInstance(manager);
-          warningMessage.addWarning();
-          warningMessage.addWarning("<html><U>Warnings Occurred</U>");
-          warningMessage.addWarning("<html><U>Last warning:</U>");
-          warningMessage.addWarning(lastWarningMessage);
+          warningMessage.add(ProcessMessages.ListType.WARNING);
+          warningMessage.add(ProcessMessages.ListType.WARNING,
+            "<html><U>Warnings Occurred</U>");
+          warningMessage.add(ProcessMessages.ListType.WARNING,
+            "<html><U>Last warning:</U>");
+          warningMessage.add(ProcessMessages.ListType.WARNING, lastWarningMessage);
           UIHarness.INSTANCE.openWarningMessageDialog(manager, warningMessage,
-              getProcessName() + " Warning", axisID);
+            getProcessName() + " Warning", axisID);
         }
       }
     }
@@ -863,25 +869,30 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
       errorFound = true;
       ProcessMessages errorMessage = ProcessMessages.getInstance(manager);
       // add the stderr
-      errorMessage.addError("<html>Command failed: " + getCommandLine());
+      errorMessage.add(ProcessMessages.ListType.ERROR, "<html>Command failed: "
+        + getCommandLine());
       if (stdError != null && stdError.length > 0) {
-        errorMessage.addError();
-        errorMessage.addError("<html><U>Standard error output:</U>");
-        errorMessage.addError(stdError);
+        errorMessage.add(ProcessMessages.ListType.ERROR);
+        errorMessage.add(ProcessMessages.ListType.ERROR,
+          "<html><U>Standard error output:</U>");
+        errorMessage.add(ProcessMessages.ListType.ERROR, stdError);
       }
       // add the last chunk error
       if (monitorMessages != null) {
-        String chunkErrorMessage = monitorMessages.getLastChunkError();
+        String chunkErrorMessage =
+          monitorMessages.getLast(ProcessMessages.ListType.CHUNK_ERROR);
         if (chunkErrorMessage != null) {
-          errorMessage.addError();
-          errorMessage.addError("<html><U>Last chunk error:</U>");
-          errorMessage.addError(chunkErrorMessage);
+          errorMessage.add(ProcessMessages.ListType.ERROR);
+          errorMessage.add(ProcessMessages.ListType.ERROR,
+            "<html><U>Last chunk error:</U>");
+          errorMessage.add(ProcessMessages.ListType.ERROR, chunkErrorMessage);
         }
         // add any monitor error messages
-        if (monitorMessages.isError()) {
-          errorMessage.addError();
-          errorMessage.addError("<html><U>Monitor error messages:</U>");
-          errorMessage.addError(monitorMessages);
+        if (!monitorMessages.isEmpty(ProcessMessages.ListType.ERROR)) {
+          errorMessage.add(ProcessMessages.ListType.ERROR);
+          errorMessage.add(ProcessMessages.ListType.ERROR,
+            "<html><U>Monitor error messages:</U>");
+          errorMessage.add(ProcessMessages.ListType.ERROR, monitorMessages);
         }
       }
       errorMessage.addProcessOutput(stdOutput);
@@ -889,7 +900,7 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
       setProcessEndState(ProcessEndState.FAILED);
       // popup error messages
       UIHarness.INSTANCE.openErrorMessageDialog(manager, errorMessage, getProcessName()
-          + " terminated", axisID);
+        + " terminated", axisID);
     }
     processDone(exitValue, errorFound);
   }
