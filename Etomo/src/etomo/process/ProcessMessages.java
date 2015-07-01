@@ -345,18 +345,18 @@ public class ProcessMessages {
     }
   }
 
-  synchronized void add(final ListType type, final String input) {
+  synchronized void add(final ListType type, final String inpt) {
     if (type == null) {
       return;
     }
     if (!logMessages
       || manager == null
       || (logMessages && type == ListType.ERROR && errorOverrideLogTag != null
-        && input != null && input.indexOf(errorOverrideLogTag) != -1)) {
-      getList(type, true).add(input);
+        && inpt != null && inpt.indexOf(errorOverrideLogTag) != -1)) {
+      getList(type, true).add(inpt);
     }
     else {
-      manager.logMessage(input);
+      manager.logMessage(inpt);
     }
   }
 
