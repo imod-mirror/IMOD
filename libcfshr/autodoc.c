@@ -53,6 +53,7 @@ typedef struct adoc_autodoc {
   int numSections;
   int maxSections;
   int inUse;
+  int backedUp;
 } Autodoc;
 
 /* The static variables that can hold multiple autodocs */
@@ -434,7 +435,9 @@ int AdocWrite(const char *filename)
 
   if (!curAdoc)
     return -1;
-  backerr = imodBackupFile(filename);
+  if (!curAdoc->backedUp)
+    backerr = imodBackupFile(filename);
+  curAdoc->backedUp = 1;
   afile = fopen(filename, "w");
   if (!afile)
     return -1;
@@ -1483,6 +1486,7 @@ static int addAutodoc()
   adoc->numSections = 0;
   adoc->maxSections = 0;
   adoc->inUse = 1;
+  adoc->backedUp = 0;
 
   /* Add a collection and section for global data */
   if (addCollection(adoc, GLOBAL_NAME))

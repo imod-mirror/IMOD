@@ -19,6 +19,7 @@
                 <section title="Program Listing" ref="./program_listing.html#TOP"></section>
                 <section title="PEET Guide" ref="./PEETmanual.html#TOP"></section>
                 <section title="Batch/Template Directives" ref="./directives.html#TOP"></section>
+                <section title="Distortion Correction with IMOD" ref="./distortionCal.html#TOP"></section>
                 <section title="Binary Model Format" ref="./binspec.html#TOP"></section>
                 <section title="Ascii Model Format" ref="./asciispec.html#TOP"></section>
                 <section title="MRC Format" ref="./mrc_format.txt"></section>
@@ -109,6 +110,7 @@ INSERT LIBRARY PAGES
             <file>mrc_format.txt</file>
             <file>PEETmanual.html</file>
             <file>directives.html</file>
+            <file>distortionCal.html</file>
             <file>program_listing.html</file>
             <file>serialalign.html</file>
             <file>tomoExtra.html</file>

@@ -121,6 +121,11 @@ the next three entries are required:
 .P
    Section thickness in nanometers
 .P
+These are obsolete specifications and, if possible, you should add a pixel
+size to the model header in the 3dmod Edit-Model-Header dialog.  If
+not, enter 1000, 1, and 1 to get isotropic pixels with a nominal size
+of 1 nm.
+.P
 Next enter a list of Z values (numbered from zero) specifying gaps in the
 data across which meshed objects should be connected to form one surface
 if they overlap in X and Y.  This entry is used when you have a gap in
