@@ -1105,12 +1105,12 @@ public class ProcessManager extends BaseProcessManager {
     int exitValue = copyTomoComs.run();
     // process messages
     ProcessMessages messages = copyTomoComs.getProcessMessages();
-    if (messages.isInfo()) {
+    if (!messages.isEmpty(ProcessMessages.ListType.INFO)) {
       // smallest signed 16-bit integer (amount that needs to be added to make everything
       // positive).
       String infoValue = "32768";
-      for (int i = 0; i < messages.infoListSize(); i++) {
-        if (messages.getInfo(i).indexOf(infoValue) != -1) {
+      for (int i = 0; i < messages.size(ProcessMessages.ListType.INFO); i++) {
+        if (messages.get(ProcessMessages.ListType.INFO, i).indexOf(infoValue) != -1) {
           appManager.getMetaData().setGenLog(AxisID.FIRST, infoValue);
           if (axisType != null && axisType == AxisType.DUAL_AXIS) {
             appManager.getMetaData().setGenLog(AxisID.SECOND, infoValue);
@@ -1118,17 +1118,18 @@ public class ProcessManager extends BaseProcessManager {
         }
       }
     }
-    if (messages.isError()) {
+    if (!messages.isEmpty(ProcessMessages.ListType.ERROR)) {
       StringBuffer errorMessage = new StringBuffer("Error running Copytomocoms");
-      for (int i = 0; i < messages.errorListSize(); i++) {
-        errorMessage.append("\n" + messages.getError(i));
+      for (int i = 0; i < messages.size(ProcessMessages.ListType.ERROR); i++) {
+        errorMessage.append("\n" + messages.get(ProcessMessages.ListType.ERROR,i));
       }
       UIHarness.INSTANCE.openMessageDialog(appManager, errorMessage.toString(),
         "Copytomocoms Error", axisID);
     }
-    for (int i = 0; i < messages.warningListSize(); i++) {
-      UIHarness.INSTANCE.openMessageDialog(appManager, messages.getWarning(i),
-        "Copytomocoms Warning", axisID);
+    for (int i = 0; i < messages.size(ProcessMessages.ListType.WARNING); i++) {
+      UIHarness.INSTANCE
+        .openMessageDialog(appManager, messages.get(ProcessMessages.ListType.WARNING, i),
+          "Copytomocoms Warning", axisID);
     }
     if (exitValue != 0) {
       UIHarness.INSTANCE.openMessageDialog(appManager, copyTomoComs.getStdErrorString(),
@@ -1145,21 +1146,22 @@ public class ProcessManager extends BaseProcessManager {
     int exitValue = param.run();
     // process messages
     ProcessMessages messages = param.getProcessMessages();
-    boolean err = messages.isError();
+    boolean err = !messages.isEmpty(ProcessMessages.ListType.ERROR);
     if (err) {
       StringBuffer errorMessage =
         new StringBuffer(
           "The template validation has failed because of invalid directive(s)."
             + "\nBatchruntomo error message:");
-      for (int i = 0; i < messages.errorListSize(); i++) {
-        errorMessage.append("\n" + messages.getError(i));
+      for (int i = 0; i < messages.size(ProcessMessages.ListType.ERROR); i++) {
+        errorMessage.append("\n" + messages.get(ProcessMessages.ListType.ERROR, i));
       }
       UIHarness.INSTANCE.openMessageDialog(appManager, errorMessage.toString(),
         "Template Validation Error", axisID);
     }
-    for (int i = 0; i < messages.warningListSize(); i++) {
-      UIHarness.INSTANCE.openMessageDialog(appManager, messages.getWarning(i),
-        "Template Validation Warning", axisID);
+    for (int i = 0; i < messages.size(ProcessMessages.ListType.WARNING); i++) {
+      UIHarness.INSTANCE.openMessageDialog(appManager,
+        messages.get(ProcessMessages.ListType.WARNING, i), "Template Validation Warning",
+        axisID);
     }
     if (exitValue != 0) {
       UIHarness.INSTANCE.openMessageDialog(appManager, param.getStdErrorString(),
@@ -1176,18 +1178,18 @@ public class ProcessManager extends BaseProcessManager {
     int exitValue = param.run();
     // process messages
     ProcessMessages messages = param.getProcessMessages();
-    boolean err = messages.isError();
+    boolean err = !messages.isEmpty(ProcessMessages.ListType.ERROR);
     if (err) {
       StringBuffer errorMessage = new StringBuffer("Error running Makecomfile");
-      for (int i = 0; i < messages.errorListSize(); i++) {
-        errorMessage.append("\n" + messages.getError(i));
+      for (int i = 0; i < messages.size(ProcessMessages.ListType.ERROR); i++) {
+        errorMessage.append("\n" + messages.get(ProcessMessages.ListType.ERROR, i));
       }
       UIHarness.INSTANCE.openMessageDialog(appManager, errorMessage.toString(),
         "Makecomfile Error", axisID);
     }
-    for (int i = 0; i < messages.warningListSize(); i++) {
-      UIHarness.INSTANCE.openMessageDialog(appManager, messages.getWarning(i),
-        "Makecomfile Warning", axisID);
+    for (int i = 0; i < messages.size(ProcessMessages.ListType.WARNING); i++) {
+      UIHarness.INSTANCE.openMessageDialog(appManager,
+        messages.get(ProcessMessages.ListType.WARNING, i), "Makecomfile Warning", axisID);
     }
     if (exitValue != 0) {
       UIHarness.INSTANCE.openMessageDialog(appManager, param.getStdErrorString(),
@@ -1941,13 +1943,15 @@ public class ProcessManager extends BaseProcessManager {
     appManager.saveStorables(AxisID.ONLY);
     int exitValue = setupCombine.run();
     ProcessMessages messages = setupCombine.getProcessMessages();
-    for (int i = 0; i < messages.errorListSize(); i++) {
-      UIHarness.INSTANCE.openMessageDialog(appManager, messages.getError(i),
-        "Setup Combine Error", AxisID.ONLY);
+    for (int i = 0; i < messages.size(ProcessMessages.ListType.ERROR); i++) {
+      UIHarness.INSTANCE.openMessageDialog(appManager,
+        messages.get(ProcessMessages.ListType.ERROR, i), "Setup Combine Error",
+        AxisID.ONLY);
     }
-    for (int i = 0; i < messages.warningListSize(); i++) {
-      UIHarness.INSTANCE.openMessageDialog(appManager, messages.getWarning(i),
-        "Setup Combine Warning", AxisID.ONLY);
+    for (int i = 0; i < messages.size(ProcessMessages.ListType.WARNING); i++) {
+      UIHarness.INSTANCE.openMessageDialog(appManager,
+        messages.get(ProcessMessages.ListType.WARNING, i), "Setup Combine Warning",
+        AxisID.ONLY);
     }
     TomogramState state = appManager.getState();
     if (exitValue != 0) {
@@ -1981,13 +1985,15 @@ public class ProcessManager extends BaseProcessManager {
     }
     int exitValue = setupCombine.run();
     ProcessMessages messages = setupCombine.getProcessMessages();
-    for (int i = 0; i < messages.errorListSize(); i++) {
-      UIHarness.INSTANCE.openMessageDialog(appManager, messages.getError(i),
-        "Setup Combine Error", AxisID.ONLY);
+    for (int i = 0; i < messages.size(ProcessMessages.ListType.ERROR); i++) {
+      UIHarness.INSTANCE.openMessageDialog(appManager,
+        messages.get(ProcessMessages.ListType.ERROR, i), "Setup Combine Error",
+        AxisID.ONLY);
     }
-    for (int i = 0; i < messages.warningListSize(); i++) {
-      UIHarness.INSTANCE.openMessageDialog(appManager, messages.getWarning(i),
-        "Setup Combine Warning", AxisID.ONLY);
+    for (int i = 0; i < messages.size(ProcessMessages.ListType.WARNING); i++) {
+      UIHarness.INSTANCE.openMessageDialog(appManager,
+        messages.get(ProcessMessages.ListType.WARNING, i), "Setup Combine Warning",
+        AxisID.ONLY);
     }
     if (exitValue != 0) {
       UIHarness.INSTANCE.openMessageDialog(appManager,
@@ -2500,8 +2506,8 @@ public class ProcessManager extends BaseProcessManager {
         appManager.getState().setUseRaptorResultWarning(true);
       }
       else if (process.getProcessName() == ProcessName.RESTRICTALIGN) {
-        appManager.logMessageWithKeyword(process.getProcessName(), process.getStdOutput(),
-          process.getAxisID());
+        appManager.logMessageWithKeyword(process.getProcessName(),
+          process.getStdOutput(), process.getAxisID());
       }
       else {
         String commandName = process.getCommandName();
