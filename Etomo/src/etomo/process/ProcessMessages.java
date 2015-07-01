@@ -339,7 +339,7 @@ public class ProcessMessages {
       Iterator<String> iterator = input.iterator();
       if (iterator != null) {
         while (iterator.hasNext()) {
-          manager.logMessage(iterator.next());
+          manager.logSimpleMessage(iterator.next());
         }
       }
     }
@@ -356,7 +356,7 @@ public class ProcessMessages {
       getList(type, true).add(input);
     }
     else {
-      manager.logMessage(input);
+      manager.logSimpleMessage(input);
     }
   }
 
@@ -366,9 +366,6 @@ public class ProcessMessages {
     }
     if (!logMessages || manager == null) {
       getList(type, true).add("");
-    }
-    else {
-      manager.logMessage("");
     }
   }
 
@@ -651,7 +648,7 @@ public class ProcessMessages {
           logFileIndex + LOG_FILE_TAG.length()).trim());
       if (file.exists() && file.isFile() && file.canRead()) {
         if (manager != null) {
-          manager.logMessage(file);
+          manager.logSimpleMessage(file);
         }
         else {
           System.err.println(LOG_FILE_TAG + " " + file.getAbsolutePath());
