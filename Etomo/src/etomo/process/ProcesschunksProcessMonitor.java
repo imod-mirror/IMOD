@@ -450,7 +450,7 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
       if (line.indexOf("imodkillgroup") == -1) {
         messages.addProcessOutput(line);
       }
-      if (messages.isError()) {
+      if (!messages.isEmpty(ProcessMessages.ListType.ERROR)) {
         // Set failure boolean but continue to add all the output lines to
         // messages.
         failed = true;
