@@ -406,9 +406,10 @@ abstract class AbstractFrame extends JFrame implements UIComponent, SwingCompone
   private final String[]
     wrapWarning(BaseManager manager, ProcessMessages processMessages) {
     ArrayList messageArray = null;
-    for (int i = 0; i < processMessages.warningListSize(); i++) {
+    for (int i = 0; i < processMessages.size(ProcessMessages.ListType.WARNING); i++) {
       messageArray =
-        PopupTool.wrapMessage(manager, processMessages.getWarning(i), messageArray);
+        PopupTool.wrapMessage(manager,
+          processMessages.get(ProcessMessages.ListType.WARNING, i), messageArray);
     }
     return toStringArray(messageArray);
   }
@@ -421,9 +422,10 @@ abstract class AbstractFrame extends JFrame implements UIComponent, SwingCompone
    */
   private final String[] wrapError(BaseManager manager, ProcessMessages processMessages) {
     ArrayList messageArray = null;
-    for (int i = 0; i < processMessages.errorListSize(); i++) {
+    for (int i = 0; i < processMessages.size(ProcessMessages.ListType.ERROR); i++) {
       messageArray =
-        PopupTool.wrapMessage(manager, processMessages.getError(i), messageArray);
+        PopupTool.wrapMessage(manager,
+          processMessages.get(ProcessMessages.ListType.ERROR, i), messageArray);
     }
     return toStringArray(messageArray);
   }
