@@ -1502,11 +1502,11 @@ public final class LogFile {
       return readerType;
     }
 
-    private void open() throws FileNotFoundException {
+    void open() throws FileNotFoundException {
       open = true;
     }
 
-    private void close() throws IOException {
+    void close() throws IOException {
       open = false;
     }
 
@@ -1534,7 +1534,7 @@ public final class LogFile {
       this.file = file;
     }
 
-    private void open() throws FileNotFoundException {
+    void open() throws FileNotFoundException {
       if (fileReader == null) {
         fileReader = new FileReader(file.getAbsolutePath());
       }
@@ -1544,7 +1544,7 @@ public final class LogFile {
       super.open();
     }
 
-    private void close() throws IOException {
+    void close() throws IOException {
       if (fileReader != null) {
         fileReader.close();
       }
@@ -1571,7 +1571,7 @@ public final class LogFile {
       this.file = file;
     }
 
-    private void open() throws FileNotFoundException {
+    void open() throws FileNotFoundException {
       if (fileReader == null) {
         fileReader = new FileReader(file.getAbsolutePath());
       }
@@ -1581,7 +1581,7 @@ public final class LogFile {
       super.open();
     }
 
-    private void close() throws IOException {
+    void close() throws IOException {
       if (fileReader != null) {
         fileReader.close();
       }
@@ -1603,7 +1603,7 @@ public final class LogFile {
      * @return
      * @throws IOException
      */
-   private boolean searchForLastLine(final String lastLine) throws IOException {
+    private boolean searchForLastLine(final String lastLine) throws IOException {
       // Increase the size to handle a final end of line (linux or windows).
       int lengthToScan = lastLine.length() * 2;
       if (lengthToScan > SIZE) {
@@ -1658,7 +1658,7 @@ public final class LogFile {
   static class Id {
     private int id = NO_ID;
 
-   private void set(int input) {
+    private void set(final int input) {
       this.id = input;
     }
 
@@ -1666,7 +1666,7 @@ public final class LogFile {
       return id;
     }
 
-    private boolean equals(int input) {
+    public boolean equals(final int input) {
       return id == input;
     }
 
