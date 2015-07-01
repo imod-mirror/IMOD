@@ -2,6 +2,8 @@ package etomo.logic;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 
 import etomo.storage.DirectiveDef;
 import etomo.storage.LogFile;
@@ -24,7 +26,9 @@ public final class AutodocAttributeRetriever {
   public static final AutodocAttributeRetriever INSTANCE =
     new AutodocAttributeRetriever();
 
-  public ReadOnlyAutodoc progDefaultsAutodoc = null;
+  private ReadOnlyAutodoc progDefaultsAutodoc = null;
+  // Avoid trying to open nonexistent autodocs multiple times.
+  private Set<String> failedAutodocNames = null;
 
   private AutodocAttributeRetriever() {}
 
@@ -109,20 +113,22 @@ public final class AutodocAttributeRetriever {
   }
 
   private String getAutodocName(final DirectiveDef directiveDef) {
+    String autodocName = null;
     if (directiveDef.isComparam()) {
-      return directiveDef.getCommand();
+      autodocName = directiveDef.getCommand();
     }
     else if (directiveDef.isRuntime()) {
       // Warning: not all of the directive modules have a corresponding .adoc file.
       String command = directiveDef.getModule();
-      if (command == null) {
-        return null;
+      if (command != null) {
+        autodocName = command.toLowerCase();
       }
-      return command.toLowerCase();
     }
-    else {
+    if (autodocName != null && failedAutodocNames != null
+      && failedAutodocNames.contains(autodocName)) {
       return null;
     }
+    return autodocName;
   }
 
   private String getFieldName(final DirectiveDef directiveDef) {
@@ -148,7 +154,28 @@ public final class AutodocAttributeRetriever {
       return null;
     }
     try {
-      return AutodocFactory.getInstance(null, autodocName);
+      ReadOnlyAutodoc autodoc = null;
+      autodoc = AutodocFactory.getInstance(null, autodocName);
+      if (autodoc == null || autodoc.toString() == null || autodoc.toString().equals("")) {
+        if (failedAutodocNames == null) {
+          failedAutodocNames = new HashSet<String>();
+        }
+        if (!failedAutodocNames.contains(autodocName)) {
+          failedAutodocNames.add(autodocName);
+        }
+        return null;
+      }
+      else {
+        return autodoc;
+      }
+    }
+    catch (FileNotFoundException e) {
+      if (failedAutodocNames == null) {
+        failedAutodocNames = new HashSet<String>();
+      }
+      if (!failedAutodocNames.contains(autodocName)) {
+        failedAutodocNames.add(autodocName);
+      }
     }
     catch (IOException e) {
       e.printStackTrace();
