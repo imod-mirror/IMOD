@@ -522,12 +522,6 @@ abstract class AbstractFrame extends JFrame implements UIComponent, SwingCompone
     final int optionType, int messageType, final Icon icon, final Object initialValue,
     final boolean overrideDefaults, final String[] options) throws HeadlessException {
     if (manager != null) {
-      System.out.println("A");
-      if (message != null) {
-        for (int i = 0; i < message.length; i++) {
-          System.out.println(message[i]);
-        }
-      }
       manager.logMessage(message, title, axisID);
     }
     else {
