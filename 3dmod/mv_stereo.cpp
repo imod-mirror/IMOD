@@ -310,7 +310,8 @@ void imodvStereoToggle(void)
 
     // If hardware is old mode and it is not OK, drop to RL
     Imodv->stereo = imodvStereoData.omode;
-    if ((Imodv->stereo == IMODV_STEREO_HW) && !hardwareOK())
+    if ((Imodv->stereo == IMODV_STEREO_HW) && (!hardwareOK() || 
+                                               !ImodPrefs->keySetsHWstereo()))
       Imodv->stereo = IMODV_STEREO_RL;
   }
 
@@ -370,6 +371,10 @@ ImodvStereo::ImodvStereo(QWidget *parent, const char *name)
   mComboBox->addItems(items);
   mComboBox->setFocusPolicy(Qt::NoFocus);
   connect(mComboBox, SIGNAL(activated(int)), this, SLOT(newOption(int)));
+
+  mHWonMacLabel = diaLabel("See 3dmod-Preferences\nBehavior tab to allow hot key\nS to "
+                           "turn on hardware stereo", this, mLayout);
+  manageHWlabel();
 
   // Make the slider with 1 decimal point
   mSlider = new MultiSlider(this, 2, sliderLabels, -100, 100, 1);
@@ -483,6 +488,16 @@ void ImodvStereo::update()
     mSlider->setEnabled(0, Imodv->texMap == 0 || !Imodv->imageStereo);
   }
 }
+
+void ImodvStereo::manageHWlabel()
+{
+  bool show = false;
+#ifdef Q_OS_MACX
+  show = hardwareOK() && !ImodPrefs->keySetsHWstereo();
+#endif
+  diaShowWidget(mHWonMacLabel, show);
+}
+
 
 void ImodvStereo::changeEvent(QEvent *e)
 {

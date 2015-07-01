@@ -199,11 +199,7 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
   prefs->namedColorDflt[9] = qRgb(  0, 255,   0);
   prefs->namedColorDflt[10] = qRgb(  0, 170, 255);
   prefs->namedColorDflt[11] = qRgb(255, 170,   0);
-#ifdef Q_OS_IRIX
-  prefs->snapFormatDflt = "RGB";
-#else
   prefs->snapFormatDflt = "JPEG";
-#endif
   prefs->snapQualityDflt = 80;
   prefs->snapDPIDflt = 0;
   prefs->scaleSnapDPI = false;
@@ -213,7 +209,11 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
   prefs->isoHighThreshDflt = false;
   prefs->isoBoxLimitDflt = 320;
   prefs->isoBoxInitialDflt = 96;
-
+#ifdef Q_OS_MACX
+  prefs->keySetsHWstereoDflt = false;
+#else
+  prefs->keySetsHWstereoDflt = true;
+#endif
   READNUM(hotSliderKey);
   READNUM(hotSliderFlag);
   READNUM(mouseMapping);
@@ -255,6 +255,7 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
   READBOOL(isoHighThresh);
   READNUM(isoBoxInitial);
   READNUM(isoBoxLimit);
+  READBOOL(keySetsHWstereo);
 
   // Make sure an output format is on the list; if not drop to PNG then RGB
   strList = (snapFormatList()).filter(prefs->snapFormat);
@@ -599,6 +600,7 @@ void ImodPreferences::saveSettings(int modvAlone)
   WRITE_IF_CHANGED(isoHighThresh);
   WRITE_IF_CHANGED(isoBoxLimit);
   WRITE_IF_CHANGED(isoBoxInitial);
+  WRITE_IF_CHANGED(keySetsHWstereo);
 
   if (mNewObjPropsChgd) {
     str.sprintf("%u,%d,%d,%d,%d,%d,%d,%d,%d,%d", mNewObjProps.flags,
@@ -765,6 +767,7 @@ void ImodPreferences::donePressed()
   curp->isoHighThreshChgd |= !equiv(newp->isoHighThresh, oldp->isoHighThresh);
   curp->isoBoxLimitChgd |= newp->isoBoxLimit != oldp->isoBoxLimit;
   curp->isoBoxInitialChgd |= newp->isoBoxInitial != oldp->isoBoxInitial;
+  curp->keySetsHWstereoChgd |= !equiv(newp->keySetsHWstereo, oldp->keySetsHWstereo);
 
   for (i = 0; i < MAXZOOMS; i++)
       curp->zoomsChgd |= newp->zooms[i] != oldp->zooms[i];
@@ -873,6 +876,7 @@ void ImodPreferences::defaultPressed()
     prefs->startInHQ = prefs->startInHQDflt;
     prefs->arrowsScrollZap = prefs->arrowsScrollZapDflt;
     prefs->loadUshorts = prefs->loadUshortsDflt;
+    prefs->keySetsHWstereo = prefs->keySetsHWstereoDflt;
     prefs->attachToOnObj = prefs->attachToOnObjDflt;
     prefs->slicerNewSurf = prefs->slicerNewSurfDflt;
     prefs->bwStep = prefs->bwStepDflt;

@@ -10,7 +10,7 @@ O = $(OBJEXT)
 E = $(BINEXT)
 
 
-PROGS     = raw2mrc$(E) tif2mrc$(E) mrcbyte$(E) mrcx$(E) \
+PROGS     = raw2mrc$(E) tif2mrc$(E) mrcbyte$(E) mrcx$(E) preNID$(E)\
  mrctaper$(E) dm3props$(E) nad_eed_3d$(E) ctfphaseflip$(E) preNAD$(E)
 
 IILIBS    =  $(LIIMOD) $(LCFSHR) $(TIFFLIBS)

@@ -5119,6 +5119,7 @@ subroutine reprojOneAngle(array, reprojLines, inLoadStart, inLoadEnd, line, &
     if (xNum - numX >= 0.1) numX = numX + 1
     delZ = delzIn / (sinBet * abs(cosBet))
     delY = delZ * (sinAlph - yzFacView) / cosAlph
+    if (abs(delY) < 1.e-10) delY = 0.
     ! print *,'delx, dely, delz', delx, dely, delz
     !
     ! Loop in X across slices, adding in vertical lines of data to the output line
@@ -5164,7 +5165,7 @@ subroutine reprojOneAngle(array, reprojLines, inLoadStart, inLoadEnd, line, &
       endif
       !
       ! Revise starting limit for Y
-      if (ifAlpha .ne. 0) then
+      if (ifAlpha .ne. 0 .and. delY .ne. 0) then
         yslc = ySlice + (ixStart - 1.) * delY
         if (yslc < inLoadStart - yEndTol) then
           ixStart = ceiling((inLoadStart - yEndTol - ySlice) / delY + 1.)
@@ -5191,7 +5192,7 @@ subroutine reprojOneAngle(array, reprojLines, inLoadStart, inLoadEnd, line, &
         ixEnd = (1. - zz) / delZ + ixStart
         if (zz + (ixEnd - ixStart) * delZ < 1. + eps) ixEnd = ixEnd - 1
       endif
-      if (ifAlpha .ne. 0) then
+      if (ifAlpha .ne. 0 .and. delY .ne. 0) then
         yslc = ySlice + (ixEnd - ixStart) * delY
         if (yslc < inLoadStart - yEndTol) then
           ixEnd = (inLoadStart - yEndTol - ySlice) / delY + ixStart
@@ -5203,7 +5204,7 @@ subroutine reprojOneAngle(array, reprojLines, inLoadStart, inLoadEnd, line, &
       ! Now get X indexes within which Y can safely be varied
       ixyOKstart = ixStart
       ixyOKend = ixEnd
-      if (ifAlpha .ne. 0) then
+      if (ifAlpha .ne. 0 .and. delY .ne. 0.) then
         if (ySlice < inLoadStart) then
           ixyOKstart = ceiling((inLoadStart - ySlice) / delY + ixStart)
           if (ySlice + (ixyOKstart - ixStart) * delY < inLoadStart + eps) &

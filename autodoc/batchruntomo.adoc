@@ -252,3 +252,9 @@ type = I
 usage = Run etomo with the given debug level
 tooltip =
 manpage =
+
+[Field = PID]
+type = B
+usage = Print process ID
+tooltip =
+manpage = 

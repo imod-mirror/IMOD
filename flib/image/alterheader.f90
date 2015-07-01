@@ -175,7 +175,7 @@ program alterheader
 111 format(' Alter origin.  The origin is the offset FROM the', &
         ' first point in the image',/,' file TO the center of', &
         ' the coordinate system, expressed in true coordinates.', &
-        /,' Current x, y, z:',3g11.4,/,'New x, y, z: ',$)
+        /,' Current x, y, z:',3g14.5,/,'New x, y, z: ',$)
     read(5,*) origx, origy, origz
   endif
   call iiuAltOrigin(2, origx, origy, origz)
@@ -186,7 +186,7 @@ program alterheader
 2 if (.not. pipInput) then
     call iiuRetCell(2, cell)
     write(*,112) (cell(i), i = 1, 6)
-112 format(' Alter cell.  Current size and angles:',/,3g11.4,3f9.3, &
+112 format(' Alter cell.  Current size and angles:',/,3g14.5,3f9.3, &
         /,'New size and angles: ',$)
     read(5, *) (cell(i), i = 1, 6)
   endif
@@ -264,7 +264,7 @@ program alterheader
     call iiuRetDelta(2, delt)
     write(*,114) (delt(i), i = 1, 3)
 114 format(' Alter delta - changes cell sizes to achieve desired', &
-        ' pixel spacing',/,' Current delta x, y, z:',3G11.4, &
+        ' pixel spacing',/,' Current delta x, y, z:',3G14.5, &
         /,'New delta x, y, z: ',$)
     read(5, *) (delt(i), i = 1, 3)
   endif
@@ -583,7 +583,7 @@ program alterheader
   origy = -origy
   origz = -origz
   write(*,120) origx, origy, origz
-120 format('Inverting sign of origin: new origin = ',3g13.6)
+120 format('Inverting sign of origin: new origin = ',3g15.6)
   call iiuAltOrigin(2, origx, origy, origz)
   go to 30
   !

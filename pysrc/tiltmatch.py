@@ -269,7 +269,7 @@ def searchPairs(progname, zeroA, zeroB, nviewsA, nviewsB, imageA, imageB, nxa, n
                      refImage = imageB
                         
                   if midas:
-                     if not asecInd and not bsecInd:
+                     if not asecInd and not bsecInd and mirInd == mirStart:
 
                         # first time, run midas
                         if bilinear:

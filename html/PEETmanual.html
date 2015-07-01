@@ -500,7 +500,7 @@ instead to rely on a more extensive alignment search.</p>
 
 <H5>2.10.2. Align particle Y axes</H5>
 
-<P>Automatically generate initial motive list rotations to align each particles Y
+<P>Automatically generate initial motive list rotations to align each particle's Y
 axis with that of the reference. This is particularly useful when modeling filaments
 and Particle Y axis is set to <b>Particle model points</b> or 
 <b>End points of contour</b>.</p>
@@ -602,7 +602,7 @@ Above the cutoff, the response falls like the right half of a Gaussian
 with standard deviation given by the <b>Sigma</b> field.&nbsp;
 Both the reference and the particle are filtered separately, so the
 correlation is effectively filtered twice.&nbsp;  
-One way to see the effect of a given filter on a particlulr volume or particle 
+One way to see the effect of a given filter on a particular volume or particle 
 is to apply that filter using IMOD program 
 <a href="man/mtffilter.html#TOP">mtffilter</a>, e.g., with
 the command "mtffilter -3d -low cutoff, sigma input_file output_file".&nbsp;
@@ -648,7 +648,7 @@ Two particles are considered duplicates only if their separation
 exceeds neither of these tolerances. 
 The shift tolerance is applied separately to
 each of the tomogram X, Y, and Z coordinates. Duplication is determined
-independently near the end of each iteration, so a particle ingored as
+independently near the end of each iteration, so a particle ignored as
 a duplicate in one iteration is not necessarily 
 excluded from later iterations.&nbsp;
 A value of 0 for either or both of the angular and shift tolerances 
@@ -692,7 +692,7 @@ will be 5 final averages, containing 50, 100, 150, 200 and 205 particles.&nbsp;
 Values listed under 
 <b>Additional numbers</b> must be comma separated, monotonically increasing,
 and greater than the <b>End</b> value of the arithmetic sequence.&nbsp;
-The largest average requested should be nor greater than the total number of particles
+The largest average requested should be no greater than the total number of particles
 available.</p>
 
 <H4><A NAME="Use Equal Numbers of Particles from All Tomograms"></A>3.5. Use Equal Numbers of Particles from All Tomograms</H4>
@@ -758,11 +758,18 @@ during alignment, however, and will effectively set the number of
 <p><b>Particles per CPU</b> controls the splitting of alignment searches into "chunks"
 for parallel execution on multiple CPUS.&nbsp; No more than the specified number of particles 
 will be sent simultaneously to a single CPU for alignment.&nbsp;
-The smaller this value, the more command and log files will be created, and, within limits,
-the greater the overall throughput.&nbsp; Too high a value, can lead to long 
-delays should you wish to pause and then resume the processing.&nbsp; 
-The default of 5 is a good choice for most purposes; if eTomo reports more than a few thousand 
-chunks to be processed, you may wish to consider raising this setting.</p>
+The smaller this value, the more command and log files will be created,
+and, within limits, the greater the overall throughput.&nbsp; 
+Too high a value, can lead to long delays should you wish to pause and
+then resume processing.&nbsp; The default of 20 is a good choice for 
+most purposes (runs with at least several hundred subvolumes); if eTomo 
+reports more than a few thousand chunks to be processed, you may wish 
+to raise this setting. Conversely, if you have many cpus and few
+particles, you can lower Particles per cpu for faster execution.&nbsp; 
+To make effective use of available processors, the total number of chunks 
+reported by eTomo should be no less than the number of cpus times the 
+number of alignment iterations to be performed.
+</p>
 
 <p><b>Debug level</b> (0, 1, 2, or 3) controls the amount of information included in the log 
 files, with higher numbers leading to more verbose logs.</p>

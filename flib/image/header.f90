@@ -125,11 +125,11 @@ program header
       if (doMode) write(*, '(i4)') mode
       if (doPixel) then
         call iiuRetDelta(imUnit, delta)
-        write(*, '(3g11.4)') (delta(j), j = 1, 3)
+        write(*, '(3g15.5)') (delta(j), j = 1, 3)
       endif
       if (doOrigin) then
         call iiuRetOrigin(imUnit, delta(1), delta(2), delta(3))
-        write(*, '(3g11.4)') (delta(j), j = 1, 3)
+        write(*, '(3g15.5)') (delta(j), j = 1, 3)
       endif
       if (doMin) write(*, '(g13.5)') dmin
       if (doMax) write(*, '(g13.5)') dmax
