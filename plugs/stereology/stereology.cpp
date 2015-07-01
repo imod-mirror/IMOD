@@ -12021,7 +12021,7 @@ void Stereology::buttonPressed(int which)
 
 void Stereology::helpPluginHelp()
 {
-  imodShowHelpPage("../plughelp/stereology.html#TOP");
+  imodShowHelpPage("plughelp/stereology.html#TOP");
 }
 
 //------------------------
@@ -12029,7 +12029,7 @@ void Stereology::helpPluginHelp()
 
 void Stereology::helpNamingHelp()
 {
-  imodShowHelpPage("../plughelp/stereology_help.html#TOP");
+  imodShowHelpPage("plughelp/stereology_help.html#TOP");
 }
 
 //------------------------

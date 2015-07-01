@@ -18,7 +18,7 @@ excludes = ['cpuadoc', 'pip', 'imodenv', 'uitest']
 # Directories to search for the file list, in alphabetic order, and corresponding
 # extensions to glob for
 listDirs = ['3dmodHelp', '3dmodimages', 'ctfHelp', 'etomoImages', 'joinImages', 'libhelp',
-            'man', 'midasHelp', 'miscImages', 'plughelp']
+            'man', 'midasHelp', 'miscImages', '3dmodHelp/plughelp']
 dirExts = ['[hp]*', '*', '*', '*', '*', '*', 'html', 'html', '*', '*']
 
 # Files and directories to change Ctrl to Apple in on Mac
@@ -64,14 +64,14 @@ stubLines = readTextFile(stubFile)
 
 # Copy through 3dmod up to plugins and get the plugin pages
 copyToINSERT(instext1)
-plugfiles = glob.glob(os.path.join('plughelp', '*.html'))
+plugfiles = glob.glob(os.path.join('3dmodHelp/plughelp', '*.html'))
 for plug in plugfiles:
    basename = os.path.basename(plug)
    title = findTitle(plug)
    if not title:
       title = plug
    outlines.append('                        <section title="' + title + \
-                      '" ref="./plughelp/' + basename + '#TOP"></section>')
+                      '" ref="./3dmodHelp/plughelp/' + basename + '#TOP"></section>')
 
 # Copy to man pages and insert those
 copyToINSERT(instext2)

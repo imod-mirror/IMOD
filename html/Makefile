@@ -6,8 +6,8 @@
 #
 include ../configure
 
-NOEXT = 3dmodimages etomoImages 3dmodHelp libhelp joinImages ctfHelp midasHelp plughelp \
-	man
+NOEXT = 3dmodimages etomoImages 3dmodHelp libhelp joinImages ctfHelp midasHelp \
+	3dmodHelp/plughelp man
 
 install : cleanjunk
 	cd libdoc ; $(MAKE)
@@ -21,7 +21,7 @@ cleanjunk :
 	$(FIND) . -type f -name "IMOD.qhp"   -exec rm "{}" \;
 
 clean : cleanjunk
-	$(FIND) plughelp -type f -name "*"   -exec rm "{}" \;
+	$(FIND) 3dmodHelp/plughelp -type f -name "*"   -exec rm "{}" \;
 	$(FIND) libhelp -type f -name "*"   -exec rm "{}" \;
 	$(FIND) man -type f -name "*"   -exec rm "{}" \;
 	$(FIND) . -type f -name "directives.html"   -exec rm "{}" \;
@@ -29,3 +29,5 @@ clean : cleanjunk
 docs :
 	mkdir -p $(HTML_ARCDIR)
 	$(CP) -r *.[^q]* $(NOEXT) $(HTML_ARCDIR)
+	echo '<A HREF="plughelp"><B>Plugin Help Files</B><A><BR>' >> $(HTML_ARCDIR)/3dmodHelp/index.html
+
