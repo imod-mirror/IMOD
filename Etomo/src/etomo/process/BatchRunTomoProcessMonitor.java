@@ -6,6 +6,7 @@ import java.util.Vector;
 
 import etomo.BaseManager;
 import etomo.EtomoDirector;
+import etomo.process.ProcessMessages;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
 import etomo.type.BatchRunTomoStatus;
@@ -38,6 +39,8 @@ public final class BatchRunTomoProcessMonitor implements OutfileProcessMonitor,
   static final String SUCCESS_TAG = "SUCCESSFULLY COMPLETED";
   private static final String ENDING_STEP_SET_TAG = "EndingStepSet";
   private static final String NUMBER_DATASETS_TAG = "NumberDatasets";
+  private static final String PID_TAG = "PID:";
+  private static final String BATCH_RUN_TOMO_ERROR_TAG = "ERROR: batchruntomo -";
 
   private final EtomoNumber nDatasets = new EtomoNumber();
   private final EtomoNumber endingStepSet = new EtomoNumber(EtomoNumber.Type.BOOLEAN);
@@ -86,7 +89,8 @@ public final class BatchRunTomoProcessMonitor implements OutfileProcessMonitor,
     this.endingStepSet.set(endingStepSet);
     this.nDatasets.set(nDatasets);
     messages =
-      ProcessMessages.getInstanceForParallelProcessing(manager, multiLineMessages);
+      ProcessMessages.getLoggedInstance(manager, multiLineMessages, true,
+        BATCH_RUN_TOMO_ERROR_TAG);
   }
 
   private BatchRunTomoProcessMonitor(final BaseManager manager, final AxisID axisID,
@@ -97,7 +101,8 @@ public final class BatchRunTomoProcessMonitor implements OutfileProcessMonitor,
     this.endingStepSet.set(endingStepSet);
     this.nDatasets.set(nDatasets);
     messages =
-      ProcessMessages.getInstanceForParallelProcessing(manager, multiLineMessages);
+      ProcessMessages.getLoggedInstance(manager, multiLineMessages, true,
+        BATCH_RUN_TOMO_ERROR_TAG);
   }
 
   public static BatchRunTomoProcessMonitor getReconnectInstance(
@@ -155,6 +160,8 @@ public final class BatchRunTomoProcessMonitor implements OutfileProcessMonitor,
   }
 
   public void run() {
+    manager.logMessage("Running batchruntomo");
+    messages.startStringFeed();
     running = true;
     datasetsFinished = 0;
     try {
@@ -200,6 +207,7 @@ public final class BatchRunTomoProcessMonitor implements OutfileProcessMonitor,
         }
       }
       closeProcessOutput();
+      messages.stopStringFeed();
     }
     catch (InterruptedException e) {
       endMonitor(ProcessEndState.DONE);
@@ -402,22 +410,14 @@ public final class BatchRunTomoProcessMonitor implements OutfileProcessMonitor,
     while ((line = processOutput.readLine(processOutputReaderId)) != null) {
       line = line.trim();
       // get the first pid
-      if (pid == null && line.startsWith("PID:")) {
-        String[] array = line.split("\\s+");
-        if (array.length == 2) {
-          pid = array[1].trim();
-        }
+      if (pid == null && line.startsWith(PID_TAG)) {
+        pid = line.substring(PID_TAG.length()).trim();
       }
-      if (line.indexOf("imodkillgroup") == -1) {
-        messages.addProcessOutput(line);
-      }
-      if (messages.isError()) {
-        // log message
-        if (line.indexOf("ERROR: batchruntomo -") != -1) {
-          // Set failure boolean but continue to add all the output lines to
-          // messages.
-          failed = true;
-        }
+      messages.feedString(line);
+      //check for the real batchruntomo error message.  Everything else will be logged.
+      if (!messages.isEmpty(ProcessMessages.ListType.ERROR)
+        && line.indexOf(BATCH_RUN_TOMO_ERROR_TAG) != -1) {
+        failed = true;
       }
       // If it got an error message, then it seems like the best thing to do is
       // stop processing.
