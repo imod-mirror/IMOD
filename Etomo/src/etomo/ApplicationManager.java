@@ -517,10 +517,10 @@ public final class ApplicationManager extends BaseManager implements
           return false;
         }
         // Send a specific INFO: message to the project log
-        if (messages.isInfo()) {
+        if (!messages.isEmpty(ProcessMessages.ListType.INFO)) {
           ArrayList<String> infoMessages =
-            messages.getInfoList(new String[] { "Setting logarithm offset",
-              "Pixel spacing" });
+            messages.match(ProcessMessages.ListType.INFO, new String[] {
+              "Setting logarithm offset", "Pixel spacing" });
           if (infoMessages != null && infoMessages.size() != 0) {
             logMessage(infoMessages, "Copytomocoms", AxisID.ONLY);
           }
@@ -4135,7 +4135,7 @@ public final class ApplicationManager extends BaseManager implements
       return null;
     }
     RestrictalignParam param = new RestrictalignParam(this, axisID);
-    //From directive files
+    // From directive files
     param.setOrderOfRestrictions(metaData.getOrderOfRestrictions(axisID));
     param.setSkipBeamTiltWithOneRot(metaData.getSkipBeamTiltWithOneRot(axisID));
     if (dialog.setParameters(param, doValidation)) {
