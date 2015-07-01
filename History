@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/1/15: Fixed plugin help on Mac.
+
 6/28/15: Fixed Transferfid and Matchrotpairs starting Midas twice, without and
 with mirroring.
 
