@@ -19,11 +19,13 @@ excludes = ['cpuadoc', 'pip', 'imodenv', 'uitest']
 # extensions to glob for
 listDirs = ['3dmodHelp', '3dmodimages', 'ctfHelp', 'etomoImages', 'joinImages', 'libhelp',
             'man', 'midasHelp', 'miscImages', '3dmodHelp/plughelp']
-dirExts = ['[hp]*', '*', '*', '*', '*', '*', 'html', 'html', '*', '*']
+dirExts = ['[hp]*', '*', '*', '*', '*', '*', 'html', 'html', '*', 'html']
 
 # Files and directories to change Ctrl to Apple in on Mac
 appleFiles = ['3dmodguide.html']
 appleDirs = ['3dmodHelp', 'midasHelp']
+appleSubDirs = ['3dmodHelp/plughelp']
+appleSubBaseDirs = ['plughelp']
 
 stubInd = 0
 outlines = []
@@ -121,15 +123,17 @@ if sys.platform.find('darwin') >= 0:
       os.rename(name, name + '.save')
    for name in appleFiles:
       pysed(sedcom, name + '.save', name)
-   for dir in appleDirs:
+   for dir in appleDirs + appleSubDirs:
       savedir = dir + '.save'
+      if dir in appleSubDirs:
+         savedir = os.path.dirname(dir) + '.save/' + os.path.basename(dir)
       os.mkdir(dir)
       allFiles = glob.glob(savedir + '/*')
       for subfile in allFiles:
          basename = os.path.basename(subfile)
          if basename.endswith('.html'):
             pysed(sedcom, subfile, dir + '/' + basename)
-         else:
+         elif basename not in appleSubBaseDirs:
             shutil.copyfile(subfile, dir + '/' + basename)
 
 # Make the help file for everyone now
