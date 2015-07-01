@@ -768,6 +768,7 @@ public final class BatchRunTomoDialog implements ActionListener, ResultListener,
     rbGPUMachineList.setEditable(open);
     btnRun.setEditable(open);
     ftfInputDirectiveFile.setEditable(open);
+    cbDeliverToDirectory.setEditable(open);
     ftfDeliverToDirectory
       .setEditable(status == null || status == BatchRunTomoStatus.OPEN);
     templatePanel.setEditable(open);
