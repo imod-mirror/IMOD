@@ -363,7 +363,7 @@ void GrabSlicer::buttonPressed(int which)
   else {
     // For a plugin incorporated into IMOD, this is the path in the compiled qhc file
     // Always have an anchor #TOP at the top so Qt Assistant starts at the top
-    imodShowHelpPage("../plughelp/grabslicer.html#TOP");
+    imodShowHelpPage("plughelp/grabslicer.html#TOP");
 
     // Otherwise, use dia_vasmsg to pass a string from within the code (can contain html).
   }

@@ -5764,7 +5764,7 @@ void DrawingTools::checkForNamelessObjects( bool forceMessageBox )
   }
   else if( action == 1 )
   {
-    imodShowHelpPage("../plughelp/naming_help.html#TOP");
+    imodShowHelpPage("plughelp/naming_help.html#TOP");
   }
 }
 
@@ -6506,7 +6506,7 @@ void DrawingTools::changeSculptCircleRadius( float value, bool slowDown )
 
 void DrawingTools::helpPluginHelp()
 {
-  imodShowHelpPage("../plughelp/drawingtools.html#TOP");
+  imodShowHelpPage("plughelp/drawingtools.html#TOP");
 }
 
 
