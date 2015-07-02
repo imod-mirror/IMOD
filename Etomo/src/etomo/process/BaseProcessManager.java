@@ -787,6 +787,16 @@ public abstract class BaseProcessManager {
       processMonitor, axisID);
   }
 
+  final ComScriptProcess startOutfileComScript(final String commandString,
+    final OutfileProcessMonitor monitor, final AxisID axisID, final Command command,
+    final FileType fileType) throws SystemProcessException {
+    OutfileComScriptProcess process =
+      new OutfileComScriptProcess(manager, commandString, this, axisID, monitor, command,
+        fileType);
+    monitor.setProcess(process);
+    return startComScript(process, commandString, monitor, axisID);
+  }
+
   /**
    * Start a managed command script for the specified axis
    * @param command
@@ -1381,6 +1391,35 @@ public abstract class BaseProcessManager {
     }
     System.err.println();
   }
+  
+  public final void msgComScriptDone(final OutfileComScriptProcess process, final int exitValue,
+    final boolean nonBlocking) {
+    if (exitValue != 0 /*|| errorFound*/) {
+      errorProcess(process);
+    }
+    else {
+      logProcessOutput(process.getCommandAction(), process.getStdOutput(),
+        process.getStdError());
+      postProcess(process);
+    }
+    manager.saveStorables(process.getAxisID());
+    axisProcessData.clearThread(process);
+    // Inform the manager that this process is complete
+    ProcessEndState endState = process.getProcessEndState();
+    if (endState == null || endState == ProcessEndState.DONE) {
+      manager.processDone(process.getName(), exitValue, process.getProcessName(),
+        process.getAxisID(), false, process.getProcessEndState(),
+        exitValue != 0 /*|| errorFound*/, process.getProcessResultDisplay(),
+        process.getProcessSeries(), false);
+    }
+    else {
+      manager.processDone(process.getName(), exitValue, process.getProcessName(),
+        process.getAxisID(), false, process.getProcessEndState(),
+        null, exitValue != 0 /*|| errorFound*/,
+        process.getProcessResultDisplay(), process.getProcessSeries(), false);
+    }
+    resume(process.getProcessEndState());
+  }
 
   /**
    * A message specifying that a com script has finished execution
@@ -1400,17 +1439,20 @@ public abstract class BaseProcessManager {
       // Is the last string "Killed"
       if (stdError != null && stdError.length > 0
         && stdError[stdError.length - 1].trim().equals("Killed")) {
-        combinedMessages.addError("<html>Terminated: " + script.getComScriptName());
+        combinedMessages.add(ProcessMessages.ListType.ERROR, "<html>Terminated: "
+          + script.getComScriptName());
       }
       else {
         ProcessMessages messages = script.getProcessMessages();/* Error */
         int j = 0;
-        combinedMessages
-          .addError("<html>Com script failed: " + script.getComScriptName());
-        combinedMessages.addError("\n<html><U>Log file errors:</U>");
-        combinedMessages.addError(messages);
-        combinedMessages.addError("\n<html><U>Standard error output:</U>");
-        combinedMessages.addError(stdError);
+        combinedMessages.add(ProcessMessages.ListType.ERROR, "<html>Com script failed: "
+          + script.getComScriptName());
+        combinedMessages.add(ProcessMessages.ListType.ERROR,
+          "\n<html><U>Log file errors:</U>");
+        combinedMessages.add(ProcessMessages.ListType.ERROR, messages);
+        combinedMessages.add(ProcessMessages.ListType.ERROR,
+          "\n<html><U>Standard error output:</U>");
+        combinedMessages.add(ProcessMessages.ListType.ERROR, stdError);
       }
       if (script.getProcessEndState() != ProcessEndState.KILLED
         && script.getProcessEndState() != ProcessEndState.PAUSED) {
@@ -1426,8 +1468,9 @@ public abstract class BaseProcessManager {
         script.getStdError());
       postProcess(script);
       ProcessMessages messages = script.getProcessMessages();/* Warning */
-      if (messages.warningListSize() > 0) {
-        messages.addWarning("Com script: " + script.getComScriptName());
+      if (messages.size(ProcessMessages.ListType.WARNING) > 0) {
+        messages.add(ProcessMessages.ListType.WARNING,
+          "Com script: " + script.getComScriptName());
         uiHarness.openWarningMessageDialog(manager, messages, "Comscript Warnings",
           script.getAxisID());
       }
@@ -1448,6 +1491,7 @@ public abstract class BaseProcessManager {
       script.getProcessResultDisplay(), script.getProcessSeries(), nonBlocking);
   }
 
+  
   public final void msgReconnectDone(final ReconnectProcess script, final int exitValue,
     final boolean popupChunkWarnings) {
     String name = script.getProcessData().getProcessName().toString();
@@ -1458,16 +1502,19 @@ public abstract class BaseProcessManager {
       // Is the last string "Killed"
       if (stdError != null && stdError.length > 0
         && stdError[stdError.length - 1].trim().equals("Killed")) {
-        combinedMessages.addError("<html>Terminated: " + name);
+        combinedMessages.add(ProcessMessages.ListType.ERROR, "<html>Terminated: " + name);
       }
       else {
         ProcessMessages messages = script.getProcessMessages();/* Error */
         int j = 0;
-        combinedMessages.addError("<html>Com script failed: " + name);
-        combinedMessages.addError("\n<html><U>Log file errors:</U>");
-        combinedMessages.addError(messages);
-        combinedMessages.addError("\n<html><U>Standard error output:</U>");
-        combinedMessages.addError(stdError);
+        combinedMessages.add(ProcessMessages.ListType.ERROR, "<html>Com script failed: "
+          + name);
+        combinedMessages.add(ProcessMessages.ListType.ERROR,
+          "\n<html><U>Log file errors:</U>");
+        combinedMessages.add(ProcessMessages.ListType.ERROR, messages);
+        combinedMessages.add(ProcessMessages.ListType.ERROR,
+          "\n<html><U>Standard error output:</U>");
+        combinedMessages.add(ProcessMessages.ListType.ERROR, stdError);
       }
       if (script.getProcessEndState() != ProcessEndState.KILLED
         && script.getProcessEndState() != ProcessEndState.PAUSED) {
@@ -1485,8 +1532,8 @@ public abstract class BaseProcessManager {
       logProcessOutput(name, script.getStdOutput(), script.getStdError());
       postProcess(script);
       ProcessMessages messages = script.getProcessMessages();/* Warning */
-      if (popupChunkWarnings && messages.warningListSize() > 0) {
-        messages.addWarning("Com script: " + name);
+      if (popupChunkWarnings && messages.size(ProcessMessages.ListType.WARNING) > 0) {
+        messages.add(ProcessMessages.ListType.WARNING, "Com script: " + name);
         uiHarness.openWarningMessageDialog(manager, messages, "Reconnect Warnings",
           script.getAxisID());
       }
@@ -1814,6 +1861,8 @@ public abstract class BaseProcessManager {
     }
     resume(process.getProcessEndState());
   }
+  
+
 
   void resume(ProcessEndState endState) {
     if (endState != ProcessEndState.PAUSED) {
@@ -1840,7 +1889,8 @@ public abstract class BaseProcessManager {
         process.getStdError());
       postProcess(process);
       ProcessMessages messages = process.getProcessMessages();
-      if (popupChunkWarnings && messages != null && messages.warningListSize() > 0) {
+      if (popupChunkWarnings && messages != null
+        && messages.size(ProcessMessages.ListType.WARNING) > 0) {
         uiHarness.openWarningMessageDialog(manager, messages, "Process Warnings",
           process.getAxisID());
       }

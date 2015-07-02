@@ -35,7 +35,8 @@ import etomo.type.UITestFieldType;
  * <p> </p>
  */
 final class RadioButtonCell extends InputCell implements ToggleCell {
-  public static final String rcsid = "$Id$";
+  public static final String rcsid =
+    "$Id$";
 
   private final RadioButton radioButton;
 
@@ -56,8 +57,8 @@ final class RadioButtonCell extends InputCell implements ToggleCell {
 
   private void setHtmlLabel(final ColorUIResource color) {
     radioButton.setText("<html><P style=\"font-weight:normal; color:rgb("
-        + color.getRed() + "," + color.getGreen() + "," + color.getBlue() + ")\">"
-        + unformattedLabel + "</style>");
+      + color.getRed() + "," + color.getGreen() + "," + color.getBlue() + ")\">"
+      + unformattedLabel + "</style>");
   }
 
   public void setSelected(final boolean selected) {
@@ -70,7 +71,7 @@ final class RadioButtonCell extends InputCell implements ToggleCell {
 
   public int getHeight() {
     return radioButton.getHeight()
-        + radioButton.getBorder().getBorderInsets(radioButton.getComponent()).bottom - 1;
+      + radioButton.getBorder().getBorderInsets(radioButton.getComponent()).bottom - 1;
   }
 
   public void setLabel(final String label) {
@@ -99,7 +100,21 @@ final class RadioButtonCell extends InputCell implements ToggleCell {
   }
 
   public void setEnabled(final boolean enabled) {
-    setEditable(enabled);
+    radioButton.setEnabled(enabled);// handles enabled vs editable
+    setBackground();
+  }
+
+  public boolean isEnabled() {
+    return radioButton.isEnabled();
+  }
+
+  void setEditable(boolean editable) {
+    radioButton.setEditable( editable);
+      setBackground();
+  }
+
+  boolean isEditable() {
+    return radioButton.isEditable();
   }
 
   public String getLabel() {
@@ -107,10 +122,6 @@ final class RadioButtonCell extends InputCell implements ToggleCell {
   }
 
   private String unformattedLabel = "";
-
-  public boolean isEnabled() {
-    return radioButton.isEnabled();
-  }
 
   public boolean isSelected() {
     return radioButton.isSelected();

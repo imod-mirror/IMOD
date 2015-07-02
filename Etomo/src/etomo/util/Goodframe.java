@@ -24,7 +24,8 @@ import etomo.type.EtomoNumber;
  * @version $Revision$
  */
 public class Goodframe {
-  public static final String rcsid = "$Id$";
+  public static final String rcsid =
+    "$Id$";
 
   private final AxisID axisID;
   private final String propertyUserDir;
@@ -37,9 +38,9 @@ public class Goodframe {
   }
 
   public void run(BaseManager manager, int firstInput, int secondInput)
-      throws IOException, InvalidParameterException {
-    run(manager, new String[] { Integer.toString(firstInput),
-        Integer.toString(secondInput) });
+    throws IOException, InvalidParameterException {
+    run(manager,
+      new String[] { Integer.toString(firstInput), Integer.toString(secondInput) });
   }
 
   /**
@@ -48,24 +49,24 @@ public class Goodframe {
    * @throws InvalidParameterException
    */
   public void run(BaseManager manager, String[] input) throws IOException,
-      InvalidParameterException, NumberFormatException {
+    InvalidParameterException, NumberFormatException {
     Utilities.timestamp("run", "goodframe", Utilities.STARTED_STATUS);
-    //Run the goodframe command.
+    // Run the goodframe command.
     String[] commandArray = new String[input.length + 1];
     commandArray[0] = ApplicationManager.getIMODBinPath() + "goodframe";
     for (int i = 0; i < input.length; i++) {
       commandArray[i + 1] = input[i];
     }
-    SystemProgram groupframe = new SystemProgram(manager, propertyUserDir, commandArray,
-        axisID);
+    SystemProgram groupframe =
+      new SystemProgram(manager, propertyUserDir, commandArray, axisID);
     groupframe.run();
 
     if (groupframe.getExitValue() != 0) {
       ProcessMessages messages = groupframe.getProcessMessages();
-      if (messages.errorListSize() > 0) {
+      if (messages.size(ProcessMessages.ListType.ERROR) > 0) {
         String message = "groupframe returned an error:\n";
-        for (int i = 0; i < messages.errorListSize(); i++) {
-          message = message + messages.getError(i) + "\n";
+        for (int i = 0; i < messages.size(ProcessMessages.ListType.ERROR); i++) {
+          message = message + messages.get(ProcessMessages.ListType.ERROR, i) + "\n";
         }
         Utilities.timestamp("run", "goodframe", Utilities.FAILED_STATUS);
         throw new InvalidParameterException(message);
@@ -88,8 +89,8 @@ public class Goodframe {
       Utilities.timestamp("run", "goodframe", Utilities.FAILED_STATUS);
       throw new IOException("groupframe returned no data");
     }
-    //  Parse the size of the data
-    //  Note the initial space in the string below
+    // Parse the size of the data
+    // Note the initial space in the string below
     String outputLine = stdOutput[0].trim();
     String[] tokens = outputLine.split("\\s+");
     if (tokens.length < input.length) {
@@ -103,7 +104,7 @@ public class Goodframe {
       if (!output[i].isValid() || output[i].isNull()) {
         Utilities.timestamp("run", "goodframe", Utilities.FAILED_STATUS);
         throw new NumberFormatException("Output " + i + " is not set, token is "
-            + tokens[i] + "\n" + output[i].getInvalidReason());
+          + tokens[i] + "\n" + output[i].getInvalidReason());
       }
     }
     Utilities.timestamp("run", "goodframe", Utilities.FINISHED_STATUS);

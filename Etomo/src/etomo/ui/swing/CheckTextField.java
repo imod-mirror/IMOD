@@ -183,18 +183,24 @@ final class CheckTextField implements UIComponent, SwingComponent {
     return !checkpointValue.equals(textField.getText());
   }
 
-  boolean isEnabled() {
-    return checkBox.isEnabled();
-  }
-
   void setEnabled(final boolean enable) {
     checkBox.setEnabled(enable);
-    textField.setEnabled(enable && checkBox.isSelected());
+    updateDisplay();
   }
 
-  void setCheckBoxEnabled(final boolean enable) {
-    checkBox.setEnabled(enable);
-    updateDisplay();
+  private void updateDisplay() {
+    // checkBox can handle enabled versus editable
+    textField.setEnabled(checkBox.isEnabled() && checkBox.isSelected());
+  }
+
+  void setEditable(final boolean editable) {
+    // checkBox can handle enabled versus editable
+    checkBox.setEditable(editable);
+    textField.setEditable(editable);
+  }
+
+  boolean isEnabled() {
+    return checkBox.isEnabled();
   }
 
   private void createPanel() {
@@ -301,10 +307,6 @@ final class CheckTextField implements UIComponent, SwingComponent {
 
   void setTextFieldVisible(boolean visible) {
     textField.setVisible(visible);
-  }
-
-  private void updateDisplay() {
-    textField.setEnabled(checkBox.isSelected() && checkBox.isEnabled());
   }
 
   private void action() {
