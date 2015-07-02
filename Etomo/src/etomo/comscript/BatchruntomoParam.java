@@ -14,7 +14,6 @@ import etomo.process.SystemProgram;
 import etomo.storage.DirectiveFile;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
-import etomo.type.EtomoBoolean2;
 import etomo.type.EtomoNumber;
 import etomo.type.FileType;
 import etomo.type.ProcessName;
@@ -62,7 +61,6 @@ public class BatchruntomoParam implements CommandParam, Command {
   private final ScriptParameter startingStep = new ScriptParameter(
     EtomoNumber.Type.DOUBLE, STARTING_STEP_TAG);
   private final StringParameter smtpServer = new StringParameter("SMTPserver");
-  private final EtomoBoolean2 pid = new EtomoBoolean2("PID");
 
   private final BaseManager manager;
   private final AxisID axisID;
@@ -130,7 +128,6 @@ public class BatchruntomoParam implements CommandParam, Command {
       requiredFilesValidationSet.clear();
     }
     smtpServer.reset();
-    pid.set(1);
     // parse
     // The interleaved parameters are all based on the .ebt file:
     // rootName: based on .ebt file properties
@@ -172,7 +169,6 @@ public class BatchruntomoParam implements CommandParam, Command {
     startingStep.updateComScript(scriptCommand);
     smtpServer.updateComScript(scriptCommand);
     smtpServer.updateComScript(scriptCommand);
-    pid.updateComScript(scriptCommand);
     String remoteDirectory = null;
     try {
       remoteDirectory =
