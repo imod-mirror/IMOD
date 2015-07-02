@@ -375,7 +375,6 @@ public final class BatchRunTomoProcessMonitor implements OutfileProcessMonitor,
       messages.feedString(line);
       // check for the real batchruntomo error message. Everything else will be logged.
       if (line.indexOf(BATCH_RUN_TOMO_ERROR_TAG) != -1) {
-        System.out.println("C");
         endMonitor(ProcessEndState.FAILED);
         return true;
       }
