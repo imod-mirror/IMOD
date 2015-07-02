@@ -1353,7 +1353,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     return processMonitor.getProcessEndState();
   }
 
-  public final void kill(AxisID axisID) {
+  public void kill(AxisID axisID) {
     processManager.signalKill(this, axisID);
   }
 
