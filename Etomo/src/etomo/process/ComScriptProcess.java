@@ -927,6 +927,14 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     return systemProgram.getCommandLine();
   }
 
+  void runMsgComScriptDone(final int exitValue) {
+    processManager.msgComScriptDone(this, exitValue, nonBlocking);
+  }
+
+  boolean getNonBlocking() {
+    return nonBlocking;
+  }
+
   /**
    * Execute the specified com script. This can be initiated by the start()
    * function for the thread.
@@ -936,14 +944,14 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
       error = true;
       processMessages.add(ProcessMessages.ListType.ERROR, comScriptName
         + " is already running");
-      processManager.msgComScriptDone(this, 1, nonBlocking);
+      runMsgComScriptDone(1);
       return;
     }
 
     try {
       if (!renameFiles()) {
         error = true;
-        processManager.msgComScriptDone(this, 1, nonBlocking);
+        runMsgComScriptDone(1);
       }
     }
     catch (LogFile.LockException except) {
@@ -953,7 +961,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
         if (vmstopy != null) {
           exitValue = vmstopy.getExitValue();
         }
-        processManager.msgComScriptDone(this, exitValue, nonBlocking);
+        runMsgComScriptDone(exitValue);
       }
       return;
     }
@@ -965,7 +973,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     catch (SystemProcessException except) {
       error = true;
       // if (!nonBlocking) {
-      processManager.msgComScriptDone(this, vmstopy.getExitValue(), nonBlocking);
+      runMsgComScriptDone(vmstopy.getExitValue());
       // }
       return;
     }
@@ -976,10 +984,10 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
       // if (!nonBlocking) {
       if (vmstopy == null) {
         processMessages.add(ProcessMessages.ListType.ERROR, "vmstopy is null");
-        processManager.msgComScriptDone(this, -1, nonBlocking);
+        runMsgComScriptDone(-1);
       }
       else {
-        processManager.msgComScriptDone(this, vmstopy.getExitValue(), nonBlocking);
+        runMsgComScriptDone(vmstopy.getExitValue());
       }
       // }
       return;
@@ -1009,7 +1017,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
 
     // Send a message back to the ProcessManager that this thread is done.
     // FIXME this modifies swing element within this thread!!!
-    processManager.msgComScriptDone(this, systemProgram.getExitValue(), nonBlocking);
+    runMsgComScriptDone(systemProgram.getExitValue());
   }
 
   protected boolean renameFiles() throws LogFile.LockException {
@@ -1254,8 +1262,8 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
    *         run then null is returned. If the com script ran with no warnings
    *         then zero length array will be returned.
    */
-  protected final void parse(String name, boolean mustExist)
-    throws LogFile.LockException, FileNotFoundException {
+  void parse(String name, boolean mustExist) throws LogFile.LockException,
+    FileNotFoundException {
     ArrayList errors = new ArrayList();
     LogFile logFileToParse = logFile;
     if (!parseLogFile) {
