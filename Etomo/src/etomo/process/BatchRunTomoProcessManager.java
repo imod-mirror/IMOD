@@ -41,7 +41,7 @@ public final class BatchRunTomoProcessManager extends BaseProcessManager {
     manager.msgStatusChangerAvailable(monitor);
     // Start the com script in the background
     ComScriptProcess comScriptProcess =
-      startDetachedComScript(command, monitor, AXID_ID, param,
+      startOutfileComScript(command, monitor, AXID_ID, param,
         FileType.BATCH_RUN_TOMO_COMSCRIPT);
     return comScriptProcess.getName();
   }
