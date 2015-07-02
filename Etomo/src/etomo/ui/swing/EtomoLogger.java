@@ -118,7 +118,7 @@ final class EtomoLogger {
     private ArrayList<String> lineList = null;
     private File file = null;
     private AxisID axisID = null;
-    private boolean newline = true;
+    private boolean newline = true;// prevents excessive empty lines
 
     private AppendLater(final String timestamp, final String line1, final boolean newline) {
       this.timestamp = timestamp;
@@ -184,46 +184,47 @@ final class EtomoLogger {
      */
     public void run() {
       if (newline) {
-        newLine();
+        newLine(null);
       }
       if (line1 != null) {
-        newLine();
         logInterface.append(line1 + (timestamp != null ? " - " + timestamp : ""));
+        newLine(line1);
       }
-      else {
+      else if (timestamp != null) {
         logInterface.append(timestamp);
       }
       if (line2 != null) {
-        newLine();
         logInterface.append(line2);
+        newLine(line2);
       }
       if (stringArray != null) {
         for (int i = 0; i < stringArray.length; i++) {
-          newLine();
-          logInterface.append((String) stringArray[i]);
+          if (stringArray[i] != null) {
+            logInterface.append((String) stringArray[i]);
+            newLine(stringArray[i]);
+          }
         }
       }
       if (lineList != null) {
         int len = lineList.size();
         for (int i = 0; i < len; i++) {
           String line = lineList.get(i);
-          if (line != null && !line.isEmpty()) {
-            newLine();
-            logInterface.append(lineList.get(i));
+          if (line != null) {
+            logInterface.append(line);
+            newLine(line);
           }
         }
       }
       if (file != null && file.exists() && file.isFile() && file.canRead()) {
-        newLine();
         logInterface.append("Logging from file: " + file.getAbsolutePath());
-        newLine();
+        newLine(null);
         try {
           LogFile logFile = LogFile.getInstance(file);
           LogFile.ReaderId id = logFile.openReader();
           String line = null;
           while ((line = logFile.readLine(id)) != null) {
             logInterface.append(line);
-            newLine();
+            newLine(line);
           }
         }
         catch (LogFile.LockException e) {
@@ -243,20 +244,21 @@ final class EtomoLogger {
         logInterface.msgChanged();
       }
       if (axisID == AxisID.FIRST || axisID == AxisID.SECOND) {
-        newLine();
         logInterface.append(axisID + " axis");
+        newLine(null);
       }
     }
 
     /**
      * Appends a newline character if the last line in the text area is not empty
-     *
+     * Put a null in previousLine to force a new line.
      */
-    private void newLine() {
+    private void newLine(final String previousLine) {
       try {
         // messages should be alone on a line
         int lastLineEndOffset = logInterface.getLineEndOffset();
-        if (lastLineEndOffset != 0) {
+        if (lastLineEndOffset != 0
+          && (previousLine == null || !previousLine.endsWith("\n"))) {
           logInterface.append("\n");
         }
       }
