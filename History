@@ -1,5 +1,10 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/1/15: Added option -title to alterheader for adding one title.
+
+7/1/15: Fixed MRC header library to replace 10th title when adding a new
+title, as old library used to.
+
 7/1/15: Fixed plugin help on Mac.
 
 6/28/15: Fixed Transferfid and Matchrotpairs starting Midas twice, without and
