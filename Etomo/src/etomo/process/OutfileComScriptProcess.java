@@ -10,15 +10,15 @@ import etomo.type.FileType;
 
 public final class OutfileComScriptProcess extends ComScriptProcess {
   private final BaseProcessManager processManager;
-  private final DetachedProcessMonitor processMonitor;
+  private final DetachedProcessMonitor monitor;
 
   public OutfileComScriptProcess(final BaseManager manager, final String comScript,
     final BaseProcessManager processManager, final AxisID axisID,
-    final DetachedProcessMonitor processMonitor, final Command command,
+    final DetachedProcessMonitor monitor, final Command command,
     final FileType fileType) {
-    super(manager, comScript, processManager, axisID, processMonitor, command, fileType);
+    super(manager, comScript, processManager, axisID, monitor, command, fileType);
     this.processManager = processManager;
-    this.processMonitor = processMonitor;
+    this.monitor = monitor;
   }
 
   /**
@@ -27,7 +27,7 @@ public final class OutfileComScriptProcess extends ComScriptProcess {
   void runMsgComScriptDone(final int exitValue) {
     try {
       // Wait for the monitor to complete.
-      while (processMonitor.isProcessRunning()) {
+      while (monitor.isProcessRunning()) {
         Thread.sleep(100);
       }
     }
@@ -37,8 +37,27 @@ public final class OutfileComScriptProcess extends ComScriptProcess {
     processManager.msgComScriptDone(this, exitValue, getNonBlocking());
   }
 
+  ProcessMessages getMonitorProcessMessages() {
+    if (monitor == null) {
+      return null;
+    }
+    return monitor.getProcessMessages();
+  }
+  
+  public final void kill(AxisID axisID) {
+    monitor.kill(this, axisID);
+  }
+  
+  public final void pause(AxisID axisID) {
+    monitor.pause(this, axisID);
+  }
+  
+  final String getStatusString() {
+    return monitor.getStatusString();
+  }
+
   /**
-   * Not not parse the log file for warnings.
+   * Do not parse the log file for warnings.
    */
   void parse(String name, boolean mustExist) throws LogFile.LockException,
     FileNotFoundException {}
