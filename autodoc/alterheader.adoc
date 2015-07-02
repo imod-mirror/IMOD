@@ -173,6 +173,17 @@ manpage = (Interactive ISPG)  Change the space group entry, which should be 0
 for an image stack, 1 for an image volume, and 401 for a stack with multiple
 volumes.
 
+[Field = TitleToAdd]
+short = title
+type = CH
+usage = Add the given string as a new label (title)
+tooltip = 
+manpage = Add the given string as a new label (title) after all other labels
+in the file.  This option is not equivalent to the interactive LAB option,
+which provides much more flexibility.  If there are already 10 labels, the
+last one will be replaced.  Be sure to quote the whole string when running
+from the command line.
+
 [Field = usage]
 short = help
 long = usage

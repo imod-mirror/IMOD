@@ -31,7 +31,7 @@ program alterheader
   real*4 dmin, dmax, dmean, origx, origy, origz, v1, v2
   real*4 dmins, dmaxs, sd, rms, pixel
   real*8 dmeans, sums, sumsqs, totn, tsum, sumsq
-  integer*4 maxLines, numChunks, iChunk, numLines, iflags, ifImod, ierr
+  integer*4 maxLines, numChunks, iChunk, numLines, iflags, ifImod, ierr, ifAddTitle
   integer*4 numOptArg, numNonOptArg, indPipOpt
   logical*4 nbytes_and_flags, noBinning, pipInput
   integer*4 PipGetString, PipGetFloat, PipNumberOfEntries, PipGetNonOptionArg
@@ -40,7 +40,7 @@ program alterheader
   ! fallbacks from ../../manpages/autodoc2man -3 2  alterheader
   !
   integer numOptions
-  parameter (numOptions = 20)
+  parameter (numOptions = 21)
   character*(40 * numOptions) options(1)
   options(1) = &
       'org:Origin:FT:@cel:CellSize:FT:@del:PixelSize:FT:@map:MapIndexes:IT:@'// &
@@ -48,8 +48,10 @@ program alterheader
       'rottlt:RotateTilt:FT:@mmm:MinMaxMean:B:@rms:RootMeanSquare:B:@'// &
       'fixpixel:FixPixel:B:@feipixel:FeiPixel:I:@extrafix:FixExtra:B:@'// &
       'modefix:FixMode:B:@invertorg:InvertOrigin:B:@setmmm:SetMinMaxMean:FT:@'// &
-      'real:RealMode:B:@fft:ComplexMode:B:@ispg:SpaceGroup:I:@help:usage:B:'
+      'real:RealMode:B:@fft:ComplexMode:B:@ispg:SpaceGroup:I:@title:TitleToAdd:CH:@'// &
+      'help:usage:B:'
 
+  ifAddTitle = -1
   call PipReadOrParseOptions(options, numOptions, 'alterheader', 'ERROR: ALTERHEADER -', &
       .true., 1, 1, 0, numOptArg, numNonOptArg)
   pipInput = numOptArg > 0
@@ -65,7 +67,7 @@ program alterheader
   endif
   !
   call ialbrief(0)
-  CALL IMOPEN(2, FILIN, 'OLD')
+  call imopen(2, filin, 'OLD')
   call irdhdr(2, nxyz, mxyz, mode, dmin, dmax, dmean)
   !
   if (.not. pipInput) print *, &
@@ -142,7 +144,13 @@ program alterheader
     if (indPipOpt == 19) then
       if (PipGetInteger('SpaceGroup', iflags) == 0) go to 23
     endif
-    if (indPipOpt == 20) go to 15
+    if (indPipOpt == 20) then
+      if (PipGetString('TitleToAdd', filin) == 0) then
+        read(filin, '(20a4)') (title(j, 1), j = 1, 20)
+        ifAddTitle = 1
+      endif
+    endif
+    if (indPipOpt == 21) go to 15
     go to 30
   else
     write(*,102)
@@ -200,7 +208,7 @@ program alterheader
   !
   ! data type etc
   !
-3 call irtdat(2, itype, lens, n1, n2, v1, v2)
+3 call iiuRetDataType(2, itype, lens, n1, n2, v1, v2)
   write(*,113) itype, lens, n1, n2, v1, v2
 113 format(' Alter data type.  Current type, lens, n1, n2, v1, v2:' &
       ,/,4i5,2f10.3,/,' Enter new type (0 regular serial sections' &
@@ -413,7 +421,7 @@ program alterheader
   numChunks = (ny + maxLines - 1) / maxLines
   write(*,121)
 121 format(' Recomputing min/max/mean of images - takes a while...')
-  call imposn(2, 0, 0)
+  call iiuSetPosition(2, 0, 0)
   dmin = 1.e10
   dmax = -1.e10
   tsum = 0.
@@ -549,10 +557,10 @@ program alterheader
       if (iand(iflags, 2) .ne. 0) then
         write(*,2194)
       else
-        write(*, '(/,a)')'The existing regular pixel spacing did not correspond to '// &
+        write(*, '(/,a)') 'The existing regular pixel spacing did not correspond to '// &
             'a binning'
       endif
-      write(*,101)'The pixel size in the extended header is not being used'
+      write(*,101) 'The pixel size in the extended header is not being used'
       call exit(0)
     endif
     iBinning(1:3) = 1
@@ -665,9 +673,9 @@ program alterheader
       /,' done = exit',/)
   go to 30
   !
-15 CALL IWRHDR(2, TITLE, -1, dmin, dmax, dmean)
+15 call iiuWriteHeader(2, title, ifAddTitle, dmin, dmax, dmean)
   call irdhdr(2, nxyz, mxyz, mode, dmin, dmax, dmean)
-  CALL IMCLOSE(2)
+  call iiuClose(2)
   call exit(0)
 99 print *
   print *,'ERROR: ALTERHEADER - reading file'
