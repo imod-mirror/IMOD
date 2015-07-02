@@ -787,7 +787,7 @@ public abstract class BaseProcessManager {
       processMonitor, axisID);
   }
 
-  final ComScriptProcess startDetachedComScript(final String commandString,
+  final ComScriptProcess startOutfileComScript(final String commandString,
     final OutfileProcessMonitor monitor, final AxisID axisID, final Command command,
     final FileType fileType) throws SystemProcessException {
     OutfileComScriptProcess process =
@@ -1391,6 +1391,35 @@ public abstract class BaseProcessManager {
     }
     System.err.println();
   }
+  
+  public final void msgComScriptDone(final OutfileComScriptProcess process, final int exitValue,
+    final boolean nonBlocking) {
+    if (exitValue != 0 /*|| errorFound*/) {
+      errorProcess(process);
+    }
+    else {
+      logProcessOutput(process.getCommandAction(), process.getStdOutput(),
+        process.getStdError());
+      postProcess(process);
+    }
+    manager.saveStorables(process.getAxisID());
+    axisProcessData.clearThread(process);
+    // Inform the manager that this process is complete
+    ProcessEndState endState = process.getProcessEndState();
+    if (endState == null || endState == ProcessEndState.DONE) {
+      manager.processDone(process.getName(), exitValue, process.getProcessName(),
+        process.getAxisID(), false, process.getProcessEndState(),
+        exitValue != 0 /*|| errorFound*/, process.getProcessResultDisplay(),
+        process.getProcessSeries(), false);
+    }
+    else {
+      manager.processDone(process.getName(), exitValue, process.getProcessName(),
+        process.getAxisID(), false, process.getProcessEndState(),
+        null, exitValue != 0 /*|| errorFound*/,
+        process.getProcessResultDisplay(), process.getProcessSeries(), false);
+    }
+    resume(process.getProcessEndState());
+  }
 
   /**
    * A message specifying that a com script has finished execution
@@ -1462,6 +1491,7 @@ public abstract class BaseProcessManager {
       script.getProcessResultDisplay(), script.getProcessSeries(), nonBlocking);
   }
 
+  
   public final void msgReconnectDone(final ReconnectProcess script, final int exitValue,
     final boolean popupChunkWarnings) {
     String name = script.getProcessData().getProcessName().toString();
@@ -1831,6 +1861,8 @@ public abstract class BaseProcessManager {
     }
     resume(process.getProcessEndState());
   }
+  
+
 
   void resume(ProcessEndState endState) {
     if (endState != ProcessEndState.PAUSED) {
