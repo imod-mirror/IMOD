@@ -1151,10 +1151,8 @@ public abstract class BaseProcessManager {
     }
   }
 
-  /*
-   * public final ProcessData getSavedProcessData(final AxisID axisID) { if (axisID ==
-   * AxisID.SECOND) { return savedProcessDataB; } return savedProcessDataA; }
-   */
+  /* public final ProcessData getSavedProcessData(final AxisID axisID) { if (axisID ==
+   * AxisID.SECOND) { return savedProcessDataB; } return savedProcessDataA; } */
 
   private void saveProcessData(final ProcessData processData) {
     try {
@@ -1202,11 +1200,9 @@ public abstract class BaseProcessManager {
     }
   }*/
 
-  /*
-   * public final SystemProcessInterface getThread(final AxisID axisID) {
+  /* public final SystemProcessInterface getThread(final AxisID axisID) {
    * SystemProcessInterface thread = null; if (axisID == AxisID.SECOND) { thread =
-   * threadAxisB; } else { thread = threadAxisA; } return thread; }
-   */
+   * threadAxisB; } else { thread = threadAxisA; } return thread; } */
 
   public final ProcessData getProcessData(final AxisID axisID) {
     SystemProcessInterface thread = axisProcessData.getThread(axisID);
@@ -1391,10 +1387,17 @@ public abstract class BaseProcessManager {
     }
     System.err.println();
   }
-  
-  public final void msgComScriptDone(final OutfileComScriptProcess process, final int exitValue,
-    final boolean nonBlocking) {
-    if (exitValue != 0 /*|| errorFound*/) {
+
+  public final void msgComScriptDone(final OutfileComScriptProcess process,
+    final int exitValue, final boolean nonBlocking) {
+    ProcessEndState endState = process.getProcessEndState();
+    if (exitValue != 0 || (endState != null && endState != ProcessEndState.DONE)) {
+      ProcessMessages processMessages = process.getMonitorProcessMessages();
+      if (processMessages != null
+        && !processMessages.isEmpty(ProcessMessages.ListType.ERROR)) {
+        uiHarness.openErrorMessageDialog(manager, processMessages,
+          "Comscript Terminated", process.getAxisID());
+      }
       errorProcess(process);
     }
     else {
@@ -1405,20 +1408,18 @@ public abstract class BaseProcessManager {
     manager.saveStorables(process.getAxisID());
     axisProcessData.clearThread(process);
     // Inform the manager that this process is complete
-    ProcessEndState endState = process.getProcessEndState();
     if (endState == null || endState == ProcessEndState.DONE) {
       manager.processDone(process.getName(), exitValue, process.getProcessName(),
         process.getAxisID(), false, process.getProcessEndState(),
-        exitValue != 0 /*|| errorFound*/, process.getProcessResultDisplay(),
+        exitValue != 0 /* || errorFound */, process.getProcessResultDisplay(),
         process.getProcessSeries(), false);
     }
     else {
       manager.processDone(process.getName(), exitValue, process.getProcessName(),
-        process.getAxisID(), false, process.getProcessEndState(),
-        null, exitValue != 0 /*|| errorFound*/,
-        process.getProcessResultDisplay(), process.getProcessSeries(), false);
+        process.getAxisID(), false, process.getProcessEndState(), null,
+        exitValue != 0 /* || errorFound */, process.getProcessResultDisplay(),
+        process.getProcessSeries(), false);
     }
-    resume(process.getProcessEndState());
   }
 
   /**
@@ -1477,13 +1478,11 @@ public abstract class BaseProcessManager {
     }
     manager.saveStorables(script.getAxisID());
     axisProcessData.clearThread(script);
-    /*
-     * // Null out the correct thread // Interrupt the process monitor and nulll out the
+    /* // Null out the correct thread // Interrupt the process monitor and nulll out the
      * appropriate references if (threadAxisA == script) { if (processMonitorA != null) {
      * processMonitorA.interrupt(); processMonitorA = null; } threadAxisA = null; } if
      * (threadAxisB == script) { if (processMonitorB != null) {
-     * processMonitorB.interrupt(); processMonitorB = null; } threadAxisB = null; }
-     */
+     * processMonitorB.interrupt(); processMonitorB = null; } threadAxisB = null; } */
 
     // Inform the app manager that this process is complete
     manager.processDone(script.getName(), exitValue, script.getProcessName(),
@@ -1491,7 +1490,6 @@ public abstract class BaseProcessManager {
       script.getProcessResultDisplay(), script.getProcessSeries(), nonBlocking);
   }
 
-  
   public final void msgReconnectDone(final ReconnectProcess script, final int exitValue,
     final boolean popupChunkWarnings) {
     String name = script.getProcessData().getProcessName().toString();
@@ -1540,13 +1538,11 @@ public abstract class BaseProcessManager {
     }
     manager.saveStorables(script.getAxisID());
     axisProcessData.clearThread(script);
-    /*
-     * // Null out the correct thread // Interrupt the process monitor and nulll out the
+    /* // Null out the correct thread // Interrupt the process monitor and nulll out the
      * appropriate references if (threadAxisA == script) { if (processMonitorA != null) {
      * processMonitorA.interrupt(); processMonitorA = null; } threadAxisA = null; } if
      * (threadAxisB == script) { if (processMonitorB != null) {
-     * processMonitorB.interrupt(); processMonitorB = null; } threadAxisB = null; }
-     */
+     * processMonitorB.interrupt(); processMonitorB = null; } threadAxisB = null; } */
     // Inform the app manager that this process is complete
     manager.processDone(name, exitValue, script.getProcessData().getProcessName(),
       script.getAxisID(), script.getProcessEndState(),
@@ -1801,12 +1797,10 @@ public abstract class BaseProcessManager {
     startSystemProgramThread(sysProgram, manager);
   }
 
-  /*
-   * protected void startSystemProgramThread(String command, AxisID axisID) { //
+  /* protected void startSystemProgramThread(String command, AxisID axisID) { //
    * Initialize the SystemProgram object SystemProgram sysProgram = new
    * SystemProgram(getManager() .getPropertyUserDir(), command, axisID);
-   * startSystemProgramThread(sysProgram); }
-   */
+   * startSystemProgramThread(sysProgram); } */
 
   private static void startSystemProgramThread(final SystemProgram sysProgram,
     BaseManager manager) {
@@ -1841,10 +1835,8 @@ public abstract class BaseProcessManager {
     }
     manager.saveStorables(process.getAxisID());
     axisProcessData.clearThread(process);
-    /*
-     * // Null the reference to the appropriate thread if (process == threadAxisA) {
-     * threadAxisA = null; } if (process == threadAxisB) { threadAxisB = null; }
-     */
+    /* // Null the reference to the appropriate thread if (process == threadAxisA) {
+     * threadAxisA = null; } if (process == threadAxisB) { threadAxisB = null; } */
     // Inform the manager that this process is complete
     ProcessEndState endState = process.getProcessEndState();
     if (endState == null || endState == ProcessEndState.DONE) {
@@ -1858,16 +1850,6 @@ public abstract class BaseProcessManager {
         process.getAxisID(), process.isForceNextProcess(), process.getProcessEndState(),
         process.getStatusString(), exitValue != 0 || errorFound,
         process.getProcessResultDisplay(), process.getProcessSeries(), false);
-    }
-    resume(process.getProcessEndState());
-  }
-  
-
-
-  void resume(ProcessEndState endState) {
-    if (endState != ProcessEndState.PAUSED) {
-      // A process that didn't pause successfully cannot be automatically resumed.
-      return;
     }
   }
 
@@ -1897,10 +1879,8 @@ public abstract class BaseProcessManager {
     }
     manager.saveStorables(process.getAxisID());
     axisProcessData.clearThread(process);
-    /*
-     * // Null the reference to the appropriate thread if (process == threadAxisA) {
-     * threadAxisA = null; } if (process == threadAxisB) { threadAxisB = null; }
-     */
+    /* // Null the reference to the appropriate thread if (process == threadAxisA) {
+     * threadAxisA = null; } if (process == threadAxisB) { threadAxisB = null; } */
     // Inform the manager that this process is complete
     ProcessEndState endState = process.getProcessEndState();
     if (endState == null || endState == ProcessEndState.DONE) {
