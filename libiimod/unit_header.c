@@ -253,7 +253,8 @@ void icrhdr(int *iunit, int *nxyz, int *mxyz, int *mode, int *labels, int *numLa
  * density values in [dmin], [dmax], and [dmean].  A single title can be supplied in
  * an 80-byte array, [label], and will be treated according to the value of [labFlag]: ^
  *  0:  [label] becomes the only title ^
- *  1:  [label] is added at the end of existing titles if there is room ^
+ *  1:  [label] is added at the end of existing titles, replacing the last one if there 
+ * are already 10 titles ^
  *  2:  [label] is added as the first title and others are shifted up ^
  * -1 or anything else: do not add a title ^
  * Returns -1 for various internal errors or 1 for an error writing the header.
@@ -269,9 +270,10 @@ int iiuWriteHeader(int iunit, int *label, int labFlag, float dmin, float dmax,
     return -1;
   if (labFlag == 0) {
     iiuAltLabels(iunit, label, 1);
-  } else if (labFlag == 1 && hdr->nlabl < MRC_NLABELS) {
-    memcpy(hdr->labels[hdr->nlabl], label, MRC_LABEL_SIZE);
-    fixTitlePadding(hdr->labels[hdr->nlabl++]);
+  } else if (labFlag == 1) {
+    hdr->nlabl = B3DMIN(hdr->nlabl + 1, MRC_NLABELS);
+    memcpy(hdr->labels[hdr->nlabl - 1], label, MRC_LABEL_SIZE);
+    fixTitlePadding(hdr->labels[hdr->nlabl - 1]);
   } else if (labFlag == 2) {
     hdr->nlabl = B3DMIN(hdr->nlabl + 1, MRC_NLABELS);
     for (i = hdr->nlabl - 1; i > 0; i--)
