@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.util.Vector;
 
 import etomo.BaseManager;
-import etomo.EtomoDirector;
 import etomo.process.ProcessMessages;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
@@ -39,8 +38,8 @@ public final class BatchRunTomoProcessMonitor implements OutfileProcessMonitor,
   static final String SUCCESS_TAG = "SUCCESSFULLY COMPLETED";
   private static final String ENDING_STEP_SET_TAG = "EndingStepSet";
   private static final String NUMBER_DATASETS_TAG = "NumberDatasets";
-  private static final String PID_TAG = "PID:";
   private static final String BATCH_RUN_TOMO_ERROR_TAG = "ERROR: batchruntomo -";
+  private static final String ALT_ERROR_TAG = "ABORT SET:";
 
   private final EtomoNumber nDatasets = new EtomoNumber();
   private final EtomoNumber endingStepSet = new EtomoNumber(EtomoNumber.Type.BOOLEAN);
@@ -51,7 +50,7 @@ public final class BatchRunTomoProcessMonitor implements OutfileProcessMonitor,
   private final AxisID axisID;
   private final boolean multiLineMessages;
 
-  private boolean setProgressBarTitle = false;// turn on to changed the progress bar title
+  private boolean updateProgressBar = false;// turn on to changed the progress bar title
   private ProcessEndState endState = null;
   private LogFile commandsPipe = null;
   private LogFile.WriterId commandsPipeWriterId = null;
@@ -61,7 +60,6 @@ public final class BatchRunTomoProcessMonitor implements OutfileProcessMonitor,
   private boolean processRunning = true;
   private boolean pausing = false;
   private boolean killing = false;
-  private String pid = null;
   private boolean starting = true;
   private boolean stop = false;
   private boolean running = false;
@@ -72,13 +70,14 @@ public final class BatchRunTomoProcessMonitor implements OutfileProcessMonitor,
   private String currentDataset = null;
   private int datasetsFinished = 0;
   private boolean willResume = false;
+  private boolean interrupted = false;
 
   public void dumpState() {
-    System.err.print("[setProgressBarTitle:" + setProgressBarTitle + ",useCommandsPipe:"
+    System.err.print("[updateProgressBar:" + updateProgressBar + ",useCommandsPipe:"
       + useCommandsPipe + ",\nprocessRunning:" + processRunning + ",pausing:" + pausing
-      + ",\nkilling:" + killing + ",pid:" + pid + ",starting:" + starting + ",stop:"
-      + stop + ",running:" + running + ",\nreconnect:" + reconnect
-      + ",multiLineMessages:" + multiLineMessages + "]");
+      + ",\nkilling:" + killing + ",starting:" + starting + ",stop:" + stop + ",running:"
+      + running + ",\nreconnect:" + reconnect + ",multiLineMessages:" + multiLineMessages
+      + "]");
   }
 
   BatchRunTomoProcessMonitor(final BaseManager manager, final AxisID axisID,
@@ -90,7 +89,7 @@ public final class BatchRunTomoProcessMonitor implements OutfileProcessMonitor,
     this.nDatasets.set(nDatasets);
     messages =
       ProcessMessages.getLoggedInstance(manager, multiLineMessages, true,
-        BATCH_RUN_TOMO_ERROR_TAG);
+        BATCH_RUN_TOMO_ERROR_TAG, "ABORT SET:", false);
   }
 
   private BatchRunTomoProcessMonitor(final BaseManager manager, final AxisID axisID,
@@ -102,7 +101,7 @@ public final class BatchRunTomoProcessMonitor implements OutfileProcessMonitor,
     this.nDatasets.set(nDatasets);
     messages =
       ProcessMessages.getLoggedInstance(manager, multiLineMessages, true,
-        BATCH_RUN_TOMO_ERROR_TAG);
+        BATCH_RUN_TOMO_ERROR_TAG, "ABORT SET:", false);
   }
 
   public static BatchRunTomoProcessMonitor getReconnectInstance(
@@ -192,10 +191,10 @@ public final class BatchRunTomoProcessMonitor implements OutfileProcessMonitor,
       catch (InterruptedException e) {}
       while (processRunning && !stop) {
         try {
-          if (updateState() || setProgressBarTitle) {
+          if (updateState() || updateProgressBar) {
             updateProgressBar();
           }
-          Thread.sleep(2000);
+          Thread.sleep(100);
         }
         catch (LogFile.LockException e) {
           // File creation may be slow, so give this more tries.
@@ -205,14 +204,15 @@ public final class BatchRunTomoProcessMonitor implements OutfileProcessMonitor,
           // File creation may be slow, so give this more tries.
           e.printStackTrace();
         }
+        catch (InterruptedException e) {
+          e.printStackTrace();
+          interrupted = true;
+        }
       }
-      closeProcessOutput();
-      messages.stopStringFeed();
-    }
-    catch (InterruptedException e) {
       endMonitor(ProcessEndState.DONE);
     }
     catch (IOException e) {
+      e.printStackTrace();
       endMonitor(ProcessEndState.FAILED);
     }
     // Disable the use of the commands pipe.
@@ -240,10 +240,8 @@ public final class BatchRunTomoProcessMonitor implements OutfileProcessMonitor,
   public void endMonitor(final ProcessEndState endState) {
     setProcessEndState(endState);
     processRunning = false;// the only place that this should be changed
-  }
-
-  public String getPid() {
-    return pid;
+    closeProcessOutput();
+    messages.stopStringFeed();
   }
 
   public String getLogFileName() {
@@ -285,7 +283,7 @@ public final class BatchRunTomoProcessMonitor implements OutfileProcessMonitor,
     try {
       writeCommand("Q");
       killing = true;
-      setProgressBarTitle = true;
+      updateProgressBar = true;
       if (starting) {
         // wait to see if processchunks is already starting chunks.
         try {
@@ -313,7 +311,7 @@ public final class BatchRunTomoProcessMonitor implements OutfileProcessMonitor,
     try {
       writeCommand("F");
       pausing = true;
-      setProgressBarTitle = true;
+      updateProgressBar = true;
     }
     catch (LogFile.LockException e) {
       e.printStackTrace();
@@ -337,49 +335,15 @@ public final class BatchRunTomoProcessMonitor implements OutfileProcessMonitor,
   }
 
   public boolean isProcessRunning() {
-    if (!processRunning) {
-      return false;
-    }
-    String[] array;
-    if (process != null) {
-      if (process.isDone()) {
-        processRunning = false;
-      }
-      else {
-        boolean debug = EtomoDirector.INSTANCE.getArguments().isDebug();
-        array = process.getStdError();
-        if (array != null) {
-          for (int i = 0; i < array.length; i++) {
-            if (debug) {
-              System.err.println(array[i]);
-            }
-            if (array[i].startsWith("ERROR:") || array[i].startsWith("Traceback")
-              || array[i].indexOf("Errno") != -1) {
-              endMonitor(ProcessEndState.FAILED);
-              processRunning = false;
-            }
-          }
-        }
-        array = process.getStdOutput();
-        if (array != null) {
-          for (int i = 0; i < array.length; i++) {
-            if (debug) {
-              System.err.println(array[i]);
-            }
-            if (array[i].startsWith("ERROR:") || array[i].startsWith("Traceback")
-              || array[i].indexOf("Errno") != -1) {
-              endMonitor(ProcessEndState.FAILED);
-              processRunning = false;
-            }
-          }
-        }
-      }
-    }
-    return processRunning;
+    return processRunning && endState == null;
   }
 
   AxisID getAxisID() {
     return axisID;
+  }
+
+  public final String getPid() {
+    return null;
   }
 
   boolean isStarting() {
@@ -396,96 +360,78 @@ public final class BatchRunTomoProcessMonitor implements OutfileProcessMonitor,
 
   boolean updateState() throws LogFile.LockException, FileNotFoundException, IOException {
     createProcessOutput();
-    boolean returnValue = false;
-    boolean failed = false;
-    if (isProcessRunning()
+    if (processRunning
       && (processOutputReaderId == null || processOutputReaderId.isEmpty())) {
       processOutputReaderId = processOutput.openReader();
     }
     if (processOutputReaderId == null || processOutputReaderId.isEmpty()) {
-      return returnValue = false;
+      return false;
     }
-    String line;
+    String line = null;
     int index;
-    while ((line = processOutput.readLine(processOutputReaderId)) != null) {
+    while (processOutput != null
+      && (line = processOutput.readLine(processOutputReaderId)) != null) {
       line = line.trim();
-      // get the first pid
-      if (pid == null && line.startsWith(PID_TAG)) {
-        pid = line.substring(PID_TAG.length()).trim();
-      }
       messages.feedString(line);
-      //check for the real batchruntomo error message.  Everything else will be logged.
-      if (!messages.isEmpty(ProcessMessages.ListType.ERROR)
-        && line.indexOf(BATCH_RUN_TOMO_ERROR_TAG) != -1) {
-        failed = true;
-      }
-      // If it got an error message, then it seems like the best thing to do is
-      // stop processing.
-      if (failed) {
-        continue;
-      }
-      else if (line.equals(SUCCESS_TAG)) {
-        endMonitor(ProcessEndState.DONE);
-      }
-      else if (line
-        .equals("When you rerun with a different set of machines, be sure to use")) {
-        endMonitor(ProcessEndState.KILLED);
-      }
-      else if (line
-        .equals("All previously running chunks are done - exiting as requested")) {
-        endMonitor(ProcessEndState.PAUSED);
-      }
-      else if (line.startsWith(ETOMO_TAG)) {
-        currentStep = "eTomo setup";
-        setProgressBarTitle = true;
+      // check for the real batchruntomo error message. Everything else will be logged.
+      if (line.indexOf(BATCH_RUN_TOMO_ERROR_TAG) != -1) {
+        System.out.println("C");
+        endMonitor(ProcessEndState.FAILED);
         return true;
       }
-      else if (line.startsWith(STEP_SUCCESS_TAG)) {
+      if (line.equals(SUCCESS_TAG)) {
+        endMonitor(ProcessEndState.DONE);
+        return true;
+      }
+      if (line.equals("When you rerun with a different set of machines, be sure to use")) {
+        endMonitor(ProcessEndState.KILLED);
+        return true;
+      }
+      if (line.equals("All previously running chunks are done - exiting as requested")) {
+        endMonitor(ProcessEndState.PAUSED);
+        return true;
+      }
+      if (line.startsWith(ETOMO_TAG)) {
+        currentStep = "eTomo setup";
+        return true;
+      }
+      if (line.startsWith(STEP_SUCCESS_TAG)) {
         index = line.indexOf(COM_TAG);
         currentStep += " - done";
-        setProgressBarTitle = true;
         return true;
       }
-      else if (line.startsWith(DATASET_SUCCESS_TAG)) {
+      if (line.startsWith(DATASET_SUCCESS_TAG)) {
         index = line.indexOf(TIME_TAG);
         currentStep = "done";
         datasetsFinished++;
-        setProgressBarTitle = true;
         return true;
       }
-      else {
-        index = line.indexOf(DATASET_TAG);
-        if (index != -1) {
-          currentDataset = line.substring(index + DATASET_TAG.length()).trim();
-          currentStep = null;
-          setProgressBarTitle = true;
+      index = line.indexOf(DATASET_TAG);
+      if (index != -1) {
+        currentDataset = line.substring(index + DATASET_TAG.length()).trim();
+        currentStep = null;
+        return true;
+      }
+      index = line.indexOf(STEP_TAG);
+      if (index != -1) {
+        int index2 = line.indexOf(COM_TAG, index);
+        if (index2 != -1) {
+          currentStep = line.substring(index + STEP_TAG.length(), index2).trim();
           return true;
-        }
-        else {
-          index = line.indexOf(STEP_TAG);
-          if (index != -1) {
-            int index2 = line.indexOf(COM_TAG, index);
-            if (index2 != -1) {
-              currentStep = line.substring(index + STEP_TAG.length(), index2).trim();
-              setProgressBarTitle = true;
-              return true;
-            }
-          }
         }
       }
     }
-    if (failed) {
-      endMonitor(ProcessEndState.FAILED);
-      return false;
+    // Wait until the entire log is processed before ending the monitor
+    if (processRunning && interrupted && line == null) {
+      endMonitor(ProcessEndState.DONE);
+      return true;
     }
-    return returnValue;
+    return false;
   }
 
   void updateProgressBar() {
-    if (setProgressBarTitle) {
-      setProgressBarTitle = false;
-      setProgressBarTitle();
-    }
+    updateProgressBar = false;
+    setProgressBarTitle();
     manager.getMainPanel().setProgressBarValue(datasetsFinished, getStatusString(),
       axisID);
   }
