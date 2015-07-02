@@ -43,21 +43,14 @@ import etomo.util.Utilities;
  * functions are synchronized, except getInstance functions (createInstance() is
  * synchronized).</p>
  * 
- * <p>Copyright: Copyright 2006</p>
- *
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
- * University of Colorado</p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
+* <p>Copyright: Copyright 2006 - 2015 by the Regents of the University of Colorado</p>
+* <p/>
+* <p>Organization: Dept. of MCD Biology, University of Colorado</p>
+*
+* @version $Id$
  */
 
 public final class LogFile {
-  public static final String rcsid =
-    "$Id$";
-
   private static final int NO_ID = -1;
   public static final int NO_WAIT_LIMIT = -1;
   private static final String PUBLIC_EXCEPTION_MESSAGE = "\nPlease make a copy "
@@ -1200,19 +1193,16 @@ public final class LogFile {
         fileId = currentId;
       }
       id.set(currentId);
-      System.err.println("Locking " + lockType + ":" + id + " on " + logFile.getName()
-        + " (" + logFile.getAbsolutePath() + ")");
-      if (id == null || id.isEmpty()) {
-        Thread.dumpStack();
+      if (lockType == LockType.READ) {
+        System.err.println("Locking " + lockType + ":" + id + " on " + logFile.getName());
       }
       return;
     }
 
     private void unlock(final LockType lockType, final Id id) throws LockException {
-      System.err.println("Unlocking " + lockType + ":" + id + " on " + logFile.getName()
-        + " (" + logFile.getAbsolutePath() + ")");
-      if (id == null || id.isEmpty()) {
-        Thread.dumpStack();
+      if (lockType == LockType.READ) {
+        System.err.println("Unlocking " + lockType + ":" + id + " on "
+          + logFile.getName());
       }
       if (id == null) {
         LockException idNull = new LockException("id is null");
