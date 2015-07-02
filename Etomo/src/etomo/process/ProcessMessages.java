@@ -33,6 +33,7 @@ public class ProcessMessages {
   private static final String[] ERROR_TAGS =
     { ERROR_TAG, ALT_ERROR_TAG1, ALT_ERROR_TAG2 };
   public static final String WARNING_TAG = "WARNING:";
+  //public static final String WARNING_TAG = "Successfully finished";
   private static final String CHUNK_ERROR_TAG = "CHUNK ERROR:";
   private static final String PIP_WARNING_TAG = "PIP WARNING:";
   private static final String INFO_TAG = "INFO:";
@@ -173,7 +174,6 @@ public class ProcessMessages {
       errorTagsAlwaysMultiline = new boolean[] { false, false, true };
     }
     else {
-      System.out.println("G");
       errorTags = new String[] { ERROR_TAG, errorTag, ALT_ERROR_TAG1, ALT_ERROR_TAG2 };
       errorTagsAlwaysMultiline =
         new boolean[] { false, errorTagAlwaysMultiline, false, true };
@@ -363,7 +363,6 @@ public class ProcessMessages {
   }
 
   synchronized void add(final ListType type, final String input) {
-    System.out.println("A:input:" + input);
     if (type == null) {
       return;
     }
@@ -371,7 +370,7 @@ public class ProcessMessages {
       || manager == null
       || (logMessages && type == ListType.ERROR && errorOverrideLogTag != null
         && input != null && input.indexOf(errorOverrideLogTag) != -1)) {
-      System.out.println("B:input:" + input);
+      System.out.println("C:type:" + type + ",input:" + input);
       getList(type, true).add(input);
     }
     else {
@@ -1206,7 +1205,6 @@ public class ProcessMessages {
       listType = null;
       startIndex = -1;
       if (line == null) {
-        System.out.println("E");
         return;
       }
       // look for a message
@@ -1245,7 +1243,7 @@ public class ProcessMessages {
         startIndex = infoIndex;
       }
       if (listType != null) {
-        System.out.println("F:listType:" + listType + ",line:" + line);
+        System.out.println("B:listType:" + listType + ",line:" + line);
       }
     }
   }
