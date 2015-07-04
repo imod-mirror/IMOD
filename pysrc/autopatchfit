@@ -80,8 +80,9 @@ for lineInd in range(len(mowLines)):
    if 'matchorwarp' in line and '-StandardI' in line:
       stdInputLine = lineInd
       warpOpt = 'WarpLimits'
-   if stdInputLine >= 0 and extraTarget and line.startswith('WarpLimits'):
-      mowLines[lineInd] = mowLines[lineInd].replace(',' + extraTarget, '')
+   if stdInputLine >= 0 and line.startswith('WarpLimits'):
+      if extraTarget:
+         mowLines[lineInd] = mowLines[lineInd].replace(',' + extraTarget, '')
       warpLine = lineInd
    if stdInputLine < 0 and (not line.startswith('#')) and '-warplimit' in line:
       warpLine = lineInd
