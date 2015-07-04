@@ -242,7 +242,7 @@ tooltip =
 manpage = Binning or other reduction to apply to the trimmed, padded images.
 Ordinary binning is used unless the -antialias option is given.
 By default, a reduction will be selected that makes the maximum dimension of the
-trimmed, padded image be no more than 1180 pixels, up to a reduction of 4.
+trimmed, padded image be no more than 1250 pixels, up to a reduction of 4.
 Reduction will be increased above 4 only to the extent needed to make the image
 fit in the arrays.  This default behavior might result in more reduction
 than desired, and the reduction might change when the amount of trimming
@@ -284,11 +284,15 @@ image, which would be lost in Xftoxg(1).
 [Field = PadsInXandY]
 short = pad
 type = IP
-usage = Number of pixels to pad images in X and in Y
-tooltip = Padding in X, and in Y; the default is 5% of the image size up to 20
-pixels.
-manpage = Number of pixels to pad images in X and in Y.  The default is 5% of
-the image dimensions up to 20 pixels.
+usage = Number of pixels to pad images on each side in X and in Y
+tooltip = Padding on each side in X, and in Y; the default is 10% of the image size.
+manpage = Number of pixels to pad images on each side in X and in Y, before binning.
+With no padding, shifts greater than 50% of the image size will not be
+treated correctly.  Each 1% of padding allows proper treatment of shifts more than
+50% by an additional 2% of image size.
+The default is 5% of images dimensions for patch tracking or finding warping,
+or 10% for regular correlations, allowing shifts up to 70% of the image size
+to be determined.
 
 [Field = TapersInXandY]
 short = taper
