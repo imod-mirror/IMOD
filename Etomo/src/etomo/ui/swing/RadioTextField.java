@@ -2,7 +2,6 @@ package etomo.ui.swing;
 
 import java.awt.Container;
 import java.awt.Dimension;
-import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import javax.swing.BoxLayout;
@@ -75,6 +74,8 @@ final class RadioTextField implements RadioButtonInterface, Field {
 
   private boolean debug = false;
   private DirectiveDef directiveDef = null;
+  private boolean enabled = true;
+  private boolean editable = true;
 
   /**
    * Constructs local instance, adds listener, and returns.
@@ -85,17 +86,12 @@ final class RadioTextField implements RadioButtonInterface, Field {
    */
   static RadioTextField getInstance(final FieldType fieldType, final String label,
     final ButtonGroup group) {
-    RadioTextField radioTextField = new RadioTextField(fieldType, label, group, null);
-    radioTextField.addListeners();
-    return radioTextField;
+    return new RadioTextField(fieldType, label, group, null);
   }
 
   static RadioTextField getInstance(final FieldType fieldType, final String label,
     final ButtonGroup group, String locationDescr) {
-    RadioTextField radioTextField =
-      new RadioTextField(fieldType, label, group, locationDescr);
-    radioTextField.addListeners();
-    return radioTextField;
+    return new RadioTextField(fieldType, label, group, locationDescr);
   }
 
   private RadioTextField(final FieldType fieldType, final String label,
@@ -111,7 +107,7 @@ final class RadioTextField implements RadioButtonInterface, Field {
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.X_AXIS));
     rootPanel.add(radioButton.getComponent());
     rootPanel.add(textField.getComponent());
-    setTextFieldEnabled();
+    updateDisplay();
   }
 
   public boolean isText() {
@@ -174,16 +170,19 @@ final class RadioTextField implements RadioButtonInterface, Field {
   public void restoreFromBackup() {
     radioButton.restoreFromBackup();
     textField.restoreFromBackup();
+    updateDisplay();
   }
 
   public void clear() {
     radioButton.clear();
     textField.clear();
+    updateDisplay();
   }
 
   public void setValue(final Field input) {
     radioButton.setValue(input);
     textField.setValue(input);
+    updateDisplay();
   }
 
   public void setValue(final String value) {
@@ -192,6 +191,7 @@ final class RadioTextField implements RadioButtonInterface, Field {
 
   public void setValue(final boolean value) {
     radioButton.setValue(value);
+    updateDisplay();
   }
 
   void setDirectiveDef(final DirectiveDef directiveDef) {
@@ -201,14 +201,17 @@ final class RadioTextField implements RadioButtonInterface, Field {
   public void useDefaultValue() {
     radioButton.useDefaultValue();
     textField.useDefaultValue();
+    updateDisplay();
   }
 
   public boolean equalsDefaultValue() {
     return radioButton.equalsDefaultValue() && textField.equalsDefaultValue();
   }
+
   public boolean equalsDefaultValue(final String value) {
     return radioButton.equalsDefaultValue(value) && textField.equalsDefaultValue(value);
   }
+
   public DirectiveDef getDirectiveDef() {
     return directiveDef;
   }
@@ -336,17 +339,32 @@ final class RadioTextField implements RadioButtonInterface, Field {
     return text == null || text.matches("\\s*");
   }
 
-  void setEnabled(final boolean enable) {
-    radioButton.setEnabled(enable);
-    setTextFieldEnabled();
+  public void setEnabled(final boolean enabled) {
+    this.enabled = enabled;
+    // Only visually enabled if both enabled and editable
+    radioButton.setEnabled(enabled && editable);
+    updateDisplay();
+  }
+
+  private void updateDisplay() {
+    textField.setEnabled(enabled && radioButton.isSelected());
+  }
+
+  public void setEditable(final boolean editable) {
+    this.editable = editable;
+    // Editable has no visible effect if the button is disabled.
+    if (enabled) {
+      radioButton.setEnabled(editable);
+      textField.setEditable(editable);
+    }
   }
 
   public boolean isEnabled() {
-    return radioButton.isEnabled();
+    return enabled;
   }
 
   public void msgSelected() {
-    setTextFieldEnabled();
+    updateDisplay();
   }
 
   void setSelected(boolean selected) {
@@ -354,9 +372,10 @@ final class RadioTextField implements RadioButtonInterface, Field {
     if (debug) {
       System.out.println("RadioTextField:setSelected:selected:" + selected);
     }
+    updateDisplay();
   }
 
-  void setToolTipText(final String text) {
+  public void setToolTipText(final String text) {
     radioButton.setToolTipText(text);
     textField.setToolTipText(text);
   }
@@ -367,6 +386,18 @@ final class RadioTextField implements RadioButtonInterface, Field {
 
   void setTextFieldToolTipText(final String text) {
     textField.setToolTipText(text);
+  }
+  
+  public void setTooltip(final Field field) {
+    if (field != null) {
+      String tooltip = field.getTooltip();
+      radioButton.setPreformattedTooltip(tooltip);
+      textField.setPreformattedTooltip(tooltip);
+    }
+  }
+
+  public String getTooltip() {
+    return textField.getTooltip();
   }
 
   void addActionListener(ActionListener actionListener) {
@@ -384,41 +415,15 @@ final class RadioTextField implements RadioButtonInterface, Field {
     if (!radioButton.getName().endsWith(textField.getName().substring(2))) {
       return "Fields should have the same name, except for the prefix";
     }
-    if (!radioButton.isEnabled() && textField.isEnabled()) {
+    if (!enabled && textField.isEnabled()) {
       return "Fields should enable and disable together";
     }
     if (!radioButton.isSelected() && textField.isEnabled()) {
       return "Text field should be disabled when radio button is not selected";
     }
-    if (radioButton.isEnabled() && radioButton.isSelected() && !textField.isEnabled()) {
+    if (enabled && radioButton.isSelected() && !textField.isEnabled()) {
       return "text field should be enabled when radio button is selected";
     }
     return null;
-  }
-
-  private void setTextFieldEnabled() {
-    textField.setEnabled(radioButton.isEnabled() && radioButton.isSelected());
-  }
-
-  private void addListeners() {
-    radioButton.addActionListener(new RTFActionListener(this));
-  }
-
-  private void action(final ActionEvent actionEvent) {
-    if (actionEvent.getActionCommand().equals(radioButton.getActionCommand())) {
-      setTextFieldEnabled();
-    }
-  }
-
-  private static final class RTFActionListener implements ActionListener {
-    private final RadioTextField radioTextField;
-
-    private RTFActionListener(final RadioTextField radioTextField) {
-      this.radioTextField = radioTextField;
-    }
-
-    public void actionPerformed(final ActionEvent actionEvent) {
-      radioTextField.action(actionEvent);
-    }
   }
 }

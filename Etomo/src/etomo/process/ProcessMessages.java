@@ -11,12 +11,14 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
+import java.util.concurrent.ArrayBlockingQueue;
 
 import etomo.BaseManager;
 import etomo.storage.LogFile;
 
 /**
- * <p>Description: </p>
+ * <p>Description: Output reading that saves tagged messages.  Designed to be used on the
+ * complete log.</p>
  * 
  * <p>Copyright: Copyright 2005 - 2015 by the Regents of the University of Colorado</p>
  * <p/>
@@ -24,21 +26,33 @@ import etomo.storage.LogFile;
  *
  * @version $Id$
  */
-public final class ProcessMessages {
+public class ProcessMessages {
   private static final String ERROR_TAG = "ERROR:";
-  private static final String[] ERROR_TAGS = { ERROR_TAG, "Errno", "Traceback" };
-  private static final boolean[] ALWAYS_MULTI_LINE = { false, false, true };
+  private static final String ALT_ERROR_TAG1 = "Errno";
+  private static final String ALT_ERROR_TAG2 = "Traceback";
+  private static final String[] ERROR_TAGS =
+    { ERROR_TAG, ALT_ERROR_TAG1, ALT_ERROR_TAG2 };
   public static final String WARNING_TAG = "WARNING:";
+  //public static final String WARNING_TAG = "Successfully finished";
   private static final String CHUNK_ERROR_TAG = "CHUNK ERROR:";
   private static final String PIP_WARNING_TAG = "PIP WARNING:";
   private static final String INFO_TAG = "INFO:";
-  private static final String PIP_WARNING_END_TAG = "Using fallback options in main program";
+  private static final String PIP_WARNING_END_TAG =
+    "Using fallback options in main program";
   private static final int MAX_MESSAGE_SIZE = 10;
   private static final String[] IGNORE_TAG = { "prnstr('ERROR:", "log.write('ERROR:" };
   private static final String LOG_FILE_TAG = "LOGFILE:";
+  private static final String END_STRING_FEED_TOKEN =
+    "This the END of the String Feed!!!";
+  private static final int STRING_FEED_QUEUE_CAPACITY = 1000;
 
   private final boolean chunks;
   private final BaseManager manager;
+  private final boolean logMessages;
+  private final String errorOverrideLogTag;
+  private final String[] errorTags;
+  private final boolean[] errorTagsAlwaysMultiline;
+  private final Line currentLine = new Line();
 
   private OutputBufferManager outputBufferManager = null;
   private BufferedReader bufferedReader = null;
@@ -62,10 +76,14 @@ public final class ProcessMessages {
   private boolean multiLineInfo = false;
   private String messagePrependTag = null;
   private String messagePrepend = null;
+  // When set, a worker thread is spawned and nextLine() to wait for strings to be
+  // added to the queue. The instance of the queue should be received from
+  private ArrayBlockingQueue<String> stringFeed = null;
+  private Thread stringFeedThread = null;
 
   public void dumpState() {
     System.err.print("[chunks:" + chunks + ",processOutputString:" + processOutputString
-        + ",processOutputStringArray:");
+      + ",processOutputStringArray:");
     if (processOutputStringArray != null) {
       System.err.print("{");
       for (int i = 0; i < processOutputStringArray.length; i++) {
@@ -93,41 +111,55 @@ public final class ProcessMessages {
       System.err.println(chunkErrorList.toString());
     }
     System.err.print(",successTag1:" + successTag1 + ",successTag2:" + successTag2
-        + ",\nsuccess:" + success + ",multiLineMessages:" + multiLineAllMessages + "]");
+      + ",\nsuccess:" + success + ",multiLineMessages:" + multiLineAllMessages + "]");
   }
 
   static ProcessMessages getInstance(final BaseManager manager) {
-    return new ProcessMessages(manager, false, false, null, null, false, false);
+    return new ProcessMessages(manager, false, false, null, null, false, false, false,
+      null, null, false);
   }
 
   static ProcessMessages getInstance(final BaseManager manager, final String successTag) {
-    return new ProcessMessages(manager, false, false, successTag, null, false, false);
+    return new ProcessMessages(manager, false, false, successTag, null, false, false,
+      false, null, null, false);
   }
 
   static ProcessMessages getInstance(final BaseManager manager, final String successTag1,
-      String successTag2) {
+    String successTag2) {
     return new ProcessMessages(manager, false, false, successTag1, successTag2, false,
-        false);
+      false, false, null, null, false);
   }
 
   static ProcessMessages getMultiLineInstance(final BaseManager manager) {
-    return new ProcessMessages(manager, true, false, null, null, false, false);
+    return new ProcessMessages(manager, true, false, null, null, false, false, false,
+      null, null, false);
   }
 
   static ProcessMessages getInstanceForParallelProcessing(final BaseManager manager,
-      final boolean multiLineMessages) {
-    return new ProcessMessages(manager, multiLineMessages, true, null, null, false, false);
+    final boolean multiLineMessages) {
+    return new ProcessMessages(manager, multiLineMessages, true, null, null, false,
+      false, false, null, null, false);
+  }
+
+  static ProcessMessages
+    getLoggedInstance(final BaseManager manager, final boolean multiLineMessages,
+      final boolean logMessages, final String errorOverrideLogTag, final String errorTag,
+      final boolean alwaysMultiline) {
+    return new ProcessMessages(manager, multiLineMessages, true, null, null, false,
+      false, logMessages, errorOverrideLogTag, errorTag, alwaysMultiline);
   }
 
   static ProcessMessages getMultiLineInstance(final BaseManager manager,
-      final boolean multiLineWarning, final boolean multiLineInfo) {
+    final boolean multiLineWarning, final boolean multiLineInfo) {
     return new ProcessMessages(manager, false, false, null, null, multiLineWarning,
-        multiLineInfo);
+      multiLineInfo, false, null, null, false);
   }
 
   private ProcessMessages(final BaseManager manager, final boolean multiLineMessages,
-      final boolean chunks, final String successTag1, final String successTag2,
-      final boolean multiLineWarning, final boolean multiLineInfo) {
+    final boolean chunks, final String successTag1, final String successTag2,
+    final boolean multiLineWarning, final boolean multiLineInfo,
+    final boolean logMessages, final String errorOverrideLogTag, final String errorTag,
+    final boolean errorTagAlwaysMultiline) {
     this.multiLineAllMessages = multiLineMessages;
     this.multiLineWarning = multiLineWarning;
     this.multiLineInfo = multiLineInfo;
@@ -135,6 +167,59 @@ public final class ProcessMessages {
     this.successTag1 = successTag1;
     this.successTag2 = successTag2;
     this.manager = manager;
+    this.logMessages = logMessages;
+    this.errorOverrideLogTag = errorOverrideLogTag;
+    if (errorTag == null) {
+      errorTags = ERROR_TAGS;
+      errorTagsAlwaysMultiline = new boolean[] { false, false, true };
+    }
+    else {
+      errorTags = new String[] { ERROR_TAG, errorTag, ALT_ERROR_TAG1, ALT_ERROR_TAG2 };
+      errorTagsAlwaysMultiline =
+        new boolean[] { false, errorTagAlwaysMultiline, false, true };
+    }
+  }
+
+  void startStringFeed() {
+    if (stringFeed == null) {
+      synchronized (this) {
+        if (stringFeed == null) {
+          stringFeed = new ArrayBlockingQueue<String>(STRING_FEED_QUEUE_CAPACITY);
+        }
+      }
+    }
+    // Start string feed thread
+    if (stringFeedThread == null || !stringFeedThread.isAlive()) {
+      synchronized (this) {
+        if (stringFeedThread == null || !stringFeedThread.isAlive()) {
+          // Run parse() on a separate thread. NextLine will wait for stringFeed when no
+          // other input is available.
+          stringFeedThread = new Thread(new ParseThread());
+          stringFeedThread.start();
+        }
+      }
+    }
+  }
+
+  void stopStringFeed() {
+    feedString(END_STRING_FEED_TOKEN);
+  }
+
+  synchronized void feedString(final String string) {
+    if (stringFeed == null || stringFeedThread == null || !stringFeedThread.isAlive()) {
+      // If the string feed isn't operating, treat as a normal process output.
+      if (string != null && !string.equals(END_STRING_FEED_TOKEN)) {
+        addProcessOutput(string);
+      }
+    }
+    else {
+      try {
+        stringFeed.put(string);
+      }
+      catch (InterruptedException e) {
+        e.printStackTrace();
+      }
+    }
   }
 
   /**
@@ -189,7 +274,7 @@ public final class ProcessMessages {
    * @throws FileNotFoundException
    */
   synchronized void addProcessOutput(final File processOutput)
-      throws FileNotFoundException {
+    throws FileNotFoundException {
     // Open the file as a stream
     InputStream fileStream = new FileInputStream(processOutput);
     bufferedReader = new BufferedReader(new InputStreamReader(fileStream));
@@ -200,7 +285,7 @@ public final class ProcessMessages {
   }
 
   synchronized void addProcessOutput(final LogFile processOutput)
-      throws LogFile.LockException, FileNotFoundException {
+    throws LogFile.LockException, FileNotFoundException {
     // Open the log file
     logFile = processOutput;
     logFileReaderId = logFile.openReader();
@@ -236,90 +321,94 @@ public final class ProcessMessages {
   }
 
   synchronized void add(final ProcessMessages processMessages) {
-    addError(processMessages);
-    if (processMessages.warningList != null && processMessages.warningList.size() > 0) {
-      getWarningList().addAll(processMessages.warningList);
-    }
-    if (processMessages.infoList != null && processMessages.infoList.size() > 0) {
-      getInfoList().addAll(processMessages.infoList);
-    }
-    if (processMessages.chunkErrorList != null
-        && processMessages.chunkErrorList.size() > 0) {
-      getChunkErrorList().addAll(processMessages.chunkErrorList);
-    }
-  }
-
-  synchronized void addError(final String error) {
-    getErrorList().add(error);
-  }
-
-  synchronized void addError() {
-    getErrorList().add("");
-  }
-
-  synchronized void addWarning() {
-    getWarningList().add("");
-  }
-
-  synchronized void addError(final String[] errors) {
-    if (errors == null || errors.length == 0) {
+    if (processMessages == null) {
       return;
     }
-    for (int i = 0; i < errors.length; i++) {
-      getErrorList().add(errors[i]);
+    add(ListType.ERROR, processMessages.errorList);
+    add(ListType.WARNING, processMessages.warningList);
+    add(ListType.INFO, processMessages.infoList);
+    add(ListType.CHUNK_ERROR, processMessages.chunkErrorList);
+  }
+
+  synchronized void add(final ListType type, final ProcessMessages processMessages) {
+    add(type, processMessages.getList(type, false));
+  }
+
+  synchronized void add(final ListType type, final List<String> input) {
+    if (type == null || input == null || input.isEmpty()) {
+      return;
+    }
+    if (!logMessages || manager == null) {
+      if (logMessages && type == ListType.ERROR && errorOverrideLogTag != null) {
+        // For logging error messages, handle the log override tag
+        Iterator<String> iterator = input.iterator();
+        if (iterator != null) {
+          while (iterator.hasNext()) {
+            add(type, iterator.next());
+          }
+        }
+      }
+      else {
+        getList(type, true).addAll(input);
+      }
+    }
+    else {
+      Iterator<String> iterator = input.iterator();
+      if (iterator != null) {
+        while (iterator.hasNext()) {
+          manager.logSimpleMessage(iterator.next());
+        }
+      }
     }
   }
 
-  synchronized void addError(final ProcessMessages processMessages) {
-    if (processMessages.errorList != null && processMessages.errorList.size() > 0) {
-      getErrorList().addAll(processMessages.getErrorList());
+  synchronized void add(final ListType type, final String input) {
+    if (type == null) {
+      return;
+    }
+    if (!logMessages
+      || manager == null
+      || (logMessages && type == ListType.ERROR && errorOverrideLogTag != null
+        && input != null && input.indexOf(errorOverrideLogTag) != -1)) {
+      getList(type, true).add(input);
+    }
+    else {
+      manager.logSimpleMessage(input);
     }
   }
 
-  synchronized void addWarning(final String warning) {
-    getWarningList().add(warning);
+  synchronized void add(final ListType type) {
+    if (type == null) {
+      return;
+    }
+    if (!logMessages || manager == null) {
+      getList(type, true).add("");
+    }
   }
 
-  public int errorListSize() {
-    if (errorList == null) {
+  synchronized void add(final ListType type, final String[] input) {
+    if (type == null || input == null || input.length == 0) {
+      return;
+    }
+    for (int i = 0; i < input.length; i++) {
+      add(type, input[i]);
+    }
+  }
+
+  public int size(final ListType type) {
+    List<String> list = getList(type, false);
+    if (list == null) {
       return 0;
     }
-    return errorList.size();
+    return list.size();
   }
 
-  public int warningListSize() {
-    if (warningList == null) {
-      return 0;
-    }
-    return warningList.size();
-  }
-
-  int infoListSize() {
-    if (infoList == null) {
-      return 0;
-    }
-    return infoList.size();
-  }
-
-  public String getError(final int errorIndex) {
-    if (errorList == null || errorIndex < 0 || errorIndex >= errorList.size()) {
+  public String get(final ListType type, final int index) {
+    List<String> list = getList(type, false);
+    if (list == null || index < 0 || index >= list.size()) {
       return null;
     }
-    return errorList.get(errorIndex);
-  }
-
-  public String getWarning(final int warningIndex) {
-    if (warningList == null || warningIndex < 0 || warningIndex >= warningList.size()) {
-      return null;
-    }
-    return warningList.get(warningIndex);
-  }
-
-  public String getInfo(final int infoIndex) {
-    if (infoList == null || infoIndex < 0 || infoIndex >= infoList.size()) {
-      return null;
-    }
-    return infoList.get(infoIndex);
+    return list.get(index);
   }
 
   /**
@@ -327,12 +416,12 @@ public final class ProcessMessages {
    * @param matchString
    * @return
    */
-  public ArrayList<String> getInfoList(final String[] matchStringArray) {
-    if (!isInfo()) {
+  public ArrayList<String> match(final ListType type, final String[] matchStringArray) {
+    if (isEmpty(type)) {
       return null;
     }
     ArrayList<String> matches = new ArrayList<String>();
-    Iterator<String> i = infoList.iterator();
+    Iterator<String> i = getList(type, false).iterator();
     while (i.hasNext()) {
       String message = i.next();
       for (int j = 0; j < matchStringArray.length; j++) {
@@ -348,62 +437,45 @@ public final class ProcessMessages {
     return null;
   }
 
-  public String getLastChunkError() {
-    if (chunkErrorList == null || chunkErrorList.size() == 0) {
+  public String getLast(final ListType type) {
+    if (type == null) {
       return null;
     }
-    return chunkErrorList.get(chunkErrorList.size() - 1);
-  }
-
-  public String getLastWarning() {
-    if (warningList == null || warningList.size() == 0) {
+    List<String> list = getList(type, false);
+    if (list == null || list.size() == 0) {
       return null;
     }
-    return warningList.get(warningList.size() - 1);
+    return list.get(list.size() - 1);
   }
 
   final void print() {
-    printError();
-    printWarning();
-    printInfo();
+    print(ListType.ERROR);
+    print(ListType.WARNING);
+    print(ListType.INFO);
   }
 
-  boolean isError() {
-    return errorList != null && errorList.size() > 0;
-  }
-
-  public boolean isInfo() {
-    return infoList != null && infoList.size() > 0;
+  public boolean isEmpty(final ListType type) {
+    if (type == null) {
+      return false;
+    }
+    List<String> list = getList(type, false);
+    return list == null || list.isEmpty();
   }
 
   boolean isSuccess() {
     return success;
   }
 
-  public void printError() {
-    if (errorList == null) {
+  public void print(final ListType type) {
+    if (type == null) {
       return;
     }
-    for (int i = 0; i < errorList.size(); i++) {
-      System.err.println(errorList.get(i));
-    }
-  }
-
-  public void printWarning() {
-    if (warningList == null) {
+    List<String> list = getList(type, false);
+    if (list == null) {
       return;
     }
-    for (int i = 0; i < warningList.size(); i++) {
-      System.err.println(warningList.get(i));
-    }
-  }
-
-  private void printInfo() {
-    if (infoList == null) {
-      return;
-    }
-    for (int i = 0; i < infoList.size(); i++) {
-      System.err.println(infoList.get(i));
+    for (int i = 0; i < list.size(); i++) {
+      System.err.println(list.get(i));
     }
   }
 
@@ -452,7 +524,7 @@ public final class ProcessMessages {
    */
   private void parseMessagePrepend() {
     if (line != null && messagePrependTag != null
-        && line.indexOf(messagePrependTag) != -1) {
+      && line.indexOf(messagePrependTag) != -1) {
       messagePrepend = line;
     }
   }
@@ -564,12 +636,12 @@ public final class ProcessMessages {
           pipWarning.append(" " + line);
           nextLine();
         }
-        getInfoList().add(pipWarning.toString());
+        add(ListType.INFO, pipWarning.toString());
         return true;
       }
     }
     // no more lines - add pip warning to infoList
-    getInfoList().add(pipWarning.toString());
+    add(ListType.INFO, pipWarning.toString());
     return true;
   }
 
@@ -588,11 +660,12 @@ public final class ProcessMessages {
     }
     int logFileIndex = line.indexOf(LOG_FILE_TAG);
     if (logFileIndex != -1) {
-      File file = new File(manager.getPropertyUserDir(), line.substring(
+      File file =
+        new File(manager.getPropertyUserDir(), line.substring(
           logFileIndex + LOG_FILE_TAG.length()).trim());
       if (file.exists() && file.isFile() && file.canRead()) {
         if (manager != null) {
-          manager.logMessage(file);
+          manager.logSimpleMessage(file);
         }
         else {
           System.err.println(LOG_FILE_TAG + " " + file.getAbsolutePath());
@@ -625,8 +698,8 @@ public final class ProcessMessages {
     // look for a message
     int errorIndex = -1;
     int errorTagIndex = -1;
-    for (int i = 0; i < ERROR_TAGS.length; i++) {
-      errorIndex = line.indexOf(ERROR_TAGS[i]);
+    for (int i = 0; i < errorTags.length; i++) {
+      errorIndex = line.indexOf(errorTags[i]);
       errorTagIndex = i;
       if (errorIndex != -1) {
         break;
@@ -643,7 +716,8 @@ public final class ProcessMessages {
       }
     }
     // Switch to multi-line error parsing if this error is always a multi-line error.
-    if (errorIndex != -1 && errorTagIndex != -1 && ALWAYS_MULTI_LINE[errorTagIndex]) {
+    if (errorIndex != -1 && errorTagIndex != -1
+      && errorTagsAlwaysMultiline[errorTagIndex]) {
       return parseMultiLineMessage();
     }
     int chunkErrorIndex = line.indexOf(CHUNK_ERROR_TAG);
@@ -656,8 +730,8 @@ public final class ProcessMessages {
       return parseMultiLineMessage();
     }
     // error is true if ERROR: found, but not CHUNK ERROR:
-    boolean error = errorIndex != -1 && errorTagIndex != -1
-        && !(chunks && chunkErrorIndex != -1);
+    boolean error =
+      errorIndex != -1 && errorTagIndex != -1 && !(chunks && chunkErrorIndex != -1);
     boolean warning = warningIndex != -1;
     boolean info = infoIndex != -1;
     if (!error && !warning && !info) {
@@ -671,14 +745,14 @@ public final class ProcessMessages {
     }
     buffer.append(line);
     if (error) {
-      addElement(getErrorList(), buffer.toString(), errorIndex,
-          ERROR_TAGS[errorTagIndex].length());
+      addElement(ListType.ERROR, buffer.toString(), errorIndex,
+        errorTags[errorTagIndex].length());
     }
     else if (warning) {
-      addElement(getWarningList(), buffer.toString(), warningIndex, WARNING_TAG.length());
+      addElement(ListType.WARNING, buffer.toString(), warningIndex, WARNING_TAG.length());
     }
     else if (info) {
-      addElement(getInfoList(), buffer.toString(), infoIndex, INFO_TAG.length());
+      addElement(ListType.INFO, buffer.toString(), infoIndex, INFO_TAG.length());
     }
     nextLine();
     return true;
@@ -705,10 +779,10 @@ public final class ProcessMessages {
       // Errors may be added to the chunk error line. They are errors associated with the
       // chunk and should not be treated as process errors, so put them on separate lines
       // but keep them with the chunk error.
-      int errorIndex = line
-          .indexOf(ERROR_TAG, chunkErrorIndex + CHUNK_ERROR_TAG.length());
+      int errorIndex =
+        line.indexOf(ERROR_TAG, chunkErrorIndex + CHUNK_ERROR_TAG.length());
       if (errorIndex == -1) {
-        addElement(getChunkErrorList(), line, chunkErrorIndex, CHUNK_ERROR_TAG.length());
+        addElement(ListType.CHUNK_ERROR, line, chunkErrorIndex, CHUNK_ERROR_TAG.length());
       }
       else {
         StringBuffer buffer = new StringBuffer();
@@ -727,8 +801,8 @@ public final class ProcessMessages {
           }
           errorIndex = nextErrorIndex;
         }
-        addElement(getChunkErrorList(), buffer.toString(), chunkErrorIndex,
-            CHUNK_ERROR_TAG.length());
+        addElement(ListType.CHUNK_ERROR, buffer.toString(), chunkErrorIndex,
+          CHUNK_ERROR_TAG.length());
       }
     }
     nextLine();
@@ -754,38 +828,8 @@ public final class ProcessMessages {
    * @return true if a message is found
    */
   private boolean parseMultiLineMessage() {
-    if (line == null) {
+    if (currentLine.listType == null || currentLine.listType == ListType.CHUNK_ERROR) {
       return false;
-    }
-    // look for a message
-    int errorIndex = getErrorIndex(line);
-    if (errorIndex != -1) {
-      for (int i = 0; i < IGNORE_TAG.length; i++) {
-        if (line.indexOf(IGNORE_TAG[i]) != -1) {
-          errorIndex = -1;
-        }
-      }
-    }
-    int chunkErrorIndex = line.indexOf(CHUNK_ERROR_TAG);
-    int warningIndex = line.indexOf(WARNING_TAG);
-    int infoIndex = line.indexOf(INFO_TAG);
-    // error is true if ERROR: found, but not CHUNK ERROR:
-    boolean error = errorIndex != -1 && !(chunks && chunkErrorIndex != -1);
-    boolean warning = warningIndex != -1;
-    boolean info = infoIndex != -1;
-    if (!error && !warning && !info) {
-      return false;
-    }
-    // set the index of the message tag
-    int messageIndex = -1;
-    if (error) {
-      messageIndex = errorIndex;
-    }
-    else if (warning) {
-      messageIndex = warningIndex;
-    }
-    else if (info) {
-      messageIndex = infoIndex;
     }
     // create the message starting from the message tag
     StringBuffer messageBuffer = new StringBuffer();
@@ -793,33 +837,23 @@ public final class ProcessMessages {
       messageBuffer.append(messagePrepend + "\n");
       messagePrepend = null;
     }
-    if (messageIndex > 0) {
-      messageBuffer.append(line.substring(messageIndex));
-    }
-    else {
-      messageBuffer.append(line);
-    }
+    messageBuffer.append(currentLine.fromStart());
+    ListType messageListType = currentLine.listType;
+    // Get next currentLine
     boolean moreLines = nextLine();
     int count = 0;
     while (moreLines) {
-      if (line.length() == 0 || count > MAX_MESSAGE_SIZE) {
+      // End the multiline messages with a blank line or a new message
+      if (currentLine.isEmpty() || currentLine.listType != null
+        || count > MAX_MESSAGE_SIZE) {
         // end of message or message is too big - add message in a list
         messageBuffer.append("\n");
         String message = messageBuffer.toString();
-        if (error) {
-          getErrorList().add(message);
-        }
-        else if (warning) {
-          getWarningList().add(message);
-        }
-        else if (info) {
-          getInfoList().add(message);
-        }
-        nextLine();
+        add(messageListType, message);
         return true;
       }
       else {// add current line to the message
-        messageBuffer.append("\n" + line);
+        messageBuffer.append("\n" + currentLine.line);
         moreLines = nextLine();
         count++;
       }
@@ -827,15 +861,7 @@ public final class ProcessMessages {
     // no more lines - add message to list
     messageBuffer.append("\n");
     String message = messageBuffer.toString();
-    if (error) {
-      getErrorList().add(message);
-    }
-    else if (warning) {
-      getWarningList().add(message);
-    }
-    else if (info) {
-      getInfoList().add(message);
-    }
+    add(messageListType, message);
     return true;
   }
 
@@ -881,7 +907,7 @@ public final class ProcessMessages {
         messageBuffer.append("\n");
         String message = messageBuffer.toString();
         if (chunkError) {
-          getChunkErrorList().add(message);
+          add(ListType.CHUNK_ERROR, message);
         }
         nextLine();
         return true;
@@ -896,7 +922,7 @@ public final class ProcessMessages {
     messageBuffer.append("\n");
     String message = messageBuffer.toString();
     if (chunkError) {
-      getChunkErrorList().add(message);
+      add(ListType.CHUNK_ERROR, message);
     }
     return true;
   }
@@ -907,6 +933,24 @@ public final class ProcessMessages {
    * @return
    */
   private boolean nextLine() {
+    // String feed thread - do NOT wait for a string, except on the string feed thread.
+    if (stringFeed != null && Thread.currentThread().equals(stringFeedThread)) {
+      // This is the string feed thread - wait for a string
+      try {
+        line = stringFeed.take();
+        currentLine.load(line);
+        // If the end token is found, false will be returned, parse() will end, and the
+        // stringFeedThread will end.
+        if (line.equals(END_STRING_FEED_TOKEN)) {
+          return false;
+        }
+        return true;
+      }
+      catch (InterruptedException e) {
+        e.printStackTrace();
+      }
+      return false;
+    }
     boolean retval = false;
     if (outputBufferManager != null) {
       retval = nextOutputBufferManagerLine();
@@ -941,9 +985,11 @@ public final class ProcessMessages {
       index = -1;
       outputBufferManager = null;
       line = null;
+      currentLine.reset();
       return false;
     }
     line = outputBufferManager.get(index).trim();
+    currentLine.load(line);
     return true;
   }
 
@@ -960,9 +1006,11 @@ public final class ProcessMessages {
       index = -1;
       processOutputStringArray = null;
       line = null;
+      currentLine.reset();
       return false;
     }
     line = processOutputStringArray[index].trim();
+    currentLine.load(line);
     return true;
   }
 
@@ -977,14 +1025,19 @@ public final class ProcessMessages {
   private boolean nextBufferedReaderLine() {
     try {
       if ((line = bufferedReader.readLine()) == null) {
+        currentLine.reset();
         bufferedReader = null;
         return false;
+      }
+      else {
+        currentLine.load(line);
       }
     }
     catch (IOException e) {
       e.printStackTrace();
       bufferedReader = null;
       line = null;
+      currentLine.reset();
       return false;
     }
     return true;
@@ -993,10 +1046,14 @@ public final class ProcessMessages {
   private boolean nextLogFileLine() {
     try {
       if ((line = logFile.readLine(logFileReaderId)) == null) {
+        currentLine.reset();
         logFile.closeRead(logFileReaderId);
         logFile = null;
         logFileReaderId = null;
         return false;
+      }
+      else {
+        currentLine.load(line);
       }
     }
     catch (LogFile.LockException e) {
@@ -1005,6 +1062,7 @@ public final class ProcessMessages {
       logFile = null;
       logFileReaderId = null;
       line = null;
+      currentLine.reset();
       return false;
     }
     catch (IOException e) {
@@ -1013,6 +1071,7 @@ public final class ProcessMessages {
       logFile = null;
       logFileReaderId = null;
       line = null;
+      currentLine.reset();
       return false;
     }
     return true;
@@ -1024,8 +1083,9 @@ public final class ProcessMessages {
    * @param line
    * @param startIndex
    */
-  private void addElement(final List<String> list, final String line,
-      final int startIndex, final int tagSize) {
+  private void addElement(final ListType type, final String line, final int startIndex,
+    final int tagSize) {
+    List<String> list = getList(type, true);
     if (startIndex + tagSize < line.length()) {
       if (startIndex > 0) {
         list.add(line.substring(startIndex));
@@ -1036,48 +1096,32 @@ public final class ProcessMessages {
     }
   }
 
-  /**
-   * Returns errorList.  Never returns null.  
-   * @return
-   */
-  private List<String> getErrorList() {
-    if (errorList == null) {
-      errorList = new Vector<String>();
+  private List<String> getList(final ListType type, final boolean create) {
+    if (type == ListType.CHUNK_ERROR) {
+      if (create && chunkErrorList == null) {
+        chunkErrorList = new Vector<String>();
+      }
+      return chunkErrorList;
     }
-    return errorList;
-  }
-
-  /**
-   * Returns warningList.  Never returns null.  
-   * @return
-   */
-  private List<String> getWarningList() {
-    if (warningList == null) {
-      warningList = new Vector<String>();
+    if (type == ListType.ERROR) {
+      if (create && errorList == null) {
+        errorList = new Vector<String>();
+      }
+      return errorList;
     }
-    return warningList;
-  }
-
-  /**
-   * Returns infoList.  Never returns null.  
-   * @return
-   */
-  private List<String> getInfoList() {
-    if (infoList == null) {
-      infoList = new Vector<String>();
+    if (type == ListType.INFO) {
+      if (create && infoList == null) {
+        infoList = new Vector<String>();
+      }
+      return infoList;
     }
-    return infoList;
-  }
-
-  /**
-   * Returns chunkErrorList.  Never returns null.  
-   * @return
-   */
-  private List<String> getChunkErrorList() {
-    if (chunkErrorList == null) {
-      chunkErrorList = new Vector<String>();
+    if (type == ListType.WARNING) {
+      if (create && warningList == null) {
+        warningList = new Vector<String>();
+      }
+      return warningList;
     }
-    return chunkErrorList;
+    return null;
   }
 
   public String toString() {
@@ -1103,6 +1147,101 @@ public final class ProcessMessages {
       }
     }
     return buffer.toString();
+  }
+
+  private class ParseThread implements Runnable {
+    public void run() {
+      nextLine();
+      while (line == null || !line.equals(END_STRING_FEED_TOKEN)) {
+        parse();
+      }
+    }
+  }
+
+  public static final class ListType {
+    static final ListType CHUNK_ERROR = new ListType("ChunkError");
+    public static final ListType ERROR = new ListType("Error");
+    public static final ListType INFO = new ListType("Info");
+    public static final ListType WARNING = new ListType("Warning");
+
+    private final String tag;
+
+    private ListType(final String tag) {
+      this.tag = tag;
+    }
+
+    public String toString() {
+      return tag;
+    }
+  }
+
+  private final class Line {
+    private String line = null;
+    private ListType listType = null;
+    private int startIndex = -1;
+
+    Line() {}
+
+    private void reset() {
+      line = null;
+      listType = null;
+      startIndex = -1;
+    }
+
+    String fromStart() {
+      if (line == null || line.isEmpty() || startIndex <= 0) {
+        return line;
+      }
+      return line.substring(startIndex);
+    }
+
+    boolean isEmpty() {
+      return line == null || line.isEmpty();
+    }
+
+    private void load(final String line) {
+      this.line = line;
+      listType = null;
+      startIndex = -1;
+      if (line == null) {
+        return;
+      }
+      // look for a message
+      int errorIndex = -1;
+      for (int j = 0; j < errorTags.length; j++) {
+        errorIndex = line.indexOf(errorTags[j]);
+        if (errorIndex != -1) {
+          break;
+        }
+      }
+      if (errorIndex != -1) {
+        for (int i = 0; i < IGNORE_TAG.length; i++) {
+          if (line.indexOf(IGNORE_TAG[i]) != -1) {
+            errorIndex = -1;
+          }
+        }
+      }
+      int chunkErrorIndex = line.indexOf(CHUNK_ERROR_TAG);
+      int warningIndex = line.indexOf(WARNING_TAG);
+      int infoIndex = line.indexOf(INFO_TAG);
+      // error is true if ERROR: found, but not CHUNK ERROR:
+      if (chunks && chunkErrorIndex != -1) {
+        listType = ListType.CHUNK_ERROR;
+        startIndex = chunkErrorIndex;
+      }
+      else if (errorIndex != -1) {
+        listType = ListType.ERROR;
+        startIndex = errorIndex;
+      }
+      else if (warningIndex != -1) {
+        listType = ListType.WARNING;
+        startIndex = warningIndex;
+      }
+      else if (infoIndex != -1) {
+        listType = ListType.INFO;
+        startIndex = infoIndex;
+      }
+    }
   }
 }
 /**

@@ -110,7 +110,8 @@ import etomo.type.ProcessEndState;
 import etomo.util.Utilities;
 
 public final class ProgressPanel {
-  public static final String rcsid = "$Id$";
+  public static final String rcsid =
+    "$Id$";
 
   public static final String NAME = "the-progress-bar";
   public static final String LABEL_NAME = NAME + "-label";
@@ -217,6 +218,8 @@ public final class ProgressPanel {
   }
 
   void stop(ProcessEndState state, final String statusString) {
+    System.out.println("A:state:" + state + ",statusString:" + statusString);
+    Thread.dumpStack();
     stopped = true;
     counter = 0;
     if (state == null) {
@@ -274,11 +277,16 @@ public final class ProgressPanel {
       }
       setProgressBarValue();
       // Put the elapsed time into the progress bar string
-      getProgressBar()
-          .setString(
-              "Elapsed time: "
-                  + Utilities.millisToMinAndSecs(System.currentTimeMillis()
-                      - getStartTime()));
+      if (barString == null) {
+        getProgressBar().setString(
+          "Elapsed time: "
+            + Utilities.millisToMinAndSecs(System.currentTimeMillis() - getStartTime()));
+      }
+      else {
+        getProgressBar().setString(
+          barString + ": "
+            + Utilities.millisToMinAndSecs(System.currentTimeMillis() - getStartTime()));
+      }
       validate();
       repaint();
       incrementCounter();
@@ -323,9 +331,22 @@ public final class ProgressPanel {
     SwingUtilities.invokeLater(new SetValueLater());
   }
 
+  void setBarString(final String barString) {
+    this.barString = barString;
+    if (stopped) {
+      SwingUtilities.invokeLater(new SetBarStringLater());
+    }
+  }
+
   private final class SetValueLater implements Runnable {
     public void run() {
       setProgressBarValue();
+    }
+  }
+
+  private final class SetBarStringLater implements Runnable {
+    public void run() {
+      setProgressBarString();
     }
   }
 

@@ -231,7 +231,7 @@ public final class ReconnectProcess implements SystemProcessInterface, Runnable 
       e.printStackTrace();
     }
     int exitValue = 0;
-    if (messages.isError() || !messages.isSuccess()) {
+    if (!messages.isEmpty(ProcessMessages.ListType.ERROR) || !messages.isSuccess()) {
       exitValue = 1;
     }
     processManager.msgReconnectDone(this, exitValue, popupChunkWarnings);

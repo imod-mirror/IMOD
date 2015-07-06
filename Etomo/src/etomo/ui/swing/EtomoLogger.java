@@ -57,7 +57,7 @@ final class EtomoLogger {
     }
     try {
       SwingUtilities.invokeLater(new AppendLater(Utilities.getDateTimeStamp(), loggable
-        .getName() + " - " + axisID + " axis:", loggable.getLogMessage()));
+        .getName(), loggable.getLogMessage(), axisID));
     }
     catch (LogFile.LockException e) {
       e.printStackTrace();
@@ -72,70 +72,100 @@ final class EtomoLogger {
   }
 
   public void logMessage(String title, AxisID axisID, String[] message) {
-    SwingUtilities.invokeLater(new AppendLater(Utilities.getDateTimeStamp(), title
-      + " - " + axisID + " axis:", message));
+    SwingUtilities.invokeLater(new AppendLater(Utilities.getDateTimeStamp(), title,
+      message));
   }
 
   public void logMessage(String title, AxisID axisID, ArrayList<String> message) {
-    SwingUtilities.invokeLater(new AppendLater(Utilities.getDateTimeStamp(), title
-      + " - " + axisID + " axis:", message));
+    SwingUtilities.invokeLater(new AppendLater(Utilities.getDateTimeStamp(), title,
+      message, axisID));
   }
 
   public void logMessage(final AxisID axisID, final ArrayList<String> message) {
-    SwingUtilities.invokeLater(new AppendLater(Utilities.getDateTimeStamp(), axisID
-      + " axis:", message));
+    SwingUtilities.invokeLater(new AppendLater(Utilities.getDateTimeStamp(), message,
+      axisID));
   }
 
   public void logMessage(final String title, final AxisID axisID) {
-    SwingUtilities.invokeLater(new AppendLater(Utilities.getDateTimeStamp(), title
-      + " - " + axisID + " axis:"));
+    SwingUtilities.invokeLater(new AppendLater(Utilities.getDateTimeStamp(), title,
+      axisID));
   }
 
   public void logMessage(final String message) {
-    SwingUtilities.invokeLater(new AppendLater(message));
+    SwingUtilities.invokeLater(new AppendLater(Utilities.getDateTimeStamp(), message));
+  }
+
+  public void logMessage(final String message, final boolean timestamp,
+    final boolean newline) {
+    SwingUtilities.invokeLater(new AppendLater((timestamp ? Utilities.getDateTimeStamp()
+      : null), message, newline));
   }
 
   public void logMessage(final File file) {
     SwingUtilities.invokeLater(new AppendLater(file));
   }
 
+  public void logMessage(final File file, final boolean newline) {
+    SwingUtilities.invokeLater(new AppendLater(file, newline));
+  }
+
   private final class AppendLater implements Runnable {
     boolean loadingFromFile = false;
+    private String timestamp = null;
     private String line1 = null;
     private String line2 = null;
-    private String line3 = null;
     private String[] stringArray = null;
     private ArrayList<String> lineList = null;
     private File file = null;
+    private AxisID axisID = null;
+    private boolean newline = true;// prevents excessive empty lines
 
-    private AppendLater(String line1) {
+    private AppendLater(final String timestamp, final String line1, final boolean newline) {
+      this.timestamp = timestamp;
+      this.line1 = line1;
+      this.newline = newline;
+    }
+
+    private AppendLater(final String timestamp, final String line1) {
+      this.timestamp = timestamp;
       this.line1 = line1;
     }
 
-    private AppendLater(String line1, String line2) {
+    private AppendLater(final String timestamp, final String line1, final AxisID axisID) {
+      this.timestamp = timestamp;
+      this.line1 = line1;
+      this.axisID = axisID;
+    }
+
+    private AppendLater(final String timestamp, final String line1, final String line2) {
+      this.timestamp = timestamp;
       this.line1 = line1;
       this.line2 = line2;
     }
 
-    private AppendLater(String line1, String line2, String line3) {
+    private AppendLater(final String timestamp, final String line1,
+      final String[] stringArray) {
+      this.timestamp = timestamp;
       this.line1 = line1;
-      this.line2 = line2;
-      this.line3 = line3;
-    }
-
-    private AppendLater(String line1, String line2, String[] stringArray) {
-      this.line1 = line1;
-      this.line2 = line2;
       this.stringArray = stringArray;
     }
 
-    private AppendLater(String line1, String line2, ArrayList<String> lineList) {
-      this.line1 = line1;
-      this.line2 = line2;
+    private AppendLater(final String timestamp, final ArrayList<String> lineList,
+      final AxisID axisID) {
+      this.timestamp = timestamp;
       this.lineList = lineList;
+      this.axisID = axisID;
     }
 
-    private AppendLater(boolean loadingFromFile, ArrayList<String> lineList) {
+    private AppendLater(final String timestamp, final String line1,
+      final ArrayList<String> lineList, final AxisID axisID) {
+      this.timestamp = timestamp;
+      this.line1 = line1;
+      this.lineList = lineList;
+      this.axisID = axisID;
+    }
+
+    private AppendLater(final boolean loadingFromFile, final ArrayList<String> lineList) {
       this.loadingFromFile = loadingFromFile;
       this.lineList = lineList;
     }
@@ -144,47 +174,57 @@ final class EtomoLogger {
       this.file = file;
     }
 
+    private AppendLater(final File file, final boolean newline) {
+      this.file = file;
+      this.newline = newline;
+    }
+
     /**
      * Append lines and lineList to textArea.
      */
     public void run() {
-      newLine();
+      if (newline) {
+        newLine(null);
+      }
       if (line1 != null) {
-        newLine();
-        logInterface.append(line1);
+        logInterface.append(line1 + (timestamp != null ? " - " + timestamp : ""));
+        newLine(line1);
+      }
+      else if (timestamp != null) {
+        logInterface.append(timestamp);
       }
       if (line2 != null) {
-        newLine();
         logInterface.append(line2);
-      }
-      if (line3 != null) {
-        newLine();
-        logInterface.append(line3);
+        newLine(line2);
       }
       if (stringArray != null) {
         for (int i = 0; i < stringArray.length; i++) {
-          newLine();
-          logInterface.append((String) stringArray[i]);
+          if (stringArray[i] != null) {
+            logInterface.append((String) stringArray[i]);
+            newLine(stringArray[i]);
+          }
         }
       }
       if (lineList != null) {
         int len = lineList.size();
         for (int i = 0; i < len; i++) {
-          newLine();
-          logInterface.append(lineList.get(i));
+          String line = lineList.get(i);
+          if (line != null) {
+            logInterface.append(line);
+            newLine(line);
+          }
         }
       }
       if (file != null && file.exists() && file.isFile() && file.canRead()) {
-        newLine();
         logInterface.append("Logging from file: " + file.getAbsolutePath());
-        newLine();
+        newLine(null);
         try {
           LogFile logFile = LogFile.getInstance(file);
           LogFile.ReaderId id = logFile.openReader();
           String line = null;
           while ((line = logFile.readLine(id)) != null) {
             logInterface.append(line);
-            newLine();
+            newLine(line);
           }
         }
         catch (LogFile.LockException e) {
@@ -203,17 +243,22 @@ final class EtomoLogger {
       if (!loadingFromFile) {
         logInterface.msgChanged();
       }
+      if (axisID == AxisID.FIRST || axisID == AxisID.SECOND) {
+        logInterface.append(axisID + " axis");
+        newLine(null);
+      }
     }
 
     /**
      * Appends a newline character if the last line in the text area is not empty
-     *
+     * Put a null in previousLine to force a new line.
      */
-    private void newLine() {
+    private void newLine(final String previousLine) {
       try {
         // messages should be alone on a line
         int lastLineEndOffset = logInterface.getLineEndOffset();
-        if (lastLineEndOffset != 0) {
+        if (lastLineEndOffset != 0
+          && (previousLine == null || !previousLine.endsWith("\n"))) {
           logInterface.append("\n");
         }
       }

@@ -787,6 +787,16 @@ public abstract class BaseProcessManager {
       processMonitor, axisID);
   }
 
+  final ComScriptProcess startOutfileComScript(final String commandString,
+    final OutfileProcessMonitor monitor, final AxisID axisID, final Command command,
+    final FileType fileType) throws SystemProcessException {
+    OutfileComScriptProcess process =
+      new OutfileComScriptProcess(manager, commandString, this, axisID, monitor, command,
+        fileType);
+    monitor.setProcess(process);
+    return startComScript(process, commandString, monitor, axisID);
+  }
+
   /**
    * Start a managed command script for the specified axis
    * @param command
@@ -1141,10 +1151,8 @@ public abstract class BaseProcessManager {
     }
   }
 
-  /*
-   * public final ProcessData getSavedProcessData(final AxisID axisID) { if (axisID ==
-   * AxisID.SECOND) { return savedProcessDataB; } return savedProcessDataA; }
-   */
+  /* public final ProcessData getSavedProcessData(final AxisID axisID) { if (axisID ==
+   * AxisID.SECOND) { return savedProcessDataB; } return savedProcessDataA; } */
 
   private void saveProcessData(final ProcessData processData) {
     try {
@@ -1192,11 +1200,9 @@ public abstract class BaseProcessManager {
     }
   }*/
 
-  /*
-   * public final SystemProcessInterface getThread(final AxisID axisID) {
+  /* public final SystemProcessInterface getThread(final AxisID axisID) {
    * SystemProcessInterface thread = null; if (axisID == AxisID.SECOND) { thread =
-   * threadAxisB; } else { thread = threadAxisA; } return thread; }
-   */
+   * threadAxisB; } else { thread = threadAxisA; } return thread; } */
 
   public final ProcessData getProcessData(final AxisID axisID) {
     SystemProcessInterface thread = axisProcessData.getThread(axisID);
@@ -1382,6 +1388,41 @@ public abstract class BaseProcessManager {
     System.err.println();
   }
 
+  public final void msgComScriptDone(final OutfileComScriptProcess process,
+    final int exitValue, final boolean nonBlocking) {
+    ProcessEndState endState = process.getProcessEndState();
+    boolean failed =
+      exitValue != 0 || (endState != null && endState != ProcessEndState.DONE);
+    if (failed) {
+      ProcessMessages processMessages = process.getMonitorProcessMessages();
+      if (processMessages != null
+        && !processMessages.isEmpty(ProcessMessages.ListType.ERROR)) {
+        uiHarness.openErrorMessageDialog(manager, processMessages,
+          "Comscript Terminated", process.getAxisID());
+      }
+      errorProcess(process);
+    }
+    else {
+      logProcessOutput(process.getCommandAction(), process.getStdOutput(),
+        process.getStdError());
+      postProcess(process);
+    }
+    manager.saveStorables(process.getAxisID());
+    axisProcessData.clearThread(process);
+    // Inform the manager that this process is complete
+    if (!failed) {
+      manager.processDone(process.getName(), exitValue, process.getProcessName(),
+        process.getAxisID(), false, process.getProcessEndState(), failed,
+        process.getProcessResultDisplay(), process.getProcessSeries(), false);
+    }
+    else {
+      manager.processDone(process.getName(), exitValue, process.getProcessName(),
+        process.getAxisID(), false, process.getProcessEndState(),
+        process.getStatusString(), failed, process.getProcessResultDisplay(),
+        process.getProcessSeries(), false);
+    }
+  }
+
   /**
    * A message specifying that a com script has finished execution
    * 
@@ -1400,17 +1441,20 @@ public abstract class BaseProcessManager {
       // Is the last string "Killed"
       if (stdError != null && stdError.length > 0
         && stdError[stdError.length - 1].trim().equals("Killed")) {
-        combinedMessages.addError("<html>Terminated: " + script.getComScriptName());
+        combinedMessages.add(ProcessMessages.ListType.ERROR, "<html>Terminated: "
+          + script.getComScriptName());
       }
       else {
         ProcessMessages messages = script.getProcessMessages();/* Error */
         int j = 0;
-        combinedMessages
-          .addError("<html>Com script failed: " + script.getComScriptName());
-        combinedMessages.addError("\n<html><U>Log file errors:</U>");
-        combinedMessages.addError(messages);
-        combinedMessages.addError("\n<html><U>Standard error output:</U>");
-        combinedMessages.addError(stdError);
+        combinedMessages.add(ProcessMessages.ListType.ERROR, "<html>Com script failed: "
+          + script.getComScriptName());
+        combinedMessages.add(ProcessMessages.ListType.ERROR,
+          "\n<html><U>Log file errors:</U>");
+        combinedMessages.add(ProcessMessages.ListType.ERROR, messages);
+        combinedMessages.add(ProcessMessages.ListType.ERROR,
+          "\n<html><U>Standard error output:</U>");
+        combinedMessages.add(ProcessMessages.ListType.ERROR, stdError);
       }
       if (script.getProcessEndState() != ProcessEndState.KILLED
         && script.getProcessEndState() != ProcessEndState.PAUSED) {
@@ -1426,21 +1470,20 @@ public abstract class BaseProcessManager {
         script.getStdError());
       postProcess(script);
       ProcessMessages messages = script.getProcessMessages();/* Warning */
-      if (messages.warningListSize() > 0) {
-        messages.addWarning("Com script: " + script.getComScriptName());
+      if (messages.size(ProcessMessages.ListType.WARNING) > 0) {
+        messages.add(ProcessMessages.ListType.WARNING,
+          "Com script: " + script.getComScriptName());
         uiHarness.openWarningMessageDialog(manager, messages, "Comscript Warnings",
           script.getAxisID());
       }
     }
     manager.saveStorables(script.getAxisID());
     axisProcessData.clearThread(script);
-    /*
-     * // Null out the correct thread // Interrupt the process monitor and nulll out the
+    /* // Null out the correct thread // Interrupt the process monitor and nulll out the
      * appropriate references if (threadAxisA == script) { if (processMonitorA != null) {
      * processMonitorA.interrupt(); processMonitorA = null; } threadAxisA = null; } if
      * (threadAxisB == script) { if (processMonitorB != null) {
-     * processMonitorB.interrupt(); processMonitorB = null; } threadAxisB = null; }
-     */
+     * processMonitorB.interrupt(); processMonitorB = null; } threadAxisB = null; } */
 
     // Inform the app manager that this process is complete
     manager.processDone(script.getName(), exitValue, script.getProcessName(),
@@ -1458,16 +1501,19 @@ public abstract class BaseProcessManager {
       // Is the last string "Killed"
       if (stdError != null && stdError.length > 0
         && stdError[stdError.length - 1].trim().equals("Killed")) {
-        combinedMessages.addError("<html>Terminated: " + name);
+        combinedMessages.add(ProcessMessages.ListType.ERROR, "<html>Terminated: " + name);
       }
       else {
         ProcessMessages messages = script.getProcessMessages();/* Error */
         int j = 0;
-        combinedMessages.addError("<html>Com script failed: " + name);
-        combinedMessages.addError("\n<html><U>Log file errors:</U>");
-        combinedMessages.addError(messages);
-        combinedMessages.addError("\n<html><U>Standard error output:</U>");
-        combinedMessages.addError(stdError);
+        combinedMessages.add(ProcessMessages.ListType.ERROR, "<html>Com script failed: "
+          + name);
+        combinedMessages.add(ProcessMessages.ListType.ERROR,
+          "\n<html><U>Log file errors:</U>");
+        combinedMessages.add(ProcessMessages.ListType.ERROR, messages);
+        combinedMessages.add(ProcessMessages.ListType.ERROR,
+          "\n<html><U>Standard error output:</U>");
+        combinedMessages.add(ProcessMessages.ListType.ERROR, stdError);
       }
       if (script.getProcessEndState() != ProcessEndState.KILLED
         && script.getProcessEndState() != ProcessEndState.PAUSED) {
@@ -1485,21 +1531,19 @@ public abstract class BaseProcessManager {
       logProcessOutput(name, script.getStdOutput(), script.getStdError());
       postProcess(script);
       ProcessMessages messages = script.getProcessMessages();/* Warning */
-      if (popupChunkWarnings && messages.warningListSize() > 0) {
-        messages.addWarning("Com script: " + name);
+      if (popupChunkWarnings && messages.size(ProcessMessages.ListType.WARNING) > 0) {
+        messages.add(ProcessMessages.ListType.WARNING, "Com script: " + name);
         uiHarness.openWarningMessageDialog(manager, messages, "Reconnect Warnings",
           script.getAxisID());
       }
     }
     manager.saveStorables(script.getAxisID());
     axisProcessData.clearThread(script);
-    /*
-     * // Null out the correct thread // Interrupt the process monitor and nulll out the
+    /* // Null out the correct thread // Interrupt the process monitor and nulll out the
      * appropriate references if (threadAxisA == script) { if (processMonitorA != null) {
      * processMonitorA.interrupt(); processMonitorA = null; } threadAxisA = null; } if
      * (threadAxisB == script) { if (processMonitorB != null) {
-     * processMonitorB.interrupt(); processMonitorB = null; } threadAxisB = null; }
-     */
+     * processMonitorB.interrupt(); processMonitorB = null; } threadAxisB = null; } */
     // Inform the app manager that this process is complete
     manager.processDone(name, exitValue, script.getProcessData().getProcessName(),
       script.getAxisID(), script.getProcessEndState(),
@@ -1754,12 +1798,10 @@ public abstract class BaseProcessManager {
     startSystemProgramThread(sysProgram, manager);
   }
 
-  /*
-   * protected void startSystemProgramThread(String command, AxisID axisID) { //
+  /* protected void startSystemProgramThread(String command, AxisID axisID) { //
    * Initialize the SystemProgram object SystemProgram sysProgram = new
    * SystemProgram(getManager() .getPropertyUserDir(), command, axisID);
-   * startSystemProgramThread(sysProgram); }
-   */
+   * startSystemProgramThread(sysProgram); } */
 
   private static void startSystemProgramThread(final SystemProgram sysProgram,
     BaseManager manager) {
@@ -1794,10 +1836,8 @@ public abstract class BaseProcessManager {
     }
     manager.saveStorables(process.getAxisID());
     axisProcessData.clearThread(process);
-    /*
-     * // Null the reference to the appropriate thread if (process == threadAxisA) {
-     * threadAxisA = null; } if (process == threadAxisB) { threadAxisB = null; }
-     */
+    /* // Null the reference to the appropriate thread if (process == threadAxisA) {
+     * threadAxisA = null; } if (process == threadAxisB) { threadAxisB = null; } */
     // Inform the manager that this process is complete
     ProcessEndState endState = process.getProcessEndState();
     if (endState == null || endState == ProcessEndState.DONE) {
@@ -1811,14 +1851,6 @@ public abstract class BaseProcessManager {
         process.getAxisID(), process.isForceNextProcess(), process.getProcessEndState(),
         process.getStatusString(), exitValue != 0 || errorFound,
         process.getProcessResultDisplay(), process.getProcessSeries(), false);
-    }
-    resume(process.getProcessEndState());
-  }
-
-  void resume(ProcessEndState endState) {
-    if (endState != ProcessEndState.PAUSED) {
-      // A process that didn't pause successfully cannot be automatically resumed.
-      return;
     }
   }
 
@@ -1840,17 +1872,16 @@ public abstract class BaseProcessManager {
         process.getStdError());
       postProcess(process);
       ProcessMessages messages = process.getProcessMessages();
-      if (popupChunkWarnings && messages != null && messages.warningListSize() > 0) {
+      if (popupChunkWarnings && messages != null
+        && messages.size(ProcessMessages.ListType.WARNING) > 0) {
         uiHarness.openWarningMessageDialog(manager, messages, "Process Warnings",
           process.getAxisID());
       }
     }
     manager.saveStorables(process.getAxisID());
     axisProcessData.clearThread(process);
-    /*
-     * // Null the reference to the appropriate thread if (process == threadAxisA) {
-     * threadAxisA = null; } if (process == threadAxisB) { threadAxisB = null; }
-     */
+    /* // Null the reference to the appropriate thread if (process == threadAxisA) {
+     * threadAxisA = null; } if (process == threadAxisB) { threadAxisB = null; } */
     // Inform the manager that this process is complete
     ProcessEndState endState = process.getProcessEndState();
     if (endState == null || endState == ProcessEndState.DONE) {

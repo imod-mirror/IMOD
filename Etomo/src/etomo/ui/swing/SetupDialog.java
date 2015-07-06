@@ -646,11 +646,11 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
 
   void setTwodirEnabled(final AxisID axisID, final boolean enable) {
     if (axisID == AxisID.SECOND) {
-      ctfBtwodir.setCheckBoxEnabled(enable);
+      ctfBtwodir.setEnabled(enable);
       lBtwodir.setEnabled(enable);
     }
     else {
-      ctfTwodir.setCheckBoxEnabled(enable);
+      ctfTwodir.setEnabled(enable);
       lTwodir.setEnabled(enable);
     }
   }

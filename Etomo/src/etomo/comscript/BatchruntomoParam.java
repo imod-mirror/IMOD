@@ -13,9 +13,11 @@ import etomo.process.ProcessMessages;
 import etomo.process.SystemProgram;
 import etomo.storage.DirectiveFile;
 import etomo.type.AxisID;
+import etomo.type.ConstEtomoNumber;
 import etomo.type.EtomoNumber;
 import etomo.type.FileType;
 import etomo.type.ProcessName;
+import etomo.type.ScriptParameter;
 import etomo.type.StringParameter;
 import etomo.ui.swing.UIHarness;
 import etomo.util.RemotePath;
@@ -24,38 +26,51 @@ import etomo.util.RemotePath.InvalidMountRuleException;
 /**
  * <p>Description: </p>
  * <p/>
- * <p>Copyright: Copyright 2012 - 2014 by the Regents of the University of Colorado</p>
+ * <p>Copyright: Copyright 2012 - 2015 by the Regents of the University of Colorado</p>
  * <p/>
  * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
  *
  * @version $Id$
  */
-public class BatchruntomoParam implements CommandParam {
+public class BatchruntomoParam implements CommandParam, Command {
   private static final int VALIDATION_TYPE_BATCH_DIRECTIVE = 1;
   private static final int VALIDATION_TYPE_TEMPLATE = 2;
-  private static final String CPU_MACHINE_LIST_TAG = "CPUMachineList";
-  private static final String GPU_MACHINE_LIST_TAG = "GPUMachineList";
+  public static final String CPU_MACHINE_LIST_TAG = "CPUMachineList";
+  public static final String GPU_MACHINE_LIST_TAG = "GPUMachineList";
   public static final String MACHINE_LIST_LOCAL_VALUE = "1";
+  public static final String DELIVER_TO_DIRECTORY_TAG = "DeliverToDirectory";
+  public static final String EMAIL_ADDRESS_TAG = "EmailAddress";
+  public static final String ROOT_NAME_TAG = "RootName";
+  public static final String ENDING_STEP_TAG = "EndingStep";
+  public static final String STARTING_STEP_TAG = "StartingStep";
   /**
    * @deprecated
    */
   private static final String CPU_MACHINE_LIST_DIVIDER = "#";
   private static final String LIST_DIVIDER = ":";
+  private static final ProcessName PROCESS_NAME = ProcessName.BATCHRUNTOMO;
 
-  private final List<String> command = new ArrayList<String>();
   private final EtomoNumber validationType = new EtomoNumber();
 
   private final StringParameter deliverToDirectory = new StringParameter(
-    "DeliverToDirectory");
+    DELIVER_TO_DIRECTORY_TAG);
   private final StringParameter niceValue = new StringParameter("NiceValue");
-  private final StringParameter emailAddress = new StringParameter("EmailAddress");
+  private final StringParameter emailAddress = new StringParameter(EMAIL_ADDRESS_TAG);
+  private final ScriptParameter endingStep = new ScriptParameter(EtomoNumber.Type.DOUBLE,
+    ENDING_STEP_TAG);
+  private final ScriptParameter startingStep = new ScriptParameter(
+    EtomoNumber.Type.DOUBLE, STARTING_STEP_TAG);
+  private final StringParameter smtpServer = new StringParameter("SMTPserver");
 
   private final BaseManager manager;
   private final AxisID axisID;
   private final CommandMode mode;
   private final boolean doValidation;
-  private final ArrayList[] interleavedParameters;
+  // Holds the parameters that should be clustered together for each dataset. See
+  // InterleavedIndex.
+  private final ArrayList<String>[] interleavedParameters;
 
+  private List<String> command = null;
   private StringBuffer commandLine = null;
   private SystemProgram batchruntomo = null;
   private int exitValue = -1;
@@ -112,7 +127,9 @@ public class BatchruntomoParam implements CommandParam {
     if (requiredFilesValidationSet != null) {
       requiredFilesValidationSet.clear();
     }
+    smtpServer.reset();
     // parse
+    // The interleaved parameters are all based on the .ebt file:
     // rootName: based on .ebt file properties
     // currentLocation: based on .ebt file properties
     // directiveFile: based on .ebt file properties
@@ -123,6 +140,8 @@ public class BatchruntomoParam implements CommandParam {
     gpuMachineList.append(scriptCommand.getValue(GPU_MACHINE_LIST_TAG));
     niceValue.parse(scriptCommand);
     emailAddress.parse(scriptCommand);
+    endingStep.parse(scriptCommand);
+    startingStep.parse(scriptCommand);
   }
 
   public void updateComScriptCommand(final ComScriptCommand scriptCommand)
@@ -135,11 +154,21 @@ public class BatchruntomoParam implements CommandParam {
     if (cpuMachineList != null && cpuMachineList.length() > 0) {
       scriptCommand.setValue(CPU_MACHINE_LIST_TAG, cpuMachineList.toString());
     }
+    else {
+      scriptCommand.deleteKeyAll(CPU_MACHINE_LIST_TAG);
+    }
     if (gpuMachineList != null && gpuMachineList.length() > 0) {
       scriptCommand.setValue(GPU_MACHINE_LIST_TAG, gpuMachineList.toString());
     }
+    else {
+      scriptCommand.deleteKeyAll(GPU_MACHINE_LIST_TAG);
+    }
     niceValue.updateComScript(scriptCommand);
     emailAddress.updateComScript(scriptCommand);
+    endingStep.updateComScript(scriptCommand);
+    startingStep.updateComScript(scriptCommand);
+    smtpServer.updateComScript(scriptCommand);
+    smtpServer.updateComScript(scriptCommand);
     String remoteDirectory = null;
     try {
       remoteDirectory =
@@ -304,10 +333,38 @@ public class BatchruntomoParam implements CommandParam {
     return deliverToDirectory.toString();
   }
 
+  public String getEndingStep() {
+    return endingStep.toString();
+  }
+
+  public boolean isEndingStepSet() {
+    return !endingStep.isNull();
+  }
+
+  public String getStartingStep() {
+    return startingStep.toString();
+  }
+
   public void setDeliverToDirectory(final File input) {
     if (input != null) {
       deliverToDirectory.set(input.getAbsolutePath());
     }
+  }
+
+  public void setEndingStep(final ConstEtomoNumber input) {
+    endingStep.set(input);
+  }
+
+  public void resetEndingStep() {
+    endingStep.reset();
+  }
+
+  public void setStartingStep(final ConstEtomoNumber input) {
+    startingStep.set(input);
+  }
+
+  public void resetStartingStep() {
+    startingStep.reset();
   }
 
   public void resetDeliverToDirectory() {
@@ -350,6 +407,13 @@ public class BatchruntomoParam implements CommandParam {
     }
     interleavedParameters[InterleavedIndex.ROOT_NAME.index].add(input);
     return retval;
+  }
+
+  public int getNumRootNames() {
+    if (mode == Mode.BATCH) {
+      return interleavedParameters[InterleavedIndex.ROOT_NAME.index].size();
+    }
+    return 0;
   }
 
   private boolean validateRequiredFile(final String input, final StringBuilder errMsg) {
@@ -418,6 +482,10 @@ public class BatchruntomoParam implements CommandParam {
     emailAddress.set(input);
   }
 
+  public void setSmtpServer(final String input) {
+    smtpServer.set(input);
+  }
+
   public void resetEmailAddress() {
     emailAddress.reset();
   }
@@ -444,9 +512,15 @@ public class BatchruntomoParam implements CommandParam {
     // Do not use the -e flag for tcsh since David's scripts handle the failure
     // of commands and then report appropriately. The exception to this is the
     // com scripts which require the -e flag. RJG: 2003-11-06
+    if (command == null) {
+      command = new ArrayList<String>();
+    }
+    else {
+      command.clear();
+    }
     command.add("python");
     command.add("-u");
-    command.add(BaseManager.getIMODBinPath() + ProcessName.BATCHRUNTOMO);
+    command.add(BaseManager.getIMODBinPath() + PROCESS_NAME);
     command.add("-validation");
     command.add(validationType.toString());
     int len = interleavedParameters[InterleavedIndex.DIRECTIVE_FILE.index].size();
@@ -462,6 +536,19 @@ public class BatchruntomoParam implements CommandParam {
       new SystemProgram(manager, manager.getPropertyUserDir(), command, AxisID.ONLY);
     batchruntomo.setMessagePrependTag("Beginning to process template file");
     return true;
+  }
+
+  public String[] getCommandArray() {
+    if (mode == Mode.VALIDATION) {
+      if (command != null) {
+        return command.toArray(new String[command.size()]);
+      }
+    }
+    else if (mode == Mode.BATCH) {
+      return new String[] { FileType.BATCH_RUN_TOMO_COMSCRIPT
+        .getFileName(manager, axisID) };
+    }
+    return null;
   }
 
   public void addDirectiveFile(final DirectiveFile directiveFile) {
@@ -556,6 +643,54 @@ public class BatchruntomoParam implements CommandParam {
     return batchruntomo.getProcessMessages();
   }
 
+  public CommandMode getCommandMode() {
+    return mode;
+  }
+
+  public File getCommandOutputFile() {
+    return null;
+  }
+
+  public String getCommandName() {
+    return PROCESS_NAME.toString();
+  }
+
+  public AxisID getAxisID() {
+    return axisID;
+  }
+
+  public String getCommand() {
+    return FileType.BATCH_RUN_TOMO_COMSCRIPT.getFileName(manager, axisID);
+  }
+
+  public CommandDetails getSubcommandDetails() {
+    return null;
+  }
+
+  public String getSubcommandProcessName() {
+    return null;
+  }
+
+  public ProcessName getProcessName() {
+    return PROCESS_NAME;
+  }
+
+  public File getCommandInputFile() {
+    return null;
+  }
+
+  public boolean isMessageReporter() {
+    return false;
+  }
+
+  public FileType getOutputImageFileType() {
+    return null;
+  }
+
+  public FileType getOutputImageFileType2() {
+    return null;
+  }
+
   private static final class Mode implements CommandMode {
     private static final Mode VALIDATION = new Mode();
     private static final Mode BATCH = new Mode();
@@ -568,7 +703,8 @@ public class BatchruntomoParam implements CommandParam {
     private static final InterleavedIndex DIRECTIVE_FILE = new InterleavedIndex(0,
       "DirectiveFile");
     // batch only
-    private static final InterleavedIndex ROOT_NAME = new InterleavedIndex(1, "RootName");
+    private static final InterleavedIndex ROOT_NAME = new InterleavedIndex(1,
+      ROOT_NAME_TAG);
     private static final InterleavedIndex CURRENT_LOCATION = new InterleavedIndex(2,
       "CurrentLocation");
 
