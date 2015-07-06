@@ -71,7 +71,7 @@ program tiltxcorr
   integer*4 ixBoxCur, iyBoxCur, ixBoxRef, iyBoxRef, lenContour, minContOverlap
   integer*4 ixCenStart, ixCenEnd, iyCenStart, iyCenEnd, iter, numIter, ivBound
   integer*4 lapTotal, lapRemainder, j, ivBase, lapBase, numCont, nxPatch, nyPatch
-  real*4 xBoxOfs, yBoxOffset, cosPhi, sinPhi, x0, y0, xshift, yshift
+  real*4 xBoxOfs, yBoxOffset, cosPhi, sinPhi, x0, y0, xshift, yshift, padFrac
   real*4 useMin, useMax, useMean, cumXshift, cumYshift, cumXrot, xAdjust
   real*4 angleOffset, cumXcenter, cumYcenter, xModOffset, yModOffset
   real*4 xpeakCum, ypeakCum, xpeakTmp, ypeakTmp, xpeakFrac, ypeakFrac, yOverlap
@@ -157,7 +157,7 @@ program tiltxcorr
   ifAbsStretch = 0
   ifLeaveAxis = 0
   angleOffset = 0.
-  maxBinSize = 1180
+  maxBinSize = 1250
   maxBinning = 8
   cosStrMaxTilt = 82.
   nbinning = 0
@@ -744,6 +744,7 @@ program tiltxcorr
   ! Set up one patch if no tracking
   if (tracking) then
     print *,numPatches, ' patches will be tracked'
+    padFrac = 0.05
   else
     if (ifFindWarp .ne. 0)  &
         call exitError('YOU MUST SPECIFY A PATCH SIZE TO FIND WARP TRANSFORMS')
@@ -752,13 +753,14 @@ program tiltxcorr
     call memoryError(ierr, 'TINY ARRAY FOR PATCH CENTERS')
     patchCenX(1) = (ixEnd + 1 + ixStart) / 2.
     patchCenY(1) = (iyEnd + 1 + iyStart) / 2.
+    padFrac = 0.1
   endif
   !
   ! OK, back to main image operations
   ! determine padding
   !
-  nxBorder = max(5, min(20, nint(0.05 * nxUse)))
-  nyBorder = max(5, min(20, nint(0.05 * nyUse)))
+  nxBorder = max(5, nint(padFrac * nxUse))
+  nyBorder = max(5, nint(padFrac * nyUse))
   if (pipinput) then
     ierr = PipGetTwoIntegers('PadsInXandY', nxBorder, nyBorder)
   else

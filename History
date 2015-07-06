@@ -1,5 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/4/15: IMOD_4-8-38
+7/4/15: Changed default padding in coarse alignment to 10% to allow bigger 
+shifts to be detected.
+
+7/4/15: Fixed problem with autopatchfit when no extra limits are supplied.
+
 7/1/15: Added option -title to alterheader for adding one title.
 
 7/1/15: Fixed MRC header library to replace 10th title when adding a new
