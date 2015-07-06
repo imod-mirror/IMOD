@@ -1391,7 +1391,9 @@ public abstract class BaseProcessManager {
   public final void msgComScriptDone(final OutfileComScriptProcess process,
     final int exitValue, final boolean nonBlocking) {
     ProcessEndState endState = process.getProcessEndState();
-    if (exitValue != 0 || (endState != null && endState != ProcessEndState.DONE)) {
+    boolean failed =
+      exitValue != 0 || (endState != null && endState != ProcessEndState.DONE);
+    if (failed) {
       ProcessMessages processMessages = process.getMonitorProcessMessages();
       if (processMessages != null
         && !processMessages.isEmpty(ProcessMessages.ListType.ERROR)) {
@@ -1408,16 +1410,15 @@ public abstract class BaseProcessManager {
     manager.saveStorables(process.getAxisID());
     axisProcessData.clearThread(process);
     // Inform the manager that this process is complete
-    if (endState == null || endState == ProcessEndState.DONE) {
+    if (!failed) {
       manager.processDone(process.getName(), exitValue, process.getProcessName(),
-        process.getAxisID(), false, process.getProcessEndState(),
-        exitValue != 0 /* || errorFound */, process.getProcessResultDisplay(),
-        process.getProcessSeries(), false);
+        process.getAxisID(), false, process.getProcessEndState(), failed,
+        process.getProcessResultDisplay(), process.getProcessSeries(), false);
     }
     else {
       manager.processDone(process.getName(), exitValue, process.getProcessName(),
-        process.getAxisID(), false, process.getProcessEndState(), null,
-        exitValue != 0 /* || errorFound */, process.getProcessResultDisplay(),
+        process.getAxisID(), false, process.getProcessEndState(),
+        process.getStatusString(), failed, process.getProcessResultDisplay(),
         process.getProcessSeries(), false);
     }
   }
