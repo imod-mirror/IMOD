@@ -370,7 +370,6 @@ public class ProcessMessages {
       || manager == null
       || (logMessages && type == ListType.ERROR && errorOverrideLogTag != null
         && input != null && input.indexOf(errorOverrideLogTag) != -1)) {
-      System.out.println("C:type:" + type + ",input:" + input);
       getList(type, true).add(input);
     }
     else {
@@ -1241,9 +1240,6 @@ public class ProcessMessages {
       else if (infoIndex != -1) {
         listType = ListType.INFO;
         startIndex = infoIndex;
-      }
-      if (listType != null) {
-        System.out.println("B:listType:" + listType + ",line:" + line);
       }
     }
   }
