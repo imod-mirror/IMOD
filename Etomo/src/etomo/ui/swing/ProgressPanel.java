@@ -218,6 +218,8 @@ public final class ProgressPanel {
   }
 
   void stop(ProcessEndState state, final String statusString) {
+    System.out.println("A:state:" + state + ",statusString:" + statusString);
+    Thread.dumpStack();
     stopped = true;
     counter = 0;
     if (state == null) {
