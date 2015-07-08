@@ -6518,7 +6518,7 @@ void DrawingTools::buttonPressed(int which)
   if      (which==0)
     close();
   else if (which==1)
-		openUrl( "http://www.slashsegmentation.com/tools/imod/drawing-tools-plugin" );
+		openUrl( "https://www.youtube.com/watch?v=BsNSVLIQ-cE" );
 	else if (which==2)
     helpPluginHelp();
 }
