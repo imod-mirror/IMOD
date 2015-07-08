@@ -83,6 +83,7 @@ set.param = --ignoreloc
 set.var.dual=
 set.var.test-gui=
 set.var.run_sirt=
+set.var.auto-patch-fit=
 set.interface.Recon=
 
 [Test = single-fidless]
