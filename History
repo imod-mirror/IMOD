@@ -1,5 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/7/15: In eTomo - Fiducial Tracking - fixed a bug where track.com was not
+being updated when autofidseed was called.(Bug# 1894)
+
+7/7/15: In uitest created a test against BB that uses automatic patch fitting
+exclusively.(Bug# 1896)
+
 7/4/15: IMOD_4-8-38
 7/4/15: Changed default padding in coarse alignment to 10% to allow bigger 
 shifts to be detected.
