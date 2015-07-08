@@ -220,6 +220,7 @@ if.var.patch-tracking.run.function.main-patch-tracking=
   cb.use-patch-region-model=
   assert.disabled.bn.create/edit-patch-region-model=
 [[]]
+if.var.auto-patch-fit.run.function.setup-auto-patch-fit=
 tf.z-axis-min = %{z-axis-min}
 tf.z-axis-max = %{z-axis-max}
 cb.parallel-processing = 1
@@ -236,6 +237,7 @@ assert.exists.file = solvematch.com
 assert.exists.file = dualvolmatch.com
 assert.exists.file = volcombine.com
 assert.exists.file = warpvol.com
+if.var.auto-patch-fit.cb.use-image-correlations-instead-of-solvematch-for-initial-match=off
 [[if = test-gui]]
   #tabs
   assert.enabled.tb.setup.1=
@@ -488,6 +490,7 @@ assert.exists.file = warpvol.com
   bn.basic=
   tb.setup=
 [[]]
+if.var.auto-patch-fit.cb.use-image-correlations-instead-of-solvematch-for-initial-match=on
 bn.start-combine =
 [[if = test-gui]]
   if.wait.process.processchunks-volcombine.run.function.test-kill-pp=completed
@@ -501,7 +504,7 @@ assert.exists.file = combine.log
 assert.exists.file = matchorwarp.log
 assert.exists.file = matchvol1.log
 assert.exists.file = patchcorr.log
-assert.exists.file = solvematch.log
+if.not.var.auto-patch-fit.assert.exists.file = solvematch.log
 cb.parallel-processing = 0
 bn.restart-at-volcombine =
 [[if = test-gui]]
@@ -522,15 +525,17 @@ wait.process.processchunks-volcombine = done
 assert.exists.file = dualvolmatch.log
 tb.setup.2=
 #
-tb.setup = 
-cb.use-image-correlations-instead-of-solvematch-for-initial-match=off
-bn.start-combine =
-wait.process.processchunks-volcombine = done
-assert.exists.file = combine.log~
-assert.exists.file = matchorwarp.log~
-assert.exists.file = matchvol1.log~
-assert.exists.file = patchcorr.log~
-assert.exists.file = solvematch.log~
+[[ifnot = auto-patch-fit]]
+  tb.setup = 
+  cb.use-image-correlations-instead-of-solvematch-for-initial-match=off
+  bn.start-combine =
+  wait.process.processchunks-volcombine = done
+  assert.exists.file = combine.log~
+  assert.exists.file = matchorwarp.log~
+  assert.exists.file = matchvol1.log~
+  assert.exists.file = patchcorr.log~
+  assert.exists.file = solvematch.log~
+[[]]
 sleep = 
 [[if = test-gui]]
   #setup
@@ -1141,16 +1146,8 @@ bn.replace-patch-vectors =
 bn.done =
 
 
-
-
-
-
-
-
-
-
-
-
+[function = setup-auto-patch-fit]
+cb.use-image-correlations-instead-of-solvematch-for-initial-match=on
 
 
 [function = test-kill]
