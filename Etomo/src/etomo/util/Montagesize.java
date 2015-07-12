@@ -16,20 +16,13 @@ import etomo.type.EtomoNumber;
  * <p>Description: Runs montagesize on .st files.  Creates once instance per file
  * Rereads only when file has changed.</p>
  * 
- * <p>Copyright: Copyright (c) 2005</p>
- *
- *<p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
- * University of Colorado</p>
- * 
- * @author $Author$
- * 
- * @version $Revision$
+* <p>Copyright: Copyright 2005 - 2015 by the Regents of the University of Colorado</p>
+* <p/>
+* <p>Organization: Dept. of MCD Biology, University of Colorado</p>
+*
+* @version $Id$
  */
 public class Montagesize {
-  public static final String rcsid =
-    "$Id$";
-
   private static final String EXT = ".pl";
   //
   // n'ton member variables
@@ -244,12 +237,12 @@ public class Montagesize {
       String[] stdOutput = montagesize.getStdOutput();
       if (stdOutput != null && stdOutput.length > 0) {
         ProcessMessages messages = montagesize.getProcessMessages();
-        if (messages.size(ProcessMessages.ListType.ERROR) > 0) {
+        if (messages.size(ProcessMessages.MessageType.ERROR) > 0) {
           String message =
             "montagesize returned an error while reading" + file.getAbsolutePath()
               + ":\n";
-          for (int i = 0; i < messages.size(ProcessMessages.ListType.ERROR); i++) {
-            message = message + messages.get(ProcessMessages.ListType.ERROR, i) + "\n";
+          for (int i = 0; i < messages.size(ProcessMessages.MessageType.ERROR); i++) {
+            message = message + messages.get(ProcessMessages.MessageType.ERROR, i) + "\n";
           }
           Utilities.timestamp("read", "montagesize", file, Utilities.FAILED_STATUS);
           throw new InvalidParameterException(message);
