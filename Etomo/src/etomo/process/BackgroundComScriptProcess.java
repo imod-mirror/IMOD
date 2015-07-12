@@ -20,15 +20,11 @@ import etomo.util.Utilities;
  * background.
  * </p>
  * 
- * <p>Copyright: Copyright (c) 2004</p>
- * 
- * <p>Organization:
- * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
- * University of Colorado</p>
- * 
- * @author $$Author$$
- * 
- * @version $$Revision$$
+ * <p>Copyright: Copyright 2004 - 2015 by the Regents of the University of Colorado</p>
+ * <p/>
+ * <p>Organization: Dept. of MCD Biology, University of Colorado</p>
+ *
+ * @version $Id$
  * 
  * <p> $Log$
  * <p> Revision 1.36  2011/02/22 03:58:18  sueh
@@ -217,9 +213,6 @@ import etomo.util.Utilities;
  * <p> </p>
  */
 public class BackgroundComScriptProcess extends ComScriptProcess {
-  public static final String rcsid =
-    "$$Id$$";
-
   private final AxisID axisID;
   private final ComscriptState comscriptState;
   private final BaseManager manager;
@@ -329,8 +322,8 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
     }
     catch (LogFile.LockException e) {
       e.printStackTrace();
-      getProcessMessages().add(ProcessMessages.ListType.ERROR, e.getMessage());
-      getProcessMessages().add(ProcessMessages.ListType.ERROR,
+      getProcessMessages().add(ProcessMessages.MessageType.ERROR, e.getMessage());
+      getProcessMessages().add(ProcessMessages.MessageType.ERROR,
         getComScriptName() + " may already be running.  Check the log file.");
       e.printStackTrace();
       return false;
@@ -347,8 +340,8 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
             comscriptState.getCommand(index)));
       }
       catch (LogFile.LockException e) {
-        getProcessMessages().add(ProcessMessages.ListType.ERROR, e.getMessage());
-        getProcessMessages().add(ProcessMessages.ListType.ERROR,
+        getProcessMessages().add(ProcessMessages.MessageType.ERROR, e.getMessage());
+        getProcessMessages().add(ProcessMessages.MessageType.ERROR,
           getComScriptName() + " may already be running.  Check the log file.");
         e.printStackTrace();
         return false;
