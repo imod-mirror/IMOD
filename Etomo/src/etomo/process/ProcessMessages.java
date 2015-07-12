@@ -15,6 +15,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 
 import etomo.BaseManager;
 import etomo.storage.LogFile;
+import etomo.ui.swing.UIHarness;
 
 /**
  * <p>Description: Output reading that saves tagged messages.  Designed to be used on the
@@ -27,16 +28,11 @@ import etomo.storage.LogFile;
  * @version $Id$
  */
 public class ProcessMessages {
-  private static final String ERROR_TAG = "ERROR:";
   private static final String ALT_ERROR_TAG1 = "Errno";
   private static final String ALT_ERROR_TAG2 = "Traceback";
-  private static final String[] ERROR_TAGS =
-    { ERROR_TAG, ALT_ERROR_TAG1, ALT_ERROR_TAG2 };
-  public static final String WARNING_TAG = "WARNING:";
-  //public static final String WARNING_TAG = "Successfully finished";
-  private static final String CHUNK_ERROR_TAG = "CHUNK ERROR:";
+  private static final String[] ERROR_TAGS = { MessageType.ERROR.tag, ALT_ERROR_TAG1,
+    ALT_ERROR_TAG2 };
   private static final String PIP_WARNING_TAG = "PIP WARNING:";
-  private static final String INFO_TAG = "INFO:";
   private static final String PIP_WARNING_END_TAG =
     "Using fallback options in main program";
   private static final int MAX_MESSAGE_SIZE = 10;
@@ -174,7 +170,8 @@ public class ProcessMessages {
       errorTagsAlwaysMultiline = new boolean[] { false, false, true };
     }
     else {
-      errorTags = new String[] { ERROR_TAG, errorTag, ALT_ERROR_TAG1, ALT_ERROR_TAG2 };
+      errorTags =
+        new String[] { MessageType.ERROR.tag, errorTag, ALT_ERROR_TAG1, ALT_ERROR_TAG2 };
       errorTagsAlwaysMultiline =
         new boolean[] { false, errorTagAlwaysMultiline, false, true };
     }
@@ -205,6 +202,11 @@ public class ProcessMessages {
     feedString(END_STRING_FEED_TOKEN);
   }
 
+  /**
+   * Sends the string to the stringFeed blocking queue, so it can be processed by the
+   * worker thread running ParseThread.run.
+   * @param string
+   */
   synchronized void feedString(final String string) {
     if (stringFeed == null || stringFeedThread == null || !stringFeedThread.isAlive()) {
       // If the string feed isn't operating, treat as a normal process output.
@@ -220,6 +222,54 @@ public class ProcessMessages {
         e.printStackTrace();
       }
     }
+  }
+
+  /**
+   * Sends an empty message of the type listed in parameter to the stringFeed.
+   * For a LOG message, acts as a newline because the LOG tags is removed.
+   * @param type
+   */
+  void feedNewline(final MessageType type) {
+    if (type == null) {
+      feedString("");
+    }
+    else {
+      feedString(type.tag);
+    }
+  }
+
+  /**
+   * Sends a single-line message to the stringFeed.  Adds a blank line after to the
+   * message so that it will be treated as single line message.
+   * @param type
+   */
+  void feedMessage(final String message) {
+    feedString(message);
+    feedString("");
+  }
+
+  /**
+   * Sends a single-line message of the type listed in parameter to the stringFeed.
+   * Prepends the type tag to the message if the string does not start with the message
+   * type tag.  Adds a blank line after to the message so that it will be treated as
+   * single line message.  When the type is LOG, sends the message to the project log with
+   * the tag removed.
+   * @param type
+   */
+  void feedMessage(final MessageType type, final String message) {
+    if (type == null) {
+      feedString(message);
+    }
+    else if (message == null) {
+      feedString(type.tag);
+    }
+    else if (message.startsWith(type.tag)) {
+      feedString(message);
+    }
+    else {
+      feedString(type.tag + message);
+    }
+    feedString("");
   }
 
   /**
@@ -324,22 +374,22 @@ public class ProcessMessages {
     if (processMessages == null) {
       return;
     }
-    add(ListType.ERROR, processMessages.errorList);
-    add(ListType.WARNING, processMessages.warningList);
-    add(ListType.INFO, processMessages.infoList);
-    add(ListType.CHUNK_ERROR, processMessages.chunkErrorList);
+    add(MessageType.ERROR, processMessages.errorList);
+    add(MessageType.WARNING, processMessages.warningList);
+    add(MessageType.INFO, processMessages.infoList);
+    add(MessageType.CHUNK_ERROR, processMessages.chunkErrorList);
   }
 
-  synchronized void add(final ListType type, final ProcessMessages processMessages) {
+  synchronized void add(final MessageType type, final ProcessMessages processMessages) {
     add(type, processMessages.getList(type, false));
   }
 
-  synchronized void add(final ListType type, final List<String> input) {
+  synchronized void add(final MessageType type, final List<String> input) {
     if (type == null || input == null || input.isEmpty()) {
       return;
     }
     if (!logMessages || manager == null) {
-      if (logMessages && type == ListType.ERROR && errorOverrideLogTag != null) {
+      if (logMessages && type == MessageType.ERROR && errorOverrideLogTag != null) {
         // For logging error messages, handle the log override tag
         Iterator<String> iterator = input.iterator();
         if (iterator != null) {
@@ -362,14 +412,14 @@ public class ProcessMessages {
     }
   }
 
-  synchronized void add(final ListType type, final String input) {
+  synchronized void add(final MessageType type, final String input) {
     if (type == null) {
       return;
     }
-    if (!logMessages
-      || manager == null
-      || (logMessages && type == ListType.ERROR && errorOverrideLogTag != null
-        && input != null && input.indexOf(errorOverrideLogTag) != -1)) {
+    if (type != MessageType.LOG
+      && (!logMessages || manager == null || (logMessages && type == MessageType.ERROR
+        && errorOverrideLogTag != null && input != null && input
+        .indexOf(errorOverrideLogTag) != -1))) {
       getList(type, true).add(input);
     }
     else {
@@ -377,7 +427,7 @@ public class ProcessMessages {
     }
   }
 
-  synchronized void add(final ListType type) {
+  synchronized void add(final MessageType type) {
     if (type == null) {
       return;
     }
@@ -386,7 +436,7 @@ public class ProcessMessages {
     }
   }
 
-  synchronized void add(final ListType type, final String[] input) {
+  synchronized void add(final MessageType type, final String[] input) {
     if (type == null || input == null || input.length == 0) {
       return;
     }
@@ -395,7 +445,7 @@ public class ProcessMessages {
     }
   }
 
-  public int size(final ListType type) {
+  public int size(final MessageType type) {
     List<String> list = getList(type, false);
     if (list == null) {
       return 0;
@@ -403,7 +453,7 @@ public class ProcessMessages {
     return list.size();
   }
 
-  public String get(final ListType type, final int index) {
+  public String get(final MessageType type, final int index) {
     List<String> list = getList(type, false);
     if (list == null || index < 0 || index >= list.size()) {
       return null;
@@ -416,7 +466,7 @@ public class ProcessMessages {
    * @param matchString
    * @return
    */
-  public ArrayList<String> match(final ListType type, final String[] matchStringArray) {
+  public ArrayList<String> match(final MessageType type, final String[] matchStringArray) {
     if (isEmpty(type)) {
       return null;
     }
@@ -437,7 +487,7 @@ public class ProcessMessages {
     return null;
   }
 
-  public String getLast(final ListType type) {
+  public String getLast(final MessageType type) {
     if (type == null) {
       return null;
     }
@@ -449,12 +499,12 @@ public class ProcessMessages {
   }
 
   final void print() {
-    print(ListType.ERROR);
-    print(ListType.WARNING);
-    print(ListType.INFO);
+    print(MessageType.ERROR);
+    print(MessageType.WARNING);
+    print(MessageType.INFO);
   }
 
-  public boolean isEmpty(final ListType type) {
+  public boolean isEmpty(final MessageType type) {
     if (type == null) {
       return false;
     }
@@ -466,7 +516,7 @@ public class ProcessMessages {
     return success;
   }
 
-  public void print(final ListType type) {
+  public void print(final MessageType type) {
     if (type == null) {
       return;
     }
@@ -636,12 +686,12 @@ public class ProcessMessages {
           pipWarning.append(" " + line);
           nextLine();
         }
-        add(ListType.INFO, pipWarning.toString());
+        add(MessageType.INFO, pipWarning.toString());
         return true;
       }
     }
     // no more lines - add pip warning to infoList
-    add(ListType.INFO, pipWarning.toString());
+    add(MessageType.INFO, pipWarning.toString());
     return true;
   }
 
@@ -720,12 +770,12 @@ public class ProcessMessages {
       && errorTagsAlwaysMultiline[errorTagIndex]) {
       return parseMultiLineMessage();
     }
-    int chunkErrorIndex = line.indexOf(CHUNK_ERROR_TAG);
-    int warningIndex = line.indexOf(WARNING_TAG);
+    int chunkErrorIndex = line.indexOf(MessageType.CHUNK_ERROR.tag);
+    int warningIndex = line.indexOf(MessageType.WARNING.tag);
     if (warningIndex != -1 && multiLineWarning) {
       return parseMultiLineMessage();
     }
-    int infoIndex = line.indexOf(INFO_TAG);
+    int infoIndex = line.indexOf(MessageType.INFO.tag);
     if (infoIndex != -1 && multiLineInfo) {
       return parseMultiLineMessage();
     }
@@ -745,14 +795,16 @@ public class ProcessMessages {
     }
     buffer.append(line);
     if (error) {
-      addElement(ListType.ERROR, buffer.toString(), errorIndex,
+      addElement(MessageType.ERROR, buffer.toString(), errorIndex,
         errorTags[errorTagIndex].length());
     }
     else if (warning) {
-      addElement(ListType.WARNING, buffer.toString(), warningIndex, WARNING_TAG.length());
+      addElement(MessageType.WARNING, buffer.toString(), warningIndex,
+        MessageType.WARNING.tag.length());
     }
     else if (info) {
-      addElement(ListType.INFO, buffer.toString(), infoIndex, INFO_TAG.length());
+      addElement(MessageType.INFO, buffer.toString(), infoIndex,
+        MessageType.INFO.tag.length());
     }
     nextLine();
     return true;
@@ -769,7 +821,7 @@ public class ProcessMessages {
       return false;
     }
     // look for a message
-    int chunkErrorIndex = line.indexOf(CHUNK_ERROR_TAG);
+    int chunkErrorIndex = line.indexOf(MessageType.CHUNK_ERROR.tag);
     boolean chunkError = chunkErrorIndex != -1;
     if (!chunkError) {
       return false;
@@ -780,9 +832,11 @@ public class ProcessMessages {
       // chunk and should not be treated as process errors, so put them on separate lines
       // but keep them with the chunk error.
       int errorIndex =
-        line.indexOf(ERROR_TAG, chunkErrorIndex + CHUNK_ERROR_TAG.length());
+        line.indexOf(MessageType.ERROR.tag,
+          chunkErrorIndex + MessageType.CHUNK_ERROR.tag.length());
       if (errorIndex == -1) {
-        addElement(ListType.CHUNK_ERROR, line, chunkErrorIndex, CHUNK_ERROR_TAG.length());
+        addElement(MessageType.CHUNK_ERROR, line, chunkErrorIndex,
+          MessageType.CHUNK_ERROR.tag.length());
       }
       else {
         StringBuffer buffer = new StringBuffer();
@@ -792,7 +846,9 @@ public class ProcessMessages {
         }
         buffer.append(line.substring(0, errorIndex) + "\n");
         while (errorIndex != -1) {
-          int nextErrorIndex = line.indexOf(ERROR_TAG, errorIndex + ERROR_TAG.length());
+          int nextErrorIndex =
+            line.indexOf(MessageType.ERROR.tag,
+              errorIndex + MessageType.ERROR.tag.length());
           if (nextErrorIndex != -1) {
             buffer.append(line.substring(errorIndex, nextErrorIndex) + "\n");
           }
@@ -801,8 +857,8 @@ public class ProcessMessages {
           }
           errorIndex = nextErrorIndex;
         }
-        addElement(ListType.CHUNK_ERROR, buffer.toString(), chunkErrorIndex,
-          CHUNK_ERROR_TAG.length());
+        addElement(MessageType.CHUNK_ERROR, buffer.toString(), chunkErrorIndex,
+          MessageType.CHUNK_ERROR.tag.length());
       }
     }
     nextLine();
@@ -828,7 +884,8 @@ public class ProcessMessages {
    * @return true if a message is found
    */
   private boolean parseMultiLineMessage() {
-    if (currentLine.listType == null || currentLine.listType == ListType.CHUNK_ERROR) {
+    if (currentLine.messageType == null
+      || currentLine.messageType == MessageType.CHUNK_ERROR) {
       return false;
     }
     // create the message starting from the message tag
@@ -838,21 +895,31 @@ public class ProcessMessages {
       messagePrepend = null;
     }
     messageBuffer.append(currentLine.fromStart());
-    ListType messageListType = currentLine.listType;
+    MessageType messageType = currentLine.messageType;
+    // Handling old functionality:
+    // Originally, multi-line error messages where handled by putting the same tag on each
+    // line. Handle this by continuing the message if the tag remains the same, and
+    // starting a new message if the tag changes. This not true for LOG: messages, where
+    // the tag is always removed.
+    int messageTagIndex = currentLine.tagIndex;
     // Get next currentLine
     boolean moreLines = nextLine();
     int count = 0;
     while (moreLines) {
-      // End the multiline messages with a blank line or a new message
-      if (currentLine.isEmpty() || currentLine.listType != null
-        || count > MAX_MESSAGE_SIZE) {
-        // end of message or message is too big - add message in a list
+      // Multiline messages can contain multiple tagless lines. They end with a blank
+      // line, or a different message tag (or the LOG tag). They also have a size limit.
+      if (currentLine.isEmpty()
+        || (currentLine.messageType != null && (messageType == MessageType.LOG || !currentLine
+          .equals(messageType, messageTagIndex))) || count > MAX_MESSAGE_SIZE) {
+        // End current message.
+        // Add completed message in a list
         messageBuffer.append("\n");
         String message = messageBuffer.toString();
-        add(messageListType, message);
+        add(messageType, message);
         return true;
       }
-      else {// add current line to the message
+      else {
+        // Continue current message.
         messageBuffer.append("\n" + currentLine.line);
         moreLines = nextLine();
         count++;
@@ -861,7 +928,7 @@ public class ProcessMessages {
     // no more lines - add message to list
     messageBuffer.append("\n");
     String message = messageBuffer.toString();
-    add(messageListType, message);
+    add(messageType, message);
     return true;
   }
 
@@ -877,7 +944,7 @@ public class ProcessMessages {
       return false;
     }
     // look for a message
-    int chunkErrorIndex = line.indexOf(CHUNK_ERROR_TAG);
+    int chunkErrorIndex = line.indexOf(MessageType.CHUNK_ERROR.tag);
     boolean chunkError = chunkErrorIndex != -1;
     if (!chunkError) {
       return false;
@@ -907,7 +974,7 @@ public class ProcessMessages {
         messageBuffer.append("\n");
         String message = messageBuffer.toString();
         if (chunkError) {
-          add(ListType.CHUNK_ERROR, message);
+          add(MessageType.CHUNK_ERROR, message);
         }
         nextLine();
         return true;
@@ -922,7 +989,7 @@ public class ProcessMessages {
     messageBuffer.append("\n");
     String message = messageBuffer.toString();
     if (chunkError) {
-      add(ListType.CHUNK_ERROR, message);
+      add(MessageType.CHUNK_ERROR, message);
     }
     return true;
   }
@@ -1083,8 +1150,8 @@ public class ProcessMessages {
    * @param line
    * @param startIndex
    */
-  private void addElement(final ListType type, final String line, final int startIndex,
-    final int tagSize) {
+  private void addElement(final MessageType type, final String line,
+    final int startIndex, final int tagSize) {
     List<String> list = getList(type, true);
     if (startIndex + tagSize < line.length()) {
       if (startIndex > 0) {
@@ -1096,26 +1163,26 @@ public class ProcessMessages {
     }
   }
 
-  private List<String> getList(final ListType type, final boolean create) {
-    if (type == ListType.CHUNK_ERROR) {
+  private List<String> getList(final MessageType type, final boolean create) {
+    if (type == MessageType.CHUNK_ERROR) {
       if (create && chunkErrorList == null) {
         chunkErrorList = new Vector<String>();
       }
       return chunkErrorList;
     }
-    if (type == ListType.ERROR) {
+    if (type == MessageType.ERROR) {
       if (create && errorList == null) {
         errorList = new Vector<String>();
       }
       return errorList;
     }
-    if (type == ListType.INFO) {
+    if (type == MessageType.INFO) {
       if (create && infoList == null) {
         infoList = new Vector<String>();
       }
       return infoList;
     }
-    if (type == ListType.WARNING) {
+    if (type == MessageType.WARNING) {
       if (create && warningList == null) {
         warningList = new Vector<String>();
       }
@@ -1158,16 +1225,22 @@ public class ProcessMessages {
     }
   }
 
-  public static final class ListType {
-    static final ListType CHUNK_ERROR = new ListType("ChunkError");
-    public static final ListType ERROR = new ListType("Error");
-    public static final ListType INFO = new ListType("Info");
-    public static final ListType WARNING = new ListType("Warning");
+  public static final class MessageType {
+    static final MessageType CHUNK_ERROR = new MessageType("CHUNK ERROR:");
+    public static final MessageType ERROR = new MessageType("ERROR:");
+    public static final MessageType INFO = new MessageType("INFO:");
+    public static final MessageType WARNING = new MessageType("WARNING:");
+    // Always goes to the project log
+    public static final MessageType LOG = new MessageType(UIHarness.LOG_TAG + ":");
 
     private final String tag;
 
-    private ListType(final String tag) {
+    private MessageType(final String tag) {
       this.tag = tag;
+    }
+
+    public String getTag() {
+      return tag;
     }
 
     public String toString() {
@@ -1177,69 +1250,96 @@ public class ProcessMessages {
 
   private final class Line {
     private String line = null;
-    private ListType listType = null;
+    private MessageType messageType = null;
     private int startIndex = -1;
+    // for list types with arrays of tags. Refers to the tag array that existed when
+    // load() was run.
+    private int tagIndex = -1;
 
     Line() {}
 
     private void reset() {
       line = null;
-      listType = null;
+      messageType = null;
       startIndex = -1;
+      tagIndex = -1;
     }
 
-    String fromStart() {
+    private String fromStart() {
       if (line == null || line.isEmpty() || startIndex <= 0) {
         return line;
       }
-      return line.substring(startIndex);
+      return line.substring(startIndex).trim();
     }
 
-    boolean isEmpty() {
+    private boolean isEmpty() {
       return line == null || line.isEmpty();
     }
 
+    /**
+     * Returns true if the line contains the same tag described by the parameters.
+     * @param inputListType
+     * @param inputTagIndex - only used for ERROR list types
+     * @return
+     */
+    private boolean equals(final MessageType inputMessageType, final int inputTagIndex) {
+      if (inputMessageType == null && messageType == null) {
+        return true;
+      }
+      if (inputMessageType == messageType) {
+        if (messageType != MessageType.ERROR) {
+          return true;
+        }
+        return tagIndex == inputTagIndex;
+      }
+      return false;
+    }
+
+    /**
+     * Find the message type of a line.  Save information about the tag which matched:
+     * where is was in the line, and which tag it was.
+     * @param line
+     */
     private void load(final String line) {
+      reset();
       this.line = line;
-      listType = null;
-      startIndex = -1;
       if (line == null) {
         return;
       }
-      // look for a message
-      int errorIndex = -1;
-      for (int j = 0; j < errorTags.length; j++) {
-        errorIndex = line.indexOf(errorTags[j]);
-        if (errorIndex != -1) {
-          break;
-        }
+      if ((startIndex = line.indexOf(MessageType.WARNING.tag)) != -1) {
+        messageType = MessageType.WARNING;
       }
-      if (errorIndex != -1) {
-        for (int i = 0; i < IGNORE_TAG.length; i++) {
-          if (line.indexOf(IGNORE_TAG[i]) != -1) {
-            errorIndex = -1;
+      else if (chunks && (startIndex = line.indexOf(MessageType.CHUNK_ERROR.tag)) != -1) {
+        // CHUNK_ERROR takes precedence over ERROR
+        messageType = MessageType.CHUNK_ERROR;
+      }
+      else if ((startIndex = line.indexOf(MessageType.INFO.tag)) != -1) {
+        messageType = MessageType.INFO;
+      }
+      else if ((startIndex = line.indexOf(MessageType.LOG.tag)) != -1) {
+        messageType = MessageType.LOG;
+        // The tag should be striped from log messages.
+        startIndex += MessageType.LOG.tag.length();
+      }
+      else {
+        // look for an error message
+        for (int i = 0; i < errorTags.length; i++) {
+          startIndex = line.indexOf(errorTags[i]);
+          if (startIndex != -1) {
+            // Check list of text that looks like an error message but isn't.
+            for (int j = 0; j < IGNORE_TAG.length; j++) {
+              if (line.indexOf(IGNORE_TAG[j]) != -1) {
+                startIndex = -1;
+                break;
+              }
+            }
+            if (startIndex != -1) {
+              messageType = MessageType.ERROR;
+              tagIndex = i;
+            }
+            break;
           }
         }
-      }
-      int chunkErrorIndex = line.indexOf(CHUNK_ERROR_TAG);
-      int warningIndex = line.indexOf(WARNING_TAG);
-      int infoIndex = line.indexOf(INFO_TAG);
-      // error is true if ERROR: found, but not CHUNK ERROR:
-      if (chunks && chunkErrorIndex != -1) {
-        listType = ListType.CHUNK_ERROR;
-        startIndex = chunkErrorIndex;
-      }
-      else if (errorIndex != -1) {
-        listType = ListType.ERROR;
-        startIndex = errorIndex;
-      }
-      else if (warningIndex != -1) {
-        listType = ListType.WARNING;
-        startIndex = warningIndex;
-      }
-      else if (infoIndex != -1) {
-        listType = ListType.INFO;
-        startIndex = infoIndex;
       }
     }
   }
