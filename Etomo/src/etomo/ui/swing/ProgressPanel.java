@@ -1,15 +1,35 @@
+package etomo.ui.swing;
+
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JProgressBar;
+import javax.swing.SwingUtilities;
+import javax.swing.Timer;
+
+import etomo.Arguments.DebugLevel;
+import etomo.BaseManager;
+import etomo.EtomoDirector;
+import etomo.type.AxisID;
+import etomo.type.ProcessEndState;
+import etomo.util.Utilities;
+
 /**
  * <p>Description: A progress bar with label and internal text, can be
  *  determinate or indeterminate.</p>
  *
- * <p>Copyright: Copyright (c) 2002</p>
- *
- * <p>Organization: Boulder Laboratory for 3D Fine Structure,
- * University of Colorado</p>
- *
- * @author $Author$
- *
- * @version $Revision$
+* <p>Copyright: Copyright 2002 - 2015 by the Regents of the University of Colorado</p>
+* <p/>
+* <p>Organization: Dept. of MCD Biology, University of Colorado</p>
+*
+* @version $Id$
  *
  * <p> $Log$
  * <p> Revision 1.1  2010/11/13 16:07:34  sueh
@@ -85,34 +105,7 @@
  * <p> Single window GUI layout initial revision
  * <p>
  */
-
-package etomo.ui.swing;
-
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Container;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JProgressBar;
-import javax.swing.SwingUtilities;
-import javax.swing.Timer;
-
-import etomo.Arguments.DebugLevel;
-import etomo.BaseManager;
-import etomo.EtomoDirector;
-import etomo.type.AxisID;
-import etomo.type.ProcessEndState;
-import etomo.util.Utilities;
-
 public final class ProgressPanel {
-  public static final String rcsid =
-    "$Id$";
-
   public static final String NAME = "the-progress-bar";
   public static final String LABEL_NAME = NAME + "-label";
   private static final int MAX_PACK = 5;
@@ -218,8 +211,6 @@ public final class ProgressPanel {
   }
 
   void stop(ProcessEndState state, final String statusString) {
-    System.out.println("A:state:" + state + ",statusString:" + statusString);
-    Thread.dumpStack();
     stopped = true;
     counter = 0;
     if (state == null) {
