@@ -33,7 +33,7 @@ import etomo.util.UniqueKey;
  * @version $Id$
  */
 public final class UIHarness implements UIComponent {
-  private static final String LOG_TAG = "LOG";
+  public static final String LOG_TAG = "LOG";
 
   public static final UIHarness INSTANCE = new UIHarness();
 
@@ -781,14 +781,14 @@ public final class UIHarness implements UIComponent {
 
   private void logError(ProcessMessages processMessages, String title, AxisID axisID) {
     logHeader(title, axisID);
-    processMessages.print(ProcessMessages.ListType.ERROR);
+    processMessages.print(ProcessMessages.MessageType.ERROR);
     System.err.println();
     System.err.flush();
   }
 
   private void logWarning(ProcessMessages processMessages, String title, AxisID axisID) {
     logHeader(title, axisID);
-    processMessages.print(ProcessMessages.ListType.WARNING);
+    processMessages.print(ProcessMessages.MessageType.WARNING);
     System.err.println();
     System.err.flush();
   }
