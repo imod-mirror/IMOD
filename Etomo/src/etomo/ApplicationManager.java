@@ -1584,6 +1584,10 @@ public final class ApplicationManager extends BaseManager implements
       sendMsgProcessFailedToStart(processResultDisplay);
       return;
     }
+    if (updateTrackCom(display.getBeadTrackDisplay(), axisID, true) == null) {
+      sendMsgProcessFailedToStart(processResultDisplay);
+      return;
+    }
     processTrack.setState(ProcessState.INPROGRESS, axisID, dialogType);
     mainPanel.setState(ProcessState.INPROGRESS, axisID, dialogType);
     String threadName;
