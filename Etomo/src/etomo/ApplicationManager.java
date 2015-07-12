@@ -517,9 +517,9 @@ public final class ApplicationManager extends BaseManager implements
           return false;
         }
         // Send a specific INFO: message to the project log
-        if (!messages.isEmpty(ProcessMessages.ListType.INFO)) {
+        if (!messages.isEmpty(ProcessMessages.MessageType.INFO)) {
           ArrayList<String> infoMessages =
-            messages.match(ProcessMessages.ListType.INFO, new String[] {
+            messages.match(ProcessMessages.MessageType.INFO, new String[] {
               "Setting logarithm offset", "Pixel spacing" });
           if (infoMessages != null && infoMessages.size() != 0) {
             logMessage(infoMessages, "Copytomocoms", AxisID.ONLY);
