@@ -1,3 +1,73 @@
+package etomo.process;
+
+import etomo.logic.DatasetTool;
+import etomo.storage.AutofidseedLog;
+import etomo.storage.FlattenWarpLog;
+import etomo.storage.LogFile;
+import etomo.storage.TrackLog;
+import etomo.storage.TransferFidLog;
+import etomo.type.AxisID;
+import etomo.type.AxisType;
+import etomo.type.FileType;
+import etomo.type.ProcessName;
+import etomo.type.ProcessResultDisplay;
+import etomo.type.ProcessingMethod;
+import etomo.type.TomogramState;
+import etomo.type.ViewType;
+import etomo.ApplicationManager;
+import etomo.BaseManager;
+import etomo.EtomoDirector;
+import etomo.ProcessSeries;
+import etomo.ui.swing.TextPageWindow;
+import etomo.ui.swing.UIHarness;
+import etomo.util.DatasetFiles;
+import etomo.util.InvalidParameterException;
+import etomo.util.MRCHeader;
+import etomo.util.Utilities;
+import etomo.comscript.ArchiveorigParam;
+import etomo.comscript.AutofidseedParam;
+import etomo.comscript.BatchruntomoParam;
+import etomo.comscript.BeadtrackParam;
+import etomo.comscript.BlendmontParam;
+import etomo.comscript.CCDEraserParam;
+import etomo.comscript.ClipParam;
+import etomo.comscript.CombineComscriptState;
+import etomo.comscript.Command;
+import etomo.comscript.CommandDetails;
+import etomo.comscript.ConstCtfPhaseFlipParam;
+import etomo.comscript.ConstFindBeads3dParam;
+import etomo.comscript.ConstMTFFilterParam;
+import etomo.comscript.ConstSplitCorrectionParam;
+import etomo.comscript.ConstTiltParam;
+import etomo.comscript.CtfPhaseFlipParam;
+import etomo.comscript.ExtractpiecesParam;
+import etomo.comscript.FlattenWarpParam;
+import etomo.comscript.MakecomfileParam;
+import etomo.comscript.ProcessDetails;
+import etomo.comscript.ConstNewstParam;
+import etomo.comscript.ConstSqueezevolParam;
+import etomo.comscript.ConstTiltalignParam;
+import etomo.comscript.ConstTiltxcorrParam;
+import etomo.comscript.CopyTomoComs;
+import etomo.comscript.ExtractmagradParam;
+import etomo.comscript.ExtracttiltsParam;
+import etomo.comscript.NewstParam;
+import etomo.comscript.RestrictalignParam;
+import etomo.comscript.RunraptorParam;
+import etomo.comscript.SetupCombine;
+import etomo.comscript.SirtsetupParam;
+import etomo.comscript.SplitcombineParam;
+import etomo.comscript.SplittiltParam;
+import etomo.comscript.SqueezevolParam;
+import etomo.comscript.TiltParam;
+import etomo.comscript.TiltalignParam;
+import etomo.comscript.TransferfidParam;
+import etomo.comscript.TrimvolParam;
+import etomo.comscript.WarpVolParam;
+
+import java.io.File;
+import java.io.IOException;
+
 /**
  * <p>
  * Description: This object manages the execution of com scripts in the
@@ -980,77 +1050,6 @@
  * <p>
  * </p>
  */
-
-package etomo.process;
-
-import etomo.logic.DatasetTool;
-import etomo.storage.AutofidseedLog;
-import etomo.storage.FlattenWarpLog;
-import etomo.storage.LogFile;
-import etomo.storage.TrackLog;
-import etomo.storage.TransferFidLog;
-import etomo.type.AxisID;
-import etomo.type.AxisType;
-import etomo.type.FileType;
-import etomo.type.ProcessName;
-import etomo.type.ProcessResultDisplay;
-import etomo.type.ProcessingMethod;
-import etomo.type.TomogramState;
-import etomo.type.ViewType;
-import etomo.ApplicationManager;
-import etomo.BaseManager;
-import etomo.EtomoDirector;
-import etomo.ProcessSeries;
-import etomo.ui.swing.TextPageWindow;
-import etomo.ui.swing.UIHarness;
-import etomo.util.DatasetFiles;
-import etomo.util.InvalidParameterException;
-import etomo.util.MRCHeader;
-import etomo.util.Utilities;
-import etomo.comscript.ArchiveorigParam;
-import etomo.comscript.AutofidseedParam;
-import etomo.comscript.BatchruntomoParam;
-import etomo.comscript.BeadtrackParam;
-import etomo.comscript.BlendmontParam;
-import etomo.comscript.CCDEraserParam;
-import etomo.comscript.ClipParam;
-import etomo.comscript.CombineComscriptState;
-import etomo.comscript.Command;
-import etomo.comscript.CommandDetails;
-import etomo.comscript.ConstCtfPhaseFlipParam;
-import etomo.comscript.ConstFindBeads3dParam;
-import etomo.comscript.ConstMTFFilterParam;
-import etomo.comscript.ConstSplitCorrectionParam;
-import etomo.comscript.ConstTiltParam;
-import etomo.comscript.CtfPhaseFlipParam;
-import etomo.comscript.ExtractpiecesParam;
-import etomo.comscript.FlattenWarpParam;
-import etomo.comscript.MakecomfileParam;
-import etomo.comscript.ProcessDetails;
-import etomo.comscript.ConstNewstParam;
-import etomo.comscript.ConstSqueezevolParam;
-import etomo.comscript.ConstTiltalignParam;
-import etomo.comscript.ConstTiltxcorrParam;
-import etomo.comscript.CopyTomoComs;
-import etomo.comscript.ExtractmagradParam;
-import etomo.comscript.ExtracttiltsParam;
-import etomo.comscript.NewstParam;
-import etomo.comscript.RestrictalignParam;
-import etomo.comscript.RunraptorParam;
-import etomo.comscript.SetupCombine;
-import etomo.comscript.SirtsetupParam;
-import etomo.comscript.SplitcombineParam;
-import etomo.comscript.SplittiltParam;
-import etomo.comscript.SqueezevolParam;
-import etomo.comscript.TiltParam;
-import etomo.comscript.TiltalignParam;
-import etomo.comscript.TransferfidParam;
-import etomo.comscript.TrimvolParam;
-import etomo.comscript.WarpVolParam;
-
-import java.io.File;
-import java.io.IOException;
-
 public class ProcessManager extends BaseProcessManager {
   // variables cast from base class variables
   // initialized in constructor
@@ -1105,12 +1104,12 @@ public class ProcessManager extends BaseProcessManager {
     int exitValue = copyTomoComs.run();
     // process messages
     ProcessMessages messages = copyTomoComs.getProcessMessages();
-    if (!messages.isEmpty(ProcessMessages.ListType.INFO)) {
+    if (!messages.isEmpty(ProcessMessages.MessageType.INFO)) {
       // smallest signed 16-bit integer (amount that needs to be added to make everything
       // positive).
       String infoValue = "32768";
-      for (int i = 0; i < messages.size(ProcessMessages.ListType.INFO); i++) {
-        if (messages.get(ProcessMessages.ListType.INFO, i).indexOf(infoValue) != -1) {
+      for (int i = 0; i < messages.size(ProcessMessages.MessageType.INFO); i++) {
+        if (messages.get(ProcessMessages.MessageType.INFO, i).indexOf(infoValue) != -1) {
           appManager.getMetaData().setGenLog(AxisID.FIRST, infoValue);
           if (axisType != null && axisType == AxisType.DUAL_AXIS) {
             appManager.getMetaData().setGenLog(AxisID.SECOND, infoValue);
@@ -1118,18 +1117,18 @@ public class ProcessManager extends BaseProcessManager {
         }
       }
     }
-    if (!messages.isEmpty(ProcessMessages.ListType.ERROR)) {
+    if (!messages.isEmpty(ProcessMessages.MessageType.ERROR)) {
       StringBuffer errorMessage = new StringBuffer("Error running Copytomocoms");
-      for (int i = 0; i < messages.size(ProcessMessages.ListType.ERROR); i++) {
-        errorMessage.append("\n" + messages.get(ProcessMessages.ListType.ERROR,i));
+      for (int i = 0; i < messages.size(ProcessMessages.MessageType.ERROR); i++) {
+        errorMessage.append("\n" + messages.get(ProcessMessages.MessageType.ERROR, i));
       }
       UIHarness.INSTANCE.openMessageDialog(appManager, errorMessage.toString(),
         "Copytomocoms Error", axisID);
     }
-    for (int i = 0; i < messages.size(ProcessMessages.ListType.WARNING); i++) {
-      UIHarness.INSTANCE
-        .openMessageDialog(appManager, messages.get(ProcessMessages.ListType.WARNING, i),
-          "Copytomocoms Warning", axisID);
+    for (int i = 0; i < messages.size(ProcessMessages.MessageType.WARNING); i++) {
+      UIHarness.INSTANCE.openMessageDialog(appManager,
+        messages.get(ProcessMessages.MessageType.WARNING, i), "Copytomocoms Warning",
+        axisID);
     }
     if (exitValue != 0) {
       UIHarness.INSTANCE.openMessageDialog(appManager, copyTomoComs.getStdErrorString(),
@@ -1146,22 +1145,22 @@ public class ProcessManager extends BaseProcessManager {
     int exitValue = param.run();
     // process messages
     ProcessMessages messages = param.getProcessMessages();
-    boolean err = !messages.isEmpty(ProcessMessages.ListType.ERROR);
+    boolean err = !messages.isEmpty(ProcessMessages.MessageType.ERROR);
     if (err) {
       StringBuffer errorMessage =
         new StringBuffer(
           "The template validation has failed because of invalid directive(s)."
             + "\nBatchruntomo error message:");
-      for (int i = 0; i < messages.size(ProcessMessages.ListType.ERROR); i++) {
-        errorMessage.append("\n" + messages.get(ProcessMessages.ListType.ERROR, i));
+      for (int i = 0; i < messages.size(ProcessMessages.MessageType.ERROR); i++) {
+        errorMessage.append("\n" + messages.get(ProcessMessages.MessageType.ERROR, i));
       }
       UIHarness.INSTANCE.openMessageDialog(appManager, errorMessage.toString(),
         "Template Validation Error", axisID);
     }
-    for (int i = 0; i < messages.size(ProcessMessages.ListType.WARNING); i++) {
+    for (int i = 0; i < messages.size(ProcessMessages.MessageType.WARNING); i++) {
       UIHarness.INSTANCE.openMessageDialog(appManager,
-        messages.get(ProcessMessages.ListType.WARNING, i), "Template Validation Warning",
-        axisID);
+        messages.get(ProcessMessages.MessageType.WARNING, i),
+        "Template Validation Warning", axisID);
     }
     if (exitValue != 0) {
       UIHarness.INSTANCE.openMessageDialog(appManager, param.getStdErrorString(),
@@ -1178,18 +1177,19 @@ public class ProcessManager extends BaseProcessManager {
     int exitValue = param.run();
     // process messages
     ProcessMessages messages = param.getProcessMessages();
-    boolean err = !messages.isEmpty(ProcessMessages.ListType.ERROR);
+    boolean err = !messages.isEmpty(ProcessMessages.MessageType.ERROR);
     if (err) {
       StringBuffer errorMessage = new StringBuffer("Error running Makecomfile");
-      for (int i = 0; i < messages.size(ProcessMessages.ListType.ERROR); i++) {
-        errorMessage.append("\n" + messages.get(ProcessMessages.ListType.ERROR, i));
+      for (int i = 0; i < messages.size(ProcessMessages.MessageType.ERROR); i++) {
+        errorMessage.append("\n" + messages.get(ProcessMessages.MessageType.ERROR, i));
       }
       UIHarness.INSTANCE.openMessageDialog(appManager, errorMessage.toString(),
         "Makecomfile Error", axisID);
     }
-    for (int i = 0; i < messages.size(ProcessMessages.ListType.WARNING); i++) {
+    for (int i = 0; i < messages.size(ProcessMessages.MessageType.WARNING); i++) {
       UIHarness.INSTANCE.openMessageDialog(appManager,
-        messages.get(ProcessMessages.ListType.WARNING, i), "Makecomfile Warning", axisID);
+        messages.get(ProcessMessages.MessageType.WARNING, i), "Makecomfile Warning",
+        axisID);
     }
     if (exitValue != 0) {
       UIHarness.INSTANCE.openMessageDialog(appManager, param.getStdErrorString(),
@@ -1943,14 +1943,14 @@ public class ProcessManager extends BaseProcessManager {
     appManager.saveStorables(AxisID.ONLY);
     int exitValue = setupCombine.run();
     ProcessMessages messages = setupCombine.getProcessMessages();
-    for (int i = 0; i < messages.size(ProcessMessages.ListType.ERROR); i++) {
+    for (int i = 0; i < messages.size(ProcessMessages.MessageType.ERROR); i++) {
       UIHarness.INSTANCE.openMessageDialog(appManager,
-        messages.get(ProcessMessages.ListType.ERROR, i), "Setup Combine Error",
+        messages.get(ProcessMessages.MessageType.ERROR, i), "Setup Combine Error",
         AxisID.ONLY);
     }
-    for (int i = 0; i < messages.size(ProcessMessages.ListType.WARNING); i++) {
+    for (int i = 0; i < messages.size(ProcessMessages.MessageType.WARNING); i++) {
       UIHarness.INSTANCE.openMessageDialog(appManager,
-        messages.get(ProcessMessages.ListType.WARNING, i), "Setup Combine Warning",
+        messages.get(ProcessMessages.MessageType.WARNING, i), "Setup Combine Warning",
         AxisID.ONLY);
     }
     TomogramState state = appManager.getState();
@@ -1985,14 +1985,14 @@ public class ProcessManager extends BaseProcessManager {
     }
     int exitValue = setupCombine.run();
     ProcessMessages messages = setupCombine.getProcessMessages();
-    for (int i = 0; i < messages.size(ProcessMessages.ListType.ERROR); i++) {
+    for (int i = 0; i < messages.size(ProcessMessages.MessageType.ERROR); i++) {
       UIHarness.INSTANCE.openMessageDialog(appManager,
-        messages.get(ProcessMessages.ListType.ERROR, i), "Setup Combine Error",
+        messages.get(ProcessMessages.MessageType.ERROR, i), "Setup Combine Error",
         AxisID.ONLY);
     }
-    for (int i = 0; i < messages.size(ProcessMessages.ListType.WARNING); i++) {
+    for (int i = 0; i < messages.size(ProcessMessages.MessageType.WARNING); i++) {
       UIHarness.INSTANCE.openMessageDialog(appManager,
-        messages.get(ProcessMessages.ListType.WARNING, i), "Setup Combine Warning",
+        messages.get(ProcessMessages.MessageType.WARNING, i), "Setup Combine Warning",
         AxisID.ONLY);
     }
     if (exitValue != 0) {
