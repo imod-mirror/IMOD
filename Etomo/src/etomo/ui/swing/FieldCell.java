@@ -167,6 +167,7 @@ final class FieldCell extends InputCell implements ActionTarget, TableComponent,
   private boolean inUse = true;
   private FontMetrics fontMetrics = null;
   private DirectiveDef directiveDef = null;
+  private boolean enabled = true;
 
   private TextFieldState state;
 
@@ -273,9 +274,11 @@ final class FieldCell extends InputCell implements ActionTarget, TableComponent,
     return UIUtilities.getPreferredWidth(textField.getText(), fontMetrics);
   }
 
-  public void setEnabled(boolean enable) {
-    setEditable(enable);
-    if (enable) {
+  void setEnabled(boolean enabled) {
+    this.enabled = enabled;
+    textField.setEnabled(enabled && isEditable());
+    setBackground();
+    if (enabled && isEditable()) {
       setForeground();
     }
     else {
@@ -285,17 +288,12 @@ final class FieldCell extends InputCell implements ActionTarget, TableComponent,
   }
 
   public boolean isEnabled() {
-    return isEditable();
+    return enabled;
   }
 
   void setEditable(boolean editable) {
-    if (editable) {
-      if (state.isEditableField()) {
-        super.setEditable(editable);
-      }
-    }
-    else {
-      super.setEditable(false);
+    if (state.isEditableField()) {
+      super.setEditable(editable);
     }
   }
 
@@ -533,8 +531,18 @@ final class FieldCell extends InputCell implements ActionTarget, TableComponent,
     return textField.getBorder().getBorderInsets(textField).right;
   }
 
-  void setToolTipText(String text) {
+  public void setToolTipText(String text) {
     textField.setToolTipText(TooltipFormatter.INSTANCE.format(text));
+  }
+
+  public void setTooltip(final Field field) {
+    if (field != null) {
+      textField.setToolTipText(field.getTooltip());
+    }
+  }
+
+  public String getTooltip() {
+    return textField.getToolTipText();
   }
 
   boolean equals(String comp) {

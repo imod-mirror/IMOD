@@ -129,6 +129,7 @@ public final class UserConfiguration implements Storable {
     + ".UserTemplate", true);
   private final StringProperty emailAddress = new StringProperty("EmailAddress", true);
   private final EtomoBoolean2 useEmailAddress = new EtomoBoolean2("EmailAddress.Use");
+  private final StringProperty smtpServer = new StringProperty("SmtpServer", true);
 
   private boolean nativeLookAndFeel = false;
   private boolean advancedDialogs = false;
@@ -224,6 +225,7 @@ public final class UserConfiguration implements Storable {
     userTemplateAbsPath.store(props, prepend);
     emailAddress.store(props, prepend);
     useEmailAddress.store(props, prepend);
+    smtpServer.store(props, prepend);
     props.setProperty(group + "MainWindowWidth", String.valueOf(mainWindowWidth));
     props.setProperty(group + "MainWindowHeight", String.valueOf(mainWindowHeight));
     props.setProperty(group + "NMRUFiles", String.valueOf(nMRUFiles));
@@ -386,6 +388,7 @@ public final class UserConfiguration implements Storable {
     userTemplateAbsPath.load(props, prepend);
     emailAddress.load(props, prepend);
     useEmailAddress.load(props, prepend);
+    smtpServer.load(props, prepend);
     // Can't use getProperty to find an unknown key - go through the entire collection
     if (pluginMap != null) {
       pluginMap.clear();
@@ -952,6 +955,14 @@ public final class UserConfiguration implements Storable {
 
   public boolean isUseEmailAddress() {
     return useEmailAddress.is();
+  }
+
+  public String getSmtpServer() {
+    return smtpServer.toString();
+  }
+
+  public void setSmtpServer(final String input) {
+    smtpServer.set(input);
   }
 
   public void setUseEmailAddress(final boolean input) {

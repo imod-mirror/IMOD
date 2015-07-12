@@ -12,7 +12,7 @@ import javax.swing.event.DocumentListener;
 import javax.swing.text.Document;
 
 import etomo.EtomoDirector;
-import etomo.logic.DefaultFinder;
+import etomo.logic.AutodocAttributeRetriever;
 import etomo.logic.FieldValidator;
 import etomo.storage.DirectiveDef;
 import etomo.storage.autodoc.AutodocTokenizer;
@@ -376,7 +376,7 @@ final class LabeledTextField implements UIComponent, SwingComponent, Field, Focu
     // only search for default value once
     if (defaultValue == null) {
       defaultValue = new TextFieldSetting(fieldType);
-      String value = DefaultFinder.INSTANCE.getDefaultValue(directiveDef);
+      String value = AutodocAttributeRetriever.INSTANCE.getDefaultValue(directiveDef);
       if (value != null) {
         // if default value has been found, set it in the field setting
         defaultValue.set(value);
@@ -723,20 +723,25 @@ final class LabeledTextField implements UIComponent, SwingComponent, Field, Focu
     textField.setText(Double.toString(value));
   }
 
-  void setEnabled(final boolean isEnabled) {
-    textField.setEnabled(isEnabled);
-    label.setEnabled(isEnabled);
-    if (isEnabled) {
+  void setEnabled(final boolean enabled) {
+    textField.setEnabled(enabled);
+    label.setEnabled(enabled);
+    if (enabled) {
       updateFieldHighlight();
     }
   }
 
+  void setEditable(final boolean editable) {
+    //Label is not changed by editable status
+    textField.setEditable(editable);
+  }
+
   public boolean isEnabled() {
-    return (textField.isEnabled());
+    return textField.isEnabled();
   }
 
   boolean isEditable() {
-    return (textField.isEditable());
+    return textField.isEditable();
   }
 
   boolean isVisible() {
@@ -747,9 +752,7 @@ final class LabeledTextField implements UIComponent, SwingComponent, Field, Focu
     panel.setVisible(isVisible);
   }
 
-  void setEditable(final boolean editable) {
-    textField.setEditable(editable);
-  }
+
 
   void setDebug(final boolean debug) {
     this.debug = debug;
@@ -812,7 +815,7 @@ final class LabeledTextField implements UIComponent, SwingComponent, Field, Focu
     panel.setAlignmentX(alignment);
   }
 
-  void setToolTipText(final String text) {
+  public void setToolTipText(final String text) {
     boolean setDebug = debug && !TooltipFormatter.INSTANCE.isDebug();
     if (setDebug) {
       TooltipFormatter.INSTANCE.setDebug(debug);
@@ -824,6 +827,19 @@ final class LabeledTextField implements UIComponent, SwingComponent, Field, Focu
     panel.setToolTipText(tooltip);
     textField.setToolTipText(tooltip);
     label.setToolTipText(tooltip);
+  }
+  
+  public void setTooltip(final Field field) {
+    if (field != null) {
+      String tooltip = field.getTooltip();
+      panel.setToolTipText(tooltip);
+      textField.setToolTipText(tooltip);
+      label.setToolTipText(tooltip);
+    }
+  }
+
+  public String getTooltip() {
+    return textField.getToolTipText();
   }
 
   void addMouseListener(final MouseListener listener) {
