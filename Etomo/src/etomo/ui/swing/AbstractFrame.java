@@ -402,9 +402,9 @@ abstract class AbstractFrame extends JFrame implements UIComponent, SwingCompone
 
   private final String[] wrapWarning(final ProcessMessages processMessages) {
     ArrayList messageArray = null;
-    for (int i = 0; i < processMessages.size(ProcessMessages.ListType.WARNING); i++) {
+    for (int i = 0; i < processMessages.size(ProcessMessages.MessageType.WARNING); i++) {
       messageArray =
-        PopupTool.wrapMessage(processMessages.get(ProcessMessages.ListType.WARNING, i),
+        PopupTool.wrapMessage(processMessages.get(ProcessMessages.MessageType.WARNING, i),
           messageArray);
     }
     return toStringArray(messageArray);
@@ -418,9 +418,9 @@ abstract class AbstractFrame extends JFrame implements UIComponent, SwingCompone
    */
   private final String[] wrapError(ProcessMessages processMessages) {
     ArrayList messageArray = null;
-    for (int i = 0; i < processMessages.size(ProcessMessages.ListType.ERROR); i++) {
+    for (int i = 0; i < processMessages.size(ProcessMessages.MessageType.ERROR); i++) {
       messageArray =
-        PopupTool.wrapMessage(processMessages.get(ProcessMessages.ListType.ERROR, i),
+        PopupTool.wrapMessage(processMessages.get(ProcessMessages.MessageType.ERROR, i),
           messageArray);
     }
     return toStringArray(messageArray);
