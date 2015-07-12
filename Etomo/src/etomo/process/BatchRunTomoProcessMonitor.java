@@ -34,12 +34,17 @@ public final class BatchRunTomoProcessMonitor implements OutfileProcessMonitor,
   private static final String COM_TAG = ".com";
   private static final String STEP_SUCCESS_TAG = "Successfully finished";
   private static final String DATASET_SUCCESS_TAG = "Completed dataset";
-  private static final String TIME_TAG = " in ";
+  private static final String TIME_STAMP_TAG = " at ";
   static final String SUCCESS_TAG = "SUCCESSFULLY COMPLETED";
   private static final String ENDING_STEP_SET_TAG = "EndingStepSet";
   private static final String NUMBER_DATASETS_TAG = "NumberDatasets";
   private static final String BATCH_RUN_TOMO_ERROR_TAG = "ERROR: batchruntomo -";
   private static final String ALT_ERROR_TAG = "ABORT SET:";
+  private static final String[] LOG_TAGS = new String[] { "Final align -",
+    "Starting axis B", "AUTOPATCHFIT - Refinematch found a good ",
+    "AUTOPATCHFIT - Findwarp found a good " };
+  private static final String KILLING_TAG = "RECEIVED SIGNAL TO QUIT, JUST EXITING";
+  private static final String PAUSED_TAG = "Exiting after finishing dataset as requested";
 
   private final EtomoNumber nDatasets = new EtomoNumber();
   private final EtomoNumber endingStepSet = new EtomoNumber(EtomoNumber.Type.BOOLEAN);
@@ -60,7 +65,6 @@ public final class BatchRunTomoProcessMonitor implements OutfileProcessMonitor,
   private boolean processRunning = true;
   private boolean pausing = false;
   private boolean killing = false;
-  private boolean starting = true;
   private boolean stop = false;
   private boolean running = false;
   private boolean reconnect = false;
@@ -75,9 +79,8 @@ public final class BatchRunTomoProcessMonitor implements OutfileProcessMonitor,
   public void dumpState() {
     System.err.print("[updateProgressBar:" + updateProgressBar + ",useCommandsPipe:"
       + useCommandsPipe + ",\nprocessRunning:" + processRunning + ",pausing:" + pausing
-      + ",\nkilling:" + killing + ",starting:" + starting + ",stop:" + stop + ",running:"
-      + running + ",\nreconnect:" + reconnect + ",multiLineMessages:" + multiLineMessages
-      + "]");
+      + ",\nkilling:" + killing + ",stop:" + stop + ",running:" + running
+      + ",\nreconnect:" + reconnect + ",multiLineMessages:" + multiLineMessages + "]");
   }
 
   BatchRunTomoProcessMonitor(final BaseManager manager, final AxisID axisID,
@@ -209,7 +212,7 @@ public final class BatchRunTomoProcessMonitor implements OutfileProcessMonitor,
           interrupted = true;
         }
       }
-      endMonitor(ProcessEndState.DONE);
+      endMonitor();
     }
     catch (IOException e) {
       e.printStackTrace();
@@ -238,7 +241,15 @@ public final class BatchRunTomoProcessMonitor implements OutfileProcessMonitor,
   public void msgLogFileRenamed() {}
 
   public void endMonitor(final ProcessEndState endState) {
-    setProcessEndState(endState);
+    // Output file will use the success tag when it ends from a pause. Don't lose the
+    // pause state unless overriding it with something other then Done.
+    if (this.endState == null || (endState != null && endState != ProcessEndState.DONE)) {
+      setProcessEndState(endState);
+    }
+    endMonitor();
+  }
+
+  public void endMonitor() {
     processRunning = false;// the only place that this should be changed
     closeProcessOutput();
     messages.stopStringFeed();
@@ -284,20 +295,6 @@ public final class BatchRunTomoProcessMonitor implements OutfileProcessMonitor,
       writeCommand("Q");
       killing = true;
       updateProgressBar = true;
-      if (starting) {
-        // wait to see if processchunks is already starting chunks.
-        try {
-          Thread.sleep(2001);
-        }
-        catch (InterruptedException e) {}
-        if (starting) {
-          // processchunks hasn't started chunks and it won't because the "Q" has
-          // been sent. So it is safe to kill it in the usual way.
-          if (process != null) {
-            process.signalKill(axisID);
-          }
-        }
-      }
     }
     catch (LogFile.LockException e) {
       e.printStackTrace();
@@ -335,7 +332,7 @@ public final class BatchRunTomoProcessMonitor implements OutfileProcessMonitor,
   }
 
   public boolean isProcessRunning() {
-    return processRunning && endState == null;
+    return processRunning;
   }
 
   AxisID getAxisID() {
@@ -344,10 +341,6 @@ public final class BatchRunTomoProcessMonitor implements OutfileProcessMonitor,
 
   public final String getPid() {
     return null;
-  }
-
-  boolean isStarting() {
-    return starting;
   }
 
   synchronized void closeProcessOutput() {
@@ -372,7 +365,33 @@ public final class BatchRunTomoProcessMonitor implements OutfileProcessMonitor,
     while (processOutput != null
       && (line = processOutput.readLine(processOutputReaderId)) != null) {
       line = line.trim();
-      messages.feedString(line);
+      // Send all output to the ProcessMessages blocking queue, so each line can be
+      // processed immediately.
+      index = line.indexOf(DATASET_TAG);
+      if (index != -1) {
+        // Send a linefeed and the dataset start message to the project log. Use the
+        // ProcessMessages string feed so that messages get to the project log in the
+        // right order.
+        messages.feedNewline(ProcessMessages.MessageType.LOG);
+        messages.feedMessage(line);
+        int index2 = line.indexOf(TIME_STAMP_TAG, index);
+        currentDataset = line.substring(index + DATASET_TAG.length(), index2).trim();
+        currentStep = null;
+        return true;
+      }
+      else {
+        boolean lineFed = false;
+        for (int i = 0; i < LOG_TAGS.length; i++) {
+          if (line.indexOf(LOG_TAGS[i]) != -1) {
+            lineFed = true;
+            // Send output that users want to see to the project log.
+            messages.feedMessage(ProcessMessages.MessageType.LOG, line);
+          }
+        }
+        if (!lineFed) {
+          messages.feedString(line);
+        }
+      }
       // check for the real batchruntomo error message. Everything else will be logged.
       if (line.indexOf(BATCH_RUN_TOMO_ERROR_TAG) != -1) {
         endMonitor(ProcessEndState.FAILED);
@@ -382,33 +401,23 @@ public final class BatchRunTomoProcessMonitor implements OutfileProcessMonitor,
         endMonitor(ProcessEndState.DONE);
         return true;
       }
-      if (line.equals("When you rerun with a different set of machines, be sure to use")) {
-        endMonitor(ProcessEndState.KILLED);
-        return true;
+      if (line.equals(KILLING_TAG)) {
+        setProcessEndState(ProcessEndState.KILLED);
       }
-      if (line.equals("All previously running chunks are done - exiting as requested")) {
+      if (line.equals(PAUSED_TAG)) {
         endMonitor(ProcessEndState.PAUSED);
-        return true;
       }
       if (line.startsWith(ETOMO_TAG)) {
         currentStep = "eTomo setup";
         return true;
       }
       if (line.startsWith(STEP_SUCCESS_TAG)) {
-        index = line.indexOf(COM_TAG);
         currentStep += " - done";
         return true;
       }
       if (line.startsWith(DATASET_SUCCESS_TAG)) {
-        index = line.indexOf(TIME_TAG);
         currentStep = "done";
         datasetsFinished++;
-        return true;
-      }
-      index = line.indexOf(DATASET_TAG);
-      if (index != -1) {
-        currentDataset = line.substring(index + DATASET_TAG.length()).trim();
-        currentStep = null;
         return true;
       }
       index = line.indexOf(STEP_TAG);
@@ -422,7 +431,7 @@ public final class BatchRunTomoProcessMonitor implements OutfileProcessMonitor,
     }
     // Wait until the entire log is processed before ending the monitor
     if (processRunning && interrupted && line == null) {
-      endMonitor(ProcessEndState.DONE);
+      endMonitor();
       return true;
     }
     return false;
@@ -449,32 +458,33 @@ public final class BatchRunTomoProcessMonitor implements OutfileProcessMonitor,
   public void useMessageReporter() {}
 
   private final void setProgressBarTitle() {
-    StringBuilder title = new StringBuilder(TITLE);
+    StringBuilder title = new StringBuilder();
+    if (processRunning) {
+      if (killing) {
+        title.append("killing ");
+      }
+      else if (pausing) {
+        title.append("pausing ");
+        if (willResume) {
+          title.append("(will resume) ");
+        }
+      }
+    }
+    else if (killing) {
+      title.append("killed ");
+    }
+    else if (pausing) {
+      title.append("paused ");
+      if (willResume) {
+        title.append("(will resume) ");
+      }
+    }
+    title.append(TITLE);
     if (currentDataset != null) {
       title.append(": " + currentDataset);
     }
     if (currentStep != null) {
       title.append(": " + currentStep);
-    }
-    if (processRunning) {
-      if (killing) {
-        title.append(" - killing:  exiting current dataset");
-      }
-      else if (pausing) {
-        title.append(" - pausing:  finishing current dataset");
-        if (willResume) {
-          title.append(" - will resume");
-        }
-      }
-    }
-    else if (killing) {
-      title.append(" - killed");
-    }
-    else if (pausing) {
-      title.append(" - paused");
-      if (willResume) {
-        title.append(" - will resume");
-      }
     }
     manager.getMainPanel().setProgressBar(title.toString(), nDatasets.getInt(), axisID,
       !killing);
