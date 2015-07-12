@@ -9,21 +9,15 @@ import junit.framework.TestCase;
 /**
 * <p>Description: </p>
 * 
-* <p>Copyright: Copyright 2012</p>
+* <p>Copyright: Copyright 2012 - 2015 by the Regents of the University of Colorado</p>
+* <p/>
+* <p>Organization: Dept. of MCD Biology, University of Colorado</p>
 *
-* <p>Organization:
-* Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
-* University of Colorado</p>
-* 
-* @author $Author$
-* 
-* @version $Revision$
+* @version $Id$
 * 
 * <p> $Log$ </p>
 */
 public class ProcessMessagesTest extends TestCase {
-  public static final String rcsid = "$Id:$";
-
   public void testWarnings() {
     ProcessMessages messages = ProcessMessages.getInstance(null);
     File file = new File(TestUtilites.INSTANCE.getUnitTestData(), "aligna.log");
@@ -33,12 +27,12 @@ public class ProcessMessagesTest extends TestCase {
     catch (FileNotFoundException e) {
       fail(e.getMessage());
     }
-    messages.print(ProcessMessages.ListType.WARNING);
+    messages.print(ProcessMessages.MessageType.WARNING);
     assertTrue("2 messages should be found",
-      messages.size(ProcessMessages.ListType.WARNING) == 2);
+      messages.size(ProcessMessages.MessageType.WARNING) == 2);
     assertTrue(
       "first message shouldn't contain extra lines",
-      messages.get(ProcessMessages.ListType.WARNING, 0).endsWith(
+      messages.get(ProcessMessages.MessageType.WARNING, 0).endsWith(
         "Minimization error #3 - Iteration limit exceeded"));
   }
 
@@ -51,18 +45,18 @@ public class ProcessMessagesTest extends TestCase {
     catch (FileNotFoundException e) {
       fail(e.getMessage());
     }
-    messages.print(ProcessMessages.ListType.WARNING);
+    messages.print(ProcessMessages.MessageType.WARNING);
     assertTrue(
       "3 errors should be found - prnstr('ERROR: & log.write('ERROR: should be ignored",
-      messages.size(ProcessMessages.ListType.ERROR) == 3);
+      messages.size(ProcessMessages.MessageType.ERROR) == 3);
     assertTrue(
       "ERROR: message should not contain extra lines when MultiLineMessages is off",
-      messages.get(ProcessMessages.ListType.ERROR, 0).endsWith("A. error line"));
+      messages.get(ProcessMessages.MessageType.ERROR, 0).endsWith("A. error line"));
     assertTrue(
       "Errno: message should not contain extra lines when MultiLineMessages is off",
-      messages.get(ProcessMessages.ListType.ERROR, 1).endsWith("C. error line"));
+      messages.get(ProcessMessages.MessageType.ERROR, 1).endsWith("C. error line"));
     assertTrue(
       "Traceback message should always contain extra lines",
-      messages.get(ProcessMessages.ListType.ERROR, 2).indexOf("F. second error line") != -1);
+      messages.get(ProcessMessages.MessageType.ERROR, 2).indexOf("F. second error line") != -1);
   }
 }
