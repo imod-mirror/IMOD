@@ -8,14 +8,22 @@ import etomo.storage.LogFile;
 import etomo.type.AxisID;
 import etomo.type.FileType;
 
+/**
+* <p>Description: Process for a comscript that is detatched and watches a file.</p>
+* 
+* <p>Copyright: Copyright 2015 by the Regents of the University of Colorado</p>
+* <p/>
+* <p>Organization: Dept. of MCD Biology, University of Colorado</p>
+*
+* @version $Id$
+*/
 public final class OutfileComScriptProcess extends ComScriptProcess {
   private final BaseProcessManager processManager;
   private final DetachedProcessMonitor monitor;
 
   public OutfileComScriptProcess(final BaseManager manager, final String comScript,
     final BaseProcessManager processManager, final AxisID axisID,
-    final DetachedProcessMonitor monitor, final Command command,
-    final FileType fileType) {
+    final DetachedProcessMonitor monitor, final Command command, final FileType fileType) {
     super(manager, comScript, processManager, axisID, monitor, command, fileType);
     this.processManager = processManager;
     this.monitor = monitor;
@@ -43,15 +51,17 @@ public final class OutfileComScriptProcess extends ComScriptProcess {
     }
     return monitor.getProcessMessages();
   }
-  
+
   public final void kill(AxisID axisID) {
     monitor.kill(this, axisID);
   }
-  
+
+  public void signalKill(AxisID axisID) {}
+
   public final void pause(AxisID axisID) {
     monitor.pause(this, axisID);
   }
-  
+
   final String getStatusString() {
     return monitor.getStatusString();
   }
