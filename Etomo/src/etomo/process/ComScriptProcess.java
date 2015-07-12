@@ -942,7 +942,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
   public void run() {
     if (!nonBlocking && isComScriptBusy()) {
       error = true;
-      processMessages.add(ProcessMessages.ListType.ERROR, comScriptName
+      processMessages.add(ProcessMessages.MessageType.ERROR, comScriptName
         + " is already running");
       runMsgComScriptDone(1);
       return;
@@ -980,10 +980,10 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     catch (IOException except) {
       except.printStackTrace();
       error = true;
-      processMessages.add(ProcessMessages.ListType.ERROR, except.getMessage());
+      processMessages.add(ProcessMessages.MessageType.ERROR, except.getMessage());
       // if (!nonBlocking) {
       if (vmstopy == null) {
-        processMessages.add(ProcessMessages.ListType.ERROR, "vmstopy is null");
+        processMessages.add(ProcessMessages.MessageType.ERROR, "vmstopy is null");
         runMsgComScriptDone(-1);
       }
       else {
@@ -1000,19 +1000,19 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     }
     catch (SystemProcessException except) {}
     catch (IOException except) {
-      processMessages.add(ProcessMessages.ListType.ERROR, except.getMessage());
+      processMessages.add(ProcessMessages.MessageType.ERROR, except.getMessage());
     }
     catch (LogFile.LockException except) {
-      processMessages.add(ProcessMessages.ListType.ERROR, except.getMessage());
+      processMessages.add(ProcessMessages.MessageType.ERROR, except.getMessage());
     }
     try {
       parse();
     }
     catch (LogFile.LockException except1) {
-      processMessages.add(ProcessMessages.ListType.ERROR, except1.getMessage());
+      processMessages.add(ProcessMessages.MessageType.ERROR, except1.getMessage());
     }
     catch (FileNotFoundException except2) {
-      processMessages.add(ProcessMessages.ListType.ERROR, except2.getMessage());
+      processMessages.add(ProcessMessages.MessageType.ERROR, except2.getMessage());
     }
 
     // Send a message back to the ProcessManager that this thread is done.
@@ -1192,7 +1192,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     vmstopy.run();
 
     if (vmstopy.getExitValue() != 0) {
-      processMessages.add(ProcessMessages.ListType.ERROR, "Running vmstopy against "
+      processMessages.add(ProcessMessages.MessageType.ERROR, "Running vmstopy against "
         + comScriptName + " failed");
       throw new SystemProcessException("");
     }
